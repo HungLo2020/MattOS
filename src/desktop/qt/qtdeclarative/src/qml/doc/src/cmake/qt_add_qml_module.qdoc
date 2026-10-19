@@ -6,7 +6,7 @@
 \ingroup cmake-commands-qtqml
 
 \title qt_add_qml_module
-\keyword qt6_add_qml_module
+\keyword qt_add_qml_module()
 
 \summary{Defines a QML module.}
 
@@ -47,6 +47,8 @@ qt_add_qml_module(
     [NO_GENERATE_QMLTYPES]
     [NO_GENERATE_QMLDIR]
     [NO_GENERATE_EXTRA_QMLDIRS]
+    [NO_GENERATE_QTCONF]                          # since Qt 6.12
+    [NO_GENERATE_AOT_VALIDATION]                  # since Qt 6.12
     [NO_LINT]
     [NO_CACHEGEN]
     [NO_RESOURCE_TARGET_PATH]
@@ -321,7 +323,7 @@ for it instead.
 
 A separate linting target will be automatically created if any \c{.qml} files
 are added to the module via the \c QML_FILES keyword, or by a later call to
-\l{qt6_target_qml_sources}{qt_target_qml_sources()}. The name of the linting
+\l qt_target_qml_sources(). The name of the linting
 target will be the \c target followed by \c{_qmllint}. An \c{all_qmllint}
 target which depends on all the individual \c{*_qmllint} targets is also
 provided as a convenience.
@@ -438,7 +440,8 @@ categories:
     \li \l{Automatic type registration}{Code generation and tooling}
     \li \c NO_GENERATE_QMLTYPES, \c NO_GENERATE_QMLDIR, \c NO_GENERATE_EXTRA_QMLDIRS,
         \c TYPEINFO, \c NO_CACHEGEN, \c NO_LINT,
-        \l{qmlimportscanner and NO_IMPORT_SCAN}{NO_IMPORT_SCAN}
+        \l{qmlimportscanner and NO_IMPORT_SCAN}{NO_IMPORT_SCAN},
+        \c{NO_GENERATE_AOT_VALIDATION}
 \row
     \li \l{OUTPUT_DIRECTORY}{Output and installation}
     \li \l{OUTPUT_DIRECTORY}, \c OUTPUT_TARGETS, \l{NO_GENERATE_QTCONF}
@@ -522,12 +525,12 @@ import. This behavior can be turned off for a QML module by passing the
 \c NO_GENERATE_EXTRA_QMLDIRS flag to it.
 The \c NO_GENERATE_QMLDIR implies \c NO_GENERATE_EXTRA_QMLDIRS.
 
-\note See \l{qt6_target_qml_sources}{qt_target_qml_sources()} for further details on
+\note See \l qt_target_qml_sources() for further details on
 how to add qmlfiles after \c qt_add_qml_module() was called.
 For example, you may wish to add files conditionally based on an if statement
 expression, or from subdirectories that will only be added if certain criteria
 are met.
-Furthermore, files added with \l{qt6_target_qml_sources}{qt_target_qml_sources()}
+Furthermore, files added with \l qt_target_qml_sources()
 also can specify if they should be skipped for the linting,
 \l{qmlcachegen-auto}{bytecode compilation} or \c qmldir file generation.
 
@@ -756,6 +759,21 @@ explicitly.
 is already imported via the \c IMPORTS option. The recommended way is to
 use the lighter alternative \c DEPENDENCIES over \c IMPORTS.
 
+\target NO_GENERATE_QTCONF
+When the backing target is an executable and \c{TARGET} dependencies are used
+(requires \l{QTP0005}), \c{qt_add_qml_module()} automatically generates a
+\c{qt.conf} file next to the executable in the build tree. This file configures
+the \l{QML Import Path} so that the QML engine can locate the module's
+dependencies at run time without requiring manual \c IMPORT_PATH entries. The
+\c NO_GENERATE_QTCONF option suppresses this behavior, which may be necessary
+if the generated file conflicts with a \c qt.conf already present in the build
+directory. This option was introduced in Qt 6.12.
+
+\warning When using \c NO_GENERATE_QTCONF, the application may fail to find its
+QML module dependencies at run time. You must manually configure the
+\l{QML Import Path} — for example, by adding the appropriate import paths to
+the existing \c qt.conf file.
+
 The module version of the
 dependencies must be specified along with the module name, in the same form as
 used for \c IMPORTS and \c OPTIONAL_IMPORTS. Each module listed here will be
@@ -763,9 +781,10 @@ added as a \c{depends} entry in the generated
 \l{Module Definition qmldir Files}{qmldir} file.
 
 \target IMPORT_PATH
-\c IMPORT_PATH can be used to add to the search paths where other QML modules
-that this one depends on can be found. The other modules must have their
-\c qmldir file under their own target path below one of the search paths.
+\c IMPORT_PATH can be used to add to the search paths where other QML
+modules that this one depends on can be found. The other modules must have
+their \c qmldir file under their own target path below one of the search paths.
+Qt assumes that all files under the \c IMPORT_PATH come from a trusted source.
 
 If the backing target is a static library and that static library will be
 installed, \c OUTPUT_TARGETS should be given to provide a variable in which to
@@ -820,7 +839,7 @@ disabled by adding the \c NO_PLUGIN option. Specifying both \c NO_PLUGIN and
 In certain situations, the project may want to delay creating the plugin target
 until after the call. The \c NO_CREATE_PLUGIN_TARGET option can be given in
 that situation. The project is then expected to call
-\l{qt6_add_qml_plugin}{qt_add_qml_plugin()} on the plugin target once it has
+\l qt_add_qml_plugin() on the plugin target once it has
 been created. When  \c NO_CREATE_PLUGIN_TARGET is given, \c PLUGIN_TARGET must
 also be provided to explicitly name the plugin target.
 
@@ -889,6 +908,11 @@ none of these options are needed.
 \row
     \li \l{qmlimportscanner and NO_IMPORT_SCAN}{NO_IMPORT_SCAN}
     \li Automatic import scanning (static builds: configure-time; executables: build-time)
+\row
+    \li \c NO_GENERATE_AOT_VALIDATION
+    \li Generation of code to \l{Validation of ahead of time generated native code}{validate native code}
+        generated ahead of time by the \l{Qt Quick Compiler}.
+        This option was introduced in Qt 6.12.
 \endtable
 
 Type registration is automatically performed for the backing target's C++
@@ -923,7 +947,7 @@ The need for specifying the \c OUTPUT_DIRECTORY keyword should be rare, but if
 it is used, it is likely that the caller will also need to add to the
 \l IMPORT_PATH to ensure that \l{qmllint-auto}{linting},
 \l{qmlcachegen-auto}{cached compilation} of qml sources,
-\l{qt6_import_qml_plugins}{automatic importing} of plugins in static builds,
+\l{qt_import_qml_plugins}{automatic importing} of plugins in static builds,
 and \l{qt_deploy_qml_imports}{deploying imported QML modules} for non-static
 builds all work correctly.
 
@@ -959,10 +983,10 @@ code will be generated into a C++ namespace of this name.
 
 For static Qt builds, \c{qmlimportscanner} is run at configure time to scan the
 \c{.qml} files of a QML module and identify the QML imports it uses (see
-\l{qt6_import_qml_plugins}{qt_import_qml_plugins()}). For non-static Qt builds,
+\l qt_import_qml_plugins()). For non-static Qt builds,
 if the target is an executable, a similar scan is performed at build time to
 provide the information needed by deployment scripts (see
-\l{qt6_deploy_qml_imports}{qt_deploy_qml_imports()}). Both scans can be
+\l qt_deploy_qml_imports()). Both scans can be
 disabled by providing the \c{NO_IMPORT_SCAN} option. Doing so means the project
 takes on the responsibility of ensuring all required plugins are instantiated
 and linked for static builds. For non-static builds the project must manually
@@ -998,14 +1022,14 @@ be separated by a "::", e.g. "MyNamespace::MySubnamespace" for the namespace MyS
 is inside the MyNamespace. Apart from the "::", C++ namespace naming rules
 apply.
 
-\c QMLTC_QMLTC_EXPORT_DIRECTIVE should be used with \c QMLTC_EXPORT_FILE_NAME when
+\c QMLTC_EXPORT_DIRECTIVE should be used with \c QMLTC_EXPORT_FILE_NAME when
 the classes generated by \l{QML type compiler}{qmltc} should be exported from
 the qml library. By default, classes generated by qmltc are not exported from
 their library.
 The header defining the export macro for the current library
 can be specified as an optional argument to \c QMLTC_EXPORT_FILE_NAME while the
 exporting macro name should be specified as an argument to
-\c QMLTC_QMLTC_EXPORT_DIRECTIVE. If no additional include is required or wanted,
+\c QMLTC_EXPORT_DIRECTIVE. If no additional include is required or wanted,
 e.g. when the header of the export macro is already indirectly included by a base
 class, then the \c QMLTC_EXPORT_FILE_NAME option can be left out.
 */

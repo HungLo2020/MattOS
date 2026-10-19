@@ -4,10 +4,9 @@
     SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
 */
 
+#include "qwayland-xdg-session-management-v1.h"
 #include "qwayland-xdg-shell.h"
-#include "qwayland-xx-session-management-v1.h"
 
-#include <QtGui/qpa/qplatformnativeinterface.h>
 #include <QApplication>
 #include <QCommandLineOption>
 #include <QCommandLineParser>
@@ -15,20 +14,21 @@
 #include <QPainter>
 #include <QWidget>
 #include <QWindow>
+#include <QtGui/qpa/qplatformnativeinterface.h>
 #include <QtWaylandClient/QWaylandClientExtensionTemplate>
 #include <qpa/qplatformwindow_p.h>
 
-class XdgSessionManagerV1 : public QWaylandClientExtensionTemplate<XdgSessionManagerV1, &QtWayland::xx_session_manager_v1::destroy>, public QtWayland::xx_session_manager_v1
+class XdgSessionManagerV1 : public QWaylandClientExtensionTemplate<XdgSessionManagerV1, &QtWayland::xdg_session_manager_v1::destroy>, public QtWayland::xdg_session_manager_v1
 {
 public:
     XdgSessionManagerV1()
-        : QWaylandClientExtensionTemplate<XdgSessionManagerV1, &QtWayland::xx_session_manager_v1::destroy>(1)
+        : QWaylandClientExtensionTemplate<XdgSessionManagerV1, &QtWayland::xdg_session_manager_v1::destroy>(1)
     {
         initialize();
     }
 };
 
-class XdgSessionV1 : public QtWayland::xx_session_v1
+class XdgSessionV1 : public QtWayland::xdg_session_v1
 {
 public:
     ~XdgSessionV1() override
@@ -37,18 +37,18 @@ public:
     }
 
 protected:
-    void xx_session_v1_created(const QString &id) override
+    void xdg_session_v1_created(const QString &id) override
     {
-        qDebug() << "xx_session_v1 created" << id;
+        qDebug() << "xdg_session_v1 created" << id;
     }
 
-    void xx_session_v1_restored() override
+    void xdg_session_v1_restored() override
     {
-        qDebug() << "xx_session_v1 restored";
+        qDebug() << "xdg_session_v1 restored";
     }
 };
 
-class XdgToplevelSessionV1 : public QtWayland::xx_toplevel_session_v1
+class XdgToplevelSessionV1 : public QtWayland::xdg_toplevel_session_v1
 {
 public:
     ~XdgToplevelSessionV1() override
@@ -57,9 +57,9 @@ public:
     }
 
 protected:
-    void xx_toplevel_session_v1_restored(struct ::xdg_toplevel *surface) override
+    void xdg_toplevel_session_v1_restored() override
     {
-        qDebug() << "xx_toplevel_session_v1 restored";
+        qDebug() << "xdg_toplevel_session_v1 restored";
     }
 };
 

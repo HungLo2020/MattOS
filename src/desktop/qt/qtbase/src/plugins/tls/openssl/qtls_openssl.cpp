@@ -16,6 +16,7 @@
 #include <QtNetwork/private/qsslsocket_p.h>
 
 #include <QtNetwork/qsslpresharedkeyauthenticator.h>
+#include <QtNetwork/qsslkeyingmaterial.h>
 
 #include <QtCore/qscopedvaluerollback.h>
 #include <QtCore/qscopeguard.h>
@@ -346,6 +347,15 @@ void qt_AlertInfoCallback(const SSL *connection, int from, int value)
         return;
     }
 
+    // Note: CB_HANDSHAKE_DONE is also raised when the handshake is paused to exchange early data,
+    // and SSL_in_init() cannot tell the two apart (OpenSSL clears it before invoking us). We never
+    // enable early data; if we ever do, this needs a guard.
+    if (from & SSL_CB_HANDSHAKE_DONE) {
+        // Handshake is done, get keying material:
+        crypto->exportKeyingMaterial();
+        return;
+    }
+
     if (!(from & SSL_CB_ALERT)) {
         // We only want to know about alerts (at least for now).
         return;
@@ -488,6 +498,10 @@ void TlsCryptographOpenSSL::init(QSslSocket *qObj, QSslSocketPrivate *dObj)
 
     fetchAuthorityInformation = false;
     caToFetch.reset();
+
+    auto &sslCfg = d->configuration;
+    for (auto &entry : sslCfg.keyingMaterial)
+        entry = entry.clone();
 }
 
 void TlsCryptographOpenSSL::checkSettingSslContext(std::shared_ptr<QSslContext> tlsContext)
@@ -651,7 +665,7 @@ bool TlsCryptographOpenSSL::startHandshake()
                 return false;
             }
 
-            for (const QSslError &error : ocspErrors) {
+            for (const QSslError &error : std::as_const(ocspErrors)) {
                 errors << error;
                 emit q->peerVerifyError(error);
                 if (q->state() != QAbstractSocket::ConnectedState)
@@ -747,6 +761,53 @@ void TlsCryptographOpenSSL::cancelCAFetch()
 {
     fetchAuthorityInformation = false;
     caToFetch.reset();
+}
+
+void TlsCryptographOpenSSL::exportKeyingMaterial()
+{
+    if (d->configuration.keyingMaterial.isEmpty())
+        return; // Avoid deep-copy and store
+    auto sslCfg = q->sslConfiguration();
+    auto list = sslCfg.takeKeyingMaterial();
+
+    for (auto &entry : list) {
+        if (!entry.isValid()) {
+#ifdef QSSLSOCKET_DEBUG
+            qCDebug(lcTlsBackend) << "keying material request is invalid:" << entry;
+#endif
+            continue;
+        }
+
+        /*
+         * https://docs.openssl.org/1.1.1/man3/SSL_export_keying_material/
+         * Note that in TLSv1.2 and below a zero length context is treated
+         * differently from no context at all, and will result in different
+         * keying material being returned. In TLSv1.3 a zero length context
+         * is that same as no context at all and will result in the same
+         * keying material being returned.
+         */
+        const auto context = entry.context();
+        const auto label = entry.label();
+        if (QByteArray output(entry.requestedSize(), Qt::Uninitialized);
+            q_SSL_export_keying_material(ssl,
+                                         reinterpret_cast<unsigned char*>(output.data_ptr().data()),
+                                         entry.requestedSize(),
+                                         label.data(),
+                                         label.size(),
+                                         reinterpret_cast<const unsigned char*>(context.data()),
+                                         context.size(),
+                                         context.isNull() ? 0 : 1) > 0)
+        {
+            entry.m_value = std::move(output);
+#ifdef QSSLSOCKET_DEBUG
+        } else {
+            qCDebug(lcTlsBackend) << "cannot export keying material:" << entry;
+#endif
+        }
+    }
+
+    sslCfg.setKeyingMaterial(list);
+    q->setSslConfiguration(sslCfg);
 }
 
 void TlsCryptographOpenSSL::continueHandshake()

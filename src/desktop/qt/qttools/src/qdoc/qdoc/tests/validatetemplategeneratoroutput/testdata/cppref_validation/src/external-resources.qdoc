@@ -1,0 +1,115 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage https://coap.technology/
+    \title CoAP
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7252
+    \title RFC 7252
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7390
+    \title RFC 7390
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7959
+    \title RFC 7959
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7641
+    \title RFC 7641
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7390#section-2.5
+    \title RFC 7390 - Section 2.5
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7252#section-4.2
+    \title RFC 7252 - Section 4.2
+*/
+
+/*!
+    \externalpage https://www.iana.org/assignments/core-parameters/core-parameters.xhtml#content-formats
+    \title CoAP Content-Formats Registry
+*/
+
+// Cross-module stubs for standalone test project.
+// These targets live in qtbase/qtdeclarative/qtcreator in a real build.
+
+/*!
+    \externalpage https://doc.qt.io/qtcreator/
+    \title Qt Creator Documentation
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtcreator/creator-build-example-application.html
+    \title Qt Creator: Tutorial: Build and run
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/cmake-manual.html
+    \title CMake Documentation
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/cmake-qt5-and-qt6-compatibility.html
+    \title Build with CMake
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qtqml-cppintegration-definetypes.html
+    \title Defining QML Types from C++
+*/
+
+/*!
+    \externalpage https://www.qt.io/
+    \title The Qt Company
+*/
+
+/*!
+    \externalpage https://www.gnu.org/licenses/gpl-3.0.html
+    \title GNU General Public License, version 3
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qobject.html#Q_INVOKABLE
+    \title Q_INVOKABLE
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qobject.html#Q_PROPERTY
+    \title Q_PROPERTY
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qqmlengine.html#QML_ANONYMOUS
+    \title QML_ANONYMOUS
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qqmlengine.html#QML_NAMED_ELEMENT
+    \title QML_NAMED_ELEMENT
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qcborstreamreader.html
+    \title QCborStreamReader
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qcborstreamwriter.html
+    \title QCborStreamWriter
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qnetworkinterface.html#isValid
+    \title QNetworkInterface::isValid()
+*/

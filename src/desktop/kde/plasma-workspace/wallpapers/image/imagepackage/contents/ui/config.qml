@@ -48,6 +48,8 @@ ColumnLayout {
     property list<string> cfg_UncheckedSlidesDefault: []
     property int cfg_DynamicMode: 0
     property int cfg_DynamicModeDefault: 0
+    property bool cfg_ForceImageAnimation: false
+    property bool cfg_ForceImageAnimationDefault: false
 
     signal configurationChanged()
     /**
@@ -126,6 +128,14 @@ ColumnLayout {
     onCfg_SlideshowFoldersFirstChanged: {
         if (cfg_SlideshowFoldersFirst)
             imageWallpaper.slideshowFoldersFirst = cfg_SlideshowFoldersFirst
+    }
+
+    Binding on cfg_Image {
+        // in the desktop dialog, the config property is updated as Images change;
+        // in the kcm, it's fixed. Bind it to make sure it's not marking the config
+        // as dirty if the only change is the currently selected wallpaper.
+        when: root.configDialog.currentWallpaper === "org.kde.slideshow"
+        value: root.wallpaperConfiguration.Image
     }
 
     spacing: 0

@@ -343,6 +343,10 @@ static const TransKey g_rgSymXToQT[] = {
     { XKB_KEY_XF86Option,              Qt::Key_Option },
     { XKB_KEY_XF86Paste,               Qt::Key_Paste },
     { XKB_KEY_XF86Phone,               Qt::Key_Phone },
+#if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
+    { XKB_KEY_XF86PickupPhone,         Qt::Key_Call },
+    { XKB_KEY_XF86HangupPhone,         Qt::Key_Hangup },
+#endif
     { XKB_KEY_XF86Reply,               Qt::Key_Reply },
     { XKB_KEY_XF86Reload,              Qt::Key_Reload },
     { XKB_KEY_XF86RotateWindows,       Qt::Key_RotateWindows },
@@ -486,9 +490,9 @@ Xkb::Xkb(bool followLocale1)
             locale = QByteArrayLiteral("C");
         }
 
-        m_compose.table = xkb_compose_table_new_from_locale(m_context, locale.constData(), XKB_COMPOSE_COMPILE_NO_FLAGS);
+        m_compose.table = XkbComposeTablePtr(xkb_compose_table_new_from_locale(m_context, locale.constData(), XKB_COMPOSE_COMPILE_NO_FLAGS));
         if (m_compose.table) {
-            m_compose.state = xkb_compose_state_new(m_compose.table, XKB_COMPOSE_STATE_NO_FLAGS);
+            m_compose.state = XkbComposeStatePtr(xkb_compose_state_new(m_compose.table.get(), XKB_COMPOSE_STATE_NO_FLAGS));
         }
     }
 
@@ -505,10 +509,6 @@ Xkb::Xkb(bool followLocale1)
 
 Xkb::~Xkb()
 {
-    xkb_compose_state_unref(m_compose.state);
-    xkb_compose_table_unref(m_compose.table);
-    xkb_state_unref(m_state);
-    xkb_keymap_unref(m_keymap);
     xkb_context_unref(m_context);
 }
 
@@ -528,7 +528,7 @@ void Xkb::reconfigure()
         return;
     }
 
-    xkb_keymap *keymap = nullptr;
+    XkbKeymapPtr keymap = nullptr;
     if (!qEnvironmentVariableIsSet("KWIN_XKB_DEFAULT_KEYMAP")) {
         if (m_followLocale1) {
             keymap = loadKeymapFromLocale1();
@@ -541,7 +541,7 @@ void Xkb::reconfigure()
         keymap = loadDefaultKeymap();
     }
     if (keymap) {
-        updateKeymap(keymap);
+        updateKeymap(std::move(keymap));
     } else {
         qCWarning(KWIN_XKB) << "Could not create default xkb keymap";
     }
@@ -577,7 +577,7 @@ void Xkb::applyEnvironmentRules(xkb_rule_names &ruleNames)
     }
 }
 
-xkb_keymap *Xkb::loadKeymapFromConfig()
+XkbKeymapPtr Xkb::loadKeymapFromConfig()
 {
     // load config
     if (!m_configGroup.isValid()) {
@@ -604,18 +604,18 @@ xkb_keymap *Xkb::loadKeymapFromConfig()
 
     m_layoutList = QString::fromLatin1(ruleNames.layout).split(QLatin1Char(','));
 
-    return xkb_keymap_new_from_names(m_context, &ruleNames, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    return XkbKeymapPtr(xkb_keymap_new_from_names(m_context, &ruleNames, XKB_KEYMAP_COMPILE_NO_FLAGS));
 }
 
-xkb_keymap *Xkb::loadDefaultKeymap()
+XkbKeymapPtr Xkb::loadDefaultKeymap()
 {
     xkb_rule_names ruleNames = {};
     applyEnvironmentRules(ruleNames);
     m_layoutList = QString::fromLatin1(ruleNames.layout).split(QLatin1Char(','));
-    return xkb_keymap_new_from_names(m_context, &ruleNames, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    return XkbKeymapPtr(xkb_keymap_new_from_names(m_context, &ruleNames, XKB_KEYMAP_COMPILE_NO_FLAGS));
 }
 
-xkb_keymap *Xkb::loadKeymapFromLocale1()
+XkbKeymapPtr Xkb::loadKeymapFromLocale1()
 {
     OrgFreedesktopDBusPropertiesInterface locale1Properties(s_locale1Interface, "/org/freedesktop/locale1", QDBusConnection::systemBus(), this);
     const QVariantMap properties = locale1Properties.GetAll(s_locale1Interface);
@@ -637,16 +637,15 @@ xkb_keymap *Xkb::loadKeymapFromLocale1()
 
     m_layoutList = QString::fromLatin1(ruleNames.layout).split(QLatin1Char(','));
 
-    return xkb_keymap_new_from_names(m_context, &ruleNames, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    return XkbKeymapPtr(xkb_keymap_new_from_names(m_context, &ruleNames, XKB_KEYMAP_COMPILE_NO_FLAGS));
 }
 
-void Xkb::updateKeymap(xkb_keymap *keymap)
+void Xkb::updateKeymap(XkbKeymapPtr &&keymap)
 {
     Q_ASSERT(keymap);
-    xkb_state *state = xkb_state_new(keymap);
+    XkbStatePtr state(xkb_state_new(keymap.get()));
     if (!state) {
         qCWarning(KWIN_XKB) << "Could not create XKB state";
-        xkb_keymap_unref(keymap);
         return;
     }
 
@@ -655,36 +654,32 @@ void Xkb::updateKeymap(xkb_keymap *keymap)
     bool capsLockIsOn = false;
     static bool s_startup = true;
     if (!s_startup) {
-        numLockIsOn = xkb_state_mod_index_is_active(m_state, m_numModifier, XKB_STATE_MODS_LOCKED);
-        capsLockIsOn = xkb_state_mod_index_is_active(m_state, m_capsModifier, XKB_STATE_MODS_LOCKED);
+        numLockIsOn = xkb_state_mod_index_is_active(m_state.get(), m_numModifier, XKB_STATE_MODS_LOCKED);
+        capsLockIsOn = xkb_state_mod_index_is_active(m_state.get(), m_capsModifier, XKB_STATE_MODS_LOCKED);
     }
 
-    // now release the old ones
-    xkb_state_unref(m_state);
-    xkb_keymap_unref(m_keymap);
+    m_keymap = std::move(keymap);
+    m_state = std::move(state);
 
-    m_keymap = keymap;
-    m_state = state;
+    m_shiftModifier = xkb_keymap_mod_get_index(m_keymap.get(), XKB_MOD_NAME_SHIFT);
+    m_capsModifier = xkb_keymap_mod_get_index(m_keymap.get(), XKB_MOD_NAME_CAPS);
+    m_controlModifier = xkb_keymap_mod_get_index(m_keymap.get(), XKB_MOD_NAME_CTRL);
+    m_altModifier = xkb_keymap_mod_get_index(m_keymap.get(), XKB_MOD_NAME_ALT);
+    m_metaModifier = xkb_keymap_mod_get_index(m_keymap.get(), XKB_MOD_NAME_LOGO);
+    m_numModifier = xkb_keymap_mod_get_index(m_keymap.get(), XKB_MOD_NAME_NUM);
+    m_mod5Modifier = xkb_keymap_mod_get_index(m_keymap.get(), "Mod5");
 
-    m_shiftModifier = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_SHIFT);
-    m_capsModifier = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_CAPS);
-    m_controlModifier = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_CTRL);
-    m_altModifier = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_ALT);
-    m_metaModifier = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_LOGO);
-    m_numModifier = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_NUM);
-    m_mod5Modifier = xkb_keymap_mod_get_index(m_keymap, "Mod5");
+    m_numLock = xkb_keymap_led_get_index(m_keymap.get(), XKB_LED_NAME_NUM);
+    m_capsLock = xkb_keymap_led_get_index(m_keymap.get(), XKB_LED_NAME_CAPS);
+    m_scrollLock = xkb_keymap_led_get_index(m_keymap.get(), XKB_LED_NAME_SCROLL);
+    m_composeLed = xkb_keymap_led_get_index(m_keymap.get(), XKB_LED_NAME_COMPOSE);
+    m_kanaLed = xkb_keymap_led_get_index(m_keymap.get(), XKB_LED_NAME_KANA);
 
-    m_numLock = xkb_keymap_led_get_index(m_keymap, XKB_LED_NAME_NUM);
-    m_capsLock = xkb_keymap_led_get_index(m_keymap, XKB_LED_NAME_CAPS);
-    m_scrollLock = xkb_keymap_led_get_index(m_keymap, XKB_LED_NAME_SCROLL);
-    m_composeLed = xkb_keymap_led_get_index(m_keymap, XKB_LED_NAME_COMPOSE);
-    m_kanaLed = xkb_keymap_led_get_index(m_keymap, XKB_LED_NAME_KANA);
+    m_currentLayout = xkb_state_serialize_layout(m_state.get(), XKB_STATE_LAYOUT_EFFECTIVE);
 
-    m_currentLayout = xkb_state_serialize_layout(m_state, XKB_STATE_LAYOUT_EFFECTIVE);
-
-    m_modifierState.depressed = xkb_state_serialize_mods(m_state, xkb_state_component(XKB_STATE_MODS_DEPRESSED));
-    m_modifierState.latched = xkb_state_serialize_mods(m_state, xkb_state_component(XKB_STATE_MODS_LATCHED));
-    m_modifierState.locked = xkb_state_serialize_mods(m_state, xkb_state_component(XKB_STATE_MODS_LOCKED));
+    m_modifierState.depressed = xkb_state_serialize_mods(m_state.get(), xkb_state_component(XKB_STATE_MODS_DEPRESSED));
+    m_modifierState.latched = xkb_state_serialize_mods(m_state.get(), xkb_state_component(XKB_STATE_MODS_LATCHED));
+    m_modifierState.locked = xkb_state_serialize_mods(m_state.get(), xkb_state_component(XKB_STATE_MODS_LOCKED));
 
     auto setLock = [this](xkb_mod_index_t modifier, bool value) {
         if (modifier != XKB_MOD_INVALID) {
@@ -692,8 +687,8 @@ void Xkb::updateKeymap(xkb_keymap *keymap)
             if (mask.size() > modifier) {
                 mask[modifier] = value;
                 m_modifierState.locked = mask.to_ulong();
-                xkb_state_update_mask(m_state, m_modifierState.depressed, m_modifierState.latched, m_modifierState.locked, 0, 0, m_currentLayout);
-                m_modifierState.locked = xkb_state_serialize_mods(m_state, xkb_state_component(XKB_STATE_MODS_LOCKED));
+                xkb_state_update_mask(m_state.get(), m_modifierState.depressed, m_modifierState.latched, m_modifierState.locked, 0, 0, m_currentLayout);
+                m_modifierState.locked = xkb_state_serialize_mods(m_state.get(), xkb_state_component(XKB_STATE_MODS_LOCKED));
             }
         }
     };
@@ -747,7 +742,7 @@ QByteArray Xkb::keymapContents() const
         return {};
     }
 
-    UniqueCPtr<char> keymapString(xkb_keymap_get_as_string(m_keymap, XKB_KEYMAP_FORMAT_TEXT_V1));
+    UniqueCPtr<char> keymapString(xkb_keymap_get_as_string(m_keymap.get(), XKB_KEYMAP_FORMAT_TEXT_V1));
     if (!keymapString) {
         return {};
     }
@@ -760,7 +755,7 @@ void Xkb::updateModifiers(uint32_t modsDepressed, uint32_t modsLatched, uint32_t
         return;
     }
     // Avoid to create a infinite loop between input method and compositor.
-    if (xkb_state_update_mask(m_state, modsDepressed, modsLatched, modsLocked, 0, 0, group) == 0) {
+    if (xkb_state_update_mask(m_state.get(), modsDepressed, modsLatched, modsLocked, 0, 0, group) == 0) {
         return;
     }
     updateModifiers();
@@ -773,17 +768,17 @@ void Xkb::updateKey(uint32_t key, KeyboardKeyState state)
         return;
     }
     const auto sym = toKeysym(key);
-    xkb_state_update_key(m_state, key + EVDEV_OFFSET, static_cast<xkb_key_direction>(state));
+    xkb_state_update_key(m_state.get(), key + EVDEV_OFFSET, static_cast<xkb_key_direction>(state));
     if (m_compose.state) {
         if (state == KeyboardKeyState::Pressed) {
-            xkb_compose_state_feed(m_compose.state, sym);
+            xkb_compose_state_feed(m_compose.state.get(), sym);
         }
-        switch (xkb_compose_state_get_status(m_compose.state)) {
+        switch (xkb_compose_state_get_status(m_compose.state.get())) {
         case XKB_COMPOSE_NOTHING:
             m_keysym = sym;
             break;
         case XKB_COMPOSE_COMPOSED:
-            m_keysym = xkb_compose_state_get_one_sym(m_compose.state);
+            m_keysym = xkb_compose_state_get_one_sym(m_compose.state.get());
             break;
         default:
             m_keysym = XKB_KEY_NoSymbol;
@@ -799,16 +794,16 @@ void Xkb::updateKey(uint32_t key, KeyboardKeyState state)
 void Xkb::updateModifiers()
 {
     Qt::KeyboardModifiers mods = Qt::NoModifier;
-    if (xkb_state_mod_index_is_active(m_state, m_shiftModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_shiftModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
         mods |= Qt::ShiftModifier;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_altModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_altModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
         mods |= Qt::AltModifier;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_controlModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_controlModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
         mods |= Qt::ControlModifier;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_metaModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_metaModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
         mods |= Qt::MetaModifier;
     }
     if (m_keysym >= XKB_KEY_KP_Space && m_keysym <= XKB_KEY_KP_Equal) {
@@ -818,19 +813,19 @@ void Xkb::updateModifiers()
 
     // update LEDs
     LEDs leds;
-    if (xkb_state_led_index_is_active(m_state, m_numLock) == 1) {
+    if (xkb_state_led_index_is_active(m_state.get(), m_numLock) == 1) {
         leds = leds | LED::NumLock;
     }
-    if (xkb_state_led_index_is_active(m_state, m_capsLock) == 1) {
+    if (xkb_state_led_index_is_active(m_state.get(), m_capsLock) == 1) {
         leds = leds | LED::CapsLock;
     }
-    if (xkb_state_led_index_is_active(m_state, m_scrollLock) == 1) {
+    if (xkb_state_led_index_is_active(m_state.get(), m_scrollLock) == 1) {
         leds = leds | LED::ScrollLock;
     }
-    if (xkb_state_led_index_is_active(m_state, m_composeLed) == 1) {
+    if (xkb_state_led_index_is_active(m_state.get(), m_composeLed) == 1) {
         leds = leds | LED::Compose;
     }
-    if (xkb_state_led_index_is_active(m_state, m_kanaLed) == 1) {
+    if (xkb_state_led_index_is_active(m_state.get(), m_kanaLed) == 1) {
         leds = leds | LED::Kana;
     }
     if (m_leds != leds) {
@@ -838,10 +833,10 @@ void Xkb::updateModifiers()
         Q_EMIT ledsChanged(m_leds);
     }
 
-    const uint32_t newLayout = xkb_state_serialize_layout(m_state, XKB_STATE_LAYOUT_EFFECTIVE);
-    const uint32_t depressed = xkb_state_serialize_mods(m_state, XKB_STATE_MODS_DEPRESSED);
-    const uint32_t latched = xkb_state_serialize_mods(m_state, XKB_STATE_MODS_LATCHED);
-    const uint32_t locked = xkb_state_serialize_mods(m_state, XKB_STATE_MODS_LOCKED);
+    const uint32_t newLayout = xkb_state_serialize_layout(m_state.get(), XKB_STATE_LAYOUT_EFFECTIVE);
+    const uint32_t depressed = xkb_state_serialize_mods(m_state.get(), XKB_STATE_MODS_DEPRESSED);
+    const uint32_t latched = xkb_state_serialize_mods(m_state.get(), XKB_STATE_MODS_LATCHED);
+    const uint32_t locked = xkb_state_serialize_mods(m_state.get(), XKB_STATE_MODS_LOCKED);
 
     if (newLayout != m_currentLayout || depressed != m_modifierState.depressed || latched != m_modifierState.latched || locked != m_modifierState.locked) {
         m_currentLayout = newLayout;
@@ -869,7 +864,7 @@ QString Xkb::layoutName(xkb_layout_index_t index) const
     if (!m_keymap) {
         return QString{};
     }
-    return QString::fromLocal8Bit(xkb_keymap_layout_get_name(m_keymap, index));
+    return QString::fromLocal8Bit(xkb_keymap_layout_get_name(m_keymap.get(), index));
 }
 
 QString Xkb::layoutName() const
@@ -885,16 +880,16 @@ QString Xkb::layoutShortName(int index) const
 void Xkb::updateConsumedModifiers(uint32_t key)
 {
     Qt::KeyboardModifiers mods = Qt::NoModifier;
-    if (xkb_state_mod_index_is_consumed2(m_state, key + EVDEV_OFFSET, m_shiftModifier, XKB_CONSUMED_MODE_GTK) == 1) {
+    if (xkb_state_mod_index_is_consumed2(m_state.get(), key + EVDEV_OFFSET, m_shiftModifier, XKB_CONSUMED_MODE_GTK) == 1) {
         mods |= Qt::ShiftModifier;
     }
-    if (xkb_state_mod_index_is_consumed2(m_state, key + EVDEV_OFFSET, m_altModifier, XKB_CONSUMED_MODE_GTK) == 1) {
+    if (xkb_state_mod_index_is_consumed2(m_state.get(), key + EVDEV_OFFSET, m_altModifier, XKB_CONSUMED_MODE_GTK) == 1) {
         mods |= Qt::AltModifier;
     }
-    if (xkb_state_mod_index_is_consumed2(m_state, key + EVDEV_OFFSET, m_controlModifier, XKB_CONSUMED_MODE_GTK) == 1) {
+    if (xkb_state_mod_index_is_consumed2(m_state.get(), key + EVDEV_OFFSET, m_controlModifier, XKB_CONSUMED_MODE_GTK) == 1) {
         mods |= Qt::ControlModifier;
     }
-    if (xkb_state_mod_index_is_consumed2(m_state, key + EVDEV_OFFSET, m_metaModifier, XKB_CONSUMED_MODE_GTK) == 1) {
+    if (xkb_state_mod_index_is_consumed2(m_state.get(), key + EVDEV_OFFSET, m_metaModifier, XKB_CONSUMED_MODE_GTK) == 1) {
         mods |= Qt::MetaModifier;
     }
     m_consumedModifiers = mods;
@@ -906,18 +901,19 @@ Qt::KeyboardModifiers Xkb::modifiersRelevantForGlobalShortcuts(uint32_t scanCode
         return Qt::NoModifier;
     }
     Qt::KeyboardModifiers mods = Qt::NoModifier;
-    if (xkb_state_mod_index_is_active(m_state, m_shiftModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_shiftModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
         mods |= Qt::ShiftModifier;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_altModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_altModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
         mods |= Qt::AltModifier;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_controlModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_controlModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
         mods |= Qt::ControlModifier;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_metaModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_metaModifier, XKB_STATE_MODS_EFFECTIVE) == 1) {
         mods |= Qt::MetaModifier;
     }
+
     if (m_keysym >= XKB_KEY_KP_Space && m_keysym <= XKB_KEY_KP_Equal) {
         mods |= Qt::KeypadModifier;
     }
@@ -944,7 +940,7 @@ xkb_keysym_t Xkb::toKeysym(uint32_t key)
 
     // Workaround because there's some kind of overlap between KEY_ZENKAKUHANKAKU and TLDE
     // This key is important because some hardware manufacturers use it to indicate touchpad toggling.
-    xkb_keysym_t ret = xkb_state_key_get_one_sym(m_state, key + EVDEV_OFFSET);
+    xkb_keysym_t ret = xkb_state_key_get_one_sym(m_state.get(), key + EVDEV_OFFSET);
     if (ret == 0 && key == KEY_ZENKAKUHANKAKU) {
         ret = XKB_KEY_Zenkaku_Hankaku;
     }
@@ -969,7 +965,7 @@ Qt::Key Xkb::toQtKey(xkb_keysym_t keySym,
                      Qt::KeyboardModifiers modifiers) const
 {
     // FIXME: passing superAsMeta doesn't have impact due to bug in the Qt function, so handle it below
-    Qt::Key qtKey = Qt::Key(QXkbCommon::keysymToQtKey(keySym, modifiers, m_state, scanCode + EVDEV_OFFSET));
+    Qt::Key qtKey = Qt::Key(QXkbCommon::keysymToQtKey(keySym, modifiers, m_state.get(), scanCode + EVDEV_OFFSET));
 
     // FIXME: workarounds for symbols currently wrong/not mappable via keysymToQtKey()
     if (qtKey > 0xff && keySym <= 0xff) {
@@ -984,7 +980,7 @@ bool Xkb::shouldKeyRepeat(quint32 key) const
     if (!m_keymap) {
         return false;
     }
-    return xkb_keymap_key_repeats(m_keymap, key + EVDEV_OFFSET) != 0;
+    return xkb_keymap_key_repeats(m_keymap.get(), key + EVDEV_OFFSET) != 0;
 }
 
 void Xkb::switchToNextLayout()
@@ -992,8 +988,8 @@ void Xkb::switchToNextLayout()
     if (!m_keymap || !m_state) {
         return;
     }
-    const xkb_layout_index_t numLayouts = xkb_keymap_num_layouts(m_keymap);
-    const xkb_layout_index_t nextLayout = (xkb_state_serialize_layout(m_state, XKB_STATE_LAYOUT_EFFECTIVE) + 1) % numLayouts;
+    const xkb_layout_index_t numLayouts = xkb_keymap_num_layouts(m_keymap.get());
+    const xkb_layout_index_t nextLayout = (xkb_state_serialize_layout(m_state.get(), XKB_STATE_LAYOUT_EFFECTIVE) + 1) % numLayouts;
     switchToLayout(nextLayout);
 }
 
@@ -1011,10 +1007,10 @@ bool Xkb::switchToLayout(xkb_layout_index_t layout)
     if (!m_keymap || !m_state || layout >= numberOfLayouts()) {
         return false;
     }
-    const xkb_mod_mask_t depressed = xkb_state_serialize_mods(m_state, xkb_state_component(XKB_STATE_MODS_DEPRESSED));
-    const xkb_mod_mask_t latched = xkb_state_serialize_mods(m_state, xkb_state_component(XKB_STATE_MODS_LATCHED));
-    const xkb_mod_mask_t locked = xkb_state_serialize_mods(m_state, xkb_state_component(XKB_STATE_MODS_LOCKED));
-    xkb_state_update_mask(m_state, depressed, latched, locked, 0, 0, layout);
+    const xkb_mod_mask_t depressed = xkb_state_serialize_mods(m_state.get(), xkb_state_component(XKB_STATE_MODS_DEPRESSED));
+    const xkb_mod_mask_t latched = xkb_state_serialize_mods(m_state.get(), xkb_state_component(XKB_STATE_MODS_LATCHED));
+    const xkb_mod_mask_t locked = xkb_state_serialize_mods(m_state.get(), xkb_state_component(XKB_STATE_MODS_LOCKED));
+    xkb_state_update_mask(m_state.get(), depressed, latched, locked, 0, 0, layout);
     updateModifiers();
     forwardModifiers();
     return true;
@@ -1069,8 +1065,8 @@ void Xkb::setModifierLatched(KWin::Xkb::Modifier mod, bool latched)
         if (mask.size() > modifier) {
             mask[modifier] = latched;
             m_modifierState.latched = mask.to_ulong();
-            xkb_state_update_mask(m_state, m_modifierState.depressed, m_modifierState.latched, m_modifierState.locked, 0, 0, m_currentLayout);
-            m_modifierState.latched = xkb_state_serialize_mods(m_state, xkb_state_component(XKB_STATE_MODS_LATCHED));
+            xkb_state_update_mask(m_state.get(), m_modifierState.depressed, m_modifierState.latched, m_modifierState.locked, 0, 0, m_currentLayout);
+            m_modifierState.latched = xkb_state_serialize_mods(m_state.get(), xkb_state_component(XKB_STATE_MODS_LATCHED));
         }
     }
 }
@@ -1082,25 +1078,25 @@ Xkb::Modifiers Xkb::depressedModifiers() const
     }
     Xkb::Modifiers result;
 
-    if (xkb_state_mod_index_is_active(m_state, m_altModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_altModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
         result |= Modifier::Mod1;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_controlModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_controlModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
         result |= Modifier::Control;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_shiftModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_shiftModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
         result |= Modifier::Shift;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_metaModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_metaModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
         result |= Modifier::Mod4;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_mod5Modifier, XKB_STATE_MODS_DEPRESSED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_mod5Modifier, XKB_STATE_MODS_DEPRESSED) == 1) {
         result |= Modifier::Mod5;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_capsModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_capsModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
         result |= Modifier::Lock;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_numModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_numModifier, XKB_STATE_MODS_DEPRESSED) == 1) {
         result |= Modifier::Num;
     }
 
@@ -1114,25 +1110,25 @@ Xkb::Modifiers Xkb::latchedModifiers() const
     }
     Xkb::Modifiers result;
 
-    if (xkb_state_mod_index_is_active(m_state, m_altModifier, XKB_STATE_MODS_LATCHED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_altModifier, XKB_STATE_MODS_LATCHED) == 1) {
         result |= Modifier::Mod1;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_controlModifier, XKB_STATE_MODS_LATCHED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_controlModifier, XKB_STATE_MODS_LATCHED) == 1) {
         result |= Modifier::Control;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_shiftModifier, XKB_STATE_MODS_LATCHED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_shiftModifier, XKB_STATE_MODS_LATCHED) == 1) {
         result |= Modifier::Shift;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_metaModifier, XKB_STATE_MODS_LATCHED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_metaModifier, XKB_STATE_MODS_LATCHED) == 1) {
         result |= Modifier::Mod4;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_mod5Modifier, XKB_STATE_MODS_LATCHED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_mod5Modifier, XKB_STATE_MODS_LATCHED) == 1) {
         result |= Modifier::Mod5;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_capsModifier, XKB_STATE_MODS_LATCHED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_capsModifier, XKB_STATE_MODS_LATCHED) == 1) {
         result |= Modifier::Lock;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_numModifier, XKB_STATE_MODS_LATCHED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_numModifier, XKB_STATE_MODS_LATCHED) == 1) {
         result |= Modifier::Num;
     }
 
@@ -1146,25 +1142,25 @@ Xkb::Modifiers Xkb::lockedModifiers() const
     }
     Xkb::Modifiers result;
 
-    if (xkb_state_mod_index_is_active(m_state, m_altModifier, XKB_STATE_MODS_LOCKED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_altModifier, XKB_STATE_MODS_LOCKED) == 1) {
         result |= Modifier::Mod1;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_controlModifier, XKB_STATE_MODS_LOCKED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_controlModifier, XKB_STATE_MODS_LOCKED) == 1) {
         result |= Modifier::Control;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_shiftModifier, XKB_STATE_MODS_LOCKED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_shiftModifier, XKB_STATE_MODS_LOCKED) == 1) {
         result |= Modifier::Shift;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_metaModifier, XKB_STATE_MODS_LOCKED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_metaModifier, XKB_STATE_MODS_LOCKED) == 1) {
         result |= Modifier::Mod4;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_mod5Modifier, XKB_STATE_MODS_LOCKED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_mod5Modifier, XKB_STATE_MODS_LOCKED) == 1) {
         result |= Modifier::Mod5;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_capsModifier, XKB_STATE_MODS_LOCKED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_capsModifier, XKB_STATE_MODS_LOCKED) == 1) {
         result |= Modifier::Lock;
     }
-    if (xkb_state_mod_index_is_active(m_state, m_numModifier, XKB_STATE_MODS_LOCKED) == 1) {
+    if (xkb_state_mod_index_is_active(m_state.get(), m_numModifier, XKB_STATE_MODS_LOCKED) == 1) {
         result |= Modifier::Num;
     }
 
@@ -1220,20 +1216,18 @@ void Xkb::setModifierLocked(KWin::Xkb::Modifier mod, bool locked)
         if (mask.size() > modifier) {
             mask[modifier] = locked;
             m_modifierState.locked = mask.to_ulong();
-            xkb_state_update_mask(m_state, m_modifierState.depressed, m_modifierState.latched, m_modifierState.locked, 0, 0, m_currentLayout);
-            m_modifierState.locked = xkb_state_serialize_mods(m_state, xkb_state_component(XKB_STATE_MODS_LOCKED));
+            xkb_state_update_mask(m_state.get(), m_modifierState.depressed, m_modifierState.latched, m_modifierState.locked, 0, 0, m_currentLayout);
+            m_modifierState.locked = xkb_state_serialize_mods(m_state.get(), xkb_state_component(XKB_STATE_MODS_LOCKED));
         }
     }
 }
-
-
 
 quint32 Xkb::numberOfLayouts() const
 {
     if (!m_keymap) {
         return 0;
     }
-    return xkb_keymap_num_layouts(m_keymap);
+    return xkb_keymap_num_layouts(m_keymap.get());
 }
 
 void Xkb::setSeat(SeatInterface *seat)
@@ -1246,19 +1240,18 @@ std::optional<Xkb::KeyCode> Xkb::keycodeFromKeysym(xkb_keysym_t keysym)
     if (!m_keymap || !m_state) {
         return {};
     }
-    auto layout = xkb_state_serialize_layout(m_state, XKB_STATE_LAYOUT_EFFECTIVE);
-    const xkb_keycode_t max = xkb_keymap_max_keycode(m_keymap);
-    for (xkb_keycode_t keycode = xkb_keymap_min_keycode(m_keymap); keycode < max; keycode++) {
-        uint levelCount = xkb_keymap_num_levels_for_key(m_keymap, keycode, layout);
+    auto layout = xkb_state_serialize_layout(m_state.get(), XKB_STATE_LAYOUT_EFFECTIVE);
+    const xkb_keycode_t max = xkb_keymap_max_keycode(m_keymap.get());
+    for (xkb_keycode_t keycode = xkb_keymap_min_keycode(m_keymap.get()); keycode < max; keycode++) {
+        uint levelCount = xkb_keymap_num_levels_for_key(m_keymap.get(), keycode, layout);
         for (uint currentLevel = 0; currentLevel < levelCount; currentLevel++) {
             const xkb_keysym_t *syms;
-            uint num_syms = xkb_keymap_key_get_syms_by_level(m_keymap, keycode, layout, currentLevel, &syms);
+            uint num_syms = xkb_keymap_key_get_syms_by_level(m_keymap.get(), keycode, layout, currentLevel, &syms);
             for (uint sym = 0; sym < num_syms; sym++) {
                 if (syms[sym] == keysym) {
-
                     xkb_mod_mask_t masks[1]; // this function returns every way to shift to this level, we just need 1
                     int nMasks = xkb_keymap_key_get_mods_for_level(
-                        m_keymap, keycode, layout, currentLevel,
+                        m_keymap.get(), keycode, layout, currentLevel,
                         masks, 1);
                     xkb_mod_mask_t modifiers = 0;
                     if (nMasks > 0) {
@@ -1328,7 +1321,7 @@ QByteArray Xkb::keymapContentsForKeysym(xkb_keycode_t newKeycode, xkb_keysym_t c
     if (!keymap) {
         return {};
     }
-    UniqueCPtr<char> keymapString(xkb_keymap_get_as_string(keymap, XKB_KEYMAP_FORMAT_TEXT_V1));
+    UniqueCPtr<char> keymapString(xkb_keymap_get_as_string(keymap.get(), XKB_KEYMAP_FORMAT_TEXT_V1));
     if (!keymapString) {
         return {};
     }
@@ -1341,12 +1334,12 @@ bool Xkb::updateToKeymapForKeySym(xkb_keycode_t newKeycode, xkb_keysym_t customS
     if (!keymap) {
         return false;
     }
-    updateKeymap(keymap);
+    updateKeymap(std::move(keymap));
     return true;
 }
 
-xkb_keymap *Xkb::createKeymapForKeysym(xkb_keycode_t newKeycode,
-                                       xkb_keysym_t customSym)
+XkbKeymapPtr Xkb::createKeymapForKeysym(xkb_keycode_t newKeycode,
+                                        xkb_keysym_t customSym)
 {
     char symName[64];
     if (xkb_keysym_get_name(customSym, symName, sizeof(symName)) <= 0) {
@@ -1381,8 +1374,34 @@ xkb_keymap *Xkb::createKeymapForKeysym(xkb_keycode_t newKeycode,
         qWarning() << "Could not create new keymap for keysym" << customSym;
         return {};
     }
-    return newMap;
+    return XkbKeymapPtr(newMap);
 }
+
+QList<xkb_keysym_t> Xkb::textToKeySyms(const QString &inputString)
+{
+    QList<xkb_keysym_t> result;
+
+    for (int i = 0; i < inputString.size(); ++i) {
+        char32_t cp = inputString[i].unicode();
+
+        // Handle surrogate pair (two QChars → one codepoint)
+        if (inputString[i].isHighSurrogate() && i + 1 < inputString.size()
+            && inputString[i + 1].isLowSurrogate()) {
+            cp = QChar::surrogateToUcs4(inputString[i].unicode(),
+                                        inputString[i + 1].unicode());
+            i++; // skip the low surrogate
+        }
+
+        xkb_keysym_t ks = xkb_utf32_to_keysym(cp);
+        if (ks != XKB_KEY_NoSymbol) {
+            result.append(ks);
+        } else {
+            qCWarning(KWIN_XKB).nospace() << "No keysym for U+" << QString::number(cp, 16).toUpper();
+        }
+    }
+    return result;
+}
+
 }
 
 #include "moc_xkb.cpp"

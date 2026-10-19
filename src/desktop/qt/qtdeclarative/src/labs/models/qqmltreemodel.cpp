@@ -12,6 +12,8 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_STATIC_LOGGING_CATEGORY(lcTreeModel, "qt.qml.treemodel")
+
 /*!
     \qmltype TreeModel
 //!    \nativetype QQmlTreeModel
@@ -332,6 +334,85 @@ QVariant QQmlTreeModel::getRow(const QModelIndex &rowIndex) const
     return {};
 }
 
+/*!
+    \qmlmethod void TreeModel::insertRow(int rowIndex, QModelIndex parent, object row)
+    \since 6.12
+
+    Inserts a new row to the \a parent at position \a rowIndex, with the
+    values (cells) in \a row.
+
+    \code
+        model.insertRow(2, parentIndex, {
+            checkable: true, checked: false,
+            amount: 1,
+            fruitType: "Pear",
+            fruitName: "Williams",
+            fruitPrice: 1.50,
+        })
+    \endcode
+
+    \sa appendRow(), setRow(), removeRow()
+*/
+
+void QQmlTreeModel::insertRow(int rowIndex, QModelIndex parent, const QVariant &row)
+{
+    if (rowIndex < 0) {
+        qmlWarning(this).noquote() << "insertRow(): rowIndex cannot be negative";
+        return;
+    }
+    if (rowIndex > rowCount(parent)) {
+        qmlWarning(this).noquote() << "insertRow(): rowIndex " << rowIndex
+                                   << " is greater than rowCount() of "
+                                   << rowCount(parent);
+        return;
+    }
+    if (!validateNewRow("insertRow()"_L1, row))
+        return;
+
+    doInsert(parent, rowIndex, row);
+}
+
+/*!
+    \qmlmethod void TreeModel::insertRow(int rowIndex, object row)
+    \since 6.12
+
+    Inserts a new row to the root item at position \a rowIndex, with the
+    values (cells) in \a row.
+
+    \sa appendRow(), setRow(), removeRow()
+*/
+void QQmlTreeModel::insertRow(int rowIndex, const QVariant &row)
+{
+    insertRow(rowIndex, {}, row);
+}
+
+void QQmlTreeModel::doInsert(const QModelIndex &parent, int rowIndex, const QVariant &row)
+{
+    beginInsertRows(parent, rowIndex, rowIndex);
+
+    const QVariant data =
+            row.userType() == QMetaType::QVariantMap
+                ? row
+                : row.value<QJSValue>().toVariant();
+
+    auto newChild = std::make_unique<QQmlTreeRow>(data);
+    if (parent.isValid())
+        static_cast<QQmlTreeRow *>(parent.internalPointer())->insertChild(rowIndex, std::move(newChild));
+    else
+        mRows.insert(mRows.begin() + rowIndex, std::move(newChild));
+
+    qCDebug(lcTreeModel).nospace() << "inserted the following row to the row "
+        << parent << " at index "
+        << rowIndex << ":\n" << data.toMap();
+
+    // Gather metadata the first time a row is added.
+    if (mColumnMetadata.isEmpty())
+        fetchColumnMetadata();
+
+    endInsertRows();
+    emit rowsChanged();
+}
+
 QVariant QQmlTreeModel::firstRow() const
 {
     if (mRows.empty()) {
@@ -517,7 +598,8 @@ QModelIndex QQmlTreeModel::index(const std::vector<int> &treeIndex, int column)
     if (row)
         return createIndex(treeIndex.back(), column, row);
 
-    qmlWarning(this) << "TreeModel::index: could not find any node at the specified index";
+    qmlWarning(this) << "TreeModel::index: could not find any node at the specified index: "
+                     << treeIndex;
     return {};
 }
 
@@ -636,6 +718,83 @@ QQmlTreeRow *QQmlTreeModel::getPointerToTreeRow(QModelIndex &modIndex,
     }
 
     return static_cast<QQmlTreeRow*>(modIndex.internalPointer());
+}
+
+/*!
+    \qmlmethod bool TreeModel::moveRows(QModelIndex sourceParent, int sourceRow, int count,
+                        QModelIndex destinationParent, int destinationChild)
+    \since 6.12
+    Moves \a count rows starting at \a sourceRow from \a sourceParent to
+    \a destinationParent, inserting before \a destinationChild.
+
+    The \a destinationChild refers to the position in the \a destinationParent
+    \e before the move (pre-removal index), consistent with
+    QAbstractItemModel::beginMoveRows().
+
+    The source and destination ranges must exist, and \a sourceParent and
+    \a destinationParent must not overlap such that a parent would be moved
+    under its own child.
+
+    Returns \c true if the rows were successfully moved; otherwise returns
+    \c false.
+
+    \sa appendRow(), insertRow(), removeRow()
+*/
+bool QQmlTreeModel::moveRows(const QModelIndex &sourceParent, int sourceRow, int count,
+                             const QModelIndex &destinationParent, int destinationChild)
+{
+    if (count <= 0)
+        return false;
+
+    // beginMoveRows does not validate bounds against rowCount,
+    // so we must check before calling it.
+    if (sourceRow < 0 || sourceRow + count > rowCount(sourceParent))
+        return false;
+    if (destinationChild < 0 || destinationChild > rowCount(destinationParent))
+        return false;
+
+    if (!beginMoveRows(sourceParent, sourceRow, sourceRow + count - 1,
+                       destinationParent, destinationChild))
+        return false;
+
+   // Root-level children live in mRows on the model, not in a QQmlTreeRow,
+    // so internalPointer() is nullptr for the root QModelIndex.
+    auto takeChild = [this](const QModelIndex &parent, int row) -> std::unique_ptr<QQmlTreeRow> {
+        if (parent.isValid())
+            return static_cast<QQmlTreeRow *>(parent.internalPointer())->takeChild(row);
+        auto it = std::next(mRows.begin(), row);
+        std::unique_ptr<QQmlTreeRow> child = std::move(*it);
+        mRows.erase(it);
+        return child;
+    };
+
+    auto insertChild = [this](const QModelIndex &parent, int row, std::unique_ptr<QQmlTreeRow> child) {
+        if (parent.isValid()) {
+            static_cast<QQmlTreeRow *>(parent.internalPointer())->insertChild(row, std::move(child));
+        } else {
+            child->setParent(nullptr);
+            mRows.insert(std::next(mRows.begin(), row), std::move(child));
+        }
+    };
+
+    std::vector<std::unique_ptr<QQmlTreeRow>> buffer;
+    buffer.reserve(count);
+    for (int i = 0; i < count; ++i)
+        buffer.push_back(takeChild(sourceParent, sourceRow));
+
+    // beginMoveRows uses pre-removal indexing, but after takeChild the
+    // parent's child vector has already shrunk.  Adjust for same-parent
+    // backward moves.
+    int insertAt = destinationChild;
+    if (sourceParent == destinationParent && destinationChild > sourceRow)
+        insertAt -= count;
+
+    for (int i = 0; i < count; ++i)
+        insertChild(destinationParent, insertAt + i, std::move(buffer[i]));
+
+    endMoveRows();
+    emit rowsChanged();
+    return true;
 }
 
 QT_END_NAMESPACE

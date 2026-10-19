@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kpmcore\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
 "PO-Revision-Date: 2024-12-15 17:36+0530\n"
 "Last-Translator: Kali <EMAIL@ADDRESS>\n"
 "Language-Team: Hindi <fedora-trans-hi@redhat.com>\n"
@@ -1863,13 +1863,13 @@ msgstr "ताला"
 msgid "Enter passphrase for %1:"
 msgstr "%1 के लिए पासफ़्रेज़ दर्ज करें:"
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
 msgstr "विभाजन <filename>%1</filename> पर LUKS क्रिप्ट का आकार बदलना।"
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1927,7 +1927,7 @@ msgstr ""
 "<filename>%1</filename> विभाजन पर NTFS फ़ाइल सिस्टम के लिए बूट सेक्टर अद्यतन किया "
 "जा रहा है।"
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1937,7 +1937,7 @@ msgstr ""
 "NTFS बूट सेक्टर को अद्यतन करने का प्रयास करते समय <filename>%1</filename> विभाजन में "
 "नया प्रारंभ सेक्टर नहीं लिखा जा सका।"
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2723,6 +2723,44 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr "<filename>%1</filename> पर फ़ाइल सिस्टम को नष्ट करें"
 
+#: jobs/takeownershipjob.cpp:28
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:progress"
+#| msgid ""
+#| "File system on partition <filename>%1</filename> does not support setting "
+#| "labels. Job ignored."
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr ""
+"विभाजन <filename>%1</filename> पर फ़ाइल सिस्टम लेबल सेट करने का समर्थन नहीं करता है। "
+"कार्य अनदेखा किया गया।"
+
+#: jobs/takeownershipjob.cpp:36
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:progress"
+#| msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr "विभाजन <filename>%1</filename> पर LUKS क्रिप्ट का आकार बदलना।"
+
+#: jobs/takeownershipjob.cpp:60
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Change the permissions of: <filename>%1</filename> to %2"
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "<filename>%1</filename> की अनुमतियों को %2 में बदलें"
+
+#: jobs/takeownershipjob.cpp:62
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Change the permissions of: <filename>%1</filename> to %2"
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "<filename>%1</filename> की अनुमतियों को %2 में बदलें"
+
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
 msgctxt "@info:status"
@@ -3140,6 +3178,22 @@ msgstr "विभाजन <फ़ाइलनाम>%1</फ़ाइलना�
 msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
 msgstr "विभाजन <फ़ाइलनाम>%1</फ़ाइलनाम> के लिए लेबल को \"%2\" पर सेट करें"
+
+#: ops/takeownershipoperation.cpp:73
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Change the permissions of: <filename>%1</filename> to %2"
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "<filename>%1</filename> की अनुमतियों को %2 में बदलें"
+
+#: ops/takeownershipoperation.cpp:75
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Change the permissions of: <filename>%1</filename> to %2"
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
+msgstr "<filename>%1</filename> की अनुमतियों को %2 में बदलें"
 
 #: plugins/geom/geompartitiontable.cpp:91
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:65

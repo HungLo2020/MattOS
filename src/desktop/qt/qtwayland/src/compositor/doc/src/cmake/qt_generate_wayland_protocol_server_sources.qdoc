@@ -6,7 +6,7 @@
 \ingroup cmake-commands-qtwaylandcompositor
 
 \title qt_generate_wayland_protocol_server_sources
-\keyword qt6_generate_wayland_protocol_server_sources
+\keyword qt_generate_wayland_protocol_server_sources()
 
 \summary {Generates server-side C++ bindings for a Wayland protocol .XML file}
 
@@ -37,13 +37,16 @@ code in C and C++ for implementing the protocols, and the resulting files will b
 of the \c target.
 
 The options \c{PUBLIC_CODE} and \c{PRIVATE_CODE} (added in Qt 6.8) correspond to the \c{public-code}
-and \c{private-code} options of \c{wayland-scanner}. For backwards compatibility \c{PUBLIC_CODE} is
-the default but generally \c{PRIVATE_CODE} is strongly recommended.
+and \c{private-code} options of \c{wayland-scanner}.
+
+Before Qt 6.12, the default was \c PUBLIC_CODE. For Qt 6.12 and newer, the
+default is \c PRIVATE_CODE if the Qt policy \l qt_cmake_policy_qtp0006 is set to
+\c NEW. Generally, \c{PRIVATE_CODE} is strongly recommended.
 
 qt_generate_wayland_protocol_server_sources() will trigger generation of the files needed to
 implement the compositor side of the protocol.
 
-\l{qt_generate_wayland_protocol_client_sources}{qt_generate_wayland_protocol_client_sources()}
+\l qt_generate_wayland_protocol_client_sources()
 is the equivalent function for the client.
 
 See the \l{Custom Shell} or \l{Custom Extension} examples for a demonstration of how to use these

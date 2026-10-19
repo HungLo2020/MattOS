@@ -510,15 +510,17 @@ LRESULT QT_WIN_CALLBACK qThemeChangeObserverWndProc(HWND hwnd, UINT message, WPA
     switch (message) {
     case WM_SETTINGCHANGE:
         // Only refresh the theme if the user changes the personalize settings
+        // Or if the "Animation Effect" accessibility setting changed
         if (!((wParam == 0) && (lParam != 0) // lParam sometimes may be NULL.
-            && (wcscmp(reinterpret_cast<LPCWSTR>(lParam), L"ImmersiveColorSet") == 0)))
+            && (wcscmp(reinterpret_cast<LPCWSTR>(lParam), L"ImmersiveColorSet") == 0))
+            && wParam != SPI_SETCLIENTAREAANIMATION)
             break;
         Q_FALLTHROUGH();
     case WM_THEMECHANGED:
     case WM_SYSCOLORCHANGE:
     case WM_DWMCOLORIZATIONCOLORCHANGED:
-        qCDebug(lcQpaTheme) << "Handling theme change due to"
-            << qUtf8Printable(decodeMSG(MSG{hwnd, message, wParam, lParam, 0, {0, 0}}).trimmed());
+        qCDebug(lcQpaTheme, "Handling theme change due to %ls",
+                qUtf16Printable(qt_decodeMSG(MSG{hwnd, message, wParam, lParam, 0, {0, 0}}).trimmed()));
         QWindowsTheme::handleThemeChange();
 
         MSG msg; // Clear the message queue, we've already reacted to the change
@@ -676,6 +678,12 @@ Qt::ContrastPreference QWindowsTheme::contrastPreference() const
 {
     return queryHighContrast() ? Qt::ContrastPreference::HighContrast
                                : Qt::ContrastPreference::NoPreference;
+}
+
+Qt::MotionPreference QWindowsTheme::motionPreference() const
+{
+    return booleanSystemParametersInfo(SPI_GETCLIENTAREAANIMATION, false) ? Qt::MotionPreference::NoPreference
+                                                                          : Qt::MotionPreference::ReducedMotion;
 }
 
 void QWindowsTheme::handleThemeChange()

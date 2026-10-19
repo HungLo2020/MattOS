@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdeorg\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-28 02:46+0000\n"
+"POT-Creation-Date: 2026-08-11 00:47+0000\n"
 "PO-Revision-Date: 2025-05-12 14:58\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
@@ -14,9 +14,9 @@ msgstr ""
 "X-Crowdin-Project: kdeorg\n"
 "X-Crowdin-Project-ID: 269464\n"
 "X-Crowdin-Language: zh-CN\n"
-"X-Crowdin-File: /kf6-stable/messages/plasma-login-manager/kcm_plasmalogin."
+"X-Crowdin-File: /kf6-trunk/messages/plasma-login-manager/kcm_plasmalogin."
 "pot\n"
-"X-Crowdin-File-ID: 59870\n"
+"X-Crowdin-File-ID: 58058\n"
 
 #: kcm.cpp:78
 msgid ""
@@ -35,7 +35,7 @@ msgstr ""
 "无法同步 Plasma 设置，因为用户“plasmalogin”不存在。请检查您的 Plasma 登录程序"
 "是否正确安装。"
 
-#: kcm.cpp:265
+#: kcm.cpp:269
 msgid ""
 "Unable to reset Plasma settings because the 'plasmalogin' user does not "
 "exist. Please check your Plasma Login install."
@@ -93,21 +93,23 @@ msgstr "这将让 Plasma 登录屏幕使用您对下列 Plasma 设置的自定�
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
-"<para><list><item>Color scheme</item><item>Cursor theme and size</"
-"item><item>Font and font rendering</item><item>NumLock preference</"
-"item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
-"configuration</item></list></para>"
+"<para><list><item>Language and locale settings</item><item>Keyboard layouts</"
+"item><item>Screen arrangement, scale, and orientation settings</"
+"item><item>NumLock preference</item><item>Font and font rendering settings</"
+"item><item>Color scheme</item><item>Cursor theme and size</item><item>Plasma "
+"theme</item></list></para>"
 msgstr ""
-"<para><list><item>配色方案</item><item>光标方案和大小</item><item>字体和字体"
-"渲染方式</item><item>数字键锁定设置</item><item>Plasma 主题</item><item>缩放 "
-"DPI</item><item>屏幕配置</item></list></para>"
+"<para><list><item>语言和区域设置</item><item>键盘布局</item><item>屏幕排列、"
+"缩放和方向设置</item><item>NumLock 首选项</item><item>字体和字体渲染设置</"
+"item><item>配色方案</item><item>光标主题和大小</item><item>Plasma 主题</"
+"item></list></para>"
 
 #: ui/main.qml:67
 #, kde-format
 msgid ""
-"Please note that theme files must be installed globally to be reflected on "
-"the Plasma login screen."
-msgstr "提示：主题文件必须安装到系统全局才能被 Plasma 登录屏幕使用。"
+"Please note that theme and font files must be installed globally to be "
+"reflected on the Plasma login screen."
+msgstr "提示：主题和字体文件必须安装到系统全局才能被在 Plasma 登录屏幕上生效。"
 
 #: ui/main.qml:71
 #, kde-format
@@ -133,7 +135,7 @@ msgctxt "@option:check"
 msgid "Automatically log in:"
 msgstr "自动登录："
 
-#: ui/main.qml:99
+#: ui/main.qml:100
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the user to log in "
@@ -141,7 +143,7 @@ msgctxt ""
 msgid "as user:"
 msgstr "作为用户："
 
-#: ui/main.qml:154
+#: ui/main.qml:150
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the session that is started "
@@ -149,7 +151,7 @@ msgctxt ""
 msgid "with session:"
 msgstr "跟随会话："
 
-#: ui/main.qml:187
+#: ui/main.qml:180
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -162,42 +164,42 @@ msgstr ""
 "为避免这种情况，可将密码库的密码设为空密码。请注意：空密码不安全，请只在可信"
 "任的环境中如此设置。"
 
-#: ui/main.qml:192
+#: ui/main.qml:185
 #, kde-format
 msgid "Open KDE Wallet Settings"
 msgstr "打开 KDE 密码库设置"
 
-#: ui/main.qml:199
+#: ui/main.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Log in again immediately after logging off"
 msgstr "注销后立即重新登录"
 
-#: ui/main.qml:210
+#: ui/main.qml:203
 #, kde-format
 msgctxt "@title:group"
 msgid "Defaults"
 msgstr "默认值"
 
-#: ui/main.qml:215
+#: ui/main.qml:208
 #, kde-format
 msgctxt "@label"
 msgid "Default user:"
 msgstr "默认用户："
 
-#: ui/main.qml:221
+#: ui/main.qml:214
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in user"
 msgstr "最近登录的用户"
 
-#: ui/main.qml:293
+#: ui/main.qml:281
 #, kde-format
 msgctxt "@label"
 msgid "Default session:"
 msgstr "默认会话："
 
-#: ui/main.qml:299
+#: ui/main.qml:287
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in session"

@@ -7,7 +7,7 @@ qt6_generate_wayland_protocol_client_sources(KWinIntegrationTestFramework
     NO_INCLUDE_CORE_ONLY
     FILES
         ${WaylandProtocols_DATADIR}/unstable/input-method/input-method-unstable-v1.xml
-        ${WaylandProtocols_DATADIR}/unstable/linux-dmabuf/linux-dmabuf-unstable-v1.xml
+        ${WaylandProtocols_DATADIR}/stable/linux-dmabuf/linux-dmabuf-v1.xml
 )
 qt6_generate_wayland_protocol_client_sources(KWinIntegrationTestFramework
     PRIVATE_CODE
@@ -15,19 +15,22 @@ qt6_generate_wayland_protocol_client_sources(KWinIntegrationTestFramework
         ${Wayland_DATADIR}/wayland.xml
 
         ${CMAKE_SOURCE_DIR}/src/wayland/protocols/wlr-layer-shell-unstable-v1.xml
-        ${CMAKE_SOURCE_DIR}/src/wayland/protocols/xx-session-management-v1.xml
         ${WaylandProtocols_DATADIR}/stable/presentation-time/presentation-time.xml
         ${WaylandProtocols_DATADIR}/stable/tablet/tablet-v2.xml
         ${WaylandProtocols_DATADIR}/stable/viewporter/viewporter.xml
         ${WaylandProtocols_DATADIR}/stable/xdg-shell/xdg-shell.xml
+        ${WaylandProtocols_DATADIR}/staging/alpha-modifier/alpha-modifier-v1.xml
         ${WaylandProtocols_DATADIR}/staging/color-management/color-management-v1.xml
         ${WaylandProtocols_DATADIR}/staging/color-representation/color-representation-v1.xml
+        ${WaylandProtocols_DATADIR}/staging/commit-timing/commit-timing-v1.xml
         ${WaylandProtocols_DATADIR}/staging/cursor-shape/cursor-shape-v1.xml
         ${WaylandProtocols_DATADIR}/staging/fifo/fifo-v1.xml
         ${WaylandProtocols_DATADIR}/staging/fractional-scale/fractional-scale-v1.xml
         ${WaylandProtocols_DATADIR}/staging/security-context/security-context-v1.xml
+        ${WaylandProtocols_DATADIR}/staging/tearing-control/tearing-control-v1.xml
         ${WaylandProtocols_DATADIR}/staging/xdg-activation/xdg-activation-v1.xml
         ${WaylandProtocols_DATADIR}/staging/xdg-dialog/xdg-dialog-v1.xml
+        ${WaylandProtocols_DATADIR}/staging/xdg-session-management/xdg-session-management-v1.xml
         ${WaylandProtocols_DATADIR}/staging/xdg-toplevel-drag/xdg-toplevel-drag-v1.xml
         ${WaylandProtocols_DATADIR}/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml
         ${WaylandProtocols_DATADIR}/unstable/primary-selection/primary-selection-unstable-v1.xml
@@ -65,8 +68,9 @@ target_link_libraries(KWinIntegrationTestFramework
 if(KWIN_BUILD_X11)
     target_link_libraries(KWinIntegrationTestFramework PRIVATE KWinXwaylandServerModule)
 endif()
-if(TARGET KF6GlobalAccelKWinPlugin)
-    target_link_libraries(KWinIntegrationTestFramework PUBLIC KF6GlobalAccelKWinPlugin)
+
+if (KWIN_BUILD_GLOBALSHORTCUTS)
+    target_link_libraries(KWinIntegrationTestFramework PUBLIC KF6::GlobalAccel)
 endif()
 
 if(TARGET PW::KScreenLocker)
@@ -76,7 +80,7 @@ endif()
 function(integrationTest)
     set(optionArgs BUILTIN_EFFECTS)
     set(oneValueArgs NAME)
-    set(multiValueArgs SRCS LIBS OPTIONAL_LIBS)
+    set(multiValueArgs SRCS LIBS OPTIONAL_LIBS PROPERTIES)
     cmake_parse_arguments(ARGS "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     add_executable(${ARGS_NAME} ${ARGS_SRCS})
@@ -90,18 +94,23 @@ function(integrationTest)
         kcoreaddons_target_static_plugins(${ARGS_NAME} NAMESPACE "kwin/effects/plugins")
     endif()
     add_test(NAME kwin-${ARGS_NAME} COMMAND dbus-run-session ${CMAKE_BINARY_DIR}/bin/${ARGS_NAME})
+
+    if (DEFINED ARGS_PROPERTIES AND NOT ARGS_PROPERTIES STREQUAL "")
+        set_tests_properties(kwin-${ARGS_NAME} PROPERTIES ${ARGS_PROPERTIES})
+    endif()
 endfunction()
 
 if(KWIN_BUILD_X11)
     integrationTest(NAME testDontCrashGlxgears SRCS dont_crash_glxgears.cpp LIBS KF6::I18n KDecoration3::KDecoration)
 endif()
 if (KWIN_BUILD_SCREENLOCKER)
-    integrationTest(NAME testLockScreen SRCS lockscreen.cpp LIBS KF6::GlobalAccel)
+    integrationTest(NAME testLockScreen SRCS lockscreen.cpp LIBS KF6::GlobalAccel PROPERTIES RUN_SERIAL TRUE)
 endif()
 integrationTest(NAME testBounceKeys SRCS bounce_keys_test.cpp)
+integrationTest(NAME testVulkan SRCS vulkan_test.cpp)
 integrationTest(NAME testButtonRebind SRCS buttonrebind_test.cpp)
 if (KWIN_BUILD_GAMECONTROLLER)
-    integrationTest(NAME testGameController SRCS gamecontroller_test.cpp LIBS KF6::IdleTime PkgConfig::libevdev)
+    integrationTest(NAME testGameController SRCS gamecontroller_test.cpp LIBS KF6::IdleTime PkgConfig::libevdev PROPERTIES RUN_SERIAL TRUE)
 endif()
 integrationTest(NAME testDecorationInput SRCS decoration_input_test.cpp LIBS KDecoration3::KDecoration KDecoration3::KDecoration3Private)
 integrationTest(NAME testInternalWindow SRCS internal_window.cpp)
@@ -116,7 +125,9 @@ integrationTest(NAME testPlasmaSurface SRCS plasma_surface_test.cpp)
 integrationTest(NAME testMaximized SRCS maximize_test.cpp LIBS KDecoration3::KDecoration KF6::Package)
 integrationTest(NAME testXdgShellWindow SRCS xdgshellwindow_test.cpp LIBS KDecoration3::KDecoration)
 integrationTest(NAME testSceneOpenGL SRCS scene_opengl_test.cpp )
-integrationTest(NAME testSceneOpenGLES SRCS scene_opengl_es_test.cpp )
+integrationTest(NAME testSceneOpenGLES2 SRCS scene_opengl_test.cpp )
+target_compile_definitions(testSceneOpenGLES2 PRIVATE MESA_GLES_VERSION_OVERRIDE="2.0")
+
 integrationTest(NAME testScreenChanges SRCS screen_changes_test.cpp)
 if (KWIN_BUILD_TABBOX)
     integrationTest(NAME testTabBox SRCS tabbox_test.cpp)
@@ -134,7 +145,6 @@ integrationTest(NAME testIdleInhibition SRCS idle_inhibition_test.cpp)
 integrationTest(NAME testDontCrashReinitializeCompositor SRCS dont_crash_reinitialize_compositor.cpp BUILTIN_EFFECTS)
 integrationTest(NAME testNoGlobalShortcuts SRCS no_global_shortcuts_test.cpp LIBS KF6::GlobalAccel)
 integrationTest(NAME testPlacement SRCS placement_test.cpp)
-integrationTest(NAME testActivation SRCS activation_test.cpp OPTIONAL_LIBS XCB::ICCCM)
 integrationTest(NAME testInputMethod SRCS inputmethod_test.cpp LIBS XKB::XKB)
 integrationTest(NAME testScreens SRCS screens_test.cpp)
 integrationTest(NAME testScreenEdges SRCS screenedges_test.cpp)
@@ -142,7 +152,7 @@ integrationTest(NAME testOutputChanges SRCS outputchanges_test.cpp OPTIONAL_LIBS
 integrationTest(NAME testTiles SRCS tiles_test.cpp OPTIONAL_LIBS XCB::ICCCM)
 integrationTest(NAME testFractionalScaling SRCS fractional_scaling_test.cpp)
 integrationTest(NAME testMoveResize SRCS move_resize_window_test.cpp)
-integrationTest(NAME testPlasmaWindow SRCS plasmawindow_test.cpp OPTIONAL_LIBS XCB::ICCCM)
+integrationTest(NAME testPlasmaWindow SRCS plasmawindow_test.cpp OPTIONAL_LIBS XCB::ICCCM PROPERTIES RUN_SERIAL TRUE)
 integrationTest(NAME testQuickTiling SRCS quick_tiling_test.cpp LIBS KDecoration3::KDecoration OPTIONAL_LIBS XCB::ICCCM)
 integrationTest(NAME testStackingOrder SRCS stacking_order_test.cpp OPTIONAL_LIBS XCB::ICCCM)
 integrationTest(NAME testDbusInterface SRCS dbus_interface_test.cpp OPTIONAL_LIBS XCB::ICCCM)
@@ -152,20 +162,24 @@ integrationTest(NAME testSlowKeys SRCS slow_keys_test.cpp)
 integrationTest(NAME testStickyKeys SRCS sticky_keys_test.cpp)
 integrationTest(NAME testWorkspace SRCS workspace_test.cpp)
 integrationTest(NAME testMouseActions SRCS mouseactions_test.cpp LIBS)
-if (HAVE_WAYLAND_PROTOCOLS_147)
-    integrationTest(NAME testColorManagement SRCS test_colormanagement.cpp)
-endif()
+integrationTest(NAME testColorManagement SRCS test_colormanagement.cpp)
+integrationTest(NAME testAlphaModifier SRCS alpha_modifier_test.cpp)
+integrationTest(NAME testTearingControl SRCS tearing_control_test.cpp)
 integrationTest(NAME testKeyboardInput SRCS keyboard_input_test.cpp)
-integrationTest(NAME testFifo SRCS test_fifo.cpp)
+integrationTest(NAME testFifo SRCS test_fifo.cpp PROPERTIES RUN_SERIAL TRUE)
 integrationTest(NAME testMouseKeys SRCS mouse_keys_test.cpp)
 integrationTest(NAME testXdgSession SRCS xdgsession_test.cpp)
 integrationTest(NAME testDnd SRCS dnd_test.cpp)
 integrationTest(NAME testFractionalRepaint SRCS fractional_repaint_test.cpp)
-integrationTest(NAME testDrm SRCS drm_test.cpp)
-integrationTest(NAME testDrmLegacy SRCS drm_test.cpp)
+
+integrationTest(NAME testDrm SRCS drm_test.cpp PROPERTIES RESOURCE_LOCK "vkms")
+integrationTest(NAME testDrmLegacy SRCS drm_test.cpp PROPERTIES RESOURCE_LOCK "vkms")
 target_compile_definitions(testDrmLegacy PRIVATE FORCE_DRM_LEGACY=1)
-integrationTest(NAME testDrmNoModifiers SRCS drm_test.cpp)
+integrationTest(NAME testDrmNoModifiers SRCS drm_test.cpp PROPERTIES RESOURCE_LOCK "vkms")
 target_compile_definitions(testDrmNoModifiers PRIVATE FORCE_NO_DRM_MODIFIERS=1)
+integrationTest(NAME testDrmNoRenderNodes SRCS drm_test.cpp PROPERTIES RESOURCE_LOCK "vkms")
+target_compile_definitions(testDrmNoRenderNodes PRIVATE FORCE_NO_RENDERNODES=1)
+
 integrationTest(NAME testSelection SRCS selection_test.cpp)
 integrationTest(NAME testToplevelDrag SRCS topleveldrag_test.cpp)
 integrationTest(NAME testA11yKeyboardMonitor SRCS a11ykeyboardmonitor_test.cpp)
@@ -189,28 +203,31 @@ qt_add_dbus_interfaces(DBUS_SRCS ${CMAKE_BINARY_DIR}/src/org.kde.kwin.VirtualKey
 integrationTest(NAME testVirtualKeyboardDBus SRCS test_virtualkeyboard_dbus.cpp ${DBUS_SRCS})
 
 if (KWIN_BUILD_GLOBALSHORTCUTS)
-    integrationTest(NAME testGlobalShortcuts SRCS globalshortcuts_test.cpp LIBS XCB::ICCCM KF6::GlobalAccel KF6::I18n XKB::XKB)
+    integrationTest(NAME testGlobalShortcuts SRCS globalshortcuts_test.cpp LIBS KF6::GlobalAccel KF6::I18n XKB::XKB OPTIONAL_LIBS XCB::ICCCM)
     integrationTest(NAME testKWinBindings SRCS kwinbindings_test.cpp LIBS KF6::I18n)
 endif()
 if (TARGET K::KPipeWire)
     integrationTest(NAME testScreencasting SRCS screencasting_test.cpp LIBS K::KPipeWire)
 endif()
 
-if (KWIN_BUILD_ACTIVITIES)
+if (KWIN_BUILD_ACTIVITIES AND KWIN_BUILD_X11)
     integrationTest(NAME testActivities SRCS activities_test.cpp LIBS XCB::ICCCM Plasma::Activities)
 endif()
 
 if (KWIN_BUILD_EIS)
     pkg_check_modules(PKG_libei REQUIRED IMPORTED_TARGET libei-1.0)
-    integrationTest(NAME testInputCapture SRCS input_capture_test.cpp  LIBS PkgConfig::PKG_libei)
-    if (PKG_libei_VERSION VERSION_GREATER_EQUAL "1.4.0")
-        target_compile_definitions(testInputCapture PRIVATE -DHAVE_EI_EVENT_SYNC=1)
+    integrationTest(NAME testInputCapture SRCS input_capture_test.cpp  LIBS PkgConfig::PKG_libei PROPERTIES RUN_SERIAL TRUE)
+    integrationTest(NAME testLibeiInput SRCS libei_test.cpp LIBS PkgConfig::PKG_libei PROPERTIES RUN_SERIAL TRUE)
+    if (PKG_libei_VERSION VERSION_GREATER_EQUAL "1.6")
+        set(EIS_HAVE_16 1)
     else()
-        target_compile_definitions(testInputCapture PRIVATE -DHAVE_EI_EVENT_SYNC=0)
+        set(EIS_HAVE_16 0)
     endif()
+    target_compile_definitions(testLibeiInput PRIVATE -DEIS_HAVE_16=${EIS_HAVE_16})
 endif()
 
 
 add_subdirectory(scripting)
 add_subdirectory(effects)
 add_subdirectory(fakes)
+add_subdirectory(activation)

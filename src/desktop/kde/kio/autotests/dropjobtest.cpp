@@ -89,6 +89,8 @@ private Q_SLOTS:
         m_trashDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QLatin1String("/Trash");
         QDir(m_trashDir).removeRecursively();
 
+        QDir(QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation)).mkpath(".");
+
         m_tempDir = QTemporaryDir(QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation) + QLatin1String("/dropjobtest"));
         m_nonWritableTempDir = QTemporaryDir(QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation) + QLatin1String("/dropjobtest_ro"));
 
@@ -520,6 +522,24 @@ private Q_SLOTS:
         QCOMPARE(jobSpy.error(), 0);
         const QString destFile = tempDestDir.path() + "/srcfile";
         QVERIFY(!QFile::exists(destFile));
+    }
+
+    void testInvalidUrl()
+    {
+        QTemporaryDir tempDestDir;
+        QVERIFY(tempDestDir.isValid());
+        const QUrl destUrl = QUrl::fromLocalFile(tempDestDir.path());
+
+        QMimeData mimeData;
+        mimeData.setUrls({QUrl("not a url")});
+
+        QDropEvent dropEvent(QPoint(10, 10), Qt::CopyAction /*unused*/, &mimeData, Qt::LeftButton, Qt::NoModifier);
+        KIO::DropJob *job = KIO::drop(&dropEvent, destUrl, KIO::HideProgressInfo);
+
+        JobSpy jobSpy(job);
+
+        QVERIFY(jobSpy.waitForResult());
+        QCOMPARE(jobSpy.error(), KIO::ERR_NO_CONTENT);
     }
 
 private:

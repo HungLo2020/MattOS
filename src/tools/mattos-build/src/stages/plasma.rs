@@ -47,7 +47,7 @@ fn build_plasma_component(repo_root: &Path, stage: &str, source: &str, component
 }
 
 fn build_plasma_framework(repo_root: &Path) -> Result<()> {
-    build_plasma_component(repo_root, "plasma-framework", "src/desktop/kde/plasma-framework", &["qtbase", "qtdeclarative", "qttools", "kconfig", "kcoreaddons", "ki18n", "kguiaddons", "kwidgetsaddons", "kiconthemes", "kirigami", "ksvg", "kpackage", "kglobalaccel", "kwindowsystem", "kwayland", "kio", "kbookmarks", "kcompletion", "solid", "kservice", "kcodecs", "kitemmodels", "kitemviews", "kjobwidgets", "karchive", "kauth", "kcrash", "kdbusaddons", "knotifications", "kcolorscheme", "plasma-wayland-protocols", "plasma-activities", "gzip", "x11-compat"], &["-DBUILD_TESTING=OFF", "-DWITHOUT_X11=ON"], "usr/lib/x86_64-linux-gnu/cmake/Plasma/PlasmaConfig.cmake")
+    build_plasma_component(repo_root, "plasma-framework", "src/desktop/kde/plasma-framework", &["qtwayland", "qt5compat", "wayland", "wayland-protocols", "qtbase", "qtdeclarative", "qttools", "kconfig", "kcoreaddons", "ki18n", "kguiaddons", "kwidgetsaddons", "kiconthemes", "kirigami", "ksvg", "kpackage", "kglobalaccel", "kwindowsystem", "kwayland", "kio", "kbookmarks", "kcompletion", "solid", "kservice", "kcodecs", "kitemmodels", "kitemviews", "kjobwidgets", "karchive", "kauth", "kcrash", "kdbusaddons", "knotifications", "kcolorscheme", "plasma-wayland-protocols", "plasma-activities", "gzip", "x11-compat"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/cmake/Plasma/PlasmaConfig.cmake")
 }
 
 fn build_qqc2_desktop_style(repo_root: &Path) -> Result<()> {
@@ -74,7 +74,7 @@ fn build_kactivitymanagerd(repo_root: &Path) -> Result<()> {
 }
 
 fn build_kglobalacceld(repo_root: &Path) -> Result<()> {
-    build_plasma_component(repo_root, "kglobalacceld", "src/desktop/kde/kglobalacceld", &["qtbase", "qtdeclarative", "qttools", "kconfig", "kcoreaddons", "kcrash", "kdbusaddons", "kwindowsystem", "kglobalaccel", "kservice", "kio", "karchive", "kauth", "kbookmarks", "kcolorscheme", "kcompletion", "kguiaddons", "ki18n", "kiconthemes", "kitemmodels", "kitemviews", "kjobwidgets", "knotifications", "kwidgetsaddons", "solid", "util-linux", "xkbcommon", "libcanberra"], &["-DBUILD_TESTING=OFF", "-DWITH_X11=OFF"], "usr/lib/x86_64-linux-gnu/libexec/kglobalacceld")
+    build_plasma_component(repo_root, "kglobalacceld", "src/desktop/kde/kglobalacceld", &["qtbase", "qtdeclarative", "qttools", "kconfig", "kcoreaddons", "kcrash", "kdbusaddons", "kwindowsystem", "kglobalaccel", "kservice", "kio", "karchive", "kauth", "kbookmarks", "kcolorscheme", "kcompletion", "kguiaddons", "ki18n", "kiconthemes", "kitemmodels", "kitemviews", "kjobwidgets", "knotifications", "kwidgetsaddons", "solid", "util-linux", "xkbcommon", "libcanberra"], &["-DBUILD_TESTING=OFF", "-DWITH_X11=OFF"], "usr/lib/x86_64-linux-gnu/libKGlobalAccelD.so.0")
 }
 
 fn build_plasma_activities_stats(repo_root: &Path) -> Result<()> {
@@ -93,7 +93,7 @@ fn build_kscreen(repo_root: &Path) -> Result<()> {
 }
 
 fn build_layer_shell_qt(repo_root: &Path) -> Result<()> {
-    build_plasma_component(repo_root, "layer-shell-qt", "src/desktop/kde/layer-shell-qt", &["qtbase", "qtwayland", "qtdeclarative", "kwayland", "plasma-wayland-protocols", "wayland", "xkbcommon", "libffi"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/cmake/LayerShellQt/LayerShellQtConfig.cmake")
+    build_plasma_component(repo_root, "layer-shell-qt", "src/desktop/kde/layer-shell-qt", &["wayland-protocols", "qtbase", "qtwayland", "qtdeclarative", "kwayland", "plasma-wayland-protocols", "wayland", "xkbcommon", "libffi"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/cmake/LayerShellQt/LayerShellQtConfig.cmake")
 }
 
 fn build_kscreen_locker(repo_root: &Path) -> Result<()> {
@@ -109,13 +109,13 @@ fn build_kwin(repo_root: &Path) -> Result<()> {
         repo_root,
         "kwin",
         "src/desktop/kde/kwin",
-        &["aurorae", "qtbase", "qt5compat", "qtwayland", "qtdeclarative", "qttools", "kconfig", "kdeclarative", "kcmutils", "kconfigwidgets", "kwidgetsaddons", "knewstuff", "attica", "kxmlgui", "kcoreaddons", "kdbusaddons", "kauth", "karchive", "kcolorscheme", "kcrash", "kglobalaccel", "kguiaddons", "ki18n", "kidletime", "kpackage", "kservice", "ksvg", "kwindowsystem", "kdecoration", "kwayland", "knighttime", "kholidays", "qtpositioning", "lcms2", "x11-compat", "libxcb", "libffi", "libevdev", "plasma-wayland-protocols", "wayland-protocols", "wayland", "xkbcommon", "libdrm", "mesa", "libinput", "libdisplay-info", "seatd", "libepoxy", "libxcvt", "libcanberra", "systemd", "dbus", "xwayland"],
+        &["pipewire", "kirigami", "plasma-framework", "plasma-activities", "milou", "kio", "kjobwidgets", "kitemmodels", "libcap", "vulkan-headers", "vulkan-loader", "krunner", "kglobalacceld", "aurorae", "qtbase", "qt5compat", "qtwayland", "qtdeclarative", "qttools", "kconfig", "kdeclarative", "kcmutils", "kconfigwidgets", "kwidgetsaddons", "knewstuff", "attica", "kxmlgui", "kcoreaddons", "kdbusaddons", "kauth", "karchive", "kcolorscheme", "kcrash", "kglobalaccel", "kguiaddons", "ki18n", "kidletime", "kpackage", "kservice", "ksvg", "kwindowsystem", "kdecoration", "kwayland", "knighttime", "kholidays", "qtpositioning", "lcms2", "x11-compat", "libxcb", "libffi", "libevdev", "plasma-wayland-protocols", "wayland-protocols", "wayland", "xkbcommon", "libdrm", "mesa", "libinput", "libdisplay-info", "seatd", "libepoxy", "libxcvt", "libcanberra", "systemd", "dbus", "xwayland"],
         // The installed Wayland wrapper and Plasma session deliberately pass
         // --xwayland to KWin.  Keep the X11 common code/Xwayland server
         // enabled so that legacy X11 clients work inside the Wayland session;
         // disabling this option leaves an installed wrapper that KWin rejects
         // immediately with "Unknown option 'xwayland'".
-        &["-DBUILD_TESTING=OFF", "-DKWIN_BUILD_X11=ON", "-DKWIN_BUILD_KCMS=ON", "-DKWIN_BUILD_NOTIFICATIONS=OFF", "-DKWIN_BUILD_SCREENLOCKER=OFF", "-DKWIN_BUILD_TABBOX=OFF", "-DKWIN_BUILD_GLOBALSHORTCUTS=OFF", "-DKWIN_BUILD_RUNNERS=OFF", "-DKWIN_BUILD_DECORATIONS=ON", "-DWITH_PIPEWIRE=ON"],
+        &["-DBUILD_TESTING=OFF", "-DKWIN_BUILD_X11=ON", "-DKWIN_BUILD_KCMS=ON", "-DKWIN_BUILD_NOTIFICATIONS=OFF", "-DKWIN_BUILD_SCREENLOCKER=OFF", "-DKWIN_BUILD_TABBOX=OFF", "-DKWIN_BUILD_GLOBALSHORTCUTS=ON", "-DKWIN_BUILD_RUNNERS=OFF", "-DKWIN_BUILD_DECORATIONS=ON", "-DWITH_PIPEWIRE=ON", &format!("-DVulkan_INCLUDE_DIR={}", repo_root.join("out/build/vulkan-headers/install/usr/include").display()), &format!("-DVulkan_LIBRARY={}", repo_root.join("out/build/vulkan-loader/install/usr/lib/x86_64-linux-gnu/libvulkan.so").display()), &format!("-DLibcap_LIBRARIES={}", repo_root.join("out/build/libcap/install/usr/lib/x86_64-linux-gnu/libcap.so").display()), &format!("-DSETCAP_EXECUTABLE={}", qt_host_tool("setcap")?.display())],
         "usr/bin/kwin_wayland",
     )
 }
@@ -129,6 +129,8 @@ mod appearance_build_tests {
         let source = include_str!("plasma.rs");
         assert!(source.contains("-DKWIN_BUILD_KCMS=ON"));
         assert!(source.contains("-DKWIN_BUILD_DECORATIONS=ON"));
+        assert!(source.contains("-DKWIN_BUILD_GLOBALSHORTCUTS=ON"));
+        assert!(crate::stage_graph::direct_dependencies(crate::stage_graph::BuildStage::PlasmaKWin).contains(&"kglobalacceld"));
         assert!(source.contains("\"aurorae\""));
     }
 
@@ -206,7 +208,7 @@ fn build_plasma_workspace(repo_root: &Path) -> Result<()> {
         repo_root,
         "plasma-workspace",
         "src/desktop/kde/plasma-workspace",
-        &["qtbase", "qtdeclarative", "qtshadertools", "qtpositioning", "qtlocation", "qcoro", "kconfig", "kcoreaddons", "kdbusaddons", "kauth", "karchive", "kcrash", "kglobalaccel", "kguiaddons", "ki18n", "kholidays", "kidletime", "kpackage", "ksvg", "kcolorscheme", "kwidgetsaddons", "kdeclarative", "kirigami", "kirigami-addons", "kquickcharts", "kiconthemes", "kitemmodels", "kitemviews", "kcmutils", "kded", "kio", "kwindowsystem", "kwayland", "libkscreen", "layer-shell-qt", "knighttime", "plasma-wayland-protocols", "xkbcommon", "kbookmarks", "kcompletion", "solid", "kservice", "kcodecs", "knewstuff", "attica", "knotifications", "kparts", "kjobwidgets", "prison", "krunner", "kstatusnotifieritem", "ktextwidgets", "sonnet", "ktexteditor", "kwallet", "kconfigwidgets", "kxmlgui", "breeze-icons", "libffi", "libcanberra", "zlib", "icu", "polkit-qt-1", "plasma-framework", "plasma-activities", "plasma-activities-stats", "kwin", "systemd", "dbus", "networkmanager", "pipewire", "x11-compat", "kscreenlocker"],
+        &["networkmanager-qt", "union", "qtbase", "qtdeclarative", "qtshadertools", "qtpositioning", "qtlocation", "qcoro", "kconfig", "kcoreaddons", "kdbusaddons", "kauth", "karchive", "kcrash", "kglobalaccel", "kguiaddons", "ki18n", "kholidays", "kidletime", "kpackage", "ksvg", "kcolorscheme", "kwidgetsaddons", "kdeclarative", "kirigami", "kirigami-addons", "kquickcharts", "kiconthemes", "kitemmodels", "kitemviews", "kcmutils", "kded", "kio", "kwindowsystem", "kwayland", "libkscreen", "layer-shell-qt", "knighttime", "plasma-wayland-protocols", "xkbcommon", "kbookmarks", "kcompletion", "solid", "kservice", "kcodecs", "knewstuff", "attica", "knotifications", "kparts", "kjobwidgets", "prison", "krunner", "kstatusnotifieritem", "ktextwidgets", "sonnet", "ktexteditor", "kwallet", "kconfigwidgets", "kxmlgui", "breeze-icons", "libffi", "libcanberra", "zlib", "icu", "polkit-qt-1", "plasma-framework", "plasma-activities", "plasma-activities-stats", "kwin", "systemd", "dbus", "networkmanager", "pipewire", "x11-compat", "kscreenlocker"],
         // WITH_X11 builds the shared KSMServer session manager, which is
         // required for orderly Wayland logout/re-login. WITH_X11_SESSION=OFF
         // continues to exclude the Plasma X11 session and startplasma-x11.
@@ -289,7 +291,7 @@ fn build_plasma_desktop(repo_root: &Path) -> Result<()> {
         repo_root,
         "plasma-desktop",
         "src/desktop/kde/plasma-desktop",
-        &["qtbase", "qtdeclarative", "kconfig", "kconfigwidgets", "kcolorscheme", "kwindowsystem", "kcoreaddons", "ki18n", "kwidgetsaddons", "kauth", "kcrash", "kcmutils", "knewstuff", "kio", "knotifications", "attica", "krunner", "kglobalaccel", "kguiaddons", "kdbusaddons", "kcodecs", "sonnet", "kpackage", "kiconthemes", "kxmlgui", "ksvg", "kbookmarks", "kcompletion", "kjobwidgets", "kservice", "kparts", "solid", "qqc2-desktop-style", "kirigami-addons", "plasma-workspace", "xkbcommon", "libxml2", "libxkbfile", "xorgproto", "libxcb", "libxau", "libxdmcp", "libx11", "x11-compat", "xkeyboard-config", "qtshadertools"],
+        &["polkit-qt-1", "polkit", "glib", "dbus", "libffi", "wayland", "wayland-protocols", "qtbase", "qtdeclarative", "kconfig", "kconfigwidgets", "kcolorscheme", "kwindowsystem", "kcoreaddons", "ki18n", "kwidgetsaddons", "kauth", "kcrash", "kcmutils", "knewstuff", "kio", "knotifications", "attica", "krunner", "kglobalaccel", "kguiaddons", "kdbusaddons", "kcodecs", "sonnet", "kpackage", "kiconthemes", "kxmlgui", "ksvg", "kbookmarks", "kcompletion", "kjobwidgets", "kservice", "kparts", "solid", "qqc2-desktop-style", "kirigami-addons", "plasma-workspace", "xkbcommon", "libxml2", "libxkbfile", "xorgproto", "libxcb", "libxau", "libxdmcp", "libx11", "x11-compat", "xkeyboard-config", "qtshadertools"],
         // Plasma is a Wayland-only session, but plasma-desktop still builds its
         // keyboard-layout applet's private QML backend behind WITH_X11.  Keep
         // that XKB/XCB integration enabled for Xwayland/keyboard management;

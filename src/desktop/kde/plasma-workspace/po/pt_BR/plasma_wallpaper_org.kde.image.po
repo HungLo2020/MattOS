@@ -7,21 +7,21 @@
 # Thiago Masato Costa Sueto <herzenschein@gmail.com>, 2021.
 # SPDX-FileCopyrightText: 2024, 2025 Geraldo Simiao <geraldosimiao@fedoraproject.org>
 # SPDX-FileCopyrightText: 2025 Guilherme Marçal Silva <guimarcalsilva@gmail.com>
-# SPDX-FileCopyrightText: 2025 Marcus Gama <marcus.gama@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Marcus Gama <marcus.gama@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-17 02:39+0000\n"
-"PO-Revision-Date: 2025-11-08 21:10-0300\n"
-"Last-Translator: Guilherme Marçal Silva <guimarcalsilva@gmail.com>\n"
+"POT-Creation-Date: 2026-06-21 00:46+0000\n"
+"PO-Revision-Date: 2026-06-21 08:03-0300\n"
+"Last-Translator: Marcus Gama <marcus.gama@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.08.2\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -33,101 +33,101 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "elchevive@opensuse.org, geraldosimiao@fedoraproject.org"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:59
+#: imagepackage/contents/ui/AddFileDialog.qml:56
 #, kde-format
 msgctxt "@title:window"
 msgid "Open Image"
 msgstr "Abrir imagem"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:71
+#: imagepackage/contents/ui/AddFileDialog.qml:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Directory with the wallpaper to show slides from"
 msgstr "Pasta com o papel de parede a mostrar como slide"
 
-#: imagepackage/contents/ui/config.qml:146
+#: imagepackage/contents/ui/config.qml:156
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Positioning:"
 msgstr "Posicionamento:"
 
-#: imagepackage/contents/ui/config.qml:149
+#: imagepackage/contents/ui/config.qml:159
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled and cropped"
 msgstr "Escalonado e recortado"
 
-#: imagepackage/contents/ui/config.qml:153
+#: imagepackage/contents/ui/config.qml:163
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled"
 msgstr "Escalonado"
 
-#: imagepackage/contents/ui/config.qml:157
+#: imagepackage/contents/ui/config.qml:167
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled, keep proportions"
 msgstr "Escalonado, manter proporções"
 
-#: imagepackage/contents/ui/config.qml:161
+#: imagepackage/contents/ui/config.qml:171
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered"
 msgstr "Centralizado"
 
-#: imagepackage/contents/ui/config.qml:189
+#: imagepackage/contents/ui/config.qml:199
 #, kde-format
 msgctxt ""
 "@label:listbox part of a sentence: 'Switch dynamic wallpapers [based on]'"
 msgid "Switch dynamic wallpapers:"
 msgstr "Alternar papéis de parede dinâmicos:"
 
-#: imagepackage/contents/ui/config.qml:197
+#: imagepackage/contents/ui/config.qml:207
 #, kde-format
 msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on whether the Plasma style is light or dark "
 msgstr "Com base em se o estilo do Plasma é escuro ou claro "
 
-#: imagepackage/contents/ui/config.qml:199
+#: imagepackage/contents/ui/config.qml:209
 #, kde-format
 msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on the day-night cycle"
 msgstr "Baseado no ciclo dia-noite"
 
-#: imagepackage/contents/ui/config.qml:203
+#: imagepackage/contents/ui/config.qml:213
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use light variant"
 msgstr "Sempre usar a variante clara"
 
-#: imagepackage/contents/ui/config.qml:207
+#: imagepackage/contents/ui/config.qml:217
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use dark variant"
 msgstr "Sempre usar a variante escura"
 
-#: imagepackage/contents/ui/config.qml:221
+#: imagepackage/contents/ui/config.qml:231
 #, kde-format
 msgctxt "@action:button Configure day-night cycle times"
 msgid "Configure…"
 msgstr "Configurar…"
 
-#: imagepackage/contents/ui/config.qml:232
+#: imagepackage/contents/ui/config.qml:242
 #, kde-format
 msgid "Background:"
 msgstr "Plano de fundo:"
 
-#: imagepackage/contents/ui/config.qml:233
+#: imagepackage/contents/ui/config.qml:243
 #, kde-format
 msgid "Blur"
 msgstr "Borrado"
 
-#: imagepackage/contents/ui/config.qml:242
+#: imagepackage/contents/ui/config.qml:252
 #, kde-format
 msgid "Solid color"
 msgstr "Cor sólida"
 
-#: imagepackage/contents/ui/config.qml:253
+#: imagepackage/contents/ui/config.qml:263
 #, kde-format
 msgid "Select Background Color"
 msgstr "Selecionar cor de fundo"
@@ -274,13 +274,13 @@ msgstr ""
 "O arquivo passado para ser definido como papel de parede não existe ou não "
 "pôde ser identificado como papel de parede: %1"
 
-#: plugin/imagebackend.cpp:40
+#: plugin/imagebackend.cpp:42
 #, kde-format
 msgid "Next Wallpaper Image"
 msgstr "Próxima imagem de papel de parede"
 
 #. i18n people, this isn't a "word puzzle". there is a specific string format for QFileDialog::setNameFilters
-#: plugin/imagebackend.cpp:382
+#: plugin/imagebackend.cpp:384
 #, kde-format
 msgid "Media Files"
 msgstr "Arquivos de mídia"
@@ -346,34 +346,47 @@ msgid_plural "%1 seconds"
 msgstr[0] "%1 segundo"
 msgstr[1] "%1 segundos"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:203
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:175
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Set all times to 0 to disable automatic wallpaper changing. You can still "
+"change wallpapers manually with the <interface>Next Wallpaper Image</"
+"interface> menu item in the desktop context menu."
+msgstr ""
+"Defina todos os tempos como 0 para desativar a troca automática de papel de "
+"parede. Você ainda pode alterar os papéis de parede manualmente com o item "
+"de menu <interface>Próxima imagem de papel de parede</interface> no menu de "
+"contexto da área de trabalho."
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
 #, kde-format
 msgid "Folders"
 msgstr "Pastas"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:211
 #, kde-format
 msgctxt "@action button the thing being added is a folder"
 msgid "Add…"
 msgstr "Adicionar…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:208
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:212
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Folder…"
 msgstr "Adicionar pasta…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:246
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:250
 #, kde-format
 msgid "Remove Folder"
 msgstr "Remover pasta"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:257
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:261
 #, kde-format
 msgid "Open Folder…"
 msgstr "Abrir pasta…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:272
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:276
 #, kde-format
 msgid "There are no wallpaper locations configured"
 msgstr "Nenhum local de papel de parede está configurado"

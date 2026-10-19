@@ -3,14 +3,14 @@
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# SPDX-FileCopyrightText: 2019, 2020 Antoni Bella Pérez <antonibella5@yahoo.com>
+# SPDX-FileCopyrightText: 2019-2020 Antoni Bella Pérez <antonibella5@yahoo.com>
 # SPDX-FileCopyrightText: 2019 Empar Montoro Martín <montoro_mde@gva.es>
-# SPDX-FileCopyrightText: 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2019-2026 Josep M. Ferrer <txemaq@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-13 08:43+0000\n"
+"POT-Creation-Date: 2026-06-06 00:45+0000\n"
 "PO-Revision-Date: 2026-01-13 12:42+0100\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
@@ -22,12 +22,12 @@ msgstr ""
 "X-Accelerator-Marker: &\n"
 "X-Generator: Lokalize 25.04.0\n"
 
-#: kcm.cpp:62
+#: kcm.cpp:64
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "Canvia a no destorbar"
 
-#: sourcesmodel.cpp:406
+#: sourcesmodel.cpp:404
 #, kde-format
 msgid "Other Applications"
 msgstr "Altres aplicacions"
@@ -114,7 +114,7 @@ msgid ""
 "a standalone widget."
 msgstr ""
 "No s'ha trobat cap giny «Notificacions» que es requerix per a mostrar les "
-"notificacions. Assegureu-vos que s'ha activat a la Safata del sistema o com "
+"notificacions. Assegureu-vos que s'ha activat en la Safata del sistema o com "
 "a giny autònom."
 
 #: ui/main.qml:107
@@ -283,22 +283,22 @@ msgctxt ""
 msgid "Application Notifications"
 msgstr "Notificacions de les aplicacions"
 
-#: ui/SourcesPage.qml:104
+#: ui/SourcesPage.qml:108
 #, kde-format
 msgid "Applications"
 msgstr "Aplicacions"
 
-#: ui/SourcesPage.qml:105
+#: ui/SourcesPage.qml:109
 #, kde-format
 msgid "System Services"
 msgstr "Serveis del sistema"
 
-#: ui/SourcesPage.qml:153
+#: ui/SourcesPage.qml:157
 #, kde-format
 msgid "No application or event matches your search term"
 msgstr "Cap aplicació ni esdeveniment coincidix amb el terme de busca"
 
-#: ui/SourcesPage.qml:177
+#: ui/SourcesPage.qml:181
 #, kde-format
 msgid ""
 "Select an application from the list to configure its notification settings "

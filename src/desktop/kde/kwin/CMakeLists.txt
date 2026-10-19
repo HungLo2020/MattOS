@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VERSION "6.6.5") # Handled by release scripts
+set(PROJECT_VERSION "6.8.0") # Handled by release scripts
 project(KWin VERSION ${PROJECT_VERSION})
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
@@ -42,9 +42,12 @@ include(ECMQtDeclareLoggingCategory)
 include(ECMSetupQtPluginMacroNames)
 include(ECMSetupVersion)
 include(ECMQmlModule)
-include(ECMGenerateQmlTypes)
 include(ECMDeprecationSettings)
 include(ECMGenerateQDoc)
+
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.22)
+    cmake_policy(SET CMP0127 NEW)
+endif()
 
 option(KWIN_BUILD_DECORATIONS "Enable building of KWin decorations." ON)
 option(KWIN_BUILD_KCMS "Enable building of KWin configuration modules." ON)
@@ -54,6 +57,7 @@ option(KWIN_BUILD_TABBOX "Enable building of KWin Tabbox functionality" ON)
 option(KWIN_BUILD_X11 "Enable building X11 common code and Xwayland support" ON)
 option(KWIN_BUILD_GLOBALSHORTCUTS "Enable building of KWin with global shortcuts support" ON)
 option(KWIN_BUILD_RUNNERS "Enable building of KWin with krunner support" ON)
+option(KWIN_BUILD_OVERVIEW "Enable building of KWin overview that integrates into KRunner" ON)
 
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Concurrent
@@ -67,9 +71,7 @@ find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Svg
 )
 
-if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
+find_package(Qt6GuiPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
 
 find_package(Qt6Test ${QT_MIN_VERSION} CONFIG QUIET)
 set_package_properties(Qt6Test PROPERTIES
@@ -84,9 +86,7 @@ endif()
 if (BUILD_TESTING)
     find_package(KPipeWire)
 
-    if (Qt6WaylandClient_VERSION VERSION_GREATER_EQUAL "6.10.0")
-        find_package(Qt6WaylandClientPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-    endif()
+    find_package(Qt6WaylandClientPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
 endif()
 
 # required frameworks by Core
@@ -118,6 +118,10 @@ if(KWIN_BUILD_KCMS)
     )
 endif()
 
+if(KWIN_BUILD_OVERVIEW)
+    find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS Runner)
+endif()
+
 if(KWIN_BUILD_TABBOX AND KWIN_BUILD_KCMS)
     find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS
         WidgetsAddons
@@ -141,6 +145,14 @@ set_package_properties(KWayland PROPERTIES
     PURPOSE "Required to build wayland platform plugin and tests"
     TYPE REQUIRED
 )
+
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    find_package(Libcap)
+    set_package_properties(Libcap PROPERTIES
+        PURPOSE "Needed for setting CAP_SYS_NICE on kwin_wayland."
+        TYPE REQUIRED
+    )
+endif()
 
 # optional frameworks
 find_package(PlasmaActivities ${PROJECT_DEP_VERSION} CONFIG)
@@ -200,25 +212,22 @@ set_package_properties(epoxy PROPERTIES
     PURPOSE "OpenGL dispatch library"
 )
 
-find_package(Wayland 1.24)
+find_package(Vulkan REQUIRED)
+
+find_package(Wayland 1.26.0)
 set_package_properties(Wayland PROPERTIES
     TYPE REQUIRED
     PURPOSE "Required for building KWin with Wayland support"
 )
 
-find_package(WaylandProtocols 1.45)
+find_package(WaylandProtocols 1.49)
 set_package_properties(WaylandProtocols PROPERTIES
     TYPE REQUIRED
     PURPOSE "Collection of Wayland protocols that add functionality not available in the Wayland core protocol"
     URL "https://gitlab.freedesktop.org/wayland/wayland-protocols/"
 )
-if (WaylandProtocols_VERSION VERSION_GREATER_EQUAL 1.47)
-    set(HAVE_WAYLAND_PROTOCOLS_147 1)
-else()
-    set(HAVE_WAYLAND_PROTOCOLS_147 0)
-endif()
 
-find_package(PlasmaWaylandProtocols 1.20.0 CONFIG)
+find_package(PlasmaWaylandProtocols 1.23.0 CONFIG)
 set_package_properties(PlasmaWaylandProtocols PROPERTIES
     TYPE REQUIRED
     PURPOSE "Collection of Plasma-specific Wayland protocols"
@@ -276,7 +285,6 @@ if (KWIN_BUILD_X11)
         TYPE RUNTIME
         PURPOSE "Needed for running kwin_wayland"
     )
-    set(HAVE_XWAYLAND_ENABLE_EI_PORTAL ${Xwayland_HAVE_ENABLE_EI_PORTAL})
 
     # for kwin internal things
     set(HAVE_X11_XCB ${X11_XCB_FOUND})
@@ -294,6 +302,11 @@ endif()
 
 find_package(Libinput 1.28)
 set_package_properties(Libinput PROPERTIES TYPE REQUIRED PURPOSE "Required for input handling on Wayland.")
+if (Libinput_VERSION VERSION_GREATER_EQUAL 1.30)
+    set(HAVE_LIBINPUT_PLUGINS 1)
+else()
+    set(HAVE_LIBINPUT_PLUGINS 0)
+endif()
 
 find_package(Libeis-1.0 1.4)
 set_package_properties(Libeis-1.0 PROPERTIES TYPE OPTIONAL PURPOSE "Required for emulated input handling.")
@@ -306,14 +319,8 @@ set_package_properties(UDev PROPERTIES
     PURPOSE "Required for input handling on Wayland."
 )
 
-find_package(Libdrm 2.4.118)
+find_package(Libdrm 2.4.127)
 set_package_properties(Libdrm PROPERTIES TYPE REQUIRED PURPOSE "Required for drm output on Wayland.")
-if (Libdrm_VERSION VERSION_GREATER_EQUAL 2.4.127)
-    set(HAVE_LIBDRM_FAUX 1)
-else()
-    set(HAVE_LIBDRM_FAUX 0)
-endif()
-
 
 find_package(gbm)
 set_package_properties(gbm PROPERTIES TYPE REQUIRED PURPOSE "Required for egl output of drm backend.")
@@ -358,7 +365,12 @@ set_package_properties(QAccessibilityClient6 PROPERTIES
 )
 
 pkg_check_modules(libsystemd IMPORTED_TARGET libsystemd)
-add_feature_info(libsystemd libsystemd_FOUND "Required for setting up the service watchdog")
+add_feature_info(libsystemd libsystemd_FOUND "Required for detecting sandboxed applications")
+if (TARGET PkgConfig::libsystemd)
+    set(HAVE_SYSTEMD 1)
+else()
+    set(HAVE_SYSTEMD 0)
+endif()
 
 if(KWIN_BUILD_GLOBALSHORTCUTS)
     find_package(KGlobalAccelD REQUIRED)
@@ -367,7 +379,7 @@ endif()
 pkg_check_modules(libdisplayinfo REQUIRED IMPORTED_TARGET libdisplay-info>=0.2.0)
 add_feature_info(libdisplayinfo libdisplayinfo_FOUND "EDID and DisplayID library: https://gitlab.freedesktop.org/emersion/libdisplay-info")
 
-pkg_check_modules(PipeWire IMPORTED_TARGET libpipewire-0.3>=1.0.9)
+pkg_check_modules(PipeWire IMPORTED_TARGET libpipewire-0.3>=1.4.0)
 add_feature_info(PipeWire PipeWire_FOUND "Required for Wayland screencasting")
 
 if (KWIN_BUILD_NOTIFICATIONS)
@@ -392,6 +404,7 @@ ecm_find_qmlmodule(QtQuick.Window 2.1)
 ecm_find_qmlmodule(org.kde.kquickcontrolsaddons 2.0)
 ecm_find_qmlmodule(org.kde.plasma.core 2.0)
 ecm_find_qmlmodule(org.kde.plasma.components 2.0)
+ecm_find_qmlmodule(org.kde.milou)
 
 cmake_dependent_option(KWIN_BUILD_ACTIVITIES "Enable building of KWin with kactivities support" ON "PlasmaActivities_FOUND" OFF)
 cmake_dependent_option(KWIN_BUILD_EIS "Enable building KWin with libeis support" ON "Libeis-1.0_FOUND" OFF)
@@ -445,12 +458,19 @@ if (COMPILER_UNUSED_PARAMETER_SUPPORTED)
     add_compile_options(-Wno-unused-parameter)
 endif()
 
+check_cxx_compiler_flag(-Wno-missing-field-initializers COMPILER_MISSING_FIELD_INITIALIZERS_SUPPORTED)
+if (COMPILER_MISSING_FIELD_INITIALIZERS_SUPPORTED)
+    add_compile_options(-Wno-missing-field-initializers)
+endif()
+
 add_definitions(
     -DQT_NO_KEYWORDS
     -DQT_USE_QSTRINGBUILDER
     -DQT_NO_URL_CAST_FROM_STRING
     -DQT_NO_CAST_TO_ASCII
     -DQT_NO_FOREACH
+    -DQT_NO_CONTEXTLESS_CONNECT
+    -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT
 
     # Prevent EGL headers from including platform headers, in particular Xlib.h.
     -DMESA_EGL_NO_X11_HEADERS
@@ -469,12 +489,10 @@ ecm_setup_version(${PROJECT_VERSION}
 )
 
 ecm_setup_qtplugin_macro_names(
-    JSON_ARG2
+    MACRO_NAMES
         "KWIN_EFFECT_FACTORY"
-    JSON_ARG3
         "KWIN_EFFECT_FACTORY_ENABLED"
         "KWIN_EFFECT_FACTORY_SUPPORTED"
-    JSON_ARG4
         "KWIN_EFFECT_FACTORY_SUPPORTED_ENABLED"
     CONFIG_CODE_VARIABLE
         PACKAGE_SETUP_KWINEFFECTS_AUTOMOC_VARIABLES
@@ -490,9 +508,7 @@ add_subdirectory(kconf_update)
 add_subdirectory(src)
 
 if (BUILD_TESTING)
-    if (Qt6WaylandClient_VERSION VERSION_GREATER_EQUAL "6.10.0")
-        find_package(Qt6WaylandClientPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-    endif()
+    find_package(Qt6WaylandClientPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
 
     add_subdirectory(autotests)
     add_subdirectory(tests)

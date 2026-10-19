@@ -1879,6 +1879,40 @@ void QTextEngine::shape(int item) const
             docLayout()->resizeInlineObject(QTextInlineObject(item, const_cast<QTextEngine *>(this)),
                                             li.position + block.position(),
                                             format(&li));
+        } else {
+            // Standalone QTextLayout (no QTextDocument): read the
+            // object size from a QTextImageFormat set via setFormats().
+            QTextCharFormat fmt = format(&li);
+            if (fmt.isImageFormat()) {
+                QTextImageFormat imgFmt = fmt.toImageFormat();
+                const qreal w = imgFmt.width();
+                const qreal h = imgFmt.height();
+                if (w > 0 && h > 0) {
+                    QTextInlineObject obj(item, const_cast<QTextEngine *>(this));
+                    obj.setWidth(w);
+                    // Mirror QTextDocumentLayout::resizeInlineObject()
+                    // vertical alignment logic.
+                    const QFontMetricsF fm(fnt);
+                    switch (fmt.verticalAlignment()) {
+                    case QTextCharFormat::AlignMiddle: {
+                        const qreal halfX = fm.xHeight() / 2.0;
+                        obj.setAscent((h + halfX) / 2.0);
+                        obj.setDescent((h - halfX) / 2.0);
+                        break;
+                    }
+                    case QTextCharFormat::AlignBaseline: {
+                        const qreal descent = fm.descent();
+                        obj.setDescent(descent);
+                        obj.setAscent(h - descent);
+                        break;
+                    }
+                    default:
+                        obj.setDescent(0);
+                        obj.setAscent(h);
+                        break;
+                    }
+                }
+            }
         }
         // fix log clusters to point to the previous glyph, as the object doesn't have a glyph of it's own.
         // This is required so that all entries in the array get initialized and are ordered correctly.
@@ -1990,7 +2024,7 @@ void QTextEngine::itemize() const
 
     bool rtl = isRightToLeft();
 
-    QVarLengthArray<QScriptAnalysis, 4096> scriptAnalysis(length);
+    QVarLengthArray<QScriptAnalysis> scriptAnalysis(length);
     QScriptAnalysis *analysis = scriptAnalysis.data();
 
     QBidiAlgorithm bidi(layoutData->string.constData(), analysis, length, rtl);
@@ -2100,6 +2134,18 @@ void QTextEngine::itemize() const
                         && QAbstractTextDocumentLayoutPrivate::get(doc_p->layout()) != nullptr
                         && QAbstractTextDocumentLayoutPrivate::get(doc_p->layout())->hasHandlers()) {
                     analysis->flags = QScriptAnalysis::Object;
+                } else if (specialData) {
+                    // Standalone QTextLayout: check if a QTextImageFormat
+                    // was set for this position via setFormats().
+                    const int pos = uc - string;
+                    analysis->flags = QScriptAnalysis::None;
+                    for (const auto &range : std::as_const(specialData->formats)) {
+                        if (range.start <= pos && pos < range.start + range.length
+                            && range.format.isImageFormat()) {
+                            analysis->flags = QScriptAnalysis::Object;
+                            break;
+                        }
+                    }
                 } else {
                     analysis->flags = QScriptAnalysis::None;
                 }
@@ -2375,7 +2421,12 @@ glyph_metrics_t QTextEngine::tightBoundingBox(int from,  int len) const
         if (glyphStart <= glyphEnd) {
             QGlyphLayout glyphs = this->shapedGlyphs(si);
             QFontEngine *fe = fontEngine(*si);
-            glyph_metrics_t m = fe->tightBoundingBox(glyphs.mid(glyphStart, glyphEnd - glyphStart));
+
+            QTextItem::RenderFlags flags = si->analysis.bidiLevel % 2
+                                               ? QTextItem::RightToLeft
+                                               : QTextItem::RenderFlags();
+            glyph_metrics_t m = fe->tightBoundingBox(glyphs.mid(glyphStart, glyphEnd - glyphStart), flags);
+
             gm.x = qMin(gm.x, m.x + gm.xoff);
             gm.y = qMin(gm.y, m.y + gm.yoff);
             gm.width = qMax(gm.width, m.width + gm.xoff);
@@ -2438,9 +2489,11 @@ QFontEngine *QTextEngine::fontEngine(const QScriptItem &si, QFixed *ascent, QFix
             engine = feCache.prevFontEngine;
         } else {
             engine = QFontEngineMulti::createMultiFontEngine(rawFont.d->fontEngine, script);
+            engine->ref.ref();
+            if (feCache.prevFontEngine)
+                releaseCachedFontEngine(feCache.prevFontEngine);
             feCache.prevFontEngine = engine;
             feCache.prevScript = script;
-            engine->ref.ref();
             if (feCache.prevScaledFontEngine) {
                 releaseCachedFontEngine(feCache.prevScaledFontEngine);
                 feCache.prevScaledFontEngine = nullptr;
@@ -2528,6 +2581,8 @@ QFontEngine *QTextEngine::fontEngine(const QScriptItem &si, QFixed *ascent, QFix
                 feCache.prevScript = script;
                 feCache.prevPosition = -1;
                 feCache.prevLength = -1;
+                if (feCache.prevScaledFontEngine)
+                    releaseCachedFontEngine(feCache.prevScaledFontEngine);
                 feCache.prevScaledFontEngine = nullptr;
             }
         }

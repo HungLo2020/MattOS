@@ -8,13 +8,16 @@
 */
 #pragma once
 
+#include "core/colorspace.h"
+#include "core/drm_formats.h"
 #include "kwin_export.h"
 
 #include <QByteArray>
-#include <QHash>
 #include <QList>
+#include <QObject>
 #include <QSize>
 #include <epoxy/egl.h>
+#include <map>
 #include <sys/types.h>
 
 namespace KWin
@@ -22,19 +25,16 @@ namespace KWin
 
 struct DmaBufAttributes;
 class GLTexture;
+class GraphicsBuffer;
+class DrmDevice;
 
-class KWIN_EXPORT EglDisplay
+class KWIN_EXPORT EglDisplay : public QObject
 {
-public:
-    struct DrmFormatInfo
-    {
-        QList<uint64_t> allModifiers;
-        QList<uint64_t> nonExternalOnlyModifiers;
-        QList<uint64_t> externalOnlyModifiers;
-    };
+    Q_OBJECT
 
-    EglDisplay(::EGLDisplay display, const QList<QByteArray> &extensions, bool owning = true);
-    ~EglDisplay();
+public:
+    explicit EglDisplay(::EGLDisplay display, const QList<QByteArray> &extensions, DrmDevice *drmDevice);
+    ~EglDisplay() override;
 
     QList<QByteArray> extensions() const;
     ::EGLDisplay handle() const;
@@ -43,35 +43,56 @@ public:
     QString renderNode() const;
     std::optional<dev_t> renderDevNode() const;
 
+    bool isSoftwareRenderer() const;
     bool supportsBufferAge() const;
     bool supportsNativeFence() const;
 
-    QHash<uint32_t, QList<uint64_t>> nonExternalOnlySupportedDrmFormats() const;
-    QHash<uint32_t, DrmFormatInfo> allSupportedDrmFormats() const;
+    const FormatModifierMap &nonExternalOnlySupportedDrmFormats() const;
+    const FormatModifierMap &allSupportedDrmFormats() const;
     bool isExternalOnly(uint32_t format, uint64_t modifier) const;
 
     EGLImageKHR createImage(EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list) const;
     void destroyImage(EGLImageKHR image) const;
 
-    EGLImageKHR importDmaBufAsImage(const DmaBufAttributes &dmabuf) const;
-    EGLImageKHR importDmaBufAsImage(const DmaBufAttributes &dmabuf, int plane, int format, const QSize &size) const;
+    EGLImageKHR importDmaBufAsImage(const DmaBufAttributes &dmabuf,
+                                    YUVMatrixCoefficients coefficients = YUVMatrixCoefficients::Identity,
+                                    EncodingRange range = EncodingRange::Full) const;
 
-    static bool shouldUseOpenGLES();
-    static std::unique_ptr<EglDisplay> create(::EGLDisplay display, bool owning = true);
+    EGLImageKHR importBufferAsImage(GraphicsBuffer *buffer,
+                                    YUVMatrixCoefficients coefficients = YUVMatrixCoefficients::Identity,
+                                    EncodingRange range = EncodingRange::Full);
+
+    enum class GpuType {
+        Internal,
+        Discrete,
+        Software,
+    };
+    std::optional<GpuType> type() const;
+
+    static std::unique_ptr<EglDisplay> create(::EGLDisplay display, DrmDevice *drmDevice);
 
 private:
-    QHash<uint32_t, DrmFormatInfo> queryImportFormats() const;
+    struct Formats
+    {
+        FormatModifierMap nonExternalOnly;
+        FormatModifierMap all;
+    };
+    Formats queryImportFormats() const;
     QString determineRenderNode() const;
 
     const ::EGLDisplay m_handle;
+    const QList<QByteArray> m_clientExtensions;
     const QList<QByteArray> m_extensions;
-    const bool m_owning;
     const QString m_renderNode;
     const std::optional<dev_t> m_renderDevNode;
+    DrmDevice *const m_drmDevice;
 
+    const std::optional<GpuType> m_type;
     const bool m_supportsBufferAge;
     const bool m_supportsNativeFence;
-    QHash<uint32_t, DrmFormatInfo> m_importFormats;
+    const bool m_isSoftwareRenderer;
+    FormatModifierMap m_nonExternalOnlyFormats;
+    FormatModifierMap m_allFormats;
 
     struct
     {
@@ -81,6 +102,8 @@ private:
         PFNEGLQUERYDMABUFFORMATSEXTPROC queryDmaBufFormatsEXT = nullptr;
         PFNEGLQUERYDMABUFMODIFIERSEXTPROC queryDmaBufModifiersEXT = nullptr;
     } m_functions;
+
+    std::map<std::tuple<GraphicsBuffer *, YUVMatrixCoefficients, EncodingRange>, EGLImageKHR> m_importCache;
 };
 
 }

@@ -7,17 +7,22 @@
 
 #include "osd.h"
 #include "debug.h"
+#include "screenpool.h"
 #include "shellcorona.h"
 
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusReply>
 #include <QDebug>
+#include <QQmlComponent>
+#include <QQmlContext>
+#include <QScreen>
 #include <QTimer>
 #include <QWindow>
 
+#include <KLocalizedQmlContext>
 #include <KRuntimePlatform>
-#include <PlasmaQuick/SharedQmlEngine>
+#include <PlasmaQuick/PlasmaQuick>
 #include <klocalizedstring.h>
 
 #include <algorithm> // std::ranges::sort
@@ -27,7 +32,9 @@ using namespace Qt::StringLiterals;
 Osd::Osd(const KSharedConfig::Ptr &config, ShellCorona *corona)
     : QObject(corona)
     , m_corona(corona)
+    , m_engine(PlasmaQuick::globalEngine())
     , m_osdConfigGroup(config, u"OSD"_s)
+    , m_configWatcher(KConfigWatcher::create(config)) // will automatically refresh m_osdConfigGroup
 {
     QDBusConnection::sessionBus().registerObject(u"/org/kde/osdService"_s, this, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
 }
@@ -48,7 +55,7 @@ void Osd::screenBrightnessChanged(int percent, const QString &displayId, const Q
 
     // Don't show screen brightness OSD on mobile, only emit event (specified in showProgress parameters)
 
-    if (m_corona->numScreens() == 1 && m_screenBrightnessInfo.size() == 1 && screenRect == m_corona->screenGeometry(0)) {
+    if (m_corona->numScreens() == 1 && m_screenBrightnessInfo.size() == 1 && m_corona->screenPool()->primaryScreen()->name() == displayId) {
         showProgress(u"video-display-brightness"_s, percent, 100, {}, false);
     } else if (m_screenBrightnessInfo.size() == 1) {
         showProgress(u"video-display-brightness"_s, percent, 100, displayLabel, false);
@@ -225,27 +232,34 @@ bool Osd::init()
         return false;
     }
 
-    if (m_osdObject && m_osdObject->rootObject()) {
+    if (m_osdObject) {
         return true;
     }
 
-    if (!m_osdObject) {
-        m_osdObject = new PlasmaQuick::SharedQmlEngine(this);
-    }
+    QQmlComponent osdComponent(m_engine.get(), "org.kde.plasma.workspace.osd", "Osd");
 
-    m_osdObject->setSourceFromModule("org.kde.plasma.workspace.osd", "Osd");
-
-    if (m_osdObject->status() != QQmlComponent::Ready) {
-        qCWarning(PLASMASHELL) << "Failed to load OSD QML file";
+    if (osdComponent.status() != QQmlComponent::Ready) {
+        qCWarning(PLASMASHELL) << "Failed to load OSD QML file" << osdComponent.errorString();
         return false;
     }
 
-    m_timeout = m_osdObject->rootObject()->property("timeout").toInt();
+    auto qmlContext = new QQmlContext(m_engine.get(), this);
+    auto i18ncontext = new KLocalizedQmlContext(qmlContext);
+    qmlContext->setContextObject(i18ncontext);
+    QQmlEngine::setContextForObject(i18ncontext, qmlContext);
+
+    m_osdObject = std::unique_ptr<QObject>(osdComponent.create(qmlContext));
+
+    if (!m_osdObject) {
+        qCWarning(PLASMASHELL) << "Failed to create OSD object" << osdComponent.errorString();
+    }
+
+    m_timeout = m_osdObject->property("timeout").toInt();
 
     if (!m_osdTimer) {
         m_osdTimer = new QTimer(this);
         m_osdTimer->setSingleShot(true);
-        connect(m_osdTimer, &QTimer::timeout, this, &Osd::hideOsd);
+        connect(m_osdTimer, &QTimer::timeout, this, &Osd::hide);
     }
 
     return true;
@@ -265,12 +279,11 @@ void Osd::showProgress(const QString &icon, const int percent, const int maximum
     }
 
     // Update max value first to prevent value from being clamped
-    auto *rootObject = m_osdObject->rootObject();
-    rootObject->setProperty("osdMaxValue", maximumPercent);
-    rootObject->setProperty("osdValue", value);
-    rootObject->setProperty("osdAdditionalText", additionalText);
-    rootObject->setProperty("showingProgress", true);
-    rootObject->setProperty("icon", icon);
+    m_osdObject->setProperty("osdMaxValue", maximumPercent);
+    m_osdObject->setProperty("osdValue", value);
+    m_osdObject->setProperty("osdAdditionalText", additionalText);
+    m_osdObject->setProperty("showingProgress", true);
+    m_osdObject->setProperty("icon", icon);
 
     Q_EMIT osdProgress(icon, value, maximumPercent, additionalText);
     showOsd();
@@ -282,11 +295,9 @@ void Osd::showText(const QString &icon, const QString &text)
         return;
     }
 
-    auto *rootObject = m_osdObject->rootObject();
-
-    rootObject->setProperty("showingProgress", false);
-    rootObject->setProperty("osdValue", text);
-    rootObject->setProperty("icon", icon);
+    m_osdObject->setProperty("showingProgress", false);
+    m_osdObject->setProperty("osdValue", text);
+    m_osdObject->setProperty("icon", icon);
 
     Q_EMIT osdText(icon, text);
     showOsd();
@@ -296,34 +307,39 @@ void Osd::showOsd()
 {
     m_osdTimer->stop();
 
-    auto *rootObject = m_osdObject->rootObject();
+    if (!m_osdObject) {
+        return;
+    }
 
     // if our OSD understands animating the opacity, do it;
     // otherwise just show it to not break existing lnf packages
-    if (rootObject->property("animateOpacity").isValid()) {
-        rootObject->setProperty("animateOpacity", false);
-        rootObject->setProperty("opacity", 1);
-        rootObject->setProperty("visible", true);
-        rootObject->setProperty("animateOpacity", true);
-        rootObject->setProperty("opacity", 0);
+    if (m_osdObject->property("animateOpacity").isValid()) {
+        m_osdObject->setProperty("animateOpacity", false);
+        m_osdObject->setProperty("opacity", 1);
+        m_osdObject->setProperty("visible", true);
+        m_osdObject->setProperty("animateOpacity", true);
+        m_osdObject->setProperty("opacity", 0);
     } else {
-        rootObject->setProperty("visible", true);
+        m_osdObject->setProperty("visible", true);
     }
 
     m_osdTimer->start(m_timeout);
 }
 
-void Osd::hideOsd()
+void Osd::hide()
 {
-    auto *rootObject = m_osdObject->rootObject();
-    if (!rootObject) {
+    if (!m_osdObject) {
         return;
     }
 
-    rootObject->setProperty("visible", false);
+    if (m_osdTimer) {
+        m_osdTimer->stop();
+    }
+
+    m_osdObject->setProperty("visible", false);
 
     // this is needed to prevent fading from "old" values when the OSD shows up
-    rootObject->setProperty("osdValue", 0);
+    m_osdObject->setProperty("osdValue", 0);
 
     m_screenBrightnessInfo.clear();
 }

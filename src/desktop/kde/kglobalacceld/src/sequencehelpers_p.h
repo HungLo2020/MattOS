@@ -17,9 +17,11 @@ bool contains(const QKeySequence &key, const QKeySequence &other);
 
 Qt::KeyboardModifiers keyToModifier(int key);
 
-KGLOBALACCEL_EXPORT bool matchSequences(const QKeySequence &key, const QList<QKeySequence> &keys);
+KGLOBALACCEL_EXPORT bool matchSequences(const QKeySequence &key, const QSet<QKeySequence> &keys);
 
 KGLOBALACCEL_EXPORT QKeySequence normalizeSequence(const QKeySequence &key);
+
+KGLOBALACCEL_EXPORT QSet<QKeySequence> normalizeSequences(const QSet<QKeySequence> &keys);
 }
 
 #endif // SEQUENCEHELPERS_H

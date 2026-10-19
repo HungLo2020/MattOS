@@ -47,7 +47,7 @@ struct AnimationSettings
         Duration = 1 << 3,
         FullScreen = 1 << 4,
         KeepAlive = 1 << 5,
-        FrozenTime = 1 << 6
+        FrozenTime = 1 << 6,
     };
     AnimationEffect::Attribute type;
     QEasingCurve::Type curve;
@@ -174,13 +174,10 @@ static KWin::FPx2 fpx2FromScriptValue(const QJSValue &value)
 ScriptedEffect *ScriptedEffect::create(const KPluginMetaData &effect)
 {
     const QString name = effect.pluginId();
-    QString scriptFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin-wayland/effects/") + name + QLatin1String("/contents/code/main.js"));
+    const QString scriptFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1StringView("kwin/effects/") + name + QLatin1StringView("/contents/code/main.js"));
     if (scriptFile.isEmpty()) {
-        scriptFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin/effects/") + name + QLatin1String("/contents/code/main.js"));
-        if (scriptFile.isEmpty()) {
-            qCDebug(KWIN_SCRIPTING) << "Could not locate effect script" << name;
-            return nullptr;
-        }
+        qCDebug(KWIN_SCRIPTING) << "Could not locate effect script" << name;
+        return nullptr;
     }
 
     return ScriptedEffect::create(name, scriptFile, effect.value(QStringLiteral("X-KDE-Ordering"), 0), effect.value(QStringLiteral("X-KWin-Exclusive-Category")));
@@ -240,10 +237,7 @@ bool ScriptedEffect::init(const QString &effectName, const QString &pathToScript
     m_scriptFile = pathToScript;
 
     // does the effect contain an KConfigXT file?
-    QString kconfigXTFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin-wayland/effects/") + m_effectName + QLatin1String("/contents/config/main.xml"));
-    if (kconfigXTFile.isNull()) {
-        kconfigXTFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin/effects/") + m_effectName + QLatin1String("/contents/config/main.xml"));
-    }
+    const QString kconfigXTFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1StringView("kwin/effects/") + m_effectName + QLatin1StringView("/contents/config/main.xml"));
     if (!kconfigXTFile.isNull()) {
         KConfigGroup cg = QCoreApplication::instance()->property("config").value<KSharedConfigPtr>()->group(QStringLiteral("Effect-%1").arg(m_effectName));
         QFile xmlFile(kconfigXTFile);
@@ -493,7 +487,7 @@ quint64 ScriptedEffect::animate(KWin::EffectWindow *window, KWin::AnimationEffec
     } else if (curve == GaussianCurve) {
         qec.setCustomType(qecGaussian);
     }
-    return AnimationEffect::animate(window, attribute, metaData, ms, fpx2FromScriptValue(to), qec,
+    return AnimationEffect::animate(window, attribute, metaData, std::chrono::milliseconds(ms), fpx2FromScriptValue(to), qec,
                                     delay, fpx2FromScriptValue(from), fullScreen, keepAlive, findShader(shaderId));
 }
 
@@ -512,7 +506,7 @@ quint64 ScriptedEffect::set(KWin::EffectWindow *window, KWin::AnimationEffect::A
     } else if (curve == GaussianCurve) {
         qec.setCustomType(qecGaussian);
     }
-    return AnimationEffect::set(window, attribute, metaData, ms, fpx2FromScriptValue(to), qec,
+    return AnimationEffect::set(window, attribute, metaData, std::chrono::milliseconds(ms), fpx2FromScriptValue(to), qec,
                                 delay, fpx2FromScriptValue(from), fullScreen, keepAlive, findShader(shaderId));
 }
 
@@ -523,7 +517,7 @@ QJSValue ScriptedEffect::set(const QJSValue &object)
 
 bool ScriptedEffect::retarget(quint64 animationId, const QJSValue &newTarget, int newRemainingTime)
 {
-    return AnimationEffect::retarget(animationId, fpx2FromScriptValue(newTarget), newRemainingTime);
+    return AnimationEffect::retarget(animationId, fpx2FromScriptValue(newTarget), newRemainingTime != -1 ? std::make_optional(std::chrono::milliseconds(newRemainingTime)) : std::nullopt);
 }
 
 bool ScriptedEffect::retarget(const QList<quint64> &animationIds, const QJSValue &newTarget, int newRemainingTime)
@@ -686,7 +680,7 @@ int ScriptedEffect::displayHeight() const
 
 int ScriptedEffect::animationTime(int defaultTime) const
 {
-    return Effect::animationTime(std::chrono::milliseconds(defaultTime));
+    return Effect::animationTime(std::chrono::milliseconds(defaultTime)).count();
 }
 
 bool ScriptedEffect::registerScreenEdge(int edge, const QJSValue &callback)
@@ -798,14 +792,19 @@ uint ScriptedEffect::addFragmentShader(ShaderTrait traits, const QString &fragme
 
     QString fragment;
     if (!fragmentShaderFile.isEmpty()) {
-        fragment = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin-wayland/effects/") + m_effectName + QLatin1String("/contents/shaders/") + fragmentShaderFile);
-        if (fragment.isEmpty()) {
-            fragment = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin/effects/") + m_effectName + QLatin1String("/contents/shaders/") + fragmentShaderFile);
+        fragment = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1StringView("kwin/effects/") + m_effectName + QLatin1StringView("/contents/shaders/") + fragmentShaderFile);
+
+        // Ensure backwards compatibility with older effects,
+        // which provide shaders for both "core" and legacy.
+        QString coreVersion = fragment;
+        coreVersion.replace(".frag", "_core.frag");
+        if (QFile::exists(coreVersion)) {
+            fragment = coreVersion;
         }
     }
 
     auto shader = ShaderManager::instance()->generateShaderFromFile(static_cast<KWin::ShaderTraits>(int(traits)), {}, fragment);
-    if (!shader->isValid()) {
+    if (!shader) {
         m_engine->throwError(QStringLiteral("Shader failed to load"));
         // 0 is never a valid shader identifier, it's ensured the first shader gets id 1
         return 0;

@@ -2,21 +2,20 @@
 # Roman Paholík <wizzardsk@gmail.com>, 2020.
 # SPDX-FileCopyrightText: 2020, 2021, 2022, 2023 Matej Mrenica <matejm98mthw@gmail.com>
 # Ferdinand Galko <galko.ferdinand@gmail.com>, 2023.
-# SPDX-FileCopyrightText: 2026 Lucia Mrenica <lucia.mrenica@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_users\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-20 03:19+0000\n"
-"PO-Revision-Date: 2026-01-15 20:11+0100\n"
-"Last-Translator: Lucia Mrenica <lucia.mrenica@gmail.com>\n"
+"POT-Creation-Date: 2026-08-04 00:47+0000\n"
+"PO-Revision-Date: 2023-11-11 14:50+0100\n"
+"Last-Translator: Matej Mrenica <matejm98mthw@gmail.com>\n"
 "Language-Team: Slovak <kde-i18n-doc@kde.org>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.12.1\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 23.08.3\n"
 
 #: src/fingerprintmodel.cpp:144 src/fingerprintmodel.cpp:228
 #, kde-format
@@ -87,7 +86,7 @@ msgstr "Heslo"
 msgid "Confirm password"
 msgstr "Potvrďte heslo"
 
-#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:73
+#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:114
 #, kde-format
 msgid "Passwords must match"
 msgstr "Heslá sa musia zhodovať"
@@ -141,48 +140,68 @@ msgstr "Nechať nezmenené"
 msgid "Create User"
 msgstr "Vytvoriť používatelia"
 
-#: src/ui/CreateUser.qml:38 src/ui/UserDetailsPage.qml:165
+#: src/ui/CreateUser.qml:40 src/ui/UserDetailsPage.qml:165
 #, kde-format
 msgid "Name:"
 msgstr "Meno:"
 
-#: src/ui/CreateUser.qml:42 src/ui/UserDetailsPage.qml:171
+#: src/ui/CreateUser.qml:44 src/ui/UserDetailsPage.qml:171
 #, kde-format
 msgid "Username:"
 msgstr "Užívateľské meno:"
 
-#: src/ui/CreateUser.qml:52 src/ui/UserDetailsPage.qml:203
+#: src/ui/CreateUser.qml:82
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Only lowercase letters, digits, dashes, and underscores are allowed. Invalid "
+"characters were removed."
+msgstr ""
+"Povolené sú len malé písmená, číslice, pomlčky a podčiarkovníky. Neplatné "
+"znaky boli odstránené."
+
+#: src/ui/CreateUser.qml:84
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Usernames must be lowercase. Uppercase characters were converted to "
+"lowercase."
+msgstr ""
+"Používateľské mená musia byť malými písmenami. Veľké písmená boli prevedené "
+"na malé."
+
+#: src/ui/CreateUser.qml:93 src/ui/UserDetailsPage.qml:203
 #, kde-format
 msgid "Standard"
 msgstr "Štandardné"
 
-#: src/ui/CreateUser.qml:53 src/ui/UserDetailsPage.qml:204
+#: src/ui/CreateUser.qml:94 src/ui/UserDetailsPage.qml:204
 #, kde-format
 msgid "Administrator"
 msgstr "Administrátor"
 
-#: src/ui/CreateUser.qml:56 src/ui/UserDetailsPage.qml:193
+#: src/ui/CreateUser.qml:97 src/ui/UserDetailsPage.qml:193
 #, kde-format
 msgid "Account type:"
 msgstr "Typ účtu:"
 
-#: src/ui/CreateUser.qml:61
+#: src/ui/CreateUser.qml:102
 #, kde-format
 msgid "Password:"
 msgstr "Heslo:"
 
-#: src/ui/CreateUser.qml:66
+#: src/ui/CreateUser.qml:107
 #, kde-format
 msgid "Confirm password:"
 msgstr "Potvrďte heslo:"
 
-#: src/ui/CreateUser.qml:88
+#: src/ui/CreateUser.qml:129
 #, kde-format
 msgctxt "@action:button Create a new user"
 msgid "Create"
 msgstr "Vytvoriť"
 
-#: src/ui/CreateUser.qml:111
+#: src/ui/CreateUser.qml:152
 #, kde-format
 msgctxt "@action:button Cancel creating new user"
 msgid "Cancel"
@@ -326,27 +345,22 @@ msgstr "Nastaviť odtlačky prstov"
 msgid "Add"
 msgstr "Pridať"
 
-#: src/ui/FingerprintDialog.qml:51
-#, kde-format
-msgid "Cancel"
-msgstr "Zrušiť"
-
-#: src/ui/FingerprintDialog.qml:59
+#: src/ui/FingerprintDialog.qml:52
 #, kde-format
 msgid "Done"
 msgstr "Hotovo"
 
-#: src/ui/FingerprintList.qml:46
+#: src/ui/FingerprintList.qml:47
 #, kde-format
 msgid "Re-enroll finger"
 msgstr "Znovu pridať prst"
 
-#: src/ui/FingerprintList.qml:58
+#: src/ui/FingerprintList.qml:59
 #, kde-format
 msgid "Delete fingerprint"
 msgstr "Vymazať odtlačok prsta"
 
-#: src/ui/FingerprintList.qml:74
+#: src/ui/FingerprintList.qml:75
 #, kde-format
 msgid "No fingerprints added"
 msgstr "Žiadne odtlačky neboli pridané"
@@ -699,6 +713,9 @@ msgstr "Vaše konto"
 #, kde-format
 msgid "Other Accounts"
 msgstr "Ostatné kontá"
+
+#~ msgid "Cancel"
+#~ msgstr "Zrušiť"
 
 #~ msgid "Enrolling Fingerprint"
 #~ msgstr "Pridáva sa odtlačok"

@@ -1,5 +1,6 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qvkkhrdisplayintegration.h"
 #include "qvkkhrdisplayvulkaninstance.h"
@@ -57,7 +58,7 @@ void QVkKhrDisplayScreen::setVk(QVkKhrDisplayVulkanInstance *inst)
     m_vk = inst;
     m_geometry = QRect(QPoint(0, 0), m_vk->displaySize());
     QWindowSystemInterface::handleScreenGeometryChange(screen(), m_geometry, m_geometry);
-    qDebug() << "Screen will report geometry" << m_geometry;
+    qCDebug(qLcVkKhrDisplay) << "Screen will report geometry" << m_geometry;
 
     // Thanks to this deferred screen setup, a QWindow with a size based on the
     // dummy screen size may already exist. Try to resize it.

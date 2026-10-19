@@ -104,7 +104,7 @@ private slots:
     void transientParent();
 
     void QTBUG_10735_crashWithDialog();
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     void QTBUG_37933_ampersands_data();
     void QTBUG_37933_ampersands();
 #else
@@ -457,11 +457,11 @@ void tst_QMenu::keyboardNavigation()
 
     QTest::keyClick(lastMenu, key, modifiers);
     if (expected_activated) {
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
         QEXPECT_FAIL("shortcut0", "Shortcut navication fails, see QTBUG-23684", Continue);
 #endif
         QCOMPARE(activated, builtins[expected_action]);
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
         QEXPECT_FAIL("shortcut0", "QTBUG-22449: QMenu doesn't remove highlight if a menu item is activated by a shortcut", Abort);
 #endif
         QCOMPARE(menus[expected_menu]->activeAction(), nullptr);
@@ -475,7 +475,7 @@ void tst_QMenu::keyboardNavigation()
         QCOMPARE(highlighted, nullptr);
 }
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 QT_BEGIN_NAMESPACE
 extern bool qt_tab_all_widgets(); // from qapplication.cpp
 QT_END_NAMESPACE
@@ -488,7 +488,7 @@ void tst_QMenu::focus()
     menu.addAction("Two");
     menu.addAction("Three");
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     if (!qt_tab_all_widgets())
         QSKIP("Computer is currently set up to NOT tab to all widgets,"
              " this test assumes you can tab to all widgets");
@@ -1109,11 +1109,12 @@ public:
 // Mouse move related signals for Windows Mobile unavailable
 void tst_QMenu::task258920_mouseBorder()
 {
+    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::MouseCursorPositioning))
+        QSKIP("Platform does not support cursor positioning");
     const QRect screenGeometry = QGuiApplication::primaryScreen()->availableGeometry();
     Menu258920 menu;
     QCursor::setPos(screenGeometry.topLeft());
-    if (!QTest::qWaitFor([screenGeometry]{ return QCursor::pos() == screenGeometry.topLeft(); }))
-        QSKIP("Can't move cursor out of the way");
+    QTRY_COMPARE(QCursor::pos(), screenGeometry.topLeft());
     // For styles which inherit from QWindowsStyle, styleHint(QStyle::SH_Menu_MouseTracking) is true.
     menu.setMouseTracking(true);
     QAction *action = menu.addAction("test");
@@ -1811,7 +1812,7 @@ void tst_QMenu::QTBUG_10735_crashWithDialog()
     menu.activateAction(0);
 }
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 void tst_QMenu::QTBUG_37933_ampersands_data()
 {
     QTest::addColumn<QString>("title");

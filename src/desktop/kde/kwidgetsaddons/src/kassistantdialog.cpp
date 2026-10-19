@@ -36,7 +36,7 @@ public:
     void init();
     void slotUpdateButtons();
 
-    QModelIndex getNext(QModelIndex nextIndex)
+    QModelIndex getNext(QModelIndex nextIndex) const
     {
         QModelIndex currentIndex;
         do {
@@ -49,7 +49,7 @@ public:
         return nextIndex;
     }
 
-    QModelIndex getPrevious(QModelIndex nextIndex)
+    QModelIndex getPrevious(QModelIndex nextIndex) const
     {
         QModelIndex currentIndex;
         do {
@@ -106,14 +106,21 @@ void KAssistantDialogPrivate::init()
     nextButton = new QPushButton;
     nextButton->setText(tr("Next", "@action:button Opposite to Back"));
     nextButton->setIcon(QIcon::fromTheme(iconNext));
-    nextButton->setDefault(true);
     q->connect(nextButton, &QAbstractButton::clicked, q, &KAssistantDialog::next);
     buttonBox->addButton(nextButton, QDialogButtonBox::ActionRole);
 
     finishButton = new QPushButton;
     finishButton->setText(tr("Finish", "@action:button"));
     finishButton->setIcon(QIcon::fromTheme(QStringLiteral("dialog-ok-apply")));
-    buttonBox->addButton(finishButton, QDialogButtonBox::AcceptRole);
+    q->connect(finishButton, &QAbstractButton::clicked, q, &KAssistantDialog::next);
+    // effectively, this button accepts the dialog. It should have the same role
+    // as the next button, however, so it will be placed in the same position in any style
+    // in KF7, the buttons might be merged into one
+    buttonBox->addButton(finishButton, QDialogButtonBox::ActionRole);
+    auto width = qMax(qMax(backButton->minimumSizeHint().width(), nextButton->minimumSizeHint().width()), finishButton->minimumSizeHint().width());
+    backButton->setMinimumWidth(width);
+    nextButton->setMinimumWidth(width);
+    finishButton->setMinimumWidth(width);
 
     q->setFaceType(KPageDialog::Plain);
 
@@ -144,6 +151,14 @@ void KAssistantDialog::next()
     }
 }
 
+bool KAssistantDialog::onLastPage() const
+{
+    Q_D(const KAssistantDialog);
+
+    QModelIndex nextIndex = d->getNext(d->pageModel->index(currentPage()));
+    return !nextIndex.isValid();
+}
+
 void KAssistantDialog::setValid(KPageWidgetItem *page, bool enable)
 {
     Q_D(KAssistantDialog);
@@ -167,14 +182,15 @@ void KAssistantDialogPrivate::slotUpdateButtons()
 
     QModelIndex currentIndex = pageModel->index(q->currentPage());
     // change the title of the next/finish button
-    QModelIndex nextIndex = getNext(currentIndex);
-    finishButton->setEnabled(!nextIndex.isValid() && q->isValid(q->currentPage()));
-    nextButton->setEnabled(nextIndex.isValid() && q->isValid(q->currentPage()));
-    finishButton->setDefault(!nextIndex.isValid());
-    nextButton->setDefault(nextIndex.isValid());
+    bool lastPage = q->onLastPage();
+    nextButton->setEnabled(q->isValid(q->currentPage()));
+    finishButton->setEnabled(q->isValid(q->currentPage()));
+    nextButton->setDefault(!lastPage);
+    finishButton->setDefault(lastPage);
+    nextButton->setVisible(!lastPage);
+    finishButton->setVisible(lastPage);
     // enable or disable the back button;
-    nextIndex = getPrevious(currentIndex);
-    backButton->setEnabled(nextIndex.isValid());
+    backButton->setEnabled(getPrevious(currentIndex).isValid());
 }
 
 void KAssistantDialog::showEvent(QShowEvent *event)

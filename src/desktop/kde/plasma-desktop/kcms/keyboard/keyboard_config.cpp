@@ -9,7 +9,7 @@
 
 #include "debug.h"
 #include "keyboardsettings.h"
-#include "x11_helper.h"
+#include "layoutunit.h"
 #include "xkb_rules.h"
 
 const QMap<KeyboardConfig::SwitchingPolicy, QString> switchingPolicyNames = {
@@ -61,34 +61,6 @@ bool KeyboardConfig::isDefaults() const
 bool KeyboardConfig::isSaveNeeded() const
 {
     return m_settings->isSaveNeeded() || layoutsSaveNeeded();
-}
-
-QList<LayoutUnit> KeyboardConfig::getDefaultLayouts() const
-{
-    QList<LayoutUnit> defaultLayoutList;
-    int i = 0;
-    for (const LayoutUnit &layoutUnit : std::as_const(m_layouts)) {
-        defaultLayoutList.append(layoutUnit);
-        if (m_settings->layoutLoopCount() != KeyboardConfig::NO_LOOPING && i >= m_settings->layoutLoopCount() - 1) {
-            break;
-        }
-        i++;
-    }
-    return defaultLayoutList;
-}
-
-QList<LayoutUnit> KeyboardConfig::getExtraLayouts() const
-{
-    if (m_settings->layoutLoopCount() == KeyboardConfig::NO_LOOPING) {
-        return QList<LayoutUnit>();
-    }
-
-    return m_layouts.mid(m_settings->layoutLoopCount(), m_layouts.size());
-}
-
-QString KeyboardConfig::getSwitchingPolicyString(SwitchingPolicy switchingPolicy)
-{
-    return switchingPolicyNames[switchingPolicy];
 }
 
 KeyboardConfig::SwitchingPolicy KeyboardConfig::policyFromString(const QString &string) const

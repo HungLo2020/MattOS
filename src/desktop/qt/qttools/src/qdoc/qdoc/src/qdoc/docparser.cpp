@@ -248,12 +248,19 @@ bool DocParser::s_quoting = false;
 FileResolver *DocParser::file_resolver{ nullptr };
 static void processComparesWithCommand(DocPrivate *priv, const Location &location);
 
+/*!
+    Returns a cleaned version of the given \a link text. This replaces escaped
+    hash characters (\\#) with hash characters (#) and removes the URL scheme
+    prefix, if present.
+*/
 static QString cleanLink(const QString &link)
 {
     qsizetype colonPos = link.indexOf(':');
+    QString cleaned{link};
+    cleaned.replace("\\#"_L1, "#"_L1);
     if ((colonPos == -1) || (!link.startsWith("file:") && !link.startsWith("mailto:")))
-        return link;
-    return link.mid(colonPos + 1).simplified();
+        return cleaned;
+    return cleaned.mid(colonPos + 1).simplified();
 }
 
 void DocParser::initialize(const Config &config, FileResolver &file_resolver)
@@ -422,7 +429,15 @@ void DocParser::parse(const QString &source, DocPrivate *docPrivate,
                     break;
                 case CMD_DETAILS:
                     leavePara();
-                    appendAtom(Atom(Atom::DetailsLeft, getArgument()));
+                    appendAtom(Atom(Atom::DetailsLeft));
+                    if (!isBlankLine()) {
+                        if (isLeftBraceAhead()) {
+                            enterPara(Atom::DetailsSummaryLeft, Atom::DetailsSummaryRight);
+                        } else {
+                            location().warning(u"Expected '{' when parsing \\%1 argument"_s.arg(cmdName(cmd)));
+                            std::ignore = getRestOfLine();
+                        }
+                    }
                     m_openedCommands.push(cmd);
                     break;
                 case CMD_ENDDETAILS:
@@ -712,7 +727,7 @@ void DocParser::parse(const QString &source, DocPrivate *docPrivate,
                     if (openCommand(cmd)) {
                         enterPara();
                         p1 = getArgument();
-                        appendAtom(Atom(Atom::Link, p1));
+                        appendAtom(LinkAtom(p1, {}, location()));
                         appendAtom(Atom(Atom::FormattingLeft, ATOM_FORMATTING_LINK));
                         skipSpacesOrOneEndl();
                     }
@@ -1181,9 +1196,12 @@ void DocParser::parse(const QString &source, DocPrivate *docPrivate,
         }
         case '{':
             enterPara();
-            appendChar('{');
             ++m_braceDepth;
             ++m_position;
+            if (m_paragraphState != InBraceDelimitedParagraph)
+                appendChar('{');
+            else
+                skipSpacesOnLine();
             break;
         case '}': {
             --m_braceDepth;
@@ -1191,8 +1209,12 @@ void DocParser::parse(const QString &source, DocPrivate *docPrivate,
 
             auto format = m_pendingFormats.find(m_braceDepth);
             if (format == m_pendingFormats.end()) {
-                enterPara();
-                appendChar('}');
+                if (m_paragraphState == InBraceDelimitedParagraph) {
+                    leavePara();
+                } else {
+                    enterPara();
+                    appendChar('}');
+                }
             } else {
                 const auto &last{m_private->m_text.lastAtom()->string()};
                 appendAtom(Atom(Atom::FormattingRight, *format));
@@ -1281,7 +1303,7 @@ void DocParser::parse(const QString &source, DocPrivate *docPrivate,
                         if (s_ignoreWords.contains(word) || word.startsWith(QString("__")))
                             appendWord(word);
                         else
-                            appendAtom(Atom(Atom::AutoLink, word));
+                            appendAtom(LinkAtom(Atom::AutoLink, word, {}, location()));
                     } else {
                         appendWord(word);
                     }
@@ -1336,10 +1358,7 @@ QString DocParser::detailsUnknownCommand(const QSet<QString> &metaCommandSet, co
         ++i;
     }
 
-    QString best = nearestName(str, commandSet);
-    if (best.isEmpty())
-        return QString();
-    return QStringLiteral("Maybe you meant '\\%1'?").arg(best);
+    return "Maybe you meant '\\%1'?"_L1.arg(suggestName(str, commandSet));
 }
 
 /*!
@@ -1906,7 +1925,8 @@ void DocParser::parseAlso()
 
         if (!skipMe) {
             Text also;
-            also << Atom(Atom::Link, target) << Atom(Atom::FormattingLeft, ATOM_FORMATTING_LINK)
+            also << LinkAtom(target, {}, location())
+                 << Atom(Atom::FormattingLeft, ATOM_FORMATTING_LINK)
                  << str << Atom(Atom::FormattingRight, ATOM_FORMATTING_LINK);
             m_private->addAlso(also);
         }
@@ -2047,6 +2067,8 @@ void DocParser::enterPara(Atom::AtomType leftType, Atom::AtomType rightType, con
     m_pendingParagraphString = string;
     if (leftType == Atom::SectionHeadingLeft || leftType == Atom::TitleLeft) {
         m_paragraphState = InSingleLineParagraph;
+    } else if (leftType == Atom::DetailsSummaryLeft) {
+        m_paragraphState = InBraceDelimitedParagraph;
     } else {
         m_paragraphState = InMultiLineParagraph;
     }
@@ -2057,10 +2079,10 @@ void DocParser::leavePara()
 {
     if (m_paragraphState == OutsideParagraph)
         return;
-
-    if (!m_pendingFormats.isEmpty()) {
-        location().warning(QStringLiteral("Missing '}'"));
+    if (!m_pendingFormats.isEmpty() || (m_paragraphState == InBraceDelimitedParagraph && m_braceDepth > 0)) {
+        location().warning(u"Missing '}'"_s);
         m_pendingFormats.clear();
+        m_braceDepth = 0;
     }
 
     if (m_private->m_text.lastAtom()->type() == m_pendingParagraphLeftType) {
@@ -2563,8 +2585,13 @@ QString DocParser::getOptionalArgument()
  */
 QString DocParser::getRestOfLine()
 {
-    auto lineHasTrailingBackslash = [this](bool trailingBackslash) -> bool {
-        while (m_position < m_inputLength && m_input[m_position] != '\n') {
+    auto atLineEnd = [this]() -> bool {
+        return m_position >= m_inputLength || m_input[m_position] == '\n'
+                || m_input[m_position] == '\r';
+    };
+
+    auto lineHasTrailingBackslash = [this, &atLineEnd](bool trailingBackslash) -> bool {
+        while (!atLineEnd()) {
             if (m_input[m_position] == '\\' && !trailingBackslash) {
                 trailingBackslash = true;
                 ++m_position;
@@ -2594,11 +2621,18 @@ QString DocParser::getRestOfLine()
             return_simplified_string = true;
         }
 
-        if (m_position < m_inputLength)
+        if (m_position < m_inputLength && m_input[m_position] == '\r')
+            ++m_position;
+        if (m_position < m_inputLength && m_input[m_position] == '\n')
             ++m_position;
 
         if (!trailing_backslash)
             break;
+
+        while (m_position < m_inputLength
+               && (m_input[m_position] == '\r' || m_input[m_position] == '\n'))
+            ++m_position;
+
         start_position = m_position;
     }
 

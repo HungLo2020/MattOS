@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
-set(KF_DEP_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
+set(KF_DEP_VERSION "6.31.0") # handled by release scripts
 
 project(kirigami2 VERSION ${KF_VERSION})
 
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 
 ################# Disallow in-source build #################
 
@@ -20,8 +20,8 @@ option(UBUNTU_TOUCH "Build for Ubuntu Touch" OFF)
 if(DEFINED STATIC_LIBRARY)
     message(FATAL_ERROR "Use the BUILD_SHARED_LIBS=OFF option to build a static library, STATIC_LIBRARY is no longer a supported option")
 endif()
-find_package(ECM 6.26.0 REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+find_package(ECM 6.31.0 REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
 if (NOT ${BUILD_SHARED_LIBS})
     # Examples are not supported when building a static library, so force them
@@ -31,6 +31,8 @@ endif()
 
 include(FeatureSummary)
 include(KDEInstallDirs)
+include(KDECMakeSettings)
+include(KDEFrameworkCompilerSettings NO_POLICY_SCOPE)
 find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Core Quick Gui Svg QuickControls2 Concurrent ShaderTools)
 
 if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
@@ -47,9 +49,6 @@ else()
     set(HAVE_QTGUI_OPENGL 0)
 endif()
 add_feature_info(QtGuiOpenGL HAVE_QTGUI_OPENGL "QtGui built with support for OpenGL")
-set(CMAKE_AUTOMOC ON)
-set(AUTOMOC_MOC_OPTIONS -Muri=org.kde.kirigami)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DKIRIGAMI_BUILD_TYPE_STATIC)
@@ -69,15 +68,13 @@ include(ECMGenerateHeaders)
 include(CMakePackageConfigHelpers)
 include(ECMPoQmTools)
 include(ECMFindQmlModule)
-include(KDEInstallDirs)
-include(KDECMakeSettings)
 include(KDEGitCommitHooks)
 include(ECMQtDeclareLoggingCategory)
-include(KDEFrameworkCompilerSettings NO_POLICY_SCOPE)
 include(KDEPackageAppTemplates)
 include(ECMQmlModule)
 include(ECMDeprecationSettings)
 include(ECMGenerateQDoc)
+include(ECMInstalledLibraryCheck)
 
 set(CMAKECONFIG_INSTALL_DIR "${KDE_INSTALL_CMAKEPACKAGEDIR}/KF6Kirigami")
 
@@ -127,7 +124,7 @@ endif()
 
 ecm_set_disabled_deprecation_versions(
     QT 6.2
-    KF 6.23.0
+    KF 6.27.0
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

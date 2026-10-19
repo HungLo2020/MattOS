@@ -1,5 +1,12 @@
 add_definitions(-DTRANSLATION_DOMAIN=\"libnotificationmanager\")
 
+if (TARGET PkgConfig::Flatpak)
+    set(HAVE_FLATPAK ON)
+else()
+    set(HAVE_FLATPAK OFF)
+endif()
+configure_file(libnotificationmanager-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/libnotificationmanager-config.h)
+
 if(BUILD_TESTING)
    add_subdirectory(autotests)
 endif()
@@ -8,14 +15,17 @@ set(notificationmanager_LIB_SRCS
     server.cpp
     server_p.cpp
     serverinfo.cpp
+    portal_p.cpp
     settings.cpp
     mirroredscreenstracker.cpp
     fullscreentracker.cpp
     notifications.cpp
     notification.cpp
+    notifyrcpaths.cpp
 
     abstractnotificationsmodel.cpp
     notificationsmodel.cpp
+    portalnotificationsmodel.cpp
     notificationfilterproxymodel.cpp
     notificationsortproxymodel.cpp
     notificationgroupingproxymodel.cpp
@@ -56,6 +66,7 @@ kconfig_add_kcfg_files(notificationmanager_LIB_SRCS kcfg/eventsettings.kcfgc GEN
 # Notifications
 qt_add_dbus_adaptor(notificationmanager_LIB_SRCS dbus/org.freedesktop.Notifications.xml server_p.h NotificationManager::ServerPrivate)
 qt_add_dbus_adaptor(notificationmanager_LIB_SRCS dbus/org.kde.notificationmanager.xml server_p.h NotificationManager::ServerPrivate)
+qt_add_dbus_adaptor(notificationmanager_LIB_SRCS dbus/org.freedesktop.impl.portal.Notification.xml portal_p.h NotificationManager::Portal portalnotificationsadaptor PortalNotificationsAdaptor)
 qt_add_dbus_interface(notificationmanager_LIB_SRCS dbus/org.freedesktop.Notifications.xml fdonotifications_interface)
 # JobView
 qt_add_dbus_adaptor(notificationmanager_LIB_SRCS dbus/org.kde.kuiserver.xml jobsmodel_p.h NotificationManager::JobsModelPrivate)
@@ -93,6 +104,9 @@ target_link_libraries(notificationmanager
         KF6::Service
         Canberra::Canberra
 )
+if (TARGET PkgConfig::Flatpak)
+    target_link_libraries(notificationmanager PRIVATE PkgConfig::Flatpak)
+endif()
 
 set_target_properties(notificationmanager PROPERTIES
                       VERSION ${PROJECT_VERSION}
@@ -142,5 +156,15 @@ install(FILES plasmanotifyrc
 
 install(FILES libnotificationmanager.notifyrc
     DESTINATION ${KDE_INSTALL_KNOTIFYRCDIR})
+
+install(FILES plasmanotify.portal
+    DESTINATION ${KDE_INSTALL_DATADIR}/xdg-desktop-portal/portals)
+
+install(FILES kcfg/donotdisturbsettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR} RENAME notifications_donotdisturbsettings.kcfg)
+install(FILES kcfg/notificationsettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})
+install(FILES kcfg/jobsettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR} RENAME notifications_jobsettings.kcfg)
+install(FILES kcfg/badgesettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR} RENAME notifications_badgesettings.kcfg)
+install(FILES kcfg/behaviorsettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR} RENAME notifications_behaviorsettings.kcfg)
+install(FILES kcfg/eventsettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR} RENAME notifications_eventsettings.kcfg)
 
 add_subdirectory(kconf_update)

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <xf86drmMode.h>
 
 #include <QHash>
@@ -16,6 +17,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "core/backendoutput.h"
 #include "core/renderloop.h"
 #include "drm_pointer.h"
 #include "drm_property.h"
@@ -43,18 +45,27 @@ public:
     virtual void pageFlipped(std::chrono::nanoseconds timestamp) = 0;
     void setDefunct();
 
+    static DrmCommit *take(uintptr_t id);
+
+    static std::expected<void, OutputError> errnoToError();
+
 protected:
     DrmCommit(DrmGpu *gpu);
+    DrmCommit(const DrmCommit &other);
+
+    uintptr_t registerPageflip();
 
     DrmGpu *const m_gpu;
     bool m_defunct = false;
+
+private:
+    std::optional<uintptr_t> m_id;
 };
 
 class DrmAtomicCommit : public DrmCommit
 {
 public:
-    explicit DrmAtomicCommit(DrmGpu *gpu);
-    explicit DrmAtomicCommit(const QList<DrmPipeline *> &pipelines);
+    explicit DrmAtomicCommit(DrmGpu *gpu, const QList<DrmPipeline *> &pipelines = {});
     explicit DrmAtomicCommit(const DrmAtomicCommit &copy) = default;
 
     void addProperty(const DrmProperty &prop, uint64_t value);
@@ -68,10 +79,10 @@ public:
     void setVrr(DrmCrtc *crtc, bool vrr);
     void setPresentationMode(PresentationMode mode);
 
-    bool test();
-    bool testAllowModeset();
-    bool commit();
-    bool commitModeset();
+    std::expected<void, OutputError> test();
+    std::expected<void, OutputError> testAllowModeset();
+    std::expected<void, OutputError> commit();
+    std::expected<void, OutputError> commitModeset();
 
     void pageFlipped(std::chrono::nanoseconds timestamp) override;
 
@@ -89,8 +100,14 @@ public:
     bool isReadyFor(std::chrono::steady_clock::time_point pageflipTarget) const;
     bool isTearing() const;
 
+    /**
+     * NOTE if this is called multiple times, the pageflip event is only submitted
+     *      to the last crtc
+     */
+    void requestPageflipEvent(uint32_t crtcId);
+
 private:
-    bool doCommit(uint32_t flags);
+    std::expected<void, OutputError> doCommit(uint32_t flags);
 
     const QList<DrmPipeline *> m_pipelines;
     std::optional<std::chrono::steady_clock::time_point> m_targetPageflipTime;
@@ -102,6 +119,7 @@ private:
     std::optional<bool> m_vrr;
     std::unordered_map<uint32_t /* object */, std::unordered_map<uint32_t /* property */, uint64_t /* value */>> m_properties;
     bool m_modeset = false;
+    std::optional<uint32_t> m_crtc;
     PresentationMode m_mode = PresentationMode::VSync;
 };
 

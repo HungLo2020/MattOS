@@ -20,12 +20,12 @@
 
 namespace KWin
 {
+
 class AbstractDataSource;
 class DataDeviceInterface;
 class DataOfferInterface;
 class DataSourceInterface;
 class DataControlDeviceV1Interface;
-class TextInputV1Interface;
 class TextInputV2Interface;
 class TextInputV3Interface;
 class PrimarySelectionDeviceV1Interface;
@@ -66,7 +66,6 @@ public:
     QList<PrimarySelectionDeviceV1Interface *> primarySelectionDevices;
     QList<DataControlDeviceV1Interface *> dataControlDevices;
 
-    QPointer<TextInputV1Interface> textInputV1;
     // TextInput v2
     QPointer<TextInputV2Interface> textInputV2;
     QPointer<TextInputV3Interface> textInputV3;
@@ -77,8 +76,10 @@ public:
     // the last thing copied into the clipboard content
     AbstractDataSource *currentSelection = nullptr;
     UInt32Serial currentSelectionSerial = 0;
+    QPointer<ClientConnection> lastSelectionOwner;
     AbstractDataSource *currentPrimarySelection = nullptr;
     UInt32Serial currentPrimarySelectionSerial = 0;
+    QPointer<ClientConnection> lastPrimarySelectionOwner;
 
     // Pointer related members
     struct Pointer
@@ -103,6 +104,7 @@ public:
     Pointer globalPointer;
     void updatePointerButtonSerial(quint32 button, quint32 serial);
     void updatePointerButtonState(quint32 button, Pointer::State state);
+    std::optional<QPointF> updatePointerPosition(const QPointF &pos);
 
     // Keyboard related members
     struct Keyboard
@@ -136,7 +138,7 @@ public:
         Mode mode = Mode::None;
         AbstractDataSource *source = nullptr;
         QPointer<SurfaceInterface> surface;
-        QPointer<AbstractDropHandler> target;
+        QList<AbstractDropHandler *> targets;
         QPointer<DragAndDropIcon> dragIcon;
         QPointF position;
         QMatrix4x4 transformation;

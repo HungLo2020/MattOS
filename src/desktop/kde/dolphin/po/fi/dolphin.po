@@ -22,8 +22,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dolphin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-08-23 02:41+0000\n"
-"PO-Revision-Date: 2026-02-26 11:05+0200\n"
+"POT-Creation-Date: 2026-09-13 02:39+0000\n"
+"PO-Revision-Date: 2026-08-26 13:29+0300\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -296,7 +296,7 @@ msgstr ""
 "Ikkunassa on  auki useampia välilehtiä: haluatko varmasti lopettaa ohjelman?"
 
 #: dolphinmainwindow.cpp:656 dolphinmainwindow.cpp:706
-#: views/dolphinview.cpp:2346
+#: views/dolphinview.cpp:2347
 #, kde-format
 msgid "Do not ask again"
 msgstr "Älä kysy uudestaan"
@@ -374,16 +374,12 @@ msgstr ""
 "luontioikeutta."
 
 #: dolphinmainwindow.cpp:1519
-#, fuzzy, kde-format
-#| msgctxt "@info"
-#| msgid ""
-#| "Cannot create new folder: You do not have permission to create items in "
-#| "this folder."
+#, kde-format
 msgctxt "@info"
 msgid "Cannot create new subfolder: Select a single folder you can write to."
 msgstr ""
-"Ei voida luoda uutta kansiota: sinulla ei ole kansioon kohteiden "
-"luontioikeutta."
+"Ei voida luoda uutta alikansiota: valitse yksittäinen kansio, johon voit "
+"kirjoittaa."
 
 #: dolphinmainwindow.cpp:1618
 #, kde-format
@@ -599,20 +595,16 @@ msgid "Move to Other View"
 msgstr "Siirrä toiseen näkymään"
 
 #: dolphinmainwindow.cpp:1907
-#, fuzzy, kde-format
-#| msgctxt "@action:inmenu"
-#| msgid "Copy to Other View"
+#, kde-format
 msgctxt "@action:inmenu"
 msgid "Focus Other View"
-msgstr "Kopioi toiseen näkymään"
+msgstr "Kohdista toiseen näkymään"
 
 #: dolphinmainwindow.cpp:1908
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "Move keyboard focus to and from the Places panel."
+#, kde-format
 msgctxt "@info:tooltip"
 msgid "Move keyboard focus to the inactive view."
-msgstr "Siirrä näppäimistökohdistus sijaintipaneeliin ja sieltä pois."
+msgstr "Siirrä näppäimistökohdistus passiiviseen näkymään."
 
 #: dolphinmainwindow.cpp:1914
 #, kde-format
@@ -1782,7 +1774,7 @@ msgstr "Lisää verkkokansio"
 #, kde-format
 msgctxt "@action:button"
 msgid "Open KDE Connect"
-msgstr ""
+msgstr "Avaa KDE Connect"
 
 #: dolphinnavigatorswidgetaction.cpp:351
 #, kde-format
@@ -1975,14 +1967,13 @@ msgstr "Sulje muut välilehdet"
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Close Tabs to the Left"
-msgstr ""
+msgstr "Sulje vasemmanpuoleiset välilehdet"
 
 #: dolphintabbar.cpp:191
-#, fuzzy, kde-format
-#| msgid "Close the right pane"
+#, kde-format
 msgctxt "@action:inmenu"
 msgid "Close Tabs to the Right"
-msgstr "Sulje oikeanpuoleinen paneeli"
+msgstr "Sulje oikeanpuoleiset välilehdet"
 
 #: dolphintabbar.cpp:193
 #, kde-format
@@ -2100,21 +2091,16 @@ msgid "No items found."
 msgstr "Kohteita ei löytynyt."
 
 #: dolphinviewcontainer.cpp:733
-#, fuzzy, kde-format
-#| msgctxt "Textual representation of files. %1 is the number of files."
-#| msgid "One File"
-#| msgid_plural "%1 Files"
+#, kde-format
 msgctxt "@action"
 msgid "Open as File"
-msgstr "Yksi tiedosto"
+msgstr "Avaa tiedostona"
 
 #: dolphinviewcontainer.cpp:750
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info"
-#| msgid "Could not access <filename>%1</filename>."
+#, kde-kuit-format
 msgctxt "@info"
 msgid "Trying to open a file as a folder: <filename>%1</filename>"
-msgstr "Ei voitu käyttää tiedostoa <filename>%1</filename>."
+msgstr "Yritetään avata tiedosto kansioksi: <filename>%1</filename>"
 
 #: dolphinviewcontainer.cpp:914
 #, kde-format
@@ -2186,35 +2172,33 @@ msgid "Filter…"
 msgstr "Suodata…"
 
 #: filterbar/filterbar.cpp:51
-#, fuzzy, kde-format
-#| msgctxt "@info:status"
-#| msgid "Invalid protocol"
+#, kde-format
 msgid "Invalid expression"
-msgstr "Virheellinen yhteyskäytäntö"
+msgstr "Virheellinen lauseke"
 
 #: filterbar/filterbar.cpp:60
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Match case"
-msgstr ""
+msgstr "Erota pien- ja suuraakkoset"
 
 #: filterbar/filterbar.cpp:66
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Plain Text"
-msgstr ""
+msgstr "Pelkkä teksti"
 
 #: filterbar/filterbar.cpp:67
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Glob Pattern"
-msgstr ""
+msgstr "Jokerimerkkikuvio"
 
 #: filterbar/filterbar.cpp:68
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Regular Expression"
-msgstr ""
+msgstr "Säännöllinen lauseke"
 
 #: filterbar/filterbar.cpp:78
 #, kde-format
@@ -3048,12 +3032,9 @@ msgid "Other"
 msgstr "Muu"
 
 #: kitemviews/kfileitemmodel.cpp:3160
-#, fuzzy
-#| msgctxt "@title:group"
-#| msgid "Folder size:"
 msgctxt "@label"
 msgid "Folder Name"
-msgstr "Kansion koko:"
+msgstr "Kansion nimi"
 
 #: kitemviews/kfileitemmodel.cpp:3161
 msgctxt "@label"
@@ -4225,12 +4206,10 @@ msgid "Exit Selection Mode"
 msgstr "Poistu valintatilasta"
 
 #: servicemenushortcutmanager.cpp:26
-#, fuzzy, kde-format
-#| msgctxt "@title:group"
-#| msgid "Context Menu"
+#, kde-format
 msgctxt "@title:group"
 msgid "Context Menu Actions"
-msgstr "Kontekstivalikko"
+msgstr "Kontekstivalikon toiminnot"
 
 #: settings/contextmenu/contextmenusettingspage.cpp:60
 #, kde-format
@@ -4239,18 +4218,16 @@ msgid "Search…"
 msgstr "Etsi…"
 
 #: settings/contextmenu/contextmenusettingspage.cpp:68
-#, fuzzy, kde-format
-#| msgctxt "@action:button"
-#| msgid "Download New Services…"
+#, kde-format
 msgctxt "@action:button"
 msgid "Download Services…"
-msgstr "Lataa uusia palveluja…"
+msgstr "Lataa palveluja…"
 
 #: settings/contextmenu/contextmenusettingspage.cpp:79
 #, kde-format
 msgctxt "@action:button"
 msgid "Shortcuts…"
-msgstr ""
+msgstr "Pikanäppäimet…"
 
 #: settings/contextmenu/contextmenusettingspage.cpp:234
 #, kde-format
@@ -4521,19 +4498,17 @@ msgstr ""
 
 #. i18n: ectx: label, entry (ZoomLevel), group (Dolphin)
 #: settings/dolphin_directoryviewpropertysettings.kcfg:31
-#, fuzzy, kde-format
-#| msgctxt "@action:inmenu View"
-#| msgid "Reset Zoom Level"
+#, kde-format
 msgctxt "@label"
 msgid "Zoom Level"
-msgstr "Palauta lähennystaso"
+msgstr "Lähennystaso"
 
 #. i18n: ectx: whatsthis, entry (ZoomLevel), group (Dolphin)
 #: settings/dolphin_directoryviewpropertysettings.kcfg:32
 #, kde-format
 msgctxt "@info:whatsthis"
 msgid "Zoom level of the folder."
-msgstr ""
+msgstr "Kansion lähennystaso."
 
 #. i18n: ectx: label, entry (PreviewsShown), group (Dolphin)
 #: settings/dolphin_directoryviewpropertysettings.kcfg:37
@@ -4588,12 +4563,10 @@ msgstr ""
 
 #. i18n: ectx: label, entry (GroupRole), group (Dolphin)
 #: settings/dolphin_directoryviewpropertysettings.kcfg:55
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Sort files by"
+#, kde-format
 msgctxt "@label"
 msgid "Group files by"
-msgstr "Lajittele tiedostot"
+msgstr "Tiedostojen ryhmittely"
 
 #. i18n: ectx: whatsthis, entry (GroupRole), group (Dolphin)
 #: settings/dolphin_directoryviewpropertysettings.kcfg:56
@@ -4604,6 +4577,8 @@ msgid ""
 "sorting is enabled. An empty value means the grouping criterion follows the "
 "sort criterion."
 msgstr ""
+"Tämä asetus asettaa ryhmittelymääritteen, kun ryhmitelty lajittelu on "
+"käytössä. Tyhjä arvo tarkoittaa, että ryhmittely noudattaa lajitteluehtoa."
 
 #. i18n: ectx: label, entry (SortOrder), group (Dolphin)
 #: settings/dolphin_directoryviewpropertysettings.kcfg:61
@@ -4990,12 +4965,10 @@ msgid "Warning"
 msgstr "Varoitus"
 
 #: settings/interface/confirmationssettingspage.cpp:50
-#, fuzzy, kde-format
-#| msgctxt "@title:group"
-#| msgid "Ask for confirmation in all KDE applications when:"
+#, kde-format
 msgctxt "@title:group"
 msgid "Ask for confirmation in KDE applications when:"
-msgstr "Kysy kaikissa KDE-sovelluksissa vahvistus, kun"
+msgstr "Pyydä kaikissa KDE-sovelluksissa vahvistus, kun:"
 
 # Edellä ”Pyydä kaikissa KDE-sovelluksissa vahvistus, kun:”
 #: settings/interface/confirmationssettingspage.cpp:53
@@ -6311,7 +6284,7 @@ msgstr "Oletus"
 msgid "Reload"
 msgstr "Päivitä"
 
-#: views/dolphinview.cpp:773
+#: views/dolphinview.cpp:774
 #, kde-format
 msgctxt "@info:status"
 msgid "1 folder selected"
@@ -6319,7 +6292,7 @@ msgid_plural "%1 folders selected"
 msgstr[0] "1 kansio valittu"
 msgstr[1] "%1 kansiota valittu"
 
-#: views/dolphinview.cpp:774
+#: views/dolphinview.cpp:775
 #, kde-format
 msgctxt "@info:status"
 msgid "1 file selected"
@@ -6327,7 +6300,7 @@ msgid_plural "%1 files selected"
 msgstr[0] "1 tiedosto valittu"
 msgstr[1] "%1 tiedostoa valittu"
 
-#: views/dolphinview.cpp:776
+#: views/dolphinview.cpp:777
 #, kde-format
 msgctxt "@info:status"
 msgid "1 folder"
@@ -6335,7 +6308,7 @@ msgid_plural "%1 folders"
 msgstr[0] "1 kansio"
 msgstr[1] "%1 kansiota"
 
-#: views/dolphinview.cpp:777
+#: views/dolphinview.cpp:778
 #, kde-format
 msgctxt "@info:status"
 msgid "1 file"
@@ -6343,38 +6316,38 @@ msgid_plural "%1 files"
 msgstr[0] "1 tiedosto"
 msgstr[1] "%1 tiedostoa"
 
-#: views/dolphinview.cpp:781
+#: views/dolphinview.cpp:782
 #, kde-format
 msgctxt "@info:status folders, files (size)"
 msgid "%1, %2 (%3)"
 msgstr "%1, %2 (%3)"
 
-#: views/dolphinview.cpp:783
+#: views/dolphinview.cpp:784
 #, kde-format
 msgctxt "@info:status files (size)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: views/dolphinview.cpp:787
+#: views/dolphinview.cpp:788
 #, kde-format
 msgctxt "@info:status"
 msgid "0 folders, 0 files"
 msgstr "0 kansiota, 0 tiedostoa"
 
-#: views/dolphinview.cpp:1029 views/dolphinview.cpp:1038
+#: views/dolphinview.cpp:1030 views/dolphinview.cpp:1039
 #, kde-format
 msgctxt "<filename> copy"
 msgid "%1 copy"
 msgstr "%1 – kopio"
 
-#: views/dolphinview.cpp:1224
+#: views/dolphinview.cpp:1225
 #, kde-format
 msgid "Are you sure you want to open 1 item?"
 msgid_plural "Are you sure you want to open %1 items?"
 msgstr[0] "Haluatko varmasti avata yhden kohteen?"
 msgstr[1] "Haluatko varmasti avata %1 kohdetta?"
 
-#: views/dolphinview.cpp:1229
+#: views/dolphinview.cpp:1230
 #, kde-format
 msgctxt "@action:button"
 msgid "Open %1 Item"
@@ -6382,43 +6355,43 @@ msgid_plural "Open %1 Items"
 msgstr[0] "Avaa %1 kohde"
 msgstr[1] "Avaa %1 kohdetta"
 
-#: views/dolphinview.cpp:1363
+#: views/dolphinview.cpp:1364
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Side Padding"
 msgstr "Reunustäyte"
 
-#: views/dolphinview.cpp:1367
+#: views/dolphinview.cpp:1368
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Automatic Column Widths"
 msgstr "Automaattiset sarakeleveydet"
 
-#: views/dolphinview.cpp:1372
+#: views/dolphinview.cpp:1373
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Custom Column Widths"
 msgstr "Mukautetut sarakeleveydet"
 
-#: views/dolphinview.cpp:2116
+#: views/dolphinview.cpp:2117
 #, kde-format
 msgctxt "@info:status"
 msgid "Trash operation completed."
 msgstr "Siirretty roskakoriin."
 
-#: views/dolphinview.cpp:2126
+#: views/dolphinview.cpp:2127
 #, kde-format
 msgctxt "@info:status"
 msgid "Delete operation completed."
 msgstr "Poistettu."
 
-#: views/dolphinview.cpp:2294
+#: views/dolphinview.cpp:2295
 #, kde-format
 msgctxt "@action:button"
 msgid "Rename and Hide"
 msgstr "Muuta nimeä ja piilota"
 
-#: views/dolphinview.cpp:2298
+#: views/dolphinview.cpp:2299
 #, kde-format
 msgid ""
 "Adding a dot to the beginning of this file's name will hide it from view.\n"
@@ -6427,7 +6400,7 @@ msgstr ""
 "Pisteen lisääminen tiedoston nimen alkuun piilottaa tiedoston näkyvistä.\n"
 "Haluatko silti muuttaa nimeä?"
 
-#: views/dolphinview.cpp:2300
+#: views/dolphinview.cpp:2301
 #, kde-format
 msgid ""
 "Adding a dot to the beginning of this folder's name will hide it from view.\n"
@@ -6436,23 +6409,23 @@ msgstr ""
 "Pisteen lisääminen kansion nimen alkuun poistaa kansion näkyvistä.\n"
 "Haluatko silti muuttaa nimeä?"
 
-#: views/dolphinview.cpp:2302
+#: views/dolphinview.cpp:2303
 #, kde-format
 msgid "Hide this File?"
 msgstr "Piilotetaanko tiedosto?"
 
-#: views/dolphinview.cpp:2302
+#: views/dolphinview.cpp:2303
 #, kde-format
 msgid "Hide this Folder?"
 msgstr "Piilotetaanko kansio?"
 
-#: views/dolphinview.cpp:2323
+#: views/dolphinview.cpp:2324
 #, kde-format
 msgctxt "@action:button"
 msgid "Rename"
 msgstr "Muuta nimeä"
 
-#: views/dolphinview.cpp:2333
+#: views/dolphinview.cpp:2334
 #, kde-format
 msgid ""
 "This will make the file type unknown.\n"
@@ -6464,7 +6437,7 @@ msgstr ""
 "Tiedoston sisältö ei muutu, mutta sovellukset eivät enää tunnista sitä.\n"
 "Haluatko silti muuttaa nimeä?"
 
-#: views/dolphinview.cpp:2337
+#: views/dolphinview.cpp:2338
 #, kde-format
 msgid ""
 "This will change the file type from \"%1\" to \"%2\".\n"
@@ -6476,101 +6449,100 @@ msgstr ""
 "Tiedoston sisältö ei muutu, mutta sovellukset eivät enää tunnista sitä.\n"
 "Haluatko silti muuttaa nimeä?"
 
-#: views/dolphinview.cpp:2343
+#: views/dolphinview.cpp:2344
 #, kde-format
 msgctxt "@title:window"
 msgid "Change File Type"
 msgstr "Muuta tiedostotyyppiä"
 
-#: views/dolphinview.cpp:2387
+#: views/dolphinview.cpp:2388
 #, kde-format
 msgctxt "@info:status"
 msgid "The location is empty."
 msgstr "Sijaintirivi on tyhjä."
 
-#: views/dolphinview.cpp:2389
+#: views/dolphinview.cpp:2390
 #, kde-format
 msgctxt "@info:status"
 msgid "The location '%1' is invalid."
 msgstr "Sijainti ”%1” on virheellinen."
 
-#: views/dolphinview.cpp:2778
+#: views/dolphinview.cpp:2780
 #, kde-format
 msgid "Loading…"
 msgstr "Ladataan…"
 
-#: views/dolphinview.cpp:2807
+#: views/dolphinview.cpp:2809
 #, kde-format
 msgid "Loading canceled"
 msgstr "Lataus peruttu"
 
-#: views/dolphinview.cpp:2809
+#: views/dolphinview.cpp:2811
 #, kde-format
 msgid "No items matching the filter"
 msgstr "Ei suodatinta vastaavia kohteita"
 
-#: views/dolphinview.cpp:2811
+#: views/dolphinview.cpp:2813
 #, kde-format
 msgid "No items matching the search"
 msgstr "Ei hakua vastaavia kohteita"
 
-#: views/dolphinview.cpp:2813
+#: views/dolphinview.cpp:2815
 #, kde-format
 msgid "Trash is empty"
 msgstr "Roskakori on tyhjä"
 
-#: views/dolphinview.cpp:2816
+#: views/dolphinview.cpp:2818
 #, kde-format
 msgid "No tags"
 msgstr "Ei luokituksia"
 
-#: views/dolphinview.cpp:2819
+#: views/dolphinview.cpp:2821
 #, kde-format
 msgid "No files tagged with \"%1\""
 msgstr "Ei tiedostoja luokituksella ”%1”"
 
-#: views/dolphinview.cpp:2823
+#: views/dolphinview.cpp:2825
 #, kde-format
 msgid "No recently used items"
 msgstr "Ei äskettäin käytettyjä kohteita"
 
-#: views/dolphinview.cpp:2825
+#: views/dolphinview.cpp:2827
 #, kde-format
 msgid "No shared folders found"
 msgstr "Jaettuja kansioita ei löytynyt"
 
-#: views/dolphinview.cpp:2827
+#: views/dolphinview.cpp:2829
 #, kde-format
 msgid "No relevant network resources found"
 msgstr "Asiaan kuuluvia verkkoresursseja ei löytynyt"
 
-#: views/dolphinview.cpp:2829
+#: views/dolphinview.cpp:2831
 #, kde-format
 msgid "No MTP-compatible devices found"
 msgstr "MTP-yhteensopivia laitteita ei löytynyt"
 
-#: views/dolphinview.cpp:2831
+#: views/dolphinview.cpp:2833
 #, kde-format
 msgid "No Apple devices found"
 msgstr "Apple-laitteita ei löytynyt"
 
-#: views/dolphinview.cpp:2834
-#, fuzzy, kde-format
-#| msgid "No Apple devices found"
-msgid "No KDE Connect devices found"
-msgstr "Apple-laitteita ei löytynyt"
-
 #: views/dolphinview.cpp:2836
 #, kde-format
-msgid "No storage found on this device"
-msgstr ""
+msgid "No KDE Connect devices found"
+msgstr "KDE Connect -laitteita ei löytynyt"
 
-#: views/dolphinview.cpp:2839
+#: views/dolphinview.cpp:2838
+#, kde-format
+msgid "No storage found on this device"
+msgstr "Laitteelta ei löytynyt talletustilaa"
+
+#: views/dolphinview.cpp:2841
 #, kde-format
 msgid "No Bluetooth devices found"
 msgstr "Bluetooth-laitteita ei löytynyt"
 
-#: views/dolphinview.cpp:2841
+#: views/dolphinview.cpp:2843
 #, kde-format
 msgid "Folder is empty"
 msgstr "Kansio on tyhjä"
@@ -6582,12 +6554,10 @@ msgid "Create Folder…"
 msgstr "Luo kansio…"
 
 #: views/dolphinviewactionhandler.cpp:95
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Create Folder…"
+#, kde-format
 msgctxt "@action"
 msgid "Create Subfolder…"
-msgstr "Luo kansio…"
+msgstr "Luo alikansio…"
 
 #: views/dolphinviewactionhandler.cpp:103
 #, kde-format
@@ -6834,12 +6804,10 @@ msgid "Show Additional Information"
 msgstr "Näytä lisätiedot"
 
 #: views/dolphinviewactionhandler.cpp:343
-#, fuzzy, kde-format
-#| msgctxt "@item:intable"
-#| msgid "Group"
+#, kde-format
 msgctxt "@action:inmenu View"
 msgid "Group By"
-msgstr "Ryhmä"
+msgstr "Ryhmittely"
 
 #: views/dolphinviewactionhandler.cpp:345
 #, kde-format
@@ -6848,11 +6816,12 @@ msgid ""
 "This groups files and folders by a chosen attribute. \"None\" disables "
 "grouping. \"Same as Sort\" groups by the active sort criterion."
 msgstr ""
+"Tämä ryhmittelee tiedostot ja kansiot valitun määritteen mukaan. ”Ei mitään” "
+"poistaa ryhmittelyn käytöstä. ”Sama kuin lajittelu” ryhmittelee aktiivisen "
+"lajitteluehdon mukaan."
 
 #: views/dolphinviewactionhandler.cpp:356
-#, fuzzy, kde-format
-#| msgctxt "@action:button Required tags for search results: None"
-#| msgid "None"
+#, kde-format
 msgctxt "@action:inmenu Group By"
 msgid "None"
 msgstr "Ei mitään"
@@ -6861,7 +6830,7 @@ msgstr "Ei mitään"
 #, kde-format
 msgctxt "@action:inmenu Group By"
 msgid "Same as Sort"
-msgstr ""
+msgstr "Sama kuin lajittelu"
 
 #: views/dolphinviewactionhandler.cpp:378
 #, kde-format
@@ -6905,17 +6874,16 @@ msgid ""
 msgstr "Avaa ikkunan, jossa voi säätää näkymän kaikkia ominaisuuksia."
 
 #: views/dolphinviewactionhandler.cpp:403
-#, fuzzy, kde-format
-#| msgid "Zoom To Default"
+#, kde-format
 msgctxt "@action:inmenu"
 msgid "Restore to Defaults"
-msgstr "Oletuslähennys"
+msgstr "Palauta oletukset"
 
 #: views/dolphinviewactionhandler.cpp:404
 #, kde-format
 msgctxt "info:tooltip"
 msgid "Restore View Settings to Defaults Value"
-msgstr ""
+msgstr "Palauta näkymäasetukset oletuksiinsa"
 
 #: views/dolphinviewactionhandler.cpp:409
 #, kde-format
@@ -6942,12 +6910,10 @@ msgstr "Lajitteluperuste"
 
 # Tämän alakohdat ovat nominatiivissa (Nimi, Koko jne.), joten tämä sopii paremmin alavalikon nimeksi
 #: views/dolphinviewactionhandler.cpp:446
-#, fuzzy, kde-format
-#| msgctxt "@item:intable, Heading of a list of fields"
-#| msgid "Sort by Field"
+#, kde-format
 msgctxt "@item:intable, Heading of a list of fields"
 msgid "Group by Field"
-msgstr "Lajitteluperuste"
+msgstr "Ryhmittele kentän mukaan"
 
 #: views/dolphinviewactionhandler.cpp:449
 #, kde-format

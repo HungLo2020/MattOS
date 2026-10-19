@@ -102,11 +102,9 @@ private:
     quint32 m_totalCommits = 0;
 };
 
-static const QString s_socketName = QStringLiteral("kwin-wayland-server-text-input-v1-test-0");
-
 void TestTextInputV1Interface::initTestCase()
 {
-    m_display.addSocketName(s_socketName);
+    m_display.addSocketName(qAppName());
     m_display.start();
     QVERIFY(m_display.isRunning());
 
@@ -118,7 +116,7 @@ void TestTextInputV1Interface::initTestCase()
 
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);

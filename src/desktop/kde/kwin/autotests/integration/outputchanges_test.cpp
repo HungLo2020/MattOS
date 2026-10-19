@@ -34,8 +34,6 @@ using namespace std::chrono_literals;
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_output_changes-0");
-
 enum class DeviceType {
     Desktop,
     Laptop,
@@ -150,6 +148,7 @@ private Q_SLOTS:
     void testMirroring();
 
     void testAutoBrightness();
+    void testPerOutputDesktopsOutputToggle();
     void testTemporaryDpmsHotplug();
 };
 
@@ -157,11 +156,7 @@ void OutputChangesTest::initTestCase()
 {
     qRegisterMetaType<Window *>();
 
-    QVERIFY(waylandServer()->init(s_socketName));
-
-    // delete the previous output config, to avoid previous runs messing with this one
-    // TODO reset it per test function instead?
-    QFile(QStandardPaths::locate(QStandardPaths::ConfigLocation, QStringLiteral("kwinoutputconfig.json"))).remove();
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -177,6 +172,9 @@ void OutputChangesTest::initTestCase()
 
 void OutputChangesTest::init()
 {
+    // delete the previous output config, to avoid previous runs messing with this one
+    workspace()->outputConfigureStore()->clear();
+
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),
         Rect(1280, 0, 1280, 1024),
@@ -190,6 +188,8 @@ void OutputChangesTest::init()
 void OutputChangesTest::cleanup()
 {
     Test::destroyWaylandConnection();
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(false);
+    VirtualDesktopManager::self()->setCount(1);
 }
 
 void OutputChangesTest::testWindowSticksToOutputAfterOutputIsDisabled()
@@ -203,19 +203,19 @@ void OutputChangesTest::testWindowSticksToOutputAfterOutputIsDisabled()
     QVERIFY(window);
 
     // Move the window to some predefined position so the test is more robust.
-    window->move(QPoint(42, 67));
-    QCOMPARE(window->frameGeometry(), RectF(42, 67, 100, 50));
+    window->move(QPoint(1280 + 42, 0 + 67));
+    QCOMPARE(window->frameGeometry(), RectF(1280 + 42, 0 + 67, 100, 50));
 
     // Disable the output where the window is on.
     OutputConfiguration config;
     {
-        auto changeSet = config.changeSet(outputs[0]);
+        auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
     }
-    workspace()->applyOutputConfiguration(config);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
 
-    // The window will be sent to the second output, which is at (1280, 0).
-    QCOMPARE(window->frameGeometry(), RectF(1280 + 42, 0 + 67, 100, 50));
+    // The window will be sent to the second output, which is at (0, 0).
+    QCOMPARE(window->frameGeometry(), RectF(0 + 42, 0 + 67, 100, 50));
 }
 
 void OutputChangesTest::testWindowSticksToOutputAfterAnotherOutputIsDisabled()
@@ -243,7 +243,7 @@ void OutputChangesTest::testWindowSticksToOutputAfterAnotherOutputIsDisabled()
         changeSet->pos = QPoint(0, 0);
         changeSet->enabled = true;
     }
-    workspace()->applyOutputConfiguration(config);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
 
     QCOMPARE(workspace()->outputs().front()->geometry(), Rect(0, 0, 1280, 1024));
 
@@ -273,12 +273,13 @@ void OutputChangesTest::testWindowSticksToOutputAfterOutputIsMoved()
 
     {
         OutputConfiguration config;
-        config.changeSet(outputs[0])->pos = QPoint(20, 20);
-        workspace()->applyOutputConfiguration(config);
+        config.changeSet(outputs[0])->pos = QPoint(1280 + 20, 1024 + 20);
+        config.changeSet(outputs[1])->pos = QPoint(0, 0);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // Move the window to some predefined position so the test is more robust.
-    window.m_window->move(QPoint(42, 67));
+    window.m_window->move(QPoint(1280 + 42, 1024 + 67));
     if (tileMode != QuickTileFlag::None) {
         // this ensures any configure events up to this point were received
         QVERIFY(Test::waylandSync());
@@ -286,15 +287,15 @@ void OutputChangesTest::testWindowSticksToOutputAfterOutputIsMoved()
         window.m_window->setQuickTileModeAtCurrentPosition(tileMode);
         QVERIFY(window.handleConfigure());
     } else {
-        QCOMPARE(window.m_window->frameGeometry(), RectF(42, 67, 100, 50));
+        QCOMPARE(window.m_window->frameGeometry(), RectF(1280 + 42, 1024 + 67, 100, 50));
     }
     const RectF oldGeometry = window.m_window->frameGeometry();
 
     // move the first output
     {
         OutputConfiguration config;
-        config.changeSet(outputs[0])->pos = QPoint(0, 40);
-        workspace()->applyOutputConfiguration(config);
+        config.changeSet(outputs[0])->pos = QPoint(1280 + 0, 1024 + 40);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // The position of the window relative to its output should remain the same.
@@ -327,7 +328,7 @@ void OutputChangesTest::testWindowSticksToOutputAfterOutputsAreSwappedLeftToRigh
         auto changeSet2 = config.changeSet(outputs[1]);
         changeSet2->pos = QPoint(0, 0);
     }
-    workspace()->applyOutputConfiguration(config);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
 
     // The window should be still on its original output.
     QCOMPARE(window->output()->backendOutput(), outputs[0]);
@@ -360,7 +361,7 @@ void OutputChangesTest::testWindowSticksToOutputAfterOutputsAreSwappedRightToLef
         auto changeSet2 = config.changeSet(outputs[1]);
         changeSet2->pos = QPoint(0, 0);
     }
-    workspace()->applyOutputConfiguration(config);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
 
     // The window should be still on its original output.
     QCOMPARE(window->output()->backendOutput(), outputs[1]);
@@ -390,7 +391,7 @@ void OutputChangesTest::testWindowRestoredAfterEnablingOutput()
         auto changeSet = config1.changeSet(outputs[1]);
         changeSet->enabled = false;
     }
-    workspace()->applyOutputConfiguration(config1);
+    QVERIFY(workspace()->applyOutputConfiguration(config1));
 
     // The window will be moved to the left monitor.
     QCOMPARE(window->output()->backendOutput(), outputs[0]);
@@ -402,7 +403,7 @@ void OutputChangesTest::testWindowRestoredAfterEnablingOutput()
         auto changeSet = config2.changeSet(outputs[1]);
         changeSet->enabled = true;
     }
-    workspace()->applyOutputConfiguration(config2);
+    QVERIFY(workspace()->applyOutputConfiguration(config2));
 
     // The window will be moved back to the right monitor.
     QCOMPARE(window->output()->backendOutput(), outputs[1]);
@@ -433,7 +434,7 @@ void OutputChangesTest::testWindowNotRestoredAfterMovingWindowAndEnablingOutput(
         auto changeSet = config1.changeSet(outputs[1]);
         changeSet->enabled = false;
     }
-    workspace()->applyOutputConfiguration(config1);
+    QVERIFY(workspace()->applyOutputConfiguration(config1));
 
     // The window will be moved to the left monitor.
     QCOMPARE(window->output()->backendOutput(), outputs[0]);
@@ -452,7 +453,7 @@ void OutputChangesTest::testWindowNotRestoredAfterMovingWindowAndEnablingOutput(
         auto changeSet = config2.changeSet(outputs[1]);
         changeSet->enabled = true;
     }
-    workspace()->applyOutputConfiguration(config2);
+    QVERIFY(workspace()->applyOutputConfiguration(config2));
 
     // The window is still on the left monitor because user manually moved it.
     QCOMPARE(window->output()->backendOutput(), outputs[0]);
@@ -499,7 +500,7 @@ void OutputChangesTest::testMaximizedWindowRestoredAfterEnablingOutput()
         auto changeSet = config1.changeSet(outputs[1]);
         changeSet->enabled = false;
     }
-    workspace()->applyOutputConfiguration(config1);
+    QVERIFY(workspace()->applyOutputConfiguration(config1));
 
     // The window will be moved to the left monitor, the geometry restore will be updated too.
     QCOMPARE(window->frameGeometry(), RectF(0, 0, 1280, 1024));
@@ -515,7 +516,7 @@ void OutputChangesTest::testMaximizedWindowRestoredAfterEnablingOutput()
         auto changeSet = config2.changeSet(outputs[1]);
         changeSet->enabled = true;
     }
-    workspace()->applyOutputConfiguration(config2);
+    QVERIFY(workspace()->applyOutputConfiguration(config2));
 
     // The window will be moved back to the right monitor, the geometry restore will be updated too.
     QCOMPARE(window->frameGeometry(), RectF(1280, 0, 1280, 1024));
@@ -566,7 +567,7 @@ void OutputChangesTest::testFullScreenWindowRestoredAfterEnablingOutput()
         auto changeSet = config1.changeSet(outputs[1]);
         changeSet->enabled = false;
     }
-    workspace()->applyOutputConfiguration(config1);
+    QVERIFY(workspace()->applyOutputConfiguration(config1));
 
     // The window will be moved to the left monitor, the geometry restore will be updated too.
     QCOMPARE(window->frameGeometry(), RectF(0, 0, 1280, 1024));
@@ -582,7 +583,7 @@ void OutputChangesTest::testFullScreenWindowRestoredAfterEnablingOutput()
         auto changeSet = config2.changeSet(outputs[1]);
         changeSet->enabled = true;
     }
-    workspace()->applyOutputConfiguration(config2);
+    QVERIFY(workspace()->applyOutputConfiguration(config2));
 
     // The window will be moved back to the right monitor, the geometry restore will be updated too.
     QCOMPARE(window->frameGeometry(), RectF(1280, 0, 1280, 1024));
@@ -637,7 +638,7 @@ void OutputChangesTest::testQuickTiledWindowRestoredAfterEnablingOutput()
         changeSet->enabled = false;
     }
 
-    workspace()->applyOutputConfiguration(config1);
+    QVERIFY(workspace()->applyOutputConfiguration(config1));
 
     QVERIFY(surfaceConfigureRequestedSpy.wait());
     QCOMPARE(toplevelConfigureRequestedSpy.last().at(0).value<QSize>(), QSize(1280 / 2, 1024));
@@ -656,7 +657,7 @@ void OutputChangesTest::testQuickTiledWindowRestoredAfterEnablingOutput()
         auto changeSet = config2.changeSet(outputs[1]);
         changeSet->enabled = true;
     }
-    workspace()->applyOutputConfiguration(config2);
+    QVERIFY(workspace()->applyOutputConfiguration(config2));
     QVERIFY(surfaceConfigureRequestedSpy.wait());
     shellSurface->xdgSurface()->ack_configure(surfaceConfigureRequestedSpy.last().at(0).value<quint32>());
     Test::render(surface.get(), QSize(1280 / 2, 1024), Qt::blue);
@@ -683,7 +684,7 @@ void OutputChangesTest::testQuickTileUntileWindowRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // Create a window.
@@ -707,7 +708,7 @@ void OutputChangesTest::testQuickTileUntileWindowRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // Move the window to the second output and tile it to the right.
@@ -732,7 +733,7 @@ void OutputChangesTest::testQuickTileUntileWindowRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // the window should now be untiled, and put back in its original position
@@ -749,7 +750,7 @@ void OutputChangesTest::testQuickTileUntileWindowRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // the window should now be put back into the tile on the second output
@@ -789,7 +790,7 @@ void OutputChangesTest::testCustomTiledWindowRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // Create a window.
@@ -810,7 +811,7 @@ void OutputChangesTest::testCustomTiledWindowRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     QFETCH(size_t, tileIndex);
@@ -840,7 +841,7 @@ void OutputChangesTest::testCustomTiledWindowRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // The window will be moved to the left monitor, and the original geometry restored
@@ -861,7 +862,7 @@ void OutputChangesTest::testCustomTiledWindowRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // The window will be moved back to the right monitor, and put in the correct tile
@@ -904,7 +905,7 @@ void OutputChangesTest::testWindowRestoredAfterChangingScale()
         auto changeSet = config1.changeSet(output);
         changeSet->scaleSetting = 2;
     }
-    workspace()->applyOutputConfiguration(config1);
+    QVERIFY(workspace()->applyOutputConfiguration(config1));
 
     // The window will be moved to still be in the monitor
     QCOMPARE(window->pos(), QPointF(logicalOutput->geometry().width() - window->width(), logicalOutput->geometry().height() - window->height()));
@@ -916,7 +917,7 @@ void OutputChangesTest::testWindowRestoredAfterChangingScale()
         auto changeSet = config2.changeSet(output);
         changeSet->scaleSetting = 1;
     }
-    workspace()->applyOutputConfiguration(config2);
+    QVERIFY(workspace()->applyOutputConfiguration(config2));
 
     // The window will be moved back to where it was before
     QCOMPARE(window->pos(), originalPosition);
@@ -945,7 +946,7 @@ void OutputChangesTest::testMaximizeStateRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // Create a window.
@@ -966,7 +967,7 @@ void OutputChangesTest::testMaximizeStateRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // Move the window to the right monitor and make it maximized.
@@ -989,7 +990,7 @@ void OutputChangesTest::testMaximizeStateRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // The window will be moved to its prior position on the left monitor and unmaximized
@@ -1009,7 +1010,7 @@ void OutputChangesTest::testMaximizeStateRestoredAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // The window will be moved back to the right monitor, maximized and the geometry restore will be updated
@@ -1037,7 +1038,7 @@ void OutputChangesTest::testInvalidGeometryRestoreAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // Create a window.
@@ -1062,7 +1063,7 @@ void OutputChangesTest::testInvalidGeometryRestoreAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // Move the window to the right monitor
@@ -1082,7 +1083,7 @@ void OutputChangesTest::testInvalidGeometryRestoreAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     QSignalSpy toplevelConfigureRequestedSpy(shellSurface.get(), &Test::XdgToplevel::configureRequested);
@@ -1103,7 +1104,7 @@ void OutputChangesTest::testInvalidGeometryRestoreAfterEnablingOutput()
         OutputConfiguration config;
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // The window will be moved back to the right monitor, maximized and the geometry restore will be updated
@@ -1187,7 +1188,7 @@ void OutputChangesTest::testMaximizedWindowDoesntDisappear()
         changeSet0->pos = QPoint(0, 0);
         auto changeSet = config.changeSet(outputs[1]);
         changeSet->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // The window should be moved to the left output
@@ -1286,7 +1287,7 @@ void OutputChangesTest::testXwaylandScaleChange()
         OutputConfiguration config;
         config.changeSet(outputs[0])->scaleSetting = 2;
         config.changeSet(outputs[1])->scaleSetting = 1;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
     QCOMPARE(kwinApp()->xwaylandScale(), 2);
 
@@ -1299,7 +1300,7 @@ void OutputChangesTest::testXwaylandScaleChange()
     {
         OutputConfiguration config;
         config.changeSet(outputs[0])->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // the window should still have logical size of 100, 200
@@ -1310,7 +1311,7 @@ void OutputChangesTest::testXwaylandScaleChange()
     {
         OutputConfiguration config;
         config.changeSet(outputs[0])->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // the window should be back in its original geometry
@@ -1319,20 +1320,18 @@ void OutputChangesTest::testXwaylandScaleChange()
 #endif
 }
 
-using ModeInfo = std::tuple<QSize, uint64_t, OutputMode::Flags>;
-
 static QByteArray readEdid(const QString &path)
 {
     QFile file(path);
     (void)file.open(QIODeviceBase::OpenModeFlag::ReadOnly);
     return file.readAll();
-};
+}
 
 void OutputChangesTest::testGenerateConfigs_data()
 {
     QTest::addColumn<DeviceType>("deviceType");
     QTest::addColumn<Test::OutputInfo>("outputInfo");
-    QTest::addColumn<std::tuple<QSize, uint64_t, OutputMode::Flags>>("defaultMode");
+    QTest::addColumn<OutputModeline>("defaultMode");
     QTest::addColumn<double>("defaultScale");
     QTest::addColumn<bool>("defaultDDCValue");
 
@@ -1342,9 +1341,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 1920, 1080),
                .internal = false,
                .physicalSizeInMM = QSize(598, 336),
-               .modes = {ModeInfo(QSize(1920, 1080), 60000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(1920, 1080), 60000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(1920, 1080), 60000ul, OutputMode::Flag::Preferred) << 1.0 << true;
+        << OutputModeline(QSize(1920, 1080), 60000ul, OutputModeline::Flag::Preferred) << 1.0 << true;
 
     QTest::addRow("2160p 27\"")
         << DeviceType::Desktop
@@ -1352,9 +1351,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 3840, 2160),
                .internal = false,
                .physicalSizeInMM = QSize(598, 336),
-               .modes = {ModeInfo(QSize(3840, 2160), 60000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(3840, 2160), 60000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(3840, 2160), 60000ul, OutputMode::Flag::Preferred) << 1.70 << true;
+        << OutputModeline(QSize(3840, 2160), 60000ul, OutputModeline::Flag::Preferred) << 1.70 << true;
 
     QTest::addRow("2160p invalid size")
         << DeviceType::Desktop
@@ -1362,9 +1361,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 3840, 2160),
                .internal = false,
                .physicalSizeInMM = QSize(),
-               .modes = {ModeInfo(QSize(3840, 2160), 60000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(3840, 2160), 60000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(3840, 2160), 60000ul, OutputMode::Flag::Preferred) << 1.0 << true;
+        << OutputModeline(QSize(3840, 2160), 60000ul, OutputModeline::Flag::Preferred) << 1.0 << true;
 
     QTest::addRow("2160p impossibly tiny size")
         << DeviceType::Desktop
@@ -1372,9 +1371,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 3840, 2160),
                .internal = false,
                .physicalSizeInMM = QSize(1, 1),
-               .modes = {ModeInfo(QSize(3840, 2160), 60000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(3840, 2160), 60000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(3840, 2160), 60000ul, OutputMode::Flag::Preferred) << 1.0 << true;
+        << OutputModeline(QSize(3840, 2160), 60000ul, OutputModeline::Flag::Preferred) << 1.0 << true;
 
     QTest::addRow("1080p 27\" with non-preferred high refresh option")
         << DeviceType::Desktop
@@ -1382,9 +1381,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 1920, 1080),
                .internal = false,
                .physicalSizeInMM = QSize(598, 336),
-               .modes = {ModeInfo(QSize(1920, 1080), 60000, OutputMode::Flag::Preferred), ModeInfo(QSize(1920, 1080), 120000, OutputMode::Flags{})},
+               .modes = {OutputModeline(QSize(1920, 1080), 60000, OutputModeline::Flag::Preferred), OutputModeline(QSize(1920, 1080), 120000, OutputModeline::Flags{})},
            }
-        << ModeInfo(QSize(1920, 1080), 120000ul, OutputMode::Flags{}) << 1.0 << true;
+        << OutputModeline(QSize(1920, 1080), 120000ul, OutputModeline::Flags{}) << 1.0 << true;
 
     QTest::addRow("2160p 27\" with 30Hz preferred mode")
         << DeviceType::Desktop
@@ -1392,9 +1391,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 3840, 2160),
                .internal = false,
                .physicalSizeInMM = QSize(598, 336),
-               .modes = {ModeInfo(QSize(3840, 2160), 30000, OutputMode::Flag::Preferred), ModeInfo(QSize(2560, 1440), 60000, OutputMode::Flags{})},
+               .modes = {OutputModeline(QSize(3840, 2160), 30000, OutputModeline::Flag::Preferred), OutputModeline(QSize(2560, 1440), 60000, OutputModeline::Flags{})},
            }
-        << ModeInfo(QSize(2560, 1440), 60000ul, OutputMode::Flags{}) << 1.0 << true;
+        << OutputModeline(QSize(2560, 1440), 60000ul, OutputModeline::Flags{}) << 1.0 << true;
 
     QTest::addRow("2160p 27\" with 30Hz preferred and a generated 60Hz mode")
         << DeviceType::Desktop
@@ -1402,9 +1401,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 3840, 2160),
                .internal = false,
                .physicalSizeInMM = QSize(598, 336),
-               .modes = {ModeInfo(QSize(3840, 2160), 30000, OutputMode::Flag::Preferred), ModeInfo(QSize(2560, 1440), 60000, OutputMode::Flag::Generated)},
+               .modes = {OutputModeline(QSize(3840, 2160), 30000, OutputModeline::Flag::Preferred), OutputModeline(QSize(2560, 1440), 60000, OutputModeline::Flag::Generated)},
            }
-        << ModeInfo(QSize(3840, 2160), 30000ul, OutputMode::Flag::Preferred) << 1.70 << true;
+        << OutputModeline(QSize(3840, 2160), 30000ul, OutputModeline::Flag::Preferred) << 1.70 << true;
 
     QTest::addRow("1440p 32:9 49\" with two preferred modes")
         << DeviceType::Desktop
@@ -1412,9 +1411,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 5120, 1440),
                .internal = false,
                .physicalSizeInMM = QSize(1190, 340),
-               .modes = {ModeInfo(QSize(3840, 1080), 120000, OutputMode::Flag::Preferred), ModeInfo(QSize(5120, 1440), 120000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(3840, 1080), 120000, OutputModeline::Flag::Preferred), OutputModeline(QSize(5120, 1440), 120000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(5120, 1440), 120000ul, OutputMode::Flag::Preferred) << 1.0 << true;
+        << OutputModeline(QSize(5120, 1440), 120000ul, OutputModeline::Flag::Preferred) << 1.0 << true;
 
     QTest::addRow("2160p 32:9 57\" with non-native preferred mode")
         << DeviceType::Desktop
@@ -1422,9 +1421,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 7680, 2160),
                .internal = false,
                .physicalSizeInMM = QSize(1400, 400),
-               .modes = {ModeInfo(QSize(3840, 1080), 60000, OutputMode::Flag::Preferred), ModeInfo(QSize(7680, 2160), 120000, OutputMode::Flags{})},
+               .modes = {OutputModeline(QSize(3840, 1080), 60000, OutputModeline::Flag::Preferred), OutputModeline(QSize(7680, 2160), 120000, OutputModeline::Flags{})},
            }
-        << ModeInfo(QSize(7680, 2160), 120000ul, OutputMode::Flags{}) << 1.45 << true;
+        << OutputModeline(QSize(7680, 2160), 120000ul, OutputModeline::Flags{}) << 1.45 << true;
 
     QTest::addRow("Framework 1920p 13.5\"")
         << DeviceType::Laptop
@@ -1432,9 +1431,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 2880, 1920),
                .internal = true,
                .physicalSizeInMM = QSize(285, 190),
-               .modes = {ModeInfo(QSize(2880, 1920), 120000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(2880, 1920), 120000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(2880, 1920), 120000, OutputMode::Flag::Preferred) << 2.05 << true;
+        << OutputModeline(QSize(2880, 1920), 120000, OutputModeline::Flag::Preferred) << 2.0 << true;
 
     QTest::addRow("DELL XPS 13 1080p 13\"")
         << DeviceType::Laptop
@@ -1442,9 +1441,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 1920, 1080),
                .internal = true,
                .physicalSizeInMM = QSize(293, 162),
-               .modes = {ModeInfo(QSize(1920, 1080), 60000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(1920, 1080), 60000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(1920, 1080), 60000, OutputMode::Flag::Preferred) << 1.35 << true;
+        << OutputModeline(QSize(1920, 1080), 60000, OutputModeline::Flag::Preferred) << 1.35 << true;
 
     QTest::addRow("DELL XPS 13 2160p 13\"")
         << DeviceType::Laptop
@@ -1452,9 +1451,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 3840, 2160),
                .internal = true,
                .physicalSizeInMM = QSize(294, 165),
-               .modes = {ModeInfo(QSize(3840, 2160), 60000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(3840, 2160), 60000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(3840, 2160), 60000, OutputMode::Flag::Preferred) << 2.65 << true;
+        << OutputModeline(QSize(3840, 2160), 60000, OutputModeline::Flag::Preferred) << 2.65 << true;
 
     QTest::addRow("ThinkPad T14 2400p 14\"")
         << DeviceType::Laptop
@@ -1462,9 +1461,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 3840, 2400),
                .internal = true,
                .physicalSizeInMM = QSize(301, 188),
-               .modes = {ModeInfo(QSize(3840, 2400), 60000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(3840, 2400), 60000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(3840, 2400), 60000, OutputMode::Flag::Preferred) << 2.60 << true;
+        << OutputModeline(QSize(3840, 2400), 60000, OutputModeline::Flag::Preferred) << 2.60 << true;
 
     QTest::addRow("SteamDeck OLED")
         << DeviceType::Laptop
@@ -1472,10 +1471,10 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 800, 1280),
                .internal = true,
                .physicalSizeInMM = QSize(100, 160),
-               .modes = {ModeInfo(QSize(800, 1280), 90000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(800, 1280), 90000, OutputModeline::Flag::Preferred)},
                .panelOrientation = OutputTransform::Kind::Rotate90,
            }
-        << ModeInfo(QSize(800, 1280), 90000ul, OutputMode::Flag::Preferred) << 1.0 << true;
+        << OutputModeline(QSize(800, 1280), 90000ul, OutputModeline::Flag::Preferred) << 1.0 << true;
 
     QTest::addRow("Pixel 3a")
         << DeviceType::Phone
@@ -1483,9 +1482,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 1080, 2220),
                .internal = true,
                .physicalSizeInMM = QSize(62, 128),
-               .modes = {ModeInfo(QSize(1080, 2220), 60000, OutputMode::Flags{}), ModeInfo(QSize(1080, 2220), 120000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(1080, 2220), 60000, OutputModeline::Flags{}), OutputModeline(QSize(1080, 2220), 120000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(1080, 2220), 120000ul, OutputMode::Flag::Preferred) << 2.95 << true;
+        << OutputModeline(QSize(1080, 2220), 120000ul, OutputModeline::Flag::Preferred) << 3.0 << true;
 
     QTest::addRow("OnePlus 6")
         << DeviceType::Phone
@@ -1493,9 +1492,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(0, 0, 1080, 2280),
                .internal = true,
                .physicalSizeInMM = QSize(68, 145),
-               .modes = {ModeInfo(QSize(1080, 2280), 60000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(1080, 2280), 60000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(1080, 2280), 60000ul, OutputMode::Flag::Preferred) << 2.65 << true;
+        << OutputModeline(QSize(1080, 2280), 60000ul, OutputModeline::Flag::Preferred) << 2.65 << true;
 
     QTest::addRow("Samsung Odyssey G5")
         << DeviceType::Desktop
@@ -1503,10 +1502,10 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(),
                .internal = false,
                .physicalSizeInMM = QSize(698, 393),
-               .modes = {ModeInfo(QSize(2560, 1440), 164831, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(2560, 1440), 164831, OutputModeline::Flag::Preferred)},
                .edid = readEdid(QFINDTESTDATA("data/Odyssey G5.bin")),
            }
-        << ModeInfo(QSize(2560, 1440), 164831, OutputMode::Flag::Preferred) << 1.0 << false;
+        << OutputModeline(QSize(2560, 1440), 164831, OutputModeline::Flag::Preferred) << 1.0 << false;
 
     QTest::addRow("LG C4 77\"")
         << DeviceType::Desktop
@@ -1514,9 +1513,9 @@ void OutputChangesTest::testGenerateConfigs_data()
                .geometry = Rect(),
                .internal = false,
                .physicalSizeInMM = QSize(1600, 900),
-               .modes = {ModeInfo(QSize(3840, 2160), 120000, OutputMode::Flag::Preferred)},
+               .modes = {OutputModeline(QSize(3840, 2160), 120000, OutputModeline::Flag::Preferred)},
            }
-        << ModeInfo(QSize(3840, 2160), 120000, OutputMode::Flag::Preferred) << 2.0 << true;
+        << OutputModeline(QSize(3840, 2160), 120000, OutputModeline::Flag::Preferred) << 2.0 << true;
 
     QTest::addRow("Acer 24 CB242Ybmiprx")
         << DeviceType::Desktop
@@ -1525,22 +1524,34 @@ void OutputChangesTest::testGenerateConfigs_data()
                .internal = false,
                .physicalSizeInMM = QSize(527, 296),
                .modes = {
-                   ModeInfo(QSize(1920, 1080), 60000, OutputMode::Flag::Preferred),
-                   ModeInfo(QSize(1920, 1080), 75000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1920, 1080), 60000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1920, 1080), 50000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1680, 1050), 60000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1280, 1024), 75000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1280, 1024), 60000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1440, 900), 50000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1280, 960), 60000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1920, 540), 60000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1280, 800), 60000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1152, 864), 75000, OutputMode::Flags{}),
-                   ModeInfo(QSize(1280, 720), 60000, OutputMode::Flags{}),
+                   OutputModeline(QSize(1920, 1080), 60000, OutputModeline::Flag::Preferred),
+                   OutputModeline(QSize(1920, 1080), 75000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1920, 1080), 60000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1920, 1080), 50000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1680, 1050), 60000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1280, 1024), 75000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1280, 1024), 60000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1440, 900), 50000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1280, 960), 60000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1920, 540), 60000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1280, 800), 60000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1152, 864), 75000, OutputModeline::Flags{}),
+                   OutputModeline(QSize(1280, 720), 60000, OutputModeline::Flags{}),
                },
            }
-        << ModeInfo(QSize(1920, 1080), 75000, OutputMode::Flags{}) << 1.0 << true;
+        << OutputModeline(QSize(1920, 1080), 75000, OutputModeline::Flags{}) << 1.0 << true;
+
+    QTest::addRow("Dell P2415Q")
+        << DeviceType::Desktop
+        << Test::OutputInfo{
+               .geometry = Rect(0, 0, 3840, 2160),
+               .internal = false,
+               .physicalSizeInMM = QSize(527, 296),
+               .modes = {
+                   OutputModeline(QSize(3840, 2160), 60000, OutputModeline::Flag::Preferred),
+               },
+           }
+        << OutputModeline(QSize(3840, 2160), 60000ul, OutputModeline::Flag::Preferred) << 2.0 << true;
 }
 
 void OutputChangesTest::testGenerateConfigs()
@@ -1571,14 +1582,13 @@ void OutputChangesTest::testGenerateConfigs()
     const auto [config, type] = *cfg;
     const auto outputConfig = config.constChangeSet(outputs.front());
 
-    QFETCH(ModeInfo, defaultMode);
-    const auto &[modeSize, modeRefresh, modeFlags] = defaultMode;
+    QFETCH(OutputModeline, defaultMode);
 
-    const auto mode = outputConfig->mode->lock();
+    const auto mode = outputConfig->currentMode;
     QVERIFY(mode);
-    QCOMPARE(mode->size(), modeSize);
-    QCOMPARE(mode->refreshRate(), modeRefresh);
-    QCOMPARE(mode->flags(), modeFlags);
+    QCOMPARE(mode->size(), defaultMode.size());
+    QCOMPARE(mode->refreshRate(), defaultMode.refreshRate());
+    QCOMPARE(mode->flags(), defaultMode.flags());
 
     QFETCH(double, defaultScale);
     QVERIFY(outputConfig->scale);
@@ -1598,12 +1608,12 @@ void OutputChangesTest::testGeneratePartialConfigs()
     const auto outputBackend = qobject_cast<VirtualBackend *>(kwinApp()->outputBackend());
     outputBackend->setVirtualOutputs({
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1920, 1080),
+            .size = QSize(1920, 1080),
             .edid = readEdid(QFINDTESTDATA("data/Odyssey G5.bin")),
             .edidIdentifierOverride = QByteArrayLiteral("GeneratePartialConfigs-1"),
         },
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1920, 1080),
+            .size = QSize(1920, 1080),
             .edid = readEdid(QFINDTESTDATA("data/Odyssey G5.bin")),
             .edidIdentifierOverride = QByteArrayLiteral("GeneratePartialConfigs-2"),
         },
@@ -1628,23 +1638,23 @@ void OutputChangesTest::testGeneratePartialConfigs()
             .pos = QPoint(500, 0),
             .priority = 0,
         };
-        QCOMPARE(workspace()->applyOutputConfiguration(config), OutputConfigurationError::None);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // now add another output
     outputBackend->setVirtualOutputs({
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1920, 1080),
+            .size = QSize(1920, 1080),
             .edid = readEdid(QFINDTESTDATA("data/Odyssey G5.bin")),
             .edidIdentifierOverride = QByteArrayLiteral("GeneratePartialConfigs-1"),
         },
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1920, 1080),
+            .size = QSize(1920, 1080),
             .edid = readEdid(QFINDTESTDATA("data/Odyssey G5.bin")),
             .edidIdentifierOverride = QByteArrayLiteral("GeneratePartialConfigs-2"),
         },
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1920, 1080),
+            .size = QSize(1920, 1080),
         },
     });
     outputs = kwinApp()->outputBackend()->outputs();
@@ -1696,7 +1706,7 @@ void OutputChangesTest::testAutorotate()
         .geometry = Rect(0, 0, 1280, 1024),
         .internal = true,
         .physicalSizeInMM = QSize(598, 336),
-        .modes = {ModeInfo(QSize(1280, 1024), 60000, OutputMode::Flag::Preferred)},
+        .modes = {OutputModeline(QSize(1280, 1024), 60000, OutputModeline::Flag::Preferred)},
         .panelOrientation = panelOrientation,
     }});
 
@@ -1886,10 +1896,10 @@ void OutputChangesTest::testSettingRestoration()
     const auto outputBackend = qobject_cast<VirtualBackend *>(kwinApp()->outputBackend());
     outputBackend->setVirtualOutputs(outputData | std::views::transform([](const IdentificationData &data) {
         return VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1024),
+            .size = QSize(1280, 1024),
             .internal = false,
             .physicalSizeInMM = QSize(598, 336),
-            .modes = {ModeInfo(QSize(1280, 1024), 60000, OutputMode::Flag::Preferred)},
+            .modes = {OutputModeline(QSize(1280, 1024), 60000, OutputModeline::Flag::Preferred)},
             .edid = data.edid,
             .edidIdentifierOverride = std::nullopt,
             .connectorName = data.connectorName,
@@ -1907,7 +1917,7 @@ void OutputChangesTest::testSettingRestoration()
         auto cfg = configurationStore->queryConfig(outputs, false, AccelerometerOrientation::Undefined, false);
         QVERIFY(cfg.has_value());
         auto [config, type] = *cfg;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
         for (const auto output : outputs) {
             outputPositions.push_back(config.constChangeSet(output)->pos);
         }
@@ -1928,10 +1938,10 @@ void OutputChangesTest::testSettingRestoration()
     // this must work if one of the outputs is removed in between as well
     outputBackend->setVirtualOutputs({
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1024),
+            .size = QSize(1280, 1024),
             .internal = false,
             .physicalSizeInMM = QSize(598, 336),
-            .modes = {ModeInfo(QSize(1280, 1024), 60000, OutputMode::Flag::Preferred)},
+            .modes = {OutputModeline(QSize(1280, 1024), 60000, OutputModeline::Flag::Preferred)},
             .edid = outputData.back().edid,
             .edidIdentifierOverride = std::nullopt,
             .connectorName = outputData.back().connectorName,
@@ -1942,10 +1952,10 @@ void OutputChangesTest::testSettingRestoration()
     // and add it again, with the inverted order
     outputBackend->setVirtualOutputs(outputData | std::views::reverse | std::views::transform([](const IdentificationData &data) {
         return VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1024),
+            .size = QSize(1280, 1024),
             .internal = false,
             .physicalSizeInMM = QSize(598, 336),
-            .modes = {ModeInfo(QSize(1280, 1024), 60000, OutputMode::Flag::Preferred)},
+            .modes = {OutputModeline(QSize(1280, 1024), 60000, OutputModeline::Flag::Preferred)},
             .edid = data.edid,
             .edidIdentifierOverride = std::nullopt,
             .connectorName = data.connectorName,
@@ -1972,21 +1982,19 @@ void OutputChangesTest::testSettingRestoration_initialParsingFailure()
 
     const auto outputBackend = qobject_cast<VirtualBackend *>(kwinApp()->outputBackend());
 
-    QFile file(QFINDTESTDATA("data/same serial number/edid.bin"));
-    file.open(QIODeviceBase::OpenModeFlag::ReadOnly);
-    const auto edid = file.readAll();
+    const auto edid = readEdid(QFINDTESTDATA("data/same serial number/edid.bin"));
 
     // first, libdisplay-info failed to parse the EDID and we don't have an EDID ID
     // note that this uses two displays with the same EDID,
     // to additionally test the case when EDID ID isn't unique when this happens
     outputBackend->setVirtualOutputs({
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1024),
+            .size = QSize(1280, 1024),
             .internal = false,
             .physicalSizeInMM = QSize(598, 336),
             .modes = {
-                ModeInfo(QSize(1280, 1024), 60000, OutputMode::Flag::Preferred),
-                ModeInfo(QSize(640, 480), 60000, OutputMode::Flags{}),
+                OutputModeline(QSize(1280, 1024), 60000, OutputModeline::Flag::Preferred),
+                OutputModeline(QSize(640, 480), 60000, OutputModeline::Flags{}),
             },
             .edid = edid,
             .edidIdentifierOverride = QByteArray(),
@@ -1994,12 +2002,12 @@ void OutputChangesTest::testSettingRestoration_initialParsingFailure()
             .mstPath = QByteArrayLiteral("MST-1-1"),
         },
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1024),
+            .size = QSize(1280, 1024),
             .internal = false,
             .physicalSizeInMM = QSize(598, 336),
             .modes = {
-                ModeInfo(QSize(1280, 1024), 60000, OutputMode::Flag::Preferred),
-                ModeInfo(QSize(640, 480), 60000, OutputMode::Flags{}),
+                OutputModeline(QSize(1280, 1024), 60000, OutputModeline::Flag::Preferred),
+                OutputModeline(QSize(640, 480), 60000, OutputModeline::Flags{}),
             },
             .edid = edid,
             .edidIdentifierOverride = QByteArray(),
@@ -2018,18 +2026,16 @@ void OutputChangesTest::testSettingRestoration_initialParsingFailure()
         auto cfg = configurationStore->queryConfig(outputs, false, AccelerometerOrientation::Undefined, false);
         QVERIFY(cfg.has_value());
         auto [config, type] = *cfg;
-        workspace()->applyOutputConfiguration(config);
-        QCOMPARE(config.constChangeSet(outputs[0])->desiredModeSize.value(), QSize(1280, 1024));
+        QVERIFY(workspace()->applyOutputConfiguration(config));
+        QCOMPARE(config.constChangeSet(outputs[0])->desiredMode->size(), QSize(1280, 1024));
     }
     {
         // change the mode, so that we know if a new config entry was generated
         OutputConfiguration config;
         const auto changeSet = config.changeSet(outputs[0]);
-        changeSet->mode = outputs[0]->modes()[1];
-        changeSet->desiredModeSize = QSize(640, 480);
-        changeSet->desiredModeRefreshRate = 60000;
-        changeSet->desiredModeFlags = 0;
-        workspace()->applyOutputConfiguration(config);
+        changeSet->currentMode = outputs[0]->modes()[1]->modeline();
+        changeSet->desiredMode = OutputModeline(QSize(640, 480), 60000);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
     {
         // verify that querying the config also shows the changed mode
@@ -2038,19 +2044,19 @@ void OutputChangesTest::testSettingRestoration_initialParsingFailure()
         QVERIFY(cfg.has_value());
         auto [config, type] = *cfg;
         QCOMPARE(type, OutputConfigurationStore::ConfigType::Preexisting);
-        workspace()->applyOutputConfiguration(config);
-        QCOMPARE(config.constChangeSet(outputs[0])->desiredModeSize.value(), QSize(640, 480));
+        QVERIFY(workspace()->applyOutputConfiguration(config));
+        QCOMPARE(config.constChangeSet(outputs[0])->desiredMode->size(), QSize(640, 480));
     }
 
     // now libdisplay-info was updated, and we have an EDID ID for the same hash
     outputBackend->setVirtualOutputs({
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1024),
+            .size = QSize(1280, 1024),
             .internal = false,
             .physicalSizeInMM = QSize(598, 336),
             .modes = {
-                ModeInfo(QSize(1280, 1024), 60000, OutputMode::Flag::Preferred),
-                ModeInfo(QSize(640, 480), 60000, OutputMode::Flags{}),
+                OutputModeline(QSize(1280, 1024), 60000, OutputModeline::Flag::Preferred),
+                OutputModeline(QSize(640, 480), 60000, OutputModeline::Flags{}),
             },
             .edid = edid,
             .edidIdentifierOverride = std::nullopt,
@@ -2058,12 +2064,12 @@ void OutputChangesTest::testSettingRestoration_initialParsingFailure()
             .mstPath = QByteArrayLiteral("MST-1-1"),
         },
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1024),
+            .size = QSize(1280, 1024),
             .internal = false,
             .physicalSizeInMM = QSize(598, 336),
             .modes = {
-                ModeInfo(QSize(1280, 1024), 60000, OutputMode::Flag::Preferred),
-                ModeInfo(QSize(640, 480), 60000, OutputMode::Flags{}),
+                OutputModeline(QSize(1280, 1024), 60000, OutputModeline::Flag::Preferred),
+                OutputModeline(QSize(640, 480), 60000, OutputModeline::Flags{}),
             },
             .edid = edid,
             .edidIdentifierOverride = std::nullopt,
@@ -2077,7 +2083,7 @@ void OutputChangesTest::testSettingRestoration_initialParsingFailure()
         auto cfg = configurationStore->queryConfig(outputs, false, AccelerometerOrientation::Undefined, false);
         QVERIFY(cfg.has_value());
         const auto [config, type] = *cfg;
-        QCOMPARE(config.constChangeSet(outputs[0])->desiredModeSize.value(), QSize(640, 480));
+        QCOMPARE(config.constChangeSet(outputs[0])->desiredMode->size(), QSize(640, 480));
     }
 }
 
@@ -2086,13 +2092,13 @@ void OutputChangesTest::testSettingRestoration_replacedMode()
     const auto outputBackend = qobject_cast<VirtualBackend *>(kwinApp()->outputBackend());
     outputBackend->setVirtualOutputs({
         VirtualBackend::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1024),
+            .size = QSize(1280, 1024),
             .internal = false,
             .physicalSizeInMM = QSize(598, 336),
             .modes = {
-                ModeInfo(QSize(1280, 1024), 120'000, OutputMode::Flag::Preferred),
-                ModeInfo(QSize(1280, 1024), 60'000, OutputMode::Flags{}),
-                ModeInfo(QSize(1280, 1024), 60'000, OutputMode::Flags{}),
+                OutputModeline(QSize(1280, 1024), 120'000, OutputModeline::Flag::Preferred),
+                OutputModeline(QSize(1280, 1024), 60'000, OutputModeline::Flags{}),
+                OutputModeline(QSize(1280, 1024), 60'000, OutputModeline::Flags{}),
             },
             .edid = QByteArray(),
             .edidIdentifierOverride = QByteArrayLiteral("ID"),
@@ -2111,11 +2117,9 @@ void OutputChangesTest::testSettingRestoration_replacedMode()
         // first, select the second mode
         OutputConfiguration config;
         const auto changeSet = config.changeSet(output);
-        changeSet->mode = output->modes()[1];
-        changeSet->desiredModeSize = QSize(1280, 1024);
-        changeSet->desiredModeRefreshRate = 60000;
-        changeSet->desiredModeFlags = 0;
-        workspace()->applyOutputConfiguration(config);
+        changeSet->currentMode = output->modes()[1]->modeline();
+        changeSet->desiredMode = OutputModeline(QSize(1280, 1024), 60000);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     // now, mark the mode as "removed". Its replacement is already in the mode list
@@ -2124,12 +2128,11 @@ void OutputChangesTest::testSettingRestoration_replacedMode()
     const auto opt = configurationStore->queryConfig(outputs, false, AccelerometerOrientation::Undefined, false);
     QVERIFY(opt.has_value());
     auto [config, type] = *opt;
-    workspace()->applyOutputConfiguration(config);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
 
     // the preferred mode size and refresh rate should be the same,
     // and the third mode should be selected
-    QCOMPARE(output->desiredModeSize(), QSize(1280, 1024));
-    QCOMPARE(output->desiredModeRefreshRate(), 60000);
+    QCOMPARE(output->desiredMode(), OutputModeline(QSize(1280, 1024), 60000));
     QCOMPARE(output->currentMode(), output->modes()[2]);
 }
 
@@ -2154,7 +2157,7 @@ void OutputChangesTest::testCursorRestoration()
     OutputConfiguration config;
     config.changeSet(outputs[0])->pos = QPoint(1691, 1440);
     config.changeSet(outputs[1])->pos = QPoint(0, 0);
-    QCOMPARE(workspace()->applyOutputConfiguration(config), OutputConfigurationError::None);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
 
     input()->pointer()->warp(outputs[0]->position() + QPoint(1500, 1000));
 
@@ -2239,7 +2242,7 @@ void OutputChangesTest::testEvacuateTiledWindowFromRemovedOutput()
     {
         OutputConfiguration config;
         config.changeSet(external)->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     if (tileMode != QuickTileFlag::None) {
@@ -2263,7 +2266,7 @@ void OutputChangesTest::testEvacuateTiledWindowFromRemovedOutput()
     {
         OutputConfiguration config;
         config.changeSet(external)->enabled = true;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     if (tileMode != QuickTileFlag::None) {
@@ -2316,7 +2319,7 @@ void OutputChangesTest::testMirroring()
     {
         OutputConfiguration cfg;
         cfg.changeSet(external)->replicationSource = internal->uuid();
-        QCOMPARE(workspace()->applyOutputConfiguration(cfg), OutputConfigurationError::None);
+        QVERIFY(workspace()->applyOutputConfiguration(cfg));
     }
 
     QCOMPARE(workspace()->outputs().size(), 1);
@@ -2401,16 +2404,70 @@ void OutputChangesTest::testAutoBrightness()
     COMPARE_RANGE(curve.sample(101), 0.4, laxEta);
 }
 
+void OutputChangesTest::testPerOutputDesktopsOutputToggle()
+{
+    // This test verifies per-output desktops work with output hotplugging/unplugging.
+
+    const auto outputs = kwinApp()->outputBackend()->outputs();
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(true);
+    VirtualDesktopManager::self()->setCount(3);
+    const auto desktops = VirtualDesktopManager::self()->desktops();
+    VirtualDesktopManager::self()->setCurrent(desktops[1], workspace()->outputs()[0]);
+    VirtualDesktopManager::self()->setCurrent(desktops[2], workspace()->outputs()[1]);
+    QCOMPARE(VirtualDesktopManager::self()->current(workspace()->outputs()[0]), desktops[1]->x11DesktopNumber());
+    QCOMPARE(VirtualDesktopManager::self()->current(workspace()->outputs()[1]), desktops[2]->x11DesktopNumber());
+
+    // Create a window.
+    Test::XdgToplevelWindow window;
+    QVERIFY(window.show());
+
+    // Move the window to the right output.
+    window.m_window->move(QPointF(1280 + 50, 100));
+    window.m_window->setDesktops({desktops[2]});
+    QCOMPARE(window.m_window->output()->backendOutput(), outputs[1]);
+    QCOMPARE(window.m_window->frameGeometry(), RectF(1280 + 50, 100, 100, 100));
+    QCOMPARE(window.m_window->desktops(), {desktops[2]});
+
+    // Disable the right output.
+    OutputConfiguration config1;
+    {
+        auto changeSet = config1.changeSet(outputs[1]);
+        changeSet->enabled = false;
+    }
+    QVERIFY(workspace()->applyOutputConfiguration(config1));
+
+    // The window will be moved to the left monitor.
+    QCOMPARE(window.m_window->output()->backendOutput(), outputs[0]);
+    QCOMPARE(window.m_window->frameGeometry(), RectF(50, 100, 100, 100));
+    QCOMPARE(window.m_window->desktops(), {desktops[2]});
+
+    // Enable the right monitor.
+    OutputConfiguration config2;
+    {
+        auto changeSet = config2.changeSet(outputs[1]);
+        changeSet->enabled = true;
+    }
+    QVERIFY(workspace()->applyOutputConfiguration(config2));
+
+    // The window will be moved back to the right monitor.
+    QCOMPARE(window.m_window->output()->backendOutput(), outputs[1]);
+    QCOMPARE(window.m_window->frameGeometry(), RectF(1280 + 50, 100, 100, 100));
+    QCOMPARE(window.m_window->desktops(), {desktops[2]});
+}
+
 void OutputChangesTest::testTemporaryDpmsHotplug()
 {
     workspace()->outputConfigureStore()->clear();
 
     Test::setOutputConfig({
         Test::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1200),
+            .geometry = Rect(0, 0, 5120, 1440),
             .connectorName = QStringLiteral("TEST"),
         },
     });
+
+    // warp the cursor so it's "off screen" with the placeholder output (which is 1920x1080)
+    Test::pointerMotion(QPointF(5000, 1400), 0);
 
     // turn off the outputs
     workspace()->requestDpmsState(Workspace::DpmsState::Off);
@@ -2428,7 +2485,7 @@ void OutputChangesTest::testTemporaryDpmsHotplug()
     // re-adding the output immediately should keep it off
     Test::setOutputConfig({
         Test::OutputInfo{
-            .geometry = Rect(0, 0, 1280, 1200),
+            .geometry = Rect(0, 0, 5120, 1440),
             .connectorName = QStringLiteral("TEST"),
         },
     });

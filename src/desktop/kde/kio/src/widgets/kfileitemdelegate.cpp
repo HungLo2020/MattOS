@@ -117,7 +117,7 @@ private:
     Margin *activeMargins;
 };
 
-KFileItemDelegate::Private::Private(KFileItemDelegate *parent)
+KFileItemDelegate::Private::Private(KFileItemDelegate *)
     : shadowColor(Qt::transparent)
     , shadowOffset(1, 1)
     , shadowBlur(2)
@@ -444,7 +444,7 @@ QSize KFileItemDelegate::Private::displaySizeHint(const QStyleOptionViewItem &op
     return addMargin(size, TextMargin);
 }
 
-QSize KFileItemDelegate::Private::decorationSizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+QSize KFileItemDelegate::Private::decorationSizeHint(const QStyleOptionViewItem &option, const QModelIndex &) const
 {
     QSize iconSize = option.icon.actualSize(option.decorationSize);
     if (!verticalLayout(option)) {
@@ -996,7 +996,7 @@ QIcon KFileItemDelegate::Private::decoration(const QStyleOptionViewItem &option,
     return icon;
 }
 
-QRect KFileItemDelegate::Private::labelRectangle(const QStyleOptionViewItem &option, const QModelIndex &index) const
+QRect KFileItemDelegate::Private::labelRectangle(const QStyleOptionViewItem &option, const QModelIndex &) const
 {
     QStyle *style = option.widget ? option.widget->style() : QApplication::style();
     return style->subElementRect(QStyle::SE_ItemViewItemText, &option, option.widget);
@@ -1111,7 +1111,16 @@ void KFileItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 
     style->drawPrimitive(QStyle::PE_PanelItemViewItem, &opt, painter, opt.widget);
 
-    painter->drawPixmap(iconPos, icon);
+    // Calculate the actual logical size of the generated pixmap
+    QSize actualIconSize(icon.width() / dpr, icon.height() / dpr);
+
+    // Calculate the offset to center the icon within the allocated decoration size
+    int xOffset = (opt.decorationSize.width() - actualIconSize.width()) / 2;
+    int yOffset = (opt.decorationSize.height() - actualIconSize.height()) / 2;
+
+    // Shift the icon position to the center
+    QPoint centeredIconPos = iconPos + QPoint(xOffset, yOffset);
+    painter->drawPixmap(centeredIconPos, icon);
 
     d->drawTextItems(painter, labelLayout, labelColor, infoLayout, infoColor, textBoundingRect);
     d->drawFocusRect(painter, opt, focusRect);

@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qpdf_p.h"
 
@@ -3450,11 +3451,15 @@ void QPdfEnginePrivate::drawTextItem(const QPointF &p, const QTextItemInt &ti)
     if (!embedFonts
         || face_id.filename.isEmpty()
         || fe->fsType & 0x200 /* bitmap embedding only */
-        || fe->fsType == 2 /* no embedding allowed */) {
+        || fe->fsType == 2 /* no embedding allowed */
+        || fe->isColorFont()) {
         *currentPage << "Q\n";
         q->QPaintEngine::drawTextItem(p, ti);
         *currentPage << "q\n";
-        if (face_id.filename.isEmpty())
+        // The font system treats all color fonts as bitmap fonts, so
+        // QFontSubset cannot embed a usable outline subset for them; the
+        // glyphs have already been drawn as images above.
+        if (face_id.filename.isEmpty() || fe->isColorFont())
             return;
         noEmbed = true;
     }

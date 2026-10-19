@@ -1,5 +1,6 @@
 # Translation of plasma_runner_sessions to Norwegian Nynorsk
 #
+# Karl Ove Hufthammer <karl@huftis.org>, 2008, 2009, 2018, 2020, 2022, 2023, 2024, 2025.
 # Eirik U. Birkeland <eirbir@gmail.com>, 2010, 2011.
 msgid ""
 msgstr ""
@@ -8,7 +9,7 @@ msgstr ""
 "POT-Creation-Date: 2025-11-17 11:54+0000\n"
 "PO-Revision-Date: 2025-10-26 13:07+0100\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"

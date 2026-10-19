@@ -28,7 +28,9 @@ class QTextEdit;
 
 namespace Ui
 {
+
 class DebugConsole;
+
 }
 
 namespace KWin
@@ -44,9 +46,14 @@ class WaylandWindow;
 class KWIN_EXPORT DebugConsoleModel : public QAbstractItemModel
 {
     Q_OBJECT
+
 public:
     explicit DebugConsoleModel(QObject *parent = nullptr);
     ~DebugConsoleModel() override;
+
+    enum Roles {
+        InternalIdRole = Qt::UserRole + 1,
+    };
 
     int columnCount(const QModelIndex &parent) const override;
     QVariant data(const QModelIndex &index, int role) const override;
@@ -87,6 +94,7 @@ private:
 class DebugConsoleDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
+
 public:
     explicit DebugConsoleDelegate(QObject *parent = nullptr);
     ~DebugConsoleDelegate() override;
@@ -97,6 +105,7 @@ public:
 class KWIN_EXPORT DebugConsole : public QWidget
 {
     Q_OBJECT
+
 public:
     DebugConsole();
     ~DebugConsole() override;
@@ -107,9 +116,11 @@ protected:
 private:
     void initGLTab();
     void updateKeyboardTab();
+    void findWindow();
 
     std::unique_ptr<Ui::DebugConsole> m_ui;
     std::unique_ptr<DebugConsoleFilter> m_inputFilter;
+    bool m_interactiveWindowSelection = false;
 };
 
 class DebugConsoleFilter : public InputEventSpy
@@ -158,6 +169,7 @@ private:
 class InputDeviceModel : public QAbstractItemModel
 {
     Q_OBJECT
+
 public:
     explicit InputDeviceModel(QObject *parent = nullptr);
     ~InputDeviceModel() override;

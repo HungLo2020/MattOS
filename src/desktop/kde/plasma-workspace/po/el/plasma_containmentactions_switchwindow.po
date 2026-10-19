@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-05-30 00:47+0000\n"
 "PO-Revision-Date: 2024-08-24 12:01+0300\n"
 "Last-Translator: Αντώνης Γέραλης <capoiosct@gmail.com>\n"
 "Language-Team: Greek <kde-i18n-doc@kde.org>\n"
@@ -37,19 +37,19 @@ msgstr "Εμφάνιση υπομενού για κάθε επιφάνεια ε�
 msgid "Display only the current desktop's windows"
 msgstr "Εμφάνιση παραθύρων μόνο της τρέχουσας επιφάνειας εργασίας"
 
-#: switch.cpp:73
+#: switch.cpp:55
 #, kde-format
 msgctxt "plasma_containmentactions_switchwindow"
 msgid "Configure Switch Window Plugin"
 msgstr "Διαμόρφωση του πρόσθετου εναλλαγής παραθύρων"
 
-#: switch.cpp:153
+#: switch.cpp:140
 #, kde-format
 msgctxt "plasma_containmentactions_switchwindow"
 msgid "Windows"
 msgstr "Παράθυρα"
 
-#: switch.cpp:177 switch.cpp:198 switch.cpp:200
+#: switch.cpp:165 switch.cpp:186 switch.cpp:188
 #, kde-format
 msgctxt "plasma_containmentactions_switchwindow"
 msgid "All Desktops"

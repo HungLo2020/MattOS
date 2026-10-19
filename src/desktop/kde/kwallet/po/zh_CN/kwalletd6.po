@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdeorg\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-18 00:41+0000\n"
+"POT-Creation-Date: 2026-09-19 00:41+0000\n"
 "PO-Revision-Date: 2024-04-23 19:24\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
@@ -27,31 +27,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "i@guoyunhe.me, tds00@qq.com"
 
-#. i18n: ectx: property (text), widget (QPushButton, _allowOnce)
-#: ksecretd/kbetterthankdialogbase.ui:50
-#, kde-format
-msgid "Allow &Once"
-msgstr "允许一次(&O)"
-
-#. i18n: ectx: property (text), widget (QPushButton, _allowAlways)
-#: ksecretd/kbetterthankdialogbase.ui:60
-#, kde-format
-msgid "Allow &Always"
-msgstr "总是允许(&A)"
-
-#. i18n: ectx: property (text), widget (QPushButton, _deny)
-#: ksecretd/kbetterthankdialogbase.ui:67
-#, kde-format
-msgid "&Deny"
-msgstr "拒绝(&D)"
-
-#. i18n: ectx: property (text), widget (QPushButton, _denyForever)
-#: ksecretd/kbetterthankdialogbase.ui:74
-#, kde-format
-msgid "Deny &Forever"
-msgstr "总是拒绝(&F)"
-
-#: ksecretd/knewwalletdialog.cpp:50
+#: ksecretd/knewwalletdialog.cpp:49
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. This is used "
@@ -61,18 +37,7 @@ msgstr ""
 "<qt>KDE 请求新建名为“<b>%1</b>”的密码库，以便安全地存储敏感数据。请在下方选择"
 "新密码库的类型，或者点击取消来拒绝应用程序的请求。</qt>"
 
-#: ksecretd/knewwalletdialog.cpp:55
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. This is used to store sensitive data in a secure fashion. "
-"Please choose the new wallet's type below or click cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>应用程序“<b>%1</b>”请求新建名为“<b>%2</b>”的密码库，以便安全地存储敏感数"
-"据。请在下方选择新密码库的类型，或者点击取消来拒绝应用程序的请求。</qt>"
-
-#: ksecretd/knewwalletdialog.cpp:125 ksecretd/knewwalletdialog.cpp:132
+#: ksecretd/knewwalletdialog.cpp:117 ksecretd/knewwalletdialog.cpp:124
 #: ksecretd/kwalletwizard.cpp:151 ksecretd/kwalletwizard.cpp:157
 #, kde-format
 msgid ""
@@ -80,7 +45,7 @@ msgid ""
 "check your system's configuration then try again."
 msgstr "GpgME 库初始化 OpenPGP 协议失败。请检查您的系统配置并重试。"
 
-#: ksecretd/knewwalletdialog.cpp:153
+#: ksecretd/knewwalletdialog.cpp:145
 #, kde-format
 msgid ""
 "Seems that your system has no keys suitable for encryption. Please set-up at "
@@ -156,37 +121,28 @@ msgstr "传统方式，blowfish 加密文件"
 msgid "Use GPG encryption, for better protection"
 msgstr "GPG 加密方式，更加安全"
 
-#: ksecretd/ksecretd.cpp:616
+#: ksecretd/ksecretd.cpp:334
 #, kde-format
 msgid ""
 "<qt>KDE has requested to open the wallet '<b>%1</b>'. Please enter the "
 "password for this wallet below.</qt>"
 msgstr "<qt>KDE 请求打开密码库“<b>%1</b>”。请输入此密码库的密码。</qt>"
 
-#: ksecretd/ksecretd.cpp:620
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
-"b>'. Please enter the password for this wallet below.</qt>"
-msgstr ""
-"<qt>应用程序“<b>%1</b>”请求打开密码库“<b>%2</b>”。请输入此密码库的密码。</qt>"
-
 #. i18n( "&Open" ), "wallet-open"));
-#: ksecretd/ksecretd.cpp:631 ksecretd/ksecretd.cpp:740
-#: ksecretd/ksecretd.cpp:844 ksecretd/ksecretd.cpp:957
-#: ksecretd/ksecretd.cpp:980 ksecretd/ksecretd.cpp:991
-#: ksecretd/ksecretd.cpp:996 ksecretd/ksecretd.cpp:1586 ksecretd/main.cpp:160
-#: ksecretd/main.cpp:162
+#: ksecretd/ksecretd.cpp:342 ksecretd/ksecretd.cpp:429
+#: ksecretd/ksecretd.cpp:573 ksecretd/ksecretd.cpp:596
+#: ksecretd/ksecretd.cpp:607 ksecretd/ksecretd.cpp:612
+#: ksecretd/ksecretd.cpp:899 ksecretd/main.cpp:159 ksecretd/main.cpp:161
 #, kde-format
 msgid "KDE Wallet Service"
 msgstr "KDE 密码库服务"
 
-#: ksecretd/ksecretd.cpp:646
+#: ksecretd/ksecretd.cpp:356
 #, kde-format
 msgid "An application has requested to open a wallet (%1)."
 msgstr "应用程序请求打开密码库 (%1)。"
 
-#: ksecretd/ksecretd.cpp:647
+#: ksecretd/ksecretd.cpp:357
 #, kde-format
 msgctxt ""
 "Text of a button for switching to the (unnamed) application requesting a "
@@ -194,26 +150,14 @@ msgctxt ""
 msgid "Switch there"
 msgstr "切换到应用程序"
 
-#: ksecretd/ksecretd.cpp:649
-#, kde-format
-msgid "<b>%1</b> has requested to open a wallet (%2)."
-msgstr "<b>%1</b> 请求打开密码库(%2)。"
-
-#: ksecretd/ksecretd.cpp:651
-#, kde-format
-msgctxt ""
-"Text of a button for switching to the application requesting a password"
-msgid "Switch to %1"
-msgstr "切换到 %1"
-
-#: ksecretd/ksecretd.cpp:668 ksecretd/ksecretd.cpp:750
+#: ksecretd/ksecretd.cpp:373 ksecretd/ksecretd.cpp:439
 #, kde-format
 msgid ""
 "<qt>Error opening the wallet '<b>%1</b>'. Please try again.<br />(Error code "
 "%2: %3)</qt>"
 msgstr "<qt>打开密码库“<b>%1</b>”时出错。请重试。<br />(错误代码 %2：%3)</qt>"
 
-#: ksecretd/ksecretd.cpp:716
+#: ksecretd/ksecretd.cpp:420
 #, kde-format
 msgid ""
 "KDE has requested to open the wallet. This is used to store sensitive data "
@@ -223,18 +167,7 @@ msgstr ""
 "KDE 正在请求打开密码库，以便安全地存储敏感数据。请输入密码库的密码，或者单击"
 "取消以拒绝应用程序的请求。"
 
-#: ksecretd/ksecretd.cpp:721
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the KDE wallet. This "
-"is used to store sensitive data in a secure fashion. Please enter a password "
-"to use with this wallet or click cancel to deny the application's request.</"
-"qt>"
-msgstr ""
-"<qt>应用程序“<b>%1</b>” 请求打开密码库，以便安全地存储敏感数据。请输入密码库"
-"的密码，或者单击取消以拒绝应用程序的请求。</qt>"
-
-#: ksecretd/ksecretd.cpp:729
+#: ksecretd/ksecretd.cpp:425
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. Please "
@@ -244,36 +177,14 @@ msgstr ""
 "<qt>KDE 请求新建名为“<b>%1</b>”的密码库。请为此密码库选定一个密码，或者单击取"
 "消以拒绝应用程序的请求。</qt>"
 
-#: ksecretd/ksecretd.cpp:734
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. Please choose a password for this wallet, or cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>应用程序“<b>%1</b>”请求新建名为“<b>%2</b>”的密码库。请为此密码库选定一个"
-"密码，或者单击取消以拒绝应用程序的请求。</qt>"
-
-#: ksecretd/ksecretd.cpp:846
-#, kde-format
-msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
-msgstr "<qt>KDE 请求打开密码库“<b>%1</b>”的访问权限。</qt>"
-
-#: ksecretd/ksecretd.cpp:848
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested access to the open wallet '<b>"
-"%2</b>'.</qt>"
-msgstr "<qt>应用程序“<b>%1</b>”请求打开密码库“<b>%2</b>”的访问权限。</qt>"
-
-#: ksecretd/ksecretd.cpp:956
+#: ksecretd/ksecretd.cpp:572
 #, kde-format
 msgid ""
 "Unable to open wallet. The wallet must be opened in order to change the "
 "password."
 msgstr "无法打开密码库。只有在打开密码库之后才能更改密码。"
 
-#: ksecretd/ksecretd.cpp:972
+#: ksecretd/ksecretd.cpp:588
 #, kde-format
 msgid ""
 "<qt>The <b>%1</b> wallet is encrypted using GPG key <b>%2</b>. Please use "
@@ -283,22 +194,22 @@ msgstr ""
 "<qt>密码库 <b>%1</b> 使用 GPG 密钥 <b>%2</b> 进行加密。请使用 <b>GPG</b> 工"
 "具 (例如 <b>kleopatra</b>) 来更改该密钥的密码。</qt>"
 
-#: ksecretd/ksecretd.cpp:979
+#: ksecretd/ksecretd.cpp:595
 #, kde-format
 msgid "<qt>Please choose a new password for the wallet '<b>%1</b>'.</qt>"
 msgstr "<qt>请为密码库“<b>%1</b>”指定一个新密码。</qt>"
 
-#: ksecretd/ksecretd.cpp:991
+#: ksecretd/ksecretd.cpp:607
 #, kde-format
 msgid "Error re-encrypting the wallet. Password was not changed."
 msgstr "重新加密密码库时出错。密码未更改。"
 
-#: ksecretd/ksecretd.cpp:996
+#: ksecretd/ksecretd.cpp:612
 #, kde-format
 msgid "Error reopening the wallet. Data may be lost."
 msgstr "重新打开密码库时出错。数据可能丢失。"
 
-#: ksecretd/ksecretd.cpp:1585
+#: ksecretd/ksecretd.cpp:898
 #, kde-format
 msgid ""
 "There have been repeated failed attempts to gain access to a wallet. An "
@@ -500,47 +411,47 @@ msgstr ""
 msgid "What kind of encryption do you wish?"
 msgstr "您想要使用哪种加密方式？"
 
-#: ksecretd/main.cpp:164
+#: ksecretd/main.cpp:163
 #, kde-format
 msgid "(C) 2002-2025, The KDE Developers"
 msgstr "(C) 2002-2025, The KDE Developers"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Valentin Rusu"
 msgstr "Valentin Rusu"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Former Maintainer, GPG backend support"
 msgstr "前任维护者，GPG 后端程序支持"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Michael Leupold"
 msgstr "Michael Leupold"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Former Maintainer"
 msgstr "前任维护者"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "George Staikos"
 msgstr "George Staikos"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "Former maintainer"
 msgstr "前任维护者"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "Thiago Maceira"
 msgstr "Thiago Maceira"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "D-Bus Interface"
 msgstr "D-Bus 接口"
@@ -634,52 +545,52 @@ msgstr ""
 "<qt>尝试打开密码库 <b>%1</b> 时出错。此密码库使用 GPG 密钥 ID <b>%2</b> 进行"
 "加密，但在您的系统中无法找到该密钥。</qt>"
 
-#: kwalletbackend/kwalletbackend.cc:272
+#: kwalletbackend/kwalletbackend.cc:286
 #, kde-format
 msgid "Already open."
 msgstr "已经打开。"
 
-#: kwalletbackend/kwalletbackend.cc:274
+#: kwalletbackend/kwalletbackend.cc:288
 #, kde-format
 msgid "Error opening file."
 msgstr "打开文件时出错。"
 
-#: kwalletbackend/kwalletbackend.cc:276
+#: kwalletbackend/kwalletbackend.cc:290
 #, kde-format
 msgid "Not a wallet file."
 msgstr "这不是一个密码库文件。"
 
-#: kwalletbackend/kwalletbackend.cc:278
+#: kwalletbackend/kwalletbackend.cc:292
 #, kde-format
 msgid "Unsupported file format revision."
 msgstr "不支持的文件格式版本。"
 
-#: kwalletbackend/kwalletbackend.cc:282
+#: kwalletbackend/kwalletbackend.cc:296
 #, kde-format
 msgid "Unknown encryption scheme."
 msgstr "未知的加密方式。"
 
-#: kwalletbackend/kwalletbackend.cc:284
+#: kwalletbackend/kwalletbackend.cc:298
 #, kde-format
 msgid "Corrupt file?"
 msgstr "文件可能已经损坏。"
 
-#: kwalletbackend/kwalletbackend.cc:286
+#: kwalletbackend/kwalletbackend.cc:300
 #, kde-format
 msgid "Error validating wallet integrity. Possibly corrupted."
 msgstr "校验密码库完整性时出错。文件可能已损坏。"
 
-#: kwalletbackend/kwalletbackend.cc:290
+#: kwalletbackend/kwalletbackend.cc:304
 #, kde-format
 msgid "Read error - possibly incorrect password."
 msgstr "读取错误 - 密码可能不正确。"
 
-#: kwalletbackend/kwalletbackend.cc:292
+#: kwalletbackend/kwalletbackend.cc:306
 #, kde-format
 msgid "Decryption error."
 msgstr "解密错误。"
 
-#: kwalletbackend/kwalletbackend.cc:472
+#: kwalletbackend/kwalletbackend.cc:486
 #, kde-format
 msgid ""
 "Failed to sync wallet <b>%1</b> to disk. Error codes are:\n"
@@ -690,88 +601,88 @@ msgstr ""
 "RC <b>%2</b>\n"
 "SF <b>%3</b>。请将此信息作为程序缺陷报告提交到 bugs.kde.org 网站"
 
-#: kwalletd/kwalletd.cpp:119
+#: kwalletd/kwalletd.cpp:103
 #, kde-format
 msgid "Migrating the wallet \"%1\". Please provide the password to unlock."
 msgstr "正在迁移密码库“%1”请提供密码以解锁。"
 
-#: kwalletd/main.cpp:32
+#: kwalletd/main.cpp:31
 #, kde-format
 msgid "kwalletd"
 msgstr "kwalletd"
 
-#: kwalletd/main.cpp:34
+#: kwalletd/main.cpp:33
 #, kde-format
 msgid "A KWallet compatibility service, wrapping upon Secret Service"
 msgstr "一个基于 Secret 服务的 KWallet 兼容服务"
 
-#: kwalletd/main.cpp:36
+#: kwalletd/main.cpp:35
 #, kde-format
 msgid "(C) 2025, The KDE Developers"
 msgstr "(C) 2025, The KDE Developers"
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Marco Martin"
 msgstr "Marco Martin"
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Author"
 msgstr "作者"
 
-#: kwalletd/secretserviceclient.cpp:241
+#: kwalletd/secretserviceclient.cpp:262
 #, kde-format
 msgid "Item not found"
 msgstr "未找到项目"
 
-#: kwalletd/secretserviceclient.cpp:261
+#: kwalletd/secretserviceclient.cpp:282
 #, kde-format
 msgid "Could not connect to Secret Service"
 msgstr "无法连接到 Secret 服务"
 
-#: kwalletd/secretserviceclient.cpp:423
+#: kwalletd/secretserviceclient.cpp:482
 #, kde-format
 msgid "Unable to unlock collectionName %1"
 msgstr "无法解锁集合名称 %1"
 
-#: kwalletd/secretserviceclient.cpp:515
+#: kwalletd/secretserviceclient.cpp:575
 #, kde-format
 msgid "No collections"
 msgstr "没有集合"
 
-#: kwalletd/secretserviceclient.cpp:552 kwalletd/secretserviceclient.cpp:599
-#: kwalletd/secretserviceclient.cpp:702
+#: kwalletd/secretserviceclient.cpp:612 kwalletd/secretserviceclient.cpp:659
+#: kwalletd/secretserviceclient.cpp:762
 #, kde-format
 msgid "No entries"
 msgstr "没有条目"
 
-#: kwalletd/secretserviceclient.cpp:617
+#: kwalletd/secretserviceclient.cpp:677
 #, kde-format
 msgid "Entry not found, key: %1, folder: %2"
 msgstr "找不到条目，密钥：%1，文件夹：%2"
 
-#: kwalletd/secretserviceclient.cpp:726
+#: kwalletd/secretserviceclient.cpp:786
 #, kde-format
 msgid "Unable to unlock item"
 msgstr "无法解锁项目"
 
-#: kwalletd/secretserviceclient.cpp:769 kwalletd/secretserviceclient.cpp:887
+#: kwalletd/secretserviceclient.cpp:829 kwalletd/secretserviceclient.cpp:947
 #, kde-format
 msgid "Entry to rename not found"
 msgstr "找不到要重命名的条目"
 
-#: kwalletd/secretserviceclient.cpp:776
+#: kwalletd/secretserviceclient.cpp:836
 #, kde-format
 msgid "Entry named %1 in folder %2 and wallet %3 already exists."
 msgstr "名为 %1 的条目在文件夹 %2 和密码库 %3 中已存在。"
 
-#: kwalletd/secretserviceclient.cpp:791 kwalletd/secretserviceclient.cpp:806
+#: kwalletd/secretserviceclient.cpp:851 kwalletd/secretserviceclient.cpp:866
 #, kde-format
 msgid "Entry to rename incomplete"
 msgstr "要重命名的条目不完整"
 
-#: kwalletd/secretserviceclient.cpp:851
+#: kwalletd/secretserviceclient.cpp:911
 #, kde-format
 msgid "Failed to create SecretValue"
 msgstr "创建 SecretValue 失败"

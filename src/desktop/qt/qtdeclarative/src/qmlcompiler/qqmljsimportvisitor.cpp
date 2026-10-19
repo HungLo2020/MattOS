@@ -98,19 +98,10 @@ bool QQmlJSImportVisitor::safeInsertJSIdentifier(QQmlJSScope::Ptr &scope, const 
      to add some recovery rule to the grammar in any case.
      We use this method instead to avoid an assertion in insertJSIdentifier
   */
-    if (scope->scopeType() != QQmlSA::ScopeType::QMLScope) {
-        scope->insertJSIdentifier(name, identifier);
-        return true;
-    } else {
-        const QQmlJSScope *scopePtr = scope.get();
-        std::pair<const QQmlJSScope*, QString> misplaced { scopePtr, name };
-        if (misplacedJSIdentifiers.contains(misplaced))
-            return false; // we only want to warn once
-        misplacedJSIdentifiers.insert(misplaced);
-        m_logger->log(u"JavaScript declarations are not allowed in QML elements"_s, qmlSyntax,
-                      identifier.location);
-        return false;
-    }
+    if (scope->scopeType() == QQmlSA::ScopeType::QMLScope)
+      return false;
+    scope->insertJSIdentifier(name, identifier);
+    return true;
 }
 
 /*!
@@ -433,8 +424,8 @@ void QQmlJSImportVisitor::resolveGroupProperties()
     }
 }
 
-QString QQmlJSImportVisitor::implicitImportDirectory(
-        const QString &localFile, QQmlJSResourceFileMapper *mapper)
+QString QQmlJSImportVisitor::implicitImportDirectory(const QString &localFile,
+                                                     const QQmlJSResourceFileMapper *mapper)
 {
     if (mapper) {
         const auto resource = mapper->entry(
@@ -510,7 +501,7 @@ void QQmlJSImportVisitor::importBaseModules()
         // Import all possible resource directories the file may belong to.
         // This is somewhat fuzzy, but if you're mapping the same file to multiple resource
         // locations, you're on your own anyway.
-        if (QQmlJSResourceFileMapper *mapper = m_importer->resourceFileMapper()) {
+        if (const QQmlJSResourceFileMapper *mapper = m_importer->resourceFileMapper()) {
             const QStringList resourcePaths = mapper->resourcePaths(QQmlJSResourceFileMapper::Filter {
                     m_logger->filePath(), QStringList(), QQmlJSResourceFileMapper::Resource });
             for (const QString &path : resourcePaths) {
@@ -702,7 +693,7 @@ void QQmlJSImportVisitor::setAllBindings()
         m_logger->log("Duplicate binding on property '%1'"_L1.arg(propertyName),
                       qmlDuplicatePropertyBinding, location);
         m_logger->log("Note: previous binding on '%1' here"_L1.arg(propertyName),
-                      qmlDuplicatePropertyBinding, *sourceLocationIt, true, true, {}, {},
+                      qmlDuplicatePropertyBinding, *sourceLocationIt, true, true, {},
                       location.startLine);
     }
 }
@@ -834,12 +825,9 @@ void QQmlJSImportVisitor::processMethodTypes()
 {
     const auto isEnumUsedAsType = [&](QStringView typeName, const QQmlJS::SourceLocation &loc) {
         if (typeName == "enum"_L1) {
-            m_logger->log("QML does not have an `enum` type. Use the enum's underlying type "
-                          "(int or double)."_L1,
-                          qmlEnumsAreNotTypes, loc);
+            // note: we already warned about 'enum' in the parser
             return true;
         }
-
         const auto split = typeName.tokenize(u'.').toContainer<QVarLengthArray<QStringView, 4>>();
         if (split.size() != 2)
             return false;
@@ -850,9 +838,9 @@ void QQmlJSImportVisitor::processMethodTypes()
         if (auto scope = QQmlJSScope::findType(scopeName.toString(),
                                                m_rootScopeImports.contextualTypes()).scope) {
             if (scope->enumeration(enumName.toString()).isValid()) {
-                m_logger->log("QML enumerations are not types. Use underlying type "
-                              "(int or double) instead."_L1,
-                              qmlEnumsAreNotTypes, loc);
+                m_logger->log(
+                        "QML enumerations are not types. Use int, or use double if the enum's underlying type does not fit into int."_L1,
+                        qmlEnumsAreNotTypes, loc);
                 return true;
             }
         }
@@ -1309,7 +1297,7 @@ void QQmlJSImportVisitor::processPropertyBindings()
                 for (QQmlJSScope::ConstPtr baseScope = scope; !baseScope.isNull();
                      baseScope = baseScope->baseType()) {
                     if (auto suggestion = QQmlJSUtils::didYouMean(
-                                name, baseScope->ownProperties().keys(), location);
+                                name, baseScope->ownProperties().keys(), m_logger->filePath(), location);
                         suggestion.has_value()) {
                         fixSuggestion = suggestion;
                         break;
@@ -1574,6 +1562,7 @@ void QQmlJSImportVisitor::breakInheritanceCycles(const QQmlJSScope::Ptr &origina
                         qmlImport, scope->sourceLocation(), true, true,
                         QQmlJSUtils::didYouMean(scope->baseTypeName(),
                                                 m_rootScopeImports.types().keys(),
+                                                m_logger->filePath(),
                                                 scope->sourceLocation()));
             }
         }
@@ -1818,8 +1807,10 @@ bool QQmlJSImportVisitor::visit(UiObjectDefinition *definition)
     // we need to assume that it is a type based on its capitalization. Types defined in inline
     // components, for example, can have their type definition after their type usages:
     // Item { property IC myIC; component IC: Item{}; }
+    // A QML type name always starts with an upper case letter; "_" is neither upper- nor
+    // lower-case, so use !isUpper() to also catch names like "_bar".
     const qsizetype indexOfTypeName = superType.lastIndexOf(u'.');
-    const bool looksLikeGroupedProperty = superType.front().isLower();
+    const bool looksLikeGroupedProperty = !superType.front().isUpper();
 
     if (indexOfTypeName != -1 && looksLikeGroupedProperty) {
         logLowerCaseImport(superType, definition->qualifiedTypeNameId->identifierToken,
@@ -1834,7 +1825,6 @@ bool QQmlJSImportVisitor::visit(UiObjectDefinition *definition)
             enterRootScope(QQmlSA::ScopeType::QMLScope, superType,
                            definition->firstSourceLocation());
             m_currentScope->setIsRootFileComponentFlag(true);
-            m_currentScope->setIsSingleton(m_rootIsSingleton);
         }
 
         const QTypeRevision revision = m_currentScope->baseTypeRevision();
@@ -1905,7 +1895,7 @@ bool QQmlJSImportVisitor::visit(UiInlineComponent *component)
         m_logger->log("Duplicate inline component '%1'"_L1.arg(it.key()),
                       qmlDuplicateInlineComponent, component->firstSourceLocation());
         m_logger->log("Note: previous component named '%1' here"_L1.arg(it.key()),
-                      qmlDuplicateInlineComponent, it.value(), true, true, {}, {},
+                      qmlDuplicateInlineComponent, it.value(), true, true, {},
                       component->firstSourceLocation().startLine);
     } else {
         m_seenInlineComponents[component->name] = component->firstSourceLocation();
@@ -1938,6 +1928,8 @@ bool QQmlJSImportVisitor::visit(UiPublicMember *publicMember)
         method.setMethodName(signalName);
         method.setSourceLocation(combine(publicMember->firstSourceLocation(),
                                          publicMember->lastSourceLocation()));
+        method.setOtherMethodIndex(
+                QQmlJSMetaMethod::RelativeFunctionIndex(m_currentScope->ownMethods().size()));
         while (param) {
             method.addParameter(
                     QQmlJSMetaParameter(
@@ -2006,9 +1998,17 @@ bool QQmlJSImportVisitor::visit(UiPublicMember *publicMember)
         const auto type =
                 isAlias ? QQmlJSScope::ConstPtr() : m_rootScopeImports.type(typeName).scope;
         if (type) {
-            prop.setType(prop.isList() ? type->listType() : type);
-            const QString internalName = type->internalName();
+            const auto factory = type.factory();
+            // note: the type of prop is set via QQmlJSImportVisitor::processPropertyTypes() for lists of lazy types
+            prop.setType(prop.isList() ? (factory ? QQmlJSScope::Ptr{ } : type->listType()) : type);
+            const QString internalName = factory ? factory->internalName() : type->internalName();
             prop.setTypeName(internalName.isEmpty() ? typeName : internalName);
+
+            // Note: qml supports cyclic dependencies on properties, so don't lazy-load `type` here!
+            // If `type` is lazy-loaded here and uses the currently-linted type, then `type` will only
+            // see the incomplete definition of the currently-linted type and will complain about
+            // missing properties for example.
+            Q_ASSERT(type.factory() == factory);
         } else if (!isAlias) {
             m_pendingPropertyTypes << PendingPropertyType { m_currentScope, prop.propertyName(),
                                                             publicMember->firstSourceLocation() };
@@ -2016,9 +2016,18 @@ bool QQmlJSImportVisitor::visit(UiPublicMember *publicMember)
         }
         prop.setAnnotations(parseAnnotations(publicMember->annotations));
         if (publicMember->isDefaultMember())
-            m_currentScope->setOwnDefaultPropertyName(prop.propertyName());
+            m_currentScope->setOwnDefaultPropertyName(propertyName);
         prop.setIndex(m_currentScope->ownProperties().size());
-        m_currentScope->insertPropertyIdentifier(prop);
+        m_currentScope->addOwnProperty(prop);
+
+        QQmlJSMetaMethod method(
+                QQmlSignalNames::propertyNameToChangedSignalName(propertyName), u"void"_s);
+        method.setMethodType(QQmlJSMetaMethodType::Signal);
+        method.setIsImplicitQmlPropertyChangeSignal(true);
+        method.setOtherMethodIndex(
+                QQmlJSMetaMethod::RelativeFunctionIndex(m_currentScope->ownMethods().size()));
+        m_currentScope->addOwnMethod(method);
+
         if (publicMember->isRequired())
             m_currentScope->setPropertyLocallyRequired(prop.propertyName(), true);
 
@@ -2141,6 +2150,8 @@ void QQmlJSImportVisitor::visitFunctionExpressionHelper(QQmlJS::AST::FunctionExp
             m_pendingMethodTypeAnnotations << pending;
 
         method.setJsFunctionIndex(addFunctionOrExpression(m_currentScope, method.methodName()));
+        method.setOtherMethodIndex(
+                QQmlJSMetaMethod::RelativeFunctionIndex(m_currentScope->ownMethods().size()));
 
         if (m_currentScope->scopeType() != QQmlSA::ScopeType::QMLScope) {
             // note: lambda methods have no identifier token
@@ -2872,16 +2883,11 @@ bool QQmlJSImportVisitor::visit(QQmlJS::AST::UiPragma *pragma)
 {
     if (pragma->name == u"Strict"_s) {
         // If a file uses pragma Strict, it expects to be compiled, so automatically
-        // enable compiler warnings unless the level is set explicitly already (e.g.
+        // enable compiler warnings unless the severity is set explicitly already (e.g.
         // by the user).
 
-        if (!m_logger->wasCategoryChanged(qmlCompiler)) {
-            // TODO: the logic here is rather complicated and may be buggy
-            m_logger->setCategoryLevel(qmlCompiler, QtWarningMsg);
-            m_logger->setCategoryIgnored(qmlCompiler, false);
-        }
-    } else if (pragma->name == u"Singleton") {
-        m_rootIsSingleton = true;
+        if (!m_logger->wasCategoryChanged(qmlCompiler))
+            m_logger->setCategorySeverity(qmlCompiler, QQmlJS::WarningSeverity::Warning);
     } else if (pragma->name == u"ComponentBehavior") {
         handlePragmaValues(pragma, [this, pragma](QStringView value) {
             if (value == u"Bound") {

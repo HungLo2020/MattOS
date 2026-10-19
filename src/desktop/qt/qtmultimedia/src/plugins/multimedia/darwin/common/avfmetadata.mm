@@ -2,18 +2,20 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "avfmetadata_p.h"
-#include <qdarwinformatsinfo_p.h>
-#include <avfmediaplayer_p.h>
 
+#include <mediaplayer/avfmediaplayer_p.h>
+#include <qdarwinformatsinfo_p.h>
+
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qmediametadata_p.h>
+#include <QtGui/qimage.h>
 #include <QtCore/qbuffer.h>
-#include <QtCore/qiodevice.h>
 #include <QtCore/qdatetime.h>
+#include <QtCore/qiodevice.h>
 #include <QtCore/qlocale.h>
+#include <QtCore/qsemaphore.h>
 #include <QtCore/qurl.h>
 #include <QtCore/private/qcore_mac_p.h>
-#include <QtCore/qsemaphore.h>
-#include <QImage>
-#include <QtMultimedia/qvideoframe.h>
 
 #if __has_include(<AppKit/AppKit.h>)
 #import <AppKit/AppKit.h>
@@ -228,13 +230,12 @@ static QMediaMetaData fromAVMetadata(NSArray *metadataItems)
             continue;
 
         // Handle artwork (binary image data)
-        if (*key == QMediaMetaData::ThumbnailImage || *key == QMediaMetaData::CoverArtImage) {
+        if (*key == QMediaMetaData::CoverArtImage) {
             NSData *data = [item dataValue];
             if (data) {
                 QImage image;
                 image.loadFromData(QByteArray::fromNSData(data));
-                if (!image.isNull())
-                    metadata.insert(*key, image);
+                QtMultimediaPrivate::setCoverArtImage(metadata, image);
             }
             continue;
         }
@@ -407,7 +408,9 @@ static AVMutableMetadataItem *setAVMetadataItemForKey(QMediaMetaData::Key key, c
     item.identifier = identifier;
 
     switch (key) {
-    case QMediaMetaData::ThumbnailImage:
+#if QT_DEPRECATED_SINCE(6, 12)
+    case QtMultimediaPrivate::deprecatedThumbnailImage:
+#endif
     case QMediaMetaData::CoverArtImage: {
 #if defined(Q_OS_MACOS)
         QImage img = value.value<QImage>();
@@ -440,7 +443,7 @@ static AVMutableMetadataItem *setAVMetadataItemForKey(QMediaMetaData::Key key, c
         bool ok;
         int rotation = value.toInt(&ok);
         if (ok)
-            item.value = [NSNumber numberWithInt:rotation];
+            item.value = @(rotation);
     }
     default: {
         switch (value.typeId()) {
@@ -449,15 +452,15 @@ static AVMutableMetadataItem *setAVMetadataItemForKey(QMediaMetaData::Key key, c
             break;
         }
         case QMetaType::Int: {
-            item.value = [NSNumber numberWithInt:value.toInt()];
+            item.value = @(value.toInt());
             break;
         }
         case QMetaType::LongLong: {
-            item.value = [NSNumber numberWithLongLong:value.toLongLong()];
+            item.value = @(value.toLongLong());
             break;
         }
         case QMetaType::Double: {
-            item.value = [NSNumber numberWithDouble:value.toDouble()];
+            item.value = @(value.toDouble());
             break;
         }
         case QMetaType::QDate:

@@ -54,7 +54,7 @@
 # triggers an additional call to qsb in replace mode (only after the .qsb file is built by the initial run):
 #   qsb -r glsl,100es,my_custom_shader_for_gles.frag -r spirv,100,my_custom_spirv_binary.spv wobble.frag.qsb
 #
-# NB! Most of this is documented in qtshadertools-build.qdoc. Changes without updating the documentation
+# NB! Most of this is documented in qt_add_shaders.qdoc. Changes without updating the documentation
 # are not allowed.
 #
 # Example:
@@ -83,13 +83,39 @@ function(_qt_internal_add_shaders_impl target resourcename)
     math(EXPR file_index "0")
     foreach(file_and_replacements IN LISTS arg_FILES)
         string(REPLACE "@" ";" file_and_replacement_list "${file_and_replacements}")
-        list(GET file_and_replacement_list 0 file)
-        list(LENGTH file_and_replacement_list replacement_count_plus_one)
+        list(LENGTH file_and_replacement_list segment_count)
         set(qsb_replace_args "")
-        if(replacement_count_plus_one GREATER 1)
-            math(EXPR replacement_count "${replacement_count_plus_one}-1")
-            foreach(replacement_idx RANGE 1 ${replacement_count})
-                list(GET file_and_replacement_list ${replacement_idx} replacement)
+        math(EXPR segment_max_idx "${segment_count}-1")
+
+        # Walk the @-split segments one by one, accumulating them into a
+        # candidate path. The first candidate ending with a known shader
+        # extension (.vert, .tesc, .tese, .geom, .frag, .comp) is the real
+        # filename; everything after it is the replacement specification.
+        # This handles paths that contain @ characters in directory or file names.
+        set(file "")
+        set(candidate "")
+        foreach(idx RANGE ${segment_max_idx})
+            list(GET file_and_replacement_list ${idx} segment)
+            if(candidate)
+                set(candidate "${candidate}@${segment}")
+            else()
+                set(candidate "${segment}")
+            endif()
+
+            if(candidate MATCHES "\\.(vert|tesc|tese|geom|frag|comp)$")
+                set(file "${candidate}")
+                break()
+            endif()
+        endforeach()
+
+        if(NOT file)
+            set(file "${file_and_replacements}")
+        elseif(NOT file STREQUAL file_and_replacements)
+            string(LENGTH "${file}" file_length)
+            math(EXPR remainder_start "${file_length}+1")
+            string(SUBSTRING "${file_and_replacements}" ${remainder_start} -1 remainder)
+            string(REPLACE "@" ";" replacement_specs "${remainder}")
+            foreach(replacement IN LISTS replacement_specs)
                 # Get a list, f.ex. "glsl;100es;some/where/shader.frag" so that we can
                 # adjust the filename (3rd component) to be absolute.
                 string(REPLACE "," ";" replacement_list "${replacement}")
@@ -120,9 +146,7 @@ function(_qt_internal_add_shaders_impl target resourcename)
             get_filename_component(original_file ${original_file_as_specified} ABSOLUTE)
         endif()
 
-        if (NOT arg_SILENT AND NOT arg_QUIET)
-            message("${file} -> ${output_file} exposed as :${arg_PREFIX}/${output_file}")
-        endif()
+        message(DEBUG "${file} -> ${output_file} exposed as :${arg_PREFIX}/${output_file}")
 
         set(qsb_args "")
 
@@ -136,6 +160,9 @@ function(_qt_internal_add_shaders_impl target resourcename)
                     set(multiview_glsl ${arg_GLSL})
                 endif()
             elseif(EMSCRIPTEN)
+                set(glsl_versions "100es,300es")
+            elseif(OHOS)
+                # OpenHarmony is GLES-only and requires a 300es variant.
                 set(glsl_versions "100es,300es")
             else()
                 set(glsl_versions "100es,120,150") # both 'es' and ' es' are accepted by qsb
@@ -214,7 +241,7 @@ function(_qt_internal_add_shaders_impl target resourcename)
             list(APPEND qsb_common_args "${arg_ZORDER_LOC}")
         endif()
 
-        if (arg_SILENT)
+        if (arg_SILENT OR arg_QUIET)
             list(APPEND qsb_common_args "-s")
         endif()
 
@@ -249,7 +276,7 @@ function(_qt_internal_add_shaders_impl target resourcename)
 
         if (qsb_replace_args)
             list(APPEND qsb_replace_args "${qsb_result}")
-            if (arg_SILENT)
+            if (arg_SILENT OR arg_QUIET)
                 list(APPEND qsb_replace_args "-s")
             endif()
             add_custom_command(

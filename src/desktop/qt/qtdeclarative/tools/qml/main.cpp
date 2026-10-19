@@ -31,6 +31,7 @@
 #include <QTranslator>
 #include <QtGlobal>
 #include <QLibraryInfo>
+#include <QTimer>
 #include <qqml.h>
 #include <qqmldebug.h>
 #include <qqmlfileselector.h>
@@ -463,8 +464,13 @@ int main(int argc, char *argv[])
 #endif // QT_WIDGETS_LIB
     parser.addOption(apptypeOption); // Just for the help text... we've already handled this argument above
 #endif // QT_GUI_LIB
-    QCommandLineOption importOption(QStringLiteral("I"),
-        QCoreApplication::translate("main", "Prepend the given path to the import paths."), QStringLiteral("path"));
+    QCommandLineOption importOption(
+            QStringLiteral("I"),
+            QCoreApplication::translate(
+                    "main",
+                    "Prepend the given path to the import paths. All files and folders under the "
+                    "import paths must come from a trusted source."),
+            QStringLiteral("path"));
     parser.addOption(importOption);
     QCommandLineOption qmlFileOption(QStringLiteral("f"),
         QCoreApplication::translate("main", "Load the given file as a QML file."), QStringLiteral("file"));
@@ -533,6 +539,8 @@ int main(int argc, char *argv[])
     QCommandLineOption selectorOption(QStringLiteral("S"), QCoreApplication::translate("main",
         "Add selector to the list of QQmlFileSelectors."), QStringLiteral("selector"));
     parser.addOption(selectorOption);
+    QCommandLineOption quitAfterOption(QStringLiteral("quit-after"), QCoreApplication::translate("main", "Quit automatically after n milliseconds."), QStringLiteral("n"));
+    parser.addOption(quitAfterOption);
 
     // Positional arguments
     parser.addPositionalArgument("files",
@@ -654,6 +662,11 @@ int main(int argc, char *argv[])
 
     if (lw->earlyExit)
         return lw->returnCode;
+
+    if (parser.isSet(quitAfterOption)) {
+        const int timeout = parser.value(quitAfterOption).toInt();
+        QTimer::singleShot(std::chrono::milliseconds(timeout), app.get(), &QCoreApplication::quit);
+    }
 
     return app->exec();
 }

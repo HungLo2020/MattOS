@@ -103,7 +103,7 @@ private:
 
     QV4::ExecutionEngine *engine() const;
 
-    inline bool canMove(int from, int to, int n) const { return !(from+n > count() || to+n > count() || from < 0 || to < 0 || n < 0); }
+    bool canMove(int from, int to, int n) const;
 
     mutable QQmlListModelWorkerAgent *m_agent;
     mutable QV4::ExecutionEngine *m_engine;
@@ -180,7 +180,7 @@ private:
             const QV4::CompiledData::Binding *binding, ListModel *model, QQmlListModel *owner,
             int outterElementIndex);
 
-    static bool definesEmptyList(const QString &);
+    static bool definesEmptyList(QStringView s);
 
     QString listElementTypeName;
 };

@@ -182,6 +182,52 @@ static QFont::HintingPreference determineHinting(const QFontDef &fontDef)
     return hintingPreference;
 }
 
+bool QWindowsFontEngineDirectWrite::useSymmetricAntialiasing() const
+{
+    if (m_useSymmetricAntialiasing < 0) {
+        qCDebug(lcQpaFonts) << "Checking antialiasing strategy for:"
+                            << fontDef.families;
+
+        // We default to symmetric antialiasing for fonts without hinting and for pixel sizes
+        // over 16.
+        m_useSymmetricAntialiasing = fontDef.pixelSize > 16 || !hasHinting();
+
+        qCDebug(lcQpaFonts) << "    After checking pixel size and hinting, defaulting to:"
+                            << bool(m_useSymmetricAntialiasing);
+
+        // Then we check if there is a GASP table and consult this if it is available
+        const QByteArray gasp = getSfntTable(QFont::Tag("gasp").value());
+        if (gasp.size() > 4) {
+            qCDebug(lcQpaFonts) << "    Checking GASP table, size=" << gasp.size();
+
+            const uchar *start = reinterpret_cast<const uchar *>(gasp.constBegin());
+
+            const quint16 numRanges = qFromBigEndian<quint16>(start + 2);
+            if (gasp.size() >= 4 + numRanges * 4) {
+                qCDebug(lcQpaFonts) << "    GASP ranges:" << numRanges;
+                for (int i = 0; i < numRanges; ++i) {
+                    const quint16 rangeMaxPPEM = qFromBigEndian<quint16>(start + 4 + i * 4);
+                    qCDebug(lcQpaFonts) << "    GASP range " << i << "upper limit == " << rangeMaxPPEM;
+
+                    if (rangeMaxPPEM >= fontDef.pixelSize) {
+                        const quint16 rangeGaspBehavior = qFromBigEndian<quint16>(start + 4 + i * 4 + 2);
+                        qCDebug(lcQpaFonts) << "    GASP behavior " << i << "==" << rangeGaspBehavior;
+
+                        // GASP_SYMMETRIC_SMOOTHING = 0x8
+                        m_useSymmetricAntialiasing = !!(rangeGaspBehavior & 0x8);
+                        qCDebug(lcQpaFonts) << "    Symmetric antialiasing override: "
+                                            << bool(m_useSymmetricAntialiasing);
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return m_useSymmetricAntialiasing;
+}
+
 DWRITE_RENDERING_MODE QWindowsFontEngineDirectWrite::hintingPreferenceToRenderingMode(const QFontDef &fontDef) const
 {
     if ((fontDef.styleStrategy & QFont::NoAntialias) && glyphFormat != QFontEngine::Format_ARGB)
@@ -194,9 +240,10 @@ DWRITE_RENDERING_MODE QWindowsFontEngineDirectWrite::hintingPreferenceToRenderin
     case QFont::PreferVerticalHinting:
         return DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL;
     default:
-        return fontDef.pixelSize > 16.0
-               ? DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC
-               : DWRITE_RENDERING_MODE_GDI_CLASSIC;
+        if (useSymmetricAntialiasing())
+            return DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC;
+        else
+            return DWRITE_RENDERING_MODE_GDI_CLASSIC;
     }
 }
 
@@ -392,7 +439,7 @@ void QWindowsFontEngineDirectWrite::collectMetrics()
     QByteArray table = getSfntTable(QFont::Tag("hhea").value());
     const int advanceWidthMaxLocation = 10;
     if (table.size() >= advanceWidthMaxLocation + int(sizeof(quint16))) {
-        quint16 advanceWidthMax = qFromBigEndian<quint16>(table.constData() + advanceWidthMaxLocation);
+        quint16 advanceWidthMax = qFromBigEndian<quint16>(table.constBegin() + advanceWidthMaxLocation);
         m_maxAdvanceWidth = DESIGN_TO_LOGICAL(advanceWidthMax);
     }
 
@@ -1659,6 +1706,12 @@ QImage QWindowsFontEngineDirectWrite::imageForGlyph(glyph_t t,
             return QImage();
         }
 
+        if (glyphBoundingBoxExceedsLimit(rect.width(),
+                                         rect.height(),
+                                         effectivePixelSizeSquared(xform))) {
+            return QImage();
+        }
+
         QRect boundingRect = rect.adjusted(-margin, -margin, margin, margin);
 
         QImage image;
@@ -1807,6 +1860,9 @@ QImage QWindowsFontEngineDirectWrite::alphaRGBMapForGlyph(glyph_t t,
                                 xform);
 
     if (mask.isNull()) {
+        if (xform.type() > QTransform::TxTranslate && glyphTransformExceedsLimit(t, xform))
+            return QImage();
+
         mask = QFontEngine::renderedPathForGlyph(t, Qt::white);
         if (!xform.isIdentity())
             mask = mask.transformed(xform);

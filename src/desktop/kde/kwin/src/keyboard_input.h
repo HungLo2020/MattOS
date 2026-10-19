@@ -8,7 +8,6 @@
 */
 #pragma once
 
-#include "a11ykeyboardmonitor.h"
 #include "input.h"
 
 #include <QObject>
@@ -38,10 +37,12 @@ class KeyboardLayout;
 class ModifiersChangedSpy;
 class Xkb;
 class KeyboardRepeat;
+class KeyStateChangedSpy;
 
 class KWIN_EXPORT KeyboardInputRedirection : public QObject
 {
     Q_OBJECT
+
 public:
     explicit KeyboardInputRedirection(InputRedirection *parent);
     ~KeyboardInputRedirection() override;
@@ -83,12 +84,12 @@ private:
     bool m_inited = false;
     const std::unique_ptr<Xkb> m_xkb;
     QMetaObject::Connection m_activeWindowSurfaceChangedConnection;
-    ModifiersChangedSpy *m_modifiersChangedSpy = nullptr;
-    KeyboardLayout *m_keyboardLayout = nullptr;
+    std::unique_ptr<KeyStateChangedSpy> m_keyStateChangedSpy;
+    std::unique_ptr<ModifiersChangedSpy> m_modifiersChangedSpy;
+    std::unique_ptr<KeyboardLayout> m_keyboardLayout;
     QList<uint32_t> m_pressedKeys;
     QList<uint32_t> m_filteredKeys;
-    A11yKeyboardMonitor m_a11yKeyboardMonitor;
-    KeyboardRepeat *m_keyRepeatSpy;
+    std::unique_ptr<KeyboardRepeat> m_keyRepeatSpy;
 };
 
 }

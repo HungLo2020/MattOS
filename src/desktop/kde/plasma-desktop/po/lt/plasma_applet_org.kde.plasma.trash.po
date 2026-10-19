@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_trash\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-27 00:45+0000\n"
-"PO-Revision-Date: 2025-08-05 00:56+0300\n"
+"POT-Creation-Date: 2026-08-27 00:47+0000\n"
+"PO-Revision-Date: 2026-08-27 13:25+0300\n"
 "Last-Translator: Moo\n"
 "Language-Team: Lithuanian <kde-i18n-lt@kde.org>\n"
 "Language: lt\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n%10>=2 && (n%100<10 || n"
 "%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.9\n"
 
 #: main.qml:33
 #, kde-format
@@ -33,6 +33,12 @@ msgstr "Išvaloma…"
 
 #: main.qml:38
 #, kde-format
+msgctxt "@info:status Counting the number of items in trash"
+msgid "Counting…"
+msgstr "Skaičiuojama…"
+
+#: main.qml:40
+#, kde-format
 msgctxt "@info:status The trash contains this many items in it"
 msgid "One item"
 msgid_plural "%1 items"
@@ -41,25 +47,25 @@ msgstr[1] "%1 elementai"
 msgstr[2] "%1 elementų"
 msgstr[3] "%1 elementas"
 
-#: main.qml:40
+#: main.qml:42
 #, kde-format
 msgctxt "@info:status The trash is empty"
 msgid "Empty"
 msgstr "Tuščia"
 
-#: main.qml:80
+#: main.qml:77
 #, kde-format
 msgctxt "@action:inmenu Open the trash"
 msgid "Open"
 msgstr "Atverti"
 
-#: main.qml:85
+#: main.qml:82
 #, kde-format
 msgctxt "@action:inmenu Empty the trash"
 msgid "Empty"
 msgstr "Išvalyti"
 
-#: main.qml:91
+#: main.qml:88
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Trash Settings…"

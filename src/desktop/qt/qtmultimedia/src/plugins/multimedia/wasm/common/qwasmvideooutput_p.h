@@ -18,11 +18,17 @@
 #include <QObject>
 
 #include <emscripten/val.h>
+#include <emscripten/html5_webgl.h>
+#include <emscripten/html5.h>
+
 #include <QMediaPlayer>
 #include <QVideoFrame>
+#include <QtMultimedia/qtvideo.h>
 
 #include "qwasmmediaplayer_p.h"
 #include "private/qwasmmediadevices_p.h"
+#include "qwasmgltexturevideobuffer_p.h"
+
 #include <private/qwasmjs_p.h>
 
 #include <QtCore/qloggingcategory.h>
@@ -42,6 +48,7 @@ class QWasmVideoOutput : public QObject
 public:
     using MediaStatus = QMediaPlayer::MediaStatus;
     enum WasmVideoMode { VideoDisplay, Camera, SurfaceCapture };
+    enum WasmCameraMode { Front, Back, Undefined = -1 };
     Q_ENUM(WasmVideoMode)
 
     explicit QWasmVideoOutput(QObject *parent = nullptr);
@@ -80,6 +87,7 @@ public:
     void addCameraSourceElement(const std::string &id);
     void removeSourceElement();
     void setVideoMode(QWasmVideoOutput::WasmVideoMode mode);
+    void setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate);
 
     void setHasAudio(bool needsAudio) { m_hasAudio = needsAudio; }
 
@@ -91,6 +99,12 @@ public:
 
     void videoFrameCallback(void *context);
     void videoFrameTimerCallback();
+
+    void webglVideoFrameCallback(void *context);
+    void getWebGLContext();
+    bool m_hasWebGLContext = false;
+    bool m_webGLContextChecked = false;
+
     // mediacapturesession has the videosink
     QVideoSink *m_wasmSink = nullptr;
 
@@ -100,7 +114,7 @@ public:
 
     std::string m_videoSurfaceId;
 
-    static QVideoFrameFormat::PixelFormat fromJsPixelFormat(std::string videoFormat);
+    static QVideoFrameFormat::PixelFormat fromJsPixelFormat(std::string_view videoFormat);
 
     void removeCurrentVideoElement();
 
@@ -115,12 +129,14 @@ Q_SIGNALS:
     void sizeChange(qint32 width, qint32 height);
     void metaDataLoaded();
     void seekableChanged(bool seekable);
+    void orientationChanged(int rotationIndex);
 
 private:
     void checkNetworkState();
+    void playVideoElement();
     void videoComputeFrame(void *context);
     void getDeviceSettings();
-
+    bool isPlatformiOs();
 
     emscripten::val m_video = emscripten::val::undefined();
     emscripten::val m_videoElementSource = emscripten::val::undefined();
@@ -128,21 +144,27 @@ private:
     QString m_source;
     float m_requestedPosition = 0.0;
     emscripten::val m_offscreen = emscripten::val::undefined();
+    WasmCameraMode m_cameraMode = WasmCameraMode::Undefined;
+    QtVideo::Rotation m_rotateBy = QtVideo::Rotation::None;
+    int getCurrentOrientationIndex();
 
-    bool m_shouldStop = false;
+
+    bool m_isStopped = false;
     bool m_toBePaused = false;
     bool m_isSeeking = false;
     bool m_hasAudio = false;
     bool m_cameraIsReady = false;
     bool m_shouldBeStarted = false;
+    bool m_streamStarted = false;
     bool m_isSeekable = false;
+    bool m_useCameraRotation = false;
 
     emscripten::val m_offscreenContext = emscripten::val::undefined();
     QSize m_pendingVideoSize;
     QWasmVideoOutput::WasmVideoMode m_currentVideoMode = QWasmVideoOutput::VideoDisplay;
     QMediaPlayer::MediaStatus m_currentMediaStatus;
     qreal m_currentBufferedValue;
-    JsMediaInputStream *m_mediaInputStream;
+    JsMediaInputStream *m_mediaInputStream = nullptr;
 
     QScopedPointer<QWasmEventHandler> m_timeUpdateEvent;
     QScopedPointer<QWasmEventHandler> m_playEvent;
@@ -167,6 +189,12 @@ private:
 
     std::string m_cameraId;
     QMetaObject::Connection m_connection;
+    QSize m_videoResolution;
+    float m_minFrameRate = 0;
+    float m_maxFrameRate = 0;
+    float m_streamFrameRate = 0;
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContextHandle = 0;
+    static bool orientationchangeCallback(int eventType, const EmscriptenOrientationChangeEvent *orientationChangeEvent, void *userData);
 };
 
 QT_END_NAMESPACE

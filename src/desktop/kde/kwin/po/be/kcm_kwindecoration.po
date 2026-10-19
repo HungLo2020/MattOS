@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fc57ad16a28d02dea100ceb1c60de14e\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
 "PO-Revision-Date: 2024-02-27 07:45\n"
 "Last-Translator: Darafei Praliaskouski <komzpa@gmail.com>\n"
 "Language-Team: Belarusian\n"
@@ -72,7 +72,7 @@ msgstr "Размяшчаць вышэй астатніх акон"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
+msgid "Hide from screenshots and screen recordings"
 msgstr ""
 
 #: declarative-plugin/buttonsmodel.cpp:76
@@ -80,7 +80,7 @@ msgstr ""
 msgid "Spacer"
 msgstr "Прамежак"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, fuzzy, kde-format
 #| msgctxt "%1 is the name of a border size"
 #| msgid "Theme's default (%1)"
@@ -88,7 +88,7 @@ msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Прадвызначаная тэма (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -98,7 +98,7 @@ msgstr ""
 "Гэты інструмент дазваляе вам вызначыць тэму аздаблення акон для бягучага "
 "актыўнага сеанса і пазбегнуць выбару недаступнай або ўжо абранай тэмы."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -109,13 +109,13 @@ msgstr ""
 "пазначыць поўны шлях, то праграма паспрабуе знайсці тэму ў гэтым каталозе, а "
 "затым ужыць яе."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr "Паказаць усе тэмы, даступныя ў сістэме (бягучую таксама)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -124,7 +124,7 @@ msgstr ""
 "Праграма разабрала %1 як тэму KWin Aurorae \"%2\" і паспрабуе зрабіць яе "
 "бягучай."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -133,19 +133,22 @@ msgstr ""
 "Вы пазначылі шлях да файла, але праграма не змагла знайсці па ім тэму, таму "
 "вымушаная перарваць дзеянне"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr "Запытаная тэма \"%1\" ужо выкарыстоўваецца."
 
-#: kwin-applywindowdecoration.cpp:99
-#, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+#: kwin-applywindowdecoration.cpp:101
+#, fuzzy, kde-format
+#| msgid ""
+#| "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr ""
 "Тэма \"%1\" паспяхова зробленая тэмай курсора вашага бягучага сеанса Plasma"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -154,7 +157,7 @@ msgstr ""
 "Не ўдалося захаваць налады тэмы. Прычына невядомая, але гэта непапраўная "
 "памылка. Вы можаце паспрабаваць паўтарыць спробу."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -163,7 +166,7 @@ msgstr ""
 "Не ўдалося знайсці тэму \"%1\". Тэма мусіць адпавядаць аднаму з наступных "
 "параметраў: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "У вашай сістэме ёсць наступныя тэмы аздаблення акон для KWin:"
@@ -213,7 +216,7 @@ msgstr "Паказваць выплыўныя падказкі для кнопа
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:85
@@ -221,15 +224,15 @@ msgstr ""
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
 
 #: ui/main.qml:29
@@ -256,55 +259,55 @@ msgstr "Атрымаць новыя…"
 msgid "Edit %1 Theme…"
 msgstr "Рэдагаваць тэму \"%1\""
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, fuzzy, kde-format
 #| msgid "No Window Borders"
 msgid "No window borders"
 msgstr "Без бакавых межаў"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, fuzzy, kde-format
 #| msgid "No Side Window Borders"
 msgid "No side window borders"
 msgstr "Без бакавых межаў акон"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, fuzzy, kde-format
 #| msgid "Tiny Window Borders"
 msgid "Tiny window borders"
 msgstr "Маленькія межы акон"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, fuzzy, kde-format
 #| msgid "Normal Window Borders"
 msgid "Normal window borders"
 msgstr "Звычайныя межы акон"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, fuzzy, kde-format
 #| msgid "Large Window Borders"
 msgid "Large window borders"
 msgstr "Вялікія межы акон"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, fuzzy, kde-format
 #| msgid "Very Large Window Borders"
 msgid "Very large window borders"
 msgstr "Вельмі вялікія межы акон"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, fuzzy, kde-format
 #| msgid "Huge Window Borders"
 msgid "Huge window borders"
 msgstr "Вялізныя межы акон"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, fuzzy, kde-format
 #| msgid "Very Huge Window Borders"
 msgid "Very huge window borders"
 msgstr "Велізарныя межы акон"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, fuzzy, kde-format
 #| msgid "Oversized Window Borders"
 msgid "Oversized window borders"

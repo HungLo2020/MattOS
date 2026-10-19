@@ -16,6 +16,7 @@
 #include "inputcapturebarrier.h"
 #include "inputcapturedialog.h"
 #include "request.h"
+#include "restoredata.h"
 #include "session.h"
 #include "utils.h"
 
@@ -71,8 +72,8 @@ InputCapturePortal::InputCapturePortal(QObject *parent)
     qDBusRegisterMetaType<zone>();
     qDBusRegisterMetaType<QList<zone>>();
     qDBusRegisterMetaType<QList<QMap<QString, QVariant>>>();
-    qDBusRegisterMetaType<QPair<QPoint, QPoint>>();
-    qDBusRegisterMetaType<QList<QPair<QPoint, QPoint>>>();
+    qDBusRegisterMetaType<std::tuple<uint, QPoint, QPoint>>();
+    qDBusRegisterMetaType<QList<std::tuple<uint, QPoint, QPoint>>>();
 }
 
 bool InputCapturePortal::setupInputCaptureSession(InputCaptureSession *session, Capabilities capabilities)
@@ -101,7 +102,7 @@ bool InputCapturePortal::setupInputCaptureSession(InputCaptureSession *session, 
         qCDebug(XdgDesktopPortalKdeInputCapture) << "Deactivated session" << session->handle() << "acitvation_id" << activationId;
         Q_EMIT Deactivated(QDBusObjectPath(session->handle()), {{u"activation_id"_s, activationId}});
     });
-    connect(session, &InputCaptureSession::activated, this, [this, session](uint activationId, const QPointF &cursorPosition) {
+    connect(session, &InputCaptureSession::activated, this, [this, session](uint activationId, uint barrier, const QPointF &cursorPosition) {
         session->state = State::Activated;
         qCDebug(XdgDesktopPortalKdeInputCapture) << "Activated session" << session->handle() << "acitvation_id" << activationId << "cursor_position"
                                                  << cursorPosition;
@@ -112,22 +113,24 @@ bool InputCapturePortal::setupInputCaptureSession(InputCaptureSession *session, 
         const QKeySequence disableSequence = disableShortcuts.value(0, QKeySequence(Qt::META | Qt::SHIFT | Qt::Key_Escape));
 
         auto notification = new KNotification(u"inputcapturestarted"_s, KNotification::CloseOnTimeout | KNotification::Persistent, this);
-        notification->setTitle(i18nc("@title:notification", "Input Capture started"));
+        notification->setTitle(i18nc("@title:notification", "Input Capture Started"));
         if (const QString appName = Utils::applicationName(session->appId()); !appName.isEmpty()) {
             notification->setText(xi18nc("@info %1 is the name of the application",
-                                         "Input is being managed by %1. Press <shortcut>%2</shortcut> to disable.",
+                                         "%1 has taken over the pointer and keyboard. Press <shortcut>%2</shortcut> to stop this.",
                                          appName,
                                          disableSequence.toString(QKeySequence::NativeText)));
         } else {
             notification->setText(xi18nc("@info",
-                                         "Input is being managed by an application. Press <shortcut>%1</shortcut> to disable.",
+                                         "An unidentifiable application has taken over the pointer and keyboard. Press "
+                                         "<shortcut>%1</shortcut> to stop this.",
                                          disableSequence.toString(QKeySequence::NativeText)));
         }
         notification->setIconName(u"dialog-input-devices"_s);
         connect(session, &InputCaptureSession::deactivated, notification, &KNotification::close);
         notification->sendEvent();
 
-        Q_EMIT Activated(QDBusObjectPath(session->handle()), {{u"activation_id"_s, activationId}, {u"cursor_position"_s, cursorPosition}});
+        Q_EMIT Activated(QDBusObjectPath(session->handle()),
+                         {{u"activation_id"_s, activationId}, {u"cursor_position"_s, cursorPosition}, {u"barrier_id"_s, barrier}});
     });
     return true;
 }
@@ -148,9 +151,50 @@ void InputCapturePortal::CreateSession(const QDBusObjectPath &handle,
     qCDebug(XdgDesktopPortalKdeInputCapture) << "    parent_window: " << parent_window;
     qCDebug(XdgDesktopPortalKdeInputCapture) << "    options: " << options;
 
-    auto *session = new InputCaptureSession(this, app_id, session_handle.path());
+    // Note options in this method are equivalent to  start options, so they are not forwarded to CreateSession2
+    std::ignore = CreateSession2(session_handle, app_id, {});
 
+    auto *session = Session::getSession<InputCaptureSession>(session_handle.path());
     if (!session->isValid()) {
+        replyResponse = PortalResponse::OtherError;
+        return;
+    }
+
+    Start(handle, session_handle, app_id, parent_window, options, message, replyResponse, replyResults);
+}
+
+QVariantMap InputCapturePortal::CreateSession2(const QDBusObjectPath &session_handle, const QString &app_id, const QVariantMap &options)
+{
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "CreateSession2 called with parameters:";
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "    session_handle: " << session_handle.path();
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "    app_id: " << app_id;
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "    options: " << options;
+
+    [[maybe_unused]] auto *session = new InputCaptureSession(this, app_id, session_handle.path());
+
+    return {};
+}
+
+void InputCapturePortal::Start(const QDBusObjectPath &handle,
+                               const QDBusObjectPath &session_handle,
+                               const QString &app_id,
+                               const QString &parent_window,
+                               const QVariantMap &options,
+                               const QDBusMessage &message,
+                               uint &replyResponse,
+                               [[maybe_unused]] QVariantMap &replyResults)
+{
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "CreateSession called with parameters:";
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "    handle: " << handle.path();
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "    session_handle: " << session_handle.path();
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "    app_id: " << app_id;
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "    parent_window: " << parent_window;
+    qCDebug(XdgDesktopPortalKdeInputCapture) << "    options: " << options;
+
+    auto *session = Session::getSession<InputCaptureSession>(session_handle.path());
+
+    if (!session) {
+        qCWarning(XdgDesktopPortalKdeInputCapture) << "Tried to start non-existing session " << session_handle.path();
         replyResponse = PortalResponse::OtherError;
         return;
     }
@@ -162,11 +206,47 @@ void InputCapturePortal::CreateSession(const QDBusObjectPath &handle,
         return;
     }
 
-    auto dialog = new InputCaptureDialog(app_id, (requestedCapabilities), this);
+    auto persistMode = PersistMode{options.value(u"persist_mode"_s, std::to_underlying(PersistMode::None)).toUInt()};
+    const auto restoreDataEntry = options.constFind(u"restore_data"_s);
+    const auto restoreData = restoreDataEntry != options.cend() ? qdbus_cast<RestoreData>(restoreDataEntry->value<QDBusArgument>()) : RestoreData{};
+    if (restoreData.session == "KDE"_L1 && restoreData.version == RestoreData::currentRestoreDataVersion()) {
+        const auto allowedCapabilities = Capabilities::fromInt(restoreData.payload.value(u"capabilities"_s).toUInt());
+        const auto clipboardAllowed = restoreData.payload.value(u"clipboard_enabled"_s).toBool();
+        const bool canRestoreCapabilities = (allowedCapabilities | requestedCapabilities) == allowedCapabilities;
+        const bool canRestoreClipboard = clipboardAllowed || !session->clipboardEnabled();
+        if (canRestoreCapabilities && canRestoreClipboard) {
+            if (!setupInputCaptureSession(session, requestedCapabilities)) {
+                replyResponse = PortalResponse::OtherError;
+                return;
+            }
+
+            const QString applicationName = Utils::applicationName(app_id);
+            auto notification = new KNotification(u"inputcapturesrestored"_s, KNotification::CloseOnTimeout);
+            notification->setTitle(i18nc("@title:nofication", "Input Capture Approved"));
+            QString description = applicationName.isEmpty()
+                ? i18nc("@info", "An unidentifiable application will be able to take over the pointer and keyboard in the future.")
+                : i18nc("@info", "%1 will be able to take over the pointer and keyboard in the future.", applicationName);
+            notification->setText(description);
+            notification->setIconName(u"dialog-input-devices"_s);
+            notification->sendEvent();
+            connect(session, &Session::closed, notification, &KNotification::close);
+
+            replyResponse = PortalResponse::Success;
+            replyResults = {{u"capabilities"_s, static_cast<uint>(requestedCapabilities)},
+                            {u"clipboard_enabled"_s, session->clipboardEnabled()},
+                            {u"persist_mode"_s, std::to_underlying(persistMode)},
+                            {u"restore_data"_s, QVariant::fromValue(restoreData)}};
+            return;
+        }
+    } else {
+        // In the future we might need to handle prior versions
+    }
+
+    auto dialog = new InputCaptureDialog(app_id, requestedCapabilities, persistMode, this);
     Utils::setParentWindow(dialog->windowHandle(), parent_window);
     Request::makeClosableDialogRequestWithSession(handle, dialog, session);
 
-    delayReply(message, dialog, this, [this, session, requestedCapabilities](DialogResult result) {
+    delayReply(message, dialog, this, [this, session, requestedCapabilities, persistMode, dialog](DialogResult result) {
         auto response = PortalResponse::fromDialogResult(result);
         QVariantMap results;
         if (result == DialogResult::Accepted) {
@@ -174,6 +254,12 @@ void InputCapturePortal::CreateSession(const QDBusObjectPath &handle,
                 response = PortalResponse::OtherError;
             } else {
                 results.insert(u"capabilities"_s, static_cast<uint>(requestedCapabilities));
+                results.insert(u"clipboard_enabled"_s, session->clipboardEnabled());
+                if (persistMode != PersistMode::None && dialog->allowRestore()) {
+                    const RestoreData restoreData{.session = u"KDE"_s, .version = RestoreData::currentRestoreDataVersion(), .payload = results};
+                    results.insert(u"restore_data"_s, QVariant::fromValue(restoreData));
+                    results.insert(u"persist_mode"_s, std::to_underlying(persistMode));
+                }
             }
         }
         return QVariantList{response, results};
@@ -325,7 +411,7 @@ uint InputCapturePortal::SetPointerBarriers(const QDBusObjectPath &handle,
             }
             failedBarriers.append(id);
         } else {
-            session->addBarrier(std::get<1>(barrierOrFailure));
+            session->addBarrier(id, std::get<1>(barrierOrFailure));
         }
     }
     results.insert(u"failed_barriers"_s, QVariant::fromValue(failedBarriers));
@@ -472,9 +558,9 @@ InputCaptureSession::InputCaptureSession(QObject *parent, const QString &appId, 
 
 InputCaptureSession::~InputCaptureSession() = default;
 
-void InputCaptureSession::addBarrier(const QPair<QPoint, QPoint> &barrier)
+void InputCaptureSession::addBarrier(uint id, const QPair<QPoint, QPoint> &barrier)
 {
-    m_barriers.push_back(barrier);
+    m_barriers.push_back({id, barrier.first, barrier.second});
 }
 
 void InputCaptureSession::clearBarriers()
@@ -494,7 +580,7 @@ void InputCaptureSession::connect(const QDBusObjectPath &path)
         QDBusConnection::sessionBus().connect(kwinService(), m_kwinInputCapture.path(), kwinInputCaptureInterface(), signalName, this, slot);
     };
     connectSignal(u"disabled"_s, SIGNAL(disabled()));
-    connectSignal(u"activated"_s, SIGNAL(activated(uint, QPointF)));
+    connectSignal(u"activated"_s, SIGNAL(activated(uint, uint, QPointF)));
     connectSignal(u"deactivated"_s, SIGNAL(deactivated(uint)));
 }
 
@@ -522,6 +608,16 @@ QDBusPendingReply<QDBusUnixFileDescriptor> InputCaptureSession::connectToEIS()
 {
     auto msg = QDBusMessage::createMethodCall(kwinService(), m_kwinInputCapture.path(), kwinInputCaptureInterface(), u"connectToEIS"_s);
     return QDBusConnection::sessionBus().asyncCall(msg, kwinDBusTimeout);
+}
+
+void InputCaptureSession::setClipboardEnabled(bool enabled)
+{
+    m_clipboardEnabled = enabled;
+}
+
+bool InputCaptureSession::clipboardEnabled() const
+{
+    return m_clipboardEnabled;
 }
 
 #include "moc_inputcapture.cpp"

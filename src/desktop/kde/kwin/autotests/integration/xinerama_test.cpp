@@ -7,14 +7,12 @@
 #include "kwin_wayland_test.h"
 
 #include "core/output.h"
+#include "core/outputconfiguration.h"
 #include "wayland_server.h"
 #include "workspace.h"
-#include "core/outputconfiguration.h"
 
 namespace KWin
 {
-
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_xinerama-0");
 
 class XineramaTest : public QObject
 {
@@ -27,7 +25,7 @@ private Q_SLOTS:
 
 void XineramaTest::initTestCase()
 {
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
 }
 
@@ -54,13 +52,13 @@ void XineramaTest::indexToOutput()
     OutputConfiguration config;
     config.changeSet(outputs[0]->backendOutput())->priority = 0;
     config.changeSet(outputs[1]->backendOutput())->priority = 1;
-    QCOMPARE(workspace()->applyOutputConfiguration(config), OutputConfigurationError::None);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
     QCOMPARE(workspace()->xineramaIndexToOutput(0), outputs.at(0));
     QCOMPARE(workspace()->xineramaIndexToOutput(1), outputs.at(1));
 
     config.changeSet(outputs[0]->backendOutput())->priority = 1;
     config.changeSet(outputs[1]->backendOutput())->priority = 0;
-    QCOMPARE(workspace()->applyOutputConfiguration(config), OutputConfigurationError::None);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
     QCOMPARE(workspace()->xineramaIndexToOutput(0), outputs.at(1));
     QCOMPARE(workspace()->xineramaIndexToOutput(1), outputs.at(0));
 }

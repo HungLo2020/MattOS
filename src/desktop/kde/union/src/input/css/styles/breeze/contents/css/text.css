@@ -1,0 +1,228 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ * SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+ */
+
+/*
+ * Text display and input related controls.
+ */
+
+label {
+    color: var(--window-text-color);
+
+    &:disabled {
+        color: var(--window-disabled-text-color);
+    }
+
+    &[colorset="complementary"],
+    [colorset="complementary"] &
+    {
+        color: var(--complementary-text-color);
+    }
+}
+
+textfield,
+textarea,
+spinbox,
+searchfield
+{
+    height: var(--large-element-size);
+    padding: var(--medium-spacing);
+    border-radius: var(--corner-radius);
+
+    border: 1px solid var(--view-border-color);
+    background-color: var(--view-background-color);
+    color: var(--view-text-color);
+
+    &:hovered,
+    &:active-focus {
+        border: 1px solid var(--highlight-color);
+    }
+
+    &:visual-focus {
+        outline: 2px solid var(--focus-color);
+    }
+
+    & > .placeholder
+    {
+        color: mix(var(--view-text-color), var(--view-background-color), 0.3);
+    }
+
+    &:disabled {
+        color: var(--view-disabled-text-color);
+        background-color: var(--view-disabled-background-color);
+        border: 1px solid var(--view-disabled-border-color);
+
+        & > .placeholder
+        {
+            color: mix(var(--view-text-color), var(--view-background-color), 0.7);
+        }
+    }
+}
+
+textfield,
+searchfield {
+    text-alignment: content start center 0;
+    width: var(--text-field-width);
+    &.inside-table {
+        border: none;
+        border-radius: 0px;
+        background-color: var(--view-background-alternate-color);
+    }
+}
+
+textarea
+{
+    text-alignment: content start start 0;
+    width: var(--text-field-width);
+}
+
+spinbox
+{
+    width: var(--medium-element-size);
+    height: var(--large-element-size);
+    layout-alignment: content fill fill 0;
+    text-alignment: content center fill 0;
+    padding-left: var(--large-spacing);
+    padding-right: var(--large-spacing);
+    padding-top: var(--small-spacing);
+    padding-bottom: var(--small-spacing);
+
+    color: var(--button-active-text-color);
+
+    & > indicator
+    {
+        width: var(--large-element-size);
+        height: var(--small-element-size);
+        border-radius: var(--corner-radius);
+        color: var(--button-active-text-color);
+
+        margin-top: var(--corner-radius);
+        margin-bottom: var(--corner-radius);
+
+        layout-alignment-container: item;
+        layout-alignment-vertical: fill;
+
+        &:hovered,
+        &:pressed
+        {
+            height: var(--medium-element-size);
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        &:hovered
+        {
+            border: 1px solid var(--highlight-color);
+        }
+
+        &:pressed
+        {
+            background-color: var(--button-active-highlight-color);
+            border: 1px solid var(--highlight-color);
+        }
+
+        &:disabled
+        {
+            color: var(--button-disabled-text-color);
+        }
+
+        &.decrease
+        {
+            layout-alignment-horizontal: start;
+            icon-name: "spinbox-decrease";
+            border-top-right-radius: 0px;
+            border-bottom-right-radius: 0px;
+            border-right: 1px solid var(--button-active-border-color);
+
+            &:hovered,
+            &:pressed
+            {
+                border-right: 1px solid var(--highlight-color);
+                border-top-right-radius: var(--corner-radius);
+                border-bottom-right-radius: var(--corner-radius);
+            }
+        }
+
+        &.increase
+        {
+            layout-alignment-horizontal: end;
+            icon-name: "spinbox-increase";
+            border-top-left-radius: 0px;
+            border-bottom-left-radius: 0px;
+            border-left: 1px solid var(--button-active-border-color);
+
+            &:hovered,
+            &:pressed
+            {
+                border-left: 1px solid var(--highlight-color);
+                border-top-left-radius: var(--corner-radius);
+                border-bottom-left-radius: var(--corner-radius);
+            }
+        }
+    }
+
+    &.constrained {
+        layout-alignment: item start fill 0;
+        text-alignment: item start fill 0;
+        margin-left: var(--small-spacing);
+    }
+
+    &.constrained > indicator {
+        layout-alignment: item end stack-fill 0;
+
+        width: var(--medium-element-size);
+        height: var(--small-element-size);
+
+        border: none;
+        margin: 0px;
+        margin-right: var(--minimal-spacing);
+
+        &:hover,
+        &:pressed
+        {
+            border: none;
+            background: none;
+            icon-color: var(--highlight-color);
+        }
+
+        &.decrease {
+            layout-alignment-order: 1;
+            icon-name: "arrow-down";
+        }
+
+        &.increase {
+            icon-name: "arrow-up";
+        }
+    }
+}
+
+searchfield {
+    height: var(--large-element-size);
+    layout-alignment: content fill fill 1;
+    text-alignment: content fill center 0;
+    & > searchindicator, & > clearindicator {
+        width: var(--icon-size-smallmedium);
+        height: var(--icon-size-smallmedium);
+    }
+
+    & > searchindicator {
+        layout-alignment: content start fill 0;
+        icon-name: "search";
+        margin-right: var(--small-spacing);
+    }
+
+    & > clearindicator {
+        layout-alignment: content end fill 2;
+        icon-name: "edit-clear";
+        margin-left: var(--small-spacing);
+    }
+    
+}
+
+textfield.changed,
+textarea.changed,
+spinbox.changed {
+    background-color: var(--changed-background);
+    border: 1px solid var(--changed-foreground);
+}

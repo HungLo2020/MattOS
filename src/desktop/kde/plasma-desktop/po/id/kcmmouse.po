@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcminput\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
 "PO-Revision-Date: 2025-03-15 06:31+0700\n"
 "Last-Translator: Wantoyo <wantoyek@gmail.com>\n"
 "Language-Team: https://t.me/Localizations_KDE_Indonesia\n"
@@ -20,23 +20,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 24.12.1\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr ""
-"Pengkuerian peranti input gagal. Silakan membukaulang modul pengaturan ini."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr "Galat kritis saat membaca pokok info peranti %1."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "Tidak dapat memilih backend yang sesuai"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -45,12 +34,12 @@ msgstr ""
 "Galat ketika memuat nilai. Lihat log untuk informasi selebihnya. Silakan "
 "mulai ulang modul konfigurasi ini."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "Tidak ada peranti penunjuk yang ditemukan. Koneksikan sekarang."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -59,7 +48,7 @@ msgstr ""
 "Tidak dapat menyimpan semua perubahan. Lihat log untuk informasi selebihnya. "
 "Silakan restart modul konfigurasi ini dan coba lagi."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -68,7 +57,7 @@ msgstr ""
 "Galat ketika memuat nilai baku. Gagal mengeset beberapa opsi ke nilai "
 "bakunya."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -77,12 +66,12 @@ msgstr ""
 "Galat ketika menambahkan peranti yang baru terkoneksi. Silakan koneksikan "
 "ulang dan jalankan ulang modul konfigurasi ini."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr "Perangkat penunjuk terdiskoneksi. Tutuplah dialog pengaturan ini."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr ""
@@ -143,34 +132,34 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "Peranti:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, fuzzy, kde-format
 #| msgid "General:"
 msgctxt "@title:group"
 msgid "General:"
 msgstr "Umum:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr ""
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, fuzzy, kde-format
 #| msgid "Swap left and right buttons."
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "Tukar tombol kiri dan kanan."
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, fuzzy, kde-format
 #| msgid "Left-handed mode"
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "Mode tangan kiri"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, fuzzy, kde-format
 #| msgctxt "@info:tooltip"
 #| msgid ""
@@ -181,7 +170,7 @@ msgstr ""
 "Penekanan tombol kiri dan kanan secara serentak bertindak sebagai klik "
 "tengah."
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -192,21 +181,21 @@ msgstr ""
 "yang diperlukan untuk mendeteksi secara benar penekanan tombol kiri dan "
 "kanan yang serentak."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, fuzzy, kde-format
 #| msgid "Pointer speed:"
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "Kecepatan penunjuk:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, fuzzy, kde-format
 #| msgid "Enable pointer acceleration"
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "Fungsikan akselerasi pointer"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, fuzzy, kde-format
 #| msgctxt "@info:tooltip from ContextualHelpButton"
 #| msgid ""
@@ -219,47 +208,52 @@ msgstr ""
 "Ketika difungsikan, jarak tempuh pointer bertambah seiring dengan kecepatan "
 "pergerakan yang lebih cepat."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, fuzzy, kde-format
 #| msgid "Scrolling speed:"
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "Kecepatan pengguliran:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "Lambat"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "Cepat"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, fuzzy, kde-format
 #| msgid "Scrolling:"
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "Pengguliran:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, fuzzy, kde-format
 #| msgid "Invert scroll direction"
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "Kebalikan arah gulir"
 
-#: ui/main.qml:339
-#, fuzzy, kde-format
-#| msgid "Press middle button and move mouse to scroll"
+#: ui/main.qml:363
+#, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr "Tekan tombol tengah dan pindahkan mouse untuk gulir"
+msgid "Scroll when moving the pointer"
+msgstr ""
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr ""
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -268,6 +262,35 @@ msgid ""
 "device, but is intended primarily as a substitute for scroll wheels on "
 "devices that do not have any."
 msgstr ""
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr ""
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+
+#, fuzzy
+#~| msgid "Press middle button and move mouse to scroll"
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr "Tekan tombol tengah dan pindahkan mouse untuk gulir"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "Tidak dapat memilih backend yang sesuai"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr ""
+#~ "Pengkuerian peranti input gagal. Silakan membukaulang modul pengaturan "
+#~ "ini."
 
 #~ msgid "Device enabled"
 #~ msgstr "Peranti difungsikan"

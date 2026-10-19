@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
 "PO-Revision-Date: 2024-12-20 21:52+0530\n"
 "Last-Translator: kali <skkalwar999@gmail.com>\n"
 "Language-Team: Sanskrit <kde-i18n-doc@kde.org>\n"
@@ -66,7 +66,7 @@ msgstr "अन्येषां खिडकीनां उपरि स्थ
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
+msgid "Hide from screenshots and screen recordings"
 msgstr ""
 
 #: declarative-plugin/buttonsmodel.cpp:76
@@ -74,13 +74,13 @@ msgstr ""
 msgid "Spacer"
 msgstr "स्पेसर"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "विषयः पूर्वनिर्धारितः (%1) ."
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -90,7 +90,7 @@ msgstr ""
 "एतत् साधनं भवन्तं वर्तमानसक्रियसत्रस्य कृते विण्डो-सज्जा-विषयं सेट् कर्तुं शक्नोति, यदृच्छया एकं न "
 "उपलभ्यते, अथवा यत् पूर्वमेव सेट् कृतम् अस्ति इति सेट् कर्तुं न शक्नोति"
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -100,13 +100,13 @@ msgstr ""
 "KWin कृते भवन्तः यत् विण्डो अलङ्कारविषयं सेट् कर्तुम् इच्छन्ति तस्य नाम । पूर्णमार्गं पारयित्वा "
 "तस्मिन् निर्देशिकायां विषयं अन्वेष्टुं प्रयतते, ततः तत् प्रयोजयिष्यति यदि निष्कर्षः कर्तुं शक्यते ।"
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr "प्रणाल्यां उपलभ्यमानानि सर्वाणि विषयाणि दर्शयन्तु (वर्तमानः विषयः च कः)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -115,7 +115,7 @@ msgstr ""
 "KWin Aurorae विषयवस्तु \"%2\" प्रति %1 समाधानं कृतम्, तत् च भवतः वर्तमानविषयत्वेन सेट् "
 "कर्तुं प्रयतते ।"
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -124,18 +124,21 @@ msgstr ""
 "भवान् सञ्चिकामार्गं पारयितुं प्रयतितवान्, परन्तु एतत् विषयवस्तुं प्रति समाधानं कर्तुं न शक्तवान्, "
 "अस्माभिः च निरस्तं कर्तव्यं भविष्यति, सेट् कर्तुं विषयः नास्ति इति कारणतः"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr "अनुरोधितः विषयः \"%1\" पूर्वमेव विण्डो अलङ्कारविषयत्वेन सेट् कृतः अस्ति ।"
 
-#: kwin-applywindowdecoration.cpp:99
-#, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+#: kwin-applywindowdecoration.cpp:101
+#, fuzzy, kde-format
+#| msgid ""
+#| "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr "भवतः वर्तमानप्लाज्मासत्रे %1 इति कर्सरविषयं सफलतया प्रयुक्तम्"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -144,14 +147,14 @@ msgstr ""
 "भवतः विषयसेटिंग्स् रक्षितुं असफलः - कारणम् अज्ञातम्, परन्तु एषा अपुनर्प्राप्तियोग्यदोषः अस्ति "
 "। भवन्तः पश्यन्ति यत् केवलं पुनः प्रयासः एव कार्यं करिष्यति।"
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 msgstr "\"%1\" इति विषयः न लब्धः । विषयः निम्नलिखितविकल्पेषु अन्यतमः भवेत्: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "भवतः प्रणाल्यां निम्नलिखित KWin विण्डो अलङ्कारविषयाणि सन्ति ।"
@@ -201,7 +204,7 @@ msgstr "शीर्षकपट्टिकाबटनसाधनसूचन
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:85
@@ -209,15 +212,15 @@ msgstr ""
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
 
 #: ui/main.qml:29
@@ -243,47 +246,47 @@ msgstr "नवीनं प्राप्तुम्..."
 msgid "Edit %1 Theme…"
 msgstr "सम्पादयतु %1 विषयवस्तु..."
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "न खिडकीसीमाः"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "न पार्श्वजालकसीमाः"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "लघु खिडकीसीमा"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "सामान्याः खिडकीसीमाः"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "बृहत् खिडकीसीमाः"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "अतीव विशालाः खिडकीसीमाः"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "विशालाः खिडकीसीमाः"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "अतीव विशालाः खिडकीसीमाः"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "अतिप्रमाणस्य खिडकीसीमाः"

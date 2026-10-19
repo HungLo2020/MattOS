@@ -11,7 +11,7 @@ var registeredBorders = [];
 
 function isRelevant(window) {
     return window.minimizable &&
-        (!window.desktops.length || window.desktops.includes(workspace.currentDesktop)) &&
+        (!window.desktops.length || window.desktops.includes(workspace.currentDesktopForScreen(window.output))) &&
         (!window.activities.length || window.activities.includes(workspace.currentActivity));
 }
 

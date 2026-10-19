@@ -3,6 +3,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls as QQC2
@@ -15,25 +16,7 @@ QQC2.ComboBox {
 
     required model
 
-    // HACK QQC2 doesn't support icons, so we just tamper with the desktop style ComboBox's background
-    function loadProps() {
-        if (!background || !background.hasOwnProperty("properties")) {
-            // not a KQuickStyleItem
-            return;
-        }
-
-        const props = background.properties || {};
-
-        background.properties = Qt.binding(function() {
-            const modelIndex = model.index(currentIndex, 0);
-            props.currentIcon = model.data(modelIndex, model.KItemModels.KRoleNames.role("iconName"));
-            props.iconColor = Kirigami.Theme.textColor;
-            return props;
-        });
-    }
-
-    Component.onCompleted: { loadProps(); }
-    onCurrentIndexChanged: { loadProps(); }
+    Kirigami.StyleHints.iconName: model.index(currentIndex, 0).data((model as QtObject).KItemModels.KRoleNames.role("iconName")) ?? ""
 
     delegate: QQC2.ItemDelegate {
         required property string index
@@ -43,7 +26,7 @@ QQC2.ComboBox {
         required property string iconName
 
         text: name
-        highlighted: index === currentIndex
+        highlighted: index === comboBox.currentIndex
         icon.name: iconName
     }
 }

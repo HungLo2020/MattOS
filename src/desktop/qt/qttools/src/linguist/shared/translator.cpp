@@ -27,6 +27,16 @@ QT_BEGIN_NAMESPACE
 
 using namespace Qt::Literals::StringLiterals;
 
+#ifdef Q_OS_WIN
+static bool usesCRLF(const QString &filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+    return file.read(4096).contains("\r\n"_ba);
+}
+#endif
+
 QString friendlyString(const QString &str)
 {
     QString f = str.toLower();
@@ -305,6 +315,24 @@ bool Translator::load(const QString &filename, ConversionData &cd, const QString
 
 bool Translator::save(const QString &filename, ConversionData &cd, const QString &format) const
 {
+    const QString fmt = guessFormat(filename, format);
+
+    const FileFormat *handler = nullptr;
+    for (const FileFormat &f : std::as_const(registeredFileFormats())) {
+        if (fmt == f.extension) {
+            handler = &f;
+            break;
+        }
+    }
+    if (!handler) {
+        cd.appendError(QString("Unknown format %1 for file %2"_L1).arg(format, filename));
+        return false;
+    }
+    if (!handler->saver) {
+        cd.appendError(QString("Saving '%1' files is not supported"_L1).arg(fmt));
+        return false;
+    }
+
     QFile file;
     if (filename.isEmpty() || filename == "-"_L1) {
 #ifdef Q_OS_WIN
@@ -318,35 +346,31 @@ bool Translator::save(const QString &filename, ConversionData &cd, const QString
         }
     } else {
         file.setFileName(filename);
-        if (!file.open(QIODevice::WriteOnly)) {
+        QIODevice::OpenMode mode = QIODevice::WriteOnly;
+#ifdef Q_OS_WIN
+        // Preserve CRLF line endings on Windows for text formats
+        if (handler->fileType != FileFormat::TranslationBinary && usesCRLF(filename))
+            mode |= QIODevice::Text;
+#endif
+        if (!file.open(mode)) {
             cd.appendError(QString::fromLatin1("Cannot create %1: %2")
                 .arg(filename, file.errorString()));
             return false;
         }
     }
 
-    QString fmt = guessFormat(filename, format);
     cd.m_targetDir = QFileInfo(filename).absoluteDir();
 
-    for (const FileFormat &format : std::as_const(registeredFileFormats())) {
-        if (fmt == format.extension) {
-            if (format.saver) {
-                if (fmt != u"ts" && m_locationsType == RelativeLocations)
-                    std::cerr << "Warning: relative locations are not supported for non TS files. "
-                                 "File "
-                              << qPrintable(filename)
-                              << " will be generated with the "
-                                 "default location type."
-                              << std::endl;
-                return (*format.saver)(*this, file, cd);
-            }
-            cd.appendError(QString("Cannot save %1 files"_L1).arg(fmt));
-            return false;
-        }
+    if (fmt != u"ts" && m_locationsType == RelativeLocations) {
+        std::cerr << "Warning: relative locations are not supported for non TS files. "
+                     "File "
+                  << qPrintable(filename)
+                  << " will be generated with the "
+                     "default location type."
+                  << std::endl;
     }
 
-    cd.appendError(QString("Unknown format %1 for file %2"_L1).arg(format, filename));
-    return false;
+    return (*handler->saver)(*this, file, cd);
 }
 
 QString Translator::makeLanguageCode(QLocale::Language language, QLocale::Territory territory)

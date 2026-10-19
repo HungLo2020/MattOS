@@ -17,7 +17,7 @@
 
 using namespace Qt::StringLiterals;
 
-void _k_globalMainConfigSync();
+void _k_globalMainConfigSyncAndCleanup();
 
 using SharedConfigList = QList<KSharedConfig *>;
 
@@ -28,11 +28,9 @@ public:
         : wasTestModeEnabled(false)
     {
         if (!qApp || QThread::currentThread() == qApp->thread()) {
-            // We want to force the sync() before the QCoreApplication
-            // instance is gone. Otherwise we trigger a QLockFile::lock()
-            // after QCoreApplication is gone, calling qAppName() for a non
-            // existent app...
-            qAddPostRoutine(&_k_globalMainConfigSync);
+            // At application shutdown, sync the main config while the QCoreApplication is
+            // still alive and then free this thread's shared config.
+            qAddPostRoutine(&_k_globalMainConfigSyncAndCleanup);
         }
         // In other threads, QThreadStorage takes care of deleting the GlobalSharedConfigList when
         // the thread exits.
@@ -110,11 +108,25 @@ namespace
 }
 } // namespace
 
-void _k_globalMainConfigSync()
+void _k_globalMainConfigSyncAndCleanup()
 {
+    // Sync the main config while the QCoreApplication is still alive, so QLockFile can
+    // still resolve the application name.
     if (KSharedConfigPtr mainConfig = globalSharedConfig()->mainConfig) {
         mainConfig->sync();
     }
+
+    // __SANITIZE_ADDRESS__ is defined by GCC, Clang 14 and later, and MSVC when building
+    // with AddressSanitizer, which includes LeakSanitizer.
+#ifdef __SANITIZE_ADDRESS__
+    // Free this thread's GlobalSharedConfig now, while a post routine still runs and the
+    // main thread is still alive. QThreadStorage would otherwise free it at thread
+    // teardown, which happens after LeakSanitizer has reported, so the instance shows up
+    // as leaked. Passing nullptr deletes the held instance and clears the slot, so
+    // hasLocalData() reads false and a later openConfig() creates a fresh one. This is
+    // only built under the sanitizer, the normal teardown is fine otherwise.
+    s_storage.setLocalData(nullptr);
+#endif
 }
 
 KSharedConfigPtr KSharedConfig::openConfig(const QString &_fileName, OpenFlags flags, QStandardPaths::StandardLocation resType)

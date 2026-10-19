@@ -322,6 +322,89 @@ QQmlPropertyCache::Ptr QQmlPropertyCache::copy() const
     return copy(_metaObject, 0);
 }
 
+QQmlPropertyCache::Ptr QQmlPropertyCache::rebased(const ConstPtr &parent) const
+{
+    // Leave the meta-object empty so createMetaObject() rebuilds it lazily from our own members on
+    // top of the new parent's meta-object. Seeding it with the parent's meta-object would drop our
+    // own members from the derived meta-object.
+    QQmlPropertyCache::Ptr cache = QQmlPropertyCache::Ptr(
+            new QQmlPropertyCache(QQmlMetaObjectPointer(), _handleOverride),
+            QQmlPropertyCache::Ptr::Adopt);
+
+    cache->_parent = parent;
+
+    const int oldPropertyStart = propertyIndexCacheStart;
+    const int oldMethodStart = methodIndexCacheStart;
+    const int oldSignalStart = signalHandlerIndexCacheStart;
+
+    const int deltaProperty = parent->propertyCount() - oldPropertyStart;
+    const int deltaMethod = parent->methodCount() - oldMethodStart;
+    const int deltaSignal = parent->signalCount() - oldSignalStart;
+
+    cache->propertyIndexCacheStart = parent->propertyCount();
+    cache->propertyIndexCache = propertyIndexCache;
+
+    cache->methodIndexCacheStart = parent->methodCount();
+    cache->methodIndexCache = methodIndexCache;
+
+    cache->signalHandlerIndexCacheStart = parent->signalCount();
+    cache->signalHandlerIndexCache = signalHandlerIndexCache;
+
+    cache->enumCache = enumCache;
+
+    const auto shifted = [](int value, int threshold, int delta) {
+        return value >= threshold ? value + delta : value;
+    };
+
+    const auto shiftData = [&](QQmlPropertyData &data, int coreDelta, int coreThreshold) {
+        if (data.coreIndex() >= 0)
+            data.setCoreIndex(shifted(data.coreIndex(), coreThreshold, coreDelta));
+        if (data.notifyIndex() >= 0)
+            data.setNotifyIndex(shifted(data.notifyIndex(), oldSignalStart, deltaSignal));
+    };
+
+    for (QQmlPropertyData &data : cache->propertyIndexCache)
+        shiftData(data, deltaProperty, oldPropertyStart);
+    for (QQmlPropertyData &data : cache->methodIndexCache)
+        shiftData(data, deltaMethod, oldMethodStart);
+    for (QQmlPropertyData &data : cache->signalHandlerIndexCache)
+        shiftData(data, deltaMethod, oldMethodStart);
+
+    cache->stringCache.linkAndReserve(
+            parent->stringCache, ownPropertyCount() + ownMethodCount() + ownSignalCount());
+
+    for (auto it = stringCache.begin(), end = stringCache.end(); it != end; ++it) {
+        const QQmlPropertyData *myData = it.value().second;
+        int index = it.value().first;
+
+        QQmlPropertyData *copyData = nullptr;
+        if (myData->isSignalHandler()) {
+            index = shifted(index, oldSignalStart, deltaSignal);
+            copyData = cache->signalHandlerIndexCache.data() + (index - cache->signalOffset());
+        } else if (myData->isFunction()) {
+            index = shifted(index, oldMethodStart, deltaMethod);
+            copyData = cache->methodIndexCache.data() + (index - cache->methodOffset());
+        } else {
+            index = shifted(index, oldPropertyStart, deltaProperty);
+            copyData = cache->propertyIndexCache.data() + (index - cache->propertyOffset());
+        }
+
+        if (const QQmlPropertyData *overridden = parent->findNamedProperty(it.key()))
+            copyData->setOverrideIndex(overridden->coreIndex());
+        else
+            copyData->setOverrideIndex(-1);
+
+        cache->stringCache.insert(it.key(), std::make_pair(index, copyData));
+    }
+
+    cache->allowedRevisionCache = allowedRevisionCache;
+    cache->_dynamicStringData = _dynamicStringData;
+    cache->_dynamicClassName = _dynamicClassName;
+    cache->_defaultPropertyName = _defaultPropertyName;
+    cache->_listPropertyAssignBehavior = _listPropertyAssignBehavior;
+    return cache;
+}
+
 QQmlPropertyCache::Ptr QQmlPropertyCache::copyAndReserve(
         int propertyCount, int methodCount, int signalCount, int enumCount) const
 {
@@ -337,7 +420,7 @@ QQmlPropertyCache::Ptr QQmlPropertyCache::copyAndReserve(
 QQmlPropertyCache::AppendResult
 QQmlPropertyCache::appendAlias(const QString &name, QQmlPropertyData::Flags flags, int coreIndex,
                                QMetaType propType, QTypeRevision version, int notifyIndex,
-                               int encodedTargetIndex)
+                               int encodedTargetIndex, int targetObjectId)
 {
     QQmlPropertyData data;
     data.setPropType(propType);
@@ -346,9 +429,27 @@ QQmlPropertyCache::appendAlias(const QString &name, QQmlPropertyData::Flags flag
     flags.setIsAlias(true);
     data.setFlags(flags);
     data.setAliasTarget(encodedTargetIndex);
+    data.setAliasTargetObjectId(targetObjectId);
     data.setTypeVersion(version);
 
     return appendPropertyAttr(name, std::move(data));
+}
+
+QQmlPropertyCache::AppendResult
+QQmlPropertyCache::appendComponentWrapper(int coreIndex, int wrappedObjectIndex)
+{
+    QQmlPropertyData data;
+    data.setCoreIndex(coreIndex);
+    QQmlPropertyData::Flags flags;
+    flags.setType(QQmlPropertyData::Flags::ComponentWrapperType);
+    data.setFlags(flags);
+    data.setWrappedObjectIndex(wrappedObjectIndex);
+
+    // Use a sentinel name so that defaultProperty() can find the wrapper.
+    // NB: We're not actually using the default property as default property. We only
+    //     need some property to hold the wrapped object index.
+    _defaultPropertyName = QStringLiteral(".qt_component_wrapper__");
+    return appendPropertyAttr(_defaultPropertyName, std::move(data));
 }
 
 void QQmlPropertyCache::appendSignal(const QString &name, QQmlPropertyData::Flags flags,
@@ -817,7 +918,7 @@ const QQmlPropertyData *QQmlPropertyCache::findProperty(
         if (vmemo && context && !contextHasNoExtensions(context)) {
             // Find the meta-object that corresponds to the supplied context
             do {
-                if (vmemo->ctxt.contextData().data() == context.data())
+                if (vmemo->contextData() == context)
                     break;
 
                 vmemo = vmemo->parentVMEMetaObject();
@@ -1412,7 +1513,7 @@ QByteArray QQmlPropertyCache::checksum(QHash<quintptr, QByteArray> *checksums, b
     }
 
     // Generate a checksum on the meta-object data only on C++ types.
-    if (_metaObject.isShared()) {
+    if (isComposite()) {
         *ok = false;
         return QByteArray();
     }

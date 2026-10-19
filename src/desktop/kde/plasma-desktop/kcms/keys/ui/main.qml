@@ -247,7 +247,9 @@ KCM.AbstractKCM {
                                     addCommandDialog.editing = true;
                                     addCommandDialog.componentName = model.component;
                                     addCommandDialog.name = model.display;
-                                    addCommandDialog.oldExec = kcm.getCommand(model.component);
+                                    const componentIndex = kcm.filteredModel.index(index, 0);
+                                    const actionIndex = kcm.filteredModel.index(0, 0, componentIndex);
+                                    addCommandDialog.oldExec = kcm.filteredModel.data(actionIndex, Qt.DisplayRole);
                                     addCommandDialog.commandListItemDelegate = componentDelegate;
                                     addCommandDialog.open();
                                 }
@@ -398,10 +400,17 @@ KCM.AbstractKCM {
 
                         model: DelegateModel {
                             id: dm
+
+                            onRootIndexChanged: shortcutsList.positionViewAtBeginning()
                             model: rootIndex.valid ?  kcm.filteredModel : undefined
                             delegate: ShortcutActionDelegate {
                                 showExpandButton: shortcutsList.count > 1
                                 enabled: !shortcutsList.contentsWillBeDeleted
+                                onHeightChanged: {
+                                    if (shortcutsList.selectedIndex == index) {
+                                        ListView.view.positionViewAtIndex(index, ListView.Contain)
+                                    }
+                                }
                             }
                             KeyNavigation.left: components
                         }

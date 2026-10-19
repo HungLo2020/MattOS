@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <QtQmlModels/private/qqmlrolesorter_p.h>
 #include <QtQmlModels/private/qqmlsortfilterproxymodel_p.h>
@@ -22,7 +23,7 @@ QT_BEGIN_NAMESPACE
 
     \qml
     SortFilterProxyModel {
-        model: sourceModel
+        sourceModel: model
         sorters: [
             RoleSorter { roleName: "firstname" }
         ]
@@ -53,6 +54,7 @@ void QQmlRoleSorter::setRoleName(const QString& roleName)
     if (d->m_roleName == roleName)
         return;
     d->m_roleName = roleName;
+    d->m_roleNameValidated = false;
     // Update the model for the change in the role name
     emit roleNameChanged();
     // Invalidate the model for the change in the role name
@@ -71,9 +73,23 @@ const QString& QQmlRoleSorter::roleName() const
 QPartialOrdering QQmlRoleSorter::compare(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, const QQmlSortFilterProxyModel *proxyModel) const
 {
     Q_D(const QQmlRoleSorter);
-    if (int role = proxyModel->itemRoleForName(d->m_roleName); role > -1)
-        return QVariant::compare(proxyModel->sourceData(sourceLeft, role), proxyModel->sourceData(sourceRight, role));
-    return QPartialOrdering::Unordered;
+    int role = proxyModel->itemRoleForName(d->m_roleName);
+
+    if (role < 0) {
+        if (!d->m_roleName.isEmpty() && !d->m_roleNameValidated) {
+            qWarning("Provided role name %s doesn't exist in the model", d->m_roleName.toUtf8().constData());
+            d->m_roleNameValidated = true;
+        }
+        return QPartialOrdering::Unordered;
+    }
+
+    return QVariant::compare(proxyModel->sourceData(sourceLeft, role), proxyModel->sourceData(sourceRight, role));
+}
+
+void QQmlRoleSorter::update(const QQmlSortFilterProxyModel *)
+{
+    Q_D(QQmlRoleSorter);
+    d->m_roleNameValidated = false;
 }
 
 QT_END_NAMESPACE

@@ -41,6 +41,12 @@ const QQmlScriptStringPrivate* QQmlScriptStringPrivate::get(const QQmlScriptStri
     return script.d.constData();
 }
 
+QQmlScriptString QQmlScriptStringPrivate::create(const QString &script, QQmlContext *context,
+    QObject *scope)
+{
+    return QQmlScriptString(script, context, scope);
+}
+
 /*!
 Constructs an empty instance.
 */

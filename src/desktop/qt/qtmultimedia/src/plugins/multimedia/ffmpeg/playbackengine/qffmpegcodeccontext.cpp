@@ -75,9 +75,8 @@ q23::expected<CodecContext, QString> CodecContext::create(AVStream *stream,
         decoder = QFFmpeg::findAVDecoder(stream->codecpar->codec_id);
 
     if (!decoder)
-        return q23::unexpected{
-            QString(u"No %1 decoder found").arg(videoCodecPolicy == Hw ? "HW" : "SW")
-        };
+        return q23::unexpected{ u"No %1 decoder found"_s.arg(videoCodecPolicy == Hw ? "HW"
+                                                                                    : "SW") };
 
     qCDebug(qLcPlaybackEngineCodec)
             << "found decoder" << decoder->name() << "for id" << decoder->id();
@@ -111,6 +110,10 @@ q23::expected<CodecContext, QString> CodecContext::create(AVStream *stream,
         return q23::unexpected{
             QStringLiteral("Failed to set FFmpeg codec parameters: %1").arg(err2str(ret))
         };
+
+    // Required so that decoders can rescale packet-side timestamps (e.g. when
+    // trimming AAC/Opus priming/padding samples signalled via skip_samples).
+    context->pkt_timebase = stream->time_base;
 
     // ### This still gives errors about wrong HW formats (as we accept all of them)
     // But it would be good to get so we can filter out pixel format we don't support natively

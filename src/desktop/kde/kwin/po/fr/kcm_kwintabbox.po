@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2025-09-24 14:19+0200\n"
+"POT-Creation-Date: 2026-04-14 00:45+0000\n"
+"PO-Revision-Date: 2026-04-15 17:17+0200\n"
 "Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
 "Language-Team: fr\n"
 "Language: fr\n"
@@ -265,16 +265,8 @@ msgstr "Application courante"
 msgid "Visualization"
 msgstr "Visualisation"
 
-#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
-#: main.ui:645
-#, kde-format
-msgid "The effect to replace the list window when desktop effects are active."
-msgstr ""
-"L'effet remplaçant la fenêtre de liste lorsque les effets de bureau sont "
-"activés."
-
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:678
+#: main.ui:624
 #, kde-format
 msgid ""
 "The currently selected window will be highlighted by fading out all other "
@@ -284,11 +276,75 @@ msgstr ""
 "les couleurs de toutes les autres fenêtres. Cette option nécessite que les "
 "effets de bureau soient activés."
 
-#. i18n: ectx: property (text), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:681
+#. i18n: ectx: property (text), widget (QLabel, label_HighlightWindows)
+#: main.ui:634
 #, kde-format
 msgid "Show selected window"
 msgstr "Affiche la fenêtre sélectionnée"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_ShowTabBox)
+#: main.ui:644
+#, kde-format
+msgid "Enable the window list effect"
+msgstr "Activer l'effet de liste des fenêtres"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
+#: main.ui:678
+#, kde-format
+msgid "The effect to replace the list window when desktop effects are active."
+msgstr ""
+"L'effet remplaçant la fenêtre de liste lorsque les effets de bureau sont "
+"activés."
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, label_DelayTime)
+#: main.ui:701
+#, kde-format
+msgid "The time in milliseconds to wait before showing the task switcher."
+msgstr ""
+"Le temps en millisecondes à attendre avant d'afficher le sélecteur de tâches."
+
+#. i18n: ectx: property (text), widget (QLabel, label_DelayTime)
+#: main.ui:704
+#, kde-format
+msgid "Delay:"
+msgstr "Retard :"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:720
+#, kde-format
+msgid " ms"
+msgstr " ms"
+
+#. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:735
+#, kde-format
+msgid "Delay before the window list appears"
+msgstr "Délai avant l'affichage de la liste des fenêtres"
+
+#. i18n: ectx: property (text), widget (QLabel, label_showScreen)
+#: main.ui:742
+#, kde-format
+msgid "Show on screen:"
+msgstr "Afficher à l'écran :"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, showScreenCombo)
+#: main.ui:758
+#, kde-format
+msgid "Select which screen the task switcher should be displayed on."
+msgstr ""
+"Sélectionnez l'écran sur lequel le commutateur de tâches doit être affiché."
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:762
+#, kde-format
+msgid "Active screen"
+msgstr "Écran actif"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:767
+#, kde-format
+msgid "Primary screen"
+msgstr "Écran primaire"
 
 #: shortcutsettings.cpp:131
 #, kde-format
@@ -332,6 +388,9 @@ msgid "Walk Through Windows of Current Application Alternative (Reverse)"
 msgstr ""
 "Naviguer parmi les fenêtres de l'alternative courante de l'application (En "
 "ordre inverse)"
+
+#~ msgid "Show delay:"
+#~ msgstr "Afficher le délai :"
 
 #~ msgid "Show Desktop"
 #~ msgstr "Afficher un bureau"

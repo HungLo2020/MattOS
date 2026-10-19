@@ -53,7 +53,7 @@ TrashImpl::TrashImpl()
     // so better have a separate one, for faster parsing by e.g. kmimetype.cpp
     m_config(QStringLiteral("trashrc"), KConfig::SimpleConfig)
 {
-    KMountPoint::Ptr home_mp = KMountPoint::currentMountPoints().findByPath(QDir::homePath());
+    KMountPoint::Ptr home_mp = KMountPoint::currentMountPointForPath(QDir::homePath());
     if (home_mp) {
         m_homeDevice = home_mp->deviceId();
     } else {
@@ -931,7 +931,7 @@ void TrashImpl::insertTrashDir(quint64 id, const QString &trashDir, const QStrin
 
 std::optional<quint64> TrashImpl::findTrashDirectory(const QString &origPath)
 {
-    const KMountPoint::Ptr mp = KMountPoint::currentMountPoints().findByPath(origPath);
+    const KMountPoint::Ptr mp = KMountPoint::currentMountPointForPath(origPath);
     if (!mp) {
         qCWarning(KIO_TRASH) << "KMountPoint found no mountpoint for" << origPath;
         return {};
@@ -1003,7 +1003,7 @@ KIO::UDSEntry TrashImpl::trashUDSEntry(KIO::StatDetails details)
             }
         }
 
-        entry.reserve(5);
+        entry.reserveNumbers(5);
         entry.fastInsert(KIO::UDSEntry::UDS_RECURSIVE_SIZE, static_cast<long long>(size));
 
         const auto modifiedDateNsOffset = (latestModifiedDate % 1000) * 1000000;
@@ -1067,6 +1067,16 @@ TrashImpl::TrashDirMap TrashImpl::topDirectories() const
         scanTrashDirectories();
     }
     return m_topDirectories;
+}
+
+void TrashImpl::invalidateTrashDirectoriesCache() const
+{
+    m_trashDirectoriesScanned = false;
+}
+
+QString TrashImpl::trashDirectoryForMountPoint(const QString &mountPoint) const
+{
+    return trashForMountPoint(mountPoint, false);
 }
 
 QString TrashImpl::trashForMountPoint(const QString &topdir, bool createIfNeeded) const
@@ -1227,7 +1237,6 @@ bool TrashImpl::parseURL(const QUrl &url, quint64 &trashId, QString &fileId, QSt
 
     trashId = QStringView(path).mid(start, slashPos - start).toULongLong(&ok);
 
-    Q_ASSERT_X(ok, Q_FUNC_INFO, qUtf8Printable(url.toString()));
     if (!ok) {
         return false;
     }

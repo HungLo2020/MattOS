@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <QtQmlModels/private/qqmlrolefilter_p.h>
 #include <QtQmlModels/private/qqmlsortfilterproxymodel_p.h>
@@ -8,7 +9,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype RoleFilter
-    \inherits Filter
+    \inherits FilterBase
     \inqmlmodule QtQml.Models
     \since 6.10
     \preliminary
@@ -45,6 +46,7 @@ void QQmlRoleFilter::setRoleName(const QString& roleName)
     if (d->m_roleName == roleName)
         return;
     d->m_roleName = roleName;
+    d->m_roleNameValidated = false;
     emit roleNameChanged();
     // Invalidate the model
     invalidate();
@@ -59,6 +61,12 @@ int QQmlRoleFilter::itemRole(const QQmlSortFilterProxyModel *proxyModel) const
     if (!d->m_roleName.isNull())
         return proxyModel->itemRoleForName(d->m_roleName);
     return -1;
+}
+
+void QQmlRoleFilter::update(const QQmlSortFilterProxyModel *)
+{
+    Q_D(QQmlRoleFilter);
+    d->m_roleNameValidated = false;
 }
 
 QT_END_NAMESPACE

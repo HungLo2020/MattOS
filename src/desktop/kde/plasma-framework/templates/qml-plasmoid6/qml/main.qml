@@ -15,11 +15,11 @@ PlasmoidItem {
             Layout.fillHeight: true
             Layout.fillWidth: true
             fillMode: Image.PreserveAspectFit
-            source: Qt.resolvedUrl(pairs.svgz)
+            source: Qt.resolvedUrl("pairs.svgz")
         }
         PC.Label {
             Layout.alignment: Qt.AlignCenter
-            text: "This is Plasma!"
+            text: i18nc("@label", "This is Plasma!")
         }
     }
 }

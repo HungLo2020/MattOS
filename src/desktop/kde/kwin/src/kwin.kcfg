@@ -46,13 +46,13 @@
             <default>Scroll</default>
         </entry>
         <entry name="CommandAll1" type="String">
-            <default>Move</default>
+            <default>Activate, raise and move</default>
         </entry>
         <entry name="CommandAll2" type="String">
             <default>Toggle raise and lower</default>
         </entry>
         <entry name="CommandAll3" type="String">
-            <default>Resize</default>
+            <default>Activate, raise and resize</default>
         </entry>
         <entry name="DoubleClickBorderToMaximize" type="Bool">
             <default>true</default>
@@ -104,6 +104,9 @@
             <default>true</default>
         </entry>
         <entry name="RollOverDesktops" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="PerOutputVirtualDesktops" type="Bool">
             <default>false</default>
         </entry>
         <entry name="FocusStealingPreventionLevel" type="Int">
@@ -349,5 +352,6 @@
         <entry name="XwaylandEisNoPrompt" type="Bool">
             <default>false</default>
         </entry>
+        <entry name="XwaylandEisNoPromptApps" type="StringList" />
     </group>
 </kcfg>

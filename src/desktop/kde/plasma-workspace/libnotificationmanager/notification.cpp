@@ -8,9 +8,11 @@
 
 #include "notification.h"
 #include "notification_p.h"
+#include "portal_p.h"
 
 #include <algorithm>
 
+#include <QBuffer>
 #include <QDBusArgument>
 #include <QDebug>
 #include <QFileInfo>
@@ -24,11 +26,12 @@
 #include <KService>
 
 #include "debug.h"
+#include "notifyrcpaths.h"
 
 using namespace NotificationManager;
 using namespace Qt::StringLiterals;
 
-QCache<uint, QImage> Notification::Private::s_imageCache = QCache<uint, QImage>{};
+QCache<uint, QImage> Notification::Private::s_imageCache = QCache<uint, QImage>(256 * 256 * 100);
 
 Notification::Private::Private() = default;
 
@@ -240,6 +243,17 @@ void Notification::Private::sanitizeImage(QImage &image)
     }
 }
 
+void Notification::Private::loadFromImageReader(QImageReader &reader)
+{
+    if (QSize imageSize = reader.size(); imageSize.isValid()) {
+        if (imageSize.width() > maximumImageSize().width() || imageSize.height() > maximumImageSize().height()) {
+            imageSize = imageSize.scaled(maximumImageSize(), Qt::KeepAspectRatio);
+            reader.setScaledSize(imageSize);
+        }
+        s_imageCache.insert(id, new QImage(reader.read()), imageSize.width() * imageSize.height());
+    }
+}
+
 void Notification::Private::loadImagePath(const QString &path)
 {
     // image_path and appIcon should either be a URL with file scheme or the name of a themed icon.
@@ -268,14 +282,7 @@ void Notification::Private::loadImagePath(const QString &path)
 
     QImageReader reader(imageUrl.toLocalFile());
     reader.setAutoTransform(true);
-
-    if (QSize imageSize = reader.size(); imageSize.isValid()) {
-        if (imageSize.width() > maximumImageSize().width() || imageSize.height() > maximumImageSize().height()) {
-            imageSize = imageSize.scaled(maximumImageSize(), Qt::KeepAspectRatio);
-            reader.setScaledSize(imageSize);
-        }
-        s_imageCache.insert(id, new QImage(reader.read()), imageSize.width() * imageSize.height());
-    }
+    loadFromImageReader(reader);
 }
 
 QString Notification::Private::defaultComponentName()
@@ -355,19 +362,7 @@ void Notification::Private::setDesktopEntry(const QString &desktopEntry)
     configurableNotifyRc = false;
     if (!notifyRcName.isEmpty()) {
         // Check whether the application actually has notifications we can configure
-        KConfig config(notifyRcName + QStringLiteral(".notifyrc"), KConfig::NoGlobals);
-
-        QStringList configSources =
-            QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("knotifications6/%1.notifyrc").arg(notifyRcName));
-        // Keep compatibility with KF5 applications
-        if (configSources.isEmpty()) {
-            configSources = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("knotifications5/%1.notifyrc").arg(notifyRcName));
-        }
-        // `QStandardPaths` follows the order of precedence given by `$XDG_DATA_DIRS
-        // (more priority goest first), but for `addConfigSources() it is the opposite
-        std::ranges::reverse(configSources);
-        config.addConfigSources(configSources);
-
+        KConfig config(NotifyRcPaths::locate(notifyRcName), KConfig::NoGlobals);
         KConfigGroup globalGroup(&config, u"Global"_s);
 
         const QString iconName = globalGroup.readEntry("IconName");
@@ -389,7 +384,7 @@ void Notification::Private::setDesktopEntry(const QString &desktopEntry)
     }
 }
 
-void Notification::Private::processHints(const QVariantMap &hints)
+void Notification::Private::processFdoHints(const QVariantMap &hints)
 {
     auto end = hints.end();
 
@@ -407,7 +402,6 @@ void Notification::Private::processHints(const QVariantMap &hints)
     originName = hints.value(QStringLiteral("x-kde-origin-name")).toString();
 
     eventId = hints.value(QStringLiteral("x-kde-eventId")).toString();
-    xdgTokenAppId = hints.value(QStringLiteral("x-kde-xdgTokenAppId")).toString();
 
     bool ok;
     const int urgency = hints.value(QStringLiteral("urgency")).toInt(&ok); // DBus type is actually "byte"
@@ -486,6 +480,76 @@ void Notification::Private::processHints(const QVariantMap &hints)
     // Delete image-data from hints sice we have this cached to avoid duplicate data storage
     if (!this->hints.remove(QStringLiteral("image-data"))) {
         this->hints.remove(QStringLiteral("image_data"));
+    }
+}
+
+void Notification::Private::processPortalProperties(const QVariantMap &props)
+{
+    const QString priority = props.value(u"priority"_s).toString();
+    if (priority == "low"_L1) {
+        setUrgency(Notifications::LowUrgency);
+        // TODO add high urgency
+    } else if (priority == "normal"_L1 || priority == "high"_L1) {
+        setUrgency(Notifications::NormalUrgency);
+    } else if (priority == "high"_L1) {
+        setUrgency(Notifications::CriticalUrgency);
+    }
+
+    const QVariant iconValue = props.value(u"icon"_s);
+    if (iconValue.isValid()) {
+        // "For historical reasons, it is also possible to send a simple string
+        // for themed icons with a single icon name."
+        if (iconValue.metaType().id() == QMetaType::QString) {
+            icon = iconValue.toString();
+        } else {
+            const QDBusArgument iconArg = iconValue.value<QDBusArgument>();
+            if (iconArg.currentSignature() == "(sv)"_L1) {
+                const auto iconPair = qdbus_cast<QPair<QString, QDBusVariant>>(iconArg);
+
+                if (iconPair.first == "themed"_L1) {
+                    const QStringList iconNames = iconPair.second.variant().toStringList();
+                    for (const QString &iconName : iconNames) {
+                        if (QIcon::hasThemeIcon(iconName)) {
+                            icon = iconName;
+                            break;
+                        }
+                    }
+                } else if (iconPair.first == "bytes"_L1) {
+                    QByteArray bytes = iconPair.second.variant().toByteArray();
+
+                    QBuffer buffer(&bytes);
+                    QImageReader reader(&buffer);
+                    reader.setAutoTransform(true);
+
+                    loadFromImageReader(reader);
+                }
+            } else {
+                qCInfo(NOTIFICATIONMANAGER) << "Notification has 'icon' of unsupported" << iconArg.currentSignature()
+                                            << "signature, this is an application bug!";
+            }
+        }
+    }
+
+    defaultActionId = props.value(u"default-action"_s).toString();
+    defaultActionTarget = props.value(u"default-action-target"_s);
+
+    actionNames.clear();
+    actionLabels.clear();
+    const QVariant buttonsValue = props.value(u"buttons"_s);
+    if (buttonsValue.isValid()) {
+        const QDBusArgument buttonsArg = buttonsValue.value<QDBusArgument>();
+        // TODO verify signature?
+        const auto buttons = qdbus_cast<QList<QVariantMap>>(buttonsArg);
+
+        for (const QVariantMap &button : buttons) {
+            const QString actionId = button.value(u"action"_s).toString();
+            const QString label = button.value(u"label"_s).toString();
+            const QVariant target = button.value(u"target"_s);
+
+            actionNames.append(actionId);
+            actionLabels.append(label);
+            actionTargets.append(target);
+        }
     }
 }
 
@@ -621,8 +685,8 @@ void Notification::setIcon(const QString &icon)
 
 QImage Notification::image() const
 {
-    if (d->s_imageCache.contains(d->id)) {
-        return *d->s_imageCache.object(d->id);
+    if (auto *image = d->s_imageCache.object(d->id)) {
+        return *image;
     }
     return {};
 }
@@ -689,7 +753,7 @@ QStringList Notification::actionLabels() const
 
 bool Notification::hasDefaultAction() const
 {
-    return d->hasDefaultAction;
+    return !d->defaultActionId.isEmpty();
 }
 
 QString Notification::defaultActionLabel() const
@@ -710,9 +774,9 @@ void Notification::setActions(const QStringList &actions)
         return;
     }
 
-    d->hasDefaultAction = false;
+    d->defaultActionId = QString();
     d->hasConfigureAction = false;
-    d->hasReplyAction = false;
+    d->replyActionId = QString();
 
     QStringList names;
     QStringList labels;
@@ -721,8 +785,8 @@ void Notification::setActions(const QStringList &actions)
         const QString &name = actions.at(i);
         const QString &label = actions.at(i + 1);
 
-        if (!d->hasDefaultAction && name == QLatin1String("default")) {
-            d->hasDefaultAction = true;
+        if (d->defaultActionId.isEmpty() && name == QLatin1String("default")) {
+            d->defaultActionId = name;
             d->defaultActionLabel = label;
             continue;
         }
@@ -733,8 +797,8 @@ void Notification::setActions(const QStringList &actions)
             continue;
         }
 
-        if (!d->hasReplyAction && name == QLatin1String("inline-reply")) {
-            d->hasReplyAction = true;
+        if (d->replyActionId.isEmpty() && name == QLatin1String("inline-reply")) {
+            d->replyActionId = name;
             d->replyActionLabel = label;
             continue;
         }
@@ -789,7 +853,7 @@ QString Notification::configureActionLabel() const
 
 bool Notification::hasReplyAction() const
 {
-    return d->hasReplyAction;
+    return !d->replyActionId.isEmpty();
 }
 
 QString Notification::replyActionLabel() const
@@ -869,7 +933,7 @@ void Notification::setHints(const QVariantMap &hints)
 
 void Notification::processHints(const QVariantMap &hints)
 {
-    d->processHints(hints);
+    d->processFdoHints(hints);
 }
 
 bool Notification::wasAddedDuringInhibition() const

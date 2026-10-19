@@ -3,17 +3,29 @@
 
 #include "qpipewire_instance_p.h"
 
+#include <QtMultimedia/private/qpipewire_propertydict_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
-#include <QtMultimedia/private/qpipewire_symbolloader_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#if QT_CONFIG(pipewire_symbolloader)
+#  include <QtMultimedia/private/qpipewire_symbolloader_p.h>
+#endif
 
+#include <QtDBus/qdbusinterface.h>
+#include <QtDBus/qdbusmessage.h>
+
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qmutex.h>
 
+#include <spa/utils/names.h>
+
+#include <array>
 #include <mutex>
 
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
+
+using namespace Qt::Literals;
 
 Q_LOGGING_CATEGORY(lcPipewire, "qt.multimedia.pipewire");
 
@@ -29,23 +41,7 @@ Q_GLOBAL_STATIC(InstanceHolder, s_pipeWireInstance);
 
 } // namespace
 
-std::shared_ptr<QPipeWireInstance> QPipeWireInstance::instance()
-{
-    std::lock_guard guard{ s_pipeWireInstance->mutex };
-    std::shared_ptr<QPipeWireInstance> ret = s_pipeWireInstance->instance.lock();
-    if (!ret) {
-        ret = std::make_shared<QPipeWireInstance>();
-        s_pipeWireInstance->instance = ret;
-    }
-    return ret;
-}
-
-bool QPipeWireInstance::isLoaded()
-{
-    return qPipewireIsLoaded();
-}
-
-QPipeWireInstance::QPipeWireInstance()
+QPipewireInitializer::QPipewireInitializer()
 {
     pw_init(nullptr, nullptr);
 
@@ -53,10 +49,144 @@ QPipeWireInstance::QPipeWireInstance()
                         << " running " << pw_get_library_version();
 }
 
-QPipeWireInstance::~QPipeWireInstance()
+QPipewireInitializer::~QPipewireInitializer()
 {
     if (pw_check_library_version(0, 3, 49))
         pw_deinit();
+}
+
+std::shared_ptr<QPipeWireInstance> QPipeWireInstance::instance()
+{
+    std::lock_guard guard{ s_pipeWireInstance->mutex };
+    std::shared_ptr<QPipeWireInstance> ret = s_pipeWireInstance->instance.lock();
+    if (!ret) {
+        ret = QPipeWireInstance::create();
+        if (ret)
+            s_pipeWireInstance->instance = ret;
+    }
+    return ret;
+}
+
+bool QPipeWireInstance::isLoaded()
+{
+#if QT_CONFIG(pipewire_symbolloader)
+    return qPipewireIsLoaded();
+#else
+    return 1;
+#endif
+}
+
+q23::expected<void, std::error_code> QPipeWireInstance::hasSPAFactory(const char *factoryName)
+{
+    std::array<spa_support, 32> support{};
+    uint32_t n_support = pw_get_support(support.data(), uint32_t(support.size()));
+
+    SpaHandleHandle handle{
+        pw_load_spa_handle(/*lib=*/nullptr, factoryName, /*info=*/nullptr, n_support,
+                           support.data()),
+    };
+    if (!handle)
+        return q23::unexpected{ make_error_code() };
+
+    return {};
+}
+
+bool QPipeWireInstance::isInPwThreadLoop() const
+{
+    return m_eventLoop.isInThread();
+}
+
+pw_loop *QPipeWireInstance::eventLoop() const
+{
+    return m_eventLoop.loop();
+}
+
+static std::optional<uint> portalInterfaceVersion(const QString &interface)
+{
+    QDBusInterface properties(u"org.freedesktop.portal.Desktop"_s,
+                              u"/org/freedesktop/portal/desktop"_s,
+                              u"org.freedesktop.DBus.Properties"_s, QDBusConnection::sessionBus());
+
+    QDBusMessage reply = properties.call(u"Get"_s, interface, u"version"_s);
+
+    if (reply.type() != QDBusMessage::ReplyMessage || reply.arguments().size() != 1) {
+        qCDebug(lcPipewire) << interface << "not available:" << reply.errorName()
+                            << reply.errorMessage();
+        return std::nullopt;
+    }
+
+    // The property is a variant, which arrives wrapped in a QDBusVariant.
+    const uint version = reply.arguments().at(0).toUInt();
+    qCDebug(lcPipewire) << interface << "version" << version;
+    return version;
+}
+
+bool QPipeWireInstance::hasScreenCastPortal()
+{
+    if (!m_hasScreenCastPortal)
+        m_hasScreenCastPortal =
+                portalInterfaceVersion(u"org.freedesktop.portal.ScreenCast"_s).has_value();
+    return *m_hasScreenCastPortal;
+}
+
+q23::expected<PwCoreConnectionHandle, std::error_code> QPipeWireInstance::connectToDaemon()
+{
+    auto connection = PwCoreConnectionHandle{
+        pw_context_connect(m_context.get(), /*props=*/nullptr,
+                           /*user_data_size=*/0),
+    };
+
+    if (!connection)
+        return q23::unexpected(make_error_code(errno));
+    return connection;
+}
+
+q23::expected<PwCoreConnectionHandle, std::error_code> QPipeWireInstance::connectToPortal(int fd)
+{
+    auto connection = PwCoreConnectionHandle{
+        pw_context_connect_fd(m_context.get(), fd, /*props=*/nullptr,
+                              /*user_data_size=*/0),
+    };
+
+    if (!connection)
+        return q23::unexpected(make_error_code(errno));
+    return connection;
+}
+
+std::unique_ptr<QPipeWireInstance> QPipeWireInstance::create()
+{
+    auto instance = std::unique_ptr<QPipeWireInstance>(new QPipeWireInstance);
+    if (!instance->m_eventLoop || !instance->m_context)
+        return nullptr;
+
+    return instance;
+}
+
+QPipeWireInstance::QPipeWireInstance()
+{
+    if (!m_eventLoop)
+        return;
+
+    int status = m_eventLoop.start();
+    if (status < 0)
+        qFatal() << "Failed to start event loop" << make_error_code(-status).message();
+
+    m_context = runWithEventLoopLock([&] {
+        auto applicationName = qApp->applicationName().toUtf8();
+        PwPropertiesHandle props = makeProperties({
+                { PW_KEY_APP_NAME, applicationName.data() },
+        });
+
+        return PwContextHandle{
+            pw_context_new(m_eventLoop.loop(), props.release(), /*user_data_size=*/0),
+        };
+    });
+}
+
+QPipeWireInstance::~QPipeWireInstance()
+{
+    runWithEventLoopLock([&] { m_context = {}; });
+    m_eventLoop.stop();
 }
 
 } // namespace QtPipeWire

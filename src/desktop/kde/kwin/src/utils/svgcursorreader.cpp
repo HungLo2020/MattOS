@@ -30,27 +30,27 @@ struct SvgCursorMetaDataEntry
 
 std::optional<SvgCursorMetaDataEntry> SvgCursorMetaDataEntry::parse(const QJsonObject &object)
 {
-    const QJsonValue fileName = object.value(QLatin1String("filename"));
+    const QJsonValue fileName = object.value(QLatin1StringView("filename"));
     if (!fileName.isString()) {
         return std::nullopt;
     }
 
-    const QJsonValue nominalSize = object.value(QLatin1String("nominal_size"));
+    const QJsonValue nominalSize = object.value(QLatin1StringView("nominal_size"));
     if (!nominalSize.isDouble()) {
         return std::nullopt;
     }
 
-    const QJsonValue hotspotX = object.value(QLatin1String("hotspot_x"));
+    const QJsonValue hotspotX = object.value(QLatin1StringView("hotspot_x"));
     if (!hotspotX.isDouble()) {
         return std::nullopt;
     }
 
-    const QJsonValue hotspotY = object.value(QLatin1String("hotspot_y"));
+    const QJsonValue hotspotY = object.value(QLatin1StringView("hotspot_y"));
     if (!hotspotY.isDouble()) {
         return std::nullopt;
     }
 
-    const QJsonValue delay = object.value(QLatin1String("delay"));
+    const QJsonValue delay = object.value(QLatin1StringView("delay"));
 
     return SvgCursorMetaDataEntry{
         .fileName = fileName.toString(),
@@ -132,11 +132,13 @@ QList<CursorSprite> SvgCursorReader::load(const QString &containerPath, int desi
         const QRect bounds(QPoint(0, 0), renderer.defaultSize() * scale);
         QImage image(bounds.size() * devicePixelRatio, QImage::Format_ARGB32_Premultiplied);
         image.fill(Qt::transparent);
-        image.setDevicePixelRatio(devicePixelRatio);
 
+        // Set the device pixel ratio only after rendering, QtSvg renders filtered content
+        // at logical resolution otherwise, see QTBUG-151165.
         QPainter painter(&image);
-        renderer.render(&painter, bounds);
+        renderer.render(&painter, image.rect());
         painter.end();
+        image.setDevicePixelRatio(devicePixelRatio);
 
         sprites.append(CursorSprite(image, entry.hotspot * scale, entry.delay));
     }

@@ -109,6 +109,14 @@ public:
 
     bool participatesInLastWindowClosed() const override;
     bool treatAsVisible() const override;
+
+    QPalette windowPalette() const override
+    {
+        Q_Q(const QWidgetWindow);
+        if (const auto *widget = q->widget())
+            return widget->palette();
+        return QWindowPrivate::windowPalette();
+    }
 };
 
 QRectF QWidgetWindowPrivate::closestAcceptableGeometry(const QRectF &rect) const
@@ -988,7 +996,7 @@ void QWidgetWindow::handleDragEnterEvent(QDragMoveEvent *event, QWidget *widget)
     }
     m_dragTarget = widget;
 
-    const QPoint mapped = widget->mapFromGlobal(m_widget->mapToGlobal(event->position())).toPoint();
+    const QPointF mapped = widget->mapFromGlobal(m_widget->mapToGlobal(event->position()));
     QDragEnterEvent translated(mapped, event->possibleActions(), event->mimeData(),
                                event->buttons(), event->modifiers());
     QGuiApplication::forwardEvent(m_dragTarget, &translated, event);
@@ -1008,7 +1016,7 @@ void QWidgetWindow::handleDragMoveEvent(QDragMoveEvent *event)
             QGuiApplication::forwardEvent(dragTarget, &leaveEvent, event);
         }
     } else {
-        const QPoint mapped = widget->mapFromGlobal(m_widget->mapToGlobal(event->position())).toPoint();
+        const QPointF mapped = widget->mapFromGlobal(m_widget->mapToGlobal(event->position()));
         QDragMoveEvent translated(mapped, event->possibleActions(), event->mimeData(),
                                   event->buttons(), event->modifiers());
 

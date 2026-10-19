@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_desktopthemedetails\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-08-05 18:32+0400\n"
+"POT-Creation-Date: 2026-03-27 00:47+0000\n"
+"PO-Revision-Date: 2026-01-31 20:32+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -124,51 +124,68 @@ msgctxt "@item:inlistbox filters displayed themes"
 msgid "Color scheme compatible"
 msgstr "متوافق مع تشكيلة الألوان"
 
-#: ui/main.qml:130
+#: ui/main.qml:114
 #, kde-format
 msgid "Install from File…"
 msgstr "ثبت من ملف..."
 
-#: ui/main.qml:135
+#: ui/main.qml:119
 #, kde-format
 msgid "Get New…"
 msgstr "احصل على جديد…"
 
-#: ui/main.qml:148
+#: ui/main.qml:132
 #, kde-format
 msgid "Follows color scheme"
 msgstr "تتبع تشكيلة الألوان"
 
-#: ui/main.qml:166
+#: ui/main.qml:150
 #, kde-format
 msgid "Edit Theme…"
 msgstr "حرر السمة..."
 
-#: ui/main.qml:173
+#: ui/main.qml:158
 #, kde-format
-msgid "Remove Theme"
-msgstr "أزل السمة"
+msgctxt "@info:tooltip"
+msgid "Remove Plasma style"
+msgstr "أزل نمط بلازما"
 
-#: ui/main.qml:180
+#: ui/main.qml:160
 #, kde-format
-msgid "Restore Theme"
-msgstr "استعد السمة"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active Plasma style"
+msgstr "لا يمكن حذف نمط بلازما النشط"
 
-#: ui/main.qml:199
+#: ui/main.qml:162
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed Plasma styles"
+msgstr "لا يمكن حذف أنماط بلازما المثبتة في النظام"
+
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this Plasma style"
+msgstr "لا تحذف نمط بلازما هذا"
+
+#: ui/main.qml:189
 #, kde-format
 msgid "Open Theme"
 msgstr "افتح سمة"
 
-#: ui/main.qml:201
+#: ui/main.qml:191
 #, kde-format
 msgid "Theme Files (*.zip *.tar.gz *.tar.bz2)"
 msgstr "ملفات السمة (*.zip *.tar.gz *.tar.bz2)"
 
+#~ msgid "Remove Theme"
+#~ msgstr "أزل السمة"
+
+#~ msgid "Restore Theme"
+#~ msgstr "استعد السمة"
+
 #~ msgid "Get New Plasma Styles…"
 #~ msgstr "احصل على أنماط بلازما جديدة..."
-
-#~ msgid "This module lets you choose the Plasma style."
-#~ msgstr "هذه الوحدة تجعلك تختار نمط بلازما"
 
 #~ msgctxt "NAME OF TRANSLATORS"
 #~ msgid "Your names"
@@ -177,9 +194,6 @@ msgstr "ملفات السمة (*.zip *.tar.gz *.tar.bz2)"
 #~ msgctxt "EMAIL OF TRANSLATORS"
 #~ msgid "Your emails"
 #~ msgstr "zayed.alsaidi@gmail.com"
-
-#~ msgid "Plasma Style"
-#~ msgstr "نمط بلازما"
 
 #~ msgid "David Rosca"
 #~ msgstr "David Rosca"

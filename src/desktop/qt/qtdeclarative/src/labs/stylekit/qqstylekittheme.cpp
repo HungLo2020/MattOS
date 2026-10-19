@@ -40,7 +40,7 @@ QT_BEGIN_NAMESPACE
     \snippet ThemeSnippets.qml themes
 
     For a complete example showing themes in action, see the
-    \l {StyleKit Example}.
+    \l {StyleKit Quick Controls Example}.
 
     \labs
 
@@ -52,10 +52,17 @@ static QQuickTheme::Scope scopeForType(QQStyleKitExtendableControlType type)
     switch (type) {
     case QQStyleKitReader::ControlType::AbstractButton:
     case QQStyleKitReader::ControlType::Button:
+    case QQStyleKitReader::ControlType::DelayButton:
     case QQStyleKitReader::ControlType::FlatButton:
+    case QQStyleKitReader::ControlType::RoundButton:
         return QQuickTheme::Button;
     case QQStyleKitReader::ControlType::CheckBox:
         return QQuickTheme::CheckBox;
+    case QQStyleKitReader::ControlType::CheckDelegate:
+    case QQStyleKitReader::ControlType::RadioDelegate:
+    case QQStyleKitReader::ControlType::SwipeDelegate:
+    case QQStyleKitReader::ControlType::SwitchDelegate:
+        return QQuickTheme::ListView;
     case QQStyleKitReader::ControlType::ComboBox:
         return QQuickTheme::ComboBox;
     case QQStyleKitReader::ControlType::GroupBox:
@@ -64,6 +71,13 @@ static QQuickTheme::Scope scopeForType(QQStyleKitExtendableControlType type)
         return QQuickTheme::ItemView;
     case QQStyleKitReader::ControlType::Label:
         return QQuickTheme::Label;
+    case QQStyleKitReader::ControlType::MenuBar:
+    case QQStyleKitReader::ControlType::MenuBarItem:
+        return QQuickTheme::MenuBar;
+    case QQStyleKitReader::ControlType::Menu:
+    case QQStyleKitReader::ControlType::MenuItem:
+    case QQStyleKitReader::ControlType::MenuSeparator:
+        return QQuickTheme::Menu;
     case QQStyleKitReader::ControlType::RadioButton:
         return QQuickTheme::RadioButton;
     case QQStyleKitReader::ControlType::SpinBox:

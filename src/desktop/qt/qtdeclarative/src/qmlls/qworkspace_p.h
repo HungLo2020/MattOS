@@ -16,9 +16,9 @@
 // We mean it.
 //
 
-#include "qqmlcodemodel_p.h"
-#include "qlanguageserver_p.h"
-#include "qqmlcodemodelmanager_p.h"
+#include <private/qqmlcodemodel_p.h>
+#include <private/qlanguageserver_p.h>
+#include <private/qqmlcodemodelmanager_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -30,10 +30,8 @@ public:
         : m_codeModelManager(codeModelManager)
     {
     }
-    QString name() const override;
     void registerHandlers(QLanguageServer *server, QLanguageServerProtocol *protocol) override;
-    void setupCapabilities(const QLspSpecification::InitializeParams &clientInfo,
-                           QLspSpecification::InitializeResult &) override;
+    void setupCapabilities(QLspSpecification::ServerCapabilities &caps) override;
 public Q_SLOTS:
     void clientInitialized(QLanguageServer *);
 

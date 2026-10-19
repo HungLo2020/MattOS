@@ -93,6 +93,8 @@ following conditions are met:
     \li The Qt version has not changed
     \li The source code in the original file has not changed
     \li The QML debugger is not running
+    \li The \l{Validation of ahead of time generated native code}{validation of AOT code}
+        succeeds
 \endlist
 
 Note that \c{QML_FORCE_DISK_CACHE} (see below) can override the QML debugger

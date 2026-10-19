@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-13 08:43+0000\n"
-"PO-Revision-Date: 2026-01-17 03:22+0100\n"
+"POT-Creation-Date: 2026-06-06 00:45+0000\n"
+"PO-Revision-Date: 2026-01-14 05:25+0100\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -18,12 +18,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.8\n"
 
-#: kcm.cpp:62
+#: kcm.cpp:64
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "არ შემაწუხოს რეჟიმის გადართვა"
 
-#: sourcesmodel.cpp:406
+#: sourcesmodel.cpp:404
 #, kde-format
 msgid "Other Applications"
 msgstr "სხვა პროგრამები"
@@ -275,22 +275,22 @@ msgctxt ""
 msgid "Application Notifications"
 msgstr "აპლიკაციის შეტყობინებები"
 
-#: ui/SourcesPage.qml:104
+#: ui/SourcesPage.qml:108
 #, kde-format
 msgid "Applications"
 msgstr "აპლიკაციები"
 
-#: ui/SourcesPage.qml:105
+#: ui/SourcesPage.qml:109
 #, kde-format
 msgid "System Services"
 msgstr "სისტემური სერვისები"
 
-#: ui/SourcesPage.qml:153
+#: ui/SourcesPage.qml:157
 #, kde-format
 msgid "No application or event matches your search term"
 msgstr "თქვენს ძებნას არც ერთი აპლიკაცია და მოვლენა არ ემთხვევა"
 
-#: ui/SourcesPage.qml:177
+#: ui/SourcesPage.qml:181
 #, kde-format
 msgid ""
 "Select an application from the list to configure its notification settings "
@@ -298,49 +298,3 @@ msgid ""
 msgstr ""
 "სიიდან აირჩიეთ აპლიკაცია, რომლისთვისაც გაფრთხილების მორგებისა და ქცევის "
 "კონფიგურაციაც გნებავთ"
-
-#~ msgctxt "@action:button Plasma-specific notifications"
-#~ msgid "System Notifications"
-#~ msgstr "სისტემური შეტყობინებები"
-
-#~ msgctxt "@action:button Application-specific notifications"
-#~ msgid "Application Settings"
-#~ msgstr "აპლიკაციის მორგება"
-
-#~ msgctxt "@action:button choose custom notification position"
-#~ msgid "Custom…"
-#~ msgstr "ხელით…"
-
-#~ msgid "Normal notifications:"
-#~ msgstr "ნორმალური გაფრთხილებები:"
-
-#~ msgid "Show over full screen windows"
-#~ msgstr "მთელ ეკრანზე გაშლილი ფანჯრების ზემოდან ჩვენება"
-
-#~ msgid "Choose Custom Position…"
-#~ msgstr "მიუთითეთ პოზიცია…"
-
-#~ msgctxt "@action:button Application-specific notifications"
-#~ msgid "Application Settings…"
-#~ msgstr "აპლიკაციის მორგება…"
-
-#~ msgctxt "@title:group"
-#~ msgid "Application-specific settings"
-#~ msgstr "აპლიკაციაზე-დამოკიდებული პარამეტრები"
-
-#~ msgctxt "Enable Do Not Disturb mode when screens are mirrored"
-#~ msgid "Enable:"
-#~ msgstr "ჩართვა:"
-
-#~ msgctxt "Keyboard shortcut to turn Do Not Disturb mode on and off"
-#~ msgid "Keyboard shortcut:"
-#~ msgstr "კლავიატურის მალსახმობი:"
-
-#~ msgid "This module lets you manage application and system notifications."
-#~ msgstr ""
-#~ "ეს მოდული საშუალებას გაძლევთ აპლიკაციისა და სისტემის გაფრთხილებები "
-#~ "მოირგოთ."
-
-#~ msgctxt "Turn do not disturb mode on/off with keyboard shortcut"
-#~ msgid "Toggle with:"
-#~ msgstr "გადართეთ:"

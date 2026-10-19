@@ -1,6 +1,7 @@
 [Desktop Entry]
 Type=Service
 Name=Soundcloud
+Name[am]=Soundcloud
 Name[ar]=ساوند كلاود
 Name[ast]=Soundcloud
 Name[az]=Soundcloud
@@ -41,6 +42,8 @@ Name[lg]=Soundcloud
 Name[lt]=Soundcloud
 Name[lv]=Soundcloud
 Name[my]=ဆောင်းကလောက်
+Name[nan_TW]=Soundcloud
+Name[nan_TW@latin]=Soundcloud
 Name[nb]=SoundCloud
 Name[nl]=Soundcloud
 Name[nn]=SoundCloud
@@ -63,13 +66,13 @@ Name[tg]=Абри садо
 Name[th]=Soundcloud
 Name[tok]=ilo pi kalama musi Soundcloud
 Name[tr]=Soundcloud
-Name[ug]=Soundcloud
 Name[uk]=Soundcloud
 Name[vi]=Soundcloud
 Name[zh_CN]=Soundcloud
 Name[zh_TW]=Soundcloud
 Keys=sc
 Query=https://soundcloud.com/search?q=\\{@}
+Query[am]=https://soundcloud.com/search?q=\\{@}
 Query[ar]=https://soundcloud.com/search?q=\\{@}
 Query[az]=https://soundcloud.com/search?q=\\{@}
 Query[be]=https://soundcloud.com/search?q=\\{@}
@@ -109,6 +112,8 @@ Query[lg]=https://soundcloud.com/search?q=\\{@}
 Query[lt]=https://soundcloud.com/search?q=\\{@}
 Query[lv]=https://soundcloud.com/search?q=\\{@}
 Query[my]=https://soundcloud.com/search?q=\\{@}
+Query[nan_TW]=https://soundcloud.com/search?q=\\{@}
+Query[nan_TW@latin]=https://soundcloud.com/search?q=\\{@}
 Query[nb]=https://soundcloud.com/search?q=\\{@}
 Query[nl]=https://soundcloud.com/search?q=\\{@}
 Query[nn]=https://soundcloud.com/search?q=\\{@}
@@ -131,7 +136,6 @@ Query[tg]=https://soundcloud.com/search?q=\\{@}
 Query[th]=https://soundcloud.com/search?q=\\{@}
 Query[tok]=https://soundcloud.com/search?q=\\{@}
 Query[tr]=https://soundcloud.com/search?q=\\{@}
-Query[ug]=https://soundcloud.com/search?q=\\{@}
 Query[uk]=https://soundcloud.com/search?q=\\{@}
 Query[vi]=https://soundcloud.com/search?q=\\{@}
 Query[zh_CN]=https://soundcloud.com/search?q=\\{@}

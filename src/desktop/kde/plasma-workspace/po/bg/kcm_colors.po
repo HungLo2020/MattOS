@@ -3,20 +3,20 @@
 #
 # Zlatko Popov <zlatkopopov@fsa-bg.org>, 2006, 2007, 2008.
 # Yasen Pramatarov <yasen@lidneas.com>, 2009, 2010.
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Mincho Kondarev <mkondarev@yahoo.de>
+# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025, 2026 Mincho Kondarev <mkondarev@yahoo.de>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmcolors\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-11-09 13:56+0100\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-04-03 01:42+0200\n"
 "Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
 "Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
 "Language: bg\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.07.70\n"
+"X-Generator: Lokalize 26.03.70\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
 #, kde-format
@@ -29,33 +29,33 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "radnev@yahoo.com,zlatkopopov@fsa-bg.org"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "Не може да се създаде временен файл."
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "Не може да се изтегли цветова схема: %1"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "Този файл не е файл с цветова схема."
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "Създаването на папка с данни \"цветова схема\" е неуспешно."
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr ""
 "Копирането на цветова схема в папката с данни \"цветова схема\" е неуспешно."
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "Цветовата схема е инсталирана успешно."
@@ -688,15 +688,16 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "Нямате права за презапис на схемата"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr "Тази схема е само за четене. Моля, запазете промените с друго име."
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "Грешка"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "Неактивен"
@@ -1149,7 +1150,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "фокус"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1160,7 +1161,7 @@ msgstr ""
 "на Plasma, без случайно да го зададете на този, който или не е на "
 "разположение, или който вече е зададен."
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
@@ -1169,14 +1170,14 @@ msgstr ""
 "Името на цветовата схема, която искате да зададете за текущата си сесия на "
 "Plasma (посочването на пълен път, ще използва само последната част на пътя)"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
 "theme)"
 msgstr "Показване на всички налични теми на системата (и коя е текущата тема)"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1188,7 +1189,7 @@ msgstr ""
 "десетични кодове. Оградете с кавички десетичния код, ако има опция за "
 "разширение на обвивката"
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
@@ -1196,12 +1197,12 @@ msgid ""
 msgstr ""
 "Заявената тема „%1“ вече е зададена като тема за текущата сесия на Plasma."
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr "Успешно прилагане на цветна схема %1 към текущата сесия на Plasma"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -1209,7 +1210,7 @@ msgid ""
 msgstr ""
 "Не може да се намери тема „%1“. Темата трябва да има следните опции: %2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
@@ -1218,7 +1219,7 @@ msgstr ""
 "Вие успяхте да зададете име на празна цветова схема, което не е поддържано "
 "действие."
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
@@ -1227,22 +1228,22 @@ msgstr ""
 "Файлът, който сте се опитали да зададете като ваша схема, %1, не може да "
 "бъде идентифициран като цветова схема."
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr "Акцентният цвят %1е приложен успешно"
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, kde-format
 msgid "Invalid accent color "
 msgstr "Невалиден акцентен цвят"
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "Имате следните цветови схеми на вашата система:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr " * %1 (текуща цветова схема)"
@@ -1265,7 +1266,7 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "Персонализиран акцентен цвят"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
@@ -1273,97 +1274,110 @@ msgstr ""
 "Цветовата схема „%1“ не е инсталирана. Вместо това изберете тема по "
 "подразбиране."
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "Всички схеми"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "Светли схеми"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "Тъмни схеми"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "Инсталиране от файл…"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "Изтегляне на нови…"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "Заглавие на прозорец"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "Текст на прозорец"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "Бутон"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "връзка"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "посетен"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "Нормален текст"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "Маркиран текст"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "Деактивиран текст"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "Редактиране на цветова схема…"
 
-#: ui/main.qml:323
+#: ui/main.qml:311
 #, kde-format
-msgid "Remove Color Scheme"
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
 msgstr "Премахване на цветова схема"
 
-#: ui/main.qml:330
+#: ui/main.qml:313
 #, kde-format
-msgid "Restore Color Scheme"
-msgstr "Възстановяване на цветова схема"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "Активната цветова схема не може да се изтрие"
 
-#: ui/main.qml:374
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr "Не може да се изтрие системна цветова схема"
+
+#: ui/main.qml:323
+#, kde-format
+msgid "Don’t delete this color scheme"
+msgstr "Да не се изтрива тази цветова схема"
+
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "Отваряне на цветова схема"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "Файлове с цветна схема (*.colors)"

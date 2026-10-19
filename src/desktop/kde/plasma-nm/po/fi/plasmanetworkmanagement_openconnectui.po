@@ -1,15 +1,15 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 # Lasse Liehu <lasse.liehu@gmail.com>, 2013, 2014, 2015, 2016.
-# SPDX-FileCopyrightText: 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Tommi Nieminen <translator@legisign.org>
+# SPDX-FileCopyrightText: 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Tommi Nieminen <translator@legisign.org>
 # SPDX-FileCopyrightText: 2024 Kimmo Kujansuu <mrkujansuu@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-11-30 15:45+0200\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-08-24 19:52+0300\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -63,7 +63,7 @@ msgstr "OpenConnect-VPN-tunnistautuminen"
 msgid "VPN Host"
 msgstr "VPN-palvelin"
 
-#. i18n: ectx: property (toolTip), widget (QPushButton, btnConnect)
+#. i18n: ectx: property (text), widget (QPushButton, btnConnect)
 #: openconnectauth.ui:81
 #, kde-format
 msgid "Connect"
@@ -282,17 +282,22 @@ msgid "Machine Certificate:"
 msgstr "Koneen varmenne:"
 
 #. i18n: ectx: property (text), widget (QLabel, leMcaPrivateKeyLabel)
-#. i18n: ectx: property (text), widget (QLabel, label_6)
-#: openconnectprop.ui:261 openconnectprop.ui:299
+#: openconnectprop.ui:261
 #, kde-format
-msgid "Private Key:"
-msgstr "Yksityinen avain:"
+msgid "Machine Private Key:"
+msgstr "Koneen yksityinen avain:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_5)
 #: openconnectprop.ui:280
 #, kde-format
 msgid "User Certificate:"
 msgstr "Käyttäjän varmenne:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_6)
+#: openconnectprop.ui:299
+#, kde-format
+msgid "User Private Key:"
+msgstr "Käytä yksityistä avainta:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkUseFsid)
 #: openconnectprop.ui:318

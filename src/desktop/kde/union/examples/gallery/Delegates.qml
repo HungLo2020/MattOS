@@ -1,0 +1,145 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls as Controls
+
+import org.kde.kirigami as Kirigami
+
+Kirigami.Page {
+    title: "Delegates QtQuick.Controls"
+
+    Kirigami.ColumnView.interactiveResizeEnabled: true
+    Kirigami.ColumnView.minimumWidth: Kirigami.Units.gridUnit * 10
+    Kirigami.ColumnView.preferredWidth: Kirigami.Units.gridUnit * 25
+    Kirigami.ColumnView.maximumWidth: Kirigami.Units.gridUnit * 50
+
+    ColumnLayout {
+        anchors.fill: parent
+
+        Controls.ItemDelegate {
+            text: "ItemDelegate with Text"
+        }
+
+        Controls.ItemDelegate {
+            icon.name: "document-save"
+            text: "ItemDelegate with Text and Icon"
+        }
+
+        Controls.ItemDelegate {
+            icon.name: "document-save"
+            text: "ItemDelegate Highlighted"
+            highlighted: true
+        }
+
+        Controls.ItemDelegate {
+            icon.name: "document-save"
+            enabled: false
+            text: "Disabled ItemDelegate with Text and Icon"
+        }
+
+        Controls.ItemDelegate {
+            display: Controls.ItemDelegate.TextUnderIcon
+            icon.name: "document-save"
+            text: "ItemDelegate TextUnderIcon"
+        }
+
+        Controls.CheckDelegate {
+            text: "CheckDelegate with Text"
+        }
+
+
+        Controls.CheckDelegate {
+            enabled: false
+            text: "DisabledCheckDelegate with Text"
+        }
+
+        Controls.CheckDelegate {
+            display: Controls.ItemDelegate.TextUnderIcon
+            icon.name: "document-save"
+            text: "CheckDelegate TextUnderIcon"
+        }
+
+        Controls.RadioDelegate {
+            text: "RadioDelegate n. 1 with Text"
+        }
+
+        Controls.RadioDelegate {
+            enabled: false
+            text: "Disabled RadioDelegate n. 1 with Text"
+        }
+
+        Controls.RadioDelegate {
+            text: "RadioDelegate n. 2 with Text"
+        }
+
+        Controls.RadioDelegate {
+            display: Controls.ItemDelegate.TextUnderIcon
+            icon.name: "document-save"
+            text: "RadioDelegate TextUnderIcon"
+        }
+
+        Controls.SwitchDelegate {
+            text: "SwitchDelegate with Text"
+        }
+
+        Controls.SwitchDelegate {
+            enabled: false
+            text: "Disabled SwitchDelegate with Text"
+        }
+
+        Controls.SwitchDelegate {
+            display: Controls.ItemDelegate.TextUnderIcon
+            icon.name: "document-save"
+            text: "SwitchDelegate TextUnderIcon"
+        }
+
+        Controls.SwipeDelegate {
+            text: "Swipe me!"
+
+            swipe.right: Rectangle {
+                anchors.fill: parent
+                color: "blue"
+            }
+        }
+
+        Controls.SwipeDelegate {
+            enabled: false
+            text: "Disabled Swipe delegate"
+
+            swipe.right: Rectangle {
+                anchors.fill: parent
+                color: "blue"
+            }
+        }
+
+        Controls.Frame {
+            id: frame
+            padding: 0
+
+            Row {
+                id: row
+
+                Controls.Tumbler {
+                    id: hoursTumbler
+                    model: 12
+                }
+
+                Controls.Tumbler {
+                    id: minutesTumbler
+                    model: 60
+                }
+
+                Controls.Tumbler {
+                    id: amPmTumbler
+                    model: ["AM", "PM"]
+                }
+            }
+        }
+
+        Item {
+            Layout.fillHeight: true
+        }
+    }
+}

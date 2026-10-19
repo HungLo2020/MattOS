@@ -4,10 +4,9 @@
 */
 
 import QtQuick
-import QtQuick.Controls as QQC
-import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.xdgdesktopportal
+import org.kde.ki18n
 
 PortalDialog
 {
@@ -17,28 +16,30 @@ PortalDialog
     required property url image
 
     iconName: "preferences-desktop-wallpaper"
-    title: i18nc("@title:window", "Set Wallpaper")
-    subtitle: {
+
+    title: KI18n.i18nc("@title:window", "Wallpaper Change Requested")
+    mainText: {
         if (app === "") {
             switch (location) {
             case WallpaperLocation.Desktop:
-                return i18nc("the app is unknown", "Allow an application to set the desktop background?")
+                return KI18n.i18nc("@info", "Allow an unidentifiable application to change the desktop wallpaper?")
             case WallpaperLocation.Lockscreen:
-                return i18nc("the app is unknown", "Allow an application to set the lock screen background?")
+                return KI18n.i18nc("@info", "Allow an unidentifiable application to change the lock screen wallpaper?")
             case WallpaperLocation.Both:
-                return i18nc("the app is unknown", "Allow an application to set desktop and lock screen backgrounds?")
+                return KI18n.i18nc("@info", "Allow an unidentifiable application to change desktop and lock screen wallpapers?")
             }
         } else {
             switch (location) {
             case WallpaperLocation.Desktop:
-                return i18nc("%1 is the application name", "Allow %1 to set the desktop background?", app)
+                return KI18n.i18nc("@info %1 is the application name", "Allow %1 to change the desktop wallpaper?", app)
             case WallpaperLocation.Lockscreen:
-                return i18nc("%1 is the application name", "Allow %1 to set the lock screen background?", app)
+                return KI18n.i18nc("@info %1 is the application name", "Allow %1 to change the lock screen wallpaper?", app)
             case WallpaperLocation.Both:
-                return i18nc("%1 is the application name", "Allow %1 to set desktop and lock screen backgrounds?", app)
+                return KI18n.i18nc("@info %1 is the application name", "Allow %1 to change desktop and lock screen wallpapers?", app)
             }
         }
     }
+    subtitle: app === "" ? KI18n.i18nc("@info:usagetip", "Only allow if you know which application made the request.") : undefined
 
     Item {
         implicitHeight: Kirigami.Units.gridUnit * 10
@@ -48,5 +49,10 @@ PortalDialog
             fillMode: Image.PreserveAspectFit
             source: root.image
         }
+    }
+
+    Component.onCompleted: {
+        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Ok).text = KI18n.i18nc("@action:button Allow the application to change the wallpaper", "Allow")
+        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Cancel).text = KI18n.i18nc("@action:button Deny the applicatinon's request to change the wallpaper", "Deny")
     }
 }

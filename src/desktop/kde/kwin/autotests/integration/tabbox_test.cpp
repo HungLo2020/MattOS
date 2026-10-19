@@ -17,15 +17,11 @@
 #include "workspace.h"
 
 #include <KConfigGroup>
-#include <KWayland/Client/keyboard.h>
-#include <KWayland/Client/seat.h>
 #include <KWayland/Client/surface.h>
 
 #include <linux/input.h>
 
 using namespace KWin;
-
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_tabbox-0");
 
 class TabBoxTest : public QObject
 {
@@ -37,15 +33,20 @@ private Q_SLOTS:
 
     void testMoveForward();
     void testMoveBackward();
+    void testReleaseActivationModifierWithOtherModifierHeld();
+    void testEscapeReleasesGrab();
+    void testClickOutsideReleasesGrab();
     void testCapsLock();
     void testKeyboardFocus();
     void testActiveClientOutsideModel();
+    void testScrollAccumulates();
+    void testScrollDoesNotAccumulateAcrossDirectionChanges();
 };
 
 void TabBoxTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     KSharedConfigPtr c = KSharedConfig::openConfig(QString(), KConfig::SimpleConfig);
     c->group(QStringLiteral("TabBox")).writeEntry("ShowTabBox", false);
@@ -70,6 +71,197 @@ void TabBoxTest::init()
 void TabBoxTest::cleanup()
 {
     Test::destroyWaylandConnection();
+}
+
+void TabBoxTest::testReleaseActivationModifierWithOtherModifierHeld()
+{
+#if !KWIN_BUILD_GLOBALSHORTCUTS
+    QSKIP("Can't test shortcuts without shortcuts");
+    return;
+#endif
+
+    // This test verifies that the switcher closes as soon as the modifier that
+    // activated it (Alt) is released, even if another modifier (here Shift) is
+    // still held. Previously the close was gated on every relevant modifier
+    // becoming NoModifier in a single release event, so releasing Alt while
+    // another key was held left the input grab stuck, silently blocking all
+    // later Alt+Tab activations.
+
+    // first create three windows
+    std::unique_ptr<KWayland::Client::Surface> surface1(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface1(Test::createXdgToplevelSurface(surface1.get()));
+    auto c1 = Test::renderAndWaitForShown(surface1.get(), QSize(100, 50), Qt::blue);
+    QVERIFY(c1);
+    QVERIFY(c1->isActive());
+    std::unique_ptr<KWayland::Client::Surface> surface2(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface2(Test::createXdgToplevelSurface(surface2.get()));
+    auto c2 = Test::renderAndWaitForShown(surface2.get(), QSize(100, 50), Qt::red);
+    QVERIFY(c2);
+    QVERIFY(c2->isActive());
+    std::unique_ptr<KWayland::Client::Surface> surface3(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface3(Test::createXdgToplevelSurface(surface3.get()));
+    auto c3 = Test::renderAndWaitForShown(surface3.get(), QSize(100, 50), Qt::red);
+    QVERIFY(c3);
+    QVERIFY(c3->isActive());
+
+    // Setup tabbox signal spies
+    QSignalSpy tabboxAddedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxAdded);
+    QSignalSpy tabboxClosedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxClosed);
+
+    // press alt+tab to activate the switcher in forward (windows) mode
+    quint32 timestamp = 0;
+    Test::keyboardKeyPressed(KEY_LEFTALT, timestamp++);
+    QCOMPARE(input()->keyboardModifiers(), Qt::AltModifier);
+    Test::keyboardKeyPressed(KEY_TAB, timestamp++);
+    Test::keyboardKeyReleased(KEY_TAB, timestamp++);
+
+    QVERIFY(tabboxAddedSpy.wait());
+    QVERIFY(workspace()->tabbox()->isGrabbed());
+
+    // now press an additional modifier that is not part of the activation
+    // shortcut, so that releasing alt does not bring the relevant modifiers
+    // down to NoModifier in a single event
+    Test::keyboardKeyPressed(KEY_LEFTSHIFT, timestamp++);
+    QCOMPARE(input()->keyboardModifiers(), Qt::AltModifier | Qt::ShiftModifier);
+    QCOMPARE(tabboxClosedSpy.count(), 0);
+    QVERIFY(workspace()->tabbox()->isGrabbed());
+
+    // release alt while shift is still held: the switcher must close right away
+    Test::keyboardKeyReleased(KEY_LEFTALT, timestamp++);
+    QCOMPARE(tabboxClosedSpy.count(), 1);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+    QCOMPARE(workspace()->activeWindow(), c2);
+
+    // release the leftover shift; nothing should change and tabbox stays closed
+    Test::keyboardKeyReleased(KEY_LEFTSHIFT, timestamp++);
+    QCOMPARE(input()->keyboardModifiers(), Qt::NoModifier);
+    QCOMPARE(tabboxClosedSpy.count(), 1);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+
+    // a subsequent alt+tab must still work, proving the grab was not left stuck
+    Test::keyboardKeyPressed(KEY_LEFTALT, timestamp++);
+    Test::keyboardKeyPressed(KEY_TAB, timestamp++);
+    Test::keyboardKeyReleased(KEY_TAB, timestamp++);
+    QVERIFY(tabboxAddedSpy.wait());
+    QVERIFY(workspace()->tabbox()->isGrabbed());
+    Test::keyboardKeyReleased(KEY_LEFTALT, timestamp++);
+    QCOMPARE(tabboxClosedSpy.count(), 2);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+
+    surface3.reset();
+    QVERIFY(Test::waitForWindowClosed(c3));
+    surface2.reset();
+    QVERIFY(Test::waitForWindowClosed(c2));
+    surface1.reset();
+    QVERIFY(Test::waitForWindowClosed(c1));
+}
+
+void TabBoxTest::testEscapeReleasesGrab()
+{
+#if !KWIN_BUILD_GLOBALSHORTCUTS
+    QSKIP("Can't test shortcuts without shortcuts");
+    return;
+#endif
+
+    // This test verifies that pressing Escape always releases the input grab.
+    // Escape is the keyboard escape hatch: even if the switcher ended up grabbed
+    // without a way to dismiss it via modifiers, Escape must get the user out.
+
+    std::unique_ptr<KWayland::Client::Surface> surface1(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface1(Test::createXdgToplevelSurface(surface1.get()));
+    auto c1 = Test::renderAndWaitForShown(surface1.get(), QSize(100, 50), Qt::blue);
+    QVERIFY(c1);
+    std::unique_ptr<KWayland::Client::Surface> surface2(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface2(Test::createXdgToplevelSurface(surface2.get()));
+    auto c2 = Test::renderAndWaitForShown(surface2.get(), QSize(100, 50), Qt::red);
+    QVERIFY(c2);
+    QVERIFY(c2->isActive());
+
+    QSignalSpy tabboxAddedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxAdded);
+    QSignalSpy tabboxClosedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxClosed);
+
+    // open the switcher
+    quint32 timestamp = 0;
+    Test::keyboardKeyPressed(KEY_LEFTALT, timestamp++);
+    Test::keyboardKeyPressed(KEY_TAB, timestamp++);
+    Test::keyboardKeyReleased(KEY_TAB, timestamp++);
+    QVERIFY(tabboxAddedSpy.wait());
+    QVERIFY(workspace()->tabbox()->isGrabbed());
+
+    // Escape must release the grab while alt is still held
+    Test::keyboardKeyPressed(KEY_ESC, timestamp++);
+    Test::keyboardKeyReleased(KEY_ESC, timestamp++);
+    QCOMPARE(tabboxClosedSpy.count(), 1);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+    // Escape aborts, so the previously active window stays active
+    QCOMPARE(workspace()->activeWindow(), c2);
+
+    // releasing the leftover alt must not reopen or get stuck
+    Test::keyboardKeyReleased(KEY_LEFTALT, timestamp++);
+    QCOMPARE(tabboxClosedSpy.count(), 1);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+
+    // and a fresh alt+tab still works
+    Test::keyboardKeyPressed(KEY_LEFTALT, timestamp++);
+    Test::keyboardKeyPressed(KEY_TAB, timestamp++);
+    Test::keyboardKeyReleased(KEY_TAB, timestamp++);
+    QVERIFY(tabboxAddedSpy.wait());
+    QVERIFY(workspace()->tabbox()->isGrabbed());
+    Test::keyboardKeyReleased(KEY_LEFTALT, timestamp++);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+
+    surface2.reset();
+    QVERIFY(Test::waitForWindowClosed(c2));
+    surface1.reset();
+    QVERIFY(Test::waitForWindowClosed(c1));
+}
+
+void TabBoxTest::testClickOutsideReleasesGrab()
+{
+#if !KWIN_BUILD_GLOBALSHORTCUTS
+    QSKIP("Can't test shortcuts without shortcuts");
+    return;
+#endif
+
+    // This test verifies that a pointer press outside the switcher releases the
+    // input grab. This is the pointer escape hatch out of a grabbed switcher.
+
+    std::unique_ptr<KWayland::Client::Surface> surface1(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface1(Test::createXdgToplevelSurface(surface1.get()));
+    auto c1 = Test::renderAndWaitForShown(surface1.get(), QSize(100, 50), Qt::blue);
+    QVERIFY(c1);
+    std::unique_ptr<KWayland::Client::Surface> surface2(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface2(Test::createXdgToplevelSurface(surface2.get()));
+    auto c2 = Test::renderAndWaitForShown(surface2.get(), QSize(100, 50), Qt::red);
+    QVERIFY(c2);
+    QVERIFY(c2->isActive());
+
+    QSignalSpy tabboxAddedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxAdded);
+    QSignalSpy tabboxClosedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxClosed);
+
+    // open the switcher
+    quint32 timestamp = 0;
+    Test::keyboardKeyPressed(KEY_LEFTALT, timestamp++);
+    Test::keyboardKeyPressed(KEY_TAB, timestamp++);
+    Test::keyboardKeyReleased(KEY_TAB, timestamp++);
+    QVERIFY(tabboxAddedSpy.wait());
+    QVERIFY(workspace()->tabbox()->isGrabbed());
+
+    // a press outside the switcher releases the grab
+    KWin::input()->pointer()->warp(QPointF(640, 512));
+    Test::pointerButtonPressed(BTN_LEFT, timestamp++);
+    Test::pointerButtonReleased(BTN_LEFT, timestamp++);
+    QCOMPARE(tabboxClosedSpy.count(), 1);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+
+    // releasing the leftover alt must not get stuck
+    Test::keyboardKeyReleased(KEY_LEFTALT, timestamp++);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+
+    surface2.reset();
+    QVERIFY(Test::waitForWindowClosed(c2));
+    surface1.reset();
+    QVERIFY(Test::waitForWindowClosed(c1));
 }
 
 void TabBoxTest::testCapsLock()
@@ -258,9 +450,9 @@ void TabBoxTest::testKeyboardFocus()
 
     QVERIFY(Test::waitForWaylandKeyboard());
 
-    std::unique_ptr<KWayland::Client::Keyboard> keyboard(Test::waylandSeat()->createKeyboard());
-    QSignalSpy enteredSpy(keyboard.get(), &KWayland::Client::Keyboard::entered);
-    QSignalSpy leftSpy(keyboard.get(), &KWayland::Client::Keyboard::left);
+    std::unique_ptr<Test::WlKeyboard> keyboard(Test::kwinSeat()->getKeyboard());
+    QSignalSpy enteredSpy(keyboard.get(), &Test::WlKeyboard::enter);
+    QSignalSpy leftSpy(keyboard.get(), &Test::WlKeyboard::leave);
 
     // add a window
     std::unique_ptr<KWayland::Client::Surface> surface(Test::createSurface());
@@ -411,6 +603,135 @@ void TabBoxTest::testActiveClientOutsideModel()
     QVERIFY(Test::waitForWindowClosed(r1));
     leftSurface1.reset();
     QVERIFY(Test::waitForWindowClosed(l1));
+
+    // restore the MultiScreenMode so that it doesn't leak into other tests
+    group.writeEntry("MultiScreenMode", "0");
+    group.sync();
+    workspace()->slotReconfigure();
+}
+
+void TabBoxTest::testScrollAccumulates()
+{
+#if !KWIN_BUILD_GLOBALSHORTCUTS
+    QSKIP("Can't test shortcuts without shortcuts");
+    return;
+#endif
+
+    // three windows, mirroring the setup of testMoveForward
+    std::unique_ptr<KWayland::Client::Surface> surface1(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface1(Test::createXdgToplevelSurface(surface1.get()));
+    auto c1 = Test::renderAndWaitForShown(surface1.get(), QSize(100, 50), Qt::blue);
+    QVERIFY(c1);
+    std::unique_ptr<KWayland::Client::Surface> surface2(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface2(Test::createXdgToplevelSurface(surface2.get()));
+    auto c2 = Test::renderAndWaitForShown(surface2.get(), QSize(100, 50), Qt::red);
+    QVERIFY(c2);
+    QVERIFY(c2->isActive());
+    std::unique_ptr<KWayland::Client::Surface> surface3(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface3(Test::createXdgToplevelSurface(surface3.get()));
+    auto c3 = Test::renderAndWaitForShown(surface3.get(), QSize(100, 50), Qt::red);
+    QVERIFY(c3);
+    QVERIFY(c3->isActive());
+
+    QSignalSpy tabboxAddedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxAdded);
+    QSignalSpy tabboxClosedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxClosed);
+
+    // open the switcher
+    quint32 timestamp = 0;
+    Test::keyboardKeyPressed(KEY_LEFTALT, timestamp++);
+    Test::keyboardKeyPressed(KEY_TAB, timestamp++);
+    Test::keyboardKeyReleased(KEY_TAB, timestamp++);
+    QVERIFY(tabboxAddedSpy.wait());
+    QVERIFY(workspace()->tabbox()->isGrabbed());
+
+    // six small high-resolution events (24/120 each) make up more than one
+    // wheel notch, so they must advance the highlight exactly one step.
+    // Six is a multiple of the window count, so a broken implementation that
+    // switches on every event would wrap back to the start and fail below.
+    const auto before = workspace()->tabbox()->currentClient();
+    for (int i = 0; i < 6; ++i) {
+        Test::pointerAxisVertical(0, timestamp++, 24, PointerAxisSource::Wheel);
+    }
+    auto after = workspace()->tabbox()->currentClient();
+    QVERIFY(after);
+    QVERIFY(after != before);
+
+    // three more events only accumulate 0.8 (including the carried-over 0.2),
+    // not enough for another notch
+    for (int i = 0; i < 3; ++i) {
+        Test::pointerAxisVertical(0, timestamp++, 24, PointerAxisSource::Wheel);
+    }
+    QCOMPARE(workspace()->tabbox()->currentClient(), after);
+
+    // the last event completes the notch and advances once more
+    Test::pointerAxisVertical(0, timestamp++, 24, PointerAxisSource::Wheel);
+    auto after2 = workspace()->tabbox()->currentClient();
+    QVERIFY(after2);
+    QVERIFY(after2 != after);
+
+    Test::keyboardKeyReleased(KEY_LEFTALT, timestamp++);
+    QCOMPARE(tabboxClosedSpy.count(), 1);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+
+    surface3.reset();
+    QVERIFY(Test::waitForWindowClosed(c3));
+    surface2.reset();
+    QVERIFY(Test::waitForWindowClosed(c2));
+    surface1.reset();
+    QVERIFY(Test::waitForWindowClosed(c1));
+}
+
+void TabBoxTest::testScrollDoesNotAccumulateAcrossDirectionChanges()
+{
+#if !KWIN_BUILD_GLOBALSHORTCUTS
+    QSKIP("Can't test shortcuts without shortcuts");
+    return;
+#endif
+
+    std::unique_ptr<KWayland::Client::Surface> surface1(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface1(Test::createXdgToplevelSurface(surface1.get()));
+    auto c1 = Test::renderAndWaitForShown(surface1.get(), QSize(100, 50), Qt::blue);
+    QVERIFY(c1);
+    std::unique_ptr<KWayland::Client::Surface> surface2(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> shellSurface2(Test::createXdgToplevelSurface(surface2.get()));
+    auto c2 = Test::renderAndWaitForShown(surface2.get(), QSize(100, 50), Qt::red);
+    QVERIFY(c2);
+    QVERIFY(c2->isActive());
+
+    QSignalSpy tabboxAddedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxAdded);
+    QSignalSpy tabboxClosedSpy(workspace()->tabbox(), &TabBox::TabBox::tabBoxClosed);
+
+    quint32 timestamp = 0;
+    Test::keyboardKeyPressed(KEY_LEFTALT, timestamp++);
+    Test::keyboardKeyPressed(KEY_TAB, timestamp++);
+    Test::keyboardKeyReleased(KEY_TAB, timestamp++);
+    QVERIFY(tabboxAddedSpy.wait());
+    QVERIFY(workspace()->tabbox()->isGrabbed());
+
+    // 0.6 of a notch in one direction, not enough to switch
+    const auto before = workspace()->tabbox()->currentClient();
+    for (int i = 0; i < 3; ++i) {
+        Test::pointerAxisVertical(0, timestamp++, 24, PointerAxisSource::Wheel);
+    }
+    QCOMPARE(workspace()->tabbox()->currentClient(), before);
+
+    // reversing the direction discards the partial forward scroll; one full
+    // notch backwards switches exactly one step
+    for (int i = 0; i < 5; ++i) {
+        Test::pointerAxisVertical(0, timestamp++, -24, PointerAxisSource::Wheel);
+    }
+    auto after = workspace()->tabbox()->currentClient();
+    QVERIFY(after);
+    QVERIFY(after != before);
+
+    Test::keyboardKeyReleased(KEY_LEFTALT, timestamp++);
+    QCOMPARE(tabboxClosedSpy.count(), 1);
+    QCOMPARE(workspace()->tabbox()->isGrabbed(), false);
+
+    surface2.reset();
+    QVERIFY(Test::waitForWindowClosed(c2));
+    surface1.reset();
+    QVERIFY(Test::waitForWindowClosed(c1));
 }
 
 WAYLANDTEST_MAIN(TabBoxTest)

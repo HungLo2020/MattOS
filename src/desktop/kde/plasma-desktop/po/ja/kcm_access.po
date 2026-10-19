@@ -7,15 +7,16 @@
 # UTUMI Hirosi <utuhiro78@yahoo.co.jp>, 2006
 # Yukiko Bando <ybando@k6.dion.ne.jp>, 2006, 2007, 2008.
 # Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2015.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmaccess\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2024-09-11 17:21+0900\n"
-"Last-Translator: UTUMI Hirosi <utuhiro78@yahoo.co.jp>\n"
-"Language-Team: ja\n"
+"POT-Creation-Date: 2026-09-03 00:45+0000\n"
+"PO-Revision-Date: 2026-05-10 18:32+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
+"Language-Team: Japanese <kde-i18n-doc@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,98 +24,62 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Lokalize 26.04.1\n"
 
-#: kcmaccess.cpp:127 kcmaccess.cpp:155
+#: kcmaccess.cpp:123 kcmaccess.cpp:151
 #, kde-format
 msgid "KWin"
-msgstr ""
+msgstr "KWin"
 
-#: kcmaccess.cpp:130
+#: kcmaccess.cpp:126
 #, kde-format
 msgid "Toggle Invert Effect"
-msgstr ""
+msgstr "色相反転をオン/オフ"
 
-#: kcmaccess.cpp:136
+#: kcmaccess.cpp:132
 #, kde-format
 msgid "Toggle Invert Effect on Window"
-msgstr ""
+msgstr "ウィンドウごとの色相反転をオン/オフ"
 
-#: kcmaccess.cpp:178
+#: kcmaccess.cpp:174
 #, kde-format
 msgid "Move Left"
-msgstr ""
+msgstr "左に移動"
 
-#: kcmaccess.cpp:185
+#: kcmaccess.cpp:181
 #, kde-format
 msgid "Move Right"
-msgstr ""
+msgstr "右に移動"
 
-#: kcmaccess.cpp:192
+#: kcmaccess.cpp:188
 #, kde-format
 msgid "Move Up"
-msgstr ""
+msgstr "上に移動"
 
-#: kcmaccess.cpp:199
+#: kcmaccess.cpp:195
 #, kde-format
 msgid "Move Down"
-msgstr ""
+msgstr "下に移動"
 
-#: kcmaccess.cpp:206
+#: kcmaccess.cpp:202
 #, kde-format
 msgid "Move Mouse to Focus"
-msgstr ""
+msgstr "フォーカス中のウィンドウにマウスを移動"
 
-#: kcmaccess.cpp:213
+#: kcmaccess.cpp:209
 #, kde-format
 msgid "Move Mouse to Center"
-msgstr ""
+msgstr "中央にマウスを移動"
 
-#: kcmaccess.cpp:256
+#: kcmaccess.cpp:252
 #, kde-format
 msgid "Could not set gsettings for Orca: \"%1\" failed"
-msgstr "Orca のために gsetttings を設定できませんでした: \"%1\" が失敗しました"
+msgstr "Orca の gsettings を設定できませんでした: \"%1\" に失敗しました"
 
-#: kcmaccess.cpp:263
+#: kcmaccess.cpp:259
 #, kde-format
 msgid "Error: Could not launch \"orca --setup\""
 msgstr "エラー: \"orca --setup\" を起動できませんでした"
-
-#. i18n: ectx: label, entry (Gestures), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:9
-#, kde-format
-msgid "Use Gestures"
-msgstr "ジェスチャーを使用"
-
-#. i18n: ectx: label, entry (GestureConfirmation), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:13
-#, kde-format
-msgid "Ask for Confirmation for a gesture"
-msgstr "ジェスチャー実行の確認を求める"
-
-#. i18n: ectx: label, entry (KeyboardNotifyAccess), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:17
-#, kde-format
-msgid "Confirm access to the Keyboard"
-msgstr "キーボードへのアクセスを確認"
-
-#. i18n: ectx: label, entry (AccessXTimeout), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:21
-#, kde-format
-msgid "Use a timeout delay"
-msgstr "タイムアウト遅延を使用する"
-
-#. i18n: ectx: label, entry (AccessXTimeoutDelay), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:25
-#, kde-format
-msgid "Delay for timeout"
-msgstr "タイムアウトの遅延"
-
-#. i18n: ectx: label, entry (AccessXBeep), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:29
-#, kde-format
-msgid "Use a beep for access"
-msgstr "アクセスにビープ音を使用する"
 
 #. i18n: ectx: label, entry (SystemBell), group (Bell)
 #: kcmaccessibilitybell.kcfg:9
@@ -138,7 +103,7 @@ msgstr "ベルの音声ファイル"
 #: kcmaccessibilitybell.kcfg:20
 #, kde-format
 msgid "Use a visual bell instead of a sound"
-msgstr "音声の代わりに視覚的ベルを使用する"
+msgstr "音声の代わりに視覚ベルを使用する"
 
 #. i18n: ectx: label, entry (InvertScreen), group (Bell)
 #: kcmaccessibilitybell.kcfg:24
@@ -165,6 +130,40 @@ msgstr "視覚的ベルの持続時間"
 #, kde-format
 msgid "Whether Colorblindness Correction is enabled"
 msgstr "色覚補正が有効かどうか"
+
+#. i18n: ectx: label, entry (DwellClicker), group (Plugins)
+#: kcmaccessibilitydwellclicker.kcfg:13
+#, fuzzy, kde-format
+#| msgid "Whether Shake Cursor is enabled"
+msgid "Whether Dwell Clicker is enabled"
+msgstr "カーソル振動を有効にするかどうか"
+
+#. i18n: ectx: label, entry (DwellClickerDelayTime), group (Effect-dwellclicker)
+#: kcmaccessibilitydwellclicker.kcfg:19
+#, fuzzy, kde-format
+#| msgid "Delay for timeout"
+msgid "Delay Time"
+msgstr "タイムアウトの遅延"
+
+#. i18n: ectx: label, entry (DwellClickerDwellTime), group (Effect-dwellclicker)
+#: kcmaccessibilitydwellclicker.kcfg:24
+#, kde-format
+msgid "Dwell Time"
+msgstr ""
+
+#. i18n: ectx: label, entry (DwellClickerDwellColor), group (Effect-dwellclicker)
+#: kcmaccessibilitydwellclicker.kcfg:29
+#, fuzzy, kde-format
+#| msgctxt "Color of the system bell"
+#| msgid "Color"
+msgid "Dwell Color"
+msgstr "色"
+
+#. i18n: ectx: label, entry (DwellClickerMotionThreshold), group (Effect-dwellclicker)
+#: kcmaccessibilitydwellclicker.kcfg:33
+#, kde-format
+msgid "Motion Threshold"
+msgstr ""
 
 #. i18n: ectx: label, entry (Invert), group (Plugins)
 #: kcmaccessibilityinvert.kcfg:9
@@ -293,12 +292,6 @@ msgstr "最大速度"
 msgid "Mouse Key Curve"
 msgstr "マウスキーのカーブ"
 
-#. i18n: ectx: label, entry (Enabled), group (ScreenReader)
-#: kcmaccessibilityscreenreader.kcfg:9
-#, kde-format
-msgid "Enable Screen Reader"
-msgstr "スクリーンリーダを有効化"
-
 #. i18n: ectx: label, entry (ShakeCursor), group (Plugins)
 #: kcmaccessibilityshakecursor.kcfg:9
 #, fuzzy, kde-format
@@ -326,195 +319,101 @@ msgstr "カーソル振動を有効にするかどうか"
 msgid "Whether the Magnifier effect is enabled"
 msgstr "カーソル振動を有効にするかどうか"
 
-# ACCELERATOR added by translator
-#: ui/ActivationShortcuts.qml:18
+#: ui/Bell.qml:18
 #, kde-format
-msgctxt "@option:check"
-msgid "Activation shortcuts:"
-msgstr "有効化ショートカット:"
-
-#: ui/ActivationShortcuts.qml:19
-#, kde-format
-msgctxt "Enable activation shortcuts"
-msgid "Enable"
-msgstr "有効"
-
-#: ui/ActivationShortcuts.qml:31
-#, kde-format
-msgctxt "@label"
-msgid "Press Shift 5 times to enable Sticky Keys"
-msgstr "スティッキーキーを有効にするには Shift を5回押す"
-
-#: ui/ActivationShortcuts.qml:38
-#, kde-format
-msgctxt "@label"
-msgid "Hold Shift for 8 seconds to enable Slow Keys"
-msgstr "スローキーを有効にするには Shift キーを8秒間押す"
-
-# ACCELERATOR added by translator
-#: ui/ActivationShortcuts.qml:47
-#, kde-format
-msgctxt "@option:check"
-msgid "Disable sticky and slow keys after:"
-msgstr "次の時間後にスティッキーキーとスローキーをオフにする:"
-
-#: ui/ActivationShortcuts.qml:71
-#, fuzzy, kde-format
-#| msgid "%1 min"
-#| msgid_plural "%1 min"
-msgctxt "@label:valuesuffix in spinbox %1 is timeout delay"
-msgid "%1 min"
-msgid_plural "%1 min"
-msgstr[0] "%1 分"
-
-#: ui/ActivationShortcuts.qml:80
-#, kde-format
-msgctxt "short for minute(s)"
-msgid "min"
-msgid_plural "min"
-msgstr[0] "分"
-
-#: ui/ActivationShortcuts.qml:89
-#, fuzzy, kde-format
-#| msgid "When a shortcut is used:"
-msgctxt "@title:group for checkbox group"
-msgid "When a shortcut is used:"
-msgstr "ショートカットを使用する場合:"
-
-#: ui/ActivationShortcuts.qml:90
-#, fuzzy, kde-format
-#| msgid "Display a confirmation dialog"
-msgctxt "@option:check when shortcut used"
-msgid "Display a confirmation dialog"
-msgstr "確認ダイアログを表示"
-
-#: ui/ActivationShortcuts.qml:101
-#, fuzzy, kde-format
-#| msgid "Ring the system bell"
-msgctxt "@option:check when shortcut used"
-msgid "Ring the system bell"
-msgstr "システムベルを鳴らす"
-
-#: ui/ActivationShortcuts.qml:112
-#, fuzzy, kde-format
-#| msgid "Show a notification"
-msgctxt "@option:check when shortcut used"
-msgid "Show a notification"
-msgstr "通知を表示"
-
-#: ui/ActivationShortcuts.qml:123
-#, fuzzy, kde-format
-#| msgid "Configure Notifications…"
-msgctxt "@action:button opens Notifications kcm"
-msgid "Configure Notifications…"
-msgstr "通知を設定..."
-
-#: ui/Bell.qml:19
-#, fuzzy, kde-format
-#| msgid "Please choose an audio file"
 msgctxt "@title:window dialog"
 msgid "Please choose an audio file"
 msgstr "音声ファイルを選択してください"
 
-#: ui/Bell.qml:21
+#: ui/Bell.qml:20
 #, kde-format
 msgctxt "Name filters in a file dialog. Do not translate `(*.ogg *.oga *.wav)`"
 msgid "ogg, oga, and wav audio files (*.ogg *.oga *.wav)"
 msgstr "ogg, oga, wav オーディオ ファイル (*.ogg *.oga *.wav)"
 
-#: ui/Bell.qml:30
-#, fuzzy, kde-format
-#| msgid "Audible bell:"
+#: ui/Bell.qml:28
+#, kde-format
 msgctxt "@label prefix for checkbox"
 msgid "Audible bell:"
 msgstr "音声ベル:"
 
-#: ui/Bell.qml:31
+#: ui/Bell.qml:32
 #, kde-format
 msgctxt "Enable the system bell"
 msgid "Enable"
 msgstr "有効"
 
-#: ui/Bell.qml:42
+#: ui/Bell.qml:44
 #, kde-format
 msgctxt "Defines if the system will use a sound system bell"
 msgid "Custom sound:"
 msgstr "カスタムサウンド:"
 
-#: ui/Bell.qml:75
-#, fuzzy, kde-format
-#| msgid "Search audio file for the system bell"
+#: ui/Bell.qml:74
+#, kde-format
 msgctxt "@action:button icononly tooltip"
 msgid "Choose audio file for the system bell"
-msgstr "システムベルとして使用する音声ファイルを検索"
+msgstr "システムベルの音声ファイルを選択"
 
-#: ui/Bell.qml:76
-#, fuzzy, kde-format
-#| msgid "Please choose an audio file"
+#: ui/Bell.qml:75
+#, kde-format
 msgctxt "@action button accessible only"
 msgid "Choose audio file"
-msgstr "音声ファイルを選択してください"
+msgstr "音声ファイルを選択"
 
-#: ui/Bell.qml:77
+#: ui/Bell.qml:76
 #, kde-format
 msgctxt "@info:usagetip accessible description for button"
 msgid "Opens dialog"
-msgstr ""
+msgstr "ダイアログを開く"
 
-#: ui/Bell.qml:93
-#, fuzzy, kde-format
-#| msgid "Visual bell:"
+#: ui/Bell.qml:91
+#, kde-format
 msgctxt "@label prefix for checkbox"
 msgid "Visual bell:"
-msgstr "視覚的ベル:"
+msgstr "視覚ベル:"
 
-#: ui/Bell.qml:94
-#, fuzzy, kde-format
-#| msgctxt "Enable activation shortcuts"
-#| msgid "Enable"
+#: ui/Bell.qml:95
+#, kde-format
 msgctxt "@option:check Enable visual bell"
 msgid "Enable"
 msgstr "有効"
 
-#: ui/Bell.qml:108
+#: ui/Bell.qml:111
 #, kde-format
 msgctxt "@option:radio Invert screen colors when a system bell is rung"
 msgid "Invert screen colors"
 msgstr "画面の色を反転する"
 
-#: ui/Bell.qml:126
+#: ui/Bell.qml:129
 #, kde-format
 msgctxt "@option:radio Flash screen when a system bell is rung"
 msgid "Flash screen"
 msgstr "画面の点滅"
 
-#: ui/Bell.qml:137
+#: ui/Bell.qml:141
 #, kde-format
 msgctxt "Color of the system bell"
 msgid "Color"
 msgstr "色"
 
 # ACCELERATOR added by translator
-#: ui/Bell.qml:151
+#: ui/Bell.qml:157
 #, kde-format
 msgctxt "Duration of the system bell"
 msgid "Duration:"
 msgstr "持続時間:"
 
-#: ui/Bell.qml:166
-#, fuzzy, kde-format
-#| msgid "%1 ms"
-#| msgid_plural "%1 ms"
+#: ui/Bell.qml:173
+#, kde-format
 msgctxt "@label:valuesuffix %1 is visible bell duration"
 msgid "%1 ms"
 msgid_plural "%1 ms"
 msgstr[0] "%1 ミリ秒"
 
-#: ui/Bell.qml:170 ui/KeyboardFilters.qml:65 ui/KeyboardFilters.qml:164
-#, fuzzy, kde-format
-#| msgctxt "short for millisecond(s)"
-#| msgid "ms"
-#| msgid_plural "ms"
+#: ui/Bell.qml:177 ui/DwellClicker.qml:95 ui/DwellClicker.qml:126
+#: ui/KeyboardFilters.qml:66 ui/KeyboardFilters.qml:170
+#, kde-format
 msgctxt "@label:valuesuffix short for millisecond(s)"
 msgid "ms"
 msgid_plural "ms"
@@ -527,138 +426,217 @@ msgid ""
 "If you have trouble with certain colors on the screen, these filters can "
 "change them into other colors."
 msgstr ""
+"画面上の一部の色に不都合がある場合、このフィルターでほかの色に変更することが"
+"できます。"
 
-#: ui/ColorblindnessCorrection.qml:31
+#: ui/ColorblindnessCorrection.qml:32
 #, kde-format
 msgctxt "@option check, Enable color blindness correction effect"
 msgid "Enable"
 msgstr "有効"
 
-#: ui/ColorblindnessCorrection.qml:44
+#: ui/ColorblindnessCorrection.qml:45
 #, kde-format
 msgctxt ""
 "@label:listbox Difficulty seeing any of the following colors on the screen"
 msgid "Problematic colors:"
-msgstr ""
-
-#: ui/ColorblindnessCorrection.qml:49
-#, kde-format
-msgctxt "@option"
-msgid "Red & purple (Protanopia)"
-msgstr ""
-
-#: ui/ColorblindnessCorrection.qml:50
-#, kde-format
-msgctxt "@option"
-msgid "Green & purple (Deuteranopia)"
-msgstr ""
-
-#: ui/ColorblindnessCorrection.qml:51
-#, kde-format
-msgctxt "@option"
-msgid "Yellow, green & purple (Tritanopia)"
-msgstr ""
+msgstr "不都合な色:"
 
 #: ui/ColorblindnessCorrection.qml:52
 #, kde-format
 msgctxt "@option"
-msgid "All (grayscale mode)"
-msgstr ""
+msgid "Red & purple (Protanopia)"
+msgstr "赤･紫 (第一色覚異常)"
 
-#: ui/ColorblindnessCorrection.qml:67
+#: ui/ColorblindnessCorrection.qml:53
+#, kde-format
+msgctxt "@option"
+msgid "Green & purple (Deuteranopia)"
+msgstr "緑･紫 (第二色覚異常)"
+
+#: ui/ColorblindnessCorrection.qml:54
+#, kde-format
+msgctxt "@option"
+msgid "Yellow, green & purple (Tritanopia)"
+msgstr "黄･緑･紫 (第三色覚異常)"
+
+#: ui/ColorblindnessCorrection.qml:55
+#, kde-format
+msgctxt "@option"
+msgid "All (grayscale mode)"
+msgstr "すべて (グレースケールモード)"
+
+#: ui/ColorblindnessCorrection.qml:71
 #, kde-format
 msgctxt "@label"
 msgid "Intensity:"
 msgstr "強度:"
 
-#: ui/ColorblindnessCorrection.qml:90
+#: ui/ColorblindnessCorrection.qml:97
 #, kde-format
 msgctxt "@label Mild color blindness correction intensity"
 msgid "Mild"
-msgstr "軽度"
+msgstr "弱"
 
-#: ui/ColorblindnessCorrection.qml:97
+#: ui/ColorblindnessCorrection.qml:104
 #, kde-format
 msgctxt "@label Intense color blindness correction intensity"
 msgid "Intense"
-msgstr "激しい"
+msgstr "強"
 
-#: ui/ColorblindnessCorrection.qml:115
+#: ui/ColorblindnessCorrection.qml:124
 #, kde-format
 msgctxt "@info"
 msgid "Adjusted colors:"
-msgstr ""
+msgstr "補正後の色:"
 
-#: ui/ColorblindnessCorrection.qml:132
+#: ui/ColorblindnessCorrection.qml:141
 #, kde-format
 msgctxt "@title:group for color rectangles"
 msgid "Reds:"
-msgstr ""
+msgstr "赤:"
 
-#: ui/ColorblindnessCorrection.qml:133
-#, fuzzy, kde-format
-#| msgid "Green"
+#: ui/ColorblindnessCorrection.qml:142
+#, kde-format
 msgctxt "@title:group for color rectangles"
 msgid "Greens:"
-msgstr "緑"
+msgstr "緑:"
 
-#: ui/ColorblindnessCorrection.qml:134
-#, fuzzy, kde-format
-#| msgid "Blue"
+#: ui/ColorblindnessCorrection.qml:143
+#, kde-format
 msgctxt "@title:group for color rectangles"
 msgid "Blues:"
-msgstr "青"
+msgstr "青:"
 
-#: ui/ColorblindnessCorrection.qml:135
-#, fuzzy, kde-format
-#| msgid "Purple"
+#: ui/ColorblindnessCorrection.qml:144
+#, kde-format
 msgctxt "@title:group for color rectangles"
 msgid "Purples:"
-msgstr "紫"
+msgstr "紫:"
 
-#: ui/Invert.qml:22
+#: ui/DwellClicker.qml:19
+#, kde-format
+msgctxt "@label"
+msgid "Click when pointer remains still:"
+msgstr ""
+
+#: ui/DwellClicker.qml:21
+#, fuzzy, kde-format
+#| msgctxt "Enable the system bell"
+#| msgid "Enable"
+msgctxt "@option check, Enable dwell clicker effect"
+msgid "Enable"
+msgstr "有効"
+
+#: ui/DwellClicker.qml:33
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Automatically click when pointer remains still for a set amount of time."
+msgstr ""
+
+#: ui/DwellClicker.qml:39
+#, kde-format
+msgctxt "@label:spinbox Slow keys Delay"
+msgid "Motion Threshold:"
+msgstr ""
+
+#: ui/DwellClicker.qml:55
+#, fuzzy, kde-format
+#| msgctxt "short for pixel(s)"
+#| msgid "%1 px"
+#| msgid_plural "%1 px"
+msgctxt "@label:valuesuffix %1 is the motion threshold"
+msgid "%1 px"
+msgid_plural "%1 px"
+msgstr[0] "%1 px"
+
+#: ui/DwellClicker.qml:64
+#, fuzzy, kde-format
+#| msgctxt "short for pixel(s)"
+#| msgid "px"
+msgctxt "@label:valuesuffix short for pixel(s)"
+msgid "px"
+msgid_plural "px"
+msgstr[0] "px"
+
+#: ui/DwellClicker.qml:70
+#, fuzzy, kde-format
+#| msgctxt "@label:spinbox Slow keys Delay"
+#| msgid "Delay:"
+msgctxt "@label:spinbox Dwell clicker delay time"
+msgid "Delay Time:"
+msgstr "遅延:"
+
+#: ui/DwellClicker.qml:86
+#, fuzzy, kde-format
+#| msgctxt "@label:valuesuffix %1 is visible bell duration"
+#| msgid "%1 ms"
+#| msgid_plural "%1 ms"
+msgctxt "@label:valuesuffix %1 is the delay time"
+msgid "%1 ms"
+msgid_plural "%1 ms"
+msgstr[0] "%1 ミリ秒"
+
+#: ui/DwellClicker.qml:101
+#, kde-format
+msgctxt "@label:spinbox Dwell clicker dwell time"
+msgid "Dwell Time:"
+msgstr ""
+
+#: ui/DwellClicker.qml:117
+#, fuzzy, kde-format
+#| msgctxt "@label:valuesuffix %1 is visible bell duration"
+#| msgid "%1 ms"
+#| msgid_plural "%1 ms"
+msgctxt "@label:valuesuffix %1 is the dwell time"
+msgid "%1 ms"
+msgid_plural "%1 ms"
+msgstr[0] "%1 ミリ秒"
+
+#: ui/DwellClicker.qml:132
+#, kde-format
+msgctxt "@label:button Dwell clicker dwell color"
+msgid "Dwell Color:"
+msgstr ""
+
+#: ui/Invert.qml:17
 #, kde-format
 msgctxt "@label"
 msgid "Invert:"
-msgstr ""
+msgstr "色を反転:"
 
-#: ui/Invert.qml:23
-#, fuzzy, kde-format
-#| msgctxt "Enable activation shortcuts"
-#| msgid "Enable"
+#: ui/Invert.qml:18
+#, kde-format
+msgctxt "@label Hint for invert effect enable button"
+msgid "Use shortcuts to toggle inverting display and window colors"
+msgstr "ショートカットで画面やウィンドウの色の反転を切り替えることができます"
+
+#: ui/Invert.qml:21
+#, kde-format
 msgctxt "@option check, Enable invert effect"
 msgid "Enable"
 msgstr "有効"
 
-#: ui/Invert.qml:38
+#: ui/Invert.qml:39 ui/ZoomMagnifier.qml:333
 #, kde-format
-msgctxt "@label Hint for invert effect enable button"
-msgid "Use shortcuts to toggle inverting display and window colors"
-msgstr ""
-
-#: ui/Invert.qml:49 ui/ZoomMagnifier.qml:376
-#, fuzzy, kde-format
-#| msgid "Configure Notifications…"
 msgctxt "@action:button"
 msgid "Configure Shortcuts…"
-msgstr "通知を設定..."
+msgstr "ショートカットを設定…"
 
 #: ui/KeyboardFilters.qml:18
-#, fuzzy, kde-format
-#| msgid "Slow keys:"
+#, kde-format
 msgctxt "@title:group prefix"
 msgid "Slow keys:"
 msgstr "スローキー:"
 
-#: ui/KeyboardFilters.qml:23
-#, fuzzy, kde-format
-#| msgctxt "Enable activation shortcuts"
-#| msgid "Enable"
+#: ui/KeyboardFilters.qml:21
+#, kde-format
 msgctxt "@option:check Enable slow keys"
 msgid "Enable"
 msgstr "有効"
 
-#: ui/KeyboardFilters.qml:34
+#: ui/KeyboardFilters.qml:33
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -666,74 +644,60 @@ msgid ""
 "Useful if you accidentally type more than one key at a time or have "
 "difficulty pressing the key you want the first time."
 msgstr ""
-"キーが受け入れられるまでに、設定された時間までキーを押し続ける必要がありま"
-"す。間違って一度に複数のキーを入力してしまう場合や、目的のキーを最初から押す"
-"のが難しい場合に便利です。"
+"キーが受け付けられるまで、設定した時間が経過するまでキーを押し続ける必要があ"
+"ります。誤って複数のキーを同時に押してしまう場合や、目的のキーをうまく押せな"
+"い場合に便利です。"
 
-#: ui/KeyboardFilters.qml:41
-#, fuzzy, kde-format
-#| msgctxt "Slow keys Delay"
-#| msgid "Delay:"
+#: ui/KeyboardFilters.qml:39
+#, kde-format
 msgctxt "@label:spinbox Slow keys Delay"
 msgid "Delay:"
 msgstr "遅延:"
 
-#: ui/KeyboardFilters.qml:56
-#, fuzzy, kde-format
-#| msgid "%1 ms"
-#| msgid_plural "%1 ms"
+#: ui/KeyboardFilters.qml:57
+#, kde-format
 msgctxt "@label:valuesuffix %1 is slow keys delay"
 msgid "%1 ms"
 msgid_plural "%1 ms"
 msgstr[0] "%1 ミリ秒"
 
-#: ui/KeyboardFilters.qml:74
-#, fuzzy, kde-format
-#| msgid "Ring system bell:"
+#: ui/KeyboardFilters.qml:72
+#, kde-format
 msgctxt "@title:group prefix for checkbox group"
 msgid "Ring system bell:"
-msgstr "システムベルを鳴らす:"
+msgstr "次のときシステムベルを鳴らす:"
 
-#: ui/KeyboardFilters.qml:75
-#, fuzzy, kde-format
-#| msgctxt "Use system bell when a key is pressed"
-#| msgid "when any key is &pressed"
+#: ui/KeyboardFilters.qml:76
+#, kde-format
 msgctxt "@option:check Use system bell when a key is pressed"
 msgid "when any key is &pressed"
 msgstr "キーが押されたとき(&P)"
 
-#: ui/KeyboardFilters.qml:89
-#, fuzzy, kde-format
-#| msgctxt "Use system bell when a key is accepted"
-#| msgid "when any key is &accepted"
+#: ui/KeyboardFilters.qml:92
+#, kde-format
 msgctxt "@option:check Use system bell when a key is accepted"
 msgid "when any key is &accepted"
-msgstr "キー押下が受け付けられたとき(&A)"
+msgstr "キーが受け付けられたとき(&A)"
 
-#: ui/KeyboardFilters.qml:103
-#, fuzzy, kde-format
-#| msgctxt "Use system bell when a key is rejected"
-#| msgid "when any key is &rejected"
+#: ui/KeyboardFilters.qml:108
+#, kde-format
 msgctxt "@option:check Use system bell when a key is rejected"
 msgid "when any key is &rejected"
-msgstr "キー押下が拒否されたとき(&R)"
+msgstr "キーが無視されたとき(&R)"
 
-#: ui/KeyboardFilters.qml:119
-#, fuzzy, kde-format
-#| msgid "Bounce keys:"
+#: ui/KeyboardFilters.qml:123
+#, kde-format
 msgctxt "@title:group prefix"
 msgid "Bounce keys:"
 msgstr "バウンスキー (二度打ち防止機能):"
 
-#: ui/KeyboardFilters.qml:124
-#, fuzzy, kde-format
-#| msgctxt "Enable activation shortcuts"
-#| msgid "Enable"
+#: ui/KeyboardFilters.qml:127
+#, kde-format
 msgctxt "@option:check Bounce keys enable"
 msgid "Enable"
 msgstr "有効"
 
-#: ui/KeyboardFilters.qml:135
+#: ui/KeyboardFilters.qml:139
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -741,106 +705,87 @@ msgid ""
 "tremors that cause you to press a key multiple times when you only intend to "
 "press once."
 msgstr ""
-"同じキーの素早いリピートを無視します。手に震えがあって、1回だけ押すつもりが"
-"キーを複数回押してしまう場合に便利です。"
+"短時間で繰り返し押された同じキーを無視します。手に震えがあって、1回だけ押すつ"
+"もりがキーを複数回押してしまう場合に便利です。"
 
-#: ui/KeyboardFilters.qml:142
-#, fuzzy, kde-format
-#| msgctxt "Slow keys Delay"
-#| msgid "Delay:"
+#: ui/KeyboardFilters.qml:145
+#, kde-format
 msgctxt "@label:spinbox Bounce keys delay"
 msgid "Delay:"
 msgstr "遅延:"
 
-#: ui/KeyboardFilters.qml:157
-#, fuzzy, kde-format
-#| msgid "%1 ms"
-#| msgid_plural "%1 ms"
+#: ui/KeyboardFilters.qml:163
+#, kde-format
 msgctxt "@label:valuesuffix %1 is bounce keys delay"
 msgid "%1 ms"
 msgid_plural "%1 ms"
 msgstr[0] "%1 ミリ秒"
 
-#: ui/KeyboardFilters.qml:171
-#, fuzzy, kde-format
-#| msgid "Ring system bell when rejected"
+#: ui/KeyboardFilters.qml:179
+#, kde-format
 msgctxt "@option:check for bounce keys"
 msgid "Ring system bell when rejected"
-msgstr "キー押下が拒否されたときシステムベルを鳴らす"
+msgstr "キーが無視されたときシステムベルを鳴らす"
 
 #: ui/main.qml:28
 #, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Zoom & Magnifier"
-msgstr ""
+msgstr "ズームと拡大鏡"
 
-#: ui/main.qml:33
+#: ui/main.qml:34
 #, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "System Bell"
 msgstr "システムベル"
 
-#: ui/main.qml:38
-#, fuzzy, kde-format
-#| msgctxt "System Modifier Keys"
-#| msgid "Modifier Keys"
+#: ui/main.qml:40
+#, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Modifier Keys"
 msgstr "修飾キー"
 
-#: ui/main.qml:43
-#, fuzzy, kde-format
-#| msgctxt "System keyboard filters"
-#| msgid "Keyboard Filters"
+#: ui/main.qml:46
+#, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Keyboard Filters"
 msgstr "キーボードフィルタ"
 
-#: ui/main.qml:48
-#, fuzzy, kde-format
-#| msgctxt "System mouse navigation"
-#| msgid "Mouse Navigation"
+#: ui/main.qml:52
+#, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Mouse Navigation"
 msgstr "マウスナビゲーション"
 
-# ACCELERATOR added by translator
-#: ui/main.qml:53
-#, fuzzy, kde-format
-#| msgid "Activation Shortcuts"
-msgctxt "@title Category name in sidebar"
-msgid "Activation Shortcuts"
-msgstr "有効化ショートカット"
-
 #: ui/main.qml:58
-#, fuzzy, kde-format
-#| msgctxt "System mouse navigation"
-#| msgid "Screen Reader"
+#, kde-format
+msgctxt "@title Category name in sidebar"
+msgid "Dwell Clicker"
+msgstr ""
+
+#: ui/main.qml:64
+#, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Screen Reader"
-msgstr "スクリーンリーダ"
+msgstr "スクリーンリーダー"
 
-#: ui/main.qml:63
-#, fuzzy, kde-format
-#| msgctxt "Correction for color blindness"
-#| msgid "Color Blindness Correction"
+#: ui/main.qml:70
+#, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Color Blindness Correction"
 msgstr "色覚異常の補正"
 
-#: ui/main.qml:68
+#: ui/main.qml:76
 #, kde-format
 msgctxt "@title Category name in sidebar, for inverting screen colors"
 msgid "Invert"
-msgstr ""
+msgstr "色を反転"
 
-#: ui/main.qml:73
-#, fuzzy, kde-format
-#| msgctxt "Shake cursor to find it"
-#| msgid "Shake Cursor"
+#: ui/main.qml:82
+#, kde-format
 msgctxt "@title Category name in sidebar, shake pointer to find it"
 msgid "Shake Pointer"
-msgstr "カーソル振動"
+msgstr "ポインタをシェイク"
 
 #: ui/ModifierKeys.qml:17
 #, kde-format
@@ -848,13 +793,13 @@ msgctxt "@option:check"
 msgid "Sticky keys:"
 msgstr "スティッキーキー:"
 
-#: ui/ModifierKeys.qml:22
+#: ui/ModifierKeys.qml:20
 #, kde-format
 msgctxt "@option:check Enable sticky keys"
 msgid "Enable"
 msgstr "有効"
 
-#: ui/ModifierKeys.qml:33
+#: ui/ModifierKeys.qml:32
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -862,9 +807,8 @@ msgid ""
 "though they “stick in place” and no longer need to be held down when typing "
 "a keyboard shortcut."
 msgstr ""
-"Ctrl, Shift, Alt, Meta/Super/Windows キーなどの修飾キーは、「位置が固定されて"
-"いる」かのように動作し、キーボードショートカットを入力するときに押し続ける必"
-"要がなくなりました。"
+"Ctrl, Shift, Alt, Meta/Super/Windows キーなどの修飾キーが「固定」され、キー"
+"ボードショートカットを入力する際に押し続ける必要がなくなります。"
 
 #: ui/ModifierKeys.qml:39
 #, kde-format
@@ -872,107 +816,103 @@ msgctxt "@option:check"
 msgid "Lock sticky keys"
 msgstr "スティッキーキーをロック"
 
-#: ui/ModifierKeys.qml:51
+#: ui/ModifierKeys.qml:52
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "Pressing a modifier key twice will keep it in active state until pressed "
 "again."
-msgstr ""
+msgstr "修飾キーを2回押すと、再度押すまでスティッキーがオンのままになります。"
 
-#: ui/ModifierKeys.qml:57
-#, fuzzy, kde-format
-#| msgid "Disable when two keys are held down"
+#: ui/ModifierKeys.qml:60
+#, kde-format
 msgctxt "@option:check"
 msgid "Disable when two keys are held down"
 msgstr "2つのキーが同時に押されたときは無効化"
 
 # ACCELERATOR changed by translator
-#: ui/ModifierKeys.qml:70
-#, fuzzy, kde-format
-#| msgid "Ring system bell when modifier keys are used"
+#: ui/ModifierKeys.qml:75
+#, kde-format
 msgctxt "@option:check"
 msgid "Ring system bell when modifier keys are used"
 msgstr "修飾キーが押されたときシステムベルを鳴らす"
 
-#: ui/ModifierKeys.qml:88
+#: ui/ModifierKeys.qml:91
 #, kde-format
 msgctxt "@option:check Feedback options:"
 msgid "Feedback:"
 msgstr "フィードバック:"
 
 # ACCELERATOR changed by translator
-#: ui/ModifierKeys.qml:93
+#: ui/ModifierKeys.qml:94
 #, kde-format
 msgctxt "@option:check"
 msgid "Ring system bell when locking keys are used"
 msgstr "ロックキーが押されたときシステムベルを鳴らす"
 
-#: ui/ModifierKeys.qml:104
+#: ui/ModifierKeys.qml:106
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "The locking keys are Caps Lock, Num Lock, and Scroll Lock."
 msgstr "ロックキーは Caps Lock, Num Lock, Scroll Lock です。"
 
-#: ui/ModifierKeys.qml:108
+#: ui/ModifierKeys.qml:112
 #, kde-format
 msgctxt "@option:check"
 msgid "Show notification when modifier or locking keys are used"
 msgstr "修飾キーかロックキーが押されたときに通知を表示"
 
-#: ui/ModifierKeys.qml:120
+#: ui/ModifierKeys.qml:126
 #, kde-format
 msgctxt "@action:button"
 msgid "Configure Notifications…"
-msgstr "通知を設定..."
+msgstr "通知を設定…"
 
 #: ui/MouseNavigation.qml:17
-#, fuzzy, kde-format
-#| msgctxt "@option:check"
-#| msgid "Use number pad to move cursor:"
+#, kde-format
 msgctxt "@option:check"
 msgid "Use number pad to move pointer:"
-msgstr "テンキーでカーソルを移動する:"
+msgstr "テンキーでポインタを移動する:"
 
-#: ui/MouseNavigation.qml:22
+#: ui/MouseNavigation.qml:19
 #, kde-format
 msgctxt "@option:check Enable mouse navigation"
 msgid "Enable"
 msgstr "有効"
 
-#: ui/MouseNavigation.qml:33
+#: ui/MouseNavigation.qml:31
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
-"The numpad key <shortcut>5</shortcut> functions as a mouse click. The keys "
-"<shortcut>2</shortcut>, <shortcut>4</shortcut>, <shortcut>6</shortcut>, and "
-"<shortcut>8</shortcut> allow for cardinal movement (down, left, right, and "
-"up). The keys <shortcut>1</shortcut>, <shortcut>3</shortcut>, <shortcut>7</"
-"shortcut>, and <shortcut>9</shortcut> allow for diagonal movement."
+"The numpad key <shortcut>5</shortcut> functions as a mouse click, toggled by "
+"<shortcut>/</shortcut> for middle click, <shortcut>*</shortcut> for right "
+"click and <shortcut>NumLock</shortcut> for left click. The keys <shortcut>2</"
+"shortcut>, <shortcut>4</shortcut>, <shortcut>6</shortcut>, and <shortcut>8</"
+"shortcut> allow for cardinal movement (down, left, right, and up). The keys "
+"<shortcut>1</shortcut>, <shortcut>3</shortcut>, <shortcut>7</shortcut>, and "
+"<shortcut>9</shortcut> allow for diagonal movement."
 msgstr ""
-"テンキーの <shortcut>5</shortcut> キーはマウスクリックとして機能します。"
-"<shortcut>2</shortcut>, <shortcut>4</shortcut>, <shortcut>6</shortcut>, "
-"<shortcut>8</shortcut> キーは、基本移動 (下、左、右、上) を可能にします。"
-"<shortcut>1</shortcut>, <shortcut>3</shortcut>, <shortcut>7</shortcut>, "
-"<shortcut>9</shortcut> キーは、斜め移動を可能にします。"
+"テンキーの <shortcut>5</shortcut> はクリックとして機能し、<shortcut>/</"
+"shortcut> で中クリック、<shortcut>*</shortcut> で右クリック、"
+"<shortcut>NumLock</shortcut> で左クリックに切り替えられます。<shortcut>2</"
+"shortcut>, <shortcut>4</shortcut>, <shortcut>6</shortcut>, <shortcut>8</"
+"shortcut> は上下左右の移動、<shortcut>1</shortcut>, <shortcut>3</shortcut>, "
+"<shortcut>7</shortcut>, <shortcut>9</shortcut> は斜め方向の移動に使用します。"
 
-#: ui/MouseNavigation.qml:39
+#: ui/MouseNavigation.qml:37
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Acceleration delay:"
 msgstr "加速の遅延:"
 
 #: ui/MouseNavigation.qml:53
-#, fuzzy, kde-format
-#| msgid "%1 ms"
-#| msgid_plural "%1 ms"
+#, kde-format
 msgctxt "@label:valuesuffix acceleration delay spinbox %1 is value"
 msgid "%1 ms"
 msgid_plural "%1 ms"
 msgstr[0] "%1 ミリ秒"
 
-#: ui/MouseNavigation.qml:61 ui/MouseNavigation.qml:88
-#: ui/MouseNavigation.qml:114
+#: ui/MouseNavigation.qml:61 ui/MouseNavigation.qml:90
 #, kde-format
 msgctxt "short for millisecond(s)"
 msgid "ms"
@@ -985,31 +925,20 @@ msgctxt "@label:spinbox"
 msgid "Repeat interval:"
 msgstr "リピート間隔:"
 
-#: ui/MouseNavigation.qml:84
-#, fuzzy, kde-format
-#| msgid "%1 ms"
-#| msgid_plural "%1 ms"
+#: ui/MouseNavigation.qml:86
+#, kde-format
 msgctxt "@label:valuesuffix repeat interval spinbox %1 is value"
 msgid "%1 ms"
 msgid_plural "%1 ms"
 msgstr[0] "%1 ミリ秒"
 
-#: ui/MouseNavigation.qml:93
+#: ui/MouseNavigation.qml:95
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Acceleration time:"
 msgstr "加速時間:"
 
-#: ui/MouseNavigation.qml:110
-#, fuzzy, kde-format
-#| msgid "%1 ms"
-#| msgid_plural "%1 ms"
-msgctxt "@label:valuesuffix acceleration time spinbox %1 is value"
-msgid "%1 ms"
-msgid_plural "%1 ms"
-msgstr[0] "%1 ミリ秒"
-
-#: ui/MouseNavigation.qml:118
+#: ui/MouseNavigation.qml:116
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Maximum speed:"
@@ -1021,361 +950,316 @@ msgctxt "@label:spinbox"
 msgid "Pointer acceleration:"
 msgstr "ポインタの加速:"
 
-#: ui/ScreenReader.qml:20
+#: ui/ScreenReader.qml:22
 #, kde-format
 msgctxt "@info Placeholder message title"
 msgid "The Orca Screen Reader is not installed"
-msgstr "Orca スクリーンリーダがインストールされていません"
+msgstr "Orca スクリーンリーダーがインストールされていません"
 
-#: ui/ScreenReader.qml:21
+#: ui/ScreenReader.qml:23
 #, kde-format
 msgctxt "@info Placeholder message explanation"
 msgid "Please install it, then close and reopen this window"
 msgstr "インストールしてからこのウィンドウを閉じて、再度開いてください"
 
-#: ui/ScreenReader.qml:27
+#: ui/ScreenReader.qml:30
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable Screen Reader"
-msgstr "スクリーンリーダを有効にする"
+msgstr "スクリーンリーダーを有効にする"
 
-#: ui/ScreenReader.qml:39
+#: ui/ScreenReader.qml:44
 #, kde-format
 msgctxt "@action:button"
 msgid "Launch Orca Screen Reader Configuration…"
-msgstr "Orca スクリーンリーダの設定を起動します..."
-
-#: ui/ShakeCursor.qml:15
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Shake cursor to find it:"
-msgctxt "@label"
-msgid "Shake pointer to find it:"
-msgstr "カーソルを振動させて見つける:"
+msgstr "Orca スクリーンリーダーの設定を起動…"
 
 #: ui/ShakeCursor.qml:16
-#, fuzzy, kde-format
-#| msgctxt "Enable activation shortcuts"
-#| msgid "Enable"
+#, kde-format
+msgctxt "@label"
+msgid "Shake pointer to find it:"
+msgstr "ポインタをシェイクして探す:"
+
+#: ui/ShakeCursor.qml:18
+#, kde-format
 msgctxt "@option check, Enable shake pointer effect"
 msgid "Enable"
 msgstr "有効"
 
-#: ui/ShakeCursor.qml:28
-#, fuzzy, kde-format
-#| msgctxt "@label Cursor magnification level"
-#| msgid "Magnification:"
+#: ui/ShakeCursor.qml:31
+#, kde-format
 msgctxt "@label Pointer magnification level"
 msgid "Magnification:"
 msgstr "倍率:"
 
-#: ui/ShakeCursor.qml:55
-#, fuzzy, kde-format
-#| msgctxt "@label Normal cursor size"
-#| msgid "Normal"
+#: ui/ShakeCursor.qml:60
+#, kde-format
 msgctxt "@label Normal pointer size"
 msgid "Normal"
 msgstr "通常"
 
-#: ui/ShakeCursor.qml:62
-#, fuzzy, kde-format
-#| msgctxt "@label Large cursor size"
-#| msgid "Large"
+#: ui/ShakeCursor.qml:67
+#, kde-format
 msgctxt "@label Large pointer size"
 msgid "Large"
 msgstr "大"
 
-#: ui/ZoomMagnifier.qml:22
-#, kde-format
-msgctxt "@label, followed by 'full screen' or 'magnify region'"
-msgid "Zoom:"
-msgstr ""
-
 #: ui/ZoomMagnifier.qml:24
-#, fuzzy, kde-format
-#| msgctxt "@option:radio Flash screen when a system bell is rung"
-#| msgid "Flash screen"
-msgctxt "@option:check, enable zoom effect, following 'Zoom:'"
-msgid "Full screen"
-msgstr "画面の点滅"
-
-#: ui/ZoomMagnifier.qml:53
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Show pixel grid at zoom level:"
-msgstr ""
+msgstr "次のズームレベルでピクセルグリッドを表示:"
 
-#: ui/ZoomMagnifier.qml:85
-#, fuzzy, kde-format
-#| msgctxt "@label:spinbox"
-#| msgid "Pointer acceleration:"
-msgctxt "@label:listbox"
-msgid "Pointer appearance:"
-msgstr "ポインタの加速:"
-
-#: ui/ZoomMagnifier.qml:87
+#: ui/ZoomMagnifier.qml:60
 #, kde-format
-msgctxt "@item:inlistbox"
-msgid "Scale"
-msgstr ""
-
-#: ui/ZoomMagnifier.qml:87
-#, kde-format
-msgctxt "@item:inlistbox"
-msgid "Keep"
-msgstr ""
-
-#: ui/ZoomMagnifier.qml:87
-#, kde-format
-msgctxt "@item:inlistbox"
-msgid "Hide"
-msgstr ""
-
-#: ui/ZoomMagnifier.qml:123
-#, fuzzy, kde-format
-#| msgctxt "@label:spinbox"
-#| msgid "Pointer acceleration:"
 msgctxt "@label:listbox"
 msgid "Pointer tracking:"
-msgstr "ポインタの加速:"
+msgstr "ポインタ追従:"
 
-#: ui/ZoomMagnifier.qml:128
+#: ui/ZoomMagnifier.qml:82
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Proportional"
-msgstr ""
+msgstr "相対的"
 
-#: ui/ZoomMagnifier.qml:129
+#: ui/ZoomMagnifier.qml:83
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Zoom area moves in sync with pointer"
-msgstr ""
+msgstr "ポインタに合わせてズームエリアが動きます"
 
-#: ui/ZoomMagnifier.qml:133
+#: ui/ZoomMagnifier.qml:87
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered"
-msgstr ""
+msgstr "中央"
 
-#: ui/ZoomMagnifier.qml:134
+#: ui/ZoomMagnifier.qml:88
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Pointer stays centered on-screen, except near screen edges"
-msgstr ""
+msgstr "ポインタを画面中央に保ちます (画面端は除く)"
 
-#: ui/ZoomMagnifier.qml:138
+#: ui/ZoomMagnifier.qml:92
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered (Strict)"
-msgstr ""
+msgstr "中央 (強制)"
 
-#: ui/ZoomMagnifier.qml:139
+#: ui/ZoomMagnifier.qml:93
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Pointer stays centered on-screen, even near screen edges"
-msgstr ""
+msgstr "画面端でもポインタを画面中央に保ちます"
 
-#: ui/ZoomMagnifier.qml:143
+#: ui/ZoomMagnifier.qml:97
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Push"
-msgstr ""
+msgstr "プッシュ"
 
-#: ui/ZoomMagnifier.qml:144
+#: ui/ZoomMagnifier.qml:98
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Pointer pushes zoom area at screen edges"
-msgstr ""
+msgstr "ポインタが画面端に近づくとズームエリアが動きます"
 
-#: ui/ZoomMagnifier.qml:148
+#: ui/ZoomMagnifier.qml:102
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Disabled"
-msgstr ""
+msgstr "無効"
 
-#: ui/ZoomMagnifier.qml:149
+#: ui/ZoomMagnifier.qml:103
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Zoom area doesn't follow pointer"
-msgstr ""
+msgstr "ズームエリアをポインタに合わせて動かしません"
 
-#: ui/ZoomMagnifier.qml:166
+#: ui/ZoomMagnifier.qml:123
 #, kde-format
 msgctxt "@option:check"
-msgid "Enable focus tracking"
-msgstr ""
+msgid "Sharpen screen content while zoomed in"
+msgstr "ズーム中に画面の解像度を補正する"
 
-#: ui/ZoomMagnifier.qml:178
+#: ui/ZoomMagnifier.qml:137
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable text caret tracking"
-msgstr ""
+msgstr "入力中はテキストカーソルに合わせる"
 
-#: ui/ZoomMagnifier.qml:194
-#, fuzzy, kde-format
-#| msgid "Magnification"
-msgctxt "@option:check, enable magnify effect, following 'Zoom:'"
-msgid "Magnify region"
-msgstr "倍率"
-
-#: ui/ZoomMagnifier.qml:221
+#: ui/ZoomMagnifier.qml:154
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Width:"
-msgstr ""
+msgstr "幅:"
 
-#: ui/ZoomMagnifier.qml:232 ui/ZoomMagnifier.qml:257
+#: ui/ZoomMagnifier.qml:167 ui/ZoomMagnifier.qml:195
 #, kde-format
 msgctxt "short for pixel(s)"
 msgid "%1 px"
 msgid_plural "%1 px"
-msgstr[0] ""
+msgstr[0] "%1 px"
 
-#: ui/ZoomMagnifier.qml:233 ui/ZoomMagnifier.qml:258
+#: ui/ZoomMagnifier.qml:168 ui/ZoomMagnifier.qml:196
 #, kde-format
 msgctxt "short for pixel(s)"
 msgid "px"
-msgstr ""
+msgstr "px"
 
-#: ui/ZoomMagnifier.qml:246
+#: ui/ZoomMagnifier.qml:182
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Height:"
-msgstr ""
+msgstr "高さ:"
 
-#: ui/ZoomMagnifier.qml:275
+#: ui/ZoomMagnifier.qml:211
+#, kde-format
+msgctxt "@label, followed by 'full screen' or 'magnify region'"
+msgid "Zoom:"
+msgstr "ズーム:"
+
+#: ui/ZoomMagnifier.qml:216
+#, kde-format
+msgctxt "@option:check, enable zoom effect, following 'Zoom:'"
+msgid "Full screen"
+msgstr "フルスクリーン"
+
+#: ui/ZoomMagnifier.qml:231
+#, kde-format
+msgctxt "@option:check, enable magnify effect, following 'Zoom:'"
+msgid "Magnify region"
+msgstr "拡大鏡の拡大領域"
+
+#: ui/ZoomMagnifier.qml:244
 #, kde-format
 msgctxt "@option:check, disable zoom/magnify effect"
 msgid "Disabled"
-msgstr ""
+msgstr "無効"
 
-#: ui/ZoomMagnifier.qml:288
+#: ui/ZoomMagnifier.qml:265
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Zoom factor:"
-msgstr ""
+msgstr "ズーム感度:"
 
-#: ui/ZoomMagnifier.qml:321
+#: ui/ZoomMagnifier.qml:303
 #, kde-format
 msgctxt "@label"
 msgid "Scroll gesture modifier keys:"
-msgstr ""
-
-#: ui/ZoomMagnifier.qml:359
-#, kde-format
-msgctxt "@info:tooltip, indicates feature unavailable on X11"
-msgid "Zoom scroll gestures are only available on Wayland."
-msgstr ""
+msgstr "スクロールジェスチャーの修飾キー:"
 
 # ACCELERATOR changed by translator
-#: ui/ZoomMagnifier.qml:365
-#, fuzzy, kde-format
-#| msgid "Ring system bell when modifier keys are used"
+#: ui/ZoomMagnifier.qml:304
+#, kde-format
 msgctxt "@label Hint for scroll gestures"
 msgid "Scroll while modifier keys are pressed to zoom"
-msgstr "修飾キーが押されたときシステムベルを鳴らす"
+msgstr "修飾キーを押しながらスクロールするとズームできます"
 
-#: ui/ZoomMagnifier.qml:386
-#, fuzzy, kde-format
-#| msgid "Use keys to control the mouse"
-msgctxt "@label Hint for zoom/magnify effect usage"
-msgid "Use shortcuts to control zoom"
-msgstr "キーを使用してポインタを移動"
+#~ msgctxt "@label:valuesuffix acceleration time spinbox %1 is value"
+#~ msgid "%1 ms"
+#~ msgid_plural "%1 ms"
+#~ msgstr[0] "%1 ミリ秒"
 
-#~ msgid "Button search audio file"
-#~ msgstr "音声ファイル検索ボタン"
+#~ msgid "Enable Screen Reader"
+#~ msgstr "スクリーンリーダーを有効化"
 
-#~ msgctxt "Enable visual bell"
-#~ msgid "Enable"
-#~ msgstr "有効"
+#~ msgctxt "@label Hint for zoom/magnify effect usage"
+#~ msgid "Use shortcuts to control zoom"
+#~ msgstr "ショートカットでズームを操作できます"
 
-#~ msgctxt "Enable slow keys"
-#~ msgid "Enable"
-#~ msgstr "有効"
+#~ msgctxt "@option:check"
+#~ msgid "Enable focus tracking"
+#~ msgstr "フォーカス中のウィンドウに合わせる"
 
-#~ msgctxt "Bounce keys enable"
-#~ msgid "Enable"
-#~ msgstr "有効"
+#~ msgctxt "@info:tooltip, indicates feature unavailable on X11"
+#~ msgid "Zoom scroll gestures are only available on Wayland."
+#~ msgstr "ズームのスクロールジェスチャーは Wayland のみ対応しています。"
 
-#~ msgctxt "Bounce keys delay"
-#~ msgid "Delay:"
-#~ msgstr "遅延:"
+#~ msgid "Use Gestures"
+#~ msgstr "ジェスチャーを使用"
 
-#~ msgctxt "@option check, Enable shake cursor effect"
+#~ msgid "Ask for Confirmation for a gesture"
+#~ msgstr "ジェスチャー実行の確認を求める"
+
+#~ msgid "Confirm access to the Keyboard"
+#~ msgstr "キーボードへのアクセスを確認"
+
+#~ msgid "Use a timeout delay"
+#~ msgstr "タイムアウト遅延を使用する"
+
+#~ msgid "Use a beep for access"
+#~ msgstr "アクセスにビープ音を使用する"
+
+# ACCELERATOR added by translator
+#~ msgctxt "@option:check"
+#~ msgid "Activation shortcuts:"
+#~ msgstr "有効化ショートカット:"
+
+#~ msgctxt "Enable activation shortcuts"
 #~ msgid "Enable"
 #~ msgstr "有効"
 
 #~ msgctxt "@label"
-#~ msgid "Color blindness correction:"
-#~ msgstr "色覚異常の補正:"
+#~ msgid "Press Shift 5 times to enable Sticky Keys"
+#~ msgstr "スティッキーキーを有効にするには Shift を5回押す"
 
 #~ msgctxt "@label"
-#~ msgid "Mode:"
-#~ msgstr "モード:"
+#~ msgid "Hold Shift for 8 seconds to enable Slow Keys"
+#~ msgstr "スローキーを有効にするには Shift を8秒間長押し"
 
-#~ msgctxt "@option"
-#~ msgid "Protanopia (red weak)"
-#~ msgstr "1型2色覚 (赤色が弱い)"
+# ACCELERATOR added by translator
+#~ msgctxt "@option:check"
+#~ msgid "Disable sticky and slow keys after:"
+#~ msgstr "次の時間後にスティッキーキーとスローキーをオフにする:"
 
-#~ msgctxt "@option"
-#~ msgid "Deuteranopia (green weak)"
-#~ msgstr "2型2色覚 (緑色が弱い)"
+#~ msgctxt "@label:valuesuffix in spinbox %1 is timeout delay"
+#~ msgid "%1 min"
+#~ msgid_plural "%1 min"
+#~ msgstr[0] "%1 分"
 
-#~ msgctxt "@option"
-#~ msgid "Tritanopia (blue-yellow)"
-#~ msgstr "3型2色覚 (青色が弱い)"
+#~ msgctxt "short for minute(s)"
+#~ msgid "min"
+#~ msgid_plural "min"
+#~ msgstr[0] "分"
 
-#~ msgid "Red"
-#~ msgstr "赤"
+#~ msgctxt "@title:group for checkbox group"
+#~ msgid "When a shortcut is used:"
+#~ msgstr "ショートカットを使用したとき:"
 
-#~ msgid "AltGraph"
-#~ msgstr "AltGraph"
+#~ msgctxt "@option:check when shortcut used"
+#~ msgid "Display a confirmation dialog"
+#~ msgstr "確認ダイアログを表示"
 
-#~ msgid "Hyper"
-#~ msgstr "Hyper"
+#~ msgctxt "@option:check when shortcut used"
+#~ msgid "Ring the system bell"
+#~ msgstr "システムベルを鳴らす"
 
-#~ msgid "Super"
-#~ msgstr "Super"
+#~ msgctxt "@option:check when shortcut used"
+#~ msgid "Show a notification"
+#~ msgstr "通知を表示"
 
-#~ msgid "Press %1 while NumLock, CapsLock and ScrollLock are active"
-#~ msgstr "NumLock, CapsLock そして ScrollLock が有効なとき %1 を押す"
+#~ msgctxt "@action:button opens Notifications kcm"
+#~ msgid "Configure Notifications…"
+#~ msgstr "通知を設定…"
 
-#~ msgid "Press %1 while CapsLock and ScrollLock are active"
-#~ msgstr "CapsLock と ScrollLock が有効なとき %1 を押す"
+# ACCELERATOR added by translator
+#~ msgctxt "@title Category name in sidebar"
+#~ msgid "Activation Shortcuts"
+#~ msgstr "有効化ショートカット"
 
-#~ msgid "Press %1 while NumLock and ScrollLock are active"
-#~ msgstr "NumLock と ScrollLock が有効なとき %1 を押す"
+#~ msgctxt "@label:listbox"
+#~ msgid "Pointer appearance:"
+#~ msgstr "ポインタの見た目:"
 
-#~ msgid "Press %1 while ScrollLock is active"
-#~ msgstr "ScrollLock が有効なとき %1 を押す"
+#~ msgctxt "@item:inlistbox"
+#~ msgid "Scale"
+#~ msgstr "拡大"
 
-#~ msgid "Press %1 while NumLock and CapsLock are active"
-#~ msgstr "NumLock と CapsLock が有効なとき %1 を押す"
+#~ msgctxt "@item:inlistbox"
+#~ msgid "Keep"
+#~ msgstr "そのまま"
 
-#~ msgid "Press %1 while CapsLock is active"
-#~ msgstr "CapsLock が有効なとき %1 を押す"
-
-#~ msgid "Press %1 while NumLock is active"
-#~ msgstr "NumLock が有効なとき %1 を押す"
-
-#~ msgid "Press %1"
-#~ msgstr "%1 を押す"
-
-# ACCELERATOR changed by translator
-#~ msgctxt "@label"
-#~ msgid "Emits a sound whenever certain keys are pressed"
-#~ msgstr "特定のキーが押されるたびに音を出す"
-
-# ACCELERATOR changed by translator
-#~ msgctxt "@label"
-#~ msgid "Flashes the screen whenever certain keys are pressed"
-#~ msgstr "特定のキーが押されるたびに画面を点滅する"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid ""
-#~ "Once locked, the “sticky” state of modifier keys will not be disabled "
-#~ "until a keyboard shortcut is finished or until a non-modifier key is "
-#~ "pressed."
-#~ msgstr ""
-#~ "一度ロックされると、修飾キーの「固定」状態は、キーボードショートカットが終"
-#~ "了するか、修飾キー以外のキーが押されるまで無効になりません。"
+#~ msgctxt "@item:inlistbox"
+#~ msgid "Hide"
+#~ msgstr "非表示"

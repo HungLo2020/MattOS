@@ -132,8 +132,21 @@ private:
     const CollectionNode *getCollectionNode(const QString &name, NodeType type)
     {
         for (auto *tree : searchOrder()) {
-            const CollectionNode *cn = tree->getCollection(name, type);
-            if (cn)
+            if (const CollectionNode *cn = tree->getCollection(name, type))
+                return cn;
+        }
+        return nullptr;
+    }
+
+    // Mutating variant for passes that legitimately update collection
+    // membership (such as the concept-users reverse-index pass). Kept
+    // separate from getCollectionNode() so read-only callers keep
+    // their const contract and mutation intent is visible at the call
+    // site.
+    CollectionNode *findMutableCollectionNode(const QString &name, NodeType type)
+    {
+        for (auto *tree : searchOrder()) {
+            if (CollectionNode *cn = tree->getCollection(name, type))
                 return cn;
         }
         return nullptr;
@@ -186,10 +199,12 @@ public:
     const CNMap &groups() { return primaryTree()->groups(); }
     const CNMap &modules() { return primaryTree()->modules(); }
     const CNMap &qmlModules() { return primaryTree()->qmlModules(); }
+    const CNMap &concepts() { return primaryTree()->concepts(); }
 
     CollectionNode *addGroup(const QString &name) { return primaryTree()->addGroup(name); }
     CollectionNode *addModule(const QString &name) { return primaryTree()->addModule(name); }
     CollectionNode *addQmlModule(const QString &name) { return primaryTree()->addQmlModule(name); }
+    CollectionNode *addConcept(const QString &name) { return primaryTree()->addConcept(name); }
 
     CollectionNode *addToGroup(const QString &name, Node *node)
     {
@@ -289,7 +304,14 @@ public:
     const FunctionNode *findFunctionNode(const QString &target, const Node *relative,
                                          Genus genus);
     const Node *findTypeNode(const QString &type, const Node *relative, Genus genus);
+    const CollectionNode *findConceptNode(const QString &name)
+    {
+        return m_forest.getCollectionNode(name, NodeType::Concept);
+    }
     const Node *findNodeForTarget(const QString &target, const Node *relative);
+    const Node *findNodeForTarget(const QString &target, const Node *relative,
+                                  Genus genus, const QString &moduleName,
+                                  QString *ref = nullptr);
     const PageNode *findPageNodeByTitle(const QString &title)
     {
         return m_forest.findPageNodeByTitle(title);
@@ -301,6 +323,10 @@ public:
     const CollectionNode *getCollectionNode(const QString &name, NodeType type)
     {
         return m_forest.getCollectionNode(name, type);
+    }
+    CollectionNode *findMutableCollectionNode(const QString &name, NodeType type)
+    {
+        return m_forest.findMutableCollectionNode(name, type);
     }
     const CollectionNode *getModuleNode(const Node *relative);
 
@@ -336,7 +362,8 @@ public:
     [[nodiscard]] QString version() const { return m_version; }
 
     void readIndexes(const QStringList &indexFiles);
-    void generateIndex(const QString &fileName, const QString &url, const QString &title);
+    void generateIndex(const QString &fileName, const QString &url, const QString &title,
+                       const Generator *hrefGenerator);
 
     void processForest();
 
@@ -355,6 +382,7 @@ public:
     void resolveNamespaces();
     void resolveProxies();
     void resolveBaseClasses();
+    void resolveConceptUsers();
     void updateNavigation();
 
 private:

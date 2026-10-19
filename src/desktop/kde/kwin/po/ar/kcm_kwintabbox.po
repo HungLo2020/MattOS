@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2026-02-28 12:43+0400\n"
+"POT-Creation-Date: 2026-04-14 00:45+0000\n"
+"PO-Revision-Date: 2026-04-16 09:31+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -256,14 +256,8 @@ msgstr "التّطبيق الحاليّ"
 msgid "Visualization"
 msgstr "مرئي"
 
-#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
-#: main.ui:645
-#, kde-format
-msgid "The effect to replace the list window when desktop effects are active."
-msgstr "تأثير لاستبدال قائمة النوافذ عندما تكون تأثيرات سطح المكتب نشطة."
-
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:678
+#: main.ui:624
 #, kde-format
 msgid ""
 "The currently selected window will be highlighted by fading out all other "
@@ -272,11 +266,71 @@ msgstr ""
 "تُميز النافذة المحددة حاليًا عن طريق تلاشي جميع النوافذ الأخرى. يتطلب هذا "
 "الخيار تفعيل تأثيرات سطح المكتب. "
 
-#. i18n: ectx: property (text), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:681
+#. i18n: ectx: property (text), widget (QLabel, label_HighlightWindows)
+#: main.ui:634
 #, kde-format
 msgid "Show selected window"
 msgstr "اعرض النافذة المحددة"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_ShowTabBox)
+#: main.ui:644
+#, kde-format
+msgid "Enable the window list effect"
+msgstr "مكّن تأثير قائمة النوافذ"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
+#: main.ui:678
+#, kde-format
+msgid "The effect to replace the list window when desktop effects are active."
+msgstr "تأثير لاستبدال قائمة النوافذ عندما تكون تأثيرات سطح المكتب نشطة."
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, label_DelayTime)
+#: main.ui:701
+#, kde-format
+msgid "The time in milliseconds to wait before showing the task switcher."
+msgstr "الوقت بالمللي ثانية الذي يجب الانتظار قبل عرض مبدل المهام."
+
+#. i18n: ectx: property (text), widget (QLabel, label_DelayTime)
+#: main.ui:704
+#, kde-format
+msgid "Delay:"
+msgstr "التأخير:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:720
+#, kde-format
+msgid " ms"
+msgstr " م‌ث"
+
+#. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:735
+#, kde-format
+msgid "Delay before the window list appears"
+msgstr "التأخير قبل ظهور قائمة النوافذ"
+
+#. i18n: ectx: property (text), widget (QLabel, label_showScreen)
+#: main.ui:742
+#, kde-format
+msgid "Show on screen:"
+msgstr "اعرض في الشاشة:"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, showScreenCombo)
+#: main.ui:758
+#, kde-format
+msgid "Select which screen the task switcher should be displayed on."
+msgstr "حدد الشاشة التي تريد عرض أداة تبديل المهام عليها."
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:762
+#, kde-format
+msgid "Active screen"
+msgstr "الشاشة النشطة"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:767
+#, kde-format
+msgid "Primary screen"
+msgstr "الشّاشة الأساسية"
 
 #: shortcutsettings.cpp:131
 #, kde-format
@@ -317,6 +371,9 @@ msgstr "تنقّل بين نوافذ التّطبيق الحاليّ البدي�
 #, kde-format
 msgid "Walk Through Windows of Current Application Alternative (Reverse)"
 msgstr "تنقّل بين نوافذ التّطبيق الحاليّ البديلة (بالعكس)"
+
+#~ msgid "Show delay:"
+#~ msgstr "تأخير الإظهار:"
 
 #~ msgid "Show Desktop"
 #~ msgstr "أظهر سطح المكتب"

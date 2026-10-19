@@ -101,9 +101,9 @@ QQmlJSUtils::ResolvedAlias QQmlJSUtils::resolveAlias(const QQmlJSScopesById &idS
             property, owner, visitor);
 }
 
-std::optional<QQmlJSFixSuggestion> QQmlJSUtils::didYouMean(const QString &userInput,
-                                                     QStringList candidates,
-                                                     QQmlJS::SourceLocation location)
+std::optional<QQmlJSFixSuggestion> QQmlJSUtils::didYouMean(
+        const QString &userInput, QStringList candidates, const QString &filename,
+        const QQmlJS::SourceLocation &location)
 {
     QString shortestDistanceWord;
     int shortestDistance = userInput.size();
@@ -152,7 +152,7 @@ std::optional<QQmlJSFixSuggestion> QQmlJSUtils::didYouMean(const QString &userIn
         return QQmlJSFixSuggestion {
             u"Did you mean \"%1\"?"_s.arg(shortestDistanceWord),
             location,
-            shortestDistanceWord
+            { QQmlJSDocumentEdit{ filename, location, shortestDistanceWord } }
         };
     } else {
         return {};
@@ -344,23 +344,27 @@ QString QQmlJSUtils::qmlBuildPathFromSourcePath(const QQmlJSResourceFileMapper *
     if (!mapper)
         return pathInSourceFolder;
 
-    const QString qrcPath =
-            mapper->entry(QQmlJSResourceFileMapper::localFileFilter(pathInSourceFolder))
-                    .resourcePath;
+    // A source file may appear under multiple resource paths across different qrc files.
+    // Iterate all entries to find the one that resolves to a module build path.
+    const auto allEntries =
+            mapper->filter(QQmlJSResourceFileMapper::localFileFilter(pathInSourceFolder));
 
-    if (qrcPath.isEmpty())
-        return pathInSourceFolder;
+    for (const auto &mapEntry : allEntries) {
+        const QString qrcPath = mapEntry.resourcePath;
+        if (qrcPath.isEmpty())
+            continue;
 
-    const auto moduleBuildEntry =
-            qmlModuleEntryFromBuildPath(mapper, qrcPath, ResourceFileFilter);
+        const auto moduleBuildEntry =
+                qmlModuleEntryFromBuildPath(mapper, qrcPath, ResourceFileFilter);
+        if (!moduleBuildEntry.isValid())
+            continue;
 
-    if (!moduleBuildEntry.isValid())
-        return pathInSourceFolder;
+        const auto qrcFolderPath = qrcPath.first(qrcPath.lastIndexOf(u'/'));
+        return moduleBuildEntry.filePath + qrcFolderPath.sliced(moduleBuildEntry.resourcePath.size())
+                + pathInSourceFolder.sliced(pathInSourceFolder.lastIndexOf(u'/'));
+    }
 
-    const auto qrcFolderPath = qrcPath.first(qrcPath.lastIndexOf(u'/')); // drop the filename
-
-    return moduleBuildEntry.filePath + qrcFolderPath.sliced(moduleBuildEntry.resourcePath.size())
-            + pathInSourceFolder.sliced(pathInSourceFolder.lastIndexOf(u'/'));
+    return pathInSourceFolder;
 }
 
 /*!

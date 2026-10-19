@@ -1,0 +1,105 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2026 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+#pragma once
+
+#include "PluginRegistry.h"
+
+#include "union_export.h"
+
+namespace Union
+{
+class ColorProvider;
+
+/*!
+ * \class Union::PlatformPlugin
+ * \inmodule core
+ * \ingroup core-classes
+ *
+ * \brief Abstract base class for plugins providing platform integration.
+ *
+ */
+class UNION_EXPORT PlatformPlugin : public Plugin
+{
+    Q_OBJECT
+
+public:
+    PlatformPlugin(QObject *parent = nullptr);
+
+    /*!
+     * Returns the platform's default style name.
+     */
+    virtual QString defaultStyleName() = 0;
+    /*!
+     * Returns the list of directories that should be searched for style packages.
+     *
+     * By default this will use QStandardPaths and search for the directory
+     * "union/styles" in GenericDataLocation. However, this can be overridden
+     * should the platform have a location that is not handled by QStandardPaths.
+     */
+    virtual QList<std::filesystem::path> stylePackagePaths();
+    /*!
+     * Returns the path where new styles should be installed to.
+     *
+     * By default this will use QStandardPaths and return the writable path for
+     * GenericDataLocation with "union/styles" appended. This can be overridden
+     * by a platform if styles should be written to a different location.
+     */
+    virtual std::filesystem::path stylePackageInstallPath();
+    /*!
+     * Returns an icon from the platform.
+     *
+     * This should return an icon matching \a name using \a color to recolor
+     * the icon, if recoloring is supported. The default implementation will
+     * return the result of \c{QIcon::fromTheme()} and does not support
+     * recoloring.
+     */
+    virtual QIcon platformIcon(const QString &name, const QColor &color);
+    /*!
+     * Returns whether smooth scrolling is enabled on this platform.
+     *
+     * Enables/disables tweened scrollbars and inertial scrolling. Defaults to true
+     */
+    virtual bool smoothScroll();
+    /*!
+     * Emitted whenever smoothScroll changes.
+     */
+    Q_SIGNAL void smoothScrollChanged();
+    /*!
+     * Returns a multiplier to globally change the animation speed.
+     *
+     * This value should be used with animation speeds to ensure a platform's
+     * preferences with regards to animation speed is respected.
+     *
+     * By default this will return 1.0.
+     */
+    virtual qreal animationSpeedMultiplier();
+    /*!
+     * Emitted whenever animationSpeedMultiplier changes.
+     */
+    Q_SIGNAL void animationSpeedMultiplierChanged();
+
+protected:
+    void sendDefaultStyleChangedEvent();
+    void sendAnimationSpeedMultiplierChangedEvent();
+};
+
+class DefaultStyleChangedEvent : public QEvent
+{
+public:
+    DefaultStyleChangedEvent();
+
+    static QEvent::Type s_type;
+};
+
+class AnimationSpeedMultiplierChangedEvent : public QEvent
+{
+public:
+    AnimationSpeedMultiplierChangedEvent();
+
+    static QEvent::Type s_type;
+};
+}
+
+Q_DECLARE_INTERFACE(Union::PlatformPlugin, "org.kde.union.PlatformPlugin")
+Q_DECLARE_METATYPE(Union::PlatformPlugin)

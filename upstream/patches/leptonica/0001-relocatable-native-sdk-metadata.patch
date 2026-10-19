@@ -1,0 +1,55 @@
+--- a/lept.pc.cmake
++++ b/lept.pc.cmake
+@@ -1,6 +1,6 @@
+ prefix=@CMAKE_INSTALL_PREFIX@
+ exec_prefix=${prefix}/bin
+-libdir=${prefix}/lib
++libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+ includedir=${prefix}/include
+ 
+ Name: @leptonica_NAME@
+--- a/cmake/templates/LeptonicaConfig.cmake.in
++++ b/cmake/templates/LeptonicaConfig.cmake.in
+@@ -1,3 +1,5 @@
++@PACKAGE_INIT@
++
+ # ===================================================================================
+ #  The Leptonica CMake configuration file
+ #
+@@ -44,7 +46,7 @@
+ # ======================================================
+ 
+ # Provide the include directories to the caller
+-set(Leptonica_INCLUDE_DIRS      "@INCLUDE_DIR@")
++set(Leptonica_INCLUDE_DIRS "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@" "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@/leptonica")
+ 
+ # ====================================================================
+ # Link libraries:
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -261,8 +261,8 @@
+   set(ADDITIONAL_INCLUDE_DIRS "${JP2K_INCLUDE_DIR}")
+ endif()
+ set(CMAKE_REQUIRED_INCLUDES
+-    ${CMAKE_REQUIRED_INCLUDES} "${CMAKE_PREFIX_PATH}/include"
+-    "${CMAKE_INSTALL_PREFIX}/include" "${ADDITIONAL_INCLUDE_DIRS}")
++    ${CMAKE_REQUIRED_INCLUDES} ${PNG_INCLUDE_DIRS} ${JPEG_INCLUDE_DIRS}
++    ${ZLIB_INCLUDE_DIRS} ${ADDITIONAL_INCLUDE_DIRS})
+ 
+ include(Configure)
+ 
+@@ -339,9 +339,12 @@
+ configure_file(
+   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in
+   ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake @ONLY)
+-configure_file(
++include(CMakePackageConfigHelpers)
++configure_package_config_file(
+   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig.cmake.in
+-  ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake @ONLY)
++  ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake
++  INSTALL_DESTINATION ${leptonica_INSTALL_CMAKE_DIR}
++  PATH_VARS CMAKE_INSTALL_INCLUDEDIR)
+ 
+ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${pkg_conf_name}
+         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)

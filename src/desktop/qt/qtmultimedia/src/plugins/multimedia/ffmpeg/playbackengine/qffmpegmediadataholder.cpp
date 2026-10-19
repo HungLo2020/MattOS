@@ -6,13 +6,14 @@
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegioutils_p.h"
-#include "qiodevice.h"
-#include "qdatetime.h"
-#include "qloggingcategory.h"
 
 #include <QtMultimedia/qplaybackoptions.h>
+#include <QtMultimedia/private/qmediametadata_p.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qminimalflatset_p.h>
 
-#include <math.h>
 #include <optional>
 
 QT_BEGIN_NAMESPACE
@@ -43,7 +44,7 @@ static std::optional<TrackDuration> streamDuration(const AVStream &stream)
 }
 
 static std::optional<TrackPosition> streamStart(const AVStream &stream,
-                                                const AVFormatContextUPtr &context)
+                                                const AVDemuxerContextUPtr &context)
 {
     if (stream.start_time != AV_NOPTS_VALUE)
         return toTrackPosition(AVStreamPosition(stream.start_time), &stream, context.get());
@@ -188,7 +189,7 @@ QPlatformMediaPlayer::TrackType MediaDataHolder::trackTypeFromMediaType(int medi
 }
 
 namespace {
-q23::expected<AVFormatContextUPtr, MediaDataHolder::ContextError>
+q23::expected<AVDemuxerContextUPtr, MediaDataHolder::ContextError>
 loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playbackOptions,
           const std::shared_ptr<ICancelToken> &cancelToken)
 {
@@ -198,7 +199,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
 
     const QByteArray url = mediaUrl.toString(QUrl::PreferLocalFile).toUtf8();
 
-    AVFormatContextUPtr context{ avformat_alloc_context() };
+    AVDemuxerContextUPtr context{ avformat_alloc_context() };
 
     if (stream) {
         if (!stream->isOpen()) {
@@ -227,7 +228,8 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     }
 
     AVDictionaryHolder dict;
-    using RtmpProtocols = std::set<std::basic_string_view<char16_t>, std::less<>>;
+    using RtmpProtocols =
+            QMinimalVarLengthFlatSet<std::basic_string_view<char16_t>, 6, std::less<>>;
 
     static const RtmpProtocols rtmpProtocols{
         u"rtmp", u"rtmpe", u"rtmps", u"rtmpt", u"rtmpse", u"rtmpte",
@@ -237,7 +239,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     // https://ffmpeg.org/ffmpeg-protocols.html#rtmp
     // This is not the semantics of QPlaybackOptions::networkTimeout, and will cause failures when
     // opening streams
-    const bool setNetworkTimeout = rtmpProtocols.find(mediaUrl.scheme()) == rtmpProtocols.end();
+    const bool setNetworkTimeout = !rtmpProtocols.contains(mediaUrl.scheme());
 
     if (setNetworkTimeout) {
         const milliseconds timeout = playbackOptions.networkTimeout();
@@ -261,6 +263,14 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     if (!protocolWhitelist.isNull())
         av_dict_set(dict, "protocol_whitelist", protocolWhitelist.data(), 0);
 
+    if (mediaUrl.scheme().compare(u"rtsp") == 0) {
+        const QByteArray rtspTransport = qgetenv("QT_FFMPEG_RTSP_TRANSPORT").trimmed();
+        if (!rtspTransport.isEmpty()) {
+            av_dict_set(dict, "rtsp_transport", rtspTransport.constData(), 0);
+            qCDebug(qLcMediaDataHolder) << "Using custom RTSP transport:" << rtspTransport;
+        }
+    }
+
     if (playbackOptions.playbackIntent() == QPlaybackOptions::PlaybackIntent::LowLatencyStreaming) {
         av_dict_set(dict, "fflags", "nobuffer", 0);
         av_dict_set_int(dict, "flush_packets", 1, 0);
@@ -272,6 +282,11 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     // compare  https://trac.ffmpeg.org/ticket/10599
     if (avformat_version() < AV_VERSION_INT(62, 12, 100))
         av_dict_set_int(dict, "http_persistent", 0, 0);
+
+    // QTBUG-150720: FFmpeg >= 9.0 defaults its tls protocol to peer certificate verification,
+    // but we do not yet supply a CA bundle on Android, so every https:// source fails to open.
+    // Disable verification as a temporary stopgap until a proper CA bundle is wired up.
+    av_dict_set_int(dict, "tls_verify", 0, 0);
 
     context->interrupt_callback.opaque = cancelToken.get();
     context->interrupt_callback.callback = [](void *opaque) {
@@ -334,7 +349,7 @@ MediaDataHolder::Maybe MediaDataHolder::create(const QUrl &url, QIODevice *strea
     return q23::unexpected{ context.error() };
 }
 
-MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
+MediaDataHolder::MediaDataHolder(AVDemuxerContextUPtr context,
                                  const std::shared_ptr<ICancelToken> &cancelToken)
     : m_cancelToken{ cancelToken }
 {
@@ -488,8 +503,7 @@ void MediaDataHolder::updateMetaData()
     if (!m_cachedThumbnail.has_value())
         m_cachedThumbnail = getAttachedPicture(m_context.get());
 
-    if (!m_cachedThumbnail->isNull())
-        m_metaData.insert(QMediaMetaData::ThumbnailImage, m_cachedThumbnail.value());
+    QtMultimediaPrivate::setCoverArtImage(m_metaData, *m_cachedThumbnail);
 
     for (auto trackType :
          { QPlatformMediaPlayer::AudioStream, QPlatformMediaPlayer::VideoStream }) {

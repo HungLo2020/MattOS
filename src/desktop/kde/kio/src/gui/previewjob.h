@@ -194,7 +194,14 @@ Q_SIGNALS:
 protected Q_SLOTS:
     void slotResult(KJob *job) override;
 
+protected:
+    bool doKill() override;
+
 private:
+    friend class PreviewJobPrivate;
+
+    KIOGUI_NO_EXPORT void emitPreview(const KFileItem &item, const QImage &previewImage);
+
     Q_DECLARE_PRIVATE(PreviewJob)
 
 public:

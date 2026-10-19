@@ -9,6 +9,9 @@
 
 #include "kcodecs_export.h"
 
+#include <cstdint>
+#include <string>
+
 #define NUM_OF_CATEGORY 6
 
 #define ENOUGH_REL_THRESHOLD 100
@@ -26,35 +29,37 @@ public:
 
     void HandleOneChar(const char *aStr, unsigned int aCharLen)
     {
-        int order;
-
-        // if we received enough data, stop here
-        if (mTotalRel > MAX_REL_THRESHOLD) {
-            mDone = true;
-        }
         if (mDone) {
             return;
         }
 
         // Only 2-bytes characters are of our interest
-        order = (aCharLen == 2) ? GetOrder(aStr) : -1;
-        if (order != -1 && mLastCharOrder != -1) {
+        const int code = (aCharLen == 2) ? GetCode(reinterpret_cast<const uint8_t *>(aStr)) : -1;
+        if (code != -1 && mLastCharCode != -1) {
             mTotalRel++;
             // count this sequence to its category counter
-            mRelSample[(int)jp2CharContext[mLastCharOrder][order]]++;
+            mRelSample[(int)jp2CharContext[mLastCharCode][code]]++;
+
+            // if we received enough data, stop here
+            if (mTotalRel > MAX_REL_THRESHOLD) {
+                mDone = true;
+            }
         }
-        mLastCharOrder = order;
+        mLastCharCode = code;
     }
 
     float GetConfidence();
-    void Reset(void);
+
+    std::string StatusOutput();
+
     bool GotEnoughData()
     {
         return mTotalRel > ENOUGH_REL_THRESHOLD;
     }
 
 protected:
-    virtual int GetOrder(const char *str) = 0;
+    // Get cell code in Hiragana row, or -1 for non-Hiragana
+    virtual int GetCode(const uint8_t str[2]) = 0;
 
     // category counters, each integer counts sequence in its category
     unsigned int mRelSample[NUM_OF_CATEGORY] = {0};
@@ -62,8 +67,8 @@ protected:
     // total sequence received
     unsigned int mTotalRel = 0;
 
-    // The order of previous char
-    int mLastCharOrder = -1;
+    // The code of previous char
+    int mLastCharCode = -1;
 
     // If this flag is set to true, detection is done and conclusion has been made
     bool mDone = false;
@@ -72,11 +77,11 @@ protected:
 class KCODECS_NO_EXPORT SJISContextAnalysis : public JapaneseContextAnalysis
 {
 protected:
-    int GetOrder(const char *str) override
+    int GetCode(const uint8_t str[2]) override
     {
-        // We only interested in Hiragana, so first byte is '\202'
-        if (*str == '\202' && (unsigned char)*(str + 1) >= (unsigned char)0x9f && (unsigned char)*(str + 1) <= (unsigned char)0xf1) {
-            return (unsigned char)*(str + 1) - (unsigned char)0x9f;
+        // We only interested in Hiragana, so first byte is 0x82
+        if (str[0] == 0x82 && str[1] >= 0x9f && str[1] <= 0xf1) {
+            return str[1] - 0x9f;
         }
         return -1;
     }
@@ -85,13 +90,13 @@ protected:
 class KCODECS_NO_EXPORT EUCJPContextAnalysis : public JapaneseContextAnalysis
 {
 protected:
-    int GetOrder(const char *str) override
-    // We only interested in Hiragana, so first byte is '\244'
+    int GetCode(const uint8_t str[2]) override
+    // We only interested in Hiragana, so first byte is 0xA4
     {
-        if (*str == '\244' //
-            && (unsigned char)*(str + 1) >= (unsigned char)0xa1 //
-            && (unsigned char)*(str + 1) <= (unsigned char)0xf3) {
-            return (unsigned char)*(str + 1) - (unsigned char)0xa1;
+        if (str[0] == 0xA4 //
+            && str[1] >= 0xa1 //
+            && str[1] <= 0xf3) {
+            return str[1] - 0xa1;
         }
         return -1;
     }

@@ -6,7 +6,7 @@ buildscript {
 
     dependencies {
         //noinspection AndroidGradlePluginVersion
-        classpath 'com.android.tools.build:gradle:9.0.0'
+        classpath 'com.android.tools.build:gradle:9.2.1'
     }
 }
 
@@ -58,17 +58,12 @@ android {
     }
 
     tasks.withType(JavaCompile) {
-        options.incremental = true
         options.compilerArgs += ['-Xlint:all']
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-    }
-
-    lintOptions {
-        abortOnError = false
     }
 
     aaptOptions {
@@ -83,7 +78,6 @@ android {
     }
 
     defaultConfig {
-        resConfig "en"
         minSdkVersion qtMinSdkVersion
         targetSdkVersion qtTargetSdkVersion
         ndk.abiFilters = qtTargetAbiList.split(",")

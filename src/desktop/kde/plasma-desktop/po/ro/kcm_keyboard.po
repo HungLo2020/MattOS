@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2026-02-04 17:10+0000\n"
 "Last-Translator: Sergiu Bivol <sergiu@cip.md>\n"
 "Language-Team: Romanian <kde-i18n-ro@kde.org>\n"
@@ -98,8 +98,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Configurează asocierile de taste…"
+msgid "Key Bindings"
+msgstr "Asocieri de taste"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -137,13 +137,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Adaugă aranjament"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Denumire scurtă a aranjamentului"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -153,13 +153,13 @@ msgstr ""
 "Denumirea abreviată a aranjamentului ales, ce va fi afișată în tava de "
 "sistem. Puteți schimba acest parametru."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Scurtătură:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -547,7 +547,7 @@ msgstr ""
 "Tastele modificatoare pot fi folosite pentru a introduce caractere "
 "suplimentare, simboluri și semne diacritice."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
@@ -555,15 +555,15 @@ msgstr[0] "%1 scurtătură"
 msgstr[1] "%1 scurtături"
 msgstr[2] "%1 de scurtături"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Niciuna"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Asocieri de taste"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Configurează asocierile de taste…"
 
 #, fuzzy
 #~| msgid "&Turn off"

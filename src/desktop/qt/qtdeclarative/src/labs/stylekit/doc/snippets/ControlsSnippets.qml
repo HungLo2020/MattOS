@@ -38,8 +38,8 @@ ApplicationWindow {
         //! [button]
         button {
             background {
-                implicitWidth: 120
-                implicitHeight: 40
+                width: 120
+                height: 40
                 shadow {
                     opacity: 0.6
                     color: "gray"
@@ -61,6 +61,66 @@ ApplicationWindow {
             pressed.background.scale: 0.95
         }
         //! [button]
+
+        /*
+        We cannot include two busyIndicators in this file, so we
+        prefer to compile the custom spinner snippet.
+        //! [busyIndicator]
+        busyIndicator {
+            background {
+                visible: false
+                width: 48
+                height: 48
+            }
+            indicator {
+                fillWidth: true
+                fillHeight: true
+                color: "transparent"
+                border.width: 0
+                foreground {
+                    radius: 255
+                    color: palette.accent
+                }
+            }
+        }
+        //! [busyIndicator]
+        */
+
+        //! [busyIndicator delegate]
+        busyIndicator {
+            background {
+                visible: false
+                width: 48
+                height: 48
+            }
+            indicator {
+                fillWidth: true
+                fillHeight: true
+                color: "transparent"
+                border.width: 0
+                foreground {
+                    radius: 255
+                    color: palette.accent
+                    delegate: Text {
+                        required property DelegateStyle delegateStyle
+                        required property QtObject control
+                        opacity: control.running ? 1 : 0
+                        Behavior on opacity { NumberAnimation{} }
+                        text: "↻"
+                        color: delegateStyle.color
+                        font.pixelSize: 20
+                        RotationAnimation on rotation {
+                            from: 0
+                            to: 360
+                            duration: 1000
+                            loops: Animation.Infinite
+                            running: control.running
+                        }
+                    }
+                }
+            }
+        }
+        //! [busyIndicator delegate]
 
         //! [checkBox]
         checkBox {
@@ -85,6 +145,33 @@ ApplicationWindow {
         }
         //! [checkBox]
 
+        //! [checkDelegate]
+        checkDelegate {
+            text.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            background {
+                radius: 0
+                color: "white"
+                border.width: 0
+            }
+
+            indicator {
+                border.color: "darkslategray"
+                foreground {
+                    color: "transparent"
+                    image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/check.png"
+                    image.color: palette.accent
+
+                    // Hide the checkmark when the checkbox is not checked
+                    visible: false
+                }
+            }
+
+            hovered.background.color: "#f0f0f0"
+            // Show the checkmark when the checkbox is checked
+            checked.indicator.foreground.visible: true
+        }
+        //! [checkDelegate]
+
         //! [comboBox]
         comboBox {
             text.alignment: Qt.AlignHCenter | Qt.AlignVCenter
@@ -102,6 +189,63 @@ ApplicationWindow {
             }
         }
         //! [comboBox]
+
+        //! [delayButton]
+        delayButton {
+            padding: 0
+            indicator {
+                fillWidth: true
+                fillHeight: true
+                color: "transparent"
+                border.width: 0
+                foreground.color: palette.accent
+            }
+            checked.indicator.foreground.color: palette.accent.darker(1.2)
+        }
+        //! [delayButton]
+
+        //! [dial]
+        dial {
+            spacing: 0
+            handle.width: 15
+            handle.height: 15
+            background.visible: false
+            indicator {
+                width: 60
+                height: 60
+                radius: 255
+                foreground {
+                    fillWidth: true
+                    fillHeight: true
+                    width: 6
+                    height: 6
+                    color: palette.accent
+                }
+            }
+        }
+        //! [dial]
+
+        //! [dialog]
+        dialog {
+            text {
+                padding: 12
+                alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            }
+
+            background.color: "white"
+        }
+        //! [dialog]
+
+        //! [dialogButtonBox]
+        dialogButtonBox {
+            background {
+                height: 40
+                radius: 0
+                color: "transparent"
+                border.width: 0
+            }
+        }
+        //! [dialogButtonBox]
 
         //! [flatButton]
         flatButton {
@@ -169,6 +313,78 @@ ApplicationWindow {
         //! [label]
         */
 
+        //! [menu]
+        menu {
+            background {
+                width: 200
+                height: 40
+                border.color: "darkslategray"
+                radius: 4
+            }
+        }
+        //! [menu]
+
+        //! [menuBar]
+        menuBar {
+            background {
+                radius: 0
+                border.width: 0
+            }
+        }
+        //! [menuBar]
+
+        //! [menuBarItem]
+        menuBarItem {
+            text.alignment: Qt.AlignLeft | Qt.AlignVCenter
+            background {
+                radius: 0
+                color: "transparent"
+                border.width: 0
+            }
+            hovered.background.color: "#c0c0c0"
+        }
+        //! [menuBarItem]
+
+        //! [menuItem]
+        menuItem {
+            text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+            background {
+                width: 200
+                border.width: 0
+            }
+            indicator {
+                color: "transparent"
+                border.width: 0
+                foreground {
+                    image.color: palette.accent
+                    alignment: Qt.AlignCenter
+                }
+                first {
+                    alignment: Qt.AlignLeft
+                    foreground.image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/check.png"
+                }
+                second {
+                    alignment: Qt.AlignRight
+                    foreground.image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/arrow-indicator.png"
+                }
+            }
+            hovered.background.color: "#c0c0c0"
+        }
+        //! [menuItem]
+
+        //! [menuSeparator]
+        menuSeparator {
+            background.visible: false
+            indicator {
+                width: 188
+                height: 1
+                border.width: 0
+                color: "#c0c0c0"
+                foreground.visible: false
+            }
+        }
+        //! [menuSeparator]
+
         //! [page]
         page {
             background {
@@ -183,11 +399,48 @@ ApplicationWindow {
         }
         //! [page]
 
+        //! [pageIndicator]
+        pageIndicator {
+            background.visible: false
+            indicator {
+                width: 5
+                height: 5
+                radius: 255
+                border.width: 0
+                color: "black"
+                opacity: 0.45
+                foreground.visible: false
+            }
+
+            hovered.indicator {
+                width: 6
+                height: 6
+                opacity: 0.7
+            }
+
+            pressed.indicator {
+                width: 4
+                height: 4
+            }
+
+            checked.indicator {
+                width: 7
+                height: 7
+            }
+
+            checked.hovered.indicator {
+                width: 8
+                height: 8
+                opacity: 0.7
+            }
+        }
+        //! [pageIndicator]
+
         //! [pane]
         pane {
             background {
-                implicitWidth: 200
-                implicitHeight: 200
+                width: 200
+                height: 200
                 color: "white"
             }
         }
@@ -213,8 +466,8 @@ ApplicationWindow {
             // Hide the background; show only the progress bar
             background.visible: false
             indicator {
-                implicitWidth: 150
-                implicitHeight: 8
+                width: 150
+                height: 8
                 radius: 4
                 color: "#e0e0e0"
                 foreground {
@@ -231,8 +484,8 @@ ApplicationWindow {
         //! [progressBar indeterminate]
         progressBar {
             indicator {
-                implicitWidth: 150
-                implicitHeight: 8
+                width: 150
+                height: 8
                 foreground {
                     delegate: StyledItem {
                         // Draw a pulsating progress track when in indeterminate mode, and a normal track otherwise
@@ -274,29 +527,62 @@ ApplicationWindow {
         }
         //! [radioButton]
 
+        //! [radioDelegate]
+        radioDelegate {
+            text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+            background {
+                radius: 0
+                color: "white"
+                border.width: 0
+            }
+
+            indicator {
+                radius: 255
+                foreground {
+                    margins: 4
+                    visible: false
+                    radius: 255
+                    color: palette.accent
+                }
+            }
+
+            hovered.background.color: "#f0f0f0"
+            checked.indicator.foreground.visible: true
+        }
+        //! [radioDelegate]
+
+        //! [roundButton]
+        roundButton {
+            background.radius: 255
+            text.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+        }
+        //! [roundButton]
+
         //! [scrollBar]
         scrollBar {
             padding: 0
             background {
                 // Set the groove size and color
-                implicitHeight: 10
+                width: 10
+                height: 10
                 color: "white"
             }
             indicator {
                 radius: 255
-                // For horizontal scroll bars, we only set the height. The width is set by the
-                // view to be the relative size of the view's content that is currently visible.
-                implicitHeight: 10
+                fillWidth: true
+                width: 10
+                height: 10
                 color: "#c0c0c0"
                 // The indicator is so simple that it doesn't need a foreground
                 foreground.visible: false
             }
             vertical {
-                // Override properties for vertical scroll bars if needed.
-                // For vertical indicators, we only set width. The height is set by the
-                // view to be the relative size of the view's content that is currently visible.
-                indicator.implicitWidth: 10
-                background.implicitWidth: 10
+                indicator {
+                    // In vertical mode, the indicator should stretch vertically
+                    // to fill the available height rather than the available width.
+                    fillWidth: false
+                    fillHeight: true
+                }
             }
         }
         //! [scrollBar]
@@ -307,33 +593,73 @@ ApplicationWindow {
             // indicator. So hide the background, since it represents the groove.
             background.visible: false
             indicator {
-                // For horizontal indicators, we only set the height. The width is set by the
-                // view to be the relative size of the view's content that is currently visible.
-                implicitHeight: 5
+                fillWidth: true
+                width: 5
+                height: 5
                 border.width: 0
                 color: "cornflowerblue"
                 // The indicator is so simple that it doesn't need a foreground
                 foreground.visible: false
             }
             vertical {
-                // Override properties for vertical scroll indicators if needed
-                indicator.color: "violet"
-                // For vertical indicators, we only set width. The height is set by the
-                // view to be the relative size of the view's content that is currently visible.
-                indicator.implicitWidth: 5
+                indicator {
+                    // In vertical mode, the indicator should stretch vertically
+                    // to fill the available height rather than the available width.
+                    fillWidth: false
+                    fillHeight: true
+                }
             }
         }
         //! [scrollIndicator]
 
-        //! [slider]
-        slider {
-            background.visible: false
+        //! [searchField]
+        searchField {
+            // Center the text between the buttons
+            text.padding: 5
+            text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+            text.color: "black"
+            background.width: 200
 
             indicator {
-                // The groove of the slider should fill out the entire width of
-                // the control, which we achieve by setting implicitWidth to Style.Stretch.
-                implicitWidth: Style.Stretch
-                implicitHeight: 8
+                color: "transparent"
+                border.width: 0
+
+                foreground{
+                    alignment: Qt.AlignCenter
+                }
+
+                // Place the search and clear buttons on the left and right side of the control
+                // search button
+                first {
+                    alignment: Qt.AlignLeft
+                    image.color: "black"
+                    image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/search-magnifier.png"
+                }
+
+                // clear button
+                second {
+                    alignment: Qt.AlignRight
+                    image.color: "black"
+                    image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/close_circle.png"
+                }
+            }
+        }
+        //! [searchField]
+
+        //! [slider]
+        slider {
+            background {
+                // The background is hidden, but its implicit size still
+                // determines the overall implicit size of the control.
+                visible: false
+                width: 150
+                height: 50
+            }
+
+            indicator {
+                // The groove of the slider should fill out the entire width of the control
+                fillWidth: true
+                height: 8
                 radius: 255
                 color: "#e0e0e0"
                 foreground {
@@ -343,15 +669,25 @@ ApplicationWindow {
             }
 
             handle {
-                implicitWidth: 24
-                implicitHeight: 24
+                width: 24
+                height: 24
                 radius: 255
                 color: "white"
                 border.color: "#c0c0c0"
             }
 
             vertical {
-                // if needed, you can override properties for vertical sliders
+                // Transpose relevant geometry
+                background {
+                    width: 50
+                    height: 150
+                }
+
+                indicator {
+                    fillWidth: false
+                    fillHeight: true
+                    width: 8
+                }
             }
         }
         //! [slider]
@@ -370,13 +706,15 @@ ApplicationWindow {
                     alignment: Qt.AlignCenter
                 }
                 // Place the down and up buttons on the left and right side of the control
-                down {
-                    alignment: Qt.AlignLeft
-                    foreground.rotation: 90
-                }
-                up {
+                // up button
+                first {
                     alignment: Qt.AlignRight
                     foreground.rotation: -90
+                }
+                // down button
+                second {
+                    alignment: Qt.AlignLeft
+                    foreground.rotation: 90
                 }
             }
         }
@@ -393,6 +731,18 @@ ApplicationWindow {
             }
         }
         //! [scrollView]
+
+        //! [swipeDelegate]
+        swipeDelegate {
+            text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+            background {
+                radius: 0
+                color: "white"
+                border.width: 0
+            }
+            hovered.background.color: "#f0f0f0"
+        }
+        //! [swipeDelegate]
 
         //! [switchControl]
         switchControl {
@@ -413,13 +763,48 @@ ApplicationWindow {
                 // Add some space between the handle and the indicator
                 leftMargin: 2
                 rightMargin: 2
-                implicitWidth: 20
-                implicitHeight: 20
+                width: 20
+                height: 20
                 radius: 255
                 color: "white"
             }
         }
         //! [switchControl]
+
+        //! [switchDelegate]
+        switchDelegate {
+            text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+            background {
+                radius: 0
+                color: "white"
+                border.width: 0
+            }
+
+            indicator {
+                radius: 12
+                foreground {
+                    // Add some space between the indicator and the foreground track
+                    margins: 2
+                    radius: 12
+                    // The foreground track should only be visible when the switch is checked
+                    visible: false
+                }
+            }
+
+            handle {
+                // Add some space between the handle and the indicator
+                leftMargin: 2
+                rightMargin: 2
+                width: 20
+                height: 20
+                radius: 255
+                color: "white"
+            }
+
+            hovered.background.color: "#f0f0f0"
+            checked.indicator.foreground.visible: true
+        }
+        //! [switchDelegate]
 
         //! [tabBar]
         tabBar {
@@ -463,7 +848,7 @@ ApplicationWindow {
             padding: 8
             text.alignment: Qt.AlignVCenter
             background {
-                implicitWidth: 150
+                width: 150
                 color: "white"
                 border.color: "#c0c0c0"
             }
@@ -489,7 +874,7 @@ ApplicationWindow {
             spacing: 2
             background {
                 radius: 0
-                implicitHeight: 40
+                height: 40
                 border.width: 1
             }
         }
@@ -503,18 +888,26 @@ ApplicationWindow {
 
         //! [toolSeparator]
         toolSeparator {
-            background.visible: false
+            background {
+                // The background is hidden, but its implicit size still
+                // determines the overall implicit size of the control.
+                visible: false
+                width: 10
+                height: 10
+            }
             indicator {
-                implicitWidth: 30
-                implicitHeight: 1
+                width: 30
+                height: 1
                 border.width: 0
                 color: "#c0c0c0"
+                alignment: Qt.AlignCenter
                 foreground.visible: false
             }
             vertical {
-                // Override properties for vertical tool separators if needed.
-                // Note: Qt Quick Controls automatically swaps the width and height
-                // for vertical tool separators, so avoid doing that here.
+                indicator {
+                    width: 1
+                    height: 30
+                }
             }
         }
         //! [toolSeparator]
@@ -530,7 +923,30 @@ ApplicationWindow {
             label.text.color: "white"
         }
         //! [theme]
+
     }
+
+    //! [getControlStyle]
+    Style {
+        id: myStyle
+        property int customButtonType: 0
+
+        CustomControl {
+            controlType: myStyle.customButtonType
+            background.color: "green"
+        }
+    }
+    //! [getControlStyle]
+
+    //! [getControlStyle-function]
+    function changeButtonColor() {
+        let customControlStyle = myStyle.getControlStyle(style.customButtonType)
+        customControlStyle.background.color = "yellowgreen"
+
+        // You can also access the style definition in the theme, if it has one
+        // myStyle.theme.getControlStyle(StyleReader.Button).padding = 10
+    }
+    //! [getControlStyle-function]
 
     // The rest of the file is not a part of the docs. It just implements a small
     // UI to allow testing the style from the command line using the 'qml' app.
@@ -556,7 +972,7 @@ ApplicationWindow {
 
             ComboBox {
                 // The user can choose which theme to use
-                model: StyleKit.style.themeNames
+                model: StyleKit.style.availableThemeNames
                 onCurrentTextChanged: StyleKit.style.themeName = currentText
             }
 
@@ -588,6 +1004,10 @@ ApplicationWindow {
 
             RadioButton {
                 text: "RadioButton"
+            }
+
+            RoundButton {
+                text: "RoundButton"
             }
 
             Frame {

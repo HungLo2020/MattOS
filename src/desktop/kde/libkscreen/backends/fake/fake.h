@@ -15,7 +15,6 @@
 class Fake : public KScreen::AbstractBackend
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kf6.kscreen.backends.fake")
 
 public:
     explicit Fake();
@@ -23,12 +22,9 @@ public:
 
     void init(const QVariantMap &arguments) override;
 
-    QString name() const override;
-    QString serviceName() const override;
     KScreen::ConfigPtr config() const override;
     QFuture<KScreen::SetConfigResult> setConfig(const KScreen::ConfigPtr &config) override;
     QByteArray edid(int outputId) const override;
-    bool isValid() const override;
 
     void setConnected(int outputId, bool connected);
     void setEnabled(int outputId, bool enabled);
@@ -42,7 +38,6 @@ private Q_SLOTS:
 
 private:
     QString mConfigFile;
-    KScreen::Config::Features mSupportedFeatures = KScreen::Config::Feature::None;
     mutable KScreen::ConfigPtr mConfig;
 };
 Q_DECLARE_LOGGING_CATEGORY(KSCREEN_FAKE)

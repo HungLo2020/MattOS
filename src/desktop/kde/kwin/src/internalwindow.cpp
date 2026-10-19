@@ -42,6 +42,7 @@ InternalWindow::InternalWindow(QWindow *handle)
     setOnAllDesktops(true);
     setOpacity(m_handle->opacity());
     setSkipCloseAnimation(m_handle->property(s_skipClosePropertyName).toBool());
+    setSkipSwitcher(true);
     updateColorScheme();
     updateShadow();
 
@@ -76,7 +77,9 @@ bool InternalWindow::hitTest(const QPointF &point) const
     const QRegion mask = m_handle->mask();
     if (!mask.isEmpty() && !mask.contains(mapToLocal(point).toPoint())) {
         return false;
-    } else if (m_handle->property("outputOnly").toBool()) {
+    } else if (m_internalWindowFlags.testFlag(Qt::WindowTransparentForInput)) {
+        return false;
+    } else if (m_handle->property("outputOnly").toBool()) { // from Dialog, this is being deprecated in Plasma but still used by lots of kwin scripts
         return false;
     }
 
@@ -277,7 +280,7 @@ void InternalWindow::setDecorationPolicy(DecorationPolicy policy)
 
 void InternalWindow::createDecoration(const RectF &oldGeometry)
 {
-    std::shared_ptr<KDecoration3::Decoration> decoration(Workspace::self()->decorationBridge()->createDecoration(this));
+    std::shared_ptr<KDecoration3::Decoration> decoration(Workspace::self()->decorationBridge()->createDecoration(this, KDecoration3::Style::Titled));
     if (decoration) {
         decoration->apply(decoration->nextState()->clone());
         connect(decoration.get(), &KDecoration3::Decoration::nextStateChanged, this, [this](auto state) {
@@ -311,7 +314,8 @@ DecorationMode InternalWindow::preferredDecorationMode() const
         return DecorationMode::None;
     case DecorationPolicy::Server:
         return DecorationMode::Server;
-    case DecorationPolicy::PreferredByClient:
+    case DecorationPolicy::ClientPreference:
+    case DecorationPolicy::Shadow:
         if (m_internalWindowFlags.testFlag(Qt::FramelessWindowHint) || m_internalWindowFlags.testFlag(Qt::Popup)) {
             return DecorationMode::Client;
         } else {
@@ -384,7 +388,12 @@ void InternalWindow::popupDone()
 
 GraphicsBuffer *InternalWindow::graphicsBuffer() const
 {
-    return m_graphicsBufferRef.buffer();
+    return m_graphicsBufferRef.get();
+}
+
+const FileDescriptor &InternalWindow::syncFd() const
+{
+    return m_syncFd;
 }
 
 OutputTransform InternalWindow::bufferTransform() const
@@ -402,6 +411,7 @@ void InternalWindow::present(const InternalWindowFrame &frame)
     commitGeometry(geometry);
 
     m_graphicsBufferRef = frame.buffer;
+    m_syncFd = frame.syncFd.duplicate();
     m_bufferTransform = frame.bufferTransform;
 
     Q_EMIT presented(frame);
@@ -445,7 +455,7 @@ void InternalWindow::commitGeometry(const RectF &rect)
     // The client geometry and the buffer geometry are the same.
     const RectF oldClientGeometry = m_clientGeometry;
     const RectF oldFrameGeometry = m_frameGeometry;
-    const LogicalOutput *oldOutput = m_output;
+    LogicalOutput *oldOutput = m_output;
 
     Q_EMIT frameGeometryAboutToChange();
 
@@ -467,7 +477,7 @@ void InternalWindow::commitGeometry(const RectF &rect)
         Q_EMIT frameGeometryChanged(oldFrameGeometry);
     }
     if (oldOutput != m_output) {
-        Q_EMIT outputChanged();
+        Q_EMIT outputChanged(oldOutput);
     }
 }
 
@@ -485,7 +495,7 @@ void InternalWindow::setCaption(const QString &caption)
 void InternalWindow::markAsMapped()
 {
     if (!ready_for_painting) {
-        setupCompositing();
+        setupItem();
         setReadyForPainting();
         workspace()->addInternalWindow(this);
     }

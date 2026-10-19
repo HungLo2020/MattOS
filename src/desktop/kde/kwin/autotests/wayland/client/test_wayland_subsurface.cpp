@@ -7,6 +7,7 @@
 #include <QSignalSpy>
 #include <QTest>
 // KWin
+#include "core/gpumanager.h"
 #include "wayland/compositor.h"
 #include "wayland/display.h"
 #include "wayland/subcompositor.h"
@@ -30,6 +31,7 @@ Q_DECLARE_METATYPE(KWayland::Client::SubSurface::Mode)
 class TestSubSurface : public QObject
 {
     Q_OBJECT
+
 public:
     explicit TestSubSurface(QObject *parent = nullptr);
 private Q_SLOTS:
@@ -64,8 +66,6 @@ private:
     QThread *m_thread;
 };
 
-static const QString s_socketName = QStringLiteral("kwayland-test-wayland-subsurface-0");
-
 TestSubSurface::TestSubSurface(QObject *parent)
     : QObject(parent)
     , m_display(nullptr)
@@ -83,9 +83,10 @@ TestSubSurface::TestSubSurface(QObject *parent)
 void TestSubSurface::init()
 {
     using namespace KWin;
+    GpuManager::s_self = std::make_unique<GpuManager>();
     delete m_display;
     m_display = new KWin::Display(this);
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
     m_display->createShm();
@@ -93,7 +94,7 @@ void TestSubSurface::init()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);
@@ -164,6 +165,7 @@ void TestSubSurface::cleanup()
 
     delete m_display;
     m_display = nullptr;
+    KWin::GpuManager::s_self.reset();
 }
 
 void TestSubSurface::testCreate()
@@ -303,7 +305,7 @@ void TestSubSurface::testPosition()
 
     // both client and server should have a default position
     QCOMPARE(subSurface->position(), QPoint());
-    QCOMPARE(serverSubSurface->position(), QPoint());
+    QCOMPARE(serverSubSurface->position(), QPointF());
 
     QSignalSpy positionChangedSpy(serverSubSurface, &KWin::SubSurfaceInterface::positionChanged);
 
@@ -313,14 +315,14 @@ void TestSubSurface::testPosition()
     // ensure it's processed on server side
     wl_display_flush(m_connection->display());
     QCoreApplication::processEvents();
-    QCOMPARE(serverSubSurface->position(), QPoint());
+    QCOMPARE(serverSubSurface->position(), QPointF());
     // changing once more
     subSurface->setPosition(QPoint(20, 30));
     QCOMPARE(subSurface->position(), QPoint(20, 30));
     // ensure it's processed on server side
     wl_display_flush(m_connection->display());
     QCoreApplication::processEvents();
-    QCOMPARE(serverSubSurface->position(), QPoint());
+    QCOMPARE(serverSubSurface->position(), QPointF());
 
     // committing the parent surface should update the position
     QSignalSpy parentCommittedSpy(serverSubSurface->parentSurface(), &SurfaceInterface::committed);
@@ -328,7 +330,7 @@ void TestSubSurface::testPosition()
     QVERIFY(parentCommittedSpy.wait());
     QCOMPARE(positionChangedSpy.count(), 1);
     QCOMPARE(positionChangedSpy.first().first().toPoint(), QPoint(20, 30));
-    QCOMPARE(serverSubSurface->position(), QPoint(20, 30));
+    QCOMPARE(serverSubSurface->position(), QPointF(20, 30));
 }
 
 void TestSubSurface::testPlaceAbove()

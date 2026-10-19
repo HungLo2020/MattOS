@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qgeopath.h"
 #include "qgeopolygon.h"
@@ -584,9 +585,6 @@ bool QGeoPathPrivate::lineContains(const QGeoCoordinate &coordinate) const
     // Mercator-closest point and makes it easy to test for the obscure case
     // where a different wrap-position for it might work better; when that is
     // possible, try that other wrap-position for it in a second pass.
-
-    // Should be redundant now, unless other functions rely on this one's side-effect:
-    ensureBoundingBoxUpdated();
 
     double lineRadius = qMax(width() * 0.5, 0.2); // minimum radius: 20cm
 

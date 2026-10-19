@@ -57,7 +57,7 @@
  * The ShellSurfaceItem is the visual representation of the client's contents in the Qt Quick scene.
  * Its size should usually match the size of the client's buffer, otherwise it may look stretched or
  * squeezed. QtShellChrome will automatically be sized to the \l{QtShellSurface}'s
- * \l{QtShellSurface::windowGeometry}{windowGeometry}, which is size of the
+ * \l{QtShellSurface::windowGeometry}{windowGeometry}, which is the size of the
  * client's buffer plus the size of the frame margins. The frame margins are reserved areas on the
  * sides of the \c Chrome which can be used to contain window decorations.
  *

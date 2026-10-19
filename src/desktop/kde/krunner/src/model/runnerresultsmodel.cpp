@@ -7,6 +7,7 @@
 
 #include "runnerresultsmodel_p.h"
 
+#include <QIcon>
 #include <QSet>
 
 #include <KRunner/RunnerManager>
@@ -84,7 +85,7 @@ void RunnerResultsModel::onMatchesChanged(const QList<KRunner::QueryMatch> &matc
         const int oldCount = oldMatchesInCategory.count();
         const int newCount = newMatchesInCategory.count();
 
-        const int countCeiling = qMin(oldCount, newCount);
+        const int countCeiling = std::min(oldCount, newCount);
 
         for (int i = 0; i < countCeiling; ++i) {
             auto &oldMatch = oldMatchesInCategory[i];

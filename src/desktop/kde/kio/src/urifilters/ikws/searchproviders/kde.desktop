@@ -5,6 +5,7 @@ Keys=kdeapi,kde,api
 Icon=kde
 Name=KDE API Documentation
 Name[af]=KDE API Dokumentasie
+Name[am]=KDE API ሰነዶች
 Name[ar]=توثيق واجهة برمجة تطبيقات كِيدِي
 Name[as]=KDE API Documentation
 Name[az]=KDE API Sənədləşməsi
@@ -63,6 +64,8 @@ Name[ml]=കെഡിഇ എപിഐ വിവരണം
 Name[mr]=केडीई API दस्तऐवजीकरण
 Name[ms]=Dokumentasi API KDE
 Name[my]=ကေဒီအီး အေပီအိုင် ဒိုကူမန်တေးရှင်း
+Name[nan_TW]=KDE API 文件
+Name[nan_TW@latin]=KDE API Bûn-kiānn
 Name[nb]=KDE API-dokumentasjon
 Name[nds]=KDE-API-Dokmentatschoon
 Name[ne]=केडीई एपीआई मिसिलिकरण
@@ -100,6 +103,7 @@ Name[wa]=Documintåcion di l' API di KDE
 Name[zh_CN]=KDE API 文档
 Name[zh_TW]=KDE API 說明文件
 Query=https://api.kde.org/search.html?query=\\{@}
+Query[am]=https://api.kde.org/search.html?query=\\{@}
 Query[ar]=https://api.kde.org/search.html?query=\\{@}
 Query[az]=https://api.kde.org/search.html?query=\\{@}
 Query[be]=https://api.kde.org/search.html?query=\\{@}
@@ -139,6 +143,8 @@ Query[lg]=https://api.kde.org/search.html?query=\\{@}
 Query[lt]=https://api.kde.org/search.html?query=\\{@}
 Query[lv]=https://api.kde.org/search.html?query=\\{@}
 Query[my]=https://api.kde.org/search.html?query=\\{@}
+Query[nan_TW]=https://api.kde.org/search.html?query=\\{@}
+Query[nan_TW@latin]=https://api.kde.org/search.html?query=\\{@}
 Query[nb]=https://api.kde.org/search.html?query=\\{@}
 Query[nl]=https://api.kde.org/search.html?query=\\{@}
 Query[nn]=https://api.kde.org/search.html?query=\\{@}
@@ -155,7 +161,6 @@ Query[sq]=https://api.kde.org/search.html?query=\\{@}
 Query[sv]=https://api.kde.org/search.html?query=\\{@}
 Query[th]=https://api.kde.org/search.html?query=\\{@}
 Query[tr]=https://api.kde.org/search.html?query=\\{@}
-Query[ug]=https://api.kde.org/search.html?query=\\{@}
 Query[uk]=https://api.kde.org/search.html?query=\\{@}
 Query[vi]=https://api.kde.org/search.html?query=\\{@}
 Query[zh_CN]=https://api.kde.org/search.html?query=\\{@}

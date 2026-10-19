@@ -91,7 +91,7 @@ public Q_SLOTS:
     void loadUrl(const QUrl &url, CompilationMode mode);
     void loadFromModule(QAnyStringView uri, QAnyStringView typeName,
                         QQmlComponent::CompilationMode mode = PreferSynchronous);
-    void setData(const QByteArray &, const QUrl &baseUrl);
+    void setData(const QByteArray &data, const QUrl &baseUrl);
 
 Q_SIGNALS:
     void statusChanged(QQmlComponent::Status);

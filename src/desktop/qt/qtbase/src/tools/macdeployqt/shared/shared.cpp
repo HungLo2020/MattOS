@@ -290,7 +290,7 @@ FrameworkInfo parseOtoolLibraryLine(const QString &line, const QString &appBundl
                 info.frameworkDirectory += "/" + QString(qtPath + "lib/").simplified();
                 state = FrameworkName;
                 continue;
-            } else if (trimmed.startsWith("/") == false) {      // If the line does not contain a full path, the app is using a binary Qt package.
+            } else if (trimmed.startsWith('/') == false) {      // If the line does not contain a full path, the app is using a binary Qt package.
                 QStringList partsCopy = parts;
                 partsCopy.removeLast();
                 for (QString &path : librarySearchPath) {
@@ -503,7 +503,7 @@ QList<FrameworkInfo> getQtFrameworks(const QList<DylibInfo> &dependencies, const
 
 QString resolveDyldPrefix(const QString &path, const QString &loaderPath, const QString &executablePath)
 {
-    if (path.startsWith("@")) {
+    if (path.startsWith('@')) {
         if (path.startsWith(QStringLiteral("@executable_path/"))) {
             // path relative to bundle executable dir
             if (QDir::isAbsolutePath(executablePath)) {
@@ -1002,7 +1002,7 @@ DeploymentInfo deployQtFrameworks(QList<FrameworkInfo> frameworks,
             deploymentInfo.isDebug = true;
 
         if (deploymentInfo.qtPath.isNull())
-            deploymentInfo.qtPath = QLibraryInfo::path(QLibraryInfo::PrefixPath);
+            deploymentInfo.qtPath = QLibraryInfo::paths(QLibraryInfo::PrefixPath).value(0);
 
         if (framework.frameworkDirectory.startsWith(bundlePath)) {
             LogError()  << framework.frameworkName << "already deployed, skipping.";
@@ -1089,7 +1089,7 @@ DeploymentInfo deployQtFrameworks(const QString &appBundlePath, const QStringLis
                                                  << additionalExecutables;
 
    QList<QString> allLibraryPaths = getBinaryRPaths(applicationBundle.binaryPath, true);
-   allLibraryPaths.append(QLibraryInfo::path(QLibraryInfo::LibrariesPath));
+   allLibraryPaths.append(QLibraryInfo::paths(QLibraryInfo::LibrariesPath));
    allLibraryPaths.removeDuplicates();
 
    QList<FrameworkInfo> frameworks = getQtFrameworksForPaths(allBinaryPaths, appBundlePath, allLibraryPaths, useDebugLibs);
@@ -1248,36 +1248,6 @@ void deployPlugins(const ApplicationBundleInfo &appBundleInfo, const QString &pl
     }
 }
 
-void createQtConf(const QString &appBundlePath)
-{
-    // Set Plugins and imports paths. These are relative to App.app/Contents.
-    QByteArray contents = "[Paths]\n"
-                          "Plugins = PlugIns\n"
-                          "Imports = Resources/qml\n"
-                          "QmlImports = Resources/qml\n";
-
-    QString filePath = appBundlePath + "/Contents/Resources/";
-    QString fileName = filePath + "qt.conf";
-
-    QDir().mkpath(filePath);
-
-    if (QFile::exists(fileName) && !alwaysOwerwriteEnabled) {
-        LogWarning();
-        LogWarning() << fileName << "already exists, will not overwrite.";
-        LogWarning() << "To make sure the plugins are loaded from the correct location,";
-        LogWarning() << "please make sure qt.conf contains the following lines:";
-        LogWarning() << "[Paths]";
-        LogWarning() << "  Plugins = PlugIns";
-        return;
-    }
-
-    if (QSaveFile qtconf(fileName); qtconf.open(QIODevice::WriteOnly)
-        && qtconf.write(contents) != -1 && qtconf.commit()) {
-        LogNormal() << "Created configuration file:" << fileName;
-        LogNormal() << "This file sets the plugin search path to" << appBundlePath + "/Contents/PlugIns";
-    }
-}
-
 void deployPlugins(const QString &appBundlePath, DeploymentInfo deploymentInfo, bool useDebugLibs)
 {
     ApplicationBundleInfo applicationBundle;
@@ -1318,12 +1288,18 @@ bool deployQmlImports(const QString &appBundlePath, DeploymentInfo deploymentInf
     LogNormal() << "QML module search path(s) is" << qmlImportPaths;
 
     // Use qmlimportscanner from QLibraryInfo::LibraryExecutablesPath
-    QString qmlImportScannerPath =
-        QDir::cleanPath(QLibraryInfo::path(QLibraryInfo::LibraryExecutablesPath)
-                + "/qmlimportscanner");
+    QString qmlImportScannerPath = [] {
+        const QStringList libexecs = QLibraryInfo::paths(QLibraryInfo::LibraryExecutablesPath);
+        for (const QString &dir : libexecs) {
+            const QString p = QDir::cleanPath(dir + "/qmlimportscanner");
+            if (QFile::exists(p))
+                return p;
+        }
+        return QString();
+    }();
 
     // Fallback: Look relative to the macdeployqt binary
-    if (!QFile::exists(qmlImportScannerPath))
+    if (qmlImportScannerPath.isEmpty())
         qmlImportScannerPath = QCoreApplication::applicationDirPath() + "/qmlimportscanner";
 
     // Verify that we found a qmlimportscanner binary
@@ -1342,9 +1318,8 @@ bool deployQmlImports(const QString &appBundlePath, DeploymentInfo deploymentInf
     }
     for (const QString &importPath : qmlImportPaths)
         argumentList << "-importPath" << importPath;
-    QString qmlImportsPath = QLibraryInfo::path(QLibraryInfo::QmlImportsPath);
-    argumentList.append( "-importPath");
-    argumentList.append(qmlImportsPath);
+    for (const QString &importPath : QLibraryInfo::paths(QLibraryInfo::QmlImportsPath))
+        argumentList << "-importPath" << importPath;
 
     // run qmlimportscanner
     QProcess qmlImportScanner;
@@ -1428,6 +1403,8 @@ void codesignFile(const QString &identity, const QString &filePath)
         codeSignLogMessage += ", enable hardened runtime";
     if (secureTimestamp)
         codeSignLogMessage += ", include secure timestamp";
+    if (!extraEntitlements.isEmpty())
+        codeSignLogMessage += QStringLiteral(", include entitlements (%1)").arg(extraEntitlements);
     LogNormal() << codeSignLogMessage << filePath;
 
     QStringList codeSignOptions = { "--preserve-metadata=identifier,entitlements", "--force", "-s",

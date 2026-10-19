@@ -28,7 +28,14 @@ chronoForEpochMillis(qint64 millis)
 static std::optional<std::chrono::sys_info>
 infoAtEpochMillis(const std::chrono::time_zone *zone, qint64 millis)
 {
+    if (!zone)
+        return std::nullopt;
     EXCEPTION_CHECKED(return zone->get_info(chronoForEpochMillis(millis)), return std::nullopt);
+}
+
+static const std::chrono::time_zone *currentZone()
+{
+    EXCEPTION_CHECKED(return std::chrono::current_zone(), return std::nullptr);
 }
 
 static const std::chrono::time_zone *idToZone(std::string_view id)
@@ -86,7 +93,7 @@ fromSysInfo(std::chrono::sys_info info, qint64 atMSecsSinceEpoch)
 }
 
 QChronoTimeZonePrivate::QChronoTimeZonePrivate()
-    : m_timeZone(std::chrono::current_zone())
+    : m_timeZone(currentZone())
 {
     if (m_timeZone)
         m_id.assign(m_timeZone->name());
@@ -109,14 +116,14 @@ QChronoTimeZonePrivate::~QChronoTimeZonePrivate()
 
 QByteArray QChronoTimeZonePrivate::systemTimeZoneId() const
 {
-    if (const time_zone *zone = std::chrono::current_zone()) {
+    if (const time_zone *zone = currentZone()) {
         std::string_view name = zone->name();
         return {name.data(), qsizetype(name.size())};
     }
     return {};
 }
 
-bool QChronoTimeZonePrivate::isTimeZoneIdAvailable(const QByteArray &ianaId) const
+bool QChronoTimeZonePrivate::isTimeZoneIdAvailable(QByteArrayView ianaId) const
 {
     return idToZone(std::string_view(ianaId.data(), ianaId.size())) != nullptr;
 }
@@ -142,7 +149,7 @@ QList<QByteArray> QChronoTimeZonePrivate::availableTimeZoneIds(int utcOffset) co
             result << QByteArray{id.data(), qsizetype(id.size())};
         // Order preserved; they were already sorted and unique.
     }
-    return result;
+    return padSortedWithAliases(result);
 }
 
 QString QChronoTimeZonePrivate::abbreviation(qint64 atMSecsSinceEpoch) const

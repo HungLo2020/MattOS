@@ -14,6 +14,7 @@ QT_BEGIN_NAMESPACE
 using namespace Qt::StringLiterals;
 
 QT_IMPL_METATYPE_EXTERN(QFileInfo)
+QT_DEFINE_QSDP_SPECIALIZATION_DTOR(QFileInfoPrivate)
 
 QString QFileInfoPrivate::getFileName(QAbstractFileEngine::FileName name) const
 {
@@ -418,6 +419,17 @@ QFileInfo::QFileInfo(const QFileInfo &fileinfo)
 }
 
 /*!
+    \since 6.12
+    \fn QFileInfo::QFileInfo(QFileInfo &&other)
+
+    Move-constructs a new QFileInfo from \a other.
+
+    \note The moved-from object \a other is placed in a partially-formed state,
+    in which the only valid operations are destruction and assignment of a new
+    value.
+*/
+
+/*!
     Destroys the QFileInfo and frees its resources.
 */
 
@@ -595,8 +607,10 @@ QString QFileInfo::absoluteFilePath() const
     name, that is, an absolute path without symbolic links or redundant
     \c{'.'} or \c{'..'} elements.
 
-    If the entry does not exist, canonicalFilePath() returns an empty
-    string.
+    This method returns an empty string if the entry does not exist, is not
+    reachable (for example, the current user does not have access to a
+    directory path), or an error occurs while canonicalizing the path (normally
+    due to dangling symbolic links).
 
     \sa filePath(), absoluteFilePath(), dir()
 */
@@ -638,7 +652,10 @@ QString QFileInfo::absolutePath() const
     Returns the file system entry's canonical path (excluding the entry's name),
     i.e. an absolute path without symbolic links or redundant "." or ".." elements.
 
-    If the entry does not exist, this method returns an empty string.
+    This method returns an empty string if the entry does not exist, is not
+    reachable (for example, the current user does not have access to a
+    directory path), or an error occurs while canonicalizing the path (normally
+    due to dangling symbolic links).
 
     \sa path(), absolutePath()
 */

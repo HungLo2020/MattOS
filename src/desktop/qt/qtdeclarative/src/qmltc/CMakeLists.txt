@@ -18,6 +18,7 @@ qt_internal_add_module(QmltcPrivate
         Qt::Core
         Qt::QmlPrivate
         Qt::QmlCompilerPrivate
+        Qt::QmlLintPrivate
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII

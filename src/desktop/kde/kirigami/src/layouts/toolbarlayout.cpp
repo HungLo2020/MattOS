@@ -614,16 +614,19 @@ QList<ToolBarLayoutDelegate *> ToolBarLayoutPrivate::createDelegates()
         }
     }
 
-    if (!moreButtonInstance) {
+    if (!moreButtonInstance && moreButton) {
         moreButtonInstance = qobject_cast<QQuickItem *>(
             moreButton->createWithInitialProperties({{u"parent"_s, QVariant::fromValue(q)}, {u"visible"_s, false}}, qmlContext(moreButton)));
-        moreButtonInstance->setParent(q);
-        QObject::connect(moreButtonInstance, &QQuickItem::visibleChanged, q, [this]() {
-            moreButtonInstance->setVisible(shouldShowMoreButton);
-        });
-        QObject::connect(moreButtonInstance, &QQuickItem::widthChanged, q, &ToolBarLayout::minimumWidthChanged);
-        q->relayout();
-        Q_EMIT q->minimumWidthChanged();
+
+        if (moreButtonInstance) {
+            moreButtonInstance->setParent(q);
+            QObject::connect(moreButtonInstance, &QQuickItem::visibleChanged, q, [this]() {
+                moreButtonInstance->setVisible(shouldShowMoreButton);
+            });
+            QObject::connect(moreButtonInstance, &QQuickItem::widthChanged, q, &ToolBarLayout::minimumWidthChanged);
+            q->relayout();
+            Q_EMIT q->minimumWidthChanged();
+        }
     }
 
     return result;

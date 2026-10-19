@@ -10,14 +10,10 @@
 
 #include <QGuiApplication>
 #include <QObject>
+#include <QQmlEngine>
 #include <QString>
 
 #include <KPackage/PackageStructure>
-
-namespace PlasmaQuick
-{
-class QuickViewSharedEngine;
-}
 
 class WallpaperWindow;
 
@@ -28,18 +24,16 @@ class WallpaperApp : public QGuiApplication
 
 public:
     explicit WallpaperApp(int &argc, char **argv);
-    ~WallpaperApp() override;
 
     // DBus interface
 public Q_SLOTS:
     Q_SCRIPTABLE void blurScreen(const QString &screenName);
 
 private:
+    void createWindowForScreen(QScreen *screen);
     void setupWallpaperPlugin(WallpaperWindow *window);
 
     KPackage::Package m_wallpaperPackage;
     QList<WallpaperWindow *> m_windows;
-
-private Q_SLOTS:
-    void adoptScreen(QScreen *);
+    std::shared_ptr<QQmlEngine> m_engine;
 };

@@ -4,14 +4,14 @@
 # Vladimir Buharin <vovan2482@mail.ru>, 2010.
 # Alexander Potashev <aspotashev@gmail.com>, 2010, 2011, 2015, 2016, 2017, 2018, 2020.
 # Yuri Efremov <yur.arh@gmail.com>, 2010, 2011.
-# SPDX-FileCopyrightText: 2019, 2020, 2021, 2022, 2023, 2025, 2026 Alexander Yavorsky <kekcuha@gmail.com>
+# SPDX-FileCopyrightText: 2019-2023, 2025-2026 Alexander Yavorsky <kekcuha@gmail.com>
 # SPDX-FileCopyrightText: 2024 Olesya Gerasimenko <translation-team@basealt.ru>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-01-28 16:41+0200\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
+"PO-Revision-Date: 2026-09-06 19:42+0200\n"
 "Last-Translator: Alexander Yavorskiy <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.08.0\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
@@ -35,59 +35,27 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "vovan2482@mail.ru, translation-team@basealt.ru"
 
-#: applet/devicesproxymodel.cpp:51
+#: components/ForgetDeviceDialog.qml:37
 #, kde-format
-msgctxt "@title:column Blocked Bluetooth devices"
-msgid "Blocked"
-msgstr "Заблокировано"
+msgid "Forget this Device?"
+msgstr "Удалить данные подключения этого устройства?"
 
-#: applet/devicesproxymodel.cpp:54
+#: components/ForgetDeviceDialog.qml:38
 #, kde-format
-msgctxt "@title:column Connected Bluetooth devices"
-msgid "Connected"
-msgstr "Подключено"
+msgid "Are you sure you want to forget \"%1\"?"
+msgstr "Удалить данные для подключения «%1»?"
 
-#: applet/devicesproxymodel.cpp:56
+#: components/ForgetDeviceDialog.qml:50
 #, kde-format
-msgctxt "@title:column Available but not connected Bluetooth devices"
-msgid "Available"
-msgstr "Доступно"
+msgctxt "@action:button"
+msgid "Forget Device"
+msgstr "Удалить устройство"
 
-#: applet/devicesstateproxymodel.cpp:273
+#: components/ForgetDeviceDialog.qml:58
 #, kde-format
-msgctxt "@label %1 is the name of a Bluetooth device"
-msgid "Could not connect to device “%1”"
-msgstr "Не удалось подключиться к устройству «%1»"
-
-#: applet/devicesstateproxymodel.cpp:288
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed:HostIsDown"
-msgid "The device is unreachable"
-msgstr "Устройство недоступно"
-
-#: applet/devicesstateproxymodel.cpp:289
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed"
-msgid "Connection to the device failed"
-msgstr "Сбой подключения к устройству"
-
-#: applet/devicesstateproxymodel.cpp:292
-#, kde-format
-msgctxt "Notification when the connection failed due to NotReady"
-msgid "The device is not ready"
-msgstr "Устройство не готово"
-
-#: kcm/bluetooth.cpp:135
-#, kde-format
-msgctxt "DeviceName Network (Service)"
-msgid "%1 Network (%2)"
-msgstr "Сеть %1 (%2)"
-
-#: kcm/bluetoothmoduledata.cpp:20
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Enable Bluetooth"
-msgstr "Включить Bluetooth"
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "Отмена"
 
 #: kded/bluedevildaemon.cpp:68 kded/bluedevildaemon.cpp:70
 #, kde-format
@@ -154,7 +122,7 @@ msgctxt ""
 "The text is shown in a notification to know if the PIN is correct,%1 is the "
 "remote bluetooth device and %2 is the pin"
 msgid "%1 is asking if the PIN is correct: %2"
-msgstr "%1 запрашивает, верно ли был введён PIN-код: %2."
+msgstr "%1 запрашивает подтверждение PIN-кода: %2"
 
 #: kded/helpers/requestconfirmation.cpp:32
 #, kde-format
@@ -168,13 +136,13 @@ msgctxt "Notification button to say that the PIN is wrong"
 msgid "PIN incorrect"
 msgstr "PIN-код неверный"
 
-#: kded/helpers/requestpin.cpp:32
+#: kded/helpers/requestpin.cpp:30
 #, kde-format
 msgctxt "@label %1 is the name of a Bluetooth device"
 msgid "PIN for device “%1”"
 msgstr "PIN-код для устройства «%1»"
 
-#: kded/helpers/requestpin.cpp:36
+#: kded/helpers/requestpin.cpp:34
 #, kde-format
 msgctxt ""
 "Shown in a notification to announce that a PIN is needed to accomplish a "
@@ -182,7 +150,7 @@ msgctxt ""
 msgid "PIN needed to pair with %1"
 msgstr "Для сопряжения с %1 необходим PIN-код."
 
-#: kded/helpers/requestpin.cpp:39
+#: kded/helpers/requestpin.cpp:37
 #, kde-format
 msgctxt ""
 "Notification button which once clicked, a dialog to introduce the PIN will "
@@ -190,13 +158,13 @@ msgctxt ""
 msgid "Introduce PIN"
 msgstr "Ввести PIN-код"
 
-#: kded/helpers/requestpin.cpp:59
+#: kded/helpers/requestpin.cpp:57
 #, kde-format
 msgctxt "Shown in the caption of a dialog where the user introduce the PIN"
 msgid "Introduce PIN"
 msgstr "Введите PIN-код"
 
-#: kded/helpers/requestpin.cpp:66
+#: kded/helpers/requestpin.cpp:64
 #, kde-format
 msgctxt ""
 "Shown in a dialog which asks to introduce a PIN that will be used to pair a "
@@ -223,7 +191,7 @@ msgstr "1234"
 #, kde-format
 msgctxt "%1 is the name of a Bluetooth device"
 msgid "Incoming file from device “%1”"
-msgstr "Входящая передача файла с устройства «%1»"
+msgstr "Входящий файл с устройства «%1»"
 
 #: kded/receivefilejob.cpp:133
 #, kde-format
@@ -257,13 +225,13 @@ msgstr "Получение файла"
 #, kde-format
 msgctxt "File transfer origin"
 msgid "From"
-msgstr "От"
+msgstr "Источник"
 
 #: kded/receivefilejob.cpp:165 sendfile/sendfilesjob.cpp:85
 #, kde-format
 msgctxt "File transfer destination"
 msgid "To"
-msgstr "К"
+msgstr "Назначение"
 
 #: kded/receivefilejob.cpp:190
 #, kde-format
@@ -294,7 +262,7 @@ msgstr "Адаптеры Bluetooth не найдены."
 #: kio/bluetooth/kiobluetooth.cpp:92
 #, kde-format
 msgid "Retrieving services…"
-msgstr "Получение списка служб..."
+msgstr "Получение списка служб…"
 
 #: kio/bluetooth/kiobluetooth.cpp:99
 #, kde-format
@@ -309,7 +277,7 @@ msgstr "Принятые файлы"
 #: kio/bluetooth/kiobluetooth.cpp:167
 #, kde-format
 msgid "Scanning for new devices…"
-msgstr "Поиск новых устройств..."
+msgstr "Поиск новых устройств…"
 
 #: kio/obexftp/kioobexftp.cpp:96
 #, kde-format
@@ -319,7 +287,7 @@ msgstr "Служба Obexd не запущена."
 #: kio/obexftp/kioobexftp.cpp:140
 #, kde-format
 msgid "Retrieving information from remote device…"
-msgstr "Получение информации от удалённого устройства..."
+msgstr "Получение информации от удалённого устройства…"
 
 #: kio/obexftp/kioobexftp.cpp:222
 #, kde-format
@@ -341,16 +309,16 @@ msgstr "Память телефона"
 msgid "External memory"
 msgstr "Внешняя память"
 
-#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:378
+#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:382
 #, kde-format
 msgid "Bluetooth is disabled."
 msgstr "Bluetooth выключен."
 
-#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:379
+#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:383
 #, kde-format
 msgctxt "Action to enable Bluetooth adapter"
 msgid "Enable"
-msgstr "Задействовать"
+msgstr "Включить"
 
 #: sendfile/discoverwidget.cpp:137
 #, kde-format
@@ -387,7 +355,7 @@ msgstr "Файлы для отправки."
 #, kde-format
 msgctxt "Connecting to a Bluetooth device"
 msgid "Connecting to %1…"
-msgstr "Подключение к %1..."
+msgstr "Подключение к %1…"
 
 #: sendfile/pages/failpage.cpp:43
 #, kde-format
@@ -490,22 +458,22 @@ msgstr "Добавление устройства Bluetooth"
 msgid "Select a device"
 msgstr "Выбор устройства"
 
-#: wizard/pages/discover.cpp:371
+#: wizard/pages/discover.cpp:375
 #, kde-format
 msgctxt "Action to fix a problem"
 msgid "Fix it"
 msgstr "Исправить"
 
-#: wizard/pages/discover.cpp:381
+#: wizard/pages/discover.cpp:385
 #, kde-format
 msgid "Your Bluetooth adapter is not pairable."
 msgstr "Адаптер Bluetooth находится в режиме запрета сопряжения."
 
-#: wizard/pages/discover.cpp:382
+#: wizard/pages/discover.cpp:386
 #, kde-format
 msgctxt "Action to make Bluetooth adapter pairable"
 msgid "Make Pairable"
-msgstr "Разрешить сопряжения"
+msgstr "Разрешить сопряжение"
 
 #. i18n: ectx: property (placeholderText), widget (QLineEdit, searchField)
 #: wizard/pages/discover.ui:19
@@ -523,7 +491,7 @@ msgstr "Показывать безымянные устройства"
 #: wizard/pages/discover.ui:71
 #, kde-format
 msgid "Scanning…"
-msgstr "Сканирование..."
+msgstr "Сканирование…"
 
 #. i18n: ectx: property (text), widget (QCheckBox, manualPin)
 #: wizard/pages/discover.ui:91
@@ -564,7 +532,7 @@ msgstr "Не удалось настроить устройство %1."
 #: wizard/pages/pairing.cpp:60
 #, kde-format
 msgid "Connecting to %1…"
-msgstr "Подключение к %1..."
+msgstr "Подключение к %1…"
 
 #: wizard/pages/pairing.cpp:91
 #, kde-format
@@ -610,6 +578,42 @@ msgstr "Устройство настроено и готово к работе.
 msgctxt "Placeholder is device name"
 msgid "The device '%1' has been set up and can now be used."
 msgstr "Устройство «%1» настроено и готово к работе."
+
+#~ msgctxt "@title:column Blocked Bluetooth devices"
+#~ msgid "Blocked"
+#~ msgstr "Заблокировано"
+
+#~ msgctxt "@title:column Connected Bluetooth devices"
+#~ msgid "Connected"
+#~ msgstr "Подключено"
+
+#~ msgctxt "@title:column Available but not connected Bluetooth devices"
+#~ msgid "Available"
+#~ msgstr "Доступно"
+
+#~ msgctxt "@label %1 is the name of a Bluetooth device"
+#~ msgid "Could not connect to device “%1”"
+#~ msgstr "Не удалось подключиться к устройству «%1»"
+
+#~ msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+#~ msgid "The device is unreachable"
+#~ msgstr "Устройство недоступно"
+
+#~ msgctxt "Notification when the connection failed due to Failed"
+#~ msgid "Connection to the device failed"
+#~ msgstr "Сбой подключения к устройству"
+
+#~ msgctxt "Notification when the connection failed due to NotReady"
+#~ msgid "The device is not ready"
+#~ msgstr "Устройство не готово"
+
+#~ msgctxt "DeviceName Network (Service)"
+#~ msgid "%1 Network (%2)"
+#~ msgstr "Сеть %1 (%2)"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Enable Bluetooth"
+#~ msgstr "Включить Bluetooth"
 
 #~ msgctxt ""
 #~ "@label %1 is human-readable device name, %2 is low-level device address"
@@ -1012,9 +1016,6 @@ msgstr "Устройство «%1» настроено и готово к раб
 
 #~ msgid "Turn Bluetooth On"
 #~ msgstr "Включить Bluetooth"
-
-#~ msgid "Known Devices"
-#~ msgstr "Известные устройства"
 
 #~ msgid "Configure Bluetooth"
 #~ msgstr "Настроить Bluetooth"

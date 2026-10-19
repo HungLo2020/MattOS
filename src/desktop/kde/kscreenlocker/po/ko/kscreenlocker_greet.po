@@ -1,13 +1,13 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
-# SPDX-FileCopyrightText: 2012, 2013, 2014, 2015, 2016, 2024, 2025 Shinjo Park <kde@peremen.name>
+# SPDX-FileCopyrightText: 2012, 2013, 2014, 2015, 2016, 2024, 2025, 2026 Shinjo Park <kde@peremen.name>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:40+0000\n"
-"PO-Revision-Date: 2025-10-09 01:02+0200\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
+"PO-Revision-Date: 2026-10-03 20:43+0200\n"
 "Last-Translator: Shinjo Park <kde@peremen.name>\n"
 "Language-Team: Korean <kde-kr@kde.org>\n"
 "Language: ko\n"
@@ -15,74 +15,108 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Lokalize 24.12.3\n"
+"X-Generator: Lokalize 25.12.3\n"
 
-#: fallbacktheme/Greeter.qml:58
+#: fallbacktheme/Greeter.qml:59
 msgid "Warning: Caps Lock on"
 msgstr "경고: Caps Lock이 켜져 있음"
 
-#: fallbacktheme/Greeter.qml:74
+#: fallbacktheme/Greeter.qml:75
 msgid "The session is locked"
 msgstr "세션이 잠김"
 
-#: fallbacktheme/Greeter.qml:75
+#: fallbacktheme/Greeter.qml:76
 msgid "The session has been locked by %1"
 msgstr "%1 님이 세션을 잠갔음"
 
-#: fallbacktheme/Greeter.qml:99
+#: fallbacktheme/Greeter.qml:83
+msgid "Password"
+msgstr "암호"
+
+#: fallbacktheme/Greeter.qml:101
 msgid "(or place your fingerprint on the reader)"
 msgstr "(또는 인식기에 지문 스캔)"
 
-#: fallbacktheme/Greeter.qml:105
+#: fallbacktheme/Greeter.qml:107
 msgid "(or use your smartcard)"
 msgstr "(또는 스마트카드 사용)"
 
-#: fallbacktheme/Greeter.qml:114
+#: fallbacktheme/Greeter.qml:116
 msgid "&Switch Users"
 msgstr "사용자 전환(&S)"
 
-#: fallbacktheme/Greeter.qml:121
+#: fallbacktheme/Greeter.qml:123
 msgid "Un&lock"
 msgstr "잠금 해제(&L)"
 
-#: fallbacktheme/Greeter.qml:133
+#: fallbacktheme/Greeter.qml:135
 msgid "Unlocking failed"
 msgstr "잠금 해제 실패"
 
-#: main.cpp:123
+#: main.cpp:102
 #, kde-format
 msgid "Greeter for the KDE Plasma Workspaces Screen locker"
 msgstr "KDE Plasma 작업 공간 잠금 화면 환영 도구"
 
-#: main.cpp:127
+#: main.cpp:106
 #, kde-format
 msgid "Starts the greeter in testing mode"
 msgstr "테스트 모드로 환영 도구 시작"
 
-#: main.cpp:130
+#: main.cpp:109
 #, kde-format
 msgid "Starts the greeter with the selected shell theme (only in Testing mode)"
 msgstr "선택한 셸 테마로 환영 도구 시작(테스트 모드에서만 가능)"
 
-#: main.cpp:134
+#: main.cpp:113
 #, kde-format
 msgid "Lock immediately, ignoring any grace time etc."
 msgstr "대기 시간을 무시하고 즉시 잠급니다."
 
-#: main.cpp:136
+#: main.cpp:115
 #, kde-format
 msgid "Delay till the lock user interface gets shown in milliseconds."
 msgstr "밀리초 단위의 잠금 사용자 인터페이스 표시 지연 시간입니다."
 
-#: main.cpp:139
+#: main.cpp:118
 #, kde-format
 msgid "Don't show any lock user interface."
 msgstr "잠금 사용자 인터페이스를 표시하지 않습니다."
 
-#: main.cpp:141
+#: pamauthenticatormodel.cpp:51
 #, kde-format
-msgid "File descriptor for connecting to ksld."
-msgstr "ksld와 연결하는 파일 설명자입니다."
+msgctxt "authentication type in unlock dialogs"
+msgid "Password"
+msgstr "암호"
+
+#: pamauthenticatormodel.cpp:60
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Smartcard"
+msgstr "스마트카드"
+
+#: pamauthenticatormodel.cpp:67
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Fingerprint"
+msgstr "지문"
+
+#: pamauthenticatormodel.cpp:74
+#, kde-format
+msgctxt "authentication type in unlock dialogs - facial authentication"
+msgid "Face"
+msgstr "얼굴"
+
+#: pamauthenticatormodel.cpp:82
+#, kde-format
+msgctxt ""
+"authentication type in unlock dialogs - universal 2 factor authentication "
+"(yubikey etc)"
+msgid "Universal 2 Factor"
+msgstr "U2F"
+
+#~ msgid "File descriptor for connecting to ksld."
+#~ msgstr "ksld와 연결하는 파일 설명자입니다."
 
 #~ msgid "Default to the switch user UI."
 #~ msgstr "사용자 전환 UI의 기본값입니다."
@@ -92,9 +126,6 @@ msgstr "ksld와 연결하는 파일 설명자입니다."
 
 #~ msgid "Location"
 #~ msgstr "위치"
-
-#~ msgid "Password:"
-#~ msgstr "암호:"
 
 #~ msgctxt ""
 #~ "thesession name and the location where the session is running (what vt)"

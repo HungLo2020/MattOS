@@ -37,12 +37,14 @@
   <name xml:lang="ko">KDE Plasma 데스크톱</name>
   <name xml:lang="lt">KDE Plasma darbalaukis</name>
   <name xml:lang="lv">„KDE Plasma“ darbvirsma</name>
+  <name xml:lang="nan-Latn-TW">KDE Plasma Toh-bīn</name>
+  <name xml:lang="nan-TW">KDE Plasma 桌面</name>
   <name xml:lang="nb">KDE Plasma-skrivebord</name>
   <name xml:lang="nl">KDE Plasma Bureaublad</name>
   <name xml:lang="nn">KDE Plasma-skrivebord</name>
   <name xml:lang="pa">KDE ਪਲਾਜ਼ਮਾ ਡੈਸਕਟਾਪ</name>
   <name xml:lang="pl">Pulpit Plazmy KDE</name>
-  <name xml:lang="pt">Área de Trabalho Plasma do KDE</name>
+  <name xml:lang="pt">Ambiente de trabalho KDE Plasma</name>
   <name xml:lang="pt-BR">Área de trabalho KDE Plasma</name>
   <name xml:lang="ro">Biroul KDE Plasma</name>
   <name xml:lang="ru">Рабочий стол KDE Plasma</name>
@@ -57,6 +59,7 @@
   <name xml:lang="ta">கே.டீ.யீ. பிளாஸ்மா பணிமேடை</name>
   <name xml:lang="tg">Мизи кории KDE Plasma</name>
   <name xml:lang="tr">KDE Plasma Masaüstü</name>
+  <name xml:lang="ug">KDE Plasma ئۈستەلئۈستى</name>
   <name xml:lang="uk">Стільниця Плазми KDE</name>
   <name xml:lang="vi">Bàn làm việc Plasma KDE</name>
   <name xml:lang="zh-CN">KDE Plasma 桌面</name>
@@ -92,15 +95,17 @@
   <summary xml:lang="ko">KDE 데스크톱 사용자 환경입니다. 첫 시작은 간단하게, 필요할 때에는 강력하게</summary>
   <summary xml:lang="lt">Pilnas KDE darbalaukio aplinkos patyrimas. Paprastas pagal numatymą, galingas to prireikus</summary>
   <summary xml:lang="lv">KDE piedāvā pilnīgu darbvirsmas pieredzi. Vienkārša pēc noklusējuma, jaudīga, kad vajadzīgs</summary>
+  <summary xml:lang="nan-Latn-TW">KDE ê uân-tsíng toh-bīn thé-giām. Ū-siat kán-tan, su-iàu sî koh ū-la̍t</summary>
+  <summary xml:lang="nan-TW">KDE ê 完整桌面體驗。預設簡單，需要時閣有力</summary>
   <summary xml:lang="nb">En komplett KDE-opplevelse – enkel som standard og kraftig når det trengs</summary>
   <summary xml:lang="nl">De complete bureaubladervaring van KDE. Standaard eenvoudig, krachtig indien nodig</summary>
   <summary xml:lang="nn">Komplett KDE-oppleving – enkelt som standard, men kraftig når det trengst</summary>
   <summary xml:lang="pa">ਕੇਡੀਈ ਦਾ ਸੰਪੂਰਨ ਡੈਸਕਟਾਪ ਤਜਰਬਾ। ਮੂਲ ਰੂਪ ਵਿੱਚ ਸਰਲ, ਜਦੋਂ ਲੋੜ ਹੋਵੇ ਤਾਂ ਮਜ਼ਬੂਤ</summary>
   <summary xml:lang="pl">Całkowite wrażenie pulpitu KDE. Prosty z natury, zaawansowany gdy potrzeba</summary>
-  <summary xml:lang="pt">A experiência completa de trabalho do KDE. Simples por omissão, poderosa quando necessário</summary>
+  <summary xml:lang="pt">A experiência completa de ambiente de trabalho do KDE. Simples por definição, poderoso quando necessário.</summary>
   <summary xml:lang="pt-BR">A experiência da área de trabalho do KDE completa. Simples por padrão, potente quando necessário</summary>
   <summary xml:lang="ro">Experiența completă de birou de la KDE. Simplă implicit, puternică când trebuie</summary>
-  <summary xml:lang="ru">Рабочий стол от KDE: простота настройки и мощные возможности</summary>
+  <summary xml:lang="ru">Рабочая среда от KDE. Простая по умолчанию, мощная при необходимости</summary>
   <summary xml:lang="sa">KDE इत्यस्य सम्पूर्णः डेस्कटॉप् अनुभवः । पूर्वनिर्धारितरूपेण सरलं, आवश्यकतायां शक्तिशाली</summary>
   <summary xml:lang="sk">Kompletná pracovná plocha KDE. Predvolene jednoduchá, pri potrebe silná</summary>
   <summary xml:lang="sl">KDE-jeva popolna namizna izkušnja. Privzeto preprosta, a tudi zmogljiva, če je to zahtevano</summary>
@@ -112,6 +117,7 @@
   <summary xml:lang="ta">கே.டீ.யீ.யின் முழு பணிமேடை அனுபவம். இயல்பிருப்பில் எளிமையாகவும், தேவைப்படும்போது ஆற்றல்வாய்ந்ததாகவும் இருக்கும்.</summary>
   <summary xml:lang="tg">Таҷрибаомӯзии пурра бо мизи кории KDE. Осонтарин дар асл ва пурқувват бо дархост мебошад</summary>
   <summary xml:lang="tr">KDE’nin tam masaüstü deneyimi. Özünde yalın, gerektiğinde güçlü</summary>
+  <summary xml:lang="ug">KDE تولۇق ئۈستەلئۈستى تەسىراتى. كۆڭۈلدىكى ھالىتى ئاددىي قولايلىق، ئېھتىياجلىق بولغاندا ئىقتىدارى كۈچلۈك</summary>
   <summary xml:lang="uk">Повноцінне стільничне середовище KDE. Типово просте, але потужне, якщо це потрібно</summary>
   <summary xml:lang="vi">Trải nghiệm bàn làm việc hoàn chỉnh của KDE. Đơn giản lúc bắt đầu, mạnh mẽ khi cần thiết</summary>
   <summary xml:lang="zh-CN">KDE 的完整桌面体验。默认状态简洁易用，按需定制功能强大</summary>
@@ -156,12 +162,14 @@
       <caption xml:lang="ko">Plasma를 데스크톱으로 사용함</caption>
       <caption xml:lang="lt">Plasma yra naudojama kaip darbalaukis</caption>
       <caption xml:lang="lv">„Plasma“ kā darbvirsma</caption>
+      <caption xml:lang="nan-Latn-TW">Iōng-tsò toh-bīn ê Plasma</caption>
+      <caption xml:lang="nan-TW">用做桌面 ê Plasma</caption>
       <caption xml:lang="nb">Plasma blir brukt som skrivebord</caption>
       <caption xml:lang="nl">Plasma gebruikt wordend als een bureaublad</caption>
       <caption xml:lang="nn">Plasma vert brukt som skrivebord</caption>
       <caption xml:lang="pa">ਪਲਾਜ਼ਮਾ ਡੈਸਕਟਾਪ ਵਜੋਂ ਵਰਤਿਆ ਜਾ ਰਿਹਾ ਹੈ</caption>
       <caption xml:lang="pl">Plazma wykorzystywana jako pulpit</caption>
-      <caption xml:lang="pt">O Plasma em uso como ambiente de trabalho</caption>
+      <caption xml:lang="pt">Plasma a ser utilizado como ambiente de trabalho</caption>
       <caption xml:lang="pt-BR">Plasma sendo usado como área de trabalho</caption>
       <caption xml:lang="ro">Plasma fiind folosită ca birou</caption>
       <caption xml:lang="ru">Использование Plasma в качестве окружения рабочего стола</caption>
@@ -176,6 +184,7 @@
       <caption xml:lang="ta">பணிமேடையாக பிளாஸ்மா பயன்படுத்தப்படுவது</caption>
       <caption xml:lang="tg">Плазма ҳамчун мизи корӣ истифода мешавад</caption>
       <caption xml:lang="tr">Plasma, masaüstü olarak kullanılıyor</caption>
+      <caption xml:lang="ug">Plasma ئۈستەلئۈستى سۈپىتىدە ئىشلىتىلىدۇ</caption>
       <caption xml:lang="uk">Плазма для використання на робочій станції</caption>
       <caption xml:lang="vi">Plasma được dùng làm một bàn làm việc</caption>
       <caption xml:lang="zh-CN">使用 Plasma 作为桌面</caption>
@@ -185,9 +194,9 @@
   </screenshots>
   <compulsory_for_desktop>KDE</compulsory_for_desktop>
   <releases>
-    <release version="6.6.5" date="2026-05-12"/>
-    <release version="6.6.4" date="2026-04-06"/>
-    <release version="6.6.3" date="2026-03-17"/>
-    <release version="6.6.2" date="2026-03-03"/>
+    <release version="6.8.0" date="2026-10-14"/>
+    <release version="6.3.90" date="2025-05-15"/>
+    <release version="6.2.0" date="2024-10-08"/>
+    <release version="6.1.0" date="2024-06-18"/>
   </releases>
 </component>

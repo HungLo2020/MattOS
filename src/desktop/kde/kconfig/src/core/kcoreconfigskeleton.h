@@ -334,13 +334,13 @@ public:
         , mDefault(defaultValue)
         , mLoadedValue(defaultValue)
     {
-        setIsDefaultImpl([this] {
+        setIsDefaultImpl([this]() noexcept {
             return mReference == mDefault;
         });
-        setIsSaveNeededImpl([this] {
+        setIsSaveNeededImpl([this]() noexcept {
             return mReference != mLoadedValue;
         });
-        setGetDefaultImpl([this] {
+        setGetDefaultImpl([this]() noexcept {
             return QVariant::fromValue(mDefault);
         });
     }
@@ -415,7 +415,7 @@ public:
 
 protected:
     T &mReference; // Stores the value for this item
-    T mDefault; // The default value for this item
+    T mDefault; // The default value for this item. May be set from system-wide files or the build-in default value from the constructor
     T mLoadedValue;
 };
 
@@ -1616,6 +1616,33 @@ public:
      * Returns the created item.
      */
     ItemIntList *addItemIntList(const QString &name, QList<int> &reference, const QList<int> &defaultValue = QList<int>(), const QString &key = QString());
+
+    /*!
+     * Registers an int list item with a unique \a name by passing a
+     * \a reference pointer to the variable and the given \a defaultValue for
+     * the \a key used in the config file.
+     *
+     * If \a key is a null string, \a name is used as key.
+     *
+     * Returns the created item.
+     *
+     * \since 6.27
+     */
+    ItemPathList *
+    addItemPathList(const QString &name, QList<QString> &reference, const QList<QString> &defaultValue = QList<QString>(), const QString &key = QString());
+
+    /*!
+     * Registers an int list item with a unique \a name by passing a
+     * \a reference pointer to the variable and the given \a defaultValue for
+     * the \a key used in the config file.
+     *
+     * If \a key is a null string, \a name is used as key.
+     *
+     * Returns the created item.
+     *
+     * \since 6.27
+     */
+    ItemUrlList *addItemUrlList(const QString &name, QList<QUrl> &reference, const QList<QUrl> &defaultValue = QList<QUrl>(), const QString &key = QString());
 
     /*!
      * Returns the KConfig object used for reading and writing the settings.

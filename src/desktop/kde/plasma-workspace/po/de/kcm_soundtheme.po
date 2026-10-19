@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_soundtheme\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-28 02:51+0000\n"
-"PO-Revision-Date: 2024-07-29 10:12+0200\n"
-"Last-Translator: Flori G <Renner03@protonmail.com>\n"
+"POT-Creation-Date: 2026-07-07 00:45+0000\n"
+"PO-Revision-Date: 2026-03-27 18:42+0100\n"
+"Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -20,24 +20,62 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 25.12.3\n"
 
-#: kcm_soundtheme.cpp:112
+#: kcm_soundtheme.cpp:156
 #, kde-format
 msgctxt "Name of the fallback \"freedesktop\" sound theme"
 msgid "FreeDesktop"
 msgstr "FreeDesktop"
 
-#: kcm_soundtheme.cpp:113
+#: kcm_soundtheme.cpp:157
 #, kde-format
 msgid "Fallback sound theme from freedesktop.org"
 msgstr "Standard-Klangdesign von freedesktop.org"
 
-#: ui/main.qml:29
+#: kcm_soundtheme.cpp:250
+#, kde-format
+msgctxt "@info:status"
+msgid "Unable to create a temporary file."
+msgstr "Es kann keine temporäre Datei erstellt werden."
+
+#: kcm_soundtheme.cpp:260
+#, kde-format
+msgctxt "@info:status"
+msgid "Unable to download the sound theme archive: %1"
+msgstr "Das Klangdesign-Archiv kann nicht heruntergeladen werden: %1"
+
+#: kcm_soundtheme.cpp:271
+#, kde-format
+msgctxt "@info:status"
+msgid "The archive could not be opened."
+msgstr "Das Archiv kann nicht geöffnet werden."
+
+#: kcm_soundtheme.cpp:276
+#, kde-format
+msgctxt "@info:status"
+msgid "Theme installed successfully."
+msgid_plural "Themes installed successfully."
+msgstr[0] "Design erfolgreich installiert."
+msgstr[1] "Designs erfolgreich installiert."
+
+#: kcm_soundtheme.cpp:279
+#, kde-format
+msgctxt "@info:status"
+msgid "The archive does not contain a valid sound theme."
+msgstr "Das Archiv enthält kein gültiges Klangdesign."
+
+#: ui/main.qml:35
+#, kde-format
+msgctxt "@action:button Install sound theme from file"
+msgid "Install from File…"
+msgstr "Aus Datei installieren …"
+
+#: ui/main.qml:42
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable notification sounds"
 msgstr "Benachrichtigungsklänge aktivieren"
 
-#: ui/main.qml:96
+#: ui/main.qml:134
 #, kde-format
 msgctxt ""
 "%2 is a theme name or a list of theme names that the current theme inherits "
@@ -47,7 +85,7 @@ msgid_plural "Based on: %2"
 msgstr[0] "Basiert auf: %2"
 msgstr[1] "Basiert auf: %2"
 
-#: ui/main.qml:109
+#: ui/main.qml:147
 #, kde-format
 msgctxt ""
 "@label Precedes a list of buttons which can be clicked to preview the "
@@ -55,25 +93,36 @@ msgctxt ""
 msgid "Preview:"
 msgstr "Hörprobe:"
 
-#: ui/main.qml:128
+#: ui/main.qml:166
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Preview sound \"%1\""
 msgstr "Klang „%1“ probehören"
 
-#: ui/main.qml:150
+#: ui/main.qml:188
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Preview the demo sound for the theme \"%1\""
 msgstr "Den Demonstrationsklang des Designs „%1“ probehören"
 
-#: ui/main.qml:187
+#: ui/main.qml:225
 #, kde-format
 msgctxt "%1 is a sound theme name. %2 is a sound name"
 msgid "The %1 theme doesn't include the sound '%2'"
 msgstr "Das Design „%1“ enthält den Ton „%2“ nicht"
 
-#: ui/main.qml:192
+#: ui/main.qml:230
 #, kde-format
 msgid "Failed to preview sound: %1"
 msgstr "Das Probehören ist fehlgeschlagen: %1"
+
+#: ui/main.qml:246
+#, kde-format
+msgctxt "@title:window"
+msgid "Choose Sound Theme"
+msgstr "Klangdesign auswählen"
+
+#: ui/main.qml:248
+#, kde-format
+msgid "Theme Files (*.tar.gz *.tar.bz2 *.tar.xz *.tar.lz *.zip)"
+msgstr "Designdateien (*.tar.gz *.tar.bz2 *.tar.xz *.tar.lz *.zip)"

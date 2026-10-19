@@ -10,6 +10,7 @@
 
 #include "copyjob.h"
 #include "../utils_p.h"
+#include "copyjob_p.h"
 #include "deletejob.h"
 #include "filecopyjob.h"
 #include "global.h"
@@ -58,6 +59,7 @@
 #include <KIO/FileSystemFreeSpaceJob>
 
 #include <list>
+#include <optional>
 #include <set>
 
 #include <QLoggingCategory>
@@ -67,7 +69,12 @@ Q_LOGGING_CATEGORY(KIO_COPYJOB_DEBUG, "kf.kio.core.copyjob", QtWarningMsg)
 using namespace KIO;
 
 // this will update the report dialog with 5 Hz, I think this is fast enough, aleXXX
-static constexpr int s_reportTimeout = 200;
+static constexpr std::chrono::milliseconds s_defaultReportTimeout = std::chrono::milliseconds(200);
+#ifdef BUILD_TESTING
+static std::chrono::milliseconds s_reportTimeout = s_defaultReportTimeout;
+#else
+static constexpr std::chrono::milliseconds s_reportTimeout = s_defaultReportTimeout;
+#endif
 
 #if !defined(NAME_MAX)
 #if defined(_MAX_FNAME)
@@ -92,10 +99,10 @@ enum DestinationState {
  *      STATE_RENAMING if direct rename looks possible
  *         (on already exists, and user chooses rename, TODO: go to STATE_RENAMING again)
  *      STATE_STATING
- *         and then, if dir -> STATE_LISTING (filling 'd->dirs' and 'd->files')
- *     STATE_CREATING_DIRS (createNextDir, iterating over 'd->dirs')
+ *         and then, if dir -> STATE_LISTING (filling 'd->dirsToCopy' and 'd->filesToCopy')
+ *     STATE_CREATING_DIRS (createNextDir, iterating over 'd->dirsToCopy')
  *          if conflict: STATE_CONFLICT_CREATING_DIRS
- *     STATE_COPYING_FILES (copyNextFile, iterating over 'd->files')
+ *     STATE_COPYING_FILES (copyNextFile, iterating over 'd->filesToCopy')
  *          if conflict: STATE_CONFLICT_COPYING_FILES
  *     STATE_DELETING_DIRS (deleteNextDir) (if moving)
  *     STATE_SETTING_DIR_ATTRIBUTES (setNextDirAttribute, iterating over d->m_directoriesCopied)
@@ -159,6 +166,29 @@ static bool isFatOrNtfs(KFileSystemType::Type fsType)
     return fsType == KFileSystemType::Ntfs || isFatFs(fsType);
 }
 
+// MTP storage rejects the same set of reserved characters libmtp inherits from the
+// Windows MTP API (see bug 489288), regardless of the device's actual filesystem.
+static bool isMtpScheme(const QUrl &url)
+{
+    return url.scheme() == QLatin1String("mtp");
+}
+
+static bool destDisallowsMsdosChars(const QUrl &url, KFileSystemType::Type fsType)
+{
+    if (url.isLocalFile()) {
+        return isFatOrNtfs(fsType);
+    }
+    return isMtpScheme(url);
+}
+
+static QString destFilesystemDisplayName(const QUrl &url, KFileSystemType::Type fsType)
+{
+    if (isMtpScheme(url)) {
+        return QStringLiteral("MTP");
+    }
+    return KFileSystemType::fileSystemName(fsType);
+}
+
 static QString symlinkSupportMsg(const QString &path, const QString &fsName)
 {
     const QString msg = i18nc(
@@ -195,11 +225,20 @@ static QString invalidCharsSupportMsg(const QString &path, const QString &fsName
     return msg;
 }
 
+#ifdef BUILD_TESTING
+void KIO::TestPrivate::setReportTimeout(std::chrono::milliseconds timeout)
+{
+    s_reportTimeout = timeout;
+}
+#endif
+
 struct CopyInfo {
     QUrl uSource;
     QUrl uDest;
     QString linkDest; // for symlinks only
-    int permissions;
+    int permissions = -1;
+    int gid = -1;
+    int uid = -1;
     QDateTime ctime;
     QDateTime mtime;
     KIO::filesize_t size; // 0 for dirs
@@ -221,7 +260,6 @@ public:
         , m_totalSize(0)
         , m_processedSize(0)
         , m_fileProcessedSize(0)
-        , m_filesHandledByDirectRename(0)
         , m_processedFiles(0)
         , m_processedDirs(0)
         , m_srcList(src)
@@ -249,6 +287,8 @@ public:
     QUrl m_globalDest;
     // The state info about that global dest
     DestinationState m_globalDestinationState;
+    // Cached filesystem type of m_globalDest. It is invariant once the destination has been stated.
+    std::optional<KFileSystemType::Type> m_globalDestFsType;
     // See setDefaultPermissions
     bool m_defaultPermissions;
     // Whether URLs changed (and need to be emitted by the next slotReport call)
@@ -268,11 +308,16 @@ public:
     KIO::filesize_t m_totalSize;
     KIO::filesize_t m_processedSize;
     KIO::filesize_t m_fileProcessedSize;
-    int m_filesHandledByDirectRename;
+    // Sources the user chose not to move. Done, as far as the percentage goes, but not moved.
+    int m_skippedFiles = 0;
+    // Files the job is done with, not counting the one being copied.
     int m_processedFiles;
+    // A file copy sub-job is running.
+    bool m_fileInFlight = false;
     int m_processedDirs;
-    QList<CopyInfo> files;
-    QList<CopyInfo> dirs;
+    // What the listing found and the copying has not got through yet, not what the job was given.
+    QList<CopyInfo> filesToCopy;
+    QList<CopyInfo> dirsToCopy;
     // List of dirs that will be copied then deleted when CopyMode is Move
     QList<QUrl> dirsToRemove;
     QList<QUrl> m_srcList;
@@ -352,6 +397,15 @@ public:
     // don't support symlinks, this method detects those conditions and tries to handle it
     bool handleMsdosFsQuirks(QList<CopyInfo>::Iterator it, KFileSystemType::Type fsType);
     void copyNextFile();
+    // Filesystem type of m_globalDest, determined once and cached (see m_globalDestFsType). Returns
+    // KFileSystemType::Unknown for a non-local destination.
+    KFileSystemType::Type globalDestFsType()
+    {
+        if (!m_globalDestFsType) {
+            m_globalDestFsType = m_globalDest.isLocalFile() ? KFileSystemType::fileSystemType(m_globalDest.toLocalFile()) : KFileSystemType::Unknown;
+        }
+        return *m_globalDestFsType;
+    }
     void processCopyNextFile(const QList<CopyInfo>::Iterator &it, int result, SkipType skipType);
 
     void slotResultDeletingDirs(KJob *job);
@@ -359,6 +413,8 @@ public:
     void sourceStated(const UDSEntry &entry, const QUrl &sourceUrl);
     // Removes a dir from the "dirsToRemove" list
     void skip(const QUrl &sourceURL, bool isDir);
+    void dropFromByteTotal(KIO::filesize_t size);
+    qulonglong sourcesNotReached() const;
 
     void slotResultRenaming(KJob *job);
     void directRenamingFailed(const QUrl &dest);
@@ -512,7 +568,6 @@ void CopyJobPrivate::slotResultStating(KJob *job)
             q->removeSubjob(job);
             Q_ASSERT(!q->hasSubjobs()); // We should have only one job at a time ...
             struct CopyInfo info;
-            info.permissions = (mode_t)-1;
             info.size = KIO::invalidFilesize;
             info.uSource = srcurl;
             info.uDest = m_dest;
@@ -522,7 +577,7 @@ void CopyJobPrivate::slotResultStating(KJob *job)
                 info.uDest = addPathToUrl(info.uDest, fileName);
             }
 
-            files.append(info);
+            filesToCopy.append(info);
             statNextSrc();
             return;
         }
@@ -728,7 +783,7 @@ void CopyJobPrivate::slotReport()
 
     // If showProgressInfo was set, progressId() is > 0.
     switch (state) {
-    case STATE_RENAMING:
+    case STATE_RENAMING: {
         if (m_bURLDirty) {
             m_bURLDirty = false;
             Q_ASSERT(m_mode == CopyJob::Move);
@@ -737,22 +792,33 @@ void CopyJobPrivate::slotReport()
         }
         // "N" files renamed shouldn't include skipped files
         q->setProcessedAmount(KJob::Files, m_processedFiles);
-        // % value should include skipped files
-        q->emitPercent(m_filesHandledByDirectRename, q->totalAmount(KJob::Files));
+        // Every file this job will handle: the ones it is done with, the ones a listing queued, and
+        // one for each source it has not reached, since a move which renames them all lists nothing.
+        const qulonglong handledFiles = m_processedFiles + m_skippedFiles;
+        q->setTotalAmount(KJob::Files, handledFiles + filesToCopy.count() + sourcesNotReached());
+        // Published here as well as by the listing branch, which runs on a timer a short move never
+        // reaches, leaving the copying to measure itself in bytes against a total of zero.
+        q->setTotalAmount(KJob::Bytes, m_totalSize);
+        // % value should include skipped files, unlike the count above
+        q->emitPercent(handledFiles, q->totalAmount(KJob::Files));
         break;
+    }
 
     case STATE_COPYING_FILES: {
         const bool bytesTotalUnknown = (m_totalSize == 0);
         const bool noByteProgress = ((m_processedSize + m_fileProcessedSize) == 0);
-        const int totalFiles = m_processedFiles + files.count() + m_filesHandledByDirectRename;
-        if ((bytesTotalUnknown || noByteProgress) && totalFiles > 0) {
-            q->setProgressUnit(KJob::Files);
-        } else {
-            q->setProgressUnit(KJob::Bytes);
-        }
-    }
-        q->setProcessedAmount(KJob::Files, m_processedFiles);
+        const qulonglong handledFiles = m_processedFiles + m_skippedFiles;
+        const bool countInFiles = (bytesTotalUnknown || noByteProgress) && (handledFiles + filesToCopy.count()) > 0;
+
+        // The count says which file the job is on, so the one in hand belongs in it.
+        q->setProcessedAmount(KJob::Files, m_processedFiles + (m_fileInFlight ? 1 : 0));
         q->setProcessedAmount(KJob::Bytes, m_processedSize + m_fileProcessedSize);
+        if (countInFiles) {
+            // A file the user skipped is one the job is done with, as in the renaming branch above.
+            // A file still being copied is not. The progress unit stays on bytes, so this is the
+            // only percentage the job sends.
+            q->emitPercent(handledFiles, q->totalAmount(KJob::Files));
+        }
         if (m_bURLDirty) {
             // Only emit urls when they changed. This saves time, and fixes #66281
             m_bURLDirty = false;
@@ -768,6 +834,7 @@ void CopyJobPrivate::slotReport()
             }
         }
         break;
+    }
 
     case STATE_CREATING_DIRS:
         q->setProcessedAmount(KJob::Directories, m_processedDirs);
@@ -790,8 +857,8 @@ void CopyJobPrivate::slotReport()
         }
         q->setProgressUnit(KJob::Bytes);
         q->setTotalAmount(KJob::Bytes, m_totalSize);
-        q->setTotalAmount(KJob::Files, files.count() + m_filesHandledByDirectRename);
-        q->setTotalAmount(KJob::Directories, dirs.count());
+        q->setTotalAmount(KJob::Files, m_processedFiles + m_skippedFiles + filesToCopy.count());
+        q->setTotalAmount(KJob::Directories, dirsToCopy.count());
         break;
 
     default:
@@ -825,6 +892,8 @@ void CopyJobPrivate::addCopyInfoFromUDSEntry(const UDSEntry &entry, const QUrl &
 {
     struct CopyInfo info;
     info.permissions = entry.numberValue(KIO::UDSEntry::UDS_ACCESS, -1);
+    info.gid = entry.numberValue(KIO::UDSEntry::UDS_LOCAL_GROUP_ID, -1);
+    info.uid = entry.numberValue(KIO::UDSEntry::UDS_LOCAL_USER_ID, -1);
     const auto modificationTime = entry.numberValue(KIO::UDSEntry::UDS_MODIFICATION_TIME, -1);
     if (modificationTime != -1) {
         info.mtime = QDateTime::fromSecsSinceEpoch(modificationTime, QTimeZone::UTC);
@@ -917,12 +986,12 @@ void CopyJobPrivate::addCopyInfoFromUDSEntry(const UDSEntry &entry, const QUrl &
         qCDebug(KIO_COPYJOB_DEBUG) << " uDest(2)=" << info.uDest;
         qCDebug(KIO_COPYJOB_DEBUG) << " " << info.uSource << "->" << info.uDest;
         if (info.linkDest.isEmpty() && isDir && m_mode != CopyJob::Link) { // Dir
-            dirs.append(info); // Directories
+            dirsToCopy.append(info); // Directories
             if (m_mode == CopyJob::Move) {
                 dirsToRemove.append(info.uSource);
             }
         } else {
-            files.append(info); // Files and any symlinks
+            filesToCopy.append(info); // Files and any symlinks
         }
     }
 }
@@ -998,7 +1067,7 @@ void CopyJobPrivate::statCurrentSrc()
                     info.uDest = addPathToUrl(info.uDest, KIO::encodeFileName(decodedFilename) + QLatin1String(".desktop"));
                 }
             }
-            files.append(info); // Files and any symlinks
+            filesToCopy.append(info); // Files and any symlinks
             statNextSrc(); // we could use a loop instead of a recursive call :)
             return;
         }
@@ -1080,7 +1149,7 @@ void CopyJobPrivate::statCurrentSrc()
         }
 
         // Check if we are copying a single file
-        m_bSingleFileCopy = (files.count() == 1 && dirs.isEmpty());
+        m_bSingleFileCopy = (filesToCopy.count() == 1 && dirsToCopy.isEmpty());
         // Then start copying things
         state = STATE_CREATING_DIRS;
         createNextDir();
@@ -1143,6 +1212,26 @@ void CopyJobPrivate::startListing(const QUrl &src)
     q->addSubjob(newjob);
 }
 
+// A source is at least one file, which is all a move that renames them knows before it lists.
+qulonglong CopyJobPrivate::sourcesNotReached() const
+{
+    return m_srcList.constEnd() - m_currentStatSrc;
+}
+
+// Bytes nobody is going to move are not work this job has to do, so they come off the total.
+// Counting them as moved would say they went by in no time, inflating the speed and the time left.
+void CopyJobPrivate::dropFromByteTotal(KIO::filesize_t size)
+{
+    Q_Q(CopyJob);
+    if (size == KIO::invalidFilesize) {
+        // A size nobody could work out was kept out of the total when the file was listed, so
+        // there is nothing here to take off it. Subtracting it would empty the total instead.
+        return;
+    }
+    m_totalSize = m_totalSize > size ? m_totalSize - size : 0;
+    q->setTotalAmount(KJob::Bytes, m_totalSize);
+}
+
 void CopyJobPrivate::skip(const QUrl &sourceUrl, bool isDir)
 {
     QUrl dir(sourceUrl);
@@ -1198,7 +1287,7 @@ void CopyJobPrivate::renameDirectory(const QList<CopyInfo>::iterator &it, const 
     QList<CopyInfo>::Iterator renamedirit = it;
     ++renamedirit;
     // Change the name of subdirectories inside the directory
-    for (; renamedirit != dirs.end(); ++renamedirit) {
+    for (; renamedirit != dirsToCopy.end(); ++renamedirit) {
         QString path = (*renamedirit).uDest.path();
         if (path.startsWith(oldPath)) {
             QString n = path;
@@ -1210,8 +1299,8 @@ void CopyJobPrivate::renameDirectory(const QList<CopyInfo>::iterator &it, const 
         }
     }
     // Change filenames inside the directory
-    QList<CopyInfo>::Iterator renamefileit = files.begin();
-    for (; renamefileit != files.end(); ++renamefileit) {
+    QList<CopyInfo>::Iterator renamefileit = filesToCopy.begin();
+    for (; renamefileit != filesToCopy.end(); ++renamefileit) {
         QString path = (*renamefileit).uDest.path(QUrl::FullyDecoded);
         if (path.startsWith(oldPath)) {
             QString n = path;
@@ -1228,7 +1317,7 @@ void CopyJobPrivate::slotResultCreatingDirs(KJob *job)
 {
     Q_Q(CopyJob);
     // The dir we are trying to create:
-    QList<CopyInfo>::Iterator it = dirs.begin();
+    QList<CopyInfo>::Iterator it = dirsToCopy.begin();
     // Was there an error creating a dir ?
     if (job->error()) {
         m_conflictError = job->error();
@@ -1241,13 +1330,13 @@ void CopyJobPrivate::slotResultCreatingDirs(KJob *job)
                 const QString path = Utils::slashAppended(oldURL.path());
                 m_skipList.append(path);
                 skip(oldURL, true);
-                dirs.erase(it); // Move on to next dir
+                dirsToCopy.erase(it); // Move on to next dir
             } else {
                 // Did the user choose to overwrite already?
                 const QString destDir = (*it).uDest.path();
                 if (shouldOverwriteDir(destDir)) { // overwrite => just skip
                     Q_EMIT q->copyingDone(q, (*it).uSource, finalDestUrl((*it).uSource, (*it).uDest), (*it).mtime, true /* directory */, false /* renamed */);
-                    dirs.erase(it); // Move on to next dir
+                    dirsToCopy.erase(it); // Move on to next dir
                     ++m_processedDirs;
                 } else {
                     if (m_bAutoRenameDirs) {
@@ -1285,7 +1374,7 @@ void CopyJobPrivate::slotResultCreatingDirs(KJob *job)
         // this is required for the undo feature
         Q_EMIT q->copyingDone(q, (*it).uSource, finalDestUrl((*it).uSource, (*it).uDest), (*it).mtime, true, false);
         m_directoriesCopied.push_back(*it);
-        dirs.erase(it);
+        dirsToCopy.erase(it);
         ++m_processedDirs;
     }
 
@@ -1300,7 +1389,7 @@ void CopyJobPrivate::slotResultConflictCreatingDirs(KJob *job)
     // We come here after a conflict has been detected and we've stated the existing dir
 
     // The dir we were trying to create:
-    QList<CopyInfo>::Iterator it = dirs.begin();
+    QList<CopyInfo>::Iterator it = dirsToCopy.begin();
 
     const UDSEntry entry = ((KIO::StatJob *)job)->statResult();
 
@@ -1374,22 +1463,21 @@ void CopyJobPrivate::slotResultConflictCreatingDirs(KJob *job)
         case Result_Skip:
             m_skipList.append(Utils::slashAppended(existingDest));
             skip((*it).uSource, true);
-            // Move on to next dir
-            dirs.erase(it);
-            ++m_processedDirs;
+            // Move on to next dir. Not one this job processed, as with a file it did not move.
+            dirsToCopy.erase(it);
             break;
         case Result_Overwrite:
             m_overwriteList.insert(existingDest);
             Q_EMIT q->copyingDone(q, (*it).uSource, finalDestUrl((*it).uSource, (*it).uDest), (*it).mtime, true /* directory */, false /* renamed */);
             // Move on to next dir
-            dirs.erase(it);
+            dirsToCopy.erase(it);
             ++m_processedDirs;
             break;
         case Result_OverwriteAll:
             m_bOverwriteAllDirs = true;
             Q_EMIT q->copyingDone(q, (*it).uSource, finalDestUrl((*it).uSource, (*it).uDest), (*it).mtime, true /* directory */, false /* renamed */);
             // Move on to next dir
-            dirs.erase(it);
+            dirsToCopy.erase(it);
             ++m_processedDirs;
             break;
         default:
@@ -1414,61 +1502,62 @@ void CopyJobPrivate::createNextDir()
     Q_Q(CopyJob);
 
     // Take first dir to create out of list
-    QList<CopyInfo>::Iterator it = dirs.begin();
+    QList<CopyInfo>::Iterator it = dirsToCopy.begin();
     // Is this URL on the skip list or the overwrite list ?
-    while (it != dirs.end()) {
+    while (it != dirsToCopy.end()) {
         const QString dir = it->uDest.path();
         if (shouldSkip(dir)) {
-            it = dirs.erase(it);
+            it = dirsToCopy.erase(it);
         } else {
             break;
         }
     }
 
-    if (it != dirs.end()) { // any dir to create, finally ?
+    if (it != dirsToCopy.end()) { // any dir to create, finally ?
+        KFileSystemType::Type destFileSystem = KFileSystemType::Unknown;
         if (it->uDest.isLocalFile()) {
             // uDest doesn't exist yet, check the filesystem of the parent dir
-            const auto destFileSystem = KFileSystemType::fileSystemType(it->uDest.adjusted(QUrl::StripTrailingSlash | QUrl::RemoveFilename).toLocalFile());
-            if (isFatOrNtfs(destFileSystem)) {
-                const QString dirName = it->uDest.adjusted(QUrl::StripTrailingSlash).fileName();
-                if (hasInvalidChars(dirName)) {
-                    // We already asked the user?
-                    if (m_autoReplaceInvalidChars) {
-                        processCreateNextDir(it, KIO::Result_ReplaceInvalidChars);
-                        return;
-                    } else if (m_autoSkipDirsWithInvalidChars) {
-                        processCreateNextDir(it, KIO::Result_Skip);
-                        return;
+            destFileSystem = KFileSystemType::fileSystemType(it->uDest.adjusted(QUrl::StripTrailingSlash | QUrl::RemoveFilename).toLocalFile());
+        }
+        if (destDisallowsMsdosChars(it->uDest, destFileSystem)) {
+            const QString dirName = it->uDest.adjusted(QUrl::StripTrailingSlash).fileName();
+            if (hasInvalidChars(dirName)) {
+                // We already asked the user?
+                if (m_autoReplaceInvalidChars) {
+                    processCreateNextDir(it, KIO::Result_ReplaceInvalidChars);
+                    return;
+                } else if (m_autoSkipDirsWithInvalidChars) {
+                    processCreateNextDir(it, KIO::Result_Skip);
+                    return;
+                }
+
+                const QString msg = invalidCharsSupportMsg(it->uDest.toDisplayString(QUrl::PreferLocalFile),
+                                                           destFilesystemDisplayName(it->uDest, destFileSystem),
+                                                           true /* isDir */);
+
+                if (auto *askUserActionInterface = KIO::delegateExtension<KIO::AskUserActionInterface *>(q)) {
+                    SkipDialog_Options options = KIO::SkipDialog_Replace_Invalid_Chars;
+                    if (dirsToCopy.size() > 1) {
+                        options |= SkipDialog_MultipleItems;
                     }
 
-                    const QString msg = invalidCharsSupportMsg(it->uDest.toDisplayString(QUrl::PreferLocalFile),
-                                                               KFileSystemType::fileSystemName(destFileSystem),
-                                                               true /* isDir */);
+                    auto skipSignal = &KIO::AskUserActionInterface::askUserSkipResult;
+                    QObject::connect(askUserActionInterface, skipSignal, q, [=, this](SkipDialog_Result result, KJob *parentJob) {
+                        Q_ASSERT(parentJob == q);
 
-                    if (auto *askUserActionInterface = KIO::delegateExtension<KIO::AskUserActionInterface *>(q)) {
-                        SkipDialog_Options options = KIO::SkipDialog_Replace_Invalid_Chars;
-                        if (dirs.size() > 1) {
-                            options |= SkipDialog_MultipleItems;
-                        }
+                        // Only receive askUserSkipResult once per skip dialog
+                        QObject::disconnect(askUserActionInterface, skipSignal, q, nullptr);
 
-                        auto skipSignal = &KIO::AskUserActionInterface::askUserSkipResult;
-                        QObject::connect(askUserActionInterface, skipSignal, q, [=, this](SkipDialog_Result result, KJob *parentJob) {
-                            Q_ASSERT(parentJob == q);
+                        processCreateNextDir(it, result);
+                    });
 
-                            // Only receive askUserSkipResult once per skip dialog
-                            QObject::disconnect(askUserActionInterface, skipSignal, q, nullptr);
+                    askUserActionInterface->askUserSkip(q, options, msg);
 
-                            processCreateNextDir(it, result);
-                        });
-
-                        askUserActionInterface->askUserSkip(q, options, msg);
-
-                        return;
-                    } else { // No Job Ui delegate
-                        qCWarning(KIO_COPYJOB_DEBUG) << msg;
-                        q->emitResult();
-                        return;
-                    }
+                    return;
+                } else { // No Job Ui delegate
+                    qCWarning(KIO_COPYJOB_DEBUG) << msg;
+                    q->emitResult();
+                    return;
                 }
             }
         }
@@ -1488,7 +1577,6 @@ void CopyJobPrivate::createNextDir()
         }
 
         state = STATE_COPYING_FILES;
-        ++m_processedFiles; // Ralf wants it to start at 1, not 0
         copyNextFile();
     }
 }
@@ -1521,8 +1609,7 @@ void CopyJobPrivate::processCreateNextDir(const QList<CopyInfo>::Iterator &it, i
     case KIO::Result_Skip:
         m_skipList.append(Utils::slashAppended(it->uDest.path()));
         skip(it->uSource, true);
-        dirs.erase(it); // Move on to next dir
-        ++m_processedDirs;
+        dirsToCopy.erase(it); // Move on to next dir
         createNextDir();
         return;
     default:
@@ -1531,7 +1618,8 @@ void CopyJobPrivate::processCreateNextDir(const QList<CopyInfo>::Iterator &it, i
 
     // Create the directory - with default permissions so that we can put files into it
     // TODO : change permissions once all is finished; but for stuff coming from CDROM it sucks...
-    KIO::SimpleJob *newjob = KIO::mkdir(it->uDest, -1);
+    KIO::MkdirJob *newjob = KIO::mkdir(it->uDest, -1);
+    newjob->setOwnership(it->uid, it->gid);
     newjob->setParentJob(q);
     if (shouldOverwriteFile(it->uDest.path())) { // if we are overwriting an existing file or symlink
         newjob->addMetaData(QStringLiteral("overwrite"), QStringLiteral("true"));
@@ -1546,14 +1634,17 @@ void CopyJobPrivate::processCreateNextDir(const QList<CopyInfo>::Iterator &it, i
 void CopyJobPrivate::slotResultCopyingFiles(KJob *job)
 {
     Q_Q(CopyJob);
+    m_fileInFlight = false; // the copy is over, whatever it came back with
     // The file we were trying to copy:
-    QList<CopyInfo>::Iterator it = files.begin();
+    QList<CopyInfo>::Iterator it = filesToCopy.begin();
     if (job->error()) {
         // Should we skip automatically ?
         if (m_bAutoSkipFiles) {
             skip((*it).uSource, false);
-            m_fileProcessedSize = (*it).size;
-            files.erase(it); // Move on to next file
+            ++m_skippedFiles;
+            dropFromByteTotal((*it).size);
+            m_fileProcessedSize = 0;
+            filesToCopy.erase(it); // Move on to next file
         } else {
             m_conflictError = job->error(); // save for later
             // Existing dest ?
@@ -1590,7 +1681,7 @@ void CopyJobPrivate::slotResultCopyingFiles(KJob *job)
                     // We are deleting the source of a symlink we successfully moved... ignore error
                     m_fileProcessedSize = (*it).size;
                     ++m_processedFiles;
-                    files.erase(it);
+                    filesToCopy.erase(it);
                 } else {
                     if (!KIO::delegateExtension<AskUserActionInterface *>(q)) {
                         q->Job::slotResult(job); // will set the error and emit result(this)
@@ -1639,7 +1730,7 @@ void CopyJobPrivate::slotResultCopyingFiles(KJob *job)
             }
         }
         // remove from list, to move on to next file
-        files.erase(it);
+        filesToCopy.erase(it);
         ++m_processedFiles;
     }
 
@@ -1647,7 +1738,7 @@ void CopyJobPrivate::slotResultCopyingFiles(KJob *job)
     m_processedSize += m_fileProcessedSize;
     m_fileProcessedSize = 0;
 
-    qCDebug(KIO_COPYJOB_DEBUG) << files.count() << "files remaining";
+    qCDebug(KIO_COPYJOB_DEBUG) << filesToCopy.count() << "files remaining";
 
     // Merge metadata from subjob
     KIO::Job *kiojob = qobject_cast<KIO::Job *>(job);
@@ -1663,7 +1754,7 @@ void CopyJobPrivate::slotResultErrorCopyingFiles(KJob *job)
     Q_Q(CopyJob);
     // We come here after a conflict has been detected and we've stated the existing file
     // The file we were trying to create:
-    QList<CopyInfo>::Iterator it = files.begin();
+    QList<CopyInfo>::Iterator it = filesToCopy.begin();
 
     RenameDialog_Result res = Result_Cancel;
 
@@ -1760,7 +1851,7 @@ void CopyJobPrivate::slotResultErrorCopyingFiles(KJob *job)
             return;
         } else {
             SkipDialog_Options options;
-            if (files.count() > 1) {
+            if (filesToCopy.count() > 1) {
                 options |= SkipDialog_MultipleItems;
             }
 
@@ -1824,8 +1915,12 @@ void CopyJobPrivate::processFileRenameDialogResult(const QList<CopyInfo>::Iterat
     case Result_Skip:
         // Move on to next file
         skip((*it).uSource, false);
-        m_processedSize += (*it).size;
-        files.erase(it);
+        ++m_skippedFiles;
+        dropFromByteTotal((*it).size);
+        // A file can be skipped part way through, when the copy of it failed rather than when it
+        // was found to be in the way. What was moved of it goes with the rest of it.
+        m_fileProcessedSize = 0;
+        filesToCopy.erase(it);
         break;
     case Result_OverwriteAll:
         m_bOverwriteAllFiles = true;
@@ -1894,7 +1989,7 @@ KIO::Job *CopyJobPrivate::linkNextFile(const QUrl &uSource, const QUrl &uDest, J
                     config.writeEntry("Icon", QStringLiteral("unknown"));
                 }
                 config.sync();
-                files.erase(files.begin()); // done with this one, move on
+                filesToCopy.erase(filesToCopy.begin()); // done with this one, move on
                 ++m_processedFiles;
                 copyNextFile();
                 return nullptr;
@@ -1942,12 +2037,12 @@ bool CopyJobPrivate::handleMsdosFsQuirks(QList<CopyInfo>::Iterator it, KFileSyst
         }
 
         options = KIO::SkipDialog_Replace_Invalid_Chars;
-        msg = invalidCharsSupportMsg(it->uDest.toDisplayString(QUrl::PreferLocalFile), KFileSystemType::fileSystemName(fsType));
+        msg = invalidCharsSupportMsg(it->uDest.toDisplayString(QUrl::PreferLocalFile), destFilesystemDisplayName(it->uDest, fsType));
     }
 
     if (!msg.isEmpty()) {
         if (auto *askUserActionInterface = KIO::delegateExtension<KIO::AskUserActionInterface *>(q)) {
-            if (files.size() > 1) {
+            if (filesToCopy.size() > 1) {
                 options |= SkipDialog_MultipleItems;
             }
 
@@ -1982,17 +2077,26 @@ void CopyJobPrivate::copyNextFile()
     bool isDestLocal = m_globalDest.isLocalFile();
 
     // Take the first file in the list
-    QList<CopyInfo>::Iterator it = files.begin();
+    QList<CopyInfo>::Iterator it = filesToCopy.begin();
+    // The files under a skipped directory come off the total together. One answer of "skip" can
+    // account for any number of them, and saying so one at a time is one signal, and one message
+    // to whoever is drawing the progress, for every file.
+    KIO::filesize_t skippedBytes = 0;
     // Is this URL on the skip list ?
-    while (it != files.end() && !bCopyFile) {
+    while (it != filesToCopy.end() && !bCopyFile) {
         const QString destFile = (*it).uDest.path();
         bCopyFile = !shouldSkip(destFile);
         if (!bCopyFile) {
-            it = files.erase(it);
+            // Under a directory the user skipped: nobody will move it, but the job is done with it.
+            ++m_skippedFiles;
+            if ((*it).size != KIO::invalidFilesize) {
+                skippedBytes += (*it).size;
+            }
+            it = filesToCopy.erase(it);
         }
 
-        if (it != files.end() && isDestLocal && (*it).size > 0xFFFFFFFF) { // 4GB-1
-            const auto destFileSystem = KFileSystemType::fileSystemType(m_globalDest.toLocalFile());
+        if (it != filesToCopy.end() && isDestLocal && (*it).size > 0xFFFFFFFF) { // 4GB-1
+            const auto destFileSystem = globalDestFsType();
             if (destFileSystem == KFileSystemType::Fat) {
                 q->setError(ERR_FILE_TOO_LARGE_FOR_FAT32);
                 q->setErrorText((*it).uDest.toDisplayString());
@@ -2001,14 +2105,15 @@ void CopyJobPrivate::copyNextFile()
             }
         }
     }
+    if (skippedBytes > 0) {
+        dropFromByteTotal(skippedBytes);
+    }
 
     if (bCopyFile) { // any file to create, finally ?
-        if (isDestLocal) {
-            const auto destFileSystem = KFileSystemType::fileSystemType(m_globalDest.toLocalFile());
-            if (isFatOrNtfs(destFileSystem)) {
-                if (handleMsdosFsQuirks(it, destFileSystem)) {
-                    return;
-                }
+        const KFileSystemType::Type destFileSystem = globalDestFsType();
+        if (destDisallowsMsdosChars(m_globalDest, destFileSystem)) {
+            if (handleMsdosFsQuirks(it, destFileSystem)) {
+                return;
             }
         }
 
@@ -2016,7 +2121,6 @@ void CopyJobPrivate::copyNextFile()
     } else {
         // We're done
         qCDebug(KIO_COPYJOB_DEBUG) << "copyNextFile finished";
-        --m_processedFiles; // undo the "start at 1" hack
         slotReport(); // display final numbers, important if progress dialog stays up
 
         deleteNextDir();
@@ -2053,7 +2157,9 @@ void CopyJobPrivate::processCopyNextFile(const QList<CopyInfo>::Iterator &it, in
         Q_FALLTHROUGH();
     case KIO::Result_Skip:
         // Move on the next file
-        files.erase(it);
+        ++m_skippedFiles;
+        dropFromByteTotal((*it).size);
+        filesToCopy.erase(it);
         copyNextFile();
         return;
     default:
@@ -2137,6 +2243,7 @@ void CopyJobPrivate::processCopyNextFile(const QList<CopyInfo>::Iterator &it, in
 
     // speed is computed locally
     QObject::disconnect(newjob, &KJob::speed, q, nullptr);
+    m_fileInFlight = true;
     q->addSubjob(newjob);
     q->connect(newjob, &Job::processedSize, q, [this](KJob *job, qulonglong processedSize) {
         slotProcessedSize(job, processedSize);
@@ -2213,11 +2320,24 @@ void CopyJob::emitResult()
 #endif
         }
     }
+#ifndef WITH_QTDBUS
+    const auto isTrashUrl = [](const QUrl &url) {
+        return url.scheme() == QLatin1String("trash");
+    };
+    const bool trashDirChanged =
+        isTrashUrl(d->m_globalDest) || (d->m_mode == CopyJob::Move && std::any_of(d->m_successSrcList.cbegin(), d->m_successSrcList.cend(), isTrashUrl));
+    if (trashDirChanged) {
+        KCoreDirLister().updateDirectory(QUrl(QStringLiteral("trash:/")));
+    }
+#endif
 
     // Re-enable watching on the dirs that held the deleted/moved files
     if (d->m_mode == CopyJob::Move) {
         for (const auto &dir : d->m_parentDirs) {
             KDirWatch::self()->restartDirScan(dir);
+#ifndef WITH_QTDBUS
+            KDirWatch::self()->setDirty(dir);
+#endif
         }
     }
     Job::emitResult();
@@ -2345,7 +2465,7 @@ void CopyJobPrivate::slotResultRenaming(KJob *job)
             bool isDir = (err == ERR_DIR_ALREADY_EXIST); // ## technically, isDir means "source is dir", not "dest is dir" #######
             if ((isDir && m_bAutoSkipDirs) || (!isDir && m_bAutoSkipFiles)) {
                 // Move on to next source url
-                ++m_filesHandledByDirectRename;
+                ++m_skippedFiles;
                 skipSrc(isDir);
                 return;
             } else if ((isDir && m_bOverwriteAllDirs) || (!isDir && m_bOverwriteAllFiles)) {
@@ -2473,7 +2593,6 @@ void CopyJobPrivate::slotResultRenaming(KJob *job)
     // No error
     qCDebug(KIO_COPYJOB_DEBUG) << "Renaming succeeded, move on";
     ++m_processedFiles;
-    ++m_filesHandledByDirectRename;
     // Emit copyingDone for FileUndoManager to remember what we did.
     // Use resolved URL m_currentSrcURL since that's what we just used for renaming. See bug 391606 and kio_desktop's testTrashAndUndo().
     const bool srcIsDir = false; // # TODO: we just don't know, since we never stat'ed it
@@ -2542,7 +2661,7 @@ void CopyJobPrivate::processDirectRenamingConflictResult(RenameDialog_Result res
         Q_FALLTHROUGH();
     case Result_Skip:
         // Move on to next url
-        ++m_filesHandledByDirectRename;
+        ++m_skippedFiles;
         skipSrc(srcIsDir);
         return;
     case Result_OverwriteAll:
@@ -2587,7 +2706,8 @@ void CopyJob::slotResult(KJob *job)
         break;
     }
     case STATE_LISTING: // recursive listing finished
-        qCDebug(KIO_COPYJOB_DEBUG) << "totalSize:" << (unsigned int)d->m_totalSize << "files:" << d->files.count() << "d->dirs:" << d->dirs.count();
+        qCDebug(KIO_COPYJOB_DEBUG) << "totalSize:" << (unsigned int)d->m_totalSize << "filesToCopy:" << d->filesToCopy.count()
+                                   << "dirsToCopy:" << d->dirsToCopy.count();
         // Was there an error ?
         if (job->error()) {
             Job::slotResult(job); // will set the error and emit result(this)

@@ -9,7 +9,9 @@
 
 #include <config-platformtheme.h>
 
+#include "kdeplatformcolordialoghelper.h"
 #include "kdeplatformfiledialoghelper.h"
+#include "kdeplatformmessagedialoghelper.h"
 #include "kdeplatformsystemtrayicon.h"
 #include "kdeplatformtheme.h"
 #include "kfontsettingsdata.h"
@@ -26,10 +28,12 @@
 #include <QLibraryInfo>
 #include <QPalette>
 #include <QString>
+#include <QStyle>
 #include <QVariant>
 #include <QWindow>
 #include <QtQuickControls2/QQuickStyle>
 
+#include <KConfigGroup>
 #include <KIO/Global>
 #include <KLocalizedString>
 #include <KStandardGuiItem>
@@ -53,7 +57,7 @@ KdePlatformTheme::KdePlatformTheme()
         m_kwaylandIntegration.reset(new KWaylandIntegration(this));
     }
 
-#if HAVE_X11
+#if WITH_X11
     if (KWindowSystem::isPlatformX11()) {
         m_x11Integration.reset(new X11Integration(this));
         m_x11Integration->init();
@@ -111,6 +115,13 @@ Qt::ColorScheme KdePlatformTheme::colorScheme() const
 {
     return m_hints->colorScheme();
 }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+Qt::MotionPreference KdePlatformTheme::motionPreference() const
+{
+    return m_hints->motionPreference();
+}
+#endif
 
 const QFont *KdePlatformTheme::font(Font type) const
 {
@@ -261,7 +272,8 @@ QList<QKeySequence> KdePlatformTheme::keyBindings(QKeySequence::StandardKey key)
 
 bool KdePlatformTheme::usePlatformNativeDialog(QPlatformTheme::DialogType type) const
 {
-    return type == QPlatformTheme::FileDialog && qobject_cast<QApplication *>(QCoreApplication::instance());
+    return (type == QPlatformTheme::FileDialog || type == QPlatformTheme::MessageDialog || type == QPlatformTheme::ColorDialog)
+        && qobject_cast<QApplication *>(QCoreApplication::instance());
 }
 
 QString KdePlatformTheme::standardButtonText(int button) const
@@ -320,9 +332,21 @@ QPlatformDialogHelper *KdePlatformTheme::createPlatformDialogHelper(QPlatformThe
             return new QXdgDesktopPortalFileDialog;
         }
         return new KDEPlatformFileDialogHelper;
-    case QPlatformTheme::FontDialog:
-    case QPlatformTheme::ColorDialog:
     case QPlatformTheme::MessageDialog:
+        return new KDEPlatformMessageDialogHelper;
+    case QPlatformTheme::ColorDialog:
+        // HACK: QTBUG-119055
+        // QColorDialog does not honor DontUseNativeDialog, so when implementing QColorDialog using QColorDialog,
+        // we would get an endless loop here. To break this, return nullptr if we're currently in the creation of a native dialog.
+        // Qt is fine with getting a nullptr here and will fallback to the non-native implementation.
+        static auto creatingColorDialog = false;
+        if (!creatingColorDialog) {
+            creatingColorDialog = true;
+            auto dialog = new KDEPlatformColorDialogHelper;
+            creatingColorDialog = false;
+            return dialog;
+        }
+    case QPlatformTheme::FontDialog:
     default:
         return nullptr;
     }
@@ -345,6 +369,14 @@ QPlatformMenuBar *KdePlatformTheme::createPlatformMenuBar() const
 // and org.kde.breeze for QGuiApplication unless it's otherwise set.
 void KdePlatformTheme::setQtQuickControlsTheme()
 {
+    // if the user has explicitly set something else, don't meddle
+    if (!QQuickStyle::name().isEmpty()) {
+        // Ignore the default Fusion style if it was not explicitly set
+        if (QQuickStyle::name() != QLatin1String("Fusion") || qEnvironmentVariableIsSet("QT_QUICK_CONTROLS_STYLE")) {
+            return;
+        }
+    }
+
     // if the user is running only a QGuiApplication, use org.kde.breeze style if it's installed.
     if (!qobject_cast<QApplication *>(qApp)) {
         // /org/kde/breeze/components is not installed by org.kde.breeze, but the impl folder is
@@ -353,12 +385,13 @@ void KdePlatformTheme::setQtQuickControlsTheme()
         }
         return;
     }
-    // if the user has explicitly set something else, don't meddle
-    // Also ignore the default Fusion style
-    if (!QQuickStyle::name().isEmpty() && QQuickStyle::name() != QLatin1String("Fusion")) {
-        return;
-    }
-    if (checkIfThemeExists(QStringLiteral("/org/kde/desktop"))) {
+
+    KConfigGroup cg(KSharedConfig::openConfig(), "KDE");
+    const QString theme = cg.readEntry(QStringLiteral("widgetStyle"), QStringLiteral("breeze")).toLower();
+    // Can't use qApp->style()->name() here because accessing it will reset to breeze
+    if (theme == QStringLiteral("union") && checkIfThemeExists(QStringLiteral("/org/kde/union"))) {
+        QQuickStyle::setStyle(QStringLiteral("org.kde.union"));
+    } else if (checkIfThemeExists(QStringLiteral("/org/kde/desktop"))) {
         QQuickStyle::setStyle(QStringLiteral("org.kde.desktop"));
     }
 }

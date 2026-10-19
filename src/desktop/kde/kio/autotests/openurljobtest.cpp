@@ -6,6 +6,7 @@
 */
 
 #include "openurljobtest.h"
+#include "ksycocatestmenu.h"
 #include "openurljob.h"
 #include <KApplicationTrader>
 #include <kprocessrunner_p.h>
@@ -32,7 +33,6 @@
 QTEST_GUILESS_MAIN(OpenUrlJobTest)
 
 extern KSERVICE_EXPORT int ksycoca_ms_between_checks;
-extern bool openurljob_force_use_browserapp_kdeglobals; // From openurljob.cpp
 
 static const char s_tempServiceName[] = "openurljobtest_service.desktop";
 
@@ -44,7 +44,7 @@ void OpenUrlJobTest::initTestCase()
 #endif
 
     QStandardPaths::setTestModeEnabled(true);
-    KSycoca::setupTestMenu();
+    KSycocaTestMenu::setup();
 
     // Ensure no leftovers from other tests
     QDir(QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation)).removeRecursively();
@@ -89,6 +89,13 @@ void OpenUrlJobTest::cleanupTestCase()
 void OpenUrlJobTest::init()
 {
     QFile::remove(m_tempDir.path() + "/dest");
+}
+
+void OpenUrlJobTest::cleanup()
+{
+    // A launched process is watched by a runner that deletes itself once the process is gone. A test that
+    // ends before that leaves the runner behind, which the leak checker of the CI reports.
+    QTRY_COMPARE(KProcessRunner::instanceCount(), 0);
 }
 
 static void createSrcFile(const QString &path)
@@ -171,9 +178,33 @@ void OpenUrlJobTest::startProcess()
     // We can find out that it was executed because it writes to "dest".
     const QString dest = m_tempDir.path() + "/dest";
     QTRY_VERIFY2(QFile::exists(dest), qPrintable(dest));
-    QCOMPARE(readFile(dest), srcFile);
+    QTRY_COMPARE(readFile(dest), srcFile);
 
     QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+}
+
+void OpenUrlJobTest::startProcessLocalhostHost()
+{
+    // A file:// URL may name the local machine (RFC 8089), e.g. file://localhost/path
+    // as produced by `ls --hyperlink`. OpenUrlJob must open it as a plain local file,
+    // not hand the application a bogus "//localhost/path". See BUG 483297.
+    QTemporaryDir tempDir;
+    const QString srcFile = tempDir.path() + QLatin1String("/srcfile.txt");
+    createSrcFile(srcFile);
+    QVERIFY(QFile::exists(srcFile));
+
+    QUrl url = QUrl::fromLocalFile(srcFile);
+    url.setHost(QStringLiteral("localhost"));
+    QVERIFY2(!url.host().isEmpty(), qPrintable(url.toString()));
+
+    KIO::OpenUrlJob *job = new KIO::OpenUrlJob(url, QStringLiteral("text/plain"), this);
+    QVERIFY2(job->exec(), qPrintable(job->errorString()));
+
+    // The fake service is invoked with "echo %u"; the host must have been dropped,
+    // so it receives the local path and not "//localhost/...".
+    const QString dest = m_tempDir.path() + "/dest";
+    QTRY_VERIFY2(QFile::exists(dest), qPrintable(dest));
+    QTRY_COMPARE(readFile(dest), srcFile);
 }
 
 void OpenUrlJobTest::noServiceNoHandler()
@@ -476,21 +507,9 @@ void OpenUrlJobTest::openOrExecuteDesktop()
 #endif
 }
 
-void OpenUrlJobTest::launchExternalBrowser_data()
-{
-    QTest::addColumn<bool>("useBrowserApp");
-    QTest::addColumn<bool>("useSchemeHandler");
-
-    QTest::newRow("browserapp") << true << false;
-    QTest::newRow("scheme_handler") << false << true;
-}
-
 void OpenUrlJobTest::launchExternalBrowser()
 {
 #ifdef Q_OS_UNIX
-    QFETCH(bool, useBrowserApp);
-    QFETCH(bool, useSchemeHandler);
-
     QTemporaryDir tempDir;
     const QString dir = tempDir.path();
     createSrcFile(dir + QLatin1String("/src"));
@@ -502,27 +521,16 @@ void OpenUrlJobTest::launchExternalBrowser()
     QVERIFY(file.setPermissions(QFile::ExeUser | file.permissions()));
 
     QUrl remoteImage("http://example.org/image.jpg");
-    if (useBrowserApp) {
-        openurljob_force_use_browserapp_kdeglobals = true;
-        KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("General")).writeEntry("BrowserApplication", QString(QLatin1Char('!') + scriptFile));
-    } else if (useSchemeHandler) {
-        openurljob_force_use_browserapp_kdeglobals = false;
-        remoteImage.setScheme("scheme");
-    }
+    remoteImage.setScheme("scheme");
 
     // When using OpenUrlJob to run the script
     KIO::OpenUrlJob *job = new KIO::OpenUrlJob(remoteImage, this);
 
     // Then it works :-)
     QVERIFY2(job->exec(), qPrintable(job->errorString()));
-    QString dest;
-    if (useBrowserApp) {
-        dest = dir + QLatin1String("/destbrowser");
-    } else if (useSchemeHandler) {
-        dest = m_tempDir.path() + QLatin1String("/dest"); // see the .desktop file in writeApplicationDesktopFile
-    }
+    QString dest = m_tempDir.path() + QLatin1String("/dest"); // see the .desktop file in writeApplicationDesktopFile
     QTRY_VERIFY(QFileInfo::exists(dest)); // TRY because CommandLineLauncherJob finishes immediately
-    QCOMPARE(readFile(dest), remoteImage.toString());
+    QTRY_COMPARE(readFile(dest), remoteImage.toString());
 
     // Restore settings
     KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("General")).deleteEntry("BrowserApplication");

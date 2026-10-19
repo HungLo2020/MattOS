@@ -23,6 +23,7 @@ qt_internal_add_module(Svg
         qsvgstructure.cpp qsvgstructure_p.h
         qsvgfilter.cpp qsvgfilter_p.h
         qsvgstyle.cpp qsvgstyle_p.h
+        qsvgpaintserver.cpp qsvgpaintserver_p.h
         qsvgdocument.cpp qsvgdocument_p.h
         qsvganimate.cpp qsvganimate_p.h
         qsvghelper_p.h
@@ -34,7 +35,6 @@ qt_internal_add_module(Svg
         animation/qsvgeasinginterface.cpp animation/qsvgeasinginterface_p.h
         animation/qsvganimatedproperty.cpp animation/qsvganimatedproperty_p.h
         animation/qsvgcssanimation.cpp animation/qsvgcssanimation_p.h
-        qsvgutils_p.h qsvgutils.cpp
     DEFINES
         QT_NO_CONTEXTLESS_CONNECT
         QT_NO_USING_NAMESPACE

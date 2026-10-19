@@ -7,6 +7,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
+import org.kde.ki18n
 
 PortalDialog {
     id: root
@@ -19,21 +20,20 @@ PortalDialog {
     height: contentHeight
     iconName: "krfb"
 
-    ColumnLayout {
-        QQC2.Label {
-            id: desc
-            textFormat: Text.MarkdownText
-            Layout.fillHeight: true
-        }
-        QQC2.CheckBox {
-            id: allowRestoreItem
-            checked: true
-            text: i18n("Allow restoring on future sessions")
-        }
+    QQC2.Label {
+        id: desc
+        textFormat: Text.MarkdownText
+        Layout.fillHeight: true
+    }
+
+    footerItem: QQC2.CheckBox {
+        id: allowRestoreItem
+        checked: true
+        text: KI18n.i18nc("@option:check", "Allow the application to do this without asking next time")
     }
 
     Component.onCompleted: {
-        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Ok).text = i18nc("@action:button Approve the application gaining extra privileges", "Approve")
-        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Cancel).text = i18nc("@action:button Deny the application gaining extra privileges", "Deny")
+        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Ok).text = KI18n.i18nc("@action:button Allow the application to gain extra privileges", "Allow")
+        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Cancel).text = KI18n.i18nc("@action:button Deny the application gaining extra privileges", "Deny")
     }
 }

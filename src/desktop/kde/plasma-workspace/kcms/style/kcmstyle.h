@@ -23,6 +23,7 @@
 #include "gtkpage.h"
 #include "stylesettings.h"
 #include "stylesmodel.h"
+#include "unionstylesmodel.h"
 
 class QQuickItem;
 
@@ -34,11 +35,12 @@ class KCMStyle : public KQuickManagedConfigModule
     Q_OBJECT
 
     Q_PROPERTY(GtkPage *gtkPage READ gtkPage CONSTANT)
-    Q_PROPERTY(StylesModel *model READ model CONSTANT)
+    Q_PROPERTY(QAbstractItemModel *model READ model CONSTANT)
     Q_PROPERTY(StyleSettings *styleSettings READ styleSettings CONSTANT)
     Q_PROPERTY(ToolBarStyle mainToolBarStyle READ mainToolBarStyle WRITE setMainToolBarStyle NOTIFY mainToolBarStyleChanged)
     Q_PROPERTY(ToolBarStyle otherToolBarStyle READ otherToolBarStyle WRITE setOtherToolBarStyle NOTIFY otherToolBarStyleChanged)
     Q_PROPERTY(bool gtkConfigKdedModuleLoaded READ gtkConfigKdedModuleLoaded NOTIFY gtkConfigKdedModuleLoadedChanged)
+    Q_PROPERTY(QStringList stylesToUninstall READ stylesToUninstall WRITE setStylesToUninstall NOTIFY stylesToUninstallChanged)
 
 public:
     KCMStyle(QObject *parent, const KPluginMetaData &data);
@@ -54,9 +56,12 @@ public:
 
     GtkPage *gtkPage() const;
 
-    StylesModel *model() const;
+    QAbstractItemModel *model() const;
 
     StyleSettings *styleSettings() const;
+
+    Q_INVOKABLE void installUnionStyle(const QUrl &url);
+    Q_INVOKABLE void uninstallUnionStyles(const QStringList &styleIds);
 
     ToolBarStyle mainToolBarStyle() const;
     void setMainToolBarStyle(ToolBarStyle style);
@@ -69,6 +74,10 @@ public:
     bool gtkConfigKdedModuleLoaded() const;
     Q_SIGNAL void gtkConfigKdedModuleLoadedChanged();
 
+    QStringList stylesToUninstall() const;
+    void setStylesToUninstall(const QStringList &newStylesToUninstall);
+    Q_SIGNAL void stylesToUninstallChanged();
+
     Q_INVOKABLE void configure(const QString &title, const QString &styleName, QQuickItem *ctx = nullptr);
 
     void load() override;
@@ -79,6 +88,7 @@ public:
     bool isSaveNeeded() const override;
 
 Q_SIGNALS:
+    void showInfoMessage(const QString &message);
     void showErrorMessage(const QString &message);
     void styleReconfigured(const QString &styleName);
 
@@ -87,7 +97,9 @@ private:
     void checkGtkConfigKdedModuleLoaded();
 
     StyleData *const m_data;
-    StylesModel *const m_model;
+    QSortFilterProxyModel *m_sortFilterModel = nullptr;
+    StylesModel *m_stylesModel = nullptr;
+    UnionStylesModel *m_unionStylesModel = nullptr;
 
     QString m_previousStyle;
     bool m_effectsDirty = false;
@@ -99,4 +111,6 @@ private:
 
     bool m_gtkConfigKdedModuleLoaded = false;
     GtkPage *m_gtkPage = nullptr;
+
+    QStringList m_stylesToUninstall;
 };

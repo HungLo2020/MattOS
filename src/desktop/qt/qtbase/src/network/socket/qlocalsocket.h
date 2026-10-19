@@ -38,6 +38,7 @@ public:
         UnknownSocketError = QAbstractSocket::UnknownSocketError,
         OperationError = QAbstractSocket::OperationError
     };
+    Q_ENUM(LocalSocketError)
 
     enum LocalSocketState
     {
@@ -46,6 +47,7 @@ public:
         ConnectedState = QAbstractSocket::ConnectedState,
         ClosingState = QAbstractSocket::ClosingState
     };
+    Q_ENUM(LocalSocketState)
 
     enum SocketOption {
         NoOptions = 0x00,
@@ -121,10 +123,12 @@ private:
 #endif
 };
 
+#if QT_NETWORK_REMOVED_SINCE(6, 12)
 #ifndef QT_NO_DEBUG_STREAM
 Q_NETWORK_EXPORT QDebug operator<<(QDebug, QLocalSocket::LocalSocketError);
 Q_NETWORK_EXPORT QDebug operator<<(QDebug, QLocalSocket::LocalSocketState);
 #endif
+#endif // QT_NETWORK_REMOVED_SINCE(6, 12)
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QLocalSocket::SocketOptions)
 

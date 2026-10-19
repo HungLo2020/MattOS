@@ -163,6 +163,8 @@ public:
                || QChar::category(ucs4) == QChar::Other_Control;
     }
 
+    static int maxCachedGlyphSize();
+
     virtual QFixed emSquareSize() const;
 
     /* returns 0 as glyph index for non existent glyphs */
@@ -191,6 +193,13 @@ public:
     virtual QImage alphaRGBMapForGlyph(glyph_t, const QFixedPoint &subPixelPosition, const QTransform &t);
     virtual QImage bitmapForGlyph(glyph_t, const QFixedPoint &subPixelPosition, const QTransform &t, const QColor &color = QColor());
     QImage renderedPathForGlyph(glyph_t glyph, const QColor &color);
+
+    qreal effectivePixelSizeSquared(const QTransform &transform) const;
+    static bool glyphBoundingBoxExceedsLimit(qreal glyphWidth,
+                                             qreal glyphHeight,
+                                             qreal effectivePixelSizeSquared);
+    bool glyphTransformExceedsLimit(glyph_t glyph, const QTransform &transform);
+
     virtual Glyph *glyphData(glyph_t glyph, const QFixedPoint &subPixelPosition, GlyphFormat neededFormat, const QTransform &t);
     virtual bool hasInternalCaching() const { return false; }
 
@@ -204,7 +213,7 @@ public:
     virtual glyph_metrics_t boundingBox(const QGlyphLayout &glyphs);
     virtual glyph_metrics_t boundingBox(glyph_t glyph) = 0;
     virtual glyph_metrics_t boundingBox(glyph_t glyph, const QTransform &matrix);
-    glyph_metrics_t tightBoundingBox(const QGlyphLayout &glyphs);
+    glyph_metrics_t tightBoundingBox(const QGlyphLayout &glyphs, QTextItem::RenderFlags flags);
 
     virtual QFixed ascent() const;
     virtual QFixed capHeight() const = 0;
@@ -229,6 +238,7 @@ public:
 
     virtual int glyphCount() const;
     virtual int glyphMargin(GlyphFormat format) { return format == Format_A32 ? 2 : 0; }
+    bool hasHinting() const;
 
     virtual QFontEngine *cloneWithSize(qreal /*pixelSize*/) const { return nullptr; }
 
@@ -384,6 +394,7 @@ private:
 private:
     mutable qreal m_minLeftBearing;
     mutable qreal m_minRightBearing;
+    mutable int m_hasHinting = -1;
 };
 Q_DECLARE_TYPEINFO(QFontEngine::KernPair, Q_PRIMITIVE_TYPE);
 

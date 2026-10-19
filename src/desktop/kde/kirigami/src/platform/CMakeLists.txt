@@ -1,6 +1,13 @@
 add_library(KirigamiPlatform)
 add_library(KF6::KirigamiPlatform ALIAS KirigamiPlatform)
 
+qt_extract_metatypes(KirigamiPlatform OUTPUT_FILES METATYPES_FILE)
+
+# see https://qt-project.atlassian.net/browse/QTBUG-123052
+# might be replaced with proper Qt API once that exists
+get_filename_component(METATYPES_FILE_NAME ${METATYPES_FILE} NAME)
+target_sources(KirigamiPlatform INTERFACE $<INSTALL_INTERFACE:${KDE_INSTALL_QTMETATYPESDIR}/${METATYPES_FILE_NAME}>)
+
 ecm_add_qml_module(KirigamiPlatform
     URI "org.kde.kirigami.platform"
     VERSION 2.0
@@ -57,7 +64,6 @@ ecm_qt_declare_logging_category(KirigamiPlatform
     IDENTIFIER KirigamiPlatform
     CATEGORY_NAME kf.kirigami.platform
     DESCRIPTION "Kirigami Platform"
-    DEFAULT_SEVERITY Warning
     EXPORT KIRIGAMI
 )
 
@@ -139,12 +145,22 @@ install(FILES
     COMPONENT Devel
 )
 
-ecm_qt_install_logging_categories(
-    EXPORT KIRIGAMI
-    FILE kirigami.categories
-    DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR}
-)
+install(FILES ${METATYPES_FILE} DESTINATION ${KDE_INSTALL_QTMETATYPESDIR})
 
 ecm_finalize_qml_module(KirigamiPlatform EXPORT KF6KirigamiPlatformTargets)
 
 ecm_generate_qdoc(KirigamiPlatform kirigamiplatform.qdocconf)
+
+ecm_add_installed_library_check(KirigamiPlatform
+    PACKAGE_NAME "KF6KirigamiPlatform"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KirigamiPlatform
+    HEADERS ${KirigamiPlatform_CamelCase_HEADERS}
+    PREFIX Kirigami/Platform
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KirigamiPlatform
+    PREFIX KIRIGAMIPLATFORM
+)

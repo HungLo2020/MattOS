@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+include($KDE_DOCS/global/qt-module-defaults.qdocconf)
+
+project = cxx-rust-cssparser
+description = A C++ library for parsing CSS that uses the Rust cssparser crate internally.
+
+documentationinheaders = true
+
+headerdirs = \
+    . \
+    ../cpp
+
+headers.fileextensions = "*.qdoc *.h"
+
+imagedirs = ./images
+
+outputdir  = doc/html
+outputformats = HTML
+
+#depends += qtcore
+
+navigation.landingpage      = cxx-rust-cssparser-index.html
+navigation.landingtitle     = cxx-rust-cssparser
+navigation.cppclassespage   = cxx-rust-cssparser C++ Classes
+#navigation.qmltypespage     = Union QtQuick Output QML Types
+
+qhp.projects                = cxx_rust_cssparser
+
+qhp.cxx_rust_cssparser.file              = cxx-rust-cssparser.qhp
+qhp.cxx_rust_cssparser.namespace         = org.kde.cxx-rust-cssparser.$QT_VERSION_TAG
+qhp.cxx_rust_cssparser.virtualFolder     = cxx-rust-cssparser
+qhp.cxx_rust_cssparser.indexTitle        = cxx-rust-cssparser
+qhp.cxx_rust_cssparser.indexRoot         =
+
+qhp.cxx_rust_cssparser.subprojects         = classes
+qhp.cxx_rust_cssparser.subprojects.classes.title = C++ Classes
+qhp.cxx_rust_cssparser.subprojects.classes.indexTitle = cxx-rust-cssparser C++ Classes
+qhp.cxx_rust_cssparser.subprojects.classes.selectors = class fake:headerfile
+qhp.cxx_rust_cssparser.subprojects.classes.sortPages = true

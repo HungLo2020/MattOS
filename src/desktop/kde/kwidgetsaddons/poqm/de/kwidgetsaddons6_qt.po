@@ -1,13 +1,13 @@
-# SPDX-FileCopyrightText: 2010, 2024 Johannes Obermayr <johannesobermayr@gmx.de>
-# SPDX-FileCopyrightText: 2002, 2003, 2004, 2005 Thomas Diehl <thd@kde.org>
+# SPDX-FileCopyrightText: 2002-2005 Thomas Diehl <thd@kde.org>
 # SPDX-FileCopyrightText: 2004 Stefan Winter <swinter@kde.org>
 # SPDX-FileCopyrightText: 2004 Thomas Fischer <thomas.fischer@t-fischer.net>
-# SPDX-FileCopyrightText: 2004, 2005, 2006, 2007 Stephan Johach <hunsum@gmx.de>
+# SPDX-FileCopyrightText: 2004-2007 Stephan Johach <hunsum@gmx.de>
 # SPDX-FileCopyrightText: 2005 Georg Schuster <gschuster@utanet.at>
-# SPDX-FileCopyrightText: 2005, 2006, 2007, 2008, 2009 Thomas Reitelbach <tr@erdfunkstelle.de>
-# SPDX-FileCopyrightText: 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017, 2018, 2019, 2020, 2021 Burkhard Lück <lueck@hube-lueck.de>
-# SPDX-FileCopyrightText: 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2022 Frederik Schwarzer <schwarzer@kde.org>
+# SPDX-FileCopyrightText: 2005-2009 Thomas Reitelbach <tr@erdfunkstelle.de>
+# SPDX-FileCopyrightText: 2006-2007, 2009-2015, 2017-2021 Burkhard Lück <lueck@hube-lueck.de>
+# SPDX-FileCopyrightText: 2007-2016, 2022 Frederik Schwarzer <schwarzer@kde.org>
 # SPDX-FileCopyrightText: 2010 Panagiotis Papadopoulos <pano_90@gmx.net>
+# SPDX-FileCopyrightText: 2010, 2024 Johannes Obermayr <johannesobermayr@gmx.de>
 # SPDX-FileCopyrightText: 2012 Rolf Eike Beer <kde@opensource.sf-tec.de>
 # SPDX-FileCopyrightText: 2024 Flori G <Renner03@protonmail.com>
 msgid ""
@@ -56,6 +56,21 @@ msgctxt "FontHelpers|@item Font name [foundry]"
 msgid "%1 [%2]"
 msgstr "%1 [%2]"
 
+#: kabstractcoloredit.cpp:70
+#, fuzzy
+#| msgctxt "palette name"
+#| msgid "Forty Colors"
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Copy Color"
+msgstr "Vierzig Farben"
+
+#: kabstractcoloredit.cpp:81
+#, fuzzy
+#| msgid "Named Colors"
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Paste Color"
+msgstr "Benannte Farben"
+
 #: kactionselector.cpp:98
 msgctxt "KActionSelector|@label:listbox"
 msgid "&Available:"
@@ -81,12 +96,12 @@ msgctxt "KAssistantDialog|@action:button Opposite to Back"
 msgid "Next"
 msgstr "Weiter"
 
-#: kassistantdialog.cpp:114
+#: kassistantdialog.cpp:113
 msgctxt "KAssistantDialog|@action:button"
 msgid "Finish"
 msgstr "Fertigstellen"
 
-#: kcharselect-translation.cpp:11 kcharselectdata.cpp:277
+#: kcharselect-translation.cpp:11 kcharselectdata.cpp:279
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "All"
 msgstr "Alle"
@@ -151,7 +166,7 @@ msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Phonetic Symbols"
 msgstr "Phonetische Symbole"
 
-#: kcharselect-translation.cpp:24 kcharselectdata.cpp:743
+#: kcharselect-translation.cpp:24 kcharselectdata.cpp:745
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Combining Diacritics"
 msgstr "Kombinierende diakritische Zeichen"
@@ -1261,202 +1276,202 @@ msgctxt "KCharSelectItemModel|Character"
 msgid "In decimal"
 msgstr "In Dezimal:"
 
-#: kcharselectdata.cpp:303
+#: kcharselectdata.cpp:305
 msgctxt "KCharSelectData|"
 msgid "<noncharacter>"
 msgstr "<kein Zeichen>"
 
-#: kcharselectdata.cpp:324
+#: kcharselectdata.cpp:326
 msgctxt "KCharSelectData|"
 msgid "<Non Private Use High Surrogate>"
 msgstr "<Hohe Surrogate zur nicht-privaten Verwendung>"
 
-#: kcharselectdata.cpp:326
+#: kcharselectdata.cpp:328
 msgctxt "KCharSelectData|"
 msgid "<Private Use High Surrogate>"
 msgstr "<Hohe Surrogate zur privaten Verwendung>"
 
-#: kcharselectdata.cpp:328
+#: kcharselectdata.cpp:330
 msgctxt "KCharSelectData|"
 msgid "<Low Surrogate>"
 msgstr "<Niedrige Surrogate>"
 
-#: kcharselectdata.cpp:330
+#: kcharselectdata.cpp:332
 msgctxt "KCharSelectData|"
 msgid "<Private Use>"
 msgstr "<Private Verwendung>"
 
-#: kcharselectdata.cpp:362
+#: kcharselectdata.cpp:364
 msgctxt "KCharSelectData|"
 msgid "<not assigned>"
 msgstr "<nicht zugeordnet>"
 
-#: kcharselectdata.cpp:440
+#: kcharselectdata.cpp:442
 msgctxt "KCharSelectData|KCharselect unicode section name"
 msgid "All"
 msgstr "Alle"
 
-#: kcharselectdata.cpp:752
+#: kcharselectdata.cpp:754
 msgctxt "KCharSelectData|"
 msgid "Non-printable"
 msgstr "Nicht druckbare"
 
-#: kcharselectdata.cpp:785
+#: kcharselectdata.cpp:787
 msgctxt "KCharSelectData|"
 msgid "Other, Control"
 msgstr "Sonstige, Steuerzeichen"
 
-#: kcharselectdata.cpp:787
+#: kcharselectdata.cpp:789
 msgctxt "KCharSelectData|"
 msgid "Other, Format"
 msgstr "Sonstige, Formatierungszeichen"
 
-#: kcharselectdata.cpp:789
+#: kcharselectdata.cpp:791
 msgctxt "KCharSelectData|"
 msgid "Other, Not Assigned"
 msgstr "Sonstige, nicht zugeordnet"
 
-#: kcharselectdata.cpp:791
+#: kcharselectdata.cpp:793
 msgctxt "KCharSelectData|"
 msgid "Other, Private Use"
 msgstr "Sonstige, Zeichen zur privaten Verwendung"
 
-#: kcharselectdata.cpp:793
+#: kcharselectdata.cpp:795
 msgctxt "KCharSelectData|"
 msgid "Other, Surrogate"
 msgstr "Sonstige, Surrogate"
 
-#: kcharselectdata.cpp:795
+#: kcharselectdata.cpp:797
 msgctxt "KCharSelectData|"
 msgid "Letter, Lowercase"
 msgstr "Buchstabe, Kleinschreibung"
 
-#: kcharselectdata.cpp:797
+#: kcharselectdata.cpp:799
 msgctxt "KCharSelectData|"
 msgid "Letter, Modifier"
 msgstr "Buchstabe, Modifikator"
 
-#: kcharselectdata.cpp:799
+#: kcharselectdata.cpp:801
 msgctxt "KCharSelectData|"
 msgid "Letter, Other"
 msgstr "Buchstabe, Sonstige"
 
-#: kcharselectdata.cpp:801
+#: kcharselectdata.cpp:803
 msgctxt "KCharSelectData|"
 msgid "Letter, Titlecase"
 msgstr "Buchstabe, Überschrift"
 
-#: kcharselectdata.cpp:803
+#: kcharselectdata.cpp:805
 msgctxt "KCharSelectData|"
 msgid "Letter, Uppercase"
 msgstr "Buchstabe, Großschreibung"
 
-#: kcharselectdata.cpp:805
+#: kcharselectdata.cpp:807
 msgctxt "KCharSelectData|"
 msgid "Mark, Spacing Combining"
 msgstr "Zeichen, kombinierter Leerraum"
 
-#: kcharselectdata.cpp:807
+#: kcharselectdata.cpp:809
 msgctxt "KCharSelectData|"
 msgid "Mark, Enclosing"
 msgstr "Zeichen, Einfassend"
 
-#: kcharselectdata.cpp:809
+#: kcharselectdata.cpp:811
 msgctxt "KCharSelectData|"
 msgid "Mark, Non-Spacing"
 msgstr "Zeichen, nicht-Leerraum"
 
-#: kcharselectdata.cpp:811
+#: kcharselectdata.cpp:813
 msgctxt "KCharSelectData|"
 msgid "Number, Decimal Digit"
 msgstr "Zahl, Dezimalziffer"
 
-#: kcharselectdata.cpp:813
+#: kcharselectdata.cpp:815
 msgctxt "KCharSelectData|"
 msgid "Number, Letter"
 msgstr "Zahl, Buchstabe"
 
-#: kcharselectdata.cpp:815
+#: kcharselectdata.cpp:817
 msgctxt "KCharSelectData|"
 msgid "Number, Other"
 msgstr "Zahl, Sonstige"
 
-#: kcharselectdata.cpp:817
+#: kcharselectdata.cpp:819
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Connector"
 msgstr "Interpunktion, Satzzeichenverbinder"
 
-#: kcharselectdata.cpp:819
+#: kcharselectdata.cpp:821
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Dash"
 msgstr "Interpunktion, Striche"
 
-#: kcharselectdata.cpp:821
+#: kcharselectdata.cpp:823
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Close"
 msgstr "Interpunktion, abschließendes Zeichen"
 
-#: kcharselectdata.cpp:823
+#: kcharselectdata.cpp:825
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Final Quote"
 msgstr "Interpunktion, abschließendes Anführungszeichen"
 
-#: kcharselectdata.cpp:825
+#: kcharselectdata.cpp:827
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Initial Quote"
 msgstr "Interpunktion, einleitendes Anführungszeichen"
 
-#: kcharselectdata.cpp:827
+#: kcharselectdata.cpp:829
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Other"
 msgstr "Interpunktion, Sonstige"
 
-#: kcharselectdata.cpp:829
+#: kcharselectdata.cpp:831
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Open"
 msgstr "Interpunktion, einleitendes Zeichen"
 
-#: kcharselectdata.cpp:831
+#: kcharselectdata.cpp:833
 msgctxt "KCharSelectData|"
 msgid "Symbol, Currency"
 msgstr "Symbol, Währung"
 
-#: kcharselectdata.cpp:833
+#: kcharselectdata.cpp:835
 msgctxt "KCharSelectData|"
 msgid "Symbol, Modifier"
 msgstr "Symbol, Modifizierer"
 
-#: kcharselectdata.cpp:835
+#: kcharselectdata.cpp:837
 msgctxt "KCharSelectData|"
 msgid "Symbol, Math"
 msgstr "Symbol, Mathematik"
 
-#: kcharselectdata.cpp:837
+#: kcharselectdata.cpp:839
 msgctxt "KCharSelectData|"
 msgid "Symbol, Other"
 msgstr "Symbol, Sonstige"
 
-#: kcharselectdata.cpp:839
+#: kcharselectdata.cpp:841
 msgctxt "KCharSelectData|"
 msgid "Separator, Line"
 msgstr "Trenner, Zeile"
 
-#: kcharselectdata.cpp:841
+#: kcharselectdata.cpp:843
 msgctxt "KCharSelectData|"
 msgid "Separator, Paragraph"
 msgstr "Trenner, Absatz"
 
-#: kcharselectdata.cpp:843
+#: kcharselectdata.cpp:845
 msgctxt "KCharSelectData|"
 msgid "Separator, Space"
 msgstr "Trenner, Abstand"
 
-#: kcharselectdata.cpp:845
+#: kcharselectdata.cpp:847
 msgctxt "KCharSelectData|"
 msgid "Unknown"
 msgstr "Unbekannt"
 
-#: kcolorcombo.cpp:333
+#: kcolorcombo.cpp:389
 msgctxt "KColorCombo|@item:inlistbox Custom color"
 msgid "Custom…"
 msgstr "Benutzerdefiniert …"
@@ -1678,7 +1693,7 @@ msgstr "Schriftart auswählen"
 msgctxt "KFontChooserWidget|"
 msgid "Comma separated list of font features (e.g., liga, calt):"
 msgstr ""
-"Durch Komma getrennte Liste der Schriftfunktionen (z. B. Liga oder Calt)"
+"Durch Komma getrennte Liste der Schriftfunktionen (z. B. Liga oder Calt)"
 
 #: kfontchooserwidget.ui:31
 msgctxt "KFontChooserWidget|"
@@ -1834,27 +1849,27 @@ msgctxt "KMessageBox|"
 msgid "Do not show this message again"
 msgstr "Diese Meldung nicht mehr anzeigen"
 
-#: kmessagedialog.cpp:140
+#: kmessagedialog.cpp:137
 msgctxt "KMessageDialog|"
 msgid "Details"
 msgstr "Details"
 
-#: kmessagedialog.cpp:226
+#: kmessagedialog.cpp:218
 msgctxt "KMessageDialog|"
 msgid "Question"
 msgstr "Frage"
 
-#: kmessagedialog.cpp:231
+#: kmessagedialog.cpp:223
 msgctxt "KMessageDialog|"
 msgid "Warning"
 msgstr "Warnung"
 
-#: kmessagedialog.cpp:234
+#: kmessagedialog.cpp:226
 msgctxt "KMessageDialog|"
 msgid "Information"
 msgstr "Information"
 
-#: kmessagedialog.cpp:237
+#: kmessagedialog.cpp:229
 msgctxt "KMessageDialog|"
 msgid "Error"
 msgstr "Fehler"
@@ -2055,7 +2070,7 @@ msgstr "Kein Passwort, nur anonyme oder &Gast-Anmeldung"
 #: kpassworddialog.ui:80
 msgctxt "KPasswordDialog|@option:radio"
 msgid "Use this password:"
-msgstr "Dieses Passwort benutzen:"
+msgstr "Dieses Passwort verwenden:"
 
 #: kpassworddialog.ui:105
 msgctxt "KPasswordDialog|@label:textbox"
@@ -2214,7 +2229,8 @@ msgid ""
 msgstr ""
 "Sobald Sie auf <b>Anwenden</b> klicken, werden die Einstellungen vom "
 "Programm übernommen, aber der Dialog wird nicht geschlossen.\n"
-"Benutzen Sie diese Möglichkeit, um verschiedene Einstellungen auszuprobieren."
+"Verwenden Sie diese Möglichkeit, um verschiedene Einstellungen "
+"auszuprobieren."
 
 #: kstandardguiitem.cpp:203
 msgctxt "KStandardGuiItem|"
@@ -5391,10 +5407,6 @@ msgstr "Fenster im Vollbildmodus anzeigen"
 #~ msgstr "* Benutzerdefinierte Farben *"
 
 #~ msgctxt "palette name"
-#~ msgid "Forty Colors"
-#~ msgstr "Vierzig Farben"
-
-#~ msgctxt "palette name"
 #~ msgid "Oxygen Colors"
 #~ msgstr "Oxygen-Farben"
 
@@ -5409,9 +5421,6 @@ msgstr "Fenster im Vollbildmodus anzeigen"
 #~ msgctxt "palette name"
 #~ msgid "Web Colors"
 #~ msgstr "Webfarben"
-
-#~ msgid "Named Colors"
-#~ msgstr "Benannte Farben"
 
 #~ msgctxt ""
 #~ "%1 is the number of paths, %2 is the list of paths (with newlines between "

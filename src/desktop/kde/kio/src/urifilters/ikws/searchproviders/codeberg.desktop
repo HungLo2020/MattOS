@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=codeberg,cb
 Name=Codeberg
+Name[am]=Codeberg
 Name[ar]=كودبيرغ
 Name[az]=Codeberg
 Name[be]=Codeberg
@@ -35,6 +36,8 @@ Name[lg]=Codeberg
 Name[lt]=Codeberg
 Name[lv]=Codeberg
 Name[my]=Codeberg
+Name[nan_TW]=Codeberg
+Name[nan_TW@latin]=Codeberg
 Name[nb]=Codeberg
 Name[nl]=Codeberg
 Name[nn]=Codeberg
@@ -51,11 +54,11 @@ Name[sq]=Codeberg
 Name[sv]=Codeberg
 Name[th]=Codeberg
 Name[tr]=Codeberg
-Name[ug]=Codeberg
 Name[uk]=Codeberg
 Name[zh_CN]=Codeberg
 Name[zh_TW]=Codeberg
 Query=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
+Query[am]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[ar]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[ast]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[az]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
@@ -63,6 +66,7 @@ Query[be]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}
 Query[bg]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[ca]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[ca@valencia]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
+Query[cs]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[da]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[de]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[el]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
@@ -88,6 +92,8 @@ Query[lg]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}
 Query[lt]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[lv]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[my]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
+Query[nan_TW]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
+Query[nan_TW@latin]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[nb]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[nl]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[nn]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
@@ -104,7 +110,6 @@ Query[sq]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}
 Query[sv]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[th]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[tr]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
-Query[ug]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[uk]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[zh_CN]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true
 Query[zh_TW]=https://codeberg.org/explore/repos?sort=recentupdate&language=&q=\\{@}&only_show_relevant=true

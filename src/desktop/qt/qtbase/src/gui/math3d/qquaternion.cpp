@@ -1,5 +1,6 @@
 // Copyright (C) 2020 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qquaternion.h"
 #include <QtCore/qdatastream.h>
@@ -543,6 +544,9 @@ QQuaternion QQuaternion::fromAxisAndAngle
     \ingroup painting-3D
     \inmodule QtGui
 
+    EulerAngles\<T\> is a struct template where \a T specifies the floating-point
+    type used for the angle values (typically \c float).
+
     A struct containing three fields \l{pitch}, \l{yaw}, and \l{roll},
     representing the three Euler angles that define a
     \l{QQuaternion}{quaternion}.
@@ -1078,10 +1082,16 @@ QQuaternion QQuaternion::slerp
     // then revert to simple linear interpolation.
     float factor1 = 1.0f - t;
     float factor2 = t;
-    if ((1.0f - dot) > 0.0000001) {
+    if ((1.0f - dot) > 0.0000001f) {
         float angle = std::acos(dot);
-        float sinOfAngle = std::sin(angle);
-        if (sinOfAngle > 0.0000001) {
+        // Compute 1 - dot^2 as (1 - dot) * (1 + dot) to reduce
+        // cancellation when dot is close to 1.0.
+        const float sinOfAngleSquared = (1.0f - dot) * (1.0f + dot);
+        // Since q2 was flipped when needed above, dot is non-negative here.
+        // Thus angle = acos(dot) is in [0, pi / 2], where sin(angle) is
+        // non-negative and equals sqrt(1 - dot^2).
+        const float sinOfAngle = std::sqrt(sinOfAngleSquared);
+        if (sinOfAngle > 0.0000001f) {
             factor1 = std::sin((1.0f - t) * angle) / sinOfAngle;
             factor2 = std::sin(t * angle) / sinOfAngle;
         }

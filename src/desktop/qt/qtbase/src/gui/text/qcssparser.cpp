@@ -49,8 +49,7 @@ struct QCssKnownValue::ByName
 #else
 #  define NOT_OLD_GCCs(...) /* nothing */
 #endif
-#define CHECK_ARRAY_IS_SORTED(array, Num) \
-    static_assert(std::size(array) == Num); \
+#define CHECK_ARRAY_IS_SORTED(array) \
     NOT_OLD_GCCs( \
     static_assert(q20::is_sorted(std::begin(array), std::end(array), \
                                  QCssKnownValue::ByName{})); \
@@ -118,7 +117,7 @@ static constexpr QCssKnownValue properties[] = {
     { "bottom", Bottom },
     { "color", Color },
     { "float", Float },
-    { "font", Font },
+    { "font", Property::Font },
     { "font-family", FontFamily },
     { "font-kerning", FontKerning },
     { "font-size", FontSize },
@@ -180,7 +179,7 @@ static constexpr QCssKnownValue properties[] = {
     { "width", Width },
     { "word-spacing", WordSpacing }
 };
-CHECK_ARRAY_IS_SORTED(properties, size_t(NumProperties) - 1)
+CHECK_ARRAY_IS_SORTED(properties)
 
 static constexpr QCssKnownValue values[] = {
     { "accent", Value_Accent },
@@ -269,7 +268,7 @@ static constexpr QCssKnownValue values[] = {
     { "x-large", Value_XLarge },
     { "xx-large", Value_XXLarge }
 };
-CHECK_ARRAY_IS_SORTED(values, size_t(NumKnownValues) - 1)
+CHECK_ARRAY_IS_SORTED(values)
 
 //Map id to strings as they appears in the 'values' array above
 static constexpr uchar indexOfId[] = {
@@ -278,7 +277,7 @@ static constexpr uchar indexOfId[] = {
     66, 16, 35, 77, 36, 78, 64, 79, 37, 67, 23, 59, 42, 6, 60, 70, 82, 10, 31, 41, 14, 39, 71, 9, 11, 5, 81,
     62, 25, 26, 33, 34, 2, 44, 72, 73, 53, 0, 17, 1, 61, 50, 49 };
 
-static_assert(std::size(indexOfId) == size_t(NumKnownValues));
+static_assert(std::size(indexOfId) == std::size(values) + 1);   // UnknownValue not in values array but in indexOfId
 
 QString Value::toString() const
 {
@@ -335,7 +334,7 @@ static constexpr QCssKnownValue pseudos[] = {
     { "vertical", PseudoClass_Vertical },
     { "window", PseudoClass_Window }
 };
-CHECK_ARRAY_IS_SORTED(pseudos, size_t(NumPseudos) - 1)
+CHECK_ARRAY_IS_SORTED(pseudos)
 
 static constexpr QCssKnownValue origins[] = {
     { "border", Origin_Border },
@@ -343,7 +342,7 @@ static constexpr QCssKnownValue origins[] = {
     { "margin", Origin_Margin }, // not in css
     { "padding", Origin_Padding }
 };
-CHECK_ARRAY_IS_SORTED(origins, size_t(NumKnownOrigins) - 1)
+CHECK_ARRAY_IS_SORTED(origins)
 
 static constexpr QCssKnownValue repeats[] = {
     { "no-repeat", Repeat_None },
@@ -351,14 +350,14 @@ static constexpr QCssKnownValue repeats[] = {
     { "repeat-xy", Repeat_XY },
     { "repeat-y", Repeat_Y }
 };
-CHECK_ARRAY_IS_SORTED(repeats, size_t(NumKnownRepeats) - 1)
+CHECK_ARRAY_IS_SORTED(repeats)
 
 static constexpr QCssKnownValue tileModes[] = {
     { "repeat", TileMode_Repeat },
     { "round", TileMode_Round },
     { "stretch", TileMode_Stretch },
 };
-CHECK_ARRAY_IS_SORTED(tileModes, size_t(NumKnownTileModes) - 1)
+CHECK_ARRAY_IS_SORTED(tileModes)
 
 static constexpr QCssKnownValue positions[] = {
     { "absolute", PositionMode_Absolute },
@@ -366,20 +365,20 @@ static constexpr QCssKnownValue positions[] = {
     { "relative", PositionMode_Relative },
     { "static", PositionMode_Static }
 };
-CHECK_ARRAY_IS_SORTED(positions, size_t(NumKnownPositionModes) - 1)
+CHECK_ARRAY_IS_SORTED(positions)
 
 static constexpr QCssKnownValue attachments[] = {
     { "fixed", Attachment_Fixed },
     { "scroll", Attachment_Scroll }
 };
-CHECK_ARRAY_IS_SORTED(attachments, size_t(NumKnownAttachments) - 1)
+CHECK_ARRAY_IS_SORTED(attachments)
 
 static constexpr QCssKnownValue styleFeatures[] = {
     { "background-color", StyleFeature_BackgroundColor },
     { "background-gradient", StyleFeature_BackgroundGradient },
     { "none", StyleFeature_None }
 };
-CHECK_ARRAY_IS_SORTED(styleFeatures, size_t(NumKnownStyleFeatures) - 1)
+CHECK_ARRAY_IS_SORTED(styleFeatures)
 
 static bool operator<(const QString &name, const QCssKnownValue &prop)
 {
@@ -394,11 +393,11 @@ static bool operator<(const QCssKnownValue &prop, const QString &name)
 #undef CHECK_ARRAY_IS_SORTED
 #undef NOT_OLD_GCCs
 
-static quint64 findKnownValue(const QString &name, const QCssKnownValue *start, int numValues)
+template <typename C>
+static quint64 findKnownValue(const QString &name, const C &arr)
 {
-    const QCssKnownValue *end = start + (numValues - 1);
-    const QCssKnownValue *prop = std::lower_bound(start, end, name);
-    if ((prop == end) || (name < *prop))
+    const QCssKnownValue *prop = std::lower_bound(std::begin(arr), std::end(arr), name);
+    if ((prop == std::end(arr)) || (name < *prop))
         return 0;
     return prop->id;
 }
@@ -406,7 +405,7 @@ static quint64 findKnownValue(const QString &name, const QCssKnownValue *start, 
 static inline bool isInheritable(Property propertyId)
 {
     switch (propertyId) {
-    case Font:
+    case Property::Font:
     case FontKerning:
     case FontFamily:
     case FontSize:
@@ -519,7 +518,7 @@ void ValueExtractor::lengthValues(const Declaration &decl, int *m)
         v += QVariant::fromValue<LengthData>(datas[i]);
         m[i] = lengthValueFromData(datas[i], f);
     }
-    decl.d->parsed = v;
+    decl.d->parsed = std::move(v);
 }
 
 bool ValueExtractor::extractGeometry(int *w, int *h, int *minw, int *minh, int *maxw, int *maxh)
@@ -619,7 +618,7 @@ QSize ValueExtractor::sizeValue(const Declaration &decl)
         x[1] = x[0];
     QList<QVariant> v;
     v << QVariant::fromValue<LengthData>(x[0]) << QVariant::fromValue<LengthData>(x[1]);
-    decl.d->parsed = v;
+    decl.d->parsed = std::move(v);
     return QSize(lengthValueFromData(x[0], f), lengthValueFromData(x[1], f));
 }
 
@@ -768,7 +767,7 @@ static ColorData parseColorValue(QCss::Value v)
     if ((identifier.compare("palette"_L1, Qt::CaseInsensitive)) == 0) {
         static_assert((Value_LastColorRole - Value_FirstColorRole + 1) == QPalette::ColorRole::NColorRoles);
 
-        int role = findKnownValue(lst.at(1).trimmed(), values, NumKnownValues);
+        int role = findKnownValue(lst.at(1).trimmed(), values);
         if (role >= Value_FirstColorRole && role <= Value_LastColorRole)
             return (QPalette::ColorRole)(role-Value_FirstColorRole);
 
@@ -1076,7 +1075,7 @@ static void parseShorthandBackgroundProperty(const QList<QCss::Value> &values, B
         }
 
         Repeat repeatAttempt = static_cast<Repeat>(findKnownValue(v.variant.toString(),
-                                                   repeats, NumKnownRepeats));
+                                                   repeats));
         if (repeatAttempt != Repeat_Unknown) {
             *repeat = repeatAttempt;
             continue;
@@ -1124,7 +1123,7 @@ bool ValueExtractor::extractBackground(QBrush *brush, QString *image, Repeat *re
                     *repeat = static_cast<Repeat>(decl.d->parsed.toInt());
                 } else {
                     *repeat = static_cast<Repeat>(findKnownValue(val.variant.toString(),
-                                                  repeats, NumKnownRepeats));
+                                                  repeats));
                     decl.d->parsed = *repeat;
                 }
                 break;
@@ -1185,14 +1184,14 @@ static bool setFontSizeFromValue(QCss::Value value, QFont *font, int *fontSizeAd
     QString s = value.variant.toString();
     if (s.endsWith("pt"_L1, Qt::CaseInsensitive)) {
         s.chop(2);
-        value.variant = s;
+        value.variant = std::move(s);
         if (value.variant.convert(QMetaType::fromType<qreal>())) {
             font->setPointSizeF(qBound(qreal(0), value.variant.toReal(), qreal(1 << 24) - 1));
             valid = true;
         }
     } else if (s.endsWith("px"_L1, Qt::CaseInsensitive)) {
         s.chop(2);
-        value.variant = s;
+        value.variant = std::move(s);
         if (value.variant.convert(QMetaType::fromType<qreal>())) {
             font->setPixelSize(qBound(0, value.variant.toInt(), (1 << 24) - 1));
             valid = true;
@@ -1594,7 +1593,7 @@ void Declaration::brushValues(QBrush *c, const QPalette &pal) const
             }
         }
         if (needParse & 0x10)
-            d->parsed = v;
+            d->parsed = std::move(v);
     }
     if (i == 0) c[0] = c[1] = c[2] = c[3] = QBrush();
     else if (i == 1) c[3] = c[2] = c[1] = c[0];
@@ -1727,7 +1726,7 @@ void Declaration::colorValues(QColor *c, const QPalette &pal) const
                 c[i] = color.color;
             }
         }
-        d->parsed = v;
+        d->parsed = std::move(v);
     }
 
     if (i == 0) c[0] = c[1] = c[2] = c[3] = QColor();
@@ -1761,7 +1760,7 @@ Repeat Declaration::repeatValue() const
     if (d->values.size() != 1)
         return Repeat_Unknown;
     int v = findKnownValue(d->values.at(0).variant.toString(),
-                   repeats, NumKnownRepeats);
+                   repeats);
     d->parsed = v;
     return static_cast<Repeat>(v);
 }
@@ -1773,7 +1772,7 @@ Origin Declaration::originValue() const
     if (d->values.size() != 1)
         return Origin_Unknown;
     int v = findKnownValue(d->values.at(0).variant.toString(),
-                               origins, NumKnownOrigins);
+                               origins);
     d->parsed = v;
     return static_cast<Origin>(v);
 }
@@ -1785,7 +1784,7 @@ PositionMode Declaration::positionValue() const
     if (d->values.size() != 1)
         return PositionMode_Unknown;
     int v = findKnownValue(d->values.at(0).variant.toString(),
-                           positions, NumKnownPositionModes);
+                           positions);
     d->parsed = v;
     return static_cast<PositionMode>(v);
 }
@@ -1797,7 +1796,7 @@ Attachment Declaration::attachmentValue() const
     if (d->values.size() != 1)
         return Attachment_Unknown;
     int v = findKnownValue(d->values.at(0).variant.toString(),
-                           attachments, NumKnownAttachments);
+                           attachments);
     d->parsed = v;
     return static_cast<Attachment>(v);
 }
@@ -1810,7 +1809,7 @@ int Declaration::styleFeaturesValue() const
     int features = StyleFeature_None;
     for (const Value &value : std::as_const(d->values)) {
         features |= static_cast<int>(findKnownValue(value.variant.toString(),
-                                     styleFeatures, NumKnownStyleFeatures));
+                                     styleFeatures));
     }
     d->parsed = features;
     return features;
@@ -1870,12 +1869,12 @@ void Declaration::borderImageValue(QString *image, int *cuts,
 
     if (d->values.last().type == Value::Identifier) {
         *v = static_cast<TileMode>(findKnownValue(d->values.last().variant.toString(),
-                                      tileModes, NumKnownTileModes));
+                                      tileModes));
     }
     if (d->values[d->values.size() - 2].type == Value::Identifier) {
         *h = static_cast<TileMode>
                 (findKnownValue(d->values[d->values.size()-2].variant.toString(),
-                                        tileModes, NumKnownTileModes));
+                                        tileModes));
     } else
         *h = *v;
 }
@@ -2638,8 +2637,12 @@ bool Parser::parseAnimation(AnimationRule *animationRule)
                     return foundRBrace;
                 }
             }
-            if (!decl.isEmpty())
-                set.declarations.push_back(std::move(decl));
+            if (!decl.isEmpty()) {
+                if (decl.d->property == "animation-timing-function"_L1)
+                    set.timingFunction = std::move(decl);
+                else
+                    set.declarations.push_back(std::move(decl));
+            }
         } while (test(SEMICOLON));
 
         if (!next(RBRACE)) return false;
@@ -2676,7 +2679,7 @@ bool Parser::parseCombinator(BasicSelector::Relation *relation)
 bool Parser::parseProperty(Declaration *decl)
 {
     decl->d->property = lexem();
-    decl->d->propertyId = static_cast<Property>(findKnownValue(decl->d->property, properties, NumProperties));
+    decl->d->propertyId = static_cast<Property>(findKnownValue(decl->d->property, properties));
     decl->d->inheritable = isInheritable(decl->d->propertyId);
     skipSpace();
     return true;
@@ -2842,7 +2845,7 @@ bool Parser::parsePseudo(Pseudo *pseudo)
     pseudo->negated = test(EXCLAMATION_SYM);
     if (test(IDENT)) {
         pseudo->name = lexem();
-        pseudo->type = static_cast<quint64>(findKnownValue(pseudo->name, pseudos, NumPseudos));
+        pseudo->type = static_cast<quint64>(findKnownValue(pseudo->name, pseudos));
         return true;
     }
     if (!next(FUNCTION)) return false;
@@ -2963,7 +2966,7 @@ bool Parser::parseTerm(Value *value)
         case IDENT: {
             if (haveUnary) return false;
             value->type = Value::Identifier;
-            const int theid = findKnownValue(str, values, NumKnownValues);
+            const int theid = findKnownValue(str, values);
             if (theid != 0) {
                 value->type = Value::KnownIdentifier;
                 value->variant = theid;
@@ -2987,7 +2990,7 @@ bool Parser::parseTerm(Value *value)
                     if (QFileInfo(args).isRelative() && !sourcePath.isEmpty()) {
                         args.prepend(sourcePath);
                     }
-                    value->variant = args;
+                    value->variant = std::move(args);
                 } else {
                     value->type = Value::Function;
                     value->variant = QStringList() << name << args;

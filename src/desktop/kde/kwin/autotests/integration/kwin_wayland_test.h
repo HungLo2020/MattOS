@@ -26,8 +26,10 @@
 
 #include <xkbcommon/xkbcommon.h>
 
+#include "qwayland-alpha-modifier-v1.h"
 #include "qwayland-color-management-v1.h"
 #include "qwayland-color-representation-v1.h"
+#include "qwayland-commit-timing-v1.h"
 #include "qwayland-cursor-shape-v1.h"
 #include "qwayland-fake-input.h"
 #include "qwayland-fifo-v1.h"
@@ -42,21 +44,23 @@
 #include "qwayland-primary-selection-unstable-v1.h"
 #include "qwayland-security-context-v1.h"
 #include "qwayland-tablet-v2.h"
+#include "qwayland-tearing-control-v1.h"
 #include "qwayland-text-input-unstable-v3.h"
 #include "qwayland-wayland.h"
 #include "qwayland-wlr-layer-shell-unstable-v1.h"
 #include "qwayland-xdg-activation-v1.h"
 #include "qwayland-xdg-decoration-unstable-v1.h"
 #include "qwayland-xdg-dialog-v1.h"
+#include "qwayland-xdg-session-management-v1.h"
 #include "qwayland-xdg-shell.h"
 #include "qwayland-xdg-toplevel-drag-v1.h"
-#include "qwayland-xx-session-management-v1.h"
 #include "qwayland-zkde-screencast-unstable-v1.h"
 
 namespace KWayland
 {
 namespace Client
 {
+
 class AppMenuManager;
 class ConnectionThread;
 class Compositor;
@@ -76,14 +80,17 @@ class SubSurface;
 class Surface;
 class TextInputManager;
 class DataDeviceManager;
+
 }
 }
 
 namespace QtWayland
 {
+
 class zwp_input_panel_surface_v1;
 class zwp_text_input_v3;
 class zwp_text_input_manager_v3;
+
 }
 
 class ScreencastingV1;
@@ -93,8 +100,10 @@ namespace KWin
 
 namespace WaylandClient
 {
+
 class LinuxDmabufV1;
 class Viewporter;
+
 }
 
 class WaylandServer;
@@ -102,19 +111,25 @@ class WaylandServer;
 #if KWIN_BUILD_X11
 namespace Xwl
 {
+
 class Xwayland;
+
 }
 #endif
 
 namespace Test
 {
+
 class VirtualInputDevice;
 class VirtualInputDeviceTabletTool;
+class WlSeat;
+
 }
 
 class WaylandTestApplication : public Application
 {
     Q_OBJECT
+
 public:
     WaylandTestApplication(int &argc, char **argv, bool runOnKMS);
     ~WaylandTestApplication() override;
@@ -144,6 +159,7 @@ private:
     void createVirtualInputDevices();
     void destroyVirtualInputDevices();
 
+    QTemporaryDir m_temporaryHome;
     std::unique_ptr<WaylandServer> m_waylandServer;
 #if KWIN_BUILD_X11
     std::unique_ptr<Xwl::Xwayland> m_xwayland;
@@ -180,6 +196,7 @@ public:
 class TextInputV3 : public QObject, public QtWayland::zwp_text_input_v3
 {
     Q_OBJECT
+
 public:
     ~TextInputV3() override
     {
@@ -272,7 +289,7 @@ public:
         Maximized = 1 << 0,
         Fullscreen = 1 << 1,
         Resizing = 1 << 2,
-        Activated = 1 << 3
+        Activated = 1 << 3,
     };
     Q_DECLARE_FLAGS(States, State)
 
@@ -368,6 +385,7 @@ public:
 class WaylandOutputConfigurationV2 : public QObject, public QtWayland::kde_output_configuration_v2
 {
     Q_OBJECT
+
 public:
     WaylandOutputConfigurationV2(struct ::kde_output_configuration_v2 *object);
 
@@ -383,6 +401,7 @@ protected:
 class WaylandOutputManagementV2 : public QObject, public QtWayland::kde_output_management_v2
 {
     Q_OBJECT
+
 public:
     WaylandOutputManagementV2(struct ::wl_registry *registry, int id, int version);
 
@@ -501,6 +520,7 @@ private:
 class MockInputMethod : public QObject, QtWayland::zwp_input_method_v1
 {
     Q_OBJECT
+
 public:
     enum class Mode {
         TopLevel,
@@ -538,6 +558,7 @@ private:
 class FractionalScaleManagerV1 : public QObject, public QtWayland::wp_fractional_scale_manager_v1
 {
     Q_OBJECT
+
 public:
     ~FractionalScaleManagerV1() override;
 };
@@ -545,6 +566,7 @@ public:
 class FractionalScaleV1 : public QObject, public QtWayland::wp_fractional_scale_v1
 {
     Q_OBJECT
+
 public:
     ~FractionalScaleV1() override;
     int preferredScale();
@@ -562,6 +584,7 @@ private:
 class ScreenEdgeManagerV1 : public QObject, public QtWayland::kde_screen_edge_manager_v1
 {
     Q_OBJECT
+
 public:
     ~ScreenEdgeManagerV1() override;
 };
@@ -569,6 +592,7 @@ public:
 class AutoHideScreenEdgeV1 : public QObject, public QtWayland::kde_auto_hide_screen_edge_v1
 {
     Q_OBJECT
+
 public:
     AutoHideScreenEdgeV1(ScreenEdgeManagerV1 *manager, KWayland::Client::Surface *surface, uint32_t border);
     ~AutoHideScreenEdgeV1() override;
@@ -577,6 +601,7 @@ public:
 class CursorShapeManagerV1 : public QObject, public QtWayland::wp_cursor_shape_manager_v1
 {
     Q_OBJECT
+
 public:
     ~CursorShapeManagerV1() override;
 };
@@ -584,6 +609,7 @@ public:
 class CursorShapeDeviceV1 : public QObject, public QtWayland::wp_cursor_shape_device_v1
 {
     Q_OBJECT
+
 public:
     CursorShapeDeviceV1(CursorShapeManagerV1 *manager, KWayland::Client::Pointer *pointer);
     ~CursorShapeDeviceV1() override;
@@ -620,7 +646,7 @@ public:
     WpTabletManagerV2(::wl_registry *registry, uint32_t id, int version);
     ~WpTabletManagerV2() override;
 
-    std::unique_ptr<WpTabletSeatV2> createSeat(KWayland::Client::Seat *seat);
+    std::unique_ptr<WpTabletSeatV2> createSeat(WlSeat *seat);
 };
 
 class WpTabletSeatV2 : public QObject, public QtWayland::zwp_tablet_seat_v2
@@ -803,6 +829,9 @@ enum class AdditionalWaylandInterface : uint64_t {
     LinuxDmabuf = 1ull << 31,
     ColorRepresentation = 1ull << 32,
     Viewporter = 1ull << 33,
+    AlphaModifierV1 = 1ull << 34,
+    TearingControlV1 = 1ull << 35,
+    CommitTiming = 1ull << 36,
 };
 Q_DECLARE_FLAGS(AdditionalWaylandInterfaces, AdditionalWaylandInterface)
 
@@ -861,6 +890,9 @@ public:
     bool isTabletModeSwitch() const override;
     bool isLidSwitch() const override;
 
+    bool tabletToolIsRelative() const override;
+    void setTabletToolIsRelative(bool relative);
+
 private:
     QString m_name;
     void *m_group = nullptr;
@@ -870,6 +902,7 @@ private:
     bool m_lidSwitch = false;
     bool m_tabletPad = false;
     bool m_tabletTool = false;
+    bool m_tabletToolIsRelative;
 };
 
 class ColorManagerV1 : public QtWayland::wp_color_manager_v1
@@ -896,9 +929,11 @@ public:
 class WpPresentationFeedback : public QObject, public QtWayland::wp_presentation_feedback
 {
     Q_OBJECT
+
 public:
     explicit WpPresentationFeedback(struct ::wp_presentation_feedback *obj);
     ~WpPresentationFeedback() override;
+    bool zeroCopy() const;
 
 Q_SIGNALS:
     void presented(std::chrono::nanoseconds timestamp, std::chrono::nanoseconds refreshDuration);
@@ -907,11 +942,14 @@ Q_SIGNALS:
 private:
     void wp_presentation_feedback_presented(uint32_t tv_sec_hi, uint32_t tv_sec_lo, uint32_t tv_nsec, uint32_t refresh, uint32_t seq_hi, uint32_t seq_lo, uint32_t flags) override;
     void wp_presentation_feedback_discarded() override;
+
+    uint32_t m_flags = 0;
 };
 
 class XdgActivationToken : public QObject, public QtWayland::xdg_activation_token_v1
 {
     Q_OBJECT
+
 public:
     explicit XdgActivationToken(::xdg_activation_token_v1 *object);
     ~XdgActivationToken() override;
@@ -936,27 +974,27 @@ public:
     std::unique_ptr<XdgActivationToken> createToken();
 };
 
-class XdgToplevelSessionV1 : public QObject, public QtWayland::xx_toplevel_session_v1
+class XdgToplevelSessionV1 : public QObject, public QtWayland::xdg_toplevel_session_v1
 {
     Q_OBJECT
 
 public:
-    explicit XdgToplevelSessionV1(::xx_toplevel_session_v1 *session);
+    explicit XdgToplevelSessionV1(::xdg_toplevel_session_v1 *session);
     ~XdgToplevelSessionV1() override;
 
 Q_SIGNALS:
     void restored();
 
 protected:
-    void xx_toplevel_session_v1_restored(struct ::xdg_toplevel *surface) override;
+    void xdg_toplevel_session_v1_restored() override;
 };
 
-class XdgSessionV1 : public QObject, public QtWayland::xx_session_v1
+class XdgSessionV1 : public QObject, public QtWayland::xdg_session_v1
 {
     Q_OBJECT
 
 public:
-    explicit XdgSessionV1(::xx_session_v1 *session);
+    explicit XdgSessionV1(::xdg_session_v1 *session);
     ~XdgSessionV1() override;
 
     std::unique_ptr<XdgToplevelSessionV1> add(XdgToplevel *toplevel, const QString &toplevelId);
@@ -968,12 +1006,12 @@ Q_SIGNALS:
     void replaced();
 
 protected:
-    void xx_session_v1_created(const QString &id) override;
-    void xx_session_v1_restored() override;
-    void xx_session_v1_replaced() override;
+    void xdg_session_v1_created(const QString &id) override;
+    void xdg_session_v1_restored() override;
+    void xdg_session_v1_replaced() override;
 };
 
-class XdgSessionManagerV1 : public QtWayland::xx_session_manager_v1
+class XdgSessionManagerV1 : public QtWayland::xdg_session_manager_v1
 {
 public:
     XdgSessionManagerV1(::wl_registry *registry, uint32_t id, int version);
@@ -983,6 +1021,7 @@ public:
 class KeyStateV1 : public QObject, public QtWayland::org_kde_kwin_keystate
 {
     Q_OBJECT
+
 public:
     explicit KeyStateV1(::wl_registry *registry, uint32_t id, int version);
     ~KeyStateV1() override;
@@ -1010,39 +1049,142 @@ public:
     ~ColorRepresentationSurfaceV1() override;
 };
 
-class WlKeyboard;
-
-class WlSeat : public QtWayland::wl_seat
+class AlphaModifierV1 : public QtWayland::wp_alpha_modifier_v1
 {
+public:
+    explicit AlphaModifierV1(::wl_registry *registry, uint32_t id, int version);
+    ~AlphaModifierV1() override;
+};
+
+class AlphaModifierSurfaceV1 : public QtWayland::wp_alpha_modifier_surface_v1
+{
+public:
+    explicit AlphaModifierSurfaceV1(::wp_alpha_modifier_surface_v1 *object);
+    ~AlphaModifierSurfaceV1() override;
+};
+
+class TearingControlManagerV1 : public QtWayland::wp_tearing_control_manager_v1
+{
+public:
+    explicit TearingControlManagerV1(::wl_registry *registry, uint32_t id, int version);
+    ~TearingControlManagerV1() override;
+};
+
+class TearingControlV1 : public QtWayland::wp_tearing_control_v1
+{
+public:
+    explicit TearingControlV1(::wp_tearing_control_v1 *object);
+    ~TearingControlV1() override;
+};
+
+class WlKeyboard;
+class WlPointer;
+class WlTouch;
+
+class WlSeat : public QObject, public QtWayland::wl_seat
+{
+    Q_OBJECT
+
 public:
     explicit WlSeat(::wl_registry *registry, uint32_t id, int version);
     ~WlSeat() override;
 
+    bool hasPointer() const;
+    bool hasKeyboard() const;
+    bool hasTouch() const;
     std::unique_ptr<WlKeyboard> getKeyboard();
+    std::unique_ptr<WlPointer> getPointer();
+    std::unique_ptr<WlTouch> getTouch();
+
+Q_SIGNALS:
+    void hasPointerChanged(bool hasPointer);
+    void hasKeyboardChanged(bool hasKeyboard);
+    void hasTouchChanged(bool hasTouch);
+
+private:
+    void seat_capabilities(uint32_t capabilities) override;
+
+    bool m_hasPointer = false;
+    bool m_hasKeyboard = false;
+    bool m_hasTouch = false;
 };
 
 class WlKeyboard : public QObject, public QtWayland::wl_keyboard
 {
     Q_OBJECT
+
 public:
     explicit WlKeyboard(::wl_keyboard *object);
     ~WlKeyboard() override;
 
+    KWayland::Client::Surface *focusedSurface() const;
+    QSet<quint32> heldKeys() const;
+
 Q_SIGNALS:
-    void enter(uint32_t serial, ::wl_surface *surface);
-    void leave(uint32_t serial, ::wl_surface *surface);
+    void keymap(uint32_t format, int32_t fd, uint32_t size);
+    void enter(uint32_t serial, KWayland::Client::Surface *surface);
+    void leave(uint32_t serial, KWayland::Client::Surface *surface);
     void key(uint32_t serial, uint32_t time, uint32_t key, key_state state);
+    void modifiers(uint32_t serial, uint32_t depressed, uint32_t latched, uint32_t locked, uint32_t group);
+    void repeatInfo(int32_t rate, int32_t delay);
 
 private:
     void keyboard_keymap(uint32_t format, int32_t fd, uint32_t size) override;
     void keyboard_enter(uint32_t serial, ::wl_surface *surface, wl_array *keys) override;
     void keyboard_leave(uint32_t serial, ::wl_surface *surface) override;
     void keyboard_key(uint32_t serial, uint32_t time, uint32_t key, uint32_t state) override;
+    void keyboard_modifiers(uint32_t serial, uint32_t depressed, uint32_t latched, uint32_t locked, uint32_t group) override;
+    void keyboard_repeat_info(int32_t rate, int32_t delay) override;
+
+    KWayland::Client::Surface *m_focusedSurface = nullptr;
+    QSet<quint32> m_heldKeys;
+};
+
+class WlPointer : public QObject, public QtWayland::wl_pointer
+{
+    Q_OBJECT
+
+public:
+    explicit WlPointer(::wl_pointer *object);
+    ~WlPointer() override;
+
+    ::wl_surface *enteredSurface() const;
+
+Q_SIGNALS:
+    void entered(uint32_t serial, ::wl_surface *surface, const QPointF &position);
+    void left(uint32_t serial, ::wl_surface *surface);
+    void motion(const QPointF &position, uint32_t time);
+    void buttonStateChanged(uint32_t serial, uint32_t time, uint32_t button, uint32_t state);
+
+private:
+    void pointer_enter(uint32_t serial, ::wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) override;
+    void pointer_leave(uint32_t serial, ::wl_surface *surface) override;
+    void pointer_motion(uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y) override;
+    void pointer_button(uint32_t serial, uint32_t time, uint32_t button, uint32_t state) override;
+
+    ::wl_surface *m_enteredSurface = nullptr;
+};
+
+class WlTouch : public QObject, public QtWayland::wl_touch
+{
+    Q_OBJECT
+
+public:
+    explicit WlTouch(::wl_touch *object);
+    ~WlTouch() override;
+};
+
+class CommitTimingManager : public QtWayland::wp_commit_timing_manager_v1
+{
+public:
+    explicit CommitTimingManager(::wl_registry *registry, uint32_t id, int version);
+    ~CommitTimingManager() override;
 };
 
 struct Connection
 {
     static std::unique_ptr<Connection> setup(AdditionalWaylandInterfaces interfaces = AdditionalWaylandInterfaces());
+    static std::unique_ptr<Connection> setup(int socket, AdditionalWaylandInterfaces interfaces = AdditionalWaylandInterfaces());
     ~Connection();
 
     bool sync();
@@ -1092,8 +1234,11 @@ struct Connection
     std::unique_ptr<WaylandClient::LinuxDmabufV1> linuxDmabuf;
     std::unique_ptr<ColorRepresentationV1> colorRepresentation;
     std::unique_ptr<WaylandClient::Viewporter> viewporter;
+    std::unique_ptr<AlphaModifierV1> alphaModifier;
+    std::unique_ptr<TearingControlManagerV1> tearingControl;
     // TODO port everything away from KWayland::Client::Seat
     std::unique_ptr<WlSeat> kwinSeat;
+    std::unique_ptr<CommitTimingManager> commitTiming;
 };
 
 void keyboardKeyPressed(quint32 key, quint32 time);
@@ -1122,6 +1267,7 @@ void tabletToolButtonPressed(quint32 button, quint32 time);
 void tabletToolButtonReleased(quint32 button, quint32 time);
 void tabletToolProximityEvent(const QPointF &pos, qreal xTilt, qreal yTilt, qreal rotation, qreal distance, bool tipNear, qreal sliderPosition, quint32 time);
 void tabletToolAxisEvent(const QPointF &pos, qreal pressure, qreal xTilt, qreal yTilt, qreal rotation, qreal distance, bool tipDown, qreal sliderPosition, quint32 time);
+void tabletToolAxisEventRelative(const QPointF &delta, qreal pressure, qreal xTilt, qreal yTilt, qreal rotation, qreal distance, bool tipDown, qreal sliderPosition, quint32 time);
 void tabletToolTipEvent(const QPointF &pos, qreal pressure, qreal xTilt, qreal yTilt, qreal rotation, qreal distance, bool tipDown, qreal sliderPosition, quint32 time);
 
 /**
@@ -1131,6 +1277,7 @@ void tabletToolTipEvent(const QPointF &pos, qreal pressure, qreal xTilt, qreal y
  * @see destroyWaylandConnection
  */
 bool setupWaylandConnection(AdditionalWaylandInterfaces flags = AdditionalWaylandInterfaces());
+bool setupWaylandConnection(int socket, AdditionalWaylandInterfaces flags = AdditionalWaylandInterfaces());
 
 /**
  * Destroys the Wayland Connection created with @link{setupWaylandConnection}.
@@ -1146,6 +1293,7 @@ KWayland::Client::SubCompositor *waylandSubCompositor();
 KWayland::Client::ShadowManager *waylandShadowManager();
 KWayland::Client::ShmPool *waylandShmPool();
 KWayland::Client::Seat *waylandSeat();
+WlSeat *kwinSeat();
 KWayland::Client::DataDeviceManager *waylandDataDeviceManager();
 KWayland::Client::PlasmaShell *waylandPlasmaShell();
 KWayland::Client::PlasmaWindowManagement *waylandWindowManagement();
@@ -1170,15 +1318,21 @@ XdgToplevelDragManagerV1 *toplevelDragManager();
 WaylandClient::LinuxDmabufV1 *linuxDmabuf();
 ColorRepresentationV1 *colorRepresentation();
 WaylandClient::Viewporter *viewporter();
+AlphaModifierV1 *alphaModifier();
+TearingControlManagerV1 *tearingControl();
+Connection *connection();
 
 bool waitForWaylandSurface(Window *window);
 
 bool waitForWaylandPointer();
 bool waitForWaylandPointer(KWayland::Client::Seat *seat);
+bool waitForWaylandPointer(WlSeat *seat);
 bool waitForWaylandTouch();
 bool waitForWaylandTouch(KWayland::Client::Seat *seat);
+bool waitForWaylandTouch(WlSeat *seat);
 bool waitForWaylandKeyboard();
 bool waitForWaylandKeyboard(KWayland::Client::Seat *seat);
+bool waitForWaylandKeyboard(WlSeat *seat);
 bool waitForWaylandTabletTool(Test::WpTabletToolV2 *tool);
 
 void flushWaylandConnection();
@@ -1255,8 +1409,8 @@ Window *waitForWaylandWindowShown(int timeout = 5000);
 /**
  * Combination of @link{render} and @link{waitForWaylandWindowShown}.
  */
-Window *renderAndWaitForShown(KWayland::Client::Surface *surface, const QSize &size, const QColor &color, const QImage::Format &format = QImage::Format_ARGB32, int timeout = 5000);
-Window *renderAndWaitForShown(KWayland::Client::ShmPool *shm, KWayland::Client::Surface *surface, const QSize &size, const QColor &color, const QImage::Format &format = QImage::Format_ARGB32, int timeout = 5000);
+Window *renderAndWaitForShown(KWayland::Client::Surface *surface, const QSize &size, const QColor &color, const QImage::Format &format = QImage::Format_ARGB32_Premultiplied, int timeout = 5000);
+Window *renderAndWaitForShown(KWayland::Client::ShmPool *shm, KWayland::Client::Surface *surface, const QSize &size, const QColor &color, const QImage::Format &format = QImage::Format_ARGB32_Premultiplied, int timeout = 5000);
 
 Window *renderAndWaitForShown(KWayland::Client::Surface *surface, const QImage &img, int timeout = 5000);
 Window *renderAndWaitForShown(KWayland::Client::ShmPool *shm, KWayland::Client::Surface *surface, const QImage &img, int timeout = 5000);
@@ -1277,18 +1431,6 @@ bool lockScreen();
  * @returns @c true if the screen could be unlocked, @c false otherwise
  */
 bool unlockScreen();
-
-/**
- * Returns @c true if the system has at least one render node; otherwise returns @c false.
- *
- * This can be used to test whether the system is capable of allocating and sharing prime buffers, etc.
- */
-bool renderNodeAvailable();
-
-/**
- * Returns @c true if the system has at least one primary node; otherwise returns @c false.
- */
-bool primaryNodeAvailable();
 
 /**
  * Creates an X11 connection
@@ -1358,16 +1500,10 @@ public:
         }
     }
 
-    quint32 nodeId() const
+    uint64_t serial() const
     {
-        Q_ASSERT(m_nodeId.has_value());
-        return *m_nodeId;
-    }
-
-    void zkde_screencast_stream_unstable_v1_created(uint32_t node) override
-    {
-        m_nodeId = node;
-        Q_EMIT created(node);
+        Q_ASSERT(m_serial.has_value());
+        return *m_serial;
     }
 
     void zkde_screencast_stream_unstable_v1_closed() override
@@ -1380,18 +1516,26 @@ public:
         Q_EMIT failed(error);
     }
 
+    void zkde_screencast_stream_unstable_v1_serial(uint32_t object_serial_hi, uint32_t object_serial_low) override
+    {
+        const uint64_t serial = uint64_t(object_serial_hi) << 32 | object_serial_low;
+        m_serial = serial;
+        Q_EMIT created(serial);
+    }
+
 Q_SIGNALS:
-    void created(quint32 nodeid);
+    void created(uint64_t serial);
     void failed(const QString &error);
     void closed();
 
 private:
-    std::optional<uint> m_nodeId;
+    std::optional<uint64_t> m_serial;
 };
 
 class ScreencastingV1 : public QObject, public QtWayland::zkde_screencast_unstable_v1
 {
     Q_OBJECT
+
 public:
     explicit ScreencastingV1(QObject *parent = nullptr)
         : QObject(parent)
@@ -1420,9 +1564,11 @@ using XkbStatePtr = std::unique_ptr<xkb_state, decltype(&xkb_state_unref)>;
 class SimpleKeyboard : public QObject
 {
     Q_OBJECT
+
 public:
     explicit SimpleKeyboard(QObject *parent = nullptr);
     KWayland::Client::Keyboard *keyboard();
+    void clearReceivedText();
     QString receviedText();
 Q_SIGNALS:
     void receviedTextChanged();
@@ -1442,7 +1588,7 @@ struct OutputInfo
     double scale = 1;
     bool internal = false;
     QSize physicalSizeInMM;
-    QList<std::tuple<QSize, uint64_t, OutputMode::Flags>> modes;
+    QList<OutputModeline> modes;
     OutputTransform panelOrientation = OutputTransform::Kind::Normal;
     QByteArray edid;
     std::optional<QByteArray> edidIdentifierOverride;
@@ -1467,6 +1613,7 @@ public:
     void unmap();
     bool unmapAndWaitForClosed();
 
+    void commit();
     /**
      * Commits and waits for the commit to be presented.
      * NOTE that this requires the presentation time protocol!
@@ -1480,6 +1627,7 @@ public:
     std::unique_ptr<XdgToplevel> m_toplevel;
     Window *m_window = nullptr;
 };
+
 }
 
 }

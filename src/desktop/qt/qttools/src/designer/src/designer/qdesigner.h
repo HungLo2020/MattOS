@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #ifndef QDESIGNER_H
 #define QDESIGNER_H
@@ -8,7 +9,6 @@
 
 #include <QtWidgets/qapplication.h>
 
-#include <QtCore/qlibraryinfo.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qversionnumber.h>
 
@@ -22,8 +22,6 @@ QT_BEGIN_NAMESPACE
 class QDesignerWorkbench;
 class QDesignerToolWindow;
 class MainWindowBase;
-class QDesignerServer;
-class QDesignerClient;
 class QErrorMessage;
 class QCommandLineParser;
 struct Options;
@@ -31,11 +29,12 @@ struct Options;
 struct Options
 {
     QStringList files;
-    QString resourceDir{QLibraryInfo::path(QLibraryInfo::TranslationsPath)};
+    QString resourceDir;
     QStringList pluginPaths;
     std::optional<QVersionNumber> qtVersion;
+    QString localSocketServerName;
     bool server{false};
-    quint16 clientPort{0};
+    quint16 tcpClientPort{0};
     bool enableInternalDynamicProperties{false};
     HelpClientType helpMode{HelpClientType::Assistant};
 };
@@ -56,7 +55,6 @@ public:
     ParseArgumentsResult parseCommandLineArguments();
 
     QDesignerWorkbench *workbench() const;
-    QDesignerServer *server() const;
     bool isServerOrClientEnabled() const;
     MainWindowBase *mainWindow() const;
     void setMainWindow(MainWindowBase *tw);
@@ -73,8 +71,8 @@ public slots:
 private:
     void showErrorMessageBox(const QString &);
 
-    QDesignerServer *m_server = nullptr;
-    QDesignerClient *m_client = nullptr;
+    QObject *m_server = nullptr;
+    QObject *m_client = nullptr;
     QDesignerWorkbench *m_workbench = nullptr;
     QPointer<MainWindowBase> m_mainWindow;
     QPointer<QErrorMessage> m_errorMessageDialog;

@@ -1,5 +1,6 @@
 // Copyright (C) 2020 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qpointingdevice.h"
 #include "qpointingdevice_p.h"
@@ -107,6 +108,8 @@ Q_LOGGING_CATEGORY(lcPointerGrab, "qt.pointer.grab");
     \value Cursor
         A transparent circle with cross-hairs as found on a
         \l {QInputDevice::DeviceType}{Puck} device.
+    \value [since 6.12] Palm
+        The user's palm.
     \value AllPointerTypes
         Any of the above (used as a default filter value).
 */

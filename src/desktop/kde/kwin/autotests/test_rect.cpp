@@ -104,6 +104,8 @@ private Q_SLOTS:
     void translated();
     void scaled_data();
     void scaled();
+    void scaleByMultiplying();
+    void scaleByDividing();
     void adjust_data();
     void adjust();
     void adjusted_data();
@@ -118,6 +120,10 @@ private Q_SLOTS:
     void intersects();
     void intersected_data();
     void intersected();
+    void normalized_data();
+    void normalized();
+    void span_data();
+    void span();
     void implicitConversions();
 };
 
@@ -678,8 +684,11 @@ void TestRect::center_data()
 void TestRect::center()
 {
     QFETCH(Rect, rect);
+    QFETCH(QPoint, center);
 
-    QTEST(rect.center(), "center");
+    QCOMPARE(rect.center(), center);
+    QCOMPARE(rect.horizontalCenter(), center.x());
+    QCOMPARE(rect.verticalCenter(), center.y());
 }
 
 void TestRect::moveCenter_data()
@@ -706,8 +715,18 @@ void TestRect::moveCenter()
     QFETCH(Rect, rect);
     QFETCH(QPoint, center);
 
-    rect.moveCenter(center);
-    QCOMPARE(rect.center(), center);
+    {
+        Rect moved = rect;
+        moved.moveCenter(center);
+        QCOMPARE(moved.center(), center);
+    }
+
+    {
+        Rect moved = rect;
+        moved.moveHorizontalCenter(center.x());
+        moved.moveVerticalCenter(center.y());
+        QCOMPARE(moved.center(), center);
+    }
 }
 
 void TestRect::topLeft_data()
@@ -1054,6 +1073,18 @@ void TestRect::scaled()
     QTEST(rect.scaled(scale), "expected");
 }
 
+void TestRect::scaleByMultiplying()
+{
+    QCOMPARE(Rect() * 2.5, RectF());
+    QCOMPARE(Rect(1, 2, 3, 4) * 2.5, RectF(2.5, 5.0, 7.5, 10.0));
+}
+
+void TestRect::scaleByDividing()
+{
+    QCOMPARE(Rect() / 2.5, RectF());
+    QCOMPARE(Rect(1, 2, 3, 4) / 2.5, RectF(0.4, 0.8, 1.2, 1.6));
+}
+
 void TestRect::adjust_data()
 {
     QTest::addColumn<Rect>("rect");
@@ -1291,6 +1322,44 @@ void TestRect::intersected()
         tmp &= rect1;
         QTEST(tmp, "result");
     }
+}
+
+void TestRect::normalized_data()
+{
+    QTest::addColumn<Rect>("rect");
+    QTest::addColumn<Rect>("normalized");
+
+    QTest::addRow("empty") << Rect() << Rect();
+    QTest::addRow("positive width and height") << Rect(QPoint(1, 2), QPoint(3, 4)) << Rect(QPoint(1, 2), QPoint(3, 4));
+    QTest::addRow("negative width") << Rect(QPoint(1, 2), QPoint(-3, 4)) << Rect(QPoint(-3, 2), QPoint(1, 4));
+    QTest::addRow("negative height") << Rect(QPoint(1, 2), QPoint(3, -4)) << Rect(QPoint(1, -4), QPoint(3, 2));
+    QTest::addRow("negative width and height") << Rect(QPoint(1, 2), QPoint(-3, -4)) << Rect(QPoint(-3, -4), QPoint(1, 2));
+}
+
+void TestRect::normalized()
+{
+    QFETCH(Rect, rect);
+    QTEST(rect.normalized(), "normalized");
+}
+
+void TestRect::span_data()
+{
+    QTest::addColumn<QPoint>("point1");
+    QTest::addColumn<QPoint>("point2");
+    QTest::addColumn<Rect>("rect");
+
+    QTest::addRow("empty") << QPoint() << QPoint() << Rect();
+    QTest::addRow("top-left + bottom-right") << QPoint(1, 2) << QPoint(3, 4) << Rect(QPoint(1, 2), QPoint(3, 4));
+    QTest::addRow("top-right + bottom-left") << QPoint(3, 2) << QPoint(1, 4) << Rect(QPoint(1, 2), QPoint(3, 4));
+    QTest::addRow("top-left + bottom-left") << QPoint(1, 2) << QPoint(1, 4) << Rect(QPoint(1, 2), QPoint(1, 4));
+}
+
+void TestRect::span()
+{
+    QFETCH(QPoint, point1);
+    QFETCH(QPoint, point2);
+    QTEST(Rect::span(point1, point2), "rect");
+    QTEST(Rect::span(point2, point1), "rect");
 }
 
 void TestRect::implicitConversions()

@@ -23,6 +23,8 @@
 #include "qqstylekitcontrolproperties_p.h"
 #include "qqstylekitfont_p.h"
 
+#include <QtCore/qcompare.h>
+
 QT_BEGIN_NAMESPACE
 
 class QQuickPalette;
@@ -53,9 +55,15 @@ public:
         Control,
         AbstractButton,
         ApplicationWindow,
+        BusyIndicator,
         Button,
         CheckBox,
+        CheckDelegate,
         ComboBox,
+        DelayButton,
+        Dial,
+        Dialog,
+        DialogButtonBox,
         FlatButton,
         ProgressBar,
         ScrollBar,
@@ -63,7 +71,9 @@ public:
         ScrollView,
         Slider,
         SpinBox,
+        SwipeDelegate,
         SwitchControl,
+        SwitchDelegate,
         SearchField,
         TabBar,
         TabButton,
@@ -74,12 +84,18 @@ public:
         ToolButton,
         ToolSeparator,
         RadioButton,
+        RadioDelegate,
+        RoundButton,
         ItemDelegate,
         Popup,
         Menu,
-        Dialog,
+        MenuBar,
+        MenuBarItem,
+        MenuItem,
+        MenuSeparator,
         Pane,
         Page,
+        PageIndicator,
         Frame,
         Label,
         GroupBox
@@ -126,6 +142,9 @@ public:
     bool highlighted() const;
     void setHighlighted(bool highlighted);
 
+    QQStyleKitStyle *explicitStyle() const;
+    void setExplicitStyle(QQStyleKitStyle *style);
+
     QFont font() const;
 
     QQStyleKitControlProperties *global() const;
@@ -136,9 +155,20 @@ public:
 
     QQSK::State controlState() const;
 
-    static void setTransitionEnabled(bool enabled);
-    static bool transitionEnabled();
-    static void resetAll();
+    void setControlTypeAndState(QQStyleKitExtendableControlType controlType, QQSK::State flags,
+                                bool applyStateChange = true);
+
+    QObject *target() const;
+    void setTarget(QObject *target);
+
+    // Called by componentComplete()
+    // Factored out so the widget style can call it
+    void setCompleted(bool completed);
+
+    bool transitionsEnabled() const;
+    void setTransitionsEnabled(bool enabled);
+
+    static void resetReadersForStyle(const QQStyleKitStyle *style);
 
     static QList<QQStyleKitReader *> s_allReaders;
 
@@ -161,10 +191,10 @@ private slots:
 
 protected:
     void classBegin() override {}
-    void componentComplete() override { m_completed = true; };
+    void componentComplete() override;
 
 private:
-    void updateControl();
+    void updateControl(bool applyStateChange = true);
     void populateLocalStorage();
     bool dontEmitChangedSignals() const;
 
@@ -189,6 +219,7 @@ private:
 
     bool m_dontEmitChangedSignals: 1;
     bool m_effectiveVariationsDirty: 1;
+    bool m_transitionsEnabled: 1;
     bool m_completed: 1;
 
     QPointer<QQuickPalette> m_palette;
@@ -202,12 +233,15 @@ private:
     QQuickStateGroup *m_stateGroup = nullptr;
     QQSK::Delegates m_trackedDelegates = QQSK::Delegate::NoDelegate;
 
+    QPointer<QObject> m_target;
+    QPointer<QQStyleKitStyle> m_explicitStyle;
     QPointer<QQStyleKitReader> m_parentReader;
     QList<QPointer<QQStyleKitVariation>> m_effectiveVariations;
 
     QQStyleKitControlProperties m_global;
 
-    static QMap<QString, QQmlComponent *> s_propertyChangesComponents;
+    using PropertyChangesComponents = QMap<std::pair<Qt::totally_ordered_wrapper<QQmlEngine*>, QString>, QQmlComponent *>;
+    static PropertyChangesComponents s_propertyChangesComponents;
 
     friend class QQStyleKitControlProperties;
     friend class QQStyleKitPropertyResolver;

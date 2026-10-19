@@ -1117,13 +1117,13 @@ void QDockWidgetPrivate::nonClientAreaMouseEvent(QMouseEvent *event)
             if (state == nullptr || !state->dragging)
                 break;
 
-#if !defined(Q_OS_MAC) && !defined(Q_OS_WASM)
+#if !defined(Q_OS_MACOS) && !defined(Q_OS_WASM) && !defined(Q_OS_HARMONY)
             if (state->nca)
                 endDrag(EndDragMode::LocationChange);
 #endif
             break;
         case QEvent::NonClientAreaMouseButtonRelease:
-#if defined(Q_OS_MAC) || defined(Q_OS_WASM)
+#if defined(Q_OS_MACOS) || defined(Q_OS_WASM) || defined(Q_OS_HARMONY)
                         if (state)
                             endDrag(EndDragMode::LocationChange);
 #endif
@@ -1275,7 +1275,7 @@ void QDockWidgetPrivate::setWindowState(WindowStates states, const QRect &rect)
     \l{QMainWindow::centralWidget()}{central widget} in a
     QMainWindow.
 
-    \image mainwindow-docks.png
+    \image mainwindow-docks.svg
            {Diagram of dock widget within toolbars and a container for widgets}
 
     Dock windows can be moved inside their current area, moved into

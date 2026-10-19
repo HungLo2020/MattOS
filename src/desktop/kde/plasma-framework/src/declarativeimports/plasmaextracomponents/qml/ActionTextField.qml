@@ -60,6 +60,15 @@ PlasmaComponents3.TextField {
     property alias focusSequence: focusShortcut.sequence
 
     /*!
+     \qmlproperty list<keysequence> ActionTextField::focusSequences
+     This property holds multiple shortcut sequences that will focus the text field.
+     \since 6.7
+
+     By default no shortcut is set.
+     */
+    property alias focusSequences: focusShortcut.sequences
+
+    /*!
       This property holds a list of actions that will be displayed on the left side of the text field.
 
       By default this list is empty.
@@ -145,6 +154,7 @@ PlasmaComponents3.TextField {
 
             PlasmaComponents3.ToolTip.visible: (hovered || activeFocus) && (text.length > 0)
             PlasmaComponents3.ToolTip.text: text
+            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
     }
 

@@ -20,8 +20,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_screen_changes-0");
-
 class ScreenChangesTest : public QObject
 {
     Q_OBJECT
@@ -35,7 +33,7 @@ private Q_SLOTS:
 
 void ScreenChangesTest::initTestCase()
 {
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({Rect(0, 0, 1280, 1024)});

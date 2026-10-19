@@ -18,7 +18,6 @@
 
 #include <unistd.h>
 
-#include "kcminit_interface.h"
 #include "ksmserver_interface.h"
 
 #include <KCompositeJob>
@@ -83,7 +82,6 @@ public:
     {
         qCDebug(PLASMA_SESSION) << "Phase 0";
         addSubjob(new AutoStartAppsJob(m_autostart, 0));
-        addSubjob(new KCMInitJob());
         addSubjob(new SleepJob());
     }
 };
@@ -141,27 +139,11 @@ Startup::Startup(QObject *parent)
 
     const AutoStart autostart;
 
-    KJob *x11WindowManagerJob = nullptr;
-    if (qEnvironmentVariable("XDG_SESSION_TYPE") != QLatin1String("wayland")) {
-        QString windowManager;
-        if (qEnvironmentVariableIsSet("KDEWM")) {
-            windowManager = qEnvironmentVariable("KDEWM");
-        }
-        if (windowManager.isEmpty()) {
-            windowManager = QStringLiteral(KWIN_BIN);
-        }
-
-        if (windowManager == QLatin1String(KWIN_BIN)) {
-            x11WindowManagerJob = new StartServiceJob(windowManager, {}, QStringLiteral("org.kde.KWin"));
-        } else {
-            x11WindowManagerJob = new StartServiceJob(windowManager, {}, {});
-        }
-    } else {
+    {
         // This must block until started as it sets the WAYLAND_DISPLAY/DISPLAY env variables needed for the rest of the boot
         // fortunately it's very fast as it's just starting a wrapper
         StartServiceJob kwinWaylandJob(QStringLiteral("kwin_wayland_wrapper"), {QStringLiteral("--xwayland")}, QStringLiteral("org.kde.KWinWrapper"));
         kwinWaylandJob.exec();
-        // kslpash is only launched in plasma-session from the wayland mode, for X it's in startplasma-x11
 
         const KConfig cfg(QStringLiteral("ksplashrc"));
         // the splashscreen and progress indicator
@@ -175,9 +157,7 @@ Startup::Startup(QObject *parent)
     m_lock.reset(new QEventLoopLocker);
 
     const QList<KJob *> sequence = {
-        new StartProcessJob(QStringLiteral("kcminit_startup"), {}),
         new StartServiceJob(QStringLiteral("kded6"), {}, QStringLiteral("org.kde.kded6"), {}),
-        x11WindowManagerJob,
         new StartServiceJob(QStringLiteral("ksmserver"), QCoreApplication::instance()->arguments().mid(1), QStringLiteral("org.kde.ksmserver")),
         new StartupPhase0(autostart, this),
         phase1 = new StartupPhase1(autostart, this),
@@ -205,7 +185,7 @@ void Startup::finishStartup()
 {
     qCDebug(PLASMA_SESSION) << "Finished";
 
-    playStartupSound();
+    QProcess::startDetached(QStringLiteral(CMAKE_INSTALL_FULL_LIBEXECDIR "/plasma-startup-sound"));
     new SessionTrack(m_processes);
     deleteLater();
 }
@@ -227,24 +207,6 @@ bool Startup::startDetached(QProcess *process)
 }
 
 Startup *Startup::s_self = nullptr;
-
-KCMInitJob::KCMInitJob()
-    : KJob()
-{
-}
-
-void KCMInitJob::start()
-{
-    org::kde::KCMInit kcminit(QStringLiteral("org.kde.kcminit"), QStringLiteral("/kcminit"), QDBusConnection::sessionBus());
-    kcminit.setTimeout(10 * 1000);
-
-    QDBusPendingReply<void> pending = kcminit.runPhase1();
-    auto *watcher = new QDBusPendingCallWatcher(pending, this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this]() {
-        emitResult();
-    });
-    connect(watcher, &QDBusPendingCallWatcher::finished, watcher, &QObject::deleteLater);
-}
 
 RestoreSessionJob::RestoreSessionJob()
     : KJob()

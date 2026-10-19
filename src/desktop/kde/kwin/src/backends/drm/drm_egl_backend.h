@@ -21,7 +21,6 @@ namespace KWin
 
 struct DmaBufAttributes;
 class BackendOutput;
-class DrmAbstractOutput;
 class DrmOutput;
 class DumbSwapchain;
 class DrmBackend;
@@ -38,34 +37,20 @@ class EglDisplay;
 class EglGbmBackend : public EglBackend, public DrmRenderBackend
 {
     Q_OBJECT
-public:
-    EglGbmBackend(DrmBackend *drmBackend);
-    ~EglGbmBackend() override;
 
-    DrmDevice *drmDevice() const override;
+public:
+    EglGbmBackend(DrmBackend *drmBackend, RenderDevice *device);
+    ~EglGbmBackend() override;
 
     QList<OutputLayer *> compatibleOutputLayers(BackendOutput *output) override;
 
-    void init() override;
+    bool init() override;
     std::unique_ptr<DrmPipelineLayer> createDrmPlaneLayer(DrmPlane *plane) override;
     std::unique_ptr<DrmPipelineLayer> createDrmPlaneLayer(DrmGpu *gpu, DrmPlane::TypeIndex type) override;
     std::unique_ptr<DrmOutputLayer> createLayer(DrmVirtualOutput *output) override;
 
-    DrmGpu *gpu() const;
-
-    EglDisplay *displayForGpu(DrmGpu *gpu);
-    std::shared_ptr<EglContext> contextForGpu(DrmGpu *gpu);
-    void resetContextForGpu(DrmGpu *gpu);
-
 private:
-    bool initializeEgl();
-    bool initRenderingContext();
-    EglDisplay *createEglDisplay(DrmGpu *gpu) const;
-
     DrmBackend *m_backend;
-    std::map<EglDisplay *, std::weak_ptr<EglContext>> m_contexts;
-
-    friend class EglGbmTexture;
 };
 
 } // namespace

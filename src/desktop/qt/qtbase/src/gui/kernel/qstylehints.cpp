@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qaccessibilityhints_p.h"
 #include <qstylehints.h>
@@ -202,6 +203,40 @@ const QAccessibilityHints *QStyleHints::accessibility() const
 }
 
 /*!
+    \property QStyleHints::toolTipWakeUpDelay
+    \brief The delay before tool tips should be shown.
+    \since 6.12
+    \sa QWidget::toolTip, {QtQuick.Controls::ToolTip::delay}
+*/
+std::chrono::milliseconds QStyleHints::toolTipWakeUpDelay() const
+{
+    Q_D(const QStyleHints);
+    return d->m_toolTipWakeUpDelay;
+}
+
+void QStyleHints::setToolTipWakeUpDelay(std::chrono::milliseconds toolTipWakeUpDelay)
+{
+    Q_D(QStyleHints);
+    if (d->m_toolTipWakeUpDelay == toolTipWakeUpDelay)
+        return;
+    d->m_toolTipWakeUpDelay = toolTipWakeUpDelay;
+    emit toolTipWakeUpDelayChanged(toolTipWakeUpDelay);
+    emit toolTipWakeUpDelayAsMSecChanged(toolTipWakeUpDelayAsMSec());
+}
+
+/*!
+    \property QStyleHints::toolTipWakeUpDelayAsMSec
+    \brief The delay, in milliseconds, before tool tips should be shown.
+    \since 6.12
+    \sa toolTipWakeUpDelay, {QtQuick.Controls::ToolTip::delay}
+*/
+int QStyleHints::toolTipWakeUpDelayAsMSec() const
+{
+    Q_D(const QStyleHints);
+    return q26::saturating_cast<int>(d->m_toolTipWakeUpDelay.count());
+}
+
+/*!
     Sets the \a mousePressAndHoldInterval.
     \internal
     \sa mousePressAndHoldInterval()
@@ -352,7 +387,7 @@ int QStyleHints::keyboardInputInterval() const
     \property QStyleHints::keyboardAutoRepeatRate
     \brief the rate, in events per second,  in which additional repeated key
     presses will automatically be generated if a key is being held down.
-    \deprecated [6.5] Use keyboardAutoRepeatRateF() instead
+    \deprecated [6.5] Use keyboardAutoRepeatRateF() instead.
 */
 int QStyleHints::keyboardAutoRepeatRate() const
 {
@@ -737,7 +772,9 @@ void QStyleHintsPrivate::update(const QPlatformTheme *theme)
 {
     Q_ASSERT(theme);
     updateColorScheme(theme->colorScheme());
-    QAccessibilityHintsPrivate::get(accessibilityHints())->updateContrastPreference(theme->contrastPreference());
+    auto *accessibilityHintsPrivate = QAccessibilityHintsPrivate::get(accessibilityHints());
+    accessibilityHintsPrivate->updateContrastPreference(theme->contrastPreference());
+    accessibilityHintsPrivate->updateMotionPreference(theme->motionPreference());
 }
 
 QAccessibilityHints *QStyleHintsPrivate::accessibilityHints() const

@@ -156,8 +156,8 @@ void Edge::reserve(QObject *object, const char *slot)
 void Edge::reserveTouchCallBack(QAction *action, TouchCallback::CallbackFunction callback)
 {
     if (std::any_of(m_touchCallbacks.constBegin(), m_touchCallbacks.constEnd(), [action](const TouchCallback &c) {
-            return c.touchUpAction() == action;
-        })) {
+        return c.touchUpAction() == action;
+    })) {
         return;
     }
     reserveTouchCallBack(TouchCallback(action, callback));
@@ -166,8 +166,8 @@ void Edge::reserveTouchCallBack(QAction *action, TouchCallback::CallbackFunction
 void Edge::reserveTouchCallBack(const TouchCallback &callback)
 {
     if (std::any_of(m_touchCallbacks.constBegin(), m_touchCallbacks.constEnd(), [callback](const TouchCallback &c) {
-            return c.touchUpAction() == callback.touchUpAction();
-        })) {
+        return c.touchUpAction() == callback.touchUpAction();
+    })) {
         return;
     }
     const bool wasTouch = activatesForTouchGesture();
@@ -242,10 +242,11 @@ bool Edge::activatesForPointer() const
     }
     const bool isMovingWindow = Workspace::self()->moveResizeWindow() && !Workspace::self()->moveResizeWindow()->isInteractiveResize();
     if (m_edges->isDesktopSwitching() || (m_edges->isDesktopSwitchingMovingClients() && isMovingWindow)) {
-        const bool canSwitch = (isLeft() && VirtualDesktopManager::self()->toLeft(nullptr, options->isRollOverDesktops()) != VirtualDesktopManager::self()->currentDesktop())
-            || (isRight() && VirtualDesktopManager::self()->toRight(nullptr, options->isRollOverDesktops()) != VirtualDesktopManager::self()->currentDesktop())
-            || (isBottom() && VirtualDesktopManager::self()->below(nullptr, options->isRollOverDesktops()) != VirtualDesktopManager::self()->currentDesktop())
-            || (isTop() && VirtualDesktopManager::self()->above(nullptr, options->isRollOverDesktops()) != VirtualDesktopManager::self()->currentDesktop());
+        VirtualDesktop *currentDesktop = VirtualDesktopManager::self()->currentDesktop(m_output);
+        const bool canSwitch = (isLeft() && VirtualDesktopManager::self()->toLeft(currentDesktop, options->isRollOverDesktops()) != currentDesktop)
+            || (isRight() && VirtualDesktopManager::self()->toRight(currentDesktop, options->isRollOverDesktops()) != currentDesktop)
+            || (isBottom() && VirtualDesktopManager::self()->below(currentDesktop, options->isRollOverDesktops()) != currentDesktop)
+            || (isTop() && VirtualDesktopManager::self()->above(currentDesktop, options->isRollOverDesktops()) != currentDesktop);
         if (canSwitch) {
             return true;
         }
@@ -365,17 +366,14 @@ bool Edge::canActivate(const QPoint &cursorPos, const std::chrono::microseconds 
 void Edge::handle(const QPoint &cursorPos)
 {
     Window *movingClient = Workspace::self()->moveResizeWindow();
-    if ((edges()->isDesktopSwitchingMovingClients() && movingClient && !movingClient->isInteractiveResize()) || (edges()->isDesktopSwitching() && isScreenEdge())) {
-        // always switch desktops in case:
-        // moving a Client and option for switch on client move is enabled
-        // or switch on screen edge is enabled
+    // When dragging a window, desktop switching takes unconditional priority.
+    if (edges()->isDesktopSwitchingMovingClients() && movingClient && !movingClient->isInteractiveResize()) {
         switchDesktop(cursorPos);
         return;
     }
+
     if (movingClient) {
-        // if we are moving a window we don't want to trigger the actions. This just results in
-        // problems, e.g. Desktop Grid activated or screen locker activated which just cannot
-        // work as we hold a grab.
+        // Holding a grab: don't trigger actions (Desktop Grid, screen locker, etc.)
         return;
     }
 
@@ -386,12 +384,15 @@ void Edge::handle(const QPoint &cursorPos)
         return;
     }
 
+    // Registered consumers (e.g. auto-hide panels) take priority over desktop switching.
     if (handlePointerAction() || handleByCallback()) {
         pushCursorBack(cursorPos);
         return;
     }
-    if (edges()->isDesktopSwitching() && isCorner()) {
-        // try again desktop switching for the corner
+
+    // Desktop switching fires only if no registered consumer handled the event.
+    // Applies to all screen edges including corners.
+    if (edges()->isDesktopSwitching()) {
         switchDesktop(cursorPos);
     }
 }
@@ -471,7 +472,7 @@ void Edge::switchDesktop(const QPoint &cursorPos)
 {
     QPoint pos(cursorPos);
     VirtualDesktopManager *vds = VirtualDesktopManager::self();
-    VirtualDesktop *oldDesktop = vds->currentDesktop();
+    VirtualDesktop *oldDesktop = vds->currentDesktop(m_output);
     VirtualDesktop *desktop = oldDesktop;
     const int OFFSET = 2;
     if (isLeft()) {
@@ -507,8 +508,8 @@ void Edge::switchDesktop(const QPoint &cursorPos)
             return;
         }
     }
-    vds->setCurrent(desktop);
-    if (vds->currentDesktop() != oldDesktop) {
+    vds->setCurrent(desktop, m_output);
+    if (vds->currentDesktop(m_output) != oldDesktop) {
         m_pushBackBlocked = true;
         input()->pointer()->warp(pos);
         auto unblockPush = [this] {
@@ -781,11 +782,11 @@ static ElectricBorderAction electricBorderAction(const QString &name)
         return ElectricActionShowDesktop;
     } else if (lowerName == QLatin1StringView("lockscreen")) {
         return ElectricActionLockScreen;
-    } else if (lowerName == QLatin1String("krunner")) {
+    } else if (lowerName == QLatin1StringView("krunner")) {
         return ElectricActionKRunner;
-    } else if (lowerName == QLatin1String("activitymanager")) {
+    } else if (lowerName == QLatin1StringView("activitymanager")) {
         return ElectricActionActivityManager;
-    } else if (lowerName == QLatin1String("applicationlauncher")) {
+    } else if (lowerName == QLatin1StringView("applicationlauncher")) {
         return ElectricActionApplicationLauncher;
     }
     return ElectricActionNone;

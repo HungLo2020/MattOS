@@ -11,13 +11,6 @@ ApplicationWindow {
     visible: true
 
     StyleKit.style: Style {
-        //! [stretch]
-        slider {
-            indicator.implicitWidth: Style.Stretch
-            indicator.implicitHeight: 6
-        }
-        //! [stretch]
-
         //! [dark]
         dark: Theme {
             control.background.color: "#404040"
@@ -49,7 +42,7 @@ ApplicationWindow {
 
     ComboBox {
         // Let the user select a different theme at run-time
-        model: StyleKit.style.themeNames
+        model: StyleKit.style.availableThemeNames
         onCurrentTextChanged: StyleKit.style.themeName = currentText
     }
     //! [themeName]

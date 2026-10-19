@@ -6,7 +6,8 @@
 
 #include "config-kwin.h"
 
-#include "utils/drm_format_helper.h"
+#include "core/drm_formats.h"
+#include "core/gpumanager.h"
 #include "wayland/display.h"
 #include "wayland/shmclientbuffer.h"
 #include "wayland/shmclientbuffer_p.h"
@@ -17,6 +18,11 @@
 #include <signal.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+
+#if defined(Q_OS_LINUX)
+#include <linux/dma-buf.h>
+#include <sys/ioctl.h>
+#endif
 
 namespace KWin
 {
@@ -34,6 +40,8 @@ static constexpr uint32_t s_formats[] = {
     WL_SHM_FORMAT_XBGR2101010,
     WL_SHM_FORMAT_ABGR16161616,
     WL_SHM_FORMAT_XBGR16161616,
+    WL_SHM_FORMAT_ABGR16161616F,
+    WL_SHM_FORMAT_XBGR16161616F,
 #endif
     WL_SHM_FORMAT_BGR888,
     WL_SHM_FORMAT_RGB888,
@@ -173,12 +181,24 @@ const struct wl_buffer_interface ShmClientBuffer::implementation = {
 ShmClientBuffer::ShmClientBuffer(ShmPool *pool, ShmAttributes attributes, wl_client *client, uint32_t id)
     : m_shmPool(pool)
     , m_shmAttributes(std::move(attributes))
+    , m_udmabufAttributes(GpuManager::self()->createUdmabuf(&m_shmAttributes))
 {
     m_shmPool->ref();
+    if (m_udmabufAttributes) {
+#if defined(Q_OS_LINUX)
+        // This START is for the corresponding END to work
+        // when the buffer is first referenced.
+        // It's needed to tell the kernel to take CPU-side
+        // writes into account for our future GPU-side reads.
+        struct dma_buf_sync sync = {
+            .flags = DMA_BUF_SYNC_START | DMA_BUF_SYNC_WRITE,
+        };
+        ioctl(m_udmabufAttributes->fd[0].get(), DMA_BUF_IOCTL_SYNC, &sync);
+#endif
+    }
 
-    connect(this, &GraphicsBuffer::released, [this]() {
-        wl_buffer_send_release(m_resource);
-    });
+    connect(this, &GraphicsBuffer::released, this, &ShmClientBuffer::onReleased);
+    connect(this, &GraphicsBuffer::referenced, this, &ShmClientBuffer::onReferenced);
 
     m_resource = wl_resource_create(client, &wl_buffer_interface, 1, id);
     wl_resource_set_implementation(m_resource, &implementation, this, buffer_destroy_resource);
@@ -188,6 +208,31 @@ ShmClientBuffer::~ShmClientBuffer()
 {
     Q_ASSERT(!m_shmAccess);
     m_shmPool->unref();
+}
+
+void ShmClientBuffer::onReferenced()
+{
+#if defined(Q_OS_LINUX)
+    if (m_udmabufAttributes) {
+        struct dma_buf_sync sync = {
+            .flags = DMA_BUF_SYNC_END | DMA_BUF_SYNC_WRITE,
+        };
+        ioctl(m_udmabufAttributes->fd[0].get(), DMA_BUF_IOCTL_SYNC, &sync);
+    }
+#endif
+}
+
+void ShmClientBuffer::onReleased()
+{
+#if defined(Q_OS_LINUX)
+    if (m_udmabufAttributes) {
+        struct dma_buf_sync sync = {
+            .flags = DMA_BUF_SYNC_START | DMA_BUF_SYNC_WRITE,
+        };
+        ioctl(m_udmabufAttributes->fd[0].get(), DMA_BUF_IOCTL_SYNC, &sync);
+    }
+#endif
+    wl_buffer_send_release(m_resource);
 }
 
 QSize ShmClientBuffer::size() const
@@ -203,6 +248,25 @@ bool ShmClientBuffer::hasAlphaChannel() const
 const ShmAttributes *ShmClientBuffer::shmAttributes() const
 {
     return &m_shmAttributes;
+}
+
+const DmaBufAttributes *ShmClientBuffer::udmabufAttributes() const
+{
+    return m_udmabufAttributes ? &*m_udmabufAttributes : nullptr;
+}
+uint32_t ShmClientBuffer::format() const
+{
+    return m_shmAttributes.format;
+}
+
+uint64_t ShmClientBuffer::modifier() const
+{
+    return DRM_FORMAT_MOD_LINEAR;
+}
+
+uint32_t ShmClientBuffer::pitch() const
+{
+    return m_shmAttributes.stride;
 }
 
 ShmClientBuffer *ShmClientBuffer::get(wl_resource *resource)

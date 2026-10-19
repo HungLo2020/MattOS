@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-nm\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-29 03:06+0000\n"
-"PO-Revision-Date: 2025-08-18 08:46+0200\n"
+"POT-Creation-Date: 2026-08-06 00:46+0000\n"
+"PO-Revision-Date: 2026-08-06 05:23+0200\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -16,35 +16,51 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.9\n"
 
 #: ui/ConnectDialog.qml:58
 #, kde-format
 msgid "Invalid input."
 msgstr "არასწორი შეყვანა."
 
-#: ui/ConnectionInfo.qml:15
+#: ui/ConnectionInfo.qml:16
 #, kde-format
 msgctxt "kcm page title"
 msgid "Connection Info for \"%1\""
 msgstr "კავშირის ინფორმაცია \"%1\"-სთვის"
 
-#: ui/ConnectionInfo.qml:22
+#: ui/ConnectionInfo.qml:55
 #, kde-format
 msgctxt "@title:group"
 msgid "Transfer Rates"
 msgstr "გადაცემის სიჩქარე"
 
-#: ui/ConnectionInfo.qml:38
+#: ui/ConnectionInfo.qml:71
 #, kde-format
 msgid "Connected, ↓ %1/s, ↑ %2/s"
 msgstr "დაკავშირებულია, ↓ %1/s, ↑ %2/s"
 
-#: ui/ConnectionInfo.qml:46
+#: ui/ConnectionInfo.qml:79
 #, kde-format
 msgctxt "@title:group"
 msgid "Connection Details"
 msgstr "კავშირის დეტალები"
+
+#: ui/ConnectionInfo.qml:100
+#, kde-format
+msgctxt "@title:group"
+msgid "Share"
+msgstr "გაზიარება"
+
+#: ui/ConnectionInfo.qml:107
+#, kde-format
+msgid "Share Wi-Fi via QR Code"
+msgstr "Wi-Fi-ის გაზიარება QR კოდით"
+
+#: ui/ConnectionInfo.qml:114
+#, kde-format
+msgid "Wi-Fi QR Code"
+msgstr "Wi-Fi-ის QR კოდი"
 
 #: ui/main.qml:26
 #, kde-format
@@ -58,19 +74,34 @@ msgstr "Wi-Fi"
 
 #: ui/main.qml:98
 #, kde-format
+msgid "Settings"
+msgstr "მორგება"
+
+#: ui/main.qml:107
+#, kde-format
 msgctxt "@title:group"
 msgid "Saved Networks"
 msgstr "შენახული ქსელები"
 
-#: ui/main.qml:135
+#: ui/main.qml:144
 #, kde-format
 msgid "Available Networks"
 msgstr "ხელმისაწვდომი ქსელები"
 
-#: ui/main.qml:169
+#: ui/main.qml:178
 #, kde-format
 msgid "Add Custom Connection"
 msgstr "დაამატეთ მორგებული კავშირი"
+
+#: ui/MorePage.qml:14
+#, kde-format
+msgid "Wi-Fi Settings"
+msgstr "Wi-Fi-ის მორგება"
+
+#: ui/MorePage.qml:21
+#, kde-format
+msgid "Notifications for connection changes"
+msgstr "გაფრთხილებები კავშირის ცვლილებისას"
 
 #: ui/NetworkSettings.qml:15
 #, kde-format
@@ -225,52 +256,5 @@ msgstr "DNS"
 msgid "Password…"
 msgstr "პაროლი…"
 
-#~ msgid "Connect"
-#~ msgstr "დაკავშირება"
-
-#~ msgid "Disconnect"
-#~ msgstr "გათიშვა"
-
-#~ msgid "Configure"
-#~ msgstr "მორგება"
-
-#~ msgid "Delete"
-#~ msgstr "წაშლა"
-
-#~ msgid "Connect to"
-#~ msgstr "დაკავშირება"
-
-#~ msgid "/s"
-#~ msgstr "/წმ"
-
-#~ msgid "Upload"
-#~ msgstr "ატვირთვა"
-
-#~ msgid "Download"
-#~ msgstr "გადმოწერა"
-
-#~ msgid "Wi-Fi is disabled"
-#~ msgstr "Wi-Fi გამორთულია"
-
-#~ msgid "Enable"
-#~ msgstr "ჩართვა"
-
-#~ msgid "Disable Wi-Fi"
-#~ msgstr "Wi-Fi-ის გამორთვა"
-
-#~ msgid "Show Saved Connections"
-#~ msgstr "შენახული კავშირების ჩვენება"
-
-#~ msgctxt "NAME OF TRANSLATORS"
-#~ msgid "Your names"
-#~ msgstr "Temuri Doghonadze"
-
-#~ msgctxt "EMAIL OF TRANSLATORS"
-#~ msgid "Your emails"
-#~ msgstr "Temuri.doghonadze@gmail.com"
-
-#~ msgid "Wi-Fi networks"
-#~ msgstr "Wi-Fi ქსელები"
-
-#~ msgid "Martin Kacej"
-#~ msgstr "Martin Kacej"
+#~ msgid "More"
+#~ msgstr "მეტი"

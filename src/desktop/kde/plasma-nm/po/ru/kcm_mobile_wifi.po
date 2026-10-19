@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the plasma-nm package.
 #
 # SPDX-FileCopyrightText: 2024 Olesya Gerasimenko <translation-team@basealt.ru>
-# SPDX-FileCopyrightText: 2018, 2019, 2020, 2021, 2025 Alexander Yavorsky <kekcuha@gmail.com>
+# SPDX-FileCopyrightText: 2018-2021, 2025-2026 Alexander Yavorsky <kekcuha@gmail.com>
 # Alexander Potashev <aspotashev@gmail.com>, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-nm\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-29 03:06+0000\n"
-"PO-Revision-Date: 2025-09-26 20:24+0200\n"
+"POT-Creation-Date: 2026-08-06 00:46+0000\n"
+"PO-Revision-Date: 2026-10-04 10:06+0200\n"
 "Last-Translator: Alexander Yavorskiy <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
@@ -18,35 +18,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.08.1\n"
+"X-Generator: Lokalize 26.08.0\n"
 
 #: ui/ConnectDialog.qml:58
 #, kde-format
 msgid "Invalid input."
 msgstr "Неверное значение."
 
-#: ui/ConnectionInfo.qml:15
+#: ui/ConnectionInfo.qml:16
 #, kde-format
 msgctxt "kcm page title"
 msgid "Connection Info for \"%1\""
 msgstr "Сведения о соединении «%1»"
 
-#: ui/ConnectionInfo.qml:22
+#: ui/ConnectionInfo.qml:55
 #, kde-format
 msgctxt "@title:group"
 msgid "Transfer Rates"
 msgstr "Скорость передачи"
 
-#: ui/ConnectionInfo.qml:38
+#: ui/ConnectionInfo.qml:71
 #, kde-format
 msgid "Connected, ↓ %1/s, ↑ %2/s"
-msgstr "Подключено, ↓ %1/с, ↓ %2/с"
+msgstr "Подключено, ↓ %1/с, ↑ %2/с"
 
-#: ui/ConnectionInfo.qml:46
+#: ui/ConnectionInfo.qml:79
 #, kde-format
 msgctxt "@title:group"
 msgid "Connection Details"
 msgstr "Подробные сведения"
+
+#: ui/ConnectionInfo.qml:100
+#, kde-format
+msgctxt "@title:group"
+msgid "Share"
+msgstr "Поделиться"
+
+#: ui/ConnectionInfo.qml:107
+#, kde-format
+msgid "Share Wi-Fi via QR Code"
+msgstr "Поделиться Wi‑Fi через QR‑код"
+
+#: ui/ConnectionInfo.qml:114
+#, kde-format
+msgid "Wi-Fi QR Code"
+msgstr "QR-код Wi-Fi"
 
 #: ui/main.qml:26
 #, kde-format
@@ -60,19 +76,34 @@ msgstr "Wi-Fi"
 
 #: ui/main.qml:98
 #, kde-format
+msgid "Settings"
+msgstr "Параметры"
+
+#: ui/main.qml:107
+#, kde-format
 msgctxt "@title:group"
 msgid "Saved Networks"
 msgstr "Сохранённые сети"
 
-#: ui/main.qml:135
+#: ui/main.qml:144
 #, kde-format
 msgid "Available Networks"
 msgstr "Доступные сети"
 
-#: ui/main.qml:169
+#: ui/main.qml:178
 #, kde-format
 msgid "Add Custom Connection"
 msgstr "Добавить другое соединение"
+
+#: ui/MorePage.qml:14
+#, kde-format
+msgid "Wi-Fi Settings"
+msgstr "Параметры Wi‑Fi"
+
+#: ui/MorePage.qml:21
+#, kde-format
+msgid "Notifications for connection changes"
+msgstr "Уведомления об изменении подключения"
 
 #: ui/NetworkSettings.qml:15
 #, kde-format
@@ -227,6 +258,9 @@ msgstr "DNS"
 msgid "Password…"
 msgstr "Пароль…"
 
+#~ msgid "More"
+#~ msgstr "Дополнительно"
+
 #~ msgid "Connect"
 #~ msgstr "Подключить"
 
@@ -251,9 +285,6 @@ msgstr "Пароль…"
 
 #~ msgid "Download"
 #~ msgstr "Приём"
-
-#~ msgid "Wi-Fi is disabled"
-#~ msgstr "Wi-Fi отключён"
 
 #~ msgid "Enable"
 #~ msgstr "Включить Wi-Fi"

@@ -13,8 +13,6 @@
 #include <QFuture>
 #include <QPointer>
 
-#include <KConfigWatcher>
-
 #include "config-workspace.h"
 #include "panelview.h"
 
@@ -103,7 +101,6 @@ protected Q_SLOTS:
 
 private Q_SLOTS:
     void slotContainmentChanged();
-    void slotScreenChanged(int newId);
     void screenGeometryChanged();
 
 Q_SIGNALS:
@@ -130,13 +127,7 @@ private:
     QString m_krunnerText;
     QFuture<QString> m_krunnerFuture;
 
-    // KRunner config
-    KConfigWatcher::Ptr m_configWatcher;
-    bool m_activateKRunnerWhenTypingOnDesktop;
-
-    // Accent color config
-    Plasma::Containment *m_containment = nullptr;
-    int m_containmentScreenId = -1;
+    QPointer<Plasma::Containment> m_containment = nullptr;
 
     bool m_enteredEditMode;
 

@@ -8,33 +8,172 @@
 # Roman Paholík <wizzardsk@gmail.com>, 2012, 2017.
 # Mthw <jari_45@hotmail.com>, 2018, 2019.
 # Matej Mrenica <matejm98mthw@gmail.com>, 2019, 2020, 2021, 2023.
-# SPDX-FileCopyrightText: 2026 Lucia Mrenica <lucia.mrenica@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmstyle\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2026-01-14 18:14+0100\n"
-"Last-Translator: Lucia Mrenica <lucia.mrenica@gmail.com>\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
+"PO-Revision-Date: 2026-09-14 20:10+0200\n"
+"Last-Translator: Roman Paholík <wizzardsk@gmail.com>\n"
 "Language-Team: Slovak <kde-i18n-doc@kde.org>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.12.1\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 23.04.3\n"
 
-#: gtkpage.cpp:58
+#: gtkpage.cpp:57
 #, kde-format
 msgid "%1 is not a valid GTK Theme archive."
 msgstr "%1 nie je platný archív GTK témy."
 
-#: kcmstyle.cpp:163 kcmstyle.cpp:170
+#: kcmstyle.cpp:117
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: Cannot install a style from a remote location."
+msgstr ""
+"Inštalácia zlyhala: Štýl sa nedá nainštalovať zo vzdialeného umiestnenia."
+
+#: kcmstyle.cpp:123
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The style file could not be read."
+msgstr "Inštalácia zlyhala: Súbor štýlu sa nedal prečítať."
+
+#: kcmstyle.cpp:128
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The style file does not contain any data."
+msgstr "Inštalácia zlyhala: Súbor štýlu neobsahuje žiadne dáta."
+
+#: kcmstyle.cpp:134
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The style file could not be unpacked."
+msgstr "Inštalácia zlyhala: Súbor štýlu sa nedal rozbaliť."
+
+#: kcmstyle.cpp:144
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The style could not be found."
+msgstr "Inštalácia zlyhala: Štýl sa nenašiel."
+
+#: kcmstyle.cpp:148
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The selected file is not a valid Union style."
+msgstr "Inštalácia zlyhala: Vybraný súbor nie je platný štýl Union."
+
+#: kcmstyle.cpp:151
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The selected style is not supported."
+msgstr "Inštalácia zlyhala: Vybraný štýl nie je podporovaný."
+
+#: kcmstyle.cpp:165
+#, kde-format
+msgctxt "@info:status"
+msgid "Installing “%1” failed: The style is already installed."
+msgstr "Inštalácia „%1“ zlyhala: Štýl je už nainštalovaný."
+
+#: kcmstyle.cpp:170
+#, kde-format
+msgctxt "@info:status"
+msgid "Installing “%1” failed: Permission was denied."
+msgstr "Inštalácia „%1“ zlyhala: Prístup bol odmietnutý."
+
+#: kcmstyle.cpp:174
+#, kde-format
+msgctxt "@info:status"
+msgid "Installing “%1” failed: %2"
+msgstr "Inštalácia „%1“ zlyhala: %2"
+
+#: kcmstyle.cpp:179
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully installed “%1”."
+msgstr "„%1“ bol úspešne nainštalovaný."
+
+#: kcmstyle.cpp:192
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstall failed: The style with ID “%1” could not be found."
+msgstr "Odinštalovanie zlyhalo: Štýl s ID „%1“ sa nenašiel."
+
+#: kcmstyle.cpp:202
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstalling “%1” failed: Permission was denied."
+msgstr "Odinštalovanie „%1“ zlyhalo: Prístup bol odmietnutý."
+
+#: kcmstyle.cpp:204
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstalling “%1” failed: The style is not installed."
+msgstr "Odinštalovanie „%1“ zlyhalo: Štýl nie je nainštalovaný."
+
+#: kcmstyle.cpp:206
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstalling “%1” failed: The style is in use."
+msgstr "Odinštalovanie „%1“ zlyhalo: Štýl sa používa."
+
+#: kcmstyle.cpp:208
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstalling “%1” failed: %2"
+msgstr "Odinštalovanie „%1“ zlyhalo: %2"
+
+#: kcmstyle.cpp:223
+#, kde-format
+msgctxt "@info:status"
+msgid "Could not uninstall styles:\n"
+msgstr "Nepodarilo sa odinštalovať štýly:\n"
+
+#: kcmstyle.cpp:226
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully uninstalled “%1” but could not uninstall others:\n"
+msgstr ""
+"„%1“ bol úspešne odinštalovaný, ale ostatné sa odinštalovať nepodarilo:\n"
+
+#: kcmstyle.cpp:229
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully uninstalled %1 style but could not uninstall others:\n"
+msgid_plural ""
+"Successfully uninstalled %1 styles but could not uninstall others:\n"
+msgstr[0] ""
+"Úspešne bol odinštalovaný %1 štýl, ale ostatné sa odinštalovať nepodarilo:\n"
+msgstr[1] ""
+"Úspešne boli odinštalované %1 štýly, ale ostatné sa odinštalovať "
+"nepodarilo:\n"
+msgstr[2] ""
+"Úspešne bolo odinštalovaných %1 štýlov, ale ostatné sa odinštalovať "
+"nepodarilo:\n"
+
+#: kcmstyle.cpp:240
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully uninstalled “%1”."
+msgstr "„%1“ bol úspešne odinštalovaný."
+
+#: kcmstyle.cpp:242
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully uninstalled %1 style"
+msgid_plural "Successfully uninstalled %1 styles."
+msgstr[0] "Úspešne bol odinštalovaný %1 štýl."
+msgstr[1] "Úspešne boli odinštalované %1 štýly."
+msgstr[2] "Úspešne bolo odinštalovaných %1 štýlov."
+
+#: kcmstyle.cpp:306 kcmstyle.cpp:313
 #, kde-format
 msgid "There was an error loading the configuration dialog for this style."
 msgstr "Nastala chyba počas načítavania dialógu nastavenia pre tento štýl."
 
-#: kcmstyle.cpp:276
+#: kcmstyle.cpp:420
 #, kde-format
 msgid "Failed to apply selected style '%1'."
 msgstr "Nepodarilo sa použiť vybratý štýl '%1'."
@@ -50,39 +189,45 @@ msgstr "Nastaviť %1"
 msgid "Tab 1"
 msgstr "Karta 1"
 
-#. i18n: ectx: property (text), widget (QPushButton, pushButton)
+#. i18n: ectx: property (format), widget (QProgressBar, progressBar)
 #: stylepreview.ui:65
+#, no-c-format, kde-format
+msgid "%p%"
+msgstr "%p%"
+
+#. i18n: ectx: property (text), widget (QPushButton, pushButton)
+#: stylepreview.ui:85
 #, kde-format
-msgid "Push Button"
+msgid "Button"
 msgstr "Tlačidlo"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, comboBox)
-#: stylepreview.ui:86
+#: stylepreview.ui:99
 #, kde-format
 msgid "Combo box"
 msgstr "Zoznam"
 
 #. i18n: ectx: property (text), widget (QCheckBox, checkBox)
-#: stylepreview.ui:96
+#: stylepreview.ui:109
 #, kde-format
 msgid "Checkbox"
 msgstr "Zaškrtávacie tlačidlo"
 
 #. i18n: ectx: property (text), widget (QRadioButton, radioButton_2)
 #. i18n: ectx: property (text), widget (QRadioButton, radioButton_1)
-#: stylepreview.ui:106 stylepreview.ui:116
+#: stylepreview.ui:119 stylepreview.ui:129
 #, kde-format
 msgid "Radio button"
 msgstr "Prepínač"
 
-#. i18n: ectx: property (format), widget (QProgressBar, progressBar)
-#: stylepreview.ui:128
-#, no-c-format, kde-format
-msgid "%p%"
-msgstr "%p%"
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, lineEdit)
+#: stylepreview.ui:138
+#, kde-format
+msgid "Text Field"
+msgstr "Textové pole"
 
 #. i18n: ectx: attribute (title), widget (QWidget, tab_2)
-#: stylepreview.ui:136
+#: stylepreview.ui:146
 #, kde-format
 msgid "Tab 2"
 msgstr "Karta 2"
@@ -93,26 +238,32 @@ msgstr "Karta 2"
 msgid "Application style"
 msgstr "Štýl aplikácií"
 
-#. i18n: ectx: label, entry (iconsOnButtons), group (KDE)
+#. i18n: ectx: label, entry (unionStyle), group (KDE)
 #: stylesettings.kcfg:13
+#, kde-format
+msgid "Union Style ID"
+msgstr "ID štýlu Union"
+
+#. i18n: ectx: label, entry (iconsOnButtons), group (KDE)
+#: stylesettings.kcfg:17
 #, kde-format
 msgid "Show icons on buttons"
 msgstr "Zobrazovať ikony na tlačidlách"
 
 #. i18n: ectx: label, entry (iconsInMenus), group (KDE)
-#: stylesettings.kcfg:17
+#: stylesettings.kcfg:21
 #, kde-format
 msgid "Show icons in menus"
 msgstr "Zobrazovať ikony v ponukách"
 
 #. i18n: ectx: label, entry (toolButtonStyle), group (Toolbar style)
-#: stylesettings.kcfg:23
+#: stylesettings.kcfg:27
 #, kde-format
 msgid "Main toolbar label"
 msgstr "Popisok hlavného panelu"
 
 #. i18n: ectx: label, entry (toolButtonStyleOtherToolbars), group (Toolbar style)
-#: stylesettings.kcfg:27
+#: stylesettings.kcfg:31
 #, kde-format
 msgid "Secondary toolbar label"
 msgstr "Popisok sekundárneho panelu"
@@ -173,50 +324,160 @@ msgstr "Popisok sekundárneho panelu:"
 msgid "GNOME/GTK Application Style"
 msgstr "GNOME/GTK Štýl aplikácií"
 
+#: ui/GtkStylePage.qml:38
+#, kde-format
+msgctxt "@action:button"
+msgid "Install from File…"
+msgstr "Nainštalovať zo súboru..."
+
 #: ui/GtkStylePage.qml:43
+#, kde-format
+msgctxt "@action:button"
+msgid "Get New…"
+msgstr "Získať nové komiksy…"
+
+#: ui/GtkStylePage.qml:60
 #, kde-format
 msgid "GTK theme:"
 msgstr "GTK téma:"
 
-#: ui/GtkStylePage.qml:68
+#: ui/GtkStylePage.qml:85
 #, kde-format
 msgid "Preview…"
 msgstr "Náhľad..."
 
-#: ui/GtkStylePage.qml:87
-#, kde-format
-msgid "Install from File…"
-msgstr "Nainštalovať zo súboru..."
-
-#: ui/GtkStylePage.qml:92
-#, kde-format
-msgid "Get New GNOME/GTK Application Styles…"
-msgstr "Získať nové štýly pre aplikácie GNOME/GTK..."
-
-#: ui/GtkStylePage.qml:108
+#: ui/GtkStylePage.qml:104
 #, kde-format
 msgid "Select GTK Theme Archive"
 msgstr "Vybrať archív s GTK témou"
 
-#: ui/GtkStylePage.qml:110
+#: ui/GtkStylePage.qml:106
 #, kde-format
 msgid "GTK Theme Archive (*.tar.xz *.tar.gz *.tar.bz2)"
 msgstr "Archív GTK témy (*.tar.xz *.tar.gz *.tar.bz2)"
 
-#: ui/main.qml:55
+#: ui/main.qml:85
+#, kde-format
+msgctxt "@action:button"
+msgid "Install From File…"
+msgstr "Nainštalovať zo súboru..."
+
+#: ui/main.qml:90
 #, kde-format
 msgid "Configure Icons and Toolbars…"
 msgstr "Nastaviť ikony a panely nástrojov..."
 
-#: ui/main.qml:73
+#: ui/main.qml:108
 #, kde-format
 msgid "Configure GNOME/GTK Application Style…"
 msgstr "Nastaviť štýl GNOME/GTK aplikácií..."
 
-#: ui/main.qml:106
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"This style is using the Union style engine which is still under development. "
+"Some things may look or behave incorrectly when using this style."
+msgstr ""
+"Tento štýl používa engine Union, ktorý je stále vo vývoji. Niektoré veci "
+"môžu pri jeho použití vyzerať alebo sa správať nesprávne."
+
+#: ui/main.qml:174
 #, kde-format
 msgid "Configure Style…"
 msgstr "Nastaviť štýl..."
+
+#: ui/main.qml:182
+#, kde-format
+msgctxt "@action:button"
+msgid "Uninstall…"
+msgstr "Odinštalovať…"
+
+#: ui/main.qml:184
+#, kde-format
+msgctxt "@action:button"
+msgid "Cannot uninstall system-installed styles."
+msgstr "Systémovo nainštalované štýly sa nedajú odinštalovať."
+
+#: ui/main.qml:186
+#, kde-format
+msgctxt "@action:button"
+msgid "Can only uninstall Union styles."
+msgstr "Odinštalovať sa dajú iba štýly Union."
+
+#: ui/main.qml:199
+#, kde-format
+msgid "Do not uninstall this style."
+msgstr "Neodinštalovať tento štýl."
+
+#: ui/main.qml:245
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Choose Union Style to Install"
+msgstr "Vyberte štýl Union na inštaláciu"
+
+#: ui/main.qml:246
+#, kde-format
+msgctxt "@action:button"
+msgid "Install"
+msgstr "Nainštalovať"
+
+#: ui/UnionThumbnailItem.qml:25
+#, kde-format
+msgctxt "@title:tab"
+msgid "Tab 1"
+msgstr "Karta 1"
+
+#: ui/UnionThumbnailItem.qml:29
+#, kde-format
+msgctxt "@title:tab"
+msgid "Tab 2"
+msgstr "Karta 2"
+
+#: ui/UnionThumbnailItem.qml:50
+#, kde-format
+msgctxt "@option:check"
+msgid "Checkbox"
+msgstr "Zaškrtávacie políčko"
+
+#: ui/UnionThumbnailItem.qml:56 ui/UnionThumbnailItem.qml:62
+#, kde-format
+msgctxt "@option:radio"
+msgid "Radio Button"
+msgstr "Prepínač"
+
+#: ui/UnionThumbnailItem.qml:84
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Combo Box"
+msgstr "Rozbaľovací zoznam"
+
+#: ui/UnionThumbnailItem.qml:85
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Combo Box Item"
+msgstr "Položka rozbaľovacieho zoznamu"
+
+#: ui/UnionThumbnailItem.qml:94
+#, kde-format
+msgctxt "@action:button"
+msgid "Button"
+msgstr "Tlačidlo"
+
+#: ui/UnionThumbnailItem.qml:107
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Text Field"
+msgstr "Textové pole"
+
+#: ui/UnionThumbnailItem.qml:122
+#, kde-format
+msgctxt "@item:inrange Progress bar value"
+msgid "%1%"
+msgstr "%1%"
+
+#~ msgid "Get New GNOME/GTK Application Styles…"
+#~ msgstr "Získať nové štýly pre aplikácie GNOME/GTK..."
 
 #~ msgid ""
 #~ "This module allows you to modify the visual appearance of applications' "
@@ -355,7 +616,6 @@ msgstr "Nastaviť štýl..."
 #~ msgstr "Tlačidlo titulkového panelu"
 
 #, fuzzy
-#~| msgid "Application Menu widget"
 #~ msgid "Global Menu widget"
 #~ msgstr "Widget ponuky aplikácie"
 

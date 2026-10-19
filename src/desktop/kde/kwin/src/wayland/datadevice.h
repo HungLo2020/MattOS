@@ -19,6 +19,7 @@ struct wl_resource;
 
 namespace KWin
 {
+
 class DataDeviceManagerInterface;
 class DataOfferInterface;
 class DataSourceInterface;
@@ -47,7 +48,7 @@ public:
     /**
      * Returns the position of the icon relative to the cursor's hotspot.
      */
-    QPoint position() const;
+    QPointF position() const;
 
     /**
      * Returns the underlying icon surface. This function always returns a valid surface.
@@ -79,6 +80,7 @@ private:
 class KWIN_EXPORT DataDeviceInterface : public AbstractDropHandler
 {
     Q_OBJECT
+
 public:
     virtual ~DataDeviceInterface();
 

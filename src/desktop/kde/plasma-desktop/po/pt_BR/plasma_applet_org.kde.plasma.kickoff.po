@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_org.kde.plasma.kickoff\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-05 02:42+0000\n"
-"PO-Revision-Date: 2026-01-08 07:43-0300\n"
+"POT-Creation-Date: 2026-09-10 00:48+0000\n"
+"PO-Revision-Date: 2026-04-10 07:04-0300\n"
 "Last-Translator: Marcus Gama <marcus.gama@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
 "Language: pt_BR\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #: code/tools.js:32
 #, kde-format
@@ -191,113 +191,107 @@ msgstr "Usar estilo de itens de lista compacta"
 
 #: ConfigGeneral.qml:187
 #, kde-format
-msgctxt "@info:usagetip under a checkbox when Touch Mode is on"
-msgid "Automatically disabled when in Touch Mode"
-msgstr "Desabilitar automaticamente no modo touch"
-
-#: ConfigGeneral.qml:195
-#, kde-format
 msgctxt "@option:check"
-msgid "Highlight newly installed applications"
+msgid "Highlight newly-installed applications"
 msgstr "Realçar aplicativos instalados recentemente"
 
-#: ConfigGeneral.qml:200
+#: ConfigGeneral.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Switch sidebar categories when hovering over them"
 msgstr "Alternar categorias da barra lateral ao passar o mouse"
 
-#: ConfigGeneral.qml:206
+#: ConfigGeneral.qml:198
 #, kde-format
 msgctxt "@action:button opens plasmasearch kcm"
 msgid "Configure Search Plugins…"
 msgstr "Configurar os plugins de pesquisa…"
 
-#: ConfigGeneral.qml:216
+#: ConfigGeneral.qml:208
 #, kde-format
 msgctxt "@label:group prefix for radio button group"
 msgid "Sidebar position:"
 msgstr "Posição da barra lateral:"
 
-#: ConfigGeneral.qml:217 ConfigGeneral.qml:225
+#: ConfigGeneral.qml:209 ConfigGeneral.qml:217
 #, kde-format
 msgctxt "@option:radio sidebar position"
 msgid "Right"
 msgstr "Direita"
 
-#: ConfigGeneral.qml:217
+#: ConfigGeneral.qml:209
 #, kde-format
 msgctxt "option:radio sidebar position"
 msgid "Left"
 msgstr "Esquerda"
 
-#: ConfigGeneral.qml:225
+#: ConfigGeneral.qml:217
 #, kde-format
 msgctxt "@option:radio sidebar position"
 msgid "Left"
 msgstr "Esquerda"
 
-#: ConfigGeneral.qml:233
+#: ConfigGeneral.qml:225
 #, kde-format
 msgctxt "@title:group prefix for radio button group"
 msgid "Show favorites:"
 msgstr "Mostrar favoritos:"
 
-#: ConfigGeneral.qml:234
+#: ConfigGeneral.qml:226
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show favorites in a grid'"
 msgid "In a grid"
 msgstr "Em uma grade"
 
-#: ConfigGeneral.qml:242
+#: ConfigGeneral.qml:234
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show favorites in a list'"
 msgid "In a list"
 msgstr "Em uma lista"
 
-#: ConfigGeneral.qml:250
+#: ConfigGeneral.qml:242
 #, kde-format
 msgctxt "@title:group prefix for radio button group"
 msgid "Show other applications:"
 msgstr "Mostrar outros aplicativos:"
 
-#: ConfigGeneral.qml:251
+#: ConfigGeneral.qml:243
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show other applications in a grid'"
 msgid "In a grid"
 msgstr "Em uma grade"
 
-#: ConfigGeneral.qml:259
+#: ConfigGeneral.qml:251
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show other applications in a list'"
 msgid "In a list"
 msgstr "Em uma lista"
 
-#: ConfigGeneral.qml:271
+#: ConfigGeneral.qml:263
 #, kde-format
 msgctxt "@title:group prefix for radio button group"
 msgid "Show buttons for:"
 msgstr "Mostrar botões para:"
 
-#: ConfigGeneral.qml:272
+#: ConfigGeneral.qml:264
 #, kde-format
 msgctxt "@option:radio Show buttons for"
 msgid "Power"
 msgstr "Energia"
 
-#: ConfigGeneral.qml:281
+#: ConfigGeneral.qml:273
 #, kde-format
 msgctxt "@option:radio Show buttons for"
 msgid "Session"
 msgstr "Sessão"
 
-#: ConfigGeneral.qml:290
+#: ConfigGeneral.qml:282
 #, kde-format
 msgctxt "@option:radio Show buttons for"
 msgid "Power and session"
 msgstr "Energia e sessão"
 
-#: ConfigGeneral.qml:299
+#: ConfigGeneral.qml:291
 #, kde-format
 msgctxt "@option:check"
 msgid "Show action button captions"
@@ -315,7 +309,7 @@ msgctxt "@title:tab kickoff sidebar tab"
 msgid "Places"
 msgstr "Locais"
 
-#: FullRepresentation.qml:133
+#: FullRepresentation.qml:143
 #, kde-format
 msgctxt "@info:status"
 msgid "No matches"
@@ -337,38 +331,36 @@ msgstr "Manter aberto"
 
 #: KickoffGridDelegate.qml:59
 #, kde-format
-msgctxt "@label Newly installed app, badge, keep short"
+msgctxt "@label Newly-installed app, badge, keep short"
 msgid "New!"
 msgstr "Novo!"
 
-#: KickoffGridDelegate.qml:60
+#: KickoffGridDelegate.qml:61
 #, kde-format
 msgctxt "@label Accessible name for badge"
-msgid "Newly installed application"
+msgid "Newly-installed application"
 msgstr "Aplicativo instalado recentemente"
 
-#: KickoffGridView.qml:105
+#: KickoffGridView.qml:116
 #, kde-format
 msgctxt "@info:whatsthis Accessible description"
 msgid "Grid with %1 rows, %2 columns"
 msgstr "Grade com %1 linhas e %2 colunas"
 
-#: KickoffListDelegate.qml:117
+#: KickoffListDelegate.qml:120
 #, kde-format
-msgctxt "Newly installed app, badge, keep short"
+msgctxt "Newly-installed app, badge, keep short"
 msgid "New!"
 msgstr "Novo!"
 
-#: KickoffListDelegate.qml:118
+#: KickoffListDelegate.qml:125
 #, kde-format
-msgctxt "@info:whatsthis Accessible description for badge"
-msgid "There is a newly installed application in this category"
+msgid "There is a newly-installed application in this category"
 msgstr "Existem aplicativos instalados recentemente nesta categoria"
 
-#: KickoffListDelegate.qml:119
+#: KickoffListDelegate.qml:126
 #, kde-format
-msgctxt "@info:whatsthis Accessible description for badge"
-msgid "Newly installed application"
+msgid "Newly-installed application"
 msgstr "Aplicativo instalado recentemente"
 
 #: LeaveButtons.qml:171
@@ -395,29 +387,41 @@ msgctxt "@title:menu menubutton"
 msgid "Session and Power"
 msgstr "Sessão e energia"
 
-#: main.qml:357
+#: main.qml:358
 #, kde-format
 msgctxt "@action:inmenu launches kmenuedit"
 msgid "Edit Applications…"
 msgstr "Editar aplicativos…"
 
-#: PlacesPage.qml:64
+#: PlacesPage.qml:61
 #, kde-format
 msgctxt "category in Places sidebar"
 msgid "Computer"
 msgstr "Computador"
 
-#: PlacesPage.qml:65
+#: PlacesPage.qml:62
 #, kde-format
 msgctxt "category in Places sidebar"
 msgid "History"
 msgstr "Histórico"
 
-#: PlacesPage.qml:66
+#: PlacesPage.qml:63
 #, kde-format
 msgctxt "category in Places sidebar"
 msgid "Frequently Used"
 msgstr "Usado frequentemente"
+
+#~ msgctxt "Newly installed app, badge, keep short"
+#~ msgid "New!"
+#~ msgstr "Novo!"
+
+#~ msgctxt "@info:whatsthis Accessible description for badge"
+#~ msgid "Newly installed application"
+#~ msgstr "Aplicativo instalado recentemente"
+
+#~ msgctxt "@info:usagetip under a checkbox when Touch Mode is on"
+#~ msgid "Automatically disabled when in Touch Mode"
+#~ msgstr "Desabilitar automaticamente no modo touch"
 
 #~ msgctxt "Part of a sentence: 'Show other applications in a grid'"
 #~ msgid "In a grid"

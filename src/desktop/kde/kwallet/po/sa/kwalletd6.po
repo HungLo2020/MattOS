@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwallet\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-18 00:41+0000\n"
+"POT-Creation-Date: 2026-09-19 00:41+0000\n"
 "PO-Revision-Date: 2024-12-24 20:39+0530\n"
 "Last-Translator: kali <shreekantkalwar@gmail.com>\n"
 "Language-Team: Sanskrit <kde-i18n-doc@kde.org>\n"
@@ -29,31 +29,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "skkalwar999@gmail.com"
 
-#. i18n: ectx: property (text), widget (QPushButton, _allowOnce)
-#: ksecretd/kbetterthankdialogbase.ui:50
-#, kde-format
-msgid "Allow &Once"
-msgstr "&एकदा अनुमन्यताम्"
-
-#. i18n: ectx: property (text), widget (QPushButton, _allowAlways)
-#: ksecretd/kbetterthankdialogbase.ui:60
-#, kde-format
-msgid "Allow &Always"
-msgstr "अनुमन्यताम् &सदा"
-
-#. i18n: ectx: property (text), widget (QPushButton, _deny)
-#: ksecretd/kbetterthankdialogbase.ui:67
-#, kde-format
-msgid "&Deny"
-msgstr "&अपह्नुते"
-
-#. i18n: ectx: property (text), widget (QPushButton, _denyForever)
-#: ksecretd/kbetterthankdialogbase.ui:74
-#, kde-format
-msgid "Deny &Forever"
-msgstr "अङ्गीकुरु &सदा"
-
-#: ksecretd/knewwalletdialog.cpp:50
+#: ksecretd/knewwalletdialog.cpp:49
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. This is used "
@@ -64,19 +40,7 @@ msgstr ""
 "एतस्य उपयोगः संवेदनशीलदत्तांशस्य सुरक्षितरूपेण संग्रहणार्थं भवति । कृपया अधः नूतनस्य बटुकस्य "
 "प्रकारं चिनोतु अथवा अनुप्रयोगस्य अनुरोधं नकारयितुं रद्दं नुदतु।</qt>"
 
-#: ksecretd/knewwalletdialog.cpp:55
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. This is used to store sensitive data in a secure fashion. "
-"Please choose the new wallet's type below or click cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>&#39; <b>%1</b> &#39; इति अनुप्रयोगेन &#39; <b>%2</b> &#39; इति नामकं नूतनं "
-"बटुकं निर्मातुं अनुरोधः कृतः । एतस्य उपयोगः संवेदनशीलदत्तांशस्य सुरक्षितरूपेण संग्रहणार्थं भवति । "
-"कृपया अधः नूतनस्य बटुकस्य प्रकारं चिनोतु अथवा अनुप्रयोगस्य अनुरोधं नकारयितुं रद्दं नुदतु।</qt>"
-
-#: ksecretd/knewwalletdialog.cpp:125 ksecretd/knewwalletdialog.cpp:132
+#: ksecretd/knewwalletdialog.cpp:117 ksecretd/knewwalletdialog.cpp:124
 #: ksecretd/kwalletwizard.cpp:151 ksecretd/kwalletwizard.cpp:157
 #, kde-format
 msgid ""
@@ -86,7 +50,7 @@ msgstr ""
 "GpgME पुस्तकालयः OpenPGP प्रोटोकॉलस्य कृते आरम्भं कर्तुं असफलः अभवत् । कृपया स्वस्य "
 "प्रणाल्याः विन्यासं पश्यन्तु ततः पुनः प्रयासं कुर्वन्तु ।"
 
-#: ksecretd/knewwalletdialog.cpp:153
+#: ksecretd/knewwalletdialog.cpp:145
 #, kde-format
 msgid ""
 "Seems that your system has no keys suitable for encryption. Please set-up at "
@@ -165,7 +129,7 @@ msgstr "क्लासिक, ब्लोफिश एन्क्रिप्
 msgid "Use GPG encryption, for better protection"
 msgstr "GPG एन्क्रिप्शनस्य उपयोगं कुर्वन्तु, उत्तमसंरक्षणार्थम्"
 
-#: ksecretd/ksecretd.cpp:616
+#: ksecretd/ksecretd.cpp:334
 #, kde-format
 msgid ""
 "<qt>KDE has requested to open the wallet '<b>%1</b>'. Please enter the "
@@ -174,31 +138,21 @@ msgstr ""
 "<qt>KDE इत्यनेन &#39; <b>%1</b> &#39; इति बटुकं उद्घाटयितुं अनुरोधः कृतः । कृपया अधः "
 "अस्य बटुकस्य गुप्तशब्दं प्रविशन्तु ।</qt>"
 
-#: ksecretd/ksecretd.cpp:620
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
-"b>'. Please enter the password for this wallet below.</qt>"
-msgstr ""
-"<qt>&#39; <b>%1</b> &#39; अनुप्रयोगेन &#39; <b>%2</b> &#39; बटुकं उद्घाटयितुं अनुरोधः "
-"कृतः । कृपया अधः अस्य बटुकस्य गुप्तशब्दं प्रविशन्तु ।</qt>"
-
 #. i18n( "&Open" ), "wallet-open"));
-#: ksecretd/ksecretd.cpp:631 ksecretd/ksecretd.cpp:740
-#: ksecretd/ksecretd.cpp:844 ksecretd/ksecretd.cpp:957
-#: ksecretd/ksecretd.cpp:980 ksecretd/ksecretd.cpp:991
-#: ksecretd/ksecretd.cpp:996 ksecretd/ksecretd.cpp:1586 ksecretd/main.cpp:160
-#: ksecretd/main.cpp:162
+#: ksecretd/ksecretd.cpp:342 ksecretd/ksecretd.cpp:429
+#: ksecretd/ksecretd.cpp:573 ksecretd/ksecretd.cpp:596
+#: ksecretd/ksecretd.cpp:607 ksecretd/ksecretd.cpp:612
+#: ksecretd/ksecretd.cpp:899 ksecretd/main.cpp:159 ksecretd/main.cpp:161
 #, kde-format
 msgid "KDE Wallet Service"
 msgstr "केडीई बटुआ सेवा"
 
-#: ksecretd/ksecretd.cpp:646
+#: ksecretd/ksecretd.cpp:356
 #, kde-format
 msgid "An application has requested to open a wallet (%1)."
 msgstr "एकेन अनुप्रयोगेन बटुकं (%1) उद्घाटयितुं अनुरोधः कृतः अस्ति ।"
 
-#: ksecretd/ksecretd.cpp:647
+#: ksecretd/ksecretd.cpp:357
 #, kde-format
 msgctxt ""
 "Text of a button for switching to the (unnamed) application requesting a "
@@ -206,19 +160,7 @@ msgctxt ""
 msgid "Switch there"
 msgstr "तत्र स्विच कुर्वन्तु"
 
-#: ksecretd/ksecretd.cpp:649
-#, kde-format
-msgid "<b>%1</b> has requested to open a wallet (%2)."
-msgstr "<b>%1 इत्यनेन</b> बटुकं उद्घाटयितुं अनुरोधः कृतः (%2) ।"
-
-#: ksecretd/ksecretd.cpp:651
-#, kde-format
-msgctxt ""
-"Text of a button for switching to the application requesting a password"
-msgid "Switch to %1"
-msgstr "%1 इत्यत्र स्विच कुर्वन्तु"
-
-#: ksecretd/ksecretd.cpp:668 ksecretd/ksecretd.cpp:750
+#: ksecretd/ksecretd.cpp:373 ksecretd/ksecretd.cpp:439
 #, kde-format
 msgid ""
 "<qt>Error opening the wallet '<b>%1</b>'. Please try again.<br />(Error code "
@@ -227,7 +169,7 @@ msgstr ""
 "<qt>&#39; <b>%1</b> &#39; बटुकं उद्घाटयितुं त्रुटिः । कृपया पुनः प्रयासं कुर्वन्तु।<br /> "
 "(दोषसङ्केतः %2: %3)</qt>"
 
-#: ksecretd/ksecretd.cpp:716
+#: ksecretd/ksecretd.cpp:420
 #, kde-format
 msgid ""
 "KDE has requested to open the wallet. This is used to store sensitive data "
@@ -238,19 +180,7 @@ msgstr ""
 "संग्रहणार्थं भवति । कृपया अस्मिन् बटुके सह उपयोगाय गुप्तशब्दं प्रविशन्तु अथवा अनुप्रयोगस्य "
 "अनुरोधं अङ्गीकुर्वितुं रद्दं नुदन्तु ।"
 
-#: ksecretd/ksecretd.cpp:721
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the KDE wallet. This "
-"is used to store sensitive data in a secure fashion. Please enter a password "
-"to use with this wallet or click cancel to deny the application's request.</"
-"qt>"
-msgstr ""
-"<qt>अनुप्रयोगेन &#39; <b>%1</b> &#39; KDE बटुकं उद्घाटयितुं अनुरोधः कृतः । एतस्य उपयोगः "
-"संवेदनशीलदत्तांशस्य सुरक्षितरूपेण संग्रहणार्थं भवति । कृपया अस्मिन् बटुके सह उपयोगाय गुप्तशब्दं "
-"प्रविशन्तु अथवा अनुप्रयोगस्य अनुरोधं अङ्गीकुर्वितुं रद्दं नुदन्तु ।</qt>"
-
-#: ksecretd/ksecretd.cpp:729
+#: ksecretd/ksecretd.cpp:425
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. Please "
@@ -260,39 +190,14 @@ msgstr ""
 "<qt>KDE इत्यनेन &#39; <b>%1</b> &#39; इति नामकं नूतनं बटुकं निर्मातुं अनुरोधः कृतः । "
 "कृपया अस्य बटुकस्य कृते गुप्तशब्दं चिनोतु, अथवा अनुप्रयोगस्य अनुरोधं नकारयितुं रद्दं कुर्वन्तु ।</qt>"
 
-#: ksecretd/ksecretd.cpp:734
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. Please choose a password for this wallet, or cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>&#39; <b>%1</b> &#39; इति अनुप्रयोगेन &#39; <b>%2</b> &#39; इति नामकं नूतनं "
-"बटुकं निर्मातुं अनुरोधः कृतः । कृपया अस्य बटुकस्य कृते गुप्तशब्दं चिनोतु, अथवा अनुप्रयोगस्य अनुरोधं "
-"नकारयितुं रद्दं कुर्वन्तु ।</qt>"
-
-#: ksecretd/ksecretd.cpp:846
-#, kde-format
-msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
-msgstr "<qt>KDE इत्यनेन &#39; <b>%1</b> &#39; इति मुक्तबटुके प्रवेशः अनुरोधितः ।</qt>"
-
-#: ksecretd/ksecretd.cpp:848
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested access to the open wallet '<b>"
-"%2</b>'.</qt>"
-msgstr ""
-"<qt>&#39; <b>%1</b> &#39; इति अनुप्रयोगेन &#39; <b>%2</b> &#39; इति मुक्तबटुके "
-"अभिगमनस्य अनुरोधः कृतः ।</qt>"
-
-#: ksecretd/ksecretd.cpp:956
+#: ksecretd/ksecretd.cpp:572
 #, kde-format
 msgid ""
 "Unable to open wallet. The wallet must be opened in order to change the "
 "password."
 msgstr "बटुकं उद्घाटयितुं असमर्थः। गुप्तशब्दं परिवर्तयितुं बटुकं उद्घाटितव्यम् ।"
 
-#: ksecretd/ksecretd.cpp:972
+#: ksecretd/ksecretd.cpp:588
 #, kde-format
 msgid ""
 "<qt>The <b>%1</b> wallet is encrypted using GPG key <b>%2</b>. Please use "
@@ -303,22 +208,22 @@ msgstr ""
 "कीलस्य सम्बद्धं गुप्तवाक्यं परिवर्तयितुं <b>GPG</b> साधनानां (यथा <b>kleopatra</b> ) "
 "उपयोगं कुर्वन्तु ।</qt>"
 
-#: ksecretd/ksecretd.cpp:979
+#: ksecretd/ksecretd.cpp:595
 #, kde-format
 msgid "<qt>Please choose a new password for the wallet '<b>%1</b>'.</qt>"
 msgstr "<qt>कृपया &#39; <b>%1</b> &#39; बटुकस्य कृते नूतनं गुप्तशब्दं चिनोतु ।</qt>"
 
-#: ksecretd/ksecretd.cpp:991
+#: ksecretd/ksecretd.cpp:607
 #, kde-format
 msgid "Error re-encrypting the wallet. Password was not changed."
 msgstr "बटुकं पुनः गुप्तीकरणे त्रुटिः। गुप्तशब्दः परिवर्तितः नासीत्।"
 
-#: ksecretd/ksecretd.cpp:996
+#: ksecretd/ksecretd.cpp:612
 #, kde-format
 msgid "Error reopening the wallet. Data may be lost."
 msgstr "बटुकं पुनः उद्घाटने त्रुटिः। दत्तांशः नष्टः भवितुम् अर्हति।"
 
-#: ksecretd/ksecretd.cpp:1585
+#: ksecretd/ksecretd.cpp:898
 #, kde-format
 msgid ""
 "There have been repeated failed attempts to gain access to a wallet. An "
@@ -530,48 +435,48 @@ msgstr ""
 msgid "What kind of encryption do you wish?"
 msgstr "भवान् कीदृशं एन्क्रिप्शनं इच्छति ?"
 
-#: ksecretd/main.cpp:164
+#: ksecretd/main.cpp:163
 #, fuzzy, kde-format
 #| msgid "(C) 2002-2013, The KDE Developers"
 msgid "(C) 2002-2025, The KDE Developers"
 msgstr "(C) 2002-2013, द केडीई डेवलपर्स"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Valentin Rusu"
 msgstr "वैलेन्टिन रुसु"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Former Maintainer, GPG backend support"
 msgstr "पूर्वं Maintainer, GPG backend समर्थनम्"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Michael Leupold"
 msgstr "माइकल ल्यूपोल्ड"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Former Maintainer"
 msgstr "पूर्व रखरखावकर्ता"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "George Staikos"
 msgstr "जार्ज स्टैइकोस"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "Former maintainer"
 msgstr "पूर्व परिपालक"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "Thiago Maceira"
 msgstr "थिआगो मसेरा"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "D-Bus Interface"
 msgstr "D-Bus अन्तरफलकम्"
@@ -668,52 +573,52 @@ msgstr ""
 "<qt><b>%1</b> बटुकं उद्घाटयितुं प्रयतमाने त्रुटिः । बटुकं GPG Key ID <b>%2</b> इत्यस्य "
 "उपयोगेन एन्क्रिप्टेड् आसीत् किन्तु एतत् कीलं भवतः प्रणाल्यां न प्राप्तम् ।</qt>"
 
-#: kwalletbackend/kwalletbackend.cc:272
+#: kwalletbackend/kwalletbackend.cc:286
 #, kde-format
 msgid "Already open."
 msgstr "पूर्वमेव उद्घाटितम्।"
 
-#: kwalletbackend/kwalletbackend.cc:274
+#: kwalletbackend/kwalletbackend.cc:288
 #, kde-format
 msgid "Error opening file."
 msgstr "सञ्चिकां उद्घाटयितुं त्रुटिः।"
 
-#: kwalletbackend/kwalletbackend.cc:276
+#: kwalletbackend/kwalletbackend.cc:290
 #, kde-format
 msgid "Not a wallet file."
 msgstr "न तु बटुकसञ्चिका।"
 
-#: kwalletbackend/kwalletbackend.cc:278
+#: kwalletbackend/kwalletbackend.cc:292
 #, kde-format
 msgid "Unsupported file format revision."
 msgstr "असमर्थितं सञ्चिकास्वरूपपुनरीक्षणम् ।"
 
-#: kwalletbackend/kwalletbackend.cc:282
+#: kwalletbackend/kwalletbackend.cc:296
 #, kde-format
 msgid "Unknown encryption scheme."
 msgstr "अज्ञात एन्क्रिप्शन योजना।"
 
-#: kwalletbackend/kwalletbackend.cc:284
+#: kwalletbackend/kwalletbackend.cc:298
 #, kde-format
 msgid "Corrupt file?"
 msgstr "दूषितसञ्चिका?"
 
-#: kwalletbackend/kwalletbackend.cc:286
+#: kwalletbackend/kwalletbackend.cc:300
 #, kde-format
 msgid "Error validating wallet integrity. Possibly corrupted."
 msgstr "बटुक अखण्डतां प्रमाणयितुं त्रुटिः। सम्भवतः दूषितः।"
 
-#: kwalletbackend/kwalletbackend.cc:290
+#: kwalletbackend/kwalletbackend.cc:304
 #, kde-format
 msgid "Read error - possibly incorrect password."
 msgstr "पठनदोषः - सम्भवतः अशुद्धगुप्तशब्दः।"
 
-#: kwalletbackend/kwalletbackend.cc:292
+#: kwalletbackend/kwalletbackend.cc:306
 #, kde-format
 msgid "Decryption error."
 msgstr "विगुप्तीकरणदोषः ।"
 
-#: kwalletbackend/kwalletbackend.cc:472
+#: kwalletbackend/kwalletbackend.cc:486
 #, kde-format
 msgid ""
 "Failed to sync wallet <b>%1</b> to disk. Error codes are:\n"
@@ -723,90 +628,158 @@ msgstr ""
 "बटुकं <b>%1</b> डिस्कं प्रति समन्वययितुं असफलम् । त्रुटिसङ्केताः सन्ति: RC <b>%2</b> SF <b>"
 "%3</b> । कृपया एतां सूचनां उपयुज्य bugs.kde.org इत्यत्र BUG प्रतिवेदनं दातव्यम्"
 
-#: kwalletd/kwalletd.cpp:119
+#: kwalletd/kwalletd.cpp:103
 #, kde-format
 msgid "Migrating the wallet \"%1\". Please provide the password to unlock."
 msgstr ""
 
-#: kwalletd/main.cpp:32
+#: kwalletd/main.cpp:31
 #, fuzzy, kde-format
 #| msgid "KWallet"
 msgid "kwalletd"
 msgstr "KWallet"
 
-#: kwalletd/main.cpp:34
+#: kwalletd/main.cpp:33
 #, kde-format
 msgid "A KWallet compatibility service, wrapping upon Secret Service"
 msgstr ""
 
-#: kwalletd/main.cpp:36
+#: kwalletd/main.cpp:35
 #, fuzzy, kde-format
 #| msgid "(C) 2002-2013, The KDE Developers"
 msgid "(C) 2025, The KDE Developers"
 msgstr "(C) 2002-2013, द केडीई डेवलपर्स"
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Marco Martin"
 msgstr ""
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Author"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:241
+#: kwalletd/secretserviceclient.cpp:262
 #, kde-format
 msgid "Item not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:261
+#: kwalletd/secretserviceclient.cpp:282
 #, kde-format
 msgid "Could not connect to Secret Service"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:423
+#: kwalletd/secretserviceclient.cpp:482
 #, kde-format
 msgid "Unable to unlock collectionName %1"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:515
+#: kwalletd/secretserviceclient.cpp:575
 #, kde-format
 msgid "No collections"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:552 kwalletd/secretserviceclient.cpp:599
-#: kwalletd/secretserviceclient.cpp:702
+#: kwalletd/secretserviceclient.cpp:612 kwalletd/secretserviceclient.cpp:659
+#: kwalletd/secretserviceclient.cpp:762
 #, kde-format
 msgid "No entries"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:617
+#: kwalletd/secretserviceclient.cpp:677
 #, kde-format
 msgid "Entry not found, key: %1, folder: %2"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:726
+#: kwalletd/secretserviceclient.cpp:786
 #, kde-format
 msgid "Unable to unlock item"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:769 kwalletd/secretserviceclient.cpp:887
+#: kwalletd/secretserviceclient.cpp:829 kwalletd/secretserviceclient.cpp:947
 #, kde-format
 msgid "Entry to rename not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:776
+#: kwalletd/secretserviceclient.cpp:836
 #, kde-format
 msgid "Entry named %1 in folder %2 and wallet %3 already exists."
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:791 kwalletd/secretserviceclient.cpp:806
+#: kwalletd/secretserviceclient.cpp:851 kwalletd/secretserviceclient.cpp:866
 #, kde-format
 msgid "Entry to rename incomplete"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:851
+#: kwalletd/secretserviceclient.cpp:911
 #, kde-format
 msgid "Failed to create SecretValue"
 msgstr ""
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. This is used to store sensitive data in a secure "
+#~ "fashion. Please choose the new wallet's type below or click cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>&#39; <b>%1</b> &#39; इति अनुप्रयोगेन &#39; <b>%2</b> &#39; इति नामकं नूतनं "
+#~ "बटुकं निर्मातुं अनुरोधः कृतः । एतस्य उपयोगः संवेदनशीलदत्तांशस्य सुरक्षितरूपेण संग्रहणार्थं "
+#~ "भवति । कृपया अधः नूतनस्य बटुकस्य प्रकारं चिनोतु अथवा अनुप्रयोगस्य अनुरोधं नकारयितुं रद्दं "
+#~ "नुदतु।</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
+#~ "b>'. Please enter the password for this wallet below.</qt>"
+#~ msgstr ""
+#~ "<qt>&#39; <b>%1</b> &#39; अनुप्रयोगेन &#39; <b>%2</b> &#39; बटुकं उद्घाटयितुं "
+#~ "अनुरोधः कृतः । कृपया अधः अस्य बटुकस्य गुप्तशब्दं प्रविशन्तु ।</qt>"
+
+#~ msgid "<b>%1</b> has requested to open a wallet (%2)."
+#~ msgstr "<b>%1 इत्यनेन</b> बटुकं उद्घाटयितुं अनुरोधः कृतः (%2) ।"
+
+#~ msgctxt ""
+#~ "Text of a button for switching to the application requesting a password"
+#~ msgid "Switch to %1"
+#~ msgstr "%1 इत्यत्र स्विच कुर्वन्तु"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the KDE wallet. "
+#~ "This is used to store sensitive data in a secure fashion. Please enter a "
+#~ "password to use with this wallet or click cancel to deny the "
+#~ "application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>अनुप्रयोगेन &#39; <b>%1</b> &#39; KDE बटुकं उद्घाटयितुं अनुरोधः कृतः । एतस्य "
+#~ "उपयोगः संवेदनशीलदत्तांशस्य सुरक्षितरूपेण संग्रहणार्थं भवति । कृपया अस्मिन् बटुके सह उपयोगाय "
+#~ "गुप्तशब्दं प्रविशन्तु अथवा अनुप्रयोगस्य अनुरोधं अङ्गीकुर्वितुं रद्दं नुदन्तु ।</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. Please choose a password for this wallet, or cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>&#39; <b>%1</b> &#39; इति अनुप्रयोगेन &#39; <b>%2</b> &#39; इति नामकं नूतनं "
+#~ "बटुकं निर्मातुं अनुरोधः कृतः । कृपया अस्य बटुकस्य कृते गुप्तशब्दं चिनोतु, अथवा अनुप्रयोगस्य "
+#~ "अनुरोधं नकारयितुं रद्दं कुर्वन्तु ।</qt>"
+
+#~ msgid "Allow &Once"
+#~ msgstr "&एकदा अनुमन्यताम्"
+
+#~ msgid "Allow &Always"
+#~ msgstr "अनुमन्यताम् &सदा"
+
+#~ msgid "&Deny"
+#~ msgstr "&अपह्नुते"
+
+#~ msgid "Deny &Forever"
+#~ msgstr "अङ्गीकुरु &सदा"
+
+#~ msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>KDE इत्यनेन &#39; <b>%1</b> &#39; इति मुक्तबटुके प्रवेशः अनुरोधितः ।</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested access to the open wallet "
+#~ "'<b>%2</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>&#39; <b>%1</b> &#39; इति अनुप्रयोगेन &#39; <b>%2</b> &#39; इति मुक्तबटुके "
+#~ "अभिगमनस्य अनुरोधः कृतः ।</qt>"

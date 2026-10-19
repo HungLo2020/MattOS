@@ -1,6 +1,5 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-
 #include "qqstylekitcontrol_p.h"
 #include "qqstylekitstyle_p.h"
 #include "qqstylekittheme_p.h"
@@ -75,9 +74,9 @@ QT_BEGIN_NAMESPACE
     \qmlproperty IndicatorStyle ControlStyleProperties::indicator
 
     Grouped property for styling the indicator of a control. For a
-    \l {AbstractStylableControls::}{checkBox}, the indicator is the
+    \l {StylableControls::}{checkBox}, the indicator is the
     frame, and its \l {IndicatorStyle::}{foreground} is the check mark.
-    For a \l {AbstractStylableControls::}{slider}, the indicator is
+    For a \l {StylableControls::}{slider}, the indicator is
     the groove, and the foreground is the fill.
 
     \sa DelegateStyle
@@ -172,7 +171,7 @@ QT_BEGIN_NAMESPACE
     \l {ControlStyleProperties::}{indicator}, or a sub-element like
     \l {IndicatorStyle::foreground}{indicator.foreground}.
     It provides properties for controlling
-    \l {DelegateStyle::implicitWidth}{size},
+    \l {DelegateStyle::width}{size},
     \l {DelegateStyle::}{color}, \l {DelegateStyle::}{border},
     \l {DelegateStyle::}{radius}, \l {DelegateStyle::}{shadow},
     \l {DelegateStyle::}{image}, \l {DelegateStyle::}{opacity}, and more.
@@ -328,16 +327,37 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty real DelegateStyle::implicitHeight
+    \qmlproperty real DelegateStyle::width
 
-    The implicit height of this delegate.
+    The width of this delegate.
+
+    \note This property will only set the delegate width when \l fillWidth is \c false. This also
+    applies when \l fillWidth is set higher up in the style hierarchy, for example
+    in the \l {Style::fallbackStyle}{fallback style}.
+
+    If this delegate is at the root of the control — for example the
+    \l {ControlStyleProperties::background}{background} or the
+    \l {ControlStyleProperties::indicator}{indicator} — it will also be included when
+    calculating the \l [QtQuick]{Item::implicitWidth}{implicit width} of the control, even when \l fillWidth is \c true.
+
+    \sa height, fillWidth, minimumWidth, {StyleKit Property Resolution}
 */
 
 /*!
-    \qmlproperty real DelegateStyle::implicitWidth
+    \qmlproperty real DelegateStyle::height
 
-    The implicit width of this delegate. Set this to \l {Style::Stretch}{Style.Stretch}
-    to make the delegate fill the available width of the control.
+    The height of this delegate.
+
+    \note This property will only set the delegate height when \l fillHeight is \c false. This also
+    applies when \l fillHeight is set higher up in the style hierarchy, for example
+    in the \l {Style::fallbackStyle}{fallback style}.
+
+    If this delegate is at the root of the control — for example the
+    \l {ControlStyleProperties::background}{background} or the
+    \l {ControlStyleProperties::indicator}{indicator} — it will also be included when
+    calculating the \l [QtQuick]{Item::implicitHeight}{implicit height} of the control, even when \l fillHeight is \c true.
+
+    \sa width, fillHeight, minimumHeight, {StyleKit Property Resolution}
 */
 
 /*!
@@ -364,6 +384,45 @@ QT_BEGIN_NAMESPACE
 
     The minimum width of this delegate. The delegate will not be sized
     smaller than this value.
+*/
+
+/*!
+    \qmlproperty real DelegateStyle::minimumHeight
+
+    The minimum height of this delegate. The delegate will not be sized
+    smaller than this value.
+*/
+
+/*!
+    \qmlproperty bool DelegateStyle::fillWidth
+
+    Whether the delegate should fill the available width of the parent item.
+
+    Some delegates, such as the groove of a \l [QtQuickControls]{Slider}, are
+    often expected to fill the available width of the control, rather than
+    having a fixed implicit width. This can be achieved by setting
+    \c fillWidth to \c true. To add some space between the delegate and the
+    edges of its parent, use the \l margins properties.
+
+    If \c fillWidth is \c false, the delegate's width is determined by its \l width.
+
+    \sa fillHeight, width
+*/
+
+/*!
+    \qmlproperty bool DelegateStyle::fillHeight
+
+    Whether the delegate should fill the available height of the parent item.
+
+    Some delegates, such as the foreground of a checkbox indicator, are often expected
+    to fill the available height (and width) of the indicator, rather than
+    having a fixed height. This can be achieved by setting
+    \c fillHeight to \c true. To add some space between the delegate and the
+    edges of its parent, use the \l margins properties.
+
+    If \c fillHeight is \c false, the delegate's height is determined by its \l height.
+
+    \sa fillWidth, height
 */
 
 /*!
@@ -663,9 +722,11 @@ QT_BEGIN_NAMESPACE
 
     SubIndicatorStyle extends \l DelegateStyle with a \l foreground
     property. It is used for styling sub-indicator delegates such as
-    \l {IndicatorStyle::up}{indicator.up} and
-    \l {IndicatorStyle::down}{indicator.down} in controls
-    like \l [QtQuickControls]{SpinBox}.
+    \l {IndicatorStyle::first}{indicator.first} and
+    \l {IndicatorStyle::second}{indicator.second} in controls
+    with multiple indicators, like \l [QtQuickControls]{SpinBox}.
+    For SpinBox, \c {indicator.first} styles the increment button, and
+    \c {indicator.second} styles the decrement button.
     It is equivalent to \l IndicatorStyle, but does not itself
     contain sub-indicators.
 
@@ -698,19 +759,27 @@ QT_BEGIN_NAMESPACE
     \l foreground describes the content drawn inside it. For example,
     \c {checkBox.indicator} styles the check box frame and
     \c {checkBox.indicator.foreground} styles the check mark. For
-    \l {AbstractStylableControls::}{switchControl},
-    \l {AbstractStylableControls::}{slider} and
-    \l {AbstractStylableControls::}{progressBar}, the indicator styles
+    \l {StylableControls::}{switchControl},
+    \l {StylableControls::}{slider} and
+    \l {StylableControls::}{progressBar}, the indicator styles
     the groove and the foreground styles the fill.
 
     \snippet DelegateStyle_indicator.qml checkBox
 
     Some controls have more than one indicator. For example,
     \l [QtQuickControls]{SpinBox} has both an increment and a decrement
-    button. These can be styled independently using the \l up and \l down
-    sub-indicators, \c {spinBox.indicator.up} and
-    \c {spinBox.indicator.down}. Properties not set on a sub-indicator
-    fall back to the indicator itself.
+    button. These can be styled independently using the \l first and \l second
+    sub-indicators, \c {spinBox.indicator.first} and
+    \c {spinBox.indicator.second}. For SpinBox, \c {indicator.first} styles
+    the increment button, and \c {indicator.second} styles the decrement
+    button. Properties not set on a sub-indicator fall back to the indicator
+    itself.
+
+    \note The \c up and \c down properties are kept as aliases for
+    \c first and \c second for backward compatibility. New code
+    should use \c first and \c second, as these names are generic and can be
+    used by controls with sub-indicators that do not represent up/down actions.
+    The compatibility aliases may be removed in a future version.
 
     \snippet DelegateStyle_indicator.qml up and down indicator
 
@@ -721,37 +790,48 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty SubIndicatorStyle IndicatorStyle::down
-
-    Grouped property for styling the down (decrement) sub-indicator.
-    This is used by controls such as \l [QtQuickControls]{SpinBox}.
-    Unset properties fall back to the indicator itself.
-
-    \sa up
-*/
-
-/*!
     \qmlproperty DelegateStyle IndicatorStyle::foreground
 
     Grouped property for styling the foreground element of this
     indicator. For example, \c {checkBox.indicator} describes
     the check box frame, while \c {checkBox.indicator.foreground} is the check mark.
 
-    For controls like \l {AbstractStylableControls::}{slider},
-    \l {AbstractStylableControls::}{progressBar}, and
-    \l {AbstractStylableControls::}{switchControl}, the \c {indicator.foreground}
+    For controls like \l {StylableControls::}{slider},
+    \l {StylableControls::}{progressBar}, and
+    \l {StylableControls::}{switchControl}, the \c {indicator.foreground}
     represents the progress track or fill within the groove, while the \c indicator
     itself represents the groove.
 */
 
 /*!
-    \qmlproperty SubIndicatorStyle IndicatorStyle::up
+    \qmlproperty SubIndicatorStyle IndicatorStyle::first
 
-    Grouped property for styling the up (increment) sub-indicator.
-    This is used by controls such as \l [QtQuickControls]{SpinBox}.
+    Grouped property for styling the first sub-indicator of controls that
+    expose multiple indicators. For \l [QtQuickControls]{SpinBox}, this
+    styles the increment button.
     Unset properties fall back to the indicator itself.
 
-    \sa down
+    \note The \c up property is kept as an alias for \c first for backward
+    compatibility. New code should use \c first, as this name is generic
+    and can be used by controls with sub-indicators that do not represent
+    up actions. The compatibility alias may be removed in a future version.
+
+    \sa second
+*/
+
+/*!
+    \qmlproperty SubIndicatorStyle IndicatorStyle::second
+
+    Grouped property for styling the second sub-indicator of for example a
+    \l [QtQuickControls]{SpinBox}.
+    Unset properties fall back to the indicator itself.
+
+    \note The \c down property is kept as an alias for \c second for backward
+    compatibility. New code should use \c second, as this name is generic
+    and can be used by controls with sub-indicators that do not represent
+    down actions. The compatibility alias may be removed in a future version.
+
+    \sa first
 */
 
 // ************* TextStyle ****************
@@ -858,6 +938,26 @@ QT_BEGIN_NAMESPACE
     \l padding.
 
     \sa padding, bottomPadding, leftPadding, rightPadding
+*/
+
+/*!
+    \qmlproperty TextStyle TextStyle::first
+
+    Grouped property for styling the first text element in controls that
+    expose two separate text labels. Unset properties fall back to
+    \l {ControlStyleProperties::text}{text} itself.
+
+    \sa second
+*/
+
+/*!
+    \qmlproperty TextStyle TextStyle::second
+
+    Grouped property for styling the second text element in controls that
+    expose two separate text labels.  Unset properties fall back to
+    \l {ControlStyleProperties::text}{text} itself.
+
+    \sa first
 */
 
 // ************* QQStyleKitPropertyGroup ****************
@@ -1038,8 +1138,18 @@ void QQStyleKitPropertyGroup::handleStylePropertiesChanged(CHANGED_SIGNALS... ch
          * syncing it's own local storage with old values before starting a transition), we
          * emit the signal like normal. This will cause the control to repaint (perhaps
          * using a transition). */
-        if (shouldEmitLocally())
-            ((group->*changedSignals)(), ...);
+        if (shouldEmitLocally()) {
+            QQStyleKitReader *reader = controlProperties()->asQQStyleKitReader();
+            /* Readers notify their consumer in two different ways depending on who is
+             * consuming them. A QML control binds to the reader's change signals, so we
+             * emit those directly. A widget consumer (m_target set) doesn't listen on
+             * signals; it repaints in response to a QEvent::StyleAnimationUpdate posted
+             * to the widget, and only while a transition is actually running. */
+            if (!reader->m_target)
+                ((group->*changedSignals)(), ...);
+            else
+                QCoreApplication::postEvent(reader->m_target, new QEvent(QEvent::StyleAnimationUpdate));
+        }
         return;
     }
 
@@ -1412,26 +1522,26 @@ void QQStyleKitDelegateProperties::setRotation(qreal rotation)
         handleStylePropertyChanged(&QQStyleKitDelegateProperties::rotationChanged);
 }
 
-qreal QQStyleKitDelegateProperties::implicitWidth() const
+qreal QQStyleKitDelegateProperties::width() const
 {
-    return styleProperty<qreal>(QQSK::Property::ImplicitWidth);
+    return styleProperty<qreal>(QQSK::Property::Width);
 }
 
-void QQStyleKitDelegateProperties::setImplicitWidth(qreal width)
+void QQStyleKitDelegateProperties::setWidth(qreal width)
 {
-    if (setStyleProperty(QQSK::Property::ImplicitWidth, width))
-        handleStylePropertyChanged(&QQStyleKitDelegateProperties::implicitWidthChanged);
+    if (setStyleProperty(QQSK::Property::Width, width))
+        handleStylePropertyChanged(&QQStyleKitDelegateProperties::widthChanged);
 }
 
-qreal QQStyleKitDelegateProperties::implicitHeight() const
+qreal QQStyleKitDelegateProperties::height() const
 {
-    return styleProperty<qreal>(QQSK::Property::ImplicitHeight);
+    return styleProperty<qreal>(QQSK::Property::Height);
 }
 
-void QQStyleKitDelegateProperties::setImplicitHeight(qreal height)
+void QQStyleKitDelegateProperties::setHeight(qreal height)
 {
-    if (setStyleProperty(QQSK::Property::ImplicitHeight, height))
-        handleStylePropertyChanged(&QQStyleKitDelegateProperties::implicitHeightChanged);
+    if (setStyleProperty(QQSK::Property::Height, height))
+        handleStylePropertyChanged(&QQStyleKitDelegateProperties::heightChanged);
 }
 
 qreal QQStyleKitDelegateProperties::minimumWidth() const
@@ -1443,6 +1553,39 @@ void QQStyleKitDelegateProperties::setMinimumWidth(qreal width)
 {
     if (setStyleProperty(QQSK::Property::MinimumWidth, width))
         handleStylePropertyChanged(&QQStyleKitDelegateProperties::minimumWidthChanged);
+}
+
+qreal QQStyleKitDelegateProperties::minimumHeight() const
+{
+    return styleProperty<qreal>(QQSK::Property::MinimumHeight);
+}
+
+void QQStyleKitDelegateProperties::setMinimumHeight(qreal height)
+{
+    if (setStyleProperty(QQSK::Property::MinimumHeight, height))
+        handleStylePropertyChanged(&QQStyleKitDelegateProperties::minimumHeightChanged);
+}
+
+bool QQStyleKitDelegateProperties::fillWidth() const
+{
+    return styleProperty<bool>(QQSK::Property::FillWidth);
+}
+
+void QQStyleKitDelegateProperties::setFillWidth(bool fill)
+{
+    if (setStyleProperty(QQSK::Property::FillWidth, fill))
+        handleStylePropertyChanged(&QQStyleKitDelegateProperties::fillWidthChanged);
+}
+
+bool QQStyleKitDelegateProperties::fillHeight() const
+{
+    return styleProperty<bool>(QQSK::Property::FillHeight);
+}
+
+void QQStyleKitDelegateProperties::setFillHeight(bool fill)
+{
+    if (setStyleProperty(QQSK::Property::FillHeight, fill))
+        handleStylePropertyChanged(&QQStyleKitDelegateProperties::fillHeightChanged);
 }
 
 qreal QQStyleKitDelegateProperties::margins() const
@@ -1639,8 +1782,8 @@ void QQStyleKitIndicatorProperties::emitGlobally(
 {
     // Go through all instances of QQStyleKitIndicatorProperties
     const QQStyleKitControlProperties *cp = controlProperties();
-    CONDITIONALLY_EMIT_SIGNALS_GLOBALLY_FOR(cp, indicator()->up());
-    CONDITIONALLY_EMIT_SIGNALS_GLOBALLY_FOR(cp, indicator()->down());
+    CONDITIONALLY_EMIT_SIGNALS_GLOBALLY_FOR(cp, indicator()->first());
+    CONDITIONALLY_EMIT_SIGNALS_GLOBALLY_FOR(cp, indicator()->second());
 }
 
 QQStyleKitDelegateProperties *QQStyleKitIndicatorProperties::foreground() const
@@ -1672,12 +1815,22 @@ QQStyleKitDelegateProperties *QQStyleKitIndicatorWithSubTypes::foreground() cons
 
 QQStyleKitIndicatorProperties *QQStyleKitIndicatorWithSubTypes::up() const
 {
-    return lazyCreateGroup(m_up, QQSK::PropertyGroup::DelegateSubtype1);
+    return first();
 }
 
 QQStyleKitIndicatorProperties *QQStyleKitIndicatorWithSubTypes::down() const
 {
-    return lazyCreateGroup(m_down, QQSK::PropertyGroup::DelegateSubtype2);
+    return second();
+}
+
+QQStyleKitIndicatorProperties *QQStyleKitIndicatorWithSubTypes::first() const
+{
+    return lazyCreateGroup(m_first, QQSK::PropertyGroup::DelegateSubtype1);
+}
+
+QQStyleKitIndicatorProperties *QQStyleKitIndicatorWithSubTypes::second() const
+{
+    return lazyCreateGroup(m_second, QQSK::PropertyGroup::DelegateSubtype2);
 }
 
 // ************* QQStyleKitTextProperties ****************
@@ -1692,6 +1845,8 @@ void QQStyleKitTextProperties::emitGlobally(
 {
     const QQStyleKitControlProperties *cp = controlProperties();
     CONDITIONALLY_EMIT_SIGNALS_GLOBALLY_FOR(cp, text());
+    CONDITIONALLY_EMIT_SIGNALS_GLOBALLY_FOR(cp, text()->first());
+    CONDITIONALLY_EMIT_SIGNALS_GLOBALLY_FOR(cp, text()->second());
 }
 
 QColor QQStyleKitTextProperties::color() const
@@ -1809,6 +1964,16 @@ void QQStyleKitTextProperties::setBottomPadding(qreal padding)
         handleStylePropertyChanged(&QQStyleKitTextProperties::bottomPaddingChanged);
 }
 
+QQStyleKitTextProperties *QQStyleKitTextProperties::first() const
+{
+    return lazyCreateGroup(m_first, QQSK::PropertyGroup::DelegateSubtype1);
+}
+
+QQStyleKitTextProperties *QQStyleKitTextProperties::second() const
+{
+    return lazyCreateGroup(m_second, QQSK::PropertyGroup::DelegateSubtype2);
+}
+
 // ************* QQStyleKitControlProperties ****************
 
 QQStyleKitControlProperties::QQStyleKitControlProperties(QQSK::PropertyGroup group, QObject *parent)
@@ -1850,11 +2015,13 @@ QQStyleKitStyle *QQStyleKitControlProperties::style() const
         return obj ? static_cast<QQStyleKitStyle *>(obj) : nullptr;
     }
 
-    /* A style reader belongs to the currently active application style. We could in theory
-     * support being able to point a QQStyleKitReader to any style, which would basically
-     * mean that you could mix controls from several styles inside the same application. But
-     * there is currently no API (or use-case?) in Controls that lets you to do that, so its
-     * disabled for now. */
+    if (subclass() == QQSK::Subclass::QQStyleKitReader) {
+        const auto *reader = static_cast<const QQStyleKitReader *>(this);
+        if (reader->m_explicitStyle)
+            return reader->m_explicitStyle;
+    }
+
+    // For a QQStyleKitReader without an explicit style, we return the currently active style for now
     return QQStyleKitStyle::current();
 }
 
@@ -1897,15 +2064,15 @@ void QQStyleKitControlProperties::forEachUsedDelegate(
         f(m_indicator, QQSK::Delegate::Indicator, "indicator"_L1);
         if (m_indicator->m_foreground)
             f(m_indicator->m_foreground, QQSK::Delegate::IndicatorForeground, "indicator.foreground"_L1);
-        if (m_indicator->m_up) {
-            f(m_indicator->m_up, QQSK::Delegate::IndicatorUp, "indicator.up"_L1);
-            if (m_indicator->m_up->m_foreground)
-                f(m_indicator->m_up->m_foreground, QQSK::Delegate::IndicatorUpForeground, "indicator.up.foreground"_L1);
+        if (m_indicator->m_first) {
+            f(m_indicator->m_first, QQSK::Delegate::IndicatorFirst, "indicator.first"_L1);
+            if (m_indicator->m_first->m_foreground)
+                f(m_indicator->m_first->m_foreground, QQSK::Delegate::IndicatorFirstForeground, "indicator.first.foreground"_L1);
         }
-        if (m_indicator->m_down) {
-            f(m_indicator->m_down, QQSK::Delegate::IndicatorDown, "indicator.down"_L1);
-            if (m_indicator->m_down->m_foreground)
-                f(m_indicator->m_down->m_foreground, QQSK::Delegate::IndicatorDownForeground, "indicator.down.foreground"_L1);
+        if (m_indicator->m_second) {
+            f(m_indicator->m_second, QQSK::Delegate::IndicatorSecond, "indicator.second"_L1);
+            if (m_indicator->m_second->m_foreground)
+                f(m_indicator->m_second->m_foreground, QQSK::Delegate::IndicatorSecondForeground, "indicator.second.foreground"_L1);
         }
     }
 

@@ -16,7 +16,13 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Widgets)
 
 qt_add_executable(audiosource
     audiosource.cpp audiosource.h
+    audiorecorder.cpp audiorecorder.h
     main.cpp
+    3rdparty/dr_libs/dr_wav.h
+)
+
+target_include_directories(audiosource SYSTEM PRIVATE
+    3rdparty
 )
 
 qt_add_ios_ffmpeg_libraries(audiosource)

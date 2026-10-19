@@ -1,10 +1,12 @@
 configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-add_subdirectory(tools/kiconfinder)
+if(NOT IOS)
+    add_subdirectory(tools/kiconfinder)
+endif()
 if (KICONTHEMES_USE_QTQUICK)
     add_subdirectory(qml)
 endif()
-if (APPLE)
+if(APPLE AND NOT IOS)
     add_subdirectory(tools/ksvg2icns)
 endif()
 
@@ -51,7 +53,7 @@ ecm_generate_export_header(KF6IconThemes
     VERSION ${KF_VERSION}
     USE_VERSION_HEADER
     DEPRECATED_BASE_VERSION 0
-    DEPRECATION_VERSIONS 5.0 6.5 6.20
+    DEPRECATION_VERSIONS 5.0 6.5 6.20 6.31
     EXCLUDE_DEPRECATED_BEFORE_AND_AT ${EXCLUDE_DEPRECATED_BEFORE_AND_AT}
 )
 
@@ -79,7 +81,7 @@ if(TARGET KF6::BreezeIcons)
     )
 endif ()
 
-ecm_generate_headers(KIconThemes_HEADERS
+ecm_generate_headers(KIconThemes_CamelCase_HEADERS
   HEADER_NAMES
   KIconColors
   KIconEffect
@@ -96,20 +98,24 @@ install(TARGETS KF6IconThemes EXPORT KF6IconThemesTargets ${KF_INSTALL_TARGETS_D
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/kiconthemes_export.h
   ${KIconThemes_HEADERS}
+  ${KIconThemes_CamelCase_HEADERS}
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KIconThemes COMPONENT Devel
 )
 
-add_library(KIconEnginePlugin MODULE kiconengineplugin.cpp)
-
-target_link_libraries(KIconEnginePlugin
-    PRIVATE
-        Qt6::Gui
-        KF6::IconThemes
-)
+if(NOT IOS)
+    add_library(KIconEnginePlugin MODULE kiconengineplugin.cpp)
+    target_link_libraries(KIconEnginePlugin
+        PRIVATE
+            Qt6::Gui
+            KF6::IconThemes
+    )
+endif()
 
 # install in an extra directory we will add to the plugin path later just for this one engine
 # we can overwrite the system one with that trick
-install(TARGETS KIconEnginePlugin DESTINATION ${KDE_INSTALL_QTPLUGINDIR}/kiconthemes6/iconengines)
+if(NOT IOS)
+    install(TARGETS KIconEnginePlugin DESTINATION ${KDE_INSTALL_QTPLUGINDIR}/kiconthemes6/iconengines)
+endif()
 
 ecm_qt_install_logging_categories(
     EXPORT KICONTHEMES
@@ -118,3 +124,19 @@ ecm_qt_install_logging_categories(
 )
 
 ecm_generate_qdoc(KF6IconThemes kiconthemes.qdocconf)
+
+ecm_add_installed_library_check(KF6IconThemes
+    PACKAGE_NAME "KF6IconThemes"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+# KQuickIconProvider is header-only, would need QtQuick's QQuickImageProvider to link
+list(FILTER KIconThemes_CamelCase_HEADERS EXCLUDE REGEX KQuickIconProvider)
+
+ecm_installed_library_check_include_strings(KF6IconThemes
+    HEADERS ${KIconThemes_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6IconThemes
+    PREFIX KICONTHEMES
+)

@@ -145,6 +145,11 @@ NotifyBySnore::~NotifyBySnore()
 void NotifyBySnore::notify(KNotification *notification, const KNotifyConfig &notifyConfig)
 {
     Q_UNUSED(notifyConfig);
+
+    if (!notifyConfig.actions().testFlag(KNotifyConfig::Popup)) {
+        return;
+    }
+
     // HACK work around that notification->id() is only populated after returning from here
     // note that config will be invalid at that point, so we can't pass that along
     QMetaObject::invokeMethod(

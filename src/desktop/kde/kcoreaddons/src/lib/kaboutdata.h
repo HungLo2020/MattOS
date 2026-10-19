@@ -281,7 +281,7 @@ public:
         LGPL = 2,
         LGPL_V2 = LGPL,
 #if KCOREADDONS_ENABLE_DEPRECATED_SINCE(6, 9)
-        BSDL KCOREADDONS_ENUMERATOR_DEPRECATED_VERSION(6, 9, "Use BSD_2_Clause") = 3,
+        BSDL KCOREADDONS_DEPRECATED_VERSION(6, 9, "Use BSD_2_Clause") = 3,
 #endif
         BSD_2_Clause = 3,
         Artistic = 4,
@@ -595,7 +595,7 @@ Q_DECLARE_TYPEINFO(KAboutComponent, Q_RELOCATABLE_TYPE);
  *
  * This represents an AppStream release note of an individual version.
  *
- * \see https://www.freedesktop.org/software/appstream/docs/sect-Metadata-Releases.html
+ * \sa https://www.freedesktop.org/software/appstream/docs/sect-Metadata-Releases.html
  *
  * \since 6.26
  */
@@ -652,7 +652,7 @@ public:
      * This is not meant for displaying to users, but for detecting changes
      * since the last display, when display release notes on development versions.
      *
-     * \see description
+     * \sa description
      */
     [[nodiscard]] QString untranslatedDescription() const;
 
@@ -891,6 +891,10 @@ public:
      * is not included in this.
      *
      * QGuiApplication::desktopFileName has to be set prior to calling this.
+     *
+     * Properties not provided by AppStream data but set on QGuiApplication
+     * are being set as well, in the same way as KAboutData::applicationData()
+     * does (since 6.28).
      *
      * \sa fromAppStreamFile, fromAppStreamId
      *
@@ -1630,6 +1634,59 @@ public:
      * \since 5.16
      **/
     QString desktopFileName() const;
+
+    /*!
+     * Types of URLs associated with application metadata.
+     *
+     * This includes URL types defined in the AppStream specification
+     * as well as KDE extensions to that.
+     *
+     * \value Homepage The application homepage.
+     * \value Bugtracker The application's bug tracking system, for users to report issues.
+     * \value Faq A FAQ page for this application.
+     * \value Help User reference or documentation.
+     * \value Donation Information on how to donate to this project.
+     * \value Translate Page about how to contribute to translating the application.
+     * \value Contact Page with contact information of the vendor/developer.
+     * \value VCSBrowser Link to the Git forge or similar with the application source code.
+     * \value Contribute Information on how to contribute to this application.
+     *
+     * \value XKDEMatrixRoom Matrix room for this application (KDE::matrix AppStream extension).
+     * \value XKDEForum Web forum/forum section for this application (KDE::forum AppStream extension).
+     * \value XKDEMastodon Mastodon account about this applications (KDE::mastodon AppStream extension).
+     *
+     * \sa https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-url
+     * \since 6.29
+     */
+    enum UrlType {
+        Homepage,
+        Bugtracker,
+        Faq,
+        Help,
+        Donation,
+        Translate,
+        Contact,
+        VCSBrowser,
+        Contribute,
+        // KDE extensions
+        XKDEMatrixRoom,
+        XKDEForum,
+        XKDEMastodon,
+        // TODO: wiki: currently not read from AppStream by apps.kde.org
+    };
+    Q_ENUM(UrlType)
+
+    /*!
+     * Sets the URL of the given type.
+     * \since 6.29
+     */
+    KAboutData &setUrl(KAboutData::UrlType type, const QString &url);
+    /*!
+     * Returns the URL of the given type, if available.
+     * This is typically populated from AppStream application metadata.
+     * \since 6.29
+     */
+    Q_INVOKABLE [[nodiscard]] QString url(KAboutData::UrlType type) const;
 
     /*!
      * Adds a release note for this application.

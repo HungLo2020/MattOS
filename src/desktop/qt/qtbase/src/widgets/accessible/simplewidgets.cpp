@@ -58,7 +58,7 @@
 #endif
 #include <QtGui/qvalidator.h>
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 #include <qfocusframe.h>
 #endif
 
@@ -921,6 +921,11 @@ QProgressBar *QAccessibleProgressBar::progressBar() const
 QAccessibleWindowContainer::QAccessibleWindowContainer(QWidget *w)
     : QAccessibleWidgetV2(w)
 {
+}
+
+QString QAccessibleWindowContainer::text(QAccessible::Text) const
+{
+    return QString();
 }
 
 int QAccessibleWindowContainer::childCount() const

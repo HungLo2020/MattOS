@@ -395,8 +395,14 @@ bool QQmlComponentPrivate::setInitialProperty(
         prop = QQmlProperty(base, name, ctxt);
     else
         prop = QQmlProperty(base, name, m_engine);
-    const bool isValid = prop.isValid();
-    if (!isValid && isComplexProperty) {
+
+    if (!prop.isValid()) {
+        // Having extra properties in the object that contains initial properties is not a problem.
+        // In JavaScript you can hardly ensure the _absence_ of properties. There are implicitly
+        // added properties on many objects, properties added via prototype, etc.
+        if (!isComplexProperty)
+            return true;
+
         // QQmlProperty can't handle accesses on value types
         const QStringList properties = name.split(u'.');
         QV4::Scope scope(m_engine->handle());
@@ -408,6 +414,7 @@ bool QQmlComponentPrivate::setInitialProperty(
             if (scope.engine->hasException || object->isNullOrUndefined())
                 break;
         }
+
         const QString lastProperty = properties.last();
         if (!object->isNullOrUndefined()) {
             segment = scope.engine->newString(lastProperty);
@@ -416,36 +423,30 @@ bool QQmlComponentPrivate::setInitialProperty(
         } else {
             return false;
         }
+
         if (scope.engine->hasException) {
             qmlWarning(base, scope.engine->catchExceptionAsQmlError());
             scope.engine->hasException = false;
             return false;
         }
+
         removePendingQPropertyBinding(object, lastProperty, m_state.creator());
         return true;
     }
-    QQmlPropertyPrivate *privProp = QQmlPropertyPrivate::get(prop);
-    if (isValid && privProp->writeValueProperty(value, {})) {
+
+    if (QQmlPropertyPrivate::get(prop)->writeValueProperty(value, {})) {
         if (prop.isBindable()) {
             if (QQmlObjectCreator *creator = m_state.creator())
                 creator->removePendingBinding(prop.object(), prop.index());
         }
-    } else {
-        QQmlError error{};
-        error.setUrl(m_url);
-        if (isValid) {
-            error.setDescription(QStringLiteral("Could not set initial property %1").arg(name));
-        } else {
-            error.setDescription(QStringLiteral("Setting initial properties failed: "
-                                                "%2 does not have a property called %1")
-                                         .arg(name, QQmlMetaType::prettyTypeName(base)));
-        }
-        qmlWarning(base, error);
-        return false;
+        return true;
     }
 
-    return true;
-
+    QQmlError error{};
+    error.setUrl(m_url);
+    error.setDescription(QStringLiteral("Could not set initial property %1").arg(name));
+    qmlWarning(base, error);
+    return false;
 }
 
 /*!
@@ -615,7 +616,7 @@ QQmlComponent::QQmlComponent(QQmlEngine *engine, QObject *parent)
     Create a QQmlComponent from the given \a url and give it the
     specified \a parent and \a engine.
 
-    \include qqmlcomponent.qdoc url-note
+    \include qqmlcomponent.qdocinc url-note
 
     \sa loadUrl()
 */
@@ -629,7 +630,7 @@ QQmlComponent::QQmlComponent(QQmlEngine *engine, const QUrl &url, QObject *paren
     specified \a parent and \a engine. If \a mode is \l Asynchronous,
     the component will be loaded and compiled asynchronously.
 
-    \include qqmlcomponent.qdoc url-note
+    \include qqmlcomponent.qdocinc url-note
 
     \sa loadUrl()
 */
@@ -717,10 +718,43 @@ QQmlComponent::QQmlComponent(QQmlEngine *engine, QV4::ExecutableCompilationUnit 
     d->m_progress = 1.0;
 }
 
+void QQmlComponentPrivate::setData(const QByteArray &data, const QUrl &url, QQmlComponent::CompilationMode compilationMode)
+{
+    if (!m_engine) {
+        // ###Qt6: In Qt 6, it should be impossible for users to create a QQmlComponent without an engine, and we can remove this check
+        qWarning("QQmlComponent: Must provide an engine before calling setData");
+        return;
+    }
+
+    clear();
+
+    m_url = url;
+
+    // trim existing components with same URL; they would bloat the cache
+    // While the warning tries to discourage it, using an empty URL for the
+    // creation of a one-off component is a somewhat common use-case
+    m_engine->handle()->trimCompilationUnitsForUrl(url);
+
+    QQmlTypeLoader::Mode mode = compilationMode == QQmlComponent::Asynchronous
+                                    ? QQmlTypeLoader::Asynchronous
+                                    : QQmlTypeLoader::PreferSynchronous;
+    QQmlRefPointer<QQmlTypeData> typeData = QQmlTypeLoader::get(m_engine)->getType(data, url, mode);
+
+    if (typeData->isCompleteOrError()) {
+        fromTypeData(typeData);
+        setProgress(1.0);
+    } else {
+        m_typeData = typeData;
+        m_typeData->registerCallback(this);
+        setProgress(typeData->progress());
+    }
+}
+
 /*!
     Sets the QQmlComponent to use the given QML \a data. If \a url
     is provided, it is used to set the component name and to provide
-    a base path for items resolved by this component.
+    a base path for items resolved by this component. The component will
+    be loaded and compiled synchronously.
 
     \warning The new component will shadow any existing component of
     the same URL. You should not pass a URL of an existing component.
@@ -728,27 +762,7 @@ QQmlComponent::QQmlComponent(QQmlEngine *engine, QV4::ExecutableCompilationUnit 
 void QQmlComponent::setData(const QByteArray &data, const QUrl &url)
 {
     Q_D(QQmlComponent);
-
-    if (!d->m_engine) {
-        // ###Qt6: In Qt 6, it should be impossible for users to create a QQmlComponent without an engine, and we can remove this check
-        qWarning("QQmlComponent: Must provide an engine before calling setData");
-        return;
-    }
-
-    d->clear();
-
-    d->m_url = url;
-
-    QQmlRefPointer<QQmlTypeData> typeData = QQmlTypeLoader::get(d->m_engine)->getType(data, url);
-
-    if (typeData->isCompleteOrError()) {
-        d->fromTypeData(typeData);
-    } else {
-        d->m_typeData = typeData;
-        d->m_typeData->registerCallback(d);
-    }
-
-    d->setProgress(1.0);
+    d->setData(data, url, PreferSynchronous);
     emit statusChanged(status());
 }
 
@@ -779,7 +793,7 @@ QQmlEngine *QQmlComponent::engine() const
 /*!
     Load the QQmlComponent from the provided \a url.
 
-    \include qqmlcomponent.qdoc url-note
+    \include qqmlcomponent.qdocinc url-note
 */
 void QQmlComponent::loadUrl(const QUrl &url)
 {
@@ -791,7 +805,7 @@ void QQmlComponent::loadUrl(const QUrl &url)
     Load the QQmlComponent from the provided \a url.
     If \a mode is \l Asynchronous, the component will be loaded and compiled asynchronously.
 
-    \include qqmlcomponent.qdoc url-note
+    \include qqmlcomponent.qdocinc url-note
 */
 void QQmlComponent::loadUrl(const QUrl &url, QQmlComponent::CompilationMode mode)
 {
@@ -936,7 +950,8 @@ QQmlComponent::QQmlComponent(QQmlComponentPrivate &dd, QObject *parent)
 QObject *QQmlComponent::create(QQmlContext *context)
 {
     Q_D(QQmlComponent);
-    return d->createWithProperties(nullptr, QVariantMap {}, context);
+    return d->createWithProperties(
+            nullptr, QVariantMap {}, context, QQmlComponentPrivate::CreateBehavior::Cpp);
 }
 
 /*!
@@ -959,19 +974,21 @@ QObject *QQmlComponent::create(QQmlContext *context)
     \sa QQmlComponent::create
     \since 5.14
 */
-QObject *QQmlComponent::createWithInitialProperties(const QVariantMap& initialProperties, QQmlContext *context)
+QObject *QQmlComponent::createWithInitialProperties(
+        const QVariantMap& initialProperties, QQmlContext *context)
 {
     Q_D(QQmlComponent);
-    return d->createWithProperties(nullptr, initialProperties, context);
+    return d->createWithProperties(
+            nullptr, initialProperties, context, QQmlComponentPrivate::CreateBehavior::Cpp);
 }
 
 static void QQmlComponent_setQmlParent(QObject *me, QObject *parent); // forward declaration
 
 /*! \internal
  */
-QObject *QQmlComponentPrivate::createWithProperties(QObject *parent, const QVariantMap &properties,
-                                                    QQmlContext *context, CreateBehavior behavior,
-                                                    bool createFromQml)
+QObject *QQmlComponentPrivate::createWithProperties(
+        QObject *parent, const QVariantMap &properties,
+        QQmlContext *context, CreateBehavior behavior)
 {
     Q_Q(QQmlComponent);
 
@@ -990,24 +1007,28 @@ QObject *QQmlComponentPrivate::createWithProperties(QObject *parent, const QVari
 
     QQmlComponent_setQmlParent(rv, parent); // internally checks if parent is nullptr
 
-    if (createFromQml) {
+    if (behavior == CreateBehavior::Qml) {
+        bool ok = true;
         for (auto it = properties.cbegin(), end = properties.cend(); it != end; ++it)
-            setInitialProperty(rv, it.key(), it.value());
-    } else {
-        q->setInitialProperties(rv, properties);
-    }
-    q->completeCreate();
-
-    if (m_state.hasUnsetRequiredProperties()) {
-        if (behavior == CreateWarnAboutRequiredProperties) {
+            ok = setInitialProperty(rv, it.key(), it.value()) && ok;
+        q->completeCreate();
+        if (m_state.hasUnsetRequiredProperties()) {
             for (const auto &unsetRequiredProperty : std::as_const(*m_state.requiredProperties())) {
                 const QQmlError error = unsetRequiredPropertyToQQmlError(unsetRequiredProperty);
                 qmlWarning(rv, error);
             }
+            delete std::exchange(rv, nullptr);
+        } else if (!ok) {
+            // We've already warned about this before
+            delete std::exchange(rv, nullptr);
         }
-        delete rv;
-        rv = nullptr;
+    } else {
+        setInitialProperties(rv, properties);
+        q->completeCreate();
+        if (m_state.hasUnsetRequiredProperties())
+            delete std::exchange(rv, nullptr);
     }
+
     return rv;
 }
 
@@ -1623,6 +1644,12 @@ void QQmlComponent::create(QQmlIncubator &incubator, QQmlContext *context, QQmlC
 void QQmlComponent::setInitialProperties(QObject *object, const QVariantMap &properties)
 {
     Q_D(QQmlComponent);
+    d->setInitialProperties(object, properties);
+}
+
+bool QQmlComponentPrivate::setInitialProperties(QObject *object, const QVariantMap &properties)
+{
+    bool result = true;
     for (auto it = properties.constBegin(); it != properties.constEnd(); ++it) {
         if (it.key().contains(u'.')) {
             auto segments = it.key().split(u'.');
@@ -1634,13 +1661,16 @@ void QQmlComponent::setInitialProperties(QObject *object, const QVariantMap &pro
                 description += s.arg(segments[0], segments[1]);
             }
             QQmlError error{};
-            error.setUrl(url());
+            error.setUrl(m_url);
             error.setDescription(description);
             qmlWarning(object, error);
-            return;
+            return false;
         }
-        d->setInitialProperty(object, it.key(), it.value());
+
+        // Still try to set them, even if a previous one has failed.
+        result = setInitialProperty(object, it.key(), it.value()) && result;
     }
+    return result;
 }
 
 /*
@@ -1984,9 +2014,8 @@ QObject *QQmlComponent::createObject(QObject *parent, const QVariantMap &propert
 {
     Q_D(QQmlComponent);
     Q_ASSERT(d->m_engine);
-    QObject *rv = d->createWithProperties(parent, properties, creationContext(),
-                                          QQmlComponentPrivate::CreateWarnAboutRequiredProperties,
-                                          true);
+    QObject *rv = d->createWithProperties(
+            parent, properties, creationContext(), QQmlComponentPrivate::CreateBehavior::Qml);
     if (rv) {
         QQmlData *qmlData = QQmlData::get(rv);
         Q_ASSERT(qmlData);

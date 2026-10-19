@@ -10,13 +10,14 @@
 #include "wayland_backend.h"
 #include "compositor.h"
 #include "core/drmdevice.h"
+#include "core/gpumanager.h"
+#include "core/renderdevice.h"
 #include "input.h"
 #include "wayland-client/linuxdmabuf.h"
 #include "wayland_display.h"
 #include "wayland_egl_backend.h"
 #include "wayland_logging.h"
 #include "wayland_output.h"
-#include "wayland_qpainter_backend.h"
 
 #include <KWayland/Client/keyboard.h>
 #include <KWayland/Client/pointer.h>
@@ -37,7 +38,7 @@
 #include <unistd.h>
 #include <wayland-client-core.h>
 
-#include "wayland-linux-dmabuf-unstable-v1-client-protocol.h"
+#include "wayland-linux-dmabuf-v1-client-protocol.h"
 
 namespace KWin
 {
@@ -105,8 +106,16 @@ WaylandInputDevice::WaylandInputDevice(KWayland::Client::Pointer *pointer, Wayla
         WaylandOutput *output = m_seat->backend()->findOutput(m_pointer->enteredSurface());
         Q_ASSERT(output);
         const auto subsurface = m_seat->backend()->findSubSurface(m_pointer->enteredSurface());
-        const QPointF absolutePos = output->position() + relativeToSurface
-            + (subsurface ? subsurface->position() : QPoint());
+        // A position in the host window is in the coordinates the panel is driven in, while
+        // the compositor works in the picture as the user sees it. On a rotated display those
+        // are not the same, so the position has to be turned back.
+        const QPointF inPanel = relativeToSurface + (subsurface ? subsurface->position() : QPoint());
+        // Exactly the size the surface is given in WaylandOutput::present(), rounding and all -
+        // turning a position needs the bounds it was expressed in, and being off by the
+        // rounding here shifts the pointer by a little more the further it travels.
+        const QSizeF panelSize = QSize(std::round(output->modeSize().width() / output->scale()),
+                                       std::round(output->modeSize().height() / output->scale()));
+        const QPointF absolutePos = output->position() + output->transform().inverted().map(inPanel, panelSize);
         Q_EMIT pointerMotionAbsolute(absolutePos, std::chrono::milliseconds(time), this);
     });
     connect(pointer, &Pointer::buttonStateChanged, this, [this](quint32 serial, quint32 time, quint32 button, Pointer::ButtonState nativeState) {
@@ -136,7 +145,7 @@ WaylandInputDevice::WaylandInputDevice(KWayland::Client::Pointer *pointer, Wayla
         default:
             Q_UNREACHABLE();
         }
-        Q_EMIT pointerAxisChanged(axis, delta, 0, PointerAxisSource::Unknown, false, std::chrono::milliseconds(time), this);
+        Q_EMIT pointerAxisChanged(axis, delta, 0, PointerAxisSource::Unknown, false, false, std::chrono::milliseconds(time), this);
     });
 
     connect(pointer, &Pointer::frame, this, [this]() {
@@ -420,7 +429,6 @@ WaylandBackend::WaylandBackend(const WaylandBackendOptions &options, QObject *pa
 
 WaylandBackend::~WaylandBackend()
 {
-    m_eglDisplay.reset();
     destroyOutputs();
 
     m_buffers.clear();
@@ -438,10 +446,7 @@ bool WaylandBackend::initialize()
     }
 
     if (WaylandClient::LinuxDmabufV1 *dmabuf = m_display->linuxDmabuf()) {
-        m_drmDevice = DrmDevice::open(dmabuf->mainDevice());
-        if (!m_drmDevice) {
-            qCWarning(KWIN_WAYLAND_BACKEND) << "Failed to open drm render node" << dmabuf->mainDevice();
-        }
+        m_renderDevice = GpuManager::self()->compatibleRenderDevice(dmabuf->mainDevice());
     }
 
     createOutputs();
@@ -465,21 +470,24 @@ bool WaylandBackend::initialize()
 
 void WaylandBackend::createOutputs()
 {
+    BackendOutput::Capabilities caps = BackendOutput::Capability::Dpms;
+    if (display()->tearingControl()) {
+        caps |= BackendOutput::Capability::Tearing;
+    }
+
     // we need to multiply the initial window size with the scale in order to
     // create an output window of this size in the end
     const QSize pixelSize = m_options.outputSize * m_options.outputScale;
     for (int i = 0; i < m_options.outputCount; i++) {
-        WaylandOutput *output = createOutput(QStringLiteral("WL-%1").arg(i), pixelSize, m_options.outputScale, m_options.fullscreen);
-        m_outputs << output;
-        Q_EMIT outputAdded(output);
+        createOutput(QStringLiteral("WL-%1").arg(i), pixelSize, m_options.outputScale, m_options.fullscreen, caps);
     }
 
     Q_EMIT outputsQueried();
 }
 
-WaylandOutput *WaylandBackend::createOutput(const QString &name, const QSize &size, qreal scale, bool fullscreen)
+WaylandOutput *WaylandBackend::createOutput(const QString &name, const QSize &size, qreal scale, bool fullscreen, BackendOutput::Capabilities capabilities)
 {
-    WaylandOutput *waylandOutput = new WaylandOutput(name, this);
+    WaylandOutput *waylandOutput = m_outputs.emplaceBack(new WaylandOutput(name, capabilities, this));
     waylandOutput->init(size, scale, fullscreen);
 
     // Wait until the output window is configured by the host compositor.
@@ -487,7 +495,26 @@ WaylandOutput *WaylandBackend::createOutput(const QString &name, const QSize &si
         wl_display_roundtrip(m_display->nativeDisplay());
     }
 
+    connect(waylandOutput, &WaylandOutput::closeRequested, this, [this, waylandOutput] {
+        if (m_outputs.count() == 1) {
+            qApp->quit();
+            return;
+        }
+
+        removeOutput(waylandOutput);
+    });
+
+    Q_EMIT outputAdded(waylandOutput);
+
     return waylandOutput;
+}
+
+void WaylandBackend::removeOutput(WaylandOutput *output)
+{
+    m_outputs.removeOne(output);
+    Q_EMIT outputRemoved(output);
+    Q_EMIT outputsQueried();
+    output->unref();
 }
 
 void WaylandBackend::destroyOutputs()
@@ -504,14 +531,9 @@ std::unique_ptr<InputBackend> WaylandBackend::createInputBackend()
     return std::make_unique<WaylandInputBackend>(this);
 }
 
-std::unique_ptr<EglBackend> WaylandBackend::createOpenGLBackend()
+std::unique_ptr<EglBackend> WaylandBackend::createOpenGLBackend(RenderDevice *device)
 {
-    return std::make_unique<WaylandEglBackend>(this);
-}
-
-std::unique_ptr<QPainterBackend> WaylandBackend::createQPainterBackend()
-{
-    return std::make_unique<WaylandQPainterBackend>(this);
+    return std::make_unique<WaylandEglBackend>(this, device);
 }
 
 WaylandOutput *WaylandBackend::findOutput(KWayland::Client::Surface *nativeSurface) const
@@ -586,10 +608,9 @@ void WaylandBackend::togglePointerLock()
 QList<CompositingType> WaylandBackend::supportedCompositors() const
 {
     QList<CompositingType> ret;
-    if (m_display->linuxDmabuf() && m_drmDevice) {
+    if (m_display->linuxDmabuf() && m_renderDevice) {
         ret.append(OpenGLCompositing);
     }
-    ret.append(QPainterCompositing);
     return ret;
 }
 
@@ -600,16 +621,16 @@ QList<BackendOutput *> WaylandBackend::outputs() const
 
 BackendOutput *WaylandBackend::createVirtualOutput(const QString &name, const QString &description, const QSize &size, double scale)
 {
-    return createOutput(name, size * scale, scale, false);
+    const auto output = createOutput(name, size * scale, scale, false, {});
+    Q_EMIT outputsQueried();
+    return output;
 }
 
 void WaylandBackend::removeVirtualOutput(BackendOutput *output)
 {
     WaylandOutput *waylandOutput = dynamic_cast<WaylandOutput *>(output);
-    if (waylandOutput && m_outputs.removeAll(waylandOutput)) {
-        Q_EMIT outputRemoved(waylandOutput);
-        Q_EMIT outputsQueried();
-        waylandOutput->unref();
+    if (waylandOutput) {
+        removeOutput(waylandOutput);
     }
 }
 
@@ -645,7 +666,7 @@ wl_buffer *WaylandBackend::importBuffer(GraphicsBuffer *graphicsBuffer)
     auto &buffer = m_buffers[graphicsBuffer];
     if (!buffer) {
         wl_buffer *handle = nullptr;
-        if (const DmaBufAttributes *attributes = graphicsBuffer->dmabufAttributes()) {
+        if (graphicsBuffer->dmabufAttributes()) {
             handle = m_display->linuxDmabuf()->importBuffer(graphicsBuffer);
         } else if (const ShmAttributes *attributes = graphicsBuffer->shmAttributes()) {
             handle = importShmBuffer(m_display.get(), attributes);
@@ -672,19 +693,14 @@ wl_buffer *WaylandBackend::importBuffer(GraphicsBuffer *graphicsBuffer)
     return buffer->handle();
 }
 
-void WaylandBackend::setEglDisplay(std::unique_ptr<EglDisplay> &&display)
-{
-    m_eglDisplay = std::move(display);
-}
-
-EglDisplay *WaylandBackend::sceneEglDisplayObject() const
-{
-    return m_eglDisplay.get();
-}
-
 DrmDevice *WaylandBackend::drmDevice() const
 {
-    return m_drmDevice.get();
+    return m_renderDevice ? m_renderDevice->drmDevice() : nullptr;
+}
+
+RenderDevice *WaylandBackend::renderDevice() const
+{
+    return m_renderDevice;
 }
 
 WaylandBuffer::WaylandBuffer(wl_buffer *handle, GraphicsBuffer *graphicsBuffer)

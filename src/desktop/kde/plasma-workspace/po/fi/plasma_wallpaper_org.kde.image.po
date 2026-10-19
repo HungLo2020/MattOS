@@ -2,7 +2,7 @@
 # Copyright © 2010 This_file_is_part_of_KDE
 # This file is distributed under the same license as the kdebase package.
 # Teemu Rytilahti <teemu.rytilahti@d5k.net>, 2008.
-# SPDX-FileCopyrightText: 2010, 2014, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Tommi Nieminen <translator@legisign.org>
+# SPDX-FileCopyrightText: 2010, 2014, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Tommi Nieminen <translator@legisign.org>
 # Lasse Liehu <lasse.liehu@gmail.com>, 2010, 2011, 2012, 2013, 2014, 2015.
 # Jorma Karvonen <karvonen.jorma@gmail.com>, 2010.
 #
@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_wallpaper_image\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-17 02:39+0000\n"
-"PO-Revision-Date: 2025-11-30 15:49+0200\n"
+"POT-Creation-Date: 2026-06-21 00:46+0000\n"
+"PO-Revision-Date: 2026-08-24 19:25+0300\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -33,101 +33,101 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "translator@legisign.org"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:59
+#: imagepackage/contents/ui/AddFileDialog.qml:56
 #, kde-format
 msgctxt "@title:window"
 msgid "Open Image"
 msgstr "Avaa kuva"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:71
+#: imagepackage/contents/ui/AddFileDialog.qml:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Directory with the wallpaper to show slides from"
 msgstr "Kansio, josta kuvia näytetään"
 
-#: imagepackage/contents/ui/config.qml:146
+#: imagepackage/contents/ui/config.qml:156
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Positioning:"
 msgstr "Sijoittelu:"
 
-#: imagepackage/contents/ui/config.qml:149
+#: imagepackage/contents/ui/config.qml:159
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled and cropped"
 msgstr "Skaalattu ja rajattu"
 
-#: imagepackage/contents/ui/config.qml:153
+#: imagepackage/contents/ui/config.qml:163
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled"
 msgstr "Skaalattu"
 
-#: imagepackage/contents/ui/config.qml:157
+#: imagepackage/contents/ui/config.qml:167
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled, keep proportions"
 msgstr "Skaalattu, säilytä suhteet"
 
-#: imagepackage/contents/ui/config.qml:161
+#: imagepackage/contents/ui/config.qml:171
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered"
 msgstr "Keskitetty"
 
-#: imagepackage/contents/ui/config.qml:189
+#: imagepackage/contents/ui/config.qml:199
 #, kde-format
 msgctxt ""
 "@label:listbox part of a sentence: 'Switch dynamic wallpapers [based on]'"
 msgid "Switch dynamic wallpapers:"
 msgstr "Vaihda dynaamista taustakuvaa:"
 
-#: imagepackage/contents/ui/config.qml:197
+#: imagepackage/contents/ui/config.qml:207
 #, kde-format
 msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on whether the Plasma style is light or dark "
 msgstr "Sen mukaan, onko Plasma-tyyli tumma vai vaalea "
 
-#: imagepackage/contents/ui/config.qml:199
+#: imagepackage/contents/ui/config.qml:209
 #, kde-format
 msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on the day-night cycle"
 msgstr "Vuorokausirytmin mukaan"
 
-#: imagepackage/contents/ui/config.qml:203
+#: imagepackage/contents/ui/config.qml:213
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use light variant"
 msgstr "Käytä aina vaaleaa muunnelmaa"
 
-#: imagepackage/contents/ui/config.qml:207
+#: imagepackage/contents/ui/config.qml:217
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use dark variant"
 msgstr "Käytä aina tummaa muunnelmaa"
 
-#: imagepackage/contents/ui/config.qml:221
+#: imagepackage/contents/ui/config.qml:231
 #, kde-format
 msgctxt "@action:button Configure day-night cycle times"
 msgid "Configure…"
 msgstr "Asetukset…"
 
-#: imagepackage/contents/ui/config.qml:232
+#: imagepackage/contents/ui/config.qml:242
 #, kde-format
 msgid "Background:"
 msgstr "Tausta:"
 
-#: imagepackage/contents/ui/config.qml:233
+#: imagepackage/contents/ui/config.qml:243
 #, kde-format
 msgid "Blur"
 msgstr "Sumenna"
 
-#: imagepackage/contents/ui/config.qml:242
+#: imagepackage/contents/ui/config.qml:252
 #, kde-format
 msgid "Solid color"
 msgstr "Tasainen väri"
 
-#: imagepackage/contents/ui/config.qml:253
+#: imagepackage/contents/ui/config.qml:263
 #, kde-format
 msgid "Select Background Color"
 msgstr "Valitse taustan väri"
@@ -266,13 +266,13 @@ msgstr ""
 "Taustakuvaksi asetettavaa tiedostoa ei löydy tai sitä ei voida tunnistaa "
 "taustakuvaksi: %1"
 
-#: plugin/imagebackend.cpp:40
+#: plugin/imagebackend.cpp:42
 #, kde-format
 msgid "Next Wallpaper Image"
 msgstr "Seuraava taustakuva"
 
 #. i18n people, this isn't a "word puzzle". there is a specific string format for QFileDialog::setNameFilters
-#: plugin/imagebackend.cpp:382
+#: plugin/imagebackend.cpp:384
 #, kde-format
 msgid "Media Files"
 msgstr "Mediatiedostot"
@@ -338,34 +338,46 @@ msgid_plural "%1 seconds"
 msgstr[0] "%1 sekunti"
 msgstr[1] "%1 sekuntia"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:203
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:175
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Set all times to 0 to disable automatic wallpaper changing. You can still "
+"change wallpapers manually with the <interface>Next Wallpaper Image</"
+"interface> menu item in the desktop context menu."
+msgstr ""
+"Poista automaattinen taustakuvavaihto käytöstä asettamalla kaikki ajat 0:"
+"ksi. Voit silti itse vaihtaa taustakuvaa kontekstivalikon "
+"<interface>Seuraava taustakuva</interface> -kohdasta."
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
 #, kde-format
 msgid "Folders"
 msgstr "Kansiot"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:211
 #, kde-format
 msgctxt "@action button the thing being added is a folder"
 msgid "Add…"
 msgstr "Lisää…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:208
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:212
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Folder…"
 msgstr "Lisää kansio…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:246
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:250
 #, kde-format
 msgid "Remove Folder"
 msgstr "Poista kansio"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:257
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:261
 #, kde-format
 msgid "Open Folder…"
 msgstr "Avaa kansio…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:272
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:276
 #, kde-format
 msgid "There are no wallpaper locations configured"
 msgstr "Taustakuvien sijainteja ei ole asetettu"

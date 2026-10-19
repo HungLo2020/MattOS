@@ -12,12 +12,12 @@
 #include "containmentitem.h"
 #include "debug_p.h"
 #include "dropmenu.h"
-#include "sharedqmlengine.h"
 #include "wallpaperitem.h"
 
 #include <QApplication>
 #include <QClipboard>
 #include <QMimeData>
+#include <QQmlContext>
 #include <QQmlExpression>
 #include <QQmlProperty>
 #include <QScreen>
@@ -57,7 +57,7 @@ ContainmentItem::ContainmentItem(QQuickItem *parent)
 void ContainmentItem::classBegin()
 {
     PlasmoidItem::classBegin();
-    m_containment = static_cast<Plasma::Containment *>(applet());
+    m_containment = qobject_cast<Plasma::Containment *>(applet());
     if (!m_containment) {
         // This can happen only if the client QML code declares a PlasmoidItem somewhere else than the root object
         return;
@@ -100,9 +100,13 @@ void ContainmentItem::init()
 
             if (pkg.metadata().isValid() && !pkg.metadata().isHidden()) {
                 if (pkg.isValid()) {
-                    QVariantHash toolboxProperties;
+                    QVariantMap toolboxProperties;
                     toolboxProperties[QStringLiteral("parent")] = QVariant::fromValue(this);
-                    QObject *toolBoxObject = qmlObject()->createObjectFromSource(pkg.fileUrl("mainscript"), nullptr, toolboxProperties);
+
+                    QQmlComponent toolBoxComponent(qmlEngine(this), pkg.fileUrl("mainscript"));
+
+                    QObject *toolBoxObject = toolBoxComponent.createWithInitialProperties(toolboxProperties, qmlContext(this)->parentContext());
+
                     if (toolBoxObject) {
                         toolBoxObject->setParent(this);
                         setProperty("toolBox", QVariant::fromValue(toolBoxObject));
@@ -384,7 +388,8 @@ void ContainmentItem::processMimeData(QMimeData *mimeData, int x, int y, KIO::Dr
                         if (applet->containment() != m_containment) {
                             appletItem->setParentItem(nullptr);
                         }
-                        m_containment->addApplet(applet, QRect(x, y, -1, -1));
+                        // transfer ownership of applet from the old containment to the new containment
+                        m_containment->addApplet(std::unique_ptr<Plasma::Applet>(applet), QRect(x, y, -1, -1));
                         break;
                     }
                 }
@@ -555,7 +560,7 @@ void ContainmentItem::mimeTypeRetrieved(KIO::Job *job, const QString &mimetype)
         if (m_containment->containmentType() != Plasma::Containment::Type::Panel
             && m_containment->containmentType() != Plasma::Containment::Type::CustomPanel) {
             if (m_wallpaperItem && m_wallpaperItem->supportsMimetype(mimetype)) {
-                wallpaperList << m_wallpaperItem->kPackage().metadata();
+                wallpaperList << m_wallpaperItem->metadata();
             } else {
                 wallpaperList = WallpaperItem::listWallpaperMetadataForMimetype(mimetype);
             }
@@ -764,9 +769,11 @@ void ContainmentItem::loadWallpaper()
         }
 
         // set anchors
-        QQmlExpression expr(qmlObject()->engine()->rootContext(), m_wallpaperItem, QStringLiteral("parent"));
+        QQmlExpression expr(qmlContext(m_wallpaperItem), m_wallpaperItem, QStringLiteral("parent"));
         QQmlProperty prop(m_wallpaperItem, QStringLiteral("anchors.fill"));
         prop.write(expr.evaluate());
+    } else {
+        applet()->updateConstraints(Plasma::Applet::UiReadyConstraint);
     }
     m_containment->setProperty("wallpaperGraphicsObject", QVariant::fromValue(m_wallpaperItem));
     delete oldWallpaper;
@@ -857,29 +864,6 @@ void ContainmentItem::mousePressEvent(QMouseEvent *event)
     } else {
         addContainmentActions(m_contextMenu.get(), event);
     }
-
-    // this is a workaround where Qt will fail to realize a mouse has been released
-
-    // this happens if a window which does not accept focus spawns a new window that takes focus and X grab
-    // whilst the mouse is depressed
-    // https://bugreports.qt.io/browse/QTBUG-59044
-    // this causes the next click to go missing
-
-    // by releasing manually we avoid that situation
-    auto ungrabMouseHack = [this]() {
-        if (window() && window()->mouseGrabberItem()) {
-            window()->mouseGrabberItem()->ungrabMouse();
-        }
-    };
-
-    // pre 5.8.0 QQuickWindow code is "item->grabMouse(); sendEvent(item, mouseEvent)"
-    // post 5.8.0 QQuickWindow code is sendEvent(item, mouseEvent); item->grabMouse()
-    if (QVersionNumber::fromString(QLatin1String(qVersion())) > QVersionNumber(5, 8, 0)) {
-        QTimer::singleShot(0, this, ungrabMouseHack);
-    } else {
-        ungrabMouseHack();
-    }
-    // end workaround
 
     QPoint pos = event->globalPosition().toPoint();
     if (window() && m_containment->containmentType() == Plasma::Containment::Type::Panel) {

@@ -1,0 +1,285 @@
+/*
+    This file is part of the KDE project
+    SPDX-FileCopyrightText: 2026 Méven Car <meven@kde.org>
+
+    SPDX-License-Identifier: LGPL-2.0-or-later
+*/
+
+#include <QMutex>
+#include <QSignalSpy>
+#include <QTest>
+#include <QThread>
+
+#include <threadconnectionbackend_p.h>
+
+using namespace KIO;
+
+// Collects Tasks emitted by a backend's commandReceived(), thread-safely (the worker side
+// emits from its own thread, the application side from the main thread).
+class TaskSink
+{
+public:
+    void add(const Task &task)
+    {
+        QMutexLocker lock(&m_mutex);
+        m_tasks.append(task);
+    }
+    int count()
+    {
+        QMutexLocker lock(&m_mutex);
+        return m_tasks.size();
+    }
+    QList<Task> tasks()
+    {
+        QMutexLocker lock(&m_mutex);
+        return m_tasks;
+    }
+
+private:
+    QMutex m_mutex;
+    QList<Task> m_tasks;
+};
+
+class ThreadConnectionBackendTest : public QObject
+{
+    Q_OBJECT
+
+private Q_SLOTS:
+    void testApplicationReceivesFromWorker();
+    void testSuspendedApplicationBuffersUntilResumed();
+    void testWorkerReceivesFromApplication();
+    void testOwnedPayloadSurvivesSenderScope();
+    void testManyTasksPreserveOrderUnderBackPressure();
+    void testWorkerCloseDisconnectsApplication();
+    void testEntriesTravelAsObjects();
+    void testEntriesBuiltOnTheWorkerThread();
+};
+
+// The entries of a listing, of the shape kio_file sends.
+static UDSEntryList makeEntries(int count)
+{
+    UDSEntryList entries;
+    entries.reserve(count);
+    for (int i = 0; i < count; ++i) {
+        UDSEntry entry;
+        entry.fastInsert(UDSEntry::UDS_NAME, QStringLiteral("file%1").arg(i));
+        entry.fastInsert(UDSEntry::UDS_FILE_TYPE, S_IFREG);
+        entry.fastInsert(UDSEntry::UDS_SIZE, i);
+        entries.append(entry);
+    }
+    return entries;
+}
+
+void ThreadConnectionBackendTest::testApplicationReceivesFromWorker()
+{
+    auto [appBackend, workerBackend] = ThreadConnectionBackend::createPair();
+
+    TaskSink sink;
+    connect(appBackend.get(), &ConnectionBackend::commandReceived, this, [&sink](const Task &task) {
+        sink.add(task);
+    });
+
+    // sendCommand only touches the mutex-protected channel and posts a queued wakeup, so it
+    // is safe to call from any thread. Here the "worker" produces from the main thread.
+    QVERIFY(workerBackend->sendCommand(1, QByteArrayLiteral("a")));
+    QVERIFY(workerBackend->sendCommand(2, QByteArrayLiteral("bb")));
+    QVERIFY(workerBackend->sendCommand(3, QByteArrayLiteral("ccc")));
+
+    QTRY_COMPARE(sink.count(), 3); // delivered via the application event loop
+    const QList<Task> tasks = sink.tasks();
+    QCOMPARE(tasks.at(0).cmd, 1);
+    QCOMPARE(tasks.at(0).bytes(), QByteArrayLiteral("a"));
+    QCOMPARE(tasks.at(2).cmd, 3);
+    QCOMPARE(tasks.at(2).bytes(), QByteArrayLiteral("ccc"));
+}
+
+void ThreadConnectionBackendTest::testSuspendedApplicationBuffersUntilResumed()
+{
+    auto [appBackend, workerBackend] = ThreadConnectionBackend::createPair();
+
+    TaskSink sink;
+    connect(appBackend.get(), &ConnectionBackend::commandReceived, this, [&sink](const Task &task) {
+        sink.add(task);
+    });
+
+    // Suspend the application side before the worker produces anything.
+    appBackend->setSuspended(true);
+
+    QVERIFY(workerBackend->sendCommand(1, QByteArrayLiteral("a")));
+    QVERIFY(workerBackend->sendCommand(2, QByteArrayLiteral("bb")));
+    QVERIFY(workerBackend->sendCommand(3, QByteArrayLiteral("ccc")));
+
+    // Nothing is delivered while suspended, even after the event loop has run.
+    QTest::qWait(200);
+    QCOMPARE(sink.count(), 0);
+
+    // Resuming flushes everything that queued up, in the order it was sent.
+    appBackend->setSuspended(false);
+    QTRY_COMPARE(sink.count(), 3);
+    const QList<Task> tasks = sink.tasks();
+    QCOMPARE(tasks.at(0).cmd, 1);
+    QCOMPARE(tasks.at(0).bytes(), QByteArrayLiteral("a"));
+    QCOMPARE(tasks.at(1).cmd, 2);
+    QCOMPARE(tasks.at(1).bytes(), QByteArrayLiteral("bb"));
+    QCOMPARE(tasks.at(2).cmd, 3);
+    QCOMPARE(tasks.at(2).bytes(), QByteArrayLiteral("ccc"));
+}
+
+void ThreadConnectionBackendTest::testWorkerReceivesFromApplication()
+{
+    auto [appBackend, workerBackend] = ThreadConnectionBackend::createPair();
+
+    TaskSink sink;
+    // The worker side has no event loop: commandReceived() is emitted inline from
+    // waitForIncomingTask(), on the worker thread. Connect without a context so it stays
+    // a direct connection delivered on that thread.
+    connect(workerBackend.get(), &ConnectionBackend::commandReceived, this, [&sink](const Task &task) {
+        sink.add(task);
+    });
+
+    QThread *workerThread = QThread::create([worker = workerBackend.get()] {
+        // Poll like SlaveBase::dispatchLoop() does, until the channel is closed.
+        while (worker->state == ConnectionBackend::Connected) {
+            worker->waitForIncomingTask(200);
+        }
+    });
+    workerThread->start();
+
+    QVERIFY(appBackend->sendCommand(10, QByteArrayLiteral("x")));
+    QVERIFY(appBackend->sendCommand(20, QByteArrayLiteral("yy")));
+
+    QTRY_COMPARE(sink.count(), 2);
+
+    appBackend->close(); // makes waitForIncomingTask() return and the worker loop exit
+    QVERIFY(workerThread->wait(5000));
+    delete workerThread;
+
+    const QList<Task> tasks = sink.tasks();
+    QCOMPARE(tasks.at(0).cmd, 10);
+    QCOMPARE(tasks.at(1).bytes(), QByteArrayLiteral("yy"));
+}
+
+void ThreadConnectionBackendTest::testOwnedPayloadSurvivesSenderScope()
+{
+    // The backend shares the payload rather than copying it (callers must pass an owned
+    // QByteArray). Its refcount must keep the bytes alive until the application consumes
+    // the task, even after the sender drops its own reference.
+    auto [appBackend, workerBackend] = ThreadConnectionBackend::createPair();
+
+    TaskSink sink;
+    connect(appBackend.get(), &ConnectionBackend::commandReceived, this, [&sink](const Task &task) {
+        sink.add(task);
+    });
+
+    {
+        const QByteArray owned(64, 'z'); // owns its bytes
+        QVERIFY(workerBackend->sendCommand(7, owned));
+    } // owned goes out of scope here, the in-flight task must keep the bytes alive
+
+    QTRY_COMPARE(sink.count(), 1);
+    QCOMPARE(sink.tasks().at(0).cmd, 7);
+    QCOMPARE(sink.tasks().at(0).bytes(), QByteArray(64, 'z'));
+}
+
+void ThreadConnectionBackendTest::testManyTasksPreserveOrderUnderBackPressure()
+{
+    auto [appBackend, workerBackend] = ThreadConnectionBackend::createPair();
+
+    TaskSink sink;
+    connect(appBackend.get(), &ConnectionBackend::commandReceived, this, [&sink](const Task &task) {
+        sink.add(task);
+    });
+
+    // Produce far more than HighWaterMark from a separate thread so the producer actually
+    // blocks on back-pressure and resumes as the application drains. Order must be preserved.
+    const int total = 2000;
+    QThread *workerThread = QThread::create([worker = workerBackend.get()] {
+        for (int i = 0; i < total; ++i) {
+            worker->sendCommand(i, QByteArray::number(i));
+        }
+    });
+    workerThread->start();
+
+    QTRY_COMPARE_WITH_TIMEOUT(sink.count(), total, 30000);
+    QVERIFY(workerThread->wait(5000));
+    delete workerThread;
+
+    const QList<Task> tasks = sink.tasks();
+    for (int i = 0; i < total; ++i) {
+        QCOMPARE(tasks.at(i).cmd, i);
+        QCOMPARE(tasks.at(i).bytes(), QByteArray::number(i));
+    }
+}
+
+void ThreadConnectionBackendTest::testWorkerCloseDisconnectsApplication()
+{
+    auto [appBackend, workerBackend] = ThreadConnectionBackend::createPair();
+
+    QSignalSpy disconnectedSpy(appBackend.get(), &ConnectionBackend::disconnected);
+    QVERIFY(disconnectedSpy.isValid());
+
+    workerBackend->close(); // worker end goes away -> application is notified
+
+    QTRY_COMPARE(disconnectedSpy.count(), 1);
+    QCOMPARE(appBackend->state, ConnectionBackend::Idle);
+}
+
+void ThreadConnectionBackendTest::testEntriesTravelAsObjects()
+{
+    auto [appBackend, workerBackend] = ThreadConnectionBackend::createPair();
+
+    TaskSink sink;
+    connect(appBackend.get(), &ConnectionBackend::commandReceived, this, [&sink](const Task &task) {
+        sink.add(task);
+    });
+
+    QVERIFY(workerBackend->sendPayload(42, makeEntries(3)));
+
+    QTRY_COMPARE(sink.count(), 1);
+    const Task task = sink.tasks().constFirst();
+    QCOMPARE(task.cmd, 42);
+    QVERIFY(task.bytes().isEmpty()); // nothing was written down, the entries came as they are
+    const UDSEntryList *entries = std::get_if<UDSEntryList>(&task.payload);
+    QVERIFY(entries);
+    QCOMPARE(entries->count(), 3);
+    QCOMPARE(entries->at(2).stringValue(UDSEntry::UDS_NAME), QStringLiteral("file2"));
+    QCOMPARE(entries->at(2).numberValue(UDSEntry::UDS_SIZE), 2);
+}
+
+void ThreadConnectionBackendTest::testEntriesBuiltOnTheWorkerThread()
+{
+    // What a listing does: the entries are built on the worker thread and read on the
+    // application thread, so whatever an entry holds must be safe to hand over that way.
+    auto [appBackend, workerBackend] = ThreadConnectionBackend::createPair();
+
+    TaskSink sink;
+    connect(appBackend.get(), &ConnectionBackend::commandReceived, this, [&sink](const Task &task) {
+        sink.add(task);
+    });
+
+    const int batches = 20;
+    QThread *workerThread = QThread::create([worker = workerBackend.get()] {
+        for (int i = 0; i < batches; ++i) {
+            worker->sendPayload(i, makeEntries(100));
+        }
+    });
+    workerThread->start();
+
+    QTRY_COMPARE_WITH_TIMEOUT(sink.count(), batches, 30000);
+    QVERIFY(workerThread->wait(5000));
+    delete workerThread;
+
+    const QList<Task> tasks = sink.tasks();
+    for (int i = 0; i < batches; ++i) {
+        QCOMPARE(tasks.at(i).cmd, i);
+        const UDSEntryList *entries = std::get_if<UDSEntryList>(&tasks.at(i).payload);
+        QVERIFY(entries);
+        QCOMPARE(entries->count(), 100);
+        QCOMPARE(entries->at(99).stringValue(UDSEntry::UDS_NAME), QStringLiteral("file99"));
+        QCOMPARE(entries->at(99).numberValue(UDSEntry::UDS_SIZE), 99);
+    }
+}
+
+QTEST_MAIN(ThreadConnectionBackendTest)
+
+#include "threadconnectionbackendtest.moc"

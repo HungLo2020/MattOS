@@ -214,6 +214,19 @@ void TabletInputRedirection::ensureTabletTool(InputDeviceTabletTool *device)
     m_cursorByTool[device] = cursor;
 }
 
+void TabletInputRedirection::setPosition(InputDeviceTabletTool *tool, const QPointF &position)
+{
+    m_lastPosition = position;
+
+    // Make sure pointer doesn't go outside of the screens range
+    LogicalOutput *output = Workspace::self()->outputAt(m_lastPosition);
+    m_lastPosition = confineToBoundingBox(m_lastPosition, output->geometryF());
+
+    m_cursorByTool[tool]->setPos(m_lastPosition);
+    workspace()->setActiveOutput(m_lastPosition);
+    input()->setLastPosition(m_lastPosition);
+}
+
 void TabletInputRedirection::tabletToolAxisEvent(const QPointF &pos, qreal pressure, qreal xTilt, qreal yTilt, qreal rotation, qreal distance, bool tipDown, qreal sliderPosition, InputDeviceTabletTool *tool, std::chrono::microseconds time, InputDevice *device)
 {
     if (!inited()) {
@@ -221,12 +234,9 @@ void TabletInputRedirection::tabletToolAxisEvent(const QPointF &pos, qreal press
     }
 
     ensureTabletTool(tool);
-
-    m_lastPosition = pos;
-    m_cursorByTool[tool]->setPos(m_lastPosition);
+    setPosition(tool, pos);
 
     update();
-    workspace()->setActiveOutput(m_lastPosition);
 
     TabletToolAxisEvent ev{
         .device = device,
@@ -256,17 +266,9 @@ void TabletInputRedirection::tabletToolAxisEventRelative(const QPointF &delta,
     }
 
     ensureTabletTool(tool);
-
-    m_lastPosition += delta;
-
-    // Make sure pointer doesn't go outside of the screens range
-    LogicalOutput *output = Workspace::self()->outputAt(m_lastPosition);
-    m_lastPosition = confineToBoundingBox(m_lastPosition, output->geometryF());
-
-    m_cursorByTool[tool]->setPos(m_lastPosition);
+    setPosition(tool, m_lastPosition + delta);
 
     update();
-    workspace()->setActiveOutput(output);
 
     TabletToolAxisEvent ev{
         .device = device,
@@ -295,16 +297,17 @@ void TabletInputRedirection::tabletToolProximityEvent(const QPointF &pos, qreal 
 
     ensureTabletTool(tool);
 
-    if (!device->tabletToolIsRelative()) {
-        m_lastPosition = pos;
-    }
-
     if (tipNear) {
-        m_cursorByTool[tool]->setPos(m_lastPosition);
+        if (input()->syncTabletWithMouse()) {
+            if (const auto position = input()->takeLastPosition()) {
+                setPosition(tool, *position);
+            }
+        } else if (!device->tabletToolIsRelative()) {
+            setPosition(tool, pos);
+        }
     }
 
     update();
-    workspace()->setActiveOutput(m_lastPosition);
 
     TabletToolProximityEvent ev{
         .type = tipNear ? TabletToolProximityEvent::EnterProximity : TabletToolProximityEvent::LeaveProximity,
@@ -332,12 +335,8 @@ void TabletInputRedirection::tabletToolTipEvent(const QPointF &pos, qreal pressu
 
     ensureTabletTool(tool);
 
-    if (!device->tabletToolIsRelative()) {
-        m_lastPosition = pos;
-    }
-
-    if (tipDown) {
-        m_cursorByTool[tool]->setPos(m_lastPosition);
+    if (tipDown && !device->tabletToolIsRelative()) {
+        setPosition(tool, pos);
     }
 
     if (!tipDown) {
@@ -349,8 +348,6 @@ void TabletInputRedirection::tabletToolTipEvent(const QPointF &pos, qreal pressu
     if (tipDown) {
         m_tipDown = true;
     }
-
-    workspace()->setActiveOutput(m_lastPosition);
 
     TabletToolTipEvent ev{
         .type = tipDown ? TabletToolTipEvent::Press : TabletToolTipEvent::Release,
@@ -370,9 +367,12 @@ void TabletInputRedirection::tabletToolTipEvent(const QPointF &pos, qreal pressu
     input()->processFilters(&InputEventFilter::tabletToolTipEvent, &ev);
     input()->setLastInputHandler(this);
     if (tipDown) {
-        input()->setLastInteractionSerial(waylandServer()->seat()->display()->serial());
+        const uint32_t serial = waylandServer()->seat()->display()->serial();
+        input()->setLastInteractionSerial(serial);
         if (auto f = focus()) {
-            f->setLastUsageSerial(waylandServer()->seat()->display()->serial());
+            f->setLastUsageSerial(serial);
+        } else if (auto d = decoration()) {
+            d->window()->setLastUsageSerial(serial);
         }
     }
 }
@@ -395,9 +395,12 @@ void KWin::TabletInputRedirection::tabletToolButtonEvent(uint button, bool isPre
     input()->processFilters(&InputEventFilter::tabletToolButtonEvent, &event);
     input()->setLastInputHandler(this);
     if (isPressed) {
-        input()->setLastInteractionSerial(waylandServer()->seat()->display()->serial());
+        const uint32_t serial = waylandServer()->seat()->display()->serial();
+        input()->setLastInteractionSerial(serial);
         if (auto f = focus()) {
-            f->setLastUsageSerial(waylandServer()->seat()->display()->serial());
+            f->setLastUsageSerial(serial);
+        } else if (auto d = decoration()) {
+            d->window()->setLastUsageSerial(serial);
         }
     }
 }
@@ -417,9 +420,12 @@ void KWin::TabletInputRedirection::tabletPadButtonEvent(uint button, bool isPres
     input()->processFilters(&InputEventFilter::tabletPadButtonEvent, &event);
     input()->setLastInputHandler(this);
     if (isPressed) {
-        input()->setLastInteractionSerial(waylandServer()->seat()->display()->serial());
+        const uint32_t serial = waylandServer()->seat()->display()->serial();
+        input()->setLastInteractionSerial(serial);
         if (auto f = focus()) {
-            f->setLastUsageSerial(waylandServer()->seat()->display()->serial());
+            f->setLastUsageSerial(serial);
+        } else if (auto d = decoration()) {
+            d->window()->setLastUsageSerial(serial);
         }
     }
 }
@@ -460,7 +466,6 @@ void KWin::TabletInputRedirection::tabletPadRingEvent(int number, qreal position
 
 void KWin::TabletInputRedirection::tabletPadDialEvent(int number, double delta, quint32 group, std::chrono::microseconds time, InputDevice *device)
 {
-
     TabletPadDialEvent event{
         .device = device,
         .number = number,
@@ -503,19 +508,17 @@ void TabletInputRedirection::cleanupDecoration(Decoration::DecoratedWindowImpl *
     QCoreApplication::instance()->sendEvent(now->decoration(), &event);
     now->window()->processDecorationMove(pos, m_lastPosition);
 
-    m_decorationGeometryConnection = connect(
-        decoration()->window(), &Window::frameGeometryChanged, this, [this]() {
-            // ensure maximize button gets the leave event when maximizing/restore a window, see BUG 385140
-            const auto oldDeco = decoration();
-            update();
-            if (oldDeco && oldDeco == decoration() && !decoration()->window()->isInteractiveMove() && !decoration()->window()->isInteractiveResize()) {
-                // position of window did not change, we need to send HoverMotion manually
-                const QPointF p = m_lastPosition - decoration()->window()->pos();
-                QHoverEvent event(QEvent::HoverMove, p, p);
-                QCoreApplication::instance()->sendEvent(decoration()->decoration(), &event);
-            }
-        },
-        Qt::QueuedConnection);
+    m_decorationGeometryConnection = connect(decoration()->window(), &Window::frameGeometryChanged, this, [this]() {
+        // ensure maximize button gets the leave event when maximizing/restore a window, see BUG 385140
+        const auto oldDeco = decoration();
+        update();
+        if (oldDeco && oldDeco == decoration() && !decoration()->window()->isInteractiveMove() && !decoration()->window()->isInteractiveResize()) {
+            // position of window did not change, we need to send HoverMotion manually
+            const QPointF p = m_lastPosition - decoration()->window()->pos();
+            QHoverEvent event(QEvent::HoverMove, p, p);
+            QCoreApplication::instance()->sendEvent(decoration()->decoration(), &event);
+        }
+    }, Qt::QueuedConnection);
 
     // if our decoration gets destroyed whilst it has focus, we pass focus on to the same client
     m_decorationDestroyedConnection = connect(now, &QObject::destroyed, this, &TabletInputRedirection::update, Qt::QueuedConnection);

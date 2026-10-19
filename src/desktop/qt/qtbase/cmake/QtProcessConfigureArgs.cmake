@@ -20,15 +20,51 @@ include(${CMAKE_CURRENT_LIST_DIR}/QtBuildInformation.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/QtVcpkgManifestHelpers.cmake)
 
 set(cmake_args "")
-macro(push)
+
+# Deliberately a function and not a macro: macro arguments are substituted textually and the
+# result is parsed as CMake code again, which turns any backslash that isn't a valid escape into
+# a syntax error. That made arguments like CMAKE_INSTALL_PREFIX=D:\some\path fail.
+function(push)
     list(APPEND cmake_args ${ARGN})
-endmacro()
+    set(cmake_args "${cmake_args}" PARENT_SCOPE)
+endfunction()
 
 macro(pop_path_argument)
     list(POP_FRONT configure_args path)
     string(REGEX REPLACE "^\"(.*)\"$" "\\1" path "${path}")
     file(TO_CMAKE_PATH "${path}" path)
 endmacro()
+
+function(qt_configure_print_to_stdout text)
+    set(tmp_candidates
+        "${CMAKE_CURRENT_BINARY_DIR}"
+        "$ENV{TMPDIR}"
+        "$ENV{TEMP}"
+        "/tmp"
+    )
+    set(tmp "")
+    foreach(dir IN LISTS tmp_candidates)
+        if(dir STREQUAL "")
+            continue()
+        endif()
+        set(candidate "${dir}/.qt_configure_stdout_tmp")
+        execute_process(
+            COMMAND "${CMAKE_COMMAND}" -E touch "${candidate}"
+            RESULT_VARIABLE touch_result
+        )
+        if(touch_result EQUAL 0)
+            set(tmp "${candidate}")
+            break()
+        endif()
+    endforeach()
+    if(tmp STREQUAL "")
+        message("${text}")  # last resort fallback (stderr)
+        return()
+    endif()
+    file(WRITE "${tmp}" "${text}")
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E cat "${tmp}")
+    file(REMOVE "${tmp}")
+endfunction()
 
 function(is_non_empty_valid_arg arg value)
     if(value STREQUAL "")
@@ -123,6 +159,14 @@ while(NOT "${configure_args}" STREQUAL "")
         set(auto_detect_compiler FALSE)
     elseif(arg STREQUAL "-list-features")
         set(list_features TRUE)
+        if(configure_args)
+            list(GET configure_args 0 _next_arg)
+            if(NOT _next_arg MATCHES "^-")
+                list(POP_FRONT configure_args list_features_module)
+            endif()
+        endif()
+    elseif(arg STREQUAL "-list-modules")
+        set(list_modules TRUE)
     elseif(arg MATCHES "^-h(elp)?$")
         set(display_module_help TRUE)
     elseif(arg STREQUAL "-write-options-for-conan")
@@ -294,9 +338,11 @@ function(qt_feature feature)
         "${no_value_options}" "${single_value_options}" "${multi_value_options}"
     )
 
+    get_property(_current_module GLOBAL PROPERTY COMMANDLINE_CURRENT_CONFIGURE_MODULE)
     set_property(GLOBAL APPEND PROPERTY COMMANDLINE_KNOWN_FEATURES "${feature}")
     set_property(GLOBAL PROPERTY COMMANDLINE_FEATURE_PURPOSE_${feature} "${arg_PURPOSE}")
     set_property(GLOBAL PROPERTY COMMANDLINE_FEATURE_SECTION_${feature} "${arg_SECTION}")
+    set_property(GLOBAL PROPERTY COMMANDLINE_FEATURE_MODULE_${feature} "${_current_module}")
 
     if(NOT generate_vcpkg_manifest)
         return()
@@ -599,6 +645,7 @@ set(QT_FIND_ALL_PACKAGES_ALWAYS ON)
 
 qt_add_common_commandline_options()
 
+set(cmdline_visited_dirs "")
 while(commandline_files)
     list(POP_FRONT commandline_files commandline_file)
     get_filename_component(commandline_file_directory "${commandline_file}" DIRECTORY)
@@ -611,6 +658,25 @@ while(commandline_files)
         endif()
     endif()
 
+    get_filename_component(current_configure_module "${commandline_file_directory}" NAME)
+    if(current_configure_module STREQUAL "src")
+        get_filename_component(_parent_dir "${commandline_file_directory}" DIRECTORY)
+        get_filename_component(current_configure_module "${_parent_dir}" NAME)
+    endif()
+    set_property(GLOBAL PROPERTY COMMANDLINE_CURRENT_CONFIGURE_MODULE "${current_configure_module}")
+
+    # Record this directory as visited by the qt_cmdline.cmake traversal.
+    # Normalize both paths to absolute before computing the relative path, so the
+    # result matches the chain-coverage check in qt_internal_add_module regardless
+    # of whether MODULE_ROOT was passed as a relative path (e.g. when configuring a
+    # module in-source with '.').
+    get_filename_component(abs_module_root "${MODULE_ROOT}" ABSOLUTE)
+    get_filename_component(abs_commandline_file_directory "${commandline_file_directory}" ABSOLUTE)
+    file(RELATIVE_PATH cmdline_marker_rel "${abs_module_root}" "${abs_commandline_file_directory}")
+    if(NOT cmdline_marker_rel)
+        set(cmdline_marker_rel ".")
+    endif()
+    list(APPEND cmdline_visited_dirs "${cmdline_marker_rel}")
     set(configure_file "${commandline_file_directory}/${configure_filename}")
     unset(commandline_subconfigs)
     if(EXISTS "${configure_file}")
@@ -627,6 +693,13 @@ while(commandline_files)
         list(PREPEND commandline_files "${commandline_subconfigs}")
     endif()
 endwhile()
+
+# Write the list of directories visited by the qt_cmdline.cmake traversal,
+# relative to MODULE_ROOT. It is consumed by the chain-coverage check in
+# qt_internal_add_module.
+list(REMOVE_DUPLICATES cmdline_visited_dirs)
+list(JOIN cmdline_visited_dirs "\n" cmdline_visited_dirs_content)
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/.qt/cmdline_visited_dirs" "${cmdline_visited_dirs_content}\n")
 
 get_property(commandline_known_features GLOBAL PROPERTY COMMANDLINE_KNOWN_FEATURES)
 
@@ -868,22 +941,39 @@ function(qt_call_function func)
 endfunction()
 
 if(display_module_help)
-    message([[
+    set(help [[
 Options:
   -help, -h ............ Display this help screen
 
   -feature-<feature> ... Enable <feature>
   -no-feature-<feature>  Disable <feature> [none]
-  -list-features ....... List available features. Note that some features
-                         have dedicated command line options as well.
+  -list-features [module]  List available features, optionally filtered by
+                           module directory (e.g., sql, network). Note that some
+                           features have dedicated command line options as well.
+  -list-modules .......... List available module names for use with -list-features.
 ]])
-
     set(help_file "${MODULE_ROOT}/config_help.txt")
     if(EXISTS "${help_file}")
-        file(READ "${help_file}" content)
-        message("${content}")
+        file(READ "${help_file}" help_file_content)
+        string(APPEND help "${help_file_content}")
     endif()
+    qt_configure_print_to_stdout("${help}")
+    return()
+endif()
 
+if(list_modules)
+    unset(modules)
+    foreach(feature ${commandline_known_features})
+        get_property(purpose GLOBAL PROPERTY COMMANDLINE_FEATURE_PURPOSE_${feature})
+        if(purpose)
+            get_property(feature_module GLOBAL PROPERTY COMMANDLINE_FEATURE_MODULE_${feature})
+            list(APPEND modules "${feature_module}")
+        endif()
+    endforeach()
+    list(REMOVE_DUPLICATES modules)
+    list(SORT modules)
+    list(JOIN modules "\n" modules)
+    qt_configure_print_to_stdout("${modules}\n")
     return()
 endif()
 
@@ -893,6 +983,12 @@ if(list_features)
         get_property(section GLOBAL PROPERTY COMMANDLINE_FEATURE_SECTION_${feature})
         get_property(purpose GLOBAL PROPERTY COMMANDLINE_FEATURE_PURPOSE_${feature})
         if(purpose)
+            if(DEFINED list_features_module)
+                get_property(feature_module GLOBAL PROPERTY COMMANDLINE_FEATURE_MODULE_${feature})
+                if(NOT feature_module STREQUAL list_features_module)
+                    continue()
+                endif()
+            endif()
             if(NOT "${section}" STREQUAL "")
                 string(APPEND section ": ")
             endif()
@@ -903,7 +999,7 @@ if(list_features)
     endforeach()
     list(SORT lines)
     list(JOIN lines "\n" lines)
-    message("${lines}")
+    qt_configure_print_to_stdout("${lines}\n")
     return()
 endif()
 

@@ -98,7 +98,7 @@ if(APPLE)
   target_link_libraries(KF6StatusNotifierItem PRIVATE "-framework Foundation" "-framework AppKit")
 endif()
 
-ecm_generate_headers(KStatusNotifierItem_HEADERS
+ecm_generate_headers(KStatusNotifierItem_CamelCase_HEADERS
   HEADER_NAMES
   KStatusNotifierItem
 
@@ -110,6 +110,7 @@ install(TARGETS KF6StatusNotifierItem EXPORT KF6StatusNotifierItemTargets ${KF_I
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/kstatusnotifieritem_export.h
   ${KStatusNotifierItem_HEADERS}
+  ${KStatusNotifierItem_CamelCase_HEADERS}
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KStatusNotifierItem COMPONENT Devel
 )
 
@@ -133,3 +134,15 @@ if (HAVE_DBUS)
         RENAME kf6_org.kde.StatusNotifierWatcher.xml)
 endif()
 
+ecm_add_installed_library_check(KF6StatusNotifierItem
+    PACKAGE_NAME "KF6StatusNotifierItem"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6StatusNotifierItem
+    HEADERS ${KStatusNotifierItem_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6StatusNotifierItem
+    PREFIX KSTATUSNOTIFIERITEM
+)

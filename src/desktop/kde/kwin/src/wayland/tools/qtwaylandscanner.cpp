@@ -159,7 +159,7 @@ bool Scanner::parseArguments(int argc, char **argv)
             if (option.startsWith("--header-path=")) {
                 m_headerPath = option.mid(14);
             } else if (option.startsWith("--prefix=")) {
-                m_prefix = option.mid(10);
+                m_prefix = option.mid(9);
             } else if (option.startsWith("--add-include=")) {
                 auto include = option.mid(14);
                 if (!include.isEmpty())
@@ -229,7 +229,7 @@ Scanner::WaylandEvent Scanner::readEvent(QXmlStreamReader &xml, bool request)
         .arguments = {},
     };
     while (xml.readNextStartElement()) {
-        if (xml.name() == QLatin1String("arg")) {
+        if (xml.name() == QLatin1StringView("arg")) {
             WaylandArgument argument = {
                 .name      = byteArrayValue(xml, "name"),
                 .type      = byteArrayValue(xml, "type"),
@@ -253,7 +253,7 @@ Scanner::WaylandEnum Scanner::readEnum(QXmlStreamReader &xml)
     };
 
     while (xml.readNextStartElement()) {
-        if (xml.name() == QLatin1String("entry")) {
+        if (xml.name() == QLatin1StringView("entry")) {
             WaylandEnumEntry entry = {
                 .name    = byteArrayValue(xml, "name"),
                 .value   = byteArrayValue(xml, "value"),
@@ -279,11 +279,11 @@ Scanner::WaylandInterface Scanner::readInterface(QXmlStreamReader &xml)
     };
 
     while (xml.readNextStartElement()) {
-        if (xml.name() == QLatin1String("event"))
+        if (xml.name() == QLatin1StringView("event"))
             interface.events.push_back(readEvent(xml, false));
-        else if (xml.name() == QLatin1String("request"))
+        else if (xml.name() == QLatin1StringView("request"))
             interface.requests.push_back(readEvent(xml, true));
-        else if (xml.name() == QLatin1String("enum"))
+        else if (xml.name() == QLatin1StringView("enum"))
             interface.enums.push_back(readEnum(xml));
         else
             xml.skipCurrentElement();
@@ -444,7 +444,7 @@ bool Scanner::process()
     if (!m_xml->readNextStartElement())
         return false;
 
-    if (m_xml->name() != QLatin1String("protocol")) {
+    if (m_xml->name() != QLatin1StringView("protocol")) {
         m_xml->raiseError(QStringLiteral("The file is not a wayland protocol file."));
         return false;
     }
@@ -465,7 +465,7 @@ bool Scanner::process()
     std::vector<WaylandInterface> interfaces;
 
     while (m_xml->readNextStartElement()) {
-        if (m_xml->name() == QLatin1String("interface"))
+        if (m_xml->name() == QLatin1StringView("interface"))
             interfaces.push_back(readInterface(*m_xml));
         else
             m_xml->skipCurrentElement();
@@ -572,6 +572,7 @@ bool Scanner::process()
             printf("        Resource *add(struct ::wl_client *client, int version);\n");
             printf("        Resource *add(struct ::wl_client *client, int id, int version);\n");
             printf("        Resource *add(struct wl_list *resource_list, struct ::wl_client *client, int id, int version);\n");
+            printf("        Resource *add(struct ::wl_resource *resource);\n");
             printf("\n");
             printf("        Resource *resource() { return m_resource; }\n");
             printf("        const Resource *resource() const { return m_resource; }\n");
@@ -800,12 +801,22 @@ bool Scanner::process()
             printf("    }\n");
             printf("\n");
 
+            printf("    %s::Resource *%s::add(struct ::wl_resource *resource)\n", interfaceName, interfaceName);
+            printf("    {\n");
+            printf("        return *m_resource_map.insert(wl_resource_get_client(resource), bind(resource));\n");
+            printf("    }\n");
+            printf("\n");
+
             printf("    void %s::init(struct ::wl_display *display, int version)\n", interfaceName);
             printf("    {\n");
             printf("        m_display = display;\n");
             printf("        m_global = wl_global_create(display, &::%s_interface, version, this, bind_func);\n", interfaceName);
             printf("        m_displayDestroyedListener.notify = %s::display_destroy_func;\n", interfaceName);
             printf("        m_displayDestroyedListener.parent = this;\n");
+            printf("        wl_global_set_withdrawn_listener(m_global, [](wl_global *global) {\n");
+            printf("            auto object = static_cast<%s *>(wl_global_get_user_data(global));\n", interfaceName);
+            printf("            object->%s_destroy_global();\n", interfaceNameStripped);
+            printf("        });\n");
             printf("        wl_display_add_destroy_listener(display, &m_displayDestroyedListener);\n");
             printf("    }\n");
             printf("\n");
@@ -878,11 +889,11 @@ bool Scanner::process()
             printf("        if (!m_global || m_globalRemovedEvent)\n");
             printf("            return;\n");
             printf("\n");
-            printf("        wl_global_remove(m_global);\n");
-            printf("\n");
             printf("        struct wl_event_loop *event_loop = wl_display_get_event_loop(m_display);\n");
             printf("        m_globalRemovedEvent = wl_event_loop_add_timer(event_loop, deferred_destroy_global_func, this);\n");
-            printf("        wl_event_source_timer_update(m_globalRemovedEvent, 300000);\n");
+            printf("        wl_event_source_timer_update(m_globalRemovedEvent, 24 * 60 * 60 * 1000);\n");
+            printf("\n");
+            printf("        wl_global_remove(m_global);\n");
             printf("    }\n");
             printf("\n");
 

@@ -17,6 +17,7 @@ import "private/globaltoolbar" as GlobalToolBar
 /*!
   \qmltype PageRow
   \inqmlmodule org.kde.kirigami
+  \inherits Control
 
   \brief A row-based navigation model that can be used
   with a set of interlinked information pages.
@@ -371,7 +372,7 @@ QT.Control {
     /*!
       \qmlmethod Page PageRow::insertPage(int position, var page, var properties)
 
-      \brief Inserts a new page or a list of new pages at an arbitrary position.
+      \brief Inserts a new page or a list of new pages at an arbitrary \a position.
 
       A single page can be defined as an url, a component, or an object. It can
       also be an array of the above said types, but in that case, the
@@ -405,7 +406,8 @@ QT.Control {
     /*!
       \qmlmethod void PageRow::movePage(int fromPos, int toPos)
 
-      Move the page at position fromPos to the new position toPos
+      Move the page at position \a fromPos to the new position \a toPos.
+
       If needed, currentIndex will be adjusted
       in order to keep the same current page.
       \since 2.7
@@ -637,12 +639,6 @@ QT.Control {
         }
     }
 
-    Keys.onReleased: event => {
-        if (event.key === Qt.Key_Back) {
-            this.goBack(event)
-        }
-    }
-
     onInitialPageChanged: {
         if (initialPage) {
             clear();
@@ -705,6 +701,7 @@ QT.Control {
         readonly property int height: globalToolBarUI.height
         readonly property Item leftHandleAnchor: (globalToolBarUI.item as GlobalToolBar.PageRowGlobalToolBarUI)?.leftHandleAnchor ?? null
         readonly property Item rightHandleAnchor: (globalToolBarUI.item as GlobalToolBar.PageRowGlobalToolBarUI)?.rightHandleAnchor ?? null
+        safeArea: root.SafeArea
     }
 
     QQC2.StackView {
@@ -964,7 +961,7 @@ QT.Control {
                 if (!pageComp) {
                     pageComp = pagesLogic.componentCache[page] = Qt.createComponent(page);
                 }
-            } else if (typeof page === "object" && !(page instanceof Item) && page.toString !== undefined) {
+            } else if (typeof page === "object" && !(page instanceof Item) && typeof page.toString === "function") {
                 // page defined as url (QML value type, not a string)
                 pageComp = pagesLogic.componentCache[page.toString()];
                 if (!pageComp) {
@@ -1146,6 +1143,7 @@ QT.Control {
 
                         // pop every page that isn't visible and at the top of the stack
                         while (lastItem && columnView.trailingVisibleItem &&
+                            columnView.currentIndex !== columnView.contentChildren.length - 1 &&
                             lastItem !== columnView.trailingVisibleItem && columnView.containsItem(lastItem)) {
                             root.pop();
                         }

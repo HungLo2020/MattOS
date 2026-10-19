@@ -1,6 +1,7 @@
 [Desktop Entry]
 Keys=qwn
 Name=Qwant News
+Name[am]=Qwant ዜና
 Name[ar]=أخبار Qwant
 Name[ast]=Qwant News
 Name[az]=Qwant Xəbərlər
@@ -44,6 +45,8 @@ Name[lv]=„Qwant“ ziņas
 Name[ml]=ക്വാണ്ട് വാർത്തകൾ
 Name[mr]=क्वांट समाचार
 Name[my]=ကွမ့် သတင်းများ
+Name[nan_TW]=Qwant 新聞
+Name[nan_TW@latin]=Qwant Sin-bûn
 Name[nb]=Qwant nyheter
 Name[nds]=Qwant-Narichten
 Name[nl]=Qwant nieuws
@@ -73,6 +76,7 @@ Name[vi]=Qwant Tin tức
 Name[zh_CN]=Qwant 新闻
 Name[zh_TW]=Qwant News
 Query=https://www.qwant.com/?q=\\{@}&client=kde&t=news
+Query[am]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[ar]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[az]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[be]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
@@ -112,6 +116,8 @@ Query[lg]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[lt]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[lv]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[my]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
+Query[nan_TW]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
+Query[nan_TW@latin]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[nb]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[nl]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[nn]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
@@ -130,7 +136,6 @@ Query[tg]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[th]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[tok]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[tr]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
-Query[ug]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[uk]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[vi]=https://www.qwant.com/?q=\\{@}&client=kde&t=news
 Query[zh_CN]=https://www.qwant.com/?q=\\{@}&client=kde&t=news

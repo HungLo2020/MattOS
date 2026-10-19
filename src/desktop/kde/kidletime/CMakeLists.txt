@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
 project(KIdleTime VERSION ${KF_VERSION})
 
 # ECM setup
 include(FeatureSummary)
-find_package(ECM 6.26.0  NO_MODULE)
+find_package(ECM 6.31.0  NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -16,7 +16,9 @@ include(KDECMakeSettings)
 include(KDEFrameworkCompilerSettings NO_POLICY_SCOPE)
 
 include(KDEGitCommitHooks)
-include(CMakeFindFrameworks)
+if(APPLE)
+    include(CMakeFindFrameworks)
+endif()
 include(CMakePackageConfigHelpers)
 include(ECMGenerateExportHeader)
 include(ECMQtDeclareLoggingCategory)
@@ -24,6 +26,7 @@ include(ECMSetupVersion)
 include(ECMGenerateHeaders)
 include(ECMDeprecationSettings)
 include(ECMGenerateQDoc)
+include(ECMInstalledLibraryCheck)
 
 set(kiconthemes_version_header "${CMAKE_CURRENT_BINARY_DIR}/src/kidletime_version.h")
 ecm_setup_version(PROJECT VARIABLE_PREFIX KIDLETIME
@@ -31,7 +34,7 @@ ecm_setup_version(PROJECT VARIABLE_PREFIX KIDLETIME
                         PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/KF6IdleTimeConfigVersion.cmake"
                         SOVERSION 6)
 
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 find_package(Qt6 ${REQUIRED_QT_VERSION} CONFIG REQUIRED Gui)
 
 option(WITH_X11 "Build X11 support" ON)

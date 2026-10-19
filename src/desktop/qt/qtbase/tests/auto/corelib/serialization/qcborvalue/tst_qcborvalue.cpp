@@ -101,6 +101,8 @@ private slots:
 #endif
     void fromCbor_data();
     void fromCbor();
+    void fromCborNaN_data();
+    void fromCborNaN();
     void fromCborStreamReaderByteArray_data() { fromCbor_data(); }
     void fromCborStreamReaderByteArray();
     void fromCborStreamReaderIODevice_data() { fromCbor_data(); }
@@ -136,7 +138,15 @@ private slots:
     void debugOutput();
     void testlibFormatting_data();
     void testlibFormatting();
+
+    void deeplyNestedContainerDoesNotCrash();
 };
+
+inline double makeNan(quint64 x)
+{
+    x |= Q_UINT64_C(0x7ff8000000000000);
+    return qFromUnaligned<double>(&x);
+}
 
 namespace SimpleEncodeToCbor {
 inline size_t lengthOf(int)
@@ -2407,6 +2417,9 @@ static void addCommonCborData()
     QTest::newRow("String:Unicode") << QCborValue(QStringLiteral(u"éś α €"))
                                      << raw("\x6b\xc3\xa9\xc5\x9b \xce\xb1 \xe2\x82\xac") << noxfrm;
 
+    QTest::newRow("DateTime:Empty") << QCborValue(QDateTime())
+                                    << raw("\xc0\x60")
+                                    << noxfrm;
     QTest::newRow("DateTime") << QCborValue(dt)             // this is UTC
                               << "\xc0\x78\x18" + dt.toString(Qt::ISODateWithMs).toLatin1()
                               << noxfrm;
@@ -2442,6 +2455,38 @@ static void addCommonCborData()
                                   << raw("\xc4\x82\x21\x19\x6a\xb3") << noxfrm;
 }
 
+static void addNonPreservingNaNData()
+{
+    QCborValue::EncodingOptions noxfrm = QCborValue::NoTransformation;
+    QCborValue::EncodingOptions usefloat = QCborValue::UseFloat;
+    QCborValue::EncodingOptions usefloat16 = QCborValue::UseFloat16;
+
+    double payloadNanLsb = makeNan(0x5174);
+    double payloadNanMsb = makeNan(0x4000000000000);
+
+    QTest::newRow("Double:-nan") << QCborValue(-qQNaN()) << raw("\xfb\x7f\xf8\0\0""\0\0\0\0") << noxfrm;
+    QTest::newRow("Double:payloadnan-lsb") << QCborValue(payloadNanLsb) << raw("\xfb\x7f\xf8\0\0""\0\0\0\0") << noxfrm;
+    QTest::newRow("Double:payloadnan-msb") << QCborValue(payloadNanMsb) << raw("\xfb\x7f\xf8\0\0""\0\0\0\0") << noxfrm;
+
+    QTest::newRow("Float:-nan") << QCborValue(-qQNaN()) << raw("\xfa\x7f\xc0\0\0") << usefloat;
+    QTest::newRow("Float:payloadnan-lsb") << QCborValue(payloadNanLsb) << raw("\xfa\x7f\xc0\0\0") << usefloat;
+    QTest::newRow("Float:payloadnan-msb") << QCborValue(payloadNanMsb) << raw("\xfa\x7f\xc0\0\0") << usefloat;
+
+    QTest::newRow("Float16:-nan") << QCborValue(-qQNaN()) << raw("\xf9\x7e\0") << usefloat16;
+    QTest::newRow("Float16:payloadnan-lsb") << QCborValue(payloadNanLsb) << raw("\xf9\x7e\0") << usefloat16;
+    QTest::newRow("Float16:payloadnan-msb") << QCborValue(payloadNanMsb) << raw("\xf9\x7e\0") << usefloat16;
+
+#if QT_CONFIG(signaling_nan)
+    QTest::newRow("Double:snan") << QCborValue(qSNaN()) << raw("\xfb\x7f\xf8\0\0""\0\0\0\0") << noxfrm;
+    QTest::newRow("Double:-snan") << QCborValue(-qSNaN()) << raw("\xfb\x7f\xf8\0\0""\0\0\0\0") << noxfrm;
+
+    QTest::newRow("Float:snan") << QCborValue(qSNaN()) << raw("\xfa\x7f\xc0\0\0") << usefloat;
+    QTest::newRow("Float:-snan") << QCborValue(-qSNaN()) << raw("\xfa\x7f\xc0\0\0") << usefloat;
+    QTest::newRow("Float16:snan") << QCborValue(qSNaN()) << raw("\xf9\x7e\0") << usefloat16;
+    QTest::newRow("Float16:-snan") << QCborValue(-qSNaN()) << raw("\xf9\x7e\0") << usefloat16;
+#endif
+}
+
 void tst_QCborValue::toCbor_data()
 {
     addCommonCborData();
@@ -2449,12 +2494,7 @@ void tst_QCborValue::toCbor_data()
     // The rest of these tests are conversions whose decoding does not yield
     // back the same QCborValue.
 
-#if QT_CONFIG(signaling_nan)
-    // Signalling NaN get normalized to quiet ones
-    QTest::newRow("Double:snan") << QCborValue(qSNaN()) << raw("\xfb\x7f\xf8\0""\0\0\0\0\0") << QCborValue::EncodingOptions();
-    QTest::newRow("Float:snan") << QCborValue(qSNaN()) << raw("\xfa\x7f\xc0\0\0") << QCborValue::EncodingOptions(QCborValue::UseFloat);
-    QTest::newRow("Float16:snan") << QCborValue(qSNaN()) << raw("\xf9\x7e\0") << QCborValue::EncodingOptions(QCborValue::UseFloat16);
-#endif
+    addNonPreservingNaNData();
 
     // Floating point written as integers are read back as integers
     QTest::newRow("UseInteger:0") << QCborValue(0.) << raw("\x00") << QCborValue::EncodingOptions(QCborValue::UseIntegers);
@@ -2608,6 +2648,29 @@ void tst_QCborValue::fromCbor()
     fromCbor_common(doCheck);
 }
 
+void tst_QCborValue::fromCborNaN_data()
+{
+    QTest::addColumn<QCborValue>("v");
+    QTest::addColumn<QByteArray>("result");
+    QTest::addColumn<QCborValue::EncodingOptions>("options");
+    addNonPreservingNaNData();
+}
+
+void tst_QCborValue::fromCborNaN()
+{
+    QFETCH(QCborValue, v);
+    QFETCH(QByteArray, result);
+    QFETCH(QCborValue::EncodingOptions, options);
+
+    QCborParserError error;
+    QCborValue decoded = QCborValue::fromCbor(result, &error);
+    QVERIFY2(error.error == QCborError(), qPrintable(error.errorString()));
+    QCOMPARE(error.offset, result.size());
+
+    double d = decoded.toDouble();
+    QVERIFY2(std::isnan(d), QByteArray(reinterpret_cast<char *>(&d), sizeof(d)).toHex());
+}
+
 void tst_QCborValue::fromCborStreamReaderByteArray()
 {
     auto doCheck = [](const QCborValue &expected, const QByteArray &data) {
@@ -2711,7 +2774,7 @@ void tst_QCborValue::extendedTypeValidation_data()
     QTest::addColumn<QCborValue>("expected");
 
     // QDateTime currently stores time in milliseconds, so make sure
-    // we don't overflow
+    // we don't overflow and therefore keep the QCborValue as UnixTime_t.
     {
         quint64 limit = std::numeric_limits<quint64>::max() / 1000;
         QTest::newRow("UnixTime_t:integer-overflow-positive")
@@ -3507,6 +3570,34 @@ void tst_QCborValue::testlibFormatting()
     QScopedArrayPointer<char> hold(QTest::toString(v));
     QString actual = hold.get();
     QCOMPARE(actual, expected);
+}
+
+void tst_QCborValue::deeplyNestedContainerDoesNotCrash()
+{
+    // Check that deeply nested container does not crash with SO in the d-tor
+
+    constexpr int depth = 200000;
+
+    // array
+    {
+        QCborArray array;
+        for (int i = 0; i < depth; ++i) {
+            QCborArray tmp;
+            tmp.append(array);
+            array = std::move(tmp);
+        }
+    }
+    // map
+    {
+        QCborMap map;
+        map.insert("a"_L1, QCborValue(0));
+        for (int i = 0; i < depth; ++i) {
+            QCborMap tmp;
+            tmp.insert("a"_L1, QCborValue(std::move(map)));
+            tmp.insert("b"_L1, QCborValue(u"Hello, world"_s));
+            map = std::move(tmp);
+        }
+    }
 }
 
 QTEST_MAIN(tst_QCborValue)

@@ -252,8 +252,12 @@ PlasmaExtras.ExpandableListItem {
 
         const labels = [];
 
-        if (model.ConnectionFailed && !model.Connected) {
+        if (model.ConnectionFailed) {
             labels.push(i18n("Connection failed"));
+        }
+
+        if (model.Battery) {
+            labels.push(i18n("%1% Battery", model.Battery.percentage));
         }
 
         switch (model.Type) {
@@ -315,10 +319,6 @@ PlasmaExtras.ExpandableListItem {
             }
 
             labels.push(profiles.join(", "));
-        }
-
-        if (model.Battery) {
-            labels.push(i18n("%1% Battery", model.Battery.percentage));
         }
 
         return labels.join(" · ");

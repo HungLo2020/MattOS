@@ -50,14 +50,14 @@ void KCMKWinRules::parseArguments(const QStringList &args)
 
     // TODO: Use a better argument parser
     for (const QString &arg : args) {
-        if (arg == QLatin1String("uuid")) {
+        if (arg == QLatin1StringView("uuid")) {
             nextArgIsUuid = true;
         } else if (nextArgIsUuid) {
             uuid = QUuid(arg);
             nextArgIsUuid = false;
         } else if (arg.startsWith("uuid=")) {
             uuid = QUuid(arg.mid(strlen("uuid=")));
-        } else if (arg == QLatin1String("whole-app")) {
+        } else if (arg == QLatin1StringView("whole-app")) {
             m_wholeApp = true;
         }
     }
@@ -317,6 +317,7 @@ QModelIndex KCMKWinRules::findRuleWithProperties(const QVariantMap &info, bool w
     const QString machine = info.value("clientMachine").toString();
     const bool isLocalHost = info.value("localhost").toBool();
     const QString tag = info.value("tag").toString();
+    const bool hasTransientParent = info.value("hasTransientParent").toBool();
 
     int bestMatchRow = -1;
     int bestMatchScore = 0;
@@ -375,6 +376,16 @@ QModelIndex KCMKWinRules::findRuleWithProperties(const QVariantMap &info, bool w
                     score += 2;
                 }
             }
+
+            if (settings->hastransientparentmatch() != Rules::UnimportantBoolMatch) {
+                // Never consider a rule for a window with a parent a valid match for one without and vice versa.
+                if (settings->hastransientparent() != hasTransientParent) {
+                    continue;
+                }
+                score += 3;
+                generic = false;
+            }
+
             if (generic) { // ignore generic rules, use only the ones that are for this window
                 continue;
             }
@@ -406,6 +417,7 @@ void KCMKWinRules::fillSettingsFromProperties(RuleSettings *settings, const QVar
     const QString title = info.value("caption").toString();
     const QString machine = info.value("clientMachine").toString();
     const QString tag = info.value("tag").toString();
+    const bool hasTransientParent = info.value("hasTransientParent").toBool();
 
     settings->setDefaults();
 
@@ -484,6 +496,8 @@ void KCMKWinRules::fillSettingsFromProperties(RuleSettings *settings, const QVar
     } else {
         settings->setTagmatch(Rules::ExactMatch);
     }
+    settings->setHastransientparent(hasTransientParent);
+    settings->setTagmatch(Rules::UnimportantBoolMatch);
 }
 
 K_PLUGIN_CLASS_WITH_JSON(KCMKWinRules, "kcm_kwinrules.json");

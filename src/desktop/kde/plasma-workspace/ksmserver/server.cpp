@@ -45,12 +45,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <QAction>
-#include <QApplication>
+#include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDebug>
 #include <QFile>
-#include <QPushButton>
 #include <QRegularExpression>
 #include <QScopeGuard>
 #include <QSocketNotifier>
@@ -70,8 +68,6 @@
 #include <KIO/CommandLauncherJob>
 #include <KIO/DesktopExecParser>
 #include <KService>
-
-#include <KScreenLocker/KsldApp>
 
 #include <QStandardPaths>
 #include <krandom.h>
@@ -171,8 +167,6 @@ void KSMServer::executeCommand(const QStringList &command)
 }
 
 IceAuthDataEntry *authDataEntries = nullptr;
-
-static QTemporaryFile *remTempFile = nullptr;
 
 static IceListenObj *listenObjs = nullptr;
 int numTransports = 0;
@@ -304,6 +298,7 @@ public:
 };
 
 /* for printing hex digits */
+#if 0
 static void fprintfhex(FILE *fp, unsigned int len, char *cp)
 {
     static const char hexchars[] = "0123456789abcdef";
@@ -314,6 +309,7 @@ static void fprintfhex(FILE *fp, unsigned int len, char *cp)
         putc(hexchars[s & 0x0f], fp);
     }
 }
+#endif
 
 #define MAGIC_COOKIE_LEN 16
 
@@ -358,7 +354,7 @@ Status SetAuthentication(int count, IceListenObj *listenObjs, IceAuthDataEntry *
             file_entry->protocol_data_length = 0;
             file_entry->network_id = IceGetListenConnectionString(listenObjs[i / 2]);
             file_entry->auth_name = strdup("MIT-MAGIC-COOKIE-1");
-            if (file_entry->auth_data = (char *)malloc(MAGIC_COOKIE_LEN)) {
+            if ((file_entry->auth_data = (char *)malloc(MAGIC_COOKIE_LEN))) {
                 memcpy(file_entry->auth_data, (*authDataEntries)[i].auth_data, MAGIC_COOKIE_LEN);
             }
             file_entry->auth_data_length = MAGIC_COOKIE_LEN;
@@ -384,7 +380,7 @@ Status SetAuthentication(int count, IceListenObj *listenObjs, IceAuthDataEntry *
             file_entry->protocol_data_length = 0;
             file_entry->network_id = IceGetListenConnectionString(listenObjs[i / 2]);
             file_entry->auth_name = strdup("MIT-MAGIC-COOKIE-1");
-            if (file_entry->auth_data = (char *)malloc(MAGIC_COOKIE_LEN)) {
+            if ((file_entry->auth_data = (char *)malloc(MAGIC_COOKIE_LEN))) {
                 memcpy(file_entry->auth_data, (*authDataEntries)[i + 1].auth_data, MAGIC_COOKIE_LEN);
             }
             file_entry->auth_data_length = MAGIC_COOKIE_LEN;
@@ -514,19 +510,12 @@ KSMServer::KSMServer(InitFlags flags)
     , m_kwinInterface(new OrgKdeKWinSessionInterface(QStringLiteral("org.kde.KWin"), QStringLiteral("/Session"), QDBusConnection::sessionBus(), this))
     , sockets{-1, -1}
 {
-    if (!flags.testFlag(InitFlag::NoLockScreen)) {
-        ScreenLocker::KSldApp::self()->initialize();
-        if (flags.testFlag(InitFlag::ImmediateLockScreen)) {
-            ScreenLocker::KSldApp::self()->lock(ScreenLocker::EstablishLock::Immediate);
-        }
-    }
-
     if (::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sockets) != 0) {
         qFatal("Could not create socket pair, error %d (%s)", errno, strerror(errno));
     }
     wake_up_socket = sockets[0];
     auto notifier = new QSocketNotifier(sockets[1], QSocketNotifier::Read, this);
-    qApp->connect(notifier, &QSocketNotifier::activated, &QApplication::quit);
+    connect(notifier, &QSocketNotifier::activated, QCoreApplication::instance(), &QCoreApplication::quit);
 
     const QString runtimeDirectory = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
     iceAuthFile.setFileTemplate(runtimeDirectory + QStringLiteral("/iceauth_XXXXXX"));
@@ -627,7 +616,7 @@ KSMServer::KSMServer(InitFlags flags)
         QDBusConnection::sessionBus().send(reply);
         m_restoreSessionCall = QDBusMessage();
     });
-    connect(qApp, &QApplication::aboutToQuit, this, &KSMServer::cleanUp);
+    connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this, &KSMServer::cleanUp);
 
     setupXIOErrorHandler();
 
@@ -922,7 +911,6 @@ void KSMServer::storeSession()
 
     KConfigGroup cg2(config, QStringLiteral("General"));
 
-    storeLegacySession(config.data());
     config->sync();
 }
 
@@ -990,7 +978,6 @@ void KSMServer::restoreSession()
         if (reply.isError()) {
             qWarning() << "Failed to notify kwin of current session " << reply.error().message();
         }
-        restoreLegacySession(KSharedConfig::openConfig().data());
         tryRestore();
     });
 }

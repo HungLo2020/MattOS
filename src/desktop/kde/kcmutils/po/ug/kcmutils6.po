@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-08 00:41+0000\n"
-"PO-Revision-Date: 2026-04-23 12:10-0400\n"
+"POT-Creation-Date: 2026-09-30 00:41+0000\n"
+"PO-Revision-Date: 2026-09-23 06:56+0900\n"
 "Last-Translator: Abduqadir Abliz <sahranbay@gmail.com>\n"
-"Language-Team: Uyghur Computer Science Association <UKIJ@yahoogroups.com>\n"
+"Language-Team: Uyghur <kde-i18n-doc@kde.org>\n"
 "Language: ug\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -37,12 +37,6 @@ msgid ""
 "carefully and try to remove the module mentioned in the error message. If "
 "this fails, consider contacting your distributor or packager.</p></qt>"
 msgstr ""
-"<qt><p>مۇمكىن بولغان سەۋەبى:<ul><li>ئاخىرقى قېتىم  سىستېما يېڭىلىغاندا "
-"خاتالىق كۆرۈلۈپ، يالغۇز تىزگىن بۆلىكىدىن بىرى قېلىپ قالغان.</"
-"li><li>سىستېمىڭىزدا ئۈچىنچى تەرەپ يۇمشاق دېتال بۆلىكى بار.</li></ul></"
-"p><p>بۇ ئەھۋاللارنى تەپسىلىي تەكشۈرۈپ، خاتالىق ئۇچۇرىدا قەيت قىلىنغان "
-"بۆلەكنى ئۆچۈرۈشنى سىناڭ. ئەگەر شۇنداق قىلسىڭىزمۇ بولمىسا، تارقىتىش سودىگىرى "
-"ياكى يۇمشاق دېتالنى بوغچىلىغۇچى بىلەن ئالاقىلىشىشنى ئويلىشىڭ.</p></qt>"
 
 #: kcmoduleloader.cpp:87
 #, kde-format
@@ -65,20 +59,18 @@ msgid ""
 "The settings of the current module have changed.\n"
 "Do you want to apply the changes or discard them?"
 msgstr ""
-"نۆۋەتتىكى بۆلەكنىڭ تەڭشىكى ئۆزگەرتىلدى.\n"
-"ئۆزگەرتىشنى ساقلامسىز ياكى تاشلىۋېتەمسىز؟"
 
 #: kcmultidialog.cpp:47
 #, kde-format
 msgid "Apply Settings"
 msgstr "تەڭشەك قوللان"
 
-#: kcmultidialog.cpp:217 kpluginwidget.cpp:340
+#: kcmultidialog.cpp:218 kpluginwidget.cpp:340
 #, kde-format
 msgid "Configure"
 msgstr "سەپلە"
 
-#: kcmultidialog.cpp:392
+#: kcmultidialog.cpp:393
 #, kde-format
 msgctxt "@other accessible name for view that can be scrolled"
 msgid "Scrollable area"
@@ -100,24 +92,24 @@ msgctxt "@action:button"
 msgid "Show Contextual Help"
 msgstr "مۇناسىۋەتلىك ياردەمنى كۆرسەت"
 
-#: qml/components/PluginDelegate.qml:111
+#: qml/components/PluginDelegate.qml:114
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "About"
 msgstr "ھەققىدە"
 
-#: qml/components/PluginDelegate.qml:126
+#: qml/components/PluginDelegate.qml:129
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Configure…"
 msgstr "سەپلە…"
 
-#: qml/components/PluginSelector.qml:94
+#: qml/components/PluginSelector.qml:96
 #, kde-format
 msgid "No matches"
 msgstr "ماس كەلگىنى يوق"
 
-#: qml/components/PluginSelector.qml:94
+#: qml/components/PluginSelector.qml:96
 #, kde-format
 msgid "No plugins found"
 msgstr "قىستۇرما تېپىلمىدى"
@@ -126,7 +118,7 @@ msgstr "قىستۇرما تېپىلمىدى"
 #, kde-format
 msgctxt "Plugin name and plugin version"
 msgid "%1 %2"
-msgstr "%1 %2"
+msgstr ""
 
 #: qml/components/private/AboutPlugin.qml:63
 #, kde-format

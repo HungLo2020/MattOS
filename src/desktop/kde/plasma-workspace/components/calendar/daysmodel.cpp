@@ -52,6 +52,7 @@ void DaysModel::setSourceData(QList<DayData> *data)
         beginResetModel();
         d->data = data;
         endResetModel();
+        Q_EMIT indexOfFirstCurrentEntryChanged();
     }
 }
 
@@ -71,6 +72,16 @@ int DaysModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
     return 1;
+}
+
+int DaysModel::indexOfFirstCurrentEntry() const
+{
+    for (int row = 0; row < rowCount(); row++) {
+        if (index(row, 0).data(Roles::isCurrent).toBool()) {
+            return row;
+        }
+    }
+    return -1;
 }
 
 QVariant DaysModel::data(const QModelIndex &index, int role) const
@@ -445,7 +456,9 @@ QHash<int, QByteArray> DaysModel::roleNames() const
 QModelIndex DaysModel::index(int row, int column, const QModelIndex &parent) const
 {
     if (parent.isValid()) {
-        return createIndex(row, column, (intptr_t)parent.row());
+        // +1 so internalId is non-zero even when parent.row() == 0,
+        // avoiding collision with nullptr (internalId=0) of top-level indexes
+        return createIndex(row, column, (intptr_t)(parent.row() + 1));
     }
     return createIndex(row, column, nullptr);
 }
@@ -453,7 +466,8 @@ QModelIndex DaysModel::index(int row, int column, const QModelIndex &parent) con
 QModelIndex DaysModel::parent(const QModelIndex &child) const
 {
     if (child.internalId()) {
-        return createIndex(child.internalId(), 0, nullptr);
+        // -1 to undo the +1 offset applied in index()
+        return createIndex(child.internalId() - 1, 0, nullptr);
     }
     return {};
 }

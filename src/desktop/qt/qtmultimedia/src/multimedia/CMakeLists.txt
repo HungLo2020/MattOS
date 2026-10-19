@@ -1,23 +1,29 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
+include(Qt6MultimediaBuildInternals.cmake)
 #####################################################################
 ## Multimedia Module:
 #####################################################################
 
 find_package(Qt6 COMPONENTS ShaderTools)
 
+
+if (QT_FEATURE_gstreamer_qt_api OR FEATURE_gstreamer_qt_api)
+    # TODO: implement SPI_HEADER_FILTERS for qt_internal_extend_target
+    set(spi_headers_arg SPI_HEADER_FILTERS "(^|/)qgstreamer(interface|videosource)\\.h$")
+endif()
+
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES multimedia
     SOURCES
-        audio/qautoresetevent_p.h
-        audio/q_pmr_emulation_p.h
         audio/qmemory_resource_tlsf_p.h
         audio/qmemory_resource_tlsf.cpp
         audio/qtaudio.cpp audio/qtaudio.h audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
         audio/qaudiobuffer_support_p.h
         audio/qaudiodecoder.cpp audio/qaudiodecoder.h audio/qaudiodecoder_p.h
+        audio/qdrawavaudiodecoder.cpp audio/qdrawavaudiodecoder_p.h
         audio/qaudiodevice.cpp audio/qaudiodevice.h audio/qaudiodevice_p.h
         audio/qaudioinput.cpp audio/qaudioinput.h
         audio/qaudiobufferinput.cpp audio/qaudiobufferinput.h
@@ -30,11 +36,9 @@ qt_internal_add_module(Multimedia
         audio/qaudiosink.cpp audio/qaudiosink.h
         audio/qaudiosystem.cpp audio/qaudiosystem_p.h
         audio/qaudiosystem_platform_stream_support.cpp audio/qaudiosystem_platform_stream_support_p.h
-        audio/qaudio_alignment_support_p.h
         audio/qaudio_platform_implementation_support_p.h
         audio/qaudio_qiodevice_support_p.h
         audio/qaudio_qspan_support_p.h
-        audio/qaudio_rtsan_support_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
         audio/qsoundeffectwithplayer.cpp audio/qsoundeffectwithplayer_p.h
@@ -46,7 +50,6 @@ qt_internal_add_module(Multimedia
         camera/qcameradevice.cpp camera/qcameradevice.h camera/qcameradevice_p.h
         camera/qimagecapture.cpp camera/qimagecapture.h
         compat/removed_api.cpp
-        platform/qgstreamer_platformspecificinterface.cpp platform/qgstreamer_platformspecificinterface_p.h
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformaudioinput_p.h
         platform/qplatformaudiooutput_p.h
@@ -72,7 +75,7 @@ qt_internal_add_module(Multimedia
         qmultimedia_enum_to_string_converter_p.h
         qmediadevices.cpp qmediadevices.h
         qmediaformat.cpp  qmediaformat.h
-        qmediametadata.cpp qmediametadata.h
+        qmediametadata.cpp qmediametadata.h qmediametadata_p.h
         qmediastoragelocation.cpp qmediastoragelocation_p.h
         qmediatimerange.cpp qmediatimerange.h
         qmultimediautils.cpp qmultimediautils_p.h
@@ -80,43 +83,43 @@ qt_internal_add_module(Multimedia
         qvideotransformation.cpp qvideotransformation_p.h
         qmediaframeinput.cpp qmediaframeinput_p.h
         qtmultimediaglobal.h qtmultimediaglobal_p.h
+        qmultimedia_source_resolver.cpp qmultimedia_source_resolver_p.h
         qerrorinfo_p.h
         qcachedvalue_p.h
         qmediainputencoderinterface_p.h
         qrhivaluemapper.cpp  qrhivaluemapper_p.h
         qthreadlocalrhi.cpp  qthreadlocalrhi_p.h
+        qsurfacecapturegrabber.cpp qsurfacecapturegrabber_p.h
+        qsharedhandle_p.h
+        qtaggedtime_p.h
         recording/qmediacapturesession.cpp recording/qmediacapturesession.h recording/qmediacapturesession_p.h
         recording/qmediarecorder.cpp recording/qmediarecorder.h recording/qmediarecorder_p.h
         recording/qscreencapture.cpp recording/qscreencapture.h
-        recording/qwindowcapture.cpp recording/qwindowcapture.h
+        recording/qwindowcapture.cpp recording/qwindowcapture.h recording/qwindowcapture_p.h
         recording/qcapturablewindow.cpp recording/qcapturablewindow.h recording/qcapturablewindow_p.h
         recording/qvideoframeinput.cpp recording/qvideoframeinput.h
-        qsharedhandle_p.h
-        qtaggedtime_p.h
+        support/qiteratorfacade_p.h
+        support/qautoresetevent_p.h
+        support/qtmm_alignment_support_p.h
+        support/qtmm_pmr_p.h
+        support/qtmm_rtsan_support_p.h
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer.h
         video/qhwvideobuffer.cpp video/qhwvideobuffer_p.h
-        video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
         video/qimagevideobuffer.cpp video/qimagevideobuffer_p.h
+        video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
+        video/qmultimedia_drm_support_p.h
+        video/qtvideo.cpp video/qtvideo.h
         video/qvideoframe.cpp video/qvideoframe.h video/qvideoframe_p.h
-        video/qvideosink.cpp video/qvideosink.h
-        video/qvideotexturehelper.cpp video/qvideotexturehelper_p.h
-        video/qvideoframetexturefromsource.cpp video/qvideoframetexturefromsource_p.h
-        video/qvideoframetexturepool.cpp video/qvideoframetexturepool_p.h
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
-        video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
         video/qvideoframeconverter.cpp video/qvideoframeconverter_p.h
         video/qvideoframeformat.cpp video/qvideoframeformat.h
+        video/qvideoframetexturefromsource.cpp video/qvideoframetexturefromsource_p.h
+        video/qvideoframetexturepool.cpp video/qvideoframetexturepool_p.h
+        video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
+        video/qvideosink.cpp video/qvideosink.h
+        video/qvideotexturehelper.cpp video/qvideotexturehelper_p.h
         video/qvideowindow.cpp video/qvideowindow_p.h
-        video/qtvideo.cpp video/qtvideo.h
         shaders/qrhitextureformats_p.h
-    INCLUDE_DIRECTORIES
-        audio
-        camera
-        controls
-        platform
-        playback
-        recording
-        video
     PRECOMPILED_HEADER
         qtmultimedia_pch_p.h
     DEFINES
@@ -135,6 +138,14 @@ qt_internal_add_module(Multimedia
         Qt::GuiPrivate
     NO_PCH_SOURCES
         compat/removed_api.cpp
+    ${spi_headers_arg}
+)
+
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer_qt_api
+    SOURCES
+        spi/qgstreamervideosource.cpp spi/qgstreamervideosource.h spi/qgstreamervideosource_p.h
+        spi/qgstreamerinterface.cpp spi/qgstreamerinterface.h
+        platform/qgstreamer_platformspecificinterface_p.h
 )
 
 
@@ -154,6 +165,14 @@ qt_internal_extend_target(Multimedia
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_network
     PUBLIC_LIBRARIES
         Qt::Network
+)
+
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_linux_dmabuf
+    SOURCES
+        video/qdmabuftextureimporter.cpp video/qdmabuftextureimporter_p.h
+        video/qdmabufvideobuffer.cpp video/qdmabufvideobuffer_p.h
+    LIBRARIES
+        EGL::EGL
 )
 
 qt_internal_extend_target(Multimedia
@@ -210,9 +229,22 @@ if (QT_FEATURE_pipewire)
             pipewire/qpipewire_spa_compat_p.h
             pipewire/qpipewire_spa_pod_support.cpp     pipewire/qpipewire_spa_pod_support_p.h
             pipewire/qpipewire_spa_pod_parser_support_p.h
+            pipewire/qpipewire_videoformat_support.cpp pipewire/qpipewire_videoformat_support_p.h
             pipewire/qpipewire_support.cpp             pipewire/qpipewire_support_p.h
-            pipewire/qpipewire_symbolloader.cpp        pipewire/qpipewire_symbolloader_p.h
     )
+
+    if(QT_FEATURE_pipewire_symbolloader)
+        qt_internal_extend_target(Multimedia
+            SOURCES
+                pipewire/qpipewire_symbolloader.cpp pipewire/qpipewire_symbolloader_p.h
+        )
+    else()
+        qt_internal_extend_target(Multimedia
+            LIBRARIES
+                ${PipeWire_LIBRARIES}
+        )
+    endif()
+
 
     if (QT_FEATURE_pipewire_screencapture)
         qt_internal_extend_target(Multimedia
@@ -283,35 +315,58 @@ if(ANDROID)
     )
 endif()
 
-qt_internal_extend_target(Multimedia CONDITION LINUX OR ANDROID
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_ohaudio
     SOURCES
-        audio/qautoresetevent_linux_p.h audio/qautoresetevent_linux.cpp
+        ohos/qohaudiostream.cpp ohos/qohaudiostream_p.h
+        ohos/qohosaudiodevice.cpp ohos/qohosaudiodevice_p.h
+        ohos/qohosaudiodevices.cpp ohos/qohosaudiodevices_p.h
+        ohos/qohosaudiosink.cpp ohos/qohosaudiosink_p.h
+        ohos/qohosaudiosource.cpp ohos/qohosaudiosource_p.h
+    LIBRARIES
+        ohaudio
+)
+
+if(OHOS)
+    qt_internal_add_harmonyos_permission(Multimedia
+        NAME ohos.permission.MICROPHONE
+        REASON "Used to record audio."
+    )
+    qt_internal_add_harmonyos_permission(Multimedia
+        NAME ohos.permission.CAMERA
+        REASON "Used to capture camera images and video."
+    )
+endif()
+
+qt_internal_extend_target(Multimedia CONDITION LINUX OR ANDROID OR OHOS
+    SOURCES
+        support/qautoresetevent_linux_p.h support/qautoresetevent_linux.cpp
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE
     SOURCES
-        audio/qautoresetevent_kqueue_p.h audio/qautoresetevent_kqueue.cpp
+        support/qautoresetevent_kqueue_p.h support/qautoresetevent_kqueue.cpp
 )
 
 
 qt_internal_extend_target(Multimedia CONDITION UNIX
     SOURCES
-        audio/qautoresetevent_pipe_p.h audio/qautoresetevent_pipe.cpp
+        support/qautoresetevent_pipe_p.h support/qautoresetevent_pipe.cpp
 )
 
 qt_internal_extend_target(Multimedia CONDITION WIN32
     SOURCES
-        audio/qautoresetevent_win32_p.h audio/qautoresetevent_win32.cpp
+        support/qautoresetevent_win32_p.h support/qautoresetevent_win32.cpp
 )
 
 
 qt_internal_extend_target(Multimedia CONDITION APPLE
     SOURCES
-        darwin/qdarwinaudiodevice.cpp darwin/qdarwinaudiodevice_p.h
-        darwin/qdarwinaudiosource.mm darwin/qdarwinaudiosource_p.h
-        darwin/qdarwinaudiosink.mm darwin/qdarwinaudiosink_p.h
-        darwin/qcoreaudioutils.cpp darwin/qcoreaudioutils_p.h
-        darwin/qdarwinaudiodevices.mm darwin/qdarwinaudiodevices_p.h
+        coreaudio/qcoreaudiodevice.cpp coreaudio/qcoreaudiodevice_p.h
+        coreaudio/qcoreaaudiosource.mm coreaudio/qcoreaaudiosource_p.h
+        coreaudio/qcoreaaudiosink.mm coreaudio/qcoreaaudiosink_p.h
+        coreaudio/qcoreaudioutils.cpp coreaudio/qcoreaudioutils_p.h
+        coreaudio/qcoreaudiodevices.mm coreaudio/qcoreaudiodevices_p.h
+        darwin/qapple_utils_p.h
         darwin/qavfhelpers.mm darwin/qavfhelpers_p.h
     LIBRARIES
         ${FWCoreAudio}
@@ -333,26 +388,44 @@ qt_internal_extend_target(Multimedia CONDITION MACOS OR IOS
 
 qt_internal_extend_target(Multimedia CONDITION MACOS
     SOURCES
-        darwin/qmacosaudiodatautils_p.h darwin/qmacosaudiodatautils.cpp
+        coreaudio/qmacosaudiodatautils_p.h coreaudio/qmacosaudiodatautils.cpp
 )
 
 qt_internal_extend_target(Multimedia CONDITION IOS OR TVOS OR VISIONOS
     SOURCES
-        darwin/qcoreaudiosessionmanager.mm darwin/qcoreaudiosessionmanager_p.h
+        coreaudio/qavaudiosessionmanager.mm coreaudio/qavaudiosessionmanager_p.h
+        coreaudio/qavaudiosessionrecovery_p.h
     LIBRARIES
         ${FWAVFoundation}
         ${FWFoundation}
 )
 
-qt_internal_extend_target(Multimedia CONDITION QNX
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_qnx_io_audio
     SOURCES
         qnx/qqnxaudiodevice.cpp qnx/qqnxaudiodevice_p.h
         qnx/qqnxaudiosink.cpp qnx/qqnxaudiosink_p.h
         qnx/qqnxaudiosource.cpp qnx/qqnxaudiosource_p.h
         qnx/qqnxaudioutils.cpp qnx/qqnxaudioutils_p.h
         qnx/qqnxaudiodevices.cpp qnx/qqnxaudiodevices_p.h
+    DEFINES
+        QT_MM_QNX_IO_AUDIO
     INCLUDE_DIRECTORIES
         qnx
+    LIBRARIES
+        asound
+)
+
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_qnx_io_snd
+    SOURCES
+        qnx-iosnd/qqnxsndaudiodevice.cpp qnx-iosnd/qqnxsndaudiodevice_p.h
+        qnx-iosnd/qqnxsndaudiosink.cpp qnx-iosnd/qqnxsndaudiosink_p.h
+        qnx-iosnd/qqnxsndaudiosource.cpp qnx-iosnd/qqnxsndaudiosource_p.h
+        qnx-iosnd/qqnxsndaudiodevices.cpp qnx-iosnd/qqnxsndaudiodevices_p.h
+        qnx-iosnd/qqnxsndhelpers.cpp qnx-iosnd/qqnxsndhelpers_p.h
+    DEFINES
+        QT_MM_QNX_IO_SND
+    INCLUDE_DIRECTORIES
+        qnx-iosnd
     LIBRARIES
         asound
 )
@@ -404,19 +477,18 @@ set_source_files_properties(${source_with_init_guid} PROPERTIES
 qt_internal_extend_target(Multimedia CONDITION WASM
     SOURCES
         wasm/qwasmmediadevices.cpp wasm/qwasmmediadevices_p.h
-        wasm/qwasmaudiosource.cpp wasm/qwasmaudiosource_p.h
-        wasm/qwasmaudiosink.cpp wasm/qwasmaudiosink_p.h
+        wasm/qwasmwebaudiosource.cpp wasm/qwasmwebaudiosource_p.h
+        wasm/qwasmwebaudiosink.cpp wasm/qwasmwebaudiosink_p.h
         wasm/qwasmaudiodevice.cpp wasm/qwasmaudiodevice_p.h
         wasm/qwasmjs.cpp wasm/qwasmjs_p.h
-
     INCLUDE_DIRECTORIES
         wasm
-    PUBLIC_LIBRARIES
-        openal
-    NO_UNITY_BUILD_SOURCES
-        wasm/qwasmaudiosink.cpp
-        # To avoid collision between symbols defined in wasm/qwasmaudiosource.cpp.
 )
+
+if(WASM AND QT_FEATURE_thread)
+    target_link_options(Multimedia PUBLIC -sAUDIO_WORKLET=1 -sWASM_WORKERS=1)
+    target_compile_options(Multimedia PUBLIC -sWASM_WORKERS=1)
+endif()
 
 set(VIDEO_VERTEX_SHADERS
     "shaders/vertex.vert"
@@ -424,7 +496,7 @@ set(VIDEO_VERTEX_SHADERS
 )
 
 set(VIDEO_SHADERS
-    "shaders/externalsampler.frag@glsl,100es,shaders/externalsampler_gles.frag"
+    "shaders/externalsampler.frag@glsl,100es,shaders/externalsampler_gles.frag@glsl,300es,shaders/externalsampler_gles3.frag"
     "shaders/abgr.frag"
     "shaders/argb.frag"
     "shaders/rgba.frag"
@@ -524,12 +596,13 @@ if(DEFINED QT_DEFAULT_MEDIA_BACKEND)
         PRIVATE QT_DEFAULT_MEDIA_BACKEND="${QT_DEFAULT_MEDIA_BACKEND}")
 endif()
 
+if(QT_FEATURE_doc_snippets)
+    add_subdirectory(doc/snippets)
+endif()
+
 # Install public QMake support files.
 qt_path_join(ios_prf_install_dir "${QT_INSTALL_DIR}" "${INSTALL_MKSPECSDIR}" features ios)
 qt_copy_or_install(FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/../../mkspecs/features/ios/add_ios_ffmpeg_libraries.prf"
     DESTINATION ${ios_prf_install_dir}
 )
-
-
-

@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkio\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-19 00:40+0000\n"
+"POT-Creation-Date: 2026-10-01 00:41+0000\n"
 "PO-Revision-Date: 2024-09-19 21:59+0300\n"
 "Last-Translator: Antonis Geralis <capoiosct@gmail.com>\n"
 "Language-Team: Greek <kde-i18n-el@kde.org>\n"
@@ -53,12 +53,7 @@ msgstr ""
 "Δεν ήταν δυνατή η αλλαγή της ιδιοκτησίας του αρχείου <filename>%1</"
 "filename>. Δεν έχετε επαρκή πρόσβαση στο αρχείο για να κάνετε την αλλαγή."
 
-#: core/connectionbackend.cpp:107
-#, kde-format
-msgid "Unable to create KIO worker: %1"
-msgstr "Αδύνατη η δημιουργία εργάτη KIO: %1"
-
-#: core/copyjob.cpp:167 kioworkers/file/file_unix.cpp:1008
+#: core/copyjob.cpp:197 kioworkers/file/file_unix.cpp:595
 #, kde-format
 msgctxt ""
 "The first arg is the path to the symlink that couldn't be created, the "
@@ -70,7 +65,7 @@ msgstr ""
 "Αδύνατη η δημιουργία συμβολικού συνδέσμου «%1».\n"
 "Το σύστημα αρχείων προορισμού (%2) δεν υποστηρίζει συμβολικούς συνδέσμους."
 
-#: core/copyjob.cpp:179
+#: core/copyjob.cpp:209
 #, kde-format
 msgid ""
 "Could not create \"%1\".\n"
@@ -85,7 +80,7 @@ msgstr ""
 "Η επιλογή Αντικατάσταση θα αντικαταστήσει τυχόν μη έγκυρους χαρακτήρες (στο "
 "όνομα του φακέλου προορισμού) με μια υπογράμμιση «_»."
 
-#: core/copyjob.cpp:187
+#: core/copyjob.cpp:217
 #, kde-format
 msgid ""
 "Could not create \"%1\".\n"
@@ -100,23 +95,23 @@ msgstr ""
 "Η επιλογή Αντικατάσταση θα αντικαταστήσει τυχόν μη έγκυρους χαρακτήρες (στο "
 "όνομα του αρχείου προορισμού) με μια υπογράμμιση «_»."
 
-#: core/copyjob.cpp:1403 core/job_error.cpp:588
+#: core/copyjob.cpp:1491 core/job_error.cpp:588
 #, kde-format
 msgid "Folder Already Exists"
 msgstr "Ο φάκελος υπάρχει ήδη"
 
-#: core/copyjob.cpp:1736 core/copyjob.cpp:2441 core/filecopyjob.cpp:371
+#: core/copyjob.cpp:1827 core/copyjob.cpp:2561 core/filecopyjob.cpp:371
 #: core/job_error.cpp:577 widgets/paste.cpp:49
 #, kde-format
 msgid "File Already Exists"
 msgstr "Το αρχείο υπάρχει ήδη"
 
-#: core/copyjob.cpp:1736 core/copyjob.cpp:2441
+#: core/copyjob.cpp:1827 core/copyjob.cpp:2561
 #, kde-format
 msgid "Already Exists as Folder"
 msgstr "Υπάρχει ήδη ως φάκελος"
 
-#: core/copyjob.cpp:1890 kioworkers/trash/kio_trash.cpp:295
+#: core/copyjob.cpp:1985 kioworkers/trash/kio_trash.cpp:294
 #, kde-format
 msgid "Trash"
 msgstr "Απορρίμματα"
@@ -2314,23 +2309,23 @@ msgstr ""
 msgid "Undocumented Error"
 msgstr "Μη τεκμηριωμένο σφάλμα"
 
-#: core/kfileitem.cpp:1479
+#: core/kfileitem.cpp:1535
 #, kde-format
 msgid "(Symbolic Link to %1)"
 msgstr "(Συμβολικός δεσμός στο %1)"
 
-#: core/kfileitem.cpp:1481
+#: core/kfileitem.cpp:1537
 #, kde-format
 msgid "(%1, Link to %2)"
 msgstr "(%1, δεσμός στο %2)"
 
-#: core/kfileitem.cpp:1484
+#: core/kfileitem.cpp:1540
 #, kde-format
 msgid " (Points to %1)"
 msgstr " (Δείκτης στο %1)"
 
-#: core/mimetypefinderjob.cpp:57 gui/openurljob.cpp:150
-#: widgets/renamedialog.cpp:677
+#: core/mimetypefinderjob.cpp:57 gui/openurljob.cpp:171
+#: widgets/renamedialog.cpp:679
 #, kde-format
 msgid ""
 "Malformed URL\n"
@@ -2344,7 +2339,7 @@ msgstr ""
 msgid "Unable to determine the type of file for %1"
 msgstr "Αδύνατος ο προσδιορισμός του τύπου του αρχείου για το %1"
 
-#: core/openwith.cpp:90
+#: core/openwith.cpp:91
 #, kde-format
 msgid ""
 "Could not extract executable name from '%1', please type a valid program "
@@ -2353,13 +2348,13 @@ msgstr ""
 "Αδυναμία εξαγωγής ονόματος εκτελέσιμου από '%1', παρακαλώ πληκτρολογήστε ένα "
 "έγκυρο όνομα προγράμματος."
 
-#: core/openwith.cpp:142
+#: core/openwith.cpp:143
 #, kde-kuit-format
 msgctxt "@info"
 msgid "<filename>%1</filename> does not appear to be an executable program."
 msgstr "<filename>%1</filename> δεν φαίνεται να είναι εκτελέσιμο πρόγραμμα."
 
-#: core/openwith.cpp:143
+#: core/openwith.cpp:144
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2369,93 +2364,98 @@ msgstr ""
 "Το <filename>%1</filename> δεν βρέθηκε. Παρακαλώ εισάγετε μια έγκυρη "
 "διαδρομή προς ένα εκτελέσιμο πρόγραμμα."
 
-#: core/slavebase.cpp:806
+#: core/slavebase.cpp:776
 #, kde-format
 msgid "Opening connections is not supported with the protocol %1."
 msgstr "Το άνοιγμα συνδέσεων δεν υποστηρίζεται με το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:808
+#: core/slavebase.cpp:778
 #, kde-format
 msgid "Closing connections is not supported with the protocol %1."
 msgstr "Το κλείσιμο συνδέσεων δεν υποστηρίζεται με το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:810
+#: core/slavebase.cpp:780
 #, kde-format
 msgid "Accessing files is not supported with the protocol %1."
 msgstr "Η πρόσβαση σε αρχεία δεν υποστηρίζεται με το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:812
+#: core/slavebase.cpp:782
 #, kde-format
 msgid "Writing to %1 is not supported."
 msgstr "Η εγγραφή στο %1 δεν υποστηρίζεται."
 
-#: core/slavebase.cpp:814
+#: core/slavebase.cpp:784
 #, kde-format
 msgid "There are no special actions available for protocol %1."
 msgstr "Δεν υπάρχουν ειδικές ενέργειες διαθέσιμες για το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:816
+#: core/slavebase.cpp:786
 #, kde-format
 msgid "Listing folders is not supported for protocol %1."
 msgstr "Η προβολή φακέλων δεν υποστηρίζεται για το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:818
+#: core/slavebase.cpp:788
 #, kde-format
 msgid "Retrieving data from %1 is not supported."
 msgstr "Η ανάκτηση δεδομένων από το %1 δεν υποστηρίζεται."
 
-#: core/slavebase.cpp:820
+#: core/slavebase.cpp:790
 #, kde-format
 msgid "Retrieving mime type information from %1 is not supported."
 msgstr "Η ανάκτηση πληροφοριών τύπου mime από το %1 δεν υποστηρίζεται."
 
-#: core/slavebase.cpp:822
+#: core/slavebase.cpp:792
 #, kde-format
 msgid "Renaming or moving files within %1 is not supported."
 msgstr "Η μετονομασία ή μετακίνηση αρχείων στο %1 δεν υποστηρίζεται."
 
-#: core/slavebase.cpp:824
+#: core/slavebase.cpp:794
 #, kde-format
 msgid "Creating symlinks is not supported with protocol %1."
 msgstr "Η δημιουργία συμβολικών δεσμών δεν υποστηρίζεται με το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:826
+#: core/slavebase.cpp:796
 #, kde-format
 msgid "Copying files within %1 is not supported."
 msgstr "Η αντιγραφή αρχείων στο %1 δεν υποστηρίζεται."
 
-#: core/slavebase.cpp:828
+#: core/slavebase.cpp:798
 #, kde-format
 msgid "Deleting files from %1 is not supported."
 msgstr "Η διαγραφή αρχείων από το %1 δεν υποστηρίζεται."
 
-#: core/slavebase.cpp:830
+#: core/slavebase.cpp:800
 #, kde-format
 msgid "Creating folders is not supported with protocol %1."
 msgstr "Η δημιουργία φακέλων δεν υποστηρίζεται με το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:832
+#: core/slavebase.cpp:802
 #, kde-format
 msgid "Changing the attributes of files is not supported with protocol %1."
 msgstr "Η αλλαγή ιδιοτήτων των αρχείων δεν υποστηρίζεται με το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:834
+#: core/slavebase.cpp:804
 #, kde-format
 msgid "Changing the ownership of files is not supported with protocol %1."
 msgstr ""
 "Η αλλαγή ιδιοκτησίας των αρχείων δεν υποστηρίζεται με το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:836
+#: core/slavebase.cpp:806
 #, kde-format
 msgid "Opening files is not supported with protocol %1."
 msgstr "Το άνοιγμα αρχείων δεν υποστηρίζεται με το πρωτόκολλο %1."
 
-#: core/slavebase.cpp:838
+#: core/slavebase.cpp:808
 #, kde-format
 msgid "Protocol %1 does not support action %2."
 msgstr "Το πρωτόκολλο %1 δεν υποστηρίζει την ενέργεια %2."
 
-#: core/worker.cpp:297
+#: core/socketconnectionbackend.cpp:120
+#, kde-format
+msgid "Unable to create KIO worker: %1"
+msgstr "Αδύνατη η δημιουργία εργάτη KIO: %1"
+
+#: core/worker.cpp:403
 #, kde-format
 msgctxt "@info %2 is a path"
 msgid ""
@@ -2464,17 +2464,17 @@ msgid ""
 "have permission to modify it at %2."
 msgstr ""
 
-#: core/worker.cpp:335
+#: core/worker.cpp:440
 #, kde-format
 msgid "Unknown protocol '%1'."
 msgstr "Άγνωστο πρωτόκολλο '%1'."
 
-#: core/worker.cpp:346
+#: core/worker.cpp:451
 #, kde-format
 msgid "Can not find a KIO worker for protocol '%1'."
 msgstr "Δεν ήταν δυνατό να βρεθεί ένας εργάτης KIO για το πρωτόκολλο '%1'."
 
-#: core/worker.cpp:353
+#: core/worker.cpp:458
 #, kde-format
 msgctxt "@info %2 and %3 are paths"
 msgid ""
@@ -2483,42 +2483,42 @@ msgid ""
 "considered insecure."
 msgstr ""
 
-#: core/worker.cpp:365
+#: core/worker.cpp:498
 #, kde-format
 msgid "Can not create a socket for launching a KIO worker for protocol '%1'."
 msgstr ""
 "Δεν ήταν δυνατό να δημιουργηθεί υποδοχή για την εκκίνηση ενός εργάτη KIO για "
 "το πρωτόκολλο '%1'."
 
-#: core/worker.cpp:405
+#: core/worker.cpp:518
 #, kde-format
 msgid "Can not find 'kioworker' executable at '%1'"
 msgstr "Αδυναμία εύρεσης του εκτελέσιμου 'kioworker' στο '%1'"
 
-#: core/workerinterface.cpp:343 widgets/sslui.cpp:61
-#: widgets/widgetsaskuseractionhandler.cpp:516
+#: core/workerinterface.cpp:340 widgets/sslui.cpp:61
+#: widgets/widgetsaskuseractionhandler.cpp:517
 #, kde-format
 msgid "&Details"
 msgstr "&Λεπτομέρειες"
 
-#: core/workerinterface.cpp:345 kioworkers/http/http.cpp:215
+#: core/workerinterface.cpp:342 kioworkers/http/http.cpp:320
 #: widgets/sslui.cpp:97
 #, kde-format
 msgid "&Forever"
 msgstr "&Για πάντα"
 
-#: core/workerinterface.cpp:349 widgets/sslui.cpp:62
+#: core/workerinterface.cpp:346 widgets/sslui.cpp:62
 #, kde-format
 msgid "Co&ntinue"
 msgstr "Συ&νέχεια"
 
-#: core/workerinterface.cpp:351 kioworkers/http/http.cpp:216
+#: core/workerinterface.cpp:348 kioworkers/http/http.cpp:321
 #: widgets/sslui.cpp:98
 #, kde-format
 msgid "&Current Session only"
 msgstr "&Μόνο για την τρέχουσα συνεδρία"
 
-#: filewidgets/dropIntoNewFolder/dropintonewfolderPlugin.cpp:53
+#: filewidgets/dropIntoNewFolder/dropintonewfolderPlugin.cpp:54
 #, fuzzy, kde-format
 #| msgctxt "@title:window"
 #| msgid "Create New Folder"
@@ -2526,7 +2526,7 @@ msgctxt "@action:inmenu Context menu shown when files are dragged"
 msgid "Move Into New Folder"
 msgstr "Δημιουργία νέου φακέλου"
 
-#: filewidgets/dropIntoNewFolder/dropintonewfolderPlugin.cpp:70
+#: filewidgets/dropIntoNewFolder/dropintonewfolderPlugin.cpp:71
 #, fuzzy, kde-format
 #| msgctxt "@title:window"
 #| msgid "Create New Folder"
@@ -2565,217 +2565,217 @@ msgstr "Τίποτα για απορρίμματα"
 msgid "The specified folder does not exist or was not readable."
 msgstr "Ο καθορισμένος φάκελος δεν υπάρχει ή δεν ήταν αναγνώσιμος."
 
-#: filewidgets/kdiroperator.cpp:2043
+#: filewidgets/kdiroperator.cpp:2044
 #, kde-format
 msgid "Menu"
 msgstr "Μενού"
 
-#: filewidgets/kdiroperator.cpp:2048
+#: filewidgets/kdiroperator.cpp:2049
 #, kde-format
 msgid "Parent Folder"
 msgstr "Γονικός φάκελος"
 
-#: filewidgets/kdiroperator.cpp:2055
+#: filewidgets/kdiroperator.cpp:2056
 #, kde-format
 msgctxt "@info"
 msgid "Go back"
 msgstr "Μετάβαση πίσω"
 
-#: filewidgets/kdiroperator.cpp:2059
+#: filewidgets/kdiroperator.cpp:2060
 #, kde-format
 msgctxt "@info"
 msgid "Go forward"
 msgstr "Μετάβαση εμπρός"
 
-#: filewidgets/kdiroperator.cpp:2063
+#: filewidgets/kdiroperator.cpp:2064
 #, kde-format
 msgid "Home Folder"
 msgstr "Προσωπικός φάκελος"
 
-#: filewidgets/kdiroperator.cpp:2067
+#: filewidgets/kdiroperator.cpp:2068
 #, kde-format
 msgid "Reload"
 msgstr "Επαναφόρτωση"
 
-#: filewidgets/kdiroperator.cpp:2070
+#: filewidgets/kdiroperator.cpp:2071
 #, kde-format
 msgctxt "@action"
 msgid "New Folder…"
 msgstr "Νέος φάκελος…"
 
-#: filewidgets/kdiroperator.cpp:2080 widgets/jobuidelegate.cpp:271
+#: filewidgets/kdiroperator.cpp:2081 widgets/jobuidelegate.cpp:271
 #: widgets/jobuidelegate.cpp:272 widgets/jobuidelegate.cpp:281
 #: widgets/jobuidelegate.cpp:282 widgets/widgetsaskuseractionhandler.cpp:312
 #, kde-format
 msgid "Move to Trash"
 msgstr "Μετακίνηση στα απορρίμματα"
 
-#: filewidgets/kdiroperator.cpp:2086
+#: filewidgets/kdiroperator.cpp:2087
 #, kde-format
 msgid "Delete"
 msgstr "Διαγραφή"
 
-#: filewidgets/kdiroperator.cpp:2093
+#: filewidgets/kdiroperator.cpp:2094
 #, kde-format
 msgid "Sorting"
 msgstr "Ταξινόμηση"
 
-#: filewidgets/kdiroperator.cpp:2098
+#: filewidgets/kdiroperator.cpp:2099
 #, kde-format
 msgid "Sort by Name"
 msgstr "Ταξινόμηση ανά όνομα"
 
-#: filewidgets/kdiroperator.cpp:2104
+#: filewidgets/kdiroperator.cpp:2105
 #, kde-format
 msgid "Sort by Size"
 msgstr "Ταξινόμηση ανά μέγεθος"
 
-#: filewidgets/kdiroperator.cpp:2110
+#: filewidgets/kdiroperator.cpp:2111
 #, kde-format
 msgid "Sort by Date"
 msgstr "Ταξινόμηση ανά ημερομηνία"
 
-#: filewidgets/kdiroperator.cpp:2116
+#: filewidgets/kdiroperator.cpp:2117
 #, kde-format
 msgid "Sort by Type"
 msgstr "Ταξινόμηση ανά τύπο"
 
-#: filewidgets/kdiroperator.cpp:2125
+#: filewidgets/kdiroperator.cpp:2126
 #, kde-format
 msgid "Ascending"
 msgstr "Φθίνουσα"
 
-#: filewidgets/kdiroperator.cpp:2132
+#: filewidgets/kdiroperator.cpp:2133
 #, kde-format
 msgid "Descending"
 msgstr "Φθίνουσα"
 
-#: filewidgets/kdiroperator.cpp:2139
+#: filewidgets/kdiroperator.cpp:2140
 #, kde-format
 msgid "Folders First"
 msgstr "Πρώτα οι φάκελοι"
 
-#: filewidgets/kdiroperator.cpp:2145
+#: filewidgets/kdiroperator.cpp:2146
 #, kde-format
 msgid "Hidden Files Last"
 msgstr "Κρυφά αρχεία στο τέλος"
 
-#: filewidgets/kdiroperator.cpp:2152
+#: filewidgets/kdiroperator.cpp:2153
 #, kde-format
 msgid "Icons View"
 msgstr "Προβολή εικονιδίων"
 
-#: filewidgets/kdiroperator.cpp:2159
+#: filewidgets/kdiroperator.cpp:2160
 #, kde-format
 msgid "Compact View"
 msgstr "Συμπαγής προβολή"
 
-#: filewidgets/kdiroperator.cpp:2166
+#: filewidgets/kdiroperator.cpp:2167
 #, kde-format
 msgid "Details View"
 msgstr "Λεπτομερής προβολή"
 
-#: filewidgets/kdiroperator.cpp:2185
+#: filewidgets/kdiroperator.cpp:2186
 #, kde-format
 msgid "Icon Position"
 msgstr "Θέση εικονιδίου"
 
-#: filewidgets/kdiroperator.cpp:2188
+#: filewidgets/kdiroperator.cpp:2189
 #, kde-format
 msgid "Next to File Name"
 msgstr "Δίπλα στο όνομα αρχείου"
 
-#: filewidgets/kdiroperator.cpp:2194
+#: filewidgets/kdiroperator.cpp:2195
 #, kde-format
 msgid "Above File Name"
 msgstr "Πάνω από το όνομα αρχείου"
 
-#: filewidgets/kdiroperator.cpp:2208
+#: filewidgets/kdiroperator.cpp:2209
 #, kde-format
 msgid "Short View"
 msgstr "Σύντομη προβολή"
 
-#: filewidgets/kdiroperator.cpp:2215
+#: filewidgets/kdiroperator.cpp:2216
 #, kde-format
 msgid "Detailed View"
 msgstr "Λεπτομερής προβολή"
 
-#: filewidgets/kdiroperator.cpp:2222
+#: filewidgets/kdiroperator.cpp:2223
 #, kde-format
 msgid "Tree View"
 msgstr "Προβολή δέντρου"
 
-#: filewidgets/kdiroperator.cpp:2229
+#: filewidgets/kdiroperator.cpp:2230
 #, kde-format
 msgid "Detailed Tree View"
 msgstr "Λεπτομερής προβολή δέντρου"
 
-#: filewidgets/kdiroperator.cpp:2242
+#: filewidgets/kdiroperator.cpp:2243
 #, kde-format
 msgid "Allow Expansion in Details View"
 msgstr "Να επιτρέπεται η επέκταση στην Προβολή λεπτομερειών"
 
-#: filewidgets/kdiroperator.cpp:2248
+#: filewidgets/kdiroperator.cpp:2249
 #, kde-format
 msgid "Show Hidden Files"
 msgstr "Εμφάνιση κρυφών αρχείων"
 
-#: filewidgets/kdiroperator.cpp:2255
+#: filewidgets/kdiroperator.cpp:2256
 #, kde-format
 msgid "Show Preview Panel"
 msgstr "Εμφάνιση πίνακα προεπισκόπησης"
 
-#: filewidgets/kdiroperator.cpp:2262
+#: filewidgets/kdiroperator.cpp:2263
 #, kde-format
 msgid "Show Preview"
 msgstr "Εμφάνιση προεπισκόπησης"
 
-#: filewidgets/kdiroperator.cpp:2269
+#: filewidgets/kdiroperator.cpp:2270
 #, kde-format
 msgid "Open Containing Folder"
 msgstr "Άνοιγμα περιέχοντος φακέλου"
 
-#: filewidgets/kdiroperator.cpp:2276 filewidgets/kfileplacesview.cpp:1269
+#: filewidgets/kdiroperator.cpp:2277 filewidgets/kfileplacesview.cpp:1274
 #, kde-format
 msgid "Properties"
 msgstr "Ιδιότητες"
 
-#: filewidgets/kdiroperator.cpp:2285
+#: filewidgets/kdiroperator.cpp:2286
 #, kde-format
 msgid "&View Mode"
 msgstr "Λειτουργία &προβολής"
 
-#: filewidgets/kdiroperator.cpp:2388 filewidgets/kdiroperator.cpp:2400
+#: filewidgets/kdiroperator.cpp:2389 filewidgets/kdiroperator.cpp:2401
 #, kde-format
 msgctxt "Sort descending"
 msgid "Z-A"
 msgstr "Ω-Α"
 
-#: filewidgets/kdiroperator.cpp:2389 filewidgets/kdiroperator.cpp:2401
+#: filewidgets/kdiroperator.cpp:2390 filewidgets/kdiroperator.cpp:2402
 #, kde-format
 msgctxt "Sort ascending"
 msgid "A-Z"
 msgstr "Α-Ω"
 
-#: filewidgets/kdiroperator.cpp:2392
+#: filewidgets/kdiroperator.cpp:2393
 #, kde-format
 msgctxt "Sort ascending"
 msgid "Oldest First"
 msgstr "Παλαιότερα πρώτα"
 
-#: filewidgets/kdiroperator.cpp:2393
+#: filewidgets/kdiroperator.cpp:2394
 #, kde-format
 msgctxt "Sort descending"
 msgid "Newest First"
 msgstr "Νεότερα πρώτα"
 
-#: filewidgets/kdiroperator.cpp:2396
+#: filewidgets/kdiroperator.cpp:2397
 #, kde-format
 msgctxt "Sort descending"
 msgid "Largest First"
 msgstr "Μεγαλύτερα πρώτα"
 
-#: filewidgets/kdiroperator.cpp:2397
+#: filewidgets/kdiroperator.cpp:2398
 #, kde-format
 msgctxt "Sort ascending"
 msgid "Smallest First"
@@ -2800,43 +2800,43 @@ msgstr "Άνοιγμα"
 msgid "Save As"
 msgstr "Αποθήκευση ως"
 
-#: filewidgets/kfilecopytomenu.cpp:71
+#: filewidgets/kfilecopytomenu.cpp:88
 #, kde-format
 msgctxt "@title:menu"
 msgid "Copy To"
 msgstr "Αντιγραφή σε"
 
-#: filewidgets/kfilecopytomenu.cpp:77
+#: filewidgets/kfilecopytomenu.cpp:94
 #, kde-format
 msgctxt "@title:menu"
 msgid "Move To"
 msgstr "Μετακίνηση σε"
 
-#: filewidgets/kfilecopytomenu.cpp:102
+#: filewidgets/kfilecopytomenu.cpp:119
 #, kde-format
 msgctxt "@title:menu"
 msgid "Home Folder"
 msgstr "Προσωπικός φάκελος"
 
-#: filewidgets/kfilecopytomenu.cpp:110
+#: filewidgets/kfilecopytomenu.cpp:127
 #, kde-format
 msgctxt "@title:menu"
 msgid "Root Folder"
 msgstr "Ριζικός φάκελος"
 
-#: filewidgets/kfilecopytomenu.cpp:146
+#: filewidgets/kfilecopytomenu.cpp:163
 #, kde-format
 msgctxt "@action:inmenu in Copy To or Move To submenu"
 msgid "Browse…"
 msgstr "Περιήγηση..."
 
-#: filewidgets/kfilecopytomenu.cpp:225
+#: filewidgets/kfilecopytomenu.cpp:244
 #, kde-format
 msgctxt "@title:menu"
 msgid "Copy Here"
 msgstr "Αντιγραφή εδώ"
 
-#: filewidgets/kfilecopytomenu.cpp:225
+#: filewidgets/kfilecopytomenu.cpp:244
 #, kde-format
 msgctxt "@title:menu"
 msgid "Move Here"
@@ -2865,17 +2865,17 @@ msgstr "Όλα τα υποστηριζόμενα αρχεία"
 msgid "All Files"
 msgstr "Όλα τα αρχεία"
 
-#: filewidgets/kfileplaceeditdialog.cpp:66
+#: filewidgets/kfileplaceeditdialog.cpp:68
 #, kde-format
 msgid "Add Places Entry"
 msgstr "Προσθήκη μιας τοποθεσίας"
 
-#: filewidgets/kfileplaceeditdialog.cpp:68
+#: filewidgets/kfileplaceeditdialog.cpp:70
 #, kde-format
 msgid "Edit Places Entry"
 msgstr "Επεξεργασία καταχώρησης τοποθεσιών"
 
-#: filewidgets/kfileplaceeditdialog.cpp:78
+#: filewidgets/kfileplaceeditdialog.cpp:80
 #, kde-format
 msgid ""
 "<qt>This is the text that will appear in the Places panel.<br /><br />The "
@@ -2888,17 +2888,17 @@ msgstr ""
 "βοηθούν στο να θυμάστε το που αναφέρεται αυτή η καταχώρηση. θα πρέπει να "
 "προέρχεται από τη διεύθυνση ιστοσελίδας της τοποθεσίας του.</qt>"
 
-#: filewidgets/kfileplaceeditdialog.cpp:84
+#: filewidgets/kfileplaceeditdialog.cpp:86
 #, kde-format
 msgid "L&abel:"
 msgstr "Ετικέτ&α:"
 
-#: filewidgets/kfileplaceeditdialog.cpp:86
+#: filewidgets/kfileplaceeditdialog.cpp:88
 #, kde-format
 msgid "Enter descriptive label here"
 msgstr "Εισάγετε μια περιγραφική ετικέτα εδώ"
 
-#: filewidgets/kfileplaceeditdialog.cpp:91
+#: filewidgets/kfileplaceeditdialog.cpp:93
 #, kde-format
 msgid ""
 "<qt>This is the location associated with the entry. Any valid URL may be "
@@ -2912,12 +2912,12 @@ msgstr ""
 ">Κάνοντας κλικ στο κουμπί δίπλα στο πλαίσιο επεξεργασίας κειμένου, μπορείτε "
 "να περιηγηθείτε σε ένα κατάλληλο URL.</qt>"
 
-#: filewidgets/kfileplaceeditdialog.cpp:98
+#: filewidgets/kfileplaceeditdialog.cpp:100
 #, kde-format
 msgid "&Location:"
 msgstr "Τοπο&θεσία:"
 
-#: filewidgets/kfileplaceeditdialog.cpp:105
+#: filewidgets/kfileplaceeditdialog.cpp:107
 #, kde-format
 msgid ""
 "<qt>This is the icon that will appear in the Places panel.<br /><br />Click "
@@ -2926,17 +2926,17 @@ msgstr ""
 "<qt>Αυτό είναι το εικονίδιο που θα εμφανίζεται στο πλαίσιο τοποθεσιών.<br /"
 "><br />Κάντε κλικ στο κουμπί για να επιλέξετε ένα διαφορετικό εικονίδιο.</qt>"
 
-#: filewidgets/kfileplaceeditdialog.cpp:126
+#: filewidgets/kfileplaceeditdialog.cpp:128
 #, kde-format
 msgid "Choose an &icon:"
 msgstr "Επιλέξτε ένα ε&ικονίδιο:"
 
-#: filewidgets/kfileplaceeditdialog.cpp:136
+#: filewidgets/kfileplaceeditdialog.cpp:138
 #, kde-format
 msgid "&Only show when using this application (%1)"
 msgstr "Εμφάνιση μόν&ο όταν χρησιμοποιείται αυτή η εφαρμογή (%1)"
 
-#: filewidgets/kfileplaceeditdialog.cpp:139
+#: filewidgets/kfileplaceeditdialog.cpp:141
 #, kde-format
 msgid ""
 "<qt>Select this setting if you want this entry to show only when using the "
@@ -2995,90 +2995,90 @@ msgctxt "@info:tooltip path (mounted from)"
 msgid "%1 (from %2)"
 msgstr "%1 (από %2)"
 
-#: filewidgets/kfileplacesmodel.cpp:158
+#: filewidgets/kfileplacesmodel.cpp:162
 msgctxt "KFile System Bookmarks"
 msgid "All tags"
 msgstr "Όλες οι ετικέτες"
 
 #. i18nc calls has to be "KFile System Bookmarks".
 #. The real i18nc call is made later, with this context, so the two must match.
-#: filewidgets/kfileplacesmodel.cpp:254
+#: filewidgets/kfileplacesmodel.cpp:258
 msgctxt "KFile System Bookmarks"
 msgid "Home"
 msgstr "Προσωπικός φάκελος"
 
-#: filewidgets/kfileplacesmodel.cpp:263
+#: filewidgets/kfileplacesmodel.cpp:267
 msgctxt "KFile System Bookmarks"
 msgid "Desktop"
 msgstr "Επιφάνεια εργασίας"
 
-#: filewidgets/kfileplacesmodel.cpp:270
+#: filewidgets/kfileplacesmodel.cpp:274
 msgctxt "KFile System Bookmarks"
 msgid "Documents"
 msgstr "Έγγραφα"
 
-#: filewidgets/kfileplacesmodel.cpp:277
+#: filewidgets/kfileplacesmodel.cpp:281
 msgctxt "KFile System Bookmarks"
 msgid "Downloads"
 msgstr "Λήψεις"
 
-#: filewidgets/kfileplacesmodel.cpp:282
+#: filewidgets/kfileplacesmodel.cpp:286
 msgctxt "KFile System Bookmarks"
 msgid "Network"
 msgstr "Δίκτυο"
 
-#: filewidgets/kfileplacesmodel.cpp:287
+#: filewidgets/kfileplacesmodel.cpp:291
 msgctxt "KFile System Bookmarks"
 msgid "Trash"
 msgstr "Απορρίμματα"
 
-#: filewidgets/kfileplacesmodel.cpp:348
+#: filewidgets/kfileplacesmodel.cpp:352
 msgctxt "KFile System Bookmarks"
 msgid "Music"
 msgstr "Μουσική"
 
-#: filewidgets/kfileplacesmodel.cpp:355
+#: filewidgets/kfileplacesmodel.cpp:359
 msgctxt "KFile System Bookmarks"
 msgid "Pictures"
 msgstr "Εικόνες"
 
-#: filewidgets/kfileplacesmodel.cpp:364
+#: filewidgets/kfileplacesmodel.cpp:368
 msgctxt "KFile System Bookmarks"
 msgid "Videos"
 msgstr "Βίντεο"
 
-#: filewidgets/kfileplacesmodel.cpp:391
+#: filewidgets/kfileplacesmodel.cpp:395
 msgctxt "KFile System Bookmarks"
 msgid "Recent Files"
 msgstr "Πρόσφατα αρχεία"
 
-#: filewidgets/kfileplacesmodel.cpp:396
+#: filewidgets/kfileplacesmodel.cpp:400
 msgctxt "KFile System Bookmarks"
 msgid "Recent Locations"
 msgstr "Πρόσφατες τοποθεσίες"
 
-#: filewidgets/kfileplacesmodel.cpp:419
+#: filewidgets/kfileplacesmodel.cpp:423
 msgctxt "KFile System Bookmarks"
 msgid "Modified Today"
 msgstr "Τροποποιήθηκε σήμερα"
 
-#: filewidgets/kfileplacesmodel.cpp:423
+#: filewidgets/kfileplacesmodel.cpp:427
 msgctxt "KFile System Bookmarks"
 msgid "Modified Yesterday"
 msgstr "Τροποποιήθηκε χθες"
 
-#: filewidgets/kfileplacesmodel.cpp:1130
+#: filewidgets/kfileplacesmodel.cpp:1134
 #, kde-format
 msgctxt "Placeholder is error message"
 msgid "Could not add to the Places panel: %1"
 msgstr "Αδυναμία προσθήκης στον πίνακα «Τοποθεσίες»: %1"
 
-#: filewidgets/kfileplacesmodel.cpp:1137
+#: filewidgets/kfileplacesmodel.cpp:1141
 #, kde-format
 msgid "Only folders can be added to the Places panel."
 msgstr "Μόνο φάκελοι μπορούν να προστεθούν στον πίνακα θέσεων."
 
-#: filewidgets/kfileplacesmodel.cpp:1380
+#: filewidgets/kfileplacesmodel.cpp:1384
 #, fuzzy, kde-format
 #| msgctxt "@action:inmenu"
 #| msgid "Configure Web Shortcuts…"
@@ -3086,70 +3086,70 @@ msgctxt "@action:inmenu"
 msgid "Configure…"
 msgstr "Διαμόρφωση συντομεύσεων ιστού..."
 
-#: filewidgets/kfileplacesmodel.cpp:1416
+#: filewidgets/kfileplacesmodel.cpp:1420
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Releasing…"
 msgstr "Αποδέσμευση…"
 
-#: filewidgets/kfileplacesmodel.cpp:1418
+#: filewidgets/kfileplacesmodel.cpp:1422
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Release"
 msgstr "Απο&δέσμευση"
 
-#: filewidgets/kfileplacesmodel.cpp:1422
+#: filewidgets/kfileplacesmodel.cpp:1426
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Safely Removing…"
 msgstr "Ασφαλής αφαίρεση…"
 
-#: filewidgets/kfileplacesmodel.cpp:1424
+#: filewidgets/kfileplacesmodel.cpp:1428
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Safely Remove"
 msgstr "&Ασφαλής αφαίρεση"
 
-#: filewidgets/kfileplacesmodel.cpp:1429
+#: filewidgets/kfileplacesmodel.cpp:1433
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Unmounting…"
 msgstr "Αποπροσάρτηση…"
 
-#: filewidgets/kfileplacesmodel.cpp:1431
+#: filewidgets/kfileplacesmodel.cpp:1435
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Unmount"
 msgstr "&Αποπροσάρτηση"
 
-#: filewidgets/kfileplacesmodel.cpp:1455
+#: filewidgets/kfileplacesmodel.cpp:1459
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Eject"
 msgstr "&Εξαγωγή"
 
-#: filewidgets/kfileplacesmodel.cpp:1502
+#: filewidgets/kfileplacesmodel.cpp:1506
 #, kde-format
 msgid "The device '%1' is not a disk and cannot be ejected."
 msgstr "Η συσκευή '%1' δεν είναι δίσκος και δεν μπορεί να εξαχθεί."
 
-#: filewidgets/kfileplacesmodel.cpp:1537
+#: filewidgets/kfileplacesmodel.cpp:1542
 #, kde-format
 msgid "An error occurred while accessing '%1', the system responded: %2"
 msgstr "Συνέβη ένα σφάλμα κατά την πρόσβαση στο '%1', το σύστημα απάντησε: %2"
 
-#: filewidgets/kfileplacesmodel.cpp:1539
+#: filewidgets/kfileplacesmodel.cpp:1544
 #, kde-format
 msgid "An error occurred while accessing '%1'"
 msgstr "Συνέβη ένα σφάλμα κατά την πρόσβαση στο '%1'"
 
-#: filewidgets/kfileplacesmodel.cpp:1565
+#: filewidgets/kfileplacesmodel.cpp:1571
 #, kde-format
 msgid "One or more files on this device are open within an application."
 msgstr ""
 "Ένα ή περισσότερα αρχεία σε αυτή τη συσκευή είναι ανοιχτά σε μια εφαρμογή."
 
-#: filewidgets/kfileplacesmodel.cpp:1568
+#: filewidgets/kfileplacesmodel.cpp:1574
 #, kde-kuit-format
 msgid ""
 "One or more files on this device are opened in application <application>"
@@ -3164,108 +3164,108 @@ msgstr[1] ""
 "Ένα ή περισσότερα αρχεία σε αυτή τη συσκευή ανοίγουν στις ακόλουθες "
 "εφαρμογές: <application>%2</application>."
 
-#: filewidgets/kfileplacesmodel.cpp:1571
+#: filewidgets/kfileplacesmodel.cpp:1577
 #, kde-format
 msgctxt "separator in list of apps blocking device unmount"
 msgid ", "
 msgstr ", "
 
-#: filewidgets/kfileplacesmodel.cpp:1618
+#: filewidgets/kfileplacesmodel.cpp:1624
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Reformat or Edit with Partition Manager"
 msgstr "Επαναδιαμόρφωση ή επεξεργασία με το διαχείριση κατατμήσεων"
 
-#: filewidgets/kfileplacesview.cpp:343
+#: filewidgets/kfileplacesview.cpp:335
 #, kde-format
 msgctxt "@info:tooltip full display text since it is elided: original tooltip"
 msgid "%1: %2"
 msgstr "%1: %2"
 
-#: filewidgets/kfileplacesview.cpp:360
-#: widgets/kpropertiesdialogbuiltin_p.cpp:676
+#: filewidgets/kfileplacesview.cpp:352
+#: widgets/kpropertiesdialogbuiltin_p.cpp:722
 #, kde-format
 msgctxt "Available space out of total partition size (percent used)"
 msgid "%1 free of %2 (%3% used)"
 msgstr "%1 ελεύθερα από %2 (%3% σε χρήση)"
 
-#: filewidgets/kfileplacesview.cpp:673
+#: filewidgets/kfileplacesview.cpp:678
 #, kde-format
 msgid "%1 (hidden)"
 msgstr "%1 (κρυφό)"
 
-#: filewidgets/kfileplacesview.cpp:1227
+#: filewidgets/kfileplacesview.cpp:1232
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Empty Trash"
 msgstr "Άδειασμα απορριμμάτων"
 
-#: filewidgets/kfileplacesview.cpp:1252
+#: filewidgets/kfileplacesview.cpp:1257
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Mount"
 msgstr "Προσάρτηση"
 
-#: filewidgets/kfileplacesview.cpp:1262
+#: filewidgets/kfileplacesview.cpp:1267
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Open in New Tab"
 msgstr "Άνοιγμα σε νέα καρτέλα"
 
-#: filewidgets/kfileplacesview.cpp:1265
+#: filewidgets/kfileplacesview.cpp:1270
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Open in New Window"
 msgstr "Άνοιγμα σε νέο παράθυρο"
 
-#: filewidgets/kfileplacesview.cpp:1274
+#: filewidgets/kfileplacesview.cpp:1279
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Add Entry…"
 msgstr "Προσθήκη καταχώρησης…"
 
-#: filewidgets/kfileplacesview.cpp:1280
+#: filewidgets/kfileplacesview.cpp:1285
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Edit…"
 msgstr "&Επεξεργασία…"
 
-#: filewidgets/kfileplacesview.cpp:1285
+#: filewidgets/kfileplacesview.cpp:1290
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Remove from Places"
 msgstr "Αφαίρεση από τις τοποθεσίες"
 
-#: filewidgets/kfileplacesview.cpp:1289
+#: filewidgets/kfileplacesview.cpp:1294
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Hide"
 msgstr "&Απόκρυψη"
 
-#: filewidgets/kfileplacesview.cpp:1297
+#: filewidgets/kfileplacesview.cpp:1302
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Hide Section '%1'"
 msgstr "Απόκρυψη τμήματος '%1'"
 
-#: filewidgets/kfileplacesview.cpp:1297
+#: filewidgets/kfileplacesview.cpp:1302
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Hide Section"
 msgstr "Απόκρυψη τμήματος"
 
-#: filewidgets/kfileplacesview.cpp:1305
+#: filewidgets/kfileplacesview.cpp:1310
 #, kde-format
 msgid "&Show All Entries"
 msgstr "&Εμφάνιση όλων των καταχωρήσεων"
 
-#: filewidgets/kfileplacesview.cpp:1310
+#: filewidgets/kfileplacesview.cpp:1315
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Icon Size"
 msgstr "Μέγεθος εικονιδίου"
 
-#: filewidgets/kfileplacesview.cpp:1431
+#: filewidgets/kfileplacesview.cpp:1436
 #, kde-format
 msgctxt ""
 "@item:inmenu Auto set icon size based on available space inthe Places side-"
@@ -3273,25 +3273,25 @@ msgctxt ""
 msgid "Auto Resize"
 msgstr "Αυτόματη αλλαγή μεγέθους"
 
-#: filewidgets/kfileplacesview.cpp:1451
+#: filewidgets/kfileplacesview.cpp:1456
 #, kde-format
 msgctxt "Small icon size"
 msgid "Small (%1x%1)"
 msgstr "Μικρό (%1x%1)"
 
-#: filewidgets/kfileplacesview.cpp:1454
+#: filewidgets/kfileplacesview.cpp:1459
 #, kde-format
 msgctxt "Medium icon size"
 msgid "Medium (%1x%1)"
 msgstr "Μεσαίο (%1x%1)"
 
-#: filewidgets/kfileplacesview.cpp:1457
+#: filewidgets/kfileplacesview.cpp:1462
 #, kde-format
 msgctxt "Large icon size"
 msgid "Large (%1x%1)"
 msgstr "Μεγάλο (%1x%1)"
 
-#: filewidgets/kfileplacesview.cpp:1460
+#: filewidgets/kfileplacesview.cpp:1465
 #, kde-format
 msgctxt "Huge icon size"
 msgid "Huge (%1x%1)"
@@ -3538,37 +3538,37 @@ msgstr "Όλοι οι φάκελοι"
 msgid "Current Directory: %1"
 msgstr "Δημιουργία καταλόγου"
 
-#: filewidgets/kfilewidget.cpp:2208 widgets/kfileitemactions.cpp:847
+#: filewidgets/kfilewidget.cpp:2208 widgets/kfileitemactions.cpp:859
 #, kde-format
 msgid "&Open"
 msgstr "Ά&νοιγμα"
 
-#: filewidgets/kfilewidget.cpp:2309
+#: filewidgets/kfilewidget.cpp:2315
 #, kde-format
 msgid "Icon size: %1 pixels"
 msgstr "Μέγεθος εικονιδίων: %1 εικονοστοιχεία"
 
-#: filewidgets/kfilewidget.cpp:2476
+#: filewidgets/kfilewidget.cpp:2482
 #, kde-format
 msgid "Automatically select filename e&xtension (%1)"
 msgstr "Αυτόματη επιλογή κατάλη&ξης αρχείου (%1)"
 
-#: filewidgets/kfilewidget.cpp:2477
+#: filewidgets/kfilewidget.cpp:2483
 #, kde-format
 msgid "the extension <b>%1</b>"
 msgstr "η κατάληξη <b>%1</b>"
 
-#: filewidgets/kfilewidget.cpp:2483
+#: filewidgets/kfilewidget.cpp:2489
 #, kde-format
 msgid "Automatically select filename e&xtension"
 msgstr "Αυτόματη επιλογή κατάλη&ξης αρχείου"
 
-#: filewidgets/kfilewidget.cpp:2484
+#: filewidgets/kfilewidget.cpp:2490
 #, kde-format
 msgid "a suitable extension"
 msgstr "μια κατάλληλη κατάληξη"
 
-#: filewidgets/kfilewidget.cpp:2492
+#: filewidgets/kfilewidget.cpp:2498
 #, kde-format
 msgid ""
 "This option enables some convenient features for saving files with "
@@ -3596,12 +3596,12 @@ msgstr ""
 "αφαιρεθεί αυτόματα).</li></ol>Αν δεν είστε σίγουροι, διατηρήστε αυτή την "
 "επιλογή ενεργοποιημένη καθώς καθιστά τα αρχεία σας πιο εύκολα διαχειρίσιμα."
 
-#: filewidgets/kfilewidget.cpp:2958
+#: filewidgets/kfilewidget.cpp:2964
 #, kde-format
 msgid "&File type:"
 msgstr "Τύπος αρχείου:"
 
-#: filewidgets/kfilewidget.cpp:2962
+#: filewidgets/kfilewidget.cpp:2968
 #, kde-format
 msgid ""
 "<qt>This is the file type selector. It is used to select the format that the "
@@ -3610,7 +3610,7 @@ msgstr ""
 "<qt>Αυτός είναι ο επιλογέας τύπου αρχείου. Χρησιμοποιείται για την επιλογή "
 "της μορφής με την οποία θα αποθηκευτεί το αρχείο.</qt>"
 
-#: filewidgets/kfilewidget.cpp:2964
+#: filewidgets/kfilewidget.cpp:2970
 #, fuzzy, kde-format
 #| msgid ""
 #| "<qt>This is the file type selector. It is used to select the format that "
@@ -3622,38 +3622,7 @@ msgstr ""
 "<qt>Αυτός είναι ο επιλογέας τύπου αρχείου. Χρησιμοποιείται για την επιλογή "
 "της μορφής με την οποία θα αποθηκευτεί το αρχείο.</qt>"
 
-#: filewidgets/knewfilemenu.cpp:518
-#, kde-format
-msgid "Sorry"
-msgstr "Δυστυχώς"
-
-#: filewidgets/knewfilemenu.cpp:529
-#, kde-format
-msgid "<qt>The template file <b>%1</b> does not exist.</qt>"
-msgstr "<qt>Το αρχείο προτύπου<b>%1</b> δεν υπάρχει.</qt>"
-
-#: filewidgets/knewfilemenu.cpp:683 filewidgets/knewfilemenu.cpp:748
-#, kde-format
-msgid "Name for new link:"
-msgstr "Όνομα για το νέο δεσμό:"
-
-#: filewidgets/knewfilemenu.cpp:686
-#, kde-format
-msgid "Create Symlink"
-msgstr "Δημιουργία συμβολικού δεσμού"
-
-#: filewidgets/knewfilemenu.cpp:752
-#, kde-format
-msgid "Create link to URL"
-msgstr "Δημιουργία δεσμού με URL."
-
-#: filewidgets/knewfilemenu.cpp:793 filewidgets/knewfilemenu.cpp:848
-#, kde-format
-msgctxt "@item:inmenu Create New"
-msgid "%1"
-msgstr "%1"
-
-#: filewidgets/knewfilemenu.cpp:1128
+#: filewidgets/knewfilemenu.cpp:233
 #, fuzzy, kde-format
 #| msgctxt "@action:button"
 #| msgid "Enter a different name"
@@ -3661,7 +3630,45 @@ msgctxt "@label:textbox Prompt for new file of type"
 msgid "Enter %1 filename:"
 msgstr "Εισάγετε ένα διαφορετικό όνομα"
 
-#: filewidgets/knewfilemenu.cpp:1227
+#: filewidgets/knewfilemenu.cpp:558
+#, kde-format
+msgid "Sorry"
+msgstr "Δυστυχώς"
+
+#: filewidgets/knewfilemenu.cpp:569
+#, kde-format
+msgid "<qt>The template file <b>%1</b> does not exist.</qt>"
+msgstr "<qt>Το αρχείο προτύπου<b>%1</b> δεν υπάρχει.</qt>"
+
+#: filewidgets/knewfilemenu.cpp:589 filewidgets/knewfilemenu.cpp:602
+#, kde-format
+msgid "Name for new link:"
+msgstr "Όνομα για το νέο δεσμό:"
+
+#: filewidgets/knewfilemenu.cpp:592
+#, kde-format
+msgid "Create Symlink"
+msgstr "Δημιουργία συμβολικού δεσμού"
+
+#: filewidgets/knewfilemenu.cpp:606
+#, kde-format
+msgid "Create link to URL"
+msgstr "Δημιουργία δεσμού με URL."
+
+#: filewidgets/knewfilemenu.cpp:650
+#, fuzzy, kde-format
+#| msgid "Create New"
+msgctxt "@title:window New link to a program"
+msgid "Create New %1"
+msgstr "Δημιουργία νέου"
+
+#: filewidgets/knewfilemenu.cpp:784 filewidgets/knewfilemenu.cpp:806
+#, kde-format
+msgctxt "@item:inmenu Create New"
+msgid "%1"
+msgstr "%1"
+
+#: filewidgets/knewfilemenu.cpp:1131
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -3671,7 +3678,7 @@ msgstr ""
 "Το όνομα <filename>%1</filename> δεν μπορεί να χρησιμοποιηθεί επειδή είναι "
 "δεσμευμένο για χρήση από το λειτουργικό σύστημα."
 
-#: filewidgets/knewfilemenu.cpp:1235
+#: filewidgets/knewfilemenu.cpp:1139
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -3681,7 +3688,7 @@ msgstr ""
 "Το όνομα <filename>%1</filename> αρχίζει με τελεία, οπότε θα είναι κρυμμένο "
 "από προεπιλογή."
 
-#: filewidgets/knewfilemenu.cpp:1243
+#: filewidgets/knewfilemenu.cpp:1147
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -3693,30 +3700,30 @@ msgstr ""
 "εμφανίζεται πριν από άλλα αντικείμενα κατά την αλφαβητική ταξινόμηση, μεταξύ "
 "άλλων πιθανών παραξενιών."
 
-#: filewidgets/knewfilemenu.cpp:1261
+#: filewidgets/knewfilemenu.cpp:1165
 #, kde-format
 msgid "Using slashes in folder names will create sub-folders, like so:"
 msgstr "Η χρήση κάθετων σε ονόματα φακέλων θα δημιουργήσει υποφακέλους, όπως:"
 
-#: filewidgets/knewfilemenu.cpp:1275
+#: filewidgets/knewfilemenu.cpp:1179
 #, kde-format
 msgid "Using slashes in folder names will create sub-folders."
 msgstr "Η χρήση κάθετων σε ονόματα φακέλων θα δημιουργήσει υποφακέλους."
 
-#: filewidgets/knewfilemenu.cpp:1287
+#: filewidgets/knewfilemenu.cpp:1191
 #, kde-format
 msgid "Slashes cannot be used in file and folder names."
 msgstr ""
 "Οι κάθετοι δεν μπορούν να χρησιμοποιηθούν σε ονόματα αρχείων και φακέλων."
 
-#: filewidgets/knewfilemenu.cpp:1292
+#: filewidgets/knewfilemenu.cpp:1196
 #, kde-format
 msgid "Backslashes cannot be used in file and folder names."
 msgstr ""
 "Οι ανάποδοι κάθετοι δεν μπορούν να χρησιμοποιηθούν σε ονόματα αρχείων και "
 "φακέλων."
 
-#: filewidgets/knewfilemenu.cpp:1306
+#: filewidgets/knewfilemenu.cpp:1210
 #, kde-kuit-format
 msgctxt "@error"
 msgid ""
@@ -3724,7 +3731,7 @@ msgid ""
 "possible since it would overlap with the location of a user's home folder."
 msgstr ""
 
-#: filewidgets/knewfilemenu.cpp:1315
+#: filewidgets/knewfilemenu.cpp:1219
 #, kde-format
 msgid ""
 "Starting a file or folder name with a tilde is not recommended because it "
@@ -3734,46 +3741,41 @@ msgstr ""
 "επειδή μπορεί να προκαλέσει σύγχυση ή να είναι επικίνδυνο όταν "
 "χρησιμοποιείτε το τερματικό για να διαγράψετε πράγματα."
 
-#: filewidgets/knewfilemenu.cpp:1387
+#: filewidgets/knewfilemenu.cpp:1291
 #, kde-kuit-format
 msgctxt "@info"
 msgid "A directory with name <filename>%1</filename> already exists."
 msgstr "Ένας κατάλογος με όνομα <filename>%1</filename> υπάρχει ήδη."
 
-#: filewidgets/knewfilemenu.cpp:1389
+#: filewidgets/knewfilemenu.cpp:1293
 #, kde-kuit-format
 msgctxt "@info"
 msgid "A file with name <filename>%1</filename> already exists."
 msgstr "Ένα αρχείο με όνομα <filename>%1</filename> υπάρχει ήδη."
 
-#: filewidgets/knewfilemenu.cpp:1475
+#: filewidgets/knewfilemenu.cpp:1379
 #, kde-format
 msgid "Create New"
 msgstr "Δημιουργία νέου"
 
-#: filewidgets/knewfilemenu.cpp:1510
-#, kde-format
-msgid "Link to Device"
-msgstr "Δεσμός με συσκευή"
-
-#: filewidgets/knewfilemenu.cpp:1556
+#: filewidgets/knewfilemenu.cpp:1451
 #, kde-format
 msgctxt "Default name for a new folder"
 msgid "New Folder"
 msgstr "Νέος φάκελος"
 
-#: filewidgets/knewfilemenu.cpp:1579
+#: filewidgets/knewfilemenu.cpp:1474
 #, kde-format
 msgctxt "@title:window"
 msgid "Create New Folder"
 msgstr "Δημιουργία νέου φακέλου"
 
-#: filewidgets/knewfilemenu.cpp:1581
+#: filewidgets/knewfilemenu.cpp:1476
 #, kde-format
 msgid "Create new folder in %1:"
 msgstr "Δημιουργία νέου φακέλου στο %1:"
 
-#: filewidgets/knewfilemenu.cpp:1584 widgets/kpropertiesdialogbuiltin_p.cpp:363
+#: filewidgets/knewfilemenu.cpp:1479 widgets/kpropertiesdialogbuiltin_p.cpp:397
 #, fuzzy, kde-format
 #| msgctxt "@action:button"
 #| msgid "Enter a different name"
@@ -3781,7 +3783,7 @@ msgctxt "@info:placeholder"
 msgid "Enter folder name"
 msgstr "Εισάγετε ένα διαφορετικό όνομα"
 
-#: filewidgets/knewfilemenu.cpp:1641
+#: filewidgets/knewfilemenu.cpp:1536
 #, fuzzy, kde-format
 #| msgctxt "@item:inlistbox The default character set"
 #| msgid "Default"
@@ -3824,51 +3826,46 @@ msgstr "Επιλέξτε ένα ε&ικονίδιο:"
 msgid "You can change the icon later in folder properties."
 msgstr ""
 
-#. i18n: ectx: property (text), widget (QPushButton, md5CopyButton)
-#. i18n: ectx: property (text), widget (QPushButton, sha1CopyButton)
-#. i18n: ectx: property (text), widget (QPushButton, sha256CopyButton)
-#. i18n: ectx: property (text), widget (QPushButton, sha512CopyButton)
-#: filewidgets/kurlnavigator.cpp:606 widgets/checksumswidget.ui:145
-#: widgets/checksumswidget.ui:192 widgets/checksumswidget.ui:239
-#: widgets/checksumswidget.ui:286
-#, kde-format
-msgid "Copy"
-msgstr "Αντιγραφή"
+#: filewidgets/kurlnavigator.cpp:611
+#, fuzzy, kde-format
+#| msgid "Location:"
+msgid "Copy Location"
+msgstr "Τοποθεσία:"
 
 #. i18n: ectx: property (text), widget (QPushButton, pasteButton)
-#: filewidgets/kurlnavigator.cpp:610 widgets/checksumswidget.ui:42
+#: filewidgets/kurlnavigator.cpp:615 widgets/checksumswidget.ui:42
 #, kde-format
 msgid "Paste"
 msgstr "Επικόλληση"
 
-#: filewidgets/kurlnavigator.cpp:630
+#: filewidgets/kurlnavigator.cpp:635
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Open \"%1\" in New Tab"
 msgstr "Άνοιγμα «%1» σε νέα καρτέλα"
 
-#: filewidgets/kurlnavigator.cpp:638
+#: filewidgets/kurlnavigator.cpp:643
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Open \"%1\" in New Window"
 msgstr "Άνοιγμα «%1» σε νέο παράθυρο"
 
-#: filewidgets/kurlnavigator.cpp:647
+#: filewidgets/kurlnavigator.cpp:652
 #, kde-format
 msgid "Edit"
 msgstr "Επεξεργασία"
 
-#: filewidgets/kurlnavigator.cpp:650
+#: filewidgets/kurlnavigator.cpp:655
 #, kde-format
 msgid "Navigate"
 msgstr "Πλοήγηση"
 
-#: filewidgets/kurlnavigator.cpp:665
+#: filewidgets/kurlnavigator.cpp:670
 #, kde-format
 msgid "Show Full Path"
 msgstr "Εμφάνιση πλήρους διαδρομής"
 
-#: filewidgets/kurlnavigator.cpp:826
+#: filewidgets/kurlnavigator.cpp:840
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info"
 #| msgid "Cannot transfer <filename>%1</filename>"
@@ -3876,7 +3873,7 @@ msgctxt "@info:tooltip for button. 1 is path"
 msgid "Go to any location on the path <filename>%1</filename>"
 msgstr "Αδύνατη η μεταφορά <filename>%1</filename>"
 
-#: filewidgets/kurlnavigatorbutton.cpp:725
+#: filewidgets/kurlnavigatorbutton.cpp:726
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "More"
@@ -3887,6 +3884,15 @@ msgstr "Περισσότερα"
 msgctxt "@action:button opening a list of locations"
 msgid "Go to Location on Path"
 msgstr ""
+
+#: filewidgets/kurlnavigatorplacesselector.cpp:49
+#, fuzzy, kde-format
+#| msgctxt "@item"
+#| msgid "Places"
+msgctxt ""
+"@action:button accessible name for the places selector in the URL navigator"
+msgid "Places"
+msgstr "Τοποθεσίες"
 
 #: filewidgets/kurlnavigatorschemecombo.cpp:155
 #, kde-format
@@ -3921,18 +3927,18 @@ msgstr "Κάντε κλικ για πλοήγηση τοποθεσίας"
 msgid "Click to Edit Location"
 msgstr "Κάντε κλικ για επεξεργασία τοποθεσίας"
 
-#: gui/applicationlauncherjob.cpp:125 gui/kprocessrunner.cpp:244
+#: gui/applicationlauncherjob.cpp:125 gui/kprocessrunner.cpp:256
 #, kde-format
 msgid "You are not authorized to execute this file."
 msgstr "Δεν έχετε άδεια εκτέλεσης αυτού του αρχείου."
 
-#: gui/applicationlauncherjob.cpp:136 gui/commandlauncherjob.cpp:117
+#: gui/applicationlauncherjob.cpp:141 gui/commandlauncherjob.cpp:117
 #, kde-format
 msgctxt "Launching application"
 msgid "Launching %1"
 msgstr "Εκκίνηση %1"
 
-#: gui/applicationlauncherjob.cpp:173
+#: gui/applicationlauncherjob.cpp:178
 #, kde-format
 msgid ""
 "Unable to make the service %1 executable, aborting execution.\n"
@@ -3941,13 +3947,13 @@ msgstr ""
 "Αδυναμία ορισμού της υπηρεσίας %1 ως εκτελέσιμη, εγκατάλειψη εκτέλεσης.\n"
 "%2."
 
-#: gui/applicationlauncherjob.cpp:291 gui/openurljob.cpp:648
+#: gui/applicationlauncherjob.cpp:302 gui/openurljob.cpp:689
 #, kde-format
 msgid "You are not authorized to select an application to open this file."
 msgstr ""
 "Δεν έχετε άδεια επιλογής μιας εφαρμογής για το άνοιγμα αυτού του αρχείου."
 
-#: gui/applicationlauncherjob.cpp:299
+#: gui/applicationlauncherjob.cpp:310
 #, kde-format
 msgid ""
 "Internal error: could not prompt the user for which application to start"
@@ -3976,18 +3982,18 @@ msgstr "Σφάλμα αποθήκευσης εικόνας στο %1"
 msgid "Icon file too big, download aborted"
 msgstr "Πολύ μεγάλο αρχείο εικονιδίου, εγκατάλειψη λήψης"
 
-#: gui/filepreviewjob.cpp:285
+#: gui/filepreviewjob.cpp:255
 #, kde-format
 msgctxt "%1 is a file url"
 msgid "FilePreviewJob: skipping an empty file, might be a broken symlink: %1"
 msgstr ""
 
-#: gui/kemailclientlauncherjob.cpp:92
+#: gui/kemailclientlauncherjob.cpp:117
 #, kde-format
 msgid "No mail client found"
 msgstr "Δεν βρέθηκε πρόγραμμα αλληλογραφίας"
 
-#: gui/kprocessrunner.cpp:122
+#: gui/kprocessrunner.cpp:127
 #, kde-format
 msgid ""
 "The desktop entry file\n"
@@ -3998,12 +4004,12 @@ msgstr ""
 "%1\n"
 "δεν είναι έγκυρο."
 
-#: gui/kprocessrunner.cpp:291
+#: gui/kprocessrunner.cpp:303
 #, kde-format
 msgid "Launching %1"
 msgstr "Εκκίνηση %1"
 
-#: gui/kprocessrunner.cpp:463
+#: gui/kprocessrunner.cpp:487
 #, kde-kuit-format
 msgctxt "@info"
 msgid "The command <command>%1</command> could not be found."
@@ -4014,12 +4020,12 @@ msgstr "Η εντολή <command>%1</command> δεν βρέθηκε."
 msgid "No terminal emulator found"
 msgstr "Δεν βρέθηκε εξομοιωτής τερματικού"
 
-#: gui/openurljob.cpp:163
+#: gui/openurljob.cpp:184
 #, kde-format
 msgid "Failed to open %1"
 msgstr "Αποτυχία ανοίγματος %1"
 
-#: gui/openurljob.cpp:301
+#: gui/openurljob.cpp:321
 #, kde-format
 msgid ""
 "The desktop entry file\n"
@@ -4030,7 +4036,7 @@ msgstr ""
 "%1\n"
 "είναι του τύπου Δεσμός αλλά δεν έχει καταχώρηση URL=... ."
 
-#: gui/openurljob.cpp:379
+#: gui/openurljob.cpp:405
 #, kde-format
 msgid ""
 "The executable file \"%1\" is located on a remote filesystem. For safety "
@@ -4039,7 +4045,7 @@ msgstr ""
 "Το εκτελέσιμο αρχείο «%1» βρίσκεται σε απομακρυσμένο σύστημα αρχείων. Για "
 "λόγους ασφαλείας δεν θα ξεκινήσει."
 
-#: gui/openurljob.cpp:415
+#: gui/openurljob.cpp:446
 #, kde-format
 msgid ""
 "For security reasons, launching executables is not allowed in this context."
@@ -4047,7 +4053,7 @@ msgstr ""
 "Για λόγους ασφαλείας, η εκκίνηση εκτελέσιμων αρχείων δεν επιτρέπεται σε αυτό "
 "το πλαίσιο."
 
-#: gui/openurljob.cpp:445
+#: gui/openurljob.cpp:476
 #, kde-format
 msgid ""
 "The program \"%1\" needs to have executable permission before it can be "
@@ -4056,7 +4062,7 @@ msgstr ""
 "Το πρόγραμμα «%1» πρέπει να έχει άδεια εκτέλεσης για να μπορέσει να "
 "εκκινηθεί."
 
-#: gui/openurljob.cpp:456
+#: gui/openurljob.cpp:487
 #, kde-format
 msgid ""
 "Unable to make file \"%1\" executable.\n"
@@ -4065,13 +4071,13 @@ msgstr ""
 "Αδυναμία ορισμού το αρχείο «%1» ως εκτελέσιμο.\n"
 "%2."
 
-#: gui/openurljob.cpp:542
+#: gui/openurljob.cpp:573
 #, kde-format
 msgid "The desktop entry file %1 has no Type=... entry."
 msgstr ""
 "Το αρχείο καταχώρησης επιφάνειας εργασίας %1 δεν έχει καταχώρηση Type=... ."
 
-#: gui/openurljob.cpp:634
+#: gui/openurljob.cpp:675
 #, kde-format
 msgid ""
 "This file is incomplete and should not be opened.\n"
@@ -4082,15 +4088,20 @@ msgstr ""
 "Ελέγξτε τις ανοιχτές εφαρμογές σας και την περιοχή ειδοποιήσεων για τυχόν "
 "εκκρεμείς εργασίες ή λήψεις."
 
-#: gui/openurljob.cpp:660
+#: gui/openurljob.cpp:701
 #, kde-format
 msgid "Failed to open the file."
 msgstr "Αποτυχία ανοίγματος του αρχείου."
 
-#: gui/openurljob.cpp:694
+#: gui/openurljob.cpp:735
 #, kde-format
 msgid "The program \"%1\" could not be launched."
 msgstr "Το πρόγραμμα «%1» δεν μπόρεσε να εκκινηθεί."
+
+#: gui/systemd/systemdprocessrunner.cpp:200
+#, kde-format
+msgid "Failed to launch process (status code: %1)"
+msgstr ""
 
 #: kioexec/kioexecd.cpp:86
 #, kde-kuit-format
@@ -4238,7 +4249,7 @@ msgstr "Εντολή για εκτέλεση"
 msgid "URL(s) or local file(s) used for 'command'"
 msgstr "URL(s) ή τοπικό αρχείο(α) που χρησιμοποιείται για την 'εντολή'"
 
-#: kioworkers/file/file.cpp:649
+#: kioworkers/file/file.cpp:729
 #, kde-format
 msgid ""
 "Could not change permissions for\n"
@@ -4247,7 +4258,7 @@ msgstr ""
 "Αδύνατη η αλλαγή των αδειών για το\n"
 "%1"
 
-#: kioworkers/file/file.cpp:657
+#: kioworkers/file/file.cpp:737
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -4257,63 +4268,58 @@ msgstr ""
 "Αδύνατη η αλλαγή της ιδιοκτησίας και ομάδας για το\n"
 "%1"
 
-#: kioworkers/file/file.cpp:740 kioworkers/file/file.cpp:832
+#: kioworkers/file/file.cpp:817 kioworkers/file/file.cpp:909
 #, fuzzy, kde-format
 #| msgid "Could Not Rename Temporary File"
 msgid "Could not open temporary file"
 msgstr "Δεν ήταν δυνατή η μετονομασία του προσωρινού αρχείου"
 
-#: kioworkers/file/file.cpp:764
+#: kioworkers/file/file.cpp:841
 #, kde-format
 msgid "Could not find program \"mount\""
 msgstr "Δεν ήταν δυνατή η εύρεση του προγράμματος \"mount\""
 
-#: kioworkers/file/file.cpp:841
+#: kioworkers/file/file.cpp:918
 #, kde-format
 msgid "Could not find program \"umount\""
 msgstr "Δεν ήταν δυνατή η εύρεση του προγράμματος \"umount\""
 
-#: kioworkers/file/file_unix.cpp:601
-#, kde-format
-msgid "Cannot copy file from %1 to %2. (Errno: %3)"
-msgstr "Αδύνατη η αντιγραφή του αρχείου από το %1 στο %2. (Αρ. σφάλματος: %3)"
-
-#: kioworkers/file/file_unix.cpp:815
+#: kioworkers/file/file_unix.cpp:394
 #, kde-format
 msgid "No media in device for %1"
 msgstr "Δεν υπάρχει μέσο στη συσκευή για το %1"
 
-#: kioworkers/file/file_unix.cpp:1076
+#: kioworkers/file/file_unix.cpp:745
 #, kde-format
 msgid "Could not get user id for given user name %1"
 msgstr "Αδύνατη η ανάκτηση του id χρήστη για το δοσμένο όνομα χρήστη %1"
 
-#: kioworkers/file/file_unix.cpp:1087
+#: kioworkers/file/file_unix.cpp:756
 #, kde-format
 msgid "Could not get group id for given group name %1"
 msgstr "Αδύνατη η ανάκτηση του id ομάδας για το δοσμένο όνομα ομάδας %1"
 
-#: kioworkers/ftp/ftp.cpp:354
+#: kioworkers/ftp/ftp.cpp:361
 #, kde-format
 msgid "Opening connection to host %1"
 msgstr "Άνοιγμα σύνδεσης με τον υπολογιστή %1"
 
-#: kioworkers/ftp/ftp.cpp:369
+#: kioworkers/ftp/ftp.cpp:376
 #, kde-format
 msgid "Connected to host %1"
 msgstr "Σύνδεση στον υπολογιστή %1"
 
-#: kioworkers/ftp/ftp.cpp:477
+#: kioworkers/ftp/ftp.cpp:484
 #, kde-format
 msgid "%1 (Error %2)"
 msgstr "%1 (Σφάλμα %2)"
 
-#: kioworkers/ftp/ftp.cpp:507
+#: kioworkers/ftp/ftp.cpp:514
 #, kde-format
 msgid "Sending login information"
 msgstr "Αποστολή πληροφοριών σύνδεσης"
 
-#: kioworkers/ftp/ftp.cpp:557
+#: kioworkers/ftp/ftp.cpp:564
 #, kde-format
 msgid ""
 "Message sent:\n"
@@ -4330,34 +4336,34 @@ msgstr ""
 "%2\n"
 "\n"
 
-#: kioworkers/ftp/ftp.cpp:568 kioworkers/http/http.cpp:329
+#: kioworkers/ftp/ftp.cpp:575 kioworkers/http/http.cpp:199
 #, kde-format
 msgid "You need to supply a username and a password to access this site."
 msgstr ""
 "Πρέπει να δώσετε όνομα χρήστη και κωδικό πρόσβασης για πρόσβαση σε αυτόν τον "
 "δικτυακό τόπο."
 
-#: kioworkers/ftp/ftp.cpp:570 kioworkers/http/http.cpp:331
+#: kioworkers/ftp/ftp.cpp:577 kioworkers/http/http.cpp:201
 #, kde-format
 msgid "Site:"
 msgstr "Δικτυακός τόπος:"
 
-#: kioworkers/ftp/ftp.cpp:571 kioworkers/ftp/ftp.cpp:2499
+#: kioworkers/ftp/ftp.cpp:578 kioworkers/ftp/ftp.cpp:2652
 #, kde-format
 msgid "<b>%1</b>"
 msgstr "<b>%1</b>"
 
-#: kioworkers/ftp/ftp.cpp:664
+#: kioworkers/ftp/ftp.cpp:671
 #, kde-format
 msgid "Login OK"
 msgstr "Σύνδεση εντάξει"
 
-#: kioworkers/ftp/ftp.cpp:689
+#: kioworkers/ftp/ftp.cpp:699
 #, kde-format
 msgid "Could not login to %1."
 msgstr "Αδύνατη η σύνδεση στο %1."
 
-#: kioworkers/ftp/ftp.cpp:1045
+#: kioworkers/ftp/ftp.cpp:1084
 #, kde-format
 msgid ""
 "\n"
@@ -4366,7 +4372,7 @@ msgstr ""
 "\n"
 "Ο εξυπηρετητής είπε: \"%1\""
 
-#: kioworkers/ftp/ftp.cpp:2494 kioworkers/http/http.cpp:379
+#: kioworkers/ftp/ftp.cpp:2647 kioworkers/http/http.cpp:223
 #, kde-format
 msgid ""
 "You need to supply a username and a password for the proxy server listed "
@@ -4375,12 +4381,12 @@ msgstr ""
 "Πρέπει να δώσετε όνομα χρήστη και κωδικό πρόσβασης για τον παρακάτω "
 "διαμεσολαβητή προτού σας δοθεί πρόσβαση σε κάποιο διαδικτυακό τόπο."
 
-#: kioworkers/ftp/ftp.cpp:2498 kioworkers/http/http.cpp:383
+#: kioworkers/ftp/ftp.cpp:2651 kioworkers/http/http.cpp:227
 #, kde-format
 msgid "Proxy:"
 msgstr "Διαμεσολαβητής:"
 
-#: kioworkers/ftp/ftp.cpp:2501
+#: kioworkers/ftp/ftp.cpp:2654
 #, kde-format
 msgid "Proxy Authentication Failed."
 msgstr "Η ταυτοποίηση διαμεσολαβητή απέτυχε."
@@ -4425,108 +4431,107 @@ msgstr "Αναζήτηση τμήματος"
 msgid "Could not find filename %1 in %2."
 msgstr "Ήταν αδύνατη η εύρεση του αρχείου %1 στο %2."
 
-#: kioworkers/http/http.cpp:211 widgets/sslui.cpp:93
+#: kioworkers/http/http.cpp:176
+#, kde-format
+msgid "<b>%1</b> at <b>%2</b>"
+msgstr "<b>%1</b> στο <b>%2</b>"
+
+#: kioworkers/http/http.cpp:316 widgets/sslui.cpp:93
 #, kde-format
 msgid ""
 "Would you like to accept this certificate forever without being prompted?"
 msgstr "Θέλετε να δέχεστε αυτό το πιστοποιητικό για πάντα χωρίς προτροπή;"
 
-#: kioworkers/http/http.cpp:214 widgets/sslui.cpp:60 widgets/sslui.cpp:96
-#: widgets/widgetsaskuseractionhandler.cpp:514
+#: kioworkers/http/http.cpp:319 widgets/sslui.cpp:60 widgets/sslui.cpp:96
+#: widgets/widgetsaskuseractionhandler.cpp:515
 #, kde-format
 msgid "Server Authentication"
 msgstr "Ταυτοποίηση εξυπηρετητή"
 
-#: kioworkers/http/http.cpp:349 kioworkers/http/http.cpp:388
-#: kioworkers/http/http.cpp:402
-#, kde-format
-msgid "<b>%1</b> at <b>%2</b>"
-msgstr "<b>%1</b> στο <b>%2</b>"
-
-#: kioworkers/http/http.cpp:1396
+#: kioworkers/http/http.cpp:1453
 #, kde-format
 msgid "Otherwise, the request would have succeeded."
 msgstr "Αλλιώς, η αίτηση θα είχε πετύχει."
 
-#: kioworkers/http/http.cpp:1399
+#: kioworkers/http/http.cpp:1456
 #, kde-format
 msgctxt "request type"
 msgid "retrieve property values"
 msgstr "ανάκτηση τιμών ιδιοτήτων"
 
-#: kioworkers/http/http.cpp:1401
+#: kioworkers/http/http.cpp:1458
 #, kde-format
 msgctxt "request type"
 msgid "set property values"
 msgstr "καθορισμός τιμών ιδιοτήτων"
 
-#: kioworkers/http/http.cpp:1403
+#: kioworkers/http/http.cpp:1460
 #, kde-format
 msgctxt "request type"
 msgid "create the requested folder"
 msgstr "δημιουργία του ζητούμενου φακέλου"
 
-#: kioworkers/http/http.cpp:1405
+#: kioworkers/http/http.cpp:1462
 #, kde-format
 msgctxt "request type"
 msgid "copy the specified file or folder"
 msgstr "αντιγραφή του καθορισμένου αρχείου ή φακέλου"
 
-#: kioworkers/http/http.cpp:1407
+#: kioworkers/http/http.cpp:1464
 #, kde-format
 msgctxt "request type"
 msgid "move the specified file or folder"
 msgstr "μετακίνηση του καθορισμένου αρχείου ή φακέλου"
 
-#: kioworkers/http/http.cpp:1409
+#: kioworkers/http/http.cpp:1466
 #, kde-format
 msgctxt "request type"
 msgid "search in the specified folder"
 msgstr "αναζήτηση στον καθορισμένο φάκελο"
 
-#: kioworkers/http/http.cpp:1411
+#: kioworkers/http/http.cpp:1468
 #, kde-format
 msgctxt "request type"
 msgid "lock the specified file or folder"
 msgstr "κλείδωμα του καθορισμένου αρχείου ή φακέλου"
 
-#: kioworkers/http/http.cpp:1413
+#: kioworkers/http/http.cpp:1470
 #, kde-format
 msgctxt "request type"
 msgid "unlock the specified file or folder"
 msgstr "ξεκλείδωμα του καθορισμένου αρχείου ή φακέλου"
 
-#: kioworkers/http/http.cpp:1415
+#: kioworkers/http/http.cpp:1472
 #, kde-format
 msgctxt "request type"
 msgid "delete the specified file or folder"
 msgstr "διαγραφή του καθορισμένου αρχείου ή φακέλου"
 
-#: kioworkers/http/http.cpp:1417
+#: kioworkers/http/http.cpp:1474
 #, kde-format
 msgctxt "request type"
 msgid "query the server's capabilities"
 msgstr "ερώτηση των δυνατοτήτων του εξυπηρετητή"
 
-#: kioworkers/http/http.cpp:1419
+#: kioworkers/http/http.cpp:1476
 #, kde-format
 msgctxt "request type"
 msgid "retrieve the contents of the specified file or folder"
 msgstr "ανάκτηση των περιεχομένων του καθορισμένου αρχείου ή φακέλου"
 
-#: kioworkers/http/http.cpp:1421
+#: kioworkers/http/http.cpp:1478
 #, kde-format
 msgctxt "request type"
 msgid "run a report in the specified folder"
 msgstr "εκτέλεση μίας αναφοράς στον καθορισμένο φάκελο"
 
-#: kioworkers/http/http.cpp:1429
+#: kioworkers/http/http.cpp:1486
 #, kde-format
 msgctxt "%1: code, %2: request type"
 msgid "An unexpected error (%1) occurred while attempting to %2."
 msgstr "Προέκυψε ένα μη αναμενόμενο σφάλμα (%1) κατά την προσπάθεια %2."
 
-#: kioworkers/http/http.cpp:1469
+#: kioworkers/http/http.cpp:1526
 #, kde-format
 msgctxt "%1: request type, %2: url"
 msgid ""
@@ -4536,13 +4541,13 @@ msgstr ""
 "Προέκυψε σφάλμα κατά την προσπάθεια για %1, %2. Παρακάτω βρίσκεται μια "
 "περίληψη των λόγων."
 
-#: kioworkers/http/http.cpp:1487 kioworkers/http/http.cpp:1631
+#: kioworkers/http/http.cpp:1544 kioworkers/http/http.cpp:1688
 #, kde-format
 msgctxt "%1: request type"
 msgid "Access was denied while attempting to %1."
 msgstr "Δε δόθηκε πρόσβαση κατά την προσπάθεια για %1."
 
-#: kioworkers/http/http.cpp:1501 kioworkers/http/http.cpp:1638
+#: kioworkers/http/http.cpp:1558 kioworkers/http/http.cpp:1695
 #, kde-format
 msgid ""
 "A resource cannot be created at the destination until one or more "
@@ -4551,7 +4556,7 @@ msgstr ""
 "Είναι αδύνατο να δημιουργηθεί ένας πόρος στον προορισμό, αν δεν έχουν πρώτα "
 "δημιουργηθεί μία ή παραπάνω ενδιάμεσες συλλογές (φάκελοι)."
 
-#: kioworkers/http/http.cpp:1510
+#: kioworkers/http/http.cpp:1567
 #, kde-format
 msgid ""
 "The server was unable to maintain the liveness of the\n"
@@ -4566,28 +4571,28 @@ msgstr ""
 "των αρχείων.\n"
 " %1"
 
-#: kioworkers/http/http.cpp:1518
+#: kioworkers/http/http.cpp:1575
 #, kde-format
 msgid "The requested lock could not be granted. %1"
 msgstr "Το ζητούμενο κλείδωμα δεν μπόρεσε να ικανοποιηθεί. %1"
 
-#: kioworkers/http/http.cpp:1524
+#: kioworkers/http/http.cpp:1581
 #, kde-format
 msgid "The server does not support the request type of the body."
 msgstr "Ο εξυπηρετητής δεν υποστηρίζει τον τύπο αίτησης του σώματος."
 
-#: kioworkers/http/http.cpp:1529 kioworkers/http/http.cpp:1646
+#: kioworkers/http/http.cpp:1586 kioworkers/http/http.cpp:1703
 #, kde-format
 msgctxt "%1: request type"
 msgid "Unable to %1 because the resource is locked."
 msgstr "Αδυναμία για %1 επειδή ο πόρος είναι κλειδωμένος."
 
-#: kioworkers/http/http.cpp:1533
+#: kioworkers/http/http.cpp:1590
 #, kde-format
 msgid "This action was prevented by another error."
 msgstr "Αυτή η ενέργεια αποτράπηκε από ένα άλλο σφάλμα."
 
-#: kioworkers/http/http.cpp:1540 kioworkers/http/http.cpp:1653
+#: kioworkers/http/http.cpp:1597 kioworkers/http/http.cpp:1710
 #, kde-format
 msgctxt "%1: request type"
 msgid ""
@@ -4597,7 +4602,7 @@ msgstr ""
 "Αδυναμία για %1 γιατί ο εξυπηρετητής προορισμού αρνείται να δεχθεί το αρχείο "
 "ή το φάκελο."
 
-#: kioworkers/http/http.cpp:1549 kioworkers/http/http.cpp:1662
+#: kioworkers/http/http.cpp:1606 kioworkers/http/http.cpp:1719
 #, kde-format
 msgid ""
 "The destination resource does not have sufficient space to record the state "
@@ -4606,18 +4611,18 @@ msgstr ""
 "Ο πόρος προορισμού δεν έχει αρκετό χώρο για να καταγράψει την κατάσταση του "
 "πόρου μετά την εκτέλεση αυτής της μεθόδου."
 
-#: kioworkers/http/http.cpp:1602
+#: kioworkers/http/http.cpp:1659
 #, kde-format
 msgid "The resource cannot be deleted."
 msgstr "Ο πόρος δεν μπορεί να διαγραφεί."
 
-#: kioworkers/http/http.cpp:1622
+#: kioworkers/http/http.cpp:1679
 #, kde-format
 msgctxt "request type"
 msgid "upload %1"
 msgstr "αποστολή του %1"
 
-#: kioworkers/http/http.cpp:1673
+#: kioworkers/http/http.cpp:1730
 #, kde-format
 msgctxt "%1: response code, %2: request type"
 msgid "An unexpected error (%1) occurred while attempting to %2."
@@ -4630,8 +4635,8 @@ msgstr "Δίκτυο"
 
 #: kioworkers/trash/kio_trash.cpp:117 kioworkers/trash/kio_trash.cpp:161
 #: kioworkers/trash/kio_trash.cpp:221 kioworkers/trash/kio_trash.cpp:384
-#: kioworkers/trash/kio_trash.cpp:416 kioworkers/trash/kio_trash.cpp:594
-#: kioworkers/trash/kio_trash.cpp:604
+#: kioworkers/trash/kio_trash.cpp:416 kioworkers/trash/kio_trash.cpp:595
+#: kioworkers/trash/kio_trash.cpp:605
 #, kde-format
 msgid "Malformed URL %1"
 msgstr "Κακοδιατυπωμένο URL %1"
@@ -4690,7 +4695,7 @@ msgstr "Άδειασμα των περιεχομένων των απορριμμ
 msgid "Restore a trashed file to its original location"
 msgstr "Αποκατάσταση ενός διαγραμμένου αρχείου στην αρχική του θέση"
 
-#: kioworkers/trash/trashimpl.cpp:1306
+#: kioworkers/trash/trashimpl.cpp:1315
 #, kde-format
 msgid "The trash is full. Empty it or remove items manually."
 msgstr ""
@@ -4880,7 +4885,7 @@ msgstr "SHA512:"
 #. i18n: ectx: property (text), widget (QPushButton, calculateSizeBtn)
 #: widgets/checksumswidget.ui:112 widgets/checksumswidget.ui:159
 #: widgets/checksumswidget.ui:206 widgets/checksumswidget.ui:253
-#: widgets/kfilepropspluginwidget.ui:276
+#: widgets/kfilepropspluginwidget.ui:302
 #, kde-format
 msgid "Calculate"
 msgstr "Υπολογισμός"
@@ -4895,28 +4900,38 @@ msgstr "Υπολογισμός"
 msgid "Click to copy the checksum to the clipboard."
 msgstr "Κλικ για αντιγραφή του αθροίσματος ελέγχου στο πρόχειρο."
 
-#: widgets/dropjob.cpp:178
+#. i18n: ectx: property (text), widget (QPushButton, md5CopyButton)
+#. i18n: ectx: property (text), widget (QPushButton, sha1CopyButton)
+#. i18n: ectx: property (text), widget (QPushButton, sha256CopyButton)
+#. i18n: ectx: property (text), widget (QPushButton, sha512CopyButton)
+#: widgets/checksumswidget.ui:145 widgets/checksumswidget.ui:192
+#: widgets/checksumswidget.ui:239 widgets/checksumswidget.ui:286
+#, kde-format
+msgid "Copy"
+msgstr "Αντιγραφή"
+
+#: widgets/dropjob.cpp:192
 #, kde-format
 msgid "C&ancel"
 msgstr "Ακύ&ρωση"
 
-#: widgets/dropjob.cpp:290
+#: widgets/dropjob.cpp:304
 #, kde-format
 msgid "&Move Here"
 msgstr "&Μετακίνηση εδώ"
 
-#: widgets/dropjob.cpp:296
+#: widgets/dropjob.cpp:310
 #, kde-format
 msgctxt "@action:inmenu Download contents of URL here"
 msgid "&Download Here"
 msgstr ""
 
-#: widgets/dropjob.cpp:296
+#: widgets/dropjob.cpp:310
 #, kde-format
 msgid "&Copy Here"
 msgstr "Αντιγρα&φή εδώ"
 
-#: widgets/dropjob.cpp:303
+#: widgets/dropjob.cpp:317
 #, kde-format
 msgid "&Link Here"
 msgstr "&Δεσμός εδώ"
@@ -4959,12 +4974,12 @@ msgstr "Τι επιθυμείτε να κάνετε με αυτό το αρχε�
 msgid "Creating directory"
 msgstr "Δημιουργία καταλόγου"
 
-#: widgets/fileundomanager.cpp:131 widgets/renamedialog.cpp:427
+#: widgets/fileundomanager.cpp:131 widgets/renamedialog.cpp:429
 #, kde-format
 msgid "Source"
 msgstr "Πηγή"
 
-#: widgets/fileundomanager.cpp:131 widgets/renamedialog.cpp:429
+#: widgets/fileundomanager.cpp:131 widgets/renamedialog.cpp:431
 #, kde-format
 msgid "Destination"
 msgstr "Προορισμός"
@@ -5281,7 +5296,7 @@ msgstr "Ιδιοκτήτης"
 msgid "Owning Group"
 msgstr "Ομάδα ιδιοκτησίας"
 
-#: widgets/kacleditwidget.cpp:411 widgets/kpropertiesdialogbuiltin_p.cpp:1450
+#: widgets/kacleditwidget.cpp:411 widgets/kpropertiesdialogbuiltin_p.cpp:1496
 #, kde-format
 msgid "Others"
 msgstr "Άλλοι"
@@ -5354,107 +5369,107 @@ msgstr "Ενημέρωση ρύθμισης συστήματος"
 msgid "Updating system configuration…"
 msgstr "Ενημέρωση ρυθμίσεων συστήματος…"
 
-#: widgets/kdirmodel.cpp:1264
+#: widgets/kdirmodel.cpp:1269
 #, kde-format
 msgctxt "@title:column"
 msgid "Name"
 msgstr "Όνομα"
 
-#: widgets/kdirmodel.cpp:1266
+#: widgets/kdirmodel.cpp:1271
 #, kde-format
 msgctxt "@title:column"
 msgid "Size"
 msgstr "Μέγεθος"
 
-#: widgets/kdirmodel.cpp:1268
+#: widgets/kdirmodel.cpp:1273
 #, kde-format
 msgctxt "@title:column"
 msgid "Date"
 msgstr "Ημερομηνία"
 
-#: widgets/kdirmodel.cpp:1270
+#: widgets/kdirmodel.cpp:1275
 #, kde-format
 msgctxt "@title:column"
 msgid "Permissions"
 msgstr "Άδειες"
 
-#: widgets/kdirmodel.cpp:1272
+#: widgets/kdirmodel.cpp:1277
 #, kde-format
 msgctxt "@title:column"
 msgid "Owner"
 msgstr "Ιδιοκτήτης"
 
-#: widgets/kdirmodel.cpp:1274
+#: widgets/kdirmodel.cpp:1279
 #, kde-format
 msgctxt "@title:column"
 msgid "Group"
 msgstr "Ομάδα"
 
-#: widgets/kdirmodel.cpp:1276
+#: widgets/kdirmodel.cpp:1281
 #, kde-format
 msgctxt "@title:column"
 msgid "Type"
 msgstr "Τύπος"
 
-#: widgets/kfileitemactions.cpp:448
-#, kde-format
-msgid "Open &with %1"
-msgstr "Άνοιγμα &με %1"
-
-#: widgets/kfileitemactions.cpp:450
-#, kde-format
-msgctxt "@item:inmenu Open With, %1 is application name"
-msgid "%1"
-msgstr "%1"
-
-#: widgets/kfileitemactions.cpp:586
+#: widgets/kfileitemactions.cpp:250
 #, kde-format
 msgctxt "@title:menu"
 msgid "&Actions"
 msgstr "&Ενέργειες"
 
-#: widgets/kfileitemactions.cpp:756
+#: widgets/kfileitemactions.cpp:592
+#, kde-format
+msgid "Open &with %1"
+msgstr "Άνοιγμα &με %1"
+
+#: widgets/kfileitemactions.cpp:594
+#, kde-format
+msgctxt "@item:inmenu Open With, %1 is application name"
+msgid "%1"
+msgstr "%1"
+
+#: widgets/kfileitemactions.cpp:768
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Open Folder With…"
 msgstr "Άνοιγμα &φακέλου με…"
 
-#: widgets/kfileitemactions.cpp:756
+#: widgets/kfileitemactions.cpp:768
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Open With…"
 msgstr "Άνοιγμα με…"
 
-#: widgets/kfileitemactions.cpp:814
+#: widgets/kfileitemactions.cpp:826
 #, fuzzy, kde-format
 #| msgid "&Execute"
 msgctxt "@action:inmenu"
 msgid "&Run Executable"
 msgstr "&Εκτέλεση"
 
-#: widgets/kfileitemactions.cpp:836
+#: widgets/kfileitemactions.cpp:848
 #, kde-format
 msgid "&Open folder with %1"
 msgstr "Άνοιγμα φα&κέλου με %1"
 
-#: widgets/kfileitemactions.cpp:836
+#: widgets/kfileitemactions.cpp:848
 #, kde-format
 msgid "&Open with %1"
 msgstr "Ά&νοιγμα με %1"
 
-#: widgets/kfileitemactions.cpp:868
+#: widgets/kfileitemactions.cpp:880
 #, kde-format
 msgctxt "@title:menu"
 msgid "&Open Folder With"
 msgstr "Άνοιγ&μα φακέλου με"
 
-#: widgets/kfileitemactions.cpp:868
+#: widgets/kfileitemactions.cpp:880
 #, kde-format
 msgctxt "@title:menu"
 msgid "&Open With"
 msgstr "Άνοιγμα &με"
 
-#: widgets/kfileitemactions.cpp:879
+#: widgets/kfileitemactions.cpp:891
 #, kde-format
 msgctxt "@action:inmenu Open With"
 msgid "&Other Application…"
@@ -5489,7 +5504,7 @@ msgstr "Περιεχόμενο:"
 #. i18n: ectx: property (text), widget (QLabel, defaultHandlerLabel_Left)
 #: widgets/kfilepropspluginwidget.ui:138
 #, kde-format
-msgid "Open With:"
+msgid "Open with:"
 msgstr "Άνοιγμα με:"
 
 #. i18n: ectx: property (text), widget (QPushButton, configureMimeBtn)
@@ -5510,38 +5525,44 @@ msgstr "Τοποθεσία:"
 msgid "Size:"
 msgstr "Μέγεθος:"
 
+#. i18n: ectx: property (text), widget (QLabel, sizeOnDiskLabelLeft)
+#: widgets/kfilepropspluginwidget.ui:259
+#, kde-format
+msgid "Size on disk:"
+msgstr ""
+
 #. i18n: ectx: property (toolTip), widget (QPushButton, calculateSizeBtn)
-#: widgets/kfilepropspluginwidget.ui:282
+#: widgets/kfilepropspluginwidget.ui:308
 #, kde-format
 msgid "Determine the folder size"
 msgstr ""
 
 #. i18n: ectx: property (text), widget (QPushButton, stopCalculateSizeBtn)
-#: widgets/kfilepropspluginwidget.ui:289
+#: widgets/kfilepropspluginwidget.ui:315
 #, kde-format
 msgid "Stop"
 msgstr "Διακοπή"
 
 #. i18n: ectx: property (toolTip), widget (QPushButton, stopCalculateSizeBtn)
-#: widgets/kfilepropspluginwidget.ui:295
+#: widgets/kfilepropspluginwidget.ui:321
 #, kde-format
 msgid "Stop determining the folder size"
 msgstr ""
 
 #. i18n: ectx: property (text), widget (QPushButton, sizeDetailsBtn)
-#: widgets/kfilepropspluginwidget.ui:302
+#: widgets/kfilepropspluginwidget.ui:328
 #, kde-format
 msgid "Explore in Filelight"
 msgstr "Εξερεύνηση στο Filelight"
 
 #. i18n: ectx: property (text), widget (QLabel, symlinkTargetLabel)
-#: widgets/kfilepropspluginwidget.ui:330
+#: widgets/kfilepropspluginwidget.ui:356
 #, kde-format
 msgid "Points to:"
 msgstr "Δείχνει στο:"
 
 #. i18n: ectx: property (accessibleName), widget (QPushButton, symlinkTargetOpenDir)
-#: widgets/kfilepropspluginwidget.ui:361
+#: widgets/kfilepropspluginwidget.ui:387
 #, fuzzy, kde-format
 #| msgctxt "Warning about executing unknown .desktop file"
 #| msgid "Warning"
@@ -5549,49 +5570,52 @@ msgid "Show target"
 msgstr "Προειδοποίηση"
 
 #. i18n: ectx: property (text), widget (QLabel, createdTimeLabel_Left)
-#: widgets/kfilepropspluginwidget.ui:383
+#: widgets/kfilepropspluginwidget.ui:409
 #, kde-format
 msgid "Created:"
 msgstr "Δημιουργήθηκε:"
 
 #. i18n: ectx: property (text), widget (QLabel, modifiedTimeLabel_Left)
-#: widgets/kfilepropspluginwidget.ui:406
+#: widgets/kfilepropspluginwidget.ui:432
 #, kde-format
 msgid "Modified:"
 msgstr "Τροποποιήθηκε:"
 
 #. i18n: ectx: property (text), widget (QLabel, accessTimeLabel_Left)
-#: widgets/kfilepropspluginwidget.ui:429
+#: widgets/kfilepropspluginwidget.ui:455
 #, kde-format
 msgid "Accessed:"
 msgstr "Προσπελάστηκε:"
 
 #. i18n: ectx: property (text), widget (QLabel, fsLabel_Left)
-#: widgets/kfilepropspluginwidget.ui:455
+#: widgets/kfilepropspluginwidget.ui:481
 #, kde-format
-msgid "File System:"
+msgid "File system:"
 msgstr "Σύστημα αρχείων:"
 
 #. i18n: ectx: property (text), widget (QLabel, mountPointLabel_Left)
-#: widgets/kfilepropspluginwidget.ui:481
-#, kde-format
-msgid "Mounted On:"
+#: widgets/kfilepropspluginwidget.ui:507
+#, fuzzy, kde-format
+#| msgid "Mounted On:"
+msgid "Mounted on:"
 msgstr "Προσαρτημένο σε:"
 
 #. i18n: ectx: property (text), widget (QLabel, mountSrcLabel_Left)
-#: widgets/kfilepropspluginwidget.ui:507
-#, kde-format
-msgid "Mounted From:"
+#: widgets/kfilepropspluginwidget.ui:533
+#, fuzzy, kde-format
+#| msgid "Mounted From:"
+msgid "Mounted from:"
 msgstr "Προσαρτημένο από:"
 
 #. i18n: ectx: property (text), widget (QLabel, freespaceLabel)
-#: widgets/kfilepropspluginwidget.ui:533
-#, kde-format
-msgid "Free Space:"
+#: widgets/kfilepropspluginwidget.ui:559
+#, fuzzy, kde-format
+#| msgid "Free Space:"
+msgid "Free space:"
 msgstr "Ελεύθερος χώρος:"
 
 #. i18n: ectx: property (text), widget (KCapacityBar, capacityBar)
-#: widgets/kfilepropspluginwidget.ui:546
+#: widgets/kfilepropspluginwidget.ui:572
 #, kde-format
 msgid "Unknown size"
 msgstr "Άγνωστο μέγεθος"
@@ -5601,12 +5625,12 @@ msgstr "Άγνωστο μέγεθος"
 msgid "Known Applications"
 msgstr "Γνωστές εφαρμογές"
 
-#: widgets/kopenwithdialog.cpp:557
+#: widgets/kopenwithdialog.cpp:558
 #, kde-format
 msgid "Open With"
 msgstr "Άνοιγμα με"
 
-#: widgets/kopenwithdialog.cpp:562
+#: widgets/kopenwithdialog.cpp:563
 #, kde-format
 msgid ""
 "<qt>Select the program that should be used to open <b>%1</b>. If the program "
@@ -5616,20 +5640,20 @@ msgstr ""
 "Αν το πρόγραμμα δεν είναι στη λίστα, δώστε το όνομά του ή πατήστε το κουμπί "
 "αναζήτηση.</qt>"
 
-#: widgets/kopenwithdialog.cpp:569
+#: widgets/kopenwithdialog.cpp:570
 #, kde-format
 msgid "Choose the name of the program with which to open the selected files."
 msgstr ""
 "Επιλέξτε το όνομα του προγράμματος με το οποίο θα ανοιχτούν τα επιλεγμένα "
 "αρχεία."
 
-#: widgets/kopenwithdialog.cpp:590
+#: widgets/kopenwithdialog.cpp:591
 #, kde-format
 msgid "<qt>Select the program you want to use to open the file<br/>%1</qt>"
 msgstr ""
 "<qt>Επιλέξτε το πρόγραμμα που επιθυμείτε να ανοίγει το αρχείο<br/>%1</qt>"
 
-#: widgets/kopenwithdialog.cpp:592
+#: widgets/kopenwithdialog.cpp:593
 #, kde-format
 msgid "<qt>Select the program you want to use to open the file.</qt>"
 msgid_plural ""
@@ -5638,17 +5662,17 @@ msgstr[0] "<qt>Επιλέξτε το πρόγραμμα που επιθυμεί�
 msgstr[1] ""
 "<qt>Επιλέξτε το πρόγραμμα που επιθυμείτε να ανοίγει τα αρχεία %1</qt>"
 
-#: widgets/kopenwithdialog.cpp:597 widgets/kopenwithdialog.cpp:628
+#: widgets/kopenwithdialog.cpp:598 widgets/kopenwithdialog.cpp:629
 #, kde-format
 msgid "Choose Application"
 msgstr "Επιλογή εφαρμογής"
 
-#: widgets/kopenwithdialog.cpp:612
+#: widgets/kopenwithdialog.cpp:613
 #, kde-format
 msgid "Choose Application for %1"
 msgstr "Επιλέξτε εφαρμογή για το %1"
 
-#: widgets/kopenwithdialog.cpp:614
+#: widgets/kopenwithdialog.cpp:615
 #, kde-format
 msgid ""
 "<qt>Select the program for the file type: <b>%1</b>. If the program is not "
@@ -5657,7 +5681,7 @@ msgstr ""
 "<qt>Επιλέξτε το πρόγραμμα για τον τύπο αρχείου: <b>%1</b>. Αν το πρόγραμμα "
 "δεν είναι στη λίστα, δώστε το όνομά του ή πατήστε το κουμπί αναζήτηση.</qt>"
 
-#: widgets/kopenwithdialog.cpp:630
+#: widgets/kopenwithdialog.cpp:631
 #, kde-format
 msgid ""
 "<qt>Select a program. If the program is not listed, enter the name or click "
@@ -5666,7 +5690,7 @@ msgstr ""
 "<qt>Επιλέξτε ένα πρόγραμμα. Αν το πρόγραμμα δεν είναι στη λίστα, δώστε το "
 "όνομά του ή πατήστε το κουμπί αναζήτηση.</qt>"
 
-#: widgets/kopenwithdialog.cpp:676
+#: widgets/kopenwithdialog.cpp:677
 #, kde-format
 msgid ""
 "Type to filter the applications below, or specify the name of a command.\n"
@@ -5676,7 +5700,7 @@ msgstr ""
 "μιας εντολής.\n"
 "Πατήστε το κάτω βέλος για να πλοηγηθείτε στα αποτελέσματα."
 
-#: widgets/kopenwithdialog.cpp:699
+#: widgets/kopenwithdialog.cpp:700
 #, kde-format
 msgid ""
 "Following the command, you can have several place holders which will be "
@@ -5705,7 +5729,7 @@ msgstr ""
 "%m - το μίνι εικονίδιο\n"
 "%c - το σχόλιο"
 
-#: widgets/kopenwithdialog.cpp:742
+#: widgets/kopenwithdialog.cpp:744
 #, kde-format
 msgid ""
 "&Remember application association for all files of type\n"
@@ -5714,7 +5738,7 @@ msgstr ""
 "Α&πομνημόνευση συσχετισμού εφαρμογής για όλα τα αρχεία του τύπου\n"
 "\"%1\" (%2)"
 
-#: widgets/kopenwithdialog.cpp:744
+#: widgets/kopenwithdialog.cpp:746
 #, kde-format
 msgid ""
 "&Remember application association for all files of type\n"
@@ -5723,22 +5747,22 @@ msgstr ""
 "&Απομνημόνευση συσχετισμού εφαρμογής για όλα τα αρχεία του τύπου\n"
 "«%1»"
 
-#: widgets/kopenwithdialog.cpp:754
+#: widgets/kopenwithdialog.cpp:756
 #, kde-format
 msgid "Terminal options"
 msgstr "Επιλογές τερματικού"
 
-#: widgets/kopenwithdialog.cpp:759
+#: widgets/kopenwithdialog.cpp:761
 #, kde-format
 msgid "Run in &terminal"
 msgstr "Εκτέλεση σε &τερματικό"
 
-#: widgets/kopenwithdialog.cpp:777
+#: widgets/kopenwithdialog.cpp:779
 #, kde-format
 msgid "&Do not close when command exits"
 msgstr "&Να μην κλείσει όταν η εντολή εκτελεστεί"
 
-#: widgets/kopenwithdialog.cpp:796
+#: widgets/kopenwithdialog.cpp:798
 #, kde-format
 msgid "Get more Apps from Discover"
 msgstr "Λήψη περισσότερων εφαρμογών από το Discover"
@@ -6160,13 +6184,29 @@ msgstr ""
 "Αδυναμία αποθήκευσης ιδιοτήτων λόγω ανεπαρκούς πρόσβασης εγγραφής στο:<nl/"
 "><filename>%1</filename>."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:230
+#: widgets/kpropertiesdialogbuiltin_p.cpp:159
+#, fuzzy, kde-format
+#| msgid "%1 (%2)"
+msgctxt ""
+"@label the size of a file or folder, first rounded and then to the byte"
+msgid "%1 (%2)"
+msgstr "%1 (θύρα %2)"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:161
+#, kde-format
+msgctxt "@item the exact size of a file or folder"
+msgid "%1 byte"
+msgid_plural "%1 bytes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:263
 #, kde-format
 msgctxt "@title:tab File properties"
 msgid "&General"
 msgstr "&Γενικά"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:363
+#: widgets/kpropertiesdialogbuiltin_p.cpp:397
 #, fuzzy, kde-format
 #| msgctxt "@action:button"
 #| msgid "Enter a different name"
@@ -6174,26 +6214,26 @@ msgctxt "@info:placeholder"
 msgid "Enter file name"
 msgstr "Εισάγετε ένα διαφορετικό όνομα"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:428
+#: widgets/kpropertiesdialogbuiltin_p.cpp:474
 #, kde-format
 msgctxt "@action:button"
 msgid "Explore in %1"
 msgstr "Εξερεύνηση σε %1"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:439
-#: widgets/kpropertiesdialogbuiltin_p.cpp:716
+#: widgets/kpropertiesdialogbuiltin_p.cpp:485
+#: widgets/kpropertiesdialogbuiltin_p.cpp:762
 #, kde-format
 msgid "Refresh"
 msgstr "Ανανέωση"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:448
+#: widgets/kpropertiesdialogbuiltin_p.cpp:494
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "Enter target location"
 msgstr ""
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:452
-#: widgets/kpropertiesdialogbuiltin_p.cpp:455
+#: widgets/kpropertiesdialogbuiltin_p.cpp:498
+#: widgets/kpropertiesdialogbuiltin_p.cpp:501
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info"
 #| msgid "Cannot transfer <filename>%1</filename>"
@@ -6201,166 +6241,169 @@ msgctxt "@info:tooltip Go to path %1"
 msgid "Show <filename>%1</filename>"
 msgstr "Αδύνατη η μεταφορά <filename>%1</filename>"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:561
+#: widgets/kpropertiesdialogbuiltin_p.cpp:607
 #, kde-format
 msgid "%1:"
 msgstr "%1:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:683
+#: widgets/kpropertiesdialogbuiltin_p.cpp:729
 #, kde-format
 msgctxt "@info:status"
 msgid "Unknown size"
 msgstr "Άγνωστο μέγεθος"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:693
-#, kde-format
+#: widgets/kpropertiesdialogbuiltin_p.cpp:739
+#, fuzzy, kde-format
+#| msgid ""
+#| "Calculating... %1 (%2)\n"
+#| "%3, %4"
 msgid ""
-"Calculating... %1 (%2)\n"
-"%3, %4"
+"Calculating... %1\n"
+"%2, %3"
 msgstr ""
 "Υπολογισμός... %1 (%2)\n"
 "%3, %4"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:696
-#: widgets/kpropertiesdialogbuiltin_p.cpp:711
+#: widgets/kpropertiesdialogbuiltin_p.cpp:741
+#: widgets/kpropertiesdialogbuiltin_p.cpp:756
 #, kde-format
 msgid "1 file"
 msgid_plural "%1 files"
 msgstr[0] "1 αρχείο"
 msgstr[1] "%1 αρχεία"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:697
-#: widgets/kpropertiesdialogbuiltin_p.cpp:712
+#: widgets/kpropertiesdialogbuiltin_p.cpp:742
+#: widgets/kpropertiesdialogbuiltin_p.cpp:757
 #, kde-format
 msgid "1 sub-folder"
 msgid_plural "%1 sub-folders"
 msgstr[0] "1 υποφάκελος"
 msgstr[1] "%1 υποφάκελοι"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:725
+#: widgets/kpropertiesdialogbuiltin_p.cpp:771
 #, kde-format
 msgid "Calculating...\n"
 msgstr "Υπολογισμός...\n"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:748
+#: widgets/kpropertiesdialogbuiltin_p.cpp:794
 #, kde-format
 msgid "At least %1\n"
 msgstr "Τουλάχιστον %1\n"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:794
+#: widgets/kpropertiesdialogbuiltin_p.cpp:840
 #, kde-format
 msgid "The new file name is empty."
 msgstr "Το νέο όνομα αρχείου είναι κενό."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:992
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1038
 #, kde-format
 msgid "No registered file type"
 msgstr "Κανένας καταχωρημένος τύπος αρχείου"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:994
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1040
 #, kde-format
 msgid "No associated application"
 msgstr "Καμία σχετική εφαρμογή"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1000
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1046
 #, kde-format
 msgctxt "@action:button Create new file type"
 msgid "Create…"
 msgstr "Δημιουργία…"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1004
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1050
 #, kde-format
 msgctxt "@action:button"
 msgid "Change…"
 msgstr "Αλλαγή…"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1006
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1052
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Change the default application for opening files of type “%1”."
 msgstr ""
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1076
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1077
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1079
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1122
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1123
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1125
 #, fuzzy
 #| msgid "Accessed:"
 msgid "No Access"
 msgstr "Χωρίς πρόσβαση"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1076
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1122
 msgid "Can Only View"
 msgstr "Μόνο προβολή"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1076
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1122
 msgid "Can View & Modify"
 msgstr "Προβολή και τροποποίηση"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1077
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1123
 msgid "Can Only View Content"
 msgstr "Μόνο προβολή περιεχομένου"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1077
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1123
 msgid "Can View & Modify Content"
 msgstr "Προβολή και τροποποίηση περιεχομένου"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1079
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1125
 msgid "Can Only View/Read Content"
 msgstr "Μόνο προβολή/ανάγνωση περιεχομένου"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1079
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1125
 msgid "Can View/Read & Modify/Write"
 msgstr "Εμφάνιση/Ανάγνωση & Τροποποίηση/Εγγραφή"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1178
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1224
 #, kde-format
 msgid "&Permissions"
 msgstr "Ά&δειες"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1189
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1377
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1235
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1423
 #, kde-format
 msgid "Access Permissions"
 msgstr "Άδειες πρόσβασης"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1199
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1245
 #, kde-format
 msgid "This file is a link and does not have permissions."
 msgid_plural "All files are links and do not have permissions."
 msgstr[0] "Αυτό το αρχείο είναι ένας δεσμός και δεν έχει άδειες."
 msgstr[1] "Όλα τα αρχεία είναι δεσμοί και δεν έχουν άδειες."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1201
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1247
 #, kde-format
 msgid "Only the owner can change permissions."
 msgstr "Μόνο ο ιδιοκτήτης μπορεί να αλλάξει άδειες."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1208
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1254
 #, kde-format
 msgid "O&wner:"
 msgstr "&Ιδιοκτήτης:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1210
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1256
 #, kde-format
 msgid "Specifies the actions that the owner is allowed to do."
 msgstr "Καθορίζει τις ενέργειες που ο ιδιοκτήτης επιτρέπεται να κάνει."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1213
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1259
 #, kde-format
 msgid "Gro&up:"
 msgstr "&Ομάδα:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1215
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1261
 #, kde-format
 msgid "Specifies the actions that the members of the group are allowed to do."
 msgstr "Καθορίζει τις ενέργειες που τα μέλη της ομάδας επιτρέπεται να κάνουν."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1218
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1264
 #, kde-format
 msgid "O&thers:"
 msgstr "Ά&λλοι:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1221
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1267
 #, kde-format
 msgid ""
 "Specifies the actions that all users, who are neither owner nor in the "
@@ -6369,7 +6412,7 @@ msgstr ""
 "Καθορίζει τις ενέργειες που όλοι οι χρήστες, που δεν είναι ούτε ο ιδιοκτήτης "
 "ούτε στην ομάδα, επιτρέπεται να κάνουν."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1225
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1271
 #, fuzzy, kde-format
 #| msgid "Only own&er can rename and delete folder content"
 msgid "Only own&er can delete or rename contents"
@@ -6377,7 +6420,7 @@ msgstr ""
 "Μόνο ο &ιδιοκτήτης μπορεί να μετονομάσει και να διαγράψει το περιεχόμενο του "
 "φακέλου"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1225
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1271
 #, fuzzy, kde-format
 #| msgid "Enable this flag to allow executing the file as a program."
 msgid "Allow &executing file as program"
@@ -6385,18 +6428,18 @@ msgstr ""
 "Ενεργοποιήστε αυτή τη σημαία ώστε να επιτρέπεται η εκτέλεση του αρχείου σαν "
 "ένα πρόγραμμα."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1227
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1273
 #, fuzzy, kde-format
 #| msgid "Default user name:"
 msgid "Delete or rename:"
 msgstr "Προκαθορισμένο όνομα χρήστη:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1227
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1273
 #, kde-format
 msgid "Execute:"
 msgstr "Εκτέλεση:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1228
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1274
 #, kde-format
 msgid ""
 "Enable this option to allow only the folder's owner to delete or rename the "
@@ -6408,7 +6451,7 @@ msgstr ""
 "αυτόν. Άλλοι χρήστες μπορούν μόνο να προσθέσουν νέα αρχεία, το οποίο απαιτεί "
 "την άδεια 'Τροποποίηση περιεχομένου'."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1232
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1278
 #, kde-format
 msgid ""
 "Enable this option to mark the file as executable. This only makes sense for "
@@ -6418,42 +6461,42 @@ msgstr ""
 "Αυτό έχει νόημα μόνο για προγράμματα και σενάρια. Απαιτείται όταν θέλετε να "
 "τα εκτελέσετε."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1236
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1282
 #, kde-format
 msgid "A&dvanced Permissions"
 msgstr "Προχωρημένες ά&δειες"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1244
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1290
 #, kde-format
 msgid "Ownership"
 msgstr "Ιδιοκτησία"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1252
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1298
 #, kde-format
 msgid "User:"
 msgstr "Χρήστης:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1290
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1336
 #, kde-format
 msgid "Group:"
 msgstr "Ομάδα:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1324
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1370
 #, kde-format
 msgid "Apply changes to all subfolders and their contents"
 msgstr "Εφαρμογή των αλλαγών σε όλους τους υποφακέλους και τα περιεχόμενά τους"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1367
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1413
 #, kde-format
 msgid "Advanced Permissions"
 msgstr "Προχωρημένες άδειες"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1387
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1433
 #, kde-format
 msgid "Class"
 msgstr "Κλάση"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1394
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1440
 #, kde-format
 msgid ""
 "Show\n"
@@ -6462,22 +6505,22 @@ msgstr ""
 "Εμφάνιση\n"
 "καταχωρήσεων"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1395
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1441
 #, kde-format
 msgid "This flag allows viewing the content of the folder."
 msgstr "Αυτή η σημαία επιτρέπει την προβολή του περιεχομένου του φακέλου."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1397
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1443
 #, kde-format
 msgid "Read"
 msgstr "Ανάγνωση"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1398
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1444
 #, kde-format
 msgid "The Read flag allows viewing the content of the file."
 msgstr "Η σημαία Ανάγνωση επιτρέπει την προβολή του περιεχομένου του αρχείου."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1404
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1450
 #, kde-format
 msgid ""
 "Write\n"
@@ -6486,7 +6529,7 @@ msgstr ""
 "Εγγραφή\n"
 "καταχωρήσεων"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1406
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1452
 #, kde-format
 msgid ""
 "This flag allows adding, renaming and deleting of files. Note that deleting "
@@ -6496,46 +6539,46 @@ msgstr ""
 "Σημειώστε ότι η διαγραφή και η μετονομασία μπορεί να περιοριστεί "
 "χρησιμοποιώντας τη σημαία Κολλημένο."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1409
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1455
 #, kde-format
 msgid "Write"
 msgstr "Εγγραφή"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1410
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1456
 #, kde-format
 msgid "The Write flag allows modifying the content of the file."
 msgstr ""
 "Η σημαία Εγγραφή επιτρέπει την τροποποίηση του περιεχομένου του αρχείου."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1416
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1462
 #, kde-format
 msgctxt "Enter folder"
 msgid "Enter"
 msgstr "Είσοδος"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1417
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1463
 #, kde-format
 msgid "Enable this flag to allow entering the folder."
 msgstr "Ενεργοποιήστε αυτή τη σημαία ώστε να επιτρέπεται η είσοδος στο φάκελο."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1419
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1465
 #, kde-format
 msgid "Exec"
 msgstr "Εκτέλεση"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1420
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1466
 #, kde-format
 msgid "Enable this flag to allow executing the file as a program."
 msgstr ""
 "Ενεργοποιήστε αυτή τη σημαία ώστε να επιτρέπεται η εκτέλεση του αρχείου σαν "
 "ένα πρόγραμμα."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1428
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1474
 #, kde-format
 msgid "Special"
 msgstr "Ειδικό"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1433
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1479
 #, kde-format
 msgid ""
 "Special flag. Valid for the whole folder, the exact meaning of the flag can "
@@ -6544,7 +6587,7 @@ msgstr ""
 "Ειδική σημαία. Ισχύει για όλο το φάκελο, η ακριβής έννοια της σημαίας μπορεί "
 "να φανεί στη δεξιά στήλη."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1437
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1483
 #, kde-format
 msgid ""
 "Special flag. The exact meaning of the flag can be seen in the right hand "
@@ -6552,17 +6595,17 @@ msgid ""
 msgstr ""
 "Ειδική σημαία. Η ακριβής έννοια της σημαίας μπορεί να φανεί στη δεξιά στήλη."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1442
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1488
 #, kde-format
 msgid "User"
 msgstr "Χρήστης"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1446
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1492
 #, kde-format
 msgid "Group"
 msgstr "Ομάδα"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1457
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1503
 #, kde-format
 msgid ""
 "If this flag is set, the owner of this folder will be the owner of all new "
@@ -6571,7 +6614,7 @@ msgstr ""
 "Αν αυτή η σημαία οριστεί, ο ιδιοκτήτης αυτού του φακέλου θα είναι ο "
 "ιδιοκτήτης όλων των νέων αρχείων."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1461
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1507
 #, kde-format
 msgid ""
 "If this file is an executable and the flag is set, it will be executed with "
@@ -6580,7 +6623,7 @@ msgstr ""
 "Αν αυτό το αρχείο είναι εκτελέσιμο και η σημαία είναι ορισμένη, θα "
 "εκτελεστεί με τις άδειες του ιδιοκτήτη."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1468
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1514
 #, kde-format
 msgid ""
 "If this flag is set, the group of this folder will be set for all new files."
@@ -6588,7 +6631,7 @@ msgstr ""
 "Αν αυτή η σημαία οριστεί, η ομάδα αυτού του φακέλου θα ορίζεται σε όλα τα "
 "νέα αρχεία."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1472
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1518
 #, kde-format
 msgid ""
 "If this file is an executable and the flag is set, it will be executed with "
@@ -6597,7 +6640,7 @@ msgstr ""
 "Αν αυτό το αρχείο είναι εκτελέσιμο και η σημαία είναι ορισμένη, θα "
 "εκτελεστεί με τις άδειες της ομάδας."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1479
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1525
 #, kde-format
 msgid ""
 "If the Sticky flag is set on a folder, only the owner and root can delete or "
@@ -6607,7 +6650,7 @@ msgstr ""
 "root μπορούν να διαγράψουν ή να μετονομάσουν αρχεία. Αλλιώς οποιοσδήποτε με "
 "άδειες εγγραφής μπορεί να το κάνει αυτό."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1484
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1530
 #, kde-format
 msgid ""
 "The Sticky flag on a file is ignored on Linux, but may be used on some "
@@ -6616,81 +6659,81 @@ msgstr ""
 "Η σημαία Κολλημένο σε ένα αρχείο αγνοείται στο Linux, αλλά μπορεί να "
 "χρησιμοποιηθεί σε μερικά συστήματα"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1545
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1591
 #, kde-format
 msgid "Set UID"
 msgstr "Ορισμός UID"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1549
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1595
 #, kde-format
 msgid "Set GID"
 msgstr "Ορισμός GID"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1553
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1599
 #, kde-format
 msgctxt "File permission"
 msgid "Sticky"
 msgstr "Κολλημένο"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1666
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1725
 #, kde-format
 msgid "Link"
 msgstr "Δεσμός"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1686
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1745
 #, kde-format
 msgid "Varying (No Change)"
 msgstr "Μεταβαλλόμενο (χωρίς αλλαγή)"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1797
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1856
 #, kde-format
 msgid "This file uses advanced permissions"
 msgid_plural "These files use advanced permissions."
 msgstr[0] "Αυτό το αρχείο χρησιμοποιεί προχωρημένες άδειες"
 msgstr[1] "Αυτά τα αρχεία χρησιμοποιούν προχωρημένες άδειες"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1819
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1878
 #, kde-format
 msgid "This folder uses advanced permissions."
 msgid_plural "These folders use advanced permissions."
 msgstr[0] "Αυτός ο φάκελος χρησιμοποιεί προχωρημένες άδειες."
 msgstr[1] "Αυτοί οι φάκελοι χρησιμοποιούν προχωρημένες άδειες."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:1833
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1892
 #, kde-format
 msgid "These files use advanced permissions."
 msgstr "Αυτά τα αρχεία χρησιμοποιούν προχωρημένες άδειες."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2077
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2136
 #, kde-format
 msgctxt "@title:tab"
 msgid "C&hecksums"
 msgstr "Αθροίσματα ελέγχου"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2368
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2427
 #, kde-format
 msgid "Invalid checksum."
 msgstr "Μη έγκυρο άθροισμα ελέγχου."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2371
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2430
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "The given input is not a valid MD5, SHA1 or SHA256 checksum."
 msgstr ""
 "Αυτό που δόθηκε δεν αποτελεί ένα έγκυρο MD5, SHA1 ή SHA256 άθροισμα ελέγχου."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2382
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2441
 #, kde-format
 msgid "Checksums match."
 msgstr "Τα αθροίσματα ελέγχου ταιριάζουν."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2385
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2444
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "The computed checksum and the expected checksum match."
 msgstr "Το υπολογισμένο και το αναμενόμενο άθροισμα ελέγχου ταιριάζουν."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2397
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2456
 #, kde-format
 msgid ""
 "<p>Checksums do not match.</p>This may be due to a faulty download. Try re-"
@@ -6701,48 +6744,48 @@ msgstr ""
 "Δοκιμάστε να λάβετε ξανά το αρχείο.<br/>Αν η επαλήθευση αποτύχει και πάλι "
 "επικοινωνήστε με τον πάροχο του αρχείου."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2403
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2462
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "The computed checksum and the expected checksum differ."
 msgstr "Το υπολογισμένο και το αναμενόμενο άθροισμα ελέγχου διαφέρουν."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2411
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2470
 #, kde-format
 msgctxt "@info:progress computation in the background"
 msgid "Verifying checksum…"
 msgstr "Επαλήθευση αθροίσματος ελέγχου..."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2440
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2499
 #, fuzzy, kde-format
 #| msgid "The files are <b>identical</b>."
 msgid "The checksums of all files are identical."
 msgstr "Τα αρχεία είναι <b>παρόμοια</b>."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2445
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2504
 #, fuzzy, kde-format
 #| msgid "The files are <b>different</b>."
 msgid "The selected files have different checksums."
 msgstr "Τα αρχεία είναι <b>διαφορετικά</b>."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2451
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2510
 #, kde-format
 msgctxt "@info:progress"
 msgid "Calculating…"
 msgstr "Υπολογισμός..."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2562
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2621
 #, kde-format
 msgid "U&RL"
 msgstr "U&RL"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2568
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2627
 #, kde-format
 msgid "URL:"
 msgstr "URL:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2637
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2908
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2696
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2967
 #, kde-format
 msgid ""
 "Could not save properties. Only entries on local file systems are supported."
@@ -6750,27 +6793,27 @@ msgstr ""
 "Δεν ήταν δυνατή η αποθήκευση των ιδιοτήτων. Μόνο καταχωρήσεις σε τοπικά "
 "συστήματα αρχείων υποστηρίζονται."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2708
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2767
 #, kde-format
 msgid "&Application"
 msgstr "&Εφαρμογή"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2848
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2907
 #, kde-format
 msgid "Add File Type for %1"
 msgstr "Προσθήκη τύπου αρχείου για %1"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2849
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2908
 #, kde-format
 msgid "Select one or more file types to add:"
 msgstr "Επιλέξτε έναν ή περισσότερους τύπους αρχείου για προσθήκη:"
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:2987
+#: widgets/kpropertiesdialogbuiltin_p.cpp:3046
 #, kde-format
 msgid "Only executables on local file systems are supported."
 msgstr "Μόνο εκτελέσιμα σε τοπικά συστήματα αρχείων υποστηρίζονται."
 
-#: widgets/kpropertiesdialogbuiltin_p.cpp:3002
+#: widgets/kpropertiesdialogbuiltin_p.cpp:3061
 #, kde-format
 msgid "Advanced Options for %1"
 msgstr "Προχωρημένες επιλογές για %1"
@@ -6949,12 +6992,12 @@ msgstr "Μορφή δεδομένων:"
 msgid "%1 (%2)"
 msgstr "%1 (θύρα %2)"
 
-#: widgets/pastejob.cpp:75
+#: widgets/pastejob.cpp:89
 #, kde-format
 msgid "Filename for clipboard content:"
 msgstr "Όνομα αρχείου για περιεχόμενο πρόχειρου:"
 
-#: widgets/pastejob.cpp:75
+#: widgets/pastejob.cpp:89
 #, kde-format
 msgid "Filename for dropped contents:"
 msgstr "Όνομα αρχείου για περιεχόμενα απόθεσης:"
@@ -7083,52 +7126,52 @@ msgstr ""
 msgid "C&ontinue"
 msgstr "Συνέ&χεια"
 
-#: widgets/renamedialog.cpp:416
+#: widgets/renamedialog.cpp:418
 #, kde-format
 msgid "Would you like to overwrite the destination?"
 msgstr "Θέλετε να αντικαταστήσετε τον προορισμό;"
 
-#: widgets/renamedialog.cpp:418
+#: widgets/renamedialog.cpp:420
 #, kde-format
 msgid "Would you like to merge the contents of '%1' into '%2'?"
 msgstr "Θέλετε να συγχωνεύσετε τα περιεχόμενα του '%1' στο '%2';"
 
-#: widgets/renamedialog.cpp:461
+#: widgets/renamedialog.cpp:463
 #, kde-format
 msgid "The source is <b>more recent</b>."
 msgstr "Η πηγή είναι <b>πιο πρόσφατη</b>."
 
-#: widgets/renamedialog.cpp:463
+#: widgets/renamedialog.cpp:465
 #, kde-format
 msgid "The source is <b>older</b>."
 msgstr "Η πηγή είναι <b>πιο παλιά</b>."
 
-#: widgets/renamedialog.cpp:472
+#: widgets/renamedialog.cpp:474
 #, kde-format
 msgid "The source is <b>smaller by %1</b>."
 msgstr "Η πηγή είναι <b>μικρότερη κατά %1</b>."
 
-#: widgets/renamedialog.cpp:475
+#: widgets/renamedialog.cpp:477
 #, kde-format
 msgid "The source is <b>bigger by %1</b>."
 msgstr "Η πηγή είναι <b>μεγαλύτερη κατά %1</b>."
 
-#: widgets/renamedialog.cpp:489
+#: widgets/renamedialog.cpp:491
 #, kde-format
 msgid "The files are <b>identical</b>."
 msgstr "Τα αρχεία είναι <b>παρόμοια</b>."
 
-#: widgets/renamedialog.cpp:492
+#: widgets/renamedialog.cpp:494
 #, kde-format
 msgid "The files <b>seem identical</b>."
 msgstr "Τα αρχεία <b>φαίνονται παρόμοια</b>."
 
-#: widgets/renamedialog.cpp:496
+#: widgets/renamedialog.cpp:498
 #, kde-format
 msgid "The files are <b>different</b>."
 msgstr "Τα αρχεία είναι <b>διαφορετικά</b>."
 
-#: widgets/renamedialog.cpp:504
+#: widgets/renamedialog.cpp:506
 #, kde-format
 msgid ""
 "The files are likely to be identical: they have the same size and their "
@@ -7137,40 +7180,40 @@ msgstr ""
 "Τα αρχεία είναι πιθανό να είναι πανομοιότυπα: έχουν το ίδιο μέγεθος και το "
 "περιεχόμενό τους είναι το ίδιο στην αρχή, στη μέση και στο τέλος."
 
-#: widgets/renamedialog.cpp:518
+#: widgets/renamedialog.cpp:520
 #, fuzzy, kde-format
 #| msgid "Copy Files"
 msgctxt "@action:button"
 msgid "Compare Files"
 msgstr "Αντιγραφή αρχείων"
 
-#: widgets/renamedialog.cpp:531
+#: widgets/renamedialog.cpp:533
 #, kde-format
 msgid "An older item named '%1' already exists."
 msgstr "Ένα παλιότερο αντικείμενο με όνομα '%1' υπάρχει ήδη."
 
-#: widgets/renamedialog.cpp:533
+#: widgets/renamedialog.cpp:535
 #, kde-format
 msgid "A similar file named '%1' already exists."
 msgstr "Ένα παρόμοιο αρχείο με όνομα %1 υπάρχει ήδη."
 
-#: widgets/renamedialog.cpp:535
+#: widgets/renamedialog.cpp:537
 #, kde-format
 msgid "A more recent item named '%1' already exists."
 msgstr "Ένα πιο πρόσφατο αντικείμενο με όνομα «%1» υπάρχει ήδη."
 
-#: widgets/renamedialog.cpp:548
+#: widgets/renamedialog.cpp:550
 #, kde-format
 msgid "Rename:"
 msgstr "Μετονομασία:"
 
-#: widgets/renamefiledialog.cpp:91
+#: widgets/renamefiledialog.cpp:138
 #, kde-kuit-format
 msgctxt "@label:textbox"
 msgid "Rename the item <filename>%1</filename> to:"
 msgstr "Μετονομάστε το αντικείμενο <filename>%1</filename> σε:"
 
-#: widgets/renamefiledialog.cpp:141 widgets/renamefiledialog.cpp:483
+#: widgets/renamefiledialog.cpp:188 widgets/renamefiledialog.cpp:574
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info"
 #| msgid "A file with name <filename>%1</filename> already exists."
@@ -7178,7 +7221,7 @@ msgctxt "@info error a file already exists"
 msgid "A file named <filename>%1</filename> already exists."
 msgstr "Ένα αρχείο με όνομα <filename>%1</filename> υπάρχει ήδη."
 
-#: widgets/renamefiledialog.cpp:144
+#: widgets/renamefiledialog.cpp:191
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info"
 #| msgid "<filename>%1</filename> does not appear to be an executable program."
@@ -7186,7 +7229,7 @@ msgctxt "@info %1 is an invalid filename"
 msgid "<filename>%1</filename> is not a valid file name."
 msgstr "<filename>%1</filename> δεν φαίνεται να είναι εκτελέσιμο πρόγραμμα."
 
-#: widgets/renamefiledialog.cpp:164
+#: widgets/renamefiledialog.cpp:211
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Rename the %1 selected item to:"
@@ -7194,13 +7237,53 @@ msgid_plural "Rename the %1 selected items to:"
 msgstr[0] "Μετονομάστε το επιλεγμένο αντικείμενο %1 σε:"
 msgstr[1] "Μετονομάστε τα %1 επιλεγμένα αντικείμενα σε:"
 
-#: widgets/renamefiledialog.cpp:167
+#: widgets/renamefiledialog.cpp:214
 #, kde-format
 msgctxt "@info"
 msgid "# will be replaced by ascending numbers starting with:"
 msgstr "# θα αντικατασταθεί από αύξοντες αριθμούς που αρχίζουν με:"
 
-#: widgets/renamefiledialog.cpp:176
+#: widgets/renamefiledialog.cpp:229
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Enter a different name"
+msgctxt "@item:inlistbox the new name is the whole file name"
+msgid "Replace filename"
+msgstr "Εισάγετε ένα διαφορετικό όνομα"
+
+#: widgets/renamefiledialog.cpp:230
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Enter a different name"
+msgctxt "@item:inlistbox as in insert the new name before the filename"
+msgid "Before filename"
+msgstr "Εισάγετε ένα διαφορετικό όνομα"
+
+#: widgets/renamefiledialog.cpp:231
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Enter a different name"
+msgctxt "@item:inlistbox as in insert the new name after the filename"
+msgid "After filename"
+msgstr "Εισάγετε ένα διαφορετικό όνομα"
+
+#: widgets/renamefiledialog.cpp:284
+#, kde-format
+msgctxt ""
+"Template putting the number before the old file name, # is replaced by a "
+"number later"
+msgid "#_"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:286
+#, kde-format
+msgctxt ""
+"Template putting the number after the old file name, # is replaced by a "
+"number later"
+msgid "_#"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:288
 #, kde-format
 msgctxt ""
 "This a template for new filenames, # is replaced by a number later, must be "
@@ -7208,7 +7291,7 @@ msgctxt ""
 msgid "New name #"
 msgstr "Νέο όνομα #"
 
-#: widgets/renamefiledialog.cpp:283
+#: widgets/renamefiledialog.cpp:372
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -7216,7 +7299,7 @@ msgid ""
 "the files have different file extensions."
 msgstr ""
 
-#: widgets/renamefiledialog.cpp:310
+#: widgets/renamefiledialog.cpp:401
 #, fuzzy, kde-format
 #| msgctxt "@label:textbox"
 #| msgid "Rename the %1 selected item to:"
@@ -7227,40 +7310,40 @@ msgid_plural "Rename the %1 selected items by:"
 msgstr[0] "Μετονομάστε το επιλεγμένο αντικείμενο %1 σε:"
 msgstr[1] "Μετονομάστε τα %1 επιλεγμένα αντικείμενα σε:"
 
-#: widgets/renamefiledialog.cpp:314
+#: widgets/renamefiledialog.cpp:405
 #, fuzzy, kde-format
 #| msgid "Replace"
 msgctxt "@info replace as in replacing [value] with [value]"
 msgid "Replacing:"
 msgstr "Αντικατάσταση"
 
-#: widgets/renamefiledialog.cpp:316
+#: widgets/renamefiledialog.cpp:407
 #, kde-format
 msgctxt "@info placeholder text"
 msgid "Pattern"
 msgstr ""
 
-#: widgets/renamefiledialog.cpp:320
+#: widgets/renamefiledialog.cpp:411
 #, fuzzy, kde-format
 #| msgid "Open With:"
 msgctxt "@info with as in replacing [value] with [value]"
 msgid "With:"
 msgstr "Άνοιγμα με:"
 
-#: widgets/renamefiledialog.cpp:322
+#: widgets/renamefiledialog.cpp:413
 #, fuzzy, kde-format
 #| msgid "Replace"
 msgctxt "@info placeholder text"
 msgid "Replacement"
 msgstr "Αντικατάσταση"
 
-#: widgets/renamefiledialog.cpp:369
+#: widgets/renamefiledialog.cpp:460
 #, kde-format
 msgctxt "@info pattern as in text replacement pattern"
 msgid "No file name contains the pattern."
 msgstr ""
 
-#: widgets/renamefiledialog.cpp:378
+#: widgets/renamefiledialog.cpp:469
 #, kde-kuit-format
 msgctxt "@info pattern as in text replacement pattern"
 msgid ""
@@ -7268,7 +7351,7 @@ msgid ""
 "to have an empty file name."
 msgstr ""
 
-#: widgets/renamefiledialog.cpp:404
+#: widgets/renamefiledialog.cpp:495
 #, fuzzy, kde-format
 #| msgctxt "@label:textbox"
 #| msgid "Rename the %1 selected item to:"
@@ -7279,19 +7362,19 @@ msgid_plural "Rename the %1 selected items:"
 msgstr[0] "Μετονομάστε το επιλεγμένο αντικείμενο %1 σε:"
 msgstr[1] "Μετονομάστε τα %1 επιλεγμένα αντικείμενα σε:"
 
-#: widgets/renamefiledialog.cpp:407
+#: widgets/renamefiledialog.cpp:498
 #, kde-format
 msgctxt "@label:textbox add text to a filename"
 msgid "Add Text:"
 msgstr ""
 
-#: widgets/renamefiledialog.cpp:409
+#: widgets/renamefiledialog.cpp:500
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "Text to add"
 msgstr ""
 
-#: widgets/renamefiledialog.cpp:414
+#: widgets/renamefiledialog.cpp:505
 #, fuzzy, kde-format
 #| msgctxt "@action:button"
 #| msgid "Enter a different name"
@@ -7299,7 +7382,7 @@ msgctxt "@item:inlistbox as in insert text before filename"
 msgid "Before filename"
 msgstr "Εισάγετε ένα διαφορετικό όνομα"
 
-#: widgets/renamefiledialog.cpp:415
+#: widgets/renamefiledialog.cpp:506
 #, fuzzy, kde-format
 #| msgctxt "@action:button"
 #| msgid "Enter a different name"
@@ -7307,64 +7390,143 @@ msgctxt "@item:inlistbox as in insert text after filename"
 msgid "After filename"
 msgstr "Εισάγετε ένα διαφορετικό όνομα"
 
-#: widgets/renamefiledialog.cpp:532
+#: widgets/renamefiledialog.cpp:623
 #, kde-format
 msgctxt "@title:window"
 msgid "Rename Item"
 msgstr "Μετονομασία αντικειμένου"
 
-#: widgets/renamefiledialog.cpp:532
+#: widgets/renamefiledialog.cpp:623
 #, kde-format
 msgctxt "@title:window"
 msgid "Rename Items"
 msgstr "Μετονομασία αντικειμένων"
 
-#: widgets/renamefiledialog.cpp:543
+#: widgets/renamefiledialog.cpp:634
 #, kde-format
 msgctxt "@action:button"
 msgid "&Rename"
 msgstr "&Μετονομασία"
 
-#: widgets/renamefiledialog.cpp:552
+#: widgets/renamefiledialog.cpp:643
 #, fuzzy, kde-format
 #| msgid "Default user name:"
 msgctxt "@info"
 msgid "How to rename:"
 msgstr "Προκαθορισμένο όνομα χρήστη:"
 
-#: widgets/renamefiledialog.cpp:555
+#: widgets/renamefiledialog.cpp:647
 #, kde-format
 msgctxt "@info renaming operation"
 msgid "Enumerate"
 msgstr ""
 
-#: widgets/renamefiledialog.cpp:555
+#: widgets/renamefiledialog.cpp:647
 #, fuzzy, kde-format
 #| msgid "Replace"
 msgctxt "@info renaming operation"
 msgid "Replace text"
 msgstr "Αντικατάσταση"
 
-#: widgets/renamefiledialog.cpp:555
+#: widgets/renamefiledialog.cpp:647
 #, kde-format
 msgctxt "@info renaming operation"
 msgid "Add text"
 msgstr ""
 
-#: widgets/renamefiledialog.cpp:567
+#: widgets/renamefiledialog.cpp:664
 #, fuzzy, kde-format
 #| msgid "Show Preview"
 msgctxt "@info As in filename renaming preview"
 msgid "Preview:"
 msgstr "Εμφάνιση προεπισκόπησης"
 
-#: widgets/renamefiledialog.cpp:691
+#: widgets/renamefiledialog.cpp:788
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info"
 #| msgid "<filename>%1</filename> does not appear to be an executable program."
 msgctxt "@info"
 msgid "<filename>%1</filename> cannot be renamed to an empty file name."
 msgstr "<filename>%1</filename> δεν φαίνεται να είναι εκτελέσιμο πρόγραμμα."
+
+#: widgets/renamefilewarningdialog.cpp:48
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Rename Item"
+msgctxt "@action:button"
+msgid "Rename and Hide"
+msgstr "Μετονομασία αντικειμένου"
+
+#: widgets/renamefilewarningdialog.cpp:50
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Adding a dot to the beginning of this folder's name will hide it from view.\n"
+"Do you still want to rename it?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:51
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Adding a dot to the beginning of this file's name will hide it from view.\n"
+"Do you still want to rename it?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:52
+#, fuzzy, kde-format
+#| msgid "Home Folder"
+msgctxt "@title:window"
+msgid "Hide this Folder?"
+msgstr "Προσωπικός φάκελος"
+
+#: widgets/renamefilewarningdialog.cpp:52
+#, kde-format
+msgctxt "@title:window"
+msgid "Hide this File?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:58
+#: widgets/renamefilewarningdialog.cpp:108
+#: widgets/widgetsaskuseractionhandler.cpp:411
+#, kde-format
+msgctxt "@option:check"
+msgid "Do not ask again"
+msgstr "Να μην ξαναγίνει η ερώτηση"
+
+#: widgets/renamefilewarningdialog.cpp:89
+#, fuzzy, kde-format
+#| msgid "Rename"
+msgctxt "@action:button"
+msgid "Rename"
+msgstr "Μετονομασία"
+
+#: widgets/renamefilewarningdialog.cpp:94
+#, kde-format
+msgctxt "@info"
+msgid ""
+"This will make the file type unknown.\n"
+"The file's content won't change but applications may no longer recognize "
+"it.\n"
+"Do you still want to rename it?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:98
+#, kde-format
+msgctxt "@info"
+msgid ""
+"This will change the file type from \"%1\" to \"%2\".\n"
+"The file's content won't change but applications may no longer recognize "
+"it.\n"
+"Do you still want to rename it?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:105
+#, fuzzy, kde-format
+#| msgid "Change File Owner"
+msgctxt "@title:window"
+msgid "Change File Type"
+msgstr "Αλλαγή ιδιοκτήτη αρχείου"
 
 #: widgets/skipdialog.cpp:29
 #, kde-format
@@ -7478,7 +7640,7 @@ msgstr ""
 "Ο απομακρυσμένος υπολογιστής δεν έστειλε πιστοποιητικά SSL.\n"
 "Εγκατάλειψη καθώς η ταυτότητα του υπολογιστή δεν μπορεί να επαληθευτεί."
 
-#: widgets/sslui.cpp:50 widgets/widgetsaskuseractionhandler.cpp:507
+#: widgets/sslui.cpp:50 widgets/widgetsaskuseractionhandler.cpp:508
 #, kde-format
 msgid ""
 "The server failed the authenticity check (%1).\n"
@@ -7624,26 +7786,20 @@ msgctxt "@option:checkbox"
 msgid "Do not ask again"
 msgstr "Να μην ξαναγίνει η ερώτηση"
 
-#: widgets/widgetsaskuseractionhandler.cpp:411
-#, kde-format
-msgctxt "@option:check"
-msgid "Do not ask again"
-msgstr "Να μην ξαναγίνει η ερώτηση"
-
 #: widgets/widgetsaskuseractionhandler.cpp:437
 #, kde-format
 msgctxt "@option:check"
 msgid "Do not show this message again"
 msgstr "Μην εμφανιστεί ξανά αυτό το μήνυμα"
 
-#: widgets/widgetsaskuseractionhandler.cpp:572
+#: widgets/widgetsaskuseractionhandler.cpp:574
 #, kde-format
 msgid "The peer SSL certificate chain appears to be corrupt."
 msgstr ""
 "Η ακολουθία πιστοποιητικού SSL του υπολογιστή φαίνεται να είναι "
 "κατεστραμμένη."
 
-#: widgets/widgetsaskuseractionhandler.cpp:575
+#: widgets/widgetsaskuseractionhandler.cpp:577
 #, kde-format
 msgid "SSL"
 msgstr "SSL"
@@ -7664,6 +7820,19 @@ msgstr "Αυτό εκκινεί το πρόγραμμα:"
 #, kde-format
 msgid "If you do not trust this program, click Cancel"
 msgstr "Αν δεν εμπιστεύεστε το πρόγραμμα αυτό, κάντε κλικ στην ακύρωση"
+
+#~ msgid "Cannot copy file from %1 to %2. (Errno: %3)"
+#~ msgstr ""
+#~ "Αδύνατη η αντιγραφή του αρχείου από το %1 στο %2. (Αρ. σφάλματος: %3)"
+
+#~ msgid "Link to Device"
+#~ msgstr "Δεσμός με συσκευή"
+
+#~ msgid "Open With:"
+#~ msgstr "Άνοιγμα με:"
+
+#~ msgid "File System:"
+#~ msgstr "Σύστημα αρχείων:"
 
 #~ msgid "Change Attribute"
 #~ msgstr "Αλλαγή ιδιότητας"
@@ -7713,9 +7882,6 @@ msgstr "Αν δεν εμπιστεύεστε το πρόγραμμα αυτό, �
 #~ "Για την ολοκλήρωση της λειτουργίας μετακίνησης απαιτούνται προνόμια root. "
 #~ "Θέλετε να συνεχίσετε;"
 
-#~ msgid "Rename"
-#~ msgstr "Μετονομασία"
-
 #~ msgid ""
 #~ "Root privileges are required to complete renaming. Do you want to "
 #~ "continue?"
@@ -7756,9 +7922,6 @@ msgstr "Αν δεν εμπιστεύεστε το πρόγραμμα αυτό, �
 
 #~ msgid "New Permissions: %1"
 #~ msgstr "Νέες άδειες: %1"
-
-#~ msgid "Change File Owner"
-#~ msgstr "Αλλαγή ιδιοκτήτη αρχείου"
 
 #~ msgid "New Owner: UID=%1, GID=%2"
 #~ msgstr "Νέος ιδιοκτήτης: UID=%1, GID=%2"
@@ -10164,9 +10327,6 @@ msgstr "Αν δεν εμπιστεύεστε το πρόγραμμα αυτό, �
 #~ msgid "Read only"
 #~ msgstr "Μόνο για ανάγνωση"
 
-#~ msgid "File system:"
-#~ msgstr "Σύστημα αρχείων:"
-
 #~ msgid "Mount point (/mnt/floppy):"
 #~ msgstr "Σημείο προσάρτησης (/mnt/floppy):"
 
@@ -10693,9 +10853,6 @@ msgstr "Αν δεν εμπιστεύεστε το πρόγραμμα αυτό, �
 #~ "Αδύνατη η εκκίνηση της υπηρεσίας διαχείρισης των cookies.\n"
 #~ "Δε θα μπορέσετε να διαχειριστείτε τα cookies που είναι αποθηκευμένα στον "
 #~ "υπολογιστή σας."
-
-#~ msgid "Open with:"
-#~ msgstr "Άνοιγμα με:"
 
 #~ msgid ""
 #~ "%1.\n"

@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-08 00:41+0000\n"
+"POT-Creation-Date: 2026-09-30 00:41+0000\n"
 "PO-Revision-Date: 2025-03-15 10:29+0100\n"
 "Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
 "Language-Team: Polish <kde-i18n-doc@kde.org>\n"
@@ -82,12 +82,12 @@ msgstr ""
 msgid "Apply Settings"
 msgstr "Wprowadzanie zmian"
 
-#: kcmultidialog.cpp:217 kpluginwidget.cpp:340
+#: kcmultidialog.cpp:218 kpluginwidget.cpp:340
 #, kde-format
 msgid "Configure"
 msgstr "Ustawienia"
 
-#: kcmultidialog.cpp:392
+#: kcmultidialog.cpp:393
 #, kde-format
 msgctxt "@other accessible name for view that can be scrolled"
 msgid "Scrollable area"
@@ -109,24 +109,24 @@ msgctxt "@action:button"
 msgid "Show Contextual Help"
 msgstr "Pokaż pomoc podręczną"
 
-#: qml/components/PluginDelegate.qml:111
+#: qml/components/PluginDelegate.qml:114
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "About"
 msgstr "O programie"
 
-#: qml/components/PluginDelegate.qml:126
+#: qml/components/PluginDelegate.qml:129
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Configure…"
 msgstr "Ustawienia..."
 
-#: qml/components/PluginSelector.qml:94
+#: qml/components/PluginSelector.qml:96
 #, kde-format
 msgid "No matches"
 msgstr "Brak pasujących wyrażeń"
 
-#: qml/components/PluginSelector.qml:94
+#: qml/components/PluginSelector.qml:96
 #, kde-format
 msgid "No plugins found"
 msgstr "Nie znaleziono żadnych wtyczek"

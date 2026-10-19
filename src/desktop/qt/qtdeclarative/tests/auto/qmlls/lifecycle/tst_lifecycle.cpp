@@ -27,7 +27,6 @@ public:
     TestRigEventHandler(QLanguageServer *server, QIODevice *device)
         : m_device(device), m_server(server)
     {
-        server->finishSetup();
         QObject::connect(device, &QIODevice::readyRead, m_server,
                          [this]() { m_server->protocol()->receiveData(m_device->readAll()); });
         QObject::connect(m_server, &QLanguageServer::exit, m_server,
@@ -99,11 +98,11 @@ State::State()
       protocol([this](const QByteArray &data) { pipe.end2()->write(data); })
 {
     pipe.open(QIODevice::ReadWrite);
-    QCOMPARE(server.runStatus(), QLanguageServer::RunStatus::DidSetup);
+    QCOMPARE(server.runStatus(), QLanguageServer::RunStatus::NotInitialized);
 
     QObject::connect(pipe.end1(), &QIODevice::readyRead, &pipe,
                      [this]() { protocol.receiveData(pipe.end2()->readAll()); });
-    QCOMPARE(server.runStatus(), QLanguageServer::RunStatus::DidSetup);
+    QCOMPARE(server.runStatus(), QLanguageServer::RunStatus::NotInitialized);
 
     protocol.requestApplyWorkspaceEdit(
             ApplyWorkspaceEditParams(),
@@ -116,8 +115,6 @@ State::State()
     QCOMPARE(requestStatus, RequestStatus::Failure);
 
     InitializeParams clientInfo;
-    clientInfo.rootUri = nullptr;
-    clientInfo.processId = nullptr;
     requestStatus = RequestStatus::NoResponse;
     protocol.requestInitialize(
             clientInfo,
@@ -128,7 +125,7 @@ State::State()
             getRequestFailureHandler());
     QTRY_VERIFY(requestStatus != RequestStatus::NoResponse);
     QCOMPARE(requestStatus, RequestStatus::Success);
-    QCOMPARE(server.runStatus(), QLanguageServer::RunStatus::DidInitialize);
+    QCOMPARE(server.runStatus(), QLanguageServer::RunStatus::Initialized);
 
     protocol.notifyInitialized(InitializedParams());
 }

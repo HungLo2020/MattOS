@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_tasks\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-17 02:41+0000\n"
+"POT-Creation-Date: 2026-09-26 03:01+0000\n"
 "PO-Revision-Date: 2008-10-05 10:49+0300\n"
 "Last-Translator: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\n"
 "Language-Team: Belarusian Latin <i18n@mova.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || n%10>=5 && n%10<=9 || n"
 "%100>=11 && n%100<=14 ? 2 : 3);\n"
 
-#: backend.cpp:288
+#: backend.cpp:339
 #, kde-format
 msgctxt "Show all user Places"
 msgid "%1 more Place…"
@@ -30,79 +30,92 @@ msgstr[1] ""
 msgstr[2] ""
 msgstr[3] ""
 
-#: backend.cpp:372
+#: backend.cpp:422
 #, kde-format
 msgid "Recent Downloads"
 msgstr ""
 
-#: backend.cpp:374
+#: backend.cpp:424
 #, kde-format
 msgid "Recent Connections"
 msgstr ""
 
-#: backend.cpp:376
+#: backend.cpp:426
 #, kde-format
 msgid "Recent Places"
 msgstr ""
 
-#: backend.cpp:385
+#: backend.cpp:435
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Forget Recent Downloads"
 msgstr ""
 
-#: backend.cpp:387
+#: backend.cpp:437
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Forget Recent Connections"
 msgstr ""
 
-#: backend.cpp:389
+#: backend.cpp:439
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Forget Recent Places"
 msgstr ""
 
-#: backend.cpp:391
+#: backend.cpp:441
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Forget Recent Files"
 msgstr ""
 
-#: qml/AudioStream.qml:94
+#: backend.cpp:581
+#, kde-format
+msgid "Activate Previous Task Manager Entry"
+msgstr ""
+
+#: backend.cpp:588
+#, kde-format
+msgid "Activate Next Task Manager Entry"
+msgstr ""
+
+#: backend.cpp:595
+#, kde-format
+msgid "Move Active Task Manager Entry Backward"
+msgstr ""
+
+#: backend.cpp:603
+#, kde-format
+msgid "Move Active Task Manager Entry Forward"
+msgstr ""
+
+#: backend.cpp:612
+#, kde-format
+msgid "Activate Task Manager Entry %1"
+msgstr ""
+
+#: qml/AudioStream.qml:100
 #, kde-format
 msgctxt "@action:button"
 msgid "Unmute"
 msgstr ""
 
-#: qml/AudioStream.qml:94
+#: qml/AudioStream.qml:100
 #, kde-format
 msgctxt "@action:button"
 msgid "Mute"
 msgstr ""
 
-#: qml/AudioStream.qml:95
+#: qml/AudioStream.qml:101
 #, kde-format
 msgctxt "@info:tooltip %1 is the window title"
 msgid "Unmute %1"
 msgstr ""
 
-#: qml/AudioStream.qml:95
+#: qml/AudioStream.qml:101
 #, kde-format
 msgctxt "@info:tooltip %1 is the window title"
 msgid "Mute %1"
-msgstr ""
-
-#: qml/Badge.qml:52
-#, kde-format
-msgctxt "Invalid number of new messages, overlay, keep short"
-msgid "—"
-msgstr ""
-
-#: qml/Badge.qml:54
-#, kde-format
-msgctxt "Over 9999 new messages, overlay, keep short"
-msgid "9,999+"
 msgstr ""
 
 #: qml/config.qml:13
@@ -262,12 +275,6 @@ msgstr ""
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Large"
-msgstr ""
-
-#: qml/ConfigAppearance.qml:197
-#, kde-format
-msgctxt "@info:usagetip under a set of radio buttons when Touch Mode is on"
-msgid "Automatically set to Large when in Touch mode"
 msgstr ""
 
 #: qml/ConfigBehavior.qml:50
@@ -699,123 +706,117 @@ msgctxt "action:inmenu"
 msgid "Move &To Current Desktop"
 msgstr "Pavodle stałoŭ"
 
-#: qml/ContextMenu.qml:332
+#: qml/ContextMenu.qml:345
 #, fuzzy, kde-format
 #| msgid "By Desktop"
 msgctxt "action:inmenu"
 msgid "&All Desktops"
 msgstr "Pavodle stałoŭ"
 
-#: qml/ContextMenu.qml:360
+#: qml/ContextMenu.qml:373
 #, fuzzy, kde-format
 #| msgid "By Desktop"
 msgctxt "action:inmenu"
 msgid "&New Desktop"
 msgstr "Pavodle stałoŭ"
 
-#: qml/ContextMenu.qml:380
+#: qml/ContextMenu.qml:393
 #, kde-format
 msgctxt "action:inmenu"
 msgid "Show in &Activities"
 msgstr ""
 
-#: qml/ContextMenu.qml:404
+#: qml/ContextMenu.qml:417
 #, fuzzy, kde-format
 #| msgid "Only show tasks from the current screen"
 msgctxt "action:inmenu"
 msgid "Add To Current Activity"
 msgstr "Pakazvaj zadańni tolki ź dziejnaha ekrana"
 
-#: qml/ContextMenu.qml:414
+#: qml/ContextMenu.qml:427
 #, kde-format
 msgctxt "action:inmenu"
 msgid "All Activities"
 msgstr ""
 
-#: qml/ContextMenu.qml:470
+#: qml/ContextMenu.qml:483
 #, fuzzy, kde-format
 #| msgid "By Desktop"
 msgctxt "action:inmenu"
 msgid "Move to %1"
 msgstr "Pavodle stałoŭ"
 
-#: qml/ContextMenu.qml:496 qml/ContextMenu.qml:512
+#: qml/ContextMenu.qml:509 qml/ContextMenu.qml:525
 #, kde-format
 msgctxt "action:inmenu"
 msgid "&Pin to Task Manager"
 msgstr ""
 
-#: qml/ContextMenu.qml:564
+#: qml/ContextMenu.qml:577
 #, kde-format
 msgctxt "action:inmenu"
 msgid "On All Activities"
 msgstr ""
 
-#: qml/ContextMenu.qml:570
+#: qml/ContextMenu.qml:583
 #, fuzzy, kde-format
 #| msgid "Only show tasks from the current screen"
 msgctxt "action:inmenu"
 msgid "On The Current Activity"
 msgstr "Pakazvaj zadańni tolki ź dziejnaha ekrana"
 
-#: qml/ContextMenu.qml:594
+#: qml/ContextMenu.qml:607
 #, kde-format
 msgctxt "action:inmenu"
 msgid "Unpin from Task Manager"
 msgstr ""
 
-#: qml/ContextMenu.qml:609
+#: qml/ContextMenu.qml:622
 #, kde-format
 msgctxt "item:inmenu opens submenu"
 msgid "More"
 msgstr ""
 
-#: qml/ContextMenu.qml:618
+#: qml/ContextMenu.qml:631
 #, kde-format
 msgctxt "action:inmenu"
 msgid "&Move"
 msgstr ""
 
-#: qml/ContextMenu.qml:627
+#: qml/ContextMenu.qml:640
 #, kde-format
 msgctxt "action:inmenu"
 msgid "Re&size"
 msgstr ""
 
-#: qml/ContextMenu.qml:641
+#: qml/ContextMenu.qml:654
 #, kde-format
 msgctxt "action:inmenu"
 msgid "Ma&ximize"
 msgstr ""
 
-#: qml/ContextMenu.qml:655
+#: qml/ContextMenu.qml:668
 #, kde-format
 msgctxt "action:inmenu"
 msgid "Mi&nimize"
 msgstr ""
 
-#: qml/ContextMenu.qml:665
+#: qml/ContextMenu.qml:678
 #, kde-format
 msgctxt "action:inmenu"
 msgid "Keep &Above Others"
 msgstr ""
 
-#: qml/ContextMenu.qml:675
+#: qml/ContextMenu.qml:688
 #, kde-format
 msgctxt "action:inmenu"
 msgid "Keep &Below Others"
 msgstr ""
 
-#: qml/ContextMenu.qml:687
-#, kde-format
-msgctxt "action:inmenu"
-msgid "&Fullscreen"
-msgstr ""
-
 #: qml/ContextMenu.qml:700
 #, kde-format
 msgctxt "action:inmenu"
-msgid "&Shade"
+msgid "&Fullscreen"
 msgstr ""
 
 #: qml/ContextMenu.qml:712
@@ -848,13 +849,13 @@ msgctxt "@action:inmenu"
 msgid "&Close"
 msgstr ""
 
-#: qml/Task.qml:155
+#: qml/Task.qml:158
 #, kde-format
 msgctxt "@info:usagetip %1 application name"
 msgid "Launch %1"
 msgstr ""
 
-#: qml/Task.qml:160
+#: qml/Task.qml:163
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "There is %1 new message."
@@ -863,69 +864,86 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
-#: qml/Task.qml:168
+#: qml/Task.qml:171
 #, fuzzy, kde-format
 #| msgid "Show tooltips:"
 msgctxt "@info:usagetip %1 task name"
 msgid "Show Task tooltip for %1"
 msgstr "Pakazvaj padkazki:"
 
-#: qml/Task.qml:172
+#: qml/Task.qml:175
 #, kde-format
 msgctxt "@info:usagetip %1 task name"
 msgid "Show windows side by side for %1"
 msgstr ""
 
-#: qml/Task.qml:177
+#: qml/Task.qml:180
 #, kde-format
 msgctxt "@info:usagetip %1 task name"
 msgid "Open textual list of windows for %1"
 msgstr ""
 
-#: qml/Task.qml:181
+#: qml/Task.qml:184
 #, kde-format
 msgctxt "@info:usagetip %1 task name"
 msgid "Activate %1"
 msgstr ""
 
-#: qml/ToolTipInstance.qml:201
+#: qml/TaskBadgeOverlay.qml:101
+#, kde-format
+msgctxt ""
+"'k' is a suffix for 'thousand'; keep to one character or else the badge "
+"could overflow!"
+msgid "9k+"
+msgstr ""
+
+#: qml/TaskBadgeOverlay.qml:104
+#, fuzzy, kde-format
+#| msgid "By Desktop"
+msgctxt ""
+"'k' is a suffix for 'thousand'; keep to one character or else the badge "
+"could overflow!"
+msgid "%1k"
+msgstr "Pavodle stałoŭ"
+
+#: qml/ToolTipInstance.qml:212
 #, kde-format
 msgctxt "@info:tooltip Close this window"
 msgid "Close window"
 msgstr ""
 
-#: qml/ToolTipInstance.qml:471
+#: qml/ToolTipInstance.qml:426
 #, kde-format
 msgctxt "button to unmute app"
 msgid "Unmute %1"
 msgstr ""
 
-#: qml/ToolTipInstance.qml:472
+#: qml/ToolTipInstance.qml:427
 #, kde-format
 msgctxt "button to mute app"
 msgid "Mute %1"
 msgstr ""
 
-#: qml/ToolTipInstance.qml:490
+#: qml/ToolTipInstance.qml:445
 #, kde-format
 msgctxt "Accessibility data on volume slider"
 msgid "Adjust volume for %1"
 msgstr ""
 
-#: qml/ToolTipInstance.qml:506
+#: qml/ToolTipInstance.qml:461
 #, fuzzy, kde-format
 #| msgid "By Desktop"
 msgctxt "volume percentage"
 msgid "%1%"
 msgstr "Pavodle stałoŭ"
 
-#: qml/ToolTipInstance.qml:510
+#: qml/ToolTipInstance.qml:465
 #, kde-format
 msgctxt "only used for sizing, should be widest possible string"
 msgid "100%"
 msgstr ""
 
-#: qml/ToolTipInstance.qml:526
+#: qml/ToolTipInstance.qml:481
 #, fuzzy, kde-format
 #| msgctxt "Which virtual desktop a window is currently on"
 #| msgid "On %1"
@@ -933,25 +951,25 @@ msgctxt "Comma-separated list of desktops"
 msgid "On %1"
 msgstr "Na %1"
 
-#: qml/ToolTipInstance.qml:529
+#: qml/ToolTipInstance.qml:484
 #, kde-format
 msgctxt "Comma-separated list of desktops"
 msgid "Pinned to all desktops"
 msgstr ""
 
-#: qml/ToolTipInstance.qml:535
+#: qml/ToolTipInstance.qml:490
 #, kde-format
 msgctxt "Which virtual desktop a window is currently on"
 msgid "Available on all activities"
 msgstr ""
 
-#: qml/ToolTipInstance.qml:545
+#: qml/ToolTipInstance.qml:500
 #, kde-format
 msgctxt "Activities a window is currently on (apart from the current one)"
 msgid "Also available on %1"
 msgstr ""
 
-#: qml/ToolTipInstance.qml:549
+#: qml/ToolTipInstance.qml:504
 #, kde-format
 msgctxt "Which activities a window is currently on"
 msgid "Available on %1"

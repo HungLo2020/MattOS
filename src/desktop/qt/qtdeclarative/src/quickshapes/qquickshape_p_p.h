@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QQUICKSHAPE_P_P_H
 #define QQUICKSHAPE_P_P_H
@@ -49,16 +50,19 @@ public:
     virtual Flags flags() const { return {}; }
     virtual void setPath(int index, const QQuickPath *path);
     virtual void setPath(int index, const QPainterPath &path, QQuickShapePath::PathHints pathHints = {}) = 0;
+
     virtual void setStrokeColor(int index, const QColor &color) = 0;
     virtual void setStrokeWidth(int index, qreal w) = 0;
     virtual void setCosmeticStroke(int index, bool c) = 0;
-    virtual void setFillColor(int index, const QColor &color) = 0;
-    virtual void setFillRule(int index, QQuickShapePath::FillRule fillRule) = 0;
     virtual void setJoinStyle(int index, QQuickShapePath::JoinStyle joinStyle, int miterLimit) = 0;
     virtual void setCapStyle(int index, QQuickShapePath::CapStyle capStyle) = 0;
     virtual void setStrokeStyle(int index, QQuickShapePath::StrokeStyle strokeStyle,
                                 qreal dashOffset, const QList<qreal> &dashPattern) = 0;
+
+    virtual void setFillColor(int index, const QColor &color) = 0;
+    virtual void setFillRule(int index, QQuickShapePath::FillRule fillRule) = 0;
     virtual void setFillGradient(int index, QQuickShapeGradient *gradient) = 0;
+    virtual void setStrokeGradient(int index, QQuickShapeGradient *gradient) = 0;
     virtual void setFillTextureProvider(int index, QQuickItem *textureProviderItem) = 0;
     virtual void setFillTransform(int index, const QSGTransform &transform) = 0;
     virtual void setTriangulationScale(int, qreal) { }
@@ -100,6 +104,7 @@ struct QQuickShapeStrokeFillParams
     qreal dashOffset;
     QList<qreal> dashPattern;
     QQuickShapeGradient *fillGradient;
+    QQuickShapeGradient *strokeGradient;
     QSGTransform fillTransform;
     QQuickItem *fillItem;
     QQuickShapeTrim *trim;
@@ -122,14 +127,16 @@ public:
         DirtyFillTransform = 0x100,
         DirtyFillItem = 0x200,
         DirtyTrim = 0x400,
+        DirtyStrokeGradient = 0x800,
 
-        DirtyAll = 0x7FF
+        DirtyAll = 0xFFF
     };
 
     QQuickShapePathPrivate();
 
     void _q_pathChanged();
     void _q_fillGradientChanged();
+    void _q_strokeGradientChanged();
     void _q_fillItemDestroyed();
 
     void handleSceneChange();

@@ -125,6 +125,7 @@ KIOCORE_EXPORT QString decodeFileName(const QString &str);
 /*!
  * Error codes that can be emitted by KIO.
  *
+ * \value [since 6.27] ERR_NONE No error
  * \value ERR_CANNOT_OPEN_FOR_READING
  * \value ERR_CANNOT_OPEN_FOR_WRITING
  * \value ERR_CANNOT_LAUNCH_PROCESS
@@ -206,7 +207,9 @@ KIOCORE_EXPORT QString decodeFileName(const QString &str);
  * \value [since 5.100] ERR_TRASH_FILE_TOO_LARGE Moving files/dirs to the Trash failed due to size constraints
  * \value [since 6.21] ERR_TRASH_NOT_AVAILABLE Moving files/dirs to the Trash failed because a trash directory is not available for their location.
  */
+// TODO KF7: rename to Result, and ERR_NONE to OK
 enum Error {
+    ERR_NONE = KJob::NoError,
     ERR_CANNOT_OPEN_FOR_READING = KJob::UserDefinedError + 1,
     ERR_CANNOT_OPEN_FOR_WRITING = KJob::UserDefinedError + 2,
     ERR_CANNOT_LAUNCH_PROCESS = KJob::UserDefinedError + 3,
@@ -301,8 +304,7 @@ enum Error {
  * \value CC_Refresh Always validate cached entry with remote site
  * \value CC_Reload Always fetch from remote site
  */
-KIOCORE_DEPRECATED_VERSION(6, 6, "Not used")
-enum CacheControl {
+enum KIOCORE_DEPRECATED_VERSION(6, 6, "Not used") CacheControl {
     CC_CacheOnly,
     CC_Cache,
     CC_Verify,
@@ -348,6 +350,8 @@ enum PrivilegeOperationStatus {
  * \value [since 6.23] StatSubVolId in case the filesystem supports it, return its subvol Identifier
  * \value [since 6.23] StatMountId the unique mount identifier, see man statx
  * \value [since 6.24] StatTimeNsOffset Stat will provide nanosecond precision offsets when available
+ * \value [since 6.30] StatSizeOnDisk the space the file takes up on its storage, see UDS_SIZE_ON_DISK. Off by default, since a listing carries one number
+ * per entry and most callers only want the size of the data
  */
 enum StatDetail {
     StatNoDetails = 0x0,
@@ -363,6 +367,7 @@ enum StatDetail {
     StatSubVolId = 0x100,
     StatMountId = 0x200,
     StatTimeNsOffset = 0x400 | StatTime,
+    StatSizeOnDisk = 0x800,
 };
 Q_DECLARE_FLAGS(StatDetails, StatDetail)
 

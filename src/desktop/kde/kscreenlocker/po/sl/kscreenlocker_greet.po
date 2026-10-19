@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:40+0000\n"
-"PO-Revision-Date: 2025-07-23 06:54+0200\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
+"PO-Revision-Date: 2026-08-19 07:13+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -18,75 +18,109 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.9\n"
 
-#: fallbacktheme/Greeter.qml:58
+#: fallbacktheme/Greeter.qml:59
 msgid "Warning: Caps Lock on"
 msgstr "Pozor: Caps Lock (velike črke) je vključen"
 
-#: fallbacktheme/Greeter.qml:74
+#: fallbacktheme/Greeter.qml:75
 msgid "The session is locked"
 msgstr "Seja je zaklenjena"
 
-#: fallbacktheme/Greeter.qml:75
+#: fallbacktheme/Greeter.qml:76
 msgid "The session has been locked by %1"
 msgstr "Sejo je zaklenil uporabnik %1"
 
-#: fallbacktheme/Greeter.qml:99
+#: fallbacktheme/Greeter.qml:83
+msgid "Password"
+msgstr "Geslo"
+
+#: fallbacktheme/Greeter.qml:101
 msgid "(or place your fingerprint on the reader)"
 msgstr "(ali položite prst na čitalnik prstnih odtisov)"
 
-#: fallbacktheme/Greeter.qml:105
+#: fallbacktheme/Greeter.qml:107
 msgid "(or use your smartcard)"
 msgstr "(ali uporabite svojo pametno kartico)"
 
-#: fallbacktheme/Greeter.qml:114
+#: fallbacktheme/Greeter.qml:116
 msgid "&Switch Users"
 msgstr "P&reklopi uporabnike"
 
-#: fallbacktheme/Greeter.qml:121
+#: fallbacktheme/Greeter.qml:123
 msgid "Un&lock"
 msgstr "Odk&leni"
 
-#: fallbacktheme/Greeter.qml:133
+#: fallbacktheme/Greeter.qml:135
 msgid "Unlocking failed"
 msgstr "Odklepanje ni uspelo"
 
-#: main.cpp:123
+#: main.cpp:102
 #, kde-format
 msgid "Greeter for the KDE Plasma Workspaces Screen locker"
 msgstr "Pozdravni zaslon za zaklep zaslona delovnega prostora KDE Plasma"
 
-#: main.cpp:127
+#: main.cpp:106
 #, kde-format
 msgid "Starts the greeter in testing mode"
 msgstr "Pozdravni zaslon bo zagnan v načinu preizkušanja"
 
-#: main.cpp:130
+#: main.cpp:109
 #, kde-format
 msgid "Starts the greeter with the selected shell theme (only in Testing mode)"
 msgstr ""
 "Zažene pozdravni program z izbrano temo lupine (samo v načinu testiranja)"
 
-#: main.cpp:134
+#: main.cpp:113
 #, kde-format
 msgid "Lock immediately, ignoring any grace time etc."
 msgstr "Zakleni takoj, brez upoštevanja odloga, itd."
 
-#: main.cpp:136
+#: main.cpp:115
 #, kde-format
 msgid "Delay till the lock user interface gets shown in milliseconds."
 msgstr "Zakasnitev v milisekundah do prikaza vmesnika za uporabniški zaklep."
 
-#: main.cpp:139
+#: main.cpp:118
 #, kde-format
 msgid "Don't show any lock user interface."
 msgstr "Ne prikaži vmesnika za uporabniški zaklep."
 
-#: main.cpp:141
+#: pamauthenticatormodel.cpp:51
 #, kde-format
-msgid "File descriptor for connecting to ksld."
-msgstr "Opisovalnik datoteke za povezovanje s ksld."
+msgctxt "authentication type in unlock dialogs"
+msgid "Password"
+msgstr "Geslo"
+
+#: pamauthenticatormodel.cpp:60
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Smartcard"
+msgstr "Pametna kartica"
+
+#: pamauthenticatormodel.cpp:67
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Fingerprint"
+msgstr "Prstni odtis"
+
+#: pamauthenticatormodel.cpp:74
+#, kde-format
+msgctxt "authentication type in unlock dialogs - facial authentication"
+msgid "Face"
+msgstr "Obraz"
+
+#: pamauthenticatormodel.cpp:82
+#, kde-format
+msgctxt ""
+"authentication type in unlock dialogs - universal 2 factor authentication "
+"(yubikey etc)"
+msgid "Universal 2 Factor"
+msgstr "Univerzalni 2 faktor"
+
+#~ msgid "File descriptor for connecting to ksld."
+#~ msgstr "Opisovalnik datoteke za povezovanje s ksld."
 
 #~ msgid "Default to the switch user UI."
 #~ msgstr "Naj bo privzet uporabniški vmesnik za preklop uporabnikov."
@@ -96,9 +130,6 @@ msgstr "Opisovalnik datoteke za povezovanje s ksld."
 
 #~ msgid "Location"
 #~ msgstr "Mesto"
-
-#~ msgid "Password:"
-#~ msgstr "Geslo:"
 
 #~ msgctxt ""
 #~ "thesession name and the location where the session is running (what vt)"

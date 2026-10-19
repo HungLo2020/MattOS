@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2025-10-09 01:05+0200\n"
+"POT-Creation-Date: 2026-04-14 00:45+0000\n"
+"PO-Revision-Date: 2026-04-26 21:25+0200\n"
 "Last-Translator: Shinjo Park <kde@peremen.name>\n"
 "Language-Team: Korean <kde-kr@kde.org>\n"
 "Language: ko\n"
@@ -255,14 +255,8 @@ msgstr "현재 앱"
 msgid "Visualization"
 msgstr "시각화"
 
-#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
-#: main.ui:645
-#, kde-format
-msgid "The effect to replace the list window when desktop effects are active."
-msgstr "데스크톱 효과가 활성화되어 있을 때 창을 바꾸는 효과입니다."
-
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:678
+#: main.ui:624
 #, kde-format
 msgid ""
 "The currently selected window will be highlighted by fading out all other "
@@ -271,11 +265,71 @@ msgstr ""
 "다른 모든 창을 숨겨서 현재 선택한 창을 강조합니다. 이 옵션을 사용하려면 데스"
 "크톱 효과를 활성화시켜야 합니다."
 
-#. i18n: ectx: property (text), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:681
+#. i18n: ectx: property (text), widget (QLabel, label_HighlightWindows)
+#: main.ui:634
 #, kde-format
 msgid "Show selected window"
 msgstr "선택한 창 표시"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_ShowTabBox)
+#: main.ui:644
+#, kde-format
+msgid "Enable the window list effect"
+msgstr "창 목록 효과 활성화"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
+#: main.ui:678
+#, kde-format
+msgid "The effect to replace the list window when desktop effects are active."
+msgstr "데스크톱 효과가 활성화되어 있을 때 창을 바꾸는 효과입니다."
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, label_DelayTime)
+#: main.ui:701
+#, kde-format
+msgid "The time in milliseconds to wait before showing the task switcher."
+msgstr "밀리초 단위의 작업 전환기를 표시하기 전까지 기다릴 지연 시간입니다."
+
+#. i18n: ectx: property (text), widget (QLabel, label_DelayTime)
+#: main.ui:704
+#, kde-format
+msgid "Delay:"
+msgstr "지연 시간:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:720
+#, kde-format
+msgid " ms"
+msgstr "밀리초"
+
+#. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:735
+#, kde-format
+msgid "Delay before the window list appears"
+msgstr "창 목록이 나타나기 전까지 지연 시간"
+
+#. i18n: ectx: property (text), widget (QLabel, label_showScreen)
+#: main.ui:742
+#, kde-format
+msgid "Show on screen:"
+msgstr "다음 화면에 표시:"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, showScreenCombo)
+#: main.ui:758
+#, kde-format
+msgid "Select which screen the task switcher should be displayed on."
+msgstr "작업 전환기를 표시할 화면을 선택하십시오."
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:762
+#, kde-format
+msgid "Active screen"
+msgstr "활성 화면"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:767
+#, kde-format
+msgid "Primary screen"
+msgstr "주 화면"
 
 #: shortcutsettings.cpp:131
 #, kde-format

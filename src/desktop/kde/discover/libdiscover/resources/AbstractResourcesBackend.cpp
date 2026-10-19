@@ -100,27 +100,27 @@ void AbstractResourcesBackend::emitRatingsReady()
     Q_EMIT allDataChanged({"rating", "ratingPoints", "ratingCount", "sortableRating"});
 }
 
-bool AbstractResourcesBackend::Filters::shouldFilter(AbstractResource *resourse) const
+bool AbstractResourcesBackend::Filters::shouldFilter(AbstractResource *resource) const
 {
-    Q_ASSERT(resourse);
+    Q_ASSERT(resource);
 
-    if (!extends.isEmpty() && !resourse->extends().contains(extends)) {
+    if (!extends.isEmpty() && !resource->extends().contains(extends)) {
         return false;
     }
 
-    if (!origin.isEmpty() && resourse->origin() != origin) {
+    if (!origin.isEmpty() && resource->disambiguatedOrigin() != origin) {
         return false;
     }
 
-    if (filterMinimumState ? (resourse->state() < state) : (resourse->state() != state)) {
+    if (filterMinimumState ? (resource->state() < state) : (resource->state() != state)) {
         return false;
     }
 
-    if (!mimetype.isEmpty() && !resourse->mimetypes().contains(mimetype)) {
+    if (!mimetype.isEmpty() && !resource->mimetypes().contains(mimetype)) {
         return false;
     }
 
-    return !category || resourse->categoryMatches(category);
+    return !category || resource->categoryMatches(category);
 }
 
 void AbstractResourcesBackend::Filters::filterJustInCase(QVector<AbstractResource *> &resources) const

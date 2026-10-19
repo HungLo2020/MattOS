@@ -46,6 +46,7 @@ private Q_SLOTS:
     void testInvalid();
     void testDeleteEntry();
     void testDelete();
+    void testDeleteDefaults();
     void testDeleteWhenLocalized();
     void testDefaultGroup();
     void testEmptyGroup();
@@ -92,6 +93,13 @@ private Q_SLOTS:
 
     void testKdeglobalsVsDefault();
     void testChrono();
+
+    void testOpenFlags();
+    void testSystemAndUserConfig();
+
+    // these tests overwrite the kdeglobals file created by initTestCase()
+    void testImmutableFiles();
+    void testImmutableVsDefault();
 
     // should be last
     void testSyncOnExit();

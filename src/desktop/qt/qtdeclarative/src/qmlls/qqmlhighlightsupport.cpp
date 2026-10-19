@@ -42,10 +42,10 @@ QList<QByteArray> extendedTokenTypesList()
     return enumToByteArray<SemanticTokenProtocolTypes>();
 }
 
-static QList<int> generateHighlights(QmlLsp::RegisteredSemanticTokens &cached,
-                                     const QmlLsp::OpenDocument &doc,
-                                     const std::optional<HighlightsRange> &range,
-                                     HighlightingMode mode)
+static QList<unsigned> generateHighlights(QmlLsp::RegisteredSemanticTokens &cached,
+                                          const QmlLsp::OpenDocument &doc,
+                                          const std::optional<HighlightsRange> &range,
+                                          HighlightingMode mode)
 {
     DomItem file = doc.snapshot.doc.fileObject(GoTo::MostLikely);
     const auto fileObject = file.ownerAs<QmlFile>();
@@ -95,10 +95,9 @@ void SemanticTokenFullHandler::process(
     const QByteArray uri = QQmlLSUtils::lspUriToQmlUrl(request->m_parameters.textDocument.uri);
     const auto doc = m_codeModelManager->openDocumentByUrl(uri);
     auto &cached = m_codeModelManager->registeredTokens(uri);
-    const auto encoded = generateHighlights(cached, doc, std::nullopt, m_mode);
+    auto encoded = generateHighlights(cached, doc, std::nullopt, m_mode);
 
     if (encoded.isEmpty()) {
-        result = nullptr;
         return;
     } else {
         result = SemanticTokens{cached.resultId, std::move(encoded)};
@@ -184,13 +183,12 @@ void SemanticTokenRangeHandler::process(
             int(QQmlLSUtils::textOffsetFrom(code, range.start.line, range.end.character));
     int endOffset = int(QQmlLSUtils::textOffsetFrom(code, range.end.line, range.end.character));
     auto &cached = m_codeModelManager->registeredTokens(uri);
-    const auto encodedTokens = generateHighlights(
+    auto encodedTokens = generateHighlights(
             cached,
             doc,
             QmlHighlighting::HighlightsRange{ startOffset, endOffset },
             m_mode);
     if (encodedTokens.isEmpty()) {
-        result = nullptr;
     } else {
         result = SemanticTokens{ cached.resultId, std::move(encodedTokens) };
     }
@@ -206,32 +204,23 @@ QQmlHighlightSupport::QQmlHighlightSupport(QmlLsp::QQmlCodeModelManager *codeMod
 {
 }
 
-QString QQmlHighlightSupport::name() const
-{
-    return "QQmlHighlightSupport"_L1;
-}
-
 void QQmlHighlightSupport::registerHandlers(QLanguageServer *server, QLanguageServerProtocol *protocol)
 {
     m_full.registerHandlers(server, protocol);
     m_delta.registerHandlers(server, protocol);
     m_range.registerHandlers(server, protocol);
 
-    QObject::connect(m_full.manager(), &QmlLsp::QQmlCodeModelManager::configurationChanged, this,
-                     [protocol]() {
-                         protocol->requestRequestingARefreshOfAllSemanticTokens({ }, []() { });
-                     });
+    QObject::connect(server, &QLanguageServer::clientInitialized, this,
+                     &QQmlHighlightSupport::clientInitialized, Qt::SingleShotConnection);
+
+    QObject::connect(
+            m_full.manager(), &QmlLsp::QQmlCodeModelManager::configurationChanged, this,
+            [protocol]() { protocol->requestWorkspaceSemanticTokensRefresh({ }, []() { }); });
 }
 
-void QQmlHighlightSupport::setupCapabilities(
-        const QLspSpecification::InitializeParams &clientCapabilities,
-        QLspSpecification::InitializeResult &serverCapabilities)
+void QQmlHighlightSupport::clientInitialized(QLanguageServer *server)
 {
-    QLspSpecification::SemanticTokensOptions options;
-    options.range = true;
-    options.full = QJsonObject({ { u"delta"_s, true } });
-
-    if (auto clientInitOptions = clientCapabilities.initializationOptions) {
+    if (auto clientInitOptions = server->clientInfo().initializationOptions) {
         if ((*clientInitOptions)[u"qtCreatorHighlighting"_s].toBool(false)) {
             const auto mode = HighlightingMode::QtCHighlighting;
             m_delta.setHighlightingMode(mode);
@@ -239,9 +228,17 @@ void QQmlHighlightSupport::setupCapabilities(
             m_range.setHighlightingMode(mode);
         }
     }
+}
+
+void QQmlHighlightSupport::setupCapabilities(QLspSpecification::ServerCapabilities &caps)
+{
+    QLspSpecification::SemanticTokensOptions options;
+    options.range = true;
+    options.full = QJsonObject({ { u"delta"_s, true } });
+
     options.legend.tokenTypes = extendedTokenTypesList();
     options.legend.tokenModifiers = defaultTokenModifiersList();
-    serverCapabilities.capabilities.semanticTokensProvider = options;
+    caps.semanticTokensProvider = options;
 }
 
 QT_END_NAMESPACE

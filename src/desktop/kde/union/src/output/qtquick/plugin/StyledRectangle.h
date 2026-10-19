@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+#pragma once
+
+#include <QQuickItem>
+#include <qqmlregistration.h>
+
+#include "QuickStyle.h"
+
+namespace Union
+{
+namespace Quick
+{
+
+/*!
+ * \qmltype StyledRectangle
+ * \inqmlmodule org.kde.union.impl
+ * \ingroup qtquick-core
+ *
+ * \brief An item used to render a rectangle based on style properties.
+ *
+ * This will render a rectangle for an element based on the properties exposed
+ * to QuickStyle.
+ */
+class StyledRectangle : public QQuickItem
+{
+    Q_OBJECT
+    QML_ELEMENT
+
+public:
+    StyledRectangle(QQuickItem *parent = nullptr);
+
+    Q_PROPERTY(Union::Quick::QuickStyle *style READ style WRITE setStyle NOTIFY styleChanged)
+    Union::Quick::QuickStyle *style() const;
+    void setStyle(Union::Quick::QuickStyle *newStyle);
+    Q_SIGNAL void styleChanged();
+
+    void componentComplete() override;
+
+protected:
+    bool event(QEvent *event) override;
+    void itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &value) override;
+    QSGNode *updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeData *data) override;
+
+private:
+    void updateImplicitSize();
+    QSGNode *updateShaderNode(QSGNode *node, const Union::Properties::StylePropertyGroup *style);
+
+    QuickStyle *m_style = nullptr;
+    int m_shadowCount = 0;
+    int m_backgroundCount = 0;
+    bool m_borderOutlineEnabled = false;
+};
+
+}
+}

@@ -12,8 +12,6 @@ ecm_qt_declare_logging_category(kcm_gamecontroller
         KCM_GAMECONTROLLER
     CATEGORY_NAME
         kcm_gamecontroller
-    DEFAULT_SEVERITY
-        Critical
     DESCRIPTION
         "KCM for game controller"
     EXPORT
@@ -34,6 +32,7 @@ target_sources(kcm_gamecontroller PRIVATE
     hatmodel.cpp
     kcm.cpp
     udevmatcher.cpp
+    gamecontrollermoduledata.cpp
 )
 
 kconfig_target_kcfg_file(kcm_gamecontroller
@@ -53,3 +52,5 @@ target_link_libraries(kcm_gamecontroller PRIVATE
     Qt::DBus
     UDev::UDev
 )
+
+install(FILES gamecontrolleremulationsettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})

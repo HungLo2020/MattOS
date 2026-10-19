@@ -1,24 +1,25 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # Lukáš Tinkl <ltinkl@redhat.com>, 2010.
-# SPDX-FileCopyrightText: 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019, 2020, 2023, 2024 Vít Pelčák <vit@pelcak.org>
+# SPDX-FileCopyrightText: 2010-2017, 2019-2020, 2023-2024, 2026 Vít Pelčák <vit@pelcak.org>
 # Tomáš Chvátal <tomas.chvatal@gmail.com>, 2013.
 # SPDX-FileCopyrightText: 2021, 2023, 2024, 2025 Vit Pelcak <vit@pelcak.org>
+# SPDX-FileCopyrightText: 2026 Libor Filípek <libor.filipek@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: powerdevil\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-10 02:38+0000\n"
-"PO-Revision-Date: 2025-09-02 15:17+0200\n"
-"Last-Translator: Vit Pelcak <vit@pelcak.org>\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-08-26 23:24+0200\n"
+"Last-Translator: Libor Filípek <libor.filipek@gmail.com>\n"
 "Language-Team: Czech <kde-i18n-doc@kde.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.08.0\n"
+"X-Generator: Poedit 3.9\n"
 "X-Language: cs_CZ\n"
 "X-Source-Language: en_US\n"
 
@@ -32,7 +33,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "vit@pelcak.org,mkyral@email.cz,david@kolibac.cz"
 
-#: actions/bundled/dpms.cpp:73 actions/bundled/handlebuttonevents.cpp:46
+#: actions/bundled/dpms.cpp:60 actions/bundled/handlebuttonevents.cpp:46
 #: actions/bundled/keyboardbrightnesscontrol.cpp:47
 #: actions/bundled/powerprofile.cpp:67 powerdevilscreenbrightnessagent.cpp:138
 #, kde-format
@@ -40,7 +41,7 @@ msgctxt "Name for powerdevil shortcuts category"
 msgid "Power Management"
 msgstr "Správa napájení"
 
-#: actions/bundled/dpms.cpp:76
+#: actions/bundled/dpms.cpp:63
 #, kde-format
 msgctxt "@action:inmenu Global shortcut"
 msgid "Turn Off Screen"
@@ -122,7 +123,7 @@ msgstr "PowerDevil je pokročilý, modulární a nenáročný démon správy nap
 #, kde-format
 msgctxt "@info:credit"
 msgid "© 2015–2019 Kai Uwe Broulik"
-msgstr ""
+msgstr "© 2015–2019 Kai Uwe Broulik"
 
 #: powerdevilapp.cpp:107
 #, kde-format
@@ -153,79 +154,76 @@ msgstr "Předchozí správce"
 msgid "Replace an existing instance"
 msgstr "Nahradit existující instanci"
 
-#: powerdevilcore.cpp:403 powerdevilcore.cpp:414
+#: powerdevilcore.cpp:399 powerdevilcore.cpp:410
 #, kde-format
 msgid "Activity Manager"
 msgstr "Správce aktivit"
 
-#: powerdevilcore.cpp:404
+#: powerdevilcore.cpp:400
 #, kde-format
 msgid "This activity's policies prevent the system from going to sleep"
-msgstr "Tyto zásady aktivit brání uspání systému."
+msgstr "Tyto zásady aktivit brání uspání systému"
 
-#: powerdevilcore.cpp:415
+#: powerdevilcore.cpp:411
 #, kde-format
 msgid "This activity's policies prevent screen power management"
 msgstr "Tyto zásady aktivit brání vypnutí obrazovky"
 
-#: powerdevilcore.cpp:480
+#: powerdevilcore.cpp:471
 #, kde-format
 msgid "Extra Battery Added"
 msgstr "Přidána extra baterie"
 
-#: powerdevilcore.cpp:481
+#: powerdevilcore.cpp:472
 #, kde-format
 msgid "The system will no longer go to sleep."
 msgstr "Systém už nebude uspán."
 
-#: powerdevilcore.cpp:545
+#: powerdevilcore.cpp:538
 #, kde-format
 msgctxt "%1 is vendor name, %2 is product name"
 msgid "%1 %2"
 msgstr "%1 %2"
 
-#: powerdevilcore.cpp:548
+#: powerdevilcore.cpp:541
 #, kde-format
 msgctxt "The battery in an external device"
 msgid "Device Battery Low (%1% Remaining)"
 msgstr "Baterie zařízení je téměř vybitá (zbývá %1%)"
 
-#: powerdevilcore.cpp:550
+#: powerdevilcore.cpp:544
 #, kde-format
 msgctxt "Placeholder is device name"
-msgid ""
-"The battery in \"%1\" is running low, and the device may turn off at any "
-"time. Please recharge or replace the battery."
-msgstr ""
-"Baterie v \"%1\" je téměř vybitá a zařízení se může kdykoliv vypnout. Prosím "
-"nabijte nebo vyměňte baterii."
+msgid "The battery in “%1” is running low. Please recharge the battery."
+msgstr "Baterie v \"%1\" je téměř vybitá. Dobijte prosím baterii."
 
-#: powerdevilcore.cpp:557
+#: powerdevilcore.cpp:546
+#, kde-format
+msgctxt "Placeholder is device name"
+msgid "The battery in “%1” is running low."
+msgstr "Baterie v \"%1\" je téměř vybitá."
+
+#: powerdevilcore.cpp:552
 #, kde-format
 msgid "Mouse Battery Low (%1% Remaining)"
 msgstr "Baterie myši je téměř vybitá (zbývá %1%)"
 
-#: powerdevilcore.cpp:561
+#: powerdevilcore.cpp:556
 #, kde-format
 msgid "Keyboard Battery Low (%1% Remaining)"
 msgstr "Baterie klávesnice je téměř vybitá (zbývá %1%)"
 
-#: powerdevilcore.cpp:571
+#: powerdevilcore.cpp:566
+#, kde-format
+msgid "Phone Battery Low (%1% Remaining)"
+msgstr "Baterie telefonu je téměř vybitá (zbývá %1%)"
+
+#: powerdevilcore.cpp:570
 #, kde-format
 msgid "Bluetooth Device Battery Low (%1% Remaining)"
 msgstr "Baterie zařízení velmi nízko (zbývá %1%)"
 
-#: powerdevilcore.cpp:573
-#, kde-format
-msgctxt "Placeholder is device name"
-msgid ""
-"The battery in Bluetooth device \"%1\" is running low, and the device may "
-"turn off at any time. Please recharge or replace the battery."
-msgstr ""
-"Baterie v zařízení Bluetooth \"%1\" je téměř vybitá a zařízení se může "
-"kdykoliv vypnout. Prosím nabijte nebo vyměňte baterii."
-
-#: powerdevilcore.cpp:615
+#: powerdevilcore.cpp:610
 #, kde-format
 msgid ""
 "Ensure that the power cord is plugged in all the way and provides enough "
@@ -233,29 +231,29 @@ msgid ""
 msgstr ""
 "Zajistěte, že napájecí kabel je pořádně zasunut a poskytuje dostatek energie."
 
-#: powerdevilcore.cpp:617
+#: powerdevilcore.cpp:612
 #, kde-format
 msgid "Plug in the power cord."
 msgstr "Připojte napájecí kabel."
 
-#: powerdevilcore.cpp:637
+#: powerdevilcore.cpp:632
 #, kde-format
 msgid "The system will shut down in 60 seconds."
 msgstr "Systém bude vypnut během 60 sekund."
 
-#: powerdevilcore.cpp:639
+#: powerdevilcore.cpp:634
 #, kde-format
 msgctxt ""
 "@action:button Shut down without waiting for the battery critical timer"
 msgid "Shut Down Now"
 msgstr "Vypnout nyní"
 
-#: powerdevilcore.cpp:645
+#: powerdevilcore.cpp:640
 #, kde-format
 msgid "The system will hibernate in 60 seconds."
 msgstr "Systém bude hibernován během 60 sekund."
 
-#: powerdevilcore.cpp:647
+#: powerdevilcore.cpp:642
 #, kde-format
 msgctxt ""
 "@action:button Enter hibernation mode without waiting for the battery "
@@ -263,24 +261,24 @@ msgctxt ""
 msgid "Hibernate Now"
 msgstr "Hibernovat nyní"
 
-#: powerdevilcore.cpp:653
+#: powerdevilcore.cpp:648
 #, kde-format
 msgid "The system will go to sleep in 60 seconds."
 msgstr "Systém bude uspán během 60 sekund."
 
-#: powerdevilcore.cpp:655
+#: powerdevilcore.cpp:650
 #, kde-format
 msgctxt ""
 "@action:button Suspend to ram without waiting for the battery critical timer"
 msgid "Sleep Now"
 msgstr "Uspat nyní"
 
-#: powerdevilcore.cpp:661
+#: powerdevilcore.cpp:656
 #, kde-format
 msgid "Please save your work."
 msgstr "Prosím, uložte svou práci."
 
-#: powerdevilcore.cpp:667
+#: powerdevilcore.cpp:662
 #, kde-format
 msgctxt ""
 "Cancel timeout that will automatically put system to sleep because of low "
@@ -288,52 +286,52 @@ msgctxt ""
 msgid "Cancel"
 msgstr "Zrušit"
 
-#: powerdevilcore.cpp:682
+#: powerdevilcore.cpp:677
 #, kde-format
 msgid "Battery Low (%1% Remaining)"
 msgstr "Baterie je téměř vybitá (zbývá %1%)"
 
-#: powerdevilcore.cpp:686
+#: powerdevilcore.cpp:684
 #, kde-format
 msgid "Battery Critical (%1% Remaining)"
 msgstr "Baterie je v kritickém stavu (zbývá %1%)"
 
-#: powerdevilcore.cpp:720
+#: powerdevilcore.cpp:713
 #, kde-format
 msgid "Power Cord Plugged In"
 msgstr "Napájecí kabel je zapojen"
 
-#: powerdevilcore.cpp:721
+#: powerdevilcore.cpp:714
 #, kde-format
 msgid "The computer will no longer go to sleep."
 msgstr "Počítač už nebude uspán."
 
-#: powerdevilcore.cpp:723
+#: powerdevilcore.cpp:716
 #, kde-format
 msgid "Running on AC Power"
-msgstr ""
+msgstr "Napájeno ze sítě"
 
-#: powerdevilcore.cpp:724
+#: powerdevilcore.cpp:717
 #, kde-format
 msgid "The power cord has been plugged in."
 msgstr "Napájecí kabel byl připojen."
 
-#: powerdevilcore.cpp:736
+#: powerdevilcore.cpp:732
 #, kde-format
 msgid "Running on Battery Power"
 msgstr "Napájeno z baterie"
 
-#: powerdevilcore.cpp:737
+#: powerdevilcore.cpp:733
 #, kde-format
 msgid "The power cord has been unplugged."
 msgstr "Napájecí kabel byl odpojen."
 
-#: powerdevilcore.cpp:800
+#: powerdevilcore.cpp:798
 #, kde-format
 msgid "Charging Complete"
 msgstr "Nabití bylo dokončeno"
 
-#: powerdevilcore.cpp:800
+#: powerdevilcore.cpp:798
 #, kde-format
 msgid "Battery now fully charged."
 msgstr "Vaše baterie je nyní plně nabitá."
@@ -361,3 +359,11 @@ msgstr "Snížit jas obrazovky"
 msgctxt "@action:inmenu Global shortcut"
 msgid "Decrease Screen Brightness by 1%"
 msgstr "Snížit jas obrazovky o 1%"
+
+#~ msgctxt "Placeholder is device name"
+#~ msgid ""
+#~ "The battery in Bluetooth device \"%1\" is running low, and the device may "
+#~ "turn off at any time. Please recharge or replace the battery."
+#~ msgstr ""
+#~ "Baterie v zařízení Bluetooth \"%1\" je téměř vybitá a zařízení se může "
+#~ "kdykoliv vypnout. Prosím nabijte nebo vyměňte baterii."

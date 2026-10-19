@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2023, 2024 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2019, 2020, 2021.
 # Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2019.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_org.kde.plasma.notifications\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-04 02:42+0000\n"
-"PO-Revision-Date: 2024-02-09 02:52+0900\n"
-"Last-Translator: Ryuichi Yamada <ryuichi_ya220@outlook.jp>\n"
-"Language-Team: Japanese <kde-jp@kde.org>\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
+"PO-Revision-Date: 2026-06-14 16:22+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
+"Language-Team: Japanese <kde-i18n-doc@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -16,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 23.08.4\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #: components/ActionContainer.qml:96
 #, kde-format
@@ -103,54 +104,63 @@ msgctxt "Row description, e.g. Source"
 msgid "%1:"
 msgstr "%1:"
 
-#: components/JobDetails.qml:116
+#: components/JobDetails.qml:118
 #, kde-format
 msgctxt "How many bytes have been copied"
 msgid "%2 of %1"
 msgstr "%1 中 %2"
 
-#: components/JobDetails.qml:120
-#, kde-format
+#: components/JobDetails.qml:122
+#, fuzzy, kde-format
+#| msgctxt "How many files have been copied"
+#| msgid "%2 of %1 file"
+#| msgid_plural "%2 of %1 files"
 msgctxt "How many files have been copied"
-msgid "%2 of %1 file"
-msgid_plural "%2 of %1 files"
+msgid "%3 of %2 file"
+msgid_plural "%3 of %2 files"
 msgstr[0] "%1 ファイル中 %2 ファイル"
 
-#: components/JobDetails.qml:123
-#, kde-format
+#: components/JobDetails.qml:125
+#, fuzzy, kde-format
+#| msgctxt "How many dirs have been copied"
+#| msgid "%2 of %1 folder"
+#| msgid_plural "%2 of %1 folders"
 msgctxt "How many dirs have been copied"
-msgid "%2 of %1 folder"
-msgid_plural "%2 of %1 folders"
+msgid "%3 of %2 folder"
+msgid_plural "%3 of %2 folders"
 msgstr[0] "%1 フォルダ中 %2 フォルダ"
 
-#: components/JobDetails.qml:126
-#, kde-format
+#: components/JobDetails.qml:128
+#, fuzzy, kde-format
+#| msgctxt "How many items (that includes files and dirs) have been copied"
+#| msgid "%2 of %1 item"
+#| msgid_plural "%2 of %1 items"
 msgctxt "How many items (that includes files and dirs) have been copied"
-msgid "%2 of %1 item"
-msgid_plural "%2 of %1 items"
+msgid "%3 of %2 item"
+msgid_plural "%3 of %2 items"
 msgstr[0] "%1 アイテム中 %2"
 
-#: components/JobDetails.qml:135
+#: components/JobDetails.qml:137
 #, kde-format
 msgid "%1 file"
 msgid_plural "%1 files"
 msgstr[0] "%1 ファイル"
 
-#: components/JobDetails.qml:137
+#: components/JobDetails.qml:139
 #, kde-format
 msgid "%1 folder"
 msgid_plural "%1 folders"
 msgstr[0] "%1 フォルダ"
 
-#: components/JobDetails.qml:139
+#: components/JobDetails.qml:141
 #, kde-format
 msgid "%1 item"
 msgid_plural "%1 items"
 msgstr[0] "%1 アイテム"
 
-#: components/JobDetails.qml:156 components/SpeedChart.qml:72
-#: components/SpeedChart.qml:98 components/SpeedChart.qml:193
-#: components/SpeedChart.qml:204
+#: components/JobDetails.qml:158 components/SpeedChart.qml:75
+#: components/SpeedChart.qml:103 components/SpeedChart.qml:204
+#: components/SpeedChart.qml:217
 #, kde-format
 msgctxt "Bytes per second"
 msgid "%1/s"
@@ -166,7 +176,7 @@ msgstr "詳細"
 #, kde-format
 msgctxt "Resume paused job"
 msgid "Resume"
-msgstr ""
+msgstr "再開"
 
 #: components/JobItem.qml:79
 #, kde-format
@@ -180,7 +190,7 @@ msgctxt "Cancel running job"
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: components/JobItem.qml:125 components/ThumbnailStrip.qml:159
+#: components/JobItem.qml:125 components/ThumbnailStrip.qml:154
 #, kde-format
 msgid "More Options…"
 msgstr "他のオプション…"
@@ -207,17 +217,17 @@ msgctxt "@action:button"
 msgid "Send"
 msgstr "送信"
 
-#: components/SpeedChart.qml:145
+#: components/SpeedChart.qml:155
 #, kde-format
 msgid "Speed"
 msgstr ""
 
-#: components/SpeedChart.qml:200
+#: components/SpeedChart.qml:212
 #, kde-format
 msgid "Average Speed"
 msgstr ""
 
-#: components/SpeedChart.qml:258
+#: components/SpeedChart.qml:272
 #, kde-format
 msgctxt "Percentage of a job"
 msgid "%1%"
@@ -251,12 +261,12 @@ msgstr "%1 (完了)"
 msgid "Job Finished"
 msgstr "ジョブ完了"
 
-#: fileinfo.cpp:170
+#: fileinfo.cpp:186
 #, kde-format
 msgid "Open with %1"
 msgstr "%1 で開く"
 
-#: fileinfo.cpp:174
+#: fileinfo.cpp:190
 #, kde-format
 msgid "Open with…"
 msgstr "アプリケーションで開く…"
@@ -380,21 +390,35 @@ msgctxt "Vendor and product name"
 msgid "Notifications are currently provided by '%1 %2'"
 msgstr "通知は現在 '%1 %2' によって提供されています"
 
-#: globalshortcuts.cpp:23
+#: globalshortcuts.cpp:24
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "マナーモードをオン/オフ"
 
-#: globalshortcuts.cpp:42
+#: globalshortcuts.cpp:33
+#, kde-format
+msgctxt "@action"
+msgid "Clear Notification History"
+msgstr "通知履歴をクリア"
+
+#: globalshortcuts.cpp:52
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications Off"
 msgstr "通知オフ"
 
-#: globalshortcuts.cpp:43
+#: globalshortcuts.cpp:53
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications On"
+msgstr "通知オン"
+
+#: globalshortcuts.cpp:68
+#, fuzzy, kde-format
+#| msgctxt "OSD popup, keep short"
+#| msgid "Notifications On"
+msgctxt "@label OSD popup, keep short"
+msgid "Notification history cleared"
 msgstr "通知オン"
 
 #: main.qml:61
@@ -444,12 +468,12 @@ msgstr "マナーモードが有効です - 中クリックして終了"
 msgid "Middle-click to enter do not disturb mode"
 msgstr "中クリックしてマナーモードをオン"
 
-#: main.qml:238
+#: main.qml:245
 #, kde-format
 msgid "Clear All Notifications"
 msgstr "すべての通知をクリア"
 
-#: main.qml:257
+#: main.qml:264
 #, kde-format
 msgid "&Configure Event Notifications and Actions…"
 msgstr "イベント通知とアクションを設定(&C)…"

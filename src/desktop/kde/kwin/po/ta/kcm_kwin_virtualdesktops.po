@@ -8,10 +8,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_kwindesktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-12-23 00:42+0000\n"
-"PO-Revision-Date: 2026-05-02 18:32+0530\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
+"PO-Revision-Date: 2026-05-02 18:40+0530\n"
 "Last-Translator: Kishore G <kishore96@gmail.com>\n"
-"Language-Team: Tamil <kde-i18n-doc@kde.org>\n"
+"Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
 "Language: ta\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -29,7 +29,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "Kde-l10n-ta@kde.org"
 
-#: desktopsmodel.cpp:191
+#: desktopsmodel.cpp:188
 #, kde-format
 msgctxt "A numbered name for virtual desktops"
 msgid "Desktop %1"
@@ -37,17 +37,17 @@ msgid_plural "Desktop %1"
 msgstr[0] "பணிமேடை %1"
 msgstr[1] "பணிமேடை %1"
 
-#: desktopsmodel.cpp:479
+#: desktopsmodel.cpp:476
 #, kde-format
 msgid "There was an error connecting to the compositor."
 msgstr "சாளர மேலாளரை தொடர்பு கொள்வதில் சிக்கல்."
 
-#: desktopsmodel.cpp:678
+#: desktopsmodel.cpp:672
 #, kde-format
 msgid "There was an error saving the settings to the compositor."
 msgstr "சாளர மேலாளரில் அமைப்புகளை சேமிப்பதில் சிக்கல்."
 
-#: desktopsmodel.cpp:681
+#: desktopsmodel.cpp:675
 #, kde-format
 msgid "There was an error requesting information from the compositor."
 msgstr "சாளர மேலாளரிடமிருந்து விவரங்களை பெறுவதில் சிக்கல்."
@@ -63,6 +63,12 @@ msgstr "வரிசைகள்:"
 msgctxt "@action:button"
 msgid "Add Desktop"
 msgstr "பணிமேடையை சேர்"
+
+#: ui/main.qml:82
+#, kde-kuit-format
+msgctxt "@label/rich"
+msgid "%1"
+msgstr ""
 
 #: ui/main.qml:90
 #, kde-format
@@ -112,22 +118,27 @@ msgstr "விருப்பங்கள்:"
 msgid "Navigation wraps around"
 msgstr "உலாவல் சுற்றி ஆரம்பத்திற்கே வரும்"
 
-#: ui/main.qml:229
+#: ui/main.qml:225
+#, kde-format
+msgid "Switch desktops independently for each screen"
+msgstr "அனைத்து திரைகளிலும் பணிமேடையை ஒருங்கே மாற்று"
+
+#: ui/main.qml:243
 #, kde-format
 msgid "Show animation when switching:"
 msgstr "மாற்றும்போது இவ்வாறு அசைவூட்டு:"
 
-#: ui/main.qml:280
+#: ui/main.qml:294
 #, kde-format
 msgid "Show on-screen display when switching:"
 msgstr "மாற்றும்போது இவ்வளவு நேரத்துக்கு மேல்படியும் அறிவிப்பை காட்டு:"
 
-#: ui/main.qml:299
+#: ui/main.qml:313
 #, kde-format
 msgid "%1 ms"
 msgstr "%1 ms"
 
-#: ui/main.qml:323
+#: ui/main.qml:337
 #, kde-format
 msgid "Show desktop layout indicators"
 msgstr "பணிமேடை தளவமைப்பை காட்டு"

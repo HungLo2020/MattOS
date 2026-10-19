@@ -222,10 +222,12 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(QAbstractSocket::BindMode)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QAbstractSocket::PauseModes)
 
+#if QT_NETWORK_REMOVED_SINCE(6, 12)
 #ifndef QT_NO_DEBUG_STREAM
 Q_NETWORK_EXPORT QDebug operator<<(QDebug, QAbstractSocket::SocketError);
 Q_NETWORK_EXPORT QDebug operator<<(QDebug, QAbstractSocket::SocketState);
 #endif
+#endif // QT_NETWORK_REMOVED_SINCE(6, 12)
 
 QT_END_NAMESPACE
 

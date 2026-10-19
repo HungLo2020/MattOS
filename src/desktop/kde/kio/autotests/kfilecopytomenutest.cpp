@@ -41,8 +41,7 @@ private Q_SLOTS:
 
         // Set a recent dir
         KConfigGroup recentDirsGroup(KSharedConfig::openConfig(), QStringLiteral("kuick-copy"));
-        m_recentDirs << m_destDir + QStringLiteral("/nonexistentsubdir") // will be action number count-3
-                     << m_nonWritableTempDir.path() // will be action number count-2
+        m_recentDirs << m_destDir + QStringLiteral("/nonexistentsubdir") << m_nonWritableTempDir.path() // will be action number count-2
                      << m_destDir; // will be action number count-1
         recentDirsGroup.writeEntry("Paths", m_recentDirs);
 
@@ -96,6 +95,12 @@ private Q_SLOTS:
         QVERIFY(actionNames.contains(QLatin1String("browse")));
         QCOMPARE(actionNames.at(actionNames.count() - 2), m_nonWritableTempDir.path());
         QCOMPARE(actionNames.last(), m_destDir);
+
+        const QString missingPath = m_destDir + QStringLiteral("/nonexistentsubdir");
+        QVERIFY(!actionNames.contains(missingPath));
+
+        KConfigGroup group(KSharedConfig::openConfig(), QStringLiteral("kuick-copy"));
+        QCOMPARE(group.readPathEntry("Paths", QStringList{}), QStringList() << m_nonWritableTempDir.path() << m_destDir);
     }
 
     void shouldTryCopyingToRecentPath_data()
@@ -105,7 +110,6 @@ private Q_SLOTS:
 
         QTest::newRow("working") << 1 << 0; // no error
         QTest::newRow("non_writable") << 2 << int(KIO::ERR_WRITE_ACCESS_DENIED);
-        QTest::newRow("non_existing") << 3 << int(KIO::ERR_CANNOT_OPEN_FOR_WRITING);
     }
 
     void shouldTryCopyingToRecentPath()
@@ -153,7 +157,7 @@ private Q_SLOTS:
             group.sync();
             // Triggering the action again, should insert a recent dirs corresponding
             // to m_destDir, which calls KFileCopyToMainMenu::copyOrMoveTo(), which
-            // trims the recent dirs config to 10 urls, and _shouldn't_ crash
+            // trims the recent dirs config to 5 urls, and _shouldn't_ crash
             copyAction->trigger();
 
             // Back to normal for the next tests to pass

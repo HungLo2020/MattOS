@@ -5,63 +5,73 @@
 # Onur Küçük <onur@pardus.org.tr>, 2010.
 # Ozan Çağlayan <ozan@pardus.org.tr>, 2010, 2011.
 # Volkan Gezer <volkangezer@gmail.com>, 2013, 2014, 2015, 2017, 2021.
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Emir SARI <emir_sari@icloud.com>
+# SPDX-FileCopyrightText: 2022-2026 Emir SARI <emir_sari@icloud.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwinrules\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2025-04-30 17:34+0300\n"
-"Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
+"POT-Creation-Date: 2026-07-17 00:45+0000\n"
+"PO-Revision-Date: 2026-07-17 19:38+0300\n"
+"Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.04.0\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #: kcmrules.cpp:228
 #, kde-format
 msgid "Copy of %1"
 msgstr "%1 kopyası"
 
-#: kcmrules.cpp:414
+#: kcmrules.cpp:426
 #, kde-format
 msgid "Application settings for %1"
 msgstr "%1 uygulama ayarları"
 
-#: kcmrules.cpp:436 rulesmodel.cpp:221 rulesmodel.cpp:224
+#: kcmrules.cpp:448 rulesmodel.cpp:222 rulesmodel.cpp:225
 #, kde-format
 msgid "Window settings for %1"
 msgstr "%1 pencere ayarları"
 
-#: optionsmodel.cpp:198
+#: optionsmodel.cpp:199 optionsmodel.cpp:204
 #, kde-format
+msgctxt "@item:inlistbox"
 msgid "Unimportant"
 msgstr "Önemsiz"
 
-#: optionsmodel.cpp:199
+#: optionsmodel.cpp:200
 #, kde-format
+msgctxt "@item:inlistbox"
 msgid "Exact match"
 msgstr "Tam eşleşme"
 
-#: optionsmodel.cpp:200
+#: optionsmodel.cpp:201
 #, kde-format
+msgctxt "@item:inlistbox"
 msgid "Substring match"
 msgstr "Altdizi eşleşmesi"
 
-#: optionsmodel.cpp:201
+#: optionsmodel.cpp:202
 #, kde-format
+msgctxt "@item:inlistbox"
 msgid "Regular expression"
 msgstr "Düzenli ifade"
 
 #: optionsmodel.cpp:205
 #, kde-format
+msgctxt "@item:inlistbox This is a noun"
+msgid "Match"
+msgstr "Eşleşme"
+
+#: optionsmodel.cpp:210
+#, kde-format
 msgid "Apply initially"
 msgstr "Başlangıçta uygula"
 
-#: optionsmodel.cpp:206
+#: optionsmodel.cpp:211
 #, kde-format
 msgid ""
 "The window property will be only set to the given value after the window is "
@@ -72,12 +82,12 @@ msgstr ""
 "ayarlanacak.\n"
 "Başka bir değişiklik bundan etkilenmeyecek."
 
-#: optionsmodel.cpp:209
+#: optionsmodel.cpp:214
 #, kde-format
 msgid "Apply now"
 msgstr "Şimdi uygula"
 
-#: optionsmodel.cpp:210
+#: optionsmodel.cpp:215
 #, kde-format
 msgid ""
 "The window property will be set to the given value immediately and will not "
@@ -88,12 +98,12 @@ msgstr ""
 "etkilenmeyecek\n"
 "(bu eylem daha sonra silinecektir)."
 
-#: optionsmodel.cpp:213
+#: optionsmodel.cpp:218
 #, kde-format
 msgid "Remember"
 msgstr "Anımsa"
 
-#: optionsmodel.cpp:214
+#: optionsmodel.cpp:219
 #, kde-format
 msgid ""
 "The value of the window property will be remembered and, every time the "
@@ -102,12 +112,12 @@ msgstr ""
 "Pencere özelliğinin değeri anımsanacak ve her pencere oluşturulduğunda son "
 "anımsanan değer uygulanacaktır."
 
-#: optionsmodel.cpp:217
+#: optionsmodel.cpp:222
 #, kde-format
 msgid "Do not affect"
 msgstr "Etkileme"
 
-#: optionsmodel.cpp:218
+#: optionsmodel.cpp:223
 #, kde-format
 msgid ""
 "The window property will not be affected and therefore the default handling "
@@ -117,22 +127,22 @@ msgstr ""
 "Pencere özelliği etkilenmeyecek ve onun öntanımlı işlemesi kullanılacak.\n"
 "Bunu belirtmek, birçok genel pencere ayarının değişmesini engelleyecektir."
 
-#: optionsmodel.cpp:221
+#: optionsmodel.cpp:226
 #, kde-format
 msgid "Force"
 msgstr "Zorla"
 
-#: optionsmodel.cpp:222
+#: optionsmodel.cpp:227
 #, kde-format
 msgid "The window property will be always forced to the given value."
 msgstr "Pencere özelliği her zaman verilen değere zorlanacak."
 
-#: optionsmodel.cpp:224
+#: optionsmodel.cpp:229
 #, kde-format
 msgid "Force temporarily"
 msgstr "Geçici olarak zorla"
 
-#: optionsmodel.cpp:225
+#: optionsmodel.cpp:230
 #, kde-format
 msgid ""
 "The window property will be forced to the given value until it is hidden\n"
@@ -141,17 +151,17 @@ msgstr ""
 "Pencere özelliği, gizlenene dek verilen değere zorlanacak\n"
 "(bu eylem, pencere gizlendikten sonra silinecektir)."
 
-#: rulesmodel.cpp:227
+#: rulesmodel.cpp:228
 #, kde-format
 msgid "Settings for %1"
 msgstr "%1 ayarları"
 
-#: rulesmodel.cpp:230
+#: rulesmodel.cpp:231
 #, kde-format
 msgid "New window settings"
 msgstr "Yeni pencere ayarları"
 
-#: rulesmodel.cpp:246
+#: rulesmodel.cpp:247
 #, kde-format
 msgid ""
 "You have specified the window class as unimportant.\n"
@@ -165,7 +175,7 @@ msgstr ""
 "ayar oluşturmayı gerçekten istiyorsanız en azından pencere türünü belirterek "
 "özel pencereleri korumanızı öneririz."
 
-#: rulesmodel.cpp:253
+#: rulesmodel.cpp:254
 #, kde-format
 msgid ""
 "Some applications set their own geometry after starting, overriding your "
@@ -176,7 +186,7 @@ msgstr ""
 "boyut ve konum ayarlarınızı geçersiz kılarlar. Bu ayarları zorlamak için "
 "ayrıca “%1” özelliğini “Evet” olarak zorlayın."
 
-#: rulesmodel.cpp:260
+#: rulesmodel.cpp:261
 #, kde-format
 msgid ""
 "Readability may be impaired with extremely low opacity values. At 0%, the "
@@ -185,127 +195,132 @@ msgstr ""
 "Son derece düşük matlık değerlerinde okunabilirlik bozulabilir. %​0 olduğunda "
 "pencere görünmez hale gelir."
 
-#: rulesmodel.cpp:387
+#: rulesmodel.cpp:388
 #, kde-format
 msgid "Description"
 msgstr "Açıklama"
 
-#: rulesmodel.cpp:387 rulesmodel.cpp:395 rulesmodel.cpp:403 rulesmodel.cpp:410
-#: rulesmodel.cpp:416 rulesmodel.cpp:424 rulesmodel.cpp:429 rulesmodel.cpp:435
-#: rulesmodel.cpp:440
+#: rulesmodel.cpp:388 rulesmodel.cpp:396 rulesmodel.cpp:404 rulesmodel.cpp:411
+#: rulesmodel.cpp:417 rulesmodel.cpp:425 rulesmodel.cpp:430 rulesmodel.cpp:436
+#: rulesmodel.cpp:441 rulesmodel.cpp:447
 #, kde-format
 msgid "Window matching"
 msgstr "Pencere eşleştirme"
 
-#: rulesmodel.cpp:395
+#: rulesmodel.cpp:396
 #, kde-format
 msgid "Window class (application)"
 msgstr "Pencere sınıfı (uygulama)"
 
-#: rulesmodel.cpp:403
+#: rulesmodel.cpp:404
 #, kde-format
 msgid "Match whole window class"
 msgstr "Tam pencere sınıfını eşleştir"
 
-#: rulesmodel.cpp:410
+#: rulesmodel.cpp:411
 #, kde-format
 msgid "Whole window class"
 msgstr "Tam pencere sınıfını eşleştir"
 
-#: rulesmodel.cpp:416
+#: rulesmodel.cpp:417
 #, kde-format
 msgid "Window types"
 msgstr "Pencere türleri"
 
-#: rulesmodel.cpp:424
+#: rulesmodel.cpp:425
 #, kde-format
 msgid "Window role"
 msgstr "Pencere rolü"
 
-#: rulesmodel.cpp:429
+#: rulesmodel.cpp:430
 #, kde-format
 msgid "Window title"
 msgstr "Pencere başlığı"
 
-#: rulesmodel.cpp:435
+#: rulesmodel.cpp:436
 #, kde-format
 msgid "Machine (hostname)"
 msgstr "Makine (makine adı)"
 
-#: rulesmodel.cpp:440
+#: rulesmodel.cpp:441
 #, kde-format
 msgid "Window tag"
 msgstr "Pencere künyesi"
 
 #: rulesmodel.cpp:447
 #, kde-format
+msgid "Has parent window"
+msgstr "Üst penceresi var"
+
+#: rulesmodel.cpp:453
+#, kde-format
 msgid "Position"
 msgstr "Konum"
 
-#: rulesmodel.cpp:447 rulesmodel.cpp:453 rulesmodel.cpp:459 rulesmodel.cpp:464
-#: rulesmodel.cpp:472 rulesmodel.cpp:478 rulesmodel.cpp:497 rulesmodel.cpp:513
-#: rulesmodel.cpp:518 rulesmodel.cpp:523 rulesmodel.cpp:528 rulesmodel.cpp:535
-#: rulesmodel.cpp:549 rulesmodel.cpp:554 rulesmodel.cpp:559
+#: rulesmodel.cpp:453 rulesmodel.cpp:459 rulesmodel.cpp:465 rulesmodel.cpp:470
+#: rulesmodel.cpp:478 rulesmodel.cpp:484 rulesmodel.cpp:503 rulesmodel.cpp:519
+#: rulesmodel.cpp:524 rulesmodel.cpp:529 rulesmodel.cpp:534 rulesmodel.cpp:541
+#: rulesmodel.cpp:555 rulesmodel.cpp:560
 #, kde-format
 msgid "Size & Position"
 msgstr "Boyut ve Konum"
 
-#: rulesmodel.cpp:453
+#: rulesmodel.cpp:459
 #, kde-format
 msgid "Size"
 msgstr "Boyut"
 
-#: rulesmodel.cpp:459
+#: rulesmodel.cpp:465
 #, kde-format
 msgid "Maximized horizontally"
 msgstr "Ekranı yatay kaplamış"
 
-#: rulesmodel.cpp:464
+#: rulesmodel.cpp:470
 #, kde-format
 msgid "Maximized vertically"
 msgstr "Ekranı dikey kaplamış"
 
-#: rulesmodel.cpp:472
+#: rulesmodel.cpp:478
 #, kde-format
 msgid "Virtual desktop"
 msgstr "Sanal masaüstü"
 
-#: rulesmodel.cpp:478
+#: rulesmodel.cpp:484
 #, kde-format
 msgid "Virtual desktops"
 msgstr "Sanal masaüstleri"
 
-#: rulesmodel.cpp:497
+#: rulesmodel.cpp:503
 #, kde-format
 msgid "Activities"
 msgstr "Etkinlikler"
 
-#: rulesmodel.cpp:513
+#: rulesmodel.cpp:519
 #, kde-format
 msgid "Screen"
 msgstr "Ekran"
 
-#: rulesmodel.cpp:518 rulesmodel.cpp:927
+#: rulesmodel.cpp:524 rulesmodel.cpp:924
 #, kde-format
 msgid "Fullscreen"
 msgstr "Tam ekran"
 
-#: rulesmodel.cpp:523
+#: rulesmodel.cpp:529
 #, kde-format
 msgid "Minimized"
 msgstr "Simge durumuna küçültülmüş"
 
-#: rulesmodel.cpp:528
+#: rulesmodel.cpp:534
 #, kde-format
 msgid "Initial placement"
 msgstr "Başlangıç yerleşimi"
 
-#: rulesmodel.cpp:535
+#: rulesmodel.cpp:541
 #, kde-format
 msgid "Ignore requested geometry"
 msgstr "İstenen geometriyi yok say"
 
-#: rulesmodel.cpp:538
+#: rulesmodel.cpp:544
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -324,71 +339,49 @@ msgstr ""
 "etkilemez.<nl/><nl/>Konumun, başka bir <interface>Ekran</interface>’ı "
 "eşlemlemek için kullanılabileceğini aklınızda bulundurun."
 
-#: rulesmodel.cpp:549
+#: rulesmodel.cpp:555
 #, kde-format
 msgid "Minimum Size"
 msgstr "En küçük boyut"
 
-#: rulesmodel.cpp:554
+#: rulesmodel.cpp:560
 #, kde-format
 msgid "Maximum Size"
 msgstr "En büyük boyut"
 
-#: rulesmodel.cpp:559
-#, kde-format
-msgid "Obey geometry restrictions"
-msgstr "Geometri kısıtlamalarına uy"
-
-#: rulesmodel.cpp:561
-#, kde-kuit-format
-msgctxt "@info:tooltip"
-msgid ""
-"Some apps like video players or terminals can ask KWin to constrain them to "
-"certain aspect ratios or only grow by values larger than the dimensions of "
-"one character. Use this property to ignore such restrictions and allow those "
-"windows to be resized to arbitrary sizes.<nl/><nl/>This can be helpful for "
-"windows that can't quite fit the full screen area when maximized."
-msgstr ""
-"Video oynatıcılar veya uçbirimler gibi bazı uygulamalar, KWin’den bunları "
-"belirli en–boy oranlarıyla sınırlamasını veya yalnızca bir karakterin "
-"boyutlarından daha büyük değerlerle büyümesini isteyebilir. Bu tür "
-"kısıtlamaları yok saymak ve bu pencerelerin rastgele boyutlara getirilmesine "
-"izin vermek için bu özelliği kullanın.<nl/><nl/>Bu, ekranı kapladığında tam "
-"ekran alanına tam olarak sığamayan pencereler için yararlı olabilir."
-
-#: rulesmodel.cpp:572
+#: rulesmodel.cpp:566
 #, kde-format
 msgid "Keep above other windows"
 msgstr "Diğer pencerelerin üzerinde tut"
 
-#: rulesmodel.cpp:572 rulesmodel.cpp:577 rulesmodel.cpp:582 rulesmodel.cpp:588
-#: rulesmodel.cpp:594 rulesmodel.cpp:600
+#: rulesmodel.cpp:566 rulesmodel.cpp:571 rulesmodel.cpp:576 rulesmodel.cpp:582
+#: rulesmodel.cpp:588 rulesmodel.cpp:594
 #, kde-format
 msgid "Arrangement & Access"
 msgstr "Düzenleme ve Erişim"
 
-#: rulesmodel.cpp:577
+#: rulesmodel.cpp:571
 #, kde-format
 msgid "Keep below other windows"
 msgstr "Diğer pencerelerin altında tut"
 
-#: rulesmodel.cpp:582
+#: rulesmodel.cpp:576
 #, kde-format
 msgid "Skip taskbar"
 msgstr "Görev çubuğunu atla"
 
-#: rulesmodel.cpp:584
+#: rulesmodel.cpp:578
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Controls whether or not the window appears in the Task Manager."
 msgstr "Pencerenin Görev Yöneticisi’nde görünüp görünmeyeceğini denetler."
 
-#: rulesmodel.cpp:588
+#: rulesmodel.cpp:582
 #, kde-format
 msgid "Skip pager"
 msgstr "Sayfalayıcıyı atla"
 
-#: rulesmodel.cpp:590
+#: rulesmodel.cpp:584
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -396,12 +389,12 @@ msgid ""
 msgstr ""
 "Pencerenin Sanal Masaüstü yöneticisinde görünüp görünmeyeceğini denetler."
 
-#: rulesmodel.cpp:594
+#: rulesmodel.cpp:588
 #, kde-format
 msgid "Skip switcher"
 msgstr "Değiştiriciyi atla"
 
-#: rulesmodel.cpp:596
+#: rulesmodel.cpp:590
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -411,45 +404,45 @@ msgstr ""
 "Pencerenin <shortcut>Seçenek+Sekme</shortcut> pencere listesinde görünüp "
 "görünmeyeceğini denetler."
 
-#: rulesmodel.cpp:600
+#: rulesmodel.cpp:594
 #, kde-format
 msgid "Shortcut"
 msgstr "Kısayol"
 
-#: rulesmodel.cpp:606
+#: rulesmodel.cpp:600
 #, kde-format
-msgid "No titlebar and frame"
-msgstr "Başlık çubuğu ve çerçeve yok"
+msgid "Window manager draws titlebar, frame, and shadows"
+msgstr "Pencere yöneticisi; başlık çubuğunu, çerçeveyi ve gölgeleri çizer"
 
-#: rulesmodel.cpp:606 rulesmodel.cpp:611 rulesmodel.cpp:617 rulesmodel.cpp:622
-#: rulesmodel.cpp:628 rulesmodel.cpp:655 rulesmodel.cpp:683 rulesmodel.cpp:689
-#: rulesmodel.cpp:701 rulesmodel.cpp:706 rulesmodel.cpp:711 rulesmodel.cpp:716
-#: rulesmodel.cpp:722 rulesmodel.cpp:727
+#: rulesmodel.cpp:600 rulesmodel.cpp:606 rulesmodel.cpp:612 rulesmodel.cpp:617
+#: rulesmodel.cpp:623 rulesmodel.cpp:650 rulesmodel.cpp:678 rulesmodel.cpp:684
+#: rulesmodel.cpp:696 rulesmodel.cpp:701 rulesmodel.cpp:706 rulesmodel.cpp:712
+#: rulesmodel.cpp:717 rulesmodel.cpp:722
 #, kde-format
 msgid "Appearance & Fixes"
 msgstr "Görünüş ve Düzeltmeler"
 
-#: rulesmodel.cpp:611
+#: rulesmodel.cpp:606
 #, kde-format
 msgid "Titlebar color scheme"
 msgstr "Başlık çubuğu renk şeması"
 
-#: rulesmodel.cpp:617
+#: rulesmodel.cpp:612
 #, kde-format
 msgid "Active opacity"
 msgstr "Etkin matlık"
 
-#: rulesmodel.cpp:622
+#: rulesmodel.cpp:617
 #, kde-format
 msgid "Inactive opacity"
 msgstr "Etkin olmayan matlık"
 
-#: rulesmodel.cpp:628
+#: rulesmodel.cpp:623
 #, kde-format
 msgid "Focus stealing prevention"
 msgstr "Odak çalmayı önleme"
 
-#: rulesmodel.cpp:630
+#: rulesmodel.cpp:625
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -487,12 +480,12 @@ msgstr ""
 "yükseltilir ve odaklanılır.</item><item><emphasis strong='true'>Çok Yüksek:</"
 "emphasis> Pencere hiçbir zaman yükseltilmez ve odaklanılmaz.</item></list>"
 
-#: rulesmodel.cpp:655
+#: rulesmodel.cpp:650
 #, kde-format
 msgid "Focus protection"
 msgstr "Odak koruması"
 
-#: rulesmodel.cpp:657
+#: rulesmodel.cpp:652
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -532,22 +525,22 @@ msgstr ""
 "odaklanılır.</item><item><emphasis strong='true'>Çok Yüksek:</emphasis> Yeni "
 "açılan pencere hiçbir zaman yükseltilmez ve odaklanılmaz.</item></list>"
 
-#: rulesmodel.cpp:683
+#: rulesmodel.cpp:678
 #, kde-format
 msgid "Accept focus"
 msgstr "Odağı kabul et"
 
-#: rulesmodel.cpp:685
+#: rulesmodel.cpp:680
 #, kde-format
 msgid "Controls whether or not the window becomes focused when clicked."
 msgstr "Pencerenin tıklandığında odağı alıp almayacağını denetler."
 
-#: rulesmodel.cpp:689
+#: rulesmodel.cpp:684
 #, kde-format
 msgid "Ignore global shortcuts"
 msgstr "Global kısayolları yok say"
 
-#: rulesmodel.cpp:691
+#: rulesmodel.cpp:686
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -565,42 +558,42 @@ msgstr ""
 "<shortcut>Seçenek+Boşluk</shortcut> gibi K Çalıştır kısayollarını "
 "kullanamayacağınızı aklınızda bulundurun."
 
-#: rulesmodel.cpp:701
+#: rulesmodel.cpp:696
 #, kde-format
 msgid "Closeable"
 msgstr "Kapatılabilir"
 
-#: rulesmodel.cpp:706
+#: rulesmodel.cpp:701
 #, kde-format
 msgid "Desktop file name"
 msgstr "Masaüstü dosya adı"
 
-#: rulesmodel.cpp:711
-#, kde-format
-msgid "Block compositing"
-msgstr "Bileşikleştirmeyi engelle"
-
-#: rulesmodel.cpp:716
+#: rulesmodel.cpp:706
 #, kde-format
 msgid "Layer"
 msgstr "Katman"
 
-#: rulesmodel.cpp:722
+#: rulesmodel.cpp:712
 #, kde-format
 msgid "Adaptive sync"
 msgstr "Uyarlanır eşzamanlama"
 
-#: rulesmodel.cpp:727
+#: rulesmodel.cpp:717
 #, kde-format
 msgid "Allow tearing"
 msgstr "Yırtılmaya izin ver"
 
-#: rulesmodel.cpp:778
+#: rulesmodel.cpp:722
+#, kde-format
+msgid "Hide from screenshots and screen recordings"
+msgstr "Ekran görüntülerinden ve kayıtlarından gizle"
+
+#: rulesmodel.cpp:775
 #, kde-format
 msgid "Window class not available"
 msgstr "Pencere sınıfı kullanılabilir değil"
 
-#: rulesmodel.cpp:779
+#: rulesmodel.cpp:776
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -615,190 +608,214 @@ msgstr ""
 "özellikleri eşleştirmeyi deneyin.<nl/><nl/>Lütfen bu hatayı uygulamanın "
 "geliştiricilerine bildirmeyi düşünün."
 
-#: rulesmodel.cpp:813
+#: rulesmodel.cpp:810
 #, kde-format
 msgid "All window types"
 msgstr "Tüm pencere türleri"
 
-#: rulesmodel.cpp:814
+#: rulesmodel.cpp:811
 #, kde-format
 msgid "Normal window"
 msgstr "Normal pencere"
 
-#: rulesmodel.cpp:815
+#: rulesmodel.cpp:812
 #, kde-format
 msgid "Dialog window"
 msgstr "İletişim kutusu"
 
-#: rulesmodel.cpp:816
+#: rulesmodel.cpp:813
 #, kde-format
 msgid "Utility window"
 msgstr "İzlence penceresi"
 
-#: rulesmodel.cpp:817
+#: rulesmodel.cpp:814
 #, kde-format
 msgid "Dock (panel)"
 msgstr "Panel"
 
-#: rulesmodel.cpp:818
+#: rulesmodel.cpp:815
 #, kde-format
 msgid "Toolbar"
 msgstr "Araç Çubuğu"
 
-#: rulesmodel.cpp:819
+#: rulesmodel.cpp:816
 #, kde-format
 msgid "Torn-off menu"
 msgstr "Ayrılmış menü"
 
-#: rulesmodel.cpp:820
+#: rulesmodel.cpp:817
 #, kde-format
 msgid "Splash screen"
 msgstr "Açılış ekranı"
 
-#: rulesmodel.cpp:821 rulesmodel.cpp:922
+#: rulesmodel.cpp:818 rulesmodel.cpp:919
 #, kde-format
 msgid "Desktop"
 msgstr "Masaüstü"
 
 #. i18n("Unmanaged Window")},  deprecated
-#: rulesmodel.cpp:823
+#: rulesmodel.cpp:820
 #, kde-format
 msgid "Standalone menubar"
 msgstr "Bağımsız menü çubuğu"
 
-#: rulesmodel.cpp:824 rulesmodel.cpp:930
+#: rulesmodel.cpp:821 rulesmodel.cpp:927
 #, kde-format
 msgid "On-screen display"
 msgstr "Ekran üzeri görüntü"
 
-#: rulesmodel.cpp:834
+#: rulesmodel.cpp:831
 #, kde-format
 msgid "All desktops"
 msgstr "Tüm masaüstleri"
 
-#: rulesmodel.cpp:836
+#: rulesmodel.cpp:833
 #, kde-format
 msgctxt "@info:tooltip in the virtual desktop list"
 msgid "Make the window available on all desktops"
 msgstr "Pencereyi tüm masaüstlerinde kullanılabilir yap"
 
-#: rulesmodel.cpp:855
+#: rulesmodel.cpp:852
 #, kde-format
 msgid "All activities"
 msgstr "Tüm etkinlikler"
 
-#: rulesmodel.cpp:857
+#: rulesmodel.cpp:854
 #, kde-format
 msgctxt "@info:tooltip in the activity list"
 msgid "Make the window available on all activities"
 msgstr "Pencereyi tüm etkinliklerde kullanılabilir yap"
 
-#: rulesmodel.cpp:878
+#: rulesmodel.cpp:875
 #, kde-format
 msgid "Default"
 msgstr "Öntanımlı"
 
-#: rulesmodel.cpp:879
+#: rulesmodel.cpp:876
 #, kde-format
 msgid "No placement"
 msgstr "Yerleştirme yok"
 
-#: rulesmodel.cpp:880
+#: rulesmodel.cpp:877
 #, kde-format
 msgid "Minimal overlapping"
 msgstr "En az çakışan"
 
-#: rulesmodel.cpp:881
+#: rulesmodel.cpp:878
 #, kde-format
 msgid "Maximized"
 msgstr "Ekranı kaplamış"
 
-#: rulesmodel.cpp:882
+#: rulesmodel.cpp:879
 #, kde-format
 msgid "Centered"
 msgstr "Ortalanmış"
 
-#: rulesmodel.cpp:883
+#: rulesmodel.cpp:880
 #, kde-format
 msgid "Random"
 msgstr "Rastgele"
 
-#: rulesmodel.cpp:884
+#: rulesmodel.cpp:881
 #, kde-format
 msgid "In top-left corner"
 msgstr "Sol üst köşede"
 
-#: rulesmodel.cpp:885
+#: rulesmodel.cpp:882
 #, kde-format
 msgid "Under mouse"
 msgstr "Farenin altında"
 
-#: rulesmodel.cpp:886
+#: rulesmodel.cpp:883
 #, kde-format
 msgid "On main window"
 msgstr "Ana pencerede"
 
-#: rulesmodel.cpp:893
+#: rulesmodel.cpp:890
 #, kde-format
 msgid "None"
 msgstr "Yok"
 
-#: rulesmodel.cpp:894
+#: rulesmodel.cpp:891
 #, kde-format
 msgid "Low"
 msgstr "Düşük"
 
-#: rulesmodel.cpp:895 rulesmodel.cpp:924
+#: rulesmodel.cpp:892 rulesmodel.cpp:921
 #, kde-format
 msgid "Normal"
 msgstr "Normal"
 
-#: rulesmodel.cpp:896
+#: rulesmodel.cpp:893
 #, kde-format
 msgid "High"
 msgstr "Yüksek"
 
-#: rulesmodel.cpp:897
+#: rulesmodel.cpp:894
 #, kde-format
 msgid "Extreme"
 msgstr "Çok Yüksek"
 
-#: rulesmodel.cpp:923
+#: rulesmodel.cpp:920
 #, kde-format
 msgid "Below"
 msgstr "Altında"
 
-#: rulesmodel.cpp:925
+#: rulesmodel.cpp:922
 #, kde-format
 msgid "Above"
 msgstr "Üstünde"
 
-#: rulesmodel.cpp:926
+#: rulesmodel.cpp:923
 #, kde-format
 msgid "Notification"
 msgstr "Bildirim"
 
-#: rulesmodel.cpp:928
+#: rulesmodel.cpp:925
 #, kde-format
 msgid "Popup"
 msgstr "Açılır Pencere"
 
-#: rulesmodel.cpp:929
+#: rulesmodel.cpp:926
 #, kde-format
 msgid "Critical notification"
 msgstr "Kritik bildirim"
 
-#: rulesmodel.cpp:931
+#: rulesmodel.cpp:928
 #, kde-format
 msgid "Overlay"
 msgstr "Kaplama"
 
-#: rulesmodel.cpp:956
+#: rulesmodel.cpp:936
+#, kde-format
+msgctxt "Never draw a server side decoration"
+msgid "Never"
+msgstr "Asla"
+
+#: rulesmodel.cpp:937
+#, kde-format
+msgctxt "Draw a server side decoration if the application asks for it"
+msgid "If the application asks"
+msgstr "Uygulama sorarsa"
+
+#: rulesmodel.cpp:938
+#, kde-format
+msgctxt "Always draw a server side decoration"
+msgid "Always"
+msgstr "Her zaman"
+
+#: rulesmodel.cpp:939
+#, kde-format
+msgctxt "Always draw a server side drop shadow"
+msgid "Only shadow"
+msgstr "Yalnızca gölge"
+
+#: rulesmodel.cpp:964
 #, kde-format
 msgid "Unmanaged window"
 msgstr "Yönetilmeyen pencere"
 
-#: rulesmodel.cpp:957
+#: rulesmodel.cpp:965
 #, kde-format
 msgid "Could not detect window properties. The window is not managed by KWin."
 msgstr ""
@@ -951,40 +968,40 @@ msgstr[1] "%1 saniye sonra"
 msgid "Add property to the rule"
 msgstr "Kurala özellik ekle"
 
-#: ui/RulesEditor.qml:271
+#: ui/RulesEditor.qml:269
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "No properties left to add"
 msgstr "Eklenecek özellik kalmadı"
 
-#: ui/RulesEditor.qml:273
+#: ui/RulesEditor.qml:271
 #, kde-format
 msgctxt "@info:placeholder %1 is a filter text introduced by the user"
 msgid "No properties match \"%1\""
 msgstr "“%1” ile eşleşen özellik yok"
 
-#: ui/RulesEditor.qml:294 ui/ValueEditor.qml:54
+#: ui/RulesEditor.qml:292 ui/ValueEditor.qml:54
 #, kde-format
 msgid "Yes"
 msgstr "Evet"
 
-#: ui/RulesEditor.qml:294 ui/ValueEditor.qml:60
+#: ui/RulesEditor.qml:292 ui/ValueEditor.qml:60
 #, kde-format
 msgid "No"
 msgstr "Hayır"
 
-#: ui/RulesEditor.qml:296 ui/ValueEditor.qml:168 ui/ValueEditor.qml:175
+#: ui/RulesEditor.qml:294 ui/ValueEditor.qml:168 ui/ValueEditor.qml:175
 #, kde-format
 msgid "%1 %"
 msgstr "%​%1"
 
-#: ui/RulesEditor.qml:298
+#: ui/RulesEditor.qml:296
 #, kde-format
 msgctxt "Coordinates (x, y)"
 msgid "(%1, %2)"
 msgstr "(%1, %2)"
 
-#: ui/RulesEditor.qml:300
+#: ui/RulesEditor.qml:298
 #, kde-format
 msgctxt "Size (width, height)"
 msgid "(%1, %2)"
@@ -995,6 +1012,35 @@ msgstr "(%1, %2)"
 msgctxt "(x, y) coordinates separator in size/position"
 msgid "x"
 msgstr "x"
+
+#~ msgid "No titlebar and frame"
+#~ msgstr "Başlık çubuğu ve çerçeve yok"
+
+#~ msgid "Obey geometry restrictions"
+#~ msgstr "Geometri kısıtlamalarına uy"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid ""
+#~ "Some apps like video players or terminals can ask KWin to constrain them "
+#~ "to certain aspect ratios or only grow by values larger than the "
+#~ "dimensions of one character. Use this property to ignore such "
+#~ "restrictions and allow those windows to be resized to arbitrary sizes.<nl/"
+#~ "><nl/>This can be helpful for windows that can't quite fit the full "
+#~ "screen area when maximized."
+#~ msgstr ""
+#~ "Video oynatıcılar veya uçbirimler gibi bazı uygulamalar, KWin’den bunları "
+#~ "belirli en–boy oranlarıyla sınırlamasını veya yalnızca bir karakterin "
+#~ "boyutlarından daha büyük değerlerle büyümesini isteyebilir. Bu tür "
+#~ "kısıtlamaları yok saymak ve bu pencerelerin rastgele boyutlara "
+#~ "getirilmesine izin vermek için bu özelliği kullanın.<nl/><nl/>Bu, ekranı "
+#~ "kapladığında tam ekran alanına tam olarak sığamayan pencereler için "
+#~ "yararlı olabilir."
+
+#~ msgid "Block compositing"
+#~ msgstr "Bileşikleştirmeyi engelle"
+
+#~ msgid "Hide from Screencast"
+#~ msgstr "Ekran Yayınından Gizle"
 
 #~ msgid "Shaded"
 #~ msgstr "Panjuru kapatılmış"

@@ -15,20 +15,26 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qavfhelpers_p.h>
+#include <QtCore/private/qexpected_p.h>
+
 #define AVMediaType XAVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
+
+#include <QtMultimedia/private/qavfhelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-[[nodiscard]] QVideoFrame qVideoFrameFromCvPixelBuffer(
+[[nodiscard]] q23::expected<QVideoFrame, QString> qVideoFrameFromCvPixelBuffer(
     const QFFmpeg::HWAccel &hwAccel,
     std::chrono::microseconds presentationTimeStamp,
     const QAVFHelpers::QSharedCVPixelBuffer &imageBuffer,
     QVideoFrameFormat format);
+
+[[nodiscard]] q23::expected<QAVFHelpers::QSharedCVPixelBuffer, QString> deepCopyCvPixelBuffer(
+    CVPixelBufferRef);
 
 } // namespace QFFmpeg
 

@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-systemmonitor package.
 #
-# SPDX-FileCopyrightText: 2024, 2025 Toms Trasuns <toms.trasuns@posteo.net>
+# SPDX-FileCopyrightText: 2024-2026 Toms Trasuns <toms.trasuns@posteo.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2025-05-29 16:53+0300\n"
+"POT-Creation-Date: 2026-07-17 00:46+0000\n"
+"PO-Revision-Date: 2026-08-15 23:31+0300\n"
 "Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
 "Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
 "Language: lv\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
-"X-Generator: Lokalize 25.04.1\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: src/GlobalMenu.qml:16
 #, kde-format
@@ -81,7 +81,7 @@ msgstr "Iestatījumi"
 #: src/GlobalMenu.qml:76
 #, kde-format
 msgctxt "@menu-action"
-msgid "Edit or Remove pages…"
+msgid "Edit or Remove Pages…"
 msgstr "Rediģēt vai noņemt lapas…"
 
 #: src/GlobalMenu.qml:83
@@ -194,7 +194,7 @@ msgstr "Pievienot jaunu lapu…"
 #: src/Main.qml:100
 #, kde-format
 msgctxt "@action"
-msgid "Edit or Remove pages…"
+msgid "Edit or Remove Pages…"
 msgstr "Rediģēt vai noņemt lapas…"
 
 #: src/Main.qml:106
@@ -245,37 +245,37 @@ msgctxt "@action"
 msgid "About KDE"
 msgstr "Par KDE"
 
-#: src/Main.qml:251
+#: src/Main.qml:266
 #, kde-format
 msgctxt "@window:title"
 msgid "Add New Page"
 msgstr "Pievienot jaunu lapu"
 
-#: src/Main.qml:272
+#: src/Main.qml:287
 #, kde-format
 msgctxt "@window:title"
 msgid "Edit Pages"
 msgstr "Rediģēt lapas"
 
-#: src/Main.qml:295
+#: src/Main.qml:310
 #, kde-format
 msgctxt "@title:window %1 is the name of the page that is being exported"
 msgid "Export %1"
 msgstr "Eksportēt %1"
 
-#: src/Main.qml:297 src/Main.qml:307
+#: src/Main.qml:312 src/Main.qml:322
 #, kde-format
 msgctxt "Name filter in file dialog"
 msgid "System Monitor page (*.page)"
 msgstr "Sistēmas pārrauga lapa (*.page)"
 
-#: src/Main.qml:305
+#: src/Main.qml:320
 #, kde-format
 msgctxt "@title:window"
 msgid "Import Page"
 msgstr "Importēt lapu"
 
-#: src/Main.qml:331
+#: src/Main.qml:346
 #, kde-format
 msgid ""
 "System Monitor has fallen back to software rendering because hardware "
@@ -310,49 +310,49 @@ msgctxt "@action"
 msgid "Remove Background Margins"
 msgstr "Noņemt fona apmales"
 
-#: src/page/EditablePage.qml:128
+#: src/page/EditablePage.qml:122
 #, kde-format
 msgctxt "@action"
 msgid "Edit Page"
 msgstr "Rediģēt lapu"
 
-#: src/page/EditablePage.qml:138
+#: src/page/EditablePage.qml:132
 #, kde-format
 msgctxt "@action"
 msgid "Save Changes"
 msgstr "Saglabāt izmaiņas"
 
-#: src/page/EditablePage.qml:148
+#: src/page/EditablePage.qml:142
 #, kde-format
 msgctxt "@action"
 msgid "Discard Changes"
 msgstr "Izmest izmaiņas"
 
-#: src/page/EditablePage.qml:159
+#: src/page/EditablePage.qml:153
 #, kde-format
 msgctxt "@action"
 msgid "Configure Page…"
 msgstr "Konfigurēt lapu…"
 
-#: src/page/EditablePage.qml:168
+#: src/page/EditablePage.qml:162
 #, kde-format
 msgctxt "@action"
 msgid "Add Row"
 msgstr "Pievienot rindu"
 
-#: src/page/EditablePage.qml:177
+#: src/page/EditablePage.qml:171
 #, kde-format
 msgctxt "@action"
 msgid "Add Title"
 msgstr "Pievienot virsrakstu"
 
-#: src/page/EditablePage.qml:190
+#: src/page/EditablePage.qml:184
 #, kde-format
 msgctxt "@title:window %1 is page title"
 msgid "Configure Page \"%1\""
 msgstr "Konfigurēt lapu „%1“"
 
-#: src/page/EditablePage.qml:192
+#: src/page/EditablePage.qml:186
 #, kde-format
 msgctxt "@action:button"
 msgid "Save"
@@ -739,63 +739,95 @@ msgctxt "@info:tooltip"
 msgid "Use half the height of the page."
 msgstr "Izmantot pusi no lapas augstuma."
 
-#: src/table/ColumnConfigurationDialog.qml:29
+#: src/table/AffinityDialog.qml:23
+#, kde-format
+msgctxt "@title:window"
+msgid "Set Affinity"
+msgstr "Noteikt afinitāti"
+
+#: src/table/AffinityDialog.qml:54
+#, kde-format
+msgctxt "@label"
+msgid "Allow to run on:"
+msgstr "Atļaut palaist uz:"
+
+#: src/table/AffinityDialog.qml:73
+#, kde-format
+msgctxt "@option:check CPU core number"
+msgid "CPU %1"
+msgstr "CPU %1"
+
+#: src/table/AffinityDialog.qml:109
+#, kde-format
+msgctxt "@action:button"
+msgid "Select All"
+msgstr "Atlasītu visu"
+
+#: src/table/AffinityDialog.qml:121
+#, kde-format
+msgctxt "@action:button"
+msgid "Clear All"
+msgstr "Notīrīt visu"
+
+#: src/table/AffinityDialog.qml:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Invert"
+msgstr "Invertēt"
+
+#: src/table/ColumnConfigurationDialog.qml:48
 #, kde-format
 msgctxt "@window:title"
 msgid "Configure Columns"
 msgstr "Konfigurēt kolonnas"
 
-#: src/table/ColumnConfigurationDialog.qml:106
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Add Column"
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Enabled Columns"
-msgstr "Pievienot kolonnu"
+msgstr "Ieslēgtās kolonnas"
 
-#: src/table/ColumnConfigurationDialog.qml:106
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Add Column"
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Disabled Columns"
-msgstr "Pievienot kolonnu"
+msgstr "Izslēgtās kolonnas"
 
-#: src/table/ColumnConfigurationDialog.qml:240
+#: src/table/ColumnConfigurationDialog.qml:260
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Hidden"
 msgstr "Paslēpts"
 
-#: src/table/ColumnConfigurationDialog.qml:241
+#: src/table/ColumnConfigurationDialog.qml:261
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only"
 msgstr "Tikai teksts"
 
-#: src/table/ColumnConfigurationDialog.qml:245
+#: src/table/ColumnConfigurationDialog.qml:265
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart"
 msgstr "Līniju diagramma"
 
-#: src/table/ColumnConfigurationDialog.qml:249
+#: src/table/ColumnConfigurationDialog.qml:269
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only (Scaled to 100%)"
 msgstr "Tikai teksts (mērogots līdz 100%)"
 
-#: src/table/ColumnConfigurationDialog.qml:250
+#: src/table/ColumnConfigurationDialog.qml:270
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart (Scaled to 100%)"
 msgstr "Līniju diagramma (mērogota līdz 100%)"
 
-#: src/table/ColumnConfigurationDialog.qml:287
+#: src/table/ColumnConfigurationDialog.qml:307
 #, kde-format
 msgctxt "@info"
 msgid "No columns matched the search"
-msgstr ""
+msgstr "Meklēšana neatrada kolonnas"
 
 #: src/table/KillDialog.qml:83
 #, kde-format
@@ -807,19 +839,19 @@ msgstr "Vairāk nejautāt"
 #, kde-format
 msgctxt "@title:window"
 msgid "Set Priority"
-msgstr ""
+msgstr "Noteikt prioritāti"
 
 #: src/table/ReniceDialog.qml:57
 #, kde-format
 msgctxt "@title:group"
 msgid "CPU Scheduler"
-msgstr ""
+msgstr "CPU plānotājs"
 
 #: src/table/ReniceDialog.qml:83
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Normal"
-msgstr ""
+msgstr "Normāls"
 
 #: src/table/ReniceDialog.qml:84
 #, kde-format
@@ -827,13 +859,13 @@ msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
 "The standard time-sharing scheduler for processes without special "
 "requirements."
-msgstr ""
+msgstr "Standarta laika dalīšanas plānotājs procesiem bez īpašām prasībām."
 
 #: src/table/ReniceDialog.qml:89
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Batch"
-msgstr ""
+msgstr "Paketes"
 
 #: src/table/ReniceDialog.qml:90
 #, kde-format
@@ -842,54 +874,58 @@ msgid ""
 "Process is mildly disfavored in scheduling decisions, for CPU-intensive non-"
 "interactive processes."
 msgstr ""
+"Process plānošanā tiek nedaudz bremzēts. Piemērots CPU intensīviem ne "
+"interaktīviem procesiem."
 
 #: src/table/ReniceDialog.qml:95
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Round robin"
-msgstr ""
+msgstr "Apļa sistēma"
 
 #: src/table/ReniceDialog.qml:96
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process will run whenever runnable, with timeslicing."
 msgstr ""
+"Process darbosies jebkurā brīdī, kad ir darbināms, izmantojot laikšķēles."
 
 #: src/table/ReniceDialog.qml:101
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "FIFO"
-msgstr ""
+msgstr "FIFO"
 
 #: src/table/ReniceDialog.qml:102
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process will run whenever runnable, with no timeslicing."
 msgstr ""
+"Process darbosies jebkurā brīdī, kad ir darbināms, neizmantojot laikšķēles."
 
 #: src/table/ReniceDialog.qml:120
 #, kde-format
 msgctxt "@title:group"
 msgid "I/O Scheduler"
-msgstr ""
+msgstr "I/O plānotājs"
 
 #: src/table/ReniceDialog.qml:146
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Normal"
-msgstr ""
+msgstr "Normāls"
 
 #: src/table/ReniceDialog.qml:147
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process' priority is based on the CPU priority."
-msgstr ""
+msgstr "Procesu prioritāte ir balstīta uz CPU prioritāti."
 
 #: src/table/ReniceDialog.qml:152
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Idle"
-msgstr ""
+msgstr "Dīkstāvē"
 
 #: src/table/ReniceDialog.qml:153
 #, kde-format
@@ -898,24 +934,28 @@ msgid ""
 "Process can only use the hard disk when no other process has used it very "
 "recently."
 msgstr ""
+"Process cieto disku var izmantot tikai tad, ja to nesenā laikā nav "
+"izmantojis neviens cits process."
 
 #: src/table/ReniceDialog.qml:158
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Best Effort"
-msgstr ""
+msgstr "Labākais mēģinājums"
 
 #: src/table/ReniceDialog.qml:159
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process is given higher priority to access the hard disk than normal."
 msgstr ""
+"Procesam tiek piešķirta augstāka prioritāte piekļuvei cietajam diskam nekā "
+"parasti."
 
 #: src/table/ReniceDialog.qml:164
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Real Time"
-msgstr ""
+msgstr "Reāllaika"
 
 #: src/table/ReniceDialog.qml:165
 #, kde-format
@@ -924,30 +964,32 @@ msgid ""
 "Process gets immediate access to the hard disk whenever needed, regardless "
 "of what else is going on."
 msgstr ""
+"Process iegūst piekļuvi cietajam diskam nekavējoties pēc vajadzības, "
+"neskatoties uz pārējo notiekošo."
 
 #: src/table/ReniceDialog.qml:211
 #, kde-format
 msgctxt "Lower process priority"
 msgid "Low priority"
-msgstr ""
+msgstr "Zema prioritāte"
 
 #: src/table/ReniceDialog.qml:218
 #, kde-format
 msgctxt "Higher process priority"
 msgid "High priority"
-msgstr ""
+msgstr "Augsta prioritāte"
 
 #: src/table/ReniceDialog.qml:268
 #, kde-format
 msgctxt "Lower I/O priority"
 msgid "Low priority"
-msgstr ""
+msgstr "Zema prioritāte"
 
 #: src/table/ReniceDialog.qml:275
 #, kde-format
 msgctxt "Higher I/O priority"
 msgid "High priority"
-msgstr ""
+msgstr "Augsta prioritāte"
 
 #: src/ToolsModel.cpp:37
 #, kde-format

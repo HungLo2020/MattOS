@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: None
+
+/target
+build
+*kdev*
+*.kate-swp
+/rust/target
+.clang-format

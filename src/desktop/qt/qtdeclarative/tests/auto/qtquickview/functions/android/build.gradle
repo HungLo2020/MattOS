@@ -1,5 +1,8 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: BSD-3-Clause
+
 plugins {
-    id 'com.android.application' version '9.0.0'
+    id 'com.android.application' version '9.2.1'
     id 'org.qtproject.qt.gradleplugin' version '1.4'
 }
 
@@ -23,17 +26,9 @@ android {
        }
     }
 
-    tasks.withType(JavaCompile) {
-        options.incremental = true
-    }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-    }
-
-    lintOptions {
-        abortOnError false
     }
 
     // Do not compress Qt binary resources file
@@ -42,7 +37,6 @@ android {
     }
 
     defaultConfig {
-        resConfig "en"
         minSdkVersion qtMinSdkVersion
         targetSdkVersion qtTargetSdkVersion
         ndk.abiFilters = qtTargetAbiList.split(",")

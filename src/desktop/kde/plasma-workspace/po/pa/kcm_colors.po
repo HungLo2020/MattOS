@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmcolors\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
 "PO-Revision-Date: 2025-10-16 11:34-0500\n"
 "Last-Translator: A S Alam <aalam@punlinux.org>\n"
 "Language-Team: Punjabi <kde-i18n-doc@kde.org>\n"
@@ -29,32 +29,32 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "aalam@punlinux.org"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "ਆਰਜ਼ੀ ਫ਼ਾਇਲ ਬਣਾਉਣ ਲਈ ਅਸਮਰੱਥ ਹੈ।"
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "ਰੰਗ ਸਕੀਮ ਡਾਊਨਲੋਡ ਕਰਨ ਲਈ ਅਸਮਰੱਥ ਹੈ: %1"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "ਇਹ ਫ਼ਾਇਲ ਰੰਗ ਸਕੀਮ ਫ਼ਾਇਲ ਨਹੀਂ ਹੈ।"
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "'color-scheme' ਡਾਟਾ ਫੋਲਡਰ ਬਣਾਉਣ ਲਈ ਫੇਲ੍ਹ ਹੈ।"
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr "ਰੰਗ ਸਕੀਮ ਨੂੰ 'color-scheme' ਡਾਟਾ ਫੋਲਡਰ ਵਿੱਚ ਕਾਪੀ ਕਰਨ ਲਈ ਅਸਫ਼ਲ ਹੈ।"
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "ਰੰਗ ਸਕੀਮ ਨੂੰ ਕਾਮਯਾਬੀ ਨਾਲ ਇੰਸਟਾਲ ਕੀਤਾ ਗਿਆ।"
@@ -683,15 +683,16 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "ਤੁਹਾਨੂੰ ਉਸ ਸਕੀਮ ਉੱਤੇ ਲਿਖਣ ਦਾ ਅਧਿਕਾਰ ਨਹੀਂ ਹੈ"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "ਗਲਤੀ"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "ਨਾ-ਸਰਗਰਮ"
@@ -1125,7 +1126,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "ਫੋਕਸ"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1135,21 +1136,21 @@ msgstr ""
 "ਇਹ ਟੂਲ ਤੁਹਾਨੂੰ ਮੌਜੂਦਾ ਪਲਾਜ਼ਮਾ ਸ਼ੈਸ਼ਨ ਵਾਸਤੇ ਰੰਗ ਸਕੀਮ ਸੈੱਟ ਕਰਨ ਲਈ ਸਹਾਇਕ ਹੈ, ਬਿਨਾਂ ਗਲਤੀ ਨਾਲ "
 "ਅਜਿਹੀ ਸੈਟਿੰਗ ਕਰਨ ਦੇ, ਜੋ ਮੌਜੂਦ ਨਾ ਹੋਵੇ ਜਾਂ ਜੋ ਪਹਿਲਾਂ ਹੀ ਸੈੱਟ ਹੋਵੇ।"
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
 "(passing a full path will only use the last part of the path)"
 msgstr ""
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
 "theme)"
 msgstr ""
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1157,56 +1158,56 @@ msgid ""
 "Quote the hex code if there is possibility of shell expansion"
 msgstr ""
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
 "Plasma session."
 msgstr "ਮੰਗਿਆ ਥੀਮ \"%1\" ਪਹਿਲਾਂ ਹੀ ਮੌਜੂਦਾ ਪਲਾਜ਼ਮਾ ਸ਼ੈਸ਼ਨ ਲਈ ਥੀਮ ਵਜੋਂ ਸੈੱਟ ਹੈ।"
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr "ਰੰਗ ਸਕੀਮ %1 ਨੂੰ ਤੁਹਾਡੇ ਮੌਜੂਦਾ ਪਲਾਜ਼ਮਾ ਸ਼ੈਸ਼ਨ ਲਈ ਕਾਮਯਾਬੀ ਨਾਲ ਲਾਗੂ ਕੀਤਾ ਗਿਆ ਹੈ"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 msgstr ""
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
 "behavior."
 msgstr ""
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
 "a color scheme."
 msgstr ""
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr ""
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, fuzzy, kde-format
 #| msgid "Inactive color"
 msgid "Invalid accent color "
 msgstr "ਇਨ-ਐਕਟਿਵ ਰੰਗ"
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "ਤੁਹਾਡੇ ਕੋਲ ਤੁਹਾਡੇ ਸਿਸਟਮ ਉੱਤੇ ਅੱਗੇ ਦਿੱਤੀਆਂ ਰੰਗ ਸਕੀਮਾਂ ਹਨ:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr "* %1 (ਮੌਜੂਦਾ ਰੰਗ ਸਕੀਮ)"
@@ -1230,106 +1231,127 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "ਪਸੰਦੀਦਾ ਤੀਬਰ ਰੰਗ"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
 msgstr "'%1' ਰੰਗ ਸਕੀਮ ਇੰਸਟਾਲ ਨਹੀਂ ਹੈ। ਇਸ ਦੀ ਬਜਾਏ ਮੂਲ ਥੀਮ ਚੁਣਿਆ ਜਾ ਰਿਹਾ ਹੈ।"
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "ਸਭ ਸਕੀਮਾਂ"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "ਹਲਕੀਆਂ  ਸਕੀਮਾਂ"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "ਗੂੜ੍ਹੀਆਂ ਸਕੀਮਾਂ"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "…ਫਾਇਲ ਤੋਂ ਇੰਸਟਾਲ ਕਰੋ"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "ਨਵੀਂ ਚੀਜ਼ਾਂ ਲਵੋ…"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "ਵਿੰਡੋ ਟਾਈਟਲ"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "ਵਿੰਡੋ ਲਿਖਤ"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "ਬਟਨ"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "ਲਿੰਕ"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "ਖੋਲ੍ਹੇ"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "ਸਧਾਰਨ ਲਿਖਤ"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "ਉਘਾੜੀ ਲਿਖਤ"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "ਅਸਮਰੱਥ ਕੀਤੀ ਲਿਖਤ"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "…ਰੰਗ ਸਕੀਮ ਸੋਧੋ"
 
-#: ui/main.qml:323
-#, kde-format
-msgid "Remove Color Scheme"
+#: ui/main.qml:311
+#, fuzzy, kde-format
+#| msgid "Remove Color Scheme"
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
 msgstr "ਰੰਗ ਸਕੀਮ ਹਟਾਓ"
 
-#: ui/main.qml:330
-#, kde-format
-msgid "Restore Color Scheme"
-msgstr "ਰੰਗ ਸਕੀਮ ਬਹਾਲ ਕਰੋ"
+#: ui/main.qml:313
+#, fuzzy, kde-format
+#| msgid "Utility to edit and create color schemes"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "ਰੰਗ ਸਕੀਮਾਂ ਸੋਧਣ ਅਤੇ ਬਣਾਉਣ ਵਾਲੀ ਸਹੂਲਤ"
 
-#: ui/main.qml:374
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr ""
+
+#: ui/main.qml:323
+#, kde-format
+msgid "Don’t delete this color scheme"
+msgstr ""
+
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "ਰੰਗ ਸਕੀਮ ਖੋਲ੍ਹੋ"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "ਰੰਗ ਸਕੀਮ ਫਾਇਲਾਂ (*.colors)"
+
+#~ msgid "You do not have permission to overwrite that scheme"
+#~ msgstr "ਤੁਹਾਨੂੰ ਉਸ ਸਕੀਮ ਉੱਤੇ ਲਿਖਣ ਦਾ ਅਧਿਕਾਰ ਨਹੀਂ ਹੈ"
+
+#~ msgid "Restore Color Scheme"
+#~ msgstr "ਰੰਗ ਸਕੀਮ ਬਹਾਲ ਕਰੋ"
 
 #~ msgid "Shading"
 #~ msgstr "ਸ਼ੇਡਿੰਗ"

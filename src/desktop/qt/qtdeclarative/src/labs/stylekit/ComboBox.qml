@@ -58,13 +58,13 @@ T.ComboBox {
             StyleKitLayoutItem {
                 id: indicatorItem
                 item: control.indicator
-                alignment: Qt.AlignRight | Qt.AlignVCenter
+                alignment: styleReader.indicator.alignment
                 margins.left: styleReader.indicator.leftMargin
                 margins.right: styleReader.indicator.rightMargin
                 margins.top: styleReader.indicator.topMargin
                 margins.bottom: styleReader.indicator.bottomMargin
-                fillWidth: styleReader.indicator.implicitWidth === Style.Stretch
-                fillHeight: styleReader.indicator.implicitHeight === Style.Stretch
+                fillWidth: styleReader.indicator.fillWidth
+                fillHeight: styleReader.indicator.fillHeight
             }
         ]
         spacing: styleReader.spacing
@@ -139,6 +139,7 @@ T.ComboBox {
             model: control.delegateModel
             currentIndex: control.highlightedIndex
             highlightMoveDuration: 0
+            boundsBehavior: Flickable.StopAtBounds
 
             T.ScrollIndicator.vertical: ScrollIndicator { }
         }

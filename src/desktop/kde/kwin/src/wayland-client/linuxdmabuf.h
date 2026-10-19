@@ -4,6 +4,7 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 #pragma once
+#include "core/drm_formats.h"
 #include "kwin_export.h"
 #include "utils/memorymap.h"
 
@@ -24,6 +25,7 @@ struct zwp_linux_dmabuf_v1;
 
 namespace KWin
 {
+
 class GraphicsBuffer;
 
 namespace WaylandClient
@@ -32,16 +34,18 @@ namespace WaylandClient
 class KWIN_EXPORT LinuxDmabufFeedbackV1 : public QObject
 {
     Q_OBJECT
+
 public:
     explicit LinuxDmabufFeedbackV1(zwp_linux_dmabuf_feedback_v1 *feedback);
     ~LinuxDmabufFeedbackV1();
 
-    QHash<uint32_t, QList<uint64_t>> formats() const;
-    QByteArray devicePath() const;
+    FormatModifierMap formats() const;
+    dev_t mainDevice() const;
 
     struct Tranche
     {
-        QHash<uint32_t, QList<uint64_t>> formats;
+        dev_t device;
+        FormatModifierMap formats;
         bool scanout = false;
     };
 
@@ -60,11 +64,9 @@ private:
     static void tranche_flags(void *data, zwp_linux_dmabuf_feedback_v1 *zwp_linux_dmabuf_feedback_v1, uint32_t flags);
 
     zwp_linux_dmabuf_feedback_v1 *const m_feedback;
-    QByteArray m_mainDevice;
     dev_t m_mainDeviceId = 0;
-    dev_t m_trancheDeviceId = 0;
     MemoryMap m_formatTable;
-    QHash<uint32_t, QList<uint64_t>> m_formats;
+    FormatModifierMap m_formats;
     QList<Tranche> m_tranches;
     QList<Tranche> m_pendingTranches;
     Tranche m_pendingTranche;
@@ -77,8 +79,8 @@ public:
     ~LinuxDmabufV1();
 
     zwp_linux_dmabuf_v1 *handle() const;
-    QByteArray mainDevice() const;
-    QHash<uint32_t, QList<uint64_t>> formats() const;
+    dev_t mainDevice() const;
+    FormatModifierMap formats() const;
     /**
      * NOTE that it's up to the calling client to take care of the
      * life time of the graphics buffer and wl_buffer!

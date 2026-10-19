@@ -8,116 +8,217 @@
 
 #include "showfpseffect.h"
 #include "core/output.h"
+#include "core/renderbackend.h"
 #include "core/renderviewport.h"
 #include "effect/effecthandler.h"
+#include "scene/workspacescene.h"
 
 #include <QQmlContext>
 
 namespace KWin
 {
 
+PaintDurationModel::PaintDurationModel(ssize_t count)
+    : m_maxCount(count)
+{
+    m_values.resize(count);
+}
+
+int PaintDurationModel::rowCount(const QModelIndex &parent) const
+{
+    return m_values.size();
+}
+
+int PaintDurationModel::columnCount(const QModelIndex &parent) const
+{
+    return 1;
+}
+
+QVariant PaintDurationModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid() || index.row() < 0 || index.row() >= int(m_values.size()) || role != Qt::DisplayRole) {
+        return {};
+    }
+    return m_values[index.row()];
+}
+
+QHash<int, QByteArray> PaintDurationModel::roleNames() const
+{
+    return {{Qt::DisplayRole, "value"}};
+}
+
+void PaintDurationModel::push(std::chrono::nanoseconds value)
+{
+    if (m_values.size() == m_maxCount) {
+        beginRemoveRows({}, m_maxCount - 1, m_maxCount - 1);
+        m_values.pop_back();
+        endRemoveRows();
+    }
+    beginInsertRows({}, 0, 0);
+    m_values.push_front(std::chrono::duration_cast<std::chrono::microseconds>(value).count());
+    endInsertRows();
+}
+
+void PaintDurationModel::resize(ssize_t size)
+{
+    m_maxCount = size;
+    beginResetModel();
+    m_values.resize(size);
+    endResetModel();
+}
+
 ShowFpsEffect::ShowFpsEffect()
+{
+    connect(effects->scene(), &WorkspaceScene::viewRemoved, this, &ShowFpsEffect::removeView);
+}
+
+ShowFpsEffect::~ShowFpsEffect()
 {
 }
 
-ShowFpsEffect::~ShowFpsEffect() = default;
+void ShowFpsEffect::removeView(RenderView *view)
+{
+    m_data.erase(view);
+}
 
-int ShowFpsEffect::fps() const
+ShowFpsScreen::ShowFpsScreen(uint32_t fps)
+    : m_maximumFps(fps)
+    , m_paintDuration(2 * fps)
+    , m_paintDurationCPU(2 * fps)
+{
+}
+
+int ShowFpsScreen::fps() const
 {
     return m_fps;
 }
 
-int ShowFpsEffect::maximumFps() const
+int ShowFpsScreen::maximumFps() const
 {
     return m_maximumFps;
 }
 
-int ShowFpsEffect::paintDuration() const
+PaintDurationModel *ShowFpsScreen::paintDuration()
 {
-    return m_paintDuration;
+    return &m_paintDuration;
 }
 
-int ShowFpsEffect::paintAmount() const
+PaintDurationModel *ShowFpsScreen::paintDurationCPU()
 {
-    return m_paintAmount;
+    return &m_paintDurationCPU;
 }
 
-QColor ShowFpsEffect::paintColor() const
+QString ShowFpsScreen::presentationMode() const
 {
-    auto normalizedDuration = std::min(1.0, m_paintDuration / 100.0);
-    return QColor::fromHsvF(0.3 - (0.3 * normalizedDuration), 1.0, 1.0);
+    return m_presentationMode;
 }
 
-void ShowFpsEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void ShowFpsScreen::presented(OutputFrame *frame, std::chrono::nanoseconds timestamp, PresentationMode mode)
 {
-    effects->prePaintScreen(data, presentTime);
-
-    m_newFps += 1;
-
-    m_paintDurationTimer.restart();
-    m_paintAmount = 0;
-
-    // detect highest monitor refresh rate
-    uint32_t maximumFps = 0;
-    const auto screens = effects->screens();
-    for (auto screen : screens) {
-        maximumFps = std::max(screen->refreshRate(), maximumFps);
+    const auto cpu = frame->queryCpuRenderTime();
+    const auto total = frame->queryRenderTime();
+    if (cpu && total) {
+        m_paintDuration.push(total->end - total->start);
+        m_paintDurationCPU.push(cpu->end - cpu->start);
+        Q_EMIT paintChanged();
     }
-    maximumFps /= 1000; // Convert from mHz to Hz.
+    QString presentMode;
+    switch (mode) {
+    case PresentationMode::VSync:
+        presentMode = QStringLiteral("VSync");
+        break;
+    case PresentationMode::Async:
+        presentMode = QStringLiteral("Tearing");
+        break;
+    case PresentationMode::AdaptiveSync:
+        presentMode = QStringLiteral("Adaptive Sync");
+        break;
+    case PresentationMode::AdaptiveAsync:
+        presentMode = QStringLiteral("Adaptive Sync + Tearing");
+        break;
+    }
+    if (m_presentationMode != presentMode) {
+        m_presentationMode = presentMode;
+        Q_EMIT presentationModeChanged();
+    }
+}
 
-    if (maximumFps != m_maximumFps) {
-        m_maximumFps = maximumFps;
-        Q_EMIT maximumFpsChanged();
+void ShowFpsScreen::setMaximumFps(uint32_t fps)
+{
+    if (m_maximumFps == fps) {
+        return;
+    }
+    m_maximumFps = fps;
+    Q_EMIT maximumFpsChanged();
+
+    m_paintDuration.resize(2 * fps);
+    m_paintDurationCPU.resize(2 * fps);
+}
+
+class ShowFpsFeedback : public PresentationFeedback
+{
+public:
+    explicit ShowFpsFeedback(ShowFpsScreen *screen)
+        : m_screen(screen)
+    {
     }
 
-    if (!m_scene) {
-        m_scene = std::make_unique<OffscreenQuickScene>();
-        m_scene->loadFromModule(QStringLiteral("org.kde.kwin.showfps"), QStringLiteral("Main"), {{QStringLiteral("effect"), QVariant::fromValue(this)}});
-        if (!m_scene->rootItem()) {
-            // main-fallback.qml has less dependencies than main.qml, so it should work on any system where kwin compiles
-            m_scene->loadFromModule(QStringLiteral("org.kde.kwin.showfps"), QStringLiteral("Fallback"), {{QStringLiteral("effect"), QVariant::fromValue(this)}});
+    void presented(OutputFrame *frame, std::chrono::nanoseconds timestamp,
+                   PresentationMode mode, PresentationFeedbackFlags flags) override
+    {
+        if (m_screen) {
+            m_screen->presented(frame, timestamp, mode);
         }
     }
-}
 
-void ShowFpsEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
+    const QPointer<ShowFpsScreen> m_screen;
+};
+
+void ShowFpsEffect::prePaintScreen(ScreenPrePaintData &data)
 {
-    effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
+    effects->prePaintScreen(data);
+    if (!data.frame) {
+        return;
+    }
 
+    uint32_t maximumFps = std::round(data.view->refreshRate() / 1000.0);
+
+    auto &screenData = m_data[data.view];
+    m_currentView = data.view;
+    if (!screenData) {
+        screenData = std::make_unique<ShowFpsScreen>(maximumFps);
+    }
+    data.frame->addFeedback(std::make_shared<ShowFpsFeedback>(screenData.get()), PresentationFeedbackFlags{});
+
+    screenData->m_newFps += 1;
+    screenData->setMaximumFps(maximumFps);
+
+    if (!screenData->m_scene) {
+        screenData->m_scene = std::make_unique<OffscreenQuickScene>();
+        screenData->m_scene->setAutomaticRepaint(false);
+        screenData->m_scene->setAutomaticFrame(false);
+        screenData->m_scene->loadFromModule(QStringLiteral("org.kde.kwin.showfps"), QStringLiteral("Main"), {{QStringLiteral("effect"), QVariant::fromValue(screenData.get())}});
+        if (!screenData->m_scene->rootItem()) {
+            // main-fallback.qml has less dependencies than main.qml, so it should work on any system where kwin compiles
+            screenData->m_scene->loadFromModule(QStringLiteral("org.kde.kwin.showfps"), QStringLiteral("Fallback"), {{QStringLiteral("effect"), QVariant::fromValue(screenData.get())}});
+        }
+    }
     auto now = std::chrono::steady_clock::now();
-    if ((now - m_lastFpsTime) >= std::chrono::milliseconds(1000)) {
-        m_fps = m_newFps;
-        m_newFps = 0;
-        m_lastFpsTime = now;
-        Q_EMIT fpsChanged();
+    if ((now - screenData->m_lastFpsTime) >= std::chrono::milliseconds(1000)) {
+        screenData->m_fps = screenData->m_newFps;
+        screenData->m_newFps = 0;
+        screenData->m_lastFpsTime = now;
+        Q_EMIT screenData->fpsChanged();
     }
 
-    const auto rect = viewport.renderRect();
-    m_scene->setGeometry(QRect(rect.x() + rect.width() - 300, rect.y(), 300, 150));
-    effects->renderOffscreenQuickView(renderTarget, viewport, m_scene.get());
+    const auto rect = data.view->viewport();
+    screenData->m_scene->setGeometry(QRect(rect.x() + rect.width() - 300, rect.y(), 300, 150));
+    screenData->m_scene->update(data.frame);
 }
 
-void ShowFpsEffect::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
+bool ShowFpsEffect::blocksDirectScanout() const
 {
-    effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
-
-    // Take intersection of region and actual window's rect, minus the fps area
-    //  (since we keep repainting it) and count the pixels.
-    Region repaintRegion = deviceRegion & viewport.mapToDeviceCoordinatesAligned(w->frameGeometry());
-    repaintRegion -= viewport.mapToDeviceCoordinatesAligned(Rect(m_scene->geometry()));
-    for (const Rect &rect : repaintRegion.rects()) {
-        m_paintAmount += rect.width() * rect.height();
-    }
-}
-
-void ShowFpsEffect::postPaintScreen()
-{
-    effects->postPaintScreen();
-
-    m_paintDuration = m_paintDurationTimer.elapsed();
-    Q_EMIT paintChanged();
-
-    effects->addRepaint(m_scene->geometry());
+    return false;
 }
 
 bool ShowFpsEffect::supported()

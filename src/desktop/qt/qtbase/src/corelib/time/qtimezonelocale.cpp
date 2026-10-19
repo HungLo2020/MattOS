@@ -33,6 +33,8 @@ QT_END_NAMESPACE
 #  endif
 #endif
 
+#include <algorithm>
+
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
@@ -304,8 +306,9 @@ QString addPadded(qsizetype width, const QString &zero, const QString &number, Q
 }
 
 QString formatOffset(QStringView format, int offsetMinutes, const QLocale &locale,
-                     QLocale::FormatType form)
+                     QtTemporalPattern::TemporalFieldFlags flags)
 {
+    using Flag = QtTemporalPattern::TemporalFieldFlag;
     Q_ASSERT(offsetMinutes >= 0);
     const QString hour = locale.toString(offsetMinutes / 60);
     const QString mins = locale.toString(offsetMinutes % 60);
@@ -349,7 +352,7 @@ QString formatOffset(QStringView format, int offsetMinutes, const QLocale &local
             while (width < tail.size() && tail[width] == u'H')
                 ++width;
             tail = tail.sliced(width);
-            if (form != QLocale::NarrowFormat)
+            if (flags.testFlag(Flag::ZeroPad))
                 result = addPadded(width, zero, hour, std::move(result));
             else
                 result += hour;
@@ -360,7 +363,7 @@ QString formatOffset(QStringView format, int offsetMinutes, const QLocale &local
             // (At CLDR v45, all locales use two-digit minutes.)
             // (No known zone has single-digit non-zero minutes.)
             tail = tail.sliced(width);
-            if (form != QLocale::NarrowFormat)
+            if (flags.testFlag(Flag::ZeroPad))
                 result = addPadded(width, zero, mins, std::move(result));
             else if (offsetMinutes % 60)
                 result += mins;
@@ -387,118 +390,119 @@ struct OffsetFormatMatch
 };
 
 OffsetFormatMatch matchOffsetText(QStringView text, QStringView format, const QLocale &locale,
-                                  QLocale::FormatType scale)
+                                  QtTemporalPattern::TemporalFieldFlags flags)
 {
-    // Sign is taken care of by caller.
-    // TODO (QTBUG-77948): rework in terms of text pattern matchers.
-    // For now, don't try to be general, it gets too tricky.
+    using namespace QtTemporalPattern;
+    using namespace FieldGroup;
+    using Flag = TemporalFieldFlag;
+    const bool zeroPad = flags.testFlag(Flag::ZeroPad);
     OffsetFormatMatch res;
-    // At least at CLDR v46:
+
+    // At least at CLDR v48:
     // Amharic in Ethiopia has ±HHmm formats; all others use separators.
-    // None have single m. All have H or HH before mm. (None has anything after mm.)
-    // In narrow format, mm and its preceding separator are elided for 0
-    // minutes; and hour may be single digit even if the format says HH.
-    const QString zero = locale.zeroDigit();
+    // None have single m. All have H or HH before mm. None has anything after mm.
+    // (If a user has configured a system locale to violate that, they get to
+    // endure the resulting failure to parse.)
+    // Some Balkan states have a space before the minus sign of the negative format.
+    // Sign is taken care of by caller; it's part of the format's text, before
+    // H, but here we just match it as a literal.
+    // TODO: flexible matching of space, when present in format; ignoring Unicode
+    // invisibles; matching variations on U+2212, dash and other forms of minus sign.
+
     qsizetype cut = format.indexOf(u'H');
     if (cut < 0 || !text.startsWith(format.first(cut)) || !format.endsWith(u"mm"))
         return res;
-    text = text.sliced(cut);
     QStringView sep = format.sliced(cut).chopped(2); // Prune prefix and "mm".
     int hlen = 1; // We already know we have one 'H' at the start of sep.
     while (hlen < sep.size() && sep[hlen] == u'H')
         ++hlen;
+    Q_ASSERT(hlen <= 2);
     sep = sep.sliced(hlen);
 
-    const auto hasDigitAt = [digitWidth = zero.size(), text](qsizetype index) {
-        if (digitWidth == 1)
-            return index < text.size() && text[index].isDigit();
-        Q_ASSERT(digitWidth == 2);
-        const qsizetype offset = index * 2;
-        if (offset + 1 >= text.size())
-            return false;
-        if (!text[offset].isHighSurrogate() || !text[offset + 1].isLowSurrogate())
-            return false;
-        const char32_t ch = QChar::surrogateToUcs4(text[offset], text[offset + 1]);
-        return QChar::isDigit(ch);
-    };
-    int digits = 0; // Count of digits: multiply by zero.size() for indexing.
-    while (digits < 4 && hasDigitAt(digits))
-        ++digits;
+    const QLocaleData *const locDat = QLocalePrivate::get(locale)->m_data;
+    using Digits = QLocaleData::DigitSequence;
+    const Digits early = locDat->digitSequence(text, {}, cut);
+    Q_ASSERT(!early.sign);
 
-    // See zoneOffsetFormat() for the eccentric meaning of scale.
-    QStringView minStr;
-    if (sep.isEmpty()) {
-        if (digits > hlen) {
-            // Long and Short formats allow two-digit match when hlen < 2.
-            if (scale == QLocale::NarrowFormat || (hlen < 2 && !text.startsWith(zero)))
-                hlen = digits - 2;
-            else if (digits < hlen + 2)
-                return res;
-            minStr = text.sliced(hlen * zero.size()).first(2 * zero.size());
-        } else if (scale == QLocale::NarrowFormat) {
-            hlen = digits;
-        } else if (hlen != digits) {
-            return res;
-        }
-    } else {
-        const qsizetype sepAt = text.indexOf(sep); // May be -1; digits isn't < -1.
-        if (digits * zero.size() < sepAt) // Separator doesn't immediately follow hour.
-            return res;
-        if (scale == QLocale::NarrowFormat || (hlen < 2 && !text.startsWith(zero)))
-            hlen = digits;
-        else if (digits != hlen)
-            return res;
-        if (sepAt >= 0 && text.size() >= sepAt + sep.size() + 2 * zero.size())
-            minStr = text.sliced(sepAt + sep.size()).first(2 * zero.size());
-        else if (scale != QLocale::NarrowFormat)
-            return res;
-        else if (sepAt >= 0) // Allow minutes without zero-padding in narrow format.
-            minStr = text.sliced(sepAt + sep.size());
-    }
-    if (hlen < 1)
+    Digits hrs = early;
+    if (qsizetype maxLen = std::max(2, hlen); maxLen < hrs.digits.size())
+        hrs = hrs.first(maxLen);
+    if (hrs.digits.size() < 1) // There must be an hour field.
+        return res;
+    if (zeroPad && hrs.digits.size() < hlen) // ZeroPad requires full width
         return res;
 
-    bool ok = true;
-    uint minute = minStr.isEmpty() ? 0 : locale.toUInt(minStr, &ok);
-    if (!ok && scale == QLocale::NarrowFormat) {
-        // Fall back to matching hour-only form:
-        minStr = {};
-        ok = true;
+    Digits mins = early.sliced(hrs.digits.size()); // Initial guess.
+    if (!sep.isEmpty()) {
+        const qsizetype sepAt = text.indexOf(sep, cut);
+        if (sepAt == hrs.endIndex()) // Separator must immediately follow hour field:
+            mins = locDat->digitSequence(text, {}, sepAt + sep.size());
+        else // If missing or misplaced, we only have an hour field:
+            mins = mins.first(0);
     }
-    if (ok && minute < 60) {
-        uint hour = locale.toUInt(text.first(hlen * zero.size()), &ok);
-        if (ok) {
-            res.offset = (hour * 60 + minute) * 60;
-            res.size = cut + hlen * zero.size();
-            if (!minStr.isEmpty())
-                res.size += sep.size() + minStr.size();
+    Q_ASSERT(!mins.sign);
+    if (mins.digits.size() > 2)
+        mins = mins.first(2);
+    else if (!mins.isEmpty() && mins.digits.size() < 2) // Not long enough: ignore
+        mins = mins.first(0);
+
+    constexpr int MaxOffsetHours
+        = (std::max)(-QTimeZone::MinUtcOffsetSecs, QTimeZone::MaxUtcOffsetSecs) / 3600;
+
+    bool ok = true;
+    uint hour = hrs.digits.toUInt(&ok);
+    if (!ok || hour > MaxOffsetHours || (zeroPad && mins.isEmpty())) {
+        // MaxOffsetHours > 10, so hrs.digits().size() > 1.
+        if (zeroPad) // Hour field must have full width.
+            return res;
+        // Truncated hour field at first digit and exclude minutes:
+        hrs = hrs.first(1);
+        mins = mins.first(0);
+        hour = hrs.digits.toUInt(&ok);
+    }
+    if (ok) {
+        if (!mins.isEmpty()
+            && (!zeroPad || matchesFlagWithin(flags, Flag::Abbreviated, WidthMask))) {
+            uint minute = mins.digits.toUInt(&ok);
+            if (ok && minute < 60) {
+                res.offset = (hour * 60 + minute) * 60;
+                res.size = mins.endIndex();
+                return res;
+            }
+        }
+        if (!zeroPad || matchesFlagWithin(flags, Flag::Narrow, WidthMask)) {
+            res.offset = hour * 60 * 60;
+            res.size = hrs.endIndex();
         }
     }
     return res;
 }
 
 OffsetFormatMatch matchOffsetFormat(QStringView text, const QLocale &locale, qsizetype locInd,
-                                    QLocale::FormatType scale)
+                                    QtTemporalPattern::TemporalFieldFlags flags)
 {
+    OffsetFormatMatch best;
+    using Flag = QtTemporalPattern::TemporalFieldFlag;
+    using namespace QtTemporalPattern::FieldGroup;
     const LocaleZoneData &locData = localeZoneData[locInd];
     const QStringView posHourForm = locData.posHourFormat().viewData(hourFormatTable);
     const QStringView negHourForm = locData.negHourFormat().viewData(hourFormatTable);
     // For the negative format, allow U+002d to match U+2212 or locale.negativeSign();
     const bool mapNeg = text.contains(u'-')
         && (negHourForm.contains(u'\u2212') || negHourForm.contains(locale.negativeSign()));
-    // See zoneOffsetFormat() for the eccentric meaning of scale.
-    if (scale == QLocale::ShortFormat) {
-        if (auto match = matchOffsetText(text, posHourForm, locale, scale))
-            return match;
-        if (auto match = matchOffsetText(text, negHourForm, locale, scale))
-            return { match.size, -match.offset };
+    if (QtTemporalPattern::matchesFlagWithin(flags, Flag::NeedNoUtcPrefix, UtcPrefixMask)) {
+        if (auto match = matchOffsetText(text, posHourForm, locale, flags))
+            best = match;
+        if (auto match = matchOffsetText(text, negHourForm, locale, flags); match.size > best.size)
+            best = { match.size, -match.offset };
         if (mapNeg) {
             const QString mapped = negHourForm.toString()
                 .replace(u'\u2212', u'-').replace(locale.negativeSign(), "-"_L1);
-            if (auto match = matchOffsetText(text, mapped, locale, scale))
-                return { match.size, -match.offset };
+            if (auto match = matchOffsetText(text, mapped, locale, flags); match.size > best.size)
+                best = { match.size, -match.offset };
         }
-    } else {
+    }
+    if (QtTemporalPattern::matchesFlagWithin(flags, Flag::AcceptUtcPrefix, UtcPrefixMask)) {
         const QStringView offsetFormat = locData.offsetGmtFormat().viewData(gmtFormatTable);
         if (const qsizetype cut = offsetFormat.indexOf(u"%0"); cut >= 0) { // Should be present
             const QStringView gmtPrefix = offsetFormat.first(cut);
@@ -521,28 +525,32 @@ OffsetFormatMatch matchOffsetFormat(QStringView text, const QLocale &locale, qsi
                  // QUtcTimeZonePrivate::displayName()'s kludges:
                  || crossMatch("GMT"_L1, "UTC"_L1) || crossMatch("UTC"_L1, "GMT"_L1))
                 && (gmtSuffix.isEmpty() || text.sliced(cut).indexOf(gmtSuffix) >= 0)) {
-                if (auto match = matchOffsetText(text.sliced(cut), posHourForm, locale, scale)) {
+                if (auto match = matchOffsetText(text.sliced(cut), posHourForm, locale, flags);
+                    gmtSize + match.size > best.size) {
                     if (text.sliced(cut + match.size).startsWith(gmtSuffix)) // too sliced ?
-                        return { gmtSize + match.size, match.offset };
+                        best = { gmtSize + match.size, match.offset };
                 }
-                if (auto match = matchOffsetText(text.sliced(cut), negHourForm, locale, scale)) {
-                    if (text.sliced(cut + match.size).startsWith(gmtSuffix))
-                        return { gmtSize + match.size, -match.offset };
+                if (auto match = matchOffsetText(text.sliced(cut), negHourForm, locale, flags)) {
+                    if (gmtSize + match.size > best.size
+                        && text.sliced(cut + match.size).startsWith(gmtSuffix)) {
+                        best = { gmtSize + match.size, -match.offset };
+                    }
                 } else if (mapNeg) {
                     const QString mapped = negHourForm.toString()
                         .replace(u'\u2212', u'-').replace(locale.negativeSign(), "-"_L1);
-                    if (auto match = matchOffsetText(text.sliced(cut), mapped, locale, scale)) {
+                    if (auto match = matchOffsetText(text.sliced(cut), mapped, locale, flags);
+                        gmtSize + match.size > best.size) {
                         if (text.sliced(cut + match.size).startsWith(gmtSuffix))
-                            return { gmtSize + match.size, -match.offset };
+                            best = { gmtSize + match.size, -match.offset };
                     }
                 }
                 // Match empty offset as UTC (unless that'd be an empty match):
-                if (gmtSize > 0 && text.sliced(cut).startsWith(gmtSuffix))
+                if (gmtSize > best.size && text.sliced(cut).startsWith(gmtSuffix))
                     return { gmtSize, 0 };
             }
         }
     }
-    return {};
+    return best;
 }
 
 } // nameless namespace
@@ -569,20 +577,20 @@ QList<QByteArrayView> ianaIdsForTerritory(QLocale::Territory territory)
     return result;
 }
 
+#if QT_CONFIG(datestring)
 // The QDateTime is only needed by the fall-back implementation in qlocale.cpp;
 // the calls below don't need to pass a valid QDateTime (based on its
 // atMSecsSinceEpoch); an invalid QDateTime() will suffice and be ignored.
-QString zoneOffsetFormat(const QLocale &locale, qsizetype locInd, QLocale::FormatType width,
+QString zoneOffsetFormat(const QLocale &locale, qsizetype locInd,
+                         QtTemporalPattern::TemporalFieldFlags flags,
                          const QDateTime &, int offsetSeconds)
 {
-    // QLocale::LongFormat gets the full GMT-prefix plus hour offset.
-    // QLocale::ShortFormat gets just the hour offset (with full with).
-    // QLocale::NarrowFormat gets the GMT-prefix plus the pruned hour format.
-    // The last drops :00 for zero minutes and removes leading 0 from the hour.
     // See the final "zone" section of the table
     // https://www.unicode.org/reports/tr35/tr35-dates.html#table-date-field-symbol-table
     // for the full range of LDML-specified formats.
     const LocaleZoneData &locData = localeZoneData[locInd];
+    using Flag = QtTemporalPattern::TemporalFieldFlag;
+    using namespace QtTemporalPattern::FieldGroup;
 
     auto hourFormatR = offsetSeconds < 0 ? locData.negHourFormat() : locData.posHourFormat();
     QStringView hourFormat = hourFormatR.viewData(hourFormatTable);
@@ -590,17 +598,18 @@ QString zoneOffsetFormat(const QLocale &locale, qsizetype locInd, QLocale::Forma
     // Sign is already handled by choice of the hourFormat:
     offsetSeconds = qAbs(offsetSeconds);
     // Offsets are only displayed in minutes - round seconds (if any) to nearest
-    // minute (prefering an even minute when rounding an exact half):
-    const int offsetMinutes = (offsetSeconds + 29 + (1 & (offsetSeconds / 60))) / 60;
+    // minute (rounding halves away from zero offset):
+    const int offsetMinutes = (offsetSeconds + 30) / 60;
 
-    const QString hourOffset = formatOffset(hourFormat, offsetMinutes, locale, width);
-    if (width == QLocale::ShortFormat)
+    const QString hourOffset = formatOffset(hourFormat, offsetMinutes, locale, flags);
+    if (QtTemporalPattern::matchesFlagWithin(flags, Flag::NeedNoUtcPrefix, UtcPrefixMask))
         return hourOffset;
 
     QStringView offsetFormat = locData.offsetGmtFormat().viewData(gmtFormatTable);
     Q_ASSERT(!offsetFormat.isEmpty());
     return offsetFormat.arg(hourOffset);
 }
+#endif // datestring
 
 } // QtTimeZoneLocale
 
@@ -609,11 +618,18 @@ QString QTimeZonePrivate::localeName(qint64 atMSecsSinceEpoch, int offsetFromUtc
                                      QTimeZone::NameType nameType,
                                      const QLocale &locale) const
 {
-    if (nameType == QTimeZone::OffsetName) {
+#if QT_CONFIG(datestring)
+    if (nameType == QTimeZone::OffsetName
+        // Use offset forms for QUtcTimeZonePrivate instances:
+        || QUtcTimeZonePrivate::offsetFromUtcString(m_id) != invalidSeconds()) {
+        using Flag = QtTemporalPattern::TemporalFieldFlag;
+        constexpr QtTemporalPattern::TemporalFieldFlags flags
+            = Flag::Numeric | Flag::Abbreviated | Flag::AcceptUtcPrefix | Flag::ZeroPad;
         // Doesn't need fallbacks, since every locale has hour and offset formats.
-        return QtTimeZoneLocale::zoneOffsetFormat(locale, locale.d->m_index, QLocale::LongFormat,
+        return QtTimeZoneLocale::zoneOffsetFormat(locale, locale.d->m_index, flags,
                                                   QDateTime(), offsetFromUtc);
     }
+#endif // datestring
     // Handling of long names must stay in sync with findLongNamePrefix(), below.
 
     // An IANA ID may give clues to fall back on for abbreviation or exemplar city:
@@ -721,7 +737,7 @@ QString QTimeZonePrivate::localeName(qint64 atMSecsSinceEpoch, int offsetFromUtc
     }; // end scanIana
 
     scanIana(m_id);
-    if (QByteArray iana = aliasToIana(m_id); !iana.isEmpty() && iana != m_id)
+    if (QByteArrayView iana = aliasToIana(m_id); !iana.isEmpty() && iana != m_id)
         scanIana(iana);
 
     // Requires locData, nextData set suitably - save repetition of member:
@@ -844,8 +860,15 @@ QString QTimeZonePrivate::localeName(qint64 atMSecsSinceEpoch, int offsetFromUtc
     // Final fall-back: ICU seems to use a compact form of offset time for
     // short-forms it doesn't know. This seems to correspond to the short form
     // of LDML's Localized GMT format.
-    return QtTimeZoneLocale::zoneOffsetFormat(locale, locale.d->m_index, QLocale::NarrowFormat,
+#if QT_CONFIG(datestring)
+    using Flag = QtTemporalPattern::TemporalFieldFlag;
+    constexpr QtTemporalPattern::TemporalFieldFlags compact
+        = Flag::Numeric | Flag::Abbreviated | Flag::AcceptUtcPrefix;
+    return QtTimeZoneLocale::zoneOffsetFormat(locale, locale.d->m_index, compact,
                                               QDateTime(), offsetFromUtc);
+#else
+    return {};
+#endif // datestring
 }
 
 // Match what the above might return at the start of a text (usually a tail of a
@@ -878,6 +901,7 @@ QTimeZonePrivate::findLongNamePrefix(QStringView text, const QLocale &locale,
         Q_ASSERT(std::size_t(locInd) < std::size(localeZoneData) - 1);
         const LocaleZoneData &nextData = localeZoneData[locInd + 1];
 
+        // TODO: support for FlexSpace, IgnoreCase and maybe others.
         const auto metaRows = localeRows(localeMetaZoneLongNameTable, m_metaLongTableStart);
         for (const LocaleMetaZoneLongNames &row : metaRows) {
             for (const QTimeZone::TimeType type : timeTypes) {
@@ -904,7 +928,7 @@ QTimeZonePrivate::findLongNamePrefix(QStringView text, const QLocale &locale,
                     QStringView name = range.viewData(longZoneNameTable);
                     // Save potentially expensive "zone is supported" check when possible:
                     bool gotZone = row.ianaIdIndex == best.ianaIdIndex
-                        || QTimeZone::isTimeZoneIdAvailable(row.ianaId().toByteArray());
+                        || QTimeZone::isTimeZoneIdAvailable(row.ianaId());
                     if (text.startsWith(name) && gotZone)
                         best = { static_cast<qsizetype>(range.size), type, row.ianaIdIndex };
                 }
@@ -930,7 +954,7 @@ QTimeZonePrivate::findLongNamePrefix(QStringView text, const QLocale &locale,
                     ? metaRow->metaZoneKey == metaZoneAt(metaRow->ianaId(), *atEpochMillis)
                     : zoneEverInMeta(metaRow->ianaId(), metaRow->metaZoneKey))) {
                 if (metaRow->ianaIdIndex == best.ianaIdIndex
-                    || QTimeZone::isTimeZoneIdAvailable(metaRow->ianaId().toByteArray())) {
+                    || QTimeZone::isTimeZoneIdAvailable(metaRow->ianaId())) {
                     best.ianaIdIndex = metaRow->ianaIdIndex;
                     best.where = metaLand;
                     if (best.where == QLocale::World)
@@ -947,6 +971,7 @@ QTimeZonePrivate::findLongNamePrefix(QStringView text, const QLocale &locale,
     // ianaIdIndex from CLDR-derived tables: and the active backend may know
     // some zones newer than our latest CLDR.
     NamePrefixMatch found;
+    const QList<QByteArray> allZones = getCanonicalZonesThenAliases();
     for (const qsizetype locInd : indices) {
         const LocaleZoneData &locData = localeZoneData[locInd];
         const LocaleZoneData &nextData = localeZoneData[locInd + 1];
@@ -984,14 +1009,13 @@ QTimeZonePrivate::findLongNamePrefix(QStringView text, const QLocale &locale,
                     qsizetype length = cut + city.size() + suffix.size();
                     if (length > found.nameLength) {
                         bool gotZone = row.ianaId() == found.ianaId // (cheap pre-test)
-                            || QTimeZone::isTimeZoneIdAvailable(row.ianaId().toByteArray());
+                            || QTimeZone::isTimeZoneIdAvailable(row.ianaId());
                         if (gotZone)
                             found = { row.ianaId().toByteArray(), length, timeType };
                     }
                 }
             }
             // In localeName() we fall back to the last part of the IANA ID:
-            const QList<QByteArray> allZones = QTimeZone::availableTimeZoneIds();
             for (const auto &iana : allZones) {
                 Q_ASSERT(!iana.isEmpty());
                 qsizetype slash = iana.lastIndexOf('/');
@@ -1014,9 +1038,9 @@ QTimeZonePrivate::findLongNamePrefix(QStringView text, const QLocale &locale,
 QTimeZonePrivate::NamePrefixMatch
 QTimeZonePrivate::findNarrowOffsetPrefix(QStringView text, const QLocale &locale)
 {
-    // NB: uses QLocale::FormatType with non-canonical meaning !
-    if (const auto match = matchOffsetFormat(text, locale, locale.d->m_index,
-                                             QLocale::NarrowFormat)) {
+    using Flag = QtTemporalPattern::TemporalFieldFlag;
+    constexpr auto narrowOffset = Flag::Numeric | Flag::Abbreviated | Flag::AcceptUtcPrefix;
+    if (const auto match = matchOffsetFormat(text, locale, locale.d->m_index, narrowOffset)) {
         // Check offset is sane:
         if (QTimeZone::MinUtcOffsetSecs <= match.offset
             && match.offset <= QTimeZone::MaxUtcOffsetSecs) {
@@ -1029,6 +1053,30 @@ QTimeZonePrivate::findNarrowOffsetPrefix(QStringView text, const QLocale &locale
         }
     }
     return {};
+}
+
+QTimeZonePrivate::NamePrefixMatch
+QTimeZonePrivate::findOffsetPrefix(QStringView text, const QLocale &locale,
+                                   QtTemporalPattern::TemporalFieldFlags flags)
+{
+    NamePrefixMatch best;
+    if (text.isEmpty())
+        return best;
+
+    const auto idForOffset = [](int offsetSeconds) -> QByteArray {
+        if (!offsetSeconds)
+            return "UTC";
+        return isoOffsetFormat(offsetSeconds, QTimeZone::OffsetName).toLatin1();
+    };
+
+    const auto match = matchOffsetFormat(text, locale, locale.d->m_index, flags);
+    if (match && match.size > best.nameLength
+        && QTimeZone::MinUtcOffsetSecs <= match.offset
+        && match.offset <= QTimeZone::MaxUtcOffsetSecs) {
+        best = { idForOffset(match.offset), match.size, QTimeZone::GenericTime };
+    }
+
+    return best;
 }
 #endif // ICU or not
 

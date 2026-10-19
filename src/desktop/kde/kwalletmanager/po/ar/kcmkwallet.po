@@ -5,12 +5,12 @@
 # Khaled Hosny <dr.khaled.hosny@gmail.com>, 2006.
 # Fahad Al-Saidi <fahad.alsaidi@gmail.com>, 2007.
 # Youssef Chahibi <chahibi@gmail.com>, 2007.
-# SPDX-FileCopyrightText: 2021, 2022, 2024, 2025 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2022, 2024, 2025, 2026 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwallet\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-08-14 02:47+0000\n"
+"POT-Creation-Date: 2026-10-01 20:17+0000\n"
 "PO-Revision-Date: 2025-08-20 20:45+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -33,37 +33,37 @@ msgid "Your emails"
 msgstr ""
 "king_abdo@yahoo.com, dr.khaled.hosny@gmail.com, Fahad.alsaidi@gmail.com"
 
-#: konfigurator.cpp:112
+#: konfigurator.cpp:113
 #, kde-format
 msgid "New Wallet"
 msgstr "محفظة جديدة"
 
-#: konfigurator.cpp:112
+#: konfigurator.cpp:113
 #, kde-format
 msgid "Please choose a name for the new wallet:"
 msgstr "رجاءا أختر اسم للمحفظة الجديدة:"
 
-#: konfigurator.cpp:226 konfigurator.cpp:304
+#: konfigurator.cpp:227 konfigurator.cpp:305
 #, kde-format
 msgid "Always Allow"
 msgstr "اسمح دومًا"
 
-#: konfigurator.cpp:229 konfigurator.cpp:236 konfigurator.cpp:317
+#: konfigurator.cpp:230 konfigurator.cpp:237 konfigurator.cpp:318
 #, kde-format
 msgid "Always Deny"
 msgstr "امنع دومًا"
 
-#: konfigurator.cpp:264
+#: konfigurator.cpp:265
 #, kde-format
 msgid "Permission denied."
 msgstr "طلب الإذن مرفوض."
 
-#: konfigurator.cpp:264 konfigurator.cpp:266
+#: konfigurator.cpp:265 konfigurator.cpp:267
 #, kde-format
 msgid "KDE Wallet Control Module"
 msgstr "وحدة التحكم في محفظة كدى"
 
-#: konfigurator.cpp:266
+#: konfigurator.cpp:267
 #, kde-format
 msgid ""
 "Error while authenticating action:\n"
@@ -72,7 +72,7 @@ msgstr ""
 "خطأ أثناء إجراء الاستيثاق  :\n"
 "%1"
 
-#: konfigurator.cpp:364
+#: konfigurator.cpp:365
 #, kde-format
 msgid "&Delete"
 msgstr "اح&ذف"

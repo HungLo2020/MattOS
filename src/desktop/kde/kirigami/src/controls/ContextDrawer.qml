@@ -12,12 +12,12 @@ import QtQuick.Templates as T
 import org.kde.kirigami.platform as Platform
 import org.kde.kirigami.primitives as Primitives
 import org.kde.kirigami.controls as KC
-import org.kde.kirigami.private.polyfill
 import "private" as KP
 
 /*!
   \qmltype ContextDrawer
   \inqmlmodule org.kde.kirigami
+  \inherits OverlayDrawer
 
   \brief A specialized type of drawer that will show a list of actions
   relevant to the application's current page.
@@ -98,7 +98,7 @@ KC.OverlayDrawer {
 
     // Disable for empty menus or when we have a global toolbar
     enabled: {
-        const pageStack = typeof applicationWindow !== "undefined" ? applicationWindow().pageStack : null;
+        const pageStack = typeof applicationWindow === "function" ? applicationWindow().pageStack : null;
         const itemExistsButStyleIsNotToolBar = item => item && item.globalToolBarStyle !== KC.ApplicationHeaderStyle.ToolBar;
         return menu.count > 0
             && (!pageStack
@@ -117,7 +117,7 @@ KC.OverlayDrawer {
     rightPadding: root.edge === Qt.RightEdge ? parent.SafeArea.margins.right : 0
     bottomPadding: parent.SafeArea.margins.bottom
 
-    property bool handleVisible: {
+    handleVisible: {
         if (typeof applicationWindow === "function") {
             const w = applicationWindow();
             if (w) {
@@ -168,6 +168,8 @@ KC.OverlayDrawer {
                 KP.ContextDrawerActionItem {
                     tAction: delegate.modelData
                     width: parent.width
+                    drawerCollapsed: root.collapsed
+                    onCloseDrawerRequested: root.drawerOpen = false
                 }
 
                 Repeater {
@@ -176,8 +178,10 @@ KC.OverlayDrawer {
 
                     delegate: KP.ContextDrawerActionItem {
                         width: parent.width
+                        drawerCollapsed: root.collapsed
                         leftPadding: Platform.Units.gridUnit
                         opacity: !root.collapsed
+                        onCloseDrawerRequested: root.drawerOpen = false
                     }
                 }
             }

@@ -55,20 +55,31 @@ int main(int argc, char **argv)
         "   $ kscreen-doctor output.HDMI-2.hdr.enable\n"
         "\n   Set SDR brightness (possible values: 100-1000)\n"
         "   $ kscreen-doctor output.HDMI-2.sdr-brightness.300\n"
+        "\n   Toggle HDR and wide color gamut for the current active display\n"
+        "   $ kscreen-doctor output.activeOutput.hdrAndWcg.toggle\n"
         "\n   Set brightness on non HDR screens (possible values: 0-100)\n"
         "   $ kscreen-doctor output.HDMI-2.brightness.10\n"
         "\n   Set wide color gamut mode (possible values: enable, disable)\n"
         "   $ kscreen-doctor output.HDMI-2.wcg.enable\n"
-        "\n   Set ICC profile path\n"
-        "   $ kscreen-doctor output.HDMI-2.iccprofile.\"/path/to/profile.icc\"\n\n"
-        "   Show dpms information:\n"
+        "\n   Set ICC profile path for SDR mode\n"
+        "   $ kscreen-doctor output.HDMI-2.iccprofile.\"/path/to/profile.icc\"\n"
+        "\n   Set color profile source for SDR mode (possible values: sRGB, ICC, EDID)\n"
+        "   $ kscreen-doctor output.HDMI-2.colorProfileSource.ICC\n"
+        "\n   Set ICC profile path for HDR mode\n"
+        "   $ kscreen-doctor output.HDMI-2.hdrIccProfile.\"/path/to/profile.icc\"\n"
+        "\n   Set color profile source for HDR mode (possible values: ICC, EDID)\n"
+        "   $ kscreen-doctor output.HDMI-2.hdrColorProfileSource.ICC\n"
+        "\n   Show dpms information:\n"
         "   $ kscreen-doctor --dpms show\n\n"
         "   Set dpms mode: (possible values: on, off)\n"
         "   $ kscreen-doctor --dpms on\n"
         "   Add a custom mode: (arguments: width,height,refresh rate in mHz,blanking 'reduced' or 'full')\n"
         "   $ kscreen-doctor output.1.addCustomMode.1920.1080.75000.full\n"
         "   Remove a custom mode: (arguments: index in the custom mode list)\n"
-        "   $ kscreen-doctor output.1.removeCustomMode.0");
+        "   $ kscreen-doctor output.1.removeCustomMode.0\n"
+        "\n   Set an output to mirror another output (possible values: another output's name, or none)\n"
+        "   $ kscreen-doctor output.HDMI-2.mirror.eDP-1\n"
+        "   $ kscreen-doctor output.HDMI-2.mirror.none");
     /*
         "\nError codes:\n"
         "   2 : general parse error\n"
@@ -93,31 +104,20 @@ int main(int argc, char **argv)
 
     KScreen::Doctor server;
 
-    QCommandLineOption info =
-        QCommandLineOption(QStringList() << QStringLiteral("i") << QStringLiteral("info"), QStringLiteral("Show runtime information: backends, logging, etc."));
     QCommandLineOption outputs = QCommandLineOption(QStringList() << QStringLiteral("o") << QStringLiteral("outputs"), QStringLiteral("Show outputs"));
     QCommandLineOption json =
         QCommandLineOption(QStringList() << QStringLiteral("j") << QStringLiteral("json"), QStringLiteral("Show configuration in JSON format"));
     QCommandLineOption dpms = QCommandLineOption(QStringList() << QStringLiteral("d") << QStringLiteral("dpms"),
                                                  QStringLiteral("Display power management (wayland only)"),
                                                  QStringLiteral("off"));
-    QCommandLineOption dpmsExcluded = QCommandLineOption({QStringLiteral("dpms-excluded")},
-                                                         QStringLiteral("Do not apply the dpms change to the output with said model names"),
-                                                         QStringLiteral("connector"));
-    QCommandLineOption log = QCommandLineOption(QStringList() << QStringLiteral("l") << QStringLiteral("log"),
-                                                QStringLiteral("Write a comment to the log file"),
-                                                QStringLiteral("comment"));
 
     QCommandLineParser parser;
     parser.setApplicationDescription(desc);
     parser.addPositionalArgument(QStringLiteral("config"), syntax, QStringLiteral("[output.<name>.<setting> output.<name>.setting [...]]"));
     parser.addHelpOption();
-    parser.addOption(info);
     parser.addOption(json);
     parser.addOption(outputs);
     parser.addOption(dpms);
-    parser.addOption(log);
-    parser.addOption(dpmsExcluded);
     parser.process(app);
 
     if (!parser.positionalArguments().isEmpty()) {

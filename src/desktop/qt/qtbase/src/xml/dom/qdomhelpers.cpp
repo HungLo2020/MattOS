@@ -8,6 +8,8 @@
 
 #include "qdomhelpers_p.h"
 #include "qdom_p.h"
+
+#include <QtCore/qshareddata.h>
 #include "qxmlstream.h"
 #include "private/qxmlstream_p.h"
 
@@ -17,6 +19,17 @@
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
+
+template <typename T, typename...Args>
+static QExplicitlySharedDataPointer<T> qdom_make_esdp(Args&&...args)
+{
+    QExplicitlySharedDataPointer<T> dp{
+        new T(std::forward<Args>(args)...),
+        QAdoptSharedDataTag{}
+    };
+    Q_ASSERT(dp->ref.loadRelaxed() == 1);
+    return dp;
+}
 
 /**************************************************************
  *
@@ -125,23 +138,23 @@ bool QDomBuilder::characters(const QString &characters, bool cdata)
     if (node == doc)
         return false;
 
-    std::unique_ptr<QDomNodePrivate> n;
+    QExplicitlySharedDataPointer<QDomNodePrivate> n;
     if (cdata) {
         n.reset(doc->createCDATASection(characters));
     } else if (!entityName.isEmpty()) {
-        auto e = std::make_unique<QDomEntityPrivate>(
+        auto e = qdom_make_esdp<QDomEntityPrivate>(
                     doc, nullptr, entityName, QString(), QString(), QString());
         e->value = characters;
-        e->ref.deref();
         doc->doctype()->appendChild(e.get());
-        Q_UNUSED(e.release());
+        e.reset(); // reaps unless appendChild() adopted
         n.reset(doc->createEntityReference(entityName));
     } else {
         n.reset(doc->createTextNode(characters));
     }
+    if (!n)
+        return false;
     n->setLocation(int(reader->lineNumber()), int(reader->columnNumber()));
     node->appendChild(n.get());
-    Q_UNUSED(n.release());
 
     return true;
 }
@@ -161,6 +174,8 @@ bool QDomBuilder::processingInstruction(const QString &target, const QString &da
 bool QDomBuilder::skippedEntity(const QString &name)
 {
     QDomNodePrivate *n = doc->createEntityReference(name);
+    if (!n)
+        return false;
     n->setLocation(int(reader->lineNumber()), int(reader->columnNumber()));
     node->appendChild(n);
     return true;
@@ -189,6 +204,8 @@ bool QDomBuilder::comment(const QString &characters)
 {
     QDomNodePrivate *n;
     n = doc->createComment(characters);
+    if (!n)
+        return false;
     n->setLocation(int(reader->lineNumber()), int(reader->columnNumber()));
     node->appendChild(n);
     return true;

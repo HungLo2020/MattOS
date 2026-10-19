@@ -6,7 +6,9 @@
 
 #include "nsCharSetProber.h"
 
-#include <stdlib.h>
+#include <kcodecs_prober_debug.h>
+
+#include <format>
 
 namespace kencodingprober
 {
@@ -14,8 +16,8 @@ namespace kencodingprober
 bool nsCharSetProber::FilterWithoutEnglishLetters(const char *aBuf, unsigned int aLen, char **newBuf, unsigned int &newLen)
 {
     char *newptr;
-    char *prevPtr;
-    char *curPtr;
+    const char *prevPtr;
+    const char *curPtr;
 
     bool meetMSB = false;
     newptr = *newBuf = (char *)malloc(aLen);
@@ -23,7 +25,7 @@ bool nsCharSetProber::FilterWithoutEnglishLetters(const char *aBuf, unsigned int
         return false;
     }
 
-    for (curPtr = prevPtr = (char *)aBuf; curPtr < aBuf + aLen; ++curPtr) {
+    for (curPtr = prevPtr = aBuf; curPtr < aBuf + aLen; ++curPtr) {
         if (*curPtr & 0x80) {
             meetMSB = true;
         } else if (*curPtr < 'A' || (*curPtr > 'Z' && *curPtr < 'a') || *curPtr > 'z') {
@@ -53,53 +55,13 @@ bool nsCharSetProber::FilterWithoutEnglishLetters(const char *aBuf, unsigned int
     return true;
 }
 
-// This filter applies to all scripts which contain both English characters and upper ASCII characters.
-bool nsCharSetProber::FilterWithEnglishLetters(const char *aBuf, unsigned int aLen, char **newBuf, unsigned int &newLen)
+void nsCharSetProber::DumpStatus()
 {
-    // do filtering to reduce load to probers
-    char *newptr;
-    char *prevPtr;
-    char *curPtr;
-    bool isInTag = false;
+    qCInfo(KCODECSPROBER).noquote().nospace() << "\n" << StatusOutput(0);
+}
 
-    newptr = *newBuf = (char *)malloc(aLen);
-    if (!newptr) {
-        return false;
-    }
-
-    for (curPtr = prevPtr = (char *)aBuf; curPtr < aBuf + aLen; ++curPtr) {
-        if (*curPtr == '>') {
-            isInTag = false;
-        } else if (*curPtr == '<') {
-            isInTag = true;
-        }
-
-        if (!(*curPtr & 0x80) //
-            && (*curPtr < 'A' || (*curPtr > 'Z' && *curPtr < 'a') || *curPtr > 'z')) {
-            if (curPtr > prevPtr && !isInTag) // Current segment contains more than just a symbol
-                                              // and it is not inside a tag, keep it.
-            {
-                while (prevPtr < curPtr) {
-                    *newptr++ = *prevPtr++;
-                }
-                prevPtr++;
-                *newptr++ = ' ';
-            } else {
-                prevPtr = curPtr + 1;
-            }
-        }
-    }
-
-    // If the current segment contains more than just a symbol
-    // and it is not inside a tag then keep it.
-    if (!isInTag) {
-        while (prevPtr < curPtr) {
-            *newptr++ = *prevPtr++;
-        }
-    }
-
-    newLen = newptr - *newBuf;
-
-    return true;
+std::string nsCharSetProber::StatusOutput(uint8_t /* indent */)
+{
+    return std::format("{:1.3f} [{}]", GetConfidence(), GetCharSetName());
 }
 }

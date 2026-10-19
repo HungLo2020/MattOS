@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 // QtCore
+// Qt-Security score:significant reason:default
 #include <memory>
 #include <qdebug.h>
 #include <qmath.h>
@@ -1306,6 +1307,14 @@ void QPainterPrivate::updateState(QPainterState *newState)
     Another workaround is to convert the paths to polygons first and then draw the
     polygons instead.
 
+    Qt likewise approximates arcs and ellipses with cubic Bezier curves instead
+    of evaluating them trigonometrically, so points on an arc are slightly off
+    their true positions. Related to this, the angles that \l{drawArc()},
+    \l{drawPie()}, and \l{drawChord()} take are eccentric angles: they measure
+    the direction from the center of the bounding rectangle only when that
+    rectangle is square. See \l{QPainterPath#Arcs and Ellipses}{Arcs and
+    Ellipses} for details on both.
+
     \section1 Performance
 
     QPainter is a rich framework that allows developers to do a great
@@ -2369,6 +2378,10 @@ void QPainter::setCompositionMode(CompositionMode mode)
     Q_D(QPainter);
     if (!d->engine) {
         qWarning("QPainter::setCompositionMode: Painter not active");
+        return;
+    }
+    if (mode < 0 || mode >= CompositionMode::NCompositionModes) {
+        qWarning("QPainter::setCompositionMode: Invalid mode");
         return;
     }
     if (d->state->composition_mode == mode)
@@ -3930,7 +3943,7 @@ void QPainter::setFont(const QFont &font)
 
 #ifdef QT_DEBUG_DRAW
     if constexpr (qt_show_painter_debug_output)
-        printf("QPainter::setFont(), family=%s, pointSize=%d\n", font.families().first().toLatin1().constData(), font.pointSize());
+        printf("QPainter::setFont(), family=%s, pointSize=%d\n", font.family().toLatin1().constData(), font.pointSize());
 #endif
 
     if (!d->engine) {
@@ -4165,7 +4178,10 @@ void QPainter::drawEllipse(const QRect &r)
     a degree, i.e. a full circle equals 5760 (16 * 360). Positive
     values for the angles mean counter-clockwise while negative values
     mean the clockwise direction. Zero degrees is at the 3 o'clock
-    position.
+    position. If \a rectangle is not square, the angles are eccentric
+    angles and do not measure the direction from the center of the
+    rectangle, as described in \l{QPainterPath#Arcs and Ellipses}{Arcs
+    and Ellipses}.
 
     \table 100%
     \row
@@ -4230,7 +4246,10 @@ void QPainter::drawArc(const QRectF &r, int a, int alen)
     degree, i.e. a full circle equals 5760 (16 * 360). Positive values
     for the angles mean counter-clockwise while negative values mean
     the clockwise direction. Zero degrees is at the 3 o'clock
-    position.
+    position. If \a rectangle is not square, the angles are eccentric
+    angles and do not measure the direction from the center of the
+    rectangle, as described in \l{QPainterPath#Arcs and Ellipses}{Arcs
+    and Ellipses}.
 
     \table 100%
     \row
@@ -4301,7 +4320,10 @@ void QPainter::drawPie(const QRectF &r, int a, int alen)
     degree, i.e. a full circle equals 5760 (16 * 360). Positive values
     for the angles mean counter-clockwise while negative values mean
     the clockwise direction. Zero degrees is at the 3 o'clock
-    position.
+    position. If \a rectangle is not square, the angles are eccentric
+    angles and do not measure the direction from the center of the
+    rectangle, as described in \l{QPainterPath#Arcs and Ellipses}{Arcs
+    and Ellipses}.
 
     \table 100%
     \row
@@ -7301,7 +7323,7 @@ start_lengthVariant:
                     range.format.setFontUnderline(true);
                     underlineFormats.append(range);
                 }
-#ifdef Q_OS_MAC
+#ifdef Q_OS_APPLE
             } else if (hidemnmemonic && *cin == u'(' && l >= 4 &&
                        cin[1] == u'&' && cin[2] != u'&' &&
                        cin[3] == u')') {
@@ -7313,7 +7335,7 @@ start_lengthVariant:
                 length -= n + 4;
                 l -= 4;
                 continue;
-#endif //Q_OS_MAC
+#endif //Q_OS_APPLE
             }
             *cout = *cin;
             ++cout;

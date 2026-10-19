@@ -19,10 +19,10 @@
 class QAction;
 #if KWIN_BUILD_GLOBALSHORTCUTS
 class KGlobalAccelD;
-class KGlobalAccelInterface;
 #endif
 namespace KWin
 {
+
 class GlobalShortcut;
 class SwipeGesture;
 class PinchGesture;
@@ -30,7 +30,7 @@ class GestureRecognizer;
 
 enum class DeviceType {
     Touchpad,
-    Touchscreen
+    Touchscreen,
 };
 
 /**
@@ -45,6 +45,7 @@ enum class DeviceType {
 class GlobalShortcutsManager : public QObject
 {
     Q_OBJECT
+
 public:
     explicit GlobalShortcutsManager(QObject *parent = nullptr);
     ~GlobalShortcutsManager() override;
@@ -121,7 +122,6 @@ private:
 
 #if KWIN_BUILD_GLOBALSHORTCUTS
     std::unique_ptr<KGlobalAccelD> m_kglobalAccel;
-    KGlobalAccelInterface *m_kglobalAccelInterface = nullptr;
 #endif
     std::unique_ptr<GestureRecognizer> m_touchpadGestureRecognizer;
     std::unique_ptr<GestureRecognizer> m_touchscreenGestureRecognizer;

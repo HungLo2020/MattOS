@@ -6,6 +6,26 @@ use super::repository::{
 use super::*;
 
 #[test]
+fn processcore_transition_moves_runtime_ownership_without_claiming_the_old_abi() {
+    let specs = package_specs();
+    let old = specs.iter().find(|spec| spec.name == "libprocesscore10").unwrap();
+    let new = specs.iter().find(|spec| spec.name == "libprocesscore11").unwrap();
+    assert_eq!(old.depends, &["libprocesscore11"]);
+    assert!(old.provides.is_empty());
+    assert!(new.replaces.contains(&"libprocesscore10"));
+    assert!(new.conflicts.is_empty());
+    let plasma = specs.iter().find(|spec| spec.name == "mattos-plasma").unwrap();
+    assert!(plasma.depends.contains(&"libprocesscore11"));
+    assert!(!plasma.depends.contains(&"libprocesscore10"));
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let temporary = tempfile::tempdir().unwrap();
+    // The transitional package must never restage the new library under its
+    // old name. Its producer is not needed to create this metadata-only payload.
+    staging::stage_processcore_transition(&repo, temporary.path()).unwrap();
+    assert!(!temporary.path().join("usr/lib").exists());
+}
+
+#[test]
 fn live_root_leaves_out_only_real_development_packages_nothing_depends_on() {
     for name in live_excluded_packages() {
         assert!(
@@ -951,7 +971,7 @@ fn third_milestone_package_families_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 448);
+    assert_eq!(PACKAGE_NAMES.len(), 455);
 }
 
 #[test]
@@ -1006,7 +1026,7 @@ fn base_userland_package_families_and_command_set_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 448);
+    assert_eq!(PACKAGE_NAMES.len(), 455);
     // The uutils search and comparison commands left mattos-base-runtime for
     // their Debian package names; the base profile still installs them.
     let base = specs.iter().find(|spec| spec.name == "mattos-base").unwrap();
@@ -1120,7 +1140,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 448);
+    assert_eq!(PACKAGE_NAMES.len(), 455);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",

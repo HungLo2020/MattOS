@@ -125,7 +125,7 @@ public:
         /**
          * The effect is enabled.
          */
-        Enabled = Qt::Checked
+        Enabled = Qt::Checked,
     };
 
     explicit EffectsModel(QObject *parent = nullptr);
@@ -170,7 +170,7 @@ public:
         /**
          * Do not discard unsaved changes when reloading the model.
          */
-        KeepDirty
+        KeepDirty,
     };
 
     /**
@@ -227,6 +227,14 @@ public:
      */
     void requestConfigure(const QModelIndex &index, QQuickItem *context);
 
+    /**
+     * Shows an about dialog for a given effect.
+     *
+     * @param index An effect represented by the given index.
+     * @param context The context in which to open configuration dialog.
+     */
+    void requestAbout(const QModelIndex &index, QQuickItem *context);
+
 Q_SIGNALS:
     /**
      * This signal is emitted when the model is loaded or reloaded.
@@ -273,12 +281,14 @@ private:
     void loadBuiltInEffects(const KConfigGroup &kwinConfig);
     void loadJavascriptEffects(const KConfigGroup &kwinConfig);
     void loadPluginEffects(const KConfigGroup &kwinConfig);
+    bool isEnabledSystemWide(KConfigGroup &config, const QString &key) const;
 
     QList<EffectData> m_effects;
     QList<EffectData> m_pendingEffects;
     QStringList m_excludeExclusiveGroups;
     QStringList m_excludeEffects;
     int m_lastSerial = -1;
+    KSharedConfig::Ptr m_config;
 
     Q_DISABLE_COPY(EffectsModel)
 };

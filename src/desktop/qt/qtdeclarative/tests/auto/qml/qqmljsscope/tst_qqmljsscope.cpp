@@ -70,8 +70,8 @@ class tst_qqmljsscope : public QQmlDataTest
         logger.setFilePath(resolvedFile);
         logger.setCode(sourceCode);
         // some files shadow properties on purpose
-        logger.setCategoryIgnored(qmlShadow, true);
-        logger.setCategoryIgnored(qmlPropertyOverride, true);
+        logger.setCategorySeverity(qmlShadow, QQmlSA::WarningSeverity::Disable);
+        logger.setCategorySeverity(qmlPropertyOverride, QQmlSA::WarningSeverity::Disable);
         logger.setSilent(expectErrorsOrWarnings);
         QQmlJSScope::Ptr target = m_importer.importFile(logger.filePath());
         QQmlJSImportVisitor visitor(&m_importer, &logger, QDir::cleanPath(resolvedFile + "/.."_L1));
@@ -112,6 +112,8 @@ private Q_SLOTS:
     void attachedSignalHandler();
     void scriptIndices();
     void extensions();
+    void reset();
+    void resetFactoryTest();
     void emptyBlockBinding();
     void hasOwnEnumerationKeys();
     void ownModuleName();
@@ -126,7 +128,12 @@ private Q_SLOTS:
     void javaScriptBuiltinFlag();
     void isRoot();
     void idLocation();
+    void inherits();
     void lineNumber();
+    void ownerOfEnum();
+    void ensureModuleName();
+    void sourceAndBuildTypeAreTheSame();
+    void weakPointers();
 
 public:
     tst_qqmljsscope()
@@ -759,6 +766,68 @@ void tst_qqmljsscope::extensions()
         QCOMPARE(ownerKind, QQmlJSScope::ExtensionType);
         QCOMPARE(owner, childScopes[4]->baseType()->extensionType().scope);
     }
+
+    QVERIFY(root->property("se").type()->isSelfExtension());
+    QVERIFY(!childScopes[4]->isSelfExtension());
+}
+
+void tst_qqmljsscope::reset()
+{
+    auto scope = QQmlJSScope::create();
+    QVERIFY(!scope.factory());
+
+    scope->setIsArrayScope(true);
+    scope->setBaseTypeName("MyBase"_L1);
+
+    scope->setIsSingleton(true);
+    scope->setOwnModuleName("MyModule"_L1);
+    scope->setInternalName("MyItem"_L1);
+    scope = QQmlJSScope::resetForReparse(scope);
+    // these fields should not get resetted:
+    QVERIFY(scope->isSingleton());
+    QCOMPARE(scope->ownModuleName(), "MyModule"_L1);
+    QCOMPARE(scope->internalName(), "MyItem"_L1);
+
+    // these fields should be resetted:
+    QVERIFY(!scope->isArrayScope());
+    QCOMPARE(scope->baseTypeName(), QString());
+
+    // see if the factory gets resetted
+    using Factory = QDeferredFactory<QQmlJSScope>;
+    QQmlJSImporter importer{ {}, {} };
+    QQmlJSScope::Ptr withFactory{
+        QQmlJSScope::create(),
+        QSharedPointer<Factory>{ new Factory(&importer, {}, testFile("isRoot.qml"_L1), "moduleName"_L1, true) },
+    };
+
+    QQmlJSScope::resetForReparse(withFactory);
+    QVERIFY(!withFactory.factory());
+    // these values should have moved from factory to the scope:
+    QCOMPARE(withFactory->internalName(), "isRoot"_L1);
+    QCOMPARE(withFactory->moduleName(), "moduleName"_L1);
+    QCOMPARE(withFactory->isSingleton(), true);
+}
+
+void tst_qqmljsscope::resetFactoryTest()
+{
+    using Factory = QDeferredFactory<QQmlJSScope>;
+    QQmlJSImporter importer{ { }, { } };
+    QQmlJSScope::Ptr withFactory{
+        QQmlJSScope::create(),
+        QSharedPointer<Factory>{
+                new Factory(&importer, { }, testFile("isRoot.qml"_L1), "moduleName"_L1, true) },
+    };
+
+    QQmlJS::TypeReader fancyTypeReader;
+
+    // set a new importer
+    resetFactory(withFactory, &importer, fancyTypeReader);
+
+    QVERIFY(withFactory.factory());
+    QCOMPARE(withFactory.factory()->filePath(), testFile("isRoot.qml"));
+    QCOMPARE(withFactory.factory()->internalName(), "isRoot"_L1);
+    QCOMPARE(withFactory.factory()->moduleName(), "moduleName"_L1);
+    QCOMPARE(withFactory.factory()->isSingleton(), true);
 }
 
 void tst_qqmljsscope::emptyBlockBinding()
@@ -1142,6 +1211,18 @@ void tst_qqmljsscope::idLocation()
     QCOMPARE(actual.length, 10);
 }
 
+void tst_qqmljsscope::inherits()
+{
+    const auto jsscope = run(u"UseTypeWithProperties.qml"_s, false);
+    const auto baseFromCpp = jsscope->baseType();
+
+    QVERIFY(jsscope->inherits(baseFromCpp));
+    QVERIFY(!jsscope->inherits({ }));
+
+    auto empty = QQmlJSScope::create();
+    QVERIFY(!empty->inherits({ }));
+}
+
 void tst_qqmljsscope::lineNumber()
 {
     const auto jsscope = run(u"UseTypeWithProperties.qml"_s, false);
@@ -1153,6 +1234,79 @@ void tst_qqmljsscope::lineNumber()
     QCOMPARE(baseFromCpp->enumeration("MyEnum").lineNumber(), 28);
     QCOMPARE(baseFromCpp->methods("aChanged").front().sourceLocation().startLine, 32);
     QCOMPARE(baseFromCpp->methods("mySlot").front().sourceLocation().startLine, 34);
+}
+
+void tst_qqmljsscope::ownerOfEnum()
+{
+    const auto root = run("OwnerOfEnum.qml");
+
+    const auto qmlEnum1Owner = QQmlJSScope::ownerOfEnum(root, "QmlEnum1"_L1);
+    QVERIFY(qmlEnum1Owner.scope->filePath().endsWith("OwnerOfEnum.qml"_L1));
+
+    const auto qmlEnum2Owner = QQmlJSScope::ownerOfEnum(root, "QmlEnum2"_L1);
+    QVERIFY(qmlEnum2Owner.scope->filePath().endsWith("OwnerOfEnumBase.qml"_L1));
+
+    const auto cppEnumOwner = QQmlJSScope::ownerOfEnum(root, "CppEnum"_L1);
+    QCOMPARE(cppEnumOwner.scope->internalName(), "CppEnumHolder"_L1);
+    QVERIFY(cppEnumOwner.scope->filePath().endsWith("testtypes.h"_L1));
+}
+
+void tst_qqmljsscope::ensureModuleName()
+{
+    const auto root = run("SimpleModule/build/Main.qml");
+    QCOMPARE(root->moduleName(), "SimpleModule");
+}
+
+void tst_qqmljsscope::sourceAndBuildTypeAreTheSame()
+{
+    const QString build = testFile("SimpleModule/build/");
+
+    std::unique_ptr<QQmlJSResourceFileMapper> mapper(
+            new QQmlJSResourceFileMapper(QStringList() << (build + "resources.qrc")));
+    QQmlJSImporter importer(m_importer.importPaths() << build, mapper.get());
+
+    const auto sourceRoot = importer.importFile(testFile("SimpleModule/Main.qml"));
+    const auto buildRoot = importer.importFile(testFile("SimpleModule/build/Main.qml"));
+    QCOMPARE(sourceRoot, buildRoot);
+}
+
+void tst_qqmljsscope::weakPointers()
+{
+    // linting scenario from QTBUG-146688, where grouped properties types disappeared when linting
+    // these files in exact that order:
+    // HomePage populates all other qml scopes
+    // NavBarForm.ui.qml used to drop data weakly referenced from NewTaskForm to NavBar
+    // NewTask can't find the type weakly referenced from NewTaskForm's "backbutton" property and
+    // emits bogus warnings.
+    std::array filesToLint = {
+        testFile("weakpointers/HomePage.qml"),
+        testFile("weakpointers/NavBarForm.ui.qml"),
+        testFile("weakpointers/NewTask.qml"),
+    };
+
+    // sanity testing: trigger buggy old behavior to prove the tests effectiveness
+    QQmlJSImporter importer(QLibraryInfo::paths(QLibraryInfo::QmlImportsPath), nullptr);
+
+    auto getBackButtonProperty = [&importer, &filesToLint]() -> QQmlJSMetaProperty {
+        const QQmlJSScope::ConstPtr &validScope = importer.importFile(filesToLint.back());
+        if (!validScope->baseType())
+            return { };
+        return validScope->baseType()->property("backButton");
+    };
+    QVERIFY(getBackButtonProperty().isValid());
+    QVERIFY(getBackButtonProperty().type());
+
+    QQmlJSScope::Ptr lastScope;
+    for (const auto &file : filesToLint) {
+        lastScope = importer.importFile(file);
+        QQmlJSScope::resetForReparse(lastScope);
+        resetFactory(lastScope, &importer, { });
+        QVERIFY(lastScope.data());
+    }
+
+    QVERIFY(getBackButtonProperty().isValid());
+    QEXPECT_FAIL("", "ResetForReparse breaks weak references to the resetted scope", Continue);
+    QVERIFY(getBackButtonProperty().type());
 }
 
 QTEST_MAIN(tst_qqmljsscope)

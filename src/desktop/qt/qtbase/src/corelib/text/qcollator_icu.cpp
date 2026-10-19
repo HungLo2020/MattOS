@@ -79,6 +79,9 @@ int QCollator::compare(QStringView s1, QStringView s2) const
     if (!s2.size())
         return +1;
 
+    if (!d)
+        d = new QCollatorPrivate(QLocale().collation());
+
     d->ensureInitialized();
 
     if (d->collator) {
@@ -93,10 +96,13 @@ int QCollator::compare(QStringView s1, QStringView s2) const
 
 QCollatorSortKey QCollator::sortKey(const QString &string) const
 {
+    if (!d)
+        d = new QCollatorPrivate(QLocale().collation());
+
     d->ensureInitialized();
 
     if (d->isC())
-        return QCollatorSortKey(new QCollatorSortKeyPrivate(string.toUtf8()));
+        return QCollatorPrivate::sortKeyFromData(string.toUtf8());
 
     if (d->collator) {
         QByteArray result(16 + string.size() + (string.size() >> 2), Qt::Uninitialized);
@@ -109,13 +115,13 @@ QCollatorSortKey QCollator::sortKey(const QString &string) const
                                    string.size(), (uint8_t *)result.data(), result.size());
         }
         result.truncate(size);
-        return QCollatorSortKey(new QCollatorSortKeyPrivate(std::move(result)));
+        return QCollatorPrivate::sortKeyFromData(std::move(result));
     }
 
-    return QCollatorSortKey(new QCollatorSortKeyPrivate(QByteArray()));
+    return QCollatorPrivate::sortKeyFromData(QByteArray());
 }
 
-int QCollatorSortKey::compare(const QCollatorSortKey &otherKey) const
+int QCollatorSortKey::compare(const QCollatorSortKey &otherKey) const noexcept
 {
     return d->m_key.compare(otherKey.d->m_key);
 }

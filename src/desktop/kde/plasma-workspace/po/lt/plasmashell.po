@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: trunk-kf 5\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-27 02:42+0000\n"
-"PO-Revision-Date: 2025-10-05 22:09+0300\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
+"PO-Revision-Date: 2026-07-04 23:07+0300\n"
 "Last-Translator: Moo <<>>\n"
 "Language-Team: Lithuanian <kde-i18n-lt@kde.org>\n"
 "Language: lt\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n%10>=2 && (n%100<10 || n"
 "%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.9\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -36,103 +36,103 @@ msgstr "liudas@akmc.lt, opensuse.lietuviu.kalba@gmail.com, <>"
 msgid "Configure Mouse Actions Plugin"
 msgstr "Konfigūruoti pelės veiksmų įskiepį"
 
-#: desktopview.cpp:223
+#: desktopview.cpp:206
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma 6.0 Dev"
 msgstr "KDE Plasma 6.0 plėtojama"
 
-#: desktopview.cpp:226
+#: desktopview.cpp:209
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma 6.0 Alpha"
 msgstr "KDE Plasma 6.0 Alfa"
 
-#: desktopview.cpp:229
+#: desktopview.cpp:212
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma 6.0 Beta 1"
 msgstr "KDE Plasma 6.0 Beta 1 versija"
 
-#: desktopview.cpp:232
+#: desktopview.cpp:215
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma 6.0 Beta 2"
 msgstr "KDE Plasma 6.0 Beta 2 versija"
 
-#: desktopview.cpp:235
+#: desktopview.cpp:218
 #, kde-format
 msgctxt "@label %1 is the Plasma version, RC meaning Release Candidate"
 msgid "KDE Plasma 6.0 RC1"
 msgstr "KDE Plasma 6.0 kandidatinė versija 1"
 
-#: desktopview.cpp:238
+#: desktopview.cpp:221
 #, kde-format
 msgctxt "@label %1 is the Plasma version, RC meaning Release Candidate"
 msgid "KDE Plasma 6.0 RC2"
 msgstr "KDE Plasma 6.0 kandidatinė versija 2"
 
-#: desktopview.cpp:264
+#: desktopview.cpp:247
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma %1 Dev"
 msgstr "KDE Plasma %1 plėtojama"
 
-#: desktopview.cpp:268
+#: desktopview.cpp:251
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma %1 Beta"
 msgstr "KDE Plasma %1 Beta versija"
 
-#: desktopview.cpp:271
+#: desktopview.cpp:254
 #, kde-format
 msgctxt "@label %1 is the Plasma version, %2 is the beta release number"
 msgid "KDE Plasma %1 Beta %2"
 msgstr "KDE Plasma %1 Beta %2 versija"
 
-#: desktopview.cpp:275
+#: desktopview.cpp:258
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma %1"
 msgstr "KDE Plasma %1"
 
-#: desktopview.cpp:281
+#: desktopview.cpp:264
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "Visit bugs.kde.org to report issues"
 msgstr "Norėdami pranešti apie klaidas, apsilankykite adresu bugs.kde.org"
 
-#: desktopview.cpp:289
+#: desktopview.cpp:272
 #, kde-format
 msgctxt "@action:button"
 msgid "Copy Plasma Version"
 msgstr "Kopijuoti Plasma versiją"
 
-#: desktopview.cpp:295
+#: desktopview.cpp:278
 #, kde-format
 msgctxt "@action:button"
 msgid "Report a Bug…"
 msgstr "Pranešti apie klaidą…"
 
-#: desktopview.cpp:305
+#: desktopview.cpp:288
 #, kde-format
 msgctxt "@title:menu"
 msgid "Hide Preview Banner"
 msgstr "Slėpti peržiūros antraštę"
 
-#: desktopview.cpp:307
+#: desktopview.cpp:290
 #, kde-format
 msgctxt "@action:button Hide the preview banner until the system is restarted"
 msgid "Hide Until Restart"
 msgstr "Slėpti iki paleidimo iš naujo"
 
-#: desktopview.cpp:314
+#: desktopview.cpp:297
 #, kde-format
 msgctxt "@action:button Hide the preview banner permanently"
 msgid "Hide Permanently…"
 msgstr "Slėpti visam laikui…"
 
-#: desktopview.cpp:320
+#: desktopview.cpp:303
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -145,58 +145,58 @@ msgstr ""
 "galima bus atšaukti tik <filename>kdeglobals</filename> konfigūracijos faile "
 "pašalinus eilutę, prasidedančią <icode>ShowDesktopPreviewBanner</icode>."
 
-#: desktopview.cpp:322
+#: desktopview.cpp:305
 #, kde-format
 msgctxt "@title:window"
 msgid "Hide Preview Banner?"
 msgstr "Slėpti peržiūros antraštę?"
 
-#: desktopview.cpp:557 desktopview.cpp:573
+#: desktopview.cpp:520 desktopview.cpp:536
 #, kde-format
 msgid "Enter Edit Mode"
 msgstr "Įjungti taisymo veikseną"
 
-#: desktopview.cpp:571
+#: desktopview.cpp:534
 #, kde-format
 msgid "Exit Edit Mode"
 msgstr "Išjungti taisymo veikseną"
 
-#: main.cpp:108
+#: main.cpp:126
 #, kde-format
 msgid "Plasma Shell"
 msgstr "Plasma apvalkalas"
 
-#: main.cpp:121
+#: main.cpp:139
 #, kde-format
 msgid "Enable QML Javascript debugger"
 msgstr "Įjungti QML JavaScript derintuvę"
 
-#: main.cpp:124
+#: main.cpp:142
 #, kde-format
 msgid "Do not restart plasma-shell automatically after a crash"
 msgstr "Po strigties, nepaleisti automatiškai Plasma apvalkalo iš naujo"
 
-#: main.cpp:127
+#: main.cpp:145
 #, kde-format
 msgid "Force loading the given shell plugin"
 msgstr "Priverstinai įkelti nurodytą apvalkalo įskiepį"
 
-#: main.cpp:131
+#: main.cpp:149
 #, kde-format
 msgid "Replace an existing instance"
 msgstr "Pakeisti esamą egzempliorių"
 
-#: main.cpp:134
+#: main.cpp:152
 #, kde-format
 msgid "Lists the available options for user feedback"
 msgstr "Išvardija prieinamas naudotojo grįžtamojo ryšio parinktis"
 
-#: main.cpp:190
+#: main.cpp:208
 #, kde-format
 msgid "Plasma Failed To Start"
 msgstr "Nepavyko paleisti Plasma darbalaukio"
 
-#: main.cpp:191
+#: main.cpp:209
 #, kde-format
 msgid ""
 "Plasma is unable to start as it could not correctly use OpenGL 2 or software "
@@ -207,79 +207,79 @@ msgstr ""
 "ar programinės įrangos surogatą.\n"
 "Patikrinkite ar jūsų grafikos tvarkyklės yra nustatytos teisingai."
 
-#: osd.cpp:63
+#: osd.cpp:70
 #, kde-format
 msgctxt "Brightness OSD: display name and brightness percentage"
 msgid "%1: %2%"
 msgstr "%1: %2%"
 
-#: osd.cpp:91
+#: osd.cpp:98
 #, kde-format
 msgctxt "OSD informing that the system is muted, keep short"
 msgid "Audio Muted"
 msgstr "Garsas nutildytas"
 
-#: osd.cpp:114
+#: osd.cpp:121
 #, kde-format
 msgctxt "OSD informing that the microphone is muted, keep short"
 msgid "Microphone Muted"
 msgstr "Mikrofonas nutildytas"
 
-#: osd.cpp:130
+#: osd.cpp:137
 #, kde-format
 msgctxt "OSD informing that some media app is muted, eg. Amarok Muted"
 msgid "%1 Muted"
 msgstr "%1 nutildyta"
 
-#: osd.cpp:152
+#: osd.cpp:159
 #, kde-format
 msgctxt "touchpad was enabled, keep short"
 msgid "Touchpad On"
 msgstr "Jutiklinis kilimėlis įjungtas"
 
-#: osd.cpp:154
+#: osd.cpp:161
 #, kde-format
 msgctxt "touchpad was disabled, keep short"
 msgid "Touchpad Off"
 msgstr "Jutiklinis kilimėlis išjungtas"
 
-#: osd.cpp:161
+#: osd.cpp:168
 #, kde-format
 msgctxt "wireless lan was enabled, keep short"
 msgid "Wifi On"
 msgstr "Belaidis internetas įjungtas"
 
-#: osd.cpp:163
+#: osd.cpp:170
 #, kde-format
 msgctxt "wireless lan was disabled, keep short"
 msgid "Wifi Off"
 msgstr "Belaidis internetas išjungtas"
 
-#: osd.cpp:170
+#: osd.cpp:177
 #, kde-format
 msgctxt "Bluetooth was enabled, keep short"
 msgid "Bluetooth On"
 msgstr "Bluetooth įjungtas"
 
-#: osd.cpp:172
+#: osd.cpp:179
 #, kde-format
 msgctxt "Bluetooth was disabled, keep short"
 msgid "Bluetooth Off"
 msgstr "Bluetooth išjungtas"
 
-#: osd.cpp:179
+#: osd.cpp:186
 #, kde-format
 msgctxt "mobile internet was enabled, keep short"
 msgid "Mobile Internet On"
 msgstr "Mobilusis internetas įjungtas"
 
-#: osd.cpp:181
+#: osd.cpp:188
 #, kde-format
 msgctxt "mobile internet was disabled, keep short"
 msgid "Mobile Internet Off"
 msgstr "Mobilusis internetas išjungtas"
 
-#: osd.cpp:189
+#: osd.cpp:196
 #, kde-format
 msgctxt ""
 "on screen keyboard was enabled because physical keyboard got unplugged, keep "
@@ -287,7 +287,7 @@ msgctxt ""
 msgid "On-Screen Keyboard Activated"
 msgstr "Ekraninė klaviatūra įjungta"
 
-#: osd.cpp:192
+#: osd.cpp:199
 #, kde-format
 msgctxt ""
 "on screen keyboard was disabled because physical keyboard was plugged in, "
@@ -295,54 +295,43 @@ msgctxt ""
 msgid "On-Screen Keyboard Deactivated"
 msgstr "Ekraninė klaviatūra išjungta"
 
-#: osd.cpp:199
+#: osd.cpp:206
 #, kde-format
 msgctxt "power management was inhibited, keep short"
 msgid "Sleep and Screen Locking Blocked"
 msgstr "Pristabdymas ir ekrano užrakinimas užblokuoti"
 
-#: osd.cpp:201
+#: osd.cpp:208
 #, kde-format
 msgctxt "power management was uninhibited, keep short"
 msgid "Sleep and Screen Locking Unblocked"
 msgstr "Pristabdymas ir ekrano užrakinimas atblokuoti"
 
-#: osd.cpp:211
+#: osd.cpp:218
 #, kde-format
 msgctxt "Power profile was changed to power save mode, keep short"
 msgid "Power Save Mode"
 msgstr "Energijos taupymo veiksena"
 
-#: osd.cpp:214
+#: osd.cpp:221
 #, kde-format
 msgctxt "Power profile was changed to balanced mode, keep short"
 msgid "Balanced Power Mode"
 msgstr "Subalansuota energijos veiksena"
 
-#: osd.cpp:217
+#: osd.cpp:224
 #, kde-format
 msgctxt "Power profile was changed to performance mode, keep short"
 msgid "Performance Mode"
 msgstr "Našumo veiksena"
 
-#: panelview.cpp:458
-#, kde-format
-msgid ""
-"With an NVIDIA GPU on X11, the Floating style and Adaptive opacity mode are "
-"known to cause poor window drag and resize performance. Consider using other "
-"settings."
-msgstr ""
-"Yra žinoma, jog naudojant NVIDIA grafinį procesorių X11 aplinkoje, slankus "
-"stilius ir prisitaikanti nepermatomumo veiksena sąlygoja blogą langų tempimo "
-"ir dydžio keitimo našumą. Apsvarstykite galimybę naudoti kitokias nuostatas."
-
-#: panelview.cpp:1144
+#: panelview.cpp:1066
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Hide Panel Configuration"
 msgstr "Slėpti skydelio konfigūraciją"
 
-#: panelview.cpp:1146
+#: panelview.cpp:1068
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Show Panel Configuration"
@@ -354,74 +343,63 @@ msgctxt "Percentage value"
 msgid "%1%"
 msgstr "%1%"
 
-#: shellcontainmentconfig.cpp:107
+#: shellcontainmentconfig.cpp:109
 #, kde-format
-msgid "Internal Screen on %1"
-msgstr "Vidinis ekranas ties %1"
+msgid "Built-in Screen"
+msgstr "Įtaisytas ekranas"
 
-#: shellcontainmentconfig.cpp:111
-#, kde-format
-msgctxt "Screen manufacturer and model on connector"
-msgid "%1 %2 on %3"
-msgstr "%1 %2 ties %3"
-
-#: shellcontainmentconfig.cpp:134
+#: shellcontainmentconfig.cpp:138
 #, kde-format
 msgid "Disconnected Screen %1"
 msgstr "Atjungtas ekranas %1"
 
-#: shellcorona.cpp:180 shellcorona.cpp:182
+#: shellcorona.cpp:174 shellcorona.cpp:176
 #, kde-format
 msgid "Show Desktop"
 msgstr "Rodyti darbalaukį"
 
-#: shellcorona.cpp:182
+#: shellcorona.cpp:176
 #, kde-format
 msgid "Hide Desktop"
 msgstr "Slėpti darbalaukį"
 
-#: shellcorona.cpp:197
+#: shellcorona.cpp:192
 #, kde-format
 msgid "Activate Application Launcher"
 msgstr "Aktyvuoti programų paleidyklę"
 
-#: shellcorona.cpp:205
+#: shellcorona.cpp:200
 #, kde-format
 msgid "Show Activity Switcher"
 msgstr "Rodyti veiklų perjungiklį"
 
-#: shellcorona.cpp:214
+#: shellcorona.cpp:209
 #, kde-format
 msgid "Switch to Previous Activity"
 msgstr "Perjungti į ankstesnę veiklą"
 
-#: shellcorona.cpp:222
+#: shellcorona.cpp:217
 #, kde-format
 msgid "Switch to Next Activity"
 msgstr "Perjungti į kitą veiklą"
 
-#: shellcorona.cpp:237
-#, kde-format
-msgid "Activate Task Manager Entry %1"
-msgstr "Aktyvuoti užduočių tvarkytuvės įrašą %1"
-
-#: shellcorona.cpp:272
+#: shellcorona.cpp:248
 #, kde-format
 msgctxt "@action:button"
 msgid "Manage Desktops and Panels…"
 msgstr "Tvarkyti darbalaukius ir skydelius…"
 
-#: shellcorona.cpp:294
+#: shellcorona.cpp:270
 #, kde-format
 msgid "Move keyboard focus between panels"
 msgstr "Perkelti klaviatūros fokusą tarp skydelių"
 
-#: shellcorona.cpp:2250
+#: shellcorona.cpp:2282
 #, kde-format
 msgid "Add Panel"
 msgstr "Pridėti skydelį"
 
-#: shellcorona.cpp:2333
+#: shellcorona.cpp:2369
 #, kde-format
 msgctxt "Creates an empty containment (%1 is the containment name)"
 msgid "Empty %1"
@@ -458,6 +436,26 @@ msgstr "Skydelių skaičius"
 #, kde-format
 msgid "Counts the panels"
 msgstr "Suskaičiuoja skydelius"
+
+#~ msgid "Activate Task Manager Entry %1"
+#~ msgstr "Aktyvuoti užduočių tvarkytuvės įrašą %1"
+
+#~ msgid "Internal Screen on %1"
+#~ msgstr "Vidinis ekranas ties %1"
+
+#~ msgctxt "Screen manufacturer and model on connector"
+#~ msgid "%1 %2 on %3"
+#~ msgstr "%1 %2 ties %3"
+
+#~ msgid ""
+#~ "With an NVIDIA GPU on X11, the Floating style and Adaptive opacity mode "
+#~ "are known to cause poor window drag and resize performance. Consider "
+#~ "using other settings."
+#~ msgstr ""
+#~ "Yra žinoma, jog naudojant NVIDIA grafinį procesorių X11 aplinkoje, "
+#~ "slankus stilius ir prisitaikanti nepermatomumo veiksena sąlygoja blogą "
+#~ "langų tempimo ir dydžio keitimo našumą. Apsvarstykite galimybę naudoti "
+#~ "kitokias nuostatas."
 
 #~ msgid "Stop Current Activity"
 #~ msgstr "Stabdyti dabartinę veiklą"

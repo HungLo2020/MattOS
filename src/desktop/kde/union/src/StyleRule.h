@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+#pragma once
+
+#include <memory>
+#include <optional>
+
+#include <QObject>
+#include <QVariant>
+
+#include "Selector.h"
+#include "properties/StylePropertyGroup.h"
+
+#include "union_export.h"
+
+namespace Union
+{
+
+class StyleRulePrivate;
+
+/*!
+ * \class Union::StyleRule
+ * \inmodule core
+ * \ingroup core-classes
+ *
+ * \brief A set of style properties that should be applied to a certain set of elements.
+ *
+ * This class defines a set of properties to apply to an element, along with a
+ * list of selectors that should match for this style to apply.
+ */
+class UNION_EXPORT StyleRule : public QObject, public std::enable_shared_from_this<StyleRule>
+{
+    Q_OBJECT
+
+public:
+    using Ptr = std::shared_ptr<StyleRule>;
+
+    StyleRule(std::unique_ptr<StyleRulePrivate> &&d);
+    ~StyleRule() override;
+
+    bool isEmpty() const;
+
+    SelectorList selectors() const;
+    void setSelectors(const SelectorList &selectors);
+
+    Properties::StylePropertyGroup *properties() const;
+    void setProperties(std::unique_ptr<Properties::StylePropertyGroup> &&newProperties);
+
+    static Ptr create();
+
+private:
+    const std::unique_ptr<StyleRulePrivate> d;
+};
+
+}
+
+UNION_EXPORT QDebug operator<<(QDebug debug, std::shared_ptr<Union::StyleRule> style);
+
+QDataStream &operator<<(QDataStream &stream, const std::shared_ptr<Union::StyleRule> &rule);
+QDataStream &operator>>(QDataStream &stream, std::shared_ptr<Union::StyleRule> &rule);

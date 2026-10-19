@@ -5,344 +5,812 @@
 # André Marcelo Alvarenga <alvarenga@kde.org>, 2014, 2015, 2016, 2019, 2020.
 # Luiz Fernando Ranghetti <elchevive@opensuse.org>, 2017, 2018, 2019, 2020, 2021, 2022, 2023.
 # SPDX-FileCopyrightText: 2024, 2025 Geraldo Simiao <geraldosimiao@fedoraproject.org>
-# SPDX-FileCopyrightText: 2025, 2026 Marcus Gama <marcus.gama@gmail.com>
-# SPDX-FileCopyrightText: 2025 Guilherme Marçal Silva <guimarcalsilva@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Marcus Gama <marcus.gama@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Guilherme Marçal Silva <guimarcalsilva@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: pplasma-nm\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-01-04 06:11-0300\n"
+"POT-Creation-Date: 2026-09-16 02:45+0000\n"
+"PO-Revision-Date: 2026-09-08 08:39-0300\n"
 "Last-Translator: Marcus Gama <marcus.gama@gmail.com>\n"
-"Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
+"Language-Team: Portuguese <kde-i18n-pt_BR@kde.org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 26.08.0\n"
 
-#: editor/connectiondetails.cpp:92
+#: cellular/cellularmodem.cpp:148
+#, kde-format
+msgid "Error resetting the modem: %1"
+msgstr "Erro ao reiniciar o modem: %1"
+
+#: cellular/cellularmodem.cpp:405
+#, kde-format
+msgid ""
+"Could not apply the roaming preference. Activating the access point with its "
+"existing setting."
+msgstr ""
+"Não foi possível aplicar a preferência de roaming. Ativando o ponto de "
+"acesso com a configuração existente."
+
+#: cellular/cellularmodem.cpp:412
+#, kde-format
+msgid "Error activating connection: %1"
+msgstr "Erro ao ativar conexão: %1"
+
+#: cellular/cellularmodem.cpp:431
+#, kde-format
+msgid "Cannot change roaming because no access point is available."
+msgstr ""
+"Não foi possível alterar o roaming porque não há ponto de acesso disponível."
+
+#: cellular/cellularmodem.cpp:438
+#, kde-format
+msgid "Error applying roaming preference to the selected access point."
+msgstr ""
+"Erro ao aplicar a preferência de roaming ao ponto de acesso selecionado."
+
+# Manter a tradução com o menor tamanho possível para ficar totalmente visível. (Alvarenga)
+#: cellular/cellularmodem.cpp:482
+#, kde-format
+msgid "Error adding connection: %1"
+msgstr "Erro ao adicionar conexão: %1"
+
+#: cellular/cellularmodem.cpp:502
+#, kde-format
+msgid "Error removing connection: %1"
+msgstr "Erro ao remover conexão: %1"
+
+#: cellular/cellularmodem.cpp:539
+#, kde-format
+msgid "Error updating connection settings for %1: %2."
+msgstr "Erro ao atualizar opções de conexão para %1: %2."
+
+#: cellular/cellularmodemdetails.cpp:111 cellular/cellularmodemdetails.cpp:213
+#: cellular/cellularmodemdetails.cpp:245 cellular/cellularmodemdetails.cpp:433
+#: cellular/cellularmodemdetails.cpp:465
+#, kde-format
+msgid "Unknown"
+msgstr "Desconhecido"
+
+#: cellular/cellularmodemdetails.cpp:114 cellular/cellularmodemdetails.cpp:468
+#, kde-format
+msgid "POTS"
+msgstr "POTS"
+
+#: cellular/cellularmodemdetails.cpp:117 editor/connectioneditorbase.cpp:283
+#, kde-format
+msgid "GSM"
+msgstr "GSM"
+
+#: cellular/cellularmodemdetails.cpp:120
+#, kde-format
+msgid "GSM Compact"
+msgstr "GSM compacto"
+
+#: cellular/cellularmodemdetails.cpp:123
+#, kde-format
+msgid "GPRS"
+msgstr "GPRS"
+
+#: cellular/cellularmodemdetails.cpp:126
+#, kde-format
+msgid "EDGE"
+msgstr "EDGE"
+
+#: cellular/cellularmodemdetails.cpp:129
+#, kde-format
+msgid "UMTS"
+msgstr "UMTS"
+
+#: cellular/cellularmodemdetails.cpp:132
+#, kde-format
+msgid "HSDPA"
+msgstr "HSDPA"
+
+#: cellular/cellularmodemdetails.cpp:135
+#, kde-format
+msgid "HSUPA"
+msgstr "HSUPA"
+
+#: cellular/cellularmodemdetails.cpp:138
+#, kde-format
+msgid "HSPA"
+msgstr "HSPA"
+
+#: cellular/cellularmodemdetails.cpp:141
+#, kde-format
+msgid "HSPA+"
+msgstr "HSPA+"
+
+#: cellular/cellularmodemdetails.cpp:144
+#, kde-format
+msgid "CDMA2000 1xRTT"
+msgstr "CDMA2000 1xRTT"
+
+#: cellular/cellularmodemdetails.cpp:147
+#, kde-format
+msgid "CDMA2000 EVDO-0"
+msgstr "CDMA2000 revisão 0"
+
+#: cellular/cellularmodemdetails.cpp:150
+#, kde-format
+msgid "CDMA2000 EVDO-A"
+msgstr "CDMA2000 revisão A"
+
+#: cellular/cellularmodemdetails.cpp:153
+#, kde-format
+msgid "CDMA2000 EVDO-B"
+msgstr "CDMA2000 EVDO revisão B"
+
+#: cellular/cellularmodemdetails.cpp:156
+#, kde-format
+msgid "LTE"
+msgstr "LTE"
+
+#: cellular/cellularmodemdetails.cpp:159
+#, kde-format
+msgid "5GNR"
+msgstr "5GNR"
+
+#: cellular/cellularmodemdetails.cpp:215
+#, kde-format
+msgid "Off"
+msgstr "Desligado"
+
+#: cellular/cellularmodemdetails.cpp:217
+#, kde-format
+msgid "Low-power mode"
+msgstr "Modo de economia de energia"
+
+#: cellular/cellularmodemdetails.cpp:219
+#, kde-format
+msgid "Full power mode"
+msgstr "Modo de consumo de energia"
+
+#: cellular/cellularmodemdetails.cpp:243
+#, kde-format
+msgid "Failed"
+msgstr "Falhou"
+
+#: cellular/cellularmodemdetails.cpp:247
+#, kde-format
+msgid "Initializing"
+msgstr "Iniciando"
+
+#: cellular/cellularmodemdetails.cpp:249
+#, kde-format
+msgid "Locked"
+msgstr "Bloqueado"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: cellular/cellularmodemdetails.cpp:251 editor/settings/ui/ipv6.ui:261
+#, kde-format
+msgid "Disabled"
+msgstr "Desabilitado"
+
+#: cellular/cellularmodemdetails.cpp:253
+#, kde-format
+msgid "Disabling"
+msgstr "Desabilitando"
+
+#: cellular/cellularmodemdetails.cpp:255
+#, kde-format
+msgid "Enabling"
+msgstr "Habilitando"
+
+#: cellular/cellularmodemdetails.cpp:257
+#, kde-format
+msgid "Enabled"
+msgstr "Habilitado"
+
+#: cellular/cellularmodemdetails.cpp:259
+#, kde-format
+msgid "Searching for network provider"
+msgstr "Procurando pelo servidor de rede"
+
+#: cellular/cellularmodemdetails.cpp:261
+#, kde-format
+msgid "Registered with network provider"
+msgstr "Registrado no servidor de rede"
+
+#: cellular/cellularmodemdetails.cpp:263
+#, kde-format
+msgid "Disconnecting"
+msgstr "Desconectando"
+
+#: cellular/cellularmodemdetails.cpp:265
+#, kde-format
+msgid "Connecting"
+msgstr "Conectando"
+
+#: cellular/cellularmodemdetails.cpp:267
+#, kde-format
+msgid "Connected"
+msgstr "Conectado"
+
+#: cellular/cellularmodemdetails.cpp:276
+#, kde-format
+msgid "No error."
+msgstr "Sem erro."
+
+#: cellular/cellularmodemdetails.cpp:278
+#, kde-format
+msgid "Unknown error."
+msgstr "Erro desconhecido."
+
+#: cellular/cellularmodemdetails.cpp:280
+#, kde-format
+msgid "SIM is required but missing."
+msgstr "Um SIM é necessário mas não está presente."
+
+#: cellular/cellularmodemdetails.cpp:282
+#, kde-format
+msgid "SIM is available but unusable."
+msgstr "O SIM está disponível mas está inutilizável."
+
+#: cellular/cellularmodemdetails.cpp:284
+#, kde-format
+msgid "Unknown modem capabilities."
+msgstr "Capacidades do modem desconhecidas."
+
+#: cellular/cellularmodemdetails.cpp:286
+#, kde-format
+msgid "eSIM is not initialized."
+msgstr "O eSIM não está inicializado."
+
+#: cellular/cellularmodemdetails.cpp:312
+#, kde-format
+msgid "Not registered, not searching for new operator to register."
+msgstr "Não registrado, não está procurando por novo operador para registro."
+
+#: cellular/cellularmodemdetails.cpp:314
+#, kde-format
+msgid "Registered on home network."
+msgstr "Registrado na rede de casa."
+
+#: cellular/cellularmodemdetails.cpp:316
+#, kde-format
+msgid "Not registered, searching for new operator to register with."
+msgstr "Não registrado, procurando por novo operador para registro."
+
+#: cellular/cellularmodemdetails.cpp:318
+#, kde-format
+msgid "Registration denied."
+msgstr "Registro negado."
+
+#: cellular/cellularmodemdetails.cpp:320
+#, kde-format
+msgid "Unknown registration status."
+msgstr "Status de registro desconhecido."
+
+#: cellular/cellularmodemdetails.cpp:322
+#, kde-format
+msgid "Registered on a roaming network."
+msgstr "Registrado na rede de roaming."
+
+#: cellular/cellularmodemdetails.cpp:324
+#, kde-format
+msgid "Registered for \"SMS only\", on home network."
+msgstr "Registrado para \"somente SMS\" na rede de casa."
+
+#: cellular/cellularmodemdetails.cpp:326
+#, kde-format
+msgid "Registered for \"SMS only\", roaming network."
+msgstr "Registrado para \"somente SMS\" na rede de roaming."
+
+#: cellular/cellularmodemdetails.cpp:328
+#, kde-format
+msgid "Emergency services only."
+msgstr "Somente serviços de emergência."
+
+#: cellular/cellularmodemdetails.cpp:330
+#, kde-format
+msgid "Registered for \"CSFB not preferred\", home network."
+msgstr "Registrado para \"CSFB não preferencial\" na rede de casa."
+
+#: cellular/cellularmodemdetails.cpp:332
+#, kde-format
+msgid "Registered for \"CSFB not preferred\", roaming network."
+msgstr "Registrado para \"CSFB não preferencial\" na rede de roaming."
+
+#: cellular/cellularmodemdetails.cpp:334
+#, kde-format
+msgid "Attached for access to Restricted Local Operator Services."
+msgstr "Anexado para acesso aos Serviços Restritos de Operadora Local."
+
+#: cellular/cellularmodemdetails.cpp:374
+#, kde-format
+msgid "Scanning networks failed: %1"
+msgstr "Escaneamento de redes falhou: %1"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, metered)
+#: cellular/cellularmodemdetails.cpp:435
+#: editor/settings/ui/connectionwidget.ui:169
+#: editorqml/qml/generalSettings/GeneralSettings.qml:131
+#, kde-format
+msgid "Yes"
+msgstr "Sim"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, metered)
+#: cellular/cellularmodemdetails.cpp:437
+#: editor/settings/ui/connectionwidget.ui:174
+#: editorqml/qml/generalSettings/GeneralSettings.qml:131
+#, kde-format
+msgid "No"
+msgstr "Não"
+
+#: cellular/cellularmodemdetails.cpp:439
+#, kde-format
+msgid "GuessYes"
+msgstr "Acho que sim"
+
+#: cellular/cellularmodemdetails.cpp:441
+#, kde-format
+msgid "GuessNo"
+msgstr "Acho que não"
+
+#: cellular/cellularmodemdetails.cpp:474
+#, kde-format
+msgid "2G"
+msgstr "2G"
+
+#: cellular/cellularmodemdetails.cpp:485
+#, kde-format
+msgid "3G"
+msgstr "3G"
+
+#: cellular/cellularmodemdetails.cpp:490
+#, kde-format
+msgid "4G"
+msgstr "4G"
+
+#: cellular/cellularmodemdetails.cpp:493
+#, kde-format
+msgid "5G"
+msgstr "5G"
+
+#: cellular/cellularmodemdetails.cpp:496
+#, kde-format
+msgid "Any"
+msgstr "Qualquer"
+
+#: cellular/cellularsim.cpp:83
+#, kde-format
+msgid "Lock reason unknown."
+msgstr "A razão do bloqueio é desconhecida."
+
+#: cellular/cellularsim.cpp:85
+#, kde-format
+msgid "Modem is unlocked."
+msgstr "O modem está desbloqueado."
+
+#: cellular/cellularsim.cpp:87
+#, kde-format
+msgid "SIM requires the PIN code."
+msgstr "O SIM precisa do código PIN."
+
+#: cellular/cellularsim.cpp:89
+#, kde-format
+msgid "SIM requires the PIN2 code."
+msgstr "O SIM precisa do código PIN2."
+
+#: cellular/cellularsim.cpp:91
+#, kde-format
+msgid "SIM requires the PUK code."
+msgstr "O SIM precisa do código PUK."
+
+#: cellular/cellularsim.cpp:93
+#, kde-format
+msgid "SIM requires the PUK2 code."
+msgstr "O SIM precisa do código PUK2."
+
+#: cellular/cellularsim.cpp:95
+#, kde-format
+msgid "Modem requires the service provider PIN code."
+msgstr "O modem precisa do código PIN do provedor do serviço."
+
+#: cellular/cellularsim.cpp:97
+#, kde-format
+msgid "Modem requires the service provider PUK code."
+msgstr "O modem precisa do código PUK do provedor do serviço."
+
+#: cellular/cellularsim.cpp:99
+#, kde-format
+msgid "Modem requires the network PIN code."
+msgstr "O modem precisa do código PIN da rede."
+
+#: cellular/cellularsim.cpp:101
+#, kde-format
+msgid "Modem requires the network PUK code."
+msgstr "O modem precisa do código PUK da rede."
+
+#: cellular/cellularsim.cpp:103
+#, kde-format
+msgid "Modem requires the PIN code."
+msgstr "O modem precisa do código PIN."
+
+#: cellular/cellularsim.cpp:105
+#, kde-format
+msgid "Modem requires the corporate PIN code."
+msgstr "O modem precisa do código PIN corporativo."
+
+#: cellular/cellularsim.cpp:107
+#, kde-format
+msgid "Modem requires the corporate PUK code."
+msgstr "O modem precisa do código PUK corporativo."
+
+#: cellular/cellularsim.cpp:109
+#, kde-format
+msgid "Modem requires the PH-FSIM PIN code."
+msgstr "O modem precisa do código PIN do PH-FSIM."
+
+#: cellular/cellularsim.cpp:111
+#, kde-format
+msgid "Modem requires the PH-FSIM PUK code."
+msgstr "O modem precisa do código PUK do PH-FSIM."
+
+#: cellular/cellularsim.cpp:113
+#, kde-format
+msgid "Modem requires the network subset PIN code."
+msgstr "O modem precisa do código PIN do subsegmento de rede."
+
+#: cellular/cellularsim.cpp:115
+#, kde-format
+msgid "Modem requires the network subset PUK code."
+msgstr "O modem precisa do código PUK do subsegmento de rede."
+
+#: cellular/cellularsim.cpp:158
+#, kde-format
+msgid "(empty)"
+msgstr "(vazio)"
+
+#: cellular/cellularsim.cpp:172
+#, kde-format
+msgid "Error toggling SIM lock: %1"
+msgstr "Falha ao alternar bloqueio do SIM: %1"
+
+#: cellular/cellularsim.cpp:181
+#, kde-format
+msgid "Error changing the PIN: %1"
+msgstr "Falha ao alterar o PIN: %1"
+
+#: cellular/cellularsim.cpp:194
+#, kde-format
+msgid "Error sending the PIN: %1"
+msgstr "Falha ao enviar o PIN: %1"
+
+#: cellular/cellularsim.cpp:207
+#, kde-format
+msgid "Error sending the PUK: %1"
+msgstr "Falha ao enviar o PUK: %1"
+
+#: editor/connectiondetails.cpp:91
 #, kde-format
 msgid "Connection speed"
 msgstr "Velocidade de conexão"
 
-#: editor/connectiondetails.cpp:94 editor/connectiondetails.cpp:169
-#: editor/connectiondetails.cpp:247 editor/connectiondetails.cpp:257
-#: editor/connectiondetails.cpp:267 editor/connectiondetails.cpp:277
-#: editor/connectiondetails.cpp:288 editor/connectiondetails.cpp:302
+#: editor/connectiondetails.cpp:93 editor/connectiondetails.cpp:168
+#: editor/connectiondetails.cpp:252 editor/connectiondetails.cpp:262
+#: editor/connectiondetails.cpp:272 editor/connectiondetails.cpp:282
+#: editor/connectiondetails.cpp:293 editor/connectiondetails.cpp:307
 #, kde-format
 msgid "MAC Address"
 msgstr "Endereço MAC"
 
-#: editor/connectiondetails.cpp:97 editor/settings/bondwidget.cpp:36
+#: editor/connectiondetails.cpp:96 editor/settings/bondwidget.cpp:36
 #: editor/settings/bridgewidget.cpp:33 editor/settings/teamwidget.cpp:36
 #, kde-format
 msgid "Ethernet"
 msgstr "Ethernet"
 
-#: editor/connectiondetails.cpp:132
+#: editor/connectiondetails.cpp:131
 #, kde-format
 msgid "Access Point (SSID)"
 msgstr "Ponto de acesso (SSID)"
 
-#: editor/connectiondetails.cpp:136
+#: editor/connectiondetails.cpp:135
 #, kde-format
 msgid "Signal Strength"
 msgstr "Força do sinal"
 
-#: editor/connectiondetails.cpp:136
+#: editor/connectiondetails.cpp:135
 #, kde-format
 msgctxt "Wi-Fi signal strength percentage indicator"
 msgid "%1%"
 msgstr "%1%"
 
-#: editor/connectiondetails.cpp:141 editor/connectiondetails.cpp:151
+#: editor/connectiondetails.cpp:140 editor/connectiondetails.cpp:150
 #, kde-format
 msgid "Security Type"
 msgstr "Tipo de segurança"
 
-#: editor/connectiondetails.cpp:156
+#: editor/connectiondetails.cpp:155
 #, kde-format
 msgid "Connection Speed"
 msgstr "Velocidade de conexão"
 
-#: editor/connectiondetails.cpp:163 editor/connectiondetails.cpp:165
+#: editor/connectiondetails.cpp:162 editor/connectiondetails.cpp:164
 #, kde-format
 msgid "Frequency"
 msgstr "Frequência"
 
-#: editor/connectiondetails.cpp:163
+#: editor/connectiondetails.cpp:162
 #, kde-format
 msgctxt "Frequency (Channel)"
 msgid "%1 (Channel %2)"
 msgstr "%1 (Canal %2)"
 
-#: editor/connectiondetails.cpp:167
+#: editor/connectiondetails.cpp:166
 #, kde-format
 msgid "BSSID"
 msgstr "BSSID"
 
-#: editor/connectiondetails.cpp:172 editor/connectioneditorbase.cpp:222
+#: editor/connectiondetails.cpp:171 editor/connectioneditorbase.cpp:262
 #: editor/settings/bridgewidget.cpp:39 editor/settings/teamwidget.cpp:42
-#: editor/uiutils.cpp:226 models/creatableconnectionsmodel.cpp:173
+#: editor/uiutils.cpp:226 editorqml/qml/components/Wireless.qml:33
+#: models/creatableconnectionsmodel.cpp:173
 #, kde-format
 msgid "Wi-Fi"
 msgstr "Wi-Fi"
 
-#: editor/connectiondetails.cpp:187
+#: editor/connectiondetails.cpp:186
 #, kde-format
 msgid "Operator"
 msgstr "Operador"
 
-#: editor/connectiondetails.cpp:192
+#: editor/connectiondetails.cpp:191
 #, kde-format
 msgid "Network ID"
 msgstr "ID da rede"
 
-#: editor/connectiondetails.cpp:196
+#: editor/connectiondetails.cpp:195
 #, kde-format
 msgid "Signal Quality"
 msgstr "Qualidade do sinal"
 
-#: editor/connectiondetails.cpp:197
+#: editor/connectiondetails.cpp:196
 #, kde-format
 msgid "Access Technology"
 msgstr "Tecnologia de acesso"
 
-#: editor/connectiondetails.cpp:203 models/creatableconnectionsmodel.cpp:149
+#: editor/connectiondetails.cpp:202 models/creatableconnectionsmodel.cpp:149
 #, kde-format
 msgid "Mobile Broadband"
 msgstr "Banda larga móvel"
 
-#: editor/connectiondetails.cpp:214 editor/connectiondetails.cpp:235
+#: editor/connectiondetails.cpp:219 editor/connectiondetails.cpp:240
 #, kde-format
 msgid "VPN Plugin"
 msgstr "Plugin VPN"
 
-#: editor/connectiondetails.cpp:225
+#: editor/connectiondetails.cpp:230
 #, kde-format
 msgid "Banner"
 msgstr "Separador"
 
-#: editor/connectiondetails.cpp:229 editor/connectiondetails.cpp:236
-#: editor/uiutils.cpp:218 networkstatus.cpp:190
+#: editor/connectiondetails.cpp:234 editor/connectiondetails.cpp:241
+#: editor/uiutils.cpp:218 editorqml/qml/components/Vpn.qml:32
+#: networkstatus.cpp:190
 #, kde-format
 msgid "VPN"
 msgstr "VPN"
 
-#: editor/connectiondetails.cpp:235 models/creatableconnectionsmodel.cpp:254
+#: editor/connectiondetails.cpp:240 models/creatableconnectionsmodel.cpp:254
 #: models/creatableconnectionsmodel.cpp:256 networkstatus.cpp:212
 #, kde-format
 msgid "WireGuard"
 msgstr "WireGuard"
 
-#: editor/connectiondetails.cpp:241
+#: editor/connectiondetails.cpp:246
 #, kde-format
 msgid "Name"
 msgstr "Nome"
 
-#: editor/connectiondetails.cpp:243 editor/connectiondetails.cpp:245
+#: editor/connectiondetails.cpp:248 editor/connectiondetails.cpp:250
 #, kde-format
 msgid "Capabilities"
 msgstr "Recursos"
 
-#: editor/connectiondetails.cpp:250 editor/connectioneditorbase.cpp:242
+#: editor/connectiondetails.cpp:255 editor/connectioneditorbase.cpp:278
 #: editor/uiutils.cpp:194
 #, kde-format
 msgid "Bluetooth"
 msgstr "Bluetooth"
 
-#: editor/connectiondetails.cpp:255 editor/connectiondetails.cpp:265
-#: editor/connectiondetails.cpp:275 editor/connectiondetails.cpp:285
-#: editor/connectiondetails.cpp:295 editor/connectiondetails.cpp:300
+#: editor/connectiondetails.cpp:260 editor/connectiondetails.cpp:270
+#: editor/connectiondetails.cpp:280 editor/connectiondetails.cpp:290
+#: editor/connectiondetails.cpp:300 editor/connectiondetails.cpp:305
 #, kde-format
 msgid "Type"
 msgstr "Tipo"
 
-#: editor/connectiondetails.cpp:255 editor/connectiondetails.cpp:260
-#: editor/connectioneditorbase.cpp:253 editor/settings/teamwidget.cpp:39
+#: editor/connectiondetails.cpp:260 editor/connectiondetails.cpp:265
+#: editor/connectioneditorbase.cpp:289 editor/settings/teamwidget.cpp:39
 #: editor/uiutils.cpp:209 models/creatableconnectionsmodel.cpp:142
 #, kde-format
 msgid "Infiniband"
 msgstr "Infiniband"
 
-#: editor/connectiondetails.cpp:265 editor/connectiondetails.cpp:270
-#: editor/connectioneditorbase.cpp:256 editor/uiutils.cpp:198
+#: editor/connectiondetails.cpp:270 editor/connectiondetails.cpp:275
+#: editor/connectioneditorbase.cpp:292 editor/uiutils.cpp:198
 #: models/creatableconnectionsmodel.cpp:190
 #, kde-format
 msgid "Bond"
 msgstr "Agregado"
 
-#: editor/connectiondetails.cpp:275 editor/connectiondetails.cpp:280
-#: editor/connectioneditorbase.cpp:259 editor/uiutils.cpp:201
+#: editor/connectiondetails.cpp:280 editor/connectiondetails.cpp:285
+#: editor/connectioneditorbase.cpp:295 editor/uiutils.cpp:201
 #: models/creatableconnectionsmodel.cpp:200
 #, kde-format
 msgid "Bridge"
 msgstr "Ponte"
 
-#: editor/connectiondetails.cpp:285 editor/connectiondetails.cpp:291
-#: editor/connectioneditorbase.cpp:262 models/creatableconnectionsmodel.cpp:220
+#: editor/connectiondetails.cpp:290 editor/connectiondetails.cpp:296
+#: editor/connectioneditorbase.cpp:298 models/creatableconnectionsmodel.cpp:220
 #, kde-format
 msgid "Vlan"
 msgstr "Vlan"
 
-#: editor/connectiondetails.cpp:287
+#: editor/connectiondetails.cpp:292
 #, kde-format
 msgid "Vlan ID"
 msgstr "ID da VLAN"
 
-#: editor/connectiondetails.cpp:295 editor/connectiondetails.cpp:296
+#: editor/connectiondetails.cpp:300 editor/connectiondetails.cpp:301
 #, kde-format
 msgid "Adsl"
 msgstr "ADSL"
 
-#: editor/connectiondetails.cpp:300 editor/connectiondetails.cpp:305
-#: editor/connectioneditorbase.cpp:265 editor/uiutils.cpp:230
+#: editor/connectiondetails.cpp:305 editor/connectiondetails.cpp:310
+#: editor/connectioneditorbase.cpp:301 editor/uiutils.cpp:230
 #: models/creatableconnectionsmodel.cpp:210
 #, kde-format
 msgid "Team"
 msgstr "Equipe"
 
-#: editor/connectiondetails.cpp:311 editor/connectiondetails.cpp:315
+#: editor/connectiondetails.cpp:316 editor/connectiondetails.cpp:320
 #, kde-format
 msgid "Device"
 msgstr "Dispositivo"
 
-#: editor/connectiondetails.cpp:316
+#: editor/connectiondetails.cpp:321 editorqml/qml/components/Vpn.qml:28
+#: editorqml/qml/components/Wired.qml:30
+#: editorqml/qml/components/Wireless.qml:30
+#: editorqml/qml/ConfigurationDialog.qml:34 editorqml/qml/vpn/ssh/Ssh.qml:30
+#: editorqml/qml/vpn/sstp/Sstp.qml:26
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:238
 #, kde-format
 msgid "General"
 msgstr "Geral"
 
-#: editor/connectiondetails.cpp:325
+#: editor/connectiondetails.cpp:330
 #, kde-format
 msgid "IPv4 Address"
 msgstr "Endereço IPv4"
 
-#: editor/connectiondetails.cpp:331
+#: editor/connectiondetails.cpp:336
 #, kde-format
 msgid "IPv4 Default Gateway"
-msgstr "Gateway padrão IPv4"
+msgstr "Gateway padrão (IPv4)"
 
-#: editor/connectiondetails.cpp:338
+#: editor/connectiondetails.cpp:343
 #, kde-format
 msgid "IPv4 Primary Nameserver"
-msgstr "Nome de servidor IPv4 primário"
+msgstr "Servidor de nomes primário (IPv4)"
 
-#: editor/connectiondetails.cpp:342
+#: editor/connectiondetails.cpp:347
 #, kde-format
 msgid "IPv4 Secondary Nameserver"
-msgstr "Nome de servidor IPv4 secundário"
+msgstr "Servidor de nomes secundário (IPv4)"
 
-#: editor/connectiondetails.cpp:347 editor/connectioneditorbase.cpp:298
+#: editor/connectiondetails.cpp:352 editor/connectioneditorbase.cpp:334
+#: editorqml/qml/components/Vpn.qml:36 editorqml/qml/components/Wired.qml:39
+#: editorqml/qml/components/Wireless.qml:39
 #, kde-format
 msgid "IPv4"
 msgstr "IPv4"
 
-#: editor/connectiondetails.cpp:357
+#: editor/connectiondetails.cpp:362
 #, kde-format
 msgid "IPv6 Address"
 msgstr "Endereço IPv6"
 
-#: editor/connectiondetails.cpp:359
+#: editor/connectiondetails.cpp:364
 #, kde-format
 msgid "IPv6 ULA Address"
 msgstr "Endereço ULA IPv6"
 
-#: editor/connectiondetails.cpp:365
+#: editor/connectiondetails.cpp:370
 #, kde-format
 msgid "IPv6 Default Gateway"
-msgstr "Gateway padrão IPv6"
+msgstr "Gateway padrão (IPv6)"
 
-#: editor/connectiondetails.cpp:372
+#: editor/connectiondetails.cpp:377
 #, kde-format
 msgid "IPv6 Primary Nameserver"
-msgstr "Nome de servidor IPv6 primário"
+msgstr "Servidor de nomes primário (IPv6)"
 
-#: editor/connectiondetails.cpp:376
+#: editor/connectiondetails.cpp:381
 #, kde-format
 msgid "IPv6 Secondary Nameserver"
-msgstr "Nome de servidor IPv6 secundário"
+msgstr "Servidor de nomes secundário (IPv6)"
 
-#: editor/connectiondetails.cpp:381 editor/connectioneditorbase.cpp:316
+#: editor/connectiondetails.cpp:386 editor/connectioneditorbase.cpp:352
+#: editorqml/qml/components/Vpn.qml:43 editorqml/qml/components/Wired.qml:42
+#: editorqml/qml/components/Wireless.qml:42
 #, kde-format
 msgid "IPv6"
 msgstr "IPv6"
 
-#: editor/connectioneditorbase.cpp:203
+#: editor/connectioneditorbase.cpp:228
 #, kde-format
 msgctxt "@title:tab Connection status and details"
 msgid "Status"
 msgstr "Status"
 
-#: editor/connectioneditorbase.cpp:209
+#: editor/connectioneditorbase.cpp:234
 #, kde-format
 msgctxt "@title:tab General configuration"
 msgid "General"
 msgstr "Geral"
 
-#: editor/connectioneditorbase.cpp:216 editor/connectioneditorbase.cpp:233
+#: editor/connectioneditorbase.cpp:241 editor/connectioneditorbase.cpp:269
+#: editorqml/qml/components/Wired.qml:33
 #, kde-format
 msgid "Wired"
 msgstr "Com fio"
 
-#: editor/connectioneditorbase.cpp:219
+#: editor/connectioneditorbase.cpp:244 editorqml/qml/components/Wired.qml:36
 #, kde-format
 msgid "802.1x Security"
 msgstr "Segurança 802.1x"
 
-#: editor/connectioneditorbase.cpp:226
-#, kde-format
-msgid "Wi-Fi Security"
-msgstr "Segurança Wi-Fi"
-
-#: editor/connectioneditorbase.cpp:231 editor/uiutils.cpp:190
+#: editor/connectioneditorbase.cpp:267 editor/uiutils.cpp:190
 #: models/creatableconnectionsmodel.cpp:135
 #, kde-format
 msgid "DSL"
 msgstr "DSL"
 
-#: editor/connectioneditorbase.cpp:236 editor/connectioneditorbase.cpp:239
+#: editor/connectioneditorbase.cpp:272 editor/connectioneditorbase.cpp:275
 #, kde-format
 msgid "Mobile Broadband (%1)"
 msgstr "Banda larga móvel (%1)"
 
-#: editor/connectioneditorbase.cpp:247
-#, kde-format
-msgid "GSM"
-msgstr "GSM"
-
-#: editor/connectioneditorbase.cpp:249 editor/connectioneditorbase.cpp:292
+#: editor/connectioneditorbase.cpp:285 editor/connectioneditorbase.cpp:328
 #, kde-format
 msgid "PPP"
 msgstr "PPP"
 
-#: editor/connectioneditorbase.cpp:268
+#: editor/connectioneditorbase.cpp:304
 #, kde-format
 msgid "WireGuard Interface"
 msgstr "Interface do WireGuard"
 
-#: editor/connectioneditorbase.cpp:281
+#: editor/connectioneditorbase.cpp:317
 #, kde-format
 msgid "VPN (%1)"
 msgstr "VPN (%1)"
 
-#: editor/connectioneditorbase.cpp:499
+#: editor/connectioneditorbase.cpp:541
 #, kde-format
 msgid "Failed to get secrets for %1"
 msgstr "Ocorreu um erro ao obter as senhas de %1"
 
-#: editor/connectioneditordialog.cpp:33
+#: editor/connectioneditordialog.cpp:36
 #, kde-format
 msgid "New Connection (%1)"
 msgstr "Nova conexão (%1)"
 
-#: editor/connectioneditordialog.cpp:35
+#: editor/connectioneditordialog.cpp:38
 #, kde-format
 msgid "Edit Connection '%1'"
 msgstr "Editar a conexão '%1'"
 
-#: editor/connectioneditortabwidget.cpp:50
+#: editor/connectioneditortabwidget.cpp:58
 #, kde-format
 msgid "New %1 connection"
 msgstr "Nova conexão %1"
@@ -441,6 +909,7 @@ msgid "PAN (personal area network)"
 msgstr "PAN (rede pessoal)"
 
 #: editor/settings/connectionstatuswidget.cpp:33
+#: editorqml/qml/wifistatus/ConnectionStatusForm.qml:15
 #, kde-format
 msgid "Disconnected"
 msgstr "Desconectado"
@@ -482,6 +951,8 @@ msgid "Gateway"
 msgstr "Gateway"
 
 #: editor/settings/ipv4widget.cpp:267 editor/settings/ipv6widget.cpp:258
+#: editorqml/settings/ipv4settings/ipv4settings.cpp:232
+#: editorqml/settings/ipv6settings/ipv6settings.cpp:229
 #, kde-format
 msgid "Other DNS Servers:"
 msgstr "Outros servidores DNS:"
@@ -490,6 +961,8 @@ msgstr "Outros servidores DNS:"
 #: editor/settings/ipv4widget.cpp:306 editor/settings/ipv4widget.cpp:319
 #: editor/settings/ipv6widget.cpp:271 editor/settings/ipv6widget.cpp:284
 #: editor/settings/ipv6widget.cpp:297 editor/settings/ipv6widget.cpp:310
+#: editorqml/settings/ipv4settings/ipv4settings.cpp:232
+#: editorqml/settings/ipv6settings/ipv6settings.cpp:229
 #, kde-format
 msgid "DNS Servers:"
 msgstr "Servidores DNS:"
@@ -512,13 +985,13 @@ msgstr ""
 msgid "Send hostname:"
 msgstr "Enviar o nome da máquina:"
 
-#: editor/settings/ipv4widget.cpp:436
+#: editor/settings/ipv4widget.cpp:436 editorqml/qml/ipv4/IPv4Advance.qml:53
 #, kde-format
 msgid "DHCP hostname:"
 msgstr "Nome da máquina DHCP:"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, privacyCombo)
-#: editor/settings/ipv4widget.cpp:441 editor/settings/ui/ipv6.ui:194
+#: editor/settings/ipv4widget.cpp:441 editor/settings/ui/ipv6.ui:191
 #, kde-format
 msgid "Default"
 msgstr "Padrão"
@@ -529,7 +1002,7 @@ msgctxt "Milliseconds"
 msgid " ms"
 msgstr " ms"
 
-#: editor/settings/ipv4widget.cpp:445
+#: editor/settings/ipv4widget.cpp:445 editorqml/qml/ipv4/IPv4Advance.qml:63
 #, kde-format
 msgid "DAD timeout:"
 msgstr "Tempo-limite do DAD:"
@@ -562,12 +1035,12 @@ msgctxt "Header text for IPv6 gateway"
 msgid "Gateway"
 msgstr "Gateway"
 
-#: editor/settings/security802-1x.cpp:507
+#: editor/settings/security802-1x.cpp:542
 #, kde-format
 msgid "Alternative Subject Matches"
 msgstr "Correspondências do sujeito alternativas"
 
-#: editor/settings/security802-1x.cpp:509
+#: editor/settings/security802-1x.cpp:544
 #, kde-format
 msgid ""
 "<qt>This entry must be one of:<ul><li>DNS: &lt;name or ip address&gt;</"
@@ -578,7 +1051,7 @@ msgstr ""
 "endereço IP&gt;</li><li>EMAIL: &lt;email&gt;</li><li>URI: &lt;uri, por "
 "exemplo, https://www.kde.org&gt;</li></ul></qt>"
 
-#: editor/settings/security802-1x.cpp:526
+#: editor/settings/security802-1x.cpp:561
 #, kde-format
 msgid "Connect to these servers only"
 msgstr "Conectar apenas a estes servidores"
@@ -590,51 +1063,68 @@ msgstr "Selecione o arquivo a importar"
 
 #. i18n: ectx: property (text), widget (QLabel, label)
 #. i18n: ectx: property (text), widget (QLabel, label_4)
-#: editor/settings/ui/802-1x.ui:18 editor/settings/ui/wifisecurity.ui:153
+#: editor/settings/ui/802-1x.ui:33 editor/settings/ui/wifisecurity.ui:174
+#: editorqml/qml/wifisecurity/authentication/enterprise/DynamicWep.qml:51
+#: editorqml/qml/wifisecurity/authentication/enterprise/Wpa3Enterprise192.qml:31
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:53
+#: editorqml/qml/wifisecurity/authentication/WepKey.qml:48
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:34
 #, kde-format
 msgid "Authentication:"
 msgstr "Autenticação:"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
 #. i18n: ectx: property (text), item, widget (KComboBox, peapInnerAuth)
-#: editor/settings/ui/802-1x.ui:38 editor/settings/ui/802-1x.ui:687
+#: editor/settings/ui/802-1x.ui:53 editor/settings/ui/802-1x.ui:671
 #, kde-format
 msgid "MD5"
 msgstr "MD5"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:43
+#: editor/settings/ui/802-1x.ui:58
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "TLS"
 msgstr "TLS"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/802-1x.ui:48 editor/settings/ui/wifisecurity.ui:55
+#: editor/settings/ui/802-1x.ui:63 editor/settings/ui/wifisecurity.ui:70
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:26
 #, kde-format
 msgid "LEAP"
 msgstr "LEAP"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:53
+#: editor/settings/ui/802-1x.ui:68
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "PWD"
 msgstr "PWD"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:58
+#: editor/settings/ui/802-1x.ui:73
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "FAST"
 msgstr "RÁPIDO"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:63
+#: editor/settings/ui/802-1x.ui:78
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "Tunneled TLS (TTLS)"
 msgstr "TLS encapsulado (TTLS)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:68
+#: editor/settings/ui/802-1x.ui:83
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "Protected EAP (PEAP)"
 msgstr "EAP protegido (PEAP)"
@@ -646,11 +1136,20 @@ msgstr "EAP protegido (PEAP)"
 #. i18n: ectx: property (text), widget (QLabel, label_17)
 #. i18n: ectx: property (text), widget (QLabel, label_25)
 #. i18n: ectx: property (text), widget (QLabel, label_8)
-#: editor/settings/ui/802-1x.ui:83 editor/settings/ui/802-1x.ui:283
-#: editor/settings/ui/802-1x.ui:317 editor/settings/ui/802-1x.ui:448
-#: editor/settings/ui/802-1x.ui:554 editor/settings/ui/802-1x.ui:700
+#: editor/settings/ui/802-1x.ui:91 editor/settings/ui/802-1x.ui:283
+#: editor/settings/ui/802-1x.ui:313 editor/settings/ui/802-1x.ui:440
+#: editor/settings/ui/802-1x.ui:542 editor/settings/ui/802-1x.ui:684
 #: editor/settings/ui/cdma.ui:37 editor/settings/ui/gsm.ui:41
-#: editor/settings/ui/pppoe.ui:37 editor/settings/ui/wifisecurity.ui:183
+#: editor/settings/ui/pppoe.ui:37 editor/settings/ui/wifisecurity.ui:207
+#: editorqml/qml/vpn/sstp/Sstp.qml:43
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:265
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:173
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapLeap.qml:25
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapMd5.qml:22
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:152
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:94
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:141
+#: editorqml/qml/wifisecurity/authentication/Leap.qml:24
 #, kde-format
 msgid "Username:"
 msgstr "Nome de usuário:"
@@ -662,18 +1161,19 @@ msgstr "Nome de usuário:"
 #. i18n: ectx: property (text), widget (QLabel, label_18)
 #. i18n: ectx: property (text), widget (QLabel, label_21)
 #. i18n: ectx: property (text), widget (QLabel, label_9)
-#: editor/settings/ui/802-1x.ui:96 editor/settings/ui/802-1x.ui:296
-#: editor/settings/ui/802-1x.ui:330 editor/settings/ui/802-1x.ui:461
-#: editor/settings/ui/802-1x.ui:567 editor/settings/ui/802-1x.ui:713
+#: editor/settings/ui/802-1x.ui:104 editor/settings/ui/802-1x.ui:296
+#: editor/settings/ui/802-1x.ui:326 editor/settings/ui/802-1x.ui:453
+#: editor/settings/ui/802-1x.ui:555 editor/settings/ui/802-1x.ui:697
 #: editor/settings/ui/cdma.ui:50 editor/settings/ui/gsm.ui:54
-#: editor/settings/ui/pppoe.ui:50 editor/settings/ui/wifisecurity.ui:196
-#: editor/settings/ui/wifisecurity.ui:213
+#: editor/settings/ui/pppoe.ui:50 editor/settings/ui/wifisecurity.ui:223
+#: editor/settings/ui/wifisecurity.ui:243 editorqml/qml/PasswordField.qml:15
 #, kde-format
 msgid "Password:"
 msgstr "Senha:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
-#: editor/settings/ui/802-1x.ui:117
+#: editor/settings/ui/802-1x.ui:121
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:23
 #, kde-format
 msgid "Identity:"
 msgstr "Identidade:"
@@ -681,14 +1181,18 @@ msgstr "Identidade:"
 #. i18n: ectx: property (text), widget (QLabel, label_32)
 #. i18n: ectx: property (text), widget (QLabel, label_30)
 #. i18n: ectx: property (text), widget (QLabel, label_31)
-#: editor/settings/ui/802-1x.ui:130 editor/settings/ui/802-1x.ui:584
-#: editor/settings/ui/802-1x.ui:730
+#: editor/settings/ui/802-1x.ui:134 editor/settings/ui/802-1x.ui:572
+#: editor/settings/ui/802-1x.ui:714
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:101
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:30
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:102
 #, kde-format
 msgid "Domain:"
 msgstr "Domínio:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_5)
-#: editor/settings/ui/802-1x.ui:140
+#: editor/settings/ui/802-1x.ui:144
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:49
 #, kde-format
 msgid "User certificate:"
 msgstr "Certificado do usuário:"
@@ -696,47 +1200,72 @@ msgstr "Certificado do usuário:"
 #. i18n: ectx: property (text), widget (QLabel, label_6)
 #. i18n: ectx: property (text), widget (QLabel, label_20)
 #. i18n: ectx: property (text), widget (QLabel, label_23)
-#: editor/settings/ui/802-1x.ui:159 editor/settings/ui/802-1x.ui:495
-#: editor/settings/ui/802-1x.ui:611
+#: editor/settings/ui/802-1x.ui:163 editor/settings/ui/802-1x.ui:483
+#: editor/settings/ui/802-1x.ui:595
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:110
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:68
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:111
 #, kde-format
 msgid "CA certificate:"
 msgstr "Certificado da AC:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_27)
-#: editor/settings/ui/802-1x.ui:178
+#: editor/settings/ui/802-1x.ui:182
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:26
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:26
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:24
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:75
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:26
 #, kde-format
 msgid "Subject match:"
 msgstr "Correspondência do sujeito:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_28)
-#: editor/settings/ui/802-1x.ui:195
+#: editor/settings/ui/802-1x.ui:199
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:48
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:48
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:46
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:95
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:48
 #, kde-format
 msgid "Alternative subject matches:"
 msgstr "Correspondências do sujeito alternativas:"
 
 #. i18n: ectx: property (text), widget (QPushButton, btnTlsAltSubjectMatches)
 #. i18n: ectx: property (text), widget (QPushButton, btnTlsConnectToServers)
-#: editor/settings/ui/802-1x.ui:210 editor/settings/ui/802-1x.ui:234
+#: editor/settings/ui/802-1x.ui:214 editor/settings/ui/802-1x.ui:238
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:74
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:74
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:72
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:118
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:74
 #, kde-format
 msgid "…"
 msgstr "…"
 
 #. i18n: ectx: property (text), widget (QLabel, label_29)
-#: editor/settings/ui/802-1x.ui:219
+#: editor/settings/ui/802-1x.ui:223
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:63
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:63
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:61
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:108
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:63
 #, kde-format
 msgid "Connect to these servers:"
 msgstr "Conectar a estes servidores:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_7)
 #. i18n: ectx: property (text), widget (QLabel, privateKeyLabel)
-#: editor/settings/ui/802-1x.ui:243
+#: editor/settings/ui/802-1x.ui:247
 #: editor/settings/ui/wireguardinterfacewidget.ui:41
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:152
 #, kde-format
 msgid "Private key:"
 msgstr "Chave privada:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_8)
-#: editor/settings/ui/802-1x.ui:262
+#: editor/settings/ui/802-1x.ui:266
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:159
 #, kde-format
 msgid "Private key password:"
 msgstr "Senha da chave privada:"
@@ -744,38 +1273,41 @@ msgstr "Senha da chave privada:"
 #. i18n: ectx: property (text), widget (QLabel, label_11)
 #. i18n: ectx: property (text), widget (QLabel, label_19)
 #. i18n: ectx: property (text), widget (QLabel, label_24)
-#: editor/settings/ui/802-1x.ui:351 editor/settings/ui/802-1x.ui:482
-#: editor/settings/ui/802-1x.ui:598
+#: editor/settings/ui/802-1x.ui:343 editor/settings/ui/802-1x.ui:470
+#: editor/settings/ui/802-1x.ui:582
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:93
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:93
 #, kde-format
 msgid "Anonymous identity:"
 msgstr "Identidade anônima:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, fastAllowPacProvisioning)
-#: editor/settings/ui/802-1x.ui:364
+#: editor/settings/ui/802-1x.ui:356
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:105
 #, kde-format
 msgid "Automatic PAC provisioning"
 msgstr "Provisionamento automático PAC"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, pacMethod)
-#: editor/settings/ui/802-1x.ui:381
+#: editor/settings/ui/802-1x.ui:373
 #, kde-format
 msgid "Anonymous"
 msgstr "Anônimo"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, pacMethod)
-#: editor/settings/ui/802-1x.ui:386
+#: editor/settings/ui/802-1x.ui:378
 #, kde-format
 msgid "Authenticated"
 msgstr "Autenticado"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, pacMethod)
-#: editor/settings/ui/802-1x.ui:391
+#: editor/settings/ui/802-1x.ui:383
 #, kde-format
 msgid "Both"
 msgstr "Ambos"
 
 #. i18n: ectx: property (text), widget (QLabel, label_12)
-#: editor/settings/ui/802-1x.ui:399
+#: editor/settings/ui/802-1x.ui:391
 #, kde-format
 msgid "PAC file:"
 msgstr "Arquivo PAC:"
@@ -783,15 +1315,18 @@ msgstr "Arquivo PAC:"
 #. i18n: ectx: property (text), widget (QLabel, label_13)
 #. i18n: ectx: property (text), widget (QLabel, label_16)
 #. i18n: ectx: property (text), widget (QLabel, label_22)
-#: editor/settings/ui/802-1x.ui:418 editor/settings/ui/802-1x.ui:514
-#: editor/settings/ui/802-1x.ui:665
+#: editor/settings/ui/802-1x.ui:410 editor/settings/ui/802-1x.ui:502
+#: editor/settings/ui/802-1x.ui:649
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:165
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:141
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:130
 #, kde-format
 msgid "Inner authentication:"
 msgstr "Autenticação interna:"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, fastInnerAuth)
 #. i18n: ectx: property (text), item, widget (KComboBox, peapInnerAuth)
-#: editor/settings/ui/802-1x.ui:435 editor/settings/ui/802-1x.ui:692
+#: editor/settings/ui/802-1x.ui:427 editor/settings/ui/802-1x.ui:676
 #, kde-format
 msgid "GTC"
 msgstr "GTC"
@@ -800,54 +1335,61 @@ msgstr "GTC"
 #. i18n: ectx: property (text), item, widget (KComboBox, fastInnerAuth)
 #. i18n: ectx: property (text), item, widget (KComboBox, ttlsInnerAuth)
 #. i18n: ectx: property (text), item, widget (KComboBox, peapInnerAuth)
-#: editor/settings/ui/802-1x.ui:440 editor/settings/ui/802-1x.ui:541
-#: editor/settings/ui/802-1x.ui:682 editor/settings/ui/ppp.ui:68
+#: editor/settings/ui/802-1x.ui:432 editor/settings/ui/802-1x.ui:529
+#: editor/settings/ui/802-1x.ui:666 editor/settings/ui/ppp.ui:68
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:113
 #, kde-format
 msgid "MSCHAPv2"
 msgstr "MSCHAPv2"
 
 #. i18n: ectx: property (text), widget (QCheckBox, pap)
 #. i18n: ectx: property (text), item, widget (KComboBox, ttlsInnerAuth)
-#: editor/settings/ui/802-1x.ui:531 editor/settings/ui/ppp.ui:58
+#: editor/settings/ui/802-1x.ui:519 editor/settings/ui/ppp.ui:58
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:92
 #, kde-format
 msgid "PAP"
 msgstr "PAP"
 
 #. i18n: ectx: property (text), widget (QCheckBox, mschap)
 #. i18n: ectx: property (text), item, widget (KComboBox, ttlsInnerAuth)
-#: editor/settings/ui/802-1x.ui:536 editor/settings/ui/ppp.ui:48
+#: editor/settings/ui/802-1x.ui:524 editor/settings/ui/ppp.ui:48
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:106
 #, kde-format
 msgid "MSCHAP"
 msgstr "MSCHAP"
 
 #. i18n: ectx: property (text), widget (QCheckBox, chap)
 #. i18n: ectx: property (text), item, widget (KComboBox, ttlsInnerAuth)
-#: editor/settings/ui/802-1x.ui:546 editor/settings/ui/ppp.ui:78
+#: editor/settings/ui/802-1x.ui:534 editor/settings/ui/ppp.ui:78
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:99
 #, kde-format
 msgid "CHAP"
 msgstr "CHAP"
 
 #. i18n: ectx: property (text), widget (QLabel, label_26)
-#: editor/settings/ui/802-1x.ui:630
+#: editor/settings/ui/802-1x.ui:614
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:130
 #, kde-format
 msgid "PEAP version:"
 msgstr "Versão do PEAP:"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, peapVersion)
-#: editor/settings/ui/802-1x.ui:647
+#: editor/settings/ui/802-1x.ui:631
 #, kde-format
 msgctxt "PEAP version"
 msgid "Automatic"
 msgstr "Automático"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, peapVersion)
-#: editor/settings/ui/802-1x.ui:652
+#: editor/settings/ui/802-1x.ui:636
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:133
 #, kde-format
 msgid "Version 0"
 msgstr "Versão 0"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, peapVersion)
-#: editor/settings/ui/802-1x.ui:657
+#: editor/settings/ui/802-1x.ui:641
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:133
 #, kde-format
 msgid "Version 1"
 msgstr "Versão 1"
@@ -883,14 +1425,15 @@ msgstr "Editar…"
 
 #. i18n: ectx: property (text), widget (QPushButton, btnDelete)
 #: editor/settings/ui/bond.ui:85 editor/settings/ui/bridge.ui:82
-#: editor/settings/ui/team.ui:86
+#: editor/settings/ui/team.ui:86 qml/ConnectionItemDelegate.qml:120
 #, kde-format
 msgid "Delete"
 msgstr "Excluir"
 
 #. i18n: ectx: property (text), widget (QLabel, label_3)
 #. i18n: ectx: property (text), widget (QLabel, modeLabel)
-#: editor/settings/ui/bond.ui:110 editor/settings/ui/wificonnectionwidget.ui:43
+#: editor/settings/ui/bond.ui:110 editor/settings/ui/wificonnectionwidget.ui:68
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:70
 #, kde-format
 msgid "Mode:"
 msgstr "Modo:"
@@ -1013,40 +1556,40 @@ msgstr "Número:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, autoconnect)
 #: editor/settings/ui/connectionwidget.ui:17
+#: editorqml/qml/generalSettings/GeneralSettings.qml:24
 #, kde-format
 msgid "Connect automatically with priority"
 msgstr "Conectar automaticamente com prioridade"
 
 #. i18n: ectx: property (toolTip), widget (QSpinBox, prioritySpin)
-#: editor/settings/ui/connectionwidget.ui:38
+#: editor/settings/ui/connectionwidget.ui:37
 #, kde-format
 msgid ""
 "If the connection is set to autoconnect, connections with higher priority "
 "will be preferred. Defaults to 0.\n"
 "The higher number means higher priority. A negative number can be used to "
-"indicate priority lower than the default.\n"
-"           "
+"indicate priority lower than the default."
 msgstr ""
 "Se a conexão for definida para autoconexão, conexões com prioridade mais "
 "alta serão preferidas. O padrão é 0.\n"
 "O número mais alto significa prioridade mais alta. Um número negativo pode "
-"ser usado para indicar prioridade menor que o padrão.\n"
-"           "
+"ser usado para indicar prioridade menor que o padrão."
 
 #. i18n: ectx: property (text), widget (QCheckBox, allUsers)
-#: editor/settings/ui/connectionwidget.ui:48
+#: editor/settings/ui/connectionwidget.ui:47
+#: editorqml/qml/generalSettings/GeneralSettings.qml:60
 #, kde-format
 msgid "All users may connect to this network"
 msgstr "Todos os usuários podem se conectar nesta rede"
 
 #. i18n: ectx: property (toolTip), widget (QPushButton, pushButtonPermissions)
-#: editor/settings/ui/connectionwidget.ui:64
+#: editor/settings/ui/connectionwidget.ui:63
 #, kde-format
 msgid "Edit advanced permissions for this connection"
 msgstr "Editar as permissões avançadas desta conexão"
 
 #. i18n: ectx: property (whatsThis), widget (QPushButton, pushButtonPermissions)
-#: editor/settings/ui/connectionwidget.ui:67
+#: editor/settings/ui/connectionwidget.ui:66
 #, kde-format
 msgid ""
 "Fine-grained permissions editor for this connection. It lets you choose "
@@ -1057,58 +1600,69 @@ msgstr ""
 
 #. i18n: ectx: property (text), widget (QPushButton, pushButtonPermissions)
 #. i18n: ectx: property (text), widget (QPushButton, btnAdvanced)
-#: editor/settings/ui/connectionwidget.ui:70 editor/settings/ui/ipv4.ui:354
+#: editor/settings/ui/connectionwidget.ui:69 editor/settings/ui/ipv4.ui:38
+#: editorqml/qml/generalSettings/GeneralSettings.qml:69
 #, kde-format
 msgid "Advanced…"
 msgstr "Avançado…"
 
 #. i18n: ectx: property (text), widget (QCheckBox, autoconnectVpn)
-#: editor/settings/ui/connectionwidget.ui:80
+#: editor/settings/ui/connectionwidget.ui:79
+#: editorqml/qml/generalSettings/GeneralSettings.qml:91
 #, kde-format
 msgid "Automatically connect to VPN"
 msgstr "Conectar automaticamente à VPN"
 
+#. i18n: ectx: property (toolTip), widget (KComboBox, vpnCombobox)
+#: editor/settings/ui/connectionwidget.ui:95
+#, kde-format
+msgid ""
+"Choose which VPN connection to automatically activate when this connection "
+"is established"
+msgstr ""
+"Escolha qual conexão VPN ativar automaticamente quando esta conexão for "
+"estabelecida."
+
 #. i18n: ectx: property (text), widget (QLabel, firewallZoneLabel)
-#: editor/settings/ui/connectionwidget.ui:100
+#: editor/settings/ui/connectionwidget.ui:102
+#: editorqml/qml/generalSettings/GeneralSettings.qml:114
 #, kde-format
 msgid "Firewall zone:"
 msgstr "Área do firewall:"
 
+#. i18n: ectx: property (toolTip), widget (KComboBox, firewallZone)
+#: editor/settings/ui/connectionwidget.ui:127
+#, kde-format
+msgid ""
+"Assign this connection to a firewall zone to control network access and "
+"security rules"
+msgstr ""
+"Atribua esta conexão a uma zona de firewall para controlar o acesso à rede e "
+"as regras de segurança."
+
 #. i18n: ectx: property (text), widget (QLabel, meteredLabel)
-#: editor/settings/ui/connectionwidget.ui:129
+#: editor/settings/ui/connectionwidget.ui:134
+#: editorqml/qml/generalSettings/GeneralSettings.qml:128
 #, kde-format
 msgid "Metered:"
 msgstr "Medida:"
 
 #. i18n: ectx: property (toolTip), widget (KComboBox, metered)
-#: editor/settings/ui/connectionwidget.ui:149
+#: editor/settings/ui/connectionwidget.ui:154
 #, kde-format
 msgid ""
-"NetworkManager indicates to applications whether the connection is metered "
-"and therefore\n"
+"Indicates to applications whether the connection is metered and therefore\n"
 "data usage should be restricted."
 msgstr ""
-"O NetworkManager indica aos aplicativos se a conexão está sendo medida e,\n"
-"nesse caso, se a utilização dos dados deverá ser restrita."
-
-#. i18n: ectx: property (text), item, widget (KComboBox, metered)
-#: editor/settings/ui/connectionwidget.ui:159
-#, kde-format
-msgctxt "Item in the Metered: list"
-msgid "Automatic"
-msgstr "Automático"
+"Indica aos aplicativos se a conexão está sendo medida e, nesse caso,\n"
+"se a utilização dos dados deverá ser restrita."
 
 #. i18n: ectx: property (text), item, widget (KComboBox, metered)
 #: editor/settings/ui/connectionwidget.ui:164
 #, kde-format
-msgid "Yes"
-msgstr "Sim"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, metered)
-#: editor/settings/ui/connectionwidget.ui:169
-#, kde-format
-msgid "No"
-msgstr "Não"
+msgctxt "Item in the Metered: list"
+msgid "Automatic"
+msgstr "Automático"
 
 #. i18n: ectx: property (title), widget (QGroupBox, basicGroup)
 #: editor/settings/ui/gsm.ui:18
@@ -1117,7 +1671,9 @@ msgid "Basic"
 msgstr "Básico"
 
 #. i18n: ectx: property (title), widget (QGroupBox, advGroup)
-#: editor/settings/ui/gsm.ui:84
+#. i18n: ectx: property (text), widget (QLabel, advancedSectionLabel)
+#: editor/settings/ui/gsm.ui:84 editor/settings/ui/wificonnectionwidget.ui:112
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:90
 #, kde-format
 msgid "Advanced"
 msgstr "Avançado"
@@ -1155,8 +1711,8 @@ msgstr "Modo de transporte:"
 #. i18n: ectx: property (text), widget (QLabel, label)
 #. i18n: ectx: property (text), widget (QLabel, label_2)
 #: editor/settings/ui/infiniband.ui:41
-#: editor/settings/ui/wificonnectionwidget.ui:186
 #: editor/settings/ui/wiredconnectionwidget.ui:23
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:21
 #, kde-format
 msgid "Restrict to device:"
 msgstr "Restringir ao dispositivo:"
@@ -1165,16 +1721,18 @@ msgstr "Restringir ao dispositivo:"
 #. i18n: ectx: property (text), widget (QLabel, mtuLabel)
 #. i18n: ectx: property (text), widget (QLabel, label_4)
 #: editor/settings/ui/infiniband.ui:61
-#: editor/settings/ui/wificonnectionwidget.ui:249
+#: editor/settings/ui/wificonnectionwidget.ui:301
 #: editor/settings/ui/wiredconnectionwidget.ui:89
 #: editor/settings/ui/wireguardinterfacewidget.ui:89
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:219
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:85
 #, kde-format
 msgid "MTU:"
 msgstr "MTU:"
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, mtu)
 #: editor/settings/ui/infiniband.ui:80
-#: editor/settings/ui/wificonnectionwidget.ui:271
+#: editor/settings/ui/wificonnectionwidget.ui:323
 #: editor/settings/ui/wiredconnectionwidget.ui:112
 #, kde-format
 msgctxt "MTU:"
@@ -1183,7 +1741,7 @@ msgstr "Automático"
 
 #. i18n: ectx: property (suffix), widget (QSpinBox, mtu)
 #: editor/settings/ui/infiniband.ui:83
-#: editor/settings/ui/wificonnectionwidget.ui:274
+#: editor/settings/ui/wificonnectionwidget.ui:326
 #: editor/settings/ui/wiredconnectionwidget.ui:115
 #, kde-format
 msgid " bytes"
@@ -1196,105 +1754,14 @@ msgstr " bytes"
 msgid "Advanced IP settings"
 msgstr "Configurações do IP avançadas"
 
-#. i18n: ectx: property (text), widget (QLabel, label)
-#: editor/settings/ui/ipv4.ui:29 editor/settings/ui/ipv6.ui:49
+#. i18n: ectx: property (text), widget (QPushButton, btnRoutes)
+#: editor/settings/ui/ipv4.ui:63 editor/settings/ui/ipv6.ui:323
 #, kde-format
-msgid "Method:"
-msgstr "Método:"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:49 editor/settings/ui/ipv6.ui:224
-#, kde-format
-msgctxt "Method:"
-msgid "Automatic"
-msgstr "Automático"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:54 editor/settings/ui/ipv6.ui:229
-#, kde-format
-msgid "Automatic (Only addresses)"
-msgstr "Automático (apenas endereços)"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:59 editor/settings/ui/ipv6.ui:239
-#, kde-format
-msgid "Link-Local"
-msgstr "Link local"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:64 editor/settings/ui/ipv6.ui:244
-#, kde-format
-msgctxt "like in use Manual configuration"
-msgid "Manual"
-msgstr "Manual"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:69
-#, kde-format
-msgid "Shared to other computers"
-msgstr "Compartilhado com outros computadores"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:74
-#, kde-format
-msgctxt "like in this setting is Disabled"
-msgid "Disabled"
-msgstr "Desativado"
-
-#. i18n: ectx: property (text), widget (QLabel, dnsLabel)
-#: editor/settings/ui/ipv4.ui:88 editor/settings/ui/ipv6.ui:167
-#, kde-format
-msgctxt "@info"
-msgid "DNS Servers:"
-msgstr "Servidores DNS:"
-
-#. i18n: ectx: property (toolTip), widget (KLineEdit, dns)
-#: editor/settings/ui/ipv4.ui:118 editor/settings/ui/ipv6.ui:76
-#, kde-format
-msgid ""
-"Use this field to specify the IP address(es) of one or more DNS servers. Use "
-"',' to separate entries."
-msgstr ""
-"Use este campo para especificar o(s) endereço(s) IP de um ou mais servidores "
-"DNS. Use ',' para separar os itens."
-
-#. i18n: ectx: property (toolTip), widget (QPushButton, dnsMorePushButton)
-#: editor/settings/ui/ipv4.ui:125
-#, kde-format
-msgid "Edit DNS the list of servers"
-msgstr "Editar a lista de servidores DNS"
-
-#. i18n: ectx: property (text), widget (QLabel, dnsSearchLabel)
-#: editor/settings/ui/ipv4.ui:143 editor/settings/ui/ipv6.ui:350
-#, kde-format
-msgctxt "@info"
-msgid "Search Domains:"
-msgstr "Domínios de pesquisa:"
-
-#. i18n: ectx: property (toolTip), widget (KLineEdit, dnsSearch)
-#: editor/settings/ui/ipv4.ui:164 editor/settings/ui/ipv6.ui:270
-#, kde-format
-msgid ""
-"Use this field to specify one or more DNS domains to search. Use ',' to "
-"separate entries."
-msgstr ""
-"Use este campo para indicar um ou mais domínios DNS a pesquisar. Use ',' "
-"para separar os itens."
-
-#. i18n: ectx: property (toolTip), widget (QPushButton, dnsSearchMorePushButton)
-#: editor/settings/ui/ipv4.ui:171 editor/settings/ui/ipv6.ui:277
-#, kde-format
-msgid "Edit the list of DNS domains being searched"
-msgstr "Editar a lista de domínio de pesquisa que está sendo pesquisada"
-
-#. i18n: ectx: property (text), widget (QLabel, labelDhcpClientId)
-#: editor/settings/ui/ipv4.ui:189
-#, kde-format
-msgid "DHCP Client ID:"
-msgstr "ID do cliente DHCP:"
+msgid "Routes…"
+msgstr "Rotas…"
 
 #. i18n: ectx: property (toolTip), widget (KLineEdit, dhcpClientId)
-#: editor/settings/ui/ipv4.ui:204
+#: editor/settings/ui/ipv4.ui:74
 #, kde-format
 msgid ""
 "Use this field to specify the DHCP client ID which is a string sent to the "
@@ -1308,14 +1775,50 @@ msgstr ""
 "usar\n"
 "para personalizar as opções e reservas DHCP."
 
-#. i18n: ectx: property (text), widget (QLabel, labelRouteMetric)
-#: editor/settings/ui/ipv4.ui:217 editor/settings/ui/ipv6.ui:369
+#. i18n: ectx: property (toolTip), widget (KLineEdit, dnsSearch)
+#: editor/settings/ui/ipv4.ui:89 editor/settings/ui/ipv6.ui:277
+#: editorqml/qml/ipv4/IPv4Settings.qml:96
+#: editorqml/qml/ipv6/IPv6Settings.qml:96
 #, kde-format
-msgid "Route Metric:"
-msgstr "Métrica de rota:"
+msgid ""
+"Use this field to specify one or more DNS domains to search. Use ',' to "
+"separate entries."
+msgstr ""
+"Use este campo para indicar um ou mais domínios DNS a pesquisar. Use ',' "
+"para separar os itens."
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, dnsSearchMorePushButton)
+#: editor/settings/ui/ipv4.ui:96 editor/settings/ui/ipv6.ui:284
+#: editorqml/qml/ipv4/IPv4Settings.qml:110
+#: editorqml/qml/ipv6/IPv6Settings.qml:110
+#, kde-format
+msgid "Edit the list of DNS domains being searched"
+msgstr "Editar a lista de domínio de pesquisa que está sendo pesquisada"
+
+#. i18n: ectx: property (text), widget (QLabel, dnsLabel)
+#: editor/settings/ui/ipv4.ui:114 editor/settings/ui/ipv6.ui:164
+#, kde-format
+msgctxt "@info"
+msgid "DNS Servers:"
+msgstr "Servidores DNS:"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: editor/settings/ui/ipv4.ui:152 editor/settings/ui/ipv6.ui:49
+#: editorqml/qml/ipv4/IPv4Settings.qml:26
+#: editorqml/qml/ipv6/IPv6Settings.qml:26
+#, kde-format
+msgid "Method:"
+msgstr "Método:"
+
+#. i18n: ectx: property (text), widget (QLabel, dnsSearchLabel)
+#: editor/settings/ui/ipv4.ui:171 editor/settings/ui/ipv6.ui:357
+#, kde-format
+msgctxt "@info"
+msgid "Search Domains:"
+msgstr "Domínios de pesquisa:"
 
 #. i18n: ectx: property (toolTip), widget (QDoubleSpinBox, routeMetric)
-#: editor/settings/ui/ipv4.ui:252 editor/settings/ui/ipv6.ui:404
+#: editor/settings/ui/ipv4.ui:187 editor/settings/ui/ipv6.ui:392
 #, kde-format
 msgid ""
 "A score that helps choose the best path for data packets to reach their "
@@ -1332,32 +1835,103 @@ msgstr ""
 "O valor padrão -1 significa que o NetworkManager pode escolher e gerenciar a "
 "métrica real da rota."
 
-#. i18n: ectx: property (text), widget (QPushButton, btnRemove)
-#: editor/settings/ui/ipv4.ui:261 editor/settings/ui/ipv6.ui:97
+#. i18n: ectx: property (text), widget (QLabel, labelDhcpClientId)
+#: editor/settings/ui/ipv4.ui:215 editorqml/qml/ipv4/IPv4Settings.qml:115
 #, kde-format
-msgid "Remove"
-msgstr "Remover"
+msgid "DHCP Client ID:"
+msgstr "ID do cliente DHCP:"
 
-#. i18n: ectx: property (text), widget (QPushButton, btnAdd)
-#: editor/settings/ui/ipv4.ui:271 editor/settings/ui/ipv6.ui:107
+#. i18n: ectx: property (text), widget (QLabel, labelRouteMetric)
+#: editor/settings/ui/ipv4.ui:234 editor/settings/ui/ipv6.ui:376
+#: editorqml/qml/ipv4/IPv4Settings.qml:129
+#: editorqml/qml/ipv6/IPv6Settings.qml:132
 #, kde-format
-msgid "Add"
-msgstr "Adicionar"
+msgid "Route Metric:"
+msgstr "Métrica de rota:"
 
-#. i18n: ectx: property (toolTip), widget (QTableView, tableViewAddresses)
-#: editor/settings/ui/ipv4.ui:288 editor/settings/ui/ipv6.ui:124
-#: editor/widgets/ui/ipv4routes.ui:99 editor/widgets/ui/ipv6routes.ui:39
+#. i18n: ectx: property (toolTip), widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:259 editorqml/qml/ipv4/IPv4Settings.qml:37
 #, kde-format
 msgid ""
-"IP addresses identify your computer on the network. Click the \"Add\" button "
-"to add\n"
-"an IP address"
+"How to configure the IPv4 address:\n"
+"• Automatic: obtain address and DNS automatically via DHCP\n"
+"• Automatic (Only addresses): obtain address via DHCP but configure DNS "
+"manually\n"
+"• Link-Local: use automatic link-local addressing (169.254.x.x)\n"
+"• Manual: enter a static IP address\n"
+"• Shared: turn this computer into a router to share internet with other "
+"devices\n"
+"• Disabled: turn off IPv4"
 msgstr ""
-"Os endereços IP identificam seu computador na rede.\n"
-"Clique no botão \"Adicionar\" para incluir um endereço IP"
+"Como configurar o endereço IPv4:\n"
+"• Automático: obter endereço e DNS automaticamente via DHCP\n"
+"• Automático (somente endereços): obter endereço via DHCP, mas configurar o "
+"DNS manualmente\n"
+"• Link-local: usar endereçamento link-local automático (169.254.x.x)\n"
+"• Manual: inserir um endereço IP estático\n"
+"• Compartilhado: transformar este computador em um roteador para "
+"compartilhar a internet com outros dispositivos\n"
+"• Desativado: desativar o IPv4"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:263 editor/settings/ui/ipv6.ui:231
+#, kde-format
+msgctxt "Method:"
+msgid "Automatic"
+msgstr "Automático"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:268 editor/settings/ui/ipv6.ui:236
+#, kde-format
+msgid "Automatic (Only addresses)"
+msgstr "Automático (apenas endereços)"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:273 editor/settings/ui/ipv6.ui:246
+#, kde-format
+msgid "Link-Local"
+msgstr "Link local"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:278 editor/settings/ui/ipv6.ui:251
+#, kde-format
+msgctxt "like in use Manual configuration"
+msgid "Manual"
+msgstr "Manual"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:283
+#, kde-format
+msgid "Shared to other computers"
+msgstr "Compartilhado com outros computadores"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:288
+#, kde-format
+msgctxt "like in this setting is Disabled"
+msgid "Disabled"
+msgstr "Desativado"
+
+#. i18n: ectx: property (toolTip), widget (KLineEdit, dns)
+#: editor/settings/ui/ipv4.ui:310 editor/settings/ui/ipv6.ui:76
+#: editorqml/qml/ipv4/IPv4Settings.qml:59
+#: editorqml/qml/ipv6/IPv6Settings.qml:59
+#, kde-format
+msgid ""
+"Use this field to specify the IP address(es) of one or more DNS servers. Use "
+"',' to separate entries."
+msgstr ""
+"Use este campo para especificar o(s) endereço(s) IP de um ou mais servidores "
+"DNS. Use ',' para separar os itens."
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, dnsMorePushButton)
+#: editor/settings/ui/ipv4.ui:317
+#, kde-format
+msgid "Edit DNS the list of servers"
+msgstr "Editar a lista de servidores DNS"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, ipv4RequiredCB)
-#: editor/settings/ui/ipv4.ui:326
+#: editor/settings/ui/ipv4.ui:330
 #, kde-format
 msgid ""
 "Allows the connection to complete if IPv4 configuration fails\n"
@@ -1367,16 +1941,44 @@ msgstr ""
 "mas a configuração de IPv6 for concluída com sucesso"
 
 #. i18n: ectx: property (text), widget (QCheckBox, ipv4RequiredCB)
-#: editor/settings/ui/ipv4.ui:329
+#: editor/settings/ui/ipv4.ui:333 editorqml/qml/ipv4/IPv4Settings.qml:302
 #, kde-format
 msgid "IPv4 is required for this connection"
 msgstr "O IPv4 é necessário para esta conexão"
 
-#. i18n: ectx: property (text), widget (QPushButton, btnRoutes)
-#: editor/settings/ui/ipv4.ui:379 editor/settings/ui/ipv6.ui:316
+#. i18n: ectx: property (text), widget (QPushButton, btnAdd)
+#: editor/settings/ui/ipv4.ui:345 editor/settings/ui/ipv6.ui:107
+#: editorqml/qml/ipv4/IPv4Settings.qml:281
+#: editorqml/qml/ipv4/SearchDomainList.qml:85
+#: editorqml/qml/ipv6/IPv6Settings.qml:293
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:91
+#: editorqml/qml/wifisecurity/DnsList.qml:91
 #, kde-format
-msgid "Routes…"
-msgstr "Rotas…"
+msgid "Add"
+msgstr "Adicionar"
+
+#. i18n: ectx: property (text), widget (QPushButton, btnRemove)
+#: editor/settings/ui/ipv4.ui:355 editor/settings/ui/ipv6.ui:97
+#: editorqml/qml/ipv4/IPv4Settings.qml:289
+#: editorqml/qml/ipv4/SearchDomainList.qml:99
+#: editorqml/qml/ipv6/IPv6Settings.qml:301
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:105
+#: editorqml/qml/wifisecurity/DnsList.qml:105
+#, kde-format
+msgid "Remove"
+msgstr "Remover"
+
+#. i18n: ectx: property (toolTip), widget (QTableView, tableViewAddresses)
+#: editor/settings/ui/ipv4.ui:385 editor/settings/ui/ipv6.ui:137
+#: editor/widgets/ui/ipv4routes.ui:99 editor/widgets/ui/ipv6routes.ui:39
+#, kde-format
+msgid ""
+"IP addresses identify your computer on the network. Click the \"Add\" button "
+"to add\n"
+"an IP address"
+msgstr ""
+"Os endereços IP identificam seu computador na rede.\n"
+"Clique no botão \"Adicionar\" para incluir um endereço IP"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, ipv6RequiredCB)
 #: editor/settings/ui/ipv6.ui:30
@@ -1391,19 +1993,20 @@ msgstr ""
 "de IPv6 falhar, mas a configuração de IPv4 for concluída com sucesso"
 
 #. i18n: ectx: property (text), widget (QCheckBox, ipv6RequiredCB)
-#: editor/settings/ui/ipv6.ui:33
+#: editor/settings/ui/ipv6.ui:33 editorqml/qml/ipv6/IPv6Settings.qml:320
 #, kde-format
 msgid "IPv6 is required for this connection"
 msgstr "O IPv6 é necessário para esta conexão"
 
 #. i18n: ectx: property (toolTip), widget (QPushButton, dnsMorePushButton)
-#: editor/settings/ui/ipv6.ui:83
+#: editor/settings/ui/ipv6.ui:83 editorqml/qml/ipv4/IPv4Settings.qml:73
+#: editorqml/qml/ipv6/IPv6Settings.qml:73
 #, kde-format
 msgid "Edit the list of DNS servers"
 msgstr "Editar a lista de servidores DNS"
 
 #. i18n: ectx: property (toolTip), widget (KComboBox, privacyCombo)
-#: editor/settings/ui/ipv6.ui:190
+#: editor/settings/ui/ipv6.ui:187
 #, kde-format
 msgid ""
 "Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941. If "
@@ -1417,63 +2020,84 @@ msgstr ""
 "partir do endereço MAC com o EUI-64 modificado."
 
 #. i18n: ectx: property (text), item, widget (KComboBox, privacyCombo)
-#: editor/settings/ui/ipv6.ui:199
+#: editor/settings/ui/ipv6.ui:196
 #, kde-format
 msgctxt "privacy disabled"
 msgid "Disabled"
 msgstr "Desativado"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, privacyCombo)
-#: editor/settings/ui/ipv6.ui:204
+#: editor/settings/ui/ipv6.ui:201
 #, kde-format
 msgid "Enabled (prefer public address)"
 msgstr "Ativado (preferir endereço público)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, privacyCombo)
-#: editor/settings/ui/ipv6.ui:209
+#: editor/settings/ui/ipv6.ui:206
 #, kde-format
 msgid "Enabled (prefer temporary addresses)"
 msgstr "Ativado (preferir endereços temporários)"
 
+#. i18n: ectx: property (toolTip), widget (KComboBox, method)
+#: editor/settings/ui/ipv6.ui:227 editorqml/qml/ipv6/IPv6Settings.qml:37
+#, kde-format
+msgid ""
+"How to configure the IPv6 address:\n"
+"• Automatic: obtain address and DNS automatically (via SLAAC and/or DHCPv6)\n"
+"• Automatic (Only addresses): obtain address automatically but configure DNS "
+"manually\n"
+"• Automatic (Only DHCP): obtain address and DNS via DHCPv6 only (ignore "
+"SLAAC)\n"
+"• Link-Local: use automatic link-local addressing (fe80::/10)\n"
+"• Manual: enter a static IP address\n"
+"• Ignored: skip IPv6 configuration but allow connection\n"
+"• Disabled: turn off IPv6 completely"
+msgstr ""
+"Como configurar o endereço IPv6:\n"
+"• Automático: obter endereço e DNS automaticamente (via SLAAC e/ou DHCPv6)\n"
+"• Automático (somente endereços): obter endereço automaticamente, mas "
+"configurar o DNS manualmente\n"
+"• Automático (somente DHCP): obter endereço e DNS somente via DHCPv6 "
+"(ignorar SLAAC)\n"
+"• Link-Local: usar endereçamento link-local automático (fe80::/10)\n"
+"• Manual: inserir um endereço IP estático\n"
+"• Ignorado: ignorar a configuração de IPv6, mas permitir a conexão\n"
+"• Desativado: desativar o IPv6 completamente"
+
 #. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv6.ui:234
+#: editor/settings/ui/ipv6.ui:241
 #, kde-format
 msgid "Automatic (Only DHCP)"
 msgstr "Automático (apenas DHCP)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv6.ui:249
+#: editor/settings/ui/ipv6.ui:256
 #, kde-format
 msgctxt "like in this setting is Disabled"
 msgid "Ignored"
 msgstr "Ignorado"
 
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv6.ui:254
-#, kde-format
-msgid "Disabled"
-msgstr "Desabilitado"
-
 #. i18n: ectx: property (text), widget (QLabel, labelPrivacy)
-#: editor/settings/ui/ipv6.ui:331
+#: editor/settings/ui/ipv6.ui:338 editorqml/qml/ipv6/IPv6Settings.qml:115
 #, kde-format
 msgid "Privacy:"
 msgstr "Privacidade:"
 
 #. i18n: ectx: property (title), widget (QGroupBox, authGroup)
-#: editor/settings/ui/ppp.ui:23
+#: editor/settings/ui/ppp.ui:23 editorqml/qml/vpn/ssh/Ssh.qml:136
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:81
 #, kde-format
 msgid "Authentication"
 msgstr "Autenticação"
 
 #. i18n: ectx: property (text), widget (QCheckBox, eap)
-#: editor/settings/ui/ppp.ui:38
+#: editor/settings/ui/ppp.ui:38 editorqml/qml/vpn/sstp/SstpAdvanced.qml:120
 #, kde-format
 msgid "EAP"
 msgstr "EAP"
 
 #. i18n: ectx: property (title), widget (QGroupBox, compressionGroup)
-#: editor/settings/ui/ppp.ui:91
+#: editor/settings/ui/ppp.ui:91 editorqml/qml/vpn/sstp/SstpAdvanced.qml:165
 #, kde-format
 msgid "Compression"
 msgstr "Compressão"
@@ -1515,13 +2139,13 @@ msgid "Use stateful MPPE"
 msgstr "Usar o MPPE com estado"
 
 #. i18n: ectx: property (title), widget (QGroupBox, echoGroup)
-#: editor/settings/ui/ppp.ui:175
+#: editor/settings/ui/ppp.ui:175 editorqml/qml/vpn/sstp/SstpAdvanced.qml:191
 #, kde-format
 msgid "Echo"
 msgstr "Eco"
 
 #. i18n: ectx: property (text), widget (QCheckBox, senddEcho)
-#: editor/settings/ui/ppp.ui:184
+#: editor/settings/ui/ppp.ui:184 editorqml/qml/vpn/sstp/SstpAdvanced.qml:195
 #, kde-format
 msgid "Send PPP echo packets"
 msgstr "Enviar pacotes de eco do PPP"
@@ -1608,55 +2232,87 @@ msgstr "GVRP"
 msgid "Loose binding"
 msgstr "Ligação solta"
 
+#. i18n: ectx: property (text), widget (QLabel, connectionSectionLabel)
+#: editor/settings/ui/wificonnectionwidget.ui:23
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:27
+#, kde-format
+msgid "Connection"
+msgstr "Conexão"
+
 #. i18n: ectx: property (text), widget (QLabel, SSIDLabel)
-#: editor/settings/ui/wificonnectionwidget.ui:17
+#: editor/settings/ui/wificonnectionwidget.ui:39
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:34
 #, kde-format
 msgid "SSID:"
 msgstr "SSID:"
 
+#. i18n: ectx: property (toolTip), widget (SsidComboBox, SSIDCombo)
+#: editor/settings/ui/wificonnectionwidget.ui:61
+#, kde-format
+msgid "The name of the Wi-Fi network to connect to"
+msgstr "O nome da rede Wi-Fi à qual se conectar"
+
+#. i18n: ectx: property (toolTip), widget (KComboBox, modeComboBox)
+#: editor/settings/ui/wificonnectionwidget.ui:90
+#, kde-format
+msgid ""
+"Wi-Fi network mode:\n"
+"• Infrastructure: connect to a Wi-Fi router (normal mode)\n"
+"• Ad-hoc: create a direct peer-to-peer network\n"
+"• Access Point: turn this computer into a Wi-Fi hotspot"
+msgstr ""
+"Modo de rede Wi-Fi:\n"
+"• Infraestrutura: conectar-se a um roteador Wi-Fi (modo normal)\n"
+"• Ad-hoc: criar uma rede ponto a ponto direta\n"
+"• Ponto de acesso: transformar este computador em um ponto de acesso Wi-Fi"
+
 #. i18n: ectx: property (text), item, widget (KComboBox, modeComboBox)
-#: editor/settings/ui/wificonnectionwidget.ui:63
+#: editor/settings/ui/wificonnectionwidget.ui:94
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:73
 #, kde-format
 msgid "Infrastructure"
 msgstr "Infraestrutura"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, modeComboBox)
-#: editor/settings/ui/wificonnectionwidget.ui:68
+#: editor/settings/ui/wificonnectionwidget.ui:99
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:73
 #, kde-format
 msgid "Ad-hoc"
 msgstr "Ad-hoc"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, modeComboBox)
-#: editor/settings/ui/wificonnectionwidget.ui:73
+#: editor/settings/ui/wificonnectionwidget.ui:104
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:73
 #, kde-format
 msgid "Access Point"
 msgstr "Ponto de acesso"
 
 #. i18n: ectx: property (text), widget (QLabel, BSSIDLabel)
-#: editor/settings/ui/wificonnectionwidget.ui:81
+#: editor/settings/ui/wificonnectionwidget.ui:128
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:97
 #, kde-format
-msgid "BSSID:"
-msgstr "BSSID:"
+msgid "Restrict to BSSID:"
+msgstr "Restringir ao BSSID:"
 
 #. i18n: ectx: property (toolTip), widget (BssidComboBox, BSSIDCombo)
-#: editor/settings/ui/wificonnectionwidget.ui:101
+#: editor/settings/ui/wificonnectionwidget.ui:147
 #, kde-format
 msgid ""
-"This option locks this connection to the Wi-Fi access point (AP) specified "
-"by the\n"
-" BSSID entered here. Example: 00:11:22:33:44:55"
+"Lock this connection to a specific access point. Enter the BSSID (MAC "
+"address) of the access point."
 msgstr ""
-"Esta opção bloqueia esta conexão ao ponto de acesso Wi-Fi (AP) definido\n"
-"pelo BSSID indicado aqui. Exemplo: 00:11:22:33:44:55"
+"Bloqueia esta conexão a um ponto de acesso específico. Insira o BSSID "
+"(endereço MAC) do ponto de acesso."
 
 #. i18n: ectx: property (text), widget (QLabel, bandLabel)
-#: editor/settings/ui/wificonnectionwidget.ui:117
+#: editor/settings/ui/wificonnectionwidget.ui:163
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:133
 #, kde-format
 msgid "Band:"
 msgstr "Banda:"
 
 #. i18n: ectx: property (toolTip), widget (KComboBox, band)
-#: editor/settings/ui/wificonnectionwidget.ui:137
+#: editor/settings/ui/wificonnectionwidget.ui:183
 #, kde-format
 msgid ""
 "This option locks the connection to the Wi-Fi network associated to the "
@@ -1668,32 +2324,35 @@ msgstr ""
 "funcionar com todos eles"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, band)
-#: editor/settings/ui/wificonnectionwidget.ui:141
+#: editor/settings/ui/wificonnectionwidget.ui:187
 #, kde-format
 msgctxt "Band:"
 msgid "Automatic"
 msgstr "Automática"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, band)
-#: editor/settings/ui/wificonnectionwidget.ui:146
+#: editor/settings/ui/wificonnectionwidget.ui:192
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:136
 #, kde-format
 msgid "A (5 GHz)"
 msgstr "A (5 GHz)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, band)
-#: editor/settings/ui/wificonnectionwidget.ui:151
+#: editor/settings/ui/wificonnectionwidget.ui:197
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:136
 #, kde-format
 msgid "B/G (2.4 GHz)"
 msgstr "B/G (2.4 GHz)"
 
 #. i18n: ectx: property (text), widget (QLabel, channelLabel)
-#: editor/settings/ui/wificonnectionwidget.ui:159
+#: editor/settings/ui/wificonnectionwidget.ui:205
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:145
 #, kde-format
 msgid "Channel:"
 msgstr "Canal:"
 
 #. i18n: ectx: property (toolTip), widget (KComboBox, channel)
-#: editor/settings/ui/wificonnectionwidget.ui:179
+#: editor/settings/ui/wificonnectionwidget.ui:225
 #, kde-format
 msgid ""
 "Wireless channel to use for the Wi-Fi connection. The device will only join "
@@ -1704,38 +2363,86 @@ msgstr ""
 "(ou criar, nas redes Ad-Hoc)\n"
 "em uma rede Wi-Fi no canal indicado"
 
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: editor/settings/ui/wificonnectionwidget.ui:232
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:164
+#, kde-format
+msgid "Restrict to network adapter:"
+msgstr "Restringir ao adaptador de rede:"
+
+#. i18n: ectx: property (toolTip), widget (HwAddrComboBox, macAddress)
+#: editor/settings/ui/wificonnectionwidget.ui:251
+#, kde-format
+msgid ""
+"Lock this connection to a particular network adapter by specifying its MAC "
+"address."
+msgstr ""
+"Vincula esta conexão a um adaptador de rede específico, especificando seu "
+"endereço MAC."
+
 #. i18n: ectx: property (text), widget (QLabel, label_2)
-#: editor/settings/ui/wificonnectionwidget.ui:209
+#: editor/settings/ui/wificonnectionwidget.ui:258
 #: editor/settings/ui/wiredconnectionwidget.ui:47
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:197
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:60
 #, kde-format
 msgid "Cloned MAC address:"
 msgstr "Endereço MAC clonado:"
 
+#. i18n: ectx: property (toolTip), widget (KLineEdit, clonedMacAddress)
+#: editor/settings/ui/wificonnectionwidget.ui:285
+#, kde-format
+msgid ""
+"Use a different MAC address instead of your network adapter's real address."
+msgstr ""
+"Usa um endereço MAC diferente em vez do endereço real do seu adaptador de "
+"rede."
+
 #. i18n: ectx: property (text), widget (QPushButton, btnRandomMacAddr)
-#: editor/settings/ui/wificonnectionwidget.ui:240
+#: editor/settings/ui/wificonnectionwidget.ui:292
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:212
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:78
 #, kde-format
 msgid "Random…"
 msgstr "Aleatório…"
 
+#. i18n: ectx: property (toolTip), widget (QSpinBox, mtu)
+#: editor/settings/ui/wificonnectionwidget.ui:335
+#, kde-format
+msgid ""
+"Maximum Transmission Unit: the largest packet size that can be sent without "
+"fragmentation. Larger packets will be broken into smaller frames."
+msgstr ""
+"Unidade Máxima de Transmissão: o maior tamanho de pacote que pode ser "
+"enviado sem fragmentação. Pacotes maiores serão divididos em quadros menores."
+
 #. i18n: ectx: property (toolTip), widget (QLabel, label_4)
 #. i18n: ectx: property (toolTip), widget (QCheckBox, hiddenNetwork)
-#: editor/settings/ui/wificonnectionwidget.ui:287
-#: editor/settings/ui/wificonnectionwidget.ui:303
+#: editor/settings/ui/wificonnectionwidget.ui:342
+#: editor/settings/ui/wificonnectionwidget.ui:358
 #, kde-format
-msgid "Mark this if you want to create a connection for a hidden network"
-msgstr "Marque isto se quiser criar uma conexão para uma rede oculta"
+msgid "Create a connection for a hidden network"
+msgstr "Criar uma conexão para uma rede oculta"
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
-#: editor/settings/ui/wificonnectionwidget.ui:290
+#: editor/settings/ui/wificonnectionwidget.ui:345
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:242
 #, kde-format
 msgid "Visibility:"
 msgstr "Visibilidade:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, hiddenNetwork)
-#: editor/settings/ui/wificonnectionwidget.ui:306
+#: editor/settings/ui/wificonnectionwidget.ui:361
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:243
 #, kde-format
 msgid "Hidden network"
 msgstr "Rede oculta"
+
+#. i18n: ectx: property (text), widget (QLabel, securitySectionLabel)
+#: editor/settings/ui/wificonnectionwidget.ui:368
+#, kde-format
+msgid "Security"
+msgstr "Segurança"
 
 #. i18n: ectx: property (windowTitle), widget (QWidget, WifiSecurity)
 #: editor/settings/ui/wifisecurity.ui:15
@@ -1744,110 +2451,117 @@ msgid "Wifi Security"
 msgstr "Segurança Wi-Fi"
 
 #. i18n: ectx: property (text), widget (QLabel, label)
-#: editor/settings/ui/wifisecurity.ui:23
+#: editor/settings/ui/wifisecurity.ui:35
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:38
 #, kde-format
 msgid "Security:"
 msgstr "Segurança:"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:40
+#: editor/settings/ui/wifisecurity.ui:55
 #, kde-format
 msgctxt "no security"
 msgid "None"
 msgstr "Nenhuma"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:45
+#: editor/settings/ui/wifisecurity.ui:60
 #, kde-format
 msgid "WEP key 40/128 bits (Hex or ASCII)"
 msgstr "Chave WEP de 40/128 bits (Hex ou ASCII)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:50
+#: editor/settings/ui/wifisecurity.ui:65
 #, kde-format
 msgid "WEP key 128 bits"
 msgstr "Chave WEP de 128 bits"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:60
+#: editor/settings/ui/wifisecurity.ui:75
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:27
 #, kde-format
 msgid "Dynamic WEP (802.1x)"
 msgstr "WEP dinâmico (802.1x)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:65
+#: editor/settings/ui/wifisecurity.ui:80
 #, kde-format
-msgid "WPA/WPA2 Personal"
-msgstr "WPA/WPA2 Pessoal"
+msgid "WPA2/WPA3 Personal"
+msgstr "WPA2/WPA3 Pessoal"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:70
+#: editor/settings/ui/wifisecurity.ui:85
 #, kde-format
-msgid "WPA/WPA2 Enterprise"
-msgstr "WPA/WPA2 Empresarial"
+msgid "WPA2/WPA3 Enterprise"
+msgstr "WPA2/WPA3 Empresarial"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:75
+#: editor/settings/ui/wifisecurity.ui:90
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:30
 #, kde-format
 msgid "WPA3 Personal"
 msgstr "WPA3 Pessoal"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:80
+#: editor/settings/ui/wifisecurity.ui:95
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:31
 #, kde-format
 msgid "WPA3 Enterprise 192-bit"
 msgstr "WPA3 Empresarial de 192 bit"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:85
+#: editor/settings/ui/wifisecurity.ui:100
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:32
 #, kde-format
 msgid "Enhanced Open (OWE)"
 msgstr "Abertura aprimorada (OWE)"
 
 #. i18n: ectx: property (text), widget (QLabel, label_2)
-#: editor/settings/ui/wifisecurity.ui:93
+#: editor/settings/ui/wifisecurity.ui:108
 #, kde-format
 msgid "Key:"
 msgstr "Chave:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_3)
-#: editor/settings/ui/wifisecurity.ui:113
+#: editor/settings/ui/wifisecurity.ui:131
 #, kde-format
 msgid "WEP index:"
 msgstr "Índice WEP:"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepIndex)
-#: editor/settings/ui/wifisecurity.ui:130
+#: editor/settings/ui/wifisecurity.ui:151
 #, kde-format
 msgid "1 (default)"
 msgstr "1 (padrão)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepIndex)
-#: editor/settings/ui/wifisecurity.ui:135
+#: editor/settings/ui/wifisecurity.ui:156
 #, kde-format
 msgid "2"
 msgstr "2"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepIndex)
-#: editor/settings/ui/wifisecurity.ui:140
+#: editor/settings/ui/wifisecurity.ui:161
 #, kde-format
 msgid "3"
 msgstr "3"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepIndex)
-#: editor/settings/ui/wifisecurity.ui:145
+#: editor/settings/ui/wifisecurity.ui:166
 #, kde-format
 msgid "4"
 msgstr "4"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepAuth)
-#: editor/settings/ui/wifisecurity.ui:170
+#: editor/settings/ui/wifisecurity.ui:194
+#: editorqml/qml/wifisecurity/authentication/WepKey.qml:44
 #, kde-format
 msgid "Open System"
 msgstr "Sistema aberto"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepAuth)
-#: editor/settings/ui/wifisecurity.ui:175
+#: editor/settings/ui/wifisecurity.ui:199
+#: editorqml/qml/wifisecurity/authentication/WepKey.qml:44
 #, kde-format
 msgid "Shared Key"
 msgstr "Chave compartilhada"
@@ -1895,12 +2609,14 @@ msgstr ""
 
 #. i18n: ectx: property (text), widget (QLabel, speedLabel)
 #: editor/settings/ui/wiredconnectionwidget.ui:125
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:128
 #, kde-format
 msgid "Speed:"
 msgstr "Velocidade:"
 
 #. i18n: ectx: property (text), widget (QLabel, duplexLabel)
 #: editor/settings/ui/wiredconnectionwidget.ui:132
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:154
 #, kde-format
 msgid "Duplex:"
 msgstr "Duplex:"
@@ -1929,6 +2645,7 @@ msgstr "Completo"
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
 #: editor/settings/ui/wiredconnectionwidget.ui:174
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:111
 #, kde-format
 msgid "Link negotiation:"
 msgstr "Negociação do link:"
@@ -1973,54 +2690,63 @@ msgstr "Solicita que o dispositivo use apenas a velocidade indicada."
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:226
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:132
 #, kde-format
 msgid "10 Mb/s"
 msgstr "10 Mb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:231
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:133
 #, kde-format
 msgid "100 Mb/s"
 msgstr "100 Mb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:236
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:134
 #, kde-format
 msgid "1 Gb/s"
 msgstr "1 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:241
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:135
 #, kde-format
 msgid "2.5 Gb/s"
 msgstr "2.5 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:246
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:136
 #, kde-format
 msgid "5 Gb/s"
 msgstr "5 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:251
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:137
 #, kde-format
 msgid "10 Gb/s"
 msgstr "10 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:256
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:138
 #, kde-format
 msgid "40 Gb/s"
 msgstr "40 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:261
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:139
 #, kde-format
 msgid "100 Gb/s"
 msgstr "100 Gb/s"
 
 #. i18n: ectx: property (text), widget (QCheckBox, use8021X)
 #: editor/settings/ui/wiredsecurity.ui:17
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:28
 #, kde-format
 msgid "Use 802.1x security for this connection"
 msgstr "Usar a segurança 802.1x para esta conexão"
@@ -2300,7 +3026,14 @@ msgstr "Adicionar novo servidor"
 msgid "Remove this Peer"
 msgstr "Remover este servidor"
 
-#: editor/settings/wificonnectionwidget.cpp:181
+#: editor/settings/wificonnectionwidget.cpp:237
+#, kde-format
+msgctxt "@action:inmenu automatic wireless channel selection"
+msgid "Automatic"
+msgstr "Automático"
+
+#: editor/settings/wificonnectionwidget.cpp:263
+#: editorqml/settings/wificonnectionsettings/wifisetting.cpp:315
 #, kde-format
 msgid "%1 (%2 MHz)"
 msgstr "%1 (%2 MHz)"
@@ -3084,12 +3817,12 @@ msgctxt "@info:tooltip real user name is not available"
 msgid "Not Available"
 msgstr "Indisponível"
 
-#: editor/widgets/bssidcombobox.cpp:122
+#: editor/widgets/bssidcombobox.cpp:126
 #, kde-format
 msgid "First select the SSID"
 msgstr "Selecione primeiro o SSID"
 
-#: editor/widgets/bssidcombobox.cpp:131
+#: editor/widgets/bssidcombobox.cpp:135
 #, kde-format
 msgid ""
 "%1 (%2%)\n"
@@ -3325,22 +4058,23 @@ msgstr "Seu plano:"
 msgid "Change the visibility of the password"
 msgstr "Alterar a visibilidade da senha"
 
-#: editor/widgets/passwordfield.cpp:41
+#: editor/widgets/passwordfield.cpp:41 editorqml/qml/PasswordField.qml:125
 #, kde-format
 msgid "Store password for this user only (encrypted)"
 msgstr "Armazenar a senha apenas para este usuário (criptografada)"
 
-#: editor/widgets/passwordfield.cpp:43
+#: editor/widgets/passwordfield.cpp:43 editorqml/qml/PasswordField.qml:125
 #, kde-format
 msgid "Store password for all users (not encrypted)"
 msgstr "Armazenar a senha para todos os usuários (não criptografada)"
 
 #: editor/widgets/passwordfield.cpp:45 editor/widgets/passwordfield.cpp:91
+#: editorqml/qml/PasswordField.qml:125
 #, kde-format
 msgid "Ask for this password every time"
 msgstr "Sempre solicitar esta senha"
 
-#: editor/widgets/passwordfield.cpp:106
+#: editor/widgets/passwordfield.cpp:106 editorqml/qml/PasswordField.qml:128
 #, kde-format
 msgid "This password is not required"
 msgstr "Esta senha não é obrigatória"
@@ -3397,13 +4131,14 @@ msgid "Users allowed to activate the connection"
 msgstr "Usuários que podem ativar a conexão"
 
 #. i18n: ectx: property (windowTitle), widget (QWidget, RoutesIp4Config)
-#: editor/widgets/ui/ipv4routes.ui:20
+#: editor/widgets/ui/ipv4routes.ui:20 editorqml/qml/ipv4/IPv4Routes.qml:18
 #, kde-format
 msgid "Edit IPv4 Routes"
 msgstr "Editar rotas IPv4"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, cbNeverDefault)
 #: editor/widgets/ui/ipv4routes.ui:42 editor/widgets/ui/ipv6routes.ui:130
+#: editorqml/qml/ipv4/IPv4Routes.qml:216 editorqml/qml/ipv6/IPv6Routes.qml:237
 #, kde-format
 msgid ""
 "If enabled, this connection will never be used as the default network "
@@ -3413,6 +4148,7 @@ msgstr ""
 
 #. i18n: ectx: property (text), widget (QCheckBox, cbNeverDefault)
 #: editor/widgets/ui/ipv4routes.ui:45 editor/widgets/ui/ipv6routes.ui:133
+#: editorqml/qml/ipv4/IPv4Routes.qml:208 editorqml/qml/ipv6/IPv6Routes.qml:229
 #, kde-format
 msgid "Use only for resources on this connection"
 msgstr "Usar apenas para recursos desta conexão"
@@ -3433,6 +4169,7 @@ msgstr "Adicionar"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, cbIgnoreAutoRoutes)
 #: editor/widgets/ui/ipv4routes.ui:136 editor/widgets/ui/ipv6routes.ui:120
+#: editorqml/qml/ipv4/IPv4Routes.qml:202 editorqml/qml/ipv6/IPv6Routes.qml:223
 #, kde-format
 msgid ""
 "If enabled, automatically configured routes are ignored and only routes "
@@ -3443,12 +4180,13 @@ msgstr ""
 
 #. i18n: ectx: property (text), widget (QCheckBox, cbIgnoreAutoRoutes)
 #: editor/widgets/ui/ipv4routes.ui:139 editor/widgets/ui/ipv6routes.ui:123
+#: editorqml/qml/ipv4/IPv4Routes.qml:194 editorqml/qml/ipv6/IPv6Routes.qml:215
 #, kde-format
 msgid "Ignore automatically obtained routes"
 msgstr "Ignorar as rotas obtidas automaticamente"
 
 #. i18n: ectx: property (windowTitle), widget (QWidget, RoutesIp6Config)
-#: editor/widgets/ui/ipv6routes.ui:20
+#: editor/widgets/ui/ipv6routes.ui:20 editorqml/qml/ipv6/IPv6Routes.qml:18
 #, kde-format
 msgid "Edit IPv6 Routes"
 msgstr "Editar rotas IPv6"
@@ -3459,6 +4197,911 @@ msgstr "Editar rotas IPv6"
 msgctxt "Remove a selected row"
 msgid "R&emove"
 msgstr "R&emover"
+
+#: editorqml/qml/AddConnectionDialog.qml:18
+#, kde-format
+msgctxt "@title:window"
+msgid "Choose a Connection Type"
+msgstr "Escolha um tipo de conexão"
+
+#: editorqml/qml/components/Vpn.qml:24 editorqml/qml/components/Wired.qml:27
+#: editorqml/qml/components/Wireless.qml:27
+#, kde-format
+msgid "Status"
+msgstr "Status"
+
+#: editorqml/qml/components/Wireless.qml:36
+#, kde-format
+msgid "Wi-Fi Security"
+msgstr "Segurança Wi-Fi"
+
+#: editorqml/qml/ConfigurationDialog.qml:19
+#, kde-format
+msgctxt "@title:window"
+msgid "Configuration"
+msgstr "Configuração"
+
+#: editorqml/qml/ConfigurationDialog.qml:42
+#, kde-format
+msgid "Ask for PIN on modem detection"
+msgstr "Pedir por PIN ao detectar modem"
+
+#: editorqml/qml/ConfigurationDialog.qml:49
+#, kde-format
+msgid "Show virtual connections"
+msgstr "Mostrar conexões virtuais"
+
+#: editorqml/qml/ConfigurationDialog.qml:55
+#, kde-format
+msgid "Create new connections as system connections"
+msgstr "Criar novas conexões como conexões do sistema"
+
+#: editorqml/qml/generalSettings/AdvancedPermissionsDialog.qml:18
+#, kde-format
+msgid "Allowed Users"
+msgstr "Usuários permitidos"
+
+#: editorqml/qml/generalSettings/GeneralSettings.qml:131
+#, kde-format
+msgctxt "@item metered mode"
+msgid "Automatic"
+msgstr "Automático"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:18
+#, kde-format
+msgid "Advanced IPv4 Settings"
+msgstr "Configurações IPv4 avançadas"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:45
+#, kde-format
+msgid "DHCP:"
+msgstr "DHCP:"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:46
+#, kde-format
+msgid "Send hostname to DHCP server"
+msgstr "Enviar o nome da máquina para o servidor DHCP"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:76 editorqml/qml/ipv4/IPv4Advance.qml:83
+#, kde-format
+msgctxt "@item DAD timeout left to NetworkManager"
+msgid "Default"
+msgstr "Padrão"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:78 editorqml/qml/ipv4/IPv4Advance.qml:85
+#, kde-format
+msgctxt "@item duplicate address detection turned off"
+msgid "Disabled"
+msgstr "Desabilitado"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:79
+#, kde-format
+msgctxt "@item:intext duplicate address detection timeout in milliseconds"
+msgid "%1 ms"
+msgstr "%1 ms"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:94
+#, kde-format
+msgid ""
+"Timeout in milliseconds used to check for the presence of duplicate IP "
+"addresses on the network.\n"
+"\n"
+"0 disables the check, -1 lets NetworkManager decide."
+msgstr ""
+"Tempo limite em milissegundos usado para verificar a presença de endereços "
+"IP duplicados na rede.\n"
+"\n"
+"0 desativa a verificação; -1 deixa o NetworkManager decidir."
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:125
+#: editorqml/qml/ipv4/IPv4Settings.qml:254
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "10.0.0.0"
+msgstr "10.0.0.0"
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:127
+#: editorqml/qml/ipv4/IPv4Settings.qml:256
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "255.255.255.0"
+msgstr "255.255.255.0"
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:129
+#: editorqml/qml/ipv4/IPv4Settings.qml:258
+#: editorqml/qml/ipv6/IPv6Routes.qml:133
+#: editorqml/qml/ipv6/IPv6Settings.qml:261
+#, kde-format
+msgctxt "@info:placeholder optional field"
+msgid "Optional"
+msgstr "Opcional"
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:170 editorqml/qml/ipv6/IPv6Routes.qml:191
+#, kde-format
+msgctxt "@action:button Insert a row"
+msgid "Add"
+msgstr "Adicionar"
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:177 editorqml/qml/ipv6/IPv6Routes.qml:198
+#, kde-format
+msgctxt "@action:button Remove a selected row"
+msgid "Remove"
+msgstr "Remover"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv4 method"
+msgid "Automatic"
+msgstr "Automático"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv4 method"
+msgid "Automatic (Only addresses)"
+msgstr "Automático (apenas endereços)"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv4 method"
+msgid "Link-Local"
+msgstr "Link local"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox like in use Manual configuration"
+msgid "Manual"
+msgstr "Manual"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv4 method"
+msgid "Shared to other computers"
+msgstr "Compartilhado com outros computadores"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox like in this setting is Disabled"
+msgid "Disabled"
+msgstr "Desabilitado"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:78
+#: editorqml/qml/ipv6/IPv6Settings.qml:78
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Search Domains:"
+msgstr "Domínios de pesquisa:"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:126
+#, kde-format
+msgid ""
+"Use this field to specify the DHCP client ID which is a string sent to the "
+"DHCP server to identify the local machine that the DHCP server may use to "
+"customize the DHCP lease and options."
+msgstr ""
+"Use este campo para indicar o ID do cliente DHCP, que é um texto enviado ao "
+"servidor DHCP para identificar a máquina local que o servidor DHCP pode usar "
+"para personalizar as opções e reservas DHCP."
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:155
+#: editorqml/qml/ipv6/IPv6Settings.qml:158
+#, kde-format
+msgid ""
+"A score that helps choose the best path for data packets to reach their "
+"destination, based on factors like distance, delay, and reliability.\n"
+"\n"
+"Default value -1 means that NetworkManager gets to choose and manage the "
+"actual metric of the route."
+msgstr ""
+"Uma pontuação que ajuda a escolher o melhor caminho para os pacotes de dados "
+"chegarem ao seu destino, com base em fatores como distância, atraso e "
+"confiabilidade.\n"
+"\n"
+"O valor padrão -1 significa que o NetworkManager pode escolher e gerenciar a "
+"métrica real da rota."
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:162
+#: editorqml/qml/ipv6/IPv6Settings.qml:165
+#, kde-format
+msgid "Addresses"
+msgstr "Endereços"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:310
+#, kde-format
+msgid ""
+"Allows the connection to complete if IPv4 configuration fails but IPv6 "
+"configuration succeeds"
+msgstr ""
+"Permite concluir a conexão se a configuração de IPv4 falhar, mas a "
+"configuração de IPv6 for concluída com sucesso"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:326 editorqml/qml/vpn/ssh/Ssh.qml:194
+#: editorqml/qml/vpn/sstp/Sstp.qml:106
+#, kde-format
+msgctxt "@action:button"
+msgid "Advanced…"
+msgstr "Avançado…"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:332
+#: editorqml/qml/ipv6/IPv6Settings.qml:346
+#, kde-format
+msgctxt "@action:button"
+msgid "Routes…"
+msgstr "Rotas…"
+
+#: editorqml/qml/ipv4/SearchDomainList.qml:16
+#, kde-format
+msgid "Search Domains"
+msgstr "Domínios de pesquisa"
+
+#: editorqml/qml/ipv4/SearchDomainList.qml:107
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:113
+#: editorqml/qml/wifisecurity/DnsList.qml:113
+#, kde-format
+msgid "Move Up"
+msgstr "Mover acima"
+
+#: editorqml/qml/ipv4/SearchDomainList.qml:120
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:126
+#: editorqml/qml/wifisecurity/DnsList.qml:126
+#, kde-format
+msgid "Move Down"
+msgstr "Mover abaixo"
+
+#: editorqml/qml/ipv6/IPv6Routes.qml:129
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "2001:db8::"
+msgstr "2001:db8::"
+
+#: editorqml/qml/ipv6/IPv6Routes.qml:131
+#: editorqml/qml/ipv6/IPv6Settings.qml:259
+#, kde-format
+msgctxt "@info:placeholder IPv6 prefix length"
+msgid "64"
+msgstr "64"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv6 method"
+msgid "Automatic"
+msgstr "Automático"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv6 method"
+msgid "Automatic (Only addresses)"
+msgstr "Automático (apenas endereços)"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv6 method"
+msgid "Automatic (Only DHCP)"
+msgstr "Automático (apenas DHCP)"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv6 method"
+msgid "Link-Local"
+msgstr "Link local"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox like in this setting is Ignored"
+msgid "Ignored"
+msgstr "Ignorado"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:120
+#, kde-format
+msgctxt "@item:inlistbox IPv6 privacy extensions left to NetworkManager"
+msgid "Default"
+msgstr "Padrão"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:120
+#, kde-format
+msgctxt "@item:inlistbox privacy disabled"
+msgid "Disabled"
+msgstr "Desabilitado"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:120
+#, kde-format
+msgctxt "@item:inlistbox IPv6 privacy extensions"
+msgid "Enabled (prefer public address)"
+msgstr "Ativado (preferir endereço público)"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:120
+#, kde-format
+msgctxt "@item:inlistbox IPv6 privacy extensions"
+msgid "Enabled (prefer temporary addresses)"
+msgstr "Ativado (preferir endereços temporários)"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:128
+#, kde-format
+msgid ""
+"Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941. If "
+"enabled, it makes the kernel generate a temporary IPv6 address in addition "
+"to the public one generated from MAC address via modified EUI-64."
+msgstr ""
+"Configura as extensões de privacidade IPv6 para o SLAAC, descritas no "
+"RFC4941. Se estiverem ativas, faz com que o kernel gere um endereço IPv6 "
+"temporário, além do público gerado a partir do endereço MAC com o EUI-64 "
+"modificado."
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:257
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "2001:db8::1"
+msgstr "2001:db8::1"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:330
+#, kde-format
+msgid ""
+"When connecting to IPv4-capable networks, allows the connection to complete "
+"if IPv6 configuration fails but IPv4 configuration succeeds"
+msgstr ""
+"Ao conectar a redes com suporte a IPv4, permite concluir a conexão se a "
+"configuração de IPv6 falhar, mas a configuração de IPv4 for concluída com "
+"sucesso"
+
+#: editorqml/qml/PasswordField.qml:106
+#, kde-format
+msgid "Always asked"
+msgstr "Sempre perguntar"
+
+#: editorqml/qml/PasswordField.qml:108
+#, kde-format
+msgid "Not required"
+msgstr "Não requerido"
+
+#: editorqml/qml/PasswordPromptDialog.qml:24
+#, kde-format
+msgctxt "@action:button Connect to network"
+msgid "Connect"
+msgstr "Conectar"
+
+#: editorqml/qml/PasswordPromptDialog.qml:31
+#, kde-format
+msgctxt "@action:button Cancel connecting to network"
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: editorqml/qml/PasswordPromptDialog.qml:37
+#, kde-format
+msgctxt "@title:window"
+msgid "Enter Password"
+msgstr "Digite a senha"
+
+#: editorqml/qml/PasswordPromptDialog.qml:43
+#, kde-format
+msgctxt "@label %1 is the name of the network the user is connecting to"
+msgid "Network: %1"
+msgstr "Rede: %1"
+
+#: editorqml/qml/PasswordPromptDialog.qml:62
+#, kde-format
+msgctxt "@label key is a passcode"
+msgid "Password must be a valid WEP key"
+msgstr "A senha deve ser uma chave WEP válida"
+
+#: editorqml/qml/PasswordPromptDialog.qml:62
+#, kde-format
+msgctxt "@label password invalid length message"
+msgid "Password must be between 8 and 64 characters"
+msgstr "A senha deve ter entre 8 e 64 caracteres"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:34 editorqml/qml/vpn/sstp/Sstp.qml:30
+#, kde-format
+msgid "Gateway:"
+msgstr "Gateway:"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:43
+#, kde-format
+msgid "Network Settings"
+msgstr "Configurações de rede"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:47 editorqml/qml/vpn/ssh/Ssh.qml:97
+#, kde-format
+msgid "Remote IP Address:"
+msgstr "Endereço IP remoto:"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:59 editorqml/qml/vpn/ssh/Ssh.qml:111
+#, kde-format
+msgid "Local IP Address:"
+msgstr "Endereço IP local:"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:71
+#, kde-format
+msgid "Netmask:"
+msgstr "Máscara de rede:"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:84
+#, kde-format
+msgid "IPv6 Network Settings"
+msgstr "Configurações de rede IPv6"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:90
+#, kde-format
+msgid "Use IPv6"
+msgstr "Usar IPv6"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:125
+#, kde-format
+msgid "Prefix:"
+msgstr "Prefixo:"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:140
+#, kde-format
+msgid "Type:"
+msgstr "Tipo:"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:143
+#, kde-format
+msgid "SSH Agent"
+msgstr "Agente SSH"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:143
+#, kde-format
+msgid "Password"
+msgstr "Senha"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:143
+#, kde-format
+msgid "Key authentication"
+msgstr "Chave de autenticação"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:150
+#, kde-format
+msgid "SSH Key File:"
+msgstr "Arquivo da chave SSH:"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:18
+#, kde-format
+msgctxt "@title:window"
+msgid "Advanced"
+msgstr "Avançado"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:36
+#, kde-format
+msgid "Use custom gateway port:"
+msgstr "Usar porta gateway personalizada:"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:60
+#, kde-format
+msgid "Use custom tunnel Maximum Transmission Unit (MTU):"
+msgstr "Usar Unidade Máxima de Transmissão (MTU) personalizada:"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:84
+#, kde-format
+msgid "Extra SSH options:"
+msgstr "Opções extras do SSH:"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:108
+#, kde-format
+msgid "Remote device number:"
+msgstr "Número do dispositivo remoto:"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:128
+#, kde-format
+msgid "Use a TAP device"
+msgstr "Usar um dispositivo TAP"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:141
+#, kde-format
+msgid "Remote username"
+msgstr "Nome de usuário remoto"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:161
+#, kde-format
+msgid "Do not replace default route"
+msgstr "Não substituir a rota padrão"
+
+#: editorqml/qml/vpn/ssh/SshAuth.qml:23
+#, kde-format
+msgid "SSH VPN"
+msgstr "VPN por SSH"
+
+#: editorqml/qml/vpn/sstp/Sstp.qml:39
+#, kde-format
+msgid "Optional"
+msgstr "Opcional"
+
+#: editorqml/qml/vpn/sstp/Sstp.qml:51
+#, kde-format
+msgid "NT Domain:"
+msgstr "Domínio NT:"
+
+#: editorqml/qml/vpn/sstp/Sstp.qml:59
+#, kde-format
+msgid "CA Certificate:"
+msgstr "Certificado da AC:"
+
+#: editorqml/qml/vpn/sstp/Sstp.qml:79
+#, kde-format
+msgid "Ignore certificate warnings"
+msgstr "Ignorar os avisos do certificado"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:60
+#, kde-format
+msgid "Point-to-Point"
+msgstr "Ponto a ponto"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:64
+#, kde-format
+msgid "Proxy"
+msgstr "Proxy"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:87
+#, kde-format
+msgid "Allow following authentication methods:"
+msgstr "Permitir os seguintes métodos de autenticação:"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:128
+#, kde-format
+msgid "Encryption"
+msgstr "Criptografia"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:132
+#, kde-format
+msgid "Use MPPE Encryption"
+msgstr "Usar criptografia MPPE"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:134
+#, kde-format
+msgid "Use Microsoft Point-to-Point Encryption"
+msgstr "Usar criptografia ponto-a-ponto da Microsoft"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:143
+#, kde-format
+msgid "Crypto:"
+msgstr "Criptografia:"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:148
+#, kde-format
+msgctxt "like in use Any configuration"
+msgid "Any"
+msgstr "Qualquer"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:148
+#, kde-format
+msgid "128 bit"
+msgstr "128 bits"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:148
+#, kde-format
+msgid "40 bit"
+msgstr "40 bits"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:155
+#, kde-format
+msgid "Use stateful encryption"
+msgstr "Usar criptografia com estado"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:169
+#, kde-format
+msgid "Allow BSD compression"
+msgstr "Permitir compressão BSD"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:176
+#, kde-format
+msgid "Allow Deflate compression"
+msgstr "Permitir compressão Deflate"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:183
+#, kde-format
+msgid "Allow TCP header compression"
+msgstr "Usar compressão de cabeçalho TCP"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:203
+#, kde-format
+msgid "Misc"
+msgstr "Diversos"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:213
+#, kde-format
+msgid "Use custom unit number:"
+msgstr "Usar unidade de número personalizada:"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:242
+#, kde-format
+msgid "Address:"
+msgstr "Endereço:"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:250
+#, kde-format
+msgid "Port:"
+msgstr "Porta:"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:261
+#, kde-format
+msgid "Credentials"
+msgstr "Credenciais"
+
+#: editorqml/qml/vpn/sstp/SstpAuth.qml:22
+#, kde-format
+msgid "SSTP VPN"
+msgstr "VPN por SSTP"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:115
+#, kde-format
+msgctxt "@item BSSID (MAC address) followed by signal strength"
+msgid "%1 (%2%)"
+msgstr "%1 (%2%)"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:119
+#, kde-format
+msgid "Frequency: %1 MHz"
+msgstr "Frequência: %1 MHz"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:124
+#, kde-format
+msgid "Channel: %1"
+msgstr "Canal: %1"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:136
+#, kde-format
+msgctxt "@item wireless band"
+msgid "Automatic"
+msgstr "Automático"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:229
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:232
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:95
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:98
+#, kde-format
+msgctxt "@item MTU is automatically determined"
+msgid "Automatic"
+msgstr "Automático"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:229
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:95
+#, kde-format
+msgctxt "@item:intext MTU size, %1 is the number of bytes"
+msgid "%1 bytes"
+msgstr "%1 bytes"
+
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:15
+#, kde-format
+msgid "Alternative subject matches"
+msgstr "Correspondências do sujeito alternativas"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:98
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Anonymous identity:"
+msgstr "Identidade anônima:"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:116
+#, kde-format
+msgctxt "@item:inlist authentication mode"
+msgid "Anonymous"
+msgstr "Anônimo"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:116
+#, kde-format
+msgctxt "@item:inlist authentication mode"
+msgid "Authenticated"
+msgstr "Autenticado"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:116
+#, kde-format
+msgctxt "@item:inlist authentication mode"
+msgid "Both"
+msgstr "Ambos"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:142
+#, kde-format
+msgctxt ""
+"@label PAC stands for Proxy Auto-Configuration and should not be translated"
+msgid "PAC file:"
+msgstr "Arquivo PAC:"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:191
+#, kde-format
+msgctxt "@item:filefilter"
+msgid "PAC files (*.pac)"
+msgstr "Arquivos PAC (*.pac)"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:117
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:39
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:58
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:118
+#, kde-format
+msgid "*.der *.pem *.crt *.cer"
+msgstr "*.der *.pem *.crt *.cer"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:133
+#, kde-format
+msgid "Automatic"
+msgstr "Automático"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:175
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:170
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:176
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:164
+#, kde-format
+msgid "Certificates (*.der *.pem *.crt *.cer)"
+msgstr "Certificados (*.der *.pem *.crt *.cer)"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:142
+#, kde-format
+msgid "*.der *.pem *.p12 *.key"
+msgstr "*.der *.pem *.p12 *.key"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:182
+#, kde-format
+msgid "Keys (*.der *.pem *.p12 *.key)"
+msgstr "Chaves (*.der *.pem *.p12 *.key)"
+
+#: editorqml/qml/wifisecurity/authentication/Owe.qml:30
+#, kde-format
+msgid ""
+"Enhanced Open (OWE) provides encryption without authentication. No password "
+"required."
+msgstr ""
+"O Enhanced Open (OWE) oferece criptografia sem autenticação. Não é "
+"necessária senha."
+
+#: editorqml/qml/wifisecurity/authentication/WepKey.qml:38
+#, kde-format
+msgid "Key index:"
+msgstr "Índice da chave:"
+
+#: editorqml/qml/wifisecurity/DnsList.qml:15
+#, kde-format
+msgid "DNS Servers"
+msgstr "Servidores DNS"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:24
+#, kde-format
+msgid "None"
+msgstr "Nenhum"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:25
+#, kde-format
+msgid "WEP 40/128-bit key (Hex)"
+msgstr "Chave WEP de 40/128 bits (Hex)"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:26
+#, kde-format
+msgid "WEP 128-bit Passphrase"
+msgstr "Frase-senha WEP de 128 bits"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:28
+#, kde-format
+msgid "WPA/WPA2 Personal"
+msgstr "WPA/WPA2 Pessoal"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:29
+#, kde-format
+msgid "WPA/WPA2 Enterprise"
+msgstr "WPA/WPA2 empresarial"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:56
+#, kde-format
+msgid ""
+"This option locks this connection to the network device specified by its "
+"permanent MAC address entered here. Example: 00:11:22:33:44:55"
+msgstr ""
+"Esta opção bloqueia esta conexão com o dispositivo de rede definido pelo\n"
+"seu endereço MAC permanente indicado aqui. Exemplo: 00:11:22:33:44:55"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:74
+#, kde-format
+msgid ""
+"The MAC address entered here will be used as hardware address for the "
+"network device this connection is activated on. This feature is known as MAC "
+"cloning or spoofing. Example: 11:22:33:44:55:66"
+msgstr ""
+"O endereço MAC inserido aqui será usado como endereço de hardware para o\n"
+" dispositivo de rede que é ativado para esta conexão. Esse recurso é\n"
+"conhecido como clonagem de MAC ou spoofing. Exemplo: 11:22:33:44:55"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:107
+#, kde-format
+msgid ""
+"Only transmit packets of the specified size or smaller, breaking larger "
+"packets up into multiple Ethernet frames"
+msgstr ""
+"Só transmitir pacotes com o tamanho indicado ou inferior, quebrando os "
+"pacotes\n"
+"maiores em diversos frames de Ethernet"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:114
+#, kde-format
+msgctxt "@item:inlistbox link negotiation"
+msgid "Ignore"
+msgstr "Ignorado"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:114
+#, kde-format
+msgctxt "@item:inlistbox link negotiation"
+msgid "Automatic"
+msgstr "Automático"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:114
+#, kde-format
+msgctxt "@item:inlistbox link negotiation"
+msgid "Manual"
+msgstr "Manual"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:122
+#, kde-format
+msgid ""
+"Device link negotiation. If “Manual” is chosen, “Speed” and “Duplex” values "
+"will be forced without checking the device compatibility. If unsure, leave "
+"here “Ignore” or pick “Automatic”."
+msgstr ""
+"Negociação do link do dispositivo. Se “Manual” for escolhido, os valores de "
+"“Velocidade” e “Duplex” serão forçados\n"
+"sem verificar a compatibilidade do dispositivo. Em caso de dúvida, deixe "
+"aqui “Ignorar” ou escolha “Automático”."
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:159
+#, kde-format
+msgctxt "@item:inlistbox duplex mode"
+msgid "Half"
+msgstr "Metade"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:159
+#, kde-format
+msgctxt "@item:inlistbox duplex mode"
+msgid "Full"
+msgstr "Completo"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:167
+#, kde-format
+msgid ""
+"Request that the device use the specified duplex mode. Either “Half” or "
+"“Full”"
+msgstr ""
+"Solicita que o dispositivo use o modo duplex indicado. Pode ser \"Metade\" "
+"ou \"Completo\""
+
+#: editorqml/settings/generalSettings/advancedpermissionsmodel.cpp:48
+#, kde-format
+msgctxt "@item real name not available"
+msgid "N/A"
+msgstr "N/D"
+
+#: editorqml/settings/ipv4settings/ipv4routetablemodel.cpp:105
+#: editorqml/settings/ipv6settings/ipv6routetablemodel.cpp:107
+#, kde-format
+msgctxt "@title:column"
+msgid "Address"
+msgstr "Endereço"
+
+#: editorqml/settings/ipv4settings/ipv4routetablemodel.cpp:107
+#, kde-format
+msgctxt "@title:column"
+msgid "Netmask"
+msgstr "Máscara de rede"
+
+#: editorqml/settings/ipv4settings/ipv4routetablemodel.cpp:109
+#: editorqml/settings/ipv6settings/ipv6routetablemodel.cpp:111
+#, kde-format
+msgctxt "@title:column"
+msgid "Gateway"
+msgstr "Gateway"
+
+#: editorqml/settings/ipv4settings/ipv4routetablemodel.cpp:111
+#: editorqml/settings/ipv6settings/ipv6routetablemodel.cpp:113
+#, kde-format
+msgctxt "@title:column"
+msgid "Metric"
+msgstr "Métrica"
+
+#: editorqml/settings/ipv6settings/ipv6routetablemodel.cpp:109
+#, kde-format
+msgctxt "@title:column IPv6 prefix length"
+msgid "Prefix"
+msgstr "Prefixo"
+
+#: editorqml/settings/wificonnectionsettings/wifisetting.cpp:292
+#, kde-format
+msgctxt "@item automatic wireless channel selection"
+msgid "Automatic"
+msgstr "Automático"
 
 #: handler.cpp:140
 #, kde-format
@@ -3532,7 +5175,7 @@ msgid "Connection %1 has been updated"
 msgstr "A conexão %1 foi atualizada"
 
 # Manter a tradução com o menor tamanho possível para ficar totalmente visível. (Alvarenga)
-#: handler.cpp:861
+#: handler.cpp:864
 #, kde-format
 msgid "Failed to create hotspot %1"
 msgstr "Falha ao criar o ponto de acesso %1"
@@ -3630,19 +5273,19 @@ msgstr "Outro"
 msgid "Import a saved configuration file"
 msgstr "Importar um arquivo de configuração salvo"
 
-#: models/networkmodelitem.cpp:339
+#: models/networkmodelitem.cpp:342
 #, kde-format
 msgctxt "@title:column header for list of available network connections"
 msgid "Available"
 msgstr "Disponível"
 
-#: models/networkmodelitem.cpp:345
+#: models/networkmodelitem.cpp:348
 #, kde-format
 msgctxt "@title:column header for list of connected network connections"
 msgid "Connected"
 msgstr "Conectado"
 
-#: models/networkmodelitem.cpp:347
+#: models/networkmodelitem.cpp:350
 #, kde-format
 msgctxt ""
 "@title:column header for list of previously connected network connections"
@@ -3736,6 +5379,52 @@ msgstr "É necessário o NetworkManager 0.9.8, mas foi encontrado o %1."
 msgctxt "global connection state"
 msgid "Unknown"
 msgstr "Desconhecido"
+
+#: qml/ConnectionItemDelegate.qml:97
+#, kde-format
+msgid "Connect"
+msgstr "Conectar"
+
+#: qml/ConnectionItemDelegate.qml:104
+#, kde-format
+msgid "Disconnect"
+msgstr "Desconectar"
+
+#: qml/ConnectionItemDelegate.qml:111
+#, kde-format
+msgid "Configure"
+msgstr "Configurar"
+
+#: qml/ConnectionItemDelegate.qml:148
+#, kde-format
+msgid "Connect to"
+msgstr "Conectar a"
+
+#: qml/TrafficMonitor.qml:37 qml/TrafficMonitor.qml:112
+#, kde-format
+msgid "/s"
+msgstr "/s"
+
+#: qml/TrafficMonitor.qml:90
+#, kde-format
+msgid "Upload"
+msgstr "Upload"
+
+#: qml/TrafficMonitor.qml:90
+#, kde-format
+msgid "Download"
+msgstr "Download"
+
+#~ msgid "BSSID:"
+#~ msgstr "BSSID:"
+
+#~ msgid ""
+#~ "This option locks this connection to the Wi-Fi access point (AP) "
+#~ "specified by the\n"
+#~ " BSSID entered here. Example: 00:11:22:33:44:55"
+#~ msgstr ""
+#~ "Esta opção bloqueia esta conexão ao ponto de acesso Wi-Fi (AP) definido\n"
+#~ "pelo BSSID indicado aqui. Exemplo: 00:11:22:33:44:55"
 
 #~ msgid "Hardware"
 #~ msgstr "Hardware"
@@ -3841,10 +5530,6 @@ msgstr "Desconhecido"
 #~ "Label for last used time for a network connection that has never been used"
 #~ msgid "Never"
 #~ msgstr "Nunca"
-
-#~ msgctxt "General"
-#~ msgid "General configuration"
-#~ msgstr "Configuração geral"
 
 #~ msgid ""
 #~ "Plasma is missing support for '%1' VPN connections. Please report this to "

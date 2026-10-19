@@ -24,6 +24,7 @@ Dependencies:
     'frameworks/kwindowsystem': '@latest-kf6'
     'frameworks/kxmlgui': '@latest-kf6'
     'frameworks/kcolorscheme': '@latest-kf6'
+    'frameworks/krunner': '@latest-kf6'
     'libraries/libqaccessibilityclient': '@latest-kf6'
     'libraries/plasma-wayland-protocols': '@latest-kf6'
     'plasma/plasma-activities': '@same'
@@ -33,6 +34,7 @@ Dependencies:
     'plasma/kpipewire': '@same'
     'plasma/kscreenlocker': '@same'
     'plasma/kwayland': '@same'
+    'plasma/milou': '@same'
     'third-party/wayland': '@latest'
     'third-party/wayland-protocols': '@latest'
 
@@ -46,10 +48,13 @@ RuntimeDependencies:
     'plasma/plasma-workspace': '@same' # kscreenlocker needs it
 
 Options:
- ctest-arguments: '--repeat until-pass:3 --timeout 90'
+ ctest-arguments: '--repeat until-pass:3'
+ per-test-timeout: 90
+ require-passing-tests-on: ['Linux/Qt6']
+ run-tests-on: ['Linux']
+ tests-run-in-parallel: True
  use-ccache: True
  cppcheck-arguments: '--enable=warning,style,performance --library=kwin-cppcheck.xml --suppress-xml=cppcheck-suppressions.xml'
  cppcheck-ignore-files:
   - autotests
- require-passing-tests-on: ['Linux/Qt6']
  run-qmllint: True

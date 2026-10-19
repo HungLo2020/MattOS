@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"POT-Creation-Date: 2026-10-01 20:15+0000\n"
 "PO-Revision-Date: 2019-10-31 00:12+0200\n"
 "Last-Translator: Marek Laane <qiilaq69@gmail.com>\n"
 "Language-Team: Estonian <kde-et@lists.linux.ee>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 19.08.1\n"
 
-#: abstractlocker.cpp:43
+#: emergencywindow.cpp:54
 #, fuzzy, kde-format
 #| msgid ""
 #| "The screen locker is broken and unlocking is not possible anymore.\n"
@@ -32,7 +32,7 @@ msgstr ""
 "Lahtilukustamiseks on vajalik ConsoleKit või LoginD, aga kumbagi\n"
 "sinu süsteemist ei leitud."
 
-#: abstractlocker.cpp:47
+#: emergencywindow.cpp:58
 #, fuzzy, kde-format
 #| msgid ""
 #| "The screen locker is broken and unlocking is not possible anymore.\n"
@@ -57,7 +57,7 @@ msgstr ""
 "# ck-unlock-session <seansi nimi>\n"
 "\n"
 
-#: abstractlocker.cpp:52
+#: emergencywindow.cpp:63
 #, fuzzy, kde-format
 #| msgid ""
 #| "The screen locker is broken and unlocking is not possible anymore.\n"
@@ -89,34 +89,34 @@ msgstr ""
 "\n"
 "Seejärel lülitu tagasi aktiivsesse seanssi (Ctrl+Alt+F%2)."
 
-#: ksldapp.cpp:183
+#: ksldapp.cpp:117
 #, kde-format
 msgctxt ""
 "Name of a category in System Settings' Shortcuts KCM; match it exactly"
 msgid "Session Management"
 msgstr ""
 
-#: ksldapp.cpp:185
+#: ksldapp.cpp:119
 #, kde-format
 msgid "Lock Session"
 msgstr "Lukusta seanss"
 
-#: ksldapp.cpp:451
+#: ksldapp.cpp:335
 #, kde-format
 msgid "Screen locked"
 msgstr "Ekraan on lukustatud"
 
-#: ksldapp.cpp:619
+#: ksldapp.cpp:363
 #, kde-format
 msgid "Screen unlocked"
 msgstr "Ekraan on lahtilukustatud"
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Screen Locker"
 msgstr "Ekraani lukustaja"
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Ensuring that the screen gets locked before going to sleep"
 msgstr "Tagamine, et ekraan lukustatakse enne uinumist"

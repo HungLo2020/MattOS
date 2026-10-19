@@ -19,10 +19,10 @@ QtObject {
         window.pageStack.clear();
     }
 
-    function openApplicationListSource(origin: string) {
+    function openApplicationListSource(origin: string, title: string) {
         openApplicationList({
             originFilter: origin,
-            title: origin,
+            title,
             allBackends: true,
         });
     }
@@ -33,7 +33,7 @@ QtObject {
         const mimeTypeComment = app.mimeTypeComment(mime);
         openApplicationList({
             mimeTypeFilter: mime,
-            title: i18n("Resources for '%1'", mimeTypeComment),
+            title: i18n("Resources for “%1”", mimeTypeComment),
         });
     }
 

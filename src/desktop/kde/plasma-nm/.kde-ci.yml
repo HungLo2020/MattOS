@@ -18,7 +18,7 @@ Dependencies:
     'frameworks/knotifications': '@latest-kf6'
     'frameworks/kpackage': '@latest-kf6'
     'frameworks/kservice': '@latest-kf6'
-    'frameworks/kwallet': '@latest-kf6'
+    'third-party/qtkeychain': '@latest'
     'frameworks/kwidgetsaddons': '@latest-kf6'
     'frameworks/kwindowsystem': '@latest-kf6'
     'frameworks/modemmanager-qt': '@latest-kf6'
@@ -29,9 +29,10 @@ Dependencies:
     'frameworks/prison': '@latest-kf6'
     'frameworks/kquickcharts': '@latest-kf6'
     'third-party/qcoro': '@latest'
-    'frameworks/ksvg': '@latest-kf6'
+    'libraries/kirigami-addons': '@latest-kf6'
     'plasma/libplasma': '@same'
 Options:
- require-passing-tests-on: ['Linux', 'FreeBSD']
+ require-passing-tests-on: ['@all']
  cmake-options: ' -DBUILD_MOBILE=ON'
  run-qmllint: true
+ enable-lsan: True

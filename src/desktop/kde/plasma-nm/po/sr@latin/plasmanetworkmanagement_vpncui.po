@@ -1,12 +1,13 @@
 # Translation of plasmanetworkmanagement_vpncui.po into Serbian.
 # Chusslove Illich <caslav.ilic@gmx.net>, 2014, 2015, 2016.
+# Nemanja Hiršl <nemhirsl@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasmanetworkmanagement_vpncui\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2016-11-28 01:33+0100\n"
-"Last-Translator: Chusslove Illich <caslav.ilic@gmx.net>\n"
+"POT-Creation-Date: 2026-02-01 00:45+0000\n"
+"PO-Revision-Date: 2026-10-03 19:50+0200\n"
+"Last-Translator: Nemanja Hiršl <nemhirsl@gmail.com>\n"
 "Language-Team: Serbian <kde-i18n-sr@kde.org>\n"
 "Language: sr@latin\n"
 "MIME-Version: 1.0\n"
@@ -18,22 +19,12 @@ msgstr ""
 "X-Text-Markup: kde4\n"
 "X-Environment: kde\n"
 
-#: vpnc.cpp:73
-#, kde-format
-msgid "Error decrypting the obfuscated password"
-msgstr "Greška pri dešifrovanju zamagljene lozinke"
-
-#: vpnc.cpp:73
-#, kde-format
-msgid "Error"
-msgstr "Greška"
-
-#: vpnc.cpp:118
+#: vpnc.cpp:70
 #, kde-format
 msgid "NetworkManager is missing support for Cisco Compatible VPN"
-msgstr ""
+msgstr "Menadžer mreže nema podršku za VPN saglasan sa Ciscom"
 
-#: vpnc.cpp:146
+#: vpnc.cpp:98
 #, kde-format
 msgid "%1: file could not be created"
 msgstr "%1: fajl ne može da se napravi."
@@ -130,10 +121,9 @@ msgstr "CA sertifikat u formatu PEM."
 
 #. i18n: ectx: property (text), widget (QPushButton, btnAdvanced)
 #: vpnc.ui:194
-#, fuzzy, kde-format
-#| msgid "Advanced..."
+#, kde-format
 msgid "Advanced…"
-msgstr "Napredno..."
+msgstr "Napredno…"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox)
 #: vpncadvanced.ui:18
@@ -212,7 +202,7 @@ msgstr "Ime IKE DH grupe."
 #: vpncadvanced.ui:151
 #, kde-format
 msgid "Perfect Forward Secrecy:"
-msgstr "&PFS:"
+msgstr "PFS:"
 
 #. i18n: ectx: property (toolTip), widget (QComboBox, pfs)
 #: vpncadvanced.ui:167
@@ -277,7 +267,7 @@ msgstr "NetScreen"
 #, kde-format
 msgctxt "VPNC vendor name"
 msgid "Fortigate"
-msgstr ""
+msgstr "Fortigate"
 
 # >> @item
 #: vpncadvancedwidget.cpp:28
@@ -413,32 +403,3 @@ msgstr "Korisničko ime:"
 #, kde-format
 msgid "Group name."
 msgstr "Ime grupe."
-
-#~ msgid "*.pem *.crt *.cer"
-#~ msgstr "*.pem *.crt *.cer"
-
-#~ msgid "File %1 could not be opened."
-#~ msgstr "Fajl %1 ne može da se otvori."
-
-#~ msgid "Needed executable cisco-decrypt could not be found."
-#~ msgstr "Neophodna naredba cisco-decrypt ne može da se nađe."
-
-# rewrite-msgid: /vpnc software/VPNC/
-#~ msgid ""
-#~ "The VPN settings file '%1' specifies that VPN traffic should be tunneled "
-#~ "through TCP which is currently not supported in the vpnc software.\n"
-#~ "\n"
-#~ "The connection can still be created, with TCP tunneling disabled, however "
-#~ "it may not work as expected."
-#~ msgstr ""
-#~ "Fajl VPN postavki „%1“ zadaje tunelovanje VPN saobraćaja kroz TCP, što "
-#~ "VPNC trenutno ne podržava.\n"
-#~ "\n"
-#~ "Veza će svejedno biti uspostavljena, bez TCP tunelovanja, ali možda neće "
-#~ "raditi prema očekivanju."
-
-#~ msgid "Not supported"
-#~ msgstr "Nije podržano"
-
-#~ msgid "%1: file format error."
-#~ msgstr "%1: greška fajl formata."

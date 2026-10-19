@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libknetworkmanager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"POT-Creation-Date: 2026-09-10 00:48+0000\n"
 "PO-Revision-Date: 2010-07-30 21:29+0800\n"
 "Last-Translator: Sharuzzaman Ahmat Raslan <sharuzzaman@gmail.com>\n"
 "Language-Team: Malay <kedidiemas@yahoogroups.com>\n"
@@ -57,7 +57,7 @@ msgid ""
 "%2 kibibytes per second"
 msgstr ""
 
-#: ConnectionItem.qml:302
+#: ConnectionItem.qml:309
 #, fuzzy, kde-format
 msgctxt "Download and upload rates in some unit per second"
 msgid "↓ %1/s, ↑ %2/s"
@@ -138,49 +138,49 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: main.qml:32
+#: main.qml:39
 #, fuzzy, kde-format
 msgid "Networks"
 msgstr "Pengurusan Rangkaian"
 
-#: main.qml:41
+#: main.qml:48
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Middle-click to turn off Airplane Mode"
 msgstr ""
 
-#: main.qml:43
+#: main.qml:50
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Middle-click to turn on Airplane Mode"
 msgstr ""
 
-#: main.qml:71 Toolbar.qml:74
+#: main.qml:78 Toolbar.qml:74
 #, kde-format
 msgid "Enable Wi-Fi"
 msgstr ""
 
-#: main.qml:82
+#: main.qml:89
 #, kde-format
 msgid "Enable Mobile Data"
 msgstr ""
 
-#: main.qml:94
+#: main.qml:101
 #, fuzzy, kde-format
 msgid "Enable Airplane Mode"
 msgstr "Tanpa wayar"
 
-#: main.qml:106
+#: main.qml:113
 #, kde-format
 msgid "Open Network Login Page…"
 msgstr ""
 
-#: main.qml:116
+#: main.qml:123
 #, fuzzy, kde-format
 msgid "&Configure Network Connections…"
 msgstr "Sambungan"
 
-#: PopupDialog.qml:51
+#: PopupDialog.qml:58
 #, fuzzy, kde-format
 msgctxt "@action:button"
 msgid "Return to Network Connections"

@@ -24,7 +24,6 @@ Dependencies:
     'plasma/libplasma': '@same'
     'plasma/layer-shell-qt': '@same'
     'plasma/libkscreen': '@same'
-    'third-party/wayland': '@latest'
 
 RuntimeDependencies:
  - 'on': ['@all']
@@ -35,3 +34,4 @@ RuntimeDependencies:
 Options:
  require-passing-tests-on: ['@all']
  run-gcovr: true
+ enable-lsan: True

@@ -1,6 +1,7 @@
 [Desktop Entry]
 Keys=inventrepo,invrepo,repo
 Name=KDE Invent Repositories
+Name[am]=KDE Invent Repositories
 Name[ar]=مستودعات KDE Invent
 Name[ast]=Depósitos de KDE Invent
 Name[az]=KDE Invent Anbarları
@@ -41,6 +42,8 @@ Name[lg]=Noonya Puloguramu ku KDE Invent
 Name[lt]=KDE Invent saugyklos
 Name[lv]=„KDE Invent“ krātuves
 Name[my]=ကေဒီအီး အင်ဗန့် ရီပိုစစ်တိုရီများ
+Name[nan_TW]=KDE Invent 版本庫
+Name[nan_TW@latin]=KDE Invent Pán-pún-khòo
 Name[nb]=KDE Invent-pakkebrønner
 Name[nl]=Opslagruimtes van KDE-invent
 Name[nn]=KDE Invent-pakkebrønnar
@@ -64,6 +67,7 @@ Name[vi]=Các kho ở Invent KDE
 Name[zh_CN]=KDE Invent 仓库
 Name[zh_TW]=KDE Invent 軟體庫
 Query=https://invent.kde.org/explore/projects/starred?name=\\{@}
+Query[am]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[ar]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[az]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[be]=https://invent.kde.org/explore/projects/starred?name=\\{@}
@@ -103,6 +107,8 @@ Query[lg]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[lt]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[lv]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[my]=https://invent.kde.org/explore/projects/starred?name=\\{@}
+Query[nan_TW]=https://invent.kde.org/explore/projects/starred?name=\\{@}
+Query[nan_TW@latin]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[nb]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[nl]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[nn]=https://invent.kde.org/explore/projects/starred?name=\\{@}
@@ -120,7 +126,6 @@ Query[sv]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[th]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[tok]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[tr]=https://invent.kde.org/explore/projects/starred?name=\\{@}
-Query[ug]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[uk]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[vi]=https://invent.kde.org/explore/projects/starred?name=\\{@}
 Query[zh_CN]=https://invent.kde.org/explore/projects/starred?name=\\{@}

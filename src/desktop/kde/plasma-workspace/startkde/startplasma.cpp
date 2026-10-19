@@ -10,8 +10,6 @@
 
 #include <config-startplasma.h>
 
-#include <canberra.h>
-
 #include <algorithm>
 #include <ranges>
 
@@ -21,13 +19,15 @@
 #include <QStandardPaths>
 #include <QTextStream>
 
+#include <QDBusArgument>
+#include <QDBusConnection>
+#include <QDBusInterface>
 #include <QDBusConnectionInterface>
 #include <QDBusServiceWatcher>
 
 #include <KConfig>
 #include <KConfigGroup>
 #include <KDarkLightSchedule>
-#include <KNotifyConfig>
 #include <KPackage/Package>
 #include <KPackage/PackageLoader>
 #include <KSharedConfig>
@@ -38,6 +38,9 @@
 
 #include <KUpdateLaunchEnvironmentJob>
 
+#include <ksplashinterface.h>
+
+#include <signal.h>
 #include "startplasma.h"
 
 #include "../config-workspace.h"
@@ -45,6 +48,7 @@
 #include "klookandfeelmanager.h"
 #include "lookandfeelsettings.h"
 
+using namespace std::chrono_literals;
 using namespace Qt::StringLiterals;
 
 QTextStream out(stderr);
@@ -219,6 +223,15 @@ void runStartupConfig()
     }
 }
 
+static void setupWorkarounds()
+{
+#if WITH_X11
+    // Tell AWT that kwin_wayland is a non-reparenting window manager. Without this, AWT will ignore
+    // ConfigureNotify events and java applications will paint nothing on the screen.
+    qputenv("_JAVA_AWT_WM_NONREPARENTING", "1");
+#endif
+}
+
 void setupCursor(bool wayland)
 {
 #ifdef XCURSOR_PATH
@@ -368,27 +381,23 @@ static std::optional<std::pair<QString, KLookAndFeelManager::Contents>> dayNight
     }
 
     const QDateTime now = QDateTime::currentDateTime();
-    const auto previousTransition = darkLightSchedule->previousTransition(now);
+    const auto previousOrCurrentTransition = darkLightSchedule->previousTransition(now);
+    const QDateTime transitionBreakPoint = previousOrCurrentTransition->startDateTime() + (previousOrCurrentTransition->endDateTime() - previousOrCurrentTransition->startDateTime()) / 2;
 
     bool wantsDarkTheme = false;
-    switch (previousTransition->test(now)) {
-    case KDarkLightTransition::Upcoming:
-    case KDarkLightTransition::InProgress:
-        wantsDarkTheme = previousTransition->type() == KDarkLightTransition::Morning;
-        break;
-    case KDarkLightTransition::Passed:
-        wantsDarkTheme = previousTransition->type() != KDarkLightTransition::Morning;
-        break;
+    if (transitionBreakPoint - now > 5s) {
+        wantsDarkTheme = previousOrCurrentTransition->type() == KDarkLightTransition::Morning;
+    } else {
+        // We are past or at the transition break point.
+        wantsDarkTheme = previousOrCurrentTransition->type() == KDarkLightTransition::Evening;
     }
 
     const QString lookAndFeelName = wantsDarkTheme ? settings.defaultDarkLookAndFeel() : settings.defaultLightLookAndFeel();
     return std::make_pair(lookAndFeelName, KLookAndFeelManager::AppearanceSettings);
 }
 
-static std::pair<QString, KLookAndFeelManager::Contents> determineLookAndFeel()
+static std::pair<QString, KLookAndFeelManager::Contents> determineLookAndFeel(const LookAndFeelSettings &settings)
 {
-    const LookAndFeelSettings settings;
-
     if (settings.automaticLookAndFeel()) {
         if (const auto lookAndFeel = dayNightLookAndFeel(settings)) {
             return *lookAndFeel;
@@ -418,10 +427,17 @@ void setupPlasmaEnvironment()
     QDir().mkpath(extraConfigDir);
     qputenv("XDG_CONFIG_DIRS", QByteArray(QFile::encodeName(extraConfigDir) + ':' + currentConfigDirs));
 
-    const auto &[lookAndFeelName, lookAndFeelContents] = determineLookAndFeel();
+    LookAndFeelSettings lookAndFeelSettings;
+    const auto &[lookAndFeelName, lookAndFeelContents] = determineLookAndFeel(lookAndFeelSettings);
+    qCDebug(PLASMA_STARTUP) << "Applying" << lookAndFeelName << "global theme";
+
+    if (lookAndFeelSettings.lookAndFeelPackage() != lookAndFeelName) {
+        lookAndFeelSettings.setLookAndFeelPackage(lookAndFeelName);
+        lookAndFeelSettings.save();
+    }
+
     QFile activeLnf(extraConfigDir + QLatin1String("/package"));
-    activeLnf.open(QIODevice::ReadOnly);
-    if (activeLnf.readLine() != lookAndFeelName.toUtf8()) {
+    if (!activeLnf.open(QIODevice::ReadOnly) || activeLnf.readLine() != lookAndFeelName.toUtf8()) {
         KPackage::Package package = KPackage::PackageLoader::self()->loadPackage(QStringLiteral("Plasma/LookAndFeel"), lookAndFeelName);
         KLookAndFeelManager lnfManager;
         lnfManager.setMode(KLookAndFeelManager::Mode::Defaults);
@@ -436,6 +452,7 @@ void setupPlasmaEnvironment()
         const QString colorScheme = generalGroup.readEntry("ColorScheme", QStringLiteral("BreezeLight"));
         QString path = lnfManager.colorSchemeFile(colorScheme);
 
+        // If you change ColorSchemeHash code, also update applyScheme() in colorsapplicator.cpp.
         if (!path.isEmpty()) {
             QFile f(path);
             QCryptographicHash hash(QCryptographicHash::Sha1);
@@ -445,11 +462,6 @@ void setupPlasmaEnvironment()
                     lnfManager.setColors(colorScheme, path);
                     generalGroup.writeEntry("ColorSchemeHash", fileHash);
                     generalGroup.sync();
-                    const QString svgCache =
-                        QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation) + QLatin1Char('/') + QStringLiteral("plasma-svgelements");
-                    if (!svgCache.isEmpty()) {
-                        QFile::remove(svgCache);
-                    }
                 }
             }
         }
@@ -539,24 +551,16 @@ bool syncDBusEnvironment()
     return true;
 }
 
-static bool desktopLockedAtStart = false;
-
 QProcess *setupKSplash()
 {
-    const auto dlstr = qgetenv("DESKTOP_LOCKED");
-    desktopLockedAtStart = dlstr == "true" || dlstr == "1";
-    qunsetenv("DESKTOP_LOCKED"); // Don't want it in the environment
-
     QProcess *p = nullptr;
-    if (!desktopLockedAtStart) {
-        const KConfig cfg(QStringLiteral("ksplashrc"));
-        // the splashscreen and progress indicator
-        KConfigGroup ksplashCfg = cfg.group(QStringLiteral("KSplash"));
-        if (ksplashCfg.readEntry("Engine", QStringLiteral("KSplashQML")) == QLatin1String("KSplashQML")) {
-            p = new QProcess;
-            p->setProcessChannelMode(QProcess::ForwardedChannels);
-            p->start(QStringLiteral("ksplashqml"), {ksplashCfg.readEntry("Theme", QStringLiteral("Breeze"))});
-        }
+    const KConfig cfg(QStringLiteral("ksplashrc"));
+    // the splashscreen and progress indicator
+    KConfigGroup ksplashCfg = cfg.group(QStringLiteral("KSplash"));
+    if (ksplashCfg.readEntry("Engine", QStringLiteral("KSplashQML")) == QLatin1String("KSplashQML")) {
+        p = new QProcess;
+        p->setProcessChannelMode(QProcess::ForwardedChannels);
+        p->start(QStringLiteral("ksplashqml"), {ksplashCfg.readEntry("Theme", QStringLiteral("Breeze"))});
     }
     return p;
 }
@@ -686,24 +690,12 @@ static void migrateUserScriptsAutostart()
     QDBusConnection::sessionBus().call(message);
 }
 
-bool startPlasmaSession(bool wayland)
+bool startPlasmaSession()
 {
     resetSystemdFailedUnits();
     reloadSystemd();
     OrgKdeKSplashInterface iface(QStringLiteral("org.kde.KSplash"), QStringLiteral("/KSplash"), QDBusConnection::sessionBus());
     iface.setStage(QStringLiteral("startPlasma"));
-    // finally, give the session control to the session manager
-    // see kdebase/ksmserver for the description of the rest of the startup sequence
-    // if the KDEWM environment variable has been set, then it will be used as KDE's
-    // window manager instead of kwin.
-    // if KDEWM is not set, ksmserver will ensure kwin is started.
-    // kwrapper5 is used to reduce startup time and memory usage
-    // kwrapper5 does not return useful error codes such as the exit code of ksmserver.
-    // We only check for 255 which means that the ksmserver process could not be
-    // started, any problems thereafter, e.g. ksmserver failing to initialize,
-    // will remain undetected.
-    // If the session should be locked from the start (locked autologin),
-    // lock now and do the rest of the KDE startup underneath the locker.
 
     bool rc = true;
     QEventLoop e;
@@ -713,11 +705,7 @@ bool startPlasmaSession(bool wayland)
 
     // We want to exit when both ksmserver and plasma-session-shutdown have finished
     // This also closes if ksmserver crashes unexpectedly, as in those cases plasma-shutdown is not running
-    if (wayland) {
-        serviceWatcher.addWatchedService(QStringLiteral("org.kde.KWinWrapper"));
-    } else {
-        serviceWatcher.addWatchedService(QStringLiteral("org.kde.ksmserver"));
-    }
+    serviceWatcher.addWatchedService(QStringLiteral("org.kde.KWinWrapper"));
     serviceWatcher.addWatchedService(QStringLiteral("org.kde.Shutdown"));
     serviceWatcher.setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
 
@@ -739,15 +727,6 @@ bool startPlasmaSession(bool wayland)
         startPlasmaSession.reset(new QProcess);
         qCDebug(PLASMA_STARTUP) << "Using classic boot";
 
-        QStringList plasmaSessionOptions;
-        if (wayland) {
-            plasmaSessionOptions << QStringLiteral("--no-lockscreen");
-        } else {
-            if (desktopLockedAtStart) {
-                plasmaSessionOptions << QStringLiteral("--lockscreen");
-            }
-        }
-
         startPlasmaSession->setProcessChannelMode(QProcess::ForwardedChannels);
         QObject::connect(startPlasmaSession.get(), &QProcess::finished, &e, [&rc](int exitCode, QProcess::ExitStatus) {
             if (exitCode == 255) {
@@ -757,27 +736,21 @@ bool startPlasmaSession(bool wayland)
             }
         });
 
-        startPlasmaSession->start(QStringLiteral(CMAKE_INSTALL_FULL_BINDIR "/plasma_session"), plasmaSessionOptions);
+        startPlasmaSession->start(QStringLiteral(CMAKE_INSTALL_FULL_BINDIR "/plasma_session"));
     } else {
         qCDebug(PLASMA_STARTUP) << "Using systemd boot";
-        const QString platform = wayland ? QStringLiteral("wayland") : QStringLiteral("x11");
-
         auto msg = QDBusMessage::createMethodCall(QStringLiteral("org.freedesktop.systemd1"),
                                                   QStringLiteral("/org/freedesktop/systemd1"),
                                                   QStringLiteral("org.freedesktop.systemd1.Manager"),
                                                   QStringLiteral("StartUnit"));
-        msg << QStringLiteral("plasma-workspace-%1.target").arg(platform) << QStringLiteral("fail");
+        msg << QStringLiteral("plasma-workspace-wayland.target") << QStringLiteral("fail");
         QDBusReply<QDBusObjectPath> reply = QDBusConnection::sessionBus().call(msg);
         if (!reply.isValid()) {
             qCWarning(PLASMA_STARTUP) << "Could not start systemd managed Plasma session:" << reply.error().name() << reply.error().message();
             messageBox(QStringLiteral("startkde: Could not start Plasma session.\n"));
             rc = false;
-        } else {
-            playStartupSound();
         }
-        if (wayland) {
-            startKSplashViaSystemd();
-        }
+        startKSplashViaSystemd();
     }
     if (rc) {
         QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, &e, &QEventLoop::quit);
@@ -827,104 +800,82 @@ void waitForKonqi()
     }
 }
 
-namespace
+int main(int argc, char **argv)
 {
-void canberraFinishCallback(ca_context *c, uint32_t /*id*/, int error_code, void *userdata)
-{
-    QMetaObject::invokeMethod(
-        qApp,
-        [c, error_code] {
-            if (error_code != CA_SUCCESS) {
-                qCWarning(PLASMA_STARTUP) << "Failed to cancel canberra context for audio notification:" << ca_strerror(error_code);
+    QCoreApplication app(argc, argv);
+
+    createConfigDirectory();
+    setupCursor(true);
+    setupWorkarounds();
+    signal(SIGTERM, sigtermHandler);
+
+    // Let clients try to reconnect to kwin after a restart
+    qputenv("QT_WAYLAND_RECONNECT", "1");
+
+    // Query whether org.freedesktop.locale1 is available. If it is, try to
+    // set XKB_DEFAULT_{MODEL,LAYOUT,VARIANT,OPTIONS} accordingly.
+    {
+        const QString locale1Service = QStringLiteral("org.freedesktop.locale1");
+        const QString locale1Path = QStringLiteral("/org/freedesktop/locale1");
+        QDBusMessage message =
+            QDBusMessage::createMethodCall(locale1Service, locale1Path, QStringLiteral("org.freedesktop.DBus.Properties"), QStringLiteral("GetAll"));
+        message << locale1Service;
+        QDBusMessage resultMessage = QDBusConnection::systemBus().call(message);
+        if (resultMessage.type() == QDBusMessage::ReplyMessage) {
+            QVariantMap result;
+            auto dbusArgument = resultMessage.arguments().at(0).value<QDBusArgument>();
+            while (!dbusArgument.atEnd()) {
+                dbusArgument >> result;
             }
-            ca_context_destroy(c);
-        },
-        Qt::QueuedConnection);
-    // WARNING: do not do anything else here. If you need more logic then put it into a userdata object please.
-    // WARNING: best invokeMethod into a QObject to ensure things run on the gui thread, we must not destroy in the callback!
-}
-} // namespace
 
-void playStartupSound()
-{
-    // This features a bit of duplication from KNotifications. Why we need to do this stuff manually was never
-    // documented, I am left guessing that it is this way so we don't end up talking to plasmashell while it is initing.
+            auto queryAndSet = [&result](const char *var, const QString &value) {
+                const auto r = result.value(value).toString();
+                if (!r.isEmpty()) {
+                    qputenv(var, r.toUtf8());
+                }
+            };
 
-    KNotifyConfig notifyConfig(QStringLiteral("plasma_workspace"), QStringLiteral("startkde"));
-    const QString action = notifyConfig.readEntry(QStringLiteral("Action"));
-    if (action.isEmpty() || !QStringView(action).split(QLatin1Char('|')).contains(u"Sound")) {
-        // no startup sound configured
-        return;
-    }
-
-    QString soundName = notifyConfig.readEntry(QStringLiteral("Sound"));
-    if (soundName.isEmpty()) {
-        qCWarning(PLASMA_STARTUP) << "Audio notification requested, but no sound file provided in notifyrc file, aborting audio notification";
-        return;
-    }
-
-    const auto config = KSharedConfig::openConfig(QStringLiteral("kdeglobals"));
-    const KConfigGroup group = config->group(QStringLiteral("Sounds"));
-    const auto soundTheme = group.readEntry("Theme", u"ocean"_s);
-    if (!group.readEntry("Enable", true)) {
-        qCDebug(PLASMA_STARTUP) << "Notification sounds are globally disabled";
-        return;
-    }
-
-    // Legacy implementation. Fallback lookup for a full path within the `$XDG_DATA_LOCATION/sounds` dirs
-    QUrl fallbackUrl;
-    const auto dataLocations = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
-    for (const QString &dataLocation : dataLocations) {
-        fallbackUrl = QUrl::fromUserInput(soundName, dataLocation + QStringLiteral("/sounds"), QUrl::AssumeLocalFile);
-        if (fallbackUrl.isLocalFile() && QFileInfo::exists(fallbackUrl.toLocalFile())) {
-            break;
+            queryAndSet("XKB_DEFAULT_MODEL", QStringLiteral("X11Model"));
+            queryAndSet("XKB_DEFAULT_LAYOUT", QStringLiteral("X11Layout"));
+            queryAndSet("XKB_DEFAULT_VARIANT", QStringLiteral("X11Variant"));
+            queryAndSet("XKB_DEFAULT_OPTIONS", QStringLiteral("X11Options"));
+        } else {
+            qCWarning(PLASMA_STARTUP) << "not a reply org.freedesktop.locale1" << resultMessage;
         }
-        if (!fallbackUrl.isLocalFile() && fallbackUrl.isValid()) {
-            break;
-        }
-        fallbackUrl.clear();
+    }
+    runEnvironmentScripts();
+
+    if (!qEnvironmentVariableIsSet("DBUS_SESSION_BUS_ADDRESS")) {
+        out << "startplasmacompositor: Could not start D-Bus. Can you call qdbus?\n";
+        return 1;
+    }
+    setupPlasmaEnvironment();
+    runStartupConfig();
+    qputenv("XDG_SESSION_TYPE", "wayland");
+
+    auto oldSystemdEnvironment = getSystemdEnvironment();
+    if (!syncDBusEnvironment()) {
+        out << "Could not sync environment to dbus.\n";
+        return 1;
     }
 
-    ca_context *context = nullptr;
-    // context dangles a bit. Gets cleaned up in the finish callback!
-    if (int ret = ca_context_create(&context); ret != CA_SUCCESS) {
-        qCWarning(PLASMA_STARTUP) << "Failed to initialize canberra context for startup sound:" << ca_strerror(ret);
-        return;
+    // We import systemd environment after we sync the dbus environment here.
+    // Otherwise it may leads to some unwanted order of applying environment
+    // variables (e.g. LANG and LC_*)
+    importSystemdEnvrionment();
+
+    if (!startPlasmaSession()) {
+        return 4;
     }
 
-    // We aren't actually plasmashell, for all intents and purpose we are part of it though from the user perspective.
-    if (int ret = ca_context_change_props(context,
-                                          CA_PROP_APPLICATION_NAME,
-                                          "plasmashell",
-                                          CA_PROP_APPLICATION_ID,
-                                          "org.kde.plasmashell.desktop",
-                                          CA_PROP_APPLICATION_ICON_NAME,
-                                          "plasmashell",
-                                          nullptr);
-        ret != CA_SUCCESS) {
-        qCWarning(PLASMA_STARTUP) << "Failed to set application properties on canberra context for startup sound:" << ca_strerror(ret);
-    }
+    // Anything after here is logout
+    // It is not called after shutdown/restart
+    waitForKonqi();
+    out << "startplasma-wayland: Shutting down...\n";
+    out << "startplasmacompositor: Shutting down...\n";
+    stopSystemdSession();
+    cleanupPlasmaEnvironment(oldSystemdEnvironment);
+    out << "startplasmacompositor: Done.\n";
 
-    ca_proplist *props = nullptr;
-    ca_proplist_create(&props);
-    const auto proplistDestroy = qScopeGuard([props] {
-        ca_proplist_destroy(props);
-    });
-
-    const QByteArray soundNameBytes = soundName.toUtf8();
-    const QByteArray soundThemeBytes = soundTheme.toUtf8();
-    const QByteArray fallbackUrlBytes = QFile::encodeName(fallbackUrl.toLocalFile());
-
-    ca_proplist_sets(props, CA_PROP_EVENT_ID, soundNameBytes.constData());
-    ca_proplist_sets(props, CA_PROP_CANBERRA_XDG_THEME_NAME, soundThemeBytes.constData());
-    // Fallback to filename
-    if (!fallbackUrl.isEmpty()) {
-        ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, fallbackUrlBytes.constData());
-    }
-    // We only ever play this sound once, no need to cache it.
-    ca_proplist_sets(props, CA_PROP_CANBERRA_CACHE_CONTROL, "never");
-
-    if (int ret = ca_context_play_full(context, 0 /* id */, props, canberraFinishCallback, nullptr); ret != CA_SUCCESS) {
-        qCWarning(PLASMA_STARTUP) << "Failed to play startup sound with canberra:" << ca_strerror(ret);
-    }
+    return 0;
 }

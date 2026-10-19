@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=github,gh
 Name=GitHub
+Name[am]=GitHub
 Name[ar]=جِت هاب
 Name[ast]=GitHub
 Name[az]=GitHub
@@ -52,6 +53,8 @@ Name[mai]=GitHub
 Name[ml]=ഗിറ്റ്ഹബ്
 Name[mr]=जिटहब
 Name[my]=ဂစ်ဟပ်ဘ်
+Name[nan_TW]=GitHub
+Name[nan_TW@latin]=GitHub
 Name[nb]=GitHub
 Name[nds]=GitHub
 Name[nl]=GitHub
@@ -76,13 +79,13 @@ Name[tg]=GitHub
 Name[th]=GitHub
 Name[tok]=ilo GitHub
 Name[tr]=GitHub
-Name[ug]=GitHub
 Name[uk]=GitHub
 Name[vi]=GitHub
 Name[wa]=GitHub
 Name[zh_CN]=GitHub
 Name[zh_TW]=GitHub
 Query=https://github.com/search?q=\\{@}&x=0&y=0
+Query[am]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[ar]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[ast]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[az]=https://github.com/search?q=\\{@}&x=0&y=0
@@ -127,6 +130,8 @@ Query[lt]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[lv]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[mr]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[my]=https://github.com/search?q=\\{@}&x=0&y=0
+Query[nan_TW]=https://github.com/search?q=\\{@}&x=0&y=0
+Query[nan_TW@latin]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[nb]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[nds]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[nl]=https://github.com/search?q=\\{@}&x=0&y=0
@@ -150,7 +155,6 @@ Query[tg]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[th]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[tok]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[tr]=https://github.com/search?q=\\{@}&x=0&y=0
-Query[ug]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[uk]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[vi]=https://github.com/search?q=\\{@}&x=0&y=0
 Query[wa]=https://github.com/search?q=\\{@}&x=0&y=0

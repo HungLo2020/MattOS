@@ -322,10 +322,23 @@ PlasmaExtras.Menu {
                 let menuItem = menu.newMenuItem(virtualDesktopsMenu);
                 menuItem.text = i18nc("action:inmenu", "Move &To Current Desktop");
                 menuItem.enabled = Qt.binding(() => {
-                    return menu.visualParent && menu.get(TaskManager.AbstractTasksModel.VirtualDesktops).indexOf(virtualDesktopInfo.currentDesktop) === -1;
+                    if (!menu.visualParent) {
+                        return false;
+                    }
+
+                    let isAnyTaskNotOnCurrentDesktop = false;
+                    TaskManagerApplet.TaskTools.foreachChildTask((childIndex) => {
+                        const screenGeometry = tasksModel.data(childIndex, TaskManager.AbstractTasksModel.ScreenGeometry);
+                        const currentDesktop = virtualDesktopInfo.currentDesktopByScreenGeometry(screenGeometry);
+                        isAnyTaskNotOnCurrentDesktop = isAnyTaskNotOnCurrentDesktop || tasksModel.data(childIndex, TaskManager.AbstractTasksModel.VirtualDesktops).indexOf(currentDesktop) === -1;
+                    }, menu.modelIndex, tasksModel);
+
+                    return isAnyTaskNotOnCurrentDesktop;
                 });
                 menuItem.clicked.connect(() => {
-                    tasksModel.requestVirtualDesktops(menu.modelIndex, [virtualDesktopInfo.currentDesktop]);
+                    TaskManagerApplet.TaskTools.foreachChildTask((childIndex) => {
+                        tasksModel.requestVirtualDesktops(childIndex, [virtualDesktopInfo.currentDesktopByScreenGeometry(tasksModel.data(childIndex, TaskManager.AbstractTasksModel.ScreenGeometry))]);
+                    }, menu.modelIndex, tasksModel);
                 });
 
                 menuItem = menu.newMenuItem(virtualDesktopsMenu);
@@ -688,19 +701,6 @@ PlasmaExtras.Menu {
                 icon: "view-fullscreen"
 
                 onClicked: tasksModel.requestToggleFullScreen(menu.modelIndex)
-            }
-
-            PlasmaExtras.MenuItem {
-                enabled: menu.visualParent && menu.get(TaskManager.AbstractTasksModel.IsShadeable)
-
-                checkable: true
-                checked: menu.visualParent && menu.get(TaskManager.AbstractTasksModel.IsShaded)
-                visible: Qt.platform.pluginName !== "wayland"
-
-                text: i18nc("action:inmenu", "&Shade")
-                icon: "window-shade"
-
-                onClicked: tasksModel.requestToggleShaded(menu.modelIndex)
             }
 
             PlasmaExtras.MenuItem {

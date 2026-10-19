@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:40+0000\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
 "PO-Revision-Date: 2013-02-23 17:39+0530\n"
 "Last-Translator: Chetan Khona <chetan@kompkin.com>\n"
 "Language-Team: American English <kde-i18n-doc@kde.org>\n"
@@ -17,72 +17,103 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 "X-Generator: Lokalize 1.5\n"
 
-#: fallbacktheme/Greeter.qml:58
+#: fallbacktheme/Greeter.qml:59
 msgid "Warning: Caps Lock on"
 msgstr "इशारा : Caps Lock चालू आहे"
 
-#: fallbacktheme/Greeter.qml:74
+#: fallbacktheme/Greeter.qml:75
 msgid "The session is locked"
 msgstr "सत्र कुलूपबंद केलेले आहे"
 
-#: fallbacktheme/Greeter.qml:75
+#: fallbacktheme/Greeter.qml:76
 msgid "The session has been locked by %1"
 msgstr "%1 याने सत्र कुलूपबंद केलेले आहे"
 
-#: fallbacktheme/Greeter.qml:99
+#: fallbacktheme/Greeter.qml:83
+msgid "Password"
+msgstr ""
+
+#: fallbacktheme/Greeter.qml:101
 msgid "(or place your fingerprint on the reader)"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:105
+#: fallbacktheme/Greeter.qml:107
 msgid "(or use your smartcard)"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:114
+#: fallbacktheme/Greeter.qml:116
 msgid "&Switch Users"
 msgstr "वापरकर्ते बदला (&S)"
 
-#: fallbacktheme/Greeter.qml:121
+#: fallbacktheme/Greeter.qml:123
 msgid "Un&lock"
 msgstr "कुलूप काढून टाका (&L)"
 
-#: fallbacktheme/Greeter.qml:133
+#: fallbacktheme/Greeter.qml:135
 msgid "Unlocking failed"
 msgstr "कुलूप काढताना अपयश"
 
-#: main.cpp:123
+#: main.cpp:102
 #, kde-format
 msgid "Greeter for the KDE Plasma Workspaces Screen locker"
 msgstr "केडीई प्लाज्मा कार्यस्थान स्क्रीन कुलूपबंद करण्याकरिता अभिवादन करणारा"
 
-#: main.cpp:127
+#: main.cpp:106
 #, kde-format
 msgid "Starts the greeter in testing mode"
 msgstr "अभिवादक चाचणी पद्धतीने सुरु करतो"
 
-#: main.cpp:130
+#: main.cpp:109
 #, fuzzy, kde-format
 #| msgid "Starts the greeter in testing mode"
 msgid "Starts the greeter with the selected shell theme (only in Testing mode)"
 msgstr "अभिवादक चाचणी पद्धतीने सुरु करतो"
 
-#: main.cpp:134
+#: main.cpp:113
 #, kde-format
 msgid "Lock immediately, ignoring any grace time etc."
 msgstr ""
 
-#: main.cpp:136
+#: main.cpp:115
 #, kde-format
 msgid "Delay till the lock user interface gets shown in milliseconds."
 msgstr ""
 
-#: main.cpp:139
+#: main.cpp:118
 #, kde-format
 msgid "Don't show any lock user interface."
 msgstr ""
 
-#: main.cpp:141
+#: pamauthenticatormodel.cpp:51
 #, kde-format
-msgid "File descriptor for connecting to ksld."
+msgctxt "authentication type in unlock dialogs"
+msgid "Password"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:60
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Smartcard"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:67
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Fingerprint"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:74
+#, kde-format
+msgctxt "authentication type in unlock dialogs - facial authentication"
+msgid "Face"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:82
+#, kde-format
+msgctxt ""
+"authentication type in unlock dialogs - universal 2 factor authentication "
+"(yubikey etc)"
+msgid "Universal 2 Factor"
 msgstr ""
 
 #~ msgid "Session"

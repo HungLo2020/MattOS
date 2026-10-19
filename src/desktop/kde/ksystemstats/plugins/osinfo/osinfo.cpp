@@ -27,6 +27,8 @@
 
 #include "debug.h"
 
+using namespace Qt::StringLiterals;
+
 // Uppercase the first letter of each word.
 QString upperCaseFirst(const QString &input)
 {
@@ -143,7 +145,15 @@ void OSInfoPrivate::init()
 
     KOSRelease os;
     osNameProperty->setValue(os.name());
-    osVersionProperty->setValue(os.version());
+    if (auto version = os.version(); !version.isEmpty()) {
+        osVersionProperty->setValue(version);
+    } else if (auto versionId = os.versionId(); !versionId.isEmpty()) {
+        osVersionProperty->setValue(versionId);
+    } else if (auto versionCodeName = os.versionCodename(); !versionCodeName.isEmpty()) {
+        osVersionProperty->setValue(versionCodeName);
+    } else if (auto imageVersion = os.extraValue(u"IMAGE_VERSION"_s); !imageVersion.isEmpty()) {
+        osVersionProperty->setValue(imageVersion);
+    }
     osPrettyNameProperty->setValue(os.prettyName());
     osLogoProperty->setValue(os.logo());
     osUrlProperty->setValue(os.homeUrl());

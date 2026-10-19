@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include <QSet>
 #include <QString>
 
 namespace QDoc {
@@ -153,6 +154,22 @@ struct ValuedDeclaration
     }
 };
 
+/*!
+ * Holds the source-level alias with its template arguments for a
+ * SFINAE constraint detected in a non-type template parameter.
+ *
+ * For example, given the declaration:
+ *
+ *     template <typename T, if_integral<T> = true>
+ *
+ * where \c if_integral is an alias for \c{std::enable_if_t<std::is_integral_v<T>, bool>},
+ * alias_with_args is "if_integral<T>".
+ */
+struct SfinaeConstraint
+{
+    std::string alias_with_args;
+};
+
 struct RelaxedTemplateParameter;
 
 struct TemplateDeclarationStorage
@@ -242,6 +259,8 @@ struct RelaxedTemplateParameter
     bool is_parameter_pack;
     ValuedDeclaration valued_declaration;
     std::optional<TemplateDeclarationStorage> template_declaration;
+    std::optional<SfinaeConstraint> sfinae_constraint;
+    std::optional<std::string> concept_name;
 
     /*
      * Constructs and returns a human-readable representation of this
@@ -377,7 +396,20 @@ struct RelaxedTemplateParameter
         case Kind::TypeTemplateParameter: {
             std::string valued_declaration_string = valued_declaration.to_std_string();
 
-            return std::string("typename") + (is_parameter_pack ? "..." : "")
+            // Direct concept-on-template-parameter form (such as
+            // template <Integral T>): show the concept name instead of
+            // the bare typename keyword. This plain string feeds consumers
+            // that have no concept rendering of their own — the DocBook
+            // plain-text subtitle and template-parameter comparison. The
+            // rich paths (the HTML subtitle atoms and the DocBook autolink
+            // step) build their own linked rendering and bypass this.
+            std::string head = concept_name
+                    ? concept_name->substr(concept_name->rfind("::") == std::string::npos
+                                                   ? 0
+                                                   : concept_name->rfind("::") + 2)
+                    : std::string("typename");
+
+            return head + (is_parameter_pack ? "..." : "")
                     + (valued_declaration_string.empty() ? "" : " ") + valued_declaration_string;
         }
         case Kind::NonTypeTemplateParameter: {
@@ -427,9 +459,48 @@ struct RelaxedTemplateParameter
 struct RelaxedTemplateDeclaration : TemplateDeclarationStorage
 {
     std::optional<std::string> requires_clause;
+    std::vector<std::string> referenced_concepts {};
+
+    /*!
+     * Returns the number of template parameters that are visible in
+     * rendered output — SFINAE-annotated parameters are excluded.
+     */
+    [[nodiscard]] inline std::size_t visibleParameterCount() const
+    {
+        return std::count_if(parameters.cbegin(), parameters.cend(),
+                             [](const RelaxedTemplateParameter &p) {
+                                 return !p.sfinae_constraint;
+                             });
+    }
+
+    /*!
+     * Returns a string representation that excludes SFINAE-annotated
+     * parameters. Used by to_qstring() and to_qstring_multiline() so
+     * that the rendered signature shows a clean requires clause.
+     *
+     * The inherited to_std_string() retains all parameters (including
+     * SFINAE ones) for internal matching where parameter counts must
+     * agree between code-parsed and \\fn-parsed declarations.
+     */
+    [[nodiscard]] inline std::string to_std_string_for_rendering() const
+    {
+        std::vector<const RelaxedTemplateParameter *> visible;
+        for (const auto &p : parameters)
+            if (!p.sfinae_constraint)
+                visible.push_back(&p);
+
+        if (visible.empty())
+            return "template <>";
+
+        std::string result = "template <" + visible.front()->to_std_string();
+        for (std::size_t i = 1; i < visible.size(); ++i)
+            result += ", " + visible[i]->to_std_string();
+        result += ">";
+        return result;
+    }
 
     inline QString to_qstring() const {
-        std::string result = to_std_string();
+        std::string result = to_std_string_for_rendering();
         if (requires_clause && !requires_clause->empty())
             result += " requires " + *requires_clause;
         return QString::fromStdString(result);
@@ -464,10 +535,23 @@ struct RelaxedTemplateDeclaration : TemplateDeclarationStorage
             return result;
         }
 
+        // Collect non-SFINAE parameters for rendering.
+        std::vector<const RelaxedTemplateParameter *> visible;
+        for (const auto &p : parameters)
+            if (!p.sfinae_constraint)
+                visible.push_back(&p);
+
+        if (visible.empty()) {
+            QString result = QStringLiteral("template <>");
+            if (requires_clause && !requires_clause->empty())
+                result += QStringLiteral(" requires ") + QString::fromStdString(*requires_clause);
+            return result;
+        }
+
         QString result = QStringLiteral("template <\n");
-        for (std::size_t i = 0; i < parameters.size(); ++i) {
-            result += QStringLiteral("    ") + QString::fromStdString(parameters[i].to_std_string());
-            if (i + 1 < parameters.size())
+        for (std::size_t i = 0; i < visible.size(); ++i) {
+            result += QStringLiteral("    ") + QString::fromStdString(visible[i]->to_std_string());
+            if (i + 1 < visible.size())
                 result += QLatin1Char(',');
             result += QLatin1Char('\n');
         }
@@ -477,6 +561,53 @@ struct RelaxedTemplateDeclaration : TemplateDeclarationStorage
             result += QStringLiteral(" requires ") + QString::fromStdString(*requires_clause);
 
         return result;
+    }
+
+    /*!
+     * Returns the set of all declared template parameter names.
+     *
+     * This extracts the name from each template parameter's valued_declaration.
+     * Parameters without names (such as unnamed template parameters) are not
+     * included in the returned set.
+     *
+     * This is useful for documentation validation, allowing QDoc to verify
+     * that template parameters can be referenced using the \\a command.
+     */
+    [[nodiscard]] inline QSet<QString> parameterNames() const
+    {
+        QSet<QString> names;
+        for (const auto &param : parameters) {
+            if (!param.valued_declaration.name.empty())
+                names.insert(QString::fromStdString(param.valued_declaration.name));
+        }
+        return names;
+    }
+
+    /*!
+     * Returns the set of template parameter names that are API-significant
+     * and should be documented for functions.
+     *
+     * This includes only non-type template parameters (such as \c{int Size})
+     * and template-template parameters, which carry meaning that isn't
+     * implied by function parameter types.
+     *
+     * Type template parameters (such as \c{typename T}) are excluded because
+     * they typically serve to type function parameters, and documenting the
+     * function parameter implicitly covers the template parameter's role.
+     *
+     * For class template parameters, use parameterNames() instead, as all
+     * template parameters are part of the class's primary API surface.
+     */
+    [[nodiscard]] inline QSet<QString> requiredParameterNamesForFunctions() const
+    {
+        QSet<QString> names;
+        for (const auto &param : parameters) {
+            if (param.kind != RelaxedTemplateParameter::Kind::TypeTemplateParameter
+                && !param.valued_declaration.name.empty()) {
+                names.insert(QString::fromStdString(param.valued_declaration.name));
+            }
+        }
+        return names;
     }
 };
 

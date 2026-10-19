@@ -1,20 +1,20 @@
 # Translation of kwallet6-query to Norwegian Nynorsk
 #
-# Karl Ove Hufthammer <karl@huftis.org>, 2015.
+# Karl Ove Hufthammer <karl@huftis.org>, 2015, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:49+0000\n"
-"PO-Revision-Date: 2015-08-28 20:25+0100\n"
+"POT-Creation-Date: 2026-07-15 00:41+0000\n"
+"PO-Revision-Date: 2026-07-26 12:40+0200\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 2.0\n"
+"X-Generator: Lokalize 26.11.70\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
@@ -52,7 +52,7 @@ msgstr "vis passordoppføringar"
 #: main.cpp:34
 #, kde-format
 msgid "reads the secrets from the given <entry>"
-msgstr "leser løyndomar frå valt <oppføring>"
+msgstr "les løyndomar frå valt <oppføring>"
 
 #: main.cpp:34 main.cpp:35
 #, kde-format
@@ -113,7 +113,7 @@ msgstr "Fann ikkje lommeboka %1"
 msgid "Failed to open wallet %1. Aborting"
 msgstr "Klarte ikkje opna lommeboka %1. Avbryt"
 
-#: querydriver.cpp:104 querydriver.cpp:122
+#: querydriver.cpp:104 querydriver.cpp:122 querydriver.cpp:180
 #, kde-format
 msgid "The folder %1 does not exist!"
 msgstr "Mappa %1 finst ikkje"
@@ -128,7 +128,17 @@ msgstr "Klarte ikkje lesa verdien til oppføring %1 frå lommeboka %2."
 msgid "Failed to read entry %1 value from the %2 wallet"
 msgstr "Klarte ikkje lesa verdien til oppføring %1 frå lommeboka %2"
 
-#: querydriver.cpp:194 querydriver.cpp:211
+#: querydriver.cpp:206 querydriver.cpp:227
 #, kde-format
 msgid "Failed to write entry %1 value to %2 wallet"
 msgstr "Klarte ikkje lagra verdien til oppføring %1 til lommeboka %2"
+
+#: querydriver.cpp:213
+#, kde-format
+msgid "Invalid argument: the value for entry %1 is not valid JSON"
+msgstr "Ugyldig argument: Verdien til oppføring %1 er ikkje gyldig JSON"
+
+#: querydriver.cpp:232
+#, kde-format
+msgid "Unsupported entry type for entry %1"
+msgstr "Ikkje-støtta oppføringstype for oppføring %1"

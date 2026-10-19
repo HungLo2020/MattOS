@@ -332,7 +332,7 @@
     still transformed to the viewport using the same linear algebraic
     approach.
 
-    \image coordinatesystem-transformations.png {Illustration showing
+    \image coordinatesystem-transformations.svg {Illustration showing
            how coordinates are mapped using viewport, "window" and
            transformation matrix}
 

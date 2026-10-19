@@ -73,7 +73,7 @@ msgstr "Error de rete %1: %2"
 #, kde-format
 msgid "Too many requests to server. Please try again in a few minutes."
 msgstr ""
-"Troppo requestas al servitor. Pro favor prova de novo inter pauc minutas."
+"Troppo requestas al servitor. Pro favor prova de novo inter pauco minutas."
 
 #: attica/atticaprovider.cpp:457
 #, kde-format
@@ -2570,7 +2570,7 @@ msgstr "Il discarga cosas nove …"
 #~ msgstr "Patronos"
 
 #~ msgid "Wallpapers"
-#~ msgstr "Tapetes de papiro"
+#~ msgstr "Fundos de schermo"
 
 #~ msgid "XDG Application menu (.desktop files)"
 #~ msgstr "XDG Menu de applicationes (files .desktop)"

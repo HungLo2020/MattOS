@@ -25,6 +25,8 @@
 #include <private/qstringconverter_p.h>
 #include <private/qstringiterator_p.h>
 
+#include <algorithm>
+
 QT_BEGIN_NAMESPACE
 
 using namespace QtPrivate;
@@ -264,6 +266,7 @@ This function is a stub for later functionality.
 */
 QString QXmlStreamEntityResolver::resolveEntity(const QString& /*publicId*/, const QString& /*systemId*/)
 {
+    Q_UNIMPLEMENTED();
     return QString();
 }
 
@@ -473,6 +476,11 @@ QXmlStreamEntityResolver *QXmlStreamReader::entityResolver() const
   those objects returns an equivalent real QString object.
 */
 
+Q_DECL_COLD_FUNCTION
+static void warn_addData_with_device()
+{
+    qWarning("QXmlStreamReader: addData() with device()");
+}
 
 /*!
   Constructs a stream reader.
@@ -531,15 +539,6 @@ void QXmlStreamReaderPrivate::appendDataWithEncoding(const QByteArray &data,
     dataInfo.emplace_back(data, enc);
 }
 
-void QXmlStreamReaderPrivate::addData(const QByteArray &data, QStringDecoder::Encoding enc)
-{
-    if (device) {
-        qWarning("QXmlStreamReader: addData() with device()");
-        return;
-    }
-    appendDataWithEncoding(data, enc);
-}
-
 /*!
     Creates a new stream reader that reads from \a data.
 
@@ -551,20 +550,7 @@ void QXmlStreamReaderPrivate::addData(const QByteArray &data, QStringDecoder::En
 QXmlStreamReader::QXmlStreamReader(QAnyStringView data)
     : d_ptr(new QXmlStreamReaderPrivate(this))
 {
-    Q_D(QXmlStreamReader);
-    data.visit([d](auto data) {
-        if constexpr (std::is_same_v<decltype(data), QStringView>) {
-            d->appendDataWithEncoding(QByteArray(reinterpret_cast<const char *>(data.utf16()),
-                                                 data.size() * 2),
-                                      QStringDecoder::Utf16);
-        } else if constexpr (std::is_same_v<decltype(data), QLatin1StringView>) {
-            d->appendDataWithEncoding(QByteArray(data.data(), data.size()),
-                                      QStringDecoder::Latin1);
-        } else {
-            d->appendDataWithEncoding(QByteArray(data.data(), data.size()),
-                                      QStringDecoder::Utf8);
-        }
-    });
+    addData(data);
 }
 
 /*!
@@ -662,15 +648,17 @@ static bool isDecoderForEncoding(const QStringDecoder &dec, QStringDecoder::Enco
 void QXmlStreamReader::addData(QAnyStringView data)
 {
     Q_D(QXmlStreamReader);
+    if (d->device)
+        return warn_addData_with_device();
     data.visit([d](auto data) {
         if constexpr (std::is_same_v<decltype(data), QStringView>) {
-            d->addData(QByteArray(reinterpret_cast<const char *>(data.utf16()),
-                                  data.size() * 2),
-                       QStringDecoder::Utf16);
+            d->appendDataWithEncoding(QByteArray(reinterpret_cast<const char *>(data.utf16()),
+                                                 data.size() * 2),
+                                      QStringDecoder::Utf16);
         } else if constexpr (std::is_same_v<decltype(data), QLatin1StringView>) {
-            d->addData(QByteArray(data.data(), data.size()), QStringDecoder::Latin1);
+            d->appendDataWithEncoding(QByteArray(data.data(), data.size()), QStringDecoder::Latin1);
         } else {
-            d->addData(QByteArray(data.data(), data.size()), QStringDecoder::Utf8);
+            d->appendDataWithEncoding(QByteArray(data.data(), data.size()), QStringDecoder::Utf8);
         }
     });
 }
@@ -684,7 +672,9 @@ void QXmlStreamReader::addData(QAnyStringView data)
 void QXmlStreamReader::addDataImpl(const QByteArray &data)
 {
     Q_D(QXmlStreamReader);
-    d->addData(data, QStringDecoder::System);
+    if (d->device)
+        return warn_addData_with_device();
+    d->appendDataWithEncoding(data, QStringDecoder::System);
 }
 
 /*!
@@ -1132,13 +1122,20 @@ void QXmlStreamReaderPrivate::parseEntity(const QString &value)
 
 inline void QXmlStreamReaderPrivate::reallocateStack()
 {
-    stack_size <<= 1;
-    void *p = realloc(sym_stack, stack_size * sizeof(Value));
+    // The multiplication cannot overflow (we would have alloc'ed more than
+    // half of the address space using the realloc()s below, before that
+    // happens):
+    const auto newStackSize = stack_size * 2;
+
+    void *p = qt_reallocarray(sym_stack, size_t(newStackSize), sizeof(Value));
     Q_CHECK_PTR(p);
     sym_stack = static_cast<Value*>(p);
-    p = realloc(state_stack, stack_size * sizeof(int));
+    p = qt_reallocarray(state_stack, size_t(newStackSize), sizeof(int));
     Q_CHECK_PTR(p);
     state_stack = static_cast<int*>(p);
+
+    // only update this after _both_ allocations succeeded:
+    stack_size = newStackSize;
 }
 
 
@@ -2376,12 +2373,18 @@ int QXmlStreamReader::entityExpansionLimit() const
 
   The default value for this property is 4096 characters.
 
+  The minimum is one (1), to support the built-in XML entities (\c{&lt;} etc).
+
   \sa entityExpansionLimit
 */
 void QXmlStreamReader::setEntityExpansionLimit(int limit)
 {
     Q_D(QXmlStreamReader);
-    d->entityExpansionLimit = limit;
+    if (limit < 1) {
+        qWarning("QXmlStreamReader::setEntityExpansionLimit(): "
+                 "limit %d is out of range [1:INT_MAX], clamping to 1.", limit);
+    }
+    d->entityExpansionLimit = (std::max)(limit, 1);
 }
 
 /*!  If the tokenType() is \l StartElement, this function returns the

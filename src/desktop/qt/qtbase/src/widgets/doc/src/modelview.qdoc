@@ -7,7 +7,7 @@
     \startpage {index.html}{Qt Reference Documentation}
 
     \title Model/View Tutorial
-    \brief An introduction to ModelView programming
+    \brief An introduction to ModelView programming.
 
     Every UI developer should know about ModelView programming and the goal of
     this tutorial is to provide you with an easily understandable introduction
@@ -472,6 +472,9 @@
     suitable for your application, a predefined model can be a good choice.
 
     \table
+        \row
+            \li  QRangeModel
+            \li  Adapts an existing C++ container or range
         \row
             \li  QStringListModel
             \li  Stores a list of strings

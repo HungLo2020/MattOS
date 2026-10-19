@@ -17,9 +17,15 @@
 #include "lookandfeelsettings.h"
 #include "screenshotmaker.h"
 
+#include <qqml.h>
+
 #include <KPackage/PackageLoader>
 
 #include <QCollator>
+#include <QDBusConnection>
+#include <QDBusMessage>
+#include <QDBusPendingCall>
+#include <QDBusPendingReply>
 #include <QDebug>
 #include <QFileInfo>
 #include <QStandardPaths>
@@ -295,7 +301,27 @@ KCMLookandFeel::KCMLookandFeel(QObject *parent, const KPluginMetaData &data)
     connect(settings(), &LookAndFeelSettings::lookAndFeelPackageChanged, handleLookAndFeelPackageChanged);
     handleLookAndFeelPackageChanged();
 
-    connect(m_lnf, &KLookAndFeelManager::plasmaLockedChanged, this, &KCMLookandFeel::plasmaLockedChanged);
+    QDBusMessage message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.plasmashell"),
+                                                          QStringLiteral("/PlasmaShell"),
+                                                          QStringLiteral("org.kde.PlasmaShell"),
+                                                          QStringLiteral("immutable"));
+    QDBusPendingCall async = QDBusConnection::sessionBus().asyncCall(message);
+
+    auto watcher = new QDBusPendingCallWatcher(async, this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this](QDBusPendingCallWatcher *call) {
+        QDBusPendingReply<bool> reply = *call;
+
+        if (reply.isError()) {
+            qWarning() << "Error:" << reply.error().message();
+        } else {
+            const bool locked = reply.value();
+            if (locked != m_plasmaLocked) {
+                m_plasmaLocked = locked;
+                Q_EMIT plasmaLockedChanged();
+            }
+        }
+        call->deleteLater();
+    });
 }
 
 KCMLookandFeel::~KCMLookandFeel() = default;
@@ -465,7 +491,7 @@ void KCMLookandFeel::apply()
     save();
 
     if (!settings()->automaticLookAndFeel()) {
-        m_lnf->save(package, m_selectedContents);
+        m_lnf->save(package, m_selectedContents | KLookAndFeelManager::BlendChanges);
     }
 }
 
@@ -517,7 +543,7 @@ void KCMLookandFeel::resetSelectedContents()
 
 bool KCMLookandFeel::isPlasmaLocked() const
 {
-    return m_lnf->isPlasmaLocked();
+    return m_plasmaLocked;
 }
 
 #include "kcm.moc"

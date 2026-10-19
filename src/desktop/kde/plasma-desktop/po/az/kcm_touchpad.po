@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-08-12 00:49+0000\n"
 "PO-Revision-Date: 2022-07-31 23:06+0400\n"
 "Last-Translator: Kheyyam <xxmn77@gmail.com>\n"
 "Language-Team: Azerbaijani <kde-i18n-doc@kde.org>\n"
@@ -17,44 +17,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 22.04.3\n"
 
-#: backends/kwin_wayland/kwinwaylandbackend.cpp:59
+#: kcm.cpp:57
 #, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
+msgid "Not able to select appropriate backend"
 msgstr ""
-"Giriş cihazlarına sorğu göndərilmədi. Lütfən bu ayarlar modulunu yenidən "
-"açın."
 
-#: backends/kwin_wayland/kwinwaylandbackend.cpp:74
-#, kde-format
-msgid "Critical error on reading fundamental device infos for touchpad %1."
-msgstr "%1 toxunma paneli üçün əsas cihaz məlumatlarının oxunmasında xəta."
-
-#: backends/x11/xlibbackend.cpp:69
-#, kde-format
-msgid "Cannot connect to X server"
-msgstr "X serverə qoşula bilmədi"
-
-#: backends/x11/xlibbackend.cpp:80
-#, kde-format
-msgid "No touchpad found"
-msgstr "Toxunma paneli tapılmadı"
-
-#: backends/x11/xlibbackend.cpp:120
-#, kde-format
-msgid "Cannot apply touchpad configuration"
-msgstr "Toxunma paneli tənzimlərənin tətbiqi alınmadı"
-
-#: backends/x11/xlibbackend.cpp:134
-#, kde-format
-msgid "Cannot read touchpad configuration"
-msgstr "Toxunma panelinin tənzimləmələri oxunmadı"
-
-#: backends/x11/xlibbackend.cpp:147
-#, kde-format
-msgid "Cannot read default touchpad configuration"
-msgstr "Toxunma panelinin standart tənzimləmələri oxunmadı"
-
-#: kcm.cpp:107
+#: kcm.cpp:103
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -63,12 +31,13 @@ msgstr ""
 "Göstəricilərin yüklənməsində xəta. Saxlanılan ətraflı məlumatlara jurnalda "
 "baxa bilərsiniz. Lütfən, tənzimləmə modulunu yenidən başladın."
 
-#: kcm.cpp:110
-#, kde-format
-msgid "No touchpad found. Connect touchpad now."
+#: kcm.cpp:106
+#, fuzzy, kde-format
+#| msgid "No touchpad found. Connect touchpad now."
+msgid "No pointer device found. Connect now."
 msgstr "Toxunma paneli tapılmadı. Toxunma panelini qoşun."
 
-#: kcm.cpp:119
+#: kcm.cpp:115
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -77,7 +46,7 @@ msgstr ""
 "Bütün dəyişiklikləri saxlamaq mümkün olmadı. Saxlanılan ətraflı məlumatlara "
 "jurnalda baxa bilərsiniz. Lütfən, tənzimləmə modulunu yenidən başladın."
 
-#: kcm.cpp:138
+#: kcm.cpp:134
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -86,7 +55,7 @@ msgstr ""
 "Standart göstəricilərin yüklənməsində xəta. Bəzi seçimlərin standart "
 "göstəricilərini qurmaq mümkün olmadı."
 
-#: kcm.cpp:154
+#: kcm.cpp:149
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -95,44 +64,51 @@ msgstr ""
 "Az əvvəl qoşulan cihazın əlavə olunmasında xəta baş verdi. Lütfən, cihazı "
 "təkrar qoşun və tənzimləmə modulunu yenidən başladın."
 
-#: kcm.cpp:169
-#, kde-format
-msgid "Touchpad disconnected. Closed its setting dialog."
+#: kcm.cpp:162
+#, fuzzy, kde-format
+#| msgid "Touchpad disconnected. Closed its setting dialog."
+msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr "Toxunma paneli ayrildı. Onun ayarlar dialoqu pəncərəsi bağlandı."
 
-#: kcm.cpp:171
-#, kde-format
-msgid "Touchpad disconnected. No other touchpads found."
+#: kcm.cpp:164
+#, fuzzy, kde-format
+#| msgid "Touchpad disconnected. No other touchpads found."
+msgid "Pointer device disconnected. No other devices found."
 msgstr "Toxunma paneli ayrıldı, başqa toxunma panelləri tapılmadı."
 
-#: ui/main.qml:59
+#: kwinwaylandbackend.cpp:45
+#, kde-format
+msgid "Critical error on reading fundamental device infos for touchpad %1."
+msgstr "%1 toxunma paneli üçün əsas cihaz məlumatlarının oxunmasında xəta."
+
+#: ui/main.qml:69
 #, fuzzy, kde-format
 #| msgid "No touchpad found"
 msgctxt "@info:status placeholdermessage text"
 msgid "No touchpad found"
 msgstr "Toxunma paneli tapılmadı"
 
-#: ui/main.qml:60
+#: ui/main.qml:70
 #, kde-format
 msgctxt "@info:usagetip placeholdermessage explanation"
 msgid "Connect an external touchpad"
 msgstr ""
 
-#: ui/main.qml:75
+#: ui/main.qml:87
 #, fuzzy, kde-format
 #| msgid "Device:"
 msgctxt "@label:listbox device selection"
 msgid "Device:"
 msgstr "Cihaz:"
 
-#: ui/main.qml:100
+#: ui/main.qml:110
 #, fuzzy, kde-format
 #| msgid "General:"
 msgctxt "@title:group prefix for checkbox group"
 msgid "General:"
 msgstr "Əsas:"
 
-#: ui/main.qml:101
+#: ui/main.qml:111
 #, fuzzy, kde-format
 #| msgctxt "Coasting"
 #| msgid "Enable"
@@ -140,48 +116,48 @@ msgctxt "@option:check"
 msgid "Enable device"
 msgstr "Aktiv etmək"
 
-#: ui/main.qml:115
+#: ui/main.qml:126
 #, fuzzy, kde-format
 #| msgid "Disable touchpad when mouse is plugged in"
 msgctxt "@option:check"
 msgid "Disable while mouse is connected"
 msgstr "Toxunma panelini siçan qoşulduqda söndürmək"
 
-#: ui/main.qml:137
+#: ui/main.qml:146
 #, fuzzy, kde-format
 #| msgid "Disable while typing"
 msgctxt "option:check"
 msgid "Disable while typing"
 msgstr "Yazı zamanı söndürmək"
 
-#: ui/main.qml:160
+#: ui/main.qml:147
 #, kde-format
 msgctxt "@label 'this' refers to the 'disable touchpad while typing' feature"
 msgid "This can interfere with video games."
 msgstr ""
 
-#: ui/main.qml:174
+#: ui/main.qml:169
 #, fuzzy, kde-format
 #| msgid "Swap left and right buttons."
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "Sol və sağ düymələri dəyişmək."
 
-#: ui/main.qml:175
+#: ui/main.qml:170
 #, fuzzy, kde-format
 #| msgid "Left handed mode"
 msgctxt "@option:check"
 msgid "Swap (left-handed mode)"
 msgstr "Sol əl rejimi"
 
-#: ui/main.qml:191
+#: ui/main.qml:185
 #, fuzzy, kde-format
 #| msgid "Press left and right buttons for middle click"
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
 msgstr "Orta düymə kliki üçün sol və sağ düymələri basın"
 
-#: ui/main.qml:204
+#: ui/main.qml:197
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -189,35 +165,35 @@ msgid ""
 "needed to correctly detect simultaneous left and right button presses."
 msgstr ""
 
-#: ui/main.qml:217
+#: ui/main.qml:207
 #, fuzzy, kde-format
 #| msgid "Minimum pointer speed"
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "Göstəricinin minimum sürəti"
 
-#: ui/main.qml:297
+#: ui/main.qml:287
 #, fuzzy, kde-format
 #| msgid "Pointer acceleration:"
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "Kursorun sürətlənməsi:"
 
-#: ui/main.qml:312
+#: ui/main.qml:299
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
 "When enabled, pointer travel distance increases with faster movement speed."
 msgstr ""
 
-#: ui/main.qml:325
+#: ui/main.qml:310
 #, fuzzy, kde-format
 #| msgid "Scrolling speed:"
 msgctxt "@label:slider"
 msgid "Scrolling speed:"
 msgstr "Sürüşdürmə sürəti"
 
-#: ui/main.qml:376
+#: ui/main.qml:392
 #, fuzzy, kde-format
 #| msgctxt "Slower Scroll"
 #| msgid "Slower"
@@ -225,7 +201,7 @@ msgctxt "@item:inrange Slower Scroll"
 msgid "Slower"
 msgstr "Yavaş"
 
-#: ui/main.qml:383
+#: ui/main.qml:399
 #, fuzzy, kde-format
 #| msgctxt "Faster Scroll Speed"
 #| msgid "Faster"
@@ -233,7 +209,7 @@ msgctxt "@item:inrange Faster Scroll Speed"
 msgid "Faster"
 msgstr "Tez"
 
-#: ui/main.qml:390
+#: ui/main.qml:406
 #, fuzzy, kde-format
 #| msgid "Scrolling:"
 msgctxt ""
@@ -249,28 +225,28 @@ msgctxt ""
 msgid "Moving two fingers anywhere"
 msgstr ""
 
-#: ui/main.qml:416
+#: ui/main.qml:427
 #, kde-format
 msgctxt ""
 "@option:radio completes the sentence 'Scroll by moving one finger on edge'"
 msgid "Moving one finger on edge"
 msgstr ""
 
-#: ui/main.qml:424
+#: ui/main.qml:436
 #, fuzzy, kde-format
 #| msgid "Invert scroll direction (Natural scrolling)"
 msgctxt "@option:check"
 msgid "Invert scroll direction (Natural scrolling)"
 msgstr "Sürüşdürmənin istiqamətini dəyişdirmək (təbii sürüşdürmə)"
 
-#: ui/main.qml:438
+#: ui/main.qml:453
 #, fuzzy, kde-format
 #| msgid "Disable horizontal scrolling"
 msgctxt "@option:check"
 msgid "Disable horizontal scrolling"
 msgstr "Üfüqi sürüşdürməni söndürmək"
 
-#: ui/main.qml:460
+#: ui/main.qml:471
 #, fuzzy, kde-format
 #| msgid "Right-click"
 msgctxt ""
@@ -279,7 +255,7 @@ msgctxt ""
 msgid "Right-click by:"
 msgstr "Sağ klik"
 
-#: ui/main.qml:481
+#: ui/main.qml:475
 #, fuzzy, kde-format
 #| msgid "Press bottom-right corner"
 msgctxt ""
@@ -288,21 +264,21 @@ msgctxt ""
 msgid "Pressing bottom-right corner"
 msgstr "Sağ aşağı küncə toxunun"
 
-#: ui/main.qml:496
+#: ui/main.qml:480
 #, fuzzy, kde-format
 #| msgid "Press anywhere with three fingers."
 msgctxt "@info:usagetip shown below radio button"
 msgid "Middle-click by pressing both bottom corners."
 msgstr "Üç barmaqla toxunun."
 
-#: ui/main.qml:497
+#: ui/main.qml:481
 #, fuzzy, kde-format
 #| msgid "Press anywhere with three fingers."
 msgctxt "@info:usagetip shown below radio button"
 msgid "Middle-click by pressing bottom center."
 msgstr "Üç barmaqla toxunun."
 
-#: ui/main.qml:505
+#: ui/main.qml:503
 #, fuzzy, kde-format
 #| msgid "Press anywhere with two fingers"
 msgctxt ""
@@ -311,14 +287,14 @@ msgctxt ""
 msgid "Pressing anywhere with two fingers"
 msgstr "İki barmaqla toxunun"
 
-#: ui/main.qml:520
+#: ui/main.qml:504
 #, fuzzy, kde-format
 #| msgid "Press anywhere with three fingers."
 msgctxt "@info shown below radio button"
 msgid "Middle-click by pressing anywhere with three fingers."
 msgstr "Üç barmaqla toxunun."
 
-#: ui/main.qml:529
+#: ui/main.qml:516
 #, fuzzy, kde-format
 #| msgid "Middle-click"
 msgctxt ""
@@ -327,7 +303,7 @@ msgctxt ""
 msgid "Middle-click by:"
 msgstr "Orta klik"
 
-#: ui/main.qml:550
+#: ui/main.qml:519
 #, fuzzy, kde-format
 #| msgid "Press bottom-middle"
 msgctxt ""
@@ -336,7 +312,7 @@ msgctxt ""
 msgid "Pressing bottom-middle edge"
 msgstr "Ortadan aşağıya toxunun"
 
-#: ui/main.qml:557
+#: ui/main.qml:539
 #, fuzzy, kde-format
 #| msgid "Press bottom left and bottom right corners simultaneously"
 msgctxt ""
@@ -345,7 +321,7 @@ msgctxt ""
 msgid "Pressing bottom-left and bottom-right corners"
 msgstr "Eyni vaxtda altdakı sol və sağ künclərə toxunun"
 
-#: ui/main.qml:564
+#: ui/main.qml:551
 #, fuzzy, kde-format
 #| msgid "Press anywhere with three fingers"
 msgctxt ""
@@ -354,27 +330,27 @@ msgctxt ""
 msgid "Pressing anywhere with three fingers"
 msgstr "Üç barmaqla toxunun"
 
-#: ui/main.qml:580
+#: ui/main.qml:564
 #, fuzzy, kde-format
 #| msgid "Tapping:"
 msgctxt "@label for checkbox, tap-to-click"
 msgid "Tapping:"
 msgstr "Basılma:"
 
-#: ui/main.qml:581
+#: ui/main.qml:565
 #, fuzzy, kde-format
 #| msgid "Tap to Click"
 msgctxt "@option:check"
 msgid "Tap to click"
 msgstr "Toxunuşla klikləmək"
 
-#: ui/main.qml:597
+#: ui/main.qml:580
 #, kde-format
 msgctxt "@option:check"
 msgid "Allow dragging after tapping"
 msgstr ""
 
-#: ui/main.qml:610
+#: ui/main.qml:592
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -382,46 +358,66 @@ msgid ""
 "finger to drop."
 msgstr ""
 
-#: ui/main.qml:616
+#: ui/main.qml:599
 #, kde-format
 msgctxt "@option:check"
 msgid "Allow briefly lifting finger during tap-and-drag"
 msgstr ""
 
-#: ui/main.qml:630
+#: ui/main.qml:612
 #, fuzzy, kde-format
 #| msgid "Two-finger tap:"
 msgctxt "@title:group"
 msgid "Two-finger tap:"
 msgstr "İki barmaqla toxunma:"
 
-#: ui/main.qml:650
+#: ui/main.qml:618
 #, fuzzy, kde-format
 #| msgid "Right-click (three-finger tap to middle-click)"
 msgctxt "@option:radio"
 msgid "Right-click (three-finger tap to middle-click)"
 msgstr "Sağ düymə kliki (üç barmqla toxunma orta düymə kliki rolunda)"
 
-#: ui/main.qml:651
+#: ui/main.qml:619
 #, fuzzy, kde-format
 #| msgid "Right-click"
 msgctxt "@option:radio"
 msgid "Right-click"
 msgstr "Sağ klik"
 
-#: ui/main.qml:659
+#: ui/main.qml:640
 #, fuzzy, kde-format
 #| msgid "Middle-click (three-finger tap right-click)"
 msgctxt "@option:radio"
 msgid "Middle-click (three-finger tap to right-click)"
 msgstr "Orta düymə kliki (üç barmaqla toxunma sağ düymə kliki kimi)"
 
-#: ui/main.qml:660
+#: ui/main.qml:641
 #, fuzzy, kde-format
 #| msgid "Middle-click"
 msgctxt "@option:radio"
 msgid "Middle-click"
 msgstr "Orta klik"
+
+#~ msgid "Cannot connect to X server"
+#~ msgstr "X serverə qoşula bilmədi"
+
+#~ msgid "No touchpad found"
+#~ msgstr "Toxunma paneli tapılmadı"
+
+#~ msgid "Cannot apply touchpad configuration"
+#~ msgstr "Toxunma paneli tənzimlərənin tətbiqi alınmadı"
+
+#~ msgid "Cannot read touchpad configuration"
+#~ msgstr "Toxunma panelinin tənzimləmələri oxunmadı"
+
+#~ msgid "Cannot read default touchpad configuration"
+#~ msgstr "Toxunma panelinin standart tənzimləmələri oxunmadı"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr ""
+#~ "Giriş cihazlarına sorğu göndərilmədi. Lütfən bu ayarlar modulunu yenidən "
+#~ "açın."
 
 #~ msgid "Device enabled"
 #~ msgstr "Cihaz aktiv edildi"

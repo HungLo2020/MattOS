@@ -3,15 +3,15 @@
 # Andrea Rizzi <rizzi@kde.org>, 2003, 2005.
 # Andrea RIZZI <arizzi@pi.infn.it>, 2004.
 # Luciano Montanaro <mikelima@cirulla.net>, 2007, 2010, 2012.
-# SPDX-FileCopyrightText: 2015, 2018, 2019, 2020, 2021, 2023, 2024, 2025, 2026 Vincenzo Reale <smart2128vr@gmail.com>
+# SPDX-FileCopyrightText: 2015, 2018-2021, 2023-2026 Vincenzo Reale <smart2128vr@gmail.com>
 # Paolo Zamponi <feus73@gmail.com>, 2019.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-01-29 15:23+0100\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-05-14 15:48+0200\n"
 "Last-Translator: Vincenzo Reale <smart2128vr@gmail.com>\n"
 "Language-Team: Italian <kde-i18n-it@kde.org>\n"
 "Language: it\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.04.1\n"
 
 #: declarative-plugin/buttonsmodel.cpp:56
 #, kde-format
@@ -68,21 +68,21 @@ msgstr "Mantieni sopra le altre finestre"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr "Nascondi dalla registrazione dello schermo"
+msgid "Hide from screenshots and screen recordings"
+msgstr "Nascondi da schermate e registrazioni dello schermo"
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
 msgstr "Spaziatore"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Predefinita del tema (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -93,7 +93,7 @@ msgstr ""
 "finestra per la sessione attualmente attiva, senza impostarlo casualmente su "
 "uno che non è disponibile o che è già impostato."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -104,13 +104,13 @@ msgstr ""
 "KWin. La fornitura di un percorso completo tenterà di trovare un tema in "
 "quella cartella e quindi di applicarlo se ne è possibile dedurre uno."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr "Mostra tutti i temi disponibili sul sistema (e qual è il tema attuale)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -119,7 +119,7 @@ msgstr ""
 "Risolto %1 con il tema KWin Aurorae «%2» e proveremo a impostarlo come tema "
 "attuale."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -129,7 +129,7 @@ msgstr ""
 "risolverlo in un tema, e dovremo interromperlo, poiché non abbiamo alcun "
 "tema da impostare"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
@@ -137,14 +137,15 @@ msgstr ""
 "Il tema richiesto «%1» è già impostato come tema della decorazione della "
 "finestra."
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr ""
 "Hai applicato correttamente il tema di puntatori %1 alla tua attuale "
 "sessione di Plasma"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -154,7 +155,7 @@ msgstr ""
 "tratta di un errore irreversibile. Potresti scoprire che semplicemente "
 "funzionerà riprovando."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -163,7 +164,7 @@ msgstr ""
 "Impossibile trovare il tema «%1». Il tema dovrebbe essere una delle seguenti "
 "opzioni: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr ""
@@ -213,28 +214,30 @@ msgstr "Mostra i suggerimenti per i pulsanti della barra del titolo"
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
-msgstr "Mostra sempre il pulsante «Nascondi dalla registrazione dello schermo»"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
+msgstr ""
+"Mostra sempre il pulsante «Nascondi da schermate e registrazioni dello "
+"schermo»"
 
 #: ui/ConfigureTitlebar.qml:85
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
-"Se non selezionata, il pulsante appare solo se la finestra è nascosta dalla "
-"registrazione dello schermo"
+"Se non selezionata, il pulsante viene visualizzato solo se la finestra è "
+"nascosta dalle schermate e dalle registrazioni dello schermo."
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
-"Per abilitare questa opzione, aggiungi prima il pulsante «Nascondi dalla "
-"registrazione dello schermo» alla barra del titolo"
+"Per abilitare questa opzione, aggiungi prima il pulsante «Nascondi dalle "
+"schermate e dalle registrazioni dello schermo» alla barra del titolo"
 
 #: ui/main.qml:29
 #, kde-format
@@ -259,50 +262,53 @@ msgstr "Scarica nuovo…"
 msgid "Edit %1 Theme…"
 msgstr "Modifica il tema %1…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Nessun bordo della finestra"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Nessun bordo laterale della finestra"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Bordi della finestra piccoli"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Bordi della finestra normali"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Bordi delle finestre grandi"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Bordi della finestra molto grandi"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Bordi della finestra enormi"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Dimensione del bordo giganti"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Bordi delle finestre sovradimensionati"
+
+#~ msgid "Hide from screencast"
+#~ msgstr "Nascondi dalla registrazione dello schermo"
 
 #~ msgid "More actions for this window"
 #~ msgstr "Altre azioni per questa finestra"

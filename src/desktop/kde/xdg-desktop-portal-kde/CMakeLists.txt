@@ -2,15 +2,15 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_C_STANDARD 99)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 
 project(xdg-desktop-portal-kde VERSION ${PROJECT_VERSION})
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "6.10.0")
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ################# set KDE specific information #################
@@ -47,16 +47,13 @@ find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
 )
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS WaylandClient)
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-    find_package(Qt6PrintSupportPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
+find_package(Qt6GuiPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
+find_package(Qt6PrintSupportPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
 
 find_package(KF6 ${KF6_MIN_VERSION} REQUIRED
     CoreAddons
     Config
     I18n
-    GuiAddons
     GlobalAccel
     KIO
     Kirigami
@@ -90,6 +87,14 @@ set_package_properties(KIOFuse PROPERTIES
 
 pkg_check_modules(XKB IMPORTED_TARGET xkbcommon REQUIRED)
 add_feature_info(XKB XKB_FOUND "Required for converting keysyms into keycodes")
+
+
+find_package(KPipeWire)
+set_package_properties(KPipeWire PROPERTIES
+    TYPE REQUIRED
+)
+
+pkg_check_modules(PipeWire REQUIRED IMPORTED_TARGET libpipewire-0.3>=1.0.9)
 
 ecm_setup_version(${PROJECT_VERSION}
     VARIABLE_PREFIX XDPK

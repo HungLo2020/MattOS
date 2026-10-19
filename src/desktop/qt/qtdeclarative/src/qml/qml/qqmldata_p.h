@@ -16,16 +16,19 @@
 // We mean it.
 //
 
-#include <private/qtqmlglobal_p.h>
 #include <private/qobject_p.h>
-#include <private/qqmlpropertyindex_p.h>
-#include <private/qv4value_p.h>
-#include <private/qv4persistent_p.h>
-#include <private/qqmlrefcount_p.h>
+#include <private/qqmlnotifylist_p.h>
 #include <private/qqmlpropertycache_p.h>
-#include <qqmlprivate.h>
-#include <qjsengine.h>
-#include <qvector.h>
+#include <private/qqmlpropertyindex_p.h>
+#include <private/qqmlrefcount_p.h>
+#include <private/qtqmlglobal_p.h>
+#include <private/qv4persistent_p.h>
+#include <private/qv4value_p.h>
+
+#include <QtQml/qqmlprivate.h>
+#include <QtQml/qjsengine.h>
+
+#include <QtCore/qvector.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -37,9 +40,7 @@ class QQmlBoundSignal;
 class QQmlContext;
 class QQmlPropertyCache;
 class QQmlContextData;
-class QQmlNotifier;
 class QQmlDataExtended;
-class QQmlNotifierEndpoint;
 class QQmlPropertyObserver;
 
 namespace QV4 {
@@ -128,22 +129,14 @@ public:
         BindingBitsType bindingBitsValue[InlineBindingArraySize];
     };
 
-    struct NotifyList {
-        QAtomicInteger<quint64> connectionMask;
-        QQmlNotifierEndpoint *todo = nullptr;
-        QQmlNotifierEndpoint**notifies = nullptr;
-        quint16 maximumTodoIndex = 0;
-        quint16 notifiesSize = 0;
-        void layout();
-    private:
-        void layout(QQmlNotifierEndpoint*);
-    };
-    QAtomicPointer<NotifyList> notifyList;
+    QAtomicPointer<QQmlNotifyList> notifyList;
 
     inline QQmlNotifierEndpoint *notify(int index) const;
     void addNotify(int index, QQmlNotifierEndpoint *);
     int endpointCount(int index);
     bool signalHasEndpoint(int index) const;
+    static void connectEndpoint(QQmlNotifierEndpoint *endPoint, QObject *source, int sourceSignal,
+                                QQmlEngine *engine, bool doNotify = true);
 
     enum class DeleteNotifyList { Yes, No };
     void disconnectNotifiers(DeleteNotifyList doDelete);
@@ -194,6 +187,10 @@ public:
     };
     QQmlRefPointer<QV4::ExecutableCompilationUnit> compilationUnit;
     QList<DeferredData *> deferredData;
+
+    // The compiled-object index within compilationUnit for this object.
+    // Set for all QML-created objects, including those without a VMEMetaObject.
+    int cuObjectIndex = -1;
 
     void deferData(int objectIndex, const QQmlRefPointer<QV4::ExecutableCompilationUnit> &,
                    const QQmlRefPointer<QQmlContextData> &, const QString &inlineComponentName);
@@ -269,12 +266,18 @@ public:
     Q_ALWAYS_INLINE static uint offsetForBit(int bit) { return static_cast<uint>(bit) / BitsPerType; }
     Q_ALWAYS_INLINE static BindingBitsType bitFlagForBit(int bit) { return BindingBitsType(1) << (static_cast<uint>(bit) & (BitsPerType - 1)); }
 
+    void clear();
+
 private:
     // For attachedProperties
     mutable QQmlDataExtended *extendedData = nullptr;
 
     Q_NEVER_INLINE static QQmlData *createQQmlData(QObjectPrivate *priv);
     Q_NEVER_INLINE static QQmlPropertyCache::ConstPtr createPropertyCache(QObject *object);
+
+    void removeFromContext();
+    void clearBindings();
+    bool clearSignalHandlers();
 
     Q_ALWAYS_INLINE bool hasBitSet(int bit) const
     {
@@ -338,7 +341,7 @@ QQmlNotifierEndpoint *QQmlData::notify(int index) const
 
     Q_ASSERT(index <= 0xFFFF);
 
-    NotifyList *list = notifyList.loadRelaxed();
+    QQmlNotifyList *list = notifyList.loadRelaxed();
     if (!list || !isIndexInConnectionMask(list->connectionMask.loadRelaxed(), index))
         return nullptr;
 
@@ -371,8 +374,45 @@ inline bool QQmlData::signalHasEndpoint(int index) const
     //    we "misreport" the endpoint. Since ordering of events across threads is inherently
     //    nondeterministic, either result is correct in that case. We can accept it.
 
-    NotifyList *list = notifyList.loadRelaxed();
+    QQmlNotifyList *list = notifyList.loadRelaxed();
     return list && isIndexInConnectionMask(list->connectionMask.loadRelaxed(), index);
+}
+
+/*
+    \a sourceSignal MUST be in the signal index range (see QObjectPrivate::signalIndex()).
+    This is different from QMetaMethod::methodIndex().
+*/
+inline void QQmlData::connectEndpoint(QQmlNotifierEndpoint *endpoint, QObject *source,
+                                      int sourceSignal, QQmlEngine *engine, bool doNotify)
+{
+    endpoint->disconnect();
+
+    Q_ASSERT(engine);
+    if (QObjectPrivate::get(source)->threadData.loadRelaxed()->threadId.loadRelaxed()
+        != QObjectPrivate::get(engine)->threadData.loadRelaxed()->threadId.loadRelaxed()) {
+
+        QString sourceName;
+        QDebug(&sourceName) << source;
+        sourceName = sourceName.left(sourceName.size() - 1);
+        QString engineName;
+        QDebug(&engineName).nospace() << engine;
+        engineName = engineName.left(engineName.size() - 1);
+
+        qFatal("QQmlEngine: Illegal attempt to connect to %s that is in"
+               " a different thread than the QML engine %s.",
+               qPrintable(sourceName), qPrintable(engineName));
+    }
+
+    endpoint->setSender(qintptr(source));
+    endpoint->sourceSignal = sourceSignal;
+    QQmlPropertyPrivate::flushSignal(source, sourceSignal);
+    QQmlData *ddata = QQmlData::get(source, true);
+    ddata->addNotify(sourceSignal, endpoint);
+    if (doNotify) {
+        endpoint->needsConnectNotify = doNotify;
+        QObjectPrivate *const priv = QObjectPrivate::get(source);
+        priv->connectNotify(QMetaObjectPrivate::signal(source->metaObject(), sourceSignal));
+    }
 }
 
 bool QQmlData::hasBindingBit(int coreIndex) const

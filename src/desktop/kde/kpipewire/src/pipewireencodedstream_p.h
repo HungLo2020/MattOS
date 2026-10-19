@@ -13,10 +13,21 @@ class PipeWireEncodeProduce : public PipeWireProduce
 {
     Q_OBJECT
 public:
-    PipeWireEncodeProduce(PipeWireBaseEncodedStream::Encoder encoder, uint nodeId, uint fd, const Fraction &framerate, PipeWireEncodedStream *stream);
+    PipeWireEncodeProduce(PipeWireBaseEncodedStream::Encoder encoder,
+                          uint nodeId,
+                          quint64 objectSerial,
+                          uint fd,
+                          const Fraction &framerate,
+                          PipeWireEncodedStream *stream);
 
     void processPacket(AVPacket *packet) override;
     void processFrame(const PipeWireFrame &frame) override;
+    // A live encoded stream has no fixed container, so it can rebuild the
+    // encoder when the source is resized mid-stream.
+    bool supportsResize() const override
+    {
+        return true;
+    }
 
 Q_SIGNALS:
     void newPacket(const PipeWireEncodedStream::Packet &packetData);

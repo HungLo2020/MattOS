@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kfontinst\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-09-27 02:41+0000\n"
 "PO-Revision-Date: 2024-10-26 10:44+0300\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
@@ -603,24 +603,24 @@ msgstr ""
 msgid "<h3>Error</h3>"
 msgstr "<h3>Virhe</h3>"
 
-#: kcmfontinst/JobRunner.cpp:692
+#: kcmfontinst/JobRunner.cpp:693
 #, kde-format
 msgid "Failed to download <i>%1</i>"
 msgstr "Lataus <i>%1</i> epäonnistui"
 
-#: kcmfontinst/JobRunner.cpp:694
+#: kcmfontinst/JobRunner.cpp:695
 #, kde-format
 msgid "System backend died. Please try again.<br><i>%1</i>"
 msgstr "Järjestelmän taustaohjelma päättyi. Yritä uudelleen.<br /><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:696
+#: kcmfontinst/JobRunner.cpp:697
 #, kde-format
 msgid ""
 "<i>%1</i> is a bitmap font, and these have been disabled on your system."
 msgstr ""
 "<i>%1</i> on bittikarttafontti, ja ne on poistettu käytöstä järjestelmässäsi."
 
-#: kcmfontinst/JobRunner.cpp:698
+#: kcmfontinst/JobRunner.cpp:699
 #, kde-format
 msgid ""
 "<i>%1</i> contains the font <b>%2</b>, which is already installed on your "
@@ -628,47 +628,47 @@ msgid ""
 msgstr ""
 "<i>%1</i> sisältää fontin <b>%2</b>, joka on jo asennettu järjestelmääsi."
 
-#: kcmfontinst/JobRunner.cpp:700
+#: kcmfontinst/JobRunner.cpp:701
 #, kde-format
 msgid "<i>%1</i> is not a font."
 msgstr "<i>%1</i> ei ole fontti."
 
-#: kcmfontinst/JobRunner.cpp:702
+#: kcmfontinst/JobRunner.cpp:703
 #, kde-format
 msgid "Could not remove all files associated with <i>%1</i>"
 msgstr "Ei voitu poistaa kaikkia kohteeseen <i>%1</i> kytkettyjä tiedostoja."
 
-#: kcmfontinst/JobRunner.cpp:704
+#: kcmfontinst/JobRunner.cpp:705
 #, kde-format
 msgid "Failed to start the system daemon.<br><i>%1</i>"
 msgstr "Järjestelmän taustaprosessin käynnistys epäonnistui.<br /><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:707 kio/KioFonts.cpp:719
+#: kcmfontinst/JobRunner.cpp:708 kio/KioFonts.cpp:719
 #, kde-format
 msgid "<i>%1</i> already exists."
 msgstr "<i>%1</i> on jo olemassa."
 
-#: kcmfontinst/JobRunner.cpp:710
+#: kcmfontinst/JobRunner.cpp:711
 #, kde-format
 msgid "<i>%1</i> does not exist."
 msgstr "<i>%1</i> ei ole olemassa."
 
-#: kcmfontinst/JobRunner.cpp:712
+#: kcmfontinst/JobRunner.cpp:713
 #, kde-format
 msgid "Permission denied.<br><i>%1</i>"
 msgstr "Käyttöoikeudet kielletty.<br /><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:714
+#: kcmfontinst/JobRunner.cpp:715
 #, kde-format
 msgid "Unsupported action.<br><i>%1</i>"
 msgstr "Tukematon toiminto.<br /><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:716
+#: kcmfontinst/JobRunner.cpp:717
 #, kde-format
 msgid "Authentication failed.<br><i>%1</i>"
 msgstr "Tunnistautuminen epäonnistui.<br /><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:718
+#: kcmfontinst/JobRunner.cpp:719
 #, kde-format
 msgid "Unexpected error while processing: <i>%1</i>"
 msgstr "Odottamaton virhe käsiteltäessä kohdetta: <i>%1</i>"
@@ -1558,17 +1558,17 @@ msgstr "Luokka"
 msgid "UCS-4"
 msgstr "UCS-4"
 
-#: viewpart/CharTip.cpp:157
+#: viewpart/CharTip.cpp:158
 #, kde-format
 msgid "UTF-16"
 msgstr "UTF-16"
 
-#: viewpart/CharTip.cpp:168
+#: viewpart/CharTip.cpp:169
 #, kde-format
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: viewpart/CharTip.cpp:185
+#: viewpart/CharTip.cpp:186
 #, kde-format
 msgid "XML Decimal Entity"
 msgstr "Desimaalinen XML-entiteetti"
@@ -1593,12 +1593,12 @@ msgstr "Muuta tekstiä…"
 msgid "Could not read font."
 msgstr "Fonttia ei voitu lukea."
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Preview String"
 msgstr "Esikatseluteksti"
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Please enter new string:"
 msgstr "Anna uusi teksti:"

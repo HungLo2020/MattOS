@@ -239,11 +239,11 @@ QQC2.ApplicationWindow {
     // This is to make ApplicationWindow actually assign pageStack, as it replaces the property
     property alias __pageStackAlias: root.pageStack
     contentItem.z: 1
-    contentItem.anchors.left: contentItem.parent.left
-    contentItem.anchors.right: contentItem.parent.right
-    contentItem.anchors.topMargin: root.wideScreen && header && controlsVisible ? header.height : 0
+    contentItem.anchors.fill: contentItem.parent
+    contentItem.anchors.topMargin: header?.visible ? header.height : 0
     contentItem.anchors.leftMargin: root.globalDrawer && root.globalDrawer.modal === false && (!root.pageStack || root.pageStack.leftSidebar !== root.globalDrawer) ? root.globalDrawer.width * root.globalDrawer.position : 0
     contentItem.anchors.rightMargin: root.contextDrawer && root.contextDrawer.modal === false ? root.contextDrawer.width * root.contextDrawer.position : 0
+    contentItem.anchors.bottomMargin: footer && footer.visible ? footer.height : 0
 
     Binding {
         target: root.header
@@ -279,16 +279,6 @@ QQC2.ApplicationWindow {
     width: Platform.Settings.isMobile ? Platform.Units.gridUnit * 30 : Platform.Units.gridUnit * 55
     height: Platform.Settings.isMobile ? Platform.Units.gridUnit * 45 : Platform.Units.gridUnit * 40
     visible: true
-
-    Component.onCompleted: {
-        // Explicitly break the binding as we need this to be set only at startup.
-        // if the bindings are active, after this the window is resized by the
-        // compositor and then the bindings are reevaluated, then the window
-        // size would reset ignoring what the compositor asked.
-        // see BUG 433849
-        root.width = root.width;
-        root.height = root.height;
-    }
 
     // This is needed because discover in mobile mode does not
     // close with the global drawer open.

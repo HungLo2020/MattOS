@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
 project(KConfig VERSION ${KF_VERSION})
 
 include(FeatureSummary)
-find_package(ECM 6.26.0  NO_MODULE)
+find_package(ECM 6.31.0  NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -23,8 +23,9 @@ include(ECMPoQmTools)
 include(ECMQtDeclareLoggingCategory)
 include(ECMDeprecationSettings)
 include(ECMGenerateQDoc)
+include(ECMInstalledLibraryCheck)
 
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 
 find_package(Qt6 ${REQUIRED_QT_VERSION} CONFIG REQUIRED Xml)
 option(KCONFIG_USE_GUI "Build components using Qt6Gui" ON)

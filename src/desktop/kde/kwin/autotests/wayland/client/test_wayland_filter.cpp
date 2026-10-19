@@ -7,11 +7,11 @@
 #include <QSignalSpy>
 #include <QTest>
 // KWin
-#include "wayland/blur.h"
 #include "wayland/clientconnection.h"
 #include "wayland/compositor.h"
 #include "wayland/display.h"
 #include "wayland/filtered_display.h"
+#include "wayland/slide.h"
 
 #include "KWayland/Client/blur.h"
 #include "KWayland/Client/compositor.h"
@@ -28,6 +28,7 @@ class TestDisplay;
 class TestFilter : public QObject
 {
     Q_OBJECT
+
 public:
     explicit TestFilter(QObject *parent = nullptr);
 private Q_SLOTS:
@@ -39,12 +40,10 @@ private Q_SLOTS:
 private:
     TestDisplay *m_display;
     KWin::CompositorInterface *m_compositorInterface;
-    KWin::BlurManagerInterface *m_blurManagerInterface;
+    KWin::SlideManagerInterface *m_slideManagerInterface;
 };
 
-static const QString s_socketName = QStringLiteral("kwayland-test-wayland-blur-0");
-
-// The following non-realistic class allows only clients in the m_allowedClients list to access the blur interface
+// The following non-realistic class allows only clients in the m_allowedClients list to access the slide interface
 // all other interfaces are allowed
 class TestDisplay : public KWin::FilteredDisplay
 {
@@ -61,7 +60,7 @@ TestDisplay::TestDisplay(QObject *parent)
 
 bool TestDisplay::allowInterface(KWin::ClientConnection *client, const QByteArray &interfaceName)
 {
-    if (interfaceName == "org_kde_kwin_blur_manager") {
+    if (interfaceName == "org_kde_kwin_slide_manager") {
         return m_allowedClients.contains(*client);
     }
     return true;
@@ -79,12 +78,12 @@ void TestFilter::init()
     using namespace KWin;
     delete m_display;
     m_display = new TestDisplay(this);
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
 
     m_compositorInterface = new CompositorInterface(m_display, m_display);
-    m_blurManagerInterface = new BlurManagerInterface(m_display, m_display);
+    m_slideManagerInterface = new SlideManagerInterface(m_display, m_display);
 }
 
 void TestFilter::cleanup()
@@ -105,7 +104,7 @@ void TestFilter::testFilter()
     // setup connection
     std::unique_ptr<KWayland::Client::ConnectionThread> connection(new KWayland::Client::ConnectionThread());
     QSignalSpy connectedSpy(connection.get(), &KWayland::Client::ConnectionThread::connected);
-    connection->setSocketName(s_socketName);
+    connection->setSocketName(qAppName());
 
     std::unique_ptr<QThread> thread(new QThread(this));
     connection->moveToThread(thread.get());
@@ -130,7 +129,7 @@ void TestFilter::testFilter()
     KWayland::Client::Registry registry;
     QSignalSpy registryDoneSpy(&registry, &KWayland::Client::Registry::interfacesAnnounced);
     QSignalSpy compositorSpy(&registry, &KWayland::Client::Registry::compositorAnnounced);
-    QSignalSpy blurSpy(&registry, &KWayland::Client::Registry::blurAnnounced);
+    QSignalSpy slideSpy(&registry, &KWayland::Client::Registry::slideAnnounced);
 
     registry.setEventQueue(&queue);
     registry.create(connection->display());
@@ -138,8 +137,8 @@ void TestFilter::testFilter()
     registry.setup();
 
     QVERIFY(registryDoneSpy.wait());
-    QVERIFY(compositorSpy.count() == 1);
-    QVERIFY(blurSpy.count() == accessAllowed ? 1 : 0);
+    QCOMPARE(compositorSpy.count(), 1);
+    QCOMPARE(slideSpy.count(), accessAllowed ? 1 : 0);
 
     thread->quit();
     thread->wait();

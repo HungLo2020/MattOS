@@ -96,13 +96,16 @@ RootModel::RootModel(QObject *parent)
     , m_showAllAppsCategorized(false)
     , m_showRecentApps(true)
     , m_showRecentDocs(true)
+    , m_showRecentFolders(false)
     , m_recentOrdering(RecentUsageModel::Recent)
     , m_showPowerSession(true)
     , m_showFavoritesPlaceholder(false)
+    , m_showRootSeparator(true)
     , m_highlightNewlyInstalledApps(false)
     , m_refreshNewlyInstalledAppsTimer(nullptr)
     , m_recentAppsModel(nullptr)
     , m_recentDocsModel(nullptr)
+    , m_recentFoldersModel(nullptr)
 {
 }
 
@@ -121,7 +124,7 @@ QVariant RootModel::data(const QModelIndex &index, int role) const
             const auto *group = static_cast<const GroupEntry *>(entry);
             AbstractModel *model = group->childModel();
 
-            if (model == m_recentAppsModel || model == m_recentDocsModel) {
+            if (model == m_recentAppsModel || model == m_recentDocsModel || model == m_recentFoldersModel) {
                 if (role == Kicker::HasActionListRole) {
                     return true;
                 } else if (role == Kicker::ActionListRole) {
@@ -152,6 +155,10 @@ bool RootModel::trigger(int row, const QString &actionId, const QVariant &argume
                 return true;
             } else if (model == m_recentDocsModel) {
                 setShowRecentDocs(false);
+
+                return true;
+            } else if (model == m_recentFoldersModel) {
+                setShowRecentFolders(false);
 
                 return true;
             }
@@ -227,6 +234,22 @@ void RootModel::setShowRecentDocs(bool show)
     }
 }
 
+bool RootModel::showRecentFolders() const
+{
+    return m_showRecentFolders;
+}
+
+void RootModel::setShowRecentFolders(bool show)
+{
+    if (show != m_showRecentFolders) {
+        m_showRecentFolders = show;
+
+        refresh();
+
+        Q_EMIT showRecentFoldersChanged();
+    }
+}
+
 int RootModel::recentOrdering() const
 {
     return m_recentOrdering;
@@ -291,6 +314,22 @@ void RootModel::setHighlightNewlyInstalledApps(bool highlight)
     }
 }
 
+bool RootModel::showRootSeparator() const
+{
+    return m_showRootSeparator;
+}
+
+void RootModel::setShowRootSeparator(bool showRootSeparator)
+{
+    if (m_showRootSeparator != showRootSeparator) {
+        m_showRootSeparator = showRootSeparator;
+
+        refresh();
+
+        Q_EMIT showRootSeparatorChanged();
+    }
+}
+
 AbstractModel *RootModel::favoritesModel()
 {
     return m_favorites;
@@ -318,6 +357,7 @@ void RootModel::refresh()
     AppsModel *allModel = nullptr;
     m_recentAppsModel = nullptr;
     m_recentDocsModel = nullptr;
+    m_recentFoldersModel = nullptr;
 
     if (m_showAllApps) {
         QHash<QString, AbstractEntry *> appsHash;
@@ -441,7 +481,10 @@ void RootModel::refresh()
             if (entry->type() == AbstractEntry::ApplicationType) {
                 auto *appEntry = static_cast<AppEntry *>(entry);
 
-                const QString appId = appEntry->id();
+                const QString appId = appEntry->service()->storageId();
+                if (appId.isEmpty()) {
+                    return;
+                }
                 installedApps.append(appId);
 
                 QDate firstSeen;
@@ -532,6 +575,15 @@ void RootModel::refresh()
         ++separatorPosition;
     }
 
+    if (m_showRecentFolders) {
+        m_recentFoldersModel = new RecentUsageModel(this, RecentUsageModel::OnlyFolders, m_recentOrdering);
+        m_entryList.prepend(new GroupEntry(this,
+                                           m_recentOrdering == RecentUsageModel::Recent ? i18n("Recent Places") : i18n("Often Used Places"),
+                                           m_recentOrdering == RecentUsageModel::Recent ? QStringLiteral("view-history") : QStringLiteral("office-chart-pie"),
+                                           m_recentFoldersModel));
+        ++separatorPosition;
+    }
+
     if (m_showRecentDocs) {
         m_recentDocsModel = new RecentUsageModel(this, RecentUsageModel::OnlyDocs, m_recentOrdering);
         m_entryList.prepend(new GroupEntry(this,
@@ -550,7 +602,7 @@ void RootModel::refresh()
         ++separatorPosition;
     }
 
-    if (m_showSeparators && separatorPosition > 0) {
+    if (m_showRootSeparator && separatorPosition > 0) {
         m_entryList.insert(separatorPosition, new SeparatorEntry(this));
         ++m_separatorCount;
     }
@@ -631,15 +683,18 @@ void RootModel::refreshNewlyInstalledApps()
         if (entry->type() == AbstractEntry::ApplicationType) {
             auto *appEntry = static_cast<AppEntry *>(entry);
 
-            const QString appId = appEntry->id();
+            const QString appId = appEntry->service()->storageId();
+            if (appId.isEmpty()) {
+                return;
+            }
             installedApps.append(appId);
 
             if (appEntry->isNewlyInstalled()) {
                 hasTrackedApp = true;
             } else if (appEntry->firstSeen().isValid()) {
-                qCDebug(KICKER_DEBUG) << appEntry->id() << "is no longer considered newly installed";
+                qCDebug(KICKER_DEBUG) << appId << "is no longer considered newly installed";
                 appEntry->setFirstSeen(QDate());
-                applicationsGroup.deleteGroup(appEntry->id());
+                applicationsGroup.deleteGroup(appId);
 
                 refreshNewlyInstalledEntry(appEntry);
             }
@@ -701,18 +756,18 @@ void RootModel::onResourceScoresChanged(const QString &activity,
         if (entry->type() == AbstractEntry::ApplicationType) {
             auto *appEntry = static_cast<AppEntry *>(entry);
 
-            if (appEntry->id() == appId && appEntry->isNewlyInstalled()) {
-                qCDebug(KICKER_DEBUG) << appEntry->id() << "is no longer considered newly installed (resourceScore)";
+            if (appEntry->service()->storageId() == appId && appEntry->isNewlyInstalled()) {
+                qCDebug(KICKER_DEBUG) << appId << "is no longer considered newly installed (resourceScore)";
                 appEntry->setFirstSeen(QDate());
                 auto stateConfig = Kicker::stateConfig();
                 KConfigGroup applicationsGroup = stateConfig->group(QStringLiteral("Application"));
-                applicationsGroup.deleteGroup(appEntry->id());
+                applicationsGroup.deleteGroup(appId.toString());
 
                 refreshNewlyInstalledEntry(appEntry);
             }
         } else if (entry->type() == AbstractEntry::GroupType) {
             auto *groupEntry = static_cast<GroupEntry *>(entry);
-            if (AbstractModel *model = groupEntry->childModel()) {
+            if (AppsModel *model = dynamic_cast<AppsModel *>(groupEntry->childModel())) {
                 for (int i = 0; i < model->count(); ++i) {
                     processEntry(static_cast<AbstractEntry *>(model->index(i, 0).internalPointer()));
                 }

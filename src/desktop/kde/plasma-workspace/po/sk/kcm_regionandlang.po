@@ -2,21 +2,20 @@
 # Roman Paholík <wizzardsk@gmail.com>, 2022.
 # Matej Mrenica <matejm98mthw@gmail.com>, 2023.
 # Ferdinand Galko <galko.ferdinand@gmail.com>, 2023.
-# SPDX-FileCopyrightText: 2026 Lucia Mrenica <lucia.mrenica@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_regionandlang\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-08 02:54+0000\n"
-"PO-Revision-Date: 2026-01-15 20:11+0100\n"
-"Last-Translator: Lucia Mrenica <lucia.mrenica@gmail.com>\n"
-"Language-Team: Slovak <kde-i18n-doc@kde.org>\n"
+"POT-Creation-Date: 2026-10-01 20:16+0000\n"
+"PO-Revision-Date: 2023-04-15 19:43+0200\n"
+"Last-Translator: Ferdinand Galko <galko.ferdinand@gmail.com>\n"
+"Language-Team: Slovak <opensuse-translation@opensuse.org>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.12.1\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 21.12.3\n"
 
 #, kde-format
 msgid "Inherit Language"
@@ -338,10 +337,16 @@ msgstr "Neznáme"
 msgid "Default for System"
 msgstr "Predvolené nastavenie pre systém"
 
-#: localelistmodel.cpp:24 localelistmodel.cpp:146 ui/main.qml:387
+#: localelistmodel.cpp:24 localelistmodel.cpp:146 ui/main.qml:388
 #, kde-format
 msgid "Default"
 msgstr "Predvolené"
+
+#: localelistmodel.cpp:130
+#, kde-format
+msgctxt "@item:intable Friendly name for the C locale"
+msgid "ISO C Standard"
+msgstr ""
 
 #: localelistmodel.cpp:142
 #, kde-format
@@ -456,12 +461,12 @@ msgctxt ""
 msgid " (Standard format for %1)"
 msgstr " (Štandardný formát pre %1)"
 
-#: ui/AdvancedLanguageSelectPage.qml:23
+#: ui/AdvancedLanguageSelectPage.qml:24
 #, kde-format
 msgid "Language"
 msgstr "Jazyk"
 
-#: ui/AdvancedLanguageSelectPage.qml:36
+#: ui/AdvancedLanguageSelectPage.qml:37
 #, kde-format
 msgid ""
 "Putting any other languages below English will cause undesired behavior in "
@@ -472,54 +477,70 @@ msgstr ""
 "aplikáciách nežiaduce správanie. Ak chcete používať systém v angličtine, "
 "odstráňte všetky ostatné jazyky."
 
-#: ui/AdvancedLanguageSelectPage.qml:45
+#: ui/AdvancedLanguageSelectPage.qml:46
 #, kde-format
 msgctxt "Error message, %1 is the language name"
 msgid "The language \"%1\" is unsupported"
 msgstr "Jazyk \"%1\" nie je podporovaný"
 
-#: ui/AdvancedLanguageSelectPage.qml:58
+#: ui/AdvancedLanguageSelectPage.qml:59
 #, kde-format
 msgid "Add languages in the order you want to see them in your applications."
 msgstr "Pridávajte jazyky v poradí, v akom ich chcete vidieť v aplikáciách."
 
-#: ui/AdvancedLanguageSelectPage.qml:100
+#: ui/AdvancedLanguageSelectPage.qml:101
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Change Language"
 msgstr "Zmeniť jazyk"
 
-#: ui/AdvancedLanguageSelectPage.qml:104
+#: ui/AdvancedLanguageSelectPage.qml:105
 #, kde-format
 msgctxt "@title:window"
 msgid "Change Language"
 msgstr "Zmeniť jazyk"
 
-#: ui/AdvancedLanguageSelectPage.qml:113
+#: ui/AdvancedLanguageSelectPage.qml:114
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Move to top"
 msgstr "Presunúť hore"
 
-#: ui/AdvancedLanguageSelectPage.qml:122
+#: ui/AdvancedLanguageSelectPage.qml:123
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Remove"
 msgstr "Odstrániť"
 
-#: ui/AdvancedLanguageSelectPage.qml:137
+#: ui/AdvancedLanguageSelectPage.qml:138
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "No Language Configured"
 msgstr "Žiadny nakonfigurovaný jazyk"
 
-#: ui/AdvancedLanguageSelectPage.qml:179 ui/AdvancedLanguageSelectPage.qml:213
+#: ui/AdvancedLanguageSelectPage.qml:180 ui/AdvancedLanguageSelectPage.qml:214
 #, kde-format
 msgctxt "@title:window"
 msgid "Add Languages"
 msgstr "Pridanie jazykov"
 
 #: ui/AdvancedLanguageSelectPage.qml:236
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "This system does not include “%1”"
+msgstr "Tento systém neobsahuje „%1“"
+
+#: ui/AdvancedLanguageSelectPage.qml:237
+#, kde-kuit-format
+msgctxt "@info:usagetip"
+msgid ""
+"Learn how to help <link url='%1'>translate KDE software into your language</"
+"link>."
+msgstr ""
+"Zistite, ako pomôcť <link url='%1'>preložiť softvér KDE do vášho jazyka</"
+"link>."
+
+#: ui/AdvancedLanguageSelectPage.qml:246
 #, kde-format
 msgctxt "@action:button"
 msgid "Add More…"
@@ -582,48 +603,60 @@ msgctxt "@title:window"
 msgid "Data and Storage Sizes"
 msgstr "Veľkosti úložiska a údajov"
 
-#: ui/main.qml:281
+#: ui/main.qml:282
 #, kde-format
 msgid "Numbers"
 msgstr "Čísla"
 
-#: ui/main.qml:283
+#: ui/main.qml:284
 #, kde-format
 msgid "Time"
 msgstr "Čas"
 
-#: ui/main.qml:285
+#: ui/main.qml:286
 #, kde-format
 msgid "Currency"
 msgstr "Mena"
 
-#: ui/main.qml:287
+#: ui/main.qml:288
 #, kde-format
 msgid "Measurements"
 msgstr "Rozmery"
 
-#: ui/main.qml:289
+#: ui/main.qml:290
 #, kde-format
 msgid "Paper Size"
 msgstr "Veľkosť papiera"
 
-#: ui/main.qml:291
+#: ui/main.qml:292
 #, kde-format
 msgctxt "Postal Address"
 msgid "Address"
 msgstr "Adresa"
 
-#: ui/main.qml:293
+#: ui/main.qml:294
 #, kde-format
 msgctxt "Name Style"
 msgid "Name"
 msgstr "Meno"
 
-#: ui/main.qml:295
+#: ui/main.qml:296
 #, kde-format
 msgctxt "Phone Numbers"
 msgid "Phone number"
 msgstr "Telefónne číslo"
+
+#: ui/main.qml:431
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "This system does not include settings for “%1”"
+msgstr "Tento systém neobsahuje nastavenia pre „%1“"
+
+#: ui/main.qml:432
+#, kde-format
+msgctxt "@info:usagetip"
+msgid "Try searching for a nearby region."
+msgstr "Skúste vyhľadať blízky región."
 
 #~ msgid ""
 #~ "You can configure the formats used for time, dates, money and other "

@@ -375,7 +375,7 @@ void tst_QTemporaryFile::nonWritableCurrentDir()
 
     ChdirOnReturn cor(QDir::currentPath());
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
     QDir::setCurrent("/data");
 #else
     QDir::setCurrent("/home");
@@ -552,6 +552,10 @@ void tst_QTemporaryFile::openOnRootDrives()
 #endif
 }
 
+QT_WARNING_PUSH
+// checked stack use and deemed it acceptable
+QT_WARNING_DISABLE_LARGE_STACK_FRAME
+
 void tst_QTemporaryFile::stressTest()
 {
     constexpr int iterations = 1000;
@@ -570,6 +574,8 @@ void tst_QTemporaryFile::stressTest()
         QVERIFY(!names.hasSeen(file.fileName()));
     }
 }
+
+QT_WARNING_POP
 
 void tst_QTemporaryFile::rename_data()
 {
@@ -624,10 +630,6 @@ void tst_QTemporaryFile::rename()
             QVERIFY(QFile::exists(dir.filePath("temporary-file.txt"_L1)));
         }
 
-#ifdef Q_OS_ANDROID
-        if (!overwrite)
-            QEXPECT_FAIL("failure", "QTBUG-138610", Abort);
-#endif
         if (overwrite)
             QCOMPARE(file.renameOverwrite("temporary-file.txt"_L1), expectedRenameResult);
         else
@@ -649,8 +651,12 @@ void tst_QTemporaryFile::renameFdLeak()
 #if defined(Q_OS_VXWORKS)
     QSKIP("QTBUG-130066");
 #endif
-
 #if defined(Q_OS_UNIX) && !defined(Q_OS_ANDROID)
+#if defined(Q_OS_HARMONY)
+    ChdirOnReturn cor(QDir::currentPath());
+    // TODO: OHOS: hardcode cache path until QStandardPaths is implemented
+    QDir::setCurrent("/data/storage/el2/base/cache");
+#endif
     QTemporaryFile file;
     QVERIFY(file.open());
     const QByteArray sourceFile = QFile::encodeName(file.fileName());
@@ -694,6 +700,11 @@ void tst_QTemporaryFile::moveToTrash()
 #if defined(Q_OS_ANDROID) || defined(Q_OS_WEBOS) || defined(Q_OS_VXWORKS)
     QSKIP("This platform doesn't implement a trash bin");
 #endif
+
+#if defined(Q_OS_HARMONY)
+    QSKIP("OHOS: moveToTrash requires user input via FilePicker to get temp permissions");
+#endif
+
 #ifdef Q_OS_WIN
     // QTemporaryFile won't really close the file with close(), so this is
     // expected to fail with a sharing violation error.

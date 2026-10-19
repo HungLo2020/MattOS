@@ -19,6 +19,8 @@
 #include <KQuickManagedConfigModule>
 
 #include <QStandardItemModel>
+#include <QQmlParserStatus>
+#include <QPointer>
 
 class LookAndFeelData;
 class LookAndFeelSettings;
@@ -203,4 +205,5 @@ private:
     KLookAndFeelManager::Contents m_selectedContents;
 
     QStandardItemModel *m_model;
+    bool m_plasmaLocked = false;
 };

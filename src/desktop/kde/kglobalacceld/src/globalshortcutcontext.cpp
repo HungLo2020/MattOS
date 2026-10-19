@@ -56,34 +56,45 @@ QString GlobalShortcutContext::friendlyName() const
 
 GlobalShortcut *GlobalShortcutContext::getShortcutByKey(const QKeySequence &key, KGlobalAccel::MatchType type) const
 {
-    if (key.isEmpty()) {
+    const auto shortcuts = getShortcutsByKey(key, type);
+    if (shortcuts.isEmpty()) {
         return nullptr;
+    } else {
+        return shortcuts.first();
     }
-    QKeySequence keyMangled = Utils::normalizeSequence(key);
+}
+
+QList<GlobalShortcut *> GlobalShortcutContext::getShortcutsByKey(const QKeySequence &key, KGlobalAccel::MatchType type) const
+{
+    if (key.isEmpty()) {
+        return {};
+    }
+
+    QList<GlobalShortcut *> ret;
     for (GlobalShortcut *sc : std::as_const(_actionsMap)) {
         const auto keys = sc->keys();
         for (const QKeySequence &other : keys) {
-            QKeySequence otherMangled = Utils::normalizeSequence(other);
             switch (type) {
             case KGlobalAccel::MatchType::Equal:
-                if (otherMangled == keyMangled) {
-                    return sc;
+                if (other == key) {
+                    ret.append(sc);
                 }
                 break;
             case KGlobalAccel::MatchType::Shadows:
-                if (!other.isEmpty() && Utils::contains(keyMangled, otherMangled)) {
-                    return sc;
+                if (!other.isEmpty() && Utils::contains(key, other)) {
+                    ret.append(sc);
                 }
                 break;
             case KGlobalAccel::MatchType::Shadowed:
-                if (!other.isEmpty() && Utils::contains(otherMangled, keyMangled)) {
-                    return sc;
+                if (!other.isEmpty() && Utils::contains(other, key)) {
+                    ret.append(sc);
                 }
                 break;
             }
         }
     }
-    return nullptr;
+
+    return ret;
 }
 
 GlobalShortcut *GlobalShortcutContext::takeShortcut(GlobalShortcut *shortcut)

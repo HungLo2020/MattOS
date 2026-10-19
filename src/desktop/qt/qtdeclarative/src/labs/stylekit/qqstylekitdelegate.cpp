@@ -37,7 +37,7 @@ QT_BEGIN_NAMESPACE
     \labs
 
     For more examples of overlays, underlays and shader effects, see the
-    \l{StyleKit Example}.
+    \l{StyleKit Quick Controls Example}.
 
     \sa DelegateStyle, {DelegateStyle::delegate}{delegate}, {DelegateStyle::data}{data}
 */
@@ -94,8 +94,8 @@ void QQStyleKitDelegate::setDelegateStyle(QQStyleKitDelegateProperties *delegate
     maybeCreateImage();
     updateImplicitSize();
 
-    connect(m_delegateProperties, &QQStyleKitDelegateProperties::implicitWidthChanged, this, &QQStyleKitDelegate::updateImplicitSize);
-    connect(m_delegateProperties, &QQStyleKitDelegateProperties::implicitHeightChanged, this, &QQStyleKitDelegate::updateImplicitSize);
+    connect(m_delegateProperties, &QQStyleKitDelegateProperties::widthChanged, this, &QQStyleKitDelegate::updateImplicitSize);
+    connect(m_delegateProperties, &QQStyleKitDelegateProperties::heightChanged, this, &QQStyleKitDelegate::updateImplicitSize);
 
     emit delegateStyleChanged();
 }
@@ -105,16 +105,14 @@ void QQStyleKitDelegate::updateImplicitSize()
     if (!m_delegateProperties)
         return;
 
-    /* The implicit size is determined by the following priority:
-     * 1. Explicit implicit size set on QQStyleKitDelegateProperties
-     * 2. Implicit size of the image (if present)
-     * 3. Zero
-     * The implicit size is read-only because it's calculated in C++ from internal
-     * child items that are intentionally not exposed to QML. */
-    const qreal impWidthInStyle = qMax(m_delegateProperties->minimumWidth(), m_delegateProperties->implicitWidth());
-    const qreal impHeightInStyle = m_delegateProperties->implicitHeight();
-    setImplicitWidth(impWidthInStyle > 0 || !m_imageOverlay ? impWidthInStyle : m_imageOverlay->implicitWidth());
-    setImplicitHeight(impHeightInStyle > 0 || !m_imageOverlay ? impHeightInStyle : m_imageOverlay->implicitHeight());
+    /* The implicit size of this item is determined by the following priority:
+     * 1. The width/height set on DelegateStyle (clamped to minimumWidth/minimumHeight)
+     * 2. The implicit size of the image overlay (if present)
+     * 3. Zero */
+    const qreal widthInStyle = qMax(m_delegateProperties->minimumWidth(), m_delegateProperties->width());
+    const qreal heightInStyle = qMax(m_delegateProperties->minimumHeight(), m_delegateProperties->height());
+    setImplicitWidth(widthInStyle > 0 || !m_imageOverlay ? widthInStyle : m_imageOverlay->implicitWidth());
+    setImplicitHeight(heightInStyle > 0 || !m_imageOverlay ? heightInStyle : m_imageOverlay->implicitHeight());
 }
 
 void QQStyleKitDelegate::maybeCreateColor()
@@ -149,7 +147,7 @@ void QQStyleKitDelegate::maybeCreateColor()
     if (!component || component->engine() != engine) {
         delete component;
         component = new QQmlComponent(engine);
-        const QString qmlCode = QString::fromUtf8(R"(
+        const auto qmlCode = R"(
             import QtQuick
             Rectangle {
                 z: -3
@@ -164,8 +162,8 @@ void QQStyleKitDelegate::maybeCreateColor()
                 border.width: delegateStyle.border.width
                 border.color: delegateStyle.border.color
             }
-        )");
-        component->setData(qmlCode.toUtf8(), QUrl());
+        )"_ba;
+        component->setData(qmlCode, QUrl());
         Q_ASSERT_X(!component->isError(), __FUNCTION__, component->errorString().toUtf8().constData());
     }
 
@@ -203,7 +201,7 @@ void QQStyleKitDelegate::maybeCreateGradient()
     if (!component || component->engine() != engine) {
         delete component;
         component = new QQmlComponent(engine);
-        const QString qmlCode = QString::fromUtf8(R"(
+        const auto qmlCode = R"(
             import QtQuick
             Rectangle {
                 z: -2
@@ -219,8 +217,8 @@ void QQStyleKitDelegate::maybeCreateGradient()
                 border.width: delegateStyle.border.width
                 border.color: delegateStyle.border.color
             }
-        )");
-        component->setData(qmlCode.toUtf8(), QUrl());
+        )"_ba;
+        component->setData(qmlCode, QUrl());
         Q_ASSERT_X(!component->isError(), __FUNCTION__, component->errorString().toUtf8().constData());
     }
 
@@ -258,7 +256,7 @@ void QQStyleKitDelegate::maybeCreateImage()
     if (!component || component->engine() != engine) {
         delete component;
         component = new QQmlComponent(engine);
-        const QString qmlCode = QString::fromUtf8(R"(
+        const auto qmlCode = R"(
             import QtQuick.Controls.impl
             ColorImage {
                 z: -1
@@ -268,8 +266,8 @@ void QQStyleKitDelegate::maybeCreateImage()
                 source: delegateStyle.image.source
                 fillMode: delegateStyle.image.fillMode
             }
-        )");
-        component->setData(qmlCode.toUtf8(), QUrl());
+        )"_ba;
+        component->setData(qmlCode, QUrl());
         Q_ASSERT_X(!component->isError(), __FUNCTION__, component->errorString().toUtf8().constData());
     }
 

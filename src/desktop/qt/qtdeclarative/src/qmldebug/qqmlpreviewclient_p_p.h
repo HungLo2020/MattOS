@@ -27,7 +27,17 @@ class QQmlPreviewClientPrivate : public QQmlDebugClientPrivate
 public:
     QQmlPreviewClientPrivate(QQmlDebugConnection *connection)
         : QQmlDebugClientPrivate(QLatin1String("QmlPreview"), connection)
+        , eventReceiver(connection)
+        , recordClient(connection, &eventReceiver, 1 << ProfileInputEvents)
+        , replayClient(connection)
     {}
+
+    QQmlProfilerQtdWriter eventReceiver;
+    QQmlProfilerClient recordClient;
+    QQuickEventReplayClient replayClient;
+    QTimer replayTimer;
+
+    qsizetype m_numExpectedEvents = 0;
 };
 
 QT_END_NAMESPACE

@@ -163,7 +163,7 @@ DiscoverPage {
         visible: updateModel.toUpdateCount
         icon.name: "update-none"
 
-        readonly property bool hasErrors: page.header.children.some(item => item?.visible && item instanceof Kirigami.InlineMessage)
+        readonly property bool hasErrors: page.header.children.some(item => item?.visible && item instanceof Kirigami.InlineMessage && (item as Kirigami.InlineMessage).type === Kirigami.MessageType.Error)
 
         enabled: page.readyToUpdate && !hasErrors
         onEnabledChanged: enabled => {
@@ -175,11 +175,19 @@ DiscoverPage {
     header: ColumnLayout {
         id: errorsColumn
 
-        spacing: Kirigami.Units.smallSpacing
+        spacing: 0
 
         DiscoverInlineMessage {
             Layout.fillWidth: true
             inlineMessage: Discover.ResourcesModel.inlineMessage
+        }
+
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            position: Kirigami.InlineMessage.Position.Header
+            visible: resourcesUpdatesModel.needsReboot && page.state !== "fetching" && page.state !== "reboot"
+            text: i18nc("@info", "A pending update will be installed when restarting the system.")
+            icon.name: "system-reboot-update"
         }
 
         Repeater {
@@ -262,7 +270,7 @@ DiscoverPage {
                 }
 
                 RowLayout {
-                    visible: resourcesUpdatesModel.needsReboot && resourcesUpdatesModel.isProgressing
+                    visible: resourcesUpdatesModel.isProgressing
                     spacing: Kirigami.Units.smallSpacing
 
                     Layout.fillWidth: true
@@ -271,17 +279,22 @@ DiscoverPage {
                     Layout.rightMargin: Kirigami.Units.largeSpacing
 
                     RowLayout {
-                        visible: resourcesUpdatesModel.needsReboot && resourcesUpdatesModel.isProgressing
+                        visible: resourcesUpdatesModel.isProgressing
                         spacing: Kirigami.Units.smallSpacing
                         Layout.fillWidth: true
 
                         QQC2.Label {
-                            text: i18nc("@info on the completion of updates, the action that automatically happens after (e.g shut down)", "On completion, automatically:")
+                            text: i18nc("@info After updates complete, shut down/restart/quit", "After updates complete:")
                         }
 
                         QQC2.ComboBox {
                             id: actionAfterUpdateCombo
-                            model: [i18nc("@item:inlistbox placeholder for when no action is selected", "Select an action"), i18nc("@item:inlistbox", "Restart"), i18nc("@item:inlistbox", "Shut down")]
+                            model: [
+                                i18nc("@item:inlistbox after updates complete, do nothing", "Do nothing"),
+                                i18nc("@item:inlistbox after updates complete, restart", "Restart"),
+                                i18nc("@item:inlistbox after updates complete, shut down", "Shut down"),
+                                i18nc("@item:inlistbox after updates complete, quit Discover", "Quit Discover")
+                            ]
                         }
                     }
                 }
@@ -329,6 +342,7 @@ DiscoverPage {
             id: statusLabel
 
             width: parent.width - Kirigami.Units.gridUnit * 2
+            anchors.horizontalCenter: parent.horizontalCenter
             // Fixed Y location so it doesn't jump around as backends load
             y: (parent.height / 2) - (Kirigami.Units.gridUnit * 3)
 
@@ -444,9 +458,18 @@ DiscoverPage {
             }
 
             contentItem: ColumnLayout {
+                id: delegateLayout
+
+                readonly property int extraContentLeadingMargin:
+                    itemChecked.implicitWidth
+                    + itemIcon.implicitWidth
+                    + nameAndVersionColumn.Layout.leftMargin
+                    + (mainRow.spacing * 2)
+
                 spacing: Kirigami.Units.smallSpacing
 
                 RowLayout {
+                    id: mainRow
                     spacing: Kirigami.Units.smallSpacing
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -461,6 +484,7 @@ DiscoverPage {
                     }
 
                     Kirigami.Icon {
+                        id: itemIcon
                         Layout.preferredWidth: Kirigami.Units.iconSizes.medium
                         Layout.preferredHeight: Kirigami.Units.iconSizes.medium
                         source: listItem.model.decoration
@@ -469,6 +493,7 @@ DiscoverPage {
                     }
 
                     ColumnLayout {
+                        id: nameAndVersionColumn
                         Layout.fillWidth: true
                         Layout.leftMargin: Kirigami.Units.smallSpacing
                         Layout.alignment: Qt.AlignVCenter
@@ -507,8 +532,52 @@ DiscoverPage {
                     }
                 }
 
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: delegateLayout.extraContentLeadingMargin
+                    spacing: 0
+                    visible: listItem.model.extended
+
+                    QQC2.Label {
+                        Layout.alignment: Qt.AlignTop
+                        Layout.rightMargin: Kirigami.Units.smallSpacing
+                        text: i18nc("@info This update is from the following source", "From:")
+                        color: listItem.down ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
+                        opacity: 0.75
+                    }
+                    // Backend icon
+                    Kirigami.Icon {
+                        Layout.alignment: Qt.AlignTop
+                        source: listItem.model.resource.sourceIcon
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        selected: listItem.down
+                    }
+                    // Backend label and origin/remote
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignTop
+                        text: listItem.model.resource.origin.length === 0 ? listItem.model.resource.backend.displayName
+                                : i18nc("%1 is the backend that provides this app, %2 is the specific repository or address within that backend","%1 (%2)",
+                                        listItem.model.resource.backend.displayName, listItem.model.resource.origin)
+                        wrapMode: Text.Wrap
+                        maximumLineCount: 2
+                        elide: Text.ElideRight
+                        color: listItem.down ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
+                        opacity: 0.75
+                    }
+
+                    QQC2.Button {
+                        id: moreInformationButton
+                        Layout.alignment: Qt.AlignRight
+                        text: i18nc("@action:button minimize the length of this label", "More Info…")
+                        onClicked: Navigation.openApplication(listItem.model.resource)
+                    }
+                }
+
                 QQC2.Frame {
                     Layout.fillWidth: true
+                    Layout.leftMargin: delegateLayout.extraContentLeadingMargin
                     implicitHeight: view.implicitHeight
                     visible: listItem.model.extended && listItem.model.changelog.length > 0
                     QQC2.Label {
@@ -525,42 +594,6 @@ DiscoverPage {
 
                     }
                 }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-                    visible: listItem.model.extended
-
-                    QQC2.Label {
-                        Layout.leftMargin: Kirigami.Units.gridUnit
-                        text: i18n("Update from:")
-                        color: listItem.down ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
-                    }
-                    // Backend icon
-                    Kirigami.Icon {
-                        source: listItem.model.resource.sourceIcon
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        selected: listItem.down
-                    }
-                    // Backend label and origin/remote
-                    QQC2.Label {
-                        Layout.fillWidth: true
-                        text: listItem.model.resource.origin.length === 0 ? listItem.model.resource.backend.displayName
-                                : i18nc("%1 is the backend that provides this app, %2 is the specific repository or address within that backend","%1 (%2)",
-                                        listItem.model.resource.backend.displayName, listItem.model.resource.origin)
-                        elide: Text.ElideRight
-                        color: listItem.down ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
-                    }
-
-                    QQC2.Button {
-                        id: moreInformationButton
-                        Layout.alignment: Qt.AlignRight
-                        text: i18n("More Information…")
-                        enabled: !resourcesUpdatesModel.isProgressing
-                        onClicked: Navigation.openApplication(listItem.model.resource)
-                    }
-                }
             }
 
             onClicked: {
@@ -570,6 +603,9 @@ DiscoverPage {
     }
 
     readonly property alias secSinceUpdate: resourcesUpdatesModel.secsToLastUpdate
+    property string previousState: ""
+    property bool updateTriggered: false
+
     state:  ( resourcesUpdatesModel.isProgressing        ? "progressing"
             : resourcesUpdatesModel.isFetching           ? "fetching"
             : updateModel.hasUpdates                     ? "has-updates"
@@ -580,6 +616,29 @@ DiscoverPage {
             : secSinceUpdate < 1000 * 60 * 60 * 24 * 7   ? "medium"
             :                                              "low"
             )
+
+    onStateChanged: {
+        const prev = previousState
+        previousState = state
+        if (prev === "progressing") {
+            updateTriggered = true
+        }
+
+        const option = actionAfterUpdateCombo.currentIndex
+        if (state === "reboot") {
+            if (resourcesUpdatesModel.readyToReboot) {
+                if (option === 1) {
+                    app.rebootNow()
+                } else if (option === 2) {
+                    app.shutdownNow()
+                } else if (option === 3) {
+                    app.reconsiderQuit()
+                }
+            }
+        } else if (updateTriggered && option === 3) {
+            app.reconsiderQuit()
+        }
+    }
 
     states: [
         State {
@@ -611,17 +670,8 @@ DiscoverPage {
             PropertyChanges { page.actions: [refreshAction] }
             PropertyChanges { page.footerLabel: i18nc("@info", "Updates will be installed after the system is restarted") }
             PropertyChanges { statusLabel.helpfulAction: promptRestartAction }
-            PropertyChanges { statusLabel.explanation: i18nc("@info", "You can keep using the system if you're not ready to restart yet.") }
+            PropertyChanges { statusLabel.explanation: i18nc("@info", "You can keep using the system if you’re not ready to restart yet.") }
             PropertyChanges { statusLabel.progressBar.visible: false }
-            StateChangeScript {
-                script: if (resourcesUpdatesModel.readyToReboot) {
-                    if (actionAfterUpdateCombo.currentIndex === 1) {
-                        app.rebootNow()
-                    } else if (actionAfterUpdateCombo.currentIndex === 2) {
-                        app.shutdownNow()
-                    }
-                }
-            }
         },
         State {
             name: "now-uptodate"

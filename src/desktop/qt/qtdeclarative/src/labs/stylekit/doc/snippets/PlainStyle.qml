@@ -12,24 +12,24 @@ Style {
         padding: 6
         background {
             radius: 4
-            implicitWidth: 100
-            implicitHeight: 36
+            width: 100
+            height: 36
         }
         indicator {
-            implicitWidth: 20
-            implicitHeight: 20
+            width: 20
+            height: 20
             border.width: 1
         }
         handle {
-            implicitWidth: 20
-            implicitHeight: 20
+            width: 20
+            height: 20
             radius: 10
         }
     }
 
     button {
         background {
-            implicitWidth: 120
+            width: 120
             shadow.opacity: 0.6
             shadow.verticalOffset: 2
             shadow.horizontalOffset: 2
@@ -42,8 +42,8 @@ Style {
     }
 
     slider {
-        indicator.implicitWidth: Style.Stretch
-        indicator.implicitHeight: 6
+        indicator.fillWidth: true
+        indicator.height: 6
         indicator.radius: 3
     }
 

@@ -16,10 +16,10 @@ Q_STATIC_LOGGING_CATEGORY(qLcAndroidAudioSink, "qt.multimedia.android.audiosink"
 QAndroidAudioSinkStream::QAndroidAudioSinkStream(QAudioDevice device, const QAudioFormat &format,
                                                  std::optional<qsizetype> ringbufferSize,
                                                  QAndroidAudioSink *parent, float volume,
-                                                 std::optional<int32_t> hardwareBufferFrames,
+                                                 std::optional<NativePeriodFrames> nativePeriodFrames,
                                                  AudioEndpointRole role)
     : QtMultimediaPrivate::QPlatformAudioSinkStream(std::move(device), format, ringbufferSize,
-                                                    hardwareBufferFrames, volume),
+                                                    nativePeriodFrames, volume),
       m_parent(parent),
       m_role(role)
 {
@@ -28,12 +28,12 @@ QAndroidAudioSinkStream::QAndroidAudioSinkStream(QAudioDevice device, const QAud
     qCDebug(qLcAndroidAudioSink) << "Creating sink for device id:" << m_audioDevice.id()
                                  << ", description:" << m_audioDevice.description();
 
-    // NOTE: Don't set device when creating a stream for the default bluetooth device
-    if (!QAndroidAudioUtil::isDefaultBluetoothDevice(m_audioDevice))
-        builder.deviceId = m_audioDevice.id().toInt();
+    builder.deviceId = m_audioDevice.id().toInt();
 
     // Set buffer parameters
-    builder.bufferCapacity = m_hardwareBufferFrames ? *m_hardwareBufferFrames : 1024;
+    builder.bufferCapacity = m_nativePeriodFrames
+            ? qToUnderlying(*m_nativePeriodFrames)
+            : 1024;
 
     // NOTE: AAudio doesn't support UINT8, so convert to INT16 if that's requested
     if (format.sampleFormat() == QAudioFormat::UInt8) {
@@ -59,6 +59,9 @@ QAndroidAudioSinkStream::QAndroidAudioSinkStream(QAudioDevice device, const QAud
         builder.params.outputContentType = AAUDIO_CONTENT_TYPE_MUSIC;
         break;
     }
+
+    if (QAndroidAudioUtil::supportsLowLatency() && !QAndroidAudioUtil::isBluetoothDevice(m_audioDevice))
+        builder.params.performanceMode = AAUDIO_PERFORMANCE_MODE_LOW_LATENCY;
 
     builder.userData = this;
     builder.callback = [](AAudioStream *, void *userData, void *audioData,
@@ -198,7 +201,7 @@ void QAndroidAudioSinkStream::updateStreamIdle(bool arg)
 
 QSpan<std::byte>
 QAndroidAudioSinkStream::getHostSpan(void *audioData,
-                                     int numFrames) const noexcept QT_MM_NONBLOCKING
+                                     int numFrames) const noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     qsizetype byteAmount = m_hostFormat ? m_hostFormat->bytesForFrames(numFrames)
                                         : m_format.bytesForFrames(numFrames);
@@ -207,7 +210,7 @@ QAndroidAudioSinkStream::getHostSpan(void *audioData,
 
 aaudio_data_callback_result_t
 QAndroidAudioSinkStream::processRingbuffer(QSpan<std::byte> audioSpan,
-                                           int numFrames) noexcept QT_MM_NONBLOCKING
+                                           int numFrames) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     auto consumedFrames = m_hostFormat
             ? QPlatformAudioSinkStream::process(
@@ -221,7 +224,7 @@ QAndroidAudioSinkStream::processRingbuffer(QSpan<std::byte> audioSpan,
 }
 
 aaudio_data_callback_result_t
-QAndroidAudioSinkStream::processCallback(QSpan<std::byte> audioSpan) noexcept QT_MM_NONBLOCKING
+QAndroidAudioSinkStream::processCallback(QSpan<std::byte> audioSpan) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     if (isStopRequested())
         return AAUDIO_CALLBACK_RESULT_STOP;

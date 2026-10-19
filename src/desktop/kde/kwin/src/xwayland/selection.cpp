@@ -134,6 +134,8 @@ void Selection::setWlSource(AbstractDataSource *source)
     m_waylandSource = source;
     if (source) {
         m_xSource.reset();
+        // discard any incoming targets for pending requests, as they are now outdated
+        m_requestTargetsTimestamp.reset();
     }
 
     ownSelection(m_waylandSource != nullptr);
@@ -141,6 +143,7 @@ void Selection::setWlSource(AbstractDataSource *source)
 
 void Selection::requestTargets()
 {
+    m_requestTargetsTimestamp = m_timestamp;
     // will lead to a selection request event for the new owner
     xcb_convert_selection(kwinApp()->x11Connection(), m_window, m_atom, atoms->targets, atoms->wl_selection, m_timestamp);
 }
@@ -169,7 +172,7 @@ void Selection::ownSelection(bool own)
 
 bool Selection::handleSelectionRequest(xcb_selection_request_event_t *event)
 {
-    if (event->selection != m_atom) {
+    if (event->selection != m_atom || event->owner != m_window) {
         return false;
     }
 
@@ -180,14 +183,9 @@ bool Selection::handleSelectionRequest(xcb_selection_request_event_t *event)
         return true;
     }
 
-    if (m_window != event->owner || !m_waylandSource) {
-        if (event->time < m_timestamp) {
-            // cancel earlier attempts at receiving a selection
-            // TODO: is this for sure without problems?
-            sendSelectionNotify(event, false);
-            return true;
-        }
-        return false;
+    if (!m_waylandSource) {
+        sendSelectionNotify(event, false);
+        return true;
     }
 
     if (event->target == atoms->targets) {
@@ -303,6 +301,9 @@ bool Selection::handleSelectionTargets(xcb_selection_notify_event_t *event)
     if (event->property == XCB_ATOM_NONE) {
         return true;
     }
+    if (event->time != m_requestTargetsTimestamp) {
+        return true;
+    }
 
     xcb_connection_t *xcbConn = kwinApp()->x11Connection();
     xcb_get_property_cookie_t cookie = xcb_get_property(xcbConn, 1, m_window, atoms->wl_selection, XCB_GET_PROPERTY_TYPE_ANY, 0, 4096);
@@ -411,16 +412,15 @@ void Selection::startTimeoutTransfersTimer()
     if (m_timeoutTransfers) {
         return;
     }
-    m_timeoutTransfers = new QTimer(this);
-    connect(m_timeoutTransfers, &QTimer::timeout, this, &Selection::timeoutTransfers);
+    m_timeoutTransfers = std::make_unique<QTimer>();
+    connect(m_timeoutTransfers.get(), &QTimer::timeout, this, &Selection::timeoutTransfers);
     m_timeoutTransfers->start(5000);
 }
 
 void Selection::endTimeoutTransfersTimer()
 {
     if (m_xToWlTransfers.isEmpty() && m_wlToXTransfers.isEmpty()) {
-        delete m_timeoutTransfers;
-        m_timeoutTransfers = nullptr;
+        m_timeoutTransfers.reset();
     }
 }
 

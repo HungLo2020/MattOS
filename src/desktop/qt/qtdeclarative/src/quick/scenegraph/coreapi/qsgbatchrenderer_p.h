@@ -2,6 +2,7 @@
 // Copyright (C) 2016 Jolla Ltd, author: <gunnar.sletta@jollamobile.com>
 // Copyright (C) 2016 Robin Burchell <robin.burchell@viroteck.net>
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QSGBATCHRENDERER_P_H
 #define QSGBATCHRENDERER_P_H
@@ -23,6 +24,7 @@
 #include <private/qsgrendernode_p.h>
 #include <private/qdatabuffer_p.h>
 #include <private/qsgtexture_p.h>
+#include <private/qsgnode_p.h>
 
 #include <QtCore/QBitArray>
 #include <QtCore/QElapsedTimer>
@@ -277,12 +279,14 @@ struct Element {
         , orphaned(false)
         , isRenderNode(false)
         , isMaterialBlended(false)
+        , mutabilityGroup(0)
     {
     }
 
     void setNode(QSGGeometryNode *n) {
         node = n;
         isMaterialBlended = hasMaterialWithBlending(n);
+        mutabilityGroup = QSGNodePrivate::mutabilityGroup(n);
     }
 
     inline void ensureBoundsValid() {
@@ -310,6 +314,7 @@ struct Element {
     uint orphaned : 1;
     uint isRenderNode : 1;
     uint isMaterialBlended : 1;
+    uint mutabilityGroup : 4;
 };
 
 struct RenderNodeElement : public Element {
@@ -818,7 +823,7 @@ private:
     bool ensurePipelineState(Element *e, const ShaderManager::Shader *sms, bool depthPostPass = false);
     QRhiTexture *dummyTexture();
     void updateMaterialDynamicData(ShaderManager::Shader *sms, QSGMaterialShader::RenderState &renderState,
-                                   QSGMaterial *material, const Batch *batch, Element *e, int ubufOffset, int ubufRegionSize,
+                                   QSGMaterial *material, const Batch *batch, Element *e, int ubufOffset,
                                    char *directUpdatePtr);
     void updateMaterialStaticData(ShaderManager::Shader *sms, QSGMaterialShader::RenderState &renderState,
                                   QSGMaterial *material, Batch *batch, bool *gstateChanged);

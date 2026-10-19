@@ -17,7 +17,7 @@ class Firefox : public QObject, public Browser
 {
     Q_OBJECT
 public:
-    explicit Firefox(const QString &firefoxConfigDir, QObject *parent = nullptr);
+    explicit Firefox(const QString &firefoxConfigDir);
     ~Firefox() override;
     QList<BookmarkMatch> match(const QString &term, bool addEverything) override;
 public Q_SLOTS:
@@ -29,7 +29,6 @@ private:
     QString m_dbFile_fav;
     const QString m_dbCacheFile;
     const QString m_dbCacheFile_fav;
-    Favicon *m_favicon;
-    FetchSqlite *m_fetchsqlite;
-    FetchSqlite *m_fetchsqlite_fav;
+    std::unique_ptr<Favicon> m_favicon;
+    std::unique_ptr<FetchSqlite> m_fetchsqlite;
 };

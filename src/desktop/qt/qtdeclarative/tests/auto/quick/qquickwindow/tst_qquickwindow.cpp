@@ -2213,7 +2213,7 @@ void tst_qquickwindow::requestActivate()
     QVERIFY(item);
 
     //copied from src/qmltest/quicktestevent.cpp
-    QPoint pos = item->mapToScene(QPointF(item->width()/2, item->height()/2)).toPoint();
+    QPointF pos = item->mapToScene(QPointF(item->width()/2, item->height()/2));
 
     {
         QMouseEvent me(QEvent::MouseButtonPress, pos, window1->mapToGlobal(pos), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
@@ -3081,7 +3081,7 @@ public:
 
     // Used for building events.
     QMimeData data;
-    QPoint pos;
+    QPointF pos;
     Qt::DropActions actions;
     Qt::MouseButtons buttons;
     Qt::KeyboardModifiers modifiers;

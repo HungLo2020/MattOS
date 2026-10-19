@@ -20,12 +20,112 @@
 #include <private/qqmlengine_p.h>
 #include <private/qqmltypedata_p.h>
 #include <private/qqmlcomponentattached_p.h>
+#include <private/qmetaobjectbuilder_p.h>
 #include <QQmlAbstractUrlInterceptor>
 #include <QtQuickTestUtils/private/qmlutils_p.h>
 
 #include "declarativelyregistered.h"
 
 Q_IMPORT_QML_PLUGIN(OnlyDeclarativePlugin)
+
+namespace {
+// A value type that wraps a QObject* as its first member and has a non-trivial
+// destructor. This mimics the hand-registered "smart pointer to QObject"
+// metatypes used by bindings such as QtJambi (QTBUG-147835): its QMetaType is
+// made to report BOTH QMetaType::NeedsDestruction and QMetaType::PointerToQObject.
+struct QObjectSmartWrapper
+{
+    QObject *obj = nullptr;
+    ~QObjectSmartWrapper() {}
+};
+
+// Build a QMetaType for QObjectSmartWrapper that additionally carries the
+// PointerToQObject flag, as a foreign language binding would register it.
+static QMetaType smartWrapperMetaType()
+{
+    // Clone the auto-generated interface (correct size/ctors/dtor, hence
+    // NeedsDestruction) and OR in PointerToQObject, with a distinct name and a
+    // fresh type id. QMetaTypeInterface holds a non-copyable atomic, so we must
+    // aggregate-initialize in place rather than copy it.
+    static const QtPrivate::QMetaTypeInterface *base =
+            QMetaType::fromType<QObjectSmartWrapper>().iface();
+    static QtPrivate::QMetaTypeInterface iface {
+        base->revision, base->alignment, base->size,
+        base->flags | uint(QMetaType::PointerToQObject),
+        { 0 }, // typeId: registered on first use
+        base->metaObjectFn, "QObjectSmartWrapper",
+        base->defaultCtr, base->copyCtr, base->moveCtr, base->dtor,
+        base->equals, base->lessThan, base->debugStream,
+        base->dataStreamOut, base->dataStreamIn, base->legacyRegisterOp
+    };
+    return QMetaType(&iface);
+}
+
+// A QObject with a dynamic meta object exposing a single invokable method,
+// makeAdoptee(), whose return metatype is the both-flags smartWrapperMetaType().
+// Calling it from JS drives QObjectMethod::callPrecise()'s return-value handling.
+class SmartWrapperReturner : public QObject
+{
+public:
+    SmartWrapperReturner()
+    {
+        // Register the metatype (id + name) so the builder can resolve the return
+        // type name "QObjectSmartWrapper" below.
+        smartWrapperMetaType().registerType();
+        QMetaObjectBuilder builder;
+        builder.setClassName("SmartWrapperReturner");
+        builder.setSuperClass(&QObject::staticMetaObject);
+        builder.addMethod("makeAdoptee()", "QObjectSmartWrapper");
+        m_meta = builder.toMetaObject();
+    }
+    ~SmartWrapperReturner() override { free(m_meta); }
+
+    const QMetaObject *metaObject() const override { return m_meta; }
+    void *qt_metacast(const char *name) override
+    {
+        if (name && !strcmp(name, "SmartWrapperReturner"))
+            return this;
+        return QObject::qt_metacast(name);
+    }
+    int qt_metacall(QMetaObject::Call c, int id, void **a) override
+    {
+        id = QObject::qt_metacall(c, id, a);
+        if (id < 0)
+            return id;
+        const int ownMethods = m_meta->methodCount() - m_meta->methodOffset();
+        if (c == QMetaObject::InvokeMetaMethod) {
+            if (id == 0) {
+                adoptee = new QObject; // no parent: defaults to CppOwnership
+                if (a[0])
+                    *reinterpret_cast<QObjectSmartWrapper *>(a[0]) = QObjectSmartWrapper{ adoptee };
+            }
+            id -= ownMethods;
+        }
+        return id;
+    }
+
+    QObject *adoptee = nullptr;
+
+private:
+    QMetaObject *m_meta = nullptr;
+};
+} // namespace
+
+// A plain QObject exposing an invokable that returns a QObject wrapped in a
+// QVariant. This mirrors the QTBUG-147835 reporter's case: a factory method whose
+// declared return type is QVariant, carrying a raw QObject* inside it.
+class VariantObjectReturner : public QObject
+{
+    Q_OBJECT
+public:
+    Q_INVOKABLE QVariant makeAdoptee()
+    {
+        adoptee = new QObject; // no parent: defaults to CppOwnership
+        return QVariant::fromValue(adoptee);
+    }
+
+    QObject *adoptee = nullptr;
+};
 
 class tst_qqmlengine : public QQmlDataTest
 {
@@ -53,6 +153,8 @@ private slots:
     void failedCompilation_data();
     void outputWarningsToStandardError();
     void objectOwnership();
+    void objectFromSmartWrapperIsAdopted();
+    void objectFromVariantWrapperIsAdopted();
     void multipleEngines();
     void qtqmlModule_data();
     void qtqmlModule();
@@ -65,6 +167,7 @@ private slots:
     void qrcUrls();
     void cppSignalAndEval();
     void singletonInstance();
+    void setExternalSingletonInstance();
     void aggressiveGc();
     void cachedGetterLookup_qtbug_75335();
     void createComponentOnSingletonDestruction();
@@ -127,6 +230,11 @@ public:
 };
 
 uint CppSingleton::instantiations = 0;
+
+class InheritedCppSingleton : public CppSingleton {
+    Q_OBJECT
+public:
+};
 
 class JsSingleton : public QObject {
     Q_OBJECT
@@ -888,6 +996,49 @@ void tst_qqmlengine::objectOwnership()
     }
 }
 
+// QTBUG-147835: a QObject returned from an invokable inside a value wrapper whose
+// metatype is both NeedsDestruction and PointerToQObject must still be adopted by
+// the engine (JavaScriptOwnership). The regression made the two cases mutually
+// exclusive, so such an object was only destructed and never adopted.
+void tst_qqmlengine::objectFromSmartWrapperIsAdopted()
+{
+    QQmlEngine engine;
+
+    SmartWrapperReturner returner;
+    QJSValue js = engine.newQObject(&returner);
+    QQmlEngine::setObjectOwnership(&returner, QQmlEngine::CppOwnership);
+    engine.globalObject().setProperty("returner", js);
+
+    QJSValue result = engine.evaluate(QStringLiteral("returner.makeAdoptee()"));
+    QVERIFY2(!result.isError(), qPrintable(result.toString()));
+
+    QVERIFY(returner.adoptee != nullptr);
+    // With the bug present the wrapper is only destructed, so the QObject keeps its
+    // default C++ ownership; with the fix it is adopted as JavaScript-owned.
+    QCOMPARE(QQmlEngine::objectOwnership(returner.adoptee), QQmlEngine::JavaScriptOwnership);
+}
+
+// QTBUG-147835: a QObject returned from an invokable wrapped in a QVariant must be
+// adopted by the engine (JavaScriptOwnership), just like a directly returned
+// QObject*. QVariant-wrapping is treated transparently. A 6.12 refactoring of
+// QObjectMethod::callPrecise() stopped inspecting the type contained in the
+// returned QVariant, so such objects kept their default C++ ownership.
+void tst_qqmlengine::objectFromVariantWrapperIsAdopted()
+{
+    QQmlEngine engine;
+
+    VariantObjectReturner returner;
+    QJSValue js = engine.newQObject(&returner);
+    QQmlEngine::setObjectOwnership(&returner, QQmlEngine::CppOwnership);
+    engine.globalObject().setProperty("returner", js);
+
+    QJSValue result = engine.evaluate(QStringLiteral("returner.makeAdoptee()"));
+    QVERIFY2(!result.isError(), qPrintable(result.toString()));
+
+    QVERIFY(returner.adoptee != nullptr);
+    QCOMPARE(QQmlEngine::objectOwnership(returner.adoptee), QQmlEngine::JavaScriptOwnership);
+}
+
 // Test an object can be accessed by multiple engines
 void tst_qqmlengine::multipleEngines()
 {
@@ -1344,15 +1495,19 @@ void tst_qqmlengine::singletonInstance()
     {
         // Invalid types
         QJSValue value;
+        QTest::ignoreMessage(QtMsgType::QtWarningMsg, "Singleton instance: type with id -4711 is not valid");
         value = engine.singletonInstance<QJSValue>(-4711);
         QVERIFY(value.isUndefined());
+        QTest::ignoreMessage(QtMsgType::QtWarningMsg, "Singleton instance: type with id 1701 is not valid");
         value = engine.singletonInstance<QJSValue>(1701);
         QVERIFY(value.isUndefined());
     }
 
     {
         // Valid, but non-singleton type
-        int typeId = qmlRegisterType<CppSingleton>("Test", 1, 0, "NotASingleton");
+        const int typeId = qmlRegisterType<CppSingleton>("Test", 1, 0, "NotASingleton");
+        const QString expectedMessage = QString("Singleton instance: type \"NotASingleton\" with id %1 is not declared as a singleton type").arg(typeId);
+        QTest::ignoreMessage(QtWarningMsg, qPrintable(expectedMessage));
         QJSValue value = engine.singletonInstance<QJSValue>(typeId);
         QVERIFY(value.isUndefined());
     }
@@ -1379,6 +1534,113 @@ void tst_qqmlengine::singletonInstance()
         QTest::ignoreMessage(QtMsgType::QtWarningMsg, "<Unknown File>: The registered singleton has already been deleted. Ensure that it outlives the engine.");
         QObject *instance = engine.singletonInstance<QObject*>(id);
         QVERIFY(!instance);
+    }
+}
+
+void tst_qqmlengine::setExternalSingletonInstance()
+{
+    int cppSingletonTypeId = qmlRegisterSingletonType<CppSingleton>("Test", 1, 0, "CppSingleton", &CppSingleton::create);
+
+    { // basics: using module and type name
+        QScopedPointer<CppSingleton> s(new CppSingleton);
+        QPointer<CppSingleton> s_check(s.get());
+        {
+            QQmlEngine engine;
+            QVERIFY(engine.setExternalSingletonInstance("Test", "CppSingleton", s.get()));
+            QCOMPARE(engine.singletonInstance<CppSingleton*>("Test", "CppSingleton"), s.get());
+        } //let engine go out of scope
+        QVERIFY(!s_check.isNull()); //engine didn't delete the singleton
+    }
+
+    { // declarative singleton type
+        QScopedPointer<PurelyDeclarativeSingleton> s(new PurelyDeclarativeSingleton);
+        QPointer<PurelyDeclarativeSingleton> s_check(s.get());
+        {
+            QQmlEngine engine;
+            QVERIFY(engine.setExternalSingletonInstance("OnlyDeclarative", "PurelyDeclarativeSingleton", s.get()));
+            QCOMPARE(engine.singletonInstance<PurelyDeclarativeSingleton*>("OnlyDeclarative", "PurelyDeclarativeSingleton"), s.get());
+        } //let engine go out of scope
+        QVERIFY(!s_check.isNull()); //engine didn't delete the singleton
+    }
+
+    { // respect explicit ownership
+        QPointer<CppSingleton> s(new CppSingleton());
+        {
+            QQmlEngine engine;
+            engine.setObjectOwnership(s.get(), QQmlEngine::JavaScriptOwnership);
+            QVERIFY(engine.setExternalSingletonInstance("Test", "CppSingleton", s.get()));
+            QCOMPARE(engine.singletonInstance<CppSingleton*>("Test", "CppSingleton"), s.get());
+        } //let engine go out of scope
+        QVERIFY(s.isNull()); //engine DID delete the singleton
+    }
+
+    { // set a derived type as the singleton instance
+        QScopedPointer<InheritedCppSingleton> s(new InheritedCppSingleton);
+        QPointer<InheritedCppSingleton> s_check(s.get());
+        {
+            QQmlEngine engine;
+            QVERIFY(engine.setExternalSingletonInstance("Test", "CppSingleton", s.get()));
+            QCOMPARE(engine.singletonInstance<CppSingleton*>("Test", "CppSingleton"), s.get());
+        } //let engine go out of scope
+        QVERIFY(!s_check.isNull()); //engine didn't delete the singleton
+    }
+
+    { // declarative singleton type that engine can't instantiate by itself
+        QScopedPointer<UncreatableDeclarativeSingleton> s(new UncreatableDeclarativeSingleton(42));
+        QPointer<UncreatableDeclarativeSingleton> s_check(s.get());
+        {
+            QQmlEngine engine;
+            QVERIFY(engine.setExternalSingletonInstance("OnlyDeclarative", "ProvidedSingleton", s.get()));
+            QCOMPARE(engine.singletonInstance<UncreatableDeclarativeSingleton*>("OnlyDeclarative", "ProvidedSingleton"), s.get());
+        } //let engine go out of scope
+        QVERIFY(!s_check.isNull()); //engine didn't delete the singleton
+    }
+
+    { // foreign declarative singleton type that engine can't instantiate by itself
+        QScopedPointer<CppObject> s(new CppObject);
+        QPointer<CppObject> s_check(s.get());
+        {
+            QQmlEngine engine;
+            QVERIFY(engine.setExternalSingletonInstance("OnlyDeclarative", "ForeignSingleton", s.get()));
+            QCOMPARE(engine.singletonInstance<CppObject*>("OnlyDeclarative", "ForeignSingleton"), s.get());
+        } //let engine go out of scope
+        QVERIFY(!s_check.isNull()); //engine didn't delete the singleton
+    }
+
+    // error conditions
+    { // can't set singleton if one was already created
+        QScopedPointer<CppSingleton> s(new CppSingleton);
+        QQmlEngine engine;
+        // first get the singleton (thus creating it)
+        const auto engineCreatedSingleton = engine.singletonInstance<CppSingleton*>(cppSingletonTypeId);
+        // attempt to set the singleton fails
+        QTest::ignoreMessage(QtWarningMsg, "Error setting singleton instance: there already is an instance for this singleton");
+        QVERIFY(!engine.setExternalSingletonInstance("Test", "CppSingleton", s.get()));
+        // singleton didn't change and isn't the instance created above
+        QCOMPARE(engine.singletonInstance<CppSingleton*>(cppSingletonTypeId), engineCreatedSingleton);
+        QCOMPARE_NE(engine.singletonInstance<CppSingleton*>(cppSingletonTypeId), s.get());
+    }
+
+    { // can't set nullptr as the singleton instance
+        QQmlEngine engine;
+        QTest::ignoreMessage(QtWarningMsg, "Error setting singleton instance: the instance cannot be a nullptr");
+        QVERIFY(!engine.setExternalSingletonInstance("Test", "CppSingleton", nullptr));
+    }
+
+    { // can't set another type as the singleton instance
+        QQmlEngine engine;
+        QObject o;
+        QTest::ignoreMessage(QtWarningMsg, "Error setting singleton instance: the meta type of the instance QObject does not match the type of the registered singleton CppSingleton");
+        QVERIFY(!engine.setExternalSingletonInstance("Test", "CppSingleton", &o));
+    }
+
+    { // invalid module or type name
+        QQmlEngine engine;
+        QScopedPointer<CppSingleton> s(new CppSingleton);
+        QTest::ignoreMessage(QtWarningMsg, "Error setting singleton instance: type SomeNonsense in module Test is not valid");
+        QVERIFY(!engine.setExternalSingletonInstance("Test", "SomeNonsense", s.get()));
+        QTest::ignoreMessage(QtWarningMsg, "Error setting singleton instance: type CppSingleton in module NonsenseModule is not valid");
+        QVERIFY(!engine.setExternalSingletonInstance("NonsenseModule", "CppSingleton", s.get()));
     }
 }
 

@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+import QtQuick
+import QtQuick.Templates as T
+
+import org.kde.union.impl as Union
+
+Item {
+    id: root
+
+    required property T.AbstractButton control
+
+    property int wrapMode: control.Union.Style.properties.text.wrapMode ?? Text.NoWrap
+    property int elide: control.Union.Style.properties.text.elide ?? Text.ElideRight
+
+    Union.PositionedItem.positionChildren: true
+    Union.Mnemonics.enabled: root.control.enabled && root.control.visible
+    Union.Mnemonics.controlType: Union.Mnemonics.ActionElement
+    Union.Mnemonics.label: root.control.text
+
+    Union.Icon {
+        Union.PositionedItem.source: Union.PositionerSource.Icon
+        Union.PositionedItem.minimumWidth: control.icon?.width ?? 0.0
+        Union.PositionedItem.minimumHeight: control.icon?.height ?? 0.0
+        control: root.control
+        visible: (name || source.toString()) && root.control.display != T.AbstractButton.TextOnly
+    }
+
+    Text {
+        Union.PositionedItem.source: Union.PositionerSource.Text
+
+        text: root.Union.Mnemonics.richTextLabel ?? root.control.text
+        font: root.control.font
+        color: Union.Style.properties.text.color ?? "black"
+        elide: root.wrapMode == Text.NoWrap ? root.elide : Text.ElideNone
+        wrapMode: root.wrapMode
+
+        visible: root.control.display != T.AbstractButton.IconOnly && text.length > 0
+
+        horizontalAlignment: {
+            // TODO: Temporary fix for horizontal text alignment, until we have a proper text alignment
+            // property in the data model.
+            if (root.control.Union.Style.properties.text.alignment.vertical == Union.Alignment.StackCenter) {
+                return Qt.AlignCenter
+            }
+
+            if (root.control.Union.Style.properties.text.alignment.vertical == Union.Alignment.StackFill) {
+                return Qt.AlignJustify
+            }
+
+            return Qt.AlignLeft
+        }
+    }
+}

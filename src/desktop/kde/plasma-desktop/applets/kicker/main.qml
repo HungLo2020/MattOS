@@ -9,15 +9,12 @@ import QtQuick
 import QtQuick.Layouts
 
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasmoid
 import org.kde.plasma.private.kicker as Kicker
 
 PlasmoidItem {
     id: kicker
-
-    anchors.fill: parent
 
     signal reset
     signal modelRefreshed
@@ -37,10 +34,8 @@ PlasmoidItem {
         ItemListDialog {}
     }
 
-    property Item dragSource: null
-
-    property Kicker.KAStatsFavoritesModel globalFavorites: rootModel.favoritesModel as Kicker.KAStatsFavoritesModel
-    property Kicker.SimpleFavoritesModel systemFavorites: rootModel.systemFavoritesModel as Kicker.SimpleFavoritesModel
+    property Kicker.KAStatsFavoritesModel globalFavorites: rootModelInstance.favoritesModel as Kicker.KAStatsFavoritesModel
+    property Kicker.SimpleFavoritesModel systemFavorites: rootModelInstance.systemFavoritesModel as Kicker.SimpleFavoritesModel
 
     Plasmoid.icon: Plasmoid.configuration.useCustomButtonImage ? Plasmoid.configuration.customButtonImage : Plasmoid.configuration.icon
 
@@ -67,8 +62,8 @@ PlasmoidItem {
         MenuRepresentation {
             globalFavorites: kicker.globalFavorites
             systemFavorites: kicker.systemFavorites
-            rootModel: rootModel
-            runnerModel: runnerModel
+            rootModel: rootModelInstance
+            runnerModel: runnerModelInstance
             onInteractionConcluded: kicker.expanded = false
         }
     }
@@ -78,21 +73,23 @@ PlasmoidItem {
         DashboardRepresentation {
             globalFavorites: kicker.globalFavorites
             systemFavorites: kicker.systemFavorites
-            rootModel: rootModel
-            runnerModel: runnerModel
+            rootModel: rootModelInstance
+            runnerModel: runnerModelInstance
             onInteractionConcluded: toggle()
         }
     }
 
     Kicker.RootModel {
-        id: rootModel
+        id: rootModelInstance
 
         autoPopulate: false
 
         appNameFormat: kicker.isDash ? 0 : Plasmoid.configuration.appNameFormat // appNameFormat = 0 -> AppName Only
         flat: kicker.isDash || Plasmoid.configuration.limitDepth
         sorted: Plasmoid.configuration.alphaSort
-        showSeparators: !kicker.isDash
+        showSeparators: !kicker.isDash && !sorted
+        showRootSeparator: !kicker.isDash
+        highlightNewlyInstalledApps: Plasmoid.configuration.highlightNewlyInstalledApps
         // TODO: appletInterface property now can be ported to "applet" and have the real Applet* assigned directly
         appletInterface: kicker
 
@@ -101,6 +98,7 @@ PlasmoidItem {
         showTopLevelItems: !kicker.isDash
         showRecentApps: Plasmoid.configuration.showRecentApps
         showRecentDocs: Plasmoid.configuration.showRecentDocs
+        showRecentFolders: Plasmoid.configuration.showRecentFolders
         recentOrdering: Plasmoid.configuration.recentOrdering
 
         onShowRecentAppsChanged: {
@@ -128,14 +126,6 @@ PlasmoidItem {
     }
 
     Connections {
-        target: kicker.globalFavorites
-
-        function onFavoritesChanged() {
-            Plasmoid.configuration.favoriteApps = kicker.globalFavorites.favorites;
-        }
-    }
-
-    Connections {
         target: kicker.systemFavorites
 
         function onFavoritesChanged() {
@@ -146,17 +136,13 @@ PlasmoidItem {
     Connections {
         target: Plasmoid.configuration
 
-        function onFavoriteAppsChanged() {
-            kicker.globalFavorites.favorites = Plasmoid.configuration.favoriteApps;
-        }
-
         function onFavoriteSystemActionsChanged() {
             kicker.systemFavorites.favorites = Plasmoid.configuration.favoriteSystemActions;
         }
     }
 
     Kicker.RunnerModel {
-        id: runnerModel
+        id: runnerModelInstance
 
         appletInterface: kicker
 
@@ -188,10 +174,6 @@ PlasmoidItem {
         id: processRunner
     }
 
-    Kicker.WindowSystem { // only for X11; TODO Plasma 6.8: remove (also from plasma-workspace)
-        id: windowSystem
-    }
-
     Connections {
         target: kicker
 
@@ -200,10 +182,6 @@ PlasmoidItem {
                 kicker.reset();
             }
         }
-    }
-
-    function resetDragSource() {
-        dragSource = null;
     }
 
     Plasmoid.contextualActions: [
@@ -220,8 +198,6 @@ PlasmoidItem {
             Plasmoid.activationTogglesExpanded = !kicker.isDash
         }
 
-        rootModel.refreshed.connect(modelRefreshed);
-
-        dragHelper.dropped.connect(resetDragSource);
+        rootModelInstance.refreshed.connect(modelRefreshed);
     }
 }

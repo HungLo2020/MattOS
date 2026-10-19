@@ -95,8 +95,8 @@ import org.kde.kirigami.primitives as Primitives
 
           icon.name: "network-disconnect"
           text: "Unable to load content"
-          explanation: "Please try again later."
-                       " Visit <a href="https://foo.com/com>this link</a> for more details."
+          explanation: "Please try again later." +
+                       " Visit <a href='https://foo.com/com'>this link</a> for more details."
           onLinkActivated: link => Qt.openUrlExternally(link)
       }
   }

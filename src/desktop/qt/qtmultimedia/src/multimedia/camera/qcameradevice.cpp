@@ -19,9 +19,11 @@ using namespace Qt::StringLiterals;
 
     QCameraFormat represents a certain video format supported by a camera device.
 
+    //! [format-description]
     The format is a combination of a
     \l{QVideoFrameFormat::PixelFormat}{pixel format}, resolution and a range of frame
     rates.
+    //! [format-description]
 
     QCameraFormat objects can be queried from QCameraDevice to inspect the set of
     supported video formats.
@@ -41,9 +43,7 @@ using namespace Qt::StringLiterals;
 
     cameraFormat represents a certain video format supported by a camera device.
 
-    The format is a combination of a
-    \l{QVideoFrameFormat::PixelFormat}{pixel format}, resolution, and a range
-    of frame frates.
+    \include qcameradevice.cpp format-description
 
     cameraFormat objects can be queried from \l cameraDevice to inspect the set of
     supported video formats.
@@ -200,24 +200,21 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     availableCameras() and defaultCamera() functions. These are contained within
     QtMultimedia::MediaDevices.
 
-    The QCameraDevice instance retains its properties throughout its lifetime,
-    even if the corresponding physical device is disconnected or its settings are
-    modified. To keep track of updated properties, the user should load new instances
-    of QCameraDevice from \l{QMediaDevices} when the relevant signals are fired.
+    \include qdevice-retains-properties.qdocinc {retains-properties} {QCameraDevice} {QMediaDevices}
 
     This example prints the name of all available cameras:
 
-    \snippet multimedia-snippets/camera.cpp Camera listing
+    \snippet multimedia-snippets/camerasnippets.cpp Camera listing
 
     A QCameraDevice can be used to construct a QCamera. The following example
     instantiates a QCamera whose camera device is named \c {mycamera}:
 
-    \snippet multimedia-snippets/camera.cpp Camera selection
+    \snippet multimedia-snippets/camerasnippets.cpp Camera selection
 
     You can also use QCameraDevice to get general information about a camera
     device such as description and physical position on the system.
 
-    \snippet multimedia-snippets/camera.cpp Camera info
+    \snippet multimedia-snippets/camerasnippets.cpp Camera info
 
     \sa QCamera
 */
@@ -235,10 +232,7 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     The cameraDevice value type describes the properties of a camera device that
     is connected to the system.
 
-    The cameraDevice instance retains its properties throughout its lifetime,
-    even if the corresponding physical device is disconnected or its settings are
-    modified. To keep track of updated properties, the user should load new instances
-    of cameraDevice from \l{MediaDevices} when the relevant signals are fired.
+    \include qdevice-retains-properties.qdocinc {retains-properties} {cameraDevice} {MediaDevices}
 
     Two cameraDevice instances can be compared for equality. They are
     considered equal if they represent the same physical device,

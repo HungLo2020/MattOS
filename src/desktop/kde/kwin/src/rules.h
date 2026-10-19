@@ -61,24 +61,19 @@ public:
     bool checkKeepAbove(bool above, bool init = false) const;
     bool checkKeepBelow(bool below, bool init = false) const;
     bool checkFullScreen(bool fs, bool init = false) const;
-    bool checkNoBorder(bool noborder, bool init = false) const;
     DecorationPolicy checkDecorationPolicy(DecorationPolicy policy, bool init = false) const;
     QString checkDecoColor(QString schemeFile) const;
-    bool checkBlockCompositing(bool block) const;
     FocusStealingPreventionLevel checkFSP(FocusStealingPreventionLevel fsp) const;
     FocusStealingPreventionLevel checkFPP(FocusStealingPreventionLevel fpp) const;
     bool checkAcceptFocus(bool focus) const;
     bool checkCloseable(bool closeable) const;
-    bool checkAutogrouping(bool autogroup) const;
-    bool checkAutogroupInForeground(bool fg) const;
-    QString checkAutogroupById(QString id) const;
-    bool checkStrictGeometry(bool strict) const;
     QString checkShortcut(QString s, bool init = false) const;
     bool checkDisableGlobalShortcuts(bool disable) const;
     QString checkDesktopFile(QString desktopFile, bool init = false) const;
     Layer checkLayer(Layer layer) const;
     bool checkAdaptiveSync(bool adaptivesync) const;
     bool checkTearing(bool requestsTearing) const;
+    bool checkExcludeFromCapture(bool exclude, bool init = false) const;
 
 private:
     MaximizeMode checkMaximizeVert(MaximizeMode mode, bool init) const;
@@ -106,14 +101,14 @@ public:
         Above = 1 << 10,
         Below = 1 << 11,
         Fullscreen = 1 << 12,
-        NoBorder = 1 << 13,
+        DecorationPolicy = 1 << 13,
         OpacityActive = 1 << 14,
         OpacityInactive = 1 << 15,
         Activity = 1 << 16,
         Screen = 1 << 17,
         DesktopFile = 1 << 18,
         Layer = 1 << 19,
-        All = 0xffffffff
+        All = 0xffffffff,
     };
     Q_DECLARE_FLAGS(Types, Type)
     // All these values are saved to the cfg file, and are also used in kstart!
@@ -124,7 +119,13 @@ public:
         Apply, // apply only after initial mapping
         Remember, // like apply, and remember the value when the window is withdrawn
         ApplyNow, // apply immediately, then forget the setting
-        ForceTemporarily // apply and force until the window is withdrawn
+        ForceTemporarily, // apply and force until the window is withdrawn
+    };
+    enum BoolMatch {
+        UnimportantBoolMatch,
+        FirstBoolMatch = UnimportantBoolMatch,
+        ExactBoolMatch,
+        LastBoolMatch = ExactBoolMatch,
     };
     enum StringMatch {
         FirstStringMatch,
@@ -132,15 +133,15 @@ public:
         ExactMatch,
         SubstringMatch,
         RegExpMatch,
-        LastStringMatch = RegExpMatch
+        LastStringMatch = RegExpMatch,
     };
     enum SetRule {
         UnusedSetRule = Unused,
-        SetRuleDummy = 256 // so that it's at least short int
+        SetRuleDummy = 256, // so that it's at least short int
     };
     enum ForceRule {
         UnusedForceRule = Unused,
-        ForceRuleDummy = 256 // so that it's at least short int
+        ForceRuleDummy = 256, // so that it's at least short int
     };
     void write(RuleSettings *) const;
     bool isEmpty() const;
@@ -172,16 +173,12 @@ public:
     bool applyKeepAbove(bool &above, bool init) const;
     bool applyKeepBelow(bool &below, bool init) const;
     bool applyFullScreen(bool &fs, bool init) const;
-    bool applyNoBorder(bool &noborder, bool init) const;
+    bool applyDecorationPolicy(KWin::DecorationPolicy &policy, bool init) const;
     bool applyDecoColor(QString &schemeFile) const;
-    bool applyBlockCompositing(bool &block) const;
     bool applyFSP(FocusStealingPreventionLevel &fsp) const;
     bool applyFPP(FocusStealingPreventionLevel &fpp) const;
     bool applyAcceptFocus(bool &focus) const;
     bool applyCloseable(bool &closeable) const;
-    bool applyAutogrouping(bool &autogroup) const;
-    bool applyAutogroupInForeground(bool &fg) const;
-    bool applyAutogroupById(QString &id) const;
     bool applyStrictGeometry(bool &strict) const;
     bool applyShortcut(QString &shortcut, bool init) const;
     bool applyDisableGlobalShortcuts(bool &disable) const;
@@ -189,6 +186,7 @@ public:
     bool applyLayer(enum Layer &layer) const;
     bool applyAdaptiveSync(bool &adaptivesync) const;
     bool applyTearing(bool &tearing) const;
+    bool applyExcludeFromCapture(bool &exclude, bool init) const;
 
 private:
 #endif
@@ -198,7 +196,9 @@ private:
     bool matchTitle(const QString &match_title) const;
     bool matchClientMachine(const QString &match_machine, bool local) const;
     bool matchTag(const QString &match_tag) const;
+    bool matchTransientParent(const Window *transientParent) const;
 #ifdef KCMRULES
+
 private:
 #endif
     void readFromSettings(const RuleSettings *settings);
@@ -226,6 +226,8 @@ private:
     StringMatch clientmachinematch;
     QString tag;
     StringMatch tagmatch;
+    bool hastransientparent;
+    BoolMatch hastransientparentmatch;
     WindowTypes types; // types for matching
     PlacementPolicy placement;
     ForceRule placementrule;
@@ -267,12 +269,10 @@ private:
     SetRule belowrule;
     bool fullscreen;
     SetRule fullscreenrule;
-    bool noborder;
-    SetRule noborderrule;
+    KWin::DecorationPolicy decorationpolicy;
+    SetRule decorationpolicyrule;
     QString decocolor;
     ForceRule decocolorrule;
-    bool blockcompositing;
-    ForceRule blockcompositingrule;
     FocusStealingPreventionLevel fsplevel;
     FocusStealingPreventionLevel fpplevel;
     ForceRule fsplevelrule;
@@ -281,14 +281,6 @@ private:
     ForceRule acceptfocusrule;
     bool closeable;
     ForceRule closeablerule;
-    bool autogroup;
-    ForceRule autogrouprule;
-    bool autogroupfg;
-    ForceRule autogroupfgrule;
-    QString autogroupid;
-    ForceRule autogroupidrule;
-    bool strictgeometry;
-    ForceRule strictgeometryrule;
     QString shortcut;
     SetRule shortcutrule;
     bool disableglobalshortcuts;
@@ -299,6 +291,8 @@ private:
     ForceRule adaptivesyncrule;
     bool tearing;
     ForceRule tearingrule;
+    bool excludefromcapture;
+    SetRule excludefromcapturerule;
     friend QDebug &operator<<(QDebug &stream, const Rules *);
 };
 
@@ -306,6 +300,7 @@ private:
 class KWIN_EXPORT RuleBook : public QObject
 {
     Q_OBJECT
+
 public:
     explicit RuleBook();
     ~RuleBook() override;

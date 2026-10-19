@@ -18,5 +18,6 @@ Dependencies:
     'plasma/plasma-workspace': '@same'
 
 Options:
- cmake-options: "-DUID_MIN=1000 -DUID_MAX=60000"
+ require-passing-tests-on: ['@all']
  run-qmllint: true
+ enable-lsan: true

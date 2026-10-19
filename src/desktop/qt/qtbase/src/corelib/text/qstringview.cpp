@@ -281,9 +281,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn template <typename Char, size_t Size, QStringView::if_compatible_char<Char> = true> static QStringView QStringView::fromArray(const Char (&string)[Size]) noexcept
 
-    Constructs a string view on the full character string literal \a string,
-    including any trailing \c{Char(0)}. If you don't want the
-    null-terminator included in the view then you can chop() it off
+    Constructs a string view on the full character string literal \a string
+    of \a Size elements, including any trailing \c{Char(0)}. If you don't want
+    the null-terminator included in the view then you can chop() it off
     when you are certain it is at the end. Alternatively you can use
     the constructor overload taking an array literal which will create
     a view up to, but not including, the first null-terminator in the data.
@@ -585,7 +585,7 @@ QT_BEGIN_NAMESPACE
     Returns the substring of length \a length starting at position
     \a start in this object.
 
-    \deprecated Use sliced() instead in new code.
+    \deprecated [6.0] Use sliced() instead in new code.
 
     Returns an empty string view if \a start exceeds the
     length of the string view. If there are less than \a length characters
@@ -599,7 +599,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn QStringView QStringView::left(qsizetype length) const
 
-    \deprecated Use first() instead in new code.
+    \deprecated [6.0] Use first() instead in new code.
 
     Returns the substring of length \a length starting at position
     0 in this object.
@@ -613,7 +613,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn QStringView QStringView::right(qsizetype length) const
 
-    \deprecated Use last() instead in new code.
+    \deprecated [6.0] Use last() instead in new code.
 
     Returns the substring of length \a length starting at position
     size() - \a length in this object.

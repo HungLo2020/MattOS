@@ -1272,6 +1272,8 @@ void QEasingCurve::setOvershoot(qreal overshoot)
     be a valid easing curve.
     \a c1 and \a c2 are the control points used for drawing the curve.
     \a endPoint is the endpoint of the curve.
+
+    \sa fromCubicBezier()
  */
 void QEasingCurve::addCubicBezierSegment(const QPointF & c1, const QPointF & c2, const QPointF & endPoint)
 {
@@ -1473,6 +1475,30 @@ qreal QEasingCurve::valueForProgress(qreal progress) const
         return d_ptr->config->value(progress);
     else
         return progress;
+}
+
+/*!
+    Returns a cubic Bezier curve with the specified \a c1 and \a c2 control
+    points.
+
+    A cubic Bezier curve is defined by four control points: C0, C1, C2, and C3.
+    C0 and C3 correspond to the start and the end position, respectively. This
+    function returns a cubic Bezier curve whose start point C0 is fixed at (0, 0)
+    and the end point C3 is fixed at (1, 1).
+
+    This is a convenience helper, it is equivalent to calling
+    \e {addCubicBezierSegment(c1, c2, QPointF(1, 1))}. If you need to construct
+    a more complex cubic Bezier spline, use the addCubicBezierSegment() function
+    instead.
+
+    \sa addCubicBezierSegment()
+    \since 6.12
+*/
+QEasingCurve QEasingCurve::fromCubicBezier(QPointF c1, QPointF c2)
+{
+    QEasingCurve easingCurve(QEasingCurve::BezierSpline);
+    easingCurve.addCubicBezierSegment(c1, c2, QPointF(1, 1));
+    return easingCurve;
 }
 
 #ifndef QT_NO_DEBUG_STREAM

@@ -1,8 +1,8 @@
 /// KDE Frameworks and KPMCore are configured as native target consumers, not
 /// as generic host CMake projects.  ECM is deliberately the one exception:
 /// it supplies build-time CMake macros only and is checked explicitly below.
-const KDE_ECM_MIN_VERSION: (u32, u32, u32) = (6, 27, 0);
-const KDE_ECM_HOST_COMMIT: &str = "fa262097a48f0f84529498741afcc7040e93b271";
+const KDE_ECM_MIN_VERSION: (u32, u32, u32) = (6, 31, 0);
+const KDE_ECM_HOST_COMMIT: &str = "2958379fb49c71129f119ec17f88df0b5ea21550";
 const KDE_ECM_HOST_REPOSITORY: &str = "https://invent.kde.org/frameworks/extra-cmake-modules.git";
 const KDE_BOOST_HOST_VERSION: &str = "1.89.0";
 const KDE_BOOST_HOST_URL: &str = "https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.bz2";
@@ -86,11 +86,16 @@ fn kde_host_boost_include_dir(repo_root: &Path) -> Result<PathBuf> {
 }
 
 fn kde_host_ecm_dir(repo_root: &Path) -> Result<PathBuf> {
+    // Multiple ready KDE producers can reach the first bootstrap together.
+    // Hold one process lock until checkout AND installation are complete.
+    let lock_root = repo_root.join("out/host-tools/ecm-6.31.0-bootstrap");
+    fs::create_dir_all(&lock_root)?;
+    let _lock = ConsumerMirrorLock::acquire(repo_root, &lock_root)?;
     let configured = std::env::var_os("MATTOS_HOST_ECM_DIR").map(PathBuf::from);
     // Only the pinned ECM (or an explicit override) is trusted: a host ECM,
     // present on any KDE desktop, would make KDE outputs depend on the host.
     let candidates = configured.into_iter().chain([
-        repo_root.join("out/host-tools/ecm-6.27.0/share/ECM/cmake"),
+        repo_root.join("out/host-tools/ecm-6.31.0/share/ECM/cmake"),
     ]);
     for directory in candidates {
         let config = directory.join("ECMConfig.cmake");
@@ -112,9 +117,9 @@ fn kde_host_ecm_dir(repo_root: &Path) -> Result<PathBuf> {
         return Ok(directory);
     }
     let tools = repo_root.join("out/host-tools");
-    let source = tools.join("ecm-6.27.0-source");
-    let build = tools.join("ecm-6.27.0-build");
-    let install = tools.join("ecm-6.27.0");
+    let source = tools.join("ecm-6.31.0-source");
+    let build = tools.join("ecm-6.31.0-build");
+    let install = tools.join("ecm-6.31.0");
     fs::create_dir_all(&tools)?;
     let run = |cwd: &Path, program: &str, args: &[&str]| -> Result<()> {
         let status = std::process::Command::new(program).args(args).current_dir(cwd).status()
@@ -147,6 +152,7 @@ fn kde_host_ecm_dir(repo_root: &Path) -> Result<PathBuf> {
 fn kde_target_environment(
     repo_root: &Path,
     build: &Path,
+    consumer: &str,
     components: &[&str],
     qt_integration: bool,
 ) -> Result<Vec<(&'static str, String)>> {
@@ -201,6 +207,12 @@ fn kde_target_environment(
             environment.push((key, value));
         }
     }
+    // Resolve private DT_NEEDED edges only through declared graph ancestors.
+    // Do not broaden header/pkg-config discovery or host-tool runtime paths.
+    let flags = kde_transitive_link_flags(repo_root, consumer)?;
+    let (_, ldflags) = environment.iter_mut().find(|(key, _)| *key == "LDFLAGS")
+        .ok_or_else(|| anyhow!("KDE target environment has no linker flags"))?;
+    for flag in flags { ldflags.push(' '); ldflags.push_str(&flag); }
     // Build-only overrides, MattOS-built compilers and Binutils, then trusted
     // host build tools.
     let mut trusted_bins = vec![qt_build_tool_overrides(repo_root)?, qt_target_toolchain(repo_root)?.bin];
@@ -213,6 +225,35 @@ fn kde_target_environment(
     environment.retain(|(key, _)| *key != "PATH");
     environment.push(("PATH", std::env::join_paths(trusted_bins)?.to_string_lossy().into_owned()));
     Ok(environment)
+}
+
+fn kde_transitive_link_flags(repo_root: &Path, consumer: &str) -> Result<Vec<String>> {
+    let stages = stage_graph::all_build_stages().iter().copied()
+        .map(|stage| (stage_graph::stage_id(stage), stage)).collect::<BTreeMap<_, _>>();
+    let root = *stages.get(consumer).ok_or_else(|| anyhow!("unknown KDE consumer {consumer}"))?;
+    let mut pending = stage_graph::direct_dependencies(root).iter().map(|id| id.to_string()).collect::<Vec<_>>();
+    let mut visited = BTreeSet::new();
+    let mut directories = BTreeSet::new();
+    while let Some(id) = pending.pop() {
+        if !visited.insert(id.clone()) { continue; }
+        if let Some(stage) = stages.get(id.as_str()) {
+            pending.extend(stage_graph::direct_dependencies(*stage).iter().map(|id| id.to_string()));
+            for relative in ["install/usr/lib/x86_64-linux-gnu", "install/usr/lib"] {
+                let directory = repo_root.join("out/build").join(stage_output_directory(*stage)).join(relative);
+                if directory.is_dir() { directories.insert(directory); }
+            }
+        } else {
+            // These output-owned auxiliary nodes are defined by the same
+            // registry used by the canonical scheduler/cache.
+            let spec = match id.as_str() {
+                "formal-sysroot" => formal_sysroot_stage_spec(),
+                "linux-headers" => linux_headers_stage_spec(),
+                _ => bail!("unknown dependency {id} while resolving {consumer} libraries"),
+            };
+            pending.extend(spec.dependencies);
+        }
+    }
+    Ok(directories.into_iter().map(|directory| format!("-Wl,-rpath-link,{}", directory.display())).collect())
 }
 
 fn kde_target_prefixes(repo_root: &Path, components: &[&str]) -> Vec<PathBuf> {
@@ -235,7 +276,37 @@ fn kde_target_prefixes(repo_root: &Path, components: &[&str]) -> Vec<PathBuf> {
 /// module prefixes, so provide a disposable, symlink-only CMake view.  The
 /// target files remain owned by their Qt stages; this view contains no copied
 /// libraries or headers and is never packaged.
+/// Match CMake's numeric version requests rather than claiming every version
+/// is exact/compatible. The caller supplies a validated source/staged version.
+fn cmake_package_version(version: &str) -> String {
+    format!(r#"set(PACKAGE_VERSION "{version}")
+set(PACKAGE_VERSION_COMPATIBLE FALSE)
+set(PACKAGE_VERSION_EXACT FALSE)
+if(PACKAGE_FIND_VERSION VERSION_EQUAL PACKAGE_VERSION)
+  set(PACKAGE_VERSION_COMPATIBLE TRUE)
+  set(PACKAGE_VERSION_EXACT TRUE)
+elseif(PACKAGE_FIND_VERSION VERSION_LESS PACKAGE_VERSION)
+  set(PACKAGE_VERSION_COMPATIBLE TRUE)
+endif()
+"#)
+}
+
+fn staged_pkgconfig_version(prefix: &Path, package: &str) -> Result<String> {
+    let path = prefix.join("lib/x86_64-linux-gnu/pkgconfig").join(format!("{package}.pc"));
+    let text = fs::read_to_string(&path)
+        .with_context(|| format!("cannot read staged package version from {}", path.display()))?;
+    let versions = text.lines().filter_map(|line| line.strip_prefix("Version:").map(str::trim))
+        .collect::<Vec<_>>();
+    let version = match versions.as_slice() {
+        [version] if version.split('.').count() >= 2
+            && version.split('.').all(|part| !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit())) => *version,
+        _ => bail!("expected one numeric staged Version in {}", path.display()),
+    };
+    Ok(version.to_owned())
+}
+
 fn qt_multimodule_cmake_view(repo_root: &Path, build: &Path) -> Result<PathBuf> {
+    let qt_version = qt_source_version(repo_root)?;
     use std::os::unix::fs::symlink;
     fn link_tree(source: &Path, destination: &Path) -> Result<()> {
         if source.is_dir() {
@@ -366,11 +437,12 @@ fn qt_multimodule_cmake_view(repo_root: &Path, build: &Path) -> Result<PathBuf> 
     if xkb_package.exists() { fs::remove_dir_all(&xkb_package)?; }
     fs::create_dir_all(&xkb_package)?;
     let xkb_root = repo_root.join("out/build/xkbcommon/install/usr");
+    let xkb_version = staged_pkgconfig_version(&xkb_root, "xkbcommon")?;
     fs::write(xkb_package.join("XKBConfig.cmake"), format!(
-        "set(XKB_FOUND TRUE)\nset(XKB_VERSION 0.9.0)\nset(XKB_INCLUDE_DIR \"{}/include\")\nset(XKB_INCLUDE_DIRS \"{}/include\")\nset(XKB_LIBRARY \"{}/lib/x86_64-linux-gnu/libxkbcommon.so\")\nset(XKB_LIBRARIES \"${{XKB_LIBRARY}}\")\nif(NOT TARGET XKB::XKB)\n  add_library(XKB::XKB UNKNOWN IMPORTED)\n  set_target_properties(XKB::XKB PROPERTIES IMPORTED_LOCATION \"${{XKB_LIBRARY}}\" INTERFACE_INCLUDE_DIRECTORIES \"${{XKB_INCLUDE_DIR}}\")\nendif()\n",
+        "set(XKB_FOUND TRUE)\nset(XKB_VERSION {xkb_version})\nset(XKB_INCLUDE_DIR \"{}/include\")\nset(XKB_INCLUDE_DIRS \"{}/include\")\nset(XKB_LIBRARY \"{}/lib/x86_64-linux-gnu/libxkbcommon.so\")\nset(XKB_LIBRARIES \"${{XKB_LIBRARY}}\")\nif(NOT TARGET XKB::XKB)\n  add_library(XKB::XKB UNKNOWN IMPORTED)\n  set_target_properties(XKB::XKB PROPERTIES IMPORTED_LOCATION \"${{XKB_LIBRARY}}\" INTERFACE_INCLUDE_DIRECTORIES \"${{XKB_INCLUDE_DIR}}\")\nendif()\n",
         xkb_root.display(), xkb_root.display(), xkb_root.display()))?;
     fs::write(xkb_package.join("XKBConfigVersion.cmake"),
-        "set(PACKAGE_VERSION 0.9.0)\nset(PACKAGE_VERSION_COMPATIBLE TRUE)\nset(PACKAGE_VERSION_EXACT TRUE)\n")?;
+        cmake_package_version(&xkb_version))?;
     // QtWayland's generated private-target metadata uses the upstream
     // Wayland CMake package contract.  MattOS's Wayland stage publishes
     // pkg-config files, so adapt those same staged headers/libraries through
@@ -380,10 +452,11 @@ fn qt_multimodule_cmake_view(repo_root: &Path, build: &Path) -> Result<PathBuf> 
     if wayland_package.exists() { fs::remove_dir_all(&wayland_package)?; }
     fs::create_dir_all(&wayland_package)?;
     let wayland_root = repo_root.join("out/build/wayland/install/usr");
+    let wayland_version = staged_pkgconfig_version(&wayland_root, "wayland-client")?;
     // Use explicit targets because CMake variable-name case folding cannot
     // derive the lower-case library suffix portably.
     fs::write(wayland_package.join("WaylandConfig.cmake"), format!(
-        "set(Wayland_FOUND TRUE)\nset(Wayland_VERSION 1.26.0)\nset(Wayland_INCLUDE_DIR \"{}/include\")\nset(Wayland_INCLUDE_DIRS \"{}/include\")\n",
+        "set(Wayland_FOUND TRUE)\nset(Wayland_VERSION {wayland_version})\nset(Wayland_INCLUDE_DIR \"{}/include\")\nset(Wayland_INCLUDE_DIRS \"{}/include\")\n",
         wayland_root.display(), wayland_root.display()))?;
     for (name, library) in [("Client", "client"), ("Server", "server"), ("Cursor", "cursor"), ("Egl", "egl")] {
         let mut config = fs::read_to_string(wayland_package.join("WaylandConfig.cmake"))?;
@@ -391,7 +464,7 @@ fn qt_multimodule_cmake_view(repo_root: &Path, build: &Path) -> Result<PathBuf> 
         fs::write(wayland_package.join("WaylandConfig.cmake"), config)?;
     }
     fs::write(wayland_package.join("WaylandConfigVersion.cmake"),
-        "set(PACKAGE_VERSION 1.26.0)\nset(PACKAGE_VERSION_COMPATIBLE TRUE)\nset(PACKAGE_VERSION_EXACT TRUE)\n")?;
+        cmake_package_version(&wayland_version))?;
     let view_plugins = view_root.join("plugins");
     for provider in [
         repo_root.join("out/build/qtbase/install/usr/plugins"),
@@ -420,7 +493,7 @@ fn qt_multimodule_cmake_view(repo_root: &Path, build: &Path) -> Result<PathBuf> 
         ("Qt6CoreTools", format!(
             "set(Qt6CoreTools_FOUND TRUE)\nif(NOT TARGET Qt6::qtpaths)\n  add_executable(Qt6::qtpaths IMPORTED GLOBAL)\n  set_target_properties(Qt6::qtpaths PROPERTIES IMPORTED_LOCATION \"{}/bin/qtpaths\")\nendif()\n",
             view_root.display())),
-        ("Qt6QmlTools", "set(Qt6QmlTools_FOUND TRUE)\nset(PACKAGE_VERSION 6.11.2)\nset(PACKAGE_VERSION_COMPATIBLE TRUE)\nset(PACKAGE_VERSION_EXACT TRUE)\n".to_owned()),
+        ("Qt6QmlTools", "set(Qt6QmlTools_FOUND TRUE)\n".to_owned()),
     ] {
         let package = view.join(name);
         if let Ok(metadata) = fs::symlink_metadata(&package) {
@@ -431,7 +504,7 @@ fn qt_multimodule_cmake_view(repo_root: &Path, build: &Path) -> Result<PathBuf> 
         fs::create_dir_all(&package)?;
         fs::write(package.join(format!("{name}Config.cmake")), body)?;
         fs::write(package.join(format!("{name}ConfigVersion.cmake")),
-            "set(PACKAGE_VERSION 6.11.2)\nset(PACKAGE_VERSION_COMPATIBLE TRUE)\nset(PACKAGE_VERSION_EXACT TRUE)\n")?;
+            cmake_package_version(&qt_version))?;
     }
     let umbrella = view.join("Qt6");
     if umbrella.symlink_metadata().map(|m| m.file_type().is_symlink()).unwrap_or(false) {
@@ -468,9 +541,53 @@ fn qt_multimodule_cmake_view(repo_root: &Path, build: &Path) -> Result<PathBuf> 
     Ok(view)
 }
 
+/// CMake's cross-root find_file cannot use symlinked qmldir markers. Copy
+/// those tiny descriptors into real directories and link the payload; never
+/// write through a view directory symlink into a producer's installed tree.
+fn kde_target_qml_view(repo_root: &Path, build: &Path, components: &[&str]) -> Result<PathBuf> {
+    use std::os::unix::fs::symlink;
+    fn merge(source: &Path, destination: &Path) -> Result<()> {
+        if source.is_dir() {
+            fs::create_dir_all(destination)?;
+            for entry in fs::read_dir(source)? {
+                let entry = entry?;
+                merge(&entry.path(), &destination.join(entry.file_name()))?;
+            }
+        } else if destination.symlink_metadata().is_err() {
+            if source.file_name().is_some_and(|name| name == "qmldir") {
+                fs::copy(source, destination)?;
+            } else {
+                symlink(source, destination)?;
+            }
+        }
+        Ok(())
+    }
+    let root = build.join("mattos-qml");
+    remove_path_if_exists(&root)?;
+    let relative = "usr/lib/x86_64-linux-gnu/qml";
+    let destination = root.join(relative);
+    fs::create_dir_all(&destination)?;
+    for component in components {
+        // Standalone Qt modules install below usr/qml; KDE uses multiarch.
+        // Present both through the canonical target QML search directory.
+        for provider_relative in [relative, "usr/qml"] {
+            let source = repo_root.join("out/build").join(component).join("install").join(provider_relative);
+            if source.is_dir() { merge(&source, &destination)?; }
+        }
+    }
+    Ok(root)
+}
+
 fn kde_qt_tool_bridge(build: &Path) -> Result<PathBuf> {
+    use std::os::unix::fs::PermissionsExt;
     let bridge = build.join("mattos-qt-tool-bridge.cmake");
     let qtpaths = build.join("mattos-qt-cmake-view/bin/qtpaths");
+    // Qt's export precheck requires its complete tool target set, including
+    // deployment tools for unsupported platforms. Satisfy that metadata
+    // contract, but fail explicitly if a consumer actually tries to use one.
+    let unsupported = build.join("mattos-unsupported-qt-deployment-tool");
+    fs::write(&unsupported, "#!/bin/sh\necho 'MattOS builds Linux targets; this Qt deployment tool is unsupported' >&2\nexit 1\n")?;
+    fs::set_permissions(&unsupported, fs::Permissions::from_mode(0o755))?;
     let mut text = format!("set(Qt6CoreTools_FOUND TRUE)\nset(Qt6QmlTools_FOUND TRUE)\n");
     let x11_root = build.parent().and_then(Path::parent).unwrap_or(build).join("x11-compat/install/usr");
     text.push_str(&format!("if(NOT TARGET X11::X11)\n  add_library(X11::X11 UNKNOWN IMPORTED GLOBAL)\n  set_target_properties(X11::X11 PROPERTIES IMPORTED_LOCATION \"{}/lib/x86_64-linux-gnu/libX11.so\" INTERFACE_INCLUDE_DIRECTORIES \"{}/include\")\nendif()\n", x11_root.display(), x11_root.display()));
@@ -492,9 +609,11 @@ fn kde_qt_tool_bridge(build: &Path) -> Result<PathBuf> {
         ("qlalr", build.join("mattos-qt-cmake-view/libexec/qlalr")),
         ("qtpaths", qtpaths.clone()),
         ("qmake", build.join("mattos-qt-cmake-view/bin/qmake")),
-        ("androiddeployqt", qtpaths.clone()),
-        ("androidtestrunner", qtpaths.clone()),
-        ("wasmdeployqt", qtpaths.clone()),
+        ("androiddeployqt", unsupported.clone()),
+        ("androidtestrunner", unsupported.clone()),
+        ("wasmdeployqt", unsupported.clone()),
+        ("harmonydeployqt", unsupported.clone()),
+        ("harmonyostestrunner", unsupported.clone()),
     ] {
         text.push_str(&format!("if(NOT TARGET Qt6::{name})\n  add_executable(Qt6::{name} IMPORTED GLOBAL)\n  set_target_properties(Qt6::{name} PROPERTIES IMPORTED_LOCATION \"{}\")\nendif()\n", path.display()));
     }
@@ -506,7 +625,7 @@ fn kde_qt_tool_bridge(build: &Path) -> Result<PathBuf> {
 /// data. They are generators, not target ABI. Expose only those explicitly
 /// selected host executables through a tiny CMake package rather than letting
 /// Qt's host installation join CMAKE_PREFIX_PATH.
-fn kde_linguist_tools_bridge(build: &Path) -> Result<PathBuf> {
+fn kde_linguist_tools_bridge(repo_root: &Path, build: &Path) -> Result<PathBuf> {
     let host_linguist = |name: &str| -> Result<PathBuf> {
         if let Some(directory) = std::env::var_os("MATTOS_HOST_QT_LINGUIST_BIN") {
             let candidate = PathBuf::from(directory).join(name);
@@ -526,8 +645,14 @@ fn kde_linguist_tools_bridge(build: &Path) -> Result<PathBuf> {
     // still match the target Qt baseline or Qt6Config.cmake rejects the
     // otherwise-valid bridge before configure begins.
     fs::write(config_dir.join("Qt6LinguistToolsConfigVersion.cmake"),
-        "set(PACKAGE_VERSION 6.11.2)\nset(PACKAGE_VERSION_COMPATIBLE TRUE)\nset(PACKAGE_VERSION_EXACT TRUE)\n")?;
-    let config = format!(r#"if(NOT TARGET Qt6::lrelease)
+        cmake_package_version(&qt_source_version(repo_root)?))?;
+    let config = kde_linguist_tools_config(&lrelease, &lconvert);
+    fs::write(config_dir.join("Qt6LinguistToolsConfig.cmake"), config)?;
+    Ok(config_dir)
+}
+
+fn kde_linguist_tools_config(lrelease: &Path, lconvert: &Path) -> String {
+    format!(r#"if(NOT TARGET Qt6::lrelease)
   add_executable(Qt6::lrelease IMPORTED GLOBAL)
   set_target_properties(Qt6::lrelease PROPERTIES IMPORTED_LOCATION "{}")
 endif()
@@ -536,8 +661,8 @@ if(NOT TARGET Qt6::lconvert)
   set_target_properties(Qt6::lconvert PROPERTIES IMPORTED_LOCATION "{}")
 endif()
 set(MATTOS_LRELEASE "{}")
-if(NOT COMMAND qt_add_translation)
-  function(qt_add_translation out_var)
+if(NOT COMMAND qt6_add_translation)
+  function(qt6_add_translation out_var)
     set(_qm_files)
     foreach(_ts IN LISTS ARGN)
       get_filename_component(_ts_abs "${{_ts}}" ABSOLUTE BASE_DIR "${{CMAKE_CURRENT_SOURCE_DIR}}")
@@ -552,10 +677,14 @@ if(NOT COMMAND qt_add_translation)
     set(${{out_var}} "${{_qm_files}}" PARENT_SCOPE)
   endfunction()
 endif()
+if(NOT COMMAND qt_add_translation)
+  function(qt_add_translation out_var)
+    qt6_add_translation(_qm_files ${{ARGN}})
+    set(${{out_var}} "${{_qm_files}}" PARENT_SCOPE)
+  endfunction()
+endif()
 set(Qt6LinguistTools_FOUND TRUE)
-"#, lrelease.display(), lconvert.display(), lrelease.display());
-    fs::write(config_dir.join("Qt6LinguistToolsConfig.cmake"), config)?;
-    Ok(config_dir)
+"#, lrelease.display(), lconvert.display(), lrelease.display())
 }
 
 /// Add a CMake flag assignment without allowing a later component-specific
@@ -680,55 +809,17 @@ fn build_non_qt_cmake(
     )
 }
 
-/// The selected Plasma desktop is a Wayland session (Xwayland remains
-/// available for legacy clients), but this pager revision still references
-/// TaskManager's removed X11 model and NETRootInfo in two code paths.  Keep
-/// the real pager and its Wayland behavior; remove only those obsolete X11
-/// branches from the disposable source mirror.
-fn plasma_pager_wayland_only_mirror(source: &str) -> Result<String> {
-    let x11_move = "#if HAVE_X11\n    if (KWindowSystem::isPlatformX11() && !index.data(TaskManager::AbstractTasksModel::IsFullScreen).toBool()\n        && (targetItemId == sourceItemId || isOnAllDesktops)) {";
-    let x11_move_end = "        info.moveResizeWindowRequest(winIds[0].toUInt(), flags, d.x(), d.y(), 0, 0);\n    }\n#endif";
-    let x11_drop = "    if (KWindowSystem::isPlatformX11()) {\n        indices = findWindows(TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok));\n    } else if (KWindowSystem::isPlatformWayland()) {";
-    if source.matches("#include <xwindowtasksmodel.h>").count() != 1
-        || source.matches(x11_move).count() != 1
-        || source.matches(x11_move_end).count() != 1
-        || source.matches(x11_drop).count() != 1
-    {
-        bail!("plasma-desktop pager no longer matches the expected 6.6.5 Wayland/X11 boundaries");
+fn plasma_protocol_data_layout(source: &str) -> Result<String> {
+    let needle = "include(KDEInstallDirs)";
+    if source.matches(needle).count() != 1 {
+        bail!("Plasma protocol data layout changed upstream");
     }
-
-    let (before_move, after_start) = source.split_once(x11_move).unwrap();
-    let (_, after_move) = after_start.split_once(x11_move_end).unwrap();
-    let without_move = format!("{before_move}{after_move}");
-    let adjusted = without_move
-        .replacen("#include <xwindowtasksmodel.h>\n", "", 1)
-        .replacen(x11_drop, "    if (KWindowSystem::isPlatformWayland()) {", 1);
-    if adjusted.contains("xwindowtasksmodel.h")
-        || adjusted.contains("XWindowTasksModel")
-        || adjusted.contains("NETRootInfo")
-        || !adjusted.contains("if (KWindowSystem::isPlatformWayland()) {")
-    {
-        bail!("plasma-desktop pager Wayland mirror retained an unavailable X11 API");
-    }
-    Ok(adjusted)
-}
-
-fn plasma_pager_qmimedata_header_mirror(source: &str) -> Result<String> {
-    const FORWARD_DECLARATION: &str = "class QMimeData;";
-    const MODEL_INCLUDE: &str = "#include <QAbstractListModel>";
-    if source.matches(FORWARD_DECLARATION).count() != 1
-        || source.matches(MODEL_INCLUDE).count() != 1
-        || source.contains("#include <QMimeData>")
-    {
-        bail!("plasma-desktop pager header no longer matches the Qt 6 QMimeData meta-type boundary");
-    }
-    let adjusted = source
-        .replacen(MODEL_INCLUDE, "#include <QAbstractListModel>\n#include <QMimeData>", 1)
-        .replacen("class QMimeData;\n", "", 1);
-    if !adjusted.contains("#include <QMimeData>") || adjusted.contains(FORWARD_DECLARATION) {
-        bail!("plasma-desktop pager header does not provide a complete QMimeData type to moc");
-    }
-    Ok(adjusted)
+    Ok(source.replacen(needle, concat!(
+        "include(GNUInstallDirs)\n",
+        "set(KDE_INSTALL_LIBDIR \"${CMAKE_INSTALL_LIBDIR}\")\n",
+        "set(KDE_INSTALL_DATAROOTDIR \"${CMAKE_INSTALL_DATAROOTDIR}\")\n",
+        "set(KDE_INSTALL_DATADIR \"${CMAKE_INSTALL_DATADIR}\")",
+    ), 1))
 }
 
 fn build_cmake_component(
@@ -766,6 +857,29 @@ fn build_cmake_component(
         )?;
     }
     sync_build_source(&repo_root.join(source), &source_copy)?;
+    if component == "plasma-wayland-protocols" {
+        // This package installs XML/data only. ECM 6.31's KDEInstallDirs
+        // now requires qtpaths even for data projects; GNUInstallDirs gives
+        // the same explicit target layout without a Qt bootstrap cycle.
+        let cmake = source_copy.join("CMakeLists.txt");
+        let contents = fs::read_to_string(&cmake)?;
+        fs::write(cmake, plasma_protocol_data_layout(&contents)?)?;
+    }
+    if component == "cxx-rust-cssparser" {
+        let manifest = source_copy.join("rust/Cargo.toml");
+        isolate_standalone_cargo_manifest(&manifest)?;
+        let cmake = source_copy.join("rust/CMakeLists.txt");
+        let contents = fs::read_to_string(&cmake)?;
+        let needle = "corrosion_import_crate(MANIFEST_PATH Cargo.toml)";
+        if contents.matches(needle).count() != 1 {
+            bail!("CSS parser Cargo integration changed; refusing to drop its lockfile policy");
+        }
+        let replacement = format!(
+            "corrosion_import_crate(MANIFEST_PATH Cargo.toml LOCKED)\ncorrosion_add_target_rustflags(cxx_rust_cssparser_impl \"--remap-path-prefix={}=/usr/src/mattos\" \"-Crelocation-model=pic\")",
+            repo_root.display(),
+        );
+        fs::write(cmake, contents.replace(needle, &replacement))?;
+    }
     if component == "plasma-login-manager" {
         let wallpaper_cmake = source_copy.join("src/frontend/wallpaper/CMakeLists.txt");
         let root_cmake = source_copy.join("CMakeLists.txt");
@@ -792,18 +906,6 @@ fn build_cmake_component(
             ),
         );
         if adjusted != contents { fs::write(finder, adjusted)?; }
-    }
-    if component == "kholidays" {
-        // KDE's current mirror has already advanced its ECM floor beyond the
-        // selected KF 6.26 tool baseline.  The v6.24 API is compatible with
-        // that baseline; keep this compatibility adjustment in the disposable
-        // build mirror and never mutate the imported source.
-        let cmake_lists = source_copy.join("CMakeLists.txt");
-        let contents = fs::read_to_string(&cmake_lists)?;
-        let adjusted = contents.replace("find_package(ECM 6.30.0 REQUIRED NO_MODULE)", "find_package(ECM 6.26.0 REQUIRED NO_MODULE)");
-        if adjusted != contents {
-            fs::write(cmake_lists, adjusted)?;
-        }
     }
     if component == "xdg-desktop-portal-kde" {
         // Qt only installs qcups_p.h when QtBase was built with the optional
@@ -857,10 +959,8 @@ public:
         fs::write(cmake, adjusted)?;
     }
     if component == "spectacle" {
-        // Spectacle 6.6.5 adds its test directory unconditionally, so even a
-        // release build with BUILD_TESTING=OFF requires Prison's optional
-        // scanner target. Keep tests out of the runtime build as requested
-        // instead of expanding the image with barcode-scanner dependencies.
+        // Spectacle still adds its test directory unconditionally. Honor
+        // BUILD_TESTING=OFF for production builds in the disposable mirror.
         let cmake = source_copy.join("CMakeLists.txt");
         let contents = fs::read_to_string(&cmake)?;
         let needle = "add_subdirectory(tests)";
@@ -973,7 +1073,7 @@ public:
     }
     if component == "plasma-desktop" {
         // This imported Plasma revision still names the pre-split
-        // KF6NotifyConfig widget package, while KF 6.26's KNotifications
+        // KF6NotifyConfig widget package, while current KNotifications
         // source no longer ships that widget.  Accessibility's optional
         // notification KCM is not required by the Wayland shell; omit only
         // that KCM and its unavailable optional find component in the
@@ -1008,7 +1108,7 @@ public:
                 // kaccess shares generated settings code with the omitted
                 // NotifyConfig accessibility KCM.  It is an X11-only daemon,
                 // not the Wayland keyboard-layout backend being enabled.
-                .replace("if(X11_Xkb_FOUND AND XCB_XKB_FOUND)\n    add_subdirectory(kaccess)\nendif()", "# MattOS: X11-only kaccess daemon omitted from the Wayland session")
+                .replace("if(X11_FOUND)\n    add_subdirectory(kaccess)\nendif()", "# MattOS: X11-only kaccess daemon omitted from the Wayland session")
                 .replace("    PURPOSE \"Required for building the X11 based workspace\"\n    TYPE REQUIRED", "    PURPOSE \"Required for building the X11 based workspace\"\n    TYPE OPTIONAL")
                 .replace("    PURPOSE \"Support audible bell in kaccess\"\n    TYPE REQUIRED", "    PURPOSE \"Support audible bell in kaccess\"\n    TYPE OPTIONAL")
                 .replace("-DBUILD_KCM_TOUCHPAD_X11=OFF", "-DBUILD_KCM_TOUCHPAD_X11=OFF");
@@ -1020,23 +1120,7 @@ public:
                     .replace("add_subdirectory(window-list)", "if(WITH_X11)\nadd_subdirectory(window-list)\nendif()");
                 if adjusted != contents { fs::write(applets, adjusted)?; }
             }
-            // Plasma's pager supports Wayland, but this release includes the
-            // X11 drag-and-drop model header unconditionally.  Keep the real
-            // pager in the Wayland desktop and compile only the backend that
-            // the selected session can use; Xwayland applications are still
-            // represented by KWin's Wayland task-management protocol.
-            let pager = source_copy.join("applets/pager/pagermodel.cpp");
-            if pager.is_file() {
-                let contents = fs::read_to_string(&pager)?;
-                let adjusted = plasma_pager_wayland_only_mirror(&contents)?;
-                if adjusted != contents { fs::write(pager, adjusted)?; }
-            }
-            let pager_header = source_copy.join("applets/pager/pagermodel.h");
-            if pager_header.is_file() {
-                let contents = fs::read_to_string(&pager_header)?;
-                let adjusted = plasma_pager_qmimedata_header_mirror(&contents)?;
-                if adjusted != contents { fs::write(pager_header, adjusted)?; }
-            }
+
         }
         let kcms = source_copy.join("kcms/CMakeLists.txt");
         if kcms.is_file() {
@@ -1055,25 +1139,6 @@ public:
                 "# MattOS: optional KIO network-attach utility omitted from the Wayland shell",
             );
             if adjusted != contents { fs::write(cmake_lists, adjusted)?; }
-        }
-        // The activity switcher is shared by Wayland and X11, but this
-        // imported Plasma revision leaves its X11 model header include and
-        // one X11-only drag path unconditional. Guard those references for
-        // configurations without X11; the MattOS build enables this backend
-        // only as compatibility support for Xwayland clients, not as a login
-        // session.
-        let activity_manager = source_copy.join("imports/activitymanager/switcherbackend.cpp");
-        if activity_manager.is_file() {
-            let contents = fs::read_to_string(&activity_manager)?;
-            let adjusted = contents
-                .replace("#include <KWindowInfo>\n", "#if HAVE_X11\n#include <KWindowInfo>\n#endif\n")
-                .replace("#include <KX11Extras>\n", "#if HAVE_X11\n#include <KX11Extras>\n#endif\n")
-                .replace("#include <xwindowtasksmodel.h>\n", "#if HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif\n")
-                .replace(
-                    "    if (KWindowSystem::isPlatformX11()) {\n        return TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData).count();\n    }\n",
-                    "#if HAVE_X11\n    if (KWindowSystem::isPlatformX11()) {\n        return TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData).count();\n    }\n#endif\n",
-                );
-            if adjusted != contents { fs::write(activity_manager, adjusted)?; }
         }
     }
     // The upstream killer helper is only useful for the X11 session and
@@ -1284,64 +1349,6 @@ public:
             let adjusted = contents.replace("${Wayland_DATADIR}/wayland.xml", &wayland_xml.display().to_string());
             if adjusted != contents { fs::write(cmake_lists, adjusted)?; }
         }
-        let theme = source_copy.join("src/plasma/private/theme_p.cpp");
-        if theme.is_file() {
-            let contents = fs::read_to_string(&theme)?;
-            let adjusted = contents
-                .replace("#include <KX11Extras>", "#if HAVE_X11\n#include <KX11Extras>\n#endif")
-                .replace("    if (KWindowSystem::isPlatformX11()) {\n        compositingActive = KX11Extras::self()->compositingActive();\n    }", "#if HAVE_X11\n    if (KWindowSystem::isPlatformX11()) {\n        compositingActive = KX11Extras::self()->compositingActive();\n    }\n#endif")
-                .replace("    if (KWindowSystem::isPlatformX11()) {\n        connect(KX11Extras::self(), &KX11Extras::compositingChanged, selectorsUpdateTimer, qOverload<>(&QTimer::start));\n    }", "#if HAVE_X11\n    if (KWindowSystem::isPlatformX11()) {\n        connect(KX11Extras::self(), &KX11Extras::compositingChanged, selectorsUpdateTimer, qOverload<>(&QTimer::start));\n    }\n#endif");
-            if adjusted != contents { fs::write(theme, adjusted)?; }
-        }
-        let blur_header = source_copy.join("src/plasma/private/blureffectwatcher_p.h");
-        if blur_header.is_file() {
-            let contents = fs::read_to_string(&blur_header)?;
-            let adjusted = contents.replace(
-                "#endif\n\nQ_SIGNALS:",
-                "#else\n    bool nativeEventFilter(const QByteArray &, void *, qintptr *) override { return false; }\n#endif\n\nQ_SIGNALS:",
-            );
-            if adjusted != contents { fs::write(blur_header, adjusted)?; }
-        }
-        // The Wayland-only Plasma build still compiles a few source files
-        // shared with the optional X11 implementation.  Upstream guards the
-        // implementation but not every legacy include/call.  Keep this
-        // compatibility cleanup confined to the disposable mirror; the
-        // production closure intentionally has no X11 KWindowSystem ABI.
-        for relative in [
-            "src/plasmaquick/appletpopup.cpp",
-            "src/plasmaquick/plasmawindow.cpp",
-            "src/plasmaquick/dialog.cpp",
-            "src/declarativeimports/core/windowthumbnail.cpp",
-        ] {
-            let path = source_copy.join(relative);
-            if !path.is_file() { continue; }
-            let contents = fs::read_to_string(&path)?;
-            let mut adjusted = contents
-                .replace("#include \"appletpopup.h\"", "#include \"appletpopup.h\"\n#include \"config-plasma.h\"")
-                .replace("#include \"plasmawindow.h\"", "#include \"plasmawindow.h\"\n#include \"config-plasma.h\"")
-                .replace("#include \"dialog.h\"", "#include \"dialog.h\"\n#include \"config-plasma.h\"")
-                .replace("#include <KX11Extras>", "#if HAVE_X11\n#include <KX11Extras>\n#endif")
-                .replace("#include <KWindowInfo>", "#if HAVE_X11\n#include <KWindowInfo>\n#endif")
-                .replace("KX11Extras::self()->compositingActive()", "true")
-                .replace("KX11Extras::compositingActive()", "true")
-                .replace("KX11Extras::self()->hasWId(winId)", "true")
-                .replace("KX11Extras::self()->hasWId(m_winId)", "false")
-                .replace("KX11Extras::self()->icon(m_winId, boundingRect().width(), boundingRect().height())", "QIcon()")
-                .replace("        connect(KX11Extras::self(), &KX11Extras::compositingChanged, selectorsUpdateTimer, qOverload<>(&QTimer::start));", "        /* X11-only compositing notification omitted in Wayland build. */")
-                .replace("KX11Extras::setType(winId(), NET::AppletPopup);", "/* X11-only */")
-                .replace("KX11Extras::setType(q->winId(), static_cast<NET::WindowType>(type));", "/* X11-only */")
-                .replace("KX11Extras::setOnAllDesktops(q->winId(), true);", "/* X11-only */")
-                .replace("KX11Extras::setOnAllDesktops(q->winId(), false);", "/* X11-only */")
-                .replace("KX11Extras::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);", "/* X11-only */")
-                .replace("KX11Extras::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);", "/* X11-only */");
-            if relative.ends_with("dialog.cpp") {
-                adjusted = adjusted.replace(
-                    "        const KWindowInfo winInfo(item->window()->winId(), NET::WMWindowType);\n        outsideParentWindow = outsideParentWindow || (winInfo.windowType(NET::AllTypesMask) == NET::Dock && item->window()->mask().isNull());",
-                    "        /* X11-only window type query omitted in Wayland build. */",
-                );
-            }
-            if adjusted != contents { fs::write(path, adjusted)?; }
-        }
     }
     remove_path_if_exists(&build)?;
     remove_path_if_exists(&install)?;
@@ -1360,7 +1367,7 @@ public:
             .collect()
     };
     let ecm = kde_host_ecm_dir(repo_root)?;
-    let linguist = kde_linguist_tools_bridge(&build)?;
+    let linguist = kde_linguist_tools_bridge(repo_root, &build)?;
     let mut command = vec![
         "-S".into(), source_copy.display().to_string(), "-B".into(), build.display().to_string(),
         "-G".into(), "Ninja".into(), "-DCMAKE_INSTALL_PREFIX=/usr".into(),
@@ -1635,67 +1642,9 @@ public:
         ));
     }
     if components.contains(&"kirigami") {
-        // ECM's QML-module probe searches KDE_INSTALL_FULL_QMLDIR.  Expose
-        // the already-built source-owned Kirigami tree through a disposable
-        // symlink view so QML discovery cannot fall back to the host.
-        use std::os::unix::fs::symlink;
-        let qml_root = build.join("mattos-qml");
-        let qml_org_kde = qml_root.join("usr/lib/x86_64-linux-gnu/qml/org/kde");
-        fs::create_dir_all(&qml_org_kde)?;
-        let kirigami_link = qml_org_kde.join("kirigami");
-        fs::create_dir_all(&kirigami_link)?;
-        let kirigami_source = repo_root.join("out/build/kirigami/install/usr/lib/x86_64-linux-gnu/qml/org/kde/kirigami");
-        for entry in fs::read_dir(kirigami_source)? {
-            let entry = entry?;
-            let destination = kirigami_link.join(entry.file_name());
-            if destination.symlink_metadata().is_err() {
-                // CMake's find_file() deliberately does not follow a
-                // symlink for the module marker.  Keep the view disposable,
-                // but copy that tiny marker and link the payload files.
-                if entry.file_name() == "qmldir" {
-                    fs::copy(entry.path(), destination)?;
-                } else {
-                    symlink(entry.path(), destination)?;
-                }
-            }
-        }
-        // The same ECM QML probe is used by the optional KDE QML modules
-        // consumed by Plasma.  Expose each selected, target-owned module in
-        // the disposable absolute-path view as well; otherwise CMake can
-        // find the KF package config but not its QML dependency and silently
-        // disables the feature.
-        for (component, module) in [
-            ("kirigami-addons", "kirigamiaddons"),
-            ("kquickcharts", "quickcharts"),
-            ("prison", "prison"),
-            ("kitemmodels", "kitemmodels"),
-            ("kcmutils", "kcmutils"),
-        ] {
-            if !components.contains(&component) {
-                continue;
-            }
-            let source = repo_root
-                .join("out/build")
-                .join(component)
-                .join("install/usr/lib/x86_64-linux-gnu/qml/org/kde")
-                .join(module);
-            if !source.is_dir() {
-                bail!("target QML module {} is missing from {}", module, source.display());
-            }
-            let destination = qml_org_kde.join(module);
-            fs::create_dir_all(&destination)?;
-            for entry in fs::read_dir(source)? {
-                let entry = entry?;
-                let target = destination.join(entry.file_name());
-                if target.symlink_metadata().is_err() {
-                    if entry.file_name() == "qmldir" {
-                        fs::copy(entry.path(), target)?;
-                    } else {
-                        symlink(entry.path(), target)?;
-                    }
-                }
-            }
-        }
+        // Expose every declared provider's QML modules, including nested
+        // module markers. A fixed list misses new upstream requirements.
+        let qml_root = kde_target_qml_view(repo_root, &build, components)?;
         // Keep ECM's configure-time QML lookup pointed at the disposable,
         // source-owned view above, but keep the install destination inside
         // the package's /usr tree.  Setting KDE_INSTALL_QMLDIR to the view
@@ -1907,7 +1856,7 @@ public:
     }
     apply_component_cmake_options(&mut command, options);
     let refs = command.iter().map(String::as_str).collect::<Vec<_>>();
-    let mut environment = kde_target_environment(repo_root, &build, components, qt_integration)?;
+    let mut environment = kde_target_environment(repo_root, &build, component, components, qt_integration)?;
     if component == "breeze-icons" {
         environment.push(("PYTHONPATH", python_deps.display().to_string()));
     }
@@ -2003,15 +1952,8 @@ fn plasma_login_manager_build_mirror_policy(
         "    BATCHABLE\n    PREFIX \"/qt/qml/org/kde/plasma/login/wallpaper/shaders\"",
     );
 
-    // Upstream currently adds test/ unconditionally, so BUILD_TESTING=OFF
-    // alone still builds test executables in the production stage. Gate that
-    // subdirectory in the mirror so only production targets are built.
-    let tests = "add_subdirectory(test)";
-    if root_cmake.matches(tests).count() != 1 {
-        bail!("Plasma Login Manager test-subdirectory declaration changed; refusing to alter its output-mirror build policy");
-    }
-    let root = root_cmake.replace(tests, "if(BUILD_TESTING)\n    add_subdirectory(test)\nendif()");
-    Ok((root, wallpaper))
+    // Plasma 6.8 gates autotests on BUILD_TESTING upstream.
+    Ok((root_cmake.to_owned(), wallpaper))
 }
 
 /// Remove disposable build-prefix references from generated KDE metadata at
@@ -2233,7 +2175,7 @@ fn build_kglobalaccel(repo_root: &Path) -> Result<()> {
 }
 
 fn build_kguiaddons(repo_root: &Path) -> Result<()> {
-    build_kde_cmake(repo_root, "kguiaddons", "src/desktop/kde/kguiaddons", &["xkbcommon", "wayland", "plasma-wayland-protocols"], &["-DWITH_X11=OFF", "-DBUILD_PYTHON_BINDINGS=OFF", "-DCMAKE_DISABLE_FIND_PACKAGE_Qt6Qml=TRUE"], "usr/lib/x86_64-linux-gnu/libKF6GuiAddons.so")
+    build_kde_cmake(repo_root, "kguiaddons", "src/desktop/kde/kguiaddons", &["xkbcommon", "wayland", "wayland-protocols", "plasma-wayland-protocols"], &["-DWITH_X11=OFF", "-DBUILD_PYTHON_BINDINGS=OFF", "-DCMAKE_DISABLE_FIND_PACKAGE_Qt6Qml=TRUE"], "usr/lib/x86_64-linux-gnu/libKF6GuiAddons.so")
 }
 
 fn build_kidletime(repo_root: &Path) -> Result<()> {
@@ -2575,6 +2517,161 @@ mod kde_foundation_tests {
     use super::*;
 
     #[test]
+    fn declared_graph_link_paths_resolve_a_two_hop_shared_library_dependency() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        let leaf = repo.join("out/build/solid/install/usr/lib/x86_64-linux-gnu");
+        let middle = repo.join("out/build/kio/install/usr/lib/x86_64-linux-gnu");
+        let unrelated = repo.join("out/build/undeclared/install/usr/lib/x86_64-linux-gnu");
+        for directory in [&leaf, &middle, &unrelated] { fs::create_dir_all(directory).unwrap(); }
+        fs::write(repo.join("leaf.c"), "int fixture_leaf(void) { return 7; }\n").unwrap();
+        fs::write(repo.join("middle.c"), "extern int fixture_leaf(void); int fixture_middle(void) { return fixture_leaf(); }\n").unwrap();
+        fs::write(repo.join("main.c"), "extern int fixture_middle(void); int main(void) { return fixture_middle() != 7; }\n").unwrap();
+        // Host compiler builds disposable ELF fixtures only, never OS payloads.
+        let compile = |arguments: Vec<String>| {
+            let output = Command::new("/usr/bin/gcc").args(arguments).output().unwrap();
+            assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+        };
+        let leaf_library = leaf.join("libmattos_link_leaf.so.1");
+        let middle_library = middle.join("libmattos_link_middle.so.1");
+        compile(vec!["-fPIC".into(), "-shared".into(), repo.join("leaf.c").display().to_string(),
+            "-Wl,-soname,libmattos_link_leaf.so.1".into(), "-o".into(), leaf_library.display().to_string()]);
+        compile(vec!["-fPIC".into(), "-shared".into(), repo.join("middle.c").display().to_string(),
+            leaf_library.display().to_string(), "-Wl,-soname,libmattos_link_middle.so.1".into(),
+            "-o".into(), middle_library.display().to_string()]);
+        let mut arguments = vec![repo.join("main.c").display().to_string(), middle_library.display().to_string(),
+            "-o".into(), repo.join("probe").display().to_string()];
+        assert!(!Command::new("/usr/bin/gcc").args(&arguments).output().unwrap().status.success());
+        let flags = kde_transitive_link_flags(repo, "kwin").unwrap();
+        assert!(flags.iter().any(|flag| flag.ends_with(&leaf.display().to_string())));
+        assert!(!flags.iter().any(|flag| flag.contains("undeclared")));
+        arguments.extend(flags);
+        compile(arguments);
+        assert!(kde_transitive_link_flags(repo, "unknown-consumer").is_err());
+    }
+
+    #[test]
+    fn qml_discovery_finds_nested_declared_modules_without_mutating_producers() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        let relative = "usr/lib/x86_64-linux-gnu/qml";
+        for (provider, module) in [("qt5compat", "Qt5Compat/GraphicalEffects"),
+            ("kconfig", "org/kde/config"), ("ksvg", "org/kde/ksvg")] {
+            let layout = if provider == "qt5compat" { "usr/qml" } else { relative };
+            let source = repo.join("out/build").join(provider).join("install").join(layout).join(module);
+            fs::create_dir_all(&source).unwrap();
+            fs::write(source.join("qmldir"), module).unwrap();
+            fs::write(source.join("plugin.so"), "producer payload").unwrap();
+        }
+        let build = repo.join("out/build/consumer/build");
+        let view = kde_target_qml_view(repo, &build, &["qt5compat", "kconfig", "ksvg"]).unwrap();
+        let script = build.join("probe.cmake");
+        fs::write(&script, format!(r#"
+set(CMAKE_FIND_ROOT_PATH "{}")
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+foreach(module Qt5Compat/GraphicalEffects org/kde/config org/kde/ksvg)
+  find_file(marker qmldir PATHS "/usr/lib/x86_64-linux-gnu/qml/${{module}}" NO_DEFAULT_PATH NO_CACHE REQUIRED)
+endforeach()
+"#, view.display())).unwrap();
+        assert!(Command::new("cmake").arg("-P").arg(script).status().unwrap().success());
+        let marker = view.join(relative).join("org/kde/config/qmldir");
+        assert!(!marker.symlink_metadata().unwrap().file_type().is_symlink());
+        assert!(view.join(relative).join("org/kde/config/plugin.so").symlink_metadata().unwrap().file_type().is_symlink());
+        fs::write(marker, "consumer change").unwrap();
+        assert_eq!(fs::read_to_string(repo.join("out/build/kconfig/install").join(relative).join("org/kde/config/qmldir")).unwrap(), "org/kde/config");
+    }
+
+    #[test]
+    fn qt_bridge_satisfies_new_deployment_exports_but_rejects_their_execution() {
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path();
+        let bridge = kde_qt_tool_bridge(root).unwrap();
+        fs::write(root.join("CMakeLists.txt"), format!(r#"
+cmake_minimum_required(VERSION 3.30)
+project(QtToolExports NONE)
+include("{}")
+# A complete export set is required even when these platforms are not built.
+foreach(tool androiddeployqt androidtestrunner wasmdeployqt harmonydeployqt harmonyostestrunner)
+  if(NOT TARGET Qt6::${{tool}})
+    message(FATAL_ERROR "Partial Qt tool export set: ${{tool}} is absent")
+  endif()
+  get_target_property(executable Qt6::${{tool}} IMPORTED_LOCATION)
+  execute_process(COMMAND "${{executable}}" RESULT_VARIABLE result ERROR_VARIABLE error)
+  if(NOT result STREQUAL "1" OR NOT error MATCHES "Linux targets")
+    message(FATAL_ERROR "Unsupported deployment tool did not fail explicitly: ${{tool}}")
+  endif()
+endforeach()
+"#, bridge.display())).unwrap();
+        assert!(Command::new("cmake").arg("-S").arg(root).arg("-B").arg(root.join("build"))
+            .status().unwrap().success());
+    }
+
+    #[test]
+    fn linguist_bridge_supports_clients_with_their_own_versionless_alias() {
+        use std::os::unix::fs::PermissionsExt;
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path();
+        let lrelease = root.join("lrelease");
+        fs::write(&lrelease, "#!/bin/sh\nset -eu\ntest \"$1\" = -silent\ntest \"$2\" = -qm\ncp \"$4\" \"$3\"\n").unwrap();
+        fs::set_permissions(&lrelease, fs::Permissions::from_mode(0o755)).unwrap();
+        fs::write(root.join("bridge.cmake"), kde_linguist_tools_config(&lrelease, &lrelease)).unwrap();
+        fs::write(root.join("catalog.ts"), "pinned translation fixture\n").unwrap();
+        fs::write(root.join("CMakeLists.txt"), concat!(
+            "cmake_minimum_required(VERSION 3.30)\nproject(LinguistBridge NONE)\n",
+            "include(${CMAKE_SOURCE_DIR}/bridge.cmake)\n",
+            "macro(qt_add_translation)\nqt6_add_translation(${ARGV})\nendmacro()\n",
+            "qt_add_translation(catalogs catalog.ts)\n",
+            "file(WRITE ${CMAKE_BINARY_DIR}/catalogs \"${catalogs}\")\n",
+        )).unwrap();
+        assert!(Command::new("cmake").arg("-S").arg(root).arg("-B").arg(root.join("build"))
+            .status().unwrap().success());
+        let catalog = fs::read_to_string(root.join("build/catalogs")).unwrap();
+        assert_eq!(Path::new(&catalog), root.join("build/catalog.qm"));
+        assert_eq!(fs::read_to_string(catalog).unwrap(), "pinned translation fixture\n");
+        assert_eq!(fs::read_to_string(root.join("catalog.ts")).unwrap(), "pinned translation fixture\n");
+    }
+
+    #[test]
+    fn plasma_protocols_keep_target_data_paths_without_qt_or_ecm_discovery() {
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path();
+        let source = "cmake_minimum_required(VERSION 3.30)\nproject(ProtocolData NONE)\ninclude(KDEInstallDirs)\nfile(WRITE \"${CMAKE_BINARY_DIR}/paths\" \"${KDE_INSTALL_DATAROOTDIR}|${KDE_INSTALL_DATADIR}\")\n";
+        fs::write(root.join("CMakeLists.txt"), plasma_protocol_data_layout(source).unwrap()).unwrap();
+        assert!(Command::new("cmake").args(["-S", root.to_str().unwrap(), "-B"])
+            .arg(root.join("build")).arg("-DCMAKE_INSTALL_PREFIX=/usr")
+            .status().unwrap().success());
+        assert_eq!(fs::read_to_string(root.join("build/paths")).unwrap(), "share|share");
+        assert!(plasma_protocol_data_layout("include(GNUInstallDirs)").is_err());
+    }
+
+    #[test]
+    fn target_package_versions_come_from_staged_metadata_and_obey_cmake_requests() {
+        let temporary = tempfile::tempdir().unwrap();
+        let prefix = temporary.path();
+        let pc = prefix.join("lib/x86_64-linux-gnu/pkgconfig/xkbcommon.pc");
+        fs::create_dir_all(pc.parent().unwrap()).unwrap();
+        assert!(staged_pkgconfig_version(prefix, "xkbcommon").is_err());
+        fs::write(&pc, "Name: xkbcommon\nVersion: 1.13.2\n").unwrap();
+        let version = staged_pkgconfig_version(prefix, "xkbcommon").unwrap();
+        assert_eq!(version, "1.13.2");
+        let script = prefix.join("versions.cmake");
+        for (requested, compatible, exact) in [
+            ("1.5.0", "TRUE", "FALSE"), ("1.13.2", "TRUE", "TRUE"),
+            ("1.14.0", "FALSE", "FALSE"),
+        ] {
+            fs::write(&script, format!(
+                "set(PACKAGE_FIND_VERSION {requested})\n{}\nif(NOT PACKAGE_VERSION_COMPATIBLE STREQUAL {compatible} OR NOT PACKAGE_VERSION_EXACT STREQUAL {exact})\nmessage(FATAL_ERROR \"incorrect version acceptance\")\nendif()\n",
+                cmake_package_version(&version),
+            )).unwrap();
+            assert!(Command::new("cmake").arg("-P").arg(&script).status().unwrap().success());
+        }
+        for text in ["Version: ${host_version}\n", "Version: 1.13.2\nVersion: 0.9.0\n"] {
+            fs::write(&pc, text).unwrap();
+            assert!(staged_pkgconfig_version(prefix, "xkbcommon").is_err());
+        }
+    }
+
+    #[test]
     fn kpmcore_btrfs_and_sfdisk_contract_remains_source_owned() {
         let source = include_str!("../../../../system/storage/kpmcore/src/fs/btrfs.cpp");
         assert!(source.contains("mkfs.btrfs"));
@@ -2599,12 +2696,11 @@ mod kde_foundation_tests {
     }
 
     #[test]
-    fn plasma_login_manager_mirror_omits_only_optional_shader_optimization_and_tests() {
-        let root = "add_subdirectory(data)\nadd_subdirectory(test)\n";
+    fn plasma_login_manager_mirror_preserves_upstream_test_gate_and_omits_optional_shader_optimization() {
+        let root = "add_subdirectory(data)\nif(BUILD_TESTING)\n    add_subdirectory(autotests)\nendif()\n";
         let wallpaper = "qt_add_shaders(app shaders\n    PRECOMPILE\n    BATCHABLE\n    OPTIMIZED\n    PREFIX \"/qt/qml/org/kde/plasma/login/wallpaper/shaders\"\n)\n";
         let (root, wallpaper) = plasma_login_manager_build_mirror_policy(root, wallpaper).unwrap();
-        assert!(root.contains("if(BUILD_TESTING)\n    add_subdirectory(test)\nendif()"));
-        assert!(!root.contains("\nadd_subdirectory(test)\n"));
+        assert!(root.contains("if(BUILD_TESTING)\n    add_subdirectory(autotests)\nendif()"));
         assert!(wallpaper.contains("    BATCHABLE\n    PREFIX"));
         assert!(!wallpaper.contains("OPTIMIZED"));
     }
@@ -2623,53 +2719,5 @@ mod kde_foundation_tests {
         .is_err());
     }
 
-    #[test]
-    fn plasma_desktop_pager_mirror_keeps_wayland_and_removes_unavailable_x11_task_model() {
-        let source = r#"
-#include <xwindowtasksmodel.h>
-void PagerModel::moveWindow() {
-#if HAVE_X11
-    if (KWindowSystem::isPlatformX11() && !index.data(TaskManager::AbstractTasksModel::IsFullScreen).toBool()
-        && (targetItemId == sourceItemId || isOnAllDesktops)) {
-        NETRootInfo info(x11App->connection(), NET::Properties());
-        info.moveResizeWindowRequest(winIds[0].toUInt(), flags, d.x(), d.y(), 0, 0);
-    }
-#endif
-}
-void PagerModel::drop() {
-    if (KWindowSystem::isPlatformX11()) {
-        indices = findWindows(TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok));
-    } else if (KWindowSystem::isPlatformWayland()) {
-        indices = findWindows(TaskManager::WaylandTasksModel::winIdsFromMimeData(mimeData, &ok));
-    }
-}
-"#;
-        let adjusted = plasma_pager_wayland_only_mirror(source).unwrap();
-        assert!(adjusted.contains("TaskManager::WaylandTasksModel::winIdsFromMimeData"));
-        assert!(adjusted.contains("if (KWindowSystem::isPlatformWayland()) {"));
-        assert!(!adjusted.contains("xwindowtasksmodel.h"));
-        assert!(!adjusted.contains("XWindowTasksModel"));
-        assert!(!adjusted.contains("NETRootInfo"));
-    }
 
-    #[test]
-    fn plasma_desktop_pager_mirror_fails_closed_when_upstream_x11_boundaries_change() {
-        assert!(plasma_pager_wayland_only_mirror(
-            "#include <xwindowtasksmodel.h>\nvoid PagerModel::moveWindow() {}\n"
-        )
-        .is_err());
-    }
-
-    #[test]
-    fn plasma_desktop_pager_header_exposes_complete_qmimedata_type_to_qt_moc() {
-        let source = "#include <QAbstractListModel>\nclass QMimeData;\nclass PagerModel {};\n";
-        let adjusted = plasma_pager_qmimedata_header_mirror(source).unwrap();
-        assert!(adjusted.contains("#include <QMimeData>"));
-        assert!(!adjusted.contains("class QMimeData;"));
-    }
-
-    #[test]
-    fn plasma_desktop_pager_header_patch_fails_closed_on_upstream_changes() {
-        assert!(plasma_pager_qmimedata_header_mirror("class PagerModel {};\n").is_err());
-    }
 }

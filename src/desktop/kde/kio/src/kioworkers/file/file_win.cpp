@@ -108,6 +108,32 @@ static UDSEntry createUDSEntryWin(const QFileInfo &fileInfo)
     return entry;
 }
 
+bool FileProtocol::setWindowsModificationTime(const QString &path, const QDateTime &mtime)
+{
+    HANDLE handle = CreateFileW(reinterpret_cast<const wchar_t *>(path.utf16()),
+                                FILE_WRITE_ATTRIBUTES,
+                                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                nullptr,
+                                OPEN_EXISTING,
+                                FILE_FLAG_BACKUP_SEMANTICS, // also needed to open a directory
+                                nullptr);
+    if (handle == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+
+    // A FILETIME counts 100-nanosecond intervals since 1601-01-01.
+    // 11644473600000: milliseconds between 1601-01-01 and the Unix epoch (1970-01-01).
+    // 10000: 100-nanosecond intervals per millisecond.
+    const qint64 intervals = (mtime.toMSecsSinceEpoch() + 11644473600000LL) * 10000LL;
+    FILETIME modificationTime;
+    modificationTime.dwLowDateTime = static_cast<DWORD>(intervals & 0xFFFFFFFF);
+    modificationTime.dwHighDateTime = static_cast<DWORD>((intervals >> 32) & 0xFFFFFFFF);
+
+    const bool ok = SetFileTime(handle, nullptr, nullptr, &modificationTime);
+    CloseHandle(handle);
+    return ok;
+}
+
 WorkerResult FileProtocol::copy(const QUrl &src, const QUrl &dest, int _mode, JobFlags _flags)
 {
     // qDebug() << "copy(): " << src << " -> " << dest << ", mode=" << _mode;
@@ -261,6 +287,52 @@ WorkerResult FileProtocol::symlink(const QString &target, const QUrl &dest, KIO:
         return WorkerResult::fail(KIO::ERR_UNKNOWN, localDest);
     }
 
+    return WorkerResult::pass();
+}
+
+WorkerResult FileProtocol::deleteRecursive(const QString &path)
+{
+    // qDebug() << path;
+    QDirIterator it(path, QDir::AllEntries | QDir::NoDotAndDotDot | QDir::System | QDir::Hidden, QDirIterator::Subdirectories);
+    QStringList dirsToDelete;
+    KIO::filesize_t removed = 0;
+    while (it.hasNext()) {
+        if (wasKilled()) {
+            return WorkerResult::pass();
+        }
+        const QString itemPath = it.next();
+        // qDebug() << "itemPath=" << itemPath;
+        const QFileInfo info = it.fileInfo();
+        if (info.isDir() && !info.isSymLink()) {
+            dirsToDelete.prepend(itemPath);
+        } else {
+            const KIO::filesize_t size = info.isSymLink() ? 0 : KIO::filesize_t(info.size());
+            // qDebug() << "QFile::remove" << itemPath;
+            if (!QFile::remove(itemPath)) {
+                return WorkerResult::fail(KIO::ERR_CANNOT_DELETE, itemPath);
+            }
+            if (size > 0) {
+                // SlaveBase says this at most ten times a second, holding back the rest.
+                removed += size;
+                processedSize(removed);
+            }
+        }
+    }
+    QDir dir;
+    for (const QString &itemPath : std::as_const(dirsToDelete)) {
+        if (wasKilled()) {
+            return WorkerResult::pass();
+        }
+        const KIO::filesize_t size = KIO::filesize_t(QFileInfo(itemPath).size());
+        // qDebug() << "QDir::rmdir" << itemPath;
+        if (!dir.rmdir(itemPath)) {
+            return WorkerResult::fail(KIO::ERR_CANNOT_DELETE, itemPath);
+        }
+        if (size > 0) {
+            removed += size;
+            processedSize(removed);
+        }
+    }
     return WorkerResult::pass();
 }
 

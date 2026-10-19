@@ -11,7 +11,6 @@
 #include "kwin_export.h"
 
 #include <QPoint>
-#include <QSize>
 
 #include <QSize>
 
@@ -33,7 +32,8 @@ class DrmCrtc;
 class DrmConnectorMode : public OutputMode
 {
 public:
-    DrmConnectorMode(DrmConnector *connector, drmModeModeInfo nativeMode, Flags additionalFlags);
+    DrmConnectorMode(DrmConnector *connector, drmModeModeInfo nativeMode);
+    DrmConnectorMode(DrmConnector *connector, const OutputModeline &modeline);
 
     drmModeModeInfo *nativeMode();
     std::shared_ptr<DrmBlob> blob();
@@ -73,7 +73,7 @@ public:
     QByteArray mstPath() const;
 
     QList<std::shared_ptr<DrmConnectorMode>> modes() const;
-    std::shared_ptr<DrmConnectorMode> generateMode(const QSize &size, float refreshRate, OutputMode::Flags flags);
+    std::shared_ptr<DrmConnectorMode> generateMode(const OutputModeline &modeline);
 
     BackendOutput::SubPixel subpixel() const;
 
@@ -85,30 +85,30 @@ public:
     enum class BroadcastRgbOptions : uint64_t {
         Automatic = 0,
         Full = 1,
-        Limited = 2
+        Limited = 2,
     };
     enum class LinkStatus : uint64_t {
         Good = 0,
-        Bad = 1
+        Bad = 1,
     };
     enum class DrmContentType : uint64_t {
         None = 0,
         Graphics = 1,
         Photo = 2,
         Cinema = 3,
-        Game = 4
+        Game = 4,
     };
     enum class PanelOrientation : uint64_t {
         Normal = 0,
         UpsideDown = 1,
         LeftUp = 2,
-        RightUp = 3
+        RightUp = 3,
     };
     enum class ScalingMode : uint64_t {
         None = 0,
         Full = 1,
         Center = 2,
-        Full_Aspect = 3
+        Full_Aspect = 3,
     };
     enum class Colorspace : uint64_t {
         Default,
@@ -116,6 +116,14 @@ public:
         opRGB,
         BT2020_RGB,
         BT2020_YCC,
+    };
+    enum class AbmLevel : uint64_t {
+        Sysfs,
+        Off,
+        Min,
+        Min_Bias,
+        Max_Bias,
+        Max,
     };
 
     DrmProperty crtcId;
@@ -136,12 +144,12 @@ public:
     DrmEnumProperty<ScalingMode> scalingMode;
     DrmEnumProperty<Colorspace> colorspace;
     DrmProperty path;
+    DrmEnumProperty<AbmLevel> abmLevel;
 
     static DrmContentType kwinToDrmContentType(ContentType type);
     static OutputTransform toKWinTransform(PanelOrientation orientation);
     static BroadcastRgbOptions rgbRangeToBroadcastRgb(BackendOutput::RgbRange rgbRange);
     static BackendOutput::RgbRange broadcastRgbToRgbRange(BroadcastRgbOptions rgbRange);
-    static uint32_t refreshRateForMode(_drmModeModeInfo *m);
 
 private:
     QList<std::shared_ptr<DrmConnectorMode>> generateCommonModes();

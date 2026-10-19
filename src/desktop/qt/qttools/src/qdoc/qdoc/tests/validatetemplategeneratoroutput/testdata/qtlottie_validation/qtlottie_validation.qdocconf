@@ -1,0 +1,38 @@
+project = QtLottie
+productname = Qt
+
+locationinfo = false
+
+headers.fileextensions  = "*.h *.hpp"
+sources.fileextensions  = "*.cpp *.qml *.qdoc"
+
+# Macros from qtbase global/macros.qdocconf, not available in standalone tests
+macro.examplecategory           = "\\meta category {\1}\n\\ingroup category \1"
+macro.summary                   = "\\brief \1"
+macro.cmakecommandsince         = "\n\nThis command was introduced in Qt \1.\n\n"
+macro.versionlessCMakeCommandsNote = "If \\l{Versionless commands}{versionless commands} are disabled, use \\c{\1} instead. It supports the same set of arguments as this command."
+
+headerdirs  = ./src
+sourcedirs  = ./src
+
+exampledirs = ./examples/lottie
+imagedirs   = ./examples/lottie/lottietoqml/doc/images \
+              ./examples/lottie/qtlottieviewer/doc/images
+
+outputformats = TemplateHTML TemplateMarkdown
+
+TemplateHTML.nosubdirs = true
+TemplateHTML.outputsubdir = html
+TemplateHTML.extension = html
+TemplateHTML.stylesheet = true
+
+TemplateMarkdown.nosubdirs = true
+TemplateMarkdown.outputsubdir = markdown
+TemplateMarkdown.extension = md
+
+projectroot = .
+logwarnings = true
+logwarnings.disablecliargs = true
+# warninglimit is a hard cap; warnings are asserted via log file.
+warninglimit = 0
+warninglimit.enabled = true

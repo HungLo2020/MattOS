@@ -253,8 +253,8 @@ inline decltype(auto) CodeGenerator::generate_initCode(Type &current,
         current.init.body << u"// 1. create new QML context for this document"_s;
         current.init.body
                 << QStringLiteral(
-                           "context = %1->createInternalContext(%1->compilationUnitFromUrl(%2()), "
-                           "context, %3, true);")
+                           "context = %1->createComponentRootContext("
+                           "%1->compilationUnitFromUrl(%2()), context, %3);")
                            .arg(privateEngineName, urlMethodName())
                            .arg(this->visitor->creationIndex(type));
     } else {

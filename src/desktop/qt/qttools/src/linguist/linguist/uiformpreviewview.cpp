@@ -116,8 +116,8 @@ static void buildTargets(QObject *o, TargetsHash *targets)
     for (const QByteArray &prop : propNames) {
         if (prop.startsWith(PROP_GENERIC_PREFIX)) {
             const QByteArray propName = prop.mid(sizeof(PROP_GENERIC_PREFIX) - 1);
-            INSERT_TARGET(o->property(prop),
-                TranslatableProperty, object = o, name = qstrdup(propName.data()));
+            INSERT_TARGET(o->property(prop.constData()), TranslatableProperty, object = o,
+                          name = qstrdup(propName.constData()));
         }
     }
     if (0) {

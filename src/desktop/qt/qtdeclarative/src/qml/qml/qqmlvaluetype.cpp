@@ -33,6 +33,11 @@ QQmlGadgetPtrWrapper::QQmlGadgetPtrWrapper(QQmlValueType *valueType, QObject *pa
 QQmlGadgetPtrWrapper::~QQmlGadgetPtrWrapper()
 {
     QObjectPrivate *d = QObjectPrivate::get(this);
+#ifdef __cpp_rtti
+    // This should always work, unless there is a mistake, like a call to
+    // qmlClearTypeRegistrations while an engine was running
+    Q_ASSERT(dynamic_cast<const QQmlValueType *>(d->metaObject));
+#endif
     static_cast<const QQmlValueType *>(d->metaObject)->destroy(m_gadgetPtr);
     d->metaObject = nullptr;
 }

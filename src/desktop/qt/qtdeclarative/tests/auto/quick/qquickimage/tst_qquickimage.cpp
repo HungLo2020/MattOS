@@ -82,6 +82,7 @@ private slots:
     void multiFrame_data();
     void multiFrame();
     void colorSpace();
+    void devicePixelRatio();
 
 private:
     QQmlEngine engine;
@@ -1321,6 +1322,26 @@ void tst_qquickimage::colorSpace()
     QVERIFY(object2);
     QTRY_COMPARE(object2->status(), QQuickImageBase::Ready);
     QCOMPARE(object2->colorSpace(), QColorSpace(QColorSpace::SRgb));
+}
+
+void tst_qquickimage::devicePixelRatio()
+{
+    QScopedPointer<QQuickView> window(new QQuickView);
+    window->setSource(testFileUrl("svg-dpr.qml"));
+    window->showNormal();
+    QVERIFY(QTest::qWaitForWindowExposed(window.data()));
+    const qreal devicePixelRatio = window->devicePixelRatio();
+
+    const QSizeF origSize(595, 841);
+
+    const QQuickImage *obj1 = window->rootObject()->findChild<QQuickImage *>("svg-sync");
+    QVERIFY(obj1 != nullptr);
+    QCOMPARE(obj1->sourceSize(), (devicePixelRatio * origSize).toSize());
+
+    const QQuickImage *obj2 = window->rootObject()->findChild<QQuickImage *>("svg-async");
+    QVERIFY(obj2 != nullptr);
+    QTRY_COMPARE(obj2->status(), QQuickImageBase::Ready);
+    QCOMPARE(obj2->sourceSize(), (devicePixelRatio * origSize).toSize());
 }
 
 QTEST_MAIN(tst_qquickimage)

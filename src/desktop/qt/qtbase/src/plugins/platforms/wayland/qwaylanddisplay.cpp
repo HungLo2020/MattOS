@@ -54,7 +54,7 @@
 #include <QtWaylandClient/private/qwayland-fractional-scale-v1.h>
 #include <QtWaylandClient/private/qwayland-viewporter.h>
 #include <QtWaylandClient/private/qwayland-cursor-shape-v1.h>
-#include <QtWaylandClient/private/qwayland-xx-session-management-v1.h>
+#include <QtWaylandClient/private/qwayland-xdg-session-management-v1.h>
 #include <QtWaylandClient/private/qwayland-xdg-system-bell-v1.h>
 #include <QtWaylandClient/private/qwayland-xdg-toplevel-drag-v1.h>
 #include <QtWaylandClient/private/qwayland-wlr-data-control-unstable-v1.h>
@@ -85,9 +85,12 @@ public:
         SelfDispatch, // Dispatch the events inside this thread.
     };
 
-    EventThread(struct wl_display * wl, struct wl_event_queue * ev_queue,
-                OperatingMode mode)
-        : m_fd(wl_display_get_fd(wl))
+    EventThread(struct wl_display * wl,
+                struct wl_event_queue * ev_queue,
+                OperatingMode mode,
+                QObject *parent = nullptr)
+        : QThread(parent)
+        , m_fd(wl_display_get_fd(wl))
         , m_pipefd{ -1, -1 }
         , m_wldisplay(wl)
         , m_wlevqueue(ev_queue)
@@ -96,6 +99,22 @@ public:
         , m_quitting(false)
     {
         setObjectName(QStringLiteral("WaylandEventThread"));
+
+        // The pipe lets stop() interrupt the poll() in run(), which would otherwise never
+        // return once the compositor stops sending events.
+        if (qt_safe_pipe(m_pipefd) != 0)
+            qErrnoWarning("Pipe creation failed. Quitting may hang.");
+    }
+
+    ~EventThread() override
+    {
+        // run()'s poll() uses the pipe, so the thread must be stopped by now.
+        Q_ASSERT(!isRunning());
+
+        if (m_pipefd[0] != -1) {
+            qt_safe_close(m_pipefd[0]);
+            qt_safe_close(m_pipefd[1]);
+        }
     }
 
     void readAndDispatchEvents()
@@ -115,7 +134,9 @@ public:
         for (;;) {
             if (dispatchQueuePending() < 0) {
                 Q_EMIT waylandError();
+                QMutexLocker lock(&m_mutex);
                 m_quitting.storeRelaxed(true);
+                m_cond.wakeOne();
                 return;
             }
 
@@ -139,11 +160,16 @@ public:
     {
         // We have to both write to the pipe and set the flag, as the thread may be
         // either in the poll() or waiting for _prepare_read().
-        if (m_pipefd[1] != -1 && write(m_pipefd[1], "\0", 1) == -1)
-            qWarning("Failed to write to the pipe: %s.", strerror(errno));
+        if (m_pipefd[1] != -1 && qt_safe_write(m_pipefd[1], "\0", 1) == -1)
+            qErrnoWarning("Failed to write to the pipe");
 
-        m_quitting.storeRelaxed(true);
-        m_cond.wakeOne();
+        {
+            // The lock makes sure the event thread doesn't start waiting just after it
+            // checked m_quitting, which would make it miss the wakeOne() here.
+            QMutexLocker lock(&m_mutex);
+            m_quitting.storeRelaxed(true);
+            m_cond.wakeOne();
+        }
 
         wait();
     }
@@ -155,33 +181,13 @@ Q_SIGNALS:
 protected:
     void run() override
     {
-        // we use this pipe to make the loop exit otherwise if we simply used a flag on the loop condition, if stop() gets
-        // called while poll() is blocking the thread will never quit since there are no wayland messages coming anymore.
-        struct Pipe
-        {
-            Pipe(int *fds)
-                : fds(fds)
-            {
-                if (qt_safe_pipe(fds) != 0)
-                    qWarning("Pipe creation failed. Quitting may hang.");
-            }
-            ~Pipe()
-            {
-                if (fds[0] != -1) {
-                    close(fds[0]);
-                    close(fds[1]);
-                }
-            }
-
-            int *fds;
-        } pipe(m_pipefd);
-
         // Make the main thread call wl_prepare_read(), dispatch the pending messages and flush the
         // outbound ones. Wait until it's done before proceeding, unless we're told to quit.
         while (waitForReading()) {
             if (!m_reading.loadRelaxed())
                 break;
 
+            // m_pipefd[0] is what makes this poll() return when stop() is called.
             pollfd fds[2] = { { m_fd, POLLIN, 0 }, { m_pipefd[0], POLLIN, 0 } };
             poll(fds, 2, -1);
 
@@ -240,7 +246,7 @@ private:
     }
 
     int m_fd;
-    int m_pipefd[2];
+    int m_pipefd[2]; // set in the constructor, closed in the destructor, constant in between
     wl_display *m_wldisplay;
     wl_event_queue *m_wlevqueue;
     OperatingMode m_mode;
@@ -252,6 +258,8 @@ private:
      * is not actively waiting for it to turn false. However, the lock is taken
      * inside readAndDispatchEvents() before setting m_reading to true,
      * as the event thread is actively waiting for it under the wait condition.
+     * m_quitting is set inside stop() and readAndDispatchEvents(), which both take the
+     * lock for the same reason: the event thread waits on it too.
      */
 
     QAtomicInteger<bool> m_reading;
@@ -319,8 +327,9 @@ QWaylandWindowManagerIntegration *QWaylandDisplay::windowManagerIntegration() co
     return mGlobals.windowManagerIntegration.get();
 }
 
-QWaylandDisplay::QWaylandDisplay(QWaylandIntegration *waylandIntegration)
-    : mWaylandIntegration(waylandIntegration)
+QWaylandDisplay::QWaylandDisplay(QWaylandIntegration *waylandIntegration, QObject *parent)
+    : QObject(parent)
+    , mWaylandIntegration(waylandIntegration)
 {
     qRegisterMetaType<uint32_t>("uint32_t");
 
@@ -456,9 +465,10 @@ void QWaylandDisplay::reconnect()
     mRegistryGlobals.clear();
 
     mLastInputSerial = 0;
-    mLastInputWindow.clear();
+    mLastInputSurface.clear();
     mLastKeyboardFocus.clear();
     mActiveWindows.clear();
+    mActiveSubSurface.clear();
 
     const auto windows = QGuiApplication::allWindows();
     QList<QWaylandWindow *> allPlatformWindows;
@@ -496,18 +506,19 @@ void QWaylandDisplay::reconnect()
     if (!mDisplay)
         _exit(1);
 
-    connect(
-            this, &QWaylandDisplay::connected, this,
-            [this, &allPlatformWindows] {
-                for (auto &window : std::as_const(allPlatformWindows)) {
-                    window->initializeWlSurface(false);
-                }
-                forceRoundTrip(); // we need a roundtrip to receive the color space features the compositor supports
-                for (auto &window : std::as_const(allPlatformWindows)) {
-                    window->initializeColorSpace();
-                }
-            },
-            Qt::SingleShotConnection);
+    QMetaObject::Connection connection =
+            connect(
+                this, &QWaylandDisplay::connected, this,
+                [this, &allPlatformWindows] {
+                    for (auto &window : std::as_const(allPlatformWindows)) {
+                        window->initializeWlSurface(false);
+                    }
+                    forceRoundTrip(); // we need a roundtrip to receive the color space features the compositor supports
+                    for (auto &window : std::as_const(allPlatformWindows)) {
+                        window->initializeColorSpace();
+                    }
+                },
+                Qt::SingleShotConnection);
 
     setupConnection();
 
@@ -534,6 +545,10 @@ void QWaylandDisplay::reconnect()
     }
 
     mWaylandIntegration->reconfigureInputContext();
+
+    // Failsafe: Make sure we don't have a lingering connection referencing local variables
+    // (This will have been executed and disconnected in initialize())
+    disconnect(connection);
 }
 
 void QWaylandDisplay::flushRequests()
@@ -642,6 +657,9 @@ struct WithDestructor : public T
     {
         f(this->object());
     }
+
+private:
+    Q_DISABLE_COPY(WithDestructor)
 };
 
 void QWaylandDisplay::registry_global(uint32_t id, const QString &interface, uint32_t version)
@@ -763,7 +781,7 @@ void QWaylandDisplay::registry_global(uint32_t id, const QString &interface, uin
         }
         mGlobals.textInputManagerv3.reset(
                 new WithDestructor<QtWayland::zwp_text_input_manager_v3,
-                                   zwp_text_input_manager_v3_destroy>(registry, id, 1));
+                                   zwp_text_input_manager_v3_destroy>(registry, id, std::min(2u, version)));
         for (QWaylandInputDevice *inputDevice : std::as_const(mInputDevices))
             inputDevice->setTextInput(new QWaylandTextInputv3(
                     this, mGlobals.textInputManagerv3->get_text_input(inputDevice->wl_seat())));
@@ -821,10 +839,9 @@ void QWaylandDisplay::registry_global(uint32_t id, const QString &interface, uin
                 registry, id, 1));
     }
 #ifndef QT_NO_SESSIONMANAGER
-       else if (interface == QLatin1String(QtWayland::xx_session_manager_v1::interface()->name)
-               && qEnvironmentVariableIntValue("QT_WAYLAND_ENABLE_XX_SESSION_MANAGER") > 0) {
-        mGlobals.xxSessionManager.reset(
-                new WithDestructor<QtWayland::xx_session_manager_v1, xx_session_manager_v1_destroy>(
+       else if (interface == QLatin1String(QtWayland::xdg_session_manager_v1::interface()->name)) {
+        mGlobals.xdgSessionManager.reset(
+                new WithDestructor<QtWayland::xdg_session_manager_v1, xdg_session_manager_v1_destroy>(
                         registry, id, 1));
     }
 #endif
@@ -962,19 +979,24 @@ bool QWaylandDisplay::supportsWindowDecoration() const
 
 QWaylandWindow *QWaylandDisplay::lastInputWindow() const
 {
-    return mLastInputWindow.data();
+    return mLastInputSurface ? mLastInputSurface->waylandWindow() : nullptr;
 }
 
-void QWaylandDisplay::setLastInputDevice(QWaylandInputDevice *device, uint32_t serial, QWaylandWindow *win)
+QWaylandSurface *QWaylandDisplay::lastInputSurface() const
+{
+    return mLastInputSurface.data();
+}
+
+void QWaylandDisplay::setLastInputDevice(QWaylandInputDevice *device, uint32_t serial, QWaylandSurface *surface)
 {
     mLastInputDevice = device;
     mLastInputSerial = serial;
-    mLastInputWindow = win;
+    mLastInputSurface = surface;
 }
 
 bool QWaylandDisplay::isWindowActivated(const QWaylandWindow *window)
 {
-    return mActiveWindows.contains(const_cast<QWaylandWindow *>(window));
+    return mActiveWindows.contains(const_cast<QWaylandWindow *>(window)) || mActiveSubSurface == window;
 }
 
 void QWaylandDisplay::handleWindowActivated(QWaylandWindow *window)
@@ -983,6 +1005,7 @@ void QWaylandDisplay::handleWindowActivated(QWaylandWindow *window)
         return;
 
     mActiveWindows.append(window);
+    mActiveSubSurface.clear();
     requestWaylandSync();
 
     if (auto *decoration = window->decoration())
@@ -997,6 +1020,7 @@ void QWaylandDisplay::handleWindowDeactivated(QWaylandWindow *window)
         requestWaylandSync();
 
     mActiveWindows.removeOne(window);
+    mActiveSubSurface.clear();
 
     if (QCoreApplication::closingDown())
         return;
@@ -1024,6 +1048,24 @@ void QWaylandDisplay::handleWindowDestroyed(QWaylandWindow *window)
 {
     if (mActiveWindows.contains(window))
         handleWindowDeactivated(window);
+    if (mActiveSubSurface) {
+        auto *parent = mActiveSubSurface.get();
+        while (parent && parent != window)
+            parent = static_cast<QWaylandWindow *>(parent->QPlatformWindow::parent());
+        if (parent)
+            mActiveSubSurface.clear();
+    }
+}
+
+void QWaylandDisplay::setActiveSubSurface(QWaylandWindow *window)
+{
+    mActiveSubSurface = window;
+    requestWaylandSync();
+}
+
+QWaylandWindow *QWaylandDisplay::activeSubSurface() const
+{
+    return mActiveSubSurface;
 }
 
 void QWaylandDisplay::handleWaylandSync()
@@ -1032,6 +1074,8 @@ void QWaylandDisplay::handleWaylandSync()
     // pair, and the latter one would be lost in the QWindowSystemInterface queue, if we issue the
     // handleWindowActivated() calls immediately.
     QWindow *activeWindow = mActiveWindows.empty() ? nullptr : mActiveWindows.last()->window();
+    if (mActiveSubSurface)
+        activeWindow = mActiveSubSurface->window();
     if (activeWindow != QGuiApplication::focusWindow())
         QWindowSystemInterface::handleFocusWindowChanged(activeWindow);
 }
@@ -1077,7 +1121,7 @@ QWaylandCursor *QWaylandDisplay::waylandCursor()
 {
     if (!mCursor)
         mCursor.reset(mWaylandIntegration->createPlatformCursor(this));
-    return mCursor.data();
+    return mCursor.get();
 }
 
 auto QWaylandDisplay::findExistingCursorTheme(const QString &name, int pixelSize) const noexcept

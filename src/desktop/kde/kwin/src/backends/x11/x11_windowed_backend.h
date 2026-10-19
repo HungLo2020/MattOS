@@ -28,8 +28,10 @@ class QSocketNotifier;
 
 namespace KWin
 {
+
 class X11WindowedBackend;
 class X11WindowedOutput;
+class RenderDevice;
 
 class X11WindowedInputDevice : public InputDevice
 {
@@ -96,22 +98,20 @@ public:
 
     xcb_connection_t *connection() const;
     xcb_screen_t *screen() const;
-    int screenNumer() const;
+    int screenNumber() const;
     xcb_window_t rootWindow() const;
-    DrmDevice *drmDevice() const;
 
     bool hasXInput() const;
 
     xcb_render_pictformat_t pictureFormatForDepth(int depth) const;
 
-    QHash<uint32_t, QList<uint64_t>> driFormats() const;
+    FormatModifierMap driFormats() const;
     uint32_t driFormatForDepth(int depth) const;
     int driMajorVersion() const;
     int driMinorVersion() const;
 
     bool initialize() override;
-    std::unique_ptr<EglBackend> createOpenGLBackend() override;
-    std::unique_ptr<QPainterBackend> createQPainterBackend() override;
+    std::unique_ptr<EglBackend> createOpenGLBackend(RenderDevice *device) override;
     std::unique_ptr<InputBackend> createInputBackend() override;
     QList<CompositingType> supportedCompositors() const override;
     QList<BackendOutput *> outputs() const override;
@@ -120,8 +120,7 @@ public:
     X11WindowedInputDevice *keyboardDevice() const;
     X11WindowedInputDevice *touchDevice() const;
 
-    void setEglDisplay(std::unique_ptr<EglDisplay> &&display);
-    EglDisplay *sceneEglDisplayObject() const override;
+    RenderDevice *renderDevice() const;
 
 private:
     void createOutputs();
@@ -169,10 +168,9 @@ private:
     bool m_hasDri = false;
     int m_driMajorVersion = 0;
     int m_driMinorVersion = 0;
-    QHash<uint32_t, QList<uint64_t>> m_driFormats;
+    FormatModifierMap m_driFormats;
 
-    std::unique_ptr<DrmDevice> m_drmDevice;
-    std::unique_ptr<EglDisplay> m_eglDisplay;
+    RenderDevice *m_renderDevice = nullptr;
 
     QList<X11WindowedOutput *> m_outputs;
     QHash<int, xcb_render_pictformat_t> m_pictureFormats;

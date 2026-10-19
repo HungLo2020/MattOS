@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
-"PO-Revision-Date: 2026-01-20 19:54+0300\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-10-04 08:28+0200\n"
 "Last-Translator: Alexander Yavorsky <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
@@ -107,8 +107,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Настроить комбинации клавиш…"
+msgid "Key Bindings"
+msgstr "Комбинации клавиш"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -146,13 +146,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Добавление раскладки"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Краткое название раскладки"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -162,13 +162,13 @@ msgstr ""
 "Сокращённое название выбранной раскладки, которое будет показано в системном "
 "лотке. Этот параметр возможно изменить самостоятельно."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Комбинация клавиш:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -324,7 +324,7 @@ msgstr "Проверка:"
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "Type here to test settings"
-msgstr "Начните печатать для проверки настроек"
+msgstr "Введите текст для проверки"
 
 #: ui/main.qml:256
 #, kde-format
@@ -557,7 +557,7 @@ msgstr ""
 "Для набора дополнительных букв, символов и диакритических знаков можно "
 "воспользоваться клавишами-модификаторами."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
@@ -566,15 +566,15 @@ msgstr[1] "%1 комбинации клавиш"
 msgstr[2] "%1 комбинаций клавиш"
 msgstr[3] "%1 комбинация клавиш"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Нет"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Комбинации клавиш"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Настроить комбинации клавиш…"
 
 #~ msgctxt "@option:radio"
 #~ msgid "Turn Off"

@@ -57,7 +57,8 @@ PlasmoidItem {
         appNameFormat: Plasmoid.configuration.appNameFormat
         flat: true // have categories, but no subcategories
         sorted: Plasmoid.configuration.alphaSort
-        showSeparators: true
+        showSeparators: !sorted && Plasmoid.configuration.applicationsDisplay != 0
+        showRootSeparator: true
         showTopLevelItems: true
 
         showAllApps: true
@@ -145,7 +146,7 @@ PlasmoidItem {
         id: dragSource // BUG 449426
         property Item sourceItem
         Drag.dragType: Drag.Automatic
-        Drag.supportedActions: Qt.CopyAction | Qt.LinkAction
+        Drag.supportedActions: Qt.CopyAction | Qt.LinkAction | Qt.MoveAction
     }
     //END
 
@@ -354,7 +355,7 @@ PlasmoidItem {
 
     Plasmoid.contextualActions: [
         PlasmaCore.Action {
-            text: i18nc("@action:inmenu launches kmenuedit", "Edit Applications…") // qmllint disable unqualified
+            text: i18nc("@action:inmenu launches kmenuedit", "Edit Applications…")
             icon.name: "kmenuedit"
             visible: Plasmoid.immutability !== PlasmaCore.Types.SystemImmutable
             onTriggered: processRunner.runMenuEditor()

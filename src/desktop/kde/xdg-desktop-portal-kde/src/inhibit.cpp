@@ -24,8 +24,8 @@ class SessionStateMonitorSession : public Session
 {
     Q_OBJECT
 public:
-    SessionStateMonitorSession(QObject *parent = nullptr, const QString &appId = QString(), const QString &path = QString());
-    ~SessionStateMonitorSession() = default;
+    explicit SessionStateMonitorSession(QObject *parent = nullptr, const QString &appId = QString(), const QString &path = QString());
+    ~SessionStateMonitorSession() override = default;
     SessionType type() const override
     {
         return SessionStateMonitor;
@@ -94,7 +94,7 @@ static void releaseInhibition(uint cookie)
 class InhibitionRequest : public Request
 {
 public:
-    InhibitionRequest(const QDBusObjectPath &handle, uint policies, const QString app_id, const QString &reason, QObject *parent = nullptr)
+    InhibitionRequest(const QDBusObjectPath &handle, uint policies, const QString &app_id, const QString &reason, QObject *parent = nullptr)
         : Request(handle, parent)
     {
         QDBusMessage message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.Solid.PowerManagement"),

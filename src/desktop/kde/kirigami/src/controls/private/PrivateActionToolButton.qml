@@ -32,6 +32,7 @@ QQC2.ToolButton {
     }
 
     property Component menuComponent: ActionsMenu {
+        x: control.position === QQC2.ToolBar.Footer ? parent.width - width : 0
         y: control.position === QQC2.ToolBar.Footer ? -height : 0
         submenuComponent: ActionsMenu { }
     }

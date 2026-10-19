@@ -32,6 +32,16 @@ TestCase {
             source: Qt.resolvedUrl("stop-icon.svg")
         }
     }
+    Component {
+        id: portraitIcon
+        Kirigami.Icon {
+            // A non-square box, wider than tall.
+            width: 100
+            height: 50
+            // A 40x80 image: taller than it is wide.
+            source: Qt.resolvedUrl("portrait-icon.png")
+        }
+    }
     Kirigami.ImageColors {
         id: imageColors
     }
@@ -53,6 +63,26 @@ TestCase {
         var icon = createTemporaryObject(data.component, testCase)
         verify(icon)
         verify(waitForRendering(icon))
+    }
+
+    function test_portrait_aspect_ratio_data() {
+        return [
+            { tag: "roundToIconSize", roundToIconSize: true },
+            { tag: "no roundToIconSize", roundToIconSize: false },
+        ]
+    }
+
+    // A portrait image must keep its aspect ratio and not be stretched to a square.
+    function test_portrait_aspect_ratio(data) {
+        let icon = createTemporaryObject(portraitIcon, testCase, { roundToIconSize: data.roundToIconSize })
+        verify(icon)
+        verify(waitForRendering(icon))
+        // The source loads asynchronously; before it is ready the icon uses a box-sized
+        // placeholder, so wait for the real image to be loaded before checking its aspect.
+        tryVerify(() => icon.status === Kirigami.Icon.Ready)
+        verify(icon.paintedWidth > 0 && icon.paintedHeight > 0)
+        verify(icon.paintedWidth < icon.paintedHeight,
+               "portrait icon must not be stretched wide: paintedWidth=" + icon.paintedWidth + " paintedHeight=" + icon.paintedHeight)
     }
 
     function test_absolutepath_recoloring() {

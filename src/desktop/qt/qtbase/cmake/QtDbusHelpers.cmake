@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 # helper to set up a qdbusxml2cpp rule
-function(qt_create_qdbusxml2cpp_command target infile)
+function(qt_internal_create_qdbusxml2cpp_command target infile)
     cmake_parse_arguments(PARSE_ARGV 2 arg
         "ADAPTOR;INTERFACE"
         "BASENAME"
@@ -10,7 +10,8 @@ function(qt_create_qdbusxml2cpp_command target infile)
     _qt_internal_validate_all_args_are_parsed(arg)
 
     if((arg_ADAPTOR AND arg_INTERFACE) OR (NOT arg_ADAPTOR AND NOT arg_INTERFACE))
-        message(FATAL_ERROR "qt_create_dbusxml2cpp_command needs either ADAPTOR or INTERFACE.")
+        message(FATAL_ERROR
+            "qt_internal_create_qdbusxml2cpp_command needs either ADAPTOR or INTERFACE.")
     endif()
 
     set(option "-a")
@@ -49,11 +50,11 @@ function(qt_create_qdbusxml2cpp_command target infile)
     # due to ":" being contained in the drive path (e.g C:\foo.h:C:\foo.cpp).
     get_filename_component(absolute_in_file_path "${infile}" ABSOLUTE)
 
-    set(header_file "${file_name}.h")
+    set(header_file "${file_name}_p.h")
     set(source_file "${file_name}.cpp")
 
-    set(header_file_full "${CMAKE_CURRENT_BINARY_DIR}/${file_name}.h")
-    set(source_file_full "${CMAKE_CURRENT_BINARY_DIR}/${file_name}.cpp")
+    set(header_file_full "${CMAKE_CURRENT_BINARY_DIR}/${header_file}")
+    set(source_file_full "${CMAKE_CURRENT_BINARY_DIR}/${source_file}")
 
     if(QT_OPTIONAL_TOOLS_PATH)
         if(CMAKE_HOST_WIN32)

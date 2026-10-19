@@ -14,8 +14,9 @@
 
 #include <array>
 #include <memory>
+#include <span>
 
-#define NUM_OF_SBCS_PROBERS 12
+#define NUM_OF_SBCS_PROBERS 11
 
 namespace kencodingprober
 {
@@ -23,6 +24,7 @@ class KCODECS_NO_EXPORT nsSBCSGroupProber : public nsCharSetProber
 {
 public:
     nsSBCSGroupProber();
+    explicit nsSBCSGroupProber(std::span<const Prober> selected);
     ~nsSBCSGroupProber() override = default;
 
     nsProbingState HandleData(const char *aBuf, unsigned int aLen) override;
@@ -33,15 +35,14 @@ public:
     }
     float GetConfidence(void) override;
 
-#ifdef DEBUG_PROBE
-    void DumpStatus() override;
-#endif
+    std::string StatusOutput(uint8_t indent) override;
 
 protected:
     nsProbingState mState = eDetecting;
     std::array<std::unique_ptr<nsCharSetProber>, NUM_OF_SBCS_PROBERS> mProbers = {nullptr};
     std::array<bool, NUM_OF_SBCS_PROBERS> mIsActive = {false};
-    int mBestGuess = -1;
+    const std::array<bool, NUM_OF_SBCS_PROBERS> mIsSelected = {true};
+    size_t mBestGuess = mProbers.size();
 };
 }
 

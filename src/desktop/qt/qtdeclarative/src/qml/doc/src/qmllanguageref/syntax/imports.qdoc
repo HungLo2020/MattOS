@@ -4,7 +4,7 @@
 \page qtqml-syntax-imports.html
 \meta {keywords} {qmltopic}
 \title Import Statements
-\brief Description of import statements in QML
+\brief Description of import statements in QML.
 \keyword QML.import
 
 \section1 Syntax of an Import Statement
@@ -157,7 +157,7 @@ referring to the correct type:
 
 \qml
 import QtQuick as CoreItems
-import "../textwidgets" as MyModule
+import TextWidgets as MyModule
 
 CoreItems.Rectangle {
     width: 100; height: 100
@@ -267,7 +267,9 @@ JavaScript resources, please see the in-depth documentation about
 \section1 QML Import Path
 
 When an \l{Identified Modules}{identified module} is imported,
-the QML engine searches the \e{import path} for a matching module.
+the QML engine searches the \e{import path} for a matching module to load
+QML files and QML Module plugins. Qt assumes that all files under the
+\e{import path} come from a trusted source.
 
 This import path, as returned by QQmlEngine::importPathList(), defines the
 default locations to be searched by the engine. By default, this list contains,
@@ -302,7 +304,7 @@ QQmlEngine::addImportPath() programatically.
 
 \note It is recommended that applications and libraries put their modules
 under "qrc:/qt/qml". This happens by default when the module is created
-with  \l{qt_add_qml_module}{qt_add_qml_module()} and \l{QTP0001} is
+with  \l{qt_add_qml_module()} and \l{QTP0001} is
 enabled.
 
 

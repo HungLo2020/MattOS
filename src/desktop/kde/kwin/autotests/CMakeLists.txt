@@ -23,7 +23,6 @@ ecm_mark_as_test(testWindowPaintData)
 # Test VirtualDesktopManager
 ########################################################
 set(testVirtualDesktops_SRCS
-    ../src/virtualdesktops.cpp
     test_virtual_desktops.cpp
 )
 add_executable(testVirtualDesktops ${testVirtualDesktops_SRCS})
@@ -38,6 +37,8 @@ target_link_libraries(testVirtualDesktops
     KF6::GlobalAccel
     KF6::I18n
     KF6::WindowSystem
+
+    Plasma::Activities
 )
 add_test(NAME kwin-testVirtualDesktops COMMAND testVirtualDesktops)
 ecm_mark_as_test(testVirtualDesktops)
@@ -175,7 +176,6 @@ add_test(NAME kwin-testOpenGLContextAttributeBuilder COMMAND testOpenGLContextAt
 ecm_mark_as_test(testOpenGLContextAttributeBuilder)
 
 set(testXkb_SRCS
-    ../src/xkb.cpp
     test_xkb.cpp
 )
 qt_add_dbus_interface(testXkb_SRCS ${CMAKE_SOURCE_DIR}/src/org.freedesktop.DBus.Properties.xml dbusproperties_interface)
@@ -284,3 +284,74 @@ target_link_libraries(testRegion
 )
 add_test(NAME kwin-testRegion COMMAND testRegion)
 ecm_mark_as_test(testRegion)
+
+########################################################
+# Test RegionF
+########################################################
+add_executable(testRegionF test_regionf.cpp)
+target_link_libraries(testRegionF
+    Qt::Test
+    kwin
+)
+add_test(NAME kwin-testRegionF COMMAND testRegionF)
+ecm_mark_as_test(testRegionF)
+
+add_test(NAME kcm_animations_smoketest COMMAND kcmshell6 --smoke-test kcm_animations)
+set_tests_properties(kcm_animations_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwindecoration_smoketest COMMAND kcmshell6 --smoke-test kcm_kwindecoration)
+set_tests_properties(kcm_kwindecoration_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwin_virtualdesktops_smoketest COMMAND kcmshell6 --smoke-test kcm_kwin_virtualdesktops)
+set_tests_properties(kcm_kwin_virtualdesktops_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwin_effects_smoketest COMMAND kcmshell6 --smoke-test kcm_kwin_effects)
+set_tests_properties(kcm_kwin_effects_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwinoptions_smoketest COMMAND kcmshell6 --smoke-test kcm_kwinoptions)
+set_tests_properties(kcm_kwinoptions_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwinrules_smoketest COMMAND kcmshell6 --smoke-test kcm_kwinrules)
+set_tests_properties(kcm_kwinrules_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwinscreenedges_smoketest COMMAND kcmshell6 --smoke-test kcm_kwinscreenedges)
+set_tests_properties(kcm_kwinscreenedges_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwintouchscreen_smoketest COMMAND kcmshell6 --smoke-test kcm_kwintouchscreen)
+set_tests_properties(kcm_kwintouchscreen_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwin_scripts_smoketest COMMAND kcmshell6 --smoke-test kcm_kwin_scripts)
+set_tests_properties(kcm_kwin_scripts_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwintabbox_smoketest COMMAND kcmshell6 --smoke-test kcm_kwintabbox)
+set_tests_properties(kcm_kwintabbox_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_virtualkeyboard_smoketest COMMAND kcmshell6 --smoke-test kcm_virtualkeyboard)
+set_tests_properties(kcm_virtualkeyboard_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)
+
+add_test(NAME kcm_kwinxwayland_smoketest COMMAND kcmshell6 --smoke-test kcm_kwinxwayland)
+set_tests_properties(kcm_kwinxwayland_smoketest PROPERTIES
+    ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+)

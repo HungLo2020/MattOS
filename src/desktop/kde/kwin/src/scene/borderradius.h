@@ -13,7 +13,9 @@
 
 namespace KDecoration3
 {
+
 class BorderRadius;
+
 }
 
 namespace KWin
@@ -26,7 +28,7 @@ public:
     explicit BorderRadius(qreal radius);
     explicit BorderRadius(qreal topLeft, qreal topRight, qreal bottomRight, qreal bottomLeft);
 
-    bool operator<=>(const BorderRadius &other) const = default;
+    auto operator<=>(const BorderRadius &other) const = default;
 
     bool isNull() const;
 
@@ -36,7 +38,7 @@ public:
     qreal bottomRight() const;
 
     bool clips(const RectF &rect, const RectF &bounds) const;
-    Region clip(const Region &region, const RectF &bounds) const;
+    RegionF clip(const RegionF &region, const RectF &bounds) const;
 
     BorderRadius scaled(qreal scale) const;
     BorderRadius rounded() const;

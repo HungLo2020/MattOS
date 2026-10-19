@@ -7,6 +7,7 @@
 #include "screencastbuffer.h"
 #include "compositor.h"
 #include "core/drmdevice.h"
+#include "core/renderdevice.h"
 #include "core/shmgraphicsbufferallocator.h"
 #include "opengl/eglbackend.h"
 #include "opengl/glframebuffer.h"
@@ -32,14 +33,9 @@ DmaBufScreenCastBuffer::DmaBufScreenCastBuffer(GraphicsBuffer *buffer, std::shar
 {
 }
 
-DmaBufScreenCastBuffer *DmaBufScreenCastBuffer::create(pw_buffer *pwBuffer, const GraphicsBufferOptions &options)
+DmaBufScreenCastBuffer *DmaBufScreenCastBuffer::create(RenderDevice *renderDevice, pw_buffer *pwBuffer, const GraphicsBufferOptions &options)
 {
-    EglBackend *backend = dynamic_cast<EglBackend *>(Compositor::self()->backend());
-    if (!backend || !backend->drmDevice()) {
-        return nullptr;
-    }
-
-    GraphicsBuffer *buffer = backend->drmDevice()->allocator()->allocate(options);
+    GraphicsBuffer *buffer = renderDevice->allocator()->allocate(options);
     if (!buffer) {
         return nullptr;
     }
@@ -56,9 +52,13 @@ DmaBufScreenCastBuffer *DmaBufScreenCastBuffer::create(pw_buffer *pwBuffer, cons
         return nullptr;
     }
 
-    backend->openglContext()->makeCurrent();
+    auto context = renderDevice->eglContext();
+    if (!context->makeCurrent()) {
+        buffer->drop();
+        return nullptr;
+    }
 
-    auto texture = backend->importDmaBufAsTexture(*attrs);
+    auto texture = context->importDmaBufAsTexture(*attrs);
     if (!texture) {
         buffer->drop();
         return nullptr;
@@ -86,7 +86,7 @@ DmaBufScreenCastBuffer *DmaBufScreenCastBuffer::create(pw_buffer *pwBuffer, cons
 
     std::unique_ptr<SyncTimeline> synctimeline;
     if (syncTimelineMeta) {
-        synctimeline = std::make_unique<SyncTimeline>(backend->drmDevice()->fileDescriptor());
+        synctimeline = std::make_unique<SyncTimeline>(renderDevice->drmDevice()->fileDescriptor());
         const FileDescriptor &syncobjfd = synctimeline->fileDescriptor();
         if (!syncobjfd.isValid()) {
             buffer->drop();

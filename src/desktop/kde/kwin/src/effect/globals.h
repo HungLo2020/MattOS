@@ -21,6 +21,7 @@
 
 namespace KWin
 {
+
 KWIN_EXPORT Q_NAMESPACE
 
     enum CompositingType {
@@ -33,6 +34,10 @@ KWIN_EXPORT Q_NAMESPACE
          * use EffectsHandler::isOpenGLCompositing().
          */
         OpenGLCompositing = 1,
+        /**
+         * Deprecated, but needs to be kept around for backwards compat with
+         * user configs
+         */
         QPainterCompositing = 1 << 2,
     };
 
@@ -132,7 +137,7 @@ enum class SwipeDirection {
 
 enum class PinchDirection {
     Expanding,
-    Contracting
+    Contracting,
 };
 
 /**
@@ -230,14 +235,6 @@ private:
 };
 
 /**
- * Scale a rect by a scalar.
- */
-KWIN_EXPORT inline QRectF scaledRect(const QRectF &rect, qreal scale)
-{
-    return QRectF{rect.x() * scale, rect.y() * scale, rect.width() * scale, rect.height() * scale};
-}
-
-/**
  * Round a vector to nearest integer.
  */
 KWIN_EXPORT inline QVector2D roundVector(const QVector2D &input)
@@ -281,7 +278,7 @@ Q_ENUM_NS(VrrPolicy);
 
 enum class PresentationModeHint {
     VSync,
-    Async
+    Async,
 };
 Q_ENUM_NS(PresentationModeHint);
 
@@ -409,11 +406,83 @@ enum WindowTypeMask {
 };
 Q_DECLARE_FLAGS(WindowTypes, WindowTypeMask)
 
-enum class OutputConfigurationError {
+/**
+ * The DecorationPolicy enum indicates how the decoration mode is determined.
+ */
+enum class DecorationPolicy {
+    /**
+     * Force no decoration.
+     */
     None,
-    Unknown,
-    TooManyEnabledOutputs,
+    /**
+     * Follow the preferred decoration mode of the client.
+     */
+    ClientPreference,
+    /**
+     * Force the server side decoration mode.
+     */
+    Server,
+    /**
+     * Force the server side drop shadow + maybe an outline.
+     */
+    Shadow,
+};
+
+enum class OutputErrorCode {
+    /**
+     * The error doesn't fall into the other categories
+     */
+    Other,
+    /**
+     * An implementation error in the compositor itself
+     */
+    InvalidApiUsage,
+    /**
+     * Applying this configuration isn't possible without
+     * triggering a modeset
+     */
+    NeedsModeset,
+    /**
+     * The async presentation mode is not possible at the moment
+     * (but it may work with a simplified configuration or in the next frame)
+     */
+    AsyncFlipFailure,
+    /**
+     * The kernel reported a permission error
+     */
+    NoPermission,
+    /**
+     * The compositor requested more outputs to be enabled on
+     * a specific GPU than what the hardware supports
+     */
+    NotEnoughCrtcs,
+    /**
+     * Any hardware limitation that doesn't fall into the other categories.
+     */
+    OtherHardwareLimitation,
+    /**
+     * Couldn't match a requested color pipeline
+     */
+    ColorPipeline,
+    /**
+     * Requested scaling or cropping beyond what the hardware supports,
+     */
+    Scaling,
+    /**
+     * No valid configuration could be found in the specified time
+     */
     Timeout,
+    /**
+     * Configuration failed because the session is not active
+     */
+    NotActive,
+};
+Q_ENUM_NS(OutputErrorCode);
+
+struct OutputError
+{
+    OutputErrorCode code;
+    QString message;
 };
 
 } // namespace
@@ -421,6 +490,7 @@ enum class OutputConfigurationError {
 Q_DECLARE_METATYPE(std::chrono::nanoseconds)
 
 #define KWIN_SINGLETON_VARIABLE(ClassName, variableName) \
+                                                         \
 public:                                                  \
     static ClassName *create(QObject *parent = nullptr); \
     static ClassName *self()                             \

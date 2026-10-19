@@ -107,6 +107,7 @@ Control {
             Layout.preferredHeight: fontMetric.height
 
             text: control.name + (control.shortName.length > 0 ? "\x9C" + control.shortName : "")
+            textFormat: Text.PlainText
             elide: Text.ElideRight
             font: control.font
             verticalAlignment: Qt.AlignVCenter
@@ -128,7 +129,11 @@ Control {
 
             text: control.value
             elide: Text.ElideRight
-            font: name.font
+            font: {
+                let tnumFont = Qt.font(name.font)
+                tnumFont.features= { "tnum": 1 }
+                return tnumFont
+            }
 
             verticalAlignment: Qt.AlignVCenter
             horizontalAlignment: Qt.AlignRight

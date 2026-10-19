@@ -1,0 +1,11 @@
+schema_version = 1
+component = "plasma-systemmonitor"
+upstream_commit = "4382f5c3b43885e1bc17339d09cf420e6b25003c"
+upstream_tree = "c36d9477843456ba1e7b7c6ff0f7a7bba3f841df"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/plasma-systemmonitor/0001-use-qt6-qml-module-discovery.patch"
+sha256 = "78022fb88aa21cf48924d1ddb9cd088742f56b5e8cc88840c6024991a74dab14"
+purpose = "Match the application's unversioned Qt 6 QML import; avoid ECM's legacy qmlplugindump fallback for a Qt module without KDE version markers."
+documentation = "docs/system/userland/kde-applications.md"

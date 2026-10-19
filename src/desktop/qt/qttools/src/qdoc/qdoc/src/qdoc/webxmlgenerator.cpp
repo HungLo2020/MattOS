@@ -13,7 +13,9 @@
 #include "propertynode.h"
 #include "qdocdatabase.h"
 #include "quoter.h"
+#include "sharedcommentnode.h"
 #include "utilities.h"
+#include "textutils.h"
 
 #include <QtCore/qxmlstream.h>
 
@@ -57,7 +59,7 @@ QString WebXMLGenerator::fileExtension() const
 qsizetype WebXMLGenerator::generateAtom(const Atom *atom, const Node *relative, CodeMarker *marker)
 {
     if (m_supplement && currentWriter)
-        addAtomElements(*currentWriter.data(), atom, relative, marker);
+        addAtomElements(*currentWriter, atom, relative, marker);
     return 0;
 }
 
@@ -84,14 +86,14 @@ void WebXMLGenerator::generateCppReferencePage(Aggregate *aggregate, CodeMarker 
 void WebXMLGenerator::generatePageNode(PageNode *pn, CodeMarker * /* marker */)
 {
     QByteArray data;
-    currentWriter.reset(new QXmlStreamWriter(&data));
+    currentWriter.emplace(&data);
     currentWriter->setAutoFormatting(true);
     beginSubPage(pn, Generator::fileName(pn, "webxml"));
     currentWriter->writeStartDocument();
     currentWriter->writeStartElement("WebXML");
     currentWriter->writeStartElement("document");
 
-    generateIndexSections(*currentWriter.data(), pn);
+    generateIndexSections(*currentWriter, pn);
 
     currentWriter->writeEndElement(); // document
     currentWriter->writeEndElement(); // WebXML
@@ -101,7 +103,7 @@ void WebXMLGenerator::generatePageNode(PageNode *pn, CodeMarker * /* marker */)
     endSubPage();
 }
 
-void WebXMLGenerator::generateExampleFilePage(const Node *en, ResolvedFile resolved_file, CodeMarker* /* marker */)
+void WebXMLGenerator::generateExampleFilePage(const PageNode *en, ResolvedFile resolved_file, CodeMarker* /* marker */)
 {
     // TODO: [generator-insufficient-structural-abstraction]
 
@@ -147,10 +149,13 @@ void WebXMLGenerator::generateIndexSections(QXmlStreamWriter &writer, Node *node
     marker_ = CodeMarker::markerForFileName(node->location().filePath());
     auto qdocIndexFiles = QDocIndexFiles::qdocIndexFiles();
     if (qdocIndexFiles) {
-        qdocIndexFiles->generateIndexSections(writer, node, this);
-        // generateIndexSections does nothing for groups, so handle them explicitly
-        if (node->isGroup())
-            std::ignore = qdocIndexFiles->generateIndexSection(writer, node, this);
+        qdocIndexFiles->generateIndexSections(writer, node, this, this);
+        // generateIndexSections returns early for collection nodes (groups,
+        // modules, QML modules, concepts) so their member listings can be
+        // written last in an index file. When rendering a single collection
+        // page, that leaves the document empty, so emit the section explicitly.
+        if (node->isCollectionNode())
+            std::ignore = qdocIndexFiles->generateIndexSection(writer, node, this, this);
     }
 }
 
@@ -159,11 +164,16 @@ void WebXMLGenerator::append(QXmlStreamWriter &writer, Node *node)
 {
     Q_ASSERT(marker_);
 
+    // The index walk doesn't visit shared comment nodes; capture the prose here
+    const Doc &effectiveDoc = (node->doc().body().isEmpty() && node->isSharingComment())
+            ? node->sharedCommentNode()->doc()
+            : node->doc();
+
     writer.writeStartElement("description");
     if (Config::instance().get(CONFIG_LOCATIONINFO).asBool()) {
-        writer.writeAttribute("path", node->doc().location().filePath());
-        writer.writeAttribute("line", QString::number(node->doc().location().lineNo()));
-        writer.writeAttribute("column", QString::number(node->doc().location().columnNo()));
+        writer.writeAttribute("path", effectiveDoc.location().filePath());
+        writer.writeAttribute("line", QString::number(effectiveDoc.location().lineNo()));
+        writer.writeAttribute("column", QString::number(effectiveDoc.location().columnNo()));
     }
 
     if (node->isTextPageNode())
@@ -199,11 +209,11 @@ void WebXMLGenerator::append(QXmlStreamWriter &writer, Node *node)
 
     m_inLink = m_inSectionHeading = m_hasQuotingInformation = false;
 
-    const Atom *atom = node->doc().body().firstAtom();
+    const Atom *atom = effectiveDoc.body().firstAtom();
     while (atom)
         atom = addAtomElements(writer, atom, node, marker_);
 
-    QList<Text> alsoList = node->doc().alsoList();
+    QList<Text> alsoList = effectiveDoc.alsoList();
     supplementAlsoList(node, alsoList);
 
     if (!alsoList.isEmpty()) {
@@ -393,6 +403,12 @@ const Atom *WebXMLGenerator::addAtomElements(QXmlStreamWriter &writer, const Ato
         }
         break;
 
+    case Atom::DetailsSummaryLeft: // Ignore/skip \details summary
+        return atom->find(Atom::DetailsSummaryRight, nullptr);
+
+    case Atom::DetailsSummaryRight:
+        break;
+
     case Atom::ExampleFileLink: {
         if (!m_inLink) {
             QString link = linkForExampleFile(atom->string());
@@ -554,7 +570,9 @@ const Atom *WebXMLGenerator::addAtomElements(QXmlStreamWriter &writer, const Ato
                 writer.writeAttribute("start", "I");
             else if (atom->string() == ATOM_LIST_LOWERROMAN)
                 writer.writeAttribute("start", "i");
-            else // (atom->string() == ATOM_LIST_NUMERIC)
+            else if (atom->next() != nullptr) // ATOM_LIST_NUMERIC with explicit start
+                writer.writeAttribute("start", atom->next()->string());
+            else
                 writer.writeAttribute("start", "1");
         }
         break;
@@ -625,7 +643,7 @@ const Atom *WebXMLGenerator::addAtomElements(QXmlStreamWriter &writer, const Ato
     case Atom::SectionLeft:
         writer.writeStartElement("section");
         writer.writeAttribute("id",
-                              Utilities::asAsciiPrintable(Text::sectionHeading(atom).toString()));
+                              TextUtils::asAsciiPrintable(Text::sectionHeading(atom).toString()));
         break;
 
     case Atom::SectionRight:
@@ -736,7 +754,7 @@ const Atom *WebXMLGenerator::addAtomElements(QXmlStreamWriter &writer, const Ato
 
     case Atom::Target:
         writer.writeStartElement("target");
-        writer.writeAttribute("name", Utilities::asAsciiPrintable(atom->string()));
+        writer.writeAttribute("name", TextUtils::asAsciiPrintable(atom->string()));
         writer.writeEndElement();
         break;
 

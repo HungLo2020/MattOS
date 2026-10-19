@@ -33,11 +33,10 @@ public:
     VirtualEglLayer(BackendOutput *output, VirtualEglBackend *backend);
     ~VirtualEglLayer() override;
 
-    std::optional<OutputLayerBeginFrameInfo> doBeginFrame() override;
-    bool doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
+    std::optional<OutputLayerBeginFrameInfo> beginFrame(OutputFrame *frame) override;
+    bool endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
 
-    DrmDevice *scanoutDevice() const override;
-    QHash<uint32_t, QList<uint64_t>> supportedDrmFormats() const override;
+    FormatModifierMap supportedDrmFormats() const override;
     void releaseBuffers() override;
 
     GLTexture *texture() const;
@@ -58,19 +57,15 @@ class VirtualEglBackend : public EglBackend
     Q_OBJECT
 
 public:
-    VirtualEglBackend(VirtualBackend *b);
+    VirtualEglBackend(VirtualBackend *b, RenderDevice *renderDevice);
     ~VirtualEglBackend() override;
 
     QList<OutputLayer *> compatibleOutputLayers(BackendOutput *output) override;
-    void init() override;
+    bool init() override;
 
     VirtualBackend *backend() const;
-    DrmDevice *drmDevice() const override;
 
 private:
-    bool initializeEgl();
-    bool initRenderingContext();
-
     void addOutput(BackendOutput *output);
 
     VirtualBackend *m_backend;

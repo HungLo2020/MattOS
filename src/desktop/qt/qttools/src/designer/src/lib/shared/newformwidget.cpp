@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "newformwidget_p.h"
 #include "ui_newformwidget.h"
@@ -30,6 +31,8 @@
 #include <QtGui/qscreen.h>
 #include <QtWidgets/qpushbutton.h>
 
+#include <array>
+
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
@@ -59,20 +62,37 @@ static QString formName(const QString &className)
 
 namespace qdesigner_internal {
 
-struct TemplateSize {
-    const char *name;
-    int width;
-    int height;
+struct StandardScreenSize
+{
+    QLatin1StringView name;
+    QSize size;
 };
 
-static const struct TemplateSize templateSizes[] =
-{
-    { QT_TRANSLATE_NOOP("qdesigner_internal::NewFormWidget", "Default size"), 0, 0 },
-    { QT_TRANSLATE_NOOP("qdesigner_internal::NewFormWidget", "QVGA portrait (240x320)"), 240, 320  },
-    { QT_TRANSLATE_NOOP("qdesigner_internal::NewFormWidget", "QVGA landscape (320x240)"), 320, 240 },
-    { QT_TRANSLATE_NOOP("qdesigner_internal::NewFormWidget", "VGA portrait (480x640)"), 480, 640 },
-    { QT_TRANSLATE_NOOP("qdesigner_internal::NewFormWidget", "VGA landscape (640x480)"), 640, 480 }
+static constexpr std::array standardScreenSizes = {
+    StandardScreenSize{ "QVGA"_L1, {320, 240} },
+    StandardScreenSize{ "MIMXRT1050-EVKB"_L1, {480,272} },
+    StandardScreenSize{ "VGA"_L1, {640, 480} },
+    StandardScreenSize{ "WVGA"_L1, {800, 480} },
+    StandardScreenSize{ "WSVGA"_L1, {1024, 600} },
+    StandardScreenSize{ "XGA"_L1, {1024, 768} },
+    StandardScreenSize{ "MIMXRT1170-EVKB"_L1, {1280, 720} },
+    StandardScreenSize{ "WXGA"_L1, {1280, 800} }
 };
+
+static void populateSizeCombo(QComboBox *cb)
+{
+    cb->addItem(NewFormWidget::tr("Default size"), QSize{ 0, 0 });
+    for (const auto &size : standardScreenSizes) {
+        //: Standard screen size: %1 Name, %2 screen width, %3 screen height
+        QString portraitName = NewFormWidget::tr("%1 portrait (%2x%3)").arg(size.name)
+                                       .arg(size.size.height()).arg(size.size.width());
+        cb->addItem(portraitName, size.size.transposed());
+        //: Standard screen size: %1 Name, %2 screen width, %3 screen height
+        QString landscapeName = NewFormWidget::tr("%1 landscape (%2x%3)").arg(size.name)
+                                        .arg(size.size.width()).arg(size.size.height());
+        cb->addItem(landscapeName, size.size);
+    }
+}
 
 /* -------------- NewForm dialog.
  * Designer takes new form templates from:
@@ -179,9 +199,8 @@ NewFormWidget::NewFormWidget(QDesignerFormEditorInterface *core, QWidget *parent
         if (ci >= 0)
             m_ui->profileComboBox->setCurrentIndex(ci + profileComboIndexOffset);
     }
-    // Fill size combo
-    for (const TemplateSize &t : templateSizes)
-        m_ui->sizeComboBox->addItem(tr(t.name), QSize(t.width, t.height));
+
+    populateSizeCombo(m_ui->sizeComboBox);
 
     setTemplateSize(settings.newFormSize());
 

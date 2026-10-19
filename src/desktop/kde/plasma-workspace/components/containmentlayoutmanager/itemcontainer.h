@@ -74,6 +74,8 @@ public:
     ItemContainer(QQuickItem *parent = nullptr);
     ~ItemContainer();
 
+    static bool hasValidGeometry(qreal x, qreal y, qreal width, qreal height, qreal rotation);
+
     QQmlListProperty<QObject> contentData();
 
     QString key() const;
@@ -191,6 +193,7 @@ private Q_SLOTS:
     void onConfigOverlayComponentStatusChanged(QQmlComponent::Status status, QQmlComponent *component = nullptr);
 
 private:
+    friend class AppletsLayout;
     void syncChildItemsGeometry(const QSizeF &size);
     void sendUngrabRecursive(QQuickItem *item);
 

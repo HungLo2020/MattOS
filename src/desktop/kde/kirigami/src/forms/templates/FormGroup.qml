@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+import QtQuick
+
 /*!
   \qmltype FormGroup
   \inqmlmodule org.kde.kirigami.forms
@@ -57,8 +59,6 @@
   \sa FormEntry
   \since 6.24
 */
-import QtQuick
-
 Item {
     id: root
 

@@ -3,12 +3,14 @@ Charset=
 Hidden=false
 Keys=pypi
 Name=PyPI
+Name[am]=PyPI
 Name[ar]=PyPI
 Name[az]=PyPI
 Name[be]=PyPI
 Name[bg]=PyPI
 Name[ca]=PyPI
 Name[ca@valencia]=PyPI
+Name[cs]=PyPI
 Name[da]=PyPi
 Name[de]=PyPI
 Name[el]=PyPI
@@ -34,6 +36,8 @@ Name[lg]=PyPI
 Name[lt]=PyPI
 Name[lv]=PyPI
 Name[my]=PyPI
+Name[nan_TW]=PyPI
+Name[nan_TW@latin]=PyPI
 Name[nb]=PyPI
 Name[nl]=PyPI
 Name[nn]=PyPI
@@ -50,11 +54,11 @@ Name[sq]=PyPI
 Name[sv]=PyPI
 Name[th]=PyPi
 Name[tr]=PyPI
-Name[ug]=PyPI
 Name[uk]=PyPI
 Name[zh_CN]=PyPI
 Name[zh_TW]=PyPI
 Query=https://pypi.org/search/?q=\\{@}
+Query[am]=https://pypi.org/search/?q=\\{@}
 Query[ar]=https://pypi.org/search/?q=\\{@}
 Query[ast]=https://pypi.org/search/?q=\\{@}
 Query[az]=https://pypi.org/search/?q=\\{@}
@@ -88,6 +92,8 @@ Query[lg]=https://pypi.org/search/?q=\\{@}
 Query[lt]=https://pypi.org/search/?q=\\{@}
 Query[lv]=https://pypi.org/search/?q=\\{@}
 Query[my]=https://pypi.org/search/?q=\\{@}
+Query[nan_TW]=https://pypi.org/search/?q=\\{@}
+Query[nan_TW@latin]=https://pypi.org/search/?q=\\{@}
 Query[nb]=https://pypi.org/search/?q=\\{@}
 Query[nl]=https://pypi.org/search/?q=\\{@}
 Query[nn]=https://pypi.org/search/?q=\\{@}
@@ -104,7 +110,6 @@ Query[sq]=https://pypi.org/search/?q=\\{@}
 Query[sv]=https://pypi.org/search/?q=\\{@}
 Query[th]=https://pypi.org/search/?q=\\{@}
 Query[tr]=https://pypi.org/search/?q=\\{@}
-Query[ug]=https://pypi.org/search/?q=\\{@}
 Query[uk]=https://pypi.org/search/?q=\\{@}
 Query[zh_CN]=https://pypi.org/search/?q=\\{@}
 Query[zh_TW]=https://pypi.org/search/?q=\\{@}

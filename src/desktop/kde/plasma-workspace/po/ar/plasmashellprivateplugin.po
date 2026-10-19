@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-17 02:42+0000\n"
-"PO-Revision-Date: 2025-11-12 18:55+0400\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
+"PO-Revision-Date: 2026-09-14 21:41+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -86,72 +86,90 @@ msgctxt "Format: month year"
 msgid "%1 %2"
 msgstr "%1 %2"
 
-#: calendar/qml/MonthViewHeader.qml:131
+#: calendar/qml/MonthViewHeader.qml:145
 #, kde-format
 msgid "Days"
 msgstr "الأيام"
 
-#: calendar/qml/MonthViewHeader.qml:139
+#: calendar/qml/MonthViewHeader.qml:153
 #, kde-format
 msgid "Months"
 msgstr "الأشهر"
 
-#: calendar/qml/MonthViewHeader.qml:147
+#: calendar/qml/MonthViewHeader.qml:162
 #, kde-format
 msgid "Years"
 msgstr "السنوات"
 
-#: calendar/qml/MonthViewHeader.qml:184
+#: calendar/qml/MonthViewHeader.qml:206
 #, kde-format
 msgid "Previous Month"
 msgstr "الشهر الماضي"
 
-#: calendar/qml/MonthViewHeader.qml:186
+#: calendar/qml/MonthViewHeader.qml:208
 #, kde-format
 msgid "Previous Year"
 msgstr "السنة السابقة"
 
-#: calendar/qml/MonthViewHeader.qml:188
+#: calendar/qml/MonthViewHeader.qml:210
 #, kde-format
 msgid "Previous Decade"
 msgstr "العقد الماضي"
 
-#: calendar/qml/MonthViewHeader.qml:206
+#: calendar/qml/MonthViewHeader.qml:229
 #, kde-format
 msgctxt "Reset calendar to today"
 msgid "Today"
 msgstr "اليوم"
 
-#: calendar/qml/MonthViewHeader.qml:207
+#: calendar/qml/MonthViewHeader.qml:230
 #, kde-format
 msgid "Reset calendar to today"
 msgstr "صفّر التقويم لليوم"
 
-#: calendar/qml/MonthViewHeader.qml:220
+#: calendar/qml/MonthViewHeader.qml:243
 #, kde-format
 msgid "Next Month"
 msgstr "الشهر القادم"
 
-#: calendar/qml/MonthViewHeader.qml:222
+#: calendar/qml/MonthViewHeader.qml:245
 #, kde-format
 msgid "Next Year"
 msgstr "السنة القادمة"
 
-#: calendar/qml/MonthViewHeader.qml:224
+#: calendar/qml/MonthViewHeader.qml:247
 #, kde-format
 msgid "Next Decade"
 msgstr "العقد القادم"
 
-#: calendar/qml/MonthViewHeader.qml:283
+#: calendar/qml/MonthViewHeader.qml:306
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Keep Open"
-msgstr "أبقه مفتوحاً"
+msgstr "أبقه مفتوحًا"
 
-#: containmentlayoutmanager/qml/BasicAppletContainer.qml:286
+#: containmentlayoutmanager/qml/BasicAppletContainer.qml:287
 #, kde-format
 msgid "Configure…"
 msgstr "اضبط…"
+
+#: loginlockscreen/Footer.qml:50
+#, kde-format
+msgctxt "@action:button"
+msgid "Hide On-Screen Keyboard"
+msgstr "أخفِ لوحة مفاتيح على الشاشة"
+
+#: loginlockscreen/Footer.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Show On-Screen Keyboard"
+msgstr "اعرض لوحة المفاتيح على الشّاشة"
+
+#: loginlockscreen/Footer.qml:76
+#, kde-format
+msgctxt "Button to change keyboard layout"
+msgid "Switch layout"
+msgstr "بدّل التخطيط"
 
 #. i18n: ectx: label, entry, group (Daemon)
 #: sessionsprivate/kscreenlockersettings.kcfg:10
@@ -164,18 +182,6 @@ msgstr "قفل الشاشة مفعل"
 #, kde-format
 msgid "Sets whether the screen will be locked after the specified time."
 msgstr "يضبط إذا كان سيقفل الشاشة بعد الوقت المحدد أم لا."
-
-#. i18n: ectx: label, entry, group (Daemon)
-#: sessionsprivate/kscreenlockersettings.kcfg:16
-#, kde-format
-msgid "Screen saver timeout"
-msgstr "مهلة حافظة الشاشة"
-
-#. i18n: ectx: whatsthis, entry, group (Daemon)
-#: sessionsprivate/kscreenlockersettings.kcfg:17
-#, kde-format
-msgid "Sets the minutes after which the screen is locked."
-msgstr "يضبط الدقائق التي تقفل بعدها الشاشة."
 
 #: sessionsprivate/sessionsmodel.cpp:255 sessionsprivate/sessionsmodel.cpp:259
 #, kde-format
@@ -190,26 +196,26 @@ msgstr "المرشّحات"
 #: shellprivate/plasmaappletitemmodel.cpp:199
 #, kde-format
 msgid ""
-"This Widget was written for an unknown older version of Plasma and is not "
+"This widget was written for an unknown older version of Plasma and is not "
 "compatible with Plasma %1. Please contact the widget's author for an updated "
 "version."
 msgstr ""
-"كُتبته هذه الأداة لإصدار أقدم غير معروف من بلازما وهي غير متوافقة مع بلازما "
+"كُتبت هذه الأداة لإصدار أقدم غير معروف من بلازما وهي غير متوافقة مع بلازما "
 "%1. يرجى الاتصال بمؤلف الودجة للحصول على نسخة محدثة."
 
 #: shellprivate/plasmaappletitemmodel.cpp:203
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please contact the widget's author for an updated version."
 msgstr ""
-"كُتبته هذه الأداة لإصدار بلازما %1 وهي غير متوافقة مع بلازما %2. يرجى الاتصال "
-"بمؤلف الودجة للحصول على نسخة محدثة."
+"كُتبت هذه الأداة لإصدار بلازما %1 وهي غير متوافقة مع بلازما  %2.  . يرجى "
+"الاتصال بمؤلف الودجة للحصول على نسخة محدثة."
 
 #: shellprivate/plasmaappletitemmodel.cpp:207
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please update Plasma in order to use the widget."
 msgstr ""
 "كُتبت هذه الأداة لإصدار بلازما %1 وهي غير متوافقة مع بلازما %2. يرجى تحديث "
@@ -218,11 +224,12 @@ msgstr ""
 #: shellprivate/plasmaappletitemmodel.cpp:212
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with the latest "
-"version of Plasma. Please update Plasma in order to use the widget."
+"This widget was written for Plasma %1 and is not compatible with the older "
+"version of Plasma installed on this system. Please update Plasma in order to "
+"use the widget."
 msgstr ""
-"كُتبت هذه الأداة لإصدار بلازما %1 وهي غير متوافقة مع أخر إصدارة لبلازما . "
-"يرجى تحديث بلازما لتستخدم هذه الودجة."
+"كُتبت هذه الأداة لإصدار بلازما %1 وهي غير متوافقة مع إصدارة بلازما القديمة "
+"المثبتة على هذا النظام . يرجى تحديث بلازما لتستخدم هذه الودجة."
 
 #: shellprivate/widgetexplorer.cpp:110
 msgctxt "applet category"
@@ -403,7 +410,7 @@ msgstr "فشل تثبيت الحزمة %1: %2."
 msgid "Installation Failure"
 msgstr "فشل التّثبيت"
 
-#: timezoneselector/TimezoneSelector.qml:104
+#: timezoneselector/TimezoneSelector.qml:107
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -411,45 +418,58 @@ msgid ""
 "map"
 msgstr "المنطقة الزمنية المحددة حاليًا غير متاحة للتوضيح على هذه الخريطة"
 
-#: timezoneselector/TimezoneSelector.qml:194
-#, kde-format
-msgctxt "@action:button"
-msgid "Zoom in"
-msgstr "قرّب"
-
-#: timezoneselector/TimezoneSelector.qml:210
-#, kde-format
-msgctxt "@action:button"
-msgid "Zoom out"
-msgstr "بعّد"
-
-#: timezoneselector/TimezoneSelector.qml:239
-#, kde-format
-msgctxt "@label:listbox In the context of time zone selection"
-msgid "Region:"
-msgstr "المنطقة:"
-
-#: timezoneselector/TimezoneSelector.qml:246
+#: timezoneselector/TimezoneSelector.qml:122
+#: timezoneselector/TimezoneSelector.qml:347
 #, kde-format
 msgctxt "Placeholder for empty time zone combobox selector"
 msgid "Choose…"
 msgstr "اختر..."
 
-#: timezoneselector/TimezoneSelector.qml:250
+#: timezoneselector/TimezoneSelector.qml:124
+#: timezoneselector/TimezoneSelector.qml:339
 #, kde-format
-msgid "Timezone region selector"
-msgstr "محدد المنطقة الزمنية"
+msgctxt "@label:listbox In the context of time zone selection"
+msgid "Region:"
+msgstr "المنطقة:"
 
-#: timezoneselector/TimezoneSelector.qml:271
+#: timezoneselector/TimezoneSelector.qml:151
+#: timezoneselector/TimezoneSelector.qml:376
 #, kde-format
 msgctxt "@label:listbox In the context of time zone selection"
 msgid "Time zone:"
 msgstr "المنطقة الزمنية:"
 
-#: timezoneselector/TimezoneSelector.qml:281
+#: timezoneselector/TimezoneSelector.qml:294
+#, kde-format
+msgctxt "@action:button"
+msgid "Zoom in"
+msgstr "قرّب"
+
+#: timezoneselector/TimezoneSelector.qml:310
+#, kde-format
+msgctxt "@action:button"
+msgid "Zoom out"
+msgstr "بعّد"
+
+#: timezoneselector/TimezoneSelector.qml:351
+#, kde-format
+msgid "Timezone region selector"
+msgstr "محدد المنطقة الزمنية"
+
+#: timezoneselector/TimezoneSelector.qml:387
 #, kde-format
 msgid "Timezone location selector"
 msgstr "محدد موقع المنطقة الزمنية"
+
+#~ msgctxt "Button to show/hide virtual keyboard"
+#~ msgid "Virtual Keyboard"
+#~ msgstr "لوحة مفاتيح افتراضية"
+
+#~ msgid "Screen saver timeout"
+#~ msgstr "مهلة حافظة الشاشة"
+
+#~ msgid "Sets the minutes after which the screen is locked."
+#~ msgstr "يضبط الدقائق التي تقفل بعدها الشاشة."
 
 #~ msgid "&Execute"
 #~ msgstr "&نفّذ"

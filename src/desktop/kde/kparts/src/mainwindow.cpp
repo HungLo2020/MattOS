@@ -11,10 +11,8 @@
 #include "guiactivateevent.h"
 #include "part.h"
 
-#include <KAboutData>
 #include <KActionCollection>
 #include <KConfigGroup>
-#include <KEditToolBar>
 #include <KHelpMenu>
 #include <KSharedConfig>
 #include <KXMLGUIFactory>
@@ -114,7 +112,7 @@ void MainWindow::createShellGUI(bool create)
     d->m_bShellGUIActivated = create;
     if (create) {
         if (isHelpMenuEnabled() && !d->m_helpMenu) {
-            d->m_helpMenu = new KHelpMenu(this, KAboutData::applicationData());
+            d->m_helpMenu = new KHelpMenu(this);
 
             KActionCollection *actions = actionCollection();
             QAction *helpContentsAction = d->m_helpMenu->action(KHelpMenu::menuHelpContents);

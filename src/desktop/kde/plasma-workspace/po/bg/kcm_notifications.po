@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-13 08:43+0000\n"
+"POT-Creation-Date: 2026-06-06 00:45+0000\n"
 "PO-Revision-Date: 2026-01-19 19:12+0100\n"
 "Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
 "Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
@@ -17,12 +17,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 26.03.70\n"
 
-#: kcm.cpp:62
+#: kcm.cpp:64
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "Превключване на \"Не безпокойте\""
 
-#: sourcesmodel.cpp:406
+#: sourcesmodel.cpp:404
 #, kde-format
 msgid "Other Applications"
 msgstr "Други програми"
@@ -275,23 +275,23 @@ msgctxt ""
 msgid "Application Notifications"
 msgstr "Програмни съобщения"
 
-#: ui/SourcesPage.qml:104
+#: ui/SourcesPage.qml:108
 #, kde-format
 msgid "Applications"
 msgstr "Приложения"
 
-#: ui/SourcesPage.qml:105
+#: ui/SourcesPage.qml:109
 #, kde-format
 msgid "System Services"
 msgstr "Системни услуги"
 
-#: ui/SourcesPage.qml:153
+#: ui/SourcesPage.qml:157
 #, kde-format
 msgid "No application or event matches your search term"
 msgstr ""
 "Нито едно приложение или събитие не съответства на думата ви за търсене."
 
-#: ui/SourcesPage.qml:177
+#: ui/SourcesPage.qml:181
 #, kde-format
 msgid ""
 "Select an application from the list to configure its notification settings "
@@ -299,15 +299,3 @@ msgid ""
 msgstr ""
 "Изберете приложение от списъка, за да конфигурирате настройките му за "
 "известяване и поведение"
-
-#~ msgctxt "@action:button Plasma-specific notifications"
-#~ msgid "System Notifications"
-#~ msgstr "Системни известия"
-
-#~ msgctxt "@action:button Application-specific notifications"
-#~ msgid "Application Settings"
-#~ msgstr "Настройки на приложението"
-
-#~ msgctxt "@action:button choose custom notification position"
-#~ msgid "Custom…"
-#~ msgstr "Потребителски…"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bluedevil\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
 "PO-Revision-Date: 2026-01-28 18:46+0000\n"
 "Last-Translator: Sergiu Bivol <sergiu@cip.md>\n"
 "Language-Team: Romanian <kde-i18n-ro@kde.org>\n"
@@ -28,59 +28,29 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "sergiu@cip.md"
 
-#: applet/devicesproxymodel.cpp:51
+#: components/ForgetDeviceDialog.qml:37
 #, kde-format
-msgctxt "@title:column Blocked Bluetooth devices"
-msgid "Blocked"
-msgstr "Blocate"
+msgid "Forget this Device?"
+msgstr ""
 
-#: applet/devicesproxymodel.cpp:54
+#: components/ForgetDeviceDialog.qml:38
 #, kde-format
-msgctxt "@title:column Connected Bluetooth devices"
-msgid "Connected"
-msgstr "Conectate"
+msgid "Are you sure you want to forget \"%1\"?"
+msgstr ""
 
-#: applet/devicesproxymodel.cpp:56
-#, kde-format
-msgctxt "@title:column Available but not connected Bluetooth devices"
-msgid "Available"
-msgstr "Disponibile"
+#: components/ForgetDeviceDialog.qml:50
+#, fuzzy, kde-format
+#| msgid "Remove device"
+msgctxt "@action:button"
+msgid "Forget Device"
+msgstr "Elimină dispozitiv"
 
-#: applet/devicesstateproxymodel.cpp:273
-#, kde-format
-msgctxt "@label %1 is the name of a Bluetooth device"
-msgid "Could not connect to device “%1”"
-msgstr "Nu s-a putut conecta la dispozitivul „%1”"
-
-#: applet/devicesstateproxymodel.cpp:288
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed:HostIsDown"
-msgid "The device is unreachable"
-msgstr "Dispozitivul e inaccesibil"
-
-#: applet/devicesstateproxymodel.cpp:289
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed"
-msgid "Connection to the device failed"
-msgstr "Conectarea la dispozitiv a eșuat"
-
-#: applet/devicesstateproxymodel.cpp:292
-#, kde-format
-msgctxt "Notification when the connection failed due to NotReady"
-msgid "The device is not ready"
-msgstr "Dispozitivul nu este gata"
-
-#: kcm/bluetooth.cpp:135
-#, kde-format
-msgctxt "DeviceName Network (Service)"
-msgid "%1 Network (%2)"
-msgstr "Rețea %1 (%2)"
-
-#: kcm/bluetoothmoduledata.cpp:20
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Enable Bluetooth"
-msgstr "Activează Bluetooth"
+#: components/ForgetDeviceDialog.qml:58
+#, fuzzy, kde-format
+#| msgid "Cancel"
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "Renunță"
 
 #: kded/bluedevildaemon.cpp:68 kded/bluedevildaemon.cpp:70
 #, kde-format
@@ -161,13 +131,13 @@ msgctxt "Notification button to say that the PIN is wrong"
 msgid "PIN incorrect"
 msgstr "PIN incorect"
 
-#: kded/helpers/requestpin.cpp:32
+#: kded/helpers/requestpin.cpp:30
 #, kde-format
 msgctxt "@label %1 is the name of a Bluetooth device"
 msgid "PIN for device “%1”"
 msgstr "PIN pentru dispozitivul „%1”"
 
-#: kded/helpers/requestpin.cpp:36
+#: kded/helpers/requestpin.cpp:34
 #, kde-format
 msgctxt ""
 "Shown in a notification to announce that a PIN is needed to accomplish a "
@@ -175,7 +145,7 @@ msgctxt ""
 msgid "PIN needed to pair with %1"
 msgstr "Este necesar un PIN pentru asociere cu %1"
 
-#: kded/helpers/requestpin.cpp:39
+#: kded/helpers/requestpin.cpp:37
 #, kde-format
 msgctxt ""
 "Notification button which once clicked, a dialog to introduce the PIN will "
@@ -183,13 +153,13 @@ msgctxt ""
 msgid "Introduce PIN"
 msgstr "Introdu PIN-ul"
 
-#: kded/helpers/requestpin.cpp:59
+#: kded/helpers/requestpin.cpp:57
 #, kde-format
 msgctxt "Shown in the caption of a dialog where the user introduce the PIN"
 msgid "Introduce PIN"
 msgstr "Introduceți PIN-ul"
 
-#: kded/helpers/requestpin.cpp:66
+#: kded/helpers/requestpin.cpp:64
 #, kde-format
 msgctxt ""
 "Shown in a dialog which asks to introduce a PIN that will be used to pair a "
@@ -335,12 +305,12 @@ msgstr "Memoria telefonului"
 msgid "External memory"
 msgstr "Memorie externă"
 
-#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:378
+#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:382
 #, kde-format
 msgid "Bluetooth is disabled."
 msgstr "Bluetooth este dezactivat."
 
-#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:379
+#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:383
 #, kde-format
 msgctxt "Action to enable Bluetooth adapter"
 msgid "Enable"
@@ -484,18 +454,18 @@ msgstr "Adaugă dispozitiv Bluetooth"
 msgid "Select a device"
 msgstr "Alegeți un dispozitiv"
 
-#: wizard/pages/discover.cpp:371
+#: wizard/pages/discover.cpp:375
 #, kde-format
 msgctxt "Action to fix a problem"
 msgid "Fix it"
 msgstr "Repară"
 
-#: wizard/pages/discover.cpp:381
+#: wizard/pages/discover.cpp:385
 #, kde-format
 msgid "Your Bluetooth adapter is not pairable."
 msgstr "Adaptorul Bluetooth local nu poate fi asociat."
 
-#: wizard/pages/discover.cpp:382
+#: wizard/pages/discover.cpp:386
 #, kde-format
 msgctxt "Action to make Bluetooth adapter pairable"
 msgid "Make Pairable"
@@ -601,6 +571,42 @@ msgstr "Dispozitivul a fost configurat și poate fi folosit acum."
 msgctxt "Placeholder is device name"
 msgid "The device '%1' has been set up and can now be used."
 msgstr "Dispozitivul „%1” a fost configurat și poate fi folosit acum."
+
+#~ msgctxt "@title:column Blocked Bluetooth devices"
+#~ msgid "Blocked"
+#~ msgstr "Blocate"
+
+#~ msgctxt "@title:column Connected Bluetooth devices"
+#~ msgid "Connected"
+#~ msgstr "Conectate"
+
+#~ msgctxt "@title:column Available but not connected Bluetooth devices"
+#~ msgid "Available"
+#~ msgstr "Disponibile"
+
+#~ msgctxt "@label %1 is the name of a Bluetooth device"
+#~ msgid "Could not connect to device “%1”"
+#~ msgstr "Nu s-a putut conecta la dispozitivul „%1”"
+
+#~ msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+#~ msgid "The device is unreachable"
+#~ msgstr "Dispozitivul e inaccesibil"
+
+#~ msgctxt "Notification when the connection failed due to Failed"
+#~ msgid "Connection to the device failed"
+#~ msgstr "Conectarea la dispozitiv a eșuat"
+
+#~ msgctxt "Notification when the connection failed due to NotReady"
+#~ msgid "The device is not ready"
+#~ msgstr "Dispozitivul nu este gata"
+
+#~ msgctxt "DeviceName Network (Service)"
+#~ msgid "%1 Network (%2)"
+#~ msgstr "Rețea %1 (%2)"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Enable Bluetooth"
+#~ msgstr "Activează Bluetooth"
 
 #~ msgctxt ""
 #~ "@label %1 is human-readable device name, %2 is low-level device address"
@@ -839,9 +845,6 @@ msgstr "Dispozitivul „%1” a fost configurat și poate fi folosit acum."
 
 #~ msgid "Add device"
 #~ msgstr "Adaugă dispozitiv"
-
-#~ msgid "Remove device"
-#~ msgstr "Elimină dispozitiv"
 
 #~ msgid "Bluetooth Advanced Settings"
 #~ msgstr "Configurări avansate Bluetooth"

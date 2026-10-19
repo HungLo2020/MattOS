@@ -11,7 +11,7 @@ kcmutils_add_qml_kcm(kcm_landingpage
         splitnode.cpp
 )
 
-qt_add_shaders(kcm_landingpage "shaders"
+qt6_add_shaders(kcm_landingpage "shaders"
     PRECOMPILE
     BATCHABLE
     OPTIMIZED
@@ -42,9 +42,5 @@ target_link_libraries(kcm_landingpage PRIVATE
     Plasma::ActivitiesStats
     KF6::Service
 )
-
-if(X11_FOUND)
-    target_link_libraries(kcm_landingpage PRIVATE X11::X11)
-endif()
 
 install(FILES landingpage_kdeglobalssettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})

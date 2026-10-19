@@ -14,10 +14,11 @@
 
 namespace KWin
 {
+
 KeyNotificationPlugin::KeyNotificationPlugin()
     : m_configWatcher(KConfigWatcher::create(KSharedConfig::openConfig("kaccessrc")))
 {
-    const QLatin1String groupName("Keyboard");
+    const QLatin1StringView groupName("Keyboard");
     connect(m_configWatcher.get(), &KConfigWatcher::configChanged, this, [this, groupName](const KConfigGroup &group) {
         if (group.name() == groupName) {
             loadConfig(group);
@@ -122,6 +123,7 @@ void KeyNotificationPlugin::loadConfig(const KConfigGroup &group)
     m_enabled = group.readEntry("kNotifyModifiers", false);
     m_useBellWhenLocksChange = group.readEntry("ToggleKeysBeep", false);
 }
+
 }
 
 #include "moc_keynotification.cpp"

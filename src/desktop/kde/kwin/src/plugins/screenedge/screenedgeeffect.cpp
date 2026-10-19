@@ -10,7 +10,6 @@
 // KWin
 #include "effect/effecthandler.h"
 #include "scene/imageitem.h"
-#include "scene/itemrenderer.h"
 #include "scene/workspacescene.h"
 // KDE
 #include <KConfigGroup>
@@ -73,7 +72,7 @@ void ScreenEdgeEffect::cleanup()
     m_glowItems.clear();
 }
 
-void ScreenEdgeEffect::edgeApproaching(ElectricBorder border, qreal factor, const QRect &geometry)
+void ScreenEdgeEffect::edgeApproaching(ElectricBorder border, qreal factor, const Rect &geometry)
 {
     auto it = m_glowItems.find(border);
     if (it != m_glowItems.end()) {
@@ -97,7 +96,7 @@ void ScreenEdgeEffect::edgeApproaching(ElectricBorder border, qreal factor, cons
     }
 }
 
-std::unique_ptr<ImageItem> ScreenEdgeEffect::createGlowItem(ElectricBorder border, qreal factor, const QRect &geometry)
+std::unique_ptr<ImageItem> ScreenEdgeEffect::createGlowItem(ElectricBorder border, qreal factor, const Rect &geometry)
 {
     const QImage image = glowImage(border, geometry.size());
     if (image.isNull()) {
@@ -106,7 +105,7 @@ std::unique_ptr<ImageItem> ScreenEdgeEffect::createGlowItem(ElectricBorder borde
 
     WorkspaceScene *scene = effects->scene();
 
-    std::unique_ptr<ImageItem> imageItem = scene->renderer()->createImageItem(scene->overlayItem());
+    auto imageItem = std::make_unique<ImageItem>(scene->overlayItem());
     imageItem->setImage(image);
     imageItem->setPosition(geometry.topLeft());
     imageItem->setSize(geometry.size());
@@ -182,7 +181,7 @@ QImage ScreenEdgeEffect::edgeGlowImage(ElectricBorder border, const QSize &size)
     p.begin(&image);
     if (border == ElectricBottom || border == ElectricTop) {
         p.drawPixmap(pixmapPosition, l);
-        const QRect cRect(l.width(), pixmapPosition.y(), size.width() - l.width() - r.width(), c.height());
+        const Rect cRect(l.width(), pixmapPosition.y(), size.width() - l.width() - r.width(), c.height());
         if (stretchBorder) {
             p.drawPixmap(cRect, c);
         } else {
@@ -191,7 +190,7 @@ QImage ScreenEdgeEffect::edgeGlowImage(ElectricBorder border, const QSize &size)
         p.drawPixmap(QPoint(size.width() - r.width(), pixmapPosition.y()), r);
     } else {
         p.drawPixmap(pixmapPosition, l);
-        const QRect cRect(pixmapPosition.x(), l.height(), c.width(), size.height() - l.height() - r.height());
+        const Rect cRect(pixmapPosition.x(), l.height(), c.width(), size.height() - l.height() - r.height());
         if (stretchBorder) {
             p.drawPixmap(cRect, c);
         } else {

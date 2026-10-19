@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bluedevil\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-04 00:45+0000\n"
-"PO-Revision-Date: 2025-12-11 18:33+0300\n"
+"POT-Creation-Date: 2026-09-16 02:44+0000\n"
+"PO-Revision-Date: 2026-09-26 09:30+0200\n"
 "Last-Translator: Alexander Yavorsky <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
@@ -106,8 +106,8 @@ msgstr "Заблокировано"
 msgid ""
 "When enabled, all incoming connections from this device will be rejected."
 msgstr ""
-"При включении, все входящие подключения с заблокированного устройства будут "
-"отклонены."
+"Если включено, все входящие подключения от этого устройства будут "
+"отклоняться."
 
 #: ui/Device.qml:203
 #, kde-format
@@ -117,12 +117,12 @@ msgstr "Передать файл"
 #: ui/Device.qml:211
 #, kde-format
 msgid "Setup NAP Network…"
-msgstr "Настроить сеть NAP..."
+msgstr "Настроить сеть NAP…"
 
 #: ui/Device.qml:219
 #, kde-format
 msgid "Setup DUN Network…"
-msgstr "Настроить сеть DUN..."
+msgstr "Настроить сеть DUN…"
 
 #: ui/Device.qml:234
 #, kde-format
@@ -215,7 +215,7 @@ msgstr "Выполнить сопряжение устройства…"
 #: ui/main.qml:41
 #, kde-format
 msgid "Configure…"
-msgstr "Настроить..."
+msgstr "Настроить…"
 
 #: ui/main.qml:48
 #, kde-format
@@ -226,7 +226,7 @@ msgstr "Включить"
 #: ui/main.qml:126
 #, kde-format
 msgid "No Bluetooth adapters found"
-msgstr "Адаптеры Bluetooth не найдены."
+msgstr "Адаптеры Bluetooth не найдены"
 
 #: ui/main.qml:127
 #, kde-format
@@ -241,20 +241,20 @@ msgstr "Bluetooth выключен"
 #: ui/main.qml:142
 #, kde-format
 msgid "Enable"
-msgstr "Задействовать"
+msgstr "Включить"
 
 #: ui/main.qml:152
 #, kde-format
 msgid "No devices paired"
-msgstr "Нет ни одного настроенного устройства"
+msgstr "Нет сопряжённых устройств"
 
 #: ui/main.qml:153
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Click <interface>Pair Device…</interface> to pair some"
 msgstr ""
-"Нажмите <interface>Выполнить сопряжение устройства…</interface> для "
-"настройки нового подключения"
+"Чтобы выполнить сопряжение, нажмите <interface>Выполнить сопряжение "
+"устройства…</interface>"
 
 #: ui/main.qml:182
 #, kde-format
@@ -265,6 +265,12 @@ msgstr "Подключено"
 #, kde-format
 msgid "Available"
 msgstr "Доступно"
+
+#: ui/main.qml:204
+#, kde-kuit-format
+msgctxt "@label/rich"
+msgid "%1"
+msgstr "%1"
 
 #: ui/main.qml:246
 #, kde-format
@@ -360,7 +366,7 @@ msgstr "принтер"
 msgctxt ""
 "This device is an Imaging device (printer, scanner, camera, display, …)"
 msgid "Imaging"
-msgstr "сканер"
+msgstr "устройство для работы с изображениями"
 
 #: ui/script.js:43
 #, kde-format

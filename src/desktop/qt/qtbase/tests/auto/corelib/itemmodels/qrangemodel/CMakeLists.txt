@@ -11,13 +11,25 @@ if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
     find_package(Qt6BuildInternals REQUIRED COMPONENTS STANDALONE_TEST)
 endif()
 
+# too large for static builds
+if (QT_FEATURE_static)
+    message(NOTICE "The tst_qrangemodel test is excluded from static builds.")
+    return()
+endif()
+
 qt_internal_add_test(tst_qrangemodel
     SOURCES
+        tst_qrangemodel.h
         tst_qrangemodel.cpp
+        tst_qrangemodel_testdata.cpp
+        tst_qrangemodel_dragdrop.cpp
+        tst_qrangemodel_tree.cpp
         data.h
     LIBRARIES
         Qt::Gui
 )
+
+set_target_properties(tst_qrangemodel PROPERTIES UNITY_BUILD OFF)
 
 if (
     # INTEGRITY and VxWorks don't come with all the concepts headers

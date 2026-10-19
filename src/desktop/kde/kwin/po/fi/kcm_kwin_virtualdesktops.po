@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-12-23 00:42+0000\n"
-"PO-Revision-Date: 2026-01-05 17:33+0200\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
+"PO-Revision-Date: 2026-08-25 15:01+0300\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -27,7 +27,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "translator@legisign.org"
 
-#: desktopsmodel.cpp:191
+#: desktopsmodel.cpp:188
 #, kde-format
 msgctxt "A numbered name for virtual desktops"
 msgid "Desktop %1"
@@ -35,17 +35,17 @@ msgid_plural "Desktop %1"
 msgstr[0] "Työpöytä %1"
 msgstr[1] "Työpöytä %1"
 
-#: desktopsmodel.cpp:479
+#: desktopsmodel.cpp:476
 #, kde-format
 msgid "There was an error connecting to the compositor."
 msgstr "Koostimeen yhdistettäessä tapahtui virhe."
 
-#: desktopsmodel.cpp:678
+#: desktopsmodel.cpp:672
 #, kde-format
 msgid "There was an error saving the settings to the compositor."
 msgstr "Koostimen asetuksia tallennettaessa tapahtui virhe."
 
-#: desktopsmodel.cpp:681
+#: desktopsmodel.cpp:675
 #, kde-format
 msgid "There was an error requesting information from the compositor."
 msgstr "Koostimen tietoja kysellessä tapahtui virhe."
@@ -61,6 +61,12 @@ msgstr "Rivejä:"
 msgctxt "@action:button"
 msgid "Add Desktop"
 msgstr "Lisää työpöytä"
+
+#: ui/main.qml:82
+#, kde-kuit-format
+msgctxt "@label/rich"
+msgid "%1"
+msgstr ""
 
 #: ui/main.qml:90
 #, kde-format
@@ -110,22 +116,27 @@ msgstr "Valinnat:"
 msgid "Navigation wraps around"
 msgstr "Navigointi kiertää ympäri"
 
-#: ui/main.qml:229
+#: ui/main.qml:225
+#, kde-format
+msgid "Switch desktops independently for each screen"
+msgstr "Vaihda työpöytää erikseen kullakin näytöllä"
+
+#: ui/main.qml:243
 #, kde-format
 msgid "Show animation when switching:"
 msgstr "Näytä animointi vaihdettaessa:"
 
-#: ui/main.qml:280
+#: ui/main.qml:294
 #, kde-format
 msgid "Show on-screen display when switching:"
 msgstr "Näytä kuvaruutunäyttö vaihdettaessa:"
 
-#: ui/main.qml:299
+#: ui/main.qml:313
 #, kde-format
 msgid "%1 ms"
 msgstr "%1 ms"
 
-#: ui/main.qml:323
+#: ui/main.qml:337
 #, kde-format
 msgid "Show desktop layout indicators"
 msgstr "Näytä työpöytäasettelun osoittimet"

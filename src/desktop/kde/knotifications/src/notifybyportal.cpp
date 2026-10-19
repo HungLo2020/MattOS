@@ -12,6 +12,7 @@
 #include "debug_p.h"
 #include "knotification.h"
 #include "knotifyconfig.h"
+#include "notifybyaudio.h"
 
 #include <QBuffer>
 #include <QDBusConnection>
@@ -84,6 +85,8 @@ public:
      */
     uint nextId;
 
+    std::unique_ptr<NotifyByAudio> m_audio;
+
     NotifyByPortal *const q;
 };
 
@@ -137,11 +140,21 @@ void NotifyByPortal::notify(KNotification *notification, const KNotifyConfig &no
         return;
     }
 
-    // check if Notifications DBus service exists on bus, use it if it does
-    if (d->dbusServiceExists) {
-        if (!d->sendNotificationToPortal(notification, notifyConfig)) {
-            finish(notification); // an error occurred.
+    if (notifyConfig.actions().testFlag(KNotifyConfig::Popup)) {
+        // check if Notifications DBus service exists on bus, use it if it does
+        if (d->dbusServiceExists) {
+            if (!d->sendNotificationToPortal(notification, notifyConfig)) {
+                finish(notification); // an error occurred.
+            }
         }
+    }
+
+    if (notifyConfig.actions().testFlag(KNotifyConfig::Sound)) {
+        if (!d->m_audio) {
+            d->m_audio = std::make_unique<NotifyByAudio>();
+        }
+
+        d->m_audio->notify(notification, notifyConfig);
     }
 }
 
@@ -149,6 +162,10 @@ void NotifyByPortal::close(KNotification *notification)
 {
     if (d->dbusServiceExists) {
         d->closePortalNotification(notification);
+    }
+
+    if (d->m_audio) {
+        d->m_audio->close(notification);
     }
 }
 

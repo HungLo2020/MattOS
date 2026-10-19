@@ -71,41 +71,6 @@ void Corona::saveLayout(const QString &configName) const
     d->saveLayout(c);
 }
 
-void Corona::exportLayout(KConfigGroup &config, QList<Containment *> containments)
-{
-    const auto groupList = config.groupList();
-    for (const QString &group : groupList) {
-        KConfigGroup cg(&config, group);
-        cg.deleteGroup();
-    }
-
-    // temporarily unlock so that removal works
-    Types::ImmutabilityType oldImm = immutability();
-    d->immutability = Types::Mutable;
-
-    KConfigGroup dest(&config, QStringLiteral("Containments"));
-    KConfigGroup dummy;
-    for (Plasma::Containment *c : std::as_const(containments)) {
-        c->save(dummy);
-        c->config().reparent(&dest);
-
-        // ensure the containment is unlocked
-        // this is done directly because we have to bypass any Types::SystemImmutable checks
-        c->Applet::d->immutability = Types::Mutable;
-        const auto lstApplet = c->applets();
-        for (Applet *a : lstApplet) {
-            a->d->immutability = Types::Mutable;
-        }
-
-        c->destroy();
-    }
-
-    // restore immutability
-    d->immutability = oldImm;
-
-    config.sync();
-}
-
 void Corona::requestConfigSync()
 {
     // constant controlling how long between requesting a configuration sync
@@ -149,17 +114,12 @@ void Corona::loadLayout(const QString &configName)
     setImmutability((Plasma::Types::ImmutabilityType)cg.readEntry("immutability", (int)Plasma::Types::Mutable));
 }
 
-QList<Plasma::Containment *> Corona::importLayout(const KConfigGroup &conf)
-{
-    return d->importLayout(conf, true);
-}
-
-Containment *Corona::containmentForScreen(int screen, const QString &activity, const QString &defaultPluginIfNonExistent, const QVariantList &defaultArgs)
+Containment *Corona::containmentForScreen(uint screen, const QString &activity, const QString &defaultPluginIfNonExistent, const QVariantList &defaultArgs)
 {
     Containment *containment = nullptr;
 
     for (Containment *cont : std::as_const(d->containments)) {
-        if (cont->lastScreen() == screen //
+        if (cont->screen() == screen //
             && ((cont->activity().isEmpty() || activity.isEmpty()) || cont->activity() == activity)
             && (cont->containmentType() == Plasma::Containment::Type::Desktop //
                 || cont->containmentType() == Plasma::Containment::Type::Custom || cont->containmentType() == Plasma::Containment::Type::NoContainment)) {
@@ -169,13 +129,11 @@ Containment *Corona::containmentForScreen(int screen, const QString &activity, c
 
     if (!containment && !defaultPluginIfNonExistent.isEmpty()) {
         // screen requests are allowed to bypass immutability
-        if (screen >= 0) {
-            Plasma::Types::ImmutabilityType imm = d->immutability;
-            d->immutability = Types::Mutable;
-            containment = d->addContainment(defaultPluginIfNonExistent, defaultArgs, 0, screen, false);
+        Plasma::Types::ImmutabilityType imm = d->immutability;
+        d->immutability = Types::Mutable;
+        containment = d->addContainment(defaultPluginIfNonExistent, defaultArgs, 0, screen, false);
 
-            d->immutability = imm;
-        }
+        d->immutability = imm;
     }
 
     if (containment) {
@@ -200,16 +158,12 @@ QList<Containment *> Corona::containmentsForActivity(const QString &activity)
     return conts;
 }
 
-QList<Containment *> Corona::containmentsForScreen(int screen)
+QList<Containment *> Corona::containmentsForScreen(uint screen)
 {
     QList<Containment *> conts;
 
-    if (screen < 0) {
-        return conts;
-    }
-
     std::copy_if(d->containments.begin(), d->containments.end(), std::back_inserter(conts), [screen](Containment *cont) {
-        return cont->lastScreen() == screen
+        return cont->screen() == screen
             && (cont->containmentType() == Plasma::Containment::Type::Desktop //
                 || cont->containmentType() == Plasma::Containment::Type::Custom);
     });
@@ -254,22 +208,17 @@ Containment *Corona::createContainmentDelayed(const QString &name, const QVarian
     return nullptr;
 }
 
-int Corona::screenForContainment(const Containment *) const
-{
-    return -1;
-}
-
-int Corona::numScreens() const
+uint Corona::numScreens() const
 {
     return 1;
 }
 
-QRegion Corona::availableScreenRegion(int id) const
+QRegion Corona::availableScreenRegion(uint id) const
 {
     return QRegion(screenGeometry(id));
 }
 
-QRect Corona::availableScreenRect(int id) const
+QRect Corona::availableScreenRect(uint id) const
 {
     return screenGeometry(id);
 }
@@ -379,7 +328,7 @@ bool Corona::isEditMode() const
     return d->editMode;
 }
 
-QList<Plasma::Types::Location> Corona::freeEdges(int screen) const
+QList<Plasma::Types::Location> Corona::freeEdges(uint screen) const
 {
     QList<Plasma::Types::Location> freeEdges;
     /* clang-format off */
@@ -391,7 +340,7 @@ QList<Plasma::Types::Location> Corona::freeEdges(int screen) const
 
     const auto containments = this->containments();
     for (Containment *containment : containments) {
-        if (containment->lastScreen() == screen && freeEdges.contains(containment->location())) {
+        if (containment->screen() == screen && freeEdges.contains(containment->location())) {
             freeEdges.removeAll(containment->location());
         }
     }
@@ -537,11 +486,10 @@ void CoronaPrivate::syncConfig()
     Q_EMIT q->configSynced();
 }
 
-Containment *CoronaPrivate::addContainment(const QString &name, const QVariantList &args, uint id, int lastScreen, bool delayedInit)
+Containment *CoronaPrivate::addContainment(const QString &name, const QVariantList &args, uint id, uint screen, bool delayedInit)
 {
     QString pluginName = name;
     Containment *containment = nullptr;
-    Applet *applet = nullptr;
 
     // qCDebug(LOG_PLASMA) << "Loading" << name << args << id;
 
@@ -552,33 +500,30 @@ Containment *CoronaPrivate::addContainment(const QString &name, const QVariantLi
 
     bool loadingNull = pluginName == QLatin1String("null");
     if (!loadingNull) {
-        applet = PluginLoader::self()->loadApplet(pluginName, id, args);
+        auto applet = PluginLoader::self()->loadApplet(pluginName, id, args).release();
         containment = dynamic_cast<Containment *>(applet);
-        if (containment) {
-            containment->setParent(q);
-        }
-    }
 
-    if (!containment) {
-        if (!loadingNull) {
-#ifndef NDEBUG
-            // qCDebug(LOG_PLASMA) << "loading of containment" << name << "failed.";
-#endif
-        }
-        // in case we got a non-Containment from Applet::loadApplet or
-        // a null containment was requested
-        if (applet) {
+        // in case we got a non-Containment from Applet::loadApplet
+        if (applet && !containment) {
             // the applet probably doesn't know what's hit it, so let's pretend it can be
             // initialized to make assumptions in the applet's dtor safer
             applet->init();
             delete applet;
         }
-        applet = containment = new Containment(q, KPluginMetaData(), QVariantList{QVariant(), id});
-        if (lastScreen >= 0) {
-            containment->d->lastScreen = lastScreen;
+
+        if (containment) {
+            containment->d->screen = screen;
+            containment->setParent(q);
         }
+    }
+
+    if (!containment) {
+        // in case we got a non-Containment from Applet::loadApplet or
+        // a null containment was requested
+        containment = new Containment(q, KPluginMetaData(), QVariantList{QVariant(), id});
+        containment->d->screen = screen;
         // if it's a dummy containment, just say its ui is ready, not blocking the corona
-        applet->updateConstraints(Applet::UiReadyConstraint);
+        containment->updateConstraints(Applet::UiReadyConstraint);
 
         // we want to provide something and don't care about the failure to launch
         containment->setFormFactor(Plasma::Types::Planar);
@@ -601,11 +546,15 @@ Containment *CoronaPrivate::addContainment(const QString &name, const QVariantLi
     QObject::connect(containment, SIGNAL(destroyed(QObject *)), q, SLOT(containmentDestroyed(QObject *)));
     QObject::connect(containment, &Applet::configNeedsSaving, q, &Corona::requestConfigSync);
     QObject::connect(containment, &Containment::screenChanged, q, &Corona::screenOwnerChanged);
+    QObject::connect(containment, &Containment::uiReadyChanged, q, [this, containment](bool uiReady) {
+        Q_EMIT q->containmentUiReadyChanged(containment, uiReady);
+    });
 
     if (!delayedInit) {
         containment->init();
         KConfigGroup cg = containment->config();
         containment->restore(cg);
+
         containment->updateConstraints(Applet::StartupCompletedConstraint);
         containment->save(cg);
         q->requestConfigSync();
@@ -691,7 +640,7 @@ void CoronaPrivate::notifyContainmentsReady()
 {
     containmentsStarting = 0;
     for (Containment *containment : std::as_const(containments)) {
-        if (!containment->isUiReady() && containment->screen() >= 0) {
+        if (!containment->isUiReady()) {
             ++containmentsStarting;
             QObject::connect(containment, &Plasma::Containment::uiReadyChanged, q, [this](bool ready) {
                 containmentReady(ready);

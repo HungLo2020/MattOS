@@ -2,6 +2,7 @@
 Type=Service
 Name=Ruby Application Archive
 Name[af]=Ruby Toepassing Argief
+Name[am]=Ruby Application Archive
 Name[ar]=أرشيف تطبيقات روبي
 Name[as]=Ruby Application Archive
 Name[az]=Ruby Tətbiq Arxivi
@@ -60,6 +61,8 @@ Name[ml]=റൂബി പ്രയോഗ ശേഖരം
 Name[mr]=रूबी अनुप्रयोग संग्रह
 Name[ms]=Arkib Aplikasi Ruby
 Name[my]=ရူဘီအပ္ပလီကေးရှင်းဟောင်းတိုက်
+Name[nan_TW]=Ruby 應用程式封存
+Name[nan_TW@latin]=Ruby Ìng-iōng-tîng-sik Hong-tsûn
 Name[nb]=Ruby-programarkiv
 Name[nds]=Ruby-Programmarchiv
 Name[ne]=रुबी अनुप्रयोग सङ्ग्रह
@@ -99,6 +102,7 @@ Name[zh_CN]=Ruby 应用程序档案
 Name[zh_TW]=Ruby 應用程式檔案庫
 Keys=raa
 Query=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
+Query[am]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[ar]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[az]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[be]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
@@ -138,6 +142,8 @@ Query[lg]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[lt]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[lv]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[my]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
+Query[nan_TW]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
+Query[nan_TW@latin]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[nb]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[nl]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[nn]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
@@ -156,7 +162,6 @@ Query[tg]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[th]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[tok]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[tr]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
-Query[ug]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[uk]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[vi]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}
 Query[zh_CN]=https://www.ruby-lang.org/en/raa-list.rhtml?name=\\{@}

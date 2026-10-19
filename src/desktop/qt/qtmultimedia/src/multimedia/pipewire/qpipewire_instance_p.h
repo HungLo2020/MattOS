@@ -15,10 +15,17 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qpipewire_support_p.h>
+
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qexpected_p.h>
 
 #include <pipewire/pipewire.h>
+
+#include <optional>
+#include <system_error>
 
 QT_BEGIN_NAMESPACE
 
@@ -26,14 +33,48 @@ namespace QtPipeWire {
 
 Q_DECLARE_LOGGING_CATEGORY(lcPipewire); // "qt.multimedia.pipewire"
 
-class QPipeWireInstance
+struct QPipewireInitializer
+{
+    QPipewireInitializer();
+    ~QPipewireInitializer();
+};
+
+class QPipeWireInstance : private QPipewireInitializer
 {
 public:
     [[nodiscard]] static std::shared_ptr<QPipeWireInstance> instance();
-    static bool isLoaded();
+    [[nodiscard]] static bool isLoaded();
+    [[nodiscard]] static q23::expected<void, std::error_code> hasSPAFactory(const char *factoryName);
 
-    QPipeWireInstance();
+    // event loop
+    template <typename Closure>
+    auto runWithEventLoopLock(Closure &&c)
+    {
+        return m_eventLoop.runWithEventLoopLock(std::forward<Closure>(c));
+    }
+
+    auto eventLoopLock() { return std::unique_lock{ m_eventLoop }; }
+    bool isInPwThreadLoop() const;
+    pw_loop *eventLoop() const;
+    PWThreadedEventLoop &pwEventLoop() { return m_eventLoop; };
+
+    // portal
+    bool hasScreenCastPortal();
+
+    // connection factories
+    q23::expected<PwCoreConnectionHandle, std::error_code> connectToDaemon();
+    q23::expected<PwCoreConnectionHandle, std::error_code> connectToPortal(int fd);
+
     ~QPipeWireInstance();
+
+private:
+    static std::unique_ptr<QPipeWireInstance> create();
+    QPipeWireInstance();
+
+    PWThreadedEventLoop m_eventLoop{ "PwEventLoop" };
+    PwContextHandle m_context;
+
+    std::optional<bool> m_hasScreenCastPortal;
 };
 
 } // namespace QtPipeWire

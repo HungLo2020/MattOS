@@ -1,0 +1,133 @@
+# SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+# SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+# SPDX-FileCopyrightText: 2024 Noah Davis <noahadvs@gmail.com>
+
+itemdelegate:
+    selectors:
+    -   type: ItemDelegate
+    -   type: CheckDelegate
+
+    path: widgets/listitem
+    prefix: normal
+
+    icon:
+        alignment:
+            container: Content
+            horizontal: Start
+            vertical: Center
+            order: 0
+        width:
+            property: icon-size
+            name: small
+        height:
+            property: icon-size
+            name: small
+
+    text:
+        alignment:
+            container: Content
+            horizontal: Fill
+            vertical: Center
+            order: 1
+        font:
+            property: font-name
+            name: system-normal
+        color: palette-foreground
+
+    layout:
+        width:
+            property: sum
+            function: element-width
+            elements:
+            -   hint-left-margin
+            -   center
+            -   hint-right-margin
+        height:
+            property: sum
+            function: element-height
+            elements:
+            -   hint-top-margin
+            -   center
+            -   hint-bottom-margin
+
+        alignment:
+            container: Content
+            horizontal: Fill
+            vertical: Center
+
+        spacing: 4
+        padding:
+            left:
+                property: element-width
+                element: hint-left-margin
+            right:
+                property: element-width
+                element: hint-right-margin
+            top:
+                property: element-height
+                element: hint-top-margin
+            bottom:
+                property: element-height
+                element: hint-bottom-margin
+
+    background: *standard-background
+
+itemdelegate-hovered:
+    selectors:
+    -   type: ItemDelegate
+        state: Hovered
+    -   type: CheckDelegate
+        state: Hovered
+
+    path: widgets/listitem
+    prefix: hover
+
+    background: *standard-background
+
+itemdelegate-pressed:
+    selectors:
+    -   type: ItemDelegate
+        state: Pressed
+    -   type: CheckDelegate
+        state: Pressed
+
+    path: widgets/listitem
+    prefix: pressed
+
+    background: *standard-background
+
+itemdelegate-with-icon:
+    selectors:
+    -   type: ItemDelegate
+        hints: with-icon
+        attributes:
+            display: text-beside-icon
+    -   type: CheckDelegate
+        hints: with-icon
+        attributes:
+            display: text-beside-icon
+    icon:
+        alignment:
+            horizontal: Start
+            vertical: Center
+    text:
+        alignment:
+            horizontal: Start
+            vertical: Center
+
+itemdelegate-display-textundericon:
+    selectors:
+    -   type: ItemDelegate
+        attributes:
+            display: text-under-icon
+    -   type: CheckDelegate
+        attributes:
+            display: text-under-icon
+    icon:
+        alignment:
+            horizontal: Start
+            vertical: Stack
+    text:
+        alignment:
+            horizontal: Start
+            vertical: Stack

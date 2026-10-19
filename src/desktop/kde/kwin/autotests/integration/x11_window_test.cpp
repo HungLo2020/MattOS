@@ -33,8 +33,6 @@
 using namespace KWin;
 using namespace std::chrono_literals;
 
-static const QString s_socketName = QStringLiteral("wayland_test_x11_window-0");
-
 class X11WindowTest : public QObject
 {
     Q_OBJECT
@@ -59,6 +57,7 @@ private Q_SLOTS:
     void testInteractiveMoveUnmaximizeInitiallyHorizontal();
     void testInteractiveMoveUnmaximizeVertical();
     void testInteractiveMoveUnmaximizeInitiallyVertical();
+    void testConfigureRequestMoveWithPerOutputDesktops();
     void testFullScreen();
     void testInitiallyFullScreen();
     void testRequestFullScreen();
@@ -96,7 +95,6 @@ private Q_SLOTS:
     void testMaximumSize();
     void testTrimCaption_data();
     void testTrimCaption();
-    void testFocusInWithWaylandLastActiveWindow();
     void testCaptionChanges();
     void testCaptionWmName();
     void testActivateFocusedWindow();
@@ -107,6 +105,7 @@ private Q_SLOTS:
     void testCloseInactiveTransient();
     void testCloseGroupTransient();
     void testCloseInactiveGroupTransient();
+    void testTransientOnAnotherOutputWithPerOutputDesktops();
     void testModal();
     void testGroupModal();
     void testCloseModal();
@@ -143,7 +142,7 @@ void X11WindowTest::initTestCase_data()
 void X11WindowTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->setConfig(KSharedConfig::openConfig(QString(), KConfig::SimpleConfig));
 
     kwinApp()->start();
@@ -157,11 +156,13 @@ void X11WindowTest::initTestCase()
 void X11WindowTest::init()
 {
     VirtualDesktopManager::self()->setCount(2);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(false);
 
     QFETCH_GLOBAL(qreal, scale);
     kwinApp()->setXwaylandScale(scale);
 
     QVERIFY(Test::setupWaylandConnection());
+    workspace()->setActiveOutput(workspace()->outputs()[0]);
 }
 
 void X11WindowTest::cleanup()
@@ -733,6 +734,49 @@ void X11WindowTest::testInteractiveMoveUnmaximizeInitiallyVertical()
     // Finish interactive move.
     window->keyPressEvent(Qt::Key_Enter);
     QCOMPARE(interactiveMoveResizeFinishedSpy.count(), 1);
+}
+
+void X11WindowTest::testConfigureRequestMoveWithPerOutputDesktops()
+{
+    // This test verifies that x11 window moved to another output via configure request will be moved to the output's current virtual desktop as well.
+
+    VirtualDesktopManager::self()->setCount(2);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(true);
+
+    auto outputs = workspace()->outputs();
+    QCOMPARE(outputs.count(), 2);
+    const auto desktops = VirtualDesktopManager::self()->desktops();
+    VirtualDesktopManager::self()->setCurrent(desktops[0], outputs[0]);
+    VirtualDesktopManager::self()->setCurrent(desktops[1], outputs[1]);
+
+    // Create the window on output 0, desktop 0
+    Test::XcbConnectionPtr c = Test::createX11Connection();
+    QVERIFY(!xcb_connection_has_error(c.get()));
+    X11Window *window = createWindow(c.get(), Rect(100, 100, 100, 200));
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(outputs[0]), desktops[0]);
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(outputs[1]), desktops[1]);
+    QCOMPARE(window->output(), outputs[0]);
+    QCOMPARE(window->desktops(), {desktops[0]});
+
+    // Move the window to output 1
+    QSignalSpy frameGeometryChangedSpy(window, &Window::frameGeometryChanged);
+    const uint32_t values[] = {
+        Xcb::toXNative(1500), /* x */
+        Xcb::toXNative(0), /* y */
+        Xcb::toXNative(100), /* width */
+        Xcb::toXNative(200) /* height */
+    };
+    xcb_configure_window(c.get(), window->window(),
+                         XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_HEIGHT | XCB_CONFIG_WINDOW_WIDTH,
+                         values);
+    xcb_flush(c.get());
+    QVERIFY(frameGeometryChangedSpy.wait());
+
+    // The window should be moved to output 1's current desktop (1). The current desktops should stay the same on both outputs.
+    QCOMPARE(window->output(), outputs[1]);
+    QCOMPARE(window->desktops(), {desktops[1]});
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(outputs[0]), desktops[0]);
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(outputs[1]), desktops[1]);
 }
 
 void X11WindowTest::testFullScreen()
@@ -1586,8 +1630,8 @@ void X11WindowTest::testNetWmButtonSize()
     const RectF originalGeometry = window->frameGeometry();
     const QPointF initialPointer = window->frameGeometry().center() + directionToVector(direction, originalGeometry.size() * 0.5);
     quint32 timestamp = 0;
-    Test::pointerButtonPressed(BTN_LEFT, timestamp++);
     Test::pointerMotion(initialPointer, timestamp++);
+    Test::pointerButtonPressed(BTN_LEFT, timestamp++);
     {
         NETRootInfo root(c.get(), NET::Properties());
         root.moveResizeRequest(window->window(), Xcb::toXNative(initialPointer.x()), Xcb::toXNative(initialPointer.y()), direction, XCB_BUTTON_INDEX_1);
@@ -2062,63 +2106,6 @@ void X11WindowTest::testFullscreenLayerWithActiveWaylandWindow()
     xcb_flush(c.get());
 }
 
-void X11WindowTest::testFocusInWithWaylandLastActiveWindow()
-{
-    // this test verifies that Workspace::allowWindowActivation does not crash if last client was a Wayland client
-
-    // create an X11 window
-    Test::XcbConnectionPtr c = Test::createX11Connection();
-    QVERIFY(!xcb_connection_has_error(c.get()));
-    const Rect windowGeometry(0, 0, 100, 200);
-    xcb_window_t windowId = xcb_generate_id(c.get());
-    xcb_create_window(c.get(), XCB_COPY_FROM_PARENT, windowId, rootWindow(),
-                      windowGeometry.x(),
-                      windowGeometry.y(),
-                      windowGeometry.width(),
-                      windowGeometry.height(),
-                      0, XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT, 0, nullptr);
-    xcb_size_hints_t hints{};
-    xcb_icccm_size_hints_set_position(&hints, 1, windowGeometry.x(), windowGeometry.y());
-    xcb_icccm_size_hints_set_size(&hints, 1, windowGeometry.width(), windowGeometry.height());
-    xcb_icccm_set_wm_normal_hints(c.get(), windowId, &hints);
-    xcb_map_window(c.get(), windowId);
-    xcb_flush(c.get());
-
-    // we should get a window for it
-    QSignalSpy windowCreatedSpy(workspace(), &Workspace::windowAdded);
-    QVERIFY(windowCreatedSpy.wait());
-    X11Window *window = windowCreatedSpy.first().first().value<X11Window *>();
-    QVERIFY(window);
-    QCOMPARE(window->window(), windowId);
-    QVERIFY(window->isActive());
-
-    // create Wayland window
-    std::unique_ptr<KWayland::Client::Surface> surface(Test::createSurface());
-    std::unique_ptr<Test::XdgToplevel> shellSurface(Test::createXdgToplevelSurface(surface.get()));
-    auto waylandWindow = Test::renderAndWaitForShown(surface.get(), QSize(100, 50), Qt::blue);
-    QVERIFY(waylandWindow);
-    QVERIFY(waylandWindow->isActive());
-    // activate no window
-    workspace()->activateWindow(nullptr);
-    QVERIFY(!waylandWindow->isActive());
-    QVERIFY(!workspace()->activeWindow());
-    // and close Wayland window again
-    shellSurface.reset();
-    surface.reset();
-    QVERIFY(Test::waitForWindowClosed(waylandWindow));
-
-    // and try to activate the x11 window through X11 api
-    const auto cookie = xcb_set_input_focus_checked(c.get(), XCB_INPUT_FOCUS_NONE, windowId, XCB_CURRENT_TIME);
-    auto error = xcb_request_check(c.get(), cookie);
-    QVERIFY(!error);
-    // this accesses m_lastActiveWindow on trying to activate
-    QTRY_VERIFY(window->isActive());
-
-    // and destroy the window again
-    xcb_unmap_window(c.get(), windowId);
-    xcb_flush(c.get());
-}
-
 void X11WindowTest::testCaptionChanges()
 {
     // verifies that caption is updated correctly when the X11 window updates it
@@ -2542,6 +2529,37 @@ void X11WindowTest::testCloseInactiveGroupTransient()
     xcb_flush(c.get());
     QVERIFY(dialogClosedSpy.wait());
     QCOMPARE(workspace()->activeWindow(), unrelated);
+}
+
+void X11WindowTest::testTransientOnAnotherOutputWithPerOutputDesktops()
+{
+    // This test verifies that when a transient is opened on another output, it's opened on that output's current desktop instead of the parent's desktop.
+
+    VirtualDesktopManager::self()->setCount(2);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(true);
+
+    auto outputs = workspace()->outputs();
+    QCOMPARE(outputs.count(), 2);
+    const auto desktops = VirtualDesktopManager::self()->desktops();
+    VirtualDesktopManager::self()->setCurrent(desktops[0], outputs[0]);
+    VirtualDesktopManager::self()->setCurrent(desktops[1], outputs[1]);
+
+    // Create a parent and a child windows.
+    Test::XcbConnectionPtr c = Test::createX11Connection();
+    QVERIFY(!xcb_connection_has_error(c.get()));
+    X11Window *parent = createWindow(c.get(), Rect(0, 0, 100, 200));
+    X11Window *child = createWindow(c.get(), Rect(Xcb::toXNative(1500), 0, 100, 200), [&c, &parent](xcb_window_t windowId) {
+        xcb_icccm_set_wm_transient_for(c.get(), windowId, parent->window());
+    });
+    QVERIFY(child->isTransient());
+    QCOMPARE(child->transientFor(), parent);
+    QVERIFY(parent->hasTransient(child, true));
+    QCOMPARE(parent->output(), outputs[0]);
+    QCOMPARE(parent->desktops(), {desktops[0]});
+    QCOMPARE(child->output(), outputs[1]);
+    QCOMPARE(child->desktops(), {desktops[1]});
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(outputs[0]), desktops[0]);
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(outputs[1]), desktops[1]);
 }
 
 void X11WindowTest::testModal()
@@ -3495,8 +3513,6 @@ private:
         : m_connection(std::move(connection))
         , m_notifier(new QSocketNotifier(xcb_get_file_descriptor(m_connection.get()), QSocketNotifier::Read))
     {
-        xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(m_connection.get())).data;
-
         connect(m_notifier.get(), &QSocketNotifier::activated, this, &X11Display::dispatchEvents);
         connect(QCoreApplication::eventDispatcher(), &QAbstractEventDispatcher::aboutToBlock, this, &X11Display::dispatchEvents);
         connect(QCoreApplication::eventDispatcher(), &QAbstractEventDispatcher::awake, this, &X11Display::dispatchEvents);
@@ -3535,6 +3551,7 @@ X11Object::~X11Object()
 class X11TestWindow : public QObject, public X11Object
 {
     Q_OBJECT
+
 public:
     X11TestWindow(X11Display *display, const QSize &size)
         : X11Object(display)
@@ -3579,8 +3596,9 @@ public:
         GraphicsBufferRef buffer = allocator.allocate(GraphicsBufferOptions{
             .size = size,
             .format = DRM_FORMAT_XRGB8888,
-            .modifiers = QList<uint64_t>{DRM_FORMAT_MOD_LINEAR},
+            .modifiers = ModifierList{DRM_FORMAT_MOD_LINEAR},
             .software = true,
+            .scanout = false,
         });
         if (!buffer) {
             return false;
@@ -3787,6 +3805,7 @@ public:
         }
         return false;
     }
+
 private:
     xcb_window_t m_triggerId;
     xcb_window_t m_windowId;

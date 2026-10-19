@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-systemmonitor package.
 #
-# SPDX-FileCopyrightText: 2024, 2025, 2026 Yaron Shahrabani <sh.yaron@gmail.com>
+# SPDX-FileCopyrightText: 2024-2026 Yaron Shahrabani <sh.yaron@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2026-01-15 15:09+0200\n"
+"POT-Creation-Date: 2026-07-17 00:46+0000\n"
+"PO-Revision-Date: 2026-07-17 12:20+0300\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
 "Language: he\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.04.1\n"
 
 #: src/faces/processtable/contents/ui/Config.qml:25
 #, kde-format
@@ -120,73 +120,79 @@ msgctxt "@action"
 msgid "Configure Columns…"
 msgstr "הגדרת עמודות…"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:247
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:242
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Set priority…"
 msgstr "הגדרת עדיפות…"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:253
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:248
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Set affinity…"
+msgstr "הגדרת קרבה…"
+
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:255
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Send Signal"
 msgstr "שליחת אות"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:257
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:259
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Suspend (STOP)"
 msgstr "השהיה (STOP)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:261
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:263
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Continue (CONT)"
 msgstr "המשך (CONT)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:265
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:267
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Hangup (HUP)"
 msgstr "ניתוק (HUP)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:269
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:271
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Interrupt (INT)"
 msgstr "הפרעה (INT)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:273
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:275
 #, kde-format
 msgctxt "@action:inmenu  Send Signal"
 msgid "Terminate (TERM)"
 msgstr "חיסול (TERM)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:277
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:279
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Kill (KILL)"
 msgstr "הריגה (KILL)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:281
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:283
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "User 1 (USR1)"
 msgstr "משתמש 1 (USR1)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:285
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:287
 #, kde-format
 msgctxt "@action:inmenu  Send Signal"
 msgid "User 2 (USR2)"
 msgstr "משתמש 2 (USR2)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:291
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:293
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Copy Current Column"
 msgstr "העתקת העמודה הנוכחית"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:300
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:302
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "End Process"
@@ -196,19 +202,19 @@ msgstr[1] "סיום %1 תהליכים"
 msgstr[2] "סיום %1 תהליכים"
 msgstr[3] "סיום %1 תהליכים"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:313
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:315
 #, kde-format
 msgctxt "@action:inmenu hide column"
 msgid "Hide"
 msgstr "הסתרה"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:318
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:320
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Configure Columns…"
 msgstr "הגדרת עמודות…"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:330
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:332
 #, kde-format
 msgctxt "@title:window"
 msgid "Forcibly End Process"
@@ -218,7 +224,7 @@ msgstr[1] "סיום שני תהליכים בכוח"
 msgstr[2] "סיום %1 תהליכים בכוח"
 msgstr[3] "סיום %1 תהליכים בכוח"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:331
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:333
 #, kde-format
 msgctxt "@title:window"
 msgid "End Process"
@@ -228,7 +234,7 @@ msgstr[1] "סיום %1 תהליכים"
 msgstr[2] "סיום %1 תהליכים"
 msgstr[3] "סיום %1 תהליכים"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:333
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:335
 #, kde-format
 msgctxt "@action:button"
 msgid "Forcibly End Process"
@@ -238,7 +244,7 @@ msgstr[1] "סיום תהליכים בכוח"
 msgstr[2] "סיום תהליכים בכוח"
 msgstr[3] "סיום תהליכים בכוח"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:334
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:336
 #, kde-format
 msgctxt "@action:button"
 msgid "End Process"
@@ -248,7 +254,7 @@ msgstr[1] "סיום תהליכים"
 msgstr[2] "סיום תהליכים"
 msgstr[3] "סיום תהליכים"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:337
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:339
 #, kde-format
 msgid "Forcibly end (SIGKILL) this process? Unsaved work may be lost."
 msgid_plural ""
@@ -259,7 +265,7 @@ msgstr[1] ""
 msgstr[2] "לסיים (SIGKILL) את %1 התהליכים האלה בכוח? עבודה שלא שמרת תאבד."
 msgstr[3] "לסיים (SIGKILL) את %1 התהליכים האלה? עבודה שלא שמרת תאבד."
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:340
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:342
 #, kde-format
 msgid "End this process? Unsaved work may be lost."
 msgid_plural "End these %1 processes? Unsaved work may be lost."
@@ -268,7 +274,7 @@ msgstr[1] "לסיים את שני התהליכים האלה? עבודה שלא �
 msgstr[2] "לסיים את %1 התהליכים האלה? עבודה שלא שמרת תאבד."
 msgstr[3] "לסיים את %1 התהליכים האלה? עבודה שלא שמרת תאבד."
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:352
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:354
 #, kde-format
 msgctxt "@item:intable %1 is process id, %2 is user name"
 msgid "Process ID %1, owned by %2"

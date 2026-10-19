@@ -47,6 +47,8 @@ add_subdirectory(corelib)
 # Needs to be after corelib, because some of them reference Core.
 add_subdirectory(3rdparty)
 
+add_subdirectory(android)
+
 if (QT_FEATURE_concurrent)
     add_subdirectory(concurrent)
 endif()
@@ -93,4 +95,6 @@ if(QT_FEATURE_printsupport)
 endif()
 add_subdirectory(plugins)
 
-add_subdirectory(android)
+if(OHOS)
+    add_subdirectory(harmonyos)
+endif()

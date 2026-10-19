@@ -56,19 +56,6 @@ PlasmaExtras.Representation {
     // We cannot use Kirigami.SizeGroup here because monthView's header is not in a layout.
     readonly property double headerHeight: Math.max(agendaHeader.implicitHeight, monthView.viewHeader.implicitHeight)
 
-    Keys.onDownPressed: event => {
-        monthView.Keys.downPressed(event);
-    }
-
-    Connections {
-        target: root
-
-        function onExpandedChanged() {
-            // clear all the selections when the plasmoid is showing/hiding
-            monthView.resetToToday();
-        }
-    }
-
     PlasmaCalendar.EventPluginsManager {
         id: eventPluginsManager
         enabledPlugins: Plasmoid.configuration.enabledCalendarPlugins
@@ -134,7 +121,6 @@ PlasmaExtras.Representation {
                     spacing: Kirigami.Units.smallSpacing
 
                     Layout.alignment: Qt.AlignBottom
-                    Layout.bottomMargin: Kirigami.Units.mediumSpacing
 
                     // Heading text
                     Kirigami.Heading {
@@ -161,7 +147,7 @@ PlasmaExtras.Representation {
 
                         Accessible.description: i18nc("@info:tooltip", "Add a new event")
                         KeyNavigation.down: KeyNavigation.tab
-                        KeyNavigation.right: monthView.viewHeader.tabBar
+                        Keys.onRightPressed: monthView.viewHeader.tabBar.focusFirstButton()
 
                         onClicked: ApplicationIntegration.launchCalendar()
                         KeyNavigation.tab: calendar.showAgenda && eventsList.count ? eventsList : eventsList.KeyNavigation.down
@@ -191,10 +177,11 @@ PlasmaExtras.Representation {
             }
 
             function dateEquals(date1: date, date2: date): bool {
-                // Compare two dates without taking time into account
-                return date1.getFullYear() === date2.getFullYear()
-                    && date1.getMonth() === date2.getMonth()
-                    && date1.getDate() === date2.getDate();
+                // QDate is exposed to QML as midnight UTC, while MonthView's
+                // current date is constructed in the local time zone.
+                return date1.getUTCFullYear() === date2.getFullYear()
+                    && date1.getUTCMonth() === date2.getMonth()
+                    && date1.getUTCDate() === date2.getDate();
             }
 
             function updateEventsForCurrentDate() {
@@ -294,11 +281,6 @@ PlasmaExtras.Representation {
                             return !(startIsMidnight && endIsMidnight && sameDay);
                         }
 
-                        PlasmaComponents.ToolTip {
-                            text: eventItem.modelData.description
-                            visible: text !== "" && eventItem.hovered
-                        }
-
                         contentItem: GridLayout {
                             id: eventGrid
                             columns: 3
@@ -345,6 +327,7 @@ PlasmaExtras.Representation {
 
                                 Layout.row: 1
                                 Layout.column: 1
+                                Layout.alignment: Qt.AlignTop
                                 Layout.minimumWidth: dateLabelMetrics.width
 
                                 text: endsToday || endsTomorrowInLessThan12Hours
@@ -357,19 +340,33 @@ PlasmaExtras.Representation {
                                 visible: eventItem.hasTime
                             }
 
-                            PlasmaComponents.Label {
+                            Kirigami.SelectableLabel {
                                 id: eventTitle
 
                                 Layout.row: 0
                                 Layout.column: 2
                                 Layout.fillWidth: true
 
-                                elide: Text.ElideRight
                                 text: eventItem.modelData.title
                                 textFormat: Text.PlainText
                                 verticalAlignment: Text.AlignVCenter
-                                maximumLineCount: 2
                                 wrapMode: Text.Wrap
+                            }
+
+                            Kirigami.SelectableLabel {
+                                id: eventDescription
+
+                                Layout.row: 1
+                                Layout.column: 2
+                                Layout.fillWidth: true
+                                spacing: 0
+                                
+                                visible: text.length > 0
+                                text: eventItem.modelData.description
+                                                                    
+                                wrapMode: Text.Wrap
+                                
+                                onLinkActivated: link => Qt.openUrlExternally(link)
                             }
                         }
                     }
@@ -467,6 +464,11 @@ PlasmaExtras.Representation {
 
             ListView {
                 id: clocksList
+
+                // We need some imperative bookkeeping here because there's no way to bind to
+                // this information across a set of dynamically-created delegates in a ListView.
+                property int longestTimeStringWidth: 1
+
                 activeFocusOnTab: true
 
                 highlight: null
@@ -496,6 +498,16 @@ PlasmaExtras.Representation {
                     required property string modelData
 
                     readonly property bool isCurrentTimeZone: tzClock.timeZone == root.currentTimeZone
+                    readonly property string tzLabel: {
+                        switch (Plasmoid.configuration.displayTimezoneFormat) {
+                        case 0: // Code
+                            return tzClock.timeZoneCode;
+                        case 1: // City
+                            return TimeZonesI18n.i18nCity(tzClock.timeZone);
+                        case 2: // Offset from UTC time
+                            return tzClock.timeZoneOffset;
+                        }
+                    }
 
                     width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
 
@@ -503,7 +515,7 @@ PlasmaExtras.Representation {
                     rightPadding: calendar.paddings
 
                     highlighted: ListView.isCurrentItem
-                    Accessible.name: Plasmoid.configuration.displayTimezoneAsCode ? tzClock.timeZoneCode : TimeZonesI18n.i18nCity(tzClock.timeZone);
+                    Accessible.name: tzLabel
                     Accessible.description: root.formatTime(tzClock.dateTime, Plasmoid.configuration.showSeconds === 2)
 
                     // Only highlight with keyboard
@@ -521,20 +533,48 @@ PlasmaExtras.Representation {
 
                         PlasmaComponents.Label {
                             Layout.fillWidth: true
-                            text: Plasmoid.configuration.displayTimezoneAsCode ? tzClock.timeZoneCode : TimeZonesI18n.i18nCity(tzClock.timeZone);
+                            text: listItem.tzLabel
                             textFormat: Text.PlainText
                             font.weight: listItem.isCurrentTimeZone ? Font.Bold : Font.Normal
                             maximumLineCount: 1
                             elide: Text.ElideRight
                         }
 
-                        PlasmaComponents.Label {
-                            horizontalAlignment: Qt.AlignRight
-                            text: root.formatTime(tzClock.dateTime, Plasmoid.configuration.showSeconds === 2)
-                            textFormat: Text.PlainText
-                            font.weight: listItem.isCurrentTimeZone ? Font.Bold : Font.Normal
-                            elide: Text.ElideRight
-                            maximumLineCount: 1
+                        Row {
+                            id: timeAndOffsetRow
+                            Layout.preferredWidth: clocksList.longestTimeStringWidth
+
+                            spacing: 0
+
+                            function recalculateLongestTimeString() {
+                                if (Math.ceil(implicitWidth) > clocksList.longestTimeStringWidth) {
+                                    clocksList.longestTimeStringWidth = Math.ceil(implicitWidth);
+                                }
+                            }
+                            Component.onCompleted: recalculateLongestTimeString();
+
+                            PlasmaComponents.Label {
+                                id: timeString
+
+                                text: root.formatTime(tzClock.dateTime, Plasmoid.configuration.showSeconds === 2)
+                                textFormat: Text.PlainText
+                                font.weight: listItem.isCurrentTimeZone ? Font.Bold : Font.Normal
+
+                                onTextChanged: timeAndOffsetRow.recalculateLongestTimeString();
+                            }
+
+                            PlasmaComponents.Label {
+                                visible: !listItem.isCurrentTimeZone
+
+                                anchors.baseline: timeString.baseline
+                                anchors.baselineOffset: Math.floor((Kirigami.Theme.smallFont.pointSize - Kirigami.Theme.defaultFont.pointSize) / 2)
+
+                                text: root.formatOffset(tzClock.dateTime)
+                                textFormat: Text.PlainText
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                font.family: Kirigami.Theme.smallFont.family
+                                opacity: 0.75
+                            }
                         }
                     }
                 }
@@ -577,10 +617,6 @@ PlasmaExtras.Representation {
         // Not anchoring to horizontalCenter to avoid sub-pixel misalignments
         width: (calendar.showAgenda || calendar.showClocks) ? Math.round(parent.width / 2) : parent.width
 
-        onActiveFocusChanged: if (activeFocus) {
-            monthViewWrapper.nextItemInFocusChain().forceActiveFocus();
-        }
-
         PlasmaCalendar.MonthView {
             id: monthView
             viewHeader.height: calendar.headerHeight
@@ -607,9 +643,7 @@ PlasmaExtras.Representation {
 
             KeyNavigation.left: KeyNavigation.tab
             KeyNavigation.tab: addEventButton.visible ? addEventButton : addEventButton.KeyNavigation.down
-            Keys.onUpPressed: event => {
-                viewHeader.tabBar.currentItem.forceActiveFocus(Qt.BacktabFocusReason);
-            }
+            Keys.onUpPressed: viewHeader.previousButton.forceActiveFocus(Qt.BacktabFocusReason);
         }
     }
 }

@@ -1,5 +1,5 @@
 # translation of kcmicons.po to Polish
-# Version: $Revision: 1730402 $
+# Version: $Revision: 1739028 $
 # translation of kcmicons.po to
 # SPDX-FileCopyrightText: 2012, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2026 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
 # Michał Rudolf <mrudolf@kdewebdev.org>, 2002.
@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmicons\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2023-09-17 12:58+0200\n"
+"POT-Creation-Date: 2026-06-13 00:46+0000\n"
+"PO-Revision-Date: 2026-02-21 08:39+0100\n"
 "Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
 "Language-Team: pl\n"
 "Language: pl\n"
@@ -57,12 +57,12 @@ msgstr ""
 msgid "Theme installed successfully."
 msgstr "Pomyślnie wgrano zestaw."
 
-#: main.cpp:225
+#: main.cpp:227
 #, kde-format
 msgid "Installing icon themes…"
 msgstr "Wgrywanie zestawów ikon..."
 
-#: main.cpp:235
+#: main.cpp:239
 #, kde-format
 msgid "Installing %1 theme…"
 msgstr "Wgrywanie zestawu %1..."
@@ -77,25 +77,42 @@ msgstr "Wgraj z pliku..."
 msgid "Get New…"
 msgstr "Pobierz nowe…"
 
-#: ui/main.qml:188
+#: ui/main.qml:189
 #, kde-format
-msgid "Remove Icon Theme"
+msgctxt "@info:tooltip"
+msgid "Remove icon theme"
 msgstr "Usuń zestaw ikon"
 
-#: ui/main.qml:195
+#: ui/main.qml:191
 #, kde-format
-msgid "Restore Icon Theme"
-msgstr "Przywróć zestaw ikon"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active icon theme"
+msgstr "Nie można usunąć używanego zestawu ikon"
 
-#: ui/main.qml:244
+#: ui/main.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed icon themes"
+msgstr "Nie można usunąć zestawu ikon wgranych na całym systemie"
+
+#: ui/main.qml:201
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this icon theme"
+msgstr "Nie usuwaj tego zestawu ikon"
+
+#: ui/main.qml:250
 #, kde-format
 msgid "Open Theme"
 msgstr "Otwórz zestaw"
 
-#: ui/main.qml:246
+#: ui/main.qml:252
 #, kde-format
 msgid "Theme Files (*.tar.gz *.tar.bz2)"
 msgstr "Plik zestawu (*.tar.gz *.tar.bz2)"
+
+#~ msgid "Restore Icon Theme"
+#~ msgstr "Przywróć zestaw ikon"
 
 #~ msgid "Main Toolbar"
 #~ msgstr "Na głównym pasku narzędzi"

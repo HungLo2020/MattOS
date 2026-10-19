@@ -14,10 +14,11 @@ class DefaultAction : public ActionInterface
 {
     Q_OBJECT
 
-    Q_INTERFACES(ActionInterface)
-
 public:
-    explicit DefaultAction(const QString &udi, const QString &desktopFile, QObject *parent = nullptr);
+    explicit DefaultAction(const std::shared_ptr<StorageInfo> &storageInfo,
+                           const std::shared_ptr<StateInfo> &stateInfo,
+                           const QString &desktopFile,
+                           QObject *parent = nullptr);
     ~DefaultAction() override;
 
     QString name() const override;

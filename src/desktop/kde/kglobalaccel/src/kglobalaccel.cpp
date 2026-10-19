@@ -52,11 +52,11 @@ org::kde::kglobalaccel::Component *KGlobalAccelPrivate::getComponent(const QStri
 
     // Now get the component
     org::kde::kglobalaccel::Component *component =
-        new org::kde::kglobalaccel::Component(QStringLiteral("org.kde.kglobalaccel"), reply.value().path(), QDBusConnection::sessionBus(), q);
+        new org::kde::kglobalaccel::Component(QStringLiteral("org.kde.kglobalaccel"), reply.value().path(), m_bus, q);
 
     // No component no cleaning
     if (!component->isValid()) {
-        qCDebug(KGLOBALACCEL_LOG) << "Failed to get component" << componentUnique << QDBusConnection::sessionBus().lastError();
+        qCDebug(KGLOBALACCEL_LOG) << "Failed to get component" << componentUnique << m_bus.lastError();
         return nullptr;
     }
 
@@ -70,9 +70,9 @@ org::kde::kglobalaccel::Component *KGlobalAccelPrivate::getComponent(const QStri
                          });
 
         QObject::connect(component,
-                          &org::kde::kglobalaccel::Component::globalShortcutRepeated,
+                         &org::kde::kglobalaccel::Component::globalShortcutRepeated,
                          q,
-                          [this](const QString &componentUnique, const QString &shortcutUnique, qlonglong timestamp) {
+                         [this](const QString &componentUnique, const QString &shortcutUnique, qlonglong timestamp) {
                              invokeAction(componentUnique, shortcutUnique, timestamp, ShortcutState::Repeated);
                          });
 
@@ -108,8 +108,14 @@ void KGlobalAccelPrivate::cleanup()
 
 KGlobalAccelPrivate::KGlobalAccelPrivate(KGlobalAccel *qq)
     : q(qq)
+    , m_bus(QDBusConnection::sessionBus())
 {
-    m_watcher = new QDBusServiceWatcher(serviceName(), QDBusConnection::sessionBus(), QDBusServiceWatcher::WatchForOwnerChange, q);
+    auto kglobalaccelInternalBus = QDBusConnection(QStringLiteral("kglobalacceld"));
+    if (kglobalaccelInternalBus.isConnected()) {
+        m_bus = kglobalaccelInternalBus;
+    }
+
+    m_watcher = new QDBusServiceWatcher(serviceName(), m_bus, QDBusServiceWatcher::WatchForOwnerChange, q);
     QObject::connect(m_watcher,
                      &QDBusServiceWatcher::serviceOwnerChanged,
                      q,
@@ -121,11 +127,11 @@ KGlobalAccelPrivate::KGlobalAccelPrivate(KGlobalAccel *qq)
 org::kde::KGlobalAccel *KGlobalAccelPrivate::iface()
 {
     if (!m_iface) {
-        m_iface = new org::kde::KGlobalAccel(serviceName(), QStringLiteral("/kglobalaccel"), QDBusConnection::sessionBus());
+        m_iface = new org::kde::KGlobalAccel(serviceName(), QStringLiteral("/kglobalaccel"), m_bus);
         // Make sure kglobalaccel is running. The iface declaration above somehow works anyway.
-        QDBusConnectionInterface *bus = QDBusConnection::sessionBus().interface();
-        if (bus && !bus->isServiceRegistered(serviceName())) {
-            QDBusReply<void> reply = bus->startService(serviceName());
+        QDBusConnectionInterface *busInterface = m_bus.interface();
+        if (busInterface && !busInterface->isServiceRegistered(serviceName())) {
+            QDBusReply<void> reply = busInterface->startService(serviceName());
             if (!reply.isValid()) {
                 qCritical() << "Couldn't start kglobalaccel from org.kde.kglobalaccel.service:" << reply.error();
             }
@@ -282,7 +288,7 @@ void KGlobalAccelPrivate::unregister(const QStringList &actionId)
     auto message = QDBusMessage::createMethodCall(iface()->service(), iface()->path(), iface()->interface(), QStringLiteral("unregister"));
     message.setArguments({component, action});
     message.setAutoStartService(false);
-    QDBusConnection::sessionBus().asyncCall(message);
+    m_bus.asyncCall(message);
 }
 
 void KGlobalAccelPrivate::setInactive(const QStringList &actionId)
@@ -290,7 +296,7 @@ void KGlobalAccelPrivate::setInactive(const QStringList &actionId)
     auto message = QDBusMessage::createMethodCall(iface()->service(), iface()->path(), iface()->interface(), QStringLiteral("setInactive"));
     message.setArguments({actionId});
     message.setAutoStartService(false);
-    QDBusConnection::sessionBus().asyncCall(message);
+    m_bus.asyncCall(message);
 }
 
 void KGlobalAccelPrivate::updateGlobalShortcut(/*const would be better*/ QAction *action,
@@ -572,20 +578,20 @@ bool KGlobalAccel::promptStealShortcutSystemwide(QWidget *parent, const QList<KG
 // static
 void KGlobalAccel::stealShortcutSystemwide(const QKeySequence &seq)
 {
-    // get the shortcut, remove seq, and set the new shortcut
-    const QStringList actionId = self()->d->iface()->actionList(seq);
-    if (actionId.size() < 4) { // not a global shortcut
-        return;
-    }
-    QList<QKeySequence> sc = self()->d->iface()->shortcutKeys(actionId);
+    const auto globalShortcuts = globalShortcutsByKey(seq);
+    for (const KGlobalShortcutInfo &globalShortcut : globalShortcuts) {
+        const QStringList actionId{
+            globalShortcut.componentUniqueName(),
+            globalShortcut.uniqueName(),
+            globalShortcut.componentFriendlyName(),
+            globalShortcut.friendlyName(),
+        };
 
-    for (int i = 0; i < sc.count(); i++) {
-        if (sc[i] == seq) {
-            sc[i] = QKeySequence();
-        }
-    }
+        QList<QKeySequence> keySequences = globalShortcut.keys();
+        keySequences.removeAll(seq);
 
-    self()->d->iface()->setForeignShortcutKeys(actionId, sc);
+        self()->d->iface()->setForeignShortcutKeys(actionId, keySequences);
+    }
 }
 
 bool checkGarbageKeycode(const QList<QKeySequence> &shortcut)
@@ -690,6 +696,29 @@ bool KGlobalAccelPrivate::setShortcutWithDefault(QAction *action, const QList<QK
     actionShortcuts.insert(action, shortcut);
     updateGlobalShortcut(action, KGlobalAccelPrivate::DefaultShortcut | KGlobalAccelPrivate::ActiveShortcut, loadFlag);
     return true;
+}
+
+bool KGlobalAccel::setInverseShortcutActions(QAction *forwardAction, QAction *backwardAction)
+{
+    KGlobalAccelPrivate *d = self()->d;
+
+    const bool bothRegistered = d->actions.contains(forwardAction) && d->actions.contains(backwardAction);
+    if (!bothRegistered) {
+        return false;
+    }
+    const QStringList forwardActionId = d->makeActionId(forwardAction);
+    const QStringList backwardActionId = d->makeActionId(backwardAction);
+
+    if (forwardActionId.at(KGlobalAccel::ComponentUnique) != backwardActionId.at(KGlobalAccel::ComponentUnique)) {
+        return false;
+    }
+
+    uint inverseSetterFlags = 0; // reserved
+
+    return d->iface()->setInverseShortcutActions(forwardActionId.at(KGlobalAccel::ComponentUnique),
+                                                 forwardActionId.at(KGlobalAccel::ActionUnique),
+                                                 backwardActionId.at(KGlobalAccel::ActionUnique),
+                                                 inverseSetterFlags);
 }
 
 QDBusArgument &operator<<(QDBusArgument &argument, const KGlobalAccel::MatchType &type)

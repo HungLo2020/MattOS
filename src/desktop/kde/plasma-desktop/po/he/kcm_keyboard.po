@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2026-01-09 17:18+0200\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
@@ -96,8 +96,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "הגדרת איגודי מקשים…"
+msgid "Key Bindings"
+msgstr "איגודי מקשים"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -135,13 +135,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "הוספת פריסה"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "שם פריסה מקוצר"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -151,13 +151,13 @@ msgstr ""
 "השם המקוצר של הפריסה הנבחרת, שיוצג בשורת המערכת. אפשר לשנות את ההגדרה הזאת "
 "בעצמך."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "קיצור דרך:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -541,7 +541,7 @@ msgid ""
 "diacritical marks."
 msgstr "אפשר להשתמש במקשי החלפה כדי להקליד תווים, סמלים וסימני הבחן נוספים."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
@@ -550,15 +550,15 @@ msgstr[1] "שני קיצורי דרך"
 msgstr[2] "%1 קיצורי דרך"
 msgstr[3] "%1 קיצורי דרך"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "ללא"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "איגודי מקשים"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "הגדרת איגודי מקשים…"
 
 #~ msgctxt "@option:radio"
 #~ msgid "Turn Off"

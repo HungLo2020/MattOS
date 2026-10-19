@@ -19,18 +19,15 @@
 #include <KAboutData>
 #include <KCrash>
 #include <KLocalizedString>
-#include <KMessageBox>
 #include <KRuntimePlatform>
-#include <KSelectionOwner>
 #include <KSharedConfig>
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <kdbusservice.h>
 #include <ksmserver_debug.h>
-#include <kwindowsystem.h>
 
-#include <QApplication>
 #include <QCommandLineParser>
+#include <QCoreApplication>
 #include <QFile>
 
 void IoErrorHandler(IceConn iceConn)
@@ -57,7 +54,7 @@ bool writeTest(QByteArray path)
     return true;
 }
 
-void sanity_check(int argc, char *argv[])
+void sanity_check(int /*argc*/, char * /*argv*/[])
 {
     QString msg;
     QByteArray path;
@@ -102,28 +99,13 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setAttribute(Qt::AA_DisableSessionManager);
 
-    // force xcb QPA plugin as ksmserver is very X11 specific
-    const QByteArray origQpaPlatform = qgetenv("QT_QPA_PLATFORM");
-    qputenv("QT_QPA_PLATFORM", QByteArrayView("xcb"));
-
     QCoreApplication::setQuitLockEnabled(false);
-    auto a = new QGuiApplication(argc, argv);
-
-    // now the QPA platform is set, unset variable again to not launch apps with incorrect environment
-    if (origQpaPlatform.isEmpty()) {
-        qunsetenv("QT_QPA_PLATFORM");
-    } else {
-        qputenv("QT_QPA_PLATFORM", origQpaPlatform);
-    }
+    auto a = new QCoreApplication(argc, argv);
 
     KAboutData about(QStringLiteral("ksmserver"), QString(), QStringLiteral(WORKSPACE_VERSION_STRING));
     KAboutData::setApplicationData(about);
 
     KCrash::initialize();
-
-    fcntl(ConnectionNumber(a->nativeInterface<QNativeInterface::QX11Application>()->display()), F_SETFD, 1);
-
-    a->setQuitOnLastWindowClosed(false); // #169486
 
     QCommandLineParser parser;
     parser.setApplicationDescription(i18n("The reliable Plasma session manager that talks the standard X11R6 \nsession management protocol (XSMP)."));
@@ -135,13 +117,6 @@ int main(int argc, char *argv[])
 
     QCommandLineOption nolocalOption(QStringLiteral("nolocal"), i18n("Also allow remote connections"));
     parser.addOption(nolocalOption);
-
-    QCommandLineOption lockscreenOption(QStringLiteral("lockscreen"), i18n("Starts the session in locked mode"));
-    parser.addOption(lockscreenOption);
-
-    QCommandLineOption noLockscreenOption(QStringLiteral("no-lockscreen"),
-                                          i18n("Starts without lock screen support. Only needed if other component provides the lock screen."));
-    parser.addOption(noLockscreenOption);
 
     parser.process(*a);
 
@@ -161,24 +136,8 @@ int main(int argc, char *argv[])
     if (only_local) {
         flags |= KSMServer::InitFlag::OnlyLocal;
     }
-    if (parser.isSet(lockscreenOption)) {
-        flags |= KSMServer::InitFlag::ImmediateLockScreen;
-    }
-    if (parser.isSet(noLockscreenOption)) {
-        flags |= KSMServer::InitFlag::NoLockScreen;
-    }
-
-    // we use the session_type here as ksmserver is already forced as X above
-    // in wayland, kwin manages the lock screen
-    if (qgetenv("XDG_SESSION_TYPE") == QByteArrayLiteral("wayland")) {
-        flags |= KSMServer::InitFlag::NoLockScreen;
-    }
 
     auto server = new KSMServer(flags);
-
-    // for the KDE-already-running check in startkde
-    KSelectionOwner kde_running("_KDE_RUNNING", 0);
-    kde_running.claim(false);
 
     IceSetIOErrorHandler(IoErrorHandler);
 
@@ -204,7 +163,6 @@ int main(int argc, char *argv[])
     KDBusService service(KDBusService::Unique);
 
     int ret = a->exec();
-    kde_running.release(); // needs to be done before QGuiApplication destruction
     delete a;
     return ret;
 }

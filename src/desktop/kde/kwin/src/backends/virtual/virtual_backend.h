@@ -8,15 +8,17 @@
 */
 #pragma once
 
+#include "core/backendoutput.h"
 #include "core/output.h"
 #include "core/outputbackend.h"
 #include "utils/filedescriptor.h"
 
 namespace KWin
 {
+
 class VirtualBackend;
 class VirtualOutput;
-class DrmDevice;
+class RenderDevice;
 
 class KWIN_EXPORT VirtualBackend : public OutputBackend
 {
@@ -28,19 +30,19 @@ public:
 
     bool initialize() override;
 
-    std::unique_ptr<QPainterBackend> createQPainterBackend() override;
-    std::unique_ptr<EglBackend> createOpenGLBackend() override;
+    std::unique_ptr<EglBackend> createOpenGLBackend(RenderDevice *renderDevice) override;
 
     BackendOutput *createVirtualOutput(const QString &name, const QString &description, const QSize &size, qreal scale) override;
     void removeVirtualOutput(BackendOutput *output) override;
 
     struct OutputInfo
     {
-        Rect geometry;
+        QSize size;
         double scale = 1;
         bool internal = false;
         QSize physicalSizeInMM;
-        QList<std::tuple<QSize, uint64_t, OutputMode::Flags>> modes;
+        BackendOutput::Capabilities capabilities = BackendOutput::Capability::CustomModes | BackendOutput::Capability::Disable;
+        QList<OutputModeline> modes;
         OutputTransform panelOrientation = OutputTransform::Kind::Normal;
         QByteArray edid;
         std::optional<QByteArray> edidIdentifierOverride;
@@ -54,11 +56,6 @@ public:
 
     QList<CompositingType> supportedCompositors() const override;
 
-    void setEglDisplay(std::unique_ptr<EglDisplay> &&display);
-    EglDisplay *sceneEglDisplayObject() const override;
-
-    DrmDevice *drmDevice() const;
-
 Q_SIGNALS:
     void virtualOutputsSet(bool countChanged);
 
@@ -67,8 +64,6 @@ private:
     void removeOutput(VirtualOutput *output);
 
     QList<VirtualOutput *> m_outputs;
-    std::unique_ptr<DrmDevice> m_drmDevice;
-    std::unique_ptr<EglDisplay> m_display;
 };
 
 } // namespace KWin

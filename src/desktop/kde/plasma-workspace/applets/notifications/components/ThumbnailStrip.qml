@@ -43,9 +43,6 @@ Item {
 
     Notifications.Thumbnailer {
         id: thumbnailer
-
-        readonly property real ratio: pixmapSize.height ? pixmapSize.width / pixmapSize.height : 1
-
         url: thumbnailArea.urls[0]
         // height is dynamic, so request a "square" size and then show it fitting to aspect ratio
         // Also use popupWidth instead of our width to ensure it is fixed and doesn't
@@ -53,7 +50,7 @@ Item {
         size: Qt.size(Notifications.Globals.popupWidth, Notifications.Globals.popupWidth)
     }
 
-    KQCAddons.QPixmapItem {
+    FastBlur {
         id: previewBackground
         anchors {
             fill: parent
@@ -62,15 +59,11 @@ Item {
             rightMargin: -thumbnailArea.modelInterface.popupRightPadding
             bottomMargin: -thumbnailArea.modelInterface.popupBottomPadding
         }
-        fillMode: Image.PreserveAspectCrop
-        layer.enabled: true
-        opacity: 0.25
-        pixmap: thumbnailer.pixmap
-        layer.effect: FastBlur {
-            source: previewBackground
-            anchors.fill: previewBackground
-            radius: 30
+        source: ShaderEffectSource {
+            sourceItem: previewImage
         }
+        radius: 30
+        opacity: 0.25
     }
 
     DraggableFileArea {
@@ -78,7 +71,7 @@ Item {
         anchors.fill: previewBackground
         dragParent: previewIcon
         dragPixmapSize: previewIcon.height
-        dragPixmap: thumbnailer.hasPreview ? thumbnailer.pixmap : thumbnailer.iconName
+        dragImage: thumbnailer.hasPreview ? thumbnailer.image : thumbnailer.iconName
         dragUrl: thumbnailer.url
 
         onActivated: thumbnailArea.modelInterface.openUrl(thumbnailer.url)
@@ -89,17 +82,17 @@ Item {
             fileMenu.visualParent = this;
             fileMenu.open(pos.x, pos.y);
         }
-    }
 
-    KQCAddons.QPixmapItem {
-        id: previewPixmap
-        anchors {
-            fill: previewBackground
-            margins: Kirigami.Units.smallSpacing
+        KQCAddons.QImageItem {
+            id: previewImage
+            readonly property real scaleFactor: Math.min((parent.width - 2 * Kirigami.Units.smallSpacing) / nativeWidth,
+                                                         (parent.height - 2 * Kirigami.Units.smallSpacing) / nativeHeight)
+            anchors.centerIn: parent
+            width: nativeWidth > 0 ? Math.round(nativeWidth * scaleFactor) : 0
+            height: nativeHeight > 0 ? Math.round(nativeHeight * scaleFactor) : 0
+            image: thumbnailer.image
+            smooth: true
         }
-        pixmap: thumbnailer.pixmap
-        smooth: true
-        fillMode: Image.PreserveAspectFit
 
         Kirigami.Icon {
             id: previewIcon
@@ -122,15 +115,17 @@ Item {
                 top: parent.top
                 left: parent.left
                 right: parent.right
-                margins: Kirigami.Units.smallSpacing
+                // The thumbnail has small spacing around it,
+                // and the buttons should have small spacing to the thumbnail.
+                margins: 2 * Kirigami.Units.smallSpacing
             }
             spacing: Kirigami.Units.smallSpacing
 
-            Item {
-                Layout.fillWidth: true
-            }
             ActionContainer {
                 id: actionContainer
+                Layout.alignment: Qt.AlignRight
+                Layout.horizontalStretchFactor: 1000 // Compress layout...
+                Layout.maximumWidth: thumbnailActionRow.width - menuButton.width - thumbnailActionRow.spacing
                 modelInterface: thumbnailArea.modelInterface
             }
 

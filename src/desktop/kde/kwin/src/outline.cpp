@@ -10,7 +10,6 @@
 // own
 #include "outline.h"
 // KWin
-#include "compositor.h"
 #include "main.h"
 #include "scripting/scripting.h"
 #include "utils/common.h"
@@ -30,7 +29,6 @@ namespace KWin
 Outline::Outline()
     : m_active(false)
 {
-    connect(Compositor::self(), &Compositor::compositingToggled, this, &Outline::compositingChanged);
 }
 
 Outline::~Outline() = default;
@@ -107,14 +105,6 @@ void Outline::createHelper()
     m_visual = std::make_unique<OutlineVisual>(this);
 }
 
-void Outline::compositingChanged()
-{
-    m_visual.reset();
-    if (m_active) {
-        show();
-    }
-}
-
 const Rect &Outline::geometry() const
 {
     return m_outlineGeometry;
@@ -158,14 +148,14 @@ void OutlineVisual::show()
     if (!m_qmlComponent) {
         m_qmlComponent = std::make_unique<QQmlComponent>(Scripting::self()->qmlEngine());
         const QString fileName = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
-                                                        kwinApp()->config()->group(QStringLiteral("Outline")).readEntry("QmlPath", QStringLiteral("kwin-wayland/outline/plasma/outline.qml")));
+                                                        kwinApp()->config()->group(QStringLiteral("Outline")).readEntry("QmlPath", QStringLiteral("kwin/outline/plasma/outline.qml")));
         if (fileName.isEmpty()) {
-            qCDebug(KWIN_CORE) << "Could not locate outline.qml";
+            qCWarning(KWIN_CORE) << "Could not locate outline.qml";
             return;
         }
         m_qmlComponent->loadUrl(QUrl::fromLocalFile(fileName));
         if (m_qmlComponent->isError()) {
-            qCDebug(KWIN_CORE) << "Component failed to load: " << m_qmlComponent->errors();
+            qCWarning(KWIN_CORE) << "Component failed to load: " << m_qmlComponent->errors();
         } else {
             m_mainItem.reset(m_qmlComponent->create(m_qmlContext.get()));
         }

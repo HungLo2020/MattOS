@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=yahoolocal,yhl
 Name=Yahoo Local
+Name[am]=Yahoo Local
 Name[ar]=ياهو المحلي
 Name[ast]=Yahoo Local
 Name[az]=Yahoo Local
@@ -39,7 +40,7 @@ Name[id]=Yahoo Lokal
 Name[ie]=Yahoo Local
 Name[is]=Yahoo Local
 Name[it]=Yahoo locale
-Name[ja]=Yahoo Local
+Name[ja]=Yahoo! JAPAN マップ
 Name[ka]=Yahoo ლოკალი
 Name[kk]=Yahoo Local
 Name[km]=មូលដ្ឋាន​របស់​យ៉ាហ៊ូ
@@ -51,6 +52,8 @@ Name[lv]=Yahoo Local
 Name[ml]=യാഹൂ പ്രാദേശികം
 Name[mr]=याहू स्थानिक
 Name[my]=ယဟူး ဒေသတွင်း
+Name[nan_TW]=Yahoo 本地
+Name[nan_TW@latin]=Yahoo Pún-tē
 Name[nb]=Yahoo Local
 Name[nds]=Yahoo - Lokaal
 Name[nl]=Yahoo lokaal
@@ -82,6 +85,7 @@ Name[wa]=Yahoo Coinrece
 Name[zh_CN]=Yahoo 本地信息
 Name[zh_TW]=Yahoo Local
 Query=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
+Query[am]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[ar]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[ast]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[az]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
@@ -115,13 +119,15 @@ Query[id]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=ta
 Query[ie]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[is]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[it]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
-Query[ja]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
+Query[ja]=https://map.yahoo.co.jp/search?q=\\{@}
 Query[ka]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[ko]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[lg]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[lt]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[lv]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[my]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
+Query[nan_TW]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
+Query[nan_TW@latin]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[nb]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[nl]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[nn]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
@@ -140,7 +146,6 @@ Query[tg]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=ta
 Query[th]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[tok]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[tr]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
-Query[ug]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[uk]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[vi]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img
 Query[zh_CN]=https://local.yahoo.com/results?stx=\\{@}&ei=UTF-8&fr=yfp-t-701&fr2=tab-img

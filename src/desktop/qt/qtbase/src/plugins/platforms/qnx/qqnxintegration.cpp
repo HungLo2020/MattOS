@@ -24,6 +24,11 @@
 #include "qqnxeglwindow.h"
 #endif
 
+#if QT_CONFIG(vulkan)
+#include "qqnxvulkanwindow.h"
+#include "qqnxvulkaninstance.h"
+#endif
+
 #if QT_CONFIG(qqnx_pps)
 #include "qqnxnavigatorpps.h"
 #include "qqnxnavigatoreventnotifier.h"
@@ -46,6 +51,7 @@
 
 #include <qpa/qplatforminputcontextfactory_p.h>
 #include <qpa/qplatforminputcontext.h>
+#include <qpa/qplatformtheme.h>
 
 #include "private/qgenericunixfontdatabase_p.h"
 #include "private/qgenericunixeventdispatcher_p.h"
@@ -71,8 +77,6 @@
 #include <errno.h>
 
 QT_BEGIN_NAMESPACE
-
-// Q_LOGGING_CATEGORY(lcQpaQnx, "qt.qpa.qnx");
 
 using namespace Qt::StringLiterals;
 
@@ -325,11 +329,22 @@ QPlatformWindow *QQnxIntegration::createPlatformWindow(QWindow *window) const
     case QSurface::OpenGLSurface:
         return new QQnxEglWindow(window, m_screenContext, needRootWindow);
 #endif
+#if QT_CONFIG(vulkan)
+    case QSurface::VulkanSurface:
+        return new QQnxVulkanWindow(window, m_screenContext, needRootWindow);
+#endif
     default:
         qFatal("QQnxWindow: unsupported window API");
     }
     return 0;
 }
+
+#if QT_CONFIG(vulkan)
+QPlatformVulkanInstance *QQnxIntegration::createPlatformVulkanInstance(QVulkanInstance *instance) const
+{
+    return new QQnxVulkanInstance(instance);
+}
+#endif
 
 QPlatformBackingStore *QQnxIntegration::createPlatformBackingStore(QWindow *window) const
 {
@@ -341,6 +356,10 @@ QPlatformBackingStore *QQnxIntegration::createPlatformBackingStore(QWindow *wind
 #if !defined(QT_NO_OPENGL)
     // Return a QRhiBackingStore for non-raster surface windows
     case QSurface::OpenGLSurface:
+        return new QRhiBackingStore(window);
+#endif
+#if QT_CONFIG(vulkan)
+    case QSurface::VulkanSurface:
         return new QRhiBackingStore(window);
 #endif
     default:
@@ -470,6 +489,40 @@ QVariant QQnxIntegration::styleHint(QPlatformIntegration::StyleHint hint) const
         return true;
 
     return QPlatformIntegration::styleHint(hint);
+}
+
+// QNX provides no native widget style, so without a platform theme the base
+// QPlatformTheme reports an empty StyleNames hint. QApplication then falls back
+// to the first available QStyleFactory key, which lets any deployed style
+// plugin (e.g. the labs StyleKit style) silently become the default widget
+// style. Declare a sensible default (Fusion, always built into QtWidgets),
+// matching what the generic Unix theme used by eglfs does.
+namespace {
+class QQnxTheme : public QPlatformTheme
+{
+public:
+    QVariant themeHint(ThemeHint hint) const override
+    {
+        if (hint == QPlatformTheme::StyleNames)
+            return QStringList{ QStringLiteral("Fusion") };
+        return QPlatformTheme::themeHint(hint);
+    }
+};
+} // unnamed namespace
+
+QStringList QQnxIntegration::themeNames() const
+{
+    // Returning a non-empty name ensures createPlatformTheme() below is invoked
+    // (QGuiApplication only calls it for names reported here / via environment).
+    return QStringList{ QStringLiteral("qnx") };
+}
+
+QPlatformTheme *QQnxIntegration::createPlatformTheme(const QString &name) const
+{
+    // Return nullptr for non-matching names so that other theme names tried by
+    // QGuiApplication (e.g. from QT_QPA_PLATFORMTHEME) are not shadowed by a
+    // non-null base theme.
+    return name == "qnx"_L1 ? new QQnxTheme : nullptr;
 }
 
 QPlatformServices * QQnxIntegration::services() const

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-login-manager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-28 02:46+0000\n"
-"PO-Revision-Date: 2026-02-28 02:46+0000\n"
+"POT-Creation-Date: 2026-08-11 00:47+0000\n"
+"PO-Revision-Date: 2026-04-01 00:47+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: sk\n"
@@ -37,7 +37,7 @@ msgstr ""
 "Nie je možné synchronizovať nastavenia Plasma, pretože používateľ "
 "'plasmalogin' neexistuje. Skontrolujte inštaláciu Plasma Login."
 
-#: kcm.cpp:265
+#: kcm.cpp:269
 msgid ""
 "Unable to reset Plasma settings because the 'plasmalogin' user does not "
 "exist. Please check your Plasma Login install."
@@ -97,23 +97,25 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
-"<para><list><item>Color scheme</item><item>Cursor theme and size</"
-"item><item>Font and font rendering</item><item>NumLock preference</"
-"item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
-"configuration</item></list></para>"
+"<para><list><item>Language and locale settings</item><item>Keyboard layouts</"
+"item><item>Screen arrangement, scale, and orientation settings</"
+"item><item>NumLock preference</item><item>Font and font rendering settings</"
+"item><item>Color scheme</item><item>Cursor theme and size</item><item>Plasma "
+"theme</item></list></para>"
 msgstr ""
-"<para><list><item>Farebná schéma</item><item>Téma a veľkosť kurzora</"
-"item><item>Písmo a vykresľovanie písma</item><item>Nastavenie NumLock</"
-"item><item>Téma Plasma</item><item>Škálovanie DPI</item><item>Konfigurácia "
-"obrazovky</item></list></para>"
+"<para><list><item>Nastavenie jazyka a národného prostredia</"
+"item><item>Rozloženia klávesnice</item><item>Nastavenie usporiadania, mierky "
+"a orientácie obrazovky</item><item>Predvoľba NumLock</item><item>Nastavenie "
+"písma a jeho vykresľovania</item><item>Farebná schéma</item><item>Téma a "
+"veľkosť kurzora</item><item>Téma Plasma</item></list></para>"
 
 #: ui/main.qml:67
 #, kde-format
 msgid ""
-"Please note that theme files must be installed globally to be reflected on "
-"the Plasma login screen."
+"Please note that theme and font files must be installed globally to be "
+"reflected on the Plasma login screen."
 msgstr ""
-"Upozorňujeme, že súbory tém musia byť nainštalované globálne, aby sa "
+"Upozorňujeme, že súbory tém a písem musia byť nainštalované globálne, aby sa "
 "prejavili na prihlasovacej obrazovke Plasma."
 
 #: ui/main.qml:71
@@ -140,7 +142,7 @@ msgctxt "@option:check"
 msgid "Automatically log in:"
 msgstr "Automaticky prihlásiť:"
 
-#: ui/main.qml:99
+#: ui/main.qml:100
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the user to log in "
@@ -148,7 +150,7 @@ msgctxt ""
 msgid "as user:"
 msgstr "ako používateľ:"
 
-#: ui/main.qml:154
+#: ui/main.qml:150
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the session that is started "
@@ -156,7 +158,7 @@ msgctxt ""
 msgid "with session:"
 msgstr "s reláciou:"
 
-#: ui/main.qml:187
+#: ui/main.qml:180
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -171,42 +173,42 @@ msgstr ""
 "Upozorňujeme, že toto nie je bezpečné a malo by sa robiť iba v dôveryhodnom "
 "prostredí."
 
-#: ui/main.qml:192
+#: ui/main.qml:185
 #, kde-format
 msgid "Open KDE Wallet Settings"
 msgstr "Otvoriť nastavenia peňaženky KDE"
 
-#: ui/main.qml:199
+#: ui/main.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Log in again immediately after logging off"
 msgstr "Prihlásiť sa znova hneď po odhlásení"
 
-#: ui/main.qml:210
+#: ui/main.qml:203
 #, kde-format
 msgctxt "@title:group"
 msgid "Defaults"
 msgstr "Predvolené"
 
-#: ui/main.qml:215
+#: ui/main.qml:208
 #, kde-format
 msgctxt "@label"
 msgid "Default user:"
 msgstr "Predvolený používateľ:"
 
-#: ui/main.qml:221
+#: ui/main.qml:214
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in user"
 msgstr "Posledný prihlásený používateľ"
 
-#: ui/main.qml:293
+#: ui/main.qml:281
 #, kde-format
 msgctxt "@label"
 msgid "Default session:"
 msgstr "Predvolená relácia:"
 
-#: ui/main.qml:299
+#: ui/main.qml:287
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in session"

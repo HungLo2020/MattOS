@@ -1947,12 +1947,16 @@ void tst_qmlls_utils::findDefinitionFromLocation_data()
     {
         const QString mainQml = testFile(u"findDefinition/mymodule-source/MyModule/Main.qml"_s);
         const QString myComponentQml = testFile(u"findDefinition/mymodule-source/MyModule/X/Y/Z/MyComponent.qml"_s);
-
-        QTest::addRow("nestedFromOwnModule") << mainQml << 4 << 5 << myComponentQml << 3 << 1
-                                             << strlen("Item") << QStringList { testFile(u"findDefinition/mymodule-build"_s) };
-        QTest::addRow("nestedFromOwnModuleWithoutQmldirPrefer") << mainQml << 4 << 5 << myComponentQml << 3 << 1
-                                                                << strlen("Item")
-                                                                << QStringList { testFile(u"findDefinition/mymodule-build-without-qmldir-prefer"_s) };
+        QTest::addRow("nestedFromOwnModule")
+                << mainQml << 4 << 5 << myComponentQml << 3 << 1 << strlen("Item")
+                << QStringList { testFile(u"findDefinition/mymodule-build"_s) };
+    }
+    {
+        const QString mainQml = testFile(u"findDefinition/mymodule-without-qmldir-prefer-source/MyModuleWithoutQmldirPrefer/Main.qml"_s);
+        const QString myComponentQml = testFile(u"findDefinition/mymodule-without-qmldir-prefer-source/MyModuleWithoutQmldirPrefer/X/Y/Z/MyComponent.qml"_s);
+        QTest::addRow("nestedFromOwnModuleWithoutQmldirPrefer")
+                << mainQml << 4 << 5 << myComponentQml << 3 << 1 << strlen("Item")
+                << QStringList { testFile(u"findDefinition/mymodule-without-qmldir-prefer-build"_s) };
     }
 
     {
@@ -4667,6 +4671,12 @@ void tst_qmlls_utils::completions_data()
             << testFile("completions/idMethodMixup.qml") << 10 << 15
             << ExpectedCompletions{ { "myProperty"_L1, CompletionItemKind::Property } }
             << QStringList{ };
+
+    QTest::newRow("opaqueType")
+            << testFile("completions/opaqueUsage.qml") << 6 << 56
+            << ExpectedCompletions { {"x"_L1, CompletionItemKind::Property },
+                                     {"y"_L1, CompletionItemKind::Property } }
+            << QStringList {};
 }
 
 void tst_qmlls_utils::completions()
@@ -4736,20 +4746,20 @@ void tst_qmlls_utils::completions()
         QVERIFY(!c.label.contains("$module$."));
         QVERIFY(!c.label.contains("$anonymous$."));
 
-        if (c.kind->toInt() == int(CompletionItemKind::Module)) {
+        if (c.kind == CompletionItemKind::Module) {
             QVERIFY2(!modulesTracker.hasSeen(c.label), "Duplicate module: " + c.label);
-        } else if (c.kind->toInt() == int(CompletionItemKind::Keyword)) {
+        } else if (c.kind == CompletionItemKind::Keyword) {
             QVERIFY2(!keywordsTracker.hasSeen(c.label), "Duplicate keyword: " + c.label);
-        } else if (c.kind->toInt() == int(CompletionItemKind::Class)) {
+        } else if (c.kind == CompletionItemKind::Class) {
             QVERIFY2(!classesTracker.hasSeen(c.label), "Duplicate class: " + c.label);
-        } else if (c.kind->toInt() == int(CompletionItemKind::Field)) {
+        } else if (c.kind == CompletionItemKind::Field) {
             QVERIFY2(!fieldsTracker.hasSeen(c.label), "Duplicate field: " + c.label);
-        } else if (c.kind->toInt() == int(CompletionItemKind::Snippet)) {
+        } else if (c.kind == CompletionItemKind::Snippet) {
             QVERIFY2(!snippetTracker.hasSeen(c.label), "Duplicate field: " + c.label);
             if (c.insertText->contains('\n') || c.insertText->contains('\r')) {
                 QCOMPARE(c.insertTextMode, InsertTextMode::AdjustIndentation);
             }
-        } else if (c.kind->toInt() == int(CompletionItemKind::Property)) {
+        } else if (c.kind == CompletionItemKind::Property) {
             QVERIFY2(!propertiesTracker.hasSeen(c.label), "Duplicate property: " + c.label);
             QCOMPARE(c.insertText, std::nullopt);
         }
@@ -4770,7 +4780,7 @@ void tst_qmlls_utils::completions()
             CompletionItemKind foundKind;
             for (const CompletionItem &c : completions) {
                 if (c.label == exp.label) {
-                    foundKind = static_cast<CompletionItemKind>(c.kind->toInt());
+                    foundKind = *c.kind;
                     foundEntry = true;
                     if (foundKind == exp.kind) {
                         hasCorrectKind = true;

@@ -22,6 +22,12 @@ class QmlPropertyNode;
 class Aggregate : public PageNode
 {
 public:
+    enum PropertySearchType {
+        UnattachedProperties,
+        AttachedProperties,
+        AnyProperties
+    };
+
     using FunctionMap = QMap<QString, std::vector<FunctionNode*>>;
 
     [[nodiscard]] Node *findChildNode(const QString &name, Genus genus,
@@ -50,8 +56,7 @@ public:
     // set, then that string is not empty.
     [[nodiscard]] inline const std::optional<QString>& includeFile() const { return m_includeFile; }
 
-    [[nodiscard]] QmlPropertyNode *hasQmlProperty(const QString &) const;
-    [[nodiscard]] QmlPropertyNode *hasQmlProperty(const QString &, bool attached) const;
+    [[nodiscard]] QmlPropertyNode *hasQmlProperty(const QString &, PropertySearchType attached = AnyProperties) const;
     virtual QmlTypeNode *qmlBaseNode() const { return nullptr; }
     void addChildByTitle(Node *child, const QString &title);
     void addChild(Node *child);
@@ -69,6 +74,7 @@ public:
     bool hasOverloads(const FunctionNode *fn) const;
     void appendToRelatedByProxy(const NodeList &t) { m_relatedByProxy.append(t); }
     NodeList &relatedByProxy() { return m_relatedByProxy; }
+    [[nodiscard]] const NodeList &relatedByProxy() const { return m_relatedByProxy; }
     [[nodiscard]] QString typeWord(bool cap) const;
 
 protected:

@@ -10,6 +10,7 @@
 #include "common.h"
 
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <sys/poll.h>
 #include <unistd.h>
 #include <utility>
@@ -122,4 +123,5 @@ bool FileDescriptor::isReadable(int fd)
     };
     return poll(&pfd, 1, 0) && (pfd.revents & (POLLIN | POLLNVAL)) != 0;
 }
+
 }

@@ -27,6 +27,7 @@
 
 namespace KWin
 {
+
 DisplayPrivate *DisplayPrivate::get(Display *display)
 {
     return display->d.get();
@@ -178,11 +179,6 @@ Display::operator wl_display *() const
 QList<OutputInterface *> Display::outputs() const
 {
     return d->outputs;
-}
-
-QList<OutputDeviceV2Interface *> Display::outputDevices() const
-{
-    return d->outputdevicesV2;
 }
 
 QList<OutputInterface *> Display::outputsIntersecting(const Rect &rect) const

@@ -4,10 +4,12 @@
 #ifndef WINDOW_CAPTURE_WIDGET_H
 #define WINDOW_CAPTURE_WIDGET_H
 
-#include <qwidget.h>
-#include <qscreen.h>
-#include <qpainter.h>
-#include <quuid.h>
+#include <QtCore/quuid.h>
+
+#include <QtGui/qpainter.h>
+#include <QtGui/qscreen.h>
+
+#include <QtWidgets/qwidget.h>
 
 /*!
     Window capable of drawing test patterns used for capture tests
@@ -17,7 +19,16 @@ class TestWidget : public QWidget
     Q_OBJECT
 
 public:
-    enum Pattern { ColoredSquares, Grid };
+    enum class Pattern {
+        ColoredSquares,
+        Grid,
+        /*
+            Continuous animation that switches between ColoredSquares
+            and Grid on every frame. The animation stops if the main
+            thread is blocked.
+         */
+        Animated,
+    };
 
     TestWidget(const QString &uuid = QUuid::createUuid().toString(), QScreen *screen = nullptr);
 
@@ -25,17 +36,20 @@ public:
     void setSize(QSize size);
     QImage grabImage();
 
-public slots:
-    void togglePattern();
-
 protected:
     void paintEvent(QPaintEvent *) override;
 
-private:
-    void drawColoredSquares(QPainter &p);
-    void drawGrid(QPainter &p) const;
+    void changeEvent(QEvent *event) override;
 
-    Pattern m_pattern = ColoredSquares;
+private:
+    void drawColoredSquares(QPainter &p) const;
+    void drawGrid(QPainter &p) const;
+    void drawAnimationFrame(QPainter &p) const;
+
+    Pattern m_pattern = Pattern::ColoredSquares;
+
+    bool m_animated = false;
+    unsigned m_animationTick = 0;
 };
 
 bool showCaptureWindow(const QString &windowTitle);

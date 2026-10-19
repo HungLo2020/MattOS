@@ -14,6 +14,7 @@
 #include <QtQuickTestUtils/private/qmlutils_p.h>
 #include <QtQuickTestUtils/private/testhttpserver_p.h>
 #include <private/qqmlcomponent_p.h>
+#include <private/qqmldata_p.h>
 #include <private/qqmlguardedcontextdata_p.h>
 #include <private/qv4qmlcontext_p.h>
 #include <private/qv4qmlcontext_p.h>
@@ -164,7 +165,11 @@ private slots:
     void setInitialPropertyInteraction();
     void invalidBaseUrl();
     void uselessGroupProperty();
+    void componentCompilationUnitSetter();
+    void setDataSynchronous();
+    void setDataAsynchronous();
     void createWithInitialPropertiesRequiredAlias();
+    void groupedPropertyDoesNotOverwriteCompilationUnit();
 
 private:
     QQmlEngine engine;
@@ -293,14 +298,11 @@ void tst_qqmlcomponent::qmlCreateObjectWithProperties()
 {
     QQmlEngine engine;
 
-    QTest::ignoreMessage(
-            QtMsgType::QtWarningMsg,
-            QRegularExpression(".*createObjectWithScript.qml: Setting initial properties failed: "
-                               "Item does not have a property called not_i"));
+    QTest::failOnWarning();
     QTest::ignoreMessage(
             QtMsgType::QtWarningMsg,
             QRegularExpression(
-                    ".*createObjectWithScript.qml:45:13: Required property i was not initialized"));
+                    ".*createObjectWithScript.qml:46:13: Required property i was not initialized"));
 
     QQmlComponent component(&engine, testFileUrl("createObjectWithScript.qml"));
     QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
@@ -359,6 +361,11 @@ void tst_qqmlcomponent::qmlCreateObjectWithProperties()
         QVERIFY(goodRequired);
         QCOMPARE(goodRequired->parent(), object.data());
         QCOMPARE(goodRequired->property("i").value<int>(), 42);
+
+        QScopedPointer<QObject> goodRequired2(object->property("goodRequired2").value<QObject *>());
+        QVERIFY(goodRequired2);
+        QCOMPARE(goodRequired2->parent(), object.data());
+        QCOMPARE(goodRequired2->property("i").value<int>(), 43);
     }
 
     {
@@ -1175,10 +1182,6 @@ void tst_qqmlcomponent::testSetInitialProperties()
         // createWithInitialProperties: setting a nonexistent property
         QQmlComponent comp(&eng);
         comp.loadUrl(testFileUrl("allJSONTypes.qml"));
-        const QRegularExpression errorMessage { QStringLiteral(
-                ".*allJSONTypes.qml: Setting initial properties failed: Item does not have a "
-                "property called notThePropertiesYoureLookingFor") };
-        QTest::ignoreMessage(QtMsgType::QtWarningMsg, errorMessage);
         QScopedPointer<QObject> obj {
             comp.createWithInitialProperties(QVariantMap { {"notThePropertiesYoureLookingFor", 42} })
         };
@@ -1193,10 +1196,6 @@ void tst_qqmlcomponent::testSetInitialProperties()
     {
         QQmlComponent comp(&eng);
         comp.loadUrl(testFileUrl("requiredNotSet.qml"));
-        QTest::ignoreMessage(
-                QtMsgType::QtWarningMsg,
-                QRegularExpression(".*requiredNotSet.qml: Setting initial properties failed: Item "
-                                   "does not have a property called not_i"));
         QScopedPointer<QObject> obj { comp.createWithInitialProperties(
                 QVariantMap { { QLatin1String("not_i"), QJsonValue { 42 } } }) };
         QVERIFY(!obj);
@@ -1443,8 +1442,8 @@ void tst_qqmlcomponent::loadFromModule_data()
     QTest::addRow("Basic.Button") << u"QtQuick.Controls.Basic"_s << u"Button"_s << u"Button_QMLTYPE_\\d+"_s;
 #endif
 
-    QTest::addRow("IC") << u"test"_s << u"TestComponentWithIC"_s << u"TestComponentWithIC"_s; // sanity check for next test
-    QTest::addRow("InnerIC") << u"test"_s << u"TestComponentWithIC.InnerIC"_s << u"InnerIC"_s;
+    QTest::addRow("IC") << u"QQmlComponentTestHelpers"_s << u"TestComponentWithIC"_s << u"TestComponentWithIC"_s; // sanity check for next test
+    QTest::addRow("InnerIC") << u"QQmlComponentTestHelpers"_s << u"TestComponentWithIC.InnerIC"_s << u"InnerIC"_s;
 
     QTest::addRow("plainQML") << u"plainqml"_s << u"Plain"_s << u"Plain"_s;
 }
@@ -1500,7 +1499,7 @@ void tst_qqmlcomponent::loadFromModuleLifecycle()
     const QList<int> expected {1, 2, 3};
     {
         QQmlComponent component(&engine);
-        component.loadFromModule("test", "LifeCycleWatcher");
+        component.loadFromModule("QQmlComponentTestHelpers", "LifeCycleWatcher");
         QVERIFY2(component.isReady(), qPrintable(component.errorString()));
         std::unique_ptr<QObject> root{ component.create() };
         LifeCycleWatcher *watcher = qobject_cast<LifeCycleWatcher *>(root.get());
@@ -1520,7 +1519,7 @@ void tst_qqmlcomponent::loadFromModuleLifecycle()
 
     {
         QQmlComponent component(&engine);
-        component.setData("import test; LifeCycleWatcher {}", {});
+        component.setData("import QQmlComponentTestHelpers; LifeCycleWatcher {}", {});
         QVERIFY2(component.isReady(), qPrintable(component.errorString()));
 
         std::unique_ptr<QObject> root{ component.create() };
@@ -1540,7 +1539,7 @@ void tst_qqmlcomponent::loadFromModuleLifecycle()
     {
         QQmlComponent component(&engine);
         const QString compiled = "inline"_L1;
-        component.setData("import test; LifeCycleWatcher { text: 'inline' }", {});
+        component.setData("import QQmlComponentTestHelpers; LifeCycleWatcher { text: 'inline' }", {});
         QVERIFY2(component.isReady(), qPrintable(component.errorString()));
 
         std::unique_ptr<QObject> root{ component.create() };
@@ -1750,7 +1749,7 @@ void tst_qqmlcomponent::loadUrlRequired()
 void tst_qqmlcomponent::loadFromQrc()
 {
     QQmlEngine engine;
-    QQmlComponent component(&engine, QStringLiteral(":/qt/qml/test/data/withAot.qml"));
+    QQmlComponent component(&engine, QStringLiteral(":/qt/qml/QQmlComponentTestHelpers/data/withAot.qml"));
     QVERIFY2(component.isReady(), qPrintable(component.errorString()));
 
     QQmlComponentPrivate *p = QQmlComponentPrivate::get(&component);
@@ -1973,6 +1972,67 @@ void tst_qqmlcomponent::uselessGroupProperty()
             "Using grouped property syntax on restoreMode which has no properties"));
 }
 
+void tst_qqmlcomponent::componentCompilationUnitSetter()
+{
+    QQmlComponent component(&engine, testFileUrl("Simple.qml"));
+    QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+
+    auto *priv = QQmlComponentPrivate::get(&component);
+    QVERIFY(priv);
+
+    auto origCU = priv->compilationUnit();
+    QVERIFY(origCU);
+
+    // Round-trip.
+    priv->setCompilationUnit(origCU);
+    QCOMPARE(priv->compilationUnit().data(), origCU.data());
+}
+
+void tst_qqmlcomponent::setDataSynchronous()
+{
+    QByteArray code = "import QtQuick\n"
+                      "Rectangle { width: 123; height: 345 }";
+    QQmlEngine engine;
+    QQmlComponent component(&engine);
+    component.setData(code, QUrl{});
+    QCOMPARE(component.progress(), 1.0);
+    QCOMPARE(component.status(), QQmlComponent::Ready);
+
+    std::unique_ptr<QQuickRectangle> rectangle(qobject_cast<QQuickRectangle *>(component.create(engine.rootContext())));
+    QVERIFY(rectangle != nullptr);
+
+    QCOMPARE(rectangle->width(), 123);
+    QCOMPARE(rectangle->height(), 345);
+}
+
+void tst_qqmlcomponent::setDataAsynchronous()
+{
+    QByteArray code = "import QtQuick\n"
+                      "Rectangle { width: 123; height: 345 }";
+    QQmlEngine engine;
+    QQmlComponent component(&engine);
+    QCOMPARE(component.progress(), 0.0);
+
+    QSignalSpy progressSpy(&component, &QQmlComponent::progressChanged);
+
+    {
+        QQmlComponentPrivate *d = QQmlComponentPrivate::get(&component);
+        d->setData(code, QUrl{}, QQmlComponent::Asynchronous);
+        emit component.statusChanged(component.status());
+    }
+    QTRY_VERIFY(!progressSpy.isEmpty());
+    QTRY_COMPARE(progressSpy.last().at(0).toDouble(), 1.0);
+
+    QCOMPARE(component.progress(), 1.0);
+    QCOMPARE(component.status(), QQmlComponent::Ready);
+
+    std::unique_ptr<QQuickRectangle> rectangle(qobject_cast<QQuickRectangle *>(component.create(engine.rootContext())));
+    QVERIFY(rectangle != nullptr);
+
+    QCOMPARE(rectangle->width(), 123);
+    QCOMPARE(rectangle->height(), 345);
+}
+
 void tst_qqmlcomponent::createWithInitialPropertiesRequiredAlias()
 {
     // QTBUG-123771
@@ -2051,6 +2111,33 @@ void tst_qqmlcomponent::createWithInitialPropertiesRequiredAlias()
         QScopedPointer<QObject> obj(comp.createWithInitialProperties({{ u"aliasToFoo"_s, 42 }}));
         QVERIFY2(!obj.isNull(), qPrintable(comp.errorString()));
     }
+}
+
+void tst_qqmlcomponent::groupedPropertyDoesNotOverwriteCompilationUnit()
+{
+    // A derived type applying grouped property bindings to a child object defined in
+    // the base type must not overwrite the child's ddata->compilationUnit/cuObjectIndex.
+    // Those fields should reflect the actual instantiation point (the base type's CU).
+    QQmlEngine eng;
+    QQmlComponent component(&eng, testFileUrl("GroupedPropertyDerived.qml"));
+    QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+    std::unique_ptr<QObject> root(component.create());
+    QVERIFY(root);
+
+    QObject *child = root->property("child").value<QObject *>();
+    QVERIFY(child);
+    QCOMPARE(child->objectName(), "modified");
+
+    QQmlData *ddata = QQmlData::get(child);
+    QVERIFY(ddata);
+    QVERIFY(ddata->compilationUnit);
+
+    // The child's compilationUnit must point to GroupedPropertyBase.qml (where it's
+    // actually instantiated), not GroupedPropertyDerived.qml (which merely applies
+    // a grouped property binding to it).
+    const QUrl childCuUrl = ddata->compilationUnit->finalUrl();
+    QVERIFY2(childCuUrl.toString().contains("GroupedPropertyBase.qml"),
+             qPrintable("Expected GroupedPropertyBase.qml but got: " + childCuUrl.toString()));
 }
 
 QTEST_MAIN(tst_qqmlcomponent)

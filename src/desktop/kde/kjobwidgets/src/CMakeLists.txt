@@ -94,7 +94,7 @@ if (WITH_X11)
     target_link_libraries(KF6JobWidgets PRIVATE Qt6::GuiPrivate) # qtx11extras_p.h
 endif ()
 
-ecm_generate_headers(KJobWidgets_HEADERS
+ecm_generate_headers(KJobWidgets_CamelCase_HEADERS
   HEADER_NAMES
   KAbstractWidgetJobTracker
   KDialogJobUiDelegate
@@ -130,6 +130,7 @@ endif()
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/kjobwidgets_export.h
   ${KJobWidgets_HEADERS}
+  ${KJobWidgets_CamelCase_HEADERS}
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KJobWidgets COMPONENT Devel
 )
 
@@ -140,3 +141,16 @@ ecm_qt_install_logging_categories(
 )
 
 ecm_generate_qdoc(KF6JobWidgets kjobwidgets.qdocconf)
+
+ecm_add_installed_library_check(KF6JobWidgets
+    PACKAGE_NAME "KF6JobWidgets"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6JobWidgets
+    HEADERS ${KJobWidgets_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6JobWidgets
+    PREFIX KJOBWIDGETS
+)

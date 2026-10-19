@@ -2,13 +2,15 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
+import org.kde.ki18n
+import org.kde.xdgdesktopportal
 
 MouseArea {
     // This needs to be a mousearea in orcer for the proper mouse events to be correctly filtered
     id: root
 
     anchors.fill: parent
-    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.enabled: Application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
     focus: true
@@ -17,22 +19,23 @@ MouseArea {
     cursorShape: Qt.CrossCursor
 
     readonly property point mousePosition: Qt.point(mouseX, mouseY)
+    required property SelectionEditor selectionEditor
 
     onPressed: mouse => {
         if (mouse.button & Qt.RightButton) {
-            SelectionEditor.dragReset();
+            selectionEditor.dragReset();
         }
 
         if (mouse.button & Qt.LeftButton) {
-            SelectionEditor.dragStart(Screen.name, mouse.x, mouse.y);
+            selectionEditor.dragStart(Screen.name, mouse.x, mouse.y);
         }
     }
     onMousePositionChanged: {
-        SelectionEditor.setMousePosition(Screen.name, mouseX, mouseY);
+        selectionEditor.setMousePosition(Screen.name, mouseX, mouseY);
     }
     onReleased: mouse => {
         if (mouse.button & Qt.LeftButton) {
-            SelectionEditor.dragRelease(Screen.name, mouse.x, mouse.y);
+            selectionEditor.dragRelease(Screen.name, mouse.x, mouse.y);
         }
     }
 
@@ -82,18 +85,18 @@ MouseArea {
     Rectangle {
         id: selectionRectangle
         color: "transparent"
-        border.color: palette.highlight
+        border.color: systemPalette.highlight
         border.width: 1
-        visible: SelectionEditor.rect.height > 0 && SelectionEditor.rect.width > 0
-        x: SelectionEditor.rect.x - border.width - Screen.virtualX
-        y: SelectionEditor.rect.y - border.width - Screen.virtualY
-        width: SelectionEditor.rect.width + border.width * 2
-        height: SelectionEditor.rect.height + border.width * 2
+        visible: root.selectionEditor.rect.height > 0 && root.selectionEditor.rect.width > 0
+        x: root.selectionEditor.rect.x - border.width - Screen.virtualX
+        y: root.selectionEditor.rect.y - border.width - Screen.virtualY
+        width: root.selectionEditor.rect.width + border.width * 2
+        height: root.selectionEditor.rect.height + border.width * 2
         LayoutMirroring.enabled: false
         LayoutMirroring.childrenInherit: true
 
         SystemPalette {
-            id: palette
+            id: systemPalette
             colorGroup: Kirigami.Theme.Active
         }
     }
@@ -103,7 +106,7 @@ MouseArea {
         visible: false
     }
     FontMetrics {
-        id: fontMetrics
+        id: metrics
         font: metricsLabel.font
     }
 
@@ -116,11 +119,11 @@ MouseArea {
             verticalCenter: selectionRectangle.verticalCenter
         }
 
-        fontMetrics: fontMetrics
+        fontMetrics: metrics
         visible: selectionRectangle.visible && dragSizeBox.height < selectionRectangle.height && dragSizeBox.width < selectionRectangle.width
         opacity: 1
         contentItem: QQC2.Label {
-            text: `${SelectionEditor.rect.width}x${SelectionEditor.rect.height}`
+            text: `${root.selectionEditor.rect.width}x${root.selectionEditor.rect.height}`
         }
 
         Behavior on opacity {
@@ -139,34 +142,34 @@ MouseArea {
             bottom: parent.bottom
         }
         fontMetrics: fontMetrics
-        visible: SelectionEditor.isDragging && selectionRectangle.y + selectionRectangle.height < dragBox.y
+        visible: root.selectionEditor.isDragging && selectionRectangle.y + selectionRectangle.height < dragBox.y
         opacity: 1
         contentItem: RowLayout {
             ColumnLayout {
                 QQC2.Label {
-                    text: i18n("Start streaming:")
+                    text: KI18n.i18n("Start streaming:")
                     Layout.alignment: Qt.AlignRight
                 }
                 QQC2.Label {
-                    text: i18n("Clear selection:")
+                    text: KI18n.i18n("Clear selection:")
                     Layout.alignment: Qt.AlignRight
                 }
                 QQC2.Label {
-                    text: i18n("Cancel:")
+                    text: KI18n.i18n("Cancel:")
                     Layout.alignment: Qt.AlignRight
                 }
             }
             ColumnLayout {
                 QQC2.Label {
-                    text: i18nc("Mouse action", "Release left-click")
+                    text: KI18n.i18nc("Mouse action", "Release left-click")
                     Layout.alignment: Qt.AlignLeft
                 }
                 QQC2.Label {
-                    text: i18nc("Mouse action", "Right-click")
+                    text: KI18n.i18nc("Mouse action", "Right-click")
                     Layout.alignment: Qt.AlignLeft
                 }
                 QQC2.Label {
-                    text: i18nc("Keyboard action", "Escape")
+                    text: KI18n.i18nc("Keyboard action", "Escape")
                     Layout.alignment: Qt.AlignLeft
                 }
             }
@@ -186,27 +189,27 @@ MouseArea {
             verticalCenter: parent.verticalCenter
         }
         fontMetrics: fontMetrics
-        visible: !SelectionEditor.isDragging
+        visible: !root.selectionEditor.isDragging
         opacity: 1
 
         contentItem: RowLayout {
             ColumnLayout {
                 QQC2.Label {
-                    text: i18n("Create selection:")
+                    text: KI18n.i18n("Create selection:")
                     Layout.alignment: Qt.AlignRight
                 }
                 QQC2.Label {
-                    text: i18n("Cancel:")
+                    text: KI18n.i18n("Cancel:")
                     Layout.alignment: Qt.AlignRight
                 }
             }
             ColumnLayout {
                 QQC2.Label {
-                    text: i18nc("Mouse action", "Left-click and drag")
+                    text: KI18n.i18nc("Mouse action", "Left-click and drag")
                     Layout.alignment: Qt.AlignLeft
                 }
                 QQC2.Label {
-                    text: i18nc("Keyboard action", "Escape")
+                    text: KI18n.i18nc("Keyboard action", "Escape")
                     Layout.alignment: Qt.AlignLeft
                 }
             }

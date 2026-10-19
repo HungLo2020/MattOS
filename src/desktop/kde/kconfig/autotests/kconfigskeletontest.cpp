@@ -12,6 +12,8 @@
 #include <QFont>
 #include <QtTestGui>
 
+using namespace Qt::Literals;
+
 QTEST_MAIN(KConfigSkeletonTest)
 
 // clazy:excludeall=non-pod-global-static
@@ -221,6 +223,180 @@ void KConfigSkeletonTest::testKconfigQIODevice()
     auto iniData = QString::fromUtf8(buffer->readAll());
     iniData.remove(QLatin1Char('\r'));
     QCOMPARE(iniData.toUtf8(), "[MyGroup]\nMySetting1=true\n");
+}
+
+void KConfigSkeletonTest::testReadDefaults()
+{
+    KConfigSkeleton skeleton(QStringLiteral("kconfigskeletondefaultstestrc"));
+
+    // prepare the defaults file
+    const QString defaultsFile = QLatin1String("kconfigskeletondefaultstestrc.defaults");
+    const QString defaultsFilePath = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QLatin1Char('/') + defaultsFile;
+    QFile::remove(defaultsFile);
+    KConfig defaults(defaultsFile, KConfig::SimpleConfig);
+
+    KConfigGroup group = defaults.group(QStringLiteral("MyOtherGroup"));
+    group.writeEntry("MySetting4", "Bla");
+    QVERIFY(group.sync());
+
+    group = defaults.group(QStringLiteral("MyGroup"));
+    group.writeEntry("MySetting2", QColor(255, 0, 0));
+    QVERIFY(group.sync());
+
+    skeleton.config()->addConfigSources(QStringList{defaultsFilePath});
+
+    // build the skeleton
+    bool theBool = false;
+    QColor theColor;
+    QString theString;
+
+    skeleton.setCurrentGroup(QStringLiteral("MyGroup"));
+    auto itemBool = skeleton.addItemBool(QStringLiteral("MySetting1"), theBool, s_default_setting1);
+    auto itemColor = skeleton.addItemColor(QStringLiteral("MySetting2"), theColor, s_default_setting2);
+
+    skeleton.setCurrentGroup(QStringLiteral("MyOtherGroup"));
+    skeleton.addItemString(QStringLiteral("MySetting4"), theString, s_default_setting4);
+
+    // verify initial values
+    QCOMPARE(theBool, false);
+    QCOMPARE(theColor, QColor(255, 0, 0));
+    QCOMPARE(theString, u"Bla"_s);
+
+    // set some user values
+    itemBool->setValue(true);
+    itemColor->setValue(QColor(0, 244, 0));
+    QCOMPARE(theBool, true);
+    QCOMPARE(theColor, QColor(0, 244, 0));
+
+    // verify that default values are read
+    skeleton.useDefaults(true);
+    QCOMPARE(theBool, false);
+    QCOMPARE(theString, u"Bla"_s);
+    QCOMPARE(theColor, QColor(255, 0, 0));
+    skeleton.useDefaults(false);
+
+    // verify that user values are used again
+    QCOMPARE(theBool, true);
+    QCOMPARE(theString, u"Bla"_s);
+    QCOMPARE(theColor, QColor(0, 244, 0));
+}
+
+void KConfigSkeletonTest::testAddItem()
+{
+    KConfigSkeleton skel;
+
+    QList<QUrl> urls;
+    QStringList paths;
+
+    skel.addItemUrlList(u"foo"_s, urls, {QUrl(u"https://kde.org"_s)});
+    skel.addItemPathList(u"paths"_s, paths, {u"/foo"_s, u"/bar"_s});
+
+    QCOMPARE(urls, {QUrl(u"https://kde.org"_s)});
+    QStringList expectedPaths = {u"/foo"_s, u"/bar"_s};
+    QCOMPARE(paths, expectedPaths);
+}
+
+void KConfigSkeletonTest::testDeleteEntry()
+{
+    // prepare the defaults file
+    const QString defaultsFile = QLatin1String("kconfigskeletondeletetestrc.defaults");
+    const QString defaultsFilePath = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QLatin1Char('/') + defaultsFile;
+    QFile::remove(defaultsFile);
+    KConfig defaults(defaultsFile, KConfig::SimpleConfig);
+
+    KConfigGroup group = defaults.group(u"Main"_s);
+    group.writePathEntry("MyPath", u"/foo/bar"_s);
+    group.writeEntry("MyString", u"Yo"_s);
+    group.writeEntry("MyInt", 41);
+    group.writeEntry("MyPaths", QStringList{u"/foo"_s, u"/bar"_s});
+    group.writeEntry("MyUrls", QStringList(u"https://linux.kde.org"_s));
+    group.writeEntry("MyStrings", QStringList(u"a"_s));
+    group.writeEntry("MyInts", {1, 2, 3});
+    group.writeEntry("MyEnum", u"hello"_s);
+    group.writeEntry("MyColor", QColor(234, 234, 234));
+    group.writeEntry("MyFont", QFont(u"Comic Sans"_s));
+    QVERIFY(group.sync());
+
+    // prepare user file with deleted entry
+    const QString userFile = QLatin1String("kconfigskeletondeletetestrc");
+    const QString userFilePath = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QLatin1Char('/') + userFile;
+    QFile::remove(userFilePath);
+    KConfig c(userFile);
+    c.addConfigSources(QStringList{defaultsFilePath});
+    auto g = c.group(u"Main"_s);
+    g.deleteEntry("MyPath");
+    g.deleteEntry("MyString");
+    g.deleteEntry("MyInt");
+    g.deleteEntry("MyPaths");
+    g.deleteEntry("MyUrls");
+    g.deleteEntry("MyStrings");
+    g.deleteEntry("MyInts");
+    g.deleteEntry("MyEnum");
+    g.deleteEntry("MyColor");
+    g.deleteEntry("MyFont");
+    c.sync();
+
+    // build skeleton
+    KConfigSkeleton skeleton(QStringLiteral("kconfigskeletondeletetestrc"));
+    skeleton.config()->addConfigSources(QStringList{defaultsFilePath});
+
+    QString myPath;
+    QString myString;
+    int myInt;
+    QStringList myPaths;
+    QList<QUrl> myUrls;
+    QStringList myStrings;
+    QList<int> myInts;
+    int myEnum;
+    QColor myColor;
+    QFont myFont;
+
+    skeleton.setCurrentGroup(u"Main"_s);
+
+    skeleton.addItemPath(u"MyPath"_s, myPath);
+    skeleton.addItemString(u"MyString"_s, myString, u"Hello"_s);
+    skeleton.addItemInt(u"MyInt"_s, myInt, 42);
+    skeleton.addItemPathList(u"MyPaths"_s, myPaths, {u"/foo/yo"_s});
+    skeleton.addItemUrlList(u"MyUrls"_s, myUrls, {QUrl(u"https://kde.org"_s)});
+    skeleton.addItemStringList(u"MyStrings"_s, myStrings, QStringList{u"a"_s, u"b"_s, u"c"_s});
+    skeleton.addItemIntList(u"MyInts"_s, myInts, {13, 42});
+    skeleton.addItemColor(u"MyColor"_s, myColor, QColor(3, 2, 1));
+    skeleton.addItemFont(u"MyFont"_s, myFont, QFont(u"Helvetica"_s));
+
+    QList<KCoreConfigSkeleton::ItemEnum::Choice> choices = {
+        {
+            .name = u"Hello"_s,
+            .label = QString(),
+            .toolTip = QString(),
+            .whatsThis = QString(),
+            .value = u"hello"_s,
+        },
+        {
+            .name = u"Servus"_s,
+            .label = QString(),
+            .toolTip = QString(),
+            .whatsThis = QString(),
+            .value = u"servus"_s,
+        },
+    };
+    auto itemEnum = new KCoreConfigSkeleton::ItemEnum(u"Main"_s, u"MyEnum"_s, myEnum, choices, 1);
+    skeleton.addItem(itemEnum);
+
+    // verify that the value is actually deleted
+    QCOMPARE(myPath, QString());
+    QCOMPARE(myString, u"Hello"_s);
+    QCOMPARE(myInt, 42);
+    QStringList expectedPaths = {u"/foo/yo"_s};
+    QCOMPARE(myPaths, expectedPaths);
+    QList<QUrl> expectedUrls = {QUrl(u"https://kde.org"_s)};
+    QCOMPARE(myUrls, expectedUrls);
+    QStringList expectedStrings = QStringList{u"a"_s, u"b"_s, u"c"_s};
+    QCOMPARE(myStrings, expectedStrings);
+    QList<int> expectedInts = {13, 42};
+    QCOMPARE(myInts, expectedInts);
+    QCOMPARE(myEnum, 1);
+    QCOMPARE(myColor, QColor(3, 2, 1));
+    QCOMPARE(myFont, QFont(u"Helvetica"_s));
 }
 
 #include "moc_kconfigskeletontest.cpp"

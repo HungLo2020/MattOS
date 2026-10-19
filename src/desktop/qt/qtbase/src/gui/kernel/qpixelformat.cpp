@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qpixelformat.h"
 
@@ -51,7 +52,7 @@ QT_BEGIN_NAMESPACE
 
     \value YUV The color model is YUV.
 
-    \value Alpha [since 5.5] There is no color model, only alpha is used.
+    \value [since 5.5] Alpha There is no color model, only alpha is used.
 */
 
 /*!

@@ -18,6 +18,7 @@
 
 #include <QtQuick/private/qquickdeliveryagent_p.h>
 #include <QtGui/qevent.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qstack.h>
 #include <QtCore/qxpfunctional.h>
 
@@ -102,7 +103,6 @@ public:
 #endif
     uchar compressedTouchCount = 0;
     bool allowChildEventFiltering = true;
-    bool frameSynchronousHoverEnabled = true;
     bool hoveredLeafItemFound = false;
 
     bool isSubsceneAgent = false;
@@ -110,6 +110,11 @@ public:
     // QQuickDeliveryAgent::event() sets this to the one that's currently (trying to) handle the event
     static QQuickDeliveryAgent *currentEventDeliveryAgent;
     static QQuickDeliveryAgent *currentOrItemDeliveryAgent(const QQuickItem *item);
+    inline static quint64 frameSynchronousHover_counter = 0;
+
+    int frameSynchronousHoverInterval = 100; // milliseconds
+    QElapsedTimer frameSynchronousHoverTimer;   // avoid calling deliverHoverEvent/updateCursor too often
+    QBasicTimer frameSynchronousDelayTimer;     // call deliverHoverEvent/updateCursor after a delay
 
     Qt::FocusReason lastFocusReason = Qt::OtherFocusReason;
     int pointerEventRecursionGuard = 0;
@@ -183,6 +188,9 @@ public:
 
     QList<QQuickItem *> eventTargets(QQuickItem *, const QEvent *event, int pointId, QPointF localPos, QPointF scenePos,
                                        qxp::function_ref<std::optional<bool> (QQuickItem *, const QEvent *)> predicate) const;
+    void eventTargetsAppend(QQuickItem *, const QEvent *event, int pointId, QPointF localPos, QPointF scenePos,
+                            qxp::function_ref<std::optional<bool> (QQuickItem *, const QEvent *)> predicate,
+                            QList<QQuickItem *> &targets) const;
     QList<QQuickItem *> pointerTargets(QQuickItem *, const QPointerEvent *event, const QEventPoint &point,
                                          bool checkMouseButtons, bool checkAcceptsTouch) const;
     QList<QQuickItem *> mergePointerTargets(const QList<QQuickItem *> &list1, const QList<QQuickItem *> &list2) const;

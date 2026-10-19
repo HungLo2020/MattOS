@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qquickregularpolygonshape_p.h"
 #include "qquickregularpolygonshape_p_p.h"
@@ -201,8 +202,8 @@ void QQuickRegularPolygonShapePrivate::updatePath()
     property. If both a color and a gradient are specified, the gradient is
     used.
 
-    To create a polygon with a stroke, set the \sideCount property between 3 to
-    100 and the \l strokeWidth property greater than 0. The \l strokeWidth
+    To create a polygon with a stroke, set the \l sideCount property between 3
+    to 100 and the \l strokeWidth property greater than 0. The \l strokeWidth
     property specifies the width of the polygon stroke. The default \l sideCount
     value is 6 and the default \l strokeWidth value is 4. Setting the
     \l strokeWidth value to a negetive value hides the border.
@@ -221,7 +222,6 @@ QQuickRegularPolygonShape::QQuickRegularPolygonShape(QQuickItem *parent)
     setHeight(200);
 
     d->path = new QQuickShapePath(this);
-    d->path->setAsynchronous(true);
     d->path->setStrokeWidth(1);
     d->path->setStrokeColor(QColorConstants::Black);
     d->path->setFillColor(QColorConstants::White);
@@ -229,6 +229,17 @@ QQuickRegularPolygonShape::QQuickRegularPolygonShape(QQuickItem *parent)
     d->sp.append(d->path);
     d->path->setParent(this);
     d->extra.value().resourcesList.append(d->path);
+
+    connect(d->path, &QQuickShapePath::strokeColorChanged, this, &QQuickRegularPolygonShape::strokeColorChanged);
+    connect(d->path, &QQuickShapePath::strokeWidthChanged, this, &QQuickRegularPolygonShape::strokeWidthChanged);
+    connect(d->path, &QQuickShapePath::fillColorChanged, this, &QQuickRegularPolygonShape::fillColorChanged);
+    connect(d->path, &QQuickShapePath::joinStyleChanged, this, &QQuickRegularPolygonShape::joinStyleChanged);
+    connect(d->path, &QQuickShapePath::capStyleChanged, this, &QQuickRegularPolygonShape::capStyleChanged);
+    connect(d->path, &QQuickShapePath::strokeStyleChanged, this, &QQuickRegularPolygonShape::strokeStyleChanged);
+    connect(d->path, &QQuickShapePath::dashOffsetChanged, this, &QQuickRegularPolygonShape::dashOffsetChanged);
+    connect(d->path, &QQuickShapePath::dashPatternChanged, this, &QQuickRegularPolygonShape::dashPatternChanged);
+    connect(d->path, &QQuickShapePath::fillItemChanged, this, &QQuickRegularPolygonShape::fillItemChanged);
+    connect(d->path, &QQuickShapePath::fillGradientChanged, this, &QQuickRegularPolygonShape::fillGradientChanged);
 }
 
 QQuickRegularPolygonShape::~QQuickRegularPolygonShape() = default;
@@ -247,10 +258,7 @@ qreal QQuickRegularPolygonShape::dashOffset() const
 void QQuickRegularPolygonShape::setDashOffset(qreal offset)
 {
     Q_D(QQuickRegularPolygonShape);
-    if (qFuzzyCompare(d->path->dashOffset(), offset))
-        return;
     d->path->setDashOffset(offset);
-    emit dashOffsetChanged();
 }
 
 /*!
@@ -321,10 +329,7 @@ qreal QQuickRegularPolygonShape::strokeWidth() const
 void QQuickRegularPolygonShape::setStrokeWidth(qreal width)
 {
     Q_D(QQuickRegularPolygonShape);
-    if (qFuzzyCompare(d->path->strokeWidth(), width))
-        return;
     d->path->setStrokeWidth(width);
-    emit strokeWidthChanged();
 }
 
 /*!
@@ -350,8 +355,6 @@ void QQuickRegularPolygonShape::setFillColor(const QColor &color)
 {
     Q_D(QQuickRegularPolygonShape);
     d->path->setFillColor(color);
-    d->updatePath();
-    emit fillColorChanged();
 }
 
 /*!
@@ -374,7 +377,6 @@ void QQuickRegularPolygonShape::setStrokeColor(const QColor &color)
 {
     Q_D(QQuickRegularPolygonShape);
     d->path->setStrokeColor(color);
-    emit strokeColorChanged();
 }
 
 /*!
@@ -394,10 +396,7 @@ QQuickShapePath::CapStyle QQuickRegularPolygonShape::capStyle() const
 void QQuickRegularPolygonShape::setCapStyle(QQuickShapePath::CapStyle style)
 {
     Q_D(QQuickRegularPolygonShape);
-    if (d->path->capStyle() == style)
-        return;
     d->path->setCapStyle(style);
-    emit capStyleChanged();
 }
 
 /*!
@@ -416,10 +415,7 @@ QQuickShapePath::JoinStyle QQuickRegularPolygonShape::joinStyle() const
 void QQuickRegularPolygonShape::setJoinStyle(QQuickShapePath::JoinStyle style)
 {
     Q_D(QQuickRegularPolygonShape);
-    if (d->path->joinStyle() == style)
-        return;
     d->path->setJoinStyle(style);
-    emit joinStyleChanged();
 }
 
 /*!
@@ -436,10 +432,7 @@ QQuickShapePath::StrokeStyle QQuickRegularPolygonShape::strokeStyle() const
 void QQuickRegularPolygonShape::setStrokeStyle(QQuickShapePath::StrokeStyle style)
 {
     Q_D(QQuickRegularPolygonShape);
-    if (d->path->strokeStyle() == style)
-        return;
     d->path->setStrokeStyle(style);
-    emit strokeStyleChanged();
 }
 
 /*!
@@ -457,7 +450,6 @@ void QQuickRegularPolygonShape::setDashPattern(const QList<qreal> &array)
 {
     Q_D(QQuickRegularPolygonShape);
     d->path->setDashPattern(array);
-    emit dashPatternChanged();
 }
 
 /*!
@@ -484,12 +476,23 @@ void QQuickRegularPolygonShape::setFillGradient(QQuickShapeGradient *fillGradien
 {
     Q_D(QQuickRegularPolygonShape);
     d->path->setFillGradient(fillGradient);
-    emit gradientChanged();
 }
 
 void QQuickRegularPolygonShape::resetFillGradient()
 {
     setFillGradient(nullptr);
+}
+
+QQuickItem *QQuickRegularPolygonShape::fillItem() const
+{
+    Q_D(const QQuickRegularPolygonShape);
+    return d->path->fillItem();
+}
+
+void QQuickRegularPolygonShape::setFillItem(QQuickItem *newFillItem)
+{
+    Q_D(QQuickRegularPolygonShape);
+    d->path->setFillItem(newFillItem);
 }
 
 void QQuickRegularPolygonShape::itemChange(ItemChange change, const ItemChangeData &value)

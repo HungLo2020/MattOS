@@ -11,7 +11,6 @@
 
 namespace KWin
 {
-// TODO: We need to wait for an ack_configure either here or in xdgshellclient.cpp.
 
 XdgDecorationManagerV1InterfacePrivate::XdgDecorationManagerV1InterfacePrivate(XdgDecorationManagerV1Interface *manager)
     : q(manager)
@@ -52,7 +51,7 @@ XdgDecorationManagerV1Interface::XdgDecorationManagerV1Interface(Display *displa
     : QObject(parent)
     , d(new XdgDecorationManagerV1InterfacePrivate(this))
 {
-    d->init(*display, 1);
+    d->init(*display, 2);
 }
 
 XdgDecorationManagerV1Interface::~XdgDecorationManagerV1Interface()
@@ -76,17 +75,22 @@ void XdgToplevelDecorationV1InterfacePrivate::zxdg_toplevel_decoration_v1_destro
 
 void XdgToplevelDecorationV1InterfacePrivate::zxdg_toplevel_decoration_v1_set_mode(Resource *resource, uint32_t mode)
 {
+    auto newMode = XdgToplevelDecorationV1Interface::Mode::Undefined;
     switch (mode) {
     case mode_client_side:
-        preferredMode = XdgToplevelDecorationV1Interface::Mode::Client;
+        newMode = XdgToplevelDecorationV1Interface::Mode::Client;
         break;
     case mode_server_side:
-        preferredMode = XdgToplevelDecorationV1Interface::Mode::Server;
+        newMode = XdgToplevelDecorationV1Interface::Mode::Server;
         break;
     default:
-        preferredMode = XdgToplevelDecorationV1Interface::Mode::Undefined;
+        newMode = XdgToplevelDecorationV1Interface::Mode::Undefined;
         break;
     }
+    if (newMode == preferredMode) {
+        return;
+    }
+    preferredMode = newMode;
 
     Q_EMIT q->preferredModeChanged(preferredMode);
 }

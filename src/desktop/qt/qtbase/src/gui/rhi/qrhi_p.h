@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QRHI_P_H
 #define QRHI_P_H
@@ -111,6 +112,10 @@ public:
     virtual void drawIndexed(QRhiCommandBuffer *cb, quint32 indexCount,
                              quint32 instanceCount, quint32 firstIndex,
                              qint32 vertexOffset, quint32 firstInstance) = 0;
+    virtual void drawIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                              quint32 offset, quint32 drawCount, quint32 stride) = 0;
+    virtual void drawIndexedIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                                     quint32 offset, quint32 drawCount, quint32 stride) = 0;
 
     virtual void debugMarkBegin(QRhiCommandBuffer *cb, const QByteArray &name) = 0;
     virtual void debugMarkEnd(QRhiCommandBuffer *cb) = 0;
@@ -153,10 +158,10 @@ public:
     void prepareForCreate(QRhi *rhi, QRhi::Implementation impl, QRhi::Flags flags, QRhiAdapter *adapter);
 
     bool isCompressedFormat(QRhiTexture::Format format) const;
-    void compressedFormatInfo(QRhiTexture::Format format, const QSize &size,
+    bool compressedFormatInfo(QRhiTexture::Format format, const QSize &size,
                               quint32 *bpl, quint32 *byteSize,
                               QSize *blockDim) const;
-    void textureFormatInfo(QRhiTexture::Format format, const QSize &size,
+    bool textureFormatInfo(QRhiTexture::Format format, const QSize &size,
                            quint32 *bpl, quint32 *byteSize, quint32 *bytesPerPixel) const;
     bool isStencilSupportingFormat(QRhiTexture::Format format) const;
 
@@ -244,6 +249,8 @@ public:
 
     int effectiveSampleCount(int sampleCount) const;
     QSize clampedSubResourceUploadSize(QSize size, QPoint dstPos, int level, QSize textureSizeAtLevelZero, bool warn = true);
+    QSize clampedSubResourceUploadSizeForSourceData(QSize size, quint32 bpl, quint32 bytesPerPixel,
+                                                    qsizetype dataSize, bool warn = true);
 
     void runCleanup();
 
@@ -679,6 +686,7 @@ public:
     };
 
     enum BufferStage {
+        BufIndirectDrawStage,
         BufVertexInputStage,
         BufVertexStage,
         BufTCStage,
@@ -689,6 +697,7 @@ public:
     };
 
     enum BufferAccess {
+        BufIndirectDraw,
         BufVertexInput,
         BufIndexRead,
         BufUniformRead,
@@ -715,6 +724,7 @@ public:
         TexSample,
         TexColorOutput,
         TexDepthOutput,
+        TexDepthResolveOutput,
         TexStorageLoad,
         TexStorageStore,
         TexStorageLoadStore,
@@ -868,6 +878,41 @@ inline T *qrhi_objectFromProxyData(QRhiSwapChainProxyData *pd, QWindow *window, 
         *pd = QRhi::updateSwapChainProxyData(impl, window);
     return static_cast<T *>(pd->reserved[objectIndex]);
 }
+
+class QRhiPipelineCacheDataReader
+{
+public:
+    QRhiPipelineCacheDataReader(const char *data, quint32 size)
+        : m_p(data), m_end(data + size)
+    {
+    }
+
+    bool readUInt32(quint32 *dst)
+    {
+        if (m_end - m_p < qptrdiff(sizeof(quint32)))
+            return false;
+        memcpy(dst, m_p, sizeof(quint32));
+        m_p += sizeof(quint32);
+        return true;
+    }
+
+    // Reads a 32-bit length, followed by that many bytes.
+    bool readByteArray(QByteArray *dst)
+    {
+        quint32 len = 0;
+        if (!readUInt32(&len))
+            return false;
+        if (quint64(m_end - m_p) < len)
+            return false;
+        *dst = QByteArray(m_p, qsizetype(len));
+        m_p += len;
+        return true;
+    }
+
+private:
+    const char *m_p;
+    const char *m_end;
+};
 
 QT_END_NAMESPACE
 

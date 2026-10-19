@@ -61,7 +61,7 @@ static_assert(!QTypeTraits::has_operator_less_than_v<QPair<int, NoOperators>>);
 
 // QMap
 static_assert(QTypeTraits::has_operator_equal_v<QMap<int, QString>>);
-static_assert(!QTypeTraits::has_operator_less_than_v<QMap<int, QString>>);
+static_assert(QTypeTraits::has_operator_less_than_v<QMap<int, QString>>);
 static_assert(!QTypeTraits::has_operator_equal_v<QMap<int, NoOperators>>);
 static_assert(!QTypeTraits::has_operator_less_than_v<QMap<int, NoOperators>>);
 
@@ -627,6 +627,19 @@ void tst_QMetaType::typeName_data()
     // automatic registration with automatic QList to QList aliasing
     QTest::newRow("QList<int>") << ::qMetaTypeId<QList<int>>() << QString::fromLatin1("QList<int>");
     QTest::newRow("QList<QList<int>>") << ::qMetaTypeId<QList<QList<int>>>() << QString::fromLatin1("QList<QList<int>>");
+
+    QTest::newRow("std::pair<int,int>")
+            << ::qMetaTypeId<std::pair<int, int>>()
+            << QString::fromLatin1("std::pair<int,int>");
+    QTest::newRow("std::pair<int,std::pair<int,int>>")
+            << ::qMetaTypeId<std::pair<int, std::pair<int, int>>>()
+            << QString::fromLatin1("std::pair<int,std::pair<int,int>>");
+    QTest::newRow("std::pair<std::pair<int,int>,int>")
+            << ::qMetaTypeId<std::pair<std::pair<int, int>, int>>()
+            << QString::fromLatin1("std::pair<std::pair<int,int>,int>");
+    QTest::newRow("std::pair<std::pair<int,int>,std::pair<int,int>>")
+            << ::qMetaTypeId<std::pair<std::pair<int, int>, std::pair<int, int>>>()
+            << QString::fromLatin1("std::pair<std::pair<int,int>,std::pair<int,int>>");
 
     QTest::newRow("CustomQObject*") << ::qMetaTypeId<CustomQObject*>() << QString::fromLatin1("CustomQObject*");
     QTest::newRow("CustomGadget") << ::qMetaTypeId<CustomGadget>() << QString::fromLatin1("CustomGadget");
@@ -1963,6 +1976,65 @@ void tst_QMetaType::enumAndFlagNamesAreRegisteredLookupByName()
     }
 }
 
+void tst_QMetaType::containerOfConvertibleMetaTypeIsIterable()
+{
+    // Containers whose value/key/mapped type is not a compile-time
+    // QMetaTypeId2 type (no Q_DECLARE_METATYPE) must still be viewable as a
+    // QMetaSequence / QMetaAssociation, otherwise they cannot be iterated when
+    // only the metatype is known (e.g. when exposed to QML). This covers the
+    // element kinds that are treated as covertible metatypes without a
+    // declaration: QObject-derived pointers and default-constructible gadgets.
+    const auto sequenceCanConvert = [](QMetaType container) {
+        container.registerType(); // register the container and its converters
+        const QMetaType iterable = QMetaType::fromType<QIterable<QMetaSequence>>();
+        return QMetaType::canConvert(container, iterable)
+                && QMetaType::canView(container, iterable);
+    };
+    const auto associationCanConvert = [](QMetaType container) {
+        container.registerType();
+        const QMetaType iterable = QMetaType::fromType<QIterable<QMetaAssociation>>();
+        return QMetaType::canConvert(container, iterable);
+    };
+    // A std::pair gets a converter to the pair/variant
+    // interface registered under the same condition.
+    const auto pairCanConvert = [](QMetaType pair) {
+        pair.registerType();
+        return QMetaType::canConvert(
+                pair, QMetaType::fromType<QtMetaTypePrivate::QPairVariantInterfaceImpl>());
+    };
+
+    // Sequential containers.
+    // QObject-derived pointers without Q_DECLARE_METATYPE.
+    QVERIFY(sequenceCanConvert(QMetaType::fromType<QList<Derived *>>()));
+    QVERIFY(sequenceCanConvert(QMetaType::fromType<QList<CustomQObject *>>()));
+    QVERIFY(sequenceCanConvert(QMetaType::fromType<std::vector<Derived *>>()));
+    // Default-constructible gadget by value.
+    QVERIFY(sequenceCanConvert(QMetaType::fromType<QList<CustomGadget>>()));
+    // Controls: kinds that were never affected.
+    QVERIFY(sequenceCanConvert(QMetaType::fromType<QList<CustomGadget *>>()));   // pointer to gadget
+    QVERIFY(sequenceCanConvert(QMetaType::fromType<QList<CustomObject *>>()));   // Q_DECLARE_METATYPE'd
+    QVERIFY(sequenceCanConvert(QMetaType::fromType<QList<QObject *>>()));        // built-in
+    // Negative control: a gadget that is not default-constructible was never
+    // an implicit metatype and must stay non-iterable.
+    QVERIFY(!sequenceCanConvert(QMetaType::fromType<QList<CustomGadget_NonDefaultConstructible>>()));
+
+    // Associative containers (key and mapped covered independently).
+    QVERIFY(associationCanConvert(QMetaType::fromType<QMap<QString, Derived *>>()));   // mapped: QObject ptr
+    QVERIFY(associationCanConvert(QMetaType::fromType<QMap<Derived *, QString>>()));   // key: QObject ptr
+    QVERIFY(associationCanConvert(QMetaType::fromType<QHash<QString, CustomGadget>>())); // mapped: gadget
+    QVERIFY(associationCanConvert(QMetaType::fromType<QMap<QString, CustomObject *>>())); // control
+    QVERIFY(!associationCanConvert(
+            QMetaType::fromType<QMap<QString, CustomGadget_NonDefaultConstructible>>()));
+
+    // std::pair, covering first and second independently.
+    QVERIFY(pairCanConvert(QMetaType::fromType<std::pair<Derived *, int>>()));        // first: QObject ptr
+    QVERIFY(pairCanConvert(QMetaType::fromType<std::pair<int, Derived *>>()));        // second: QObject ptr
+    QVERIFY(pairCanConvert(QMetaType::fromType<std::pair<CustomGadget, int>>()));     // first: gadget
+    QVERIFY(pairCanConvert(QMetaType::fromType<std::pair<int, CustomObject *>>()));   // control
+    QVERIFY(!pairCanConvert(
+            QMetaType::fromType<std::pair<CustomGadget_NonDefaultConstructible, int>>()));
+}
+
 void tst_QMetaType::isRegisteredStaticLess_data()
 {
     isRegistered_data();
@@ -2485,6 +2557,32 @@ void tst_QMetaType::metaObject()
     QCOMPARE(!!(mt.flags() & QMetaType::IsGadget), isGadget);
     QCOMPARE(!!(mt.flags() & QMetaType::PointerToGadget), isGadgetPtr);
     QCOMPARE(!!(mt.flags() & QMetaType::PointerToQObject), isQObjectPtr);
+}
+
+class QObjectTypeRegisteredAsConst : public QObject
+{
+    Q_OBJECT
+};
+void tst_QMetaType::constQObjectPointer()
+{
+    static bool alreadyRun = false;
+
+    // Register first as const and ensure that the non-const did not get
+    // registered as the same metatype (see QTBUG-147588).
+    QMetaType cmt = QMetaType::fromType<const QObjectTypeRegisteredAsConst *>();
+    int cid = cmt.id();
+    QCOMPARE_NE(cid, -1);
+    QCOMPARE(cmt.name(), "const QObjectTypeRegisteredAsConst*");
+
+    if (!alreadyRun) {
+        // the non-const should not have got registered
+        QVERIFY(!QMetaType::fromName("QObjectTypeRegisteredAsConst *").isValid());
+    }
+
+    QMetaType mt = QMetaType::fromType<QObjectTypeRegisteredAsConst *>();
+    int id = mt.id();
+    alreadyRun = true;
+    QCOMPARE_NE(id, cid);
 }
 
 #define METATYPE_ID_FUNCTION(Type, MetaTypeId, Name) \

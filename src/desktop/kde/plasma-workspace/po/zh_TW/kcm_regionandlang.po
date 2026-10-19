@@ -4,20 +4,20 @@
 # This file is distributed under the same license as the plasma-workspace package.
 #
 # Automatically generated, 2022.
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Kisaragi Hiu <mail@kisaragi-hiu.com>
+# SPDX-FileCopyrightText: 2022-2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-08 02:54+0000\n"
-"PO-Revision-Date: 2025-11-13 22:20+0900\n"
+"POT-Creation-Date: 2026-10-01 20:16+0000\n"
+"PO-Revision-Date: 2026-04-08 22:35+0900\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Traditional Chinese <zh-l10n@lists.slat.org>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.11.70\n"
+"X-Generator: Lokalize 26.07.70\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #, kde-format
@@ -339,10 +339,16 @@ msgstr "未知"
 msgid "Default for System"
 msgstr "系統預設值"
 
-#: localelistmodel.cpp:24 localelistmodel.cpp:146 ui/main.qml:387
+#: localelistmodel.cpp:24 localelistmodel.cpp:146 ui/main.qml:388
 #, kde-format
 msgid "Default"
 msgstr "預設值"
+
+#: localelistmodel.cpp:130
+#, kde-format
+msgctxt "@item:intable Friendly name for the C locale"
+msgid "ISO C Standard"
+msgstr ""
 
 #: localelistmodel.cpp:142
 #, kde-format
@@ -457,12 +463,12 @@ msgctxt ""
 msgid " (Standard format for %1)"
 msgstr "（%1的標準格式）"
 
-#: ui/AdvancedLanguageSelectPage.qml:23
+#: ui/AdvancedLanguageSelectPage.qml:24
 #, kde-format
 msgid "Language"
 msgstr "語言"
 
-#: ui/AdvancedLanguageSelectPage.qml:36
+#: ui/AdvancedLanguageSelectPage.qml:37
 #, kde-format
 msgid ""
 "Putting any other languages below English will cause undesired behavior in "
@@ -472,54 +478,68 @@ msgstr ""
 "將任何語言放在英語下方可能造成某些應用程式有非預期的行為。如果您想以英語使用"
 "您的系統，請移除其他所有語言。"
 
-#: ui/AdvancedLanguageSelectPage.qml:45
+#: ui/AdvancedLanguageSelectPage.qml:46
 #, kde-format
 msgctxt "Error message, %1 is the language name"
 msgid "The language \"%1\" is unsupported"
 msgstr "不支援「%1」語言"
 
-#: ui/AdvancedLanguageSelectPage.qml:58
+#: ui/AdvancedLanguageSelectPage.qml:59
 #, kde-format
 msgid "Add languages in the order you want to see them in your applications."
 msgstr "依偏好在應用程式看到的順序加入語言。"
 
-#: ui/AdvancedLanguageSelectPage.qml:100
+#: ui/AdvancedLanguageSelectPage.qml:101
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Change Language"
 msgstr "選擇語言"
 
-#: ui/AdvancedLanguageSelectPage.qml:104
+#: ui/AdvancedLanguageSelectPage.qml:105
 #, kde-format
 msgctxt "@title:window"
 msgid "Change Language"
 msgstr "選擇語言"
 
-#: ui/AdvancedLanguageSelectPage.qml:113
+#: ui/AdvancedLanguageSelectPage.qml:114
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Move to top"
 msgstr "移至頂部"
 
-#: ui/AdvancedLanguageSelectPage.qml:122
+#: ui/AdvancedLanguageSelectPage.qml:123
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Remove"
 msgstr "移除"
 
-#: ui/AdvancedLanguageSelectPage.qml:137
+#: ui/AdvancedLanguageSelectPage.qml:138
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "No Language Configured"
 msgstr "未設定語言"
 
-#: ui/AdvancedLanguageSelectPage.qml:179 ui/AdvancedLanguageSelectPage.qml:213
+#: ui/AdvancedLanguageSelectPage.qml:180 ui/AdvancedLanguageSelectPage.qml:214
 #, kde-format
 msgctxt "@title:window"
 msgid "Add Languages"
 msgstr "加入語言"
 
 #: ui/AdvancedLanguageSelectPage.qml:236
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "This system does not include “%1”"
+msgstr "這個系統不包含「%1」語言"
+
+#: ui/AdvancedLanguageSelectPage.qml:237
+#, kde-kuit-format
+msgctxt "@info:usagetip"
+msgid ""
+"Learn how to help <link url='%1'>translate KDE software into your language</"
+"link>."
+msgstr "您可以參閱如何<link url='%1'>將 KDE 軟體翻譯為您的語言</link>。"
+
+#: ui/AdvancedLanguageSelectPage.qml:246
 #, kde-format
 msgctxt "@action:button"
 msgid "Add More…"
@@ -576,48 +596,60 @@ msgctxt "@title:window"
 msgid "Data and Storage Sizes"
 msgstr "資料與儲存空間大小格式"
 
-#: ui/main.qml:281
+#: ui/main.qml:282
 #, kde-format
 msgid "Numbers"
 msgstr "數字"
 
-#: ui/main.qml:283
+#: ui/main.qml:284
 #, kde-format
 msgid "Time"
 msgstr "時間"
 
-#: ui/main.qml:285
+#: ui/main.qml:286
 #, kde-format
 msgid "Currency"
 msgstr "貨幣"
 
-#: ui/main.qml:287
+#: ui/main.qml:288
 #, kde-format
 msgid "Measurements"
 msgstr "測量單位"
 
-#: ui/main.qml:289
+#: ui/main.qml:290
 #, kde-format
 msgid "Paper Size"
 msgstr "紙張大小"
 
-#: ui/main.qml:291
+#: ui/main.qml:292
 #, kde-format
 msgctxt "Postal Address"
 msgid "Address"
 msgstr "地址"
 
-#: ui/main.qml:293
+#: ui/main.qml:294
 #, kde-format
 msgctxt "Name Style"
 msgid "Name"
 msgstr "名稱"
 
-#: ui/main.qml:295
+#: ui/main.qml:296
 #, kde-format
 msgctxt "Phone Numbers"
 msgid "Phone number"
 msgstr "電話號碼"
+
+#: ui/main.qml:431
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "This system does not include settings for “%1”"
+msgstr "這個系統不包含「%1」的設定值"
+
+#: ui/main.qml:432
+#, kde-format
+msgctxt "@info:usagetip"
+msgid "Try searching for a nearby region."
+msgstr "請試著搜尋附近的其他區域。"
 
 #~ msgid ""
 #~ "You can configure the formats used for time, dates, money and other "

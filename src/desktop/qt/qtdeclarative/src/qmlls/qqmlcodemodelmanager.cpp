@@ -13,6 +13,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QmlLsp {
 
+Q_STATIC_LOGGING_CATEGORY(lcCodeModelManager, "qt.languageserver.codemodelmanager")
+
 using namespace QQmlJS::Dom;
 using namespace Qt::StringLiterals;
 
@@ -57,19 +59,27 @@ QQmlCodeModelManager::QQmlCodeModelManager(QObject *parent, QQmlToolingSharedSet
     appendWorkspace(defaultCodeModel, ManagedByServer);
     connect(&m_processScheduler, &QProcessScheduler::done, this,
             &QQmlCodeModelManager::onBuildFinished);
+    connect(&m_processScheduler, &QProcessScheduler::started, this,
+            &QQmlCodeModelManager::backgroundBuildStarted);
+    connect(&m_processScheduler, &QProcessScheduler::cancelled, this,
+            &QQmlCodeModelManager::backgroundBuildCancelled);
 }
 
 void QQmlCodeModelManager::onBuildFinished(const QByteArray &url)
 {
+    qCInfo(lcCodeModelManager) << "Build for workspace" << url << "finished.";
     auto it = findWorkspace(url);
-    // note: fallback workspaces have no build folder information
-    if (it == fallbackWorkspace() || it == m_workspaces.end())
+    if (it == fallbackWorkspace() || it == m_workspaces.end()) {
+        emit backgroundBuildFinished(url);
         return;
+    }
 
     // refresh information obtained from build folder, like .qmlls.build.ini or resource files
     const QStringList buildPaths = it->codeModel->buildPaths();
     m_buildInformation.loadSettingsFrom(buildPaths, ForceUpdate);
     setBuildPathsOn(&*it, buildPaths, AppendPathsFromFallback);
+    it->codeModel->reloadAllOpenFiles();
+    emit backgroundBuildFinished(url);
     emit configurationChanged();
 }
 
@@ -219,6 +229,11 @@ void QQmlCodeModelManager::disableCMakeCalls()
         ws.codeModel->disableCMakeCalls();
 }
 
+void QQmlCodeModelManager::cancelBackgroundBuild(const QByteArray &uri)
+{
+    m_processScheduler.cancel(uri);
+}
+
 OpenDocumentSnapshot QQmlCodeModelManager::snapshotByUrl(const QByteArray &url)
 {
     return findCodeModelForFile(url)->snapshotByUrl(url);
@@ -312,7 +327,7 @@ QStringList QQmlCodeModelManager::resourceFilesForFileUrl(const QByteArray &url)
     }
 
     // fallback, for standalone qmlls on projects targeting qt < 6.11
-    return QQmlJSUtils::resourceFilesFromBuildFolders(buildPathsForFileUrl(url));
+    return findCodeModelForFile(url)->resourceFiles();
 }
 
 QByteArray QQmlCodeModelManager::shortestRootUrlForFile(const QByteArray &fileUrl) const

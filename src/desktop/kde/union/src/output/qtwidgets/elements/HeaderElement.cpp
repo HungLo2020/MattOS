@@ -1,0 +1,217 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2026 Akseli Lahtinen <akselmo@akselmo.dev>
+
+#include "HeaderElement.h"
+#include "SharedNames.h"
+#include "UnionStyle.h"
+#include <QApplication>
+#include <QDebug>
+#include <QPainter>
+#include <QStyle>
+
+using namespace Qt::StringLiterals;
+using namespace Union::Properties;
+
+HeaderElement::HeaderElement(const QStyleOptionHeader *option, const UnionStyle *style, const QWidget *widget)
+    : AbstractElement(option, style, widget)
+    , m_headerOption(option)
+    , m_isHorizontal(false)
+{
+    update();
+}
+
+HeaderElement::~HeaderElement()
+{
+}
+
+void HeaderElement::update()
+{
+    if (!m_headerOption) {
+        m_isValid = false;
+        return;
+    }
+    m_isHorizontal = (m_headerOption->orientation == Qt::Horizontal);
+    setText(m_headerOption->text);
+    setIcon(m_headerOption->icon);
+    updateSubElementList();
+    layout();
+    setIndicator(sortIndicator());
+}
+
+QIcon HeaderElement::sortIndicator()
+{
+    QIcon sortIndicator;
+    if (m_backgroundProperties && m_isValid && m_headerOption) {
+        switch (m_headerOption->sortIndicator) {
+        case QStyleOptionHeader::None:
+            break;
+        case QStyleOptionHeader::SortUp:
+            sortIndicator = m_style->unionIcon(m_backgroundProperties, u"arrow-down-symbolic"_s);
+            break;
+        case QStyleOptionHeader::SortDown:
+            sortIndicator = m_style->unionIcon(m_backgroundProperties, u"arrow-up-symbolic"_s);
+            break;
+        }
+    }
+    return sortIndicator;
+}
+
+void HeaderElement::layout()
+{
+    // Background and content is separate
+    m_backgroundElementList = prepareElements(m_headerOption, m_widget, {ElementString::HeaderViewDelegate});
+    if (!m_backgroundElementList.isEmpty()) {
+        m_backgroundProperties = queryProperties(m_backgroundElementList);
+        m_layoutMap = layoutMap(m_backgroundElementList, m_headerOption, m_subElementList);
+        m_isValid = true;
+    } else {
+        m_isValid = false;
+        qCWarning(UNION_QTWIDGETS) << "Could not find elementlist for this element!";
+    }
+}
+
+void HeaderElement::draw(QPainter *painter, DrawEnums enums) const
+{
+    if (!m_isValid) {
+        return;
+    }
+
+    switch (enums.ControlElement) {
+    case QStyle::CE_Header:
+        drawBackground(painter);
+        drawIcon(painter);
+        drawText(painter);
+        drawIndicator(painter);
+        break;
+    case QStyle::CE_HeaderSection:
+        drawBackground(painter);
+        break;
+    case QStyle::CE_HeaderLabel:
+        drawText(painter);
+        break;
+    case QStyle::CE_HeaderEmptyArea:
+        drawBackground(painter);
+        break;
+    }
+
+    switch (enums.PrimitiveElement) {
+    case QStyle::PE_IndicatorHeaderArrow:
+        drawIndicator(painter);
+        break;
+    }
+}
+
+void HeaderElement::drawText(QPainter *painter) const
+{
+    if (!m_text.isEmpty() && isValid()) {
+        QRectF textRect = subElementRect(QStyle::SE_HeaderLabel);
+        drawTextAtRect(painter, m_text, textRect, m_backgroundProperties);
+    }
+}
+
+void HeaderElement::updateSubElementList()
+{
+    m_subElementList.clear();
+    if (hasIcon()) {
+        m_subElementList.append(ElementString::Icon);
+    }
+    if (hasText()) {
+        m_subElementList.append(ElementString::Text);
+    }
+    if (m_headerOption->sortIndicator != QStyleOptionHeader::None) {
+        m_subElementList.append(ElementString::Indicator);
+    }
+}
+
+QRectF HeaderElement::subElementRect(QStyle::SubElement element) const
+{
+    if (!m_isValid) {
+        qCWarning(UNION_QTWIDGETS) << "Subelementrect for " << element << "is not valid";
+        return {};
+    }
+    switch (element) {
+    case QStyle::SE_HeaderLabel:
+        return m_layoutMap[ElementString::Text].rect;
+    case QStyle::SE_HeaderArrow:
+        return m_layoutMap[ElementString::Indicator].rect;
+    default:
+        break;
+    }
+    return {};
+}
+
+QSizeF HeaderElement::contentsSize(const QSizeF &contentsSizeFromStyle) const
+{
+    if (!m_isValid || !m_headerOption) {
+        return QSizeF();
+    }
+    // Copied from Breeze
+    const qreal arrowWidth = subElementRect(QStyle::SE_HeaderArrow).width();
+    const qreal space = spacing();
+
+    const QSizeF textSize(hasText() ? m_headerOption->fontMetrics.size(0, m_headerOption->text) : QSize());
+
+    // contents width
+    qreal contentsWidth(0);
+    if (hasText()) {
+        contentsWidth += textSize.width();
+    }
+    if (hasIcon()) {
+        contentsWidth += iconSize().width();
+        if (hasText()) {
+            contentsWidth += space;
+        }
+    }
+
+    // contents height
+    qreal contentsHeight(hasText() ? textSize.height() : m_headerOption->fontMetrics.height());
+    if (hasIcon()) {
+        contentsHeight = std::max(contentsHeight, iconSize().height());
+    }
+
+    if (m_isHorizontal && m_headerOption->sortIndicator != QStyleOptionHeader::None) {
+        // also add space for sort indicator
+        contentsWidth += arrowWidth + space;
+        contentsHeight = std::max(contentsHeight, arrowWidth);
+    }
+
+    // update contents size, add margins and return
+    const QSizeF size(contentsSizeFromStyle.expandedTo(QSize(contentsWidth, contentsHeight)));
+    return applyPaddingToSize(size);
+}
+
+QStringList HeaderElement::elementHints() const
+{
+    QStringList hints;
+    switch (m_headerOption->sortIndicator) {
+    case QStyleOptionHeader::None:
+        return hints;
+    // Due to how Breeze style does this, these need to be inverted
+    // to follow QtQuick style
+    case QStyleOptionHeader::SortUp:
+        hints.append(u"sort-descending"_s);
+        break;
+    case QStyleOptionHeader::SortDown:
+        hints.append(u"sort-ascending"_s);
+        break;
+    }
+    return hints;
+}
+
+qreal HeaderElement::pixelMetric(QStyle::PixelMetric pixelMetric) const
+{
+    switch (pixelMetric) {
+    case QStyle::PM_HeaderMargin:
+    case QStyle::PM_HeaderGripMargin:
+        return spacing();
+    case QStyle::PM_HeaderDefaultSectionSizeHorizontal:
+        return width();
+    case QStyle::PM_HeaderDefaultSectionSizeVertical:
+        return height();
+    case QStyle::PM_HeaderMarkSize:
+        return indicatorSize().width();
+    default:
+        break;
+    }
+    return 0;
+}

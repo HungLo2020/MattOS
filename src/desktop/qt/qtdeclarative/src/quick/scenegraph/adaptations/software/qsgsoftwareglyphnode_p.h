@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QSGSOFTWAREGLYPHNODE_H
 #define QSGSOFTWAREGLYPHNODE_H
@@ -34,6 +35,8 @@ public:
 
     void paint(QPainter *painter);
 
+    void recycle() override;
+
 private:
     void recalculateBoundingRect();
     QPointF m_position;
@@ -42,6 +45,7 @@ private:
     QSGGeometry m_geometry;
     QQuickText::TextStyle m_style;
     QColor m_styleColor;
+    bool m_recycled = false;
 };
 
 QT_END_NAMESPACE

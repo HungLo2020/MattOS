@@ -1,32 +1,45 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/QtTest>
-#include <QtCore/qthread.h>
-#include <QtMultimedia/qmediaplayer.h>
-#include <QtMultimedia/qaudiooutput.h>
-#include <private/testvideosink_p.h>
-
-#include <QtCore/qstring.h>
 #include <QtCore/qatomic.h>
+#include <QtCore/qoperatingsystemversion.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qthread.h>
+
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qmediaplayer.h>
+
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#include <QtMultimediaTestLib/private/testvideosink_p.h>
+
+#include <QtTest/QtTest>
+
 #include <chrono>
 
 using namespace std::chrono_literals;
 
-
 using namespace Qt::StringLiterals;
 
-class tst_qmediaplayer_concurrent : public QObject
+class tst_qmediaplayer_concurrent : public QIntegrationTestBase
 {
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase()
+    {
+        if (!initIntegrationTestCase())
+            return;
+    }
 
     // Verify that QMediaPlayer plays sound and does not cause asserts when
     // QMediaPlayer is constructed on worker thread before media backend is initialized.
     // See also QTBUG-129597
     void play_playsVideo_whenMediaBackendInitializedOnWorkerThread()
     {
+        if (isCI() && QOperatingSystemVersion::current() <= QOperatingSystemVersion::Windows10)
+            QSKIP("Fails on Windows 10 CI due to COM (de)initialization issues");
+
         const QUrl url{ "qrc:3colors_with_sound_1s.mp4"_L1 };
 
         size_t threadCount = 3;
@@ -64,15 +77,13 @@ private:
         bool stopped = false;
         connect(&player, &QMediaPlayer::playbackStateChanged, &player,
                 [&](QMediaPlayer::PlaybackState state) {
-                    if (state == QMediaPlayer::StoppedState)
-                        stopped = true;
-                });
+            if (state == QMediaPlayer::StoppedState)
+                stopped = true;
+        });
 
-        return QTest::qWaitFor(
-                [&] { //
-                    return stopped;
-                },
-                60s) && player.error() == QMediaPlayer::NoError;
+        return QTest::qWaitFor([&] { //
+            return stopped;
+        }, 60s) && player.error() == QMediaPlayer::NoError;
     }
 };
 

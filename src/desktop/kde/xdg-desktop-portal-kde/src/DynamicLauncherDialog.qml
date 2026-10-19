@@ -6,6 +6,9 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.iconthemes as KIconThemes
+import org.kde.ki18n
+
+pragma ComponentBehavior: Bound
 
 PortalDialog {
     id: root
@@ -22,25 +25,25 @@ PortalDialog {
                 Layout.alignment: Qt.AlignHCenter
                 implicitWidth: Kirigami.Units.iconSizes.enormous
                 implicitHeight: implicitWidth
-                source: dialog.icon
+                source: root.dialog.icon
             }
 
             Kirigami.Heading {
-                Layout.alignment: Qt.AlignHCenter
+                horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
                 level: 3
                 wrapMode: Text.Wrap
-                text: dialog.name
+                text: root.dialog.name
                 verticalAlignment: Qt.AlignTop
             }
 
             Kirigami.LinkButton {
                 Layout.fillWidth: true
                 visible: text.length > 0
-                Layout.alignment: Qt.AlignHCenter
+                horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideMiddle
-                text: launcherURL
-                onClicked: Qt.openUrlExternally(launcherURL)
+                text: root.dialog.launcherURL
+                onClicked: Qt.openUrlExternally(root.dialog.launcherURL)
             }
         }
     }
@@ -53,11 +56,11 @@ PortalDialog {
                     id: icon
                     implicitHeight: implicitWidth
                     implicitWidth: Kirigami.Units.iconSizes.enormous
-                    source: dialog.icon
+                    source: root.dialog.icon
 
                     KIconThemes.IconDialog {
                         id: iconDialog
-                        onIconNameChanged: dialog.icon = iconName
+                        onIconNameChanged: root.dialog.icon = iconName
                     }
 
                     TapHandler {
@@ -67,23 +70,26 @@ PortalDialog {
             }
 
             QQC2.Label {
-                text: i18nc("@label name of a launcher/application", "Name")
+                text: KI18n.i18nc("@label name of a launcher/application", "Name")
                 Layout.fillWidth: true
             }
             QQC2.TextField {
                 verticalAlignment: Qt.AlignTop
-                Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
-                onTextChanged: dialog.name = text
-                Component.onCompleted: text = dialog.name
+                onTextChanged: root.dialog.name = text
+                Component.onCompleted: text = root.dialog.name
             }
         }
     }
 
+    title: KI18n.i18nc("@title Something asked to create a launcher for an app or a website", "Launcher Requested");
+    // mainText and subtitle are set in C++ because we need to know the type,
+    // and the QML side doesn't know that
+
     standardButtons: QQC2.DialogButtonBox.NoButton
 
     Loader {
-        sourceComponent: root.edit ? editComponent : displayComponent
+        sourceComponent: root.edit ? root.editComponent : root.displayComponent
     }
 
     width: contentWidth
@@ -91,20 +97,20 @@ PortalDialog {
 
     actions: [
         Kirigami.Action {
-            text: i18nc("@action edit launcher name/icon", "Edit Info…")
+            text: KI18n.i18nc("@action edit launcher name/icon", "Edit Info…")
             icon.name: "document-edit"
             onCheckedChanged: root.edit = checked
             checkable: true
         },
         Kirigami.Action {
-            text: i18nc("@action accept dialog and create launcher", "Accept")
+            text: KI18n.i18nc("@action accept dialog and create launcher", "Create")
             icon.name: "dialog-ok"
-            onTriggered: accept()
+            onTriggered: root.accept()
         },
         Kirigami.Action {
-            text: i18nc("@action", "Cancel")
+            text: KI18n.i18nc("@action", "Cancel")
             icon.name: "dialog-cancel"
-            onTriggered: reject()
+            onTriggered: root.reject()
         }
     ]
 }

@@ -36,13 +36,34 @@ T.ComboBox {
 
     hoverEnabled: true
 
-    topPadding: surfaceNormal.margins.top
-    leftPadding: surfaceNormal.margins.left + (!control.mirrored ? 0 : __indicatorMargin)
-    rightPadding: surfaceNormal.margins.right + (control.mirrored ? 0 : __indicatorMargin)
-    bottomPadding: surfaceNormal.margins.bottom
+    topPadding: background.topMargin
+    leftPadding: background.leftMargin + (!control.mirrored ? 0 : __indicatorMargin)
+    rightPadding: background.rightMargin + (control.mirrored ? 0 : __indicatorMargin)
+    bottomPadding: background.bottomMargin
     spacing: Kirigami.Units.smallSpacing
 
-    delegate: ItemDelegate {
+    component ComboBoxItemDelegate: ItemDelegate {
+        id: delegateRoot
+
+        topPadding: hoverFrame.margins.top
+        leftPadding: hoverFrame.margins.left
+        rightPadding: hoverFrame.margins.right
+        bottomPadding: hoverFrame.margins.bottom
+
+        background: Item {
+            implicitWidth: Kirigami.Units.gridUnit * 8
+
+            KSvg.FrameSvgItem {
+                id: hoverFrame
+                imagePath: "widgets/viewitem"
+                prefix: "hover"
+                anchors.fill: parent
+                opacity: (delegateRoot.highlighted || (delegateRoot.enabled && delegateRoot.hovered) || delegateRoot.down) ? 1 : 0
+            }
+        }
+    }
+
+    delegate: ComboBoxItemDelegate {
         required property var model
         required property int index
 
@@ -57,7 +78,7 @@ T.ComboBox {
         implicitHeight: implicitWidth
         anchors {
             right: parent.right
-            rightMargin: surfaceNormal.margins.right
+            rightMargin: background.rightMargin
             verticalCenter: parent.verticalCenter
         }
         svg: KSvg.Svg {
@@ -128,37 +149,16 @@ T.ComboBox {
         y: rect.y + 6
     }
 
-    background: KSvg.FrameSvgItem {
-        id: surfaceNormal
-
+    background: Loader {
+        id: backgroundLoader
         anchors.fill: parent
 
-        imagePath: control.editable ? "widgets/lineedit" : "widgets/button"
-        prefix: control.editable
-                ? "base"
-                : (control.down ? "pressed" : "normal")
+        readonly property real leftMargin: backgroundLoader.item.leftMargin
+        readonly property real topMargin: backgroundLoader.item.topMargin
+        readonly property real rightMargin: backgroundLoader.item.rightMargin
+        readonly property real bottomMargin: backgroundLoader.item.bottomMargin
 
-        Private.ButtonShadow {
-            anchors.fill: parent
-            showShadow: !control.editable && !control.down
-        }
-
-        Private.TextFieldFocus {
-            visible: control.editable
-            z: -1
-            state: control.activeFocus ? "focus" : (control.enabled && control.hovered ? "hover" : "hidden")
-            anchors.fill: parent
-        }
-
-        Private.ButtonFocus {
-            anchors.fill: parent
-            showFocus: control.activeFocus && !control.down
-        }
-
-        Private.ButtonHover {
-            anchors.fill: parent
-            showHover: control.enabled && control.hovered && !control.down
-        }
+        sourceComponent: control.flat ? flatBackground : normalBackground
 
         MouseArea {
             anchors {
@@ -176,15 +176,75 @@ T.ComboBox {
                 control.activated(control.currentIndex);
             }
         }
+
+        Component {
+            id: flatBackground
+
+            Private.FlatButtonBackground {
+                anchors.fill: parent
+
+                // FIXME: No consideration for control.editable
+                hovered: control.enabled && control.hovered && !control.down
+                pressed: control.down
+                checked: control.popup.visible
+                focused: control.activeFocus && !control.down
+            }
+        }
+
+        Component {
+            id: normalBackground
+
+            KSvg.FrameSvgItem {
+                id: surfaceNormal
+                anchors.fill: parent
+
+                readonly property real leftMargin: margins.left
+                readonly property real topMargin: margins.top
+                readonly property real rightMargin: margins.right
+                readonly property real bottomMargin: margins.bottom
+
+                imagePath: control.editable ? "widgets/lineedit" : "widgets/button"
+                prefix: control.editable
+                        ? "base"
+                        : (control.down ? "pressed" : "normal")
+
+                Private.ButtonShadow {
+                    anchors.fill: parent
+                    showShadow: !control.editable && !control.down
+                }
+
+                Private.TextFieldFocus {
+                    visible: control.editable
+                    z: -1
+                    state: control.activeFocus ? "focus" : (control.enabled && control.hovered ? "hover" : "hidden")
+                    anchors.fill: parent
+                }
+
+                Private.ButtonFocus {
+                    anchors.fill: parent
+                    showFocus: control.activeFocus && !control.down
+                }
+
+                Private.ButtonHover {
+                    anchors.fill: parent
+                    showHover: control.enabled && control.hovered && !control.down
+                }
+            }
+        }
     }
 
     popup: T.Popup {
         x: control.mirrored ? control.width - width : 0
         y: control.height
         width: Math.max(control.width, 150)
-        implicitHeight: contentItem.implicitHeight
+        implicitHeight: contentItem.implicitHeight + topPadding + bottomPadding
         topMargin: 6
         bottomMargin: 6
+
+        topPadding: background ? background.margins.top : undefined
+        leftPadding: background ? background.margins.left : undefined
+        rightPadding: background ? background.margins.right : undefined
+        bottomPadding: background ? background.margins.bottom : undefined
 
         contentItem: ListView {
             id: listView
@@ -202,24 +262,30 @@ T.ComboBox {
             LayoutMirroring.childrenInherit: true
             T.ScrollBar.vertical: Controls.ScrollBar { }
         }
-        background: Kirigami.ShadowedRectangle {
-            anchors {
-                fill: parent
-                margins: -1
+
+        // Same SVG as for PC3.Menu -> has to not be translucent
+        background: Item {
+            readonly property alias margins: popupSurface.margins
+
+            implicitWidth: popupSurface.margins.left + popupSurface.margins.right
+            implicitHeight: popupSurface.margins.top + popupSurface.margins.bottom
+
+            KSvg.FrameSvgItem {
+                anchors {
+                    fill: parent
+                    topMargin: -margins.top
+                    leftMargin: -margins.left
+                    rightMargin: -margins.right
+                    bottomMargin: -margins.bottom
+                }
+                imagePath: "solid/widgets/tooltip"
+                prefix: "shadow"
             }
-            radius: 2
-            Kirigami.Theme.colorSet: Kirigami.Theme.View
-            Kirigami.Theme.inherit: false
-            color: Kirigami.Theme.backgroundColor
-            border {
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.3)
-                width: 1
-            }
-            shadow {
-                size: 4
-                xOffset: 2
-                yOffset: 2
-                color: Qt.rgba(0, 0, 0, 0.3)
+
+            KSvg.FrameSvgItem {
+                id: popupSurface
+                anchors.fill: parent
+                imagePath: "solid/widgets/tooltip"
             }
         }
     }

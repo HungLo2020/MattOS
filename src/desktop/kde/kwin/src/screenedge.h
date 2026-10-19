@@ -28,7 +28,6 @@
 #include <QObject>
 
 #include <memory>
-#include <xcb/xcb.h>
 
 class QAction;
 
@@ -60,6 +59,7 @@ private:
 class KWIN_EXPORT Edge : public QObject
 {
     Q_OBJECT
+
 public:
     explicit Edge(ScreenEdges *parent);
     ~Edge() override;
@@ -212,6 +212,7 @@ class KWIN_EXPORT ScreenEdges : public QObject
     Q_PROPERTY(int actionBottom READ actionBottom)
     Q_PROPERTY(int actionBottomLeft READ actionBottomLeft)
     Q_PROPERTY(int actionLeft READ actionLeft)
+
 public:
     explicit ScreenEdges();
     ~ScreenEdges() override;

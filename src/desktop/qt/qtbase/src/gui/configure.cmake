@@ -50,7 +50,7 @@ qt_find_package(WrapSystemFreetype 2.2.0 MODULE
 if(QT_FEATURE_system_zlib)
     qt_add_qmake_lib_dependency(freetype zlib)
 endif()
-qt_find_package(Fontconfig PROVIDED_TARGETS Fontconfig::Fontconfig MODULE_NAME gui
+qt_find_package(WrapFontconfig PROVIDED_TARGETS WrapFontconfig::WrapFontconfig MODULE_NAME gui
     QMAKE_LIB fontconfig
     VCPKG_PORT fontconfig
     VCPKG_ADD_TO_FEATURE fontconfig
@@ -97,6 +97,15 @@ qt_find_package(Mtdev MODULE PROVIDED_TARGETS PkgConfig::Mtdev MODULE_NAME gui Q
 qt_find_package(WrapOpenGL MODULE PROVIDED_TARGETS WrapOpenGL::WrapOpenGL MODULE_NAME gui QMAKE_LIB opengl)
 qt_find_package(GLESv2 MODULE
     PROVIDED_TARGETS GLESv2::GLESv2 MODULE_NAME gui QMAKE_LIB opengl_es2)
+# On HarmonyOS libGLESv2 and libGLESv3 are separate; elsewhere the
+# vendor libGLESv2 also provides the ES 3.x entry points.
+if(OHOS)
+    qt_find_package(GLESv3 MODULE
+        PROVIDED_TARGETS GLESv3::GLESv3 MODULE_NAME gui QMAKE_LIB opengl_es3)
+    set(_qt_gles3_test_libs GLESv3::GLESv3)
+else()
+    set(_qt_gles3_test_libs GLESv2::GLESv2)
+endif()
 qt_find_package(Tslib MODULE PROVIDED_TARGETS PkgConfig::Tslib MODULE_NAME gui QMAKE_LIB tslib)
 qt_find_package(WrapVulkanHeaders MODULE PROVIDED_TARGETS WrapVulkanHeaders::WrapVulkanHeaders
     MODULE_NAME gui QMAKE_LIB vulkan MARK_OPTIONAL)
@@ -541,7 +550,7 @@ endif()
 qt_config_compile_test(opengles3
     LABEL "OpenGL ES 3.0"
     LIBRARIES
-        GLESv2::GLESv2
+        ${_qt_gles3_test_libs}
         ${plaform_graphics_libs}
     COMPILE_OPTIONS ${extra_compiler_options}
     CODE
@@ -570,7 +579,7 @@ glMapBufferRange(GL_ARRAY_BUFFER, 0, 0, GL_MAP_READ_BIT);
 qt_config_compile_test(opengles31
     LABEL "OpenGL ES 3.1"
     LIBRARIES
-        GLESv2::GLESv2
+        ${_qt_gles3_test_libs}
         ${plaform_graphics_libs}
     CODE
 "#include <GLES3/gl31.h>
@@ -589,7 +598,7 @@ glProgramUniform1i(0, 0, 0);
 qt_config_compile_test(opengles32
     LABEL "OpenGL ES 3.2"
     LIBRARIES
-        GLESv2::GLESv2
+        ${_qt_gles3_test_libs}
         ${plaform_graphics_libs}
     CODE
 "#include <GLES3/gl32.h>
@@ -972,7 +981,7 @@ qt_feature("system-freetype" PRIVATE SYSTEM_LIBRARY
 qt_feature("fontconfig" PUBLIC PRIVATE
     LABEL "Fontconfig"
     AUTODETECT NOT APPLE
-    CONDITION NOT APPLE AND NOT WIN32 AND QT_FEATURE_system_freetype AND Fontconfig_FOUND
+    CONDITION NOT APPLE AND NOT WIN32 AND QT_FEATURE_freetype AND WrapFontconfig_FOUND
 )
 qt_feature_definition("fontconfig" "QT_NO_FONTCONFIG" NEGATE VALUE "1")
 qt_feature("gbm"
@@ -1539,12 +1548,16 @@ qt_feature_definition("undogroup" "QT_NO_UNDOGROUP" NEGATE VALUE "1")
 qt_feature("wayland" PUBLIC
     SECTION "Platform plugins"
     LABEL "Wayland"
-    CONDITION TARGET Wayland::Client
+    CONDITION TARGET Wayland::Client AND NOT QNX
 )
 qt_feature("waylandscanner" PUBLIC
     SECTION "Wayland Scanner tool"
     LABEL "Wayland Scanner"
     CONDITION TARGET Wayland::Scanner
+)
+qt_feature("xdg-desktop-portal-file-transfer" PRIVATE
+    LABEL "portal file transfer for clipboard and drag and drop"
+    CONDITION QT_FEATURE_wayland AND QT_FEATURE_dbus AND (QT_FEATURE_clipboard OR QT_FEATURE_draganddrop)
 )
 
 # qt wayland client

@@ -4,8 +4,9 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
+#include "ir/sorting.h"
+#include "outputproducer.h"
 #include "text.h"
-#include "utilities.h"
 #include "filesystem/fileresolver.h"
 
 #include <QtCore/qlist.h>
@@ -34,7 +35,7 @@ struct RelatedClass;
 
 typedef QMultiMap<QString, Node *> NodeMultiMap;
 
-class Generator
+class Generator : public OutputProducer
 {
 public:
     enum ListType { Generic, Obsolete };
@@ -57,18 +58,24 @@ public:
     Generator(FileResolver& file_resolver);
     virtual ~Generator();
 
+    void prepare() override { initializeGenerator(); }
+    void produce() override { generateDocs(); }
+    void finalize() override { terminateGenerator(); }
+
     virtual bool canHandleFormat(const QString &format) { return format == this->format(); }
-    virtual QString format() const = 0;
+    [[nodiscard]] QString format() const override = 0;
+    [[nodiscard]] virtual QString fileExtension() const = 0;
     virtual void generateDocs();
     virtual void initializeGenerator();
     virtual void initializeFormat();
     virtual void terminateGenerator();
     virtual QString typeString(const Node *node, bool plural = false);
 
-    QString fullDocumentLocation(const Node *node);
-    QString linkForExampleFile(const QString &path, const QString &fileExt = QString());
+    QString fullDocumentLocation(const Node *node) const;
+    QString linkForExampleFile(const QString &path, const QString &fileExt = QString()) const;
     static QString exampleFileTitle(const ExampleNode *relative, const QString &fileName);
     static Generator *currentGenerator() { return s_currentGenerator; }
+    static void setCurrentGenerator(Generator *generator) { s_currentGenerator = generator; }
     static Generator *generatorForFormat(const QString &format);
     static void initialize();
     static const QString &outputDir() { return s_outDir; }
@@ -89,10 +96,9 @@ public:
 
 protected:
     static QFile *openSubPageFile(const PageNode *node, const QString &fileName);
-    void beginSubPage(const Node *node, const QString &fileName);
+    void beginSubPage(const PageNode *node, const QString &fileName);
     void endSubPage();
-    [[nodiscard]] virtual QString fileExtension() const = 0;
-    virtual void generateExampleFilePage(const Node *, ResolvedFile, CodeMarker * = nullptr) {}
+    virtual void generateExampleFilePage(const PageNode *, ResolvedFile, CodeMarker * = nullptr) {}
     virtual void generateAlsoList(const Node *node, CodeMarker *marker);
     virtual void generateAlsoList(const Node *node) { generateAlsoList(node, nullptr); }
     virtual qsizetype generateAtom(const Atom *, const Node *, CodeMarker *) { return 0; }
@@ -140,7 +146,7 @@ protected:
     };
     void generateThreadSafeness(const Node *node, CodeMarker *marker);
     bool generateComparisonCategory(const Node *node, CodeMarker *marker = nullptr);
-    bool generateComparisonList(const Node *node);
+    bool generateComparisonTable(const Node *node);
 
     QString generateOverloadSnippet(const FunctionNode *func);
     QString generateObjectName(const QString &className);
@@ -183,7 +189,7 @@ protected:
 public:
     static Qt::SortOrder sortOrder(const QString &str)
     {
-        return (str == "descending") ? Qt::DescendingOrder : Qt::AscendingOrder;
+        return Sorting::parseSortOrder(str);
     }
 
     static void addNodeLink(Text &text, const QString &nodeRef, const QString &linkText);

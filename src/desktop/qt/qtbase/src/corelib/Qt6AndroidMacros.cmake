@@ -3,9 +3,11 @@
 
 # Generate deployment tool json
 
-# Locate newest Android sdk build tools revision
+# Returns the user defined build-tools revision, otherwise locate newest from the Android SDK.
 function(_qt_internal_android_get_sdk_build_tools_revision out_var)
-    if (NOT QT_ANDROID_SDK_BUILD_TOOLS_REVISION)
+    if (QT_ANDROID_SDK_BUILD_TOOLS_REVISION)
+        set(android_build_tools_latest "${QT_ANDROID_SDK_BUILD_TOOLS_REVISION}")
+    else()
         file(GLOB android_build_tools
             LIST_DIRECTORIES true
             RELATIVE "${ANDROID_SDK_ROOT}/build-tools"
@@ -83,12 +85,29 @@ function(_qt_internal_add_tool_to_android_deployment_settings out_var tool json_
     set(${out_var} "${${out_var}}" PARENT_SCOPE)
 endfunction()
 
+# Honors the deprecated QT_USE_ANDROID_MODERN_BUNDLE, also when it is set after find_package().
+function(_qt_internal_android_resolve_gradle_multi_module)
+    if(DEFINED QT_USE_ANDROID_MODERN_BUNDLE AND NOT DEFINED QT_ANDROID_GRADLE_MULTI_MODULE)
+        set(QT_ANDROID_GRADLE_MULTI_MODULE "${QT_USE_ANDROID_MODERN_BUNDLE}" PARENT_SCOPE)
+        get_property(reported GLOBAL PROPERTY _qt_internal_android_modern_bundle_reported)
+        if(NOT reported)
+            set_property(GLOBAL PROPERTY _qt_internal_android_modern_bundle_reported TRUE)
+            message(DEPRECATION
+                "QT_USE_ANDROID_MODERN_BUNDLE is deprecated since Qt 6.12."
+                " Use QT_ANDROID_GRADLE_MULTI_MODULE instead.")
+        endif()
+    endif()
+endfunction()
+
+_qt_internal_android_resolve_gradle_multi_module()
+
 # Add the specific dynamic library as the dynamic feature for the Android application target.
 function(qt6_add_android_dynamic_features target)
     cmake_parse_arguments(PARSE_ARGV 1 arg "" "" "FEATURE_TARGETS")
-    if(NOT QT_USE_ANDROID_MODERN_BUNDLE)
+    _qt_internal_android_resolve_gradle_multi_module()
+    if(NOT QT_ANDROID_GRADLE_MULTI_MODULE)
         message(FATAL_ERROR "qt6_add_android_dynamic_features is only supported with"
-            " 'QT_USE_ANDROID_MODERN_BUNDLE' enabled.")
+            " 'QT_ANDROID_GRADLE_MULTI_MODULE' enabled.")
     endif()
     if(NOT TARGET ${target})
         message(FATAL_ERROR "${target} is not a target. Cannot add the dynamic features.")
@@ -132,12 +151,105 @@ function(qt6_add_android_dynamic_feature_java_source_dirs target)
     endif()
 endfunction()
 
+# Appends the dynamic OpenSSL libraries (found via OPENSSL_ROOT_DIR or vcpkg)
+# to the QT_ANDROID_EXTRA_LIBS of ${target}.
+function(_qt_internal_android_include_openssl target out_found)
+    set(${out_found} FALSE PARENT_SCOPE)
+
+    # QTP0002 NEW keeps this path as is, where backslashes are escapes.
+    set(openssl_root_dir "${OPENSSL_ROOT_DIR}")
+    if(CMAKE_HOST_WIN32)
+        file(TO_CMAKE_PATH "${openssl_root_dir}" openssl_root_dir)
+    endif()
+
+    set(openssl_abi_dir "${openssl_root_dir}/${CMAKE_ANDROID_ARCH_ABI}")
+    if(NOT EXISTS "${openssl_abi_dir}/libcrypto_3.so")
+        set(openssl_abi_dir "${openssl_root_dir}")
+    endif()
+    if(openssl_root_dir)
+        message(STATUS "Looking for OpenSSL in ${openssl_abi_dir}")
+    endif()
+
+    set(openssl_libs "")
+    if(EXISTS "${openssl_abi_dir}/libcrypto_3.so")
+        set(openssl_libs
+            "${openssl_abi_dir}/libcrypto_3.so"
+            "${openssl_abi_dir}/libssl_3.so")
+    elseif(QT_USE_VCPKG AND DEFINED ENV{VCPKG_ROOT} AND EXISTS "$ENV{VCPKG_ROOT}")
+        set(vcpkg_root "$ENV{VCPKG_ROOT}")
+        if(CMAKE_HOST_WIN32)
+            file(TO_CMAKE_PATH "${vcpkg_root}" vcpkg_root)
+        endif()
+        message(STATUS "Looking for OpenSSL in ${vcpkg_root}")
+        if (CMAKE_ANDROID_ARCH_ABI MATCHES "arm64-v8a")
+            set(vcpkg_target_triplet "arm64-android-dynamic")
+        elseif(CMAKE_ANDROID_ARCH_ABI MATCHES "armeabi-v7a")
+            set(vcpkg_target_triplet "arm-neon-android-dynamic")
+        elseif(CMAKE_ANDROID_ARCH_ABI MATCHES "x86_64")
+            set(vcpkg_target_triplet "x64-android-dynamic")
+        elseif(CMAKE_ANDROID_ARCH_ABI MATCHES "x86")
+            set(vcpkg_target_triplet "x86-android-dynamic")
+        endif()
+        set(vcpkg_lib_dir "${vcpkg_root}/installed/${vcpkg_target_triplet}/lib")
+        if(EXISTS "${vcpkg_lib_dir}/libcrypto.so")
+            set(openssl_libs
+                "${vcpkg_lib_dir}/libcrypto.so"
+                "${vcpkg_lib_dir}/libssl.so")
+        endif()
+    endif()
+
+    if(NOT openssl_libs)
+        message(STATUS "No dynamic OpenSSL libraries found to bundle into ${target}. "
+                       "This is expected when OpenSSL is linked statically.")
+        return()
+    endif()
+    set(${out_found} TRUE PARENT_SCOPE)
+
+    get_target_property(extra_libs ${target} QT_ANDROID_EXTRA_LIBS)
+    if(extra_libs)
+        foreach(lib IN LISTS openssl_libs)
+            if(lib IN_LIST extra_libs)
+                return()
+            endif()
+        endforeach()
+    endif()
+
+    list(JOIN openssl_libs ", " openssl_libs_pretty)
+    message(STATUS "Bundling OpenSSL into ${target}: ${openssl_libs_pretty}")
+    set_property(TARGET ${target} APPEND PROPERTY QT_ANDROID_EXTRA_LIBS ${openssl_libs})
+endfunction()
+
+# Bundle OpenSSL into ${target} if any plugin sets _qt_internal_android_openssl_needed.
+function(_qt_internal_android_include_openssl_if_needed target)
+    # Prefer the fully resolved plugin set _qt_android_qt_plugins after qmlimportscanner run.
+    get_target_property(plugin_targets ${target} _qt_android_qt_plugins)
+    if(NOT plugin_targets)
+        __qt_internal_collect_plugin_targets_from_dependencies("${target}" plugin_targets)
+    endif()
+    foreach(plugin IN LISTS plugin_targets)
+        if(NOT TARGET "${plugin}")
+            set(plugin "${QT_CMAKE_EXPORT_NAMESPACE}::${plugin}")
+        endif()
+        if(NOT TARGET "${plugin}")
+            continue()
+        endif()
+        get_target_property(needs_openssl ${plugin} _qt_internal_android_openssl_needed)
+        if(needs_openssl)
+            _qt_internal_android_include_openssl(${target} openssl_found)
+            return()
+        endif()
+    endforeach()
+endfunction()
+
 # Generate the deployment settings json file for a cmake target.
 function(qt6_android_generate_deployment_settings target)
     # Information extracted from mkspecs/features/android/android_deployment_settings.prf
     if (NOT TARGET ${target})
         message(FATAL_ERROR "${target} is not a cmake target")
     endif()
+
+    # Bundle OpenSSL before formatting paths so it lands in QT_ANDROID_EXTRA_LIBS.
+    _qt_internal_android_include_openssl_if_needed("${target}")
 
     # When parsing JSON file format backslashes and follow up symbols are regarded as special
     # characters. This puts Windows path format into a trouble.
@@ -623,17 +735,9 @@ function(qt6_android_add_apk_target target)
 
     _qt_internal_check_depfile_support(has_depfile_support)
 
-    set(qt_android_delete_build_dir_commands "")
-    if(QT_ANDROID_POST_BUILD_GRADLE_CLEANUP)
-        set(gradlew_script "gradlew")
-        if(CMAKE_HOST_WIN32)
-            string(APPEND gradlew_script ".bat")
-        endif()
-        list(APPEND qt_android_delete_build_dir_commands
-            COMMAND "${CMAKE_COMMAND}" -E echo "Executing ${gradlew_script} clean in ${target}..."
-            COMMAND "${CMAKE_COMMAND}" -E chdir ${apk_final_dir} "${gradlew_script}" clean
-        )
-    endif()
+    _qt_internal_android_gradlew_name(gradlew_script)
+    _qt_internal_android_gradle_cleanup_commands(qt_android_delete_build_dir_commands
+        "${apk_final_dir}/${gradlew_script}" "${apk_final_dir}" "${target}")
 
     if(has_depfile_support)
         cmake_policy(PUSH)
@@ -1413,7 +1517,7 @@ endfunction()
 
 # Adds the custom build step to the multi-ABI Android project
 function(_qt_internal_add_android_abi_step project abi step)
-    cmake_parse_arguments(arg "" "" "COMMAND;DEPENDS;TARGET_DEPENDS" ${ARGV})
+    cmake_parse_arguments(arg "" "" "COMMAND;DEPENDS;TARGET_DEPENDS;BYPRODUCTS" ${ARGV})
 
     if(NOT arg_COMMAND)
         message(FATAL_ERROR "COMMAND is not set for ${project} step ${step} Android ABI ${abi}.")
@@ -1437,6 +1541,11 @@ function(_qt_internal_add_android_abi_step project abi step)
         set(arg_TARGET_DEPENDS "")
     endif()
 
+    set(byproducts_arg "")
+    if(arg_BYPRODUCTS)
+        set(byproducts_arg BYPRODUCTS ${arg_BYPRODUCTS})
+    endif()
+
     _qt_internal_get_android_abi_step_stampfile(stamp ${project} ${abi} ${step})
     if(step STREQUAL "configure" AND EXISTS "${stamp}")
         file(REMOVE "${stamp}")
@@ -1444,6 +1553,7 @@ function(_qt_internal_add_android_abi_step project abi step)
     add_custom_command(OUTPUT "${stamp}"
         COMMAND ${arg_COMMAND}
         COMMAND "${CMAKE_COMMAND}" -E touch "${stamp}"
+        ${byproducts_arg}
         ${add_to_pool}
         DEPENDS
             ${dep_stamps}
@@ -1577,6 +1687,11 @@ function(_qt_internal_configure_android_multiabi_target target)
             "-DQT_USE_TARGET_ANDROID_BUILD_DIR=${QT_USE_TARGET_ANDROID_BUILD_DIR}")
     endif()
 
+    if(DEFINED QT_ANDROID_CREATE_SYMLINKS_ONLY)
+        list(APPEND extra_cmake_args
+            "-DQT_ANDROID_CREATE_SYMLINKS_ONLY=${QT_ANDROID_CREATE_SYMLINKS_ONLY}")
+    endif()
+
     unset(user_cmake_args)
     foreach(var IN LISTS QT_ANDROID_MULTI_ABI_FORWARD_VARS)
         string(REPLACE ";" "$<SEMICOLON>" var_value "${${var}}")
@@ -1612,7 +1727,7 @@ function(_qt_internal_configure_android_multiabi_target target)
                     "-DCMAKE_TOOLCHAIN_FILE=${qt_abi_toolchain_path}"
                     "-DQT_HOST_PATH=${QT_HOST_PATH}"
                     "-DQT_IS_ANDROID_MULTI_ABI_EXTERNAL_PROJECT=ON"
-                    "-DQT_USE_ANDROID_MODERN_BUNDLE=${QT_USE_ANDROID_MODERN_BUNDLE}"
+                    "-DQT_ANDROID_GRADLE_MULTI_MODULE=${QT_ANDROID_GRADLE_MULTI_MODULE}"
                     "-DQT_USE_ANDROID_TARGET_BUILD_DIR=${QT_USE_ANDROID_TARGET_BUILD_DIR}"
                     "-DQT_INTERNAL_ANDROID_MULTI_ABI_BINARY_DIR=${CMAKE_BINARY_DIR}"
                     "${config_arg}"
@@ -1643,6 +1758,12 @@ function(_qt_internal_configure_android_multiabi_target target)
                 --target ${target}
         )
 
+        # List a secondary ABI's deploy files to give gradle file-level deps on them.
+        set(abi_deploy_files "")
+        if(QT_ANDROID_GRADLE_MULTI_MODULE)
+            _qt_internal_android_get_abi_deploy_files(abi_deploy_files ${target} ${abi})
+        endif()
+
         _qt_internal_add_android_abi_step(qt_internal_android_${abi} ${abi}
             ${target}_copy_apk_dependencies
             DEPENDS
@@ -1652,7 +1773,11 @@ function(_qt_internal_configure_android_multiabi_target target)
                 --build "${android_abi_build_dir}"
                 --config $<CONFIG>
                 --target qt_internal_${target}_copy_apk_dependencies
+            BYPRODUCTS ${abi_deploy_files}
         )
+        if(abi_deploy_files)
+            _qt_internal_android_register_deploy_files(${target} ${abi_deploy_files})
+        endif()
         set(external_project_copy_target
             "qt_internal_android_${abi}_${target}_copy_apk_dependencies")
 
@@ -1694,27 +1819,28 @@ endfunction()
 # package for the executable 'target'. The function is added to the finalizer list of the Core
 # module and is executed implicitly when configuring user projects.
 function(_qt_internal_android_executable_finalizer target)
+    _qt_internal_android_resolve_gradle_multi_module()
+
     set_property(TARGET ${target} PROPERTY _qt_android_executable_finalizer_called TRUE)
     set_property(TARGET ${target} PROPERTY _qt_android_in_finalizer "EXECUTABLE")
 
     _qt_internal_expose_android_package_source_dir_to_ide(${target})
 
     _qt_internal_configure_android_multiabi_target("${target}")
-    qt6_android_generate_deployment_settings("${target}")
-    if(QT_USE_ANDROID_MODERN_BUNDLE)
+    if(QT_ANDROID_GRADLE_MULTI_MODULE)
         _qt_internal_android_generate_dynamic_feature_names("${target}")
         _qt_internal_android_add_dynamic_feature_deployment("${target}")
 
         _qt_internal_android_prepare_gradle_build("${target}")
-        _qt_internal_android_add_aux_deployment("${target}")
 
         _qt_internal_collect_apk_dependencies_defer()
         _qt_internal_collect_apk_imported_dependencies_defer("${target}")
     else()
+        qt6_android_generate_deployment_settings("${target}")
         qt6_android_add_apk_target("${target}")
-    endif()
-    if(QT_IS_ANDROID_MULTI_ABI_EXTERNAL_PROJECT)
-        _qt_internal_android_copy_abi_dependencies("${target}")
+        if(QT_IS_ANDROID_MULTI_ABI_EXTERNAL_PROJECT)
+            _qt_internal_android_copy_abi_dependencies("${target}")
+        endif()
     endif()
     _qt_internal_android_create_runner_wrapper("${target}")
     set_property(TARGET ${target} PROPERTY _qt_android_in_finalizer "")
@@ -1779,7 +1905,7 @@ function(_qt_internal_android_create_runner_wrapper target)
         set(script_content "${formatted_command} ${args_splitter}\n    %*\n")
         set(wrapper_path "${wrapper_output_dir}/${output_name}.bat")
     else()
-        set(script_content "#!/bin/sh\n\n${formatted_command} ${args_splitter}\n    $@\n")
+        set(script_content "#!/bin/sh\n\n${formatted_command} ${args_splitter}\n    \"$@\"\n")
         set(wrapper_path "${wrapper_output_dir}/${output_name}")
     endif()
 
@@ -1813,6 +1939,13 @@ endfunction()
 
 function(_qt_internal_android_get_target_android_build_dir out_build_dir target)
     get_target_property(target_binary_dir ${target} BINARY_DIR)
+
+    # Use the main ABI's build dir for multi-ABI external projects to avoid a collection step later.
+    if(QT_ANDROID_GRADLE_MULTI_MODULE AND QT_IS_ANDROID_MULTI_ABI_EXTERNAL_PROJECT)
+        file(RELATIVE_PATH relative_binary_dir "${CMAKE_BINARY_DIR}" "${target_binary_dir}")
+        set(target_binary_dir "${QT_INTERNAL_ANDROID_MULTI_ABI_BINARY_DIR}/${relative_binary_dir}")
+    endif()
+
     if(QT_USE_TARGET_ANDROID_BUILD_DIR)
         set(${out_build_dir} "${target_binary_dir}/android-build-${target}" PARENT_SCOPE)
     else()
@@ -1822,7 +1955,7 @@ endfunction()
 
 function(_qt_internal_android_get_target_deployment_dir out_deploy_dir target)
     _qt_internal_android_get_target_android_build_dir(build_dir ${target})
-    if(QT_USE_ANDROID_MODERN_BUNDLE)
+    if(QT_ANDROID_GRADLE_MULTI_MODULE)
         set(${out_deploy_dir} "${build_dir}/app" PARENT_SCOPE)
     else()
         set(${out_deploy_dir} "${build_dir}" PARENT_SCOPE)

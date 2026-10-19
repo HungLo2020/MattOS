@@ -34,6 +34,7 @@ ecm_add_tests(
  globaltest.cpp
  mimetypefinderjobtest.cpp
  threadtest.cpp
+ workercanceltest.cpp
  udsentrytest.cpp
  urlutiltest.cpp
  batchrenamejobtest.cpp
@@ -42,7 +43,6 @@ ecm_add_tests(
  LINK_LIBRARIES KF6::KIOCore KF6::I18n KF6::ConfigCore KF6::Service Qt6::Test Qt6::Network Qt6::Xml
 )
 
-target_link_libraries(threadtest Qt6::Concurrent)
 
 # disable some tests that fail on Windows ATM
 if (NOT WIN32)
@@ -57,13 +57,30 @@ if (NOT WIN32)
   )
 
   target_link_libraries(deleteortrashjobtest KF6::KIOWidgets)
+  target_link_libraries(kfileitemtest Qt6::Concurrent)
+  if(TARGET Qt6::DBus)
+    target_link_libraries(deletejobtest Qt6::DBus)
+  endif()
+  if(ACL_FOUND)
+    target_link_libraries(jobtest ${ACL_LIBS}) # copyFilePreservesAcl()
+  endif()
 endif()
 
 ecm_add_test(
     connectionbackendtest.cpp
     ../src/core/connectionbackend.cpp
+    ../src/core/socketconnectionbackend.cpp
     ../src/core/kiocoreconnectiondebug.cpp
     TEST_NAME connectionbackendtest
+    LINK_LIBRARIES KF6::KIOCore Qt6::Test Qt6::Network KF6::I18n
+)
+
+ecm_add_test(
+    threadconnectionbackendtest.cpp
+    ../src/core/threadconnectionbackend.cpp
+    ../src/core/connectionbackend.cpp
+    ../src/core/kiocoreconnectiondebug.cpp
+    TEST_NAME threadconnectionbackendtest
     LINK_LIBRARIES KF6::KIOCore Qt6::Test Qt6::Network KF6::I18n
 )
 
@@ -99,10 +116,15 @@ if (TARGET KF6::KIOGui)
     favicontest.cpp
     openurljobtest.cpp
     kemailclientlauncherjobtest.cpp
+    filepreviewjobtest.cpp
     LINK_LIBRARIES KF6::KIOCore KF6::KIOGui KF6::WindowSystem Qt6::Test
   )
 
   target_link_libraries(favicontest Qt6::Concurrent)
+
+  # The thumbnail cache functions are internal to KIOGui and not exported, so the test builds them
+  # rather than looking for them in the library.
+  target_sources(filepreviewjobtest PRIVATE ${CMAKE_SOURCE_DIR}/src/gui/thumbnailcache_p.cpp)
 
   # disable some tests that fail on Windows ATM
   if (NOT WIN32)
@@ -144,6 +166,7 @@ ecm_add_tests(
  clipboardupdatertest.cpp
  kfileitemactionstest.cpp
  pastetest.cpp
+ renamefiledialogtest.cpp
  kurifiltersearchprovideractionstest.cpp
  ENVIRONMENT QT_QPA_PLATFORM=offscreen
  LINK_LIBRARIES KF6::KIOCore KF6::KIOWidgets Qt6::Test ${DBUS_LIB}
@@ -161,8 +184,8 @@ if (NOT WIN32)
     ENVIRONMENT QT_QPA_PLATFORM=offscreen
     LINK_LIBRARIES KF6::KIOCore KF6::KIOWidgets Qt6::Test ${DBUS_LIB}
   )
-  set(_libexec_dir_kf "${KDKE_INSTALL_FULL_LIBEXECDIR_KF}")
-  target_compile_definitions(desktopexecparsertest PRIVATE "KDE_INSTALL_FULL_LIBEXECDIR_KF=${_libexec_dir_kf}")
+  set(_libexec_dir_kf "${KDE_INSTALL_FULL_LIBEXECDIR_KF}")
+  target_compile_definitions(desktopexecparsertest PRIVATE "KDE_INSTALL_FULL_LIBEXECDIR_KF=\"${_libexec_dir_kf}\"")
 endif()
 
 # disable some tests that fail on Windows ATM
@@ -229,6 +252,17 @@ if (NOT WIN32)
 
   set_tests_properties(kiofilewidgets-kfileplacesmodeltest PROPERTIES RUN_SERIAL TRUE)
   set_tests_properties(kiofilewidgets-kfileplacesviewtest PROPERTIES RUN_SERIAL TRUE)
+
+  ecm_add_test(
+    dropintonewfolderplugintest.cpp
+    TEST_NAME dropintonewfolderplugintest
+    NAME_PREFIX "kiofilewidgets-"
+    LINK_LIBRARIES KF6::KIOFileWidgets KF6::KIOWidgets KF6::KIOGui KF6::I18n KF6::CoreAddons Qt6::Test Qt6::Widgets
+  )
+  # Load the real built plugin by path, and make sure it is built first.
+  target_compile_definitions(dropintonewfolderplugintest PRIVATE DROPINTONEWFOLDER_PLUGIN_PATH="$<TARGET_FILE:dropintonewfolder>")
+  add_dependencies(dropintonewfolderplugintest dropintonewfolder)
+  set_tests_properties(kiofilewidgets-dropintonewfolderplugintest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
 
 # TODO: fix symbol exports for windows -> 'KSambaShare::KSambaShare': inconsistent dll linkage

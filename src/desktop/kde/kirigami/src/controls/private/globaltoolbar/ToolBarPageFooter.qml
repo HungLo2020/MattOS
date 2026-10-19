@@ -36,9 +36,15 @@ QQC2.ToolBar {
     }
 
     contentItem: KC.ActionToolBar {
+        property KC.Page page: root.parent.page
+
+        leftPadding: page.parent.SafeArea.margins.left
+        rightPadding: page.parent.SafeArea.margins.right
+        bottomPadding: page.parent.SafeArea.margins.bottom
+
         display: QQC2.Button.TextUnderIcon
         position: QQC2.ToolBar.Footer
         alignment: Qt.AlignCenter
-        actions: root.parent.page.actions
+        actions: page.actions
     }
 }

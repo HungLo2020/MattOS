@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-27 02:42+0000\n"
-"PO-Revision-Date: 2026-03-13 14:16+0100\n"
-"Last-Translator:  Vít Pelčák <vit@pelcak.org>\n"
+"POT-Creation-Date: 2026-09-06 00:47+0000\n"
+"PO-Revision-Date: 2026-05-03 23:09+0200\n"
+"Last-Translator: Libor Filípek <libor.filipek@gmail.com>\n"
 "Language-Team: Czech <kde-i18n-doc@kde.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
@@ -46,7 +46,7 @@ msgstr "Připnout do Správce úloh"
 msgid "Add to Panel (Widget)"
 msgstr "Přidat do panelu (Widget)"
 
-#: actionlist.cpp:316 rootmodel.cpp:538
+#: actionlist.cpp:316 rootmodel.cpp:590
 #, kde-format
 msgid "Recent Files"
 msgstr "Nedávné soubory"
@@ -67,35 +67,35 @@ msgctxt "@action opens a software center with the application"
 msgid "Uninstall or Manage Add-Ons…"
 msgstr "Odinstalujte nebo spravujte doplňky…"
 
-#: appentry.cpp:361
+#: appentry.cpp:410
 #, kde-format
 msgid "Hide Application"
 msgstr "Skrýt aplikaci"
 
-#: appentry.cpp:423
+#: appentry.cpp:472
 #, kde-format
 msgctxt "App name (Comment or Generic name)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: appentry.cpp:425
+#: appentry.cpp:474
 #, kde-format
 msgctxt "Generic name (App name)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: appsmodel.cpp:38 appsmodel.cpp:74 computermodel.cpp:93 computermodel.cpp:219
-#: recentusagemodel.cpp:156 recentusagemodel.cpp:225
+#: appsmodel.cpp:38 appsmodel.cpp:74 computermodel.cpp:93 computermodel.cpp:220
+#: recentusagemodel.cpp:158 recentusagemodel.cpp:229
 #, kde-format
 msgid "Applications"
 msgstr "Aplikace"
 
-#: appsmodel.cpp:171
+#: appsmodel.cpp:173
 #, kde-format
 msgid "Unhide Applications in this Submenu"
 msgstr "Zobrazit skryté aplikace v této podnabídce"
 
-#: appsmodel.cpp:180
+#: appsmodel.cpp:182
 #, kde-format
 msgid "Unhide Applications in '%1'"
 msgstr "Zobrazit skryté aplikace v '%1'"
@@ -116,52 +116,67 @@ msgid "Computer"
 msgstr "Počítač"
 
 #. i18n.
-#: kastatsfavoritesmodel.cpp:548 rootmodel.cpp:531 simplefavoritesmodel.cpp:33
+#: kastatsfavoritesmodel.cpp:537 rootmodel.cpp:574 simplefavoritesmodel.cpp:33
 #, kde-format
 msgid "Favorites"
 msgstr "Oblíbené"
 
-#: recentusagemodel.cpp:154
+#: recentusagemodel.cpp:156
 #, kde-format
 msgid "Recently Used"
 msgstr "Nedávno použité"
 
-#: recentusagemodel.cpp:159 recentusagemodel.cpp:320
+#: recentusagemodel.cpp:160
+#, kde-format
+msgid "Places"
+msgstr "Místa"
+
+#: recentusagemodel.cpp:163 recentusagemodel.cpp:330
 #, kde-format
 msgid "Files"
 msgstr "Soubory"
 
-#: recentusagemodel.cpp:253
+#: recentusagemodel.cpp:263
 #, kde-format
 msgid "Forget Application"
 msgstr "Zapomenout aplikaci"
 
-#: recentusagemodel.cpp:318
+#: recentusagemodel.cpp:328
 #, kde-format
 msgid "Folders"
 msgstr "Složky"
 
-#: recentusagemodel.cpp:359
+#: recentusagemodel.cpp:375
 #, kde-format
 msgid "Open Containing Folder"
 msgstr "Otevřít odpovídající složku"
 
-#: recentusagemodel.cpp:362
+#: recentusagemodel.cpp:380
+#, kde-format
+msgid "Forget Folder"
+msgstr "Zapomenout složku"
+
+#: recentusagemodel.cpp:380
 #, kde-format
 msgid "Forget File"
 msgstr "Zapomenout soubor"
 
-#: recentusagemodel.cpp:506
+#: recentusagemodel.cpp:526
 #, kde-format
 msgid "Forget All"
 msgstr "Zapomenout všechny"
 
-#: recentusagemodel.cpp:508
+#: recentusagemodel.cpp:528
 #, kde-format
 msgid "Forget All Applications"
 msgstr "Zapomenout všechny aplikace"
 
-#: recentusagemodel.cpp:511
+#: recentusagemodel.cpp:530
+#, kde-format
+msgid "Forget All Folders"
+msgstr "Zapomenout všechny složky"
+
+#: recentusagemodel.cpp:533
 #, kde-format
 msgid "Forget All Files"
 msgstr "Zapomenout všechny soubory"
@@ -171,37 +186,47 @@ msgstr "Zapomenout všechny soubory"
 msgid "All Applications"
 msgstr "Všechny aplikace"
 
-#: rootmodel.cpp:131
+#: rootmodel.cpp:134
 #, kde-format
 msgid "Hide %1"
 msgstr "Skrýt %1"
 
-#: rootmodel.cpp:525
+#: rootmodel.cpp:568
 #, kde-format
 msgid "This shouldn't be visible! Use KICKER_FAVORITES_MODEL"
 msgstr "Toto by nemělo být viditelné! Použijte KICKER_FAVORITES_MODEL"
 
-#: rootmodel.cpp:538
+#: rootmodel.cpp:581
+#, kde-format
+msgid "Recent Places"
+msgstr "Nedávná místa"
+
+#: rootmodel.cpp:581
+#, kde-format
+msgid "Often Used Places"
+msgstr "Často používaná místa"
+
+#: rootmodel.cpp:590
 #, kde-format
 msgid "Often Used Files"
 msgstr "Často používané soubory"
 
-#: rootmodel.cpp:547
+#: rootmodel.cpp:599
 #, kde-format
 msgid "Recent Applications"
 msgstr "Nedávné aplikace"
 
-#: rootmodel.cpp:547
+#: rootmodel.cpp:599
 #, kde-format
 msgid "Often Used Applications"
 msgstr "Často používané aplikace"
 
-#: rootmodel.cpp:562
+#: rootmodel.cpp:614
 #, kde-format
 msgid "Power / Session"
 msgstr "Napájení / sezení"
 
-#: runnermodel.cpp:226
+#: runnermodel.cpp:303
 #, kde-format
 msgid "Search results"
 msgstr "Výsledky hledání"
@@ -292,7 +317,7 @@ msgstr "Restartovat počítač"
 msgid "Turn off computer"
 msgstr "Vypnout počítač"
 
-#: systemmodel.cpp:31
+#: systemmodel.cpp:30
 #, kde-format
 msgid "System actions"
 msgstr "Činnosti systému"

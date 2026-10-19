@@ -14,13 +14,18 @@
 #include <config-kmountpoint.h>
 #include <kioglobal_p.h> // Defines QT_LSTAT on windows to kio_windows_lstat
 
+#include <QCache>
 #include <QDebug>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QGlobalStatic>
+#include <QMutex>
 #include <QTextStream>
 
 #include <qplatformdefs.h>
+
+using namespace Qt::StringLiterals;
 
 #ifdef Q_OS_WIN
 #include <qt_windows.h>
@@ -49,7 +54,7 @@ static const Qt::CaseSensitivity cs = Qt::CaseSensitive;
 #if HAVE_LIB_MOUNT
 #include <libmount/libmount.h>
 #include <sys/sysmacros.h>
-#if HAVE_STATX_MNT_ID
+#if HAVE_STATX_MNT_ID_UNIQUE
 #include <fcntl.h>
 #include <sys/stat.h>
 #endif
@@ -58,21 +63,21 @@ static const Qt::CaseSensitivity cs = Qt::CaseSensitive;
 static bool isNetfs(const QString &mountType)
 {
     // List copied from util-linux/libmount/src/utils.c
-    static const std::vector<QLatin1String> netfsList{
-        QLatin1String("cifs"),
-        QLatin1String("smb3"),
-        QLatin1String("smbfs"),
-        QLatin1String("nfs"),
-        QLatin1String("nfs3"),
-        QLatin1String("nfs4"),
-        QLatin1String("afs"),
-        QLatin1String("ncpfs"),
-        QLatin1String("fuse.curlftpfs"),
-        QLatin1String("fuse.sshfs"),
-        QLatin1String("9p"),
+    static const std::vector<QLatin1StringView> netfsList{
+        "cifs"_L1,
+        "smb3"_L1,
+        "smbfs"_L1,
+        "nfs"_L1,
+        "nfs3"_L1,
+        "nfs4"_L1,
+        "afs"_L1,
+        "ncpfs"_L1,
+        "fuse.curlftpfs"_L1,
+        "fuse.sshfs"_L1,
+        "9p"_L1,
     };
 
-    return std::ranges::any_of(netfsList, [mountType](const QLatin1String &netfs) {
+    return std::ranges::any_of(netfsList, [mountType](QLatin1StringView netfs) {
         return mountType == netfs;
     });
 }
@@ -80,68 +85,68 @@ static bool isNetfs(const QString &mountType)
 static bool isPseudoFs(const QString &mountType)
 {
     // List copied from util-linux/libmount/src/utils.c mnt_fstype_is_pseudofs
-    static const std::vector<QLatin1String> pseudofsList{
-        QLatin1String("anon_inodefs"),
-        QLatin1String("apparmorfs"),
-        QLatin1String("autofs"),
-        QLatin1String("bdev"),
-        QLatin1String("binder"),
-        QLatin1String("binfmt_misc"),
-        QLatin1String("bpf"),
-        QLatin1String("cgroup"),
-        QLatin1String("cgroup2"),
-        QLatin1String("configfs"),
-        QLatin1String("cpuset"),
-        QLatin1String("debugfs"),
-        QLatin1String("devfs"),
-        QLatin1String("devpts"),
-        QLatin1String("devtmpfs"),
-        QLatin1String("dlmfs"),
-        QLatin1String("dmabuf"),
-        QLatin1String("drm"),
-        QLatin1String("efivarfs"),
-        QLatin1String("fuse"),
-        QLatin1String("fuse.archivemount"),
-        QLatin1String("fuse.avfsd"),
-        QLatin1String("fuse.dumpfs"),
-        QLatin1String("fuse.encfs"),
-        QLatin1String("fuse.gvfs-fuse-daemon"),
-        QLatin1String("fuse.gvfsd-fuse"),
-        QLatin1String("fuse.kio-fuse"),
-        QLatin1String("fuse.lxcfs"),
-        QLatin1String("fuse.portal"),
-        QLatin1String("fuse.rofiles-fuse"),
-        QLatin1String("fuse.vmware-vmblock"),
-        QLatin1String("fuse.xwmfs"),
-        QLatin1String("fusectl"),
-        QLatin1String("hugetlbfs"),
-        QLatin1String("ipathfs"),
-        QLatin1String("mqueue"),
-        QLatin1String("nfsd"),
-        QLatin1String("none"),
-        QLatin1String("nsfs"),
-        QLatin1String("overlay"),
-        QLatin1String("pidfs"),
-        QLatin1String("pipefs"),
-        QLatin1String("proc"),
-        QLatin1String("pstore"),
-        QLatin1String("ramfs"),
-        QLatin1String("resctrl"),
-        QLatin1String("rootfs"),
-        QLatin1String("rpc_pipefs"),
-        QLatin1String("securityfs"),
-        QLatin1String("selinuxfs"),
-        QLatin1String("smackfs"),
-        QLatin1String("sockfs"),
-        QLatin1String("spufs"),
-        QLatin1String("sysfs"),
-        QLatin1String("tmpfs"),
-        QLatin1String("tracefs"),
-        QLatin1String("vboxsf"),
-        QLatin1String("virtiofs"),
+    static const std::vector<QLatin1StringView> pseudofsList{
+        "anon_inodefs"_L1,
+        "apparmorfs"_L1,
+        "autofs"_L1,
+        "bdev"_L1,
+        "binder"_L1,
+        "binfmt_misc"_L1,
+        "bpf"_L1,
+        "cgroup"_L1,
+        "cgroup2"_L1,
+        "configfs"_L1,
+        "cpuset"_L1,
+        "debugfs"_L1,
+        "devfs"_L1,
+        "devpts"_L1,
+        "devtmpfs"_L1,
+        "dlmfs"_L1,
+        "dmabuf"_L1,
+        "drm"_L1,
+        "efivarfs"_L1,
+        "fuse"_L1,
+        "fuse.archivemount"_L1,
+        "fuse.avfsd"_L1,
+        "fuse.dumpfs"_L1,
+        "fuse.encfs"_L1,
+        "fuse.gvfs-fuse-daemon"_L1,
+        "fuse.gvfsd-fuse"_L1,
+        "fuse.kio-fuse"_L1,
+        "fuse.lxcfs"_L1,
+        "fuse.portal"_L1,
+        "fuse.rofiles-fuse"_L1,
+        "fuse.vmware-vmblock"_L1,
+        "fuse.xwmfs"_L1,
+        "fusectl"_L1,
+        "hugetlbfs"_L1,
+        "ipathfs"_L1,
+        "mqueue"_L1,
+        "nfsd"_L1,
+        "none"_L1,
+        "nsfs"_L1,
+        "overlay"_L1,
+        "pidfs"_L1,
+        "pipefs"_L1,
+        "proc"_L1,
+        "pstore"_L1,
+        "ramfs"_L1,
+        "resctrl"_L1,
+        "rootfs"_L1,
+        "rpc_pipefs"_L1,
+        "securityfs"_L1,
+        "selinuxfs"_L1,
+        "smackfs"_L1,
+        "sockfs"_L1,
+        "spufs"_L1,
+        "sysfs"_L1,
+        "tmpfs"_L1,
+        "tracefs"_L1,
+        "vboxsf"_L1,
+        "virtiofs"_L1,
     };
 
-    return std::ranges::any_of(pseudofsList, [mountType](const QLatin1String &pseudofs) {
+    return std::ranges::any_of(pseudofsList, [mountType](QLatin1StringView pseudofs) {
         return mountType == pseudofs;
     });
 }
@@ -159,7 +164,7 @@ public:
     QString m_mountType;
     QStringList m_mountOptions;
     dev_t m_deviceId = 0;
-    // the mount id seems to start at 1. 0 should be safe as a undefined default
+    // The unique mount id (STATX_MNT_ID_UNIQUE) when the kernel provides it, 0 otherwise.
     quint64 m_mountId = 0;
     bool m_isNetFs = false;
     bool m_isPseudoFs = false;
@@ -214,10 +219,10 @@ static void translateMountOptions(QStringList &list, uint64_t flags)
 void KMountPointPrivate::finalizePossibleMountPoint(KMountPoint::DetailsNeededFlags infoNeeded)
 {
     QString potentialDevice;
-    if (const auto tag = QLatin1String("UUID="); m_mountedFrom.startsWith(tag)) {
-        potentialDevice = QFile::symLinkTarget(QLatin1String("/dev/disk/by-uuid/") + QStringView(m_mountedFrom).mid(tag.size()));
-    } else if (const auto tag = QLatin1String("LABEL="); m_mountedFrom.startsWith(tag)) {
-        potentialDevice = QFile::symLinkTarget(QLatin1String("/dev/disk/by-label/") + QStringView(m_mountedFrom).mid(tag.size()));
+    if (const auto tag = "UUID="_L1; m_mountedFrom.startsWith(tag)) {
+        potentialDevice = QFile::symLinkTarget("/dev/disk/by-uuid/"_L1 + QStringView(m_mountedFrom).mid(tag.size()));
+    } else if (const auto tag = "LABEL="_L1; m_mountedFrom.startsWith(tag)) {
+        potentialDevice = QFile::symLinkTarget("/dev/disk/by-label/"_L1 + QStringView(m_mountedFrom).mid(tag.size()));
     }
 
     if (QFile::exists(potentialDevice)) {
@@ -290,7 +295,7 @@ KMountPoint::List KMountPoint::possibleMountPoints(DetailsNeededFlags infoNeeded
     }
 #elif HAVE_FSTAB_H
 
-    QFile f{QLatin1String(FSTAB)};
+    QFile f{QLatin1StringView(FSTAB)};
     if (!f.open(QIODevice::ReadOnly)) {
         return result;
     }
@@ -317,7 +322,7 @@ KMountPoint::List KMountPoint::possibleMountPoints(DetailsNeededFlags infoNeeded
         mp->d->m_mountedFrom = item[i++];
         mp->d->m_mountPoint = item[i++];
         mp->d->m_mountType = item[i++];
-        if (mp->d->m_mountType == QLatin1String("swap")) {
+        if (mp->d->m_mountType == "swap"_L1) {
             continue;
         }
         mp->d->m_isNetFs = isNetfs(mp->d->m_mountType);
@@ -341,7 +346,7 @@ KMountPoint::List KMountPoint::possibleMountPoints(DetailsNeededFlags infoNeeded
 
 void KMountPointPrivate::resolveGvfsMountPoints(KMountPoint::List &result)
 {
-    if (m_mountedFrom == QLatin1String("gvfsd-fuse")) {
+    if (m_mountedFrom == "gvfsd-fuse"_L1) {
         const QDir gvfsDir(m_mountPoint);
         const QStringList mountDirs = gvfsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
         for (const QString &mountDir : mountDirs) {
@@ -414,7 +419,7 @@ KMountPoint::List KMountPoint::currentMountPoints(DetailsNeededFlags infoNeeded)
     for (int i = 0; i < 26; i++) {
         if (bits & (1 << i)) {
             Ptr mp(new KMountPoint);
-            mp->d->m_mountPoint = QString(QLatin1Char('A' + i) + QLatin1String(":/"));
+            mp->d->m_mountPoint = QString(QLatin1Char('A' + i) + ":/"_L1);
             result.append(mp);
         }
     }
@@ -431,7 +436,7 @@ KMountPoint::List KMountPoint::currentMountPoints(DetailsNeededFlags infoNeeded)
             mnt_table_parse_mtab(table, "/proc/self/mountinfo")
 #endif
             == 0) {
-            struct libmnt_iter *itr = mnt_new_iter(MNT_ITER_FORWARD);
+            struct libmnt_iter *itr = mnt_new_iter(MNT_ITER_BACKWARD);
             struct libmnt_fs *fs;
 
             while (mnt_table_next_fs(table, itr, &fs) == 0) {
@@ -441,18 +446,19 @@ KMountPoint::List KMountPoint::currentMountPoints(DetailsNeededFlags infoNeeded)
                 mp->d->m_mountedFrom = QFile::decodeName(mnt_fs_get_source(fs));
                 mp->d->m_mountType = QFile::decodeName(mnt_fs_get_fstype(fs));
                 mp->d->m_isNetFs = mnt_fs_is_netfs(fs) == 1;
-                mp->d->m_isPseudoFs = mnt_fs_is_pseudofs(fs) == 1 || mp->d->m_mountType == QLatin1String("fuse.kio-fuse");
+                mp->d->m_isPseudoFs = mnt_fs_is_pseudofs(fs) == 1 || mp->d->m_mountType == "fuse.kio-fuse"_L1;
 
                 uint mask_mnt_id = 0;
 #if HAVE_STATX_MNT_ID_UNIQUE
-                mask_mnt_id = STATX_MNT_ID_UNIQUE | STATX_MNT_ID;
-#elif HAVE_STATX_MNT_ID
-                mask_mnt_id = STATX_MNT_ID;
+                // Only the unique mount id, which is never reused while the system is up and
+                // is therefore safe to cache. A non-zero m_mountId always means a unique id;
+                // on a kernel too old to provide it statx clears the bit and m_mountId stays 0.
+                mask_mnt_id = STATX_MNT_ID_UNIQUE;
 #endif
 
                 if (struct statx buff; statx(AT_FDCWD, target, AT_STATX_DONT_SYNC | AT_NO_AUTOMOUNT, STATX_INO | mask_mnt_id, &buff) == 0) {
                     mp->d->m_deviceId = makedev(buff.stx_dev_major, buff.stx_dev_minor);
-#if HAVE_STATX_MNT_ID
+#if HAVE_STATX_MNT_ID_UNIQUE
                     if (buff.stx_mask & mask_mnt_id) {
                         mp->d->m_mountId = (quint64)buff.stx_mnt_id;
                     }
@@ -506,8 +512,7 @@ bool KMountPoint::isPseudoFs() const
 
 bool KMountPoint::isEncryptedFs() const
 {
-    return d->m_mountType == QLatin1String("fuse.gocryptfs")
-        || d->m_mountType == QLatin1String("fuse.encfs");
+    return d->m_mountType == "fuse.gocryptfs"_L1 || d->m_mountType == "fuse.encfs"_L1;
 }
 
 QString KMountPoint::realDeviceName() const
@@ -547,11 +552,8 @@ KMountPoint::Ptr KMountPoint::List::findByPath(const QString &path) const
 #endif
 
     KMountPoint::Ptr result;
-#if HAVE_STATX_MNT_ID
-    uint mask = STATX_MNT_ID;
 #if HAVE_STATX_MNT_ID_UNIQUE
-    mask |= STATX_MNT_ID_UNIQUE;
-#endif
+    uint mask = STATX_MNT_ID_UNIQUE;
     // If we have statx, there is no need to guess. take the mount id from statx and get the mountpoint.
     if (struct statx buff; statx(0, QFile::encodeName(path).constData(), AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT, mask, &buff) == 0 && (buff.stx_mask & mask)) {
         auto it = std::find_if(this->cbegin(), this->cend(), [&buff](const KMountPoint::Ptr &mountPtr) {
@@ -563,7 +565,6 @@ KMountPoint::Ptr KMountPoint::List::findByPath(const QString &path) const
         }
     }
 #endif
-
 
     if (QT_STATBUF buff; QT_LSTAT(QFile::encodeName(realPath).constData(), &buff) == 0) {
         auto it = std::find_if(this->cbegin(), this->cend(), [&buff, &realPath](const KMountPoint::Ptr &mountPtr) {
@@ -597,7 +598,7 @@ KMountPoint::Ptr KMountPoint::List::findByDevice(const QString &device) const
 
 KMountPoint::Ptr KMountPoint::List::findByMountId(quint64 mountId) const
 {
-#if HAVE_STATX_MNT_ID
+#if HAVE_STATX_MNT_ID_UNIQUE
     Q_ASSERT(mountId);
     for (const KMountPoint::Ptr &mountPoint : *this) {
         if (mountPoint->d->m_mountId == mountId) {
@@ -610,35 +611,173 @@ KMountPoint::Ptr KMountPoint::List::findByMountId(quint64 mountId) const
     return Ptr();
 }
 
+namespace
+{
+// Small process-wide cache of unique-mount-id -> mount point. A STATX_MNT_ID_UNIQUE
+// id is never reused while the system is running and always denotes the same mount, so
+// a cached entry never points at a different mount; a miss means a mount we have not seen
+// yet and the table is re-read once. QCache bounds the size and drops the least recently
+// used entries. The cache only ever holds unique ids, so on a kernel without
+// STATX_MNT_ID_UNIQUE it stays empty and every lookup falls through to a reparse.
+//
+// A mount can, however, keep its unique id while its mountPoint()/mountOptions() change
+// under it ("mount --move", "mount -o remount"). To avoid serving a stale snapshot, a
+// libmount monitor watches the kernel mount table and the entries still in the cache are
+// refreshed from a single re-read whenever anything has changed since the last lookup.
+struct MountIdCache {
+    QMutex mutex;
+    QCache<quint64, KMountPoint::Ptr> byUniqueId;
+    // A copy touches its source and destination mount; browsing spans a few mounts.
+    MountIdCache()
+        : byUniqueId(16)
+    {
+    }
+
+// The monitor only matters when the cache can hold entries, which needs a unique
+// mount id; without STATX_MNT_ID_UNIQUE the cache stays empty and there is nothing
+// to invalidate, so do not compile or arm it.
+#if HAVE_LIB_MOUNT && HAVE_STATX_MNT_ID_UNIQUE
+    struct libmnt_monitor *monitor = nullptr;
+    bool monitorSetUp = false;
+
+    ~MountIdCache()
+    {
+        if (monitor) {
+            mnt_unref_monitor(monitor);
+        }
+    }
+
+    // Called with mutex held. When the mount table has changed since the last check,
+    // refresh the entries we currently hold from a single re-read: a mount keeps its
+    // unique id across "mount --move"/"mount -o remount", so its mountPoint()/
+    // mountOptions() may have changed, and a mount that went away is dropped. Only
+    // bothers when the cache actually stores entries.
+    void refreshCacheIfMountsChanged()
+    {
+        if (byUniqueId.maxCost() <= 1) {
+            return;
+        }
+        if (!monitorSetUp) {
+            monitorSetUp = true;
+            monitor = mnt_new_monitor();
+            if (monitor && mnt_monitor_enable_kernel(monitor, 1) < 0) {
+                mnt_unref_monitor(monitor);
+                monitor = nullptr;
+            }
+        }
+        if (!monitor) {
+            return;
+        }
+        // Non-blocking poll: has anything changed since we last drained the monitor?
+        if (mnt_monitor_wait(monitor, 0) <= 0) {
+            return;
+        }
+        // Drain the queued events so the monitor is armed for the next change.
+        const char *filename = nullptr;
+        int eventType = 0;
+        while (mnt_monitor_next_change(monitor, &filename, &eventType) == 0) { }
+        // Re-read the table once and update only the ids we still hold.
+        const QList<quint64> cachedIds = byUniqueId.keys();
+        if (cachedIds.isEmpty()) {
+            return;
+        }
+        const KMountPoint::List mounts = KMountPoint::currentMountPoints();
+        for (const quint64 id : cachedIds) {
+            if (const KMountPoint::Ptr fresh = mounts.findByMountId(id)) {
+                byUniqueId.insert(id, new KMountPoint::Ptr(fresh));
+            } else {
+                byUniqueId.remove(id);
+            }
+        }
+    }
+#else
+    void refreshCacheIfMountsChanged()
+    {
+    }
+#endif
+};
+}
+Q_GLOBAL_STATIC(MountIdCache, s_mountIdCache)
+
+KMountPoint::Ptr KMountPoint::currentMountPointForUniqueId(quint64 uniqueMountId)
+{
+    if (uniqueMountId == 0) {
+        return Ptr();
+    }
+#if HAVE_STATX_MNT_ID_UNIQUE
+    MountIdCache *cache = s_mountIdCache();
+    {
+        QMutexLocker locker(&cache->mutex);
+        cache->refreshCacheIfMountsChanged();
+        if (Ptr *hit = cache->byUniqueId.object(uniqueMountId)) {
+            return *hit;
+        }
+    }
+    // Miss: re-read the mount table once (done outside the lock) and look the id up.
+    const List mounts = currentMountPoints();
+    const Ptr mp = mounts.findByMountId(uniqueMountId);
+    if (mp) {
+        // m_mountId only ever holds a unique id (see currentMountPoints()), so a match
+        // here will keep denoting this same mount and is safe to cache.
+        QMutexLocker locker(&cache->mutex);
+        cache->byUniqueId.insert(uniqueMountId, new Ptr(mp));
+    }
+    return mp;
+#else
+    return currentMountPoints().findByMountId(uniqueMountId);
+#endif
+}
+
+KMountPoint::Ptr KMountPoint::currentMountPointForPath(const QString &path)
+{
+#if HAVE_STATX_MNT_ID_UNIQUE
+    // Resolve the path's unique mount id with a single statx and serve it from the id
+    // cache, so repeated lookups under the same mount do not re-read the mount table.
+    if (struct statx buff; statx(AT_FDCWD, QFile::encodeName(path).constData(), AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT, STATX_MNT_ID_UNIQUE, &buff) == 0
+        && (buff.stx_mask & STATX_MNT_ID_UNIQUE)) {
+        return currentMountPointForUniqueId(buff.stx_mnt_id);
+    }
+#endif
+    return currentMountPoints().findByPath(path);
+}
+
 bool KMountPoint::probablySlow() const
 {
     /* clang-format off */
     return isOnNetwork()
-        || d->m_mountType == QLatin1String("autofs")
-        || d->m_mountType == QLatin1String("subfs")
-        // Technically KIOFUSe mounts local workers as well,
-        // such as recents:/, but better safe than sorry...
-        || d->m_mountType == QLatin1String("fuse.kio-fuse");
+        || d->m_mountType == "autofs"_L1
+        || d->m_mountType == "subfs"_L1
+        // Naive check, would be better for KmountPoint to distinguish fuse blk from fuse dev itself in the future
+        || d->m_mountType.startsWith("fuse."_L1) && !d->m_mountedFrom.startsWith("/dev/"_L1);
     /* clang-format on */
 }
 
 bool KMountPoint::testFileSystemFlag(FileSystemFlag flag) const
 {
     /* clang-format off */
-    const bool isMsDos = d->m_mountType == QLatin1String("msdos")
-                         || d->m_mountType == QLatin1String("fat")
-                         || d->m_mountType == QLatin1String("vfat");
+    const bool isMsDos = d->m_mountType == "msdos"_L1
+                         || d->m_mountType == "fat"_L1
+                         || d->m_mountType == "vfat"_L1;
 
-    const bool isNtfs = d->m_mountType.contains(QLatin1String("fuse.ntfs"))
-                        || d->m_mountType.contains(QLatin1String("fuseblk.ntfs"))
+    const bool isNtfs = d->m_mountType.contains("fuse.ntfs"_L1)
+                        || d->m_mountType.contains("fuseblk.ntfs"_L1)
                         // fuseblk could really be anything. But its most common use is for NTFS mounts, these days.
-                        || d->m_mountType == QLatin1String("fuseblk");
+                        || d->m_mountType == "fuseblk"_L1;
 
-    const bool isSmb = d->m_mountType == QLatin1String("cifs")
-                       || d->m_mountType == QLatin1String("smb3")
-                       || d->m_mountType == QLatin1String("smbfs")
+    const bool isSmb = d->m_mountType == "cifs"_L1
+                       || d->m_mountType == "smb3"_L1
+                       || d->m_mountType == "smbfs"_L1
                        // gvfs-fuse mounted SMB share
-                       || d->m_mountType == QLatin1String("smb-share");
+                       || d->m_mountType == "smb-share"_L1;
+
+    // Copy-on-write filesystems. Whether one of these clones a particular file is still up to the
+    // filesystem itself: XFS only does it when it was made with reflink support, and ZFS only from
+    // the version that brought block cloning.
+    const bool clonesFiles = d->m_mountType == "btrfs"_L1
+                             || d->m_mountType == "xfs"_L1
+                             || d->m_mountType == "bcachefs"_L1
+                             || d->m_mountType == "ocfs2"_L1
+                             || d->m_mountType == "zfs"_L1;
     /* clang-format on */
 
     switch (flag) {
@@ -649,6 +788,8 @@ bool KMountPoint::testFileSystemFlag(FileSystemFlag flag) const
         return !isMsDos && !isNtfs && !isSmb; // it's amazing the number of things Microsoft filesystems don't support :)
     case CaseInsensitive:
         return isMsDos;
+    case SupportsFileCloning:
+        return clonesFiles;
     }
     return false;
 }

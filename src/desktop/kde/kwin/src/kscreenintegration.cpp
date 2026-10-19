@@ -24,6 +24,7 @@ namespace KWin
 {
 namespace KScreenIntegration
 {
+
 /// See KScreen::Output::hashMd5
 static QString outputHash(BackendOutput *output)
 {
@@ -35,7 +36,7 @@ static QString outputHash(BackendOutput *output)
 }
 
 /// See KScreen::Config::connectedOutputsHash in libkscreen
-QString connectedOutputsHash(const QList<BackendOutput *> &outputs, bool isLidClosed)
+static QString connectedOutputsHash(const QList<BackendOutput *> &outputs, bool isLidClosed)
 {
     QStringList hashedOutputs;
     hashedOutputs.reserve(outputs.count());
@@ -53,8 +54,9 @@ QString connectedOutputsHash(const QList<BackendOutput *> &outputs, bool isLidCl
     return QString::fromLatin1(hash.toHex());
 }
 
-static QHash<BackendOutput *, QJsonObject> outputsConfig(const QList<BackendOutput *> &outputs, const QString &hash)
+static QHash<BackendOutput *, QJsonObject> outputsConfig(const QList<BackendOutput *> &outputs, bool isLidClosed)
 {
+    const QString hash = connectedOutputsHash(outputs, isLidClosed);
     const QString kscreenJsonPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("kscreen/") % hash);
     if (kscreenJsonPath.isEmpty()) {
         return {};
@@ -93,15 +95,15 @@ static QHash<BackendOutput *, QJsonObject> outputsConfig(const QList<BackendOutp
     const auto outputsJson = doc.array();
     for (const auto &outputJson : outputsJson) {
         const auto outputObject = outputJson.toObject();
-        const auto id = outputObject[QLatin1String("id")];
+        const auto id = outputObject[QLatin1StringView("id")];
         const auto output = std::find_if(outputs.begin(), outputs.end(), [&duplicate, &id, &outputObject](BackendOutput *output) {
             if (outputHash(output) != id.toString()) {
                 return false;
             }
             if (duplicate[output]) {
                 // can't distinguish between outputs by hash alone, need to look at connector names
-                const auto metadata = outputObject[QLatin1String("metadata")];
-                const auto outputName = metadata[QLatin1String("name")].toString();
+                const auto metadata = outputObject[QLatin1StringView("metadata")];
+                const auto outputName = metadata[QLatin1StringView("name")].toString();
                 return outputName == output->name();
             } else {
                 return true;
@@ -164,22 +166,28 @@ OutputTransform toKWinTransform(int rotation)
     }
 }
 
-std::shared_ptr<OutputMode> parseMode(BackendOutput *output, const QJsonObject &modeInfo)
+std::optional<OutputModeline> parseMode(BackendOutput *output, const QJsonObject &modeInfo)
 {
     const QJsonObject size = modeInfo["size"].toObject();
     const QSize modeSize = QSize(size["width"].toInt(), size["height"].toInt());
     const uint32_t refreshRate = std::round(modeInfo["refresh"].toDouble() * 1000);
 
-    const auto modes = output->modes();
-    auto it = std::find_if(modes.begin(), modes.end(), [&modeSize, &refreshRate](const auto &mode) {
-        return mode->size() == modeSize && mode->refreshRate() == refreshRate;
-    });
-    return (it != modes.end()) ? *it : nullptr;
+    const auto availableModes = output->modes();
+    for (const auto &mode : availableModes) {
+        if (mode->isRemoved()) {
+            continue;
+        }
+        if (mode->size() == modeSize && mode->refreshRate() == refreshRate) {
+            return mode->modeline();
+        }
+    }
+
+    return std::nullopt;
 }
 
-std::optional<OutputConfiguration> readOutputConfig(const QList<BackendOutput *> &outputs, const QString &hash)
+std::optional<OutputConfiguration> readOutputConfig(const QList<BackendOutput *> &outputs, bool isLidClosed)
 {
-    const auto outputsInfo = outputsConfig(outputs, hash);
+    const auto outputsInfo = outputsConfig(outputs, isLidClosed);
     if (outputsInfo.isEmpty()) {
         return std::nullopt;
     }
@@ -234,7 +242,7 @@ std::optional<OutputConfiguration> readOutputConfig(const QList<BackendOutput *>
 
             if (const QJsonObject modeInfo = globalInfo["mode"].toObject(); !modeInfo.isEmpty()) {
                 if (auto mode = KScreenIntegration::parseMode(output, modeInfo)) {
-                    props->mode = mode;
+                    props->currentMode = mode;
                 }
             }
         } else {
@@ -242,12 +250,11 @@ std::optional<OutputConfiguration> readOutputConfig(const QList<BackendOutput *>
             props->pos = pos;
             props->transform = output->panelOrientation();
         }
-        const auto mode = props->mode.value_or(output->currentMode()).lock();
-        if (!mode) {
-            qCWarning(KWIN_CORE) << "Every enabled output should have a mode";
-            continue;
-        }
-        const double width = mode->size().width() / props->scale.value_or(output->scale());
+
+        const QSize modeSize = props->currentMode.transform([](const auto &modeline) {
+            return modeline.size();
+        }).value_or(output->modeSize());
+        const double width = modeSize.width() / props->scale.value_or(output->scale());
         pos.setX(pos.x() + std::round(width));
     }
 
@@ -260,5 +267,6 @@ std::optional<OutputConfiguration> readOutputConfig(const QList<BackendOutput *>
     }
     return cfg;
 }
+
 }
 }

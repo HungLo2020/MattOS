@@ -29,8 +29,9 @@ QT_BEGIN_NAMESPACE
 
     \table
     \row
-        \li \inlineimage qline-point.png
+        \li \inlineimage qline-point.png {Line with p1, p2, dx, dy labeled}
         \li \inlineimage qline-coordinates.png
+                         {Line with x1, y1, x2, y2, dx, dy labeled}
     \endtable
 
     The positions of the line's start and end points can be retrieved
@@ -307,8 +308,9 @@ QDataStream &operator>>(QDataStream &stream, QLine &line)
 
     \table
     \row
-        \li \inlineimage qline-point.png
+        \li \inlineimage qline-point.png {Line with p1, p2, dx, dy labeled}
         \li \inlineimage qline-coordinates.png
+                         {Line with x1, y1, x2, y2, dx, dy labeled}
     \endtable
 
     The positions of the line's start and end points can be retrieved
@@ -346,7 +348,7 @@ QDataStream &operator>>(QDataStream &stream, QLine &line)
 
 /*!
     \typealias QLineF::IntersectType
-    \deprecated Use QLineF::IntersectionType instead.
+    \deprecated [5.14] Use QLineF::IntersectionType instead.
 */
 
 /*!
@@ -357,7 +359,8 @@ QDataStream &operator>>(QDataStream &stream, QLine &line)
     \table
     \row
     \li \inlineimage qlinef-unbounded.png
-    \li \inlineimage qlinef-bounded.png
+                     {Two lines with extensions intersecting}
+    \li \inlineimage qlinef-bounded.png {Two lines intersecting within bounds}
     \row
     \li QLineF::UnboundedIntersection
     \li QLineF::BoundedIntersection

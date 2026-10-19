@@ -29,6 +29,7 @@ using namespace KWin;
 class KeyboardShortcutsInhibitManager : public QObject, public QtWayland::zwp_keyboard_shortcuts_inhibit_manager_v1
 {
     Q_OBJECT
+
 public:
     KeyboardShortcutsInhibitManager(wl_registry *registry, quint32 id, quint32 version)
         : QtWayland::zwp_keyboard_shortcuts_inhibit_manager_v1(registry, id, version)
@@ -39,6 +40,7 @@ public:
 class KeyboardShortcutsInhibitor : public QObject, public QtWayland::zwp_keyboard_shortcuts_inhibitor_v1
 {
     Q_OBJECT
+
 public:
     KeyboardShortcutsInhibitor(::zwp_keyboard_shortcuts_inhibitor_v1 *inhibitorV1)
         : QtWayland::zwp_keyboard_shortcuts_inhibitor_v1(inhibitorV1)
@@ -63,6 +65,7 @@ Q_SIGNALS:
 class TestKeyboardShortcutsInhibitorInterface : public QObject
 {
     Q_OBJECT
+
 public:
     TestKeyboardShortcutsInhibitorInterface()
     {
@@ -90,11 +93,9 @@ private:
     KeyboardShortcutsInhibitManager *m_inhibitManagerClient = nullptr;
 };
 
-static const QString s_socketName = QStringLiteral("kwin-wayland-server-keyboard-shortcuts-inhibitor-test-0");
-
 void TestKeyboardShortcutsInhibitorInterface::initTestCase()
 {
-    m_display.addSocketName(s_socketName);
+    m_display.addSocketName(qAppName());
     m_display.start();
     QVERIFY(m_display.isRunning());
 
@@ -109,7 +110,7 @@ void TestKeyboardShortcutsInhibitorInterface::initTestCase()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);

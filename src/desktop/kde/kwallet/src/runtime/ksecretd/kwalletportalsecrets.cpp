@@ -19,8 +19,6 @@ KWalletPortalSecrets::KWalletPortalSecrets(KSecretD *parent)
 
     QDBusConnection::sessionBus().registerObject(QStringLiteral("/org/freedesktop/portal/desktop"), this, QDBusConnection::ExportAdaptors);
     QDBusConnection::sessionBus().registerService(QStringLiteral("org.freedesktop.impl.portal.desktop.kwallet"));
-
-    connect(m_kwalletd, &KSecretD::walletAsyncOpened, this, &KWalletPortalSecrets::walletOpened);
 }
 
 uint KWalletPortalSecrets::RetrieveSecret(const QDBusObjectPath &handle,
@@ -35,34 +33,34 @@ uint KWalletPortalSecrets::RetrieveSecret(const QDBusObjectPath &handle,
 
     setDelayedReply(true);
 
-    const QString wallet = m_kwalletd->networkWallet();
-
-    int transactionId = m_kwalletd->openAsync(wallet, 0, "xdg-desktop-portal", false, connection(), message());
     Request request{message(), fd.fileDescriptor(), app_id};
-    m_pendingRequests.insert(transactionId, request);
+
+    auto future = m_kwalletd->open(KWallet::Backend::networkWallet(), 0);
+    future.then(this, [this, request](int walletHandle) {
+        walletOpened(request, walletHandle);
+    });
 
     return 0;
 }
 
-void KWalletPortalSecrets::walletOpened(int transactionId, int walletHandle)
+void KWalletPortalSecrets::walletOpened(const Request &request, int walletHandle)
 {
-    if (!m_pendingRequests.contains(transactionId)) {
-        // wallet open request was not from us
+    if (walletHandle == -1) {
+        const auto replyList = QVariantList{{(uint)2}, {{QVariantMap{}}}};
+        auto reply = request.message.createReply(replyList);
+        QDBusConnection::sessionBus().send(reply);
         return;
     }
 
-    const Request request = m_pendingRequests.take(transactionId);
-
-    bool exists = m_kwalletd->hasEntry(walletHandle, "xdg-desktop-portal", request.appId, "xdg-desktop-portal");
+    bool exists = m_kwalletd->hasEntry(walletHandle, "xdg-desktop-portal", request.appId);
 
     QByteArray secret;
 
     if (exists) {
-        secret = m_kwalletd->readEntry(walletHandle, "xdg-desktop-portal", request.appId, "xdg-desktop-portal");
+        secret = m_kwalletd->readEntry(walletHandle, "xdg-desktop-portal", request.appId);
     } else {
         secret = generateSecret();
-        m_kwalletd->writeEntry(walletHandle, "xdg-desktop-portal", request.appId, secret, "xdg-desktop-portal");
-        m_kwalletd->sync(walletHandle, "xdg-desktop-portal");
+        m_kwalletd->writeEntry(walletHandle, "xdg-desktop-portal", request.appId, secret, KWallet::Wallet::Stream);
     }
 
     QFile outFile;

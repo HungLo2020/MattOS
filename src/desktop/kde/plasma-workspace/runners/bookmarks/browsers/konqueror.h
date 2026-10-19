@@ -16,7 +16,7 @@ class KDEFavicon : public Favicon
 {
     Q_OBJECT
 public:
-    explicit KDEFavicon(QObject *parent = nullptr);
+    explicit KDEFavicon();
     QIcon iconFor(const QString &url) override;
 };
 
@@ -24,7 +24,7 @@ class Konqueror : public QObject, public Browser
 {
     Q_OBJECT
 public:
-    explicit Konqueror(QObject *parent = nullptr);
+    explicit Konqueror();
     QList<BookmarkMatch> match(const QString &term, bool addEverything) override;
 
 public Q_SLOTS:
@@ -34,5 +34,5 @@ public Q_SLOTS:
 
 private:
     KBookmarkManager *m_bookmarkManager;
-    Favicon *const m_favicon;
+    std::unique_ptr<Favicon> m_favicon;
 };

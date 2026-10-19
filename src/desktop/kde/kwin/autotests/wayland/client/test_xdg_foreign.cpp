@@ -24,6 +24,7 @@
 class TestForeign : public QObject
 {
     Q_OBJECT
+
 public:
     explicit TestForeign(QObject *parent = nullptr);
 private Q_SLOTS:
@@ -63,8 +64,6 @@ private:
     QThread *m_thread;
 };
 
-static const QString s_socketName = QStringLiteral("kwayland-test-xdg-foreign-0");
-
 TestForeign::TestForeign(QObject *parent)
     : QObject(parent)
     , m_display(nullptr)
@@ -83,7 +82,7 @@ void TestForeign::init()
     using namespace KWin;
     delete m_display;
     m_display = new KWin::Display(this);
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
 
@@ -91,7 +90,7 @@ void TestForeign::init()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);

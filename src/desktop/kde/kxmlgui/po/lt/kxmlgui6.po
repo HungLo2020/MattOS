@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-28 00:41+0000\n"
-"PO-Revision-Date: 2024-08-25 23:11+0300\n"
+"POT-Creation-Date: 2026-09-23 00:42+0000\n"
+"PO-Revision-Date: 2026-09-24 18:45+0300\n"
 "Last-Translator: Andrius Štikonas <andrius@stikonas.eu>\n"
 "Language-Team: Lithuanian <kde-i18n-lt@kde.org>\n"
 "Language: lt\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n%10>=2 && (n%100<10 || n"
 "%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.9\n"
 
 #: kaboutapplicationdialog.cpp:60 kaboutplugindialog.cpp:65
 #, kde-format
@@ -71,10 +71,9 @@ msgid "About KDE"
 msgstr "Apie KDE"
 
 #: kaboutkdedialog_p.cpp:34
-#, fuzzy, kde-format
-#| msgid "<html><font size=\"5\">%1</font><br />Version %2</html>"
+#, kde-format
 msgid "<html><font size=\"5\">KDE</font><br />Be Free!</html>"
-msgstr "<html><font size=\"5\">%1</font><br />Versija %2</html>"
+msgstr "<html><font size=\"5\">KDE</font><br />Būkite laisvi!</html>"
 
 #: kaboutkdedialog_p.cpp:45
 #, kde-format
@@ -210,11 +209,7 @@ msgid "License: %1"
 msgstr "Licencija: %1"
 
 #: kabstractaboutdialog_p.cpp:118
-#, fuzzy, kde-format
-#| msgctxt ""
-#| "%1 is the operating system name, e.g. 'Windows 10', %2 is the CPU "
-#| "architecture, e.g. 'x86_64'"
-#| msgid "%1 (%2)"
+#, kde-format
 msgctxt "@info Platform name"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
@@ -228,7 +223,7 @@ msgstr "KDE Frameworks"
 #, kde-format
 msgctxt "@info"
 msgid "Collection of libraries created by the KDE Community to extend Qt."
-msgstr ""
+msgstr "KDE bendruomenės sukurtų bibliotekų rinkinys, skirtas išplėsti Qt."
 
 #: kabstractaboutdialog_p.cpp:128
 #, kde-format
@@ -239,47 +234,45 @@ msgstr "Qt"
 #, kde-format
 msgctxt "@info"
 msgid "Cross-platform application development framework."
-msgstr ""
+msgstr "Daugiaplatformis programų plėtojimo karkasas."
 
 #: kabstractaboutdialog_p.cpp:130
-#, fuzzy, kde-format
-#| msgid "%1 (built against %2)"
+#, kde-format
 msgid "Using %1 and built against %2"
-msgstr "%1 (sudaryta remiantis %2)"
+msgstr "Naudoja %1 ir sudaryta remiantis %2"
 
 #: kabstractaboutdialog_p.cpp:136
 #, kde-format
 msgctxt "Linux packaging format"
 msgid "Flatpak"
-msgstr ""
+msgstr "Flatpak"
 
 #: kabstractaboutdialog_p.cpp:139
 #, kde-format
 msgctxt "Linux packaging format"
 msgid "Snap"
-msgstr ""
+msgstr "Snap"
 
 #: kabstractaboutdialog_p.cpp:142
 #, kde-format
 msgctxt "Linux packaging format"
 msgid "AppImage"
-msgstr ""
+msgstr "AppImage"
 
 #: kabstractaboutdialog_p.cpp:145
 #, kde-format
 msgctxt "@info"
 msgid "Distribution method."
-msgstr ""
+msgstr "Platinimo metodas."
 
 #: kabstractaboutdialog_p.cpp:148
 #, kde-format
 msgctxt "@info"
 msgid "Underlying platform."
-msgstr ""
+msgstr "Pagrindinė platforma."
 
 #: kabstractaboutdialog_p.cpp:176
-#, fuzzy, kde-format
-#| msgid "Visit component's homepage"
+#, kde-format
 msgctxt "@action:button"
 msgid "Visit component's homepage"
 msgstr "Apsilankyti komponento internetinėje svetainėje"
@@ -298,48 +291,35 @@ msgstr ""
 #, kde-format
 msgctxt "@action:button"
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Kopijuoti į iškarpinę"
 
 #: kabstractaboutdialog_p.cpp:259
-#, fuzzy, kde-format
-#| msgid "Visit contributor's homepage"
+#, kde-format
 msgctxt "@action:button"
 msgid "Visit author's homepage"
-msgstr "Apsilankyti talkininko internetinėje svetainėje"
+msgstr "Apsilankyti autoriaus internetinėje svetainėje"
 
 #: kabstractaboutdialog_p.cpp:260
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid ""
-#| "Visit contributor's homepage\n"
-#| "%1"
+#, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "Visit author's homepage\n"
 "%1"
 msgstr ""
-"Apsilankyti talkininko internetinėje svetainėje\n"
+"Apsilankyti autoriaus internetinėje svetainėje\n"
 "%1"
 
 #: kabstractaboutdialog_p.cpp:274
-#, fuzzy, kde-format
-#| msgctxt "Action to send an email to a contributor"
-#| msgid "Email contributor"
+#, kde-format
 msgctxt "@action:button Send an email to a contributor"
 msgid "Email contributor"
 msgstr "Parašyti talkininkui el. laišką"
 
 #: kabstractaboutdialog_p.cpp:275
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip Action to send an email to a contributor"
-#| msgid ""
-#| "Email contributor\n"
-#| "%1"
+#, kde-format
 msgctxt "@info:tooltip"
 msgid "Email contributor: %1"
-msgstr ""
-"Parašyti talkininkui el. laišką, adresu\n"
-"%1"
+msgstr "Parašyti talkininkui el. laišką, adresu: %1"
 
 #: kabstractaboutdialog_p.cpp:314
 #, kde-format
@@ -348,6 +328,8 @@ msgid ""
 "Please use %1 to report bugs.<br/>If you have questions or need help, please "
 "visit %2.<br/>"
 msgstr ""
+"Norėdami pranešti apie klaidas, naudokite %1.<br/>Jei turite klausimų ar "
+"jums reikalinga pagalba, apsilankykite %2.<br/>"
 
 #: kabstractaboutdialog_p.cpp:324
 #, kde-format
@@ -373,18 +355,18 @@ msgctxt "@title:window"
 msgid "Ambiguous shortcut detected"
 msgstr "Aptiktas dviprasmiškas spartusis klavišas"
 
-#: kbugreport.cpp:67
+#: kbugreport.cpp:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Submit Bug Report"
 msgstr "Pateikti pranešimą apie programos klaidą"
 
-#: kbugreport.cpp:89
+#: kbugreport.cpp:90
 #, kde-format
 msgid "Submit Bug Report"
 msgstr "Pateikti pranešimą apie programos klaidą"
 
-#: kbugreport.cpp:101
+#: kbugreport.cpp:102
 #, kde-format
 msgid ""
 "The application for which you wish to submit a bug report - if incorrect, "
@@ -394,12 +376,12 @@ msgstr ""
 "pasinaudokite teisingos programos meniu punktu „Pranešti apie programos "
 "klaidą“"
 
-#: kbugreport.cpp:102
+#: kbugreport.cpp:103
 #, kde-format
 msgid "Application: "
 msgstr "Programa: "
 
-#: kbugreport.cpp:112
+#: kbugreport.cpp:113
 #, kde-format
 msgid ""
 "The version of this application - please make sure that no newer version is "
@@ -408,29 +390,28 @@ msgstr ""
 "Šios programos versija. Prieš siųsdami pranešimą apie programos klaidą, "
 "įsitikinkite, kad nėra prieinama jokia naujesnė programos versija"
 
-#: kbugreport.cpp:113
+#: kbugreport.cpp:114
 #, kde-format
 msgid "Version:"
 msgstr "Versija:"
 
-#: kbugreport.cpp:118
+#: kbugreport.cpp:119
 #, kde-format
 msgid "no version set (programmer error)"
 msgstr "versija nėra nustatyta (programuotojo klaida)"
 
-#: kbugreport.cpp:122
-#, fuzzy, kde-format
-#| msgid "KDE Frameworks"
+#: kbugreport.cpp:123
+#, kde-format
 msgctxt "%1 is the program version, %2 is the kde framework version"
 msgid "%1 with KDE Frameworks %2"
-msgstr "KDE Frameworks"
+msgstr "%1 naudoja KDE Frameworks %2"
 
-#: kbugreport.cpp:130
+#: kbugreport.cpp:131
 #, kde-format
 msgid "OS:"
 msgstr "OS:"
 
-#: kbugreport.cpp:135
+#: kbugreport.cpp:136
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Windows 10', %2 is the CPU "
@@ -438,7 +419,7 @@ msgctxt ""
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: kbugreport.cpp:142
+#: kbugreport.cpp:143
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Fedora Linux', %2 is the operating "
@@ -446,7 +427,7 @@ msgctxt ""
 msgid "%1 %2 (%3)"
 msgstr "%1 %2 (%3)"
 
-#: kbugreport.cpp:148
+#: kbugreport.cpp:149
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Fedora Linux', %2 is the CPU "
@@ -454,7 +435,7 @@ msgctxt ""
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: kbugreport.cpp:162
+#: kbugreport.cpp:163
 #, kde-format
 msgid ""
 "<qt>To submit a bug report, click on the button below. This will open a web "
@@ -467,7 +448,7 @@ msgstr ""
 "\">https://bugs.kde.org</a> puslapį, kuriame rasite reikiamą užpildyti "
 "formą. Aukščiau rodoma informacija bus perkelta į tą serverį.</qt>"
 
-#: kbugreport.cpp:168
+#: kbugreport.cpp:169
 #, kde-format
 msgid ""
 "<qt>To submit a bug report, click on the button below. This will open a web "
@@ -476,13 +457,13 @@ msgstr ""
 "<qt>Norėdami pateikti pranešimą apie klaidą, spustelėkite ant žemiau esančio "
 "mygtuko. Tai saityno naršyklėje atvers <a href=\"%1\">%2</a> puslapį.</qt>"
 
-#: kbugreport.cpp:185
+#: kbugreport.cpp:186
 #, kde-format
 msgctxt "@action:button"
 msgid "&Launch Bug Report Wizard"
 msgstr "&Paleisti pranešimo apie klaidą vediklį"
 
-#: kbugreport.cpp:187
+#: kbugreport.cpp:188
 #, kde-format
 msgctxt "@action:button"
 msgid "&Submit Bug Report"
@@ -525,30 +506,30 @@ msgstr "<h2>Spartintuvai pašalinti</h2>"
 msgid "<h2>Accelerators added (just for your info)</h2>"
 msgstr "<h2>Spartintuvai pridėti (tik jūsų informacijai)</h2>"
 
-#: kedittoolbar.cpp:332
+#: kedittoolbar.cpp:353
 #, kde-format
 msgctxt "@title:window"
 msgid "Change Text"
 msgstr "Keisti tekstą"
 
-#: kedittoolbar.cpp:342
+#: kedittoolbar.cpp:363
 #, kde-format
 msgid "Icon te&xt:"
 msgstr "Piktogramos te&kstas:"
 
-#: kedittoolbar.cpp:347
+#: kedittoolbar.cpp:368
 #, kde-format
 msgctxt "@option:check"
 msgid "&Hide text when toolbar shows text alongside icons"
 msgstr "&Slėpti tekstą, kai įrankių juosta rodo tekstą šalia piktogramų"
 
-#: kedittoolbar.cpp:596
+#: kedittoolbar.cpp:621
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Toolbars"
 msgstr "Konfigūruoti įrankių juostas"
 
-#: kedittoolbar.cpp:659
+#: kedittoolbar.cpp:684
 #, kde-format
 msgid ""
 "Do you really want to reset all toolbars of this application to their "
@@ -557,17 +538,17 @@ msgstr ""
 "Ar tikrai norite atstatyti visas šios programos įrankių juostas į "
 "numatytąsias? Pakeitimai įsigalios nedelsiant."
 
-#: kedittoolbar.cpp:660
+#: kedittoolbar.cpp:685
 #, kde-format
 msgid "Reset Toolbars"
 msgstr "Atstatyti įrankių juostas"
 
-#: kedittoolbar.cpp:661
+#: kedittoolbar.cpp:686
 #, kde-format
 msgid "Reset"
 msgstr "Atstatyti"
 
-#: kedittoolbar.cpp:980
+#: kedittoolbar.cpp:1007
 #, kde-format
 msgid "&Toolbar:"
 msgstr "Į&rankių juosta:"
@@ -579,66 +560,66 @@ msgstr "Į&rankių juosta:"
 #. del_toolbar->setPixmap(BarIcon("edit-delete", KIconLoader::SizeSmall));
 #. del_toolbar->setEnabled(false); // disabled until implemented
 #. our list of inactive actions
-#: kedittoolbar.cpp:996
+#: kedittoolbar.cpp:1023
 #, kde-format
 msgid "A&vailable actions:"
 msgstr "&Prieinami veiksmai:"
 
-#: kedittoolbar.cpp:1017 kedittoolbar.cpp:1042
+#: kedittoolbar.cpp:1044 kedittoolbar.cpp:1069
 #, kde-format
 msgid "Filter"
 msgstr "Filtras"
 
-#: kedittoolbar.cpp:1020
+#: kedittoolbar.cpp:1047
 #, kde-format
 msgid "Curr&ent actions:"
 msgstr "&Dabartiniai veiksmai:"
 
-#: kedittoolbar.cpp:1045
+#: kedittoolbar.cpp:1072
 #, kde-format
 msgctxt "@action:button"
 msgid "Change &Icon…"
 msgstr "Keisti p&iktogramą…"
 
-#: kedittoolbar.cpp:1054
+#: kedittoolbar.cpp:1081
 #, kde-format
 msgctxt "@action:button"
 msgid "Change Te&xt…"
 msgstr "Keisti te&kstą…"
 
-#: kedittoolbar.cpp:1196
+#: kedittoolbar.cpp:1223
 #, kde-format
 msgid "--- separator ---"
 msgstr "--- skirtukas ---"
 
-#: kedittoolbar.cpp:1197
+#: kedittoolbar.cpp:1224
 #, kde-format
 msgid "--- expanding spacer ---"
 msgstr "--- išsiskleidžiantis skirtukas ---"
 
-#: kedittoolbar.cpp:1219
+#: kedittoolbar.cpp:1246
 #, kde-format
 msgctxt "@item:intable Action name in toolbar editor"
 msgid "%1"
 msgstr "%1"
 
-#: kedittoolbar.cpp:1247
+#: kedittoolbar.cpp:1274
 #, kde-format
 msgid ""
 "This element will be replaced with all the elements of an embedded component."
 msgstr "Šis elementas bus pakeistas visais įterpto komponento elementais."
 
-#: kedittoolbar.cpp:1249
+#: kedittoolbar.cpp:1276
 #, kde-format
 msgid "<Merge>"
 msgstr "<Sujungti>"
 
-#: kedittoolbar.cpp:1251
+#: kedittoolbar.cpp:1278
 #, kde-format
 msgid "<Merge %1>"
 msgstr "<Sujungti %1>"
 
-#: kedittoolbar.cpp:1261
+#: kedittoolbar.cpp:1288
 #, kde-format
 msgid ""
 "This is a dynamic list of actions. You can move it, but if you remove it you "
@@ -647,18 +628,18 @@ msgstr ""
 "Tai yra dinaminis veiksmų sąrašas. Galite jį perkelti, tačiau jeigu jį "
 "pašalinsite, nebegalėsite jo pridėti iš naujo."
 
-#: kedittoolbar.cpp:1262
+#: kedittoolbar.cpp:1289
 #, kde-format
 msgid "ActionList: %1"
 msgstr "Veiksmų sąrašas: %1"
 
-#: kedittoolbar.cpp:1363 kedittoolbar.cpp:1388
+#: kedittoolbar.cpp:1390 kedittoolbar.cpp:1415
 #, kde-format
 msgctxt "@label Action tooltip in toolbar editor, below the action list"
 msgid "%1"
 msgstr "%1"
 
-#: kedittoolbar.cpp:1616
+#: kedittoolbar.cpp:1643
 #, kde-format
 msgid "Change Icon"
 msgstr "Keisti piktogramą"
@@ -669,7 +650,7 @@ msgstr "Keisti piktogramą"
 msgid "&Help"
 msgstr "&Pagalba"
 
-#: kkeysequencewidget.cpp:146
+#: kkeysequencewidget.cpp:147
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -680,13 +661,13 @@ msgstr ""
 "spaustumėte jį programoje.\n"
 "Pavyzdžiui kombinacijai Vald+A: laikykite nuspaustą Vald ir paspauskite A."
 
-#: kkeysequencewidget.cpp:150
+#: kkeysequencewidget.cpp:151
 #, kde-format
 msgctxt "@action:button"
 msgid "Clear"
-msgstr ""
+msgstr "Išvalyti"
 
-#: kkeysequencewidget.cpp:169
+#: kkeysequencewidget.cpp:170
 #, kde-format
 msgctxt "%1 is the number of conflicts"
 msgid "Shortcut Conflict"
@@ -696,12 +677,12 @@ msgstr[1] "Sparčiųjų klavišų konfliktai"
 msgstr[2] "Sparčiųjų klavišų konfliktai"
 msgstr[3] "Sparčiųjų klavišų konfliktai"
 
-#: kkeysequencewidget.cpp:173
+#: kkeysequencewidget.cpp:174
 #, kde-format
 msgid "Shortcut '%1' for action '%2'\n"
 msgstr "Spartusis klavišas „%1“ skirtas veiksmui „%2“\n"
 
-#: kkeysequencewidget.cpp:178
+#: kkeysequencewidget.cpp:179
 #, kde-format
 msgctxt "%1 is the number of ambiguous shortcut clashes (hidden)"
 msgid ""
@@ -729,20 +710,20 @@ msgstr[3] ""
 "Ar norite šiems veiksmams panaikinti sparčiuosius klavišus?\n"
 "%3"
 
-#: kkeysequencewidget.cpp:188 kkeysequencewidget.cpp:295
-#: kkeysequencewidget.cpp:357
+#: kkeysequencewidget.cpp:189 kkeysequencewidget.cpp:296
+#: kkeysequencewidget.cpp:358
 #, kde-format
 msgctxt "@action:button"
 msgid "Reassign"
 msgstr "Priskirti iš naujo"
 
-#: kkeysequencewidget.cpp:193
+#: kkeysequencewidget.cpp:194
 #, kde-format
 msgctxt "@title:window"
 msgid "Shortcut conflict"
 msgstr "Sparčiųjų klavišų konfliktas"
 
-#: kkeysequencewidget.cpp:195
+#: kkeysequencewidget.cpp:196
 #, kde-format
 msgid ""
 "<qt>The '%1' key combination is already used by the <b>%2</b> action."
@@ -751,12 +732,12 @@ msgstr ""
 "<qt>Klavišų kombinaciją „%1“ jau naudoja veiksmas <b>%2</b>.<br>Pasirinkite "
 "kitą klavišų kombinaciją.</qt>"
 
-#: kkeysequencewidget.cpp:275
+#: kkeysequencewidget.cpp:276
 #, kde-format
 msgid "Shortcut '%1' in Application '%2' for action '%3'\n"
 msgstr "Spartusis klavišas „%1“ programoje „%2“ skirtas veiksmui „%3“\n"
 
-#: kkeysequencewidget.cpp:284
+#: kkeysequencewidget.cpp:285
 #, kde-format
 msgctxt ""
 "%1 is the number of conflicts (hidden), %2 is the key sequence of the "
@@ -772,7 +753,7 @@ msgstr[2] ""
 msgstr[3] ""
 "Spartusis klavišas „%2“ konfliktuoja su šiomis klavišų kombinacijomis:\n"
 
-#: kkeysequencewidget.cpp:291
+#: kkeysequencewidget.cpp:292
 #, kde-format
 msgctxt "%1 is the number of shortcuts with which there is a conflict"
 msgid "Conflict with Registered Global Shortcut"
@@ -782,29 +763,29 @@ msgstr[1] "Konfliktas su įregistruotais visuotiniais sparčiaisiais klavišais"
 msgstr[2] "Konfliktas su įregistruotais visuotiniais sparčiaisiais klavišais"
 msgstr[3] "Konfliktas su įregistruotais visuotiniais sparčiaisiais klavišais"
 
-#: kkeysequencewidget.cpp:304
+#: kkeysequencewidget.cpp:305
 #, kde-format
 msgid "Reserved Shortcut"
 msgstr "Rezervuotas spartusis klavišas"
 
-#: kkeysequencewidget.cpp:306
+#: kkeysequencewidget.cpp:307
 #, kde-format
 msgid ""
 "The F12 key is reserved on Windows, so cannot be used for a global "
 "shortcut.\n"
 "Please choose another one."
 msgstr ""
-"Klavišas F12 yra rezervuotas Windows sistemoje, taigi, negali būti "
-"naudojamas visuotiniu sparčiuoju klavišu.\n"
-"Pasirinkite kitą klavišą."
+"F12 klavišas yra rezervuotas „Windows“ sistemoje, todėl negali būti "
+"naudojamas visuotiniams spartiesiems klavišams.\n"
+"Pasirinkite kitą."
 
-#: kkeysequencewidget.cpp:349
+#: kkeysequencewidget.cpp:350
 #, kde-format
 msgctxt "@title:window"
 msgid "Conflict with Standard Application Shortcut"
 msgstr "Konfliktas su standartiniu programos sparčiuoju klavišu"
 
-#: kkeysequencewidget.cpp:351
+#: kkeysequencewidget.cpp:352
 #, kde-format
 msgid ""
 "The '%1' key combination is also used for the standard action \"%2\" that "
@@ -815,13 +796,13 @@ msgstr ""
 "naudoja kai kurios programos.\n"
 "Ar tikrai norite ją taip pat naudoti kaip visuotinį spartųjį klavišą?"
 
-#: kkeysequencewidget.cpp:395
+#: kkeysequencewidget.cpp:396
 #, kde-format
 msgctxt "What the user inputs now will be taken as the new shortcut"
 msgid "Input"
 msgstr "Įvestis"
 
-#: kkeysequencewidget.cpp:397 kshortcuteditwidget.cpp:51
+#: kkeysequencewidget.cpp:398 kshortcuteditwidget.cpp:54
 #, kde-format
 msgctxt "No shortcut defined"
 msgid "None"
@@ -860,13 +841,13 @@ msgctxt "@action:inmenu"
 msgid "Configure Shortcut…"
 msgstr "Konfigūruoti spartųjį klavišą…"
 
-#: kshortcuteditwidget.cpp:55
+#: kshortcuteditwidget.cpp:58
 #, kde-format
 msgctxt "@option:radio"
 msgid "Default:"
 msgstr "Numatytasis:"
 
-#: kshortcuteditwidget.cpp:62
+#: kshortcuteditwidget.cpp:65
 #, kde-format
 msgctxt "@option:radio"
 msgid "Custom:"
@@ -956,23 +937,23 @@ msgctxt "@title:window"
 msgid "Export Shortcuts"
 msgstr "Eksportuoti sparčiuosius klavišus"
 
-#: kshortcutschemeseditor.cpp:187 kshortcutschemeseditor.cpp:198
+#: kshortcutschemeseditor.cpp:187 kshortcutschemeseditor.cpp:202
 #, kde-format
 msgid "Shortcuts (*.shortcuts)"
 msgstr "Spartieji klavišai (*.shortcuts)"
 
-#: kshortcutschemeseditor.cpp:198
+#: kshortcutschemeseditor.cpp:202
 #, kde-format
 msgctxt "@title:window"
 msgid "Import Shortcuts"
 msgstr "Importuoti sparčiuosius klavišus"
 
-#: kshortcutschemeseditor.cpp:209
+#: kshortcutschemeseditor.cpp:213
 #, kde-format
 msgid "Shortcut scheme successfully saved."
 msgstr "Sparčiųjų klavišų schema sėkmingai įrašyta."
 
-#: kshortcutschemeseditor.cpp:212
+#: kshortcutschemeseditor.cpp:216
 #, kde-format
 msgid "Error saving the shortcut scheme."
 msgstr "Klaida įrašant sparčiųjų klavišų schemą."
@@ -984,14 +965,14 @@ msgid ""
 "one?"
 msgstr ""
 "Dabartinė sparčiųjų klavišų schema yra modifikuota. Ar norite ją įrašyti "
-"prieš persijungdami į naują schemą?"
+"prieš perjungdami į naują schemą?"
 
 #: kshortcutsdialog.cpp:124
 #, kde-format
 msgid "Manage &Schemes"
-msgstr "&Tvarkyti schemas"
+msgstr "Tvarkyti &schemas"
 
-#: kshortcutsdialog.cpp:149
+#: kshortcutsdialog.cpp:151
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Keyboard Shortcuts"
@@ -1035,7 +1016,7 @@ msgstr "Spartusis klavišas"
 #: kshortcutsdialog.ui:43
 #, kde-format
 msgid "Alternate"
-msgstr "Alternatyvusis"
+msgstr "Alternatyvus"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, list)
 #: kshortcutsdialog.ui:48
@@ -1047,7 +1028,7 @@ msgstr "Visuotinis"
 #: kshortcutsdialog.ui:53
 #, kde-format
 msgid "Global Alternate"
-msgstr "Visuotinis alternatyvusis"
+msgstr "Visuotinis alternatyvus"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, list)
 #: kshortcutsdialog.ui:58
@@ -1061,45 +1042,45 @@ msgstr "Pelės mygtuko gestai"
 msgid "Mouse Shape Gesture"
 msgstr "Pelės figūriniai gestai"
 
-#: kshortcutseditor.cpp:521
+#: kshortcutseditor.cpp:526
 #, kde-format
 msgctxt "header for an applications shortcut list"
 msgid "Shortcuts for %1"
 msgstr "%1 spartieji klavišai"
 
 #. i18n: ectx: property (text), widget (QLabel, priLabel)
-#: kshortcutseditor.cpp:541 kshortcutwidget.ui:22
+#: kshortcutseditor.cpp:546 kshortcutwidget.ui:22
 #, kde-format
 msgid "Main:"
 msgstr "Pagrindinis:"
 
 #. i18n: ectx: property (text), widget (QLabel, altLabel)
-#: kshortcutseditor.cpp:542 kshortcutwidget.ui:52
+#: kshortcutseditor.cpp:547 kshortcutwidget.ui:52
 #, kde-format
 msgid "Alternate:"
 msgstr "Alternatyvus:"
 
-#: kshortcutseditor.cpp:543
+#: kshortcutseditor.cpp:548
 #, kde-format
 msgid "Global:"
 msgstr "Visuotinis:"
 
-#: kshortcutseditor.cpp:544
+#: kshortcutseditor.cpp:549
 #, kde-format
 msgid "Global alternate:"
-msgstr "Visuotinis alternatyvusis:"
+msgstr "Visuotinis alternatyvus:"
 
-#: kshortcutseditor.cpp:560
+#: kshortcutseditor.cpp:565
 #, kde-format
 msgid "Action Name"
 msgstr "Veiksmo pavadinimas"
 
-#: kshortcutseditor.cpp:564
+#: kshortcutseditor.cpp:569
 #, kde-format
 msgid "Shortcuts"
 msgstr "Spartieji klavišai"
 
-#: kshortcutseditor.cpp:568
+#: kshortcutseditor.cpp:573
 #, kde-format
 msgid "Description"
 msgstr "Aprašas"
@@ -1110,24 +1091,24 @@ msgctxt "@item:intable Action name in shortcuts configuration"
 msgid "%1"
 msgstr "%1"
 
-#: kswitchlanguagedialog_p.cpp:137
+#: kswitchlanguagedialog_p.cpp:138
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Language"
 msgstr "Konfigūruoti kalbą"
 
-#: kswitchlanguagedialog_p.cpp:141
+#: kswitchlanguagedialog_p.cpp:142
 #, kde-format
 msgid "Please choose the language which should be used for this application:"
 msgstr "Pasirinkite kalbą, kuri bus naudojama šioje programoje:"
 
-#: kswitchlanguagedialog_p.cpp:168
+#: kswitchlanguagedialog_p.cpp:169
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Fallback Language"
 msgstr "Pridėti pakaitinę kalbą"
 
-#: kswitchlanguagedialog_p.cpp:169
+#: kswitchlanguagedialog_p.cpp:170
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1137,7 +1118,7 @@ msgstr ""
 "Prideda dar vieną kalbą, kuri bus naudojama tuo atveju, jei kituose "
 "vertimuose nebus tinkamo vertimo."
 
-#: kswitchlanguagedialog_p.cpp:261 kswitchlanguagedialog_p.cpp:282
+#: kswitchlanguagedialog_p.cpp:262 kswitchlanguagedialog_p.cpp:283
 #, kde-format
 msgid ""
 "The language for this application has been changed. The change will take "
@@ -1146,34 +1127,34 @@ msgstr ""
 "Šios programos kalba buvo pakeista. Pakeitimas įsigalios, kai kitą kartą "
 "paleisite programą."
 
-#: kswitchlanguagedialog_p.cpp:262
+#: kswitchlanguagedialog_p.cpp:263
 #, kde-format
 msgctxt "@title:window"
 msgid "Application Language Changed"
 msgstr "Programos kalba pakeista"
 
-#: kswitchlanguagedialog_p.cpp:283
+#: kswitchlanguagedialog_p.cpp:284
 #, kde-format
 msgid "Application Language Changed"
 msgstr "Programos kalba pakeista"
 
-#: kswitchlanguagedialog_p.cpp:368
+#: kswitchlanguagedialog_p.cpp:369
 #, kde-format
 msgid "Primary language:"
 msgstr "Pirminė kalba:"
 
-#: kswitchlanguagedialog_p.cpp:368
+#: kswitchlanguagedialog_p.cpp:369
 #, kde-format
 msgid "Fallback language:"
 msgstr "Pakaitinė kalba:"
 
-#: kswitchlanguagedialog_p.cpp:383
+#: kswitchlanguagedialog_p.cpp:384
 #, kde-format
 msgctxt "@action:button"
 msgid "Remove"
 msgstr "Šalinti"
 
-#: kswitchlanguagedialog_p.cpp:389
+#: kswitchlanguagedialog_p.cpp:390
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1183,7 +1164,7 @@ msgstr ""
 "Tai yra pagrindinė programos kalba, kuri bus naudojama pirmiau už visas "
 "kitas kalbas."
 
-#: kswitchlanguagedialog_p.cpp:390
+#: kswitchlanguagedialog_p.cpp:391
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1193,109 +1174,109 @@ msgstr ""
 "Tai yra kalba, kuri bus naudojama tuo atveju, jei ankstesnėse kalbose nebus "
 "tinkamo vertimo."
 
-#: ktoolbar.cpp:309 ktoolbar.cpp:316
+#: ktoolbar.cpp:311 ktoolbar.cpp:318
 #, kde-format
 msgctxt "@title:menu"
 msgid "Toolbar Settings"
 msgstr "Įrankių juostos nuostatos"
 
-#: ktoolbar.cpp:311
+#: ktoolbar.cpp:313
 #, kde-format
 msgctxt "@title:menu"
 msgid "Show Text"
 msgstr "Rodyti tekstą"
 
-#: ktoolbar.cpp:318
+#: ktoolbar.cpp:320
 #, kde-format
 msgctxt "Toolbar orientation"
 msgid "Orientation"
 msgstr "Orientacija"
 
-#: ktoolbar.cpp:320
+#: ktoolbar.cpp:322
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Top"
 msgstr "Viršus"
 
-#: ktoolbar.cpp:324
+#: ktoolbar.cpp:326
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Left"
 msgstr "Kairė"
 
-#: ktoolbar.cpp:327
+#: ktoolbar.cpp:329
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Right"
 msgstr "Dešinė"
 
-#: ktoolbar.cpp:330
+#: ktoolbar.cpp:332
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Bottom"
 msgstr "Apačia"
 
-#: ktoolbar.cpp:341
+#: ktoolbar.cpp:343
 #, kde-format
 msgid "Text Position"
 msgstr "Teksto vieta"
 
-#: ktoolbar.cpp:343
+#: ktoolbar.cpp:345
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Icons Only"
 msgstr "Tik piktogramos"
 
-#: ktoolbar.cpp:346
+#: ktoolbar.cpp:348
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Only"
 msgstr "Tik tekstas"
 
-#: ktoolbar.cpp:349
+#: ktoolbar.cpp:351
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Alongside Icons"
 msgstr "Tekstas šalia piktogramų"
 
-#: ktoolbar.cpp:352
+#: ktoolbar.cpp:354
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Under Icons"
 msgstr "Tekstas po piktogramomis"
 
-#: ktoolbar.cpp:363
+#: ktoolbar.cpp:365
 #, kde-format
 msgid "Icon Size"
 msgstr "Piktogramų dydis"
 
-#: ktoolbar.cpp:365
+#: ktoolbar.cpp:367
 #, kde-format
 msgctxt "@item:inmenu Icon size"
 msgid "Default"
 msgstr "Numatytasis"
 
-#: ktoolbar.cpp:385 ktoolbar.cpp:409
-#, kde-format
-msgid "Small (%1x%2)"
-msgstr "Mažos (%1x%2)"
-
 #: ktoolbar.cpp:387 ktoolbar.cpp:411
 #, kde-format
-msgid "Medium (%1x%2)"
-msgstr "Vidutinės (%1x%2)"
+msgid "Small (%1x%2)"
+msgstr "Mažas (%1x%2)"
 
 #: ktoolbar.cpp:389 ktoolbar.cpp:413
 #, kde-format
-msgid "Large (%1x%2)"
-msgstr "Didelės (%1x%2)"
+msgid "Medium (%1x%2)"
+msgstr "Vidutinis (%1x%2)"
 
 #: ktoolbar.cpp:391 ktoolbar.cpp:415
 #, kde-format
-msgid "Huge (%1x%2)"
-msgstr "Didžiulės (%1x%2)"
+msgid "Large (%1x%2)"
+msgstr "Didelis (%1x%2)"
 
-#: ktoolbar.cpp:441
+#: ktoolbar.cpp:393 ktoolbar.cpp:417
+#, kde-format
+msgid "Huge (%1x%2)"
+msgstr "Didžiulis (%1x%2)"
+
+#: ktoolbar.cpp:443
 #, kde-format
 msgid "Lock Toolbar Positions"
 msgstr "Užrakinti įrankių juostų vietas"
@@ -1327,8 +1308,8 @@ msgctxt "@info:tooltip keep short"
 msgid ""
 "%1<br/><small><font color=\"%2\">Press <b>Shift</b> for more.</font></small>"
 msgstr ""
-"%1<br/><small><font color=\"%2\">Išsamiau, paspaudus <b>Lyg2</b>.</font></"
-"small>"
+"%1<br/><small><font color=\"%2\">Išsamesnei informacijai paspauskite "
+"<b>Lyg2</b>.</font></small>"
 
 #: kundoactions.cpp:30
 #, kde-format
@@ -1345,23 +1326,22 @@ msgstr "Atšaukti"
 msgid "No text"
 msgstr "Jokio teksto"
 
-#: kxmlguiwindow.cpp:193
+#: kxmlguiwindow.cpp:203
 #, kde-format
 msgid "Find Action…"
 msgstr "Rasti veiksmą…"
 
-#: kxmlguiwindow.cpp:563
+#: kxmlguiwindow.cpp:572
 #, kde-format
 msgid ""
 "There are two actions (%1, %2) that want to use the same shortcut (%3). This "
-"is most probably a bug. Please report it in <a href='https://bugs.kde."
-"org'>bugs.kde.org</a>"
+"is most probably a bug. Please report it in <a href=\"%4\">%4</a>"
 msgstr ""
 "Yra du veiksmai (%1, %2), kurie nori naudoti tą patį spartųjį klavišą (%3). "
-"Tai, tikriausiai, yra klaida. Prašome apie ją pranešti, adresu <a "
-"href='https://bugs.kde.org'>bugs.kde.org</a>"
+"Tai, tikriausiai, yra klaida. Prašome apie ją pranešti adresu <a href=\"%4\">"
+"%4</a>"
 
-#: kxmlguiwindow.cpp:568
+#: kxmlguiwindow.cpp:578
 #, kde-format
 msgid "Ambiguous Shortcuts"
 msgstr "Dviprasmiški spartieji klavišai"
@@ -1382,7 +1362,7 @@ msgstr "Ž&aidimas"
 #: ui_standards.rc:61
 #, kde-format
 msgid "&Edit"
-msgstr "&Taisyti"
+msgstr "&Taisa"
 
 #. i18n: ectx: Menu (move)
 #: ui_standards.rc:84
@@ -1395,7 +1375,7 @@ msgstr "Ė&jimas"
 #: ui_standards.rc:102
 #, kde-format
 msgid "&View"
-msgstr "&Rodymas"
+msgstr "&Rodinys"
 
 #. i18n: ectx: Menu (go)
 #: ui_standards.rc:122

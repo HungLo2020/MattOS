@@ -14,6 +14,7 @@
 
 namespace KWin
 {
+
 class FilteredDisplayPrivate
 {
 public:
@@ -26,7 +27,7 @@ public:
         auto interface = wl_global_get_interface(global);
         auto name = QByteArray::fromRawData(interface->name, strlen(interface->name));
         return t->q->allowInterface(clientConnection, name);
-    };
+    }
 };
 
 FilteredDisplayPrivate::FilteredDisplayPrivate(FilteredDisplay *_q)
@@ -38,7 +39,7 @@ FilteredDisplay::FilteredDisplay(QObject *parent)
     : Display(parent)
     , d(new FilteredDisplayPrivate(this))
 {
-    connect(this, &Display::runningChanged, [this](bool running) {
+    connect(this, &Display::runningChanged, this, [this](bool running) {
         if (!running) {
             return;
         }

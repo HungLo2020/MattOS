@@ -22,7 +22,7 @@
 <db:varlistentry>
 <db:term>Header</db:term>
 <db:listitem>
-<db:para>Test</db:para>
+<db:para>testcpp.h</db:para>
 </db:listitem>
 </db:varlistentry>
 <db:varlistentry>
@@ -188,12 +188,13 @@
 <db:section xml:id="member-function-documentation">
 <db:title>Member Function Documentation</db:title>
 <db:section xml:id="Test">
-<db:title its:translate="no">Test::Test()</db:title>
+<db:title its:translate="no">[<db:link xlink:href="https://en.cppreference.com/w/cpp/language/function#Deleted_functions">delete</db:link>] Test::Test()</db:title>
 <db:constructorsynopsis>
 <db:methodname>Test</db:methodname>
 <db:void/>
+<db:modifier>delete</db:modifier>
 <db:synopsisinfo role="meta">constructor</db:synopsisinfo>
-<db:synopsisinfo role="signature">Test()</db:synopsisinfo>
+<db:synopsisinfo role="signature">Test() = delete</db:synopsisinfo>
 <db:synopsisinfo role="access">public</db:synopsisinfo>
 <db:synopsisinfo role="status">active</db:synopsisinfo>
 <db:synopsisinfo role="threadsafeness">unspecified</db:synopsisinfo>
@@ -295,7 +296,7 @@
 <db:para>Overloads that share a documentation comment, optionally taking a parameter <db:code its:translate="no" role="parameter">b</db:code>.</db:para>
 </db:section>
 <db:section xml:id="someFunction">
-<db:title its:translate="no">[since Test 1.0] int Test::someFunction(<db:emphasis>int</db:emphasis>, int <db:emphasis>v</db:emphasis> = 0)</db:title>
+<db:title its:translate="no">[under construction] int Test::someFunction(<db:emphasis>int</db:emphasis>, int <db:emphasis>v</db:emphasis> = 0)</db:title>
 <db:methodsynopsis>
 <db:type>int</db:type>
 <db:methodname>someFunction</db:methodname>
@@ -311,9 +312,10 @@
 <db:synopsisinfo role="meta">plain</db:synopsisinfo>
 <db:synopsisinfo role="signature">int someFunction(int, int v)</db:synopsisinfo>
 <db:synopsisinfo role="access">public</db:synopsisinfo>
-<db:synopsisinfo role="status">active</db:synopsisinfo>
+<db:synopsisinfo role="status">under construction</db:synopsisinfo>
 <db:synopsisinfo role="threadsafeness">unspecified</db:synopsisinfo>
 </db:methodsynopsis>
+<db:para><db:emphasis role="bold">This function is under heavy construction and will collapse if inspected.</db:emphasis></db:para>
 <db:para>Function that takes a parameter <db:code its:translate="no" role="parameter">v</db:code>. Also returns the value of <db:code its:translate="no" role="parameter">v</db:code>.</db:para>
 <db:para>This function was introduced in Test 1.0.</db:para>
 </db:section>
@@ -359,7 +361,7 @@
 <db:para>Function that must be reimplemented.</db:para>
 </db:section>
 <db:section xml:id="operator-eq">
-<db:title its:translate="no">TestQDoc::Test &amp;Test::operator=(TestQDoc::Test &amp;&amp;<db:emphasis>other</db:emphasis>)</db:title>
+<db:title its:translate="no">[<db:link xlink:href="https://en.cppreference.com/w/cpp/language/function#Deleted_functions">delete</db:link>] TestQDoc::Test &amp;Test::operator=(TestQDoc::Test &amp;&amp;<db:emphasis>other</db:emphasis>)</db:title>
 <db:methodsynopsis>
 <db:type>TestQDoc::Test &amp;</db:type>
 <db:methodname>operator=</db:methodname>
@@ -367,8 +369,9 @@
 <db:type>TestQDoc::Test &amp;&amp;</db:type>
 <db:parameter>other</db:parameter>
 </db:methodparam>
+<db:modifier>delete</db:modifier>
 <db:synopsisinfo role="meta">move-assign</db:synopsisinfo>
-<db:synopsisinfo role="signature">TestQDoc::Test &amp; operator=(TestQDoc::Test &amp;&amp;other)</db:synopsisinfo>
+<db:synopsisinfo role="signature">TestQDoc::Test &amp; operator=(TestQDoc::Test &amp;&amp;other) = delete</db:synopsisinfo>
 <db:synopsisinfo role="access">public</db:synopsisinfo>
 <db:synopsisinfo role="status">active</db:synopsisinfo>
 <db:synopsisinfo role="threadsafeness">unspecified</db:synopsisinfo>

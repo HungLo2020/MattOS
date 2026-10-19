@@ -17,13 +17,13 @@
 # Serdar SOYTETİR <tulliana@gmail.com>, 2010, 2012.
 # Volkan Gezer <volkangezer@gmail.com>, 2013, 2014.
 # Kaan Ozdincer <kaanozdincer@gmail.com>, 2014.
-# SPDX-FileCopyrightText: 2022, 2023, 2024 Emir SARI <emir_sari@icloud.com>
+# SPDX-FileCopyrightText: 2022-2024, 2026 Emir SARI <emir_sari@icloud.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:49+0000\n"
-"PO-Revision-Date: 2024-07-11 14:44+0300\n"
+"POT-Creation-Date: 2026-05-07 00:40+0000\n"
+"PO-Revision-Date: 2026-05-15 13:26+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
@@ -31,54 +31,55 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 24.07.70\n"
+"X-Generator: Lokalize 26.04.0\n"
 
-#: qmlcontrols/kquickcontrols/ColorButton.qml:61
+#: qmlcontrols/kquickcontrols/ColorButton.qml:67
 #, kde-format
 msgctxt "@info:whatsthis for a button"
 msgid "Color button"
 msgstr "Renk düğmesi"
 
-#: qmlcontrols/kquickcontrols/ColorButton.qml:63
+#: qmlcontrols/kquickcontrols/ColorButton.qml:69
 #, kde-format
 msgctxt "@info:whatsthis for a button of current color code %1"
 msgid "Current color is %1. This button will open a color chooser dialog."
 msgstr "Geçerli renk %1. Bu düğme bir renk seçicisi iletişim kutusu açacak."
 
-#: qmlcontrols/kquickcontrols/ColorButton.qml:64
+#: qmlcontrols/kquickcontrols/ColorButton.qml:70
 #, kde-format
 msgctxt "@info:whatsthis for a button of current color code %1"
 msgid "Current color is %1."
 msgstr "Geçerli renk %1."
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:183
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:184
 #, kde-format
 msgctxt "What the user inputs now will be taken as the new shortcut"
 msgid "Input"
 msgstr "Giriş"
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:184
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:185
 #, kde-format
 msgctxt "No shortcut defined"
 msgid "None"
 msgstr "Yok"
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:195
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:196
 #, kde-format
 msgid ""
 "Click on the button, then enter the shortcut like you would in the program.\n"
 "Example for Ctrl+A: hold the Ctrl key and press A."
 msgstr ""
-"Düğmeye tıklayın, ardından kısayol düğmelerine basın.\n"
-"Kontrol+A örneği için: Kontrol düğmesine basılı tutun ve A düğmesine basın."
+"Düğmeye tıklayın, daha sonra programlamak istediğiniz kısayolu girin.\n"
+"Kontrol+A örneği için: Kontrol düğmesini basılı tutun ve sonrasında A’ya "
+"basın."
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:238
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:239
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Clear Key Sequence"
 msgstr "Düğme dizisini temizle"
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:254
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:256
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Cancel Key Sequence Recording"
@@ -96,7 +97,7 @@ msgid ""
 "shortcut.\n"
 "Please choose another one."
 msgstr ""
-"F12 kısayolu Windows üzerinde önceden atanmış olduğundan genel kısayol "
+"F12 kısayolu Windows üzerinde önceden atanmış olduğundan global kısayol "
 "olarak kullanılamaz.\n"
 "Lütfen başka bir düğme seçin."
 
@@ -109,13 +110,13 @@ msgstr "Global Kısayol Gölgeleme"
 #, kde-format
 msgid "The '%1' key combination is shadowed by following global actions:\n"
 msgstr ""
-"“%1” düğme kombinasyonu, aşağıdaki global eylemler tarafından gölgelendi:\n"
+"“%1” düğme kombinasyonu, aşağıdaki global eylemler tarafından gölgeleniyor:\n"
 
 #: qmlcontrols/kquickcontrols/private/keysequencevalidator.cpp:150
 #: qmlcontrols/kquickcontrols/private/keysequencevalidator.cpp:156
 #, kde-format
 msgid "Action '%1' in context '%2'\n"
-msgstr "“%2” bağlamında “%1” eylemi\n"
+msgstr "“%2” bağlamındaki “%1” eylemi\n"
 
 #: qmlcontrols/kquickcontrols/private/keysequencevalidator.cpp:154
 #, kde-format
@@ -134,13 +135,13 @@ msgid ""
 "Shortcut '%1' is already assigned to action '%2' of %3.\n"
 "Do you want to reassign it?"
 msgstr ""
-"“%1” kısayolu, halihazırda %3 uygulamasının “%2” eylemine atanmış.\n"
+"“%1” kısayolu, hâlihazırda %3 uygulamasının “%2” eylemine atanmış.\n"
 "Onu yeniden atamak istiyor musunuz?"
 
 #: qmlcontrols/kquickcontrols/private/keysequencevalidator.cpp:175
 #, kde-format
 msgid "Shortcut '%1' is already assigned to the following actions:\n"
-msgstr "“%1” kısayolu, halihazırda aşağıdaki eylemlere atanmış:\n"
+msgstr "“%1” kısayolu, hâlihazırda aşağıdaki eylemlere atanmış:\n"
 
 #: qmlcontrols/kquickcontrols/private/keysequencevalidator.cpp:177
 #, kde-format
@@ -164,7 +165,7 @@ msgid ""
 "some applications use.\n"
 "Do you really want to use it as a global shortcut as well?"
 msgstr ""
-"“%1” düğme kombinasyonu halihazırda bazı uygulamaların kullandığı “%2” "
+"“%1” düğme kombinasyonu hâlihazırda bazı uygulamaların kullandığı “%2” "
 "standart eylemi için kullanılıyor.\n"
 "Bunu global kısayol olarak da kullanmayı gerçekten istiyor musunuz?"
 

@@ -16,10 +16,20 @@
 
 #include "dbushelpers.h"
 
-class DesktopPortal;
+#include <functional>
+
+class QDBusContext;
 class FdoAppearanceSettings;
 class KDEGlobalsSettings;
 class SettingsModule;
+
+#if defined __cpp_lib_move_only_function && __cpp_lib_move_only_function >= 202110L
+template<typename... T>
+using function = std::move_only_function<T...>;
+#else
+template<typename... T>
+using function = std::function<T...>;
+#endif
 
 class SettingsModule : public QObject
 {
@@ -40,7 +50,7 @@ class SettingsPortal : public QDBusAbstractAdaptor
     Q_CLASSINFO("D-Bus Interface", "org.freedesktop.impl.portal.Settings")
     Q_PROPERTY(uint version READ version CONSTANT)
 public:
-    explicit SettingsPortal(DesktopPortal *parent);
+    explicit SettingsPortal(QObject *parent, function<void(const QDBusError &)> errorSender);
 
     uint version() const
     {
@@ -48,14 +58,14 @@ public:
     }
 
 public Q_SLOTS:
-    void ReadAll(const QStringList &groups);
-    void Read(const QString &group, const QString &key);
+    VariantMapMap ReadAll(const QStringList &groups);
+    QDBusVariant Read(const QString &group, const QString &key);
 
 Q_SIGNALS:
     void SettingChanged(const QString &group, const QString &key, const QDBusVariant &value);
 
 private:
-    DesktopPortal *const m_parent;
+    function<void(const QDBusError &)> m_errorSender;
     std::vector<std::unique_ptr<SettingsModule>> m_settings;
 };
 

@@ -34,6 +34,7 @@ PlasmaComponents.ItemDelegate {
 
     readonly property alias dragHandler: dragHandler
     property alias mainItem: label.contentItem
+    property bool keyboardActivated: false
 
     readonly property real gradientThreshold: (label.width - toolButtonsLoader.width) / label.width
     // Consider tall to be > about 1.5x the default height for purposes of top-aligning
@@ -76,7 +77,7 @@ PlasmaComponents.ItemDelegate {
     Keys.onReturnPressed: menuItem.clicked()
     Keys.onDeletePressed: menuItem.remove()
     KeyNavigation.right: toolButtonsLoader.active ? (toolButtonsLoader.item as DelegateToolButtons).defaultButton : toolButtonsLoader
-    KeyNavigation.left: null
+    KeyNavigation.left: menuItem
 
     ListView.onIsCurrentItemChanged: {
         if (ListView.isCurrentItem) {
@@ -129,7 +130,7 @@ PlasmaComponents.ItemDelegate {
         anchors.fill: label
         cached: true
         maskSource: labelMaskSource
-        visible: !!source && menuItem.ListView.isCurrentItem
+        visible: !!source && toolButtonsLoader.active
 
         TapHandler {
             enabled: !(toolButtonsLoader.item as DelegateToolButtons)?.hovered // https://bugreports.qt.io/browse/QTBUG-108821
@@ -142,7 +143,7 @@ PlasmaComponents.ItemDelegate {
     QQC.Control {
         id: label
         height: implicitHeight
-        visible: !menuItem.ListView.isCurrentItem
+        visible: !labelMask.visible
         anchors {
             left: parent.left
             leftMargin: Math.ceil(Kirigami.Units.gridUnit / 2) - menuItem.listMargins.left
@@ -169,6 +170,7 @@ PlasmaComponents.ItemDelegate {
         anchors.right: parent.right
         anchors.rightMargin: expandButtonLoader.implicitWidth + expandButtonLoader.anchors.rightMargin
         anchors.verticalCenter: parent.verticalCenter
+        anchors.topMargin: expandButtonLoader.anchors.topMargin
         width: menuItem.ListView.view.clipboardMenu.starMetricsImplicitWidth
         height: menuItem.ListView.view.clipboardMenu.starMetricsImplicitHeight
         visible: (menuItem.model?.starred ?? false) && !toolButtonsLoader.active
@@ -238,13 +240,26 @@ PlasmaComponents.ItemDelegate {
             menuItem: menuItem
             shouldUseOverflowButton: menuItem.shouldUseOverflowButton
         }
-        active: (menuItem.ListView.isCurrentItem && !menuItem.shouldUseOverflowButton)
+        active: (menuItem.ListView.isCurrentItem && ((!menuItem.keyboardActivated && menuItem.hovered) || (menuItem.keyboardActivated && menuItem.ListView.view.activeFocus)) && !menuItem.shouldUseOverflowButton)
             || (menuItem.shouldUseOverflowButton && (!!(expandButtonLoader.item as PlasmaComponents.ToolButton)?.checked || opacity > 0))
         opacity: !expandButtonLoader.active || (expandButtonLoader.item as PlasmaComponents.ToolButton).checked ? 1 : 0
 
         // It's not recommended to change anchors via conditional bindings, use AnchorChanges instead.
         // See https://doc.qt.io/qt-5/qtquick-positioning-anchors.html#changing-anchors
         states: [
+            State {
+                when: menuItem.isTall && !menuItem.shouldUseOverflowButton
+                AnchorChanges {
+                    target: toolButtonsLoader
+                    anchors.top: toolButtonsLoader.parent.top
+                    anchors.verticalCenter: undefined
+                }
+                AnchorChanges {
+                    target: starSlot
+                    anchors.top: starSlot.parent.top
+                    anchors.verticalCenter: undefined
+                }
+            },
             State {
                 when: menuItem.shouldUseOverflowButton
                 AnchorChanges {

@@ -259,9 +259,6 @@ void tst_QSplitter::saveAndRestoreState()
 
 void tst_QSplitter::saveAndRestoreStateOfNotYetShownSplitter()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QSplitter *spl = new QSplitter;
     QLabel *l1 = new QLabel;
     QLabel *l2 = new QLabel;
@@ -573,9 +570,6 @@ void tst_QSplitter::testShowHide_data()
 
 void tst_QSplitter::testShowHide()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QFETCH(bool, hideWidget1);
     QFETCH(bool, hideWidget2);
 
@@ -702,9 +696,6 @@ void tst_QSplitter::replaceWidget_data()
 
 void tst_QSplitter::replaceWidget()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QFETCH(int, index);
     QFETCH(bool, visible);
     QFETCH(bool, collapsed);
@@ -885,16 +876,13 @@ void tst_QSplitter::handleMinimumWidth()
     QVERIFY(QTest::qWaitForWindowExposed(&split));
     for (int i = 0; i < 10; i++) {
         split.setHandleWidth(i);
-        QTest::qWait(100); // resizing
-        QCOMPARE(split.handle(1)->width(), qMax(4 + (i & 1), i));
+        QTRY_COMPARE(split.handle(1)->width(), qMax(4 + (i & 1), i));
     }
 
     split.setOrientation(Qt::Vertical);
-    QTest::qWait(100);
     for (int i = 0; i < 10; i++) {
         split.setHandleWidth(i);
-        QTest::qWait(100); // resizing
-        QCOMPARE(split.handle(1)->height(), qMax(4 + (i & 1), i));
+        QTRY_COMPARE(split.handle(1)->height(), qMax(4 + (i & 1), i));
     }
 }
 
@@ -990,9 +978,6 @@ class MyTextEdit : public QTextEdit
 
 void tst_QSplitter::task169702_sizes()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QWidget topLevel;
     // Create two nested (non-collapsible) splitters
     QSplitter* outerSplitter = new QSplitter(Qt::Vertical, &topLevel);

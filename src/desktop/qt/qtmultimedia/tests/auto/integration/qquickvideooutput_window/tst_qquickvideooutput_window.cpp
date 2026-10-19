@@ -4,15 +4,24 @@
 
 //TESTED_COMPONENT=plugins/declarative/multimedia
 
-#include "private/qquickvideooutput_p.h"
 #include <QtCore/qobject.h>
-#include <QtTest/qtest.h>
-#include <QtQml/qqmlengine.h>
+
+#include <QtMultimedia/qmediaplayer.h>
+
+#include <QtMultimedia/private/qplatformvideosink_p.h>
+
+#include <QtMultimediaQuick/private/qquickvideooutput_p.h>
+
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+
 #include <QtQml/qqmlcomponent.h>
+#include <QtQml/qqmlengine.h>
+
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qquickview.h>
-#include <private/qplatformvideosink_p.h>
-#include <qmediaplayer.h>
+
+#include <QtTest/qtest.h>
 
 #include <memory>
 
@@ -26,12 +35,12 @@ public:
     }
 };
 
-class tst_QQuickVideoOutputWindow : public QObject
+class tst_QQuickVideoOutputWindow : public QIntegrationTestBase
 {
     Q_OBJECT
 public:
     tst_QQuickVideoOutputWindow()
-        : QObject(nullptr)
+        : QIntegrationTestBase()
         , m_sourceObject(&m_videoObject)
     {
     }
@@ -58,6 +67,9 @@ private:
 
 void tst_QQuickVideoOutputWindow::initTestCase()
 {
+    if (!initIntegrationTestCase())
+        return;
+
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));
 

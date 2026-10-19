@@ -100,6 +100,11 @@ int VirtualDesktopModel::rowCount(const QModelIndex &parent) const
     return parent.isValid() ? 0 : m_virtualDesktops.count();
 }
 
+int VirtualDesktopModel::maximum() const
+{
+    return VirtualDesktopManager::maximum();
+}
+
 } // namespace KWin
 
 #include "moc_virtualdesktopmodel.cpp"

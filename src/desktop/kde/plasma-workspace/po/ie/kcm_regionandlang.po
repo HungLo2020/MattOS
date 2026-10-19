@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-08 02:54+0000\n"
+"POT-Creation-Date: 2026-10-01 20:16+0000\n"
 "PO-Revision-Date: 2024-08-02 14:52+0700\n"
 "Last-Translator: OIS <mistresssilvara@hotmail.com>\n"
 "Language-Team: Interlingue <>\n"
@@ -347,10 +347,16 @@ msgstr "Ínconosset"
 msgid "Default for System"
 msgstr "Predefinit del sistema"
 
-#: localelistmodel.cpp:24 localelistmodel.cpp:146 ui/main.qml:387
+#: localelistmodel.cpp:24 localelistmodel.cpp:146 ui/main.qml:388
 #, kde-format
 msgid "Default"
 msgstr "Predefinit"
+
+#: localelistmodel.cpp:130
+#, kde-format
+msgctxt "@item:intable Friendly name for the C locale"
+msgid "ISO C Standard"
+msgstr ""
 
 #: localelistmodel.cpp:142
 #, kde-format
@@ -465,12 +471,12 @@ msgctxt ""
 msgid " (Standard format for %1)"
 msgstr "(Standarde de formate por %1)"
 
-#: ui/AdvancedLanguageSelectPage.qml:23
+#: ui/AdvancedLanguageSelectPage.qml:24
 #, kde-format
 msgid "Language"
 msgstr "Lingue"
 
-#: ui/AdvancedLanguageSelectPage.qml:36
+#: ui/AdvancedLanguageSelectPage.qml:37
 #, fuzzy, kde-format
 msgid ""
 "Putting any other languages below English will cause undesired behavior in "
@@ -478,54 +484,68 @@ msgid ""
 "all other languages."
 msgstr "OIS"
 
-#: ui/AdvancedLanguageSelectPage.qml:45
+#: ui/AdvancedLanguageSelectPage.qml:46
 #, kde-format
 msgctxt "Error message, %1 is the language name"
 msgid "The language \"%1\" is unsupported"
 msgstr "Li lingue «%1» es ínsupportat"
 
-#: ui/AdvancedLanguageSelectPage.qml:58
+#: ui/AdvancedLanguageSelectPage.qml:59
 #, fuzzy, kde-format
 msgid "Add languages in the order you want to see them in your applications."
 msgstr "OIS"
 
-#: ui/AdvancedLanguageSelectPage.qml:100
+#: ui/AdvancedLanguageSelectPage.qml:101
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Change Language"
 msgstr "Cambiar li lingue"
 
-#: ui/AdvancedLanguageSelectPage.qml:104
+#: ui/AdvancedLanguageSelectPage.qml:105
 #, kde-format
 msgctxt "@title:window"
 msgid "Change Language"
 msgstr "Cambiar li lingue"
 
-#: ui/AdvancedLanguageSelectPage.qml:113
+#: ui/AdvancedLanguageSelectPage.qml:114
 #, fuzzy, kde-format
 msgctxt "@info:tooltip"
 msgid "Move to top"
 msgstr "Copiar li originale al traduction"
 
-#: ui/AdvancedLanguageSelectPage.qml:122
+#: ui/AdvancedLanguageSelectPage.qml:123
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Remove"
 msgstr "Remover"
 
-#: ui/AdvancedLanguageSelectPage.qml:137
+#: ui/AdvancedLanguageSelectPage.qml:138
 #, fuzzy, kde-format
 msgctxt "@info:placeholder"
 msgid "No Language Configured"
 msgstr "Lingue"
 
-#: ui/AdvancedLanguageSelectPage.qml:179 ui/AdvancedLanguageSelectPage.qml:213
+#: ui/AdvancedLanguageSelectPage.qml:180 ui/AdvancedLanguageSelectPage.qml:214
 #, kde-format
 msgctxt "@title:window"
 msgid "Add Languages"
 msgstr "Adjunter lingues"
 
 #: ui/AdvancedLanguageSelectPage.qml:236
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "This system does not include “%1”"
+msgstr ""
+
+#: ui/AdvancedLanguageSelectPage.qml:237
+#, kde-kuit-format
+msgctxt "@info:usagetip"
+msgid ""
+"Learn how to help <link url='%1'>translate KDE software into your language</"
+"link>."
+msgstr ""
+
+#: ui/AdvancedLanguageSelectPage.qml:246
 #, kde-format
 msgctxt "@action:button"
 msgid "Add More…"
@@ -581,45 +601,57 @@ msgctxt "@title:window"
 msgid "Data and Storage Sizes"
 msgstr "date e/o hora"
 
-#: ui/main.qml:281
+#: ui/main.qml:282
 #, kde-format
 msgid "Numbers"
 msgstr "Númeres"
 
-#: ui/main.qml:283
+#: ui/main.qml:284
 #, kde-format
 msgid "Time"
 msgstr "Hora"
 
-#: ui/main.qml:285
+#: ui/main.qml:286
 #, kde-format
 msgid "Currency"
 msgstr "Valuta"
 
-#: ui/main.qml:287
+#: ui/main.qml:288
 #, kde-format
 msgid "Measurements"
 msgstr "Mesuras"
 
-#: ui/main.qml:289
+#: ui/main.qml:290
 #, kde-format
 msgid "Paper Size"
 msgstr "Dimension de papere"
 
-#: ui/main.qml:291
+#: ui/main.qml:292
 #, kde-format
 msgctxt "Postal Address"
 msgid "Address"
 msgstr "Adresse"
 
-#: ui/main.qml:293
+#: ui/main.qml:294
 #, kde-format
 msgctxt "Name Style"
 msgid "Name"
 msgstr "Nómine"
 
-#: ui/main.qml:295
+#: ui/main.qml:296
 #, kde-format
 msgctxt "Phone Numbers"
 msgid "Phone number"
 msgstr "Telefon-numeró"
+
+#: ui/main.qml:431
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "This system does not include settings for “%1”"
+msgstr ""
+
+#: ui/main.qml:432
+#, kde-format
+msgctxt "@info:usagetip"
+msgid "Try searching for a nearby region."
+msgstr ""

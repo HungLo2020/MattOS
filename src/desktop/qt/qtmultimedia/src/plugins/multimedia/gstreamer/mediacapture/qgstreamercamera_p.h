@@ -31,6 +31,10 @@ class QGstreamerCameraBase : public QPlatformCamera
 public:
     using QPlatformCamera::QPlatformCamera;
 
+#if QT_CONFIG(gstreamer_qt_api)
+    GstElement *rawGstElement() const override { return gstElement().element(); }
+#endif
+
     virtual QGstElement gstElement() const = 0;
 };
 
@@ -152,10 +156,11 @@ class QGstreamerCustomCamera : public QGstreamerCameraBase
 {
 public:
     explicit QGstreamerCustomCamera(QCamera *);
-    explicit QGstreamerCustomCamera(QCamera *, QGstElement element);
+    explicit QGstreamerCustomCamera(QObject *, QGstElement element);
 
     QGstElement gstElement() const override { return gstCamera; }
-    void setCamera(const QCameraDevice &) override;
+
+    void setCamera(const QCameraDevice &) override { }
 
     bool isActive() const override;
     void setActive(bool) override;
@@ -163,7 +168,6 @@ public:
 private:
     QGstElement gstCamera;
     bool m_active{};
-    const bool m_userProvidedGstElement;
 };
 
 QT_END_NAMESPACE

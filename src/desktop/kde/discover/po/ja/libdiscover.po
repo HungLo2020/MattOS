@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdeorg\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-08 02:42+0000\n"
-"PO-Revision-Date: 2026-01-26 21:17+0900\n"
+"POT-Creation-Date: 2026-09-10 00:48+0000\n"
+"PO-Revision-Date: 2026-05-24 18:03+0900\n"
 "Last-Translator: Ryuichi Yamada <ryuichi_ya220@outlook.jp>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -29,23 +29,23 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "ryuichi_ya220@outlook.jp,yumasansansan@gmail.com"
 
-#: libdiscover/appstream/AppStreamUtils.cpp:112
+#: libdiscover/appstream/AppStreamUtils.cpp:115
 #: libdiscover/backends/PackageKitBackend/PackageKitMessages.cpp:326
 #: libdiscover/backends/RpmOstreeBackend/RpmOstreeResource.cpp:304
 #: libdiscover/backends/RpmOstreeBackend/RpmOstreeResource.cpp:367
 #: libdiscover/backends/RpmOstreeBackend/RpmOstreeResource.cpp:393
-#: libdiscover/UpdateModel/UpdateModel.cpp:124
-#: libdiscover/UpdateModel/UpdateModel.cpp:346
+#: libdiscover/UpdateModel/UpdateModel.cpp:123
+#: libdiscover/UpdateModel/UpdateModel.cpp:370
 #, kde-format
 msgid "Unknown"
 msgstr "不明"
 
-#: libdiscover/appstream/AppStreamUtils.cpp:114
+#: libdiscover/appstream/AppStreamUtils.cpp:117
 #, kde-format
 msgid "Proprietary"
 msgstr "プロプライエタリ"
 
-#: libdiscover/appstream/AppStreamUtils.cpp:118
+#: libdiscover/appstream/AppStreamUtils.cpp:121
 #, kde-format
 msgid "Public Domain"
 msgstr "パブリックドメイン"
@@ -128,6 +128,12 @@ msgstr "APK データベースを開けませんでした！"
 #, kde-format
 msgid "Failed to get a list of packages to upgrade!"
 msgstr "アップグレードするパッケージのリストを取得できませんでした！"
+
+#: libdiscover/backends/AppStreamPreviewBackend/qml/AppStreamPreviewMessage.qml:16
+#, kde-format
+msgctxt "@info"
+msgid "This is a preview of an AppStream file"
+msgstr ""
 
 #: libdiscover/backends/DummyBackend/dummy-backend-categories.xml:4
 #, kde-format
@@ -415,179 +421,200 @@ msgctxt "Category"
 msgid "Emulators"
 msgstr "エミュレータ"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:337
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:337
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:334
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:333
+#, kde-format
+msgctxt "Category"
+msgid "Launchers"
+msgstr "ランチャー"
+
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:343
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:342
+#, kde-format
+msgctxt "Category"
+msgid "Tools"
+msgstr "ツール"
+
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:355
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:355
 #, kde-format
 msgctxt "Category"
 msgid "Graphics"
 msgstr "グラフィックス"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:345
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:345
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:363
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:363
 #, kde-format
 msgctxt "Category"
 msgid "3D"
 msgstr "3D"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:354
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:354
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:372
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:372
 #, kde-format
 msgctxt "Category"
 msgid "Drawing"
 msgstr "ドローイング"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:366
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:366
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:384
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:384
 #, kde-format
 msgctxt "Category"
 msgid "Painting and Editing"
 msgstr "絵画と編集"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:379
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:379
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:397
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:397
 #, kde-format
 msgctxt "Category"
 msgid "Photography"
 msgstr "写真"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:388
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:388
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:406
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:406
 #, kde-format
 msgctxt "Category"
 msgid "Publishing"
 msgstr "出版"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:397
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:397
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:415
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:415
 #, kde-format
 msgctxt "Category"
 msgid "Scanning and OCR"
 msgstr "スキャンと OCR"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:407
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:407
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:425
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:425
 #, kde-format
 msgctxt "Category"
 msgid "Viewers"
 msgstr "ビューア"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:419
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:419
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:437
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:437
 #, kde-format
 msgctxt "Category"
 msgid "Internet"
 msgstr "インターネット"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:427
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:427
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:445
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:445
 #, kde-format
 msgctxt "Category"
 msgid "Chat"
 msgstr "チャット"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:437
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:437
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:455
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:455
 #, kde-format
 msgctxt "Category"
 msgid "File Sharing"
 msgstr "ファイル共有"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:446
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:446
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:464
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:464
 #, kde-format
 msgctxt "Category"
 msgid "Mail"
 msgstr "メール"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:455
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:455
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:473
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:473
 #, kde-format
 msgctxt "Category"
 msgid "Web Browsers"
 msgstr "ウェブブラウザ"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:467
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:467
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:485
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:485
 #, kde-format
 msgctxt "Category"
 msgid "Multimedia"
 msgstr "マルチメディア"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:476
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:476
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:494
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:494
 #, kde-format
 msgctxt "Category"
 msgid "Audio and Video Editors"
 msgstr "音楽およびビデオの編集"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:485
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:485
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:503
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:503
 #, kde-format
 msgctxt "Category"
 msgid "Audio Players"
 msgstr "オーディオプレーヤー"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:506
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:506
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:524
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:524
 #, kde-format
 msgctxt "Category"
 msgid "Video Players"
 msgstr "動画プレーヤー"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:524
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:524
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:542
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:542
 #, kde-format
 msgctxt "Category"
-msgid "CD and DVD"
-msgstr "CD と DVD"
+msgid "Disc Burning"
+msgstr ""
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:536
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:536
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:554
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:554
 #, kde-format
 msgctxt "Category"
 msgid "Office"
 msgstr "オフィス"
 
-#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:546
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:546
+#: libdiscover/backends/FlatpakBackend/flatpak-backend-categories.xml:564
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:564
 #, kde-format
 msgctxt "Category"
 msgid "System"
 msgstr "システム"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:196
+#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:208
 #, kde-format
 msgctxt "user denotes this as user-scoped flatpak repo"
 msgid "%1 (user)"
 msgstr "%1 (ユーザ)"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:799
+#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:811
 #, kde-format
 msgid "Local bundle"
 msgstr "ローカルパッケージ"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:1951
+#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:1963
 #: libdiscover/backends/PackageKitBackend/PackageKitBackend.cpp:852
-#, kde-format
-msgid "Malformed appstream url '%1'"
+#, fuzzy, kde-format
+#| msgid "Malformed appstream url '%1'"
+msgid "Malformed appstream url “%1”"
 msgstr "不正な AppStream の URL '%1'"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:2081
+#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:2077
 #, kde-format
-msgid "Failed to add source '%1': %2"
+msgid "Source “%1” already exists"
+msgstr ""
+
+#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:2094
+#, fuzzy, kde-format
+#| msgid "Failed to add source '%1': %2"
+msgid "Failed to add source “%1”: %2"
 msgstr "ソース '%1' の追加に失敗しました: %2"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:2208
+#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:2221
 #, kde-format
 msgid "There are no Flatpak sources."
 msgstr "Flatpak のソースがありません"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:2212
+#: libdiscover/backends/FlatpakBackend/FlatpakBackend.cpp:2225
 #, kde-format
 msgid "Failed to load \"%1\" source"
 msgstr "ソース \"%1\" を読み込めませんでした"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:378
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:371
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -599,78 +626,74 @@ msgstr ""
 "ら提供されています。このアプリケーションがインストールされているとき、このリ"
 "ポジトリにある他のアプリケーションも利用可能になります。</para>"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:470
-#, kde-format
-msgid "Retrieving size information"
-msgstr "サイズ情報を取得しています"
-
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:472
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:469
 #: libdiscover/backends/RpmOstreeBackend/RpmOstreeResource.cpp:419
 #, kde-format
 msgctxt "@label app size"
 msgid "Unknown"
 msgstr "不明"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:528
-#: libdiscover/backends/PackageKitBackend/PackageKitResource.cpp:495
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:525
+#: libdiscover/backends/PackageKitBackend/PackageKitResource.cpp:467
 #: libdiscover/backends/PackageKitBackend/PackageKitSourcesBackend.cpp:70
-#, kde-format
-msgid "Failed to start '%1': %2"
+#, fuzzy, kde-format
+#| msgid "Failed to start '%1': %2"
+msgid "Failed to start “%1”: %2"
 msgstr "'%1' を開始できませんでした: %2"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:769
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:766
 #, kde-format
 msgid "All Files"
 msgstr "すべてのファイル"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:771
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:768
 #, kde-format
 msgid "Home"
 msgstr "ホーム"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:773
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:770
 #, kde-format
 msgid "Downloads"
 msgstr "ダウンロード"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:775
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:772
 #, kde-format
 msgid "Music"
 msgstr "音楽"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:853
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:850
 #: libdiscover/backends/KNSBackend/KNSBackend.cpp:451
 #, kde-format
 msgid "%1: %2"
 msgstr "%1: %2"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:871
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:868
 #, kde-format
 msgid "Network Access"
 msgstr "ネットワークへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:872
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:869
 #, kde-format
 msgid "Can access the internet"
 msgstr "インターネットにアクセスできます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:881
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:878
 #, kde-format
 msgid "Sound system access"
 msgstr "サウンドシステムへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:882
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:879
 #, kde-format
 msgid "Can play and record audio"
 msgstr "音声を再生・録音できます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:886
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1030
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:883
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1027
 #, kde-format
 msgid "Session Bus Access"
 msgstr "セッションバスへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:887
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:884
 #, kde-format
 msgid ""
 "Can communicate with all other applications and processes run in this user "
@@ -679,55 +702,55 @@ msgstr ""
 "このユーザアカウントで実行されているすべてのアプリケーションやプロセスとやり"
 "取りできます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:892
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1042
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:889
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1039
 #, kde-format
 msgid "System Bus Access"
 msgstr "システムバスへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:893
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:890
 #, kde-format
 msgid "Can communicate with all other applications and processes on the system"
 msgstr ""
 "システム上で実行されているすべてのアプリケーションやプロセスとやり取りできま"
 "す"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:898
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:895
 #, kde-format
 msgid "Remote Login Access"
 msgstr "リモートログイン"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:899
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:896
 #, kde-format
 msgid "Can initiate remote login requests using the SSH protocol"
 msgstr "SSH プロトコルを使用してリモートログインの要求ができます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:903
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:900
 #, kde-format
 msgid "Smart Card Access"
 msgstr "スマートカードへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:904
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:901
 #, kde-format
 msgid "Can integrate and communicate with smart cards"
 msgstr "スマートカードと統合してやり取りできます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:908
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:905
 #, kde-format
 msgid "Printer Access"
 msgstr "プリンタへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:909
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:906
 #, kde-format
 msgid "Can integrate and communicate with printers"
 msgstr "プリンタと統合してやり取りできます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:913
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:910
 #, kde-format
 msgid "GPG Agent"
 msgstr "GPG エージェント"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:914
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:911
 #, kde-format
 msgid ""
 "Allows access to the GPG cryptography service, generally used for signing "
@@ -736,72 +759,72 @@ msgstr ""
 "GPG 暗号化サービスにアクセスできます。通常、文書に署名したり署名付きの文書を"
 "読み込んだりするために使用されます。"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:920
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:917
 #, kde-format
 msgid "Bluetooth Access"
 msgstr "Bluetooth へのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:921
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:918
 #, kde-format
 msgid "Can integrate and communicate with Bluetooth devices"
 msgstr "Bluetooth デバイスと統合してやり取りできます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:925
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:922
 #, kde-format
 msgid "Low-Level System Access"
 msgstr "低レベルシステムへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:926
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:923
 #, kde-format
 msgid "Can make low-level system calls (e.g. ptrace)"
 msgstr "低レベルのシステムコールを呼び出せます (例: ptrace)"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:932
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:929
 #, kde-format
 msgid "Device Access"
 msgstr "デバイスへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:933
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:930
 #, kde-format
 msgid "Can communicate with and control built-in or connected hardware devices"
 msgstr ""
 "内蔵デバイスや接続されたデバイスとやり取りできます\n"
 "内蔵デバイスや接続されたデバイスを制御できます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:937
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:934
 #, kde-format
 msgid "Kernel-based Virtual Machine Access"
 msgstr "KVM へのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:938
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:935
 #, kde-format
 msgid "Allows running other operating systems as guests in virtual machines"
 msgstr "他の OS を仮想マシンのゲストとして実行できます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:965
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:977
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:962
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:974
 #, kde-format
 msgid "%1 (read-only)"
 msgstr "%1 (読み取り専用)"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:968
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:980
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:965
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:977
 #, kde-format
 msgid "%1 (can create files)"
 msgstr "%1 (ファイル作成可能)"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:971
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:989
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:968
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:986
 #, kde-format
 msgid "%1 (read & write) "
 msgstr "%1 (読み取りと書き込み)"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:998
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:995
 #, kde-format
 msgid "Home Folder Access"
 msgstr "ホームフォルダへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1001
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:998
 #, kde-format
 msgid ""
 "Can read, write, and create files in the following locations in your home "
@@ -810,7 +833,7 @@ msgstr ""
 "ホームフォルダの以下の場所で許可なしにファイルの読み取り、書き込みと作成がで"
 "きます: %1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1003
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1000
 #, kde-format
 msgid ""
 "Can read and write files in the following locations in your home folder "
@@ -819,26 +842,26 @@ msgstr ""
 "ホームフォルダの以下の場所で許可なしにファイルの読み取りと書き込みができま"
 "す: %1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1005
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1002
 #, kde-format
 msgid ""
 "Can read files in the following locations in your home folder without asking "
 "permission first: %1"
 msgstr "ホームフォルダの以下の場所で許可なしにファイルの読み取りができます: %1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1007
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1004
 #, kde-format
 msgid ""
 "Can access files in the following locations in your home folder without "
 "asking permission first: %1"
 msgstr "ホームフォルダの以下の場所で許可なしにファイルにアクセスできます: %1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1013
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1010
 #, kde-format
 msgid "System Folder Access"
 msgstr "システムフォルダへのアクセス"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1015
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1012
 #, kde-format
 msgid ""
 "Can read, write, and create system files in the following locations without "
@@ -847,7 +870,7 @@ msgstr ""
 "以下の場所で許可なしにシステムファイルの読み取り、書き込みと作成ができます: "
 "%1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1017
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1014
 #, kde-format
 msgid ""
 "Can read and write system files in the following locations without asking "
@@ -855,21 +878,21 @@ msgid ""
 msgstr ""
 "以下の場所で許可なしにシステムファイルの読み取りと書き込みができます: %1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1019
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1016
 #, kde-format
 msgid ""
 "Can read system files in the following locations without asking permission "
 "first: %1"
 msgstr "以下の場所で許可なしにシステムファイルの読み取りができます: %1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1021
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1018
 #, kde-format
 msgid ""
 "Can access system files in the following locations without asking permission "
 "first: %1"
 msgstr "以下の場所で許可なしにシステムファイルにアクセスできます: %1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1032
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1029
 #, kde-format
 msgid ""
 "Can communicate with other applications and processes in the same desktop "
@@ -878,7 +901,7 @@ msgstr ""
 "以下のコミュケーションプロトコルを使用して、同じデスクトップセッションで実行"
 "されている他のアプリケーションやプロセスとやり取りできます: %1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1044
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1041
 #, kde-format
 msgid ""
 "Can communicate with all applications and system services using the "
@@ -887,29 +910,29 @@ msgstr ""
 "以下のコミュケーションプロトコルを使用して、すべてのアプリケーションやシステ"
 "ムサービスとやり取りできます: %1"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1136
+#: libdiscover/backends/FlatpakBackend/FlatpakResource.cpp:1139
 #, kde-format
 msgid "App Verified on %1 as shipped by its author %2"
 msgstr "%1 で作者 %2 によって配布されていることが認証済みのアプリケーション"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:97
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:98
 #, kde-format
 msgid "Add Flathub"
 msgstr "Flathub を追加"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:98
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:99
 #, kde-format
 msgid "Apply Changes"
 msgstr "変更を適用"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:102
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:103
 #, kde-format
 msgid ""
 "Changes to the priority of Flatpak sources must be applied before they will "
 "take effect."
 msgstr "Flatpak ソースの優先度の変更は適用された後に有効になります。"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:106
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:107
 #, kde-format
 msgid ""
 "Makes it possible to easily install the applications listed in https://"
@@ -918,17 +941,18 @@ msgstr ""
 "https://flathub.org から簡単にアプリケーションをインストールできるようになり"
 "ます"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:174
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:175
 #, kde-format
 msgid "Could not add the source %1"
 msgstr "ソース %1 を追加できませんでした。"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:294
-#, kde-format
-msgid "Removing '%1'"
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:296
+#, fuzzy, kde-format
+#| msgid "Removing '%1'"
+msgid "Removing “%1”"
 msgstr "'%1' を削除中"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:295
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:297
 #, kde-format
 msgid ""
 "To remove this repository, the following applications must be uninstalled:"
@@ -937,36 +961,37 @@ msgstr ""
 "このリポジトリを削除するためには、以下のアプリケーションをアンインストールす"
 "る必要があります: <ul><li>%1</li></ul>"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:313
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:315
 #, kde-format
 msgid "Failed to remove %1 remote repository: %2"
 msgstr "リモートリポジトリ %1 の削除に失敗しました: %2"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:317
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:319
 #, kde-format
 msgid "Could not find %1"
 msgstr "%1 を見つけられませんでした"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:349
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:353
 #, kde-format
 msgid "%1 (user)"
 msgstr "%1 (ユーザ)"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:411
+#: libdiscover/backends/FlatpakBackend/FlatpakSourcesBackend.cpp:416
 #, kde-format
 msgid "Enter a Flatpak repository URI (*.flatpakrepo):"
 msgstr "Flatpak リポジトリ URI (*.flatpakrepo) を入力:"
 
 #: libdiscover/backends/FlatpakBackend/FlatpakTransactionThread.cpp:35
-#, kde-format
-msgid "Adding remote '%1' in %2 from %3"
+#, fuzzy, kde-format
+#| msgid "Adding remote '%1' in %2 from %3"
+msgid "Adding remote “%1” in %2 from %3"
 msgstr "%3 の %2 からリモート '%1' を追加しています"
 
 #: libdiscover/backends/FlatpakBackend/FlatpakTransactionThread.cpp:338
 #, kde-format
 msgctxt "@info:status"
 msgid ""
-"Cannot create transaction for '%1':<nl/>%2<nl/><nl/>Please report this to <a "
+"Cannot create transaction for “%1”:<nl/>%2<nl/><nl/>Please report this to <a "
 "href='%3'>%3</a>"
 msgstr ""
 
@@ -988,25 +1013,35 @@ msgid "Replacement Available"
 msgstr "リポジトリは利用できません。"
 
 #: libdiscover/backends/FlatpakBackend/FlatpakTransactionThread.cpp:464
-#, kde-kuit-format
+#, fuzzy, kde-kuit-format
+#| msgctxt ""
+#| "@info %1 and 2 are flatpak ids e.g. org.kde.krita (can be rather lengthy "
+#| "though)"
+#| msgid ""
+#| "<resource>%1</resource> is no longer receiving updates.<nl/><nl/>Replace "
+#| "it with the supported version provided by <resource>%2</resource>?"
 msgctxt ""
 "@info %1 and 2 are flatpak ids e.g. org.kde.krita (can be rather lengthy "
 "though)"
 msgid ""
 "<resource>%1</resource> is no longer receiving updates.<nl/><nl/>Replace it "
-"with the supported version provided by <resource>%2</resource>?"
+"with the supported version provided by <resource>%2</resource>?<nl/><nl/"
+">Your settings and data will be automatically transferred to the new "
+"application.<nl/><nl/>If the old application is in your panel or Application "
+"Launcher favorites, you will need to remove it and manually add the new one "
+"there."
 msgstr ""
 "<resource>%1</resource> はもう更新を受け取ることができません。<nl/><nl/> "
 "<resource>%2</resource> により提供される、サポート対象バージョンに置き換えま"
 "すか？"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakTransactionThread.cpp:470
+#: libdiscover/backends/FlatpakBackend/FlatpakTransactionThread.cpp:472
 #, kde-format
 msgctxt "@title"
 msgid "Automatic Removal"
 msgstr "自動削除"
 
-#: libdiscover/backends/FlatpakBackend/FlatpakTransactionThread.cpp:472
+#: libdiscover/backends/FlatpakBackend/FlatpakTransactionThread.cpp:474
 #, kde-kuit-format
 msgctxt ""
 "@info %1 is a flatpak id e.g. org.kde.krita (can be rather lengthy though)"
@@ -1040,14 +1075,15 @@ msgid "View Stable Version on %1"
 msgstr "%1 から取得できる安定版について表示"
 
 #: libdiscover/backends/FlatpakBackend/qml/FlatpakRemoveData.qml:19
-#, kde-format
-msgid "%1 is not installed but it still has data present."
+#, fuzzy, kde-format
+#| msgid "%1 is not installed but it still has data present."
+msgid "%1 is not installed but it still has user data and settings present."
 msgstr "%1 はインストールされていませんが、データが残っています。"
 
 #: libdiscover/backends/FlatpakBackend/qml/FlatpakRemoveData.qml:45
 #, kde-format
-msgid "Delete settings and user data"
-msgstr "設定とユーザのデータを削除"
+msgid "Move to Trash"
+msgstr "ごみ箱に移動"
 
 #: libdiscover/backends/FlatpakBackend/qml/FlatpakRemoveData.qml:48
 #, kde-format
@@ -1067,7 +1103,7 @@ msgstr "権限"
 msgid "Configure permissions…"
 msgstr "権限を設定..."
 
-#: libdiscover/backends/FwupdBackend/FwupdBackend.cpp:486
+#: libdiscover/backends/FwupdBackend/FwupdBackend.cpp:493
 #: libdiscover/backends/FwupdBackend/FwupdResource.cpp:116
 #, kde-format
 msgid "Firmware Updates"
@@ -1091,6 +1127,22 @@ msgstr "EULA を確認する"
 #, kde-format
 msgid "Could not enable remote %1: %2"
 msgstr "リモート %1 を有効化できませんでした: %2"
+
+#: libdiscover/backends/HoloBackend/HoloBackend.cpp:71
+#, kde-format
+msgid "SteamOS"
+msgstr "SteamOS"
+
+#: libdiscover/backends/HoloBackend/HoloBackend.cpp:73
+#, kde-format
+msgid "Holo"
+msgstr "Holo"
+
+#: libdiscover/backends/HoloBackend/HoloBackend.cpp:113
+#, kde-format
+msgctxt "%1 is the pretty name of the distro e.g. Holo or SteamOS"
+msgid "Holo: Unable to query atomupd for %1 Updates..."
+msgstr "Holo: %1 の更新のために atomupd をクエリすることができませんでした..."
 
 #: libdiscover/backends/KNSBackend/KNSBackend.cpp:64
 #, kde-format
@@ -1181,31 +1233,31 @@ msgstr "KDE Store"
 msgid "Log in information for %1"
 msgstr "%1 のログイン情報"
 
-#: libdiscover/backends/PackageKitBackend/AppPackageKitResource.cpp:268
+#: libdiscover/backends/PackageKitBackend/AppPackageKitResource.cpp:256
 #, kde-format
 msgid "Cannot launch %1"
 msgstr "%1 を起動できません"
 
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:557
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:603
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:575
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:621
 #, kde-format
 msgctxt "Category"
 msgid "Fonts"
 msgstr "フォント"
 
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:568
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:586
 #, kde-format
 msgctxt "Category"
 msgid "Hardware Drivers"
 msgstr "ハードウェアドライバ"
 
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:579
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:597
 #, kde-format
 msgctxt "Category"
 msgid "Plasma Addons"
 msgstr "Plasma アドオン"
 
-#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:591
+#: libdiscover/backends/PackageKitBackend/packagekit-backend-categories.xml:609
 #, kde-format
 msgctxt "Category"
 msgid "Plasma Widgets"
@@ -1227,8 +1279,9 @@ msgstr ""
 "ているバージョンへの更新を検討してください。"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitBackend.cpp:958
-#, kde-format
-msgid "Cannot remove '%1'"
+#, fuzzy, kde-format
+#| msgid "Cannot remove '%1'"
+msgid "Cannot remove “%1”"
 msgstr "'%1'を削除できません。"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitBackend.cpp:1042
@@ -1615,34 +1668,43 @@ msgid "Unknown error %1."
 msgstr "不明なエラー %1."
 
 #: libdiscover/backends/PackageKitBackend/PackageKitMessages.cpp:169
-#, kde-format
-msgid "'%1' was changed and suggests to be restarted."
+#, fuzzy, kde-format
+#| msgid "'%1' was changed and suggests to be restarted."
+msgid "“%1” was changed and suggests to be restarted."
 msgstr "'%1' が変更されたので、再起動してください。"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitMessages.cpp:171
-#, kde-format
-msgid "A change by '%1' suggests your session to be restarted."
+#, fuzzy, kde-format
+#| msgid "A change by '%1' suggests your session to be restarted."
+msgid "A change by “%1” suggests your session to be restarted."
 msgstr "'%1' の変更で、セッションの再開が必要です。"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitMessages.cpp:173
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "'%1' was updated for security reasons, a restart of the session is "
+#| "recommended."
 msgid ""
-"'%1' was updated for security reasons, a restart of the session is "
+"“%1” was updated for security reasons, a restart of the session is "
 "recommended."
 msgstr ""
 "'%1' がセキュリティのために更新されました。セッションを再開してください。"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitMessages.cpp:175
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "'%1' was updated for security reasons, a restart of the system is "
+#| "recommended."
 msgid ""
-"'%1' was updated for security reasons, a restart of the system is "
+"“%1” was updated for security reasons, a restart of the system is "
 "recommended."
 msgstr ""
 "'%1' がセキュリティのために更新されました。システムを再起動してください。"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitMessages.cpp:180
-#, kde-format
-msgid "A change by '%1' suggests your system to be restarted."
+#, fuzzy, kde-format
+#| msgid "A change by '%1' suggests your system to be restarted."
+msgid "A change by “%1” suggests your system to be restarted."
 msgstr "'%1' の変更で、システムの再起動が必要です。"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitMessages.cpp:188
@@ -1886,7 +1948,7 @@ msgid "Testing"
 msgstr "テスト版"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitMessages.cpp:328
-#: libdiscover/resources/AbstractResource.cpp:97
+#: libdiscover/resources/AbstractResource.cpp:117
 #, kde-format
 msgid "Installed"
 msgstr "インストール済"
@@ -2031,12 +2093,12 @@ msgstr "廃止予定"
 msgid "Downgrade"
 msgstr "ダウングレード"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:132
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:133
 #, kde-format
 msgid "Failed Offline Update"
 msgstr "失敗したオフライン更新"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:133
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:134
 #, kde-format
 msgid ""
 "Failed to update %1 package\n"
@@ -2048,47 +2110,47 @@ msgstr[0] ""
 "%1 個のパッケージの更新に失敗しました。\n"
 "%2"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:136
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:187
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:137
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:188
 #, kde-format
 msgctxt "@action:button"
 msgid "Open Discover"
 msgstr "Discover を開く"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:141
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:142
 #, kde-format
 msgctxt "@action:button"
 msgid "Repair System"
 msgstr "システムの修復"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:146
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:147
 #, kde-format
 msgid "Repairing failed offline update"
 msgstr "失敗したオフライン更新を修復中"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:153
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:154
 #, kde-format
 msgid "Repair Failed"
 msgstr "修復に失敗しました"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:155
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:156
 #, kde-kuit-format
 msgctxt ""
 "@info %1 is an error message and %3 is the name of the operating system"
 msgid "%1<nl/>Please <link url='%2'>report this error to %3</link>."
 msgstr "%1<nl/><link url='%2'>このエラーを %3 に報告</link> してください。"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:168
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:169
 #, kde-format
 msgid "Repaired Successfully"
 msgstr "修復に成功しました"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:183
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:184
 #, kde-format
 msgid "Offline Updates"
 msgstr "オフライン更新"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:184
+#: libdiscover/backends/PackageKitBackend/PackageKitNotifier.cpp:185
 #, kde-format
 msgid "Successfully updated %1 package"
 msgid_plural "Successfully updated %1 packages"
@@ -2140,12 +2202,6 @@ msgstr "再起動:"
 #, kde-format
 msgid "Vendor:"
 msgstr "ベンダー:"
-
-#: libdiscover/backends/PackageKitBackend/PackageKitResource.cpp:448
-#, kde-format
-msgid "%2 (plus %1 dependency)"
-msgid_plural "%2 (plus %1 dependencies)"
-msgstr[0] "%2 (さらに %1 個の依存関係)"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitSourcesBackend.cpp:105
 #, kde-format
@@ -2200,10 +2256,15 @@ msgid "Not enough space to perform the update; only %1 of space are available."
 msgstr "十分な空き容量がないため更新できません。現在 %1 のみ利用可能です。"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitUpdater.cpp:602
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "This update cannot be completed as it would remove the following software "
+#| "which is critical to the system's operation:<nl/><ul><li>%1</li></ul><nl/"
+#| ">If you believe this is an error, please report it as a bug to the "
+#| "packagers of your distribution."
 msgid ""
 "This update cannot be completed as it would remove the following software "
-"which is critical to the system's operation:<nl/><ul><li>%1</li></ul><nl/>If "
+"which is critical to the system’s operation:<nl/><ul><li>%1</li></ul><nl/>If "
 "you believe this is an error, please report it as a bug to the packagers of "
 "your distribution."
 msgstr ""
@@ -2234,9 +2295,12 @@ msgstr "%1:<nl/><nl/>%2"
 
 #: libdiscover/backends/PackageKitBackend/PackageKitUpdater.cpp:744
 #: libdiscover/backends/PackageKitBackend/PKTransaction.cpp:327
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Media Change of type '%1' is requested.\n"
+#| "%2"
 msgid ""
-"Media Change of type '%1' is requested.\n"
+"Media Change of type “%1” is requested.\n"
 "%2"
 msgstr ""
 "タイプ '%1' のメディアを変更する必要があります。\n"
@@ -2258,13 +2322,13 @@ msgstr ""
 "パッケージ %1 とそのベンダー %2 の使用許諾契約に同意する必要があります:\n"
 " %3"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitUpdater.cpp:927
+#: libdiscover/backends/PackageKitBackend/PackageKitUpdater.cpp:928
 #: libdiscover/backends/PackageKitBackend/PKTransaction.cpp:344
 #, kde-format
 msgid "Missing signature for %1 in %2"
 msgstr "%2 に %1 の署名がありません。"
 
-#: libdiscover/backends/PackageKitBackend/PackageKitUpdater.cpp:928
+#: libdiscover/backends/PackageKitBackend/PackageKitUpdater.cpp:929
 #: libdiscover/backends/PackageKitBackend/PKTransaction.cpp:345
 #, kde-format
 msgid ""
@@ -2285,10 +2349,15 @@ msgstr ""
 "タイムスタンプ: %4\n"
 
 #: libdiscover/backends/PackageKitBackend/PKTransaction.cpp:201
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "This action cannot be completed as it would remove the following software "
+#| "which is critical to the system's operation:<nl/><ul><li>%1</li></ul><nl/"
+#| ">If you believe this is an error, please report it as a bug to the "
+#| "packagers of your distribution."
 msgid ""
 "This action cannot be completed as it would remove the following software "
-"which is critical to the system's operation:<nl/><ul><li>%1</li></ul><nl/>If "
+"which is critical to the system’s operation:<nl/><ul><li>%1</li></ul><nl/>If "
 "you believe this is an error, please report it as a bug to the packagers of "
 "your distribution."
 msgstr ""
@@ -2377,6 +2446,13 @@ msgid "Missing remote ref for rebase operation. Please file a bug."
 msgstr ""
 "リベース操作のためのリモート参照が欠けています。バグとして報告してください。"
 
+#: libdiscover/backends/RpmOstreeBackend/RpmOstreeBackend.cpp:553
+#, fuzzy, kde-format
+#| msgctxt "Category"
+#| msgid "Operating System"
+msgid "Operating System"
+msgstr "オペレーティングシステム"
+
 #: libdiscover/backends/RpmOstreeBackend/RpmOstreeResource.cpp:301
 #, kde-format
 msgid "GPL and other licenses"
@@ -2411,7 +2487,7 @@ msgstr "削除されたパッケージ:"
 #, kde-format
 msgctxt "@label OS updater message"
 msgid ""
-"<br/>This version is pinned and won't be automatically removed on updates."
+"<br/>This version is pinned and won’t be automatically removed on updates."
 msgstr ""
 
 #: libdiscover/backends/RpmOstreeBackend/RpmOstreeResource.cpp:360
@@ -2420,7 +2496,7 @@ msgstr ""
 #, kde-format
 msgctxt "@label OS vendor"
 msgid "Fedora Project"
-msgstr ""
+msgstr "Fedora Project"
 
 #: libdiscover/backends/RpmOstreeBackend/RpmOstreeResource.cpp:400
 #, kde-format
@@ -2570,17 +2646,17 @@ msgstr "切り替え"
 msgid "Permissions for %1"
 msgstr "%1 の権限"
 
-#: libdiscover/backends/SnapBackend/SnapBackend.cpp:43
+#: libdiscover/backends/SnapBackend/SnapBackend.cpp:42
 #, kde-format
 msgid "Snap"
 msgstr "Snap"
 
-#: libdiscover/backends/SnapBackend/SnapResource.cpp:585
+#: libdiscover/backends/SnapBackend/SnapResource.cpp:579
 #, kde-format
 msgid "Verified Publisher on snapcraft.io"
 msgstr "snapcraft.io の検証済み発行元"
 
-#: libdiscover/backends/SnapBackend/SnapResource.cpp:587
+#: libdiscover/backends/SnapBackend/SnapResource.cpp:581
 #, kde-format
 msgid "Starred Publisher on snapcraft.io"
 msgstr "snapcraft.io の星付き発行元"
@@ -2589,22 +2665,10 @@ msgstr "snapcraft.io の星付き発行元"
 #, kde-format
 msgid ""
 "This Snap application is not compatible with security sandboxing and will "
-"have full access to this computer. Install it anyway?"
+"have full access to this system. Install it anyway?"
 msgstr ""
 "この Snap アプリケーションはセキュリティサンドボックス機能に対応しておらず、"
-"このコンピュータへの完全なアクセス権を持ちます。インストールを続行しますか？"
-
-#: libdiscover/backends/SteamOSBackend/SteamOSBackend.cpp:94
-#, kde-format
-msgid "SteamOS: Unable to query atomupd for SteamOS Updates..."
-msgstr ""
-"SteamOS: SteamOS Updates のために atomupd をクエリすることができませんでし"
-"た..."
-
-#: libdiscover/backends/SteamOSBackend/SteamOSResource.cpp:16
-#, kde-format
-msgid "SteamOS"
-msgstr "SteamOS"
+"このシステムへの完全なアクセス権を持ちます。インストールを続行しますか？"
 
 #: libdiscover/backends/SystemdSysupdateBackend/SystemdSysupdateBackend.cpp:149
 #, kde-kuit-format
@@ -2640,41 +2704,47 @@ msgctxt "@info:status"
 msgid "No components found in appstream metadata for target “%1”"
 msgstr ""
 
-#: libdiscover/DiscoverBackendsFactory.cpp:127
-#, kde-format
+#: libdiscover/DiscoverBackendsFactory.cpp:128
+#, fuzzy, kde-format
+#| msgid ""
+#| "List all the backends we'll want to have loaded, separated by comma ','."
 msgid ""
-"List all the backends we'll want to have loaded, separated by comma ','."
+"List all the backends we’ll want to have loaded, separated by comma “,”."
 msgstr ""
 "ロードしたいすべてのバックエンドをコンマ ',' で区切ってリストできます。"
 
-#: libdiscover/resources/AbstractResource.cpp:93
+#: libdiscover/resources/AbstractResource.cpp:113
 #, kde-format
 msgid "Broken"
 msgstr "壊れています"
 
-#: libdiscover/resources/AbstractResource.cpp:95
+#: libdiscover/resources/AbstractResource.cpp:115
 #, kde-format
 msgid "Available"
 msgstr "利用可能"
 
-#: libdiscover/resources/AbstractResource.cpp:99
+#: libdiscover/resources/AbstractResource.cpp:119
 #, kde-format
 msgid "Upgradeable"
 msgstr "アップグレード可能"
 
-#: libdiscover/resources/AbstractResource.cpp:239
+#: libdiscover/resources/AbstractResource.cpp:259
 #, kde-format
 msgid "Launch"
 msgstr "起動する"
 
-#: libdiscover/resources/AbstractResource.cpp:250
-#, kde-format
+#: libdiscover/resources/AbstractResource.cpp:270
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "@info 'Refresh' is used as a noun here, and %1 is an app's version number"
+#| msgid "Refresh of version %1"
 msgctxt ""
-"@info 'Refresh' is used as a noun here, and %1 is an app's version number"
+"@info 'Refresh' is used as a noun here. An app or runtime got updated "
+"without changing the user-facing version number %1"
 msgid "Refresh of version %1"
 msgstr "バージョン %1 の更新"
 
-#: libdiscover/resources/AbstractResource.cpp:260
+#: libdiscover/resources/AbstractResource.cpp:280
 #, kde-format
 msgctxt "Do not translate or alter \\u009C"
 msgid "%1 → %2%1 → %2%2"
@@ -2690,34 +2760,52 @@ msgstr "インターネット接続を確認してください"
 msgid "Refresh"
 msgstr "再読み込み"
 
-#: libdiscover/resources/ResourcesModel.cpp:405
+#: libdiscover/resources/ResourcesModel.cpp:392
 #, kde-format
 msgctxt "@info:status %1 is the name of a source of updates"
 msgid "Refreshing %1"
-msgstr "%1 を更新中"
+msgstr "%1 を読み込み中"
 
-#: libdiscover/resources/ResourcesProxyModel.cpp:787
+#: libdiscover/resources/ResourcesProxyModel.cpp:561
+#, kde-format
+msgctxt "@label"
+msgid "Applications"
+msgstr "アプリケーション"
+
+#: libdiscover/resources/ResourcesProxyModel.cpp:563
+#, kde-format
+msgctxt "@label"
+msgid "Addons"
+msgstr "アドオン"
+
+#: libdiscover/resources/ResourcesProxyModel.cpp:565
+#, kde-format
+msgctxt "@label"
+msgid "Application Support"
+msgstr "アプリケーションサポート"
+
+#: libdiscover/resources/ResourcesProxyModel.cpp:567
+#, kde-format
+msgctxt "@label"
+msgid "System"
+msgstr "システム"
+
+#: libdiscover/resources/ResourcesProxyModel.cpp:809
 #, kde-format
 msgctxt "an approximation number, like 3000+"
 msgid "%1+"
 msgstr "%1以上"
 
-#: libdiscover/resources/ResourcesUpdatesModel.cpp:112
+#: libdiscover/resources/ResourcesUpdatesModel.cpp:111
 #, kde-format
 msgid "Updates"
 msgstr "更新"
 
-#: libdiscover/Transaction/Transaction.cpp:133
+#: libdiscover/Transaction/Transaction.cpp:126
 #, kde-format
 msgctxt "@label Download rate"
 msgid "%1/s"
 msgstr "%1/秒"
-
-#: libdiscover/Transaction/TransactionModel.cpp:77
-#, kde-format
-msgctxt "@info:status"
-msgid "Starting"
-msgstr "起動中"
 
 #: libdiscover/Transaction/TransactionModel.cpp:79
 #, kde-format
@@ -2767,26 +2855,30 @@ msgctxt "@info:status"
 msgid "Cancelled"
 msgstr "キャンセルされました"
 
-#: libdiscover/UpdateModel/UpdateModel.cpp:138
+#: libdiscover/UpdateModel/UpdateModel.cpp:137
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Applications"
 msgstr "アプリケーション"
 
-#: libdiscover/UpdateModel/UpdateModel.cpp:139
+#: libdiscover/UpdateModel/UpdateModel.cpp:138
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Application Support"
 msgstr "アプリケーションサポート"
 
-#: libdiscover/UpdateModel/UpdateModel.cpp:140
+#: libdiscover/UpdateModel/UpdateModel.cpp:139
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "System Software"
 msgstr "システムソフトウェア"
 
-#: libdiscover/UpdateModel/UpdateModel.cpp:141
+#: libdiscover/UpdateModel/UpdateModel.cpp:140
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Addons"
 msgstr "アドオン"
+
+#~ msgctxt "Category"
+#~ msgid "CD and DVD"
+#~ msgstr "CD と DVD"

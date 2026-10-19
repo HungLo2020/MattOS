@@ -24,8 +24,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_xwayland_input-0");
-
 class XWaylandInputTest : public QObject
 {
     Q_OBJECT
@@ -39,7 +37,7 @@ private Q_SLOTS:
 void XWaylandInputTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -64,6 +62,7 @@ void XWaylandInputTest::init()
 class X11EventReaderHelper : public QObject
 {
     Q_OBJECT
+
 public:
     X11EventReaderHelper(xcb_connection_t *c);
 
@@ -151,10 +150,7 @@ void XWaylandInputTest::testPointerEnterLeaveSsd()
     QVERIFY(window);
     QVERIFY(window->isDecorated());
     QVERIFY(!window->hasStrut());
-    QVERIFY(!window->readyForPainting());
 
-    QMetaObject::invokeMethod(window, "setReadyForPainting");
-    QVERIFY(window->readyForPainting());
     QVERIFY(Test::waitForWaylandSurface(window));
 
     // move pointer into the window, should trigger an enter
@@ -238,8 +234,6 @@ void XWaylandInputTest::testPointerEventLeaveCsd()
     QCOMPARE(window->bufferGeometry(), RectF(0, 0, 120, 225));
     QCOMPARE(window->frameGeometry(), RectF(10, 5, 100, 200));
 
-    QMetaObject::invokeMethod(window, "setReadyForPainting");
-    QVERIFY(window->readyForPainting());
     QVERIFY(Test::waitForWaylandSurface(window));
 
     // Move pointer into the window, should trigger an enter.

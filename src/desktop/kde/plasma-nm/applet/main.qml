@@ -29,6 +29,13 @@ PlasmoidItem {
         || Plasmoid.location === PlasmaCore.Types.LeftEdge)
     property alias planeModeSwitchAction: planeAction
 
+    // BUG 520144
+    // QTBUG-146886
+    readonly property var backAction: Kirigami.Action {
+        onTriggered: (mainWindow.fullRepresentationItem as PopupDialog).popStack()
+        enabled: (mainWindow.fullRepresentationItem as PopupDialog)?.stackDepth > 1
+    }
+
     toolTipMainText: i18n("Networks")
     toolTipSubText: {
         const activeConnections = networkStatus.activeConnections;

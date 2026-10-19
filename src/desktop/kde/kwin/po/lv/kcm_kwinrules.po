@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwinrules\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
+"POT-Creation-Date: 2026-07-17 00:45+0000\n"
 "PO-Revision-Date: 2025-05-08 16:37+0300\n"
 "Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
 "Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
@@ -29,42 +29,56 @@ msgstr ""
 msgid "Copy of %1"
 msgstr "%1 kopija"
 
-#: kcmrules.cpp:414
+#: kcmrules.cpp:426
 #, kde-format
 msgid "Application settings for %1"
 msgstr "%1 programmas iestatījumi"
 
-#: kcmrules.cpp:436 rulesmodel.cpp:221 rulesmodel.cpp:224
+#: kcmrules.cpp:448 rulesmodel.cpp:222 rulesmodel.cpp:225
 #, kde-format
 msgid "Window settings for %1"
 msgstr "%1 loga iestatījumi"
 
-#: optionsmodel.cpp:198
-#, kde-format
+#: optionsmodel.cpp:199 optionsmodel.cpp:204
+#, fuzzy, kde-format
+#| msgid "Unimportant"
+msgctxt "@item:inlistbox"
 msgid "Unimportant"
 msgstr "Nav svarīgi"
 
-#: optionsmodel.cpp:199
-#, kde-format
+#: optionsmodel.cpp:200
+#, fuzzy, kde-format
+#| msgid "Exact match"
+msgctxt "@item:inlistbox"
 msgid "Exact match"
 msgstr "Precīza sakritība"
 
-#: optionsmodel.cpp:200
-#, kde-format
+#: optionsmodel.cpp:201
+#, fuzzy, kde-format
+#| msgid "Substring match"
+msgctxt "@item:inlistbox"
 msgid "Substring match"
 msgstr "Apakšvirknes sakritība"
 
-#: optionsmodel.cpp:201
-#, kde-format
+#: optionsmodel.cpp:202
+#, fuzzy, kde-format
+#| msgid "Regular expression"
+msgctxt "@item:inlistbox"
 msgid "Regular expression"
 msgstr "Regulārā izteiksme"
 
 #: optionsmodel.cpp:205
 #, kde-format
+msgctxt "@item:inlistbox This is a noun"
+msgid "Match"
+msgstr ""
+
+#: optionsmodel.cpp:210
+#, kde-format
 msgid "Apply initially"
 msgstr "Pielietot sākotnēji"
 
-#: optionsmodel.cpp:206
+#: optionsmodel.cpp:211
 #, kde-format
 msgid ""
 "The window property will be only set to the given value after the window is "
@@ -74,12 +88,12 @@ msgstr ""
 "Loga īpašība tiks iestatīta uz norādīto vērtību pēc loga izveidošanas.\n"
 "Vairāk nekādas darbības netiks veiktas."
 
-#: optionsmodel.cpp:209
+#: optionsmodel.cpp:214
 #, kde-format
 msgid "Apply now"
 msgstr "Pielietot tagad"
 
-#: optionsmodel.cpp:210
+#: optionsmodel.cpp:215
 #, kde-format
 msgid ""
 "The window property will be set to the given value immediately and will not "
@@ -90,12 +104,12 @@ msgstr ""
 "netiks ietekmēta.\n"
 "(šī darbība pēc tam tiks dzēsta)."
 
-#: optionsmodel.cpp:213
+#: optionsmodel.cpp:218
 #, kde-format
 msgid "Remember"
 msgstr "Atcerēties"
 
-#: optionsmodel.cpp:214
+#: optionsmodel.cpp:219
 #, kde-format
 msgid ""
 "The value of the window property will be remembered and, every time the "
@@ -104,12 +118,12 @@ msgstr ""
 "Loga īpašību vērtība tiks saglabāta un katru reizi pēc loga izveidošanas "
 "tiks piemērota pēdējā saglabātā vērtība."
 
-#: optionsmodel.cpp:217
+#: optionsmodel.cpp:222
 #, kde-format
 msgid "Do not affect"
 msgstr "Neietekmēt"
 
-#: optionsmodel.cpp:218
+#: optionsmodel.cpp:223
 #, kde-format
 msgid ""
 "The window property will not be affected and therefore the default handling "
@@ -120,23 +134,23 @@ msgstr ""
 "Šī iestatījuma precizēšana neļaus stāties spēkā vispārīgākiem loga "
 "iestatījumiem."
 
-#: optionsmodel.cpp:221
+#: optionsmodel.cpp:226
 #, kde-format
 msgid "Force"
 msgstr "Piespiest"
 
-#: optionsmodel.cpp:222
+#: optionsmodel.cpp:227
 #, kde-format
 msgid "The window property will be always forced to the given value."
 msgstr ""
 "Loga īpašība vienmēr tiks piespiedu kārtā iestatīta uz norādīto vērtību."
 
-#: optionsmodel.cpp:224
+#: optionsmodel.cpp:229
 #, kde-format
 msgid "Force temporarily"
 msgstr "Piespiest uz laiku"
 
-#: optionsmodel.cpp:225
+#: optionsmodel.cpp:230
 #, kde-format
 msgid ""
 "The window property will be forced to the given value until it is hidden\n"
@@ -146,17 +160,17 @@ msgstr ""
 "loga paslēpšanai\n"
 "(šī darbība tiks dzēsta pēc loga paslēpšanas)."
 
-#: rulesmodel.cpp:227
+#: rulesmodel.cpp:228
 #, kde-format
 msgid "Settings for %1"
 msgstr "%1 iestatījumi"
 
-#: rulesmodel.cpp:230
+#: rulesmodel.cpp:231
 #, kde-format
 msgid "New window settings"
 msgstr "Jauna loga iestatījumi"
 
-#: rulesmodel.cpp:246
+#: rulesmodel.cpp:247
 #, kde-format
 msgid ""
 "You have specified the window class as unimportant.\n"
@@ -171,7 +185,7 @@ msgstr ""
 "norādītu vismaz logu tipus, lai izvairītos no tā pielietošanas speciāliem "
 "logiem."
 
-#: rulesmodel.cpp:253
+#: rulesmodel.cpp:254
 #, kde-format
 msgid ""
 "Some applications set their own geometry after starting, overriding your "
@@ -183,7 +197,7 @@ msgstr ""
 "izmantot šos iestatījumus, izmantojiet piespiedu īpašību „%1“, tai atzīmējot "
 "„Jā“."
 
-#: rulesmodel.cpp:260
+#: rulesmodel.cpp:261
 #, kde-format
 msgid ""
 "Readability may be impaired with extremely low opacity values. At 0%, the "
@@ -192,127 +206,133 @@ msgstr ""
 "Ļoti zemas necaurspīdīguma vērtības var pasliktināt lasāmību. Pie 0% logs "
 "kļūst neredzams."
 
-#: rulesmodel.cpp:387
+#: rulesmodel.cpp:388
 #, kde-format
 msgid "Description"
 msgstr "Apraksts"
 
-#: rulesmodel.cpp:387 rulesmodel.cpp:395 rulesmodel.cpp:403 rulesmodel.cpp:410
-#: rulesmodel.cpp:416 rulesmodel.cpp:424 rulesmodel.cpp:429 rulesmodel.cpp:435
-#: rulesmodel.cpp:440
+#: rulesmodel.cpp:388 rulesmodel.cpp:396 rulesmodel.cpp:404 rulesmodel.cpp:411
+#: rulesmodel.cpp:417 rulesmodel.cpp:425 rulesmodel.cpp:430 rulesmodel.cpp:436
+#: rulesmodel.cpp:441 rulesmodel.cpp:447
 #, kde-format
 msgid "Window matching"
 msgstr "Loga atbilstība"
 
-#: rulesmodel.cpp:395
+#: rulesmodel.cpp:396
 #, kde-format
 msgid "Window class (application)"
 msgstr "Loga klase (programma)"
 
-#: rulesmodel.cpp:403
+#: rulesmodel.cpp:404
 #, kde-format
 msgid "Match whole window class"
 msgstr "Sakrīt visa logu klase"
 
-#: rulesmodel.cpp:410
+#: rulesmodel.cpp:411
 #, kde-format
 msgid "Whole window class"
 msgstr "Visa logu klase"
 
-#: rulesmodel.cpp:416
+#: rulesmodel.cpp:417
 #, kde-format
 msgid "Window types"
 msgstr "Logu tipi"
 
-#: rulesmodel.cpp:424
+#: rulesmodel.cpp:425
 #, kde-format
 msgid "Window role"
 msgstr "Loga loma"
 
-#: rulesmodel.cpp:429
+#: rulesmodel.cpp:430
 #, kde-format
 msgid "Window title"
 msgstr "Loga nosaukums"
 
-#: rulesmodel.cpp:435
+#: rulesmodel.cpp:436
 #, kde-format
 msgid "Machine (hostname)"
 msgstr "Ierīce (saimniekdatora nosaukums)"
 
-#: rulesmodel.cpp:440
+#: rulesmodel.cpp:441
 #, kde-format
 msgid "Window tag"
 msgstr "Loga birka"
 
 #: rulesmodel.cpp:447
+#, fuzzy, kde-format
+#| msgid "On main window"
+msgid "Has parent window"
+msgstr "Galvenajā logā"
+
+#: rulesmodel.cpp:453
 #, kde-format
 msgid "Position"
 msgstr "Novietojums"
 
-#: rulesmodel.cpp:447 rulesmodel.cpp:453 rulesmodel.cpp:459 rulesmodel.cpp:464
-#: rulesmodel.cpp:472 rulesmodel.cpp:478 rulesmodel.cpp:497 rulesmodel.cpp:513
-#: rulesmodel.cpp:518 rulesmodel.cpp:523 rulesmodel.cpp:528 rulesmodel.cpp:535
-#: rulesmodel.cpp:549 rulesmodel.cpp:554 rulesmodel.cpp:559
+#: rulesmodel.cpp:453 rulesmodel.cpp:459 rulesmodel.cpp:465 rulesmodel.cpp:470
+#: rulesmodel.cpp:478 rulesmodel.cpp:484 rulesmodel.cpp:503 rulesmodel.cpp:519
+#: rulesmodel.cpp:524 rulesmodel.cpp:529 rulesmodel.cpp:534 rulesmodel.cpp:541
+#: rulesmodel.cpp:555 rulesmodel.cpp:560
 #, kde-format
 msgid "Size & Position"
 msgstr "Izmērs un novietojums"
 
-#: rulesmodel.cpp:453
+#: rulesmodel.cpp:459
 #, kde-format
 msgid "Size"
 msgstr "Izmērs"
 
-#: rulesmodel.cpp:459
+#: rulesmodel.cpp:465
 #, kde-format
 msgid "Maximized horizontally"
 msgstr "Maksimizēts horizontāli"
 
-#: rulesmodel.cpp:464
+#: rulesmodel.cpp:470
 #, kde-format
 msgid "Maximized vertically"
 msgstr "Maksimizēts vertikāli"
 
-#: rulesmodel.cpp:472
+#: rulesmodel.cpp:478
 #, kde-format
 msgid "Virtual desktop"
 msgstr "Virtuālā darbvirsma"
 
-#: rulesmodel.cpp:478
+#: rulesmodel.cpp:484
 #, kde-format
 msgid "Virtual desktops"
 msgstr "Virtuālās darbvirsmas"
 
-#: rulesmodel.cpp:497
+#: rulesmodel.cpp:503
 #, kde-format
 msgid "Activities"
 msgstr "Aktivitātes"
 
-#: rulesmodel.cpp:513
+#: rulesmodel.cpp:519
 #, kde-format
 msgid "Screen"
 msgstr "Ekrāns"
 
-#: rulesmodel.cpp:518 rulesmodel.cpp:927
+#: rulesmodel.cpp:524 rulesmodel.cpp:924
 #, kde-format
 msgid "Fullscreen"
 msgstr "Pilnekrāns"
 
-#: rulesmodel.cpp:523
+#: rulesmodel.cpp:529
 #, kde-format
 msgid "Minimized"
 msgstr "Minimizēts"
 
-#: rulesmodel.cpp:528
+#: rulesmodel.cpp:534
 #, kde-format
 msgid "Initial placement"
 msgstr "Sākotnējais novietojums"
 
-#: rulesmodel.cpp:535
+#: rulesmodel.cpp:541
 #, kde-format
 msgid "Ignore requested geometry"
 msgstr "Ignorēt pieprasīto ģeometriju"
 
-#: rulesmodel.cpp:538
+#: rulesmodel.cpp:544
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -331,83 +351,61 @@ msgstr ""
 ">Ievērojiet, ka novietojums var tikt izmantots, lai ekrānam liktu atvērties "
 "citā <interface>Ekrānā</interface>."
 
-#: rulesmodel.cpp:549
+#: rulesmodel.cpp:555
 #, kde-format
 msgid "Minimum Size"
 msgstr "Mazākais izmērs"
 
-#: rulesmodel.cpp:554
+#: rulesmodel.cpp:560
 #, kde-format
 msgid "Maximum Size"
 msgstr "Lielākais izmērs"
 
-#: rulesmodel.cpp:559
-#, kde-format
-msgid "Obey geometry restrictions"
-msgstr "Pakļauties ģeometrijas ierobežojumiem"
-
-#: rulesmodel.cpp:561
-#, kde-kuit-format
-msgctxt "@info:tooltip"
-msgid ""
-"Some apps like video players or terminals can ask KWin to constrain them to "
-"certain aspect ratios or only grow by values larger than the dimensions of "
-"one character. Use this property to ignore such restrictions and allow those "
-"windows to be resized to arbitrary sizes.<nl/><nl/>This can be helpful for "
-"windows that can't quite fit the full screen area when maximized."
-msgstr ""
-"Dažas programmas, piemēram, video atskaņotāji vai termināļi var jautāt "
-"„KWin“ pēc noteiktas malu attiecības vai palielināt izmērus par vērtībām, "
-"kas ir lielākas par vienu rakstzīmi. Izmantojiet šo īpašību, lai ignorētu "
-"šādus ierobežojumus un šiem logiem ļautu mainīt izmēru uz jebkādiem "
-"lielumiem<nl/><nl/>Tas var būt noderīgi logiem, kas pēc maksimizēšanas līdz "
-"galam neietilpst pilnā ekrānā."
-
-#: rulesmodel.cpp:572
+#: rulesmodel.cpp:566
 #, kde-format
 msgid "Keep above other windows"
 msgstr "Turēt virs citiem logiem"
 
-#: rulesmodel.cpp:572 rulesmodel.cpp:577 rulesmodel.cpp:582 rulesmodel.cpp:588
-#: rulesmodel.cpp:594 rulesmodel.cpp:600
+#: rulesmodel.cpp:566 rulesmodel.cpp:571 rulesmodel.cpp:576 rulesmodel.cpp:582
+#: rulesmodel.cpp:588 rulesmodel.cpp:594
 #, kde-format
 msgid "Arrangement & Access"
 msgstr "Izvietojums un piekļuve"
 
-#: rulesmodel.cpp:577
+#: rulesmodel.cpp:571
 #, kde-format
 msgid "Keep below other windows"
 msgstr "Turēt zem citiem logiem"
 
-#: rulesmodel.cpp:582
+#: rulesmodel.cpp:576
 #, kde-format
 msgid "Skip taskbar"
 msgstr "Izlaist uzdevumu joslu"
 
-#: rulesmodel.cpp:584
+#: rulesmodel.cpp:578
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Controls whether or not the window appears in the Task Manager."
 msgstr "Kontrolē to, vai logs parādās uzdevumu pārvaldniekā."
 
-#: rulesmodel.cpp:588
+#: rulesmodel.cpp:582
 #, kde-format
 msgid "Skip pager"
 msgstr "Izlaist lapotāju"
 
-#: rulesmodel.cpp:590
+#: rulesmodel.cpp:584
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "Controls whether or not the window appears in the Virtual Desktop manager."
 msgstr "Kontrolē to, vai logs parādīsies virtuālo darbvirsmu pārvaldniekā."
 
-#: rulesmodel.cpp:594
+#: rulesmodel.cpp:588
 #, kde-format
 msgid "Skip switcher"
 msgstr "Izlaist pārslēdzēju"
 
-#: rulesmodel.cpp:596
+#: rulesmodel.cpp:590
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -416,45 +414,45 @@ msgid ""
 msgstr ""
 "Kontrolē, vai logs parādīsies <shortcut>Alt+Tab</shortcut> logu sarakstā."
 
-#: rulesmodel.cpp:600
+#: rulesmodel.cpp:594
 #, kde-format
 msgid "Shortcut"
 msgstr "Saīsne"
 
-#: rulesmodel.cpp:606
+#: rulesmodel.cpp:600
 #, kde-format
-msgid "No titlebar and frame"
-msgstr "Bez virsrakstjoslas un ietvara"
+msgid "Window manager draws titlebar, frame, and shadows"
+msgstr ""
 
-#: rulesmodel.cpp:606 rulesmodel.cpp:611 rulesmodel.cpp:617 rulesmodel.cpp:622
-#: rulesmodel.cpp:628 rulesmodel.cpp:655 rulesmodel.cpp:683 rulesmodel.cpp:689
-#: rulesmodel.cpp:701 rulesmodel.cpp:706 rulesmodel.cpp:711 rulesmodel.cpp:716
-#: rulesmodel.cpp:722 rulesmodel.cpp:727
+#: rulesmodel.cpp:600 rulesmodel.cpp:606 rulesmodel.cpp:612 rulesmodel.cpp:617
+#: rulesmodel.cpp:623 rulesmodel.cpp:650 rulesmodel.cpp:678 rulesmodel.cpp:684
+#: rulesmodel.cpp:696 rulesmodel.cpp:701 rulesmodel.cpp:706 rulesmodel.cpp:712
+#: rulesmodel.cpp:717 rulesmodel.cpp:722
 #, kde-format
 msgid "Appearance & Fixes"
 msgstr "Izskats un labojumi"
 
-#: rulesmodel.cpp:611
+#: rulesmodel.cpp:606
 #, kde-format
 msgid "Titlebar color scheme"
 msgstr "Virsrakstjoslas krāsu shēma"
 
-#: rulesmodel.cpp:617
+#: rulesmodel.cpp:612
 #, kde-format
 msgid "Active opacity"
 msgstr "Aktīvā loga caurspīdība"
 
-#: rulesmodel.cpp:622
+#: rulesmodel.cpp:617
 #, kde-format
 msgid "Inactive opacity"
 msgstr "Neaktīvā loga caurspīdība"
 
-#: rulesmodel.cpp:628
+#: rulesmodel.cpp:623
 #, kde-format
 msgid "Focus stealing prevention"
 msgstr "Fokusa zaudēšanas novēršana"
 
-#: rulesmodel.cpp:630
+#: rulesmodel.cpp:625
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -493,12 +491,12 @@ msgstr ""
 "strong='true'>Ekstrēms:</emphasis> Logam nekad nebūs ļauts pacelties un "
 "pārņemt fokusu.</item></list>"
 
-#: rulesmodel.cpp:655
+#: rulesmodel.cpp:650
 #, kde-format
 msgid "Focus protection"
 msgstr "Fokusa aizsardzība"
 
-#: rulesmodel.cpp:657
+#: rulesmodel.cpp:652
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -540,22 +538,22 @@ msgstr ""
 "item><item><emphasis strong='true'>Ekstrēms:</emphasis> No jauna atvērtiem "
 "logiem nekad nebūs ļauts pacelties un pārņemt fokusu.</item></list>"
 
-#: rulesmodel.cpp:683
+#: rulesmodel.cpp:678
 #, kde-format
 msgid "Accept focus"
 msgstr "Pieņemt fokusu"
 
-#: rulesmodel.cpp:685
+#: rulesmodel.cpp:680
 #, kde-format
 msgid "Controls whether or not the window becomes focused when clicked."
 msgstr "Kontrolē, vai logs pēc uzklikšķināšanas uz tā iegūst fokusu."
 
-#: rulesmodel.cpp:689
+#: rulesmodel.cpp:684
 #, kde-format
 msgid "Ignore global shortcuts"
 msgstr "Ignorēt globālās saīsnes"
 
-#: rulesmodel.cpp:691
+#: rulesmodel.cpp:686
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -573,42 +571,42 @@ msgstr ""
 "lai atstātu logu, vai izmantot jebkādu citu globālu saīsni, piemēram, "
 "<shortcut>Alt+Space</shortcut>, lai palaistu „KRunner“."
 
-#: rulesmodel.cpp:701
+#: rulesmodel.cpp:696
 #, kde-format
 msgid "Closeable"
 msgstr "Aizverams"
 
-#: rulesmodel.cpp:706
+#: rulesmodel.cpp:701
 #, kde-format
 msgid "Desktop file name"
 msgstr "Darbvirsmas datnes nosaukums"
 
-#: rulesmodel.cpp:711
-#, kde-format
-msgid "Block compositing"
-msgstr "Bloķēt kompozitēšanu"
-
-#: rulesmodel.cpp:716
+#: rulesmodel.cpp:706
 #, kde-format
 msgid "Layer"
 msgstr "Slānis"
 
-#: rulesmodel.cpp:722
+#: rulesmodel.cpp:712
 #, kde-format
 msgid "Adaptive sync"
 msgstr "Adaptīvā sinhronizācija"
 
-#: rulesmodel.cpp:727
+#: rulesmodel.cpp:717
 #, kde-format
 msgid "Allow tearing"
 msgstr "Atļaut ekrāna pārraušanu"
 
-#: rulesmodel.cpp:778
+#: rulesmodel.cpp:722
+#, kde-format
+msgid "Hide from screenshots and screen recordings"
+msgstr ""
+
+#: rulesmodel.cpp:775
 #, kde-format
 msgid "Window class not available"
 msgstr "Loga klase nav pieejama"
 
-#: rulesmodel.cpp:779
+#: rulesmodel.cpp:776
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -622,190 +620,214 @@ msgstr ""
 "noteikumus, mēģiniet to darīt pēc citām īpašībām, piemēram, loga nosaukuma."
 "<nl/><nl/>Apsveriet iespēju par šo kļūdu ziņot programmas izstrādātājiem."
 
-#: rulesmodel.cpp:813
+#: rulesmodel.cpp:810
 #, kde-format
 msgid "All window types"
 msgstr "Visi logu tipi"
 
-#: rulesmodel.cpp:814
+#: rulesmodel.cpp:811
 #, kde-format
 msgid "Normal window"
 msgstr "Normāls logs"
 
-#: rulesmodel.cpp:815
+#: rulesmodel.cpp:812
 #, kde-format
 msgid "Dialog window"
 msgstr "Lodziņš"
 
-#: rulesmodel.cpp:816
+#: rulesmodel.cpp:813
 #, kde-format
 msgid "Utility window"
 msgstr "Utilītas logs"
 
-#: rulesmodel.cpp:817
+#: rulesmodel.cpp:814
 #, kde-format
 msgid "Dock (panel)"
 msgstr "Doks (panelis)"
 
-#: rulesmodel.cpp:818
+#: rulesmodel.cpp:815
 #, kde-format
 msgid "Toolbar"
 msgstr "Rīkjosla"
 
-#: rulesmodel.cpp:819
+#: rulesmodel.cpp:816
 #, kde-format
 msgid "Torn-off menu"
 msgstr "Atdalīta izvēlne"
 
-#: rulesmodel.cpp:820
+#: rulesmodel.cpp:817
 #, kde-format
 msgid "Splash screen"
 msgstr "Sākuma ekrāns"
 
-#: rulesmodel.cpp:821 rulesmodel.cpp:922
+#: rulesmodel.cpp:818 rulesmodel.cpp:919
 #, kde-format
 msgid "Desktop"
 msgstr "Darbvirsma"
 
 #. i18n("Unmanaged Window")},  deprecated
-#: rulesmodel.cpp:823
+#: rulesmodel.cpp:820
 #, kde-format
 msgid "Standalone menubar"
 msgstr "Pastāvīga izvēlnes josla"
 
-#: rulesmodel.cpp:824 rulesmodel.cpp:930
+#: rulesmodel.cpp:821 rulesmodel.cpp:927
 #, kde-format
 msgid "On-screen display"
 msgstr "Virsekrāna logs"
 
-#: rulesmodel.cpp:834
+#: rulesmodel.cpp:831
 #, kde-format
 msgid "All desktops"
 msgstr "Visas darbvirsmas"
 
-#: rulesmodel.cpp:836
+#: rulesmodel.cpp:833
 #, kde-format
 msgctxt "@info:tooltip in the virtual desktop list"
 msgid "Make the window available on all desktops"
 msgstr "Padarīt visus logus pieejamus uz visām darbvirsmām"
 
-#: rulesmodel.cpp:855
+#: rulesmodel.cpp:852
 #, kde-format
 msgid "All activities"
 msgstr "Visas aktivitātes"
 
-#: rulesmodel.cpp:857
+#: rulesmodel.cpp:854
 #, kde-format
 msgctxt "@info:tooltip in the activity list"
 msgid "Make the window available on all activities"
 msgstr "Padarīt logus pieejamus visās aktivitātēs"
 
-#: rulesmodel.cpp:878
+#: rulesmodel.cpp:875
 #, kde-format
 msgid "Default"
 msgstr "Noklusētais"
 
-#: rulesmodel.cpp:879
+#: rulesmodel.cpp:876
 #, kde-format
 msgid "No placement"
 msgstr "Nav novietojuma"
 
-#: rulesmodel.cpp:880
+#: rulesmodel.cpp:877
 #, kde-format
 msgid "Minimal overlapping"
 msgstr "Minimāla pārklāšanās"
 
-#: rulesmodel.cpp:881
+#: rulesmodel.cpp:878
 #, kde-format
 msgid "Maximized"
 msgstr "Maksimizēts"
 
-#: rulesmodel.cpp:882
+#: rulesmodel.cpp:879
 #, kde-format
 msgid "Centered"
 msgstr "Centrēts"
 
-#: rulesmodel.cpp:883
+#: rulesmodel.cpp:880
 #, kde-format
 msgid "Random"
 msgstr "Nejaušs"
 
-#: rulesmodel.cpp:884
+#: rulesmodel.cpp:881
 #, kde-format
 msgid "In top-left corner"
 msgstr "Augšējais kreisais stūris"
 
-#: rulesmodel.cpp:885
+#: rulesmodel.cpp:882
 #, kde-format
 msgid "Under mouse"
 msgstr "Zem peles"
 
-#: rulesmodel.cpp:886
+#: rulesmodel.cpp:883
 #, kde-format
 msgid "On main window"
 msgstr "Galvenajā logā"
 
-#: rulesmodel.cpp:893
+#: rulesmodel.cpp:890
 #, kde-format
 msgid "None"
 msgstr "Nav"
 
-#: rulesmodel.cpp:894
+#: rulesmodel.cpp:891
 #, kde-format
 msgid "Low"
 msgstr "Zema"
 
-#: rulesmodel.cpp:895 rulesmodel.cpp:924
+#: rulesmodel.cpp:892 rulesmodel.cpp:921
 #, kde-format
 msgid "Normal"
 msgstr "Normāla"
 
-#: rulesmodel.cpp:896
+#: rulesmodel.cpp:893
 #, kde-format
 msgid "High"
 msgstr "Augsta"
 
-#: rulesmodel.cpp:897
+#: rulesmodel.cpp:894
 #, kde-format
 msgid "Extreme"
 msgstr "Ekstrēma"
 
-#: rulesmodel.cpp:923
+#: rulesmodel.cpp:920
 #, kde-format
 msgid "Below"
 msgstr "Zem"
 
-#: rulesmodel.cpp:925
+#: rulesmodel.cpp:922
 #, kde-format
 msgid "Above"
 msgstr "Virs"
 
-#: rulesmodel.cpp:926
+#: rulesmodel.cpp:923
 #, kde-format
 msgid "Notification"
 msgstr "Paziņojums"
 
-#: rulesmodel.cpp:928
+#: rulesmodel.cpp:925
 #, kde-format
 msgid "Popup"
 msgstr "Uzlecošais logs"
 
-#: rulesmodel.cpp:929
+#: rulesmodel.cpp:926
 #, kde-format
 msgid "Critical notification"
 msgstr "Kritisks paziņojums"
 
-#: rulesmodel.cpp:931
+#: rulesmodel.cpp:928
 #, kde-format
 msgid "Overlay"
 msgstr "Pārskats"
 
-#: rulesmodel.cpp:956
+#: rulesmodel.cpp:936
+#, kde-format
+msgctxt "Never draw a server side decoration"
+msgid "Never"
+msgstr ""
+
+#: rulesmodel.cpp:937
+#, kde-format
+msgctxt "Draw a server side decoration if the application asks for it"
+msgid "If the application asks"
+msgstr ""
+
+#: rulesmodel.cpp:938
+#, kde-format
+msgctxt "Always draw a server side decoration"
+msgid "Always"
+msgstr ""
+
+#: rulesmodel.cpp:939
+#, kde-format
+msgctxt "Always draw a server side drop shadow"
+msgid "Only shadow"
+msgstr ""
+
+#: rulesmodel.cpp:964
 #, kde-format
 msgid "Unmanaged window"
 msgstr "Nepārvaldīts logs"
 
-#: rulesmodel.cpp:957
+#: rulesmodel.cpp:965
 #, kde-format
 msgid "Could not detect window properties. The window is not managed by KWin."
 msgstr "Neizdevās noteikt loga īpašības. Šo logu nepārvalda „KWin“"
@@ -957,40 +979,40 @@ msgstr[2] "Pēc %1 sekundēm"
 msgid "Add property to the rule"
 msgstr "Noteikumam pievienot īpašību"
 
-#: ui/RulesEditor.qml:271
+#: ui/RulesEditor.qml:269
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "No properties left to add"
 msgstr "Nav pievienojamu īpašību"
 
-#: ui/RulesEditor.qml:273
+#: ui/RulesEditor.qml:271
 #, kde-format
 msgctxt "@info:placeholder %1 is a filter text introduced by the user"
 msgid "No properties match \"%1\""
 msgstr "Neviena īpašība neatbilst „%1“"
 
-#: ui/RulesEditor.qml:294 ui/ValueEditor.qml:54
+#: ui/RulesEditor.qml:292 ui/ValueEditor.qml:54
 #, kde-format
 msgid "Yes"
 msgstr "Jā"
 
-#: ui/RulesEditor.qml:294 ui/ValueEditor.qml:60
+#: ui/RulesEditor.qml:292 ui/ValueEditor.qml:60
 #, kde-format
 msgid "No"
 msgstr "Nē"
 
-#: ui/RulesEditor.qml:296 ui/ValueEditor.qml:168 ui/ValueEditor.qml:175
+#: ui/RulesEditor.qml:294 ui/ValueEditor.qml:168 ui/ValueEditor.qml:175
 #, kde-format
 msgid "%1 %"
 msgstr "%1 %"
 
-#: ui/RulesEditor.qml:298
+#: ui/RulesEditor.qml:296
 #, kde-format
 msgctxt "Coordinates (x, y)"
 msgid "(%1, %2)"
 msgstr "(%1, %2)"
 
-#: ui/RulesEditor.qml:300
+#: ui/RulesEditor.qml:298
 #, kde-format
 msgctxt "Size (width, height)"
 msgid "(%1, %2)"
@@ -1001,6 +1023,31 @@ msgstr "(%1, %2)"
 msgctxt "(x, y) coordinates separator in size/position"
 msgid "x"
 msgstr "×"
+
+#~ msgid "No titlebar and frame"
+#~ msgstr "Bez virsrakstjoslas un ietvara"
+
+#~ msgid "Obey geometry restrictions"
+#~ msgstr "Pakļauties ģeometrijas ierobežojumiem"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid ""
+#~ "Some apps like video players or terminals can ask KWin to constrain them "
+#~ "to certain aspect ratios or only grow by values larger than the "
+#~ "dimensions of one character. Use this property to ignore such "
+#~ "restrictions and allow those windows to be resized to arbitrary sizes.<nl/"
+#~ "><nl/>This can be helpful for windows that can't quite fit the full "
+#~ "screen area when maximized."
+#~ msgstr ""
+#~ "Dažas programmas, piemēram, video atskaņotāji vai termināļi var jautāt "
+#~ "„KWin“ pēc noteiktas malu attiecības vai palielināt izmērus par vērtībām, "
+#~ "kas ir lielākas par vienu rakstzīmi. Izmantojiet šo īpašību, lai ignorētu "
+#~ "šādus ierobežojumus un šiem logiem ļautu mainīt izmēru uz jebkādiem "
+#~ "lielumiem<nl/><nl/>Tas var būt noderīgi logiem, kas pēc maksimizēšanas "
+#~ "līdz galam neietilpst pilnā ekrānā."
+
+#~ msgid "Block compositing"
+#~ msgstr "Bloķēt kompozitēšanu"
 
 #~ msgid "Shaded"
 #~ msgstr "Saritināts"

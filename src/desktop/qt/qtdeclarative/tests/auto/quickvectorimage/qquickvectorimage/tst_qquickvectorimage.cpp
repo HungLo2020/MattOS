@@ -10,6 +10,7 @@
 #include <QtQml/qqmlcomponent.h>
 #include <QtQuick/qquickitem.h>
 #include <QtQuickShapes/private/qquickshape_p.h>
+#include <QtQuickVectorImage/private/qquickvectorimage_p.h>
 
 #include <QtQuickTestUtils/private/qmlutils_p.h>
 #include <QtQuickTestUtils/private/viewtestutils_p.h>
@@ -27,6 +28,9 @@ private slots:
     void parseBrokenFile();
     void asyncShapes_data();
     void asyncShapes();
+    void clearSource();
+    void renderFiles_data();
+    void renderFiles();
 };
 
 tst_QQuickVectorImage::tst_QQuickVectorImage()
@@ -58,7 +62,7 @@ void tst_QQuickVectorImage::parseFiles()
     engine.rootContext()->setContextProperty(QStringLiteral("fileName"), QStringLiteral("qrc:/svgs/%1").arg(fileName));
 
     QQmlComponent c(&engine, testFileUrl("vectorimage.qml"));
-    QQuickItem *item = qobject_cast<QQuickItem *>(c.create());
+    QQuickVectorImage *item = qobject_cast<QQuickVectorImage *>(c.create());
     auto cleanup = qScopeGuard([&item] {
         delete item;
         item = nullptr;
@@ -67,6 +71,7 @@ void tst_QQuickVectorImage::parseFiles()
     QVERIFY(item != nullptr);
     QVERIFY(!item->childItems().isEmpty());
     QVERIFY(!item->childItems().first()->size().isNull());
+    QCOMPARE(item->status(), QQuickVectorImage::Status::Ready);
 }
 
 void tst_QQuickVectorImage::parseBrokenFile()
@@ -75,15 +80,16 @@ void tst_QQuickVectorImage::parseBrokenFile()
     engine.rootContext()->setContextProperty(QStringLiteral("fileName"), testFileUrl("svg/broken.svg"));
 
     QQmlComponent c(&engine, testFileUrl("vectorimage.qml"));
-    QQuickItem *item = qobject_cast<QQuickItem *>(c.create());
+    QQuickVectorImage *item = qobject_cast<QQuickVectorImage *>(c.create());
     auto cleanup = qScopeGuard([&item] {
         delete item;
         item = nullptr;
     });
 
     QVERIFY(item != nullptr);
-    QVERIFY(!item->childItems().isEmpty());
-    QVERIFY(item->childItems().first()->size().isNull());
+    QVERIFY(item->childItems().isEmpty());
+
+    QCOMPARE(item->status(), QQuickVectorImage::Status::Error);
 }
 
 void tst_QQuickVectorImage::asyncShapes_data()
@@ -118,6 +124,74 @@ void tst_QQuickVectorImage::asyncShapes()
     QVERIFY(!shapes.isEmpty());
     for (const QQuickShape *shape : shapes)
         QCOMPARE(shape->asynchronous(), isAsync);
+}
+
+void tst_QQuickVectorImage::clearSource()
+{
+    const QUrl fileName = QUrl("qrc:/svgs/gradientxform.svg");
+
+    QQmlEngine engine;
+    engine.rootContext()->setContextProperty(QStringLiteral("fileName"), fileName);
+
+    QQmlComponent c(&engine, testFileUrl("vectorimage.qml"));
+    QQuickVectorImage *item = qobject_cast<QQuickVectorImage *>(c.create());
+    auto cleanup = qScopeGuard([&item] {
+        delete item;
+        item = nullptr;
+    });
+
+    QVERIFY(item != nullptr);
+    QVERIFY(item->generatedItem() != nullptr);
+    QCOMPARE(item->status(), QQuickVectorImage::Status::Ready);
+
+    {
+        QSignalSpy statusChanged(item, &QQuickVectorImage::statusChanged);
+        item->setSource(QUrl{});
+        QCOMPARE(item->generatedItem(), nullptr);
+        QCOMPARE(statusChanged.size(), 1);
+    }
+
+    item->setAsynchronous(true);
+    item->setRetainWhileLoading(true);
+
+    item->setSource(fileName);
+    QTRY_COMPARE(item->status(), QQuickVectorImage::Status::Ready);
+
+    {
+        QSignalSpy statusChanged(item, &QQuickVectorImage::statusChanged);
+        item->setSource(QUrl{});
+        QCOMPARE(item->generatedItem(), nullptr);
+        QCOMPARE(statusChanged.size(), 1);
+    }
+}
+
+void tst_QQuickVectorImage::renderFiles_data()
+{
+    QTest::addColumn<QUrl>("fileName");
+    QTest::newRow("intoverflow.svg") << testFileUrl("svg/intoverflow.svg");
+}
+
+void tst_QQuickVectorImage::renderFiles()
+{
+    QFETCH(QUrl, fileName);
+
+    QQmlEngine engine;
+    engine.rootContext()->setContextProperty(QStringLiteral("fileName"), fileName);
+
+    QQuickWindow window;
+    window.resize(512, 512);
+    window.create();
+
+    QQmlComponent c(&engine, testFileUrl("vectorimage.qml"));
+    QVERIFY2(c.isReady(), qPrintable(c.errorString()));
+
+    std::unique_ptr<QObject> object(c.create());
+
+    QQuickVectorImage *image = qobject_cast<QQuickVectorImage *>(object.get());
+    QVERIFY(image != nullptr);
+
+    image->setParentItem(window.contentItem());
+    window.grabWindow();
 }
 
 QTEST_MAIN(tst_QQuickVectorImage)

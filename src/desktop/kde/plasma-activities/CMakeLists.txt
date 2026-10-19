@@ -1,11 +1,11 @@
 # vim:set softtabstop=3 shiftwidth=3 tabstop=3 expandtab:
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 project(PlasmaActivities VERSION ${PROJECT_VERSION})
 
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -27,14 +27,11 @@ include(ECMGenerateExportHeader)
 include(ECMGenerateHeaders)
 include(ECMGeneratePkgConfigFile)
 include(ECMQtDeclareLoggingCategory)
-include(ECMAddQch)
 include(ECMMarkNonGuiExecutable)
 include(ECMDeprecationSettings)
 include(ECMQmlModule)
+include(ECMGenerateQDoc)
 include(KDEClangFormat)
-
-option(BUILD_QCH "Build API documentation in QCH format (for e.g. Qt Assistant, Qt Creator & KDevelop)" OFF)
-add_feature_info(QCH ${BUILD_QCH} "API documentation in QCH format (for e.g. Qt Assistant, Qt Creator & KDevelop)")
 
 find_package (Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS Core DBus)
 
@@ -51,8 +48,8 @@ ecm_setup_version (
    )
 
 ecm_set_disabled_deprecation_versions(
-    QT 6.8.1
-    KF 6.12.0
+    QT 6.11.0
+    KF 6.27.0
 )
 
 add_subdirectory (src)
@@ -62,16 +59,6 @@ if (BUILD_TESTING)
 endif()
 
 set (CMAKECONFIG_INSTALL_DIR "${KDE_INSTALL_CMAKEPACKAGEDIR}/PlasmaActivities")
-
-if (BUILD_QCH)
-    ecm_install_qch_export(
-        TARGETS PlasmaActivities_QCH
-        FILE PlasmaActivitiesLibraryQchTargets.cmake
-        DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-        COMPONENT Devel
-    )
-    set(PACKAGE_INCLUDE_QCHTARGETS "include(\"\${CMAKE_CURRENT_LIST_DIR}/PlasmaActivitiesLibraryQchTargets.cmake\")")
-endif()
 
 install (
    EXPORT PlasmaActivitiesLibraryTargets

@@ -20,14 +20,51 @@ import org.kde.plasma.workspace.dbus as DBus
 PlasmaComponents3.ItemDelegate {
     id: root
 
-    required property DBus.Properties nightLightControl
+    required property NightLightControl nightLightControl
 
     background.visible: highlighted
     highlighted: activeFocus
     hoverEnabled: false
 
     Accessible.description: status.text
-    KeyNavigation.tab: inhibitionSwitch.visible ? inhibitionSwitch : kcmButton
+    Accessible.onPressAction: inhibitionSwitch.visible ?  inhibitionSwitch.clicked() : {}
+    KeyNavigation.tab: kcmButton
+    KeyNavigation.right: kcmButton
+    Keys.onSpacePressed: inhibitionSwitch.visible ?  inhibitionSwitch.clicked() : {}
+
+    component NightLightControl: DBus.Properties {
+        busType: DBus.BusType.Session
+        service: "org.kde.KWin.NightLight"
+        path: "/org/kde/KWin/NightLight"
+        iface: "org.kde.KWin.NightLight"
+
+        // This property holds a value to indicate if Night Light is available.
+        readonly property bool available: Boolean(properties.available)
+        // This property holds a value to indicate if Night Light is enabled.
+        readonly property bool enabled: Boolean(properties.enabled)
+        // This property holds a value to indicate if Night Light is running.
+        readonly property bool running: Boolean(properties.running)
+        // This property holds a value to indicate whether night light is currently inhibited.
+        readonly property bool inhibited: Boolean(properties.inhibited)
+        // This property holds a value to indicate whether night light is currently inhibited from the applet can be uninhibited through it.
+        readonly property bool inhibitedFromApplet: NightLightInhibitor.inhibited
+        // This property holds a value to indicate which mode is set for transitions (0 - automatic location, 1 - manual location, 2 - manual timings, 3 - constant)
+        readonly property int mode: Number(properties.mode)
+        // This property holds a value to indicate if Night Light is on day mode.
+        readonly property bool daylight: Boolean(properties.daylight)
+        // This property holds a value to indicate currently applied color temperature.
+        readonly property int currentTemperature: Number(properties.currentTemperature)
+        // This property holds a value to indicate currently applied color temperature.
+        readonly property int targetTemperature: Number(properties.targetTemperature)
+        // This property holds a value to indicate the end time of the previous color transition in msec since epoch.
+        readonly property double currentTransitionEndTime: Number(properties.previousTransitionDateTime) * 1000 + Number(properties.previousTransitionDuration)
+        // This property holds a value to indicate the start time of the next color transition in msec since epoch.
+        readonly property double scheduledTransitionStartTime: Number(properties.scheduledTransitionDateTime) * 1000
+
+        readonly property bool transitioning: currentTemperature != targetTemperature
+        readonly property bool hasSwitchingTimes: mode != 0
+        readonly property bool togglable: !inhibited || inhibitedFromApplet
+    }
 
     contentItem: RowLayout {
         spacing: Kirigami.Units.gridUnit
@@ -52,7 +89,7 @@ PlasmaComponents3.ItemDelegate {
 
         ColumnLayout {
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignTop
+            Layout.alignment: Qt.AlignVCenter
             spacing: Kirigami.Units.smallSpacing
 
             RowLayout {
@@ -105,6 +142,7 @@ PlasmaComponents3.ItemDelegate {
                     id: currentTemp
                     visible: root.nightLightControl.available && root.nightLightControl.enabled && root.nightLightControl.running
                     text: i18nc("Placeholder is screen color temperature", "%1K", root.nightLightControl.currentTemperature)
+                    font.features: { "tnum": 1 }
                     textFormat: Text.PlainText
 
                     horizontalAlignment: Text.AlignRight
@@ -125,17 +163,9 @@ PlasmaComponents3.ItemDelegate {
 
                     Accessible.onPressAction: clicked()
 
-                    KeyNavigation.up: root.KeyNavigation.up
-                    KeyNavigation.tab: kcmButton
-                    KeyNavigation.right: kcmButton
-                    KeyNavigation.backtab: root
+                    activeFocusOnTab: false
+                    focusPolicy: Qt.NoFocus
 
-                    Keys.onPressed: (event) => {
-                        if (event.key == Qt.Key_Space || event.key == Qt.Key_Return || event.key == Qt.Key_Enter) {
-                            clicked()
-                            event.accepted = true
-                        }
-                    }
                     onClicked: NightLightInhibitor.toggleInhibition()
                 }
 
@@ -146,11 +176,9 @@ PlasmaComponents3.ItemDelegate {
                     icon.name: "configure"
                     text: root.nightLightControl.enabled ? i18n("Configure…") : i18n("Enable and Configure…")
 
-                    Layout.alignment: Qt.AlignRight
+                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
                     KeyNavigation.up: root.KeyNavigation.up
-                    KeyNavigation.backtab: inhibitionSwitch.visible ? inhibitionSwitch : root
-                    KeyNavigation.left: inhibitionSwitch
 
                     Keys.onPressed: (event) => {
                         if (event.key == Qt.Key_Space || event.key == Qt.Key_Return || event.key == Qt.Key_Enter) {

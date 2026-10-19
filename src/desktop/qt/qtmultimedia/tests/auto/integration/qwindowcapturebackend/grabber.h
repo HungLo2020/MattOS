@@ -4,9 +4,10 @@
 #ifndef WINDOW_CAPTURE_GRABBER_H
 #define WINDOW_CAPTURE_GRABBER_H
 
-#include <qvideosink.h>
-#include <vector>
+#include <QtMultimedia/qvideosink.h>
 
+#include <chrono>
+#include <vector>
 
 /*!
     The FrameGrabber stores frames that arrive from the window capture,
@@ -28,6 +29,8 @@ public:
         elapsed.
     */
     std::vector<QVideoFrame> waitAndTakeFrames(size_t minCount, qint64 noOlderThanTime = 0);
+
+    std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount = 1);
 
     bool isStopped() const;
 

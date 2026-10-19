@@ -7,9 +7,6 @@
 #include "../src/platformtheme/kdeplatformtheme.h"
 #include "../src/platformtheme/khintssettings.h"
 #include "kdeplatformtheme_config.h"
-#include <config-platformtheme.h>
-#undef HAVE_X11
-#define HAVE_X11 0
 
 #include <QApplication>
 #include <QDialogButtonBox>
@@ -112,6 +109,8 @@ private Q_SLOTS:
 
     void cleanupTestCase()
     {
+        delete m_qpa;
+
         QString configPath = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
         configPath.append("/kdeglobals");
 
@@ -188,14 +187,14 @@ private Q_SLOTS:
 
     void testPlatformIconEngine()
     {
-        QIconEngine *engine = m_qpa->createIconEngine(QStringLiteral("test-icon"));
+        std::unique_ptr<QIconEngine> engine(m_qpa->createIconEngine(QStringLiteral("test-icon")));
         QCOMPARE(engine->key(), QStringLiteral("KIconEngine"));
     }
 
     void testPlatformIconEngineTheme()
     {
         // The current theme should be what we defined.
-        KdePlatformTheme().createIconEngine(QStringLiteral("test-icon"));
+        std::unique_ptr<QIconEngine> engine(KdePlatformTheme().createIconEngine(QStringLiteral("test-icon")));
         QCOMPARE(KIconLoader::global()->theme()->current(), QStringLiteral("non-existent-icon-theme"));
     }
 

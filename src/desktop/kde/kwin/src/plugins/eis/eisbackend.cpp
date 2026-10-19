@@ -1,11 +1,12 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
 
 #include "eisbackend.h"
 
+#include "config-eis.h"
 #include "eiscontext.h"
 #include "eisdevice.h"
 #include "libeis_logging.h"
@@ -39,25 +40,23 @@ namespace KWin
         static_assert(                                    \
             requires { typename T; }, "T is not a type"); \
         return #T;                                        \
-        }()
+    }()
 
 EisBackend::EisBackend(QObject *parent)
     : KWin::InputBackend(parent)
     , m_serviceWatcher(new QDBusServiceWatcher(this))
 {
-#if HAVE_XWAYLAND_ENABLE_EI_PORTAL
-    if (options->xwaylandEisNoPrompt()) {
-        // Unfortunately there is no way to pass a connected socket fd to libei like WAYLAND_SOCKET
-        // in libwayland so we are resorting to this hack
-        // https://gitlab.freedesktop.org/libinput/libei/-/issues/63
-        m_xWaylandContext = std::make_unique<XWaylandEisContext>(this);
-        FileDescriptor fd(open(m_xWaylandContext->socketName.constData(), O_PATH | O_CLOEXEC));
-        unlink(m_xWaylandContext->socketName.constData());
-        if (QByteArray(kwinApp()->metaObject()->className()) == typeName(KWin::ApplicationWayland)) {
-            auto appWayland = static_cast<ApplicationWayland *>(kwinApp());
-            appWayland->addExtraXWaylandEnvrionmentVariable(QStringLiteral("LIBEI_SOCKET"), QStringLiteral("/proc/self/fd/%1").arg(fd.get()));
-            appWayland->passFdToXwayland(std::move(fd));
-        }
+#if KWIN_BUILD_X11
+    // Unfortunately there is no way to pass a connected socket fd to libei like WAYLAND_SOCKET
+    // in libwayland so we are resorting to this hack
+    // https://gitlab.freedesktop.org/libinput/libei/-/issues/63
+    m_xWaylandContext = std::make_unique<XWaylandEisContext>(this);
+    FileDescriptor fd(open(m_xWaylandContext->socketName.constData(), O_PATH | O_CLOEXEC));
+    unlink(m_xWaylandContext->socketName.constData());
+    if (QByteArray(kwinApp()->metaObject()->className()) == typeName(KWin::ApplicationWayland)) {
+        auto appWayland = static_cast<ApplicationWayland *>(kwinApp());
+        appWayland->addExtraXWaylandEnvironmentVariable(QStringLiteral("LIBEI_SOCKET"), QStringLiteral("/proc/self/fd/%1").arg(fd.get()));
+        appWayland->passFdToXwayland(std::move(fd));
     }
 #endif
 
@@ -92,6 +91,13 @@ void EisBackend::initialize()
             context->updateKeymap();
         }
     });
+    connect(input()->keyboard()->xkb(), &Xkb::modifierStateChanged, this, [this] {
+        const auto &modifierState = input()->keyboard()->xkb()->modifierState();
+        const uint32_t currentGroup = input()->keyboard()->xkb()->currentLayout();
+        for (const auto &context : m_contexts) {
+            context->forwardModifiers(modifierState.depressed, modifierState.latched, modifierState.locked, currentGroup);
+        }
+    });
 
     QDBusConnection::sessionBus().registerObject("/org/kde/KWin/EIS/RemoteDesktop", "org.kde.KWin.EIS.RemoteDesktop", this, QDBusConnection::ExportAllInvokables);
 }
@@ -111,6 +117,9 @@ QDBusUnixFileDescriptor EisBackend::connectToEIS(const int &capabilities, int &c
     QFlags<eis_device_capability> eisCapabilities;
     if (capabilities & keyboardPortal) {
         eisCapabilities |= EIS_DEVICE_CAP_KEYBOARD;
+#if EIS_HAVE_16
+        eisCapabilities |= EIS_DEVICE_CAP_TEXT;
+#endif
     }
     if (capabilities & pointerPortal) {
         eisCapabilities |= EIS_DEVICE_CAP_POINTER;
@@ -171,10 +180,11 @@ eis_device *EisBackend::createAbsoluteDevice(eis_seat *seat)
     const auto outputs = workspace()->outputs();
     for (const auto output : outputs) {
         auto region = eis_device_new_region(eisDevice);
-        const QRect outputGeometry = output->geometry();
+        const Rect outputGeometry = output->geometry();
         eis_region_set_offset(region, outputGeometry.x(), outputGeometry.y());
         eis_region_set_size(region, outputGeometry.width(), outputGeometry.height());
         eis_region_set_physical_scale(region, output->scale());
+        eis_region_set_mapping_id(region, output->name().toUtf8());
         eis_region_add(region);
         eis_region_unref(region);
     };
@@ -195,4 +205,16 @@ eis_device *EisBackend::createKeyboard(eis_seat *seat)
 
     return device;
 }
+eis_device *EisBackend::createText(eis_seat *seat)
+{
+#if EIS_HAVE_16
+    auto device = createDevice(seat, "eis text");
+    eis_device_configure_capability(device, EIS_DEVICE_CAP_TEXT);
+    return device;
+#else
+    Q_UNUSED(seat)
+    return nullptr;
+#endif
+}
+
 }

@@ -150,6 +150,19 @@ void ConnectionIcon::carrierChanged(bool carrier)
     setIcons();
 }
 
+bool ConnectionIcon::hasEthernetCarrier() const
+{
+    for (const auto &iface : NetworkManager::networkInterfaces()) {
+        if (iface->type() == NetworkManager::Device::Ethernet) {
+            auto wiredDev = iface.objectCast<NetworkManager::WiredDevice>();
+            if (wiredDev && wiredDev->carrier()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void ConnectionIcon::deviceAdded(const QString &device)
 {
     NetworkManager::Device::Ptr dev = NetworkManager::findNetworkInterface(device);
@@ -351,10 +364,18 @@ void ConnectionIcon::setIcons()
             } else if (type == NetworkManager::Device::Ethernet) {
                 setConnectionIcon(QStringLiteral("network-wired-activated"));
                 setConnectionTooltipIcon(QStringLiteral("network-wired-activated"));
-            } else if (type == NetworkManager::Device::Bridge) {
-                // TODO: use a not-yet created bridge-specific network icon here
-                setConnectionIcon(QStringLiteral("network-wired-activated"));
-                setConnectionTooltipIcon(QStringLiteral("network-wired-activated"));
+            } else if (type == NetworkManager::Device::Bond //
+                       || type == NetworkManager::Device::Bridge //
+                       || type == NetworkManager::Device::OvsBridge //
+                       || type == NetworkManager::Device::Team //
+                       || type == NetworkManager::Device::Vlan) {
+                // TODO: use not-yet-created virtual wired network icons here
+                if (hasEthernetCarrier()) {
+                    setConnectionIcon(QStringLiteral("network-wired-activated"));
+                    setConnectionTooltipIcon(QStringLiteral("network-wired-activated"));
+                } else {
+                    setDisconnectedIcon();
+                }
             } else if (type == NetworkManager::Device::Modem) {
                 setModemIcon(device);
             } else if (type == NetworkManager::Device::Bluetooth) {
@@ -373,7 +394,7 @@ void ConnectionIcon::setIcons()
                 // do anything just because it has a device
                 // associated with it.
             } else {
-                // Ignore other devices (bond/team etc.)
+                // Ignore other devices
                 setDisconnectedIcon();
             }
         }
@@ -404,10 +425,7 @@ void ConnectionIcon::setDisconnectedIcon()
 
     for (const NetworkManager::Device::Ptr &device : NetworkManager::networkInterfaces()) {
         if (device->type() == NetworkManager::Device::Ethernet) {
-            NetworkManager::WiredDevice::Ptr wiredDev = device.objectCast<NetworkManager::WiredDevice>();
-            if (wiredDev->carrier()) {
-                wired = true;
-            }
+            wired = hasEthernetCarrier();
         } else if (device->type() == NetworkManager::Device::Wifi //
                    && NetworkManager::isWirelessHardwareEnabled()) {
             wireless = true;

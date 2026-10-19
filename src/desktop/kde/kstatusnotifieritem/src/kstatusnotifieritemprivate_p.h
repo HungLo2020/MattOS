@@ -25,7 +25,6 @@
 #include "statusnotifierwatcher_interface.h"
 #endif
 
-class KSystemTrayIcon;
 class QMenu;
 class QAction;
 
@@ -107,7 +106,6 @@ public:
     void minimizeRestore(bool show);
     void hideMenu();
     void setLegacyMode(bool legacy);
-    void checkForRegisteredHosts();
     void legacyWheelEvent(int delta);
     void legacyActivated(QSystemTrayIcon::ActivationReason reason);
 

@@ -21,11 +21,8 @@
 
 #include <assert.h>
 #include <cerrno>
-#ifdef Q_OS_WIN
-#include <qt_windows.h>
-#include <sys/utime.h>
-#include <winsock2.h> //struct timeval
-#else
+#ifndef Q_OS_WIN
+#include <fcntl.h>
 #include <utime.h>
 #endif
 
@@ -43,6 +40,7 @@
 #include <KShell>
 #include <QDataStream>
 #include <QDebug>
+#include <QHostInfo>
 #include <QMimeDatabase>
 #include <QStandardPaths>
 #include <kmountpoint.h>
@@ -139,72 +137,148 @@ FileProtocol::~FileProtocol()
 {
 }
 
-WorkerResult FileProtocol::chmod(const QUrl &url, int permissions)
+bool FileProtocol::isLocalFileSameHost(const QUrl &url)
 {
+    if (!url.isLocalFile()) {
+        return false;
+    }
+
+    const QString host = url.host();
+    if (host.isEmpty() || host.compare(QLatin1String("localhost"), Qt::CaseInsensitive) == 0) {
+        return true;
+    }
+
+    return host.compare(QHostInfo::localHostName(), Qt::CaseInsensitive) == 0;
+}
+
+QUrl FileProtocol::localFileWithoutHostname(const QUrl &url)
+{
+#ifndef Q_OS_WIN
+    // On Unix a file:// URL never has a meaningful authority; a host, if present,
+    // only names the local machine (RFC 8089). Drop it so QUrl::toLocalFile()
+    // yields a plain local path instead of a UNC-style //host/path.
+    // On Windows file://host/share is a genuine UNC path, so leave it untouched.
+    if (isLocalFileSameHost(url)) {
+        return url.adjusted(QUrl::RemoveAuthority);
+    }
+#endif
+    return url;
+}
+
+WorkerResult FileProtocol::chmod(const QUrl &_url, int permissions)
+{
+    const QUrl url = localFileWithoutHostname(_url);
     const QString path(url.toLocalFile());
     const QByteArray _path(QFile::encodeName(path));
-    /* FIXME: Should be atomic */
 #ifdef Q_OS_UNIX
     // QFile::Permissions does not support special attributes like sticky
-    if (::chmod(_path.constData(), permissions) == -1)
+    if (::chmod(_path.constData(), permissions) == -1 ||
 #else
-    if (!QFile::setPermissions(path, modeToQFilePermissions(permissions)))
+    if (!QFile::setPermissions(path, modeToQFilePermissions(permissions)) ||
 #endif
-    {
+        (setACL(_path.data(), permissions, false) == -1) ||
+        /* if not a directory, cannot set default ACLs */
+        (setACL(_path.data(), permissions, true) == -1 && errno != ENOTDIR)) {
         return WorkerResult::fail(KIO::ERR_CANNOT_CHMOD, path);
     }
 
     return WorkerResult::pass();
 }
 
-WorkerResult FileProtocol::setModificationTime(const QUrl &url, const QDateTime &mtime)
+WorkerResult FileProtocol::setModificationTime(const QUrl &_url, const QDateTime &mtime)
 {
+    const QUrl url = localFileWithoutHostname(_url);
     const QString path(url.toLocalFile());
     QT_STATBUF statbuf;
-    if (QT_LSTAT(QFile::encodeName(path).constData(), &statbuf) == 0) {
-        struct utimbuf utbuf;
-        utbuf.actime = statbuf.st_atime; // access time, unchanged
-        utbuf.modtime = mtime.toSecsSinceEpoch(); // modification time
-        if (::utime(QFile::encodeName(path).constData(), &utbuf) != 0) {
-            return WorkerResult::fail(KIO::ERR_CANNOT_SETTIME, path);
-        }
-        return WorkerResult::pass();
-    } else {
+    if (QT_LSTAT(QFile::encodeName(path).constData(), &statbuf) != 0) {
         return WorkerResult::fail(KIO::ERR_DOES_NOT_EXIST, path);
     }
+#ifdef Q_OS_WIN
+    if (!setWindowsModificationTime(path, mtime)) {
+        return WorkerResult::fail(KIO::ERR_CANNOT_SETTIME, path);
+    }
+#else
+    struct utimbuf utbuf;
+    utbuf.actime = statbuf.st_atime; // access time, unchanged
+    utbuf.modtime = mtime.toSecsSinceEpoch(); // modification time
+    if (::utime(QFile::encodeName(path).constData(), &utbuf) != 0) {
+        return WorkerResult::fail(KIO::ERR_CANNOT_SETTIME, path);
+    }
+#endif
+    return WorkerResult::pass();
 }
 
-WorkerResult FileProtocol::mkdir(const QUrl &url, int permissions)
+WorkerResult FileProtocol::mkdir(const QUrl &_url, int permissions)
 {
+    const QUrl url = localFileWithoutHostname(_url);
     const QString path(url.toLocalFile());
 
     // qDebug() << path << "permission=" << permissions;
 
-    // Remove existing file or symlink, if requested (#151851)
-    if (metaData(QStringLiteral("overwrite")) == QLatin1String("true")) {
+    const QByteArray pathEncoded = QFile::encodeName(path);
+    QT_STATBUF buff;
+    if (QT_LSTAT(pathEncoded.constData(), &buff) == 0) {
+        if (Utils::isDirMask(buff.st_mode)) {
+            // qDebug() << "ERR_DIR_ALREADY_EXIST";
+            return WorkerResult::fail(KIO::ERR_DIR_ALREADY_EXIST, path);
+        }
+        // A file or symlink is in the way: replace it with the directory only if requested (#151851).
+        if (metaData(QStringLiteral("overwrite")) != QLatin1String("true")) {
+            return WorkerResult::fail(KIO::ERR_FILE_ALREADY_EXIST, path);
+        }
         if (!QFile::remove(path)) {
-            qCInfo(KIO_FILE) << "Couldn't overwrite in mkdir. Error:" << errno;
+            qCWarning(KIO_FILE) << "Couldn't overwrite in mkdir. Error:" << errno;
             return WorkerResult::fail(KIO::ERR_FILE_ALREADY_EXIST, path);
         }
     }
 
-    QT_STATBUF buff;
-    if (QT_LSTAT(QFile::encodeName(path).constData(), &buff) == -1) {
-        if (!QDir().mkdir(path)) {
-            return WorkerResult::fail(KIO::ERR_CANNOT_MKDIR, path);
-        }
-
-        if (permissions != -1) {
-            return chmod(url, permissions);
-        }
-        return WorkerResult::pass();
+#ifdef Q_OS_UNIX
+    // Create the directory with the requested mode so it is never more permissive than asked, not
+    // even in the window before fchmod() applies the exact bits below (mkdir()'s mode is only ever
+    // narrowed by the umask, never widened).
+    if (::mkdir(pathEncoded.constData(), permissions == -1 ? 0777 : permissions) != 0) {
+        return WorkerResult::fail(KIO::ERR_CANNOT_MKDIR, path);
     }
 
-    if (Utils::isDirMask(buff.st_mode)) {
-        // qDebug() << "ERR_DIR_ALREADY_EXIST";
-        return WorkerResult::fail(KIO::ERR_DIR_ALREADY_EXIST, path);
+    // Apply the exact permissions and ownership through a descriptor to the directory just created,
+    // so the changes always land on that inode; fchmod() restores any bits the umask cleared above.
+    // O_NOFOLLOW and O_DIRECTORY make the open fail if the entry has been replaced by a symlink or a
+    // non-directory in the meantime.
+    const int fd = QT_OPEN(pathEncoded.constData(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+    if (fd == -1) {
+        return WorkerResult::fail(KIO::ERR_CANNOT_MKDIR, path);
     }
-    return WorkerResult::fail(KIO::ERR_FILE_ALREADY_EXIST, path);
+
+    if (permissions != -1 && ::fchmod(fd, permissions) < 0) {
+        QT_CLOSE(fd);
+        return WorkerResult::fail(KIO::ERR_CANNOT_CHMOD, path);
+    }
+
+    // preserve ownership
+    bool uidOk;
+    auto uid = metaData(QStringLiteral("uid")).toInt(&uidOk);
+    bool gidOk;
+    auto gid = metaData(QStringLiteral("gid")).toInt(&gidOk);
+    if (uidOk || gidOk) {
+        if (::fchown(fd, uid, gid) < 0) {
+            qCWarning(KIO_FILE) << "Couldn't chown directory in mkdir, path:" << path << ". Error:" << errno;
+        }
+    }
+
+    QT_CLOSE(fd);
+#else
+    if (!QDir().mkdir(path)) {
+        return WorkerResult::fail(KIO::ERR_CANNOT_MKDIR, path);
+    }
+    if (permissions != -1) {
+        auto chmodResult = chmod(url, permissions);
+        if (!chmodResult.success()) {
+            return chmodResult;
+        }
+    }
+#endif
+
+    return WorkerResult::pass();
 }
 
 WorkerResult FileProtocol::redirect(const QUrl &url)
@@ -226,12 +300,13 @@ WorkerResult FileProtocol::redirect(const QUrl &url)
     return WorkerResult::pass();
 }
 
-WorkerResult FileProtocol::get(const QUrl &url)
+WorkerResult FileProtocol::get(const QUrl &_url)
 {
-    if (!url.isLocalFile()) {
-        return redirect(url);
+    if (!isLocalFileSameHost(_url)) {
+        return redirect(_url);
     }
 
+    const QUrl url = localFileWithoutHostname(_url);
     const QString path(url.toLocalFile());
     QT_STATBUF buff;
     if (QT_STAT(QFile::encodeName(path).constData(), &buff) == -1) {
@@ -288,14 +363,16 @@ WorkerResult FileProtocol::get(const QUrl &url)
         }
     }
 
-    char buffer[s_maxIPCSize];
     QByteArray array;
 
     while (1) {
         if (wasKilled()) {
             return WorkerResult::pass();
         }
-        int n = f.read(buffer, s_maxIPCSize);
+        // Read into an owned buffer so the in-process worker connection can hand it to the
+        // application by reference, with no copy (see ThreadConnectionBackend).
+        array = QByteArray(s_maxIPCSize, Qt::Uninitialized);
+        int n = f.read(array.data(), s_maxIPCSize);
         if (n == -1) {
             if (errno == EINTR) {
                 continue;
@@ -307,9 +384,8 @@ WorkerResult FileProtocol::get(const QUrl &url)
             break; // Finished
         }
 
-        array = QByteArray::fromRawData(buffer, n);
+        array.resize(n);
         data(array);
-        array.clear();
 
         processed_size += n;
         processedSize(processed_size);
@@ -331,10 +407,11 @@ KIO::StatDetails FileProtocol::getStatDetails()
     return statDetails.isEmpty() ? KIO::StatDefaultDetails : static_cast<KIO::StatDetails>(statDetails.toInt());
 }
 
-WorkerResult FileProtocol::open(const QUrl &url, QIODevice::OpenMode mode)
+WorkerResult FileProtocol::open(const QUrl &_url, QIODevice::OpenMode mode)
 {
-    // qDebug() << url;
+    // qDebug() << _url;
 
+    const QUrl url = localFileWithoutHostname(_url);
     QString openPath = url.toLocalFile();
     QT_STATBUF buff;
     if (QT_STAT(QFile::encodeName(openPath).constData(), &buff) == -1) {
@@ -381,7 +458,9 @@ WorkerResult FileProtocol::read(KIO::filesize_t bytes)
     // qDebug() << "File::open -- read";
     Q_ASSERT(mFile && mFile->isOpen());
 
-    QVarLengthArray<char> buffer(bytes);
+    // Read into an owned buffer so the in-process worker connection can hand it to the
+    // application by reference, with no copy (see ThreadConnectionBackend).
+    QByteArray buffer(bytes, Qt::Uninitialized);
 
     qint64 bytesRead = mFile->read(buffer.data(), bytes);
 
@@ -391,8 +470,8 @@ WorkerResult FileProtocol::read(KIO::filesize_t bytes)
         closeWithoutFinish();
         return WorkerResult::fail(KIO::ERR_CANNOT_READ, fileName);
     } else {
-        const QByteArray fileData = QByteArray::fromRawData(buffer.data(), bytesRead);
-        data(fileData);
+        buffer.resize(bytesRead);
+        data(buffer);
         return WorkerResult::pass();
     }
 }
@@ -473,8 +552,9 @@ KIO::WorkerResult FileProtocol::close()
     return WorkerResult::pass();
 }
 
-KIO::WorkerResult FileProtocol::put(const QUrl &url, int _mode, KIO::JobFlags _flags)
+KIO::WorkerResult FileProtocol::put(const QUrl &_url, int _mode, KIO::JobFlags _flags)
 {
+    const QUrl url = localFileWithoutHostname(_url);
     const QString dest_orig = url.toLocalFile();
 
     // qDebug() << dest_orig << "mode=" << _mode;
@@ -629,7 +709,7 @@ KIO::WorkerResult FileProtocol::put(const QUrl &url, int _mode, KIO::JobFlags _f
         // so we must remove it manually first
         if (_flags & KIO::Overwrite) {
             if (!QFile::remove(dest_orig)) {
-                // qCInfo(KIO_FILE) << " Couldn't overwrite " << dest;
+                // qCWarning(KIO_FILE) << " Couldn't overwrite " << dest;
             }
         }
 
@@ -664,9 +744,9 @@ KIO::WorkerResult FileProtocol::put(const QUrl &url, int _mode, KIO::JobFlags _f
     if (!mtimeStr.isEmpty()) {
         QDateTime dt = QDateTime::fromString(mtimeStr, Qt::ISODate);
         if (dt.isValid()) {
+#ifndef Q_OS_WIN
             QT_STATBUF dest_statbuf;
             if (QT_STAT(QFile::encodeName(dest_orig).constData(), &dest_statbuf) == 0) {
-#ifndef Q_OS_WIN
                 struct timeval utbuf[2];
                 // access time
                 utbuf[0].tv_sec = dest_statbuf.st_atime; // access time, unchanged  ## TODO preserve msec
@@ -675,13 +755,10 @@ KIO::WorkerResult FileProtocol::put(const QUrl &url, int _mode, KIO::JobFlags _f
                 utbuf[1].tv_sec = dt.toSecsSinceEpoch();
                 utbuf[1].tv_usec = dt.time().msec() * 1000;
                 utimes(QFile::encodeName(dest_orig).constData(), utbuf);
-#else
-                struct utimbuf utbuf;
-                utbuf.actime = dest_statbuf.st_atime;
-                utbuf.modtime = dt.toSecsSinceEpoch();
-                utime(QFile::encodeName(dest_orig).constData(), &utbuf);
-#endif
             }
+#else
+            setWindowsModificationTime(dest_orig, dt);
+#endif
         }
     }
 
@@ -873,37 +950,10 @@ static QString readLogFile(const QByteArray &_filename)
 
 // We could port this to KTempDir::removeDir but then we wouldn't be able to tell the user
 // where exactly the deletion failed, in case of errors.
-WorkerResult FileProtocol::deleteRecursive(const QString &path)
+WorkerResult FileProtocol::fileSystemFreeSpace(const QUrl &_url)
 {
-    // qDebug() << path;
-    QDirIterator it(path, QDir::AllEntries | QDir::NoDotAndDotDot | QDir::System | QDir::Hidden, QDirIterator::Subdirectories);
-    QStringList dirsToDelete;
-    while (it.hasNext()) {
-        const QString itemPath = it.next();
-        // qDebug() << "itemPath=" << itemPath;
-        const QFileInfo info = it.fileInfo();
-        if (info.isDir() && !info.isSymLink()) {
-            dirsToDelete.prepend(itemPath);
-        } else {
-            // qDebug() << "QFile::remove" << itemPath;
-            if (!QFile::remove(itemPath)) {
-                return WorkerResult::fail(KIO::ERR_CANNOT_DELETE, itemPath);
-            }
-        }
-    }
-    QDir dir;
-    for (const QString &itemPath : std::as_const(dirsToDelete)) {
-        // qDebug() << "QDir::rmdir" << itemPath;
-        if (!dir.rmdir(itemPath)) {
-            return WorkerResult::fail(KIO::ERR_CANNOT_DELETE, itemPath);
-        }
-    }
-    return WorkerResult::pass();
-}
-
-WorkerResult FileProtocol::fileSystemFreeSpace(const QUrl &url)
-{
-    if (url.isLocalFile()) {
+    if (isLocalFileSameHost(_url)) {
+        const QUrl url = localFileWithoutHostname(_url);
         QStorageInfo storageInfo(url.toLocalFile());
         if (storageInfo.isValid() && storageInfo.isReady()) {
             setMetaData(QStringLiteral("total"), QString::number(storageInfo.bytesTotal()));
@@ -911,10 +961,10 @@ WorkerResult FileProtocol::fileSystemFreeSpace(const QUrl &url)
 
             return WorkerResult::pass();
         } else {
-            return WorkerResult::fail(KIO::ERR_CANNOT_STAT, url.url());
+            return WorkerResult::fail(KIO::ERR_CANNOT_STAT, _url.url());
         }
     } else {
-        return WorkerResult::fail(KIO::ERR_UNSUPPORTED_PROTOCOL, url.url());
+        return WorkerResult::fail(KIO::ERR_UNSUPPORTED_PROTOCOL, _url.url());
     }
 }
 

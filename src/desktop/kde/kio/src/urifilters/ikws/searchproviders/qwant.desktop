@@ -1,6 +1,7 @@
 [Desktop Entry]
 Keys=qw
 Name=Qwant
+Name[am]=Qwant
 Name[ar]=Qwant
 Name[ast]=Qwant
 Name[az]=Qwant
@@ -44,6 +45,8 @@ Name[lv]=Qwant
 Name[ml]=ക്വാണ്ട്
 Name[mr]=क्वांट
 Name[my]=ကွမ့်
+Name[nan_TW]=Qwant
+Name[nan_TW@latin]=Qwant
 Name[nb]=Qwant
 Name[nds]=Qwant
 Name[nl]=Qwant
@@ -67,12 +70,12 @@ Name[tg]=Qwant
 Name[th]=Qwant
 Name[tok]=ilo alasa Qwant
 Name[tr]=Qwant
-Name[ug]=Qwant
 Name[uk]=Qwant
 Name[vi]=Qwant
 Name[zh_CN]=Qwant
 Name[zh_TW]=Qwant
 Query=https://www.qwant.com/?q=\\{@}&client=kde&t=web
+Query[am]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[ar]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[az]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[be]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
@@ -112,6 +115,8 @@ Query[lg]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[lt]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[lv]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[my]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
+Query[nan_TW]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
+Query[nan_TW@latin]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[nb]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[nl]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[nn]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
@@ -130,7 +135,6 @@ Query[tg]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[th]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[tok]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[tr]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
-Query[ug]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[uk]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[vi]=https://www.qwant.com/?q=\\{@}&client=kde&t=web
 Query[zh_CN]=https://www.qwant.com/?q=\\{@}&client=kde&t=web

@@ -45,9 +45,7 @@ endfunction()
 function(_qt_internal_set_android_dynamic_feature_gradle_defaults target)
     _qt_internal_android_java_dir(android_java_dir)
 
-    # TODO: make androidx.core:core versionc configurable.
-    # Currently, it is hardcoded to 1.17.0.
-    set(implementation_dependencies "project(':app')" "'androidx.core:core:1.17.0'")
+    set(implementation_dependencies "project(':app')" "libs.androidx.core")
 
     set_target_properties(${target} PROPERTIES
         _qt_android_gradle_java_source_dirs "src;java"
@@ -88,6 +86,8 @@ function(_qt_internal_android_copy_dynamic_feature target dynamic_feature)
         COMMENT "Copying ${dynamic_feature} dynamic feature to ${target} deployment directory"
     )
     add_custom_target(${target}_deploy_dynamic_features DEPENDS "${output_file_path}")
+    _qt_internal_android_add_deploy_libraries_dependency(${target}
+        ${target}_deploy_dynamic_features)
 endfunction()
 
 # Generates the feature name strings and copy them to the respective deployment directory.
@@ -120,7 +120,7 @@ function(_qt_internal_android_generate_dynamic_feature_names target)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${output_file}"
             "${output_file_in_deployment_dir}"
-        DEPENDS "${output_file}" ${target}_android_deploy_aux
+        DEPENDS "${output_file}"
         VERBATIM
     )
     add_custom_target(${target}_copy_feature_names
@@ -143,9 +143,6 @@ function(_qt_internal_android_generate_dynamic_feature_manifest target dynamic_f
 
     _qt_internal_android_get_template_path(template_file ${target}
         "dynamic_feature/${android_manifest_filename}")
-
-    set(APP_TARGET "${target}")
-    set(TITLE_VAR "@string/${dynamic_feature}_title")
 
     set(output_file "${dynamic_feature_deployment_dir}/AndroidManifest.xml")
     _qt_internal_configure_file(CONFIGURE OUTPUT "${output_file}" INPUT "${template_file}")

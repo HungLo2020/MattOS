@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "core/rect.h"
+
 #include <QQuickItem>
 #include <QUuid>
 
@@ -14,18 +16,21 @@
 
 namespace KWin
 {
+
 class Window;
 class GLFramebuffer;
 class GLTexture;
 class ThumbnailTextureProvider;
 class WindowThumbnailSource;
+class EglContext;
+class RenderDevice;
 
 class WindowThumbnailSource : public QObject
 {
     Q_OBJECT
 
 public:
-    WindowThumbnailSource(QQuickWindow *view, Window *handle);
+    WindowThumbnailSource(RenderDevice *device, QQuickWindow *view, Window *handle);
     ~WindowThumbnailSource() override;
 
     static std::shared_ptr<WindowThumbnailSource> getOrCreate(QQuickWindow *window, Window *handle);
@@ -47,16 +52,34 @@ private:
     QPointer<QQuickWindow> m_view;
     QPointer<Window> m_handle;
 
+    RenderDevice *m_renderDevice = nullptr;
+    std::shared_ptr<EglContext> m_context;
     std::shared_ptr<GLTexture> m_offscreenTexture;
     std::unique_ptr<GLFramebuffer> m_offscreenTarget;
     GLsync m_acquireFence = 0;
     bool m_dirty = true;
 };
 
+/*!
+ * \qmltype WindowThumbnail
+ * \inqmlmodule org.kde.kwin
+ * \inherits Item
+ *
+ * \brief Window Thumbnail.
+ */
 class WindowThumbnailItem : public QQuickItem
 {
     Q_OBJECT
+    QML_NAMED_ELEMENT(WindowThumbnail)
+
+    /*!
+     * \qmlproperty QUuid WindowThumbnail::wId
+     */
     Q_PROPERTY(QUuid wId READ wId WRITE setWId NOTIFY wIdChanged)
+
+    /*!
+     * \qmlproperty Window WindowThumbnail::client
+     */
     Q_PROPERTY(KWin::Window *client READ client WRITE setClient NOTIFY clientChanged)
 
 public:
@@ -82,23 +105,23 @@ Q_SIGNALS:
     void clientChanged();
 
 private Q_SLOTS:
-   /**
-    * @brief Releases graphics resources of this object.
-    *
-    * This slot is called on the scene graph rendering thread to free graphics
-    * resources associated with this object, typically when QQuickWindow is closed
-    * or hidden. The OpenGL context is bound when this slot is called.
-    *
-    * @note Do not remove this slot. It is called directly by the scene graph
-    * system via Qt's meta-object mechanism, not through signal-slot connections.
-    */
+    /**
+     * @brief Releases graphics resources of this object.
+     *
+     * This slot is called on the scene graph rendering thread to free graphics
+     * resources associated with this object, typically when QQuickWindow is closed
+     * or hidden. The OpenGL context is bound when this slot is called.
+     *
+     * @note Do not remove this slot. It is called directly by the scene graph
+     * system via Qt's meta-object mechanism, not through signal-slot connections.
+     */
     void invalidateSceneGraph();
 
 private:
-    QRectF paintedRect() const;
+    RectF paintedRect() const;
     void updateImplicitSize();
     void updateSource();
-    void resetSource();
+    void releaseOpenGlResources();
 
     QUuid m_wId;
     QPointer<Window> m_client;

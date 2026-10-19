@@ -45,7 +45,7 @@ Kirigami.Dialog {
         QQC2.Label {
             Layout.fillWidth: true
 
-            text: i18n("If you love %1, tell people what's great about it! Focus on functionality, usability, and appearance. If the app didn't meet your needs, explain why.", reviewDialog.application.name)
+            text: i18n("If you love %1, tell people what’s great about it! Focus on functionality, usability, and appearance. If the app didn’t meet your needs, explain why.", reviewDialog.application.name)
             wrapMode: Text.Wrap
             textFormat: Text.PlainText
 
@@ -69,20 +69,20 @@ Kirigami.Dialog {
             text: {
                 if (reviewInput.hasDoesntRunKeywords) {
                     if (packagedByDistro) {
-                        return xi18nc("@info", "If %1 isn't launching, consider reporting this to its packagers in %2 at <link url='%3'>%3</link> instead, as it may be an easily fixable packaging issue rather than a flaw in the app itself.",
+                        return xi18nc("@info", "If %1 isn’t launching, consider reporting this to its packagers in %2 at <link url='%3'>%3</link> instead, as it may be an easily fixable packaging issue rather than a flaw in the app itself.",
                                     reviewDialog.application.name,
                                     Discover.ResourcesModel.distroName,
                                     Discover.ResourcesModel.distroBugReportUrl());
                     } else {
-                        return xi18nc("@info", "If %1 isn't launching, consider reporting this its developers at <link url='%2'>%2</link> instead, as it may be an easily fixable packaging issue rather than a flaw in the app itself.",
+                        return xi18nc("@info", "If %1 isn’t launching, consider reporting this to its developers at <link url='%2'>%2</link> instead, as it may be an easily fixable packaging issue rather than a flaw in the app itself.",
                                     reviewDialog.application.name,
                                     appBugReportUrl);
                     }
                 } else if (reviewInput.hasCrashKeywords && appBugReportUrl.length > 0){
-                    return xi18nc("@info", "If the app is crashing a lot, consider reporting this to the developers at <link url='%1'>%1</link> instead.",
+                    return xi18nc("@info", "If the app is crashing a lot, consider reporting this to its developers at <link url='%1'>%1</link> instead.",
                                 appBugReportUrl);
                 } else if (reviewInput.hasSubjectiveKeywords && appBugReportUrl.length > 0) {
-                    return xi18nc("@info", "If you're having a problem with the app, consider reporting it to the developers at <link url='%1'>%1</link> instead, or else describe the problem here in greater detail.",
+                    return xi18nc("@info", "If you’re having a problem with the app, consider reporting this to its developers at <link url='%1'>%1</link> instead, or else describe the problem here in greater detail.",
                                 appBugReportUrl);
                 } else {
                     return ""
@@ -136,42 +136,52 @@ Kirigami.Dialog {
             }
         }
 
-        QQC2.TextArea {
-            id: reviewInput
-
-            readonly property string lowercaseText: reviewInput.text.toLowerCase()
-
-            // Intentionally untranslated to cover the case of people writing reviews
-            // in English when their system is in another language.
-            readonly property string doesntRunKeywordsEn: "launch,run,start"
-            readonly property string doesntRunKeywordsI18n: i18nc("Words the user might use in an unhelpful sentence saying an app is not launching. Preserve the commas. If necessary, add more words used for this in your language and/or shorten to common stems contained by multiple forms of the words.",
-                                                                  "launch,run,start")
-            readonly property list<string> doesntRunKeywords: doesntRunKeywordsEn.concat(",", doesntRunKeywordsI18n).split(",")
-            readonly property bool hasDoesntRunKeywords: doesntRunKeywords.some(suspiciousWord => lowercaseText.includes(suspiciousWord))
-
-
-            readonly property string crashKeywordsEn: "crash,segfault"
-            readonly property string crashKeywordsI18n:  i18nc("Words the user might use in an unhelpful sentence saying an app crashes. Preserve the commas. If necessary, add more words used for this in your language and/or shorten to common stems contained by multiple forms of the words",
-                                                               "crash,segfault")
-            readonly property list<string> crashKeywords: crashKeywordsEn.concat(",", crashKeywordsI18n).split(",")
-            readonly property bool hasCrashKeywords: crashKeywords.some(suspiciousWord => lowercaseText.includes(suspiciousWord))
-
-
-            readonly property string subjectiveKeywordsEn: "doesn't work,dumb,stupid,crap,junk,suck,terrible,hate"
-            readonly property string subjectiveKeywordsI18n: i18nc("Word the user might use in an unhelpful sentence saying an app isn't very good. Preserve the commas. If necessary, add more words used for this in your language and/or shorten to common stems contained by multiple forms of the words,",
-                                                                   "doesn't work,dumb,stupid,crap,junk,suck,terrible,hate")
-            readonly property list<string> subjectiveKeywords: subjectiveKeywordsEn.concat(",", subjectiveKeywordsI18n).split(",")
-            readonly property bool hasSubjectiveKeywords: subjectiveKeywords.some(suspiciousWord => lowercaseText.includes(suspiciousWord))
-
-
-            readonly property bool hasAnySuspiciousKeywords: hasDoesntRunKeywords || hasSubjectiveKeywords || hasCrashKeywords
-
-            readonly property bool acceptableInput: length > 15 && length < 3000
-
+        QQC2.ScrollView {
             Layout.fillWidth: true
-            Layout.minimumHeight: Kirigami.Units.gridUnit * 8
-            KeyNavigation.priority: KeyNavigation.BeforeItem
-            wrapMode: TextEdit.Wrap
+            Layout.preferredHeight: Kirigami.Units.gridUnit * 8
+            Layout.maximumHeight: Kirigami.Units.gridUnit * 8
+            clip: true
+
+            // Use ScrollView's frame border for review content and scrollbar, replacing text area's own frame border
+            Kirigami.StyleHints.showFramedBackground: true
+
+            QQC2.TextArea {
+                id: reviewInput
+
+                readonly property string lowercaseText: reviewInput.text.toLowerCase()
+
+                // Intentionally untranslated to cover the case of people writing reviews
+                // in English when their system is in another language.
+                readonly property string doesntRunKeywordsEn: "launch,run,start"
+                readonly property string doesntRunKeywordsI18n: i18nc("Words the user might use in an unhelpful sentence saying an app is not launching. Preserve the commas. If necessary, add more words used for this in your language and/or shorten to common stems contained by multiple forms of the words.",
+                                                                      "launch,run,start")
+                readonly property list<string> doesntRunKeywords: doesntRunKeywordsEn.concat(",", doesntRunKeywordsI18n).split(",")
+                readonly property bool hasDoesntRunKeywords: doesntRunKeywords.some(suspiciousWord => lowercaseText.includes(suspiciousWord))
+
+
+                readonly property string crashKeywordsEn: "crash,segfault"
+                readonly property string crashKeywordsI18n:  i18nc("Words the user might use in an unhelpful sentence saying an app crashes. Preserve the commas. If necessary, add more words used for this in your language and/or shorten to common stems contained by multiple forms of the words",
+                                                                   "crash,segfault")
+                readonly property list<string> crashKeywords: crashKeywordsEn.concat(",", crashKeywordsI18n).split(",")
+                readonly property bool hasCrashKeywords: crashKeywords.some(suspiciousWord => lowercaseText.includes(suspiciousWord))
+
+
+                readonly property string subjectiveKeywordsEn: "doesn't work,dumb,stupid,crap,junk,suck,terrible,hate"
+                readonly property string subjectiveKeywordsI18n: i18nc("Words the user might use in an unhelpful sentence saying an app isn't very good. Preserve the commas. If necessary, add more words used for this in your language and/or shorten to common stems contained by multiple forms of the words,",
+                                                                       "doesn't work,dumb,stupid,crap,junk,suck,terrible,hate")
+                readonly property list<string> subjectiveKeywords: subjectiveKeywordsEn.concat(",", subjectiveKeywordsI18n).split(",")
+                readonly property bool hasSubjectiveKeywords: subjectiveKeywords.some(suspiciousWord => lowercaseText.includes(suspiciousWord))
+
+
+                readonly property bool hasAnySuspiciousKeywords: hasDoesntRunKeywords || hasSubjectiveKeywords || hasCrashKeywords
+
+                readonly property bool acceptableInput: length > 15 && length < 3000
+
+                width: parent.width
+                background: null // Hide text area's frame border in favor of the ScrollView one
+                KeyNavigation.priority: KeyNavigation.BeforeItem
+                wrapMode: TextEdit.Wrap
+            }
         }
 
         QQC2.Label {
@@ -200,7 +210,7 @@ Kirigami.Dialog {
                 return "";
             }
             wrapMode: Text.WordWrap
-            opacity: 0.6
+            opacity: 0.75
             visible: text.length > 0
         }
     }

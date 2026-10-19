@@ -14,12 +14,12 @@ import org.kde.kirigami.controls as KC
 import org.kde.kirigami.layouts as KL
 import org.kde.kirigami.primitives as Primitives
 import org.kde.kirigami.platform as Platform
-import org.kde.kirigami.private.polyfill
 import "private" as KP
 
 /*!
   \qmltype GlobalDrawer
   \inqmlmodule org.kde.kirigami
+  \inherits OverlayDrawer
 
   \brief A specialized form of the Drawer intended for showing an application's
   always-available global actions.
@@ -83,10 +83,10 @@ KC.OverlayDrawer {
         }
 
         // ...but it still performs additional checks.
-        return !isMenu || Platform.Settings.isMobile;
+        return !isMenu;
     }
 
-    enabled: !isMenu || Platform.Settings.isMobile
+    enabled: !isMenu
 
 //BEGIN properties
     /*!
@@ -256,7 +256,13 @@ KC.OverlayDrawer {
     readonly property T.Action currentSubMenu: stackView.currentItem?.current ?? null
 
     /*!
-      \brief This property sets whether the drawer becomes a menu on the desktop.
+      \brief This property sets whether the drawer becomes a menu.
+
+      Prior to 6.21 this option had no effect for mobile applications.
+      If you wish to keep that behaviour you can use something like:
+      \code
+      isMenu: !Platform.Settings.isMobile
+      \endcode
 
       default: \c false
 
@@ -424,15 +430,14 @@ KC.OverlayDrawer {
 
         visible: kAction?.visible ?? true
 
-        KP.GlobalDrawerActionItem {
-            Layout.fillWidth: true
+        BaseGlobalDrawerActionItem {
             Platform.Theme.colorSet: !root.modal && !root.collapsed && delegate.withSections
                 ? Platform.Theme.Window : parent.Platform.Theme.colorSet
 
             visible: !delegate.isExpanded
-            width: parent.width
 
             tAction: delegate.tAction
+            drawerCollapsed: root.collapsed
 
             onCheckedChanged: {
                 // move every checked item into view
@@ -495,10 +500,55 @@ KC.OverlayDrawer {
         }
     }
 
-    component NestedActionDelegate : KP.GlobalDrawerActionItem {
+    component BaseGlobalDrawerActionItem: KP.GlobalDrawerActionItem {
+        id: actionItem
+        drawerCollapsed: root.collapsed
+        Layout.fillWidth: true
+
+        onActionsMenuVisibleChanged: visible => {
+            if (visible) {
+                stackView.openSubMenu = actionItem.actionsMenu;
+            } else if (stackView.openSubMenu === actionItem.actionsMenu) {
+                stackView.openSubMenu = null;
+            }
+        }
+
+        onActionTriggered: {
+            if (hasChildren) {
+                if (root.collapsed) {
+                    if (actionsMenu.actions.length > 0 && !actionsMenu.visible) {
+                        stackView.openSubMenu = actionsMenu;
+                        actionsMenu.popup(this, width, 0);
+                    }
+                } else {
+                    stackView.push(menuComponent, {
+                        model: kAction?.children ?? [],
+                        level: level + 1,
+                        current: tAction,
+                    });
+                }
+            } else if (root.resetMenuOnTriggered) {
+                root.resetMenu();
+            }
+        }
+
+        onHoveredChanged: {
+            if (!hovered) {
+                return;
+            }
+            if (stackView.openSubMenu) {
+                stackView.openSubMenu.visible = false;
+
+                if (actionsMenu.count > 0) {
+                    actionsMenu.popup(this, width, 0);
+                }
+            }
+        }
+    }
+
+    component NestedActionDelegate : BaseGlobalDrawerActionItem {
         required property bool withSections
 
-        Layout.fillWidth: true
         opacity: !root.collapsed
         leftPadding: withSections && !root.collapsed && !root.modal ? padding * 2 : padding * 4
     }
@@ -582,7 +632,7 @@ KC.OverlayDrawer {
 
                         spacing: 0
 
-                        Layout.alignment: Qt.AlignHCenter
+                        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
                         Layout.leftMargin: root.leftPadding
                         Layout.rightMargin: root.rightPadding
                         Layout.bottomMargin: Platform.Units.smallSpacing

@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qshaderdescription_p.h"
 #include "qshader_p.h"
@@ -1747,9 +1748,11 @@ static void deserializeDecorations(QDataStream *stream, int version, QShaderDesc
     v->imageFlags = QShaderDescription::ImageFlags(f);
 
     if (version > QShaderPrivate::QSB_VERSION_WITHOUT_VAR_ARRAYDIMS) {
-        (*stream) >> f;
-        v->arrayDims.resize(f);
-        for (int i = 0; i < f; ++i)
+        int count;
+        if (!QShaderPrivate::readCount(stream, &count))
+            return;
+        v->arrayDims.resize(count);
+        for (int i = 0; i < count; ++i)
             (*stream) >> v->arrayDims[i];
     }
 
@@ -1770,7 +1773,8 @@ static QShaderDescription::BuiltinVariable deserializeBuiltinVar(QDataStream *st
         (*stream) >> t;
         var.varType = QShaderDescription::VariableType(t);
         int count;
-        (*stream) >> count;
+        if (!QShaderPrivate::readCount(stream, &count))
+            return var;
         var.arrayDims.resize(count);
         for (int i = 0; i < count; ++i)
             (*stream) >> var.arrayDims[i];
@@ -1778,9 +1782,17 @@ static QShaderDescription::BuiltinVariable deserializeBuiltinVar(QDataStream *st
     return var;
 }
 
-static QShaderDescription::BlockVariable deserializeBlockMemberVar(QDataStream *stream, int version)
+static const int MAX_STRUCT_NESTING_LEVEL = 64;
+
+static QShaderDescription::BlockVariable deserializeBlockMemberVar(QDataStream *stream, int version,
+                                                                  int level)
 {
     QShaderDescription::BlockVariable var;
+    if (level > MAX_STRUCT_NESTING_LEVEL) {
+        qWarning("Shader description has structs nested deeper than %d levels.", MAX_STRUCT_NESTING_LEVEL);
+        stream->setStatus(QDataStream::ReadCorruptData);
+        return var;
+    }
     QString tmp;
     (*stream) >> tmp;
     var.name = tmp.toUtf8();
@@ -1790,17 +1802,19 @@ static QShaderDescription::BlockVariable deserializeBlockMemberVar(QDataStream *
     (*stream) >> var.offset;
     (*stream) >> var.size;
     int count;
-    (*stream) >> count;
+    if (!QShaderPrivate::readCount(stream, &count))
+        return var;
     var.arrayDims.resize(count);
     for (int i = 0; i < count; ++i)
         (*stream) >> var.arrayDims[i];
     (*stream) >> var.arrayStride;
     (*stream) >> var.matrixStride;
     (*stream) >> var.matrixIsRowMajor;
-    (*stream) >> count;
+    if (!QShaderPrivate::readCount(stream, &count))
+        return var;
     var.structMembers.resize(count);
     for (int i = 0; i < count; ++i)
-        var.structMembers[i] = deserializeBlockMemberVar(stream, version);
+        var.structMembers[i] = deserializeBlockMemberVar(stream, version, level + 1);
     return var;
 }
 
@@ -1816,10 +1830,11 @@ static QShaderDescription::InOutVariable deserializeInOutVar(QDataStream *stream
     deserializeDecorations(stream, version, &var);
     if (version > QShaderPrivate::QSB_VERSION_WITHOUT_INPUT_OUTPUT_INTERFACE_BLOCKS) {
         int count;
-        (*stream) >> count;
+        if (!QShaderPrivate::readCount(stream, &count))
+            return var;
         var.structMembers.resize(count);
         for (int i = 0; i < count; ++i)
-            var.structMembers[i] = deserializeBlockMemberVar(stream, version);
+            var.structMembers[i] = deserializeBlockMemberVar(stream, version, 0);
     }
     return var;
 }
@@ -1829,17 +1844,20 @@ void QShaderDescriptionPrivate::loadFromStream(QDataStream *stream, int version)
     Q_ASSERT(ref.loadRelaxed() == 1); // must be detached
 
     int count;
-    (*stream) >> count;
+    if (!QShaderPrivate::readCount(stream, &count))
+        return;
     inVars.resize(count);
     for (int i = 0; i < count; ++i)
         inVars[i] = deserializeInOutVar(stream, version);
 
-    (*stream) >> count;
+    if (!QShaderPrivate::readCount(stream, &count))
+        return;
     outVars.resize(count);
     for (int i = 0; i < count; ++i)
         outVars[i] = deserializeInOutVar(stream, version);
 
-    (*stream) >> count;
+    if (!QShaderPrivate::readCount(stream, &count))
+        return;
     uniformBlocks.resize(count);
     for (int i = 0; i < count; ++i) {
         QString tmp;
@@ -1851,13 +1869,15 @@ void QShaderDescriptionPrivate::loadFromStream(QDataStream *stream, int version)
         (*stream) >> uniformBlocks[i].binding;
         (*stream) >> uniformBlocks[i].descriptorSet;
         int memberCount;
-        (*stream) >> memberCount;
+        if (!QShaderPrivate::readCount(stream, &memberCount))
+            return;
         uniformBlocks[i].members.resize(memberCount);
         for (int memberIdx = 0; memberIdx < memberCount; ++memberIdx)
-            uniformBlocks[i].members[memberIdx] = deserializeBlockMemberVar(stream, version);
+            uniformBlocks[i].members[memberIdx] = deserializeBlockMemberVar(stream, version, 0);
     }
 
-    (*stream) >> count;
+    if (!QShaderPrivate::readCount(stream, &count))
+        return;
     pushConstantBlocks.resize(count);
     for (int i = 0; i < count; ++i) {
         QString tmp;
@@ -1865,13 +1885,15 @@ void QShaderDescriptionPrivate::loadFromStream(QDataStream *stream, int version)
         pushConstantBlocks[i].name = tmp.toUtf8();
         (*stream) >> pushConstantBlocks[i].size;
         int memberCount;
-        (*stream) >> memberCount;
+        if (!QShaderPrivate::readCount(stream, &memberCount))
+            return;
         pushConstantBlocks[i].members.resize(memberCount);
         for (int memberIdx = 0; memberIdx < memberCount; ++memberIdx)
-            pushConstantBlocks[i].members[memberIdx] = deserializeBlockMemberVar(stream, version);
+            pushConstantBlocks[i].members[memberIdx] = deserializeBlockMemberVar(stream, version, 0);
     }
 
-    (*stream) >> count;
+    if (!QShaderPrivate::readCount(stream, &count))
+        return;
     storageBlocks.resize(count);
     for (int i = 0; i < count; ++i) {
         QString tmp;
@@ -1883,10 +1905,11 @@ void QShaderDescriptionPrivate::loadFromStream(QDataStream *stream, int version)
         (*stream) >> storageBlocks[i].binding;
         (*stream) >> storageBlocks[i].descriptorSet;
         int memberCount;
-        (*stream) >> memberCount;
+        if (!QShaderPrivate::readCount(stream, &memberCount))
+            return;
         storageBlocks[i].members.resize(memberCount);
         for (int memberIdx = 0; memberIdx < memberCount; ++memberIdx)
-            storageBlocks[i].members[memberIdx] = deserializeBlockMemberVar(stream, version);
+            storageBlocks[i].members[memberIdx] = deserializeBlockMemberVar(stream, version, 0);
 
         if (version > QShaderPrivate::QSB_VERSION_WITHOUT_EXTENDED_STORAGE_BUFFER_INFO) {
             (*stream) >> storageBlocks[i].runtimeArrayStride;
@@ -1894,7 +1917,8 @@ void QShaderDescriptionPrivate::loadFromStream(QDataStream *stream, int version)
         }
     }
 
-    (*stream) >> count;
+    if (!QShaderPrivate::readCount(stream, &count))
+        return;
     combinedImageSamplers.resize(count);
     for (int i = 0; i < count; ++i) {
         QString tmp;
@@ -1906,7 +1930,8 @@ void QShaderDescriptionPrivate::loadFromStream(QDataStream *stream, int version)
         deserializeDecorations(stream, version, &combinedImageSamplers[i]);
     }
 
-    (*stream) >> count;
+    if (!QShaderPrivate::readCount(stream, &count))
+        return;
     storageImages.resize(count);
     for (int i = 0; i < count; ++i) {
         QString tmp;
@@ -1925,7 +1950,8 @@ void QShaderDescriptionPrivate::loadFromStream(QDataStream *stream, int version)
     }
 
     if (version > QShaderPrivate::QSB_VERSION_WITHOUT_SEPARATE_IMAGES_AND_SAMPLERS) {
-        (*stream) >> count;
+        if (!QShaderPrivate::readCount(stream, &count))
+            return;
         separateImages.resize(count);
         for (int i = 0; i < count; ++i) {
             QString tmp;
@@ -1937,7 +1963,8 @@ void QShaderDescriptionPrivate::loadFromStream(QDataStream *stream, int version)
             deserializeDecorations(stream, version, &separateImages[i]);
         }
 
-        (*stream) >> count;
+        if (!QShaderPrivate::readCount(stream, &count))
+            return;
         separateSamplers.resize(count);
         for (int i = 0; i < count; ++i) {
             QString tmp;
@@ -1961,12 +1988,14 @@ void QShaderDescriptionPrivate::loadFromStream(QDataStream *stream, int version)
         (*stream) >> v;
         tessPart = QShaderDescription::TessellationPartitioning(v);
 
-        (*stream) >> count;
+        if (!QShaderPrivate::readCount(stream, &count))
+            return;
         inBuiltins.resize(count);
         for (int i = 0; i < count; ++i)
             inBuiltins[i] = deserializeBuiltinVar(stream, version);
 
-        (*stream) >> count;
+        if (!QShaderPrivate::readCount(stream, &count))
+            return;
         outBuiltins.resize(count);
         for (int i = 0; i < count; ++i)
             outBuiltins[i] = deserializeBuiltinVar(stream, version);

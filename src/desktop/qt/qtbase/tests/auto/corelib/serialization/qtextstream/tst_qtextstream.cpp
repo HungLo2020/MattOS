@@ -130,8 +130,10 @@ private slots:
     void double_write_with_precision();
 
     // text read operators
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 12)
     void charPtr_read_operator_FromDevice_data() { generateStringData(false); }
     void charPtr_read_operator_FromDevice();
+#endif
     void stringRef_read_operator_FromDevice_data() { generateStringData(false); }
     void stringRef_read_operator_FromDevice();
     void byteArray_read_operator_FromDevice_data() { generateStringData(false); }
@@ -1126,11 +1128,15 @@ void tst_QTextStream::zeroTermination()
     QVERIFY(stream >> c);
     QCOMPARE(c, '\0');
 
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 12)
     c = '@';
 
     QTest::ignoreMessage(QtWarningMsg, "QTextStream: No device");
+    QT_IGNORE_DEPRECATIONS(
     QVERIFY(stream >> &c);
+    )
     QCOMPARE(c, '\0');
+#endif // QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 12)
 }
 
 // ------------------------------------------------------------------------------
@@ -1427,6 +1433,8 @@ void tst_QTextStream::readStdin()
 {
 #if !QT_CONFIG(process)
     QSKIP("No qprocess support");
+#elif defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
+    QSKIP("Spawning helper processes is not supported on this platform");
 #else
     QProcess stdinProcess;
     stdinProcess.start("stdinProcess/stdinProcess");
@@ -1454,6 +1462,8 @@ void tst_QTextStream::readAllFromStdin()
 {
 #if !QT_CONFIG(process)
     QSKIP("No qprocess support");
+#elif defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
+    QSKIP("Spawning helper processes is not supported on this platform");
 #else
     QProcess stdinProcess;
     stdinProcess.start("readAllStdinProcess/readAllStdinProcess", {}, QIODevice::ReadWrite | QIODevice::Text);
@@ -1475,6 +1485,8 @@ void tst_QTextStream::readLineFromStdin()
 {
 #if !QT_CONFIG(process)
     QSKIP("No qprocess support");
+#elif defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
+    QSKIP("Spawning helper processes is not supported on this platform");
 #else
     QProcess stdinProcess;
     stdinProcess.start("readLineStdinProcess/readLineStdinProcess", {}, QIODevice::ReadWrite | QIODevice::Text);
@@ -2122,6 +2134,7 @@ void tst_QTextStream::generateStringData(bool for_QString) const
     }
 }
 
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 12)
 // ------------------------------------------------------------------------------
 void tst_QTextStream::charPtr_read_operator_FromDevice()
 {
@@ -2136,10 +2149,13 @@ void tst_QTextStream::charPtr_read_operator_FromDevice()
     stream.setAutoDetectUnicode(true);
 
     char buf[1024];
+    QT_IGNORE_DEPRECATIONS(
     QCOMPARE(static_cast<bool>(stream >> buf), status);
+    )
 
     QCOMPARE((const char *)buf, array_output.constData());
 }
+#endif // QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 12)
 
 // ------------------------------------------------------------------------------
 void tst_QTextStream::stringRef_read_operator_FromDevice()

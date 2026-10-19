@@ -345,6 +345,57 @@ UnitCategory Energy::makeCategory()
                                             ki18nc("amount in units (real)", "%1 nanometers"),
                                             ki18ncp("amount in units (integer)", "%1 nanometer", "%1 nanometers"))));
 
+    // https://en.wikipedia.org/wiki/Kilowatt-hour
+    d->addUnit(UnitPrivate::makeUnit(EnergyCategory,
+                                     TeraWattHour,
+                                     1e+12 * 60 * 60,
+                                     i18nc("energy unit symbol", "TW⋅h"),
+                                     i18nc("unit description in lists", "terawatt-hours"),
+                                     i18nc("unit synonyms for matching user input", "terawattHours;terawatt Hours;TWh;Twh;TW⋅h"),
+                                     symbolString,
+                                     ki18nc("amount in units (real)", "%1 terawatt-hours"),
+                                     ki18ncp("amount in units (integer)", "%1 terawatt-hour", "%1 terawatt-hours")));
+
+    d->addUnit(UnitPrivate::makeUnit(EnergyCategory,
+                                     GigaWattHour,
+                                     1e+09 * 60 * 60,
+                                     i18nc("energy unit symbol", "GW⋅h"),
+                                     i18nc("unit description in lists", "gigawatt-hours"),
+                                     i18nc("unit synonyms for matching user input", "gigawattHours;gigawatt Hours;GWh;Gwh;GW⋅h"),
+                                     symbolString,
+                                     ki18nc("amount in units (real)", "%1 gigawatt-hours"),
+                                     ki18ncp("amount in units (integer)", "%1 gigawatt-hour", "%1 gigawatt-hours")));
+
+    d->addUnit(UnitPrivate::makeUnit(EnergyCategory,
+                                     MegaWattHour,
+                                     1e+06 * 60 * 60,
+                                     i18nc("energy unit symbol", "MW⋅h"),
+                                     i18nc("unit description in lists", "megawatt-hours"),
+                                     i18nc("unit synonyms for matching user input", "megawattHours;megawatt Hours;MWh;Mwh;MW⋅h"),
+                                     symbolString,
+                                     ki18nc("amount in units (real)", "%1 megawatt-hours"),
+                                     ki18ncp("amount in units (integer)", "%1 megawatt-hour", "%1 megawatt-hours")));
+
+    d->addUnit(UnitPrivate::makeUnit(EnergyCategory,
+                                     KiloWattHour,
+                                     1000 * 60 * 60,
+                                     i18nc("energy unit symbol", "kW⋅h"),
+                                     i18nc("unit description in lists", "kilowatt-hours"),
+                                     i18nc("unit synonyms for matching user input", "kilowattHours;kilowatt Hours;kWh;kwh;kW⋅h"),
+                                     symbolString,
+                                     ki18nc("amount in units (real)", "%1 kilowatt-hours"),
+                                     ki18ncp("amount in units (integer)", "%1 kilowatt-hour", "%1 kilowatt-hours")));
+
+    d->addUnit(UnitPrivate::makeUnit(EnergyCategory,
+                                     WattHour,
+                                     60 * 60,
+                                     i18nc("energy unit symbol", "W⋅h"),
+                                     i18nc("unit description in lists", "watt-hours"),
+                                     i18nc("unit synonyms for matching user input", "wattHours;watt Hours;Wh;wh;W⋅h"),
+                                     symbolString,
+                                     ki18nc("amount in units (real)", "%1 watt-hours"),
+                                     ki18ncp("amount in units (integer)", "%1 watt-hour", "%1 watt-hours")));
+
     return c;
 }
 

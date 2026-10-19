@@ -20,6 +20,12 @@
 #include <private/qqmldebugclient_p.h>
 #include <private/qqmldebugconnection_p.h>
 
+#include <private/qqmlprofilerqtdwriter_p.h>
+#include <private/qqmlprofilerclient_p.h>
+#include <private/qquickeventreplayclient_p.h>
+
+#include <QtCore/QTimer>
+
 QT_BEGIN_NAMESPACE
 
 class QQmlPreviewClientPrivate;
@@ -39,6 +45,13 @@ public:
         Zoom,
         Fps,
         AnimationSpeed,
+        Configuration,
+        Confirmation,
+        HotReloadFailure,
+    };
+
+    struct Settings {
+        bool enableInPlaceUpdates = false;
     };
 
     struct FpsInfo {
@@ -59,16 +72,30 @@ public:
     void sendDirectory(const QString &path, const QStringList &entries);
     void sendFile(const QString &path, const QByteArray &contents);
     void sendError(const QString &path);
+    void sendConfiguration(const Settings &settings);
 
     void triggerLoad(const QUrl &url);
     void triggerRerun();
     void triggerZoom(float factor);
     void triggerAnimationSpeed(float factor);
 
+    void replayEvents();
+    void replayEvent(const QQmlProfilerEventType &type, QQmlProfilerEvent &&event);
+
+    bool saveEvents(const QString &fileName);
+    bool replayEventsFromFile(const QString &fileName);
+    bool hasRecordedEvents() const;
+    void clearRecordedEvents();
+
 Q_SIGNALS:
     void request(const QString &path);
     void error(const QString &message);
-    void fps(const FpsInfo &info);
+    void fps(const QQmlPreviewClient::FpsInfo &info);
+    void confirmation(const QQmlPreviewClient::Settings &settings);
+    void hotReloadFailure(const QString &reason);
+
+private:
+    void configureEventReplay();
 };
 
 QT_END_NAMESPACE

@@ -123,8 +123,8 @@ private:
         qint64 values[size][s_numSceneGraphTimings + 1];
     };
 
-    static inline thread_local TimingData<NumRenderThreadFrameTypes> renderThreadTimings;
-    TimingData<NumGUIThreadFrameTypes> guiThreadTimings;
+    static inline thread_local TimingData<NumRenderThreadFrameTypes> renderThreadTimings = {};
+    TimingData<NumGUIThreadFrameTypes> guiThreadTimings = {};
 
 public:
     template<SceneGraphFrameType type>

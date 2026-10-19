@@ -29,8 +29,7 @@ ThumbnailAsideEffect::ThumbnailAsideEffect()
     QAction *a = new QAction(this);
     a->setObjectName(QStringLiteral("ToggleCurrentThumbnail"));
     a->setText(i18n("Toggle Thumbnail for Current Window"));
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::CTRL | Qt::Key_T));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::CTRL | Qt::Key_T));
+    KGlobalAccel::self()->setGlobalShortcut(a, QKeySequence(Qt::META | Qt::CTRL | Qt::Key_T));
     connect(a, &QAction::triggered, this, &ThumbnailAsideEffect::toggleCurrentThumbnail);
 
     connect(effects, &EffectsHandler::windowAdded, this, &ThumbnailAsideEffect::slotWindowAdded);
@@ -55,10 +54,12 @@ void ThumbnailAsideEffect::reconfigure(ReconfigureFlags)
     arrange();
 }
 
-void ThumbnailAsideEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
+bool ThumbnailAsideEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
 {
     painted = Region();
-    effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
+    if (!effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen)) {
+        return false;
+    }
 
     for (const Data &d : std::as_const(windows)) {
         if (painted.intersects(viewport.mapToDeviceCoordinatesAligned(d.rect))) {
@@ -66,16 +67,19 @@ void ThumbnailAsideEffect::paintScreen(const RenderTarget &renderTarget, const R
             data.multiplyOpacity(opacity);
             Rect region;
             setPositionTransformations(data, region, d.window, d.rect, Qt::KeepAspectRatio);
-            effects->drawWindow(renderTarget, viewport, d.window, PAINT_WINDOW_OPAQUE | PAINT_WINDOW_TRANSLUCENT | PAINT_WINDOW_TRANSFORMED,
-                                viewport.mapToDeviceCoordinatesAligned(region), data);
+            if (!effects->drawWindow(renderTarget, viewport, d.window, PAINT_WINDOW_OPAQUE | PAINT_WINDOW_TRANSLUCENT | PAINT_WINDOW_TRANSFORMED,
+                                     viewport.mapToDeviceCoordinatesAligned(region), data)) {
+                return false;
+            }
         }
     }
+    return true;
 }
 
-void ThumbnailAsideEffect::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data)
+bool ThumbnailAsideEffect::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data)
 {
-    effects->paintWindow(renderTarget, viewport, w, mask, deviceGeometry, data);
     painted += deviceGeometry;
+    return effects->paintWindow(renderTarget, viewport, w, mask, deviceGeometry, data);
 }
 
 void ThumbnailAsideEffect::slotWindowDamaged(EffectWindow *w)
@@ -87,7 +91,7 @@ void ThumbnailAsideEffect::slotWindowDamaged(EffectWindow *w)
     }
 }
 
-void ThumbnailAsideEffect::slotWindowFrameGeometryChanged(EffectWindow *w, const QRectF &old)
+void ThumbnailAsideEffect::slotWindowFrameGeometryChanged(EffectWindow *w, const RectF &old)
 {
     for (const Data &d : std::as_const(windows)) {
         if (d.window == w) {
@@ -171,7 +175,7 @@ void ThumbnailAsideEffect::arrange()
     if (!effectiveScreen) {
         effectiveScreen = effects->activeScreen();
     }
-    QRectF area = effects->clientArea(MaximizeArea, effectiveScreen, effects->currentDesktop());
+    RectF area = effects->clientArea(MaximizeArea, effectiveScreen);
     double scale = area.height() / double(height);
     scale = std::min(scale, maxwidth / double(mwidth)); // don't be wider than maxwidth pixels
     int add = 0;
@@ -187,7 +191,7 @@ void ThumbnailAsideEffect::arrange()
          ++it) {
         Data &d = *it;
         int width = int(d.window->width() * scale);
-        d.rect = QRect(area.right() - width, area.bottom() - pos[d.index], width, int(d.window->height() * scale));
+        d.rect = Rect(area.right() - width, area.bottom() - pos[d.index], width, int(d.window->height() * scale));
     }
     repaintAll();
 }

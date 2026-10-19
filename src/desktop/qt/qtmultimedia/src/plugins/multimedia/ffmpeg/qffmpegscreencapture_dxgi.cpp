@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegscreencapture_dxgi_p.h"
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 #include "qabstractvideobuffer.h"
 #include <private/qmultimediautils_p.h>
 #include <private/qvideoframe_p.h>
@@ -349,24 +349,25 @@ q23::expected<QVideoFrameFormat, ComStatus> getFrameFormat(const QScreen *screen
 
     QVideoFrameFormat format = { *screenSize, QVideoFrameFormat::Format_BGRA8888 };
     format.setRotation(*rotation);
-    format.setStreamFrameRate(static_cast<int>(screen->refreshRate()));
 
     return format;
 }
 
 } // namespace
 
-class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegSurfaceCaptureGrabber
+class QFFmpegScreenCaptureDxgi::Grabber : public QSurfaceCaptureGrabber
 {
 public:
     Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen,
             const QVideoFrameFormat &format)
-        : m_screen(screen)
-        , m_format(format)
+        : QSurfaceCaptureGrabber(), m_screen(screen), m_format(format)
     {
-        setFrameRate(screen->refreshRate());
-        addFrameCallback(screenCapture, &QFFmpegScreenCaptureDxgi::newVideoFrame);
+        addFrameCallback(&screenCapture, &QFFmpegScreenCaptureDxgi::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &screenCapture, &QFFmpegScreenCaptureDxgi::updateError);
+
+        Q_ASSERT(screen);
+        setFrameRate(screenCapture.frameRate().value_or(
+                qMin(screen->refreshRate(), DefaultScreenCaptureFrameRate)));
     }
 
     ~Grabber() {
@@ -385,7 +386,7 @@ public:
             if (!status) {
                 if (status.code() == E_ACCESSDENIED) {
                     // May occur for some time after pushing Ctrl+Alt+Del.
-                    updateError(QPlatformSurfaceCapture::NoError, status.str());
+                    updateError(QPlatformSurfaceCapture::Error::NoError, status.str());
                     qCWarning(qLcScreenCaptureDxgi) << status.str();
                 }
                 return frame;
@@ -400,20 +401,23 @@ public:
             if (bufSize != m_format.frameSize())
                 m_format.setFrameSize(bufSize);
 
+            if (m_format.streamFrameRate() != frameRate())
+                m_format.setStreamFrameRate(frameRate());
+
             frame = QVideoFramePrivate::createFrame(std::move(buffer), format());
         } else {
             const ComStatus &status = maybeBuf.error();
 
             if (status.code() == DXGI_ERROR_WAIT_TIMEOUT) {
                 // All is good, we just didn't get a new frame yet
-                updateError(QPlatformSurfaceCapture::NoError, status.str());
+                updateError(QPlatformSurfaceCapture::Error::NoError, status.str());
             } else if (status.code() == DXGI_ERROR_ACCESS_LOST) {
                 // Can happen for example when pushing Ctrl + Alt + Del
                 m_duplication = {};
-                updateError(QPlatformSurfaceCapture::NoError, status.str());
+                updateError(QPlatformSurfaceCapture::Error::NoError, status.str());
                 qCWarning(qLcScreenCaptureDxgi) << status.str();
             } else if (!status) {
-                updateError(QPlatformSurfaceCapture::CaptureFailed, status.str());
+                updateError(QPlatformSurfaceCapture::Error::CaptureFailed, status.str());
                 qCWarning(qLcScreenCaptureDxgi) << status.str();
             }
         }
@@ -427,11 +431,11 @@ public:
         m_duplication = DxgiDuplication();
         const ComStatus status = m_duplication.initialize(m_screen);
         if (!status) {
-            updateError(CaptureFailed, status.str());
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed, status.str());
             return;
         }
 
-        QFFmpegSurfaceCaptureGrabber::initializeGrabbingContext();
+        QSurfaceCaptureGrabber::initializeGrabbingContext();
     }
 
 private:
@@ -466,7 +470,9 @@ bool QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
 
         const auto format = getFrameFormat(screen);
         if (!format) {
-            updateError(NotFound, "Unable to determine screen size or format"_L1 + format.error().str());
+            updateError(
+                QPlatformSurfaceCapture::Error::NotFound,
+                "Unable to determine screen size or format"_L1 + format.error().str());
             return false;
         }
 

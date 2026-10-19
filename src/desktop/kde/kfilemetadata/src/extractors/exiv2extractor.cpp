@@ -91,7 +91,7 @@ QDateTime getDateTime(const Exiv2::ExifData data)
     auto getIntegerValue = [&data](const Exiv2::ExifKey &key) -> std::optional<int64_t> {
         if (const auto it = data.findKey(key); it == data.end()) {
             return {};
-        } else if ((it->typeId() == Exiv2::signedLong) || (it->typeId() == Exiv2::signedShort)) {
+        } else if (it->count() && ((it->typeId() == Exiv2::signedLong) || (it->typeId() == Exiv2::signedShort))) {
 #if EXIV2_TEST_VERSION(0,28,0)
             return it->toInt64();
 #else
@@ -243,12 +243,18 @@ void Exiv2Extractor::extract(ExtractionResult* result)
         return;
     }
 
-    if (image->pixelHeight()) {
-        result->add(Property::Height, image->pixelHeight());
+    try {
+        if (image->pixelHeight()) {
+            result->add(Property::Height, image->pixelHeight());
+        }
+    } catch (const Exiv2::Error& e) {
     }
 
-    if (image->pixelWidth()) {
-        result->add(Property::Width, image->pixelWidth());
+    try {
+        if (image->pixelWidth()) {
+            result->add(Property::Width, image->pixelWidth());
+        }
+    } catch (const Exiv2::Error& e) {
     }
 
     std::string comment = image->comment();

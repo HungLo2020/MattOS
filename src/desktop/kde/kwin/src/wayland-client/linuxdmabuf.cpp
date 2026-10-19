@@ -4,11 +4,12 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 #include "linuxdmabuf.h"
+#include "core/gpumanager.h"
 #include "core/graphicsbuffer.h"
 #include "wayland-client/waylandclientlogging.h"
 
 // Generated in src/wayland.
-#include "wayland-linux-dmabuf-unstable-v1-client-protocol.h"
+#include "wayland-linux-dmabuf-v1-client-protocol.h"
 
 #include <span>
 #include <unistd.h>
@@ -46,14 +47,14 @@ LinuxDmabufFeedbackV1::~LinuxDmabufFeedbackV1()
     zwp_linux_dmabuf_feedback_v1_destroy(m_feedback);
 }
 
-QHash<uint32_t, QList<uint64_t>> LinuxDmabufFeedbackV1::formats() const
+FormatModifierMap LinuxDmabufFeedbackV1::formats() const
 {
     return m_formats;
 }
 
-QByteArray LinuxDmabufFeedbackV1::devicePath() const
+dev_t LinuxDmabufFeedbackV1::mainDevice() const
 {
-    return m_mainDevice;
+    return m_mainDeviceId;
 }
 
 QList<LinuxDmabufFeedbackV1::Tranche> LinuxDmabufFeedbackV1::tranches() const
@@ -80,31 +81,13 @@ void LinuxDmabufFeedbackV1::format_table(void *data, zwp_linux_dmabuf_feedback_v
 void LinuxDmabufFeedbackV1::main_device(void *data, zwp_linux_dmabuf_feedback_v1 *zwp_linux_dmabuf_feedback_v1, wl_array *deviceId)
 {
     LinuxDmabufFeedbackV1 *feedback = static_cast<LinuxDmabufFeedbackV1 *>(data);
-
     feedback->m_mainDeviceId = deserializeDeviceId(deviceId);
-
-    drmDevice *device = nullptr;
-    if (drmGetDeviceFromDevId(feedback->m_mainDeviceId, 0, &device) != 0) {
-        qCWarning(KWIN_WAYLAND_CLIENT) << "drmGetDeviceFromDevId() failed";
-        return;
-    }
-
-    if (device->available_nodes & (1 << DRM_NODE_RENDER)) {
-        feedback->m_mainDevice = QByteArray(device->nodes[DRM_NODE_RENDER]);
-    } else if (device->available_nodes & (1 << DRM_NODE_PRIMARY)) {
-        // We can't reliably find the render node from the primary node if the display and
-        // render devices are split, so just fallback to the primary node.
-        feedback->m_mainDevice = QByteArray(device->nodes[DRM_NODE_PRIMARY]);
-    }
-
-    drmFreeDevice(&device);
 }
 
 void LinuxDmabufFeedbackV1::tranche_done(void *data, zwp_linux_dmabuf_feedback_v1 *zwp_linux_dmabuf_feedback_v1)
 {
     LinuxDmabufFeedbackV1 *feedback = static_cast<LinuxDmabufFeedbackV1 *>(data);
 
-    feedback->m_trancheDeviceId = 0;
     feedback->m_pendingTranches.push_back(feedback->m_pendingTranche);
     feedback->m_pendingTranche = {};
 }
@@ -113,7 +96,7 @@ void LinuxDmabufFeedbackV1::tranche_target_device(void *data, zwp_linux_dmabuf_f
 {
     LinuxDmabufFeedbackV1 *feedback = static_cast<LinuxDmabufFeedbackV1 *>(data);
 
-    feedback->m_trancheDeviceId = deserializeDeviceId(deviceId);
+    feedback->m_pendingTranche.device = deserializeDeviceId(deviceId);
 }
 
 void LinuxDmabufFeedbackV1::tranche_formats(void *data, zwp_linux_dmabuf_feedback_v1 *zwp_linux_dmabuf_feedback_v1, wl_array *indices)
@@ -124,22 +107,8 @@ void LinuxDmabufFeedbackV1::tranche_formats(void *data, zwp_linux_dmabuf_feedbac
         return;
     }
 
-    drmDevice *mainDevice = nullptr;
-    drmDevice *trancheDevice = nullptr;
-    const auto cleanup = qScopeGuard([&]() {
-        drmFreeDevice(&mainDevice);
-        drmFreeDevice(&trancheDevice);
-    });
-    if (drmGetDeviceFromDevId(feedback->m_mainDeviceId, 0, &mainDevice) != 0
-        || drmGetDeviceFromDevId(feedback->m_trancheDeviceId, 0, &trancheDevice) != 0) {
-        qCWarning(KWIN_WAYLAND_CLIENT, "drmGetDeviceFromDevId() failed");
-        return;
-    }
-    if (!drmDevicesEqual(mainDevice, trancheDevice)) {
-        // TODO take multi GPU handling into account as well
-        qCDebug(KWIN_WAYLAND_CLIENT, "Ignoring tranche from non-main device");
-        return;
-    }
+    auto main = GpuManager::self()->compatibleRenderDevice(feedback->m_mainDeviceId);
+    auto tranche = GpuManager::self()->compatibleRenderDevice(feedback->m_pendingTranche.device);
 
     struct linux_dmabuf_feedback_v1_table_entry
     {
@@ -151,8 +120,10 @@ void LinuxDmabufFeedbackV1::tranche_formats(void *data, zwp_linux_dmabuf_feedbac
     const auto entries = static_cast<linux_dmabuf_feedback_v1_table_entry *>(feedback->m_formatTable.data());
     for (const uint16_t &index : std::span(static_cast<uint16_t *>(indices->data), indices->size / sizeof(uint16_t))) {
         const linux_dmabuf_feedback_v1_table_entry &entry = entries[index];
-        feedback->m_formats[entry.format].append(entry.modifier);
-        feedback->m_pendingTranche.formats[entry.format].append(entry.modifier);
+        if (main == tranche) {
+            feedback->m_formats[entry.format].insert(entry.modifier);
+        }
+        feedback->m_pendingTranche.formats[entry.format].insert(entry.modifier);
     }
 }
 
@@ -164,7 +135,7 @@ void LinuxDmabufFeedbackV1::tranche_flags(void *data, zwp_linux_dmabuf_feedback_
 
 LinuxDmabufV1::LinuxDmabufV1(wl_registry *registry, uint32_t name, uint32_t version)
 {
-    m_dmabuf = static_cast<zwp_linux_dmabuf_v1 *>(wl_registry_bind(registry, name, &zwp_linux_dmabuf_v1_interface, version));
+    m_dmabuf = static_cast<zwp_linux_dmabuf_v1 *>(wl_registry_bind(registry, name, &zwp_linux_dmabuf_v1_interface, std::min(4u, version)));
 
     static const struct zwp_linux_dmabuf_v1_listener dmabufListener = {
         .format = format,
@@ -185,12 +156,12 @@ zwp_linux_dmabuf_v1 *LinuxDmabufV1::handle() const
     return m_dmabuf;
 }
 
-QByteArray LinuxDmabufV1::mainDevice() const
+dev_t LinuxDmabufV1::mainDevice() const
 {
-    return m_defaultFeedback->devicePath();
+    return m_defaultFeedback->mainDevice();
 }
 
-QHash<uint32_t, QList<uint64_t>> LinuxDmabufV1::formats() const
+FormatModifierMap LinuxDmabufV1::formats() const
 {
     return m_defaultFeedback->formats();
 }
@@ -231,6 +202,7 @@ std::unique_ptr<LinuxDmabufFeedbackV1> LinuxDmabufV1::getSurfaceFeedback(wl_surf
 {
     return std::make_unique<LinuxDmabufFeedbackV1>(zwp_linux_dmabuf_v1_get_surface_feedback(m_dmabuf, surface));
 }
+
 }
 
 #include "moc_linuxdmabuf.cpp"

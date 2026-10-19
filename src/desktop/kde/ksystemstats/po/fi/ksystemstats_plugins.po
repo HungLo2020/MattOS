@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the ksysguard package.
-# SPDX-FileCopyrightText: 2020, 2021, 2022, 2024, 2025 Tommi Nieminen <translator@legisign.org>
+# SPDX-FileCopyrightText: 2020, 2021, 2022, 2024, 2025, 2026 Tommi Nieminen <translator@legisign.org>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: ksysguard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2025-05-12 19:11+0300\n"
+"POT-Creation-Date: 2026-08-06 00:46+0000\n"
+"PO-Revision-Date: 2026-09-02 20:25+0300\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -15,9 +15,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.04.0\n"
 
-#: cpu/cpu.cpp:28 disks/disks.cpp:77 disks/disks.cpp:78 gpu/GpuDevice.cpp:20
+#: cpu/cpu.cpp:28 disks/disks.cpp:77 disks/disks.cpp:78 gpu/GpuDevice.cpp:22
 #: power/power.cpp:39
 #, kde-format
 msgctxt "@title"
@@ -252,13 +252,13 @@ msgid "CPU %1"
 msgstr "Suoritin %1"
 
 # Tämän jälkeen tulee teksti ”…käyttö yhteensä”
-#: cpu/linuxcpuplugin.cpp:42 cpu/linuxcpuplugin.cpp:53
+#: cpu/linuxcpuplugin.cpp:42 cpu/linuxcpuplugin.cpp:56
 #, kde-format
 msgctxt "@title"
 msgid "Core %1"
 msgstr "Ytimen %1"
 
-#: cpu/linuxcpuplugin.cpp:63
+#: cpu/linuxcpuplugin.cpp:66
 #, kde-format
 msgctxt "@title"
 msgid "CPU %1 Core %2"
@@ -324,73 +324,73 @@ msgctxt "@info"
 msgid "Number of jobs in the run queue averaged over 15 minutes"
 msgstr "Suoritusjonojen töiden määrä 15 min ajalle keskiarvoistettuna"
 
-#: disks/disks.cpp:81 disks/disks.cpp:279
+#: disks/disks.cpp:81 disks/disks.cpp:287
 #, kde-format
 msgctxt "@title"
 msgid "Total Space"
 msgstr "tila yhteensä"
 
-#: disks/disks.cpp:83 disks/disks.cpp:280
+#: disks/disks.cpp:83 disks/disks.cpp:288
 #, kde-format
 msgctxt "@title Short for 'Total Space'"
 msgid "Total"
 msgstr "yhteensä"
 
-#: disks/disks.cpp:87 disks/disks.cpp:302
+#: disks/disks.cpp:87 disks/disks.cpp:310
 #, kde-format
 msgctxt "@title"
 msgid "Read Rate"
 msgstr "Lukunopeus"
 
-#: disks/disks.cpp:89 disks/disks.cpp:303
+#: disks/disks.cpp:89 disks/disks.cpp:311
 #, kde-format
 msgctxt "@title Short for 'Read Rate'"
 msgid "Read"
 msgstr "Luku"
 
-#: disks/disks.cpp:93 disks/disks.cpp:309
+#: disks/disks.cpp:93 disks/disks.cpp:317
 #, kde-format
 msgctxt "@title"
 msgid "Write Rate"
 msgstr "Kirjoitusnopeus"
 
-#: disks/disks.cpp:95 disks/disks.cpp:310
+#: disks/disks.cpp:95 disks/disks.cpp:318
 #, kde-format
 msgctxt "@title Short for 'Write Rate'"
 msgid "Write"
 msgstr "Kirjoitus"
 
-#: disks/disks.cpp:100 disks/disks.cpp:294
+#: disks/disks.cpp:100 disks/disks.cpp:302
 #, kde-format
 msgctxt "@title"
 msgid "Used Space"
 msgstr "käytetty tila"
 
-#: disks/disks.cpp:102 disks/disks.cpp:295
+#: disks/disks.cpp:102 disks/disks.cpp:303
 #, kde-format
 msgctxt "@title Short for 'Used Space'"
 msgid "Used"
 msgstr "käytössä"
 
-#: disks/disks.cpp:107 disks/disks.cpp:286
+#: disks/disks.cpp:107 disks/disks.cpp:294
 #, kde-format
 msgctxt "@title"
 msgid "Free Space"
 msgstr "Vapaa tila"
 
-#: disks/disks.cpp:109 disks/disks.cpp:287
+#: disks/disks.cpp:109 disks/disks.cpp:295
 #, kde-format
 msgctxt "@title Short for 'Free Space'"
 msgid "Free"
 msgstr "Vapaana"
 
-#: disks/disks.cpp:114 disks/disks.cpp:320
+#: disks/disks.cpp:114 disks/disks.cpp:328
 #, kde-format
 msgctxt "@title"
 msgid "Percentage Used"
 msgstr "% käytössä"
 
-#: disks/disks.cpp:118 disks/disks.cpp:316
+#: disks/disks.cpp:118 disks/disks.cpp:324
 #, kde-format
 msgctxt "@title"
 msgid "Percentage Free"
@@ -401,19 +401,19 @@ msgstr "Vapaa osuus"
 msgid "Disks"
 msgstr "Levyt"
 
-#: disks/disks.cpp:264
+#: disks/disks.cpp:272
 #, kde-format
 msgctxt "@title"
 msgid "All Disks"
 msgstr "Kaikki levyt"
 
-#: disks/disks.cpp:317
+#: disks/disks.cpp:325
 #, kde-format
 msgctxt "@title, Short for `Percentage Free"
 msgid "Free"
 msgstr "Vapaana"
 
-#: disks/disks.cpp:321
+#: disks/disks.cpp:329
 #, kde-format
 msgctxt "@title, Short for `Percentage Used"
 msgid "Used"
@@ -461,61 +461,67 @@ msgctxt "@title Short for 'All GPUs Used Memory'"
 msgid "Used"
 msgstr "käytössä"
 
-#: gpu/FreeBSDBackend.cpp:53 gpu/LinuxBackend.cpp:54
+#: gpu/AllGpus.cpp:37
 #, kde-format
-msgctxt "@title %1 is GPU number"
-msgid "GPU %1"
-msgstr "Graafinen suoritin %1"
+msgctxt "@title"
+msgid "All GPUs Used Memory Percentage"
+msgstr "Kaikkien grafiikkasuoritinten suhteellinen käytetty muisti"
 
-#: gpu/GpuDevice.cpp:24
+#: gpu/GpuDevice.cpp:26
 #, kde-format
 msgctxt "@title"
 msgid "Usage"
 msgstr "Käyttö"
 
-#: gpu/GpuDevice.cpp:30
+#: gpu/GpuDevice.cpp:32
 #, kde-format
 msgctxt "@title"
 msgid "Total Video Memory"
 msgstr "näyttömuisti yhteensä"
 
-#: gpu/GpuDevice.cpp:32
+#: gpu/GpuDevice.cpp:34
 #, kde-format
 msgctxt "@title Short for Total Video Memory"
 msgid "Total"
 msgstr "yhteensä"
 
-#: gpu/GpuDevice.cpp:35
+#: gpu/GpuDevice.cpp:37
 #, kde-format
 msgctxt "@title"
 msgid "Video Memory Used"
 msgstr "käytetty näyttömuisti"
 
-#: gpu/GpuDevice.cpp:37
+#: gpu/GpuDevice.cpp:39
 #, kde-format
 msgctxt "@title Short for Video Memory Used"
 msgid "Used"
 msgstr "käytössä"
 
-#: gpu/GpuDevice.cpp:41
+#: gpu/GpuDevice.cpp:42
+#, kde-format
+msgctxt "@title"
+msgid "Video Memory Used Percentage"
+msgstr "Videomuistin suhteellinen käyttö"
+
+#: gpu/GpuDevice.cpp:47
 #, kde-format
 msgctxt "@title"
 msgid "Frequency"
 msgstr "Taajuus"
 
-#: gpu/GpuDevice.cpp:45
+#: gpu/GpuDevice.cpp:51
 #, kde-format
 msgctxt "@title"
 msgid "Memory Frequency"
 msgstr "Muistitaajuus"
 
-#: gpu/GpuDevice.cpp:49
+#: gpu/GpuDevice.cpp:55
 #, kde-format
 msgctxt "@title"
 msgid "Temperature"
 msgstr "Lämpötila"
 
-#: gpu/GpuDevice.cpp:53 power/power.cpp:116
+#: gpu/GpuDevice.cpp:59 power/power.cpp:116
 #, kde-format
 msgctxt "@title"
 msgid "Power"
@@ -527,11 +533,23 @@ msgctxt "@title"
 msgid "GPU"
 msgstr "Graafinen suoritin"
 
-#: gpu/LinuxIntelGpu.cpp:40
+#: gpu/LinuxIntelGpu.cpp:40 gpu/LinuxXeGpu.cpp:91
 #, kde-format
 msgctxt "@title"
 msgid "Video Usage"
 msgstr "Näytön käyttö"
+
+#: gpu/LinuxXeGpu.cpp:78
+#, kde-format
+msgctxt "@title"
+msgid "Fan %1"
+msgstr "Tuuletin %1"
+
+#: gpu/LinuxXeGpu.cpp:86
+#, kde-format
+msgctxt "@title"
+msgid "VRAM Temperature"
+msgstr "Videomuistin lämpötila"
 
 #: lmsensors/lmsensors.cpp:22
 #, kde-format
@@ -913,133 +931,133 @@ msgctxt "@title Short of IPv6 DNS"
 msgid "IPv6 DNS"
 msgstr "IPv6 DNS"
 
-#: network/NetworkPlugin.cpp:44
+#: network/NetworkPlugin.cpp:46
 #, kde-format
 msgctxt "@title"
 msgid "Network Devices"
 msgstr "Verkkolaitteet"
 
-#: osinfo/osinfo.cpp:108
+#: osinfo/osinfo.cpp:110
 #, kde-format
 msgctxt "@title"
 msgid "Operating System"
 msgstr "Käyttöjärjestelmä"
 
-#: osinfo/osinfo.cpp:110
+#: osinfo/osinfo.cpp:112
 #, kde-format
 msgctxt "@title"
 msgid "Kernel"
 msgstr "Ydin"
 
-#: osinfo/osinfo.cpp:111
+#: osinfo/osinfo.cpp:113
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Name"
 msgstr "Ytimen nimi"
 
-#: osinfo/osinfo.cpp:112
+#: osinfo/osinfo.cpp:114
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Version"
 msgstr "Ytimen versio"
 
-#: osinfo/osinfo.cpp:113
+#: osinfo/osinfo.cpp:115
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Name and Version"
 msgstr "Ytimen nimi ja versio"
 
-#: osinfo/osinfo.cpp:114
+#: osinfo/osinfo.cpp:116
 #, kde-format
 msgctxt "@title Kernel Name and Version"
 msgid "Kernel"
 msgstr "Ydin"
 
-#: osinfo/osinfo.cpp:116
+#: osinfo/osinfo.cpp:118
 #, kde-format
 msgctxt "@title"
 msgid "System"
 msgstr "Järjestelmä"
 
-#: osinfo/osinfo.cpp:117
+#: osinfo/osinfo.cpp:119
 #, kde-format
 msgctxt "@title"
 msgid "Hostname"
 msgstr "Konenimi"
 
-#: osinfo/osinfo.cpp:118
+#: osinfo/osinfo.cpp:120
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Name"
 msgstr "Käyttöjärjestelmän nimi"
 
-#: osinfo/osinfo.cpp:119
+#: osinfo/osinfo.cpp:121
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Version"
 msgstr "Käyttöjärjestelmän versio"
 
-#: osinfo/osinfo.cpp:120
+#: osinfo/osinfo.cpp:122
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Name and Version"
 msgstr "Käyttöjärjestelmän nimi ja versio"
 
-#: osinfo/osinfo.cpp:121
+#: osinfo/osinfo.cpp:123
 #, kde-format
 msgctxt "@title Operating System Name and Version"
 msgid "OS"
 msgstr "Käyttöjärjestelmä"
 
-#: osinfo/osinfo.cpp:122
+#: osinfo/osinfo.cpp:124
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Logo"
 msgstr "Käyttöjärjestelmän logo"
 
-#: osinfo/osinfo.cpp:123
+#: osinfo/osinfo.cpp:125
 #, kde-format
 msgctxt "@title"
 msgid "Operating System URL"
 msgstr "Käyttöjärjestelmän verkko-osoite"
 
-#: osinfo/osinfo.cpp:124
+#: osinfo/osinfo.cpp:126
 #, kde-format
 msgctxt "@title"
 msgid "Uptime"
 msgstr "Käynnissäoloaika"
 
-#: osinfo/osinfo.cpp:127
+#: osinfo/osinfo.cpp:129
 #, kde-format
 msgctxt "@title"
 msgid "KDE Plasma"
 msgstr "KDE Plasma"
 
-#: osinfo/osinfo.cpp:128
+#: osinfo/osinfo.cpp:130
 #, kde-format
 msgctxt "@title"
 msgid "Qt Version"
 msgstr "Qt-versio"
 
-#: osinfo/osinfo.cpp:129
+#: osinfo/osinfo.cpp:131
 #, kde-format
 msgctxt "@title"
 msgid "KDE Frameworks Version"
 msgstr "KDE Frameworks -versio"
 
-#: osinfo/osinfo.cpp:130
+#: osinfo/osinfo.cpp:132
 #, kde-format
 msgctxt "@title"
 msgid "KDE Plasma Version"
 msgstr "KDE Plasma -versio"
 
-#: osinfo/osinfo.cpp:131
+#: osinfo/osinfo.cpp:133
 #, kde-format
 msgctxt "@title"
 msgid "Window System"
 msgstr "Ikkunointijärjestelmä"
 
-#: osinfo/osinfo.cpp:165
+#: osinfo/osinfo.cpp:175
 #, kde-format
 msgctxt "@info"
 msgid "Unknown"
@@ -1442,6 +1460,10 @@ msgstr ""
 "Aika (mikrosekunteina), jolloin kaikki tehtävät ovat jääneet odottamaan I/O-"
 "resursseja"
 
+#~ msgctxt "@title %1 is GPU number"
+#~ msgid "GPU %1"
+#~ msgstr "Graafinen suoritin %1"
+
 #~ msgctxt "@title, Short for 'Current Frequency'"
 #~ msgid "Frequency"
 #~ msgstr "Taajuus"
@@ -1453,10 +1475,6 @@ msgstr ""
 #~ msgctxt "@title %1 is a number"
 #~ msgid "Voltage %1"
 #~ msgstr "Jännite %1"
-
-#~ msgctxt "@title %1 is a number"
-#~ msgid "Fan %1"
-#~ msgstr "Tuuletin %1"
 
 #~ msgctxt "@title %1 is a number"
 #~ msgid "Temperature %1"
@@ -1501,10 +1519,6 @@ msgstr ""
 #~ msgctxt "@info"
 #~ msgid "Percentage of available memory."
 #~ msgstr "Käytettävissä olevan muistin osuus."
-
-#~ msgctxt "@title"
-#~ msgid "Allocated Memory Percentage"
-#~ msgstr "Osoitetun muistin osuus"
 
 #~ msgctxt "@title Allocated Memory Percentage"
 #~ msgid "Allocated"

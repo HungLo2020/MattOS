@@ -13,6 +13,10 @@
   The QML types can be imported into your application using the following
   import statement:
 
+  \badcode
+  import QtWayland.Compositor
+  \endcode
+
   \section1 Using the Module
 
   \include {module-use.qdocinc} {using the c++ api} {WaylandCompositor}
@@ -24,12 +28,6 @@
   \section2 Building with qmake
 
   \include {module-use.qdocinc} {building_with_qmake} {waylandcompositor}
-
-  \section2 QML import
-
-  \badcode
-    import QtWayland.Compositor
-  \endcode
 
   For more information about using these types in your application,
   see the \l{Qt Wayland Compositor} documentation.

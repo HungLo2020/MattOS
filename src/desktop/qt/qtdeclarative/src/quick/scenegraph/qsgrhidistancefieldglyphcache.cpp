@@ -1,5 +1,6 @@
 // Copyright (C) 2019 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgrhidistancefieldglyphcache_p.h"
 #include "qsgcontext_p.h"
@@ -434,10 +435,28 @@ bool QSGRhiDistanceFieldGlyphCache::loadPregeneratedCache(const QRawFont &font)
             }
 
             TextureInfo *tex = textureInfo(i);
-            tex->allocatedArea.setX(Qtdf::fetch<quint32>(textureRecord, Qtdf::allocatedX));
-            tex->allocatedArea.setY(Qtdf::fetch<quint32>(textureRecord, Qtdf::allocatedY));
-            tex->allocatedArea.setWidth(Qtdf::fetch<quint32>(textureRecord, Qtdf::allocatedWidth));
-            tex->allocatedArea.setHeight(Qtdf::fetch<quint32>(textureRecord, Qtdf::allocatedHeight));
+            // Stored as quint32 in the table, but QRect uses int.
+            const quint32 allocX = Qtdf::fetch<quint32>(textureRecord, Qtdf::allocatedX);
+            const quint32 allocY = Qtdf::fetch<quint32>(textureRecord, Qtdf::allocatedY);
+            const quint32 allocWidth = Qtdf::fetch<quint32>(textureRecord, Qtdf::allocatedWidth);
+            const quint32 allocHeight = Qtdf::fetch<quint32>(textureRecord, Qtdf::allocatedHeight);
+            const quint32 maxSize = quint32(m_maxTextureSize);
+            // maxSize is the slice height of the area allocator, and a glyph that crosses a slice
+            // boundary expands the texture it is assigned to past the slice, by up to one glyph
+            // height - and a glyph can be no taller than the slice itself. The
+            // tallest valid texture is therefore 2 * maxSize - 1.
+            const quint32 maxTexHeight = maxSize * 2 - 1;
+            if (allocX > maxSize || allocY > maxSize
+                || allocWidth > maxSize || allocHeight > maxTexHeight) {
+                qWarning("Invalid texture geometry in qtdf table in font '%s'",
+                         qPrintable(font.familyName()));
+                return false;
+            }
+
+            tex->allocatedArea.setX(int(allocX));
+            tex->allocatedArea.setY(int(allocY));
+            tex->allocatedArea.setWidth(int(allocWidth));
+            tex->allocatedArea.setHeight(int(allocHeight));
             tex->padding = Qtdf::fetch<quint8>(textureRecord, Qtdf::texturePadding);
         }
 
@@ -493,6 +512,11 @@ bool QSGRhiDistanceFieldGlyphCache::loadPregeneratedCache(const QRawFont &font)
 
             int width = texInfo->allocatedArea.width();
             int height = texInfo->allocatedArea.height();
+            if (width <= 0 || height <= 0) {
+                qWarning("Invalid texture size in qtdf table in font '%s'",
+                         qPrintable(font.familyName()));
+                return false;
+            }
             qint64 size = qint64(width) * height;
             if (qtdfTableEnd - reinterpret_cast<const char *>(textureData) < size) {
                 qWarning("qtdf table too small in font '%s'.",

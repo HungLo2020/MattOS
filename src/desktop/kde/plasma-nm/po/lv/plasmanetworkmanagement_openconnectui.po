@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-nm package.
 #
-# SPDX-FileCopyrightText: 2024 Toms Trasuns <toms.trasuns@posteo.net>
+# SPDX-FileCopyrightText: 2024, 2026 Toms Trasuns <toms.trasuns@posteo.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-nm\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-12-02 18:40+0200\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-08-15 23:45+0300\n"
 "Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
 "Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
 "Language: lv\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
-"X-Generator: Lokalize 24.08.3\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: openconnectauth.cpp:345
 #, kde-format
@@ -62,7 +62,7 @@ msgstr "„OpenConnect“ VPN autentifikācija"
 msgid "VPN Host"
 msgstr "VPN resursdators"
 
-#. i18n: ectx: property (toolTip), widget (QPushButton, btnConnect)
+#. i18n: ectx: property (text), widget (QPushButton, btnConnect)
 #: openconnectauth.ui:81
 #, kde-format
 msgid "Connect"
@@ -281,17 +281,22 @@ msgid "Machine Certificate:"
 msgstr "Mašīnas sertifikāts"
 
 #. i18n: ectx: property (text), widget (QLabel, leMcaPrivateKeyLabel)
-#. i18n: ectx: property (text), widget (QLabel, label_6)
-#: openconnectprop.ui:261 openconnectprop.ui:299
+#: openconnectprop.ui:261
 #, kde-format
-msgid "Private Key:"
-msgstr "Privātā atslēga"
+msgid "Machine Private Key:"
+msgstr "Ierīces privātā atslēga"
 
 #. i18n: ectx: property (text), widget (QLabel, label_5)
 #: openconnectprop.ui:280
 #, kde-format
 msgid "User Certificate:"
 msgstr "Lietotāja sertifikāts"
+
+#. i18n: ectx: property (text), widget (QLabel, label_6)
+#: openconnectprop.ui:299
+#, kde-format
+msgid "User Private Key:"
+msgstr "Lietotāja privātā atslēga:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkUseFsid)
 #: openconnectprop.ui:318
@@ -402,40 +407,36 @@ msgid "Internal User Verification Locked"
 msgstr "Iekšējā lietotāja verifikācija ir slēgta"
 
 #: openconnectwebauthdialog.cpp:191
-#, fuzzy, kde-format
-#| msgid "Wrong PIN. %1 attempts remaining."
+#, kde-format
 msgid "Wrong PIN. %1 attempt remaining."
 msgid_plural "Wrong PIN. %1 attempts remaining."
-msgstr[0] "Nepareizs PIN. Atlikuši %1 mēģinājumi."
+msgstr[0] "Nepareizs PIN. Atlicis %1 mēģinājums."
 msgstr[1] "Nepareizs PIN. Atlikuši %1 mēģinājumi."
-msgstr[2] "Nepareizs PIN. Atlikuši %1 mēģinājumi."
+msgstr[2] "Nepareizs PIN. Atlicis %1 mēģinājumu."
 
 #: openconnectwebauthdialog.cpp:194
-#, fuzzy, kde-format
-#| msgid "Too Short. %1 attempts remaining."
+#, kde-format
 msgid "Too Short. %1 attempt remaining."
 msgid_plural "Too Short. %1 attempts remaining."
-msgstr[0] "Pārāk īss. Atlikuši %1 mēģinājumi."
+msgstr[0] "Pārāk īss. Atlicis %1 mēģinājums."
 msgstr[1] "Pārāk īss. Atlikuši %1 mēģinājumi."
-msgstr[2] "Pārāk īss. Atlikuši %1 mēģinājumi."
+msgstr[2] "Pārāk īss. Atlicis %1 mēģinājumu."
 
 #: openconnectwebauthdialog.cpp:197
-#, fuzzy, kde-format
-#| msgid "Invalid Characters. %1 attempts remaining."
+#, kde-format
 msgid "Invalid Characters. %1 attempt remaining."
 msgid_plural "Invalid Characters. %1 attempts remaining."
-msgstr[0] "Nederīgas rakstzīmes. Atlikuši %1 mēģinājumi."
+msgstr[0] "Nederīgas rakstzīmes. Atlicis %1 mēģinājums."
 msgstr[1] "Nederīgas rakstzīmes. Atlikuši %1 mēģinājumi."
-msgstr[2] "Nederīgas rakstzīmes. Atlikuši %1 mēģinājumi."
+msgstr[2] "Nederīgas rakstzīmes. Atlicis %1 mēģinājums."
 
 #: openconnectwebauthdialog.cpp:201
-#, fuzzy, kde-format
-#| msgid "Same as current PIN. %1 attempts remaining."
+#, kde-format
 msgid "Same as current PIN. %1 attempt remaining."
 msgid_plural "Same as current PIN. %1 attempts remaining."
-msgstr[0] "Tāds pats, kāds pašreizējais PIN. Atlikuši %1 mēģinājumi."
+msgstr[0] "Tāds pats, kāds pašreizējais PIN. Atlicis %1 mēģinājums."
 msgstr[1] "Tāds pats, kāds pašreizējais PIN. Atlikuši %1 mēģinājumi."
-msgstr[2] "Tāds pats, kāds pašreizējais PIN. Atlikuši %1 mēģinājumi."
+msgstr[2] "Tāds pats, kāds pašreizējais PIN. Atlicis %1 mēģinājumu."
 
 #: openconnectwebauthdialog.cpp:239
 #, kde-format
@@ -503,7 +504,7 @@ msgstr "Autentificētājam trūkst „Large Blob“ atbalsta"
 msgid ""
 "The security token does not support the server’s required authentication "
 "method."
-msgstr ""
+msgstr "Drošības žetons neatbalsta servera pieprasīto autentifikācijas metodi."
 
 #: openconnectwebauthdialog.cpp:281
 #, kde-format

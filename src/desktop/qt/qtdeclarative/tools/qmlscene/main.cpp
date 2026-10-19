@@ -102,9 +102,9 @@ void RenderStatistics::printTotalStats()
 
     puts(" ");
     puts("----- Statistics -----");
-    printf("Average time per frame: %f ms (%i fps)\n", avg, qRound(1000. / avg));
-    printf("Best time per frame: %f ms (%i fps)\n", minTime, int(1000 / minTime));
-    printf("Worst time per frame: %f ms (%i fps)\n", maxTime, int(1000 / maxTime));
+    printf("Average time per frame: %f ms (%i fps)\n", avg, qRound(1000. / qMax(avg, 1.)));
+    printf("Best time per frame: %f ms (%i fps)\n", minTime, int(1000 / qMax(minTime, 1.)));
+    printf("Worst time per frame: %f ms (%i fps)\n", maxTime, int(1000 / qMax(maxTime, 1.)));
     puts("----------------------");
     puts(" ");
 }
@@ -518,11 +518,21 @@ int main(int argc, char ** argv)
 #if QT_CONFIG(translation)
     QLocale locale;
     QTranslator qtTranslator;
-    if (qtTranslator.load(locale, QLatin1String("qt"), QLatin1String("_"), QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
-        QCoreApplication::installTranslator(&qtTranslator);
     QTranslator translator;
-    if (translator.load(locale, QLatin1String("qmlscene"), QLatin1String("_"), QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
-        QCoreApplication::installTranslator(&translator);
+    const QStringList paths = QLibraryInfo::paths(QLibraryInfo::TranslationsPath);
+    for (const QString &path : paths) {
+        bool loaded = false;
+        if (qtTranslator.load(locale, QLatin1String("qt"), QLatin1String("_"), path)) {
+            QCoreApplication::installTranslator(&qtTranslator);
+            loaded = true;
+        }
+        if (translator.load(locale, QLatin1String("qmlscene"), QLatin1String("_"), path)) {
+            QCoreApplication::installTranslator(&translator);
+            loaded = true;
+        }
+        if (loaded)
+            break;
+    }
 
     QTranslator qmlTranslator;
     if (!options.translationFile.isEmpty()) {

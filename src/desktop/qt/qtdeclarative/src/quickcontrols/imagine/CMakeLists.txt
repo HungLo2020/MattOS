@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 #####################################################################
-## qtquickcontrols2imaginestyleplugin Plugin:
+## QuickControls2Imagine Module:
 #####################################################################
 
 set(qml_files
@@ -110,6 +110,8 @@ qt_internal_add_qml_module(QuickControls2Imagine
     VERSION "${PROJECT_VERSION}"
     PAST_MAJOR_VERSIONS 2
     CLASS_NAME QtQuickControls2ImagineStylePlugin
+    DEPENDENCIES
+        QtQuick/auto
     IMPORTS
         QtQuick.Controls.Basic/auto
     PLUGIN_TARGET qtquickcontrols2imaginestyleplugin

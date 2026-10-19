@@ -187,6 +187,12 @@ Decoration::Private::Private(Decoration *deco, const QVariantList &args)
     , opaque(false)
     , q(deco)
 {
+    for (const auto &arg : args) {
+        const auto map = arg.toMap();
+        if (const auto it = map.find(QStringLiteral("style")); it != map.end()) {
+            style = it->value<Style>();
+        }
+    }
 }
 
 void Decoration::Private::setSectionUnderMouse(Qt::WindowFrameSection section)
@@ -470,6 +476,11 @@ bool Decoration::isOpaque() const
     return d->opaque;
 }
 
+Style Decoration::style() const
+{
+    return d->style;
+}
+
 qreal Decoration::borderLeft() const
 {
     return d->current->borders().left();
@@ -586,10 +597,10 @@ void Decoration::hoverMoveEvent(QHoverEvent *event)
         const bool hovered = button->isHovered();
         const bool contains = button->contains(event->position());
         if (!hovered && contains) {
-            QHoverEvent e(QEvent::HoverEnter, event->position(), event->oldPosF(), event->modifiers());
+            QHoverEvent e(QEvent::HoverEnter, event->position(), event->globalPosition(), event->oldPosF(), event->modifiers());
             QCoreApplication::instance()->sendEvent(button, &e);
         } else if (hovered && !contains) {
-            QHoverEvent e(QEvent::HoverLeave, event->position(), event->oldPosF(), event->modifiers());
+            QHoverEvent e(QEvent::HoverLeave, event->position(), event->globalPosition(), event->oldPosF(), event->modifiers());
             QCoreApplication::instance()->sendEvent(button, &e);
         } else if (hovered && contains) {
             QCoreApplication::instance()->sendEvent(button, event);

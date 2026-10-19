@@ -36,6 +36,7 @@ GLFramebuffer *GLFramebuffer::popFramebuffer()
 
 GLFramebuffer::GLFramebuffer()
     : m_colorAttachment(nullptr)
+    , m_context(EglContext::currentContext())
 {
 }
 
@@ -74,6 +75,7 @@ static QString formatFramebufferStatus(GLenum status)
 GLFramebuffer::GLFramebuffer(GLTexture *colorAttachment, Attachment attachment)
     : m_size(colorAttachment->size())
     , m_colorAttachment(colorAttachment)
+    , m_context(EglContext::currentContext())
 {
     GLuint prevFbo = 0;
     if (const GLFramebuffer *current = currentFramebuffer()) {
@@ -107,6 +109,7 @@ GLFramebuffer::GLFramebuffer(GLuint handle, const QSize &size)
     , m_valid(true)
     , m_foreign(true)
     , m_colorAttachment(nullptr)
+    , m_context(EglContext::currentContext())
 {
 }
 
@@ -114,6 +117,11 @@ GLFramebuffer::~GLFramebuffer()
 {
     if (!EglContext::currentContext()) {
         qCWarning(KWIN_OPENGL, "Could not delete framebuffer because no context is current");
+        return;
+    }
+    Q_ASSERT(m_context->isCompatibleWith(EglContext::currentContext()));
+    if (!m_context->isCompatibleWith(EglContext::currentContext())) {
+        qCCritical(KWIN_OPENGL, "Attempted to delete a framebuffer in the wrong context!");
         return;
     }
     if (!m_foreign && m_valid) {
@@ -169,14 +177,10 @@ void GLFramebuffer::initDepthStencilAttachment()
 
     // Try to attach a depth attachment separately.
     GLenum depthFormat;
-    if (context->isOpenGLES()) {
-        if (context->supportsGLES24BitDepthBuffers()) {
-            depthFormat = GL_DEPTH_COMPONENT24;
-        } else {
-            depthFormat = GL_DEPTH_COMPONENT16;
-        }
+    if (context->supportsGLES24BitDepthBuffers()) {
+        depthFormat = GL_DEPTH_COMPONENT24;
     } else {
-        depthFormat = GL_DEPTH_COMPONENT;
+        depthFormat = GL_DEPTH_COMPONENT16;
     }
 
     glGenRenderbuffers(1, &buffer);
@@ -190,12 +194,7 @@ void GLFramebuffer::initDepthStencilAttachment()
     }
 
     // Try to attach a stencil attachment separately.
-    GLenum stencilFormat;
-    if (context->isOpenGLES()) {
-        stencilFormat = GL_STENCIL_INDEX8;
-    } else {
-        stencilFormat = GL_STENCIL_INDEX;
-    }
+    GLenum stencilFormat = GL_STENCIL_INDEX8;
 
     glGenRenderbuffers(1, &buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, buffer);

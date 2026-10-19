@@ -28,10 +28,9 @@ public:
     X11WindowedEglPrimaryLayer(X11WindowedEglBackend *backend, X11WindowedOutput *output);
     ~X11WindowedEglPrimaryLayer() override;
 
-    std::optional<OutputLayerBeginFrameInfo> doBeginFrame() override;
-    bool doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
-    DrmDevice *scanoutDevice() const override;
-    QHash<uint32_t, QList<uint64_t>> supportedDrmFormats() const override;
+    std::optional<OutputLayerBeginFrameInfo> beginFrame(OutputFrame *frame) override;
+    bool endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
+    FormatModifierMap supportedDrmFormats() const override;
     void releaseBuffers() override;
 
 private:
@@ -50,10 +49,9 @@ public:
     X11WindowedEglCursorLayer(X11WindowedEglBackend *backend, X11WindowedOutput *output);
     ~X11WindowedEglCursorLayer() override;
 
-    std::optional<OutputLayerBeginFrameInfo> doBeginFrame() override;
-    bool doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
-    DrmDevice *scanoutDevice() const override;
-    QHash<uint32_t, QList<uint64_t>> supportedDrmFormats() const override;
+    std::optional<OutputLayerBeginFrameInfo> beginFrame(OutputFrame *frame) override;
+    bool endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
+    FormatModifierMap supportedDrmFormats() const override;
     void releaseBuffers() override;
 
 private:
@@ -71,20 +69,16 @@ class X11WindowedEglBackend : public EglBackend
     Q_OBJECT
 
 public:
-    explicit X11WindowedEglBackend(X11WindowedBackend *backend);
+    explicit X11WindowedEglBackend(X11WindowedBackend *backend, RenderDevice *device);
     ~X11WindowedEglBackend() override;
 
     X11WindowedBackend *backend() const;
-    DrmDevice *drmDevice() const override;
 
-    void init() override;
+    bool init() override;
     void endFrame(BackendOutput *output, const Region &renderedDeviceRegion, const Region &damagedDeviceRegion);
     QList<OutputLayer *> compatibleOutputLayers(BackendOutput *output) override;
 
 private:
-    bool initializeEgl();
-    bool initRenderingContext();
-
     X11WindowedBackend *m_backend;
 };
 

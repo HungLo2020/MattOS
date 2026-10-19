@@ -1,4 +1,3 @@
-
 /*
     SPDX-FileCopyrightText: 2026 Xaver Hugl <xaver.hugl@kde.org>
 
@@ -16,8 +15,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_subsurface-0");
-
 class SubsurfaceTest : public QObject
 {
     Q_OBJECT
@@ -34,7 +31,7 @@ void SubsurfaceTest::initTestCase()
 {
     qRegisterMetaType<Window *>();
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),

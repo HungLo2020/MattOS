@@ -9,8 +9,6 @@ ecm_qt_declare_logging_category(kcm_touchscreen
         KCM_TOUCHSCREEN
     CATEGORY_NAME
         kcm_touchscreen
-    DEFAULT_SEVERITY
-        Critical
     DESCRIPTION
         "KCM for touchscreen input"
     EXPORT
@@ -29,5 +27,6 @@ target_link_libraries(kcm_touchscreen PRIVATE
 
     Qt::Gui
     Qt::DBus
+    Qt::Qml
     kwindevices
 )

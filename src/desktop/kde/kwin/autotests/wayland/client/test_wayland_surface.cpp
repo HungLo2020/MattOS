@@ -9,6 +9,7 @@
 #include <QSignalSpy>
 #include <QTest>
 // KWin
+#include "core/gpumanager.h"
 #include "core/graphicsbuffer.h"
 #include "core/graphicsbufferview.h"
 #include "core/region.h"
@@ -37,6 +38,7 @@
 class TestWaylandSurface : public QObject
 {
     Q_OBJECT
+
 public:
     explicit TestWaylandSurface(QObject *parent = nullptr);
 private Q_SLOTS:
@@ -70,8 +72,6 @@ private:
     QThread *m_thread;
 };
 
-static const QString s_socketName = QStringLiteral("kwin-test-wayland-surface-0");
-
 TestWaylandSurface::TestWaylandSurface(QObject *parent)
     : QObject(parent)
     , m_display(nullptr)
@@ -85,9 +85,10 @@ TestWaylandSurface::TestWaylandSurface(QObject *parent)
 void TestWaylandSurface::init()
 {
     using namespace KWin;
+    GpuManager::s_self = std::make_unique<GpuManager>();
     delete m_display;
     m_display = new KWin::Display(this);
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
     m_display->createShm();
@@ -101,7 +102,7 @@ void TestWaylandSurface::init()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);
@@ -179,6 +180,7 @@ void TestWaylandSurface::cleanup()
     // these are the children of the display
     m_compositorInterface = nullptr;
     m_idleInhibitInterface = nullptr;
+    KWin::GpuManager::s_self.reset();
 }
 
 void TestWaylandSurface::testStaticAccessor()
@@ -270,7 +272,7 @@ void TestWaylandSurface::testDamage()
         s->damage(QRect(0, 0, 10, 10));
         s->commit(KWayland::Client::Surface::CommitFlag::None);
         QVERIFY(damageSpy.wait());
-        QCOMPARE(serverSurface->offset(), QPoint(55, 55)); // offset is surface local so scale doesn't change this
+        QCOMPARE(serverSurface->offset(), QPointF(55, 55)); // offset is surface local so scale doesn't change this
         QCOMPARE(serverSurface->bufferDamage(), KWin::Region(0, 0, 10, 10));
         QCOMPARE(damageSpy.first().first().value<KWin::Region>(), KWin::Region(0, 0, 10, 10));
         QVERIFY(serverSurface->isMapped());
@@ -516,14 +518,14 @@ void TestWaylandSurface::testOpaque()
     QSignalSpy opaqueRegionChangedSpy(serverSurface, &KWin::SurfaceInterface::opaqueChanged);
 
     // by default there should be an empty opaque region
-    QCOMPARE(serverSurface->opaque(), Region());
+    QCOMPARE(serverSurface->opaque(), RegionF());
 
     // let's install an opaque region
     s->setOpaqueRegion(m_compositor->createRegion(QRegion(0, 10, 20, 30)).get());
     // the region should only be applied after the surface got committed
     wl_display_flush(m_connection->display());
     QCoreApplication::processEvents();
-    QCOMPARE(serverSurface->opaque(), Region());
+    QCOMPARE(serverSurface->opaque(), RegionF());
     QCOMPARE(opaqueRegionChangedSpy.count(), 0);
 
     // so let's commit to get the new region
@@ -534,31 +536,31 @@ void TestWaylandSurface::testOpaque()
     s->commit(KWayland::Client::Surface::CommitFlag::None);
     QVERIFY(opaqueRegionChangedSpy.wait());
     QCOMPARE(opaqueRegionChangedSpy.count(), 1);
-    QCOMPARE(opaqueRegionChangedSpy.last().first().value<KWin::Region>(), KWin::Region(0, 10, 20, 30));
-    QCOMPARE(serverSurface->opaque(), KWin::Region(0, 10, 20, 30));
+    QCOMPARE(opaqueRegionChangedSpy.last().first().value<KWin::RegionF>(), KWin::RegionF(0, 10, 20, 30));
+    QCOMPARE(serverSurface->opaque(), KWin::RegionF(0, 10, 20, 30));
 
     // committing without setting a new region shouldn't change
     s->commit(KWayland::Client::Surface::CommitFlag::None);
     wl_display_flush(m_connection->display());
     QCoreApplication::processEvents();
     QCOMPARE(opaqueRegionChangedSpy.count(), 1);
-    QCOMPARE(serverSurface->opaque(), KWin::Region(0, 10, 20, 30));
+    QCOMPARE(serverSurface->opaque(), KWin::RegionF(0, 10, 20, 30));
 
     // let's change the opaque region, it will be clipped with rect(0, 0, 20, 40)
     s->setOpaqueRegion(m_compositor->createRegion(QRegion(10, 20, 30, 40)).get());
     s->commit(KWayland::Client::Surface::CommitFlag::None);
     QVERIFY(opaqueRegionChangedSpy.wait());
     QCOMPARE(opaqueRegionChangedSpy.count(), 2);
-    QCOMPARE(opaqueRegionChangedSpy.last().first().value<KWin::Region>(), KWin::Region(10, 20, 10, 20));
-    QCOMPARE(serverSurface->opaque(), KWin::Region(10, 20, 10, 20));
+    QCOMPARE(opaqueRegionChangedSpy.last().first().value<KWin::RegionF>(), KWin::RegionF(10, 20, 10, 20));
+    QCOMPARE(serverSurface->opaque(), KWin::RegionF(10, 20, 10, 20));
 
     // and let's go back to an empty region
     s->setOpaqueRegion();
     s->commit(KWayland::Client::Surface::CommitFlag::None);
     QVERIFY(opaqueRegionChangedSpy.wait());
     QCOMPARE(opaqueRegionChangedSpy.count(), 3);
-    QCOMPARE(opaqueRegionChangedSpy.last().first().value<KWin::Region>(), KWin::Region());
-    QCOMPARE(serverSurface->opaque(), KWin::Region());
+    QCOMPARE(opaqueRegionChangedSpy.last().first().value<KWin::RegionF>(), KWin::RegionF());
+    QCOMPARE(serverSurface->opaque(), KWin::RegionF());
 }
 
 void TestWaylandSurface::testInput()
@@ -574,7 +576,7 @@ void TestWaylandSurface::testInput()
 
     // the input region should be empty if the surface has no buffer
     QVERIFY(!serverSurface->isMapped());
-    QCOMPARE(serverSurface->input(), KWin::Region());
+    QCOMPARE(serverSurface->input(), KWin::RegionF());
 
     // the default input region is infinite
     QImage black(100, 50, QImage::Format_RGB32);
@@ -586,7 +588,7 @@ void TestWaylandSurface::testInput()
     QVERIFY(committedSpy.wait());
     QVERIFY(serverSurface->isMapped());
     QCOMPARE(inputRegionChangedSpy.count(), 1);
-    QCOMPARE(serverSurface->input(), KWin::Region(0, 0, 100, 50));
+    QCOMPARE(serverSurface->input(), KWin::RegionF(0, 0, 100, 50));
 
     // let's install an input region
     s->setInputRegion(m_compositor->createRegion(QRegion(0, 10, 20, 30)).get());
@@ -594,34 +596,34 @@ void TestWaylandSurface::testInput()
     wl_display_flush(m_connection->display());
     QCoreApplication::processEvents();
     QCOMPARE(inputRegionChangedSpy.count(), 1);
-    QCOMPARE(serverSurface->input(), KWin::Region(0, 0, 100, 50));
+    QCOMPARE(serverSurface->input(), KWin::RegionF(0, 0, 100, 50));
 
     // so let's commit to get the new region
     s->commit(KWayland::Client::Surface::CommitFlag::None);
     QVERIFY(committedSpy.wait());
     QCOMPARE(inputRegionChangedSpy.count(), 2);
-    QCOMPARE(serverSurface->input(), KWin::Region(0, 10, 20, 30));
+    QCOMPARE(serverSurface->input(), KWin::RegionF(0, 10, 20, 30));
 
     // committing without setting a new region shouldn't change
     s->commit(KWayland::Client::Surface::CommitFlag::None);
     wl_display_flush(m_connection->display());
     QCoreApplication::processEvents();
     QCOMPARE(inputRegionChangedSpy.count(), 2);
-    QCOMPARE(serverSurface->input(), KWin::Region(0, 10, 20, 30));
+    QCOMPARE(serverSurface->input(), KWin::RegionF(0, 10, 20, 30));
 
     // let's change the input region, note that the new input region is cropped
     s->setInputRegion(m_compositor->createRegion(QRegion(10, 20, 30, 40)).get());
     s->commit(KWayland::Client::Surface::CommitFlag::None);
     QVERIFY(committedSpy.wait());
     QCOMPARE(inputRegionChangedSpy.count(), 3);
-    QCOMPARE(serverSurface->input(), KWin::Region(10, 20, 30, 30));
+    QCOMPARE(serverSurface->input(), KWin::RegionF(10, 20, 30, 30));
 
     // and let's go back to an empty region
     s->setInputRegion();
     s->commit(KWayland::Client::Surface::CommitFlag::None);
     QVERIFY(committedSpy.wait());
     QCOMPARE(inputRegionChangedSpy.count(), 4);
-    QCOMPARE(serverSurface->input(), KWin::Region(0, 0, 100, 50));
+    QCOMPARE(serverSurface->input(), KWin::RegionF(0, 0, 100, 50));
 }
 
 void TestWaylandSurface::testScale()

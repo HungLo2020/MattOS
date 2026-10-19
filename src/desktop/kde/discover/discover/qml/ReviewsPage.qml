@@ -118,7 +118,7 @@ Kirigami.OverlaySheet {
                         text: i18n("Install this app to write a review")
                         wrapMode: Text.WordWrap
                         visible: !reviewButton.enabled
-                        opacity: 0.6
+                        opacity: 0.75
                         TextMetrics {
                             id: messageLabelMetrics
                             font: messageLabel.font
@@ -210,8 +210,11 @@ Kirigami.OverlaySheet {
             width: ListView.view.width
             separator: index !== ListView.view.count - 1
             onMarkUseful: useful => {
-                page.model.markUseful(index, useful);
+                const modelIndex = sortModel.index(index, 0);
+                const sourceIndex = sortModel.mapToSource(modelIndex);
+                page.model.markUseful(sourceIndex.row, useful);
             }
+
         }
     }
 }

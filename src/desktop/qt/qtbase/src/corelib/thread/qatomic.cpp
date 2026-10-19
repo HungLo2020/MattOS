@@ -28,9 +28,10 @@
 
     An \e atomic operation is a complex operation that completes without interruption.
     The QAtomicInteger class provides atomic reference counting, test-and-set, fetch-and-store,
-    and fetch-and-add for integers.
+    and fetch-and-add for integers. The template parameter \a T specifies the integer type
+    being made atomic.
 
-    The template parameter \c T must be a C++ integer type:
+    The template parameter \a T must be a C++ integer type:
     \list
        \li 8-bit: bool, char, signed char, unsigned char, qint8, quint8, char8_t (C++20)
        \li 16-bit: short, unsigned short, qint16, quint16, char16_t
@@ -1260,7 +1261,8 @@
     For atomic operations on integers, see the QAtomicInteger class.
 
     An \e atomic operation is a complex operation that completes without interruption.
-    The QAtomicPointer class provides atomic test-and-set, fetch-and-store, and fetch-and-add for pointers.
+    The QAtomicPointer class provides atomic test-and-set, fetch-and-store, and fetch-and-add
+    for pointers. The template parameter \a T specifies the pointed-to type.
 
     \section1 The Atomic API
 

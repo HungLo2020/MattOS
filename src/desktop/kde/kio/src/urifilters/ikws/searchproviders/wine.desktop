@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=WineHQ Database
+Name[am]=WineHQ Database
 Name[ar]=قاعدة بيانات WineHQ
 Name[ast]=Base de datos de WineHQ
 Name[az]=WineHQ verilənlər bazası
@@ -40,6 +41,8 @@ Name[lg]=Ggwanika lya Puloguramu n'ebizifaako erya WineHQ
 Name[lt]=WineHQ duomenų bazė
 Name[lv]=„WineHQ“ datubāze
 Name[my]=WineHQ ဒေတာဘေ့စ်
+Name[nan_TW]=WineHQ 資料庫
+Name[nan_TW@latin]=WineHQ Tsu-liāu-khòo
 Name[nb]=WineHQ-database
 Name[nl]=WineHQ-database
 Name[nn]=WineHQ-database
@@ -64,6 +67,7 @@ Name[zh_TW]=WineHQ 資料庫
 Type=Service
 Keys=winehq,wine
 Query=https://www.winehq.org/search?q=\\{@}
+Query[am]=https://www.winehq.org/search?q=\\{@}
 Query[ar]=https://www.winehq.org/search?q=\\{@}
 Query[ast]=https://www.winehq.org/search?q=\\{@}
 Query[az]=https://www.winehq.org/search?q=\\{@}
@@ -104,6 +108,8 @@ Query[lg]=https://www.winehq.org/search?q=\\{@}
 Query[lt]=https://www.winehq.org/search?q=\\{@}
 Query[lv]=https://www.winehq.org/search?q=\\{@}
 Query[my]=https://www.winehq.org/search?q=\\{@}
+Query[nan_TW]=https://www.winehq.org/search?q=\\{@}
+Query[nan_TW@latin]=https://www.winehq.org/search?q=\\{@}
 Query[nb]=https://www.winehq.org/search?q=\\{@}
 Query[nl]=https://www.winehq.org/search?q=\\{@}
 Query[nn]=https://www.winehq.org/search?q=\\{@}
@@ -120,7 +126,6 @@ Query[sq]=https://www.winehq.org/search?q=\\{@}
 Query[sv]=https://www.winehq.org/search?q=\\{@}
 Query[th]=https://www.winehq.org/search?q=\\{@}
 Query[tr]=https://www.winehq.org/search?q=\\{@}
-Query[ug]=https://www.winehq.org/search?q=\\{@}
 Query[uk]=https://www.winehq.org/search?q=\\{@}
 Query[vi]=https://www.winehq.org/search?q=\\{@}
 Query[zh_CN]=https://www.winehq.org/search?q=\\{@}

@@ -10,15 +10,16 @@
 #include "appletcontext_p.h"
 #include "containment.h"
 #include "debug_p.h"
+#include "plasmaquick.h"
 #include "plasmoid/containmentitem.h"
 #include "plasmoid/plasmoiditem.h"
-#include "sharedqmlengine.h"
 
 #include <QJsonArray>
 #include <QQmlProperty>
 #include <QRandomGenerator>
 #include <QTimer>
 
+#include <KLocalizedQmlContext>
 #include <KLocalizedString>
 
 using namespace Qt::StringLiterals;
@@ -35,6 +36,7 @@ AppletQuickItemPrivate::AppletQuickItemPrivate(AppletQuickItem *item)
     , switchHeight(-1)
     , initComplete(false)
     , compactRepresentationCheckGuard(false)
+    , engine(PlasmaQuick::globalEngine())
 {
     if (s_preloadPolicy == Uninitialized) {
         // default as Adaptive
@@ -197,15 +199,18 @@ QQuickItem *AppletQuickItemPrivate::createCompactRepresentationItem()
         return compactRepresentationItem;
     }
 
-    QVariantHash initialProperties;
-    initialProperties[QStringLiteral("parent")] = QVariant::fromValue(q);
-    initialProperties[QStringLiteral("plasmoidItem")] = QVariant::fromValue(q);
+    compactRepresentationItem = castOrDestroy<QQuickItem *>(compactRepresentation->beginCreate(qmlContext(q)));
 
-    compactRepresentationItem = castOrDestroy<QQuickItem *>(qmlObject->createObjectFromComponent(compactRepresentation, qmlContext(q), initialProperties));
     if (!compactRepresentationItem) {
         qCWarning(LOG_PLASMAQUICK) << "The compactRepresentation of" << applet->pluginMetaData().pluginId() << "is not an Item";
         return nullptr;
     }
+
+    // do not use createWithInitialProperties() here, the object may not have a property plasmoidItem, which would result in a warning
+    compactRepresentationItem->setProperty("parent", QVariant::fromValue(q));
+    compactRepresentationItem->setProperty("plasmoidItem", QVariant::fromValue(q));
+
+    compactRepresentation->completeCreate();
 
     Q_EMIT q->compactRepresentationItemChanged(compactRepresentationItem);
 
@@ -222,10 +227,7 @@ QQuickItem *AppletQuickItemPrivate::createFullRepresentationItem()
         return fullRepresentationItem;
     }
 
-    QVariantHash initialProperties;
-    initialProperties[QStringLiteral("parent")] = QVariant();
-
-    fullRepresentationItem = castOrDestroy<QQuickItem *>(qmlObject->createObjectFromComponent(fullRepresentation, qmlContext(q), initialProperties));
+    fullRepresentationItem = castOrDestroy<QQuickItem *>(fullRepresentation->create(qmlContext(q)));
     if (!fullRepresentationItem) {
         qCWarning(LOG_PLASMAQUICK) << "The fullRepresentation of" << applet->pluginMetaData().pluginId() << "is not an Item";
         return nullptr;
@@ -246,12 +248,14 @@ QQuickItem *AppletQuickItemPrivate::createCompactRepresentationExpanderItem()
         return compactRepresentationExpanderItem;
     }
 
+    QVariantMap initialProperties{
+        {u"plasmoidItem"_s, QVariant::fromValue(q)},
+        {u"parent"_s, QVariant::fromValue(q)},
+    };
+
     // Ensure plasmoidItem is not null on creation to avoid ternary operator in QML
-    compactRepresentationExpanderItem = castOrDestroy<QQuickItem *>(qmlObject->createObjectFromComponent(compactRepresentationExpander,
-                                                                                                         qmlContext(q),
-                                                                                                         {
-                                                                                                             {u"plasmoidItem"_s, QVariant::fromValue(q)},
-                                                                                                         }));
+    compactRepresentationExpanderItem =
+        castOrDestroy<QQuickItem *>(compactRepresentationExpander->createWithInitialProperties(initialProperties, qmlContext(q)));
     if (!compactRepresentationExpanderItem) {
         qCWarning(LOG_PLASMAQUICK) << "The compactRepresentationExpander of" << applet->pluginMetaData().pluginId() << "is not an Item";
         return nullptr;
@@ -524,29 +528,33 @@ AppletQuickItem *AppletQuickItem::itemForApplet(Plasma::Applet *applet)
     }
 
     Plasma::Containment *pc = qobject_cast<Plasma::Containment *>(applet);
-    auto *qmlObject = new PlasmaQuick::SharedQmlEngine(applet, applet);
-    qmlObject->engine()->setProperty("_kirigamiTheme", QStringLiteral("KirigamiPlasmaStyle"));
-    qmlObject->setInitializationDelayed(true);
-    qmlObject->setTranslationDomain(applet->translationDomain());
 
-    AppletQuickItem *item = nullptr;
-    qmlObject->setSource(applet->mainScript());
+    auto engine = PlasmaQuick::globalEngine();
 
-    Q_ASSERT(qmlObject->mainComponent());
+    QQmlComponent component(engine.get(), applet->mainScript());
+
+    auto appletContext = new AppletContext(engine.get(), applet, applet);
+
+    auto i18nContext = new KLocalizedQmlContext(appletContext);
+    i18nContext->setTranslationDomain(applet->translationDomain());
+    appletContext->setContextObject(i18nContext);
+    QQmlEngine::setContextForObject(i18nContext, appletContext);
+
+    AppletQuickItem *item = qobject_cast<AppletQuickItem *>(component.beginCreate(appletContext));
 
     if (pc && pc->isContainment()) {
-        item = qobject_cast<ContainmentItem *>(qmlObject->rootObject());
-        if (!item && !qmlObject->mainComponent()->isError()) {
+        item = qobject_cast<ContainmentItem *>(item);
+        if (!item && !component.isError()) {
             applet->setLaunchErrorMessage(i18n("The root item of %1 must be of type ContainmentItem", applet->mainScript().toString()));
         }
     } else {
-        item = qobject_cast<PlasmoidItem *>(qmlObject->rootObject());
-        if (!item && !qmlObject->mainComponent()->isError()) {
+        item = qobject_cast<PlasmoidItem *>(item);
+        if (!item && !component.isError()) {
             applet->setLaunchErrorMessage(i18n("The root item of %1 must be of type PlasmoidItem", applet->mainScript().toString()));
         }
     }
 
-    if (!item || qmlObject->mainComponent()->isError() || applet->failedToLaunch()) {
+    if (!item || component.isError() || applet->failedToLaunch()) {
         QString reason;
         QString compactReason;
         QJsonObject errorData;
@@ -564,22 +572,22 @@ AppletQuickItem *AppletQuickItem::itemForApplet(Plasma::Applet *applet)
             const int plasma_version_major = 6; // TODO: as soon PLASMA_VERSION_MAJOR is actually 6, use directly that
             if (version.isNull()) {
                 reason = i18n(
-                    "This Widget was written for an unknown older version of Plasma and is not compatible with Plasma %1. Please contact the widget's author for "
-                    "an updated version.",
+                    "This widget was written for an unknown older version of Plasma and is not compatible with Plasma %1. Please contact the widget's author "
+                    "for an updated version.",
                     plasma_version_major);
                 compactReason = i18n("%1 is not compatible with Plasma %2", applet->pluginMetaData().name(), plasma_version_major);
                 versionMismatch = true;
             } else if (version.majorVersion() < plasma_version_major) {
-                reason =
-                    i18n("This Widget was written for Plasma %1 and is not compatible with Plasma %2. Please contact the widget's author for an updated version.",
-                        version.majorVersion(),
-                        plasma_version_major);
+                reason = i18n(
+                    "This widget was written for Plasma %1 and is not compatible with Plasma %2. Please contact the widget's author for an updated version.",
+                    version.majorVersion(),
+                    plasma_version_major);
                 compactReason = i18n("%1 is not compatible with Plasma %2", applet->pluginMetaData().name(), plasma_version_major);
                 versionMismatch = true;
             } else if (version.majorVersion() > plasma_version_major || version.minorVersion() > PLASMA_VERSION_MINOR) {
-                reason = i18n("This Widget was written for Plasma %1 and is not compatible with Plasma %2. Please update Plasma in order to use the widget.",
-                            versionString,
-                            plasma_version_major);
+                reason = i18n("This widget was written for Plasma %1 and is not compatible with Plasma %2. Please update Plasma in order to use the widget.",
+                              versionString,
+                              plasma_version_major);
                 compactReason = i18n("%1 is not compatible with Plasma %2", applet->pluginMetaData().name(), plasma_version_major);
                 versionMismatch = true;
             } else if (applet->failedToLaunch()) {
@@ -594,7 +602,7 @@ AppletQuickItem *AppletQuickItem::itemForApplet(Plasma::Applet *applet)
             }
 
             if (!versionMismatch) {
-                const auto errors = qmlObject->mainComponent()->errors();
+                const auto errors = component.errors();
                 QStringList errorList;
                 for (const QQmlError &error : errors) {
                     reason += error.toString() + QLatin1Char('\n');
@@ -603,27 +611,39 @@ AppletQuickItem *AppletQuickItem::itemForApplet(Plasma::Applet *applet)
                 errorData[QStringLiteral("errors")] = QJsonArray::fromStringList(errorList);
             }
             errorData[QStringLiteral("appletName")] = applet->pluginMetaData().name();
-            reason += i18n("Error loading QML file: %1 %2", qmlObject->mainComponent()->url().toString(), reason);
+            reason += i18n("Error loading QML file: %1 %2", component.url().toString(), reason);
         } else {
-            const auto pluginId = applet->pluginMetaData().pluginId();
-            reason = i18n("Error loading Applet: package %1 does not exist.", pluginId);
-            errorData[QStringLiteral("errors")] = QJsonArray::fromStringList({reason, applet->launchErrorMessage()});
-            compactReason = i18n("Sorry! There was an error loading %1.", pluginId);
-            errorData[QStringLiteral("compactError")] = compactReason;
+            if (applet->pluginMetaData().isValid()) {
+                const auto pluginId = applet->pluginMetaData().pluginId();
+                reason = i18n("Error loading Applet: package %1 does not exist.", pluginId);
+                errorData[QStringLiteral("errors")] = QJsonArray::fromStringList({reason, applet->launchErrorMessage()});
+                compactReason = i18n("Sorry! There was an error loading %1.", pluginId);
+                errorData[QStringLiteral("compactError")] = compactReason;
+            } else {
+                reason = i18nc("@info", "Error loading Applet: package format is invalid (does not contain any metadata).");
+                errorData[QStringLiteral("errors")] = QJsonArray::fromStringList({reason, applet->launchErrorMessage()});
+            }
         }
 
         qCWarning(LOG_PLASMAQUICK) << "error when loading applet" << applet->pluginMetaData().pluginId()
                                    << errorData[QStringLiteral("errors")].toVariant().toStringList();
 
-        qmlObject->setSource(applet->containment()->corona()->kPackage().fileUrl("appleterror"));
+        QQmlComponent appletErrorComponent(engine.get(), applet->containment()->corona()->kPackage().fileUrl("appleterror"));
 
         applet->setHasConfigurationInterface(false);
         // even the error message QML may fail
-        if (qmlObject->mainComponent()->isError()) {
+        if (appletErrorComponent.isError()) {
             return nullptr;
         }
 
-        item = qobject_cast<PlasmoidItem *>(qmlObject->rootObject());
+        auto appletContext = new AppletContext(engine.get(), applet, applet);
+
+        auto i18nContext = new KLocalizedQmlContext(appletContext);
+        i18nContext->setTranslationDomain(applet->translationDomain());
+        appletContext->setContextObject(i18nContext);
+        QQmlEngine::setContextForObject(i18nContext, appletContext);
+
+        item = castOrDestroy<PlasmoidItem *>(appletErrorComponent.create(appletContext));
 
         applet->setLaunchErrorMessage(reason);
         if (item) {
@@ -637,8 +657,7 @@ AppletQuickItem *AppletQuickItem::itemForApplet(Plasma::Applet *applet)
     }
 
     AppletQuickItemPrivate::s_itemsForApplet[applet] = item;
-    qmlObject->setInitializationDelayed(false);
-    qmlObject->completeInitialization();
+    component.completeCreate();
 
     // A normal applet has UI ready as soon as is loaded, a containment, only when also the wallpaper is loaded
     if (!pc || !pc->isContainment() || pc->containmentType() == Plasma::Containment::CustomEmbedded) {
@@ -648,10 +667,9 @@ AppletQuickItem *AppletQuickItem::itemForApplet(Plasma::Applet *applet)
 
     item->setProperty("_plasma_applet", QVariant::fromValue(applet));
     item->d->applet = applet;
-    item->d->qmlObject = qmlObject;
 
     if (!qEnvironmentVariableIntValue("PLASMA_NO_CONTEXTPROPERTIES")) {
-        qmlObject->rootContext()->setContextProperty(QStringLiteral("plasmoid"), applet);
+        appletContext->setContextProperty(QStringLiteral("plasmoid"), applet);
     }
 
     if (applet->containment()) {
@@ -662,13 +680,10 @@ AppletQuickItem *AppletQuickItem::itemForApplet(Plasma::Applet *applet)
         });
     }
 
-    QObject::connect(applet, &Plasma::Applet::appletDeleted, item, [qmlObject](Plasma::Applet *applet) {
-        // Deleting qmlObject will also delete the instantiated plasmoidItem
-        // deleting just the plasmoiditem will cause a double deletion when qmlObject
-        // gets deleted by applet deletion
-        if (qmlObject->parent() == applet) {
+    QObject::connect(applet, &Plasma::Applet::appletDeleted, item, [item, thisApplet = applet](Plasma::Applet *applet) {
+        if (thisApplet == applet) {
             // appletDelete can also be emitted by a containment for one of its children
-            delete qmlObject;
+            delete item;
             AppletQuickItemPrivate::s_itemsForApplet.remove(applet);
         }
     });
@@ -699,20 +714,19 @@ void AppletQuickItem::init()
     }
 
     // Initialize the main QML file
-    QQmlEngine *engine = d->qmlObject->engine().get();
 
     // If no fullRepresentation was defined, we won't create compact and expander either.
     // The only representation available are whatever items defined directly inside PlasmoidItem {}
     // default compactRepresentation is a simple icon provided by the shell package
     if (!d->compactRepresentation && d->fullRepresentation) {
-        d->compactRepresentation = new QQmlComponent(engine, this);
+        d->compactRepresentation = new QQmlComponent(d->engine.get(), this);
         d->compactRepresentation->loadUrl(d->coronaPackage.fileUrl("defaultcompactrepresentation"));
         Q_EMIT compactRepresentationChanged(d->compactRepresentation);
     }
 
     // default compactRepresentationExpander is the popup in which fullRepresentation goes
     if (!d->compactRepresentationExpander && d->fullRepresentation) {
-        d->compactRepresentationExpander = new QQmlComponent(engine, this);
+        d->compactRepresentationExpander = new QQmlComponent(d->engine.get(), this);
         QUrl compactExpanderUrl = d->applet->containment()->compactApplet();
         if (compactExpanderUrl.isEmpty()) {
             compactExpanderUrl = d->coronaPackage.fileUrl("compactapplet");
@@ -723,7 +737,6 @@ void AppletQuickItem::init()
 
     d->initComplete = true;
     d->compactRepresentationCheck();
-    qmlObject()->engine()->rootContext()->setBaseUrl(qmlObject()->source());
 
     // if we're expanded we don't care about preloading because it will already be the case
     // as well as for containments
@@ -765,7 +778,6 @@ void AppletQuickItem::classBegin()
         return;
     }
     d->applet = ac->applet();
-    d->qmlObject = ac->sharedQmlEngine();
 }
 
 void AppletQuickItem::componentComplete()
@@ -948,11 +960,6 @@ void AppletQuickItem::setBadgeText(const QString &text)
 }
 
 ////////////Internals
-
-PlasmaQuick::SharedQmlEngine *AppletQuickItem::qmlObject()
-{
-    return d->qmlObject;
-}
 
 QQuickItem *AppletQuickItem::compactRepresentationItem()
 {

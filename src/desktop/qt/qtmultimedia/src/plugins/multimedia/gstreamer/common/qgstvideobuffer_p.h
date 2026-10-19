@@ -38,6 +38,7 @@ public:
     bool isDmaBuf() const override;
 
     QVideoFrameTexturesUPtr mapTextures(QRhi &, QVideoFrameTexturesUPtr& /*oldTextures*/) override;
+    GstBuffer *gstBuffer() const { return m_buffer.get(); }
 
 private:
     const QGstCaps::MemoryFormat m_memoryFormat = QGstCaps::CpuMemory;

@@ -38,7 +38,7 @@ QAndroidTimeZonePrivate::QAndroidTimeZonePrivate()
 }
 
 // Create a named time zone
-QAndroidTimeZonePrivate::QAndroidTimeZonePrivate(const QByteArray &ianaId)
+QAndroidTimeZonePrivate::QAndroidTimeZonePrivate(QByteArrayView ianaId)
     : QTimeZonePrivate()
 {
     init(ianaId);
@@ -60,7 +60,7 @@ static QString getDisplayName(QJniObject zone, jint style, jboolean dst,
                                      jlocale.object<QtJniTypes::Locale>()).toString();
 }
 
-void QAndroidTimeZonePrivate::init(const QByteArray &ianaId)
+void QAndroidTimeZonePrivate::init(QByteArrayView ianaId)
 {
     const QString iana = QString::fromUtf8(ianaId);
     androidTimeZone = QJniObject::callStaticMethod<QtJniTypes::TimeZone>(
@@ -194,7 +194,7 @@ QByteArray QAndroidTimeZonePrivate::systemTimeZoneId() const
     return id.toString().toUtf8();
 }
 
-bool QAndroidTimeZonePrivate::isTimeZoneIdAvailable(const QByteArray &ianaId) const
+bool QAndroidTimeZonePrivate::isTimeZoneIdAvailable(QByteArrayView ianaId) const
 {
     QAndroidTimeZonePrivate probe(ianaId);
     return probe.isValid();
@@ -213,10 +213,8 @@ QList<QByteArray> QAndroidTimeZonePrivate::availableTimeZoneIds() const
     for (const auto &id : androidAvailableIdList)
         result.append(id.toString().toUtf8());
 
-    // Sort & uniquify (just to be sure; it appears to not need this, but we can't rely on that).
-    std::sort(result.begin(), result.end());
-    result.erase(std::unique(result.begin(), result.end()), result.end());
-    return result;
+    // (It appears to not need sort+uniquify, but we can't rely on that.)
+    return uniqueSortedAliasPadded(std::move(result));
 }
 
 QT_END_NAMESPACE

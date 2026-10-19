@@ -33,20 +33,31 @@ struct QQmlMetaTypeData
     QQmlMetaTypeData();
     ~QQmlMetaTypeData();
     void registerType(QQmlTypePrivate *priv);
-    QList<QQmlType> types;
+
+    struct Type
+    {
+        QQmlType type;
+        QHash<QTypeRevision, QQmlPropertyCache::ConstPtr> propertyCaches;
+    };
+
+    QList<Type> types;
     QSet<QQmlType> undeletableTypes;
+
     typedef QHash<int, QQmlTypePrivate *> Ids;
     Ids idToType;
 
-    using Names = QMultiHash<QHashedString, const QQmlTypePrivate *>;
+    using Names = QMultiHash<QString, const QQmlTypePrivate *>;
     Names nameToType;
 
     typedef QHash<QUrl, const QQmlTypePrivate *> Files; //For file imported composite types only
     Files urlToType;
 
-    typedef QMultiHash<const QMetaObject *, QQmlTypePrivate *> MetaObjects;
+    // Inline component types created speculatively before their base type's CU was registered.
+    // These need to be pruned when the CU registers if the IC doesn't actually exist.
+    QSet<QUrl> speculativeInlineComponentTypes;
+
+    typedef QMultiHash<const QMetaObject *, const QQmlTypePrivate *> MetaObjects;
     MetaObjects metaObjectToType;
-    QVector<QHash<QTypeRevision, QQmlPropertyCache::ConstPtr>> typePropertyCaches;
     QHash<int, QQmlValueType *> metaTypeToValueType;
 
     // This has to be a multihash because a user can create a compilation unit using arbitrary
@@ -96,8 +107,6 @@ struct QQmlMetaTypeData
     QHash<QString, void (*)()> moduleTypeRegistrationFunctions;
     bool registerModuleTypes(const QString &uri);
 
-    QSet<int> interfaces;
-
     QList<QQmlPrivate::AutoParentFunction> parentFunctions;
     QList<QQmlPrivate::QmlUnitCacheLookupFunction> lookupCachedQmlUnit;
 
@@ -113,7 +122,6 @@ struct QQmlMetaTypeData
     QQmlPropertyCache::ConstPtr propertyCacheForVersion(int index, QTypeRevision version) const;
     void setPropertyCacheForVersion(
             int index, QTypeRevision version, const QQmlPropertyCache::ConstPtr &cache);
-    void clearPropertyCachesForVersion(int index);
 
     QQmlPropertyCache::ConstPtr propertyCache(const QMetaObject *metaObject, QTypeRevision version);
     QQmlPropertyCache::ConstPtr propertyCache(const QQmlType &type, QTypeRevision version);

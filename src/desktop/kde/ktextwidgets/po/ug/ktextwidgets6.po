@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
 "POT-Creation-Date: 2025-11-17 11:49+0000\n"
-"PO-Revision-Date: 2013-09-08 07:05+0900\n"
-"Last-Translator: Gheyret Kenji <gheyret@gmail.com>\n"
-"Language-Team: Uyghur Computer Science Association <UKIJ@yahoogroups.com>\n"
+"PO-Revision-Date: 2026-09-23 06:56+0900\n"
+"Last-Translator: Abduqadir Abliz <sahranbay@gmail.com>\n"
+"Language-Team: Uyghur <kde-i18n-doc@kde.org>\n"
 "Language: ug\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 1.5.5\n"
+"X-Generator: Poedit 3.9\n"
 
 #: dialogs/klinkdialog.cpp:33
 #, kde-format
@@ -103,11 +103,10 @@ msgid "Regular e&xpression"
 msgstr "مۇنتىزىم ئىپادە(&X)"
 
 #: findreplace/kfinddialog.cpp:84
-#, fuzzy, kde-format
-#| msgid "&Edit"
+#, kde-format
 msgctxt "@action:button"
 msgid "&Edit…"
-msgstr "تەھرىر(&E)"
+msgstr "تەھرىر(&E)…"
 
 #: findreplace/kfinddialog.cpp:93
 #, kde-format
@@ -224,7 +223,7 @@ msgstr ""
 #, kde-format
 msgid "Enter a replacement string, or select a previous one from the list."
 msgstr ""
-"يېڭى(ئالمىشىدىغان) تېكىستنى كىرگۈزۈڭ ياكى بۇرۇنقىلىرىنىڭ تىزىملىكىدىن تاللاڭ"
+"يېڭى(ئالمىشىدىغان) تېكىستنى كىرگۈزۈڭ ياكى بۇرۇنقىلىرىنىڭ تىزىملىكىدىن تاللاڭ."
 
 #: findreplace/kfinddialog.cpp:225
 #, kde-format
@@ -238,8 +237,9 @@ msgstr ""
 "<qt>ئەگەر بۇ تاللانما قوزغىتىلسا،  <code><b>\\N</b></code>ھەر قېتىم "
 "كۆرۈنىدىغىنى  <code><b>N</b></code>پۈتۈن سان قېلىپتىكى مۇناسىپ تۇتۇش "
 "(\"تىرناق بىلەن قورشالغان تارماق تىزىق \") قا ئالماشتۇرۇلىدۇ."
-"<p>ئالماشتۇرۇشىڭىزدا  پروگرامما يېزىقى بولسا <code><b>\\N</b></code> ئالدىغا "
-"ئوشۇق يانتۇ سىزىقتىن بىرنى قويۇڭ، يەنى <code><b>\\\\N</b></code>.</p></qt>"
+"<p>ئالماشتۇرۇشىڭىزدا  پىروگرامما يېزىقى بولسا <code><b>\\N</b></code> "
+"ئالدىغا ئوشۇق يانتۇ سىزىقتىن بىرنى قويۇڭ، يەنى <code><b>\\\\N</b></code>.</"
+"p></qt>"
 
 #: findreplace/kfinddialog.cpp:231
 #, kde-format
@@ -261,7 +261,7 @@ msgstr "باشتىن ئەمەس، ھازىرقى ئورۇندىن باشلاپ �
 #: findreplace/kfinddialog.cpp:234
 #, kde-format
 msgid "Only search within the current selection."
-msgstr "تاللانغان رايون ئىچىدە ئىزدەيدۇ"
+msgstr "تاللانغان رايون ئىچىدە ئىزدەيدۇ."
 
 #: findreplace/kfinddialog.cpp:235
 #, kde-format
@@ -312,11 +312,11 @@ msgstr "تاللاشچان"
 
 #: findreplace/kfinddialog.cpp:466
 msgid "Escape"
-msgstr "Escape"
+msgstr ""
 
 #: findreplace/kfinddialog.cpp:467
 msgid "TAB"
-msgstr "TAB"
+msgstr ""
 
 #: findreplace/kfinddialog.cpp:468
 msgid "Newline"
@@ -384,7 +384,7 @@ msgstr "ھېچقانداق تېكىست ئالماشتۇرۇلمىدى."
 #, kde-format
 msgid "1 replacement done."
 msgid_plural "%1 replacements done."
-msgstr[0] "%1 سى ئالماشتۇرۇلدى"
+msgstr[0] "%1 سى ئالماشتۇرۇلدى."
 
 #: findreplace/kreplace.cpp:393
 #, kde-format
@@ -436,12 +436,10 @@ msgstr ""
 "تۈزىتىڭ."
 
 #: widgets/krichtextwidget.cpp:200
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Text &Color..."
+#, kde-format
 msgctxt "@action"
 msgid "Text &Color…"
-msgstr "تېكىست رېڭى(&C)…"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:201
 #, kde-format
@@ -450,12 +448,10 @@ msgid "Color"
 msgstr "رەڭ"
 
 #: widgets/krichtextwidget.cpp:214
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Text &Highlight..."
+#, kde-format
 msgctxt "@action"
 msgid "Text &Highlight…"
-msgstr "تېكىستنى يورۇت(&H)…"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:227
 #, kde-format
@@ -515,7 +511,7 @@ msgstr "ئوتتۇرىغا توغرىلا(&C)"
 #, kde-format
 msgctxt "@label center justify"
 msgid "Center"
-msgstr "مەركەز"
+msgstr "ئوتتۇرا"
 
 #: widgets/krichtextwidget.cpp:313
 #, kde-format
@@ -599,31 +595,31 @@ msgstr "تۆت چاسا"
 #, kde-format
 msgctxt "@item:inmenu numbered lists"
 msgid "123"
-msgstr "123"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:367
 #, kde-format
 msgctxt "@item:inmenu lowercase abc lists"
 msgid "abc"
-msgstr "abc"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:368
 #, kde-format
 msgctxt "@item:inmenu uppercase abc lists"
 msgid "ABC"
-msgstr "ABC"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:369
 #, kde-format
 msgctxt "@item:inmenu lower case roman numerals"
 msgid "i ii iii"
-msgstr "i ii iii"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:370
 #, kde-format
 msgctxt "@item:inmenu upper case roman numerals"
 msgid "I II III"
-msgstr "I II III"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:390
 #, kde-format
@@ -674,62 +670,52 @@ msgid "Superscript"
 msgstr "يۇقىرى ئىندېكس"
 
 #: widgets/krichtextwidget.cpp:473
-#, fuzzy, kde-format
-#| msgid "Loading Preview"
+#, kde-format
 msgctxt "@title:menu"
 msgid "Heading Level"
-msgstr "ئالدىن كۆزىتىش يۈكلەۋاتىدۇ"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:474
-#, fuzzy, kde-format
-#| msgctxt "KCharselect unicode block name"
-#| msgid "Basic Latin"
+#, kde-format
 msgctxt "@item:inmenu no heading"
 msgid "Basic text"
-msgstr "ئاساسىي لاتىنچە"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:475
-#, fuzzy, kde-format
-#| msgctxt "Title of the notified event"
-#| msgid "Title"
+#, kde-format
 msgctxt "@item:inmenu heading level 1 (largest)"
 msgid "Title"
 msgstr "ماۋزۇ"
 
 #: widgets/krichtextwidget.cpp:476
-#, fuzzy, kde-format
-#| msgid "Untitled"
+#, kde-format
 msgctxt "@item:inmenu heading level 2"
 msgid "Subtitle"
-msgstr "ماۋزۇسىز"
+msgstr "قوشۇمچە ماۋزۇ"
 
 #: widgets/krichtextwidget.cpp:477
-#, fuzzy, kde-format
-#| msgid "Action"
+#, kde-format
 msgctxt "@item:inmenu heading level 3"
 msgid "Section"
-msgstr "مەشغۇلات"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:478
-#, fuzzy, kde-format
-#| msgid "Question"
+#, kde-format
 msgctxt "@item:inmenu heading level 4"
 msgid "Subsection"
-msgstr "سوئال"
+msgstr ""
 
 #: widgets/krichtextwidget.cpp:479
-#, fuzzy, kde-format
-#| msgid "Separator, Paragraph"
+#, kde-format
 msgctxt "@item:inmenu heading level 5"
 msgid "Paragraph"
-msgstr "ئايرىغۇچ، ئابزاس"
+msgstr "ئابزاس"
 
 #: widgets/krichtextwidget.cpp:480
-#, fuzzy, kde-format
-#| msgid "Separator, Paragraph"
+#, kde-format
 msgctxt "@item:inmenu heading level 6 (smallest)"
 msgid "Subparagraph"
-msgstr "ئايرىغۇچ، ئابزاس"
+msgstr ""
 
 #: widgets/ktextedit.cpp:47
 #, kde-format
@@ -737,17 +723,15 @@ msgid "Nothing to spell check."
 msgstr "ئىملاسى تەكشۈرۈلىدىغان نەرسە يوق."
 
 #: widgets/ktextedit.cpp:501
-#, fuzzy, kde-format
-#| msgid "Check Spelling"
+#, kde-format
 msgctxt "@action:inmenu"
 msgid "Check Spelling…"
-msgstr "ئىملا تەكشۈر"
+msgstr ""
 
 #: widgets/ktextedit.cpp:506
-#, fuzzy, kde-format
-#| msgid "Spell Checking"
+#, kde-format
 msgid "Spell Checking Language"
-msgstr "ئىملا تەكشۈرۈش"
+msgstr ""
 
 #: widgets/ktextedit.cpp:527
 #, kde-format
@@ -4426,7 +4410,6 @@ msgstr "تېكىستنى ئوقۇ"
 #~ msgid "Supply a username and password below."
 #~ msgstr "تۆۋەندە ئىشلەتكۈچى ئاتى ۋە ئىم تەمىنلەيدۇ."
 
-#, fuzzy
 #~| msgid "&Keep password"
 #~ msgid "Use this password:"
 #~ msgstr "ئىمنى ساقلا(&K)"

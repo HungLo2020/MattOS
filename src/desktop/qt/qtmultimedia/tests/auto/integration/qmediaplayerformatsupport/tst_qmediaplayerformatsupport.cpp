@@ -1,13 +1,17 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <private/mediabackendutils_p.h>
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qdiriterator.h>
+
 #include <QtMultimedia/qmediaplayer.h>
-#include <QtMultimedia/QVideoSink>
+#include <QtMultimedia/qvideosink.h>
+
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
 
 using namespace Qt::StringLiterals;
 
@@ -36,13 +40,16 @@ void addTestData(QLatin1StringView dir)
     }
 }
 
-class tst_qmediaplayerformatsupport : public QObject
+class tst_qmediaplayerformatsupport : public QIntegrationTestBase
 {
     Q_OBJECT
 
 public slots:
     void initTestCase()
     {
+        if (!initIntegrationTestCase())
+            return;
+
         QSKIP_IF_NOT_FFMPEG("Test is only intended for FFmpeg backend");
     }
 
@@ -55,6 +62,8 @@ private slots:
 
     void play_succeeds_withSupportedContainer()
     {
+        QSKIP("Temporary workaround until we land FFmpeg-9");
+
         QFETCH(const QUrl, url);
 
         Fixture f;
@@ -99,23 +108,6 @@ private slots:
 #endif
 
         QVERIFY(f.errorOccurred.empty());
-    }
-
-    void play_fails_withUnsupportedContainer_data()
-    {
-        QTest::addColumn<QUrl>("url");
-        addTestData(":testdata/containers/unsupported"_L1);
-    }
-
-    void play_fails_withUnsupportedContainer()
-    {
-        QFETCH(const QUrl, url);
-
-        Fixture f;
-        f.player.setSource(url);
-        f.player.play();
-
-        QTRY_COMPARE_NE(f.player.error(), QMediaPlayer::NoError);
     }
 };
 

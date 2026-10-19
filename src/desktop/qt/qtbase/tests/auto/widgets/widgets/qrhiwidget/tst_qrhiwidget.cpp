@@ -18,6 +18,17 @@
 #include <private/qvulkandefaultinstance_p.h>
 #endif
 
+// True when running on the Android emulator's SwiftShader software renderer.
+static bool isAndroidSwiftShader(const QRhi *rhi)
+{
+#ifdef Q_OS_ANDROID
+    return rhi->driverInfo().deviceName.contains("SwiftShader");
+#else
+    Q_UNUSED(rhi);
+    return false;
+#endif
+}
+
 class tst_QRhiWidget : public QObject
 {
     Q_OBJECT
@@ -349,6 +360,9 @@ void tst_QRhiWidget::simple()
     QVERIFY(QTest::qWaitForWindowExposed(&w));
 
     QTRY_VERIFY(frameSpy.count() > 0);
+
+    if (api == QRhiWidget::Api::Vulkan && isAndroidSwiftShader(rhiWidget->rhi()))
+        QSKIP("SwiftShader renders and reads back unreliably (QTBUG-146930)");
     QCOMPARE(errorSpy.count(), 0);
 
     QCOMPARE(rhiWidget->sampleCount(), 1);
@@ -416,9 +430,9 @@ void tst_QRhiWidget::simple()
 
         // Check that the center is a red pixel.
         QRgb c = resultOne.pixel(resultOne.width() / 2, resultOne.height() / 2);
-        QVERIFY(qRed(c) >= 255 - maxFuzz);
-        QVERIFY(qGreen(c) <= maxFuzz);
-        QVERIFY(qBlue(c) <= maxFuzz);
+        QCOMPARE_GE(qRed(c), 255 - maxFuzz);
+        QCOMPARE_LE(qGreen(c), maxFuzz);
+        QCOMPARE_LE(qBlue(c), maxFuzz);
     }
 
     // Now through grabFramebuffer().
@@ -428,9 +442,9 @@ void tst_QRhiWidget::simple()
         QCOMPARE(errorSpy.count(), 0);
         QVERIFY(!resultTwo.isNull());
         QRgb c = resultTwo.pixel(resultTwo.width() / 2, resultTwo.height() / 2);
-        QVERIFY(qRed(c) >= 255 - maxFuzz);
-        QVERIFY(qGreen(c) <= maxFuzz);
-        QVERIFY(qBlue(c) <= maxFuzz);
+        QCOMPARE_GE(qRed(c), 255 - maxFuzz);
+        QCOMPARE_LE(qGreen(c), maxFuzz);
+        QCOMPARE_LE(qBlue(c), maxFuzz);
     }
 
     // Check we got the same result from our manual readback and when the
@@ -464,6 +478,9 @@ void tst_QRhiWidget::msaa()
     QVERIFY(QTest::qWaitForWindowExposed(&w));
 
     QTRY_VERIFY(frameSpy.count() > 0);
+
+    if (api == QRhiWidget::Api::Vulkan && isAndroidSwiftShader(rhiWidget->rhi()))
+        QSKIP("SwiftShader renders and reads back unreliably (QTBUG-146930)");
     QCOMPARE(errorSpy.count(), 0);
 
     QCOMPARE(rhiWidget->sampleCount(), 4);
@@ -495,9 +512,9 @@ void tst_QRhiWidget::msaa()
         // Check that the center is a red pixel.
         const int maxFuzz = 1;
         QRgb c = result.pixel(result.width() / 2, result.height() / 2);
-        QVERIFY(qRed(c) >= 255 - maxFuzz);
-        QVERIFY(qGreen(c) <= maxFuzz);
-        QVERIFY(qBlue(c) <= maxFuzz);
+        QCOMPARE_GE(qRed(c), 255 - maxFuzz);
+        QCOMPARE_LE(qGreen(c), maxFuzz);
+        QCOMPARE_LE(qBlue(c), maxFuzz);
     }
 
     // See if switching back and forth works.
@@ -710,9 +727,9 @@ void tst_QRhiWidget::grabFramebufferWhileStillInvisible()
     QCOMPARE(errorSpy.count(), 0);
     if (api != QRhiWidget::Api::Null) {
         QRgb c = image.pixel(image.width() / 2, image.height() / 2);
-        QVERIFY(qRed(c) >= 255 - maxFuzz);
-        QVERIFY(qGreen(c) <= maxFuzz);
-        QVERIFY(qBlue(c) <= maxFuzz);
+        QCOMPARE_GE(qRed(c), 255 - maxFuzz);
+        QCOMPARE_LE(qGreen(c), maxFuzz);
+        QCOMPARE_LE(qBlue(c), maxFuzz);
     }
 
     // Make the window visible, this under the hood drops the QRhiWidget's
@@ -721,6 +738,9 @@ void tst_QRhiWidget::grabFramebufferWhileStillInvisible()
     w.show();
     QVERIFY(QTest::qWaitForWindowExposed(&w));
     QTRY_VERIFY(frameSpy.count() > 0);
+
+    if (api == QRhiWidget::Api::Vulkan && isAndroidSwiftShader(w.rhi()))
+        QSKIP("SwiftShader renders and reads back unreliably (QTBUG-146930)");
 
     QCOMPARE(errorSpy.count(), 0);
 
@@ -737,9 +757,9 @@ void tst_QRhiWidget::grabFramebufferWhileStillInvisible()
         else
             image = wrapperImage.copy();
         QRgb c = image.pixel(image.width() / 2, image.height() / 2);
-        QVERIFY(qRed(c) >= 255 - maxFuzz);
-        QVERIFY(qGreen(c) <= maxFuzz);
-        QVERIFY(qBlue(c) <= maxFuzz);
+        QCOMPARE_GE(qRed(c), 255 - maxFuzz);
+        QCOMPARE_LE(qGreen(c), maxFuzz);
+        QCOMPARE_LE(qBlue(c), maxFuzz);
     }
 }
 
@@ -760,6 +780,9 @@ void tst_QRhiWidget::grabViaQWidgetGrab()
     QVERIFY(QTest::qWaitForWindowExposed(&w));
     QTRY_VERIFY(frameSpy.count() > 0);
 
+    if (api == QRhiWidget::Api::Vulkan && isAndroidSwiftShader(w.rhi()))
+        QSKIP("SwiftShader renders and reads back unreliably (QTBUG-146930)");
+
     QImage image = w.grab().toImage();
 
     if (w.rhi()->backend() != QRhi::Null) {
@@ -767,9 +790,9 @@ void tst_QRhiWidget::grabViaQWidgetGrab()
         // but that won't matter for the test.
         QRgb c = image.pixel(image.width() / 2, image.height() / 2);
         const int maxFuzz = 1;
-        QVERIFY(qRed(c) >= 255 - maxFuzz);
-        QVERIFY(qGreen(c) <= maxFuzz);
-        QVERIFY(qBlue(c) <= maxFuzz);
+        QCOMPARE_GE(qRed(c), 255 - maxFuzz);
+        QCOMPARE_LE(qGreen(c), maxFuzz);
+        QCOMPARE_LE(qBlue(c), maxFuzz);
     }
 }
 
@@ -798,6 +821,9 @@ void tst_QRhiWidget::mirror()
     QVERIFY(QTest::qWaitForWindowExposed(&w));
 
     QTRY_VERIFY(frameSpy.count() > 0);
+
+    if (api == QRhiWidget::Api::Vulkan && isAndroidSwiftShader(rhiWidget->rhi()))
+        QSKIP("SwiftShader renders and reads back unreliably (QTBUG-146930)");
     QCOMPARE(errorSpy.count(), 0);
 
     frameSpy.clear();
@@ -829,10 +855,10 @@ void tst_QRhiWidget::mirror()
         } else {
             // remember that Vulkan is upside down due to not correcting for Y down in NDC
             // hence this is red
-            QVERIFY(qRed(c) >= 255 - maxFuzz);
-            QVERIFY(qGreen(c) <= maxFuzz);
+            QCOMPARE_GE(qRed(c), 255 - maxFuzz);
+            QCOMPARE_LE(qGreen(c), maxFuzz);
         }
-        QVERIFY(qBlue(c) <= maxFuzz);
+        QCOMPARE_LE(qBlue(c), maxFuzz);
     }
 }
 

@@ -10,20 +10,20 @@
 # pan93412 <pan93412@gmail.com>, 2018, 2019, 2020.
 # Franklin Weng <franklin at goodhorse dot idv dot tw>, 2007.
 # Frank Weng (a.k.a. Franklin) <franklin at goodhorse dot idv dot tw>, 2008, 2009, 2010.
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Kisaragi Hiu <mail@kisaragi-hiu.com>
+# SPDX-FileCopyrightText: 2022-2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmcolors\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-11-13 22:19+0900\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-03-16 16:58+0900\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Traditional Chinese <zh-l10n@lists.slat.org>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.11.70\n"
+"X-Generator: Lokalize 26.03.70\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #, kde-format
@@ -38,32 +38,32 @@ msgstr ""
 "shyue@sonoma.com.tw, pesder.liao@msa.hinet.net, s8321414@gmail.com, "
 "pan93412@gmail.com, mail@kisaragi-hiu.com"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "無法建立暫存檔。"
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "無法下載配色：%1"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "此檔案不是配色檔。"
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "'color-scheme' 資料夾建立失敗。"
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr "複製配色到 'color-scheme' 資料夾失敗。"
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "配色順利安裝成功。"
@@ -690,15 +690,16 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "您沒有覆寫該配色方案的權限"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr "這個方案是唯讀的。請用另一個名稱儲存您的變更。"
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "錯誤"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "非作用中"
@@ -1145,7 +1146,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "焦點"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1155,7 +1156,7 @@ msgstr ""
 "此工具讓您能為目前 Plasma 工作階段設定配色方案，而不會意外套用無法使用或是已"
 "經設定的配色方案。"
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
@@ -1164,14 +1165,14 @@ msgstr ""
 "您希望為目前 Plasma 工作階段設定的配色方案名稱（若輸入完整路徑，將只會使用它"
 "尾端的部分）"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
 "theme)"
 msgstr "顯示系統上可用的配色方案（以及目前使用的方案）"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1182,55 +1183,55 @@ msgstr ""
 "html#ColorKeywords) 與十六進位色碼。如果 shell 可能會把色碼當成註解的話，請記"
 "得加引號"
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
 "Plasma session."
 msgstr "您要求設定的配色主題「%1」已經是目前 Plasma 工作階段的配色主題了。"
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr "成功套用配色方案 %1 到您目前的 Plasma 工作階段"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 msgstr "找不到主題「%1」。主題應該要是以下選項之一：%2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
 "behavior."
 msgstr "您提供了空白的配色方案名稱，而這不被支援。"
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
 "a color scheme."
 msgstr "您嘗試設為配色的檔案 %1 看起來不是一個配色方案。"
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr "成功套用強調色 %1"
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, kde-format
 msgid "Invalid accent color "
 msgstr "無效的強調色"
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "您的系統中有下列的配色方案："
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr " * %1 (目前配色方案)"
@@ -1253,106 +1254,125 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "自訂強調色"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
 msgstr "未安裝配色「%1」。改選擇預設主題。"
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "所有配色方案"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "亮色配色"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "暗色配色"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "從檔案安裝…"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "取得新的…"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "視窗標題"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "視窗文字"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "按鈕"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "連結"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "已造訪"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "一般文字"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "突顯文字"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "停用文字"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "編輯配色方案…"
 
+#: ui/main.qml:311
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
+msgstr "移除配色方案"
+
+#: ui/main.qml:313
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "無法刪除作用中的配色方案"
+
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr "無法刪除系統安裝的配色方案"
+
 #: ui/main.qml:323
 #, kde-format
-msgid "Remove Color Scheme"
-msgstr "移除配色"
+msgid "Don’t delete this color scheme"
+msgstr "不要刪除這個配色方案"
 
-#: ui/main.qml:330
-#, kde-format
-msgid "Restore Color Scheme"
-msgstr "復原配色"
-
-#: ui/main.qml:374
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "開啟配色"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "配色檔案 (*.colors)"
+
+#~ msgid "You do not have permission to overwrite that scheme"
+#~ msgstr "您沒有覆寫該配色方案的權限"
+
+#~ msgid "Restore Color Scheme"
+#~ msgstr "復原配色"
 
 #~ msgid "Shading of frames and lighting (\"3D\") effects"
 #~ msgstr "影格與光源 (\"3D\") 效果的陰影"

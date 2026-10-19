@@ -225,7 +225,7 @@ enum { MaximumParamCount = 11 }; // up to 10 arguments + 1 return value
 #if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 /*!
     \since 4.5
-    \obsolete [6.5] Please use the variadic overload of this function
+    \obsolete [6.5] Please use the variadic overload of this function.
 
     Constructs a new instance of this class. You can pass up to ten arguments
     (\a val0, \a val1, \a val2, \a val3, \a val4, \a val5, \a val6, \a val7,
@@ -673,6 +673,8 @@ bool QMetaObjectPrivate::methodMatch(const QMetaObject *m, const QMetaMethod &me
         if (mt.isValid()) {
             if (mt == QMetaType(ifaces[i]))
                 continue;
+            if ((typeInfo & IsUnresolvedType) == 0 && mt.rawId() != int(typeInfo))
+                return false;
             if (mt.id() != typeFromTypeInfo(m, typeInfo))
                 return false;
         } else {
@@ -1533,8 +1535,9 @@ printMethodNotFoundWarning(const QMetaObject *meta, QByteArrayView name, qsizety
     \since 6.5
     \threadsafe
 
-    Invokes the \a member (a signal or a slot name) on the object \a
-    obj. Returns \c true if the member could be invoked. Returns \c false
+    Invokes a method registered in the Meta-Object System on the object \a obj,
+    identified by its name \a member. This includes slots, signals, and Q_INVOKABLE
+    methods. Returns \c true if the member could be invoked. Returns \c false
     if there is no such member or the parameters did not match.
 
     For the overloads with a QTemplatedMetaMethodReturnArgument parameter, the
@@ -1611,7 +1614,7 @@ printMethodNotFoundWarning(const QMetaObject *meta, QByteArrayView name, qsizety
 /*!
     \threadsafe
     \overload
-    \obsolete [6.5] Please use the variadic overload of this function
+    \obsolete [6.5] Please use the variadic overload of this function.
 
     Invokes the \a member (a signal or a slot name) on the object \a
     obj. Returns \c true if the member could be invoked. Returns \c false
@@ -1973,10 +1976,12 @@ QMetaMethod QMetaMethod::fromRelativeConstructorIndex(const QMetaObject *mobj, i
 
 /*!
     \macro Q_METAMETHOD_INVOKE_MAX_ARGS
+    \deprecated [6.13]
     \relates QMetaMethod
 
-    Equals maximum number of arguments available for
-    execution of the method via QMetaMethod::invoke()
+    Equals maximum number of arguments available for execution of the method
+    via the old implementation of QMetaMethod::invoke(). The new implementation
+    (since Qt 6.5) uses variadic arguments and does not have an upper limit.
  */
 
 QByteArray QMetaMethodPrivate::signature() const
@@ -2045,7 +2050,7 @@ QMetaMethodPrivate::checkMethodMetaTypeConsistency(const QtPrivate::QMetaTypeInt
     QMetaType mt(iface);
     if (iface) {
         if ((typeInfo & IsUnresolvedType) == 0)
-            Q_ASSERT(mt.id() == int(typeInfo & TypeNameIndexMask));
+            Q_ASSERT(mt.rawId() == int(typeInfo & TypeNameIndexMask));
         Q_ASSERT(mt.name());
     } else {
         // The iface can only be null for a parameter if that parameter is a
@@ -2225,7 +2230,7 @@ QByteArrayView QMetaMethod::nameView() const
 */
 int QMetaMethod::returnType() const
  {
-     return returnMetaType().id();
+     return returnMetaType().rawId();
 }
 
 /*!
@@ -2239,10 +2244,10 @@ QMetaType QMetaMethod::returnMetaType() const
     if (!mobj || methodType() == QMetaMethod::Constructor)
         return QMetaType{};
     auto mt = QMetaType(mobj->d.metaTypes[data.metaTypeOffset()]);
-    if (mt.id() == QMetaType::UnknownType)
-        return QMetaType(QMetaMethodPrivate::get(this)->returnType());
-    else
-        return mt;
+    if (!mt.isValid())
+        mt = QMetaType(QMetaMethodPrivate::get(this)->returnType());
+    mt.registerType();
+    return mt;
 }
 
 /*!
@@ -2271,7 +2276,7 @@ int QMetaMethod::parameterCount() const
 */
 int QMetaMethod::parameterType(int index) const
 {
-    return parameterMetaType(index).id();
+    return parameterMetaType(index).rawId();
 }
 
 /*!
@@ -2294,10 +2299,10 @@ QMetaType QMetaMethod::parameterMetaType(int index) const
     // + 1 if there exists a return type
     auto parameterOffset = index + (methodType() == QMetaMethod::Constructor ? 0 : 1);
     auto mt = QMetaType(mobj->d.metaTypes[data.metaTypeOffset() + parameterOffset]);
-    if (mt.id() == QMetaType::UnknownType)
-        return QMetaType(QMetaMethodPrivate::get(this)->parameterType(index));
-    else
-        return mt;
+    if (!mt.isValid())
+        mt = QMetaType(QMetaMethodPrivate::get(this)->parameterType(index));
+    mt.registerType();
+    return mt;
 }
 
 /*!
@@ -2635,7 +2640,7 @@ QMetaMethod QMetaMethod::fromSignalImpl(const QMetaObject *metaObject, void **si
 */
 
 /*!
-    \obsolete [6.5] Please use the variadic overload of this function
+    \obsolete [6.5] Please use the variadic overload of this function.
 
     Invokes this method on the object \a object. Returns \c true if the member could be invoked.
     Returns \c false if there is no such member or the parameters did not match.
@@ -2778,8 +2783,8 @@ auto QMetaMethodInvoker::invokeImpl(QMetaMethod self, void *target,
         if ((typeInfo & IsUnresolvedType) == 0) {
             // this is a built-in type
             if (MetaTypesAreOptional && !metaTypes)
-                return int(typeInfo) == QMetaType::fromName(userTypeName).id();
-            return int(typeInfo) == metaTypes[idx]->typeId;
+                return int(typeInfo) == QMetaType::fromName(userTypeName).rawId();
+            return int(typeInfo) == metaTypes[idx]->typeId.loadRelaxed();
         }
 
         QByteArrayView methodTypeName = stringDataView(priv->mobj, typeInfo & TypeNameIndexMask);
@@ -2950,7 +2955,7 @@ auto QMetaMethodInvoker::invokeImpl(QMetaMethod self, void *target,
                                  QGenericArgument val7 = QGenericArgument(),
                                  QGenericArgument val8 = QGenericArgument(),
                                  QGenericArgument val9 = QGenericArgument()) const
-    \obsolete [6.5] Please use the variadic overload of this function
+    \obsolete [6.5] Please use the variadic overload of this function.
     \overload invoke()
 
     This overload always invokes this method using the connection type Qt::AutoConnection.
@@ -2968,7 +2973,7 @@ auto QMetaMethodInvoker::invokeImpl(QMetaMethod self, void *target,
                                  QGenericArgument val7 = QGenericArgument(),
                                  QGenericArgument val8 = QGenericArgument(),
                                  QGenericArgument val9 = QGenericArgument()) const
-    \obsolete [6.5] Please use the variadic overload of this function
+    \obsolete [6.5] Please use the variadic overload of this function.
     \overload invoke()
 
     This overload can be used if the return value of the member is of no interest.
@@ -2986,7 +2991,7 @@ auto QMetaMethodInvoker::invokeImpl(QMetaMethod self, void *target,
                                  QGenericArgument val7 = QGenericArgument(),
                                  QGenericArgument val8 = QGenericArgument(),
                                  QGenericArgument val9 = QGenericArgument()) const
-    \obsolete [6.5] Please use the variadic overload of this function
+    \obsolete [6.5] Please use the variadic overload of this function.
     \overload invoke()
 
     This overload invokes this method using the
@@ -3020,7 +3025,7 @@ auto QMetaMethodInvoker::invokeImpl(QMetaMethod self, void *target,
 
 /*!
     \since 5.5
-    \obsolete [6.5] Please use the variadic overload of this function
+    \obsolete [6.5] Please use the variadic overload of this function.
 
     Invokes this method on a Q_GADGET. Returns \c true if the member could be invoked.
     Returns \c false if there is no such member or the parameters did not match.
@@ -3066,7 +3071,7 @@ bool QMetaMethod::invokeOnGadget(void *gadget,
             if (qstrcmp(normalized.constData(), retType) != 0) {
                 // String comparison failed, try compare the metatype.
                 int t = returnType();
-                if (t == QMetaType::UnknownType || t != QMetaType::fromName(normalized).id())
+                if (t == QMetaType::UnknownType || t != QMetaType::fromName(normalized).rawId())
                     return false;
             }
         }
@@ -3131,7 +3136,7 @@ bool QMetaMethod::invokeOnGadget(void *gadget,
                                          QGenericArgument val9 = QGenericArgument()) const
 
     \overload
-    \obsolete [6.5] Please use the variadic overload of this function
+    \obsolete [6.5] Please use the variadic overload of this function.
     \since 5.5
 
     This overload invokes this method for a \a gadget and ignores return values.
@@ -3253,7 +3258,9 @@ QMetaType QMetaEnum::metaType() const
         QMetaType();
 #endif
 
-    return QMetaType(mobj->d.metaTypes[data.index(mobj) + p->propertyCount]);
+    QMetaType mt(mobj->d.metaTypes[data.index(mobj) + p->propertyCount]);
+    mt.registerType();
+    return mt;
 }
 
 /*!
@@ -3801,7 +3808,7 @@ const char *QMetaProperty::typeName() const
 }
 
 /*! \fn QVariant::Type QMetaProperty::type() const
-    \deprecated
+    \deprecated [6.0]
 
     Returns this property's type. The return value is one
     of the values of the QVariant::Type enumeration.
@@ -3840,7 +3847,9 @@ QMetaType QMetaProperty::metaType() const
 {
     if (!mobj)
         return {};
-    return QMetaType(mobj->d.metaTypes[data.index(mobj)]);
+    QMetaType mt(mobj->d.metaTypes[data.index(mobj)]);
+    mt.registerType();
+    return mt;
 }
 
 int QMetaProperty::Data::index(const QMetaObject *mobj) const

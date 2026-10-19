@@ -1,0 +1,45 @@
+# Copyright (C) 2026 This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+#
+# SPDX-FileCopyrightText: 2026 Marcus Gama <marcus.gama@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-09-08 00:47+0000\n"
+"PO-Revision-Date: 2026-08-27 07:04-0300\n"
+"Last-Translator: Marcus Gama <marcus.gama@gmail.com>\n"
+"Language-Team: Portuguese <kde-i18n-pt_BR@kde.org>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Lokalize 26.08.0\n"
+
+#: kcm.cpp:666
+#, kde-format
+msgid "Failed to get secrets for %1"
+msgstr "Falha ao obter segredos para %1"
+
+#: kcm.cpp:692
+#, kde-format
+msgid "my_shared_connection"
+msgstr "minha_conexao_compartilhada"
+
+#: kcm.cpp:762
+#, kde-format
+msgid "Do you want to save changes made to the connection '%1'?"
+msgstr "Deseja salvar as alterações feitas na conexão '%1'?"
+
+#: kcm.cpp:765
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Changes"
+msgstr "Salvar alterações"
+
+#: kcm.cpp:794
+#, kde-format
+msgctxt "Suffix appended to duplicated connection name"
+msgid " (Copy)"
+msgstr " (Copiar)"

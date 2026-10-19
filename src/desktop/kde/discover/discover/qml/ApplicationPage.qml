@@ -40,8 +40,6 @@ DiscoverPage {
     readonly property bool isTechnicalPackage: application.type == Discover.AbstractResource.ApplicationSupport
                                             || application.type == Discover.AbstractResource.System
 
-    readonly property int smallButtonSize: Kirigami.Units.iconSizes.small + (Kirigami.Units.smallSpacing * 2)
-
     function colorForLicenseType(licenseType: string): string {
         switch(licenseType) {
             case "free":
@@ -66,7 +64,7 @@ DiscoverPage {
         switch(licenseType) {
             case "proprietary":
                 if (hasHomepageUrl) {
-                    return xi18nc("@info", "Only install %1 if you fully trust its authors because it is <emphasis strong='true'>proprietary</emphasis>: Your freedom to use, modify, and redistribute this application is restricted, and its source code is partially or entirely closed to public inspection and improvement. This means third parties and users like you cannot verify its operation, security, and trustworthiness.<nl/><nl/>The application may be perfectly safe to use, or it may be acting against you in various ways — such as harvesting your personal information, tracking your location, or transmitting the contents of your data to someone else. Only use it if you fully trust its authors. More information may be available on <link url='%2'>the application's website</link>.<nl/><nl/>Learn more at <link url='%3'>%3</link>.",
+                    return xi18nc("@info", "Only install %1 if you fully trust its authors because it is <emphasis strong='true'>proprietary</emphasis>: Your freedom to use, modify, and redistribute this application is restricted, and its source code is partially or entirely closed to public inspection and improvement. This means third parties and users like you cannot verify its operation, security, and trustworthiness.<nl/><nl/>The application may be perfectly safe to use, or it may be acting against you in various ways — such as harvesting your personal information, tracking your location, or transmitting the contents of your data to someone else. Only use it if you fully trust its authors. More information may be available on <link url='%2'>the application’s website</link>.<nl/><nl/>Learn more at <link url='%3'>%3</link>.",
                                 appInfo.application.name,
                                 appInfo.application.homepage.toString(),
                                 proprietarySoftwareUrl)
@@ -78,7 +76,7 @@ DiscoverPage {
 
             case "non-free":
                 if (hasHomepageUrl) {
-                    return xi18nc("@info", "%1 uses one or more licenses not certified as “Free Software” by either the <link url='%2'>Free Software Foundation</link> or the <link url='%3'>Open Source Initiative</link>. This means your freedom to use, study, modify, and share it may be restricted in some ways.<nl/><nl/>Make sure to read the license text and understand any restrictions before using the software.<nl/><nl/>If the license does not even grant access to read the source code, make sure you fully trust the authors, as no one else can verify the trustworthiness and security of its code to ensure that it is not acting against you in hidden ways. More information may be available on <link url='%4'>the application's website</link>.<nl/><nl/>Learn more at <link url='%5'>%5</link>.",
+                    return xi18nc("@info", "%1 uses one or more licenses not certified as “Free Software” by either the <link url='%2'>Free Software Foundation</link> or the <link url='%3'>Open Source Initiative</link>. This means your freedom to use, study, modify, and share it may be restricted in some ways.<nl/><nl/>Make sure to read the license text and understand any restrictions before using the software.<nl/><nl/>If the license does not even grant access to read the source code, make sure you fully trust the authors, as no one else can verify the trustworthiness and security of its code to ensure that it is not acting against you in hidden ways. More information may be available on <link url='%4'>the application’s website</link>.<nl/><nl/>Learn more at <link url='%5'>%5</link>.",
                                 appInfo.application.name,
                                 fsfUrl,
                                 osiUrl,
@@ -94,11 +92,11 @@ DiscoverPage {
 
             case "unknown":
                 if (hasHomepageUrl) {
-                    return xi18nc("@info", "%1 does not indicate under which license it is distributed. You may be able to determine this on <link url='%2'>the application's website</link>. Find it there or contact the author if you want to use this application for anything other than private personal use.",
+                    return xi18nc("@info", "%1 does not indicate under which license it is distributed. You may be able to determine this on <link url='%2'>the application’s website</link>. Find it there or contact the author if you want to use this application for anything other than private personal use.",
                                  appInfo.application.name,
                                  appInfo.application.homepage.toString());
                 } else {
-                    return i18nc("@info", "%1 does not indicate under which license it is distributed. Contact the application's author if you want to use it for anything other than private personal use.",
+                    return i18nc("@info", "%1 does not indicate under which license it is distributed. Contact the application’s author if you want to use it for anything other than private personal use.",
                                  appInfo.application.name);
                 }
 
@@ -127,8 +125,6 @@ DiscoverPage {
     actions: [
         addonsAction,
         shareAction,
-        installRemoveAndProgressAction,
-        invokeAction,
         originsMenuAction
     ]
 
@@ -164,7 +160,37 @@ DiscoverPage {
         id: originsMenuAction
 
         text: i18nc("@item:inlistbox %1 is the name of an app source e.g. \"Flathub\" or \"Ubuntu\"", "From %1", appInfo.application.displayOrigin)
-        visible: children.length > 1 && !transactionListener.isActive
+
+        property int maxChildren: 0
+        onChildrenChanged: {
+            if (children.length > maxChildren) {
+                maxChildren = children.length;
+            }
+        }
+        visible: {
+            /* HACK: When we change source, ResourcesProxyModel acts in such a
+             * way that the number of children decreases to 0 and then increases
+             * back up (e.g. 2 -> 1 -> 0 -> 1 -> 2).
+             *
+             * This results in the action toggling visiblity, and for the
+             * dependant install button to think there's only a single source
+             * and change button text, for several frames.
+             *
+             * We paper over this here by remembering the max child count and
+             * keeping the existing visible value if we drop below it.
+             *
+             * I don't believe that the number of sources can actually change
+             * whilst the page is open, but if it does, this is surely rarer
+             * than the UI upset caused by changing source.
+             */
+            if (children.length < originsMenuAction.maxChildren) {
+                // Keep previous
+                return originsMenuAction.visible;
+            }
+
+            return children.length > 1;
+        }
+
         children: sourcesGroup.actions
     }
 
@@ -187,25 +213,6 @@ DiscoverPage {
             onTriggered: {
                 appInfo.application = model.application
             }
-        }
-    }
-
-    Kirigami.Action {
-        id: invokeAction
-        visible: application.isInstalled && application.canExecute && !transactionListener.isActive
-        text: application.executeLabel
-        icon.name: "media-playback-start-symbolic"
-        onTriggered: application.invokeApplication()
-    }
-
-    Kirigami.Action {
-        id: installRemoveAndProgressAction
-        displayComponent: InstallApplicationButton {
-            id: appbutton
-            application: appInfo.application
-            buttonActiveFocusOnTab: true
-            availableFromOnlySingleSource: appInfo.availableFromOnlySingleSource
-            flat: true
         }
     }
 
@@ -250,313 +257,29 @@ DiscoverPage {
         }
         spacing: appInfo.internalSpacings
 
-        // Colored header with app icon, name, and metadata
-        Rectangle {
-            Layout.fillWidth: true
-
-            // Undo page paddings so that the header touches the edges. We don't
-            // want it to actually be in the header: area since then it wouldn't
-            // scroll away, which we do want.
+        ApplicationPageStickyHeader {
+            id: stickyHeader
             Layout.topMargin: -appInfo.topPadding
-            Layout.leftMargin: -appInfo.leftPadding
-            Layout.rightMargin: -appInfo.rightPadding
 
-            implicitHeight: headerLayout.implicitHeight + (headerLayout.anchors.topMargin * 2)
+            flickable: appInfo.flickable
             color: Kirigami.ColorUtils.tintWithAlpha(Kirigami.Theme.backgroundColor, appImageColorExtractor.dominant, 0.1)
 
-            GridLayout {
-                id: headerLayout
+            fullComponent: ApplicationPageFullComponent {
+                application: appInfo.application
+                availableFromOnlySingleSource: appInfo.availableFromOnlySingleSource
+                isOfflineUpgrade: appInfo.isOfflineUpgrade
+                isTechnicalPackage: appInfo.isTechnicalPackage
+                colorForLicenseType: (licenseType) => appInfo.colorForLicenseType(licenseType)
 
-                readonly property bool hasMetadata: appMetadataLayout.visible
-                readonly property int effectiveBasicInfoWidth: appBasicInfoLayout.implicitWidth
-                readonly property int effectiveMetadataWidth: hasMetadata ? appMetadataLayout.implicitWidth + columnSpacing : 0
-                readonly property int effectiveSpaceAvailable: pageLayout.width - anchors.leftMargin - anchors.rightMargin
-
-                readonly property bool stackedMode: hasMetadata && (effectiveBasicInfoWidth + effectiveMetadataWidth > effectiveSpaceAvailable)
-
-                columns: stackedMode || !hasMetadata ? 1 : 2
-                rows: stackedMode ? 2 : 1
-                columnSpacing: 0
-                rowSpacing: appInfo.padding
-
-                anchors {
-                    top: parent.top
-                    topMargin: appInfo.padding
-                    left: parent.left
-                    leftMargin: appInfo.padding
-                    right: parent.right
-                    rightMargin: appInfo.padding
-                }
-
-
-                // App icon, name, author, and rating
-                RowLayout {
-                    id: appBasicInfoLayout
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: headerLayout.stackedMode ? headerLayout.implicitWidth : -1
-                    Layout.alignment: headerLayout.stackedMode ? Qt.AlignHCenter : Qt.AlignLeft
-                    spacing: appInfo.padding
-
-                    // App icon
-                    Kirigami.Icon {
-                        implicitWidth: Kirigami.Units.iconSizes.huge
-                        implicitHeight: Kirigami.Units.iconSizes.huge
-                        source: appInfo.application.icon
-                    }
-
-                    // App name, author, and rating
-                    ColumnLayout {
-
-                        spacing: 0
-
-                        // App name
-                        Kirigami.Heading {
-                            Layout.fillWidth: true
-                            text: appInfo.application.name
-                            type: Kirigami.Heading.Type.Primary
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 5
-                            elide: Text.ElideRight
-                        }
-
-                        // Author (for apps) or upgrade info (for offline upgrades). Verification check
-                        RowLayout {
-                            Layout.fillWidth: true
-
-                            QQC2.Label {
-                                id: author
-
-                                visible: text.length > 0
-
-                                text: {
-                                    if (appInfo.isOfflineUpgrade) {
-                                        return appInfo.application.upgradeText.length > 0 ? appInfo.application.upgradeText : "";
-                                    } else if (appInfo.application.author.length > 0) {
-                                        return appInfo.application.author;
-                                    } else {
-                                        return i18n("Unknown author");
-                                    }
-                                }
-                                wrapMode: Text.Wrap
-                                maximumLineCount: 5
-                                elide: Text.ElideRight
-                            }
-
-                            Kirigami.Icon {
-                                visible: verifiedTooltip.QQC2.ToolTip.text.length > 0
-                                source: appInfo.application.verifiedIconName
-                                Layout.maximumHeight: author.contentHeight
-                                Layout.fillHeight: true
-
-                                QQC2.Control {
-                                    id: verifiedTooltip
-                                    anchors.fill: parent
-
-                                    QQC2.ToolTip.text: appInfo.application.verifiedMessage
-                                    QQC2.ToolTip.visible: (Kirigami.Settings.tabletMode ? pressed : hovered) && QQC2.ToolTip.text !== ""
-                                    QQC2.ToolTip.delay: Kirigami.Settings.tabletMode ? Qt.styleHints.mousePressAndHoldInterval : Kirigami.Units.toolTipDelay
-                                }
-                            }
-                        }
-
-                        // Rating
-                        RowLayout {
-                            visible: !appInfo.isTechnicalPackage
-
-                            Rating {
-                                value: appInfo.application.rating.rating
-                                starSize: author.font.pointSize
-                                precision: Rating.Precision.HalfStar
-                            }
-
-                            QQC2.Label {
-                                text: appInfo.application.rating ? i18np("%1 rating", "%1 ratings", appInfo.application.rating.ratingCount) : i18n("No ratings yet")
-                            }
-                        }
-                    }
-                }
-
-                // Metadata
-                // Not using Kirigami.FormLayout here because we never want it to move into Mobile
-                // mode and we also want to customize the spacing, neither of which it lets us do
-                GridLayout {
-                    id: appMetadataLayout
-
-                    Layout.alignment: headerLayout.stackedMode ? Qt.AlignHCenter : Qt.AlignRight
-
-                    columns: 2
-                    rows: Math.ceil(appMetadataLayout.visibleChildren.count / 2)
-                    columnSpacing: Kirigami.Units.smallSpacing
-                    rowSpacing: 0
-
-                    // Not relevant to offline updates
-                    visible: !appInfo.isOfflineUpgrade
-
-                    // Version
-                    QQC2.Label {
-                        text: i18n("Version:")
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    QQC2.Label {
-                        text: appInfo.application.versionString
-                        wrapMode: Text.Wrap
-                        maximumLineCount: 3
-                        elide: Text.ElideRight
-                    }
-
-                    // Size
-                    QQC2.Label {
-                        text: i18n("Size:")
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    QQC2.Label {
-                        text: appInfo.application.sizeDescription
-                        wrapMode: Text.Wrap
-                        maximumLineCount: 3
-                        elide: Text.ElideRight
-                    }
-
-                    // Licenses
-                    QQC2.Label {
-                        text: i18np("License:", "Licenses:", appInfo.application.licenses.length)
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    RowLayout {
-                        id: licenseRowLayout
-                        spacing: Kirigami.Units.smallSpacing
-
-                        readonly property string infoButtonToolTipText: i18nc("@info:tooltip for button opening license type description", "What does this mean?")
-
-                        QQC2.Label {
-                            visible : appInfo.application.licenses.length === 0
-                            text: i18nc("The app does not provide any licenses", "Unknown")
-                            wrapMode: Text.Wrap
-                            elide: Text.ElideRight
-                            color: appInfo.colorForLicenseType("unknown")
-                        }
-
-
-                        // Button to open the license details dialog if license is empty
-                        QQC2.Button {
-                            Layout.preferredWidth: appInfo.smallButtonSize
-                            Layout.preferredHeight: appInfo.smallButtonSize
-                            visible : appInfo.application.licenses.length === 0
-                            icon.name: "help-contextual"
-                            onClicked: licenseDetailsDialog.openWithLicenseType("unknown");
-
-                            QQC2.ToolTip {
-                                text: licenseRowLayout.infoButtonToolTipText
-                            }
-                        }
-
-                        Repeater {
-                            visible: appInfo.application.licenses.length > 0
-                            model: appInfo.application.licenses.slice(0, 2)
-                            delegate: RowLayout {
-                                id: delegate
-
-                                required property var modelData
-                                required property int index
-
-                                spacing: Kirigami.Units.smallSpacing
-
-                                RowLayout {
-                                    spacing: 0
-                                    Kirigami.UrlButton {
-                                        // Override some things to keep the right appearance for non-free licenses with no URL.
-                                        readonly property bool hasUrl: url !== ""
-                                        enabled: true
-                                        font.underline: hasUrl
-                                        acceptedButtons: hasUrl ? Qt.LeftButton : Qt.NoButton
-                                        mouseArea.cursorShape: hasUrl ? Qt.PointingHandCursor : undefined
-
-                                        text: delegate.modelData.name
-                                        url: delegate.modelData.url
-                                        horizontalAlignment: Text.AlignHCenter
-                                        verticalAlignment: Text.AlignTop
-                                        wrapMode: Text.Wrap
-                                        maximumLineCount: 3
-                                        elide: Text.ElideRight
-                                        normalColor: appInfo.colorForLicenseType(delegate.modelData.licenseType)
-                                    }
-                                    QQC2.Label {
-                                        readonly property int licensesCount: appInfo.application.licenses.length
-                                        text: i18nc("Separator between license labels e.g. 'GPL-3.0, Proprietary'", ",")
-                                        visible: delegate.index <= (licensesCount - 2)
-                                    }
-                                }
-
-                                // Button to open the license details dialog
-                                QQC2.Button {
-                                    Layout.preferredWidth: appInfo.smallButtonSize
-                                    Layout.preferredHeight: appInfo.smallButtonSize
-                                    visible: delegate.modelData.licenseType === "unknown"
-                                          || delegate.modelData.licenseType === "non-free"
-                                          || delegate.modelData.licenseType === "proprietary"
-                                    icon.name: "help-contextual"
-                                    onClicked: licenseDetailsDialog.openWithLicenseType(delegate.modelData.licenseType);
-
-                                    QQC2.ToolTip {
-                                        text: i18n(licenseRowLayout.infoButtonToolTipText)
-                                    }
-                                }
-                            }
-                        }
-
-                        // "See More licenses" link, in case there are a lot of them
-                        Kirigami.LinkButton {
-                            visible: application.licenses.length > 3
-                            text: i18nc("Show all licenses of the package", "See more…")
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignTop
-                            elide: Text.ElideRight
-                            onClicked: allLicensesSheet.open();
-                        }
-                    }
-
-                    // Content Rating
-                    QQC2.Label {
-                        Layout.alignment: Qt.AlignRight
-                        visible: !appInfo.isTechnicalPackage
-                        text: i18nc("@label The app is suitable for people of the following ages or older", "Ages:")
-                    }
-                    RowLayout {
-                        spacing: Kirigami.Units.smallSpacing
-                        visible: !appInfo.isTechnicalPackage
-
-                        QQC2.Label {
-                            text: application.contentRatingMinimumAge === 0
-                                ? i18nc("@item As in, the app is suitable for everyone", "Everyone")
-                                : i18nc("@item %1 is a person's age in number of years",
-                                        "%1+", appInfo.application.contentRatingMinimumAge)
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignTop
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 3
-                            elide: Text.ElideRight
-                        }
-
-                        // Button to open the content rating details dialog
-                        QQC2.Button {
-                            Layout.preferredWidth: appInfo.smallButtonSize
-                            Layout.preferredHeight: appInfo.smallButtonSize
-                            visible: appInfo.application.contentRatingDescription.length > 0
-                            icon.name: "help-contextual"
-                            text: i18n("See details")
-                            display: QQC2.AbstractButton.IconOnly
-                            onClicked: contentRatingDialog.open()
-
-                            QQC2.ToolTip {
-                                text: parent.text
-                            }
-                        }
-                    }
-                }
+                onOpenContentRatingDialog: contentRatingDialog.open()
+                onOpenLicenseDetailsDialog: (licenseType) => licenseDetailsDialog.openWithLicenseType(licenseType)
+                onOpenAllLicensesSheet: allLicensesSheet.open()
             }
 
-            Kirigami.Separator {
-                width: parent.width
-                anchors.top: parent.bottom
+            stickyComponent: ApplicationPageStickyComponent {
+                application: appInfo.application
+                availableFromOnlySingleSource: appInfo.availableFromOnlySingleSource
+                isOfflineUpgrade: appInfo.isOfflineUpgrade
             }
         }
 
@@ -710,7 +433,7 @@ DiscoverPage {
             visible: changelogLabel.visible
 
             Kirigami.Heading {
-                text: i18n("What's New")
+                text: i18n("What’s New")
                 level: 2
                 type: Kirigami.Heading.Type.Primary
                 wrapMode: Text.Wrap
@@ -836,6 +559,10 @@ DiscoverPage {
                                                 + (donateButton.visible ? 1 : 0)
                                                 + (bugButton.visible ? 1 : 0)
                                                 + (contributeButton.visible ? 1 : 0)
+                                                + (faqButton.visible ? 1 : 0)
+                                                + (translateButton.visible ? 1 : 0)
+                                                + (contactButton.visible ? 1 : 0)
+                                                + (vcsBrowserButton.visible ? 1 : 0)
             visible: visibleButtons > 0 && !appInfo.isTechnicalPackage
 
             spacing: Kirigami.Units.smallSpacing
@@ -853,24 +580,35 @@ DiscoverPage {
                 spacing: Kirigami.Units.largeSpacing
 
                 ApplicationResourceButton {
+                    id: faqButton
+
+                    visible: website.length > 0
+
+                    icon: "question-symbolic"
+                    website: application.faqURL.toString()
+                    linkText: i18nc("@info text of a web URL", "Read the FAQ")
+                }
+
+                ApplicationResourceButton {
                     id: helpButton
 
                     visible: website.length > 0
 
                     icon: "documentation-symbolic"
                     website: application.helpURL.toString()
-                    linkText: i18nc("@info text of a web URL", "Read the documentation")
+                    linkText: i18nc("@info text of a web URL", faqButton.visible
+                        ? "Read the full documentation"
+                        : "Read the documentation")
                 }
 
                 ApplicationResourceButton {
                     id: homepageButton
 
-
                     visible: website.length > 0
 
                     icon: "internet-services-symbolic"
                     website: application.homepage.toString()
-                    linkText: i18nc("@info text of a web URL", "Visit the project's website")
+                    linkText: i18nc("@info text of a web URL", "Visit the project’s website")
                 }
 
                 ApplicationResourceButton {
@@ -901,6 +639,36 @@ DiscoverPage {
                     icon: "applications-development-symbolic"
                     website: application.contributeURL.toString()
                     linkText: i18nc("@info text of a web URL", "Start contributing")
+                }
+
+                ApplicationResourceButton {
+                    id: translateButton
+
+                    visible: website.length > 0
+
+                    icon: "translate-symbolic"
+                    website: application.translateURL.toString()
+                    linkText: i18nc("@info text of a web URL", "Help with translations")
+                }
+
+                ApplicationResourceButton {
+                    id: contactButton
+
+                    visible: website.length > 0
+
+                    icon: "mail-message-new-symbolic"
+                    website: application.contactURL.toString()
+                    linkText: i18nc("@info text of a web URL", "Contact the developers")
+                }
+
+                ApplicationResourceButton {
+                    id: vcsBrowserButton
+
+                    visible: website.length > 0
+
+                    icon: "folder-git-symbolic"
+                    website: application.vcsBrowserURL.toString()
+                    linkText: i18nc("@info text of a web URL", "Browse the source code")
                 }
             }
         }

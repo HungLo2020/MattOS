@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: purpose\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:49+0000\n"
+"POT-Creation-Date: 2026-09-11 00:42+0000\n"
 "PO-Revision-Date: 2023-05-08 03:24+0100\n"
 "Last-Translator: Oliver Kellogg <olivermkellogg@gmail.com>\n"
 "Language-Team: Esperanto <kde-i18n-eo@kde.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Choose a device to send to:"
 msgstr "Elektu aparaton al kie sendi:"
 
-#: bluetoothplugin_config.qml:62
+#: bluetoothplugin_config.qml:72
 #, kde-format
 msgid "No devices found"
 msgstr "Trovis neniujn aparatojn"

@@ -7,6 +7,7 @@
 
 #include <qpa/qplatformwindow.h>
 #include <qpa/qplatformwindow_p.h>
+#include <QtGui/private/qwindow_p.h>
 #include <QRect>
 #include <QPointer>
 
@@ -80,8 +81,9 @@ public:
 
     void setGeometry(const QRect &rect) override;
     QRect geometry() const override;
+    QRect actualGeometry() const;
     QRect normalGeometry() const override;
-    void setCocoaGeometry(const QRect &rect);
+    void setGeometry(const QRect &rect, QWindowPrivate::PositionPolicy positionPolicy);
 
     QMargins safeAreaMargins() const override;
 
@@ -120,8 +122,6 @@ public:
     NSView *view() const;
     NSWindow *nativeWindow() const;
 
-    void setEmbeddedInForeignView();
-
     Q_NOTIFICATION_HANDLER(NSViewFrameDidChangeNotification) void viewDidChangeFrame();
     Q_NOTIFICATION_HANDLER(NSViewGlobalFrameDidChangeNotification) void viewDidChangeGlobalFrame();
 
@@ -142,13 +142,16 @@ public:
     Q_NOTIFICATION_HANDLER(NSWindowDidChangeOcclusionStateNotification) void windowDidChangeOcclusionState();
     Q_NOTIFICATION_HANDLER(NSWindowDidChangeScreenNotification) void windowDidChangeScreen();
 
+    void viewDidMoveToSuperview(NSView *previousSuperview);
+    void viewDidMoveToWindow(NSWindow *previousWindow);
+
     void windowWillZoom();
 
     bool windowShouldClose();
     bool windowIsPopupType(Qt::WindowType type = Qt::Widget) const;
 
     NSInteger windowLevel(Qt::WindowFlags flags);
-    NSUInteger windowStyleMask(Qt::WindowFlags flags);
+    NSUInteger windowStyleMask(Qt::WindowFlags flags) const;
     void updateTitleBarButtons(Qt::WindowFlags flags);
     bool isFixedSize() const;
 
@@ -165,12 +168,6 @@ public:
 
     void registerTouch(bool enable);
 
-    void registerContentBorderArea(quintptr identifier, int upper, int lower);
-    void setContentBorderAreaEnabled(quintptr identifier, bool enable);
-    void setContentBorderEnabled(bool enable) override;
-    bool testContentBorderAreaPosition(int position) const;
-    void applyContentBorderThickness(NSWindow *window = nullptr);
-
     qreal devicePixelRatio() const override;
     QWindow *childWindowAt(QPoint windowPoint);
     bool shouldRefuseKeyWindowAndFirstResponder();
@@ -181,23 +178,22 @@ public:
 
     void updateNormalGeometry();
 
-    enum RecreationReason {
-        RecreationNotNeeded = 0,
-        ParentChanged = 0x1,
-        MissingWindow = 0x2,
-        WindowModalityChanged = 0x4,
-        ContentViewChanged = 0x10,
-        PanelChanged = 0x20,
-    };
-    Q_DECLARE_FLAGS(RecreationReasons, RecreationReason)
-    Q_FLAG(RecreationReasons)
+    void recreateWindowIfNeeded();
 
     bool allowsIndependentThreadedRendering() const override;
 
-protected:
-    void recreateWindowIfNeeded();
-    QCocoaNSWindow *createNSWindow(bool shouldBePanel);
+    QPoint mapToGlobal(const QPoint &pos) const override;
+    QPoint mapFromGlobal(const QPoint &pos) const override;
 
+    // Maps between Qt coordinates and potentially non-flipped NSView coordinates
+    static CGPoint mapToNative(const QPointF &pos, NSView *referenceView);
+    static CGRect mapToNative(const QRectF &rect, NSView *referenceView);
+    static QPointF mapFromNative(CGPoint pos, NSView *referenceView);
+    static QRectF mapFromNative(CGRect rect, NSView *referenceView);
+
+    QCocoaNSWindow *createNSWindow();
+
+protected:
     Qt::WindowStates windowState() const;
     void applyWindowState(Qt::WindowStates newState);
     void toggleMaximized();
@@ -212,6 +208,7 @@ public: // for QNSView
     friend class QCocoaNativeInterface;
 
     bool isContentView() const;
+    Class windowClass() const;
 
     bool alwaysShowToolWindow() const;
 
@@ -236,10 +233,8 @@ public: // for QNSView
     QFlatMap<quintptr, NSVisualEffectView*> m_effectViews;
 
     NSView *m_view = nil;
-    QCocoaNSWindow *m_nsWindow = nil;
 
     Qt::WindowStates m_lastReportedWindowState = Qt::WindowNoState;
-    Qt::WindowModality m_windowModality = Qt::NonModal;
 
     static QPointer<QCocoaWindow> s_windowUnderMouse;
 
@@ -264,21 +259,10 @@ public: // for QNSView
     static const int NoAlertRequest;
     NSInteger m_alertRequest = NoAlertRequest;
 
-    bool m_drawContentBorderGradient = false;
-
-    struct BorderRange {
-        BorderRange(quintptr i, int u, int l) : identifier(i), upper(u), lower(l) { }
-        quintptr identifier;
-        int upper;
-        int lower;
-        bool operator<(BorderRange const& right) const {
-              return upper < right.upper;
-        }
-    };
-    QHash<quintptr, BorderRange> m_contentBorderAreas; // identifier -> uppper/lower
-    QHash<quintptr, bool> m_enabledContentBorderAreas; // identifier -> enabled state (true/false)
-
     bool m_deliveringUpdateRequest = false;
+
+    bool m_isEmbedded = false;
+    void updateEmbeddedState();
 
     static inline id s_globalMouseMonitor = 0;
     static inline id s_applicationActivationObserver = 0;

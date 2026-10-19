@@ -7,7 +7,11 @@
 
 qt_internal_add_qml_module(LabsStyleKit
     URI Qt.labs.StyleKit
-    IMPORTS QtQuick.Controls.Basic
+    VERSION "${PROJECT_VERSION}"
+    DEPENDENCIES
+        QtQuick/auto
+    IMPORTS
+        QtQuick.Controls.Basic/auto
     SOURCES
         qqstylekit_p.h qqstylekit.cpp
         qqstylekitanimation.cpp
@@ -33,23 +37,39 @@ qt_internal_add_qml_module(LabsStyleKit
         QT_NO_CAST_TO_ASCII
     QML_FILES
         ApplicationWindow.qml
+        BusyIndicator.qml
         Button.qml
         CheckBox.qml
+        CheckDelegate.qml
         ComboBox.qml
+        DelayButton.qml
+        Dial.qml
+        Dialog.qml
+        DialogButtonBox.qml
         Frame.qml
         ItemDelegate.qml
+        Menu.qml
+        MenuBar.qml
+        MenuBarItem.qml
+        MenuItem.qml
+        MenuSeparator.qml
+        PageIndicator.qml
         ProgressBar.qml
         RadioButton.qml
+        RadioDelegate.qml
+        RoundButton.qml
         RangeSlider.qml
         ScrollBar.qml
         ScrollIndicator.qml
         ScrollView.qml
+        SearchField.qml
         Slider.qml
         Style.qml
-        StyledItem.qml
         StyleAnimation.qml
         SpinBox.qml
+        SwipeDelegate.qml
         Switch.qml
+        SwitchDelegate.qml
         TextField.qml
         TabBar.qml
         TabButton.qml
@@ -64,6 +84,7 @@ qt_internal_add_qml_module(LabsStyleKit
         TextArea.qml
     LIBRARIES
         Qt6::GuiPrivate
+        Qt6::Qml
         Qt6::Quick
         Qt6::QuickPrivate
         Qt6::QuickTemplates2
@@ -77,3 +98,22 @@ qt_internal_add_docs(LabsStyleKit
 
 # impl links to QuickStyleKit, so it must be built after it
 add_subdirectory(impl)
+
+if(TARGET Qt::Widgets)
+    qt_internal_extend_target(LabsStyleKit
+        SOURCES
+            widgets/qstylekitstyle.h widgets/qstylekitstyle_p.h widgets/qstylekitstyle.cpp
+        PUBLIC_LIBRARIES
+            Qt::Widgets
+        LIBRARIES
+            Qt::WidgetsPrivate
+            Qt::Qml
+            Qt::QmlPrivate
+    )
+    # The style plugin (widgets/plugin) is intentionally not built
+    # during TP phase. As a widget style plugin it would be discoverable
+    # by every Qt Widgets application through QStyleFactory::keys() and
+    # also cause deployment bloat by pulling in QtQuick/QML stack into widget
+    # apps that didn't opt in. Use QStyleKitStyle directly instead.
+    # add_subdirectory(widgets/plugin)
+endif()

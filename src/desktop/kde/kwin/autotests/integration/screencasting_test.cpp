@@ -38,14 +38,13 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_buffer_size_change-0");
-
 class ScreencastingTest : public GenericSceneOpenGLTest
 {
     Q_OBJECT
+
 public:
     ScreencastingTest()
-        : GenericSceneOpenGLTest(QByteArrayLiteral("O2"))
+        : GenericSceneOpenGLTest()
     {
         auto wrap = [this](const QString &process, const QStringList &arguments = {}) {
             // Make sure PipeWire is running. If it's already running it will just exit
@@ -110,8 +109,8 @@ std::optional<QImage> ScreencastingTest::oneFrameAndClose(Test::ScreencastingStr
     connect(stream, &Test::ScreencastingStreamV1::closed, qGuiApp, [&pwStream] {
         pwStream.setActive(false);
     });
-    connect(stream, &Test::ScreencastingStreamV1::created, qGuiApp, [&pwStream](quint32 nodeId) {
-        pwStream.createStream(nodeId, 0);
+    connect(stream, &Test::ScreencastingStreamV1::created, qGuiApp, [&pwStream](quint64 serial) {
+        pwStream.createStream(serial, 0);
     });
 
     std::optional<QImage> img;
@@ -141,7 +140,7 @@ void ScreencastingTest::testWindowCasting()
     std::optional<QImage> img = oneFrameAndClose(stream);
     QVERIFY(img);
     img->convertTo(sourceImage.format());
-    QCOMPAREIMG(*img, sourceImage, QLatin1String("window_cast"));
+    QCOMPAREIMG(*img, sourceImage, QLatin1StringView("window_cast"));
 }
 
 void ScreencastingTest::testWindowWithPopup()
@@ -173,7 +172,7 @@ void ScreencastingTest::testWindowWithPopup()
     std::optional<QImage> img = oneFrameAndClose(stream.get());
     QVERIFY(img);
     img->convertTo(expectedImage.format());
-    QCOMPAREIMG(*img, expectedImage, QLatin1String("window_popup"));
+    QCOMPAREIMG(*img, expectedImage, QLatin1StringView("window_popup"));
 }
 
 void ScreencastingTest::testWindowWithPopupDynamic()
@@ -194,7 +193,7 @@ void ScreencastingTest::testWindowWithPopupDynamic()
     });
     QSignalSpy createdSpy(stream.get(), &Test::ScreencastingStreamV1::created);
     QVERIFY(createdSpy.wait());
-    pwStream.createStream(createdSpy.first().first().toUInt(), 0);
+    pwStream.createStream(createdSpy.first().first().value<quint64>(), 0);
 
     auto fetchNextImageFrame = [&pwStream](QImage::Format format) {
         QSignalSpy frameSpy(&pwStream, &PipeWireSourceStream::frameReceived);
@@ -262,7 +261,7 @@ void ScreencastingTest::testOutputCasting()
     std::optional<QImage> img = oneFrameAndClose(stream);
     QVERIFY(img);
     img->convertTo(sourceImage.format());
-    QCOMPAREIMG(*img, sourceImage, QLatin1String("output_cast"));
+    QCOMPAREIMG(*img, sourceImage, QLatin1StringView("output_cast"));
 }
 
 }

@@ -1,6 +1,7 @@
 [Desktop Entry]
 Keys=inventissues,invissues,issues,issue
 Name=KDE Invent Issues
+Name[am]=KDE Invent Issues
 Name[ar]=مشكلات KDE Invent
 Name[ast]=Problemes de KDE Invent
 Name[az]=KDE Invent problemləri
@@ -10,6 +11,7 @@ Name[bg]=Проблем с изобретения на KDE
 Name[bs]=KDE Izum Problemi
 Name[ca]=Incidències de KDE Invent
 Name[ca@valencia]=Incidències de KDE Invent
+Name[cs]=Problémy v KDE Invent
 Name[cy]=Dillyngiadau KDE Llifento
 Name[da]=KDE Invent-problemer
 Name[de]=KDE Invent Issues
@@ -40,6 +42,8 @@ Name[lg]=Ebizibu Ebyogerwako mu KDE Invent
 Name[lt]=KDE Invent klaidos
 Name[lv]=„KDE Invent“ problēmas
 Name[my]=ကေဒီအီး အင်ဗန့် အစ်ရှူး
+Name[nan_TW]=KDE Invent Issue
+Name[nan_TW@latin]=KDE Invent Issue
 Name[nb]=KDE Invent-saker
 Name[nl]=KDE-invent problemen
 Name[nn]=KDE Invent-saker
@@ -62,6 +66,7 @@ Name[vi]=Các vấn đề ở Invent KDE
 Name[zh_CN]=KDE Invent 问题
 Name[zh_TW]=KDE Invent 議題
 Query=https://invent.kde.org/search?scope=issues&search=\\{@}
+Query[am]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[ar]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[ast]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[az]=https://invent.kde.org/search?scope=issues&search=\\{@}
@@ -102,6 +107,8 @@ Query[lg]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[lt]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[lv]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[my]=https://invent.kde.org/search?scope=issues&search=\\{@}
+Query[nan_TW]=https://invent.kde.org/search?scope=issues&search=\\{@}
+Query[nan_TW@latin]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[nb]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[nl]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[nn]=https://invent.kde.org/search?scope=issues&search=\\{@}
@@ -118,7 +125,6 @@ Query[sq]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[sv]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[th]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[tr]=https://invent.kde.org/search?scope=issues&search=\\{@}
-Query[ug]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[uk]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[vi]=https://invent.kde.org/search?scope=issues&search=\\{@}
 Query[zh_CN]=https://invent.kde.org/search?scope=issues&search=\\{@}

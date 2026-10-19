@@ -7,6 +7,7 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 #include "eglcontext.h"
+#include "core/drm_formats.h"
 #include "core/graphicsbuffer.h"
 #include "egldisplay.h"
 #include "eglimagetexture.h"
@@ -20,7 +21,6 @@
 #include "opengl/eglutils_p.h"
 #include "opengl/glutils.h"
 #include "utils/common.h"
-#include "utils/drm_format_helper.h"
 
 #include <QOpenGLContext>
 #include <drm_fourcc.h>
@@ -30,9 +30,9 @@ namespace KWin
 
 EglContext *EglContext::s_currentContext = nullptr;
 
-std::unique_ptr<EglContext> EglContext::create(EglDisplay *display, EGLConfig config, ::EGLContext sharedContext)
+std::shared_ptr<EglContext> EglContext::create(EglDisplay *display, EGLConfig config, const std::shared_ptr<EglContext> &shareContext)
 {
-    auto handle = createContext(display, config, sharedContext);
+    auto handle = createContext(display, config, shareContext ? shareContext->handle() : EGL_NO_CONTEXT);
     if (!handle) {
         return nullptr;
     }
@@ -40,7 +40,7 @@ std::unique_ptr<EglContext> EglContext::create(EglDisplay *display, EGLConfig co
         eglDestroyContext(display->handle(), handle);
         return nullptr;
     }
-    auto ret = std::make_unique<EglContext>(display, config, handle);
+    auto ret = std::make_shared<EglContext>(display, config, handle, shareContext);
     s_currentContext = ret.get();
     if (!ret->checkSupported()) {
         return nullptr;
@@ -51,51 +51,17 @@ std::unique_ptr<EglContext> EglContext::create(EglDisplay *display, EGLConfig co
 static QSet<QByteArray> getExtensions(EglContext *context)
 {
     QSet<QByteArray> ret;
-    if (!context->isOpenGLES() && context->hasVersion(Version(3, 0))) {
-        int count;
-        glGetIntegerv(GL_NUM_EXTENSIONS, &count);
-
-        for (int i = 0; i < count; i++) {
-            const char *name = (const char *)glGetStringi(GL_EXTENSIONS, i);
-            ret.insert(name);
-        }
-    } else {
-        const QByteArray extensions = (const char *)glGetString(GL_EXTENSIONS);
-        QList<QByteArray> extensionsList = extensions.split(' ');
-        ret = {extensionsList.constBegin(), extensionsList.constEnd()};
-    }
+    const QByteArray extensions = (const char *)glGetString(GL_EXTENSIONS);
+    QList<QByteArray> extensionsList = extensions.split(' ');
+    ret = {extensionsList.constBegin(), extensionsList.constEnd()};
     return ret;
-}
-
-static bool checkTextureSwizzleSupport(EglContext *context)
-{
-    if (context->isOpenGLES()) {
-        return context->hasVersion(Version(3, 0));
-    } else {
-        return context->hasVersion(Version(3, 3)) || context->hasOpenglExtension(QByteArrayLiteral("GL_ARB_texture_swizzle"));
-    }
-}
-
-static bool checkTextureStorageSupport(EglContext *context)
-{
-    if (context->isOpenGLES()) {
-        return context->hasVersion(Version(3, 0)) || context->hasOpenglExtension(QByteArrayLiteral("GL_EXT_texture_storage"));
-    } else {
-        return context->hasVersion(Version(4, 2)) || context->hasOpenglExtension(QByteArrayLiteral("GL_ARB_texture_storage"));
-    }
 }
 
 static bool checkIndexedQuads(EglContext *context)
 {
-    if (context->isOpenGLES()) {
-        const bool haveBaseVertex = context->hasOpenglExtension(QByteArrayLiteral("GL_OES_draw_elements_base_vertex"));
-        const bool haveCopyBuffer = context->hasVersion(Version(3, 0));
-        return haveBaseVertex && haveCopyBuffer && context->hasMapBufferRange();
-    } else {
-        bool haveBaseVertex = context->hasVersion(Version(3, 2)) || context->hasOpenglExtension(QByteArrayLiteral("GL_ARB_draw_elements_base_vertex"));
-        bool haveCopyBuffer = context->hasVersion(Version(3, 1)) || context->hasOpenglExtension(QByteArrayLiteral("GL_ARB_copy_buffer"));
-        return haveBaseVertex && haveCopyBuffer && context->hasMapBufferRange();
-    }
+    const bool haveBaseVertex = context->hasOpenglExtension(QByteArrayLiteral("GL_OES_draw_elements_base_vertex"));
+    const bool haveCopyBuffer = context->hasVersion(Version(3, 0));
+    return haveBaseVertex && haveCopyBuffer && context->hasMapBufferRange();
 }
 
 typedef void (*eglFuncPtr)();
@@ -104,58 +70,51 @@ static eglFuncPtr getProcAddress(const char *name)
     return eglGetProcAddress(name);
 }
 
-EglContext::EglContext(EglDisplay *display, EGLConfig config, ::EGLContext context)
-    : m_versionString((const char *)glGetString(GL_VERSION))
+EglContext::EglContext(EglDisplay *display, EGLConfig config, ::EGLContext context, const std::shared_ptr<EglContext> &shareContext)
+    : m_shareContext(shareContext)
+    , m_versionString((const char *)glGetString(GL_VERSION))
     , m_version(Version::parseString(m_versionString))
     , m_glslVersionString((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION))
     , m_glslVersion(Version::parseString(m_glslVersionString))
     , m_vendor((const char *)glGetString(GL_VENDOR))
     , m_renderer((const char *)glGetString(GL_RENDERER))
-    , m_isOpenglES(m_versionString.startsWith("OpenGL ES"))
     , m_extensions(getExtensions(this))
     , m_supportsTimerQueries(checkTimerQuerySupport())
-    , m_supportsTextureStorage(checkTextureStorageSupport(this))
-    , m_supportsTextureSwizzle(checkTextureSwizzleSupport(this))
-    , m_supportsARGB32Textures(!m_isOpenglES || hasOpenglExtension(QByteArrayLiteral("GL_EXT_texture_format_BGRA8888")))
+    , m_supportsTextureStorage(hasVersion(Version(3, 0)) || hasOpenglExtension(QByteArrayLiteral("GL_EXT_texture_storage")))
+    , m_supportsTextureSwizzle(hasVersion(Version(3, 0)))
+    , m_supportsARGB32Textures(hasOpenglExtension(QByteArrayLiteral("GL_EXT_texture_format_BGRA8888")))
     , m_supportsRGTextures(hasVersion(Version(3, 0)) || hasOpenglExtension(QByteArrayLiteral("GL_ARB_texture_rg")) || hasOpenglExtension(QByteArrayLiteral("GL_EXT_texture_rg")))
-    , m_supports16BitTextures(!m_isOpenglES || hasOpenglExtension(QByteArrayLiteral("GL_EXT_texture_norm16")))
-    , m_supportsBlits(!m_isOpenglES || hasVersion(Version(3, 0)))
+    , m_supports16BitTextures(hasOpenglExtension(QByteArrayLiteral("GL_EXT_texture_norm16")))
+    , m_supportsBlits(hasVersion(Version(3, 0)))
     , m_supportsPackedDepthStencil(hasVersion(Version(3, 0)) || hasOpenglExtension(QByteArrayLiteral("GL_OES_packed_depth_stencil")) || hasOpenglExtension(QByteArrayLiteral("GL_ARB_framebuffer_object")) || hasOpenglExtension(QByteArrayLiteral("GL_EXT_packed_depth_stencil")))
-    , m_supportsGLES24BitDepthBuffers(m_isOpenglES && (hasVersion(Version(3, 0)) || hasOpenglExtension(QByteArrayLiteral("GL_OES_depth24"))))
+    , m_supportsGLES24BitDepthBuffers(hasVersion(Version(3, 0)) || hasOpenglExtension(QByteArrayLiteral("GL_OES_depth24")))
     , m_hasMapBufferRange(hasVersion(Version(3, 0)) || hasOpenglExtension(QByteArrayLiteral("GL_EXT_map_buffer_range")) || hasOpenglExtension(QByteArrayLiteral("GL_ARB_map_buffer_range")))
-    , m_haveBufferStorage((!m_isOpenglES && hasVersion(Version(4, 4))) || hasOpenglExtension(QByteArrayLiteral("GL_ARB_buffer_storage")) || hasOpenglExtension(QByteArrayLiteral("GL_EXT_buffer_storage")))
-    , m_haveSyncFences((m_isOpenglES && hasVersion(Version(3, 0))) || (!m_isOpenglES && hasVersion(Version(3, 2))) || hasOpenglExtension(QByteArrayLiteral("GL_ARB_sync")))
+    , m_haveBufferStorage(hasOpenglExtension(QByteArrayLiteral("GL_ARB_buffer_storage")) || hasOpenglExtension(QByteArrayLiteral("GL_EXT_buffer_storage")))
+    , m_haveSyncFences(hasVersion(Version(3, 0)))
     , m_supportsIndexedQuads(checkIndexedQuads(this))
     , m_supportsPackInvert(hasOpenglExtension(QByteArrayLiteral("GL_MESA_pack_invert")))
     , m_glPlatform(std::make_unique<GLPlatform>(m_versionString, m_glslVersionString, m_renderer, m_vendor))
     , m_display(display)
     , m_handle(context)
     , m_config(config)
-    , m_shaderManager(std::make_unique<ShaderManager>())
-    , m_streamingBuffer(std::make_unique<GLVertexBuffer>(GLVertexBuffer::Stream))
-    , m_indexBuffer(std::make_unique<IndexBuffer>())
 {
     glResolveFunctions(&getProcAddress);
     initDebugOutput();
+    // we can only create OpenGL resources after the context is set as the current one
+    s_currentContext = this;
+    m_shaderManager = std::make_unique<ShaderManager>();
+    m_streamingBuffer = std::make_unique<GLVertexBuffer>(GLVertexBuffer::Stream);
+    m_indexBuffer = std::make_unique<IndexBuffer>();
     if (haveBufferStorage() && haveSyncFences()) {
         if (qgetenv("KWIN_PERSISTENT_VBO") != QByteArrayLiteral("0")) {
             m_streamingBuffer->setPersistent();
         }
     }
-    // It is not legal to not have a vertex array object bound in a core context
-    // to make code handling old and new OpenGL versions easier, bind a dummy vao that's used for everything
-    if (!isOpenGLES() && hasOpenglExtension(QByteArrayLiteral("GL_ARB_vertex_array_object"))) {
-        glGenVertexArrays(1, &m_vao);
-        glBindVertexArray(m_vao);
-    }
 }
 
 EglContext::~EglContext()
 {
-    const bool current = makeCurrent();
-    if (m_vao && current) {
-        glDeleteVertexArrays(1, &m_vao);
-    }
+    (void)makeCurrent();
     m_shaderManager.reset();
     m_streamingBuffer.reset();
     m_indexBuffer.reset();
@@ -165,16 +124,14 @@ EglContext::~EglContext()
 
 bool EglContext::makeCurrent()
 {
-    return makeCurrent(EGL_NO_SURFACE);
-}
-
-bool EglContext::makeCurrent(EGLSurface surface)
-{
     if (QOpenGLContext *context = QOpenGLContext::currentContext()) {
         // Workaround to tell Qt that no QOpenGLContext is current
         context->doneCurrent();
+    } else if (s_currentContext == this) {
+        // nothing to do
+        return true;
     }
-    const bool ret = eglMakeCurrent(m_display->handle(), surface, surface, m_handle) == EGL_TRUE;
+    const bool ret = eglMakeCurrent(m_display->handle(), EGL_NO_SURFACE, EGL_NO_SURFACE, m_handle) == EGL_TRUE;
     if (ret) {
         Q_ASSERT(m_handle != EGL_NO_CONTEXT);
         Q_ASSERT(eglGetCurrentContext() == m_handle);
@@ -183,6 +140,7 @@ bool EglContext::makeCurrent(EGLSurface surface)
         // QOpenGLContext::doneCurrent unset the context, we need to mirror that here!
         s_currentContext = nullptr;
         qCWarning(KWIN_OPENGL, "Could not make egl context current! %s", qPrintable(getEglErrorString()));
+        m_failed = true;
     }
     return ret;
 }
@@ -213,100 +171,75 @@ bool EglContext::isValid() const
     return m_display != nullptr && m_handle != EGL_NO_CONTEXT;
 }
 
-static inline bool shouldUseOpenGLES()
-{
-    if (qstrcmp(qgetenv("KWIN_COMPOSE"), "O2ES") == 0) {
-        return true;
-    }
-    return QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES;
-}
-
 ::EGLContext EglContext::createContext(EglDisplay *display, EGLConfig config, ::EGLContext sharedContext)
 {
+    // Creating a Vulkan instance can change the current EGL API,
+    // so we must always call this explicitly right before creating
+    // the context, or the wrong API may be chosen
+    if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
+        qCCritical(KWIN_OPENGL, "Couldn't bind EGL API!");
+        return nullptr;
+    }
+
     const bool haveRobustness = display->hasExtension(QByteArrayLiteral("EGL_EXT_create_context_robustness"));
     const bool haveCreateContext = display->hasExtension(QByteArrayLiteral("EGL_KHR_create_context"));
     const bool haveContextPriority = display->hasExtension(QByteArrayLiteral("EGL_IMG_context_priority"));
+    const bool haveRealtimePriority = display->hasExtension(QByteArrayLiteral("EGL_NV_context_priority_realtime"));
     const bool haveResetOnVideoMemoryPurge = display->hasExtension(QByteArrayLiteral("EGL_NV_robustness_video_memory_purge"));
 
     std::vector<std::unique_ptr<AbstractOpenGLContextAttributeBuilder>> candidates;
-    if (shouldUseOpenGLES()) {
-        if (haveCreateContext && haveRobustness && haveContextPriority && haveResetOnVideoMemoryPurge) {
+    if (haveCreateContext && haveRobustness && haveContextPriority && haveResetOnVideoMemoryPurge) {
+        if (haveRealtimePriority) {
             auto glesRobustPriority = std::make_unique<EglOpenGLESContextAttributeBuilder>();
             glesRobustPriority->setResetOnVideoMemoryPurge(true);
             glesRobustPriority->setVersion(2);
             glesRobustPriority->setRobust(true);
-            glesRobustPriority->setHighPriority(true);
+            glesRobustPriority->setRealTimePriority(true);
             candidates.push_back(std::move(glesRobustPriority));
         }
+        auto glesRobustPriority = std::make_unique<EglOpenGLESContextAttributeBuilder>();
+        glesRobustPriority->setResetOnVideoMemoryPurge(true);
+        glesRobustPriority->setVersion(2);
+        glesRobustPriority->setRobust(true);
+        glesRobustPriority->setHighPriority(true);
+        candidates.push_back(std::move(glesRobustPriority));
+    }
 
-        if (haveCreateContext && haveRobustness && haveContextPriority) {
+    if (haveCreateContext && haveRobustness && haveContextPriority) {
+        if (haveRealtimePriority) {
             auto glesRobustPriority = std::make_unique<EglOpenGLESContextAttributeBuilder>();
             glesRobustPriority->setVersion(2);
             glesRobustPriority->setRobust(true);
-            glesRobustPriority->setHighPriority(true);
+            glesRobustPriority->setRealTimePriority(true);
             candidates.push_back(std::move(glesRobustPriority));
         }
-        if (haveCreateContext && haveRobustness) {
-            auto glesRobust = std::make_unique<EglOpenGLESContextAttributeBuilder>();
-            glesRobust->setVersion(2);
-            glesRobust->setRobust(true);
-            candidates.push_back(std::move(glesRobust));
-        }
-        if (haveContextPriority) {
+        auto glesRobustPriority = std::make_unique<EglOpenGLESContextAttributeBuilder>();
+        glesRobustPriority->setVersion(2);
+        glesRobustPriority->setRobust(true);
+        glesRobustPriority->setHighPriority(true);
+        candidates.push_back(std::move(glesRobustPriority));
+    }
+    if (haveCreateContext && haveRobustness) {
+        auto glesRobust = std::make_unique<EglOpenGLESContextAttributeBuilder>();
+        glesRobust->setVersion(2);
+        glesRobust->setRobust(true);
+        candidates.push_back(std::move(glesRobust));
+    }
+    if (haveContextPriority) {
+        if (haveRealtimePriority) {
             auto glesPriority = std::make_unique<EglOpenGLESContextAttributeBuilder>();
             glesPriority->setVersion(2);
-            glesPriority->setHighPriority(true);
+            glesPriority->setRealTimePriority(true);
             candidates.push_back(std::move(glesPriority));
         }
-        auto gles = std::make_unique<EglOpenGLESContextAttributeBuilder>();
-        gles->setVersion(2);
-        candidates.push_back(std::move(gles));
-    } else {
-        if (haveCreateContext) {
-            if (haveRobustness && haveContextPriority && haveResetOnVideoMemoryPurge) {
-                auto robustCorePriority = std::make_unique<EglContextAttributeBuilder>();
-                robustCorePriority->setResetOnVideoMemoryPurge(true);
-                robustCorePriority->setVersion(3, 1);
-                robustCorePriority->setRobust(true);
-                robustCorePriority->setHighPriority(true);
-                candidates.push_back(std::move(robustCorePriority));
-            }
-            if (haveRobustness && haveContextPriority) {
-                auto robustCorePriority = std::make_unique<EglContextAttributeBuilder>();
-                robustCorePriority->setVersion(3, 1);
-                robustCorePriority->setRobust(true);
-                robustCorePriority->setHighPriority(true);
-                candidates.push_back(std::move(robustCorePriority));
-            }
-            if (haveRobustness) {
-                auto robustCore = std::make_unique<EglContextAttributeBuilder>();
-                robustCore->setVersion(3, 1);
-                robustCore->setRobust(true);
-                candidates.push_back(std::move(robustCore));
-            }
-            if (haveContextPriority) {
-                auto corePriority = std::make_unique<EglContextAttributeBuilder>();
-                corePriority->setVersion(3, 1);
-                corePriority->setHighPriority(true);
-                candidates.push_back(std::move(corePriority));
-            }
-            auto core = std::make_unique<EglContextAttributeBuilder>();
-            core->setVersion(3, 1);
-            candidates.push_back(std::move(core));
-        }
-        if (haveRobustness && haveCreateContext && haveContextPriority) {
-            auto robustPriority = std::make_unique<EglContextAttributeBuilder>();
-            robustPriority->setRobust(true);
-            robustPriority->setHighPriority(true);
-            candidates.push_back(std::move(robustPriority));
-        }
-        if (haveRobustness && haveCreateContext) {
-            auto robust = std::make_unique<EglContextAttributeBuilder>();
-            robust->setRobust(true);
-            candidates.push_back(std::move(robust));
-        }
-        candidates.emplace_back(new EglContextAttributeBuilder);
+        auto glesPriority = std::make_unique<EglOpenGLESContextAttributeBuilder>();
+        glesPriority->setVersion(2);
+        glesPriority->setHighPriority(true);
+        candidates.push_back(std::move(glesPriority));
     }
+    auto gles = std::make_unique<EglOpenGLESContextAttributeBuilder>();
+    gles->setVersion(2);
+    candidates.push_back(std::move(gles));
 
     for (const auto &candidate : candidates) {
         const auto attribs = candidate->build();
@@ -337,13 +270,9 @@ bool EglContext::checkTimerQuerySupport() const
     if (qEnvironmentVariableIsSet("KWIN_NO_TIMER_QUERY")) {
         return false;
     }
-    if (m_isOpenglES) {
-        // 3.0 is required so query functions can be used without "EXT" suffix.
-        // Timer queries are still not part of the core OpenGL ES specification.
-        return openglVersion() >= Version(3, 0) && hasOpenglExtension("GL_EXT_disjoint_timer_query");
-    } else {
-        return openglVersion() >= Version(3, 3) || hasOpenglExtension("GL_ARB_timer_query");
-    }
+    // 3.0 is required so query functions can be used without "EXT" suffix.
+    // Timer queries are still not part of the core OpenGL ES specification.
+    return openglVersion() >= Version(3, 0) && hasOpenglExtension("GL_EXT_disjoint_timer_query");
 }
 
 bool EglContext::hasVersion(const Version &version) const
@@ -379,11 +308,6 @@ QByteArrayView EglContext::vendor() const
 QByteArrayView EglContext::renderer() const
 {
     return m_renderer;
-}
-
-bool EglContext::isOpenGLES() const
-{
-    return m_isOpenglES;
 }
 
 bool EglContext::hasOpenglExtension(QByteArrayView name) const
@@ -480,19 +404,16 @@ GLPlatform *EglContext::glPlatform() const
 
 bool EglContext::checkSupported() const
 {
-    const bool supportsGLSL = m_isOpenglES || (hasOpenglExtension("GL_ARB_shader_objects") && hasOpenglExtension("GL_ARB_fragment_shader") && hasOpenglExtension("GL_ARB_vertex_shader"));
-    const bool supportsNonPowerOfTwoTextures = m_isOpenglES || hasOpenglExtension("GL_ARB_texture_non_power_of_two");
-    const bool supports3DTextures = !m_isOpenglES || hasVersion(Version(3, 0)) || hasOpenglExtension("GL_OES_texture_3D");
-    const bool supportsFBOs = m_isOpenglES || hasVersion(Version(3, 0)) || hasOpenglExtension("GL_ARB_framebuffer_object") || hasOpenglExtension(QByteArrayLiteral("GL_EXT_framebuffer_object"));
-    const bool supportsUnpack = !m_isOpenglES || hasOpenglExtension(QByteArrayLiteral("GL_EXT_unpack_subimage"));
+    const bool supports3DTextures = hasVersion(Version(3, 0)) || hasOpenglExtension("GL_OES_texture_3D");
+    const bool supportsUnpack = hasOpenglExtension(QByteArrayLiteral("GL_EXT_unpack_subimage"));
+    const bool supportsBGRADownload = hasOpenglExtension(QByteArrayLiteral("GL_EXT_read_format_bgra"));
 
-    if (!supportsGLSL || !supportsNonPowerOfTwoTextures || !supports3DTextures || !supportsFBOs || !supportsUnpack) {
+    if (!supports3DTextures || !supportsUnpack || !supportsBGRADownload) {
         return false;
     }
     // some old hardware only supports very limited shaders. To prevent the shaders KWin uses later on from not working,
     // test a reasonably complex one here and bail out early if it doesn't work
-    auto shader = m_shaderManager->shader(ShaderTrait::MapTexture | ShaderTrait::TransformColorspace | ShaderTrait::AdjustSaturation | ShaderTrait::Modulate);
-    return shader->isValid();
+    return m_shaderManager->shader(ShaderTrait::MapTexture | ShaderTrait::TransformColorspace | ShaderTrait::AdjustSaturation | ShaderTrait::Modulate);
 }
 
 QSet<QByteArray> EglContext::openglExtensions() const
@@ -510,24 +431,10 @@ void EglContext::glResolveFunctions(const std::function<resolveFuncPtr(const cha
     const bool haveArbRobustness = hasOpenglExtension(QByteArrayLiteral("GL_ARB_robustness"));
     const bool haveExtRobustness = hasOpenglExtension(QByteArrayLiteral("GL_EXT_robustness"));
     bool robustContext = false;
-    if (isOpenGLES()) {
-        if (haveExtRobustness) {
-            GLint value = 0;
-            glGetIntegerv(GL_CONTEXT_ROBUST_ACCESS_EXT, &value);
-            robustContext = (value != 0);
-        }
-    } else {
-        if (haveArbRobustness) {
-            if (hasVersion(Version(3, 0))) {
-                GLint value = 0;
-                glGetIntegerv(GL_CONTEXT_FLAGS, &value);
-                if (value & GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB) {
-                    robustContext = true;
-                }
-            } else {
-                robustContext = true;
-            }
-        }
+    if (haveExtRobustness) {
+        GLint value = 0;
+        glGetIntegerv(GL_CONTEXT_ROBUST_ACCESS_EXT, &value);
+        robustContext = (value != 0);
     }
     if (robustContext && haveArbRobustness) {
         // See https://www.opengl.org/registry/specs/ARB/robustness.txt
@@ -554,12 +461,8 @@ void EglContext::initDebugOutput()
     if (!have_ARB_debug) {
         // if we don't have ARB debug, but only KHR debug we need to verify whether the context is a debug context
         // it should work without as well, but empirical tests show: no it doesn't
-        if (isOpenGLES()) {
-            if (!hasVersion(Version(3, 2))) {
-                // empirical data shows extension doesn't work
-                return;
-            }
-        } else if (!hasVersion(Version(3, 0))) {
+        if (!hasVersion(Version(3, 2))) {
+            // empirical data shows extension doesn't work
             return;
         }
         // can only be queried with either OpenGL >= 3.0 or OpenGL ES of at least 3.1
@@ -619,7 +522,11 @@ void EglContext::initDebugOutput()
 GLenum EglContext::checkGraphicsResetStatus()
 {
     if (m_glGetGraphicsResetStatus) {
-        return m_glGetGraphicsResetStatus();
+        const GLenum ret = m_glGetGraphicsResetStatus();
+        if (ret != GL_NO_ERROR) {
+            m_failed = true;
+        }
+        return ret;
     } else {
         return GL_NO_ERROR;
     }
@@ -679,4 +586,25 @@ GLFramebuffer *EglContext::currentFramebuffer()
 {
     return m_fbos.empty() ? nullptr : m_fbos.top();
 }
+
+bool EglContext::isFailed() const
+{
+    return m_failed;
+}
+
+void EglContext::setFailed()
+{
+    m_failed = true;
+}
+
+bool EglContext::isCompatibleWith(EglContext *other) const
+{
+    // technically speaking, context sharing could be done
+    // more indirectly, but we don't do that in KWin
+    return other == this
+        || other->m_shareContext.get() == this
+        || other == m_shareContext.get()
+        || (m_shareContext && other->m_shareContext == this->m_shareContext);
+}
+
 }

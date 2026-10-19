@@ -1,0 +1,88 @@
+// SPDX-License-Identifier: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// SPDX-FileCopyrightText: 2017 The Qt Company Ltd.
+// SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+import QtQuick
+import QtQuick.Templates as T
+
+import org.kde.union.impl as Union
+
+T.ScrollView {
+    id: control
+
+    Union.Element.type: "ScrollView"
+    Union.Element.states {
+        hovered: control.hovered
+        activeFocus: control.activeFocus
+        visualFocus: control.visualFocus
+        enabled: control.enabled
+    }
+    Union.Element.hints: [
+        Union.ElementHint {
+            name: "horizontal-scroll";
+            when: {
+                if (control.ScrollBar.horizontal.policy === T.ScrollBar.AlwaysOff) {
+                    return false
+                } else if (control.ScrollBar.horizontal.policy === T.ScrollBar.AlwaysOn) {
+                    return true
+                } else {
+                    return control.contentWidth > control.availableWidth
+                }
+            }
+        },
+        Union.ElementHint {
+            name: "vertical-scroll";
+            when: {
+                if (control.ScrollBar.vertical.policy === T.ScrollBar.AlwaysOff) {
+                    return false
+                } else if (control.ScrollBar.vertical.policy === T.ScrollBar.AlwaysOn) {
+                    return true
+                } else {
+                    return control.contentHeight > control.availableHeight
+                }
+            }
+        },
+        Union.ElementHint { name: "framed-background"; when: control.Union.StyleHints.showFramedBackground },
+    ]
+
+    implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
+                            implicitContentWidth + leftPadding + rightPadding)
+    implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
+                             implicitContentHeight + topPadding + bottomPadding)
+
+    leftPadding: Union.Style.properties.layout.padding.left
+    rightPadding: Union.Style.properties.layout.padding.right
+    topPadding: Union.Style.properties.layout.padding.top
+    bottomPadding: Union.Style.properties.layout.padding.bottom
+
+    leftInset: Union.Style.properties.layout.inset.left
+    rightInset: Union.Style.properties.layout.inset.right
+    topInset: Union.Style.properties.layout.inset.top
+    bottomInset: Union.Style.properties.layout.inset.bottom
+
+    background: Union.StyledRectangle { }
+
+    ScrollBar.vertical: ScrollBar {
+        parent: control
+        x: control.mirrored ? 0.0 : control.width - control.rightPadding
+        y: control.topPadding
+        height: control.availableHeight
+        active: control.ScrollBar.horizontal.active
+        policy: ScrollBar.AsNeeded
+    }
+
+    ScrollBar.horizontal: ScrollBar {
+        parent: control
+        x: control.leftPadding
+        y: control.height - control.bottomPadding
+        width: control.availableWidth
+        active: control.ScrollBar.vertical.active
+        policy: ScrollBar.AsNeeded
+    }
+
+    data: [
+        Union.WheelHandler {
+            target: control.contentItem
+        }
+    ]
+}

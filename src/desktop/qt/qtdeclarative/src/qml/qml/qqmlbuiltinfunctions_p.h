@@ -145,6 +145,7 @@ public:
     Q_INVOKABLE QString md5(const QString &data) const;
     Q_INVOKABLE QString btoa(const QString &data) const;
     Q_INVOKABLE QString atob(const QString &data) const;
+    Q_INVOKABLE QString escapeHtml(const QString &data) const;
 
     Q_INVOKABLE QByteArray btoa(const QByteArray &data) const;
     Q_INVOKABLE QByteArray atob(const QByteArray &data) const;

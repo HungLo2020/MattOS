@@ -30,6 +30,10 @@ target_include_directories(KirigamiDialogs PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/.
 
 target_link_libraries(KirigamiDialogs PRIVATE Qt6::Quick KirigamiPlatform)
 
+add_dependencies(KirigamiDialogs
+  KirigamiPrimitives
+)
+
 ecm_finalize_qml_module(KirigamiDialogs EXPORT KirigamiTargets)
 
-install(TARGETS KirigamiDialogs EXPORT KirigamiTargets ${KF_INSTALL_DEFAULT_ARGUMENTS})
+install(TARGETS KirigamiDialogs EXPORT KirigamiTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})

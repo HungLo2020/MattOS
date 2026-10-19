@@ -70,7 +70,7 @@ public:
 class KWALLETBACKEND_EXPORT Backend
 {
 public:
-    explicit Backend(const QString &name = QStringLiteral("kdewallet"), bool isPath = false);
+    explicit Backend(const QString &name);
     ~Backend();
 
     // Open and unlock the wallet.
@@ -88,10 +88,10 @@ public:
 
     // Close the wallet, losing any changes.
     // if save is true, the wallet is saved prior to closing it.
-    int close(bool save = false);
+    int close(bool save);
 
     // Write the wallet to disk
-    int sync(WId w);
+    int sync();
 
     // Returns true if the current wallet is open.
     bool isOpen() const;
@@ -100,7 +100,7 @@ public:
     const QString &walletName() const;
 
     // Rename the wallet
-    int renameWallet(const QString &newName, bool isPath = false);
+    int renameWallet(const QString &newName);
 
     // The list of folders.
     QStringList folderList() const;
@@ -128,13 +128,6 @@ public:
 
     // Look up an entry.  Returns null if it doesn't exist.
     Entry *readEntry(const QString &key);
-
-#if KWALLET_BUILD_DEPRECATED_SINCE(5, 72)
-    // Look up a list of entries.  Supports wildcards.
-    // You delete the list.
-    // Deprecated since 5.72, use entriesList()
-    QList<Entry *> readEntryList(const QString &key);
-#endif
 
     // Get a list of all the entries in the current folder.
     // @since 5.72
@@ -194,6 +187,8 @@ public:
     static QString getSaveLocation();
     static QString encodeWalletName(const QString &name);
     static QString decodeWalletName(const QString &encodedName);
+    static QString networkWallet();
+    static QString localWallet();
 
 private:
     Q_DISABLE_COPY(Backend)

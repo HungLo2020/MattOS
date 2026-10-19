@@ -50,6 +50,7 @@ MACRO(PLASMASHELL_UNIT_TESTS)
                             KF6::Svg
                             KF6::XmlGui
                             KF6::I18n
+                            KF6::I18nQml
                             KF6::GlobalAccel
                             Qt::Quick
                             Qt::DBus
@@ -60,17 +61,14 @@ MACRO(PLASMASHELL_UNIT_TESTS)
                             SharedClientTest
                                      )
                target_link_libraries(${_testname} KF6::ConfigQml)
-               if(HAVE_X11)
-                  target_link_libraries(${_testname} XCB::XCB XCB::RANDR)
-                  target_link_libraries(${_testname} Qt::GuiPrivate)
-               endif()
                if(QT_QTOPENGL_FOUND)
                    target_link_libraries(${_testname} Qt::OpenGL)
                endif()
                if(PROJECT_VERSION_PATCH GREATER_EQUAL 80 OR PROJECT_VERSION_MINOR GREATER_EQUAL 80)
                    target_link_libraries(${_testname} KF6::KIOGui)
                endif()
-               add_test(NAME ${_testname} COMMAND ${_testname})
+               add_test(NAME ${_testname} COMMAND dbus-run-session $<TARGET_FILE:${_testname}>)
+               set_tests_properties(${_testname} PROPERTIES ENVIRONMENT "QT_NO_XDG_DESKTOP_PORTAL=1")
                ecm_mark_as_test(${_testname})
        ENDFOREACH(_testname)
 ENDMACRO(PLASMASHELL_UNIT_TESTS)
@@ -82,6 +80,3 @@ PLASMASHELL_UNIT_TESTS(
 
 kde_target_enable_exceptions(shelltest PRIVATE)
 target_compile_definitions(shelltest PRIVATE QTEST_THROW_ON_FAIL)
-
-set_tests_properties(screenpooltest shelltest PROPERTIES TIMEOUT 120)
-

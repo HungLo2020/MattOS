@@ -21,6 +21,8 @@
 #include <QtQml/private/qqmlirloader_p.h>
 #include <QtQml/private/qqmltypedata_p.h>
 #include <QtQml/private/qqmltypeloader_p.h>
+#include <QtQml/private/qqmldata_p.h>
+#include <QtQml/private/qqmlmetatype_p.h>
 #include <QtQuickTestUtils/private/testhttpserver_p.h>
 #include <QtQuickTestUtils/private/qmlutils_p.h>
 #include <QQmlComponent>
@@ -61,6 +63,7 @@ private slots:
     void loadLocalTypesAfterRemoteFails();
     void populateDirectoryCache();
     void resourceRegistrationInvalidatesCache();
+    void removeFromCache();
     void addImportPathDuringAsyncLoad();
     void addImportPathFromStatusChanged();
 
@@ -561,7 +564,10 @@ void tst_QQMLTypeLoader::qmlSingletonWithinModule()
 
 static void checkCleanCacheLoad(const QString &testCase)
 {
-#if QT_CONFIG(process)
+    // QProcess is restricted on Android 8+ (exec from outside nativeLibraryDir is blocked).
+    // See QTBUG-133037. In practice unreachable on Android: the test suite is not built
+    // there (QT_FEATURE_private_tests=OFF).
+#if QT_CONFIG(process) && !defined(Q_OS_ANDROID) && !defined(Q_OS_OHOS) && !defined(Q_OS_HARMONY)
     const char *skipKey = "QT_TST_QQMLTYPELOADER_SKIP_MISMATCH";
     if (qEnvironmentVariableIsSet(skipKey))
         return;
@@ -586,9 +592,6 @@ static void checkCleanCacheLoad(const QString &testCase)
 
 void tst_QQMLTypeLoader::multiSingletonModule()
 {
-#ifdef Q_OS_ANDROID
-    QSKIP("Android seems to have problems with QProcess");
-#endif
     qmlClearTypeRegistrations();
     QQmlEngine engine;
     engine.addImportPath(testFile("imports"));
@@ -621,9 +624,6 @@ void tst_QQMLTypeLoader::multiSingletonModuleNoWarning()
 
 void tst_QQMLTypeLoader::implicitComponentModule()
 {
-#ifdef Q_OS_ANDROID
-    QSKIP("Android seems to have problems with QProcess");
-#endif
     QQmlEngine engine;
     QQmlComponent component(&engine, testFileUrl("implicitcomponent.qml"));
     QCOMPARE(component.status(), QQmlComponent::Ready);
@@ -635,8 +635,8 @@ void tst_QQMLTypeLoader::implicitComponentModule()
 
 void tst_QQMLTypeLoader::customDiskCachePath()
 {
-#ifdef Q_OS_ANDROID
-    QSKIP("Android seems to have problems with QProcess");
+#if defined(Q_OS_ANDROID) || defined(Q_OS_OHOS) || defined(Q_OS_HARMONY)
+    QSKIP("Cannot launch external process on this platform");
 #endif
 
 #if QT_CONFIG(process)
@@ -729,7 +729,8 @@ void tst_QQMLTypeLoader::circularDependency()
     QQmlEngine engine;
     QTest::ignoreMessage(QtWarningMsg, QRegularExpression("Cyclic dependency detected between (.*) and (.*)"));
     QQmlComponent component(&engine, testFileUrl("CircularDependency.qml"));
-    QCOMPARE(component.status(), QQmlComponent::Null);
+    QCOMPARE(component.status(), QQmlComponent::Error);
+    QVERIFY(component.errorString().contains(QLatin1String("Cyclic dependency detected")));
 }
 
 void tst_QQMLTypeLoader::declarativeCppAndQmlDir()
@@ -804,8 +805,8 @@ void tst_QQMLTypeLoader::signalHandlersAreCompatible()
     // make sure that units really come from different places (the machinery
     // could in theory be smart enough to figure the qmlcachegen cached
     // version), fairly questionable check but better than nothing
-#ifdef Q_OS_ANDROID
-    QSKIP("qrc and file system is the same thing on Android");
+#if defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
+    QSKIP("Test data is embedded as qrc resources on this platform");
 #endif
     QVERIFY(unitFromCachegen->url() != unitFromTypeCompiler->url());
 }
@@ -1031,7 +1032,7 @@ void tst_QQMLTypeLoader::resourceRegistrationInvalidatesCache()
 
     // Probe while the resource is absent. This caches a negative entry for the directory.
     QVERIFY(!typeLoader->fileExists(dir, file));
-    QVERIFY(typeLoader->absoluteFilePath(path).isEmpty());
+    QVERIFY(typeLoader->cleanFilePath(path).isEmpty());
 
     // The resource appears (as it would when a module's plugin registers its qrc mid-load).
     QVERIFY(QResource::registerResource(rcc));
@@ -1041,7 +1042,7 @@ void tst_QQMLTypeLoader::resourceRegistrationInvalidatesCache()
     // A register can only turn "missing" into "present": the type loader must not keep serving
     // the stale "absent" answer it cached above.
     QVERIFY(typeLoader->fileExists(dir, file));
-    QCOMPARE(typeLoader->absoluteFilePath(path), path);
+    QCOMPARE(typeLoader->cleanFilePath(path), path);
 
     // Symmetrically, once the resource is unregistered again, the cached "present" answer must
     // not stick: an unregister can turn "present" back into "missing".
@@ -1049,7 +1050,29 @@ void tst_QQMLTypeLoader::resourceRegistrationInvalidatesCache()
     unregister.dismiss();
     QVERIFY(!QFileInfo::exists(path));
     QVERIFY(!typeLoader->fileExists(dir, file));
-    QVERIFY(typeLoader->absoluteFilePath(path).isEmpty());
+    QVERIFY(typeLoader->cleanFilePath(path).isEmpty());
+}
+
+void tst_QQMLTypeLoader::removeFromCache()
+{
+    QQmlEngine engine;
+
+    const QUrl url = testFileUrl("Simple.qml");
+
+    QQmlComponent component(&engine, url);
+    QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+    QScopedPointer<QObject> obj(component.create());
+    QVERIFY(obj);
+
+    QQmlData *ddata = QQmlData::get(obj.data());
+    QVERIFY(ddata);
+    QVERIFY(ddata->compilationUnit);
+
+    QQmlTypeLoader *typeLoader = QQmlTypeLoader::get(&engine);
+
+    QVERIFY(typeLoader->isTypeLoaded(url));
+    typeLoader->removeFromCache(url);
+    QVERIFY(!typeLoader->isTypeLoaded(url));
 }
 
 // Regression test for QTBUG-146210: calling addImportPath() while an async

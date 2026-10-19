@@ -14,13 +14,17 @@
 #include "backends/virtual/virtual_backend.h"
 #include "backends/wayland/wayland_backend.h"
 #include "compositor.h"
+#include "core/gpumanager.h"
 #include "core/outputbackend.h"
+#include "core/renderdevice.h"
 #include "core/session.h"
 #include "effect/effecthandler.h"
 #include "inputmethod.h"
 #include "tabletmodemanager.h"
 #include "utils/realtime.h"
+#include "wayland/clientconnection.h"
 #include "wayland/display.h"
+#include "wayland/linuxdmabufv1clientbuffer.h"
 #include "wayland/seat.h"
 #include "wayland_server.h"
 #include "workspace.h"
@@ -54,10 +58,12 @@
 #include <iomanip>
 #include <iostream>
 
-Q_IMPORT_PLUGIN(KWinIntegrationPlugin)
-#if KWIN_BUILD_GLOBALSHORTCUTS
-Q_IMPORT_PLUGIN(KGlobalAccelImpl)
+#if defined(Q_OS_LINUX)
+#include <linux/capability.h>
+#include <sys/prctl.h>
 #endif
+
+Q_IMPORT_PLUGIN(KWinIntegrationPlugin)
 Q_IMPORT_PLUGIN(KWindowSystemKWinPlugin)
 Q_IMPORT_PLUGIN(KWinIdleTimePoller)
 
@@ -116,6 +122,9 @@ ApplicationWayland::~ApplicationWayland()
     if (effects) {
         effects->unloadAllEffects();
     }
+
+    Compositor::self()->stop();
+
 #if KWIN_BUILD_X11
     m_xwayland.reset();
 #endif
@@ -123,6 +132,7 @@ ApplicationWayland::~ApplicationWayland()
 
     destroyInputMethod();
     destroyCompositor();
+    destroyScene();
     destroyInput();
 
     delete WaylandServer::self();
@@ -132,6 +142,7 @@ void ApplicationWayland::performStartup()
 {
     createOptions();
 
+    createGpuManager();
     if (!outputBackend()->initialize()) {
         std::exit(1);
     }
@@ -139,10 +150,12 @@ void ApplicationWayland::performStartup()
     createInput();
     createInputMethod();
     createTabletModeManager();
+    createA11yManager();
 
     auto compositor = Compositor::create();
     compositor->createRenderer();
     createWorkspace();
+    createScene();
     createPlugins();
 
     compositor->start();
@@ -155,13 +168,26 @@ void ApplicationWayland::performStartup()
 #if KWIN_BUILD_X11
     if (m_startXWayland) {
         m_xwayland = std::make_unique<Xwl::Xwayland>(this);
-        m_xwayland->xwaylandLauncher()->setListenFDs(m_xwaylandListenFds);
+        m_xwayland->xwaylandLauncher()->setListenFds(m_xwaylandListenFds);
         m_xwayland->xwaylandLauncher()->setDisplayName(m_xwaylandDisplay);
+        m_xwayland->xwaylandLauncher()->setInitFd(m_xwaylandInitFd);
+        m_xwayland->xwaylandLauncher()->setInitDisplayName(m_xwaylandInitDisplay);
         m_xwayland->xwaylandLauncher()->setXauthority(m_xwaylandXauthority);
         m_xwayland->xwaylandLauncher()->addEnvironmentVariables(m_xwaylandExtraEnvironment);
         m_xwayland->xwaylandLauncher()->passFileDescriptors(std::move(m_xwaylandFds));
         m_xwayland->init();
-        connect(m_xwayland.get(), &Xwl::Xwayland::started, this, &ApplicationWayland::applyXwaylandScale);
+        connect(GpuManager::self(), &GpuManager::renderDeviceRemoved, m_xwayland.get(), [this](RenderDevice *removed) {
+            if (!waylandServer()->xWaylandConnection() || !waylandServer()->linuxDmabuf()) {
+                return;
+            }
+            const auto mainDevice = waylandServer()->linuxDmabuf()->mainDevice(waylandServer()->xWaylandConnection()->client());
+            if (mainDevice == removed->deviceId()) {
+                // Xwayland breaks if the GPU it's using was hotunplugged,
+                // so we manually stop it here. It will automatically be
+                // started again once a client tries to connect to it
+                m_xwayland->xwaylandLauncher()->stop();
+            }
+        });
     }
 #endif
     startSession();
@@ -260,6 +286,12 @@ pid_t ApplicationWayland::xwaylandPid() const
 
 int main(int argc, char *argv[])
 {
+#if defined(Q_OS_LINUX)
+    // Some Linux distros may set ambient capabilities, so clear CAP_SYS_NICE here to avoid
+    // leaking it to all child processes.
+    prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_LOWER, CAP_SYS_NICE, 0, 0);
+#endif
+
     KWin::Application::setupMalloc();
     KWin::Application::setupLocalizedString();
     KWin::gainRealTime();
@@ -278,6 +310,9 @@ int main(int argc, char *argv[])
     // enforce our internal qpa plugin, unfortunately command line switch has precedence
     setenv("QT_QPA_PLATFORM", "wayland-org.kde.kwin.qpa", true);
 
+    // The compositor must not depend on portals for its functionality to avoid cyclic dependencies.
+    setenv("QT_NO_XDG_DESKTOP_PORTAL", "1", true);
+
     // The shader (currently) causes a blocking disk flush on load and save of every QQuickWindow
     // Because it's on load, it will happen every time not just occasionally
     // The gains are minimal, disable until it's fixed
@@ -285,8 +320,10 @@ int main(int argc, char *argv[])
 
     KWin::ApplicationWayland a(argc, argv);
 
-    // reset QT_QPA_PLATFORM so we don't propagate it to our children (e.g. apps launched from the overview effect)
+    // Reset the environment variables so we don't propagate them to our children (e.g. apps
+    // launched from the overview effect)
     qunsetenv("QT_QPA_PLATFORM");
+    qunsetenv("QT_NO_XDG_DESKTOP_PORTAL");
 
     KSignalHandler::self()->watchSignal(SIGTERM);
     KSignalHandler::self()->watchSignal(SIGINT);
@@ -349,6 +386,14 @@ int main(int argc, char *argv[])
                                              i18n("Name of the xwayland display that has been pre-set up"),
                                              "xwayland-display");
 
+    QCommandLineOption xwaylandInitFdOption(QStringLiteral("xwayland-initfd"),
+                                            i18n("XWayland socket to use for Xwayland's init connections"),
+                                            QStringLiteral("xwayland-initfd"));
+
+    QCommandLineOption xwaylandInitDisplayOption(QStringLiteral("xwayland-init-display"),
+                                                 i18n("Name of the xwayland init display that has been pre-set up"),
+                                                 QStringLiteral("xwayland-init-display"));
+
     QCommandLineOption xwaylandXAuthorityOption(QStringLiteral("xwayland-xauthority"),
                                                 i18n("Name of the xauthority file "),
                                                 "xwayland-xauthority");
@@ -368,6 +413,8 @@ int main(int argc, char *argv[])
     parser.addOption(waylandSocketFdOption);
     parser.addOption(xwaylandListenFdOption);
     parser.addOption(xwaylandDisplayOption);
+    parser.addOption(xwaylandInitFdOption);
+    parser.addOption(xwaylandInitDisplayOption);
     parser.addOption(xwaylandXAuthorityOption);
     parser.addOption(replaceOption);
 #if KWIN_BUILD_X11
@@ -513,7 +560,7 @@ int main(int argc, char *argv[])
     case BackendType::Kms:
         a.setSession(KWin::Session::create());
         if (!a.session()) {
-            std::cerr << "FATAl ERROR: could not acquire a session" << std::endl;
+            std::cerr << "FATAL ERROR: could not acquire a session" << std::endl;
             return 1;
         }
         a.setOutputBackend(std::make_unique<KWin::DrmBackend>(a.session()));
@@ -522,7 +569,7 @@ int main(int argc, char *argv[])
         auto outputBackend = std::make_unique<KWin::VirtualBackend>();
         for (int i = 0; i < outputCount; ++i) {
             outputBackend->addOutput(KWin::VirtualBackend::OutputInfo{
-                .geometry = KWin::Rect(QPoint(), initialWindowSize),
+                .size = initialWindowSize,
                 .scale = outputScale,
             });
         }
@@ -623,6 +670,23 @@ int main(int argc, char *argv[])
                 a.setXwaylandDisplay(parser.value(xwaylandDisplayOption));
             } else {
                 std::cerr << "Using xwayland-fd without xwayland-display is undefined" << std::endl;
+                return 1;
+            }
+            if (parser.isSet(xwaylandInitFdOption)) {
+                bool ok;
+                int fd = parser.value(xwaylandInitFdOption).toInt(&ok);
+                if (!ok) {
+                    std::cerr << "FATAL ERROR: could not parse xwayland init FD" << std::endl;
+                    return 1;
+                }
+                fcntl(fd, F_SETFD, FD_CLOEXEC);
+                a.setXwaylandInitFd(fd);
+            }
+            if (parser.isSet(xwaylandInitDisplayOption)) {
+                a.setXwaylandInitDisplay(parser.value(xwaylandInitDisplayOption));
+            }
+            if (parser.isSet(xwaylandInitFdOption) != parser.isSet(xwaylandInitDisplayOption)) {
+                std::cerr << "Using xwayland-initfd without xwayland-init-display is undefined" << std::endl;
                 return 1;
             }
             if (parser.isSet(xwaylandXAuthorityOption)) {

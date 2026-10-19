@@ -127,6 +127,8 @@ void tst_QSaveFile::stdfilesystem()
     f2.setFileName(path());
     QCOMPARE(f2.fileName(), QString());
     QVERIFY(f.filesystemFileName().empty());
+#else
+    QSKIP("C++17 std::filesystem support not found.");
 #endif
 }
 
@@ -467,7 +469,7 @@ void tst_QSaveFile::transactionalWriteTypeErrorRenaming()
 
 void tst_QSaveFile::symlink()
 {
-#ifdef Q_OS_UNIX
+#if defined(Q_OS_UNIX) && !defined(Q_OS_HARMONY)
     QByteArray someData = "some data";
     QTemporaryDir dir;
     QVERIFY2(dir.isValid(), qPrintable(dir.errorString()));
@@ -592,7 +594,7 @@ void tst_QSaveFile::directory()
         QVERIFY(!sf.open(QIODevice::WriteOnly));
     }
 
-#ifdef Q_OS_UNIX
+#if defined(Q_OS_UNIX) && !defined(Q_OS_HARMONY)
     //link to a directory
     const QString linkToDir = dir.path() + QLatin1String("/linkToDir");
     QVERIFY(QFile::link(subdir, linkToDir));

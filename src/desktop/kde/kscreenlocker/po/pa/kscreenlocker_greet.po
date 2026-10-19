@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:40+0000\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
 "PO-Revision-Date: 2018-01-07 21:29-0600\n"
 "Last-Translator: A S Alam <aalam@fedoraproject.org>\n"
 "Language-Team: Punjabi <punjabi-users@lists.sf.net>\n"
@@ -17,72 +17,103 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 2.0\n"
 
-#: fallbacktheme/Greeter.qml:58
+#: fallbacktheme/Greeter.qml:59
 msgid "Warning: Caps Lock on"
 msgstr "ਸਾਵਧਾਨ: ਕੈਪਸ ਲਾਕ ਚਾਲੂ ਹੈ"
 
-#: fallbacktheme/Greeter.qml:74
+#: fallbacktheme/Greeter.qml:75
 msgid "The session is locked"
 msgstr "ਸ਼ੈਸ਼ਨ ਲਾਕ ਹੈ"
 
-#: fallbacktheme/Greeter.qml:75
+#: fallbacktheme/Greeter.qml:76
 msgid "The session has been locked by %1"
 msgstr "ਇਹ ਸ਼ੈਸ਼ਨ %1 ਵਲੋਂ ਲਾਕ ਕੀਤਾ ਹੈ"
 
-#: fallbacktheme/Greeter.qml:99
+#: fallbacktheme/Greeter.qml:83
+msgid "Password"
+msgstr ""
+
+#: fallbacktheme/Greeter.qml:101
 msgid "(or place your fingerprint on the reader)"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:105
+#: fallbacktheme/Greeter.qml:107
 msgid "(or use your smartcard)"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:114
+#: fallbacktheme/Greeter.qml:116
 msgid "&Switch Users"
 msgstr "ਯੂਜ਼ਰ ਬਦਲੋ(&S)"
 
-#: fallbacktheme/Greeter.qml:121
+#: fallbacktheme/Greeter.qml:123
 msgid "Un&lock"
 msgstr "ਅਣ-ਲਾਕ(&l)"
 
-#: fallbacktheme/Greeter.qml:133
+#: fallbacktheme/Greeter.qml:135
 msgid "Unlocking failed"
 msgstr "ਅਣਲਾਕ ਕਰਨਾ ਫੇਲ੍ਹ ਹੈ"
 
-#: main.cpp:123
+#: main.cpp:102
 #, kde-format
 msgid "Greeter for the KDE Plasma Workspaces Screen locker"
 msgstr "KDE ਪਲਾਜ਼ਮਾ ਵਰਕਸਪੇਸ ਸਕਰੀਨ ਲਾਕਰ ਲਈ ਸਵਾਗਤੀ"
 
-#: main.cpp:127
+#: main.cpp:106
 #, kde-format
 msgid "Starts the greeter in testing mode"
 msgstr "ਸਵਾਗਤੀ ਟੈਸਟਿੰਗ ਮੋਡ ਵਿੱਚ ਸ਼ੁਰੂ ਕਰੋ"
 
-#: main.cpp:130
+#: main.cpp:109
 #, fuzzy, kde-format
 #| msgid "Starts the greeter in testing mode"
 msgid "Starts the greeter with the selected shell theme (only in Testing mode)"
 msgstr "ਸਵਾਗਤੀ ਟੈਸਟਿੰਗ ਮੋਡ ਵਿੱਚ ਸ਼ੁਰੂ ਕਰੋ"
 
-#: main.cpp:134
+#: main.cpp:113
 #, kde-format
 msgid "Lock immediately, ignoring any grace time etc."
 msgstr "ਕਿਸੇ ਵੀ ਛੋਟ ਦਿੱਤੇ ਸਮੇਂ ਆਦਿ ਨੂੰ ਛੱਡ ਕੇ ਤੁਰੰਤ ਲਾਕ ਕਰੋ।"
 
-#: main.cpp:136
+#: main.cpp:115
 #, kde-format
 msgid "Delay till the lock user interface gets shown in milliseconds."
 msgstr ""
 
-#: main.cpp:139
+#: main.cpp:118
 #, kde-format
 msgid "Don't show any lock user interface."
 msgstr "ਕੋਈ ਵੀ ਲਾਕ ਵਰਤੋਂਕਾਰ ਇੰਟਰਫੇਸ ਨਾ ਦਿਖਾਉ।"
 
-#: main.cpp:141
+#: pamauthenticatormodel.cpp:51
 #, kde-format
-msgid "File descriptor for connecting to ksld."
+msgctxt "authentication type in unlock dialogs"
+msgid "Password"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:60
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Smartcard"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:67
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Fingerprint"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:74
+#, kde-format
+msgctxt "authentication type in unlock dialogs - facial authentication"
+msgid "Face"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:82
+#, kde-format
+msgctxt ""
+"authentication type in unlock dialogs - universal 2 factor authentication "
+"(yubikey etc)"
+msgid "Universal 2 Factor"
 msgstr ""
 
 #~ msgid "Session"

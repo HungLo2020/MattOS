@@ -5,14 +5,14 @@
 # Maris Nartiss <maris.kde@gmail.com>, 2007.
 # Viesturs Zarins <viesturs.zarins@mii.lu.lv>, 2008.
 # Viesturs Zariņš <viesturs.zarins@mii.lu.lv>, 2009.
-# SPDX-FileCopyrightText: 2024, 2025 Toms Trasuns <toms.trasuns@posteo.net>
+# SPDX-FileCopyrightText: 2024, 2025, 2026 Toms Trasuns <toms.trasuns@posteo.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: systemsettings\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-23 02:40+0000\n"
-"PO-Revision-Date: 2025-08-21 12:49+0300\n"
-"Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
+"POT-Creation-Date: 2026-08-21 00:47+0000\n"
+"PO-Revision-Date: 2026-03-09 18:40+0200\n"
+"Last-Translator: Toms Trasūns <toms.trasuns@posteo.net>\n"
 "Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
 "Language: lv\n"
 "MIME-Version: 1.0\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
-"X-Generator: Lokalize 25.08.0\n"
+"X-Generator: Lokalize 25.12.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -49,109 +49,109 @@ msgstr "Palaist no jauna „%1“"
 msgid "Dialog"
 msgstr "Dialoglodziņš"
 
-#: app/main.cpp:54 app/SettingsBase.cpp:53
+#: app/main.cpp:61 app/SettingsBase.cpp:54
 #, kde-format
 msgid "Info Center"
 msgstr "Informācijas centrs"
 
-#: app/main.cpp:56
+#: app/main.cpp:63
 #, kde-format
 msgid "Centralized and convenient overview of system information."
 msgstr "Centralizēts un ērts sistēmas informācijas pārskats"
 
-#: app/main.cpp:58 app/main.cpp:69
+#: app/main.cpp:65 app/main.cpp:76
 #, kde-format
 msgid "(c) 2009, Ben Cooksley"
 msgstr "(c) 2009, Ben Cooksley"
 
-#: app/main.cpp:65 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:56
-#: runner/systemsettingsrunner.cpp:114
+#: app/main.cpp:72 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:57
+#: runner/systemsettingsrunner.cpp:124
 #, kde-format
 msgid "System Settings"
 msgstr "Sistēmas iestatījumi"
 
-#: app/main.cpp:67
+#: app/main.cpp:74
 #, kde-format
 msgid "Central configuration center by KDE."
 msgstr "KDE centrālais konfigurācijas centrs."
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Ben Cooksley"
 msgstr "Ben Cooksley"
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Maintainer"
 msgstr "Uzturētājs"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Marco Martin"
 msgstr "Marco Martin"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Author"
 msgstr "Autors"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Mathias Soeken"
 msgstr "Mathias Soeken"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Developer"
 msgstr "Izstrādātājs"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Will Stephenson"
 msgstr "Will Stephenson"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Internal module representation, internal module model"
 msgstr "Iekšējā moduļu reprezentācija, iekšējais moduļu modelis"
 
-#: app/main.cpp:91
+#: app/main.cpp:98
 #, kde-format
 msgid "List all possible modules"
 msgstr "Uzskaitīt visus iespējamos moduļus"
 
-#: app/main.cpp:92 app/main.cpp:153
+#: app/main.cpp:99 app/main.cpp:160
 #, kde-format
 msgid "Configuration module to open"
 msgstr "Konfigurēt atveramo moduli"
 
-#: app/main.cpp:93 app/main.cpp:154
+#: app/main.cpp:100 app/main.cpp:161
 #, kde-format
 msgid "Arguments for the module"
 msgstr "Moduļa argumenti"
 
-#: app/main.cpp:101
+#: app/main.cpp:108
 #, kde-format
 msgid "The following modules are available:"
 msgstr "Pieejami ir šie moduļi:"
 
-#: app/main.cpp:119
+#: app/main.cpp:126
 #, kde-format
 msgid "No description available"
 msgstr "Apraksts nav pieejams"
 
-#: app/ModuleView.cpp:185
+#: app/ModuleView.cpp:186
 #, kde-format
 msgid "Reset all current changes to previous values"
 msgstr "Atstatīt pašreizējās izmaiņas uz sākotnējām vērtībām"
 
-#: app/ModuleView.cpp:278
+#: app/ModuleView.cpp:279
 #, kde-format
 msgctxt "@info:whatsthis"
 msgid "Scrollable area"
 msgstr "Ritināmais apgabals"
 
-#: app/ModuleView.cpp:368
+#: app/ModuleView.cpp:373
 #, kde-format
 msgid ""
 "The current page has unsaved changes.\n"
@@ -160,7 +160,7 @@ msgstr ""
 "Lapa satur nesaglabātas izmaiņas.\n"
 "Vai vēlaties pielietot šīs izmaiņas vai tās izmest?"
 
-#: app/ModuleView.cpp:373
+#: app/ModuleView.cpp:378
 #, kde-format
 msgid "Apply Settings"
 msgstr "Pielietot izmaiņas"
@@ -181,7 +181,14 @@ msgstr "Rādīt izvēlni"
 msgid "Plasma"
 msgstr "Plasma"
 
-#: app/SettingsBase.cpp:144
+#: app/qml/SubCategoryPage.qml:74
+#, kde-format
+msgctxt "@action:button go back"
+msgid "Back"
+msgstr "Atpakaļ"
+
+#. i18n: ectx: label, entry (HighlightNonDefaultSettings), group (systemsettings_sidebar_mode)
+#: app/SettingsBase.cpp:144 app/systemsettings-config.kcfg:8
 #, kde-format
 msgid "Highlight Changed Settings"
 msgstr "Iekrāsot izmainītos iestatījumus"
@@ -193,7 +200,7 @@ msgctxt ""
 msgid "Show Inapplicable Pages"
 msgstr "Rādīt nepiemērojamās lapas"
 
-#: app/SettingsBase.cpp:163
+#: app/SettingsBase.cpp:167
 #, kde-format
 msgid "Report a Bug in the Current Page…"
 msgstr "Ziņot par kļūdu šajā lapā..."
@@ -208,13 +215,13 @@ msgstr "Sānu josla"
 msgid "Most Used"
 msgstr "Visbiežāk izmantots"
 
-#: runner/systemsettingsrunner.cpp:32
+#: runner/systemsettingsrunner.cpp:33
 #, kde-format
 msgid "Finds system settings modules whose names or descriptions match :q:"
 msgstr ""
 "Atrod sistēmas izmaiņu moduļus, kuru nosaukumi vai apraksti atbilst :q:"
 
-#: runner/systemsettingsrunner.cpp:112
+#: runner/systemsettingsrunner.cpp:122
 #, kde-format
 msgid "System Information"
 msgstr "Sistēmas iestatījumi"

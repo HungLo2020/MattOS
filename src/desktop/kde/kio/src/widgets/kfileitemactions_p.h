@@ -57,8 +57,8 @@ public:
         int userItemCount = 0;
         QMenu *menu = nullptr;
     };
-    ServiceActionInfo addServiceActionsTo(QMenu *mainMenu, const QList<QAction *> &additionalActions, const QStringList &excludeList);
-    int addPluginActionsTo(QMenu *mainMenu, QMenu *actionsMenu, const QStringList &excludeList);
+    void addServiceActionsTo(QMenu *mainMenuHolder, QMenu *actionsMenuHolder, const QList<QAction *> &additionalActions, const QStringList &excludeList);
+    void addPluginActionsTo(QMenu *mainMenuHolder, QMenu *actionsMenuHolder, const QStringList &excludeList);
     void insertOpenWithActionsTo(QAction *before, QMenu *topMenu, const QStringList &excludedDesktopEntryNames);
     static KService::List associatedApplications(const QStringList &mimeTypeList, const QStringList &excludedDesktopEntryNames);
 
@@ -92,6 +92,7 @@ public:
     QActionGroup m_executeServiceActionGroup;
     QActionGroup m_runApplicationActionGroup;
     QWidget *m_parentWidget;
+    QMenu *m_mainMenu = nullptr;
     KConfig m_config;
     QHash<QString, KAbstractFileItemActionPlugin *> m_loadedPlugins;
     // Actions created by createServiceMenuActions()

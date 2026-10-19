@@ -24,7 +24,7 @@ Dependencies:
     'frameworks/krunner': '@latest-kf6'
     'frameworks/kdoctools': '@latest-kf6'
     'frameworks/kcolorscheme': '@latest-kf6'
-    'plasma/plasma-activities': '@latest-kf6'
+    'plasma/plasma-activities': '@same'
 
 RuntimeDependencies:
  - 'on': ['Linux']
@@ -32,5 +32,5 @@ RuntimeDependencies:
     'sdk/selenium-webdriver-at-spi': '@same'
 
 Options:
- require-passing-tests-on: ['Linux', 'FreeBSD']
+ require-passing-tests-on: ['@all']
  run-qmllint: True

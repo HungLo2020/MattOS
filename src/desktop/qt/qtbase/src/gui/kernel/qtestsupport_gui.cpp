@@ -1,10 +1,12 @@
 // Copyright (C) 2018 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <private/qguiapplication_p.h>
 #include <private/qeventpoint_p.h>
 
 #include <qpa/qplatformintegration.h>
+#include <qpa/qwindowsysteminterface.h>
 
 #include "qtestsupport_gui.h"
 #include "qwindow.h"
@@ -199,6 +201,22 @@ QTouchEventSequence& QTouchEventSequence::stationary(int touchId)
     return *this;
 }
 
+bool QTouchEventSequence::cancel(bool processEvents)
+{
+    bool ret = false;
+    if (targetWindow) {
+        QThread::sleep(std::chrono::milliseconds{1});
+        ret = QWindowSystemInterface::handleTouchCancelEvent<
+            QWindowSystemInterface::SynchronousDelivery>(targetWindow, device);
+        if (processEvents)
+            QCoreApplication::processEvents();
+    }
+    // A TouchCancel can only be followed by a TouchBegin, so start over.
+    previousPoints.clear();
+    points.clear();
+    return ret;
+}
+
 bool QTouchEventSequence::commit(bool processEvents)
 {
     if (points.isEmpty())
@@ -219,11 +237,11 @@ QTouchEventSequence::QTouchEventSequence(QWindow *window, QPointingDevice *aDevi
 {
 }
 
-QPoint QTouchEventSequence::mapToScreen(QWindow *window, const QPoint &pt)
+QPointF QTouchEventSequence::mapToScreen(QWindow *window, const QPoint &pt)
 {
     if (window)
-        return window->mapToGlobal(pt);
-    return targetWindow ? targetWindow->mapToGlobal(pt) : pt;
+        return window->mapToGlobal(QPointF(pt));
+    return targetWindow ? targetWindow->mapToGlobal(QPointF(pt)) : QPointF(pt);
 }
 
 QEventPoint &QTouchEventSequence::point(int touchId)

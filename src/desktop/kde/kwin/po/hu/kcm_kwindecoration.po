@@ -4,13 +4,13 @@
 # Kristóf Kiszel <ulysses@kubuntu.org>, 2010, 2011, 2012, 2014, 2015, 2019.
 # Balázs Úr <urbalazs@gmail.com>, 2012, 2013, 2014.
 # Kiszel Kristóf <kiszel.kristof@gmail.com>, 2017, 2018, 2020, 2021.
-# SPDX-FileCopyrightText: 2021, 2024, 2025 Kristof Kiszel <ulysses@fsf.hu>
+# SPDX-FileCopyrightText: 2021, 2024-2026 Kristof Kiszel <ulysses@fsf.hu>
 msgid ""
 msgstr ""
 "Project-Id-Version: KDE 4.2\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2025-11-13 21:01+0100\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-06-19 22:16+0200\n"
 "Last-Translator: Kristof Kiszel <ulysses@fsf.hu>\n"
 "Language-Team: Hungarian <kde-l10n-hu@kde.org>\n"
 "Language: hu\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.08.2\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #: declarative-plugin/buttonsmodel.cpp:56
 #, kde-format
@@ -67,21 +67,21 @@ msgstr "Maradjon más ablakok fölött"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr ""
+msgid "Hide from screenshots and screen recordings"
+msgstr "Elrejtés a képernyőképekből és a képernyőfelvételekből"
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
 msgstr "Elválasztó"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Téma alapértelmezése (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -92,7 +92,7 @@ msgstr ""
 "jelenleg aktív munkamenethez, anélkül, hogy véletlenül olyanra állítaná be, "
 "amelyik nem érhető el, vagy már be van állítva."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -103,7 +103,7 @@ msgstr ""
 "útvonal megkísérli megtalálni a témát az adott mappában, majd alkalmazza, ha "
 "van ilyen."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
@@ -111,7 +111,7 @@ msgstr ""
 "A rendszer összes elérhető témájának megjelenítése (és hogy melyik a "
 "jelenlegi téma)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -120,7 +120,7 @@ msgstr ""
 "%1 feloldva, mint a(z) „%2” KWin Aurorae téma, és a beállításának "
 "megkísérlése, mint jelenlegi téma."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -129,19 +129,20 @@ msgstr ""
 "Egy fájl elérési útvonalát próbálta meg átadni, de az nem oldható fel "
 "témaként, ezért téma hiányában a beállítási folyamat megszakad"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr "A kért „%1” téma már be van állítva, mint ablakdekorációs téma."
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr ""
-"A(z) %1 kurzortéma sikeresen beállítva a jelenlegi Plasma munkamenethez"
+"A(z) %1 mutatótéma sikeresen beállítva a jelenlegi Plasma munkamenethez"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -150,7 +151,7 @@ msgstr ""
 "Nem sikerült menteni a témabeállításait - ennek oka ismeretlen, de ez egy "
 "nem javítható hiba. Próbálja meg ismét, valószínűleg működni fog."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -159,7 +160,7 @@ msgstr ""
 "A(z) „%1” téma nem található. A téma a következő opciók egyike kell, hogy "
 "legyen: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "A következő KWin ablakdekorációs témák találhatók meg a rendszeren:"
@@ -207,24 +208,30 @@ msgstr "Tippek megjelenítése a címsor gombjainál"
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
 msgstr ""
+"Mindig mutassa az „Elrejtés a képernyőképekből és a képernyőfelvételekből” "
+"gombot"
 
 #: ui/ConfigureTitlebar.qml:85
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
+"Ha nincs bejelölve, a gomb csak akkor jelenik meg, ha az ablakot elrejtik a "
+"képernyőképekből és a képernyőfelvételekből"
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
+"A beállítás bekapcsolásához előbb adja hozzá az „Elrejtés a képernyőképekből "
+"és a képernyőfelvételekből” gombot a címsorhoz"
 
 #: ui/main.qml:29
 #, kde-format
@@ -249,47 +256,47 @@ msgstr "Új letöltése…"
 msgid "Edit %1 Theme…"
 msgstr "A(z) %1 téma szerkesztése…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Nincsenek ablakszegélyek"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Nincsenek oldalsó ablakszegélyek"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Apró ablakszegélyek"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Normál ablakszegélyek"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Nagy ablakszegélyek"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Nagyon nagy ablakszegélyek"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Hatalmas ablakszegélyek"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Nagyon hatalmas ablakszegélyek"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Túlméretezett ablakszegélyek"

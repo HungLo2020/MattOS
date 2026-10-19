@@ -147,7 +147,6 @@ ecm_qt_declare_logging_category(KF6NetworkManagerQt
     IDENTIFIER NMQT
     CATEGORY_NAME kf.networkmanagerqt
     OLD_CATEGORY_NAMES networkmanager-qt
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "NetworkManagerQt"
     EXPORT NETWORMANAGERQT
 )
@@ -296,4 +295,20 @@ ecm_qt_install_logging_categories(
     EXPORT NETWORMANAGERQT
     FILE networkmanagerqt.categories
     DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR}
+)
+
+ecm_add_installed_library_check(KF6NetworkManagerQt
+    PACKAGE_NAME "KF6NetworkManagerQt"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6NetworkManagerQt
+    HEADERS
+        ${NetworkManagerQt_CamelCase_HEADERS}
+        ${NetworkManagerQt_SETTINGS_CamelCase_HEADERS}
+    PREFIX NetworkManagerQt
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6NetworkManagerQt
+    PREFIX NETWORKMANAGERQT
 )

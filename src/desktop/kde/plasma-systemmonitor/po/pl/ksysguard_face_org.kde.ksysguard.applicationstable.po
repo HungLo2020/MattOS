@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-systemmonitor package.
-# SPDX-FileCopyrightText: 2021, 2023, 2024, 2025 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2023-2026 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2025-07-19 09:11+0200\n"
+"POT-Creation-Date: 2026-08-25 00:47+0000\n"
+"PO-Revision-Date: 2026-08-08 12:06+0200\n"
 "Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
 "Language-Team: pl\n"
 "Language: pl\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 25.04.3\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #: src/faces/applicationstable/contents/ui/ApplicationDetails.qml:51
 #, kde-format
@@ -60,7 +60,7 @@ msgctxt "Warning message shown on runtime error"
 msgid "Applications view is unsupported on your system"
 msgstr "Widok aplikacji jest nieobsługiwany na twoim systemie"
 
-#: src/faces/applicationstable/contents/ui/ApplicationsTableView.qml:192
+#: src/faces/applicationstable/contents/ui/ApplicationsTableView.qml:197
 #, kde-format
 msgctxt "@label"
 msgid "Background Services"
@@ -108,67 +108,73 @@ msgctxt "@action"
 msgid "Configure Columns…"
 msgstr "Ustawienia kolumn..."
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:200
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:203
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Set priority…"
-msgstr "Ustaw priorytet..."
+msgstr "Ustaw priorytet…"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:207
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:210
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Set affinity…"
+msgstr "Ustaw podobieństwo…"
+
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:218
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Send Signal"
 msgstr "Wyślij sygnał"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:212
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:223
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Suspend (STOP)"
 msgstr "Zatrzymaj (STOP)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:216
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:227
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Continue (CONT)"
 msgstr "Wznów (CONT)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:220
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:231
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Hangup (HUP)"
 msgstr "Zawieś (HUP)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:224
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:235
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Interrupt (INT)"
 msgstr "Przerwij (INT)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:228
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:239
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Terminate (TERM)"
 msgstr "Zakończ (TERM)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:232
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:243
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Kill (KILL)"
 msgstr "Zniszcz (KILL)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:236
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:247
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "User 1 (USR1)"
 msgstr "Użytkownika 1 (USR1)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:240
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:251
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "User 2 (USR2)"
 msgstr "Użytkownika 2 (USR2)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:248
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:259
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Quit Application"
@@ -177,13 +183,13 @@ msgstr[0] "Zakończ aplikację"
 msgstr[1] "Zakończ %1 aplikacje"
 msgstr[2] "Zakończ %1 aplikacji"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:258
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:269
 #, kde-format
 msgctxt "@action:inmenu hide column"
 msgid "Hide"
 msgstr "Ukryj"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:273
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:284
 #, kde-format
 msgctxt "@title:window"
 msgid "Force Quit Application"
@@ -192,7 +198,7 @@ msgstr[0] "Wymuś zakończenie aplikacji"
 msgstr[1] "Wymuś zakończenie %1 aplikacji"
 msgstr[2] "Wymuś zakończenie %1 aplikacji"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:274
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:285
 #, kde-format
 msgctxt "@title:window"
 msgid "Quit Application"
@@ -201,7 +207,7 @@ msgstr[0] "Zakończ aplikację"
 msgstr[1] "Zakończ %1 aplikacje"
 msgstr[2] "Zakończ %1 aplikacji"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:276
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Force Quit Application"
@@ -210,7 +216,7 @@ msgstr[0] "Wymuś zakończenie aplikacji"
 msgstr[1] "Wymuś zakończenie aplikacji"
 msgstr[2] "Wymuś zakończenie aplikacji"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:277
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:288
 #, kde-format
 msgctxt "@action:button"
 msgid "Quit Application"
@@ -219,7 +225,7 @@ msgstr[0] "Zakończ aplikację"
 msgstr[1] "Zakończ aplikację"
 msgstr[2] "Zakończ aplikację"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:280
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:291
 #, kde-format
 msgid "Force quit (SIGKILL) the application? Unsaved work may be lost."
 msgid_plural ""
@@ -234,7 +240,7 @@ msgstr[2] ""
 "Czy wymusić (SIGKILL) zakończenie tych %1 aplikacji? Niezapisana praca "
 "zostanie utracona."
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:283
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:294
 #, kde-format
 msgid "Quit this application? Unsaved work may be lost."
 msgid_plural "Quit these %1 applications? Unsaved work may be lost."
@@ -243,7 +249,7 @@ msgstr[1] "Czy zakończyć te %1 aplikacje? Niezapisana praca zostanie utracona.
 msgstr[2] ""
 "Czy zakończyć tych %1 aplikacji? Niezapisana praca zostanie utracona."
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:298
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:309
 #, kde-format
 msgctxt "@item:intable"
 msgid "%1 Process"

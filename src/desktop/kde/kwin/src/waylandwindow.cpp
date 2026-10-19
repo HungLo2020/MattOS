@@ -137,13 +137,12 @@ bool WaylandWindow::belongsToDesktop() const
 {
     const auto clients = waylandServer()->windows();
 
-    return std::any_of(clients.constBegin(), clients.constEnd(),
-                       [this](const Window *client) {
-                           if (belongsToSameApplication(client, SameApplicationChecks())) {
-                               return client->isDesktop();
-                           }
-                           return false;
-                       });
+    return std::any_of(clients.constBegin(), clients.constEnd(), [this](const Window *client) {
+        if (belongsToSameApplication(client, SameApplicationChecks())) {
+            return client->isDesktop();
+        }
+        return false;
+    });
 }
 
 void WaylandWindow::updateClientOutputs()
@@ -215,7 +214,7 @@ void WaylandWindow::updateGeometry(const RectF &rect)
     const RectF oldClientGeometry = m_clientGeometry;
     const RectF oldFrameGeometry = m_frameGeometry;
     const RectF oldBufferGeometry = m_bufferGeometry;
-    const LogicalOutput *oldOutput = m_output;
+    LogicalOutput *oldOutput = m_output;
 
     m_clientGeometry = frameRectToClientRect(rect);
     m_frameGeometry = rect;
@@ -250,14 +249,14 @@ void WaylandWindow::updateGeometry(const RectF &rect)
         Q_EMIT frameGeometryChanged(oldFrameGeometry);
     }
     if (oldOutput != m_output) {
-        Q_EMIT outputChanged();
+        Q_EMIT outputChanged(oldOutput);
     }
 }
 
 void WaylandWindow::markAsMapped()
 {
     if (Q_UNLIKELY(!ready_for_painting)) {
-        setupCompositing();
+        setupItem();
         setReadyForPainting();
     }
 }

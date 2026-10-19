@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgsoftwareglyphnode_p.h"
 #include <QtGui/private/qrawfont_p.h>
@@ -7,7 +8,8 @@
 QT_BEGIN_NAMESPACE
 
 QSGSoftwareGlyphNode::QSGSoftwareGlyphNode()
-    : m_geometry(QSGGeometry::defaultAttributes_TexturedPoint2D(), 0)
+    : QSGGlyphNode(QSGTextNode::NativeRendering)
+    , m_geometry(QSGGeometry::defaultAttributes_TexturedPoint2D(), 0)
     , m_style(QQuickText::Normal)
 {
     setMaterial((QSGMaterial*)1);
@@ -105,6 +107,10 @@ void QSGSoftwareGlyphNode::setPreferredAntialiasingMode(QSGGlyphNode::Antialiasi
 
 void QSGSoftwareGlyphNode::update()
 {
+    if (m_recycled) {
+        markDirty(DirtyGeometry);
+        m_recycled = false;
+    }
 }
 
 void QSGSoftwareGlyphNode::paint(QPainter *painter)
@@ -137,6 +143,18 @@ void QSGSoftwareGlyphNode::paint(QPainter *painter)
 
     painter->setPen(m_color);
     painter->drawGlyphRun(pos, m_glyphRun);
+}
+
+void QSGSoftwareGlyphNode::recycle()
+{
+    QSGGlyphNode::recycle();
+    m_position = QPointF{};
+    m_glyphRun = QGlyphRun{};
+    m_color = QColor{};
+    m_geometry.allocate(0, 0);
+    m_style = QQuickText::Normal;
+    m_styleColor = QColor{};
+    m_recycled = true;
 }
 
 QT_END_NAMESPACE

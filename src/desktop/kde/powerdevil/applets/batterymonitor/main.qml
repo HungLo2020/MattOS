@@ -7,6 +7,7 @@
 
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
@@ -17,7 +18,6 @@ import org.kde.config as KConfig
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
-import org.kde.kitemmodels as KItemModels
 
 import org.kde.plasma.private.batterymonitor
 import org.kde.plasma.private.battery
@@ -94,9 +94,9 @@ PlasmoidItem {
     switchWidth: Kirigami.Units.gridUnit * 10
     switchHeight: Kirigami.Units.gridUnit * 10
 
-    Plasmoid.title: batteryControl.hasBatteries ? i18n("Power and Battery") : i18n("Power Management")
+    Plasmoid.title: batteryControl.hasBatteries ? i18n("Power & Battery") : i18n("Power Management")
 
-    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.enabled: Application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
     Plasmoid.status: {
@@ -123,6 +123,10 @@ PlasmoidItem {
         }
 
         const percent = batteryControl.percent;
+        if (percent < 0) {
+            return i18nc("@info:status", "Battery level unknown");
+        }
+
         if (batteryControl.pluggedIn) {
             const state = batteryControl.state;
             if (state === BatteryControlModel.NoCharge) {
@@ -167,24 +171,26 @@ PlasmoidItem {
             parts.push(i18n("Middle-click to disable automatic sleep and screen locking"));
         }
 
-        if (powerProfilesControl.isInPerformanceProfile) {
-            if (powerProfilesControl.isHeldOnPowerProfile) {
-                parts.push(i18np("An application has requested activating Performance mode",
-                                 "%1 applications have requested activating Performance mode",
-                                 powerProfilesControl.profileHolds.length));
-            } else {
-                parts.push(i18n("System is in Performance mode; scroll to change"));
+        if (powerProfilesControl.isPowerProfileDaemonInstalled) {
+            if (powerProfilesControl.isInPerformanceProfile) {
+                if (powerProfilesControl.isHeldOnPowerProfile) {
+                    parts.push(i18np("An application has requested activating Performance mode",
+                                    "%1 applications have requested activating Performance mode",
+                                    powerProfilesControl.profileHolds.length));
+                } else {
+                    parts.push(i18n("System is in Performance mode; scroll to change"));
+                }
+            } else if (powerProfilesControl.isInPowersaveProfile) {
+                if (powerProfilesControl.isHeldOnPowerProfile) {
+                    parts.push(i18np("An application has requested activating Power Save mode",
+                                    "%1 applications have requested activating Power Save mode",
+                                    powerProfilesControl.profileHolds.length));
+                } else {
+                    parts.push(i18n("System is in Power Save mode; scroll to change"));
+                }
+            } else if (powerProfilesControl.isInBalancedProfile) {
+                parts.push(i18n("System is in Balanced Power mode; scroll to change"));
             }
-        } else if (powerProfilesControl.isInPowersaveProfile) {
-            if (powerProfilesControl.isHeldOnPowerProfile) {
-                parts.push(i18np("An application has requested activating Power Save mode",
-                                "%1 applications have requested activating Power Save mode",
-                                powerProfilesControl.profileHolds.length));
-            } else {
-                parts.push(i18n("System is in Power Save mode; scroll to change"));
-            }
-        } else if (powerProfilesControl.isInBalancedProfile) {
-            parts.push(i18n("System is in Balanced Power mode; scroll to change"));
         }
 
         return parts.join("\n");
@@ -206,6 +212,7 @@ PlasmoidItem {
     }
 
     compactRepresentation: CompactRepresentation {
+        Accessible.description: `${batterymonitor.toolTipMainText}; ${batterymonitor.toolTipSubText}`
         batteryPercent: batteryControl.percent
         batteryPluggedIn: batteryControl.pluggedIn
         hasBatteries: batteryControl.hasBatteries
@@ -259,8 +266,6 @@ PlasmoidItem {
     fullRepresentation: PopupDialog {
         id: dialogItem
 
-        readonly property var pmControl: inhibitionControl
-
         Layout.minimumWidth: (batterymonitor.inPanel && !batterymonitor.compactInPanel) ? -1 : Kirigami.Units.gridUnit * 10
         Layout.maximumWidth: Kirigami.Units.gridUnit * 80
         Layout.preferredWidth: Kirigami.Units.gridUnit * 20
@@ -294,6 +299,10 @@ PlasmoidItem {
         onInhibitionChangeRequested: inhibit => {
             batterymonitor.inhibitionChangeRequested(inhibit);
         }
+
+        onInhibitionAllowedRequested: (name, reason, allowed) => {
+            inhibitionControl.setInhibitionAllowed(name, reason, allowed)
+        }
     }
 
     Plasmoid.contextualActions: [
@@ -301,7 +310,7 @@ PlasmoidItem {
             text: i18n("&Show Energy Information…")
             icon.name: "documentinfo"
             visible: batterymonitor.kcmEnergyInformationAuthorized
-            onTriggered: checked => KCMUtils.KCMLauncher.openInfoCenter("kcm_energyinfo")
+            onTriggered: KCMUtils.KCMLauncher.openInfoCenter("kcm_energyinfo")
         },
         PlasmaCore.Action {
             text: i18n("Show Battery Percentage on Icon When Not Fully Charged")
@@ -309,9 +318,7 @@ PlasmoidItem {
             visible: batteryControl.hasBatteries
             checkable: true
             checked: Plasmoid.configuration.showPercentage
-            onTriggered: checked => {
-                Plasmoid.configuration.showPercentage = checked;
-            }
+            onTriggered: Plasmoid.configuration.showPercentage = checked;
         }
     ]
 
@@ -319,9 +326,7 @@ PlasmoidItem {
         id: configureAction
         text: i18n("&Configure Power Management…")
         icon.name: "configure"
-        onTriggered: checked => {
-            KCMUtils.KCMLauncher.openSystemSettings("kcm_powerdevilprofilesconfig");
-        }
+        onTriggered: KCMUtils.KCMLauncher.openSystemSettings("kcm_powerdevilprofilesconfig");
     }
 
     Component.onCompleted: {

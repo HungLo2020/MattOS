@@ -7,13 +7,13 @@
 # Thiago Masato Costa Sueto <herzenschein@gmail.com>, 2021.
 # SPDX-FileCopyrightText: 2023 Geraldo Simiao <geraldosimiao@fedoraproject.org>
 # SPDX-FileCopyrightText: 2025, 2026 Guilherme Marçal Silva <guimarcalsilva@gmail.com>
-# SPDX-FileCopyrightText: 2025, 2026 Marcus Gama <marcus.gama@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Marcus Gama <marcus.gama@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: libkirigami2plugin_qt\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"PO-Revision-Date: 2026-04-17 02:43-0300\n"
-"Last-Translator: Guilherme Marçal Silva <guimarcalsilva@gmail.com>\n"
+"PO-Revision-Date: 2026-08-06 07:12-0300\n"
+"Last-Translator: Marcus Gama <marcus.gama@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
@@ -21,77 +21,76 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Qt-Contexts: true\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.04.3\n"
 
-#: controls/AboutItem.qml:166
+#: controls/AboutItem.qml:180
 #, qt-format
 msgctxt "AboutItem|"
-msgid "%1 (%2)"
-msgstr "%1 (%2)"
+msgid "Visit %1's KDE Store page"
+msgstr "Visite a página do %1 na KDE Store"
 
-#: controls/AboutItem.qml:186
+#: controls/AboutItem.qml:196
 #, qt-format
 msgctxt "AboutItem|"
 msgid "Send an email to %1"
 msgstr "Enviar e-mail para %1"
 
-#: controls/AboutItem.qml:228
-msgctxt "AboutItem|"
-msgid "Get Involved"
-msgstr "Participe"
-
 #: controls/AboutItem.qml:234
-msgctxt "AboutItem|"
-msgid "Donate"
-msgstr "Doar"
-
-#: controls/AboutItem.qml:251
-msgctxt "AboutItem|"
-msgid "Report a Bug"
-msgstr "Relatar erro"
-
-#: controls/AboutItem.qml:264
 msgctxt "AboutItem|"
 msgid "Copyright"
 msgstr "Copyright"
 
-#: controls/AboutItem.qml:313
+#: controls/AboutItem.qml:243
 msgctxt "AboutItem|"
-msgid "License:"
-msgstr "Licença:"
+msgid "License"
+msgstr "Licença"
 
-#: controls/AboutItem.qml:336
-#, qt-format
+#: controls/AboutItem.qml:265
 msgctxt "AboutItem|"
-msgid "License: %1"
-msgstr "Licença: %1"
+msgid "Homepage"
+msgstr "Página inicial"
 
-#: controls/AboutItem.qml:347
+#: controls/AboutItem.qml:279
+msgctxt "AboutItem|"
+msgid "Donate"
+msgstr "Doar"
+
+#: controls/AboutItem.qml:293
+msgctxt "AboutItem|"
+msgid "Get Involved"
+msgstr "Participe"
+
+#: controls/AboutItem.qml:307
+msgctxt "AboutItem|"
+msgid "Report a bug"
+msgstr "Relate um bug"
+
+#: controls/AboutItem.qml:325
 msgctxt "AboutItem|"
 msgid "Libraries in use"
 msgstr "Bibliotecas em uso"
 
-#: controls/AboutItem.qml:379
-msgctxt "AboutItem|"
-msgid "Authors"
-msgstr "Autores"
-
-#: controls/AboutItem.qml:389
+#: controls/AboutItem.qml:345
 msgctxt "AboutItem|"
 msgid "Show author photos"
 msgstr "Mostrar as fotos dos autores"
 
-#: controls/AboutItem.qml:400
+#: controls/AboutItem.qml:348
+msgctxt "AboutItem|"
+msgid "Authors"
+msgstr "Autores"
+
+#: controls/AboutItem.qml:358
 msgctxt "AboutItem|"
 msgid "Credits"
 msgstr "Créditos"
 
-#: controls/AboutItem.qml:412
+#: controls/AboutItem.qml:368
 msgctxt "AboutItem|"
 msgid "Translators"
 msgstr "Tradutores"
 
-#: controls/AboutPage.qml:103
+#: controls/AboutPage.qml:102
 #, qt-format
 msgctxt "AboutPage|"
 msgid "About %1"
@@ -122,37 +121,37 @@ msgctxt "ContextualHelpButton|"
 msgid "Show Contextual Help"
 msgstr "Exibir ajuda contextual"
 
-#: controls/GlobalDrawer.qml:366
+#: controls/GlobalDrawer.qml:372
 msgctxt "GlobalDrawer|"
 msgid "Back"
 msgstr "Voltar"
 
-#: controls/GlobalDrawer.qml:719
+#: controls/GlobalDrawer.qml:769
 msgctxt "GlobalDrawer|"
 msgid "Close Sidebar"
 msgstr "Fechar barra lateral"
 
-#: controls/GlobalDrawer.qml:724
+#: controls/GlobalDrawer.qml:774
 msgctxt "GlobalDrawer|"
 msgid "Open Sidebar"
 msgstr "Abrir barra lateral"
 
-#: controls/LoadingPlaceholder.qml:58
+#: controls/LoadingPlaceholder.qml:59
 msgctxt "LoadingPlaceholder|"
 msgid "Loading…"
 msgstr "Carregando…"
 
-#: controls/PasswordField.qml:43
+#: controls/PasswordField.qml:44
 msgctxt "PasswordField|"
 msgid "Password"
 msgstr "Senha"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Hide Password"
 msgstr "Ocultar senha"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Show Password"
 msgstr "Mostrar senha"
@@ -177,30 +176,30 @@ msgctxt "NavigationButtons|"
 msgid "Navigate Forward"
 msgstr "Avançar"
 
-#: controls/private/PrivateActionToolButton.qml:118
+#: controls/private/PrivateActionToolButton.qml:119
 #, qt-format
 msgctxt "@info:tooltip %1 is a keyboard shorcut|"
 msgid "Trigger this action with %1"
 msgstr "Ative esta ação com %1"
 
-#: controls/private/PrivateActionToolButton.qml:125
+#: controls/private/PrivateActionToolButton.qml:126
 #, qt-format
 msgctxt ""
 "@info:tooltip %1 is the tooltip of an action, %2 is its keyboard shorcut|"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: controls/SearchField.qml:88
+#: controls/SearchField.qml:89
 msgctxt "SearchField|"
 msgid "Search…"
 msgstr "Pesquisar…"
 
-#: controls/SearchField.qml:90
+#: controls/SearchField.qml:91
 msgctxt "SearchField|"
 msgid "Search"
 msgstr "Pesquisar"
 
-#: controls/SearchField.qml:100
+#: controls/SearchField.qml:101
 msgctxt "SearchField|"
 msgid "Clear search"
 msgstr "Limpar pesquisa"
@@ -215,23 +214,23 @@ msgctxt "SelectableLabel|"
 msgid "Select All"
 msgstr "Selecionar tudo"
 
-#: controls/UrlButton.qml:52
+#: controls/UrlButton.qml:53
 #, qt-format
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link %1"
 msgstr "Abrir link %1"
 
-#: controls/UrlButton.qml:53
+#: controls/UrlButton.qml:54
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link"
 msgstr "Abrir link"
 
-#: controls/UrlButton.qml:101
+#: controls/UrlButton.qml:102
 msgctxt "UrlButton|"
 msgid "Copy Link to Clipboard"
 msgstr "Copiar link para a área de transferência"
 
-#: dialogs/DialogHeaderTopContent.qml:103
+#: dialogs/DialogHeaderTopContent.qml:104
 msgctxt "DialogHeaderTopContent|@action:button close dialog"
 msgid "Close"
 msgstr "Fechar"
@@ -254,45 +253,53 @@ msgctxt "Kirigami::Platform::Settings|"
 msgid "Qt %2 (built against %3)"
 msgstr "Qt %2 (compilado com %3)"
 
-#: templates/InlineMessage.qml:350
+#: templates/InlineMessage.qml:352
 msgctxt "InlineMessage|"
 msgid "Success"
 msgstr "Sucesso"
 
-#: templates/InlineMessage.qml:352
+#: templates/InlineMessage.qml:354
 msgctxt "InlineMessage|"
 msgid "Warning"
 msgstr "Aviso"
 
-#: templates/InlineMessage.qml:354
+#: templates/InlineMessage.qml:356
 msgctxt "InlineMessage|"
 msgid "Error"
 msgstr "Erro"
 
-#: templates/InlineMessage.qml:356
+#: templates/InlineMessage.qml:358
 msgctxt "InlineMessage|"
 msgid "Note"
 msgstr "Nota"
 
-#: templates/InlineMessage.qml:443
+#: templates/InlineMessage.qml:445
 msgctxt "InlineMessage|"
 msgid "Close"
 msgstr "Fechar"
 
-#: templates/OverlayDrawer.qml:147
+#: templates/OverlayDrawer.qml:149
 msgctxt "OverlayDrawer|"
 msgid "Close drawer"
 msgstr "Fechar gaveta"
 
-#: templates/OverlayDrawer.qml:153
+#: templates/OverlayDrawer.qml:155
 msgctxt "OverlayDrawer|"
 msgid "Open drawer"
 msgstr "Abrir gaveta"
 
-#: templates/OverlaySheet.qml:294
+#: templates/OverlaySheet.qml:309
 msgctxt "OverlaySheet|@action:button close dialog"
 msgid "Close"
 msgstr "Fechar"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "License: %1"
+#~ msgstr "Licença: %1"
 
 #~ msgctxt "Dialog|@action:button close dialog"
 #~ msgid "Close"
@@ -333,10 +340,6 @@ msgstr "Fechar"
 #~ msgctxt "ToolBarApplicationHeader|"
 #~ msgid "More Actions"
 #~ msgstr "Mais ações"
-
-#~ msgctxt "AboutItem|"
-#~ msgid "Visit %1's KDE Store page"
-#~ msgstr "Visite a página do %1 na KDE Store"
 
 #~ msgctxt "UrlButton|"
 #~ msgid "Copy link address"

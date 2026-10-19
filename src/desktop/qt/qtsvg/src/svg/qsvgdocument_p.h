@@ -29,6 +29,7 @@
 #include "qsvgstyle_p.h"
 #include "qsvgfont_p.h"
 #include "private/qsvganimator_p.h"
+#include <QtSvg/private/qsvgpaintserver_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -66,7 +67,7 @@ public:
 
     inline QRectF viewBox() const;
     void setViewBox(const QRectF &rect);
-    bool isCalculatingImplicitViewBox() { return m_calculatingImplicitViewBox; }
+    bool isCalculatingImplicitViewBox() const { return m_calculatingImplicitViewBox; }
 
     QtSvg::Options options() const;
 
@@ -81,12 +82,12 @@ public:
     QRectF boundsOnElement(const QString &id) const;
     bool   elementExists(const QString &id) const;
 
-    void addSvgFont(QSvgFont *);
+    void addSvgFont(const QString &name, QSvgFontPtr font);
     QSvgFont *svgFont(const QString &family) const;
     void addNamedNode(const QString &id, QSvgNode *node);
     QSvgNode *namedNode(const QString &id) const;
-    void addNamedStyle(const QString &id, QSvgPaintStyleProperty *style);
-    QSvgPaintStyleProperty *namedStyle(const QString &id) const;
+    void addPaintServer(QSvgPaintServerSharedPtr paintServer, const QString &id);
+    QSvgPaintServerSharedPtr paintServer(QStringView id) const;
 
     void restartAnimation();
     inline qint64 currentElapsed() const;
@@ -111,9 +112,9 @@ private:
     mutable QRectF m_viewBox;
     bool m_preserveAspectRatio = false;
 
-    QHash<QString, QSvgRefCounter<QSvgFont> > m_fonts;
+    std::unordered_map<QString, QSvgFontPtr> m_fonts;
     QHash<QString, QSvgNode *> m_namedNodes;
-    QHash<QString, QSvgRefCounter<QSvgPaintStyleProperty> > m_namedStyles;
+    std::unordered_map<QString, QSvgPaintServerSharedPtr> m_paintServers;
 
     bool  m_animated;
     int   m_fps;
@@ -176,7 +177,7 @@ inline QRectF QSvgDocument::viewBox() const
 {
     if (m_viewBox.isNull()) {
         QScopedValueRollback<bool> guard(m_calculatingImplicitViewBox, true);
-        m_viewBox = bounds();
+        m_viewBox = bounds(this);
         m_implicitViewBox = true;
     }
 

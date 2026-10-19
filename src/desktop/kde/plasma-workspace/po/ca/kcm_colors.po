@@ -1,27 +1,27 @@
 # Translation of kcm_colors.po to Catalan
-# Copyright (C) 1998-2025 This_file_is_part_of_KDE
+# Copyright (C) 1998-2026 This_file_is_part_of_KDE
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# SPDX-FileCopyrightText: 1998, 1999, 2000, 2001, 2002, 2004, 2005, 2006 Sebastià Pla i Sanz <sps@sastia.com>
-# SPDX-FileCopyrightText: 2002, 2003, 2015, 2016, 2020 Antoni Bella Pérez <antonibella5@yahoo.com>
+# SPDX-FileCopyrightText: 1998-2002, 2004-2006 Sebastià Pla i Sanz <sps@sastia.com>
+# SPDX-FileCopyrightText: 2002-2003, 2015-2016, 2020 Antoni Bella Pérez <antonibella5@yahoo.com>
 # SPDX-FileCopyrightText: 2005 Albert Astals Cid <aacid@kde.org>
-# SPDX-FileCopyrightText: 2007, 2008, 2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2007-2012, 2014-2026 Josep M. Ferrer <txemaq@gmail.com>
 # SPDX-FileCopyrightText: 2009 Manuel Tortosa Moreno <manutortosa@chakra-project.org>
 # SPDX-FileCopyrightText: 2019 Empar Montoro Martín <montoro_mde@gva.es>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-11-08 15:01+0100\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-03-07 19:24+0100\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.08.2\n"
+"X-Generator: Lokalize 25.04.0\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Accelerator-Marker: &\n"
 
@@ -35,33 +35,33 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "aacid@kde.org"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "No s'ha pogut crear el fitxer temporal."
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "No s'ha pogut baixar l'esquema de color: %1"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "Aquest fitxer no és un esquema de color."
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "Ha fallat en crear la carpeta de dades «color-scheme»."
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr ""
 "Ha fallat en copiar l'esquema de color a la carpeta de dades «color-scheme»."
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "L'esquema de color s'ha instal·lat correctament."
@@ -694,15 +694,17 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "No teniu permís per a sobreescriure aquest esquema"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr ""
+"Aquest esquema és de només lectura. Deseu les modificacions amb un altre nom."
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "Error"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "Inactiu"
@@ -1155,7 +1157,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "focus"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1166,7 +1168,7 @@ msgstr ""
 "Plasma, sense posar-ne accidentalment un que no estigui disponible, o que ja "
 "estigui definit."
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
@@ -1175,7 +1177,7 @@ msgstr ""
 "El nom de l'esquema de color que voleu definir a la sessió actual del Plasma "
 "(en passar un camí complet només s'usarà la darrera part del camí)"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
@@ -1184,7 +1186,7 @@ msgstr ""
 "Mostra tots els esquemes de color disponibles en el sistema (i el quin és el "
 "tema actual)"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1196,7 +1198,7 @@ msgstr ""
 "codis hexadecimals de color. Poseu entre cometes el codi de color "
 "hexadecimal si hi ha possibilitat d'expansió de l'intèrpret d'ordres"
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
@@ -1205,14 +1207,14 @@ msgstr ""
 "El tema sol·licitat «%1» ja està establert com tema de la sessió actual del "
 "Plasma."
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr ""
 "El tema de l'esquema de color %1 s'ha aplicat correctament a la sessió "
 "actual del Plasma"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -1221,7 +1223,7 @@ msgstr ""
 "No s'ha pogut trobar el tema «%1». El tema hauria de ser una de les opcions "
 "següents: %2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
@@ -1230,7 +1232,7 @@ msgstr ""
 "S'ha passat un nom buit d'esquema de color, que és un comportament no "
 "acceptat."
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
@@ -1239,22 +1241,22 @@ msgstr ""
 "El fitxer que esteu intentant definir com a esquema, %1, no s'ha pogut "
 "identificar com a esquema de color."
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr "S'ha aplicat correctament l'accent de color %1"
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, kde-format
 msgid "Invalid accent color "
 msgstr "Color d'accent no vàlid"
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "En el sistema hi ha els següents esquemes de color:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr " * %1 (esquema de color actual)"
@@ -1277,7 +1279,7 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "Color d'accent personalitzat"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
@@ -1285,97 +1287,131 @@ msgstr ""
 "L'esquema de color «%1» no està instal·lat. En el seu lloc se selecciona el "
 "tema predeterminat."
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "Tots els esquemes"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "Esquemes clars"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "Esquemes foscos"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "Instal·la des d'un fitxer…"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "Obtén nous…"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "Títol de la finestra"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "Text de la finestra"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "Botó"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "enllaç"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "visitat"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "Text normal"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "Text ressaltat"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "Text desactivat"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "Edita l'esquema de color…"
 
-#: ui/main.qml:323
+#: ui/main.qml:311
 #, kde-format
-msgid "Remove Color Scheme"
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
 msgstr "Elimina l'esquema de color"
 
-#: ui/main.qml:330
+#: ui/main.qml:313
 #, kde-format
-msgid "Restore Color Scheme"
-msgstr "Restaura l'esquema de color"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "No s'ha pogut suprimir l'esquema de color actiu"
 
-#: ui/main.qml:374
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr "No es poden suprimir els esquemes de color instal·lats al sistema"
+
+#: ui/main.qml:323
+#, kde-format
+msgid "Don’t delete this color scheme"
+msgstr "No suprimeixis aquest esquema de color"
+
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "Obre un esquema de color"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "Fitxers d'esquema de color (*.colors)"
+
+#~ msgid "You do not have permission to overwrite that scheme"
+#~ msgstr "No teniu permís per a sobreescriure aquest esquema"
+
+#~ msgid "Restore Color Scheme"
+#~ msgstr "Restaura l'esquema de color"
+
+#~ msgid "Shading of frames and lighting (\"3D\") effects"
+#~ msgstr "Ombreig de marcs i efectes d'il·luminació («3D»)"
+
+#~ msgid "Shading"
+#~ msgstr "Ombreig"
+
+#~ msgid "Maximum"
+#~ msgstr "Màxim"
+
+#~ msgid "Minimum"
+#~ msgstr "Mínim"
+
+#~ msgid "Choose custom accent color"
+#~ msgstr "Trieu el color d'accent personalitzat"

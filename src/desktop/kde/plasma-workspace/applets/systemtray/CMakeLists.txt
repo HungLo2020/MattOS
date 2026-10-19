@@ -41,6 +41,9 @@ target_link_libraries(systemtray_static
         KF6::ConfigCore
         KF6::IconThemes
         KF6::I18n
+        KF6::KIOGui
+        KF6::JobWidgets
+        KF6::Service
         KF6::ItemModels
         KF6::WindowSystem
         KF6::XmlGui
@@ -56,6 +59,7 @@ plasma_add_applet(org.kde.plasma.systemtray
         systemtray.cpp
     QML_SOURCES
         qml/AbstractItem.qml
+        qml/BackgroundAppItem.qml
         qml/ConfigGeneral.qml
         qml/CurrentItemHighLight.qml
         qml/ExpanderArrow.qml

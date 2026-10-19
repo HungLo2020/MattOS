@@ -1,5 +1,6 @@
 /*
     SPDX-FileCopyrightText: 2023 Ismael Asensio <isma.af@gmail.com>
+    SPDX-FileCopyrightText: 2025 Sam Crawford <samlkcrawford@pm.me>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
@@ -10,8 +11,15 @@
 
 #include "soundthemesettings.h"
 
+#include <qqml.h>
+
 class SoundThemeData;
 struct ca_context;
+
+namespace KIO
+{
+class FileCopyJob;
+};
 
 class ThemeInfo : public QObject
 {
@@ -65,6 +73,8 @@ public:
     Q_INVOKABLE int playSound(const QString &themeId, const QStringList &soundList);
     Q_SLOT void cancelSound();
 
+    Q_INVOKABLE void installThemeFromFile(const QUrl &url);
+
     Q_INVOKABLE static QString errorString(int errorCode);
 
     virtual void load() override;
@@ -74,12 +84,17 @@ Q_SIGNALS:
     void themeChanged();
     void playingChanged();
 
+    void showSuccessMessage(const QString &message);
+    void showErrorMessage(const QString &message);
+
 private:
     ca_context *canberraContext();
     static void ca_finish_callback(ca_context *c, uint32_t id, int error_code, void *userdata);
     Q_SLOT void onPlayingFinished();
 
     void loadThemes();
+
+    void installThemeFile(const QString &path);
 
 private:
     ca_context *m_canberraContext = nullptr;
@@ -88,4 +103,6 @@ private:
     QList<ThemeInfo *> m_themes;
     QString m_playingTheme;
     QString m_playingSound;
+
+    QPointer<KIO::FileCopyJob> m_tempCopyJob;
 };

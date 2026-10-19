@@ -41,6 +41,7 @@
 #include <algorithm>
 
 QT_BEGIN_NAMESPACE
+Q_STATIC_LOGGING_CATEGORY(lcAIV, "qt.widgets.abtractitemview");
 
 QAbstractItemViewPrivate::QAbstractItemViewPrivate()
     :   model(QAbstractItemModelPrivate::staticEmptyModel()),
@@ -253,7 +254,7 @@ void QAbstractItemViewPrivate::delegateSizeHintChanged(const QModelIndex &index)
     Q_Q(QAbstractItemView);
     if (model) {
         if (!model->checkIndex(index))
-            qWarning("Delegate size hint changed for a model index that does not belong to this view");
+            qCWarning(lcAIV, "Delegate size hint changed for a model index that does not belong to this view");
     }
     QMetaObject::invokeMethod(q, &QAbstractItemView::doItemsLayout, Qt::QueuedConnection);
 }
@@ -832,9 +833,9 @@ void QAbstractItemView::setSelectionModel(QItemSelectionModel *selectionModel)
     Q_D(QAbstractItemView);
 
     if (Q_UNLIKELY(selectionModel->model() != d->model)) {
-        qWarning("QAbstractItemView::setSelectionModel() failed: "
-                 "Trying to set a selection model, which works on "
-                 "a different model than the view.");
+        qCWarning(lcAIV, "QAbstractItemView::setSelectionModel() failed: "
+                         "Trying to set a selection model, which works on "
+                         "a different model than the view.");
         return;
     }
 
@@ -1263,9 +1264,9 @@ void QAbstractItemView::edit(const QModelIndex &index)
 {
     Q_D(QAbstractItemView);
     if (Q_UNLIKELY(!d->isIndexValid(index)))
-        qWarning("edit: index was invalid");
+        qCWarning(lcAIV, "edit: index was invalid");
     if (Q_UNLIKELY(!edit(index, AllEditTriggers, nullptr)))
-        qWarning("edit: editing failed");
+        qCWarning(lcAIV, "edit: editing failed");
 }
 
 /*!
@@ -2008,6 +2009,7 @@ void QAbstractItemView::mouseReleaseEvent(QMouseEvent *event)
     }
 
     d->pressClosedEditor = false;
+    stopAutoScroll();
     setState(NoState);
 
     if (click) {
@@ -2382,51 +2384,6 @@ void QAbstractItemView::keyPressEvent(QKeyEvent *event)
     Q_D(QAbstractItemView);
     d->delayedAutoScroll.stop(); //any interaction with the view cancel the auto scrolling
 
-#ifdef QT_KEYPAD_NAVIGATION
-    switch (event->key()) {
-    case Qt::Key_Select:
-        if (QApplicationPrivate::keypadNavigationEnabled()) {
-            if (!hasEditFocus()) {
-                setEditFocus(true);
-                return;
-            }
-        }
-        break;
-    case Qt::Key_Back:
-        if (QApplicationPrivate::keypadNavigationEnabled() && hasEditFocus()) {
-            setEditFocus(false);
-        } else {
-            event->ignore();
-        }
-        return;
-    case Qt::Key_Down:
-    case Qt::Key_Up:
-        // Let's ignore vertical navigation events, only if there is no other widget
-        // what can take the focus in vertical direction. This means widget can handle navigation events
-        // even the widget don't have edit focus, and there is no other widget in requested direction.
-        if (QApplicationPrivate::keypadNavigationEnabled() && !hasEditFocus()
-                && QWidgetPrivate::canKeypadNavigate(Qt::Vertical)) {
-            event->ignore();
-            return;
-        }
-        break;
-    case Qt::Key_Left:
-    case Qt::Key_Right:
-        // Similar logic as in up and down events
-        if (QApplicationPrivate::keypadNavigationEnabled() && !hasEditFocus()
-                && (QWidgetPrivate::canKeypadNavigate(Qt::Horizontal) || QWidgetPrivate::inTabWidget(this))) {
-            event->ignore();
-            return;
-        }
-        break;
-    default:
-        if (QApplicationPrivate::keypadNavigationEnabled() && !hasEditFocus()) {
-            event->ignore();
-            return;
-        }
-    }
-#endif
-
 #if !defined(QT_NO_CLIPBOARD) && !defined(QT_NO_SHORTCUT)
     if (event == QKeySequence::Copy) {
         const QModelIndex index = currentIndex();
@@ -2508,23 +2465,8 @@ void QAbstractItemView::keyPressEvent(QKeyEvent *event)
     // ignored keys
     case Qt::Key_Down:
     case Qt::Key_Up:
-#ifdef QT_KEYPAD_NAVIGATION
-        if (QApplicationPrivate::keypadNavigationEnabled()
-                && QWidgetPrivate::canKeypadNavigate(Qt::Vertical)) {
-            event->accept(); // don't change focus
-            break;
-        }
-#endif
     case Qt::Key_Left:
     case Qt::Key_Right:
-#ifdef QT_KEYPAD_NAVIGATION
-        if (QApplication::navigationMode() == Qt::NavigationModeKeypadDirectional
-                && (QWidgetPrivate::canKeypadNavigate(Qt::Horizontal)
-                || (QWidgetPrivate::inTabWidget(this) && d->model->columnCount(d->root) > 1))) {
-            event->accept(); // don't change focus
-            break;
-        }
-#endif // QT_KEYPAD_NAVIGATION
     case Qt::Key_Home:
     case Qt::Key_End:
     case Qt::Key_PageUp:
@@ -2546,17 +2488,6 @@ void QAbstractItemView::keyPressEvent(QKeyEvent *event)
                 event->accept();
             }
         }
-#ifdef QT_KEYPAD_NAVIGATION
-        if ( event->key()==Qt::Key_Select ) {
-            // Also do Key_Enter action.
-            if (currentIndex().isValid()) {
-                if (state() != EditingState)
-                    emit activated(currentIndex());
-            } else {
-                event->ignore();
-            }
-        }
-#endif
         break;
 #ifdef Q_OS_MACOS
     case Qt::Key_Enter:
@@ -2978,7 +2909,9 @@ void QAbstractItemView::closeEditor(QWidget *editor, QAbstractItemDelegate::EndE
                 if (!isPersistent)
                     setState(NoState);
             } else {
-                qWarning("QAbstractItemView::closeEditor called with an editor that does not belong to this view");
+                qCWarning(lcAIV,
+                          "QAbstractItemView::closeEditor called with an editor that does not "
+                          "belong to this view");
                 return;
             }
         } else {
@@ -3061,7 +2994,9 @@ void QAbstractItemView::commitData(QWidget *editor)
         return;
     QModelIndex index = d->indexForEditor(editor);
     if (!index.isValid()) {
-        qWarning("QAbstractItemView::commitData called with an editor that does not belong to this view");
+        qCWarning(lcAIV,
+                  "QAbstractItemView::commitData called with an editor that does not belong to "
+                  "this view");
         return;
     }
     d->currentlyCommittingEditor = editor;
@@ -3506,9 +3441,10 @@ void QAbstractItemView::dataChanged(const QModelIndex &topLeft, const QModelInde
                 topLeft.row() > bottomRight.row() ||
                 topLeft.column() > bottomRight.column()) {
                 // invalid parameter - call update() to redraw all
-                qWarning().nospace() << "dataChanged() called with an invalid index range:"
-                                     << "\n    topleft: " << topLeft
-                                     << "\n    bottomRight:" << bottomRight;
+                qCWarning(lcAIV).nospace()
+                        << "dataChanged() called with an invalid index range:"
+                        << "\n    topleft: " << topLeft
+                        << "\n    bottomRight:" << bottomRight;
                 d->viewport->update();
             } else if ((bottomRight.row() - topLeft.row() + 1LL) *
                        (bottomRight.column() - topLeft.column() + 1LL) > d->updateThreshold) {
@@ -3591,7 +3527,7 @@ void QAbstractItemView::rowsAboutToBeRemoved(const QModelIndex &parent, int star
                 next = d->model->index(row++, current.column(), current.parent());
 #ifdef QT_DEBUG
                 if (!next.isValid()) {
-                    qWarning("Model unexpectedly returned an invalid index");
+                    qCWarning(lcAIV, "Model unexpectedly returned an invalid index");
                     break;
                 }
 #endif
@@ -3608,7 +3544,7 @@ void QAbstractItemView::rowsAboutToBeRemoved(const QModelIndex &parent, int star
                     next = d->model->index(row--, current.column(), current.parent());
 #ifdef QT_DEBUG
                     if (!next.isValid()) {
-                        qWarning("Model unexpectedly returned an invalid index");
+                        qCWarning(lcAIV, "Model unexpectedly returned an invalid index");
                         break;
                     }
 #endif
@@ -3711,7 +3647,7 @@ void QAbstractItemViewPrivate::columnsAboutToBeRemoved(const QModelIndex &parent
                 next = model->index(current.row(), column++, current.parent());
 #ifdef QT_DEBUG
                 if (!next.isValid()) {
-                    qWarning("Model unexpectedly returned an invalid index");
+                    qCWarning(lcAIV, "Model unexpectedly returned an invalid index");
                     break;
                 }
 #endif
@@ -4381,12 +4317,7 @@ QItemSelectionModel::SelectionFlags QAbstractItemViewPrivate::extendedSelectionC
             case Qt::Key_PageUp:
             case Qt::Key_PageDown:
             case Qt::Key_Tab:
-                if (modifiers & Qt::ControlModifier
-#ifdef QT_KEYPAD_NAVIGATION
-                    // Preserve historical tab order navigation behavior
-                    || QApplication::navigationMode() == Qt::NavigationModeKeypadTabOrder
-#endif
-                    )
+                if (modifiers & Qt::ControlModifier)
                     return QItemSelectionModel::NoUpdate;
                 break;
             case Qt::Key_Select:

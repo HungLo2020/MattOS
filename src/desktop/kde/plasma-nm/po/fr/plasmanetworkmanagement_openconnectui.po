@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2026-04-03 20:00+0200\n"
 "Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
 "Language-Team: fr\n"
@@ -69,7 +69,7 @@ msgstr "Authentification VPN OpenConnect"
 msgid "VPN Host"
 msgstr "Hôte VPN"
 
-#. i18n: ectx: property (toolTip), widget (QPushButton, btnConnect)
+#. i18n: ectx: property (text), widget (QPushButton, btnConnect)
 #: openconnectauth.ui:81
 #, kde-format
 msgid "Connect"
@@ -288,17 +288,22 @@ msgid "Machine Certificate:"
 msgstr "Certificat d'ordinateur :"
 
 #. i18n: ectx: property (text), widget (QLabel, leMcaPrivateKeyLabel)
-#. i18n: ectx: property (text), widget (QLabel, label_6)
-#: openconnectprop.ui:261 openconnectprop.ui:299
+#: openconnectprop.ui:261
 #, kde-format
-msgid "Private Key:"
-msgstr "Clé privée :"
+msgid "Machine Private Key:"
+msgstr "Clé privée de l'ordinateur :"
 
 #. i18n: ectx: property (text), widget (QLabel, label_5)
 #: openconnectprop.ui:280
 #, kde-format
 msgid "User Certificate:"
 msgstr "Certificat utilisateur :"
+
+#. i18n: ectx: property (text), widget (QLabel, label_6)
+#: openconnectprop.ui:299
+#, kde-format
+msgid "User Private Key:"
+msgstr "Clé privée de l'utilisateur :"
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkUseFsid)
 #: openconnectprop.ui:318

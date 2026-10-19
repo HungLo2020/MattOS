@@ -27,3 +27,9 @@
     \title Kirigami Layouts QML Types
     \brief Kirigami Layouts
 */
+
+/*!
+    \qmlmodule org.kde.kirigami.forms
+    \title Kirigami Forms QML Types
+    \brief Kirigami Forms
+*/

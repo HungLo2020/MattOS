@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-06-20 00:46+0000\n"
 "PO-Revision-Date: 2025-04-01 15:20+0400\n"
 "Last-Translator: Khayyam <xxmn77@gmail.com>\n"
 "Language-Team: Azerbaijani <kde-i18n-doc@kde.org>\n"
@@ -28,28 +28,28 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "xxmn77@gmail.com"
 
-#: logout.cpp:269
+#: logout.cpp:260
 #, kde-format
 msgid "Logout canceled by '%1'"
 msgstr "Çıxış \"%1\" tərəfindən ləğv edildi"
 
-#: logout.cpp:363
+#: logout.cpp:354
 #, kde-format
 msgctxt "@info:status"
 msgid "Session is exiting"
 msgstr "Sesiya bağlanır"
 
-#: main.cpp:72 main.cpp:80
+#: main.cpp:69 main.cpp:77
 #, kde-format
 msgid "No write access to '%1'."
 msgstr "\"%1\" üçün yazmaq icazəsi yoxdur."
 
-#: main.cpp:74 main.cpp:82
+#: main.cpp:71 main.cpp:79
 #, kde-format
 msgid "No read access to '%1'."
 msgstr "\"%1\" üçün oxumaq icazəsi yoxdur."
 
-#: main.cpp:87
+#: main.cpp:84
 #, kde-format
 msgid ""
 "The following installation problem was detected\n"
@@ -58,7 +58,7 @@ msgstr ""
 "Plasma başladılmağa cəhd edildikdə aşağıdakı\n"
 "problem aşkar edildi:"
 
-#: main.cpp:90
+#: main.cpp:87
 #, kde-format
 msgid ""
 "\n"
@@ -69,7 +69,7 @@ msgstr ""
 "\n"
 "Plasma başladıla bilmədi.\n"
 
-#: main.cpp:129
+#: main.cpp:111
 #, kde-format
 msgid ""
 "The reliable Plasma session manager that talks the standard X11R6 \n"
@@ -78,37 +78,23 @@ msgstr ""
 "Standart X11R6 sessiya idarəetmə protokolunu (XSMP) dəstəkləyən \n"
 "edən etibarlı Plazma sessiya meneceri."
 
-#: main.cpp:133
+#: main.cpp:115
 #, kde-format
 msgid "Restores the saved user session if available"
 msgstr "Əgər mövcuddursa saxlanılan istifadəçi sesiyalarını bərpa edir"
 
-#: main.cpp:136
+#: main.cpp:118
 #, kde-format
 msgid "Also allow remote connections"
 msgstr "Həmçinin məsafəli rabitəyə icazə vermək"
 
-#: main.cpp:139
-#, kde-format
-msgid "Starts the session in locked mode"
-msgstr "Sesiyanı kilidlənmiş rejimdə başladır"
-
-#: main.cpp:143
-#, kde-format
-msgid ""
-"Starts without lock screen support. Only needed if other component provides "
-"the lock screen."
-msgstr ""
-"Kilid ekranını dəstəklənmədən başladılır. Kilid ekranını yalnız başqa "
-"komponentlər təmin etdikdə tələb olunur."
-
-#: server.cpp:775
+#: server.cpp:764
 #, kde-format
 msgctxt "@label an unknown executable is using resources"
 msgid "[unknown]"
 msgstr "[naməlum]"
 
-#: server.cpp:798
+#: server.cpp:787
 #, kde-kuit-format
 msgctxt "@label notification; %1 is a list of executables"
 msgid ""
@@ -121,7 +107,7 @@ msgstr ""
 "sessiyanın resurslarını ən çox istifadə edən üç tətbiq göstərilir\n"
 " %1"
 
-#: server.cpp:1055
+#: server.cpp:1042
 #, kde-kuit-format
 msgctxt "@label notification; %1 is an executable name"
 msgid ""
@@ -132,6 +118,16 @@ msgstr ""
 "<application>%1</application> bərpa etmək mümkün olmadı, çünki o pozulub və "
 "sistem sessiyasını bərpa ertmək üçün resurslar tükənib. Bu xəta haqqında "
 "tətbiqin tərtibatçılarına bildirməniz xahiş olunur."
+
+#~ msgid "Starts the session in locked mode"
+#~ msgstr "Sesiyanı kilidlənmiş rejimdə başladır"
+
+#~ msgid ""
+#~ "Starts without lock screen support. Only needed if other component "
+#~ "provides the lock screen."
+#~ msgstr ""
+#~ "Kilid ekranını dəstəklənmədən başladılır. Kilid ekranını yalnız başqa "
+#~ "komponentlər təmin etdikdə tələb olunur."
 
 #~ msgid "$HOME not set!"
 #~ msgstr "$HOME təyin olunmayıb"

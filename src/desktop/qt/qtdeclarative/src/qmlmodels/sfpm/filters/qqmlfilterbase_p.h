@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QQMLFILTERBASE_H
 #define QQMLFILTERBASE_H
@@ -36,21 +37,20 @@ class Q_QMLMODELS_EXPORT QQmlFilterBase: public QObject
     QML_ADDED_IN_VERSION(6, 10)
 
 public:
-    explicit QQmlFilterBase(QQmlFilterBasePrivate *privObj, QObject *parent = nullptr);
-    virtual ~QQmlFilterBase() = default;
-
     bool enabled() const;
-    void setEnabled(const bool bEnable);
+    void setEnabled(bool bEnable);
 
     bool isInverted() const;
-    void setInverted(const bool bInvert);
+    void setInverted(bool bInvert);
 
-    int column() const;
-    void setColumn(const int column);
+    virtual int column() const;
+    virtual void setColumn(int column);
 
     virtual bool filterAcceptsRowInternal(int, const QModelIndex&, const QQmlSortFilterProxyModel *) const { return true; }
     virtual bool filterAcceptsColumnInternal(int, const QModelIndex&, const QQmlSortFilterProxyModel *) const { return true; }
     virtual void update(const QQmlSortFilterProxyModel *) { /* do nothing */ };
+    virtual bool supportColumnFiltering() const { return false; }
+    virtual bool isActive() const { return enabled(); }
 
 Q_SIGNALS:
     void invalidateModel();
@@ -58,6 +58,9 @@ Q_SIGNALS:
     void enabledChanged();
     void invertedChanged();
     void columnChanged();
+
+protected:
+    explicit QQmlFilterBase(QQmlFilterBasePrivate *privObj, QObject *parent);
 
 public slots:
     void invalidate(bool updateCache = false);

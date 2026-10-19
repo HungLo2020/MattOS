@@ -41,7 +41,6 @@ public:
     void askDestroy();
     virtual void cleanUpAndDelete();
 
-    QString globalName() const;
     void scheduleConstraintsUpdate(Applet::Constraints c);
     void scheduleModificationNotification();
     KConfigGroup *mainConfigGroup();
@@ -100,7 +99,6 @@ public:
     QBasicTimer *modificationsTimer;
 
     QPointer<KNotification> deleteNotification;
-    QTimer *deleteNotificationTimer;
 
     QString configurationRequiredReason;
 
@@ -118,6 +116,7 @@ public:
     bool globalShortcutEnabled : 1;
     bool userConfiguring : 1;
     bool busy : 1;
+    bool uiReady : 1 = false;
 };
 
 } // Plasma namespace

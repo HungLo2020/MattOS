@@ -1,17 +1,19 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
-
-#include <QtCore/qfileinfo.h>
-#include <QtCore/qstringlist.h>
-
-#include <QtNetwork/qhostaddress.h>
-#include <QtNetwork/qtcpserver.h>
-#include <QtNetwork/qtcpsocket.h>
+// Qt-Security score:significant reason:default
 
 #include "qdesigner.h"
 #include "qdesigner_server.h"
 
-#include <qevent.h>
+#include <QtGui/qevent.h>
+
+#include <QtNetwork/qhostaddress.h>
+#include <QtNetwork/qlocalsocket.h>
+#include <QtNetwork/qtcpserver.h>
+#include <QtNetwork/qtcpsocket.h>
+
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -19,29 +21,37 @@ using namespace Qt::StringLiterals;
 
 // ### review
 
-QDesignerServer::QDesignerServer(QObject *parent)
-    : QObject(parent)
+static void readFiles(QIODevice *device)
 {
-    m_server = new QTcpServer(this);
-    if (m_server->listen(QHostAddress::LocalHost, 0)) {
-        connect(m_server, &QTcpServer::newConnection,
-                this, &QDesignerServer::handleNewConnection);
+    while (device->canReadLine()) {
+        QString file = QString::fromUtf8(device->readLine());
+        if (!file.isNull()) {
+            file.remove(u'\n');
+            file.remove(u'\r');
+            if (QFile::exists(file))
+                QCoreApplication::postEvent(qDesigner, new QFileOpenEvent(file));
+        }
     }
 }
 
-QDesignerServer::~QDesignerServer() = default;
+QDesignerTcpServer::QDesignerTcpServer(QObject *parent) : QObject(parent), m_server(new QTcpServer(this))
+{
+    if (m_server->listen(QHostAddress::LocalHost, 0))
+        connect(m_server, &QTcpServer::newConnection, this, &QDesignerTcpServer::handleNewConnection);
+}
 
-quint16 QDesignerServer::serverPort() const
+QDesignerTcpServer::~QDesignerTcpServer() = default;
+
+quint16 QDesignerTcpServer::serverPort() const
 {
     return m_server ? m_server->serverPort() : 0;
 }
 
-void QDesignerServer::sendOpenRequest(int port, const QStringList &files)
+void QDesignerTcpServer::sendOpenRequest(int port, const QStringList &files)
 {
     auto *sSocket = new QTcpSocket();
     sSocket->connectToHost(QHostAddress::LocalHost, port);
-    if(sSocket->waitForConnected(3000))
-    {
+    if (sSocket->waitForConnected(3000)) {
         for (const QString &file : files) {
             QFileInfo fi(file);
             sSocket->write(fi.absoluteFilePath().toUtf8() + '\n');
@@ -52,63 +62,60 @@ void QDesignerServer::sendOpenRequest(int port, const QStringList &files)
     delete sSocket;
 }
 
-void QDesignerServer::readFromClient()
+void QDesignerTcpServer::readFromClient()
 {
-    while (m_socket->canReadLine()) {
-        QString file = QString::fromUtf8(m_socket->readLine());
-        if (!file.isNull()) {
-            file.remove(u'\n');
-            file.remove(u'\r');
-            qDesigner->postEvent(qDesigner, new QFileOpenEvent(file));
-        }
-    }
+    readFiles(m_socket);
 }
 
-void QDesignerServer::socketClosed()
+void QDesignerTcpServer::socketClosed()
 {
     m_socket = nullptr;
 }
 
-void QDesignerServer::handleNewConnection()
+void QDesignerTcpServer::handleNewConnection()
 {
     // no need for more than one connection
     if (m_socket == nullptr) {
         m_socket = m_server->nextPendingConnection();
-        connect(m_socket, &QTcpSocket::readyRead,
-                this, &QDesignerServer::readFromClient);
-        connect(m_socket, &QTcpSocket::disconnected,
-                this, &QDesignerServer::socketClosed);
+        connect(m_socket, &QTcpSocket::readyRead, this, &QDesignerTcpServer::readFromClient);
+        connect(m_socket, &QTcpSocket::disconnected, this, &QDesignerTcpServer::socketClosed);
     }
 }
 
-
-QDesignerClient::QDesignerClient(quint16 port, QObject *parent)
-: QObject(parent)
+QDesignerLocalSocketClient::QDesignerLocalSocketClient(const QString &serverName, QObject *parent)
+    : QObject(parent), m_socket(new QLocalSocket(this))
 {
-    m_socket = new QTcpSocket(this);
-    m_socket->connectToHost(QHostAddress::LocalHost, port);
-    connect(m_socket, &QTcpSocket::readyRead,
-                this, &QDesignerClient::readFromSocket);
-
+    m_socket->connectToServer(serverName, QIODevice::ReadOnly);
+    connect(m_socket, &QLocalSocket::readyRead, this, &QDesignerLocalSocketClient::readFromSocket);
 }
 
-QDesignerClient::~QDesignerClient()
+QDesignerLocalSocketClient::~QDesignerLocalSocketClient()
 {
     m_socket->close();
     m_socket->flush();
 }
 
-void QDesignerClient::readFromSocket()
+void QDesignerLocalSocketClient::readFromSocket()
 {
-    while (m_socket->canReadLine()) {
-        QString file = QString::fromUtf8(m_socket->readLine());
-        if (!file.isNull()) {
-            file.remove(u'\n');
-            file.remove(u'\r');
-            if (QFile::exists(file))
-                qDesigner->postEvent(qDesigner, new QFileOpenEvent(file));
-        }
-    }
+    readFiles(m_socket);
+}
+
+QDesignerTcpClient::QDesignerTcpClient(quint16 port, QObject *parent)
+    : QObject(parent), m_socket(new QTcpSocket(this))
+{
+    m_socket->connectToHost(QHostAddress::LocalHost, port);
+    connect(m_socket, &QTcpSocket::readyRead, this, &QDesignerTcpClient::readFromSocket);
+}
+
+QDesignerTcpClient::~QDesignerTcpClient()
+{
+    m_socket->close();
+    m_socket->flush();
+}
+
+void QDesignerTcpClient::readFromSocket()
+{
+    readFiles(m_socket);
 }
 
 QT_END_NAMESPACE

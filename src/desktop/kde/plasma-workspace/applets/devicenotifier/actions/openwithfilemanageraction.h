@@ -8,16 +8,14 @@
 
 #include <actioninterface.h>
 
-#include <devicestatemonitor_p.h>
+#include <stateinfo.h>
 
 class OpenWithFileManagerAction : public ActionInterface
 {
     Q_OBJECT
 
-    Q_INTERFACES(ActionInterface)
-
 public:
-    explicit OpenWithFileManagerAction(const QString &udi, QObject *parent);
+    explicit OpenWithFileManagerAction(const std::shared_ptr<StorageInfo> &storageInfo, const std::shared_ptr<StateInfo> &stateInfo, QObject *parent);
     ~OpenWithFileManagerAction() override;
 
     QString predicate() const override;
@@ -35,6 +33,4 @@ private:
     QString m_text;
 
     bool m_isActionValid;
-
-    std::shared_ptr<DevicesStateMonitor> m_stateMonitor;
 };

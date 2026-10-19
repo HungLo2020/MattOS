@@ -22,24 +22,15 @@
 namespace KWin
 {
 
+class EglContext;
+
 class KWIN_EXPORT GLShader
 {
 public:
-    enum Flags {
-        NoFlags = 0,
-        ExplicitLinking = (1 << 0)
-    };
-
-    GLShader(const QString &vertexfile, const QString &fragmentfile, unsigned int flags = NoFlags);
+    GLShader();
     ~GLShader();
 
-    bool isValid() const
-    {
-        return m_valid;
-    }
-
     void bindAttributeLocation(const char *name, int index);
-    void bindFragDataLocation(const char *name, int index);
 
     bool link();
 
@@ -64,6 +55,10 @@ public:
     bool setUniform(int location, const QVector4D &value);
     bool setUniform(int location, const QMatrix3x3 &value);
     bool setUniform(int location, const QMatrix4x4 &value);
+
+    /**
+     * The RGB values will be pre-multiplied with the alpha value.
+     */
     bool setUniform(int location, const QColor &value);
 
     int attributeLocation(const char *name);
@@ -87,26 +82,25 @@ public:
         ColorimetryTransformation,
         DestinationToLMS,
         LMSToDestination,
-        YuvToRgb,
-        MatrixCount
+        MatrixCount,
     };
 
     enum class Vec2Uniform {
         Offset,
         SourceTransferFunctionParams,
         DestinationTransferFunctionParams,
-        Vec2UniformCount
+        Vec2UniformCount,
     };
 
     enum class Vec3Uniform {
-        PrimaryBrightness = 0
+        PrimaryBrightness = 0,
     };
 
     enum class Vec4Uniform {
         ModulationConstant,
         Box,
         CornerRadius,
-        Vec4UniformCount
+        Vec4UniformCount,
     };
 
     enum class FloatUniform {
@@ -115,7 +109,7 @@ public:
         SourceReferenceLuminance,
         DestinationReferenceLuminance,
         MaxTonemappingLuminance,
-        FloatUniformCount
+        FloatUniformCount,
     };
 
     enum class IntUniform {
@@ -127,12 +121,12 @@ public:
         Sampler,
         Sampler1,
         Thickness,
-        IntUniformCount
+        IntUniformCount,
     };
 
     enum class ColorUniform {
         Color,
-        ColorUniformCount
+        ColorUniformCount,
     };
 
     bool setUniform(Mat3Uniform uniform, const QMatrix3x3 &value);
@@ -143,25 +137,26 @@ public:
     bool setUniform(FloatUniform uniform, float value);
     bool setUniform(IntUniform uniform, int value);
     bool setUniform(ColorUniform uniform, const QVector4D &value);
+
+    /**
+     * The RGB values will be pre-multiplied with the alpha value.
+     */
     bool setUniform(ColorUniform uniform, const QColor &value);
 
     void setColorspaceUniforms(const std::shared_ptr<ColorDescription> &src, const std::shared_ptr<ColorDescription> &dst, RenderingIntent intent);
 
 protected:
-    GLShader(unsigned int flags = NoFlags);
-    bool loadFromFiles(const QString &vertexfile, const QString &fragmentfile);
     bool load(const QByteArray &vertexSource, const QByteArray &fragmentSource);
-    const QByteArray prepareSource(GLenum shaderType, const QByteArray &sourceCode) const;
+    std::optional<QByteArray> preprocess(const QByteArray &src, GLenum shaderType, int recursionDepth = 0) const;
     bool compile(GLuint program, GLenum shaderType, const QByteArray &sourceCode) const;
     void bind();
     void unbind();
     void resolveLocations();
 
 private:
+    EglContext *const m_context;
     unsigned int m_program;
-    bool m_valid : 1;
     bool m_locationsResolved : 1;
-    bool m_explicitLinking : 1;
     QHash<Mat3Uniform, int> m_matrix3Locations;
     QHash<Mat4Uniform, int> m_matrix4Locations;
     QHash<Vec2Uniform, int> m_vec2Locations;

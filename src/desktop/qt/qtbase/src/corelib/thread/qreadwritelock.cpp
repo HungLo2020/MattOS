@@ -109,7 +109,7 @@ static inline bool isUncontendedLocked(const QReadWriteLockPrivate *d)
 
     \sa lockForRead(), lockForWrite(), RecursionMode
 */
-QReadWriteLockPrivate *QReadWriteLock::initRecursive()
+void *QReadWriteLock::initRecursiveHelper()
 {
     auto d = new QReadWriteLockPrivate(true);
     Q_ASSERT_X(!(quintptr(d) & StateMask), "QReadWriteLock::QReadWriteLock", "bad d_ptr alignment");
@@ -123,8 +123,9 @@ QReadWriteLockPrivate *QReadWriteLock::initRecursive()
     \warning Destroying a read-write lock that is in use may result
     in undefined behavior.
 */
-void QReadWriteLock::destroyRecursive(QReadWriteLockPrivate *d)
+void QReadWriteLock::destroyRecursiveHelper(void *dd) noexcept
 {
+    auto d = static_cast<QReadWriteLockPrivate *>(dd);
     if (isUncontendedLocked(d)) {
         qWarning("QReadWriteLock: destroying locked QReadWriteLock");
         return;
@@ -356,27 +357,17 @@ QBasicReadWriteLock::contendedTryLockForWrite(QDeadlineTimer timeout, void *dd)
 
 /*!
     \internal
-    \since 6.11
+    \since 6.12
 
-    Returns true if this QReadWriteLock is locked for reading. Can only be
-    called from unlock(), meaning the current thread must have it locked. This
-    is necessary for user code built with Thread Sanitizer, because it can't
-    tell from inline what type of lock a contended QReadWriteLock is locked
-    for.
-
+    Returns a flag mask describing this QReadWriteLock. This function is
+    necessary for user code built with Thread Sanitizer, because it can't tell
+    from inline what type of lock a contended QReadWriteLock is locked for.
     This function is always present in QtCore, whether it was compiled for TSan
     or not.
-
-    \sa unlock()
 */
-bool QBasicReadWriteLock::isContendedLockForRead(const void *dd)
+quintptr QBasicReadWriteLock::describeLockInternal(void *dd) noexcept
 {
-    auto d = static_cast<const QReadWriteLockPrivate *>(dd);
-    Q_ASSERT(d);
-    Q_ASSERT_X(!isUncontendedLocked(d), "QReadWriteLock::unlock", "Not in a contended or recursive lock");
-
-    // if there's a writer, then we're locked for writing
-    return d->writerCount == 0;
+    return QReadWriteLockPrivate::describeState(dd);
 }
 
 /*!

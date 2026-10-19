@@ -22,11 +22,9 @@ FocusScope {
 
     signal interactionConcluded()
 
-    property bool dragEnabled: true
-    property bool dropEnabled: false
-    property bool showLabels: true
+    property alias dropEnabled: dropAreaLoader.active
     property bool hoverEnabled: true
-    property var view: gridView
+    property GridView view: gridView
 
     property alias currentIndex: gridView.currentIndex
     property alias currentItem: gridView.currentItem
@@ -37,15 +35,6 @@ FocusScope {
     property alias cellWidth: gridView.cellWidth
     property alias cellHeight: gridView.cellHeight
     property alias iconSize: gridView.iconSize
-
-    property var horizontalScrollBarPolicy: PlasmaComponents.ScrollBar.AlwaysOff
-    property var verticalScrollBarPolicy: PlasmaComponents.ScrollBar.AsNeeded
-
-    onDropEnabledChanged: {
-        if (!dropEnabled && "dropPlaceHolderIndex" in model) {
-            model.dropPlaceHolderIndex = -1;
-        }
-    }
 
     onFocusChanged: {
         if (!focus && !root.keyEventProxy.activeFocus) {
@@ -92,46 +81,49 @@ FocusScope {
         gridView.forceLayout();
     }
 
-    ActionMenu {
-        id: actionMenu
-
-        onActionClicked: (actionId, actionArgument) => {
-            visualParent.actionTriggered(actionId, actionArgument);
-        }
-    }
-
-    DropArea {
-        id: dropArea
-
+    Loader {
+        id: dropAreaLoader
         anchors.fill: parent
-
-        onPositionChanged: event => {
-            if (!itemGrid.dropEnabled || gridView.animating || !kicker.dragSource) {
-                return;
+        active: false
+        onActiveChanged: {
+            if (!active && "dropPlaceHolderIndex" in itemGrid.model) {
+                itemGrid.model.dropPlaceHolderIndex = -1;
             }
+        }
 
-            var x = Math.max(0, event.x - (width % itemGrid.cellWidth));
-            var cPos = mapToItem(gridView.contentItem, x, event.y);
-            var item = gridView.itemAt(cPos.x, cPos.y) as ItemGridDelegate;
+        sourceComponent : DropArea {
+            id: dropArea
 
-            if (item) {
-                if (kicker.dragSource.parent === gridView.contentItem) {
-                    if (item !== kicker.dragSource) {
-                        item.GridView.view.model.moveRow(dragSource.itemIndex, item.itemIndex);
-                    }
-                } else if (kicker.dragSource.GridView.view.model.favoritesModel === itemGrid.model
-                    && !itemGrid.model.isFavorite(kicker.dragSource.favoriteId)) {
-                    var hasPlaceholder = (itemGrid.model.dropPlaceholderIndex !== -1);
+            anchors.fill: parent
 
-                    itemGrid.model.dropPlaceholderIndex = item.itemIndex;
-
-                    if (!hasPlaceholder) {
-                        gridView.currentIndex = (item.itemIndex - 1);
-                    }
+            onPositionChanged: event => {
+                let draggedItem = drag.source as ItemGridDelegate
+                if (gridView.animating || !draggedItem) {
+                    return;
                 }
-            } else if (kicker.dragSource.parent !== gridView.contentItem
-                && kicker.dragSource.GridView.view.model.favoritesModel === itemGrid.model
-                && !itemGrid.model.isFavorite(kicker.dragSource.favoriteId)) {
+
+                var x = Math.max(0, event.x - (width % itemGrid.cellWidth));
+                var cPos = mapToItem(gridView.contentItem, x, event.y);
+                var item = gridView.itemAt(cPos.x, cPos.y) as ItemGridDelegate;
+
+                if (item) {
+                    if (draggedItem.parent === gridView.contentItem) {
+                        if (item !== draggedItem) {
+                            item.GridView.view.model.moveRow(draggedItem.itemIndex, item.itemIndex);
+                        }
+                    } else if (draggedItem.favoritesModel === itemGrid.model
+                        && !itemGrid.model.isFavorite(draggedItem.favoriteId)) {
+                        var hasPlaceholder = (itemGrid.model.dropPlaceholderIndex !== -1);
+
+                        itemGrid.model.dropPlaceholderIndex = item.itemIndex;
+
+                        if (!hasPlaceholder) {
+                            gridView.currentIndex = (item.itemIndex - 1);
+                        }
+                    }
+                } else if (draggedItem.parent !== gridView.contentItem
+                    && draggedItem.favoritesModel === itemGrid.model
+                    && !itemGrid.model.isFavorite(draggedItem.favoriteId)) {
                     var hasPlaceholder = (itemGrid.model.dropPlaceholderIndex !== -1);
 
                     itemGrid.model.dropPlaceholderIndex = hasPlaceholder ? itemGrid.model.count - 1 : itemGrid.model.count;
@@ -139,341 +131,242 @@ FocusScope {
                     if (!hasPlaceholder) {
                         gridView.currentIndex = (itemGrid.model.count - 1);
                     }
-            } else {
-                itemGrid.model.dropPlaceholderIndex = -1;
-                gridView.currentIndex = -1;
+                } else {
+                    itemGrid.model.dropPlaceholderIndex = -1;
+                    gridView.currentIndex = -1;
+                }
+            }
+
+            onExited: {
+                if ("dropPlaceholderIndex" in itemGrid.model) {
+                    itemGrid.model.dropPlaceholderIndex = -1;
+                    gridView.currentIndex = -1;
+                }
+            }
+
+            onDropped: drop => {
+                let draggedItem = drag.source as ItemGridDelegate
+                if (draggedItem && draggedItem.parent !== gridView.contentItem &&  draggedItem.favoritesModel === itemGrid.model) {
+                    itemGrid.model.addFavorite(draggedItem.favoriteId, itemGrid.model.dropPlaceholderIndex);
+                    gridView.currentIndex = -1;
+                    drop.accept(Qt.CopyAction)
+                } else if (draggedItem && draggedItem.parent !== gridView.contentItem && draggedItem.favoritesModel.isFavorite(draggedItem.favoriteId)) {
+                    draggedItem.showUnfavoritePlaceholder = true
+                    draggedItem.favoritesModel.removeFavorite(draggedItem.favoriteId)
+                    drop.accept(Qt.MoveAction)
+                } else if (draggedItem && draggedItem.parent === gridView.contentItem) {
+                    drop.accept(Qt.MoveAction)
+                }
             }
         }
+    }
 
-        onExited: {
-            if ("dropPlaceholderIndex" in itemGrid.model) {
-                itemGrid.model.dropPlaceholderIndex = -1;
-                gridView.currentIndex = -1;
-            }
+    Timer {
+        id: resetAnimationDurationTimer
+
+        interval: 120
+        repeat: false
+
+        onTriggered: {
+            gridView.animationDuration = interval - 20;
         }
+    }
 
-        onDropped: drop => {
-            if (kicker.dragSource && kicker.dragSource.parent !== gridView.contentItem && kicker.dragSource.GridView.view.model.favoritesModel === itemGrid.model) {
-                itemGrid.model.addFavorite(kicker.dragSource.favoriteId, itemGrid.model.dropPlaceholderIndex);
-                gridView.currentIndex = -1;
-            }
-        }
+    PlasmaComponents.ScrollView {
+        id: scrollArea
 
-        Timer {
-            id: resetAnimationDurationTimer
+        anchors.fill: parent
 
-            interval: 120
-            repeat: false
+        focus: true
 
-            onTriggered: {
-                gridView.animationDuration = interval - 20;
-            }
-        }
+        PlasmaComponents.ScrollBar.horizontal.policy: PlasmaComponents.ScrollBar.AlwaysOff
 
-        PlasmaComponents.ScrollView {
-            id: scrollArea
+        GridView {
+            id: gridView
 
-            anchors.fill: parent
+            signal itemContainsMouseChanged(bool containsMouse)
+
+            property int iconSize: Kirigami.Units.iconSizes.huge
+
+            property bool animating: false
+            property int animationDuration: itemGrid.dropEnabled ? resetAnimationDurationTimer.interval : 0
 
             focus: true
+            clip: height < contentHeight + topMargin + bottomMargin
+            currentIndex: -1
 
-            PlasmaComponents.ScrollBar.horizontal.policy: itemGrid.horizontalScrollBarPolicy
+            move: Transition {
+                enabled: itemGrid.dropEnabled
 
-            GridView {
-                id: gridView
+                SequentialAnimation {
+                    PropertyAction { target: gridView; property: "animating"; value: true }
 
-                signal itemContainsMouseChanged(bool containsMouse)
-
-                property int iconSize: Kirigami.Units.iconSizes.huge
-
-                property bool animating: false
-                property int animationDuration: itemGrid.dropEnabled ? resetAnimationDurationTimer.interval : 0
-
-                focus: true
-                clip: height < contentHeight + topMargin + bottomMargin
-                currentIndex: -1
-
-                move: Transition {
-                    enabled: itemGrid.dropEnabled
-
-                    SequentialAnimation {
-                        PropertyAction { target: gridView; property: "animating"; value: true }
-
-                        NumberAnimation {
-                            duration: gridView.animationDuration
-                            properties: "x, y"
-                            easing.type: Easing.OutQuad
-                        }
-
-                        PropertyAction { target: gridView; property: "animating"; value: false }
-                    }
-                }
-
-                moveDisplaced: Transition {
-                    enabled: itemGrid.dropEnabled
-
-                    SequentialAnimation {
-                        PropertyAction { target: gridView; property: "animating"; value: true }
-
-                        NumberAnimation {
-                            duration: gridView.animationDuration
-                            properties: "x, y"
-                            easing.type: Easing.OutQuad
-                        }
-
-                        PropertyAction { target: gridView; property: "animating"; value: false }
-                    }
-                }
-
-                keyNavigationWraps: false
-                boundsBehavior: Flickable.StopAtBounds
-
-                delegate: ItemGridDelegate {
-                    showLabel: itemGrid.showLabels
-                    iconSize: gridView.iconSize
-                    onInteractionConcluded: itemGrid.interactionConcluded()
-                    hoverEnabled: itemGrid.hoverEnabled
-                    onHoveredChanged: {
-                        if (hovered) {
-                            gridView.currentIndex = index
-                        } else {
-                            if (!actionMenu.opened) {
-                                gridView.currentIndex = -1;
-                            }
-
-                            hoverArea.pressX = -1;
-                            hoverArea.pressY = -1;
-                            hoverArea.lastX = -1;
-                            hoverArea.lastY = -1;
-                            hoverArea.pressedItem = null;
-                            hoverArea.hoverEnabled = itemGrid.hoverEnabled;
-                        }
-                    }
-                }
-
-                highlight: Item {
-                    id: highlightItem
-                    property bool isDropPlaceHolder: "dropPlaceholderIndex" in itemGrid.model && itemGrid.currentIndex === itemGrid.model.dropPlaceholderIndex
-
-                    PlasmaExtras.Highlight {
-                        visible: gridView.currentItem && !highlightItem.isDropPlaceHolder
-                        hovered: true
-                        pressed: hoverArea.pressed
-
-                        anchors.fill: parent
+                    NumberAnimation {
+                        duration: gridView.animationDuration
+                        properties: "x, y"
+                        easing.type: Easing.OutQuad
                     }
 
-                    KSvg.FrameSvgItem {
-                        visible: gridView.currentItem && highlightItem.isDropPlaceHolder
+                    PropertyAction { target: gridView; property: "animating"; value: false }
+                }
+            }
 
-                        anchors.fill: parent
+            moveDisplaced: Transition {
+                enabled: itemGrid.dropEnabled
 
-                        imagePath: "widgets/viewitem"
-                        prefix: "selected"
+                SequentialAnimation {
+                    PropertyAction { target: gridView; property: "animating"; value: true }
 
-                        opacity: 0.5
+                    NumberAnimation {
+                        duration: gridView.animationDuration
+                        properties: "x, y"
+                        easing.type: Easing.OutQuad
+                    }
 
-                        Kirigami.Icon {
-                            anchors {
-                                right: parent.right
-                                rightMargin: parent.margins.right
-                                bottom: parent.bottom
-                                bottomMargin: parent.margins.bottom
-                            }
+                    PropertyAction { target: gridView; property: "animating"; value: false }
+                }
+            }
 
-                            width: Kirigami.Units.iconSizes.smallMedium
-                            height: width
+            keyNavigationWraps: false
+            boundsBehavior: Flickable.StopAtBounds
 
-                            source: "list-add"
-                            active: false
-                        }
+            delegate: ItemGridDelegate {
+                iconSize: gridView.iconSize
+                onInteractionConcluded: itemGrid.interactionConcluded()
+                hoverEnabled: itemGrid.hoverEnabled
+                onHoveredChanged: {
+                    if (hovered && !ActionMenu.opened) {
+                        gridView.currentIndex = index
+                    } else if (GridView.isCurrentItem && !ActionMenu.opened) {
+                            gridView.currentIndex = -1;
                     }
                 }
+                isDraggableFavorite: itemGrid.dropEnabled
+                showUnfavoritePlaceholder: Drag.active && itemGrid.dropEnabled && !(dropAreaLoader.item as DropArea).containsDrag
+            }
 
-                highlightFollowsCurrentItem: true
-                highlightMoveDuration: 0
-
-                onCurrentIndexChanged: {
-                    if (currentIndex !== -1) {
-                        hoverArea.hoverEnabled = false
-                        focus = true;
-                    }
-                }
-
-                onCountChanged: {
-                    animationDuration = 0;
-                    resetAnimationDurationTimer.start();
-                }
-
-                onModelChanged: {
-                    currentIndex = -1;
-                }
-
-                function handleLeftRightArrow(event: KeyEvent) : void {
-                    let backArrowKey = (event.key === Qt.Key_Left && Application.layoutDirection === Qt.LeftToRight) ||
-                        (event.key === Qt.Key_Right && Application.layoutDirection === Qt.RightToLeft)
-                    let forwardArrowKey = (event.key === Qt.Key_Right && Application.layoutDirection === Qt.LeftToRight) ||
-                        (event.key === Qt.Key_Left && Application.layoutDirection === Qt.RightToLeft)
-
-                    if (backArrowKey) {
-                        if (itemGrid.currentCol() !== 0) {
-                            // GridView move..() already handles RtL
-                            (event.key === Qt.Key_Left) ? moveCurrentIndexLeft() : moveCurrentIndexRight();
-                        } else {
-                            itemGrid.keyNavLeft();
-                        }
-                    } else if (forwardArrowKey) {
-                        var columns = Math.floor(width / cellWidth);
-
-                        if (itemGrid.currentCol() !== columns - 1 && currentIndex !== count -1) {
-                            // GridView move..() already handles RtL
-                            (event.key === Qt.Key_Left) ? moveCurrentIndexLeft() : moveCurrentIndexRight()
-                        } else {
-                            itemGrid.keyNavRight();
-                        }
-                    }
-                }
-
-                Keys.onLeftPressed: event => handleLeftRightArrow(event)
-                Keys.onRightPressed: event => handleLeftRightArrow(event)
-                Keys.onEnterPressed: Keys.returnPressed()
-                Keys.onReturnPressed: {
-                    if (gridView.model.trigger) {
-                        gridView.model.trigger(currentIndex, "", null)
-                        itemGrid.interactionConcluded()
-                    }
-                }
-
-                Keys.onUpPressed: event => {
-                    if (itemGrid.currentRow() !== 0) {
-                        event.accepted = true;
-                        moveCurrentIndexUp();
-                        positionViewAtIndex(currentIndex, GridView.Contain);
-                    } else {
-                        itemGrid.keyNavUp();
-                    }
-                }
-
-                Keys.onDownPressed: event => {
-                    if (itemGrid.currentRow() < itemGrid.lastRow()) {
-                        // Fix moveCurrentIndexDown()'s lack of proper spatial nav down
-                        // into partial columns.
-                        event.accepted = true;
-                        var columns = Math.floor(width / cellWidth);
-                        var newIndex = currentIndex + columns;
-                        currentIndex = Math.min(newIndex, count - 1);
-                        positionViewAtIndex(currentIndex, GridView.Contain);
-                    } else {
-                        itemGrid.keyNavDown();
+            Connections {
+                target: ActionMenu
+                enabled: !!gridView.currentItem
+                function onClosed() {
+                    if ((!gridView.currentItem as ItemGridDelegate)?.hovered) {
+                        gridView.currentIndex = -1;
                     }
                 }
             }
-        }
 
-        MouseArea {
-            id: hoverArea
+            highlight: Item {
+                id: highlightItem
+                property bool isDropPlaceHolder: "dropPlaceholderIndex" in itemGrid.model && itemGrid.currentIndex === itemGrid.model.dropPlaceholderIndex
 
-            anchors.fill: parent
-            anchors.rightMargin: scrollArea.effectiveScrollBarWidth
+                PlasmaExtras.Highlight {
+                    visible: gridView.currentItem && !highlightItem.isDropPlaceHolder
+                    hovered: true
+                    pressed: (gridView.currentItem as ItemGridDelegate)?.pressed ?? false
 
-            property int pressX: -1
-            property int pressY: -1
-            property int lastX: -1
-            property int lastY: -1
-            property ItemGridDelegate pressedItem: null
-
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-
-            hoverEnabled: itemGrid.hoverEnabled
-
-            function updatePositionProperties(x, y) {
-                // Prevent hover event synthesis in QQuickWindow interfering
-                // with keyboard navigation by ignoring repeated events with
-                // identical coordinates. As the work done here would be re-
-                // dundant in any case, these are safe to ignore.
-                if (lastX === x && lastY === y) {
-                    return;
+                    anchors.fill: parent
                 }
 
-                lastX = x;
-                lastY = y;
+                KSvg.FrameSvgItem {
+                    visible: gridView.currentItem && highlightItem.isDropPlaceHolder
 
-                var cPos = mapToItem(gridView.contentItem, x, y);
-                var item = gridView.itemAt(cPos.x, cPos.y) as ItemGridDelegate;
+                    anchors.fill: parent
 
-                if (!item) {
-                    gridView.currentIndex = -1;
-                    pressedItem = null;
+                    imagePath: "widgets/viewitem"
+                    prefix: "selected"
+
+                    opacity: 0.5
+
+                    Kirigami.Icon {
+                        anchors.centerIn: parent
+
+                        width: gridView.iconSize
+                        height: width
+
+                        source: "list-add"
+                        active: false
+                    }
+                }
+            }
+
+            highlightFollowsCurrentItem: true
+            highlightMoveDuration: 0
+
+            onCurrentIndexChanged: {
+                if (currentIndex !== -1) {
+                    focus = true;
+                }
+            }
+
+            onCountChanged: {
+                animationDuration = 0;
+                resetAnimationDurationTimer.start();
+            }
+
+            onModelChanged: {
+                currentIndex = -1;
+            }
+
+            function handleLeftRightArrow(event: KeyEvent) : void {
+                let backArrowKey = (event.key === Qt.Key_Left && Application.layoutDirection === Qt.LeftToRight) ||
+                    (event.key === Qt.Key_Right && Application.layoutDirection === Qt.RightToLeft)
+                let forwardArrowKey = (event.key === Qt.Key_Right && Application.layoutDirection === Qt.LeftToRight) ||
+                    (event.key === Qt.Key_Left && Application.layoutDirection === Qt.RightToLeft)
+
+                if (backArrowKey) {
+                    if (itemGrid.currentCol() !== 0) {
+                        // GridView move..() already handles RtL
+                        (event.key === Qt.Key_Left) ? moveCurrentIndexLeft() : moveCurrentIndexRight();
+                    } else {
+                        itemGrid.keyNavLeft();
+                    }
+                } else if (forwardArrowKey) {
+                    var columns = Math.floor(width / cellWidth);
+
+                    if (itemGrid.currentCol() !== columns - 1 && currentIndex !== count -1) {
+                        // GridView move..() already handles RtL
+                        (event.key === Qt.Key_Left) ? moveCurrentIndexLeft() : moveCurrentIndexRight()
+                    } else {
+                        itemGrid.keyNavRight();
+                    }
+                }
+            }
+
+            Keys.onLeftPressed: event => handleLeftRightArrow(event)
+            Keys.onRightPressed: event => handleLeftRightArrow(event)
+            Keys.onEnterPressed: Keys.returnPressed()
+            Keys.onReturnPressed: {
+                if (gridView.model.trigger) {
+                    gridView.model.trigger(currentIndex, "", null)
+                    itemGrid.interactionConcluded()
+                }
+            }
+
+            Keys.onUpPressed: event => {
+                if (itemGrid.currentRow() !== 0) {
+                    event.accepted = true;
+                    moveCurrentIndexUp();
+                    positionViewAtIndex(currentIndex, GridView.Contain);
                 } else {
-                    itemGrid.focus = (item.itemIndex !== -1)
-                    gridView.currentIndex = item.itemIndex;
+                    itemGrid.keyNavUp();
                 }
-
-                return item;
             }
 
-            onPressed: mouse => {
-                mouse.accepted = true;
-
-                updatePositionProperties(mouse.x, mouse.y);
-
-                pressX = mouse.x;
-                pressY = mouse.y;
-
-                const currentDelegate = gridView.currentItem as ItemGridDelegate
-
-                if (mouse.button === Qt.RightButton) {
-                    if (currentDelegate) {
-                        if (currentDelegate.hasActionList) {
-                            var mapped = mapToItem(currentDelegate, mouse.x, mouse.y);
-                            currentDelegate.openActionMenu(mapped.x, mapped.y);
-                        }
-                    } else {
-                        var mapped = mapToItem(rootItem, mouse.x, mouse.y);
-                        contextMenu.open(mapped.x, mapped.y);
-                    }
+            Keys.onDownPressed: event => {
+                if (itemGrid.currentRow() < itemGrid.lastRow()) {
+                    // Fix moveCurrentIndexDown()'s lack of proper spatial nav down
+                    // into partial columns.
+                    event.accepted = true;
+                    const columns = Math.floor(width / cellWidth);
+                    const newIndex = currentIndex + columns;
+                    currentIndex = Math.min(newIndex, count - 1);
+                    positionViewAtIndex(currentIndex, GridView.Contain);
                 } else {
-                    pressedItem = currentDelegate;
+                    itemGrid.keyNavDown();
                 }
             }
-
-            onReleased: mouse => {
-                mouse.accepted = true;
-                updatePositionProperties(mouse.x, mouse.y);
-
-                if (!dragHelper.dragging) {
-                    if (pressedItem) {
-                        if ("trigger" in gridView.model) {
-                            gridView.model.trigger(pressedItem.itemIndex, "", null);
-                            itemGrid.interactionConcluded()
-                        }
-                    } else if (mouse.button === Qt.LeftButton) {
-                        itemGrid.interactionConcluded()
-                    }
-                }
-
-                pressX = pressY = -1;
-                pressedItem = null;
-            }
-
-            onPositionChanged: mouse => {
-                var item = pressedItem ? pressedItem : updatePositionProperties(mouse.x, mouse.y);
-
-                if (gridView.currentIndex !== -1) {
-                    if (itemGrid.dragEnabled && pressX !== -1 && dragHelper.isDrag(pressX, pressY, mouse.x, mouse.y)) {
-                        if ("pluginName" in item.m) {
-                            dragHelper.startDrag(kicker, item.url, item.decoration,
-                                "text/x-plasmoidservicename", item.model.pluginName);
-                        } else {
-                            dragHelper.startDrag(kicker, item.url, item.decoration);
-                        }
-
-                        kicker.dragSource = item;
-
-                        pressX = -1;
-                        pressY = -1;
-                    }
-                }
+            TapHandler {
+                onTapped: itemGrid.interactionConcluded()
             }
         }
     }

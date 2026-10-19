@@ -15,6 +15,38 @@ import org.kde.plasma.extras as PlasmaExtras
 BasePage {
     id: root
 
+    property real flashFavorite: 0
+
+    // Flash favorites when adding one.
+    SequentialAnimation {
+        id: flashFavoriteAnimation
+        loops: 2
+        alwaysRunToEnd: true
+
+        NumberAnimation {
+            target: root
+            property: "flashFavorite"
+            from: 0
+            to: 1
+            duration: Kirigami.Units.veryLongDuration
+            easing.type: Easing.OutCubic
+        }
+        NumberAnimation {
+            target: root
+            property: "flashFavorite"
+            to: 0
+            duration: Kirigami.Units.veryLongDuration
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    Connections {
+        target: kickoff.rootModel.favoritesModel
+        function onFavoriteAdded() : void {
+            flashFavoriteAnimation.restart();
+        }
+    }
+
     sideBarComponent: KickoffListView {
         id: sideBar
         focus: true // needed for Loaders
@@ -30,10 +62,41 @@ BasePage {
                 // I have to do this for it to actually fill the item for some reason
                 anchors.fill: parent
                 active: false
-                hovered: sideBarDelegate.mouseArea.containsMouse
-                visible: !Plasmoid.configuration.switchCategoryOnHover
-                    && !sideBarDelegate.isSeparator && !sideBarDelegate.ListView.isCurrentItem
-                    && hovered
+                hovered: sideBarDelegate.mouseArea.containsMouse || (flashFavoriteAnimation.running && sideBarDelegate.index === 0) || ((dropAreaLoader.item as DropArea)?.containsAcceptableDrag ?? false) || sideBarDelegate.ListView.isCurrentItem
+                visible: !sideBarDelegate.isSeparator && hovered
+                opacity: flashFavoriteAnimation.running && sideBarDelegate.index === 0 ? root.flashFavorite : 1
+            }
+
+            component FavoritesDropArea: DropArea {
+                // should be  "as AbstractKickoffItemDelegate", but the type system gets confused when changing view style at runtime
+                readonly property Item draggedItem: kickoff.dragSource.sourceItem
+                readonly property bool acceptableDrag: draggedItem && !kickoff.rootModel.favoritesModel.isFavorite(draggedItem.model.favoriteId)
+                readonly property bool containsAcceptableDrag:  acceptableDrag && containsDrag
+                function evaluateEvent(event: DragEvent) : void {
+                    if (acceptableDrag) {
+                        event.accept(Qt.CopyAction)
+                    } else {
+                        event.accept(Qt.IgnoreAction)
+                    }
+                }
+            }
+
+            Loader {
+                id: dropAreaLoader
+                anchors.fill: parent
+                active: sideBarDelegate.index === 0 && !!kickoff.dragSource.sourceItem
+                sourceComponent: FavoritesDropArea {
+                    onPositionChanged: event => evaluateEvent(event)
+                    onEntered: event =>  evaluateEvent(event)
+                    onDropped: event => {
+                        if (acceptableDrag && !sideBarDelegate.ListView.isCurrentItem) {
+                            kickoff.rootModel.favoritesModel.addFavorite(draggedItem.model.favoriteId, sideBar.model.favoritesModel.count)
+                            event.accept(Qt.CopyAction)
+                        } else {
+                            event.accept(Qt.IgnoreAction)
+                        }
+                    }
+                }
             }
         }
     }

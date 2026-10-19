@@ -1,6 +1,33 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
+# Resolve the harmonyostestrunner binary and the args baked into
+# CROSSCOMPILING_EMULATOR. CTest will invoke:
+#   harmonyostestrunner [out_runner_args] /path/to/libtst_foo.so
+function(_qt_internal_harmonyos_test_runner_arguments out_test_runner out_runner_args)
+    if(QT_HOST_PATH)
+        qt_internal_get_host_info_var_prefix(host_info_var_prefix)
+        set(host_bin_dir "${QT_HOST_PATH}/${${host_info_var_prefix}_BINDIR}")
+    elseif(QT_BUILD_INTERNALS_RELOCATABLE_INSTALL_PREFIX)
+        set(host_bin_dir "${QT_BUILD_INTERNALS_RELOCATABLE_INSTALL_PREFIX}/${QT6_HOST_INFO_BINDIR}")
+    else()
+        set(host_bin_dir "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}")
+    endif()
+
+    set(runner "${host_bin_dir}/harmonyostestrunner")
+    set(runner_args "--bundle-name" "org.qtproject.autotests")
+
+    _qt_internal_harmonyos_test_bundle_settings_file(test_bundle_settings)
+    list(APPEND runner_args "--test-config" "${test_bundle_settings}")
+
+    if(DEFINED HARMONYOS_HDC)
+        list(APPEND runner_args "--hdc" "${HARMONYOS_HDC}")
+    endif()
+
+    set(${out_test_runner} "${runner}" PARENT_SCOPE)
+    set(${out_runner_args} "${runner_args}" PARENT_SCOPE)
+endfunction()
+
 # Simple wrapper around qt_internal_add_executable for benchmarks which insure that
 # the binary is built under ${CMAKE_CURRENT_BINARY_DIR} and never installed.
 # See qt_internal_add_executable() for more details.
@@ -172,6 +199,15 @@ function(qt_internal_setup_docker_test_fixture name)
     set_tests_properties(${name}-setup PROPERTIES FIXTURES_SETUP ${name}-docker)
     set_tests_properties(${name}-cleanup PROPERTIES FIXTURES_CLEANUP ${name}-docker)
     set_tests_properties(${name} PROPERTIES FIXTURES_REQUIRED ${name}-docker)
+
+    # All docker network tests share a single docker-compose stack, so their
+    # setup/cleanup (docker-compose up --force-recreate / down) and the tests
+    # themselves must not run concurrently: a parallel ctest run (e.g. the
+    # VxWorks emulator jobs) would otherwise race on container creation and tear
+    # each other's servers down mid-run. A common RESOURCE_LOCK serializes them
+    # while leaving all non-network tests free to run in parallel.
+    set_tests_properties(${name} ${name}-setup ${name}-cleanup
+        PROPERTIES RESOURCE_LOCK qt_docker_test_server)
 
     foreach(test_name ${name} ${name}-setup ${name}-cleanup)
         set_property(TEST "${test_name}" APPEND PROPERTY ENVIRONMENT "testserver=${QT_DOCKER_COMPOSE_VERSION}")
@@ -549,6 +585,8 @@ function(qt_internal_add_test name)
             SOURCES "${arg_SOURCES}"
             INCLUDE_DIRECTORIES
                 ${private_includes}
+            SYSTEM_INCLUDE_DIRECTORIES
+                ${arg_SYSTEM_INCLUDE_DIRECTORIES}
             DEFINES
                 ${arg_DEFINES}
             LIBRARIES
@@ -595,13 +633,13 @@ function(qt_internal_add_test name)
         )
 
         qt_internal_extend_target("${name}"
-            CONDITION arg_QMLTEST AND NOT ANDROID AND NOT QT_FORCE_BUILTIN_TESTDATA
+            CONDITION arg_QMLTEST AND NOT ANDROID AND NOT OHOS AND NOT QT_FORCE_BUILTIN_TESTDATA
             DEFINES
                 QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
         )
 
         qt_internal_extend_target("${name}"
-            CONDITION arg_QMLTEST AND (ANDROID OR QT_FORCE_BUILTIN_TESTDATA)
+            CONDITION arg_QMLTEST AND (ANDROID OR OHOS OR QT_FORCE_BUILTIN_TESTDATA)
             DEFINES
                 QUICK_TEST_SOURCE_DIR=":/"
         )
@@ -653,33 +691,10 @@ function(qt_internal_add_test name)
         qt_internal_get_android_test_timeout("${arg_TIMEOUT}" "${percentage}" android_timeout)
 
         if(arg_BUNDLE_ANDROID_OPENSSL_LIBS)
-            if(EXISTS "${OPENSSL_ROOT_DIR}/${CMAKE_ANDROID_ARCH_ABI}/libcrypto_3.so")
-                message(STATUS "Looking for OpenSSL in ${OPENSSL_ROOT_DIR}")
-                set_property(TARGET ${name} APPEND PROPERTY QT_ANDROID_EXTRA_LIBS
-                    "${OPENSSL_ROOT_DIR}/${CMAKE_ANDROID_ARCH_ABI}/libcrypto_3.so"
-                    "${OPENSSL_ROOT_DIR}/${CMAKE_ANDROID_ARCH_ABI}/libssl_3.so")
-            elseif(QT_USE_VCPKG AND DEFINED ENV{VCPKG_ROOT} AND EXISTS "$ENV{VCPKG_ROOT}")
-                message(STATUS "Looking for OpenSSL in $ENV{VCPKG_ROOT}")
-                if (CMAKE_ANDROID_ARCH_ABI MATCHES "arm64-v8a")
-                    set(coin_vcpkg_target_triplet "arm64-android-dynamic")
-                elseif(CMAKE_ANDROID_ARCH_ABI MATCHES "armeabi-v7a")
-                    set(coin_vcpkg_target_triplet "arm-neon-android-dynamic")
-                elseif(CMAKE_ANDROID_ARCH_ABI MATCHES "x86_64")
-                    set(coin_vcpkg_target_triplet "x64-android-dynamic")
-                elseif(CMAKE_ANDROID_ARCH_ABI MATCHES "x86")
-                    set(coin_vcpkg_target_triplet "x86-android-dynamic")
-                endif()
-                if(EXISTS "$ENV{VCPKG_ROOT}/installed/${coin_vcpkg_target_triplet}/lib/libcrypto.so")
-                    message(STATUS "Found OpenSSL in $ENV{VCPKG_ROOT}/installed/${coin_vcpkg_target_triplet}/lib")
-                    set_property(TARGET ${name} APPEND PROPERTY QT_ANDROID_EXTRA_LIBS
-                        "$ENV{VCPKG_ROOT}/installed/${coin_vcpkg_target_triplet}/lib/libcrypto.so"
-                        "$ENV{VCPKG_ROOT}/installed/${coin_vcpkg_target_triplet}/lib/libssl.so")
-                endif()
-            else()
+            _qt_internal_android_include_openssl(${name} openssl_found)
+            if(NOT openssl_found)
                 message(STATUS "The argument BUNDLE_ANDROID_OPENSSL_LIBS is set "
-                               "but OPENSSL_ROOT_DIR parameter is not set. "
-                               "Test should bundle OpenSSL libraries but they are not found. "
-                               "This is fine if OpenSSL was built statically.")
+                               "but the OpenSSL libraries were not found.")
             endif()
         endif()
         set(test_executable "$<TARGET_PROPERTY:${name},_qt_android_runner_wrapper_path>")
@@ -705,6 +720,34 @@ function(qt_internal_add_test name)
         endif()
 
         set(test_working_dir "${CMAKE_CURRENT_BINARY_DIR}")
+    elseif(APPLE AND NOT MACOS)
+        set(test_executable "${name}")
+        set(test_working_dir "${CMAKE_CURRENT_BINARY_DIR}")
+        set(qt_apple_runner
+            "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_LIBEXECS}/qt-apple-runner.sh")
+        set(app_fixture "${testname}-app")
+
+        # Install the app before, and uninstall it after the test runs. The
+        # install takes a lock that is distinct from the run lock, so that one
+        # test can install while another is still running, while keeping installs
+        # serialized among themselves. Uninstalls are tied to the run sequencing.
+        add_test(NAME "${testname}-install_app"
+            COMMAND "${qt_apple_runner}" install "$<TARGET_FILE:${name}>")
+        set_tests_properties("${testname}-install_app" PROPERTIES
+            FIXTURES_SETUP "${app_fixture}"
+            RESOURCE_LOCK "install_app")
+
+        # Only the run is handled by the emulator
+        set_property(TARGET "${name}" PROPERTY CROSSCOMPILING_EMULATOR
+            "${qt_apple_runner};run")
+
+        add_test(NAME "${testname}-uninstall_app"
+            COMMAND "${qt_apple_runner}" uninstall "$<TARGET_FILE:${name}>")
+        set_tests_properties("${testname}-uninstall_app" PROPERTIES
+            FIXTURES_CLEANUP "${app_fixture}")
+
+        # The test requires these fixtures, and takes the run lock; both are
+        # set on the test itself further below, once it has been created.
     elseif(QNX)
         set(test_working_dir "")
         set(test_executable "${name}")
@@ -762,6 +805,19 @@ function(qt_internal_add_test name)
             set_property(TARGET "${name}" PROPERTY CROSSCOMPILING_EMULATOR "emrun.bat")
         else()
             set_property(TARGET "${name}" PROPERTY CROSSCOMPILING_EMULATOR "emrun")
+        endif()
+    elseif(OHOS)
+        _qt_internal_harmonyos_test_runner_arguments(harmonyos_test_runner harmonyos_runner_args)
+        set(test_working_dir "${CMAKE_CURRENT_BINARY_DIR}")
+        set(test_executable "${name}")
+        if(TARGET "${name}")
+            set_property(TARGET "${name}" PROPERTY CROSSCOMPILING_EMULATOR
+                "${harmonyos_test_runner};${harmonyos_runner_args}")
+            if(TARGET all_tests_make_hap)
+                add_dependencies(all_tests_make_hap "${name}")
+            endif()
+            set_property(GLOBAL APPEND PROPERTY
+                QT_INTERNAL_HARMONYOS_TEST_TARGETS "${name}")
         endif()
     else()
         if(arg_QMLTEST AND NOT arg_SOURCES)
@@ -855,7 +911,7 @@ function(qt_internal_add_test name)
             )
         endif()
 
-        if(arg_QT_TEST_SERVER_LIST AND NOT ANDROID)
+        if(arg_QT_TEST_SERVER_LIST AND NOT ANDROID AND NOT OHOS)
             qt_internal_setup_docker_test_fixture(${testname} ${arg_QT_TEST_SERVER_LIST})
         endif()
 
@@ -872,6 +928,23 @@ function(qt_internal_add_test name)
             )
         endif()
 
+        if(HARMONYOS_HDC)
+            set_tests_properties(${testname} PROPERTIES
+                FIXTURES_REQUIRED HarmonyOSTestBundle
+            )
+        endif()
+
+        if(APPLE AND NOT MACOS)
+            # Require the install/uninstall fixtures set up in the Apple branch
+            # above, and take the run lock so no two test apps run at the same
+            # time, even under `ctest --parallel`. The run lock is distinct from
+            # the install lock, so the next test can install while this one runs.
+            set_tests_properties("${testname}" PROPERTIES
+                FIXTURES_REQUIRED "${testname}-app"
+                RESOURCE_LOCK "run_app"
+            )
+        endif()
+
         # Add a ${target}_check makefile target, to more easily test one test.
         # TODO: Note in batch mode testname tests would execute all batched tests defined in name
         _qt_internal_make_check_target(${testname} CTEST_TEST_NAME ${name})
@@ -884,7 +957,8 @@ function(qt_internal_add_test name)
         endif()
     endif()
 
-    if(ANDROID OR IOS OR WASM OR INTEGRITY OR arg_BUILTIN_TESTDATA OR QT_FORCE_BUILTIN_TESTDATA)
+    if(ANDROID OR IOS OR WASM OR INTEGRITY OR OHOS OR arg_BUILTIN_TESTDATA
+            OR QT_FORCE_BUILTIN_TESTDATA)
         set(builtin_testdata TRUE)
     endif()
 
@@ -1120,14 +1194,16 @@ for this function. Will be ignored")
     endif()
 
     _qt_internal_create_command_script(COMMAND
-                                           ${crosscompiling_emulator}
                                            "\${env_test_runner}"
+                                           ${crosscompiling_emulator}
                                            "${executable_file}"
                                            "\${env_test_args}"
                                            ${command_args}
                                       OUTPUT_FILE "${arg_OUTPUT_FILE}"
                                       ${add_test_working_dir}
-                                      ENVIRONMENT ${arg_ENVIRONMENT}
+                                      ENVIRONMENT CMAKE_CROSSCOMPILING_EMULATOR
+                                                    "${crosscompiling_emulator}"
+                                                  ${arg_ENVIRONMENT}
                                       PRE_RUN "separate_arguments(env_test_args NATIVE_COMMAND \
 \"\$ENV{TESTARGS}\")"
                                               "separate_arguments(env_test_runner NATIVE_COMMAND \

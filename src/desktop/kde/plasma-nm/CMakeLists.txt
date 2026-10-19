@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.16)
 
 project(plasma-networkmanagement)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ################# set KDE specific information #################
 
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
 option(BUILD_OPENCONNECT "Build OpenConnect VPN plugin" ON)
 
@@ -41,6 +41,7 @@ find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     QuickWidgets
     Widgets
 )
+find_package(Qt6Keychain 0.16.0 CONFIG REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 
@@ -67,17 +68,16 @@ find_package(KF6 ${KF6_MIN_VERSION} REQUIRED
     Notifications
     Service
     Solid
-    Wallet
     WidgetsAddons
     WindowSystem
     KCMUtils
-    Svg
     ModemManagerQt
 )
 
 find_package(Plasma ${PROJECT_DEP_VERSION} REQUIRED)
 
-ecm_find_qmlmodule(org.kde.prison 1.0)
+ecm_find_qmlmodule(org.kde.prison 1.0 REQUIRED)
+ecm_find_qmlmodule(org.kde.kirigamiaddons.formcard REQUIRED)
 
 find_package(KF6Kirigami ${KF6_MIN_VERSION} CONFIG)
 set_package_properties(KF6Kirigami PROPERTIES
@@ -85,11 +85,6 @@ set_package_properties(KF6Kirigami PROPERTIES
     PURPOSE "Required at runtime by the KCMs"
     TYPE RUNTIME
 )
-
-find_package(Qca-qt6 2.1.0)
-set_package_properties(Qca-qt6 PROPERTIES DESCRIPTION "Support for encryption"
-                       URL "https://download.kde.org/stable/qca-qt5/"
-                       TYPE REQUIRED)
 
 find_package(KF6Prison ${KF6_MIN_VERSION})
 set_package_properties(KF6Prison PROPERTIES DESCRIPTION "Prison library"
@@ -101,6 +96,8 @@ set_package_properties(KF6Prison PROPERTIES DESCRIPTION "Prison library"
 find_package(KF6QuickCharts ${KF6_MIN_VERSION} CONFIG)
 set_package_properties(KF6QuickCharts PROPERTIES
                        TYPE RUNTIME)
+
+find_package(OpenSSL REQUIRED)
 
 pkg_check_modules(NETWORKMANAGER IMPORTED_TARGET libnm>1.4.0 REQUIRED)
 pkg_check_modules(MOBILEBROADBANDPROVIDERINFO mobile-broadband-provider-info)

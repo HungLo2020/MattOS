@@ -8,9 +8,13 @@ documentationinheaders = true
 headerdirs += .
 sourcedirs += .
 
+excludefiles = basictheme_p.h
+
 depends = kde qtcore qtgui qtqml qtquick qtquickcontrols
 
 navigation.landingpage = "Kirigami"
+
+spurious = "Can't link to 'index.html'"
 
 qhp.projects            = KirigamiPlatform
 

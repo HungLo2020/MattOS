@@ -1,0 +1,12 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ * SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+ */
+
+@import "generated-properties.css";
+
+* {
+    layout-alignment: item start center 0;
+    icon-alignment: content start center 0;
+    text-alignment: content start center 1;
+}

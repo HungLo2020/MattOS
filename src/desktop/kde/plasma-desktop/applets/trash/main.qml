@@ -26,18 +26,20 @@ PlasmoidItem {
         || Plasmoid.location === PlasmaCore.Types.RightEdge
         || Plasmoid.location === PlasmaCore.Types.BottomEdge
         || Plasmoid.location === PlasmaCore.Types.LeftEdge)
-    readonly property bool hasContents: dirModel.count > 0
+    readonly property bool hasContents: TrashPrivate.Trash.count > 0
 
     property bool containsAcceptableDrag: false
 
-    Plasmoid.title: i18nc("@title the name of the Trash widget", "Trash") // qmllint disable unqualified
+    Plasmoid.title: i18nc("@title the name of the Trash widget", "Trash")
     toolTipSubText: {
         if (TrashPrivate.Trash.emptying) {
-            return i18nc("@info:status The trash is being emptied", "Emptying…"); // qmllint disable unqualified
+            return i18nc("@info:status The trash is being emptied", "Emptying…");
+        } else if (TrashPrivate.Trash.listing && !delayListingTimer.running) {
+            return i18nc("@info:status Counting the number of items in trash", "Counting…");
         } else if (hasContents) {
-            return i18ncp("@info:status The trash contains this many items in it", "One item", "%1 items", dirModel.count); // qmllint disable unqualified
+            return i18ncp("@info:status The trash contains this many items in it", "One item", "%1 items", TrashPrivate.Trash.count);
         } else {
-            return i18nc("@info:status The trash is empty", "Empty"); // qmllint disable unqualified
+            return i18nc("@info:status The trash is empty", "Empty");
         }
     }
 
@@ -70,25 +72,20 @@ PlasmoidItem {
     Accessible.description: toolTipSubText
     Accessible.role: Accessible.Button
 
-    TrashPrivate.DirModel {
-        id: dirModel
-        url: "trash:/"
-    }
-
     Plasmoid.contextualActions: [
         PlasmaCore.Action {
-            text: i18nc("@action:inmenu Open the trash", "Open") // qmllint disable unqualified
+            text: i18nc("@action:inmenu Open the trash", "Open")
             icon.name: "document-open-symbolic"
             onTriggered: Plasmoid.activated()
         },
         PlasmaCore.Action {
-            text: i18nc("@action:inmenu Empty the trash", "Empty") // qmllint disable unqualified
+            text: i18nc("@action:inmenu Empty the trash", "Empty")
             icon.name: "trash-empty-symbolic"
             enabled: root.hasContents && !TrashPrivate.Trash.emptying
             onTriggered: TrashPrivate.Trash.emptyTrash()
         },
         PlasmaCore.Action {
-            text: i18nc("@action:inmenu", "Trash Settings…") // qmllint disable unqualified
+            text: i18nc("@action:inmenu", "Trash Settings…")
             icon.name: "configure-symbolic"
             visible: KConfig.KAuthorized.authorizeControlModule("kcm_trash")
             onTriggered: KCM.KCMLauncher.open("kcm_trash")
@@ -97,6 +94,14 @@ PlasmoidItem {
 
     Component.onCompleted: {
         Plasmoid.removeInternalAction("configure");
+    }
+
+    // Avoid briefly flashing "Counting"
+    Timer {
+        id: delayListingTimer
+        interval: 500
+        running: TrashPrivate.Trash.listing
+        repeat: false
     }
 
     // Only exists because the default CompactRepresentation doesn't:

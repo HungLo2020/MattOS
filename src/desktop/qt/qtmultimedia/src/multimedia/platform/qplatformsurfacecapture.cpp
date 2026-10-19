@@ -66,6 +66,40 @@ QString QPlatformSurfaceCapture::errorString() const
     return m_error.description();
 }
 
+void QPlatformSurfaceCapture::setFrameRate(std::optional<qreal> frameRate)
+{
+    if (m_frameRate == frameRate)
+        return;
+
+    m_frameRate = frameRate;
+    emit frameRateChanged(m_frameRate);
+}
+
+std::optional<qreal> QPlatformSurfaceCapture::frameRate() const
+{
+    return m_frameRate;
+}
+
+void QPlatformSurfaceCapture::setIgnoreCursor(bool ignore)
+{
+    m_ignoreCursor = ignore;
+}
+
+bool QPlatformSurfaceCapture::ignoreCursor() const
+{
+    return m_ignoreCursor;
+}
+
+void QPlatformSurfaceCapture::setIgnoreDropShadow(bool ignore)
+{
+    m_ignoreDropShadow = ignore;
+}
+
+bool QPlatformSurfaceCapture::ignoreDropShadow() const
+{
+    return m_ignoreDropShadow;
+}
+
 void QPlatformSurfaceCapture::updateError(Error error, const QString &errorString)
 {
     m_error.setAndNotify(error, errorString, *this);
@@ -79,7 +113,7 @@ bool QPlatformSurfaceCapture::checkScreenWithError(ScreenSource &screen)
     if (screen)
         return true;
 
-    updateError(NotFound, QLatin1String("No screens found"));
+    updateError(Error::NotFound, QLatin1String("No screens found"));
     return false;
 }
 

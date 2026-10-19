@@ -5,7 +5,11 @@ include(KDECMakeSettings)
 
 find_package(Qt5 ${QT5_MIN_VERSION} CONFIG REQUIRED Widgets DBus QuickControls2 WaylandClient)
 find_package(Qt5Gui ${QT5_MIN_VERSION} CONFIG REQUIRED Private)
-find_package(Qt5 ${QT5_MIN_VERSION} CONFIG REQUIRED X11Extras)
+
+# platformtheme
+if(WITH_X11)
+    find_package(Qt5X11Extras ${QT5_MIN_VERSION} CONFIG REQUIRED)
+endif()
 
 # https://bugreports.qt.io/browse/QTBUG-114706
 add_library(Qt::Core ALIAS Qt5::Core)
@@ -13,8 +17,8 @@ add_library(Qt::Network ALIAS Qt5::Network)
 add_library(Qt::Gui ALIAS Qt5::Gui)
 
 find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
-                Config ConfigWidgets I18n IconThemes KIO Notifications
-                WindowSystem Wayland GuiAddons XmlGui
+                Config GuiAddons I18n IconThemes KIO
+                Notifications Wayland WindowSystem
 )
 
 find_package(QtWaylandScanner ${QT5_MIN_VERSION} REQUIRED)
@@ -28,6 +32,7 @@ ecm_set_disabled_deprecation_versions(QT 5.15.2
 
 add_subdirectory(src)
 if(BUILD_TESTING)
+    find_package(KF5ConfigWidgets ${KF5_MIN_VERSION} REQUIRED)
     add_subdirectory(autotests)
     add_subdirectory(tests)
 endif()

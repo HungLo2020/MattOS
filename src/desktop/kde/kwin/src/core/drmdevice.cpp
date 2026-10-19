@@ -15,17 +15,41 @@
 #include <gbm.h>
 #include <sys/stat.h>
 #include <xf86drm.h>
+#include <xf86drmMode.h>
 
 namespace KWin
 {
+
+static QByteArray getDriverName(const FileDescriptor &fd)
+{
+    auto version = drmGetVersion(fd.get());
+    if (version) {
+        auto ret = QByteArray(version->name, version->name_len);
+        drmFreeVersion(version);
+        return ret;
+    } else {
+        return QByteArray();
+    }
+}
 
 DrmDevice::DrmDevice(const QString &path, dev_t id, FileDescriptor &&fd, gbm_device *gbmDevice)
     : m_path(path)
     , m_id(id)
     , m_fd(std::move(fd))
     , m_gbmDevice(gbmDevice)
-    , m_allocator(std::make_unique<GbmGraphicsBufferAllocator>(gbmDevice))
+    , m_driverName(getDriverName(m_fd))
+    , m_isNvidia(m_driverName == "nvidia-drm")
+    , m_isNouveau(m_driverName == "nouveau")
+    , m_isI915(m_driverName == "i915")
+    , m_isIntelXE(m_driverName == "xe")
+    , m_isAmdgpu(m_driverName == "amdgpu")
+    , m_isRadeon(m_driverName == "radeon")
+    , m_isVmwgfx(m_driverName == "vmwgfx")
+    , m_isVirtualMachine(m_driverName == "virtio_gpu" || m_driverName == "qxl" || m_driverName == "vmwgfx" || m_driverName == "vboxvideo")
+    , m_isKMS(drmIsKMS(m_fd.get()))
+    , m_allocator(std::make_unique<GbmGraphicsBufferAllocator>(this))
 {
+    drmGetDevice2(m_fd.get(), 0, &m_libdrmDevice);
     uint64_t value = 0;
     m_supportsSyncObjTimelines = drmGetCap(m_fd.get(), DRM_CAP_SYNCOBJ_TIMELINE, &value) == 0 && value != 0;
 }
@@ -33,6 +57,9 @@ DrmDevice::DrmDevice(const QString &path, dev_t id, FileDescriptor &&fd, gbm_dev
 DrmDevice::~DrmDevice()
 {
     gbm_device_destroy(m_gbmDevice);
+    if (m_libdrmDevice) {
+        drmFreeDevice(&m_libdrmDevice);
+    }
 }
 
 QString DrmDevice::path() const
@@ -67,20 +94,75 @@ bool DrmDevice::supportsSyncObjTimelines() const
 
 std::optional<drmPciDeviceInfo> DrmDevice::pciDeviceInfo() const
 {
-    drmDevice *nativeDevice = nullptr;
-    auto nativeDeviceCleanup = qScopeGuard([&nativeDevice]() {
-        drmFreeDevice(&nativeDevice);
-    });
-
-    if (drmGetDeviceFromDevId(deviceId(), 0, &nativeDevice) != 0) {
+    if (!m_libdrmDevice || m_libdrmDevice->bustype != DRM_BUS_PCI) {
         return std::nullopt;
     }
+    return *m_libdrmDevice->deviceinfo.pci;
+}
 
-    if (nativeDevice->bustype != DRM_BUS_PCI) {
-        return std::nullopt;
-    }
+bool DrmDevice::equals(DrmDevice *other) const
+{
+    return drmDevicesEqual(m_libdrmDevice, other->m_libdrmDevice);
+}
 
-    return *nativeDevice->deviceinfo.pci;
+drmDevice *DrmDevice::libdrmDevice() const
+{
+    return m_libdrmDevice;
+}
+
+std::optional<int> DrmDevice::busType() const
+{
+    return m_libdrmDevice ? m_libdrmDevice->bustype : std::optional<int>();
+}
+
+QByteArray DrmDevice::driverName() const
+{
+    return m_driverName;
+}
+
+bool DrmDevice::isNvidia() const
+{
+    return m_isNvidia;
+}
+
+bool DrmDevice::isNouveau() const
+{
+    return m_isNouveau;
+}
+
+bool DrmDevice::isI915() const
+{
+    return m_isI915;
+}
+
+bool DrmDevice::isIntelXE() const
+{
+    return m_isIntelXE;
+}
+
+bool DrmDevice::isAmdgpu() const
+{
+    return m_isAmdgpu;
+}
+
+bool DrmDevice::isRadeon() const
+{
+    return m_isRadeon;
+}
+
+bool DrmDevice::isVmwgfx() const
+{
+    return m_isVmwgfx;
+}
+
+bool DrmDevice::isVirtualMachine() const
+{
+    return m_isVirtualMachine;
+}
+
+bool DrmDevice::isKMS() const
+{
+    return m_isKMS;
 }
 
 std::unique_ptr<DrmDevice> DrmDevice::open(const QString &path)
@@ -92,7 +174,7 @@ std::unique_ptr<DrmDevice> DrmDevice::openWithAuthentication(const QString &path
 {
     FileDescriptor fd(::open(path.toLocal8Bit(), O_RDWR | O_CLOEXEC));
     if (!fd.isValid()) {
-        qCWarning(KWIN_CORE) << "Failed to open drm node:" << path;
+        qCWarning(KWIN_CORE, "Failed to open drm node %s: %s", qPrintable(path), strerror(errno));
         return nullptr;
     }
     struct stat buf;
@@ -116,4 +198,5 @@ std::unique_ptr<DrmDevice> DrmDevice::openWithAuthentication(const QString &path
     }
     return std::unique_ptr<DrmDevice>(new DrmDevice(path, buf.st_rdev, std::move(fd), device));
 }
+
 }

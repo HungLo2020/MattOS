@@ -58,8 +58,10 @@ Configure meta:
 
   -feature-<feature> ... Enable <feature>
   -no-feature-<feature>  Disable <feature> [none]
-  -list-features ....... List available features. Note that some features
-                         have dedicated command line options as well.
+  -list-features [module]  List available features, optionally filtered by
+                           module directory (e.g., sql, network). Note that some
+                           features have dedicated command line options as well.
+  -list-modules .......... List available module names for use with -list-features.
 
 Build options:
 
@@ -212,12 +214,15 @@ Build environment:
   -android-ndk path .... Set Android NDK root path [$ANDROID_NDK_ROOT]
   -android-ndk-platform  Set Android platform
   -android-abis .......  Only one ABI can be specified, default is: armeabi-v7a
-  -android-javac-target  Set the javac build target version [8]
-  -android-javac-source  Set the javac build source version [8]
+  -android-javac-target  Set the javac build target version [17]
+  -android-javac-source  Set the javac build source version [17]
   -android-style-assets  Automatically extract style assets from the device at
                          run time. This option makes the Android style behave
                          correctly, but also makes the Android platform plugin
                          incompatible with the LGPL2.1. [yes]
+
+  -ohos-sdk path ....... Set OpenHarmony SDK root path [$OHOS_SDK_ROOT]
+  -ohos-arch ........... Set OpenHarmony architecture, default selected by SDK
 
 Component selection:
 

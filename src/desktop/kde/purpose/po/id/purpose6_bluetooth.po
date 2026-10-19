@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: purpose\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:49+0000\n"
+"POT-Creation-Date: 2026-09-11 00:42+0000\n"
 "PO-Revision-Date: 2022-08-26 23:44+0700\n"
 "Last-Translator: Wantoyèk <wantoyek@gmail.com>\n"
 "Language-Team: https://t.me/Localizations_KDE_Indonesia\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Choose a device to send to:"
 msgstr "Pilihlah sebuah peranti untuk dikirimi:"
 
-#: bluetoothplugin_config.qml:62
+#: bluetoothplugin_config.qml:72
 #, kde-format
 msgid "No devices found"
 msgstr "Tidak ada peranti yang ditemukan"

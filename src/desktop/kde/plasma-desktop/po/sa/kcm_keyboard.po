@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2024-12-24 20:39+0530\n"
 "Last-Translator: kali <shreekantkalwar@gmail.com>\n"
 "Language-Team: Sanskrit <kde-i18n-doc@kde.org>\n"
@@ -92,12 +92,10 @@ msgstr ""
 "नास्ति तथा च एतत् सन्देशं प्रेरयिष्यति । एते अद्यापि प्रयुक्ताः चेत् सम्यक् कार्यं कर्तुं शक्नुवन्ति"
 
 #: ui/KeyBindings.qml:18
-#, fuzzy, kde-format
-#| msgctxt "@action:button"
-#| msgid "Configure Switching…"
+#, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "स्विचिंग् विन्यस्तं कुर्वन्तु..."
+msgid "Key Bindings"
+msgstr "की बन्धन"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -137,13 +135,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Layout योजयतु"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "लघु विन्यास नाम"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -153,13 +151,13 @@ msgstr ""
 "चयनितस्य विन्यासस्य संक्षिप्तं नाम, यत् सिस्टम् ट्रे मध्ये प्रदर्शितं भविष्यति । भवान् स्वयमेव "
 "एतत् सेटिङ्ग् परिवर्तयितुं शक्नोति ।"
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "लघुमार्गः :"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -556,19 +554,22 @@ msgid ""
 msgstr ""
 "अतिरिक्तवर्णान्, चिह्नानि, विवर्णचिह्नानि च टङ्कयितुं संशोधककुंजीनां उपयोगः कर्तुं शक्यते ।"
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
 msgstr[0] "%1 शॉर्टकट्"
 msgstr[1] "%1 शॉर्टकट्"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "न कश्चित्"
 
+#, fuzzy
+#~| msgctxt "@action:button"
+#~| msgid "Configure Switching…"
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "की बन्धन"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "स्विचिंग् विन्यस्तं कुर्वन्तु..."

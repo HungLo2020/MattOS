@@ -12,6 +12,7 @@
 #include <KDesktopFile>
 #include <KIO/StoredTransferJob>
 #include <KMessageWidget>
+#include <KSharedConfig>
 #include <KShell>
 #include <QDialog>
 #include <QLineEdit>
@@ -76,15 +77,30 @@ private Q_SLOTS:
         // The files in template dirs are traversed only once
         QFile templ(m_xdgConfigDir + "/test-templates/test-text.desktop");
         QVERIFY(templ.open(QIODevice::WriteOnly));
-        const QByteArray contents =
+        const QByteArray contents1 =
             "[Desktop Entry]\n"
             "Name=Custom...\n"
             "Type=Link\n"
             "URL=TestTextFile.txt\n"
             "Icon=text-plain\n";
 
-        templ.write(contents);
+        templ.write(contents1);
         templ.close();
+        QFile templText(m_xdgConfigDir + "/test-templates/TestTextFile.txt");
+        QVERIFY(templText.open(QIODevice::WriteOnly));
+        templText.close();
+
+        QFile notExist(m_xdgConfigDir + "/test-templates/not-existing.desktop");
+        QVERIFY(notExist.open(QIODevice::WriteOnly));
+        const QByteArray contents2 =
+            "[Desktop Entry]\n"
+            "Name=Doesn't exist\n"
+            "Type=Link\n"
+            "URL=NonExisting.txt\n"
+            "Icon=text-plain\n";
+
+        notExist.write(contents2);
+        notExist.close();
 
         QDir folderTemplate(templatesLoc + "/my-folder");
         QVERIFY(folderTemplate.mkdir(folderTemplate.path()));
@@ -313,19 +329,55 @@ private Q_SLOTS:
         QCOMPARE(emittedUrl.toLocalFile(), path);
     }
 
+    void testSymlinkTargetThroughSymlinkedDirectory()
+    {
+        QTemporaryDir testDir;
+        QVERIFY(testDir.isValid());
+
+        const QString realDir = testDir.path() + QStringLiteral("/real");
+        const QString aliasDir = testDir.path() + QStringLiteral("/alias");
+        QVERIFY(QDir().mkdir(realDir));
+        QFile target(realDir + QStringLiteral("/target.txt"));
+        QVERIFY(target.open(QIODevice::WriteOnly));
+        target.close();
+        QVERIFY(QFile::link(realDir, aliasDir));
+
+        QWidget parentWidget;
+        KNewFileMenu menu(&parentWidget);
+        menu.setModal(false);
+        menu.setWorkingDirectory(QUrl::fromLocalFile(aliasDir));
+        menu.checkUpToDate();
+        openActionText(&menu, QStringLiteral("Link to File"));
+
+        KNameAndUrlInputDialog *dialog = nullptr;
+        QTRY_VERIFY(dialog = parentWidget.findChild<KNameAndUrlInputDialog *>());
+        dialog->setSuggestedName(QStringLiteral("linked.txt"));
+        dialog->setSuggestedUrl(QUrl::fromLocalFile(aliasDir + QStringLiteral("/target.txt")));
+
+        QSignalSpy createdSpy(&menu, &KNewFileMenu::fileCreated);
+        dialog->accept();
+        QTRY_COMPARE(createdSpy.count(), 1);
+        QCOMPARE(QFileInfo(realDir + QStringLiteral("/linked.txt")).symLinkTarget(), target.fileName());
+    }
+
     void testParsingUserDirs()
     {
         KNewFileMenu menu(this);
         menu.setWorkingDirectory(QUrl::fromLocalFile(m_tmpDir.path()));
         menu.checkUpToDate();
-        const auto list = menu.menu()->actions();
-        auto it = std::find_if(list.cbegin(), list.cend(), [](QAction *act) {
+        const auto list1 = menu.menu()->actions();
+        auto it = std::find_if(list1.cbegin(), list1.cend(), [](QAction *act) {
             return act->text() == QStringLiteral("Custom...");
         });
-        QVERIFY(it != list.cend());
+        QVERIFY(it != list1.cend());
         // There is a separator between system-wide templates and the ones
         // from the user's home
         QVERIFY((*--it)->isSeparator());
+        const auto list2 = menu.menu()->actions();
+        it = std::find_if(list2.cbegin(), list2.cend(), [](QAction *act) {
+            return act->text() == QStringLiteral("Doesn't exist");
+        });
+        QVERIFY(it == list2.cend());
     }
 
     void testParsingSimpleTemplates()
@@ -460,6 +512,13 @@ private Q_SLOTS:
         QFETCH(QString, iconName);
         QFETCH(bool, expectsIcon);
 
+        // Reset persisted icon-picker state before the first row so re-runs are deterministic.
+        if (buttonIndex == 0) {
+            KSharedConfig::openStateConfig(QStringLiteral("kiostaterc"))
+                ->group(QStringLiteral("New File Menu"))
+                .deleteEntry(QStringLiteral("ShowFolderIconPicker"));
+        }
+
         QWidget parentWidget;
         KNewFileMenu menu(this);
         menu.setModal(false);
@@ -479,7 +538,7 @@ private Q_SLOTS:
         QVERIFY(chooseIconBox);
         QVERIFY(chooseIconBox->isVisibleTo(dialog));
 
-        // It should remember that it was expanded.
+        // It should remember that it was expanded (state is reset above for the first row).
         if (buttonIndex == 0) {
             QVERIFY(!chooseIconBox->isExpanded());
         } else {

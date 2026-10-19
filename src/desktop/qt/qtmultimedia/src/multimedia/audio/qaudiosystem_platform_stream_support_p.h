@@ -16,7 +16,6 @@
 //
 
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
@@ -48,10 +47,10 @@ class QPlatformAudioIOStream
 
 public:
     static qsizetype inferRingbufferFrames(const std::optional<int> &ringbufferSize,
-                                           const std::optional<int32_t> &hardwareBufferFrames,
+                                           const std::optional<NativePeriodFrames> &nativePeriodFrames,
                                            const QAudioFormat &);
     static qsizetype inferRingbufferBytes(const std::optional<int> &ringbufferSize,
-                                          const std::optional<int32_t> &hardwareBufferFrames,
+                                          const std::optional<NativePeriodFrames> &nativePeriodFrames,
                                           const QAudioFormat &);
 
 protected:
@@ -60,7 +59,7 @@ protected:
 
     QPlatformAudioIOStream(QAudioDevice m_audioDevice, QAudioFormat m_format,
                            std::optional<int> ringbufferSize,
-                           std::optional<int32_t> hardwareBufferFrames, float volume);
+                           std::optional<NativePeriodFrames> nativePeriodFrames, float volume);
     ~QPlatformAudioIOStream();
     Q_DISABLE_COPY_MOVE(QPlatformAudioIOStream)
 
@@ -92,7 +91,7 @@ protected:
     // members
     const QAudioDevice m_audioDevice;
     const QAudioFormat m_format;
-    const std::optional<int32_t> m_hardwareBufferFrames;
+    const std::optional<NativePeriodFrames> m_nativePeriodFrames;
 
 private:
     std::atomic<float> m_volume{
@@ -127,12 +126,12 @@ public:
 
 protected:
     QPlatformAudioSinkStream(QAudioDevice, const QAudioFormat &, std::optional<int> ringbufferSize,
-                             std::optional<int32_t> hardwareBufferFrames, float volume);
+                             std::optional<NativePeriodFrames> nativePeriodFrames, float volume);
     ~QPlatformAudioSinkStream();
     Q_DISABLE_COPY_MOVE(QPlatformAudioSinkStream)
 
     uint64_t process(QSpan<std::byte> hostBuffer, qsizetype totalNumberOfFrames,
-                     std::optional<NativeSampleFormat> = {}) noexcept QT_MM_NONBLOCKING;
+                     std::optional<NativeSampleFormat> = {}) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     // ringbuffer / stats
     quint64 bytesFree() const;
@@ -206,7 +205,7 @@ private:
     std::atomic_int64_t m_processedFrameCount{};
 
     void convertToNative(QSpan<const std::byte> internal, QSpan<std::byte> native, float volume,
-                         NativeSampleFormat) noexcept QT_MM_NONBLOCKING;
+                         NativeSampleFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     // pullFromQIODeviceToRingbuffer is not reentrant. however we might end up in situations where a
     // QIODevice emits readReady from within QIODevice::readData. We protect against this using a
@@ -245,13 +244,13 @@ public:
 protected:
     QPlatformAudioSourceStream(QAudioDevice, const QAudioFormat &,
                                std::optional<int> ringbufferSize,
-                               std::optional<int32_t> hardwareBufferFrames, float volume);
+                               std::optional<NativePeriodFrames> nativePeriodFrames, float volume);
     ~QPlatformAudioSourceStream();
 
     Q_DISABLE_COPY_MOVE(QPlatformAudioSourceStream)
 
     uint64_t process(QSpan<const std::byte> hostBuffer, qsizetype numberOfFrames,
-                     std::optional<NativeSampleFormat> = {}) noexcept QT_MM_NONBLOCKING;
+                     std::optional<NativeSampleFormat> = {}) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     // ringbuffer / stats
     qsizetype bytesReady() const;
@@ -313,7 +312,7 @@ private:
     std::atomic_uint64_t m_totalNumberOfFramesPushedToRingbuffer{};
 
     void convertFromNative(QSpan<const std::byte> native, QSpan<std::byte> internal, float volume,
-                           NativeSampleFormat) noexcept QT_MM_NONBLOCKING;
+                           NativeSampleFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 };
 
 } // namespace QtMultimediaPrivate

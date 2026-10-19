@@ -28,6 +28,7 @@ QSvgDocument::QSvgDocument(QtSvg::Options options, QtSvg::AnimatorType type)
     , m_heightPercent(false)
     , m_animated(false)
     , m_fps(30)
+    , m_states(this)
     , m_options(options)
 {
     m_states.trustedSource = m_options.testFlag(QtSvg::AssumeTrustedSource);
@@ -199,13 +200,12 @@ std::unique_ptr<QSvgDocument> QSvgDocument::load(const QString &fileName, QtSvg:
 
     QSvgHandler handler(&file, options, type);
     if (handler.ok()) {
-        doc.reset(handler.document());
+        doc = handler.takeDocument();
         if (doc->m_animator)
             doc->m_animator->setAnimationDuration(handler.animationDuration());
     } else {
         qCWarning(lcSvgHandler, "Cannot read file '%s', because: %s (line %d)",
                  qPrintable(fileName), qPrintable(handler.errorString()), handler.lineNumber());
-        delete handler.document();
     }
     return doc;
 }
@@ -232,11 +232,9 @@ std::unique_ptr<QSvgDocument> QSvgDocument::load(const QByteArray &contents, QtS
     QSvgHandler handler(&buffer, options, type);
 
     if (handler.ok()) {
-        doc.reset(handler.document());
+        doc = handler.takeDocument();
         if (doc->m_animator)
             doc->m_animator->setAnimationDuration(handler.animationDuration());
-    } else {
-        delete handler.document();
     }
     return doc;
 }
@@ -248,11 +246,9 @@ std::unique_ptr<QSvgDocument> QSvgDocument::load(QXmlStreamReader *contents, QtS
 
     std::unique_ptr<QSvgDocument> doc;
     if (handler.ok()) {
-        doc.reset(handler.document());
+        doc = handler.takeDocument();
         if (doc->m_animator)
             doc->m_animator->setAnimationDuration(handler.animationDuration());
-    } else {
-        delete handler.document();
     }
     return doc;
 }
@@ -292,7 +288,7 @@ void QSvgDocument::draw(QPainter *p, const QString &id,
 
     p->save();
 
-    const QRectF elementBounds = node->bounds();
+    const QRectF elementBounds = node->bounds(this);
 
     mapSourceToTarget(p, bounds, elementBounds);
     QTransform originalTransform = p->worldTransform();
@@ -365,14 +361,19 @@ QtSvg::Options QSvgDocument::options() const
     return m_options;
 }
 
-void QSvgDocument::addSvgFont(QSvgFont *font)
+void QSvgDocument::addSvgFont(const QString &name, QSvgFontPtr font)
 {
-    m_fonts.emplace(font->familyName(), font);
+    if (name.isEmpty())
+        return;
+
+    if (!m_fonts.insert({ name, std::move(font) }).second)
+        qCWarning(lcSvgHandler) << "Font Family already added: " << name;
 }
 
-QSvgFont * QSvgDocument::svgFont(const QString &family) const
+QSvgFont *QSvgDocument::svgFont(const QString &family) const
 {
-    return m_fonts[family];
+    auto it = m_fonts.find(family);
+    return it != m_fonts.end() ? it->second.get() : nullptr;
 }
 
 void QSvgDocument::addNamedNode(const QString &id, QSvgNode *node)
@@ -385,17 +386,19 @@ QSvgNode *QSvgDocument::namedNode(const QString &id) const
     return m_namedNodes.value(id);
 }
 
-void QSvgDocument::addNamedStyle(const QString &id, QSvgPaintStyleProperty *style)
+void QSvgDocument::addPaintServer(QSvgPaintServerSharedPtr paintServer, const QString &id)
 {
-    if (!m_namedStyles.contains(id))
-        m_namedStyles.emplace(id, style);
-    else
+    if (id.isEmpty())
+        return;
+
+    if (!m_paintServers.insert({ id, paintServer }).second)
         qCWarning(lcSvgHandler) << "Duplicate unique style id:" << id;
 }
 
-QSvgPaintStyleProperty *QSvgDocument::namedStyle(const QString &id) const
+QSvgPaintServerSharedPtr QSvgDocument::paintServer(QStringView id) const
 {
-    return m_namedStyles.value(id);
+    auto it = m_paintServers.find(id.toString());
+    return it != m_paintServers.end() ? it->second : nullptr;
 }
 
 void QSvgDocument::restartAnimation()
@@ -493,7 +496,7 @@ QRectF QSvgDocument::boundsOnElement(const QString &id) const
     const QSvgNode *node = namedNode(id);
     if (!node)
         node = this;
-    return node->bounds();
+    return node->bounds(this);
 }
 
 bool QSvgDocument::elementExists(const QString &id) const
@@ -514,8 +517,8 @@ QTransform QSvgDocument::transformForElement(const QString &id) const
 
     node = node->parent();
     while (node) {
-        if (node->m_style.transform)
-            t *= node->m_style.transform->qtransform();
+        if (auto prop = node->m_style.property(QSvgStyleProperty::Transform))
+            t *= static_cast<QSvgTransformStyle*>(prop)->qtransform();
         node = node->parent();
     }
 

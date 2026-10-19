@@ -13,6 +13,7 @@
 #include <QHash>
 #include <QList>
 #include <QPointer>
+#include <QTimer>
 // Wayland
 #include "qwayland-server-wayland.h"
 // C++
@@ -21,12 +22,13 @@
 
 namespace KWin
 {
+
 class IdleInhibitorV1Interface;
 class ViewportInterface;
 class ContentTypeV1Interface;
 class TearingControlV1Interface;
 class FractionalScaleV1Interface;
-class FrogColorManagementSurfaceV1;
+class FractionalScaleV2;
 class PresentationTimeFeedback;
 class ColorSurfaceV1;
 class ColorFeedbackSurfaceV1;
@@ -35,6 +37,9 @@ class AlphaModifierSurfaceV1;
 class FifoV1Surface;
 class FifoBarrier;
 class ColorRepresentationSurfaceV1;
+class ExtBackgroundEffectSurfaceV1;
+class SyncObjReleasePoint;
+class CommitTimingSurfaceV1;
 
 struct SurfaceState
 {
@@ -49,7 +54,6 @@ struct SurfaceState
         Buffer = 1 << 2,
         Shadow = 1 << 3,
         Blur = 1 << 4,
-        Contrast = 1 << 5,
         Slide = 1 << 6,
         SubsurfaceOrder = 1 << 7,
         SubsurfacePosition = 1 << 8,
@@ -62,24 +66,25 @@ struct SurfaceState
         YuvCoefficients = 1 << 15,
         SourceGeometry = 1 << 16,
         DestinationSize = 1 << 17,
+        PointerLockHint = 1 << 18,
+        PointerLockRegion = 1 << 19,
+        PointerConfinementRegion = 1 << 20,
     };
     Q_DECLARE_FLAGS(Fields, Field)
 
     void mergeInto(SurfaceState *target);
 
     Fields committed;
-    Region damage = Region();
+    RegionF damage = RegionF();
     Region bufferDamage = Region();
-    Region opaque = Region();
-    Region input = Region::infinite();
+    RegionF opaque = RegionF();
+    RegionF input = RegionF::infinite();
     qint32 bufferScale = 1;
     OutputTransform bufferTransform = OutputTransform::Normal;
     wl_list frameCallbacks;
-    QPoint offset = QPoint();
+    QPointF offset = QPointF();
     QPointer<GraphicsBuffer> buffer;
     QPointer<ShadowInterface> shadow;
-    QPointer<BlurInterface> blur;
-    QPointer<ContrastInterface> contrast;
     QPointer<SlideInterface> slide;
     ContentType contentType = ContentType::None;
     PresentationModeHint presentationHint = PresentationModeHint::VSync;
@@ -92,12 +97,19 @@ struct SurfaceState
         std::shared_ptr<SyncTimeline> timeline;
         uint64_t point = 0;
     } acquirePoint;
-    std::shared_ptr<SyncReleasePoint> releasePoint;
+    std::shared_ptr<SyncObjReleasePoint> releasePoint;
     double alphaMultiplier = 1;
     YUVMatrixCoefficients yuvCoefficients = YUVMatrixCoefficients::Identity;
     EncodingRange range = EncodingRange::Full;
     bool fifoBarrier = false;
     bool hasFifoWaitCondition = false;
+    RegionF blurRegion;
+    std::optional<QPointF> pointerLockHint;
+    std::optional<RegionF> pointerLockRegion;
+    std::optional<RegionF> pointerConfinementRegion;
+    PointerConstraintLifetime confinementLifetime = PointerConstraintLifetime::Persistent;
+
+    std::optional<std::chrono::steady_clock::time_point> requestedTiming;
 
     struct
     {
@@ -108,13 +120,13 @@ struct SurfaceState
         QList<SubSurfaceInterface *> above;
 
         // Subsurface position is here because it is a part of the parent surface's state.
-        QHash<SubSurfaceInterface *, QPoint> position;
+        QHash<SubSurfaceInterface *, QPointF> position;
     } subsurface;
 
     struct
     {
         RectF sourceGeometry = RectF();
-        QSize destinationSize = QSize();
+        QSizeF destinationSize = QSizeF();
     } viewport;
 
     std::unordered_map<RawSurfaceExtension *, std::unique_ptr<RawSurfaceAttachedState>> extensions;
@@ -135,11 +147,7 @@ public:
     bool raiseChild(SubSurfaceInterface *subsurface, SurfaceInterface *anchor);
     bool lowerChild(SubSurfaceInterface *subsurface, SurfaceInterface *anchor);
     void setShadow(const QPointer<ShadowInterface> &shadow);
-    void setBlur(const QPointer<BlurInterface> &blur);
-    void setContrast(const QPointer<ContrastInterface> &contrast);
     void setSlide(const QPointer<SlideInterface> &slide);
-    void installPointerConstraint(LockedPointerV1Interface *lock);
-    void installPointerConstraint(ConfinedPointerV1Interface *confinement);
     void installIdleInhibitor(IdleInhibitorV1Interface *inhibitor);
     void removeIdleInhibitor(IdleInhibitorV1Interface *inhibitor);
     void recursivelyEmitIdleInhibitChanged();
@@ -156,7 +164,7 @@ public:
      */
     bool contains(const QPointF &position) const;
     bool inputContains(const QPointF &position) const;
-    Region mapToBuffer(const Region &region) const;
+    Region mapToBuffer(const RegionF &region) const;
 
     CompositorInterface *compositor;
     SurfaceInterface *q;
@@ -166,13 +174,16 @@ public:
     RectF bufferSourceBox;
     QSizeF surfaceSize = QSizeF(0, 0);
 
-    Region inputRegion;
-    Region opaqueRegion;
+    RegionF inputRegion;
+    std::optional<RegionF> effectivePointerLock;
+    std::optional<RegionF> effectivePointerConfinement;
+    RegionF opaqueRegion;
     GraphicsBufferRef bufferRef;
     Region bufferDamage;
     bool mapped = false;
-    qreal scaleOverride = 1.;
-    qreal pendingScaleOverride = 1.;
+    qreal serverScale = 1.0;
+    qreal clientToCompositorScale = 1.0;
+    qreal compositorToClientScale = 1.0;
 
     Transaction *firstTransaction = nullptr;
     Transaction *lastTransaction = nullptr;
@@ -192,16 +203,21 @@ public:
     ViewportInterface *viewportExtension = nullptr;
     std::unique_ptr<LinuxDmaBufV1Feedback> dmabufFeedbackV1;
     QPointer<ContentTypeV1Interface> contentTypeInterface;
-    FractionalScaleV1Interface *fractionalScaleExtension = nullptr;
+    FractionalScaleV1Interface *fractionalScaleV1 = nullptr;
+    FractionalScaleV2 *fractionalScaleV2 = nullptr;
     ClientConnection *client = nullptr;
     TearingControlV1Interface *tearing = nullptr;
-    FrogColorManagementSurfaceV1 *frogColorManagement = nullptr;
     ColorSurfaceV1 *colorSurface = nullptr;
     QList<ColorFeedbackSurfaceV1 *> colorFeedbackSurfaces;
     LinuxDrmSyncObjSurfaceV1 *syncObjV1 = nullptr;
     AlphaModifierSurfaceV1 *alphaModifier = nullptr;
     FifoV1Surface *fifoSurface = nullptr;
     ColorRepresentationSurfaceV1 *colorRepresentation = nullptr;
+    ExtBackgroundEffectSurfaceV1 *extBackgroundeffect = nullptr;
+    CommitTimingSurfaceV1 *commitTiming = nullptr;
+
+    QTimer fallbackTimer;
+    std::chrono::nanoseconds fifoRefreshRate = std::chrono::nanoseconds(1'000'000'000) / 20;
 
     struct
     {

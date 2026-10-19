@@ -15,6 +15,7 @@
 
 #include <QObject>
 
+#include <expected>
 #include <memory>
 #include <optional>
 
@@ -24,37 +25,23 @@ namespace KWin
 class LogicalOutput;
 class InputBackend;
 class EglBackend;
-class QPainterBackend;
 class OutputConfiguration;
 class EglDisplay;
 class Session;
 class BackendOutput;
+class EglContext;
+class RenderDevice;
 
 class KWIN_EXPORT OutputBackend : public QObject
 {
     Q_OBJECT
+
 public:
     ~OutputBackend() override;
 
     virtual bool initialize() = 0;
     virtual std::unique_ptr<InputBackend> createInputBackend();
-    virtual std::unique_ptr<EglBackend> createOpenGLBackend();
-    virtual std::unique_ptr<QPainterBackend> createQPainterBackend();
-
-    virtual EglDisplay *sceneEglDisplayObject() const = 0;
-    /**
-     * Returns the compositor-wide shared EGL context. This function may return EGL_NO_CONTEXT
-     * if the underlying rendering backend does not use EGL.
-     *
-     * Note that the returned context should never be made current. Instead, create a context
-     * that shares with this one and make the new context current.
-     */
-    ::EGLContext sceneEglGlobalShareContext() const;
-    /**
-     * Sets the global share context to @a context. This function is intended to be called only
-     * by rendering backends.
-     */
-    void setSceneEglGlobalShareContext(::EGLContext context);
+    virtual std::unique_ptr<EglBackend> createOpenGLBackend(RenderDevice *device);
 
     /**
      * The CompositingTypes supported by the Platform.
@@ -81,7 +68,7 @@ public:
     /**
      * Applies the output changes. Default implementation only sets values common between platforms
      */
-    virtual OutputConfigurationError applyOutputChanges(const OutputConfiguration &config);
+    virtual std::expected<void, OutputError> applyOutputChanges(const OutputConfiguration &config);
 
     virtual Session *session() const;
 
@@ -100,7 +87,7 @@ Q_SIGNALS:
 protected:
     explicit OutputBackend(QObject *parent = nullptr);
 
-    ::EGLContext m_globalShareContext = EGL_NO_CONTEXT;
+    EglContext *m_globalShareContext = nullptr;
 };
 
 } // namespace KWin

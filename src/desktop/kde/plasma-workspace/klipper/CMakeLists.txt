@@ -26,6 +26,13 @@ kconfig_add_kcfg_files(libklipper_common_SRCS klippersettings.kcfgc)
 
 add_library(klipper SHARED ${libklipper_common_SRCS})
 generate_export_header(klipper)
+
+qt_generate_wayland_protocol_client_sources(klipper
+    PRIVATE_CODE
+    FILES
+        "${PLASMA_WAYLAND_PROTOCOLS_DIR}/plasma-shell.xml"
+)
+
 target_link_libraries(klipper
     Qt::Concurrent
     Qt::DBus
@@ -45,11 +52,10 @@ target_link_libraries(klipper
     KF6::WidgetsAddons
     KF6::WindowSystem
     KF6::XmlGui
-    Plasma::KWaylandClient
     Plasma::PlasmaQuick
     Wayland::Client
     LayerShellQt::Interface
-    ${ZLIB_LIBRARY}
+    ZLIB::ZLIB
 )
 
 if (HAVE_X11)
@@ -64,6 +70,8 @@ install(TARGETS klipper ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 add_subdirectory(declarative)
 
 install(FILES org.kde.klipper.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+
+install(FILES klipper.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})
 
 if(BUILD_TESTING)
    add_subdirectory(autotests)

@@ -22,10 +22,9 @@ class EglContext;
 class KWIN_EXPORT GLRenderTimeQuery : public RenderTimeQuery
 {
 public:
-    explicit GLRenderTimeQuery(const std::shared_ptr<EglContext> &context);
+    explicit GLRenderTimeQuery(const std::shared_ptr<EglContext> &context, GLuint query);
     ~GLRenderTimeQuery();
 
-    void begin();
     void end();
 
     /**
@@ -33,15 +32,14 @@ public:
      */
     std::optional<RenderTimeSpan> query() override;
 
+    static std::unique_ptr<GLRenderTimeQuery> begin(const std::shared_ptr<EglContext> &context);
+    static std::unique_ptr<GLRenderTimeQuery> begin();
+
 private:
     const std::weak_ptr<EglContext> m_context;
     bool m_hasResult = false;
 
-    struct
-    {
-        std::chrono::steady_clock::time_point start;
-        std::chrono::steady_clock::time_point end;
-    } m_cpuProbe;
+    std::chrono::steady_clock::time_point m_cpuStart;
 
     struct
     {
@@ -49,6 +47,8 @@ private:
         std::chrono::nanoseconds start{0};
         std::chrono::nanoseconds end{0};
     } m_gpuProbe;
+
+    std::optional<RenderTimeSpan> m_result;
 };
 
 }

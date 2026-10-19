@@ -73,7 +73,7 @@ static bool openZoneInfo(const QString &name, QFile *file)
     // Fall back to legacy system path:
     constexpr auto zoneLib = "/usr/lib/zoneinfo/"_L1;
     if (tzdir != zoneLib && tzdir != zoneLib.chopped(1)) {
-        file->setFileName(zoneShare + name);
+        file->setFileName(zoneLib + name);
         if (file->open(QIODevice::ReadOnly))
             return true;
     }
@@ -408,26 +408,31 @@ static QDate calculateDowDate(int year, int month, int dayOfWeek, int week)
     return date;
 }
 
-static QDate calculatePosixDate(const QByteArray &dateRule, int year)
+static QDate calculatePosixDate(QLatin1StringView dateRule, int year)
 {
-    Q_ASSERT(!dateRule.isEmpty());
+    if (dateRule.isEmpty())
+        return QDate();
     bool ok;
     // Can start with M, J, or a digit
     if (dateRule.at(0) == 'M') {
         // nth week in month format "Mmonth.week.dow"
-        QList<QByteArray> dateParts = dateRule.split('.');
-        if (dateParts.size() > 2) {
-            Q_ASSERT(!dateParts.at(0).isEmpty()); // the 'M' is its [0].
-            int month = QByteArrayView{ dateParts.at(0) }.sliced(1).toInt(&ok);
-            int week = ok ? dateParts.at(1).toInt(&ok) : 0;
-            int dow = ok ? dateParts.at(2).toInt(&ok) : 0;
-            if (ok)
-                return calculateDowDate(year, month, dow, week);
+        const auto dateParts = dateRule.tokenize(u'.');
+        auto token = dateParts.begin();
+        Q_ASSERT(token != dateParts.end());
+        Q_ASSERT(!token->isEmpty()); // the 'M' is its [0].
+        const int month = token->sliced(1).toInt(&ok);
+        if (ok && ++token != dateParts.end()) {
+            const int week = token->toInt(&ok);
+            if (ok && ++token != dateParts.end()) {
+                const int dow = token->toInt(&ok);
+                if (ok)
+                    return calculateDowDate(year, month, dow, week);
+            }
         }
     } else if (dateRule.at(0) == 'J') {
         // Day of Year 1...365, ignores Feb 29.
         // So March always starts on day 60.
-        int doy = QByteArrayView{ dateRule }.sliced(1).toInt(&ok);
+        int doy = dateRule.sliced(1).toInt(&ok);
         if (ok && doy > 0 && doy < 366) {
             // Subtract 1 because we're adding days *after* the first of
             // January, unless it's after February in a leap year, when the leap
@@ -484,9 +489,9 @@ static int parsePosixTime(const char *begin, const char *end)
     return (hour * 60 + min) * 60 + sec;
 }
 
-static int parsePosixTransitionTime(const QByteArray &timeRule)
+static int parsePosixTransitionTime(QLatin1StringView timeRule)
 {
-    return parsePosixTime(timeRule.constBegin(), timeRule.constEnd());
+    return parsePosixTime(timeRule.begin(), timeRule.end());
 }
 
 static int parsePosixOffset(const char *begin, const char *end)
@@ -594,14 +599,30 @@ PosixZone PosixZone::parse(const char *&pos, const char *end)
    By default a simple zone abbreviation with no offset information is accepted.
    Set \a requireOffset to \c true to require that there be offset data present.
 */
-static auto validatePosixRule(const QByteArray &posixRule, bool requireOffset = false)
+static auto validatePosixRule(QByteArrayView posixRule, bool requireOffset = false)
 {
     // Format is described here:
-    // http://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html
+    // https://sourceware.org/glibc/manual/latest/html_node/Proleptic-TZ.html
     // See also calculatePosixTransition()'s reference.
-    const auto parts = posixRule.split(',');
-    const struct { bool isValid, hasDst; } fail{false, false}, good{true, parts.size() > 1};
-    const QByteArray &zoneinfo = parts.at(0).trimmed();
+    QLatin1StringView zoneinfo, startDate, endDate;
+    int parts = 1;
+    {
+        const auto tokens = QLatin1StringView(posixRule).tokenize(u',');
+        auto token = tokens.begin();
+        Q_ASSERT(token != tokens.end());
+        zoneinfo = token->trimmed();
+        if (++token != tokens.end()) {
+            ++parts;
+            startDate = *token;
+            if (++token != tokens.end()) {
+                ++parts;
+                endDate = *token;
+                if (++token != tokens.end())
+                    ++parts; // So we know if we have too many
+            }
+        }
+    }
+    const struct { bool isValid, hasDst; } fail{false, false}, good{true, parts > 1};
     if (zoneinfo.isEmpty())
         return fail;
 
@@ -626,17 +647,16 @@ static auto validatePosixRule(const QByteArray &posixRule, bool requireOffset = 
         return fail;
 
     if (good.hasDst) {
-        if (parts.size() != 3 || parts.at(1).isEmpty() || parts.at(2).isEmpty())
+        if (parts != 3 || startDate.isEmpty() || endDate.isEmpty())
             return fail;
-        for (int i = 1; i < 3; ++i) {
-            const auto tran = parts.at(i).split('/');
-            if (!calculatePosixDate(tran.at(0), 1972).isValid())
+        for (int i = 0; i < 2; ++i) {
+            const auto tokens = (i ? endDate : startDate).tokenize(u'/');
+            auto token = tokens.begin();
+            Q_ASSERT(token != tokens.end());
+            if (!calculatePosixDate(*token, 1972).isValid())
                 return fail;
-            if (tran.size() > 1) {
-                const auto time = tran.at(1);
-                if (parsePosixTime(time.begin(), time.end()) == INT_MIN)
-                    return fail;
-            }
+            if (++token != tokens.end() && parsePosixTime(token->begin(), token->end()) == INT_MIN)
+                return fail;
         }
     }
     return good;
@@ -650,21 +670,24 @@ static QList<QTimeZonePrivate::Data> calculatePosixTransitions(const QByteArray 
 
     // POSIX Format is like "TZ=CST6CDT,M3.2.0/2:00:00,M11.1.0/2:00:00"
     // i.e. "std offset dst [offset],start[/time],end[/time]"
-    // See the section about TZ at
-    // http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html
+    // See the section about TZ at the end of
+    // https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html
     // and the link in validatePosixRule(), above.
-    QList<QByteArray> parts = posixRule.split(',');
+    const auto tokens = QLatin1String(posixRule).tokenize(u',');
+    auto token = tokens.begin();
+    Q_ASSERT(token != tokens.end());
 
     PosixZone stdZone, dstZone;
+    QLatin1StringView zoneText = *token;
     {
-        const QByteArray &zoneinfo = parts.at(0).trimmed();
-        const char *begin = zoneinfo.constBegin();
+        QLatin1StringView zoneinfo = zoneText.trimmed();
+        const char *begin = zoneinfo.begin();
 
-        stdZone = PosixZone::parse(begin, zoneinfo.constEnd());
+        stdZone = PosixZone::parse(begin, zoneinfo.end());
         if (!stdZone.hasValidOffset()) {
             stdZone.offset = 0;     // reset to UTC if we failed to parse
-        } else if (begin < zoneinfo.constEnd()) {
-            dstZone = PosixZone::parse(begin, zoneinfo.constEnd());
+        } else if (begin < zoneinfo.end()) {
+            dstZone = PosixZone::parse(begin, zoneinfo.end());
             if (!dstZone.hasValidOffset()) {
                 // if the dst offset isn't provided, it is 1 hour ahead of the standard offset
                 dstZone.offset = stdZone.offset + (60 * 60);
@@ -673,25 +696,31 @@ static QList<QTimeZonePrivate::Data> calculatePosixTransitions(const QByteArray 
     }
 
     // If only the name part, or no DST specified, then no transitions
-    if (parts.size() == 1 || !dstZone.hasValidOffset()) {
+    if (++token == tokens.end() || !dstZone.hasValidOffset()) {
         result.emplaceBack(
-                stdZone.name.isEmpty() ? QString::fromUtf8(parts.at(0)) : stdZone.name,
+                stdZone.name.isEmpty() ? QString(zoneText) : stdZone.name,
                 lastTranMSecs, stdZone.offset, stdZone.offset);
         return result;
     }
-    if (parts.size() < 3 || parts.at(1).isEmpty() || parts.at(2).isEmpty())
+    QLatin1StringView dstRule = *token;
+    if (++token == tokens.end() || dstRule.isEmpty() || token->isEmpty())
         return result; // Malformed.
+    QLatin1StringView stdRule = *token;
 
     // Get the std to dst transition details
     const int twoOClock = 7200; // Default transition time, when none specified
-    const auto dstParts = parts.at(1).split('/');
-    const QByteArray dstDateRule = dstParts.at(0);
-    const int dstTime = dstParts.size() < 2 ? twoOClock : parsePosixTransitionTime(dstParts.at(1));
+    const auto dstParts = dstRule.tokenize(u'/');
+    auto subtok = dstParts.begin();
+    Q_ASSERT(subtok != dstParts.end());
+    QLatin1StringView dstDateRule = *subtok;
+    const int dstTime = ++subtok == dstParts.end() ? twoOClock : parsePosixTransitionTime(*subtok);
 
     // Get the dst to std transition details
-    const auto stdParts = parts.at(2).split('/');
-    const QByteArray stdDateRule = stdParts.at(0);
-    const int stdTime = stdParts.size() < 2 ? twoOClock : parsePosixTransitionTime(stdParts.at(1));
+    const auto stdParts = stdRule.tokenize(u'/');
+    subtok = stdParts.begin();
+    Q_ASSERT(subtok != stdParts.end());
+    QLatin1StringView stdDateRule = *subtok;
+    const int stdTime = ++subtok == stdParts.end() ? twoOClock : parsePosixTransitionTime(*subtok);
 
     if (dstDateRule.isEmpty() || stdDateRule.isEmpty() || dstTime == INT_MIN || stdTime == INT_MIN)
         return result; // Malformed.
@@ -1239,7 +1268,7 @@ QTimeZonePrivate::Data QTzTimeZonePrivate::previousTransition(qint64 beforeMSecs
     return last > tranCache().cbegin() ? dataForTzTransition(*--last) : Data{};
 }
 
-bool QTzTimeZonePrivate::isTimeZoneIdAvailable(const QByteArray &ianaId) const
+bool QTzTimeZonePrivate::isTimeZoneIdAvailable(QByteArrayView ianaId) const
 {
     // Allow a POSIX rule as long as it has offset data. (This needs to reject a
     // plain abbreviation, without offset, since claiming to support such zones
@@ -1250,9 +1279,7 @@ bool QTzTimeZonePrivate::isTimeZoneIdAvailable(const QByteArray &ianaId) const
 
 QList<QByteArray> QTzTimeZonePrivate::availableTimeZoneIds() const
 {
-    QList<QByteArray> result = tzZones->keys();
-    std::sort(result.begin(), result.end());
-    return result;
+    return uniqueSortedAliasPadded(tzZones->keys());
 }
 
 QList<QByteArray> QTzTimeZonePrivate::availableTimeZoneIds(QLocale::Territory territory) const
@@ -1261,6 +1288,7 @@ QList<QByteArray> QTzTimeZonePrivate::availableTimeZoneIds(QLocale::Territory te
     for (auto it = tzZones->cbegin(), end = tzZones->cend(); it != end; ++it) {
         if (it.value().territory == territory)
             result << it.key();
+        // We'll pick up any CLDR-standard names below, so don't try to map here.
     }
     std::sort(result.begin(), result.end());
 

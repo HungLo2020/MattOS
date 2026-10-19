@@ -39,8 +39,12 @@ QWaylandQuickSurface::~QWaylandQuickSurface()
 
 /*!
  * \qmlproperty bool QtWayland.Compositor::WaylandSurface::useTextureAlpha
+ * \default true
  *
- * This property specifies whether the surface should use texture alpha.
+ * This property specifies whether the surface should use texture alpha for blending.
+ *
+ * When \c true, the surface's alpha channel will be used for blending; when
+ * \c false, the surface will be treated as opaque.
  */
 
 /*!

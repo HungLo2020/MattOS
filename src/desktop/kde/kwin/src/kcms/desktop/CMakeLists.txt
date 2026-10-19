@@ -21,7 +21,6 @@ target_link_libraries(kcm_kwin_virtualdesktops PRIVATE
     KF6::I18n
     KF6::KCMUtils
     KF6::KCMUtilsQuick
-    KF6::XmlGui
 
     kcmkwincommon
 )

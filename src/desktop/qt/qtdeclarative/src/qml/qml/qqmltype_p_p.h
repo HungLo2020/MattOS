@@ -41,7 +41,7 @@ public:
     {
         ~ProxyMetaObjects()
         {
-            for (const QQmlProxyMetaObject::ProxyData &metaObject : data)
+            for (const QQmlProxyMetaObject::ProxyData &metaObject : std::as_const(data))
                 free(metaObject.metaObject);
         }
 
@@ -325,17 +325,10 @@ public:
             const QQmlRefPointer<QV4::CompiledData::CompilationUnit> &unit,
             const QString &elementName, QQmlTypeLoader *typeLoader)
     {
-        const QQmlType qmltype = unit->typeNameCache->query<QQmlImport::AllowRecursion>(
+        // Invalid speculative inline component types are either rejected at creation time
+        // (if the base type is already registered) or pruned when the base type registers.
+        return unit->typeNameCache->query<QQmlImport::AllowRecursion>(
                                                             elementName, typeLoader).type;
-
-        if (qmltype.isValid() && qmltype.isInlineComponentType()
-                && !QQmlMetaType::obtainCompilationUnit(qmltype.typeId())) {
-            // If it seems to be an IC type, make sure there is an actual
-            // compilation unit for it. We create inline component types speculatively.
-            return QQmlType();
-        }
-
-        return qmltype;
     }
 
     // Tries the base unit's resolvedTypes first. If successful, that is cheap

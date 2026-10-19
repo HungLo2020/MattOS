@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=vimeo,vm
 Name=Vimeo
+Name[am]=Vimeo
 Name[ar]=فيميو
 Name[ast]=Vimeo
 Name[az]=Vimeo
@@ -52,6 +53,8 @@ Name[mai]=Vimeo
 Name[ml]=വിമിയോ
 Name[mr]=विमिओ
 Name[my]=ဗင်မီယို
+Name[nan_TW]=Vimeo
+Name[nan_TW@latin]=Vimeo
 Name[nb]=Vimeo
 Name[nds]=Vimeo
 Name[nl]=Vimeo
@@ -76,13 +79,13 @@ Name[tg]=Vimeo
 Name[th]=Vimeo
 Name[tok]=ilo pi sitelen tawa Vimeo
 Name[tr]=Vimeo
-Name[ug]=Vimeo
 Name[uk]=Vimeo
 Name[vi]=Vimeo
 Name[wa]=Vimeo
 Name[zh_CN]=Vimeo
 Name[zh_TW]=Vimeo
 Query=https://vimeo.com/search?q=\\{@}
+Query[am]=https://vimeo.com/search?q=\\{@}
 Query[ar]=https://vimeo.com/search?q=\\{@}
 Query[az]=https://vimeo.com/search?q=\\{@}
 Query[be]=https://vimeo.com/search?q=\\{@}
@@ -122,6 +125,8 @@ Query[lg]=https://vimeo.com/search?q=\\{@}
 Query[lt]=https://vimeo.com/search?q=\\{@}
 Query[lv]=https://vimeo.com/search?q=\\{@}
 Query[my]=https://vimeo.com/search?q=\\{@}
+Query[nan_TW]=https://vimeo.com/search?q=\\{@}
+Query[nan_TW@latin]=https://vimeo.com/search?q=\\{@}
 Query[nb]=https://vimeo.com/search?q=\\{@}
 Query[nl]=https://vimeo.com/search?q=\\{@}
 Query[nn]=https://vimeo.com/search?q=\\{@}
@@ -140,7 +145,6 @@ Query[tg]=https://vimeo.com/search?q=\\{@}
 Query[th]=https://vimeo.com/search?q=\\{@}
 Query[tok]=https://vimeo.com/search?q=\\{@}
 Query[tr]=https://vimeo.com/search?q=\\{@}
-Query[ug]=https://vimeo.com/search?q=\\{@}
 Query[uk]=https://vimeo.com/search?q=\\{@}
 Query[vi]=https://vimeo.com/search?q=\\{@}
 Query[zh_CN]=https://vimeo.com/search?q=\\{@}

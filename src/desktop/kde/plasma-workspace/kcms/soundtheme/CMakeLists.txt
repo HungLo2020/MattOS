@@ -29,7 +29,10 @@ target_link_libraries(kcm_soundtheme PRIVATE
     KF6::KCMUtils
     KF6::I18n
     KF6::KCMUtilsQuick
+    KF6::KIOCore
+    KF6::Archive
     PW::LibNotificationManager
     Canberra::Canberra
 )
 
+install(FILES soundthemesettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})

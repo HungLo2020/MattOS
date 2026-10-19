@@ -8,6 +8,10 @@
 
 #include "desktopportal.h"
 #include "desktopportal_debug.h"
+#include "session.h"
+
+#include <QDBusConnection>
+#include <QDBusServiceWatcher>
 
 #include "access.h"
 #include "account.h"
@@ -20,7 +24,6 @@
 #include "globalshortcuts.h"
 #include "inhibit.h"
 #include "inputcapture.h"
-#include "notification.h"
 #include "print.h"
 #include "remotedesktop.h"
 #include "screencast.h"
@@ -38,10 +41,13 @@ DesktopPortal::DesktopPortal(QObject *parent)
     , m_email(new EmailPortal(this))
     , m_fileChooser(new FileChooserPortal(this))
     , m_inhibit(new InhibitPortal(this))
-    , m_notification(new NotificationPortal(this))
     , m_print(new PrintPortal(this))
-    , m_settings(new SettingsPortal(this))
+    , m_settings(new SettingsPortal(this,
+                                    [this](const QDBusError &error) {
+                                        sendErrorReply(error.name(), error.message());
+                                    }))
     , m_dynamicLauncher(new DynamicLauncherPortal(this))
+    , m_frontendWatcher(QStringLiteral("org.freedesktop.portal.Desktop"), QDBusConnection::sessionBus(), QDBusServiceWatcher::WatchForUnregistration)
 {
     const QByteArray xdgCurrentDesktop = qgetenv("XDG_CURRENT_DESKTOP");
     if (xdgCurrentDesktop.compare("KDE", Qt::CaseInsensitive) == 0) {
@@ -57,6 +63,11 @@ DesktopPortal::DesktopPortal(QObject *parent)
         WaylandIntegration::init();
     }
     new UsbPortal(this);
+
+    // Fail-safe: close all sessions if the portal frontend disappears without closing them.
+    connect(&m_frontendWatcher, &QDBusServiceWatcher::serviceUnregistered, this, [] {
+        Session::closeAll();
+    });
 }
 
 #include "moc_desktopportal.cpp"

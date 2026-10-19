@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include "core/drm_formats.h"
 #include "utils/damagejournal.h"
+#include "utils/softwarevsyncmonitor.h"
 #include "wayland/screencast_v1.h"
 
 #include <QHash>
@@ -31,6 +33,7 @@ class PipeWireCore;
 class Region;
 class ScreenCastBuffer;
 class ScreenCastSource;
+class RenderDevice;
 
 struct ScreenCastDmaBufTextureParams
 {
@@ -45,6 +48,7 @@ struct ScreenCastDmaBufTextureParams
 class KWIN_EXPORT ScreenCastStream : public QObject
 {
     Q_OBJECT
+
 public:
     explicit ScreenCastStream(ScreenCastSource *source, std::shared_ptr<PipeWireCore> pwCore, QObject *parent);
     ~ScreenCastStream();
@@ -58,8 +62,8 @@ public:
     Q_DECLARE_FLAGS(Contents, Content)
 
     bool init();
-    uint framerate();
     uint nodeId();
+    uint64_t objectSerial() const;
     QString error() const
     {
         return m_error;
@@ -75,7 +79,7 @@ public Q_SLOTS:
     void invalidateCursor();
 
 Q_SIGNALS:
-    void ready(quint32 nodeId);
+    void ready(quint32 nodeId, quint64 objectSerial);
     void closed();
 
 private:
@@ -87,21 +91,26 @@ private:
     bool createStream();
     QList<const spa_pod *> buildFormats(bool fixate, char buffer[2048]);
     void updateParams();
-    void resize(const QSize &resolution);
+    void updateStreamSize(const QSize &resolution);
     void coreFailed(const QString &errorMessage);
     void addCursorMetadata(spa_buffer *spaBuffer, Cursor *cursor);
-    void addHeader(spa_buffer *spaBuffer);
+    void addHeader(spa_buffer *spaBuffer, std::chrono::nanoseconds timestamp);
     void corruptHeader(spa_buffer *spaBuffer);
     void addDamage(spa_buffer *spaBuffer, const Region &damagedRegion);
     void newStreamParams();
-    spa_pod *buildFormat(struct spa_pod_builder *b, enum spa_video_format format, struct spa_rectangle *resolution,
+    spa_pod *buildFormat(struct spa_pod_builder *b, enum spa_video_format format,
+                         struct spa_rectangle defaultSize, struct spa_rectangle minSize, struct spa_rectangle maxSize,
                          struct spa_fraction *defaultFramerate, struct spa_fraction *minFramerate, struct spa_fraction *maxFramerate,
-                         const QList<uint64_t> &modifiers, quint32 modifiersFlags);
+                         const ModifierList &modifiers, quint32 modifiersFlags);
     pw_buffer *dequeueBuffer();
-    void record(Contents contents);
+    void record(std::chrono::nanoseconds timestamp, Contents contents);
     void bumpBufferAge(ScreenCastBuffer *renderedBuffer);
+    /**
+     * @returns the framerate in mHz
+     */
+    uint framerate();
 
-    std::optional<ScreenCastDmaBufTextureParams> testCreateDmaBuf(const QSize &size, quint32 format, const QList<uint64_t> &modifiers);
+    std::optional<ScreenCastDmaBufTextureParams> testCreateDmaBuf(RenderDevice *device, const QSize &size, quint32 format, const ModifierList &modifiers);
 
     std::shared_ptr<PipeWireCore> m_pwCore;
     std::unique_ptr<ScreenCastSource> m_source;
@@ -116,7 +125,7 @@ private:
 
     spa_video_info_raw m_videoFormat;
     QString m_error;
-    QList<uint64_t> m_modifiers;
+    ModifierList m_modifiers;
     std::optional<ScreenCastDmaBufTextureParams> m_dmabufParams; // when fixated
 
     struct
@@ -133,8 +142,7 @@ private:
     bool m_hasDmaBuf = false;
     quint32 m_drmFormat = 0;
 
-    std::optional<std::chrono::steady_clock::time_point> m_lastSent;
-    QTimer m_pendingFrame;
+    std::unique_ptr<SoftwareVsyncMonitor> m_vsync;
     Contents m_pendingContents = Content::None;
     QList<pw_buffer *> m_dequeuedBuffers;
 

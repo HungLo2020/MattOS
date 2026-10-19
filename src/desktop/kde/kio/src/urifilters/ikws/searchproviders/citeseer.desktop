@@ -4,6 +4,7 @@ Hidden=false
 Keys=cite,cs
 Name=CiteSeer: Scientific Literature Digital Library
 Name[af]=CiteSeer: Wetenskaplike Digitale Literatuur Biblioteek
+Name[am]=CiteSeer: Scientific Literature Digital Library
 Name[ar]=CiteSeer: مكتبة وسائط الأدب العلمي
 Name[az]=CiteSeer: Elmi Ədəbiyyat Rəqəmsal Kitabxanası
 Name[be]=CiteSeer: лічбавая бібліятэка навуковай літаратуры
@@ -60,6 +61,8 @@ Name[ml]=സൈറ്റ്സിയര്‍: ശാസ്ത്രസാഹി
 Name[mr]=CiteSeer: वैज्ञानिक साहित्य डिजिटल पुस्तकालय
 Name[ms]=CiteSeer: Pustaka Digital Risalah Sains
 Name[my]=ဆိုက်ဆီယာ - သိပ္ပံစာပေဆိုင်ရာ ဒီဂျစ်တယ်စာကြည့်တိုက်
+Name[nan_TW]=CiteSeer: 科學文獻數位圖書館
+Name[nan_TW@latin]=CiteSeer: Kho-ha̍k Bûn-hian Sòo-ūi Tôo-su-kuán
 Name[nb]=CiteSeer: Digitalt bibliotek for vitenskapelig litteratur
 Name[nds]=CiteSeer: Digitale Bibliotheek för wetenschaplich Literatuur
 Name[ne]=CiteSeer: वैज्ञानिक साहित्य डिजिटल लाइब्रेरी
@@ -97,6 +100,7 @@ Name[wa]=Cite Seer: Livreye limerike di scrijhaedjes syintifikes
 Name[zh_CN]=CiteSeer：科学文献数字图书馆
 Name[zh_TW]=CiteSeer: 科學文獻數位圖書館
 Query=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
+Query[am]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[ar]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[ast]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[az]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
@@ -137,6 +141,8 @@ Query[lg]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=d
 Query[lt]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[lv]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[my]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
+Query[nan_TW]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
+Query[nan_TW@latin]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[nb]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[nl]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[nn]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
@@ -155,7 +161,6 @@ Query[tg]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=d
 Query[th]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[tok]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[tr]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
-Query[ug]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[uk]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[vi]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc
 Query[zh_CN]=https://citeseer.ist.psu.edu/search?q=\\{@}&submit=Search&sort=rlv&t=doc

@@ -13,6 +13,7 @@
 #include "genustypes.h"
 #include "parameters.h"
 #include "relatedclass.h"
+#include "status.h"
 #include "template_declaration.h"
 
 #include <QtCore/qdir.h>
@@ -54,14 +55,6 @@ typedef QMultiMap<QString, CollectionNode *> CNMultiMap;
 class Node : public INode
 {
 public:
-    enum Status : unsigned char {
-        Deprecated,
-        Preliminary,
-        Active,
-        Internal,
-        DontDocument
-    }; // don't reorder this enum
-
     enum ThreadSafeness : unsigned char {
         UnspecifiedSafeness,
         NonReentrant,
@@ -93,10 +86,11 @@ public:
     void setGenus(Genus t) { m_genus = t; }
     static Genus getGenus(NodeType t);
 
-    [[nodiscard]] bool isActive() const { return m_status == Active; }
+    [[nodiscard]] bool isActive() const { return m_status == Status::Active; }
+    [[nodiscard]] bool isInternalAuto() const { return m_status == Status::InternalAuto; }
     [[nodiscard]] bool isClass() const { return m_nodeType == NodeType::Class; }
     [[nodiscard]] bool isCppNode() const { return genus() == Genus::CPP; }
-    [[nodiscard]] bool isDontDocument() const { return (m_status == DontDocument); }
+    [[nodiscard]] bool isDontDocument() const { return (m_status == Status::DontDocument); }
     [[nodiscard]] bool isEnumType() const
     {
         return m_nodeType == NodeType::Enum || m_nodeType == NodeType::QmlEnum;
@@ -112,9 +106,10 @@ public:
     [[nodiscard]] bool isHeader() const { return m_nodeType == NodeType::HeaderFile; }
     [[nodiscard]] bool isIndexNode() const { return m_indexNodeFlag; }
     [[nodiscard]] bool isModule() const { return m_nodeType == NodeType::Module; }
+    [[nodiscard]] bool isConcept() const { return m_nodeType == NodeType::Concept; }
     [[nodiscard]] bool isNamespace() const { return m_nodeType == NodeType::Namespace; }
     [[nodiscard]] bool isPage() const { return m_nodeType == NodeType::Page; }
-    [[nodiscard]] bool isPreliminary() const { return (m_status == Preliminary); }
+    [[nodiscard]] bool isPreliminary() const { return (m_status == Status::Preliminary); }
     [[nodiscard]] bool isPrivate() const { return m_access == Access::Private; }
     [[nodiscard]] bool isProperty() const { return m_nodeType == NodeType::Property; }
     [[nodiscard]] bool isProxyNode() const { return m_nodeType == NodeType::Proxy; }
@@ -138,7 +133,7 @@ public:
     [[nodiscard]] bool isVariable() const { return m_nodeType == NodeType::Variable; }
     [[nodiscard]] bool isGenericCollection() const { return (m_nodeType == NodeType::Collection); }
 
-    [[nodiscard]] virtual bool isDeprecated() const { return (m_status == Deprecated); }
+    [[nodiscard]] virtual bool isDeprecated() const { return (m_status == Status::Deprecated); }
     [[nodiscard]] virtual bool isAbstract() const { return false; }
     [[nodiscard]] virtual bool isAggregate() const { return false; } // means "can have children"
     [[nodiscard]] virtual bool isFirstClassAggregate() const
@@ -177,7 +172,7 @@ public:
     void setAccess(Access t) { m_access = t; }
     void setLocation(const Location &t);
     void setDoc(const Doc &doc, bool replace = false);
-    void setStatus(Status t);
+    virtual void setStatus(Status t);
     void setThreadSafeness(ThreadSafeness t) { m_safeness = t; }
     void setSince(const QString &since);
     void setPhysicalModuleName(const QString &name) { m_physicalModuleName = name; }
@@ -207,7 +202,7 @@ public:
     virtual bool setTitle(const QString &) { return false; }
     virtual bool setSubtitle(const QString &) { return false; }
 
-    void markInternal() { setStatus(Internal); }
+    void markInternal() { setStatus(Status::Internal); }
 
     virtual void markDefault() {}
     virtual void markReadOnly(bool) {}
@@ -230,7 +225,7 @@ public:
     [[nodiscard]] const QString &deprecatedSince() const { return m_deprecatedSince; }
 
     [[nodiscard]] const QMap<LinkType, std::pair<QString, QString>> &links() const { return m_linkMap; }
-    void setLink(LinkType linkType, const QString &link, const QString &desc);
+    void setLink(LinkType linkType, QString link, QString desc);
 
     [[nodiscard]] Access access() const { return m_access; }
     [[nodiscard]] const Location &declLocation() const { return m_declLocation; }
@@ -264,7 +259,7 @@ public:
     virtual void setLogicalModuleInfo(const QStringList &) {}
     [[nodiscard]] virtual CollectionNode *logicalModule() const { return nullptr; }
     virtual void setQmlModule(CollectionNode *) {}
-    virtual ClassNode *classNode() { return nullptr; }
+    virtual ClassNode *classNode() const { return nullptr; }
     virtual void setClassNode(ClassNode *) {}
     [[nodiscard]] QString fullDocumentName() const;
     QString qualifyCppName();
@@ -276,6 +271,7 @@ public:
     static QString nodeTypeString(NodeType t);
     [[nodiscard]] static bool nodeLessThan(const Node *first, const Node *second);
     [[nodiscard]] static bool nodeNameLessThan(const Node *first, const Node *second);
+    [[nodiscard]] static bool nodeNameOverloadLessThan(const Node *first, const Node *second);
     [[nodiscard]] static bool nodeSortKeyOrNameLessThan(const Node *n1, const Node *n2);
 
     [[nodiscard]] NodeContext createContext() const;
@@ -288,7 +284,7 @@ private:
     Genus m_genus {};
     Access m_access { Access::Public };
     ThreadSafeness m_safeness { UnspecifiedSafeness };
-    Status m_status { Active };
+    Status m_status { Status::Active };
     ComparisonCategory m_comparisonCategory { ComparisonCategory::None };
     bool m_indexNodeFlag : 1;
     bool m_relatedNonmember : 1;

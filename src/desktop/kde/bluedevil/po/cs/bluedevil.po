@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
 "PO-Revision-Date: 2026-04-22 10:13+0200\n"
 "Last-Translator: Vít Pelčák <vit@pelcak.org>\n"
 "Language-Team: Czech <kde-i18n-doc@kde.org>\n"
@@ -31,59 +31,27 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "vit@pelcak.org, tomas.chvatal@gmail.com"
 
-#: applet/devicesproxymodel.cpp:51
+#: components/ForgetDeviceDialog.qml:37
 #, kde-format
-msgctxt "@title:column Blocked Bluetooth devices"
-msgid "Blocked"
-msgstr "Blokován"
+msgid "Forget this Device?"
+msgstr "Zapomenout zařízení?"
 
-#: applet/devicesproxymodel.cpp:54
+#: components/ForgetDeviceDialog.qml:38
 #, kde-format
-msgctxt "@title:column Connected Bluetooth devices"
-msgid "Connected"
-msgstr "Připojen"
+msgid "Are you sure you want to forget \"%1\"?"
+msgstr "Opravdu si přejete zapomenout '%1'?"
 
-#: applet/devicesproxymodel.cpp:56
+#: components/ForgetDeviceDialog.qml:50
 #, kde-format
-msgctxt "@title:column Available but not connected Bluetooth devices"
-msgid "Available"
-msgstr "Dostupné"
+msgctxt "@action:button"
+msgid "Forget Device"
+msgstr "Zapomenout zařízení"
 
-#: applet/devicesstateproxymodel.cpp:273
+#: components/ForgetDeviceDialog.qml:58
 #, kde-format
-msgctxt "@label %1 is the name of a Bluetooth device"
-msgid "Could not connect to device “%1”"
-msgstr "Nelze se připojit k zařízení “%1”"
-
-#: applet/devicesstateproxymodel.cpp:288
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed:HostIsDown"
-msgid "The device is unreachable"
-msgstr "Zařízení je nedostupné"
-
-#: applet/devicesstateproxymodel.cpp:289
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed"
-msgid "Connection to the device failed"
-msgstr "Připojení k zařízení selhalo"
-
-#: applet/devicesstateproxymodel.cpp:292
-#, kde-format
-msgctxt "Notification when the connection failed due to NotReady"
-msgid "The device is not ready"
-msgstr "Zařízení není připraveno"
-
-#: kcm/bluetooth.cpp:135
-#, kde-format
-msgctxt "DeviceName Network (Service)"
-msgid "%1 Network (%2)"
-msgstr "%1 Síť (%2)"
-
-#: kcm/bluetoothmoduledata.cpp:20
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Enable Bluetooth"
-msgstr "Povolit Bluetooth"
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "Zrušit"
 
 #: kded/bluedevildaemon.cpp:68 kded/bluedevildaemon.cpp:70
 #, kde-format
@@ -164,13 +132,13 @@ msgctxt "Notification button to say that the PIN is wrong"
 msgid "PIN incorrect"
 msgstr "PIN je nesprávný"
 
-#: kded/helpers/requestpin.cpp:32
+#: kded/helpers/requestpin.cpp:30
 #, kde-format
 msgctxt "@label %1 is the name of a Bluetooth device"
 msgid "PIN for device “%1”"
 msgstr "PIN pro zařízení “%1”"
 
-#: kded/helpers/requestpin.cpp:36
+#: kded/helpers/requestpin.cpp:34
 #, kde-format
 msgctxt ""
 "Shown in a notification to announce that a PIN is needed to accomplish a "
@@ -178,7 +146,7 @@ msgctxt ""
 msgid "PIN needed to pair with %1"
 msgstr "Je třeba zadat pin pro spárování s %1"
 
-#: kded/helpers/requestpin.cpp:39
+#: kded/helpers/requestpin.cpp:37
 #, kde-format
 msgctxt ""
 "Notification button which once clicked, a dialog to introduce the PIN will "
@@ -186,13 +154,13 @@ msgctxt ""
 msgid "Introduce PIN"
 msgstr "Zadejte PIN"
 
-#: kded/helpers/requestpin.cpp:59
+#: kded/helpers/requestpin.cpp:57
 #, kde-format
 msgctxt "Shown in the caption of a dialog where the user introduce the PIN"
 msgid "Introduce PIN"
 msgstr "Zadejte PIN"
 
-#: kded/helpers/requestpin.cpp:66
+#: kded/helpers/requestpin.cpp:64
 #, kde-format
 msgctxt ""
 "Shown in a dialog which asks to introduce a PIN that will be used to pair a "
@@ -336,12 +304,12 @@ msgstr "Paměť telefonu"
 msgid "External memory"
 msgstr "Externí paměť"
 
-#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:378
+#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:382
 #, kde-format
 msgid "Bluetooth is disabled."
 msgstr "Bluetooth není povolen."
 
-#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:379
+#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:383
 #, kde-format
 msgctxt "Action to enable Bluetooth adapter"
 msgid "Enable"
@@ -485,18 +453,18 @@ msgstr "Přidat zařízení Bluetooth"
 msgid "Select a device"
 msgstr "Zvolte zařízení"
 
-#: wizard/pages/discover.cpp:371
+#: wizard/pages/discover.cpp:375
 #, kde-format
 msgctxt "Action to fix a problem"
 msgid "Fix it"
 msgstr "Opravit"
 
-#: wizard/pages/discover.cpp:381
+#: wizard/pages/discover.cpp:385
 #, kde-format
 msgid "Your Bluetooth adapter is not pairable."
 msgstr "Váš adaptér Bluetooth nelze spárovat."
 
-#: wizard/pages/discover.cpp:382
+#: wizard/pages/discover.cpp:386
 #, kde-format
 msgctxt "Action to make Bluetooth adapter pairable"
 msgid "Make Pairable"
@@ -603,6 +571,42 @@ msgstr "Zařízení bylo nastaveno a lze jej nyní použít."
 msgctxt "Placeholder is device name"
 msgid "The device '%1' has been set up and can now be used."
 msgstr "Zařízení '%1' bylo nastaveno a lze jej nyní použít."
+
+#~ msgctxt "@title:column Blocked Bluetooth devices"
+#~ msgid "Blocked"
+#~ msgstr "Blokován"
+
+#~ msgctxt "@title:column Connected Bluetooth devices"
+#~ msgid "Connected"
+#~ msgstr "Připojen"
+
+#~ msgctxt "@title:column Available but not connected Bluetooth devices"
+#~ msgid "Available"
+#~ msgstr "Dostupné"
+
+#~ msgctxt "@label %1 is the name of a Bluetooth device"
+#~ msgid "Could not connect to device “%1”"
+#~ msgstr "Nelze se připojit k zařízení “%1”"
+
+#~ msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+#~ msgid "The device is unreachable"
+#~ msgstr "Zařízení je nedostupné"
+
+#~ msgctxt "Notification when the connection failed due to Failed"
+#~ msgid "Connection to the device failed"
+#~ msgstr "Připojení k zařízení selhalo"
+
+#~ msgctxt "Notification when the connection failed due to NotReady"
+#~ msgid "The device is not ready"
+#~ msgstr "Zařízení není připraveno"
+
+#~ msgctxt "DeviceName Network (Service)"
+#~ msgid "%1 Network (%2)"
+#~ msgstr "%1 Síť (%2)"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Enable Bluetooth"
+#~ msgstr "Povolit Bluetooth"
 
 #~ msgctxt ""
 #~ "@label %1 is human-readable device name, %2 is low-level device address"

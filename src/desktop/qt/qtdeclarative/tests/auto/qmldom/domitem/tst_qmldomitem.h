@@ -4056,6 +4056,31 @@ private slots:
         QCOMPARE(lambda.internalKind(), DomType::ScriptFunctionExpression);
     }
 
+    void doNotCrashOnNestedFunctionInPropertyBinding()
+    {
+        using namespace Qt::StringLiterals;
+        const QString testFile = baseDir + u"/lambdas.qml"_s;
+        const DomItem fileObject = rootQmlObjectFromFile(testFile, qmltypeDirs).fileObject();
+        const DomItem mainObject = fileObject.field(Fields::components)
+                                           .key(QString())
+                                           .index(0)
+                                           .field(Fields::objects)
+                                           .index(0);
+        const DomItem nested = mainObject.field(Fields::bindings)
+                                       .key(u"propertyWithFunction"_s)
+                                       .index(0)
+                                       .field(Fields::value)
+                                       .field(Fields::scriptElement)
+                                       .field(Fields::statements)
+                                       .index(0);
+        QVERIFY(nested);
+        QCOMPARE(nested.internalKind(), DomType::ScriptFunctionExpression);
+        QCOMPARE(nested.field(Fields::name).value().toString(), u"funcInProperty"_s);
+
+        // the nested function must not have leaked into the QmlObject's methods
+        QVERIFY(!mainObject.field(Fields::methods).key(u"funcInProperty"_s).index(0));
+    }
+
     void regexpLiteral()
     {
         using namespace Qt::StringLiterals;
@@ -4630,7 +4655,14 @@ private slots:
         auto semanticAnalysis = envPtr->semanticAnalysis();
         QVERIFY(semanticAnalysis.m_mapper->isEmpty());
         envPtr->setResourceFiles({ baseDir + u"/buildFolderWithQrc/.qt/rcc/someQrc.qrc"_s });
-        QVERIFY(!semanticAnalysis.m_mapper->isEmpty());
+        QVERIFY(semanticAnalysis.m_mapper->isEmpty()); // should be set only when loading a QML file
+        envPtr->loadFile(FileToLoad::fromMemory(envPtr, baseDir + "Snippet.qml"_L1,
+                                                "import QtQuick\nItem{}"_L1),
+                         [](const Path &, const DomItem &, const DomItem &it) {
+                             QVERIFY(it.fileObject().as<QmlFile>()->handleForPopulation().data());
+                         });
+        envPtr->loadPendingDependencies();
+        QVERIFY(!semanticAnalysis.m_mapper->isEmpty()); // should be set now
         QVERIFY(semanticAnalysis.m_mapper->isFile(u"/qt/qml/MyModule/qml/HelloWorld.qml"_s));
     }
 

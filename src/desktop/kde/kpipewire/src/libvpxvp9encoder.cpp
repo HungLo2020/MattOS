@@ -19,6 +19,7 @@ extern "C" {
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
 #include <libavutil/pixfmt.h>
+#include <libavutil/opt.h>
 }
 
 #include "logging_record.h"
@@ -53,12 +54,13 @@ bool LibVpxVp9Encoder::initialize(const QSize &size)
     AVDictionary *options = buildEncodingOptions();
     maybeLogOptions(options);
 
-    const auto area = size.width() * size.height();
     // m_avCodecContext->framerate is not set, so we use m_produce->maxFramerate() instead.
     const auto maxFramerate = m_produce->maxFramerate();
     const auto fps = qreal(maxFramerate.numerator) / std::max(quint32(1), maxFramerate.denominator);
 
     m_avCodecContext->gop_size = fps * 2;
+
+    setQuality(m_quality);
 
     if (int result = avcodec_open2(m_avCodecContext, codec, &options); result < 0) {
         qCWarning(PIPEWIRERECORD_LOGGING) << "Could not open codec" << av_err2str(result);
@@ -68,14 +70,34 @@ bool LibVpxVp9Encoder::initialize(const QSize &size)
     return true;
 }
 
-int LibVpxVp9Encoder::percentageToAbsoluteQuality(const std::optional<quint8> &quality)
-{
-    if (!quality) {
-        return -1;
-    }
 
-    constexpr int MinQuality = 63;
-    return std::max(1, int(MinQuality - (m_quality.value() / 100.0) * MinQuality));
+void LibVpxVp9Encoder::setQuality(std::optional<quint8> quality)
+{
+    SoftwareEncoder::setQuality(quality);
+    // AVCodecContext::priv_data is where the encoder specific options are.
+    // Naturally, you can't use the C API of the private data object and using
+    // a private data object directly to set options seems like a bad idea.
+    // However, you can still set the options by setting options on the
+    // AVCodecContext object with the AV_OPT_SEARCH_CHILDREN search flag.
+    if (!m_avCodecContext) {
+        return;
+    }
+    // Lower crf is higher quality. Max 0, min 63. libvpx-vp9 doesn't use global_quality.
+    // But recommended values range is 15 - 37.
+    int crf = 31;
+    const auto height = m_avCodecContext->height;
+    if (height > 1080 && height <= 1440) {
+        crf = 24;
+    } else if (height > 1440) {
+        crf = 15;
+    }
+    if (m_quality) {
+        crf = std::lerp(37, 15, quality.value() / 100.0);
+    }
+    // libvpx-vp9 crf takes an int
+    av_opt_set_int(m_avCodecContext, "qmin", std::clamp(crf / 2, 0, crf), AV_OPT_SEARCH_CHILDREN);
+    av_opt_set_int(m_avCodecContext, "qmax", std::clamp(int(crf * 1.5), crf, 63), AV_OPT_SEARCH_CHILDREN);
+    av_opt_set_int(m_avCodecContext, "crf", crf, AV_OPT_SEARCH_CHILDREN);
 }
 
 AVDictionary *LibVpxVp9Encoder::buildEncodingOptions()
@@ -85,16 +107,6 @@ AVDictionary *LibVpxVp9Encoder::buildEncodingOptions()
     // We're probably capturing a screen
     av_dict_set(&options, "tune-content", "screen", 0);
 
-    // Lower crf is higher quality. Max 0, min 63. libvpx-vp9 doesn't use global_quality.
-    int crf = 31;
-    if (m_quality) {
-        crf = percentageToAbsoluteQuality(m_quality);
-    }
-
-    av_dict_set_int(&options, "qmin", std::clamp(crf / 2, 0, crf), 0);
-    av_dict_set_int(&options, "qmax", std::clamp(int(crf * 1.5), crf, 63), 0);
-    av_dict_set_int(&options, "crf", crf, 0);
-
     // 0-4 are for Video-On-Demand with the good or best deadline.
     // Don't use best, it's not worth it.
     // 5-8 are for streaming with the realtime deadline.
@@ -102,6 +114,10 @@ AVDictionary *LibVpxVp9Encoder::buildEncodingOptions()
     int cpuUsed = 5 + std::max(1, int(3 - std::round(m_quality.value_or(50) / 100.0 * 3)));
     av_dict_set_int(&options, "cpu-used", cpuUsed, 0);
     av_dict_set(&options, "deadline", "realtime", 0);
+
+    // Frames arrive on damage, not at a fixed cadence. The libvpx default
+    // lookahead keeps the last frame buffered until another arrives.
+    av_dict_set_int(&options, "lag-in-frames", 0, 0);
 
     // The value is interpreted as being equivalent to log2(realNumberOfColumns),
     // so 3 is 8 columns. 6 is the max amount of columns. 2 is the max amount of rows.

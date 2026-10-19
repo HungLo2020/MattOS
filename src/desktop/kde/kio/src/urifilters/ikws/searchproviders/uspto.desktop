@@ -4,6 +4,7 @@ Hidden=false
 Keys=uspto
 Name=U.S. Patent Database
 Name[af]=Amerikaanse Patente Databasis
+Name[am]=U.S. Patent Database
 Name[ar]=قاعدة بيانات براءات الاختراع الأمريكية
 Name[as]=U.S. Patent Database
 Name[az]=U.S. Patent Məlumat Bazası
@@ -61,6 +62,8 @@ Name[ml]=യു.എസ് പേറ്റന്റ് ഡേറ്റാബേ�
 Name[mr]=US पेटेन्ट डेटाबेस
 Name[ms]=Pangkalan Data Paten A.S.
 Name[my]=ယူ.အက်စ်. မူပိုင်ခွင့် ဒေတာဘေ့စ်
+Name[nan_TW]=美國專利資料庫
+Name[nan_TW@latin]=Bí-kok Tsuan-lī Tsu-liāu-khòo
 Name[nb]=US patentdatabase
 Name[nds]=Patenten-Datenbank vun de USA
 Name[ne]=यूएस प्याटेन्ट डेटाबेस
@@ -89,7 +92,6 @@ Name[tg]=Пойгоҳи иттилоотии патентҳои ИМА
 Name[th]=ฐานข้อมูลสิทธิบัตรของสหรัฐอเมริกาฯ
 Name[tok]=ilo alasa pi kulupu U.S.P.T.O.
 Name[tr]=U.S. Patent Veri Tabanı
-Name[ug]=ئا ق ش خاسنەپ ساندان
 Name[uk]=База даних патентів в США
 Name[uz]=AQSH patent maʼlumot bazasi
 Name[uz@cyrillic]=АҚШ патент маълумот базаси
@@ -99,6 +101,7 @@ Name[zh_CN]=美国专利数据库
 Name[zh_TW]=U.S. 專利權資料庫
 Query=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[af]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
+Query[am]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[ar]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[as]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[az]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
@@ -156,6 +159,8 @@ Query[ml]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2
 Query[mr]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[ms]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[my]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
+Query[nan_TW]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
+Query[nan_TW@latin]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[nb]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[nds]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[ne]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
@@ -185,7 +190,6 @@ Query[tg]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2
 Query[th]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[tok]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[tr]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
-Query[ug]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[uk]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[uz]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50
 Query[uz@cyrillic]=http://patft.uspto.gov/netacgi/nph-Parser?TERM1=\\{@}&Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=/netahtml/srchnum.htm&r=0&f=S&l=50

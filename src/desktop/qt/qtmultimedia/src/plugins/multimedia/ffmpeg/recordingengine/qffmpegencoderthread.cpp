@@ -1,7 +1,9 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qffmpegencoderthread_p.h"
-#include "qmetaobject.h"
+
+#include <QtCore/qmetaobject.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegrecordingengine_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -9,6 +11,7 @@ namespace QFFmpeg {
 
 EncoderThread::EncoderThread(RecordingEngine &recordingEngine) : m_recordingEngine(recordingEngine)
 {
+    m_resolvedPromise.start();
 }
 
 void EncoderThread::setPaused(bool paused)
@@ -33,20 +36,26 @@ void EncoderThread::setEndOfSourceStream()
     emit endOfSourceStream();
 }
 
-void EncoderThread::startEncoding(bool noError)
-{
-    Q_ASSERT(!m_encodingStarted);
-
-    m_encodingStarted = noError;
-    m_encodingStartSemaphore.release();
-}
-
 bool EncoderThread::init()
 {
-    m_initialized = true;
-    emit initialized();
-    m_encodingStartSemaphore.acquire();
+    {
+        // Guard to allow checkIfCanPushFrame to check init status
+        auto guard = lockLoopData();
+        m_initialized = true;
+    }
+
+    markResolved(true);
+
+    // Following will wait until recording engine confirms all encoders are resolved
+    m_encodingStarted = m_recordingEngine.waitForEncodingStart();
+
     return true;
+}
+
+void EncoderThread::markResolved(bool succeeded)
+{
+    m_resolvedPromise.addResult(succeeded);
+    m_resolvedPromise.finish();
 }
 
 } // namespace QFFmpeg

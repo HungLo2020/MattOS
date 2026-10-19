@@ -4,12 +4,12 @@
 cmake_minimum_required(VERSION 3.19)
 project(tst_generate_qmlls_ini)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Qml Test)
+find_package(Qt6 REQUIRED COMPONENTS Core Qml Test QmlLSPrivate)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(tst_generate_qmlls_ini main.cpp)
-target_link_libraries(tst_generate_qmlls_ini PRIVATE Qt6::Test)
+target_link_libraries(tst_generate_qmlls_ini PRIVATE Qt6::Test Qt6::QmlLSPrivate)
 
 set(QT_QML_GENERATE_QMLLS_INI ON)
 add_subdirectory(SomeSubfolder)

@@ -2,7 +2,7 @@
 # Copyright © 2010, 2011 This_file_is_part_of_KDE
 # This file is distributed under the same license as the kde-workspace package.
 # Jorma Karvonen <karvonen.jorma@gmail.com>, 2010.
-# SPDX-FileCopyrightText: 2010, 2011, 2018, 2022, 2023, 2024, 2025 Tommi Nieminen <translator@legisign.org>
+# SPDX-FileCopyrightText: 2010, 2011, 2018, 2022, 2023, 2024, 2025, 2026 Tommi Nieminen <translator@legisign.org>
 # Lasse Liehu <lasse.liehu@gmail.com>, 2011, 2013, 2014.
 #
 # KDE Finnish translation sprint participants:
@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_kwintabbox\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2025-10-15 19:31+0300\n"
+"POT-Creation-Date: 2026-04-14 00:45+0000\n"
+"PO-Revision-Date: 2026-08-25 15:05+0300\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -263,14 +263,8 @@ msgstr "Nykyinen sovellus"
 msgid "Visualization"
 msgstr "Visualisointi"
 
-#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
-#: main.ui:645
-#, kde-format
-msgid "The effect to replace the list window when desktop effects are active."
-msgstr "Luetteloikkunan korvaava tehoste työpöydätehosteiden ollessa käytössä."
-
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:678
+#: main.ui:624
 #, kde-format
 msgid ""
 "The currently selected window will be highlighted by fading out all other "
@@ -279,11 +273,71 @@ msgstr ""
 "Nykyinen valittu ikkuna korostetaan häivyttämällä kaikki muut ikkunat. Tämä "
 "valitsin vaatii työpöytätehosteiden olevan käytössä."
 
-#. i18n: ectx: property (text), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:681
+#. i18n: ectx: property (text), widget (QLabel, label_HighlightWindows)
+#: main.ui:634
 #, kde-format
 msgid "Show selected window"
 msgstr "Näytä valittu ikkuna"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_ShowTabBox)
+#: main.ui:644
+#, kde-format
+msgid "Enable the window list effect"
+msgstr "Ota käyttöön ikkunaluettelotehoste"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
+#: main.ui:678
+#, kde-format
+msgid "The effect to replace the list window when desktop effects are active."
+msgstr "Luetteloikkunan korvaava tehoste työpöydätehosteiden ollessa käytössä."
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, label_DelayTime)
+#: main.ui:701
+#, kde-format
+msgid "The time in milliseconds to wait before showing the task switcher."
+msgstr "Aika millisekunteina ennen tehtävävaihdon näyttämistä."
+
+#. i18n: ectx: property (text), widget (QLabel, label_DelayTime)
+#: main.ui:704
+#, kde-format
+msgid "Delay:"
+msgstr "Viive:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:720
+#, kde-format
+msgid " ms"
+msgstr " ms"
+
+#. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:735
+#, kde-format
+msgid "Delay before the window list appears"
+msgstr "Viive ennen ikkunaluettelon näyttämistä"
+
+#. i18n: ectx: property (text), widget (QLabel, label_showScreen)
+#: main.ui:742
+#, kde-format
+msgid "Show on screen:"
+msgstr "Näytä näytöllä:"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, showScreenCombo)
+#: main.ui:758
+#, kde-format
+msgid "Select which screen the task switcher should be displayed on."
+msgstr "Valitse, millä näytöllä tehtävänvaihto näytetään"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:762
+#, kde-format
+msgid "Active screen"
+msgstr "Aktiivinen näyttö"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:767
+#, kde-format
+msgid "Primary screen"
+msgstr "Ensisijainen näyttö"
 
 #: shortcutsettings.cpp:131
 #, kde-format

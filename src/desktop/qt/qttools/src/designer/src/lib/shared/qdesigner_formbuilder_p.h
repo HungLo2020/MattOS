@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 //
 //  W A R N I N G
@@ -17,6 +18,7 @@
 
 #include "shared_global_p.h"
 #include "deviceprofile_p.h"
+#include "qdesigner_utils_p.h"
 
 #include <QtDesigner/formbuilder.h>
 
@@ -32,9 +34,6 @@ class QPixmap;
 class QtResourceSet;
 
 namespace qdesigner_internal {
-
-class DesignerPixmapCache;
-class DesignerIconCache;
 
 /* Form builder used for previewing forms and widget box.
  * It applies the system settings to its toplevel window. */
@@ -101,8 +100,8 @@ private:
 
     const DeviceProfile m_deviceProfile;
 
-    DesignerPixmapCache *m_pixmapCache;
-    DesignerIconCache *m_iconCache;
+    DesignerPixmapCache m_pixmapCache;
+    DesignerIconCache m_iconCache;
     bool m_ignoreCreateResources;
     QtResourceSet *m_tempResourceSet;
     bool m_mainWidget;

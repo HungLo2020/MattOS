@@ -234,6 +234,8 @@ void PlasmaLoginKcm::synchronizeSettings()
 
     addConfigFile(QStandardPaths::locate(QStandardPaths::GenericConfigLocation, QStringLiteral("plasmarc")), QStringLiteral("plasmarc"));
 
+    addConfigFile(QStandardPaths::locate(QStandardPaths::GenericConfigLocation, QStringLiteral("plasma-localerc")), QStringLiteral("plasma-localerc"));
+
     addConfigFile(QStandardPaths::locate(QStandardPaths::GenericConfigLocation, QStringLiteral("kcminputrc")), QStringLiteral("kcminputrc"));
 
     addConfigFile(QStandardPaths::locate(QStandardPaths::GenericConfigLocation, QStringLiteral("kwinoutputconfig.json")),
@@ -243,6 +245,8 @@ void PlasmaLoginKcm::synchronizeSettings()
     if (!fontconfigPath.isEmpty()) {
         addConfigFile(fontconfigPath + QStringLiteral("/fonts.conf"), QStringLiteral("fontconfig/fonts.conf"));
     }
+
+    addConfigFile(QStandardPaths::locate(QStandardPaths::GenericConfigLocation, QStringLiteral("kxkbrc")), QStringLiteral("kxkbrc"));
 
     KAuth::Action syncAction(QStringLiteral("org.kde.kcontrol.kcmplasmalogin.sync"));
     syncAction.setHelperId(QStringLiteral("org.kde.kcontrol.kcmplasmalogin"));
@@ -355,6 +359,11 @@ SessionModel *PlasmaLoginKcm::sessionModel() const
     return &sessionModel;
 }
 
+QString PlasmaLoginKcm::currentUser() const
+{
+    return KUser().loginName();
+}
+
 bool PlasmaLoginKcm::KDEWalletAvailable()
 {
     return !QStandardPaths::findExecutable(QLatin1String("kwalletmanager5")).isEmpty();
@@ -362,7 +371,7 @@ bool PlasmaLoginKcm::KDEWalletAvailable()
 
 void PlasmaLoginKcm::openKDEWallet()
 {
-    KService::Ptr kwalletmanagerService = KService::serviceByDesktopName(QStringLiteral("org.kde.kwalletmanager5"));
+    KService::Ptr kwalletmanagerService = KService::serviceByDesktopName(QStringLiteral("org.kde.kwalletmanager"));
     auto *job = new KIO::ApplicationLauncherJob(kwalletmanagerService);
     job->start();
 }

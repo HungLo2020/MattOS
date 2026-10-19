@@ -56,9 +56,16 @@ private slots:
     void qprocessScheduler_data();
     void qprocessScheduler();
     void qprocessSchedulerProcess();
+    void qprocessSchedulerSlowProcess();
+    void qprocessSchedulerCancel_data();
+    void qprocessSchedulerCancel();
     void multipleQProcessScheduler_data();
     void multipleQProcessScheduler();
-    void reloadQmllsBuildIniAfterBuild();
+    void reloadQmllsBuildIniV1AfterBuild();
+    void reloadQmllsBuildIniV2AfterBuild();
+    void brokenQmllsBuildIniV2();
+    void onBuildFinished();
+    void setImportPathsWhileLoadingFile();
 };
 
 #endif // TST_QMLLS_QQMLCODEMODEL_H

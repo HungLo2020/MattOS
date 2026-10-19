@@ -85,8 +85,21 @@ macro.QTOB                = "Qt Onboard"
 macro.QUL                 = "Qt Quick Ultralite"
 macro.QtTAS               = "Qt Tools for Android Studio"
 
-# The following macros are used for various Android docs. The purpose is to keep
-# it as simple as updating these instead of updating multiple lines in scattered locations.
+####################################################################################################
+# The following macros are used for various Android docs. The purpose is to keep                   #
+# it as simple as updating these instead of updating multiple lines in scattered locations.        #
+#                                                                                                  #
+# NOTE: Make sure that the following locations are kept in sync with any update to these values:   #
+#   1. Android provisioning scripts:                                                               #
+#       - qt5/coin/provisioning/common/linux/android_linux.sh                                      #
+#       - qt5/coin/provisioning/common/macos/android.sh                                            #
+#       - qt5/coin/provisioning/common/windows/android.ps1                                         #
+#   2. Gradle provisioning scripts and cache project                                               #
+#       - qt5/coin/provisioning/common/linux/gradle.sh                                             #
+#       - qt5/coin/provisioning/common/shared/gradle/                                              #
+#   3. Qt modules' JAR project Gradle files (see qt5/settings.gradle for a full list).             #
+#   4. Android default templates (src/android/templates*) and under examples and tests.            #
+####################################################################################################
 macro.AndroidAbis         = "\\c{arm64-v8a}, \\c{x86_64}, \\c{x86}, and \\c{armeabi-v7a}"
 macro.NdkVer              = "r27c"
 macro.NdkFullVer          = "27.2.12479018"
@@ -98,8 +111,8 @@ macro.AndroidMinVer       = "9"
 macro.AndroidMaxVer       = "16"
 macro.AndroidPlatformVer  = "36"
 macro.AndroidBuildToolsVer = "36.0.0"
-macro.GradleVer           = "9.3.1"
-macro.AGPVer              = "9.0.0"
+macro.GradleVer           = "9.5.1"
+macro.AGPVer              = "9.2.1"
 macro.AAOSVer             = "10 to 13"
 
 macro.beginfloatleft.HTML   = "<div style=\"float: left; margin-right: 2em\">"
@@ -168,9 +181,15 @@ macro.cmakecommandandroidonly  = "\\note This command should only be called if t
 macro.cmakepropertyandroidonly = "\\note This property is used only if targeting the Android platform."
 macro.cmakevariableandroidonly = "\\note This variable is used only if targeting the Android platform."
 
+macro.cmakecommandharmonyosonly  = "\\note This command should only be called if targeting the HarmonyOS platform."
+macro.cmakepropertyharmonyosonly = "\\note This property is used only if targeting the HarmonyOS platform."
+macro.cmakevariableharmonyosonly = "\\note This variable is used only if targeting the HarmonyOS platform."
+
 macro.versionlessCMakeCommandsNote = "If \\l{Versionless commands}{versionless commands} are disabled, use \\c{\1} instead. It supports the same set of arguments as this command."
 
 macro.cmakepropertywebassemblyonly = "\\note This property is used only if targeting the WebAssembly platform."
+
+macro.cmakepropertywindowsonly = "\\note This property is used only if targeting Windows."
 
 macro.cmakepropertyiosonly = "\\note This property is used only if targeting iOS."
 macro.cmakevariableiosonly = "\\note This variable is used only if targeting iOS."

@@ -15,11 +15,15 @@
 #include "config-kiogui.h"
 #include "kiogui_debug.h"
 
+#include "../core/krecentdocument_p.h"
 #include "desktopexecparser.h"
 #include "gpudetection_p.h"
 #include "krecentdocument.h"
+
+#include <KConfigGroup>
 #include <KDesktopFile>
 #include <KLocalizedString>
+#include <KSharedConfig>
 #include <KWindowSystem>
 
 #if HAVE_WAYLAND
@@ -91,7 +95,8 @@ KProcessRunner *KProcessRunner::fromApplication(const KService::Ptr &service,
                                                 const QString &actionName,
                                                 KIO::ApplicationLauncherJob::RunFlags flags,
                                                 const QString &suggestedFileName,
-                                                const QByteArray &asn)
+                                                const QByteArray &asn,
+                                                const QString &knownMimeType)
 {
 #ifdef WITH_QTDBUS
     // special case for applicationlauncherjob
@@ -148,15 +153,22 @@ KProcessRunner *KProcessRunner::fromApplication(const KService::Ptr &service,
         const QFileInfo fileInfo(urls.first().toLocalFile());
         // canonicalPath returns "." despite documentation claiming to return an empty string.
         if (fileInfo.exists()) {
-            workingDir = fileInfo.canonicalPath();
+            // realpath() doesn't work properly in /proc and we can get bogus values.
+            if (const QString canonicalPath = fileInfo.canonicalPath(); QDir::isAbsolutePath(canonicalPath)) {
+                workingDir = canonicalPath;
+            }
         }
     }
     instance->m_process->setWorkingDirectory(workingDir);
 
     if ((flags & KIO::ApplicationLauncherJob::DeleteTemporaryFiles) == 0) {
         // Remember we opened those urls, for the "recent documents" menu in kicker
-        for (const QUrl &url : urls) {
-            KRecentDocument::add(url, service->desktopEntryName());
+        if (!knownMimeType.isEmpty() && urls.size() == 1) {
+            KRecentDocumentPrivate::addWithKnownMimeType(urls[0], service->desktopEntryName(), knownMimeType);
+        } else {
+            for (const QUrl &url : urls) {
+                KRecentDocument::add(url, service->desktopEntryName());
+            }
         }
     }
 
@@ -201,7 +213,7 @@ KProcessRunner *KProcessRunner::fromExecutable(const QString &executable,
 {
     const QString actualExec = QStandardPaths::findExecutable(executable);
     if (actualExec.isEmpty()) {
-        qCInfo(KIO_GUI) << "Could not find an executable named:" << executable;
+        qCWarning(KIO_GUI) << "Could not find an executable named:" << executable;
         return {};
     }
 
@@ -433,6 +445,18 @@ QString KProcessRunner::resolveServiceAlias() const
     QString servName = m_service ? m_service->aliasFor() : QString{};
     if (servName.isEmpty()) {
         servName = name();
+    }
+
+    // when launching in a terminal use the appId of the terminal emulator, otherwise
+    // the appId of the activation token doesn't match the actual window'
+    if (m_service && m_service->terminal()) {
+        const KConfigGroup confGroup(KSharedConfig::openConfig(), QStringLiteral("General"));
+        const QString terminalService = confGroup.readEntry("TerminalService", QStringLiteral("org.kde.konsole.desktop"));
+
+        const auto terminal = KService::serviceByStorageId(terminalService);
+        if (terminal) {
+            return terminal->desktopEntryName();
+        }
     }
 
     return servName;

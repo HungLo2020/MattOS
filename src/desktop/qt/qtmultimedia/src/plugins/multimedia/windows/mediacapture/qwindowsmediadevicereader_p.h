@@ -15,36 +15,35 @@
 // We mean it.
 //
 
-#include <mfapi.h>
-#include <mfidl.h>
-#include <mferror.h>
-#include <mfreadwrite.h>
-
-#include <QtCore/qobject.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qmutex.h>
-#include <QtCore/qwaitcondition.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qtimer.h>
-#include <qvideoframe.h>
-#include <qcameradevice.h>
-#include <qmediarecorder.h>
+#include <QtCore/qwaitcondition.h>
+
+#include <QtCore/private/qcomobject_p.h>
+#include <QtCore/private/qcomptr_p.h>
+
+#include <mfapi.h>
+#include <mferror.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
 
 QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 
-class QWindowsMediaDeviceReader : public QObject,
-        public IMFSourceReaderCallback,
-        public IMFSinkWriterCallback
+class QWindowsMediaDeviceReader
+    : public QObject,
+      public QComObjectWithDeleteLater<QWindowsMediaDeviceReader, IMFSourceReaderCallback,
+                                       IMFSinkWriterCallback>
 {
     Q_OBJECT
 public:
     explicit QWindowsMediaDeviceReader(QObject *parent = nullptr);
     ~QWindowsMediaDeviceReader();
-
-    //from IUnknown
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-    STDMETHODIMP_(ULONG) AddRef(void) override;
-    STDMETHODIMP_(ULONG) Release(void) override;
 
     //from IMFSourceReaderCallback
     STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
@@ -81,10 +80,10 @@ public:
 Q_SIGNALS:
     void streamingStarted();
     void streamingStopped();
-    void streamingError(int errorCode);
+    void streamingError(HRESULT errorCode);
     void recordingStarted();
     void recordingStopped();
-    void recordingError(int errorCode);
+    void recordingError(HRESULT errorCode);
     void durationChanged(qint64 duration);
     void videoFrameChanged(const QVideoFrame &frame);
 
@@ -92,13 +91,15 @@ private slots:
     void updateDuration();
 
 private:
-    HRESULT createSource(const QString &deviceId, bool video, IMFMediaSource **source);
-    HRESULT createAggregateReader(IMFMediaSource *firstSource, IMFMediaSource *secondSource,
-                                  IMFMediaSource **aggregateSource, IMFSourceReader **sourceReader);
+    HRESULT createSource(const QString &deviceId, bool video, ComPtr<IMFMediaSource> &source);
+    HRESULT createAggregateReader(const ComPtr<IMFMediaSource> &firstSource,
+                                  const ComPtr<IMFMediaSource> &secondSource,
+                                  ComPtr<IMFMediaSource> &aggregateSource,
+                                  ComPtr<IMFSourceReader> &sourceReader);
     HRESULT createVideoMediaType(const GUID &format, UINT32 bitRate, UINT32 width, UINT32 height,
-                                 qreal frameRate, IMFMediaType **mediaType);
-    HRESULT createAudioMediaType(const GUID &format, UINT32 bitRate, IMFMediaType **mediaType);
-    HRESULT initAudioType(IMFMediaType *mediaType, UINT32 channels, UINT32 samplesPerSec, bool flt);
+                                 qreal frameRate, ComPtr<IMFMediaType> &mediaType);
+    HRESULT createAudioMediaType(const GUID &format, UINT32 bitRate, ComPtr<IMFMediaType> &mediaType);
+    HRESULT initAudioType(const ComPtr<IMFMediaType> &mediaType, UINT32 channels, UINT32 samplesPerSec, bool flt);
     HRESULT prepareVideoStream(DWORD mediaTypeIndex);
     HRESULT prepareAudioStream();
     HRESULT initSourceIndexes();
@@ -109,18 +110,17 @@ private:
     void stopStreaming();
     DWORD findMediaTypeIndex(const QCameraFormat &reqFormat);
 
-    long               m_cRef = 1;
     QMutex             m_mutex;
     QWaitCondition     m_hasFinalized;
-    IMFMediaSource     *m_videoSource = nullptr;
-    IMFMediaType       *m_videoMediaType = nullptr;
-    IMFMediaSource     *m_audioSource = nullptr;
-    IMFMediaType       *m_audioMediaType = nullptr;
-    IMFMediaSource     *m_aggregateSource = nullptr;
-    IMFSourceReader    *m_sourceReader = nullptr;
-    IMFSinkWriter      *m_sinkWriter = nullptr;
-    IMFMediaSink       *m_monitorSink = nullptr;
-    IMFSinkWriter      *m_monitorWriter = nullptr;
+    ComPtr<IMFMediaSource>  m_videoSource;
+    ComPtr<IMFMediaType>    m_videoMediaType;
+    ComPtr<IMFMediaSource>  m_audioSource;
+    ComPtr<IMFMediaType>    m_audioMediaType;
+    ComPtr<IMFMediaSource>  m_aggregateSource;
+    ComPtr<IMFSourceReader> m_sourceReader;
+    ComPtr<IMFSinkWriter>   m_sinkWriter;
+    ComPtr<IMFMediaSink>    m_monitorSink;
+    ComPtr<IMFSinkWriter>   m_monitorWriter;
     QString            m_audioOutputId;
     DWORD              m_sourceVideoStreamIndex = MF_SOURCE_READER_INVALID_STREAM_INDEX;
     DWORD              m_sourceAudioStreamIndex = MF_SOURCE_READER_INVALID_STREAM_INDEX;

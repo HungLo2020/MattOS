@@ -53,7 +53,7 @@ SystemBellEffect::SystemBellEffect()
 
     connect(effects, &EffectsHandler::windowClosed, this, &SystemBellEffect::slotWindowClosed);
 
-    const QLatin1String groupName("Bell");
+    const QLatin1StringView groupName("Bell");
     connect(m_configWatcher.get(), &KConfigWatcher::configChanged, this, [this, groupName](const KConfigGroup &group) {
         if (group.name() == groupName) {
             m_bellConfig = group;
@@ -82,7 +82,7 @@ SystemBellEffect::SystemBellEffect()
     if (!s_systemBellRemoveTimer) {
         s_systemBellRemoveTimer = new QTimer(QCoreApplication::instance());
         s_systemBellRemoveTimer->setSingleShot(true);
-        s_systemBellRemoveTimer->callOnTimeout([]() {
+        s_systemBellRemoveTimer->callOnTimeout(QCoreApplication::instance(), []() {
             s_systemBell->remove();
             s_systemBell = nullptr;
         });
@@ -146,6 +146,9 @@ void SystemBellEffect::flash(EffectWindow *window)
     if (m_valid && !m_inited) {
         m_valid = loadData();
     }
+    if (!m_valid) {
+        return;
+    }
 
     redirect(window);
     setShader(window, m_shader.get());
@@ -164,15 +167,18 @@ bool SystemBellEffect::loadData()
     if (m_visibleBell) {
         if (m_mode == Invert) {
             m_shader = ShaderManager::instance()->generateShaderFromFile(ShaderTrait::MapTexture, QString(), QStringLiteral(":/effects/systembell/shaders/invert.frag"));
+            if (!m_shader) {
+                qCCritical(KWIN_SYSTEMBELL) << "The invert.frag shader failed to load!";
+                return false;
+            }
         } else {
             m_shader = ShaderManager::instance()->generateShaderFromFile(ShaderTrait::MapTexture, QString(), QStringLiteral(":/effects/systembell/shaders/color.frag"));
+            if (!m_shader) {
+                qCCritical(KWIN_SYSTEMBELL) << "The color.frag shader failed to load!";
+                return false;
+            }
             ShaderBinder binder(m_shader.get());
             m_shader->setUniform(GLShader::ColorUniform::Color, m_color);
-        }
-
-        if (!m_shader->isValid()) {
-            qCCritical(KWIN_SYSTEMBELL) << "The shader failed to load!";
-            return false;
         }
     }
 

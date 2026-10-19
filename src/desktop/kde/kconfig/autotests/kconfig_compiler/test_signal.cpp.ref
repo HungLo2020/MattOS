@@ -9,8 +9,8 @@
 class TestSignalHelper
 {
   public:
-    TestSignalHelper() : q(nullptr) {}
-    ~TestSignalHelper() { delete q; q = nullptr; }
+    TestSignalHelper() noexcept : q(nullptr) {}
+    ~TestSignalHelper() noexcept { delete q; q = nullptr; }
     TestSignalHelper(const TestSignalHelper&) = delete;
     TestSignalHelper& operator=(const TestSignalHelper&) = delete;
     TestSignal *q;
@@ -84,3 +84,5 @@ void TestSignal::itemChanged(quint64 signalFlag) {
   mSettingsChanged.insert(signalFlag);
 
 }
+
+#include "moc_test_signal.cpp"

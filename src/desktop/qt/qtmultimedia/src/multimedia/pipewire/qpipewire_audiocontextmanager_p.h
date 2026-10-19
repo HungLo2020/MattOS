@@ -18,6 +18,7 @@
 #include <QtMultimedia/private/qpipewire_audiodevicemonitor_p.h>
 #include <QtMultimedia/private/qpipewire_registry_support_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
+#include <QtMultimedia/private/qpipewire_instance_p.h>
 #include <QtCore/qglobal.h>
 
 #include <pipewire/pipewire.h>
@@ -26,7 +27,6 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
-class QPipeWireInstance;
 struct QPipewireAudioStream;
 
 class QAudioContextManager
@@ -44,8 +44,7 @@ public:
     static auto withEventLoopLock(Closure &&c)
     {
         QAudioContextManager *self = instance();
-
-        return self->runWithEventLoopLock(std::forward<Closure>(c));
+        return self->m_pwInstance->runWithEventLoopLock(std::forward<Closure>(c));
     }
 
     static QAudioDeviceMonitor &deviceMonitor();
@@ -64,32 +63,10 @@ public:
     const PwCoreConnectionHandle &coreConnection() const;
 
 private:
-    template <typename Closure>
-    auto runWithEventLoopLock(Closure &&c)
-    {
-        pw_thread_loop_lock(m_eventLoop.get());
-        auto unlock = qScopeGuard([&] {
-            pw_thread_loop_unlock(m_eventLoop.get());
-        });
-
-        return c();
-    }
-
-    std::shared_ptr<QPipeWireInstance> m_libraryInstance;
-
-    // event loop
-    PwThreadLoopHandle m_eventLoop;
-    void prepareEventLoop();
-    void startEventLoop();
-    void stopEventLoop();
-
-    // pipewire context
-    PwContextHandle m_context;
-    void prepareContext();
+    const std::shared_ptr<QPipeWireInstance> m_pwInstance;
 
     // pw_core connection
     PwCoreConnectionHandle m_coreConnection;
-    void connectToPipewireInstance();
 
     // device monitor
     PwRegistryHandle m_registry;

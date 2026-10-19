@@ -28,25 +28,25 @@ using namespace Qt::Literals::StringLiterals;
 
 static bool groupMatches(const QString &group, const QStringList &patterns)
 {
-    return std::any_of(patterns.cbegin(), patterns.cend(), [&group](const auto &pattern) {
-        if (pattern.isEmpty()) {
-            return true;
-        }
+    return patterns.empty() || std::ranges::any_of(patterns, [&group](const auto &pattern) {
+               if (pattern.isEmpty()) {
+                   return true;
+               }
 
-        if (pattern == group) {
-            return true;
-        }
+               if (pattern == group) {
+                   return true;
+               }
 
-        if (pattern.startsWith(group)) {
-            return true;
-        }
+               if (pattern.startsWith(group)) {
+                   return true;
+               }
 
-        if (pattern.endsWith(QLatin1Char('*')) && group.startsWith(pattern.left(pattern.length() - 1))) {
-            return true;
-        }
+               if (pattern.endsWith(QLatin1Char('*')) && group.startsWith(pattern.left(pattern.length() - 1))) {
+                   return true;
+               }
 
-        return false;
-    });
+               return false;
+           });
 }
 
 class VirtualKeyboardSettings : public SettingsModule
@@ -104,10 +104,8 @@ public:
     QVariant read(const QString &group, const QString &key) final
     {
         Q_UNUSED(group);
-        for (const auto &keyIt : KEYS) {
-            if (key == keyIt) {
-                return readInternal(key);
-            }
+        if (std::ranges::contains(KEYS, key)) {
+            return readInternal(key);
         }
         return {};
     }
@@ -187,6 +185,7 @@ struct AccentColorArray {
     {
         return QVariant::fromValue(*this);
     }
+    friend bool operator==(const AccentColorArray &, const AccentColorArray &) = default;
 };
 Q_DECLARE_METATYPE(AccentColorArray)
 
@@ -280,8 +279,8 @@ private:
      */
     QDBusVariant readAccentColor() const
     {
-        const QColor accentColor = qGuiApp->palette().highlight().color();
-        return QDBusVariant(AccentColorArray{accentColor.redF(), accentColor.greenF(), accentColor.blueF()});
+        const QColor color = qGuiApp->palette().highlight().color();
+        return QDBusVariant(AccentColorArray{color.redF(), color.greenF(), color.blueF()});
     }
 
     QDBusVariant readReducedMotion() const
@@ -349,9 +348,9 @@ class KDEGlobalsSettings : public SettingsModule
 public:
     explicit KDEGlobalsSettings(QObject *parent = nullptr)
         : SettingsModule(parent)
-    {
-        m_kdeglobals = KSharedConfig::openConfig();
+        , m_kdeglobals(KSharedConfig::openConfig())
 
+    {
         QDBusConnection::sessionBus().connect(QString(),
                                               QStringLiteral("/KDEPlatformTheme"),
                                               QStringLiteral("org.kde.KDEPlatformTheme"),
@@ -492,9 +491,9 @@ private:
     KSharedConfigPtr m_kdeglobals = KSharedConfig::openConfig();
 };
 
-SettingsPortal::SettingsPortal(DesktopPortal *parent)
+SettingsPortal::SettingsPortal(QObject *parent, function<void(const QDBusError &)> errorSender)
     : QDBusAbstractAdaptor(parent)
-    , m_parent(parent)
+    , m_errorSender(std::move(errorSender))
 {
     m_settings.push_back(std::make_unique<FdoAppearanceSettings>(this));
     m_settings.push_back(std::make_unique<VirtualKeyboardSettings>(this));
@@ -506,7 +505,7 @@ SettingsPortal::SettingsPortal(DesktopPortal *parent)
     qDBusRegisterMetaType<VariantMapMap>();
 }
 
-void SettingsPortal::ReadAll(const QStringList &groups)
+VariantMapMap SettingsPortal::ReadAll(const QStringList &groups)
 {
     qCDebug(XdgDesktopPortalKdeSettings) << "ReadAll called with parameters:";
     qCDebug(XdgDesktopPortalKdeSettings) << "    groups: " << groups;
@@ -519,40 +518,31 @@ void SettingsPortal::ReadAll(const QStringList &groups)
         }
     }
 
-    QDBusMessage message = m_parent->message();
-    QDBusMessage reply = message.createReply(QVariant::fromValue(result));
-    QDBusConnection::sessionBus().send(reply);
+    return result;
 }
 
-void SettingsPortal::Read(const QString &group, const QString &key)
+QDBusVariant SettingsPortal::Read(const QString &group, const QString &key)
 {
     qCDebug(XdgDesktopPortalKdeSettings) << "Read called with parameters:";
     qCDebug(XdgDesktopPortalKdeSettings) << "    group: " << group;
     qCDebug(XdgDesktopPortalKdeSettings) << "    key: " << key;
 
-    QDBusMessage message = m_parent->message();
-
-    const auto sentMesssage = std::any_of(m_settings.cbegin(), m_settings.cend(), [&message, &group, &key](const auto &setting) {
-        if (group.startsWith(setting->group())) {
-            const QVariant result = setting->read(group, key);
-            QDBusMessage reply;
-            if (result.isNull()) {
-                reply = message.createErrorReply(QDBusError::UnknownProperty, QStringLiteral("Property doesn't exist"));
-            } else {
-                reply = message.createReply(QVariant::fromValue(QDBusVariant(result)));
-            }
-            QDBusConnection::sessionBus().send(reply);
-            return true;
-        }
-        return false;
+    auto setting = std::ranges::find_if(m_settings, [&group](const auto &setting) {
+        return group.startsWith(setting->group());
     });
-    if (sentMesssage) {
-        return;
+    if (setting == std::ranges::end(m_settings)) {
+        qCWarning(XdgDesktopPortalKdeSettings) << "Namespace " << group << " is not supported";
+        m_errorSender({QDBusError::UnknownProperty, QStringLiteral("Namespace is not supported")});
+        return {};
     }
 
-    qCWarning(XdgDesktopPortalKdeSettings) << "Namespace " << group << " is not supported";
-    QDBusMessage reply = message.createErrorReply(QDBusError::UnknownProperty, QStringLiteral("Namespace is not supported"));
-    QDBusConnection::sessionBus().send(reply);
+    const QVariant result = (*setting)->read(group, key);
+    if (result.isNull()) {
+        m_errorSender({QDBusError::UnknownProperty, QStringLiteral("Property doesn't exist")});
+        return {};
+    }
+
+    return QDBusVariant(result);
 }
 
 #include "moc_settings.cpp"

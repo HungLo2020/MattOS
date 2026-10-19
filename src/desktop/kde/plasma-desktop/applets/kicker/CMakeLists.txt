@@ -1,3 +1,6 @@
+set_source_files_properties(ActionMenu.qml
+    PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+
 plasma_add_applet(org.kde.plasma.kicker
     QML_SOURCES
     config.qml
@@ -5,6 +8,7 @@ plasma_add_applet(org.kde.plasma.kicker
     CompactRepresentation.qml
     ConfigGeneral.qml
     DashboardRepresentation.qml
+    HoverBlocker.qml
     ItemAbstractDelegate.qml
     ItemGridDelegate.qml
     ItemGridView.qml

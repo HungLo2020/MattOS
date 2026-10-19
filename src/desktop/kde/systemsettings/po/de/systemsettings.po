@@ -1,18 +1,18 @@
-# SPDX-FileCopyrightText: 2024 Alois Spitzbart <spitz234@hotmail.com>
-# SPDX-FileCopyrightText: 2007, 2008, 2009 Thomas Reitelbach <tr@erdfunkstelle.de>
-# SPDX-FileCopyrightText: 2009, 2015, 2017, 2018, 2019, 2020, 2021 Burkhard Lück <lueck@hube-lueck.de>
+# SPDX-FileCopyrightText: 2007-2009 Thomas Reitelbach <tr@erdfunkstelle.de>
+# SPDX-FileCopyrightText: 2009, 2015, 2017-2021 Burkhard Lück <lueck@hube-lueck.de>
 # SPDX-FileCopyrightText: 2009, 2024 Johannes Obermayr <johannesobermayr@gmx.de>
-# SPDX-FileCopyrightText: 2009, 2010, 2011, 2020, 2022, 2023 Frederik Schwarzer <schwarzer@kde.org>
+# SPDX-FileCopyrightText: 2009-2011, 2020, 2022-2023 Frederik Schwarzer <schwarzer@kde.org>
 # SPDX-FileCopyrightText: 2022, 2026 Frank Steinmetzger <dev-kde@felsenfleischer.de>
+# SPDX-FileCopyrightText: 2024 Alois Spitzbart <spitz234@hotmail.com>
 # SPDX-FileCopyrightText: 2025 Flori G <Renner03@protonmail.com>
 # SPDX-FileCopyrightText: 2025 Oliver Schramm <oliver.schramm97@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: systemsettings\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-23 02:40+0000\n"
-"PO-Revision-Date: 2025-12-04 02:54+0100\n"
-"Last-Translator: Oliver Schramm <oliver.schramm97@gmail.com>\n"
+"POT-Creation-Date: 2026-08-21 00:47+0000\n"
+"PO-Revision-Date: 2026-02-22 13:07+0100\n"
+"Last-Translator: Frank Steinmetzger <dev-kde@felsenfleischer.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -47,109 +47,109 @@ msgstr "%1 neu starten"
 msgid "Dialog"
 msgstr "Dialog"
 
-#: app/main.cpp:54 app/SettingsBase.cpp:53
+#: app/main.cpp:61 app/SettingsBase.cpp:54
 #, kde-format
 msgid "Info Center"
 msgstr "Infozentrum"
 
-#: app/main.cpp:56
+#: app/main.cpp:63
 #, kde-format
 msgid "Centralized and convenient overview of system information."
 msgstr "Zentrale Übersicht über Systeminformationen."
 
-#: app/main.cpp:58 app/main.cpp:69
+#: app/main.cpp:65 app/main.cpp:76
 #, kde-format
 msgid "(c) 2009, Ben Cooksley"
 msgstr "© 2009, Ben Cooksley"
 
-#: app/main.cpp:65 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:56
-#: runner/systemsettingsrunner.cpp:114
+#: app/main.cpp:72 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:57
+#: runner/systemsettingsrunner.cpp:124
 #, kde-format
 msgid "System Settings"
 msgstr "Systemeinstellungen"
 
-#: app/main.cpp:67
+#: app/main.cpp:74
 #, kde-format
 msgid "Central configuration center by KDE."
 msgstr "Zentrales Kontrollzentrum von KDE."
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Ben Cooksley"
 msgstr "Ben Cooksley"
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Maintainer"
 msgstr "Betreuer"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Marco Martin"
 msgstr "Marco Martin"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Author"
 msgstr "Autor"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Mathias Soeken"
 msgstr "Mathias Soeken"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Developer"
 msgstr "Entwickler"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Will Stephenson"
 msgstr "Will Stephenson"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Internal module representation, internal module model"
 msgstr "Interne Moduldarstellung, internes Modulmodell"
 
-#: app/main.cpp:91
+#: app/main.cpp:98
 #, kde-format
 msgid "List all possible modules"
 msgstr "Alle möglichen Module anzeigen"
 
-#: app/main.cpp:92 app/main.cpp:153
+#: app/main.cpp:99 app/main.cpp:160
 #, kde-format
 msgid "Configuration module to open"
 msgstr "Zu öffnendes Konfigurationsmodul"
 
-#: app/main.cpp:93 app/main.cpp:154
+#: app/main.cpp:100 app/main.cpp:161
 #, kde-format
 msgid "Arguments for the module"
 msgstr "Argumente für das Modul"
 
-#: app/main.cpp:101
+#: app/main.cpp:108
 #, kde-format
 msgid "The following modules are available:"
 msgstr "Die folgenden Module sind verfügbar:"
 
-#: app/main.cpp:119
+#: app/main.cpp:126
 #, kde-format
 msgid "No description available"
 msgstr "Keine Beschreibung verfügbar"
 
-#: app/ModuleView.cpp:185
+#: app/ModuleView.cpp:186
 #, kde-format
 msgid "Reset all current changes to previous values"
 msgstr "Alle aktuellen Änderungen auf vorherige Werte zurücksetzen"
 
-#: app/ModuleView.cpp:278
+#: app/ModuleView.cpp:279
 #, kde-format
 msgctxt "@info:whatsthis"
 msgid "Scrollable area"
 msgstr "Scrollbarer Bereich"
 
-#: app/ModuleView.cpp:368
+#: app/ModuleView.cpp:373
 #, kde-format
 msgid ""
 "The current page has unsaved changes.\n"
@@ -158,7 +158,7 @@ msgstr ""
 "Die aktuelle Seite enthält ungespeicherte Änderungen.\n"
 "Möchten Sie diese Änderungen übernehmen oder verwerfen?"
 
-#: app/ModuleView.cpp:373
+#: app/ModuleView.cpp:378
 #, kde-format
 msgid "Apply Settings"
 msgstr "Einstellungen anwenden"
@@ -179,7 +179,14 @@ msgstr "Menü anzeigen"
 msgid "Plasma"
 msgstr "Plasma"
 
-#: app/SettingsBase.cpp:144
+#: app/qml/SubCategoryPage.qml:74
+#, kde-format
+msgctxt "@action:button go back"
+msgid "Back"
+msgstr "Zurück"
+
+#. i18n: ectx: label, entry (HighlightNonDefaultSettings), group (systemsettings_sidebar_mode)
+#: app/SettingsBase.cpp:144 app/systemsettings-config.kcfg:8
 #, kde-format
 msgid "Highlight Changed Settings"
 msgstr "Geänderte Einstellungen hervorheben"
@@ -191,7 +198,7 @@ msgctxt ""
 msgid "Show Inapplicable Pages"
 msgstr "Nicht relevante Seiten anzeigen"
 
-#: app/SettingsBase.cpp:163
+#: app/SettingsBase.cpp:167
 #, kde-format
 msgid "Report a Bug in the Current Page…"
 msgstr "Ein Problem auf der aktuellen Seite melden …"
@@ -206,14 +213,14 @@ msgstr "Seitenleiste"
 msgid "Most Used"
 msgstr "Am meisten Verwendet"
 
-#: runner/systemsettingsrunner.cpp:32
+#: runner/systemsettingsrunner.cpp:33
 #, kde-format
 msgid "Finds system settings modules whose names or descriptions match :q:"
 msgstr ""
 "Sucht nach Modulen der Systemeinstellungen, deren Namen oder Beschreibungen "
 "auf :q: passen"
 
-#: runner/systemsettingsrunner.cpp:112
+#: runner/systemsettingsrunner.cpp:122
 #, kde-format
 msgid "System Information"
 msgstr "Systeminformation"
@@ -337,9 +344,6 @@ msgstr "Systeminformation"
 
 #~ msgid "About Active Module"
 #~ msgstr "Über das aktive Modul"
-
-#~ msgid "Back"
-#~ msgstr "Zurück"
 
 #~ msgid "Configure your system"
 #~ msgstr "System einrichten"

@@ -8,6 +8,7 @@
 */
 #pragma once
 
+#include "core/drm_formats.h"
 #include "core/graphicsbuffer.h"
 
 #include <QHash>
@@ -27,11 +28,14 @@ class DrmDevice;
 class KWIN_EXPORT LinuxDmaBufV1Feedback : public QObject
 {
     Q_OBJECT
+
 public:
+    explicit LinuxDmaBufV1Feedback(LinuxDmaBufV1ClientBufferIntegrationPrivate *integration, wl_client *client = nullptr);
     ~LinuxDmaBufV1Feedback() override;
 
     enum class TrancheFlag : uint32_t {
         Scanout = 1,
+        Sampling = 2,
     };
     Q_DECLARE_FLAGS(TrancheFlags, TrancheFlag)
 
@@ -39,20 +43,20 @@ public:
     {
         dev_t device;
         TrancheFlags flags;
-        QHash<uint32_t, QList<uint64_t>> formatTable;
+        FormatModifierMap formatTable;
     };
     /**
      * Sets the list of tranches for this feedback object, with lower indices
      * indicating a higher priority / a more optimal configuration.
      * The main device does not need to be included
      */
-    void setScanoutTranches(DrmDevice *device, const QHash<uint32_t, QList<uint64_t>> &formats);
-    void setTranches(const QList<Tranche> &tranches);
+    void setScanoutTranches(DrmDevice *scanoutDevice, const FormatModifierMap &formats);
+    void setScanoutTranches(const QList<Tranche> &tranches);
+    void sendTranches();
 
 private:
-    static QList<Tranche> createScanoutTranches(const QList<Tranche> &tranches, DrmDevice *device, const QHash<uint32_t, QList<uint64_t>> &formats);
+    static QList<Tranche> createScanoutTranches(const QList<Tranche> &tranches, dev_t mainDevice, DrmDevice *scanoutDevice, const FormatModifierMap &formats);
 
-    LinuxDmaBufV1Feedback(LinuxDmaBufV1ClientBufferIntegrationPrivate *integration);
     friend class LinuxDmaBufV1ClientBufferIntegrationPrivate;
     friend class LinuxDmaBufV1FeedbackPrivate;
     std::unique_ptr<LinuxDmaBufV1FeedbackPrivate> d;
@@ -73,6 +77,8 @@ public:
     void setRenderBackend(RenderBackend *renderBackend);
 
     void setSupportedFormatsWithModifiers(const QList<LinuxDmaBufV1Feedback::Tranche> &tranches);
+
+    std::optional<dev_t> mainDevice(wl_client *client) const;
 
 private:
     friend class LinuxDmaBufV1ClientBufferIntegrationPrivate;

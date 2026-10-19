@@ -17,53 +17,53 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmcolors\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2026-01-31 15:42+0300\n"
-"Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-05-02 19:50+0300\n"
+"Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Serdar Soytetir, Volkan Gezer, Emir SARI"
+msgstr "Serdar SOYTETİR, Volkan GEZER, Emir SARI"
 
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "tulliana@gmail.com, volkangezer@gmail.com, emir_sari@icloud.com"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "Geçici dosya oluşturulamadı."
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "%1 renk şeması indirilemedi"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "Bu bir renk şeması dosyası değil."
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "“color-scheme” adlı veri klasörü oluşturulamadı."
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr "Renk şeması, “color-scheme” adlı veri klasörüne kopyalanamadı."
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "Renk şeması başarıyla kuruldu."
@@ -697,15 +697,17 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "Bu renk şemasının üzerine yazmak için izniniz yok"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr ""
+"Bu şema, saltokunurdur. Lütfen değişikliklerinizi başka bir adla kaydedin."
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "Hata"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "Etkin Olmayan"
@@ -1156,7 +1158,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "odak"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1167,7 +1169,7 @@ msgstr ""
 "yazmadan veya mevcut olmayan birinin yerine ayarlamanızı önleyerek "
 "ayarlamanıza izin verir."
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
@@ -1176,7 +1178,7 @@ msgstr ""
 "Geçerli Plasma oturumunuz için ayarlamak istediğiniz renk şemasının adı (tam "
 "bir yol geçirmek yalnızca yolun son kısmını kullanır)"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
@@ -1185,7 +1187,7 @@ msgstr ""
 "Sistemde kullanılabilir olan diğer tüm renk şemalarını göster (ve geçerli "
 "olanı da)"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1197,20 +1199,20 @@ msgstr ""
 "desteklenir. Kabuk genişletmesi olanağı varsa onaltılı kodu tırnak içine "
 "alın."
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
 "Plasma session."
 msgstr ""
-"İstenen tema “%1”, halihazırda geçerli Plasma oturumu için zaten ayarlanmış."
+"İstenen tema “%1”, hâlihazırda geçerli Plasma oturumu için zaten ayarlanmış."
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr "%1 renk şeması, geçerli Plasma oturumunuza başarıyla uygulandı"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -1218,7 +1220,7 @@ msgid ""
 msgstr ""
 "“%1” teması bulunamadı. Tema, aşağıdaki seçeneklerden biri olmalıdır: %2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
@@ -1226,7 +1228,7 @@ msgid ""
 msgstr ""
 "Boş bir renk şeması adı geçirmeyi başardınız. Bu davranış desteklenmez."
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
@@ -1235,22 +1237,22 @@ msgstr ""
 "Şema olarak ayarlamak istediğiniz %1 dosyası, bir renk şeması olarak "
 "tanımlanamadı."
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr "Vurgu rengi %1 başarıyla uygulandı"
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, kde-format
 msgid "Invalid accent color "
 msgstr "Geçersiz vurgu rengi "
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "Sisteminizde aşağıdaki renk şemaları var:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr " * %1 (geçerli renk şeması)"
@@ -1273,106 +1275,125 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "Özel vurgu rengi"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
 msgstr "“%1” renk şeması kurulu değil. Yerine öntanımlı tema seçiliyor."
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "Tüm şemalar"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "Açık şemalar"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "Koyu şemalar"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "Dosyadan Kur…"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "Yeni Al…"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "Pencere Metni"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "Pencere metni"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "Düğme"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "bağlantı"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "ziyaret edilmiş"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "Normal metin"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "Vurgulanmış metin"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "Devre dışı metin"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "Renk Şemasını Düzenle…"
 
+#: ui/main.qml:311
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
+msgstr "Renk şemasını kaldır"
+
+#: ui/main.qml:313
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "Etkin renk şeması silinemez"
+
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr "Sistem ile kurulu gelen renk şemaları silinemez"
+
 #: ui/main.qml:323
 #, kde-format
-msgid "Remove Color Scheme"
-msgstr "Renk Şemasını Kaldır"
+msgid "Don’t delete this color scheme"
+msgstr "Bu renk şemasını silme"
 
-#: ui/main.qml:330
-#, kde-format
-msgid "Restore Color Scheme"
-msgstr "Renk Şemasını Geri Yükle"
-
-#: ui/main.qml:374
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "Renk Şeması Aç"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "Renk şeması dosyaları (*.colors)"
+
+#~ msgid "You do not have permission to overwrite that scheme"
+#~ msgstr "Bu renk şemasının üzerine yazmak için izniniz yok"
+
+#~ msgid "Restore Color Scheme"
+#~ msgstr "Renk Şemasını Geri Yükle"
 
 #~ msgid "Shading of frames and lighting (\"3D\") effects"
 #~ msgstr "Karelerin gölgelemesi ve aydınlatma (“3B”) efektleri"

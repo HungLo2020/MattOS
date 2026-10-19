@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the ksystemstats package.
 #
-# SPDX-FileCopyrightText: 2024, 2025 Yaron Shahrabani <sh.yaron@gmail.com>
+# SPDX-FileCopyrightText: 2024-2026 Yaron Shahrabani <sh.yaron@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: ksystemstats\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2025-04-05 14:55+0300\n"
+"POT-Creation-Date: 2026-08-06 00:46+0000\n"
+"PO-Revision-Date: 2026-07-10 10:26+0300\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
 "Language: he\n"
@@ -16,9 +16,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Lokalize 24.12.2\n"
+"X-Generator: Lokalize 26.04.1\n"
 
-#: cpu/cpu.cpp:28 disks/disks.cpp:77 disks/disks.cpp:78 gpu/GpuDevice.cpp:20
+#: cpu/cpu.cpp:28 disks/disks.cpp:77 disks/disks.cpp:78 gpu/GpuDevice.cpp:22
 #: power/power.cpp:39
 #, kde-format
 msgctxt "@title"
@@ -252,13 +252,13 @@ msgctxt "@title"
 msgid "CPU %1"
 msgstr "מעבד %1"
 
-#: cpu/linuxcpuplugin.cpp:42 cpu/linuxcpuplugin.cpp:53
+#: cpu/linuxcpuplugin.cpp:42 cpu/linuxcpuplugin.cpp:56
 #, kde-format
 msgctxt "@title"
 msgid "Core %1"
 msgstr "לב %1"
 
-#: cpu/linuxcpuplugin.cpp:63
+#: cpu/linuxcpuplugin.cpp:66
 #, kde-format
 msgctxt "@title"
 msgid "CPU %1 Core %2"
@@ -324,73 +324,73 @@ msgctxt "@info"
 msgid "Number of jobs in the run queue averaged over 15 minutes"
 msgstr "ממוצע מספר המשימות בתור הריצה על פני 15 דקות"
 
-#: disks/disks.cpp:81 disks/disks.cpp:279
+#: disks/disks.cpp:81 disks/disks.cpp:287
 #, kde-format
 msgctxt "@title"
 msgid "Total Space"
 msgstr "סך כל הנפח"
 
-#: disks/disks.cpp:83 disks/disks.cpp:280
+#: disks/disks.cpp:83 disks/disks.cpp:288
 #, kde-format
 msgctxt "@title Short for 'Total Space'"
 msgid "Total"
 msgstr "סך הכול"
 
-#: disks/disks.cpp:87 disks/disks.cpp:302
+#: disks/disks.cpp:87 disks/disks.cpp:310
 #, kde-format
 msgctxt "@title"
 msgid "Read Rate"
 msgstr "קצב קריאה"
 
-#: disks/disks.cpp:89 disks/disks.cpp:303
+#: disks/disks.cpp:89 disks/disks.cpp:311
 #, kde-format
 msgctxt "@title Short for 'Read Rate'"
 msgid "Read"
 msgstr "קריאה"
 
-#: disks/disks.cpp:93 disks/disks.cpp:309
+#: disks/disks.cpp:93 disks/disks.cpp:317
 #, kde-format
 msgctxt "@title"
 msgid "Write Rate"
 msgstr "קצב כתיבה"
 
-#: disks/disks.cpp:95 disks/disks.cpp:310
+#: disks/disks.cpp:95 disks/disks.cpp:318
 #, kde-format
 msgctxt "@title Short for 'Write Rate'"
 msgid "Write"
 msgstr "כתיבה"
 
-#: disks/disks.cpp:100 disks/disks.cpp:294
+#: disks/disks.cpp:100 disks/disks.cpp:302
 #, kde-format
 msgctxt "@title"
 msgid "Used Space"
 msgstr "מקום מנוצל"
 
-#: disks/disks.cpp:102 disks/disks.cpp:295
+#: disks/disks.cpp:102 disks/disks.cpp:303
 #, kde-format
 msgctxt "@title Short for 'Used Space'"
 msgid "Used"
 msgstr "בשימוש"
 
-#: disks/disks.cpp:107 disks/disks.cpp:286
+#: disks/disks.cpp:107 disks/disks.cpp:294
 #, kde-format
 msgctxt "@title"
 msgid "Free Space"
 msgstr "מקום פנוי: "
 
-#: disks/disks.cpp:109 disks/disks.cpp:287
+#: disks/disks.cpp:109 disks/disks.cpp:295
 #, kde-format
 msgctxt "@title Short for 'Free Space'"
 msgid "Free"
 msgstr "פנויים"
 
-#: disks/disks.cpp:114 disks/disks.cpp:320
+#: disks/disks.cpp:114 disks/disks.cpp:328
 #, kde-format
 msgctxt "@title"
 msgid "Percentage Used"
 msgstr "אחוז בשימוש"
 
-#: disks/disks.cpp:118 disks/disks.cpp:316
+#: disks/disks.cpp:118 disks/disks.cpp:324
 #, kde-format
 msgctxt "@title"
 msgid "Percentage Free"
@@ -401,19 +401,19 @@ msgstr "אחוז פנוי"
 msgid "Disks"
 msgstr "כוננים"
 
-#: disks/disks.cpp:264
+#: disks/disks.cpp:272
 #, kde-format
 msgctxt "@title"
 msgid "All Disks"
 msgstr "כל הכוננים"
 
-#: disks/disks.cpp:317
+#: disks/disks.cpp:325
 #, kde-format
 msgctxt "@title, Short for `Percentage Free"
 msgid "Free"
 msgstr "פנויים"
 
-#: disks/disks.cpp:321
+#: disks/disks.cpp:329
 #, kde-format
 msgctxt "@title, Short for `Percentage Used"
 msgid "Used"
@@ -461,61 +461,67 @@ msgctxt "@title Short for 'All GPUs Used Memory'"
 msgid "Used"
 msgstr "בשימוש"
 
-#: gpu/FreeBSDBackend.cpp:53 gpu/LinuxBackend.cpp:54
+#: gpu/AllGpus.cpp:37
 #, kde-format
-msgctxt "@title %1 is GPU number"
-msgid "GPU %1"
-msgstr "מעבד גרפי %1"
+msgctxt "@title"
+msgid "All GPUs Used Memory Percentage"
+msgstr "אחוזי הזיכרון המנוצל של כל המעבדים הגרפיים"
 
-#: gpu/GpuDevice.cpp:24
+#: gpu/GpuDevice.cpp:26
 #, kde-format
 msgctxt "@title"
 msgid "Usage"
 msgstr "ניצולת"
 
-#: gpu/GpuDevice.cpp:30
+#: gpu/GpuDevice.cpp:32
 #, kde-format
 msgctxt "@title"
 msgid "Total Video Memory"
 msgstr "זיכרון וידאו כולל"
 
-#: gpu/GpuDevice.cpp:32
+#: gpu/GpuDevice.cpp:34
 #, kde-format
 msgctxt "@title Short for Total Video Memory"
 msgid "Total"
 msgstr "סך הכול"
 
-#: gpu/GpuDevice.cpp:35
+#: gpu/GpuDevice.cpp:37
 #, kde-format
 msgctxt "@title"
 msgid "Video Memory Used"
 msgstr "זיכרון וידאו בשימוש"
 
-#: gpu/GpuDevice.cpp:37
+#: gpu/GpuDevice.cpp:39
 #, kde-format
 msgctxt "@title Short for Video Memory Used"
 msgid "Used"
 msgstr "בשימוש"
 
-#: gpu/GpuDevice.cpp:41
+#: gpu/GpuDevice.cpp:42
+#, kde-format
+msgctxt "@title"
+msgid "Video Memory Used Percentage"
+msgstr "אחוזי זיכרון וידאו בשימוש"
+
+#: gpu/GpuDevice.cpp:47
 #, kde-format
 msgctxt "@title"
 msgid "Frequency"
 msgstr "תדירות"
 
-#: gpu/GpuDevice.cpp:45
+#: gpu/GpuDevice.cpp:51
 #, kde-format
 msgctxt "@title"
 msgid "Memory Frequency"
 msgstr "תדירות זיכרון"
 
-#: gpu/GpuDevice.cpp:49
+#: gpu/GpuDevice.cpp:55
 #, kde-format
 msgctxt "@title"
 msgid "Temperature"
 msgstr "טמפרטורה"
 
-#: gpu/GpuDevice.cpp:53 power/power.cpp:116
+#: gpu/GpuDevice.cpp:59 power/power.cpp:116
 #, kde-format
 msgctxt "@title"
 msgid "Power"
@@ -527,11 +533,23 @@ msgctxt "@title"
 msgid "GPU"
 msgstr "מעבד גרפי"
 
-#: gpu/LinuxIntelGpu.cpp:40
+#: gpu/LinuxIntelGpu.cpp:40 gpu/LinuxXeGpu.cpp:91
 #, kde-format
 msgctxt "@title"
 msgid "Video Usage"
 msgstr "ניצולת וידאו"
+
+#: gpu/LinuxXeGpu.cpp:78
+#, kde-format
+msgctxt "@title"
+msgid "Fan %1"
+msgstr "מאוורר %1"
+
+#: gpu/LinuxXeGpu.cpp:86
+#, kde-format
+msgctxt "@title"
+msgid "VRAM Temperature"
+msgstr "טמפרטורת זיכרון כרטיס מסך"
 
 #: lmsensors/lmsensors.cpp:22
 #, kde-format
@@ -913,133 +931,133 @@ msgctxt "@title Short of IPv6 DNS"
 msgid "IPv6 DNS"
 msgstr "DNS ב־IPv6"
 
-#: network/NetworkPlugin.cpp:44
+#: network/NetworkPlugin.cpp:46
 #, kde-format
 msgctxt "@title"
 msgid "Network Devices"
 msgstr "התקני רשת"
 
-#: osinfo/osinfo.cpp:108
+#: osinfo/osinfo.cpp:110
 #, kde-format
 msgctxt "@title"
 msgid "Operating System"
 msgstr "מערכת הפעלה"
 
-#: osinfo/osinfo.cpp:110
+#: osinfo/osinfo.cpp:112
 #, kde-format
 msgctxt "@title"
 msgid "Kernel"
 msgstr "ליבה"
 
-#: osinfo/osinfo.cpp:111
+#: osinfo/osinfo.cpp:113
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Name"
 msgstr "שם ליבה"
 
-#: osinfo/osinfo.cpp:112
+#: osinfo/osinfo.cpp:114
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Version"
 msgstr "גרסת ליבה"
 
-#: osinfo/osinfo.cpp:113
+#: osinfo/osinfo.cpp:115
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Name and Version"
 msgstr "שם וגרסת ליבה"
 
-#: osinfo/osinfo.cpp:114
+#: osinfo/osinfo.cpp:116
 #, kde-format
 msgctxt "@title Kernel Name and Version"
 msgid "Kernel"
 msgstr "ליבה"
 
-#: osinfo/osinfo.cpp:116
+#: osinfo/osinfo.cpp:118
 #, kde-format
 msgctxt "@title"
 msgid "System"
 msgstr "מערכת"
 
-#: osinfo/osinfo.cpp:117
+#: osinfo/osinfo.cpp:119
 #, kde-format
 msgctxt "@title"
 msgid "Hostname"
 msgstr "שם מארח"
 
-#: osinfo/osinfo.cpp:118
+#: osinfo/osinfo.cpp:120
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Name"
 msgstr "שם מערכת הפעלה"
 
-#: osinfo/osinfo.cpp:119
+#: osinfo/osinfo.cpp:121
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Version"
 msgstr "גרסת מערכת הפעלה"
 
-#: osinfo/osinfo.cpp:120
+#: osinfo/osinfo.cpp:122
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Name and Version"
 msgstr "שם וגרסת מערכת הפעלה"
 
-#: osinfo/osinfo.cpp:121
+#: osinfo/osinfo.cpp:123
 #, kde-format
 msgctxt "@title Operating System Name and Version"
 msgid "OS"
 msgstr "מערכת הפעלה"
 
-#: osinfo/osinfo.cpp:122
+#: osinfo/osinfo.cpp:124
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Logo"
 msgstr "לוגו מערכת הפעלה"
 
-#: osinfo/osinfo.cpp:123
+#: osinfo/osinfo.cpp:125
 #, kde-format
 msgctxt "@title"
 msgid "Operating System URL"
 msgstr "כתובת מערכת הפעלה"
 
-#: osinfo/osinfo.cpp:124
+#: osinfo/osinfo.cpp:126
 #, kde-format
 msgctxt "@title"
 msgid "Uptime"
 msgstr "זמן פעילות"
 
-#: osinfo/osinfo.cpp:127
+#: osinfo/osinfo.cpp:129
 #, kde-format
 msgctxt "@title"
 msgid "KDE Plasma"
 msgstr "פלזמה מבית KDE‏ "
 
-#: osinfo/osinfo.cpp:128
+#: osinfo/osinfo.cpp:130
 #, kde-format
 msgctxt "@title"
 msgid "Qt Version"
 msgstr "גרסת Qt"
 
-#: osinfo/osinfo.cpp:129
+#: osinfo/osinfo.cpp:131
 #, kde-format
 msgctxt "@title"
 msgid "KDE Frameworks Version"
 msgstr "גרסת תשתיות KDE"
 
-#: osinfo/osinfo.cpp:130
+#: osinfo/osinfo.cpp:132
 #, kde-format
 msgctxt "@title"
 msgid "KDE Plasma Version"
 msgstr "גרסת KDE פלזמה"
 
-#: osinfo/osinfo.cpp:131
+#: osinfo/osinfo.cpp:133
 #, kde-format
 msgctxt "@title"
 msgid "Window System"
 msgstr "מערכת חלונות"
 
-#: osinfo/osinfo.cpp:165
+#: osinfo/osinfo.cpp:175
 #, kde-format
 msgctxt "@info"
 msgid "Unknown"
@@ -1430,6 +1448,10 @@ msgid ""
 "resources, measured in microseconds"
 msgstr ""
 "כמות הזמן שכל המשימות מעוכבות בהמתנה למשאבי קלט/פלט זמינים, נמדדת במילישניות"
+
+#~ msgctxt "@title %1 is GPU number"
+#~ msgid "GPU %1"
+#~ msgstr "מעבד גרפי %1"
 
 #~ msgctxt "@title, Short for 'Current Frequency'"
 #~ msgid "Frequency"

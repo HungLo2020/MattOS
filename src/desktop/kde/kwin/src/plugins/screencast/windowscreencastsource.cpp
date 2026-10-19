@@ -9,8 +9,6 @@
 #include "screencastutils.h"
 
 #include "compositor.h"
-#include "core/backendoutput.h"
-#include "core/renderloop.h"
 #include "core/rendertarget.h"
 #include "core/renderviewport.h"
 #include "effect/effect.h"
@@ -40,9 +38,6 @@ WindowScreenCastSource::WindowScreenCastSource(Window *window)
             }
         }
     });
-    connect(Compositor::self(), &Compositor::aboutToToggleCompositing, this, [this]() {
-        Q_EMIT closed();
-    });
 }
 
 WindowScreenCastSource::~WindowScreenCastSource()
@@ -52,6 +47,7 @@ WindowScreenCastSource::~WindowScreenCastSource()
 
 void WindowScreenCastSource::add(Window *window)
 {
+    Q_ASSERT(!m_windows.contains(window));
     m_windows.push_back(window);
 
     connect(window, &Window::closed, this, [this, window] {
@@ -70,7 +66,7 @@ void WindowScreenCastSource::add(Window *window)
     }
 
     for (const auto child : window->transients()) {
-        if (child->isPopupWindow()) {
+        if (child->readyForPainting() && child->isPopupWindow()) {
             add(child);
         }
     }
@@ -108,6 +104,11 @@ void WindowScreenCastSource::setRenderCursor(bool enable)
     m_renderCursor = enable;
 }
 
+void WindowScreenCastSource::setNextPresentationTimestamp(std::chrono::nanoseconds timestamp, uint32_t refreshRate)
+{
+    // TODO use the timestamp for rendering, once we have a SceneView to do that with
+}
+
 Region WindowScreenCastSource::render(QImage *target, const Region &bufferDamage)
 {
     const auto offscreenTexture = GLTexture::allocate(GL_RGBA8, target->size());
@@ -127,24 +128,20 @@ Region WindowScreenCastSource::render(GLFramebuffer *target, const Region &buffe
     RenderTarget renderTarget(target);
     RenderViewport viewport(boundingRect(), devicePixelRatio(), renderTarget, QPoint());
 
-    WorkspaceScene *scene = Compositor::self()->scene();
+    WorkspaceScene *scene = kwinApp()->scene();
+    auto renderer = scene->renderer(m_renderDevice);
 
-    scene->renderer()->beginFrame(renderTarget, viewport);
+    renderer->beginFrame(renderTarget, viewport);
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
     for (const auto &window : m_windows) {
-        scene->renderer()->renderItem(renderTarget, viewport, window->windowItem(), Scene::PAINT_WINDOW_TRANSFORMED, Region::infinite(), WindowPaintData{}, {}, {});
+        renderer->renderItem(renderTarget, viewport, window->windowItem(), Scene::PAINT_WINDOW_TRANSFORMED, Region::infinite(), WindowPaintData{}, {}, {});
     }
     if (m_renderCursor && scene->cursorItem()->isVisible()) {
-        scene->renderer()->renderItem(renderTarget, viewport, scene->cursorItem(), 0, Region::infinite(), WindowPaintData{}, {}, {});
+        renderer->renderItem(renderTarget, viewport, scene->cursorItem(), 0, Region::infinite(), WindowPaintData{}, {}, {});
     }
-    scene->renderer()->endFrame();
+    renderer->endFrame();
     return Rect(QPoint(), target->size());
-}
-
-std::chrono::nanoseconds WindowScreenCastSource::clock() const
-{
-    return m_windows[0]->output()->backendOutput()->renderLoop()->lastPresentationTimestamp();
 }
 
 uint WindowScreenCastSource::refreshRate() const

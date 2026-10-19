@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-08 09:05+0100\n"
+"POT-Creation-Date: 2026-06-07 00:47+0000\n"
+"PO-Revision-Date: 2026-02-03 15:21+0100\n"
 "Last-Translator: Vincenzo Reale <smart2128vr@gmail.com>\n"
 "Language-Team: Italian <kde-i18n-it@kde.org>\n"
 "Language: it\n"
@@ -17,17 +17,17 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 25.12.1\n"
 
-#: kcm.cpp:162
+#: kcm.cpp:164
 #, kde-format
 msgid "None"
 msgstr "Nessuna"
 
-#: kcm.cpp:165
+#: kcm.cpp:167
 #, kde-format
 msgid "No splash screen will be shown"
 msgstr "Nessuna schermata iniziale sarà mostrata"
 
-#: kcm.cpp:183
+#: kcm.cpp:185
 #, kde-format
 msgid "You cannot delete the currently selected splash screen"
 msgstr "Impossibile eliminare la schermata iniziale attualmente selezionata"
@@ -58,15 +58,31 @@ msgstr "Anteprima della schermata iniziale non riuscita."
 
 #: ui/main.qml:81
 #, kde-format
-msgctxt "@action:button"
-msgid "Preview Splash Screen"
-msgstr "Anteprima schermata iniziale"
+msgctxt "@info:tooltip"
+msgid "Preview splash screen"
+msgstr "Anteprima della schermata iniziale"
 
-#: ui/main.qml:86
+#: ui/main.qml:88
 #, kde-format
-msgctxt "@action:button"
-msgid "Uninstall"
-msgstr "Disinstalla"
+msgctxt "@info:tooltip"
+msgid "Remove splash screen"
+msgstr "Rimuovi la schermata iniziale"
+
+#: ui/main.qml:90
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active splash screen"
+msgstr "Impossibile eliminare la schermata iniziale attiva"
+
+#: ui/main.qml:92
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed splash screens"
+msgstr "Impossibile eliminare le schermate iniziali installate dal sistema"
+
+#~ msgctxt "@action:button"
+#~ msgid "Uninstall"
+#~ msgstr "Disinstalla"
 
 #~ msgid "This module lets you choose the splash screen theme."
 #~ msgstr ""

@@ -20,42 +20,6 @@ namespace PlasmaQuick
 class PlasmaWindowPrivate;
 
 /*!
- * \qmltype Window
- * \inqmlmodule org.kde.plasma.core
- * \nativetype PlasmaQuick::PlasmaWindow
- *
- * \brief Creates a QQuickWindow themed in a Plasma style with background
- */
-
-/*!
- * \qmlproperty Item Window::mainItem
- *
- * The main QML item that will be displayed in the Dialog
- */
-
-/*!
- * \qmlproperty BackgroundHints Window::backgroundHints
- *
- * Defines the background used for the window
- */
-
-/*!
- * \qmlproperty real Window::topPadding
- */
-
-/*!
- * \qmlproperty real Window::bottomPadding
- */
-
-/*!
- * \qmlproperty real Window::leftPadding
- */
-
-/*!
- * \qmlproperty real Window::rightPadding
- */
-
-/*!
  * \class PlasmaQuick::PlasmaWindow
  * \inheaderfile PlasmaQuick/PlasmaWindow
  * \inmodule PlasmaQuick
@@ -82,7 +46,7 @@ class PLASMAQUICK_EXPORT PlasmaWindow : public QQuickWindow
      * \property PlasmaQuick::PlasmaWindow::borders
      * Tells what borders are enabled of its background
      */
-    Q_PROPERTY(Qt::Edges borders READ borders NOTIFY bordersChanged)
+    Q_PROPERTY(Qt::Edges borders READ borders WRITE setBorders NOTIFY bordersChanged)
 
     /*!
      * \property PlasmaQuick::PlasmaWindow::topPadding

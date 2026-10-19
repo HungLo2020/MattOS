@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-01-18 19:00+0400\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
+"PO-Revision-Date: 2026-08-10 12:15+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -29,59 +29,27 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "safa1996alfulaij@gmail.com"
 
-#: applet/devicesproxymodel.cpp:51
+#: components/ForgetDeviceDialog.qml:37
 #, kde-format
-msgctxt "@title:column Blocked Bluetooth devices"
-msgid "Blocked"
-msgstr "محظور"
+msgid "Forget this Device?"
+msgstr "هل أنسى هذا الجهاز؟"
 
-#: applet/devicesproxymodel.cpp:54
+#: components/ForgetDeviceDialog.qml:38
 #, kde-format
-msgctxt "@title:column Connected Bluetooth devices"
-msgid "Connected"
-msgstr "متصل"
+msgid "Are you sure you want to forget \"%1\"?"
+msgstr "أمتأكد أنك تريد نسيان \"%1\"؟"
 
-#: applet/devicesproxymodel.cpp:56
+#: components/ForgetDeviceDialog.qml:50
 #, kde-format
-msgctxt "@title:column Available but not connected Bluetooth devices"
-msgid "Available"
-msgstr "متوفر"
+msgctxt "@action:button"
+msgid "Forget Device"
+msgstr "انسَ الجهاز"
 
-#: applet/devicesstateproxymodel.cpp:273
+#: components/ForgetDeviceDialog.qml:58
 #, kde-format
-msgctxt "@label %1 is the name of a Bluetooth device"
-msgid "Could not connect to device “%1”"
-msgstr "تعذر الاتصال بالجهاز ”%1“"
-
-#: applet/devicesstateproxymodel.cpp:288
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed:HostIsDown"
-msgid "The device is unreachable"
-msgstr "لا يمكن الوصول إلى الجهاز"
-
-#: applet/devicesstateproxymodel.cpp:289
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed"
-msgid "Connection to the device failed"
-msgstr "فشل الاتّصال بالجهاز"
-
-#: applet/devicesstateproxymodel.cpp:292
-#, kde-format
-msgctxt "Notification when the connection failed due to NotReady"
-msgid "The device is not ready"
-msgstr "الجهاز غير جاهز"
-
-#: kcm/bluetooth.cpp:135
-#, kde-format
-msgctxt "DeviceName Network (Service)"
-msgid "%1 Network (%2)"
-msgstr "%1 الشبكة (%2)"
-
-#: kcm/bluetoothmoduledata.cpp:20
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Enable Bluetooth"
-msgstr "مكّن بلوتوث"
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "ألغِ"
 
 #: kded/bluedevildaemon.cpp:68 kded/bluedevildaemon.cpp:70
 #, kde-format
@@ -162,13 +130,13 @@ msgctxt "Notification button to say that the PIN is wrong"
 msgid "PIN incorrect"
 msgstr "الرّمز خاطئ"
 
-#: kded/helpers/requestpin.cpp:32
+#: kded/helpers/requestpin.cpp:30
 #, kde-format
 msgctxt "@label %1 is the name of a Bluetooth device"
 msgid "PIN for device “%1”"
 msgstr "رقم التعريف الشخصي للجهاز ”%1“"
 
-#: kded/helpers/requestpin.cpp:36
+#: kded/helpers/requestpin.cpp:34
 #, kde-format
 msgctxt ""
 "Shown in a notification to announce that a PIN is needed to accomplish a "
@@ -176,7 +144,7 @@ msgctxt ""
 msgid "PIN needed to pair with %1"
 msgstr "الرّمز مطلوب للاقتران مع %1"
 
-#: kded/helpers/requestpin.cpp:39
+#: kded/helpers/requestpin.cpp:37
 #, kde-format
 msgctxt ""
 "Notification button which once clicked, a dialog to introduce the PIN will "
@@ -184,13 +152,13 @@ msgctxt ""
 msgid "Introduce PIN"
 msgstr "قدّم الرّمز"
 
-#: kded/helpers/requestpin.cpp:59
+#: kded/helpers/requestpin.cpp:57
 #, kde-format
 msgctxt "Shown in the caption of a dialog where the user introduce the PIN"
 msgid "Introduce PIN"
 msgstr "قدّم الرّمز"
 
-#: kded/helpers/requestpin.cpp:66
+#: kded/helpers/requestpin.cpp:64
 #, kde-format
 msgctxt ""
 "Shown in a dialog which asks to introduce a PIN that will be used to pair a "
@@ -334,12 +302,12 @@ msgstr "ذاكرة الهاتف"
 msgid "External memory"
 msgstr "الذّاكرة الخارجيّة"
 
-#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:378
+#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:382
 #, kde-format
 msgid "Bluetooth is disabled."
 msgstr "بلوتوث معطّلة."
 
-#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:379
+#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:383
 #, kde-format
 msgctxt "Action to enable Bluetooth adapter"
 msgid "Enable"
@@ -483,18 +451,18 @@ msgstr "أضف جهاز بلوتوث"
 msgid "Select a device"
 msgstr "اختر جهازًا"
 
-#: wizard/pages/discover.cpp:371
+#: wizard/pages/discover.cpp:375
 #, kde-format
 msgctxt "Action to fix a problem"
 msgid "Fix it"
 msgstr "أصلحها"
 
-#: wizard/pages/discover.cpp:381
+#: wizard/pages/discover.cpp:385
 #, kde-format
 msgid "Your Bluetooth adapter is not pairable."
 msgstr "محوّل بلوتوث لا يمكن الاقتران به."
 
-#: wizard/pages/discover.cpp:382
+#: wizard/pages/discover.cpp:386
 #, kde-format
 msgctxt "Action to make Bluetooth adapter pairable"
 msgid "Make Pairable"
@@ -600,6 +568,42 @@ msgstr "أُعد الجهاز ويمكن استخدامه الآن."
 msgctxt "Placeholder is device name"
 msgid "The device '%1' has been set up and can now be used."
 msgstr "الجهاز '%1' أُعد ويمكن استخدامه الآن."
+
+#~ msgctxt "@title:column Blocked Bluetooth devices"
+#~ msgid "Blocked"
+#~ msgstr "محظور"
+
+#~ msgctxt "@title:column Connected Bluetooth devices"
+#~ msgid "Connected"
+#~ msgstr "متصل"
+
+#~ msgctxt "@title:column Available but not connected Bluetooth devices"
+#~ msgid "Available"
+#~ msgstr "متوفر"
+
+#~ msgctxt "@label %1 is the name of a Bluetooth device"
+#~ msgid "Could not connect to device “%1”"
+#~ msgstr "تعذر الاتصال بالجهاز ”%1“"
+
+#~ msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+#~ msgid "The device is unreachable"
+#~ msgstr "لا يمكن الوصول إلى الجهاز"
+
+#~ msgctxt "Notification when the connection failed due to Failed"
+#~ msgid "Connection to the device failed"
+#~ msgstr "فشل الاتّصال بالجهاز"
+
+#~ msgctxt "Notification when the connection failed due to NotReady"
+#~ msgid "The device is not ready"
+#~ msgstr "الجهاز غير جاهز"
+
+#~ msgctxt "DeviceName Network (Service)"
+#~ msgid "%1 Network (%2)"
+#~ msgstr "%1 الشبكة (%2)"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Enable Bluetooth"
+#~ msgstr "مكّن بلوتوث"
 
 #~ msgctxt ""
 #~ "@label %1 is human-readable device name, %2 is low-level device address"
@@ -981,9 +985,6 @@ msgstr "الجهاز '%1' أُعد ويمكن استخدامه الآن."
 
 #~ msgid "Turn Bluetooth On"
 #~ msgstr "شغّل بلوتوث"
-
-#~ msgid "Known Devices"
-#~ msgstr "الأجهزة المعروفة"
 
 #~ msgid "Configure Bluetooth"
 #~ msgstr "اضبط بلوتوث"

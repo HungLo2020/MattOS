@@ -11,6 +11,7 @@
 
 #include <klocalizedstring.h>
 
+#include <QBitArray>
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
@@ -114,6 +115,7 @@ public:
     inline bool readProcCmdline(const QString &dir, Process *process);
     inline bool readProcCGroup(const QString &dir, Process *process);
     inline bool getNiceness(long pid, Process *process);
+    inline bool getAffinity(long pid, Process *process);
     inline bool getIOStatistics(const QString &dir, Process *process);
 
     static void smapsThreadFunction(std::stop_token stopToken, ProcessesLocal *processes);
@@ -173,6 +175,8 @@ void ProcessesLocal::Private::smapsThreadFunction(std::stop_token stopToken, Pro
                         fields.shared += std::stoll(parts.at(1).toStdString());
                     } else if (parts.at(0).startsWith("Private")) {
                         fields.priv += std::stoll(parts.at(1).toStdString());
+                    } else if (parts.at(0) == "Swap") {
+                        fields.swap += std::stoll(parts.at(1).toStdString());
                     }
                 }
             }
@@ -203,6 +207,8 @@ bool ProcessesLocal::Private::readProcStatus(const QString &dir, Process *proces
     bool numThreadsFound = false;
     bool noNewPrivilegesFound = false;
 
+    constexpr int maxFieldCount = 7;
+
     int size;
     int found = 0; // count how many fields we found
     while ((size = mFile.readLine(mBuffer.data(), mBuffer.size())) > 0) { //-1 indicates an error
@@ -212,13 +218,13 @@ bool ProcessesLocal::Private::readProcStatus(const QString &dir, Process *proces
                 if (process->command().isEmpty()) {
                     process->setName(QString::fromLocal8Bit(mBuffer + sizeof("Name:") - 1, size - sizeof("Name:") + 1).trimmed());
                 }
-                if (++found == 6) {
+                if (++found == maxFieldCount) {
                     goto finish;
                 }
             } else if ((unsigned int)size > sizeof("NoNewPrivs:") && qstrncmp(mBuffer, "NoNewPrivs:", sizeof("NoNewPrivs:") - 1) == 0) {
                 process->setNoNewPrivileges(atol(mBuffer + sizeof("NoNewPrivs:") - 1));
                 noNewPrivilegesFound = true;
-                if (++found == 6) {
+                if (++found == maxFieldCount) {
                     goto finish;
                 }
             }
@@ -235,7 +241,7 @@ bool ProcessesLocal::Private::readProcStatus(const QString &dir, Process *proces
                 process->setSuid(suid);
                 process->setFsuid(fsuid);
                 uidFound = true;
-                if (++found == 6) {
+                if (++found == maxFieldCount) {
                     goto finish;
                 }
             }
@@ -249,7 +255,7 @@ bool ProcessesLocal::Private::readProcStatus(const QString &dir, Process *proces
                 process->setSgid(sgid);
                 process->setFsgid(fsgid);
                 gidFound = true;
-                if (++found == 6) {
+                if (++found == maxFieldCount) {
                     goto finish;
                 }
             }
@@ -261,13 +267,13 @@ bool ProcessesLocal::Private::readProcStatus(const QString &dir, Process *proces
                     process->setTracerpid(-1);
                 }
                 tracerFound = true;
-                if (++found == 6) {
+                if (++found == maxFieldCount) {
                     goto finish;
                 }
             } else if ((unsigned int)size > sizeof("Threads:") && qstrncmp(mBuffer, "Threads:", sizeof("Threads:") - 1) == 0) {
                 process->setNumThreads(atol(mBuffer + sizeof("Threads:") - 1));
                 numThreadsFound = true;
-                if (++found == 6) {
+                if (++found == maxFieldCount) {
                     goto finish;
                 }
             }
@@ -275,6 +281,10 @@ bool ProcessesLocal::Private::readProcStatus(const QString &dir, Process *proces
         case 'V':
             if (mBuffer.startsWith("VmSwap:")) {
                 process->memoryInfo()->imprecise.swap = atol(mBuffer + sizeof("VmSwap:") - 1);
+
+                if (++found == maxFieldCount) {
+                    goto finish;
+                }
             }
         default:
             break;
@@ -521,7 +531,7 @@ bool ProcessesLocal::Private::readProcStatm(const QString &dir, Process *process
     fields.rss = atol(parts.at(1)) * pageSize;
     fields.shared = atol(parts.at(2)) * pageSize;
     fields.priv = fields.rss - fields.shared;
-    fields.swap = process->swap();
+    fields.swap = process->memoryInfo()->imprecise.swap;
     fields.lastUpdate = std::chrono::steady_clock::now();
 
     process->memoryInfo()->imprecise = fields;
@@ -619,6 +629,27 @@ bool ProcessesLocal::Private::getNiceness(long pid, Process *process)
 #endif
 }
 
+bool ProcessesLocal::Private::getAffinity(long pid, Process *process)
+{
+    cpu_set_t mask;
+    CPU_ZERO(&mask);
+
+    if (sched_getaffinity(pid, sizeof(mask), &mask) != 0) {
+        return false;
+    }
+
+    long cpuCount = sysconf(_SC_NPROCESSORS_CONF);
+    QBitArray affinityMask(cpuCount, false);
+    for (int cpu = 0; cpu < qMin(cpuCount, CPU_SETSIZE); ++cpu) {
+        if (CPU_ISSET(cpu, &mask)) {
+            affinityMask.setBit(cpu);
+        }
+    }
+
+    process->setAffinity(affinityMask);
+    return true;
+}
+
 bool ProcessesLocal::Private::getIOStatistics(const QString &dir, Process *process)
 {
     mFile.setFileName(dir + QStringLiteral("io"));
@@ -685,6 +716,9 @@ bool ProcessesLocal::updateProcessInfo(long pid, Process *process)
         success = false;
     }
     if (!d->getNiceness(pid, process)) {
+        success = false;
+    }
+    if (!d->getAffinity(pid, process)) {
         success = false;
     }
     if (mUpdateFlags.testFlag(Processes::IOStatistics) && !d->getIOStatistics(dir, process)) {
@@ -778,6 +812,82 @@ int ProcessesLocal::getNiceness(long pid)
         return 0;
     }
     return nice;
+}
+
+Processes::Error ProcessesLocal::setAffinity(long pid, const QBitArray &affinityMask)
+{
+    errno = 0;
+    if (pid <= 0) {
+        return Processes::InvalidPid;
+    }
+
+    auto error = [] {
+        switch (errno) {
+        case ESRCH:
+        case ENOENT:
+            return Processes::ProcessDoesNotExistOrZombie;
+        case EINVAL:
+        case EFAULT:
+            return Processes::InvalidParameter;
+        case EACCES:
+        case EPERM:
+            return Processes::InsufficientPermissions;
+        default:
+            return Processes::Unknown;
+        }
+    };
+
+    auto threadList{QDir(QString::fromLatin1("/proc/%1/task").arg(pid)).entryList(QDir::NoDotAndDotDot | QDir::Dirs)};
+    if (threadList.isEmpty()) {
+        return error();
+    }
+
+    cpu_set_t mask;
+    CPU_ZERO(&mask);
+
+    const int max = qMin(affinityMask.size(), CPU_SETSIZE);
+
+    for (int cpu = 0; cpu < max; ++cpu) {
+        if (affinityMask.testBit(cpu)) {
+            CPU_SET(cpu, &mask);
+        }
+    }
+
+    for (auto entry : threadList) {
+        int threadId = entry.toInt();
+        if (!threadId) {
+            return Processes::InvalidParameter;
+        }
+        if (sched_setaffinity(threadId, sizeof(mask), &mask)) {
+            return error();
+        }
+    }
+    return Processes::NoError;
+}
+
+QBitArray ProcessesLocal::getAffinity(long pid)
+{
+    if (pid <= 0) {
+        return {};
+    }
+
+    cpu_set_t mask;
+    CPU_ZERO(&mask);
+
+    errno = 0;
+    if (sched_getaffinity(pid, sizeof(mask), &mask) != 0) {
+        return {};
+    }
+
+    long cpuCount = sysconf(_SC_NPROCESSORS_CONF);
+    const int maxCpu = qMin(cpuCount, static_cast<long>(CPU_SETSIZE));
+    QBitArray affinityMask(maxCpu, false);
+    for (int cpu = 0; cpu < maxCpu; ++cpu) {
+        if (CPU_ISSET(cpu, &mask)) {
+            affinityMask.setBit(cpu);
+        }
+    }
+    return affinityMask;
 }
 
 Processes::Error ProcessesLocal::setScheduler(long pid, int priorityClass, int priority)

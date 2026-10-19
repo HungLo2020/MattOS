@@ -2,21 +2,20 @@
 # This file is distributed under the same license as the plasma-workspace package.
 #
 # SPDX-FileCopyrightText: 2020, 2021, 2022, 2023, 2024, 2025, 2026 Freek de Kruijf <freekdekruijf@kde.nl>
-# SPDX-FileCopyrightText: 2026 Luc Castermans <luc.castermans@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2026-04-12 10:09+0200\n"
-"Last-Translator: Luc Castermans <luc.castermans@gmail.com>\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-03-08 16:43+0100\n"
+"Last-Translator: Freek de Kruijf <freekdekruijf@kde.nl>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 25.12.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -28,32 +27,32 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "freekdekruijf@kde.nl"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "Kon geen tijdelijk bestand aanmaken."
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "Kan het kleurenschema niet downloaden: %1"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "Dit bestand is geen kleurenschema."
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "Gegevensmap 'color-scheme' kan niet worden aangemaakt."
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr "Kopiëren van kleurenschema in gegevensmap 'color-scheme' is mislukt."
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "Kleurenschema is met succes geïnstalleerd."
@@ -68,7 +67,7 @@ msgstr "Naam kleurenschema"
 #: colorssettings.kcfg:13
 #, kde-format
 msgid "Accent color"
-msgstr "Accentkleur"
+msgstr "Accentuatiekleur"
 
 #. i18n: ectx: label, entry (lastUsedCustomAccentColor), group (General)
 #: colorssettings.kcfg:17
@@ -77,15 +76,16 @@ msgid ""
 "The last used custom accent color before user switched to wallpaper "
 "generated color or default color"
 msgstr ""
-"De laatst gebruikte aangepaste accentkleur voordat de gebruiker omschakelde "
-"naar uit achtergrondafbeelding gegenereerde kleur of de standaard kleur"
+"De laatst gebruikte aangepaste accentuatiekleur voordat de gebruiker "
+"omschakelde naar uit achtergrondafbeelding gegenereerde kleur of de "
+"standaard kleur"
 
 #. i18n: ectx: label, entry (accentColorFromWallpaper), group (General)
 #: colorssettings.kcfg:21
 #, kde-format
 msgid "Whether accent color from wallpaper should be applied"
 msgstr ""
-"Of de accentkleur uit achtergrondafbeelding zou moeten worden toegepast"
+"Of de accentuatiekleur uit achtergrondafbeelding zou moeten worden toegepast"
 
 #: editor/kcolorschemeeditor.cpp:23
 #, kde-format
@@ -689,15 +689,17 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "U hebt geen toegangsrechten om dat schema te overschrijven"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr ""
+"Dit schema is alleen-lezen. Sla de wijzigingen op onder een andere naam."
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "Fout"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "Inactief"
@@ -861,7 +863,7 @@ msgstr "Gesorteerde kolom &in lijsten van schaduw voorzien"
 #: editor/scmeditoroptions.ui:38
 #, kde-format
 msgid "Make window titlebars a&ccent-colored"
-msgstr "Titelbalken van vensters kleuren met de a&ccentkleur"
+msgstr "Titelbalken van vensters kleuren met de a&ccentuatiekleur"
 
 #. i18n: ectx: property (text), widget (QCheckBox, tintColors)
 #: editor/scmeditoroptions.ui:45
@@ -1141,7 +1143,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "focus"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1152,7 +1154,7 @@ msgstr ""
 "Plasma sessie, zonder per ongeluk deze te zetten op een die ofwel niet "
 "beschikbaar is of die al is gezet."
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
@@ -1162,7 +1164,7 @@ msgstr ""
 "sessie (doorgegeven van een volledig pad zal alleen het laatste deel van het "
 "pad gebruiken)"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
@@ -1171,7 +1173,7 @@ msgstr ""
 "Alle kleurenschema's beschikbaar op het systeem tonen (en welke het huidige "
 "thema is)"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1183,7 +1185,7 @@ msgstr ""
 "worden ondersteund. Gebruik aanhalingstekens rond de hex-code als er een "
 "mogelijkheid is van shell-expansie"
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
@@ -1192,13 +1194,13 @@ msgstr ""
 "Het gevraagde thema \"%1\" is al ingesteld als het thema voor de huidige "
 "Plasma sessie."
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr ""
 "Het kleurenschema %1 is met succes toegepast op uw huidige Plasma sessie"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -1207,7 +1209,7 @@ msgstr ""
 "Kon thema \"%1\" niet vinden. Het thema zou een van de volgende opties "
 "moeten zijn: %2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
@@ -1216,7 +1218,7 @@ msgstr ""
 "Het is u gelukt om een leeg kleurenschemanaam door te geven, wat geen "
 "ondersteund gedrag is."
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
@@ -1225,22 +1227,22 @@ msgstr ""
 "Het bestand dat u probeert in te stellen als uw schema, %1, kon niet "
 "geïdentificeerd worden als een kleurenschema."
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr "De kleur %1 voor accentueren is met succes toegepast"
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, kde-format
 msgid "Invalid accent color "
 msgstr "Ongeldige kleur voor accentueren "
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "U hebt de volgende kleurenschema's op uw systeem:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr " * %1 (huidig kleurenschema)"
@@ -1263,7 +1265,7 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "Aangepaste accentkleur"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
@@ -1271,100 +1273,119 @@ msgstr ""
 "Het kleurenschema '%1' is niet geïnstalleerd. Het standaard thema wordt in "
 "plaats daarvan geselecteerd."
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "Alle schema's"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "Lichte schema's"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "Donkere schema's"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "Uit bestand installeren…"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "Nieuwe ophalen…"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "Venstertitel"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "Venstertekst"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "Knop"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "koppeling"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "bezocht"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "Normale tekst"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "Geaccentueerde tekst"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "Uitgeschakelde tekst"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "Kleurenschema bewerken…"
 
-#: ui/main.qml:323
+#: ui/main.qml:311
 #, kde-format
-msgid "Remove Color Scheme"
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
 msgstr "Kleurenschema verwijderen"
 
-#: ui/main.qml:330
+#: ui/main.qml:313
 #, kde-format
-msgid "Restore Color Scheme"
-msgstr "Kleurenschema herstellen"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "Kan het actieve kleurenschema niet verwijderen"
 
-#: ui/main.qml:374
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr "Kan door het systeem geïnstalleerde kleurenthema's niet verwijderen"
+
+#: ui/main.qml:323
+#, kde-format
+msgid "Don’t delete this color scheme"
+msgstr "Kan dit kleurenschema niet verwijderen"
+
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "Kleurenschema openen"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "Kleurenschemabestanden (*.colors)"
+
+#~ msgid "You do not have permission to overwrite that scheme"
+#~ msgstr "U hebt geen toegangsrechten om dat schema te overschrijven"
+
+#~ msgid "Restore Color Scheme"
+#~ msgstr "Kleurenschema herstellen"
 
 #~ msgid "Shading of frames and lighting (\"3D\") effects"
 #~ msgstr "Arceren van frames en oplichten van \"3D\"-effecten"

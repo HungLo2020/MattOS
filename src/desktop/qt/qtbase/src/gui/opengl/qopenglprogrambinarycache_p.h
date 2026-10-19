@@ -56,12 +56,10 @@ private:
     bool verifyHeader(const QByteArray &buf) const;
     bool setProgramBinary(uint programId, uint blobFormat, const void *p, uint blobSize);
 
-    QString m_globalCacheDir;
-    QString m_localCacheDir;
-    QString m_currentCacheDir;
+    QString m_cacheDir;
     bool m_cacheWritable;
     struct MemCacheEntry {
-        MemCacheEntry(const void *p, int size, uint format)
+        MemCacheEntry(const void *p, qsizetype size, uint format)
           : blob(reinterpret_cast<const char *>(p), size),
             format(format)
         { }

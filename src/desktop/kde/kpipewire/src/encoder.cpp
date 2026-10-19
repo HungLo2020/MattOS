@@ -166,12 +166,14 @@ AVCodecContext *Encoder::avCodecContext() const
     return m_avCodecContext;
 }
 
+bool Encoder::supportsAudio() const
+{
+    return true;
+}
+
 void Encoder::setQuality(std::optional<quint8> quality)
 {
     m_quality = quality;
-    if (m_avCodecContext) {
-        m_avCodecContext->global_quality = percentageToAbsoluteQuality(quality);
-    }
 }
 
 bool Encoder::supportsHardwareEncoding()
@@ -195,25 +197,6 @@ AVDictionary *Encoder::buildEncodingOptions()
 
     av_dict_set_int(&options, "threads", qMin(16, QThread::idealThreadCount()), 0);
 
-    switch (m_encodingPreference) {
-    case PipeWireBaseEncodedStream::EncodingPreference::NoPreference:
-        av_dict_set(&options, "preset", "veryfast", 0);
-        break;
-    case PipeWireBaseEncodedStream::EncodingPreference::Quality:
-        av_dict_set(&options, "preset", "medium", 0);
-        break;
-    case PipeWireBaseEncodedStream::EncodingPreference::Speed:
-        av_dict_set(&options, "preset", "ultrafast", 0);
-        av_dict_set(&options, "tune", "zerolatency", 0);
-        break;
-    case PipeWireBaseEncodedStream::EncodingPreference::Size:
-        av_dict_set(&options, "preset", "slow", 0);
-        break;
-    default: //  Same as NoPreference
-        av_dict_set(&options, "preset", "veryfast", 0);
-        break;
-    }
-
     return options;
 }
 
@@ -222,7 +205,7 @@ void Encoder::maybeLogOptions(AVDictionary *options)
     if (PIPEWIRERECORD_LOGGING().isInfoEnabled()) {
         char *buffer = NULL;
         av_dict_get_string(options, &buffer, '=', ',');
-        qCInfo(PIPEWIRERECORD_LOGGING) << "Using encoding options:" << buffer;
+        qCDebug(PIPEWIRERECORD_LOGGING) << "Using encoding options:" << buffer;
         av_freep(&buffer);
     }
 }
@@ -362,6 +345,15 @@ HardwareEncoder::~HardwareEncoder()
 
     if (m_drmContext) {
         av_free(m_drmContext);
+    }
+}
+
+void HardwareEncoder::setQuality(std::optional<quint8> quality)
+{
+    Encoder::setQuality(quality);
+    if (m_avCodecContext) {
+        // For now we assume all hardware encoders are FFmpeg VA-API encoders.
+        m_avCodecContext->global_quality = percentageToAbsoluteQuality(quality);
     }
 }
 

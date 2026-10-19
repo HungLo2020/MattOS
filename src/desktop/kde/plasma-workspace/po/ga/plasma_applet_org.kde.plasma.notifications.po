@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_notifications\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-04 02:42+0000\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
 "PO-Revision-Date: 2026-04-15 08:06+0100\n"
 "Last-Translator: charlotte <altronic25@protonmail.com>\n"
 "Language-Team: Irish\n"
@@ -120,46 +120,46 @@ msgctxt "Row description, e.g. Source"
 msgid "%1:"
 msgstr "%1:"
 
-#: components/JobDetails.qml:116
+#: components/JobDetails.qml:118
 #, kde-format
 msgctxt "How many bytes have been copied"
 msgid "%2 of %1"
 msgstr "%2 as %1"
 
-#: components/JobDetails.qml:120
+#: components/JobDetails.qml:122
 #, kde-format
 msgctxt "How many files have been copied"
-msgid "%2 of %1 file"
-msgid_plural "%2 of %1 files"
-msgstr[0] "%2 as %1 chomhad"
-msgstr[1] "%2 as %1 chomhad"
-msgstr[2] "%2 as %1 chomhad"
-msgstr[3] "%2 as %1 gcomhad"
-msgstr[4] "%2 as %1 comhad"
+msgid "%3 of %2 file"
+msgid_plural "%3 of %2 files"
+msgstr[0] "%3 as %2 chomhad"
+msgstr[1] "%3 as %2 chomhad"
+msgstr[2] "%3 as %2 chomhad"
+msgstr[3] "%3 as %2 gcomhad"
+msgstr[4] "%3 as %2 comhad"
 
-#: components/JobDetails.qml:123
+#: components/JobDetails.qml:125
 #, kde-format
 msgctxt "How many dirs have been copied"
-msgid "%2 of %1 folder"
-msgid_plural "%2 of %1 folders"
-msgstr[0] "%2 as %1 fhillteán"
-msgstr[1] "%2 as %1 fhillteán"
-msgstr[2] "%2 as %1 fhillteán"
-msgstr[3] "%2 as %1 bhfillteán"
-msgstr[4] "%2 as %1 fillteán"
+msgid "%3 of %2 folder"
+msgid_plural "%3 of %2 folders"
+msgstr[0] "%3 as %2 fhillteán"
+msgstr[1] "%3 as %2 fhillteán"
+msgstr[2] "%3 as %2 fhillteán"
+msgstr[3] "%3 as %2 bhfillteán"
+msgstr[4] "%3 as %2 fillteán"
 
-#: components/JobDetails.qml:126
+#: components/JobDetails.qml:128
 #, kde-format
 msgctxt "How many items (that includes files and dirs) have been copied"
-msgid "%2 of %1 item"
-msgid_plural "%2 of %1 items"
-msgstr[0] "%2 as %1 mhír"
-msgstr[1] "%2 as %1 mhír"
-msgstr[2] "%2 as %1 mhír"
-msgstr[3] "%2 as %1 mír"
-msgstr[4] "%2 as %1 mír"
+msgid "%3 of %2 item"
+msgid_plural "%3 of %2 items"
+msgstr[0] "%3 as %2 mhír"
+msgstr[1] "%3 as %2 mhír"
+msgstr[2] "%3 as %2 mhír"
+msgstr[3] "%3 as %2 mír"
+msgstr[4] "%3 as %2 mír"
 
-#: components/JobDetails.qml:135
+#: components/JobDetails.qml:137
 #, kde-format
 msgid "%1 file"
 msgid_plural "%1 files"
@@ -169,7 +169,7 @@ msgstr[2] "%1 chomhad"
 msgstr[3] "%1 gcomhad"
 msgstr[4] "%1 comhad"
 
-#: components/JobDetails.qml:137
+#: components/JobDetails.qml:139
 #, kde-format
 msgid "%1 folder"
 msgid_plural "%1 folders"
@@ -179,7 +179,7 @@ msgstr[2] "%1 fhillteán"
 msgstr[3] "%1 bhfillteán"
 msgstr[4] "%1 fillteán"
 
-#: components/JobDetails.qml:139
+#: components/JobDetails.qml:141
 #, kde-format
 msgid "%1 item"
 msgid_plural "%1 items"
@@ -189,9 +189,9 @@ msgstr[2] "%1 mhír"
 msgstr[3] "%1 mír"
 msgstr[4] "%1 mír"
 
-#: components/JobDetails.qml:156 components/SpeedChart.qml:72
-#: components/SpeedChart.qml:98 components/SpeedChart.qml:193
-#: components/SpeedChart.qml:204
+#: components/JobDetails.qml:158 components/SpeedChart.qml:75
+#: components/SpeedChart.qml:103 components/SpeedChart.qml:204
+#: components/SpeedChart.qml:217
 #, kde-format
 msgctxt "Bytes per second"
 msgid "%1/s"
@@ -221,7 +221,7 @@ msgctxt "Cancel running job"
 msgid "Cancel"
 msgstr "Cealaigh"
 
-#: components/JobItem.qml:125 components/ThumbnailStrip.qml:159
+#: components/JobItem.qml:125 components/ThumbnailStrip.qml:154
 #, kde-format
 msgid "More Options…"
 msgstr ""
@@ -248,17 +248,17 @@ msgctxt "@action:button"
 msgid "Send"
 msgstr "Seol"
 
-#: components/SpeedChart.qml:145
+#: components/SpeedChart.qml:155
 #, kde-format
 msgid "Speed"
 msgstr "Luas"
 
-#: components/SpeedChart.qml:200
+#: components/SpeedChart.qml:212
 #, kde-format
 msgid "Average Speed"
 msgstr "Meánluas"
 
-#: components/SpeedChart.qml:258
+#: components/SpeedChart.qml:272
 #, kde-format
 msgctxt "Percentage of a job"
 msgid "%1%"
@@ -292,12 +292,12 @@ msgstr "%1 (Críochnaithe)"
 msgid "Job Finished"
 msgstr "Tasc Críochnaithe"
 
-#: fileinfo.cpp:170
+#: fileinfo.cpp:186
 #, kde-format
 msgid "Open with %1"
 msgstr "Oscail le %1"
 
-#: fileinfo.cpp:174
+#: fileinfo.cpp:190
 #, kde-format
 msgid "Open with…"
 msgstr "Oscail le…"
@@ -422,22 +422,35 @@ msgctxt "Vendor and product name"
 msgid "Notifications are currently provided by '%1 %2'"
 msgstr ""
 
-#: globalshortcuts.cpp:23
+#: globalshortcuts.cpp:24
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "Scoránaigh ná cuir isteach orm"
 
-#: globalshortcuts.cpp:42
+#: globalshortcuts.cpp:33
+#, kde-format
+msgctxt "@action"
+msgid "Clear Notification History"
+msgstr "Glan Stair na bhfógraí"
+
+#: globalshortcuts.cpp:52
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications Off"
 msgstr "Fógraí As"
 
-#: globalshortcuts.cpp:43
+#: globalshortcuts.cpp:53
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications On"
 msgstr "Fógraí Air"
+
+#: globalshortcuts.cpp:68
+#, fuzzy, kde-format
+#| msgid "Notifications"
+msgctxt "@label OSD popup, keep short"
+msgid "Notification history cleared"
+msgstr "Fógairt"
 
 #: main.qml:61
 #, kde-format
@@ -503,12 +516,12 @@ msgstr "Tá mód ná cuir isteach orm gníomhach; cliceáil-lárnach chun a scoi
 msgid "Middle-click to enter do not disturb mode"
 msgstr "Cliceáil-lárnach chun mód ná cuir isteach orm a thosú"
 
-#: main.qml:238
+#: main.qml:245
 #, kde-format
 msgid "Clear All Notifications"
 msgstr "Glan Gach Fógraí"
 
-#: main.qml:257
+#: main.qml:264
 #, kde-format
 msgid "&Configure Event Notifications and Actions…"
 msgstr ""

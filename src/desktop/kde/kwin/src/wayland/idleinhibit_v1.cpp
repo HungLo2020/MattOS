@@ -9,6 +9,7 @@
 
 namespace KWin
 {
+
 static const quint32 s_version = 1;
 
 IdleInhibitManagerV1InterfacePrivate::IdleInhibitManagerV1InterfacePrivate(IdleInhibitManagerV1Interface *_q, Display *display)
@@ -63,4 +64,3 @@ void IdleInhibitorV1Interface::zwp_idle_inhibitor_v1_destroy_resource(Resource *
 }
 
 #include "moc_idleinhibit_v1.cpp"
-#include "moc_idleinhibit_v1_p.cpp"

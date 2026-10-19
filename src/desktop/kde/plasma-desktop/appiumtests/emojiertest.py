@@ -47,10 +47,15 @@ class EmojierTest(unittest.TestCase):
     def test_0_open(self) -> None:
         """
         Tests the app does not crash on opening
+
+        Note that, since there are no recent emojis by default, the application
+        opens on the "All" page so this should check for elements that are
+        visible on that page.
+
         @see https://bugs.kde.org/show_bug.cgi?id=478458
         """
-        self.driver.find_element(AppiumBy.NAME, "Recent")
-        self.driver.find_element(AppiumBy.NAME, "Clear History")
+        self.driver.find_element(AppiumBy.NAME, "All")
+        self.driver.find_element(AppiumBy.NAME, "Search")
 
     def test_1_open_category(self) -> None:
         self.driver.find_element(AppiumBy.NAME, "All").click()
@@ -62,6 +67,13 @@ class EmojierTest(unittest.TestCase):
         self.driver.find_element(AppiumBy.NAME, "Recent").click()
         self.driver.find_element(AppiumBy.NAME, "grinning face")
 
+    def test_3_select_variant(self) -> None:
+        self.driver.find_element(AppiumBy.NAME, "All").click()
+        self.driver.find_element(AppiumBy.NAME, "Search").send_keys("handshake")
+        self.driver.find_element(AppiumBy.NAME, "Select Variant of \"handshake\"").click()
+        self.driver.find_element(AppiumBy.NAME, "handshake: light skin tone, medium skin tone").click()
+        time.sleep(1)
+        self.assertEqual(self.driver.get_clipboard_text(), "🫱🏻‍🫲🏽")
 
 if __name__ == '__main__':
     unittest.main()

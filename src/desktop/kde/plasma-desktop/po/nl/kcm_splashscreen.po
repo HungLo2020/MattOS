@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-08 17:53+0100\n"
+"POT-Creation-Date: 2026-06-07 00:47+0000\n"
+"PO-Revision-Date: 2026-02-03 10:43+0100\n"
 "Last-Translator: Freek de Kruijf <freekdekruijf@kde.nl>\n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -16,19 +16,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 25.12.1\n"
 
-#: kcm.cpp:162
+#: kcm.cpp:164
 #, kde-format
 msgid "None"
 msgstr "Geen"
 
-#: kcm.cpp:165
+#: kcm.cpp:167
 #, kde-format
 msgid "No splash screen will be shown"
 msgstr "Geen opstartscherm"
 
-#: kcm.cpp:183
+#: kcm.cpp:185
 #, kde-format
 msgid "You cannot delete the currently selected splash screen"
 msgstr "U kunt het nu geselecteerde opstartscherm niet verwijderen"
@@ -59,15 +59,32 @@ msgstr "Voorbeeld van het opstartscherm tonen is mislukt."
 
 #: ui/main.qml:81
 #, kde-format
-msgctxt "@action:button"
-msgid "Preview Splash Screen"
+msgctxt "@info:tooltip"
+msgid "Preview splash screen"
 msgstr "Opstartscherm bekijken"
 
-#: ui/main.qml:86
+#: ui/main.qml:88
 #, kde-format
-msgctxt "@action:button"
-msgid "Uninstall"
-msgstr "Installatie ongedaan maken"
+msgctxt "@info:tooltip"
+msgid "Remove splash screen"
+msgstr "Opstartscherm verwijderen"
+
+#: ui/main.qml:90
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active splash screen"
+msgstr "Kan het actieve opstartscherm niet verwijderen"
+
+#: ui/main.qml:92
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed splash screens"
+msgstr ""
+"Kan het door het systeem geïnstalleerde opstartschermen niet verwijderen"
+
+#~ msgctxt "@action:button"
+#~ msgid "Uninstall"
+#~ msgstr "Installatie ongedaan maken"
 
 #~ msgid "This module lets you choose the splash screen theme."
 #~ msgstr "Deze module laat u het thema van het opstartscherm kiezen."

@@ -5,7 +5,7 @@
 */
 
 #include "core/graphicsbuffer.h"
-#include "utils/drm_format_helper.h"
+#include "core/drm_formats.h"
 
 #include <QCoreApplication>
 
@@ -38,6 +38,9 @@ void GraphicsBuffer::ref()
 {
     Q_ASSERT(QCoreApplication::instance()->thread() == thread());
     ++m_refCount;
+    if (m_refCount == 1) {
+        Q_EMIT referenced();
+    }
 }
 
 void GraphicsBuffer::unref()
@@ -73,6 +76,11 @@ void GraphicsBuffer::unmap()
 {
 }
 
+const DmaBufAttributes *GraphicsBuffer::udmabufAttributes() const
+{
+    return nullptr;
+}
+
 const DmaBufAttributes *GraphicsBuffer::dmabufAttributes() const
 {
     return nullptr;
@@ -84,6 +92,11 @@ const ShmAttributes *GraphicsBuffer::shmAttributes() const
 }
 
 const SinglePixelAttributes *GraphicsBuffer::singlePixelAttributes() const
+{
+    return nullptr;
+}
+
+const HostMemoryAttributes *GraphicsBuffer::hostDataAttributes() const
 {
     return nullptr;
 }

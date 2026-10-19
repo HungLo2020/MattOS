@@ -1,0 +1,627 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+#include "QuickElement.h"
+
+#include <QCoreApplication>
+#include <QQmlEngine>
+#include <QQuickItem>
+
+#include "Element.h"
+#include "EventHelper.h"
+#include "Style.h"
+#include "StyleRegistry.h"
+#include "StyleRule.h"
+
+#include "QuickStyle.h"
+#include "WindowHandler.h"
+
+using namespace Union;
+using namespace Union::Quick;
+
+UNIONQUICKIMPL_EXPORT QEvent::Type QuickElementUpdatedEvent::s_type = QEvent::None;
+static EventTypeRegistration<QuickElementUpdatedEvent> quickElementRegistration;
+
+template<typename T, QList<T *> QuickElement::*member, void (QuickElement::*changeSignal)()>
+struct ListFunctions {
+    static void append(QQmlListProperty<T> *property, T *value)
+    {
+        if (!value) {
+            return;
+        }
+
+        auto element = static_cast<QuickElement *>(property->object);
+        auto list = &(element->*member);
+        list->append(value);
+        value->setElement(element);
+        (element->*changeSignal)();
+    }
+
+    static qsizetype count(QQmlListProperty<T> *property)
+    {
+        auto list = static_cast<QuickElement *>(property->object)->*member;
+        return list.count();
+    }
+
+    static T *at(QQmlListProperty<T> *property, qsizetype index)
+    {
+        auto list = static_cast<QuickElement *>(property->object)->*member;
+        return list.at(index);
+    }
+
+    static void clear(QQmlListProperty<T> *property)
+    {
+        auto element = static_cast<QuickElement *>(property->object);
+        auto list = &(element->*member);
+        list->clear();
+        (element->*changeSignal)();
+    }
+
+    static void replace(QQmlListProperty<T> *property, qsizetype index, T *value)
+    {
+        if (!value) {
+            return;
+        }
+
+        auto element = static_cast<QuickElement *>(property->object);
+        auto list = &(element->*member);
+        list->replace(index, value);
+        (element->*changeSignal)();
+    }
+
+    static void removeLast(QQmlListProperty<T> *property)
+    {
+        auto element = static_cast<QuickElement *>(property->object);
+        auto list = &(element->*member);
+        list->removeLast();
+        (element->*changeSignal)();
+    }
+};
+
+StatesGroup::StatesGroup(QuickElement *parent)
+    : m_parent(parent)
+{
+}
+
+bool StatesGroup::hovered() const
+{
+    return m_activeStates.testFlag(Element::State::Hovered);
+}
+
+void StatesGroup::setHovered(bool newHovered)
+{
+    setState(Element::State::Hovered, newHovered);
+}
+
+bool StatesGroup::activeFocus() const
+{
+    return m_activeStates.testFlag(Element::State::ActiveFocus);
+}
+
+void StatesGroup::setActiveFocus(bool newActiveFocus)
+{
+    setState(Element::State::ActiveFocus, newActiveFocus);
+}
+
+bool StatesGroup::visualFocus() const
+{
+    return m_activeStates.testFlag(Element::State::VisualFocus);
+}
+
+void StatesGroup::setVisualFocus(bool newVisualFocus)
+{
+    setState(Element::State::VisualFocus, newVisualFocus);
+}
+
+bool StatesGroup::pressed() const
+{
+    return m_activeStates.testFlag(Element::State::Pressed);
+}
+
+void StatesGroup::setPressed(bool newPressed)
+{
+    setState(Element::State::Pressed, newPressed);
+}
+
+bool StatesGroup::checked() const
+{
+    return m_activeStates.testFlag(Element::State::Checked);
+}
+
+void StatesGroup::setChecked(bool newChecked)
+{
+    setState(Element::State::Checked, newChecked);
+}
+
+bool StatesGroup::enabled() const
+{
+    return !m_activeStates.testFlag(Element::State::Disabled);
+}
+
+void StatesGroup::setEnabled(bool newEnabled)
+{
+    setState(Element::State::Disabled, !newEnabled);
+}
+
+bool StatesGroup::highlighted() const
+{
+    return m_activeStates & Element::State::Highlighted;
+}
+
+void StatesGroup::setHighlighted(bool newHighlighted)
+{
+    setState(Element::State::Highlighted, newHighlighted);
+}
+
+Union::Element::States StatesGroup::activeStates() const
+{
+    return m_activeStates;
+}
+
+void StatesGroup::setState(Union::Element::State state, bool set)
+{
+    auto newStates = m_activeStates;
+    newStates.setFlag(state, set);
+
+    if (newStates == m_activeStates) {
+        return;
+    }
+
+    m_activeStates = newStates;
+
+    emitStateChange(state);
+    Q_EMIT activeStatesChanged();
+    m_parent->setActiveStates(m_activeStates);
+}
+
+void StatesGroup::setActiveStates(Element::States states)
+{
+    if (states == m_activeStates) {
+        return;
+    }
+
+    m_activeStates = states;
+    emitStateChange(m_activeStates);
+    Q_EMIT activeStatesChanged();
+}
+
+void StatesGroup::emitStateChange(Union::Element::States states)
+{
+    if (states & Element::State::Hovered) {
+        Q_EMIT hoveredChanged();
+    }
+    if (states & Element::State::ActiveFocus) {
+        Q_EMIT activeFocusChanged();
+    }
+    if (states & Element::State::VisualFocus) {
+        Q_EMIT visualFocusChanged();
+    }
+    if (states & Element::State::Pressed) {
+        Q_EMIT pressedChanged();
+    }
+    if (states & Element::State::Checked) {
+        Q_EMIT checkedChanged();
+    }
+    if (states & Element::State::Highlighted) {
+        Q_EMIT highlightedChanged();
+    }
+    if (states & Element::State::Disabled) {
+        Q_EMIT enabledChanged();
+    }
+}
+
+ElementHint::ElementHint(QObject *parent)
+    : QObject(parent)
+{
+}
+
+QString ElementHint::name() const
+{
+    return m_name;
+}
+
+void ElementHint::setName(const QString &newName)
+{
+    if (newName == m_name) {
+        return;
+    }
+
+    m_name = newName;
+    update();
+    Q_EMIT nameChanged();
+}
+
+bool ElementHint::when() const
+{
+    return m_when;
+}
+
+void ElementHint::setWhen(bool newWhen)
+{
+    if (newWhen == m_when) {
+        return;
+    }
+
+    m_when = newWhen;
+    update();
+    Q_EMIT whenChanged();
+}
+
+void ElementHint::setElement(QuickElement *element)
+{
+    m_element = element;
+    update();
+}
+
+void ElementHint::update()
+{
+    if (m_element) {
+        m_element->updateHints();
+    }
+}
+
+ElementAttribute::ElementAttribute(QObject *parent)
+    : ElementHint(parent)
+{
+}
+
+QVariant ElementAttribute::value() const
+{
+    return m_value;
+}
+
+void ElementAttribute::setValue(const QVariant &newValue)
+{
+    if (newValue == m_value) {
+        return;
+    }
+
+    m_value = newValue;
+    update();
+    Q_EMIT valueChanged();
+}
+
+void ElementAttribute::update()
+{
+    if (m_element) {
+        m_element->updateAttributes();
+    }
+}
+
+void ElementAttribute::resetValue()
+{
+    setValue(QVariant{});
+}
+
+QuickElement::QuickElement(QObject *parent)
+    : QQuickAttachedPropertyPropagator(parent)
+{
+    m_element = Element::create();
+    m_element->installEventFilter(this);
+
+    StyleRegistry::instance()->platform()->installEventFilter(this);
+
+    m_statesGroup = std::make_unique<StatesGroup>(this);
+
+    initialize();
+
+    update();
+}
+
+QString QuickElement::styleId() const
+{
+    return m_styleId;
+}
+
+void QuickElement::setStyleId(const QString &newStyleId)
+{
+    if (newStyleId == m_styleId) {
+        return;
+    }
+
+    m_styleId = newStyleId;
+    setStyle(StyleRegistry::instance()->style(m_styleId));
+    update();
+
+    Q_EMIT styleIdChanged();
+}
+
+std::shared_ptr<Union::Style> QuickElement::style() const
+{
+    return m_style;
+}
+
+QString QuickElement::type() const
+{
+    return m_element->type();
+}
+
+void QuickElement::setType(const QString &newType)
+{
+    m_element->setType(newType);
+}
+
+QString QuickElement::elementId() const
+{
+    return m_element->id();
+}
+
+void QuickElement::setElementId(const QString &newId)
+{
+    m_element->setId(newId);
+}
+
+QQmlListProperty<ElementHint> QuickElement::hints()
+{
+    using HintFunctions = ListFunctions<ElementHint, &QuickElement::m_hints, &QuickElement::hintsChanged>;
+
+    return QQmlListProperty<ElementHint>(this,
+                                         nullptr,
+                                         &HintFunctions::append,
+                                         &HintFunctions::count,
+                                         &HintFunctions::at,
+                                         &HintFunctions::clear,
+                                         &HintFunctions::replace,
+                                         &HintFunctions::removeLast);
+}
+
+QObject *QuickElement::hint(const QString &name) const
+{
+    auto itr = std::ranges::find_if(m_hints, [&name](ElementHint *hint) {
+        return hint->name() == name;
+    });
+    return itr != m_hints.end() ? *itr : nullptr;
+}
+
+QStringList QuickElement::activeHints() const
+{
+    return m_element->hints();
+}
+
+QQmlListProperty<ElementAttribute> QuickElement::attributes()
+{
+    using AttributeFunctions = ListFunctions<ElementAttribute, &QuickElement::m_attributes, &QuickElement::attributesChanged>;
+
+    return QQmlListProperty<ElementAttribute>(this,
+                                              nullptr,
+                                              &AttributeFunctions::append,
+                                              &AttributeFunctions::count,
+                                              &AttributeFunctions::at,
+                                              &AttributeFunctions::clear,
+                                              &AttributeFunctions::replace,
+                                              &AttributeFunctions::removeLast);
+}
+
+StatesGroup *QuickElement::states() const
+{
+    return m_statesGroup.get();
+}
+
+Union::ElementQuery *QuickElement::query() const
+{
+    return m_query.get();
+}
+
+QuickElement *QuickElement::parentElement() const
+{
+    return static_cast<QuickElement *>(attachedParent());
+}
+
+QuickElement *QuickElement::qmlAttachedProperties(QObject *parent)
+{
+    return new QuickElement(parent);
+}
+
+void QuickElement::attachedParentChange(QQuickAttachedPropertyPropagator *, QQuickAttachedPropertyPropagator *)
+{
+    updateStyleFromParent();
+    update();
+}
+
+bool QuickElement::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_element.get() && event->type() == ElementChangedEvent::s_type) {
+        auto changeEvent = static_cast<ElementChangedEvent *>(event);
+        if (changeEvent->changes & Element::Change::Type) {
+            Q_EMIT typeChanged();
+        }
+        if (changeEvent->changes & Element::Change::Id) {
+            Q_EMIT elementIdChanged();
+        }
+        if (changeEvent->changes & Element::Change::States) {
+            m_statesGroup->setActiveStates(m_element->states());
+        }
+        if (changeEvent->changes & Element::Change::Hints) {
+            Q_EMIT hintsChanged();
+        }
+        if (changeEvent->changes & Element::Change::Attributes) {
+            Q_EMIT attributesChanged();
+        }
+
+        update();
+        return false;
+    }
+
+    if (event->type() == StyleChangedEvent::s_type) {
+        // Forward style changes so that other objects (QuickStyle) filtering
+        // this do not need to install their own event filter on a style that
+        // might change.
+        QCoreApplication::sendEvent(this, event);
+        return false;
+    }
+
+    if (event->type() == DefaultStyleChangedEvent::s_type) {
+        if (m_styleId.isEmpty() && !attachedParent()) {
+            setStyle(StyleRegistry::instance()->defaultStyle());
+            update();
+        }
+        return false;
+    }
+
+    return QObject::eventFilter(watched, event);
+}
+
+void QuickElement::classBegin()
+{
+}
+
+void QuickElement::componentComplete()
+{
+    m_completed = true;
+
+    if (!m_style) {
+        setStyle(nullptr);
+    }
+
+    // Add the window this element belongs to to WindowHandler so it can update
+    // it to include any required state changes. This is done here because we
+    // need a hook that is both late enoguh for most of the window stuff to
+    // already be initialized and at the same time we need a place that is
+    // called often enough that we're pretty sure we're tracking all the windows.
+    auto parentItem = qobject_cast<QQuickItem *>(parent());
+    if (parentItem) {
+        WindowHandler::instance()->addWindow(parentItem->window());
+    }
+
+    updateHints();
+    updateAttributes();
+    update();
+
+    // It is possible that `QQuickAttachedPropertyPropagator::initialize()`
+    // creates QuickElement instances that are not attached to a QQuickItem for
+    // which `componentComplete()` does not get called. So go through our
+    // ancestors once and ensure `componentComplete()` is called at least once
+    // for these elements, otherwise they are in a defunct state and do not work
+    // properly.
+    auto element = parentElement();
+    while (element) {
+        if (!element->m_completed && !qobject_cast<QQuickItem *>(element->parent())) {
+            element->componentComplete();
+        }
+        element = element->parentElement();
+    }
+}
+
+void QuickElement::setActiveStates(Union::Element::States newActiveStates)
+{
+    m_element->setStates(newActiveStates);
+}
+
+void QuickElement::setStyle(const std::shared_ptr<Union::Style> &newStyle)
+{
+    if (m_style) {
+        m_style->removeEventFilter(this);
+    }
+
+    m_style = newStyle;
+
+    if (!m_style) {
+        if (attachedParent()) {
+            auto attached = qobject_cast<QuickElement *>(attachedParent());
+            while (attached && !m_style) {
+                m_style = attached->style();
+                attached = qobject_cast<QuickElement *>(attached->attachedParent());
+            }
+        }
+
+        if (!m_style) {
+            m_style = StyleRegistry::instance()->defaultStyle();
+        }
+    }
+
+    m_style->installEventFilter(this);
+
+    const auto children = attachedChildren();
+    for (const auto &child : children) {
+        qobject_cast<QuickElement *>(child)->updateStyleFromParent();
+    }
+}
+
+void QuickElement::updateHints()
+{
+    if (!m_completed) {
+        return;
+    }
+
+    QStringList activeHints;
+    for (auto hint : m_hints) {
+        // Important: We may have duplicate hint declarations in the list. When
+        // that happens, we need to override the previous declaration, either by
+        // adding the hint if it was not there, or removing it if it is.
+        if (hint->when()) {
+            activeHints.append(hint->name());
+        } else {
+            activeHints.removeAll(hint->name());
+        }
+    }
+    m_element->setHints(activeHints);
+}
+
+void QuickElement::updateAttributes()
+{
+    if (!m_completed) {
+        return;
+    }
+
+    QVariantMap activeAttributes;
+    for (auto attribute : m_attributes) {
+        if (attribute->when() && attribute->value().isValid()) {
+            activeAttributes.insert(attribute->name(), attribute->value());
+        } else {
+            activeAttributes.remove(attribute->name());
+        }
+    }
+    m_element->setAttributes(activeAttributes);
+}
+
+void QuickElement::update()
+{
+    if (!m_completed) {
+        return;
+    }
+
+    m_query = std::make_unique<Union::ElementQuery>(m_style);
+
+    QList<Element::Ptr> elements;
+    elements.append(m_element);
+
+    auto attached = qobject_cast<QuickElement *>(attachedParent());
+    while (attached) {
+        elements.prepend(attached->m_element);
+        attached = qobject_cast<QuickElement *>(attached->attachedParent());
+    }
+
+    m_query->setElements(elements);
+    m_query->execute();
+
+    if (m_query->hasMatches()) {
+        // Force creation of a style attached object to ensure style properties
+        // are read from this element rather than something further up the
+        // hierarchy.
+        qmlAttachedPropertiesObject<QuickStyle>(parent(), true);
+    }
+
+    QuickElementUpdatedEvent event;
+    QCoreApplication::sendEvent(this, &event);
+
+    Q_EMIT updated();
+
+    const auto children = attachedChildren();
+    for (auto child : children) {
+        qobject_cast<QuickElement *>(child)->update();
+    }
+}
+
+void Quick::QuickElement::updateStyleFromParent()
+{
+    if (m_styleId.isEmpty() && attachedParent()) {
+        setStyle(qobject_cast<QuickElement *>(attachedParent())->style());
+    }
+}
+
+QuickElementUpdatedEvent::QuickElementUpdatedEvent()
+    : QEvent(QuickElementUpdatedEvent::s_type)
+{
+}
+
+#include "moc_QuickElement.cpp"

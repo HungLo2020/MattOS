@@ -4,6 +4,13 @@
 add_library(KF6Runner SHARED)
 add_library(KF6::Runner ALIAS KF6Runner)
 
+qt_extract_metatypes(KF6Runner OUTPUT_FILES METATYPES_FILE)
+
+# see https://qt-project.atlassian.net/browse/QTBUG-123052
+# might be replaced with proper Qt API once that exists
+get_filename_component(METATYPES_FILE_NAME ${METATYPES_FILE} NAME)
+target_sources(KF6Runner INTERFACE $<INSTALL_INTERFACE:${KDE_INSTALL_QTMETATYPESDIR}/${METATYPES_FILE_NAME}>)
+
 set_target_properties(KF6Runner PROPERTIES
     VERSION     ${KRUNNER_VERSION}
     SOVERSION   ${KRUNNER_SOVERSION}
@@ -59,7 +66,6 @@ target_link_libraries(KF6Runner
     PUBLIC
         Qt6::Core
         KF6::CoreAddons # KPluginFactory
-        KF6::ConfigCore
     PRIVATE
         Qt6::DBus
         Qt6::Gui
@@ -112,7 +118,26 @@ ecm_qt_install_logging_categories(
 
 ecm_generate_qdoc(KF6Runner krunner.qdocconf)
 
+install(FILES ${METATYPES_FILE} DESTINATION ${KDE_INSTALL_QTMETATYPESDIR})
+
 install(FILES
    "data/org.kde.krunner1.xml"
    DESTINATION ${KDE_INSTALL_DBUSINTERFACEDIR}
    RENAME kf6_org.kde.krunner1.xml)
+
+ecm_add_installed_library_check(KF6Runner
+    PACKAGE_NAME "KF6Runner"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+# AbstractRunnerTest is header-only, would need QTest to link
+list(FILTER KRunner_CamelCase_HEADERS EXCLUDE REGEX AbstractRunnerTest)
+
+ecm_installed_library_check_include_strings(KF6Runner
+    HEADERS ${KRunner_CamelCase_HEADERS}
+    PREFIX KRunner
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6Runner
+    PREFIX KRUNNER
+)

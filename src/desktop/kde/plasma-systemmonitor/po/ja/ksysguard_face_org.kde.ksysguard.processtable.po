@@ -1,13 +1,14 @@
-# SPDX-FileCopyrightText: 2024 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2021.
+# SPDX-FileCopyrightText: 2024 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # SPDX-FileCopyrightText: 2025 Yuma Kakei <yumasansansan@gmail.com>
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2025-09-21 16:21+0900\n"
-"Last-Translator: Yuma Kakei <yumasansansan@gmail.com>\n"
+"POT-Creation-Date: 2026-07-17 00:46+0000\n"
+"PO-Revision-Date: 2026-07-25 22:24+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 25.08.1\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: src/faces/processtable/contents/ui/Config.qml:25
 #, kde-format
@@ -120,120 +121,126 @@ msgctxt "@action"
 msgid "Configure Columns…"
 msgstr "カラムを設定…"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:247
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:242
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Set priority…"
-msgstr ""
+msgstr "優先度を設定…"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:253
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:248
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Set affinity…"
+msgstr "コアの割り当てを設定…"
+
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:255
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Send Signal"
 msgstr "シグナルを送る"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:257
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:259
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Suspend (STOP)"
 msgstr "一時停止 (STOP)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:261
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:263
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Continue (CONT)"
 msgstr "再開 (CONT)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:265
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:267
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Hangup (HUP)"
 msgstr "ハングアップ (HUP)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:269
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:271
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Interrupt (INT)"
 msgstr "割り込み (INT)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:273
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:275
 #, kde-format
 msgctxt "@action:inmenu  Send Signal"
 msgid "Terminate (TERM)"
 msgstr "終了 (TERM)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:277
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:279
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Kill (KILL)"
 msgstr "強制終了 (KILL)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:281
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:283
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "User 1 (USR1)"
 msgstr "ユーザ 1 (USR1)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:285
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:287
 #, kde-format
 msgctxt "@action:inmenu  Send Signal"
 msgid "User 2 (USR2)"
 msgstr "ユーザ 2 (USR2)"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:291
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:293
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Copy Current Column"
 msgstr "現在のカラムをコピー"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:300
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:302
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "End Process"
 msgid_plural "End %1 Processes"
 msgstr[0] "%1 個のプロセスを終了"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:313
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:315
 #, kde-format
 msgctxt "@action:inmenu hide column"
 msgid "Hide"
 msgstr "隠す"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:318
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:320
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Configure Columns…"
 msgstr "カラムを設定…"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:330
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:332
 #, kde-format
 msgctxt "@title:window"
 msgid "Forcibly End Process"
 msgid_plural "Forcibly End %1 Processes"
 msgstr[0] "%1 個のプロセスを強制終了"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:331
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:333
 #, kde-format
 msgctxt "@title:window"
 msgid "End Process"
 msgid_plural "End %1 Processes"
 msgstr[0] "%1 個のプロセスを終了"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:333
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:335
 #, kde-format
 msgctxt "@action:button"
 msgid "Forcibly End Process"
 msgid_plural "Forcibly End Processes"
 msgstr[0] "プロセスを強制終了"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:334
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:336
 #, kde-format
 msgctxt "@action:button"
 msgid "End Process"
 msgid_plural "End Processes"
 msgstr[0] "プロセスを終了"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:337
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:339
 #, kde-format
 msgid "Forcibly end (SIGKILL) this process? Unsaved work may be lost."
 msgid_plural ""
@@ -242,7 +249,7 @@ msgstr[0] ""
 "これら %1 個のプロセスを強制終了 (SIGKILL) しますか？\n"
 "保存されていない作業は失われます。"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:340
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:342
 #, kde-format
 msgid "End this process? Unsaved work may be lost."
 msgid_plural "End these %1 processes? Unsaved work may be lost."
@@ -250,7 +257,7 @@ msgstr[0] ""
 "これら %1 個のプロセスを終了しますか？\n"
 "保存されていない作業は失われます。"
 
-#: src/faces/processtable/contents/ui/FullRepresentation.qml:352
+#: src/faces/processtable/contents/ui/FullRepresentation.qml:354
 #, kde-format
 msgctxt "@item:intable %1 is process id, %2 is user name"
 msgid "Process ID %1, owned by %2"

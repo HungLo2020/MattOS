@@ -46,39 +46,43 @@ void QQmlJSScope::reparent(const QQmlJSScope::Ptr &parentScope, const QQmlJSScop
     childScope->m_parentScope = parentScope;
 }
 
-QQmlJSScope::Ptr QQmlJSScope::clone(const ConstPtr &origin)
-{
-    if (origin.isNull())
-        return QQmlJSScope::Ptr();
-    QQmlJSScope::Ptr cloned = create();
-    *cloned = *origin;
-    if (QQmlJSScope::Ptr parent = cloned->parentScope())
-        parent->m_childScopes.append(cloned);
-    return cloned;
-}
-
 /*!
 \internal
 Prepares the scope to be used by QQmlJSImportVisitor: we don't want to have "left-overs" from a
 potential previous import visitor run, so remove all information except for the information set
-by the qqmljsimporter (internalName, moduleName and isSingleton).
+by the qqmljsimporter (internalName, moduleName and isSingleton). Remove the scope's factory to
+avoid populating the scope via lazy-loading, if there is one.
+
+Warning: All pre-existing references to scope's children become invalid after this method was called.
+For example, a weak QQmlJSMetaProperty::type pointer pointing to a child of scope becomes invalid
+after resetForReparse was called. This is fine for snippets (that are never referenced by other files),
+and might cause bogus warnings (missing type for example) otherwise.
  */
-QQmlJSScope::Ptr QQmlJSScope::resetForReparse(Ptr &&scope)
+const QQmlJSScope::Ptr &QQmlJSScope::resetForReparse(const Ptr &scope)
 {
     auto *factory = scope.factory();
     if (!factory) {
         const QString moduleName = scope->moduleName();
+        const bool isSingleton = scope->isSingleton();
+        const QString filePath = scope->filePath();
         *scope = QQmlJSScope{ scope->internalName() };
         scope->setOwnModuleName(moduleName);
-        return std::move(scope);
+        scope->setIsSingleton(isSingleton);
+        scope->setFilePath(filePath);
+        return scope;
     }
-
+    // we are about to reparse the file belonging to this scope,
+    // so remove any factory to avoid populating the scope twice.
     const QString moduleName = factory->moduleName();
     const QString internalName = factory->internalName();
+    const bool isSingleton = factory->isSingleton();
+    const QString filePath = factory->filePath();
     *scope.factory() = QQmlJSScope::ConstPtr::Factory{ };
+    scope->setFilePath(filePath);
     scope->setOwnModuleName(moduleName);
     scope->setInternalName(internalName);
-    return std::move(scope);
+    scope->setIsSingleton(isSingleton);
+    return scope;
 }
 
 /*!
@@ -115,16 +119,6 @@ void QQmlJSScope::setLineNumber(quint32 lineNumber)
 void QQmlJSScope::setLineNumberInResolvedFile(quint32 lineNumber)
 {
     m_lineNumberInResolvedFile = lineNumber;
-}
-
-void QQmlJSScope::insertPropertyIdentifier(const QQmlJSMetaProperty &property)
-{
-    addOwnProperty(property);
-    QQmlJSMetaMethod method(
-            QQmlSignalNames::propertyNameToChangedSignalName(property.propertyName()), u"void"_s);
-    method.setMethodType(QQmlJSMetaMethodType::Signal);
-    method.setIsImplicitQmlPropertyChangeSignal(true);
-    addOwnMethod(method);
 }
 
 bool QQmlJSScope::hasMethod(const QString &name) const
@@ -729,7 +723,9 @@ void QQmlJSScope::resolveEnums(
         resolveList(enumScope, contextualTypes.arrayType());
         if (QString alias = it->alias(); !alias.isEmpty()
             && self->m_enumerations.constFind(alias) == self->m_enumerations.constEnd()) {
-            auto aliasScope = QQmlJSScope::clone(enumScope);
+            auto aliasScope = QQmlJSScope::create();
+            *aliasScope = *enumScope;
+            reparent(self, aliasScope);
             aliasScope->m_internalName = self->internalName() + QStringLiteral("::") + alias;
             QQmlJSMetaEnum cpy(*it);
             cpy.setType(QQmlJSScope::ConstPtr(aliasScope));
@@ -883,6 +879,14 @@ QQmlJSScope::AnnotatedScope QQmlJSScope::ownerOfMethod(const QQmlJSScope::ConstP
     });
 }
 
+QQmlJSScope::AnnotatedScope QQmlJSScope::ownerOfEnum(const QQmlJSScope::ConstPtr &self,
+                                                     const QString &name)
+{
+    return searchOwner(self, [&name](const QQmlJSScope::ConstPtr &scope) {
+        return scope->hasOwnEnumeration(name);
+    });
+}
+
 void QQmlJSScope::setPropertyLocallyRequired(const QString &name, bool isRequired)
 {
     if (!isRequired)
@@ -972,33 +976,10 @@ void QQmlJSScope::addOwnPropertyBindingInQmlIROrder(const QQmlJSMetaPropertyBind
         break;
     }
     case BindingTargetSpecifier::UnnamedPropertyTarget: {
-        // see QmlIR::PoolList<>::findSortedInsertionPoint()
-        const auto findInsertionPoint = [this](const QQmlJSMetaPropertyBinding &x) {
-            qsizetype pos = -1;
-            for (auto it = m_propertyBindingsArray.cbegin(); it != m_propertyBindingsArray.cend();
-                 ++it) {
-                if (!(it->sourceLocationOffset <= x.sourceLocation().offset))
-                    break;
-                ++pos;
-            }
-            return pos;
-        };
-
-        // see QmlIR::PoolList<>::insertAfter()
-        const auto insertAfter = [this](qsizetype pos, const QQmlJSMetaPropertyBinding &x) {
-            if (pos == -1) {
-                m_propertyBindingsArray.emplaceFront(x.propertyName(), x.sourceLocation().offset);
-            } else if (pos == m_propertyBindingsArray.size()) {
-                m_propertyBindingsArray.emplaceBack(x.propertyName(), x.sourceLocation().offset);
-            } else {
-                // since we insert *after*, use (pos + 1) as insertion point
-                m_propertyBindingsArray.emplace(pos + 1, x.propertyName(),
-                                                x.sourceLocation().offset);
-            }
-        };
-
-        const qsizetype insertionPos = findInsertionPoint(binding);
-        insertAfter(insertionPos, binding);
+        // Implicit default property bindings are appended in file order,
+        // matching QmlIR::Object::appendBinding().
+        m_propertyBindingsArray.emplaceBack(
+                binding.propertyName(), binding.sourceLocation().offset);
         break;
     }
     default: {
@@ -1235,16 +1216,12 @@ bool QQmlJSScope::Export::isValid() const
     return m_version.isValid() || !m_package.isEmpty() || !m_type.isEmpty();
 }
 
-QDeferredFactory<QQmlJSScope>::QDeferredFactory(QQmlJSImporter *importer, const TypeReader &typeReader,
-                                                const QString &filePath, const QString &moduleName, bool isSingleton)
+QDeferredFactory<QQmlJSScope>::QDeferredFactory(QQmlJSImporter *importer,
+                                                const QQmlJS::TypeReader &typeReader,
+                                                const QString &filePath, const QString &moduleName,
+                                                bool isSingleton)
     : m_importer(importer),
-      m_typeReader(typeReader ? typeReader
-                              : [](QQmlJSImporter *importer, const QString &filePath,
-                                   const QSharedPointer<QQmlJSScope> &scopeToPopulate) {
-                                    QQmlJSTypeReader defaultTypeReader(importer, filePath);
-                                    defaultTypeReader(scopeToPopulate);
-                                    return defaultTypeReader.errors();
-                                }),
+      m_typeReader(typeReader ? typeReader : QQmlJS::TypeReader{ QQmlJS::defaultTypeReader }),
       m_filePath(filePath),
       m_moduleName(moduleName),
       m_isSingleton(isSingleton)
@@ -1254,32 +1231,10 @@ QDeferredFactory<QQmlJSScope>::QDeferredFactory(QQmlJSImporter *importer, const 
 void QDeferredFactory<QQmlJSScope>::populate(const QSharedPointer<QQmlJSScope> &scope) const
 {
     scope->setOwnModuleName(m_moduleName);
-    scope->setFilePath(m_filePath);
-
-    QList<QQmlJS::DiagnosticMessage> errors = m_typeReader(m_importer, m_filePath, scope);
-    m_importer->m_globalWarnings.append(errors);
-
+    scope->setIsSingleton(m_isSingleton);
     scope->setInternalName(internalName());
-    QQmlJSScope::resolveEnums(
-            scope, m_importer->builtinInternalNames().contextualTypes());
-    QQmlJSScope::resolveList(
-            scope, m_importer->builtinInternalNames().contextualTypes().arrayType());
 
-    if (m_isSingleton && !scope->isSingleton()) {
-        m_importer->m_globalWarnings.append(
-                { QStringLiteral(
-                          "Type %1 declared as singleton in qmldir but missing pragma Singleton")
-                          .arg(scope->internalName()),
-                  QtCriticalMsg, QQmlJS::SourceLocation() });
-        scope->setIsSingleton(true);
-    } else if (!m_isSingleton && scope->isSingleton()) {
-        m_importer->m_globalWarnings.append(
-                { QStringLiteral("Type %1 not declared as singleton in qmldir "
-                                 "but using pragma Singleton")
-                          .arg(scope->internalName()),
-                  QtCriticalMsg, QQmlJS::SourceLocation() });
-        scope->setIsSingleton(false);
-    }
+    m_typeReader(m_importer, m_filePath, scope);
 }
 
 /*!
@@ -1485,6 +1440,8 @@ bool QQmlJSScope::isSameType(const ConstPtr &otherScope) const
 
 bool QQmlJSScope::inherits(const ConstPtr &base) const
 {
+    if (!base)
+        return false;
     for (const QQmlJSScope *scope = this; scope; scope = scope->baseType().get()) {
         if (scope->isSameType(base))
             return true;

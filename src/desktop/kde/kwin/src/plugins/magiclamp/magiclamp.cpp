@@ -48,29 +48,29 @@ void MagicLampEffect::reconfigure(ReconfigureFlags)
     const std::chrono::milliseconds d = MagicLampConfig::animationDuration() != 0
         ? std::chrono::milliseconds(MagicLampConfig::animationDuration())
         : 250ms;
-    m_duration = std::chrono::milliseconds(static_cast<int>(animationTime(d)));
+    m_duration = animationTime(d);
 }
 
-void MagicLampEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void MagicLampEffect::prePaintScreen(ScreenPrePaintData &data)
 {
     // We need to mark the screen windows as transformed. Otherwise the
     // whole screen won't be repainted, resulting in artefacts.
     data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
 
-    effects->prePaintScreen(data, presentTime);
+    effects->prePaintScreen(data);
 }
 
-void MagicLampEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime)
+void MagicLampEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data)
 {
     // Schedule window for transformation if the animation is still in
     //  progress
     auto animationIt = m_animations.find(w);
     if (animationIt != m_animations.end()) {
-        (*animationIt).timeLine.advance(presentTime);
+        (*animationIt).timeLine.advance(view);
         data.setTransformed();
     }
 
-    effects->prePaintWindow(view, w, data, presentTime);
+    effects->prePaintWindow(view, w, data);
 }
 
 void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, WindowQuadList &quads)
@@ -80,12 +80,12 @@ void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, Wi
         // 0 = not minimized, 1 = fully minimized
         const qreal progress = (*animationIt).timeLine.value();
 
-        QRect geo = w->frameGeometry().toRect();
-        QRect icon = w->iconGeometry().toRect();
+        Rect geo = w->frameGeometry().toRect();
+        Rect icon = w->iconGeometry().toRect();
         IconPosition position = Top;
         // If there's no icon geometry, minimize to the center of the screen
         if (!icon.isValid()) {
-            QRect extG = geo;
+            Rect extG = geo;
             QPoint pt = cursorPos().toPoint();
             // focussing inside the window is no good, leads to ugly artefacts, find nearest border
             if (extG.contains(pt)) {
@@ -129,7 +129,7 @@ void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, Wi
                     position = Right;
                 }
             }
-            icon = QRect(pt, QSize(0, 0));
+            icon = Rect(pt, QSize(0, 0));
         } else {
             // Assumption: there is a panel containing the icon position
             EffectWindow *panel = nullptr;
@@ -147,18 +147,18 @@ void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, Wi
             }
             if (panel) {
                 // Assumption: width of horizontal panel is greater than its height and vice versa
-                const QRectF windowScreen = effects->clientArea(ScreenArea, w);
+                const RectF windowScreen = effects->clientArea(ScreenArea, w);
 
                 if (panel->width() >= panel->height()) {
                     // horizontal panel
-                    if (icon.center().y() <= windowScreen.center().y()) {
+                    if (icon.verticalCenter() <= windowScreen.verticalCenter()) {
                         position = Top;
                     } else {
                         position = Bottom;
                     }
                 } else {
                     // vertical panel
-                    if (icon.center().x() <= windowScreen.center().x()) {
+                    if (icon.horizontalCenter() <= windowScreen.horizontalCenter()) {
                         position = Left;
                     } else {
                         position = Right;
@@ -167,7 +167,7 @@ void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, Wi
 
                 // If the panel is hidden, move the icon offscreen so the animation looks correct.
                 if (panel->isHidden()) {
-                    const QRectF panelScreen = effects->clientArea(ScreenArea, panel);
+                    const RectF panelScreen = effects->clientArea(ScreenArea, panel);
                     switch (position) {
                     case Bottom:
                         icon.moveTop(panelScreen.y() + panelScreen.height());
@@ -185,18 +185,18 @@ void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, Wi
                 }
             } else {
                 // we did not find a panel, so it might be autohidden
-                QRectF iconScreen = effects->clientArea(ScreenArea, icon.topLeft(), effects->currentDesktop());
+                RectF iconScreen = effects->clientArea(ScreenArea, icon.topLeft());
                 // as the icon geometry could be overlap a screen edge we use an intersection
-                QRectF rect = iconScreen.intersected(icon);
+                RectF rect = iconScreen.intersected(icon);
                 // here we need a different assumption: icon geometry borders one screen edge
                 // this assumption might be wrong for e.g. task applet being the only applet in panel
                 // in this case the icon borders two screen edges
                 // there might be a wrong animation, but not distorted
-                if (rect.x() == iconScreen.x()) {
+                if (rect.left() == iconScreen.left()) {
                     position = Left;
-                } else if (rect.x() + rect.width() == iconScreen.x() + iconScreen.width()) {
+                } else if (rect.right() == iconScreen.right()) {
                     position = Right;
-                } else if (rect.y() == iconScreen.y()) {
+                } else if (rect.top() == iconScreen.top()) {
                     position = Top;
                 } else {
                     position = Bottom;
@@ -225,7 +225,6 @@ void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, Wi
             const float maxY = icon.y() - geo.y();
 
             for (WindowQuad &quad : quads) {
-
                 if (quad[0].y() != lastQuad[0].y() || quad[2].y() != lastQuad[2].y()) {
                     quadFactor = quad[0].y() + (geo.height() - quad[0].y()) * progress;
                     offset[0] = (icon.y() + quad[0].y() - geo.y()) * progress * ((quadFactor * quadFactor * quadFactor) / height_cube);
@@ -256,7 +255,6 @@ void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, Wi
             const float minY = icon.y() + icon.height() - geo.y();
 
             for (WindowQuad &quad : quads) {
-
                 if (quad[0].y() != lastQuad[0].y() || quad[2].y() != lastQuad[2].y()) {
                     quadFactor = geo.height() - quad[0].y() + (quad[0].y()) * progress;
                     offset[0] = (geo.y() - icon.height() + geo.height() + quad[0].y() - icon.y()) * progress * ((quadFactor * quadFactor * quadFactor) / height_cube);
@@ -290,7 +288,6 @@ void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, Wi
             const float minX = icon.x() + icon.width() - geo.x();
 
             for (WindowQuad &quad : quads) {
-
                 if (quad[0].x() != lastQuad[0].x() || quad[1].x() != lastQuad[1].x()) {
                     quadFactor = geo.width() - quad[0].x() + (quad[0].x()) * progress;
                     offset[0] = (geo.x() - icon.width() + geo.width() + quad[0].x() - icon.x()) * progress * ((quadFactor * quadFactor * quadFactor) / width_cube);
@@ -324,7 +321,6 @@ void MagicLampEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, Wi
             const float maxX = icon.x() - geo.x();
 
             for (WindowQuad &quad : quads) {
-
                 if (quad[0].x() != lastQuad[0].x() || quad[1].x() != lastQuad[1].x()) {
                     quadFactor = quad[0].x() + (geo.width() - quad[0].x()) * progress;
                     offset[0] = (icon.x() + quad[0].x() - geo.x()) * progress * ((quadFactor * quadFactor * quadFactor) / width_cube);

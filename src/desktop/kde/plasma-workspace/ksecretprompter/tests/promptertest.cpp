@@ -25,6 +25,7 @@ PrompterTest::PrompterTest(QObject *parent)
 {
     QDBusObjectPath path(QDBusObjectPath(u"/org/kde/secretprompter/request/1"_s));
     Request *req = new Request(path);
+    Q_UNUSED(req);
 
     auto widget = new QWidget;
     widget->setMinimumSize(QSize(300, 300));
@@ -48,11 +49,7 @@ PrompterTest::PrompterTest(QObject *parent)
             break;
         }
         case KWindowSystem::Platform::Wayland:
-            connect(KWaylandExtras::self(), &KWaylandExtras::windowExported, this, [=](QWindow *window, const QString &handle) {
-                Q_UNUSED(window)
-                createCollectionPrompt(handle);
-            });
-            KWaylandExtras::exportWindow(widget->windowHandle());
+            KWaylandExtras::exportToplevel(widget->windowHandle()).then(this, createCollectionPrompt);
             break;
         case KWindowSystem::Platform::Unknown:
             qWarning() << "Unknown windowing system, cannot create prompt with valid window id";

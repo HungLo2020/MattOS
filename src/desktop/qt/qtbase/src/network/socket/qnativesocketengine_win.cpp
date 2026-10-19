@@ -703,70 +703,33 @@ bool QNativeSocketEnginePrivate::nativeConnect(const QHostAddress &address, quin
         ipv6only = ::setsockopt(socketDescriptor, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&ipv6only, sizeof(ipv6only) );
     }
 
-    forever {
-        int connectResult = ::WSAConnect(socketDescriptor, &aa.a, sockAddrSize, 0,0,0,0);
-        if (connectResult == SOCKET_ERROR) {
-            int err = WSAGetLastError();
-            WS_ERROR_DEBUG(err);
+    int connectResult = ::WSAConnect(socketDescriptor, &aa.a, sockAddrSize, nullptr, nullptr,
+                                        nullptr, nullptr);
+    int socketError = WSAGetLastError();
+    if (connectResult == SOCKET_ERROR) {
+        WS_ERROR_DEBUG(socketError);
 
-            switch (err) {
-            case WSANOTINITIALISED:
-                //###
-                break;
-            case WSAEWOULDBLOCK: {
-                // If WSAConnect returns WSAEWOULDBLOCK on the second
-                // connection attempt, we have to check SO_ERROR's
-                // value to detect ECONNREFUSED. If we don't get
-                // ECONNREFUSED, we'll have to treat it as an
-                // unfinished operation.
-                int value = 0;
-                QT_SOCKLEN_T valueSize = sizeof(value);
-                bool tryAgain = false;
-                bool errorDetected = false;
-                int tries = 0;
-                do {
-                    if (::getsockopt(socketDescriptor, SOL_SOCKET, SO_ERROR, (char *) &value, &valueSize) == 0) {
-                        if (value != NOERROR) {
-                            WS_ERROR_DEBUG(value);
-                            errorDetected = true;
-                            // MSDN says getsockopt with SO_ERROR clears the error, but it's not actually cleared
-                            // and this can affect all subsequent WSAConnect attempts, so clear it now.
-                            const int val = NO_ERROR;
-                            ::setsockopt(socketDescriptor, SOL_SOCKET, SO_ERROR, reinterpret_cast<const char*>(&val), sizeof val);
-                        } else {
-                            // When we get WSAEWOULDBLOCK the outcome was not known, so a
-                            // NOERROR might indicate that the result of the operation
-                            // is still unknown. We try again to increase the chance that we did
-                            // get the correct result.
-                            tryAgain = !tryAgain;
-                        }
-                        setErrorFromWSAError(value, this);
-                    }
-                    tries++;
-                } while (tryAgain && (tries < 2));
-
-                if (errorDetected)
-                    break;
-                // fall through to unfinished operation error handling
-                err = WSAEINPROGRESS;
-                Q_FALLTHROUGH();
-            }
-
-            default:
-                setErrorFromWSAError(err, this);
-                break;
-            }
-            if (socketState != QAbstractSocket::ConnectedState) {
-#if defined (QNATIVESOCKETENGINE_DEBUG)
-                qDebug("QNativeSocketEnginePrivate::nativeConnect(%s, %i) == false (%s)",
-                        address.toString().toLatin1().constData(), port,
-                        socketState == QAbstractSocket::ConnectingState
-                        ? "Connection in progress" : socketErrorString.toLatin1().constData());
-#endif
-                return false;
-            }
+        switch (socketError) {
+        case WSANOTINITIALISED:
+            //###
+            break;
+        case WSAEWOULDBLOCK: {
+            socketError = WSAEINPROGRESS;
+            Q_FALLTHROUGH();
         }
-        break;
+        default:
+            setErrorFromWSAError(socketError, this);
+            break;
+        }
+        if (socketState != QAbstractSocket::ConnectedState) {
+#if defined (QNATIVESOCKETENGINE_DEBUG)
+            qDebug("QNativeSocketEnginePrivate::nativeConnect(%s, %i) == false (%s)",
+                    address.toString().toLatin1().constData(), port,
+                    socketState == QAbstractSocket::ConnectingState
+                    ? "Connection in progress" : socketErrorString.toLatin1().constData());
+#endif
+            return false;
+        }
     }
 
 #if defined (QNATIVESOCKETENGINE_DEBUG)
@@ -776,6 +739,30 @@ bool QNativeSocketEnginePrivate::nativeConnect(const QHostAddress &address, quin
 
     socketState = QAbstractSocket::ConnectedState;
     return true;
+}
+
+bool QNativeSocketEnginePrivate::nativeCheckConnection()
+{
+    int value = 0;
+    QT_SOCKLEN_T optlen = sizeof(value);
+    char *optval = reinterpret_cast<char *>(&value);
+    if (::getsockopt(socketDescriptor, SOL_SOCKET, SO_ERROR, optval, &optlen) != 0)
+        return false;
+
+    if (value == NO_ERROR) {
+        socketState = QAbstractSocket::ConnectedState;
+        return true;
+    }
+
+    setErrorFromWSAError(value, this);
+    if (socketState == QAbstractSocket::ConnectingState
+            && value != WSAEWOULDBLOCK
+            && value != WSAEINPROGRESS
+            && value != WSAEALREADY) {
+        socketState = QAbstractSocket::UnconnectedState;
+    }
+
+    return socketState != QAbstractSocket::ConnectingState;
 }
 
 

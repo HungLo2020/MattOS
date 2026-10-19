@@ -31,10 +31,8 @@ private Q_SLOTS:
     void multiOutput();
     void clonesOutput();
     void configCanBeApplied();
-    void supportedFeatures();
     void testInvalidMode();
     void cleanupTestCase();
-    void testOutputPositionNormalization();
 };
 
 ConfigPtr testScreenConfig::getConfig()
@@ -54,7 +52,6 @@ ConfigPtr testScreenConfig::getConfig()
 
 void testScreenConfig::initTestCase()
 {
-    qputenv("KSCREEN_LOGGING", "false");
     qputenv("KSCREEN_BACKEND", "Fake");
 }
 
@@ -66,9 +63,7 @@ void testScreenConfig::cleanupTestCase()
 void testScreenConfig::singleOutput()
 {
     // json file for the fake backend
-    KScreen::BackendManager::instance()->setBackendArgs(
-        {{QStringLiteral("TEST_DATA"), TEST_DATA "singleoutput.json"},
-         {QStringLiteral("SUPPORTED_FEATURES"), QVariant::fromValue(KScreen::Config::Feature::PerOutputScaling)}});
+    KScreen::BackendManager::instance()->setBackendArgs({{QStringLiteral("TEST_DATA"), TEST_DATA "singleoutput.json"}});
 
     //     QVERIFY2(kscreen, KScreen::errorString().toLatin1());
 
@@ -122,9 +117,7 @@ void testScreenConfig::singleOutputWithoutPreferred()
 
 void testScreenConfig::multiOutput()
 {
-    KScreen::BackendManager::instance()->setBackendArgs(
-        {{QStringLiteral("TEST_DATA"), TEST_DATA "multipleoutput.json"},
-         {QStringLiteral("SUPPORTED_FEATURES"), QVariant::fromValue(KScreen::Config::Feature::PerOutputScaling)}});
+    KScreen::BackendManager::instance()->setBackendArgs({{QStringLiteral("TEST_DATA"), TEST_DATA "multipleoutput.json"}});
 
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());
@@ -229,34 +222,6 @@ void testScreenConfig::configCanBeApplied()
     QVERIFY(!Config::canBeApplied(nulllConfig));
 }
 
-void testScreenConfig::supportedFeatures()
-{
-    ConfigPtr config = getConfig();
-
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::None));
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::Writable));
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::PrimaryDisplay));
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::PerOutputScaling));
-
-    config->setSupportedFeatures(KScreen::Config::Feature::Writable | KScreen::Config::Feature::PrimaryDisplay);
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::Writable));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::PrimaryDisplay));
-
-    config->setSupportedFeatures(KScreen::Config::Feature::None);
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::None));
-
-    config->setSupportedFeatures(KScreen::Config::Feature::PerOutputScaling | KScreen::Config::Feature::Writable);
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::None));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::Writable));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::PerOutputScaling));
-
-    config->setSupportedFeatures(KScreen::Config::Feature::PerOutputScaling | KScreen::Config::Feature::Writable | KScreen::Config::Feature::PrimaryDisplay);
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::None));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::Writable));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::PrimaryDisplay));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::PerOutputScaling));
-}
-
 void testScreenConfig::testInvalidMode()
 {
     ModeList modes;
@@ -268,46 +233,6 @@ void testScreenConfig::testInvalidMode()
     QVERIFY(currentMode.isNull());
     QVERIFY(!currentMode);
     delete output;
-}
-
-void testScreenConfig::testOutputPositionNormalization()
-{
-    KScreen::BackendManager::instance()->setBackendArgs({{QStringLiteral("TEST_DATA"), TEST_DATA "multipleoutput.json"}});
-
-    const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
-    auto left = config->outputs().first();
-    auto right = config->outputs().last();
-    QVERIFY(!left.isNull());
-    QVERIFY(!right.isNull());
-    left->setPos(QPoint(-5000, 700));
-    right->setPos(QPoint(-3720, 666));
-    QCOMPARE(left->pos(), QPoint(-5000, 700));
-    QCOMPARE(right->pos(), QPoint(-3720, 666));
-
-    // start a set operation to fix up the positions
-    {
-        auto setop = new SetConfigOperation(config);
-        setop->exec();
-    }
-    QCOMPARE(left->pos(), QPoint(0, 34));
-    QCOMPARE(right->pos(), QPoint(1280, 0));
-
-    // make sure it doesn't touch a valid config
-    {
-        auto setop = new SetConfigOperation(config);
-        setop->exec();
-    }
-    QCOMPARE(left->pos(), QPoint(0, 34));
-    QCOMPARE(right->pos(), QPoint(1280, 0));
-
-    // positions of single outputs should be at 0, 0
-    left->setEnabled(false);
-    {
-        auto setop = new SetConfigOperation(config);
-        setop->exec();
-    }
-    QCOMPARE(right->pos(), QPoint());
 }
 
 QTEST_MAIN(testScreenConfig)

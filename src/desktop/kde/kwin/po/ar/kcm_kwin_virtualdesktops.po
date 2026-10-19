@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_kwindesktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-12-23 00:42+0000\n"
-"PO-Revision-Date: 2025-12-11 10:22+0400\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
+"PO-Revision-Date: 2026-09-15 17:12+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -30,7 +30,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "zayed.alsaidi@gmail.com"
 
-#: desktopsmodel.cpp:191
+#: desktopsmodel.cpp:188
 #, kde-format
 msgctxt "A numbered name for virtual desktops"
 msgid "Desktop %1"
@@ -42,17 +42,17 @@ msgstr[3] "سطح المكتب %1"
 msgstr[4] "سطح المكتب %1"
 msgstr[5] "سطح المكتب %1"
 
-#: desktopsmodel.cpp:479
+#: desktopsmodel.cpp:476
 #, kde-format
 msgid "There was an error connecting to the compositor."
 msgstr "حدث خطأ أثناء الاتصال ببرنامج مزج التأثيرات الخاصة للعرض."
 
-#: desktopsmodel.cpp:678
+#: desktopsmodel.cpp:672
 #, kde-format
 msgid "There was an error saving the settings to the compositor."
 msgstr "حدث خطأ أثناء حفظ الإعدادات إلى برنامج مزج التأثيرات الخاصة للعرض."
 
-#: desktopsmodel.cpp:681
+#: desktopsmodel.cpp:675
 #, kde-format
 msgid "There was an error requesting information from the compositor."
 msgstr ""
@@ -69,6 +69,12 @@ msgstr "الصّفوف:"
 msgctxt "@action:button"
 msgid "Add Desktop"
 msgstr "أضف سطح مكتب"
+
+#: ui/main.qml:82
+#, kde-kuit-format
+msgctxt "@label/rich"
+msgid "%1"
+msgstr "%1"
 
 #: ui/main.qml:90
 #, kde-format
@@ -118,22 +124,27 @@ msgstr "الخيارات:"
 msgid "Navigation wraps around"
 msgstr "يلف التنقل"
 
-#: ui/main.qml:229
+#: ui/main.qml:225
+#, kde-format
+msgid "Switch desktops independently for each screen"
+msgstr "بدّل بين سطح المكتب بشكل مستقل لكل شاشة"
+
+#: ui/main.qml:243
 #, kde-format
 msgid "Show animation when switching:"
 msgstr "أظهر التحريك عند التبديل:"
 
-#: ui/main.qml:280
+#: ui/main.qml:294
 #, kde-format
 msgid "Show on-screen display when switching:"
 msgstr "إظهار العرض على الشاشة عند التبديل:"
 
-#: ui/main.qml:299
+#: ui/main.qml:313
 #, kde-format
 msgid "%1 ms"
 msgstr "%1 مث"
 
-#: ui/main.qml:323
+#: ui/main.qml:337
 #, kde-format
 msgid "Show desktop layout indicators"
 msgstr "أظهر مؤشرات تخطيط سطح المكتب"

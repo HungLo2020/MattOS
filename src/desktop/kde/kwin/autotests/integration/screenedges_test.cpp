@@ -31,8 +31,6 @@ Q_DECLARE_METATYPE(KWin::ElectricBorder)
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_screen-edges-0");
-
 class TestObject : public QObject
 {
     Q_OBJECT
@@ -71,7 +69,7 @@ void ScreenEdgesTest::initTestCase()
     qRegisterMetaType<KWin::Window *>();
     qRegisterMetaType<KWin::ElectricBorder>("ElectricBorder");
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     // Disable effects, in particular present windows, which reserves a screen edge.
     auto config = kwinApp()->config();

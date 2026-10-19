@@ -1,11 +1,11 @@
-# SPDX-FileCopyrightText: 2002, 2003, 2004, 2005 Thomas Diehl <thd@kde.org>
+# SPDX-FileCopyrightText: 2002-2005 Thomas Diehl <thd@kde.org>
 # SPDX-FileCopyrightText: 2004 Stefan Winter <swinter@kde.org>
 # SPDX-FileCopyrightText: 2004 Thomas Fischer <thomas.fischer@t-fischer.net>
-# SPDX-FileCopyrightText: 2004, 2005, 2006, 2007 Stephan Johach <hunsum@gmx.de>
+# SPDX-FileCopyrightText: 2004-2007 Stephan Johach <hunsum@gmx.de>
 # SPDX-FileCopyrightText: 2005 Georg Schuster <gschuster@utanet.at>
-# SPDX-FileCopyrightText: 2005, 2006, 2007, 2008, 2009 Thomas Reitelbach <tr@erdfunkstelle.de>
-# SPDX-FileCopyrightText: 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2020 Burkhard Lück <lueck@hube-lueck.de>
-# SPDX-FileCopyrightText: 2007, 2008, 2009, 2010, 2011, 2012, 2013 Frederik Schwarzer <schwarzer@kde.org>
+# SPDX-FileCopyrightText: 2005-2009 Thomas Reitelbach <tr@erdfunkstelle.de>
+# SPDX-FileCopyrightText: 2006-2007, 2009-2015, 2020 Burkhard Lück <lueck@hube-lueck.de>
+# SPDX-FileCopyrightText: 2007-2013 Frederik Schwarzer <schwarzer@kde.org>
 # SPDX-FileCopyrightText: 2010 Johannes Obermayr <johannesobermayr@gmx.de>
 # SPDX-FileCopyrightText: 2010 Panagiotis Papadopoulos <pano_90@gmx.net>
 # SPDX-FileCopyrightText: 2012 Rolf Eike Beer <kde@opensource.sf-tec.de>
@@ -104,19 +104,19 @@ msgctxt "KCharsets|@item Text character set"
 msgid "Other"
 msgstr "Weitere"
 
-#: kcharsets.cpp:469
+#: kcharsets.cpp:472
 #, qt-format
 msgctxt "KCharsets|@item %1 character set, %2 encoding"
 msgid "%1 ( %2 )"
 msgstr "%1 ( %2 )"
 
-#: kcharsets.cpp:471
+#: kcharsets.cpp:474
 #, qt-format
 msgctxt "KCharsets|@item"
 msgid "Other encoding (%1)"
 msgstr "Andere Kodierung (%1)"
 
-#: kcharsets.cpp:502
+#: kcharsets.cpp:505
 #, qt-format
 msgctxt "KCharsets|@item Text encoding: %1 character set, %2 encoding"
 msgid "%1 ( %2 )"
@@ -216,7 +216,7 @@ msgstr ""
 "Die von Ihnen eingegebene E-Mail-Adresse ist ungültig, da sie unerwartet "
 "endet.\n"
 "Das rührt möglicherweise daher, dass Sie am Ende der E-Mail-Adresse ein "
-"gesondert behandeltes Zeichen wie \\ benutzt haben."
+"gesondert behandeltes Zeichen wie \\ verwendet haben."
 
 #: kemailaddress.cpp:554
 msgctxt "QObject|"
@@ -234,7 +234,7 @@ msgid ""
 "contain an actual email address, i.e. something of the form joe@example.org."
 msgstr ""
 "Die von Ihnen eingegebene E-Mail-Adresse ist ungültig, da es sich um keine "
-"echte E-Mail-Adresse in der Form wie z. B. joe@example.org zu handeln "
+"echte E-Mail-Adresse in der Form wie z. B. joe@example.org zu handeln "
 "scheint."
 
 #: kemailaddress.cpp:563
@@ -279,85 +279,85 @@ msgid ""
 "form joe@example.org."
 msgstr ""
 "Die von Ihnen eingegebene E-Mail-Adresse ist ungültig.\n"
-"Es handelt sich um keine echte E-Mail-Adresse in der Form wie z. B. "
+"Es handelt sich um keine echte E-Mail-Adresse in der Form wie z. B. "
 "joe@example.org."
 
-#: kencodingprober.cpp:238 kencodingprober.cpp:279
+#: kencodingprober.cpp:269 kencodingprober.cpp:310
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Disabled"
 msgstr "Deaktiviert"
 
-#: kencodingprober.cpp:240 kencodingprober.cpp:282
+#: kencodingprober.cpp:271 kencodingprober.cpp:313
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Universal"
 msgstr "Allgemein"
 
-#: kencodingprober.cpp:242 kencodingprober.cpp:324
+#: kencodingprober.cpp:273 kencodingprober.cpp:355
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Unicode"
 msgstr "Unicode"
 
-#: kencodingprober.cpp:244 kencodingprober.cpp:294
+#: kencodingprober.cpp:275 kencodingprober.cpp:325
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Cyrillic"
 msgstr "Kyrillisch"
 
-#: kencodingprober.cpp:246 kencodingprober.cpp:309
+#: kencodingprober.cpp:277 kencodingprober.cpp:340
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Western European"
 msgstr "Westeuropäisch"
 
-#: kencodingprober.cpp:248 kencodingprober.cpp:291
+#: kencodingprober.cpp:279 kencodingprober.cpp:322
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Central European"
 msgstr "Mitteleuropäisch"
 
-#: kencodingprober.cpp:250 kencodingprober.cpp:297
+#: kencodingprober.cpp:281 kencodingprober.cpp:328
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Greek"
 msgstr "Griechisch"
 
-#: kencodingprober.cpp:252 kencodingprober.cpp:300
+#: kencodingprober.cpp:283 kencodingprober.cpp:331
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Hebrew"
 msgstr "Hebräisch"
 
-#: kencodingprober.cpp:254 kencodingprober.cpp:306
+#: kencodingprober.cpp:285 kencodingprober.cpp:337
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Turkish"
 msgstr "Türkisch"
 
-#: kencodingprober.cpp:256 kencodingprober.cpp:303
+#: kencodingprober.cpp:287 kencodingprober.cpp:334
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Japanese"
 msgstr "Japanisch"
 
-#: kencodingprober.cpp:258 kencodingprober.cpp:288
+#: kencodingprober.cpp:289 kencodingprober.cpp:319
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Baltic"
 msgstr "Baltisch"
 
-#: kencodingprober.cpp:260 kencodingprober.cpp:312
+#: kencodingprober.cpp:291 kencodingprober.cpp:343
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Chinese Traditional"
 msgstr "Chinesisch (Langzeichen)"
 
-#: kencodingprober.cpp:262 kencodingprober.cpp:315
+#: kencodingprober.cpp:293 kencodingprober.cpp:346
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Chinese Simplified"
 msgstr "Chinesisch (Kurzzeichen)"
 
-#: kencodingprober.cpp:264 kencodingprober.cpp:318
+#: kencodingprober.cpp:295 kencodingprober.cpp:349
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Korean"
 msgstr "Koreanisch"
 
-#: kencodingprober.cpp:266 kencodingprober.cpp:321
+#: kencodingprober.cpp:297 kencodingprober.cpp:352
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Thai"
 msgstr "Thailändisch"
 
-#: kencodingprober.cpp:268 kencodingprober.cpp:285
+#: kencodingprober.cpp:299 kencodingprober.cpp:316
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Arabic"
 msgstr "Arabisch"

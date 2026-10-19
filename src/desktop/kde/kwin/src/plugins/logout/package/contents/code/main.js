@@ -22,14 +22,9 @@ var logoutEffect = {
         if (!logoutEffect.isLogoutWindow(window)) {
             return;
         }
-        // If the Out animation is still active, kill it.
-        if (window.outAnimation !== undefined) {
-            cancel(window.outAnimation);
-            delete window.outAnimation;
-        }
         window.inAnimation = animate({
             window: window,
-            duration: animationTime(800),
+            duration: animationTime(400),
             type: Effect.Opacity,
             from: 0.0,
             to: 1.0
@@ -39,14 +34,20 @@ var logoutEffect = {
         if (!logoutEffect.isLogoutWindow(window)) {
             return;
         }
-        // If the In animation is still active, kill it.
+        // If the In animation is still active, retarget it so
+        // the fade-out animation starts from the current opacity
+        // and uses the appropriate duration to reach target opacity
+        const duration = animationTime(200);
         if (window.inAnimation !== undefined) {
+            if (retarget(window.inAnimation, 0.0, duration)) {
+                return;
+            }
             cancel(window.inAnimation);
             delete window.inAnimation;
         }
         window.outAnimation = animate({
             window: window,
-            duration: animationTime(400),
+            duration: duration,
             type: Effect.Opacity,
             from: 1.0,
             to: 0.0

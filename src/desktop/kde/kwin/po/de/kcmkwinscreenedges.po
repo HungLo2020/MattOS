@@ -12,83 +12,83 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwinscreenedges\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
-"PO-Revision-Date: 2026-04-16 21:40+0200\n"
-"Last-Translator: Alexander Becker <alex-at-kde-l10n-de@freenet.de>\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
+"PO-Revision-Date: 2026-09-21 19:29+0200\n"
+"Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "Keine Aktion"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "Blick auf die Arbeitsfläche"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "Bildschirm sperren"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "KRunner anzeigen"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "Aktivitätenverwaltung"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "Anwendungsstarter"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "Fenster zeigen"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 – Alle Arbeitsflächen"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 – Aktuelle Arbeitsfläche"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 – Aktuelle Anwendung"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "Übersicht"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "Gitter"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "Fensterwechsel"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "Alternativer Fensterwechsel"
@@ -97,7 +97,7 @@ msgstr "Alternativer Fensterwechsel"
 #: main.ui:23
 #, kde-format
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
 msgstr ""
 "Um eine Aktion auszulösen, stoßen Sie mit dem Mauszeiger an den zugehörigen "
@@ -167,7 +167,8 @@ msgstr "Höhe des Bildschirms"
 #: main.ui:174
 #, kde-format
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
 msgstr ""
 "Arbeitsfläche wechseln, wenn der Mauszeiger an einen Bildschirmrand anstößt"
 
@@ -200,7 +201,7 @@ msgstr "Immer aktiviert"
 #: main.ui:206
 #, kde-format
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
 msgstr ""
 "Zum Anstoßen an einen Bildschirmrand benötigte Zeit, bevor die Aktion "
@@ -246,24 +247,24 @@ msgstr "&Eckenbarriere:"
 #, kde-format
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
 msgstr ""
 "Hier können Sie die virtuelle Eckbarriere zwischen Bildschirmen aktivieren "
-"oder deaktivieren. Die Barriere verhindert, dass sich der Zeiger zu einem "
-"anderen Bildschirm bewegt, wenn er bereits eine Bildschirmecke berührt. Dies "
-"erleichtert das Auslösen von Elementen der Benutzeroberfläche, wie z. B. die "
-"Schaltflächen zum Schließen maximierter Fenster, wenn mehrere Bildschirme "
-"verwendet werden."
+"oder deaktivieren. Die Barriere verhindert, dass sich der Mauszeiger zu "
+"einem anderen Bildschirm bewegt, wenn er bereits eine Bildschirmecke "
+"berührt. Dies erleichtert das Auslösen von Elementen der Benutzeroberfläche, "
+"wie z. B. die Schaltflächen zum Schließen maximierter Fenster, wenn mehrere "
+"Bildschirme verwendet werden."
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:283
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
-msgstr "Verhindert, dass der Zeiger die Bildschirmecken überquert."
+msgid "Prevents the pointer from crossing at screen corners."
+msgstr "Verhindert, dass der Mauszeiger die Bildschirmecken überquert."
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
 #: main.ui:290
@@ -282,20 +283,20 @@ msgid ""
 "screens."
 msgstr ""
 "Hier können Sie die Größe der Randbarriere zwischen verschiedenen "
-"Bildschirmen einstellen. Die Barriere fügt eine zusätzliche Distanz hinzu, "
+"Bildschirmen festlegen. Die Barriere fügt eine zusätzliche Distanz hinzu, "
 "die Sie mit Ihrem Mauszeiger zurücklegen müssen, bevor er die Kante zum "
 "anderen Bildschirm überquert. Dies erleichtert den Zugriff auf Elemente der "
-"Benutzeroberfläche wie z. B. Plasma-Kontrolleisten, die sich an einer Kante "
+"Benutzeroberfläche wie z. B. Plasma-Kontrolleisten, die sich an einer Kante "
 "zwischen Bildschirmen befinden."
 
 #. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:303
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
+msgid "Additional distance the pointer needs to travel to cross screen edges."
 msgstr ""
-"Zusätzliche Distanz, die der Zeiger zurücklegen muss, um den Bildschirmrand "
-"zu überqueren."
+"Zusätzliche Distanz, die der Mauszeiger zurücklegen muss, um den "
+"Bildschirmrand zu überqueren."
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:306

@@ -11,12 +11,11 @@
 #include "backendmanager_p.h"
 #include "config.h"
 #include "configoperation_p.h"
-#include "configserializer_p.h"
 #include "kscreen_debug.h"
 #include "output.h"
 
-#include <QDBusPendingCall>
-#include <QDBusPendingCallWatcher>
+#include <QDir>
+#include <QFutureWatcher>
 #include <ranges>
 
 using namespace KScreen;
@@ -30,9 +29,6 @@ class SetConfigOperationPrivate : public ConfigOperationPrivate
 public:
     explicit SetConfigOperationPrivate(const KScreen::ConfigPtr &config, ConfigOperation *qq);
 
-    void backendReady(org::kde::kscreen::Backend *backend) override;
-    void onConfigSet(QDBusPendingCallWatcher *watcher);
-    void normalizeOutputPositions();
     void fixPriorities();
 
     KScreen::ConfigPtr config;
@@ -47,50 +43,6 @@ SetConfigOperationPrivate::SetConfigOperationPrivate(const ConfigPtr &config, Co
     : ConfigOperationPrivate(qq)
     , config(config)
 {
-}
-
-void SetConfigOperationPrivate::backendReady(org::kde::kscreen::Backend *backend)
-{
-    ConfigOperationPrivate::backendReady(backend);
-
-    Q_Q(SetConfigOperation);
-
-    if (!backend) {
-        q->setError(tr("Failed to prepare backend"));
-        q->emitResult();
-        return;
-    }
-
-    const QVariantMap map = ConfigSerializer::serializeConfig(config).toVariantMap();
-    if (map.isEmpty()) {
-        q->setError(tr("Failed to serialize request"));
-        q->emitResult();
-        return;
-    }
-
-    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(backend->setConfig(map), this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this, &SetConfigOperationPrivate::onConfigSet);
-}
-
-void SetConfigOperationPrivate::onConfigSet(QDBusPendingCallWatcher *watcher)
-{
-    Q_Q(SetConfigOperation);
-
-    QDBusPendingReply<QVariantMap> reply = *watcher;
-    watcher->deleteLater();
-
-    if (reply.isError()) {
-        q->setError(reply.error().message());
-        q->emitResult();
-        return;
-    }
-
-    config = ConfigSerializer::deserializeConfig(reply.value());
-    if (!config) {
-        q->setError(tr("Failed to deserialize backend response"));
-    }
-
-    q->emitResult();
 }
 
 SetConfigOperation::SetConfigOperation(const ConfigPtr &config, QObject *parent)
@@ -111,60 +63,28 @@ ConfigPtr SetConfigOperation::config() const
 void SetConfigOperation::start()
 {
     Q_D(SetConfigOperation);
-    d->normalizeOutputPositions();
     d->fixPriorities();
-    if (BackendManager::instance()->method() == BackendManager::InProcess) {
-        auto backend = d->loadBackend();
-        QFutureWatcher<SetConfigResult> *watcher = new QFutureWatcher<SetConfigResult>(this);
-        connect(watcher, &QFutureWatcher<SetConfigResult>::finished, this, [this, watcher]() {
-            watcher->deleteLater();
-            const SetConfigResult result = watcher->result();
-            if (!result.has_value()) {
-                setError(result.error());
-            }
-            emitResult();
-        });
-
-        QFuture<SetConfigResult> pendingResult = backend->setConfig(d->config);
-        watcher->setFuture(pendingResult);
-    } else {
-        d->requestBackend();
+    auto backend = d->loadBackend();
+    if (!backend) {
+        return; // loadBackend() already set error and called emitResult() for us
     }
-}
-
-void SetConfigOperationPrivate::normalizeOutputPositions()
-{
-    if (!config) {
-        return;
-    }
-    int offsetX = INT_MAX;
-    int offsetY = INT_MAX;
-    const auto outputs = config->outputs();
-    for (const KScreen::OutputPtr &output : outputs) {
-        if (!output->isPositionable()) {
-            continue;
+    QFutureWatcher<SetConfigResult> *watcher = new QFutureWatcher<SetConfigResult>(this);
+    connect(watcher, &QFutureWatcher<SetConfigResult>::finished, this, [this, watcher]() {
+        watcher->deleteLater();
+        const SetConfigResult result = watcher->result();
+        if (!result.has_value()) {
+            setError(result.error());
         }
-        offsetX = qMin(output->pos().x(), offsetX);
-        offsetY = qMin(output->pos().y(), offsetY);
-    }
+        emitResult();
+    });
 
-    if (!offsetX && !offsetY) {
-        return;
-    }
-    qCDebug(KSCREEN) << "Correcting output positions by:" << QPoint(offsetX, offsetY);
-    for (const KScreen::OutputPtr &output : outputs) {
-        if (!output->isConnected() || !output->isEnabled()) {
-            continue;
-        }
-        QPoint newPos = QPoint(output->pos().x() - offsetX, output->pos().y() - offsetY);
-        qCDebug(KSCREEN) << "Moved output from" << output->pos() << "to" << newPos;
-        output->setPos(newPos);
-    }
+    QFuture<SetConfigResult> pendingResult = backend->setConfig(d->config);
+    watcher->setFuture(pendingResult);
 }
 
 void SetConfigOperationPrivate::fixPriorities()
 {
-    if (!config || !(config->supportedFeatures() & Config::Feature::PrimaryDisplay)) {
+    if (!config) {
         return;
     }
     // Here we make sure that among enabled outputs, each

@@ -24,7 +24,7 @@ class tst_qfloat16: public QObject
 
 private slots:
     void compareCompiles();
-    void relationalOperatorsAreConstexpr();
+    void operatorsAreConstexpr();
     void ordering_data();
     void ordering();
     void fuzzyCompare_data();
@@ -106,7 +106,7 @@ template <typename RHS> static constexpr bool checkArithmeticCompiles(qfloat16 l
 
     auto ps = +lhs;     // unary +
     auto ng = -lhs;     // unary -
-    static_assert(std::is_same_v<decltype(ps), qfloat16> || true); // broken, uses operator NearestFloat()
+    static_assert(std::is_same_v<decltype(ps), qfloat16>);
     static_assert(std::is_same_v<decltype(ng), qfloat16>);
 
     assertType(lhs + rhs);
@@ -119,6 +119,13 @@ template <typename RHS> static constexpr bool checkArithmeticCompiles(qfloat16 l
     assertType(rhs * lhs);
     assertType(rhs / qfloat16(1.0f));       // avoid division by zero
 
+    assertIsFloat16Ref(++lhs);
+    assertIsFloat16Ref(--lhs);
+    auto inc = lhs++;
+    auto dec = lhs--;
+    static_assert(std::is_same_v<decltype(inc), qfloat16>);
+    static_assert(std::is_same_v<decltype(dec), qfloat16>);
+
     // operators op=(integral) are missing
     if constexpr (!std::is_integral_v<RHS>) {
         assertIsFloat16Ref(lhs += rhs);
@@ -130,10 +137,11 @@ template <typename RHS> static constexpr bool checkArithmeticCompiles(qfloat16 l
     return true;
 }
 
-void tst_qfloat16::relationalOperatorsAreConstexpr()
+void tst_qfloat16::operatorsAreConstexpr()
 {
 #if QFLOAT16_IS_NATIVE
 
+    // relational
 #define CHECK_CONSTEXPR(Type) \
     do { \
         constexpr qfloat16 lhs = qfloat16(0.0f); \
@@ -164,6 +172,26 @@ void tst_qfloat16::relationalOperatorsAreConstexpr()
 
 #undef CHECK_CONSTEXPR
 
+    // arithmetic
+    static_assert(checkArithmeticCompiles({}, qfloat16(1.0f)));
+    static_assert(checkArithmeticCompiles(qfloat16(0.0f), qfloat16(1.0f)));
+#ifdef __STDCPP_FLOAT16_T__
+    static_assert(checkArithmeticCompiles(qfloat16(0.0f), 1.0f16));
+#endif
+    static_assert(checkArithmeticCompiles(qfloat16(0.0f), 1.0f));
+    static_assert(checkArithmeticCompiles(qfloat16(0.0f), 1.0));
+    static_assert(checkArithmeticCompiles(qfloat16(0.0f), 1.0L));
+    static_assert(checkArithmeticCompiles(qfloat16(0.0f), 1));
+
+    // combine
+    static_assert(+ +qfloat16{} == qfloat16{});
+    static_assert(+ +qfloat16{} == qfloat16(0.0f));
+    static_assert(+ +qfloat16(1.0f) == qfloat16(1.0f));
+    static_assert(-+-qfloat16(1.0f) == qfloat16(1.0f));
+    static_assert(qfloat16(1.0f) + qfloat16(0.0f) == qfloat16(1.0f));
+    static_assert(qfloat16(1.0f) - qfloat16(0.0f) == qfloat16(1.0f));
+    static_assert(qfloat16(1.0f) * qfloat16(0.0f) == qfloat16(0.0f));
+    static_assert(qfloat16(1.0f) / qfloat16(1.0f) == qfloat16(1.0f));
 #else
     QSKIP("This check is only relevant for native float16 types");
 #endif // QFLOAT16_IS_NATIVE
@@ -585,6 +613,16 @@ void tst_qfloat16::arithOps()
     QVERIFY(qFuzzyCompare(val1 * qfloat16(val2), val1 * val2));
     QVERIFY(qFuzzyCompare(val1 / qfloat16(val2), val1 / val2));
 
+    qfloat16 v{val1};
+    QCOMPARE(float(++v), val1 + 1);
+    QCOMPARE(float(v), val1 + 1);
+    QCOMPARE(float(--v), val1);
+    QCOMPARE(float(v), val1);
+    QCOMPARE(float(v--), val1);
+    QCOMPARE(float(v), val1 - 1);
+    QCOMPARE(float(v++), val1 - 1);
+    QCOMPARE(float(v), val1);
+
     float r1 = 0.f;
     r1 += qfloat16(val2);
     QVERIFY(qFuzzyCompare(r1,val2));
@@ -659,6 +697,10 @@ void tst_qfloat16::floatFromFloat16Full()
 }
 #endif
 
+QT_WARNING_PUSH
+// checked stack use and deemed it acceptable
+QT_WARNING_DISABLE_LARGE_STACK_FRAME
+
 void tst_qfloat16::floatToFloat16()
 {
     constexpr int count = 10000;
@@ -677,6 +719,8 @@ void tst_qfloat16::floatToFloat16()
     for (int i = 0; i < count; ++i)
         QVERIFY(out[i] == expected[i]);
 }
+
+QT_WARNING_POP
 
 void tst_qfloat16::floatFromFloat16()
 {

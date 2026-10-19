@@ -2,20 +2,20 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Martin Schlander <mschlander@opensuse.org>, 2012, 2013, 2014, 2015, 2016, 2017, 2019, 2020, 2021.
-# SPDX-FileCopyrightText: 2024 rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>
+# SPDX-FileCopyrightText: 2024, 2026 rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-27 02:42+0000\n"
-"PO-Revision-Date: 2024-10-26 11:01+0200\n"
-"Last-Translator: rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>\n"
+"POT-Creation-Date: 2026-09-06 00:47+0000\n"
+"PO-Revision-Date: 2026-05-07 10:25+0200\n"
+"Last-Translator: Rasmus Rosendahl-Kaa <rasmus@rosendahl-kaa.name>\n"
 "Language-Team: Danish <kde-i18n-doc@kde.org>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 24.08.2\n"
+"X-Generator: Lokalize 26.04.0\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
 #: actionlist.cpp:93
@@ -43,7 +43,7 @@ msgstr "Fastgør til opgavelinje"
 msgid "Add to Panel (Widget)"
 msgstr "Føj til panel (widget)"
 
-#: actionlist.cpp:316 rootmodel.cpp:538
+#: actionlist.cpp:316 rootmodel.cpp:590
 #, kde-format
 msgid "Recent Files"
 msgstr "Nylige filer"
@@ -64,35 +64,35 @@ msgctxt "@action opens a software center with the application"
 msgid "Uninstall or Manage Add-Ons…"
 msgstr "Afinstallér eller håndtér tilføjelser..."
 
-#: appentry.cpp:361
+#: appentry.cpp:410
 #, kde-format
 msgid "Hide Application"
 msgstr "Skjul program"
 
-#: appentry.cpp:423
+#: appentry.cpp:472
 #, kde-format
 msgctxt "App name (Comment or Generic name)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: appentry.cpp:425
+#: appentry.cpp:474
 #, kde-format
 msgctxt "Generic name (App name)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: appsmodel.cpp:38 appsmodel.cpp:74 computermodel.cpp:93 computermodel.cpp:219
-#: recentusagemodel.cpp:156 recentusagemodel.cpp:225
+#: appsmodel.cpp:38 appsmodel.cpp:74 computermodel.cpp:93 computermodel.cpp:220
+#: recentusagemodel.cpp:158 recentusagemodel.cpp:229
 #, kde-format
 msgid "Applications"
 msgstr "Programmer"
 
-#: appsmodel.cpp:171
+#: appsmodel.cpp:173
 #, kde-format
 msgid "Unhide Applications in this Submenu"
 msgstr "Stop med at skjule programmer i denne undermenu"
 
-#: appsmodel.cpp:180
+#: appsmodel.cpp:182
 #, kde-format
 msgid "Unhide Applications in '%1'"
 msgstr "Stop med at skjule programmer i \"%1\""
@@ -113,53 +113,67 @@ msgid "Computer"
 msgstr "Computer"
 
 #. i18n.
-#: kastatsfavoritesmodel.cpp:548 rootmodel.cpp:531 simplefavoritesmodel.cpp:33
+#: kastatsfavoritesmodel.cpp:537 rootmodel.cpp:574 simplefavoritesmodel.cpp:33
 #, kde-format
 msgid "Favorites"
 msgstr "Favoritter"
 
-#: recentusagemodel.cpp:154
+#: recentusagemodel.cpp:156
 #, kde-format
 msgid "Recently Used"
 msgstr "Nyligt anvendt"
 
-#: recentusagemodel.cpp:159 recentusagemodel.cpp:320
+#: recentusagemodel.cpp:160
+#, kde-format
+msgid "Places"
+msgstr "Steder"
+
+#: recentusagemodel.cpp:163 recentusagemodel.cpp:330
 #, kde-format
 msgid "Files"
 msgstr "Filer"
 
-#: recentusagemodel.cpp:253
+#: recentusagemodel.cpp:263
 #, kde-format
 msgid "Forget Application"
 msgstr "Glem program"
 
-#: recentusagemodel.cpp:318
-#, fuzzy, kde-format
-#| msgid "Folder"
+#: recentusagemodel.cpp:328
+#, kde-format
 msgid "Folders"
-msgstr "Mappe"
+msgstr "Mapper"
 
-#: recentusagemodel.cpp:359
+#: recentusagemodel.cpp:375
 #, kde-format
 msgid "Open Containing Folder"
 msgstr "Åbn indeholdende mappe"
 
-#: recentusagemodel.cpp:362
+#: recentusagemodel.cpp:380
+#, kde-format
+msgid "Forget Folder"
+msgstr "Glem mappe"
+
+#: recentusagemodel.cpp:380
 #, kde-format
 msgid "Forget File"
 msgstr "Glem fil"
 
-#: recentusagemodel.cpp:506
+#: recentusagemodel.cpp:526
 #, kde-format
 msgid "Forget All"
 msgstr "Glem alt"
 
-#: recentusagemodel.cpp:508
+#: recentusagemodel.cpp:528
 #, kde-format
 msgid "Forget All Applications"
 msgstr "Glem alle programmer"
 
-#: recentusagemodel.cpp:511
+#: recentusagemodel.cpp:530
+#, kde-format
+msgid "Forget All Folders"
+msgstr "Glem alle mapper"
+
+#: recentusagemodel.cpp:533
 #, kde-format
 msgid "Forget All Files"
 msgstr "Glem alle filer"
@@ -169,37 +183,47 @@ msgstr "Glem alle filer"
 msgid "All Applications"
 msgstr "Alle programmer"
 
-#: rootmodel.cpp:131
+#: rootmodel.cpp:134
 #, kde-format
 msgid "Hide %1"
 msgstr "Skjul %1"
 
-#: rootmodel.cpp:525
+#: rootmodel.cpp:568
 #, kde-format
 msgid "This shouldn't be visible! Use KICKER_FAVORITES_MODEL"
 msgstr "Dette burde ikke være synligt! Use KICKER_FAVORITES_MODEL"
 
-#: rootmodel.cpp:538
+#: rootmodel.cpp:581
+#, kde-format
+msgid "Recent Places"
+msgstr "Nylige steder"
+
+#: rootmodel.cpp:581
+#, kde-format
+msgid "Often Used Places"
+msgstr "Ofte anvendte steder"
+
+#: rootmodel.cpp:590
 #, kde-format
 msgid "Often Used Files"
 msgstr "Ofte anvendte filer"
 
-#: rootmodel.cpp:547
+#: rootmodel.cpp:599
 #, kde-format
 msgid "Recent Applications"
 msgstr "Nylige programmer"
 
-#: rootmodel.cpp:547
+#: rootmodel.cpp:599
 #, kde-format
 msgid "Often Used Applications"
 msgstr "Ofte anvendte programmer"
 
-#: rootmodel.cpp:562
+#: rootmodel.cpp:614
 #, kde-format
 msgid "Power / Session"
 msgstr "Strøm / session"
 
-#: runnermodel.cpp:226
+#: runnermodel.cpp:303
 #, kde-format
 msgid "Search results"
 msgstr "Søgeresultater"
@@ -290,7 +314,7 @@ msgstr "Genstart computeren"
 msgid "Turn off computer"
 msgstr "Sluk computeren"
 
-#: systemmodel.cpp:31
+#: systemmodel.cpp:30
 #, kde-format
 msgid "System actions"
 msgstr "Systemhandlinger"
@@ -488,9 +512,6 @@ msgstr "Systemhandlinger"
 
 #~ msgid "Removable Storage"
 #~ msgstr "Flytbare lagringsmedier"
-
-#~ msgid "Places"
-#~ msgstr "Steder"
 
 #~ msgid "Logout"
 #~ msgstr "Log ud"

@@ -1,6 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+pragma ComponentBehavior: Bound
+
 import QtCore
 import QtQuick
 import QtQuick.Layouts
@@ -15,22 +17,22 @@ GridLayout {
     required property int recorderCaptureTracker
     required property int preferredLeftWidth
 
+    property int framesReceived: 0
+
     columns: useLandscapeLayout === true ? 2 : 1
 
+    Connections {
+        target: screenCaptureVideoOutput.videoSink
+        function onVideoFrameChanged(frame) {
+            root.framesReceived += 1
+        }
+    }
+
     ScreenCapture {
-        id: screenCapture
+        id: capture
 
         onActiveChanged: () => {
             console.log("QScreenCapture active changed: " + active)
-
-            /*
-            // CheckBox has a weird behavior where it will remove our bindings when activated.
-            // Update the value manually here
-            if (active === true)
-                screenCaptureActiveCheckBox.checkState = Qt.Checked
-            else
-                screenCaptureActiveCheckBox.checkState = Qt.Unchecked
-            */
         }
 
         function errorToString(err) {
@@ -55,6 +57,8 @@ GridLayout {
         onErrorOccurred: (err, msg) => {
             console.log("ScreenCapture error occurred: (" + errorToString(err) + ") " + msg)
         }
+
+        onMaximumFrameRateChanged: console.log("QScreenCapture maximumFrameRate changed " + maximumFrameRate)
     }
 
     MediaRecorder {
@@ -77,7 +81,7 @@ GridLayout {
     }
 
     CaptureSession {
-        screenCapture: screenCapture
+        screenCapture: capture
         videoOutput: screenCaptureVideoOutput
         recorder: mediaRecorder
     }
@@ -99,23 +103,59 @@ GridLayout {
             }
         }
 
+        RowLayout {
+            Label {
+                text: "Framerate:"
+            }
+            TextField {
+                id: floatField
+                text: capture.maximumFrameRate
+                inputMethodHints: Qt.ImhFormattedNumbersOnly
+
+                validator: DoubleValidator {
+                    bottom: 1.0
+                    top: 1000.0
+                    decimals: 2
+                    notation: DoubleValidator.StandardNotation
+                    locale: "C"
+                }
+
+                onEditingFinished: {
+                    capture.maximumFrameRate = parseFloat(text)
+                }
+            }
+            Button {
+                text: "Reset"
+                onClicked: capture.maximumFrameRate = undefined
+            }
+        }
+
         CheckBox {
             id: screenCaptureActiveCheckBox
             text: "Active"
             onClicked: () => {
                 if (checkState === Qt.Checked)
-                    screenCapture.start()
+                    capture.start()
                 else
-                    screenCapture.stop()
+                    capture.stop()
 
-                checkState = screenCapture.active === true ? Qt.Checked : Qt.Unchecked
+                checkState = capture.active === true ? Qt.Checked : Qt.Unchecked
             }
+        }
+
+        Label {
+            text: "Frames received: " + root.framesReceived
+        }
+
+        Label {
+            readonly property size frameSize: screenCaptureVideoOutput.videoSink.videoSize
+            text: "Last frame size: " + frameSize.width + "x" + frameSize.height
         }
 
         Label {
             Layout.preferredWidth: root.preferredLeftWidth
             wrapMode: Text.WordWrap
-            text: "Error: " + screenCapture.errorLabel
+            text: "Error: " + capture.errorLabel
         }
 
         Label {
@@ -128,16 +168,16 @@ GridLayout {
                 id: screensListView
                 anchors.fill: parent
                 clip: true
-                model: Qt.application.screens
+                model: Application.screens
                 currentIndex: model
-                    .findIndex((item) => item === screenCapture.screen)
+                    .findIndex((item) => item === capture.screen)
                 delegate: ItemDelegate {
                     required property var modelData
                     required property int index
                     highlighted: ListView.isCurrentItem
                     text: modelData.name
                     onClicked: () => {
-                        screenCapture.screen = modelData
+                        capture.screen = modelData
                     }
                 }
             }

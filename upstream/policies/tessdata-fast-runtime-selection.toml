@@ -1,0 +1,5 @@
+schema_version = 1
+component = "tessdata-fast"
+upstream_commit = "65727574dfcd264acbb0c3e07860e4e9e9b22185"
+retained_paths = ["eng.traineddata", "osd.traineddata", "LICENSE", "README.md"]
+reason = "Provide the upstream 4.1.0 fast LSTM English and orientation/script detection models for offline Spectacle OCR. Other languages, training tooling and scripts are outside the default English desktop profile. The models support Tesseract 4 and 5; additional languages can be packaged separately without replacing these files."

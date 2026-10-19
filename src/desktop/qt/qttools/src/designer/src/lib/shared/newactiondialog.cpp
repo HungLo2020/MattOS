@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "newactiondialog_p.h"
 #include "ui_newactiondialog.h"
@@ -89,10 +90,8 @@ NewActionDialog::NewActionDialog(ActionEditor *parent) :
     m_ui->iconSelector->setFormEditor(form->core());
     FormWindowBase *formBase = qobject_cast<FormWindowBase *>(form);
 
-    if (formBase) {
-        m_ui->iconSelector->setPixmapCache(formBase->pixmapCache());
+    if (formBase)
         m_ui->iconSelector->setIconCache(formBase->iconCache());
-    }
 }
 
 NewActionDialog::~NewActionDialog()

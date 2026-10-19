@@ -6,6 +6,8 @@
 
 #include "kcmkwinxwayland.h"
 
+#include <qqml.h>
+
 #include <KConfigGroup>
 #include <KDesktopFile>
 #include <KLocalizedString>
@@ -36,15 +38,6 @@ void KcmXwayland::logout() const
                                                  QStringLiteral("org.kde.LogoutPrompt"),
                                                  QStringLiteral("promptLogout"));
     QDBusConnection::sessionBus().asyncCall(method);
-}
-
-void KcmXwayland::save()
-{
-    bool modifiedXwaylandEis = m_settings->xwaylandEisNoPromptItem()->isSaveNeeded();
-    KQuickManagedConfigModule::save();
-    if (modifiedXwaylandEis) {
-        Q_EMIT showLogoutMessage();
-    }
 }
 
 KcmXwayland::~KcmXwayland() = default;

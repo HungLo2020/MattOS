@@ -15,6 +15,7 @@
 
 namespace KWin
 {
+
 static const quint32 s_version = 8;
 static QList<PlasmaShellSurfaceInterface *> s_shellSurfaces;
 
@@ -100,7 +101,7 @@ void PlasmaShellInterfacePrivate::org_kde_plasma_shell_get_surface(QtWaylandServ
     auto shellSurface = new PlasmaShellSurfaceInterface(s, shell_resource);
     s_shellSurfaces.append(shellSurface);
 
-    QObject::connect(shellSurface, &QObject::destroyed, [shellSurface]() {
+    QObject::connect(shellSurface, &QObject::destroyed, shellSurface, [shellSurface]() {
         s_shellSurfaces.removeOne(shellSurface);
     });
 
@@ -230,13 +231,21 @@ void PlasmaShellSurfaceInterfacePrivate::org_kde_plasma_surface_set_panel_behavi
 
 void PlasmaShellSurfaceInterfacePrivate::org_kde_plasma_surface_set_skip_taskbar(Resource *resource, uint32_t skip)
 {
-    m_skipTaskbar = (bool)skip;
+    const bool newSkipTaskbar = bool(skip);
+    if (m_skipTaskbar == newSkipTaskbar) {
+        return;
+    }
+    m_skipTaskbar = newSkipTaskbar;
     Q_EMIT q->skipTaskbarChanged();
 }
 
 void PlasmaShellSurfaceInterfacePrivate::org_kde_plasma_surface_set_skip_switcher(Resource *resource, uint32_t skip)
 {
-    m_skipSwitcher = (bool)skip;
+    const bool newSkipSwitcher = bool(skip);
+    if (m_skipSwitcher == newSkipSwitcher) {
+        return;
+    }
+    m_skipSwitcher = newSkipSwitcher;
     Q_EMIT q->skipSwitcherChanged();
 }
 

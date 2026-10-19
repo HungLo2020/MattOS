@@ -88,6 +88,26 @@ void QQmlContextData::invalidate()
 {
     emitDestruction();
 
+    clearChildrenAndSiblings();
+    clearImportedScripts();
+
+    m_engine = nullptr;
+    clearParent();
+}
+
+void QQmlContextData::clearContextRecursively()
+{
+    emitDestruction();
+    clearExpressions();
+
+    for (auto ctxIt = m_childContexts; ctxIt; ctxIt = ctxIt->m_nextChild)
+        ctxIt->clearContextRecursively();
+
+    m_engine = nullptr;
+}
+
+void QQmlContextData::clearChildrenAndSiblings()
+{
     while (m_childContexts) {
         Q_ASSERT(m_childContexts != this);
         m_childContexts->invalidate();
@@ -99,8 +119,11 @@ void QQmlContextData::invalidate()
         m_nextChild = nullptr;
         m_prevChild = nullptr;
     }
+}
 
-    if (!m_hasWeakImportedScripts) { // invalidate might be called multiple times
+void QQmlContextData::clearImportedScripts()
+{
+    if (!m_hasWeakImportedScripts) { // might be called multiple times
         if (m_engine && !m_importedScripts.isNullOrUndefined()) {
             QV4::Scope scope(m_engine->handle());
             QV4::ScopedValue val(scope, m_importedScripts.value());
@@ -113,25 +136,41 @@ void QQmlContextData::invalidate()
             m_importedScripts.clear();
         }
     }
-
-    m_engine = nullptr;
-    clearParent();
 }
 
-void QQmlContextData::clearContextRecursively()
+void QQmlContextData::clearOwnedObjects()
 {
-    clearContext();
+    while (m_ownedObjects) {
+        QQmlData *co = m_ownedObjects;
+        m_ownedObjects = m_ownedObjects->nextContextObject;
 
-    for (auto ctxIt = m_childContexts; ctxIt; ctxIt = ctxIt->m_nextChild)
-        ctxIt->clearContextRecursively();
-
-    m_engine = nullptr;
+        if (co->context == this)
+            co->context = nullptr;
+        co->outerContext = nullptr;
+        co->nextContextObject = nullptr;
+        co->prevContextObject = nullptr;
+    }
 }
 
-void QQmlContextData::clearContext()
+void QQmlContextData::clearContextGuards()
 {
-    emitDestruction();
+    for (QQmlGuardedContextData *contextGuard = m_contextGuards; contextGuard;) {
+        // TODO: Is this dead code? Why?
+        QQmlGuardedContextData *next = contextGuard->next();
+        contextGuard->setContextData({});
+        contextGuard = next;
+    }
+    m_contextGuards = nullptr;
+}
 
+void QQmlContextData::clearIdValues()
+{
+    delete[] std::exchange(m_idValues, nullptr);
+    m_idValueCount = 0;
+}
+
+void QQmlContextData::clearExpressions()
+{
     QQmlJavaScriptExpression *expression = m_expressions;
     while (expression) {
         QQmlJavaScriptExpression *nextExpression = expression->m_nextExpression;
@@ -165,33 +204,17 @@ QQmlContextData::~QQmlContextData()
     m_linkedContext.reset();
 
     Q_ASSERT(refCount() == 1);
-    clearContext();
+    emitDestruction();
+    clearExpressions();
     Q_ASSERT(refCount() == 1);
 
-    while (m_ownedObjects) {
-        QQmlData *co = m_ownedObjects;
-        m_ownedObjects = m_ownedObjects->nextContextObject;
-
-        if (co->context == this)
-            co->context = nullptr;
-        co->outerContext = nullptr;
-        co->nextContextObject = nullptr;
-        co->prevContextObject = nullptr;
-    }
+    clearOwnedObjects();
     Q_ASSERT(refCount() == 1);
 
-    QQmlGuardedContextData *contextGuard = m_contextGuards;
-    while (contextGuard) {
-        // TODO: Is this dead code? Why?
-        QQmlGuardedContextData *next = contextGuard->next();
-        contextGuard->setContextData({});
-        contextGuard = next;
-    }
-    m_contextGuards = nullptr;
+    clearContextGuards();
     Q_ASSERT(refCount() == 1);
 
-    delete [] m_idValues;
-    m_idValues = nullptr;
+    clearIdValues();
 
     Q_ASSERT(refCount() == 1);
     if (m_publicContext)
@@ -323,6 +346,14 @@ QString QQmlContextData::findObjectId(const QObject *obj) const
     return QString();
 }
 
+void QQmlContextData::setTypeCompilationUnit(
+        const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit)
+{
+    m_propertyNameCache = QV4::IdentifierHash();
+    delete[] std::exchange(m_idValues, nullptr);
+    initFromTypeCompilationUnit(unit, m_componentObjectIndex);
+}
+
 void QQmlContextData::initFromTypeCompilationUnit(const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit, int subComponentIndex)
 {
     m_typeCompilationUnit = unit;
@@ -346,11 +377,24 @@ void QQmlContextData::addExpression(QQmlJavaScriptExpression *expression)
 
 void QQmlContextData::initPropertyNames() const
 {
-    if (m_typeCompilationUnit)
+    if (m_typeCompilationUnit) {
         m_propertyNameCache = m_typeCompilationUnit->namedObjectsPerComponent(m_componentObjectIndex);
-    else
-        m_propertyNameCache = QV4::IdentifierHash(m_engine->handle());
-    Q_ASSERT(!m_propertyNameCache.isEmpty());
+    } else {
+        auto engine = m_engine;
+        if (!engine) {
+            // in some circumstances, we run into an invalidated context. In that case, we have no engine
+            // obviously, there's also no names to be found. Ideally, we'd have a special empty IdentifierHash
+            // for this which doesn't depend on an engine being available, but that currently doesn't exist.
+            // If we're evaluating, we should however still be able to find a parent context with an engine
+            for (auto ctxt = parent(); ctxt; ctxt = ctxt->parent()) {
+                if ((engine = ctxt->engine()))
+                    break;
+            }
+        }
+        Q_ASSERT(engine);
+        m_propertyNameCache = QV4::IdentifierHash(engine->handle());
+    }
+    Q_ASSERT(m_propertyNameCache.isValid());
 }
 
 QUrl QQmlContextData::url() const

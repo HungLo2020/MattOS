@@ -1,13 +1,13 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024, 2025, 2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
+# SPDX-FileCopyrightText: 2014-2022, 2024-2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-05 02:42+0000\n"
-"PO-Revision-Date: 2026-01-18 16:24+0100\n"
+"POT-Creation-Date: 2026-09-10 00:48+0000\n"
+"PO-Revision-Date: 2026-07-08 09:42+0200\n"
 "Last-Translator: Stefan Asserhäll <stefan.asserhall@gmail.com>\n"
 "Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
 "Language: sv\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: code/tools.js:32
 #, kde-format
@@ -128,7 +128,7 @@ msgstr "En textetikett kan inte anges när panelen är vertikal."
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Show applications as:"
-msgstr "Visa program som:"
+msgstr "Visa program med:"
 
 #: ConfigGeneral.qml:159
 #, kde-format
@@ -184,113 +184,107 @@ msgstr "Använd kompakt stil för listalternativ"
 
 #: ConfigGeneral.qml:187
 #, kde-format
-msgctxt "@info:usagetip under a checkbox when Touch Mode is on"
-msgid "Automatically disabled when in Touch Mode"
-msgstr "Automatiskt inaktiverat i pekläge"
-
-#: ConfigGeneral.qml:195
-#, kde-format
 msgctxt "@option:check"
-msgid "Highlight newly installed applications"
+msgid "Highlight newly-installed applications"
 msgstr "Markera nyinstallerade program"
 
-#: ConfigGeneral.qml:200
+#: ConfigGeneral.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Switch sidebar categories when hovering over them"
 msgstr "Ändra sidoradskategorier när muspekaren hålls över dem"
 
-#: ConfigGeneral.qml:206
+#: ConfigGeneral.qml:198
 #, kde-format
 msgctxt "@action:button opens plasmasearch kcm"
 msgid "Configure Search Plugins…"
 msgstr "Anpassa sökinsticksprogram…"
 
-#: ConfigGeneral.qml:216
+#: ConfigGeneral.qml:208
 #, kde-format
 msgctxt "@label:group prefix for radio button group"
 msgid "Sidebar position:"
 msgstr "Sidoradens position:"
 
-#: ConfigGeneral.qml:217 ConfigGeneral.qml:225
+#: ConfigGeneral.qml:209 ConfigGeneral.qml:217
 #, kde-format
 msgctxt "@option:radio sidebar position"
 msgid "Right"
 msgstr "Höger"
 
-#: ConfigGeneral.qml:217
+#: ConfigGeneral.qml:209
 #, kde-format
 msgctxt "option:radio sidebar position"
 msgid "Left"
 msgstr "Vänster"
 
-#: ConfigGeneral.qml:225
+#: ConfigGeneral.qml:217
 #, kde-format
 msgctxt "@option:radio sidebar position"
 msgid "Left"
 msgstr "Vänster"
 
-#: ConfigGeneral.qml:233
+#: ConfigGeneral.qml:225
 #, kde-format
 msgctxt "@title:group prefix for radio button group"
 msgid "Show favorites:"
 msgstr "Visa favoriter:"
 
-#: ConfigGeneral.qml:234
+#: ConfigGeneral.qml:226
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show favorites in a grid'"
 msgid "In a grid"
 msgstr "I ett rutnät"
 
-#: ConfigGeneral.qml:242
+#: ConfigGeneral.qml:234
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show favorites in a list'"
 msgid "In a list"
 msgstr "I en lista"
 
-#: ConfigGeneral.qml:250
+#: ConfigGeneral.qml:242
 #, kde-format
 msgctxt "@title:group prefix for radio button group"
 msgid "Show other applications:"
 msgstr "Visa övriga program:"
 
-#: ConfigGeneral.qml:251
+#: ConfigGeneral.qml:243
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show other applications in a grid'"
 msgid "In a grid"
 msgstr "I ett rutnät"
 
-#: ConfigGeneral.qml:259
+#: ConfigGeneral.qml:251
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show other applications in a list'"
 msgid "In a list"
 msgstr "I en lista"
 
-#: ConfigGeneral.qml:271
+#: ConfigGeneral.qml:263
 #, kde-format
 msgctxt "@title:group prefix for radio button group"
 msgid "Show buttons for:"
 msgstr "Visa knappar för:"
 
-#: ConfigGeneral.qml:272
+#: ConfigGeneral.qml:264
 #, kde-format
 msgctxt "@option:radio Show buttons for"
 msgid "Power"
-msgstr "Ström"
+msgstr "Strömhantering"
 
-#: ConfigGeneral.qml:281
+#: ConfigGeneral.qml:273
 #, kde-format
 msgctxt "@option:radio Show buttons for"
 msgid "Session"
 msgstr "Session"
 
-#: ConfigGeneral.qml:290
+#: ConfigGeneral.qml:282
 #, kde-format
 msgctxt "@option:radio Show buttons for"
 msgid "Power and session"
-msgstr "Ström och session"
+msgstr "Strömhantering och session"
 
-#: ConfigGeneral.qml:299
+#: ConfigGeneral.qml:291
 #, kde-format
 msgctxt "@option:check"
 msgid "Show action button captions"
@@ -308,7 +302,7 @@ msgctxt "@title:tab kickoff sidebar tab"
 msgid "Places"
 msgstr "Platser"
 
-#: FullRepresentation.qml:133
+#: FullRepresentation.qml:143
 #, kde-format
 msgctxt "@info:status"
 msgid "No matches"
@@ -326,42 +320,40 @@ msgctxt ""
 "@action:button Pin widget open if it loses focus, icon-only button, for "
 "tooltip/Accessible"
 msgid "Keep Open"
-msgstr "Behåll öppen"
+msgstr "Behåll öppet"
 
 #: KickoffGridDelegate.qml:59
 #, kde-format
-msgctxt "@label Newly installed app, badge, keep short"
+msgctxt "@label Newly-installed app, badge, keep short"
 msgid "New!"
 msgstr "Ny!"
 
-#: KickoffGridDelegate.qml:60
+#: KickoffGridDelegate.qml:61
 #, kde-format
 msgctxt "@label Accessible name for badge"
-msgid "Newly installed application"
+msgid "Newly-installed application"
 msgstr "Nyinstallerat program"
 
-#: KickoffGridView.qml:105
+#: KickoffGridView.qml:116
 #, kde-format
 msgctxt "@info:whatsthis Accessible description"
 msgid "Grid with %1 rows, %2 columns"
 msgstr "Rutnät med %1 rader, %2 kolumner"
 
-#: KickoffListDelegate.qml:117
+#: KickoffListDelegate.qml:120
 #, kde-format
-msgctxt "Newly installed app, badge, keep short"
+msgctxt "Newly-installed app, badge, keep short"
 msgid "New!"
 msgstr "Ny!"
 
-#: KickoffListDelegate.qml:118
+#: KickoffListDelegate.qml:125
 #, kde-format
-msgctxt "@info:whatsthis Accessible description for badge"
-msgid "There is a newly installed application in this category"
+msgid "There is a newly-installed application in this category"
 msgstr "Det finns ett nyinstallerat program i kategorin"
 
-#: KickoffListDelegate.qml:119
+#: KickoffListDelegate.qml:126
 #, kde-format
-msgctxt "@info:whatsthis Accessible description for badge"
-msgid "Newly installed application"
+msgid "Newly-installed application"
 msgstr "Nyinstallerat program"
 
 #: LeaveButtons.qml:171
@@ -374,7 +366,7 @@ msgstr "Session"
 #, kde-format
 msgctxt "@title:menu menubutton"
 msgid "Power"
-msgstr "Ström"
+msgstr "Strömhantering"
 
 #: LeaveButtons.qml:171
 #, kde-format
@@ -388,29 +380,43 @@ msgctxt "@title:menu menubutton"
 msgid "Session and Power"
 msgstr "Session och ström"
 
-#: main.qml:357
+#: main.qml:358
 #, kde-format
 msgctxt "@action:inmenu launches kmenuedit"
 msgid "Edit Applications…"
 msgstr "Redigera program…"
 
-#: PlacesPage.qml:64
+#: PlacesPage.qml:61
 #, kde-format
 msgctxt "category in Places sidebar"
 msgid "Computer"
 msgstr "Dator"
 
-#: PlacesPage.qml:65
+#: PlacesPage.qml:62
 #, kde-format
 msgctxt "category in Places sidebar"
 msgid "History"
 msgstr "Historik"
 
-#: PlacesPage.qml:66
+#: PlacesPage.qml:63
 #, kde-format
 msgctxt "category in Places sidebar"
 msgid "Frequently Used"
 msgstr "Oftast använda"
+
+#~ msgctxt "Newly installed app, badge, keep short"
+#~ msgid "New!"
+#~ msgstr "Ny!"
+
+#, fuzzy
+#~| msgid "Newly installed application"
+#~ msgctxt "@info:whatsthis Accessible description for badge"
+#~ msgid "Newly installed application"
+#~ msgstr "Nyinstallerat program"
+
+#~ msgctxt "@info:usagetip under a checkbox when Touch Mode is on"
+#~ msgid "Automatically disabled when in Touch Mode"
+#~ msgstr "Automatiskt inaktiverat i pekläge"
 
 #~ msgctxt "Part of a sentence: 'Show other applications in a grid'"
 #~ msgid "In a grid"

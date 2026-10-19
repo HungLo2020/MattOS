@@ -3,13 +3,13 @@
 #
 # Martin Schlander <mschlander@opensuse.org>, 2014, 2015, 2016, 2017, 2018, 2019, 2020.
 # scootergrisen, 2019.
-# SPDX-FileCopyrightText: 2024, 2025 rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>
+# SPDX-FileCopyrightText: 2024-2026 rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-24 02:42+0000\n"
-"PO-Revision-Date: 2025-10-31 23:19+0100\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
+"PO-Revision-Date: 2026-05-07 22:59+0200\n"
 "Last-Translator: Rasmus Rosendahl-Kaa <rasmus@rosendahl-kaa.name>\n"
 "Language-Team: Danish <kde-i18n-doc@kde.org>\n"
 "Language: da\n"
@@ -17,144 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.08.2\n"
-
-#: contents/logout/Logout.qml:152
-#, kde-format
-msgid "Installing software updates and restarting in 1 second"
-msgid_plural "Installing software updates and restarting in %1 seconds"
-msgstr[0] "Installere softwareopdateringer og genstarter om et sekund"
-msgstr[1] "Installere softwareopdateringer og genstarter om %1 sekunder"
-
-#: contents/logout/Logout.qml:153
-#, kde-format
-msgid "Restarting in 1 second"
-msgid_plural "Restarting in %1 seconds"
-msgstr[0] "Genstarter om 1 sekund"
-msgstr[1] "Genstarter om %1 sekunder"
-
-#: contents/logout/Logout.qml:155
-#, kde-format
-msgid "Logging out in 1 second"
-msgid_plural "Logging out in %1 seconds"
-msgstr[0] "Logger ud om 1 sekund"
-msgstr[1] "Logger ud om %1 sekunder"
-
-#: contents/logout/Logout.qml:158
-#, kde-format
-msgid "Installing software updates and shutting down in 1 second"
-msgid_plural "Installing software updates and shutting down in %1 seconds"
-msgstr[0] "Installerer softwareopdateringer og genstarter om ét sekund"
-msgstr[1] "Installerer softwareopdateringer og genstarter om %1 sekunder"
-
-#: contents/logout/Logout.qml:159
-#, kde-format
-msgid "Shutting down in 1 second"
-msgid_plural "Shutting down in %1 seconds"
-msgstr[0] "Lukker ned om 1 sekund"
-msgstr[1] "Lukker ned om %1 sekunder"
-
-#: contents/logout/Logout.qml:174
-#, kde-format
-msgid ""
-"One other user is currently logged in. If the computer is shut down or "
-"restarted, that user may lose work."
-msgid_plural ""
-"%1 other users are currently logged in. If the computer is shut down or "
-"restarted, those users may lose work."
-msgstr[0] ""
-"En anden bruger er i øjeblikket logget ind. Hvis computeren lukkes ned eller "
-"genstartes, så kan brugeren miste sit arbejde."
-msgstr[1] ""
-"%1 andre brugere er i øjeblikket logget ind. Hvis computeren lukkes ned "
-"eller genstartes, så kan brugerne miste deres arbejde."
-
-#: contents/logout/Logout.qml:189
-#, kde-format
-msgid "When restarted, the computer will enter the firmware setup screen."
-msgstr ""
-"Når den er blevet genstartet går computeren ind i firmwareopsætningsskærmen."
-
-#: contents/logout/Logout.qml:202
-#, kde-format
-msgid "When restarted, the computer will enter the boot loader menu."
-msgstr "Når den er blevet genstartet, går computeren ind i boot loader-menuen."
-
-#: contents/logout/Logout.qml:215
-#, fuzzy, kde-format
-#| msgid "When restarted, the computer will enter the boot loader menu."
-msgctxt "%1 is a boot loader entry"
-msgid "When restarted, the computer will switch to %1."
-msgstr "Når den er blevet genstartet, går computeren ind i boot loader-menuen."
-
-#: contents/logout/Logout.qml:237
-#, kde-format
-msgctxt "Suspend to RAM"
-msgid "Slee&p"
-msgstr "Slu&mre"
-
-#: contents/logout/Logout.qml:238
-#, kde-format
-msgctxt "Suspend to RAM"
-msgid "Slee&p Now"
-msgstr "Slu&mre nu"
-
-#: contents/logout/Logout.qml:247
-#, kde-format
-msgid "&Hibernate"
-msgstr "&Dvale"
-
-#: contents/logout/Logout.qml:248
-#, kde-format
-msgid "&Hibernate Now"
-msgstr "&Gå i dvale nu"
-
-#: contents/logout/Logout.qml:259
-#, kde-format
-msgctxt "@action:button Keep short"
-msgid "Install Updates and Restart"
-msgstr "Installér opdateringer og genstart"
-
-#: contents/logout/Logout.qml:261 contents/logout/Logout.qml:280
-#, kde-format
-msgid "&Restart"
-msgstr "&Genstart"
-
-#: contents/logout/Logout.qml:262 contents/logout/Logout.qml:281
-#, kde-format
-msgid "&Restart Now"
-msgstr "&Genstart nu"
-
-#: contents/logout/Logout.qml:294
-#, kde-format
-msgctxt "@action:button Keep short"
-msgid "Install Updates and Shut Down"
-msgstr "Installér opdateringer og luk ned"
-
-#: contents/logout/Logout.qml:296 contents/logout/Logout.qml:315
-#, kde-format
-msgid "&Shut Down"
-msgstr "&Luk ned"
-
-#: contents/logout/Logout.qml:297 contents/logout/Logout.qml:316
-#, kde-format
-msgid "&Shut Down Now"
-msgstr "&Luk ned nu"
-
-#: contents/logout/Logout.qml:328
-#, kde-format
-msgid "&Log Out"
-msgstr "&Log ud"
-
-#: contents/logout/Logout.qml:329
-#, kde-format
-msgid "&Log Out Now"
-msgstr "&Log ud nu"
-
-#: contents/logout/Logout.qml:339
-#, kde-format
-msgid "&Cancel"
-msgstr "&Annullér"
+"X-Generator: Lokalize 26.04.1\n"
 
 #: contents/splash/Splash.qml:79
 #, kde-format
@@ -162,8 +25,114 @@ msgctxt ""
 "This is the first text the user sees while starting in the splash screen, "
 "should be translated as something short, is a form that can be seen on a "
 "product. Plasma is the project name so shouldn't be translated."
-msgid "Plasma made by KDE"
-msgstr "Plasma skabt af KDE"
+msgid "Plasma 30th Anniversary Edition by KDE"
+msgstr ""
+
+#~ msgctxt ""
+#~ "This is the first text the user sees while starting in the splash screen, "
+#~ "should be translated as something short, is a form that can be seen on a "
+#~ "product. Plasma is the project name so shouldn't be translated."
+#~ msgid "Plasma made by KDE"
+#~ msgstr "Plasma skabt af KDE"
+
+#~ msgid "Installing software updates and restarting in 1 second"
+#~ msgid_plural "Installing software updates and restarting in %1 seconds"
+#~ msgstr[0] "Installere softwareopdateringer og genstarter om et sekund"
+#~ msgstr[1] "Installere softwareopdateringer og genstarter om %1 sekunder"
+
+#~ msgid "Restarting in 1 second"
+#~ msgid_plural "Restarting in %1 seconds"
+#~ msgstr[0] "Genstarter om 1 sekund"
+#~ msgstr[1] "Genstarter om %1 sekunder"
+
+#~ msgid "Logging out in 1 second"
+#~ msgid_plural "Logging out in %1 seconds"
+#~ msgstr[0] "Logger ud om 1 sekund"
+#~ msgstr[1] "Logger ud om %1 sekunder"
+
+#~ msgid "Installing software updates and shutting down in 1 second"
+#~ msgid_plural "Installing software updates and shutting down in %1 seconds"
+#~ msgstr[0] "Installerer softwareopdateringer og genstarter om ét sekund"
+#~ msgstr[1] "Installerer softwareopdateringer og genstarter om %1 sekunder"
+
+#~ msgid "Shutting down in 1 second"
+#~ msgid_plural "Shutting down in %1 seconds"
+#~ msgstr[0] "Lukker ned om 1 sekund"
+#~ msgstr[1] "Lukker ned om %1 sekunder"
+
+#~ msgid ""
+#~ "One other user is currently logged in. If the computer is shut down or "
+#~ "restarted, that user may lose work."
+#~ msgid_plural ""
+#~ "%1 other users are currently logged in. If the computer is shut down or "
+#~ "restarted, those users may lose work."
+#~ msgstr[0] ""
+#~ "En anden bruger er i øjeblikket logget ind. Hvis computeren lukkes ned "
+#~ "eller genstartes, så kan brugeren miste sit arbejde."
+#~ msgstr[1] ""
+#~ "%1 andre brugere er i øjeblikket logget ind. Hvis computeren lukkes ned "
+#~ "eller genstartes, så kan brugerne miste deres arbejde."
+
+#~ msgid "When restarted, the computer will enter UEFI firmware settings."
+#~ msgstr ""
+#~ "Når den er blevet genstartet, går computeren ind i UEFI-"
+#~ "firmwareindstillinger."
+
+#~ msgid "When restarted, the computer will enter the firmware setup screen."
+#~ msgstr ""
+#~ "Når den er blevet genstartet går computeren ind i "
+#~ "firmwareopsætningsskærmen."
+
+#~ msgid "When restarted, the computer will enter the boot loader menu."
+#~ msgstr ""
+#~ "Når den er blevet genstartet, går computeren ind i boot loader-menuen."
+
+#~ msgctxt "%1 is a boot loader entry"
+#~ msgid "When restarted, the computer will switch to %1."
+#~ msgstr "Når den er blevet genstartet, går computeren ind i %1."
+
+#~ msgctxt "Suspend to RAM"
+#~ msgid "Slee&p"
+#~ msgstr "Slu&mre"
+
+#~ msgctxt "Suspend to RAM"
+#~ msgid "Slee&p Now"
+#~ msgstr "Slu&mre nu"
+
+#~ msgid "&Hibernate"
+#~ msgstr "&Dvale"
+
+#~ msgid "&Hibernate Now"
+#~ msgstr "&Gå i dvale nu"
+
+#~ msgctxt "@action:button Keep short"
+#~ msgid "Install Updates and Restart"
+#~ msgstr "Installér opdateringer og genstart"
+
+#~ msgid "&Restart"
+#~ msgstr "&Genstart"
+
+#~ msgid "&Restart Now"
+#~ msgstr "&Genstart nu"
+
+#~ msgctxt "@action:button Keep short"
+#~ msgid "Install Updates and Shut Down"
+#~ msgstr "Installér opdateringer og luk ned"
+
+#~ msgid "&Shut Down"
+#~ msgstr "&Luk ned"
+
+#~ msgid "&Shut Down Now"
+#~ msgstr "&Luk ned nu"
+
+#~ msgid "&Log Out"
+#~ msgstr "&Log ud"
+
+#~ msgid "&Log Out Now"
+#~ msgstr "&Log ud nu"
+
+#~ msgid "&Cancel"
+#~ msgstr "&Annullér"
 
 #~ msgctxt "Percentage value"
 #~ msgid "%1%"

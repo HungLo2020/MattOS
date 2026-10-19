@@ -114,8 +114,8 @@ QT_BEGIN_NAMESPACE
     the same as well. These are provided as Vulkan-style GLSL source code and
     must be processed first by the Qt shader infrastructure first. This is
     achieved either by running the \c qsb command-line tool manually, or by
-    using the \l{Qt Shader Tools Build System Integration}{qt_add_shaders()}
-    function in CMake. The QQuickRhiItem loads these pre-processed \c{.qsb}
+    using the \l qt_add_shaders() function in CMake.
+    The QQuickRhiItem loads these pre-processed \c{.qsb}
     files that are shipped with the application. See \l{Qt Shader Tools} for
     more information about Qt's shader translation infrastructure.
 
@@ -129,7 +129,7 @@ QT_BEGIN_NAMESPACE
 
     Once exposed to QML (note the \c QML_NAMED_ELEMENT), our custom item can be
     instantiated in any scene. (after importing the appropriate \c URI specified
-    for \l{qt6_add_qml_module}{qt_add_qml_module} in the CMake project)
+    for \l qt_add_qml_module() in the CMake project)
 
     \code
     ExampleRhiItem {
@@ -212,7 +212,7 @@ void QQuickRhiItemNode::sync()
     QQuickRhiItemPrivate *itemD = m_item->d_func();
     QSize newSize = QSize(itemD->fixedTextureWidth, itemD->fixedTextureHeight);
     if (newSize.isEmpty())
-        newSize = QSize(int(m_item->width()), int(m_item->height())) * m_dpr;
+        newSize = (QSizeF(m_item->width(), m_item->height()) * m_dpr).toSize();
 
     newSize.setWidth(qMin(maxTexSize, qMax(minTexSize, newSize.width())));
     newSize.setHeight(qMin(maxTexSize, qMax(minTexSize, newSize.height())));
@@ -479,7 +479,7 @@ QSGNode *QQuickRhiItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
                                           : QSGSimpleTextureNode::NoTransform);
     }
     n->setFiltering(d->smooth ? QSGTexture::Linear : QSGTexture::Nearest);
-    n->setRect(0, 0, qMax<int>(0, width()), qMax<int>(0, height()));
+    n->setRect(0, 0, qMax(qreal(0), width()), qMax(qreal(0), height()));
 
     n->scheduleUpdate();
 

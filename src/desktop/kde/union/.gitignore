@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: None
+
+*kdev*
+*.kate-swp
+/compile_commands.json
+/.clang-format
+.idea
+/build
+.clangd
+/cmake-build*
+.cache
+.qmlls.ini
+/tools/propertygenerator/.python-version

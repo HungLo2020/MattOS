@@ -24,8 +24,10 @@ extern "C" {
 
 struct PipeWireEncodedStreamPrivate {
     uint m_nodeId = 0;
+    quint64 m_objectSerial = quint64(-1);
     std::optional<uint> m_fd;
     Fraction m_maxFramerate;
+    QSize m_requestedSize;
     int m_maxPendingFrames = 50;
     bool m_active = false;
     PipeWireBaseEncodedStream::Encoder m_encoder = PipeWireBaseEncodedStream::NoEncoder;
@@ -77,6 +79,16 @@ void PipeWireBaseEncodedStream::setNodeId(uint nodeId)
     Q_EMIT nodeIdChanged(nodeId);
 }
 
+void PipeWireBaseEncodedStream::setObjectSerial(quint64 objectSerial)
+{
+    if (objectSerial == d->m_objectSerial) {
+        return;
+    }
+
+    d->m_objectSerial = objectSerial;
+    Q_EMIT objectSerialChanged();
+}
+
 void PipeWireBaseEncodedStream::setFd(uint fd)
 {
     if (fd == d->m_fd)
@@ -120,6 +132,40 @@ void PipeWireBaseEncodedStream::setMaxFramerate(quint32 numerator, quint32 denom
     setMaxFramerate({numerator, denominator});
 }
 
+void PipeWireBaseEncodedStream::setEncoderPaused(bool paused)
+{
+    if (!d->m_produce) {
+        return;
+    }
+    d->m_produce->setEncoderPaused(paused);
+}
+
+bool PipeWireBaseEncodedStream::encoderPaused() const
+{
+    return d->m_produce && d->m_produce->encoderPaused();
+}
+
+QSize PipeWireBaseEncodedStream::requestedSize() const
+{
+    return d->m_requestedSize;
+}
+
+void PipeWireBaseEncodedStream::setRequestedSize(const QSize &size)
+{
+    if (d->m_requestedSize == size) {
+        return;
+    }
+    d->m_requestedSize = size;
+
+    // produce runs in another thread
+    QMetaObject::invokeMethod(
+        d->m_produce.get(),
+        [produce = d->m_produce.get(), size]() {
+            produce->setRequestedSize(size);
+        },
+        Qt::QueuedConnection);
+}
+
 void PipeWireBaseEncodedStream::setMaxPendingFrames(int maxPendingFrames)
 {
     if (d->m_maxPendingFrames == maxPendingFrames) {
@@ -152,8 +198,8 @@ void PipeWireBaseEncodedStream::setActive(bool active)
 
 void PipeWireBaseEncodedStream::start()
 {
-    if (d->m_nodeId == 0) {
-        qCWarning(PIPEWIRERECORD_LOGGING) << "Cannot start recording on a stream without a node ID";
+    if (d->m_nodeId == 0 && d->m_objectSerial == quint64(-1)) {
+        qCWarning(PIPEWIRERECORD_LOGGING) << "Cannot start recording on a stream without a node ID or an object serial";
         return;
     }
 
@@ -190,6 +236,10 @@ void PipeWireBaseEncodedStream::start()
         Q_EMIT stateChanged();
     });
 
+    connect(d->m_produce.get(), &PipeWireProduce::encodingError, this, [this](const QString &message) {
+        Q_EMIT errorFound(message);
+    });
+
     connect(d->m_produceThread.get(), &QThread::finished, this, [this]() {
         d->m_produce.reset();
         d->m_produceThread.reset();
@@ -210,6 +260,42 @@ void PipeWireBaseEncodedStream::stop()
         d->m_state = PipeWireBaseEncodedStream::Idle;
     }
 
+    Q_EMIT stateChanged();
+}
+
+void PipeWireBaseEncodedStream::pause()
+{
+    if (d->m_state != Recording || !d->m_produceThread || !d->m_produce) {
+        return;
+    }
+
+    auto produce = d->m_produce.get();
+    QMetaObject::invokeMethod(
+        produce,
+        [produce]() {
+            produce->setStreamActive(false);
+        },
+        Qt::QueuedConnection);
+
+    d->m_state = Paused;
+    Q_EMIT stateChanged();
+}
+
+void PipeWireBaseEncodedStream::resume()
+{
+    if (d->m_state != Paused || !d->m_produceThread || !d->m_produce) {
+        return;
+    }
+
+    auto produce = d->m_produce.get();
+    QMetaObject::invokeMethod(
+        produce,
+        [produce]() {
+            produce->setStreamActive(true);
+        },
+        Qt::QueuedConnection);
+
+    d->m_state = Recording;
     Q_EMIT stateChanged();
 }
 
@@ -310,6 +396,11 @@ bool PipeWireBaseEncodedStream::isActive() const
 uint PipeWireBaseEncodedStream::nodeId() const
 {
     return d->m_nodeId;
+}
+
+quint64 PipeWireBaseEncodedStream::objectSerial() const
+{
+    return d->m_objectSerial;
 }
 
 uint PipeWireBaseEncodedStream::fd() const

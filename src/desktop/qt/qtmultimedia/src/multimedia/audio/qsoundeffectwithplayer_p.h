@@ -38,16 +38,16 @@ public:
 
     Q_MULTIMEDIA_EXPORT ~QSoundEffectVoice();
 
-    Q_MULTIMEDIA_EXPORT VoicePlayResult play(QSpan<float>) noexcept QT_MM_NONBLOCKING override;
+    Q_MULTIMEDIA_EXPORT VoicePlayResult play(QSpan<float>) noexcept Q_DECL_NONBLOCKING_FUNCTION override;
 
-    bool isActive() noexcept QT_MM_NONBLOCKING override;
+    bool isActive() noexcept Q_DECL_NONBLOCKING_FUNCTION override;
     const QAudioFormat &format() noexcept override { return m_sample->format(); }
 
     int loopsRemaining() const { return m_loopsRemaining.load(std::memory_order_relaxed); }
     std::shared_ptr<QSoundEffectVoice>
     clone(std::optional<QAudioFormat> newEngineFormat = {}) const;
 
-    Q_MULTIMEDIA_EXPORT qsizetype playVoice(QSpan<float>) noexcept QT_MM_NONBLOCKING;
+    Q_MULTIMEDIA_EXPORT qsizetype playVoice(QSpan<float>) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     const std::shared_ptr<const QSample> m_sample;
     const int m_totalFrames{
@@ -71,10 +71,10 @@ public:
 // * the most recently created voice can be obtained via `activeVoice()`
 // * mute/volume will affect all voices
 // * loopCount/loopRemaining will be obtained from most recently created voice
-class QSoundEffectPrivateWithPlayer final : public QObject, public QSoundEffectPrivate
+class Q_MULTIMEDIA_EXPORT QSoundEffectPrivateWithPlayer final : public QObject,
+                                                                public QSoundEffectPrivate
 {
 public:
-    Q_MULTIMEDIA_EXPORT
     static std::shared_ptr<QRtAudioEngine> getEngineFor(const QAudioDevice &, const QAudioFormat &);
 
     QSoundEffectPrivateWithPlayer(QSoundEffect *q, QAudioDevice audioDevice);
@@ -84,8 +84,7 @@ public:
     // QSoundEffectPrivate interface
     bool setAudioDevice(QAudioDevice device) override;
     QAudioDevice audioDevice() const override;
-    bool setSource(const QUrl &, QSampleCache &) override;
-    QUrl url() const override;
+    void setSource(QUrl, QSampleCache &) override;
     QSoundEffect::Status status() const override;
     int loopCount() const override;
     bool setLoopCount(int) override;
@@ -97,6 +96,10 @@ public:
     void play() override;
     void stop() override;
     bool playing() const override;
+
+    // testing
+    const std::shared_ptr<QRtAudioEngine> &player() const { return m_player; }
+    const auto &voices() const { return m_voices; }
 
 private:
     void play(std::shared_ptr<QSoundEffectVoice>);
@@ -118,7 +121,6 @@ private:
     int m_loopsRemaining{ 0 };
 
     std::optional<QFuture<void>> m_sampleLoadFuture;
-    QUrl m_url;
     SharedSamplePtr m_sample;
     float m_volume = 1.f;
     bool m_muted = false;

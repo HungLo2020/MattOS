@@ -130,15 +130,15 @@ if(ANDROID)
         return()
     endif()
 
-    if(NOT QT_USE_ANDROID_MODERN_BUNDLE)
-        set(QT_USE_ANDROID_MODERN_BUNDLE OFF)
+    if(NOT QT_ANDROID_GRADLE_MULTI_MODULE)
+        set(QT_ANDROID_GRADLE_MULTI_MODULE OFF)
     endif()
     if(NOT QT_USE_TARGET_ANDROID_BUILD_DIR)
         set(QT_USE_TARGET_ANDROID_BUILD_DIR OFF)
     endif()
 
     set(common_android_vars "-DQT_HOST_PATH=${QT_HOST_PATH}"
-        "-DQT_USE_ANDROID_MODERN_BUNDLE=${QT_USE_ANDROID_MODERN_BUNDLE}"
+        "-DQT_ANDROID_GRADLE_MULTI_MODULE=${QT_ANDROID_GRADLE_MULTI_MODULE}"
         "-DQT_USE_TARGET_ANDROID_BUILD_DIR=${QT_USE_TARGET_ANDROID_BUILD_DIR}")
 
     set(signing_test_common_environment
@@ -560,6 +560,20 @@ foreach(plugin_class_name IN LISTS invalid_plugin_class_names)
             -DPLUGIN_CLASS_NAME=${plugin_class_name}
     )
 endforeach()
+
+# Restricted to Apple platforms, as building the C++ standard library as a
+# Clang module is not viable with the standard libraries used elsewhere.
+if(QT_FEATURE_clang_module_maps AND APPLE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    add_subdirectory(test_clang_module_maps)
+
+    if(QT_WILL_INSTALL)
+        _qt_internal_test_expect_pass(test_clang_module_maps_disabled)
+    endif()
+endif()
+
+if(QT_FEATURE_framework)
+    add_subdirectory(test_framework_forwarding_headers)
+endif()
 
 # Add all tests using CMake's RunCMake test module
 add_subdirectory(RunCMake)

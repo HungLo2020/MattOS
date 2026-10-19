@@ -24,15 +24,6 @@ set(taskmanager_LIB_SRCS
     screencastingrequest.cpp screencastingrequest.h
 )
 
-if (HAVE_X11)
-    set(taskmanager_LIB_SRCS
-        ${taskmanager_LIB_SRCS}
-        xstartuptasksmodel.cpp
-        xwindowsystemeventbatcher.cpp xwindowsystemeventbatcher.h
-        xwindowtasksmodel.cpp
-    )
-endif()
-
 add_library(taskmanager ${taskmanager_LIB_SRCS})
 add_library(PW::LibTaskManager ALIAS taskmanager)
 
@@ -43,11 +34,9 @@ ecm_add_qml_module(taskmanager
     DEPENDENCIES QtCore
 )
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL "6.8.0")
-    set(private_code_option  "PRIVATE_CODE")
-endif()
+
 qt6_generate_wayland_protocol_client_sources(taskmanager
-    ${private_code_option}
+    PRIVATE_CODE
     FILES ${PLASMA_WAYLAND_PROTOCOLS_DIR}/org-kde-plasma-virtual-desktop.xml
     FILES ${PLASMA_WAYLAND_PROTOCOLS_DIR}/plasma-window-management.xml
     FILES ${PLASMA_WAYLAND_PROTOCOLS_DIR}/zkde-screencast-unstable-v1.xml
@@ -82,19 +71,6 @@ target_link_libraries(taskmanager
         KF6::WindowSystem
         PW::KWorkspace
 )
-
-# Define and link Qt::Test only if available
-if(Qt6Test_FOUND)
-    target_compile_definitions(taskmanager PRIVATE HAVE_QTTEST=1)
-    target_link_libraries(taskmanager PRIVATE Qt::Test)
-else()
-    target_compile_definitions(taskmanager PRIVATE HAVE_QTTEST=0)
-endif()
-
-if (HAVE_X11)
-    target_link_libraries(taskmanager PRIVATE KF6::IconThemes)
-    target_link_libraries(taskmanager PRIVATE X11::X11)
-endif()
 
 set_target_properties(taskmanager PROPERTIES
                       VERSION ${PROJECT_VERSION}
@@ -134,14 +110,6 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/taskmanager_export.h
     DESTINATION ${KDE_INSTALL_INCLUDEDIR}/taskmanager COMPONENT Devel
 )
-
-if (HAVE_X11)
-    install(FILES
-        xstartuptasksmodel.h
-        xwindowtasksmodel.h
-        DESTINATION ${KDE_INSTALL_INCLUDEDIR}/taskmanager COMPONENT Devel
-    )
-endif()
 
 ecm_finalize_qml_module(taskmanager)
 

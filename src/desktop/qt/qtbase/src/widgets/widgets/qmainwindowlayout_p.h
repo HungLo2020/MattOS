@@ -17,6 +17,7 @@
 //
 
 #include <QtWidgets/private/qtwidgetsglobal_p.h>
+#include "QtWidgets/private/qwidgetanimator_p.h"
 #include "qmainwindow.h"
 
 #include "QtWidgets/qlayout.h"
@@ -54,7 +55,7 @@ QT_REQUIRE_CONFIG(mainwindow);
 
 QT_BEGIN_NAMESPACE
 
-Q_DECLARE_LOGGING_CATEGORY(lcQpaDockWidgets);
+Q_DECLARE_LOGGING_CATEGORY(lcMainWindowLayout);
 
 class QToolBar;
 class QRubberBand;
@@ -428,6 +429,16 @@ private:
 class Q_AUTOTEST_EXPORT QMainWindowLayoutState
 {
 public:
+    enum class StateMarkers {
+        FloatingDockWidgetTab = 0xf9,
+        Tab = 0xfa,
+        Widget = 0xfb,
+        Sequence = 0xfc,
+        ToolBarEx = Sequence, // Extended toolbar marker (same value as Sequence for backward compatibility)
+        DockWidget = 0xfd,
+        ToolBar = 0xfe,
+    };
+
     QRect rect;
     QMainWindow *mainWindow;
 
@@ -444,7 +455,7 @@ public:
     QRect centralWidgetRect;
 #endif
 
-    void apply(bool animated);
+    void apply(QWidgetAnimator::AnimationRule rule);
     void deleteAllLayoutItems();
     void deleteCentralWidgetItem();
 
@@ -478,6 +489,9 @@ public:
     void saveState(QDataStream &stream) const;
     bool checkFormat(QDataStream &stream);
     bool restoreState(QDataStream &stream, const QMainWindowLayoutState &oldState);
+    friend QDebug operator<<(QDebug debug, StateMarkers marker);
+    friend QDataStream &operator<<(QDataStream &stream, StateMarkers marker);
+    friend QDataStream &operator>>(QDataStream &stream, StateMarkers &marker);
 };
 
 class QMainWindowTabBar;
@@ -631,6 +645,28 @@ public:
     QLayoutItem *draggingWidget = nullptr;
 #endif
 
+#if defined(Q_OS_MACOS)
+    void registerUnifiedToolBarArea(QWidget *widget, int upper, int lower);
+    void setUnifiedToolBarAreaEnabled(QWidget *widget, bool enable);
+    Q_WIDGETS_EXPORT bool testUnifiedToolBarAreaPosition(int position) const;
+private:
+    void updateUnifiedToolBarArea();
+    struct UnifiedToolBarRange {
+        UnifiedToolBarRange(QWidget *w, int u, int l) : widget(w), upper(u), lower(l) { }
+        QWidget *widget;
+        int upper;
+        int lower;
+        bool operator<(UnifiedToolBarRange const& right) const {
+              return upper < right.upper;
+        }
+    };
+    QHash<QWidget *, UnifiedToolBarRange> m_unifiedToolBarAreas; // widget -> upper/lower
+    QHash<QWidget *, bool> m_enabledUnifiedToolBarAreas; // widget -> enabled state (true/false)
+    QSize m_unifiedToolBarAreaSize; // Cached total size of area based on areas above
+    friend class QMainWindow;
+public:
+#endif
+
 protected:
     void timerEvent(QTimerEvent *e) override;
 
@@ -640,6 +676,7 @@ private Q_SLOTS:
 #if QT_CONFIG(tabbar)
     void tabChanged();
     void tabMoved(int from, int to);
+    void tabifyWhileFloating(QDockWidget *first, QDockWidget *second);
 #endif
 #endif
 private:

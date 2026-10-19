@@ -1,0 +1,7 @@
+module MultipleNames
+Name1 254.0 Main.qml
+Name2 254.0 Main.qml
+Name3 254.0 Main.qml
+Name4 254.0 Main.qml
+AnotherFile 254.0 AnotherFile.qml
+AnotherFileClean 254.0 AnotherFileClean.qml

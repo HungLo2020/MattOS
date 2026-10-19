@@ -3,6 +3,7 @@
 
 #include <qtest.h>
 #include <QDebug>
+#include <QSignalSpy>
 #include <QtQml/qqmlengine.h>
 #include <QtQml/qqmlcomponent.h>
 #include <QtQuick/private/qquicksystempalette_p.h>
@@ -22,6 +23,7 @@ private slots:
 #ifndef QT_NO_WIDGETS
     void paletteChanged();
 #endif
+    void paletteChangedSignal();
 
 private:
     QQmlEngine engine;
@@ -142,6 +144,27 @@ void tst_qquicksystempalette::paletteChanged()
     delete object;
 }
 #endif
+
+void tst_qquicksystempalette::paletteChangedSignal()
+{
+    QQmlComponent component(&engine, testFileUrl("systemPalette.qml"));
+    QQuickSystemPalette *object = qobject_cast<QQuickSystemPalette*>(component.create());
+    QVERIFY(object != nullptr);
+
+    QSignalSpy spy(object, &QQuickSystemPalette::paletteChanged);
+    QVERIFY(spy.isValid());
+
+    QPalette p = QGuiApplication::palette();
+    // Use a color that's guaranteed to differ from the current one
+    const QColor newColor(~object->text().rgb() | 0xff000000);
+    p.setColor(QPalette::Active, QPalette::Text, newColor);
+    QGuiApplication::setPalette(p);
+
+    QTRY_VERIFY(spy.count() > 0);
+    QCOMPARE(object->text(), newColor);
+
+    delete object;
+}
 
 QTEST_MAIN(tst_qquicksystempalette)
 

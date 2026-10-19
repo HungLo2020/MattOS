@@ -11,6 +11,7 @@
 #include "propertynode.h"
 #include "qmlpropertynode.h"
 #include "utilities.h"
+#include "textutils.h"
 
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qobjectdefs.h>
@@ -146,7 +147,8 @@ bool CodeMarker::recognizeLanguage(const QString &language)
 
     If a string is returned, it is one of:
     \list
-        \li \c {"preliminary"}
+        \li \c {"preliminary"} or the value of configuration option \c preliminary
+               (in lowercase)
         \li \c {"since <version_since>, deprecated in <version_deprecated>"}
         \li \c {"since <version_since>, until <version_deprecated>"}
         \li \c {"since <version_since>"}
@@ -161,7 +163,7 @@ bool CodeMarker::recognizeLanguage(const QString &language)
 static std::optional<QString> nodeStatusAsString(const Node *node)
 {
     if (node->isPreliminary())
-        return std::optional(u"preliminary"_s);
+        return std::optional(Config::instance().get(CONFIG_PRELIMINARY).asString().toLower());
 
     QStringList result;
     if (const auto &since = node->since(); !since.isEmpty())
@@ -231,10 +233,17 @@ QString CodeMarker::extraSynopsis(const Node *node, Section::Style style)
                 extra << "signal";
             } else if (func->isSlot())
                 extra << "slot";
-            else if (func->isDefault())
-                extra << "default";
+            else if (func->isImplicitlyGenerated())
+                extra << "implicit";
+            else if (func->isExplicitlyDefaulted())
+                extra << "<@extref target=\"cpp-explicitly-defaulted\">default</@extref>";
+            else if (func->isDeletedAsWritten())
+                extra << "<@extref target=\"cpp-deleted-functions\">delete</@extref>";
             else if (func->isInvokable())
                 extra << "invokable";
+
+            if (func->isAttached())
+                extra << "attached";
         }
         break;
         case NodeType::TypeAlias:
@@ -246,21 +255,18 @@ QString CodeMarker::extraSynopsis(const Node *node, Section::Style style)
                 extra << "bindable";
             if (!propertyNode->isWritable())
                 extra << "read-only";
+            if (propertyNode->isAttached())
+                extra << "attached";
         }
         break;
         case NodeType::QmlProperty: {
             auto qmlProperty = static_cast<const QmlPropertyNode *>(node);
-            if (qmlProperty->isDefault())
-                extra << u"default"_s;
-            // Call non-const overloads to ensure attributes are fetched from
-            // associated C++ properties
-            if (const_cast<QmlPropertyNode *>(qmlProperty)->isReadOnly())
-                extra << u"read-only"_s;
-            if (const_cast<QmlPropertyNode *>(qmlProperty)->isRequired())
-                extra << u"required"_s;
-            // Only show "default: value" if not a default property (avoid "default default: value")
+            extra << qmlProperty->hints();
+            // "default: value" not included in hints() to avoid "default default: value"
             if (!qmlProperty->isDefault() && !qmlProperty->defaultValue().isEmpty())
                 extra << u"default: "_s + qmlProperty->defaultValue();
+            if (qmlProperty->isAttached())
+                extra << "attached";
         }
         break;
         default:
@@ -286,7 +292,7 @@ QString CodeMarker::extraSynopsis(const Node *node, Section::Style style)
 
 QString CodeMarker::protect(const QString &str)
 {
-    return Utilities::protect(str);
+    return TextUtils::protect(str);
 }
 
 void CodeMarker::appendProtectedString(QString *output, QStringView str)
@@ -297,16 +303,16 @@ void CodeMarker::appendProtectedString(QString *output, QStringView str)
     for (int i = 0; i != n; ++i) {
         switch (data[i].unicode()) {
         case '&':
-            *output += Utilities::samp;
+            *output += TextUtils::samp;
             break;
         case '<':
-            *output += Utilities::slt;
+            *output += TextUtils::slt;
             break;
         case '>':
-            *output += Utilities::sgt;
+            *output += TextUtils::sgt;
             break;
         case '"':
-            *output += Utilities::squot;
+            *output += TextUtils::squot;
             break;
         default:
             *output += data[i];
@@ -410,13 +416,13 @@ QString CodeMarker::taggedQmlNode(const Node *node)
     if (node->isFunction()) {
         const auto *fn = static_cast<const FunctionNode *>(node);
         switch (fn->metaness()) {
-        case FunctionNode::QmlSignal:
+        case Metaness::QmlSignal:
             tag = QLatin1String("@signal");
             break;
-        case FunctionNode::QmlSignalHandler:
+        case Metaness::QmlSignalHandler:
             tag = QLatin1String("@signalhandler");
             break;
-        case FunctionNode::QmlMethod:
+        case Metaness::QmlMethod:
             tag = QLatin1String("@method");
             break;
         default:

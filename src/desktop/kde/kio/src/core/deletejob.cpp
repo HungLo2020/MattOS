@@ -82,6 +82,7 @@ public:
         : state(DELETEJOB_STATE_STATING)
         , m_processedFiles(0)
         , m_processedDirs(0)
+        , m_processedBytes(0)
         , m_totalFilesDirs(0)
         , m_srcList(src)
         , m_currentStat(m_srcList.begin())
@@ -91,12 +92,15 @@ public:
     DeleteJobState state;
     int m_processedFiles;
     int m_processedDirs;
+    KIO::filesize_t m_processedBytes;
     int m_totalFilesDirs;
     QUrl m_currentURL;
     QList<QUrl> files;
     QList<QUrl> symlinks;
     QList<QUrl> dirs;
     QList<QUrl> m_srcList;
+    QList<QUrl> m_deletedUrls; // every URL removed so far, requested entries and directory contents alike
+
     QList<QUrl>::iterator m_currentStat;
     QSet<QString> m_parentDirs;
     QTimer *m_reportTimer;
@@ -110,6 +114,7 @@ public:
     void deleteNextFile();
     void deleteNextDir();
     void restoreDirWatch() const;
+    void notifyFilesRemoved(const QList<QUrl> &urls) const;
     void slotReport();
     void slotStart();
     void slotEntries(KIO::Job *, const KIO::UDSEntryList &list);
@@ -334,6 +339,7 @@ void DeleteJobPrivate::rmFileResult(bool result, bool isLink)
 {
     if (result) {
         m_processedFiles++;
+        m_deletedUrls.append(m_currentURL);
 
         if (isLink) {
             symlinks.removeFirst();
@@ -407,6 +413,7 @@ void DeleteJobPrivate::rmdirResult(bool result)
 {
     if (result) {
         m_processedDirs++;
+        m_deletedUrls.append(m_currentURL);
         dirs.removeLast();
         deleteNextDir();
     } else {
@@ -424,6 +431,13 @@ void DeleteJobPrivate::deleteDirUsingJob(const QUrl &url)
     SimpleJob *job = KIO::rmdir(url);
     job->setParentJob(q);
     job->addMetaData(QStringLiteral("recurse"), QStringLiteral("true"));
+    // The worker empties the directory itself, so what it says it deleted is all the progress there is
+    // to be had of it.
+    const KIO::filesize_t before = m_processedBytes;
+    q->connect(job, &Job::processedSize, q, [this, q, before](KJob *, qulonglong bytes) {
+        m_processedBytes = before + bytes;
+        q->setProcessedAmount(KJob::Bytes, m_processedBytes);
+    });
     dirs.removeLast();
     q->addSubjob(job);
 }
@@ -456,12 +470,7 @@ void DeleteJobPrivate::deleteNextDir()
     restoreDirWatch();
 
     // Finished - tell the world
-    if (!m_srcList.isEmpty()) {
-        // qDebug() << "KDirNotify'ing FilesRemoved" << m_srcList;
-#ifdef WITH_QTDBUS
-        org::kde::KDirNotify::emitFilesRemoved(m_srcList);
-#endif
-    }
+    notifyFilesRemoved(m_srcList);
     if (m_reportTimer != nullptr) {
         m_reportTimer->stop();
     }
@@ -478,7 +487,27 @@ void DeleteJobPrivate::restoreDirWatch() const
     const auto itEnd = m_parentDirs.constEnd();
     for (auto it = m_parentDirs.constBegin(); it != itEnd; ++it) {
         KDirWatch::self()->restartDirScan(*it);
+#ifndef WITH_QTDBUS
+        KDirWatch::self()->setDirty(*it);
+#endif
     }
+}
+
+void DeleteJobPrivate::notifyFilesRemoved(const QList<QUrl> &urls) const
+{
+    if (urls.isEmpty()) {
+        return;
+    }
+#ifdef WITH_QTDBUS
+    org::kde::KDirNotify::emitFilesRemoved(urls);
+#else
+    const bool trashDirChanged = std::any_of(urls.cbegin(), urls.cend(), [](const QUrl &url) {
+        return url.scheme() == QLatin1String("trash");
+    });
+    if (trashDirChanged) {
+        KCoreDirLister().updateDirectory(QUrl(QStringLiteral("trash:/")));
+    }
+#endif
 }
 
 void DeleteJobPrivate::currentSourceStated(bool isDir, bool isLink)
@@ -561,6 +590,7 @@ void DeleteJob::slotResult(KJob *job)
         d->m_incomingMetaData = dynamic_cast<KIO::Job *>(job)->metaData();
 
         if (job->error()) {
+            d->notifyFilesRemoved(d->m_deletedUrls);
             Job::slotResult(job); // will set the error and emit result(this)
             d->restoreDirWatch();
             return;
@@ -568,11 +598,13 @@ void DeleteJob::slotResult(KJob *job)
         removeSubjob(job);
         Q_ASSERT(!hasSubjobs());
         d->m_processedFiles++;
+        d->m_deletedUrls.append(d->m_currentURL);
 
         d->deleteNextFile();
         break;
     case DELETEJOB_STATE_DELETING_DIRS:
         if (job->error()) {
+            d->notifyFilesRemoved(d->m_deletedUrls);
             Job::slotResult(job); // will set the error and emit result(this)
             d->restoreDirWatch();
             return;
@@ -580,6 +612,7 @@ void DeleteJob::slotResult(KJob *job)
         removeSubjob(job);
         Q_ASSERT(!hasSubjobs());
         d->m_processedDirs++;
+        d->m_deletedUrls.append(d->m_currentURL);
         // emit processedAmount( this, KJob::Directories, d->m_processedDirs );
         // emitPercent( d->m_processedFiles + d->m_processedDirs, d->m_totalFilesDirs );
 

@@ -16,6 +16,7 @@
 #include <QPoint>
 #include <QPointer>
 #include <QSize>
+#include <qqmlregistration.h>
 
 // KDE includes
 #include <KConfig>
@@ -28,15 +29,39 @@ class QAction;
 namespace KWin
 {
 
+class LogicalOutput;
 class Options;
 class PlasmaVirtualDesktopManagementInterface;
 
+/*!
+ * \qmltype VirtualDesktop
+ * \inqmlmodule org.kde.kwin
+ *
+ * \brief Virtual Desktop.
+ *
+ * This type cannot be created from QML.
+ */
 class KWIN_EXPORT VirtualDesktop : public QObject
 {
     Q_OBJECT
+    QML_ELEMENT
+    QML_UNCREATABLE("")
+
+    /*!
+     * \qmlproperty string VirtualDesktop::id
+     */
     Q_PROPERTY(QString id READ id CONSTANT)
+
+    /*!
+     * \qmlproperty int VirtualDesktop::x11DesktopNumber
+     */
     Q_PROPERTY(uint x11DesktopNumber READ x11DesktopNumber NOTIFY x11DesktopNumberChanged)
+
+    /*!
+     * \qmlproperty string VirtualDesktop::name
+     */
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+
 public:
     explicit VirtualDesktop(QObject *parent = nullptr);
     ~VirtualDesktop() override;
@@ -63,7 +88,9 @@ Q_SIGNALS:
     void nameChanged();
     void x11DesktopNumberChanged();
 
-    /**
+    /*!
+     * \qmlsignal VirtualDesktop::aboutToBeDestroyed
+     *
      * Emitted just before the desktop gets destroyed.
      */
     void aboutToBeDestroyed();
@@ -82,7 +109,7 @@ private:
  * a Pager. This grid is used for getting a desktop next to a given desktop in any direction by
  * making use of the layout information. This allows navigation like move to desktop on left.
  */
-class VirtualDesktopGrid
+class KWIN_EXPORT VirtualDesktopGrid
 {
 public:
     VirtualDesktopGrid();
@@ -143,7 +170,7 @@ class KWIN_EXPORT VirtualDesktopManager : public QObject
     Q_PROPERTY(uint count READ count WRITE setCount NOTIFY countChanged)
 
     /**
-     * The id of the virtual desktop which is currently in use.
+     * The id of the virtual desktop which is currently in use by the active output.
      */
     Q_PROPERTY(uint current READ current WRITE setCurrent NOTIFY currentChanged)
 
@@ -151,6 +178,12 @@ class KWIN_EXPORT VirtualDesktopManager : public QObject
      * Whether navigation in the desktop layout wraps around at the borders.
      */
     Q_PROPERTY(bool navigationWrappingAround READ isNavigationWrappingAround WRITE setNavigationWrappingAround NOTIFY navigationWrappingAroundChanged)
+
+    /**
+     * Whether virtual desktops are switched independently for each screen.
+     */
+    Q_PROPERTY(bool perOutputVirtualDesktops READ isPerOutputVirtualDesktops WRITE setPerOutputVirtualDesktops NOTIFY perOutputVirtualDesktopsChanged)
+
 public:
     ~VirtualDesktopManager() override;
 
@@ -184,18 +217,20 @@ public:
     uint rows() const;
 
     /**
-     * @returns The ID of the current desktop.
+     * @returns The ID of the current desktop on @a output.
+     * @param output The output for which to return the current desktop (default = active output)
      * @see setCurrent
      * @see currentChanged
      */
-    uint current() const;
+    uint current(LogicalOutput *output = nullptr) const;
 
     /**
-     * @returns The current desktop
+     * @returns The current desktop on @a output.
+     * @param output The output for which to return the current desktop (default = active output)
      * @see setCurrent
      * @see currentChanged
      */
-    VirtualDesktop *currentDesktop() const;
+    VirtualDesktop *currentDesktop(LogicalOutput *output = nullptr) const;
 
     /**
      * Moves to the desktop through the algorithm described by Direction.
@@ -213,6 +248,13 @@ public:
     bool isNavigationWrappingAround() const;
 
     /**
+     * @returns @c true if virtual desktops are switched independently for each screen, @c false otherwise
+     * @see setPerOutputVirtualDesktops
+     * @see perOutputVirtualDesktopsChanged
+     */
+    bool isPerOutputVirtualDesktops() const;
+
+    /**
      * @returns The layout aware virtual desktop grid used by this manager.
      */
     const VirtualDesktopGrid &grid() const;
@@ -223,7 +265,7 @@ public:
         Right,
         Left,
         Next,
-        Previous
+        Previous,
     };
     VirtualDesktop *inDirection(VirtualDesktop *desktop, Direction direction, bool wrap = true);
     uint inDirection(uint desktop, Direction direction, bool wrap = true);
@@ -309,11 +351,6 @@ public:
     void moveVirtualDesktop(VirtualDesktop *desktop, int position);
 
     /**
-     * Updates the net root info for new number of desktops
-     */
-    void updateRootInfo();
-
-    /**
      * @returns The maximum number of desktops that KWin supports.
      */
     static uint maximum();
@@ -340,22 +377,24 @@ public Q_SLOTS:
     void setCount(uint count);
 
     /**
-     * Set the current desktop to @a current.
+     * Set the current desktop to @a current on @a output.
+     * @param output The output for which to return the current desktop (default = active output)
      * @returns True on success, false otherwise.
      * @see current
      * @see currentChanged
      * @see moveTo
      */
-    bool setCurrent(uint current);
+    bool setCurrent(uint current, LogicalOutput *output = nullptr);
 
     /**
-     * Set the current desktop to @a current.
+     * Set the current desktop to @a current on @a output.
+     * @param output The output for which to return the current desktop (default = active output)
      * @returns True on success, false otherwise.
      * @see current
      * @see currentChanged
      * @see moveTo
      */
-    bool setCurrent(VirtualDesktop *current);
+    bool setCurrent(VirtualDesktop *current, LogicalOutput *output = nullptr);
 
     /**
      * Updates the layout to a new number of rows. The number of columns will be calculated accordingly
@@ -373,6 +412,13 @@ public Q_SLOTS:
      * @see navigationWrappingAroundChanged
      */
     void setNavigationWrappingAround(bool enabled);
+
+    /**
+     * @param enabled switching virtual desktops independently for each screen
+     * @see isPerOutputVirtualDesktops
+     * @see perOutputVirtualDesktopsChanged
+     */
+    void setPerOutputVirtualDesktops(bool enabled);
 
     /**
      * Loads number of desktops and names from configuration file
@@ -421,8 +467,9 @@ Q_SIGNALS:
      * Signal emitted whenever the current desktop changes.
      * @param previousDesktop The virtual desktop changed from
      * @param newDesktop The virtual desktop changed to
+     * @param output The affected output. If it affects multiple outputs, then a separate signal is emitted for each one.
      */
-    void currentChanged(KWin::VirtualDesktop *previousDesktop, KWin::VirtualDesktop *newDesktop);
+    void currentChanged(KWin::VirtualDesktop *previousDesktop, KWin::VirtualDesktop *newDesktop, KWin::LogicalOutput *output);
 
     /**
      * Signal emitted for realtime desktop switching animations.
@@ -430,8 +477,13 @@ Q_SIGNALS:
      * @param offset The current total change in desktop coordinate
      * Offset x and y are negative if switching Left and Down.
      * Example: x = 0.6 means 60% of the way to the desktop to the right.
+     * @param output The affected output. If it affects multiple outputs, then a separate signal is emitted for each one.
      */
-    void currentChanging(KWin::VirtualDesktop *currentDesktop, QPointF offset);
+    void currentChanging(KWin::VirtualDesktop *currentDesktop, QPointF offset, KWin::LogicalOutput *output);
+
+    /**
+     * Signal emitted when realtime desktop switching animation is cancelled. It applies to all outputs.
+     */
     void currentChangingCancelled();
 
     /**
@@ -445,6 +497,11 @@ Q_SIGNALS:
      * Signal emitted whenever the navigationWrappingAround property changes.
      */
     void navigationWrappingAroundChanged();
+
+    /**
+     * Signal emitted whenever the perOutputVirtualDesktops property changes.
+     */
+    void perOutputVirtualDesktopsChanged();
 
 private Q_SLOTS:
     /**
@@ -500,6 +557,7 @@ private:
      * Creates all the global keyboard shortcuts for "Switch To Desktop n" actions.
      */
     void initSwitchToShortcuts();
+    void updateLegacyPlasmaVirtualDesktops(VirtualDesktop *activeDesktop);
 
     /**
      * Creates an action and connects it to the @p slot in this Manager. This method is
@@ -528,10 +586,14 @@ private:
      */
     QAction *addAction(const QString &name, const QString &label, const QKeySequence &key, void (VirtualDesktopManager::*slot)());
 
+    VirtualDesktop *initCurrentDesktopForOutput(LogicalOutput *output);
+    VirtualDesktop *initialDesktopForNewOutput(LogicalOutput *output) const;
+
     QList<VirtualDesktop *> m_desktops;
-    QPointer<VirtualDesktop> m_current;
+    QHash<LogicalOutput *, VirtualDesktop *> m_currentDesktops;
     quint32 m_rows = 2;
     bool m_navigationWrapsAround;
+    bool m_perOutputVirtualDesktops = false;
     VirtualDesktopGrid m_grid;
     // TODO: QPointer
 #if KWIN_BUILD_X11
@@ -575,6 +637,11 @@ inline uint VirtualDesktopManager::count() const
 inline bool VirtualDesktopManager::isNavigationWrappingAround() const
 {
     return m_navigationWrapsAround;
+}
+
+inline bool VirtualDesktopManager::isPerOutputVirtualDesktops() const
+{
+    return m_perOutputVirtualDesktops;
 }
 
 inline void VirtualDesktopManager::setConfig(KSharedConfig::Ptr config)

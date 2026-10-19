@@ -17,6 +17,8 @@ import org.kde.kirigami as Kirigami
 PlasmaComponents.ScrollView {
     id: root
 
+    required property bool useListViewMode
+    required property bool inPanel
     property alias text: editor.text
     property alias targetItem: editor.targetItem
     signal commit
@@ -42,6 +44,8 @@ PlasmaComponents.ScrollView {
         rightPadding: root.PlasmaComponents.ScrollBar.vertical.visible ? root.PlasmaComponents.ScrollBar.vertical.width : 0
 
         Kirigami.SpellCheck.enabled: false
+
+        color: Kirigami.Theme.textColor
 
         background: Rectangle {
             color: Kirigami.Theme.backgroundColor
@@ -71,10 +75,10 @@ PlasmaComponents.ScrollView {
                 root.y = xy[1];
                 root.width = getWidth();
                 root.height = getInitHeight();
-                text = targetItem.name;
+                text = targetItem.display;
                 adjustSize();
                 editor.select(0, dir.fileExtensionBoundary(positioner.map(targetItem.index)));
-                if (isPopup) {
+                if (root.inPanel) {
                     root.contentItem.contentX = Math.max(root.contentItem.contentWidth - contentItem.width, 0);
                 } else {
                     root.contentItem.contentY = Math.max(root.contentItem.contentHeight - contentItem.height, 0);
@@ -121,9 +125,7 @@ PlasmaComponents.ScrollView {
             }
         }
 
-        Keys.onReleased: event => {
-            adjustSize();
-        }
+        onTextChanged: adjustSize();
 
         function getXY() {
             if (!targetItem) {
@@ -151,7 +153,7 @@ PlasmaComponents.ScrollView {
             if (!targetItem) {
                 return 0;
             }
-            return(targetItem.label.parent.width - Kirigami.Units.smallSpacing +
+            return(targetItem.labelArea.parent.width - Kirigami.Units.smallSpacing +
                 (root.useListViewMode ? -(editor.leftPadding + editor.rightPadding + Kirigami.Units.smallSpacing) : 0) +
                 (addWidthVerticalScroller ? root.PlasmaComponents.ScrollBar.vertical.width : 0));
         }
@@ -161,7 +163,7 @@ PlasmaComponents.ScrollView {
                 return 0;
             }
             var _height;
-            if (isPopup || init) {
+            if (root.inPanel || init) {
                 _height = targetItem.labelArea.height + editor.topPadding + editor.bottomPadding;
             } else {
                 var realHeight = contentHeight + editor.topPadding + editor.bottomPadding;
@@ -176,7 +178,7 @@ PlasmaComponents.ScrollView {
         }
 
         function adjustSize() {
-            if (isPopup) {
+            if (inPanel) {
                 if(contentWidth + editor.leftPadding + editor.rightPadding > root.width) {
                     root.visible = targetItem !== null;
                     root.PlasmaComponents.ScrollBar.horizontal.policy = Qt.ScrollBarAlwaysOn;

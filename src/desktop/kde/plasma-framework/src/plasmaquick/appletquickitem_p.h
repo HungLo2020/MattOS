@@ -33,7 +33,6 @@ class Applet;
 namespace PlasmaQuick
 {
 class AppletQuickItem;
-class SharedQmlEngine;
 class AppletContext;
 
 class AppletQuickItemPrivate
@@ -106,7 +105,6 @@ public:
     QPointer<QObject> ownLayout;
 
     Plasma::Applet *applet = nullptr;
-    PlasmaQuick::SharedQmlEngine *qmlObject;
 
     KPackage::Package coronaPackage;
 
@@ -119,6 +117,8 @@ public:
     bool compactRepresentationCheckGuard : 1;
 
     QString badgeText;
+
+    std::shared_ptr<QQmlEngine> engine;
 };
 
 }

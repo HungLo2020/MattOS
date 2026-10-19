@@ -8,13 +8,13 @@
 # kde4, 2009.
 # Elkana Bardugo <ttv200@gmail.com>, 2016.
 # Elkana Bardugo <ttv200@gmail.com>, 2017. #zanata
-# SPDX-FileCopyrightText: 2023, 2024, 2025 Yaron Shahrabani <sh.yaron@gmail.com>
+# SPDX-FileCopyrightText: 2023, 2024, 2025, 2026 Yaron Shahrabani <sh.yaron@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: systemsettings\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-23 02:40+0000\n"
-"PO-Revision-Date: 2025-08-10 09:26+0300\n"
+"POT-Creation-Date: 2026-08-21 00:47+0000\n"
+"PO-Revision-Date: 2026-01-28 08:16+0200\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
 "Language: he\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Lokalize 25.04.3\n"
+"X-Generator: Lokalize 25.12.1\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -51,109 +51,109 @@ msgstr "הפעלת %1 מחדש"
 msgid "Dialog"
 msgstr "חלונית"
 
-#: app/main.cpp:54 app/SettingsBase.cpp:53
+#: app/main.cpp:61 app/SettingsBase.cpp:54
 #, kde-format
 msgid "Info Center"
 msgstr "מרכז המידע"
 
-#: app/main.cpp:56
+#: app/main.cpp:63
 #, kde-format
 msgid "Centralized and convenient overview of system information."
 msgstr "סקירה מרכזית ונוחה של פרטי המערכת."
 
-#: app/main.cpp:58 app/main.cpp:69
+#: app/main.cpp:65 app/main.cpp:76
 #, kde-format
 msgid "(c) 2009, Ben Cooksley"
 msgstr "(c) 2009, בן קוקסלי"
 
-#: app/main.cpp:65 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:56
-#: runner/systemsettingsrunner.cpp:114
+#: app/main.cpp:72 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:57
+#: runner/systemsettingsrunner.cpp:124
 #, kde-format
 msgid "System Settings"
 msgstr "הגדרות מערכת"
 
-#: app/main.cpp:67
+#: app/main.cpp:74
 #, kde-format
 msgid "Central configuration center by KDE."
 msgstr "מרכז התצורה המרכזי מבית KDE."
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Ben Cooksley"
 msgstr "בן קוקסלי"
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Maintainer"
 msgstr "מתחזק"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Marco Martin"
 msgstr "מרקו מרטין"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Author"
 msgstr "יוצר"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Mathias Soeken"
 msgstr "מתיאס זוקן"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Developer"
 msgstr "מפתח"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Will Stephenson"
 msgstr "ויל סטפנסון"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Internal module representation, internal module model"
 msgstr "ייצוג פנימי של מודולים, דגם פנימי של מודולים"
 
-#: app/main.cpp:91
+#: app/main.cpp:98
 #, kde-format
 msgid "List all possible modules"
 msgstr "הצגת כל המודולים האפשריים"
 
-#: app/main.cpp:92 app/main.cpp:153
+#: app/main.cpp:99 app/main.cpp:160
 #, kde-format
 msgid "Configuration module to open"
 msgstr "מודול הגדרות לפתיחה"
 
-#: app/main.cpp:93 app/main.cpp:154
+#: app/main.cpp:100 app/main.cpp:161
 #, kde-format
 msgid "Arguments for the module"
 msgstr "ארגומנטים למודול"
 
-#: app/main.cpp:101
+#: app/main.cpp:108
 #, kde-format
 msgid "The following modules are available:"
 msgstr "המודולים הבאים זמינים:"
 
-#: app/main.cpp:119
+#: app/main.cpp:126
 #, kde-format
 msgid "No description available"
 msgstr "אין תיאור זמין"
 
-#: app/ModuleView.cpp:185
+#: app/ModuleView.cpp:186
 #, kde-format
 msgid "Reset all current changes to previous values"
 msgstr "איפוס כל השינויים הנוכחיים לערכים הקודמים"
 
-#: app/ModuleView.cpp:278
+#: app/ModuleView.cpp:279
 #, kde-format
 msgctxt "@info:whatsthis"
 msgid "Scrollable area"
 msgstr "אזור גלילה"
 
-#: app/ModuleView.cpp:368
+#: app/ModuleView.cpp:373
 #, kde-format
 msgid ""
 "The current page has unsaved changes.\n"
@@ -162,7 +162,7 @@ msgstr ""
 "נערכו שינויים בעמוד הנוכחי.\n"
 "להחיל או להתעלם מהן?"
 
-#: app/ModuleView.cpp:373
+#: app/ModuleView.cpp:378
 #, kde-format
 msgid "Apply Settings"
 msgstr "החלת ההגדרות"
@@ -183,7 +183,14 @@ msgstr "הצגת תפריט"
 msgid "Plasma"
 msgstr "פלזמה"
 
-#: app/SettingsBase.cpp:144
+#: app/qml/SubCategoryPage.qml:74
+#, kde-format
+msgctxt "@action:button go back"
+msgid "Back"
+msgstr "חזרה"
+
+#. i18n: ectx: label, entry (HighlightNonDefaultSettings), group (systemsettings_sidebar_mode)
+#: app/SettingsBase.cpp:144 app/systemsettings-config.kcfg:8
 #, kde-format
 msgid "Highlight Changed Settings"
 msgstr "הדגשת ההגדרות שנערכו"
@@ -195,7 +202,7 @@ msgctxt ""
 msgid "Show Inapplicable Pages"
 msgstr "הצגת עמודים בלתי ישימים"
 
-#: app/SettingsBase.cpp:163
+#: app/SettingsBase.cpp:167
 #, kde-format
 msgid "Report a Bug in the Current Page…"
 msgstr "דיווח על תקלה בעמוד הנוכחי…"
@@ -210,12 +217,12 @@ msgstr "סרגל צד"
 msgid "Most Used"
 msgstr "הכי בשימוש"
 
-#: runner/systemsettingsrunner.cpp:32
+#: runner/systemsettingsrunner.cpp:33
 #, kde-format
 msgid "Finds system settings modules whose names or descriptions match :q:"
 msgstr "חיפוש מודולים של הגדרות מערכת שהשמות או התיאורים שלהם עונים על :q:"
 
-#: runner/systemsettingsrunner.cpp:112
+#: runner/systemsettingsrunner.cpp:122
 #, kde-format
 msgid "System Information"
 msgstr "פרטי מערכת"

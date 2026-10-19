@@ -2,7 +2,7 @@
     SPDX-FileCopyrightText: 2018 Fredrik Höglund <fredrik@kde.org>
     SPDX-FileCopyrightText: 2019 Roman Gilg <subdiff@gmail.com>
     SPDX-FileCopyrightText: 2021 Vlad Zahorodnii <vlad.zahorodnii@kde.org>
-    SPDX-FileCopyrightText: 2021 Xaver Hugl <xaver.hugl@gmail.com>
+    SPDX-FileCopyrightText: 2021-2026 Xaver Hugl <xaver.hugl@kde.org>
 
     Based on the libweston implementation,
     SPDX-FileCopyrightText: 2014, 2015 Collabora, Ltd.
@@ -15,13 +15,13 @@
 #include "linuxdmabufv1clientbuffer.h"
 #include "utils/ramfile.h"
 
-#include "qwayland-server-linux-dmabuf-unstable-v1.h"
+#include "qwayland-server-linux-dmabuf-v1.h"
 
 #include <QDebug>
 #include <QList>
 #include <QPointer>
-
 #include <drm_fourcc.h>
+#include <sys/types.h>
 
 namespace KWin
 {
@@ -35,10 +35,13 @@ public:
 
     LinuxDmaBufV1ClientBufferIntegration *q;
     std::unique_ptr<LinuxDmaBufV1Feedback> defaultFeedback;
+    QList<LinuxDmaBufV1Feedback::Tranche> defaultTranches;
     std::unique_ptr<LinuxDmaBufV1FormatTable> table;
-    dev_t mainDevice;
     QPointer<RenderBackend> renderBackend;
-    QHash<uint32_t, QList<uint64_t>> supportedModifiers;
+    QHash<dev_t, FormatModifierMap> perDeviceFormats;
+
+    dev_t currentMainDevice = 0;
+    QHash<wl_client *, dev_t> mainDevices;
 
 protected:
     void zwp_linux_dmabuf_v1_bind_resource(Resource *resource) override;
@@ -66,6 +69,7 @@ protected:
     void zwp_linux_buffer_params_v1_create(Resource *resource, int32_t width, int32_t height, uint32_t format, uint32_t flags) override;
     void
     zwp_linux_buffer_params_v1_create_immed(Resource *resource, uint32_t buffer_id, int32_t width, int32_t height, uint32_t format, uint32_t flags) override;
+    void zwp_linux_buffer_params_v1_set_sampling_device(Resource *resource, wl_array *device) override;
 
 private:
     bool test(Resource *resource, uint32_t width, uint32_t height);
@@ -73,6 +77,7 @@ private:
     LinuxDmaBufV1ClientBufferIntegration *m_integration;
     DmaBufAttributes m_attrs;
     std::array<uint64_t, 4> m_modifiers;
+    std::optional<dev_t> m_targetDevice;
     bool m_isUsed = false;
 };
 
@@ -86,6 +91,11 @@ public:
     QSize size() const override;
     bool hasAlphaChannel() const override;
     const DmaBufAttributes *dmabufAttributes() const override;
+    uint32_t format() const override;
+    uint64_t modifier() const override;
+    uint32_t pitch() const override;
+
+    void setDevice(dev_t deviceId);
 
     static LinuxDmaBufV1ClientBuffer *get(wl_resource *resource);
 
@@ -106,7 +116,7 @@ private:
 class LinuxDmaBufV1FormatTable
 {
 public:
-    LinuxDmaBufV1FormatTable(const QHash<uint32_t, QList<uint64_t>> &supportedModifiers);
+    LinuxDmaBufV1FormatTable(const FormatModifierMap &supportedModifiers);
 
     RamFile file;
     QMap<std::pair<uint32_t, uint64_t>, uint16_t> indices;
@@ -115,16 +125,18 @@ public:
 class LinuxDmaBufV1FeedbackPrivate : public QtWaylandServer::zwp_linux_dmabuf_feedback_v1
 {
 public:
-    LinuxDmaBufV1FeedbackPrivate(LinuxDmaBufV1ClientBufferIntegrationPrivate *bufferintegration);
+    explicit LinuxDmaBufV1FeedbackPrivate(LinuxDmaBufV1ClientBufferIntegrationPrivate *bufferintegration, wl_client *client);
 
     static LinuxDmaBufV1FeedbackPrivate *get(LinuxDmaBufV1Feedback *q);
     void send(Resource *resource);
 
-    QList<LinuxDmaBufV1Feedback::Tranche> m_tranches;
+    QList<LinuxDmaBufV1Feedback::Tranche> m_scanoutTranches;
     LinuxDmaBufV1ClientBufferIntegrationPrivate *m_bufferintegration;
+    wl_client *const m_client;
 
 protected:
     void zwp_linux_dmabuf_feedback_v1_bind_resource(Resource *resource) override;
     void zwp_linux_dmabuf_feedback_v1_destroy(Resource *resource) override;
 };
+
 }

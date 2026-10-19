@@ -302,7 +302,7 @@ QFontEngine *QPlatformFontDatabase::fontEngine(const QFontDef &fontDef, void *ha
 
 /*!
     Returns the font engine that will be used to back a QRawFont,
-    based on the given \fontData, \a pixelSize, and \a hintingPreference.
+    based on the given \a fontData, \a pixelSize, and \a hintingPreference.
 
     This function is called by QRawFont, and does not play a part in
     the normal operations of QFontDatabase.
@@ -361,8 +361,11 @@ void QPlatformFontDatabase::releaseHandle(void *handle)
 QString QPlatformFontDatabase::fontDir() const
 {
     QString fontpath = qEnvironmentVariable("QT_QPA_FONTDIR");
-    if (fontpath.isEmpty())
-        fontpath = QLibraryInfo::path(QLibraryInfo::LibrariesPath) + "/fonts"_L1;
+    if (fontpath.isEmpty()) {
+        QStringList paths = QLibraryInfo::paths(QLibraryInfo::LibrariesPath);
+        if (!paths.isEmpty())
+            fontpath = paths.takeFirst() + "/fonts"_L1;
+    }
 
     return fontpath;
 }

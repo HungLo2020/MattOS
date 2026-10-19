@@ -11,130 +11,130 @@ msgstr ""
 "X-Qt-Contexts: true\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
-#: k7zip.cpp:2541
+#: k7zip.cpp:2542
 msgctxt "K7Zip|"
 msgid "Could not get underlying device"
 msgstr "अंतर्निहित डिवाइस नहीं मिल सका"
 
-#: k7zip.cpp:2549
+#: k7zip.cpp:2550
 msgctxt "K7Zip|"
 msgid "Read header failed"
 msgstr "हेडर पढ़ना विफल"
 
-#: k7zip.cpp:2555
+#: k7zip.cpp:2556
 msgctxt "K7Zip|"
 msgid "Check signature failed"
 msgstr "हस्ताक्षर जाँच विफल"
 
-#: k7zip.cpp:2578
+#: k7zip.cpp:2579
 msgctxt "K7Zip|"
 msgid "Bad CRC"
 msgstr "ख़राब सी.आर.सी."
 
-#: k7zip.cpp:2587
+#: k7zip.cpp:2588
 msgctxt "K7Zip|"
 msgid "Next header size is too big"
 msgstr "अगले हेडर का आकार बहुत बड़ा है"
 
-#: k7zip.cpp:2592
+#: k7zip.cpp:2593
 msgctxt "K7Zip|"
 msgid "Next header size is less than zero"
 msgstr "अगले हेडर का आकार शून्य से कम है"
 
-#: k7zip.cpp:2603
+#: k7zip.cpp:2604
 #, qt-format
 msgctxt "K7Zip|"
 msgid "Failed read next header size; should read %1, read %2"
 msgstr "अगला हेडर आकार पढ़ने में विफल; %1 पढ़ना चाहिए, %2 पढ़ना चाहिए"
 
-#: k7zip.cpp:2616
+#: k7zip.cpp:2617
 msgctxt "K7Zip|"
 msgid "Bad next header CRC"
 msgstr "ख़राब अगला हेडर CRC"
 
-#: k7zip.cpp:2624
+#: k7zip.cpp:2625
 msgctxt "K7Zip|"
 msgid "Error in header"
 msgstr "हेडर में त्रुटि"
 
-#: k7zip.cpp:2642 k7zip.cpp:2675
+#: k7zip.cpp:2643 k7zip.cpp:2676
 msgctxt "K7Zip|"
 msgid "Password needed for this archive"
 msgstr ""
 
-#: k7zip.cpp:2648
+#: k7zip.cpp:2649
 msgctxt "K7Zip|"
 msgid "Wrong header type"
 msgstr "ग़लत हेडर प्रकार"
 
-#: k7zip.cpp:2658 k7zip.cpp:2664
+#: k7zip.cpp:2659 k7zip.cpp:2665
 msgctxt "K7Zip|"
 msgid "Not implemented"
 msgstr "लागू नहीं किया गया"
 
-#: k7zip.cpp:2670
+#: k7zip.cpp:2671
 msgctxt "K7Zip|"
 msgid "Error while reading main streams information"
 msgstr "मुख्य धारा की जानकारी पढ़ते समय त्रुटि"
 
-#: k7zip.cpp:2693
+#: k7zip.cpp:2694
 msgctxt "K7Zip|"
 msgid "Error while reading header"
 msgstr "हेडर पढ़ते समय त्रुटि"
 
-#: k7zip.cpp:2701 k7zip.cpp:2709
+#: k7zip.cpp:2702 k7zip.cpp:2710
 #, qt-format
 msgctxt "K7Zip|"
 msgid "Archive has %1 files which is more than the supported amount (%2)"
 msgstr ""
 
-#: k7zip.cpp:2767
+#: k7zip.cpp:2768
 msgctxt "K7Zip|"
 msgid "Error reading modification time"
 msgstr "संशोधन समय पढ़ने में त्रुटि"
 
-#: k7zip.cpp:2813
+#: k7zip.cpp:2814
 msgctxt "K7Zip|"
 msgid "Error reading MTime"
 msgstr "MTime पढ़ने में त्रुटि"
 
-#: k7zip.cpp:2820
+#: k7zip.cpp:2821
 msgctxt "K7Zip|"
 msgid "Invalid"
 msgstr "अमान्य"
 
-#: k7zip.cpp:2844
+#: k7zip.cpp:2845
 #, qt-format
 msgctxt "K7Zip|"
 msgid "Read size failed (checkRecordsSize: %1, d->pos - ppp: %2, size: %3)"
 msgstr "आकार पढ़ने में विफल (checkRecordsSize: %1, d->pos - ppp: %2, आकार: %3)"
 
-#: k7zip.cpp:2884
+#: k7zip.cpp:2885
 msgctxt "K7Zip|"
 msgid "contents"
 msgstr ""
 
-#: k7zip.cpp:3079
+#: k7zip.cpp:3080
 msgctxt "K7Zip|"
 msgid "Write error"
 msgstr "लिखने त्रुटि"
 
-#: k7zip.cpp:3109
+#: k7zip.cpp:3110
 msgctxt "K7Zip|"
 msgid "Failed while encoding header"
 msgstr "हेडर एनकोड करते समय विफल"
 
-#: k7zip.cpp:3153
+#: k7zip.cpp:3154
 msgctxt "K7Zip|"
 msgid "No file currently selected"
 msgstr "वर्तमान में कोई फ़ाइल चयनित नहीं है"
 
-#: k7zip.cpp:3177 k7zip.cpp:3227 k7zip.cpp:3267
+#: k7zip.cpp:3178 k7zip.cpp:3228 k7zip.cpp:3268
 msgctxt "K7Zip|"
 msgid "Application error: 7-Zip file must be open before being written into"
 msgstr "अनुप्रयोग त्रुटि: 7-ज़िप फ़ाइल को लिखे जाने से पहले उसे खोलना आवश्यक है"
 
-#: k7zip.cpp:3183 k7zip.cpp:3273
+#: k7zip.cpp:3184 k7zip.cpp:3274
 msgctxt "K7Zip|"
 msgid "Application error: attempted to write into non-writable 7-Zip file"
 msgstr "अनुप्रयोग त्रुटि: गैर-लेखन योग्य 7-ज़िप फ़ाइल में लिखने का प्रयास किया गया"
@@ -203,32 +203,32 @@ msgctxt "KArchive|"
 msgid "Archive already closed"
 msgstr "संग्रह पहले ही बंद हो चुका है"
 
-#: karchive.cpp:287
+#: karchive.cpp:286
 #, qt-format
 msgctxt "KArchive|"
 msgid "%1 doesn't exist or is not a regular file."
 msgstr "%1 मौजूद नहीं है या एक नियमित फ़ाइल नहीं है."
 
-#: karchive.cpp:293
+#: karchive.cpp:292
 #, qt-format
 msgctxt "KArchive|"
 msgid ""
 "Failed accessing the file %1 for adding to the archive. The error was: %2"
 msgstr "संग्रह में जोड़ने के लिए फ़ाइल %1 तक पहुँचने में विफल। त्रुटि थी: %2"
 
-#: karchive.cpp:339
+#: karchive.cpp:338
 #, qt-format
 msgctxt "KArchive|"
 msgid "Couldn't open file %1: %2"
 msgstr "फ़ाइल %1: %2 नहीं खोली जा सकी"
 
-#: karchive.cpp:373
+#: karchive.cpp:372
 #, qt-format
 msgctxt "KArchive|"
 msgid "Directory %1 does not exist"
 msgstr "निर्देशिका %1 मौजूद नहीं है"
 
-#: karchive.cpp:447
+#: karchive.cpp:446
 #, qt-format
 msgctxt "KArchive|"
 msgid "Writing failed: %1"
@@ -335,55 +335,55 @@ msgctxt "KTar|"
 msgid "Application error: attempted to write into non-writable TAR file"
 msgstr "अनुप्रयोग त्रुटि: गैर-लेखन योग्य TAR फ़ाइल में लिखने का प्रयास किया गया"
 
-#: kzip.cpp:484 kzip.cpp:509
+#: kzip.cpp:497 kzip.cpp:522
 #, qt-format
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unexpected end of file. (Error code: %1)"
 msgstr "अमान्य ZIP फ़ाइल। फ़ाइल का अप्रत्याशित अंत। (त्रुटि कोड: %1)"
 
-#: kzip.cpp:535
+#: kzip.cpp:548
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Negative name length"
 msgstr "अमान्य ZIP फ़ाइल. नकारात्मक नाम लंबाई"
 
-#: kzip.cpp:540
+#: kzip.cpp:553
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Name not completely read (#2)"
 msgstr "अमान्य ZIP फ़ाइल. नाम पूरी तरह से पढ़ा नहीं जा सका (#2)"
 
-#: kzip.cpp:558
+#: kzip.cpp:571
 msgctxt "KZip|"
 msgid "Invalid ZIP File. Broken ExtraField."
 msgstr "अमान्य ज़िप फ़ाइल. टूटा हुआ एक्स्ट्राफ़ील्ड."
 
-#: kzip.cpp:572 kzip.cpp:595
+#: kzip.cpp:592 kzip.cpp:615
 msgctxt "KZip|"
 msgid "Could not seek to next header token"
 msgstr "अगले हेडर टोकन की खोज नहीं की जा सकी"
 
-#: kzip.cpp:587
+#: kzip.cpp:607
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unexpected end of file. (#5)"
 msgstr "अमान्य ZIP फ़ाइल. फ़ाइल का अप्रत्याशित अंत. (#5)"
 
-#: kzip.cpp:602
+#: kzip.cpp:622
 msgctxt "KZip|"
 msgid "Could not seek to file compressed size"
 msgstr "संपीड़ित आकार की फ़ाइल नहीं खोजी जा सकी"
 
-#: kzip.cpp:618
+#: kzip.cpp:638
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unexpected end of file. (#1)"
 msgstr "अमान्य ZIP फ़ाइल. फ़ाइल का अप्रत्याशित अंत. (#1)"
 
-#: kzip.cpp:655
+#: kzip.cpp:675
 msgctxt "KZip|"
 msgid ""
 "Invalid ZIP file, central entry too short (not long enough for valid entry)"
 msgstr ""
 "अमान्य ZIP फ़ाइल, केंद्रीय प्रविष्टि बहुत छोटी है (वैध प्रविष्टि के लिए पर्याप्त लंबी नहीं)"
 
-#: kzip.cpp:670
+#: kzip.cpp:690
 #, fuzzy
 #| msgctxt "KZip|"
 #| msgid "Invalid ZIP file, file path name length smaller or equal to zero"
@@ -391,7 +391,7 @@ msgctxt "KZip|"
 msgid "Invalid ZIP file, file path name length is zero"
 msgstr "अमान्य ZIP फ़ाइल, फ़ाइल पथ नाम की लंबाई शून्य से कम या बराबर है"
 
-#: kzip.cpp:676
+#: kzip.cpp:696
 #, qt-format
 msgctxt "KZip|"
 msgid ""
@@ -399,95 +399,135 @@ msgid ""
 "at offset %3"
 msgstr ""
 
-#: kzip.cpp:726
+#: kzip.cpp:740
 #, qt-format
 msgctxt "KZip|"
 msgid ""
 "Invalid ZIP file, inconsistent Local Header Offset in Central Directory at %1"
 msgstr ""
 
-#: kzip.cpp:761
+#: kzip.cpp:775
 msgctxt "KZip|"
 msgid "Invalid ZIP file, found empty entry name"
 msgstr "अमान्य ZIP फ़ाइल, रिक्त प्रविष्टि नाम मिला"
 
-#: kzip.cpp:803
+#: kzip.cpp:817
 #, qt-format
 msgctxt "KZip|"
 msgid "File %1 is in folder %2, but %3 is actually a file."
 msgstr "फ़ाइल %1 फ़ोल्डर %2 में है, लेकिन %3 वास्तव में एक फ़ाइल है।"
 
-#: kzip.cpp:814
+#: kzip.cpp:828
 msgctxt "KZip|"
 msgid "Could not seek to next entry"
 msgstr "अगली प्रविष्टि की तलाश नहीं की जा सकी"
 
-#: kzip.cpp:843
+#: kzip.cpp:857
 msgctxt "KZip|"
 msgid "Not a ZIP file, no Local File Header found."
 msgstr ""
 
-#: kzip.cpp:847
+#: kzip.cpp:861
 #, qt-format
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unrecognized header at offset %1"
 msgstr "अमान्य ZIP फ़ाइल. ऑफ़सेट %1 पर अपरिचित हेडर"
 
-#: kzip.cpp:875
+#: kzip.cpp:888
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not seek to next file header: %1"
 msgstr "अगले फ़ाइल हेडर तक नहीं पहुँचा जा सका: %1"
 
-#: kzip.cpp:901 kzip.cpp:995
+#: kzip.cpp:914 kzip.cpp:924 kzip.cpp:1088
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not write file header: %1"
 msgstr "फ़ाइल हेडर नहीं लिखा जा सका: %1"
 
-#: kzip.cpp:1042
+#: kzip.cpp:936
+#, fuzzy, qt-format
+#| msgctxt "KZip|"
+#| msgid "Could not seek to next file header: %1"
+msgctxt "KZip|"
+msgid "Could not seek to Zip64 extra field: %1"
+msgstr "अगले फ़ाइल हेडर तक नहीं पहुँचा जा सका: %1"
+
+#: kzip.cpp:944
+#, fuzzy, qt-format
+#| msgctxt "KZip|"
+#| msgid "Could not seek to file compressed size"
+msgctxt "KZip|"
+msgid "Could not write Zip64 compressed size: %1"
+msgstr "संपीड़ित आकार की फ़ाइल नहीं खोजी जा सकी"
+
+#: kzip.cpp:1131
+#, fuzzy, qt-format
+#| msgctxt "KZip|"
+#| msgid "Could not write central dir record: %1"
+msgctxt "KZip|"
+msgid "Could not write Zip64 EOCD record: %1"
+msgstr "केंद्रीय निर्देशिका रिकॉर्ड नहीं लिखा जा सका: %1"
+
+#: kzip.cpp:1150
+#, fuzzy, qt-format
+#| msgctxt "KZip|"
+#| msgid "Could not write file header: %1"
+msgctxt "KZip|"
+msgid "Could not write Zip64 EOCD locator: %1"
+msgstr "फ़ाइल हेडर नहीं लिखा जा सका: %1"
+
+#: kzip.cpp:1212
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not write central dir record: %1"
 msgstr "केंद्रीय निर्देशिका रिकॉर्ड नहीं लिखा जा सका: %1"
 
-#: kzip.cpp:1078
+#: kzip.cpp:1248
 msgctxt "KZip|"
 msgid "Application error: ZIP file must be open before being written into"
 msgstr "अनुप्रयोग त्रुटि: ज़िप फ़ाइल को लिखने से पहले उसे खोलना आवश्यक है"
 
-#: kzip.cpp:1084
+#: kzip.cpp:1254
 msgctxt "KZip|"
 msgid "Application error: attempted to write into non-writable ZIP file"
 msgstr "अनुप्रयोग त्रुटि: गैर-लेखन योग्य ZIP फ़ाइल में लिखने का प्रयास किया गया"
 
-#: kzip.cpp:1090
+#: kzip.cpp:1260
 msgctxt "KZip|"
 msgid "Cannot create a device. Disk full?"
 msgstr "डिवाइस नहीं बनाया जा सकता. डिस्क भरी हुई है?"
 
-#: kzip.cpp:1096
+#: kzip.cpp:1266
 msgctxt "KZip|"
 msgid "Cannot seek in ZIP file. Disk full?"
 msgstr "ज़िप फ़ाइल में नहीं खोजा जा सकता। डिस्क भरी हुई है?"
 
-#: kzip.cpp:1240
+#: kzip.cpp:1421
 msgctxt "KZip|"
 msgid "Could not write to the archive. Disk full?"
 msgstr "संग्रह में नहीं लिखा जा सका. डिस्क भर गई?"
 
-#: kzip.cpp:1259
+#: kzip.cpp:1440
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not open compression device: %1"
 msgstr "संपीड़न डिवाइस नहीं खोला जा सका: %1"
 
-#: kzip.cpp:1346
+#: kzip.cpp:1523
 msgctxt "KZip|"
 msgid "No file or device"
 msgstr "कोई फ़ाइल या डिवाइस नहीं"
 
-#: kzip.cpp:1359
+#: kzip.cpp:1540
+#, fuzzy, qt-format
+#| msgctxt "KZip|"
+#| msgid "Error writing data: %1"
+msgctxt "KZip|"
+msgid "Error writing data chunk: %1"
+msgstr "डेटा लिखते समय त्रुटि: %1"
+
+#: kzip.cpp:1553
 #, qt-format
 msgctxt "KZip|"
 msgid "Error writing data: %1"

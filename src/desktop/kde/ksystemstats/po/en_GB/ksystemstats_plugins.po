@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ksysguard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"POT-Creation-Date: 2026-08-06 00:46+0000\n"
 "PO-Revision-Date: 2024-06-08 12:19+0100\n"
 "Last-Translator: Steve Allewell <steve.allewell@gmail.com>\n"
 "Language-Team: British English\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 24.02.2\n"
 
-#: cpu/cpu.cpp:28 disks/disks.cpp:77 disks/disks.cpp:78 gpu/GpuDevice.cpp:20
+#: cpu/cpu.cpp:28 disks/disks.cpp:77 disks/disks.cpp:78 gpu/GpuDevice.cpp:22
 #: power/power.cpp:39
 #, kde-format
 msgctxt "@title"
@@ -251,13 +251,13 @@ msgctxt "@title"
 msgid "CPU %1"
 msgstr "CPU %1"
 
-#: cpu/linuxcpuplugin.cpp:42 cpu/linuxcpuplugin.cpp:53
+#: cpu/linuxcpuplugin.cpp:42 cpu/linuxcpuplugin.cpp:56
 #, kde-format
 msgctxt "@title"
 msgid "Core %1"
 msgstr "Core %1"
 
-#: cpu/linuxcpuplugin.cpp:63
+#: cpu/linuxcpuplugin.cpp:66
 #, kde-format
 msgctxt "@title"
 msgid "CPU %1 Core %2"
@@ -323,73 +323,73 @@ msgctxt "@info"
 msgid "Number of jobs in the run queue averaged over 15 minutes"
 msgstr "Number of jobs in the run queue averaged over 15 minutes"
 
-#: disks/disks.cpp:81 disks/disks.cpp:279
+#: disks/disks.cpp:81 disks/disks.cpp:287
 #, kde-format
 msgctxt "@title"
 msgid "Total Space"
 msgstr "Total Space"
 
-#: disks/disks.cpp:83 disks/disks.cpp:280
+#: disks/disks.cpp:83 disks/disks.cpp:288
 #, kde-format
 msgctxt "@title Short for 'Total Space'"
 msgid "Total"
 msgstr "Total"
 
-#: disks/disks.cpp:87 disks/disks.cpp:302
+#: disks/disks.cpp:87 disks/disks.cpp:310
 #, kde-format
 msgctxt "@title"
 msgid "Read Rate"
 msgstr "Read Rate"
 
-#: disks/disks.cpp:89 disks/disks.cpp:303
+#: disks/disks.cpp:89 disks/disks.cpp:311
 #, kde-format
 msgctxt "@title Short for 'Read Rate'"
 msgid "Read"
 msgstr "Read"
 
-#: disks/disks.cpp:93 disks/disks.cpp:309
+#: disks/disks.cpp:93 disks/disks.cpp:317
 #, kde-format
 msgctxt "@title"
 msgid "Write Rate"
 msgstr "Write Rate"
 
-#: disks/disks.cpp:95 disks/disks.cpp:310
+#: disks/disks.cpp:95 disks/disks.cpp:318
 #, kde-format
 msgctxt "@title Short for 'Write Rate'"
 msgid "Write"
 msgstr "Write"
 
-#: disks/disks.cpp:100 disks/disks.cpp:294
+#: disks/disks.cpp:100 disks/disks.cpp:302
 #, kde-format
 msgctxt "@title"
 msgid "Used Space"
 msgstr "Used Space"
 
-#: disks/disks.cpp:102 disks/disks.cpp:295
+#: disks/disks.cpp:102 disks/disks.cpp:303
 #, kde-format
 msgctxt "@title Short for 'Used Space'"
 msgid "Used"
 msgstr "Used"
 
-#: disks/disks.cpp:107 disks/disks.cpp:286
+#: disks/disks.cpp:107 disks/disks.cpp:294
 #, kde-format
 msgctxt "@title"
 msgid "Free Space"
 msgstr "Free Space"
 
-#: disks/disks.cpp:109 disks/disks.cpp:287
+#: disks/disks.cpp:109 disks/disks.cpp:295
 #, kde-format
 msgctxt "@title Short for 'Free Space'"
 msgid "Free"
 msgstr "Free"
 
-#: disks/disks.cpp:114 disks/disks.cpp:320
+#: disks/disks.cpp:114 disks/disks.cpp:328
 #, kde-format
 msgctxt "@title"
 msgid "Percentage Used"
 msgstr "Percentage Used"
 
-#: disks/disks.cpp:118 disks/disks.cpp:316
+#: disks/disks.cpp:118 disks/disks.cpp:324
 #, kde-format
 msgctxt "@title"
 msgid "Percentage Free"
@@ -400,19 +400,19 @@ msgstr "Percentage Free"
 msgid "Disks"
 msgstr "Disks"
 
-#: disks/disks.cpp:264
+#: disks/disks.cpp:272
 #, kde-format
 msgctxt "@title"
 msgid "All Disks"
 msgstr "All Disks"
 
-#: disks/disks.cpp:317
+#: disks/disks.cpp:325
 #, kde-format
 msgctxt "@title, Short for `Percentage Free"
 msgid "Free"
 msgstr "Free"
 
-#: disks/disks.cpp:321
+#: disks/disks.cpp:329
 #, kde-format
 msgctxt "@title, Short for `Percentage Used"
 msgid "Used"
@@ -460,61 +460,71 @@ msgctxt "@title Short for 'All GPUs Used Memory'"
 msgid "Used"
 msgstr "Used"
 
-#: gpu/FreeBSDBackend.cpp:53 gpu/LinuxBackend.cpp:54
-#, kde-format
-msgctxt "@title %1 is GPU number"
-msgid "GPU %1"
-msgstr "GPU %1"
+#: gpu/AllGpus.cpp:37
+#, fuzzy, kde-format
+#| msgctxt "@title"
+#| msgid "Allocated Memory Percentage"
+msgctxt "@title"
+msgid "All GPUs Used Memory Percentage"
+msgstr "Allocated Memory Percentage"
 
-#: gpu/GpuDevice.cpp:24
+#: gpu/GpuDevice.cpp:26
 #, kde-format
 msgctxt "@title"
 msgid "Usage"
 msgstr "Usage"
 
-#: gpu/GpuDevice.cpp:30
+#: gpu/GpuDevice.cpp:32
 #, kde-format
 msgctxt "@title"
 msgid "Total Video Memory"
 msgstr "Total Video Memory"
 
-#: gpu/GpuDevice.cpp:32
+#: gpu/GpuDevice.cpp:34
 #, kde-format
 msgctxt "@title Short for Total Video Memory"
 msgid "Total"
 msgstr "Total"
 
-#: gpu/GpuDevice.cpp:35
+#: gpu/GpuDevice.cpp:37
 #, kde-format
 msgctxt "@title"
 msgid "Video Memory Used"
 msgstr "Video Memory Used"
 
-#: gpu/GpuDevice.cpp:37
+#: gpu/GpuDevice.cpp:39
 #, kde-format
 msgctxt "@title Short for Video Memory Used"
 msgid "Used"
 msgstr "Used"
 
-#: gpu/GpuDevice.cpp:41
+#: gpu/GpuDevice.cpp:42
+#, fuzzy, kde-format
+#| msgctxt "@title"
+#| msgid "Video Memory Used"
+msgctxt "@title"
+msgid "Video Memory Used Percentage"
+msgstr "Video Memory Used"
+
+#: gpu/GpuDevice.cpp:47
 #, kde-format
 msgctxt "@title"
 msgid "Frequency"
 msgstr "Frequency"
 
-#: gpu/GpuDevice.cpp:45
+#: gpu/GpuDevice.cpp:51
 #, kde-format
 msgctxt "@title"
 msgid "Memory Frequency"
 msgstr "Memory Frequency"
 
-#: gpu/GpuDevice.cpp:49
+#: gpu/GpuDevice.cpp:55
 #, kde-format
 msgctxt "@title"
 msgid "Temperature"
 msgstr "Temperature"
 
-#: gpu/GpuDevice.cpp:53 power/power.cpp:116
+#: gpu/GpuDevice.cpp:59 power/power.cpp:116
 #, kde-format
 msgctxt "@title"
 msgid "Power"
@@ -526,13 +536,29 @@ msgctxt "@title"
 msgid "GPU"
 msgstr "GPU"
 
-#: gpu/LinuxIntelGpu.cpp:40
+#: gpu/LinuxIntelGpu.cpp:40 gpu/LinuxXeGpu.cpp:91
 #, fuzzy, kde-format
 #| msgctxt "@title"
 #| msgid "User Usage"
 msgctxt "@title"
 msgid "Video Usage"
 msgstr "User Usage"
+
+#: gpu/LinuxXeGpu.cpp:78
+#, fuzzy, kde-format
+#| msgctxt "@title %1 is a number"
+#| msgid "Fan %1"
+msgctxt "@title"
+msgid "Fan %1"
+msgstr "Fan %1"
+
+#: gpu/LinuxXeGpu.cpp:86
+#, fuzzy, kde-format
+#| msgctxt "@title, Short for 'Maximum CPU Temperature'"
+#| msgid "Max Temperature"
+msgctxt "@title"
+msgid "VRAM Temperature"
+msgstr "Max Temperature"
 
 #: lmsensors/lmsensors.cpp:22
 #, kde-format
@@ -914,133 +940,133 @@ msgctxt "@title Short of IPv6 DNS"
 msgid "IPv6 DNS"
 msgstr "IPv6 DNS"
 
-#: network/NetworkPlugin.cpp:44
+#: network/NetworkPlugin.cpp:46
 #, kde-format
 msgctxt "@title"
 msgid "Network Devices"
 msgstr "Network Devices"
 
-#: osinfo/osinfo.cpp:108
+#: osinfo/osinfo.cpp:110
 #, kde-format
 msgctxt "@title"
 msgid "Operating System"
 msgstr "Operating System"
 
-#: osinfo/osinfo.cpp:110
+#: osinfo/osinfo.cpp:112
 #, kde-format
 msgctxt "@title"
 msgid "Kernel"
 msgstr "Kernel"
 
-#: osinfo/osinfo.cpp:111
+#: osinfo/osinfo.cpp:113
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Name"
 msgstr "Kernel Name"
 
-#: osinfo/osinfo.cpp:112
+#: osinfo/osinfo.cpp:114
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Version"
 msgstr "Kernel Version"
 
-#: osinfo/osinfo.cpp:113
+#: osinfo/osinfo.cpp:115
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Name and Version"
 msgstr "Kernel Name and Version"
 
-#: osinfo/osinfo.cpp:114
+#: osinfo/osinfo.cpp:116
 #, kde-format
 msgctxt "@title Kernel Name and Version"
 msgid "Kernel"
 msgstr "Kernel"
 
-#: osinfo/osinfo.cpp:116
+#: osinfo/osinfo.cpp:118
 #, kde-format
 msgctxt "@title"
 msgid "System"
 msgstr "System"
 
-#: osinfo/osinfo.cpp:117
+#: osinfo/osinfo.cpp:119
 #, kde-format
 msgctxt "@title"
 msgid "Hostname"
 msgstr "Hostname"
 
-#: osinfo/osinfo.cpp:118
+#: osinfo/osinfo.cpp:120
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Name"
 msgstr "Operating System Name"
 
-#: osinfo/osinfo.cpp:119
+#: osinfo/osinfo.cpp:121
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Version"
 msgstr "Operating System Version"
 
-#: osinfo/osinfo.cpp:120
+#: osinfo/osinfo.cpp:122
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Name and Version"
 msgstr "Operating System Name and Version"
 
-#: osinfo/osinfo.cpp:121
+#: osinfo/osinfo.cpp:123
 #, kde-format
 msgctxt "@title Operating System Name and Version"
 msgid "OS"
 msgstr "OS"
 
-#: osinfo/osinfo.cpp:122
+#: osinfo/osinfo.cpp:124
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Logo"
 msgstr "Operating System Logo"
 
-#: osinfo/osinfo.cpp:123
+#: osinfo/osinfo.cpp:125
 #, kde-format
 msgctxt "@title"
 msgid "Operating System URL"
 msgstr "Operating System URL"
 
-#: osinfo/osinfo.cpp:124
+#: osinfo/osinfo.cpp:126
 #, kde-format
 msgctxt "@title"
 msgid "Uptime"
 msgstr "Uptime"
 
-#: osinfo/osinfo.cpp:127
+#: osinfo/osinfo.cpp:129
 #, kde-format
 msgctxt "@title"
 msgid "KDE Plasma"
 msgstr "KDE Plasma"
 
-#: osinfo/osinfo.cpp:128
+#: osinfo/osinfo.cpp:130
 #, kde-format
 msgctxt "@title"
 msgid "Qt Version"
 msgstr "Qt Version"
 
-#: osinfo/osinfo.cpp:129
+#: osinfo/osinfo.cpp:131
 #, kde-format
 msgctxt "@title"
 msgid "KDE Frameworks Version"
 msgstr "KDE Frameworks Version"
 
-#: osinfo/osinfo.cpp:130
+#: osinfo/osinfo.cpp:132
 #, kde-format
 msgctxt "@title"
 msgid "KDE Plasma Version"
 msgstr "KDE Plasma Version"
 
-#: osinfo/osinfo.cpp:131
+#: osinfo/osinfo.cpp:133
 #, kde-format
 msgctxt "@title"
 msgid "Window System"
 msgstr "Window System"
 
-#: osinfo/osinfo.cpp:165
+#: osinfo/osinfo.cpp:175
 #, kde-format
 msgctxt "@info"
 msgid "Unknown"
@@ -1444,6 +1470,10 @@ msgstr ""
 "Amount of time that all tasks are stalled waiting for available IO "
 "resources, measured in microseconds"
 
+#~ msgctxt "@title %1 is GPU number"
+#~ msgid "GPU %1"
+#~ msgstr "GPU %1"
+
 #~ msgctxt "@title, Short for 'Current Frequency'"
 #~ msgid "Frequency"
 #~ msgstr "Frequency"
@@ -1455,10 +1485,6 @@ msgstr ""
 #~ msgctxt "@title %1 is a number"
 #~ msgid "Voltage %1"
 #~ msgstr "Voltage %1"
-
-#~ msgctxt "@title %1 is a number"
-#~ msgid "Fan %1"
-#~ msgstr "Fan %1"
 
 #~ msgctxt "@title %1 is a number"
 #~ msgid "Temperature %1"
@@ -1503,10 +1529,6 @@ msgstr ""
 #~ msgctxt "@info"
 #~ msgid "Percentage of available memory."
 #~ msgstr "Percentage of available memory."
-
-#~ msgctxt "@title"
-#~ msgid "Allocated Memory Percentage"
-#~ msgstr "Allocated Memory Percentage"
 
 #~ msgctxt "@title Allocated Memory Percentage"
 #~ msgid "Allocated"

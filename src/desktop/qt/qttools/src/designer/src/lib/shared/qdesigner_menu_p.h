@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 //
 //  W A R N I N G
@@ -39,6 +40,7 @@ class QMimeData;
 namespace qdesigner_internal {
     class CreateSubmenuCommand;
     class ActionInsertionCommand;
+    class MenuActionLineEdit;
 }
 
 class QDESIGNER_SHARED_EXPORT QDesignerMenu: public QMenu
@@ -48,7 +50,8 @@ public:
     QDesignerMenu(QWidget *parent = nullptr);
     ~QDesignerMenu() override;
 
-    bool eventFilter(QObject *object, QEvent *event) override;
+    bool handleEvent(QEvent *event); // for the event filter
+    void deactivateMenu(); // for the event filter
 
     QDesignerFormWindowInterface *formWindow() const;
     QDesignerActionProviderExtension *actionProvider();
@@ -83,6 +86,7 @@ private slots:
     void slotShowSubMenuNow();
     void slotDeactivateNow();
     void slotAdjustSizeNow();
+    void stopInlineEditing();
 
 protected:
     void actionEvent(QActionEvent *event) override;
@@ -95,13 +99,12 @@ protected:
     void keyReleaseEvent(QKeyEvent *event) override;
     void showEvent(QShowEvent *event) override;
 
-    bool handleEvent(QWidget *widget, QEvent *event);
-    bool handleMouseDoubleClickEvent(QWidget *widget, QMouseEvent *event);
-    bool handleMousePressEvent(QWidget *widget, QMouseEvent *event);
-    bool handleMouseReleaseEvent(QWidget *widget, QMouseEvent *event);
-    bool handleMouseMoveEvent(QWidget *widget, QMouseEvent *event);
-    bool handleContextMenuEvent(QWidget *widget, QContextMenuEvent *event);
-    bool handleKeyPressEvent(QWidget *widget, QKeyEvent *event);
+    bool handleMouseDoubleClickEvent(QMouseEvent *event);
+    bool handleMousePressEvent(QMouseEvent *event);
+    bool handleMouseReleaseEvent(QMouseEvent *event);
+    bool handleMouseMoveEvent(QMouseEvent *event);
+    bool handleContextMenuEvent(QContextMenuEvent *event);
+    bool handleKeyPressEvent(QKeyEvent *event);
 
     void startDrag(const QPoint &pos, Qt::KeyboardModifiers modifiers);
 
@@ -133,7 +136,6 @@ protected:
 
     void hideSubMenu();
     void deleteAction();
-    void deactivateMenu();
 
     bool canCreateSubMenu(QAction *action) const;
     QDesignerMenu *findRootMenu() const;
@@ -157,7 +159,7 @@ private:
     QTimer *m_showSubMenuTimer;
     QTimer *m_deactivateWindowTimer;
     QTimer *m_adjustSizeTimer;
-    QLineEdit *m_editor;
+    qdesigner_internal::MenuActionLineEdit *m_editor;
     bool m_dragging = false;
     int m_lastSubMenuIndex = -1;
 

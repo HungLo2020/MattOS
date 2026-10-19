@@ -29,7 +29,7 @@ class Q_SVG_EXPORT QSvgLinearEasing : public QSvgEasingInterface
 public:
     ~QSvgLinearEasing() override;
 
-    virtual qreal progress(qreal t) override
+    virtual qreal progress(qreal t) const override
     {
         return qBound(0., t, 1.);
     }

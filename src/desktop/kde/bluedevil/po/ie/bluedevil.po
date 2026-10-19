@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bluedevil\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
 "PO-Revision-Date: 2024-08-02 15:16+0700\n"
 "Last-Translator: OIS <mistresssilvara@hotmail.com>\n"
 "Language-Team: Interlingue <>\n"
@@ -27,60 +27,28 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "mistresssilvara@hotmail.com"
 
-#: applet/devicesproxymodel.cpp:51
+#: components/ForgetDeviceDialog.qml:37
 #, kde-format
-msgctxt "@title:column Blocked Bluetooth devices"
-msgid "Blocked"
+msgid "Forget this Device?"
 msgstr ""
 
-#: applet/devicesproxymodel.cpp:54
+#: components/ForgetDeviceDialog.qml:38
 #, kde-format
-msgctxt "@title:column Connected Bluetooth devices"
-msgid "Connected"
+msgid "Are you sure you want to forget \"%1\"?"
 msgstr ""
 
-#: applet/devicesproxymodel.cpp:56
+#: components/ForgetDeviceDialog.qml:50
 #, kde-format
-msgctxt "@title:column Available but not connected Bluetooth devices"
-msgid "Available"
+msgctxt "@action:button"
+msgid "Forget Device"
 msgstr ""
 
-#: applet/devicesstateproxymodel.cpp:273
-#, kde-format
-msgctxt "@label %1 is the name of a Bluetooth device"
-msgid "Could not connect to device “%1”"
-msgstr ""
-
-#: applet/devicesstateproxymodel.cpp:288
+#: components/ForgetDeviceDialog.qml:58
 #, fuzzy, kde-format
-msgctxt "Notification when the connection failed due to Failed:HostIsDown"
-msgid "The device is unreachable"
-msgstr "Conexente al aparate"
-
-#: applet/devicesstateproxymodel.cpp:289
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed"
-msgid "Connection to the device failed"
-msgstr "Li conexion al aparate ne successat"
-
-#: applet/devicesstateproxymodel.cpp:292
-#, kde-format
-msgctxt "Notification when the connection failed due to NotReady"
-msgid "The device is not ready"
-msgstr "Li aparate ne es pret"
-
-#: kcm/bluetooth.cpp:135
-#, kde-format
-msgctxt "DeviceName Network (Service)"
-msgid "%1 Network (%2)"
-msgstr "Rete %1 (%2)"
-
-#: kcm/bluetoothmoduledata.cpp:20
-#, fuzzy, kde-format
-#| msgid "Sending file over Bluetooth"
-msgctxt "@info:tooltip"
-msgid "Enable Bluetooth"
-msgstr "Inviante un file per Bluetooth"
+#| msgid "Cancel"
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "Anullar"
 
 #: kded/bluedevildaemon.cpp:68 kded/bluedevildaemon.cpp:70
 #, kde-format
@@ -163,13 +131,13 @@ msgctxt "Notification button to say that the PIN is wrong"
 msgid "PIN incorrect"
 msgstr "PIN es íncorect"
 
-#: kded/helpers/requestpin.cpp:32
+#: kded/helpers/requestpin.cpp:30
 #, kde-format
 msgctxt "@label %1 is the name of a Bluetooth device"
 msgid "PIN for device “%1”"
 msgstr ""
 
-#: kded/helpers/requestpin.cpp:36
+#: kded/helpers/requestpin.cpp:34
 #, kde-format
 msgctxt ""
 "Shown in a notification to announce that a PIN is needed to accomplish a "
@@ -177,7 +145,7 @@ msgctxt ""
 msgid "PIN needed to pair with %1"
 msgstr "Un PIN es besonat por acuplation con %1"
 
-#: kded/helpers/requestpin.cpp:39
+#: kded/helpers/requestpin.cpp:37
 #, fuzzy, kde-format
 msgctxt ""
 "Notification button which once clicked, a dialog to introduce the PIN will "
@@ -185,13 +153,13 @@ msgctxt ""
 msgid "Introduce PIN"
 msgstr "PIN es corect"
 
-#: kded/helpers/requestpin.cpp:59
+#: kded/helpers/requestpin.cpp:57
 #, fuzzy, kde-format
 msgctxt "Shown in the caption of a dialog where the user introduce the PIN"
 msgid "Introduce PIN"
 msgstr "PIN es corect"
 
-#: kded/helpers/requestpin.cpp:66
+#: kded/helpers/requestpin.cpp:64
 #, kde-format
 msgctxt ""
 "Shown in a dialog which asks to introduce a PIN that will be used to pair a "
@@ -337,12 +305,12 @@ msgstr "Memorie del telefon"
 msgid "External memory"
 msgstr "Memorie extern"
 
-#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:378
+#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:382
 #, kde-format
 msgid "Bluetooth is disabled."
 msgstr "Bluetooth es ínactiv."
 
-#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:379
+#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:383
 #, kde-format
 msgctxt "Action to enable Bluetooth adapter"
 msgid "Enable"
@@ -486,18 +454,18 @@ msgstr "Adjunter un aparate Bluetooth"
 msgid "Select a device"
 msgstr "Selecter un aparate"
 
-#: wizard/pages/discover.cpp:371
+#: wizard/pages/discover.cpp:375
 #, kde-format
 msgctxt "Action to fix a problem"
 msgid "Fix it"
 msgstr "Reparar"
 
-#: wizard/pages/discover.cpp:381
+#: wizard/pages/discover.cpp:385
 #, fuzzy, kde-format
 msgid "Your Bluetooth adapter is not pairable."
 msgstr "OIS"
 
-#: wizard/pages/discover.cpp:382
+#: wizard/pages/discover.cpp:386
 #, fuzzy, kde-format
 msgctxt "Action to make Bluetooth adapter pairable"
 msgid "Make Pairable"
@@ -605,6 +573,29 @@ msgstr "Li aparate esset configurat e posse esser usat."
 msgctxt "Placeholder is device name"
 msgid "The device '%1' has been set up and can now be used."
 msgstr "Li aparate «%1» esset configurat e posse esser usat."
+
+#, fuzzy
+#~ msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+#~ msgid "The device is unreachable"
+#~ msgstr "Conexente al aparate"
+
+#~ msgctxt "Notification when the connection failed due to Failed"
+#~ msgid "Connection to the device failed"
+#~ msgstr "Li conexion al aparate ne successat"
+
+#~ msgctxt "Notification when the connection failed due to NotReady"
+#~ msgid "The device is not ready"
+#~ msgstr "Li aparate ne es pret"
+
+#~ msgctxt "DeviceName Network (Service)"
+#~ msgid "%1 Network (%2)"
+#~ msgstr "Rete %1 (%2)"
+
+#, fuzzy
+#~| msgid "Sending file over Bluetooth"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Enable Bluetooth"
+#~ msgstr "Inviante un file per Bluetooth"
 
 #~ msgctxt ""
 #~ "@label %1 is human-readable device name, %2 is low-level device address"

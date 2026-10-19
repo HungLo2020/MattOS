@@ -16,14 +16,16 @@
 
 using namespace Qt::Literals;
 
-#ifndef Q_OS_WIN
 void initLocale()
 {
+#ifndef Q_OS_WIN
     qputenv("LC_ALL", "en_US.utf-8");
+#else
+    QLocale::setDefault(QLocale(u"en_US"_s));
+#endif
 }
 
 Q_CONSTRUCTOR_FUNCTION(initLocale)
-#endif
 
 class KAboutDataTest : public QObject
 {
@@ -44,6 +46,8 @@ private Q_SLOTS:
 
     void testProductName();
     void testAppStream();
+    void testAppStreamLocalized();
+    void testAppStreamKeepsApplicationData();
 };
 
 static const char AppName[] = "app";
@@ -242,8 +246,6 @@ void KAboutDataTest::testSetAddLicense()
     licenseFileStream << LicenseFileText;
     licenseFile.close();
 
-    const QString lineFeed = QString::fromLatin1("\n\n");
-
     KAboutData aboutData(QString::fromLatin1(AppName),
                          QLatin1String(ProgramName),
                          QString::fromLatin1(Version),
@@ -421,9 +423,13 @@ void KAboutDataTest::testAppStream()
     QCOMPARE(aboutData.licenses()[0].name(), "LGPL v2"_L1);
     QCOMPARE(aboutData.licenses()[0].spdx(), "LGPL-2.0+"_L1);
     QCOMPARE(aboutData.homepage(), "https://apps.kde.org/coreaddons-test-app"_L1);
+    QCOMPARE(aboutData.url(KAboutData::Homepage), "https://apps.kde.org/coreaddons-test-app"_L1);
+    QCOMPARE(aboutData.url(KAboutData::VCSBrowser), "https://invent.kde.org/frameworks/kcoreaddons"_L1);
+    QCOMPARE(aboutData.url(KAboutData::XKDEMatrixRoom), "#frameworks-devel:kde.org"_L1);
     QCOMPARE(aboutData.bugAddress(), "https://bugs.kde.org/enter_bug.cgi?format=guided&product=frameworks-coreaddons"_L1);
     QCOMPARE(aboutData.displayName(), "Test App (untranslated)"_L1);
     QCOMPARE(aboutData.shortDescription(), "Test App Description (untranslated)"_L1);
+    QCOMPARE(aboutData.componentName(), "coreaddons-test-app"_L1);
 
     QCOMPARE(aboutData.releases().size(), 2);
     QCOMPARE(aboutData.releases()[0].version(), "25.12.1"_L1);
@@ -440,6 +446,43 @@ void KAboutDataTest::testAppStream()
     QCOMPARE(
         aboutData.releases()[1].untranslatedDescription(),
         "<p>&quot;Cool&quot; (untranslated) Features:</p><ul><li><em>Important</em> untranslated feature release change 1.</li><li>Not so <em>important</em> untranslated feature release change 2.</li><li>Feature release change 3.</li></ul>"_L1);
+}
+
+void KAboutDataTest::testAppStreamLocalized()
+{
+    QLocale::setDefault(QLocale(u"de_DE.utf-8"_s));
+    auto aboutData = KAboutData::fromAppStreamFile(QFINDTESTDATA("data/org.kde.coreaddons.test-app.xml"_L1));
+    QCOMPARE(aboutData.displayName(), "Test App (German)"_L1);
+    QCOMPARE(aboutData.shortDescription(), "Test App Description (German)"_L1);
+
+    QCOMPARE(aboutData.releases().size(), 2);
+    QCOMPARE(aboutData.releases()[0].version(), "25.12.1"_L1);
+    QCOMPARE(aboutData.releases()[0].date(), QDate(2026, 1, 8));
+    QCOMPARE(aboutData.releases()[0].description(), "<ul><li>Patch release change 1.</li><li>Patch release change 2 &amp; 3.</li></ul>"_L1);
+    QCOMPARE(aboutData.releases()[0].untranslatedDescription(), "<ul><li>Patch release change 1.</li><li>Patch release change 2 &amp; 3.</li></ul>"_L1);
+    QVERIFY(aboutData.releases()[0].url().isEmpty());
+    QCOMPARE(aboutData.releases()[1].version(), "25.12.0"_L1);
+    QCOMPARE(aboutData.releases()[1].date(), QDate(2025, 12, 11));
+    QCOMPARE(aboutData.releases()[1].url(), QUrl("https://kde.org/announcements/gear/25.12.0/"_L1));
+    QCOMPARE(
+        aboutData.releases()[1].description(),
+        "<p>&quot;Cool&quot; (German) Features:</p><ul><li><em>Important</em> German feature release change 1.</li><li>Not so <em>important</em> German feature release change 2.</li><li>Feature release change 3.</li></ul>"_L1);
+    QCOMPARE(
+        aboutData.releases()[1].untranslatedDescription(),
+        "<p>&quot;Cool&quot; (untranslated) Features:</p><ul><li><em>Important</em> untranslated feature release change 1.</li><li>Not so <em>important</em> untranslated feature release change 2.</li><li>Feature release change 3.</li></ul>"_L1);
+}
+
+// Reading AppStream data must not modify the application data, in particular not its
+// component name, which QCoreApplication::applicationName() is kept in sync with.
+void KAboutDataTest::testAppStreamKeepsApplicationData()
+{
+    KAboutData::setApplicationData(KAboutData(u"myapp"_s, u"My App"_s));
+    QCOMPARE(QCoreApplication::applicationName(), "myapp"_L1);
+
+    std::ignore = KAboutData::fromAppStreamFile(QFINDTESTDATA("data/org.kde.coreaddons.test-app.xml"_L1));
+
+    QCOMPARE(KAboutData::applicationData().componentName(), "myapp"_L1);
+    QCOMPARE(QCoreApplication::applicationName(), "myapp"_L1);
 }
 
 QTEST_MAIN(KAboutDataTest)

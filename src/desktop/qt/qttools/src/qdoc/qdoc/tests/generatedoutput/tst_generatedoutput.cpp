@@ -5,6 +5,8 @@
 #include <QDirIterator>
 #include <QtTest>
 
+using namespace Qt::StringLiterals;
+
 class tst_generatedOutput : public QObject
 {
     Q_OBJECT
@@ -23,14 +25,13 @@ private slots:
     void inheritedQmlPropertyGroups();
     void crossModuleLinking();
     void indexLinking();
-    void includeFromExampleDirs();
     void singleExec();
     void preparePhase();
     void generatePhase();
     void noAutoList();
 
 private:
-    QScopedPointer<QTemporaryDir> m_outputDir;
+    QTemporaryDir m_outputDir;
     QString m_qdoc;
     QDir m_expectedDir;
     QString m_extraParams;
@@ -44,6 +45,26 @@ private:
 
 void tst_generatedOutput::initTestCase()
 {
+#if (defined(__has_feature) && __has_feature(address_sanitizer)) || defined(__SANITIZE_ADDRESS__)
+    // The QDoc subprocess this test spawns links against a libclang built
+    // without LLVM_USE_SANITIZER=Address. The asymmetric configuration
+    // trips an upstream LLVM defect in BumpPtrAllocator: inline
+    // poison/unpoison calls are gated on a per-translation-unit macro,
+    // so the slow-path StartNewSlab poisons via QDoc's instrumented copy
+    // while downstream consumers inside libclang read those bytes through
+    // compiler-instrumented loads that ASan reports as use-after-poison.
+    // The reports surface across many libclang code paths and include
+    // direct loads that ASan suppression files cannot mask.
+    //
+    // Re-enable this test under ASan once an upstream LLVM fix is rolled
+    // out to the Coin libclang artefact, or once a sanitiser-instrumented
+    // libclang variant replaces the asymmetric configuration. See the
+    // tracking JIRA for the upstream-issue URL and the conditions under
+    // which the skip should be removed.
+    QSKIP("Disabled under AddressSanitizer: upstream LLVM BumpPtrAllocator "
+          "defect (asymmetric instrumentation against an unsanitised libclang).");
+#endif
+
     // Build the path to the QDoc binary the same way moc tests do for moc.
     const auto binpath = QLibraryInfo::path(QLibraryInfo::BinariesPath);
     const auto extension = QSysInfo::productType() == "windows" ? ".exe" : "";
@@ -63,10 +84,10 @@ void tst_generatedOutput::initTestCase()
 
 void tst_generatedOutput::init()
 {
-    m_outputDir.reset(new QTemporaryDir());
-    if (!m_outputDir->isValid()) {
+    m_outputDir = {};
+    if (!m_outputDir.isValid()) {
         const QString errorMessage =
-                "Couldn't create temporary directory: " + m_outputDir->errorString();
+                "Couldn't create temporary directory: "_L1 + m_outputDir.errorString();
         QFAIL(qPrintable(errorMessage));
     }
 }
@@ -99,7 +120,7 @@ void tst_generatedOutput::compareLineByLine(const QStringList &expectedFiles)
 {
     for (const auto &file : expectedFiles) {
         QString expected(m_expectedDir.filePath(file));
-        QString actual(m_outputDir->filePath(file));
+        QString actual(m_outputDir.filePath(file));
 
         QFile expectedFile(expected);
         if (!expectedFile.open(QIODevice::ReadOnly))
@@ -126,7 +147,7 @@ void tst_generatedOutput::compareLineByLine(const QStringList &expectedFiles)
 void tst_generatedOutput::testAndCompare(const char *input, const char *outNames,
                                          const char *extraParams)
 {
-    QStringList args{ "-outputdir", m_outputDir->path() + "/", QFINDTESTDATA(input) };
+    QStringList args{ "-outputdir", m_outputDir.path() + "/", QFINDTESTDATA(input) };
     if (extraParams)
         args << QString(QLatin1String(extraParams)).split(QChar(' '));
 
@@ -142,7 +163,7 @@ void tst_generatedOutput::testAndCompare(const char *input, const char *outNames
             QFileInfo fileInfo(m_expectedDir.filePath(file));
             fileInfo.dir().remove(fileInfo.fileName()); // Allowed to fail
             QVERIFY(m_expectedDir.mkpath(fileInfo.dir().path()));
-            QVERIFY2(QFile::copy(m_outputDir->filePath(file), fileInfo.filePath()),
+            QVERIFY2(QFile::copy(m_outputDir.filePath(file), fileInfo.filePath()),
                      qPrintable(QStringLiteral("Failed to copy '%1'").arg(file)));
         }
         QSKIP("Regenerated expected output only.");
@@ -154,10 +175,10 @@ void tst_generatedOutput::testAndCompare(const char *input, const char *outNames
 // Copy <project>.index to <project>/<project>.index in the outputdir
 void tst_generatedOutput::copyIndexFiles()
 {
-    QDirIterator it(m_outputDir->path(), QStringList("*.index"), QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator it(m_outputDir.path(), QStringList("*.index"), QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         QFileInfo fileInfo(it.next());
-        QDir indexDir(m_outputDir->path());
+        QDir indexDir(m_outputDir.path());
         QVERIFY(indexDir.mkpath(fileInfo.baseName()));
         QVERIFY(indexDir.cd(fileInfo.baseName()));
         if (!indexDir.exists(fileInfo.fileName()))
@@ -167,7 +188,7 @@ void tst_generatedOutput::copyIndexFiles()
 
 void tst_generatedOutput::htmlFromCpp()
 {
-    testAndCompare("testdata/configs/testcpp.qdocconf",
+    testAndCompare("testdata/testcpp/testcpp.qdocconf",
                    "testcpp-module.html "
                    "testqdoc-test.html "
                    "testqdoc-test-members.html "
@@ -196,7 +217,7 @@ void tst_generatedOutput::indexLinking()
         inheritedQmlPropertyGroups();
     }
     copyIndexFiles();
-    QString indexDir = QLatin1String("-indexdir ") +  m_outputDir->path();
+    QString indexDir = "-indexdir "_L1 +  m_outputDir.path();
     testAndCompare("testdata/indexlinking/indexlinking.qdocconf",
                    "index-linking.html "
                    "qml-linkmodule-grandchild-members.html",
@@ -210,20 +231,12 @@ void tst_generatedOutput::crossModuleLinking()
         htmlFromCpp();
     }
     copyIndexFiles();
-    QString indexDir = QLatin1String("-indexdir ") +  m_outputDir->path();
+    QString indexDir = "-indexdir "_L1 +  m_outputDir.path();
     testAndCompare("testdata/crossmodule/crossmodule.qdocconf",
                    "crossmodule/testtype.html "
                    "crossmodule/testtype-members.html "
                    "crossmodule/crossmoduleref-sub-crossmodule.html",
                    indexDir.toLatin1().data());
-}
-
-void tst_generatedOutput::includeFromExampleDirs()
-{
-    testAndCompare("testdata/includefromexampledirs/includefromexampledirs.qdocconf",
-                   "includefromexampledirs/index.html "
-                   "includefromexampledirs/qml-qdoc-test-abstractparent.html "
-                   "includefromexampledirs/qml-qdoc-test-abstractparent-members.html");
 }
 
 void tst_generatedOutput::singleExec()
@@ -243,14 +256,14 @@ void tst_generatedOutput::singleExec()
 
 void tst_generatedOutput::preparePhase()
 {
-    testAndCompare("testdata/configs/testcpp.qdocconf",
+    testAndCompare("testdata/testcpp/testcpp.qdocconf",
                    "testcpp.index",
                    "-prepare");
 }
 
 void tst_generatedOutput::generatePhase()
 {
-    testAndCompare("testdata/configs/testcpp.qdocconf",
+    testAndCompare("testdata/testcpp/testcpp.qdocconf",
                    "testcpp-module.html "
                    "testqdoc-test.html "
                    "testqdoc-test-members.html "
@@ -260,7 +273,7 @@ void tst_generatedOutput::generatePhase()
 
 void tst_generatedOutput::noAutoList()
 {
-    testAndCompare("testdata/configs/noautolist.qdocconf",
+    testAndCompare("testdata/noautolist/noautolist.qdocconf",
                    "noautolist/testcpp-module.html "
                    "noautolist/test-componentset-example.html "
                    "noautolist/qdoc-test-qmlmodule.html "

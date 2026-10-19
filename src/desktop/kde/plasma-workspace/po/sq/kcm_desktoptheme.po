@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdebase-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-03-27 00:47+0000\n"
 "PO-Revision-Date: 2021-03-19 18:55-0400\n"
 "Last-Translator: Agron Selimaj <as9902613@gmail.com>\n"
 "Language-Team: kdeshqip\n"
@@ -123,48 +123,71 @@ msgctxt "@item:inlistbox filters displayed themes"
 msgid "Color scheme compatible"
 msgstr ""
 
-#: ui/main.qml:130
+#: ui/main.qml:114
 #, kde-format
 msgid "Install from File…"
 msgstr ""
 
-#: ui/main.qml:135
+#: ui/main.qml:119
 #, kde-format
 msgid "Get New…"
 msgstr ""
 
-#: ui/main.qml:148
+#: ui/main.qml:132
 #, kde-format
 msgid "Follows color scheme"
 msgstr ""
 
-#: ui/main.qml:166
+#: ui/main.qml:150
 #, fuzzy, kde-format
 #| msgid "Theme Name"
 msgid "Edit Theme…"
 msgstr "Emri i Temës"
 
-#: ui/main.qml:173
-#, kde-format
-msgid "Remove Theme"
-msgstr "Hiqe Temën"
-
-#: ui/main.qml:180
+#: ui/main.qml:158
 #, fuzzy, kde-format
-#| msgid "Remove Theme"
-msgid "Restore Theme"
-msgstr "Hiqe Temën"
+#| msgid "Theme Name"
+msgctxt "@info:tooltip"
+msgid "Remove Plasma style"
+msgstr "Emri i Temës"
 
-#: ui/main.qml:199
+#: ui/main.qml:160
+#, fuzzy, kde-format
+#| msgid "Theme Name"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active Plasma style"
+msgstr "Emri i Temës"
+
+#: ui/main.qml:162
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed Plasma styles"
+msgstr ""
+
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this Plasma style"
+msgstr ""
+
+#: ui/main.qml:189
 #, fuzzy, kde-format
 #| msgid "Theme Name"
 msgid "Open Theme"
 msgstr "Emri i Temës"
 
-#: ui/main.qml:201
+#: ui/main.qml:191
 #, kde-format
 msgid "Theme Files (*.zip *.tar.gz *.tar.bz2)"
 msgstr ""
+
+#~ msgid "Remove Theme"
+#~ msgstr "Hiqe Temën"
+
+#, fuzzy
+#~| msgid "Remove Theme"
+#~ msgid "Restore Theme"
+#~ msgstr "Hiqe Temën"
 
 #, fuzzy
 #~| msgid "Theme Name"
@@ -178,11 +201,6 @@ msgstr ""
 #~ msgctxt "EMAIL OF TRANSLATORS"
 #~ msgid "Your emails"
 #~ msgstr "kde-i18n-sq@kde.org,vilsongjeci@gmail.com"
-
-#, fuzzy
-#~| msgid "Theme Name"
-#~ msgid "Plasma Style"
-#~ msgstr "Emri i Temës"
 
 #, fuzzy
 #~| msgid "Theme Name"

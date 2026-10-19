@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasmaintegration5\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-27 00:45+0000\n"
+"POT-Creation-Date: 2026-06-16 00:47+0000\n"
 "PO-Revision-Date: 2025-05-26 01:02+0100\n"
 "Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
 "Language-Team: Spanish <kde-l10n-es@kde.org>\n"
@@ -19,144 +19,71 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 24.05.1\n"
 
-#: platformtheme/kdeplatformfiledialoghelper.cpp:260
-#, kde-format
-msgctxt "@title:window"
-msgid "Open File"
-msgstr "Abrir archivo"
-
-#: platformtheme/kdeplatformfiledialoghelper.cpp:261
+#: platformtheme/kdeplatformfiledialoghelper.cpp:242
 #, kde-format
 msgctxt "@title:window"
 msgid "Save File"
 msgstr "Guardar archivo"
 
-#: platformtheme/kdeplatformtheme.cpp:278
-#, kde-format
-msgctxt "@action:button"
-msgid "Save All"
-msgstr "Guardar todo"
-
-#: platformtheme/kdeplatformtheme.cpp:282
-#, kde-format
-msgctxt "@action:button"
-msgid "&Yes"
-msgstr "&Sí"
-
-#: platformtheme/kdeplatformtheme.cpp:284
-#, kde-format
-msgctxt "@action:button"
-msgid "Yes to All"
-msgstr "Sí a todo"
-
-#: platformtheme/kdeplatformtheme.cpp:286
-#, kde-format
-msgctxt "@action:button"
-msgid "&No"
-msgstr "&No"
-
-#: platformtheme/kdeplatformtheme.cpp:288
-#, kde-format
-msgctxt "@action:button"
-msgid "No to All"
-msgstr "No a todo"
-
-#: platformtheme/kdeplatformtheme.cpp:291
-#, kde-format
-msgctxt "@action:button"
-msgid "Abort"
-msgstr "Interrumpir"
-
-#: platformtheme/kdeplatformtheme.cpp:293
-#, kde-format
-msgctxt "@action:button"
-msgid "Retry"
-msgstr "Reintentar"
-
-#: platformtheme/kdeplatformtheme.cpp:295
-#, kde-format
-msgctxt "@action:button"
-msgid "Ignore"
-msgstr "Ignorar"
-
-#: platformtheme/kdirselectdialog.cpp:133
-#, kde-format
-msgctxt "folder name"
-msgid "New Folder"
-msgstr "Nueva carpeta"
-
-#: platformtheme/kdirselectdialog.cpp:139
-#, kde-format
-msgctxt "@title:window"
-msgid "New Folder"
-msgstr "Nueva carpeta"
-
-#: platformtheme/kdirselectdialog.cpp:140
-#, kde-format
-msgctxt "@label:textbox"
-msgid ""
-"Create new folder in:\n"
-"%1"
-msgstr ""
-"Crear nueva carpeta en:\n"
-"%1"
-
-#: platformtheme/kdirselectdialog.cpp:171
-#, kde-format
-msgid "A file or folder named %1 already exists."
-msgstr "Ya existe un archivo o una carpeta con el nombre %1."
-
-#: platformtheme/kdirselectdialog.cpp:180
-#, kde-format
-msgid "You do not have permission to create that folder."
-msgstr "No tiene permiso para crear esta carpeta."
-
-#: platformtheme/kdirselectdialog.cpp:282
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
 #, kde-format
 msgctxt "@title:window"
 msgid "Select Folder"
 msgstr "Seleccionar carpeta"
 
-#: platformtheme/kdirselectdialog.cpp:290
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
+#, kde-format
+msgctxt "@title:window"
+msgid "Open File"
+msgstr "Abrir archivo"
+
+#: platformtheme/kdeplatformtheme.cpp:290
 #, kde-format
 msgctxt "@action:button"
-msgid "New Folder..."
-msgstr "Nueva carpeta…"
+msgid "Save All"
+msgstr "Guardar todo"
 
-#: platformtheme/kdirselectdialog.cpp:348
+#: platformtheme/kdeplatformtheme.cpp:294
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "New Folder..."
-msgstr "Nueva carpeta…"
+msgctxt "@action:button"
+msgid "&Yes"
+msgstr "&Sí"
 
-#: platformtheme/kdirselectdialog.cpp:357
+#: platformtheme/kdeplatformtheme.cpp:296
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Move to Trash"
-msgstr "Mover a la Papelera"
+msgctxt "@action:button"
+msgid "Yes to All"
+msgstr "Sí a todo"
 
-#: platformtheme/kdirselectdialog.cpp:366
+#: platformtheme/kdeplatformtheme.cpp:298
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Delete"
-msgstr "Borrar"
+msgctxt "@action:button"
+msgid "&No"
+msgstr "&No"
 
-#: platformtheme/kdirselectdialog.cpp:377
+#: platformtheme/kdeplatformtheme.cpp:300
 #, kde-format
-msgctxt "@option:check"
-msgid "Show Hidden Folders"
-msgstr "Mostrar carpetas ocultas"
+msgctxt "@action:button"
+msgid "No to All"
+msgstr "No a todo"
 
-#: platformtheme/kdirselectdialog.cpp:384
+#: platformtheme/kdeplatformtheme.cpp:303
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Properties"
-msgstr "Propiedades"
+msgctxt "@action:button"
+msgid "Abort"
+msgstr "Interrumpir"
 
-#: platformtheme/kfiletreeview.cpp:185
+#: platformtheme/kdeplatformtheme.cpp:305
 #, kde-format
-msgid "Show Hidden Folders"
-msgstr "Mostrar carpetas ocultas"
+msgctxt "@action:button"
+msgid "Retry"
+msgstr "Reintentar"
+
+#: platformtheme/kdeplatformtheme.cpp:307
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "Ignorar"
 
 #: platformtheme/kioopenwith.cpp:125
 #, kde-format
@@ -166,3 +93,52 @@ msgid ""
 msgstr ""
 "No se ha podido ejecutar por motivos desconocidos. Vuelva a probar con una "
 "aplicación preexistente."
+
+#~ msgctxt "folder name"
+#~ msgid "New Folder"
+#~ msgstr "Nueva carpeta"
+
+#~ msgctxt "@title:window"
+#~ msgid "New Folder"
+#~ msgstr "Nueva carpeta"
+
+#~ msgctxt "@label:textbox"
+#~ msgid ""
+#~ "Create new folder in:\n"
+#~ "%1"
+#~ msgstr ""
+#~ "Crear nueva carpeta en:\n"
+#~ "%1"
+
+#~ msgid "A file or folder named %1 already exists."
+#~ msgstr "Ya existe un archivo o una carpeta con el nombre %1."
+
+#~ msgid "You do not have permission to create that folder."
+#~ msgstr "No tiene permiso para crear esta carpeta."
+
+#~ msgctxt "@action:button"
+#~ msgid "New Folder..."
+#~ msgstr "Nueva carpeta…"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "New Folder..."
+#~ msgstr "Nueva carpeta…"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Move to Trash"
+#~ msgstr "Mover a la Papelera"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Delete"
+#~ msgstr "Borrar"
+
+#~ msgctxt "@option:check"
+#~ msgid "Show Hidden Folders"
+#~ msgstr "Mostrar carpetas ocultas"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Properties"
+#~ msgstr "Propiedades"
+
+#~ msgid "Show Hidden Folders"
+#~ msgstr "Mostrar carpetas ocultas"

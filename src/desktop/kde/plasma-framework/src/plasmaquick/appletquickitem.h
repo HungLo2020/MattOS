@@ -31,7 +31,6 @@ class Applet;
 namespace PlasmaQuick
 {
 class AppletQuickItemPrivate;
-class SharedQmlEngine;
 
 // TODO qdoc should this be documented independently or as part of PlasmoidItem
 
@@ -108,7 +107,7 @@ class PLASMAQUICK_EXPORT AppletQuickItem : public QQuickItem
     /*!
      * Gives compatibility to the old plasmoid.* api
      */
-    Q_PROPERTY(QObject *plasmoid READ applet CONSTANT)
+    Q_PROPERTY(Plasma::Applet *plasmoid READ applet CONSTANT)
 
     /*!
      * Text to display in a badge overlay on top of the applet's icon. If empty,
@@ -196,7 +195,6 @@ Q_SIGNALS:
 protected:
     // Initializations that need to be executed after classBegin()
     virtual void init();
-    PlasmaQuick::SharedQmlEngine *qmlObject();
 
     // Reimplementation
     void childEvent(QChildEvent *event) override;

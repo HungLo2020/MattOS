@@ -19,6 +19,7 @@
 #include <QtQml/qqmlinfo.h>
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/private/qquickaccessibleattached_p.h>
+#include <QtQuick/private/qquickattachedpropertypropagator_p.h>
 #include <QtQuick/private/qquicktransition_p.h>
 #include <QtQuick/private/qquickitem_p.h>
 #include <qpa/qplatformintegration.h>
@@ -515,11 +516,6 @@ void QQuickPopupPrivate::init()
     QObject::connect(popupItem, &QQuickControl::implicitContentHeightChanged, q, &QQuickPopup::implicitContentHeightChanged);
     QObject::connect(popupItem, &QQuickControl::implicitBackgroundWidthChanged, q, &QQuickPopup::implicitBackgroundWidthChanged);
     QObject::connect(popupItem, &QQuickControl::implicitBackgroundHeightChanged, q, &QQuickPopup::implicitBackgroundHeightChanged);
-    QObject::connect(popupItem, &QQuickControl::spacingChanged, q, &QQuickPopup::spacingChanged);
-    QObject::connect(popupItem, &QQuickControl::topInsetChanged, q, &QQuickPopup::topInsetChanged);
-    QObject::connect(popupItem, &QQuickControl::bottomInsetChanged, q, &QQuickPopup::bottomInsetChanged);
-    QObject::connect(popupItem, &QQuickControl::leftInsetChanged, q, &QQuickPopup::leftInsetChanged);
-    QObject::connect(popupItem, &QQuickControl::rightInsetChanged, q, &QQuickPopup::rightInsetChanged);
 }
 
 void QQuickPopupPrivate::closeOrReject()
@@ -602,7 +598,7 @@ bool QQuickPopupPrivate::handlePress(QQuickItem *item, const QPointF &point, ulo
         // Note that the parentItem (e.g a menuBarItem, in case of a MenuBar) will
         // live inside another window when using popup windows. We therefore need to
         // map to and from global.
-        const QPointF globalPoint = item->mapToGlobal(point);
+        const QPointF globalPoint = item->mapToGlobal(item->mapFromScene(point));
         const QPointF localPoint = parentItem->mapFromGlobal(globalPoint);
         outsideParentPressed = !parentItem->contains(localPoint);
     }
@@ -1073,6 +1069,63 @@ QQuickPopupPositioner *QQuickPopupPrivate::getPositioner()
     return positioner;
 }
 
+
+class QWindowExposedObserver : public QObject
+{
+    Q_OBJECT
+public:
+    explicit QWindowExposedObserver(QPointer<QWindow> w, std::function<void()> func)
+        : m_func(func)
+    {
+        w->installEventFilter(this);
+    }
+protected:
+    bool eventFilter(QObject *object, QEvent *event) override {
+        Q_UNUSED(object);
+        if (event->type() == QEvent::Expose)
+            m_func();
+        return false;
+    }
+private:
+    std::function<void()> m_func;
+};
+
+struct ObserverDeleter
+{
+    void operator()(QWindowExposedObserver *observer) {
+        observer->disconnect();
+        observer->deleteLater();
+    }
+};
+static std::unique_ptr<QWindowExposedObserver, ObserverDeleter> s_windowExposedObserver;
+
+/*!
+    \internal
+    A popup's position is meant to be relative to its nearest parent item.
+    If this item exists in another window, the position needs to be mapped between the windows.
+    We use mapToGlobal(QPointF) to figure out where to position the popup window.
+    However, if mapToGlobal(QPointF) is called before the parent window is exposed,
+    it will on Windows and X11 assume that the parent windows position is (0,0).
+    This means that the popup window's position will usually be wrong, when it's
+    opened at the same time as the parent window.
+    To work around this issue, we wait for the parent window to be exposed, before opening the popup window.
+ */
+void openPopup(QQuickPopupPrivate *d)
+{
+#if defined(Q_OS_MACOS)
+    d->transitionManager.transitionEnter();
+#else
+    const auto callPrepareEnterTransition = [d]() {
+        d->transitionManager.transitionEnter();
+        std::ignore = s_windowExposedObserver.release();
+    };
+    if (d->usePopupWindow() && d->window->isVisible() && !d->window->isExposed())
+        s_windowExposedObserver.reset(new QWindowExposedObserver(d->window, callPrepareEnterTransition));
+    else
+        callPrepareEnterTransition();
+#endif
+}
+
 void QQuickPopupPrivate::setWindow(QQuickWindow *newWindow)
 {
     Q_Q(QQuickPopup);
@@ -1107,7 +1160,7 @@ void QQuickPopupPrivate::setWindow(QQuickWindow *newWindow)
     emit q->windowChanged(newWindow);
 
     if (complete && visible && window)
-        transitionManager.transitionEnter();
+        openPopup(this);
 }
 
 void QQuickPopupPrivate::itemDestroyed(QQuickItem *item)
@@ -2552,7 +2605,7 @@ void QQuickPopup::setVisible(bool visible)
     }
 
     if (visible)
-        d->transitionManager.transitionEnter();
+        openPopup(d);
     else
         d->transitionManager.transitionExit();
 }
@@ -2650,11 +2703,12 @@ void QQuickPopup::setScale(qreal scale)
     \value Popup.CloseOnReleaseOutsideParent The popup will close when the mouse is released outside of its parent.
     \value Popup.CloseOnEscape The popup will close when the escape key is pressed while the popup
         has active focus.
-
-    The \c {CloseOnPress*} and \c {CloseOnRelease*} policies only apply for events
-    outside of popups. That is, if there are two popups open and the first has
-    \c Popup.CloseOnPressOutside as its policy, clicking on the second popup will
-    not result in the first closing.
+    \value Popup.CloseMultiple When using multiple nested popups, only the top-most popup closes on each outside
+        click by default. When the closing popup has this flag set, the next popup in the stack is also
+        checked: if the click position was outside it too, it closes as well. This cascade
+        continues down the stack until all popups have closed, a popup whose bounds contain
+        the click position is reached, or a popup without \c CloseMultiple is closed. Must
+        be combined with at least one \c {CloseOnPress*} or \c {CloseOnRelease*} flag.
 
     The default value is \c {Popup.CloseOnEscape | Popup.CloseOnPressOutside}.
 
@@ -3142,9 +3196,6 @@ void QQuickPopup::componentComplete()
     if (!parentItem())
         resetParentItem();
 
-    if (d->visible && d->window)
-        d->transitionManager.transitionEnter();
-
     d->complete = true;
     d->popupItem->setObjectName(QQmlMetaType::prettyTypeName(this));
     d->popupItem->componentComplete();
@@ -3153,6 +3204,9 @@ void QQuickPopup::componentComplete()
         connect(currentContentItem, &QQuickItem::childrenChanged,
             this, &QQuickPopup::contentChildrenChanged);
     }
+
+    if (d->visible && d->window)
+        openPopup(d);
 }
 
 bool QQuickPopup::isComponentComplete() const
@@ -3544,6 +3598,33 @@ QQuickItem *QQuickPopup::safeAreaAttachmentItem()
     return popupItem();
 }
 
+QQuickItem *QQuickPopup::attacheeItem() const
+{
+    return popupItem();
+}
+
+QtPrivate::QQuickAttachedPropertyPropagator *QQuickPopup::attachedParent(
+    const QMetaObject *ourAttachedType) const
+{
+    auto *popupWindow = popupItem()->window();
+    qCDebug(lcAttachedPropertyPropagator).noquote() << "- attachee is a popup; checking its window"
+        << popupWindow;
+    auto *object = QtPrivate::QQuickAttachedPropertyPropagator::attachedObject(
+        ourAttachedType, popupWindow);
+    if (object)
+        return object;
+
+    if (qobject_cast<QQuickPopupWindow *>(popupWindow)) {
+        qCDebug(lcAttachedPropertyPropagator).noquote() << "- checking its window's transientParent"
+            << popupWindow->transientParent();
+        return QtPrivate::QQuickAttachedPropertyPropagator::attachedObject(ourAttachedType,
+            popupWindow->transientParent());
+    }
+
+    return {};
+}
+
 QT_END_NAMESPACE
 
+#include "qquickpopup.moc"
 #include "moc_qquickpopup_p.cpp"

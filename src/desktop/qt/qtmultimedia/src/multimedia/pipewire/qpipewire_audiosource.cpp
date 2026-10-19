@@ -22,7 +22,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, cons
                                                        std::optional<qsizetype> ringbufferSize,
                                                        QPipewireAudioSource *parent,
                                                        float volume,
-                                                       std::optional<int32_t> hardwareBufferFrames
+                                                       std::optional<NativePeriodFrames> nativePeriodFrames
                                                        ):
     QPipewireAudioStream {
         format,
@@ -31,7 +31,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, cons
         std::move(device),
         format,
         ringbufferSize,
-        hardwareBufferFrames,
+        nativePeriodFrames,
         volume,
     },
     m_parent {
@@ -47,6 +47,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, cons
 
 QPipewireAudioSourceStream::~QPipewireAudioSourceStream()
 {
+    Q_ASSERT(!m_xrunOccurred.thread() || m_xrunOccurred.thread()->isCurrentThread());
     resetStream();
 }
 
@@ -151,7 +152,7 @@ void QPipewireAudioSourceStream::createStream(StreamType streamType)
     if (applicationName.isNull())
         applicationName = u"QPipewireAudioSource"_s;
 
-    QPipewireAudioStream::createStream(extraProperties, m_hardwareBufferFrames,
+    QPipewireAudioStream::createStream(extraProperties, m_nativePeriodFrames,
                                        applicationName.toUtf8().constData(), streamType);
 }
 
@@ -185,7 +186,7 @@ void QPipewireAudioSourceStream::finalizeStream()
     requestStop();
 }
 
-void QPipewireAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+void QPipewireAudioSourceStream::processRingbuffer() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
     if (!b) {
@@ -213,7 +214,7 @@ void QPipewireAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
     pw_stream_queue_buffer(m_stream.get(), b);
 }
 
-void QPipewireAudioSourceStream::processCallback() noexcept QT_MM_NONBLOCKING
+void QPipewireAudioSourceStream::processCallback() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     using namespace QtMultimediaPrivate;
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
@@ -253,7 +254,9 @@ void QPipewireAudioSourceStream::stateChanged(pw_stream_state /*oldState*/, pw_s
     case pw_stream_state::PW_STREAM_STATE_UNCONNECTED:
         m_streamDisconnected.release();
         QAudioContextManager::instance()->unregisterStreamReference(m_self);
-        m_self.reset();
+        invokeOnAppThread([self = std::move(m_self)] {
+            // drop refcount on app thread
+        });
         break;
 
     default:

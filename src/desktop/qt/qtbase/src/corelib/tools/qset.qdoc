@@ -9,12 +9,14 @@
 
     \ingroup tools
     \ingroup shared
+    \ingroup containers
     \reentrant
 
 
-    QSet<T> is one of Qt's generic \l{container classes}. It stores
-    values in an unspecified order and provides very fast lookup of
-    the values. Internally, QSet<T> is implemented as a QHash.
+    QSet<T> is one of Qt's generic \l{container classes}, where \a T
+    specifies the type of values stored in the set. It stores values in
+    an unspecified order and provides very fast lookup of the values.
+    Internally, QSet<T> is implemented as a QHash.
 
     Here's an example QSet with QString values:
 
@@ -511,6 +513,12 @@
 */
 
 /*!
+    \fn template <class T> QSet<T>::iterator QSet<T>::insert(const_iterator it, T &&value)
+    \overload
+    \since 6.12
+*/
+
+/*!
     \fn template <class T> bool QSet<T>::count() const
 
     Same as size().
@@ -845,7 +853,8 @@
     current item.
 */
 
-/*! \fn template <class T> QList<T> QSet<T>::values() const
+/*!
+    \fn template <class T> QList<T> QSet<T>::values() const &
 
     Returns a new QList containing the elements in the set. The
     order of the elements in the QList is undefined.
@@ -857,6 +866,11 @@
     \l constEnd().
 */
 
+/*!
+    \fn template <class T> QList<T> QSet<T>::values() &&
+    \since 6.12
+    \overload
+*/
 
 /*!
     \fn template <class T> QDataStream &operator<<(QDataStream &out, const QSet<T> &set)

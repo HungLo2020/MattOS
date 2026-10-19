@@ -2,16 +2,15 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "avfvideorenderercontrol_p.h"
-#include "avfdisplaylink_p.h"
+
 #include <avfvideobuffer_p.h>
-#include <QtMultimedia/private/qavfhelpers_p.h>
-#include "private/qvideoframe_p.h"
+#include <avfvideosink_p.h>
+#include <mediaplayer/avfdisplaylink_p.h>
 
 #include <QtMultimedia/qvideoframeformat.h>
-
-#include <avfvideosink_p.h>
-#include <rhi/qrhi.h>
-
+#include <QtMultimedia/private/qavfhelpers_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtGui/rhi/qrhi.h>
 #include <QtCore/qdebug.h>
 
 #import <AVFoundation/AVFoundation.h>
@@ -131,10 +130,8 @@ void AVFVideoRendererControl::setVideoMirrored(bool mirrored)
     m_mirrored = mirrored;
 }
 
-void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
+void AVFVideoRendererControl::updateVideoFrame()
 {
-    Q_UNUSED(ts);
-
     if (!m_sink)
         return;
 

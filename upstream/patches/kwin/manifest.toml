@@ -1,11 +1,17 @@
 schema_version = 1
 component = "kwin"
-upstream_commit = "b04d59c03749484a8a0ed5a8d4cda515a267c59b"
-upstream_tree = "99868e7da683d59f3ed90b0f0fe7ebfa4be5bc2b"
+upstream_commit = "066d1e17c945d9a89fee645e10a2bbd77f2e93a6"
+upstream_tree = "1b3ee346eba5defc0e8c2105fad44326c6a7d1b3"
 application = "output-mirror-only"
 
 [[patch]]
 path = "upstream/patches/kwin/0001-fallback-when-platform-theme-is-unavailable.patch"
-sha256 = "1014f6f110c930ba219a3a1e91e5faecd11ba1eb1ccde3a9a4ecc4b4a575191f"
+sha256 = "f3832c7947830765db4936b700372a2fd7a9d08cf83f6a443c783c17f626ead6"
 purpose = "Keep KWin from dereferencing a missing optional Qt platform theme during KDE session startup."
-documentation = "KDE_NOTES.md"
+documentation = "docs/system/userland/kde-applications.md"
+
+[[patch]]
+path = "upstream/patches/kwin/0002-use-qt6-qml-module-discovery.patch"
+sha256 = "a65453f591ec1ed3601ec5002ac340cb365bbed7bfa9701b04856670eaf4ef01"
+purpose = "Use Qt 6 module-presence checks against the pinned cohort instead of legacy qmlplugindump version probes. Retain all runtime module requirements."
+documentation = "docs/system/userland/kde-applications.md"

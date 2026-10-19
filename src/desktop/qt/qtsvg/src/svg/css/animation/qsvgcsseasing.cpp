@@ -35,7 +35,7 @@ QSvgCssCubicBezierEasing::QSvgCssCubicBezierEasing(QSvgCssValues::EasingFunction
 QSvgCssCubicBezierEasing::~QSvgCssCubicBezierEasing()
     = default;
 
-qreal QSvgCssCubicBezierEasing::progress(qreal t)
+qreal QSvgCssCubicBezierEasing::progress(qreal t) const
 {
     return m_easingCurve.valueForProgress(t);
 }
@@ -60,7 +60,7 @@ QSvgCssStepsEasing::QSvgCssStepsEasing(quint32 stops, QSvgCssValues::StepPositio
 QSvgCssStepsEasing::~QSvgCssStepsEasing()
     = default;
 
-qreal QSvgCssStepsEasing::progress(qreal t)
+qreal QSvgCssStepsEasing::progress(qreal t) const
 {
     const qreal incr = 1.0 / m_stops;
     const qreal interval = (m_stepPosition == QSvgCssValues::StepPosition::JumpEnd) ?
@@ -69,9 +69,14 @@ qreal QSvgCssStepsEasing::progress(qreal t)
     return interval * incr;
 }
 
-QSvgCssValues::StepPosition QSvgCssStepsEasing::stepPosition()
+QSvgCssValues::StepPosition QSvgCssStepsEasing::stepPosition() const
 {
     return m_stepPosition;
+}
+
+quint32 QSvgCssStepsEasing::stops() const
+{
+    return m_stops;
 }
 
 QT_END_NAMESPACE

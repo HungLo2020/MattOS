@@ -17,11 +17,14 @@ QQC2.ItemDelegate {
     id: listItem
 
     required property T.Action tAction
+    required property bool drawerCollapsed
 
     readonly property KC.Action kAction: tAction as KC.Action
 
     readonly property bool isSeparator: kAction?.separator ?? false
     readonly property bool isExpandable: kAction?.expandible ?? false
+
+    signal closeDrawerRequested()
 
     checked: tAction.checked || (actionsMenu && actionsMenu.visible)
     highlighted: checked
@@ -29,7 +32,7 @@ QQC2.ItemDelegate {
     icon.source: tAction.icon.source
 
     text: tAction.text ? tAction.text : kAction?.tooltip ?? ""
-    hoverEnabled: (!isExpandable || root.collapsed) && !Platform.Settings.tabletMode && !isSeparator
+    hoverEnabled: (!isExpandable || listItem.drawerCollapsed) && !Platform.Settings.tabletMode && !isSeparator
     font.pointSize: Platform.Theme.defaultFont.pointSize * (isExpandable ? 1.30 : 1)
 
     enabled: !isExpandable && tAction.enabled
@@ -76,7 +79,7 @@ QQC2.ItemDelegate {
     }
     onClicked: {
         if (!kAction || kAction.children.length === 0) {
-            root.drawerOpen = false;
+            listItem.closeDrawerRequested()
         }
 
         tAction?.trigger();

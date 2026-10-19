@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgdefaultglyphnode_p.h"
 #include "qsgdefaultglyphnode_p_p.h"
@@ -9,15 +10,27 @@
 QT_BEGIN_NAMESPACE
 
 QSGDefaultGlyphNode::QSGDefaultGlyphNode(QSGRenderContext *context)
-    : m_context(context)
+    : QSGGlyphNode(QSGTextNode::NativeRendering)
+    , m_context(context)
     , m_glyphNodeType(RootGlyphNode)
     , m_dirtyGeometry(false)
+    , m_recycled(false)
     , m_preferredAntialiasingMode(DefaultAntialiasing)
+    , m_style(QQuickText::Normal)
+    , m_geometry(QSGGeometry::defaultAttributes_TexturedPoint2D(), 0)
 {
     setFlag(UsePreprocess);
+    setFlag(OwnsMaterial);
+    m_geometry.setDrawingMode(QSGGeometry::DrawTriangles);
+    setGeometry(&m_geometry);
 }
 
 QSGDefaultGlyphNode::~QSGDefaultGlyphNode()
+{
+    cleanup();
+}
+
+void QSGDefaultGlyphNode::cleanup()
 {
     if (m_glyphNodeType == SubGlyphNode)
         return;
@@ -26,30 +39,74 @@ QSGDefaultGlyphNode::~QSGDefaultGlyphNode()
     m_nodesToDelete.clear();
 }
 
+void QSGDefaultGlyphNode::recycle()
+{
+    QSGGlyphNode::recycle();
+
+    cleanup();
+
+    m_glyphs = QGlyphRun{};
+    m_position = QPointF{};
+    m_color = QColor{};
+    m_style = QQuickText::Normal;
+    m_baseLine = QPointF{};
+    m_geometry.allocate(0, 0);
+
+    m_dirtyGeometry = true;
+    m_preferredAntialiasingMode = DefaultAntialiasing;
+    m_recycled = true;
+}
+
+void QSGDefaultGlyphNode::setColor(const QColor &color)
+{
+    m_color = color;
+    if (material() != nullptr && !m_recycled) {
+        static_cast<QSGTextMaskMaterial *>(material())->setColor(color);
+        markDirty(DirtyMaterial);
+    }
+}
+
+void QSGDefaultGlyphNode::setGlyphs(const QPointF &position, const QGlyphRun &glyphs)
+{
+    m_position = position;
+    m_glyphs = glyphs;
+    m_dirtyGeometry = true;
+
+#ifdef QSG_RUNTIME_DESCRIPTION
+    qsgnode_set_description(this, QLatin1String("glyphs"));
+#endif
+}
+
+void QSGDefaultGlyphNode::setStyle(QQuickText::TextStyle style)
+{
+    if (m_style == style)
+        return;
+    m_style = style;
+}
+
+void QSGDefaultGlyphNode::setStyleColor(const QColor &color)
+{
+    if (m_styleColor == color)
+        return;
+    m_styleColor = color;
+}
+
 void QSGDefaultGlyphNode::setPreferredAntialiasingMode(AntialiasingMode mode)
 {
     m_preferredAntialiasingMode = mode;
 }
 
-void QSGDefaultGlyphNode::setMaterialColor(const QColor &color)
-{
-    static_cast<QSGTextMaskMaterial *>(m_material)->setColor(color);
-}
-
-void QSGDefaultGlyphNode::setGlyphs(const QPointF &position, const QGlyphRun &glyphs)
-{
-    QSGBasicGlyphNode::setGlyphs(position, glyphs);
-    m_dirtyGeometry = true;
-}
-
 void QSGDefaultGlyphNode::update()
 {
+    m_recycled = false;
+
     QRawFont font = m_glyphs.rawFont();
     QMargins margins(0, 0, 0, 0);
 
     const auto *fontEngine = QRawFontPrivate::get(font)->fontEngine;
     const bool isColorFont = fontEngine->glyphFormat == QFontEngine::Format_ARGB;
 
+    QSGTextMaskMaterial *material = nullptr;
     if (m_style == QQuickText::Normal || isColorFont) {
         QFontEngine::GlyphFormat glyphFormat;
 
@@ -72,34 +129,33 @@ void QSGDefaultGlyphNode::update()
         }
 
         const auto rgbColor = m_color.toRgb();
-        m_material = new QSGTextMaskMaterial(m_context, QVector4D(rgbColor.redF(), rgbColor.greenF(), rgbColor.blueF(), rgbColor.alphaF()), font, glyphFormat);
+        material = new QSGTextMaskMaterial(m_context, QVector4D(rgbColor.redF(), rgbColor.greenF(), rgbColor.blueF(), rgbColor.alphaF()), font, glyphFormat);
     } else if (m_style == QQuickText::Outline) {
-        QSGOutlinedTextMaterial *material = new QSGOutlinedTextMaterial(m_context, font);
-        material->setStyleColor(m_styleColor);
-        m_material = material;
+        QSGOutlinedTextMaterial *m = new QSGOutlinedTextMaterial(m_context, font);
+        m->setStyleColor(m_styleColor);
         margins = QMargins(1, 1, 1, 1);
+        material = m;
     } else {
-        QSGStyledTextMaterial *material = new QSGStyledTextMaterial(m_context, font);
+        QSGStyledTextMaterial *m = new QSGStyledTextMaterial(m_context, font);
         if (m_style == QQuickText::Sunken) {
-            material->setStyleShift(QVector2D(0, -1));
+            m->setStyleShift(QVector2D(0, -1));
             margins.setTop(1);
         } else if (m_style == QQuickText::Raised) {
-            material->setStyleShift(QVector2D(0, 1));
+            m->setStyleShift(QVector2D(0, 1));
             margins.setBottom(1);
         }
-        material->setStyleColor(m_styleColor);
-        m_material = material;
+        m->setStyleColor(m_styleColor);
+        material = m;
     }
 
-    QSGTextMaskMaterial *textMaskMaterial = static_cast<QSGTextMaskMaterial *>(m_material);
-    textMaskMaterial->setColor(m_color);
+    material->setColor(m_color);
 
     QRectF boundingRect;
-    textMaskMaterial->populate(m_position, m_glyphs.glyphIndexes(), m_glyphs.positions(), geometry(),
-                               &boundingRect, &m_baseLine, margins);
+    material->populate(m_position, m_glyphs.glyphIndexes(), m_glyphs.positions(), geometry(),
+                       &boundingRect, &m_baseLine, margins);
     setBoundingRect(boundingRect);
 
-    setMaterial(m_material);
+    setMaterial(material);
     markDirty(DirtyGeometry);
 }
 

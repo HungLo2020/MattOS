@@ -24,7 +24,11 @@
 #include <KConfigGroup>
 #include <KLocalizedString>
 #include <KPluginFactory>
+#include <KTar>
 #include <KToolBar>
+
+#include <Union/PackageHandler.h>
+#include <Union/StyleRegistry.h>
 
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
@@ -37,8 +41,6 @@
 #include <QWidget>
 #include <QWindow>
 
-#include "krdb.h"
-
 #include "kded_interface.h"
 
 #include "previewitem.h"
@@ -48,40 +50,32 @@ using namespace Qt::StringLiterals;
 
 K_PLUGIN_FACTORY_WITH_JSON(KCMStyleFactory, "kcm_style.json", registerPlugin<KCMStyle>(); registerPlugin<StyleData>();)
 
-extern "C" {
-Q_DECL_EXPORT void kcminit()
-{
-    uint flags = KRdbExportQtSettings | KRdbExportQtColors | KRdbExportXftSettings | KRdbExportGtkTheme;
-    KConfig _config(QStringLiteral("kcmdisplayrc"), KConfig::NoGlobals);
-    KConfigGroup config(&_config, QStringLiteral("X11"));
-
-    // This key is written by the "colors" module.
-    bool exportKDEColors = config.readEntry("exportKDEColors", true);
-    if (exportKDEColors) {
-        flags |= KRdbExportColors;
-    }
-    runRdb(flags);
-}
-}
-
 KCMStyle::KCMStyle(QObject *parent, const KPluginMetaData &data)
     : KQuickManagedConfigModule(parent, data)
     , m_data(new StyleData(this))
-    , m_model(new StylesModel(this))
 {
     const char *uri{"org.kde.private.kcms.style"};
 
     qmlRegisterUncreatableType<KCMStyle>(uri, 1, 0, "KCM", QStringLiteral("Cannot create instances of KCM"));
     qmlRegisterAnonymousType<StyleSettings>(uri, 1);
-    qmlRegisterAnonymousType<StylesModel>(uri, 1);
+    qmlRegisterUncreatableType<StylesModel>(uri, 1, 0, "StylesModel", u"Cannot create instances of StylesModel"_s);
     qmlRegisterType<PreviewItem>(uri, 1, 0, "PreviewItem");
 
-    connect(m_model, &StylesModel::selectedStyleChanged, this, [this](const QString &style) {
-        styleSettings()->setWidgetStyle(style);
-    });
-    connect(styleSettings(), &StyleSettings::widgetStyleChanged, this, [this] {
-        m_model->setSelectedStyle(styleSettings()->widgetStyle());
-    });
+    m_sortFilterModel = new QSortFilterProxyModel(this);
+    m_sortFilterModel->setDynamicSortFilter(true);
+    m_sortFilterModel->setSortRole(Qt::DisplayRole);
+
+    auto concatenateModel = new QConcatenateTablesProxyModel(this);
+    m_sortFilterModel->setSourceModel(concatenateModel);
+
+    m_stylesModel = new StylesModel(this);
+    concatenateModel->addSourceModel(m_stylesModel);
+
+    m_unionStylesModel = new UnionStylesModel(this);
+    concatenateModel->addSourceModel(m_unionStylesModel);
+
+    m_sortFilterModel->sort(0, Qt::AscendingOrder);
+
     connect(styleSettings(), &StyleSettings::iconsOnButtonsChanged, this, [this] {
         m_effectsDirty = true;
     });
@@ -102,9 +96,9 @@ GtkPage *KCMStyle::gtkPage() const
     return m_gtkPage;
 }
 
-StylesModel *KCMStyle::model() const
+QAbstractItemModel *KCMStyle::model() const
 {
-    return m_model;
+    return m_sortFilterModel;
 }
 
 StyleSettings *KCMStyle::styleSettings() const
@@ -115,6 +109,139 @@ StyleSettings *KCMStyle::styleSettings() const
 KCMStyle::ToolBarStyle KCMStyle::mainToolBarStyle() const
 {
     return m_mainToolBarStyle;
+}
+
+void KCMStyle::installUnionStyle(const QUrl &url)
+{
+    if (!url.isLocalFile()) {
+        showErrorMessage(i18nc("@info:status", "Installation failed: Cannot install a style from a remote location."));
+        return;
+    }
+
+    KTar styleFile(url.toLocalFile(), u"application/gzip"_s);
+    if (!styleFile.open(QIODevice::ReadOnly)) {
+        showErrorMessage(i18nc("@info:status", "Installation failed: The style file could not be read."));
+        return;
+    }
+
+    if (styleFile.directory()->entries().isEmpty()) {
+        showErrorMessage(i18nc("@info:status", "Installation failed: The style file does not contain any data."));
+        return;
+    }
+
+    QTemporaryDir tempDir;
+    if (!styleFile.directory()->copyTo(tempDir.path())) {
+        showErrorMessage(i18nc("@info:status", "Installation failed: The style file could not be unpacked."));
+        return;
+    }
+
+    auto packagePath = std::filesystem::path(tempDir.path().toStdString()) / styleFile.directory()->entries().first().toStdString();
+
+    auto package = Union::StylePackage(packagePath);
+    if (!package.isValid()) {
+        switch (package.error()) {
+        case Union::StylePackage::Error::NotFound:
+            showErrorMessage(i18nc("@info:status", "Installation failed: The style could not be found."));
+            return;
+        case Union::StylePackage::Error::MissingFiles:
+        case Union::StylePackage::Error::InvalidMetaData:
+            showErrorMessage(i18nc("@info:status", "Installation failed: The selected file is not a valid Union style."));
+            return;
+        case Union::StylePackage::Error::UnknownInputType:
+            showErrorMessage(i18nc("@info:status", "Installation failed: The selected style is not supported."));
+            return;
+        case Union::StylePackage::Error::None:
+            break;
+        }
+    }
+
+    auto styleName = package.name();
+
+    auto handler = Union::StyleRegistry::instance()->packageHandler();
+    std::error_code errorCode;
+    handler->install(package, errorCode);
+    if (errorCode) {
+        if (errorCode.default_error_condition() == std::errc::file_exists) {
+            showErrorMessage(i18nc("@info:status", "Installing “%1” failed: The style is already installed.", styleName));
+            return;
+        }
+
+        if (errorCode.default_error_condition() == std::errc::permission_denied) {
+            showErrorMessage(i18nc("@info:status", "Installing “%1” failed: Permission was denied.", styleName));
+            return;
+        }
+
+        showErrorMessage(i18nc("@info:status", "Installing “%1” failed: %2", styleName, QString::fromStdString(errorCode.message())));
+        return;
+    }
+
+    m_unionStylesModel->refresh();
+    showInfoMessage(i18nc("@info:status", "Successfully installed “%1”.", styleName));
+}
+
+void KCMStyle::uninstallUnionStyles(const QStringList &styleIds)
+{
+    auto handler = Union::StyleRegistry::instance()->packageHandler();
+
+    QStringList errors;
+    QStringList uninstalled;
+
+    for (const auto &id : styleIds) {
+        auto package = handler->package(id);
+        if (!package.isValid()) {
+            errors.append(i18nc("@info:status", "Uninstall failed: The style with ID “%1” could not be found.", id));
+            continue;
+        }
+
+        auto styleName = package.name();
+
+        std::error_code errorCode;
+        handler->uninstall(package, errorCode);
+        if (errorCode) {
+            if (errorCode.default_error_condition() == std::errc::permission_denied) {
+                errors.append(i18nc("@info:status", "Uninstalling “%1” failed: Permission was denied.", styleName));
+            } else if (errorCode.default_error_condition() == std::errc::no_such_file_or_directory) {
+                errors.append(i18nc("@info:status", "Uninstalling “%1” failed: The style is not installed.", styleName));
+            } else if (errorCode.default_error_condition() == std::errc::device_or_resource_busy) {
+                errors.append(i18nc("@info:status", "Uninstalling “%1” failed: The style is in use.", styleName));
+            } else {
+                errors.append(i18nc("@info:status", "Uninstalling “%1” failed: %2", styleName, QString::fromStdString(errorCode.message())));
+            }
+        } else {
+            if (styleSettings()->unionStyle() == id) {
+                styleSettings()->setUnionStyle(styleSettings()->defaultUnionStyleValue());
+            }
+            uninstalled.append(styleName);
+        }
+    }
+
+    m_unionStylesModel->refresh();
+
+    if (errors.size() > 0) {
+        QString message;
+        if (uninstalled.empty()) {
+            message = i18nc("@info:status", "Could not uninstall styles:\n");
+        } else {
+            if (uninstalled.size() == 1) {
+                message = i18nc("@info:status", "Successfully uninstalled “%1” but could not uninstall others:\n", uninstalled.first());
+            } else {
+                message = i18ncp("@info:status",
+                                 "Successfully uninstalled %1 style but could not uninstall others:\n",
+                                 "Successfully uninstalled %1 styles but could not uninstall others:\n",
+                                 uninstalled.size());
+            }
+        }
+        for (const auto &error : errors) {
+            message.append(u"- %1\n"_s.arg(error));
+        }
+        showErrorMessage(message);
+    } else {
+        if (uninstalled.size() == 1) {
+            showInfoMessage(i18nc("@info:status", "Successfully uninstalled “%1”.", uninstalled.first()));
+        } else {
+            showInfoMessage(i18ncp("@info:status", "Successfully uninstalled %1 style", "Successfully uninstalled %1 styles.", uninstalled.size()));
+        }
+    }
 }
 
 void KCMStyle::setMainToolBarStyle(ToolBarStyle style)
@@ -146,13 +273,29 @@ void KCMStyle::setOtherToolBarStyle(ToolBarStyle style)
     }
 }
 
+QStringList KCMStyle::stylesToUninstall() const
+{
+    return m_stylesToUninstall;
+}
+
+void KCMStyle::setStylesToUninstall(const QStringList &newStylesToUninstall)
+{
+    if (newStylesToUninstall == m_stylesToUninstall) {
+        return;
+    }
+
+    m_stylesToUninstall = newStylesToUninstall;
+    Q_EMIT stylesToUninstallChanged();
+    Q_EMIT settingsChanged();
+}
+
 void KCMStyle::configure(const QString &title, const QString &styleName, QQuickItem *ctx)
 {
     if (m_styleConfigDialog) {
         return;
     }
 
-    const QString configPage = m_model->styleConfigPage(styleName);
+    const QString configPage = m_stylesModel->styleConfigPage(styleName);
     if (configPage.isEmpty()) {
         return;
     }
@@ -251,7 +394,7 @@ void KCMStyle::load()
     m_gtkPage->load();
 
     KQuickManagedConfigModule::load();
-    m_model->load();
+    m_stylesModel->load();
     m_previousStyle = styleSettings()->widgetStyle();
 
     loadSettingsToModel();
@@ -272,7 +415,8 @@ void KCMStyle::save()
             newStyleLoaded = true;
             m_previousStyle = styleSettings()->widgetStyle();
         } else {
-            const QString styleDisplay = m_model->data(m_model->index(m_model->indexOfStyle(styleSettings()->widgetStyle()), 0), Qt::DisplayRole).toString();
+            const QString styleDisplay =
+                m_stylesModel->data(m_stylesModel->index(m_stylesModel->indexOfStyle(styleSettings()->widgetStyle()), 0), Qt::DisplayRole).toString();
             Q_EMIT showErrorMessage(i18n("Failed to apply selected style '%1'.", styleDisplay));
 
             // Reset selected style back to current in case of failure
@@ -282,18 +426,6 @@ void KCMStyle::save()
 
     KQuickManagedConfigModule::save();
 
-    // Export the changes we made to qtrc, and update all qt-only
-    // applications on the fly, ensuring that we still follow the user's
-    // export fonts/colors settings.
-    uint flags = KRdbExportQtSettings | KRdbExportGtkTheme;
-    KConfig _kconfig(QStringLiteral("kcmdisplayrc"), KConfig::NoGlobals);
-    KConfigGroup kconfig(&_kconfig, u"X11"_s);
-    bool exportKDEColors = kconfig.readEntry("exportKDEColors", true);
-    if (exportKDEColors) {
-        flags |= KRdbExportColors;
-    }
-    runRdb(flags);
-
     // Now allow KDE apps to reconfigure themselves.
     if (newStyleLoaded) {
         notifyKcmChange(GlobalChangeType::StyleChanged);
@@ -301,7 +433,6 @@ void KCMStyle::save()
 
     if (m_effectsDirty) {
         // This notifies listeners about:
-        //  - GraphicEffectsLevel' config entry, (e.g. to set QPlatformTheme::ThemeHint::UiEffects)
         //  - ShowIconsOnPushButtons config entry, (e.g. to set QPlatformTheme::DialogButtonBoxButtonsHaveIcons)
         notifyKcmChange(GlobalChangeType::SettingsChanged, GlobalSettingsCategory::SETTINGS_STYLE);
 
@@ -311,6 +442,11 @@ void KCMStyle::save()
     }
 
     m_effectsDirty = false;
+
+    if (!m_stylesToUninstall.isEmpty()) {
+        uninstallUnionStyles(m_stylesToUninstall);
+        m_stylesToUninstall.clear();
+    }
 }
 
 void KCMStyle::defaults()
@@ -341,7 +477,7 @@ bool KCMStyle::isDefaults() const
 
 bool KCMStyle::isSaveNeeded() const
 {
-    return m_gtkPage->isSaveNeeded();
+    return !m_stylesToUninstall.isEmpty() || m_gtkPage->isSaveNeeded();
 }
 
 #include "kcmstyle.moc"

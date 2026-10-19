@@ -28,6 +28,9 @@ private slots:
     void checkImageInclude();
     void encodings_data();
     void encodings();
+    void animationProperties();
+    void animationFrameReading();
+    void staticSvgNoAnimation();
 };
 
 
@@ -149,6 +152,104 @@ void tst_QSvgPlugin::encodings()
     QImage img;
     QVERIFY(plugin.read(&img));
     QCOMPARE(img.size(), QSize(50, 50));
+}
+
+void tst_QSvgPlugin::animationProperties()
+{
+    const QString path = QFINDTESTDATA("animated.svg");
+
+    // Each lambda gets a fresh handler to ensure that the result of
+    // each getter does not depend on previous calls.
+    auto withHandler = [&](auto callback) {
+        if (QTest::currentTestFailed())
+            return;
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        QSvgIOHandler handler;
+        handler.setDevice(&file);
+        callback(handler);
+    };
+
+    withHandler([](QSvgIOHandler &h) { QVERIFY(h.supportsOption(QImageIOHandler::Animation)); });
+    withHandler([](QSvgIOHandler &h) { QCOMPARE(h.option(QImageIOHandler::Animation).toBool(), true); });
+    withHandler([](QSvgIOHandler &h) { QVERIFY(h.imageCount() > 1); });
+    withHandler([](QSvgIOHandler &h) { QVERIFY(h.nextImageDelay() > 0); });
+    withHandler([](QSvgIOHandler &h) { QCOMPARE(h.loopCount(), 0); });
+    withHandler([](QSvgIOHandler &h) { QCOMPARE(h.currentImageNumber(), -1); });
+}
+
+void tst_QSvgPlugin::animationFrameReading()
+{
+    QFile file(QFINDTESTDATA("animated.svg"));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+
+    QSvgIOHandler handler;
+    handler.setDevice(&file);
+
+    // Read first frame
+    QImage frame;
+    QVERIFY(handler.canRead());
+    QVERIFY(handler.read(&frame));
+    QCOMPARE(frame.size(), QSize(100, 100));
+    QCOMPARE(handler.currentImageNumber(), 0);
+
+    // Read all remaining frames sequentially
+    const int total = handler.imageCount();
+    int framesRead = 1;
+    while (handler.canRead() && handler.read(&frame))
+        ++framesRead;
+    QCOMPARE(framesRead, total);
+    QCOMPARE(handler.currentImageNumber(), total - 1);
+
+    // jumpToImage should work
+    QVERIFY(handler.jumpToImage(0));
+    QVERIFY(handler.read(&frame));
+    QCOMPARE(frame.size(), QSize(100, 100));
+    QCOMPARE(handler.currentImageNumber(), 0);
+
+    // jumpToImage out of range should fail
+    QVERIFY(!handler.jumpToImage(-1));
+    QVERIFY(!handler.jumpToImage(total));
+
+    // jumpToNextImage should work
+    QVERIFY(handler.jumpToImage(0));
+    QVERIFY(handler.jumpToNextImage());
+    QVERIFY(handler.read(&frame));
+    QCOMPARE(handler.currentImageNumber(), 1);
+
+    // canRead should return false after exhausting all frames
+    QVERIFY(handler.jumpToImage(total - 1));
+    QVERIFY(handler.read(&frame));
+    QCOMPARE(handler.currentImageNumber(), total - 1);
+    QVERIFY(!handler.canRead());
+    QVERIFY(!handler.read(&frame));
+}
+
+void tst_QSvgPlugin::staticSvgNoAnimation()
+{
+    QFile file(QFINDTESTDATA("square.svg"));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+
+    QSvgIOHandler handler;
+    handler.setDevice(&file);
+
+    QCOMPARE(handler.option(QImageIOHandler::Animation).toBool(), false);
+    QCOMPARE(handler.imageCount(), 1);
+    QCOMPARE(handler.nextImageDelay(), 0);
+    QCOMPARE(handler.loopCount(), 0);
+    QCOMPARE(handler.currentImageNumber(), 0);
+
+    QImage image;
+    QVERIFY(handler.read(&image));
+    QCOMPARE(handler.currentImageNumber(), 0);
+    QCOMPARE(image.size(), QSize(50, 50));
+
+    // Second read should fail for static SVG
+    QVERIFY(!handler.read(&image));
+
+    // Jump operations should fail for static SVG
+    QVERIFY(!handler.jumpToImage(0));
+    QVERIFY(!handler.jumpToNextImage());
 }
 
 QTEST_MAIN(tst_QSvgPlugin)

@@ -402,7 +402,7 @@ void KUrlComboBox::mouseMoveEvent(QMouseEvent *event)
             drag->setPixmap(itemIcon(index).pixmap(KIconLoader::SizeMedium));
         }
         drag->setMimeData(mime);
-        drag->exec();
+        drag->exec(Qt::CopyAction);
     }
 
     KComboBox::mouseMoveEvent(event);

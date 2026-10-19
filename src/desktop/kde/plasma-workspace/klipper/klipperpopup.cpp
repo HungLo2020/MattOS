@@ -15,10 +15,13 @@
 #include <QQuickItem>
 
 #include <KLocalizedString>
-#include <KWayland/Client/plasmashell.h>
-#include <KWayland/Client/surface.h>
 #include <KWindowSystem>
 #include <KX11Extras>
+
+#include <Plasma/Plasma>
+#include <PlasmaQuick/PlasmaQuick>
+#include <PlasmaQuick/PlasmaShellWaylandIntegration>
+
 #include <algorithm>
 
 #include "historymodel.h"
@@ -29,34 +32,37 @@ using namespace Qt::StringLiterals;
 KlipperPopup::KlipperPopup()
     : PlasmaQuick::PlasmaWindow()
     , m_model(HistoryModel::self())
+    , m_engine(PlasmaQuick::globalEngine())
 {
-    m_engine.engine()->setProperty("_kirigamiTheme", u"KirigamiPlasmaStyle"_s);
-    m_engine.setInitializationDelayed(true);
-
     // used only by screen readers
     setTitle(i18n("Clipboard Popup"));
 
-    connect(&m_engine, &PlasmaQuick::SharedQmlEngine::finished, this, &KlipperPopup::onObjectIncubated);
-    m_engine.setSourceFromModule(u"org.kde.plasma.private.clipboard", u"KlipperPopup");
-    m_engine.completeInitialization();
+    QQmlComponent component(m_engine.get(), u"org.kde.plasma.private.clipboard", u"KlipperPopup");
+
+    // Initialize in steps, so QML does not complain
+    auto item = qobject_cast<QQuickItem *>(component.beginCreate(m_engine->rootContext()));
+    setMainItem(item);
+    component.completeCreate();
+
+    connect(this, &KlipperPopup::paddingChanged, this, &KlipperPopup::resizePopup);
+
+    connect(item, SIGNAL(requestHidePopup()), this, SLOT(hide()));
 
     connect(qGuiApp, &QGuiApplication::focusWindowChanged, this, &KlipperPopup::onFocusWindowChanged);
 }
 
+KlipperPopup::~KlipperPopup()
+{
+    delete mainItem();
+}
+
 void KlipperPopup::show()
 {
-    if (m_plasmashell) {
-        hide();
-    }
+    hide();
     positionOnScreen();
     QMetaObject::invokeMethod(mainItem(), "updateContentSize", Q_ARG(QSizeF, screen()->availableSize().toSizeF()));
     resizePopup();
     setVisible(true);
-}
-
-void KlipperPopup::setPlasmaShell(KWayland::Client::PlasmaShell *plasmashell)
-{
-    m_plasmashell = plasmashell;
 }
 
 void KlipperPopup::editCurrentClipboard()
@@ -78,9 +84,7 @@ void KlipperPopup::showCurrentBarcode()
 void KlipperPopup::hide()
 {
     QWindow::hide();
-    if (m_plasmashell) {
-        destroy(); // Required to recreate wl_surface
-    }
+    destroy(); // Required to recreate wl_surface
 }
 
 void KlipperPopup::resizePopup()
@@ -124,13 +128,10 @@ void KlipperPopup::positionOnScreen()
         setPosition(QCursor::pos(shownOnScreen));
         setScreen(shownOnScreen);
         KX11Extras::setOnDesktop(winId(), KX11Extras::currentDesktop());
-    } else if (m_plasmashell && KWindowSystem::isPlatformWayland()) {
-        auto surface = KWayland::Client::Surface::fromWindow(this);
-        auto plasmaSurface = m_plasmashell->createSurface(surface, this);
-        plasmaSurface->openUnderCursor();
-        plasmaSurface->setSkipTaskbar(true);
-        plasmaSurface->setSkipSwitcher(true);
-        plasmaSurface->setRole(KWayland::Client::PlasmaShellSurface::Role::AppletPopup);
+    } else if (KWindowSystem::isPlatformWayland()) {
+        auto integration = PlasmaShellWaylandIntegration::get(this);
+        integration->openUnderCursor();
+        integration->setRole(QtWayland::org_kde_plasma_surface::role_appletpopup);
 
         if (screens.size() > 1) {
             auto message = QDBusMessage::createMethodCall(u"org.kde.KWin"_s, u"/KWin"_s, u"org.kde.KWin"_s, u"activeOutputName"_s);
@@ -144,16 +145,6 @@ void KlipperPopup::positionOnScreen()
             }
         }
     }
-}
-
-void KlipperPopup::onObjectIncubated()
-{
-    auto item = qobject_cast<QQuickItem *>(m_engine.rootObject());
-    setMainItem(item);
-
-    connect(this, &KlipperPopup::paddingChanged, this, &KlipperPopup::resizePopup);
-
-    connect(item, SIGNAL(requestHidePopup()), this, SLOT(hide()));
 }
 
 void KlipperPopup::onFocusWindowChanged(QWindow *focusWindow)

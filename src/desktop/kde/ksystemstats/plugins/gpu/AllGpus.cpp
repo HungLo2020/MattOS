@@ -33,6 +33,10 @@ AllGpus::AllGpus(KSysGuard::SensorContainer *parent)
     m_usedVramSensor->setMatchSensors(QRegularExpression{QStringLiteral("^(?!all).*$")}, QStringLiteral("usedVram"));
     m_usedVramSensor->setUnit(KSysGuard::UnitByte);
     m_usedVramSensor->setMax(m_totalVramSensor);
+
+    auto usedVramPercentage = new KSysGuard::PercentageSensor(this, QStringLiteral("usedPercent"), i18nc("@title", "All GPUs Used Memory Percentage"));
+    usedVramPercentage->setShortName(m_usedVramSensor->info().shortName);
+    usedVramPercentage->setBaseSensor(m_usedVramSensor);
 }
 
 #include "moc_AllGpus.cpp"

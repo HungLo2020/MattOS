@@ -61,7 +61,7 @@ QWaylandXdgSurface::Toplevel::Toplevel(QWaylandXdgSurface *xdgSurface)
 #ifndef QT_NO_SESSIONMANAGER
     const QString sessionRestoreId = xdgSurface->window()->sessionRestoreId();
     if (!sessionRestoreId.isEmpty() && QWaylandSessionManager::instance()->session())
-        m_session.reset(new WithDestructor<QtWayland::xx_toplevel_session_v1, xx_toplevel_session_v1_destroy>(QWaylandSessionManager::instance()->session()->restore_toplevel(object(), sessionRestoreId)));
+        m_session.reset(new WithDestructor<QtWayland::xdg_toplevel_session_v1, xdg_toplevel_session_v1_destroy>(QWaylandSessionManager::instance()->session()->restore_toplevel(object(), sessionRestoreId)));
 #endif
 }
 
@@ -489,9 +489,14 @@ void QWaylandXdgSurface::setSizeHints()
         if (minWidth > maxWidth || minHeight > maxHeight)
             return;
 
-        if (maxWidth == QWINDOWSIZE_MAX)
+        // Use 0 to signal "no maximum" per xdg-shell protocol.
+        // When no maximum is set, windowMaximumSize() returns QWINDOWSIZE_MAX.
+        // After shrunkBy(margins) where margins can be negative (e.g. when CSD
+        // decorations make clientSideMargins() larger than windowContentMargins()),
+        // the result can exceed QWINDOWSIZE_MAX. Use >= to catch both cases.
+        if (maxWidth >= QWINDOWSIZE_MAX)
             maxWidth = 0;
-        if (maxHeight == QWINDOWSIZE_MAX)
+        if (maxHeight >= QWINDOWSIZE_MAX)
             maxHeight = 0;
 
         m_toplevel->set_min_size(minWidth, minHeight);
@@ -783,6 +788,7 @@ std::unique_ptr<QWaylandXdgSurface::Positioner> QWaylandXdgSurface::createPositi
     Qt::Edges anchor = Qt::TopEdge | Qt::RightEdge;
     Qt::Edges gravity = Qt::BottomEdge | Qt::RightEdge;
     uint32_t constraintAdjustment = QtWayland::xdg_positioner::constraint_adjustment_slide_x | QtWayland::xdg_positioner::constraint_adjustment_slide_y;
+    QPoint offset;
 
     // Compensate the margins to appear exactly at the position provided by QPlatformWindow::geometry
     // These marnings have nothing to do with parent controls, don't apply them when positioning via parent control geometry
@@ -841,6 +847,9 @@ std::unique_ptr<QWaylandXdgSurface::Positioner> QWaylandXdgSurface::createPositi
     const QVariant constraintAdjustmentVariant = m_window->window()->property("_q_waylandPopupConstraintAdjustment");
     if (constraintAdjustmentVariant.isValid())
         constraintAdjustment = constraintAdjustmentVariant.toUInt();
+    const QVariant offsetVariant = m_window->window()->property("_q_waylandPopupOffset");
+    if (offsetVariant.isValid())
+        offset = offsetVariant.toPoint();
 
     // set_popup expects a position relative to the parent
     QRect windowGeometry = m_window->windowContentGeometry();
@@ -855,6 +864,7 @@ std::unique_ptr<QWaylandXdgSurface::Positioner> QWaylandXdgSurface::createPositi
     positioner->set_gravity(gravityFromEdge(gravity));
     positioner->set_size(windowGeometry.width(), windowGeometry.height());
     positioner->set_constraint_adjustment(constraintAdjustment);
+    positioner->set_offset(offset.x(), offset.y());
     return positioner;
 }
 

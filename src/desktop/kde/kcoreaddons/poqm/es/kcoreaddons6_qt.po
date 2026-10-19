@@ -26,47 +26,47 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Qt-Contexts: true\n"
 
-#: lib/io/kfilesystemtype.cpp:275
+#: lib/io/kfilesystemtype.cpp:306
 msgctxt "KFileSystemType|"
 msgid "NFS"
 msgstr "NFS"
 
-#: lib/io/kfilesystemtype.cpp:277
+#: lib/io/kfilesystemtype.cpp:308
 msgctxt "KFileSystemType|"
 msgid "SMB"
 msgstr "SMB"
 
-#: lib/io/kfilesystemtype.cpp:279
+#: lib/io/kfilesystemtype.cpp:310
 msgctxt "KFileSystemType|"
 msgid "FAT"
 msgstr "FAT"
 
-#: lib/io/kfilesystemtype.cpp:281
+#: lib/io/kfilesystemtype.cpp:312
 msgctxt "KFileSystemType|"
 msgid "RAMFS"
 msgstr "RAMFS"
 
-#: lib/io/kfilesystemtype.cpp:283
+#: lib/io/kfilesystemtype.cpp:314
 msgctxt "KFileSystemType|"
 msgid "Other"
 msgstr "Otro"
 
-#: lib/io/kfilesystemtype.cpp:285
+#: lib/io/kfilesystemtype.cpp:316
 msgctxt "KFileSystemType|"
 msgid "NTFS"
 msgstr "NTFS"
 
-#: lib/io/kfilesystemtype.cpp:287
+#: lib/io/kfilesystemtype.cpp:318
 msgctxt "KFileSystemType|"
 msgid "ExFAT"
 msgstr "ExFAT"
 
-#: lib/io/kfilesystemtype.cpp:289
+#: lib/io/kfilesystemtype.cpp:321
 msgctxt "KFileSystemType|"
 msgid "FUSE"
 msgstr "FUSE"
 
-#: lib/io/kfilesystemtype.cpp:291
+#: lib/io/kfilesystemtype.cpp:323
 msgctxt "KFileSystemType|"
 msgid "Unknown"
 msgstr "Desconocido"
@@ -277,44 +277,44 @@ msgstr ""
 "internacionalización de KDE, visite <a href=\"https://l10n.kde.org\">https://"
 "l10n.kde.org</a></p>"
 
-#: lib/kaboutdata.cpp:1317
+#: lib/kaboutdata.cpp:1328
 msgctxt "KAboutData CLI|"
 msgid "Show author information."
 msgstr "Muestra información sobre el autor."
 
-#: lib/kaboutdata.cpp:1318
+#: lib/kaboutdata.cpp:1329
 msgctxt "KAboutData CLI|"
 msgid "Show license information."
 msgstr "Muestra información sobre la licencia."
 
-#: lib/kaboutdata.cpp:1320
+#: lib/kaboutdata.cpp:1331
 msgctxt "KAboutData CLI|"
 msgid "The base file name of the desktop entry for this application."
 msgstr ""
 "El nombre de archivo base de la entrada de escritorio para esta aplicación."
 
-#: lib/kaboutdata.cpp:1321
+#: lib/kaboutdata.cpp:1332
 msgctxt "KAboutData CLI|"
 msgid "file name"
 msgstr "nombre de archivo"
 
-#: lib/kaboutdata.cpp:1331
+#: lib/kaboutdata.cpp:1342
 msgctxt "KAboutData CLI|"
 msgid "This application was written by somebody who wants to remain anonymous."
 msgstr "Esta aplicación fue escrita por alguien que quiere permanecer anónimo."
 
-#: lib/kaboutdata.cpp:1333
+#: lib/kaboutdata.cpp:1350
 #, qt-format
 msgctxt "KAboutData CLI|"
 msgid "%1 was written by:"
 msgstr "%1 fue escrito por:"
 
-#: lib/kaboutdata.cpp:1344
+#: lib/kaboutdata.cpp:1361
 msgctxt "KAboutData CLI|"
 msgid "Please use https://bugs.kde.org to report bugs."
 msgstr "Use https://bugs.kde.org para informar de fallos."
 
-#: lib/kaboutdata.cpp:1346
+#: lib/kaboutdata.cpp:1363
 #, qt-format
 msgctxt "KAboutData CLI|"
 msgid "Please report bugs to %1."
@@ -778,7 +778,7 @@ msgstr "%1h%2m%3s"
 #. %1 is a formatted time (from QLocale.toString), %2 is a localized timezone abbreviation (from QTimeZone::displayName(QTimeZone::ShortName)).
 #: lib/util/kformatprivate.cpp:432 lib/util/kformatprivate.cpp:441
 #: lib/util/kformatprivate.cpp:446 lib/util/kformatprivate.cpp:454
-#: lib/util/kformatprivate.cpp:680
+#: lib/util/kformatprivate.cpp:682
 #, qt-format
 msgctxt "KFormat|"
 msgid "%1 %2"
@@ -993,25 +993,25 @@ msgctxt "KFormat|"
 msgid "%1 at %2"
 msgstr "%1 a las %2"
 
-#: lib/util/kformatprivate.cpp:696
+#: lib/util/kformatprivate.cpp:698
 #, qt-format
 msgctxt "KFormat|distance in feet"
 msgid "%1 ft"
 msgstr "%1 ft"
 
-#: lib/util/kformatprivate.cpp:700 lib/util/kformatprivate.cpp:702
+#: lib/util/kformatprivate.cpp:702 lib/util/kformatprivate.cpp:704
 #, qt-format
 msgctxt "KFormat|distance in miles"
 msgid "%1 mi"
 msgstr "%1 mi"
 
-#: lib/util/kformatprivate.cpp:708
+#: lib/util/kformatprivate.cpp:710
 #, qt-format
 msgctxt "KFormat|distance in meter"
 msgid "%1 m"
 msgstr "%1 m"
 
-#: lib/util/kformatprivate.cpp:711 lib/util/kformatprivate.cpp:713
+#: lib/util/kformatprivate.cpp:713 lib/util/kformatprivate.cpp:715
 #, qt-format
 msgctxt "KFormat|distance in kilometer"
 msgid "%1 km"

@@ -30,6 +30,11 @@ target_link_libraries(libdiscover-backend-logging-category
         Qt::Core
 )
 
+option(BUILD_AppStreamPreviewBackend "Build AppStream preview support." "${AppStreamQt_FOUND}")
+if (AppStreamQt_FOUND AND BUILD_AppStreamPreviewBackend)
+    add_subdirectory(AppStreamPreviewBackend)
+endif()
+
 if (KF6Attica_FOUND AND KF6NewStuff_FOUND AND AppStreamQt_FOUND)
    add_subdirectory(KNSBackend)
 endif()
@@ -60,9 +65,9 @@ set_package_properties(Snapd PROPERTIES
     TYPE OPTIONAL
 )
 
-option(BUILD_SteamOSBackend "Build SteamOS support." "OFF")
-if (BUILD_SteamOSBackend)
-    add_subdirectory(SteamOSBackend)
+option(BUILD_HoloBackend "Build Holo support." "OFF")
+if (BUILD_HoloBackend)
+    add_subdirectory(HoloBackend)
 endif()
 
 option(BUILD_SystemdSysupdateBackend "Build support for Systemd's SysUpdate." "OFF")

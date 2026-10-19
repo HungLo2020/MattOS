@@ -1,21 +1,24 @@
+# Copyright (C) 2020 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
 sources.fileextensions = "*.qml *.cpp *.qdoc"
 headers.fileextensions = "*.h"
 
-# images
-imagedirs = ../images
+# Images
+imagedirs = images
 
-# zero warning policy
-warninglimit = 0
+# Zero warning policy (plus one for expected warning)
+warninglimit = 1
 warninglimit.enabled = true
 
-# don't write host system-specific paths to index files
+# Don't write host system-specific paths to index files
 locationinfo = false
 
-includepaths += -I../testcpp
+includepaths += -I./src
 
-headers = ../testcpp/testcpp.h
-sources = ../testcpp/testcpp.cpp \
-          ../testcpp/classlists.qdoc
+headers = src/testcpp.h
+sources = src/testcpp.cpp \
+          src/classlists.qdoc
 
 macro.CMDFN = \\\\fn
 macro.nothing = \\dontdocument ()
@@ -25,18 +28,15 @@ navigation.cppclassespage = "QDoc Test C++ Classes"
 
 moduleheader = TestCPP
 
-project = Test
+project = QmlPropertyGroups
 productname = Qt
 description = "A test project for QDoc build artifacts"
-outputdir = ./html
 
-exampledirs = ../qml
+exampledirs = src/qml
 
-headerdirs += ../
-sourcedirs += ../qml
-
-# Exclude source files from other tests' subdirs
-excludedirs = ../bug80259
+headerdirs += src
+sourcedirs += src/qml
+sourcedirs += src
 
 examples.fileextensions = "*.qml *.cpp"
 
@@ -45,17 +45,8 @@ macro.QDocTestVer       = "1.1"
 
 navigation.qmltypespage     = "QDoc.Test QML Module"
 navigation.qmltypestitle    = "Types"
-warninglimit += 1
 
-manifestmeta.examplecategories = "Application Examples" \
-                                 "Desktop" \
-                                 "Mobile" \
-                                 "Embedded"
-
-project = QmlPropertyGroups
 url = https://doc.qt.io/${project}
-
-sourcedirs += .
 
 outputformats = HTML DocBook
 

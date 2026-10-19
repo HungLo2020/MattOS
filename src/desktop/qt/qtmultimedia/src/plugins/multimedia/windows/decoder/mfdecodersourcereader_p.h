@@ -15,13 +15,15 @@
 // We mean it.
 //
 
+#include <decoder/mfdecodersourcereadercallback_p.h>
+
+#include <QtMultimedia/qaudioformat.h>
+#include <QtCore/qobject.h>
+
+#include <QtCore/private/qcomptr_p.h>
+
 #include <mfidl.h>
 #include <mfreadwrite.h>
-
-#include <QtCore/qobject.h>
-#include "qaudioformat.h"
-#include <QtCore/private/qcomptr_p.h>
-#include "mfdecodersourcereadercallback_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -30,7 +32,7 @@ class MFDecoderSourceReader : public QObject
     Q_OBJECT
 public:
     void clearSource() { m_sourceReader.Reset(); }
-    ComPtr<IMFMediaType> setSource(IMFMediaSource *source, QAudioFormat::SampleFormat);
+    ComPtr<IMFMediaType> setSource(const ComPtr<IMFMediaSource> &source, QAudioFormat::SampleFormat);
 
     void readNextSample();
 

@@ -1,7 +1,7 @@
 # Translation for kcm_kwintabbox.po to Euskara/Basque (eu).
 # Copyright (C) 2011-2026 This file is copyright:
 # This file is distributed under the same license as the kwin package.
-# SPDX-FileCopyrightText: 2024, 2025, 2026 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
+# SPDX-FileCopyrightText: 2024-2026 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
 #
 # Translators:
 # Iñigo Salvador Azurmendi <xalba@ni.eus>, 2011, 2014, 2019, 2022, 2023, 2024, 2025, 2026.
@@ -10,15 +10,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2026-02-19 21:57+0100\n"
+"POT-Creation-Date: 2026-04-14 00:45+0000\n"
+"PO-Revision-Date: 2026-07-21 17:25+0200\n"
 "Last-Translator: Iñigo Salvador Azurmendi <xalba@ni.eus>\n"
 "Language-Team: Basque <kde-i18n-eu@kde.org>\n"
 "Language: eu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.12.2\n"
+"X-Generator: Lokalize 26.04.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: layoutpreview.cpp:28
@@ -261,16 +261,8 @@ msgstr "Uneko aplikazioa"
 msgid "Visualization"
 msgstr "Bistaratzea"
 
-#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
-#: main.ui:645
-#, kde-format
-msgid "The effect to replace the list window when desktop effects are active."
-msgstr ""
-"Mahaigaineko efektuak aktibatuta daudenean leiho-zerrenda ordezkatzeko "
-"efektua."
-
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:678
+#: main.ui:624
 #, kde-format
 msgid ""
 "The currently selected window will be highlighted by fading out all other "
@@ -280,11 +272,74 @@ msgstr ""
 "itzaliz. Aukera hori erabiltzeko, mahaigain-efektuak aktibatuak izan behar "
 "dira."
 
-#. i18n: ectx: property (text), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:681
+#. i18n: ectx: property (text), widget (QLabel, label_HighlightWindows)
+#: main.ui:634
 #, kde-format
 msgid "Show selected window"
 msgstr "Erakutsi hautatutako leihoa"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_ShowTabBox)
+#: main.ui:644
+#, kde-format
+msgid "Enable the window list effect"
+msgstr "Gaitu leiho-zerrenda efektua"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
+#: main.ui:678
+#, kde-format
+msgid "The effect to replace the list window when desktop effects are active."
+msgstr ""
+"Mahaigaineko efektuak aktibatuta daudenean leiho-zerrenda ordezkatzeko "
+"efektua."
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, label_DelayTime)
+#: main.ui:701
+#, kde-format
+msgid "The time in milliseconds to wait before showing the task switcher."
+msgstr ""
+"Ataza aldarazlea erakutsi aurretik itxoin beharreko denbora milisegundotan."
+
+#. i18n: ectx: property (text), widget (QLabel, label_DelayTime)
+#: main.ui:704
+#, kde-format
+msgid "Delay:"
+msgstr "Atzerapena:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:720
+#, kde-format
+msgid " ms"
+msgstr " ms"
+
+#. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:735
+#, kde-format
+msgid "Delay before the window list appears"
+msgstr "Leiho-zerrenda azaldu aurreko atzerapena"
+
+#. i18n: ectx: property (text), widget (QLabel, label_showScreen)
+#: main.ui:742
+#, kde-format
+msgid "Show on screen:"
+msgstr "Pantaila erakutsi:"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, showScreenCombo)
+#: main.ui:758
+#, kde-format
+msgid "Select which screen the task switcher should be displayed on."
+msgstr "Hautatu ataza-aldarazlea zein pantailatan azaldu behar duen."
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:762
+#, kde-format
+msgid "Active screen"
+msgstr "Pantaila aktiboa"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:767
+#, kde-format
+msgid "Primary screen"
+msgstr "Pantaila nagusia"
 
 #: shortcutsettings.cpp:131
 #, kde-format
@@ -326,6 +381,9 @@ msgstr "Ibili uneko aplikazioaren leihoetan zehar beste modu batean"
 msgid "Walk Through Windows of Current Application Alternative (Reverse)"
 msgstr ""
 "Ibili uneko aplikazioaren leihoetan zehar beste modu batean (alderantziz)"
+
+#~ msgid "Show delay:"
+#~ msgstr "Erakutsi atzerapena:"
 
 #~ msgid "Show Desktop"
 #~ msgstr "Erakutsi mahaigaina"

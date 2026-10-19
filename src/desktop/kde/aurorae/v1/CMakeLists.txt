@@ -31,11 +31,10 @@ target_link_libraries(aurorae_v1
 
 install(TARGETS aurorae_v1 DESTINATION ${KDE_INSTALL_PLUGINDIR}/org.kde.kdecoration3)
 
-add_library(decorationplugin SHARED)
+ecm_add_qml_module(decorationplugin URI org.kde.kwin.decoration VERSION 0.1 GENERATE_PLUGIN_SOURCE)
 target_sources(decorationplugin PRIVATE
     colorhelper.cpp
     decorationoptions.cpp
-    decorationplugin.cpp
 )
 target_compile_definitions(decorationplugin PRIVATE
     -DTRANSLATION_DOMAIN=\"aurorae\"
@@ -45,7 +44,16 @@ target_link_libraries(decorationplugin PRIVATE
     KF6::ColorScheme
     Qt::Quick
 )
-install(TARGETS decorationplugin DESTINATION ${KDE_INSTALL_QMLDIR}/org/kde/kwin/decoration)
+
+ecm_target_qml_sources(decorationplugin SOURCES
+    qml/AppMenuButton.qml
+    qml/ButtonGroup.qml
+    qml/Decoration.qml
+    qml/DecorationButton.qml
+    qml/MenuButton.qml
+)
+
+ecm_finalize_qml_module(decorationplugin)
 
 install(
     FILES
@@ -59,18 +67,6 @@ install(
         qml/aurorae.qml
     DESTINATION
         ${KDE_INSTALL_DATADIR}/kwin/aurorae
-)
-
-install(
-    FILES
-        qml/AppMenuButton.qml
-        qml/ButtonGroup.qml
-        qml/Decoration.qml
-        qml/DecorationButton.qml
-        qml/MenuButton.qml
-        qml/qmldir
-    DESTINATION
-        ${KDE_INSTALL_QMLDIR}/org/kde/kwin/decoration
 )
 
 add_subdirectory(themes)

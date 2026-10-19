@@ -66,7 +66,13 @@ BaseDelegate {
         visible: !criticalNotificationIndicator.visible && Notifications.Globals.notificationSettings.showPopupTimeout
 
         Rectangle {
-            readonly property real completionFraction: delegateRoot.modelInterface.remainingTime / delegateRoot.modelInterface.timeout
+            readonly property real completionFraction: {
+                if (delegateRoot.modelInterface.timeout === 0) {
+                    return 0
+                }
+
+                return delegateRoot.modelInterface.remainingTime / delegateRoot.modelInterface.timeout
+            }
 
             height: parent.height
             width: Math.round(parent.width * completionFraction)
@@ -132,7 +138,7 @@ BaseDelegate {
         implicitHeight: scroll.implicitHeight
         visible: delegateRoot.hasBodyText
         onClicked: {
-            if (delegateRoot.modelInterface.hasDefaultAction) {
+            if (delegateRoot.modelInterface.hasDefaultAction && !delegateRoot.hoveredLink) {
                 delegateRoot.modelInterface.defaultActionInvoked();
             }
         }

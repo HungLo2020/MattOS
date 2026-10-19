@@ -1,0 +1,1368 @@
+# Copyright (C) 2025 This file is copyright:
+# This file is distributed under the same license as the kxmlgui package.
+#
+# SPDX-FileCopyrightText: 2025-2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: kxmlgui\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-09-23 00:42+0000\n"
+"PO-Revision-Date: 2026-08-18 04:10+0900\n"
+"Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
+"Language-Team: Min Nan Chinese Latin <zh-l10n@lists.slat.org>\n"
+"Language: nan_TW@latin\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Lokalize 26.11.70\n"
+
+#: kaboutapplicationdialog.cpp:60 kaboutplugindialog.cpp:65
+#, kde-format
+msgctxt "@title:window"
+msgid "About %1"
+msgstr "%1 ê Siāu-kài"
+
+#: kaboutapplicationdialog.cpp:88 kaboutplugindialog.cpp:84
+#, kde-format
+msgctxt "@title:tab"
+msgid "About"
+msgstr "Siāu-kài"
+
+#: kaboutapplicationdialog.cpp:94
+#, kde-format
+msgctxt "@title:tab"
+msgid "Components"
+msgstr "Guân-kiānn"
+
+#: kaboutapplicationdialog.cpp:104 kaboutplugindialog.cpp:92
+#, kde-format
+msgctxt "@title:tab"
+msgid "Author"
+msgid_plural "Authors"
+msgstr[0] "Tsok-tsiá"
+
+#: kaboutapplicationdialog.cpp:111 kaboutplugindialog.cpp:99
+#, kde-format
+msgctxt "@title:tab"
+msgid "Thanks To"
+msgstr "Kám-siā"
+
+#: kaboutapplicationdialog.cpp:118 kaboutplugindialog.cpp:105
+#, kde-format
+msgctxt "@title:tab"
+msgid "Translation"
+msgstr "Huan-i̍k"
+
+#: kaboutkdedialog_p.cpp:31
+#, kde-format
+msgctxt "@title:window"
+msgid "About KDE"
+msgstr "KDE ê siāu-kài"
+
+#: kaboutkdedialog_p.cpp:34
+#, kde-format
+msgid "<html><font size=\"5\">KDE</font><br />Be Free!</html>"
+msgstr "<html><font size=\"5\">KDE</font><br />Hiáng-siū tsū-iû!</html>"
+
+#: kaboutkdedialog_p.cpp:45
+#, kde-format
+msgid ""
+"<html><b>KDE</b> is a world-wide community of software engineers, artists, "
+"writers, translators and creators who are committed to <a href=\"%1\">Free "
+"Software</a> development. KDE produces the Plasma desktop environment, "
+"hundreds of applications, and the many software libraries that support them."
+"<br /><br />KDE is a cooperative enterprise: no single entity controls its "
+"direction or products. Instead, we work together to achieve the common goal "
+"of building the world's finest Free Software. Everyone is welcome to <a href="
+"\"%2\">join and contribute</a> to KDE, including you.<br /><br />Visit <a "
+"href=\"%3\">%3</a> for more information about the KDE community and the "
+"software we produce.</html>"
+msgstr ""
+"<html><b>KDE</b> sī tsi̍t-ê sè-kài ê siā-kûn, pau-kuat nńg-thé kang-tîng-su, "
+"gē-su̍t-ka, tsok-ka, huan-i̍k-tsiá kah kî-thann tshòng-tsok-tsiá, tsò-hué phah-"
+"piànn khai-huat <a href=\"%1\">Tsū-iû Nńg-thé</a>. KDE tsò-ê ū Plasma toh-"
+"bīn-khuân-kíng, tsiânn-pah ê ìng-iōng-tîng-sik, kah tsi-uān in ê tsiok-tsē "
+"nńg-thé hâm-sik-khòo.<br /><br />KDE sī ha̍p-tsok sū-gia̍p: bô tan-it ê lâng á-"
+"sī tsoo-tsit khòng-tsè KDE ài tsò siánn-mih sán-phín á-sī ài uì tó-uī khì. "
+"Gún tsò-hué phah-piànn lâi ta̍t-sîng tsè-tsō sè-kài siōng-hó ê Tsū-iû Nńg-thé "
+"ê kiōng-tông bo̍k-piau. Gún huan-gîng jīm-hô lâng <a href=\"%2\">ka-ji̍p kah "
+"kòng-hiàn</a> hōo KDE - tse tong-jiân mā pau-kuat lí!<br /><br />Nā ài "
+"khuànn koh-khah tsē ê KDE siā-kûn kap gún tsò ê nńg-thé ê tsu-sìn, tshiánn "
+"pài-hóng <a href=\"%3\">%3</a>.</html>"
+
+#: kaboutkdedialog_p.cpp:66
+#, kde-format
+msgid ""
+"<html>Software can always be improved, and the KDE team is ready to do so. "
+"However, you - the user - must tell us when something does not work as "
+"expected or could be done better.<br /><br />KDE has a bug tracking system. "
+"Visit <a href=\"%1\">%1</a> or use the \"Report Bug...\" dialog from the "
+"\"Help\" menu to report bugs.<br /><br />If you have a suggestion for "
+"improvement then you are welcome to use the bug tracking system to register "
+"your wish. Make sure you use the severity called \"Wishlist\".</html>"
+msgstr ""
+"<html>Nńg-thé íng-uán ū ē-sái koh-khah hó ê sóo-tsāi, KDE thuân-tuī mā tsún-"
+"pī hó-sè ē-sái kā KDE nńg-thé kái koh-khah hó. M̄-koh gún su-iàu iōng-tsiá, "
+"mā tio̍h-sī lín, lâi tī ū tshut būn-tê á-sī ū sóo-tsāi ē-sái kái-siān ê sî-"
+"tsūn kah gún kóng.<br /><br />KDE ū tsit-ê tui-tsong būn-tê ê hē-thóng (bug "
+"tracking system). Tshiánn pài-hóng<a href=\"%1\">%1</a> á-sī iōng \"Suat-bîng"
+"\" suán-tuann lāi-té ê \"Huê-pò Tshò-gōo\" tuì-uē-khing lâi huê-pò būn-tê."
+"<br /><br />Nā lí ū kái-siān nńg-thé ê kiàn-gī mā ē-sái iōng būn-tê tui-"
+"tsong hē-thóng lâi hōo gún tsai-iánn lí ê guān-bōng. Tsit-khuán sî-tsūn "
+"tshiánn iōng \"Wishlist\" tsit-ê severity suán-hāng.</html>"
+
+#: kaboutkdedialog_p.cpp:85
+#, kde-format
+msgid ""
+"<html>You do not have to be a software developer to be a member of the KDE "
+"team. You can join the language teams that translate program interfaces. You "
+"can provide graphics, themes, sounds, and improved documentation. You decide!"
+"<br /><br />Visit <a href=\"%1\">%1</a> for information on some projects in "
+"which you can participate.<br /><br />If you need more information or "
+"documentation, then a visit to <a href=\"%2\">%2</a> will provide you with "
+"what you need.</html>"
+msgstr ""
+"<html>Lí m̄-bián tsò nńg-thé khai-huat-tsiá mā ē-sái tsò KDE thuân-tuī ê tsi̍t-"
+"pōo-hūn. Lí ē-sái ka-ji̍p huan-i̍k thuân-tuī lâi huan-i̍k tîng-sik kài-bīn; á-"
+"sī thê-kiong tôo-hîng siat-kè, tsú-tê, im-hāu, á-sī kái-siān bûn-kiānn. Tse "
+"lóng ē-sái ka-kī kuat-tīng!<br /><br />Tshiánn pài-hóng <a href=\"%1\">%1</"
+"a> lâi khuànn ē-sái tsham-ka siánn-mih tsuan-àn.<br /><br />Nā lí su-iàu koh-"
+"khah tsē tsu-sìn á-sī suat-bîng bûn-kiānn, mā ē-sái pài-hóng <a href=\"%2\">"
+"%2</a>.</html>"
+
+#: kaboutkdedialog_p.cpp:108
+#, kde-format
+msgid ""
+"<html>KDE software is and will always be available free of charge, however "
+"creating it is not free.<br /><br />To support development the KDE community "
+"has formed the KDE e.V., a non-profit organization legally founded in "
+"Germany. KDE e.V. represents the KDE community in legal and financial "
+"matters. See <a href=\"%1\">%1</a> for information on KDE e.V.<br /><br /"
+">KDE benefits from many kinds of contributions, including financial. We use "
+"the funds to reimburse members and others for expenses they incur when "
+"contributing. Further funds are used for legal support and organizing "
+"conferences and meetings. <br /> <br />We would like to encourage you to "
+"support our efforts with a financial donation, using one of the ways "
+"described at <a href=\"%2\">%2</a>.<br /><br />Thank you very much in "
+"advance for your support.</html>"
+msgstr ""
+"<html>KDE nńg-thé tsit-má sī bián-tsînn ê, í-āu mā lóng ē sī bián-tsînn ê, m̄-"
+"koh gún tsè-tsō tse nńg-thé m̄-sī bián khai-tsînn ê.<br /><br />Uī-tio̍h tsi-"
+"uān khai-huat kang-tsok, KDE siā-kûn tsoo-tsit--ah KDE e.V. tsit-ê tī Tik-"
+"kok huat-lu̍t sîng-li̍p ê hui-îng-lī sū-gia̍p. KDE e.V. tī huat-lu̍t kap kim-"
+"iông sū-bū tíng-kuân tāi-piáu kui-ê KDE siā-kûn. KDE e.V. ê tsu-sìn tshiánn "
+"khuànn <a href=\"%1\">%1</a>.<br /><br />Kok-tsióng kòng-hiàn tuì KDE lóng "
+"tsin hó, pau-kuat kim-tsînn ê kòng-hiàn. Gún iōng kià-hù lâi ê tsînn lâi póo-"
+"tsōo sîng-uân kap kî-thann ê lâng kòng-hiàn ê sî-tsūn khai ê tsînn. Koh-khah "
+"tsē ê tsînn ē iōng tī huat-lu̍t tsi-uān kah tsoo-tsit huē-gī kap gián-thó-huē."
+"<br /><br />Gún huan-gîng lí iōng tī <a href=\"%2\">%2</a> suat-bîng ê hong-"
+"huat kā gún kià-hù.<br /><br />Sing to-siā lí ê tsi-uān.</html>"
+
+#: kaboutkdedialog_p.cpp:128
+#, kde-format
+msgctxt "@title:tab About KDE"
+msgid "&About"
+msgstr "S&iāu-kài"
+
+#: kaboutkdedialog_p.cpp:129
+#, kde-format
+msgctxt "@title:tab"
+msgid "&Report Bugs or Wishes"
+msgstr "&Huê-pò Tshò-gōo á-sī Guān-bōng"
+
+#: kaboutkdedialog_p.cpp:130
+#, kde-format
+msgctxt "@title:tab"
+msgid "&Join KDE"
+msgstr "Ka-&ji̍p KDE"
+
+#: kaboutkdedialog_p.cpp:131
+#, kde-format
+msgctxt "@title:tab"
+msgid "&Support KDE"
+msgstr "T&si-tshî KDE"
+
+#: kabstractaboutdialog_p.cpp:47
+#, kde-format
+msgctxt "Version version-number"
+msgid "Version %1"
+msgstr "Pán-pún %1"
+
+#: kabstractaboutdialog_p.cpp:91
+#, kde-format
+msgid "License: %1"
+msgstr "Siū-khuân: %1"
+
+#: kabstractaboutdialog_p.cpp:118
+#, kde-format
+msgctxt "@info Platform name"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: kabstractaboutdialog_p.cpp:123
+#, kde-format
+msgid "KDE Frameworks"
+msgstr "KDE Frameworks"
+
+#: kabstractaboutdialog_p.cpp:124
+#, kde-format
+msgctxt "@info"
+msgid "Collection of libraries created by the KDE Community to extend Qt."
+msgstr "KDE siā-kûn tsò-lâi khok-tshiong Qt ê hâm-sit-khòo tsi̍p."
+
+#: kabstractaboutdialog_p.cpp:128
+#, kde-format
+msgid "Qt"
+msgstr "Qt"
+
+#: kabstractaboutdialog_p.cpp:129
+#, kde-format
+msgctxt "@info"
+msgid "Cross-platform application development framework."
+msgstr "Khuà-pîng-tâi ìng-iōng-tîng-sik khai-huat khing-kè."
+
+#: kabstractaboutdialog_p.cpp:130
+#, kde-format
+msgid "Using %1 and built against %2"
+msgstr "Sú-iōng %1, tuì %2 pian-i̍k"
+
+#: kabstractaboutdialog_p.cpp:136
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Flatpak"
+msgstr "Flatpak"
+
+#: kabstractaboutdialog_p.cpp:139
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Snap"
+msgstr "Snap"
+
+#: kabstractaboutdialog_p.cpp:142
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "AppImage"
+msgstr "AppImage"
+
+#: kabstractaboutdialog_p.cpp:145
+#, kde-format
+msgctxt "@info"
+msgid "Distribution method."
+msgstr "Huat-hîng hong-huat."
+
+#: kabstractaboutdialog_p.cpp:148
+#, kde-format
+msgctxt "@info"
+msgid "Underlying platform."
+msgstr "Ki-tshóo pênn-tâi."
+
+#: kabstractaboutdialog_p.cpp:176
+#, kde-format
+msgctxt "@action:button"
+msgid "Visit component's homepage"
+msgstr "Pài-hóng guân-kiānn ê tsú-ia̍h"
+
+#: kabstractaboutdialog_p.cpp:177
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Visit components's homepage\n"
+"%1"
+msgstr ""
+"Pài-hóng guân-kiānn ê tsú-ia̍h\n"
+"%1"
+
+#: kabstractaboutdialog_p.cpp:199
+#, kde-format
+msgctxt "@action:button"
+msgid "Copy to Clipboard"
+msgstr "Khóo-pih kàu Tsián-tah-phōo"
+
+#: kabstractaboutdialog_p.cpp:259
+#, kde-format
+msgctxt "@action:button"
+msgid "Visit author's homepage"
+msgstr "Pài-hóng tsok-tsiá ê tsú-ia̍h"
+
+#: kabstractaboutdialog_p.cpp:260
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Visit author's homepage\n"
+"%1"
+msgstr ""
+"Pài-hóng tsok-tsiá ê tsú-ia̍h\n"
+"%1"
+
+#: kabstractaboutdialog_p.cpp:274
+#, kde-format
+msgctxt "@action:button Send an email to a contributor"
+msgid "Email contributor"
+msgstr "Hiòng kòng-hiàn-tsiá thuân email"
+
+#: kabstractaboutdialog_p.cpp:275
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Email contributor: %1"
+msgstr "Hiòng kòng-hiàn-tsiá thuân email: %1"
+
+#: kabstractaboutdialog_p.cpp:314
+#, kde-format
+msgctxt "Reference to website"
+msgid ""
+"Please use %1 to report bugs.<br/>If you have questions or need help, please "
+"visit %2.<br/>"
+msgstr ""
+"Tshiánn iōng %1 lâi huê-pò tshò-gōo.<br/>Nā-sī ū būn-tê á-sī su-iàu láng kā "
+"lí tàu-sann-kāng, ē-sái pài-hóng %2.<br/>"
+
+#: kabstractaboutdialog_p.cpp:324
+#, kde-format
+msgctxt "Reference to email address"
+msgid "Please report bugs to %1.\n"
+msgstr "Tshò-gōo tshiánn tuì %1 huê-pò.\n"
+
+#: kactionconflictdetector_p.h:37
+#, kde-format
+msgid ""
+"The key sequence '%1' is ambiguous. Use 'Configure Keyboard Shortcuts'\n"
+"from the 'Settings' menu to solve the ambiguity.\n"
+"No action will be triggered."
+msgstr ""
+"Khí tsoo-ha̍p '%1' sī bông-bông-ê. Tshiánn iōng 'Siat-tīng' suán-tuann lāi-té "
+"ê 'Siat-tīng Khí-puânn Khuài-sok-khí' suán-hāng lâi kái-kuat tsit-ê tshiong-"
+"tu̍t.\n"
+"Bē tshiok-huat tōng-tsok."
+
+#: kactionconflictdetector_p.h:41
+#, kde-format
+msgctxt "@title:window"
+msgid "Ambiguous shortcut detected"
+msgstr "Tsing-tshik--tio̍h ū bông-bông-ê khuài-sok-khí"
+
+#: kbugreport.cpp:68
+#, kde-format
+msgctxt "@title:window"
+msgid "Submit Bug Report"
+msgstr "The̍h-tshut Tshò-gōo Huê-pò"
+
+#: kbugreport.cpp:90
+#, kde-format
+msgid "Submit Bug Report"
+msgstr "The̍h-tshut Tshò-gōo Huê-pò"
+
+#: kbugreport.cpp:102
+#, kde-format
+msgid ""
+"The application for which you wish to submit a bug report - if incorrect, "
+"please use the Report Bug menu item of the correct application"
+msgstr ""
+"Lí ài the̍h-tshut tshò-gōo huê-pò ê ìng-iōng-tîng-sik - tse nā-sī m̄-tio̍h, "
+"tshiánn uì tio̍h--ê tîng-sik ê suán-tuann khì iōng i ê Huê-pò Tshò-gōo ê suán-"
+"hāng"
+
+#: kbugreport.cpp:103
+#, kde-format
+msgid "Application: "
+msgstr "Ìng-iōng tîng-sik: "
+
+#: kbugreport.cpp:113
+#, kde-format
+msgid ""
+"The version of this application - please make sure that no newer version is "
+"available before sending a bug report"
+msgstr ""
+"Tsit-ê ìng-iōng tîng-sik ê pán-pún - tshiánn sin khak-tīng bô kok khah sin ê "
+"pán-pún tsiah koh-lâi thuân bug report"
+
+#: kbugreport.cpp:114
+#, kde-format
+msgid "Version:"
+msgstr "Pán-pún: "
+
+#: kbugreport.cpp:119
+#, kde-format
+msgid "no version set (programmer error)"
+msgstr "bô siat-tīng pán-pún (tse-sī khai-huat-tsiá ê būn-tê)"
+
+#: kbugreport.cpp:123
+#, kde-format
+msgctxt "%1 is the program version, %2 is the kde framework version"
+msgid "%1 with KDE Frameworks %2"
+msgstr "%1 (KDE Frameworks %2)"
+
+#: kbugreport.cpp:131
+#, kde-format
+msgid "OS:"
+msgstr "Tshau-tsok-hē-thóng:"
+
+#: kbugreport.cpp:136
+#, kde-format
+msgctxt ""
+"%1 is the operating system name, e.g. 'Windows 10', %2 is the CPU "
+"architecture, e.g. 'x86_64'"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: kbugreport.cpp:143
+#, kde-format
+msgctxt ""
+"%1 is the operating system name, e.g. 'Fedora Linux', %2 is the operating "
+"system version, e.g. '35', %3 is the CPU architecture, e.g. 'x86_64'"
+msgid "%1 %2 (%3)"
+msgstr "%1 %2 (%3)"
+
+#: kbugreport.cpp:149
+#, kde-format
+msgctxt ""
+"%1 is the operating system name, e.g. 'Fedora Linux', %2 is the CPU "
+"architecture, e.g. 'x86_64'"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: kbugreport.cpp:163
+#, kde-format
+msgid ""
+"<qt>To submit a bug report, click on the button below. This will open a web "
+"browser window on <a href=\"https://bugs.kde.org\">https://bugs.kde.org</a> "
+"where you will find a form to fill in. The information displayed above will "
+"be transferred to that server.</qt>"
+msgstr ""
+"<qt>Ài thê-tshut tshò-gōo huê-pò, tshiánn tshi̍h ē-kha ê tshi̍h-liú. Tse ē tī "
+"liû-lám-khì pài-hóng <a href=\"https://bugs.kde.org\">https://bugs.kde.org</"
+"a>, lāi-té ū pió-tuann ē-sái su-ji̍p lí ê huê-pò (m̄-koh su-iàu iōng Ing-gí). "
+"Tíng-kuân hiān-sî ê tsu-liāu ē thuân khì hit-ê sù-ho̍k-khì.</qt>"
+
+#: kbugreport.cpp:169
+#, kde-format
+msgid ""
+"<qt>To submit a bug report, click on the button below. This will open a web "
+"browser window on <a href=\"%1\">%2</a>.</qt>"
+msgstr ""
+"<qt>Ài thê-tshut tshò-gōo huê-pò, tshiánn tshi̍h ē-kha ê tshi̍h-liú. Tse ē tī "
+"liû-lám-khì pài-hóng <a href=\"%1\">%2</a>.</qt>"
+
+#: kbugreport.cpp:186
+#, kde-format
+msgctxt "@action:button"
+msgid "&Launch Bug Report Wizard"
+msgstr "Kā Tshò-gōo Huê-pò Kang-kū Khí-tāng(&L)"
+
+#: kbugreport.cpp:188
+#, kde-format
+msgctxt "@action:button"
+msgid "&Submit Bug Report"
+msgstr "The̍h-t&shut Tshò-gōo Huê-pò"
+
+#: kcheckaccelerators.cpp:121
+#, kde-format
+msgctxt "@title:window"
+msgid "Dr. Klash' Accelerator Diagnosis"
+msgstr "Dr. Klash ê Ka-sok-khì Hun-sik"
+
+#: kcheckaccelerators.cpp:128
+#, kde-format
+msgctxt "@option:check"
+msgid "Disable automatic checking"
+msgstr "Tîng-iōng tsū-tōng kiám-tsa"
+
+#: kcheckaccelerators.cpp:174
+#, kde-format
+msgid "<h2>Accelerators changed</h2>"
+msgstr "<h2>Ka-sok-khì ū piàn</h2>"
+
+#: kcheckaccelerators.cpp:178 kcheckaccelerators.cpp:182
+#, kde-format
+msgid "Old Text"
+msgstr "Kū ê bûn"
+
+#: kcheckaccelerators.cpp:178 kcheckaccelerators.cpp:187
+#, kde-format
+msgid "New Text"
+msgstr "Sin ê bûn"
+
+#: kcheckaccelerators.cpp:182
+#, kde-format
+msgid "<h2>Accelerators removed</h2>"
+msgstr "<h2>Ka-sok-khì hōo î-tû tiāu--ah</h2>"
+
+#: kcheckaccelerators.cpp:186
+#, kde-format
+msgid "<h2>Accelerators added (just for your info)</h2>"
+msgstr "<h2>Ka-sok-khì thiam-hó--ah</h2>"
+
+#: kedittoolbar.cpp:353
+#, kde-format
+msgctxt "@title:window"
+msgid "Change Text"
+msgstr "Kái-piàn bûn-jī"
+
+#: kedittoolbar.cpp:363
+#, kde-format
+msgid "Icon te&xt:"
+msgstr "Tôo-sī bûn-jī(&X):"
+
+#: kedittoolbar.cpp:368
+#, kde-format
+msgctxt "@option:check"
+msgid "&Hide text when toolbar shows text alongside icons"
+msgstr ""
+"Kang-kū-lia̍t tī tôo-sī pinn-á &hiān-sî bûn-jī ê sî-tsūn mài hiān-sî bûn-jī"
+
+#: kedittoolbar.cpp:621
+#, kde-format
+msgctxt "@title:window"
+msgid "Configure Toolbars"
+msgstr "Siat-tīng Kang-khū-lia̍t"
+
+#: kedittoolbar.cpp:684
+#, kde-format
+msgid ""
+"Do you really want to reset all toolbars of this application to their "
+"default? The changes will be applied immediately."
+msgstr ""
+"Lí kám tsin-tsiànn ài kā tsit-ê ìng-iōng-tîng-sik ê sóo-ū ê kang-kū-lia̍t "
+"lóng-tsóng tîng-siat--tiāu? Tsit-kuá kái-piàn ē má-siōng ū-hāu."
+
+#: kedittoolbar.cpp:685
+#, kde-format
+msgid "Reset Toolbars"
+msgstr "Tîng-siat Kang-kū-lia̍t"
+
+#: kedittoolbar.cpp:686
+#, kde-format
+msgid "Reset"
+msgstr "Tîng-siat"
+
+#: kedittoolbar.cpp:1007
+#, kde-format
+msgid "&Toolbar:"
+msgstr "Kang-khū lia̍t(&T):"
+
+#. i18n("&New"), this);
+#. new_toolbar->setPixmap(BarIcon("document-new", KIconLoader::SizeSmall));
+#. new_toolbar->setEnabled(false); // disabled until implemented
+#. QPushButton *del_toolbar = new QPushButton(i18n("&Delete"), this);
+#. del_toolbar->setPixmap(BarIcon("edit-delete", KIconLoader::SizeSmall));
+#. del_toolbar->setEnabled(false); // disabled until implemented
+#. our list of inactive actions
+#: kedittoolbar.cpp:1023
+#, kde-format
+msgid "A&vailable actions:"
+msgstr "Ē-sái iōng ê tōng-tsok(&V):"
+
+#: kedittoolbar.cpp:1044 kedittoolbar.cpp:1069
+#, kde-format
+msgid "Filter"
+msgstr "Kè-lī"
+
+#: kedittoolbar.cpp:1047
+#, kde-format
+msgid "Curr&ent actions:"
+msgstr "T&sit-má ê tōng-tsok:"
+
+#: kedittoolbar.cpp:1072
+#, kde-format
+msgctxt "@action:button"
+msgid "Change &Icon…"
+msgstr "Kái-p&iàn Tôo-sī…"
+
+#: kedittoolbar.cpp:1081
+#, kde-format
+msgctxt "@action:button"
+msgid "Change Te&xt…"
+msgstr "Kái-piàn Bûn-jī(&X)…"
+
+#: kedittoolbar.cpp:1223
+#, kde-format
+msgid "--- separator ---"
+msgstr "--- hun-lī-khì ---"
+
+#: kedittoolbar.cpp:1224
+#, kde-format
+msgid "--- expanding spacer ---"
+msgstr "--- khok-tshiong khong-kan ---"
+
+#: kedittoolbar.cpp:1246
+#, kde-format
+msgctxt "@item:intable Action name in toolbar editor"
+msgid "%1"
+msgstr "%1"
+
+#: kedittoolbar.cpp:1274
+#, kde-format
+msgid ""
+"This element will be replaced with all the elements of an embedded component."
+msgstr ""
+"Tsit-ê element ē tshú-tāi tsò tsi̍t-ê an-ji̍p component ê sóo-ū ê element."
+
+#: kedittoolbar.cpp:1276
+#, kde-format
+msgid "<Merge>"
+msgstr "<Ha̍p-pìng>"
+
+#: kedittoolbar.cpp:1278
+#, kde-format
+msgid "<Merge %1>"
+msgstr "<Ha̍p-pìng %1>"
+
+#: kedittoolbar.cpp:1288
+#, kde-format
+msgid ""
+"This is a dynamic list of actions. You can move it, but if you remove it you "
+"will not be able to re-add it."
+msgstr ""
+"Tsit-ê tōng-tsok tuann sī tōng-thài king-sin ê. Tōng-tsok ē-sái suá-uī, m̄-"
+"koh nā-sī î-tû ē suá bô-huat-tōo koh kā i thiam li̍p-lâi."
+
+#: kedittoolbar.cpp:1289
+#, kde-format
+msgid "ActionList: %1"
+msgstr "Tōng-tsok Lia̍t-tuann: %1"
+
+#: kedittoolbar.cpp:1390 kedittoolbar.cpp:1415
+#, kde-format
+msgctxt "@label Action tooltip in toolbar editor, below the action list"
+msgid "%1"
+msgstr "%1"
+
+#: kedittoolbar.cpp:1643
+#, kde-format
+msgid "Change Icon"
+msgstr "Kái-piàn Tôo-sī"
+
+#. i18n: ectx: Menu (help)
+#: khelpmenu.cpp:167 ui_standards.rc:179
+#, kde-format
+msgid "&Help"
+msgstr "Suat-bîng(&H)"
+
+#: kkeysequencewidget.cpp:147
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Click on the button, then enter the shortcut like you would in the program.\n"
+"Example for Ctrl+A: hold the Ctrl key and press A."
+msgstr ""
+"Tshi̍h tsit-ê liú, jiân-āu tshin-tshiūnn tī he tîng-sik lāi-té kāng-khuán su-"
+"ji̍p khuài-sok-khí.\n"
+"Lē: uī Ctrl+A, tshi̍h-leh Ctrl khì, jiân-āu tshi̍h A."
+
+#: kkeysequencewidget.cpp:151
+#, kde-format
+msgctxt "@action:button"
+msgid "Clear"
+msgstr "Tshing-tû"
+
+#: kkeysequencewidget.cpp:170
+#, kde-format
+msgctxt "%1 is the number of conflicts"
+msgid "Shortcut Conflict"
+msgid_plural "Shortcut Conflicts"
+msgstr[0] "Khuài-sok-khí Tshiong-tu̍t"
+
+#: kkeysequencewidget.cpp:174
+#, kde-format
+msgid "Shortcut '%1' for action '%2'\n"
+msgstr "Tōng-tsok '%2' ê Khuài-sok-khí '%1'\n"
+
+#: kkeysequencewidget.cpp:179
+#, kde-format
+msgctxt "%1 is the number of ambiguous shortcut clashes (hidden)"
+msgid ""
+"The \"%2\" shortcut is ambiguous with the following shortcut.\n"
+"Do you want to assign an empty shortcut to this action?\n"
+"%3"
+msgid_plural ""
+"The \"%2\" shortcut is ambiguous with the following shortcuts.\n"
+"Do you want to assign an empty shortcut to these actions?\n"
+"%3"
+msgstr[0] ""
+"\"%2\" khuài-sok-khí kap tsia-ê khuài-sok-khí ū tshiong-tu̍t.\n"
+"Lí kám ài kā tsia-ê tōng-tsok kái tsí-phài khàng-pe̍h ê khuài-sok-khí?\n"
+"%3"
+
+#: kkeysequencewidget.cpp:189 kkeysequencewidget.cpp:296
+#: kkeysequencewidget.cpp:358
+#, kde-format
+msgctxt "@action:button"
+msgid "Reassign"
+msgstr "Tîng-tsí-phài"
+
+#: kkeysequencewidget.cpp:194
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcut conflict"
+msgstr "Khuài-sok-khí tshiong-tu̍t"
+
+#: kkeysequencewidget.cpp:196
+#, kde-format
+msgid ""
+"<qt>The '%1' key combination is already used by the <b>%2</b> action."
+"<br>Please select a different one.</qt>"
+msgstr ""
+"<qt>'%1' ê khí tsoo-ha̍p í-king hōo <b>%2</b> tōng-tsok iōng--ah.<br>Tshiánn "
+"suán līng-guā tsi̍t-ê.</qt>"
+
+#: kkeysequencewidget.cpp:276
+#, kde-format
+msgid "Shortcut '%1' in Application '%2' for action '%3'\n"
+msgstr "Ìng-iōng-tîng-sik '%2' ê Tōng-tsok '%3' ê Khuài-sok-khí '%1'\n"
+
+#: kkeysequencewidget.cpp:285
+#, kde-format
+msgctxt ""
+"%1 is the number of conflicts (hidden), %2 is the key sequence of the "
+"shortcut that is problematic"
+msgid "The shortcut '%2' conflicts with the following key combination:\n"
+msgid_plural ""
+"The shortcut '%2' conflicts with the following key combinations:\n"
+msgstr[0] "Khuài-sok-khí '%2' kap tsia-ê khí tsoo-ha̍p ū tshiong-tu̍t:\n"
+
+#: kkeysequencewidget.cpp:292
+#, kde-format
+msgctxt "%1 is the number of shortcuts with which there is a conflict"
+msgid "Conflict with Registered Global Shortcut"
+msgid_plural "Conflict with Registered Global Shortcuts"
+msgstr[0] "Kā ū Tsù-tsheh ê Tsuân-i̍k Khuài-sok-khí ū Tshiong-tu̍t"
+
+#: kkeysequencewidget.cpp:305
+#, kde-format
+msgid "Reserved Shortcut"
+msgstr "Hōo Pó-liû ê Khuài-sok-khí"
+
+#: kkeysequencewidget.cpp:307
+#, kde-format
+msgid ""
+"The F12 key is reserved on Windows, so cannot be used for a global "
+"shortcut.\n"
+"Please choose another one."
+msgstr ""
+"F12 khí tī Windows í-king hōo pó-liû--ah, bô-huat-tōo iōng tsò tsuân-i̍k "
+"khuài-sok-khí.\n"
+"Tshiánn suán pa̍t-ê khí."
+
+#: kkeysequencewidget.cpp:350
+#, kde-format
+msgctxt "@title:window"
+msgid "Conflict with Standard Application Shortcut"
+msgstr "Kap piau-tsún ê ìng-iōng-tîng-sik khuài-sok-khí ū tshiong-tu̍t"
+
+#: kkeysequencewidget.cpp:352
+#, kde-format
+msgid ""
+"The '%1' key combination is also used for the standard action \"%2\" that "
+"some applications use.\n"
+"Do you really want to use it as a global shortcut as well?"
+msgstr ""
+"'%1' khí tsoo-ha̍p mā uī tsi̍t-kuá ìng-iōng-tîng-sik iōng ê piau-tsún tōng-"
+"tsok \"%2\" sú-iōng.\n"
+"Lí kám tsin-tsiànn ài kā i tòng-tsò tsuân-i̍k khuài-sok-khí lâi iōng?"
+
+#: kkeysequencewidget.cpp:396
+#, kde-format
+msgctxt "What the user inputs now will be taken as the new shortcut"
+msgid "Input"
+msgstr "Su-ji̍p"
+
+#: kkeysequencewidget.cpp:398 kshortcuteditwidget.cpp:54
+#, kde-format
+msgctxt "No shortcut defined"
+msgid "None"
+msgstr "Bô"
+
+#: klicensedialog_p.cpp:33
+#, kde-format
+msgctxt "@title:window"
+msgid "License Agreement"
+msgstr "Siū-khuân-tiâu-khuán"
+
+#: kmainwindow.cpp:257
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Kisaragi Hiu"
+
+#: kmainwindow.cpp:258
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "mail@kisaragi-hiu.com"
+
+#: kmenumenuhandler_p.cpp:37
+#, kde-format
+msgid "Add to Toolbar"
+msgstr "Ka kàu Kang-kū-lia̍t"
+
+#: kmenumenuhandler_p.cpp:224
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Configure Shortcut…"
+msgstr "Siat-tīng Khuài-sok-khí…"
+
+#: kshortcuteditwidget.cpp:58
+#, kde-format
+msgctxt "@option:radio"
+msgid "Default:"
+msgstr "Ū-siat:"
+
+#: kshortcuteditwidget.cpp:65
+#, kde-format
+msgctxt "@option:radio"
+msgid "Custom:"
+msgstr "Tsū-tīng:"
+
+#: kshortcutschemeseditor.cpp:32
+#, kde-format
+msgctxt "@title:group"
+msgid "Shortcut Schemes"
+msgstr "Khuài-sok-khí hong-àn"
+
+#: kshortcutschemeseditor.cpp:37
+#, kde-format
+msgid "Current scheme:"
+msgstr "Tsit-má ê hong-àn:"
+
+#: kshortcutschemeseditor.cpp:47
+#, kde-format
+msgctxt "@action:button"
+msgid "New…"
+msgstr "Kiàn-li̍p…"
+
+#: kshortcutschemeseditor.cpp:50
+#, kde-format
+msgctxt "@action:button"
+msgid "Delete"
+msgstr "Thâi-tiāu"
+
+#: kshortcutschemeseditor.cpp:53
+#, kde-format
+msgctxt "@action:button"
+msgid "More Actions"
+msgstr "Khah-tsè tōng-tsok"
+
+#: kshortcutschemeseditor.cpp:58
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Save shortcuts to scheme"
+msgstr "Kā khuài-sok-khí tû-tsûn kàu hong-àn"
+
+#: kshortcutschemeseditor.cpp:62
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Export Scheme…"
+msgstr "Huē-tshut Hong-àn…"
+
+#: kshortcutschemeseditor.cpp:66
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Import Scheme…"
+msgstr "Huē-ji̍p Hong-àn…"
+
+#: kshortcutschemeseditor.cpp:115
+#, kde-format
+msgctxt "@title:window"
+msgid "Name for New Scheme"
+msgstr "Sin Hong-àn ê Miâ"
+
+#: kshortcutschemeseditor.cpp:115
+#, kde-format
+msgid "Name for new scheme:"
+msgstr "Sin hong-àn ê miâ:"
+
+#: kshortcutschemeseditor.cpp:115
+#, kde-format
+msgid "New Scheme"
+msgstr "Sin Hong-àn"
+
+#: kshortcutschemeseditor.cpp:121
+#, kde-format
+msgid "A scheme with this name already exists."
+msgstr "Í-king ū pa̍t-ê kiò-tsò tsit-ê miâ ê hong-àn--ah."
+
+#: kshortcutschemeseditor.cpp:151
+#, kde-format
+msgid ""
+"Do you really want to delete the scheme %1?\n"
+"Note that this will not remove any system wide shortcut schemes."
+msgstr ""
+"Lí kám tsin-tsiànn ài thâi-tiāu %1 tsit-ê hong-àn?\n"
+"Tshiánn tsù-ì, tse buē thâi-tiāu jīm-hô hē-thóng ê khuài-sok-khí hong-àn."
+
+#: kshortcutschemeseditor.cpp:187
+#, kde-format
+msgctxt "@title:window"
+msgid "Export Shortcuts"
+msgstr "Huē-tshut Khuài-sok-khí"
+
+#: kshortcutschemeseditor.cpp:187 kshortcutschemeseditor.cpp:202
+#, kde-format
+msgid "Shortcuts (*.shortcuts)"
+msgstr "Khuài-sok-khí (*.shortcuts)"
+
+#: kshortcutschemeseditor.cpp:202
+#, kde-format
+msgctxt "@title:window"
+msgid "Import Shortcuts"
+msgstr "Huē-ji̍p Khuài-sok-khí"
+
+#: kshortcutschemeseditor.cpp:213
+#, kde-format
+msgid "Shortcut scheme successfully saved."
+msgstr "Sîng-kong tû-tsûn khuài-sok-khí hong-àn."
+
+#: kshortcutschemeseditor.cpp:216
+#, kde-format
+msgid "Error saving the shortcut scheme."
+msgstr "Tû-tsûn khuài-sok-khí hong-àn ê sî-tsūn huat-sing tshò-ngōo."
+
+#: kshortcutsdialog.cpp:70
+#, kde-format
+msgid ""
+"The current shortcut scheme is modified. Save before switching to the new "
+"one?"
+msgstr ""
+"Tsit-má ê khuài-sok-khí hong-àn í-king hō kái-piàn kuè--ah. Kám ài tī tshiat-"
+"uānn kàu sin-ê khuài-sok-khí hong-àn tsìn-tsîng sing tû-tsûn?"
+
+#: kshortcutsdialog.cpp:124
+#, kde-format
+msgid "Manage &Schemes"
+msgstr "Kuán-lí Hong-àn(&S)"
+
+#: kshortcutsdialog.cpp:151
+#, kde-format
+msgctxt "@title:window"
+msgid "Configure Keyboard Shortcuts"
+msgstr "Siat-tīng Khí-puânn Khuài-sok-khí"
+
+#. i18n: ectx: property (whatsThis), widget (KTreeWidgetSearchLineWidget, searchFilter)
+#: kshortcutsdialog.ui:16
+#, kde-format
+msgid ""
+"Search interactively for shortcut names (e.g. Copy) or combination of keys "
+"(e.g. Ctrl+C) by typing them here."
+msgstr ""
+"Tī tsia su-ji̍p khuài-sok-khí ê miâ (lē: Khóo-pih) á-sī khí tsoo-ha̍p (lē: Ctrl"
+"+C) lâi kā in tshiau-tshuē."
+
+#. i18n: ectx: property (whatsThis), widget (QTreeWidget, list)
+#: kshortcutsdialog.ui:23
+#, kde-format
+msgid ""
+"Here you can see a list of key bindings, i.e. associations between actions "
+"(e.g. 'Copy') shown in the left column and keys or combination of keys (e.g. "
+"Ctrl+V) shown in the right column."
+msgstr ""
+"Tsia sī khuài-sok-khí ê pió, tò-pîn sī tōng-tsok (lē: 'Khóo-pih'), tsiànn-"
+"pîn sī khí á-sī khí ê tsoo-ha̍p (lē: Ctrl+V)"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, list)
+#: kshortcutsdialog.ui:33
+#, kde-format
+msgid "Action"
+msgstr "Tōng-tsok"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, list)
+#: kshortcutsdialog.ui:38
+#, kde-format
+msgid "Shortcut"
+msgstr "Khuài-sok-khí"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, list)
+#: kshortcutsdialog.ui:43
+#, kde-format
+msgid "Alternate"
+msgstr "Tāi-thè"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, list)
+#: kshortcutsdialog.ui:48
+#, kde-format
+msgid "Global"
+msgstr "Tsuân-i̍k"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, list)
+#: kshortcutsdialog.ui:53
+#, kde-format
+msgid "Global Alternate"
+msgstr "Tsuân-i̍k Tāi-thè"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, list)
+#: kshortcutsdialog.ui:58
+#, kde-format
+msgid "Mouse Button Gesture"
+msgstr "Ku̍t-tshí Tshi̍h-liú Tshiú-sè"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, list)
+#: kshortcutsdialog.ui:63
+#, kde-format
+msgid "Mouse Shape Gesture"
+msgstr "Ku̍t-tshí Hîng-tsōng Tshiú-sè"
+
+#: kshortcutseditor.cpp:526
+#, kde-format
+msgctxt "header for an applications shortcut list"
+msgid "Shortcuts for %1"
+msgstr "%1 ê khuài-sok-khí"
+
+#. i18n: ectx: property (text), widget (QLabel, priLabel)
+#: kshortcutseditor.cpp:546 kshortcutwidget.ui:22
+#, kde-format
+msgid "Main:"
+msgstr "Tsú-iàu:"
+
+#. i18n: ectx: property (text), widget (QLabel, altLabel)
+#: kshortcutseditor.cpp:547 kshortcutwidget.ui:52
+#, kde-format
+msgid "Alternate:"
+msgstr "Tāi-thè:"
+
+#: kshortcutseditor.cpp:548
+#, kde-format
+msgid "Global:"
+msgstr "Tsuân-i̍k:"
+
+#: kshortcutseditor.cpp:549
+#, kde-format
+msgid "Global alternate:"
+msgstr "Tsuân-i̍k tāi-thè:"
+
+#: kshortcutseditor.cpp:565
+#, kde-format
+msgid "Action Name"
+msgstr "Tōng-tsok Miâ"
+
+#: kshortcutseditor.cpp:569
+#, kde-format
+msgid "Shortcuts"
+msgstr "Khuài-sok-khí"
+
+#: kshortcutseditor.cpp:573
+#, kde-format
+msgid "Description"
+msgstr "Suat-bîng"
+
+#: kshortcutseditoritem.cpp:33
+#, kde-format
+msgctxt "@item:intable Action name in shortcuts configuration"
+msgid "%1"
+msgstr "%1"
+
+#: kswitchlanguagedialog_p.cpp:138
+#, kde-format
+msgctxt "@title:window"
+msgid "Configure Language"
+msgstr "Siat-tīng Gí-giân"
+
+#: kswitchlanguagedialog_p.cpp:142
+#, kde-format
+msgid "Please choose the language which should be used for this application:"
+msgstr "Tshiánn suán tsit-ê ìng-iōng-tîng-sik ài iōng ê gí-giân:"
+
+#: kswitchlanguagedialog_p.cpp:169
+#, kde-format
+msgctxt "@action:button"
+msgid "Add Fallback Language"
+msgstr "Ke Pī-iōng Gí-giân"
+
+#: kswitchlanguagedialog_p.cpp:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Adds one more language which will be used if other translations do not "
+"contain a proper translation."
+msgstr ""
+"Ke līng-guā tsi̍t-ê tī kî-thann gí-giân bô ē-sái iōng ê huan-i̍k ê sî-tsūn ài "
+"lâi iōng ê gí-giân."
+
+#: kswitchlanguagedialog_p.cpp:262 kswitchlanguagedialog_p.cpp:283
+#, kde-format
+msgid ""
+"The language for this application has been changed. The change will take "
+"effect the next time the application is started."
+msgstr "Tsit-ê ìng-iōng-tîng-sik ê gí-giân"
+
+#: kswitchlanguagedialog_p.cpp:263
+#, kde-format
+msgctxt "@title:window"
+msgid "Application Language Changed"
+msgstr "Ìng-iōng-tîng-sik ê gí-giân piàn--ah"
+
+#: kswitchlanguagedialog_p.cpp:284
+#, kde-format
+msgid "Application Language Changed"
+msgstr "Ìng-iōng-tîng-sik ê gí-giân piàn--ah"
+
+#: kswitchlanguagedialog_p.cpp:369
+#, kde-format
+msgid "Primary language:"
+msgstr "Tsú-iàu gí-giân:"
+
+#: kswitchlanguagedialog_p.cpp:369
+#, kde-format
+msgid "Fallback language:"
+msgstr "Pī-iōng gí-giân:"
+
+#: kswitchlanguagedialog_p.cpp:384
+#, kde-format
+msgctxt "@action:button"
+msgid "Remove"
+msgstr "Î-tû"
+
+#: kswitchlanguagedialog_p.cpp:390
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"This is the main application language which will be used first, before any "
+"other languages."
+msgstr ""
+"Tse sī ìng-iōng-tîng-sik tsú-iàu ê gí-giân, nā-sī tsi̍t-ê sû tī tsit-ê gí-"
+"giân bô ê sî-tsūn tsiah-ē tshì kî-thann ê gí-giân."
+
+#: kswitchlanguagedialog_p.cpp:391
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"This is the language which will be used if any previous languages do not "
+"contain a proper translation."
+msgstr ""
+"Tse sī tī tíng-kuân ê gí-giân lóng bô ē-sái iōng ê huan-i̍k ê sî-tsūn tsiah-ē "
+"tshì ê pī-iōng gí-giân."
+
+#: ktoolbar.cpp:311 ktoolbar.cpp:318
+#, kde-format
+msgctxt "@title:menu"
+msgid "Toolbar Settings"
+msgstr "Kang-kū-lia̍t Siat-tīng"
+
+#: ktoolbar.cpp:313
+#, kde-format
+msgctxt "@title:menu"
+msgid "Show Text"
+msgstr "Hián-sī Bûn-jī"
+
+#: ktoolbar.cpp:320
+#, kde-format
+msgctxt "Toolbar orientation"
+msgid "Orientation"
+msgstr "Hong-hiòng"
+
+#: ktoolbar.cpp:322
+#, kde-format
+msgctxt "toolbar position string"
+msgid "Top"
+msgstr "Tíng-kuân"
+
+#: ktoolbar.cpp:326
+#, kde-format
+msgctxt "toolbar position string"
+msgid "Left"
+msgstr "Tò-pîng"
+
+#: ktoolbar.cpp:329
+#, kde-format
+msgctxt "toolbar position string"
+msgid "Right"
+msgstr "Tsiànn-pîng"
+
+#: ktoolbar.cpp:332
+#, kde-format
+msgctxt "toolbar position string"
+msgid "Bottom"
+msgstr "Ē-kha"
+
+#: ktoolbar.cpp:343
+#, kde-format
+msgid "Text Position"
+msgstr "Bûn-jī Uī-tì"
+
+#: ktoolbar.cpp:345
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Icons Only"
+msgstr "Kan-na Tôo-sī"
+
+#: ktoolbar.cpp:348
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Text Only"
+msgstr "Kan-na Bûn-jī"
+
+#: ktoolbar.cpp:351
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Text Alongside Icons"
+msgstr "Bûn-jī Tī Tôo-sī Pinn-á"
+
+#: ktoolbar.cpp:354
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Text Under Icons"
+msgstr "Bûn-jī Tī Tôo-sī Ē-kha"
+
+#: ktoolbar.cpp:365
+#, kde-format
+msgid "Icon Size"
+msgstr "Tôo-sī Tuā-sè"
+
+#: ktoolbar.cpp:367
+#, kde-format
+msgctxt "@item:inmenu Icon size"
+msgid "Default"
+msgstr "Ū-siat"
+
+#: ktoolbar.cpp:387 ktoolbar.cpp:411
+#, kde-format
+msgid "Small (%1x%2)"
+msgstr "Sè (%1x%2)"
+
+#: ktoolbar.cpp:389 ktoolbar.cpp:413
+#, kde-format
+msgid "Medium (%1x%2)"
+msgstr "Tiong (%1x%2)"
+
+#: ktoolbar.cpp:391 ktoolbar.cpp:415
+#, kde-format
+msgid "Large (%1x%2)"
+msgstr "Tuā (%1x%2)"
+
+#: ktoolbar.cpp:393 ktoolbar.cpp:417
+#, kde-format
+msgid "Huge (%1x%2)"
+msgstr "Tsiok-tuā (%1x%2)"
+
+#: ktoolbar.cpp:443
+#, kde-format
+msgid "Lock Toolbar Positions"
+msgstr "Só-tīng Kang-kū-lia̍t Uī-tì"
+
+#: ktoolbarhandler.cpp:93
+#, kde-format
+msgid "Toolbars Shown"
+msgstr "Hián-sī ê Kang-kū-lia̍t"
+
+#: ktooltiphelper.cpp:211
+#, kde-format
+msgctxt ""
+"@info:tooltip %1 is the tooltip of an action, %2 is its keyboard shorcut"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: ktooltiphelper.cpp:279
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"<small><font color=\"%1\">Press <b>Shift</b> for more Info.</font></small>"
+msgstr ""
+"<small><font color=\"%1\">Tshi̍h <b>Shift</b> lâi khuànn khah-tsè tsu-liāu.</"
+"font></small>"
+
+#: ktooltiphelper.cpp:295
+#, kde-format
+msgctxt "@info:tooltip keep short"
+msgid ""
+"%1<br/><small><font color=\"%2\">Press <b>Shift</b> for more.</font></small>"
+msgstr ""
+"%1<br/><small><font color=\"%2\">Tshi̍h <b>Shift</b> lâi khuànn khah-tsè.</"
+"font></small>"
+
+#: kundoactions.cpp:30
+#, kde-format
+msgid "Redo"
+msgstr "Tshú-siau ho̍k-guân"
+
+#: kundoactions.cpp:49
+#, kde-format
+msgid "Undo"
+msgstr "Ho̍k-guân"
+
+#: kxmlguibuilder.cpp:173 kxmlguibuilder.cpp:352
+#, kde-format
+msgid "No text"
+msgstr "Bô bûn-jī"
+
+#: kxmlguiwindow.cpp:203
+#, kde-format
+msgid "Find Action…"
+msgstr "Tshuē tōng-tsok…"
+
+#: kxmlguiwindow.cpp:572
+#, fuzzy, kde-format
+#| msgid ""
+#| "There are two actions (%1, %2) that want to use the same shortcut (%3). "
+#| "This is most probably a bug. Please report it in <a href='https://bugs."
+#| "kde.org'>bugs.kde.org</a>"
+msgid ""
+"There are two actions (%1, %2) that want to use the same shortcut (%3). This "
+"is most probably a bug. Please report it in <a href=\"%4\">%4</a>"
+msgstr ""
+"Ū nn̄g-ê tōng-tsok (%1, %2) beh iōng kâng tsi̍t-ê khuài-sok-khí (%3). Tse ing-"
+"kai sī tîng-sik ê būn-tê. Tshiánn khì <a href='https://bugs.kde.org'>bugs."
+"kde.org</a> huê-pò tsit-ê būn-tê"
+
+#: kxmlguiwindow.cpp:578
+#, kde-format
+msgid "Ambiguous Shortcuts"
+msgstr "Bông-bông-ê Khuài-sok-khí"
+
+#. i18n: ectx: Menu (file)
+#: ui_standards.rc:5
+#, kde-format
+msgid "&File"
+msgstr "&Tóng-àn"
+
+#. i18n: ectx: Menu (game)
+#: ui_standards.rc:34
+#, kde-format
+msgid "&Game"
+msgstr "&Iû-hì"
+
+#. i18n: ectx: Menu (edit)
+#: ui_standards.rc:61
+#, kde-format
+msgid "&Edit"
+msgstr "&Pian-tsi̍p"
+
+#. i18n: ectx: Menu (move)
+#: ui_standards.rc:84
+#, kde-format
+msgctxt "@title:menu Game move"
+msgid "&Move"
+msgstr "Î-tōng(&M)"
+
+#. i18n: ectx: Menu (view)
+#: ui_standards.rc:102
+#, kde-format
+msgid "&View"
+msgstr "&Kiám-sī"
+
+#. i18n: ectx: Menu (go)
+#: ui_standards.rc:122
+#, kde-format
+msgid "&Go"
+msgstr "Tsiân-óng(&G)"
+
+#. i18n: ectx: Menu (bookmarks)
+#: ui_standards.rc:143
+#, kde-format
+msgid "&Bookmarks"
+msgstr "Su-tshiam(&B)"
+
+#. i18n: ectx: Menu (tools)
+#: ui_standards.rc:149
+#, kde-format
+msgid "&Tools"
+msgstr "K&e-si"
+
+#. i18n: ectx: Menu (settings)
+#: ui_standards.rc:153
+#, kde-format
+msgid "&Settings"
+msgstr "&Siat-tīng"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: ui_standards.rc:195
+#, kde-format
+msgid "Main Toolbar"
+msgstr "Tsú kang-kū-lia̍t"

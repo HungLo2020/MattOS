@@ -1,8 +1,8 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QQUICKSCREENCAPTURE_H
-#define QQUICKSCREENCAPTURE_H
+#ifndef QQUICKSCREENCAPTURE_P_H
+#define QQUICKSCREENCAPTURE_P_H
 
 //
 //  W A R N I N G
@@ -15,29 +15,41 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qscreencapture.h>
-#include <QtMultimediaQuick/qtmultimediaquickexports.h>
-#include <QtQuick/private/qquickscreen_p.h>
 #include <QtCore/private/qglobal_p.h>
+
+#include <QtMultimedia/qscreencapture.h>
+
+#include <QtMultimediaQuick/qtmultimediaquickexports.h>
+
+#include <QtQml/qqml.h>
+
+#include <QtQuick/private/qquickscreen_p.h>
+
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIAQUICK_EXPORT QQuickScreenCatpure : public QScreenCapture
+class Q_MULTIMEDIAQUICK_EXPORT QQuickScreenCapture : public QScreenCapture
 {
     Q_OBJECT
-    Q_PROPERTY(QQuickScreenInfo *screen READ ensureQmlScreen WRITE qmlSetScreen NOTIFY qmlScreenChanged)
+    Q_PROPERTY(QQuickScreenInfo *screen READ ensureQmlScreen WRITE qmlSetScreen NOTIFY screenChanged)
+    Q_PROPERTY(qreal maximumFrameRate READ qmlMaximumFrameRate WRITE qmlSetMaximumFrameRate RESET
+        qmlResetMaximumFrameRate NOTIFY maximumFrameRateChanged FINAL REVISION(6, 12))
     QML_NAMED_ELEMENT(ScreenCapture)
 
 public:
-    QQuickScreenCatpure(QObject *parent = nullptr);
+    QQuickScreenCapture(QObject *parent = nullptr);
 
     void qmlSetScreen(QQuickScreenInfo *newQmlScreen);
 
     QQuickScreenInfo *ensureQmlScreen();
 
+    void qmlSetMaximumFrameRate(qreal);
+    qreal qmlMaximumFrameRate() const;
+    void qmlResetMaximumFrameRate();
+
 Q_SIGNALS:
-    void qmlScreenChanged(QQuickScreenInfo *);
+    void screenChanged(QQuickScreenInfo *);
 
 private:
     QPointer<QQuickScreenInfo> m_qmlScreen;
@@ -46,4 +58,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QQUICKSCREENCAPTURE_P_H

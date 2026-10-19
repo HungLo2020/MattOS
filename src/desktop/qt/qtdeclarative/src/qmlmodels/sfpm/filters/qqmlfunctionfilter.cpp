@@ -1,9 +1,12 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <QtQmlModels/private/qqmlfunctionfilter_p.h>
 #include <QtQmlModels/private/qqmlsortfilterproxymodel_p.h>
 #include <QtQml/private/qqmlobjectcreator_p.h>
+#include <QtQml/qjsvalue.h>
+#include <QtQml/qqmlinfo.h>
 #include <QObject>
 #include <QMetaMethod>
 
@@ -11,7 +14,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype FunctionFilter
-    \inherits Filter
+    \inherits FilterBase
     \inqmlmodule QtQml.Models
     \since 6.10
     \preliminary
@@ -24,16 +27,13 @@ QT_BEGIN_NAMESPACE
 
     \qml
     SortFilterProxyModel {
-        model: sourceModel
+        sourceModel: model
         filters: [
             FunctionFilter {
                 id: functionFilter
                 property int ageLimit: 20
-                component RoleData: QtObject {
-                    property real age
-                }
-                function filter(data: RoleData) : bool {
-                    return (data.age <= ageLimit)
+                function filter(age: int) : bool {
+                    return (age <= ageLimit)
                 }
             }
         ]
@@ -55,80 +55,39 @@ QQmlFunctionFilter::QQmlFunctionFilter(QObject *parent)
 
 QQmlFunctionFilter::~QQmlFunctionFilter()
 {
+}
+
+void QQmlFunctionFilter::update(const QQmlSortFilterProxyModel *proxyModel)
+{
     Q_D(QQmlFunctionFilter);
-    if (d->m_parameterData.metaType().flags() & QMetaType::PointerToQObject)
-        delete d->m_parameterData.value<QObject *>();
+    d->parameterCache.reset();
+    QQmlFilterBase::update(proxyModel);
 }
 
 void QQmlFunctionFilter::componentComplete()
 {
     Q_D(QQmlFunctionFilter);
     const auto *metaObj = metaObject();
-    for (int idx = metaObj->methodOffset(); idx < metaObj->methodCount(); idx++) {
+    for (int idx = metaObj->methodCount() - 1; idx >= 0; idx--) {
         // Once we find the method signature, break the loop
         QMetaMethod method = metaObj->method(idx);
         if (method.nameView() == "filter") {
-            d->m_method = method;
+            d->method = method;
             break;
         }
     }
 
-    if (!d->m_method.isValid())
+    if (!d->method.isValid())
         return;
 
-    if (d->m_method.parameterCount() != 1) {
-        qWarning("filter method requires a single parameter");
-        return;
-    }
-
-    QQmlData *data = QQmlData::get(this);
-    if (!data || !data->outerContext) {
-        qWarning("filter requires a QML context");
-        return;
-    }
-
-    QQmlRefPointer<QQmlContextData> context = data->outerContext;
-    QQmlEngine *engine = context->engine();
-
-    const QMetaType parameterType = d->m_method.parameterMetaType(0);
-    auto cu = QQmlMetaType::obtainCompilationUnit(parameterType);
-    const QQmlType parameterQmlType = QQmlMetaType::qmlType(parameterType);
-
-    if (!parameterQmlType.isValid()) {
-        qWarning("filter method parameter needs to be a QML-registered type");
-        return;
-    }
-
-    // The code below creates an instance of the inline component, composite,
-    // or specific C++ QObject types. The created instance, along with the
-    // data, is passed as an argument to the 'filter' method, which is invoked
-    // during the call to QQmlFunctionFilter::filterAcceptsRowInternal.
-    // To create an instance of required component types (be it inline or
-    // composite), an executable compilation unit is required, and this can be
-    // obtained by looking up via metatype in the type registry
-    // (QQmlMetaType::obtainCompilationUnit). Pass it through the QML engine to
-    // make it executable. Further, use the executable compilation unit to run
-    // an object creator and produce an instance.
-    if (parameterType.flags() & QMetaType::PointerToQObject) {
-        QObject *created = nullptr;
-        if (parameterQmlType.isInlineComponentType()) {
-            const auto executableCu = engine->handle()->executableCompilationUnit(std::move(cu));
-            const QString icName = parameterQmlType.elementName();
-            created = QQmlObjectCreator(context, executableCu, context, icName).create(
-                    executableCu->inlineComponentId(icName), nullptr, nullptr,
-                    QQmlObjectCreator::InlineComponent);
-        } else if (parameterQmlType.isComposite()) {
-            const auto executableCu = engine->handle()->executableCompilationUnit(std::move(cu));
-            created = QQmlObjectCreator(context, executableCu, context, QString()).create();
-        } else {
-            created = parameterQmlType.metaObject()->newInstance();
+    // Check if the parameter types are valid;
+    for (int index = 0; index < d->method.parameterCount(); index++) {
+        const QMetaType parameterType = d->method.parameterMetaType(index);
+        if (!parameterType.isValid()) {
+            qmlWarning(this) << "filter method parameter needs to be a QML-registered type";
+            d->method = {};
+            return;
         }
-
-        const auto names = d->m_method.parameterNames();
-        created->setObjectName(names[0]);
-        d->m_parameterData = QVariant::fromValue(created);
-    } else {
-        d->m_parameterData = QVariant(parameterType);
     }
 }
 
@@ -138,32 +97,73 @@ void QQmlFunctionFilter::componentComplete()
 bool QQmlFunctionFilter::filterAcceptsRowInternal(int row, const QModelIndex& sourceParent, const QQmlSortFilterProxyModel *proxyModel) const
 {
     Q_D(const QQmlFunctionFilter);
-    if (!d->m_method.isValid() || !d->m_parameterData.isValid())
+    if (!d->method.isValid() ||
+        (d->parameterCache.has_value() && d->parameterCache->dataArgs.isEmpty()))
         return true;
 
     bool retVal = false;
-    if (column() > -1) {
-        QSortFilterProxyModelHelper::setProperties(
-                &d->m_parameterData, proxyModel,
-                        proxyModel->sourceModel()->index(row, column(), sourceParent));
-        void *argv[] = {&retVal, d->m_parameterData.data()};
+
+    if (!d->parameterCache.has_value()) {
+        QQmlFunctionFilterPrivate::ParameterCache parameterCache;
+        const auto &params = d->method.parameterNames();
+        for (int index = 0; index < params.size(); index++) {
+            const int roleId = proxyModel->itemRoleForName(QString::fromUtf8(params.at(index)));
+            if (roleId < 0) {
+                qmlWarning(this) << "Parameter specified in the filter method " << params.at(index) << " doesn't exist in the model";
+                d->parameterCache = QQmlFunctionFilterPrivate::ParameterCache{};
+                return true;
+            }
+            parameterCache.paramsInfo.append({roleId, QVariant{}, d->method.parameterMetaType(index)});
+        }
+        d->parameterCache = std::move(parameterCache);
+        // Append nullptr for future utilization of this space to return value
+        // while invoking js method (´filter´)
+        d->parameterCache->dataArgs.append(nullptr);
+        for (auto &param : d->parameterCache->paramsInfo)
+            d->parameterCache->dataArgs.append(&param.value);
+    }
+
+    d->parameterCache->dataArgs[0] = &retVal;
+
+    auto filterData = [d, proxyModel, this](int row, int column, const QModelIndex &sourceParent) {
+        int index = 0;
+        for (auto &param : d->parameterCache->paramsInfo) {
+            QVariant value = proxyModel->sourceModel()->data(proxyModel->sourceModel()->index(row, column, sourceParent),
+                                    param.roleId);
+            if (!value.isValid())
+                return;
+            if (value.metaType() == param.expectedType) {
+               param.value = std::move(value);
+            } else {
+                // Convert according to the JS coercion rules
+                auto *v4Engine = qmlEngine(this)->handle();
+                QV4::Scope scope(v4Engine);
+                QV4::ScopedValue jsVal(scope, v4Engine->metaTypeToJS(value.metaType(), value.constData()));
+                QVariant convertedValue(param.expectedType);
+                if (!QV4::ExecutionEngine::metaTypeFromJS(jsVal, param.expectedType, convertedValue.data())) {
+                    qmlWarning(this) << "Failed to convert param " << d->method.parameterNames()[index] << " to " << param.expectedType.name();
+                    return;
+                }
+                param.value = std::move(convertedValue);
+            }
+            index++;
+        }
         QMetaObject::metacall(
                 const_cast<QQmlFunctionFilter *>(this), QMetaObject::InvokeMetaMethod,
-                d->m_method.methodIndex(), argv);
+                d->method.methodIndex(), d->parameterCache->dataArgs.data());
+    };
+
+    if (column() > -1) {
+        filterData(row, column(), sourceParent);
     } else {
         const int columnCount = proxyModel->sourceModel()->columnCount(sourceParent);
         for (int column = 0; column < columnCount; column++) {
-            QSortFilterProxyModelHelper::setProperties(
-                    &d->m_parameterData, proxyModel,
-                    proxyModel->sourceModel()->index(row, column, sourceParent));
-            void *argv[] = {&retVal, d->m_parameterData.data()};
-            QMetaObject::metacall(
-                    const_cast<QQmlFunctionFilter *>(this), QMetaObject::InvokeMetaMethod,
-                    d->m_method.methodIndex(), argv);
-            if (retVal)
+            filterData(row, column, sourceParent);
+             if (retVal)
                 return retVal;
         }
     }
+
     return retVal;
 }
 

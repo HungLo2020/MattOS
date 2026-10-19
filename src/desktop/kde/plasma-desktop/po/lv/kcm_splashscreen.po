@@ -1,14 +1,14 @@
 # Copyright (C) 2023 This file is copyright:
 # This file is distributed under the same license as the plasma-desktop package.
 #
-# SPDX-FileCopyrightText: 2023, 2024 Toms Trasuns <toms.trasuns@posteo.net>
+# SPDX-FileCopyrightText: 2023, 2024, 2026 Toms Trasuns <toms.trasuns@posteo.net>
 # Māris Nartišs <maris.kde@gmail.com>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2024-01-22 22:50+0200\n"
+"POT-Creation-Date: 2026-06-07 00:47+0000\n"
+"PO-Revision-Date: 2026-03-03 13:24+0200\n"
 "Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
 "Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
 "Language: lv\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
-"X-Generator: Lokalize 23.08.4\n"
+"X-Generator: Lokalize 25.12.2\n"
 
-#: kcm.cpp:162
+#: kcm.cpp:164
 #, kde-format
 msgid "None"
 msgstr "Nav"
 
-#: kcm.cpp:165
+#: kcm.cpp:167
 #, kde-format
 msgid "No splash screen will be shown"
 msgstr "Ielādēšanās ekrāns netiks parādīts"
 
-#: kcm.cpp:183
+#: kcm.cpp:185
 #, kde-format
 msgid "You cannot delete the currently selected splash screen"
 msgstr "Šobrīd izmantoto ielādēšanas ekrānu nevar izdzēst"
@@ -47,29 +47,41 @@ msgid "Name of the current splash theme"
 msgstr "Aktīvā ielādēšanās motīva nosaukums"
 
 #: ui/main.qml:30
-#, fuzzy, kde-format
-#| msgid "&Get New…"
+#, kde-format
 msgctxt "@action:button"
 msgid "&Get New…"
 msgstr "&Iegūt jaunu..."
 
 #: ui/main.qml:50
-#, fuzzy, kde-format
-#| msgid "Failed to show the splash screen preview."
+#, kde-format
 msgctxt "@info:status"
 msgid "Failed to show the splash screen preview."
 msgstr "Neizdevās parādīt ielādēšanās ekrāna priekšskatījumu."
 
 #: ui/main.qml:81
-#, fuzzy, kde-format
-#| msgid "Preview Splash Screen"
-msgctxt "@action:button"
-msgid "Preview Splash Screen"
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Preview splash screen"
 msgstr "Ielādēšanās ekrāna priekšskatījums"
 
-#: ui/main.qml:86
-#, fuzzy, kde-format
-#| msgid "Uninstall"
-msgctxt "@action:button"
-msgid "Uninstall"
-msgstr "Atinstalēt"
+#: ui/main.qml:88
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Remove splash screen"
+msgstr "Noņemt ielādēšanās ekrānu"
+
+#: ui/main.qml:90
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active splash screen"
+msgstr "Nevar dzēst aktīvu ielādēšanās ekrānu"
+
+#: ui/main.qml:92
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed splash screens"
+msgstr "Nevar dzēst sistēmas instalētus ielādēšanās ekrānus"
+
+#~ msgctxt "@action:button"
+#~ msgid "Uninstall"
+#~ msgstr "Atinstalēt"

@@ -4,7 +4,6 @@ ecm_add_qml_module(KirigamiTemplates URI "org.kde.kirigami.templates"
     VERSION 2.0
     GENERATE_PLUGIN_SOURCE
     INSTALLED_PLUGIN_TARGET KF6KirigamiTemplates
-    NO_LINT # https://qt-project.atlassian.net/browse/QTBUG-145572
 )
 
 set_source_files_properties(AppHeaderSizeGroup.qml PROPERTIES
@@ -40,6 +39,10 @@ set_target_properties(KirigamiTemplates PROPERTIES
 
 target_include_directories(KirigamiTemplates PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+add_dependencies(KirigamiTemplates
+    KirigamiPrimitives
+    KirigamiLayouts
+)
 
 ecm_finalize_qml_module(KirigamiTemplates EXPORT KirigamiTargets)
 

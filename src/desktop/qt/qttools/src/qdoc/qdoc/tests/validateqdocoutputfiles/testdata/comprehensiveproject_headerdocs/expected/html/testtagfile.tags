@@ -218,37 +218,37 @@
         <filename>testqdoc-testderived.html</filename>
         <base>Test</base>
         <member kind="enumeration">
-            <name>anonymous-testcpp-h-296</name>
+            <name>anonymous-testcpp-h-300</name>
             <anchorfile>testqdoc-testderived.html</anchorfile>
-            <anchor>anonymous-testcpp-h-296-enum</anchor>
+            <anchor>anonymous-testcpp-h-300-enum</anchor>
         </member>
         <member kind="enumvalue">
             <name>Val1</name>
             <anchorfile>testqdoc-testderived.html</anchorfile>
-            <anchor>anonymous-testcpp-h-296-enum</anchor>
+            <anchor>anonymous-testcpp-h-300-enum</anchor>
             <arglist></arglist>
         </member>
         <member kind="enumvalue">
             <name>Val2</name>
             <anchorfile>testqdoc-testderived.html</anchorfile>
-            <anchor>anonymous-testcpp-h-296-enum</anchor>
+            <anchor>anonymous-testcpp-h-300-enum</anchor>
             <arglist></arglist>
         </member>
         <member kind="enumeration">
-            <name>anonymous-testcpp-h-302</name>
+            <name>anonymous-testcpp-h-306</name>
             <anchorfile>testqdoc-testderived.html</anchorfile>
-            <anchor>anonymous-testcpp-h-302-enum</anchor>
+            <anchor>anonymous-testcpp-h-306-enum</anchor>
         </member>
         <member kind="enumvalue">
             <name>Val3</name>
             <anchorfile>testqdoc-testderived.html</anchorfile>
-            <anchor>anonymous-testcpp-h-302-enum</anchor>
+            <anchor>anonymous-testcpp-h-306-enum</anchor>
             <arglist></arglist>
         </member>
         <member kind="enumvalue">
             <name>Val4</name>
             <anchorfile>testqdoc-testderived.html</anchorfile>
-            <anchor>anonymous-testcpp-h-302-enum</anchor>
+            <anchor>anonymous-testcpp-h-306-enum</anchor>
             <arglist></arglist>
         </member>
         <member kind="function" protection="public" virtualness="non" static="no">
@@ -563,34 +563,6 @@
         </member>
         <member kind="function" protection="public" virtualness="non" static="no">
             <type></type>
-            <name>deprecatedMethod</name>
-            <anchorfile>qml-qdoc-test-type-obsolete.html</anchorfile>
-            <anchor>deprecatedMethod-method</anchor>
-            <arglist>()</arglist>
-        </member>
-        <member kind="function" protection="public" virtualness="non" static="no">
-            <type></type>
-            <name>disable</name>
-            <anchorfile>qml-qdoc-test-type.html</anchorfile>
-            <anchor>disable-method</anchor>
-            <arglist>()</arglist>
-        </member>
-        <member kind="function" protection="public" virtualness="non" static="no">
-            <type></type>
-            <name>enable</name>
-            <anchorfile>qml-qdoc-test-type.html</anchorfile>
-            <anchor>enable-method</anchor>
-            <arglist>()</arglist>
-        </member>
-        <member kind="function" protection="public" virtualness="non" static="no">
-            <type></type>
-            <name>futureDeprecated</name>
-            <anchorfile>qml-qdoc-test-type.html</anchorfile>
-            <anchor>futureDeprecated-method</anchor>
-            <arglist>()</arglist>
-        </member>
-        <member kind="function" protection="public" virtualness="non" static="no">
-            <type></type>
             <name>group.created</name>
             <anchorfile>qml-qdoc-test-type.html</anchorfile>
             <anchor>group.created-signal</anchor>
@@ -602,6 +574,34 @@
             <anchorfile>qml-qdoc-test-type.html</anchorfile>
             <anchor>configureWithType-method</anchor>
             <arglist>(Type::SomeType typeParam)</arglist>
+        </member>
+        <member kind="function" protection="public" virtualness="non" static="no">
+            <type>void</type>
+            <name>deprecatedMethod</name>
+            <anchorfile>qml-qdoc-test-type-obsolete.html</anchorfile>
+            <anchor>deprecatedMethod-method</anchor>
+            <arglist>()</arglist>
+        </member>
+        <member kind="function" protection="public" virtualness="non" static="no">
+            <type>void</type>
+            <name>disable</name>
+            <anchorfile>qml-qdoc-test-type.html</anchorfile>
+            <anchor>disable-method</anchor>
+            <arglist>()</arglist>
+        </member>
+        <member kind="function" protection="public" virtualness="non" static="no">
+            <type>void</type>
+            <name>enable</name>
+            <anchorfile>qml-qdoc-test-type.html</anchorfile>
+            <anchor>enable-method</anchor>
+            <arglist>()</arglist>
+        </member>
+        <member kind="function" protection="public" virtualness="non" static="no">
+            <type>void</type>
+            <name>futureDeprecated</name>
+            <anchorfile>qml-qdoc-test-type.html</anchorfile>
+            <anchor>futureDeprecated-method</anchor>
+            <arglist>()</arglist>
         </member>
         <member kind="function" protection="public" virtualness="non" static="no">
             <type>void</type>

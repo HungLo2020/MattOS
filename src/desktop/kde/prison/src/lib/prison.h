@@ -29,6 +29,8 @@ namespace Prison
  * \value Code128 Code 128 barcode
  * \value PDF417 PDF417 barcode
  * \value EAN13 EAN13 barcode
+ * \value [since 6.28] ITF Industrial 2 of 5 barcode
+ * \value [since 6.28] Codabar Codabar barcode
  */
 enum BarcodeType {
     QRCode,
@@ -39,6 +41,8 @@ enum BarcodeType {
     Code128,
     PDF417,
     EAN13,
+    ITF,
+    Codabar,
 };
 }
 

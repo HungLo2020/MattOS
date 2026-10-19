@@ -33,11 +33,27 @@ Q_ENUM_NS(NavigationButton)
 Q_DECLARE_FLAGS(NavigationButtons, NavigationButton)
 }
 
+/*!
+    \namespace MessageType
+    \inmodule Kirigami
+    \brief The severity of a message, used by InlineMessage and other
+    components that display status messages.
+*/
 namespace MessageType
 {
 Q_NAMESPACE
 QML_ELEMENT
 
+/*!
+    \value Information
+           An informational message.
+    \value Positive
+           A message indicating a successful or positive outcome.
+    \value Warning
+           A message warning about a potential problem.
+    \value Error
+           A message indicating an error.
+*/
 enum Type {
     Information = 0,
     Positive,

@@ -7,6 +7,8 @@
 #include "effect/quickeffect.h"
 #include "core/output.h"
 #include "effect/effecthandler.h"
+#include "input_event.h"
+#include "virtualdesktops.h"
 
 #include "logging_p.h"
 
@@ -78,6 +80,7 @@ public:
     std::map<LogicalOutput *, std::unique_ptr<QuickSceneView>> views;
     QPointer<QuickSceneView> mouseImplicitGrab;
     bool running = false;
+    bool viewCachingEnabled = false;
 };
 
 bool QuickSceneEffectPrivate::isItemOnScreen(QQuickItem *item, LogicalOutput *screen) const
@@ -98,6 +101,13 @@ QuickSceneView::QuickSceneView(QuickSceneEffect *effect, LogicalOutput *screen)
     setGeometry(screen->geometry());
     connect(screen, &LogicalOutput::geometryChanged, this, [this, screen]() {
         setGeometry(screen->geometry());
+    });
+    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this, [this](VirtualDesktop *, VirtualDesktop *newDesktop, LogicalOutput *screen) {
+        if (m_screen != screen) {
+            return;
+        }
+
+        Q_EMIT currentDesktopChanged(newDesktop);
     });
 
     s_views.insert(window(), this);
@@ -155,7 +165,19 @@ void QuickSceneView::resetDirty()
 void QuickSceneView::scheduleRepaint()
 {
     markDirty();
-    effects->addRepaint(geometry());
+    if (isVisible()) {
+        scheduleFrame();
+    }
+}
+
+VirtualDesktop *QuickSceneView::currentDesktop() const
+{
+    return VirtualDesktopManager::self()->currentDesktop(m_screen);
+}
+
+void QuickSceneView::setCurrentDesktop(VirtualDesktop *desktop)
+{
+    VirtualDesktopManager::self()->setCurrent(desktop, m_screen);
 }
 
 QuickSceneView *QuickSceneView::findView(QQuickItem *item)
@@ -192,11 +214,11 @@ bool QuickSceneEffect::supported()
 
 void QuickSceneEffect::checkItemDraggedOutOfScreen(QQuickItem *item)
 {
-    const QRectF globalGeom = QRectF(item->mapToGlobal(QPointF(0, 0)), QSizeF(item->width(), item->height()));
+    const RectF globalGeom = RectF(item->mapToGlobal(QPointF(0, 0)), QSizeF(item->width(), item->height()));
     QList<LogicalOutput *> screens;
 
     for (const auto &[screen, view] : d->views) {
-        if (!d->isItemOnScreen(item, screen) && screen->geometry().intersects(globalGeom.toRect())) {
+        if (!d->isItemOnScreen(item, screen) && screen->geometry().intersects(globalGeom.rounded())) {
             screens << screen;
         }
     }
@@ -241,6 +263,15 @@ void QuickSceneEffect::setRunning(bool running)
     }
 }
 
+void QuickSceneEffect::clearCachedViews()
+{
+    if (!d->running) {
+        d->incubators.clear();
+        d->views.clear();
+        d->contexts.clear();
+    }
+}
+
 QUrl QuickSceneEffect::source() const
 {
     return d->source;
@@ -256,6 +287,7 @@ void QuickSceneEffect::setSource(const QUrl &url)
         d->source = url;
         d->delegate.clear();
         d->loadInfo = {};
+        clearCachedViews();
     }
 }
 
@@ -270,11 +302,12 @@ void QuickSceneEffect::loadFromModule(const QString &uri, const QString &typeNam
         qWarning() << "Cannot call QuickSceneEffect::loadFromModule while running";
         return;
     }
-    if (d->loadInfo.uri != uri && d->loadInfo.typeName != typeName) {
+    if (d->loadInfo.uri != uri || d->loadInfo.typeName != typeName) {
         d->delegate.clear();
         d->source = QUrl();
         d->loadInfo.uri = uri;
         d->loadInfo.typeName = typeName;
+        clearCachedViews();
     }
 }
 
@@ -284,6 +317,7 @@ void QuickSceneEffect::setDelegate(QQmlComponent *delegate)
         d->source = QUrl();
         d->loadInfo = {};
         d->delegate = delegate;
+        clearCachedViews();
         if (isRunning()) {
             auto reloadViews = [this]() {
                 if (!isRunning()) {
@@ -390,27 +424,40 @@ void QuickSceneEffect::activateView(QuickSceneView *view)
     Q_EMIT activeViewChanged(view);
 }
 
-void QuickSceneEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+bool QuickSceneEffect::isViewCachingEnabled() const
 {
-    data.mask |= PAINT_SCREEN_TRANSFORMED;
+    return d->viewCachingEnabled;
 }
 
-void QuickSceneEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
+void QuickSceneEffect::setViewCachingEnabled(bool enabled)
 {
-    const auto it = d->views.find(screen);
+    d->viewCachingEnabled = enabled;
+}
+
+void QuickSceneEffect::prePaintScreen(ScreenPrePaintData &data)
+{
+    data.mask |= PAINT_SCREEN_TRANSFORMED;
+
+    const auto it = d->views.find(data.screen);
     if (it != d->views.end()) {
         const auto &screenView = it->second;
         if (screenView->isDirty()) {
             screenView->resetDirty();
-            screenView->update();
+            screenView->update(data.frame);
         }
-        effects->renderOffscreenQuickView(renderTarget, viewport, screenView.get());
     }
+
+    effects->prePaintScreen(data);
 }
 
 bool QuickSceneEffect::isActive() const
 {
-    return !d->views.empty() && !effects->isScreenLocked();
+    return d->running && !d->views.empty() && !effects->isScreenLocked();
+}
+
+bool QuickSceneEffect::blocksDirectScanout() const
+{
+    return false;
 }
 
 QVariantMap QuickSceneEffect::initialProperties(LogicalOutput *screen)
@@ -524,9 +571,36 @@ void QuickSceneEffect::startInternal()
     // Install an event filter to monitor cursor shape changes.
     qApp->installEventFilter(this);
 
-    const QList<LogicalOutput *> screens = effects->screens();
-    for (LogicalOutput *screen : screens) {
-        addScreen(screen);
+    if (d->viewCachingEnabled && !d->views.empty()) {
+        const QList<LogicalOutput *> screens = effects->screens();
+        const QSet<LogicalOutput *> currentScreens(screens.begin(), screens.end());
+
+        // Remove cached views for screens that no longer exist
+        for (auto it = d->views.begin(); it != d->views.end();) {
+            if (!currentScreens.contains(it->first)) {
+                d->contexts.erase(it->first);
+                it = d->views.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        // Reactivate existing cached views and create new ones for new screens
+        for (LogicalOutput *screen : screens) {
+            auto it = d->views.find(screen);
+            if (it != d->views.end()) {
+                it->second->setVisible(true);
+                it->second->scheduleRepaint();
+            } else {
+                addScreen(screen);
+            }
+        }
+    } else {
+        // If view caching isn't enabled, create for each screen
+        const QList<LogicalOutput *> screens = effects->screens();
+        for (LogicalOutput *screen : screens) {
+            addScreen(screen);
+        }
     }
 
     // Ensure one view has an active focus item
@@ -534,16 +608,30 @@ void QuickSceneEffect::startInternal()
 
     connect(effects, &EffectsHandler::screenAdded, this, &QuickSceneEffect::handleScreenAdded);
     connect(effects, &EffectsHandler::screenRemoved, this, &QuickSceneEffect::handleScreenRemoved);
+
+    Q_EMIT activated();
 }
 
 void QuickSceneEffect::stopInternal()
 {
+    Q_EMIT deactivated();
+
     disconnect(effects, &EffectsHandler::screenAdded, this, &QuickSceneEffect::handleScreenAdded);
     disconnect(effects, &EffectsHandler::screenRemoved, this, &QuickSceneEffect::handleScreenRemoved);
 
-    d->incubators.clear();
-    d->views.clear();
-    d->contexts.clear();
+    if (d->viewCachingEnabled) {
+        // Suspend views rather than destroying them
+        for (auto &[screen, view] : d->views) {
+            view->setVisible(false);
+        }
+        d->incubators.clear();
+    } else {
+        // Clear views if view caching isn't enabled
+        d->incubators.clear();
+        d->views.clear();
+        d->contexts.clear();
+    }
+
     d->running = false;
     qApp->removeEventFilter(this);
     effects->ungrabKeyboard();
@@ -552,19 +640,21 @@ void QuickSceneEffect::stopInternal()
     effects->addRepaintFull();
 }
 
-void QuickSceneEffect::windowInputMouseEvent(QEvent *event)
+void QuickSceneEffect::grabbedKeyboardEvent(QKeyEvent *keyEvent)
 {
-    Qt::MouseButtons buttons;
-    QPoint globalPosition;
-    if (QMouseEvent *mouseEvent = dynamic_cast<QMouseEvent *>(event)) {
-        buttons = mouseEvent->buttons();
-        globalPosition = mouseEvent->globalPosition().toPoint();
-    } else if (QWheelEvent *wheelEvent = dynamic_cast<QWheelEvent *>(event)) {
-        buttons = wheelEvent->buttons();
-        globalPosition = wheelEvent->globalPosition().toPoint();
-    } else {
-        return;
+    auto *screenView = activeView();
+
+    if (screenView) {
+        // ActiveView may not have an activeFocusItem yet
+        activateView(screenView);
+        screenView->forwardKeyEvent(keyEvent);
     }
+}
+
+void QuickSceneEffect::pointerMotion(PointerMotionEvent *event)
+{
+    const Qt::MouseButtons buttons = event->buttons;
+    const QPoint globalPosition = event->position.toPoint();
 
     if (buttons) {
         if (!d->mouseImplicitGrab) {
@@ -585,19 +675,99 @@ void QuickSceneEffect::windowInputMouseEvent(QEvent *event)
         if (buttons) {
             activateView(target);
         }
-        target->forwardMouseEvent(event);
+        target->forwardPointerMotionEvent(event);
     }
 }
 
-void QuickSceneEffect::grabbedKeyboardEvent(QKeyEvent *keyEvent)
+void QuickSceneEffect::pointerButton(PointerButtonEvent *event)
 {
-    auto *screenView = activeView();
+    const Qt::MouseButtons buttons = event->buttons;
+    const QPoint globalPosition = event->position.toPoint();
 
-    if (screenView) {
-        // ActiveView may not have an activeFocusItem yet
-        activateView(screenView);
-        screenView->forwardKeyEvent(keyEvent);
+    if (buttons) {
+        if (!d->mouseImplicitGrab) {
+            d->mouseImplicitGrab = viewAt(globalPosition);
+        }
     }
+
+    QuickSceneView *target = d->mouseImplicitGrab;
+    if (!target) {
+        target = viewAt(globalPosition);
+    }
+
+    if (!buttons) {
+        d->mouseImplicitGrab = nullptr;
+    }
+
+    if (target) {
+        if (buttons) {
+            activateView(target);
+        }
+        target->forwardPointerButtonEvent(event);
+    }
+}
+
+void QuickSceneEffect::pointerAxis(PointerAxisEvent *event)
+{
+    const QPoint globalPosition = event->position.toPoint();
+    const Qt::MouseButtons buttons = event->buttons;
+
+    if (buttons) {
+        if (!d->mouseImplicitGrab) {
+            d->mouseImplicitGrab = viewAt(globalPosition);
+        }
+    }
+
+    QuickSceneView *target = d->mouseImplicitGrab;
+    if (!target) {
+        target = viewAt(globalPosition);
+    }
+
+    if (!buttons) {
+        d->mouseImplicitGrab = nullptr;
+    }
+
+    if (target) {
+        if (buttons) {
+            activateView(target);
+        }
+        target->forwardPointerAxisEvent(event);
+    }
+}
+
+bool QuickSceneEffect::tabletToolAxis(TabletToolAxisEvent *event)
+{
+    auto mouseEvent = new PointerMotionEvent{
+        .device = event->device,
+        .position = event->position,
+        .delta = {}, // not used
+        .deltaUnaccelerated = {}, // not used
+        .warp = false, // not used
+        .buttons = event->buttons,
+        .modifiers = Qt::NoModifier,
+        .modifiersRelevantForShortcuts = Qt::NoModifier,
+        .timestamp = event->timestamp,
+    };
+    pointerMotion(mouseEvent);
+    return false;
+}
+
+bool QuickSceneEffect::tabletToolTip(TabletToolTipEvent *event)
+{
+    auto mouseEvent = new KWin::PointerButtonEvent{
+        .device = event->device,
+        .position = event->position,
+        .state = event->type == TabletToolTipEvent::Press ? PointerButtonState::Pressed : PointerButtonState::Released,
+        .button = Qt::LeftButton,
+        .nativeButton = 0, // not used
+        .buttons = event->type == TabletToolTipEvent::Press ? Qt::LeftButton : Qt::NoButton,
+        .modifiers = Qt::NoModifier,
+        .modifiersRelevantForShortcuts = Qt::NoModifier,
+        .timestamp = event->timestamp,
+    };
+    pointerButton(mouseEvent);
+
+    return false;
 }
 
 bool QuickSceneEffect::touchDown(qint32 id, const QPointF &pos, std::chrono::microseconds time)

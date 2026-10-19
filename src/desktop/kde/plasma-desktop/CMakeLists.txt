@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 3.16)
 
 project(plasma-desktop)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 string(REPLACE "." ";" VERSION_LIST ${PROJECT_VERSION})
 list(GET VERSION_LIST 0 PROJECT_VERSION_MAJOR)
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(ACCOUNTSQT_DEP_VERSION "1.13")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -37,10 +37,6 @@ include(ECMQmlModule)
 include(ECMConfiguredInstall)
 
 option(BUILD_DOC "Whether to build the documentation" ON)
-option(BUILD_KCM_MOUSE_KWIN_WAYLAND "Build the Mouse KCM's KWin+Wayland backend" ON)
-option(BUILD_KCM_MOUSE_X11 "Build the Mouse KCM's X11 backend" ON)
-option(BUILD_KCM_TOUCHPAD_KWIN_WAYLAND "Build the Touchpad KCM's KWin+Wayland backend" ON)
-option(BUILD_KCM_TOUCHPAD_X11 "Build the Touchpad KCM's X11 backend" ON)
 option(BUILD_KCM_TABLET "Build the Tablet KCM" ON)
 
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
@@ -55,9 +51,7 @@ find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Sql # kcms/activities
 )
 
-if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
+find_package(Qt6GuiPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
 
 if(BUILD_KCM_TABLET)
     find_package(Qt6WaylandClient ${QT_MIN_VERSION} CONFIG REQUIRED)
@@ -94,6 +88,7 @@ find_package(Plasma ${PROJECT_DEP_VERSION} REQUIRED)
 find_package(PlasmaQuick ${PROJECT_DEP_VERSION} REQUIRED)
 find_package(PlasmaActivities ${PROJECT_DEP_VERSION} REQUIRED)
 find_package(PlasmaActivitiesStats ${PROJECT_DEP_VERSION} REQUIRED)
+find_package(PolkitQt6-1 REQUIRED)
 
 if(BUILD_TESTING)
     find_package(Qt6Test ${QT_MIN_VERSION} CONFIG REQUIRED)
@@ -156,6 +151,11 @@ set_package_properties(KF6QQC2DesktopStyle PROPERTIES
 )
 
 if(BUILD_KCM_TABLET)
+    find_package(Canberra)
+    set_package_properties(Canberra PROPERTIES
+        TYPE REQUIRED
+        PURPOSE "Required for building Tablet input KCM"
+    )
     find_package(WaylandProtocols 1.44)
     set_package_properties(WaylandProtocols PROPERTIES
         TYPE REQUIRED
@@ -183,7 +183,6 @@ find_package(LibTaskManager ${PROJECT_DEP_VERSION} CONFIG REQUIRED)
 find_package(KWinDBusInterface CONFIG REQUIRED)
 find_package(ScreenSaverDBusInterface CONFIG REQUIRED)
 find_package(KRunnerAppDBusInterface CONFIG REQUIRED)
-find_package(KSMServerDBusInterface CONFIG REQUIRED)
 find_package(KF6ItemModels CONFIG REQUIRED)
 find_package(KSysGuard CONFIG REQUIRED)
 find_package(KF6KDED CONFIG REQUIRED)
@@ -203,45 +202,16 @@ set_package_properties(X11 PROPERTIES
     TYPE REQUIRED
 )
 
-if(X11_FOUND)
-  set(HAVE_X11 1)
-endif()
-
-find_package(Canberra)
-set_package_properties(Canberra PROPERTIES
-    PURPOSE "Support audible bell in kaccess"
-    TYPE REQUIRED)
-
 find_package(UDev)
 set_package_properties(UDev PROPERTIES
     DESCRIPTION "API for enumerating and introspecting local devices (part of systemd)"
     URL "https://www.freedesktop.org/wiki/Software/systemd/"
-    PURPOSE "Required for device discovery in keyboard daemon and game controller kcm"
+    PURPOSE "Required for device discovery in game controller kcm"
     TYPE OPTIONAL
 )
 
-find_package(XCB
-    REQUIRED COMPONENTS
-        XCB SHM IMAGE
-    OPTIONAL_COMPONENTS
-        XKB XINPUT ATOM RECORD
-)
+find_package(XCB REQUIRED COMPONENTS XCB)
 
-if (BUILD_KCM_TOUCHPAD_X11)
-    find_package(X11_XCB)
-    set_package_properties(X11_XCB PROPERTIES
-        PURPOSE "Required for touchpad KCM (X11 backend) when option BUILD_KCM_TOUCHPAD_X11=ON"
-        TYPE REQUIRED
-    )
-endif()
-
-
-set_package_properties(XCB PROPERTIES TYPE REQUIRED)
-add_feature_info("XCB-XKB" XCB_XKB_FOUND "Required for building kcm/keyboard")
-add_feature_info("libxft" X11_Xft_FOUND "X FreeType interface library required for font installation")
-
-pkg_check_modules(XORGLIBINPUT xorg-libinput IMPORTED_TARGET)
-pkg_check_modules(XORGSERVER xorg-server IMPORTED_TARGET)
 pkg_check_modules(XKBREGISTRY xkbregistry REQUIRED IMPORTED_TARGET)
 
 ecm_find_qmlmodule(org.kde.pipewire 0.1)
@@ -278,9 +248,11 @@ ecm_setup_version(${PROJECT_VERSION} VARIABLE_PREFIX PLASMA VERSION_HEADER plasm
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+add_definitions(
+    -DQT_NO_CONTEXTLESS_CONNECT
+)
+
 configure_file(config-workspace.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-workspace.h)
-configure_file(config-X11.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-X11.h)
-configure_file(config-build-options.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-build-options.h)
 
 plasma_install_package(desktoppackage org.kde.plasma.desktop shells shell)
 
@@ -316,11 +288,25 @@ endif()
 add_subdirectory(imports/activitymanager/)
 add_subdirectory(solid-device-automounter)
 add_subdirectory(emojier)
-if(X11_Xkb_FOUND AND XCB_XKB_FOUND)
+add_subdirectory(kded)
+if(X11_FOUND)
     add_subdirectory(kaccess)
 endif()
 install(FILES org.kde.plasmashell.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
-install(FILES kde-mimeapps.list DESTINATION ${KDE_INSTALL_APPDIR})
+
+# Only link Discover to debian files in the debian world.
+find_program(DPKG dpkg)
+if (DPKG)
+    file(COPY_FILE kde-mimeapps.list ${CMAKE_BINARY_DIR}/kde-mimeapps.list)
+    file(APPEND ${CMAKE_BINARY_DIR}/kde-mimeapps.list "\n# Discover (extra *.deb) \napplication/vnd.debian.binary-package=org.kde.discover.desktop\n")
+    install(FILES ${CMAKE_BINARY_DIR}/kde-mimeapps.list DESTINATION ${KDE_INSTALL_APPDIR})
+else()
+    install(FILES kde-mimeapps.list DESTINATION ${KDE_INSTALL_APPDIR})
+endif ()
+
+
+install(FILES kconf_update/50-krunner-activate-typing.upd DESTINATION ${KDE_INSTALL_KCONFUPDATEDIR})
+install(PROGRAMS kconf_update/50-krunner-activate-typing.sh DESTINATION ${KDE_INSTALL_KCONFUPDATEDIR})
 
 # add clang-format target for all our real source files
 file(GLOB_RECURSE ALL_CLANG_FORMAT_SOURCE_FILES *.cpp *.h)

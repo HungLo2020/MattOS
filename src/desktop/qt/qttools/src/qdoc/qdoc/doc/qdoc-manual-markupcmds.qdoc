@@ -140,19 +140,26 @@
     optional summary string enclosed in curly braces. This optional argument
     specifies a visible heading for the details.
 
+    if the argument is omitted, QDoc outputs \e {"..."} as the summary string.
+
     For example, with the following input:
-    \badcode *
-        /\1!
-            \details {QDoc details}
-              \note You're looking at detailed information.
-            \enddetails
-        \1/
+    \code [text] *
+    /\1!
+        \details {QDoc details}
+            \note You're looking at detailed information.
+        \enddetails
+    \1/
     \endcode
 
     If QDoc is generating HTML, it will translate these commands to:
 
-    \badcode
-    <summary>QDoc details</summary><div class="admonition note"><p><b>Note: </b>You're looking at detailed information.</p></div>
+    \code [text]
+    <details>
+      <summary>QDoc details</summary>
+      <div class="admonition note">
+        <p><b>Note: </b>You're looking at detailed information.</p>
+      </div>
+    </details>
     \endcode
 
     QDoc renders this as:
@@ -1355,6 +1362,20 @@
     stored in a \c{snippets} directory inside the documentation
     directory (for example, \c{$QTDIR/doc/src/snippets}).
 
+    \note QDoc resolves a relative snippet path against the directories
+    configured by the \l {exampledirs-variable}{exampledirs} and
+    \l {imagedirs-variable}{imagedirs} variables (plus any \c{doc/images}
+    directories found beneath the example directories). It does \e not search
+    \c{sourcedirs} or \c{headerdirs}, so snippet files that live in a separate
+    tree from your examples must still be reachable from \c{exampledirs} or
+    \c{imagedirs}. The \l {quotefile-command}{\\quotefile} and
+    \l {quotefromfile-command}{\\quotefromfile} commands resolve their files the
+    same way.
+
+    QDoc uses the first matching file it finds. When the same relative path
+    exists under more than one search directory, QDoc consults the directories
+    in lexicographic path order, so one file can shadow another.
+
     For example, the following documentation references a snippet in a
     file residing in a subdirectory of the documentation directory:
 
@@ -1541,6 +1562,18 @@
                 project, you can use the section title as a target without the
                 need to add the topic title:
                 \l {QDoc Commands}.
+
+                Since the \c # character is used for the purpose of linking
+                within documents it cannot be used verbatim when linking to
+                titles that contain it. Instead, it must be escaped using a
+                backslash:
+
+                \badcode
+                    \l {Using Qt with C\\#}
+                \endcode
+
+                Two backslashes are used because QDoc will process the text
+                before it is supplied to the link command.
 
             \li an anchor defined with a \l {target-command}{\\target} command:
                 \badcode

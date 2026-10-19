@@ -733,9 +733,8 @@ private:
         std::weak_ptr<DomEnvironment> m_env;
         QStringList m_importPaths;
 
-        QList<QQmlJS::DiagnosticMessage>
-        operator()(QQmlJSImporter *importer, const QString &filePath,
-                   const QSharedPointer<QQmlJSScope> &scopeToPopulate);
+        void operator()(QQmlJSImporter *importer, const QString &filePath,
+                        const QSharedPointer<QQmlJSScope> &scopeToPopulate);
     };
 
 public:
@@ -1106,6 +1105,7 @@ private:
     std::shared_ptr<DomEnvironment> m_lastValidBase;
     const std::shared_ptr<DomUniverse> m_universe;
     QStringList m_loadPaths; // paths for qml
+    QStringList m_resourcePaths;
     QString m_globalScopeName;
     QMap<QString, QMap<int, std::shared_ptr<ModuleIndex>>> m_moduleIndexWithUri;
     QMap<QString, std::shared_ptr<ExternalItemInfo<GlobalScope>>> m_globalScopeWithName;
@@ -1130,6 +1130,7 @@ private:
 
         std::shared_ptr<QQmlJSResourceFileMapper> m_mapper;
         std::shared_ptr<QQmlJSImporter> m_importer;
+        QStringList m_resourceFiles;
     };
     std::optional<SemanticAnalysis> m_semanticAnalysis;
 public:
@@ -1137,6 +1138,7 @@ public:
 
 private:
     SemanticAnalysis semanticAnalysisUnlocked();
+    SemanticAnalysis prepareSemanticAnalysisForFileLoading();
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(DomEnvironment::Options)
 

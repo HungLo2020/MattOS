@@ -1,5 +1,5 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
@@ -10,15 +10,23 @@
 #include "eisinputcapturemanager.h"
 
 #include "input_event.h"
+#include "keyboard_input.h"
+#include "xkb.h"
 
 #include <libeis.h>
 
 namespace KWin
 {
+
 EisInputCaptureFilter::EisInputCaptureFilter(EisInputCaptureManager *manager)
     : InputEventFilter(InputFilterOrder::EisInput)
     , m_manager(manager)
 {
+}
+
+void EisInputCaptureFilter::setPendingModifierChange(bool pendingModifierChange)
+{
+    m_hasPendingModifierChange = pendingModifierChange;
 }
 
 void EisInputCaptureFilter::clearTouches()
@@ -101,6 +109,10 @@ bool EisInputCaptureFilter::keyboardKey(KeyboardKeyEvent *event)
     if (const auto keyboard = m_manager->activeCapture()->keyboard()) {
         eis_device_keyboard_key(keyboard, event->nativeScanCode, event->state != KeyboardKeyState::Released);
         eis_device_frame(keyboard, std::chrono::duration_cast<std::chrono::milliseconds>(event->timestamp).count());
+        if (m_hasPendingModifierChange) {
+            const auto modifierState = input()->keyboard()->xkb()->modifierState();
+            eis_device_keyboard_send_xkb_modifiers(keyboard, modifierState.depressed, modifierState.latched, modifierState.locked, input()->keyboard()->xkb()->currentLayout());
+        }
     }
     return true;
 }
@@ -243,4 +255,5 @@ bool EisInputCaptureFilter::holdGestureCancelled(PointerHoldGestureCancelEvent *
     }
     return true;
 }
+
 }

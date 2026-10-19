@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
 
     \l Style is the root type in StyleKit for defining a complete visual style for
     \l [QtQuickControls] {Qt Quick Controls}. A style lets you customize
-    the appearance of \l {AbstractStylableControls}{every control type}
+    the appearance of \l {StylableControls}{every control type}
     — \l {ControlStateStyle::background}{backgrounds}, \l {ControlStateStyle::indicator}{indicators},
     \l {ControlStateStyle::handle}{handles}, \l {ControlStateStyle::}{text},
     \l {ControlStateStyle::}{padding}, and more
@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 
     \snippet PlainStyle.qml 1
 
-    For a more complete example, see the \l{StyleKit Example}.
+    For a more complete example, see the \l{StyleKit Quick Controls Example}.
 
     \labs
 
@@ -56,31 +56,13 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty int Style::Stretch
-    \readonly
-
-    A sentinel value that, when assigned to a delegate's
-    \l {DelegateStyle::implicitWidth}{implicitWidth} or
-    \l {DelegateStyle::implicitHeight}{implicitHeight}, causes the delegate
-    to fill the available space along that axis. The space available will
-    be constrained by layout properties, such as \l {DelegateStyle::}{margins} and
-    \l {ControlStyle::}{padding}.
-
-    For example, to make a slider groove fill out the available width:
-
-    \snippet StyleSnippets.qml stretch
-
-    \sa DelegateStyle::implicitWidth, DelegateStyle::implicitHeight
-*/
-
-/*!
     \qmlproperty list<string> Style::customThemeNames
     \readonly
 
     The names of all the \l {CustomTheme}{custom themes} defined in the style. This does not
-    include the \l{themeNames}{built-in themes.}
+    include the \l{availableThemeNames}{built-in themes.}
 
-    \sa themeNames, themeName, CustomTheme
+    \sa availableThemeNames, themeName, CustomTheme
 */
 
 /*!
@@ -181,11 +163,11 @@ QT_BEGIN_NAMESPACE
     effect, the style it belongs to must also be the \l{StyleKit::style}{current style}
     in the application.
 
-    \sa themeNames, theme
+    \sa availableThemeNames, theme
 */
 
 /*!
-    \qmlproperty list<string> Style::themeNames
+    \qmlproperty list<string> Style::availableThemeNames
     \readonly
 
     The names of all available themes, including \c "System", \c "Light",
@@ -276,14 +258,6 @@ QQStyleKitTheme *QQStyleKitStyle::theme() const
     return m_theme;
 }
 
-QList<QObject *> QQStyleKitStyle::customThemesAsList()
-{
-    QList<QObject *> list;
-    for (auto *customTheme : customThemes())
-        list.append(customTheme);
-    return list;
-}
-
 QList<QQStyleKitCustomTheme *> QQStyleKitStyle::customThemes() const
 {
     QList<QQStyleKitCustomTheme *> list;
@@ -296,22 +270,22 @@ QList<QQStyleKitCustomTheme *> QQStyleKitStyle::customThemes() const
 
 void QQStyleKitStyle::parseThemes()
 {
-    m_themeNames = QStringList({kSystem});
+    m_availableThemeNames = QStringList({kSystem});
 
     if (m_light)
-        m_themeNames << kLight;
+        m_availableThemeNames << kLight;
     if (m_dark)
-        m_themeNames << kDark;
+        m_availableThemeNames << kDark;
 
     for (auto *customTheme : customThemes()) {
         const QString name = customTheme->name();
         if (name.isEmpty())
             continue;
-        m_themeNames << name;
+        m_availableThemeNames << name;
         m_customThemeNames << name;
     }
 
-    emit themeNamesChanged();
+    emit availableThemeNamesChanged();
     emit customThemeNamesChanged();
 }
 
@@ -320,9 +294,9 @@ QString QQStyleKitStyle::themeName() const
     return m_themeName;
 }
 
-QStringList QQStyleKitStyle::themeNames() const
+QStringList QQStyleKitStyle::availableThemeNames() const
 {
-    return m_themeNames;
+    return m_availableThemeNames;
 }
 
 QStringList QQStyleKitStyle::customThemeNames() const
@@ -442,8 +416,7 @@ void QQStyleKitStyle::reapplyStyle()
     m_theme->updateThemePalettes();
     m_theme->updateThemeFonts();
     QQStyleKitVariation::resetVariationsForStyle(this);
-    if (this == current())
-        QQStyleKitReader::resetAll();
+    QQStyleKitReader::resetReadersForStyle(this);
 }
 
 QQStyleKitStyle* QQStyleKitStyle::current()

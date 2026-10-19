@@ -14,6 +14,18 @@ function(qt_update_precompiled_header_with_library target library)
 
     get_target_property(target_type "${library}" TYPE)
     if(target_type STREQUAL "INTERFACE_LIBRARY")
+        # If target links against QtFooPrivate then QtFoo is transitively pulled
+        # in. We assume that headers from QtFoo will be used and add this
+        # library to the target's precompiled headers too.
+        get_target_property(is_private_module "${library}" _qt_is_private_module)
+        if(is_private_module)
+            get_target_property(public_module_target "${library}" _qt_public_module_target_name)
+            qt_update_precompiled_header_with_library("${target}"
+                "${QT_CMAKE_EXPORT_NAMESPACE}::${public_module_target}"
+            )
+        endif()
+
+        # Don't handle interface libraries any further.
         return()
     endif()
 

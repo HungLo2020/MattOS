@@ -3,36 +3,29 @@
 
 #include "qpipewire_screencapturehelper_p.h"
 
-#include <QtMultimedia/private/qcapturablewindow_p.h>
-#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qpipewire_instance_p.h>
+#include <QtMultimedia/private/qpipewire_videoformat_support_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qpipewire_async_support_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
-#include <QtMultimedia/private/qvideoframeconversionhelper_p.h>
-#include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtGui/private/qdesktopunixservices_p.h>
 #include <QtGui/private/qguiapplication_p.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qpa/qplatformintegration.h>
-#include <QtGui/qscreen.h>
-#include <QtGui/qwindow.h>
-#include <QtCore/private/qcore_unix_p.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qfileinfo.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qrandom.h>
-#include <QtCore/qurlquery.h>
 #include <QtCore/quuid.h>
 #include <QtCore/qvariantmap.h>
 #include <QtDBus/qdbusconnection.h>
 #include <QtDBus/qdbusinterface.h>
 #include <QtDBus/qdbusmessage.h>
-#include <QtDBus/qdbuspendingcall.h>
-#include <QtDBus/qdbuspendingreply.h>
 #include <QtDBus/qdbusreply.h>
 #include <QtDBus/qdbusunixfiledescriptor.h>
 
-#include <fcntl.h>
+#include <spa/debug/types.h>
+#include <spa/param/video/format-utils.h>
+#include <spa/param/video/type-info.h>
+
+#include <mutex>
 
 // pipewire's macros tend to emit unused value warnings
 QT_WARNING_PUSH
@@ -41,82 +34,51 @@ QT_WARNING_DISABLE_CLANG("-Wunused-value")
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
+using namespace std::chrono_literals;
+using namespace std::string_view_literals;
 
 Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCapture, "qt.multimedia.pipewire.capture");
 Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCaptureMore, "qt.multimedia.pipewire.capture.more");
 
 namespace QtPipeWire {
 
-struct PipeWireCaptureGlobalState
+QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture,
+                                               std::shared_ptr<QPipeWireInstance> instance)
+    : QSurfaceCaptureGrabber(CreateGrabbingThread),
+      m_pwInstance(std::move(instance)),
+      m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::Id128))
 {
-    PipeWireCaptureGlobalState() {
-        QDBusConnection bus = QDBusConnection::sessionBus();
-        QDBusInterface *interface = new QDBusInterface(
-                u"org.freedesktop.portal.Desktop"_s, u"/org/freedesktop/portal/desktop"_s,
-                u"org.freedesktop.DBus.Properties"_s, bus, qGuiApp);
+    Q_ASSERT(m_pwInstance);
 
-        QList<QVariant> args;
-        args << u"org.freedesktop.portal.ScreenCast"_s << u"version"_s;
-
-        QDBusMessage reply = interface->callWithArgumentList(QDBus::Block, u"Get"_s, args);
-        qCDebug(qLcPipeWireCapture) << "v1=" << reply.type()
-                                    << "v2=" << reply.arguments().size()
-                                    << "v3=" << reply.arguments().at(0).toUInt();
-        if (reply.type() == QDBusMessage::ReplyMessage
-            && reply.arguments().size() == 1
-            // && reply.arguments().at(0).toUInt() >= 2
-            ) {
-            hasScreenCastPortal = true;
-        }
-        qCDebug(qLcPipeWireCapture) << Q_FUNC_INFO << "hasScreenCastPortal=" << hasScreenCastPortal;
-    }
-
-    bool hasScreenCastPortal = false;
-};
-
-Q_GLOBAL_STATIC(PipeWireCaptureGlobalState, globalState)
-
-bool QPipeWireCaptureHelper::setActiveInternal(bool active)
-{
-    if (isSupported()) {
-        if (active && m_state == NoState)
-            createInterface();
-        if (!active && m_state == Streaming)
-            destroy();
-
-        return true;
-    }
-
-    updateError(QPlatformSurfaceCapture::InternalError,
-                u"There is no ScreenCast service available in org.freedesktop.portal!"_s);
-
-    return false;
-}
-
-void QPipeWireCaptureHelper::updateError(QPlatformSurfaceCapture::Error error,
-                                         const QString &description)
-{
-    m_capture.updateError(error, description);
-}
-
-bool QPipeWireCapture::isSupported()
-{
-    if (!QPipeWireInstance::isLoaded())
-        return false;
-
-    return QPipeWireCaptureHelper::isSupported();
-}
-
-QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture)
-    : m_capture(capture),
-      m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::WithoutBraces).left(8))
-{
+    addFrameCallback(&capture, &QPipeWireCapture::newVideoFrame);
+    connect(this, &QSurfaceCaptureGrabber::errorUpdated, &capture, &QPipeWireCapture::updateError);
 }
 
 QPipeWireCaptureHelper::~QPipeWireCaptureHelper()
 {
+    stop();
+}
+
+QVideoFrame QPipeWireCaptureHelper::grabFrame()
+{
+    return std::move(m_currentFrame);
+}
+
+void QPipeWireCaptureHelper::initializeGrabbingContext()
+{
+    QSurfaceCaptureGrabber::initializeGrabbingContext();
+    if (m_state == NoState)
+        createInterface();
+}
+
+void QPipeWireCaptureHelper::finalizeGrabbingContext()
+{
+    unsubscribeFromRequestResponse();
+    m_operationState = NoOperation;
+
     if (m_state != NoState)
         destroy();
+    QSurfaceCaptureGrabber::finalizeGrabbingContext();
 }
 
 QVideoFrameFormat QPipeWireCaptureHelper::frameFormat() const
@@ -124,28 +86,23 @@ QVideoFrameFormat QPipeWireCaptureHelper::frameFormat() const
     return m_videoFrameFormat;
 }
 
-bool QPipeWireCaptureHelper::isSupported()
-{
-    if (!globalState)
-        return false;
-
-    return globalState->hasScreenCastPortal;
-}
-
 void QPipeWireCaptureHelper::gotRequestResponse(uint result, const QVariantMap &map)
 {
-    Q_UNUSED(map);
     qCDebug(qLcPipeWireCapture) << Q_FUNC_INFO << "result=" << result << "map=" << map;
+
+    // this is the response to the request we subscribed to, it will not be emitted again
+    unsubscribeFromRequestResponse();
+
     if (result != 0) {
         m_operationState = NoOperation;
-        qWarning() << "Failed to capture screen via pipewire, perhaps because user cancelled the operation.";
-        m_requestToken = -1;
+        qWarning() << "Failed to capture screen via pipewire, perhaps because user cancelled the "
+                      "operation.";
         return;
     }
 
     switch (m_operationState) {
     case CreateSession:
-        selectSources(map[u"session_handle"_s].toString());
+        selectSources(QDBusObjectPath{ map[u"session_handle"_s].toString() });
         break;
     case SelectSources:
         startStream();
@@ -164,24 +121,54 @@ void QPipeWireCaptureHelper::gotRequestResponse(uint result, const QVariantMap &
     }
 }
 
-QString QPipeWireCaptureHelper::getRequestToken()
+QString QPipeWireCaptureHelper::allocateToken()
 {
-    if (m_requestToken <= 0)
-        m_requestToken = generateRequestToken();
-    return u"u%1%2"_s.arg(m_requestTokenPrefix).arg(m_requestToken);
+    return u"qtmm_%1_%2"_s.arg(m_requestTokenPrefix).arg(++m_tokenCounter);
 }
 
-int QPipeWireCaptureHelper::generateRequestToken()
+bool QPipeWireCaptureHelper::subscribeToRequestResponse(const QString &handleToken)
 {
-    return QRandomGenerator::global()->bounded(1, 25600);
+    Q_ASSERT(m_pendingRequestPath.isEmpty());
+
+    QDBusConnection bus = QDBusConnection::sessionBus();
+
+    QString sender = bus.baseService(); // ":1.23"
+    if (sender.startsWith(u':'))
+        sender.remove(0, 1);
+    sender.replace(u'.', u'_');
+
+    QString path = u"/org/freedesktop/portal/desktop/request/%1/%2"_s.arg(sender, handleToken);
+
+    const bool ok = bus.connect(u"org.freedesktop.portal.Desktop"_s, path,
+                                u"org.freedesktop.portal.Request"_s, u"Response"_s, this,
+                                SLOT(gotRequestResponse(uint, QVariantMap)));
+    if (!ok) {
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
+                    u"Failed to subscribe to org.freedesktop.portal.Request response for "_s
+                            + path);
+        return false;
+    }
+
+    m_pendingRequestPath = std::move(path);
+    return true;
+}
+
+void QPipeWireCaptureHelper::unsubscribeFromRequestResponse()
+{
+    if (m_pendingRequestPath.isEmpty())
+        return;
+
+    QDBusConnection::sessionBus().disconnect(u"org.freedesktop.portal.Desktop"_s,
+                                             m_pendingRequestPath,
+                                             u"org.freedesktop.portal.Request"_s, u"Response"_s,
+                                             this, SLOT(gotRequestResponse(uint, QVariantMap)));
+
+    m_pendingRequestPath.clear();
 }
 
 void QPipeWireCaptureHelper::createInterface()
 {
-    if (!globalState)
-        return;
-    if (!globalState->hasScreenCastPortal)
-        return;
+    Q_ASSERT(m_pwInstance->hasScreenCastPortal());
 
     m_operationState = NoOperation;
 
@@ -189,16 +176,6 @@ void QPipeWireCaptureHelper::createInterface()
         m_screenCastInterface = std::make_unique<QDBusInterface>(
                 u"org.freedesktop.portal.Desktop"_s, u"/org/freedesktop/portal/desktop"_s,
                 u"org.freedesktop.portal.ScreenCast"_s, QDBusConnection::sessionBus());
-        bool ok = m_screenCastInterface->connection().connect(
-                u"org.freedesktop.portal.Desktop"_s, u""_s, u"org.freedesktop.portal.Request"_s,
-                u"Response"_s, this, SLOT(gotRequestResponse(uint,QVariantMap)));
-
-        if (!ok) {
-            updateError(
-                    QPlatformSurfaceCapture::InternalError,
-                    u"Failed to connect to org.freedesktop.portal.ScreenCast dbus interface."_s);
-            return;
-        }
     }
     createSession();
 }
@@ -208,13 +185,18 @@ void QPipeWireCaptureHelper::createSession()
     if (!m_screenCastInterface)
         return;
 
+    const QString handleToken = allocateToken();
+    if (!subscribeToRequestResponse(handleToken))
+        return;
+
     QVariantMap options{
-        //{u"handle_token"_s        , getRequestToken()},
-        { u"session_handle_token"_s, getRequestToken() },
+        { u"handle_token"_s, handleToken },
+        { u"session_handle_token"_s, allocateToken() },
     };
     QDBusMessage reply = m_screenCastInterface->call(u"CreateSession"_s, options);
     if (!reply.errorMessage().isEmpty()) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+        unsubscribeFromRequestResponse();
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to create session for org.freedesktop.portal.ScreenCast. Error: "_s
                             + reply.errorName() + u": "_s + reply.errorMessage());
         return;
@@ -223,23 +205,34 @@ void QPipeWireCaptureHelper::createSession()
     m_operationState = CreateSession;
 }
 
-void QPipeWireCaptureHelper::selectSources(const QString &sessionHandle)
+void QPipeWireCaptureHelper::selectSources(const QDBusObjectPath &sessionHandle)
 {
     if (!m_screenCastInterface)
         return;
 
     m_sessionHandle = sessionHandle;
+    m_sessionInterface = std::make_unique<QDBusInterface>(
+            u"org.freedesktop.portal.Desktop"_s, sessionHandle.path(),
+            u"org.freedesktop.portal.Session"_s, QDBusConnection::sessionBus());
+    m_sessionInterface->connection().connect(
+            u"org.freedesktop.portal.Desktop"_s, sessionHandle.path(),
+            u"org.freedesktop.portal.Session"_s, u"Closed"_s, this, SLOT(sessionClosed()));
+
+    const QString handleToken = allocateToken();
+    if (!subscribeToRequestResponse(handleToken))
+        return;
+
     QVariantMap options{
-        { u"handle_token"_s, getRequestToken() },
+        { u"handle_token"_s, handleToken },
         { u"types"_s, (uint)1 },
         { u"multiple"_s, false },
         { u"cursor_mode"_s, (uint)1 },
         { u"persist_mode"_s, (uint)0 },
     };
-    QDBusMessage reply = m_screenCastInterface->call(u"SelectSources"_s,
-                                                     QDBusObjectPath(sessionHandle), options);
+    QDBusMessage reply = m_screenCastInterface->call(u"SelectSources"_s, sessionHandle, options);
     if (!reply.errorMessage().isEmpty()) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+        unsubscribeFromRequestResponse();
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to select sources for org.freedesktop.portal.ScreenCast. Error: "_s
                             + reply.errorName() + u": "_s + reply.errorMessage());
         return;
@@ -253,18 +246,23 @@ void QPipeWireCaptureHelper::startStream()
     if (!m_screenCastInterface)
         return;
 
+    const QString handleToken = allocateToken();
+    if (!subscribeToRequestResponse(handleToken))
+        return;
+
     QVariantMap options{
-        { u"handle_token"_s, getRequestToken() },
+        { u"handle_token"_s, handleToken },
     };
 
-    const auto unixServices = dynamic_cast<QDesktopUnixServices *>(QGuiApplicationPrivate::platformIntegration()->services());
+    auto *unixServices = dynamic_cast<QDesktopUnixServices *>(QGuiApplicationPrivate::platformIntegration()->services());
     const QString parentWindow = QGuiApplication::focusWindow() && unixServices
             ? unixServices->portalWindowIdentifier(QGuiApplication::focusWindow())
             : QString();
     QDBusMessage reply = m_screenCastInterface->call("Start"_L1, QDBusObjectPath(m_sessionHandle),
                                                      parentWindow, options);
     if (!reply.errorMessage().isEmpty()) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+        unsubscribeFromRequestResponse();
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to start stream for org.freedesktop.portal.ScreenCast. Error: "_s
                             + reply.errorName() + u": "_s + reply.errorMessage());
         return;
@@ -289,7 +287,7 @@ void QPipeWireCaptureHelper::updateStreams(const QDBusArgument &streamsInfo)
         qint32 x = 0;
         qint32 y = 0;
         if (properties.contains(u"position"_s)) {
-            const QDBusArgument position = properties[u"position"_s].value<QDBusArgument>();
+            const auto position = properties[u"position"_s].value<QDBusArgument>();
             position.beginStructure();
             position >> x;
             position >> y;
@@ -299,7 +297,7 @@ void QPipeWireCaptureHelper::updateStreams(const QDBusArgument &streamsInfo)
         qint32 width = 0;
         qint32 height = 0;
         if (properties.contains(u"size"_s)) {
-            const QDBusArgument size = properties[u"size"_s].value<QDBusArgument>();
+            const auto size = properties[u"size"_s].value<QDBusArgument>();
             size.beginStructure();
             size >> width;
             size >> height;
@@ -328,21 +326,20 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
         return;
 
     QVariantMap options;
-    QDBusReply<QDBusUnixFileDescriptor> reply = m_screenCastInterface->call(
-            u"OpenPipeWireRemote"_s, QDBusObjectPath(m_sessionHandle), options);
+    QDBusReply<QDBusUnixFileDescriptor> reply =
+            m_screenCastInterface->call(u"OpenPipeWireRemote"_s, m_sessionHandle, options);
     if (!reply.isValid()) {
         updateError(
-                QPlatformSurfaceCapture::InternalError,
+                QPlatformSurfaceCapture::Error::InternalError,
                 u"Failed to open pipewire remote for org.freedesktop.portal.ScreenCast. Error: name="_s
                         + reply.error().name() + u", message="_s + reply.error().message());
         return;
     }
 
-    m_pipewireFd = reply.value().fileDescriptor();
-    bool ok = open(m_pipewireFd);
-    qCDebug(qLcPipeWireCapture) << "open(" << m_pipewireFd << ") result=" << ok;
+    bool ok = open(reply.value());
+    qCDebug(qLcPipeWireCapture) << "open() result=" << ok;
     if (!ok) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to open pipewire remote file descriptor"_s);
         return;
     }
@@ -350,207 +347,83 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
     m_operationState = OpenPipeWireRemote;
 }
 
-namespace {
-class LoopLocker
-{
-public:
-    LoopLocker(pw_thread_loop *threadLoop)
-        : m_threadLoop(threadLoop) {
-        lock();
-    }
-    ~LoopLocker() {
-        unlock();
-    }
-
-    void lock() {
-        if (m_threadLoop)
-            pw_thread_loop_lock(m_threadLoop);
-    }
-
-    void unlock() {
-        if (m_threadLoop) {
-            pw_thread_loop_unlock(m_threadLoop);
-            m_threadLoop = nullptr;
-        }
-    }
-
-private:
-    pw_thread_loop *m_threadLoop = nullptr;
-};
-} // namespace
-
-bool QPipeWireCaptureHelper::open(int pipewireFd)
+bool QPipeWireCaptureHelper::open(QDBusUnixFileDescriptor portalFd)
 {
     if (m_streams.isEmpty())
         return false;
 
-    if (!globalState)
-        return false;
+    Q_ASSERT(m_pwInstance->hasScreenCastPortal());
 
-    if (!m_instance)
-        m_instance = QPipeWireInstance::instance();
-
-    static const pw_core_events coreEvents = {
-        .version = PW_VERSION_CORE_EVENTS,
-        .info = [](void *data, const struct pw_core_info *info) {
-            Q_UNUSED(data)
-            Q_UNUSED(info)
-        },
-        .done = [](void *object, uint32_t id, int seq) {
-            reinterpret_cast<QPipeWireCaptureHelper *>(object)->onCoreEventDone(id, seq);
-        },
-        .ping = [](void *data, uint32_t id, int seq) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(seq)
-        },
-        .error = [](void *data, uint32_t id, int seq, int res, const char *message) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(seq)
-            Q_UNUSED(res)
-            Q_UNUSED(message)
-        },
-        .remove_id = [](void *data, uint32_t id) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-        },
-        .bound_id = [](void *data, uint32_t id, uint32_t global_id) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(global_id)
-        },
-        .add_mem = [](void *data, uint32_t id, uint32_t type, int fd, uint32_t flags) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(type)
-            Q_UNUSED(fd)
-            Q_UNUSED(flags)
-        },
-        .remove_mem = [](void *data, uint32_t id) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-        },
-#if defined(PW_CORE_EVENT_BOUND_PROPS)
-        .bound_props = [](void *data, uint32_t id, uint32_t global_id, const struct spa_dict *props) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(global_id)
-            Q_UNUSED(props)
-        },
-#endif // PW_CORE_EVENT_BOUND_PROPS
-    };
-
-    static const pw_registry_events registryEvents = {
-        .version = PW_VERSION_REGISTRY_EVENTS,
-        .global = [](void *object, uint32_t id, uint32_t permissions, const char *type, uint32_t version, const spa_dict *props) {
-            reinterpret_cast<QPipeWireCaptureHelper *>(object)->onRegistryEventGlobal(id, permissions, type, version, props);
-        },
-        .global_remove = [](void *data, uint32_t id) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-        },
-    };
-
-    m_threadLoop = PwThreadLoopHandle{
-        pw_thread_loop_new("qt-multimedia-pipewire-loop", nullptr),
-    };
-    if (!m_threadLoop) {
+    std::unique_lock pwLock = m_pwInstance->eventLoopLock();
+    auto connection = m_pwInstance->connectToPortal(portalFd.takeFileDescriptor());
+    if (!connection) {
         m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
-                    u"QPipeWireCaptureHelper failed at pw_thread_loop_new()."_s);
-        return false;
-    }
-
-    m_context = PwContextHandle{
-        pw_context_new(pw_thread_loop_get_loop(m_threadLoop.get()), nullptr, 0),
-    };
-    if (!m_context) {
-        m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
-                    u"QPipeWireCaptureHelper failed at pw_context_new()."_s);
-        return false;
-    }
-
-    m_core = PwCoreConnectionHandle{
-        pw_context_connect_fd(m_context.get(), fcntl(pipewireFd, F_DUPFD_CLOEXEC, 5), nullptr, 0),
-    };
-    if (!m_core) {
-        m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
+        pwLock.unlock();
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_context_connect_fd()."_s);
         return false;
     }
-
-    pw_core_add_listener(m_core.get(), &m_coreListener, &coreEvents, this);
+    m_core = std::move(*connection);
 
     m_registry = PwRegistryHandle{
         pw_core_get_registry(m_core.get(), PW_VERSION_REGISTRY, 0),
     };
     if (!m_registry) {
         m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
+        pwLock.unlock();
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_core_get_registry()."_s);
         return false;
     }
-    pw_registry_add_listener(m_registry.get(), &m_registryListener, &registryEvents, this);
 
-    updateCoreInitSeq();
+    struct RegistryCallbackContext
+    {
+        bool hasSource{};
+    };
 
-    if (pw_thread_loop_start(m_threadLoop.get()) != 0) {
-        m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
-                    u"QPipeWireCaptureHelper failed at pw_thread_loop_start()."_s);
-        return false;
-    }
+    spa_hook registryListener = {};
+    const pw_registry_events registryEvents{
+        .version = PW_VERSION_REGISTRY_EVENTS,
+        .global =
+                [](void *data, uint32_t /*id*/, uint32_t /*permissions*/, const char *type,
+                   uint32_t /*version*/, const spa_dict *props) {
+        if (type != std::string_view(PW_TYPE_INTERFACE_Node))
+            return;
 
-    LoopLocker locker(m_threadLoop.get());
-    while (!m_initDone) {
-        if (pw_thread_loop_timed_wait(m_threadLoop.get(), 2) != 0)
+        const char *media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
+        if (!media_class)
+            return;
+
+        if (media_class != "Stream/Output/Video"sv && media_class != "Video/Source"sv)
+            return;
+        auto *registryContext = reinterpret_cast<RegistryCallbackContext *>(data);
+        registryContext->hasSource = true;
+    },
+        .global_remove = nullptr,
+    };
+
+    RegistryCallbackContext registryContext;
+    pw_registry_add_listener(m_registry.get(), &registryListener, &registryEvents,
+                             &registryContext);
+
+    CoreEventDoneListener doneListener;
+    bool initDone = false;
+    doneListener.asyncWait(m_core.get(), [&] {
+        initDone = true;
+        m_pwInstance->pwEventLoop().signal(false);
+    });
+
+    while (!initDone) {
+        if (m_pwInstance->pwEventLoop().wait_for(2s) != 0)
             break;
     }
 
-    return m_initDone && m_hasSource;
-}
+    spa_hook_remove(&registryListener);
 
-void QPipeWireCaptureHelper::updateCoreInitSeq()
-{
-    m_coreInitSeq = pw_core_sync(m_core.get(), PW_ID_CORE, m_coreInitSeq);
-}
+    if (registryContext.hasSource)
+        recreateStream();
 
-void QPipeWireCaptureHelper::onCoreEventDone(uint32_t id, int seq)
-{
-    if (id == PW_ID_CORE && seq == m_coreInitSeq) {
-        spa_hook_remove(&m_registryListener);
-        spa_hook_remove(&m_coreListener);
-
-        m_initDone = true;
-        pw_thread_loop_signal(m_threadLoop.get(), false);
-    }
-}
-
-void QPipeWireCaptureHelper::onRegistryEventGlobal(uint32_t id, uint32_t permissions, const char *type, uint32_t version, const spa_dict *props)
-{
-    Q_UNUSED(id)
-    Q_UNUSED(permissions)
-    Q_UNUSED(version)
-
-    if (qstrcmp(type, PW_TYPE_INTERFACE_Node) != 0)
-        return;
-
-    auto media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
-    if (!media_class)
-        return;
-
-    if (qstrcmp(media_class, "Stream/Output/Video") != 0
-        && qstrcmp(media_class, "Video/Source") != 0)
-        return;
-
-    m_hasSource = true;
-
-    updateCoreInitSeq();
-
-    recreateStream();
+    return initDone && registryContext.hasSource;
 }
 
 void QPipeWireCaptureHelper::recreateStream()
@@ -607,15 +480,15 @@ void QPipeWireCaptureHelper::recreateStream()
     destroyStream(true);
 
     auto streamInfo = m_streams[0];
-    struct spa_dict_item items[4];
-    struct spa_dict info;
-    items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TYPE, "Video");
-    items[1] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_CATEGORY, "Capture");
-    items[2] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ROLE, "Screen");
-    info = SPA_DICT_INIT(items, 3);
-    auto props = pw_properties_new_dict(&info);
+    const struct std::array<spa_dict_item, 3> items{
+        SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TYPE, "Video"),
+        SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_CATEGORY, "Capture"),
+        SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ROLE, "Screen"),
+    };
+    const struct spa_dict info = SPA_DICT_INIT(items.data(), items.size());
+    auto *props = pw_properties_new_dict(&info);
 
-    LoopLocker locker(m_threadLoop.get());
+    std::unique_lock locker = m_pwInstance->eventLoopLock();
 
     m_stream = PwStreamHandle{
         pw_stream_new(m_core.get(), "video-capture", props),
@@ -623,7 +496,7 @@ void QPipeWireCaptureHelper::recreateStream()
     if (!m_stream) {
         m_err = true;
         locker.unlock();
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_stream_new()."_s);
         return;
     }
@@ -636,68 +509,66 @@ void QPipeWireCaptureHelper::recreateStream()
     QT_WARNING_DISABLE_GCC("-Wmissing-field-initializers")
     QT_WARNING_DISABLE_CLANG("-Wmissing-field-initializers")
 
-    uint8_t buffer[4096];
-    struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
-    const struct spa_pod *params[1];
+    std::array<uint8_t, 4096> buffer;
+    struct spa_pod_builder builder = SPA_POD_BUILDER_INIT(buffer.data(), sizeof(buffer));
     struct spa_rectangle defsize = SPA_RECTANGLE(quint32(streamInfo.rect.width()), quint32(streamInfo.rect.height()));
     struct spa_rectangle maxsize = SPA_RECTANGLE(4096, 4096);
     struct spa_rectangle minsize = SPA_RECTANGLE(1,1);
-    struct spa_fraction defrate  = SPA_FRACTION(25, 1);
-    struct spa_fraction maxrate  = SPA_FRACTION(1000, 1);
-    struct spa_fraction minrate  = SPA_FRACTION(0, 1);
 
-    params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(
-            &b,
+    // Considering the framerate as always variable rate, but with our target set as maximum.
+    struct spa_fraction maxrate = SPA_FRACTION(1000, 1);
+    struct spa_fraction minrate = SPA_FRACTION(0, 1);
+    auto rate = rateFromFps(frameRate());
+
+    std::array<const struct spa_pod *, 1> params{ static_cast<const spa_pod*>(spa_pod_builder_add_object(
+            &builder,
             SPA_TYPE_OBJECT_Format,     SPA_PARAM_EnumFormat,
-            SPA_FORMAT_mediaType,       SPA_POD_Id(SPA_MEDIA_TYPE_video),
-            SPA_FORMAT_mediaSubtype,    SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
-            SPA_FORMAT_VIDEO_format,    SPA_POD_CHOICE_ENUM_Id(6,
-                                            SPA_VIDEO_FORMAT_RGB,
-                                            SPA_VIDEO_FORMAT_BGR,
-                                            SPA_VIDEO_FORMAT_RGBA,
-                                            SPA_VIDEO_FORMAT_BGRA,
-                                            SPA_VIDEO_FORMAT_RGBx,
-                                            SPA_VIDEO_FORMAT_BGRx),
-            SPA_FORMAT_VIDEO_size,      SPA_POD_CHOICE_RANGE_Rectangle(
+            SPA_FORMAT_mediaType,          SPA_POD_Id(SPA_MEDIA_TYPE_video),
+            SPA_FORMAT_mediaSubtype,       SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+            SPA_FORMAT_VIDEO_format,       SPA_POD_CHOICE_ENUM_Id(6,
+                                               SPA_VIDEO_FORMAT_RGB,
+                                               SPA_VIDEO_FORMAT_BGR,
+                                               SPA_VIDEO_FORMAT_RGBA,
+                                               SPA_VIDEO_FORMAT_BGRA,
+                                               SPA_VIDEO_FORMAT_RGBx,
+                                               SPA_VIDEO_FORMAT_BGRx),
+            SPA_FORMAT_VIDEO_size,         SPA_POD_CHOICE_RANGE_Rectangle(
                                             &defsize, &minsize, &maxsize),
-            SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(
-                                            &defrate, &minrate, &maxrate))
-    );
+            SPA_FORMAT_VIDEO_framerate,    SPA_POD_CHOICE_RANGE_Fraction(
+                                            &rate.frac, &minrate, &maxrate),
+            SPA_FORMAT_VIDEO_maxFramerate, SPA_POD_Fraction(&rate.frac))
+    )};
     QT_WARNING_POP
 
     const int connectErr = pw_stream_connect(
             m_stream.get(), PW_DIRECTION_INPUT, streamInfo.nodeId,
             static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
-            params, 1);
+            params.data(), 1);
     if (connectErr != 0) {
         m_err = true;
         locker.unlock();
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_stream_connect()."_s);
         return;
     }
 }
-void QPipeWireCaptureHelper::destroyStream(bool forceDrain)
+void QPipeWireCaptureHelper::destroyStream(bool waitForStreamEnd)
 {
     if (!m_stream)
         return;
 
-    if (forceDrain) {
-        LoopLocker locker(m_threadLoop.get());
-        while (!m_streamPaused && !m_silence && !m_err) {
-            if (pw_thread_loop_timed_wait(m_threadLoop.get(), 1) != 0)
-                break;
-        }
-    }
-
-    LoopLocker locker(m_threadLoop.get());
+    std::unique_lock locker(m_pwInstance->eventLoopLock());
     m_ignoreStateChange = true;
     pw_stream_disconnect(m_stream.get());
     m_stream = {};
     m_ignoreStateChange = false;
 
-    m_stream = nullptr;
-    m_requestToken = -1;
+    if (waitForStreamEnd) {
+        while (m_streamState > PW_STREAM_STATE_UNCONNECTED && !m_err) {
+            if (m_pwInstance->pwEventLoop().wait_for(1s) != 0)
+                break;
+        }
+    }
 }
 
 void QPipeWireCaptureHelper::signalLoop(bool onProcessDone, bool err)
@@ -706,7 +577,7 @@ void QPipeWireCaptureHelper::signalLoop(bool onProcessDone, bool err)
         m_err = true;
     if (onProcessDone)
         m_processed = true;
-    pw_thread_loop_signal(m_threadLoop.get(), false);
+    m_pwInstance->pwEventLoop().signal(false);
 }
 
 void QPipeWireCaptureHelper::onStateChanged(pw_stream_state old, pw_stream_state state, const char *error)
@@ -714,20 +585,16 @@ void QPipeWireCaptureHelper::onStateChanged(pw_stream_state old, pw_stream_state
     Q_UNUSED(old)
     Q_UNUSED(error)
 
-    if (m_ignoreStateChange)
-        return;
+    m_streamState = state;
 
-    switch (state)
-    {
+    switch (state) {
     case PW_STREAM_STATE_UNCONNECTED:
         signalLoop(false, true);
         break;
     case PW_STREAM_STATE_PAUSED:
-        m_streamPaused = true;
         signalLoop(false, false);
         break;
     case PW_STREAM_STATE_STREAMING:
-        m_streamPaused = false;
         signalLoop(false, false);
         break;
     default:
@@ -736,26 +603,22 @@ void QPipeWireCaptureHelper::onStateChanged(pw_stream_state old, pw_stream_state
 }
 void QPipeWireCaptureHelper::onProcess()
 {
-    struct pw_buffer *b;
-    struct spa_buffer *buf;
-    int sstride = 0;
-    void *sdata;
-    qsizetype size = 0;
-
-    if ((b = pw_stream_dequeue_buffer(m_stream.get())) == nullptr) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+    struct pw_buffer *pwBuffer = pw_stream_dequeue_buffer(m_stream.get());
+    if (!pwBuffer) {
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Out of buffers in pipewire stream dequeue."_s);
         return;
     }
 
-    buf = b->buffer;
-    if ((sdata = buf->datas[0].data) == nullptr)
+    struct spa_buffer *buf = pwBuffer->buffer;
+    void *sdata = buf->datas[0].data;
+    if (!sdata)
         return;
 
-    sstride = buf->datas[0].chunk->stride;
+    int sstride = buf->datas[0].chunk->stride;
     if (sstride == 0)
-        sstride = buf->datas[0].chunk->size / m_size.height();
-    size = buf->datas[0].chunk->size;
+        sstride = int(buf->datas[0].chunk->size / m_size.height());
+    qsizetype size = buf->datas[0].chunk->size;
 
     if (m_videoFrameFormat.frameSize() != m_size || m_videoFrameFormat.pixelFormat() != m_pixelFormat)
         m_videoFrameFormat = QVideoFrameFormat(m_size, m_pixelFormat);
@@ -763,29 +626,58 @@ void QPipeWireCaptureHelper::onProcess()
     m_currentFrame = QVideoFramePrivate::createFrame(
             std::make_unique<QMemoryVideoBuffer>(QByteArray(static_cast<const char *>(sdata), size), sstride),
             m_videoFrameFormat);
-    emit m_capture.newVideoFrame(m_currentFrame);
     qCDebug(qLcPipeWireCaptureMore) << "got a frame of size " << buf->datas[0].chunk->size;
 
-    pw_stream_queue_buffer(m_stream.get(), b);
+    pw_stream_queue_buffer(m_stream.get(), pwBuffer);
 
     signalLoop(true, false);
 }
 
 void QPipeWireCaptureHelper::destroy()
 {
-    if (!globalState)
-        return;
+    Q_ASSERT(m_pwInstance->hasScreenCastPortal());
+
     m_state = Stopping;
     destroyStream(false);
 
-    pw_thread_loop_stop(m_threadLoop.get());
+    m_pwInstance->runWithEventLoopLock([&] {
+        m_registry = {};
+        m_core = {};
+    });
 
-    m_registry = {};
-    m_core = {};
-    m_context = {};
-    m_threadLoop = {};
+    unsubscribeFromRequestResponse();
+    closeSession();
 
     m_state = NoState;
+}
+
+void QPipeWireCaptureHelper::closeSession()
+{
+    if (m_sessionHandle.path().isEmpty())
+        return;
+
+    if (m_sessionInterface) {
+        m_sessionInterface->connection().disconnect(
+                u"org.freedesktop.portal.Desktop"_s, m_sessionHandle.path(),
+                u"org.freedesktop.portal.Session"_s, u"Closed"_s, this, SLOT(sessionClosed()));
+        m_sessionInterface->asyncCall(u"Close"_s);
+        m_sessionInterface.reset();
+    }
+
+    m_sessionHandle = {};
+}
+
+void QPipeWireCaptureHelper::sessionClosed()
+{
+    if (m_sessionHandle.path().isEmpty())
+        return;
+
+    qCWarning(qLcPipeWireCapture) << "org.freedesktop.portal.Session was closed externally";
+    m_sessionHandle = {};
+    m_sessionInterface.reset();
+    updateError(QPlatformSurfaceCapture::Error::InternalError,
+                u"PipeWire screen capture session was closed"_s);
+    stop();
 }
 
 void QPipeWireCaptureHelper::onParamChanged(uint32_t id, const struct spa_pod *param)
@@ -793,9 +685,7 @@ void QPipeWireCaptureHelper::onParamChanged(uint32_t id, const struct spa_pod *p
     if (param == nullptr || id != SPA_PARAM_Format)
         return;
 
-    if (spa_format_parse(param,
-                         &m_format.media_type,
-                         &m_format.media_subtype) < 0)
+    if (spa_format_parse(param, &m_format.media_type, &m_format.media_subtype) < 0)
         return;
 
     if (m_format.media_type != SPA_MEDIA_TYPE_video
@@ -808,127 +698,13 @@ void QPipeWireCaptureHelper::onParamChanged(uint32_t id, const struct spa_pod *p
     qCDebug(qLcPipeWireCapture) << "got video format:";
     qCDebug(qLcPipeWireCapture) << "  format: " << m_format.info.raw.format
                                 << " (" << spa_debug_type_find_name(spa_type_video_format, m_format.info.raw.format) << ")";
-    qCDebug(qLcPipeWireCapture) << "  size: " << m_format.info.raw.size.width
-                                << " x " << m_format.info.raw.size.height;
+    qCDebug(qLcPipeWireCapture) << "  size: " << toQSize(m_format.info.raw.size);
     qCDebug(qLcPipeWireCapture) << "  framerate: " << m_format.info.raw.framerate.num
                                 << " / " << m_format.info.raw.framerate.denom;
 
-    m_size = QSize(m_format.info.raw.size.width, m_format.info.raw.size.height);
-    m_pixelFormat = QPipeWireCaptureHelper::toQtPixelFormat(m_format.info.raw.format);
+    m_size = toQSize(m_format.info.raw.size);
+    m_pixelFormat = toQtPixelFormat(m_format.info.raw.format);
     qCDebug(qLcPipeWireCapture) << "m_pixelFormat=" << m_pixelFormat;
-}
-
-// align with qt_videoFormatLookup in src/plugins/multimedia/gstreamer/common/qgst.cpp
-// https://docs.pipewire.org/group__spa__param.html#gacb274daea0abcce261955323e7d0b1aa
-//     Most of the formats are identical to their GStreamer equivalent.
-QVideoFrameFormat::PixelFormat QPipeWireCaptureHelper::toQtPixelFormat(spa_video_format spaVideoFormat)
-{
-    switch (spaVideoFormat) {
-    default:
-        break;
-    case SPA_VIDEO_FORMAT_I420:
-        return QVideoFrameFormat::Format_YUV420P;
-    case SPA_VIDEO_FORMAT_Y42B:
-        return QVideoFrameFormat::Format_YUV422P;
-    case SPA_VIDEO_FORMAT_YV12:
-        return QVideoFrameFormat::Format_YV12;
-    case SPA_VIDEO_FORMAT_UYVY:
-        return QVideoFrameFormat::Format_UYVY;
-    case SPA_VIDEO_FORMAT_YUY2:
-        return QVideoFrameFormat::Format_YUYV;
-    case SPA_VIDEO_FORMAT_NV12:
-        return QVideoFrameFormat::Format_NV12;
-    case SPA_VIDEO_FORMAT_NV21:
-        return QVideoFrameFormat::Format_NV21;
-    case SPA_VIDEO_FORMAT_AYUV:
-        return QVideoFrameFormat::Format_AYUV;
-    case SPA_VIDEO_FORMAT_GRAY8:
-        return QVideoFrameFormat::Format_Y8;
-    case SPA_VIDEO_FORMAT_xRGB:
-        return QVideoFrameFormat::Format_XRGB8888;
-    case SPA_VIDEO_FORMAT_xBGR:
-        return QVideoFrameFormat::Format_XBGR8888;
-    case SPA_VIDEO_FORMAT_RGBx:
-        return QVideoFrameFormat::Format_RGBX8888;
-    case SPA_VIDEO_FORMAT_BGRx:
-        return QVideoFrameFormat::Format_BGRX8888;
-    case SPA_VIDEO_FORMAT_ARGB:
-        return QVideoFrameFormat::Format_ARGB8888;
-    case SPA_VIDEO_FORMAT_ABGR:
-        return QVideoFrameFormat::Format_ABGR8888;
-    case SPA_VIDEO_FORMAT_RGBA:
-        return QVideoFrameFormat::Format_RGBA8888;
-    case SPA_VIDEO_FORMAT_BGRA:
-        return QVideoFrameFormat::Format_BGRA8888;
-#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
-    case SPA_VIDEO_FORMAT_GRAY16_LE:
-        return QVideoFrameFormat::Format_Y16;
-    case SPA_VIDEO_FORMAT_P010_10LE:
-        return QVideoFrameFormat::Format_P010;
-#else
-    case SPA_VIDEO_FORMAT_GRAY16_BE:
-        return QVideoFrameFormat::Format_Y16;
-    case SPA_VIDEO_FORMAT_P010_10BE:
-        return QVideoFrameFormat::Format_P010;
-#endif
-    }
-
-    return QVideoFrameFormat::Format_Invalid;
-}
-
-spa_video_format QPipeWireCaptureHelper::toSpaVideoFormat(QVideoFrameFormat::PixelFormat pixelFormat)
-{
-    switch (pixelFormat) {
-    default:
-        break;
-    case QVideoFrameFormat::Format_YUV420P:
-        return SPA_VIDEO_FORMAT_I420;
-    case QVideoFrameFormat::Format_YUV422P:
-        return SPA_VIDEO_FORMAT_Y42B;
-    case QVideoFrameFormat::Format_YV12:
-        return SPA_VIDEO_FORMAT_YV12;
-    case QVideoFrameFormat::Format_UYVY:
-        return SPA_VIDEO_FORMAT_UYVY;
-    case QVideoFrameFormat::Format_YUYV:
-        return SPA_VIDEO_FORMAT_YUY2;
-    case QVideoFrameFormat::Format_NV12:
-        return SPA_VIDEO_FORMAT_NV12;
-    case QVideoFrameFormat::Format_NV21:
-        return SPA_VIDEO_FORMAT_NV21;
-    case QVideoFrameFormat::Format_AYUV:
-        return SPA_VIDEO_FORMAT_AYUV;
-    case QVideoFrameFormat::Format_Y8:
-        return SPA_VIDEO_FORMAT_GRAY8;
-    case QVideoFrameFormat::Format_XRGB8888:
-        return SPA_VIDEO_FORMAT_xRGB;
-    case QVideoFrameFormat::Format_XBGR8888:
-        return SPA_VIDEO_FORMAT_xBGR;
-    case QVideoFrameFormat::Format_RGBX8888:
-        return SPA_VIDEO_FORMAT_RGBx;
-    case QVideoFrameFormat::Format_BGRX8888:
-        return SPA_VIDEO_FORMAT_BGRx;
-    case QVideoFrameFormat::Format_ARGB8888:
-        return SPA_VIDEO_FORMAT_ARGB;
-    case QVideoFrameFormat::Format_ABGR8888:
-        return SPA_VIDEO_FORMAT_ABGR;
-    case QVideoFrameFormat::Format_RGBA8888:
-        return SPA_VIDEO_FORMAT_RGBA;
-    case QVideoFrameFormat::Format_BGRA8888:
-        return SPA_VIDEO_FORMAT_BGRA;
-#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
-    case QVideoFrameFormat::Format_Y16:
-        return SPA_VIDEO_FORMAT_GRAY16_LE;
-    case QVideoFrameFormat::Format_P010:
-        return SPA_VIDEO_FORMAT_P010_10LE;
-#else
-    case QVideoFrameFormat::Format_Y16:
-        return SPA_VIDEO_FORMAT_GRAY16_BE;
-    case QVideoFrameFormat::Format_P010:
-        return SPA_VIDEO_FORMAT_P010_10BE;
-#endif
-    }
-
-    return SPA_VIDEO_FORMAT_UNKNOWN;
 }
 
 } // namespace QtPipeWire

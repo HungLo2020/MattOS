@@ -3,6 +3,7 @@
     This file is part of the KDE project.
 
     SPDX-FileCopyrightText: 2016 Martin Gräßlin <mgraesslin@kde.org>
+    SPDX-FileCopyrightText: 2026 Kristen McWilliam <kristen@kde.org>
 
     SPDX-License-Identifier: GPL-2.0-or-later
 */
@@ -12,7 +13,6 @@
 
 #include "effect/effecthandler.h"
 #include "input.h"
-#include "input_event.h"
 #include "inputpanelv1window.h"
 #include "keyboard_input.h"
 #include "utils/common.h"
@@ -33,9 +33,11 @@
 #include "wayland/keyboard.h"
 #include "wayland/seat.h"
 #include "wayland/surface.h"
-#include "wayland/textinput_v1.h"
 #include "wayland/textinput_v3.h"
 #include "xkb.h"
+
+// For v1 preedit styling enums
+#include "qwayland-server-text-input-unstable-v1.h"
 
 #include <KLocalizedString>
 #include <KShell>
@@ -46,6 +48,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 
+#include <fcntl.h>
 #include <linux/input-event-codes.h>
 #include <private/qxkbcommon_p.h>
 #include <unistd.h>
@@ -54,36 +57,19 @@
 namespace KWin
 {
 
-static QList<xkb_keysym_t> textToKey(const QString &inputString)
-{
-    QList<xkb_keysym_t> result;
-
-    for (int i = 0; i < inputString.size(); ++i) {
-        char32_t cp = inputString[i].unicode();
-
-        // Handle surrogate pair (two QChars → one codepoint)
-        if (inputString[i].isHighSurrogate() && i + 1 < inputString.size()
-            && inputString[i + 1].isLowSurrogate()) {
-            cp = QChar::surrogateToUcs4(inputString[i].unicode(),
-                                        inputString[i + 1].unicode());
-            i++; // skip the low surrogate
-        }
-
-        xkb_keysym_t ks = xkb_utf32_to_keysym(cp);
-        if (ks != XKB_KEY_NoSymbol) {
-            result.append(ks);
-        } else {
-            qCWarning(KWIN_VIRTUALKEYBOARD) << "No keysym for U+" << Qt::hex << (int)cp << "\n";
-        }
-    }
-    return result;
-}
-
 InputMethod::InputMethod()
 {
     m_internalContext = new InternalInputMethodContext(this);
 
-    m_enabled = kwinApp()->config()->group(QStringLiteral("Wayland")).readEntry("VirtualKeyboardEnabled", true);
+    auto group = kwinApp()->config()->group(QStringLiteral("Wayland"));
+    if (group.hasKey("VirtualKeyboardMode")) {
+        m_virtualKeyboardVisibility = static_cast<VirtualKeyboardVisibility>(
+            group.readEntry<int>("VirtualKeyboardMode", static_cast<int>(VirtualKeyboardVisibility::NonMouseInput)));
+    } else {
+        m_virtualKeyboardVisibility = group.readEntry("VirtualKeyboardEnabled", true)
+            ? VirtualKeyboardVisibility::NonMouseInput
+            : VirtualKeyboardVisibility::Never;
+    }
     // this is actually too late. Other processes are started before init,
     // so might miss the availability of text input
     // but without Workspace we don't have the window listed at all
@@ -114,23 +100,11 @@ void InputMethod::init()
     new VirtualKeyboardDBus(this);
     qCDebug(KWIN_VIRTUALKEYBOARD) << "Registering the DBus interface";
 
-    new TextInputManagerV1Interface(waylandServer()->display(), this);
     new TextInputManagerV2Interface(waylandServer()->display(), this);
     new TextInputManagerV3Interface(waylandServer()->display(), this);
 
     connect(waylandServer()->seat(), &SeatInterface::focusedKeyboardSurfaceAboutToChange, this, &InputMethod::commitPendingText);
     connect(waylandServer()->seat(), &SeatInterface::focusedTextInputSurfaceChanged, this, &InputMethod::handleFocusedSurfaceChanged);
-
-    TextInputV1Interface *textInputV1 = waylandServer()->seat()->textInputV1();
-    connect(textInputV1, &TextInputV1Interface::requestShowInputPanel, this, &InputMethod::show);
-    connect(textInputV1, &TextInputV1Interface::requestHideInputPanel, this, &InputMethod::hide);
-    connect(textInputV1, &TextInputV1Interface::surroundingTextChanged, this, &InputMethod::surroundingTextChanged);
-    connect(textInputV1, &TextInputV1Interface::contentTypeChanged, this, &InputMethod::contentTypeChanged);
-    connect(textInputV1, &TextInputV1Interface::stateUpdated, this, &InputMethod::textInputInterfaceV1StateUpdated);
-    connect(textInputV1, &TextInputV1Interface::reset, this, &InputMethod::textInputInterfaceV1Reset);
-    connect(textInputV1, &TextInputV1Interface::invokeAction, this, &InputMethod::invokeAction);
-    connect(textInputV1, &TextInputV1Interface::enabledChanged, this, &InputMethod::textInputInterfaceV1EnabledChanged);
-    connect(textInputV1, &TextInputV1Interface::cursorRectangleChanged, this, &InputMethod::cursorRectangleChanged);
 
     TextInputV2Interface *textInputV2 = waylandServer()->seat()->textInputV2();
     connect(textInputV2, &TextInputV2Interface::requestShowInputPanel, this, &InputMethod::show);
@@ -148,6 +122,8 @@ void InputMethod::init()
     connect(textInputV3, &TextInputV3Interface::enabledChanged, this, &InputMethod::textInputInterfaceV3EnabledChanged);
     connect(textInputV3, &TextInputV3Interface::enableRequested, this, &InputMethod::textInputInterfaceV3EnableRequested);
     connect(textInputV3, &TextInputV3Interface::cursorRectangleChanged, this, &InputMethod::cursorRectangleChanged);
+    connect(textInputV3, &TextInputV3Interface::requestShowInputPanel, this, &InputMethod::show);
+    connect(textInputV3, &TextInputV3Interface::requestHideInputPanel, this, &InputMethod::hide);
 
     connect(m_internalContext, &InternalInputMethodContext::surroundingTextChanged, this, &InputMethod::surroundingTextChanged);
     connect(m_internalContext, &InternalInputMethodContext::contentTypeChanged, this, &InputMethod::contentTypeChanged);
@@ -162,7 +138,7 @@ void InputMethod::init()
 
 void InputMethod::show()
 {
-    m_shouldShowPanel = true;
+    m_showRequested = true;
 
     // If the panel has something to display, show it (e.g. if we hid it from kwin rather than the IM hiding itself)
     // Otherwise, ensure the input context is current and the IM will see to having itself shown if there's something to show.
@@ -186,7 +162,8 @@ void InputMethod::show()
 
 void InputMethod::hide()
 {
-    m_shouldShowPanel = false;
+    m_showRequested = false;
+    m_forceShowRequested = false;
     if (m_panel) {
         m_panel->hide();
         updateInputPanelState();
@@ -195,22 +172,28 @@ void InputMethod::hide()
 
 bool InputMethod::shouldShowOnActive() const
 {
-    static bool alwaysShowIm = qEnvironmentVariableIntValue("KWIN_IM_SHOW_ALWAYS") != 0;
-    return alwaysShowIm || input()->touch() == input()->lastInputHandler()
-        || input()->tablet() == input()->lastInputHandler();
+    switch (m_virtualKeyboardVisibility) {
+    case VirtualKeyboardVisibility::Never:
+        return false;
+    case VirtualKeyboardVisibility::NonMouseInput:
+        return input()->touch() == input()->lastInputHandler()
+            || input()->tablet() == input()->lastInputHandler();
+    case VirtualKeyboardVisibility::AnyInput:
+        return true;
+    }
+    return true;
 }
 
 void InputMethod::refreshActive()
 {
     auto seat = waylandServer()->seat();
-    auto t1 = seat->textInputV1();
     auto t2 = seat->textInputV2();
     auto t3 = seat->textInputV3();
 
     bool active = false;
     if (auto focusedSurface = seat->focusedTextInputSurface()) {
         auto client = focusedSurface->client();
-        if ((t1->clientSupportsTextInput(client) && t1->isEnabled()) || (t2->clientSupportsTextInput(client) && t2->isEnabled()) || (t3->clientSupportsTextInput(client) && t3->isEnabled())) {
+        if ((t2->clientSupportsTextInput(client) && t2->isEnabled()) || (t3->clientSupportsTextInput(client) && t3->isEnabled())) {
             active = true;
         }
     }
@@ -253,15 +236,11 @@ void InputMethod::commitPendingText()
 RectF InputMethod::cursorRectangle() const
 {
     RectF localCursorRect;
-    auto t1 = waylandServer()->seat()->textInputV1();
     auto t2 = waylandServer()->seat()->textInputV2();
     auto t3 = waylandServer()->seat()->textInputV3();
     auto inputContext = waylandServer()->inputMethod()->context();
     if (!inputContext) {
         return {};
-    }
-    if (t1 && t1->isEnabled()) {
-        localCursorRect = t1->cursorRectangle();
     }
     if (t2 && t2->isEnabled()) {
         localCursorRect = t2->cursorRectangle();
@@ -280,14 +259,11 @@ void InputMethod::setActive(bool active)
 {
     const bool wasActive = waylandServer()->inputMethod()->context();
     if (wasActive && !active) {
+        m_forceShowRequested = false;
         waylandServer()->inputMethod()->sendDeactivate();
     }
 
     if (active) {
-        if (!m_enabled) {
-            return;
-        }
-
         if (!wasActive) {
             waylandServer()->inputMethod()->sendActivate();
         }
@@ -328,9 +304,13 @@ void InputMethod::setPanel(InputPanelV1Window *panel)
     updateInputPanelState();
     Q_EMIT panelChanged();
 
-    if (m_shouldShowPanel) {
+    if (m_showRequested) {
+        if (shouldShowOnActive() || m_forceShowRequested) {
+            m_panel->allow();
+        }
         show();
     }
+    m_forceShowRequested = false;
 }
 
 void InputMethod::setTrackedWindow(Window *trackedWindow)
@@ -346,7 +326,7 @@ void InputMethod::setTrackedWindow(Window *trackedWindow)
         disconnect(m_trackedWindow, &Window::frameGeometryChanged, this, &InputMethod::cursorRectangleChanged);
     }
     m_trackedWindow = trackedWindow;
-    m_shouldShowPanel = false;
+    m_showRequested = false;
     if (m_trackedWindow) {
         connect(m_trackedWindow, &Window::frameGeometryChanged, this, &InputMethod::updateInputPanelState, Qt::QueuedConnection);
         connect(m_trackedWindow, &Window::frameGeometryChanged, this, &InputMethod::cursorRectangleChanged);
@@ -366,8 +346,7 @@ void InputMethod::handleFocusedSurfaceChanged()
     setTrackedWindow(waylandServer()->findWindow(focusedSurface));
 
     const auto client = focusedSurface ? focusedSurface->client() : nullptr;
-    bool ret = seat->textInputV1()->clientSupportsTextInput(client)
-        || seat->textInputV2()->clientSupportsTextInput(client)
+    bool ret = seat->textInputV2()->clientSupportsTextInput(client)
         || seat->textInputV3()->clientSupportsTextInput(client)
         || m_internalContext->isEnabled();
 
@@ -403,15 +382,11 @@ void InputMethod::surroundingTextChanged()
 
 void InputMethod::contentTypeChanged()
 {
-    auto t1 = waylandServer()->seat()->textInputV1();
     auto t2 = waylandServer()->seat()->textInputV2();
     auto t3 = waylandServer()->seat()->textInputV3();
     auto inputContext = waylandServer()->inputMethod()->context();
     if (!inputContext) {
         return;
-    }
-    if (t1 && t1->isEnabled()) {
-        inputContext->sendContentType(t1->contentHints(), t1->contentPurpose());
     }
     if (t2 && t2->isEnabled()) {
         inputContext->sendContentType(t2->contentHints(), t2->contentPurpose());
@@ -421,60 +396,8 @@ void InputMethod::contentTypeChanged()
     }
 }
 
-void InputMethod::textInputInterfaceV1Reset()
-{
-    if (!m_enabled) {
-        return;
-    }
-    auto t1 = waylandServer()->seat()->textInputV1();
-    auto inputContext = waylandServer()->inputMethod()->context();
-    if (!inputContext) {
-        return;
-    }
-    if (!t1 || !t1->isEnabled()) {
-        return;
-    }
-    inputContext->sendReset();
-}
-
-void InputMethod::invokeAction(quint32 button, quint32 index)
-{
-    if (!m_enabled) {
-        return;
-    }
-    auto t1 = waylandServer()->seat()->textInputV1();
-    auto inputContext = waylandServer()->inputMethod()->context();
-    if (!inputContext) {
-        return;
-    }
-    if (!t1 || !t1->isEnabled()) {
-        return;
-    }
-    inputContext->sendInvokeAction(button, index);
-}
-
-void InputMethod::textInputInterfaceV1StateUpdated(quint32 serial)
-{
-    if (!m_enabled) {
-        return;
-    }
-    auto t1 = waylandServer()->seat()->textInputV1();
-    auto inputContext = waylandServer()->inputMethod()->context();
-    if (!inputContext) {
-        return;
-    }
-    if (!t1 || !t1->isEnabled()) {
-        return;
-    }
-    inputContext->sendCommitState(serial);
-}
-
 void InputMethod::textInputInterfaceV2StateUpdated(quint32 serial, TextInputV2Interface::UpdateReason reason)
 {
-    if (!m_enabled) {
-        return;
-    }
-
     auto t2 = waylandServer()->seat()->textInputV2();
     auto inputContext = waylandServer()->inputMethod()->context();
     if (!inputContext) {
@@ -499,33 +422,16 @@ void InputMethod::textInputInterfaceV2StateUpdated(quint32 serial, TextInputV2In
     }
 }
 
-void InputMethod::textInputInterfaceV1EnabledChanged()
-{
-    if (!m_enabled) {
-        return;
-    }
-
-    refreshActive();
-}
-
 void InputMethod::textInputInterfaceV2EnabledChanged()
 {
-    if (!m_enabled) {
-        return;
-    }
-
     refreshActive();
 }
 
 void InputMethod::textInputInterfaceV3EnabledChanged()
 {
-    if (!m_enabled) {
-        return;
-    }
-
     auto t3 = waylandServer()->seat()->textInputV3();
     refreshActive();
-    if (t3->isEnabled()) {
+    if (t3->isEnabled() && t3->implicitShowPanelRequired()) {
         show();
     } else {
         // reset value of preedit when textinput is disabled
@@ -554,44 +460,33 @@ void InputMethod::stateCommitted(uint32_t serial)
     }
 }
 
-void InputMethod::setEnabled(bool enabled)
+void InputMethod::setMode(VirtualKeyboardVisibility newMode)
 {
-    if (m_enabled == enabled) {
+    if (m_virtualKeyboardVisibility == newMode) {
         return;
     }
-    m_enabled = enabled;
-    Q_EMIT enabledChanged(m_enabled);
+    m_virtualKeyboardVisibility = newMode;
+    Q_EMIT modeChanged(m_virtualKeyboardVisibility);
 
     // send OSD message
     QDBusMessage msg = QDBusMessage::createMethodCall(
         QStringLiteral("org.kde.plasmashell"),
         QStringLiteral("/org/kde/osdService"),
         QStringLiteral("org.kde.osdService"),
-        QStringLiteral("virtualKeyboardEnabledChanged"));
-    msg.setArguments({enabled});
+        QStringLiteral("VirtualKeyboardModeChanged"));
+    msg.setArguments({static_cast<int>(mode())});
     QDBusConnection::sessionBus().asyncCall(msg);
-    if (!m_enabled) {
+    if (m_virtualKeyboardVisibility == VirtualKeyboardVisibility::Never) {
         hide();
-        stopInputMethod();
-    } else {
-        startInputMethod();
     }
     // save value into config
-    kwinApp()->config()->group(QStringLiteral("Wayland")).writeEntry("VirtualKeyboardEnabled", m_enabled);
+    auto group = kwinApp()->config()->group(QStringLiteral("Wayland"));
+    group.writeEntry("VirtualKeyboardMode", static_cast<int>(m_virtualKeyboardVisibility));
     kwinApp()->config()->sync();
 }
 
 void InputMethod::keysymReceived(quint32 serial, quint32 time, quint32 sym, KeyboardKeyState state, quint32 modifiers)
 {
-    if (auto t1 = waylandServer()->seat()->textInputV1(); t1 && t1->isEnabled()) {
-        if (state != KeyboardKeyState::Released) {
-            t1->keysymPressed(time, sym, modifiers);
-        } else {
-            t1->keysymReleased(time, sym, modifiers);
-        }
-        return;
-    }
-
     auto t2 = waylandServer()->seat()->textInputV2();
     if (t2 && t2->isEnabled()) {
         if (state != KeyboardKeyState::Released) {
@@ -615,14 +510,13 @@ void InputMethod::keysymReceived(quint32 serial, quint32 time, quint32 sym, Keyb
     }
 }
 
-void InputMethod::commitString(qint32 serial, const QString &text)
+void InputMethod::sendText(const QString &text)
 {
-    if (auto t1 = waylandServer()->seat()->textInputV1(); t1 && t1->isEnabled()) {
-        t1->commitString(text);
-        t1->setPreEditCursor(0);
-        t1->preEdit({}, {});
-        return;
-    }
+    commitString(m_serial++, text);
+}
+
+void InputMethod::commitString(quint32 serial, const QString &text)
+{
     if (auto t2 = waylandServer()->seat()->textInputV2(); t2 && t2->isEnabled()) {
         t2->commitString(text);
         t2->setPreEditCursor(0);
@@ -641,7 +535,7 @@ void InputMethod::commitString(qint32 serial, const QString &text)
         // So instead, try to convert what we get from the input method into
         // keycodes and send those as fake input to the client.
 
-        const QList<xkb_keysym_t> keySyms = textToKey(text);
+        const QList<xkb_keysym_t> keySyms = Xkb::textToKeySyms(text);
 
         // First, send all the extracted keys as pressed keys to the client.
         for (const xkb_keysym_t &keySym : keySyms) {
@@ -658,17 +552,16 @@ void InputMethod::forwardKeySym(int keySym)
     std::optional<Xkb::KeyCode> keyCode = input()->keyboard()->xkb()->keycodeFromKeysym(keySym);
     if (!keyCode) {
         qCWarning(KWIN_VIRTUALKEYBOARD) << "Could not map keysym " << keySym << "to keycode. Trying custom keymap";
-        static const uint unmappedKeyCode = 247;
-        auto temporaryKeymap = input()->keyboard()->xkb()->keymapContentsForKeysym(unmappedKeyCode, keySym);
+        auto temporaryKeymap = input()->keyboard()->xkb()->keymapContentsForKeysym(Xkb::scratchKeycode, keySym);
         if (temporaryKeymap.isEmpty()) {
             return;
         }
         waylandServer()->seat()->keyboard()->setKeymap(temporaryKeymap);
-        waylandServer()->seat()->notifyKeyboardKey(unmappedKeyCode, KeyboardKeyState::Pressed, waylandServer()->display()->nextSerial());
-        waylandServer()->seat()->notifyKeyboardKey(unmappedKeyCode, KeyboardKeyState::Released, waylandServer()->display()->nextSerial());
+        waylandServer()->seat()->notifyKeyboardKey(Xkb::scratchKeycode, KeyboardKeyState::Pressed, waylandServer()->display()->nextSerial());
+        waylandServer()->seat()->notifyKeyboardKey(Xkb::scratchKeycode, KeyboardKeyState::Released, waylandServer()->display()->nextSerial());
         waylandServer()->seat()->keyboard()->setKeymap(input()->keyboard()->xkb()->keymapContents());
     } else {
-        waylandServer()->seat()->notifyKeyboardModifiers(keyCode->modifiers , 0, 0, input()->keyboard()->xkb()->currentLayout());
+        waylandServer()->seat()->notifyKeyboardModifiers(keyCode->modifiers, 0, 0, input()->keyboard()->xkb()->currentLayout());
         waylandServer()->seat()->notifyKeyboardKey(keyCode->keyCode, KeyboardKeyState::Pressed, waylandServer()->display()->nextSerial());
         waylandServer()->seat()->notifyKeyboardKey(keyCode->keyCode, KeyboardKeyState::Released, waylandServer()->display()->nextSerial());
     }
@@ -691,10 +584,6 @@ void InputMethod::deleteSurroundingText(int32_t index, uint32_t length)
     const quint32 before = -index;
     const quint32 after = index + length;
 
-    auto t1 = waylandServer()->seat()->textInputV1();
-    if (t1 && t1->isEnabled()) {
-        t1->deleteSurroundingText(index, length);
-    }
     auto t2 = waylandServer()->seat()->textInputV2();
     if (t2 && t2->isEnabled()) {
         t2->deleteSurroundingText(before, after);
@@ -711,10 +600,6 @@ void InputMethod::deleteSurroundingText(int32_t index, uint32_t length)
 
 void InputMethod::setCursorPosition(qint32 index, qint32 anchor)
 {
-    auto t1 = waylandServer()->seat()->textInputV1();
-    if (t1 && t1->isEnabled()) {
-        t1->setCursorPosition(index, anchor);
-    }
     auto t2 = waylandServer()->seat()->textInputV2();
     if (t2 && t2->isEnabled()) {
         t2->setCursorPosition(index, anchor);
@@ -723,22 +608,18 @@ void InputMethod::setCursorPosition(qint32 index, qint32 anchor)
 
 void InputMethod::setLanguage(uint32_t serial, const QString &language)
 {
-    auto t1 = waylandServer()->seat()->textInputV1();
-    if (t1 && t1->isEnabled()) {
-        t1->setLanguage(language);
-    }
     auto t2 = waylandServer()->seat()->textInputV2();
     if (t2 && t2->isEnabled()) {
         t2->setLanguage(language);
+    }
+    auto t3 = waylandServer()->seat()->textInputV3();
+    if (t3 && t3->isEnabled()) {
+        t3->setLanguage(language);
     }
 }
 
 void InputMethod::setTextDirection(uint32_t serial, Qt::LayoutDirection direction)
 {
-    auto t1 = waylandServer()->seat()->textInputV1();
-    if (t1 && t1->isEnabled()) {
-        t1->setTextDirection(direction);
-    }
     auto t2 = waylandServer()->seat()->textInputV2();
     if (t2 && t2->isEnabled()) {
         t2->setTextDirection(direction);
@@ -747,10 +628,6 @@ void InputMethod::setTextDirection(uint32_t serial, Qt::LayoutDirection directio
 
 void InputMethod::setPreeditCursor(qint32 index)
 {
-    auto t1 = waylandServer()->seat()->textInputV1();
-    if (t1 && t1->isEnabled()) {
-        t1->setPreEditCursor(index);
-    }
     auto t2 = waylandServer()->seat()->textInputV2();
     if (t2 && t2->isEnabled()) {
         t2->setPreEditCursor(index);
@@ -763,18 +640,38 @@ void InputMethod::setPreeditCursor(qint32 index)
 
 void InputMethod::setPreeditStyling(quint32 index, quint32 length, quint32 style)
 {
-    auto t1 = waylandServer()->seat()->textInputV1();
-    if (t1 && t1->isEnabled()) {
-        t1->preEditStyling(index, length, style);
-    }
     auto t2 = waylandServer()->seat()->textInputV2();
     if (t2 && t2->isEnabled()) {
         t2->preEditStyling(index, length, style);
     }
     auto t3 = waylandServer()->seat()->textInputV3();
     if (t3 && t3->isEnabled()) {
-        // preedit style: highlight(4) or selection(6)
-        if (style == 4 || style == 6) {
+        using V1 = QtWaylandServer::zwp_text_input_v1;
+        switch (style) {
+        case V1::preedit_style_default:
+            break;
+        case V1::preedit_style_active:
+            t3->sendPreEditHint(index, index + length, TextInputV3Interface::PreeditHint::Prefix);
+            break;
+        case V1::preedit_style_inactive:
+            t3->sendPreEditHint(index, index + length, TextInputV3Interface::PreeditHint::Suffix);
+            break;
+        case V1::preedit_style_highlight:
+            t3->sendPreEditHint(index, index + length, TextInputV3Interface::PreeditHint::Prediction);
+            break;
+        case V1::preedit_style_underline:
+            t3->sendPreEditHint(index, index + length, TextInputV3Interface::PreeditHint::Whole);
+            break;
+        case V1::preedit_style_selection:
+            t3->sendPreEditHint(index, index + length, TextInputV3Interface::PreeditHint::Selection);
+            break;
+        case V1::preedit_style_incorrect:
+            t3->sendPreEditHint(index, index + length, TextInputV3Interface::PreeditHint::ComposeError);
+            break;
+        }
+
+        // Text input 3.1 did not support styling, so we buffer a highlight range to use as a selection
+        if (style == V1::preedit_style_highlight || style == V1::preedit_style_selection) {
             preedit.highlightRanges.emplace_back(index, index + length);
         }
     }
@@ -782,10 +679,6 @@ void InputMethod::setPreeditStyling(quint32 index, quint32 length, quint32 style
 
 void InputMethod::setPreeditString(uint32_t serial, const QString &text, const QString &commit)
 {
-    auto t1 = waylandServer()->seat()->textInputV1();
-    if (t1 && t1->isEnabled()) {
-        t1->preEdit(text, commit);
-    }
     auto t2 = waylandServer()->seat()->textInputV2();
     if (t2 && t2->isEnabled()) {
         t2->preEdit(text, commit);
@@ -851,6 +744,8 @@ void InputMethod::modifiers(quint32 serial, quint32 mods_depressed, quint32 mods
 {
     auto xkb = input()->keyboard()->xkb();
     xkb->updateModifiers(mods_depressed, mods_latched, mods_locked, group);
+    // explicitly forward as previous updates may have been filtered
+    xkb->forwardModifiers();
 }
 
 void InputMethod::forwardModifiers(ForwardModifiersForce force)
@@ -874,22 +769,13 @@ void InputMethod::adoptInputMethodContext()
 {
     auto inputContext = waylandServer()->inputMethod()->context();
 
-    TextInputV1Interface *t1 = waylandServer()->seat()->textInputV1();
     TextInputV2Interface *t2 = waylandServer()->seat()->textInputV2();
     TextInputV3Interface *t3 = waylandServer()->seat()->textInputV3();
 
-    if (t1 && t1->isEnabled()) {
-        inputContext->sendSurroundingText(t1->surroundingText(), t1->surroundingTextCursorPosition(), t1->surroundingTextSelectionAnchor());
-        inputContext->sendPreferredLanguage(t1->preferredLanguage());
-        inputContext->sendContentType(t1->contentHints(), t2->contentPurpose());
-        connect(inputContext, &InputMethodContextV1Interface::language, this, &InputMethod::setLanguage);
-        connect(inputContext, &InputMethodContextV1Interface::textDirection, this, &InputMethod::setTextDirection);
-    } else if (t2 && t2->isEnabled()) {
+    if (t2 && t2->isEnabled()) {
         inputContext->sendSurroundingText(t2->surroundingText(), t2->surroundingTextCursorPosition(), t2->surroundingTextSelectionAnchor());
         inputContext->sendPreferredLanguage(t2->preferredLanguage());
         inputContext->sendContentType(t2->contentHints(), t2->contentPurpose());
-        connect(inputContext, &InputMethodContextV1Interface::language, this, &InputMethod::setLanguage);
-        connect(inputContext, &InputMethodContextV1Interface::textDirection, this, &InputMethod::setTextDirection);
     } else if (t3 && t3->isEnabled()) {
         inputContext->sendSurroundingText(t3->surroundingText(), t3->surroundingTextCursorPosition(), t3->surroundingTextSelectionAnchor());
         inputContext->sendContentType(t3->contentHints(), t3->contentPurpose());
@@ -906,6 +792,8 @@ void InputMethod::adoptInputMethodContext()
 
     inputContext->sendCommitState(m_serial++);
 
+    connect(inputContext, &InputMethodContextV1Interface::textDirection, this, &InputMethod::setTextDirection, Qt::UniqueConnection);
+    connect(inputContext, &InputMethodContextV1Interface::language, this, &InputMethod::setLanguage, Qt::UniqueConnection);
     connect(inputContext, &InputMethodContextV1Interface::keysym, this, &InputMethod::keysymReceived, Qt::UniqueConnection);
     connect(inputContext, &InputMethodContextV1Interface::key, this, &InputMethod::key, Qt::UniqueConnection);
     connect(inputContext, &InputMethodContextV1Interface::modifiers, this, &InputMethod::modifiers, Qt::UniqueConnection);
@@ -951,9 +839,7 @@ void InputMethod::setInputMethodCommand(const QString &command)
 
     m_inputMethodCommand = command;
 
-    if (m_enabled) {
-        startInputMethod();
-    }
+    startInputMethod();
     Q_EMIT availableChanged();
 }
 
@@ -989,12 +875,11 @@ void InputMethod::startInputMethod()
     }
 
     const QString program = arguments.takeFirst();
-    int socket = waylandServer()->createInputMethodConnection();
+    const int socket = waylandServer()->createInputMethodConnection();
     if (socket < 0) {
         qWarning("Failed to create the input method connection");
         return;
     }
-    socket = dup(socket);
 
     QProcessEnvironment environment = kwinApp()->processStartupEnvironment();
     environment.insert(QStringLiteral("WAYLAND_SOCKET"), QString::number(socket));
@@ -1013,6 +898,19 @@ void InputMethod::startInputMethod()
     m_inputMethodProcess->setProcessEnvironment(environment);
     m_inputMethodProcess->setProgram(program);
     m_inputMethodProcess->setArguments(arguments);
+    // The socketpair end is created with CLOEXEC, so the input method process can't inherit
+    // it directly. Clear the flag in the child process right before exec so the input method
+    // process can use the socket; the parent closes its copy after start().
+    m_inputMethodProcess->setChildProcessModifier([this, socket]() {
+        const int originalFlags = fcntl(socket, F_GETFD);
+        if (originalFlags < 0) {
+            m_inputMethodProcess->failChildProcessModifier("failed to get file descriptor flags", errno);
+            return;
+        }
+        if (fcntl(socket, F_SETFD, originalFlags & ~FD_CLOEXEC) < 0) {
+            m_inputMethodProcess->failChildProcessModifier("failed to unset O_CLOEXEC", errno);
+        }
+    });
     m_inputMethodProcess->start();
     close(socket);
     connect(m_inputMethodProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
@@ -1096,14 +994,24 @@ bool InputMethod::activeClientSupportsTextInput() const
 void InputMethod::forceActivate()
 {
     setActive(true);
+    m_forceShowRequested = true;
+    if (m_panel) {
+        m_panel->allow();
+    } else {
+        qCDebug(KWIN_VIRTUALKEYBOARD) << "No input panel available.";
+    }
     show();
 }
 
 void InputMethod::textInputInterfaceV3EnableRequested()
 {
     refreshActive();
-    show();
+    auto t3 = waylandServer()->seat()->textInputV3();
+    if (t3->implicitShowPanelRequired()) {
+        show();
+    }
 }
+
 }
 
 #include "moc_inputmethod.cpp"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
 "PO-Revision-Date: 2025-03-02 14:38+0530\n"
 "Last-Translator: Shreekant Kalwar <skkalwar999@gmail.com>\n"
 "Language-Team: Sanskrit <kde-i18n-doc@kde.org>\n"
@@ -19,81 +19,84 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n>2);\n"
 "X-Generator: Lokalize 24.12.2\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "न कर्म"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "डेस्कटॉप् इत्यत्र दृष्टिपातं कुर्वन्तु"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "लॉक स्क्रीन"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "KRunner इति दर्शयतु"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "गतिविधि प्रबन्धक"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "अनुप्रयोग प्रक्षेपक"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "वर्तमान विण्डोज"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 - सर्वे डेस्कटॉप्"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 - वर्तमान डेस्कटॉप"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 - वर्तमान अनुप्रयोग"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "अवलोकनम्"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "गृध्र"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "विण्डो स्विचिंग् टॉगल कुर्वन्तु"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "वैकल्पिकं विण्डो स्विचिंग् टॉगल कुर्वन्तु"
 
 #. i18n: ectx: property (text), widget (QLabel, infoLabel)
 #: main.ui:23
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "You can trigger an action by pushing the mouse cursor against the "
+#| "corresponding screen edge or corner."
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
 msgstr ""
 "भवन्तः मूषकस्य कर्सरं तत्सम्बद्धस्य स्क्रीन-धारस्य अथवा कोणस्य विरुद्धं धक्कायित्वा क्रियां "
@@ -161,9 +164,13 @@ msgstr "पटलस्य"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, desktopSwitchLabel)
 #: main.ui:174
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Change desktop when the mouse cursor is pushed against the edge of the "
+#| "screen"
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
 msgstr "यदा मूषकस्य कर्सरः स्क्रीनस्य धारं प्रति धक्कायते तदा डेस्कटॉप् परिवर्तयन्तु"
 
 #. i18n: ectx: property (text), widget (QLabel, desktopSwitchLabel)
@@ -193,9 +200,12 @@ msgstr "सर्वदा सक्षमम्"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, activationDelayLabel)
 #: main.ui:206
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Amount of time required for the mouse cursor to be pushed against the "
+#| "edge of the screen before the action is triggered"
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
 msgstr ""
 "क्रियायाः आरम्भात् पूर्वं मूषकस्य कर्सरस्य पटलस्य धारायाम् उपरि धक्कायितुं आवश्यकः समयः"
@@ -236,10 +246,16 @@ msgstr "&कोणबाधा :"
 
 #. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:280
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Here you can enable or disable the virtual corner barrier between "
+#| "screens. The barrier prevents the cursor from moving to another screen "
+#| "when it is already touching a screen corner. This makes it easier to "
+#| "trigger user interface elements like maximized windows' close buttons "
+#| "when using multiple screens."
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
@@ -250,9 +266,11 @@ msgstr ""
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:283
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Prevents cursors from crossing at screen corners."
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
+msgid "Prevents the pointer from crossing at screen corners."
 msgstr "स्क्रीनकोणेषु कर्सरानाम् पारगमनं निवारयति ।"
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
@@ -278,9 +296,11 @@ msgstr ""
 
 #. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:303
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Additional distance cursor needs to travel to cross screen edges."
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
+msgid "Additional distance the pointer needs to travel to cross screen edges."
 msgstr "स्क्रीन एज्स् पारं कर्तुं अतिरिक्तं दूरी कर्सरं गन्तुं आवश्यकम् अस्ति ।"
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, kcfg_EdgeBarrier)

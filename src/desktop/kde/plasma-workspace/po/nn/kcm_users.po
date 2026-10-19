@@ -1,20 +1,21 @@
 # Translation of kcm_users to Norwegian Nynorsk
 #
+# Karl Ove Hufthammer <karl@huftis.org>, 2020, 2022, 2023, 2024, 2025, 2026.
 # Øystein Steffensen-Alværvik <oysteins.omsetting@protonmail.com>, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-20 03:19+0000\n"
-"PO-Revision-Date: 2026-03-01 19:36+0100\n"
+"POT-Creation-Date: 2026-08-04 00:47+0000\n"
+"PO-Revision-Date: 2026-08-05 18:44+0200\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 26.03.70\n"
+"X-Generator: Lokalize 26.11.70\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
@@ -86,7 +87,7 @@ msgstr "Passord"
 msgid "Confirm password"
 msgstr "Stadfest passord"
 
-#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:73
+#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:114
 #, kde-format
 msgid "Passwords must match"
 msgstr "Passorda må vera like"
@@ -141,48 +142,68 @@ msgstr "La det vera uendra"
 msgid "Create User"
 msgstr "Legg til brukar"
 
-#: src/ui/CreateUser.qml:38 src/ui/UserDetailsPage.qml:165
+#: src/ui/CreateUser.qml:40 src/ui/UserDetailsPage.qml:165
 #, kde-format
 msgid "Name:"
 msgstr "Namn:"
 
-#: src/ui/CreateUser.qml:42 src/ui/UserDetailsPage.qml:171
+#: src/ui/CreateUser.qml:44 src/ui/UserDetailsPage.qml:171
 #, kde-format
 msgid "Username:"
 msgstr "Brukarnamn:"
 
-#: src/ui/CreateUser.qml:52 src/ui/UserDetailsPage.qml:203
+#: src/ui/CreateUser.qml:82
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Only lowercase letters, digits, dashes, and underscores are allowed. Invalid "
+"characters were removed."
+msgstr ""
+"Berre små bokstavar, siffer, bindestrek og understrek kan brukast. Ugyldige "
+"teikn vart fjerna."
+
+#: src/ui/CreateUser.qml:84
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Usernames must be lowercase. Uppercase characters were converted to "
+"lowercase."
+msgstr ""
+"Brukarnamn må skrivast med små bokstavar. Dei store bokstavane vart gjorde "
+"om til små."
+
+#: src/ui/CreateUser.qml:93 src/ui/UserDetailsPage.qml:203
 #, kde-format
 msgid "Standard"
 msgstr "Standard"
 
-#: src/ui/CreateUser.qml:53 src/ui/UserDetailsPage.qml:204
+#: src/ui/CreateUser.qml:94 src/ui/UserDetailsPage.qml:204
 #, kde-format
 msgid "Administrator"
 msgstr "Administrator"
 
-#: src/ui/CreateUser.qml:56 src/ui/UserDetailsPage.qml:193
+#: src/ui/CreateUser.qml:97 src/ui/UserDetailsPage.qml:193
 #, kde-format
 msgid "Account type:"
 msgstr "Kontotype:"
 
-#: src/ui/CreateUser.qml:61
+#: src/ui/CreateUser.qml:102
 #, kde-format
 msgid "Password:"
 msgstr "Passord:"
 
-#: src/ui/CreateUser.qml:66
+#: src/ui/CreateUser.qml:107
 #, kde-format
 msgid "Confirm password:"
 msgstr "Stadfest passord:"
 
-#: src/ui/CreateUser.qml:88
+#: src/ui/CreateUser.qml:129
 #, kde-format
 msgctxt "@action:button Create a new user"
 msgid "Create"
 msgstr "Legg til"
 
-#: src/ui/CreateUser.qml:111
+#: src/ui/CreateUser.qml:152
 #, kde-format
 msgctxt "@action:button Cancel creating new user"
 msgid "Cancel"
@@ -326,27 +347,22 @@ msgstr "Set opp fingeravtrykk"
 msgid "Add"
 msgstr "Legg til"
 
-#: src/ui/FingerprintDialog.qml:51
-#, kde-format
-msgid "Cancel"
-msgstr "Avbryt"
-
-#: src/ui/FingerprintDialog.qml:59
+#: src/ui/FingerprintDialog.qml:52
 #, kde-format
 msgid "Done"
 msgstr "Fullført"
 
-#: src/ui/FingerprintList.qml:46
+#: src/ui/FingerprintList.qml:47
 #, kde-format
 msgid "Re-enroll finger"
 msgstr "Registrer finger på nytt"
 
-#: src/ui/FingerprintList.qml:58
+#: src/ui/FingerprintList.qml:59
 #, kde-format
 msgid "Delete fingerprint"
 msgstr "Slett fingeravtrykk"
 
-#: src/ui/FingerprintList.qml:74
+#: src/ui/FingerprintList.qml:75
 #, kde-format
 msgid "No fingerprints added"
 msgstr "Ingen fingeravtrykk lagde til"

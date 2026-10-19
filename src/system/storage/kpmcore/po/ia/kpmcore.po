@@ -1,13 +1,13 @@
 # Copyright (C) 2025 This file is copyright:
 # This file is distributed under the same license as the kpmcore package.
 #
-# SPDX-FileCopyrightText: 2023, 2025 giovanni <g.sora@tiscali.it>
+# SPDX-FileCopyrightText: 2023, 2025, 2026 giovanni <g.sora@tiscali.it>
 msgid ""
 msgstr ""
 "Project-Id-Version: kpmcore\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
-"PO-Revision-Date: 2025-01-31 12:25+0100\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
+"PO-Revision-Date: 2026-07-15 17:16+0200\n"
 "Last-Translator: giovanni <g.sora@tiscali.it>\n"
 "Language-Team: Interlingua <kde-i18n-doc@kde.org>\n"
 "Language: ia\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.04.0\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -1799,13 +1799,13 @@ msgstr "Bloca"
 msgid "Enter passphrase for %1:"
 msgstr "Inserta phrase de contrasigno per %1:"
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
 msgstr ""
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1852,7 +1852,7 @@ msgid ""
 "filename>."
 msgstr ""
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1860,7 +1860,7 @@ msgid ""
 "trying to update the NTFS boot sector."
 msgstr ""
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2554,6 +2554,32 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr ""
 
+#: jobs/takeownershipjob.cpp:28
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr "Systema de file sur  <filename>%1</filename> non supporta proprietate."
+
+#: jobs/takeownershipjob.cpp:36
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr ""
+
+#: jobs/takeownershipjob.cpp:60
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ""
+
+#: jobs/takeownershipjob.cpp:62
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "Prendente proprietate de  <filename>%1</filename> per  usator %2"
+
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
 msgctxt "@info:status"
@@ -2935,6 +2961,18 @@ msgstr ""
 msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
 msgstr "Assigna etiquetta de partition GPT <filename>%1</filename> a  \"%2\""
+
+#: ops/takeownershipoperation.cpp:73
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ""
+
+#: ops/takeownershipoperation.cpp:75
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
+msgstr "Prende proprietate de  <filename>%1</filename> per  usator %2"
 
 #: plugins/geom/geompartitiontable.cpp:91
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:65

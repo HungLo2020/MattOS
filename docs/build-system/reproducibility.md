@@ -51,10 +51,10 @@ Every build command (`run_logged_command` in
   - Under the isolated CMake search policy, ECM's own search found no tar
     and fell back to `cmake -E tar`, which follows directory order and
     records the builder's uid and gid.
-- **Build dates.** Output-mirror patches make two sources use
-  `SOURCE_DATE_EPOCH`:
-  - keyutils' `keyutils_build_string`;
-  - KSyntaxHighlighting's generated Jinja syntax versions.
+- **Build dates.** An output-mirror patch makes keyutils'
+  `keyutils_build_string` use `SOURCE_DATE_EPOCH`. KSyntaxHighlighting 6.31
+  derives generated Jinja syntax versions from its input grammars upstream;
+  its former wall-clock patch is no longer needed.
 
   GRUB's manual sources get the normalized mtime, because `mdate-sh` dates
   the info manuals from it.

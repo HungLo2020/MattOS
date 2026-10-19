@@ -135,7 +135,7 @@ static QList<KPackage::Package> availableLnFPackages()
     const QStringList dataPaths = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
 
     for (const QString &path : dataPaths) {
-        QDir dir(path + QLatin1String("/plasma/look-and-feel"));
+        QDir dir(path + QLatin1StringView("/plasma/look-and-feel"));
         paths << dir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot);
     }
 
@@ -180,23 +180,17 @@ void KWinTabBoxConfig::initLayoutLists()
         addToModel(metaData.name(), metaData.pluginId(), switcherFile);
     }
 
-    const QStringList packageRoots{
-        QStringLiteral("kwin-wayland/tabbox"),
-        QStringLiteral("kwin/tabbox"),
-    };
-    for (const QString &packageRoot : packageRoots) {
-        const QList<KPluginMetaData> offers = KPackage::PackageLoader::self()->listPackages(QStringLiteral("KWin/WindowSwitcher"), packageRoot);
-        for (const auto &offer : offers) {
-            const QString pluginName = offer.pluginId();
-            const QString scriptFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
-                                                              packageRoot + QLatin1Char('/') + pluginName + QLatin1String("/contents/ui/main.qml"));
-            if (scriptFile.isEmpty()) {
-                qWarning() << "scriptfile is null" << pluginName;
-                continue;
-            }
-
-            addToModel(offer.name(), pluginName, scriptFile);
+    const QList<KPluginMetaData> offers = KPackage::PackageLoader::self()->listPackages(QStringLiteral("KWin/WindowSwitcher"), QStringLiteral("kwin/tabbox"));
+    for (const auto &offer : offers) {
+        const QString pluginName = offer.pluginId();
+        const QString scriptFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                                          QLatin1StringView("kwin/tabbox/") + pluginName + QLatin1StringView("/contents/ui/main.qml"));
+        if (scriptFile.isEmpty()) {
+            qWarning() << "scriptfile is null" << pluginName;
+            continue;
         }
+
+        addToModel(offer.name(), pluginName, scriptFile);
     }
 
     model->sort(0);

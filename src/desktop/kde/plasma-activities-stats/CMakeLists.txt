@@ -1,12 +1,12 @@
 # vim:set softtabstop=3 shiftwidth=3 tabstop=3 expandtab:
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 project(PlasmaActivitiesStats VERSION ${PROJECT_VERSION})
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 set(CMAKE_CXX_STANDARD 20)

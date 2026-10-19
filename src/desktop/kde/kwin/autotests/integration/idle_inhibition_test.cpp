@@ -19,8 +19,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_idle_inhbition_test-0");
-
 class TestIdleInhibition : public QObject
 {
     Q_OBJECT
@@ -31,6 +29,7 @@ private Q_SLOTS:
 
     void testInhibit();
     void testDontInhibitWhenNotOnCurrentDesktop();
+    void testDontInhibitWhenNotOnCurrentPerOutputDesktop();
     void testDontInhibitWhenMinimized();
     void testDontInhibitWhenUnmapped();
     void testDontInhibitWhenLeftCurrentDesktop();
@@ -42,7 +41,7 @@ void TestIdleInhibition::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),
@@ -61,6 +60,8 @@ void TestIdleInhibition::cleanup()
 
     VirtualDesktopManager::self()->setCount(1);
     QCOMPARE(VirtualDesktopManager::self()->count(), 1u);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(false);
+    QCOMPARE(VirtualDesktopManager::self()->isPerOutputVirtualDesktops(), false);
 }
 
 void TestIdleInhibition::testInhibit()
@@ -146,6 +147,60 @@ void TestIdleInhibition::testDontInhibitWhenNotOnCurrentDesktop()
     // Destroy the test window.
     shellSurface.reset();
     QVERIFY(Test::waitForWindowClosed(window));
+    QCOMPARE(input()->idleInhibitors(), QList<Window *>{});
+}
+
+void TestIdleInhibition::testDontInhibitWhenNotOnCurrentPerOutputDesktop()
+{
+    // This test verifies that the idle inhibitor object is not honored when
+    // the associated surface is not on the current virtual desktop.
+
+    VirtualDesktopManager::self()->setCount(2);
+    QCOMPARE(VirtualDesktopManager::self()->count(), 2u);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(true);
+    QCOMPARE(VirtualDesktopManager::self()->isPerOutputVirtualDesktops(), true);
+
+    // Create the test window.
+    Test::XdgToplevelWindow window;
+
+    // Create the inhibitor object.
+    std::unique_ptr<Test::IdleInhibitorV1> inhibitor(Test::createIdleInhibitorV1(window.m_surface.get()));
+    QVERIFY(inhibitor);
+
+    // Render the window.
+    QVERIFY(window.show());
+    window.m_window->setOutput(workspace()->outputs().at(0));
+    QCOMPARE(window.m_window->output(), workspace()->outputs().at(0));
+
+    // The test window should be only on the first virtual desktop.
+    QCOMPARE(window.m_window->desktops().count(), 1);
+    QCOMPARE(window.m_window->desktops().first(), VirtualDesktopManager::self()->desktops().first());
+
+    // This should inhibit our server object.
+    QCOMPARE(input()->idleInhibitors(), QList<Window *>{window.m_window});
+
+    // Switch to the second virtual desktop on another output.
+    VirtualDesktopManager::self()->setCurrent(2, workspace()->outputs().at(1));
+
+    // The surface is still visible, so it should still inhibit.
+    QCOMPARE(input()->idleInhibitors(), QList<Window *>{window.m_window});
+
+    // Switch to the second virtual desktop on window's output.
+    VirtualDesktopManager::self()->setCurrent(2, workspace()->outputs().at(0));
+
+    // The surface is no longer visible, so the compositor don't have to honor the
+    // idle inhibitor object.
+    QCOMPARE(input()->idleInhibitors(), QList<Window *>{});
+
+    // Switch back to the first virtual desktop.
+    VirtualDesktopManager::self()->setCurrent(1, workspace()->outputs().at(0));
+
+    // The test window became visible again, so the compositor has to honor the idle
+    // inhibitor object back again.
+    QCOMPARE(input()->idleInhibitors(), QList<Window *>{window.m_window});
+
+    // Destroy the test window.
+    QVERIFY(window.unmapAndWaitForClosed());
     QCOMPARE(input()->idleInhibitors(), QList<Window *>{});
 }
 

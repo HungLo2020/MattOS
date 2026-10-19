@@ -2,21 +2,21 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Martin Schlander <mschlander@opensuse.org>, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021.
-# SPDX-FileCopyrightText: 2024 rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>
+# SPDX-FileCopyrightText: 2024, 2026 rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-04 02:42+0000\n"
-"PO-Revision-Date: 2024-07-08 12:14+0200\n"
-"Last-Translator: rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
+"PO-Revision-Date: 2026-05-07 10:33+0200\n"
+"Last-Translator: Rasmus Rosendahl-Kaa <rasmus@rosendahl-kaa.name>\n"
 "Language-Team: Danish <kde-i18n-doc@kde.org>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 24.05.2\n"
+"X-Generator: Lokalize 26.04.0\n"
 
 #: components/ActionContainer.qml:96
 #, kde-format
@@ -107,60 +107,60 @@ msgctxt "Row description, e.g. Source"
 msgid "%1:"
 msgstr "%1:"
 
-#: components/JobDetails.qml:116
+#: components/JobDetails.qml:118
 #, kde-format
 msgctxt "How many bytes have been copied"
 msgid "%2 of %1"
 msgstr "%2 ud af %1"
 
-#: components/JobDetails.qml:120
+#: components/JobDetails.qml:122
 #, kde-format
 msgctxt "How many files have been copied"
-msgid "%2 of %1 file"
-msgid_plural "%2 of %1 files"
-msgstr[0] "%2 ud af %1 fil"
-msgstr[1] "%2 ud af %1 filer"
+msgid "%3 of %2 file"
+msgid_plural "%3 of %2 files"
+msgstr[0] "%3 ud af %2 fil"
+msgstr[1] "%3 ud af %2 filer"
 
-#: components/JobDetails.qml:123
+#: components/JobDetails.qml:125
 #, kde-format
 msgctxt "How many dirs have been copied"
-msgid "%2 of %1 folder"
-msgid_plural "%2 of %1 folders"
-msgstr[0] "%2 ud af %1 mappe"
-msgstr[1] "%2 ud af %1 mapper"
+msgid "%3 of %2 folder"
+msgid_plural "%3 of %2 folders"
+msgstr[0] "%3 ud af %2 mappe"
+msgstr[1] "%3 ud af %2 mapper"
 
-#: components/JobDetails.qml:126
+#: components/JobDetails.qml:128
 #, kde-format
 msgctxt "How many items (that includes files and dirs) have been copied"
-msgid "%2 of %1 item"
-msgid_plural "%2 of %1 items"
-msgstr[0] "%2 ud af %1 element"
-msgstr[1] "%2 ud af %1 elementer"
+msgid "%3 of %2 item"
+msgid_plural "%3 of %2 items"
+msgstr[0] "%3 ud af %2 element"
+msgstr[1] "%3 ud af %2 elementer"
 
-#: components/JobDetails.qml:135
+#: components/JobDetails.qml:137
 #, kde-format
 msgid "%1 file"
 msgid_plural "%1 files"
 msgstr[0] "%1 fil"
 msgstr[1] "%1 filer"
 
-#: components/JobDetails.qml:137
+#: components/JobDetails.qml:139
 #, kde-format
 msgid "%1 folder"
 msgid_plural "%1 folders"
 msgstr[0] "%1 mappe"
 msgstr[1] "%1 mapper"
 
-#: components/JobDetails.qml:139
+#: components/JobDetails.qml:141
 #, kde-format
 msgid "%1 item"
 msgid_plural "%1 items"
 msgstr[0] "%1 element"
 msgstr[1] "%1 elementer"
 
-#: components/JobDetails.qml:156 components/SpeedChart.qml:72
-#: components/SpeedChart.qml:98 components/SpeedChart.qml:193
-#: components/SpeedChart.qml:204
+#: components/JobDetails.qml:158 components/SpeedChart.qml:75
+#: components/SpeedChart.qml:103 components/SpeedChart.qml:204
+#: components/SpeedChart.qml:217
 #, kde-format
 msgctxt "Bytes per second"
 msgid "%1/s"
@@ -190,7 +190,7 @@ msgctxt "Cancel running job"
 msgid "Cancel"
 msgstr "Annullér"
 
-#: components/JobItem.qml:125 components/ThumbnailStrip.qml:159
+#: components/JobItem.qml:125 components/ThumbnailStrip.qml:154
 #, kde-format
 msgid "More Options…"
 msgstr "Flere indstillinger…"
@@ -217,17 +217,17 @@ msgctxt "@action:button"
 msgid "Send"
 msgstr "Send"
 
-#: components/SpeedChart.qml:145
+#: components/SpeedChart.qml:155
 #, kde-format
 msgid "Speed"
-msgstr ""
+msgstr "Hastighed"
 
-#: components/SpeedChart.qml:200
+#: components/SpeedChart.qml:212
 #, kde-format
 msgid "Average Speed"
-msgstr ""
+msgstr "Gennemsnitshastighed"
 
-#: components/SpeedChart.qml:258
+#: components/SpeedChart.qml:272
 #, kde-format
 msgctxt "Percentage of a job"
 msgid "%1%"
@@ -261,12 +261,12 @@ msgstr "%1 (færdig)"
 msgid "Job Finished"
 msgstr "Job færdigt"
 
-#: fileinfo.cpp:170
+#: fileinfo.cpp:186
 #, kde-format
 msgid "Open with %1"
 msgstr "Åbn med %1"
 
-#: fileinfo.cpp:174
+#: fileinfo.cpp:190
 #, kde-format
 msgid "Open with…"
 msgstr "Åbn med..."
@@ -350,13 +350,13 @@ msgstr "Skærmene er spejlede"
 #, kde-format
 msgctxt "Do not disturb because fullscreen app is focused"
 msgid "Fullscreen app is focused"
-msgstr ""
+msgstr "Fuldskærm app er fokuseret"
 
 #: FullRepresentation.qml:510 FullRepresentation.qml:516
 #, kde-format
 msgctxt "@action:button"
 msgid "View"
-msgstr ""
+msgstr "Vis"
 
 #: FullRepresentation.qml:597
 #, kde-format
@@ -390,22 +390,34 @@ msgctxt "Vendor and product name"
 msgid "Notifications are currently provided by '%1 %2'"
 msgstr "Bekendtgørelser leveres i øjeblikket af \"%1 %2\""
 
-#: globalshortcuts.cpp:23
+#: globalshortcuts.cpp:24
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "Slå vil ikke forstyrres til/fra"
 
-#: globalshortcuts.cpp:42
+#: globalshortcuts.cpp:33
+#, kde-format
+msgctxt "@action"
+msgid "Clear Notification History"
+msgstr "Ryd notifikationshistorik"
+
+#: globalshortcuts.cpp:52
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications Off"
 msgstr "Bekendtgørelser fra"
 
-#: globalshortcuts.cpp:43
+#: globalshortcuts.cpp:53
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications On"
 msgstr "Bekendtgørelser til"
+
+#: globalshortcuts.cpp:68
+#, kde-format
+msgctxt "@label OSD popup, keep short"
+msgid "Notification history cleared"
+msgstr "Notifikationshistorik ryddet"
 
 #: main.qml:61
 #, kde-format
@@ -435,13 +447,11 @@ msgstr[0] "%1 ulæst bekendtgørelse"
 msgstr[1] "%1 ulæste bekendtgørelser"
 
 #: main.qml:88
-#, fuzzy, kde-format
-#| msgid "%1 unread notification"
-#| msgid_plural "%1 unread notifications"
+#, kde-format
 msgid "%1 active notification"
 msgid_plural "%1 active notifications"
-msgstr[0] "%1 ulæst bekendtgørelse"
-msgstr[1] "%1 ulæste bekendtgørelser"
+msgstr[0] "%1 aktiv notifikation"
+msgstr[1] "%1 aktive notifikationer"
 
 #: main.qml:101
 #, kde-format
@@ -458,12 +468,12 @@ msgstr "Forstyr ikke-tilstand aktiveret; midter-klik for at afslutte"
 msgid "Middle-click to enter do not disturb mode"
 msgstr "Midter-klik for at slå Forstyr ikke til"
 
-#: main.qml:238
+#: main.qml:245
 #, kde-format
 msgid "Clear All Notifications"
 msgstr "Ryd alle bekendtgørelser"
 
-#: main.qml:257
+#: main.qml:264
 #, kde-format
 msgid "&Configure Event Notifications and Actions…"
 msgstr "&Indstil bekendtgørelser og handlinger for hændelser…"

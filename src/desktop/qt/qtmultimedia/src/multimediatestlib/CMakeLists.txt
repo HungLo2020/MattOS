@@ -9,18 +9,21 @@ qt_internal_add_module(MultimediaTestLibPrivate
         capturesessionfixture_p.h capturesessionfixture.cpp
         framegenerator_p.h framegenerator.cpp
         mediabackendutils_p.h
+        qintegrationtestbase_p.h qintegrationtestbase.cpp
         mediafileselector_p.h
         formatutils_p.h formatutils.cpp
         mediainfo_p.h
         multimedia_debug_support_p.h
         osdetection_p.h
-        testvideosink_p.h
+        testvideosink_p.h testvideosink.cpp
         qcolorutil_p.h qcolorutil.cpp
         qfileutil_p.h qfileutil.cpp
         qscopedenvironmentvariable_p.h
         qsequentialfileadaptor_p.h
         qsinewavevalidator_p.h qsinewavevalidator.cpp
         qmockiodevice_p.h
+        qmessagespy_p.h
+        qmockresolvers_p.h
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::CorePrivate
@@ -31,4 +34,9 @@ qt_internal_add_module(MultimediaTestLibPrivate
         Qt::Test
     NO_GENERATE_CPP_EXPORTS
     QT_LICENSE_ID QT_COMMERCIAL_OR_GPL3
+)
+
+qt_internal_extend_target(MultimediaTestLibPrivate CONDITION LINUX
+    SOURCES
+        udmabuftestutils_p.h udmabuftestutils.cpp
 )

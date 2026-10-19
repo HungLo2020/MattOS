@@ -487,6 +487,7 @@ private slots:
     void innerFunctionWithTypeAnnotation();
 
     void engineTypeCrossTalk();
+    void failOnWrongRequiredProperty();
 
     void onlyInlineComponent();
 
@@ -531,9 +532,10 @@ private slots:
 
     void aliasToLargeRevision();
     void aliasToPropertyOfAlias();
+    void aliasToGroupedProperty();
     void aliasesAndDefaultProperty();
     void removeBindingFromAliasToObject();
-    void aliasToGroupedProperty();
+    void aliasToLocalAliasOrdering();
     void propertyCycle();
 
     void urlWithFragment();
@@ -6523,7 +6525,9 @@ void tst_qqmllanguage::nonExistingInlineComponent_data()
     QTest::newRow("Property type")  << testFileUrl("nonExistingICUser1.qml") << QString("Type InlineComponentProvider has no inline component type called NotExisting") << 4 << 58;
     QTest::newRow("Instantiation")  << testFileUrl("nonExistingICUser2.qml") << QString("Type InlineComponentProvider has no inline component type called NotExisting") << 4 << 5;
     QTest::newRow("Inheritance")    << testFileUrl("nonExistingICUser3.qml") << QString("Type InlineComponentProvider has no inline component type called NotExisting") << 3 << 1;
-    QTest::newRow("From singleton") << testFileUrl("nonExistingICUser4.qml") << QString("Type MySingleton.SingletonTypeWithIC has no inline component type called NonExisting") << 5 << 71;
+
+    // We detect this one earlier because we already have the outer type available when we try to resolve it.
+    QTest::newRow("From singleton") << testFileUrl("nonExistingICUser4.qml") << QString("MySingleton.SingletonTypeWithIC.NonExisting - NonExisting is not an inline component") << 5 << 71;
 
     QTest::newRow("Cannot access parent inline components from child")  << testFileUrl("nonExistingICUser5.qml") << QString("Type InlineComponentProviderChild has no inline component type called StyledRectangle") << 4 << 67;
 }
@@ -7251,12 +7255,12 @@ void tst_qqmllanguage::bareInlineComponent()
             QVERIFY(type.module().isEmpty());
             tab1Found = true;
 
-            const QQmlType leftTab = QQmlMetaType::inlineComponentType(type, "LeftTab");
+            const QQmlType leftTab = QQmlMetaType::findOrCreateSpeculativeInlineComponentType(type, "LeftTab");
             QUrl leftUrl = leftTab.sourceUrl();
             leftUrl.setFragment(QString());
             QCOMPARE(leftUrl, type.sourceUrl());
 
-            const QQmlType rightTab = QQmlMetaType::inlineComponentType(type, "RightTab");
+            const QQmlType rightTab = QQmlMetaType::findOrCreateSpeculativeInlineComponentType(type, "RightTab");
             QUrl rightUrl = rightTab.sourceUrl();
             rightUrl.setFragment(QString());
             QCOMPARE(rightUrl, type.sourceUrl());
@@ -9461,6 +9465,19 @@ public:
         QCOMPARE(withProperty, object->property("objectWithProperty").value<QObject *>());
     }
 
+    void wreck2(const QUrl &inner) {
+        QQmlComponent component(&engine, inner);
+        QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+        object->setProperty("delegate", QVariant::fromValue(&component));
+        QTest::ignoreMessage(
+                    QtWarningMsg,
+                    qPrintable(
+                        QLatin1String("%1: Could not set initial property objectWithProperty")
+                        .arg(inner.toString())));
+        QMetaObject::invokeMethod(object.get(), "doWrong");
+        QCOMPARE(object->property("innerObject").value<QObject *>(), nullptr);
+    }
+
     QQmlEngine engine;
     std::unique_ptr<QObject> object;
 };
@@ -9474,6 +9491,12 @@ void tst_qqmllanguage::engineTypeCrossTalk()
     const QUrl inner("qrc:/StaticTest/data/InnerObject.qml");
     first.wreck(inner);
     second.wreck(inner);
+}
+
+void tst_qqmllanguage::failOnWrongRequiredProperty()
+{
+    EngineAndObject outer(QUrl("qrc:/StaticTest/data/outerObject.qml"));
+    outer.wreck2(QUrl("qrc:/StaticTest/data/InnerObject.qml"));
 }
 
 void tst_qqmllanguage::onlyInlineComponent()
@@ -10117,6 +10140,28 @@ void tst_qqmllanguage::aliasToPropertyOfAlias()
     QVERIFY(!o.isNull());
 
     QCOMPARE(o->property("bar").toString(), "bar"_L1);
+
+}
+
+void tst_qqmllanguage::aliasToGroupedProperty()
+{
+    QQmlEngine engine;
+    QQmlComponent c(&engine, testFileUrl("aliasToGroupedProperty.qml"));
+
+    QVERIFY2(c.isReady(), qPrintable(c.errorString()));
+    QScopedPointer<QObject> o(c.create());
+    QVERIFY(!o.isNull());
+
+    // Direct alias into C++ grouped property
+    o->setProperty("groupedValue", 42);
+    QCOMPARE(o->property("groupedValue").toInt(), 42);
+
+    // Alias through another alias (QTBUG-130605 pattern)
+    o->setProperty("throughAliasValue", 99);
+    QCOMPARE(o->property("throughAliasValue").toInt(), 99);
+
+    // Both aliases point to the same grouped.value
+    QCOMPARE(o->property("groupedValue").toInt(), 99);
 }
 
 void tst_qqmllanguage::aliasesAndDefaultProperty()
@@ -10152,25 +10197,18 @@ void tst_qqmllanguage::removeBindingFromAliasToObject()
     QCOMPARE(o->objectName(), "boom"_L1);
 }
 
-void tst_qqmllanguage::aliasToGroupedProperty()
+void tst_qqmllanguage::aliasToLocalAliasOrdering()
 {
     QQmlEngine engine;
-    QQmlComponent c(&engine, testFileUrl("aliasToGroupedProperty.qml"));
+    QQmlComponent c(&engine, testFileUrl("aliasToLocalAliasOrdering.qml"));
 
     QVERIFY2(c.isReady(), qPrintable(c.errorString()));
     QScopedPointer<QObject> o(c.create());
     QVERIFY(!o.isNull());
 
-    // Direct alias into C++ grouped property
-    o->setProperty("groupedValue", 42);
-    QCOMPARE(o->property("groupedValue").toInt(), 42);
-
-    // Alias through another alias (QTBUG-130605 pattern)
-    o->setProperty("throughAliasValue", 99);
-    QCOMPARE(o->property("throughAliasValue").toInt(), 99);
-
-    // Both aliases point to the same grouped.value
-    QCOMPARE(o->property("groupedValue").toInt(), 99);
+    QObject *nav = qvariant_cast<QObject *>(o->property("navigation"));
+    QVERIFY(nav);
+    QCOMPARE(nav->objectName(), "theNav"_L1);
 }
 
 void tst_qqmllanguage::urlWithFragment()

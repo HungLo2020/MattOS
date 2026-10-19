@@ -18,8 +18,6 @@
 namespace KWin
 {
 
-class BlurManagerInterface;
-class ContrastManagerInterface;
 class BackgroundEffectItem;
 
 struct BlurRenderData
@@ -33,10 +31,10 @@ struct BlurRenderData
 struct BlurEffectData
 {
     /// The region that should be blurred behind the window
-    std::optional<Region> content;
+    std::optional<RegionF> content;
 
     /// The region that should be blurred behind the frame
-    std::optional<Region> frame;
+    std::optional<RegionF> frame;
 
     /**
      * The render data per render view, as they can have different
@@ -45,11 +43,6 @@ struct BlurEffectData
     std::unordered_map<RenderView *, BlurRenderData> render;
 
     std::unique_ptr<BackgroundEffectItem> blurItem;
-
-    /**
-     * Color transformation matrix (contrast, and saturation).
-     */
-    std::optional<QMatrix4x4> colorMatrix;
 };
 
 class BlurEffect : public KWin::Effect
@@ -64,8 +57,8 @@ public:
     static bool enabledByDefault();
 
     void reconfigure(ReconfigureFlags flags) override;
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void drawWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data) override;
+    void prePaintScreen(ScreenPrePaintData &data) override;
+    bool drawWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data) override;
 
     bool provides(Feature feature) override;
     bool isActive() const override;
@@ -90,8 +83,8 @@ public Q_SLOTS:
 
 private:
     void initBlurStrengthValues();
-    Region blurRegion(EffectWindow *w) const;
-    Region decorationBlurRegion(const EffectWindow *w) const;
+    RegionF blurRegion(EffectWindow *w) const;
+    RegionF decorationBlurRegion(const EffectWindow *w) const;
     bool decorationSupportsBlurBehind(const EffectWindow *w) const;
     bool shouldBlur(const EffectWindow *w, int mask, const WindowPaintData &data) const;
     void updateBlurRegion(EffectWindow *w);
@@ -177,14 +170,7 @@ private:
     QList<BlurValuesStruct> blurStrengthValues;
 
     QMap<EffectWindow *, QMetaObject::Connection> windowBlurChangedConnections;
-    QMap<EffectWindow *, QMetaObject::Connection> windowContrastChangedConnections;
     std::unordered_map<EffectWindow *, BlurEffectData> m_windows;
-
-    static BlurManagerInterface *s_blurManager;
-    static QTimer *s_blurManagerRemoveTimer;
-
-    static ContrastManagerInterface *s_contrastManager;
-    static QTimer *s_contrastManagerRemoveTimer;
 };
 
 inline bool BlurEffect::provides(Effect::Feature feature)

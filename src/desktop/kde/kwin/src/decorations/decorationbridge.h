@@ -11,11 +11,15 @@
 #include "kwin_export.h"
 #include <KDecoration3/Private/DecorationBridge>
 #include <QObject>
+#include <QSet>
 
 class KPluginFactory;
 namespace KDecoration3
 {
+
 class DecorationSettings;
+enum class Style;
+
 }
 
 namespace KWin
@@ -29,13 +33,15 @@ namespace Decoration
 class KWIN_EXPORT DecorationBridge : public KDecoration3::DecorationBridge
 {
     Q_OBJECT
+
 public:
     explicit DecorationBridge();
 
     static bool hasPlugin();
+    static QSet<KDecoration3::Style> supportedStyles();
 
     void init();
-    KDecoration3::Decoration *createDecoration(Window *window);
+    KDecoration3::Decoration *createDecoration(Window *window, KDecoration3::Style style);
 
     std::unique_ptr<KDecoration3::DecoratedWindowPrivate> createClient(KDecoration3::DecoratedWindow *client, KDecoration3::Decoration *decoration) override;
     std::unique_ptr<KDecoration3::DecorationSettingsPrivate> settings(KDecoration3::DecorationSettings *parent) override;
@@ -75,8 +81,10 @@ private:
     QString m_plugin;
     QString m_defaultTheme;
     QString m_theme;
+    QSet<KDecoration3::Style> m_supportedStyles;
     std::shared_ptr<KDecoration3::DecorationSettings> m_settings;
     bool m_noPlugin;
 };
+
 } // Decoration
 } // KWin

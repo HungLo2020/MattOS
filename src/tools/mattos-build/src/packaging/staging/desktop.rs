@@ -956,7 +956,16 @@ set -eu
 export XDG_CONFIG_DIRS=/etc/xdg${XDG_CONFIG_DIRS:+:$XDG_CONFIG_DIRS}
 export XDG_DATA_DIRS=/usr/share${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
 export QT_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/plugins:/usr/plugins${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}
-export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
+# A terminal or SSH launch may lack the graphical session's environment.
+# KWin's wrapper can allocate wayland-1; ask the user manager for its display.
+if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+  WAYLAND_DISPLAY=$(systemctl --user show-environment | sed -n 's/^WAYLAND_DISPLAY=//p')
+fi
+if [ -z "$WAYLAND_DISPLAY" ]; then
+  echo 'MattOS installer: no active Wayland session display was found' >&2
+  exit 1
+fi
+export WAYLAND_DISPLAY
 export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-wayland}"
 # The live profile grants the logged-in installer user passwordless sudo.
 # Use it for the GUI itself so the desktop launcher cannot strand Calamares

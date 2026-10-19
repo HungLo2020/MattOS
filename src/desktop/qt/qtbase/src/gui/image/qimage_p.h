@@ -1,5 +1,6 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QIMAGE_P_H
 #define QIMAGE_P_H
@@ -570,6 +571,10 @@ inline QImage::Format qt_alphaVersionForPainting(QImage::Format format)
 
 Q_GUI_EXPORT QMap<QString, QString> qt_getImageText(const QImage &image, const QString &description);
 Q_GUI_EXPORT QMap<QString, QString> qt_getImageTextFromDescription(const QString &description);
+
+Q_GUI_EXPORT bool qt_xForm_helper(const QTransform &trueMat, int xoffset, int type, int depth,
+                                  uchar *dptr, qsizetype dbpl, int p_inc, int dHeight,
+                                  const uchar *sptr, qsizetype sbpl, int sWidth, int sHeight);
 
 QT_END_NAMESPACE
 

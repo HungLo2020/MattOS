@@ -1,0 +1,110 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ * SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+ */
+
+/*
+ * Custom global variables used by all the other style rules.
+ */
+
+:root {
+    /* Standard Sizes */
+    --minimal-spacing: 2px;
+    --small-spacing: 4px;
+    --medium-spacing: 6px;
+    --large-spacing: 8px;
+    --grid-unit: 18px;
+    --corner-radius: 5px;
+
+    /* Icon sizes */
+    --icon-size-small: 16px;
+    --icon-size-smallmedium: 22px;
+    --icon-size-medium: 32px;
+    --icon-size-large: 48px;
+
+    /* Default item sizes */
+    --small-element-size: 16px;
+    --medium-element-size: 24px;
+    --large-element-size: 32px;
+    --scrollbar-size: 20px;
+    --non-interactive-scrollbar-size: 10px;
+    --menu-item-width: 150px;
+    --text-field-width: 200px;
+
+    /* Colors */
+    --highlight-color: custom-color("kcolorscheme", "active", "selection", "background", "normal");
+    --highlight-text-color: custom-color("kcolorscheme", "active", "selection", "foreground", "text");
+    --highlight-hover-color: modify-color(var(--highlight-color) set-alpha 0.3);
+
+    --window-text-color: custom-color("kcolorscheme", "active", "window", "foreground", "text");
+    --window-background-color: custom-color("kcolorscheme", "active", "window", "background", "normal");
+    --window-background-alternate-color: custom-color("kcolorscheme", "active", "window", "background", "alternate");
+    --window-border-color: custom-color("kcolorscheme", "active", "window", "decoration", "frame");
+    --window-highlight-color: mix(var(--window-background-color), var(--highlight-color), 0.5);
+    --window-border-highlight-color: var(--highlight-color);
+
+    --view-text-color: custom-color("kcolorscheme", "active", "view", "foreground", "text");
+    --view-background-color: custom-color("kcolorscheme", "active", "view", "background", "normal");
+    --view-background-alternate-color: custom-color("kcolorscheme", "active", "view", "background", "alternate");
+    --view-border-color: custom-color("kcolorscheme", "active", "view", "decoration", "frame");
+    --view-highlight-color: mix(var(--view-background-color), var(--highlight-color), 0.5);
+
+    --header-text-color: custom-color("kcolorscheme", "active", "header", "foreground", "text");
+    --header-background-color: custom-color("kcolorscheme", "active", "header", "background", "normal");
+    --header-background-inactive-color: custom-color("kcolorscheme", "inactive", "header", "background", "normal");
+    --header-border-color: custom-color("kcolorscheme", "active", "header", "decoration", "frame");
+
+    --complementary-text-color: custom-color("kcolorscheme", "active", "complementary", "foreground", "text");
+    --complementary-background-color: custom-color("kcolorscheme", "active", "complementary", "background", "normal");
+
+    --positive-text: custom-color("kcolorscheme", "active", "view", "foreground","positive");
+    --neutral-text: custom-color("kcolorscheme", "active", "view", "foreground","neutral");
+    --negative-text: custom-color("kcolorscheme", "active", "view", "foreground","negative");
+    --positive-background: custom-color("kcolorscheme", "active", "view", "background","positive");
+    --neutral-background: custom-color("kcolorscheme", "active", "view", "background","neutral");
+    --negative-background: custom-color("kcolorscheme", "active", "view", "background","negative");
+
+    --changed-foreground: var(--neutral-text);
+    --changed-background: var(--neutral-background);
+
+    --card-background-color: var(--view-background-color);
+    --card-text-color: var(--view-text-color);
+    --card-border-color: var(--view-border-color);
+    --card-hover-color: mix(var(--card-background-color), var(--highlight-color), 0.1);
+    --card-pressed-color: mix(var(--card-background-color), var(--highlight-color), 0.3);
+
+    --focus-outline-alpha: 0.3;
+    --focus-color: modify-color(custom-color("kcolorscheme", "active", "window", "decoration", "focus") set-alpha var(--focus-outline-alpha));
+
+    --shadow-color: rgba(0, 0, 0, 0.1);
+
+    /* Disabled colors */
+    --window-disabled-text-color: custom-color("kcolorscheme", "disabled", "window", "foreground", "text");
+    --window-disabled-background-color: custom-color("kcolorscheme", "disabled", "window", "background", "normal");
+    --window-disabled-border-color: custom-color("kcolorscheme", "disabled", "window", "decoration", "frame");
+
+    --view-disabled-text-color: custom-color("kcolorscheme", "disabled", "view", "foreground", "text");
+    --view-disabled-background-color: custom-color("kcolorscheme", "disabled", "view", "background", "normal");
+    --view-disabled-border-color: custom-color("kcolorscheme", "disabled", "view", "decoration", "frame");
+
+    --header-disabled-text-color: custom-color("kcolorscheme", "disabled", "header", "foreground", "text");
+    --header-disabled-background-color: custom-color("kcolorscheme", "disabled", "header", "background", "normal");
+    --header-disabled-border-color: custom-color("kcolorscheme", "disabled", "header", "decoration", "frame");
+
+    --complementary-disabled-text-color: custom-color("kcolorscheme", "disabled", "complementary", "foreground", "text");
+
+    --highlight-disabled-color: mix(var(--window-disabled-background-color), var(--highlight-color), 0.2);
+    --highlight-disabled-text-color: mix(var(--window-disabled-text-color), var(--highlight-text-color), 0.2);
+
+    --card-disabled-background-color: var(--view-disabled-background-color);
+    --card-disabled-text-color: var(--view-disabled-text-color);
+    --card-disabled-border-color: var(--view-disabled-border-color);
+
+    /* Standard Elements */
+    --focus-outline: 2px solid var(--focus-color);
+    --dialog-shadow: 0px 1px 32px 0px rgba(0, 0, 0, 0.3);
+
+    --indicator-color: modify-color(var(--window-text-color) set-alpha 0.4);
+    --indicator-press-color: modify-color(var(--window-text-color) set-alpha 0.7);
+    --indicator-current-color: modify-color(var(--window-text-color) set-alpha 0.95);
+}

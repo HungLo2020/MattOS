@@ -4,88 +4,87 @@
 # Mthw <jari_45@hotmail.com>, 2018.
 # Matej Mrenica <matejm98mthw@gmail.com>, 2019, 2020, 2021, 2022.
 # Ferdinand Galko <galko.ferdinand@gmail.com>, 2023.
-# SPDX-FileCopyrightText: 2026 Lucia Mrenica <lucia.mrenica@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwinscreenedges\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
-"PO-Revision-Date: 2026-01-31 17:23+0100\n"
-"Last-Translator: Lucia Mrenica <lucia.mrenica@gmail.com>\n"
-"Language-Team: Slovak <kde-i18n-doc@kde.org>\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
+"PO-Revision-Date: 2023-12-12 19:23+0100\n"
+"Last-Translator: Roman Paholik <wizzardsk@gmail.com>\n"
+"Language-Team: Slovak <kde-sk@linux.sk>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.12.1\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 23.08.3\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "Žiadna akcia"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "Nazrieť na pracovnú plochu"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "Zamknúť obrazovku"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "Zobraziť KRunner"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "Správca aktivít"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "Spúšťač aplikácií"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "Aktuálne okná"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 - Všetky plochy"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 - Aktuálna plocha"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 - Aktuálna aplikácia"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "Prehľad"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "Mriežka"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "Prepnúť prepínanie okien"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "Prepnúť alternatívne prepínanie okien"
@@ -94,7 +93,7 @@ msgstr "Prepnúť alternatívne prepínanie okien"
 #: main.ui:23
 #, kde-format
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
 msgstr ""
 "Akciu môžete spustiť posunutím kurzora myši k zodpovedajúcemu okraju alebo "
@@ -164,7 +163,8 @@ msgstr "obrazovky"
 #: main.ui:174
 #, kde-format
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
 msgstr "Zmeniť plochu, keď je kurzor myši posunutý za okraj obrazovky"
 
 #. i18n: ectx: property (text), widget (QLabel, desktopSwitchLabel)
@@ -196,7 +196,7 @@ msgstr "Vždy povolené"
 #: main.ui:206
 #, kde-format
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
 msgstr ""
 "Ako dlho je potrebné držať kurzor myši za okrajom obrazovky pred spustením "
@@ -233,36 +233,36 @@ msgstr "Oneskorenie &reaktivácie:"
 #: main.ui:270
 #, kde-format
 msgid "&Corner barrier:"
-msgstr "Rohová bariéra:"
+msgstr "&Bariéra v rohu:"
 
 #. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:280
 #, kde-format
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
 msgstr ""
-"Tu môžete povoliť alebo zakázať virtuálnu rohovú bariéru medzi obrazovkami. "
-"Bariéra zabraňuje presunutiu kurzora na inú obrazovku, keď sa už dotýka rohu "
-"obrazovky. To uľahčuje spúšťanie prvkov používateľského rozhrania, ako sú "
-"tlačidlá na zatvorenie maximalizovaných okien, pri používaní viacerých "
-"obrazoviek."
+"Here you can enable or disable the virtual corner barrier between screens. "
+"The barrier prevents the pointer from moving to another screen when it is "
+"already touching a screen corner. This makes it easier to trigger user "
+"interface elements like maximized windows' close buttons when using multiple "
+"screens."
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:283
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
-msgstr "Zabraňuje prekrývaniu kurzorov v rohoch obrazovky."
+msgid "Prevents the pointer from crossing at screen corners."
+msgstr "Prevents the pointer from crossing at screen corners."
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
 #: main.ui:290
 #, kde-format
 msgid "&Edge barrier:"
-msgstr "Hranová bariéra:"
+msgstr "&Bariéra na hrane:"
 
 #. i18n: ectx: property (whatsThis), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:300
@@ -274,20 +274,18 @@ msgid ""
 "interface elements like Plasma Panels that are located on an edge between "
 "screens."
 msgstr ""
-"Tu môžete nastaviť veľkosť okrajovej bariéry medzi rôznymi obrazovkami. "
-"Bariéra pridáva dodatočnú vzdialenosť, ktorú musíte presunúť kurzorom, než "
-"prekročí okraj na druhú obrazovku. To uľahčuje prístup k prvkom "
+"Tu môžete nastaviť veľkosť bariéry na hrane medzi rôznymi obrazovkami. "
+"Bariéra pridáva dodatočnú vzdialenosť, o ktorú musíte posunúť ukazovateľ, "
+"než prejde cez hranu na inú obrazovku. To uľahčuje prístup k prvkom "
 "používateľského rozhrania, ako sú panely Plasma, ktoré sa nachádzajú na "
-"okraji medzi obrazovkami."
+"hrane medzi obrazovkami."
 
 #. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:303
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
-msgstr ""
-"Dodatočná vzdialenosť, ktorú musí kurzor prekonať, aby prekročil okraje "
-"obrazovky."
+msgid "Additional distance the pointer needs to travel to cross screen edges."
+msgstr "Additional distance the pointer needs to travel to cross screen edges."
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:306

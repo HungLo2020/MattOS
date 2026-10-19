@@ -6,6 +6,8 @@
     \inmodule QtCore
     \brief QVector is an alias for QList.
 
+    QVector\<T\> is a template class where \a T specifies the element type.
+
     Please see the QList documentation for details.
 */
 
@@ -13,15 +15,16 @@
     \class QList
     \inmodule QtCore
     \brief The QList class is a template class that provides a dynamic array.
+    \ingroup containers
 
     \ingroup tools
     \ingroup shared
 
     \reentrant
 
-    QList\<T\> is one of Qt's generic \l{container classes}. It
-    stores its items in adjacent memory locations and provides fast
-    index-based access. QVector\<T\> used to be a different class in
+    QList\<T\> is one of Qt's generic \l{container classes}, where \a T
+    specifies the type of elements stored in the list. It stores its items
+    in adjacent memory locations and provides fast index-based access. QVector\<T\> used to be a different class in
     Qt 5, but is now a simple alias to QList.
 
     QList\<T\> and QVarLengthArray\<T\>
@@ -550,7 +553,8 @@
 
 /*! \fn template <typename T> void QList<T>::detach()
 
-    \internal
+    Ensures that this QList's data is no longer
+    \l{Implicit Sharing}{shared} with other instances.
 */
 
 /*! \fn template <typename T> bool QList<T>::isDetached() const
@@ -1542,7 +1546,7 @@
 
 /*! \fn template <typename T> QList<T> QList<T>::toList() const
     \fn template <typename T> QList<T> QList<T>::toVector() const
-    \deprecated
+    \deprecated [6.0]
 
     A no-op in Qt 6. Provided for backwards compatibility with
     Qt 5, where QList and QVector where two different types.
@@ -1552,7 +1556,7 @@
 
 /*! \fn template <typename T> QList<T> QList<T>::fromList(const QList<T> &list)
     \fn template <typename T> QList<T> QList<T>::fromVector(const QList<T> &list)
-    \deprecated
+    \deprecated [6.0]
 
     A no-op in Qt 6. Provided for backwards compatibility with
     Qt 5, where QList and QVector were two different types.

@@ -2,7 +2,7 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2009, 2023, 2024 Freek de Kruijf <f.de.kruijf@hetnet.nl>
+# SPDX-FileCopyrightText: 2009, 2023, 2024, 2026 Freek de Kruijf <f.de.kruijf@hetnet.nl>
 # Freek de Kruijf <freekdekruijf@kde.nl>, 2009, 2010, 2012, 2013, 2014, 2016, 2017, 2019, 2021, 2022.
 # Rinse de Vries <rinsedevries@kde.nl>, 2010.
 # Bram Schoenmakers <bramschoenmakers@kde.nl>, 2010.
@@ -10,83 +10,83 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwinscreenedges\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
-"PO-Revision-Date: 2024-08-28 11:18+0200\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
+"PO-Revision-Date: 2026-03-21 00:38+0100\n"
 "Last-Translator: Freek de Kruijf <freekdekruijf@kde.nl>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 24.08.0\n"
+"X-Generator: Lokalize 25.12.3\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "Geen actie"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "Naar het bureaublad gluren"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "Scherm vergrendelen"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "KRunner tonen"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "Activiteitenbeheerder"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "Programmastarter"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "Vensters presenteren"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 - alle bureaubladen"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 - huidig bureaublad"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 - huidige toepassing"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "Overzicht"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "Raster"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "Venster omschakelen omschakelen"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "Alternatief venster omschakelen omschakelen"
@@ -95,10 +95,10 @@ msgstr "Alternatief venster omschakelen omschakelen"
 #: main.ui:23
 #, kde-format
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
 msgstr ""
-"U kunt een actie starten door de muiscursor tegen de overeenkomende "
+"U kunt een actie starten door de muisaanwijzer tegen de overeenkomende "
 "schermrand of hoek te drukken."
 
 #. i18n: ectx: property (text), widget (QLabel, quickMaximizeLabel)
@@ -165,10 +165,11 @@ msgstr "van het scherm"
 #: main.ui:174
 #, kde-format
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
 msgstr ""
-"Verander van bureaublad als de muis tegen de rand van het scherm wordt "
-"gedrukt"
+"Verander van bureaublad als de muisaanwijzer tegen de rand van het scherm "
+"wordt gedrukt"
 
 #. i18n: ectx: property (text), widget (QLabel, desktopSwitchLabel)
 #: main.ui:177
@@ -199,11 +200,11 @@ msgstr "Altijd ingeschakeld"
 #: main.ui:206
 #, kde-format
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
 msgstr ""
-"Hoeveelheid tijd vereist voor de muiscursor om tegen de rand van het scherm "
-"gedrukt te zijn alvorens de actie wordt genomen"
+"Hoeveelheid tijd vereist voor de muisaanwijzer om tegen de rand van het "
+"scherm gedrukt te zijn alvorens de actie wordt genomen"
 
 #. i18n: ectx: property (text), widget (QLabel, activationDelayLabel)
 #: main.ui:209
@@ -245,14 +246,14 @@ msgstr "&Hoekgrens:"
 #, kde-format
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
 msgstr ""
 "Hier kunt u de virtuele hoekgrens tussen schermen in- of uitschakelen. De "
-"grens voorkomt dat de cursor naar een ander scherm gaat wanneer het al raakt "
-"aan een schermhoek. Dit maakt het gemakkelijker om elementen van het "
+"grens voorkomt dat de aanwijzer naar een ander scherm gaat wanneer het al "
+"raakt aan een schermhoek. Dit maakt het gemakkelijker om elementen van het "
 "gebruikersinterface te activeren zoals sluitknoppen van gemaximaliseerde "
 "vensters bij gebruik van meerdere schermen."
 
@@ -260,8 +261,8 @@ msgstr ""
 #: main.ui:283
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
-msgstr "Voorkomt dat cursors over schermhoeken gaan."
+msgid "Prevents the pointer from crossing at screen corners."
+msgstr "Voorkomt dat de aanwijzer over schermranden gaat."
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
 #: main.ui:290
@@ -289,9 +290,9 @@ msgstr ""
 #: main.ui:303
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
+msgid "Additional distance the pointer needs to travel to cross screen edges."
 msgstr ""
-"Extra afstand die de cursor moet afleggen om schermranden over te gaan."
+"Extra afstand die de aanwijzer moet afleggen om schermranden over te gaan."
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:306

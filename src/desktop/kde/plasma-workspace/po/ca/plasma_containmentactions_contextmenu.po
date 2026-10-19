@@ -3,7 +3,7 @@
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# SPDX-FileCopyrightText: 2009, 2010, 2014, 2018, 2019, 2021, 2022, 2024 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2009-2010, 2014, 2018-2019, 2021-2022, 2024 Josep M. Ferrer <txemaq@gmail.com>
 # SPDX-FileCopyrightText: 2015, 2020 Antoni Bella Pérez <antonibella5@yahoo.com>
 msgid ""
 msgstr ""
@@ -73,3 +73,11 @@ msgstr "Accions del fons de pantalla"
 msgctxt "plasma_containmentactions_contextmenu"
 msgid "[Separator]"
 msgstr "[Separador]"
+
+#~ msgctxt "plasma_containmentactions_contextmenu"
+#~ msgid "Leave…"
+#~ msgstr "Sortida…"
+
+#~ msgctxt "plasma_containmentactions_contextmenu"
+#~ msgid "Configure Display Settings…"
+#~ msgstr "Configura els paràmetres de la pantalla…"

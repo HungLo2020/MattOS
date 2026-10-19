@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_kwindesktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-12-23 00:42+0000\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
 "PO-Revision-Date: 2024-01-28 15:23-0600\n"
 "Last-Translator: A S Alam <aalam@punlinux.org>\n"
 "Language-Team: Punjabi <kde-i18n-doc@kde.org>\n"
@@ -28,7 +28,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "aalam@punlinux.org"
 
-#: desktopsmodel.cpp:191
+#: desktopsmodel.cpp:188
 #, kde-format
 msgctxt "A numbered name for virtual desktops"
 msgid "Desktop %1"
@@ -36,17 +36,17 @@ msgid_plural "Desktop %1"
 msgstr[0] "ਡੈਸਕਟਾਪ %1"
 msgstr[1] "ਡੈਸਕਟਾਪ %1"
 
-#: desktopsmodel.cpp:479
+#: desktopsmodel.cpp:476
 #, kde-format
 msgid "There was an error connecting to the compositor."
 msgstr "ਕੰਪੋਜ਼ਟਰ ਨਾਲ ਕਨੈਕਟ ਕਰਨ ਦੌਰਾਨ ਗਲਤੀ ਆਈ ਸੀ।"
 
-#: desktopsmodel.cpp:678
+#: desktopsmodel.cpp:672
 #, kde-format
 msgid "There was an error saving the settings to the compositor."
 msgstr "ਕੰਪੋਜ਼ਟਰ ਨਾਲ ਸੈਟਿੰਗਾਂ ਸੰਭਾਲਣ ਦੌਰਾਨ ਗਲਤੀ ਆਈ ਸੀ।"
 
-#: desktopsmodel.cpp:681
+#: desktopsmodel.cpp:675
 #, kde-format
 msgid "There was an error requesting information from the compositor."
 msgstr ""
@@ -63,6 +63,12 @@ msgstr ""
 msgctxt "@action:button"
 msgid "Add Desktop"
 msgstr "ਨਵਾਂ ਡੈਸਕਟਾਪ"
+
+#: ui/main.qml:82
+#, kde-kuit-format
+msgctxt "@label/rich"
+msgid "%1"
+msgstr ""
 
 #: ui/main.qml:90
 #, fuzzy, kde-format
@@ -114,22 +120,27 @@ msgstr "ਚੋਣਾਂ:"
 msgid "Navigation wraps around"
 msgstr "ਨੇਵੀਗੇਸ਼ਨ ਪਾਸਿਓ ਸਮੇਟੋ"
 
-#: ui/main.qml:229
+#: ui/main.qml:225
+#, kde-format
+msgid "Switch desktops independently for each screen"
+msgstr ""
+
+#: ui/main.qml:243
 #, kde-format
 msgid "Show animation when switching:"
 msgstr ""
 
-#: ui/main.qml:280
+#: ui/main.qml:294
 #, kde-format
 msgid "Show on-screen display when switching:"
 msgstr ""
 
-#: ui/main.qml:299
+#: ui/main.qml:313
 #, kde-format
 msgid "%1 ms"
 msgstr "%1 ਮਿਲੀਸਕਿੰਟ"
 
-#: ui/main.qml:323
+#: ui/main.qml:337
 #, kde-format
 msgid "Show desktop layout indicators"
 msgstr "ਡੈਸਕਟਾਪ ਲੇਆਉਟ ਇੰਡੀਕੇਟਰ ਵੇਖੋ"

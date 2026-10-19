@@ -152,6 +152,7 @@ public:
      */
     void ensureCacheValid(); // Warning for kservice code: this can delete all the factories.
 
+#if KSERVICE_ENABLE_DEPRECATED_SINCE(6, 29)
     /*!
      * Sets up a minimal applications.menu file in the appropriate location.
      *
@@ -159,9 +160,13 @@ public:
      *
      * You should call QStandardPaths::setTestModeEnabled(true) before calling this.
      *
+     * \deprecated[6.29] Unused
+     *
      * \since 6.0
      */
+    KSERVICE_DEPRECATED_VERSION(6, 29, "Unused")
     static void setupTestMenu();
+#endif
 
     /*!
      * Connect to this to get notified when the database changes.

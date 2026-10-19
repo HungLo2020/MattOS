@@ -64,6 +64,9 @@ int QCollator::compare(QStringView s1, QStringView s2) const
     if (!s2.size())
         return +1;
 
+    if (!d)
+        d = new QCollatorPrivate(QLocale().collation());
+
     d->ensureInitialized();
 
     if (!d->collator)
@@ -83,17 +86,21 @@ int QCollator::compare(QStringView s1, QStringView s2) const
 
 QCollatorSortKey QCollator::sortKey(const QString &string) const
 {
+    if (!d)
+        d = new QCollatorPrivate(QLocale().collation());
+
     d->ensureInitialized();
 
+    QList<UCCollationValue> ret;
     if (!d->collator) {
         // What should (or even *can*) we do here ? (See init()'s comment.)
         qWarning("QCollator doesn't support sort keys for the C locale on Darwin");
-        return QCollatorSortKey(nullptr);
+        return QCollatorPrivate::sortKeyFromData(std::move(ret));
     }
 
     auto text = reinterpret_cast<const UniChar *>(string.constData());
     // Documentation recommends having it 5 times as big as the input
-    QList<UCCollationValue> ret(string.size() * 5);
+    ret.resizeForOverwrite(string.size() * 5);
     ItemCount actualSize;
     int status = UCGetCollationKey(d->collator, text, string.size(),
                                    ret.size(), &actualSize, ret.data());
@@ -106,14 +113,11 @@ QCollatorSortKey QCollator::sortKey(const QString &string) const
         Q_ASSERT(ret.size() == qsizetype(actualSize + 1));
     }
     ret[actualSize] = 0;
-    return QCollatorSortKey(new QCollatorSortKeyPrivate(std::move(ret)));
+    return QCollatorPrivate::sortKeyFromData(std::move(ret));
 }
 
-int QCollatorSortKey::compare(const QCollatorSortKey &key) const
+int QCollatorSortKey::compare(const QCollatorSortKey &key) const noexcept
 {
-    if (!d.data())
-        return 0;
-
     SInt32 order;
     UCCompareCollationKeys(d->m_key.data(), d->m_key.size(),
                            key.d->m_key.data(), key.d->m_key.size(),

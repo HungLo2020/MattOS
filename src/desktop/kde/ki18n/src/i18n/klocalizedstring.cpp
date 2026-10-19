@@ -124,7 +124,7 @@ static void appendLanguagesFromVariable(QStringList &languages, const char *enva
     }
 }
 
-#if !defined(Q_OS_UNIX) || defined(Q_OS_ANDROID)
+#if !defined(Q_OS_UNIX) || defined(Q_OS_ANDROID) || defined(Q_OS_MAC)
 static void appendLanguagesFromQLocale(QStringList &languages, const QLocale &locale)
 {
     const QStringList uiLangs = locale.uiLanguages();
@@ -327,7 +327,7 @@ void KLocalizedStringPrivateStatics::initializeLocaleLanguages()
     appendLanguagesFromVariable(localeLanguages, "LC_ALL");
     appendLanguagesFromVariable(localeLanguages, "LC_MESSAGES");
     appendLanguagesFromVariable(localeLanguages, "LANG");
-#if !defined(Q_OS_UNIX) || defined(Q_OS_ANDROID)
+#if !defined(Q_OS_UNIX) || defined(Q_OS_ANDROID) || defined(Q_OS_MAC)
     // For non UNIX platforms the environment variables might not
     // suffice so we add system locale UI languages, too.
     appendLanguagesFromQLocale(localeLanguages, QLocale::system());
@@ -445,7 +445,7 @@ void KLocalizedStringPrivate::translateRaw(const QByteArray &domain,
     language = s->codeLanguage;
 
     if (domain.isEmpty()) {
-        qCWarning(KI18N) << "KLocalizedString: Domain is not set for this string, translation will not work. Please see https://api.kde.org/frameworks/ki18n/html/prg_guide.html msgid:" << msgid << "msgid_plural:" << msgid_plural
+        qCWarning(KI18N) << "KLocalizedString: Domain is not set for this string, translation will not work. Please see https://invent.kde.org/frameworks/ki18n/-/blob/master/docs/programmers-guide.md msgid:" << msgid << "msgid_plural:" << msgid_plural
                          << "msgctxt:" << msgctxt;
         return;
     }

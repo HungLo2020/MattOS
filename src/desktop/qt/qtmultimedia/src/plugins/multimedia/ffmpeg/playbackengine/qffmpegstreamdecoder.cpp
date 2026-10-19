@@ -1,15 +1,20 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "playbackengine/qffmpegstreamdecoder_p.h"
+#include "qffmpegstreamdecoder_p.h"
+
 #include "playbackengine/qffmpegmediadataholder_p.h"
-#include <qloggingcategory.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qregularexpression.h>
+#include <QtCore/qspan.h>
 
 QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcStreamDecoder, "qt.multimedia.ffmpeg.streamdecoder");
 
 namespace QFFmpeg {
+
+using namespace Qt::Literals;
 
 StreamDecoder::StreamDecoder(const PlaybackEngineObjectID &id, const CodecContext &codecContext,
                              TrackPosition absSeekPos)
@@ -233,38 +238,48 @@ void StreamDecoder::decodeSubtitle(const Packet &packet)
         return;
     }
     //        qCDebug(qLcDecoder) << "    got subtitle (" << start << "--" << end << "):";
-    QString text;
-    for (uint i = 0; i < subtitle.num_rects; ++i) {
-        const auto *r = subtitle.rects[i];
-        //            qCDebug(qLcDecoder) << "    subtitletext:" << r->text << "/" << r->ass;
-        if (i)
-            text += QLatin1Char('\n');
-        if (r->text)
-            text += QString::fromUtf8(r->text);
-        else {
-            const char *ass = r->ass;
-            int nCommas = 0;
-            while (*ass) {
-                if (nCommas == 8)
-                    break;
-                if (*ass == ',')
-                    ++nCommas;
-                ++ass;
-            }
-            text += QString::fromUtf8(ass);
-        }
-    }
-    text.replace(QLatin1String("\\N"), QLatin1String("\n"));
-    text.replace(QLatin1String("\\n"), QLatin1String("\n"));
-    text.replace(QLatin1String("\r\n"), QLatin1String("\n"));
-    if (text.endsWith(QLatin1Char('\n')))
-        text.chop(1);
+    QString text = subtitleTextFromAVSubtitle(subtitle);
 
     onFrameFound({ m_sessionCtx.offset, text, start, end - start, id() });
 
     // TODO: maybe optimize
     onFrameFound({ m_sessionCtx.offset, QString(), end, TrackDuration(0), id() });
 }
+
+static QString extractSubtitleText(const AVSubtitleRect &r)
+{
+    if (r.text)
+        return QString::fromUtf8(r.text);
+
+    const char *ass = r.ass;
+    int nCommas = 0;
+    while (*ass) {
+        if (nCommas == 8)
+            break;
+        if (*ass == ',')
+            ++nCommas;
+        ++ass;
+    }
+    return QString::fromUtf8(ass);
+}
+
+QString subtitleTextFromAVSubtitle(const AVSubtitle &subtitle)
+{
+    QString text;
+
+    for (const AVSubtitleRect *r : QSpan(subtitle.rects, subtitle.num_rects)) {
+        if (r != subtitle.rects[0])
+            text += u'\n';
+
+        text += extractSubtitleText(*r);
+    }
+    static const QRegularExpression lineBreakRe(u"\\\\N|\\\\n|\\r\\n"_s);
+    text.replace(lineBreakRe, u"\n"_s);
+    if (text.endsWith(u'\n'))
+        text.chop(1);
+    return text;
+}
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

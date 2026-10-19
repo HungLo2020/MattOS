@@ -1,13 +1,13 @@
 # Copyright (C) 2023 This file is copyright:
 # This file is distributed under the same license as the xdg-desktop-portal-kde package.
 #
-# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Kishore G <kishore96@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025, 2026 Kishore G <kishore96@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal-kde\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-05-09 02:42+0000\n"
-"PO-Revision-Date: 2025-11-30 13:07+0530\n"
+"POT-Creation-Date: 2026-09-08 00:48+0000\n"
+"PO-Revision-Date: 2026-02-01 18:39+0530\n"
 "Last-Translator: Kishore G <kishore96@gmail.com>\n"
 "Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
 "Language: ta\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 25.12.1\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -27,24 +27,24 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "Kde-l10n-ta@kde.org"
 
-#: src/accessdialog.cpp:27
+#: src/accessdialog.cpp:26
 #, kde-format
 msgid "Request device access"
 msgstr "சாதன அணுகலை கோரு"
 
-#: src/appchooser.cpp:98
+#: src/appchooser.cpp:101
 #, kde-format
 msgctxt "count of files to open"
 msgid "%1 files"
 msgstr "%1 கோப்புகள்"
 
-#: src/appchooserdialog.cpp:43
+#: src/appchooserdialog.cpp:47
 #, kde-format
 msgctxt "@title:window"
 msgid "Choose Application"
 msgstr "செயலியை தேர்வு செய்வது"
 
-#: src/appchooserdialog.cpp:46
+#: src/appchooserdialog.cpp:48
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Choose an application to open <filename>%1</filename>"
@@ -121,91 +121,137 @@ msgctxt "@option:check"
 msgid "Do not close when command exits"
 msgstr "கட்டளை முடியும் போது மூடு வேண்டாம்"
 
-#: src/background.cpp:132
+#: src/background.cpp:134
 #, kde-format
 msgid "Background Activity"
 msgstr "பின்னணி செயல்பாட்டு"
 
-#: src/background.cpp:135
-#, kde-format
+#: src/background.cpp:137
+#, fuzzy, kde-format
+#| msgctxt "@info %1 is the name of an application"
+#| msgid ""
+#| "%1 wants to remain running when it has no visible windows. If you forbid "
+#| "this, the application will quit when its last window is closed."
 msgctxt "@info %1 is the name of an application"
 msgid ""
-"%1 wants to remain running when it has no visible windows. If you forbid "
-"this, the application will quit when its last window is closed."
+"%1 wants to remain running when it has no visible windows. If you deny this "
+"request, the application will quit when its last window is closed."
 msgstr ""
 "%1, அதன் சாளரங்கள் இல்லாதபோதும் செயல்பட விரும்புகிறது. இதை நீங்கள் மறுத்தால், கடைசி "
 "சாளரம் மூடப்படும்போது அச்செயலி மூடப்படும்."
 
-#: src/background.cpp:141 src/background.cpp:158
-#, kde-format
-msgctxt "@action:button Allow the app to keep running with no open windows"
+#: src/background.cpp:143 src/background.cpp:160
+#, fuzzy, kde-format
+#| msgctxt "@action:button Allow the app to keep running with no open windows"
+#| msgid "Allow"
+msgctxt ""
+"@action:button Allow the application to keep running with no open windows"
 msgid "Allow"
 msgstr "அனுமதி"
 
-#: src/background.cpp:148
-#, kde-format
+#: src/background.cpp:150
+#, fuzzy, kde-format
+#| msgctxt "@action:button Deny the application gaining extra privileges"
+#| msgid "Deny"
 msgctxt ""
-"@action:button Don't allow the app to keep running without any open windows"
-msgid "Forbid"
-msgstr "மறு"
-
-#: src/background.cpp:152
-#, kde-format
-msgctxt ""
-"@title title of a dialog to confirm whether to allow an app to remain "
-"running with no visible windows"
-msgid "Background App Usage"
-msgstr "பின்னணி செயல்பாட்டு"
+"@action:button Don't allow the application to keep running without any open "
+"windows"
+msgid "Deny"
+msgstr "நிராகரி"
 
 #: src/background.cpp:154
-#, kde-format
-msgctxt "%1 is the name of an application"
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "@title title of a dialog to confirm whether to allow an app to remain "
+#| "running with no visible windows"
+#| msgid "Background App Usage"
+msgctxt ""
+"@title title of a dialog to confirm whether to allow an application to "
+"remain running with no visible windows"
+msgid "Deny Background Usage?"
+msgstr "பின்னணி செயல்பாட்டு"
+
+#: src/background.cpp:156
+#, fuzzy, kde-format
+#| msgctxt "%1 is the name of an application"
+#| msgid ""
+#| "Note that this will force %1 to quit when its last window is closed. This "
+#| "could cause data loss if the application has any unsaved changes when it "
+#| "happens."
+msgctxt "@info %1 is the name of an application"
 msgid ""
-"Note that this will force %1 to quit when its last window is closed. This "
-"could cause data loss if the application has any unsaved changes when it "
-"happens."
+"This will force %1 to quit when its last window is closed. This could cause "
+"data loss if the application has any unsaved changes when it happens."
 msgstr ""
 "கடைசி சாளரம் மூடப்படும்போது %1 தனை வேளியேற இது கட்டாயப்படுத்தும். இது நடக்கும்போது "
 "சேமிக்கப்படா மாற்றங்கள் இருந்தால் தரவு இழப்பு நேரிடலாம்."
 
-#: src/background.cpp:159
+#: src/background.cpp:161
 #, kde-format
 msgctxt ""
-"@action:button Don't allow the app to keep running without any open windows"
-msgid "Forbid Anyway"
-msgstr "இருப்பினும் மறு"
+"@action:button Don't allow the application to keep running without any open "
+"windows"
+msgid "Deny Anyway"
+msgstr ""
 
 #: src/dynamiclauncher.cpp:78
 #, kde-format
-msgctxt "@title"
-msgid "Add Web Application…"
-msgstr "இணையச்செயலியைச் சேர்..."
+msgctxt "@info"
+msgid "Create Web Application Launcher?"
+msgstr ""
 
 #: src/dynamiclauncher.cpp:83
-#, kde-format
-msgctxt "@title"
-msgid "Add Application…"
-msgstr "செயலியைச் சேர்…"
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Choose Application"
+msgctxt "@info"
+msgid "Create Application Launcher?"
+msgstr "செயலியை தேர்வு செய்வது"
 
-#: src/DynamicLauncherDialog.qml:70
+#: src/dynamiclauncher.cpp:90
+#, kde-format
+msgctxt "@info"
+msgid ""
+"A launcher to open the following website will appear in application "
+"launchers:"
+msgstr ""
+
+#: src/dynamiclauncher.cpp:95
+#, kde-format
+msgctxt "@info"
+msgid ""
+"A launcher to open the following application will appear in application "
+"launchers:"
+msgstr ""
+
+#: src/DynamicLauncherDialog.qml:73
 #, kde-format
 msgctxt "@label name of a launcher/application"
 msgid "Name"
 msgstr "பெயர்"
 
-#: src/DynamicLauncherDialog.qml:94
+#: src/DynamicLauncherDialog.qml:85
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Input Capture Requested"
+msgctxt "@title Something asked to create a launcher for an app or a website"
+msgid "Launcher Requested"
+msgstr "உள்ளீட்டு பிடிப்பு கோரப்பட்டது"
+
+#: src/DynamicLauncherDialog.qml:100
 #, kde-format
 msgctxt "@action edit launcher name/icon"
 msgid "Edit Info…"
 msgstr "விவரங்களை திருத்து…"
 
-#: src/DynamicLauncherDialog.qml:100
-#, kde-format
+#: src/DynamicLauncherDialog.qml:106
+#, fuzzy, kde-format
+#| msgid "Create Folder"
 msgctxt "@action accept dialog and create launcher"
-msgid "Accept"
-msgstr "ஏற்றுக்கொள்"
+msgid "Create"
+msgstr "அடைவை உருவாக்கு"
 
-#: src/DynamicLauncherDialog.qml:105
+#: src/DynamicLauncherDialog.qml:111
 #, kde-format
 msgctxt "@action"
 msgid "Cancel"
@@ -237,98 +283,173 @@ msgstr ""
 "<interface>%1</interface> எனும் பொதுவான செயலுக்கு இந்த சுருக்குவழி ஏற்கனவே பயனில் "
 "உள்ளது."
 
-#: src/globalshortcuts.cpp:127
+#: src/globalshortcuts.cpp:128
 #, kde-kuit-format
 msgctxt "@info:tooltip %1 is a list of actions"
 msgid ""
 "The shortcut is assigned to multiple actions (<interface>%1</interface>)"
 msgstr "இவ்விசைக்கூட்டு பல செயல்களுக்கு அமர்த்தப்பட்டுள்ளது (<interface>%1</interface>)."
 
-#: src/globalshortcuts.cpp:507
+#: src/globalshortcuts.cpp:506
 #, kde-format
 msgid ", "
 msgstr ", "
 
-#: src/GlobalShortcutsDialog.qml:24
+#: src/GlobalShortcutsDialog.qml:25
 #, kde-format
 msgctxt "@title:window"
 msgid "Global Shortcuts Requested"
 msgstr "முழுதளாவிய சுருக்குவழி கோரப்பட்டுள்ளது"
 
-#: src/GlobalShortcutsDialog.qml:28
-#, kde-format
-msgctxt "The application is unknown"
-msgid "An application wants to register the following shortcut:"
-msgid_plural "An application wants to register the following %1 shortcuts:"
+#: src/GlobalShortcutsDialog.qml:29
+#, fuzzy, kde-format
+#| msgctxt "The application is unknown"
+#| msgid "An application wants to register the following shortcut:"
+#| msgid_plural "An application wants to register the following %1 shortcuts:"
+msgctxt "@info"
+msgid "An unidentifiable application wants to register the following shortcut."
+msgid_plural ""
+"An unidentifiable application wants to register the following %1 shortcuts."
 msgstr[0] "பின்வரும் சுருக்கவழியைப் பயன்படுத்த ஓர் செயலி விரும்புகிறது:"
 msgstr[1] "பின்வரும் %1 சுருக்கவழிகளைப் பயன்படுத்த ஓர் செயலி விரும்புகிறது:"
 
-#: src/GlobalShortcutsDialog.qml:30
-#, kde-format
-msgctxt "%2 is the name of the application"
+#: src/GlobalShortcutsDialog.qml:31
+#, fuzzy, kde-format
+#| msgctxt "%2 is the name of the application"
+#| msgid "%2 wants to register the following shortcut:"
+#| msgid_plural "%2 wants to register the following %1 shortcuts:"
+msgctxt "@info %2 is the name of the application"
 msgid "%2 wants to register the following shortcut:"
 msgid_plural "%2 wants to register the following %1 shortcuts:"
 msgstr[0] "%2 பின்வரும் சுருக்குவழியைப் பதிவுசெய்ய விரும்புகிறது:"
 msgstr[1] "%2 பின்வரும் %1 சுருக்குவழிகளைப் பதிவுசெய்ய விரும்புகிறது:"
 
-#: src/GlobalShortcutsDialog.qml:87
+#: src/GlobalShortcutsDialog.qml:91
 #, kde-format
 msgctxt "@action:button"
 msgid "See Other Shortcuts…"
 msgstr "மற்ற சுருக்குவழிகளைக் காட்டு…"
 
-#: src/GlobalShortcutsDialog.qml:88
+#: src/GlobalShortcutsDialog.qml:92
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "View other shortcuts registered by this application"
 msgstr "இச்செயலியின் மற்ற சுருக்குவழிகளைக் காட்டும்"
 
-#: src/inputcapture.cpp:115
-#, kde-format
+#: src/inputcapture.cpp:116
+#, fuzzy, kde-format
+#| msgctxt "@title:notification"
+#| msgid "Input Capture started"
 msgctxt "@title:notification"
-msgid "Input Capture started"
+msgid "Input Capture Started"
 msgstr "உள்ளீட்டு பிடிப்பு துவங்கியது"
 
-#: src/inputcapture.cpp:118
-#, kde-kuit-format
+#: src/inputcapture.cpp:119
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info %1 is the name of the application"
+#| msgid ""
+#| "Input is being managed by %1. Press <shortcut>%2</shortcut> to disable."
 msgctxt "@info %1 is the name of the application"
-msgid "Input is being managed by %1. Press <shortcut>%2</shortcut> to disable."
+msgid ""
+"%1 has taken over the pointer and keyboard. Press <shortcut>%2</shortcut> to "
+"stop this."
 msgstr ""
 "உள்ளீட்டை %1 நிர்வகிக்கிறது. இதை நிறுத்த <shortcut>%2</shortcut> தனை அழுத்தவும்."
 
-#: src/inputcapture.cpp:123
+#: src/inputcapture.cpp:124
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
-"Input is being managed by an application. Press <shortcut>%1</shortcut> to "
-"disable."
+"An unidentifiable application has taken over the pointer and keyboard. Press "
+"<shortcut>%1</shortcut> to stop this."
 msgstr ""
-"உள்ளீட்டை ஓர் செயலி நிர்வகிக்கிறது. இதை நிறுத்த <shortcut>%1</shortcut> தனை "
-"அழுத்தவும்."
 
-#: src/InputCaptureDialog.qml:15
+#: src/inputcapture.cpp:225
+#, fuzzy, kde-format
+#| msgctxt "@title:notification"
+#| msgid "Input Capture started"
+msgctxt "@title:nofication"
+msgid "Input Capture Approved"
+msgstr "உள்ளீட்டு பிடிப்பு துவங்கியது"
+
+#: src/inputcapture.cpp:227
+#, fuzzy, kde-format
+#| msgctxt "The application is unknown"
+#| msgid "An application requested to capture input events"
+msgctxt "@info"
+msgid ""
+"An unidentifiable application will be able to take over the pointer and "
+"keyboard in the future."
+msgstr "அனைத்து உள்ளீட்டு செயல்களையும் கையாளும் அனுமதியை ஓர் செயலி கோரியுள்ளது"
+
+#: src/inputcapture.cpp:228
+#, fuzzy, kde-format
+#| msgctxt "The application is unknown"
+#| msgid "An application requested to capture input events"
+msgctxt "@info"
+msgid "%1 will be able to take over the pointer and keyboard in the future."
+msgstr "அனைத்து உள்ளீட்டு செயல்களையும் கையாளும் அனுமதியை ஓர் செயலி கோரியுள்ளது"
+
+#: src/InputCaptureDialog.qml:18
 #, kde-format
 msgctxt "@title:window"
 msgid "Input Capture Requested"
 msgstr "உள்ளீட்டு பிடிப்பு கோரப்பட்டது"
 
-#: src/InputCaptureDialog.qml:16
+#: src/InputCaptureDialog.qml:20
 #, kde-format
-msgctxt "The application is unknown"
-msgid "An application requested to capture input events"
-msgstr "அனைத்து உள்ளீட்டு செயல்களையும் கையாளும் அனுமதியை ஓர் செயலி கோரியுள்ளது"
-
-#: src/InputCaptureDialog.qml:16
-#, kde-format
-msgctxt "%1 is the name of the application"
-msgid "%1 requested to capture input events"
-msgstr "அனைத்து உள்ளீட்டு செயல்களையும் கையாளும் அனுமதியை %1 கோரியுள்ளது"
+msgctxt "@info"
+msgid ""
+"An unidentifiable application wants to take over the pointer and keyboard."
+msgstr ""
 
 #: src/InputCaptureDialog.qml:21
 #, kde-format
-msgctxt "@action:button"
+msgctxt "@info %1 is the name of the application"
+msgid "%1 wants take over the pointer and keyboard."
+msgstr ""
+
+#: src/InputCaptureDialog.qml:23
+#, kde-kuit-format
+msgctxt "@info:usagetip"
+msgid ""
+"While the application is capturing input, you will not be able to move the "
+"pointer yourself or type on the keyboard.<nl/><nl/>Only allow if you know "
+"which application made the request."
+msgstr ""
+
+#: src/InputCaptureDialog.qml:24
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"While the application is capturing input, you will not be able to move the "
+"pointer yourself or type on the keyboard."
+msgstr ""
+
+#: src/InputCaptureDialog.qml:29 src/RemoteDesktopDialog.qml:32
+#: src/ScreenChooserDialog.qml:194
+#, fuzzy, kde-format
+#| msgctxt "the app is unknown"
+#| msgid "Allow an application to set the desktop background?"
+msgctxt "@option:check"
+msgid "Allow the application to do this without asking next time"
+msgstr "பணிமேடையின் பின்புலப்படத்தை அமைக்கும் அனுமதியை வழங்கலாமா?"
+
+#: src/InputCaptureDialog.qml:36
+#, fuzzy, kde-format
+#| msgctxt "@action:button Allow the app to keep running with no open windows"
+#| msgid "Allow"
+msgctxt "@action:button Allow the application to monitor input"
 msgid "Allow"
 msgstr "அனுமதி"
+
+#: src/InputCaptureDialog.qml:37
+#, fuzzy, kde-format
+#| msgctxt "@action:button Deny the application gaining extra privileges"
+#| msgid "Deny"
+msgctxt "@action:button Deny the application's request to monitor input"
+msgid "Deny"
+msgstr "நிராகரி"
 
 #: src/kirigami-filepicker/api/mobilefiledialog.cpp:113
 #, kde-format
@@ -380,108 +501,184 @@ msgstr "மறைந்துள்ள கோப்புகளைக் கா�
 msgid "Select"
 msgstr "தேர்ந்தெடு"
 
-#: src/outputsmodel.cpp:21
-#, kde-format
-msgid "Share virtual screen"
-msgstr "மெய்நிகர் திரையைப் பகிர்"
-
-#: src/outputsmodel.cpp:25
+#: src/outputsmodel.cpp:83
 #, kde-format
 msgid "Share region"
 msgstr "திரையின் பகுதியைப் பகிர்"
 
-#: src/outputsmodel.cpp:36
+#: src/outputsmodel.cpp:87
+#, kde-format
+msgid "Share virtual screen"
+msgstr "மெய்நிகர் திரையைப் பகிர்"
+
+#: src/outputsmodel.cpp:98 src/screencast.cpp:360
 #, kde-format
 msgid "Share full Workspace"
 msgstr "முழுப் பணிமேடையைப் பகிர்"
 
-#: src/outputsmodel.cpp:76
+#: src/outputsmodel.cpp:133
 #, kde-format
 msgid "Laptop screen"
 msgstr "மடிக்கணினித் திரை"
 
-#: src/outputsmodel.cpp:250
+#: src/outputsmodel.cpp:372
 #, kde-format
 msgctxt "@info"
 msgid "Share the entire workspace across all screens"
 msgstr "முழுப் பணிமேடையையும் (அனைத்து திரைகளிலுள்ளவற்றையும்) பகிரும்"
 
-#: src/outputsmodel.cpp:252
-#, kde-format
+#: src/outputsmodel.cpp:374
+#, fuzzy, kde-format
+#| msgctxt "@info"
+#| msgid "Creates a screen inside a window, then share"
 msgctxt "@info"
-msgid "Creates a screen inside a window, then share"
+msgid "Create a virtual screen, then share"
 msgstr "தனிப்பட்ட சாளரத்தை மட்டும் காட்டும் மெய்நிகர் திரையை உருவாக்கி, அதைப் பகிரும்"
 
-#: src/outputsmodel.cpp:254
+#: src/outputsmodel.cpp:376
 #, kde-format
 msgctxt "@info"
 msgid "Crops a specific area of your screens"
 msgstr "திரையின் குறிப்பிட்ட பகுதியை மட்டும் பகிரும்"
 
-#: src/region-select/RegionSelectOverlay.qml:147
+#: src/PipeWireDelegate.qml:166
+#, kde-format
+msgctxt "@label:listbox size of a screen, width($1) x height($2"
+msgid "Resolution:"
+msgstr ""
+
+#: src/PipeWireDelegate.qml:200
+#, kde-format
+msgctxt "size of a screen, width($1) x height($2)"
+msgid "%1 × %2"
+msgstr ""
+
+#: src/PipeWireDelegate.qml:287
+#, kde-format
+msgctxt "@info:status"
+msgid "No windows open"
+msgstr ""
+
+#: src/PipeWireDelegate.qml:292
+#, kde-format
+msgctxt "%1 is a number of elided icon entries"
+msgid "+%1"
+msgstr ""
+
+#: src/PipeWireDelegate.qml:305
+#, kde-format
+msgctxt "@title %1 refers to a screen name"
+msgid "Share “%1”"
+msgstr ""
+
+#: src/region-select/RegionSelectOverlay.qml:150
 #, kde-format
 msgid "Start streaming:"
 msgstr "பகிர்வதைத் துவக்க:"
 
-#: src/region-select/RegionSelectOverlay.qml:151
+#: src/region-select/RegionSelectOverlay.qml:154
 #, kde-format
 msgid "Clear selection:"
 msgstr "தேர்வை காலியாக்க:"
 
-#: src/region-select/RegionSelectOverlay.qml:155
-#: src/region-select/RegionSelectOverlay.qml:199
+#: src/region-select/RegionSelectOverlay.qml:158
+#: src/region-select/RegionSelectOverlay.qml:202
 #, kde-format
 msgid "Cancel:"
 msgstr "ரத்து செய்ய:"
 
-#: src/region-select/RegionSelectOverlay.qml:161
+#: src/region-select/RegionSelectOverlay.qml:164
 #, kde-format
 msgctxt "Mouse action"
 msgid "Release left-click"
 msgstr "இடது க்ளிக்கை விடுவிக்கவும்"
 
-#: src/region-select/RegionSelectOverlay.qml:165
+#: src/region-select/RegionSelectOverlay.qml:168
 #, kde-format
 msgctxt "Mouse action"
 msgid "Right-click"
 msgstr "வலது க்ளிக்"
 
-#: src/region-select/RegionSelectOverlay.qml:169
-#: src/region-select/RegionSelectOverlay.qml:209
+#: src/region-select/RegionSelectOverlay.qml:172
+#: src/region-select/RegionSelectOverlay.qml:212
 #, kde-format
 msgctxt "Keyboard action"
 msgid "Escape"
 msgstr "Escape"
 
-#: src/region-select/RegionSelectOverlay.qml:195
+#: src/region-select/RegionSelectOverlay.qml:198
 #, kde-format
 msgid "Create selection:"
 msgstr "தேர்வை உருவாக்க:"
 
-#: src/region-select/RegionSelectOverlay.qml:205
+#: src/region-select/RegionSelectOverlay.qml:208
 #, kde-format
 msgctxt "Mouse action"
 msgid "Left-click and drag"
 msgstr "இடது கிளிக் செய்து இழுக்கவும்"
 
-#: src/remotedesktop.cpp:182 src/screencast.cpp:224
+#: src/remotedesktop.cpp:118
+#, kde-format
+msgctxt "@title:window"
+msgid "Remote Desktop Not Available"
+msgstr "பணிமேடை தொலையியக்கம் இயங்கவில்லை"
+
+#: src/remotedesktop.cpp:120
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info"
+#| msgid ""
+#| "The application <application>%1</application> tried to start a remote "
+#| "desktop session but remote desktop is not available on this system. "
+#| "Please ensure you are running a Wayland session with a compatible window "
+#| "manager such as KWin."
+msgctxt "@info"
+msgid ""
+"The application <application>%1</application> tried to start a remote "
+"desktop session, but remote desktop is not available on this system. Please "
+"ensure you are running a Wayland session with a compatible window manager "
+"such as KWin."
+msgstr ""
+"<application>%1</application> ஓர் தொலையியக்கு பணிமேடை அமர்வைத் துவக்க முயற்சித்தது, "
+"ஆனால் இந்த அமர்வில் அந்த அம்சம் இயங்காது. Wayland அமர்வில் இருப்பதையும் பணிமேடை "
+"தொலையியக்கத்தை ஆதரிக்கும் சாளரநிரலை (எ.கா. கேவின்) பயன்படுத்துவதையும் உறுதி செய்யவும்."
+
+#: src/remotedesktop.cpp:124
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info"
+#| msgid ""
+#| "The application <application>%1</application> tried to start a remote "
+#| "desktop session but remote desktop is not available in X11 sessions. "
+#| "Please switch to a Wayland session and try again."
+msgctxt "@info"
+msgid ""
+"The application <application>%1</application> tried to start a remote "
+"desktop session, but remote desktop is not available in X11 sessions. Please "
+"switch to a Wayland session and try again."
+msgstr ""
+"<application>%1</application> ஓர் தொலையியக்கு பணிமேடை அமர்வைத் துவக்க முயற்சித்தது, "
+"ஆனால் X11 அமர்வுகளில் அந்த அம்சம் இயங்காது. Wayland அமர்வுக்கு மாறி மீண்டும் முயற்சிக்கவும்."
+
+#: src/remotedesktop.cpp:188 src/screencast.cpp:235
 #, kde-format
 msgid "Virtual Output"
 msgstr "மெய்நிகர் வெளியீடு"
 
-#: src/remotedesktop.cpp:183 src/screencast.cpp:225
+#: src/remotedesktop.cpp:189 src/screencast.cpp:236
 #, kde-format
 msgctxt "%1 is the application name"
 msgid "Virtual Output (shared with %1)"
 msgstr "மெய்நிகர் வெளியீடு (%1 உடன் பகிரப்பட்டுள்ளது)"
 
-#: src/remotedesktop.cpp:291
-#, kde-format
-msgctxt "title of notification about input systems taken over"
-msgid "Remote control session started"
-msgstr "தொலையியக்கி அமர்வு துவக்கப்பட்டுள்ளது"
+#: src/remotedesktop.cpp:301
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "SNI title that indicates there's a process remotely controlling the system"
+#| msgid "Remote Control"
+msgctxt "@title:window title of notification about input systems taken over"
+msgid "Remote Control Started"
+msgstr "தொலையியக்கி பயனிலுள்ளது"
 
-#: src/remotedesktop.cpp:580
+#: src/remotedesktop.cpp:601
 #, kde-format
 msgctxt ""
 "SNI title that indicates there's a process remotely controlling the system"
@@ -489,24 +686,47 @@ msgid "Remote Control"
 msgstr "தொலையியக்கி பயனிலுள்ளது"
 
 #: src/remotedesktopdialog.cpp:26
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "Title of the dialog that requests remote input privileges"
+#| msgid "Remote Control"
 msgctxt "Title of the dialog that requests remote input privileges"
-msgid "Remote Control"
+msgid "Remote Control Requested"
 msgstr "தொலையியக்கி"
-
-#: src/remotedesktopdialog.cpp:41
-#, kde-format
-msgctxt "@info"
-msgid "An application is asking for special privileges:\n"
-msgstr "மேம்பட்ட உரிமைகளை ஓர் செயலி கோருகிறது:\n"
 
 #: src/remotedesktopdialog.cpp:42
 #, kde-format
 msgctxt "@info"
-msgid "%1 is asking for special privileges:"
-msgstr "%1 மேம்பட்ட உரிமைகளைக் கோருகிறது:"
+msgid "Allow an unidentifiable application to gain remote control privileges?"
+msgstr ""
 
-#: src/remotedesktopdialog.cpp:50
+#: src/remotedesktopdialog.cpp:43
+#, kde-format
+msgctxt "@info"
+msgid "Allow %1 to gain remote control privileges?"
+msgstr ""
+
+#: src/remotedesktopdialog.cpp:49 src/ScreenshotDialog.qml:30
+#: src/UsbDialog.qml:26 src/WallpaperDialog.qml:42
+#, kde-format
+msgctxt "@info:usagetip"
+msgid "Only allow if you know which application made the request."
+msgstr ""
+
+#: src/remotedesktopdialog.cpp:56
+#, fuzzy, kde-format
+#| msgctxt "The application is unknown"
+#| msgid "An application requested to capture input events"
+msgctxt "@info"
+msgid "The application will be able to:"
+msgstr "அனைத்து உள்ளீட்டு செயல்களையும் கையாளும் அனுமதியை ஓர் செயலி கோரியுள்ளது"
+
+#: src/remotedesktopdialog.cpp:56
+#, kde-format
+msgctxt "@info"
+msgid "%1 will be able to:"
+msgstr ""
+
+#: src/remotedesktopdialog.cpp:60
 #, kde-format
 msgctxt ""
 "@info As in, 'an application requested access to see what’s on the screen'. "
@@ -518,31 +738,33 @@ msgstr ""
 "\n"
 " - திரையிலுள்ளவற்றைப் பார்க்க"
 
-#: src/remotedesktopdialog.cpp:54
+#: src/remotedesktopdialog.cpp:64
 #, kde-format
 msgctxt ""
 "@info As in, 'an application requested access to control input devices'. '-' "
 "is Markdown, do not translate"
 msgid ""
 "\n"
-" - Control input devices"
+" - Move the pointer and type keystrokes"
 msgstr ""
-"\n"
-" - உள்ளீட்டு சாதனங்களைக் கட்டுப்படுத்த"
 
-#: src/remotedesktopdialog.cpp:62
-#, kde-format
+#: src/remotedesktopdialog.cpp:72
+#, fuzzy, kde-format
+#| msgctxt "@info"
+#| msgid "An application is asking for special privileges:\n"
 msgctxt "@info"
-msgid "An application is exercising special permissions:\n"
-msgstr "ஓர் செயலி மேம்பட்ட உரிமைகளைப் பயன்படுத்துகிறது:\n"
+msgid "An unidentifiable application is exercising remote control privileges:"
+msgstr "மேம்பட்ட உரிமைகளை ஓர் செயலி கோருகிறது:\n"
 
-#: src/remotedesktopdialog.cpp:63
-#, kde-format
+#: src/remotedesktopdialog.cpp:73
+#, fuzzy, kde-format
+#| msgctxt "@info"
+#| msgid "%1 is exercising special privileges:"
 msgctxt "@info"
-msgid "%1 is exercising special privileges:"
+msgid "%1 is exercising remote control privileges:"
 msgstr "%1 மேம்பட்ட உரிமைகளைப் பயன்படுத்துகிறது"
 
-#: src/remotedesktopdialog.cpp:67
+#: src/remotedesktopdialog.cpp:77
 #, kde-format
 msgctxt ""
 "@info As in, 'an application is exercising privileges to access to see "
@@ -554,28 +776,23 @@ msgstr ""
 "\n"
 " - திரையிலுள்ளவற்றைக் காண்பது"
 
-#: src/remotedesktopdialog.cpp:71
+#: src/remotedesktopdialog.cpp:81
 #, kde-format
 msgctxt ""
 "@info As in, 'an application is exercising privileges to control input "
 "devices'. '-' is Markdown, do not translate"
 msgid ""
 "\n"
-" - Control input devices"
+" - Move the pointer and type keystrokes"
 msgstr ""
-"\n"
-" - உள்ளீட்டு சாதனங்களைக் கட்டுப்படுத்துவது"
-
-#: src/RemoteDesktopDialog.qml:31 src/ScreenChooserDialog.qml:189
-#, kde-format
-msgid "Allow restoring on future sessions"
-msgstr "வருங்கால அமர்வுகளில் மீட்டமைக்கவிடு"
 
 #: src/RemoteDesktopDialog.qml:36
-#, kde-format
-msgctxt "@action:button Approve the application gaining extra privileges"
-msgid "Approve"
-msgstr "ஒப்புக்கொள்"
+#, fuzzy, kde-format
+#| msgctxt "@action:button Allow the app to keep running with no open windows"
+#| msgid "Allow"
+msgctxt "@action:button Allow the application to gain extra privileges"
+msgid "Allow"
+msgstr "அனுமதி"
 
 #: src/RemoteDesktopDialog.qml:37
 #, kde-format
@@ -583,127 +800,184 @@ msgctxt "@action:button Deny the application gaining extra privileges"
 msgid "Deny"
 msgstr "நிராகரி"
 
-#: src/screencast.cpp:284
+#: src/screencast.cpp:154
+#, kde-format
+msgctxt "@title:window"
+msgid "Screen Sharing Not Available"
+msgstr "திரைப் பகிர்வு இயங்கவில்லை"
+
+#: src/screencast.cpp:156
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The application <application>%1</application> tried to start a screen "
+"sharing session but screen sharing is not available on this system. Please "
+"ensure you are running a Wayland session with a compatible window manager "
+"such as KWin."
+msgstr ""
+"<application>%1</application> திரைப்பகிர்வைத் துவக்க முயற்சித்தது, ஆனால் இந்த அமர்வில் "
+"அந்த அம்சம் இயங்காது. Wayland அமர்வில் இருப்பதையும் பணிமேடை தொலையியக்கத்தை ஆதரிக்கும் "
+"சாளரநிரலை (எ.கா. கேவின்) பயன்படுத்துவதையும் உறுதி செய்யவும்."
+
+#: src/screencast.cpp:160
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The application <application>%1</application> tried to start a screen "
+"sharing session but screen sharing is not available in X11 sessions. Please "
+"switch to a Wayland session and try again."
+msgstr ""
+"<application>%1</application> திரைப்பகிர்வைத் துவக்க முயற்சித்தது, ஆனால் இந்த அமர்வில் "
+"அந்த அம்சம் இயங்காது. Wayland அமர்வுக்கு மாறி மீண்டும் முயற்சிக்கவும்."
+
+#: src/screencast.cpp:304
 #, kde-format
 msgctxt "Do not disturb mode is enabled because..."
 msgid "Screen sharing in progress"
 msgstr "திரை பகிரப்படுகிறது"
 
-#: src/screencast.cpp:392
+#: src/screencast.cpp:473
 #, kde-format
 msgctxt "@action:inmenu stops screen/window sharing"
 msgid "End"
 msgstr "நிறுத்து"
 
-#: src/screencast.cpp:445
-#, kde-format
-msgctxt "%1 number of screens, %2 the app that receives them"
-msgid "Sharing contents to %2"
-msgid_plural "%1 video streams to %2"
-msgstr[0] "உள்ளடக்கத்தை %2 பெறுகிறது"
-msgstr[1] "%1 காட்சிகளை %2 பெறுகிறது"
+#: src/screencast.cpp:487
+#, fuzzy, kde-format
+#| msgctxt "%1 number of screens, %2 the app that receives them"
+#| msgid "Sharing contents to %2"
+#| msgid_plural "%1 video streams to %2"
+msgctxt "@info:tooltip %1 the app that receives the screencast"
+msgid "Sharing contents to %1"
+msgstr "உள்ளடக்கத்தை %2 பெறுகிறது"
 
-#: src/screencast.cpp:449
+#: src/screencast.cpp:488
 #, kde-format
 msgctxt ""
 "SNI title that indicates there's a process seeing our windows or screens"
 msgid "Screen casting"
 msgstr "திரை பகிர்வு"
 
-#: src/screenchooserdialog.cpp:158
-#, kde-format
-msgctxt "@title:window %1 is an application name (e.g. Falkon)"
-msgid "Share screen with %1"
-msgstr "%1 உடன் திரையைப் பகிரலாமா?"
-
-#: src/screenchooserdialog.cpp:205
-#, kde-format
-msgid "Share this screen with the requesting application?"
+#: src/screenchooserdialog.cpp:201
+#, fuzzy, kde-format
+#| msgid "Share this screen with the requesting application?"
+msgid "Share this screen with an unidentifiable application?"
 msgstr "கோரிக்கையிடும் செயலியுடன் இத்திரையை பகிரலாமா?"
 
-#: src/screenchooserdialog.cpp:207
+#: src/screenchooserdialog.cpp:203
 #, kde-format
 msgid "Share this screen with %1?"
 msgstr "%1 உடன் இத்திரையை பகிரலாமா?"
 
-#: src/screenchooserdialog.cpp:212
-#, kde-format
-msgid "Choose screens to share with the requesting application:"
+#: src/screenchooserdialog.cpp:208
+#, fuzzy, kde-format
+#| msgid "Choose screens to share with the requesting application:"
+msgid "Choose screens to share with an unidentifiable application:"
 msgstr "கோரிக்கையிடும் செயலியுடன் பகிர வேண்டிய திரைகளை தேர்ந்தெடுங்கள்:"
 
-#: src/screenchooserdialog.cpp:214
+#: src/screenchooserdialog.cpp:210
 #, kde-format
 msgid "Choose screens to share with %1:"
 msgstr "%1 உடன் பகிர வேண்டிய திரைகளை தேர்ந்தெடுங்கள்:"
 
-#: src/screenchooserdialog.cpp:218
-#, kde-format
-msgid "Choose which screen to share with the requesting application:"
-msgstr "கோரிக்கையிடும் செயலியுடன் பகிர வேண்டிய திரையை தேர்ந்தெடுங்கள்:"
+#: src/screenchooserdialog.cpp:214
+#, fuzzy, kde-format
+#| msgid "Choose screens to share with the requesting application:"
+msgid "Choose a screen to share with an unidentifiable application:"
+msgstr "கோரிக்கையிடும் செயலியுடன் பகிர வேண்டிய திரைகளை தேர்ந்தெடுங்கள்:"
 
-#: src/screenchooserdialog.cpp:220
-#, kde-format
-msgid "Choose which screen to share with %1:"
+#: src/screenchooserdialog.cpp:216
+#, fuzzy, kde-format
+#| msgid "Choose screens to share with %1:"
+msgid "Choose a screen to share with %1:"
 msgstr "%1 உடன் பகிர வேண்டிய திரைகளை தேர்ந்தெடுங்கள்:"
 
-#: src/screenchooserdialog.cpp:229
-#, kde-format
-msgid "Share this window with the requesting application?"
+#: src/screenchooserdialog.cpp:225
+#, fuzzy, kde-format
+#| msgid "Share this window with the requesting application?"
+msgid "Share this window with an unidentifiable application?"
 msgstr "கோரிக்கையிடும் செயலியுடன் இச்சாளரத்தை பகிரலாமா?"
 
-#: src/screenchooserdialog.cpp:231
+#: src/screenchooserdialog.cpp:227
 #, kde-format
 msgid "Share this window with %1?"
 msgstr "%1 உடன் இச்சாளரத்தை பகிரலாமா?"
 
-#: src/screenchooserdialog.cpp:236
-#, kde-format
-msgid "Choose windows to share with the requesting application:"
+#: src/screenchooserdialog.cpp:232
+#, fuzzy, kde-format
+#| msgid "Choose windows to share with the requesting application:"
+msgid "Choose windows to share with an unidentifiable application:"
 msgstr "கோரிக்கையிடும் செயலியுடன் பகிர வேண்டிய சாளரங்களை தேர்ந்தெடுங்கள்:"
 
-#: src/screenchooserdialog.cpp:238
+#: src/screenchooserdialog.cpp:234
 #, kde-format
 msgid "Choose windows to share with %1:"
 msgstr "%1 உடன் பகிர வேண்டிய சாளரங்களை தேர்ந்தெடுங்கள்:"
 
-#: src/screenchooserdialog.cpp:242
-#, kde-format
-msgid "Choose which window to share with the requesting application:"
-msgstr "கோரிக்கையிடும் செயலியுடன் பகிர வேண்டிய சாளரத்தை தேர்ந்தெடுங்கள்:"
+#: src/screenchooserdialog.cpp:238
+#, fuzzy, kde-format
+#| msgid "Choose windows to share with the requesting application:"
+msgid "Choose a window to share with an unidentifiable application:"
+msgstr "கோரிக்கையிடும் செயலியுடன் பகிர வேண்டிய சாளரங்களை தேர்ந்தெடுங்கள்:"
 
-#: src/screenchooserdialog.cpp:244
-#, kde-format
-msgid "Choose which window to share with %1:"
-msgstr "%1 உடன் பகிர வேண்டிய சாளரத்தை தேர்ந்தெடுங்கள்:"
+#: src/screenchooserdialog.cpp:240
+#, fuzzy, kde-format
+#| msgid "Choose windows to share with %1:"
+msgid "Choose a window to share with %1:"
+msgstr "%1 உடன் பகிர வேண்டிய சாளரங்களை தேர்ந்தெடுங்கள்:"
 
-#: src/screenchooserdialog.cpp:251
-#, kde-format
-msgid "Create a new virtual display to share with the requesting application:"
+#: src/screenchooserdialog.cpp:247
+#, fuzzy, kde-format
+#| msgid ""
+#| "Create a new virtual display to share with the requesting application:"
+msgid ""
+"Create a new virtual display to share with an unidentifiable application:"
 msgstr "கோரிக்கையிடும் செயலியுடன் பகிர வேண்டிய மெய்நிகர் திரையை உருவாக்கவும்:"
 
-#: src/screenchooserdialog.cpp:253
+#: src/screenchooserdialog.cpp:249
 #, kde-format
 msgid "Create a new virtual display to share with %1:"
 msgstr "%1 உடன் பகிர வேண்டிய மெய்நிகர் திரையை உருவாக்கவும்:"
 
-#: src/screenchooserdialog.cpp:259
-#, kde-format
-msgid "Choose what to share with the requesting application:"
+#: src/screenchooserdialog.cpp:255
+#, fuzzy, kde-format
+#| msgid "Choose what to share with the requesting application:"
+msgid "Choose what to share with an unidentifiable application:"
 msgstr "கோரிக்கையிடும் செயலியுடன் எதை பகிர வேண்டுமென்பதை தேர்வு செய்தல்"
 
-#: src/screenchooserdialog.cpp:261
+#: src/screenchooserdialog.cpp:257
 #, kde-format
 msgid "Choose what to share with %1:"
 msgstr "%1 உடன் எதை பகிர வேண்டுமென்பதை தேர்வு செய்யுங்கள்:"
 
-#: src/ScreenChooserDialog.qml:166
+#: src/screenchooserdialog.cpp:263
+#, kde-format
+msgctxt "@info:usagetip"
+msgid "Only share anything if you know which application made the request."
+msgstr ""
+
+#: src/ScreenChooserDialog.qml:121
+#, kde-format
+msgctxt "placeholder text for searchfield"
+msgid "Search…"
+msgstr "தேடு…"
+
+#: src/ScreenChooserDialog.qml:167
 #, kde-format
 msgctxt ""
 "@label separator line label between screen selection and window selection"
 msgid "Windows"
 msgstr "சாளரங்கள்"
 
-#: src/ScreenChooserDialog.qml:194
+#: src/ScreenChooserDialog.qml:186
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Screen Sharing Not Available"
+msgctxt "@title:window"
+msgid "Screen Sharing Requested"
+msgstr "திரைப் பகிர்வு இயங்கவில்லை"
+
+#: src/ScreenChooserDialog.qml:199
 #, kde-format
 msgid "Share"
 msgstr "பகிர்"
@@ -723,161 +997,394 @@ msgstr "தற்போதைய காட்சிக் கருவி"
 msgid "Active Window"
 msgstr "செயலில் உள்ள சாளரம்"
 
-#: src/ScreenshotDialog.qml:22
-#, kde-format
-msgid "Request Screenshot"
-msgstr "திரைப்பிடிப்ப கோரு"
+#: src/ScreenshotDialog.qml:26
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Global Shortcuts Requested"
+msgctxt "@title:window"
+msgid "Screenshot Requested"
+msgstr "முழுதளாவிய சுருக்குவழி கோரப்பட்டுள்ளது"
 
-#: src/ScreenshotDialog.qml:34
+#: src/ScreenshotDialog.qml:28
+#, fuzzy, kde-format
+#| msgctxt "the app is unknown"
+#| msgid "Allow an application to set the lock screen background?"
+msgctxt "@info"
+msgid "Allow an unidentifiable application to take a screenshot?"
+msgstr "பூட்டுதிரையின் பின்புலப்படத்தை அமைக்கும் அனுமதியை வழங்கலாமா?"
+
+#: src/ScreenshotDialog.qml:29
+#, fuzzy, kde-format
+#| msgctxt "%1 is the application name"
+#| msgid "Allow %1 to set the lock screen background?"
+msgctxt "@info %1 is the name of an application"
+msgid "Allow %1 to take a screenshot?"
+msgstr "பூட்டுதிரையின் பின்புலப்படத்தை அமைக்கும் அனுமதியை %1-க்கு வழங்கலாமா?"
+
+#: src/ScreenshotDialog.qml:42
 #, kde-format
 msgid "Capture Mode"
 msgstr "பிடிப்பு முறை"
 
-#: src/ScreenshotDialog.qml:38
+#: src/ScreenshotDialog.qml:46
 #, kde-format
 msgid "Area:"
 msgstr "பரப்பளவு:"
 
-#: src/ScreenshotDialog.qml:43
+#: src/ScreenshotDialog.qml:51
 #, kde-format
 msgid "Delay:"
 msgstr "தாமதம்:"
 
-#: src/ScreenshotDialog.qml:47
+#: src/ScreenshotDialog.qml:55
 #, kde-format
 msgid "%1 second"
 msgid_plural "%1 seconds"
 msgstr[0] "%1 நொடி"
 msgstr[1] "%1 நொடிகள்"
 
-#: src/ScreenshotDialog.qml:52
+#: src/ScreenshotDialog.qml:60
 #, kde-format
 msgid "Content Options"
 msgstr "உள்ளடக்க விருப்பத்தேர்வுகள்"
 
-#: src/ScreenshotDialog.qml:56
-#, kde-format
-msgid "Include cursor pointer"
+#: src/ScreenshotDialog.qml:64
+#, fuzzy, kde-format
+#| msgid "Include cursor pointer"
+msgctxt "@option:check Refers to the on-screen 'mouse pointer'"
+msgid "Include pointer"
 msgstr "சுட்டிக்குறியை உட்படுத்து"
 
-#: src/ScreenshotDialog.qml:61
+#: src/ScreenshotDialog.qml:69
 #, kde-format
 msgid "Include window borders"
 msgstr "சாளர விளிம்புகளை உட்படுத்து"
 
-#: src/ScreenshotDialog.qml:75
-#, kde-format
-msgid "Save"
-msgstr "சேமி"
+#: src/ScreenshotDialog.qml:83
+#, fuzzy, kde-format
+#| msgctxt "@action:button Allow the app to keep running with no open windows"
+#| msgid "Allow"
+msgctxt "@action:button Allow the application to use the screenshot"
+msgid "Allow"
+msgstr "அனுமதி"
 
-#: src/ScreenshotDialog.qml:85
-#, kde-format
-msgid "Take"
-msgstr "எடு"
+#: src/ScreenshotDialog.qml:84
+#, fuzzy, kde-format
+#| msgctxt "@action:button Deny the application gaining extra privileges"
+#| msgid "Deny"
+msgctxt "@action:button Deny the application's request to take a screenshot"
+msgid "Deny"
+msgstr "நிராகரி"
 
-#: src/UsbDialog.qml:20
-#, kde-format
+#: src/ScreenshotDialog.qml:94
+#, fuzzy, kde-format
+#| msgid "Take screenshot"
+msgctxt "@action:button"
+msgid "Take Screenshot"
+msgstr "திரைப்பிடிப்பை எடு"
+
+#: src/UsbDialog.qml:21
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Access to USB Devices Requested"
 msgctxt "@title:window"
-msgid "Access to USB Devices Requested"
+msgid "Device Access Requested"
 msgstr "USB சாதன அணுகல் கோரப்பட்டுள்ளது"
 
 #: src/UsbDialog.qml:23
-#, kde-format
-msgctxt "The application is unknown"
-msgid "An application wants to access the following device:"
-msgid_plural "An application wants to access the following devices:"
+#, fuzzy, kde-format
+#| msgctxt "The application is unknown"
+#| msgid "An application wants to access the following device:"
+#| msgid_plural "An application wants to access the following devices:"
+msgctxt "@info"
+msgid "Allow an unidentifiable application to access the following device?"
+msgid_plural ""
+"Allow an unidentifiable application to access the following devices?"
 msgstr[0] "ஓர் செயலி இச்சாதனத்தை அணுக கோரியுள்ளது:"
 msgstr[1] "ஓர் செயலி பின்வரும் சாதனங்களை அணுக கோரியுள்ளது:"
 
-#: src/UsbDialog.qml:25
-#, kde-format
-msgctxt "%2 is the name of the application"
-msgid "%2 wants to access the following device:"
-msgid_plural "%2 wants to access the following devices:"
+#: src/UsbDialog.qml:24
+#, fuzzy, kde-format
+#| msgctxt "%2 is the name of the application"
+#| msgid "%2 wants to access the following device:"
+#| msgid_plural "%2 wants to access the following devices:"
+msgctxt "@info %2 is the name of the application"
+msgid "Allow %2 to access the following device?"
+msgid_plural "Allow %2 to access the following devices?"
 msgstr[0] "%2 பின்வரும் சாதனத்தை அணுக விரும்புகிறது:"
 msgstr[1] "%2 பின்வரும் சாதனங்களை அணுக விரும்புகிறது:"
 
+#: src/UsbDialog.qml:67
+#, fuzzy, kde-format
+#| msgctxt "@action:button Allow the app to keep running with no open windows"
+#| msgid "Allow"
+msgctxt "@action:button Allow the application to access devices"
+msgid "Allow"
+msgstr "அனுமதி"
+
+#: src/UsbDialog.qml:68
+#, fuzzy, kde-format
+#| msgctxt "@action:button Deny the application gaining extra privileges"
+#| msgid "Deny"
+msgctxt "@action:button Deny the application's request to access devices"
+msgid "Deny"
+msgstr "நிராகரி"
+
 #: src/userinfodialog.cpp:52
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@title"
+#| msgid "Share user info with %1"
 msgctxt "@title"
-msgid "Share user info with %1"
+msgid "Share user info with %1?"
 msgstr "பயனரின் விவரங்களை %1 உடன் பகிர்வது"
 
-#: src/userinfodialog.cpp:54
-#, kde-format
+#: src/userinfodialog.cpp:56
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:usagetip"
+#| msgid ""
+#| "Allows your username, full name, and profile picture to be used by the "
+#| "application."
 msgctxt "@info:usagetip"
 msgid ""
-"Allows your username, full name, and profile picture to be used by the "
-"application."
+"The application will be able to see your username, full name, and profile "
+"picture.<nl/><nl/>The application did not provide a reason."
 msgstr "உங்கள் பயனர் பெயர், முழுப்பெயர், மற்றும் கணக்குப்படத்தை அணுக செயலியை அனமதிக்கும்."
 
-#: src/UserInfoDialog.qml:18
-#, kde-format
-msgctxt "@action:button"
-msgid "Share user info"
-msgstr "பயனரின் விவரங்களை பகிர்"
+#: src/userinfodialog.cpp:57
+#, kde-kuit-format
+msgctxt "@info:usagetip"
+msgid ""
+"The application will be able to see your username, full name, and profile "
+"picture.<nl/><nl/>Reason: “%1”"
+msgstr ""
 
-#: src/UserInfoDialog.qml:74
+#: src/UserInfoDialog.qml:19
+#, kde-format
+msgctxt "@title:window"
+msgid "User Information Requested"
+msgstr ""
+
+#: src/UserInfoDialog.qml:76
 #, kde-format
 msgctxt "@action:button"
 msgid "Share"
 msgstr "பகிர்"
 
 #: src/WallpaperDialog.qml:20
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Input Capture Requested"
 msgctxt "@title:window"
-msgid "Set Wallpaper"
-msgstr "பின்புலப்படத்தை அமைப்பது"
+msgid "Wallpaper Change Requested"
+msgstr "உள்ளீட்டு பிடிப்பு கோரப்பட்டது"
 
 #: src/WallpaperDialog.qml:25
-#, kde-format
-msgctxt "the app is unknown"
-msgid "Allow an application to set the desktop background?"
+#, fuzzy, kde-format
+#| msgctxt "the app is unknown"
+#| msgid "Allow an application to set the desktop background?"
+msgctxt "@info"
+msgid "Allow an unidentifiable application to change the desktop wallpaper?"
 msgstr "பணிமேடையின் பின்புலப்படத்தை அமைக்கும் அனுமதியை வழங்கலாமா?"
 
 #: src/WallpaperDialog.qml:27
-#, kde-format
-msgctxt "the app is unknown"
-msgid "Allow an application to set the lock screen background?"
+#, fuzzy, kde-format
+#| msgctxt "the app is unknown"
+#| msgid "Allow an application to set the lock screen background?"
+msgctxt "@info"
+msgid ""
+"Allow an unidentifiable application to change the lock screen wallpaper?"
 msgstr "பூட்டுதிரையின் பின்புலப்படத்தை அமைக்கும் அனுமதியை வழங்கலாமா?"
 
 #: src/WallpaperDialog.qml:29
-#, kde-format
-msgctxt "the app is unknown"
-msgid "Allow an application to set desktop and lock screen backgrounds?"
+#, fuzzy, kde-format
+#| msgctxt "the app is unknown"
+#| msgid "Allow an application to set desktop and lock screen backgrounds?"
+msgctxt "@info"
+msgid ""
+"Allow an unidentifiable application to change desktop and lock screen "
+"wallpapers?"
 msgstr "பணிமேடையின் மற்றும் பூட்டுதிரையின் பின்புலப்படங்களை அமைக்கும் அனுமதியை வழங்கலாமா?"
 
 #: src/WallpaperDialog.qml:34
-#, kde-format
-msgctxt "%1 is the application name"
-msgid "Allow %1 to set the desktop background?"
+#, fuzzy, kde-format
+#| msgctxt "%1 is the application name"
+#| msgid "Allow %1 to set the desktop background?"
+msgctxt "@info %1 is the application name"
+msgid "Allow %1 to change the desktop wallpaper?"
 msgstr "பணிமேடையின் பின்புலப்படத்தை அமைக்கும் அனுமதியை %1-க்கு வழங்கலாமா?"
 
 #: src/WallpaperDialog.qml:36
-#, kde-format
-msgctxt "%1 is the application name"
-msgid "Allow %1 to set the lock screen background?"
+#, fuzzy, kde-format
+#| msgctxt "%1 is the application name"
+#| msgid "Allow %1 to set the lock screen background?"
+msgctxt "@info %1 is the application name"
+msgid "Allow %1 to change the lock screen wallpaper?"
 msgstr "பூட்டுதிரையின் பின்புலப்படத்தை அமைக்கும் அனுமதியை %1-க்கு வழங்கலாமா?"
 
 #: src/WallpaperDialog.qml:38
-#, kde-format
-msgctxt "%1 is the application name"
-msgid "Allow %1 to set desktop and lock screen backgrounds?"
+#, fuzzy, kde-format
+#| msgctxt "%1 is the application name"
+#| msgid "Allow %1 to set desktop and lock screen backgrounds?"
+msgctxt "@info %1 is the application name"
+msgid "Allow %1 to change desktop and lock screen wallpapers?"
 msgstr ""
 "பணிமேடையின் மற்றும் பூட்டுதிரையின் பின்புலப்படங்களை அமைக்கும் அனுமதியை %1-க்கு வழங்கலாமா?"
 
-#: src/waylandintegration.cpp:268 src/waylandintegration.cpp:326
+#: src/WallpaperDialog.qml:55
+#, fuzzy, kde-format
+#| msgctxt "@action:button Allow the app to keep running with no open windows"
+#| msgid "Allow"
+msgctxt "@action:button Allow the application to change the wallpaper"
+msgid "Allow"
+msgstr "அனுமதி"
+
+#: src/WallpaperDialog.qml:56
+#, fuzzy, kde-format
+#| msgctxt "@action:button Deny the application gaining extra privileges"
+#| msgid "Deny"
+msgctxt ""
+"@action:button Deny the applicatinon's request to change the wallpaper"
+msgid "Deny"
+msgstr "நிராகரி"
+
+#: src/waylandintegration.cpp:217 src/waylandintegration.cpp:260
 #, kde-format
 msgid "Failed to start screencasting"
 msgstr "திரைப்பகிர்வை தொடங்குதல் தோல்வியடைந்தது"
 
-#: src/waylandintegration.cpp:477
+#: src/waylandintegration.cpp:381
 #, kde-format
 msgid "Remote desktop"
 msgstr "பணிமேடை தொலையியக்கி"
 
-#~ msgid "Screen Sharing"
-#~ msgstr "திரை பகிர்வு"
+#~ msgctxt ""
+#~ "@action:button Don't allow the app to keep running without any open "
+#~ "windows"
+#~ msgid "Forbid"
+#~ msgstr "மறு"
+
+#~ msgctxt ""
+#~ "@action:button Don't allow the app to keep running without any open "
+#~ "windows"
+#~ msgid "Forbid Anyway"
+#~ msgstr "இருப்பினும் மறு"
+
+#~ msgctxt "@title"
+#~ msgid "Add Web Application…"
+#~ msgstr "இணையச்செயலியைச் சேர்..."
+
+#~ msgctxt "@title"
+#~ msgid "Add Application…"
+#~ msgstr "செயலியைச் சேர்…"
+
+#~ msgctxt "@action accept dialog and create launcher"
+#~ msgid "Accept"
+#~ msgstr "ஏற்றுக்கொள்"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Input is being managed by an application. Press <shortcut>%1</shortcut> "
+#~ "to disable."
+#~ msgstr ""
+#~ "உள்ளீட்டை ஓர் செயலி நிர்வகிக்கிறது. இதை நிறுத்த <shortcut>%1</shortcut> தனை "
+#~ "அழுத்தவும்."
+
+#, fuzzy
+#~| msgctxt "@title:window"
+#~| msgid "Input Capture Requested"
+#~ msgctxt "@title:nofication, set up as in established"
+#~ msgid "Input Capture Set-Up"
+#~ msgstr "உள்ளீட்டு பிடிப்பு கோரப்பட்டது"
+
+#~ msgctxt "The application is unknown"
+#~ msgid "An application requested to capture input events"
+#~ msgstr "அனைத்து உள்ளீட்டு செயல்களையும் கையாளும் அனுமதியை ஓர் செயலி கோரியுள்ளது"
+
+#~ msgctxt "%1 is the name of the application"
+#~ msgid "%1 requested to capture input events"
+#~ msgstr "அனைத்து உள்ளீட்டு செயல்களையும் கையாளும் அனுமதியை %1 கோரியுள்ளது"
+
+#, fuzzy
+#~| msgid "Allow restoring on future sessions"
+#~ msgctxt "@option:check"
+#~ msgid "Allow restoring on future sessions"
+#~ msgstr "வருங்கால அமர்வுகளில் மீட்டமைக்கவிடு"
+
+#~ msgctxt "@action:button"
+#~ msgid "Allow"
+#~ msgstr "அனுமதி"
+
+#~ msgctxt "title of notification about input systems taken over"
+#~ msgid "Remote control session started"
+#~ msgstr "தொலையியக்கி அமர்வு துவக்கப்பட்டுள்ளது"
+
+#~ msgctxt "@info"
+#~ msgid "%1 is asking for special privileges:"
+#~ msgstr "%1 மேம்பட்ட உரிமைகளைக் கோருகிறது:"
+
+#~ msgctxt ""
+#~ "@info As in, 'an application requested access to control input devices'. "
+#~ "'-' is Markdown, do not translate"
+#~ msgid ""
+#~ "\n"
+#~ " - Control input devices"
+#~ msgstr ""
+#~ "\n"
+#~ " - உள்ளீட்டு சாதனங்களைக் கட்டுப்படுத்த"
+
+#~ msgctxt "@info"
+#~ msgid "An application is exercising special permissions:\n"
+#~ msgstr "ஓர் செயலி மேம்பட்ட உரிமைகளைப் பயன்படுத்துகிறது:\n"
+
+#~ msgctxt ""
+#~ "@info As in, 'an application is exercising privileges to control input "
+#~ "devices'. '-' is Markdown, do not translate"
+#~ msgid ""
+#~ "\n"
+#~ " - Control input devices"
+#~ msgstr ""
+#~ "\n"
+#~ " - உள்ளீட்டு சாதனங்களைக் கட்டுப்படுத்துவது"
+
+#~ msgid "Allow restoring on future sessions"
+#~ msgstr "வருங்கால அமர்வுகளில் மீட்டமைக்கவிடு"
+
+#~ msgctxt "@action:button Approve the application gaining extra privileges"
+#~ msgid "Approve"
+#~ msgstr "ஒப்புக்கொள்"
+
+#~ msgctxt "@title:window %1 is an application name (e.g. Falkon)"
+#~ msgid "Share screen with %1"
+#~ msgstr "%1 உடன் திரையைப் பகிரலாமா?"
+
+#~ msgid "Choose which screen to share with the requesting application:"
+#~ msgstr "கோரிக்கையிடும் செயலியுடன் பகிர வேண்டிய திரையை தேர்ந்தெடுங்கள்:"
+
+#~ msgid "Choose which screen to share with %1:"
+#~ msgstr "%1 உடன் பகிர வேண்டிய திரைகளை தேர்ந்தெடுங்கள்:"
+
+#~ msgid "Choose which window to share with the requesting application:"
+#~ msgstr "கோரிக்கையிடும் செயலியுடன் பகிர வேண்டிய சாளரத்தை தேர்ந்தெடுங்கள்:"
+
+#~ msgid "Choose which window to share with %1:"
+#~ msgstr "%1 உடன் பகிர வேண்டிய சாளரத்தை தேர்ந்தெடுங்கள்:"
+
+#~ msgid "Request Screenshot"
+#~ msgstr "திரைப்பிடிப்ப கோரு"
+
+#~ msgid "Save"
+#~ msgstr "சேமி"
+
+#~ msgid "Take"
+#~ msgstr "எடு"
+
+#~ msgctxt "@action:button"
+#~ msgid "Share user info"
+#~ msgstr "பயனரின் விவரங்களை பகிர்"
+
+#~ msgctxt "@title:window"
+#~ msgid "Set Wallpaper"
+#~ msgstr "பின்புலப்படத்தை அமைப்பது"
 
 #~ msgid "Screens"
 #~ msgstr "திரைகள்"
@@ -895,11 +1402,6 @@ msgstr "பணிமேடை தொலையியக்கி"
 #~ msgstr ""
 #~ "நீங்கள் தேடும் செயலி கிடைக்கவில்லையா? <link>டிஸ்கவரில்</link> மேலும் செயலிகளை "
 #~ "நிறுவலாம்."
-
-#~ msgctxt ""
-#~ "SNI title that indicates there's a process remotely controlling the system"
-#~ msgid "Remote Desktop"
-#~ msgstr "தொலையியக்கு பணிமேடை"
 
 #, fuzzy
 #~| msgctxt ""
@@ -1051,6 +1553,3 @@ msgstr "பணிமேடை தொலையியக்கி"
 
 #~ msgid "No Delay"
 #~ msgstr "தாமதிக்க வேண்டாம்"
-
-#~ msgid "Take screenshot"
-#~ msgstr "திரைப்பிடிப்பை எடு"

@@ -6,38 +6,82 @@
 
 #include "nsSBCSGroupProber.h"
 
-#include "UnicodeGroupProber.h"
+#include "StateMachineProber.h"
 #include "nsHebrewProber.h"
 #include "nsSBCharSetProber.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <format>
 
 namespace kencodingprober
 {
+namespace
+{
+using Prober = nsCharSetProber::Prober;
+constexpr std::array<Prober, NUM_OF_SBCS_PROBERS> allProbers{{
+    Prober::Windows1251,
+    Prober::KOI8_R,
+    Prober::ISO8859_5,
+    Prober::MAC_Cyrillic,
+    Prober::IBM866,
+    Prober::IBM855,
+    Prober::Latin7_Greek,
+    Prober::Windows1253_Greek,
+    Prober::ISO8859_5_Bulgarian,
+    Prober::Windows1251_Bulgarian,
+    Prober::ISO8859_8_HebrewVisual,
+}};
+constexpr std::array<bool, NUM_OF_SBCS_PROBERS> fromSelectedList(std::span<const Prober> selected)
+{
+    std::array<bool, NUM_OF_SBCS_PROBERS> isSelected{false};
+    for (auto p : selected) {
+        for (uint8_t index = 0; index < allProbers.size(); index++) {
+            if (allProbers[index] != p) {
+                continue;
+            }
+            isSelected[index] = true;
+            break;
+        }
+    }
+    return isSelected;
+}
+static_assert(fromSelectedList({}) == std::array<bool, NUM_OF_SBCS_PROBERS>{false});
+static_assert(fromSelectedList(allProbers) == std::array<bool, NUM_OF_SBCS_PROBERS>{true, true, true, true, true, true, true, true, true, true, true});
+static_assert(fromSelectedList(std::array{Prober::Windows1251}) == std::array<bool, NUM_OF_SBCS_PROBERS>{true, false});
+static_assert(fromSelectedList(std::array{Prober::HZ}) == std::array<bool, NUM_OF_SBCS_PROBERS>{false});
+static_assert(fromSelectedList(std::array{Prober::Big5}) == std::array<bool, NUM_OF_SBCS_PROBERS>{false});
+static_assert(fromSelectedList(std::array{Prober::KOI8_R, Prober::IBM855})
+              == std::array<bool, NUM_OF_SBCS_PROBERS>{false, true, false, false, false, true, false});
+static_assert(fromSelectedList(std::array{Prober::ISO8859_8_HebrewVisual})[10] == true);
+} // namespace <anonymous>
+
 nsSBCSGroupProber::nsSBCSGroupProber()
+    : nsSBCSGroupProber(allProbers)
+{
+}
+
+nsSBCSGroupProber::nsSBCSGroupProber(std::span<const Prober> selected)
     : mProbers{
-          std::make_unique<nsSingleByteCharSetProber<false>>(&Win1251Model),
-          std::make_unique<nsSingleByteCharSetProber<false>>(&Koi8rModel),
-          std::make_unique<nsSingleByteCharSetProber<false>>(&Latin5Model),
-          std::make_unique<nsSingleByteCharSetProber<false>>(&MacCyrillicModel),
-          std::make_unique<nsSingleByteCharSetProber<false>>(&Ibm866Model),
-          std::make_unique<nsSingleByteCharSetProber<false>>(&Ibm855Model),
-          std::make_unique<nsSingleByteCharSetProber<false>>(&Latin7Model),
-          std::make_unique<nsSingleByteCharSetProber<false>>(&Win1253Model),
-          std::make_unique<nsSingleByteCharSetProber<false>>(&Latin5BulgarianModel),
-          std::make_unique<nsSingleByteCharSetProber<false>>(&Win1251BulgarianModel),
+          std::make_unique<nsSingleByteCharSetProber<false>>(Win1251Model),
+          std::make_unique<nsSingleByteCharSetProber<false>>(Koi8rModel),
+          std::make_unique<nsSingleByteCharSetProber<false>>(Latin5Model),
+          std::make_unique<nsSingleByteCharSetProber<false>>(MacCyrillicModel),
+          std::make_unique<nsSingleByteCharSetProber<false>>(Ibm866Model),
+          std::make_unique<nsSingleByteCharSetProber<false>>(Ibm855Model),
+          std::make_unique<nsSingleByteCharSetProber<false>>(Latin7Model),
+          std::make_unique<nsSingleByteCharSetProber<false>>(Win1253Model),
+          std::make_unique<nsSingleByteCharSetProber<false>>(Latin5BulgarianModel),
+          std::make_unique<nsSingleByteCharSetProber<false>>(Win1251BulgarianModel),
           std::make_unique<nsHebrewProber>(),
-          std::make_unique<UnicodeGroupProber>(),
       }
+    , mIsSelected(fromSelectedList(selected))
 {
     // disable latin2 before latin1/windows-1252 is available, otherwise all latin1
     // will be detected as latin2 because of their similarity.
-    // mProbers[12] = std::make_unique<nsSingleByteCharSetProber<false>>(&Latin2HungarianModel);
-    // mProbers[13] = std::make_unique<nsSingleByteCharSetProber<false>>(&Win1250HungarianModel);
+    // mProbers[14] = std::make_unique<nsSingleByteCharSetProber<false>>(&Latin2HungarianModel);
+    // mProbers[15] = std::make_unique<nsSingleByteCharSetProber<false>>(&Win1250HungarianModel);
 
     for (unsigned int i = 0; i < NUM_OF_SBCS_PROBERS; i++) {
-        if (mProbers[i]) { // not null
+        if (mProbers[i] && mIsSelected[i]) {
             mIsActive[i] = true;
         }
     }
@@ -46,12 +90,11 @@ nsSBCSGroupProber::nsSBCSGroupProber()
 const char *nsSBCSGroupProber::GetCharSetName()
 {
     // if we have no answer yet
-    if (mBestGuess == -1) {
+    if (mBestGuess >= mProbers.size()) {
         GetConfidence();
         // no charset seems positive
-        if (mBestGuess == -1)
-        // we will use default.
-        {
+        if (mBestGuess >= mProbers.size()) {
+            // we will use default.
             mBestGuess = 0;
         }
     }
@@ -60,24 +103,14 @@ const char *nsSBCSGroupProber::GetCharSetName()
 
 nsProbingState nsSBCSGroupProber::HandleData(const char *aBuf, unsigned int aLen)
 {
+    if (mState != eDetecting) {
+        return mState;
+    }
+
     char *newBuf1 = nullptr;
     unsigned int newLen1 = 0;
 
-    int activeNum = NUM_OF_SBCS_PROBERS - 1;
-
-    // The UnicodeGroupProber (specifically the UTF16 subprobers) need unmangled data
-    if (mIsActive[NUM_OF_SBCS_PROBERS - 1]) {
-        if (const auto st = mProbers[NUM_OF_SBCS_PROBERS - 1]->HandleData(aBuf, aLen); st == eFoundIt) {
-            mBestGuess = NUM_OF_SBCS_PROBERS - 1;
-            mState = eFoundIt;
-            return mState;
-        } else if (st == eNotMe) {
-            mIsActive[NUM_OF_SBCS_PROBERS - 1] = false;
-            activeNum--;
-        }
-    } else {
-        activeNum--;
-    }
+    int activeNum = mProbers.size();
 
     // apply filter to original buffer, and we got new buffer back
     // depend on what script it is, we will feed them the new buffer
@@ -93,7 +126,7 @@ nsProbingState nsSBCSGroupProber::HandleData(const char *aBuf, unsigned int aLen
         goto done; // Nothing to see here, move on.
     }
 
-    for (unsigned int i = 0; i < NUM_OF_SBCS_PROBERS - 1; ++i) {
+    for (size_t i = 0; i < mProbers.size(); i++) {
         if (!mIsActive[i]) {
             activeNum--;
             continue;
@@ -127,9 +160,9 @@ float nsSBCSGroupProber::GetConfidence(void)
     case eFoundIt:
         return 0.99f; // sure yes
     case eNotMe:
-        return 0.01f; // sure no
+        return 0.0f; // sure no
     default:
-        for (unsigned int i = 0; i < NUM_OF_SBCS_PROBERS; ++i) {
+        for (size_t i = 0; i < mProbers.size(); i++) {
             if (!mIsActive[i]) {
                 continue;
             }
@@ -143,22 +176,17 @@ float nsSBCSGroupProber::GetConfidence(void)
     return bestConf;
 }
 
-#ifdef DEBUG_PROBE
-void nsSBCSGroupProber::DumpStatus()
+std::string nsSBCSGroupProber::StatusOutput(uint8_t indent)
 {
-    unsigned int i;
-    float cf;
-
-    cf = GetConfidence();
-    printf(" SBCS Group Prober --------begin status \r\n");
-    for (i = 0; i < NUM_OF_SBCS_PROBERS; i++) {
-        if (!mIsActive[i]) {
-            printf("  inactive: [%s] (i.e. confidence is too low).\r\n", mProbers[i]->GetCharSetName());
-        } else {
-            mProbers[i]->DumpStatus();
-        }
+    indent += 2;
+    std::string output{"  SBCS Group Prober ----"};
+    GetConfidence();
+    for (size_t i = 0; i < mProbers.size(); i++) {
+        char state = !mIsSelected[i] ? '.' : !mIsActive[i] ? '-' : (i == mBestGuess) ? '*' : ' ';
+        output += '\n' + std::string(indent, ' ');
+        output += std::format("{} #{:02}  SBCS: ", state, i);
+        output += mProbers[i]->StatusOutput(indent);
     }
-    printf(" SBCS Group found best match [%s] confidence %f.\r\n", mProbers[mBestGuess]->GetCharSetName(), cf);
+    return output;
 }
-#endif
 }

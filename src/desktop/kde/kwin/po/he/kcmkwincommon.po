@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-16 02:39+0000\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
 "PO-Revision-Date: 2026-03-18 16:07+0200\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
@@ -28,78 +28,78 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "kde-l10n-he@kde.org"
 
-#: effectsmodel.cpp:48
+#: effectsmodel.cpp:49
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Accessibility"
 msgstr "נגישות"
 
-#: effectsmodel.cpp:49
+#: effectsmodel.cpp:50
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Appearance"
 msgstr "מראה"
 
-#: effectsmodel.cpp:50
+#: effectsmodel.cpp:51
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Focus"
 msgstr "מיקוד"
 
-#: effectsmodel.cpp:51
+#: effectsmodel.cpp:52
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Peek at Desktop Animation"
 msgstr "הצצה בהנפשת שולחן העבודה"
 
-#: effectsmodel.cpp:52
+#: effectsmodel.cpp:53
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Tools"
 msgstr "כלים"
 
-#: effectsmodel.cpp:53
+#: effectsmodel.cpp:54
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Virtual Desktop Switching Animation"
 msgstr "הנפשת מעבר בין שולחנות עבודה וירטואליים"
 
-#: effectsmodel.cpp:54
+#: effectsmodel.cpp:55
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Window Management"
 msgstr "ניהול חלונות"
 
-#: effectsmodel.cpp:55
+#: effectsmodel.cpp:56
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Window Open/Close Animation"
 msgstr "הנפשת פתיחת/סגירת חלון"
 
-#: effectsmodel.cpp:231
+#: effectsmodel.cpp:233
 #, kde-format
 msgid "KWin development team"
 msgstr "צוות הפיתוח של KWin"
 
-#: genericscriptedconfig.cpp:76
+#: genericscriptedconfig.cpp:71
 #, kde-format
 msgctxt "Error message"
 msgid "Could not locate package metadata"
 msgstr "לא ניתן לאתר נתוני על של חבילה"
 
-#: genericscriptedconfig.cpp:82
+#: genericscriptedconfig.cpp:77
 #, kde-format
 msgctxt "Required file does not exist"
 msgid "%1 does not contain a valid metadata.json file"
 msgstr "%1 לא מכיל קובץ metadata.json תקני"
 
-#: genericscriptedconfig.cpp:88 genericscriptedconfig.cpp:94
+#: genericscriptedconfig.cpp:83 genericscriptedconfig.cpp:89
 #, kde-format
 msgctxt "Required file does not exist"
 msgid "%1 does not exist"
 msgstr "%1 לא קיים"
 
-#: genericscriptedconfig.cpp:116
+#: genericscriptedconfig.cpp:106 genericscriptedconfig.cpp:116
 #, kde-format
 msgid "Error loading widget from %1: %2"
 msgstr "שגיאה בטעינת וידג׳ט מתוך %1: ‚%2’."

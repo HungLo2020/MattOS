@@ -791,9 +791,11 @@ QString QDir::absolutePath() const
     redundant "." or ".." elements.
 
     On systems that do not have symbolic links this function will
-    always return the same string that absolutePath() returns. If the
-    canonical path does not exist (normally due to dangling symbolic
-    links) canonicalPath() returns an empty string.
+    always return the same string that absolutePath() returns. This method
+    returns an empty string if the entry does not exist, is not reachable (for
+    example, the current user does not have access to a directory path), or an
+    error occurs while canonicalizing the path (normally due to dangling
+    symbolic links).
 
     Example:
 
@@ -1454,6 +1456,14 @@ QString QDir::operator[](qsizetype pos) const
     return d->fileCache.files[pos];
 }
 
+/*
+//! [entrylist_memory_spike]
+    For large directories this function may cause a memory spike because it
+    creates an instance of a \1 per each entry in the directory. Consider
+    using QDirListing if the goal is to iterate over the items one-by-one.
+//! [entrylist_memory_spike]
+*/
+
 /*!
     \overload
 
@@ -1470,6 +1480,8 @@ QString QDir::operator[](qsizetype pos) const
 
     \note To list symlinks that point to non existing files, \l System must be
      passed to the filter.
+
+    \include qdir.cpp {entrylist_memory_spike} {QString}
 
     \sa entryInfoList(), setNameFilters(), setSorting(), setFilter()
 */
@@ -1494,6 +1506,8 @@ QStringList QDir::entryList(Filters filters, SortFlags sort) const
     Returns an empty list if the directory is unreadable, does not
     exist, or if nothing matches the specification.
 
+    \include qdir.cpp {entrylist_memory_spike} {QFileInfo}
+
     \sa entryList(), setNameFilters(), setSorting(), setFilter(), isReadable(), exists()
 */
 QFileInfoList QDir::entryInfoList(Filters filters, SortFlags sort) const
@@ -1515,6 +1529,8 @@ QFileInfoList QDir::entryInfoList(Filters filters, SortFlags sort) const
 
     Returns an empty list if the directory is unreadable, does not
     exist, or if nothing matches the specification.
+
+    \include qdir.cpp {entrylist_memory_spike} {QString}
 
     \sa entryInfoList(), setNameFilters(), setSorting(), setFilter()
 */
@@ -1566,6 +1582,8 @@ QStringList QDir::entryList(const QStringList &nameFilters, Filters filters,
 
     Returns an empty list if the directory is unreadable, does not
     exist, or if nothing matches the specification.
+
+    \include qdir.cpp {entrylist_memory_spike} {QFileInfo}
 
     \sa entryList(), setNameFilters(), setSorting(), setFilter(), isReadable(), exists()
 */
@@ -1881,7 +1899,7 @@ bool QDir::isRoot() const
 */
 
 /*!
-   \fn bool QDir::isAbsolutePath(const QString &)
+   \fn bool QDir::isAbsolutePath(const QString &path)
 
     Returns \c true if \a path is absolute; returns \c false if it is
     relative.

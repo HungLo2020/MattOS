@@ -5,15 +5,15 @@
 # Alexander Lakhin <exclusion@gmail.com>, 2014.
 # Alexander Potashev <aspotashev@gmail.com>, 2014, 2016, 2017, 2018.
 # Artem Grinev <agrinev98@gmail.com>, 2016.
-# Alexander Yavorsky <kekcuha@gmail.com>, 2020, 2021.
+# SPDX-FileCopyrightText: 2020-2021, 2026 Alexander Yavorsky <kekcuha@gmail.com>
 # Мария Шикунова <translation-team@basealt.ru>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2022-02-14 16:14+0300\n"
-"Last-Translator: Мария Шикунова <translation-team@basealt.ru>\n"
+"POT-Creation-Date: 2026-01-29 00:46+0000\n"
+"PO-Revision-Date: 2026-10-04 10:06+0200\n"
+"Last-Translator: Alexander Yavorskiy <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Lokalize 21.08.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 
 #. i18n: ectx: property (text), widget (QLabel, labelGateway)
 #: l2tp.ui:19
@@ -33,13 +33,13 @@ msgstr "Шлюз:"
 #: l2tp.ui:35
 #, kde-format
 msgid "L2TP server IP or name."
-msgstr "IP-адрес или имя сервера L2TP"
+msgstr "IP-адрес или имя сервера L2TP."
 
 #. i18n: ectx: property (text), widget (QLabel, labelAuthType)
 #: l2tp.ui:45
 #, kde-format
 msgid "Authentication type:"
-msgstr "Тип используемой аутентификации:"
+msgstr "Способ аутентификации:"
 
 #. i18n: ectx: property (toolTip), widget (QComboBox, cmbAuthType)
 #: l2tp.ui:67 l2tpipsec.ui:68
@@ -110,66 +110,66 @@ msgstr ""
 
 #. i18n: ectx: property (text), widget (QLabel, label_2)
 #. i18n: ectx: property (text), widget (QLabel, textLabel2)
-#: l2tp.ui:174 l2tpipsec.ui:205
+#: l2tp.ui:161 l2tpipsec.ui:205
 #, kde-format
 msgid "CA Certificate:"
 msgstr "Сертификат УЦ:"
 
 #. i18n: ectx: property (toolTip), widget (KUrlRequester, machineCA)
 #. i18n: ectx: property (toolTip), widget (KUrlRequester, userCA)
-#: l2tp.ui:187 l2tpipsec.ui:119
+#: l2tp.ui:174 l2tpipsec.ui:119
 #, kde-format
 msgid ""
 "<html><head/><body><p>Certificate authority (CA) file in .pem, .der, .crt, ."
 "cer or .p12 formats.</p></body></html>"
 msgstr ""
-"<html><head/><body><p>Сертификат удостоверяющего центра (CA) в формате ."
+"<html><head/><body><p>Сертификат удостоверяющего центра (УЦ) в формате ."
 "pem, .der, .crt, .cer или .p12.</p></body></html>"
 
 #. i18n: ectx: property (text), widget (QLabel, textLabel3_2)
-#: l2tp.ui:199
+#: l2tp.ui:186
 #, kde-format
 msgid "User Certificate:"
 msgstr "Сертификат пользователя:"
 
 #. i18n: ectx: property (toolTip), widget (KUrlRequester, userCert)
-#: l2tp.ui:212
+#: l2tp.ui:199
 #, kde-format
 msgid ""
 "<html><head/><body><p>Certificate in .pem, .der, .crt, .cer or .p12 formats."
 "</p></body></html>"
 msgstr ""
-"<html><head/><body><p>Сертификат в формате .pem, .der, .crt. или .p12.</p></"
-"body></html>"
+"<html><head/><body><p>Сертификат в формате .pem, .der, .crt, .cer или .p12.</"
+"p></body></html>"
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
 #. i18n: ectx: property (text), widget (QLabel, textLabel4)
-#: l2tp.ui:224 l2tpipsec.ui:156
+#: l2tp.ui:211 l2tpipsec.ui:156
 #, kde-format
 msgid "Private Key:"
 msgstr "Закрытый ключ:"
 
 #. i18n: ectx: property (toolTip), widget (KUrlRequester, machineKey)
 #. i18n: ectx: property (toolTip), widget (KUrlRequester, userKey)
-#: l2tp.ui:237 l2tpipsec.ui:169
+#: l2tp.ui:224 l2tpipsec.ui:169
 #, kde-format
 msgid ""
 "<html><head/><body><p>Private key in .pem, .der, .key, .pk8 or .p12 formats."
 "</p></body></html>"
 msgstr ""
-"<html><head/><body><p>Закрытый ключ в формате .pem, .der, .key., pk8 или ."
+"<html><head/><body><p>Закрытый ключ в формате .pem, .der, .key, .pk8 или ."
 "p12.</p></body></html>"
 
 #. i18n: ectx: property (text), widget (QLabel, label_5)
 #. i18n: ectx: property (text), widget (QLabel, label_7)
-#: l2tp.ui:249 l2tpipsec.ui:181
+#: l2tp.ui:236 l2tpipsec.ui:181
 #, kde-format
 msgid "Private Key Password:"
 msgstr "Пароль закрытого ключа:"
 
 #. i18n: ectx: property (toolTip), widget (PasswordField, machineKeyPassword)
 #. i18n: ectx: property (toolTip), widget (PasswordField, userKeyPassword)
-#: l2tp.ui:261 l2tpipsec.ui:193
+#: l2tp.ui:248 l2tpipsec.ui:193
 #, kde-format
 msgid ""
 "<html><head/><body><p>Password for private key or PKCS#12 certificate.</p></"
@@ -178,17 +178,37 @@ msgstr ""
 "<html><head/><body><p>Пароль закрытого ключа или сертификата PKCS#12.</p></"
 "body></html>"
 
+#. i18n: ectx: property (toolTip), widget (QCheckBox, cbEphemeralSourcePort)
+#: l2tp.ui:267
+#, kde-format
+msgid ""
+"Do not use UDP port 1701 for L2TP source port even if it is free.\n"
+"An ephemeral (random) high port number will be used instead.\n"
+"\n"
+"May be required to allow multiple L2TP clients behind the same NAT."
+msgstr ""
+"Не использовать UDP-порт 1701 в качестве исходного порта для L2TP, даже если "
+"он свободен.\n"
+"Вместо этого будет использован случайный порт с большим номером.\n"
+"Это может потребоваться для работы нескольких клиентов L2TP за одним NAT."
+
+#. i18n: ectx: property (text), widget (QCheckBox, cbEphemeralSourcePort)
+#: l2tp.ui:270
+#, kde-format
+msgid "Use L2TP ephemeral source port"
+msgstr "Использовать случайный исходный порт L2TP"
+
 #. i18n: ectx: property (text), widget (QPushButton, btnIPSecSettings)
-#: l2tp.ui:292
+#: l2tp.ui:308
 #, kde-format
 msgid "IPsec Settings…"
-msgstr "Настроить IPsec..."
+msgstr "Параметры IPsec…"
 
 #. i18n: ectx: property (text), widget (QPushButton, btnPPPSettings)
-#: l2tp.ui:299
+#: l2tp.ui:315
 #, kde-format
 msgid "PPP Settings…"
-msgstr "Настроить PPP..."
+msgstr "Параметры PPP…"
 
 #: l2tpauth.cpp:64
 #, kde-format
@@ -233,7 +253,7 @@ msgstr "Тип:"
 #: l2tpipsec.ui:72
 #, kde-format
 msgid "Pre-shared Key (PSK)"
-msgstr "Предварительно согласованный общий ключ (PSK):"
+msgstr "Предварительно согласованный общий ключ (PSK)"
 
 #. i18n: ectx: property (toolTip), widget (PasswordField, presharedKey)
 #: l2tpipsec.ui:103
@@ -256,7 +276,7 @@ msgid ""
 "<html><head/><body><p>Certificate in .pem, .der or .p12 formats.</p></body></"
 "html>"
 msgstr ""
-"<html><head/><body><p>Сертификат в формате pem, der, или .p12.</p></body></"
+"<html><head/><body><p>Сертификат в формате .pem, .der или .p12.</p></body></"
 "html>"
 
 #. i18n: ectx: property (title), widget (QGroupBox, gbAdvanced)
@@ -286,7 +306,7 @@ msgid ""
 msgstr ""
 "<html><head/><body><p>Необязательный параметр. Список предлагаемых методов "
 "ESP (инкапсуляции защищённых данных) — быстрый режим. Формат списка: «enc-"
-"integ,enc-integ,...»</p></body></html>"
+"integ,enc-integ, …».</p></body></html>"
 
 #. i18n: ectx: property (toolTip), widget (QTimeEdit, ikelifetime)
 #: l2tpipsec.ui:261
@@ -295,8 +315,8 @@ msgid ""
 "<html><head/><body><p>How long the keying channel of a connection should "
 "last before being renegotiated.</p></body></html>"
 msgstr ""
-"<html><head/><body><p>Время ожидания установления канала для обмена ключами."
-"</p></body></html>"
+"<html><head/><body><p>Срок действия канала обмена ключами до повторного "
+"согласования.</p></body></html>"
 
 #. i18n: ectx: property (displayFormat), widget (QTimeEdit, ikelifetime)
 #. i18n: ectx: property (displayFormat), widget (QTimeEdit, salifetime)
@@ -309,7 +329,7 @@ msgstr "чч:мм:сс"
 #: l2tpipsec.ui:271
 #, kde-format
 msgid "Phase1 Lifetime:"
-msgstr "Время выполнения фазы 1:"
+msgstr "Время жизни фазы 1:"
 
 #. i18n: ectx: property (toolTip), widget (QLineEdit, ike)
 #: l2tpipsec.ui:278
@@ -319,14 +339,14 @@ msgid ""
 "format is “enc-integ-group,enc-integ-group, …”.</p></body></html>"
 msgstr ""
 "<html><head/><body><p>Необязательный параметр. Список предлагаемых методов "
-"ESP (инкапсуляции защищённых данных) — основной режим. Формат списка: «enc-"
-"integ,enc-integ,...»</p></body></html>"
+"IKE — основной режим. Формат списка: «enc-integ-group,enc-integ-group, …».</"
+"p></body></html>"
 
 #. i18n: ectx: property (text), widget (QCheckBox, cbSalifetime)
 #: l2tpipsec.ui:285
 #, kde-format
 msgid "Phase2 Lifetime:"
-msgstr "Время выполнения фазы 2:"
+msgstr "Время жизни фазы 2:"
 
 #. i18n: ectx: property (toolTip), widget (QTimeEdit, salifetime)
 #: l2tpipsec.ui:295
@@ -351,12 +371,11 @@ msgid ""
 "strongSwan or Libreswan documentation for leftid/rightid syntax and identity "
 "parsing.</p></body></html>"
 msgstr ""
-"<html><head/><body><p>Необязательная функция. Как следует идентифицировать "
-"сервер IPsec для аутентификации — как идентификатор однорангового узла или "
-"идентификатор шлюза, либо rightid в strongSwan, Libreswan, Openswan и FreeS/"
-"WAN. Для получения более подробной информации о синтаксисе leftid/rightid "
-"syntax и анализе идентификаторов, обратитесь к документации strongSwan или "
-"Libreswan.</p></body></html>"
+"<html><head/><body><p>Необязательный параметр. Способ идентификации сервера "
+"IPsec при аутентификации. Иногда называется идентификатором узла (Peer ID) "
+"или шлюза (Gateway ID), в strongSwan, Libreswan, Openswan и FreeS/WAN — "
+"rightid. Синтаксис leftid/rightid и разбор идентификаторов описаны в "
+"документации strongSwan или Libreswan.</p></body></html>"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, cbIPComp)
 #: l2tpipsec.ui:312
@@ -376,8 +395,14 @@ msgstr ""
 msgid "Use IP compression"
 msgstr "Использовать сжатие IP"
 
-#. i18n: ectx: property (toolTip), widget (QCheckBox, cbPFS)
+#. i18n: ectx: property (text), widget (QCheckBox, cbIKEv2)
 #: l2tpipsec.ui:322
+#, kde-format
+msgid "Use IKEv2 key exchange"
+msgstr "Использовать обмен ключами IKEv2"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, cbPFS)
+#: l2tpipsec.ui:329
 #, kde-format
 msgid ""
 "<html><head/><body><p>Disable perfect forward secrecy. Enable this option "
@@ -388,13 +413,13 @@ msgstr ""
 "p></body></html>"
 
 #. i18n: ectx: property (text), widget (QCheckBox, cbPFS)
-#: l2tpipsec.ui:325
+#: l2tpipsec.ui:332
 #, kde-format
 msgid "Disable PFS"
 msgstr "Отключить PFS"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, cbForceEncaps)
-#: l2tpipsec.ui:332
+#: l2tpipsec.ui:339
 #, kde-format
 msgid ""
 "<html><head/><body><p>Some firewalls block ESP traffic. Enforcing UDP "
@@ -406,16 +431,16 @@ msgstr ""
 "этом случае, даже если не определено использование NAT.</p></body></html>"
 
 #. i18n: ectx: property (text), widget (QCheckBox, cbForceEncaps)
-#: l2tpipsec.ui:335
+#: l2tpipsec.ui:342
 #, kde-format
 msgid "Enforce UDP encapsulation"
 msgstr "Принудительная инкапсуляция в UDP"
 
 #. i18n: ectx: property (text), widget (QLabel, label_6)
-#: l2tpipsec.ui:345
+#: l2tpipsec.ui:352
 #, kde-format
 msgid "Remote ID:"
-msgstr "ID сетевого узла:"
+msgstr "Идентификатор удалённого узла:"
 
 #: l2tpipsecwidget.cpp:46
 #, kde-format
@@ -573,20 +598,33 @@ msgstr "Посылать эхо-пакеты PPP"
 msgid "Other Settings"
 msgstr "Другие параметры"
 
+#. i18n: ectx: property (toolTip), widget (QCheckBox, cbMRRU)
+#. i18n: ectx: property (toolTip), widget (QSpinBox, sbMRRU)
+#: l2tpppp.ui:224 l2tpppp.ui:234
+#, kde-format
+msgid "Try to negotiate a PPP Multilink on a single connection."
+msgstr "Пытаться согласовать многоканальный PPP в рамках одного соединения."
+
+#. i18n: ectx: property (text), widget (QCheckBox, cbMRRU)
+#: l2tpppp.ui:227
+#, kde-format
+msgid "Multilink PPP MRRU: "
+msgstr "MRRU многоканального соединения PPP: "
+
 #. i18n: ectx: property (text), widget (QLabel, lbMRU)
-#: l2tpppp.ui:224
+#: l2tpppp.ui:250
 #, kde-format
 msgid "MRU: "
 msgstr "MRU: "
 
 #. i18n: ectx: property (text), widget (QLabel, lbMTU)
-#: l2tpppp.ui:238
+#: l2tpppp.ui:264
 #, kde-format
 msgid "MTU: "
 msgstr "MTU: "
 
 #. i18n: ectx: property (toolTip), widget (QGroupBox, gbMPPE)
-#: l2tpppp.ui:257
+#: l2tpppp.ui:283
 #, kde-format
 msgid ""
 "Note: MPPE encryption is only available with MSCHAP authentication methods. "
@@ -600,45 +638,45 @@ msgstr ""
 "MSCHAP и/или MSCHAPv2."
 
 #. i18n: ectx: property (title), widget (QGroupBox, gbMPPE)
-#: l2tpppp.ui:260
+#: l2tpppp.ui:286
 #, kde-format
 msgid "Use MPPE Encryption"
-msgstr "Использование шифрования MPPE"
+msgstr "Использовать шифрование MPPE"
 
 #. i18n: ectx: property (text), widget (QLabel, lblMMPEcrypto)
-#: l2tpppp.ui:281
+#: l2tpppp.ui:307
 #, kde-format
 msgid "Crypto:"
 msgstr "Шифрование:"
 
 # BUGME: please clarify "or all" --aspotashev
 #. i18n: ectx: property (toolTip), widget (QComboBox, cbMPPECrypto)
-#: l2tpppp.ui:297
+#: l2tpppp.ui:323
 #, kde-format
 msgid "Require the use of MPPE, with 40/128-bit encryption or all."
 msgstr "Вид используемого шифрования."
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbMPPECrypto)
-#: l2tpppp.ui:301
+#: l2tpppp.ui:327
 #, kde-format
 msgctxt "like in use Any configuration"
 msgid "Any"
 msgstr "Любое"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbMPPECrypto)
-#: l2tpppp.ui:306
+#: l2tpppp.ui:332
 #, kde-format
 msgid "128 bit"
 msgstr "128 бит"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbMPPECrypto)
-#: l2tpppp.ui:311
+#: l2tpppp.ui:337
 #, kde-format
 msgid "40 bit"
 msgstr "40 бит"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, cbstatefulEncryption)
-#: l2tpppp.ui:319
+#: l2tpppp.ui:345
 #, kde-format
 msgid ""
 "Allow MPPE to use stateful mode. Stateless mode is still attempted first."
@@ -648,7 +686,7 @@ msgstr ""
 "без сохранения состояния."
 
 #. i18n: ectx: property (text), widget (QCheckBox, cbstatefulEncryption)
-#: l2tpppp.ui:322
+#: l2tpppp.ui:348
 #, kde-format
 msgid "Use stateful encryption"
 msgstr "Использовать шифрование с сохранением состояния"

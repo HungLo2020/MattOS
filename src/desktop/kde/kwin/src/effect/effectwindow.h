@@ -21,7 +21,9 @@ class QWindow;
 
 namespace KDecoration3
 {
+
 class Decoration;
+
 }
 
 namespace KWin
@@ -45,8 +47,8 @@ class WindowItem;
 class KWIN_EXPORT EffectWindow : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QRectF geometry READ frameGeometry)
-    Q_PROPERTY(QRectF expandedGeometry READ expandedGeometry)
+    Q_PROPERTY(KWin::RectF geometry READ frameGeometry)
+    Q_PROPERTY(KWin::RectF expandedGeometry READ expandedGeometry)
     Q_PROPERTY(qreal height READ height)
     Q_PROPERTY(qreal opacity READ opacity)
     Q_PROPERTY(QPointF pos READ pos)
@@ -58,7 +60,7 @@ class KWIN_EXPORT EffectWindow : public QObject
     Q_PROPERTY(QList<KWin::VirtualDesktop *> desktops READ desktops)
     Q_PROPERTY(bool onAllDesktops READ isOnAllDesktops)
     Q_PROPERTY(bool onCurrentDesktop READ isOnCurrentDesktop)
-    Q_PROPERTY(QRectF rect READ rect)
+    Q_PROPERTY(KWin::RectF rect READ rect)
     Q_PROPERTY(QString windowClass READ windowClass)
     Q_PROPERTY(QString windowRole READ windowRole)
     /**
@@ -190,11 +192,6 @@ class KWIN_EXPORT EffectWindow : public QObject
      */
     Q_PROPERTY(bool moveableAcrossScreens READ isMovableAcrossScreens)
     /**
-     * By how much the window wishes to grow/shrink at least. Usually QSize(1,1).
-     * MAY BE DISOBEYED BY THE WM! It's only for information, do NOT rely on it at all.
-     */
-    Q_PROPERTY(QSizeF basicUnit READ basicUnit)
-    /**
      * Whether the window is currently being moved by the user.
      */
     Q_PROPERTY(bool move READ isUserMove)
@@ -206,7 +203,7 @@ class KWIN_EXPORT EffectWindow : public QObject
      * The optional geometry representing the minimized Client in e.g a taskbar.
      * See _NET_WM_ICON_GEOMETRY at https://specifications.freedesktop.org/wm-spec .
      */
-    Q_PROPERTY(QRectF iconGeometry READ iconGeometry)
+    Q_PROPERTY(KWin::RectF iconGeometry READ iconGeometry)
     /**
      * Returns whether the window is any of special windows types (desktop, dock, splash, ...),
      * i.e. window types that usually don't have a window frame and the user does not use window
@@ -221,7 +218,7 @@ class KWIN_EXPORT EffectWindow : public QObject
     /**
      * Geometry of the actual window contents inside the whole (including decorations) window.
      */
-    Q_PROPERTY(QRectF contentsRect READ contentsRect)
+    Q_PROPERTY(KWin::RectF contentsRect READ contentsRect)
     Q_PROPERTY(bool hasDecoration READ hasDecoration)
     Q_PROPERTY(QStringList activities READ activities)
     Q_PROPERTY(bool onCurrentActivity READ isOnCurrentActivity)
@@ -235,6 +232,7 @@ class KWIN_EXPORT EffectWindow : public QObject
      * Whether the window is currently visible to the user, that is:
      * <ul>
      * <li>Not minimized</li>
+     * <li>Not hidden</li>
      * <li>On current desktop</li>
      * <li>On current activity</li>
      * </ul>
@@ -356,11 +354,9 @@ public:
     explicit EffectWindow(WindowItem *windowItem);
     ~EffectWindow() override;
 
-    Q_SCRIPTABLE void addRepaint(const Rect &r);
-    Q_SCRIPTABLE void addRepaint(int x, int y, int w, int h);
-    Q_SCRIPTABLE void addRepaintFull();
-    Q_SCRIPTABLE void addLayerRepaint(const Rect &r);
-    Q_SCRIPTABLE void addLayerRepaint(int x, int y, int w, int h);
+    void addRepaint(const RectF &r);
+    void addRepaintFull();
+    void addLayerRepaint(const RectF &r);
 
     void refWindow();
     void unrefWindow();
@@ -392,17 +388,12 @@ public:
     qreal width() const;
     qreal height() const;
     /**
-     * By how much the window wishes to grow/shrink at least. Usually QSize(1,1).
-     * MAY BE DISOBEYED BY THE WM! It's only for information, do NOT rely on it at all.
-     */
-    QSizeF basicUnit() const;
-    /**
      * Returns the geometry of the window excluding server-side and client-side
      * drop-shadows.
      *
      * @since 5.18
      */
-    QRectF frameGeometry() const;
+    RectF frameGeometry() const;
     /**
      * Returns the geometry of the pixmap or buffer attached to this window.
      *
@@ -413,28 +404,28 @@ public:
      *
      * @since 5.18
      */
-    QRectF bufferGeometry() const;
-    QRectF clientGeometry() const;
+    RectF bufferGeometry() const;
+    RectF clientGeometry() const;
     /**
      * Geometry of the window including decoration and potentially shadows.
      * May be different from geometry() if the window has a shadow.
      * @since 4.9
      */
-    QRectF expandedGeometry() const;
+    RectF expandedGeometry() const;
     LogicalOutput *screen() const;
     QPointF pos() const;
     QSizeF size() const;
-    QRectF rect() const;
+    RectF rect() const;
     bool isMovable() const;
     bool isMovableAcrossScreens() const;
     bool isUserMove() const;
     bool isUserResize() const;
-    QRectF iconGeometry() const;
+    RectF iconGeometry() const;
 
     /**
      * Geometry of the actual window contents inside the whole (including decorations) window.
      */
-    QRectF contentsRect() const;
+    RectF contentsRect() const;
     bool hasDecoration() const;
     bool decorationHasAlpha() const;
     /**
@@ -442,8 +433,6 @@ public:
      * @since 5.25
      */
     KDecoration3::Decoration *decoration() const;
-    QByteArray readProperty(long atom, long type, int format) const;
-    void deleteProperty(long atom) const;
 
     QString caption() const;
     QIcon icon() const;
@@ -711,7 +700,7 @@ Q_SIGNALS:
      * @see EffectWindow::isUserMove
      * @see EffectWindow::isUserResize
      */
-    void windowStepUserMovedResized(KWin::EffectWindow *w, const QRectF &geometry);
+    void windowStepUserMovedResized(KWin::EffectWindow *w, const KWin::RectF &geometry);
     /**
      * Signal emitted when the user finishes move/resize of window @p w.
      * @param w The window which has been moved/resized
@@ -754,7 +743,7 @@ Q_SIGNALS:
      * @param window The window whose geometry changed
      * @param oldGeometry The previous geometry
      */
-    void windowFrameGeometryChanged(KWin::EffectWindow *window, const QRectF &oldGeometry);
+    void windowFrameGeometryChanged(KWin::EffectWindow *window, const KWin::RectF &oldGeometry);
 
     /**
      * This signal is emitted when the frame geometry is about to change, the new one is not known yet.
@@ -977,15 +966,5 @@ public:
 private:
     Group *m_group;
 };
-
-inline void EffectWindow::addRepaint(int x, int y, int w, int h)
-{
-    addRepaint(Rect(x, y, w, h));
-}
-
-inline void EffectWindow::addLayerRepaint(int x, int y, int w, int h)
-{
-    addLayerRepaint(Rect(x, y, w, h));
-}
 
 } // namespace KWin

@@ -24,9 +24,11 @@
 #include <chrono>
 #include <epoxy/egl.h>
 #include <sys/types.h>
+#include <unordered_map>
 
 namespace KWin
 {
+
 class DrmOutput;
 class DrmObject;
 class DrmCrtc;
@@ -34,7 +36,6 @@ class DrmConnector;
 class DrmPlane;
 class DrmBackend;
 class EglGbmBackend;
-class DrmAbstractOutput;
 class DrmRenderBackend;
 class DrmVirtualOutput;
 class EglDisplay;
@@ -42,10 +43,12 @@ class GraphicsBuffer;
 class GraphicsBufferAllocator;
 class OutputFrame;
 class DrmCommit;
+class RenderDevice;
 
 class DrmLease : public QObject
 {
     Q_OBJECT
+
 public:
     DrmLease(DrmGpu *gpu, FileDescriptor &&fd, uint32_t lesseeId, const QList<DrmOutput *> &outputs);
     ~DrmLease();
@@ -66,6 +69,7 @@ private:
 class KWIN_EXPORT DrmGpu : public QObject
 {
     Q_OBJECT
+
 public:
     /**
      * This should always be longer than any real pageflip can take, even with PSR and modesets
@@ -80,23 +84,14 @@ public:
 
     bool isRemoved() const;
     void setRemoved();
-    void setActive(bool active);
-    bool isActive() const;
 
     bool atomicModeSetting() const;
     bool addFB2ModifiersSupported() const;
     bool forceLowBandwidthMode() const;
     bool asyncPageflipSupported() const;
     bool colorPipelineSupported() const;
-    bool isI915() const;
-    bool isNVidia() const;
-    bool isAmdgpu() const;
-    bool isVmwgfx() const;
-    bool isVirtualMachine() const;
     bool sharpnessSupported() const;
     std::optional<Version> nvidiaDriverVersion() const;
-    QString driverName() const;
-    EglDisplay *eglDisplay() const;
     DrmBackend *platform() const;
     /**
      * Returns the clock from which presentation timestamps are sourced. The returned value
@@ -108,12 +103,12 @@ public:
     QList<DrmOutput *> drmOutputs() const;
     const QList<DrmPipeline *> pipelines() const;
 
-    void setEglDisplay(std::unique_ptr<EglDisplay> &&display);
+    RenderDevice *renderDevice() const;
 
     bool updateOutputs();
     void removeOutputs();
 
-    DrmPipeline::Error testPendingConfiguration();
+    std::expected<void, OutputError> testPendingConfiguration();
     void releaseUnusedBuffers();
     bool needsModeset() const;
     void maybeModeset(DrmPipeline *pipeline, const std::shared_ptr<OutputFrame> &frame);
@@ -132,9 +127,9 @@ public:
     void addDefunctCommit(std::unique_ptr<DrmCommit> &&commit);
 
 Q_SIGNALS:
-    void activeChanged(bool active);
-    void outputAdded(DrmAbstractOutput *output);
-    void outputRemoved(DrmAbstractOutput *output);
+    void outputAdded(BackendOutput *output);
+    void outputRemoved(BackendOutput *output);
+    void renderDeviceChanged();
 
 private:
     DrmOutput *findOutput(quint32 connector);
@@ -142,9 +137,11 @@ private:
     void initDrmResources();
     void forgetBufferObject(QObject *buf);
     void doModeset();
+    void setRenderDevice(RenderDevice *device);
+    void updateRenderDevice();
 
-    DrmPipeline::Error checkCrtcAssignment(QList<DrmConnector *> connectors, const QList<DrmCrtc *> &crtcs, std::chrono::steady_clock::time_point deadline);
-    DrmPipeline::Error testPipelines();
+    std::expected<void, OutputError> checkCrtcAssignment(QList<DrmConnector *> connectors, const QList<DrmCrtc *> &crtcs, std::chrono::steady_clock::time_point deadline);
+    std::expected<void, OutputError> testPipelines();
     QList<DrmObject *> unusedModesetObjects() const;
     void assignOutputLayers();
 
@@ -154,23 +151,17 @@ private:
     const std::unique_ptr<DrmDevice> m_drmDevice;
     bool m_atomicModeSetting;
     bool m_addFB2ModifiersSupported = false;
-    bool m_isNVidia;
-    bool m_isI915;
-    bool m_isAmdgpu;
-    bool m_isVmwgfx;
-    bool m_isVirtualMachine;
-    QString m_driverName;
     bool m_supportsCursorPlaneHotspot = false;
     bool m_asyncPageflipSupported = false;
     bool m_colorPipelineSupported = false;
     bool m_isRemoved = false;
-    bool m_isActive = true;
     bool m_forceModeset = false;
     bool m_forceLowBandwidthMode = false;
     bool m_forceImplicitModifiers = false;
     bool m_sharpnessSupported = false;
     clockid_t m_presentationClock;
-    std::unique_ptr<EglDisplay> m_eglDisplay;
+    RenderDevice *m_renderDevice = nullptr;
+    RenderDevice *m_kmsRenderDevice = nullptr;
     DrmBackend *const m_platform;
     std::optional<Version> m_nvidiaDriverVersion;
 

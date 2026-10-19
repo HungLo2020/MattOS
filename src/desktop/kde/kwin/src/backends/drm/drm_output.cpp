@@ -23,11 +23,11 @@
 #include "core/session.h"
 #include "drm_layer.h"
 #include "drm_logging.h"
+#include "utils/envvar.h"
 #include "utils/kernel.h"
 // Qt
 #include <QCryptographicHash>
 #include <QMatrix4x4>
-#include <QPainter>
 // c++
 #include <cerrno>
 // drm
@@ -38,16 +38,16 @@
 namespace KWin
 {
 
-static bool s_disableTripleBufferingSet = false;
-static const bool s_disableTripleBuffering = qEnvironmentVariableIntValue("KWIN_DRM_DISABLE_TRIPLE_BUFFERING", &s_disableTripleBufferingSet) == 1;
+static const auto s_disableTripleBuffering = environmentVariableBoolValue("KWIN_DRM_DISABLE_TRIPLE_BUFFERING");
 
 DrmOutput::DrmOutput(const std::shared_ptr<DrmConnector> &conn, DrmPipeline *pipeline)
-    : m_gpu(conn->gpu())
+    : BackendOutput(pipeline->gpu()->drmDevice())
+    , m_gpu(conn->gpu())
     , m_pipeline(pipeline)
     , m_connector(conn)
 {
     m_pipeline->setOutput(this);
-    if (m_gpu->atomicModeSetting() && ((!s_disableTripleBufferingSet && !m_gpu->isNVidia()) || (s_disableTripleBufferingSet && !s_disableTripleBuffering))) {
+    if (m_gpu->atomicModeSetting() && !s_disableTripleBuffering.value_or(false)) {
         m_renderLoop->setMaxPendingFrameCount(2);
     }
 
@@ -116,15 +116,21 @@ bool DrmOutput::shouldDisableNonPrimaryPlanes() const
     return m_desiredPresentationMode == PresentationMode::Async || m_desiredPresentationMode == PresentationMode::AdaptiveAsync;
 }
 
-bool DrmOutput::presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay)
+std::expected<void, OutputError> DrmOutput::presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay)
 {
     if (!m_pipeline) {
         // this can happen when the output gets hot-unplugged
         // FIXME fix output lifetimes so that this doesn't happen anymore...
-        return false;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::InvalidApiUsage,
+            .message = QStringLiteral("FIXME"),
+        });
     }
     if (m_pipeline->gpu()->atomicModeSetting() && shouldDisableNonPrimaryPlanes() && layer->isEnabled()) {
-        return false;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::AsyncFlipFailure,
+            .message = QStringLiteral("Can't use non-primary planes with tearing"),
+        });
     }
     return m_pipeline->presentAsync(layer, allowedVrrDelay);
 }
@@ -160,50 +166,37 @@ void DrmOutput::updateConnectorProperties()
     updateInformation();
 
     State next = m_state;
-    populateModes(&next);
+    refreshModes(&next);
+    maybeFixCurrentMode(&next);
     setState(next);
 }
 
-void DrmOutput::populateModes(State *next) const
+void DrmOutput::refreshModes(State *nextState) const
 {
-    next->modes.clear();
+    const auto previousModes = nextState->modes;
+    nextState->modes.clear();
 
     const auto drmModes = m_pipeline->connector()->modes();
     for (const auto &drmMode : drmModes) {
-        next->modes.append(drmMode);
+        nextState->modes.append(drmMode);
     }
 
-    for (const auto &custom : next->customModes) {
-        next->modes.append(m_pipeline->connector()->generateMode(custom.size, custom.refreshRate / 1000.0f, custom.flags | OutputMode::Flag::Custom));
-    }
-
-    static const bool noCustomModeQuirk = qEnvironmentVariableIntValue("KWIN_DRM_NO_CUSTOM_MODE_QUIRK");
-    if (!noCustomModeQuirk) {
-        if (!next->desiredModeSize.isEmpty() && next->desiredModeRefreshRate && next->desiredModeFlags) {
-            for (const auto &mode : std::as_const(next->modes)) {
-                const auto drmMode = std::static_pointer_cast<DrmConnectorMode>(mode);
-                if (next->desiredModeSize == mode->size() && next->desiredModeRefreshRate == drmMode->refreshRate() && next->desiredModeFlags == drmMode->flags()) {
-                    next->currentMode = drmMode;
-                    break;
-                }
-            }
+    for (const auto &modeline : nextState->customModes) {
+        if (auto mode = modeline.match(previousModes)) {
+            nextState->modes.append(mode);
+        } else {
+            nextState->modes.append(m_pipeline->connector()->generateMode(modeline));
         }
     }
+}
 
+void DrmOutput::maybeFixCurrentMode(State *next) const
+{
     if (!next->currentMode) {
         next->currentMode = next->modes.constFirst();
     } else if (!next->modes.contains(next->currentMode)) {
-        const auto it = std::ranges::find_if(next->modes, [&](const auto &mode) {
-            return next->currentMode->size() == mode->size()
-                && next->currentMode->refreshRate() == mode->refreshRate()
-                && next->currentMode->flags() == mode->flags();
-        });
-        if (it != next->modes.end()) {
-            next->currentMode = *it;
-        } else {
-            next->currentMode->setRemoved();
-            next->modes.push_front(next->currentMode);
-        }
+        next->currentMode->setRemoved();
+        next->modes.push_front(next->currentMode);
     }
 }
 
@@ -212,7 +205,7 @@ static const bool s_allowColorspaceNVidia = qEnvironmentVariableIntValue("KWIN_D
 
 BackendOutput::Capabilities DrmOutput::computeCapabilities() const
 {
-    Capabilities capabilities = Capability::Dpms | Capability::IccProfile | Capability::CustomModes;
+    Capabilities capabilities = Capability::Dpms | Capability::IccProfile | Capability::CustomModes | Capability::HdrIccProfile | Capability::Disable;
     if (m_connector->overscan.isValid() || m_connector->underscan.isValid()) {
         capabilities |= Capability::Overscan;
     }
@@ -227,9 +220,9 @@ BackendOutput::Capabilities DrmOutput::computeCapabilities() const
     }
     if (m_connector->colorspace.isValid() && (m_connector->colorspace.hasEnum(DrmConnector::Colorspace::BT2020_RGB) || m_connector->colorspace.hasEnum(DrmConnector::Colorspace::BT2020_YCC)) && m_connector->edid()->supportsBT2020()) {
         bool allowColorspace = true;
-        if (m_gpu->isI915()) {
+        if (m_gpu->drmDevice()->isI915()) {
             allowColorspace &= s_allowColorspaceIntel || linuxKernelVersion() >= Version(6, 11);
-        } else if (m_gpu->isNVidia()) {
+        } else if (m_gpu->drmDevice()->isNvidia()) {
             allowColorspace &= s_allowColorspaceNVidia || m_gpu->nvidiaDriverVersion() >= Version(565, 57, 1);
         }
         if (allowColorspace) {
@@ -251,7 +244,7 @@ BackendOutput::Capabilities DrmOutput::computeCapabilities() const
             capabilities |= Capability::AutomaticBrightness;
         }
     }
-    if (m_connector->edid()->isValid() && m_connector->edid()->defaultColorimetry().has_value()) {
+    if (m_connector->edid()->isValid() && m_connector->edid()->nativeColorimetry().has_value()) {
         capabilities |= Capability::BuiltInColorProfile;
     }
     if (m_state.detectedDdcCi) {
@@ -260,11 +253,14 @@ BackendOutput::Capabilities DrmOutput::computeCapabilities() const
     if (m_connector->maxBpc.isValid()) {
         capabilities |= Capability::MaxBitsPerColor;
     }
-    if (m_state.brightnessDevice && isInternal()) {
+    if (m_state.brightnessDevice && isInternal() && !(capabilities & Capability::HighDynamicRange)) {
         capabilities |= Capability::Edr;
     }
     if (m_gpu->sharpnessSupported()) {
         capabilities |= Capability::SharpnessControl;
+    }
+    if (m_connector->abmLevel.isValid()) {
+        capabilities |= Capability::AbmLevel;
     }
     return capabilities;
 }
@@ -287,7 +283,7 @@ void DrmOutput::updateInformation()
     setInformation(nextInfo);
 }
 
-bool DrmOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> DrmOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
 {
     m_desiredPresentationMode = frame->presentationMode();
     const auto layers = m_pipeline->layers();
@@ -298,11 +294,14 @@ bool DrmOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
         // modesets should be done with only the primary plane
         // as additional planes may mean we can't power all outputs
         if (nonPrimaryEnabled) {
-            return false;
+            return std::unexpected(OutputError{
+                .code = OutputErrorCode::NeedsModeset,
+                .message = QStringLiteral("Modesets should only be done with the primary plane"),
+            });
         }
         // the atomic test for the modeset has already been done before
         // so testing again isn't super useful
-        return true;
+        return {};
     }
     m_pipeline->setPresentationMode(frame->presentationMode());
     if (nonPrimaryEnabled) {
@@ -313,42 +312,41 @@ bool DrmOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
             m_pipeline->setPresentationMode(PresentationMode::VSync);
         }
     }
-    DrmPipeline::Error err = m_pipeline->testPresent(frame);
-    if (err != DrmPipeline::Error::None && frame->presentationMode() == PresentationMode::AdaptiveAsync) {
+    auto ret = m_pipeline->testPresent(frame);
+    if (!ret && frame->presentationMode() == PresentationMode::AdaptiveAsync) {
         // tearing can fail in various circumstances, but vrr shouldn't
         m_pipeline->setPresentationMode(PresentationMode::AdaptiveSync);
-        err = m_pipeline->testPresent(frame);
+        ret = m_pipeline->testPresent(frame);
     }
-    if (err != DrmPipeline::Error::None && frame->presentationMode() != PresentationMode::VSync) {
+    if (!ret && frame->presentationMode() != PresentationMode::VSync) {
         // retry with the most basic presentation mode
         m_pipeline->setPresentationMode(PresentationMode::VSync);
-        err = m_pipeline->testPresent(frame);
+        ret = m_pipeline->testPresent(frame);
     }
-    return err == DrmPipeline::Error::None;
+    return ret;
 }
 
-bool DrmOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> DrmOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
 {
     m_desiredPresentationMode = frame->presentationMode();
     const bool needsModeset = m_gpu->needsModeset();
-    bool success;
+    std::expected<void, OutputError> ret;
     if (needsModeset) {
         m_pipeline->setPresentationMode(PresentationMode::VSync);
         m_pipeline->setContentType(DrmConnector::DrmContentType::Graphics);
         m_pipeline->maybeModeset(frame);
-        success = true;
     } else {
         // the presentation mode of the pipeline is already set in testPresentation
-        success = m_pipeline->present(layersToUpdate, frame) == DrmPipeline::Error::None;
+        ret = m_pipeline->present(layersToUpdate, frame);
     }
     m_renderLoop->setPresentationMode(m_pipeline->presentationMode());
-    if (!success) {
-        return false;
+    if (!ret) {
+        return ret;
     }
     updateBrightness(frame->brightness().value_or(m_state.currentBrightness.value_or(m_state.brightnessSetting)),
                      frame->artificialHdrHeadroom().value_or(m_state.artificialHdrHeadroom),
                      frame->dimmingFactor().value_or(m_state.currentDimming));
-    return true;
+    return ret;
 }
 
 void DrmOutput::repairPresentation()
@@ -360,9 +358,18 @@ void DrmOutput::repairPresentation()
     });
 }
 
-bool DrmOutput::overlayLayersLikelyBroken() const
+bool DrmOutput::recommendsOverlayUse() const
 {
-    return m_gpu->isNVidia();
+    // Two drivers are known to have issues with overlays:
+    // - amdgpu on some hardware has really slow atomic tests when overlays are involved
+    // - Nvidia has more severe issues
+    if (PROJECT_VERSION_PATCH >= 80) {
+        // we can take some more risks in development versions.
+        return !m_gpu->drmDevice()->isNvidia();
+    } else {
+        // release version: play it really safe for now, only enable on select drivers
+        return m_gpu->drmDevice()->isI915() || m_gpu->drmDevice()->isIntelXE();
+    }
 }
 
 DrmConnector *DrmOutput::connector() const
@@ -411,7 +418,11 @@ static std::shared_ptr<ColorDescription> applyNightLight(const std::shared_ptr<C
 
 double DrmOutput::calculateMaxArtificialHdrHeadroom(const State &next) const
 {
-    if (!next.brightnessDevice || !isInternal() || next.edrPolicy == EdrPolicy::Never) {
+    if (!next.brightnessDevice || !isInternal() || next.edrPolicy == EdrPolicy::Never || !(capabilities() & Capability::Edr)) {
+        return 1.0;
+    }
+    const bool effectiveHdr = next.highDynamicRange && (capabilities() & Capability::HighDynamicRange);
+    if (effectiveHdr) {
         return 1.0;
     }
     // just a rough estimate from the Framework 13 laptop.
@@ -433,65 +444,99 @@ std::shared_ptr<ColorDescription> DrmOutput::createColorDescription(const State 
     if ((!next.brightnessDevice && next.allowSdrSoftwareBrightness) || effectiveHdr) {
         brightnessFactor = next.currentBrightness.value_or(next.brightnessSetting);
     }
-    if (!next.brightnessDevice || next.brightnessDevice->usesDdcCi()) {
+    if (!next.brightnessDevice || next.brightnessDevice->usesDdcCi() || effectiveHdr) {
         brightnessFactor *= next.currentDimming;
     }
 
-    if (next.colorProfileSource == ColorProfileSource::ICC && !effectiveHdr && !effectiveWcg && next.iccProfile) {
-        const double maxFALL = next.iccProfile->maxFALL().value_or(200);
-        const double minBrightness = next.iccProfile->relativeBlackPoint().value_or(0) * maxFALL;
-        const auto sdrColor = Colorimetry::BT709.interpolateGamutTo(next.iccProfile->colorimetry(), next.sdrGamutWideness);
-        const double effectiveReferenceLuminance = 5 + (maxFALL - 5) * brightnessFactor;
+    double minLuminance = 0.01;
+    double maxAverageLuminance = 200;
+    double maxLuminance = 200;
+    double maxReferenceLuminance = maxLuminance;
 
-        return std::make_shared<ColorDescription>(ColorDescription{
-            next.iccProfile->colorimetry(),
-            TransferFunction(TransferFunction::gamma22, minBrightness * next.artificialHdrHeadroom, maxFALL * next.artificialHdrHeadroom),
-            effectiveReferenceLuminance,
-            minBrightness * next.artificialHdrHeadroom,
-            maxFALL * next.maxPossibleArtificialHdrHeadroom,
-            maxFALL * next.maxPossibleArtificialHdrHeadroom,
-            next.iccProfile->colorimetry(),
-            sdrColor,
-        });
+    TransferFunction transferFunction{TransferFunction::Type::gamma22, minLuminance, maxLuminance};
+    Colorimetry containerColorimetry = Colorimetry::BT709;
+    Colorimetry nativeColorimetry = Colorimetry::BT709;
+
+    auto profileSource = effectiveHdr ? next.hdrColorProfileSource : next.colorProfileSource;
+    const auto &iccProfile = effectiveHdr ? next.hdrIccProfile : next.iccProfile;
+    if (!iccProfile && profileSource == ColorProfileSource::ICC) {
+        // can't do anything
+        profileSource = ColorProfileSource::sRGB;
+    }
+    if (effectiveHdr && profileSource == ColorProfileSource::sRGB) {
+        // we don't support HDR without a color profile
+        profileSource = ColorProfileSource::EDID;
+    }
+    if (effectiveWcg && !effectiveHdr && profileSource == ColorProfileSource::ICC) {
+        // there's no dedicated ICC profile for this case
+        profileSource = ColorProfileSource::EDID;
+    }
+    switch (profileSource) {
+    case ColorProfileSource::sRGB:
+        // all the default values are for this case
+        transferFunction = TransferFunction(TransferFunction::Type::gamma22, minLuminance * next.artificialHdrHeadroom, maxLuminance * next.artificialHdrHeadroom);
+        break;
+    case ColorProfileSource::ICC:
+        nativeColorimetry = iccProfile->colorimetry();
+        if (effectiveHdr) {
+            if (effectiveWcg) {
+                containerColorimetry = Colorimetry::BT2020;
+            }
+            maxAverageLuminance = iccProfile->maxFALL().value_or(maxAverageLuminance);
+            maxLuminance = iccProfile->maxCLL().value_or(maxAverageLuminance);
+            minLuminance = iccProfile->relativeBlackPoint().value_or(0) * maxAverageLuminance;
+            maxReferenceLuminance = maxAverageLuminance;
+            transferFunction = TransferFunction(TransferFunction::gamma22, minLuminance, maxLuminance);
+        } else {
+            containerColorimetry = nativeColorimetry;
+            maxAverageLuminance = iccProfile->maxFALL().value_or(maxAverageLuminance);
+            maxLuminance = maxAverageLuminance;
+            maxReferenceLuminance = maxAverageLuminance;
+            minLuminance = iccProfile->relativeBlackPoint().value_or(0) * maxAverageLuminance;
+            transferFunction = TransferFunction(TransferFunction::gamma22, minLuminance * next.artificialHdrHeadroom, maxLuminance * next.artificialHdrHeadroom);
+        }
+        break;
+    case ColorProfileSource::EDID:
+        if (m_information.edid.isValid() && m_information.edid.nativeColorimetry()) {
+            nativeColorimetry = *m_information.edid.nativeColorimetry();
+        }
+        if (effectiveWcg) {
+            containerColorimetry = Colorimetry::BT2020;
+        } else {
+            containerColorimetry = nativeColorimetry;
+        }
+        if (effectiveHdr) {
+            transferFunction = TransferFunction(TransferFunction::PerceptualQuantizer);
+            // HDR screens are weird, sending them the min. luminance from the EDID does
+            // *not* make all of them present the darkest luminance the display can show.
+            // To work around that, (unless overridden by the user), assume the min. luminance of the transfer function instead
+            minLuminance = next.minBrightnessOverride.value_or(transferFunction.minLuminance);
+            maxAverageLuminance = next.maxAverageBrightnessOverride.value_or(m_connector->edid()->desiredMaxFrameAverageLuminance().value_or(next.referenceLuminance));
+            maxLuminance = next.maxPeakBrightnessOverride.value_or(m_connector->edid()->desiredMaxLuminance().value_or(800));
+            maxReferenceLuminance = next.referenceLuminance;
+        } else {
+            // TODO get luminance values from EDID?
+            transferFunction = TransferFunction(TransferFunction::gamma22, minLuminance * next.artificialHdrHeadroom, maxLuminance * next.artificialHdrHeadroom);
+        }
+        break;
     }
 
-    const Colorimetry nativeColorimetry = m_information.edid.nativeColorimetry().value_or(Colorimetry::BT709);
-    const Colorimetry containerColorimetry = effectiveWcg ? Colorimetry::BT2020 : (next.colorProfileSource == ColorProfileSource::EDID ? nativeColorimetry : Colorimetry::BT709);
-    const Colorimetry masteringColorimetry = (effectiveWcg || next.colorProfileSource == ColorProfileSource::EDID) ? nativeColorimetry : Colorimetry::BT709;
-    const Colorimetry sdrColorimetry = (effectiveWcg || next.colorProfileSource == ColorProfileSource::EDID) ? Colorimetry::BT709.interpolateGamutTo(nativeColorimetry, next.sdrGamutWideness) : Colorimetry::BT709;
-    // TODO the EDID can contain a gamma value, use that when available and colorSource == ColorProfileSource::EDID
-    const double maxAverageBrightness = effectiveHdr ? next.maxAverageBrightnessOverride.value_or(m_connector->edid()->desiredMaxFrameAverageLuminance().value_or(next.referenceLuminance)) : 200 * next.maxPossibleArtificialHdrHeadroom;
-    const double maxPeakBrightness = effectiveHdr ? next.maxPeakBrightnessOverride.value_or(m_connector->edid()->desiredMaxLuminance().value_or(800)) : 200 * next.maxPossibleArtificialHdrHeadroom;
-    const double referenceLuminance = effectiveHdr ? next.referenceLuminance : 200;
-    // the min luminance the Wayland protocol defines for SDR is unrealistically high for most modern displays
-    // normally that doesn't really matter, but with night light it can lead to increased black levels,
-    // which are really noticeable when they're tinted red
-    const double minSdrLuminance = 0.01;
-    const auto transferFunction = effectiveHdr ? TransferFunction{TransferFunction::PerceptualQuantizer} : TransferFunction{TransferFunction::gamma22, minSdrLuminance * next.artificialHdrHeadroom, referenceLuminance * next.artificialHdrHeadroom};
-    // HDR screens are weird, sending them the min. luminance from the EDID does *not* make all of them present the darkest luminance the display can show
-    // to work around that, (unless overridden by the user), assume the min. luminance of the transfer function instead
-    const double minBrightness = effectiveHdr ? next.minBrightnessOverride.value_or(transferFunction.minLuminance) : transferFunction.minLuminance;
-
-    const double effectiveReferenceLuminance = 5 + (referenceLuminance - 5) * brightnessFactor;
+    Colorimetry sdrColorimetry = Colorimetry::BT709.interpolateGamutTo(nativeColorimetry, next.sdrGamutWideness);
+    const double effectiveReferenceLuminance = 5 + (maxReferenceLuminance - 5) * brightnessFactor;
     return std::make_shared<ColorDescription>(ColorDescription{
         containerColorimetry,
         transferFunction,
         effectiveReferenceLuminance,
-        minBrightness,
-        maxAverageBrightness,
-        maxPeakBrightness,
-        masteringColorimetry,
+        minLuminance,
+        maxAverageLuminance * next.maxPossibleArtificialHdrHeadroom,
+        maxLuminance * next.maxPossibleArtificialHdrHeadroom,
+        nativeColorimetry,
         sdrColorimetry,
     });
 }
 
 bool DrmOutput::queueChanges(const std::shared_ptr<OutputChangeSet> &props)
 {
-    const auto mode = props->mode.value_or(currentMode()).lock();
-    if (!mode) {
-        return false;
-    }
-
     m_nextState = m_state;
     m_nextState->enabled = props->enabled.value_or(m_state.enabled);
     m_nextState->position = props->pos.value_or(m_state.position);
@@ -499,7 +544,6 @@ bool DrmOutput::queueChanges(const std::shared_ptr<OutputChangeSet> &props)
     m_nextState->scaleSetting = props->scaleSetting.value_or(m_state.scaleSetting);
     m_nextState->transform = props->transform.value_or(m_state.transform);
     m_nextState->manualTransform = props->manualTransform.value_or(m_state.manualTransform);
-    m_nextState->currentMode = mode;
     m_nextState->overscan = props->overscan.value_or(m_state.overscan);
     m_nextState->rgbRange = props->rgbRange.value_or(m_state.rgbRange);
     m_nextState->highDynamicRange = props->highDynamicRange.value_or(m_state.highDynamicRange);
@@ -512,12 +556,13 @@ bool DrmOutput::queueChanges(const std::shared_ptr<OutputChangeSet> &props)
     m_nextState->sdrGamutWideness = props->sdrGamutWideness.value_or(m_state.sdrGamutWideness);
     m_nextState->iccProfilePath = props->iccProfilePath.value_or(m_state.iccProfilePath);
     m_nextState->iccProfile = props->iccProfile.value_or(m_state.iccProfile);
+    m_nextState->hdrIccProfilePath = props->hdrIccProfilePath.value_or(m_state.hdrIccProfilePath);
+    m_nextState->hdrIccProfile = props->hdrIccProfile.value_or(m_state.hdrIccProfile);
     m_nextState->vrrPolicy = props->vrrPolicy.value_or(m_state.vrrPolicy);
     m_nextState->colorProfileSource = props->colorProfileSource.value_or(m_state.colorProfileSource);
+    m_nextState->hdrColorProfileSource = props->hdrColorProfileSource.value_or(m_state.hdrColorProfileSource);
     m_nextState->brightnessSetting = props->brightness.value_or(m_state.brightnessSetting);
-    m_nextState->desiredModeSize = props->desiredModeSize.value_or(m_state.desiredModeSize);
-    m_nextState->desiredModeRefreshRate = props->desiredModeRefreshRate.value_or(m_state.desiredModeRefreshRate);
-    m_nextState->desiredModeFlags = props->desiredModeFlags.value_or(m_state.desiredModeFlags);
+    m_nextState->desiredMode = props->desiredMode.value_or(m_state.desiredMode);
     m_nextState->allowSdrSoftwareBrightness = props->allowSdrSoftwareBrightness.value_or(m_state.allowSdrSoftwareBrightness);
     m_nextState->colorPowerTradeoff = props->colorPowerTradeoff.value_or(m_state.colorPowerTradeoff);
     m_nextState->dimming = props->dimming.value_or(m_state.dimming);
@@ -537,9 +582,18 @@ bool DrmOutput::queueChanges(const std::shared_ptr<OutputChangeSet> &props)
     m_nextState->automaticMaxBitsPerColorLimit = decideAutomaticBpcLimit();
     m_nextState->edrPolicy = props->edrPolicy.value_or(m_state.edrPolicy);
     m_nextState->dpmsMode = props->dpmsMode.value_or(m_state.dpmsMode);
-    if (props->customModes.has_value()) {
-        m_nextState->customModes = *props->customModes;
-        populateModes(&*m_nextState);
+    if (props->customModes) {
+        m_nextState->customModes = *props->customModes | std::views::transform([](const OutputModeline &modeline) {
+            return modeline.withFlags(OutputModeline::Flag::Generated | OutputModeline::Flag::Custom);
+        }) | std::ranges::to<QList>();
+
+        refreshModes(&*m_nextState);
+    }
+    if (props->currentMode) {
+        m_nextState->currentMode = props->currentMode->match(m_nextState->modes);
+    }
+    if (props->customModes || props->currentMode) {
+        maybeFixCurrentMode(&*m_nextState);
     }
     m_nextState->maxPossibleArtificialHdrHeadroom = calculateMaxArtificialHdrHeadroom(*m_nextState);
     m_nextState->originalColorDescription = createColorDescription(*m_nextState);
@@ -550,10 +604,11 @@ bool DrmOutput::queueChanges(const std::shared_ptr<OutputChangeSet> &props)
     m_nextState->automaticBrightness = props->automaticBrightness.value_or(m_state.automaticBrightness);
     m_nextState->lastBrightnessAdjustmentReason = props->brightnessReason.value_or(m_state.lastBrightnessAdjustmentReason);
     m_nextState->autoBrightnessCurve = props->autoBrightnessCurve.value_or(m_state.autoBrightnessCurve);
+    m_nextState->abmLevel = props->abmLevel.value_or(m_state.abmLevel);
 
     const bool bt2020 = m_nextState->wideColorGamut && (capabilities() & Capability::WideColorGamut);
     const bool hdr = m_nextState->highDynamicRange && (capabilities() & Capability::HighDynamicRange);
-    m_pipeline->setMode(std::static_pointer_cast<DrmConnectorMode>(mode));
+    m_pipeline->setMode(std::static_pointer_cast<DrmConnectorMode>(m_nextState->currentMode));
     m_pipeline->setOverscan(m_nextState->overscan);
     m_pipeline->setRgbRange(m_nextState->rgbRange);
     m_pipeline->setEnable(m_nextState->enabled);
@@ -568,11 +623,12 @@ bool DrmOutput::queueChanges(const std::shared_ptr<OutputChangeSet> &props)
         m_pipeline->setMaxBpc(decideAutomaticBpcLimit().value_or(tradeoff == ColorPowerTradeoff::PreferAccuracy ? 16 : 10));
     }
 
-    if (bt2020 || hdr || props->colorProfileSource.value_or(m_state.colorProfileSource) != ColorProfileSource::ICC) {
-        // ICC profiles don't support HDR (yet)
-        m_pipeline->setIccProfile(nullptr);
-    } else {
+    if (hdr && m_nextState->hdrColorProfileSource == ColorProfileSource::ICC) {
+        m_pipeline->setIccProfile(m_nextState->hdrIccProfile);
+    } else if (!hdr && !bt2020 && m_nextState->colorProfileSource == ColorProfileSource::ICC) {
         m_pipeline->setIccProfile(m_nextState->iccProfile);
+    } else {
+        m_pipeline->setIccProfile(nullptr);
     }
     // remove the color pipeline for the atomic test
     // otherwise it could potentially fail
@@ -693,6 +749,12 @@ void DrmOutput::tryKmsColorOffloading(State &next)
 
     const auto repaints = qScopeGuard([this, &next]() {
         maybeScheduleRepaints(next);
+        // the base was just recomputed, so any offload is gone; the compositor requests it
+        // again every frame in Compositor::setupLayers
+        m_baseCrtcColorPipeline = m_pipeline->crtcColorPipeline();
+        m_baseLayerBlendingColor = next.layerBlendingColor;
+        m_appliedPostBlendPipeline = ColorPipeline{};
+        m_appliedLayerBlendingColor = nullptr;
     });
 
     constexpr TransferFunction::Type blendingSpace = TransferFunction::gamma22;
@@ -712,8 +774,9 @@ void DrmOutput::tryKmsColorOffloading(State &next)
     ColorPipeline colorPipeline = ColorPipeline::create(next.blendingColor, encoding, RenderingIntent::AbsoluteColorimetricNoAdaptation);
 
     const bool hdr = next.highDynamicRange && (capabilities() & Capability::HighDynamicRange);
-    const bool wcg = next.wideColorGamut && (capabilities() & Capability::WideColorGamut);
-    const bool usesICC = next.colorProfileSource == ColorProfileSource::ICC && next.iccProfile && !hdr && !wcg;
+    const auto &iccProfile = hdr ? next.hdrIccProfile : next.iccProfile;
+    const ColorProfileSource profileSource = hdr ? next.hdrColorProfileSource : next.colorProfileSource;
+    const bool usesICC = profileSource == ColorProfileSource::ICC && iccProfile;
     if (next.colorPowerTradeoff == ColorPowerTradeoff::PreferAccuracy) {
         next.layerBlendingColor = encoding;
         m_pipeline->setCrtcColorPipeline(ColorPipeline{});
@@ -725,19 +788,25 @@ void DrmOutput::tryKmsColorOffloading(State &next)
     }
     if (usesICC) {
         colorPipeline.addTransferFunction(encoding->transferFunction(), ColorspaceType::LinearRGB);
-        colorPipeline.addMultiplier(1.0 / encoding->transferFunction().maxLuminance);
-        if (!next.iccProfile->mhc2Matrix().isIdentity()) {
-            // NOTE the spec assumes BT.709 or BT.2020 is used as the target colorspace, *not* the native colorspace!
-            const auto calibration = Colorimetry::BT709.fromXYZ() * next.iccProfile->mhc2Matrix() * encoding->containerColorimetry().toXYZ();
+        if (iccProfile->hasMHC2Tag()) {
+            const auto calibration = wireColor(next).fromXYZ() * iccProfile->mhc2Matrix() * encoding->containerColorimetry().toXYZ();
             colorPipeline.addMatrix(calibration, colorPipeline.currentOutputRange(), ColorspaceType::LinearRGB);
+            if (auto wireTF = wireTransfer(next); wireTF == TransferFunction::PerceptualQuantizer) {
+                colorPipeline.addInverseTransferFunction(TransferFunction(wireTF, 0, 10'000), ColorspaceType::NonLinearRGB);
+            } else {
+                colorPipeline.addMultiplier(1.0 / encoding->transferFunction().maxLuminance);
+                colorPipeline.addInverseTransferFunction(TransferFunction(TransferFunction::gamma22, 0, 1.0), ColorspaceType::NonLinearRGB);
+            }
+        } else {
+            colorPipeline.addMultiplier(1.0 / encoding->transferFunction().maxLuminance);
+            colorPipeline.add1DLUT(iccProfile->inverseTransferFunction(), ColorspaceType::NonLinearRGB);
         }
-        colorPipeline.add1DLUT(next.iccProfile->inverseTransferFunction(), ColorspaceType::NonLinearRGB);
-        if (next.iccProfile->vcgt()) {
-            colorPipeline.add1DLUT(next.iccProfile->vcgt(), ColorspaceType::NonLinearRGB);
+        if (iccProfile->vcgt()) {
+            colorPipeline.add1DLUT(iccProfile->vcgt(), ColorspaceType::NonLinearRGB);
         }
     }
     m_pipeline->setCrtcColorPipeline(colorPipeline);
-    if (DrmPipeline::commitPipelines({m_pipeline}, DrmPipeline::CommitMode::Test) == DrmPipeline::Error::None) {
+    if (DrmPipeline::commitPipelines({m_pipeline}, m_gpu, DrmPipeline::CommitMode::Test)) {
         m_pipeline->applyPendingChanges();
         next.layerBlendingColor = next.blendingColor;
         m_needsShadowBuffer = false;
@@ -750,7 +819,7 @@ void DrmOutput::tryKmsColorOffloading(State &next)
         ColorPipeline simplerPipeline(ValueRange{0, 1}, ColorspaceType::NonLinearRGB);
         simplerPipeline.addMatrix(next.blendingColor->toOther(*encoding, RenderingIntent::AbsoluteColorimetricNoAdaptation), colorPipeline.currentOutputRange(), ColorspaceType::NonLinearRGB);
         m_pipeline->setCrtcColorPipeline(simplerPipeline);
-        if (DrmPipeline::commitPipelines({m_pipeline}, DrmPipeline::CommitMode::Test) == DrmPipeline::Error::None) {
+        if (DrmPipeline::commitPipelines({m_pipeline}, m_gpu, DrmPipeline::CommitMode::Test)) {
             m_pipeline->applyPendingChanges();
             next.layerBlendingColor = next.blendingColor;
             m_needsShadowBuffer = false;
@@ -764,6 +833,55 @@ void DrmOutput::tryKmsColorOffloading(State &next)
     m_needsShadowBuffer = usesICC
         || next.colorDescription->transferFunction().type != blendingSpace
         || !colorPipeline.isIdentity();
+}
+
+bool DrmOutput::setPostBlendPipeline(const ColorPipeline &pipeline, const std::shared_ptr<ColorDescription> &newLayerBlendColor)
+{
+    // like in tryKmsColorOffloading, and additionally only when we're doing color management
+    // on the CRTC, instead of in the shadow buffer
+    if (!m_pipeline->activePending() || m_pipeline->layers().empty() || m_lease || m_needsShadowBuffer) {
+        return false;
+    }
+    // steady state: the same offload is already applied, don't re-test the commit every frame
+    if (pipeline == m_appliedPostBlendPipeline && newLayerBlendColor == m_appliedLayerBlendingColor) {
+        return true;
+    }
+
+    // the compositor's pipeline goes newLayerBlendColor -> layerBlendingColor, so merging it
+    // before the base pipeline (layerBlendingColor -> panel) yields newLayerBlendColor -> panel
+    const ColorPipeline combined = pipeline.merged(m_baseCrtcColorPipeline);
+    m_pipeline->setCrtcColorPipeline(combined);
+    if (!DrmPipeline::commitPipelines({m_pipeline}, m_gpu, DrmPipeline::CommitMode::Test)) {
+        // restore the base and let the caller fall back
+        m_pipeline->setCrtcColorPipeline(m_baseCrtcColorPipeline);
+        m_pipeline->applyPendingChanges();
+        return false;
+    }
+    m_pipeline->applyPendingChanges();
+
+    State next = m_state;
+    next.layerBlendingColor = newLayerBlendColor;
+    setState(next);
+
+    m_appliedPostBlendPipeline = pipeline;
+    m_appliedLayerBlendingColor = newLayerBlendColor;
+    return true;
+}
+
+void DrmOutput::resetPostBlendPipeline()
+{
+    if (!m_appliedLayerBlendingColor) {
+        return;
+    }
+    m_pipeline->setCrtcColorPipeline(m_baseCrtcColorPipeline);
+    m_pipeline->applyPendingChanges();
+
+    State next = m_state;
+    next.layerBlendingColor = m_baseLayerBlendingColor;
+    setState(next);
+
+    m_appliedPostBlendPipeline = ColorPipeline{};
+    m_appliedLayerBlendingColor = nullptr;
 }
 
 void DrmOutput::maybeScheduleRepaints(const State &next)
@@ -817,6 +935,25 @@ const BackendOutput::State &DrmOutput::nextState() const
 {
     return m_nextState ? *m_nextState : m_state;
 }
+
+Colorimetry DrmOutput::wireColor(const State &next) const
+{
+    if (next.wideColorGamut && (capabilities() & Capability::WideColorGamut)) {
+        return Colorimetry::BT2020;
+    } else {
+        return next.originalColorDescription->containerColorimetry();
+    }
+}
+
+TransferFunction::Type DrmOutput::wireTransfer(const State &next) const
+{
+    if (next.highDynamicRange && (capabilities() & Capability::HighDynamicRange)) {
+        return TransferFunction::Type::PerceptualQuantizer;
+    } else {
+        return TransferFunction::Type::gamma22;
+    }
+}
+
 }
 
 #include "moc_drm_output.cpp"

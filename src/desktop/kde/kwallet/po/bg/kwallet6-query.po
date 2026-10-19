@@ -1,10 +1,10 @@
-# Mincho Kondarev <mkondarev@yahoo.de>, 2021, 2022.
+# SPDX-FileCopyrightText: 2021-2022, 2026 Mincho Kondarev <mkondarev@yahoo.de>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:49+0000\n"
-"PO-Revision-Date: 2022-05-21 17:52+0200\n"
+"POT-Creation-Date: 2026-07-15 00:41+0000\n"
+"PO-Revision-Date: 2026-07-22 15:29+0200\n"
 "Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
 "Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
 "Language: bg\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 22.04.0\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -109,7 +109,7 @@ msgstr "Портфейл %1 не е намерен"
 msgid "Failed to open wallet %1. Aborting"
 msgstr "Неуспешно отваряне на портфейла %1. Прекъсване"
 
-#: querydriver.cpp:104 querydriver.cpp:122
+#: querydriver.cpp:104 querydriver.cpp:122 querydriver.cpp:180
 #, kde-format
 msgid "The folder %1 does not exist!"
 msgstr "Папката %1 не съществува!"
@@ -124,7 +124,17 @@ msgstr "Неуспешно четене на стойността на запи�
 msgid "Failed to read entry %1 value from the %2 wallet"
 msgstr "Неуспешно четене на стойността на записа %1 от портфейла %2"
 
-#: querydriver.cpp:194 querydriver.cpp:211
+#: querydriver.cpp:206 querydriver.cpp:227
 #, kde-format
 msgid "Failed to write entry %1 value to %2 wallet"
 msgstr "Неуспешно записване на стойността на записа %1 в %2 портфейла"
+
+#: querydriver.cpp:213
+#, kde-format
+msgid "Invalid argument: the value for entry %1 is not valid JSON"
+msgstr "Невалиден аргумент: стойността за запис %1 не е валиден JSON"
+
+#: querydriver.cpp:232
+#, kde-format
+msgid "Unsupported entry type for entry %1"
+msgstr "Неподдържан тип запис за запис %1"

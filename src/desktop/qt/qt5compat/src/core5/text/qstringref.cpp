@@ -18,6 +18,7 @@
 #include <private/qstringalgorithms_p.h>
 #include <private/qstringconverter_p.h>
 #include <private/qstringiterator_p.h>
+#include <private/qtools_p.h>
 #include <private/qunicodetables_p.h>
 
 #include <limits.h>
@@ -211,19 +212,17 @@ int QStringRef::compare_helper(const QChar *data1, qsizetype length1, const QCha
     \since 5.0
 */
 int QStringRef::compare_helper(const QChar *data1, qsizetype length1, const char *data2, qsizetype length2,
-                            Qt::CaseSensitivity cs)
+                               Qt::CaseSensitivity cs) noexcept
 {
+    using namespace QtMiscUtils;
     Q_ASSERT(length1 >= 0);
     Q_ASSERT(data1 || length1 == 0);
     if (!data2)
-        return length1;
+        return qt_lencmp(length1, 0);
     if (Q_UNLIKELY(length2 < 0))
         length2 = qsizetype(strlen(data2));
-    // ### make me nothrow in all cases
-    QVarLengthArray<ushort> s2(length2);
-    const auto beg = reinterpret_cast<QChar *>(s2.data());
-    const auto end = QUtf8::convertToUnicode(beg, QByteArrayView(data2, length2));
-    return qt_compare_strings(QStringView(data1, length1), QStringView(beg, end - beg), cs);
+    return QtPrivate::compareStrings(QStringView(data1, length1),
+                                     QUtf8StringView(data2, length2), cs);
 }
 
 /*!
@@ -323,6 +322,20 @@ QList<QStringRef> QStringRef::split(QChar sep, Qt::SplitBehavior behavior, Qt::C
     replacing standard string operations with the optimized substring
     handling provided by this class.
 
+    \target qstringref_security_considerations
+    \section1 Security Considerations
+
+    This class uses \c {int} to store the size() and position(). As a result,
+    it is not able to represent portions of strings that are longer than
+    \c {INT_MAX} or start at a larger offset. It is undefined behavior to
+    attempt to reference such portions. Note that QStringRef construction
+    from QString is affected, too, if the QString's size exceeds \c {INT_MAX},
+    even though no explicit sizes are being passed.
+
+    Use QStringView instead, keeping in mind its ownership model is looser than
+    QStringRefs. See \l {Changes to Qt Core#String related classes}
+    {the porting guide} for more details.
+
     \sa {Implicitly Shared Classes}
 */
 
@@ -366,25 +379,38 @@ QList<QStringRef> QStringRef::split(QChar sep, Qt::SplitBehavior behavior, Qt::C
  Constructs an empty string reference.
 */
 
-/*! \fn QStringRef::QStringRef(const QString *string, int position, int length)
+/*! \fn QStringRef::QStringRef(const QString *string, qsizetype position, qsizetype length)
 
 Constructs a string reference to the range of characters in the given
 \a string specified by the starting \a position and \a length in characters.
 
 \warning This function exists to improve performance as much as possible,
 and performs no bounds checking. For program correctness, \a position and
-\a length must describe a valid substring of \a string.
+\a length must describe a valid substring of \a string and be representable
+in \c {int}.
 
 This means that the starting \a position must be positive or 0 and smaller
 than \a string's length, and \a length must be positive or 0 but smaller than
 the string's length minus the starting \a position;
 i.e, 0 <= position < string->length() and
 0 <= length <= string->length() - position must both be satisfied.
+
+\warning Starting from Qt 6.12 this constructor takes \c {qsizetype} \a position
+and \a length instead of \c {int}. This prevents silent narrowing on the calling
+site. However, passing values that cannot be represented in \c {int} still
+results in \l {qstringref_security_considerations}{undefined behavior}.
 */
 
 /*! \fn QStringRef::QStringRef(const QString *string)
 
 Constructs a string reference to the given \a string.
+
+//! [qstring-size-fits-int]
+\warning QStringRef uses \c {int} (32 bits) to represent its \l size().
+In Qt 6, the size of QString is represented as \c {qsizetype}, which is 64
+bits for 64-bit builds. Make sure that the input's size fits into 32 bits,
+otherwise \l {qstringref_security_considerations}{the behavior is undefined}.
+//! [qstring-size-fits-int]
 */
 
 /*! \fn QStringRef::QStringRef(const QStringRef &other)
@@ -748,6 +774,8 @@ bool operator<(const QStringRef &s1,const QStringRef &s2) noexcept
 
     Constructs a string reference to the given \a string and assigns it to
     this string reference, returning the result.
+
+    \include qstringref.cpp qstring-size-fits-int
 */
 
 /*!
@@ -1081,13 +1109,19 @@ QStringRef QStringRef::left(int n) const
     If \a n is greater than or equal to size(), or less than zero,
     a reference to the entire string is returned.
 
+    If the new position() cannot be represented in \c {int}, a reference to the
+    entire string is returned.
+
     \sa left(), mid(), endsWith(), chopped(), chop(), truncate()
 */
 QStringRef QStringRef::right(int n) const
 {
     if (size_t(n) >= size_t(m_size))
         return *this;
-    return QStringRef(m_string, m_size - n + m_position, n);
+    int newPos = m_size - n; // does not overflow, see the check above
+    if (qAddOverflow(newPos, m_position, &newPos))
+        return *this;
+    return QStringRef(m_string, newPos, n);
 }
 
 /*!
@@ -1099,6 +1133,9 @@ QStringRef QStringRef::right(int n) const
 
     If the \a position exceeds the length of the string, a null
     reference is returned.
+
+    If the resulting position() cannot be represented in \c {int}, a null
+    QStringRef is returned.
 
     If there are less than \a n characters available in the string,
     starting at the given \a position, or if \a n is -1 (default), the
@@ -1120,6 +1157,8 @@ QStringRef QStringRef::mid(int pos, int n) const
     case QContainerImplHelper::Full:
         return *this;
     case QContainerImplHelper::Subset:
+        if (p > INT_MAX - m_position)
+            return QStringRef();
         return QStringRef(m_string, p + m_position, l);
     }
     Q_UNREACHABLE_RETURN(QStringRef());
@@ -1778,6 +1817,9 @@ QList<uint> QStringRef::toUcs4() const
 
     Unlike QString::simplified(), trimmed() leaves internal whitespace alone.
 
+    If after removing the whitespaces the new position() cannot be represented
+    in \c {int}, the behavior is undefined.
+
     \since 5.1
 
     \sa QString::trimmed()
@@ -1789,7 +1831,10 @@ QStringRef QStringRef::trimmed() const
     auto end = trimmed.cend();
     if (begin == cbegin() && end == cend())
         return *this;
-    int position = m_position + (begin - cbegin());
+    const int startOffset = int(begin - cbegin());
+    int position;
+    [[maybe_unused]] const bool overflowed = qAddOverflow(m_position, startOffset, &position);
+    Q_PRE(!overflowed);
     return QStringRef(m_string, position, end - begin);
 }
 

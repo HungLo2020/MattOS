@@ -23,7 +23,6 @@
 #include "pointer_input.h"
 #include "touch_input.h"
 #include "useractions.h"
-#include "utils/envvar.h"
 #include "utils/xcbutils.h"
 #include "wayland/xwaylandshell_v1.h"
 #include "wayland_server.h"
@@ -126,23 +125,22 @@ static Qt::MouseButton x11ToQtMouseButton(int button)
 /**
  * Handles workspace specific XCB event
  */
-bool Workspace::workspaceEvent(xcb_generic_event_t *e)
+void Workspace::workspaceEvent(xcb_generic_event_t *e)
 {
-    const uint8_t eventType = e->response_type & ~0x80;
-
     const xcb_window_t eventWindow = findEventWindow(e);
     if (eventWindow != XCB_WINDOW_NONE) {
         if (X11Window *window = findClient(eventWindow)) {
             if (window->windowEvent(e)) {
-                return true;
+                return;
             }
         } else if (X11Window *window = findUnmanaged(eventWindow)) {
             if (window->windowEvent(e)) {
-                return true;
+                return;
             }
         }
     }
 
+    const uint8_t eventType = e->response_type & ~0x80;
     switch (eventType) {
     case XCB_CREATE_NOTIFY: {
         const auto *event = reinterpret_cast<xcb_create_notify_event_t *>(e);
@@ -153,10 +151,6 @@ bool Workspace::workspaceEvent(xcb_generic_event_t *e)
         }
         break;
     }
-    case XCB_UNMAP_NOTIFY: {
-        const auto *event = reinterpret_cast<xcb_unmap_notify_event_t *>(e);
-        return (event->event != event->window); // hide wm typical event from Qt
-    }
     case XCB_MAP_REQUEST: {
         const auto *event = reinterpret_cast<xcb_map_request_event_t *>(e);
         if (!createX11Window(event->window, false)) {
@@ -164,29 +158,14 @@ bool Workspace::workspaceEvent(xcb_generic_event_t *e)
             const uint32_t values[] = {XCB_STACK_MODE_ABOVE};
             xcb_configure_window(kwinApp()->x11Connection(), event->window, XCB_CONFIG_WINDOW_STACK_MODE, values);
         }
-        return true;
+        break;
     }
     case XCB_MAP_NOTIFY: {
         const auto *event = reinterpret_cast<xcb_map_notify_event_t *>(e);
         if (event->override_redirect && event->event == kwinApp()->x11RootWindow()) {
-            X11Window *window = findUnmanaged(event->window);
-            if (window == nullptr) {
-                window = createUnmanaged(event->window);
-            }
-            if (window) {
-                // if hasScheduledRelease is true, it means a unamp and map sequence has occurred.
-                // since release is scheduled after map notify, this old Unmanaged will get released
-                // before KWIN has chance to remanage it again. so release it right now.
-                if (window->hasScheduledRelease()) {
-                    window->releaseWindow();
-                    window = createUnmanaged(event->window);
-                }
-                if (window) {
-                    return window->windowEvent(e);
-                }
-            }
+            createUnmanaged(event->window);
         }
-        return (event->event != event->window); // hide wm typical event from Qt
+        break;
     }
 
     case XCB_CONFIGURE_REQUEST: {
@@ -212,7 +191,6 @@ bool Workspace::workspaceEvent(xcb_generic_event_t *e)
                 values[i++] = event->border_width;
             }
             xcb_configure_window(kwinApp()->x11Connection(), event->window, value_mask, values);
-            return true;
         }
         break;
     }
@@ -243,14 +221,9 @@ bool Workspace::workspaceEvent(xcb_generic_event_t *e)
                 }
             }
         }
-    }
-        // fall through
-    case XCB_FOCUS_OUT:
-        return true; // always eat these, they would tell Qt that KWin is the active app
-    default:
         break;
     }
-    return false;
+    }
 }
 
 // ****************************************
@@ -283,17 +256,9 @@ bool X11Window::windowEvent(xcb_generic_event_t *e)
         case XCB_DESTROY_NOTIFY:
             destroyWindow();
             break;
-        case XCB_UNMAP_NOTIFY: {
-            // using 1 msec to not just move it at the end of the event loop but add an very short
-            // timespan to cover cases like unmap() followed by destroy(). The only other way to
-            // ensure that the window is not destroyed when we do the release handling is to grab
-            // the XServer which we do not want to do for an Unmanaged. The timespan of 1 msec is
-            // short enough to not cause problems in the close window animations.
-            // It's of course still possible that we miss the destroy in which case non-fatal
-            // X errors are reported to the event loop and logged by Qt.
-            m_releaseTimer.start(1);
+        case XCB_UNMAP_NOTIFY:
+            releaseWindow();
             break;
-        }
         case XCB_CONFIGURE_NOTIFY:
             configureNotifyEvent(reinterpret_cast<xcb_configure_notify_event_t *>(e));
             break;
@@ -379,7 +344,10 @@ bool X11Window::windowEvent(xcb_generic_event_t *e)
         focusInEvent(e);
         break;
     case XCB_FOCUS_OUT:
-        focusOutEvent(reinterpret_cast<xcb_focus_out_event_t *>(e));
+        // Focus out events cause problems with some applications that use
+        // override redirect windows to implement popups.
+        // As they shouldn't be necessary with clients that behave sensibly
+        // (accept focus when given), ignore these events entirely
         break;
     case XCB_REPARENT_NOTIFY:
         break;
@@ -452,7 +420,7 @@ void X11Window::clientMessageEvent(xcb_client_message_event_t *e)
 
 void X11Window::configureNotifyEvent(xcb_configure_notify_event_t *e)
 {
-    RectF newgeom(Xcb::fromXNative(e->x), Xcb::fromXNative(e->y), Xcb::fromXNative(e->width), Xcb::fromXNative(e->height));
+    const RectF newgeom = Xcb::fromXNative(Rect(e->x, e->y, e->width, e->height));
     if (newgeom != m_frameGeometry) {
         Q_EMIT frameGeometryAboutToChange();
 
@@ -461,10 +429,13 @@ void X11Window::configureNotifyEvent(xcb_configure_notify_event_t *e)
         m_frameGeometry = newgeom;
         m_bufferGeometry = newgeom;
         checkOutput();
-        updateShapeRegion();
         Q_EMIT bufferGeometryChanged(old);
         Q_EMIT clientGeometryChanged(old);
         Q_EMIT frameGeometryChanged(old);
+
+        if (old.size() != newgeom.size()) {
+            updateShapeRegion();
+        }
     }
 }
 
@@ -562,18 +533,24 @@ void X11Window::focusInEvent(xcb_generic_event_t *event)
 {
     const auto focusEvent = reinterpret_cast<xcb_focus_in_event_t *>(event);
 
+    // If a window (e.g. a popup) grabs keyboard and input focus moves back and forth, we want to
+    // keep the Workspace::activeWindow() as is.
     if (focusEvent->mode == XCB_NOTIFY_MODE_GRAB || focusEvent->mode == XCB_NOTIFY_MODE_UNGRAB) {
-        return; // we don't care
+        return;
     }
+
+    // When the X server sends a "real" FocusIn event, it will also send a NotifyPointer focus
+    // event to a window that has pointer focus. That window must be a descendant of the window that
+    // is the target of the "real" focus event. The X server will also send focus events with
+    // NotifyPointer detail to all other windows between the "real" focus event target and the window
+    // that has pointer focus. Such bizarre events are of no use to us.
     if (focusEvent->detail == XCB_NOTIFY_DETAIL_POINTER) {
-        return; // we don't care
+        return;
     }
+
     if (!isShown() || !isOnCurrentDesktop()) { // we unmapped it, but it got focus meanwhile ->
         return; // activateNextWindow() already transferred focus elsewhere
     }
-    workspace()->forEachClient([](X11Window *window) {
-        window->cancelFocusOutTimer();
-    });
 
     // Note that xcb_focus_in_event_t::sequence is a uint16_t serial.
     const UInt32Serial serial = event->full_sequence;
@@ -604,7 +581,7 @@ void X11Window::focusInEvent(xcb_generic_event_t *event)
         }
     }
 
-    if (allowWindowActivation(-1U, true)) {
+    if (allowWindowActivation(-1U)) {
         workspace()->setX11FocusSerial(serial);
         workspace()->setActiveWindow(this);
     } else {
@@ -616,54 +593,6 @@ void X11Window::focusInEvent(xcb_generic_event_t *event)
             workspace()->setActiveWindow(this);
         }
     }
-}
-
-static const bool s_enableFocusOut = environmentVariableBoolValue("KWIN_ENABLE_FOCUS_OUT").value_or(false);
-
-void X11Window::focusOutEvent(xcb_focus_out_event_t *e)
-{
-    if (!s_enableFocusOut) {
-        // Focus out events cause problems with some applications that do
-        // questionable things with override redirect windows.
-        // As they shouldn't be necessary with clients that behave sensibly
-        // (accept focus when given), ignore these events entirely
-        return;
-    }
-    if (e->mode == XCB_NOTIFY_MODE_GRAB || e->mode == XCB_NOTIFY_MODE_UNGRAB) {
-        return; // we don't care
-    }
-    if (e->detail != XCB_NOTIFY_DETAIL_NONLINEAR
-        && e->detail != XCB_NOTIFY_DETAIL_NONLINEAR_VIRTUAL) {
-        // SELI check all this
-        return; // hack for motif apps like netscape
-    }
-
-    // When a window loses focus, FocusOut events are usually immediately
-    // followed by FocusIn events for another window that gains the focus
-    // (unless the focus goes to another screen, or to the nofocus widget).
-    // Without this check, the former focused window would have to be
-    // deactivated, and after that, the new one would be activated, with
-    // a short time when there would be no active window. This can cause
-    // flicker sometimes, e.g. when a fullscreen is shown, and focus is transferred
-    // from it to its transient, the fullscreen would be kept in the Active layer
-    // at the beginning and at the end, but not in the middle, when the active
-    // window would be temporarily none (see X11Window::belongToLayer() ).
-    // Therefore the setActive(false) call is moved to the end of the current
-    // event queue. If there is a matching FocusIn event in the current queue
-    // this will be processed before the setActive(false) call and the activation
-    // of the window which gained FocusIn will automatically deactivate the
-    // previously active window.
-    if (!m_focusOutTimer) {
-        m_focusOutTimer = new QTimer(this);
-        m_focusOutTimer->setSingleShot(true);
-        m_focusOutTimer->setInterval(0);
-        connect(m_focusOutTimer, &QTimer::timeout, this, [this]() {
-            if (workspace()->activeWindow() == this) {
-                workspace()->setActiveWindow(nullptr);
-            }
-        });
-    }
-    m_focusOutTimer->start();
 }
 
 void X11Window::shapeNotifyEvent(xcb_shape_notify_event_t *e)
@@ -688,7 +617,7 @@ void X11Window::NETMoveResize(qreal x_root, qreal y_root, NET::Direction directi
     if (isInteractiveMoveResize() && direction == NET::MoveResizeCancel) {
         finishInteractiveMoveResize(true);
         setInteractiveMoveResizePointerButtonDown(false);
-        updateCursor();
+        updateInteractiveMoveResizeCursor();
     } else if (direction == NET::Move || (direction >= NET::TopLeft && direction <= NET::Left)) {
         if (!button) {
             if (!input()->qtButtonStates() && !input()->touch()->touchPointCount()) {
@@ -731,7 +660,7 @@ void X11Window::NETMoveResize(qreal x_root, qreal y_root, NET::Direction directi
             if (!startInteractiveMoveResize()) {
                 setInteractiveMoveResizePointerButtonDown(false);
             }
-            updateCursor();
+            updateInteractiveMoveResizeCursor();
         }
     } else if (direction == NET::KeyboardMove) {
         // ignore mouse coordinates given in the message, mouse position is used by the moving algorithm

@@ -14,9 +14,8 @@
 #include <QJsonObject>
 #include <QVariantMap>
 
-FindChromeProfile::FindChromeProfile(const QString &applicationName, const QString &homeDirectory, QObject *parent)
-    : QObject(parent)
-    , m_applicationName(applicationName)
+FindChromeProfile::FindChromeProfile(const QString &applicationName, const QString &homeDirectory)
+    : m_applicationName(applicationName)
     , m_homeDirectory(homeDirectory)
 {
 }
@@ -46,7 +45,7 @@ QList<Profile> FindChromeProfile::find()
     for (const QString &profile : profilesConfig.keys()) {
         const QString profilePath = QStringLiteral("%1/%2").arg(configDirectory, profile);
         const QString profileBookmarksPath = QStringLiteral("%1/%2").arg(profilePath, QStringLiteral("Bookmarks"));
-        profiles << Profile(profileBookmarksPath, profile, FaviconFromBlob::chrome(profilePath, this));
+        profiles << Profile(profileBookmarksPath, profile, FaviconFromBlob::chrome(profilePath));
     }
 
     return profiles;

@@ -24,15 +24,24 @@ qt_internal_add_module(QuickVectorImageGeneratorPrivate
         Qt::SvgPrivate
 )
 
+if(ANDROID)
+    qt_internal_force_export_module_dependency(QuickVectorImageGeneratorPrivate)
+endif()
+
 qt_internal_add_qml_module(QuickVectorImage
     URI "QtQuick.VectorImage"
     VERSION "${PROJECT_VERSION}"
     PLUGIN_TARGET qquickvectorimageplugin
     CLASS_NAME QtQuickVectorImagePlugin
-    IMPORTS QtQuick.VectorImage.Helpers
-    DEFAULT_IMPORTS QtQuick.Shapes QtQuick.Effects
+    DEPENDENCIES
+        QtQuick/auto
+        QtQuick.Shapes/auto
+        QtQuick.Effects/auto
+    IMPORTS
+        QtQuick.VectorImage.Helpers/auto
     SOURCES
     qquickvectorimage_p.h qquickvectorimage.cpp
+    qquickvectorimageincubator_p.h qquickvectorimageincubator_p_p.h qquickvectorimageincubator.cpp
     qquickvectorimage_p_p.h
     LIBRARIES
         Qt::QuickPrivate
@@ -46,6 +55,8 @@ qt_internal_add_qml_module(QuickVectorImageHelpers
     PLUGIN_TARGET qquickvectorimagehelpersplugin
     NO_PLUGIN_OPTIONAL
     CLASS_NAME QtQuickVectorImageHelpersPlugin
+    DEPENDENCIES
+        QtQuick/auto
     SOURCES
         helpers/qquickcoloropacityanimation_p.h helpers/qquickcoloropacityanimation.cpp
         helpers/qquicktransformgroup_p.h helpers/qquicktransformgroup.cpp

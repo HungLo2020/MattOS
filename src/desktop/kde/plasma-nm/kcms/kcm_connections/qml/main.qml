@@ -61,17 +61,14 @@ QQC2.Page {
     QQC2.ScrollView {
         id: scrollView
 
-        Component.onCompleted: {
-            if (scrollView.background) {
-                scrollView.background.visible = true;
-            }
-        }
+        Kirigami.StyleHints.showFramedBackground: true
 
         anchors {
             bottom: rightButtonRow.top
             bottomMargin: Kirigami.Units.smallSpacing
             left: parent.left
             right: parent.right
+            topMargin: Kirigami.Units.smallSpacing
             top: searchField.bottom
         }
 

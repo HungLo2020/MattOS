@@ -21,6 +21,7 @@
 #include "qqstylekitcustomtheme_p.h"
 #include "qqstylekitdebug_p.h"
 #include "qqstylekitstyleandthemebase_p.h"
+#include <QtLabsStyleKit/qtlabsstylekitexports.h>
 
 #include <QtQml/QtQml>
 #include <QtQuickTemplates2/private/qquickdeferredpointer_p_p.h>
@@ -30,7 +31,7 @@ QT_BEGIN_NAMESPACE
 class QQStyleKitTheme;
 class QQStyleKitPropertyResolver;
 
-class QQStyleKitStyle : public QQStyleKitStyleAndThemeBase
+class Q_LABSSTYLEKIT_EXPORT QQStyleKitStyle : public QQStyleKitStyleAndThemeBase
 {
     Q_OBJECT
     Q_PROPERTY(QQuickPalette *palette READ palette NOTIFY paletteChanged FINAL)
@@ -38,7 +39,7 @@ class QQStyleKitStyle : public QQStyleKitStyleAndThemeBase
     Q_PROPERTY(QQmlComponent *light READ light WRITE setLight NOTIFY lightChanged FINAL)
     Q_PROPERTY(QQmlComponent *dark READ dark WRITE setDark NOTIFY darkChanged FINAL)
     Q_PROPERTY(QString themeName READ themeName WRITE setThemeName NOTIFY themeNameChanged FINAL)
-    Q_PROPERTY(QStringList themeNames READ themeNames NOTIFY themeNamesChanged FINAL)
+    Q_PROPERTY(QStringList availableThemeNames READ availableThemeNames NOTIFY availableThemeNamesChanged FINAL)
     Q_PROPERTY(QStringList customThemeNames READ customThemeNames NOTIFY customThemeNamesChanged FINAL)
     Q_PROPERTY(QQStyleKitTheme *theme READ theme NOTIFY themeChanged FINAL)
 
@@ -46,11 +47,6 @@ class QQStyleKitStyle : public QQStyleKitStyleAndThemeBase
     QML_NAMED_ELEMENT(BaseStyle)
 
 public:
-    enum Constants {
-        Stretch = -1, // Use all available space
-    };
-    Q_ENUM(Constants)
-
     QQStyleKitStyle(QObject *parent = nullptr);
     ~QQStyleKitStyle();
 
@@ -66,12 +62,13 @@ public:
     void setDark(QQmlComponent *darkTheme);
 
     QList<QQStyleKitCustomTheme *> customThemes() const;
-    QStringList themeNames() const;
+    QStringList availableThemeNames() const;
     QStringList customThemeNames() const;
 
     void setThemeName(const QString &themeName);
     QString themeName() const;
     QQStyleKitTheme *theme() const;
+    void recreateTheme();
 
     bool loaded() const;
 
@@ -80,9 +77,6 @@ public:
     QPalette paletteForControlType(QQStyleKitExtendableControlType type) const;
     QFont fontForControlType(QQStyleKitExtendableControlType type) const;
 
-    // For now, used by qqcontrolstowidgetstyle
-    Q_INVOKABLE QList<QObject *> customThemesAsList();
-
 signals:
     void paletteChanged();
     void fallbackStyleChanged();
@@ -90,7 +84,7 @@ signals:
     void darkChanged();
     void themeChanged();
     void themeNameChanged();
-    void themeNamesChanged();
+    void availableThemeNamesChanged();
     void customThemeNamesChanged();
 
 protected:
@@ -98,7 +92,6 @@ protected:
 
 private:
     void parseThemes();
-    void recreateTheme();
     void reapplyStyle();
     void executeFallbackStyle(bool complete = false);
     void syncFromQPalette(const QPalette &palette);
@@ -120,7 +113,7 @@ private:
     QPointer<QQuickPalette> m_palette;
     QString m_themeName;
     QString m_effectiveThemeName;
-    QStringList m_themeNames;
+    QStringList m_availableThemeNames;
     QStringList m_customThemeNames;
 
     friend class QQStyleKitAttached;

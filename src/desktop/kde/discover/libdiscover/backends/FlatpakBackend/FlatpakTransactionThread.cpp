@@ -32,7 +32,7 @@ gboolean FlatpakTransactionThread::add_new_remote_cb(FlatpakTransaction *object,
     // TODO ask instead
     auto name = QString::fromUtf8(suggested_remote_name);
     obj->m_addedRepositories[FlatpakResource::installationPath(flatpak_transaction_get_installation(object))].append(name);
-    Q_EMIT obj->passiveMessage(i18n("Adding remote '%1' in %2 from %3", name, QString::fromUtf8(url), QString::fromUtf8(from_id)));
+    Q_EMIT obj->passiveMessage(i18n("Adding remote “%1” in %2 from %3", name, QString::fromUtf8(url), QString::fromUtf8(from_id)));
     return true;
 }
 
@@ -335,7 +335,7 @@ void FlatpakTransactionThread::run()
             auto transaction = flatpak_transaction_new_for_installation(installation, m_cancellable, &localError);
             if (!transaction) {
                 m_errorMessage = i18nc("@info:status",
-                                       "Cannot create transaction for '%1':<nl/>%2<nl/><nl/>Please report this to <a href='%3'>%3</a>",
+                                       "Cannot create transaction for “%1”:<nl/>%2<nl/><nl/>Please report this to <a href='%3'>%3</a>",
                                        QString::fromUtf8(flatpak_installation_get_display_name(installation)),
                                        QString::fromUtf8(localError->message),
                                        KOSRelease().bugReportUrl());
@@ -462,7 +462,9 @@ bool FlatpakTransactionThread::end_of_lifed_with_rebase(const char *remote,
             Q_EMIT proceedRequest(i18nc("@title", "Replacement Available"),
                                   xi18nc("@info %1 and 2 are flatpak ids e.g. org.kde.krita (can be rather lengthy though)",
                                          "<resource>%1</resource> is no longer receiving updates.<nl/><nl/>Replace it with the supported version provided by "
-                                         "<resource>%2</resource>?",
+                                         "<resource>%2</resource>?<nl/><nl/>Your settings and data will be automatically transferred to the new application."
+                                         "<nl/><nl/>If the old application is in your panel or Application Launcher favorites, you will need to remove it"
+                                         " and manually add the new one there.",
                                          QString::fromUtf8(ref),
                                          QString::fromUtf8(rebased_to_ref)));
             break;

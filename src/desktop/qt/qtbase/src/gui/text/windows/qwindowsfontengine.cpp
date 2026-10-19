@@ -959,6 +959,9 @@ QWindowsNativeImage *QWindowsFontEngine::drawGDIGlyph(HFONT font, glyph_t glyph,
         xform.eDy += tgm.gmptGlyphOrigin.y;
     }
 
+    if (glyphBoundingBoxExceedsLimit(iw, ih, effectivePixelSizeSquared(t)))
+        return nullptr;
+
     // The padding here needs to be kept in sync with the values in alphaMapBoundingBox.
     QWindowsNativeImage *ni = new QWindowsNativeImage(iw + 2 * margin,
                                                       ih + 2 * margin,
@@ -1098,7 +1101,7 @@ QImage QWindowsFontEngine::alphaRGBMapForGlyph(glyph_t glyph,
 QFontEngine *QWindowsFontEngine::cloneWithSize(qreal pixelSize) const
 {
     QFontDef request = fontDef;
-    QString actualFontName = request.families.constFirst();
+    QString actualFontName = request.family();
     if (!uniqueFamilyName.isEmpty())
         request.families = QStringList(uniqueFamilyName);
     request.pixelSize = pixelSize;

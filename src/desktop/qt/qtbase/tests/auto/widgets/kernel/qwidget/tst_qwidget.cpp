@@ -41,6 +41,8 @@
 #include <QtGui/qbackingstore.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qpa/qplatformwindow.h>
+#include <QtGui/private/qguiapplication_p.h>
+#include <qpa/qplatformintegration.h>
 #if QT_CONFIG(draganddrop)
 #include <QtGui/qpa/qplatformdrag.h>
 #endif
@@ -67,9 +69,7 @@ using namespace std::chrono_literals;
 
 #if defined(Q_OS_WIN)
 #  include <QtCore/qt_windows.h>
-#  include <QtGui/private/qguiapplication_p.h>
 #include <qpa/qplatformnativeinterface.h>
-#include <qpa/qplatformintegration.h>
 
 #include <algorithm>
 
@@ -242,6 +242,8 @@ private slots:
     void optimizedResizeMove();
     void optimizedResize_topLevel();
     void resizeEvent();
+    void resizeBeforeShow_data();
+    void resizeBeforeShow();
     void task110173();
 
     void testDeletionInEventHandlers();
@@ -304,6 +306,9 @@ private slots:
     void setFocus();
 #ifndef QT_NO_CURSOR
     void setCursor();
+#if defined(Q_OS_WIN)
+    void cursorAfterModalDialog();
+#endif
 #endif
     void setToolTip();
     void testWindowIconChangeEventPropagation();
@@ -1136,9 +1141,6 @@ bool waitForPolished(QWidgetList widgets)
 
 void tst_QWidget::palettePropagation2()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     // ! Note, the code below is executed in tst_QWidget's constructor.
     // QPalette palette;
     // palette.setColor(QPalette::ToolTipBase, QColor(12, 13, 14));
@@ -1208,9 +1210,6 @@ void tst_QWidget::palettePropagation2()
 }
 
 void tst_QWidget::palettePropagation3() {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QWidget root;
     root.setObjectName(QTest::currentTestFunction());
     root.setWindowTitle(root.objectName());
@@ -1390,9 +1389,6 @@ void tst_QWidget::ignoreKeyEventsWhenDisabled_QTBUG27417()
 
 void tst_QWidget::properTabHandlingWhenDisabled_QTBUG27417()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QWidget widget;
     widget.setWindowTitle(__FUNCTION__);
     widget.setMinimumWidth(m_testWidgetSize.width());
@@ -2242,9 +2238,6 @@ void tst_QWidget::focusAbstraction()
 
 void tst_QWidget::defaultTabOrder()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     const int compositeCount = 2;
     Container container;
     Composite *composite[compositeCount];
@@ -2298,9 +2291,6 @@ void tst_QWidget::defaultTabOrder()
 
 void tst_QWidget::reverseTabOrder()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1StringView("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     const int compositeCount = 2;
     Container container;
     container.setObjectName(QLatin1StringView("Container"));
@@ -2498,9 +2488,6 @@ void tst_QWidget::tabOrderComboBox()
 
 void tst_QWidget::tabOrderWithProxy()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     const int compositeCount = 2;
     Container container;
     container.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
@@ -2615,9 +2602,6 @@ void tst_QWidget::tabOrderWithProxyDisabled()
 
 void tst_QWidget::tabOrderWithCompoundWidgets()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     const int compositeCount = 4;
     Container container;
     container.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
@@ -2998,9 +2982,6 @@ void tst_QWidget::tabOrderNoChange2()
 
 void tst_QWidget::appFocusWidgetWithFocusProxyLater()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     // Given a lineedit without a focus proxy
     QWidget window;
     window.setWindowTitle(QTest::currentTestFunction());
@@ -3024,9 +3005,6 @@ void tst_QWidget::appFocusWidgetWithFocusProxyLater()
 
 void tst_QWidget::appFocusWidgetWhenLosingFocusProxy()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     // Given a lineedit with a focus proxy
     QWidget window;
     window.setWindowTitle(QTest::currentTestFunction());
@@ -3187,99 +3165,82 @@ void tst_QWidget::windowState()
     QCOMPARE(widget1.size(), size);
 
 #define VERIFY_STATE(s)                                                                            \
-    QCOMPARE(int(widget1.windowState() & stateMask), int(s));                                      \
-    QCOMPARE(int(widget1.windowHandle()->windowStates() & stateMask), int(s))
+    QTRY_COMPARE(int(widget1.windowState() & stateMask), int(s));                                      \
+    QTRY_COMPARE(int(widget1.windowHandle()->windowStates() & stateMask), int(s))
 
     const auto stateMask = Qt::WindowMaximized | Qt::WindowMinimized | Qt::WindowFullScreen;
 
     widget1.setWindowState(Qt::WindowMaximized);
-    QTest::qWait(100);
     VERIFY_STATE(Qt::WindowMaximized);
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowMaximized);
 
     widget1.setVisible(true);
-    QTest::qWait(100);
     VERIFY_STATE(Qt::WindowMaximized);
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowMaximized);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowMaximized);
-    QTest::qWait(100);
     QVERIFY(!(widget1.windowState() & Qt::WindowMaximized));
     QTRY_VERIFY2(HighDpi::fuzzyCompare(widget1.pos(), pos, m_fuzz),
                  qPrintable(HighDpi::msgPointMismatch(widget1.pos(), pos)));
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowNoState);
 
     widget1.setWindowState(Qt::WindowMinimized);
-    QTest::qWait(100);
     VERIFY_STATE(Qt::WindowMinimized);
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowMinimized);
 
     widget1.setWindowState(widget1.windowState() | Qt::WindowMaximized);
-    QTest::qWait(100);
     VERIFY_STATE((Qt::WindowMinimized|Qt::WindowMaximized));
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowMinimized);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowMinimized);
-    QTest::qWait(100);
     VERIFY_STATE(Qt::WindowMaximized);
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowMaximized);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowMaximized);
-    QTest::qWait(100);
     QVERIFY(!(widget1.windowState() & (Qt::WindowMinimized|Qt::WindowMaximized)));
     QTRY_VERIFY2(HighDpi::fuzzyCompare(widget1.pos(), pos, m_fuzz),
                  qPrintable(HighDpi::msgPointMismatch(widget1.pos(), pos)));
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowNoState);
 
     widget1.setWindowState(Qt::WindowFullScreen);
-    QTest::qWait(100);
     VERIFY_STATE(Qt::WindowFullScreen);
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowFullScreen);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowMinimized);
-    QTest::qWait(100);
     VERIFY_STATE((Qt::WindowFullScreen|Qt::WindowMinimized));
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowMinimized);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowMinimized);
-    QTest::qWait(100);
     VERIFY_STATE(Qt::WindowFullScreen);
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowFullScreen);
 
     widget1.setWindowState(Qt::WindowNoState);
-    QTest::qWait(100);
     VERIFY_STATE(Qt::WindowNoState);
     QTRY_VERIFY2(HighDpi::fuzzyCompare(widget1.pos(), pos, m_fuzz),
                  qPrintable(HighDpi::msgPointMismatch(widget1.pos(), pos)));
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowNoState);
 
     widget1.setWindowState(Qt::WindowFullScreen);
-    QTest::qWait(100);
     VERIFY_STATE(Qt::WindowFullScreen);
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowFullScreen);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowMaximized);
-    QTest::qWait(100);
     VERIFY_STATE((Qt::WindowFullScreen|Qt::WindowMaximized));
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowFullScreen);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowMinimized);
-    QTest::qWait(100);
     VERIFY_STATE((Qt::WindowFullScreen|Qt::WindowMaximized|Qt::WindowMinimized));
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowMinimized);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowMinimized);
-    QTest::qWait(100);
     VERIFY_STATE((Qt::WindowFullScreen|Qt::WindowMaximized));
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowFullScreen);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowFullScreen);
-    QTest::qWait(100);
     VERIFY_STATE(Qt::WindowMaximized);
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowMaximized);
 
     widget1.setWindowState(widget1.windowState() ^ Qt::WindowMaximized);
-    QTest::qWait(100);
     QVERIFY(!(widget1.windowState() & stateMask));
     QCOMPARE(widget1.windowHandle()->windowState(), Qt::WindowNoState);
 
@@ -3514,6 +3475,43 @@ void tst_QWidget::resizeEvent()
     }
 }
 
+typedef void (QWidget::*QWidgetVoidMethodPtr)();
+
+void tst_QWidget::resizeBeforeShow_data()
+{
+    QTest::addColumn<QWidgetVoidMethodPtr>("showMode");
+    QTest::addRow("show")       << &QWidget::show;
+    QTest::addRow("showNormal") << &QWidget::showNormal;
+}
+
+void tst_QWidget::resizeBeforeShow()
+{
+    QFETCH(QWidgetVoidMethodPtr, showMode);
+
+    QWidget topLevel;
+    topLevel.show();
+
+    QWidget plain(&topLevel);
+    const QSize size(200, 200);
+    const QSize newSize(400, 400);
+
+    // First resize
+    plain.resize(size);
+    QCOMPARE(plain.size(), size);
+
+    (plain.*showMode)();
+    QCOMPARE(plain.size(), size);
+    plain.hide();
+
+    // Second resize
+    plain.resize(newSize);
+    QCOMPARE(plain.size(), newSize);
+
+    (plain.*showMode)();
+    QCOMPARE(plain.size(), newSize);
+    plain.hide();
+}
+
 void tst_QWidget::showMinimized()
 {
     if (m_platform == QStringLiteral("wayland")) {
@@ -3524,9 +3522,10 @@ void tst_QWidget::showMinimized()
 
     QWidget plain;
     plain.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
+    const QSize size(200, 200);
     plain.move(100, 100);
-    plain.resize(200, 200);
-    QPoint pos = plain.pos();
+    plain.resize(size);
+    const QPoint pos = plain.pos();
 
     plain.showMinimized();
     QVERIFY(plain.isMinimized());
@@ -3554,9 +3553,10 @@ void tst_QWidget::showMinimized()
     QVERIFY(plain.isMinimized());
     QVERIFY(plain.isVisible());
 
-    plain.setGeometry(200, 200, 300, 300);
     plain.showNormal();
-    QCOMPARE(plain.geometry(), QRect(200, 200, 300, 300));
+    QCOMPARE(plain.windowState(), Qt::WindowNoState);
+    QCOMPARE(plain.pos(), pos);
+    QCOMPARE(plain.size(), size);
 
     {
         QWidget frame;
@@ -3596,7 +3596,6 @@ void tst_QWidget::showMinimizedKeepsFocus()
         QTRY_COMPARE(window.focusWidget(), &child2);
 
         window.showNormal();
-        QTest::qWait(10);
         QTRY_COMPARE(window.focusWidget(), &child2);
     }
 
@@ -3675,7 +3674,6 @@ void tst_QWidget::showMinimizedKeepsFocus()
         QCOMPARE(QApplication::focusWidget(), nullptr);
 
         window.showMinimized();
-        QTest::qWait(30);
         QTRY_VERIFY(window.isMinimized());
         QCOMPARE(window.focusWidget(), nullptr);
         QTRY_COMPARE(QApplication::focusWidget(), nullptr);
@@ -3957,7 +3955,7 @@ void tst_QWidget::setGeometry()
         QSKIP("Your window manager is too broken for this test");
     if (m_platform == QStringLiteral("xcb") && tlw.geometry() != tr)
         QEXPECT_FAIL("", "QTBUG-26424", Continue);
-    QCOMPARE(tlw.geometry(), tr);
+    QTRY_COMPARE(tlw.geometry(), tr);
 }
 
 void tst_QWidget::setGeometryHidden()
@@ -4613,7 +4611,6 @@ void tst_QWidget::restoreVersion1Geometry()
 
     widget.showNormal();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QTest::qWait(100);
 
     if (expectedWindowState == Qt::WindowNoState) {
         QTRY_COMPARE(widget.size(), expectedSize);
@@ -4621,7 +4618,6 @@ void tst_QWidget::restoreVersion1Geometry()
     }
 
     widget.showNormal();
-    QTest::qWait(10);
 
     QTRY_COMPARE(widget.geometry(), expectedNormalGeometry);
     if (expectedWindowState == Qt::WindowNoState)
@@ -5209,9 +5205,6 @@ void tst_QWidget::setMaximumSize()
 
 void tst_QWidget::setFixedSize()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QWidget w;
     QSize defaultSize = w.size();
 
@@ -6637,6 +6630,13 @@ static inline QByteArray msgRgbMismatch(unsigned actual, unsigned expected)
 
 static QPixmap grabWindow(QWindow *window, int x, int y, int width, int height)
 {
+    []{
+        QTest::ThrowOnSkipEnabler throwOnSkip;
+        const auto platformIntegration = QGuiApplicationPrivate::platformIntegration();
+        if (!platformIntegration->hasCapability(QPlatformIntegration::ScreenWindowGrabbing))
+            QSKIP("QScreen::grabWindow is not supported in this config");
+    }();
+
     QScreen *screen = window->screen();
     Q_ASSERT(screen);
     return screen->grabWindow(window->winId(), x, y, width, height);
@@ -7389,12 +7389,57 @@ void tst_QWidget::setCursor()
         QCOMPARE(spy.count(), 2);
     }
 }
-#endif
+
+#if defined(Q_OS_WIN)
+void tst_QWidget::cursorAfterModalDialog()
+{
+    /*
+        QTBUG-140455: Verify that a widget's cursor is correctly restored after
+        a modal dialog is shown and closed. The dialog's arrow cursor must not
+        persist on the parent window.
+    */
+    QWidget window;
+    window.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
+    window.resize(200, 200);
+    window.setCursor(Qt::WaitCursor);
+    window.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    const QPoint windowCenter = window.geometry().center();
+    QCursor::setPos(windowCenter);
+    QTRY_VERIFY(window.underMouse());
+
+    auto *ni = QGuiApplication::platformNativeInterface();
+    const HCURSOR waitCursor = reinterpret_cast<HCURSOR>(
+        ni->nativeResourceForCursor(QByteArrayLiteral("hcursor"), QCursor(Qt::WaitCursor)));
+    QVERIFY(waitCursor);
+    QTRY_COMPARE(GetCursor(), waitCursor);
+
+    // Show a modal dialog and simulate the OS cursor changing to arrow
+    // (as happens when the user interacts with the dialog), then close.
+    QDialog dialog(&window);
+    dialog.setWindowTitle(QLatin1String("Modal"));
+    dialog.resize(100, 80);
+    QTimer::singleShot(0, &dialog, [&]() {
+        QVERIFY(QTest::qWaitForWindowExposed(&dialog));
+        // Simulate the cursor change that occurs during dialog interaction
+        SetCursor(LoadCursor(nullptr, IDC_ARROW));
+        QVERIFY(GetCursor() != waitCursor);
+        dialog.accept();
+    });
+    dialog.exec();
+
+    // The parent widget's cursor must be restored right after exec() returns,
+    // without requiring mouse movement or event loop iterations.
+    QCOMPARE(GetCursor(), waitCursor);
+}
+#endif // Q_OS_WIN
+#endif // QT_NO_CURSOR
 
 void tst_QWidget::setToolTip()
 {
-    if (QApplication::platformName().startsWith(QLatin1String("wayland")))
-        QSKIP("Setting mouse cursor position is not possible on Wayland");
+    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::MouseCursorPositioning))
+        QSKIP("Platform does not support cursor positioning");
 
     QWidget widget;
     widget.resize(200, 200);
@@ -9846,9 +9891,6 @@ void tst_QWidget::opaqueChildren()
 
 void tst_QWidget::dumpObjectTree()
 {
-    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::WindowActivation))
-        QSKIP("QWindow::requestActivate() is not supported.");
-
     QWidget w;
     w.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
     Q_SET_OBJECT_NAME(w);
@@ -10448,9 +10490,6 @@ public slots:
 
 void tst_QWidget::setClearAndResizeMask()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     UpdateWidget topLevel;
     topLevel.setPalette(simplePalette());
     topLevel.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
@@ -10754,8 +10793,9 @@ void tst_QWidget::maskedUpdate()
 #ifndef QT_NO_CURSOR
 void tst_QWidget::syntheticEnterLeave()
 {
-    if (m_platform == QStringLiteral("wayland"))
-        QSKIP("Wayland: This fails. Figure out why.");
+    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::MouseCursorPositioning))
+        QSKIP("Platform does not support cursor positioning");
+
     class MyWidget : public QWidget
     {
     public:
@@ -10767,8 +10807,7 @@ void tst_QWidget::syntheticEnterLeave()
     };
 
     QCursor::setPos(m_safeCursorPos);
-    if (!QTest::qWaitFor([this]{ return QCursor::pos() == m_safeCursorPos; }))
-        QSKIP("Can't move cursor");
+    QTRY_COMPARE(QCursor::pos(), m_safeCursorPos);
 
     MyWidget window;
     window.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
@@ -10809,8 +10848,7 @@ void tst_QWidget::syntheticEnterLeave()
     // Position the cursor in the middle of the window.
     const QPoint globalPos = window.mapToGlobal(QPoint(100, 100));
     QCursor::setPos(globalPos); // Enter child2 and grandChild.
-    if (!QTest::qWaitFor([globalPos]{ return QCursor::pos() == globalPos; }))
-        QSKIP("Can't move cursor");
+    QTRY_COMPARE(QCursor::pos(), globalPos);
 
     QCOMPARE(window.numLeaveEvents, 0);
     QCOMPARE(child2->numLeaveEvents, 0);
@@ -10883,6 +10921,8 @@ void tst_QWidget::enterLeaveOnWindowShowHide()
 {
     if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::WindowActivation))
         QSKIP("QWindow::requestActivate() is not supported.");
+    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::MouseCursorPositioning))
+        QSKIP("Platform does not support cursor positioning");
 
     QFETCH(Qt::WindowType, windowType);
     class Widget : public QWidget
@@ -10949,9 +10989,6 @@ void tst_QWidget::enterLeaveOnWindowShowHide()
     const QPoint cursorPos = screenGeometry.topLeft() + QPoint(50, 50);
     widget.setGeometry(QRect(cursorPos - QPoint(50, 50), screenGeometry.size() / 4));
     QCursor::setPos(cursorPos);
-
-    if (!QTest::qWaitFor([&]{ return widget.geometry().contains(QCursor::pos()); }))
-        QSKIP("We can't move the cursor");
     widget.show();
     QVERIFY(QTest::qWaitForWindowActive(&widget));
 
@@ -10986,8 +11023,9 @@ void tst_QWidget::enterLeaveOnWindowShowHide()
 #ifndef QT_NO_CURSOR
 void tst_QWidget::taskQTBUG_4055_sendSyntheticEnterLeave()
 {
-    if (m_platform == QStringLiteral("wayland"))
-        QSKIP("Wayland: Clients can't set cursor position on wayland.");
+    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::MouseCursorPositioning))
+        QSKIP("Platform does not support cursor positioning");
+
     class SELParent : public QWidget
     {
     public:
@@ -11014,8 +11052,7 @@ void tst_QWidget::taskQTBUG_4055_sendSyntheticEnterLeave()
     };
 
     QCursor::setPos(m_safeCursorPos);
-    if (!QTest::qWaitFor([this]{ return QCursor::pos() == m_safeCursorPos; }))
-        QSKIP("Can't move cursor");
+    QTRY_COMPARE(QCursor::pos(), m_safeCursorPos);
 
     SELParent parent;
     parent.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
@@ -11028,8 +11065,7 @@ void tst_QWidget::taskQTBUG_4055_sendSyntheticEnterLeave()
 
     const QPoint childPos = child.mapToGlobal(QPoint(100, 100));
     QCursor::setPos(childPos);
-    if (!QTest::qWaitFor([childPos]{ return QCursor::pos() == childPos; }))
-        QSKIP("Can't move cursor");
+    QTRY_COMPARE(QCursor::pos(), childPos);
 
     // Make sure the cursor has entered the child.
     QTRY_VERIFY(child.numEnterEvents > 0);
@@ -11085,8 +11121,8 @@ void tst_QWidget::taskQTBUG_4055_sendSyntheticEnterLeave()
 
 void tst_QWidget::hoverPosition()
 {
-    if (m_platform == QStringLiteral("wayland"))
-        QSKIP("Wayland: Clients can't set cursor position on wayland.");
+    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::MouseCursorPositioning))
+        QSKIP("Platform does not support cursor positioning");
 
     class HoverWidget : public QWidget
     {
@@ -11141,8 +11177,7 @@ void tst_QWidget::hoverPosition()
     };
 
     QCursor::setPos(m_safeCursorPos);
-    if (!QTest::qWaitFor([this]{ return QCursor::pos() == m_safeCursorPos; }))
-        QSKIP("Can't move cursor");
+    QTRY_COMPARE(QCursor::pos(), m_safeCursorPos);
 
     QWidget root;
     root.setGeometry(100,100,300,300);
@@ -11154,12 +11189,10 @@ void tst_QWidget::hoverPosition()
     const QPoint middle(50, 50);
     // wait until we got the correct global pos
     QPoint expectedGlobalPos = root.geometry().topLeft() + QPoint(100, 100) + middle;
-    if (!QTest::qWaitFor([&]{ return expectedGlobalPos == h.mapToGlobal(middle); }))
-        QSKIP("Can't move cursor");
+    QTRY_VERIFY(expectedGlobalPos == h.mapToGlobal(middle));
     QPoint curpos = h.mapToGlobal(middle);
     QCursor::setPos(curpos);
-    if (!QTest::qWaitFor([curpos]{ return QCursor::pos() == curpos; }))
-          QSKIP("Can't move cursor");
+    QTRY_COMPARE(QCursor::pos(), curpos);
     QTRY_COMPARE_GE(h.hoverEventCount, 1); // HoverEnter and then probably HoverMove, so usually 2
     QTRY_COMPARE_GE(h.paintEventCount, 2);
     const int enterHoverEventCount = h.hoverEventCount;
@@ -11172,16 +11205,14 @@ void tst_QWidget::hoverPosition()
 
     curpos += {10, 10};
     QCursor::setPos(curpos);
-    if (!QTest::qWaitFor([curpos]{ return QCursor::pos() == curpos; }))
-          QSKIP("Can't move cursor");
+    QTRY_COMPARE(QCursor::pos(), curpos);
     QTRY_COMPARE(h.hoverEventCount, enterHoverEventCount + 1);
     QCOMPARE(h.lastHoverType, QEvent::HoverMove);
     QTRY_COMPARE_GE(h.paintEventCount, 3);
 
     curpos += {50, 50}; // in the outer widget, but leaving the inner widget
     QCursor::setPos(curpos);
-    if (!QTest::qWaitFor([curpos]{ return QCursor::pos() == curpos; }))
-          QSKIP("Can't move cursor");
+    QTRY_COMPARE(QCursor::pos(), curpos);
     QTRY_COMPARE(h.lastHoverType, QEvent::HoverLeave);
     QCOMPARE_GE(h.hoverEventCount, enterHoverEventCount + 2);
     QTRY_COMPARE_GE(h.paintEventCount, 4);
@@ -11257,9 +11288,6 @@ void tst_QWidget::updateOnDestroyedSignal()
 
 void tst_QWidget::toplevelLineEditFocus()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QLineEdit w;
     w.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
     w.setMinimumWidth(m_testWidgetSize.width());
@@ -11764,9 +11792,6 @@ void tst_QWidget::focusProxy()
 
 void tst_QWidget::imEnabledNotImplemented()
 {
-    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::WindowActivation))
-        QSKIP("QWindow::requestActivate() is not supported.");
-
     // Check that a plain widget doesn't report that it supports IM. Only
     // widgets that implements either Qt::ImEnabled, or the Qt4 backup
     // solution, Qt::ImSurroundingText, should do so.
@@ -12192,9 +12217,6 @@ void tst_QWidget::grabMouse()
 
 void tst_QWidget::grabKeyboard()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QWidget w;
     w.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
     w.setObjectName(QLatin1String("tst_qwidget_grabKeyboard"));
@@ -13592,7 +13614,7 @@ void tst_QWidget::setParentChangesFocus()
         secondary->setParent(targetParent ? &window : nullptr, targetType);
         secondary->show(); // reparenting hides, so show again
         QApplicationPrivate::setActiveWindow(secondary.get());
-        QTRY_VERIFY(QTest::qWaitForWindowActive(secondary.get()));
+        QVERIFY(QTest::qWaitForWindowActive(secondary.get()));
     }
     QVERIFY(QTest::qWaitFor([]{ return QApplication::focusWidget(); }));
     QCOMPARE(QApplication::focusWidget()->objectName(), focusWidget);
@@ -13600,9 +13622,6 @@ void tst_QWidget::setParentChangesFocus()
 
 void tst_QWidget::activateWhileModalHidden()
 {
-    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::WindowActivation))
-        QSKIP("QWindow::requestActivate() is not supported.");
-
     QDialog dialog;
     dialog.setWindowModality(Qt::ApplicationModal);
     dialog.show();

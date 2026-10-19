@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcminput\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-08 11:30+0400\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-09-09 18:15+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -25,24 +25,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.12.3\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr "فشل الاستعلام عن أجهزة الإدخال. يرجى إعادة فتح وحدة الإعدادات هذه."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr "خطأ فادح في قراءة معلومات الجهاز الأساسية لـ%1."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "غير قادر على تحديد الواجهة الخلفية المناسبة"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -51,12 +41,12 @@ msgstr ""
 "خطأ أثناء تحميل القيم. انظر السجلات لمزيد من المعلومات. يرجى إعادة تشغيل "
 "وحدة الضبط هذه."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "لم يعثر على جهاز مؤشر. صل الآن."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -65,7 +55,7 @@ msgstr ""
 "غير قادر على حفظ كل التغييرات. انظر السجلات لمزيد من المعلومات. يرجى إعادة "
 "تشغيل وحدة الضبط هذه والمحاولة مرة أخرى."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -73,7 +63,7 @@ msgid ""
 msgstr ""
 "خطأ أثناء تحميل القيم المبدئية. فشل في تعيين بعض الخيارات لقيمها المبدئية."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -82,12 +72,12 @@ msgstr ""
 "خطأ أثناء إضافة جهاز متصل حديثًا. يرجى إعادة توصيله وإعادة تشغيل وحدة الضبط "
 "هذه. "
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr "جهاز المؤشر غير متصل. أغلقت مربع حوار الإعداد الخاص به."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr "جهاز المؤشر غير متصل. لم يعثر على أجهزة أخرى."
@@ -146,37 +136,37 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "الجهاز:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, kde-format
 msgctxt "@title:group"
 msgid "General:"
 msgstr "عام:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr "مكّن الجهاز"
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, kde-format
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "لأزرار اليمنى واليسرى:"
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, kde-format
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "تبديل (وضع الأعسر)"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
 msgstr "اضغط على كلاهما لتحصل على النقر الأوسط"
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -187,62 +177,68 @@ msgstr ""
 "هذا التأخير الإضافي للكشف بشكل صحيح عن الضغطات المتزامنة على الزر الأيسر "
 "والأيمن."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "سرعة المؤشر:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "مكّن تسارع المؤشر"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
 "When enabled, pointer travel distance increases with faster movement speed."
 msgstr "عند تمكين هذا الخيار، تزداد مسافة تحرك المؤشر مع زيادة سرعة الحركة."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "سرعة التمرير:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "أبطأ"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "أسرع"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "التمرير:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "اعكس اتّجاه التّمرير"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr "اضغط باستمرار على الزر الأوسط وحرك الفأرة للتمرير"
+msgid "Scroll when moving the pointer"
+msgstr "التمرير عند تحريك المؤشر"
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr "مع الضغط على الزر الأوسط"
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -255,6 +251,34 @@ msgstr ""
 "تحرير الصور أو عارضات المستندات أو ألعاب الفيديو. يمكن استخدامه على أي جهاز، "
 "ولكنه مخصص بشكل أساسي كبديل لعجلات التمرير على الأجهزة التي لا تحتوي على أي "
 "منها."
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr "بعد النقر على الزر الأوسط"
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+"سيؤدي هذا إلى التداخل مع النقرات بالزر الأوسط بشكل عام؛ حيث يتعين عليك النقر "
+"مرتين بالزر الأوسط عندما تريد أن يستجيب التطبيق لنقرة واحدة بالزر الأوسط. "
+"ويشمل ذلك السحب باستخدام الزر الأوسط."
+
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr "اضغط باستمرار على الزر الأوسط وحرك الفأرة للتمرير"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "غير قادر على تحديد الواجهة الخلفية المناسبة"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr "فشل الاستعلام عن أجهزة الإدخال. يرجى إعادة فتح وحدة الإعدادات هذه."
 
 #~ msgid "Device enabled"
 #~ msgstr "الجهاز ممكّن"

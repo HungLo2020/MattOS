@@ -8,7 +8,7 @@
 */
 #pragma once
 
-#include "drm_abstract_output.h"
+#include "core/backendoutput.h"
 #include "drm_object.h"
 #include "drm_plane.h"
 #include "utils/filedescriptor.h"
@@ -32,26 +32,27 @@ class DumbSwapchain;
 class DrmLease;
 class OutputChangeSet;
 
-class KWIN_EXPORT DrmOutput : public DrmAbstractOutput
+class KWIN_EXPORT DrmOutput : public BackendOutput
 {
     Q_OBJECT
+
 public:
     explicit DrmOutput(const std::shared_ptr<DrmConnector> &connector, DrmPipeline *pipeline);
 
     DrmConnector *connector() const;
     DrmPipeline *pipeline() const;
 
-    bool testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
-    bool present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
+    std::expected<void, OutputError> testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
+    std::expected<void, OutputError> present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
     void repairPresentation() override;
-    bool overlayLayersLikelyBroken() const override;
+    bool recommendsOverlayUse() const override;
 
     bool queueChanges(const std::shared_ptr<OutputChangeSet> &properties);
     void applyQueuedChanges(const std::shared_ptr<OutputChangeSet> &properties);
     void revertQueuedChanges();
 
     bool shouldDisableNonPrimaryPlanes() const;
-    bool presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay) override;
+    std::expected<void, OutputError> presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay) override;
     void setAutoRotateAvailable(bool isAvailable) override;
     void setAutoBrightnessAvailable(bool isAvailable) override;
 
@@ -63,6 +64,9 @@ public:
     void setChannelFactors(const QVector3D &rgb) override;
     void updateConnectorProperties();
 
+    bool setPostBlendPipeline(const ColorPipeline &pipeline, const std::shared_ptr<ColorDescription> &newLayerBlendColor) override;
+    void resetPostBlendPipeline() override;
+
     /**
      * @returns whether or not the renderer should apply channel factors
      */
@@ -72,6 +76,8 @@ public:
     void maybeUpdateDpmsState();
 
     const State &nextState() const;
+    Colorimetry wireColor(const State &next) const;
+    TransferFunction::Type wireTransfer(const State &next) const;
 
 private:
     void tryKmsColorOffloading(State &next);
@@ -83,7 +89,8 @@ private:
     void updateBrightness(double newBrightness, double newArtificialHdrHeadroom, double newDimming);
     void maybeScheduleRepaints(const State &next);
     std::optional<uint32_t> decideAutomaticBpcLimit() const;
-    void populateModes(State *state) const;
+    void refreshModes(State *nextState) const;
+    void maybeFixCurrentMode(State *nextState) const;
 
     DrmGpu *const m_gpu;
     DrmPipeline *m_pipeline;
@@ -93,6 +100,15 @@ private:
 
     QVector3D m_sRgbChannelFactors = {1, 1, 1};
     bool m_needsShadowBuffer = false;
+
+    // what tryKmsColorOffloading calculated, without any offload from the compositor.
+    // setPostBlendPipeline merges onto this base, resetPostBlendPipeline restores it
+    ColorPipeline m_baseCrtcColorPipeline;
+    std::shared_ptr<ColorDescription> m_baseLayerBlendingColor;
+    // the offload that's currently applied; both are set and cleared together, so a null
+    // m_appliedLayerBlendingColor means there is none
+    ColorPipeline m_appliedPostBlendPipeline;
+    std::shared_ptr<ColorDescription> m_appliedLayerBlendingColor;
     PresentationMode m_desiredPresentationMode = PresentationMode::VSync;
     bool m_autoRotateAvailable = false;
     bool m_autoBrightnessAvailable = false;

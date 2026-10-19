@@ -11,10 +11,12 @@
 #include <QDBusArgument>
 #include <QDBusConnection>
 #include <QDBusObjectPath>
+#include <QDBusServiceWatcher>
 #include <QGuiApplication>
 #include <QObject>
 #include <QPixmap>
 #include <QPoint>
+#include <QTimer>
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_image.h>
@@ -142,12 +144,16 @@ private:
     QImage convertFromNative(xcb_image_t *xcbImage) const;
     QPoint calculateClickPoint() const;
     void setActiveForInput(bool active) const;
+    void registerNotifierItem();
+    void watcherServiceRegistered(const QString &serviceName);
 
     QDBusConnection m_dbus;
+    QDBusServiceWatcher m_dbusWatcher;
     QNativeInterface::QX11Application *m_x11Interface = nullptr;
     xcb_window_t m_windowId;
     xcb_window_t m_containerWid;
     static int s_serviceCount;
     QPixmap m_pixmap;
     InjectMode m_injectMode;
+    QTimer m_deactivateTimer;
 };

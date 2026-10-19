@@ -19,8 +19,6 @@
 #include <KConfigGroup>
 #include <KGlobalAccel>
 
-#include <QPainter>
-
 #include <cmath>
 
 namespace KWin
@@ -94,12 +92,9 @@ bool TouchPointsEffect::touchUp(qint32 id, std::chrono::microseconds time)
     return false;
 }
 
-void TouchPointsEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void TouchPointsEffect::prePaintScreen(ScreenPrePaintData &data)
 {
-    int time = 0;
-    if (m_lastPresentTime.count()) {
-        time = (presentTime - m_lastPresentTime).count();
-    }
+    const int time = m_clock.tick(data.view).count();
 
     auto it = m_points.begin();
     while (it != m_points.end()) {
@@ -112,21 +107,19 @@ void TouchPointsEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::mi
     }
 
     if (m_points.isEmpty()) {
-        m_lastPresentTime = std::chrono::milliseconds::zero();
-    } else {
-        m_lastPresentTime = presentTime;
+        m_clock.reset();
     }
 
-    effects->prePaintScreen(data, presentTime);
+    effects->prePaintScreen(data);
 }
 
-void TouchPointsEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
+bool TouchPointsEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
 {
-    effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
-
-    if (effects->isOpenGLCompositing()) {
-        paintScreenSetupGl(renderTarget, viewport.projectionMatrix());
+    if (!effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen)) {
+        return false;
     }
+
+    paintScreenSetupGl(renderTarget, viewport.projectionMatrix());
     for (auto it = m_points.constBegin(), end = m_points.constEnd(); it != end; ++it) {
         for (int i = 0; i < m_ringCount; ++i) {
             float alpha = computeAlpha(it->time, i);
@@ -138,9 +131,8 @@ void TouchPointsEffect::paintScreen(const RenderTarget &renderTarget, const Rend
             }
         }
     }
-    if (effects->isOpenGLCompositing()) {
-        paintScreenFinishGl();
-    }
+    paintScreenFinishGl();
+    return true;
 }
 
 void TouchPointsEffect::postPaintScreen()
@@ -185,8 +177,6 @@ void TouchPointsEffect::drawCircle(const RenderViewport &viewport, const QColor 
 {
     if (effects->isOpenGLCompositing()) {
         drawCircleGl(viewport, color, cx, cy, r);
-    } else if (effects->compositingType() == QPainterCompositing) {
-        drawCircleQPainter(color, cx, cy, r);
     }
 }
 
@@ -219,15 +209,6 @@ void TouchPointsEffect::drawCircleGl(const RenderViewport &viewport, const QColo
     vbo->render(GL_LINE_LOOP);
 }
 
-void TouchPointsEffect::drawCircleQPainter(const QColor &color, float cx, float cy, float r)
-{
-    QPainter *painter = effects->scenePainter();
-    painter->save();
-    painter->setPen(color);
-    painter->drawArc(cx - r, cy - r, r * 2, r * 2, 0, 5760);
-    painter->restore();
-}
-
 void TouchPointsEffect::paintScreenSetupGl(const RenderTarget &renderTarget, const QMatrix4x4 &projectionMatrix)
 {
     GLShader *shader = ShaderManager::instance()->pushShader(ShaderTrait::UniformColor | ShaderTrait::TransformColorspace);
@@ -236,7 +217,7 @@ void TouchPointsEffect::paintScreenSetupGl(const RenderTarget &renderTarget, con
 
     glLineWidth(m_lineWidth);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void TouchPointsEffect::paintScreenFinishGl()

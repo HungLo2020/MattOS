@@ -34,7 +34,7 @@
  * \macro Q_COMPOSITOR_DECLARE_QUICK_EXTENSION_CONTAINER_CLASS(className)
  * \relates <QWaylandQuickExtension>
  *
- * This macro can be used to define a Qt Quick class intended to contain Wayland extensions. It
+ * This macro can be used to define a Qt Quick class intended to contain Wayland extensions.
  *
  * It defines a new class which inherits from \a className and which suffixes the name with
  * "QuickExtensionContainer". The class given by \a className should inherit from QWaylandObject,

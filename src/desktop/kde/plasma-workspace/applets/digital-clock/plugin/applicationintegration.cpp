@@ -4,19 +4,15 @@
 #include "applicationintegration.h"
 #include <KApplicationTrader>
 #include <KIO/ApplicationLauncherJob>
+#include <KSycoca>
+
+using namespace Qt::StringLiterals;
 
 ApplicationIntegration::ApplicationIntegration(QObject *parent)
     : QObject(parent)
 {
-    const auto services = KApplicationTrader::queryByMimeType(QStringLiteral("text/calendar"));
-
-    if (!services.isEmpty()) {
-        const KService::Ptr app = services.first();
-
-        if (app->desktopEntryName() == QLatin1String("org.kde.korganizer") || app->desktopEntryName() == QLatin1String("org.kde.merkuro.calendar")) {
-            m_calendarService = app;
-        }
-    }
+    refresh();
+    connect(KSycoca::self(), &KSycoca::databaseChanged, this, &ApplicationIntegration::refresh);
 }
 
 bool ApplicationIntegration::calendarInstalled() const
@@ -24,12 +20,44 @@ bool ApplicationIntegration::calendarInstalled() const
     return m_calendarService != nullptr;
 }
 
+QString ApplicationIntegration::calendarApplicationName() const
+{
+    if (!m_calendarService) {
+        return {};
+    }
+    return m_calendarService->name();
+}
+
 void ApplicationIntegration::launchCalendar() const
 {
-    Q_ASSERT(m_calendarService);
+    if (!m_calendarService) {
+        return;
+    }
 
     auto job = new KIO::ApplicationLauncherJob(m_calendarService);
     job->start();
+}
+
+void ApplicationIntegration::refresh()
+{
+    KService::Ptr newService = KApplicationTrader::preferredService(QStringLiteral("text/calendar"));
+
+    bool wasInstalled = calendarInstalled();
+    QString oldName = calendarApplicationName();
+
+    // This does deliberately not include inherited mime types, so that we only consider "real" calendar applications.
+    if (newService && newService->mimeTypes().contains(u"text/calendar"_s)) {
+        m_calendarService = newService;
+    } else {
+        m_calendarService = nullptr;
+    }
+
+    if (wasInstalled != calendarInstalled()) {
+        Q_EMIT calendarInstalledChanged();
+    }
+    if (oldName != calendarApplicationName()) {
+        Q_EMIT calendarApplicationNameChanged();
+    }
 }
 
 #include "moc_applicationintegration.cpp"

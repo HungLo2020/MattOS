@@ -15,7 +15,6 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.TotalCaptureResult;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
@@ -26,11 +25,15 @@ import android.view.Surface;
 import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.qtproject.qt.android.UsedFromNativeCode;
 
 @TargetApi(23)
 class QtCamera2 {
+    static final String LOG_TAG = "QtCamera2";
+
     // Should be called if an on-going still photo capture has failed to finish.
     // This lets us submit an appropriate error and notify QImageCapture that there will
     // be no photo emitted.
@@ -39,6 +42,8 @@ class QtCamera2 {
     native void onStillPhotoCaptureFailed(String cameraId);
 
     CameraDevice mCameraDevice = null;
+    // Counted down by CameraDeviceStateCallback.onClosed(), awaited in stopAndClose()
+    volatile CountDownLatch mDeviceClosedLatch = null;
     QtVideoDeviceManager mVideoDeviceManager = null;
     // Thread and handler to that allows us to receive callbacks and frames on a background thread.
     HandlerThread mBackgroundThread;
@@ -62,13 +67,13 @@ class QtCamera2 {
     // It also acts as the mutex for these variables.
     // All access to these variables must happen after locking the instance.
     class SyncedMembers {
-        private boolean mIsStarted = false;
+        boolean mIsStarted = false;
 
-        private boolean mIsTakingStillPhoto = false;
+        boolean mIsTakingStillPhoto = false;
 
         private CameraSettings mCameraSettings = new CameraSettings();
     }
-    private final SyncedMembers mSyncedMembers = new SyncedMembers();
+    final SyncedMembers mSyncedMembers = new SyncedMembers();
 
     // Resets the control properties of this camera to their default values.
     @UsedFromNativeCode
@@ -85,74 +90,18 @@ class QtCamera2 {
         }
     }
 
-    private QtExifDataHandler mExifDataHandler = null;
+    QtExifDataHandler mExifDataHandler = null;
 
     native void onCameraOpened(String cameraId);
     native void onCameraDisconnect(String cameraId);
     native void onCameraError(String cameraId, int error);
 
-    // All events in this class are invoked by the background thread.
-    // TODO: The events in this class access QtCamera2 members directly
-    // without synchronization
-    static class CameraDeviceStateCallback extends CameraDevice.StateCallback {
-        private QtCamera2 mMainCameraObject = null;
-
-        CameraDeviceStateCallback(QtCamera2 mainCameraObject) {
-            assert(mainCameraObject != null);
-            mMainCameraObject = mainCameraObject;
-        }
-
-        @Override
-        public void onOpened(CameraDevice cameraDevice) {
-            if (mMainCameraObject.mCameraDevice != null)
-                mMainCameraObject.mCameraDevice.close();
-            mMainCameraObject.mCameraDevice = cameraDevice;
-            mMainCameraObject.onCameraOpened(mMainCameraObject.mCameraId);
-        }
-        @Override
-        public void onDisconnected(CameraDevice cameraDevice) {
-            cameraDevice.close();
-            if (mMainCameraObject.mCameraDevice == cameraDevice)
-                mMainCameraObject.mCameraDevice = null;
-            mMainCameraObject.onCameraDisconnect(mMainCameraObject.mCameraId);
-        }
-        @Override
-        public void onError(CameraDevice cameraDevice, int error) {
-            cameraDevice.close();
-            if (mMainCameraObject.mCameraDevice == cameraDevice)
-                mMainCameraObject.mCameraDevice = null;
-            mMainCameraObject.onCameraError(mMainCameraObject.mCameraId, error);
-        }
-    }
-
     CameraDeviceStateCallback mStateCallback = new CameraDeviceStateCallback(this);
 
     native void onCaptureSessionConfigured(String cameraId);
     native void onCaptureSessionConfigureFailed(String cameraId);
-    CameraCaptureSession.StateCallback mCaptureStateCallback = new CameraCaptureSession.StateCallback() {
-        @Override
-        public void onConfigured(CameraCaptureSession cameraCaptureSession) {
-            mCaptureSession = cameraCaptureSession;
-            onCaptureSessionConfigured(mCameraId);
-        }
 
-        @Override
-        public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
-            onCaptureSessionConfigureFailed(mCameraId);
-        }
-
-        @Override
-        public void onActive(CameraCaptureSession cameraCaptureSession) {
-           super.onActive(cameraCaptureSession);
-           onSessionActive(mCameraId);
-        }
-
-        @Override
-        public void onClosed(CameraCaptureSession cameraCaptureSession) {
-            super.onClosed(cameraCaptureSession);
-            onSessionClosed(mCameraId);
-        }
-    };
+    CameraCaptureSessionStateCallback mCaptureStateCallback = new CameraCaptureSessionStateCallback(this);
 
     native void onSessionActive(String cameraId);
     native void onSessionClosed(String cameraId);
@@ -208,7 +157,7 @@ class QtCamera2 {
             mCameraManager.openCamera(cameraId,mStateCallback,mBackgroundHandler);
             return true;
         } catch (Exception e){
-            Log.w("QtCamera2", "Failed to open camera:" + e);
+            Log.w(LOG_TAG, "Failed to open camera:" + e);
         }
 
         return false;
@@ -237,12 +186,12 @@ class QtCamera2 {
             } catch (IllegalStateException e) {
                 // It seems that ffmpeg is processing images for too long (and does not close it)
                 // Give it a little more time. Restarting the camera session if it doesn't help
-                Log.e("QtCamera2", "Image processing taking too long. Let's wait 0,5s more " + e);
+                Log.e(LOG_TAG, "Image processing taking too long. Let's wait 0,5s more " + e);
                 try {
                     Thread.sleep(500);
                     QtCamera2.this.onPreviewFrameAvailable(mCameraId, reader.acquireLatestImage());
                 } catch (IllegalStateException | InterruptedException e2) {
-                    Log.e("QtCamera2", "Will not wait anymore. Restart camera session. " + e2);
+                    Log.e(LOG_TAG, "Will not wait anymore. Restart camera session. " + e2);
                     // Remember current used camera ID, because stopAndClose will clear the value
                     String cameraId = mCameraId;
                     stopAndClose();
@@ -317,7 +266,7 @@ class QtCamera2 {
             mCameraDevice.createCaptureSession(mTargetSurfaces, mCaptureStateCallback, mBackgroundHandler);
             return true;
         } catch (Exception exception) {
-            Log.w("QtCamera2", "Failed to create a capture session:" + exception);
+            Log.w(LOG_TAG, "Failed to create a capture session:" + exception);
         }
         return false;
     }
@@ -337,245 +286,61 @@ class QtCamera2 {
             }
             return true;
         } catch (CameraAccessException exception) {
-            Log.w("QtCamera2", "Failed to start preview:" + exception);
+            Log.w(LOG_TAG, "Failed to start preview:" + exception);
         }
         return false;
     }
 
     @UsedFromNativeCode
     void stopAndClose() {
+        // Local closedLatch awaited outside the lock below, since mDeviceClosedLatch
+        // can be reassigned by a later open/close
+        CountDownLatch closedLatch = null;
+
+        // Report in-flight still capture as failed
+        String abortedStillPhotoCameraId = null;
+
         synchronized (mSyncedMembers) {
             try {
+                if (mSyncedMembers.mIsTakingStillPhoto)
+                    abortedStillPhotoCameraId = mCameraId;
                 if (null != mCaptureSession) {
                     mCaptureSession.close();
                     mCaptureSession = null;
                 }
                 if (null != mCameraDevice) {
-                    mCameraDevice.close();
+                    closedLatch = new CountDownLatch(1);
+                    mDeviceClosedLatch = closedLatch;
+                    mCameraDevice.close(); // async
                     mCameraDevice = null;
                 }
                 mCameraId = "";
                 mTargetSurfaces.clear();
             } catch (Exception exception) {
-                Log.w("QtCamera2", "Failed to stop and close:" + exception);
+                Log.w(LOG_TAG, "Failed to stop and close:" + exception);
             }
             mSyncedMembers.mIsStarted = false;
             mSyncedMembers.mIsTakingStillPhoto = false;
         }
-    }
 
-    enum StillPhotoPrecaptureOperation {
-        FINALIZE_CAPTURE,
-        RESUBMIT_WITH_FORCED_FLASH,
-        WAIT
-    }
+        if (abortedStillPhotoCameraId != null)
+            onStillPhotoCaptureFailed(abortedStillPhotoCameraId);
 
-    // This callback class is meant to be used a repeating request during still photo capture, when
-    // waiting for the auto-focus and auto-exposure calibration to lock in. Once done,
-    // it will finalize the still photo and then return the camera to previewing.
-    class StillPhotoPrecaptureCallback extends CameraCaptureSession.CaptureCallback {
-        StillPhotoPrecaptureCallback(
-            CameraSettings cameraSettings,
-            boolean waitForAutoFocus,
-            boolean waitForAutoExposure)
-        {
-            this.mCameraSettings = cameraSettings;
-            this.mWaitForAutoFocus = waitForAutoFocus;
-            this.mWaitForAutoExposure = waitForAutoExposure;
-        }
-
-        // Holds a copy of the camera settings that were to be used when the still photo
-        // was started.
-        CameraSettings mCameraSettings = null;
-        boolean mWaitForAutoFocus = false;
-        boolean mWaitForAutoExposure = false;
-        // Testing has showed that this repeating request will keep on invoking methods on this
-        // callback object, even after we have submitted a new request. This can make it hard
-        // to differentiate between callbacks to this object, or new instances that have been
-        // resubmitted for capture. This boolean tracks whether we should be processing incoming
-        // events.
-        boolean mShouldProcessIncomingEvents = true;
-
-        boolean capturingWithAutoFlash() {
-            return mWaitForAutoExposure
-                && mCameraSettings.mStillPhotoFlashMode == CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH;
-        }
-
-        private void onCaptureFailureEvent() {
-            mShouldProcessIncomingEvents = false;
-
-            onStillPhotoCaptureFailed(mCameraId);
-
-            synchronized (mSyncedMembers) {
-                mSyncedMembers.mIsTakingStillPhoto = false;
-            }
-
-            // Try to reset our camera to regular preview
+        // Wait for onClosed() so background thread can be stopped
+        if (closedLatch != null) {
             try {
-                setRepeatingRequestToPreview();
-            } catch (CameraAccessException e) {
-                // TODO: If we fail to go back into preview, we can clean up the camera session and
-                // set the QCamera to inactive.
-            }
-        }
-
-        @Override
-        public void onCaptureFailed(
-            CameraCaptureSession session,
-            CaptureRequest request,
-            CaptureFailure failure)
-        {
-            onCaptureFailureEvent();
-        }
-
-        // Returns the operation we should do as a result of processing the result.
-        private StillPhotoPrecaptureOperation determinePrecaptureOperation(CaptureResult result) {
-            Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-            Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-
-            // If we are calibrating with auto flash and we receive FLASH_REQUIRED,
-            // we don't have to care about auto focus. Just transition straight to resubmitting
-            // the still photo request with flash forced on.
-            if (capturingWithAutoFlash() && aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED) {
-                return StillPhotoPrecaptureOperation.RESUBMIT_WITH_FORCED_FLASH;
-            }
-
-            // If we're not waiting for anything, finalize still photo immediately
-            if (!mWaitForAutoFocus && !mWaitForAutoExposure) {
-                return StillPhotoPrecaptureOperation.FINALIZE_CAPTURE;
-            }
-
-            // Wait for focus only
-            if (mWaitForAutoFocus && QtCamera2.afStateIsReadyForCapture(afState)
-                && !mWaitForAutoExposure)
-            {
-                return StillPhotoPrecaptureOperation.FINALIZE_CAPTURE;
-            }
-
-            // Wait for exposure only
-            if (!mWaitForAutoFocus
-                && mWaitForAutoExposure && QtCamera2.aeStateIsReadyForCapture(aeState))
-            {
-                return StillPhotoPrecaptureOperation.FINALIZE_CAPTURE;
-            }
-
-            // Wait for focus and exposure
-            if (mWaitForAutoFocus && QtCamera2.afStateIsReadyForCapture(afState)
-                && mWaitForAutoExposure && QtCamera2.aeStateIsReadyForCapture(aeState))
-            {
-                return StillPhotoPrecaptureOperation.FINALIZE_CAPTURE;
-            }
-
-            return StillPhotoPrecaptureOperation.WAIT;
-        }
-
-        @Override
-        public void onCaptureCompleted(
-            CameraCaptureSession s,
-            CaptureRequest r,
-            TotalCaptureResult result)
-        {
-            if (!mShouldProcessIncomingEvents)
-                return;
-
-            final StillPhotoPrecaptureOperation operation = determinePrecaptureOperation(result);
-            try {
-                switch (operation) {
-                    case FINALIZE_CAPTURE:
-                        finalizeStillPhoto(mCameraSettings);
-                        break;
-                    case RESUBMIT_WITH_FORCED_FLASH:
-                        // Submit a new still photo capture as if we were forcing flash on.
-                        CameraSettings newCameraSettings = new CameraSettings(mCameraSettings);
-                        newCameraSettings.mStillPhotoFlashMode = CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH;
-                        submitNewStillPhotoCapture(newCameraSettings);
-                        break;
-                    default:
-                        // Do nothing; wait for next result
-                        break;
-                }
-            } catch (CameraAccessException e) {
-                onCaptureFailureEvent();
-            }
-
-            if (operation != StillPhotoPrecaptureOperation.WAIT) {
-                mShouldProcessIncomingEvents = false;
-            }
-        }
-    }
-
-    // Used for finalizing a still photo capture. Will reset mState and preview-request back to
-    // default when capture is done. This should be used for a singular capture-call, not a
-    // repeating request.
-    class StillPhotoFinalizerCallback extends CameraCaptureSession.CaptureCallback {
-        // TODO: Implement failure case where we tell QImageCapture that cancel this pending
-        // image and then try to reset our camera to preview if applicable.
-
-        // If capture fails, try to return to previewing.
-        @Override
-        public void onCaptureFailed(
-            CameraCaptureSession session,
-            CaptureRequest request,
-            CaptureFailure failure)
-        {
-            onStillPhotoCaptureFailed(mCameraId);
-            synchronized (mSyncedMembers) {
-                mSyncedMembers.mIsTakingStillPhoto = false;
-            }
-            try {
-                setRepeatingRequestToPreview();
-            } catch (CameraAccessException e) {
-                // TODO: If we fail here, we can clean up the camera session and set the QCamera
-                // to unactive.
-            }
-        }
-
-        @Override
-        public void onCaptureCompleted(
-            CameraCaptureSession session,
-            CaptureRequest request,
-            TotalCaptureResult result)
-        {
-            try {
-                mExifDataHandler = new QtExifDataHandler(result);
-                synchronized (mSyncedMembers) {
-                    // If mIsStarted is true, it's an indication the QCamera is active and wants
-                    // to keep receiving preview frames.
-                    if (mSyncedMembers.mIsStarted) {
-                        setRepeatingRequestToPreview();
-                    }
-
-                    // TODO: If we implement queueing of multiple photos, we should start the
-                    // process of capturing the next photo here.
-                    mSyncedMembers.mIsTakingStillPhoto = false;
-                }
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            } catch (NullPointerException e) {
-                // See QTBUG-130901:
-                // It should not be possible for mCaptureSession to be null here
-                // because we always call .close() on mCaptureSession and then set it to null.
-                // Calling .close() should flush all pending callbacks, including this one.
-                // Either way, user has evidence this is happening, and catching this exception
-                // stops us from crashing the program.
-                Log.e(
-                    "QtCamera2",
-                    "Null-pointer access exception thrown when finalizing still photo capture. " +
-                    "This should not be possible.");
-                e.printStackTrace();
-            } catch (IllegalStateException e) {
-                // See QTBUG-136227:
-                // According to the Bug description, it may happen that we are trying to call
-                // setRepeatingRequest on not active session
-                Log.w("QtCamera2", "Session is no longer active.");
-                e.printStackTrace();
+                if (!closedLatch.await(2, TimeUnit.SECONDS))
+                    // NOTE: Fallthrough can race if onClosed never fires
+                    Log.w(LOG_TAG, "Timed out waiting for camera device to close");
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
             }
         }
     }
 
     // Can by StillPhotoPrecaptureCallback on background thread in order to finalize a still photo
     // capture.
-    private void finalizeStillPhoto(CameraSettings cameraSettings) throws CameraAccessException
+    void finalizeStillPhoto(CameraSettings cameraSettings) throws CameraAccessException
     {
         final CaptureRequest.Builder requestBuilder =
             mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
@@ -590,7 +355,7 @@ class QtCamera2 {
 
         mCaptureSession.capture(
             requestBuilder.build(),
-            new StillPhotoFinalizerCallback(),
+            new CameraStillPhotoFinalizerCallback(this),
             mBackgroundHandler);
     }
 
@@ -617,7 +382,7 @@ class QtCamera2 {
                 // Queuing multiple still photos is not implemented.
                 // TODO: We might have to signal to QImageCapture here that capturing failed.
                 Log.w(
-                    "QtCamera2",
+                    LOG_TAG,
                     "beginStillPhotoCapture() was called on camera backend while there " +
                     "is already a still photo in progress. This is not supported. Likely Qt " +
                     "developer bug.");
@@ -628,8 +393,8 @@ class QtCamera2 {
         final CameraSettings cameraSettings = atomicCameraSettingsCopy();
         try {
             submitNewStillPhotoCapture(cameraSettings);
-        } catch (CameraAccessException e) {
-            Log.w("QtCamera2", "Cannot get access to the camera: " + e);
+        } catch (Exception e) {
+            Log.w(LOG_TAG, "Failed to begin still photo capture: " + e);
             e.printStackTrace();
             onStillPhotoCaptureFailed(mCameraId);
             // TODO: Try to go back to previewing if applicable. If that fails too, shut down
@@ -660,10 +425,12 @@ class QtCamera2 {
         boolean triggerAutoExposure = aeMode != null
             && aeMode != CaptureResult.CONTROL_AE_MODE_OFF;
 
-        final StillPhotoPrecaptureCallback precaptureCallback = new StillPhotoPrecaptureCallback(
-            cameraSettings,
-            triggerAutoFocus,
-            triggerAutoExposure);
+        final CameraStillPhotoPrecaptureCallback precaptureCallback =
+            new CameraStillPhotoPrecaptureCallback(
+                this,
+                cameraSettings,
+                triggerAutoFocus,
+                triggerAutoExposure);
 
         mCaptureSession.setRepeatingRequest(
             requestBuilder.build(),
@@ -701,7 +468,7 @@ class QtCamera2 {
         if (mExifDataHandler != null)
             mExifDataHandler.save(path);
         else
-            Log.e("QtCamera2", "No Exif data that could be saved to " + path);
+            Log.e(LOG_TAG, "No Exif data that could be saved to " + path);
     }
 
     private Rect getScalerCropRegion(float zoomFactor)
@@ -754,7 +521,7 @@ class QtCamera2 {
                     mPreviewCaptureCallback,
                     mBackgroundHandler);
             } catch (Exception exception) {
-                Log.w("QtCamera2", "Failed to set zoom:" + exception);
+                Log.w(LOG_TAG, "Failed to set zoom:" + exception);
             }
         }
     }
@@ -778,7 +545,7 @@ class QtCamera2 {
             newAfMode = CaptureRequest.CONTROL_AF_MODE_OFF;
         else {
             Log.d(
-                "QtCamera2",
+                LOG_TAG,
                 "received a QCamera::FocusMode from native code that is not recognized. " +
                 "Likely Qt developer bug. Ignoring.");
             return;
@@ -790,7 +557,7 @@ class QtCamera2 {
         /*
         if (!isAfModeAvailable(newAfMode)) {
             Log.d(
-                "QtCamera2",
+                LOG_TAG,
                 "received a QCamera::FocusMode from native code that is not reported as supported. " +
                 "Likely Qt developer bug. Ignoring.");
             return;
@@ -822,7 +589,7 @@ class QtCamera2 {
                     mPreviewCaptureCallback,
                     mBackgroundHandler);
             } catch (Exception exception) {
-                Log.w("QtCamera2", "Failed to set focus mode:" + exception);
+                Log.w(LOG_TAG, "Failed to set focus mode:" + exception);
             }
         }
     }
@@ -833,7 +600,7 @@ class QtCamera2 {
         synchronized (mSyncedMembers) {
             int flashModeValue = mVideoDeviceManager.stringToControlAEMode(flashMode);
             if (flashModeValue < 0) {
-                Log.w("QtCamera2", "Unknown flash mode");
+                Log.w(LOG_TAG, "Unknown flash mode");
                 return;
             }
             mSyncedMembers.mCameraSettings.mStillPhotoFlashMode = flashModeValue;
@@ -850,7 +617,7 @@ class QtCamera2 {
     {
         if (distanceInput < 0.f || distanceInput > 1.f) {
             Log.w(
-                "QtCamera2",
+                LOG_TAG,
                 "received out-of-bounds value when setting camera focus-distance. " +
                 "Likely Qt developer bug. Ignoring.");
             return;
@@ -889,7 +656,7 @@ class QtCamera2 {
                         mPreviewCaptureCallback,
                         mBackgroundHandler);
                 } catch (Exception exception) {
-                    Log.w("QtCamera2", "Failed to set focus distance:" + exception);
+                    Log.w(LOG_TAG, "Failed to set focus distance:" + exception);
                 }
             }
         }
@@ -922,7 +689,7 @@ class QtCamera2 {
                         mPreviewCaptureCallback,
                         mBackgroundHandler);
                 } catch (Exception exception) {
-                    Log.w("QtCamera2", "Failed to set flash mode:" + exception);
+                    Log.w(LOG_TAG, "Failed to set flash mode:" + exception);
                 }
             }
         }
@@ -931,7 +698,7 @@ class QtCamera2 {
     // Called indirectly from C++ when the QCamera goes active.
     // Called again from Java camera background thread when a still photo is done.
     @UsedFromNativeCode
-    private void setRepeatingRequestToPreview() throws CameraAccessException {
+    void setRepeatingRequestToPreview() throws CameraAccessException {
         synchronized (mSyncedMembers) {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
             mPreviewRequestBuilder.addTarget(mPreviewImageReader.getSurface());
@@ -1065,7 +832,7 @@ class QtCamera2 {
                 cameraSettings.mFocusDistance);
             if (lensFocusDistance < 0) {
                 Log.w(
-                    "QtCamera2",
+                    LOG_TAG,
                     "Tried to apply FocusModeManual on a camera that doesn't support "
                     + "setting lens distance. Likely Qt developer bug. Ignoring.");
             } else {

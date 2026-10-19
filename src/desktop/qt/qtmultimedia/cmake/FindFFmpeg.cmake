@@ -1,69 +1,10 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
-#.rst:
-# FindFFmpeg
-# ----------
-#
-# Try to find the required ffmpeg components (default: AVFORMAT, AVUTIL, AVCODEC)
-#
-# Next variables can be used to hint FFmpeg libs search:
-#
-# ::
-#
-#   PC_<component>_LIBRARY_DIRS
-#   PC_FFMPEG_LIBRARY_DIRS
-#   PC_<component>_INCLUDE_DIRS
-#   PC_FFMPEG_INCLUDE_DIRS
-#
-# Once done this will define
-#
-# ::
-#
-#   FFMPEG_FOUND         - System has the all required components.
-#   FFMPEG_SHARED_LIBRARIES - Found FFmpeg shared libraries.
-#
-# For each of the components it will additionally set.
-#
-# ::
-#
-#   AVCODEC
-#   AVDEVICE
-#   AVFORMAT
-#   AVFILTER
-#   AVUTIL
-#   POSTPROC
-#   SWSCALE
-#
-# the following variables will be defined
-#
-# ::
-#
-#   <component>_FOUND        - System has <component>
-#   FFMPEG_<component>_FOUND - System has <component> (as checked by FHSPA)
-#   <component>_INCLUDE_DIRS - Include directory necessary for using the <component> headers
-#   <component>_LIBRARIES    - Link these to use <component>
-#   <component>_LIBRARY_DIRS - Link directories
-#   <component>_DEFINITIONS  - Compiler switches required for using <component>
-#   <component>_VERSION      - The components version
-#
-# the following import targets is created
-#
-# ::
-#
-#   FFmpeg::FFmpeg - for all components
-#   FFmpeg::<component> - where <component> in lower case (FFmpeg::avcodec) for each components
-#
-# Copyright (c) 2006, Matthias Kretz, <kretz@kde.org>
-# Copyright (c) 2008, Alexander Neundorf, <neundorf@kde.org>
-# Copyright (c) 2011, Michael Jansen, <kde@michael-jansen.biz>
-# Copyright (c) 2017, Alexander Drozdov, <adrozdoff@gmail.com>
-#
 
 include(FindPackageHandleStandardArgs)
 
-# The default components were taken from a survey over other FindFFMPEG.cmake files
 if (NOT FFmpeg_FIND_COMPONENTS)
-    set(FFmpeg_FIND_COMPONENTS AVCODEC AVFORMAT AVUTIL)
+    set(FFmpeg_FIND_COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE)
 endif ()
 
 if (QT_DEPLOY_FFMPEG AND BUILD_SHARED_LIBS)
@@ -133,7 +74,7 @@ endif()
 macro(find_component _component _pkgconfig _library _header)
     if (FFMPEG_DIR)
         set(backup_cmake_find_root_path "${CMAKE_FIND_ROOT_PATH}")
-        list(APPEND CMAKE_FIND_ROOT_PATH "${FFMPEG_DIR}")
+        list(PREPEND CMAKE_FIND_ROOT_PATH "${FFMPEG_DIR}")
     elseif(PKG_CONFIG_FOUND)
         # use pkg-config to get the directories and then use these values
         # in the FIND_PATH() and FIND_LIBRARY() calls
@@ -231,6 +172,7 @@ endmacro()
 unset(FFMPEG_INCLUDE_DIRS CACHE)
 unset(FFMPEG_SHARED_LIBRARIES CACHE)
 unset(FFMPEG_STUBS CACHE)
+unset(FFMPEG_USES_OPENSSL CACHE)
 
 # Check for components.
 foreach (_component ${FFmpeg_FIND_COMPONENTS})
@@ -269,6 +211,14 @@ function(qt_internal_multimedia_try_add_dynamic_resolve_dependency _component de
 
     set(supported_stubs "ssl|crypto|va|va-drm|va-x11")
     set(stub_prefix "Qt${PROJECT_VERSION_MAJOR}FFmpegStub-")
+
+    # If FFmpeg pulls in OpenSSL directly (-lssl) the libraries are needed at runtime.
+    # If they're pulled through the stubs they're not strictly needed but can end up
+    # being used anyway.
+    if (${dep} MATCHES "^(${stub_prefix})?(ssl|crypto)$")
+        set(FFMPEG_USES_OPENSSL TRUE CACHE INTERNAL "")
+    endif()
+
     if (${dep} MATCHES "^${stub_prefix}(${supported_stubs})$")
         string(REPLACE "${stub_prefix}" "" dep "${dep}")
         set(FFMPEG_STUBS ${FFMPEG_STUBS} ${dep} CACHE INTERNAL "")
@@ -307,6 +257,11 @@ function(__ffmpeg_internal_set_dependencies _component)
                     target_link_libraries(FFmpeg::${lib} INTERFACE ${dependency})
                 endif()
             endif()
+        endforeach()
+
+        foreach(dependency IN LISTS libs_dependency_lib)
+            string(STRIP "${dependency}" dependency)
+            target_link_libraries(FFmpeg::${lib} INTERFACE ${dependency})
         endforeach()
 
         # we don't link private dependencies, but just populate the FFMPEG_STUBS
@@ -359,6 +314,7 @@ list(REMOVE_DUPLICATES FFMPEG_STUBS)
 
 message(STATUS "FFmpeg shared libs: ${FFMPEG_SHARED_LIBRARIES}")
 message(STATUS "FFmpeg stubs: ${FFMPEG_STUBS}")
+message(STATUS "FFmpeg built with OpenSSL: ${FFMPEG_USES_OPENSSL}")
 
 # cache the vars.
 set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)

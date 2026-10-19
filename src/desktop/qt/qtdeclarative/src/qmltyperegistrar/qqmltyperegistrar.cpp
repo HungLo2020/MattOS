@@ -323,10 +323,22 @@ void QmlTypeRegistrar::write(QTextStream &output, QAnyStringView outFileName) co
         }
 
         for (QString qmlElementName : std::as_const(qmlElementNames)) {
+
             if (qmlElementName == S_ANONYMOUS)
                 continue;
+
             if (qmlElementName == S_AUTO)
                 qmlElementName = className;
+
+            if (!qmlElementName.isEmpty()
+                && qmlElementName.front().isLower()
+                && !classDef.enums().empty()) {
+                warning(classDef.inputFile()).nospace()
+                << "QML type '" << qmlElementName
+                << "' starts with a lowercase letter and exports enums, "
+                   "which are not accessible from QML or JavaScript.";
+            }
+
             qmlElementInfos[qmlElementName].append({
                 classDef.inputFile(),
                 className,
@@ -424,6 +436,10 @@ void QmlTypeRegistrar::write(QTextStream &output, QAnyStringView outFileName) co
 
                 output << uR"(
     qmlRegisterTypesAndRevisions<%1>("%2", %3);)"_s.arg(className, m_module).arg(majorVersion);
+
+                // TODO it seems that we don't actually need to register the pointer version for gadgets (QTBUG-147142)
+                if (classDef.kind() == MetaType::Kind::Gadget)
+                    output << u"\n    QMetaType::fromType<%1 *>().id();"_s.arg(className);
 
                 const BaseType::Container superClasses = classDef.superClasses();
 
@@ -539,6 +555,7 @@ bool QmlTypeRegistrar::generatePluginTypes(const QString &pluginTypesFile, bool 
 {
     QmlTypesCreator creator;
     creator.setOwnTypes(m_types);
+    creator.setOpaqueTypes(m_opaqueTypes);
     creator.setForeignTypes(m_foreignTypes);
     creator.setReferencedTypes(m_referencedTypes);
     creator.setUsingDeclarations(m_usingDeclarations);
@@ -568,10 +585,11 @@ void QmlTypeRegistrar::setIncludes(const QList<QString> &includes)
     m_includes = includes;
 }
 void QmlTypeRegistrar::setTypes(
-        const QList<MetaType> &types, const QList<MetaType> &foreignTypes)
+        const QList<MetaType> &types, const QList<MetaType> &foreignTypes, const QList<MetaType> &opaqueTypes)
 {
     m_types = types;
     m_foreignTypes = foreignTypes;
+    m_opaqueTypes = opaqueTypes;
 }
 void QmlTypeRegistrar::setReferencedTypes(const QList<QAnyStringView> &referencedTypes)
 {

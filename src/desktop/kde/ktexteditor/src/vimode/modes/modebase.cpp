@@ -29,6 +29,7 @@
 #include <QRegularExpression>
 #include <QString>
 
+using namespace Qt::StringLiterals;
 using namespace KateVi;
 
 // TODO: the "previous word/WORD [end]" methods should be optimized. now they're being called in a
@@ -1045,44 +1046,22 @@ bool ModeBase::startReplaceMode()
     return true;
 }
 
-bool ModeBase::startVisualMode()
+bool ModeBase::startVisualMode(ViMode mode)
 {
-    if (m_viInputModeManager->getCurrentViMode() == ViMode::VisualLineMode) {
-        m_viInputModeManager->getViVisualMode()->setVisualModeType(ViMode::VisualMode);
-        m_viInputModeManager->changeViMode(ViMode::VisualMode);
-    } else if (m_viInputModeManager->getCurrentViMode() == ViMode::VisualBlockMode) {
-        m_viInputModeManager->getViVisualMode()->setVisualModeType(ViMode::VisualMode);
-        m_viInputModeManager->changeViMode(ViMode::VisualMode);
-    } else {
-        m_viInputModeManager->viEnterVisualMode();
+    Q_ASSERT(mode == ViMode::VisualMode || mode == ViMode::VisualLineMode || mode == ViMode::VisualBlockMode);
+
+    if (m_viInputModeManager->getCurrentViMode() == mode) {
+        // Using a mode switch command from within that mode: reset back to normal
+        m_viInputModeManager->getViVisualMode()->reset();
+        return true;
     }
 
-    Q_EMIT m_view->viewModeChanged(m_view, m_view->viewMode());
-
-    return true;
-}
-
-bool ModeBase::startVisualBlockMode()
-{
-    if (m_viInputModeManager->getCurrentViMode() == ViMode::VisualMode) {
-        m_viInputModeManager->getViVisualMode()->setVisualModeType(ViMode::VisualBlockMode);
-        m_viInputModeManager->changeViMode(ViMode::VisualBlockMode);
+    if (m_viInputModeManager->isAnyVisualMode()) {
+        m_viInputModeManager->changeViMode(mode);
+        m_viInputModeManager->getViVisualMode()->setVisualModeType(mode);
+        m_viInputModeManager->getViVisualMode()->updateViewSelection();
     } else {
-        m_viInputModeManager->viEnterVisualMode(ViMode::VisualBlockMode);
-    }
-
-    Q_EMIT m_view->viewModeChanged(m_view, m_view->viewMode());
-
-    return true;
-}
-
-bool ModeBase::startVisualLineMode()
-{
-    if (m_viInputModeManager->getCurrentViMode() == ViMode::VisualMode) {
-        m_viInputModeManager->getViVisualMode()->setVisualModeType(ViMode::VisualLineMode);
-        m_viInputModeManager->changeViMode(ViMode::VisualLineMode);
-    } else {
-        m_viInputModeManager->viEnterVisualMode(ViMode::VisualLineMode);
+        m_viInputModeManager->viEnterVisualMode(mode);
     }
 
     Q_EMIT m_view->viewModeChanged(m_view, m_view->viewMode());
@@ -1152,87 +1131,163 @@ const QChar ModeBase::getCharAtVirtualColumn(const QString &line, int virtualCol
     return QChar::Null;
 }
 
-void ModeBase::addToNumberUnderCursor(int count)
+Range ModeBase::swapRangeColumns(const Range &r) const
 {
-    KTextEditor::Cursor c(m_view->cursorPosition());
-    QString line = getLine();
+    const int vStartColumn = doc()->toVirtualColumn(r.start());
+    const int vEndColumn = doc()->toVirtualColumn(r.end());
 
-    if (line.isEmpty()) {
-        return;
+    Range swapped = r;
+    swapped.startColumn = doc()->fromVirtualColumn(r.startLine, vEndColumn);
+    swapped.endColumn = doc()->fromVirtualColumn(r.endLine, vStartColumn);
+    return swapped;
+}
+
+void ModeBase::addToNumber(int count, bool isCumulative)
+{
+    auto op = [](ViMode mode) -> std::optional<OperationMode> {
+        switch (mode) {
+        case ViMode::NormalMode:
+            return std::nullopt;
+        case ViMode::VisualMode:
+            return CharWise;
+        case ViMode::VisualLineMode:
+            return LineWise;
+        case ViMode::VisualBlockMode:
+            return Block;
+        default: // No addition command on insert modes
+            Q_UNREACHABLE();
+        }
+    };
+
+    const auto visualOpMode = op(m_viInputModeManager->getCurrentViMode());
+
+    const KTextEditor::Cursor c(m_view->cursorPosition());
+    m_commandRange.normalize();
+    Range searchRange = m_commandRange;
+    if (!visualOpMode) {
+        // Normal mode: The number may be under the cursor
+        // Match against the whole line and filter later
+        searchRange = Range(c.line(), 0, c.line(), doc()->lineLength(c.line()), InclusiveMotion);
     }
 
-    const int cursorColumn = c.column();
-    const int cursorLine = c.line();
-    const KTextEditor::Cursor prevWordStart = findPrevWordStart(cursorLine, cursorColumn);
-    int wordStartPos = prevWordStart.column();
-    if (prevWordStart.line() < cursorLine) {
-        // The previous word starts on the previous line: ignore.
-        wordStartPos = 0;
-    }
-    if (wordStartPos > 0 && line.at(wordStartPos - 1) == QLatin1Char('-')) {
-        wordStartPos--;
-    }
+    const QString searchText = getRange(searchRange, visualOpMode.value_or(CharWise));
+    const auto searchLines = QStringView(searchText).split('\n'_L1);
+    const int vStartColumn = doc()->toVirtualColumn(searchRange.toEditorRange().start());
 
-    int numberStartPos = -1;
-    QString numberAsString;
-    static const QRegularExpression numberRegex(QStringLiteral("0x[0-9a-fA-F]+|\\-?\\d+"));
-    auto numberMatchIter = numberRegex.globalMatch(line, wordStartPos);
-    while (numberMatchIter.hasNext()) {
-        const auto numberMatch = numberMatchIter.next();
-        const bool numberEndedBeforeCursor = (numberMatch.capturedStart() + numberMatch.capturedLength() <= cursorColumn);
-        if (!numberEndedBeforeCursor) {
-            // This is the first number-like string under or after the cursor - this'll do!
-            numberStartPos = numberMatch.capturedStart();
-            numberAsString = numberMatch.captured();
+    static const QRegularExpression numberRegex(u"0[xX][0-9a-fA-F]+|0[bB][01]+|\\-?\\d+"_s);
+    QList<KTextEditor::Range> matchRanges;
+    for (int iLine = 0; iLine < searchLines.length(); ++iLine) {
+        auto numberMatchIter = numberRegex.globalMatchView(searchLines.at(iLine));
+        while (numberMatchIter.hasNext()) {
+            const auto numberMatch = numberMatchIter.next();
+            if (!visualOpMode && numberMatch.capturedEnd() <= c.column()) {
+                // Normal mode: this number ended before the cursor position
+                continue;
+            }
+            const int currentLine = searchRange.startLine + iLine;
+            const int startColumn = (visualOpMode == CharWise && iLine > 0) ? 0 : doc()->fromVirtualColumn({currentLine, vStartColumn});
+            matchRanges << KTextEditor::Range(currentLine, startColumn + numberMatch.capturedStart(), currentLine, startColumn + numberMatch.capturedEnd());
+            break; // Vim behavior: Just one operation per line
+        }
+        // Charwise visual mode: only match the first number found in the range
+        if (visualOpMode == CharWise && !matchRanges.isEmpty()) {
             break;
         }
     }
 
-    if (numberStartPos == -1) {
-        // None found.
+    if (matchRanges.isEmpty()) {
         return;
     }
 
+    // Replace all the old number strings with the new ones.
+    // Single edit operation
+    doc()->editStart();
+    int amount = count;
+    for (const auto &numberRange : std::as_const(matchRanges)) {
+        const QString updatedNumberText = calculateNumberIncrement(doc()->text(numberRange), amount);
+        doc()->replaceText(numberRange, updatedNumberText);
+
+        if (isCumulative) {
+            amount += count;
+        }
+    }
+    doc()->editEnd();
+
+    // In normal mode, move the cursor to the end of the number.
+    // Otherwise, we will leave visual mode as usual
+    if (!visualOpMode) {
+        const auto endPostion = matchRanges.first().end();
+        updateCursor({endPostion.line(), endPostion.column() - 1});
+    }
+}
+
+// Operate on a found number string, adding `amount` to the number,
+// according to the defined rules to match vim behavior
+// https://vimhelp.org/change.txt.html#CTRL-A
+QString ModeBase::calculateNumberIncrement(const QString &numberAsString, int amount)
+{
     bool parsedNumberSuccessfully = false;
-    int base = numberAsString.startsWith(QLatin1String("0x")) ? 16 : 10;
-    if (base != 16 && numberAsString.startsWith(QLatin1Char('0')) && numberAsString.length() > 1) {
-        // If a non-hex number with a leading 0 can be parsed as octal, then assume
-        // it is octal.
-        numberAsString.toInt(&parsedNumberSuccessfully, 8);
+    int base = numberAsString.toLower().startsWith("0x"_L1) ? 16 // hexadecimal
+        : numberAsString.toLower().startsWith("0b"_L1)      ? 2 // binary
+                                                            : 10; // decimal (or octal)
+    // Check for octal numbers: leading 0s and can be parsed as octal
+    if (base == 10 && numberAsString.startsWith('0'_L1) && numberAsString.length() > 1) {
+        std::ignore = numberAsString.toULongLong(&parsedNumberSuccessfully, 8);
         if (parsedNumberSuccessfully) {
             base = 8;
         }
     }
-    const int originalNumber = numberAsString.toInt(&parsedNumberSuccessfully, base);
 
-    if (!parsedNumberSuccessfully) {
-        // conversion to int failed. give up.
-        return;
+    // Only base 10 (decimal) has to handle signed integers
+    // Try it or fallback to unsigned if that fails
+    if (base == 10) {
+        const int64_t number = numberAsString.toLongLong(&parsedNumberSuccessfully, 10);
+        if (parsedNumberSuccessfully) {
+            // Do not pad with leading 0s, so the result cannot get confused
+            // with an octal number (vim behavior)
+            return QString::number(number + amount, 10);
+        }
     }
 
-    QString basePrefix;
-    if (base == 16) {
-        basePrefix = QStringLiteral("0x");
-    } else if (base == 8) {
-        basePrefix = QStringLiteral("0");
+    // Parse as unsigned integer (ensure 64bits on all platforms)
+    uint64_t number = numberAsString.toULongLong(&parsedNumberSuccessfully, base);
+    if (parsedNumberSuccessfully) {
+        number += amount;
+    } else {
+        // There is an overflow: set the maximum value
+        number = std::numeric_limits<uint64_t>::max();
     }
 
-    const int withoutBaseLength = numberAsString.length() - basePrefix.length();
+    // Return the formatted and padded number according to the rules
+    if (base == 10) {
+        return QString::number(number, 10); // Non-padded decimal
+    }
 
-    const int newNumber = originalNumber + count;
+    // Keep the original upper or lower-cased base prefix
+    const int basePrefixLength = (base == 10) ? 0 : (base == 8) ? 1 : 2;
+    const auto basePrefix = numberAsString.mid(0, basePrefixLength);
 
-    // Create the new text string to be inserted. Prepend with “0x” if in base 16, and "0" if base 8.
-    // For non-decimal numbers, try to keep the length of the number the same (including leading 0's).
-    const QString newNumberPadded =
-        (base == 10) ? QStringLiteral("%1").arg(newNumber, 0, base) : QStringLiteral("%1").arg(newNumber, withoutBaseLength, base, QLatin1Char('0'));
-    const QString newNumberText = basePrefix + newNumberPadded;
+    QString paddedNumber = u"%1"_s.arg(number, numberAsString.length() - basePrefixLength, base, '0'_L1);
+    // Check for upper-cased hexadecimals
+    if (base == 16 && numberAsString != numberAsString.toLower()) {
+        paddedNumber = paddedNumber.toUpper();
+    }
 
-    // Replace the old number string with the new.
-    doc()->editStart();
-    doc()->removeText(KTextEditor::Range(cursorLine, numberStartPos, cursorLine, numberStartPos + numberAsString.length()));
-    doc()->insertText(KTextEditor::Cursor(cursorLine, numberStartPos), newNumberText);
-    doc()->editEnd();
-    updateCursor(KTextEditor::Cursor(m_view->cursorPosition().line(), numberStartPos + newNumberText.length() - 1));
+    return basePrefix + paddedNumber;
+}
+
+KTextEditor::Cursor ModeBase::cursorPosAtEndOfPaste(const KTextEditor::Cursor pasteLocation, const QString &pastedText, bool isBlock)
+{
+    KTextEditor::Cursor cAfter = pasteLocation;
+    const int lineCount = pastedText.count(QLatin1Char('\n')) + 1;
+    if (lineCount == 1) {
+        cAfter.setColumn(cAfter.column() + pastedText.length());
+    } else {
+        const int lastLineLength = pastedText.size() - (pastedText.lastIndexOf(QLatin1Char('\n')) + 1);
+        cAfter.setColumn((isBlock ? cAfter.column() : 0) + lastLineLength);
+        cAfter.setLine(cAfter.line() + lineCount - 1);
+    }
+    return cAfter;
 }
 
 void ModeBase::switchView(Direction direction)

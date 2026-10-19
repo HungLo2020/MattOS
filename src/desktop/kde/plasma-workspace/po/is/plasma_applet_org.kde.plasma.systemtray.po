@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-19 02:48+0000\n"
-"PO-Revision-Date: 2026-03-13 15:22+0000\n"
+"POT-Creation-Date: 2026-08-28 00:48+0000\n"
+"PO-Revision-Date: 2026-05-06 10:21+0000\n"
 "Last-Translator: Sveinn í Felli <sv1@fellsnet.is>\n"
 "Language-Team: Icelandic\n"
 "Language: is\n"
@@ -18,61 +18,67 @@ msgstr ""
 "Plural-Forms: Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 23.08.5\n"
 
+#: qml/BackgroundAppItem.qml:76
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Quit %1"
+msgstr "Hætta í %1"
+
 #: qml/config.qml:13
 #, kde-format
 msgid "General"
 msgstr "Almennt"
 
-#: qml/ConfigGeneral.qml:43
+#: qml/ConfigGeneral.qml:45
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item when relevant"
 msgid "Show when relevant"
 msgstr "Sýna þegar við á"
 
-#: qml/ConfigGeneral.qml:47
+#: qml/ConfigGeneral.qml:49
 #, kde-format
 msgctxt "@item:inlistbox Always show this System Tray item"
 msgid "Always show"
 msgstr "Alltaf sýna"
 
-#: qml/ConfigGeneral.qml:51
+#: qml/ConfigGeneral.qml:53
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item only in the expanded popup"
 msgid "Show only in popup"
 msgstr "Sýna einungis í sprettglugga"
 
-#: qml/ConfigGeneral.qml:55
+#: qml/ConfigGeneral.qml:57
 #, kde-format
 msgctxt "@item:inlistbox Never show this System Tray item; disable it"
 msgid "Never show (disabled)"
 msgstr "Aldrei sýna (óvirkt)"
 
-#: qml/ConfigGeneral.qml:126
+#: qml/ConfigGeneral.qml:128
 #, kde-format
 msgid "Application Status"
 msgstr "Staða forrits"
 
-#: qml/ConfigGeneral.qml:128
+#: qml/ConfigGeneral.qml:130
 #, kde-format
 msgid "Communications"
 msgstr "Samskipti"
 
-#: qml/ConfigGeneral.qml:130
+#: qml/ConfigGeneral.qml:132
 #, kde-format
 msgid "System Services"
 msgstr "Kerfisþjónustur"
 
-#: qml/ConfigGeneral.qml:132
+#: qml/ConfigGeneral.qml:134
 #, kde-format
 msgid "Hardware Control"
 msgstr "Stjórnun vélbúnaðar"
 
-#: qml/ConfigGeneral.qml:135
+#: qml/ConfigGeneral.qml:137
 #, kde-format
 msgid "Miscellaneous"
 msgstr "Ýmislegt"
 
-#: qml/ConfigGeneral.qml:172
+#: qml/ConfigGeneral.qml:174
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -89,13 +95,13 @@ msgstr ""
 "><nl/>Notaðu þessa stillingu á eigin ábyrgð og ekki tilkynna vandamál til "
 "KDE eða þróunaraðila forritsins."
 
-#: qml/ConfigGeneral.qml:175
+#: qml/ConfigGeneral.qml:177
 #, kde-format
 msgctxt "@action:button"
 msgid "I understand the risks"
 msgstr "Ég skil áhættuna"
 
-#: qml/ConfigGeneral.qml:187
+#: qml/ConfigGeneral.qml:189
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -114,7 +120,7 @@ msgstr ""
 "klippispjaldið og afvirkja ferilskráningu eða láta það muna bara eitt atriði "
 "í einu."
 
-#: qml/ConfigGeneral.qml:196
+#: qml/ConfigGeneral.qml:198
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -129,66 +135,97 @@ msgstr ""
 "öðrum stað, eða sért að nota utanaðkomandi stýringu til að meðhöndla "
 "tilkynningar."
 
-#: qml/ConfigGeneral.qml:208
+#: qml/ConfigGeneral.qml:210
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel height"
 msgstr "Kvarða við hæð skjástiku"
 
-#: qml/ConfigGeneral.qml:209
+#: qml/ConfigGeneral.qml:211
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel width"
 msgstr "Kvarða við breidd skjástiku"
 
-#: qml/ConfigGeneral.qml:211
+#: qml/ConfigGeneral.qml:213
 #, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgctxt ""
+"@label:listbox Whether the system tray icons in the Panel always stay small "
+"or scale with the Panel's size"
 msgid "Panel icon size:"
 msgstr "Táknastærð á skjástiku:"
 
-#: qml/ConfigGeneral.qml:215 qml/ConfigGeneral.qml:256
+#: qml/ConfigGeneral.qml:217
+#, kde-format
+msgctxt "@item:inlistbox Icon size"
+msgid "Small"
+msgstr "Lítil"
+
+#: qml/ConfigGeneral.qml:237
+#, kde-format
+msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgid "Spacing:"
+msgstr "Millibil:"
+
+#: qml/ConfigGeneral.qml:241
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Small"
 msgstr "Lítið"
 
-#: qml/ConfigGeneral.qml:244
-#, kde-format
-msgid "Automatically enabled when in Touch Mode"
-msgstr "Sjálfkrafa virkjað þegar snertistilling er notuð"
-
-#: qml/ConfigGeneral.qml:252
-#, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
-msgid "Panel icon spacing:"
-msgstr "Bil milli tákna á spjaldi:"
-
-#: qml/ConfigGeneral.qml:260
+#: qml/ConfigGeneral.qml:245
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Normal"
 msgstr "Venjulegt"
 
-#: qml/ConfigGeneral.qml:264
+#: qml/ConfigGeneral.qml:249
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Large"
 msgstr "Stórt"
 
-#: qml/ConfigGeneral.qml:289
+#: qml/ConfigGeneral.qml:269
+#, kde-format
+msgctxt ""
+"@label:listbox Which direction system tray icons in the Panel emerge from "
+"the expander arrow"
+msgid "Direction:"
+msgstr "Stefna:"
+
+#: qml/ConfigGeneral.qml:283
+#, kde-format
+msgid "Bottom-to-top"
+msgstr "Neðan-og-upp"
+
+#: qml/ConfigGeneral.qml:284
+#, kde-format
+msgid "Top-to-bottom"
+msgstr "Ofan-og-niður"
+
+#: qml/ConfigGeneral.qml:289 qml/ConfigGeneral.qml:296
+#, kde-format
+msgid "Left-to-right"
+msgstr "Vinstri-til-hægri"
+
+#: qml/ConfigGeneral.qml:290 qml/ConfigGeneral.qml:295
+#, kde-format
+msgid "Right-to-left"
+msgstr "Hægri-til-vinstri"
+
+#: qml/ConfigGeneral.qml:307
 #, kde-format
 msgctxt "@info:usagetip under a combobox when Touch Mode is on"
 msgid "Automatically set to Large when in Touch Mode"
 msgstr "Sjálfvirkt stillt á stórt þegar snertistilling er notuð"
 
-#: qml/ConfigGeneral.qml:315
+#: qml/ConfigGeneral.qml:332
 #, kde-format
 msgctxt "@title:column"
 msgid "Entries"
 msgstr "Færslur"
 
-#: qml/ConfigGeneral.qml:319
+#: qml/ConfigGeneral.qml:336
 #, kde-format
 msgctxt "@option:check, This is referring to system tray entries"
 msgid "Always show all"
@@ -200,17 +237,17 @@ msgctxt "@action:button"
 msgid "Go Back"
 msgstr "Fara til baka"
 
-#: qml/ExpandedRepresentation.qml:72
+#: qml/ExpandedRepresentation.qml:76
 #, kde-format
 msgid "Status and Notifications"
 msgstr "Staða og tilkynningar"
 
-#: qml/ExpandedRepresentation.qml:169
+#: qml/ExpandedRepresentation.qml:175
 #, kde-format
 msgid "More actions"
 msgstr "Fleiri aðgerðir"
 
-#: qml/ExpandedRepresentation.qml:255
+#: qml/ExpandedRepresentation.qml:260
 #, kde-format
 msgid "Keep Open"
 msgstr "Halda opnu"
@@ -242,14 +279,18 @@ msgctxt "Some letters with tall characters, ascenders, descenders, etc"
 msgid "AILlmyjgGJP"
 msgstr "AILlmyjgGJP"
 
+#~ msgid "Automatically enabled when in Touch Mode"
+#~ msgstr "Sjálfkrafa virkjað þegar snertistilling er notuð"
+
+#~ msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+#~ msgid "Panel icon spacing:"
+#~ msgstr "Bil milli tákna á spjaldi:"
+
 #~ msgid "Always hidden"
 #~ msgstr "Alltaf falið"
 
 #~ msgid "Disabled"
 #~ msgstr "Óvirkt"
-
-#~ msgid "Small"
-#~ msgstr "Lítil"
 
 #~ msgctxt "Name of the system tray entry"
 #~ msgid "Entry"

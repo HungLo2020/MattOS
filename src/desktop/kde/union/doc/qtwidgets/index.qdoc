@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: BSD-2-Clause
+// SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+/*!
+
+\page qtwidgets-index.html
+\title Union QtWidgets Output Plugin
+
+The Union QtWidgets Output plugin implements a QStyle for QtWidgets,
+which uses data from Union's intermediate layer to style QtWidgets.
+In cases where styling is not provided, QCommonStyle is used as a fallback.
+
+*/

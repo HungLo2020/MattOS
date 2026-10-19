@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-nm\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-29 03:06+0000\n"
-"PO-Revision-Date: 2025-09-10 02:05+0300\n"
+"POT-Creation-Date: 2026-08-06 00:46+0000\n"
+"PO-Revision-Date: 2026-08-11 14:43+0300\n"
 "Last-Translator: Moo\n"
 "Language-Team: lt\n"
 "Language: lt\n"
@@ -17,35 +17,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n%10>=2 && (n%100<10 || n"
 "%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.9\n"
 
 #: ui/ConnectDialog.qml:58
 #, kde-format
 msgid "Invalid input."
 msgstr "Neteisinga įvestis."
 
-#: ui/ConnectionInfo.qml:15
+#: ui/ConnectionInfo.qml:16
 #, kde-format
 msgctxt "kcm page title"
 msgid "Connection Info for \"%1\""
 msgstr "Informacija apie ryšį „%1“"
 
-#: ui/ConnectionInfo.qml:22
+#: ui/ConnectionInfo.qml:55
 #, kde-format
 msgctxt "@title:group"
 msgid "Transfer Rates"
 msgstr "Perdavimo spartos"
 
-#: ui/ConnectionInfo.qml:38
+#: ui/ConnectionInfo.qml:71
 #, kde-format
 msgid "Connected, ↓ %1/s, ↑ %2/s"
 msgstr "Prisijungta, ↓ %1/sek., ↑ %2/sek."
 
-#: ui/ConnectionInfo.qml:46
+#: ui/ConnectionInfo.qml:79
 #, kde-format
 msgctxt "@title:group"
 msgid "Connection Details"
 msgstr "Išsamiau apie ryšį"
+
+#: ui/ConnectionInfo.qml:100
+#, kde-format
+msgctxt "@title:group"
+msgid "Share"
+msgstr "Bendrinti"
+
+#: ui/ConnectionInfo.qml:107
+#, kde-format
+msgid "Share Wi-Fi via QR Code"
+msgstr "Bendrinti belaidį (Wi-Fi) ryšį per QR kodą"
+
+#: ui/ConnectionInfo.qml:114
+#, kde-format
+msgid "Wi-Fi QR Code"
+msgstr "Belaidžio (Wi-Fi) ryšio QR kodas"
 
 #: ui/main.qml:26
 #, kde-format
@@ -59,19 +75,34 @@ msgstr "Belaidis (Wi-Fi)"
 
 #: ui/main.qml:98
 #, kde-format
+msgid "Settings"
+msgstr "Nuostatos"
+
+#: ui/main.qml:107
+#, kde-format
 msgctxt "@title:group"
 msgid "Saved Networks"
 msgstr "Įrašyti tinklai"
 
-#: ui/main.qml:135
+#: ui/main.qml:144
 #, kde-format
 msgid "Available Networks"
 msgstr "Prieinami tinklai"
 
-#: ui/main.qml:169
+#: ui/main.qml:178
 #, kde-format
 msgid "Add Custom Connection"
 msgstr "Pridėti tinkintą ryšį"
+
+#: ui/MorePage.qml:14
+#, kde-format
+msgid "Wi-Fi Settings"
+msgstr "Belaidžio (Wi-Fi) ryšio nuostatos"
+
+#: ui/MorePage.qml:21
+#, kde-format
+msgid "Notifications for connection changes"
+msgstr "Pranešimai apie ryšio pakeitimus"
 
 #: ui/NetworkSettings.qml:15
 #, kde-format
@@ -226,6 +257,9 @@ msgstr "DNS"
 msgid "Password…"
 msgstr "Slaptažodis…"
 
+#~ msgid "More"
+#~ msgstr "Daugiau"
+
 #~ msgid "Connect"
 #~ msgstr "Prisijungti"
 
@@ -249,9 +283,6 @@ msgstr "Slaptažodis…"
 
 #~ msgid "Download"
 #~ msgstr "Atsiuntimas"
-
-#~ msgid "Wi-Fi is disabled"
-#~ msgstr "Belaidis (Wi-Fi) išjungtas"
 
 #~ msgid "Enable"
 #~ msgstr "Įjungti"

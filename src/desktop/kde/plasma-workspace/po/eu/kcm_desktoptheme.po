@@ -1,24 +1,24 @@
 # Translation for kcm_desktoptheme.po to Euskara/Basque (eu).
-# Copyright (C) 2008-2024 This file is copyright:
+# Copyright (C) 2008-2026 This file is copyright:
 # This file is distributed under the same license as the plasma-workspace package.
-# SPDX-FileCopyrightText: 2024, 2025 KDE euskaratzeko proiektuko arduraduna <xalba@ni.eus>
+# SPDX-FileCopyrightText: 2024, 2025, 2026 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
 #
 # Translators:
 # Asier Urio Larrea <asieriko@gmail.com>, 2008.
-# Iñigo Salvador Azurmendi <xalba@ni.eus>, 2010, 2011, 2018, 2019, 2020, 2021, 2023, 2024.
+# Iñigo Salvador Azurmendi <xalba@ni.eus>, 2010, 2011, 2018, 2019, 2020, 2021, 2023, 2024, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-07-23 14:15+0200\n"
+"POT-Creation-Date: 2026-03-27 00:47+0000\n"
+"PO-Revision-Date: 2026-02-11 17:37+0100\n"
 "Last-Translator: Iñigo Salvador Azurmendi <xalba@ni.eus>\n"
 "Language-Team: Basque <kde-i18n-eu@kde.org>\n"
 "Language: eu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.04.3\n"
+"X-Generator: Lokalize 25.12.2\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. i18n: ectx: label, entry (name), group (Theme)
@@ -128,51 +128,68 @@ msgctxt "@item:inlistbox filters displayed themes"
 msgid "Color scheme compatible"
 msgstr "Kolore-antolaerarekin bateragarriak"
 
-#: ui/main.qml:130
+#: ui/main.qml:114
 #, kde-format
 msgid "Install from File…"
 msgstr "Instalatu fitxategitik…"
 
-#: ui/main.qml:135
+#: ui/main.qml:119
 #, kde-format
 msgid "Get New…"
 msgstr "Eskuratu … berria"
 
-#: ui/main.qml:148
+#: ui/main.qml:132
 #, kde-format
 msgid "Follows color scheme"
 msgstr "Kolore-antolaera jarraitzen dutenak"
 
-#: ui/main.qml:166
+#: ui/main.qml:150
 #, kde-format
 msgid "Edit Theme…"
 msgstr "Editatu gaia…"
 
-#: ui/main.qml:173
+#: ui/main.qml:158
 #, kde-format
-msgid "Remove Theme"
-msgstr "Kendu gaia"
+msgctxt "@info:tooltip"
+msgid "Remove Plasma style"
+msgstr "Kendu Plasmaren estiloa"
 
-#: ui/main.qml:180
+#: ui/main.qml:160
 #, kde-format
-msgid "Restore Theme"
-msgstr "Lehengoratu gaia"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active Plasma style"
+msgstr "Ezin da aktibo dagoen Plasmaren estiloa ezabatu"
 
-#: ui/main.qml:199
+#: ui/main.qml:162
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed Plasma styles"
+msgstr "Ezin dira sistemarekin instalatutako Plasmaren estiloak ezabatu"
+
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this Plasma style"
+msgstr "Ez ezabatu Plasmaren estilo hau"
+
+#: ui/main.qml:189
 #, kde-format
 msgid "Open Theme"
 msgstr "Ireki gaia"
 
-#: ui/main.qml:201
+#: ui/main.qml:191
 #, kde-format
 msgid "Theme Files (*.zip *.tar.gz *.tar.bz2)"
 msgstr "Gai fitxategiak (*.zip *.tar.gz *.tar.bz2)"
 
+#~ msgid "Remove Theme"
+#~ msgstr "Kendu gaia"
+
+#~ msgid "Restore Theme"
+#~ msgstr "Lehengoratu gaia"
+
 #~ msgid "Get New Plasma Styles…"
 #~ msgstr "Lortu Plasmaren estilo berriak..."
-
-#~ msgid "This module lets you choose the Plasma style."
-#~ msgstr "Modulu honek Plasmaren estiloa aukeratzen uzten dizu."
 
 #~ msgctxt "NAME OF TRANSLATORS"
 #~ msgid "Your names"
@@ -181,9 +198,6 @@ msgstr "Gai fitxategiak (*.zip *.tar.gz *.tar.bz2)"
 #~ msgctxt "EMAIL OF TRANSLATORS"
 #~ msgid "Your emails"
 #~ msgstr "asieriko@gmail.com,xalba@ni.eus"
-
-#~ msgid "Plasma Style"
-#~ msgstr "Plasmaren estiloa"
 
 #~ msgid "David Rosca"
 #~ msgstr "David Rosca"

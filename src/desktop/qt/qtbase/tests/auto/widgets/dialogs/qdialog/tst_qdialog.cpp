@@ -20,6 +20,7 @@
 #include <QWindow>
 #include <QRhiWidget>
 #include <private/qguiapplication_p.h>
+#include <qpa/qplatformintegration.h>
 #include <qpa/qplatformtheme.h>
 #include <qpa/qplatformtheme_p.h>
 
@@ -70,6 +71,7 @@ private slots:
     void focusWidgetAfterOpen();
 
     void closeParentOfVisibleDialog();
+    void popupBasedTransientParent();
 };
 
 // Testing get/set functions
@@ -518,22 +520,18 @@ void tst_QDialog::snapToDefaultButton()
 #ifdef QT_NO_CURSOR
     QSKIP("Test relies on there being a cursor");
 #else
-    if (!QGuiApplication::platformName().compare(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("This platform does not support setting the cursor position.");
-#ifdef Q_OS_ANDROID
-    QSKIP("Android does not support cursor");
+    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::MouseCursorPositioning))
+        QSKIP("Platform does not support cursor positioning");
+
+#ifdef Q_OS_HARMONY
+    QSKIP("OHOS does not support setting cursor position.");
 #endif
 
     const QRect dialogGeometry(QGuiApplication::primaryScreen()->availableGeometry().topLeft()
                                + QPoint(100, 100), QSize(200, 200));
     const QPoint startingPos = dialogGeometry.bottomRight() + QPoint(100, 100);
     QCursor::setPos(startingPos);
-#ifdef Q_OS_MACOS
-    // On OS X we use CGEventPost to move the cursor, it needs at least
-    // some time before the event handled and the position really set.
-    QTest::qWait(100);
-#endif
-    QCOMPARE(QCursor::pos(), startingPos);
+    QTRY_COMPARE(QCursor::pos(), startingPos);
     QDialog dialog;
     QPushButton *button = new QPushButton(&dialog);
     button->setDefault(true);
@@ -825,6 +823,45 @@ void tst_QDialog::closeParentOfVisibleDialog()
 
     QTRY_VERIFY(!widget.isVisible());
 }
+
+void tst_QDialog::popupBasedTransientParent()
+{
+    using namespace Qt::Literals;
+
+    for (const auto popupType : {Qt::Popup, Qt::Tool, Qt::ToolTip}) {
+        // Create a stable top-level widget
+        QWidget stableParent;
+        stableParent.setWindowTitle(QTest::currentTestFunction());
+        stableParent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&stableParent));
+
+        // Create a popup-based window with a widget inside it
+        QDialog popupWindow(&stableParent, popupType);
+        popupWindow.setWindowTitle(u"PopupWindow-%1"_s.arg(popupType));
+        QWidget *contentWidget = new QWidget(&popupWindow);
+        popupWindow.setLayout(new QVBoxLayout);
+        popupWindow.layout()->addWidget(contentWidget);
+        popupWindow.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&popupWindow));
+
+        // Create a dialog from within the popup-based window's content
+        QDialog dialog(contentWidget);
+        dialog.setWindowTitle(u"Dialog-%1"_s.arg(popupType));
+        dialog.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&dialog));
+
+        // The dialog's transient parent should NOT be the popup window.
+        // It should skip past the popup and point to the stable parent.
+        QWindow *dialogTransientParent = dialog.windowHandle()->transientParent();
+        QVERIFY(dialogTransientParent);
+
+        // Without the fix, this would be popupWindow.windowHandle()
+        // With the fix, it should be stableParent.windowHandle()
+        QCOMPARE(dialogTransientParent, stableParent.windowHandle());
+        QVERIFY(dialogTransientParent != popupWindow.windowHandle());
+    }
+}
+
 
 QTEST_MAIN(tst_QDialog)
 #include "tst_qdialog.moc"

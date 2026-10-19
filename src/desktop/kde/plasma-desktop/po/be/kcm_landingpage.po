@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fc57ad16a28d02dea100ceb1c60de14e\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-10-10 03:19+0000\n"
 "PO-Revision-Date: 2024-11-20 08:42\n"
 "Last-Translator: Zmicier <zmicerturok@gmail.com>\n"
 "Language-Team: Belarusian\n"
@@ -60,32 +60,32 @@ msgstr "Альтэрнатыўны пакет глабальнай тэмы"
 msgid "Animation speed"
 msgstr "Хуткасць анімацыі"
 
-#: ui/LookAndFeelBox.qml:101
+#: ui/LookAndFeelBox.qml:106
 #, kde-format
 msgctxt "@action:button"
 msgid "Change global theme"
 msgstr ""
 
-#: ui/LookAndFeelBox.qml:178
+#: ui/LookAndFeelBox.qml:187
 #, kde-format
 msgctxt "@label accessible"
 msgid "Global theme"
 msgstr ""
 
-#: ui/main.qml:35
+#: ui/main.qml:31
 #, fuzzy, kde-format
 #| msgid "Theme:"
 msgctxt "@title:group for light/dark quick switch"
 msgid "Theme:"
 msgstr "Тэма:"
 
-#: ui/main.qml:91
+#: ui/main.qml:97
 #, kde-format
 msgctxt "Switch between dark and light look and feel packages automatically"
 msgid "Automatic"
 msgstr ""
 
-#: ui/main.qml:93
+#: ui/main.qml:123
 #, kde-format
 msgctxt ""
 "@info:tooltip 1 is the name of a light global theme, 2 is the name of a dark "
@@ -93,45 +93,45 @@ msgctxt ""
 msgid "Use “%1” during the day and “%2” at night"
 msgstr ""
 
-#: ui/main.qml:136
+#: ui/main.qml:133
 #, kde-format
 msgctxt "@title:group translate as short as possible"
 msgid "More appearance settings:"
 msgstr "Дадатковыя налады выгляду:"
 
-#: ui/main.qml:183
+#: ui/main.qml:200
 #, fuzzy, kde-format
 #| msgid "Animation speed:"
 msgctxt "@title:slider"
 msgid "Animation speed:"
 msgstr "Хуткасць анімацыі:"
 
-#: ui/main.qml:192
+#: ui/main.qml:210
 #, kde-format
 msgctxt "Animation speed"
 msgid "Slow"
 msgstr "Павольна"
 
-#: ui/main.qml:199
+#: ui/main.qml:217
 #, kde-format
 msgctxt "Animation speed"
 msgid "Instant"
 msgstr "Імгненна"
 
-#: ui/main.qml:213
+#: ui/main.qml:227
 #, kde-format
 msgctxt ""
 "part of a sentence: 'Clicking files or folders [opens them/selects them]'"
 msgid "Clicking files or folders:"
 msgstr "Пстрыканне па файлах або каталогах:"
 
-#: ui/main.qml:221
+#: ui/main.qml:232
 #, kde-format
 msgctxt "part of a sentence: 'Clicking files or folders selects them'"
 msgid "Selects them"
 msgstr "Абірае іх"
 
-#: ui/main.qml:226
+#: ui/main.qml:238
 #, fuzzy, kde-format
 #| msgid "Open by double-clicking instead"
 msgctxt "@info:usagetip"
@@ -151,13 +151,13 @@ msgctxt "@info:usagetip"
 msgid "Select by clicking on item's selection marker"
 msgstr "Абіраць пстрыканнем па адзнаке выбару элементаў"
 
-#: ui/main.qml:285
+#: ui/main.qml:271
 #, kde-format
 msgctxt "@title:group translate as short as possible"
 msgid "More behavior settings:"
 msgstr "Дадатковыя налады паводзін:"
 
-#: ui/main.qml:299
+#: ui/main.qml:282
 #, fuzzy, kde-format
 #| msgid "Most used pages:"
 msgctxt "@title:group for grid of buttons opening kcms"

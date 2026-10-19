@@ -15,9 +15,13 @@ qt_internal_add_qml_module(LabsStyleKitImpl
     QML_FILES
         BackgroundAndIndicatorDelegate.qml
         BackgroundDelegate.qml
+        BusyIndicatorDelegate.qml
+        DialDelegate.qml
         FallbackStyle.qml
         HandleDelegate.qml
         IndicatorDelegate.qml
+        ProgressDelegate.qml
+        ContentItemIndicator.qml
         Shadow.qml
     LIBRARIES
         Qt6::GuiPrivate

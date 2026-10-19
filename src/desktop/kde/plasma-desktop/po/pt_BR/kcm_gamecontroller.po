@@ -4,13 +4,13 @@
 # Luiz Fernando Ranghetti <elchevive@opensuse.org>, 2023.
 # SPDX-FileCopyrightText: 2024 Geraldo Simiao <geraldosimiao@fedoraproject.org>
 # SPDX-FileCopyrightText: 2025, 2026 Guilherme Marçal Silva <guimarcalsilva@gmail.com>
-# SPDX-FileCopyrightText: 2025, 2026 Marcus Gama <marcus.gama@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Marcus Gama <marcus.gama@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-15 03:00+0000\n"
-"PO-Revision-Date: 2026-01-08 07:54-0300\n"
+"POT-Creation-Date: 2026-06-05 00:46+0000\n"
+"PO-Revision-Date: 2026-08-03 13:47-0300\n"
 "Last-Translator: Marcus Gama <marcus.gama@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
 "Language: pt_BR\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: axesmodel.cpp:122 hatmodel.cpp:80
 #, kde-format
@@ -46,7 +46,7 @@ msgstr "Desconhecido"
 #: device.cpp:18
 #, kde-format
 msgid "Game Controller"
-msgstr "Controlador de jogos"
+msgstr "Controle de jogo"
 
 #: device.cpp:19
 #, kde-format
@@ -304,10 +304,10 @@ msgstr "Bluetooth"
 msgid "Invalid button value"
 msgstr "Valor de botão inválido"
 
-#: device.cpp:246
+#: device.cpp:251
 #, kde-format
 msgid "Not a controller"
-msgstr "Não é um controlador"
+msgstr "Não é um controle"
 
 #: devicemodel.cpp:68
 #, kde-format
@@ -328,21 +328,21 @@ msgid ""
 "Allow game controllers to act like pointer and keyboard devices in Plasma "
 "and non-game applications.<nl/><nl/>Games can always use the controller."
 msgstr ""
-"Permitir que os controladores de jogos atuem como dispositivos de ponteiro e "
+"Permitir que os controles de jogo atuem como dispositivos de ponteiro e "
 "teclado no Plasma e em aplicativos que não sejam jogos.<nl/><nl/>Os jogos "
-"sempre podem usar o controlador."
+"sempre podem usar o controle."
 
 #: ui/main.qml:51
 #, kde-format
 msgctxt "@info placeholdermessage text"
 msgid "No game controllers found"
-msgstr "Nenhum controlador de jogos encontrado"
+msgstr "Nenhum controle de jogo encontrado"
 
 #: ui/main.qml:52
 #, kde-format
 msgctxt "@info:usagetip placeholdermessage text"
 msgid "Connect a wired or wireless controller"
-msgstr "Conecte um controlador com ou sem fio"
+msgstr "Conecte um controle com ou sem fio"
 
 #: ui/main.qml:82
 #, kde-format
@@ -354,9 +354,9 @@ msgid ""
 "keyboard."
 msgstr ""
 "O sistema pode entrar em modo de suspensão ou bloquear a tela "
-"automaticamente enquanto o controlador estiver em uso. Considere bloqueá-lo "
-"manualmente ao usar o controlador ou habilite o bloqueio automático "
-"permitindo seu uso como ponteiro e teclado."
+"automaticamente enquanto o controle estiver em uso. Considere habilitar o "
+"bloqueio manual ao usar o controle ou habilite o bloqueio automático "
+"permitindo o uso do controle como ponteiro e teclado."
 
 #: ui/main.qml:97
 #, kde-format
@@ -375,7 +375,7 @@ msgstr "Tipo de dispositivo:"
 #, kde-format
 msgctxt "@label game controller controller type (which brand, etc.)"
 msgid "Controller type:"
-msgstr "Tipo de controlador:"
+msgstr "Tipo de controle:"
 
 #: ui/main.qml:151
 #, kde-format
@@ -387,13 +387,13 @@ msgstr "Tipo de conexão:"
 #, kde-format
 msgctxt "@label Visual representation of the axis position for the left axis"
 msgid "Left position:"
-msgstr "Posição esquerda:"
+msgstr "Posição do eixo esquerdo:"
 
 #: ui/main.qml:185
 #, kde-format
 msgctxt "@label Visual representation of the axis position for the right axis"
 msgid "Right position:"
-msgstr "Posição direita:"
+msgstr "Posição do eixo direito:"
 
 #: ui/main.qml:204
 #, kde-format

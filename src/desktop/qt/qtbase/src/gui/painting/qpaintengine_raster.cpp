@@ -1,5 +1,6 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qmutex.h>
@@ -89,9 +90,15 @@ public:
     {
         set(r);
     }
+QT_WARNING_PUSH
+// see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=123985
+#if defined(Q_CC_GNU_ONLY) && Q_CC_GNU_ONLY >= 1600 && Q_CC_GNU_ONLY < 1700 && !defined(__OPTIMIZE__)
+QT_WARNING_DISABLE_GCC("-Wmaybe-uninitialized")
+#endif
     inline QRectVectorPath()
         : QVectorPath(pts, 4, nullptr, QVectorPath::RectangleHint | QVectorPath::ImplicitClose)
     { }
+QT_WARNING_POP
 
     qreal pts[8];
 };
@@ -3594,7 +3601,7 @@ void QRasterPaintEnginePrivate::rasterize(QT_FT_Outline *outline,
     // minimize memory reallocations. However if initial size for
     // raster pool is changed for lower value, reallocations will
     // occur normally.
-    int rasterPoolSize = MINIMUM_POOL_SIZE;
+    unsigned int rasterPoolSize = MINIMUM_POOL_SIZE;
     Q_DECL_UNINITIALIZED uchar rasterPoolOnStack[MINIMUM_POOL_SIZE + 0xf];
     uchar *rasterPoolBase = alignAddress(rasterPoolOnStack, 0xf);
     uchar *rasterPoolOnHeap = nullptr;

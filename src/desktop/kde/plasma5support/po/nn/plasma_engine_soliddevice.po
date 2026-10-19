@@ -1,5 +1,6 @@
 # Translation of plasma_engine_soliddevice to Norwegian Nynorsk
 #
+# Karl Ove Hufthammer <karl@huftis.org>, 2010, 2015, 2018, 2019, 2020, 2024.
 # Eirik U. Birkeland <eirbir@gmail.com>, 2010.
 # Øystein Steffensen-Alværvik <oysteins.omsetting@protonmail.com>, 2018.
 msgid ""
@@ -9,7 +10,7 @@ msgstr ""
 "POT-Creation-Date: 2025-11-17 11:54+0000\n"
 "PO-Revision-Date: 2024-03-09 18:22+0100\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"

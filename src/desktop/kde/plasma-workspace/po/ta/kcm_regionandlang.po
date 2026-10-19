@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-workspace package.
 #
-# SPDX-FileCopyrightText: 2024, 2025 Kishore G <kishore96@gmail.com>
+# SPDX-FileCopyrightText: 2024-2026 Kishore G <kishore96@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-08 02:54+0000\n"
-"PO-Revision-Date: 2025-11-30 13:54+0530\n"
+"POT-Creation-Date: 2026-10-01 20:16+0000\n"
+"PO-Revision-Date: 2026-10-04 11:45+0200\n"
 "Last-Translator: Kishore G <kishore96@gmail.com>\n"
 "Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
 "Language: ta\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 
 #, kde-format
 msgid "Inherit Language"
@@ -337,10 +337,16 @@ msgstr "தெரியாதது"
 msgid "Default for System"
 msgstr "இயங்குதளத்தின் இயல்பிருப்பு"
 
-#: localelistmodel.cpp:24 localelistmodel.cpp:146 ui/main.qml:387
+#: localelistmodel.cpp:24 localelistmodel.cpp:146 ui/main.qml:388
 #, kde-format
 msgid "Default"
 msgstr "இயல்பிருப்பு"
+
+#: localelistmodel.cpp:130
+#, kde-format
+msgctxt "@item:intable Friendly name for the C locale"
+msgid "ISO C Standard"
+msgstr "ISO C சீர்தரம்"
 
 #: localelistmodel.cpp:142
 #, kde-format
@@ -455,12 +461,12 @@ msgctxt ""
 msgid " (Standard format for %1)"
 msgstr " (%1 என்பதற்கான இயல்பிருப்பு படிவம்)"
 
-#: ui/AdvancedLanguageSelectPage.qml:23
+#: ui/AdvancedLanguageSelectPage.qml:24
 #, kde-format
 msgid "Language"
 msgstr "மொழி"
 
-#: ui/AdvancedLanguageSelectPage.qml:36
+#: ui/AdvancedLanguageSelectPage.qml:37
 #, kde-format
 msgid ""
 "Putting any other languages below English will cause undesired behavior in "
@@ -470,54 +476,69 @@ msgstr ""
 "ஆங்கிலத்திற்கு கீழ் மற்ற மொழிகளை வைப்பது, சில செயலிகளில் சிக்கல்களை ஏற்படுத்தலாம். "
 "கணினியை ஆங்கிலத்திலேயே பயன்படுத்த வேண்டுமெனில், மற்ற அனைத்து மொழிகளையும் நீக்கவும்."
 
-#: ui/AdvancedLanguageSelectPage.qml:45
+#: ui/AdvancedLanguageSelectPage.qml:46
 #, kde-format
 msgctxt "Error message, %1 is the language name"
 msgid "The language \"%1\" is unsupported"
 msgstr "\"%1\" எனும் மொழி ஆதரிக்கப்படாத‍து"
 
-#: ui/AdvancedLanguageSelectPage.qml:58
+#: ui/AdvancedLanguageSelectPage.qml:59
 #, kde-format
 msgid "Add languages in the order you want to see them in your applications."
 msgstr "செயலிகளில் பார்க்க விரும்பும் மொழிகளை முன்னுரிமை அடிப்படையில் சேர்க்கவும்."
 
-#: ui/AdvancedLanguageSelectPage.qml:100
+#: ui/AdvancedLanguageSelectPage.qml:101
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Change Language"
 msgstr "மொழியை மாற்று"
 
-#: ui/AdvancedLanguageSelectPage.qml:104
+#: ui/AdvancedLanguageSelectPage.qml:105
 #, kde-format
 msgctxt "@title:window"
 msgid "Change Language"
 msgstr "மொழியை மாற்றுவது"
 
-#: ui/AdvancedLanguageSelectPage.qml:113
+#: ui/AdvancedLanguageSelectPage.qml:114
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Move to top"
 msgstr "முதல் உருப்படியாக நகர்த்து"
 
-#: ui/AdvancedLanguageSelectPage.qml:122
+#: ui/AdvancedLanguageSelectPage.qml:123
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Remove"
 msgstr "நீக்கு"
 
-#: ui/AdvancedLanguageSelectPage.qml:137
+#: ui/AdvancedLanguageSelectPage.qml:138
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "No Language Configured"
 msgstr "எந்த மொழியும் அமைக்கப்படவில்லை"
 
-#: ui/AdvancedLanguageSelectPage.qml:179 ui/AdvancedLanguageSelectPage.qml:213
+#: ui/AdvancedLanguageSelectPage.qml:180 ui/AdvancedLanguageSelectPage.qml:214
 #, kde-format
 msgctxt "@title:window"
 msgid "Add Languages"
 msgstr "மொழிகளைச் சேர்ப்பது"
 
 #: ui/AdvancedLanguageSelectPage.qml:236
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "This system does not include “%1”"
+msgstr "இக்கணினியில் '%1' இல்லை"
+
+#: ui/AdvancedLanguageSelectPage.qml:237
+#, kde-kuit-format
+msgctxt "@info:usagetip"
+msgid ""
+"Learn how to help <link url='%1'>translate KDE software into your language</"
+"link>."
+msgstr ""
+"கே.டீ.யீ. செயலிகளை <link url='%1'> உங்கள் மொழிக்கு மொழிபெயர்க்க</link> உதவலாம்."
+
+#: ui/AdvancedLanguageSelectPage.qml:246
 #, kde-format
 msgctxt "@action:button"
 msgid "Add More…"
@@ -579,45 +600,57 @@ msgctxt "@title:window"
 msgid "Data and Storage Sizes"
 msgstr "சேமிப்பக அளவுகள்"
 
-#: ui/main.qml:281
+#: ui/main.qml:282
 #, kde-format
 msgid "Numbers"
 msgstr "எண்கள்"
 
-#: ui/main.qml:283
+#: ui/main.qml:284
 #, kde-format
 msgid "Time"
 msgstr "நேரம்"
 
-#: ui/main.qml:285
+#: ui/main.qml:286
 #, kde-format
 msgid "Currency"
 msgstr "செலாவணி"
 
-#: ui/main.qml:287
+#: ui/main.qml:288
 #, kde-format
 msgid "Measurements"
 msgstr "அலகுகள்"
 
-#: ui/main.qml:289
+#: ui/main.qml:290
 #, kde-format
 msgid "Paper Size"
 msgstr "தாளின் அளவு"
 
-#: ui/main.qml:291
+#: ui/main.qml:292
 #, kde-format
 msgctxt "Postal Address"
 msgid "Address"
 msgstr "முகவரி"
 
-#: ui/main.qml:293
+#: ui/main.qml:294
 #, kde-format
 msgctxt "Name Style"
 msgid "Name"
 msgstr "பெயர்"
 
-#: ui/main.qml:295
+#: ui/main.qml:296
 #, kde-format
 msgctxt "Phone Numbers"
 msgid "Phone number"
 msgstr "தொலைபேசி எண்"
+
+#: ui/main.qml:431
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "This system does not include settings for “%1”"
+msgstr "'%1' என்பதற்கான அமைப்புகள் இக்கணினியில் இல்லை"
+
+#: ui/main.qml:432
+#, kde-format
+msgctxt "@info:usagetip"
+msgid "Try searching for a nearby region."
+msgstr "அருகிலுள்ள மண்டலத்தைத் தேர்ந்தெடுக்கவும்."

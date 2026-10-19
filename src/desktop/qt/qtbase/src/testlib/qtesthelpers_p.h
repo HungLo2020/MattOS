@@ -122,6 +122,9 @@ inline static bool moveCursorAway()
     // QCursor repositioning is unavailable or unsupported.
     return true;
 #endif
+    if (QSysInfo::productType() == "rhel" && QSysInfo::productVersion().startsWith(u'1'))
+        return true; //Positioning of QCursor does not currently work on RHEL 10
+
     QPoint safePos = QGuiApplication::primaryScreen()->availableGeometry().bottomRight();
     safePos -= QPoint(50, 50);
     QCursor::setPos(safePos);
@@ -139,7 +142,7 @@ inline bool isSecureTransportBlockingTest()
 #ifdef Q_OS_MACOS
 #if QT_CONFIG(ssl)
     if (QSslSocket::activeBackend() == QLatin1String("securetransport")) {
-#if QT_MACOS_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(150000, 180000)
+#if QT_APPLE_SDK_EQUAL_OR_ABOVE(MACOS(15), IOS(18))
         // Starting from macOS 15 our temporary keychain is ignored.
         // We have to use kSecImportToMemoryOnly/kCFBooleanTrue key/value
         // instead. This way we don't have to use QT_SSL_USE_TEMPORARY_KEYCHAIN anymore.

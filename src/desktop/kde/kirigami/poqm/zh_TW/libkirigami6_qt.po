@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025, 2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
+# SPDX-FileCopyrightText: 2022-2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
 # Jeff Huang <s8321414@gmail.com>, 2016.
 # Franklin Weng <franklin@goodhorse.idv.tw>, 2017.
 # pan93412 <pan93412@gmail.com>, 2018, 2019.
@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: libkirigamiplugin_qt\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-09-22 20:41+0800\n"
-"PO-Revision-Date: 2026-03-02 05:40+0900\n"
+"PO-Revision-Date: 2026-09-15 14:29+0900\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Traditional Chinese <zh-l10n@lists.slat.org>\n"
 "Language: zh_TW\n"
@@ -16,78 +16,77 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Lokalize 25.11.70\n"
+"X-Generator: Lokalize 26.11.70\n"
 "X-Qt-Contexts: true\n"
 
-#: controls/AboutItem.qml:166
+#: controls/AboutItem.qml:180
 #, qt-format
 msgctxt "AboutItem|"
-msgid "%1 (%2)"
-msgstr "%1（%2）"
+msgid "Visit %1's KDE Store page"
+msgstr "造訪 %1 在 KDE Store 的頁面"
 
-#: controls/AboutItem.qml:186
+#: controls/AboutItem.qml:196
 #, qt-format
 msgctxt "AboutItem|"
 msgid "Send an email to %1"
 msgstr "傳送電子郵件給 %1"
 
-#: controls/AboutItem.qml:228
-msgctxt "AboutItem|"
-msgid "Get Involved"
-msgstr "參與"
-
 #: controls/AboutItem.qml:234
-msgctxt "AboutItem|"
-msgid "Donate"
-msgstr "贊助"
-
-#: controls/AboutItem.qml:251
-msgctxt "AboutItem|"
-msgid "Report a Bug"
-msgstr "回報問題"
-
-#: controls/AboutItem.qml:264
 msgctxt "AboutItem|"
 msgid "Copyright"
 msgstr "著作權"
 
-#: controls/AboutItem.qml:313
+#: controls/AboutItem.qml:243
 msgctxt "AboutItem|"
-msgid "License:"
-msgstr "授權條款："
+msgid "License"
+msgstr "授權條款"
 
-#: controls/AboutItem.qml:336
-#, qt-format
+#: controls/AboutItem.qml:265
 msgctxt "AboutItem|"
-msgid "License: %1"
-msgstr "授權條款：%1"
+msgid "Homepage"
+msgstr "首頁"
 
-#: controls/AboutItem.qml:347
+#: controls/AboutItem.qml:279
+msgctxt "AboutItem|"
+msgid "Donate"
+msgstr "贊助"
+
+#: controls/AboutItem.qml:293
+msgctxt "AboutItem|"
+msgid "Get Involved"
+msgstr "參與"
+
+#: controls/AboutItem.qml:307
+msgctxt "AboutItem|"
+msgid "Report a bug"
+msgstr "回報問題"
+
+#: controls/AboutItem.qml:325
 msgctxt "AboutItem|"
 msgid "Libraries in use"
 msgstr "使用函式庫"
 
-#: controls/AboutItem.qml:379
-msgctxt "AboutItem|"
-msgid "Authors"
-msgstr "作者群"
-
-#: controls/AboutItem.qml:389
+#: controls/AboutItem.qml:345
 msgctxt "AboutItem|"
 msgid "Show author photos"
 msgstr "顯示作者照片"
 
-#: controls/AboutItem.qml:400
+#: controls/AboutItem.qml:348
+msgctxt "AboutItem|"
+msgid "Authors"
+msgstr "作者群"
+
+#: controls/AboutItem.qml:358
 msgctxt "AboutItem|"
 msgid "Credits"
 msgstr "致謝"
 
-#: controls/AboutItem.qml:412
+#: controls/AboutItem.qml:368
 msgctxt "AboutItem|"
 msgid "Translators"
 msgstr "翻譯者"
 
-#: controls/AboutPage.qml:103
+#: controls/AboutPage.qml:102
 #, qt-format
 msgctxt "AboutPage|"
 msgid "About %1"
@@ -118,37 +117,37 @@ msgctxt "ContextualHelpButton|"
 msgid "Show Contextual Help"
 msgstr "顯示內文說明"
 
-#: controls/GlobalDrawer.qml:366
+#: controls/GlobalDrawer.qml:372
 msgctxt "GlobalDrawer|"
 msgid "Back"
 msgstr "返回"
 
-#: controls/GlobalDrawer.qml:719
+#: controls/GlobalDrawer.qml:769
 msgctxt "GlobalDrawer|"
 msgid "Close Sidebar"
 msgstr "關閉側邊欄"
 
-#: controls/GlobalDrawer.qml:724
+#: controls/GlobalDrawer.qml:774
 msgctxt "GlobalDrawer|"
 msgid "Open Sidebar"
 msgstr "開啟側邊欄"
 
-#: controls/LoadingPlaceholder.qml:58
+#: controls/LoadingPlaceholder.qml:59
 msgctxt "LoadingPlaceholder|"
 msgid "Loading…"
 msgstr "載入中…"
 
-#: controls/PasswordField.qml:43
+#: controls/PasswordField.qml:44
 msgctxt "PasswordField|"
 msgid "Password"
 msgstr "密碼"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Hide Password"
 msgstr "隱藏密碼"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Show Password"
 msgstr "顯示密碼"
@@ -173,30 +172,30 @@ msgctxt "NavigationButtons|"
 msgid "Navigate Forward"
 msgstr "往前"
 
-#: controls/private/PrivateActionToolButton.qml:118
+#: controls/private/PrivateActionToolButton.qml:119
 #, qt-format
 msgctxt "@info:tooltip %1 is a keyboard shorcut|"
 msgid "Trigger this action with %1"
 msgstr "用 %1 觸發此動作"
 
-#: controls/private/PrivateActionToolButton.qml:125
+#: controls/private/PrivateActionToolButton.qml:126
 #, qt-format
 msgctxt ""
 "@info:tooltip %1 is the tooltip of an action, %2 is its keyboard shorcut|"
 msgid "%1 (%2)"
 msgstr "%1（%2）"
 
-#: controls/SearchField.qml:88
+#: controls/SearchField.qml:89
 msgctxt "SearchField|"
 msgid "Search…"
 msgstr "搜尋…"
 
-#: controls/SearchField.qml:90
+#: controls/SearchField.qml:91
 msgctxt "SearchField|"
 msgid "Search"
 msgstr "搜尋"
 
-#: controls/SearchField.qml:100
+#: controls/SearchField.qml:101
 msgctxt "SearchField|"
 msgid "Clear search"
 msgstr "清除搜尋"
@@ -211,23 +210,23 @@ msgctxt "SelectableLabel|"
 msgid "Select All"
 msgstr "全部選取"
 
-#: controls/UrlButton.qml:52
+#: controls/UrlButton.qml:53
 #, qt-format
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link %1"
 msgstr "開啟連結 %1"
 
-#: controls/UrlButton.qml:53
+#: controls/UrlButton.qml:54
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link"
 msgstr "開啟連結"
 
-#: controls/UrlButton.qml:101
+#: controls/UrlButton.qml:102
 msgctxt "UrlButton|"
 msgid "Copy Link to Clipboard"
 msgstr "複製連結至剪貼簿"
 
-#: dialogs/DialogHeaderTopContent.qml:103
+#: dialogs/DialogHeaderTopContent.qml:104
 msgctxt "DialogHeaderTopContent|@action:button close dialog"
 msgid "Close"
 msgstr "關閉"
@@ -250,45 +249,53 @@ msgctxt "Kirigami::Platform::Settings|"
 msgid "Qt %2 (built against %3)"
 msgstr "Qt %2 (建置於 %3 上)"
 
-#: templates/InlineMessage.qml:350
+#: templates/InlineMessage.qml:352
 msgctxt "InlineMessage|"
 msgid "Success"
 msgstr "成功"
 
-#: templates/InlineMessage.qml:352
+#: templates/InlineMessage.qml:354
 msgctxt "InlineMessage|"
 msgid "Warning"
 msgstr "警告"
 
-#: templates/InlineMessage.qml:354
+#: templates/InlineMessage.qml:356
 msgctxt "InlineMessage|"
 msgid "Error"
 msgstr "錯誤"
 
-#: templates/InlineMessage.qml:356
+#: templates/InlineMessage.qml:358
 msgctxt "InlineMessage|"
 msgid "Note"
 msgstr "備註"
 
-#: templates/InlineMessage.qml:443
+#: templates/InlineMessage.qml:445
 msgctxt "InlineMessage|"
 msgid "Close"
 msgstr "關閉"
 
-#: templates/OverlayDrawer.qml:147
+#: templates/OverlayDrawer.qml:149
 msgctxt "OverlayDrawer|"
 msgid "Close drawer"
 msgstr "關閉抽屜"
 
-#: templates/OverlayDrawer.qml:153
+#: templates/OverlayDrawer.qml:155
 msgctxt "OverlayDrawer|"
 msgid "Open drawer"
 msgstr "開啟抽屜"
 
-#: templates/OverlaySheet.qml:294
+#: templates/OverlaySheet.qml:309
 msgctxt "OverlaySheet|@action:button close dialog"
 msgid "Close"
 msgstr "關閉"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1（%2）"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "License: %1"
+#~ msgstr "授權條款：%1"
 
 #~ msgctxt "Dialog|@action:button close dialog"
 #~ msgid "Close"
@@ -329,10 +336,6 @@ msgstr "關閉"
 #~ msgctxt "ToolBarApplicationHeader|"
 #~ msgid "More Actions"
 #~ msgstr "更多動作"
-
-#~ msgctxt "AboutItem|"
-#~ msgid "Visit %1's KDE Store page"
-#~ msgstr "造訪 %1 在 KDE Store 的頁面"
 
 #~ msgctxt "UrlButton|"
 #~ msgid "Copy link address"

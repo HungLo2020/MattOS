@@ -42,8 +42,6 @@ Q_DECLARE_METATYPE(PopupLayout)
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_transient_placement-0");
-
 class TransientPlacementTest : public QObject
 {
     Q_OBJECT
@@ -54,12 +52,13 @@ private Q_SLOTS:
     void testXdgPopup_data();
     void testXdgPopup();
     void testXdgPopupWithPanel();
+    void testXdgPopupWithLayerShellParent();
 };
 
 void TransientPlacementTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -543,6 +542,54 @@ void TransientPlacementTest::testXdgPopupWithPanel()
 
     QVERIFY(!transient->isDecorated());
     QCOMPARE(transient->frameGeometry(), RectF(50, output->geometry().height() - 200, 200, 200));
+}
+
+void TransientPlacementTest::testXdgPopupWithLayerShellParent()
+{
+    const LogicalOutput *output = workspace()->activeOutput();
+
+    std::unique_ptr<KWayland::Client::Surface> panelSurface{Test::createSurface()};
+    std::unique_ptr<Test::LayerSurfaceV1> panelShellSurface{Test::createLayerSurfaceV1(panelSurface.get(), QStringLiteral("panel"))};
+    panelShellSurface->set_size(1280, 50);
+    panelShellSurface->set_anchor(Test::LayerSurfaceV1::anchor_bottom);
+    panelShellSurface->set_exclusive_zone(50);
+    panelSurface->commit(KWayland::Client::Surface::CommitFlag::None);
+
+    QSignalSpy panelConfigureRequestedSpy(panelShellSurface.get(), &Test::LayerSurfaceV1::configureRequested);
+    QVERIFY(panelConfigureRequestedSpy.wait());
+    auto panel = Test::renderAndWaitForShown(panelSurface.get(), panelConfigureRequestedSpy.last().at(1).toSize(), Qt::blue);
+    QVERIFY(panel);
+    QCOMPARE(panel->frameGeometry(), RectF(0, output->geometry().height() - 50, 1280, 50));
+    QCOMPARE(workspace()->clientArea(PlacementArea, panel), RectF(0, 0, 1280, 1024 - 50));
+
+    std::unique_ptr<KWayland::Client::Surface> popupSurface{Test::createSurface()};
+    QVERIFY(popupSurface);
+
+    std::unique_ptr<Test::XdgPositioner> positioner{Test::createXdgPositioner()};
+    positioner->set_anchor_rect(50, 0, 200, 50);
+    positioner->set_size(200, 200);
+    positioner->set_anchor(Test::XdgPositioner::anchor_bottom_left);
+    positioner->set_gravity(Test::XdgPositioner::gravity_bottom_right);
+    positioner->set_constraint_adjustment(Test::XdgPositioner::constraint_adjustment_flip_y);
+
+    std::unique_ptr<Test::XdgPopup> popup{Test::createXdgPopupSurface(popupSurface.get(), nullptr, positioner.get(), Test::CreationSetup::CreateOnly)};
+    panelShellSurface->get_popup(popup->object());
+
+    QSignalSpy popupConfigureRequestedSpy(popup.get(), &Test::XdgPopup::configureRequested);
+    QSignalSpy surfaceConfigureRequestedSpy(popup->xdgSurface(), &Test::XdgSurface::configureRequested);
+    popupSurface->commit(KWayland::Client::Surface::CommitFlag::None);
+
+    const Rect expectedRelativeGeometry(50, -200, 200, 200);
+    QVERIFY(surfaceConfigureRequestedSpy.wait());
+    QCOMPARE(surfaceConfigureRequestedSpy.count(), 1);
+    QCOMPARE(popupConfigureRequestedSpy.last()[0].value<Rect>(), expectedRelativeGeometry);
+    popup->xdgSurface()->ack_configure(surfaceConfigureRequestedSpy.last()[0].toUInt());
+
+    auto transient = Test::renderAndWaitForShown(popupSurface.get(), expectedRelativeGeometry.size(), Qt::red);
+    QVERIFY(transient);
+
+    QVERIFY(!transient->isDecorated());
+    QCOMPARE(transient->frameGeometry(), RectF(50, output->geometry().height() - 50 - 200, 200, 200));
 }
 
 }

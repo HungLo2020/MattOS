@@ -5,14 +5,14 @@
     SPDX-License-Identifier: LGPL-2.0-only
 */
 
-#include "../krdb/krdb.h"
-
 #include <KColorScheme>
 #include <KConfigGroup>
 
 #include <QColorSpace>
+#include <QCryptographicHash>
 #include <QDBusConnection>
 #include <QDBusMessage>
+#include <QFile>
 #include <QGenericMatrix>
 #include <QtMath>
 
@@ -136,6 +136,15 @@ void applyScheme(const QString &colorSchemePath, KConfig *configOutput, KConfig:
                                         // any config is unreliable in this file.
     }();
 
+    // Keep it in sync with setupPlasmaEnvironment() in startplasma.
+    if (QFile colorSchemeFile(colorSchemePath); colorSchemeFile.open(QFile::ReadOnly)) {
+        QCryptographicHash hash(QCryptographicHash::Sha1);
+        hash.addData(&colorSchemeFile);
+        const QString fileHash = QString::fromUtf8(hash.result().toHex());
+
+        configOutput->group(QStringLiteral("General")).writeEntry("ColorSchemeHash", fileHash);
+    }
+
     // Using KConfig::SimpleConfig because otherwise Header colors won't be
     // rewritten when a new color scheme is loaded.
     KSharedConfigPtr config = KSharedConfig::openConfig(colorSchemePath, KConfig::SimpleConfig);
@@ -238,13 +247,21 @@ void applyScheme(const QString &colorSchemePath, KConfig *configOutput, KConfig:
         if (sourceGroup.hasGroup(u"Inactive"_s)) {
             sourceGroup = sourceGroup.group(u"Inactive"_s);
             targetGroup = targetGroup.group(u"Inactive"_s);
+            KConfigGroup windowGroup(config, u"Colors:Window"_s);
 
             for (const auto &entry : colorSetKeyList) {
                 if (tintAccent) {
                     auto base = sourceGroup.readEntry<QColor>(entry, QColor());
                     targetGroup.writeEntry(entry, tintColor(base, accent, tintFactor));
                 } else {
-                    copyEntry(sourceGroup, targetGroup, entry, writeConfigFlag);
+                    // Use Window background color by default for Inactive headers.
+                    // If needed, the file can be modified manually.
+                    // See BUG:516396
+                    if (item == u"Colors:Header") {
+                        copyEntry(windowGroup, targetGroup, entry, writeConfigFlag);
+                    } else {
+                        copyEntry(sourceGroup, targetGroup, entry, writeConfigFlag);
+                    }
                 }
             }
         }
@@ -340,13 +357,4 @@ void applyScheme(const QString &colorSchemePath, KConfig *configOutput, KConfig:
             groupEffectOut.writeEntry(effect, groupEffectTheme.readEntry(effect), writeConfigFlag);
         }
     }
-
-    bool applyToAlien{true};
-    {
-        KConfig cfg(QStringLiteral("kcmdisplayrc"), KConfig::NoGlobals);
-        KConfigGroup group(configOutput, u"General"_s);
-        group = KConfigGroup(&cfg, u"X11"_s);
-        applyToAlien = group.readEntry("exportKDEColors", applyToAlien);
-    }
-    runRdb(KRdbExportQtColors | KRdbExportGtkTheme | (applyToAlien ? KRdbExportColors : 0));
 }

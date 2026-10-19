@@ -27,8 +27,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_stacking_order-0");
-
 class StackingOrderTest : public QObject
 {
     Q_OBJECT
@@ -61,7 +59,7 @@ void StackingOrderTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->setConfig(KSharedConfig::openConfig(QString(), KConfig::SimpleConfig));
 
@@ -1093,45 +1091,31 @@ void StackingOrderTest::testToggleRaiseLowerInMultipleLayers()
     windows[8]->setKeepAbove(true);
 
     // Verify initial stacking order
-    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2],
-                                                            windows[3], windows[4], windows[5],
-                                                            windows[6], windows[7], windows[8]}));
+    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2], windows[3], windows[4], windows[5], windows[6], windows[7], windows[8]}));
 
     // TR&L window 0 (lowest in BelowLayer), verify that it got raised within its layer
     workspace()->raiseOrLowerWindow(windows[0]);
-    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[1], windows[2], windows[0],
-                                                            windows[3], windows[4], windows[5],
-                                                            windows[6], windows[7], windows[8]}));
+    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[1], windows[2], windows[0], windows[3], windows[4], windows[5], windows[6], windows[7], windows[8]}));
 
     // TR&L window 0, verify that it got lowered within its layer
     workspace()->raiseOrLowerWindow(windows[0]);
-    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2],
-                                                            windows[3], windows[4], windows[5],
-                                                            windows[6], windows[7], windows[8]}));
+    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2], windows[3], windows[4], windows[5], windows[6], windows[7], windows[8]}));
 
     // TR&L window 4 (middle in NormalLayer), verify that it got raised within its layer
     workspace()->raiseOrLowerWindow(windows[4]);
-    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2],
-                                                            windows[3], windows[5], windows[4],
-                                                            windows[6], windows[7], windows[8]}));
+    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2], windows[3], windows[5], windows[4], windows[6], windows[7], windows[8]}));
 
     // TR&L window 4, verify that it got lowered within NormalLayer
     workspace()->raiseOrLowerWindow(windows[4]);
-    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2],
-                                                            windows[4], windows[3], windows[5],
-                                                            windows[6], windows[7], windows[8]}));
+    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2], windows[4], windows[3], windows[5], windows[6], windows[7], windows[8]}));
 
     // TR&L window 8 (topmost in AboveLayer), verify that it got lowered within its layer
     workspace()->raiseOrLowerWindow(windows[8]);
-    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2],
-                                                            windows[4], windows[3], windows[5],
-                                                            windows[8], windows[6], windows[7]}));
+    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2], windows[4], windows[3], windows[5], windows[8], windows[6], windows[7]}));
 
     // TR&L window 8, verify that it got raised within its layer
     workspace()->raiseOrLowerWindow(windows[8]);
-    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2],
-                                                            windows[4], windows[3], windows[5],
-                                                            windows[6], windows[7], windows[8]}));
+    QCOMPARE(workspace()->stackingOrder(), (QList<Window *>{windows[0], windows[1], windows[2], windows[4], windows[3], windows[5], windows[6], windows[7], windows[8]}));
 }
 
 WAYLANDTEST_MAIN(StackingOrderTest)

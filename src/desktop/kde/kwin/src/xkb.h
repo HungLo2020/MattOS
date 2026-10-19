@@ -8,6 +8,7 @@
 */
 #pragma once
 #include "input.h"
+#include <xkbcommon/xkbcommon-compose.h>
 #include <xkbcommon/xkbcommon.h>
 
 #include <kwin_export.h>
@@ -35,9 +36,50 @@ namespace KWin
 
 class SeatInterface;
 
+struct KeyMapDeleter
+{
+    void operator()(xkb_keymap *data) const
+    {
+        xkb_keymap_unref(data);
+    }
+};
+
+using XkbKeymapPtr = std::unique_ptr<xkb_keymap, KeyMapDeleter>;
+
+struct StateDeleter
+{
+    void operator()(xkb_state *data) const
+    {
+        xkb_state_unref(data);
+    }
+};
+
+using XkbStatePtr = std::unique_ptr<xkb_state, StateDeleter>;
+
+struct ComposeTableDeleter
+{
+    void operator()(xkb_compose_table *data) const
+    {
+        xkb_compose_table_unref(data);
+    }
+};
+
+using XkbComposeTablePtr = std::unique_ptr<xkb_compose_table, ComposeTableDeleter>;
+
+struct ComposeStateDeleter
+{
+    void operator()(xkb_compose_state *data) const
+    {
+        xkb_compose_state_unref(data);
+    }
+};
+
+using XkbComposeStatePtr = std::unique_ptr<xkb_compose_state, ComposeStateDeleter>;
+
 class KWIN_EXPORT Xkb : public QObject
 {
     Q_OBJECT
+
 public:
     enum Modifier {
         NoModifier = 0,
@@ -91,12 +133,12 @@ public:
 
     xkb_keymap *keymap() const
     {
-        return m_keymap;
+        return m_keymap.get();
     }
 
     xkb_state *state() const
     {
-        return m_state;
+        return m_state.get();
     }
 
     quint32 currentLayout() const
@@ -124,7 +166,8 @@ public:
     /**
      * Returns a pair of <keycode, level> for the given keysym.
      */
-    struct KeyCode {
+    struct KeyCode
+    {
         xkb_keycode_t keyCode = 0;
         uint level = 0;
         xkb_mod_mask_t modifiers = 0;
@@ -137,6 +180,18 @@ public:
      * Internally filters the results based on whether keyQt has the numlock modifier.
      */
     static QList<xkb_keysym_t> keysymsFromQtKey(QKeyCombination keyQt);
+
+    /**
+     * The keycode callers should pass to the two functions below.
+     *
+     * As far as xkbcommon is concerned any keycode would do, since the scratch
+     * keymap defines exactly one key. It matters to clients though: chromium
+     * translates evdev codes into its own DomCode enumeration through a fixed
+     * table and discards key events whose code is missing from that table, so
+     * this has to be a code that table knows or every chromium and electron
+     * application silently loses the key.
+     */
+    static constexpr uint scratchKeycode = 194; // KEY_F24
 
     /**
      *  Create a temporary keymap with one custom keysym bound to a given keycode.
@@ -152,6 +207,7 @@ public:
     bool updateToKeymapForKeySym(xkb_keycode_t newKeycode,
                                  xkb_keysym_t customSym);
 
+    static QList<xkb_keysym_t> textToKeySyms(const QString &inputString);
 
 public Q_SLOTS:
     void reconfigure();
@@ -162,18 +218,18 @@ Q_SIGNALS:
 
 private:
     void applyEnvironmentRules(xkb_rule_names &);
-    xkb_keymap *loadKeymapFromConfig();
-    xkb_keymap *loadDefaultKeymap();
-    xkb_keymap *loadKeymapFromLocale1();
-    xkb_keymap *createKeymapForKeysym(xkb_keycode_t newKeycode, xkb_keysym_t customSym);
-    void updateKeymap(xkb_keymap *keymap);
+    XkbKeymapPtr loadKeymapFromConfig();
+    XkbKeymapPtr loadDefaultKeymap();
+    XkbKeymapPtr loadKeymapFromLocale1();
+    XkbKeymapPtr createKeymapForKeysym(xkb_keycode_t newKeycode, xkb_keysym_t customSym);
+    void updateKeymap(XkbKeymapPtr &&keymap);
     void createKeymapFile();
     void updateModifiers();
     void updateConsumedModifiers(uint32_t key);
     xkb_context *m_context;
-    xkb_keymap *m_keymap;
+    XkbKeymapPtr m_keymap;
     QStringList m_layoutList;
-    xkb_state *m_state;
+    XkbStatePtr m_state;
     xkb_mod_index_t m_shiftModifier;
     xkb_mod_index_t m_capsModifier;
     xkb_mod_index_t m_controlModifier;
@@ -193,8 +249,8 @@ private:
 
     struct
     {
-        xkb_compose_table *table = nullptr;
-        xkb_compose_state *state = nullptr;
+        XkbComposeTablePtr table = nullptr;
+        XkbComposeStatePtr state = nullptr;
     } m_compose;
     LEDs m_leds;
     KConfigGroup m_configGroup;

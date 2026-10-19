@@ -62,6 +62,10 @@ class QQuickEnterKeyAttached;
 class QQuickScreenAttached;
 class QQuickPointerHandler;
 
+namespace QtPrivate {
+class QQuickAttachedPropertyPropagator;
+}
+
 class QQuickContents : public QSafeQuickItemChangeListener<QQuickContents>
 {
     Q_DISABLE_COPY(QQuickContents)
@@ -276,6 +280,9 @@ public:
 
     QObject *setContextMenu(QObject *menu);
 
+    virtual QtPrivate::QQuickAttachedPropertyPropagator *attachedPropertyPropagator_parent(
+        const QMetaObject *attachedType);
+
     // data property
     static void data_append(QQmlListProperty<QObject> *, QObject *);
     static qsizetype data_count(QQmlListProperty<QObject> *);
@@ -473,7 +480,10 @@ public:
         uint origin:5; // QQuickItem::TransformOrigin
         uint transparentForPositioner : 1;
 
-        // 26 bits padding
+        uint mutabilityGroup : 4;
+        uint mutabilityGroupSet : 1;
+
+        // 21 bits padding
     };
 
     enum ExtraDataTag {
@@ -613,6 +623,7 @@ public:
     void setCulled(bool);
 
     QQuickWindow *window;
+    QWindow *renderWindow(QPoint *offset = nullptr) const;
     int windowRefCount;
     inline QSGContext *sceneGraphContext() const;
     inline QSGRenderContext *sceneGraphRenderContext() const;

@@ -23,7 +23,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_minimizeall-0");
 static const QString s_scriptName = QStringLiteral("minimizeall");
 
 class MinimizeAllScriptTest : public QObject
@@ -44,7 +43,7 @@ void MinimizeAllScriptTest::initTestCase()
 
     qRegisterMetaType<Window *>();
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -59,17 +58,14 @@ void MinimizeAllScriptTest::initTestCase()
 
 static QString locateMainScript(const QString &pluginName)
 {
-    const QList<KPluginMetaData> offers = KPackage::PackageLoader::self()->findPackages(
-        QStringLiteral("KWin/Script"),
-        QStringLiteral("kwin-wayland/scripts"),
-        [&](const KPluginMetaData &metaData) {
+    const QList<KPluginMetaData> offers = KPackage::PackageLoader::self()->findPackages(QStringLiteral("KWin/Script"), QStringLiteral("kwin/scripts"), [&](const KPluginMetaData &metaData) {
         return metaData.pluginId() == pluginName;
     });
     if (offers.isEmpty()) {
         return QString();
     }
     const QFileInfo metaDataFileInfo(offers.first().fileName());
-    return metaDataFileInfo.path() + QLatin1String("/contents/code/main.js");
+    return metaDataFileInfo.path() + QLatin1StringView("/contents/code/main.js");
 }
 
 void MinimizeAllScriptTest::init()

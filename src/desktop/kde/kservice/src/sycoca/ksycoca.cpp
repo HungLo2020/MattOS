@@ -801,6 +801,7 @@ void KSycoca::ensureCacheValid()
     d->closeDatabase();
 }
 
+#if KSERVICE_BUILD_DEPRECATED_SINCE(6, 29)
 void KSycoca::setupTestMenu()
 {
     const QByteArray content = R"(<?xml version="1.0"?>
@@ -827,5 +828,6 @@ void KSycoca::setupTestMenu()
     output.open(QIODevice::ReadWrite | QIODevice::Truncate);
     output.write(content);
 }
+#endif
 
 #include "moc_ksycoca.cpp"

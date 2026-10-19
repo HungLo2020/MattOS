@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmcolors\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
 "PO-Revision-Date: 2021-08-27 12:19+0000\n"
 "Last-Translator: Subin Siby <subins2000@gmail.com>\n"
 "Language-Team: SMC <smc.org.in>\n"
@@ -31,32 +31,32 @@ msgstr ""
 "peter.ani@gmail.com,harivishnu@gmail.com,pravi.a@gmail.com,subins2000@gmail."
 "com"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "ഒരു താൽക്കാലിക ഫയൽ നിർമ്മിക്കാനായില്ല."
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "നിറക്കൂട്ടു് ഡൗണ്‍ലോഡാൻ കഴിഞില്ല: %1"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "ഈ ഫയൽ ഒരു നിറക്കൂട്ടു് ഫയലല്ല."
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "'color-scheme' ഡാറ്റ അറ സൃഷ്ടിക്കുന്നതിൽ പരാജയപ്പെട്ടു."
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr "നിറക്കൂട്ടു് 'color-scheme' ഡാറ്റ ഫോൾഡറിലേക്ക് പകർത്തുന്നതിൽ പരാജയപ്പെട്ടു."
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "നിറക്കൂട്ടു് വിജയകരമായി ഇൻസ്റ്റാൾ ചെയ്തു."
@@ -689,15 +689,16 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "നിങ്ങള്‍ക്കു് ഈ നിറക്കൂട്ടു് മാറ്റി സൂക്ഷിക്കുന്നതിനുള്ള അനുവാദമില്ല"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "പിശകു്"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "നിര്‍ജ്ജീവം"
@@ -1149,7 +1150,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "ശ്രദ്ധാകേന്ദ്രം"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1160,7 +1161,7 @@ msgstr ""
 "അബദ്ധത്തിൽ അത് ലഭ്യമല്ലാത്തതോ അല്ലെങ്കിൽ ഇതിനകം സജ്ജീകരിച്ചിരിക്കുന്നതോ ആയ ഒന്നിലേക്ക് "
 "ക്രമീകരിക്കാതെ."
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
@@ -1169,14 +1170,14 @@ msgstr ""
 "നിങ്ങളുടെ നിലവിലെ പ്ലാസ്മ സെഷനായി നിങ്ങൾ സജ്ജമാക്കാൻ ആഗ്രഹിക്കുന്ന വർണ്ണ സ്കീമിന്റെ പേര് "
 "(ഒരു പൂർണ്ണ പാത നൽകുന്നതിന്റെ അവസാന ഭാഗം മാത്രമേ ഉപയോഗിക്കൂ)"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
 "theme)"
 msgstr "സിസ്റ്റത്തിൽ ലഭ്യമായ എല്ലാ വർണ്ണ സ്കീമുകളും കാണിക്കുക (കൂടാതെ നിലവിലെ തീമും)"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1184,7 +1185,7 @@ msgid ""
 "Quote the hex code if there is possibility of shell expansion"
 msgstr ""
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
@@ -1192,26 +1193,26 @@ msgid ""
 msgstr ""
 "അഭ്യർത്ഥിച്ച തീം \"%1\" നിലവിലെ പ്ലാസ്മ സെഷന്റെ തീം ആയി ഇതിനകം സജ്ജീകരിച്ചിരിക്കുന്നു."
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr "നിങ്ങളുടെ നിലവിലെ പ്ലാസ്മ സെഷനിൽ നിറക്കൂട്ടു് %1 വിജയകരമായി പ്രയോഗിച്ചു"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 msgstr "\"%1\" തീം കണ്ടെത്താനായില്ല. തീം ഇനിപ്പറയുന്ന ഓപ്ഷനുകളിൽ ഒന്നായിരിക്കണം: %2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
 "behavior."
 msgstr "പിന്തുണ നൽകാത്ത രീതിയിൽ ഒരു ശൂന്യമായ നിറക്കൂട്ടു് നാമം നിങ്ങൾ കൈമാറി."
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
@@ -1220,23 +1221,23 @@ msgstr ""
 "നിങ്ങളുടെ സ്കീമായി സജ്ജീകരിക്കാൻ ശ്രമിച്ച ഫയൽ, %1, ഒരു വർണ്ണ സ്കീമായി തിരിച്ചറിയാൻ "
 "കഴിഞ്ഞില്ല."
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr ""
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, fuzzy, kde-format
 #| msgid "Inactive color"
 msgid "Invalid accent color "
 msgstr "സജീവമല്ലാത്തവയുടെ നിറം"
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "നിങ്ങളുടെ സിസ്റ്റത്തിൽ ഇനിപ്പറയുന്ന വർണ്ണ സ്കീമുകൾ ഉണ്ട്:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr " * %1 (നിലവിലെ കളർ സ്കീം)"
@@ -1262,109 +1263,130 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "സജീവമല്ലാത്തവയുടെ നിറം"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
 msgstr "നിറക്കൂട്ടു് '%1' ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല. പകരം തനത് തീം തിരഞ്ഞെടുക്കുന്നു."
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, fuzzy, kde-format
 #| msgid "All Schemes"
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "എല്ലാ സ്കീമുകളും"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, fuzzy, kde-format
 #| msgid "Light Schemes"
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "ലൈറ്റ് സ്കീമുകൾ"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, fuzzy, kde-format
 #| msgid "Dark Schemes"
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "ഇരുണ്ട സ്കീമുകൾ"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "ഫയലിൽ നിന്ന് ഇൻസ്റ്റാൾ ചെയ്യുക…"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr ""
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "വിൻഡോ ശീർഷകം"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "ജാലകത്തിനുള്ള പദാവലി"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "ബട്ടണ്‍"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "കണ്ണി"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "സന്ദര്‍ശിച്ചതു്"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "സാധാരണ പദാവലി"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "സന്ദര്‍ശിച്ച പദാവലി"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "അപ്രാപ്തമാക്കിയ പദാവലി"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "നിറക്കൂട്ടു് ചിട്ടപെടുത്തുക…"
 
-#: ui/main.qml:323
-#, kde-format
-msgid "Remove Color Scheme"
+#: ui/main.qml:311
+#, fuzzy, kde-format
+#| msgid "Remove Color Scheme"
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
 msgstr "നിറക്കൂട്ടു് നീക്കം ചെയ്യുക"
 
-#: ui/main.qml:330
-#, kde-format
-msgid "Restore Color Scheme"
-msgstr "നിറക്കൂട്ടു് പുനഃസ്ഥാപിക്കുക"
+#: ui/main.qml:313
+#, fuzzy, kde-format
+#| msgid "Utility to edit and create color schemes"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "നിറക്കൂട്ടുകൾ എഡിറ്റു ചെയ്യാനും സൃഷ്ടിക്കാനുമുള്ള ഉപകരണം"
 
-#: ui/main.qml:374
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr ""
+
+#: ui/main.qml:323
+#, kde-format
+msgid "Don’t delete this color scheme"
+msgstr ""
+
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "നിറക്കൂട്ടു് തുറക്കുക"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "നിറക്കൂട്ടു് ഫയലുകൾ (*.colors)"
+
+#~ msgid "You do not have permission to overwrite that scheme"
+#~ msgstr "നിങ്ങള്‍ക്കു് ഈ നിറക്കൂട്ടു് മാറ്റി സൂക്ഷിക്കുന്നതിനുള്ള അനുവാദമില്ല"
+
+#~ msgid "Restore Color Scheme"
+#~ msgstr "നിറക്കൂട്ടു് പുനഃസ്ഥാപിക്കുക"
 
 #~ msgid "Shading of frames and lighting (\"3D\") effects"
 #~ msgstr "ഫ്രെയിമുകളുടെ നിഴലും ലൈറ്റിംഗ് (\"3D\") ഇഫക്റ്റുകളും"

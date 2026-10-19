@@ -14,11 +14,11 @@ Loader {
 
     Connections {
         target: Workspace
-        function onCurrentDesktopChanged(previous) {
+        function onCurrentDesktopChanged(previous, current, screen) {
             if (!mainItemLoader.item) {
                 mainItemLoader.source = "osd.qml";
             }
-            mainItemLoader.item.show(previous);
+            mainItemLoader.item.show(previous, current, screen);
         }
     }
 }

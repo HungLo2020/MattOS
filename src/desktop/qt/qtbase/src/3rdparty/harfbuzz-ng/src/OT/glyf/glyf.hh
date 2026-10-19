@@ -99,8 +99,11 @@ struct glyf
       return_trace (false);
 
     hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
-    if (!_populate_subset_glyphs (c->plan, font, glyphs))
+    /* SubsetGlyphs borrow bytes from this blob until they are serialized. */
+    hb_blob_t *source_glyf = nullptr;
+    if (!_populate_subset_glyphs (c->plan, font, glyphs, &source_glyf))
     {
+      hb_blob_destroy (source_glyf);
       hb_font_destroy (font);
       return_trace (false);
     }
@@ -131,6 +134,7 @@ struct glyf
     bool result = glyf_prime->serialize (c->serializer, hb_iter (glyphs), use_short_loca, c->plan);
     if (c->plan->normalized_coords && !c->plan->pinned_at_default)
       _free_compiled_subset_glyphs (glyphs);
+    hb_blob_destroy (source_glyf);
 
     if (unlikely (!c->serializer->check_success (glyf_impl::_add_loca_and_head (c,
 						 padded_offsets.iter (),
@@ -143,7 +147,8 @@ struct glyf
   bool
   _populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			   hb_font_t                *font,
-			   hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const;
+			   hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */,
+			   hb_blob_t               **source_glyf /* OUT */) const;
 
   hb_font_t *
   _create_font_for_instancing (const hb_subset_plan_t *plan) const;
@@ -233,15 +238,22 @@ struct glyf_accelerator_t
   bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer,
 		   hb_array_t<const int> coords,
 		   hb_glyf_scratch_t &scratch,
-		   hb_scalar_cache_t *gvar_cache = nullptr) const
+		   hb_scalar_cache_t *gvar_cache = nullptr,
+		   int64_t *budget = nullptr) const
   {
     if (gid >= num_glyphs) return false;
+
+    int64_t stack_budget = HB_BUDGET_GLYPH;
+    if (!budget) budget = &stack_budget;
 
     auto &all_points = scratch.all_points;
     all_points.clear ();
 
     bool phantom_only = !consumer.is_consuming_contour_points ();
-    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, scratch, nullptr, nullptr, nullptr, true, true, phantom_only, coords, gvar_cache)))
+    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, scratch, nullptr, nullptr, nullptr, true, true, phantom_only, coords, gvar_cache, 0, nullptr, budget)))
+      return false;
+
+    if (unlikely (!hb_budget_spend (*budget, HB_BUDGET_1, all_points.length)))
       return false;
 
     unsigned count = all_points.length;
@@ -352,10 +364,12 @@ struct glyf_accelerator_t
 	  return;
 	}
 	{
-	  extents->x_bearing = roundf (min_x);
-	  extents->width = roundf (max_x - extents->x_bearing);
-	  extents->y_bearing = roundf (max_y);
-	  extents->height = roundf (min_y - extents->y_bearing);
+	  double x_bearing = (double) roundf (min_x);
+	  double y_bearing = (double) roundf (max_y);
+	  extents->x_bearing = hb_clamp_to<hb_position_t> (x_bearing);
+	  extents->width = hb_clamp_to<hb_position_t> ((double) roundf (max_x) - x_bearing);
+	  extents->y_bearing = hb_clamp_to<hb_position_t> (y_bearing);
+	  extents->height = hb_clamp_to<hb_position_t> ((double) roundf (min_y) - y_bearing);
 
 	  if (scaled)
 	    font->scale_glyph_extents (extents);
@@ -449,7 +463,8 @@ struct glyf_accelerator_t
   bool get_extents_at (hb_font_t *font,
 		       hb_codepoint_t gid,
 		       hb_glyph_extents_t *extents,
-		       hb_array_t<const int> coords) const
+		       hb_array_t<const int> coords,
+		       int64_t *budget = nullptr) const
   {
     if (unlikely (gid >= num_glyphs)) return false;
 
@@ -462,7 +477,9 @@ struct glyf_accelerator_t
 			     gid,
 			     points_aggregator_t (font, extents, nullptr, true),
 			     coords,
-			     *scratch);
+			     *scratch,
+			     nullptr,
+			     budget);
       release_scratch (scratch);
       return ret;
     }
@@ -499,7 +516,9 @@ struct glyf_accelerator_t
   }
 
   bool
-  get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session, hb_scalar_cache_t *gvar_cache = nullptr) const
+  get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session,
+	    hb_scalar_cache_t *gvar_cache = nullptr,
+	    int64_t *budget = nullptr) const
   {
     if (!has_data ()) return false;
 
@@ -510,7 +529,8 @@ struct glyf_accelerator_t
 			   hb_array (font->coords,
 				     font->has_nonzero_coords ? font->num_coords : 0),
 			   *scratch,
-			    gvar_cache);
+			   gvar_cache,
+			   budget);
 
     release_scratch (scratch);
 
@@ -521,13 +541,16 @@ struct glyf_accelerator_t
   get_path_at (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       hb_glyf_scratch_t &scratch,
-	       hb_scalar_cache_t *gvar_cache = nullptr) const
+	       hb_scalar_cache_t *gvar_cache = nullptr,
+	       int64_t *budget = nullptr) const
   {
     if (!has_data ()) return false;
-    return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
-		       coords,
-		       scratch,
-		       gvar_cache);
+    bool ret = get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
+			   coords,
+			   scratch,
+			   gvar_cache,
+			   budget);
+    return ret;
   }
 
 
@@ -555,6 +578,8 @@ struct glyf_accelerator_t
   }
 
   unsigned int get_num_glyphs () const { return num_glyphs; }
+  hb_blob_t *reference_glyf_table () const
+  { return hb_blob_reference (glyf_table.get_blob ()); }
 
 #ifndef HB_NO_VAR
   const gvar_accelerator_t *gvar;
@@ -579,10 +604,12 @@ struct glyf_accelerator_t
 inline bool
 glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			       hb_font_t *font,
-			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const
+			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */,
+			       hb_blob_t **source_glyf /* OUT */) const
 {
   OT::glyf_accelerator_t glyf (plan->source);
   if (!glyphs.alloc_exact (plan->new_to_old_gid_list.length)) return false;
+  *source_glyf = glyf.reference_glyf_table ();
 
   for (const auto &pair : plan->new_to_old_gid_list)
   {

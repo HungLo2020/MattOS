@@ -155,11 +155,13 @@ void QHttpNetworkConnectionChannel::init()
                          this, &QHttpNetworkConnectionChannel::_q_encryptedBytesWritten,
                          Qt::DirectConnection);
 
+        // AXIVION DISABLE Qt-Security-QSslSocketIgnoreSslErrors: intentional behavior
         if (ignoreAllSslErrors)
             sslSocket->ignoreSslErrors();
 
         if (!ignoreSslErrorsList.isEmpty())
             sslSocket->ignoreSslErrors(ignoreSslErrorsList);
+        // AXIVION ENABLE Qt-Security-QSslSocketIgnoreSslErrors
 
         if (sslConfiguration && !sslConfiguration->isNull())
            sslSocket->setSslConfiguration(*sslConfiguration);
@@ -229,11 +231,13 @@ void QHttpNetworkConnectionChannel::abort()
 
 void QHttpNetworkConnectionChannel::sendRequest()
 {
-    Q_ASSERT(protocolHandler);
     if (waitingForPotentialAbort) {
         needInvokeSendRequest = true;
         return;
     }
+    if (isPendingReconnect())
+        return;
+    Q_ASSERT(protocolHandler);
     protocolHandler->sendRequest();
 }
 
@@ -406,9 +410,11 @@ bool QHttpNetworkConnectionChannel::ensureConnection()
 
             sslSocket->setPeerVerifyName(connection->d_func()->peerVerifyName);
             sslSocket->connectToHostEncrypted(connectHost, connectPort, QIODevice::ReadWrite, networkLayerPreference);
+            // AXIVION DISABLE Qt-Security-QSslSocketIgnoreSslErrors: intentional behavior
             if (ignoreAllSslErrors)
                 sslSocket->ignoreSslErrors();
             sslSocket->ignoreSslErrors(ignoreSslErrorsList);
+            // AXIVION ENABLE Qt-Security-QSslSocketIgnoreSslErrors
 
             // limit the socket read buffer size. we will read everything into
             // the QHttpNetworkReply anyway, so let's grow only that and not
@@ -724,8 +730,10 @@ void QHttpNetworkConnectionChannel::setProxy(const QNetworkProxy &networkProxy)
 
 void QHttpNetworkConnectionChannel::ignoreSslErrors()
 {
+    // AXIVION DISABLE Qt-Security-QSslSocketIgnoreSslErrors: intentional behavior
     if (socket)
         static_cast<QSslSocket *>(socket)->ignoreSslErrors();
+    // AXIVION ENABLE Qt-Security-QSslSocketIgnoreSslErrors
 
     ignoreAllSslErrors = true;
 }
@@ -733,8 +741,10 @@ void QHttpNetworkConnectionChannel::ignoreSslErrors()
 
 void QHttpNetworkConnectionChannel::ignoreSslErrors(const QList<QSslError> &errors)
 {
+    // AXIVION DISABLE Qt-Security-QSslSocketIgnoreSslErrors: intentional behavior
     if (socket)
         static_cast<QSslSocket *>(socket)->ignoreSslErrors(errors);
+    // AXIVION ENABLE Qt-Security-QSslSocketIgnoreSslErrors
 
     ignoreSslErrorsList = errors;
 }
@@ -830,6 +840,56 @@ bool QHttpNetworkConnectionChannel::isSocketReading() const
     return (state & QHttpNetworkConnectionChannel::ReadingState);
 }
 
+QHttp2ProtocolHandler *QHttpNetworkConnectionChannel::h2ProtocolHandler() const noexcept
+{
+    if (!protocolHandler)
+        return nullptr;
+    const auto type = connection->connectionType();
+    if (type == QHttpNetworkConnection::ConnectionTypeHTTP2Direct
+        || (type == QHttpNetworkConnection::ConnectionTypeHTTP2 && switchedToHttp2)) {
+        return static_cast<QHttp2ProtocolHandler *>(protocolHandler.get());
+    }
+    return nullptr;
+}
+
+/*!
+    \internal
+    Returns \c true if the channel has no session to send on: it is closing, its HTTP/2
+    session is going away, or that session has been dropped and not yet re-established.
+    Every site that resolves this restarts the request queue, so callers can bail out.
+*/
+bool QHttpNetworkConnectionChannel::isPendingReconnect() const noexcept
+{
+    // A closing socket will emit disconnected(), which restarts the request queue.
+    if (QSocketAbstraction::socketState(socket) == QAbstractSocket::ClosingState)
+        return true;
+    if (auto *h2 = h2ProtocolHandler())
+        return h2->isGoingAway();
+    // HTTP1 protocol handler is created early and never un-set so we can do this short test to see
+    // if HTTP2 is currently un-set and needs to be re-created:
+    return !protocolHandler;
+}
+
+/*!
+    \internal
+    Drops a going-away HTTP/2 session so the channel can connect again. Returns \c true
+    if one was dropped, meaning the request queue should be restarted.
+*/
+bool QHttpNetworkConnectionChannel::clearPendingReconnect()
+{
+    // Only an HTTP/2 session is dropped here. The HTTP/1 handler is created once and never
+    // recreated, so dropping it would leave protocolHandler null for the next sendRequest().
+    if (auto *h2 = h2ProtocolHandler(); !h2 || !h2->isGoingAway())
+        return false;
+    // We can be called from within the handler's own call chain, so destroy it in a queued
+    // call rather than under its own stack frame. Moving from the unique_ptr already
+    // clears the pending-reconnect state.
+    QMetaObject::invokeMethod(this, [oldHandler = std::move(protocolHandler)]() mutable {
+        oldHandler.reset();
+    }, Qt::QueuedConnection);
+    return true;
+}
+
 void QHttpNetworkConnectionChannel::_q_bytesWritten(qint64 bytes)
 {
     Q_UNUSED(bytes);
@@ -849,6 +909,7 @@ void QHttpNetworkConnectionChannel::_q_disconnected()
 {
     if (state == QHttpNetworkConnectionChannel::ClosingState) {
         state = QHttpNetworkConnectionChannel::IdleState;
+        clearPendingReconnect();
         QMetaObject::invokeMethod(connection, "_q_startNextRequest", Qt::QueuedConnection);
         return;
     }
@@ -873,6 +934,11 @@ void QHttpNetworkConnectionChannel::_q_disconnected()
         // _q_startNextRequest (which it does):
         requeueCurrentlyPipelinedRequests();
     }
+
+    // A going-away connection closed without us calling close(), so it was not handled by
+    // the ClosingState branch above. Done last, so the reads above still have the handler.
+    if (clearPendingReconnect())
+        QMetaObject::invokeMethod(connection, "_q_startNextRequest", Qt::QueuedConnection);
 
     pendingEncrypt = false;
 }
@@ -1033,14 +1099,8 @@ void QHttpNetworkConnectionChannel::_q_error(QAbstractSocket::SocketError socket
             // we do not resend, but must report errors if any request is in progress (note, while
             // not in its sendRequest(), protocol handler switches the channel to IdleState, thus
             // this check is under this condition in 'if'):
-            if (protocolHandler) {
-                if (connection->connectionType() == QHttpNetworkConnection::ConnectionTypeHTTP2Direct
-                    || (connection->connectionType() == QHttpNetworkConnection::ConnectionTypeHTTP2
-                        && switchedToHttp2)) {
-                    auto h2Handler = static_cast<QHttp2ProtocolHandler *>(protocolHandler.get());
-                    h2Handler->handleConnectionClosure();
-                }
-            }
+            if (auto *h2Handler = h2ProtocolHandler())
+                h2Handler->handleConnectionClosure();
             return;
         } else if (state != QHttpNetworkConnectionChannel::IdleState && state != QHttpNetworkConnectionChannel::ReadingState) {
             // Try to reconnect/resend before sending an error.
@@ -1217,13 +1277,19 @@ void QHttpNetworkConnectionChannel::_q_uploadDataReadyRead()
 void QHttpNetworkConnectionChannel::emitFinishedWithError(QNetworkReply::NetworkError error,
                                                           const char *message)
 {
+    emitFinishedWithError(error, QHttpNetworkConnectionChannel::tr(message));
+}
+
+void QHttpNetworkConnectionChannel::emitFinishedWithError(QNetworkReply::NetworkError error,
+                                                          const QString &message)
+{
     if (reply)
-        emit reply->finishedWithError(error, QHttpNetworkConnectionChannel::tr(message));
+        emit reply->finishedWithError(error, message);
     const auto h2RequestsToSendCopy = h2RequestsToSend;
     for (const auto &httpMessagePair : h2RequestsToSendCopy) {
         QHttpNetworkReply *currentReply = httpMessagePair.second;
         Q_ASSERT(currentReply);
-        emit currentReply->finishedWithError(error, QHttpNetworkConnectionChannel::tr(message));
+        emit currentReply->finishedWithError(error, message);
     }
 }
 

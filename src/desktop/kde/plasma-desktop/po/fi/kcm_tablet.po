@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-05-02 02:38+0000\n"
-"PO-Revision-Date: 2025-09-12 16:31+0300\n"
+"POT-Creation-Date: 2026-08-31 00:45+0000\n"
+"PO-Revision-Date: 2026-02-25 20:30+0200\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -119,19 +119,19 @@ msgctxt "model - (x,y widthxheight)"
 msgid "%1 - (%2,%3 %4×%5)"
 msgstr "%1 – (%2,%3 %4×%5)"
 
-#: kcmtablet.cpp:164 ui/DisplayTab.qml:97 ui/DisplayTab.qml:98
+#: kcmtablet.cpp:164 ui/DisplayTab.qml:102 ui/DisplayTab.qml:103
 #, kde-format
 msgctxt "@item:inlistbox Stretch and fill to the screen"
 msgid "Stretch and Fill"
 msgstr "Venytä ja sovita"
 
-#: kcmtablet.cpp:165 ui/DisplayTab.qml:99
+#: kcmtablet.cpp:165 ui/DisplayTab.qml:104
 #, kde-format
 msgctxt "@item:inlistbox Keep aspect ratio and fit within the screen"
 msgid "Keep Aspect Ratio and Fit"
 msgstr "Säilytä kuvasuhde ja sovita"
 
-#: kcmtablet.cpp:166 ui/DisplayTab.qml:100
+#: kcmtablet.cpp:166 ui/DisplayTab.qml:105
 #, kde-format
 msgctxt "@item:inlistbox Map to portion of the screen"
 msgid "Map to Portion"
@@ -164,62 +164,62 @@ msgid "Select Button Action"
 msgstr "Valitse painikkeen toiminto"
 
 # Tässä täytyy hieman taiteilla, jottei %1 joutuisi asemaan, jossa sitä pitäisi taivuttaa (vrt. ”painettaessa *hiiren oikeaa painiketta*”)
-#: ui/ActionDialog.qml:87
+#: ui/ActionDialog.qml:83
 #, kde-format
 msgctxt "@info %1 is the 'pad button %1' or 'pen button 1/2/3' strings"
 msgid "Choose what action will be taken when rotating %1:"
 msgstr "Valitse, mitä tehdään, kun %1 pyörii:"
 
 # Tässä täytyy hieman taiteilla, jottei %1 joutuisi asemaan, jossa sitä pitäisi taivuttaa (vrt. ”painettaessa *hiiren oikeaa painiketta*”)
-#: ui/ActionDialog.qml:88
+#: ui/ActionDialog.qml:84
 #, kde-format
 msgctxt "@info %1 is the 'pad button %1' or 'pen button 1/2/3' strings"
 msgid "Choose what action will be taken when pressing %1:"
 msgstr "Valitse, minkä toiminnon %1 toteuttaa:"
 
-#: ui/ActionDialog.qml:102
+#: ui/ActionDialog.qml:98
 #, kde-format
 msgctxt "@option:radio Set this action to an application-defined type"
 msgid "Defer to application"
 msgstr "Välitä sovellukselle"
 
-#: ui/ActionDialog.qml:117
+#: ui/ActionDialog.qml:113
 #, kde-format
 msgctxt "@option:radio Set this action to a keyboard type"
 msgid "Send keyboard key"
 msgstr "Lähetä näppäimistön näppäin"
 
-#: ui/ActionDialog.qml:133
+#: ui/ActionDialog.qml:129
 #, kde-format
 msgctxt "@option:radio Set this action to a up/down keyboard type"
 msgid "Send keyboard keys"
 msgstr "Lähetä näppäimistön näppäimiä"
 
-#: ui/ActionDialog.qml:148
+#: ui/ActionDialog.qml:144
 #, kde-format
 msgctxt "@option:radio Set this action to a mouse type"
 msgid "Send mouse button click"
 msgstr "Lähetä hiiripainikkeen napsautus"
 
-#: ui/ActionDialog.qml:164
+#: ui/ActionDialog.qml:160
 #, kde-format
 msgctxt "@option:radio Set this action to a pen button type"
 msgid "Send pen button"
 msgstr "Lähetä kynäpainike"
 
-#: ui/ActionDialog.qml:181
+#: ui/ActionDialog.qml:177
 #, kde-format
 msgctxt "@option:radio Set this action to a scroll wheel type type"
 msgid "Act as scroll wheel"
 msgstr "Toimi vieritysrullana"
 
-#: ui/ActionDialog.qml:199
+#: ui/ActionDialog.qml:195
 #, kde-format
 msgctxt "@option:radio Disable this action"
 msgid "Do nothing"
 msgstr "Älä tee mitään"
 
-#: ui/ActionDialog.qml:219
+#: ui/ActionDialog.qml:215
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -229,191 +229,248 @@ msgstr ""
 "Piirtoalustan tämä painike välitetään kohdistettuun sovellukseen, joka voi "
 "päättää, miten se käsitellään."
 
-#: ui/ActionDialog.qml:248
-#, fuzzy, kde-format
-#| msgid "Up:"
+#: ui/ActionDialog.qml:244
+#, kde-format
 msgctxt ""
 "@label prefix for configuring Keybind to send when dial/ring is turned "
 "upwards"
-msgid "Up:"
-msgstr "Ylös:"
+msgid "Clockwise:"
+msgstr ""
 
-#: ui/ActionDialog.qml:261
-#, fuzzy, kde-format
-#| msgid "Down:"
+#: ui/ActionDialog.qml:257
+#, kde-format
 msgctxt ""
 "@label prefix for configuring Keybind to send when dial/ring is turned "
 "downwards"
-msgid "Down:"
-msgstr "Alas:"
+msgid "Counterclockwise:"
+msgstr ""
 
-#: ui/ActionDialog.qml:274
-#, fuzzy, kde-format
-#| msgid "Speed:"
+#: ui/ActionDialog.qml:271
+#, kde-format
 msgctxt ""
 "@label:slider Speed for how often this dial/ring should emit key events"
 msgid "Speed:"
 msgstr "Nopeus:"
 
-#: ui/ActionDialog.qml:289
+#: ui/ActionDialog.qml:286
 #, kde-format
 msgctxt "@action:inmenu Left mouse click"
 msgid "Left-click"
 msgstr "Vasen napsautus"
 
-#: ui/ActionDialog.qml:290
+#: ui/ActionDialog.qml:287
 #, kde-format
 msgctxt "@action:inmenu Middle mouse click"
 msgid "Middle-click"
 msgstr "Keskinapsautus"
 
-#: ui/ActionDialog.qml:291
+#: ui/ActionDialog.qml:288
 #, kde-format
 msgctxt "@action:inmenu Right mouse click"
 msgid "Right-click"
 msgstr "Oikea napsautus"
 
-#: ui/ActionDialog.qml:318
+#: ui/ActionDialog.qml:315
 #, kde-format
 msgctxt "@option:check The ctrl modifier on the keyboard"
 msgid "Ctrl"
 msgstr "Ctrl"
 
-#: ui/ActionDialog.qml:325
+#: ui/ActionDialog.qml:322
 #, kde-format
 msgctxt "@option:check The alt modifier on the keyboard"
 msgid "Alt"
 msgstr "Alt"
 
-#: ui/ActionDialog.qml:332
+#: ui/ActionDialog.qml:329
 #, kde-format
 msgctxt "@option:check The meta modifier on the keyboard"
 msgid "Meta"
 msgstr "Meta"
 
-#: ui/ActionDialog.qml:339
+#: ui/ActionDialog.qml:336
 #, kde-format
 msgctxt "@option:check The shift modifier on the keyboard"
 msgid "Shift"
 msgstr "Vaihto"
 
-#: ui/ActionDialog.qml:355
+#: ui/ActionDialog.qml:352
 #, kde-format
 msgctxt "@action:inmenu Stylus button"
 msgid "Button 1"
 msgstr "Painike 1"
 
-#: ui/ActionDialog.qml:356
+#: ui/ActionDialog.qml:353
 #, kde-format
 msgctxt "@action:inmenu Stylus button"
 msgid "Button 2"
 msgstr "Painike 2"
 
-#: ui/ActionDialog.qml:357
+#: ui/ActionDialog.qml:354
 #, kde-format
 msgctxt "@action:inmenu Stylus button"
 msgid "Button 3"
 msgstr "Painike 3"
 
-#: ui/ActionDialog.qml:366
+#: ui/ActionDialog.qml:363
 #, kde-format
 msgctxt "@info"
 msgid "Act like a scroll wheel on a mouse."
 msgstr "Toimi kuin hiiren vieritysrulla."
 
-#: ui/ActionDialog.qml:375
+#: ui/ActionDialog.qml:372
 #, kde-format
 msgctxt "@info"
 msgid "This button is disabled and will not do anything."
 msgstr "Tämä painike on poistettu käytöstä eikä tee mitään."
 
-#: ui/Calibration.qml:30
+#: ui/Calibration.qml:32
 #, kde-format
 msgctxt "@title"
 msgid "Pen Calibration"
 msgstr "Kynän kalibrointi"
 
-#: ui/Calibration.qml:98
-#, kde-kuit-format
+#: ui/Calibration.qml:73
+#, kde-format
+msgctxt "@info"
+msgid "%1: (%2 px, %3 px)"
+msgstr ""
+
+#: ui/Calibration.qml:107
+#, kde-format
 msgctxt "@info"
 msgid ""
-"Tap the targets again to confirm the new calibration.<nl/><nl/><b>Will "
-"revert to default calibration in %1 seconds unless further action is taken.</"
-"b>"
+"Applied center correction (%1 px, %2 px). Retap the targets to redo the "
+"correction."
 msgstr ""
+
+#: ui/Calibration.qml:173
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info"
+#| msgid ""
+#| "Tap the targets again to confirm the new calibration.<nl/><nl/><b>Will "
+#| "revert to default calibration in %1 seconds unless further action is "
+#| "taken.</b>"
+msgctxt "@info"
+msgid ""
+"Tap the targets again to confirm the new calibration.<nl/><nl/><emphasis "
+"strong='true'>Will revert to default calibration in %1 second unless further "
+"action is taken.</emphasis>"
+msgid_plural ""
+"Tap the targets again to confirm the new calibration.<nl/><nl/><emphasis "
+"strong='true'>Will revert to default calibration in %1 seconds unless "
+"further action is taken.</emphasis>"
+msgstr[0] ""
+"Vahvista uusi kalibrointi napauttamalla kohteita uudestaan.<nl/><nl/"
+"><b>Oletuskalibrointiin palataan %1 sekunnissa ellei mitään tehdä.</b>"
+msgstr[1] ""
 "Vahvista uusi kalibrointi napauttamalla kohteita uudestaan.<nl/><nl/"
 "><b>Oletuskalibrointiin palataan %1 sekunnissa ellei mitään tehdä.</b>"
 
-#: ui/Calibration.qml:102
-#, kde-kuit-format
+#: ui/Calibration.qml:177
+#, kde-format
 msgctxt "@info"
 msgid ""
-"Calibration is completed and saved.<nl/><nl/>Refine the calibration further "
-"or close the window."
+"Calibration is completed and saved.\n"
+"\n"
+"Tap the center target once to fine-tune alignment. You can retap the other "
+"targets to verify the result."
 msgstr ""
-"Kalibrointi on valmis ja tallennettu.<nl/><nl/>Kalibrointia voi nyt "
-"tarkentaa tai sulkea ikkunan."
 
-#: ui/Calibration.qml:105
+#: ui/Calibration.qml:180
 #, kde-format
 msgctxt "@info"
 msgid "Tap the center of each target."
 msgstr "Napauta kunkin kohteen keskustaa."
 
-#: ui/Calibration.qml:112
+#: ui/Calibration.qml:201
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Offset Correction:\n"
+"%1"
+msgstr ""
+
+#: ui/Calibration.qml:216
 #, kde-format
 msgctxt "@action:button"
 msgid "Refine Existing Calibration"
 msgstr "Tarkenna olemassa olevaa kalibrointia"
 
-#: ui/Calibration.qml:121
+#: ui/Calibration.qml:228
 #, kde-format
 msgctxt "@action:button"
 msgid "Reset and Try Again"
 msgstr "Palauta ja yritä uudelleen"
 
-#: ui/Calibration.qml:121
+#: ui/Calibration.qml:228
 #, kde-format
 msgctxt "@action:button"
 msgid "Calibrate from Scratch"
 msgstr "Kalibroi alusta alkaen"
 
-#: ui/Calibration.qml:135
+#: ui/Calibration.qml:243
 #, kde-format
 msgctxt "@action:button"
 msgid "Close"
 msgstr "Sulje"
 
-#: ui/Calibration.qml:135
+#: ui/Calibration.qml:243
 #, kde-format
 msgctxt "@action:button"
 msgid "Cancel"
 msgstr "Peru"
 
+#: ui/Calibration.qml:315
+#, kde-format
+msgctxt "@info Name used in the diagnostic log"
+msgid "Top-left"
+msgstr ""
+
+#: ui/Calibration.qml:334
+#, kde-format
+msgctxt "@info Name used in the diagnostic log"
+msgid "Top-right"
+msgstr ""
+
+#: ui/Calibration.qml:353
+#, kde-format
+msgctxt "@info Name used in the diagnostic log"
+msgid "Bottom-left"
+msgstr ""
+
+#: ui/Calibration.qml:372
+#, kde-format
+msgctxt "@info Name used in the diagnostic log"
+msgid "Bottom-right"
+msgstr ""
+
+#: ui/Calibration.qml:391
+#, kde-format
+msgctxt "@info Name used in the diagnostic log"
+msgid "Center"
+msgstr ""
+
 #: ui/DisplayTab.qml:46
-#, fuzzy, kde-format
-#| msgid "Map to screen:"
+#, kde-format
 msgctxt "@label:listbox"
 msgid "Map to screen:"
 msgstr "Yhdistä näyttöön:"
 
-#: ui/DisplayTab.qml:73
-#, fuzzy, kde-format
-#| msgid "Orientation:"
+#: ui/DisplayTab.qml:76
+#, kde-format
 msgctxt "@label:listbox"
 msgid "Orientation:"
 msgstr "Suunta:"
 
-#: ui/DisplayTab.qml:79
-#, fuzzy, kde-format
-#| msgid "Not Applicable"
+#: ui/DisplayTab.qml:83
+#, kde-format
 msgctxt "@label substitute for unavailable orientation change"
 msgid "Not Applicable"
 msgstr "Ei käytettävissä"
 
-#: ui/DisplayTab.qml:93
-#, fuzzy, kde-format
-#| msgid "Mapped Area:"
+#: ui/DisplayTab.qml:96
+#, kde-format
 msgctxt "@label:listbox"
 msgid "Mapped Area:"
 msgstr "Yhdistetty alue:"
@@ -431,8 +488,7 @@ msgid "%1,%2 - %3×%4"
 msgstr "%1,%2 – %3×%4"
 
 #: ui/ExternalScreenMapping.qml:190
-#, fuzzy, kde-format
-#| msgid "Resize the screen area"
+#, kde-format
 msgctxt "@action:button"
 msgid "Resize the screen area"
 msgstr "Muuta näyttöalueen kokoa"
@@ -444,33 +500,30 @@ msgid "%1%,%2% - %3%×%4%"
 msgstr "%1 %,%2 % - %3 % × %4 %"
 
 #: ui/ExternalScreenMapping.qml:301
-#, fuzzy, kde-format
-#| msgid "Resize the tablet area"
+#, kde-format
 msgctxt "@action:button"
 msgid "Resize the tablet area"
 msgstr "Muuta piirtopöydän kokoa"
 
-#: ui/main.qml:38
-#, fuzzy, kde-format
-#| msgid "No drawing tablets found"
+#: ui/main.qml:39
+#, kde-format
 msgctxt "@info placeholdermessage text"
 msgid "No drawing tablets found"
 msgstr "Piirtopöytiä ei löytynyt"
 
-#: ui/main.qml:39
-#, fuzzy, kde-format
-#| msgid "Connect a drawing tablet"
+#: ui/main.qml:40
+#, kde-format
 msgctxt "@info:usagetip placeholdermessage explanation"
 msgid "Connect a drawing tablet"
 msgstr "Yhdistä piirtopöytään"
 
-#: ui/main.qml:47
+#: ui/main.qml:48
 #, kde-format
 msgctxt "Tests tablet functionality like the pen"
 msgid "Test Tablet…"
 msgstr "Kokeile piirtoalustaa…"
 
-#: ui/main.qml:87
+#: ui/main.qml:88
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -482,33 +535,32 @@ msgstr ""
 "muuttamiseksi näiden asetusten sijaan sitä, ellei nimenomaisesti ohjeisteta "
 "toisin."
 
-#: ui/main.qml:106
+#: ui/main.qml:107
 #, kde-format
 msgctxt "@label:listbox The device we are configuring"
 msgid "Device:"
 msgstr "Laite:"
 
-#: ui/main.qml:174
+#: ui/main.qml:175
 #, kde-format
 msgctxt "@title:tab"
 msgid "Display"
 msgstr "Näyttö"
 
-#: ui/main.qml:187
+#: ui/main.qml:188
 #, kde-format
 msgctxt "@title:tab"
 msgid "Pen"
 msgstr "Kynä"
 
-#: ui/main.qml:199
+#: ui/main.qml:200
 #, kde-format
 msgctxt "@title:tab"
 msgid "Pad"
 msgstr "Kosketusalusta"
 
 #: ui/MissingPadTab.qml:15
-#, fuzzy, kde-format
-#| msgid "No drawing tablets found"
+#, kde-format
 msgctxt "@info placeholdermessage main text"
 msgid "No pad inputs found"
 msgstr "Piirtopöytiä ei löytynyt"
@@ -520,15 +572,16 @@ msgid ""
 "No buttons or other inputs were detected. This could mean the driver for "
 "this device is missing."
 msgstr ""
+"Painikkeita tai muita syötteitä ei havaittu. Tämä voi tarkoittaa, että "
+"laitteen ajuri puuttuu."
 
-#: ui/PadTab.qml:37
-#, fuzzy, kde-format
-#| msgid "Pad ring %1:"
+#: ui/PadTab.qml:35
+#, kde-format
 msgctxt "@label for graphics tablet ring config, % is number of ring"
 msgid "Pad ring %1:"
 msgstr "Alustan kiekko %1:"
 
-#: ui/PadTab.qml:60
+#: ui/PadTab.qml:62
 #, kde-format
 msgctxt ""
 "@info Meant to be inserted into an existing sentence like 'configuring pad "
@@ -536,14 +589,13 @@ msgctxt ""
 msgid "pad ring/dial %1"
 msgstr "alustan rengas tai kiekko %1"
 
-#: ui/PadTab.qml:100
-#, fuzzy, kde-format
-#| msgid "Pad dial %1:"
+#: ui/PadTab.qml:104
+#, kde-format
 msgctxt "@label for graphics tablet ring config, % is number of dial"
 msgid "Pad dial %1:"
 msgstr "Alustan valintakiekko %1:"
 
-#: ui/PadTab.qml:102
+#: ui/PadTab.qml:108
 #, kde-format
 msgctxt ""
 "@info Meant to be inserted into an existing sentence like 'configuring pad "
@@ -551,14 +603,13 @@ msgctxt ""
 msgid "pad dial %1"
 msgstr "alustan valintakiekko %1"
 
-#: ui/PadTab.qml:138
-#, fuzzy, kde-format
-#| msgid "Pad button %1:"
+#: ui/PadTab.qml:146
+#, kde-format
 msgctxt "@label for graphics tablet button config, % is number of button"
 msgid "Pad button %1:"
 msgstr "Alustan painike %1:"
 
-#: ui/PadTab.qml:141
+#: ui/PadTab.qml:152
 #, kde-format
 msgctxt ""
 "@info Meant to be inserted into an existing sentence like 'configuring pad "
@@ -566,22 +617,19 @@ msgctxt ""
 msgid "pad button %1"
 msgstr "alustan painike %1"
 
-#: ui/StylusTab.qml:223
-#, fuzzy, kde-format
-#| msgid "Left-handed mode:"
+#: ui/StylusTab.qml:228
+#, kde-format
 msgctxt "@label prefix for checkbox"
 msgid "Left-handed mode:"
 msgstr "Vasenkätinen tila:"
 
-#: ui/StylusTab.qml:229
-#, fuzzy, kde-format
-#| msgctxt "Enable left-handed mode"
-#| msgid "Enable"
+#: ui/StylusTab.qml:231
+#, kde-format
 msgctxt "@option:check Enable left-handed mode"
 msgid "Enable"
-msgstr "Käytä"
+msgstr "käytä"
 
-#: ui/StylusTab.qml:235
+#: ui/StylusTab.qml:241
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -600,37 +648,29 @@ msgctxt ""
 msgid "Mode:"
 msgstr "Tila:"
 
-#: ui/StylusTab.qml:255
-#, fuzzy, kde-format
-#| msgctxt "@title:tab"
-#| msgid "Pen"
+#: ui/StylusTab.qml:251
+#, kde-format
 msgctxt ""
 "@option:radio Pen mode, where the point on the screen is always where you "
 "touch the stylus"
 msgid "Pen"
-msgstr "Kynä"
+msgstr "kynä"
 
-#: ui/StylusTab.qml:260
-#, fuzzy, kde-format
-#| msgid "The cursor follows where you touch the pen on the surface"
+#: ui/StylusTab.qml:256
+#, kde-format
 msgctxt "@info:whatsthis Accessible description"
 msgid "The cursor follows where you touch the pen on the surface"
 msgstr "Osoitin seuraa kynän kosketuskohtaa"
 
-#: ui/StylusTab.qml:281
-#, fuzzy, kde-format
-#| msgctxt "Mouse mode, or like using the tablet like a giant touchpad"
-#| msgid "Mouse"
+#: ui/StylusTab.qml:265
+#, kde-format
 msgctxt ""
 "@option:radio Mouse mode, or like using the tablet like a giant touchpad"
 msgid "Mouse"
-msgstr "Hiiri"
+msgstr "hiiri"
 
-#: ui/StylusTab.qml:286
-#, fuzzy, kde-format
-#| msgid ""
-#| "Moving the pen on the surface moves the cursor relative to where it was, "
-#| "like a mouse"
+#: ui/StylusTab.qml:270
+#, kde-format
 msgctxt "@info:whatsthis Accessible description"
 msgid ""
 "Moving the pen on the surface moves the cursor relative to where it was, "
@@ -639,38 +679,42 @@ msgstr ""
 "Kynän liike pinnalla siirtää osoitinta suhteessa siihen, missä se oli, kuten "
 "hiirellä"
 
-#: ui/StylusTab.qml:356
-#, fuzzy, kde-format
-#| msgid "Pen Pressure:"
+#: ui/StylusTab.qml:276
+#, kde-format
+msgid "Sync with mouse cursor"
+msgstr "Tahdista hiiriosoittimeen"
+
+#: ui/StylusTab.qml:345
+#, kde-format
 msgctxt "@label prefix for pen pressure curve config"
 msgid "Pen Pressure:"
 msgstr "Kynän paine:"
 
-#: ui/StylusTab.qml:416
+#: ui/StylusTab.qml:401
 #, kde-format
 msgctxt "% of minimum pen pressure"
 msgid "%1%"
 msgstr "%1 %"
 
-#: ui/StylusTab.qml:424
+#: ui/StylusTab.qml:409
 #, kde-format
 msgctxt "% of maximum pen pressure"
 msgid "%1%"
 msgstr "%1 %"
 
-#: ui/StylusTab.qml:435
+#: ui/StylusTab.qml:420
 #, kde-format
 msgctxt "100% or maximum pen pressure"
 msgid "100%"
 msgstr "100 %"
 
-#: ui/StylusTab.qml:443
+#: ui/StylusTab.qml:428
 #, kde-format
 msgctxt "0% or zero pen pressure"
 msgid "0%"
 msgstr "0 %"
 
-#: ui/StylusTab.qml:447
+#: ui/StylusTab.qml:433
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -680,13 +724,13 @@ msgstr ""
 "Käyrä määrittää kynän paineen ja sovellusten vastaanottamien painearvojen "
 "välisen suhteen."
 
-#: ui/StylusTab.qml:452
+#: ui/StylusTab.qml:438
 #, kde-format
 msgctxt "Pen pressure range"
 msgid "Pressure Range:"
 msgstr "Painealue:"
 
-#: ui/StylusTab.qml:479
+#: ui/StylusTab.qml:456
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -696,31 +740,7 @@ msgstr ""
 "Yli tai alle kynnysarvon oleva paine rajataan, ja tästä tulee uusi voimassa "
 "oleva ala."
 
-#: ui/StylusTab.qml:490
-#, kde-format
-msgctxt "@action:button Calibration in progress"
-msgid "Calibration in Progress"
-msgstr "Kalibrointi meneillään"
-
-#: ui/StylusTab.qml:492
-#, kde-format
-msgctxt "@action:button Calibrate the pen display"
-msgid "Calibrate"
-msgstr "Kalibroi"
-
-#: ui/StylusTab.qml:495
-#, kde-format
-msgctxt "@action:button Pen display doesn't support calibration"
-msgid "Calibration Not Supported"
-msgstr "Kalibrointia ei tueta"
-
-#: ui/StylusTab.qml:536
-#, kde-format
-msgctxt "@action:button"
-msgid "Reset Custom Calibration"
-msgstr "Palauta kalibroinnin mukautus"
-
-#: ui/StylusTab.qml:551
+#: ui/StylusTab.qml:461
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -729,6 +749,30 @@ msgid ""
 msgstr ""
 "Olet itse kalibroinut piirtoalustan. Ellei se enää toimi oikein, kokeile "
 "palauttaa ensin oletukset."
+
+#: ui/StylusTab.qml:470
+#, kde-format
+msgctxt "@action:button Calibration in progress"
+msgid "Calibration in Progress"
+msgstr "Kalibrointi meneillään"
+
+#: ui/StylusTab.qml:472
+#, kde-format
+msgctxt "@action:button Calibrate the pen display"
+msgid "Calibrate"
+msgstr "Kalibroi"
+
+#: ui/StylusTab.qml:475
+#, kde-format
+msgctxt "@action:button Pen display doesn't support calibration"
+msgid "Calibration Not Supported"
+msgstr "Kalibrointia ei tueta"
+
+#: ui/StylusTab.qml:516
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset Custom Calibration"
+msgstr "Palauta kalibroinnin mukautus"
 
 #: ui/Tester.qml:25
 #, kde-format
@@ -798,6 +842,26 @@ msgstr ""
 msgctxt "Clear the tablet tester event log"
 msgid "Clear"
 msgstr "Tyhjennä"
+
+#~ msgctxt ""
+#~ "@label prefix for configuring Keybind to send when dial/ring is turned "
+#~ "upwards"
+#~ msgid "Up:"
+#~ msgstr "Ylös:"
+
+#~ msgctxt ""
+#~ "@label prefix for configuring Keybind to send when dial/ring is turned "
+#~ "downwards"
+#~ msgid "Down:"
+#~ msgstr "Alas:"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Calibration is completed and saved.<nl/><nl/>Refine the calibration "
+#~ "further or close the window."
+#~ msgstr ""
+#~ "Kalibrointi on valmis ja tallennettu.<nl/><nl/>Kalibrointia voi nyt "
+#~ "tarkentaa tai sulkea ikkunan."
 
 #~ msgctxt ""
 #~ "Pen mode, where the point on the screen is always where you touch the "

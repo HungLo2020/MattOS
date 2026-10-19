@@ -38,7 +38,7 @@ ApplicationWindow {
             text.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             padding: 0
             indicator {
-                implicitHeight: Style.Stretch
+                fillHeight: true
                 color: "navy"
                 opacity: 0.1
                 foreground {
@@ -47,17 +47,19 @@ ApplicationWindow {
                     image.color: "navy"
                     image.fillMode: Image.PreserveAspectFit
                     image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/arrow-indicator.png"
-                    implicitWidth: 10
-                    implicitHeight: 10
+                    width: 10
+                    height: 10
                     alignment: Qt.AlignCenter
                 }
-                down {
-                    alignment: Qt.AlignLeft
-                    foreground.rotation: 90
-                }
-                up {
+                // up button
+                first {
                     alignment: Qt.AlignRight
                     foreground.rotation: -90
+                }
+                // down button
+                second {
+                    alignment: Qt.AlignLeft
+                    foreground.rotation: 90
                 }
             }
         }

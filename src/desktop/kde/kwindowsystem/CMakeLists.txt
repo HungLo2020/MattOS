@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
 project(KWindowSystem VERSION ${KF_VERSION})
 
 # ECM setup
 include(FeatureSummary)
-find_package(ECM 6.26.0  NO_MODULE)
+find_package(ECM 6.31.0  NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -21,13 +21,13 @@ include(ECMGenerateExportHeader)
 include(CMakePackageConfigHelpers)
 include(ECMSetupVersion)
 include(ECMGenerateHeaders)
-include(CMakeFindFrameworks)
 include(ECMQtDeclareLoggingCategory)
 include(ECMDeprecationSettings)
 include(ECMPoQmTools)
 include(ECMGeneratePkgConfigFile)
 include(ECMQmlModule)
 include(ECMGenerateQDoc)
+include(ECMInstalledLibraryCheck)
 
 set(EXCLUDE_DEPRECATED_BEFORE_AND_AT 0 CACHE STRING "Control the range of deprecated API excluded from the build [default=0].")
 
@@ -38,7 +38,7 @@ ecm_setup_version(PROJECT VARIABLE_PREFIX KWINDOWSYSTEM
                         SOVERSION 6)
 
 # Dependencies
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 find_package(Qt6Gui ${REQUIRED_QT_VERSION} CONFIG REQUIRED)
 
 if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")

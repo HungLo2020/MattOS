@@ -1,0 +1,656 @@
+# SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+# SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>*
+
+type: group
+
+doc: |
+    \brief The root property group for all elements.
+
+    This class contains all the properties that are used to style an element.
+
+css:
+    ignore: true
+
+children:
+    size:
+        type: type
+
+        doc: \brief A property group representing a set of sizes for cardinal directions.
+
+        css:
+            extra_properties:
+            -   name: "{prefix}"
+                syntax: <length>{1,4}
+                doc: |
+                    A shorthand to set all values in a single property. Can take one to four
+                    values. If one value is provided, it will be used for all four values.
+                    If two values are provided, the first will be used for left and right,
+                    the second for top and bottom. If three values are provided, the first
+                    will be used for top, the second for left and right and the third for
+                    bottom. If four values are provided, they are used for top, right, bottom,
+                    left in that order.
+
+        children:
+            left:
+                type: qreal
+                doc: The size of the left side.
+            right:
+                type: qreal
+                doc: The size of the right side.
+            top:
+                type: qreal
+                doc: The size of the top side.
+            bottom:
+                type: qreal
+                doc: The size of the bottom side.
+
+        extra_system_includes:
+            "property.h.j2":
+            -   QMarginsF
+
+        extra_code:
+            "property.h.j2":
+                public: |4
+                        /*!
+                        Convert a Size property to QMarginsF.
+
+                        If any values are not set, they will use 0.0.
+                        */
+                        QMarginsF toMargins() const;
+            "property.cpp.j2":
+                global: |4
+                    QMarginsF {{ type }}::toMargins() const
+                    {
+                        return QMarginsF{d->left.value_or(0.0), d->top.value_or(0.0), d->right.value_or(0.0), d->bottom.value_or(0.0)};
+                    }
+
+    alignment:
+        type: type
+
+        doc: \brief A property group with properties related to alignment.
+
+        css:
+            extra_properties:
+            -   name: "{prefix}"
+                syntax: "(item | content | background) (start | center | end | fill) (start | center | end | fill | stack-center | stack-fill) <integer>"
+                doc: A shorthand for setting the various alignment properties.
+
+        children:
+            container:
+                type: Union::Properties::AlignmentContainer
+                doc: The alignment container. This determines relative to what an element is placed.
+
+            horizontal:
+                type: Union::Properties::Alignment
+                doc: The horizontal alignment.
+
+                css:
+                    syntax: "start | center | end | fill"
+
+            vertical:
+                type: Union::Properties::Alignment
+                doc: The vertical alignment.
+
+            order:
+                type: int
+                doc: The order determines which elements come before others in the same alignment group.
+
+    image:
+        type: type
+
+        doc: \brief A property group describing properties of an image.
+
+        children:
+            source:
+                type: std::filesystem::path
+                doc: The path to an image to use as source for this image.
+
+            width:
+                type: qreal
+                doc: The width to use for the image. If unset, the source's image width is used.
+
+            height:
+                type: qreal
+                doc: The height to use for the image. If unset, the source's image height is used.
+
+            xOffset:
+                type: qreal
+                doc: An offset on placement of the image horizontally.
+                css:
+                    name: "{prefix}-offset-x"
+
+            yOffset:
+                type: qreal
+                doc: An offset on placement of the image vertically.
+                css:
+                    name: "{prefix}-offset-y"
+
+            flags:
+                type: Union::Properties::ImageFlags
+                doc: A set of flags to use for this image.
+
+            maskColor:
+                type: Union::Color
+                doc: The color to use for rendering the image when the image is used as a mask.
+                css:
+                    name: "{prefix}-mask-color"
+
+    line:
+        type: type
+
+        doc: \brief A property group containing the properties of a line.
+
+        css:
+            extra_properties:
+            -   name: "{prefix}"
+                syntax: "none | (<length> (none | solid) <color>)"
+                doc: A shorthand to set all properties in one go.
+
+        children:
+            size:
+                type: qreal
+                doc: The thickness of the line.
+
+                css:
+                    name: "{prefix}-width"
+
+            color:
+                type: Union::Color
+                doc: The color of the line.
+
+            style:
+                type: Union::Properties::LineStyle
+                doc: The style of the line.
+
+    corner:
+        type: type
+
+        doc: \brief A property group containing the properties of a corner.
+
+        children:
+            radius:
+                type: qreal
+                doc: The radius of the corner.
+
+    display:
+        type: group
+
+        doc: \brief A property group containing properties related to how the element is displayed.
+
+        css:
+            doc: |
+                These properties relate to how an element is displayed.
+
+        children:
+            visible:
+                type: bool
+
+                doc: Whether the element should be shown or hidden.
+
+                css:
+                    name: visibility
+                    syntax: "visible | hidden"
+                    doc: |
+                        The visibility of the element, whether it should be shown or hidden.
+
+                        \note Unlike the web-CSS version of this property, setting visibility
+                        to hidden also removes the element's box from any layout. Effectively
+                        \c{visibility: hidden} works like \c{display: none}.
+
+            opacity:
+                type: qreal
+
+                doc: The opacity of the element.
+
+                css:
+                    name: opacity
+                    syntax: "<number>"
+
+    layout:
+        type: group
+
+        doc: \brief A property group containing properties related to the layout of an element.
+
+        css:
+            doc: These properties all relate to an element's layout and sizing.
+
+        children:
+            alignment:
+                type: alignment
+
+                css:
+                    doc: |
+                        The alignment related properties can be used to control the alignment for
+                        elements that combine multiple items into a single element, such as a checkbox
+                        that contains a check mark (usually referred to as \c{indicator}), an icon and
+                        a label. For details about how the layout for elements works, see \l{layout}.
+
+                        Horizontal and vertical alignment is specified in relative terms that do not
+                        imply a writing direction.
+
+            width:
+                type: qreal
+                doc: The implicit (initial) width of an element.
+
+                css:
+                    name: width
+
+            height:
+                type: qreal
+                doc: The implicit (initial) height of an element.
+
+                css:
+                    name: height
+
+            spacing:
+                type: qreal
+                doc: The spacing between various elements.
+
+                css:
+                    name: spacing
+
+            padding:
+                type: size
+
+                doc: Padding defines extra spacing around the content of an element.
+
+                css:
+                    name: padding
+                    doc: Padding defines extra spacing around the content of an element.
+
+            inset:
+                type: size
+
+                doc: Inset defines extra spacing around the background of an element.
+
+                css:
+                    name: inset
+                    doc: Inset defines extra spacing around the background of an element.
+
+            margins:
+                type: size
+
+                doc: Margins define extra spacing between sub-elements of an element.
+
+                css:
+                    name: margin
+                    doc: Margins define extra spacing between sub-elements of an element.
+
+    text:
+        type: group
+
+        doc: \brief A property group containing properties related to the text of an element.
+
+        css:
+            doc: |
+                These properties all relate to the text of an element. They will have no effect
+                if the element has no visible text.
+
+            extra_properties:
+            -   name: color
+                syntax: "<color>"
+                doc: A shorthand for setting both text and icon color in one property.
+            -   name: font-size
+                syntax: "<length-percentage>"
+                doc: The size of the font used for the text of an element.
+            -   name: font-weight
+                syntax: "<integer> | (normal | bold | bolder | lighter)"
+                doc: The weight of the font used for the text of an element.
+            -   name: font-family
+                syntax: "<string>"
+                doc: The name of the font family used for the text of an element.
+
+        children:
+            alignment:
+                type: alignment
+                doc: The alignment of the text of an element.
+
+            font:
+                type: QFont
+                doc: The font used for the text of an element.
+
+            color:
+                type: Union::Color
+                doc: The color of the text of an element.
+
+            wrapMode:
+                type: Union::Properties::TextWrapMode
+                doc: The wrap mode for the text of an element.
+
+                css:
+                    name: text-wrap-mode
+
+            elide:
+                type: Union::Properties::TextElide
+                doc: The elide mode for the text of an element.
+
+    icon:
+        type: group
+
+        doc: \brief A property group containing properties related to an element's icon.
+
+        css:
+            doc: |
+                These properties all relate to the icon of an element. They will have no
+                effect if the element does not have an icon.
+            extra_properties:
+            -   name: icon-size
+                syntax: "<length>"
+                doc: A shorthand to set both icon-width and icon-height in a single property.
+
+        children:
+            alignment:
+                type: alignment
+                doc: The alignment of the icon of an element.
+
+            width:
+                type: qreal
+                doc: The width of the icon of an element.
+
+            height:
+                type: qreal
+                doc: The height of the icon of an element.
+
+            name:
+                type: QString
+                doc: The name of an icon of the icon theme to use for this icon.
+
+            source:
+                type: QUrl
+
+                doc: |
+                    A URL to a file to use for the icon. Currently only local files are
+                    supported.
+
+            color:
+                type: Union::Color
+                doc: The color of the icon of an element.
+
+    background:
+        type: group
+
+        doc: \brief A property group containing properties related to an element's background.
+
+        css:
+            doc: |
+                The background properties all relate to the background of an element. An element's
+                background is a layer rendered over any shadows but underneath everything else.
+
+            extra_properties:
+            -   name: background
+                syntax: "none | <color> | <url>"
+                doc: |
+                    A shorthand to set a background for an element. Setting this to "none" will
+                    explicitly disable any background. Setting this to a color value will use that
+                    color as background. Setting it to a url will use that as image source for the
+                    background.
+
+        children:
+            color:
+                type: Union::Color
+
+                doc: The background color to use for an element.
+
+            image:
+                type: image
+
+                doc: The image to use for an element.
+
+                css:
+                    extra_properties:
+                    -   name: background-image
+                        syntax: "(<url> (mask | inverted-mask) <color>) | <url>"
+                        doc: |
+                            A shorthand to set a background image for an element, potentially as a masked
+                            image with a specified color.
+
+    border:
+        type: group
+
+        doc: \brief A property group containing properties of an element's border.
+
+        css:
+            doc: |
+                The border properties all relate to an element's border. An element's
+                border is a set of lines rendered inside the edge of an element, over any
+                background but underneath any content. Borders have a width, a style and
+                a color. Currently only the styles "none" and "solid" are supported, with
+                "none" meaning do not draw the border and "solid" being use a solid color
+                for the border.
+
+            extra_properties:
+            -   name: border
+                syntax: "none | (<length> (none | solid) <color>)"
+                doc: |
+                    A shorthand to set all border properties in a single property. If set to
+                    none, all borders will be disabled. If set to <length> solid <color>, all
+                    borders will use <length> for their size and <color> for their color.
+
+            -   name: border-width
+                syntax: <length>
+                doc: A shorthand to set all border widths in a single property.
+
+            -   name: border-color
+                syntax: <color>
+                doc: A shorthand to set all border colors in a single property.
+
+            -   name: border-style
+                syntax: "none | solid"
+                doc: A shorthand to set all border styles in a single property.
+
+        children:
+            left:
+                type: line
+
+            right:
+                type: line
+
+            top:
+                type: line
+
+            bottom:
+                type: line
+
+        extra_system_includes:
+            "property.h.j2":
+            -   QMarginsF
+
+        extra_code:
+            "property.h.j2":
+                public: |4
+                        /*! Returns the size of all borders */
+                        QMarginsF sizes() const;
+
+            "property.cpp.j2":
+                global: |4
+                    QMarginsF {{ type }}::sizes() const
+                    {
+                        QMarginsF result;
+
+                        if (d->left) {
+                            result.setLeft(d->left->size().value_or(0.0));
+                        }
+                        if (d->right) {
+                            result.setRight(d->right->size().value_or(0.0));
+                        }
+                        if (d->top) {
+                            result.setTop(d->top->size().value_or(0.0));
+                        }
+                        if (d->bottom) {
+                            result.setBottom(d->bottom->size().value_or(0.0));
+                        }
+
+                        return result;
+                    }
+
+    outline:
+        type: group
+
+        doc: \brief A property group containing properties of an element's outline.
+
+        css:
+            doc: |
+                The outline properties all relate to an element's outline, which is an
+                extra border around the outside of an element.
+
+            extra_properties:
+            -   name: outline
+                syntax: "none | (<length> (none | solid) <color>)"
+                doc: A shorthand to set all outline properties in a single property.
+
+        children:
+            left:
+                type: line
+
+            right:
+                type: line
+
+            top:
+                type: line
+
+            bottom:
+                type: line
+
+    corners:
+        type: group
+
+        doc: \brief A property group containing properties of a background's corners.
+
+        css:
+            doc: |
+                The corners properties all relate to an element's corners.
+
+            extra_properties:
+            -   name: border-radius
+                syntax: "<length> | (<length> <length> <length> <length>)"
+                doc: |
+                    A shorthand for setting the radius of the corners of an element, either as
+                    a single value for all corners or individual values for each corner.
+
+        children:
+            topLeft:
+                type: corner
+
+                css:
+                    name: "border-top-left"
+
+            topRight:
+                type: corner
+
+                css:
+                    name: "border-top-right"
+
+            bottomLeft:
+                type: corner
+
+                css:
+                    name: "border-bottom-left"
+
+            bottomRight:
+                type: corner
+
+                css:
+                    name: "border-bottom-right"
+
+        extra_code:
+            "property.h.j2":
+                public: |4
+                        struct CornerRadii {
+                            qreal topLeft = 0.0;
+                            qreal topRight = 0.0;
+                            qreal bottomLeft = 0.0;
+                            qreal bottomRight = 0.0;
+                        };
+
+                        /*! Returns the radii of all corners */
+                        CornerRadii radii() const;
+
+            "property.cpp.j2":
+                global: |4
+                    {{ type }}::CornerRadii {{ type }}::radii() const
+                    {
+                        CornerRadii result;
+
+                        if (d->topLeft) {
+                            result.topLeft = d->topLeft->radius().value_or(0.0);
+                        }
+                        if (d->topRight) {
+                            result.topRight = d->topRight->radius().value_or(0.0);
+                        }
+                        if (d->bottomLeft) {
+                            result.bottomLeft = d->bottomLeft->radius().value_or(0.0);
+                        }
+                        if (d->bottomRight) {
+                            result.bottomRight = d->bottomRight->radius().value_or(0.0);
+                        }
+
+                        return result;
+                    }
+
+    shadow:
+        type: group
+
+        doc: \brief A property group containing properties relating to an element's shadow.
+
+        css:
+            # name: box-shadow
+            doc: These properties describe an element's shadow.
+
+            extra_properties:
+            -   name: box-shadow
+                syntax: "none | (<length> <length> <length> <length> <color>)"
+                doc: |
+                    A shorthand to set the shadow of an element to a box-shaped shadow. If set to none,
+                    the shadow will explicitly be disabled. Otherwise, the parameters are X offset, Y offset,
+                    size, blur and finally color.
+
+        children:
+            offset:
+                type: group
+
+                doc: |
+                    The offset of the shadow from its element. Setting this will move the entire shadow,
+                    as if the light were cast from a different angle.
+
+                children:
+                    horizontal:
+                        type: qreal
+                        doc: The horizontal offset of the shadow.
+
+                    vertical:
+                        type: qreal
+                        doc: The vertical offset of the shadow.
+
+                extra_system_includes:
+                    "property.h.j2":
+                    -   QVector2D
+
+                extra_code:
+                    "property.h.j2":
+                        public: |4
+                                /*!
+                                Convert an Offset property to QVector2D.
+
+                                If any values are not set, they will use 0.0.
+                                */
+                                QVector2D toVector2D() const;
+                    "property.cpp.j2":
+                        global: |4
+                            QVector2D {{ type }}::toVector2D() const
+                            {
+                                return QVector2D{float(d->horizontal.value_or(0.0)), float(d->vertical.value_or(0.0))};
+                            }
+
+            color:
+                type: Union::Color
+                doc: The color of the shadow.
+
+            size:
+                type: qreal
+                doc: The size of the shadow. This expands the area used for the shadow compared to the size of an element.
+
+            blur:
+                type: qreal
+                doc: |
+                    The amount of blur to use for the shadow. Increasing this will increase how smooth the shadow
+                    goes from fully transparent to the full shadow color.

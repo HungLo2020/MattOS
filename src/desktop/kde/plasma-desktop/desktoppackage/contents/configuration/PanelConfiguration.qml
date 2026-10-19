@@ -11,7 +11,7 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PC3
-import org.kde.plasma.shell.panel as Panel
+import org.kde.plasma.shell
 import org.kde.kquickcontrols
 import "panelconfiguration"
 
@@ -81,7 +81,7 @@ ColumnLayout {
     }
 
     Component.onCompleted: {
-        if (panel.lengthMode === Panel.Global.Custom) {
+        if (panel.lengthMode === Panel.Custom) {
             Qt.callLater(()=> {
                 panelConfiguration.panelRulerView.visible = true
             })
@@ -127,6 +127,13 @@ ColumnLayout {
                         icon.name: "distribute-horizontal-x"
 
                         onClicked: configDialog.addPanelSpacer()
+                    }
+
+                    PC3.MenuItem {
+                        text: i18ndc("plasma_shell_org.kde.plasma.desktop", "@action:menu add a margins separator", "Margins Separator")
+                        icon.name: "distribute-horizontal-margin"
+
+                        onClicked: configDialog.addPanelMarginsSeparator()
                     }
 
                     PC3.MenuItem {
@@ -196,7 +203,7 @@ ColumnLayout {
                     }
                     panel.location = newLocation;
                     if (associatedWindow !== null) {
-                        panel.screenToFollow = dialogRoot.panelConfiguration.screenFromWindow(associatedWindow);
+                        panel.moveToScreen(dialogRoot.panelConfiguration.screenFromWindow(associatedWindow));
                     }
                     setPositionButton.checked = false;
                 }
@@ -335,17 +342,17 @@ ColumnLayout {
                     i18ndc("plasma_shell_org.kde.plasma.desktop", "@item:inlistbox panel is just big enough to fit its content", "Fit content"),
                     i18ndc("plasma_shell_org.kde.plasma.desktop", "@item:inlistbox panel size", "Custom")
                 ]
-                currentIndex: (panel.lengthMode === Panel.Global.FillAvailable ? 0 :
-                                panel.lengthMode === Panel.Global.FitContent ? 1 : 2)
+                currentIndex: (panel.lengthMode === Panel.FillAvailable ? 0 :
+                                panel.lengthMode === Panel.FitContent ? 1 : 2)
                 onActivated: (index) => {
                     if (index === 0) {
-                        panel.lengthMode = Panel.Global.FillAvailable
+                        panel.lengthMode = Panel.FillAvailable
                         panelConfiguration.panelRulerView.visible = false
                     } else if (index === 1) {
-                        panel.lengthMode = Panel.Global.FitContent
+                        panel.lengthMode = Panel.FitContent
                         panelConfiguration.panelRulerView.visible = false
                     } else {
-                        panel.lengthMode = Panel.Global.Custom
+                        panel.lengthMode = Panel.Custom
                         panelConfiguration.panelRulerView.visible = true
                     }
                 }
@@ -401,13 +408,13 @@ ColumnLayout {
                 Layout.minimumWidth: visibilityRepresentation.width
                 currentIndex: {
                     switch (panel.visibilityMode) {
-                        case Panel.Global.AutoHide:
+                        case Panel.AutoHide:
                             return 1;
-                        case Panel.Global.DodgeWindows:
+                        case Panel.DodgeWindows:
                             return 2;
-                        case Panel.Global.WindowsGoBelow:
+                        case Panel.WindowsGoBelow:
                             return 3;
-                        case Panel.Global.NormalPanel:
+                        case Panel.NormalPanel:
                         default:
                             return 0;
                     }
@@ -415,17 +422,17 @@ ColumnLayout {
                 onActivated: (index) => {
                     switch (index) {
                         case 1:
-                            panel.visibilityMode = Panel.Global.AutoHide;
+                            panel.visibilityMode = Panel.AutoHide;
                             break;
                         case 2:
-                            panel.visibilityMode = Panel.Global.DodgeWindows;
+                            panel.visibilityMode = Panel.DodgeWindows;
                             break;
                         case 3:
-                            panel.visibilityMode = Panel.Global.WindowsGoBelow;
+                            panel.visibilityMode = Panel.WindowsGoBelow;
                             break;
                         case 0:
                         default:
-                            panel.visibilityMode = Panel.Global.NormalPanel;
+                            panel.visibilityMode = Panel.NormalPanel;
                             break;
                     }
                 }
@@ -443,23 +450,38 @@ ColumnLayout {
         ColumnLayout {
             Layout.alignment: Qt.AlignHCenter
             spacing: Kirigami.Units.mediumSpacing
-            Kirigami.Heading {
+            RowLayout {
                 Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                level: dialogRoot.headingLevel
-                text: i18ndc("plasma_shell_org.kde.plasma.desktop", "@title:group", "Opacity")
-                textFormat: Text.PlainText
+                spacing: 0
+
+                Kirigami.Heading {
+                    level: dialogRoot.headingLevel
+                    text: i18ndc("plasma_shell_org.kde.plasma.desktop", "@title:group", "Opacity")
+                    textFormat: Text.PlainText
+                }
+
+                PlasmaExtras.ContextualHelpButton {
+                    visible: !panel.adaptiveOpacityEnabled
+                    toolTipText: i18ndc("plasma_shell_org.kde.plasma.desktop", "@info:tooltip", "The current Plasma style does not support opacity options.")
+                }
             }
             PanelRepresentation {
                 id: opacityRepresentation
                 Layout.alignment: Qt.AlignHCenter
                 adaptivePanel: transparencyBox.previewIndex === 0
                 translucentPanel: transparencyBox.previewIndex === 2
-                onClicked: transparencyBox.popup.visible = true
+                onClicked: {
+                    if (panel.adaptiveOpacityEnabled) {
+                        transparencyBox.popup.visible = true
+                    }
+                }
                 isVertical: dialogRoot.vertical
                 alignment: positionRepresentation.alignment
+                opacity: panel.adaptiveOpacityEnabled ? 1.0 : 0.75
             }
             PC3.ComboBox {
                 id: transparencyBox
+                enabled: panel.adaptiveOpacityEnabled
                 readonly property int previewIndex: popup.visible ? highlightedIndex : currentIndex
                 model: [
                     i18ndc("plasma_shell_org.kde.plasma.desktop", "@item:inlistbox", "Adaptive"),
@@ -468,15 +490,15 @@ ColumnLayout {
                 ]
                 Layout.alignment: Qt.AlignHCenter
                 Layout.minimumWidth: opacityRepresentation.width
-                currentIndex: (panel.opacityMode === Panel.Global.Adaptive ? 0 :
-                                panel.opacityMode === Panel.Global.Opaque ? 1 : 2)
+                currentIndex: (panel.opacityMode === Panel.Adaptive ? 0 :
+                                panel.opacityMode === Panel.Opaque ? 1 : 2)
                 onActivated: (index) => {
                     if (index === 0) {
-                        panel.opacityMode = Panel.Global.Adaptive
+                        panel.opacityMode = Panel.Adaptive
                     } else if (index === 1) {
-                        panel.opacityMode = Panel.Global.Opaque
+                        panel.opacityMode = Panel.Opaque
                     } else {
-                        panel.opacityMode = Panel.Global.Translucent
+                        panel.opacityMode = Panel.Translucent
                     }
                 }
             }
@@ -529,38 +551,6 @@ ColumnLayout {
                     } else {
                         panel.floating = true
                     }
-                }
-            }
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.columnSpan: 3
-            spacing: Kirigami.Units.smallSpacing
-            visible: panel.unsupportedConfiguration
-
-            Kirigami.Icon {
-                source: "data-warning-symbolic"
-                Layout.alignment: Qt.AlignVCenter
-                Layout.preferredWidth: Kirigami.Units.iconSizes.medium
-                Layout.preferredHeight: Kirigami.Units.iconSizes.medium
-            }
-
-            PC3.Label {
-                Layout.alignment: Qt.AlignVCenter
-                Layout.fillWidth: true
-                // Popup doesn't have to expand to the implicit size of this label, let it wrap.
-                Layout.preferredWidth: 0
-                text: panel.unsupportedConfigurationDescription
-                wrapMode: Text.Wrap
-            }
-
-            PC3.ToolButton {
-                Layout.alignment: Qt.AlignVCenter
-                text: i18ndc("plasma_shell_org.kde.plasma.desktop", "@action:button Revert an unsupported configuration back to the defaults", "Fix it")
-                icon.name: "tools-wizard-symbolic"
-                onClicked: {
-                    panel.fixUnsupportedConfiguration();
                 }
             }
         }
@@ -688,6 +678,7 @@ ColumnLayout {
             Accessible.description: i18ndc("plasma_shell_org.kde.plasma.desktop", "@info:whatsthis Accessible description for button", "Button to set the shortcut for the panel to gain focus")
             Accessible.onPressAction: startCapturing()
 
+            patterns: ShortcutPattern.Modifier | ShortcutPattern.ModifierAndKey
             keySequence: plasmoid.globalShortcut
             onCaptureFinished: {
                 plasmoid.globalShortcut = button.keySequence

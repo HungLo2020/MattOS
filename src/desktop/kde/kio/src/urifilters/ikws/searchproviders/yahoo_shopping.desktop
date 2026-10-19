@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=yahooshopping,yhs
 Name=Yahoo Shopping
+Name[am]=Yahoo ግብይት
 Name[ar]=تسوّق ياهو
 Name[ast]=Yahoo Shopping
 Name[az]=Yahoo Alış-Veriş
@@ -39,7 +40,7 @@ Name[id]=Yahoo Belanja
 Name[ie]=Yahoo Shopping
 Name[is]=Yahoo Shopping
 Name[it]=Acquisti di Yahoo
-Name[ja]=Yahoo Shopping
+Name[ja]=Yahoo! JAPAN ショッピング
 Name[ka]=Yahoo საყიდლები
 Name[kk]=Yahoo Shopping
 Name[km]=កា​រទិញ​ឥវ៉ាន់​របស់​យ៉ាហ៊ូ
@@ -51,6 +52,8 @@ Name[lv]=„Yahoo“ iepirkšanās
 Name[ml]=യാഹൂ ഷോപ്പിങ്ങ്
 Name[mr]=याहू खरेदी
 Name[my]=ယဟူးစျေးဝယ်ထွက်
+Name[nan_TW]=Yahoo Shopping
+Name[nan_TW@latin]=Yahoo Shopping
 Name[nb]=Yahoo Shopping
 Name[nds]=Yahoo - Inköpen
 Name[nl]=Yahoo Shopping
@@ -82,6 +85,7 @@ Name[wa]=Yahoo Botikes
 Name[zh_CN]=Yahoo 购物
 Name[zh_TW]=Yahoo Shopping
 Query=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
+Query[am]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[ar]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[ast]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[az]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
@@ -115,13 +119,15 @@ Query[id]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X
 Query[ie]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[is]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[it]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
-Query[ja]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
+Query[ja]=https://shopping.yahoo.co.jp/search?p=\\{@}&ei=UTF-8
 Query[ka]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[ko]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[lg]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[lt]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[lv]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[my]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
+Query[nan_TW]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
+Query[nan_TW@latin]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[nb]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[nl]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[nn]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
@@ -140,7 +146,6 @@ Query[tg]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X
 Query[th]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[tok]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[tr]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
-Query[ug]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[uk]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[vi]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701
 Query[zh_CN]=https://shopping.yahoo.com/search;_ylt=A0SO8ZgG65ZLyX8AsLX7w8QF;_ylu=X3oDMTBpcjIxMDllBHNlYwN0YWJzBHZ0aWQDVjEwOQ--?cop=mss&ei=UTF-8&p=\\{@}&fr2=tab-video&fr=yfp-t-701

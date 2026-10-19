@@ -163,6 +163,7 @@ public:
         PerceptualQuantizer = 2,
         gamma22 = 3,
         BT1886 = 4,
+        HLG = 5,
     };
     explicit TransferFunction(Type tf);
     explicit TransferFunction(Type tf, double minLuminance, double maxLuminance);
@@ -170,10 +171,10 @@ public:
     bool operator==(const TransferFunction &) const;
 
     bool hasLinearMinLuminance() const;
-    bool isRelative() const;
-    TransferFunction relativeScaledTo(double referenceLuminance) const;
-    double encodedToNits(double encoded) const;
-    double nitsToEncoded(double nits) const;
+
+    double whiteEncodedToNits(double encoded) const;
+    double whiteNitsToEncoded(double nits) const;
+
     QVector3D encodedToNits(const QVector3D &encoded) const;
     QVector3D nitsToEncoded(const QVector3D &nits) const;
     QVector4D encodedToNits(const QVector4D &encoded) const;
@@ -181,6 +182,7 @@ public:
 
     double bt1886A() const;
     double bt1886B() const;
+    double hlgBeta() const;
 
     Type type;
     /**
@@ -195,16 +197,37 @@ public:
     static double defaultMinLuminanceFor(Type type);
     static double defaultMaxLuminanceFor(Type type);
     static double defaultReferenceLuminanceFor(Type type);
+
+    double sRGBEOTF(double encoded) const;
+    double sRGBinverseEOTF(double nits) const;
+
+    double gamma22EOTF(double encoded) const;
+    double gamma22inverseEOTF(double nits) const;
+
+    double linearEOTF(double encoded) const;
+    double linearInverseEOTF(double nits) const;
+
+    double pqEOTF(double encoded) const;
+    double pqInverseEOTF(double nits) const;
+
+    double bt1886EOTF(double encoded) const;
+    double bt1886InverseEOTF(double nits) const;
+
+private:
+    double normalize(double nits) const;
+
+    double hlgOETF(double nits) const;
+    double hlgInverseOETF(double x) const;
 };
 
-enum class YUVMatrixCoefficients {
+enum class YUVMatrixCoefficients : int {
     Identity,
     BT601,
     BT709,
     BT2020,
 };
 
-enum class EncodingRange {
+enum class EncodingRange : int {
     Limited,
     Full,
 };
@@ -251,9 +274,8 @@ public:
 
     /**
      * @returns the matrix that converts from this ColorDescription's encoding to full range RGB
-     * TODO move this to ColorPipeline, to deal with ICtCp
      */
-    QMatrix4x4 yuvMatrix() const;
+    const QMatrix4x4 &yuvMatrix() const;
 
     bool operator==(const ColorDescription &other) const = default;
 
@@ -280,6 +302,8 @@ public:
     static const std::shared_ptr<ColorDescription> sRGB;
     static const std::shared_ptr<ColorDescription> BT2020PQ;
 
+    static const QMatrix4x4 &yuvMatrix(YUVMatrixCoefficients coefficients, EncodingRange range);
+
 private:
     Colorimetry m_containerColorimetry;
     Colorimetry m_masteringColorimetry;
@@ -292,6 +316,7 @@ private:
     YUVMatrixCoefficients m_yuvCoefficients = YUVMatrixCoefficients::Identity;
     EncodingRange m_range = EncodingRange::Full;
 };
+
 }
 
 inline bool operator==(const std::shared_ptr<KWin::ColorDescription> &left, const std::shared_ptr<KWin::ColorDescription> &right)

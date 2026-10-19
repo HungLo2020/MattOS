@@ -126,19 +126,7 @@ EmptyPage {
 
         // This is actually needed. The highlight will animate from thin to wide otherwise.
         highlightResizeDuration: 0
-        highlightMoveDuration: 0
-        highlight: PlasmaExtras.Highlight {
-            // The default Z value for delegates is 1. The default Z value for the section delegate is 2.
-            // The highlight gets a value of 3 while the drag is active and then goes back to the default value of 0.
-            z: (root.currentItem?.Drag.active ?? false) ? 3 : 0
-
-            pressed: ((view.currentItem as T.AbstractButton)?.down ?? false)
-                && !((view.currentItem as AbstractKickoffItemDelegate)?.isCategoryListItem ?? false)
-
-            active: view.activeFocus
-                || (kickoff.contentArea === root
-                    && kickoff.searchField.activeFocus)
-        }
+        highlightFollowsCurrentItem: false
 
         onCountChanged: {
             if (!activeFocus) {
@@ -219,6 +207,15 @@ EmptyPage {
             }
         }
 
+        Connections {
+            target: kickoff.runnerModel
+            enabled: launchMatchTimer.running
+            function onQueryFinished() : void {
+                launchMatchTimer.stop()
+                Qt.callLater(launchMatchTimer.triggered) // callLater to give bindings time to update
+            }
+        }
+
         // Used to block hover events temporarily after using keyboard navigation.
         // If you have one hand on the touch pad or mouse and another hand on the keyboard,
         // it's easy to accidentally reset the highlight/focus position to the mouse position.
@@ -234,8 +231,25 @@ EmptyPage {
             onTriggered: view.movedWithWheel = false
         }
 
+        Timer {
+            id: launchMatchTimer
+            interval: 750
+            onTriggered: {
+                view.currentItem?.action.trigger();
+                currentItem.forceActiveFocus(Qt.ShortcutFocusReason);
+            }
+        }
+
+        onCurrentItemChanged: {
+            if (launchMatchTimer.running && view.currentItem?.text.toLowerCase().includes(kickoff.runnerModel.query.toLowerCase())) {
+                launchMatchTimer.stop()
+                launchMatchTimer.triggered()
+            }
+        }
+
         function focusCurrentItem(event, focusReason) {
             currentItem.forceActiveFocus(focusReason)
+            positionViewAtIndex(currentIndex, ListView.Contain)
             event.accepted = true
         }
 
@@ -252,7 +266,7 @@ EmptyPage {
             let targetIndex = currentIndex
             const atFirst = currentIndex === 0
             const atLast = currentIndex === count - 1
-            if (count >= 1) {
+            if (count >= 1 || (kickoff.runnerModel.querying && [Qt.Key_Return, Qt.Key_Enter].includes(event.key))) {
                 switch (event.key) {
                     case Qt.Key_Up: if (!atFirst) {
                         decrementCurrentIndex()
@@ -313,8 +327,14 @@ EmptyPage {
                     case Qt.Key_Return:
                         /* Fall through*/
                     case Qt.Key_Enter:
-                        (currentItem as AbstractKickoffItemDelegate).action.triggered();
-                        currentItem.forceActiveFocus(Qt.ShortcutFocusReason);
+                        if (launchMatchTimer.running) {
+                            launchMatchTimer.stop()
+                            launchMatchTimer.triggered()
+                        } else if (!kickoff.runnerModel.querying || view.currentItem?.text.toLowerCase().includes(kickoff.runnerModel.query.toLowerCase())) {
+                            launchMatchTimer.triggered()
+                        } else {
+                            launchMatchTimer.start()
+                        }
                         event.accepted = true;
                         break;
                 }

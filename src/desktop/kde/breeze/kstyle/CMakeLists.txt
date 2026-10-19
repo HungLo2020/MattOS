@@ -101,14 +101,8 @@ target_link_libraries(breeze${QT_MAJOR_VERSION}
 
 if(QT_MAJOR_VERSION STREQUAL "5")
     target_link_libraries(breeze5 KF5::ConfigWidgets)
-    if (BREEZE_HAVE_QTQUICK)
-        target_link_libraries(breeze5 KF5::Kirigami2)
-    endif()
 else()
     target_link_libraries(breeze6 KF6::ColorScheme)
-    if (BREEZE_HAVE_QTQUICK)
-        target_link_libraries(breeze6 KF6::KirigamiPlatform)
-    endif()
 endif()
 
 target_link_libraries(breeze${QT_MAJOR_VERSION} breezecommon${QT_MAJOR_VERSION})
@@ -128,6 +122,7 @@ endif()
 ########### install files ###############
 install(TARGETS breeze${QT_MAJOR_VERSION}  DESTINATION ${KDE_INSTALL_QTPLUGINDIR}/styles/)
 install(FILES breeze.themerc  DESTINATION  ${KDE_INSTALL_DATADIR}/kstyle/themes)
+install(FILES breeze.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})
 
 ########### subdirectories ###############
 

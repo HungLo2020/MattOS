@@ -53,6 +53,12 @@ WallpaperItem {
         root.loading = true; // delays ksplash until the wallpaper has been loaded
     }
 
+    Rectangle {
+        anchors.fill: parent
+        color: root.configuration.Color
+        visible: imageView.empty && !root.loading
+    }
+
     ImageStackView {
         id: imageView
         anchors.fill: parent
@@ -60,6 +66,8 @@ WallpaperItem {
         fillMode: root.configuration.FillMode
         configColor: root.configuration.Color
         blur: root.configuration.Blur
+        forceImageAnimation: root.configuration.ForceImageAnimation
+
         source: {
             if (root.pluginName === "org.kde.slideshow") {
                 return imageWallpaper.image;

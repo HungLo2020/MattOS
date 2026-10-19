@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: l 10n\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"POT-Creation-Date: 2026-10-01 20:15+0000\n"
 "PO-Revision-Date: 2025-01-27 14:13+0200\n"
 "Last-Translator: Moo\n"
 "Language-Team: Lithuanian <kde-i18n-lt@kde.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
 "X-Generator: Poedit 3.5\n"
 
-#: abstractlocker.cpp:43
+#: emergencywindow.cpp:54
 #, kde-format
 msgid ""
 "The screen locker is broken and unlocking is not possible anymore.\n"
@@ -33,7 +33,7 @@ msgstr ""
 "Norinti atrakinti, reikalingas arba ConsoleKit, arba LoginD, tačiau\n"
 "nei vieno iš jų nepavyko rasti jūsų sistemoje."
 
-#: abstractlocker.cpp:47
+#: emergencywindow.cpp:58
 #, kde-format
 msgctxt "%1 = other terminal"
 msgid ""
@@ -52,7 +52,7 @@ msgstr ""
 "# ck-unlock-session <session-name>\n"
 "\n"
 
-#: abstractlocker.cpp:52
+#: emergencywindow.cpp:63
 #, kde-format
 msgctxt "%1 = other terminal, %2 = session ID, %3 = this terminal"
 msgid ""
@@ -82,34 +82,34 @@ msgstr ""
 "paspausdami Vald+Alt+F%3\n"
 "\n"
 
-#: ksldapp.cpp:183
+#: ksldapp.cpp:117
 #, kde-format
 msgctxt ""
 "Name of a category in System Settings' Shortcuts KCM; match it exactly"
 msgid "Session Management"
 msgstr "Seanso tvarkytuvė"
 
-#: ksldapp.cpp:185
+#: ksldapp.cpp:119
 #, kde-format
 msgid "Lock Session"
 msgstr "Užrakinti sesiją"
 
-#: ksldapp.cpp:451
+#: ksldapp.cpp:335
 #, kde-format
 msgid "Screen locked"
 msgstr "Ekranas užrakintas"
 
-#: ksldapp.cpp:619
+#: ksldapp.cpp:363
 #, kde-format
 msgid "Screen unlocked"
 msgstr "Ekranas atrakintas"
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Screen Locker"
 msgstr "Ekrano užraktas"
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Ensuring that the screen gets locked before going to sleep"
 msgstr "Užtikrina, kad ekranas bus užrakintas prieš užmiegant"

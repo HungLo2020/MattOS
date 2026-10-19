@@ -5,6 +5,7 @@
 #include "QtQmlLS/private/qqmllsutils_p.h"
 #include "QtQmlLS/private/qqmlsemantictokens_p.h"
 #include "QtQmlLS/private/documentsymbolutils_p.h"
+#include "QtQmlLS/private/qqmlcodemodel_p.h"
 #include <algorithm>
 #include <memory>
 #include <optional>
@@ -26,32 +27,20 @@ do { \
 QT_USE_NAMESPACE
 using namespace Qt::StringLiterals;
 using namespace QLspSpecification;
+using namespace QmlLsp;
 
 static constexpr bool enable_debug_output = false;
 
-static QString qmllsBuildIniContent(const QString &qmlFileName,
-                                    const QMap<QString, QStringList> &importPathsPerWorkspace)
-{
-    QString result = "[General]\n"_L1;
-    for (const auto &[workspace, importPaths] : importPathsPerWorkspace.asKeyValueRange()) {
-        const QString groupName =
-                QDir::cleanPath(workspace.isEmpty() ? (qmlFileName + "/.."_L1) : workspace)
-                        .replace("/"_L1, "<SLASH>"_L1);
-        result += "[%1]\nimportPaths=\"%2\"\n"_L1.arg(groupName,
-                                                      importPaths.join(QDir::listSeparator()));
-    }
-    return result;
-}
-
-static void createQmllsBuildIni(const QString &buildFolder, const QString &qmlFileName,
-                                const QMap<QString, QStringList> &importPathsPerWorkspace)
+static void createQmllsBuildIni(const QString &buildFolder,
+                                const QmlLsp::ModuleSettings &moduleSettings)
 {
     QDir dir(buildFolder);
     QVERIFY(dir.mkdir(".qt"_L1));
-    const QString qmllsBuildIniPath = dir.absoluteFilePath(".qt/.qmlls.build.ini"_L1);
-    QFile qmllsBuildIni(qmllsBuildIniPath);
-    QVERIFY(qmllsBuildIni.open(QFile::WriteOnly));
-    qmllsBuildIni.write(qmllsBuildIniContent(qmlFileName, importPathsPerWorkspace).toUtf8());
+    QmlLsp::QQmllsBuildInformation buildIni;
+    for (QmlLsp::ModuleSetting moduleSetting : moduleSettings) {
+        buildIni.addModuleSetting(moduleSetting);
+    }
+    buildIni.writeQmllsBuildIniContent(dir.absoluteFilePath(".qt/.qmlls.build.ini"_L1));
 }
 
 static Notifications::AddBuildDirsParams
@@ -78,6 +67,34 @@ addDidChangeWorkspaceFoldersFromMap(const QMap<QString, QStringList> &importPath
                 { QUrl::fromLocalFile(workspace).toEncoded(), workspace.toUtf8() });
     }
     return params;
+}
+
+static QTemporaryDir setImportPathsViaTemporaryBuildDir(const QString &filePath,
+                                                        const QStringList &importPaths,
+                                                        QLanguageServerProtocol *protocol)
+{
+    if (importPaths.empty())
+        return { };
+
+    QTemporaryDir tempDir;
+    [&tempDir]() { QVERIFY(tempDir.isValid()); }();
+    if (QTest::currentTestFailed())
+        return { };
+
+    createQmllsBuildIni(
+            tempDir.path(),
+            { ModuleSetting{
+                    filePath,
+                    QStringList(importPaths) << QLibraryInfo::path(QLibraryInfo::QmlImportsPath),
+                    { },
+            } });
+
+    Notifications::AddBuildDirsParams bDirs;
+    UriToBuildDirs ub;
+    ub.buildDirs.append(tempDir.path().toUtf8());
+    bDirs.buildDirsToSet.append(ub);
+    protocol->typedRpc()->sendNotification(QByteArray(Notifications::AddBuildDirsMethod), bDirs);
+    return tempDir;
 }
 
 tst_qmlls_modules::tst_qmlls_modules() : QQmlDataTest(QT_QMLTEST_DATADIR)
@@ -211,8 +228,11 @@ void tst_qmlls_modules::ignoreDiagnostics()
 
 void tst_qmlls_modules::ignoreWorkspaceSemanticTokensRefreshRequestHandler()
 {
-    m_protocol->registerRequestingARefreshOfAllSemanticTokensRequestHandler(
-            [](const QByteArray &, std::nullptr_t, auto &&r) { r.sendResponse(); });
+    m_protocol->registerWorkspaceSemanticTokensRefreshRequestHandler(
+            [](const QByteArray &, std::nullptr_t,
+               QLspSpecification::Responses::WorkspaceSemanticTokensRefreshResponseType &&r) {
+                r.sendResponse();
+            });
 }
 
 void tst_qmlls_modules::initTestCase()
@@ -240,7 +260,6 @@ void tst_qmlls_modules::checkCompletions(const QByteArray &uri, int lineNr, int 
             [clean, uri, expected, notExpected](auto res) {
                 QScopeGuard cleanup(clean);
                 const QList<CompletionItem> *cItems = std::get_if<QList<CompletionItem>>(&res);
-
                 if (!cItems) {
                     return;
                 }
@@ -253,16 +272,16 @@ void tst_qmlls_modules::checkCompletions(const QByteArray &uri, int lineNr, int 
                 QDuplicateTracker<QByteArray> propertiesTracker;
 
                 for (const CompletionItem &c : *cItems) {
-                    if (c.kind->toInt() == int(CompletionItemKind::Module)) {
+                    if (c.kind == CompletionItemKind::Module) {
                         QVERIFY2(!modulesTracker.hasSeen(c.label), "Duplicate module: " + c.label);
-                    } else if (c.kind->toInt() == int(CompletionItemKind::Keyword)) {
+                    } else if (c.kind == CompletionItemKind::Keyword) {
                         QVERIFY2(!keywordsTracker.hasSeen(c.label),
                                  "Duplicate keyword: " + c.label);
-                    } else if (c.kind->toInt() == int(CompletionItemKind::Class)) {
+                    } else if (c.kind == CompletionItemKind::Class) {
                         QVERIFY2(!classesTracker.hasSeen(c.label), "Duplicate class: " + c.label);
-                    } else if (c.kind->toInt() == int(CompletionItemKind::Field)) {
+                    } else if (c.kind == CompletionItemKind::Field) {
                         QVERIFY2(!fieldsTracker.hasSeen(c.label), "Duplicate field: " + c.label);
-                    } else if (c.kind->toInt() == int(CompletionItemKind::Property)) {
+                    } else if (c.kind == CompletionItemKind::Property) {
                         QVERIFY2(!propertiesTracker.hasSeen(c.label),
                                  "Duplicate property: " + c.label);
                     }
@@ -277,7 +296,7 @@ void tst_qmlls_modules::checkCompletions(const QByteArray &uri, int lineNr, int 
                                      .toUtf8());
                     if (labels.contains(exp.first)) {
                         for (const CompletionItem &c : *cItems) {
-                            const auto kind = static_cast<CompletionItemKind>(c.kind->toInt());
+                            const auto kind = c.kind;
 
                             bool foundEntry = false;
                             bool hasCorrectKind = false;
@@ -298,7 +317,7 @@ void tst_qmlls_modules::checkCompletions(const QByteArray &uri, int lineNr, int 
                                                      "Completion item '%1' has wrong kind '%2'")
                                                      .arg(c.label)
                                                      .arg(QMetaEnum::fromType<CompletionItemKind>()
-                                                                  .valueToKey(int(kind)))));
+                                                                  .valueToKey(int(*kind)))));
                         }
                     }
                 }
@@ -369,7 +388,7 @@ void tst_qmlls_modules::function_documentations()
                     bool hasFoundExpected = false;
                     const auto expectedLabel = std::get<0>(exp);
                     for (const CompletionItem &c : *cItems) {
-                        if (c.kind->toInt() != int(CompletionItemKind::Method)) {
+                        if (c.kind != CompletionItemKind::Method) {
                             // Only check functions.
                             continue;
                         }
@@ -385,7 +404,7 @@ void tst_qmlls_modules::function_documentations()
                 }
 
                 for (const CompletionItem &c : *cItems) {
-                    if (c.kind->toInt() != int(CompletionItemKind::Function)) {
+                    if (c.kind != CompletionItemKind::Function) {
                         // Only check functions.
                         continue;
                     }
@@ -444,11 +463,17 @@ void tst_qmlls_modules::buildDir()
 
     QTemporaryDir tempDir;
     QVERIFY(tempDir.isValid());
-    createQmllsBuildIni(tempDir.path(), testFile(filePath), importPathsPerWorkspace);
+    createQmllsBuildIni(tempDir.path(),
+                        { ModuleSetting{ testFile("completions"),
+                                         { testFile("buildDir"_L1),
+                                           QLibraryInfo::path(QLibraryInfo::QmlImportsPath) },
+                                         {} } });
 
     bool semanticTokensRefreshed = false;
-    m_protocol->registerRequestingARefreshOfAllSemanticTokensRequestHandler(
-            [&semanticTokensRefreshed](const QByteArray &, std::nullptr_t, auto &&r) {
+    m_protocol->registerWorkspaceSemanticTokensRefreshRequestHandler(
+            [&semanticTokensRefreshed](
+                    const QByteArray &, std::nullptr_t,
+                    QLspSpecification::Responses::WorkspaceSemanticTokensRefreshResponseType &&r) {
                 semanticTokensRefreshed = true;
                 r.sendResponse();
             });
@@ -464,7 +489,7 @@ void tst_qmlls_modules::buildDir()
 
     // change the file content to force qqml— to recreate a new DomItem
     // if it reuses the old DomItem then it will not know about the added build directory
-    TextDocumentContentChangeEvent change;
+    TextDocumentContentChangeEventVariant1 change;
     change.range = Range{ Position{ 4, 0 }, Position{ 4, 0 } };
     change.text = "\n";
 
@@ -488,7 +513,7 @@ void tst_qmlls_modules::inMemoryEnumCompletion()
     QVERIFY(uri);
 
     // add in memory enum that does not exist on disk
-    TextDocumentContentChangeEvent change;
+    TextDocumentContentChangeEventVariant1 change;
     change.range = Range{ Position{ 3, 0 }, Position{ 3, 0 } };
     change.text = "enum HelloEnum { Hello, World, Kitty, Qt }\nproperty var myP: SimpleItem.H";
 
@@ -510,10 +535,16 @@ void tst_qmlls_modules::automaticSemicolonInsertionForCompletions_data()
     QTest::addColumn<QString>("filePath");
     QTest::addColumn<int>("row");
     QTest::addColumn<int>("column");
+    QTest::addColumn<QStringList>("extraImportPaths");
 
-    QTest::addRow("bindingAfterDot") << u"completions/bindingAfterDot.qml"_s << 11 << 32;
+    QTest::addRow("bindingAfterDot")
+            << u"completions/bindingAfterDot.qml"_s << 11 << 32 << QStringList{ };
     QTest::addRow("defaultBindingAfterDot")
-            << u"completions/defaultBindingAfterDot.qml"_s << 11 << 32;
+            << u"completions/defaultBindingAfterDot.qml"_s << 11 << 32 << QStringList{ };
+
+    QTest::addRow("completeFromOtherModuleAfterDot")
+            << u"completions/completeFromOtherModuleAfterDot.qml"_s << 13 << 32
+            << QStringList{ testFile("completions/extraImportPath") };
 }
 
 void tst_qmlls_modules::automaticSemicolonInsertionForCompletions()
@@ -522,8 +553,15 @@ void tst_qmlls_modules::automaticSemicolonInsertionForCompletions()
     QFETCH(QString, filePath);
     QFETCH(int, row);
     QFETCH(int, column);
+    QFETCH(QStringList, extraImportPaths);
     row--;
     column--;
+
+    ignoreWorkspaceSemanticTokensRefreshRequestHandler();
+
+    auto tempDir = setImportPathsViaTemporaryBuildDir(QDir::cleanPath(testFile(filePath) + "/.."),
+                                                      extraImportPaths, m_protocol.get());
+
     const auto uri = openFile(filePath);
     QVERIFY(uri);
 
@@ -609,9 +647,7 @@ void tst_qmlls_modules::goToTypeDefinition()
             params,
             [&](auto res) {
                 QScopeGuard cleanup(clean);
-                auto *result = std::get_if<QList<Location>>(&res);
-
-                QVERIFY(result);
+                auto *result = std::get_if<QList<Location>>(std::get_if<Definition>(&res));
 
                 QCOMPARE(result->size(), 1);
 
@@ -691,7 +727,7 @@ void tst_qmlls_modules::goToDefinition()
             params,
             [&](auto res) {
                 QScopeGuard cleanup(clean);
-                auto *result = std::get_if<QList<Location>>(&res);
+                auto *result = std::get_if<QList<Location>>(std::get_if<Definition>(&res));
                 const QByteArray noResultExpected;
 
                 QVERIFY(result);
@@ -827,10 +863,9 @@ void tst_qmlls_modules::findUsages()
     auto clean = [didFinish]() { *didFinish = true; };
     m_protocol->requestReference(
             params,
-            [&](auto res) {
+            [&](auto _result) {
                 QScopeGuard cleanup(clean);
-                auto *result = std::get_if<QList<Location>>(&res);
-
+                auto result = std::get_if<QList<Location>>(&_result);
                 QVERIFY(result);
                 if constexpr (enable_debug_output) {
                     if (!locationListsAreEqual(*result, expectedUsages)) {
@@ -944,32 +979,30 @@ void tst_qmlls_modules::documentFormatting()
 
     std::shared_ptr<bool> didFinish = std::make_shared<bool>(false);
     auto clean = [didFinish]() { *didFinish = true; };
-    auto &&responseHandler = [&](auto response) {
+    auto &&responseHandler = [&](auto _response) {
         QScopeGuard cleanup(clean);
-        if (std::holds_alternative<QList<TextEdit>>(response)) {
-            const auto results = std::get<QList<TextEdit>>(response);
-            QVERIFY(results.size() == 1);
-            QFile file(expectedFile);
-            if (!file.open(QIODevice::ReadOnly)) {
-                qWarning() << "Error while opening the file " << expectedFile;
-                return;
-            }
-
-            const auto &textEdit = results.first();
-            QCOMPARE(textEdit.range.start.line, 0);
-            QCOMPARE(textEdit.range.start.character, 0);
-            QCOMPARE(textEdit.range.end.line, lineCount(originalFile));
-            QCOMPARE(textEdit.range.end.character, 0);
-
-            QEXPECT_FAIL("noSuperfluousSpaceInsertions.fail_id.qml",
-                         "Not all cases have been covered yet (QTBUG-133315, QTBUG-123386)",
-                         Continue);
-            QEXPECT_FAIL("noSuperfluousSpaceInsertions.fail_parameters.qml",
-                         "Not all cases have been covered yet (QTBUG-133315, QTBUG-123386)",
-                         Continue);
-
-            QCOMPARE(textEdit.newText, file.readAll());
+        auto response = std::get_if<QList<QLspSpecification::TextEdit>>(&_response);
+        QVERIFY(response);
+        const auto results = *response;
+        QVERIFY(results.size() == 1);
+        QFile file(expectedFile);
+        if (!file.open(QIODevice::ReadOnly)) {
+            qWarning() << "Error while opening the file " << expectedFile;
+            return;
         }
+
+        const auto &textEdit = results.first();
+        QCOMPARE(textEdit.range.start.line, 0);
+        QCOMPARE(textEdit.range.start.character, 0);
+        QCOMPARE(textEdit.range.end.line, lineCount(originalFile));
+        QCOMPARE(textEdit.range.end.character, 0);
+
+        QEXPECT_FAIL("noSuperfluousSpaceInsertions.fail_id.qml",
+                     "Not all cases have been covered yet (QTBUG-133315, QTBUG-123386)", Continue);
+        QEXPECT_FAIL("noSuperfluousSpaceInsertions.fail_parameters.qml",
+                     "Not all cases have been covered yet (QTBUG-133315, QTBUG-123386)", Continue);
+
+        QCOMPARE(textEdit.newText, file.readAll());
     };
 
     auto &&errorHandler = [&clean](const ResponseError &err) {
@@ -1061,15 +1094,14 @@ void tst_qmlls_modules::renameUsages_data()
 
         const QLspSpecification::WorkspaceEdit qmlComponentRename{
             std::nullopt,
-            QList<QLspSpecification::WorkspaceEdit::DocumentChange>{
-                    TextDocumentEdit{
-                            OptionalVersionedTextDocumentIdentifier{ { renameUsagesUri } },
-                            {
-                                    TextEdit{ rangeFrom(renamingContent, 4, 5,
-                                                        static_cast<quint32>(strlen("RenameMe"))),
-                                              "HelloWorld" },
-                            } },
-                    RenameFile{ "rename", renameMeUri, newFileUri } }
+            { { TextDocumentEdit{
+                        OptionalVersionedTextDocumentIdentifier{ { renameUsagesUri } },
+                        {
+                                TextEdit{ rangeFrom(renamingContent, 4, 5,
+                                                    static_cast<quint32>(strlen("RenameMe"))),
+                                          "HelloWorld" },
+                        } },
+                RenameFile{ { }, renameMeUri, newFileUri } } }
         };
 
         QTest::addRow("renameQmlComponent")
@@ -1079,15 +1111,14 @@ void tst_qmlls_modules::renameUsages_data()
     {
         QLspSpecification::WorkspaceEdit qmlComponentRename{
             std::nullopt,
-            QList<QLspSpecification::WorkspaceEdit::DocumentChange>{
-                    TextDocumentEdit{
-                            OptionalVersionedTextDocumentIdentifier{ { renameUsagesUri } },
-                            {
-                                    TextEdit{ rangeFrom(renamingContent, 5, 5,
-                                                        static_cast<quint32>(strlen("RenameMe2"))),
-                                              "HelloWorld" },
-                            } },
-                    RenameFile{ "rename", renameMe2Uri, newFileUri2 } }
+            { { TextDocumentEdit{
+                        OptionalVersionedTextDocumentIdentifier{ { renameUsagesUri } },
+                        {
+                                TextEdit{ rangeFrom(renamingContent, 5, 5,
+                                                    static_cast<quint32>(strlen("RenameMe2"))),
+                                          "HelloWorld" },
+                        } },
+                RenameFile{ { }, renameMe2Uri, newFileUri2 } } }
         };
 
         QTest::addRow("renameUiQmlComponent")
@@ -1153,10 +1184,9 @@ void tst_qmlls_modules::renameUsages()
     auto clean = [didFinish]() { *didFinish = true; };
     m_protocol->requestRename(
             params,
-            [&](auto &&res) {
+            [&](auto &&_result) {
                 QScopeGuard cleanup(clean);
-                auto *result = std::get_if<QLspSpecification::WorkspaceEdit>(&res);
-
+                auto result = std::get_if<WorkspaceEdit>(&_result);
                 QVERIFY(result);
                 QCOMPARE(result->changes.has_value(), expectedEdit.changes.has_value());
                 QCOMPARE(result->changeAnnotations.has_value(),
@@ -1225,7 +1255,7 @@ struct EditingRecorder
     before starting qmlls. It will print the differences between the different versions, and helps
     when some indices are off.
     */
-    void changeText(int startLine, int startCharacter, int endLine, int endCharacter,
+    void changeText(unsigned startLine, unsigned startCharacter, unsigned endLine, unsigned endCharacter,
                     QString newText)
     {
         // The LSP starts at 0
@@ -1241,7 +1271,7 @@ struct EditingRecorder
 
         DidChangeTextDocumentParams params;
         params.textDocument = VersionedTextDocumentIdentifier{ { lastFileUri }, ++version };
-        params.contentChanges.append({
+        params.contentChanges.append(TextDocumentContentChangeEventVariant1{
                 Range{ Position{ startLine, startCharacter }, Position{ endLine, endCharacter } },
                 std::nullopt, // deprecated range length
                 newText.toUtf8(),
@@ -1515,8 +1545,17 @@ void tst_qmlls_modules::warnings()
     if (!expectedWarnings.extraImportPathsPerWorkspace.isEmpty()) {
         tempDir.emplace();
         QVERIFY(tempDir->isValid());
-        createQmllsBuildIni(tempDir->path(), testFile(filePath),
-                            expectedWarnings.extraImportPathsPerWorkspace);
+
+        ModuleSettings moduleSettings;
+        for (const auto &[workspace, importPaths] :
+             expectedWarnings.extraImportPathsPerWorkspace.asKeyValueRange()) {
+            moduleSettings.append(ModuleSetting{
+                    workspace.isEmpty() ? QDir::cleanPath(testFile(filePath) + "/.."_L1)
+                                        : workspace,
+                    importPaths,
+                    {} });
+        }
+        createQmllsBuildIni(tempDir->path(), moduleSettings);
 
         m_protocol->notifyDidChangeWorkspaceFolders(
                 addDidChangeWorkspaceFoldersFromMap(expectedWarnings.extraImportPathsPerWorkspace));
@@ -1637,10 +1676,9 @@ void tst_qmlls_modules::rangeFormatting()
     std::shared_ptr<bool> didFinish = std::make_shared<bool>(false);
     const auto clean = [didFinish]() { *didFinish = true; };
 
-    auto &&responseHandler = [&](auto res) {
-        Q_UNUSED(res);
+    auto &&responseHandler = [&](auto _result) {
         QScopeGuard cleanup(clean);
-        auto result = std::get_if<QList<TextEdit>>(&res);
+        auto result = std::get_if<QList<QLspSpecification::TextEdit>>(&_result);
         QVERIFY(result);
 
         QFile file(testFile(expectedAfterFormat));
@@ -1722,9 +1760,10 @@ void tst_qmlls_modules::hover()
     std::shared_ptr<bool> didFinish = std::make_shared<bool>(false);
     const auto clean = [didFinish]() { *didFinish = true; };
 
-    auto &&responseHandler = [&](auto res) {
+    auto &&responseHandler = [&](auto _result) {
         QScopeGuard cleanup(clean);
-        const auto *const result = std::get_if<QLspSpecification::Hover>(&res);
+
+        auto result = std::get_if<QLspSpecification::Hover>(&_result);
         QVERIFY(result);
 
         const auto *const markupContent =
@@ -1775,18 +1814,8 @@ void tst_qmlls_modules::qmldirImports()
 
     std::optional<QTemporaryDir> tempDir;
     if (addBuildDirectory == AddBuildDir) {
-        tempDir.emplace();
-        QVERIFY(tempDir->isValid());
-        createQmllsBuildIni(tempDir->path(), testFile(filePath),
-                            { { ""_L1,
-                                { testFile("buildDir"_L1),
-                                  QLibraryInfo::path(QLibraryInfo::QmlImportsPath) } } });
-
-        Notifications::AddBuildDirsParams bDirs;
-        UriToBuildDirs ub;
-        ub.buildDirs.append(tempDir->path().toUtf8());
-        bDirs.buildDirsToSet.append(ub);
-        m_protocol->typedRpc()->sendNotification(QByteArray(Notifications::AddBuildDirsMethod), bDirs);
+        tempDir = setImportPathsViaTemporaryBuildDir(QDir::cleanPath(testFile(filePath) + "/.."_L1),
+                                                     { testFile("buildDir"_L1) }, m_protocol.get());
     }
 
     const auto uri = openFile(filePath);
@@ -1872,7 +1901,7 @@ std::tuple<int, int, int, int> rangeAsTuple(const Range &range)
     return std::make_tuple(range.start.line, range.start.character, range.end.line,
                            range.end.character);
 }
-
+// TODO QTBUG-145439
 void tst_qmlls_modules::quickFixes()
 {
     QFETCH(QString, filePath);
@@ -1919,20 +1948,18 @@ void tst_qmlls_modules::quickFixes()
 
     codeActionParams.context.diagnostics = diagnostics;
 
-    using InnerT = QList<std::variant<Command, CodeAction>>;
-    using T = std::variant<InnerT, std::nullptr_t>;
-
     bool codeActionOk = false;
 
     // request a quickfix with the obtained diagnostic
-    m_protocol->requestCodeAction(codeActionParams, [&](const T &result) {
-        QVERIFY(std::holds_alternative<InnerT>(result));
-        InnerT inner = std::get<InnerT>(result);
-        QCOMPARE(inner.size(), 1);
-        QVERIFY(std::holds_alternative<CodeAction>(inner.front()));
-        CodeAction codeAction = std::get<CodeAction>(inner.front());
+    m_protocol->requestCodeAction(codeActionParams, [&](const auto &_result) {
+        auto result = std::get_if<QList<std::variant<Command, CodeAction>>>(&_result);
+        QVERIFY(result);
+        QCOMPARE(result->size(), 1);
+        QVERIFY(std::holds_alternative<CodeAction>(result->front()));
+        CodeAction codeAction = std::get<CodeAction>(result->front());
 
-        QCOMPARE(codeAction.kind, "quickfix"); // everything else is ignored by QtC, VS Code, ...
+        QCOMPARE(codeAction.kind,
+                 CodeActionKind::QuickFix); // everything else is ignored by QtC, VS Code, ...
 
         QVERIFY(codeAction.edit);
         QVERIFY(codeAction.edit->documentChanges);
@@ -1996,11 +2023,12 @@ void tst_qmlls_modules::semanticHighlightingFull()
     std::shared_ptr<bool> didFinish = std::make_shared<bool>(false);
     const auto cleanup = [didFinish]() { *didFinish = true; };
 
-    auto &&responseHandler = [&](auto res) {
+    auto &&responseHandler = [&](auto _result) {
         QScopeGuard callAtExit(cleanup);
-        const auto *const result = std::get_if<QLspSpecification::SemanticTokens>(&res);
+
+        auto result = std::get_if<SemanticTokens>(&_result);
         QVERIFY(result);
-        QList<int> data = result->data;
+        QList<unsigned> data = result->data;
         QCOMPARE(data.size(), expectedData.size());
         QCOMPARE(data, expectedData);
     };
@@ -2046,11 +2074,11 @@ void tst_qmlls_modules::semanticHighlightingRange()
     std::shared_ptr<bool> didFinish = std::make_shared<bool>(false);
     const auto cleanup = [didFinish]() { *didFinish = true; };
 
-    auto &&responseHandler = [&](auto res) {
+    auto &&responseHandler = [&](auto _result) {
         QScopeGuard callAtExit(cleanup);
-        const auto *const result = std::get_if<QLspSpecification::SemanticTokens>(&res);
+        auto result = std::get_if<SemanticTokens>(&_result);
         QVERIFY(result);
-        QList<int> data = result->data;
+        QList<unsigned> data = result->data;
         QCOMPARE(data.size(), expectedData.size());
         QCOMPARE(data, expectedData);
     };
@@ -2109,12 +2137,12 @@ void tst_qmlls_modules::semanticHighlightingDelta()
     QLspSpecification::SemanticTokensParams fullParams;
     fullParams.textDocument.uri = *uri;
     m_protocol->requestSemanticTokens(fullParams,
-    [&](auto res) {
+    [&](auto _res) {
         QScopeGuard callAtExit(cleanup);
-        if (auto r = std::get_if<QLspSpecification::SemanticTokens>(&res)) {
-            params.previousResultId = r->resultId.value();
-            fullDocumentSemanticTokensData = r->data;
-        }
+        auto res = std::get_if<SemanticTokens>(&_res);
+        QVERIFY(res);
+        params.previousResultId = res->resultId.value();
+        fullDocumentSemanticTokensData = res->data;
     }, errorHandler);
     QTRY_VERIFY_WITH_TIMEOUT(*didFinish, 10000);
 
@@ -2123,7 +2151,7 @@ void tst_qmlls_modules::semanticHighlightingDelta()
     didChange.textDocument.uri = *uri;
     didChange.textDocument.version = 2;
 
-    TextDocumentContentChangeEvent change;
+    TextDocumentContentChangeEventVariant1 change;
     change.range = Range{ Position{ 8, 4 }, Position{ 8, 4 } };
     change.text = "const Patron = 42";
 

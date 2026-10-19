@@ -1,5 +1,5 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
@@ -16,6 +16,7 @@
 #include "input_event_spy.h"
 #include "keyboard_input.h"
 #include "keyboard_layout.h"
+#include "pointer_input.h"
 #include "workspace.h"
 #include "xkb.h"
 
@@ -53,9 +54,9 @@ public:
                 // Both current and previous positions are on the barrier but there was an orthogonal delta
                 if (barrier.hitTest(event->position) && barrier.hitTest(previousPos) && ((barrier.orientation == Qt::Vertical && event->delta.x() != 0) || (barrier.orientation == Qt::Horizontal && event->delta.y() != 0))) {
                     qCDebug(KWIN_INPUTCAPTURE) << "Activating input capture, crossing"
-                                               << "barrier(" << barrier.orientation << barrier.position << "[" << barrier.start << "," << barrier.end << "])"
+                                               << "barrier(" << barrier.orientation << barrier.position << "[" << barrier.start << "," << barrier.end << "] barrier id" << barrier.id << ")"
                                                << "at" << event->position << "with" << event->delta;
-                    manager->barrierHit(capture.get(), event->position + event->delta);
+                    manager->barrierHit(capture.get(), barrier.id, event->position + event->delta);
                     break;
                 }
             }
@@ -96,8 +97,8 @@ EisInputCaptureManager::EisInputCaptureManager()
     , m_barrierSpy(std::make_unique<BarrierSpy>(this))
     , m_inputFilter(std::make_unique<EisInputCaptureFilter>(this))
 {
-    qDBusRegisterMetaType<QPair<QPoint, QPoint>>();
-    qDBusRegisterMetaType<QList<QPair<QPoint, QPoint>>>();
+    qDBusRegisterMetaType<std::tuple<uint, QPoint, QPoint>>();
+    qDBusRegisterMetaType<QList<std::tuple<uint, QPoint, QPoint>>>();
 
     const auto keymap = input()->keyboard()->xkb()->keymapContents();
     if (!keymap.isEmpty()) {
@@ -109,6 +110,15 @@ EisInputCaptureManager::EisInputCaptureManager()
             m_keymapFile = RamFile("input capture keymap", keymap.data(), keymap.size(), RamFile::Flag::SealWrite);
         } else {
             m_keymapFile = RamFile();
+        }
+    });
+
+    connect(input()->keyboard()->xkb(), &Xkb::modifierStateChanged, this, [this] {
+        // This will not handle other sources of modifier changes like changing keyboard
+        // layout but should be fine for now as all input is filtered out while a capture
+        // is active
+        if (m_activeCapture) {
+            m_inputFilter->setPendingModifierChange(true);
         }
     });
 
@@ -187,29 +197,30 @@ QDBusObjectPath EisInputCaptureManager::addInputCapture(uint capabilities)
         input()->installInputEventSpy(m_barrierSpy.get());
     }
     auto &capture = m_inputCaptures.emplace_back(std::make_unique<EisInputCapture>(this, dbusService, eisCapabilities));
-    connect(capture.get(), &EisInputCapture::deactivated, this, [this] {
-        deactivate();
-    });
     return QDBusObjectPath(capture->dbusPath());
 }
 
-void EisInputCaptureManager::barrierHit(KWin::EisInputCapture *capture, const QPointF &position)
+void EisInputCaptureManager::barrierHit(KWin::EisInputCapture *capture, uint barrier, const QPointF &position)
 {
     if (m_activeCapture) {
         return;
     }
     m_activeCapture = capture;
-    capture->activate(position);
+    capture->activate(barrier, position);
     input()->installInputEventFilter(m_inputFilter.get());
     // Even though the input events are filtered out the cursor is updated on screen which looks weird
     Cursors::self()->hideCursor();
 }
 
-void EisInputCaptureManager::deactivate()
+void EisInputCaptureManager::deactivate(const std::optional<QPointF> &releasePosition)
 {
     m_activeCapture = nullptr;
     m_inputFilter->clearTouches();
+    m_inputFilter->setPendingModifierChange(false);
     input()->uninstallInputEventFilter(m_inputFilter.get());
+    if (releasePosition) {
+        input()->pointer()->warp(*releasePosition);
+    }
     Cursors::self()->showCursor();
 }
 

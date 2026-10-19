@@ -391,21 +391,8 @@ public:
     // CONFIGURATION
     /*!
      * Returns the KConfigGroup to access the applets configuration.
-     *
-     * This config object will write to an instance
-     * specific config file named \<appletname\>\<instanceid\>rc
-     * in the Plasma appdata directory.
      **/
     KConfigGroup config() const;
-
-    /*!
-     * Returns a KConfigGroup object to be shared by all applets of this
-     * type.
-     *
-     * This config object will write to an applet-specific config object
-     * named plasma_\<appletname\>rc in the local config directory.
-     */
-    KConfigGroup globalConfig() const;
 
     /*!
      * Returns the config skeleton object from this applet's package,
@@ -917,8 +904,7 @@ protected:
     // CONFIGURATION
     /*!
      * When called, the Applet should write any information needed as part
-     * of the Applet's running state to the configuration object in config()
-     * and/or globalConfig().
+     * of the Applet's running state to the configuration object in config().
      *
      * Applets that always sync their settings/state with the config
      * objects when these settings/states change do not need to reimplement

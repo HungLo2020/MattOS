@@ -16,9 +16,6 @@
 #include "../src/getconfigoperation.h"
 #include "../src/output.h"
 #include "../src/setconfigoperation.h"
-#include <QSignalSpy>
-
-#include "fakebackendinterface.h"
 
 class TestConfigMonitor : public QObject
 {
@@ -42,7 +39,6 @@ public:
 private Q_SLOTS:
     void initTestCase()
     {
-        qputenv("KSCREEN_LOGGING", "false");
         qputenv("KSCREEN_BACKEND", "Fake");
         // This particular test is only useful for out of process operation, so enforce that
         qputenv("KSCREEN_BACKEND_INPROCESS", "0");
@@ -58,7 +54,6 @@ private Q_SLOTS:
     {
         qputenv("KSCREEN_BACKEND_INPROCESS", "1");
         KScreen::BackendManager::instance()->shutdownBackend();
-        KScreen::BackendManager::instance()->setMethod(KScreen::BackendManager::InProcess);
         // json file for the fake backend
         KScreen::BackendManager::instance()->setBackendArgs({{QStringLiteral("TEST_DATA"), TEST_DATA "singleoutput.json"}});
 

@@ -435,7 +435,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
         with mock.patch("run_qemu.run_command_capture", return_value='name "virtio-vga-gl", bus PCI'):
             self.assertEqual(
                 graphical_gpu_device(Path("/repo")),
-                "virtio-vga-gl,blob=true,hostmem=256M",
+                "virtio-vga-gl",
             )
 
     def test_graphical_gpu_fails_closed_without_virgl(self) -> None:
@@ -595,7 +595,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             ) as launched, mock.patch(
                 "run_qemu.mattos_build_environment", return_value={}
             ), mock.patch("run_qemu.choose_graphical_display", return_value="gtk,gl=on"), mock.patch(
-                "run_qemu.graphical_gpu_device", return_value="virtio-vga-gl,blob=true,hostmem=256M"
+                "run_qemu.graphical_gpu_device", return_value="virtio-vga-gl"
             ):
                 self.assertEqual(launch_qemu(root, None, args), 0)
             command = launched.call_args.args[0]
@@ -604,7 +604,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             self.assertNotIn("media=cdrom", " ".join(command))
             self.assertIn(f"file={disk.resolve()},if=virtio,format=qcow2", command)
             self.assertIn("-qmp", command)
-            self.assertIn("virtio-vga-gl,blob=true,hostmem=256M", command)
+            self.assertIn("virtio-vga-gl", command)
 
     def test_run_installed_keeps_normal_virgl_while_exposing_scoped_shutdown_control(self) -> None:
         with TemporaryDirectory() as temporary:
@@ -721,7 +721,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                 "run_qemu.mattos_build_environment", return_value={}
             ), mock.patch(
                 "run_qemu.graphical_gpu_device",
-                return_value="virtio-vga-gl,blob=true,hostmem=256M",
+                return_value="virtio-vga-gl",
             ), mock.patch(
                 "run_qemu.choose_graphical_display", return_value="gtk,gl=on"
             ):
@@ -729,7 +729,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             command = launched.call_args.args[0]
             self.assertIn(f"file={disk.resolve()},if=virtio,format=qcow2", command)
             self.assertIn("/usr/share/ovmf/OVMF.fd", command)
-            self.assertIn("virtio-vga-gl,blob=true,hostmem=256M", command)
+            self.assertIn("virtio-vga-gl", command)
             self.assertNotIn("-vga", command)
             self.assertIn("qemu-xhci,id=mattos-xhci", command)
             self.assertIn("usb-tablet,bus=mattos-xhci.0", command)
@@ -760,7 +760,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                 "run_qemu.mattos_build_environment", return_value={}
             ), mock.patch(
                 "run_qemu.graphical_gpu_device",
-                return_value="virtio-vga-gl,blob=true,hostmem=256M",
+                return_value="virtio-vga-gl",
             ), mock.patch(
                 "run_qemu.choose_graphical_display", return_value="gtk,gl=on"
             ):
@@ -791,7 +791,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                 "run_qemu.mattos_build_environment", return_value={}
             ), mock.patch(
                 "run_qemu.graphical_gpu_device",
-                return_value="virtio-vga-gl,blob=true,hostmem=256M",
+                return_value="virtio-vga-gl",
             ), mock.patch(
                 "run_qemu.choose_graphical_display", return_value="gtk,gl=on"
             ):
@@ -803,7 +803,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                     install_disk=root / "out/qemu/installed-test.qcow2",
                 )
             command = launched.call_args.args[0]
-            self.assertIn("virtio-vga-gl,blob=true,hostmem=256M", command)
+            self.assertIn("virtio-vga-gl", command)
             self.assertIn("sdl,gl=on", command)
             self.assertNotIn("gtk,gl=off", command)
             self.assertEqual(launched.call_args.kwargs["env"]["SDL_VIDEODRIVER"], "x11")

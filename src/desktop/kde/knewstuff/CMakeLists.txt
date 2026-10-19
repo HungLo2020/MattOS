@@ -1,16 +1,16 @@
 # SPDX-FileCopyrightText: KDE Contributors
 # SPDX-License-Identifier: BSD-2-Clause
 
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
-set(KF_DEP_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
+set(KF_DEP_VERSION "6.31.0") # handled by release scripts
 project(KNewStuff VERSION ${KF_VERSION})
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FeatureSummary)
-find_package(ECM 6.26.0 NO_MODULE)
+find_package(ECM 6.31.0 NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
@@ -23,7 +23,7 @@ include(ECMQmlModule)
 include(ECMQtDeclareLoggingCategory)
 include(KDEFrameworkCompilerSettings NO_POLICY_SCOPE)
 
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 find_package(Qt6 ${REQUIRED_QT_VERSION} NO_MODULE REQUIRED COMPONENTS Gui Widgets Xml Qml Quick QuickWidgets)
 find_package(KF6Archive ${KF_DEP_VERSION} REQUIRED)
 find_package(KF6Config ${KF_DEP_VERSION} REQUIRED)
@@ -38,6 +38,7 @@ include(ECMGenerateHeaders)
 include(ECMDeprecationSettings)
 include(KDEClangFormat)
 include(KDEGitCommitHooks)
+include(ECMInstalledLibraryCheck)
 include(CMakeDependentOption)
 
 find_package(KF6Attica ${KF_DEP_VERSION} CONFIG REQUIRED)
@@ -79,7 +80,7 @@ ecm_setup_version(PROJECT VARIABLE_PREFIX KNEWSTUFFWIDGETS
 add_definitions(-DTRANSLATION_DOMAIN=\"knewstuff6\")
 ecm_set_disabled_deprecation_versions(
     QT 6.11.0
-    KF 6.23.0
+    KF 6.27.0
 )
 
 ki18n_install(po)

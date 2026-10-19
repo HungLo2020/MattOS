@@ -12,21 +12,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
-"PO-Revision-Date: 2026-01-08 17:30+0300\n"
-"Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-05-02 19:56+0300\n"
+"Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Serdar Soytetir, H. İbrahim Güngör"
+msgstr "Serdar SOYTETİR, H. İbrahim GÜNGÖR"
 
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
@@ -100,8 +100,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Düğme Bağıntılarını Yapılandır…"
+msgid "Key Bindings"
+msgstr "Düğme Bağıntıları"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -139,13 +139,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Yerleşim Ekle"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Kısa yerleşim adı"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -155,13 +155,13 @@ msgstr ""
 "Sistem tepsisinde görüntülenecek olan, seçili yerleşimin kısaltılmış adı. Bu "
 "ayarı kendiniz değiştirebilirsiniz."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Kısayol:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -549,22 +549,22 @@ msgstr ""
 "Niteleyici düğmeler; ek karakterler, semboller ve aksan imlerini yazmak için "
 "kullanılabilirler."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
 msgstr[0] "%1 kısayol"
 msgstr[1] "%1 kısayol"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Yok"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Düğme Bağıntıları"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Düğme Bağıntılarını Yapılandır…"
 
 #~ msgctxt "@title:group"
 #~ msgid "When key is held:"

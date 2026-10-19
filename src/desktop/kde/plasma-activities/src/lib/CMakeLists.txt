@@ -47,23 +47,23 @@ set_source_files_properties (
    )
 
 set(PlasmaActivities_DBus_SRCS)
-qt_add_dbus_interface(PlasmaActivities_DBus_SRCS
+qt6_add_dbus_interface(PlasmaActivities_DBus_SRCS
    ${PLASMA_ACTIVITIES_CURRENT_ROOT_SOURCE_DIR}/src/common/dbus/org.kde.ActivityManager.Activities.xml
    activities_interface
 )
-qt_add_dbus_interface(PlasmaActivities_DBus_SRCS
+qt6_add_dbus_interface(PlasmaActivities_DBus_SRCS
    ${PLASMA_ACTIVITIES_CURRENT_ROOT_SOURCE_DIR}/src/common/dbus/org.kde.ActivityManager.Resources.xml
    resources_interface
 )
-qt_add_dbus_interface(PlasmaActivities_DBus_SRCS
+qt6_add_dbus_interface(PlasmaActivities_DBus_SRCS
    ${PLASMA_ACTIVITIES_CURRENT_ROOT_SOURCE_DIR}/src/common/dbus/org.kde.ActivityManager.Features.xml
    features_interface
 )
-qt_add_dbus_interface(PlasmaActivities_DBus_SRCS
+qt6_add_dbus_interface(PlasmaActivities_DBus_SRCS
    ${PLASMA_ACTIVITIES_CURRENT_ROOT_SOURCE_DIR}/src/common/dbus/org.kde.ActivityManager.ResourcesLinking.xml
    resources_linking_interface
 )
-qt_add_dbus_interface(PlasmaActivities_DBus_SRCS
+qt6_add_dbus_interface(PlasmaActivities_DBus_SRCS
    ${PLASMA_ACTIVITIES_CURRENT_ROOT_SOURCE_DIR}/src/common/dbus/org.kde.ActivityManager.Application.xml
    application_interface
 )
@@ -76,7 +76,6 @@ ecm_qt_declare_logging_category(PlasmaActivities
     IDENTIFIER KAMD_CORELIB
     CATEGORY_NAME kde.plasma.activities
     OLD_CATEGORY_NAMES org.kde.kactivities.lib.core
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "Plasma Activities core lib"
     EXPORT PLASMA_ACTIVITIES
 )
@@ -105,6 +104,8 @@ ecm_generate_export_header (PlasmaActivities
    USE_VERSION_HEADER plasma_activities_version.h
    DEPRECATED_BASE_VERSION 0
 )
+
+ecm_generate_qdoc(PlasmaActivities plasmaactivities.qdocconf)
 
 ecm_generate_headers (
    PlasmaActivities_CamelCase_HEADERS
@@ -135,31 +136,6 @@ install (
    EXPORT PlasmaActivitiesLibraryTargets
    ${KDE_INSTALL_TARGETS_DEFAULT_ARGS}
    )
-
-if(BUILD_QCH)
-    ecm_add_qch(
-        PlasmaActivities_QCH
-        NAME PlasmaActivities
-        BASE_NAME PlasmaActivities
-        VERSION ${PROJECT_VERSION}
-        ORG_DOMAIN org.kde
-        SOURCES # using only public headers, to cover only public API
-            ${PlasmaActivities_HEADERS}
-        MD_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md"
-        LINK_QCHS
-            Qt6Core_QCH
-        INCLUDE_DIRS
-            ${PLASMA_ACTIVITIES_BUILD_INCLUDE_DIRS}
-        BLANK_MACROS
-            PLASMA_ACTIVITIES_EXPORT
-            PLASMA_ACTIVITIES_DEPRECATED
-            PLASMA_ACTIVITIES_DEPRECATED_EXPORT
-        TAGFILE_INSTALL_DESTINATION ${KDE_INSTALL_QTQCHDIR}
-        QCH_INSTALL_DESTINATION ${KDE_INSTALL_QTQCHDIR}
-        COMPONENT Devel
-    )
-endif()
-
 
 if (NOT WIN32)
     ecm_generate_pkgconfig_file(BASE_NAME PlasmaActivities

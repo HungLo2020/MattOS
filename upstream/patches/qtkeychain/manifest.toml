@@ -1,0 +1,11 @@
+schema_version = 1
+component = "qtkeychain"
+upstream_commit = "875f77d9f61bd97fd84cca47ce3bc71186dfbd09"
+upstream_tree = "c744cb2bf73f335ef2f7cb86a6a7c3a874023771"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/qtkeychain/0001-build-pinned-translation-catalogs.patch"
+sha256 = "54bef24e85297421436a9087c077f5d1807cd71ad3c40141b4fc69e315f98430"
+purpose = "Build all pinned translation catalogs without running the authoring-time lupdate source/TS refresh as a mandatory production dependency."
+documentation = "docs/system/userland/kde-applications.md"

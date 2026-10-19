@@ -111,7 +111,7 @@ void PasswordDialog::initializeUi()
         QString connectionLabel;
         UiUtils::iconAndTitleForConnectionSettingsType(m_connectionSettings->connectionType(), connectionLabel);
         setFocusProxy(m_ui->password);
-        setWindowTitle(i18n("%1 password dialog", connectionLabel));
+        setWindowTitle(i18nc("@title:dialog The placeholder is the type of connection, e.g. 'Wi-Fi'", "%1 Password", connectionLabel));
     } else {
         NetworkManager::VpnSetting::Ptr vpnSetting = m_connectionSettings->setting(Setting::Vpn).dynamicCast<VpnSetting>();
         if (!vpnSetting) {
@@ -129,6 +129,7 @@ void PasswordDialog::initializeUi()
                 NMStringMap data = vpnSetting->data();
                 m_vpnWidget = vpnUiPlugin->askUser(vpnSetting, m_hints, this);
                 auto layout = new QVBoxLayout();
+                layout->setContentsMargins(0, 0, 0, 0);
                 layout->addWidget(m_vpnWidget);
                 m_ui->vpnWidget->setLayout(layout);
                 m_ui->labelText->setText(i18n("Provide the secrets for the VPN connection \"%1\":", m_connectionSettings->id()));

@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-desktop package.
 #
-# SPDX-FileCopyrightText: 2019, 2020, 2021, 2022, 2024, 2025, 2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
+# SPDX-FileCopyrightText: 2019-2022, 2024-2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-13 08:43+0000\n"
-"PO-Revision-Date: 2026-01-18 12:06+0100\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
+"PO-Revision-Date: 2026-07-28 07:55+0200\n"
 "Last-Translator: Stefan Asserhäll <stefan.asserhall@gmail.com>\n"
 "Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
 "Language: sv\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: app/emojier.cpp:43 app/emojier.cpp:45
 #, kde-format
@@ -44,119 +44,163 @@ msgstr "stefan.asserhall@gmail.com"
 msgid "Replace an existing instance"
 msgstr "Ersätt en befintlig instans"
 
-#: app/ui/CategoryPage.qml:112
+#: app/ui/CategoryPage.qml:41
+#, kde-format
+msgctxt "@action Search field action"
+msgid "Search"
+msgstr "Sök"
+
+#: app/ui/CategoryPage.qml:102
 #, kde-format
 msgctxt "@action:button clear emoji history"
 msgid "Clear History"
 msgstr "Rensa historik"
 
-#: app/ui/CategoryPage.qml:124
+#: app/ui/CategoryPage.qml:133
 #, kde-format
 msgctxt "@action:button Button to open a menu that lets you choose a skin tone"
-msgid "Skin tone:"
-msgstr "Hudfärg:"
+msgid "Skin tone: %1"
+msgstr "Hudfärg: %1"
 
-#: app/ui/CategoryPage.qml:135 app/ui/Emojier.qml:73
-#, kde-format
-msgctxt "@title:page All emojis"
-msgid "All"
-msgstr "Alla"
-
-#: app/ui/CategoryPage.qml:189
+#: app/ui/CategoryPage.qml:139
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐️ Neutral"
 msgstr "🖐️ Neutral"
 
-#: app/ui/CategoryPage.qml:190
+#: app/ui/CategoryPage.qml:140
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Neutral"
 msgstr "Neutral"
 
-#: app/ui/CategoryPage.qml:198
+#: app/ui/CategoryPage.qml:148
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏻 Light"
 msgstr "🖐🏻 Ljus"
 
-#: app/ui/CategoryPage.qml:199
+#: app/ui/CategoryPage.qml:149
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Light"
 msgstr "Ljus"
 
-#: app/ui/CategoryPage.qml:207
+#: app/ui/CategoryPage.qml:157
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏼 Medium Light"
 msgstr "🖐🏼 Mellanljus"
 
-#: app/ui/CategoryPage.qml:208
+#: app/ui/CategoryPage.qml:158
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Medium Light"
 msgstr "Mellanljus"
 
-#: app/ui/CategoryPage.qml:216
+#: app/ui/CategoryPage.qml:166
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏽 Medium"
 msgstr "🖐🏽 Mellan"
 
-#: app/ui/CategoryPage.qml:217
+#: app/ui/CategoryPage.qml:167
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Medium"
 msgstr "Mellan"
 
-#: app/ui/CategoryPage.qml:225
+#: app/ui/CategoryPage.qml:175
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏾 Medium Dark"
 msgstr "🖐🏽 Mellanmörk"
 
-#: app/ui/CategoryPage.qml:226
+#: app/ui/CategoryPage.qml:176
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Medium Dark"
 msgstr "Mellanmörk"
 
-#: app/ui/CategoryPage.qml:234
+#: app/ui/CategoryPage.qml:184
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏿 Dark"
 msgstr "🖐🏿 Mörk"
 
-#: app/ui/CategoryPage.qml:235
+#: app/ui/CategoryPage.qml:185
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Dark"
 msgstr "Mörk"
 
-#: app/ui/CategoryPage.qml:264
+#: app/ui/CategoryPage.qml:196
+#, kde-format
+msgctxt "@action:button zoom the emoji grid out"
+msgid "Zoom Out"
+msgstr "Zooma ut"
+
+#: app/ui/CategoryPage.qml:200
+#, kde-format
+msgctxt "@info:status label for the current zoom-level indicator"
+msgid "Zoom level"
+msgstr "Zoomnivå"
+
+#: app/ui/CategoryPage.qml:202
+#, kde-format
+msgctxt "@info:status current emoji zoom level as a percentage, %1 is a number"
+msgid "%1%"
+msgstr "%1 %"
+
+#: app/ui/CategoryPage.qml:215
+#, kde-format
+msgctxt "@action:button zoom the emoji grid in"
+msgid "Zoom In"
+msgstr "Zooma in"
+
+#: app/ui/CategoryPage.qml:222
+#, kde-format
+msgctxt "@action:button reset the emoji grid zoom to 100%"
+msgid "Reset Zoom"
+msgstr "Nollställ zoomnivå"
+
+#: app/ui/CategoryPage.qml:229
+#, kde-format
+msgctxt "@title:window A two-tone skin variant can be selected here"
+msgid "Select Variant"
+msgstr "Välj variant"
+
+#: app/ui/CategoryPage.qml:294
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Copy Character"
 msgstr "Kopiera tecken"
 
-#: app/ui/CategoryPage.qml:269
+#: app/ui/CategoryPage.qml:302
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Copy Description"
 msgstr "Kopiera beskrivning"
 
-#: app/ui/CategoryPage.qml:368
+#: app/ui/CategoryPage.qml:395
 #, kde-format
 msgctxt "@label placeholder for empty recent emoji list"
-msgid "No recent Emojis"
+msgid "No recent emojis"
 msgstr "Inga senaste emoji"
 
-#: app/ui/CategoryPage.qml:368
+#: app/ui/CategoryPage.qml:395
 #, kde-format
 msgctxt "@label placeholder for no emoji found in category"
 msgid "No matching emoji found"
 msgstr "Ingen motsvarande emoji hittades"
+
+#: app/ui/CategoryPage.qml:442
+#, kde-format
+msgctxt ""
+"@action:button Opens a window where a two-tone skin variant can be selected. "
+"%1 is the emoji's name"
+msgid "Select Variant of \"%1\""
+msgstr "Välj variant av \"%1\""
 
 #: app/ui/Emojier.qml:44
 #, kde-format
@@ -169,6 +213,12 @@ msgstr "%1 kopierad till klippbordet"
 msgctxt "@title page title for Recent Emoji view, and sidebar label for it"
 msgid "Recent"
 msgstr "Senaste"
+
+#: app/ui/Emojier.qml:73
+#, kde-format
+msgctxt "@title:page All emojis"
+msgid "All"
+msgstr "Alla"
 
 #: emojicategory.cpp:14
 msgctxt "Emoji Category"
@@ -222,9 +272,6 @@ msgstr "Flaggor"
 
 #~ msgid "Categories"
 #~ msgstr "Kategorier"
-
-#~ msgid "Search"
-#~ msgstr "Sök"
 
 #~ msgid "Search…"
 #~ msgstr "Sök…"

@@ -46,7 +46,7 @@ struct QWASAPIAudioSourceStream final : std::enable_shared_from_this<QWASAPIAudi
 
     QWASAPIAudioSourceStream(QAudioDevice, const QAudioFormat &,
                              std::optional<qsizetype> ringbufferSize, QWindowsAudioSource *parent,
-                             float volume, std::optional<int32_t> hardwareBufferFrames);
+                             float volume, std::optional<NativePeriodFrames> nativePeriodFrames);
     Q_DISABLE_COPY_MOVE(QWASAPIAudioSourceStream)
     ~QWASAPIAudioSourceStream();
 
@@ -75,15 +75,15 @@ private:
     bool visitAudioClientBuffer(Functor &&);
 
     void runProcessLoop();
-    bool processRingbuffer() noexcept QT_MM_NONBLOCKING;
-    bool processCallback() noexcept QT_MM_NONBLOCKING;
+    bool processRingbuffer() noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    bool processCallback() noexcept Q_DECL_NONBLOCKING_FUNCTION;
     void handleAudioClientError();
     void joinWorkerThread();
 
     ComPtr<IAudioClient3> m_audioClient;
     ComPtr<IAudioCaptureClient> m_captureClient;
 
-    QWindowsAudioUtils::reference_time m_periodSize;
+    QWMF::reference_time m_periodSize;
     qsizetype m_audioClientFrames;
 
     std::atomic_bool m_suspended{};

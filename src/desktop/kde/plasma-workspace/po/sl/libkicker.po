@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-27 02:42+0000\n"
-"PO-Revision-Date: 2025-01-07 07:00+0100\n"
+"POT-Creation-Date: 2026-09-06 00:47+0000\n"
+"PO-Revision-Date: 2026-04-23 06:55+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
 "Translator: Andrej Mernik <andrejm@ubuntu.si>\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.9\n"
 
 #: actionlist.cpp:93
 #, kde-format
@@ -45,7 +45,7 @@ msgstr "Pripni v upravljalnik opravil"
 msgid "Add to Panel (Widget)"
 msgstr "Dodaj na pult (gradnik)"
 
-#: actionlist.cpp:316 rootmodel.cpp:538
+#: actionlist.cpp:316 rootmodel.cpp:590
 #, kde-format
 msgid "Recent Files"
 msgstr "Nedavne datoteke"
@@ -66,35 +66,35 @@ msgctxt "@action opens a software center with the application"
 msgid "Uninstall or Manage Add-Ons…"
 msgstr "Odstrani ali upravljaj dodatke…"
 
-#: appentry.cpp:361
+#: appentry.cpp:410
 #, kde-format
 msgid "Hide Application"
 msgstr "Skrij program"
 
-#: appentry.cpp:423
+#: appentry.cpp:472
 #, kde-format
 msgctxt "App name (Comment or Generic name)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: appentry.cpp:425
+#: appentry.cpp:474
 #, kde-format
 msgctxt "Generic name (App name)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: appsmodel.cpp:38 appsmodel.cpp:74 computermodel.cpp:93 computermodel.cpp:219
-#: recentusagemodel.cpp:156 recentusagemodel.cpp:225
+#: appsmodel.cpp:38 appsmodel.cpp:74 computermodel.cpp:93 computermodel.cpp:220
+#: recentusagemodel.cpp:158 recentusagemodel.cpp:229
 #, kde-format
 msgid "Applications"
 msgstr "Programi"
 
-#: appsmodel.cpp:171
+#: appsmodel.cpp:173
 #, kde-format
 msgid "Unhide Applications in this Submenu"
 msgstr "Pokaži vse programe v tem podmeniju"
 
-#: appsmodel.cpp:180
+#: appsmodel.cpp:182
 #, kde-format
 msgid "Unhide Applications in '%1'"
 msgstr "Pokaži vse programe v '%1'"
@@ -115,52 +115,67 @@ msgid "Computer"
 msgstr "Računalnik"
 
 #. i18n.
-#: kastatsfavoritesmodel.cpp:548 rootmodel.cpp:531 simplefavoritesmodel.cpp:33
+#: kastatsfavoritesmodel.cpp:537 rootmodel.cpp:574 simplefavoritesmodel.cpp:33
 #, kde-format
 msgid "Favorites"
 msgstr "Priljubljene"
 
-#: recentusagemodel.cpp:154
+#: recentusagemodel.cpp:156
 #, kde-format
 msgid "Recently Used"
 msgstr "Nedavno uporabljeno"
 
-#: recentusagemodel.cpp:159 recentusagemodel.cpp:320
+#: recentusagemodel.cpp:160
+#, kde-format
+msgid "Places"
+msgstr "Mesta"
+
+#: recentusagemodel.cpp:163 recentusagemodel.cpp:330
 #, kde-format
 msgid "Files"
 msgstr "Datoteke"
 
-#: recentusagemodel.cpp:253
+#: recentusagemodel.cpp:263
 #, kde-format
 msgid "Forget Application"
 msgstr "Pozabi program"
 
-#: recentusagemodel.cpp:318
+#: recentusagemodel.cpp:328
 #, kde-format
 msgid "Folders"
 msgstr "Mape"
 
-#: recentusagemodel.cpp:359
+#: recentusagemodel.cpp:375
 #, kde-format
 msgid "Open Containing Folder"
 msgstr "Odpri vsebovano mapo"
 
-#: recentusagemodel.cpp:362
+#: recentusagemodel.cpp:380
+#, kde-format
+msgid "Forget Folder"
+msgstr "Pozabi mapo"
+
+#: recentusagemodel.cpp:380
 #, kde-format
 msgid "Forget File"
 msgstr "Pozabi datoteko"
 
-#: recentusagemodel.cpp:506
+#: recentusagemodel.cpp:526
 #, kde-format
 msgid "Forget All"
 msgstr "Pozabi vse"
 
-#: recentusagemodel.cpp:508
+#: recentusagemodel.cpp:528
 #, kde-format
 msgid "Forget All Applications"
 msgstr "Pozabi vse programe"
 
-#: recentusagemodel.cpp:511
+#: recentusagemodel.cpp:530
+#, kde-format
+msgid "Forget All Folders"
+msgstr "Pozabi vse mape"
+
+#: recentusagemodel.cpp:533
 #, kde-format
 msgid "Forget All Files"
 msgstr "Pozabi vse datoteke"
@@ -170,37 +185,47 @@ msgstr "Pozabi vse datoteke"
 msgid "All Applications"
 msgstr "Vsi programi"
 
-#: rootmodel.cpp:131
+#: rootmodel.cpp:134
 #, kde-format
 msgid "Hide %1"
 msgstr "Skrij %1"
 
-#: rootmodel.cpp:525
+#: rootmodel.cpp:568
 #, kde-format
 msgid "This shouldn't be visible! Use KICKER_FAVORITES_MODEL"
 msgstr "To ne bi smelo biti vidno! KICKERJEV PRILJUBLJEN MODEL"
 
-#: rootmodel.cpp:538
+#: rootmodel.cpp:581
+#, kde-format
+msgid "Recent Places"
+msgstr "Nedavna mesta"
+
+#: rootmodel.cpp:581
+#, kde-format
+msgid "Often Used Places"
+msgstr "Pogosto uporabljena mesta"
+
+#: rootmodel.cpp:590
 #, kde-format
 msgid "Often Used Files"
 msgstr "Pogosto uporabljene datoteke"
 
-#: rootmodel.cpp:547
+#: rootmodel.cpp:599
 #, kde-format
 msgid "Recent Applications"
 msgstr "Nedavni programi"
 
-#: rootmodel.cpp:547
+#: rootmodel.cpp:599
 #, kde-format
 msgid "Often Used Applications"
 msgstr "Pogosto uporabljeni programi"
 
-#: rootmodel.cpp:562
+#: rootmodel.cpp:614
 #, kde-format
 msgid "Power / Session"
 msgstr "Energija / seja"
 
-#: runnermodel.cpp:226
+#: runnermodel.cpp:303
 #, kde-format
 msgid "Search results"
 msgstr "Rezultati iskanja"
@@ -291,7 +316,7 @@ msgstr "Ponovno zaženi računalnik"
 msgid "Turn off computer"
 msgstr "Izklopi računalnik"
 
-#: systemmodel.cpp:31
+#: systemmodel.cpp:30
 #, kde-format
 msgid "System actions"
 msgstr "Sistemska dejanja"
@@ -489,9 +514,6 @@ msgstr "Sistemska dejanja"
 
 #~ msgid "Removable Storage"
 #~ msgstr "Odstranljivi nosilci"
-
-#~ msgid "Places"
-#~ msgstr "Mesta"
 
 #~ msgid "Logout"
 #~ msgstr "Odjava"

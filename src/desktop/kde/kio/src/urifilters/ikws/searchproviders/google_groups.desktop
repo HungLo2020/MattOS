@@ -2,6 +2,7 @@
 Type=Service
 Name=Google Groups
 Name[af]=Google Groepe
+Name[am]=Google ቡድኖች
 Name[ar]=مجموعات جوجل
 Name[as]=Google Groups
 Name[az]=Google Qrupları
@@ -60,6 +61,8 @@ Name[ml]=ഗൂഗിള്‍ കൂട്ടങ്ങള്‍
 Name[mr]=Google समूह
 Name[ms]=Kumpulan Google
 Name[my]=ဂူးဂယ်အုပ်စုများ
+Name[nan_TW]=Google 群組
+Name[nan_TW@latin]=Google Kûn-tsoo
 Name[nb]=Google Groups
 Name[nds]=Google-Koppeln
 Name[ne]=गुगल समूह
@@ -101,6 +104,7 @@ Name[zh_CN]=Google 兴趣小组
 Name[zh_TW]=Google 群組
 Keys=ggg,groups,dj,deja
 Query=https://groups.google.com/groups?oi=djq&as_q=\\{@}
+Query[am]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[ar]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[az]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[be]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
@@ -135,7 +139,7 @@ Query[id]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[ie]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[is]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[it]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
-Query[ja]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
+Query[ja]=https://groups.google.com/groups?oi=djq&as_q=\\{@}&hl=ja
 Query[ka]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[kk]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[ko]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
@@ -144,6 +148,8 @@ Query[lt]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[lv]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[mr]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[my]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
+Query[nan_TW]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
+Query[nan_TW@latin]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[nb]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[nds]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[nl]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
@@ -167,7 +173,6 @@ Query[tg]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[th]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[tok]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[tr]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
-Query[ug]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[uk]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[vi]=https://groups.google.com/groups?oi=djq&as_q=\\{@}
 Query[wa]=https://groups.google.com/groups?oi=djq&as_q=\\{@}

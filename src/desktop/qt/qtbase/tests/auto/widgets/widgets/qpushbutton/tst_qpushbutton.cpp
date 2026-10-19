@@ -211,9 +211,7 @@ void tst_QPushButton::autoRepeat()
     testWidget->setAutoRepeat(false);
     QTest::keyPress(testWidget, Qt::Key_Enter);
 
-    QTest::qWait(300);
-
-    QVERIFY(!testWidget->isDown());
+    QTRY_VERIFY(!testWidget->isDown());
     QCOMPARE(toggle_count, 0);
     QCOMPARE(press_count, 0);
     QCOMPARE(release_count, 0);
@@ -225,8 +223,7 @@ void tst_QPushButton::autoRepeat()
     testWidget->setDown(false);
     testWidget->setAutoRepeat(true);
     QTest::keyClick(testWidget, Qt::Key_Enter);
-    QTest::qWait(300);
-    QVERIFY(!testWidget->isDown());
+    QTRY_VERIFY(!testWidget->isDown());
     QCOMPARE(toggle_count, 0);
     QCOMPARE(press_count, 0);
     QCOMPARE(release_count, 0);
@@ -516,7 +513,7 @@ void tst_QPushButton::sizeHint_data()
 #if !defined(QT_NO_STYLE_WINDOWS)
     QTest::newRow("windows") << QString::fromLatin1("windows");
 #endif
-#if defined(Q_OS_MAC) && !defined(QT_NO_STYLE_MAC)
+#if defined(Q_OS_MACOS) && !defined(QT_NO_STYLE_MAC)
     QTest::newRow("macos") << QString::fromLatin1("macos");
 #endif
 #if !defined(QT_NO_STYLE_FUSION)
@@ -607,21 +604,22 @@ void tst_QPushButton::taskQTBUG_20191_shortcutWithKeypadModifer()
     QSignalSpy spy1(button1, SIGNAL(clicked()));
     button1->setShortcut(Qt::Key_5);
     QTest::keyClick(&dialog, Qt::Key_5);
-    QTest::qWait(300);
+    QTRY_COMPARE(spy1.size(), 1);
     QTest::keyClick(&dialog, Qt::Key_5, Qt::KeypadModifier);
-    QTest::qWait(300);
-    QCOMPARE(spy1.size(), 2);
+    QTRY_COMPARE(spy1.size(), 2);
 
     // add shortcut 'keypad 5' to button2
     spy1.clear();
     QSignalSpy spy2(button2, SIGNAL(clicked()));
     button2->setShortcut(Qt::Key_5 | Qt::KeypadModifier);
     QTest::keyClick(&dialog, Qt::Key_5);
-    QTest::qWait(300);
+    QTRY_COMPARE(spy1.size(), 1);
+    QCOMPARE(spy2.size(), 0);
+
+    spy1.clear();
     QTest::keyClick(&dialog, Qt::Key_5, Qt::KeypadModifier);
-    QTest::qWait(300);
-    QCOMPARE(spy1.size(), 1);
-    QCOMPARE(spy2.size(), 1);
+    QTRY_COMPARE(spy2.size(), 1);
+    QCOMPARE(spy1.size(), 0);
 
     // remove shortcut from button1
     spy1.clear();
@@ -630,9 +628,8 @@ void tst_QPushButton::taskQTBUG_20191_shortcutWithKeypadModifer()
     QTest::keyClick(&dialog, Qt::Key_5);
     QTest::qWait(300);
     QTest::keyClick(&dialog, Qt::Key_5, Qt::KeypadModifier);
-    QTest::qWait(300);
-    QCOMPARE(spy1.size(), 0);
-    QCOMPARE(spy2.size(), 1);
+    QTRY_COMPARE(spy2.size(), 1);
+    QTRY_COMPARE(spy1.size(), 0);
 }
 
 #endif // QT_CONFIG(shortcut)

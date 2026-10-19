@@ -17,6 +17,7 @@ QT_BEGIN_NAMESPACE
 #define COMMAND_CMAKETARGETITEM QLatin1String("cmaketargetitem")
 #define COMMAND_COMPARES QLatin1String("compares")
 #define COMMAND_COMPARESWITH QLatin1String("compareswith")
+#define COMMAND_CONCEPT QLatin1String("concept")
 #define COMMAND_DEFAULT QLatin1String("default")
 #define COMMAND_DEPRECATED QLatin1String("deprecated") // ### don't document
 #define COMMAND_DONTDOCUMENT QLatin1String("dontdocument")
@@ -66,6 +67,7 @@ QT_BEGIN_NAMESPACE
 #define COMMAND_QMLSIGNAL QLatin1String("qmlsignal")
 #define COMMAND_QMLTYPE QLatin1String("qmltype")
 #define COMMAND_QMLSINGLETONTYPE QLatin1String("qmlsingletontype")
+#define COMMAND_QMLUNCREATABLETYPE QLatin1String("qmluncreatabletype")
 #define COMMAND_QTCMAKEPACKAGE QLatin1String("qtcmakepackage")
 #define COMMAND_QTCMAKETARGETITEM QLatin1String("qtcmaketargetitem")
 #define COMMAND_QTVARIABLE QLatin1String("qtvariable")

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwalletd\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-18 00:41+0000\n"
+"POT-Creation-Date: 2026-09-19 00:41+0000\n"
 "PO-Revision-Date: 2021-07-04 09:26+0300\n"
 "Last-Translator: Stelios <sstavra@gmail.com>\n"
 "Language-Team: Greek <kde-i18n-el@kde.org>\n"
@@ -31,31 +31,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "manolis@koppermind.homelinux.org"
 
-#. i18n: ectx: property (text), widget (QPushButton, _allowOnce)
-#: ksecretd/kbetterthankdialogbase.ui:50
-#, kde-format
-msgid "Allow &Once"
-msgstr "Επίτρεψε &μία φορά"
-
-#. i18n: ectx: property (text), widget (QPushButton, _allowAlways)
-#: ksecretd/kbetterthankdialogbase.ui:60
-#, kde-format
-msgid "Allow &Always"
-msgstr "Επίτρεψε &πάντα"
-
-#. i18n: ectx: property (text), widget (QPushButton, _deny)
-#: ksecretd/kbetterthankdialogbase.ui:67
-#, kde-format
-msgid "&Deny"
-msgstr "Άρ&νηση"
-
-#. i18n: ectx: property (text), widget (QPushButton, _denyForever)
-#: ksecretd/kbetterthankdialogbase.ui:74
-#, kde-format
-msgid "Deny &Forever"
-msgstr "Άρνηση &για πάντα"
-
-#: ksecretd/knewwalletdialog.cpp:50
+#: ksecretd/knewwalletdialog.cpp:49
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. This is used "
@@ -67,20 +43,7 @@ msgstr ""
 "τρόπο. Παρακαλώ επιλέξτε τον τύπο του νέου πορτοφολιού ή πατήστε ακύρωση για "
 "να αρνηθείτε την αίτηση της εφαρμογής.</qt>"
 
-#: ksecretd/knewwalletdialog.cpp:55
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. This is used to store sensitive data in a secure fashion. "
-"Please choose the new wallet's type below or click cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>Η εφαρμογή '<b>%1</b>' ζήτησε τη δημιουργία ενός νέου πορτοφολιού με "
-"όνομα '<b>%2</b>'. Αυτό χρησιμοποιείται για την αποθήκευση ευαίσθητων "
-"δεδομένων με έναν ασφαλή τρόπο. Παρακαλώ επιλέξτε τον τύπο του νέου "
-"πορτοφολιού ή πατήστε ακύρωση για να αρνηθείτε την αίτηση της εφαρμογής.</qt>"
-
-#: ksecretd/knewwalletdialog.cpp:125 ksecretd/knewwalletdialog.cpp:132
+#: ksecretd/knewwalletdialog.cpp:117 ksecretd/knewwalletdialog.cpp:124
 #: ksecretd/kwalletwizard.cpp:151 ksecretd/kwalletwizard.cpp:157
 #, kde-format
 msgid ""
@@ -90,7 +53,7 @@ msgstr ""
 "Η βιβλιοθήκη GpgME απέτυχε να προετοιμαστεί για το πρωτόκολλο OpenPGP. "
 "Παρακαλώ ελέγξτε τις ρυθμίσεις του συστήματός σας και προσπαθήστε ξανά."
 
-#: ksecretd/knewwalletdialog.cpp:153
+#: ksecretd/knewwalletdialog.cpp:145
 #, kde-format
 msgid ""
 "Seems that your system has no keys suitable for encryption. Please set-up at "
@@ -172,7 +135,7 @@ msgstr "Κλασσική διαμόρφωση, αρχείο κρυπτογραφ
 msgid "Use GPG encryption, for better protection"
 msgstr "Χρήση κρυπτογράφησης GPG, για μεγαλύτερη προστασία"
 
-#: ksecretd/ksecretd.cpp:616
+#: ksecretd/ksecretd.cpp:334
 #, kde-format
 msgid ""
 "<qt>KDE has requested to open the wallet '<b>%1</b>'. Please enter the "
@@ -181,31 +144,21 @@ msgstr ""
 "<qt>Το KDE ζήτησε το άνοιγμα του πορτοφολιού '<b>%1</b>'. Παρακαλώ εισάγετε "
 "τον  κωδικό πρόσβασης για αυτό το πορτοφόλι.</qt>"
 
-#: ksecretd/ksecretd.cpp:620
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
-"b>'. Please enter the password for this wallet below.</qt>"
-msgstr ""
-"<qt>Η εφαρμογή '<b>%1</b>' ζήτησε το άνοιγμα του πορτοφολιού '<b>%2</b>'. "
-"Παρακαλώ εισάγετε τον κωδικό πρόσβασης για αυτό το πορτοφόλι.</qt>"
-
 #. i18n( "&Open" ), "wallet-open"));
-#: ksecretd/ksecretd.cpp:631 ksecretd/ksecretd.cpp:740
-#: ksecretd/ksecretd.cpp:844 ksecretd/ksecretd.cpp:957
-#: ksecretd/ksecretd.cpp:980 ksecretd/ksecretd.cpp:991
-#: ksecretd/ksecretd.cpp:996 ksecretd/ksecretd.cpp:1586 ksecretd/main.cpp:160
-#: ksecretd/main.cpp:162
+#: ksecretd/ksecretd.cpp:342 ksecretd/ksecretd.cpp:429
+#: ksecretd/ksecretd.cpp:573 ksecretd/ksecretd.cpp:596
+#: ksecretd/ksecretd.cpp:607 ksecretd/ksecretd.cpp:612
+#: ksecretd/ksecretd.cpp:899 ksecretd/main.cpp:159 ksecretd/main.cpp:161
 #, kde-format
 msgid "KDE Wallet Service"
 msgstr "Υπηρεσία πορτοφολιού του KDE"
 
-#: ksecretd/ksecretd.cpp:646
+#: ksecretd/ksecretd.cpp:356
 #, kde-format
 msgid "An application has requested to open a wallet (%1)."
 msgstr "Μια εφαρμογή ζήτησε άδεια για να ανοίξει ένα πορτοφόλι (%1)."
 
-#: ksecretd/ksecretd.cpp:647
+#: ksecretd/ksecretd.cpp:357
 #, kde-format
 msgctxt ""
 "Text of a button for switching to the (unnamed) application requesting a "
@@ -213,19 +166,7 @@ msgctxt ""
 msgid "Switch there"
 msgstr "Εναλλαγή εκεί"
 
-#: ksecretd/ksecretd.cpp:649
-#, kde-format
-msgid "<b>%1</b> has requested to open a wallet (%2)."
-msgstr "Η εφαρμογή <b>%1</b> ζήτησε άδεια να ανοίξει ένα πορτοφόλι (%2)."
-
-#: ksecretd/ksecretd.cpp:651
-#, kde-format
-msgctxt ""
-"Text of a button for switching to the application requesting a password"
-msgid "Switch to %1"
-msgstr "Εναλλαγή σε %1"
-
-#: ksecretd/ksecretd.cpp:668 ksecretd/ksecretd.cpp:750
+#: ksecretd/ksecretd.cpp:373 ksecretd/ksecretd.cpp:439
 #, kde-format
 msgid ""
 "<qt>Error opening the wallet '<b>%1</b>'. Please try again.<br />(Error code "
@@ -234,7 +175,7 @@ msgstr ""
 "<qt>Σφάλμα ανοίγματος του πορτοφολιού '<b>%1</b>'. Παρακαλώ προσπαθήστε "
 "ξανά. <br />(Κωδικός σφάλματος %2:%3)</qt>"
 
-#: ksecretd/ksecretd.cpp:716
+#: ksecretd/ksecretd.cpp:420
 #, kde-format
 msgid ""
 "KDE has requested to open the wallet. This is used to store sensitive data "
@@ -246,20 +187,7 @@ msgstr ""
 "κωδικό πρόσβασης για χρήση με αυτό το πορτοφόλι ή πατήστε ακύρωση για να "
 "αρνηθείτε την αίτηση της εφαρμογής."
 
-#: ksecretd/ksecretd.cpp:721
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the KDE wallet. This "
-"is used to store sensitive data in a secure fashion. Please enter a password "
-"to use with this wallet or click cancel to deny the application's request.</"
-"qt>"
-msgstr ""
-"<qt>Η εφαρμογή '<b>%1</b>'' ζήτησε το άνοιγμα του πορτοφολιού του KDE. Αυτό "
-"χρησιμοποιείται για την αποθήκευση ευαίσθητων δεδομένων με έναν ασφαλή "
-"τρόπο. Παρακαλώ δώστε έναν κωδικό πρόσβασης για χρήση με αυτό το πορτοφόλι ή "
-"πατήστε ακύρωση για να απορρίψετε την αίτηση της εφαρμογής.</qt>"
-
-#: ksecretd/ksecretd.cpp:729
+#: ksecretd/ksecretd.cpp:425
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. Please "
@@ -270,33 +198,7 @@ msgstr ""
 "Παρακαλώ επιλέξτε έναν κωδικό πρόσβασης για αυτό το πορτοφόλι, ή πατήστε "
 "ακύρωση για να απορρίψετε την αίτηση της εφαρμογής.</qt>"
 
-#: ksecretd/ksecretd.cpp:734
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. Please choose a password for this wallet, or cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>Η εφαρμογή '<b>%1</b>' ζήτησε τη δημιουργία ενός νέου πορτοφολιού με "
-"όνομα '<b>%2</b>'. Παρακαλώ επιλέξτε έναν κωδικό πρόσβασης για αυτό το "
-"πορτοφόλι, ή πατήστε ακύρωση για να αρνηθείτε την αίτηση της εφαρμογής.</qt>"
-
-#: ksecretd/ksecretd.cpp:846
-#, kde-format
-msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
-msgstr ""
-"<qt>Το KDE ζήτησε άδεια πρόσβασης στο ανοικτό πορτοφόλι '<b>%1</b>'.</qt>"
-
-#: ksecretd/ksecretd.cpp:848
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested access to the open wallet '<b>"
-"%2</b>'.</qt>"
-msgstr ""
-"<qt>Η εφαρμογή '<b>%1</b>' ζήτησε άδεια να ανοίξει το πορτοφόλι '<b>%2</b>'."
-"</qt>"
-
-#: ksecretd/ksecretd.cpp:956
+#: ksecretd/ksecretd.cpp:572
 #, kde-format
 msgid ""
 "Unable to open wallet. The wallet must be opened in order to change the "
@@ -305,7 +207,7 @@ msgstr ""
 "Αδύνατο το άνοιγμα του πορτοφολιού. Το πορτοφόλι πρέπει να ανοιχτεί για να "
 "τροποποιηθεί ο κωδικός πρόσβασης."
 
-#: ksecretd/ksecretd.cpp:972
+#: ksecretd/ksecretd.cpp:588
 #, kde-format
 msgid ""
 "<qt>The <b>%1</b> wallet is encrypted using GPG key <b>%2</b>. Please use "
@@ -316,27 +218,27 @@ msgstr ""
 "%2</b>. Παρακαλώ χρησιμοποιήστε εργαλεία <b>GPG</b> (όπως το <b>kleopatra</"
 "b>) για να αλλάξετε το συνθηματικό που σχετίζεται με αυτό το κλειδί.</qt>"
 
-#: ksecretd/ksecretd.cpp:979
+#: ksecretd/ksecretd.cpp:595
 #, kde-format
 msgid "<qt>Please choose a new password for the wallet '<b>%1</b>'.</qt>"
 msgstr ""
 "<qt>Παρακαλώ επιλέξτε έναν νέο κωδικό πρόσβασης για το πορτοφόλι '<b>%1</b>'."
 "</qt>"
 
-#: ksecretd/ksecretd.cpp:991
+#: ksecretd/ksecretd.cpp:607
 #, kde-format
 msgid "Error re-encrypting the wallet. Password was not changed."
 msgstr ""
 "Σφάλμα επανακρυπτογράφησης του πορτοφολιού. Ο κωδικός πρόσβασης δεν "
 "τροποποιήθηκε."
 
-#: ksecretd/ksecretd.cpp:996
+#: ksecretd/ksecretd.cpp:612
 #, kde-format
 msgid "Error reopening the wallet. Data may be lost."
 msgstr ""
 "Σφάλμα ανοίγματος ξανά του πορτοφολιού. Δεδομένα μπορεί να έχουν χαθεί."
 
-#: ksecretd/ksecretd.cpp:1585
+#: ksecretd/ksecretd.cpp:898
 #, kde-format
 msgid ""
 "There have been repeated failed attempts to gain access to a wallet. An "
@@ -570,49 +472,49 @@ msgstr ""
 msgid "What kind of encryption do you wish?"
 msgstr "Επιλέξτε τι είδους κρυπτογράφηση θέλετε να χρησιμοποιήσετε."
 
-#: ksecretd/main.cpp:164
+#: ksecretd/main.cpp:163
 #, fuzzy, kde-format
 #| msgid "(C) 2002-2013, The KDE Developers"
 msgid "(C) 2002-2025, The KDE Developers"
 msgstr "(C) 2002-2013, Οι προγραμματιστές του KDE"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Valentin Rusu"
 msgstr "Valentin Rusu"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, fuzzy, kde-format
 #| msgid "Maintainer, GPG backend support"
 msgid "Former Maintainer, GPG backend support"
 msgstr "Συντηρητής, σύστημα υποστήριξης GPG"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Michael Leupold"
 msgstr "Michael Leupold"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Former Maintainer"
 msgstr "Πρώην συντηρητής"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "George Staikos"
 msgstr "George Staikos"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "Former maintainer"
 msgstr "Πρώην συντηρητής"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "Thiago Maceira"
 msgstr "Thiago Macieira"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "D-Bus Interface"
 msgstr "Διασύνδεση D-Bus"
@@ -715,52 +617,52 @@ msgstr ""
 "κρυπτογραφημένο με το GPG Key ID <b>%2</b> αλλά αυτό δε βρέθηκε στο σύστημά "
 "σας.</qt>"
 
-#: kwalletbackend/kwalletbackend.cc:272
+#: kwalletbackend/kwalletbackend.cc:286
 #, kde-format
 msgid "Already open."
 msgstr "Ήδη ανοιχτό."
 
-#: kwalletbackend/kwalletbackend.cc:274
+#: kwalletbackend/kwalletbackend.cc:288
 #, kde-format
 msgid "Error opening file."
 msgstr "Σφάλμα κατά το άνοιγμα αρχείου."
 
-#: kwalletbackend/kwalletbackend.cc:276
+#: kwalletbackend/kwalletbackend.cc:290
 #, kde-format
 msgid "Not a wallet file."
 msgstr "Δεν είναι αρχείο πορτοφολιού."
 
-#: kwalletbackend/kwalletbackend.cc:278
+#: kwalletbackend/kwalletbackend.cc:292
 #, kde-format
 msgid "Unsupported file format revision."
 msgstr "Μη υποστηριζόμενη αναθεώρηση μορφής αρχείου."
 
-#: kwalletbackend/kwalletbackend.cc:282
+#: kwalletbackend/kwalletbackend.cc:296
 #, kde-format
 msgid "Unknown encryption scheme."
 msgstr "Άγνωστος τύπος κρυπτογράφησης."
 
-#: kwalletbackend/kwalletbackend.cc:284
+#: kwalletbackend/kwalletbackend.cc:298
 #, kde-format
 msgid "Corrupt file?"
 msgstr "Κατεστραμμένο αρχείο;"
 
-#: kwalletbackend/kwalletbackend.cc:286
+#: kwalletbackend/kwalletbackend.cc:300
 #, kde-format
 msgid "Error validating wallet integrity. Possibly corrupted."
 msgstr "Σφάλμα επαλήθευσης ακεραιότητας πορτοφολιού. Πιθανή αλλοίωση."
 
-#: kwalletbackend/kwalletbackend.cc:290
+#: kwalletbackend/kwalletbackend.cc:304
 #, kde-format
 msgid "Read error - possibly incorrect password."
 msgstr "Σφάλμα ανάγνωσης - πιθανόν λάθος κωδικός πρόσβασης."
 
-#: kwalletbackend/kwalletbackend.cc:292
+#: kwalletbackend/kwalletbackend.cc:306
 #, kde-format
 msgid "Decryption error."
 msgstr "Σφάλμα αποκρυπτογράφησης."
 
-#: kwalletbackend/kwalletbackend.cc:472
+#: kwalletbackend/kwalletbackend.cc:486
 #, kde-format
 msgid ""
 "Failed to sync wallet <b>%1</b> to disk. Error codes are:\n"
@@ -773,79 +675,79 @@ msgstr ""
 "SF <b>%3</b>. Παρακαλώ υποβάλετε μια αναφορά σφάλματος με αυτές τις "
 "πληροφορίες στο bugs.kde.org"
 
-#: kwalletd/kwalletd.cpp:119
+#: kwalletd/kwalletd.cpp:103
 #, kde-format
 msgid "Migrating the wallet \"%1\". Please provide the password to unlock."
 msgstr ""
 
-#: kwalletd/main.cpp:32
+#: kwalletd/main.cpp:31
 #, kde-format
 msgid "kwalletd"
 msgstr "kwalletd"
 
-#: kwalletd/main.cpp:34
+#: kwalletd/main.cpp:33
 #, kde-format
 msgid "A KWallet compatibility service, wrapping upon Secret Service"
 msgstr ""
 
-#: kwalletd/main.cpp:36
+#: kwalletd/main.cpp:35
 #, fuzzy, kde-format
 #| msgid "(C) 2002-2013, The KDE Developers"
 msgid "(C) 2025, The KDE Developers"
 msgstr "(C) 2002-2013, Οι προγραμματιστές του KDE"
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Marco Martin"
 msgstr ""
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Author"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:241
+#: kwalletd/secretserviceclient.cpp:262
 #, kde-format
 msgid "Item not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:261
+#: kwalletd/secretserviceclient.cpp:282
 #, kde-format
 msgid "Could not connect to Secret Service"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:423
+#: kwalletd/secretserviceclient.cpp:482
 #, kde-format
 msgid "Unable to unlock collectionName %1"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:515
+#: kwalletd/secretserviceclient.cpp:575
 #, kde-format
 msgid "No collections"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:552 kwalletd/secretserviceclient.cpp:599
-#: kwalletd/secretserviceclient.cpp:702
+#: kwalletd/secretserviceclient.cpp:612 kwalletd/secretserviceclient.cpp:659
+#: kwalletd/secretserviceclient.cpp:762
 #, kde-format
 msgid "No entries"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:617
+#: kwalletd/secretserviceclient.cpp:677
 #, kde-format
 msgid "Entry not found, key: %1, folder: %2"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:726
+#: kwalletd/secretserviceclient.cpp:786
 #, kde-format
 msgid "Unable to unlock item"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:769 kwalletd/secretserviceclient.cpp:887
+#: kwalletd/secretserviceclient.cpp:829 kwalletd/secretserviceclient.cpp:947
 #, kde-format
 msgid "Entry to rename not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:776
+#: kwalletd/secretserviceclient.cpp:836
 #, fuzzy, kde-format
 #| msgid "* SKIPPING entry %1 in folder %2 as it seems already migrated"
 msgid "Entry named %1 in folder %2 and wallet %3 already exists."
@@ -853,15 +755,87 @@ msgstr ""
 "* ΠΑΡΑΒΛΕΨΗ καταχώρησης %1 για τον φάκελο %2 καθώς φαίνεται πως έχει ήδη "
 "μεταφερθεί"
 
-#: kwalletd/secretserviceclient.cpp:791 kwalletd/secretserviceclient.cpp:806
+#: kwalletd/secretserviceclient.cpp:851 kwalletd/secretserviceclient.cpp:866
 #, kde-format
 msgid "Entry to rename incomplete"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:851
+#: kwalletd/secretserviceclient.cpp:911
 #, kde-format
 msgid "Failed to create SecretValue"
 msgstr ""
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. This is used to store sensitive data in a secure "
+#~ "fashion. Please choose the new wallet's type below or click cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Η εφαρμογή '<b>%1</b>' ζήτησε τη δημιουργία ενός νέου πορτοφολιού με "
+#~ "όνομα '<b>%2</b>'. Αυτό χρησιμοποιείται για την αποθήκευση ευαίσθητων "
+#~ "δεδομένων με έναν ασφαλή τρόπο. Παρακαλώ επιλέξτε τον τύπο του νέου "
+#~ "πορτοφολιού ή πατήστε ακύρωση για να αρνηθείτε την αίτηση της εφαρμογής.</"
+#~ "qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
+#~ "b>'. Please enter the password for this wallet below.</qt>"
+#~ msgstr ""
+#~ "<qt>Η εφαρμογή '<b>%1</b>' ζήτησε το άνοιγμα του πορτοφολιού '<b>%2</b>'. "
+#~ "Παρακαλώ εισάγετε τον κωδικό πρόσβασης για αυτό το πορτοφόλι.</qt>"
+
+#~ msgid "<b>%1</b> has requested to open a wallet (%2)."
+#~ msgstr "Η εφαρμογή <b>%1</b> ζήτησε άδεια να ανοίξει ένα πορτοφόλι (%2)."
+
+#~ msgctxt ""
+#~ "Text of a button for switching to the application requesting a password"
+#~ msgid "Switch to %1"
+#~ msgstr "Εναλλαγή σε %1"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the KDE wallet. "
+#~ "This is used to store sensitive data in a secure fashion. Please enter a "
+#~ "password to use with this wallet or click cancel to deny the "
+#~ "application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Η εφαρμογή '<b>%1</b>'' ζήτησε το άνοιγμα του πορτοφολιού του KDE. "
+#~ "Αυτό χρησιμοποιείται για την αποθήκευση ευαίσθητων δεδομένων με έναν "
+#~ "ασφαλή τρόπο. Παρακαλώ δώστε έναν κωδικό πρόσβασης για χρήση με αυτό το "
+#~ "πορτοφόλι ή πατήστε ακύρωση για να απορρίψετε την αίτηση της εφαρμογής.</"
+#~ "qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. Please choose a password for this wallet, or cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Η εφαρμογή '<b>%1</b>' ζήτησε τη δημιουργία ενός νέου πορτοφολιού με "
+#~ "όνομα '<b>%2</b>'. Παρακαλώ επιλέξτε έναν κωδικό πρόσβασης για αυτό το "
+#~ "πορτοφόλι, ή πατήστε ακύρωση για να αρνηθείτε την αίτηση της εφαρμογής.</"
+#~ "qt>"
+
+#~ msgid "Allow &Once"
+#~ msgstr "Επίτρεψε &μία φορά"
+
+#~ msgid "Allow &Always"
+#~ msgstr "Επίτρεψε &πάντα"
+
+#~ msgid "&Deny"
+#~ msgstr "Άρ&νηση"
+
+#~ msgid "Deny &Forever"
+#~ msgstr "Άρνηση &για πάντα"
+
+#~ msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>Το KDE ζήτησε άδεια πρόσβασης στο ανοικτό πορτοφόλι '<b>%1</b>'.</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested access to the open wallet "
+#~ "'<b>%2</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>Η εφαρμογή '<b>%1</b>' ζήτησε άδεια να ανοίξει το πορτοφόλι '<b>%2</"
+#~ "b>'.</qt>"
 
 #~ msgid "Cannot read old wallet list. Aborting."
 #~ msgstr "Αδυναμία ανάγνωσης του παλιού πορτοφολιού. Εγκατάλειψη."

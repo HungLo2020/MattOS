@@ -11,12 +11,13 @@
 
 #include "config-kwin.h"
 
+#include "core/gpumanager.h"
+#include "core/renderdevice.h"
+#include "pointer_input.h"
 #include "utils/xcbutils.h"
 #include "x11_windowed_egl_backend.h"
 #include "x11_windowed_logging.h"
 #include "x11_windowed_output.h"
-#include "x11_windowed_qpainter_backend.h"
-#include <pointer_input.h>
 // KDE
 #include <KLocalizedString>
 #include <QAbstractEventDispatcher>
@@ -144,7 +145,6 @@ X11WindowedBackend::~X11WindowedBackend()
     m_pointerDevice.reset();
     m_keyboardDevice.reset();
     m_touchDevice.reset();
-    m_eglDisplay.reset();
 
     if (m_connection) {
         if (m_keySymbols) {
@@ -211,9 +211,11 @@ bool X11WindowedBackend::initialize()
             m_hasDri = true;
             m_driMajorVersion = reply->major_version;
             m_driMinorVersion = reply->minor_version;
-        } else {
-            qCWarning(KWIN_X11WINDOWED) << "Requested DRI3 extension version is unsupported";
         }
+    }
+    if (!m_hasDri) {
+        qCCritical(KWIN_X11WINDOWED, "X11 server is missing support for DRI3 1.2+, which the nested X11 backend requires");
+        return false;
     }
 
     initXInput();
@@ -281,9 +283,10 @@ void X11WindowedBackend::initDri3()
         xcb_dri3_open_cookie_t cookie = xcb_dri3_open(m_connection, m_screen->root, 0);
         UniqueCPtr<xcb_dri3_open_reply_t> reply(xcb_dri3_open_reply(m_connection, cookie, nullptr));
         if (reply && reply->nfd == 1) {
-            int fd = xcb_dri3_open_reply_fds(m_connection, reply.get())[0];
-            m_drmDevice = DrmDevice::open(QByteArray(drmGetDeviceNameFromFd2(fd)));
-            ::close(fd);
+            const FileDescriptor fd{xcb_dri3_open_reply_fds(m_connection, reply.get())[0]};
+            if (auto device = DrmDevice::open(QByteArray(drmGetDeviceNameFromFd2(fd.get())))) {
+                m_renderDevice = GpuManager::self()->compatibleRenderDevice(device.get());
+            }
         }
     }
 
@@ -291,7 +294,7 @@ void X11WindowedBackend::initDri3()
     while (it.rem > 0) {
         uint32_t format = driFormatForDepth(it.data->depth);
         if (format) {
-            QList<uint64_t> &mods = m_driFormats[format];
+            ModifierList &mods = m_driFormats[format];
 
             if (m_driMajorVersion > 1 || m_driMinorVersion >= 2) {
                 xcb_dri3_get_supported_modifiers_cookie_t cookie = xcb_dri3_get_supported_modifiers(m_connection, m_screen->root, it.data->depth, 32);
@@ -300,13 +303,13 @@ void X11WindowedBackend::initDri3()
                     const uint64_t *modifiers = xcb_dri3_get_supported_modifiers_screen_modifiers(reply.get());
                     const int modifierCount = xcb_dri3_get_supported_modifiers_screen_modifiers_length(reply.get());
                     for (int i = 0; i < modifierCount; ++i) {
-                        mods.append(modifiers[i]);
+                        mods.insert(modifiers[i]);
                     }
                 }
             }
 
-            if (mods.isEmpty()) {
-                mods.append(DRM_FORMAT_MOD_INVALID);
+            if (mods.empty()) {
+                mods.insert(DRM_FORMAT_MOD_INVALID);
             }
         }
 
@@ -554,6 +557,7 @@ void X11WindowedBackend::handleButtonPress(xcb_button_press_event_t *event)
                                                    delta,
                                                    PointerAxisSource::Unknown,
                                                    false,
+                                                   false,
                                                    std::chrono::milliseconds(event->time),
                                                    m_pointerDevice.get());
         Q_EMIT m_pointerDevice->pointerFrame(m_pointerDevice.get());
@@ -606,7 +610,7 @@ void X11WindowedBackend::updateSize(xcb_configure_notify_event_t *event)
 
     const QSize s = QSize(event->width, event->height);
     if (s != output->pixelSize()) {
-        output->resize(s);
+        output->setSize(s);
         Q_EMIT outputsQueried();
     }
 }
@@ -675,11 +679,6 @@ xcb_window_t X11WindowedBackend::rootWindow() const
     return m_screen->root;
 }
 
-DrmDevice *X11WindowedBackend::drmDevice() const
-{
-    return m_drmDevice.get();
-}
-
 X11WindowedInputDevice *X11WindowedBackend::pointerDevice() const
 {
     return m_pointerDevice.get();
@@ -695,14 +694,9 @@ X11WindowedInputDevice *X11WindowedBackend::touchDevice() const
     return m_touchDevice.get();
 }
 
-std::unique_ptr<EglBackend> X11WindowedBackend::createOpenGLBackend()
+std::unique_ptr<EglBackend> X11WindowedBackend::createOpenGLBackend(RenderDevice *device)
 {
-    return std::make_unique<X11WindowedEglBackend>(this);
-}
-
-std::unique_ptr<QPainterBackend> X11WindowedBackend::createQPainterBackend()
-{
-    return std::make_unique<X11WindowedQPainterBackend>(this);
+    return std::make_unique<X11WindowedEglBackend>(this, device);
 }
 
 std::unique_ptr<InputBackend> X11WindowedBackend::createInputBackend()
@@ -720,7 +714,7 @@ xcb_screen_t *X11WindowedBackend::screen() const
     return m_screen;
 }
 
-int X11WindowedBackend::screenNumer() const
+int X11WindowedBackend::screenNumber() const
 {
     return m_screenNumber;
 }
@@ -735,7 +729,7 @@ xcb_render_pictformat_t X11WindowedBackend::pictureFormatForDepth(int depth) con
     return m_pictureFormats.value(depth);
 }
 
-QHash<uint32_t, QList<uint64_t>> X11WindowedBackend::driFormats() const
+FormatModifierMap X11WindowedBackend::driFormats() const
 {
     return m_driFormats;
 }
@@ -765,11 +759,8 @@ int X11WindowedBackend::driMinorVersion() const
 QList<CompositingType> X11WindowedBackend::supportedCompositors() const
 {
     QList<CompositingType> ret;
-    if (m_drmDevice) {
+    if (m_renderDevice) {
         ret.append(OpenGLCompositing);
-    }
-    if (m_hasShm) {
-        ret.append(QPainterCompositing);
     }
     return ret;
 }
@@ -788,14 +779,9 @@ void X11WindowedBackend::destroyOutputs()
     }
 }
 
-void X11WindowedBackend::setEglDisplay(std::unique_ptr<EglDisplay> &&display)
+RenderDevice *X11WindowedBackend::renderDevice() const
 {
-    m_eglDisplay = std::move(display);
-}
-
-EglDisplay *X11WindowedBackend::sceneEglDisplayObject() const
-{
-    return m_eglDisplay.get();
+    return m_renderDevice;
 }
 
 } // namespace KWin

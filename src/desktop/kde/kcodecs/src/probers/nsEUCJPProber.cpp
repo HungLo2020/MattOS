@@ -12,10 +12,12 @@
 #include "nsEUCJPProber.h"
 #include "nsMBCSSM.h"
 
+#include <format>
+
 namespace kencodingprober
 {
 nsEUCJPProber::nsEUCJPProber()
-    : mCodingSM{std::make_unique<nsCodingStateMachine>(&EUCJPSMModel)}
+    : mCodingSM{std::make_unique<nsCodingStateMachine>(EUCJPSMModel)}
 {
 }
 
@@ -36,7 +38,7 @@ nsProbingState nsEUCJPProber::HandleData(const char *aBuf, unsigned int aLen)
             break;
         }
         if (codingState == eStart) {
-            unsigned int charLen = mCodingSM->GetCurrentCharLen();
+            const int64_t charLen = i - mLastStart;
 
             if (i == 0) {
                 mLastChar[1] = aBuf[0];
@@ -46,10 +48,12 @@ nsProbingState nsEUCJPProber::HandleData(const char *aBuf, unsigned int aLen)
                 mContextAnalyser.HandleOneChar(aBuf + i - 1, charLen);
                 mDistributionAnalyser.HandleOneChar(aBuf + i - 1, charLen);
             }
+            mLastStart = i;
         }
     }
 
     mLastChar[0] = aBuf[aLen - 1];
+    mLastStart -= aLen;
 
     if (mState == eDetecting) {
         if (mContextAnalyser.GotEnoughData() && GetConfidence() > SHORTCUT_THRESHOLD) {
@@ -66,5 +70,15 @@ float nsEUCJPProber::GetConfidence(void)
     float distribCf = mDistributionAnalyser.GetConfidence();
 
     return (contxtCf > distribCf ? contxtCf : distribCf);
+}
+
+std::string nsEUCJPProber::StatusOutput(uint8_t /* indent */)
+{
+    return std::format( //
+        "{:1.3f} [{}]  {}  {}",
+        GetConfidence(),
+        GetCharSetName(),
+        mDistributionAnalyser.StatusOutput(),
+        mContextAnalyser.StatusOutput());
 }
 }

@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=Reddit
+Name[am]=Reddit
 Name[ar]=ردت
 Name[az]=Reddit
 Name[be]=Reddit
@@ -39,6 +40,8 @@ Name[lg]=Reddit
 Name[lt]=Reddit
 Name[lv]=Reddit
 Name[my]=ရက်ဒစ်
+Name[nan_TW]=Reddit
+Name[nan_TW@latin]=Reddit
 Name[nb]=Reddit
 Name[nl]=Reddit
 Name[nn]=Reddit
@@ -55,7 +58,6 @@ Name[sq]=Reddit
 Name[sv]=Reddit
 Name[th]=Reddit
 Name[tr]=Reddit
-Name[ug]=Reddit
 Name[uk]=Reddit
 Name[vi]=Reddit
 Name[zh_CN]=Reddit
@@ -63,6 +65,7 @@ Name[zh_TW]=Reddit
 Type=Service
 Keys=reddit
 Query=https://www.reddit.com/search/?q=\\{@}
+Query[am]=https://www.reddit.com/search/?q=\\{@}
 Query[ar]=https://www.reddit.com/search/?q=\\{@}
 Query[az]=https://www.reddit.com/search/?q=\\{@}
 Query[be]=https://www.reddit.com/search/?q=\\{@}
@@ -102,6 +105,8 @@ Query[lg]=https://www.reddit.com/search/?q=\\{@}
 Query[lt]=https://www.reddit.com/search/?q=\\{@}
 Query[lv]=https://www.reddit.com/search/?q=\\{@}
 Query[my]=https://www.reddit.com/search/?q=\\{@}
+Query[nan_TW]=https://www.reddit.com/search/?q=\\{@}
+Query[nan_TW@latin]=https://www.reddit.com/search/?q=\\{@}
 Query[nb]=https://www.reddit.com/search/?q=\\{@}
 Query[nl]=https://www.reddit.com/search/?q=\\{@}
 Query[nn]=https://www.reddit.com/search/?q=\\{@}
@@ -118,7 +123,6 @@ Query[sq]=https://www.reddit.com/search/?q=\\{@}
 Query[sv]=https://www.reddit.com/search/?q=\\{@}
 Query[th]=https://www.reddit.com/search/?q=\\{@}
 Query[tr]=https://www.reddit.com/search/?q=\\{@}
-Query[ug]=https://www.reddit.com/search/?q=\\{@}
 Query[uk]=https://www.reddit.com/search/?q=\\{@}
 Query[vi]=https://www.reddit.com/search/?q=\\{@}
 Query[zh_CN]=https://www.reddit.com/search/?q=\\{@}

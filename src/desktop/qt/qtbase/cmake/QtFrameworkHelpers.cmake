@@ -42,6 +42,7 @@ macro(qt_find_apple_system_frameworks)
         qt_internal_find_apple_system_framework(FWNetwork Network)
         qt_internal_find_apple_system_framework(FWOpenGL OpenGL)
         qt_internal_find_apple_system_framework(FWAccelerate Accelerate)
+        qt_internal_find_apple_system_framework(FWScreenCaptureKit ScreenCaptureKit)
     endif()
 endmacro()
 
@@ -104,7 +105,7 @@ function(qt_copy_framework_headers target)
 
     set(options)
     set(oneValueArgs)
-    set(multiValueArgs PUBLIC PRIVATE QPA RHI SSG)
+    set(multiValueArgs PUBLIC PRIVATE QPA RHI SSG SPI)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     qt_internal_get_framework_info(fw ${target})
@@ -114,6 +115,7 @@ function(qt_copy_framework_headers target)
     set(output_dir_QPA "${output_dir}/${fw_private_module_header_dir}/qpa")
     set(output_dir_RHI "${output_dir}/${fw_private_module_header_dir}/rhi")
     set(output_dir_SSG "${output_dir}/${fw_private_module_header_dir}/ssg")
+    set(output_dir_SPI "${output_dir}/${fw_private_module_header_dir}/spi")
 
     qt_internal_module_info(module "${target}")
 
@@ -121,7 +123,7 @@ function(qt_copy_framework_headers target)
     set(in_files "")
     set(out_dirs "")
     set(copy_commands "")
-    foreach(type IN ITEMS PUBLIC PRIVATE QPA RHI SSG)
+    foreach(type IN ITEMS PUBLIC PRIVATE QPA RHI SSG SPI)
         set(in_files_${type} "")
         set(fw_output_header_dir "${output_dir_${type}}")
         foreach(hdr IN LISTS arg_${type})
@@ -168,6 +170,19 @@ function(qt_copy_framework_headers target)
         set_property(TARGET ${target} APPEND PROPERTY ADDITIONAL_CLEAN_FILES
             "${output_dir}/${fw_dir}/Versions/${fw_version}/Headers"
         )
+
+        if(QT_FEATURE_clang_module_maps)
+            # Clang only looks for the module map at the bundle root, so link it
+            # to the Versions directory the module map is written to.
+            file(MAKE_DIRECTORY "${output_dir}/${fw_dir}/Versions/${fw_version}/Modules")
+            file(CREATE_LINK "Versions/Current/Modules"
+                "${output_dir}/${fw_dir}/Modules" SYMBOLIC)
+
+            # Make "ninja clean" work.
+            set_property(TARGET ${target} APPEND PROPERTY ADDITIONAL_CLEAN_FILES
+                "${output_dir}/${fw_dir}/Versions/${fw_version}/Modules"
+            )
+        endif()
     endif()
 
     if(CMAKE_GENERATOR MATCHES "^Ninja")

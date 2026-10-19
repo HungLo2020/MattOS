@@ -20,9 +20,11 @@ private Q_SLOTS:
     void initTestCase();
     void cleanupTestCase();
     void init();
+    void cleanup();
 
     void startProcess_data();
     void startProcess();
+    void startProcessLocalhostHost();
 
     void noServiceNoHandler();
     void invalidUrl();
@@ -39,7 +41,6 @@ private Q_SLOTS:
     void openOrExecuteScript();
     void openOrExecuteDesktop_data();
     void openOrExecuteDesktop();
-    void launchExternalBrowser_data();
     void launchExternalBrowser();
     void nonExistingFile();
 

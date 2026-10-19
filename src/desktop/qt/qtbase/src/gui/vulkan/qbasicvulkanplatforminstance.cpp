@@ -1,5 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qbasicvulkanplatforminstance_p.h"
 #include <QCoreApplication>
@@ -366,12 +367,26 @@ bool QBasicPlatformVulkanInstance::supportsPresent(VkPhysicalDevice physicalDevi
 
 void QBasicPlatformVulkanInstance::setDebugFilters(const QList<QVulkanInstance::DebugFilter> &filters)
 {
+    QMutexLocker locker(&m_debugFilterMutex);
     m_debugFilters = filters;
 }
 
 void QBasicPlatformVulkanInstance::setDebugUtilsFilters(const QList<QVulkanInstance::DebugUtilsFilter> &filters)
 {
+    QMutexLocker locker(&m_debugFilterMutex);
     m_debugUtilsFilters = filters;
+}
+
+QList<QVulkanInstance::DebugFilter> QBasicPlatformVulkanInstance::debugFilters() const
+{
+    QMutexLocker locker(&m_debugFilterMutex);
+    return m_debugFilters;
+}
+
+QList<QVulkanInstance::DebugUtilsFilter> QBasicPlatformVulkanInstance::debugUtilsFilters() const
+{
+    QMutexLocker locker(&m_debugFilterMutex);
+    return m_debugUtilsFilters;
 }
 
 void QBasicPlatformVulkanInstance::destroySurface(VkSurfaceKHR surface) const
@@ -388,8 +403,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL defaultDebugCallbackFunc(VkDebugUtilsMessa
 {
     QBasicPlatformVulkanInstance *self = static_cast<QBasicPlatformVulkanInstance *>(pUserData);
 
+    const QList<QVulkanInstance::DebugFilter> legacyFilters = self->debugFilters();
+    const QList<QVulkanInstance::DebugUtilsFilter> utilsFilters = self->debugUtilsFilters();
+
     // legacy filters
-    for (QVulkanInstance::DebugFilter filter : *self->debugFilters()) {
+    for (QVulkanInstance::DebugFilter filter : legacyFilters) {
         // As per docs in qvulkaninstance.cpp we pass object, messageCode,
         // pMessage to the callback with the legacy signature.
         uint64_t object = 0;
@@ -403,8 +421,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL defaultDebugCallbackFunc(VkDebugUtilsMessa
     }
 
     // filters with new signature
-    const QList<QVulkanInstance::DebugUtilsFilter> *filters = self->debugUtilsFilters();
-    for (const QVulkanInstance::DebugUtilsFilter &filter : *filters) {
+    for (const QVulkanInstance::DebugUtilsFilter &filter : utilsFilters) {
         QVulkanInstance::DebugMessageSeverityFlags severity;
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
             severity |= QVulkanInstance::VerboseSeverity;
@@ -443,6 +460,14 @@ void QBasicPlatformVulkanInstance::setupDebugOutput()
 
     m_vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
                 m_vkGetInstanceProcAddr(m_vkInst, "vkDestroyDebugUtilsMessengerEXT"));
+
+    // This cannot happen as per spec if the extension was advertised and
+    // the instance was successfully created, but is reported to happen on
+    // some Android devices (QTBUG-148216). Handle it gracefully.
+    if (!vkCreateDebugUtilsMessengerEXT || !m_vkDestroyDebugUtilsMessengerEXT) {
+        qWarning("VK_EXT_debug_utils advertised but entry points are not available, skipping Vulkan debug output");
+        return;
+    }
 
     VkDebugUtilsMessengerCreateInfoEXT messengerInfo = {};
     messengerInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;

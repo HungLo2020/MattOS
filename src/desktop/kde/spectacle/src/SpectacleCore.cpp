@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  SPDX-FileCopyrightText: 2019 David Redondo <kde@david-redondo.de>
  *  SPDX-FileCopyrightText: 2015 Boudhayan Gupta <bgupta@kde.org>
  *  SPDX-FileCopyrightText: 2025 Jhair Paris <dev@jhairparis.com>
@@ -9,6 +9,7 @@
 #include "SpectacleCore.h"
 #include "CaptureModeModel.h"
 #include "CommandLineOptions.h"
+#include "Config.h"
 #include "ExportManager.h"
 #include "Geometry.h"
 #include "Gui/CaptureWindow.h"
@@ -18,7 +19,9 @@
 #include "Gui/InlineMessageModel.h"
 #include "ImageMetaData.h"
 #include "OcrManager.h"
+#if WITH_X11
 #include "Platforms/ImagePlatformXcb.h"
+#endif
 #include "Platforms/PlatformLoader.h"
 #include "RecordingModeModel.h"
 #include "ShortcutActions.h"
@@ -34,10 +37,13 @@
 #include <KNotification>
 #include <KStatusNotifierItem>
 #include <KWindowSystem>
+#if WITH_X11
 #include <KX11Extras>
+#endif
 #include <LayerShellQt/Shell>
 #include <LayerShellQt/Window>
 
+#include <KLocalizedQmlContext>
 #include <QApplication>
 #include <QClipboard>
 #include <QCommandLineParser>
@@ -74,7 +80,7 @@ SpectacleCore::SpectacleCore(QObject *parent)
     : QObject(parent)
 {
     // Timer to prevent lots of extra rendering to images
-    m_annotationSyncTimer = std::make_unique<QTimer>(new QTimer(this));
+    m_annotationSyncTimer = std::make_unique<QTimer>();
     m_annotationSyncTimer->setInterval(400);
     m_annotationSyncTimer->setSingleShot(true);
 
@@ -128,6 +134,12 @@ SpectacleCore::SpectacleCore(QObject *parent)
     m_annotationDocument = std::make_unique<AnnotationDocument>();
 
     // essential connections
+    connect(SelectionEditor::instance(), &SelectionEditor::accepted, this, [this](const auto &rect, const auto &) {
+        if (!m_videoMode) {
+            m_annotationDocument->cropCanvas(rect);
+            syncExportImage();
+        }
+    });
     connect(SelectionEditor::instance(), &SelectionEditor::accepted,
             this, [this](const QRectF &rect, const ExportManager::Actions &actions){
         m_returnToViewer = m_startMode == StartMode::Gui;
@@ -164,8 +176,6 @@ SpectacleCore::SpectacleCore(QObject *parent)
         } else {
             SpectacleWindow::setVisibilityForAll(QWindow::Hidden);
             deleteWindows();
-            m_annotationDocument->cropCanvas(rect);
-            syncExportImage();
             auto exportActions = actions & ExportManager::AnyAction ? actions : autoExportActions();
             if (m_ocrExportInProgress) {
                 if (Settings::closeAfterOcr()) {
@@ -173,6 +183,7 @@ SpectacleCore::SpectacleCore(QObject *parent)
                     exportActions.setFlag(ExportManager::Action::CopyPath, false);
                     m_quitAfterOcr = true;
                 }
+                exportActions.setFlag(ExportManager::Action::CopyImage, false);
                 m_ocrExportInProgress = false;
             }
             const bool willQuit = exportActions.testAnyFlags(ExportManager::AnyAction) //
@@ -281,7 +292,7 @@ SpectacleCore::SpectacleCore(QObject *parent)
     });
 
     auto videoPlatform = m_videoPlatform.get();
-    connect(videoPlatform, &VideoPlatform::recordingStateChanged, this, [this](VideoPlatform::RecordingState state) {
+    connect(videoPlatform, &VideoPlatform::recordingStateChanged, this, [this, videoPlatform](VideoPlatform::RecordingState state) {
         if (state == VideoPlatform::RecordingState::Recording) {
             static const auto recordingIcon = u":/icons/256-status-media-recording.webp"_s;
             static const auto recordingStartedIcon = u":/icons/256-status-media-recording-started.webp"_s;
@@ -289,13 +300,15 @@ SpectacleCore::SpectacleCore(QObject *parent)
             s_systemTrayIcon = std::make_unique<KStatusNotifierItem>();
             s_systemTrayIcon->setStatus(KStatusNotifierItem::Active);
             s_systemTrayIcon->setCategory(KStatusNotifierItem::SystemServices);
-            s_systemTrayIcon->setToolTipTitle(i18nc("@info:tooltip title for recording tray icon", //
-                                                    "Spectacle is Recording"));
+            s_systemTrayIcon->setToolTipTitle(videoPlatform->isRecordingAudio()
+                                                  ? i18nc("@info:tooltip title for recording tray icon", "Spectacle is Recording with Sound")
+                                                  : i18nc("@info:tooltip title for recording tray icon", "Spectacle is Recording"));
             s_systemTrayIcon->setStandardActionsEnabled(false);
             connect(s_systemTrayIcon.get(), &KStatusNotifierItem::activateRequested, this, [] {
                 SpectacleCore::instance()->finishRecording();
             });
-            const auto messageTitle = i18nc("recording notification title", "Spectacle is Recording");
+            const auto messageTitle = videoPlatform->isRecordingAudio() ? i18nc("recording notification title", "Spectacle is Recording with Sound")
+                                                                        : i18nc("recording notification title", "Spectacle is Recording");
             auto getSimpleDefaultShortcut = [] {
                 const auto shortcuts = KGlobalAccel::self()->shortcut(ShortcutActions::self()->recordRegionAction());
                 if (shortcuts.contains(QKeySequence{Qt::META | Qt::Key_R})) {
@@ -415,8 +428,10 @@ SpectacleCore::SpectacleCore(QObject *parent)
     connect(videoPlatform, &VideoPlatform::recordingSaved, this, [this](const QUrl &fileUrl) {
         // Always try to save. Needed to move recordings out of temp dir.
         ExportManager::instance()->exportVideo(autoExportActions() | ExportManager::Save, fileUrl, videoOutputUrl());
+        m_recordingEventLoopLocker.reset();
     });
     connect(videoPlatform, &VideoPlatform::recordingCanceled, this, [this] {
+        m_recordingEventLoopLocker.reset();
         if (m_startMode != StartMode::Gui || !m_returnToViewer || isGuiNull()) {
             Q_EMIT allDone();
             return;
@@ -431,7 +446,8 @@ SpectacleCore::SpectacleCore(QObject *parent)
             w->setVisible(true);
         }
     });
-    connect(videoPlatform, &VideoPlatform::recordingFailed, this, [onScreenshotOrRecordingFailed](const QString &message){
+    connect(videoPlatform, &VideoPlatform::recordingFailed, this, [this, onScreenshotOrRecordingFailed](const QString &message){
+        m_recordingEventLoopLocker.reset();
         auto uiMessage = i18nc("@info", "An error occurred while attempting to record the screen.");
         onScreenshotOrRecordingFailed(message, uiMessage, &SpectacleCore::dbusRecordingFailed);
     });
@@ -476,13 +492,17 @@ SpectacleCore::SpectacleCore(QObject *parent)
         if (actions & ExportManager::AnySave) {
             SpectacleWindow::setTitleForAll(SpectacleWindow::Saved, url.fileName());
             if (actions & ExportManager::CopyImage) {
-                auto text = xi18nc("@info", "The screenshot was copied to the clipboard and saved as <link url=\"%1\">%2</link>", url.toString().toHtmlEscaped(), url.fileName().toHtmlEscaped());
+                auto text =
+                    xi18nc("@info", "The screenshot was copied to the clipboard and saved as <link url=\"%1\">%2</link>", url.toString(), url.fileName());
                 InlineMessageModel::instance()->push(InlineMessageModel::Saved, text, url);
             } else if (actions & ExportManager::CopyPath) {
-                auto text = xi18nc("@info", "The screenshot has been saved as <link url=\"%1\">%2</link> and its location has been copied to clipboard", url.toString().toHtmlEscaped(), url.fileName().toHtmlEscaped());
+                auto text = xi18nc("@info",
+                                   "The screenshot has been saved as <link url=\"%1\">%2</link> and its location has been copied to clipboard",
+                                   url.toString(),
+                                   url.fileName());
                 InlineMessageModel::instance()->push(InlineMessageModel::Saved, text, url);
             } else {
-                auto text = xi18nc("@info", "The screenshot was saved as <link url=\"%1\">%2</link>", url.toString().toHtmlEscaped(), url.fileName().toHtmlEscaped());
+                auto text = xi18nc("@info", "The screenshot was saved as <link url=\"%1\">%2</link>", url.toString(), url.fileName());
                 InlineMessageModel::instance()->push(InlineMessageModel::Saved, text, url);
             }
         } else if (actions & ExportManager::CopyImage) {
@@ -517,10 +537,13 @@ SpectacleCore::SpectacleCore(QObject *parent)
         if (actions & ExportManager::AnySave) {
             SpectacleWindow::setTitleForAll(SpectacleWindow::Saved, url.fileName());
             if (actions & ExportManager::CopyPath) {
-                auto text = xi18nc("@info", "The video has been saved as <link url=\"%1\">%2</link> and its location has been copied to clipboard", url.toString().toHtmlEscaped(), url.fileName().toHtmlEscaped());
+                auto text = xi18nc("@info",
+                                   "The video has been saved as <link url=\"%1\">%2</link> and its location has been copied to clipboard",
+                                   url.toString(),
+                                   url.fileName());
                 InlineMessageModel::instance()->push(InlineMessageModel::Saved, text, url);
             } else {
-                auto text = xi18nc("@info", "The video was saved as <link url=\"%1\">%2</link>", url.toString().toHtmlEscaped(), url.fileName().toHtmlEscaped());
+                auto text = xi18nc("@info", "The video was saved as <link url=\"%1\">%2</link>", url.toString(), url.fileName());
                 InlineMessageModel::instance()->push(InlineMessageModel::Saved, text, url);
             }
         } else if (actions & ExportManager::CopyPath) {
@@ -556,19 +579,16 @@ SpectacleCore::SpectacleCore(QObject *parent)
 
     auto onOcrTextRecognized = [this](const QString &text, const QStringList &languageCodes, bool success) {
         if (!success) {
-            InlineMessageModel::instance()->push(InlineMessageModel::Error, 
-                i18nc("@info", "Text extraction failed"));
+            InlineMessageModel::instance()->push(InlineMessageModel::Error, i18nc("@info", "Text extraction failed"));
             return;
         }
-        
+
         if (text.isEmpty()) {
-            InlineMessageModel::instance()->push(InlineMessageModel::Copied, 
-                i18nc("@info", "No text found in the image"));
+            InlineMessageModel::instance()->push(InlineMessageModel::Copied, i18nc("@info", "No text found in the image"));
             return;
         }
-        
-        InlineMessageModel::instance()->push(InlineMessageModel::Copied, 
-            i18nc("@info", "Text extraction completed"));
+
+        InlineMessageModel::instance()->push(InlineMessageModel::Copied, i18nc("@info", "Text extraction completed"));
 
         // ensure program stays alive until the notification finishes.
         if (!m_eventLoopLocker) {
@@ -603,28 +623,29 @@ SpectacleCore::SpectacleCore(QObject *parent)
         auto notificationText = xi18nc("@info:notification", "Text copied to clipboard.<nl/>Languages used: %1", languagesText);
         notification->setText(notificationText);
         notification->setIconName(u"document-scan"_s);
-        
+
         if (!text.isEmpty()) {
             auto openEditorAction = notification->addAction(i18nc("@action:button", "Open in Text Editor"));
             connect(openEditorAction, &KNotificationAction::activated, this, [text, notification]() {
-                // Create temporary file with extracted text 
+                // Create temporary file with extracted text
                 auto exportManager = ExportManager::instance();
                 exportManager->updateTimestamp();
                 auto timestamp = exportManager->timestamp();
-                
+
                 QString filename = QStringLiteral("spectacle_ocr_%1.txt").arg(timestamp.toString(QStringLiteral("yyyyMMdd_HHmmss")));
                 QString templatePath = QDir::tempPath() + QStringLiteral("/") + filename;
-                
+
                 QTemporaryFile tempFile;
                 tempFile.setFileTemplate(templatePath);
                 tempFile.setAutoRemove(false);
-                
+
                 if (tempFile.open()) {
                     QTextStream stream(&tempFile);
                     stream << text;
                     tempFile.close();
-                    
+
                     auto job = new KIO::OpenUrlJob(QUrl::fromLocalFile(tempFile.fileName()));
+                    job->setStartupId(notification->xdgActivationToken().toUtf8());
                     job->start();
                 }
 
@@ -979,6 +1000,10 @@ void SpectacleCore::activate(const QStringList &arguments, const QString &workin
             m_returnToViewer = true;
             showViewerIfGuiMode();
             SpectacleWindow::setTitleForAll(SpectacleWindow::Saved, m_editExistingUrl.fileName());
+            if (!existingImage.isNull()) {
+                setExportImage(existingImage);
+                ExportManager::instance()->scanQRCode();
+            }
             return;
         } else {
             m_cliOptions[Option::EditExisting] = false;
@@ -1004,7 +1029,7 @@ void SpectacleCore::activate(const QStringList &arguments, const QString &workin
     using GrabMode = ImagePlatform::GrabMode;
     auto cliGrabMode = [&]() -> std::optional<GrabMode> {
         if (m_cliOptions[Option::Fullscreen]) {
-            return GrabMode::AllScreens;
+            return m_cliOptions[Option::Scaled] ? GrabMode::AllScreensScaled : GrabMode::AllScreens;
         } else if (m_cliOptions[Option::Current]) {
             return GrabMode::CurrentScreen;
         } else if (m_cliOptions[Option::ActiveWindow]) {
@@ -1030,6 +1055,10 @@ void SpectacleCore::activate(const QStringList &arguments, const QString &workin
     };
     auto grabMode = cliGrabMode().value_or(m_startMode == StartMode::Background ? GrabMode::AllScreens : launchActionGrabMode());
 
+    if (m_cliOptions[Option::Scaled] && !m_cliOptions[Option::Fullscreen]) {
+        qWarning().noquote() << i18nc("@info:shell", "--scaled is only allowed together with -f/--fullscreen and will be ignored");
+    }
+
     using RecordingMode = VideoPlatform::RecordingMode;
     RecordingMode recordingMode = RecordingMode::NoRecordingModes;
     if (m_cliOptions[Option::Record]) {
@@ -1053,6 +1082,10 @@ void SpectacleCore::activate(const QStringList &arguments, const QString &workin
         }
     } else {
         setVideoMode(false);
+    }
+
+    if (m_cliOptions[Option::ReleaseCapture]) {
+        SelectionEditor::instance()->forceReleaseCapture(true);
     }
 
     // If any capture mode is given in the cli options, let it override
@@ -1158,7 +1191,7 @@ void SpectacleCore::takeNewScreenshot(ImagePlatform::GrabMode grabMode, int time
 
     timeout = qMax(0, timeout);
     const bool noDelay = timeout == 0;
-
+#if WITH_X11
     if (PlasmaVersion::get() < PlasmaVersion::check(5, 27, 4) && KX11Extras::compositingActive()) {
         // when compositing is enabled, we need to give it enough time for the window
         // to disappear and all the effects are complete before we take the shot. there's
@@ -1173,6 +1206,7 @@ void SpectacleCore::takeNewScreenshot(ImagePlatform::GrabMode grabMode, int time
         // calls that don't get replies fast enough.
         timeout = qMax(timeout, 50);
     }
+#endif
 
     if (noDelay) {
         SpectacleWindow::setVisibilityForAll(QWindow::Hidden);
@@ -1303,8 +1337,9 @@ void SpectacleCore::doNotify(ScreenCapture type, const ExportManager::Actions &a
     if (!saveUrl.isEmpty()) {
         notification->setUrls({saveUrl});
 
-        auto open = [saveUrl]() {
+        auto open = [notification, saveUrl]() {
             auto job = new KIO::OpenUrlJob(saveUrl);
+            job->setStartupId(notification->xdgActivationToken().toUtf8());
             job->start();
         };
         auto defaultAction = notification->addDefaultAction(i18nc("Open the screenshot we just saved", "Open"));
@@ -1458,7 +1493,7 @@ QQmlEngine *SpectacleCore::getQmlEngine()
 {
     if (m_engine == nullptr) {
         m_engine = std::make_unique<QQmlEngine>(this);
-        m_engine->rootContext()->setContextObject(new KLocalizedContext(m_engine.get()));
+        m_engine->rootContext()->setContextObject(new KLocalizedQmlContext(m_engine.get()));
     }
     return m_engine.get();
 }
@@ -1518,7 +1553,11 @@ void SpectacleCore::startRecording(VideoPlatform::RecordingMode mode, bool withP
     if (m_videoPlatform->isRecording() || mode == VideoPlatform::NoRecordingModes) {
         return;
     }
-    if (!CaptureWindow::instances().empty()) {
+    const bool hasCaptureWindows = !CaptureWindow::instances().empty();
+    if (hasCaptureWindows && mode != VideoPlatform::Region && !m_recordingEventLoopLocker) {
+        m_recordingEventLoopLocker = std::make_unique<QEventLoopLocker>();
+    }
+    if (hasCaptureWindows) {
         SpectacleWindow::setVisibilityForAll(QWindow::Hidden);
         if (mode != VideoPlatform::Region) {
             m_returnToViewer = true;

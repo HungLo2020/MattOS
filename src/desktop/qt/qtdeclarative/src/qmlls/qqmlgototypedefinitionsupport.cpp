@@ -17,19 +17,12 @@ QmlGoToTypeDefinitionSupport::QmlGoToTypeDefinitionSupport(QmlLsp::QQmlCodeModel
 {
 }
 
-QString QmlGoToTypeDefinitionSupport::name() const
+void QmlGoToTypeDefinitionSupport::setupCapabilities(QLspSpecification::ServerCapabilities &caps)
 {
-    return u"QmlNavigationSupport"_s;
-}
-
-void QmlGoToTypeDefinitionSupport::setupCapabilities(
-        const QLspSpecification::InitializeParams &,
-        QLspSpecification::InitializeResult &serverCapabilities)
-{
-    // just assume serverCapabilities.capabilities.typeDefinitionProvider is a bool for now
+    // just assume caps.typeDefinitionProvider is a bool for now
     // handle the TypeDefinitionOptions and TypeDefinitionRegistrationOptions cases later on, if
     // needed (as they just allow more fancy go-to-type-definition action).
-    serverCapabilities.capabilities.typeDefinitionProvider = true;
+    caps.typeDefinitionProvider = true;
 }
 
 void QmlGoToTypeDefinitionSupport::registerHandlers(QLanguageServer *,
@@ -44,10 +37,12 @@ void QmlGoToTypeDefinitionSupport::process(RequestPointerArgument request)
     ResponseScopeGuard guard(results, request->m_response);
 
     auto itemsFound = itemsForRequest(request);
-    if (guard.setErrorFrom(itemsFound))
+    if (!itemsFound.has_value()) {
+        guard.setError(itemsFound.error());
         return;
+    }
 
-    auto &front = std::get<QList<QQmlLSUtils::ItemLocation>>(itemsFound).front();
+    auto &front = itemsFound.value().front();
 
     auto base = QQmlLSUtils::findTypeDefinitionOf(front.domItem);
 

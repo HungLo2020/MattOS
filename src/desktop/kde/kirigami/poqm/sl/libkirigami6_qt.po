@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2026-02-16 06:55+0100\n"
+"PO-Revision-Date: 2026-08-06 07:14+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -17,77 +17,76 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100>=3 && n"
 "%100<=4 ? 2 : 3);\n"
 "X-Qt-Contexts: true\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
 
-#: controls/AboutItem.qml:166
+#: controls/AboutItem.qml:180
 #, qt-format
 msgctxt "AboutItem|"
-msgid "%1 (%2)"
-msgstr "%1 (%2)"
+msgid "Visit %1's KDE Store page"
+msgstr "Obiščite stran %1 v KDE Store"
 
-#: controls/AboutItem.qml:186
+#: controls/AboutItem.qml:196
 #, qt-format
 msgctxt "AboutItem|"
 msgid "Send an email to %1"
 msgstr "Pošljite e-pošto za %1"
 
-#: controls/AboutItem.qml:228
-msgctxt "AboutItem|"
-msgid "Get Involved"
-msgstr "Sodelujte"
-
 #: controls/AboutItem.qml:234
-msgctxt "AboutItem|"
-msgid "Donate"
-msgstr "Donirajte"
-
-#: controls/AboutItem.qml:251
-msgctxt "AboutItem|"
-msgid "Report a Bug"
-msgstr "Poročajte o napaki"
-
-#: controls/AboutItem.qml:264
 msgctxt "AboutItem|"
 msgid "Copyright"
 msgstr "Copyright"
 
-#: controls/AboutItem.qml:313
+#: controls/AboutItem.qml:243
 msgctxt "AboutItem|"
-msgid "License:"
-msgstr "Dovoljenje:"
+msgid "License"
+msgstr "Licenca"
 
-#: controls/AboutItem.qml:336
-#, qt-format
+#: controls/AboutItem.qml:265
 msgctxt "AboutItem|"
-msgid "License: %1"
-msgstr "Dovoljenje: %1"
+msgid "Homepage"
+msgstr "Domača stran"
 
-#: controls/AboutItem.qml:347
+#: controls/AboutItem.qml:279
+msgctxt "AboutItem|"
+msgid "Donate"
+msgstr "Donirajte"
+
+#: controls/AboutItem.qml:293
+msgctxt "AboutItem|"
+msgid "Get Involved"
+msgstr "Sodelujte"
+
+#: controls/AboutItem.qml:307
+msgctxt "AboutItem|"
+msgid "Report a bug"
+msgstr "Poročajte o napaki"
+
+#: controls/AboutItem.qml:325
 msgctxt "AboutItem|"
 msgid "Libraries in use"
 msgstr "Knjižnice v rabi"
 
-#: controls/AboutItem.qml:379
-msgctxt "AboutItem|"
-msgid "Authors"
-msgstr "Avtorji"
-
-#: controls/AboutItem.qml:389
+#: controls/AboutItem.qml:345
 msgctxt "AboutItem|"
 msgid "Show author photos"
 msgstr "Prikaži fotografije avtorjev"
 
-#: controls/AboutItem.qml:400
+#: controls/AboutItem.qml:348
+msgctxt "AboutItem|"
+msgid "Authors"
+msgstr "Avtorji"
+
+#: controls/AboutItem.qml:358
 msgctxt "AboutItem|"
 msgid "Credits"
 msgstr "Zasluge"
 
-#: controls/AboutItem.qml:412
+#: controls/AboutItem.qml:368
 msgctxt "AboutItem|"
 msgid "Translators"
 msgstr "Prevajalci"
 
-#: controls/AboutPage.qml:103
+#: controls/AboutPage.qml:102
 #, qt-format
 msgctxt "AboutPage|"
 msgid "About %1"
@@ -118,37 +117,37 @@ msgctxt "ContextualHelpButton|"
 msgid "Show Contextual Help"
 msgstr "Prikaži kontekstno pomoč"
 
-#: controls/GlobalDrawer.qml:366
+#: controls/GlobalDrawer.qml:372
 msgctxt "GlobalDrawer|"
 msgid "Back"
 msgstr "Nazaj"
 
-#: controls/GlobalDrawer.qml:719
+#: controls/GlobalDrawer.qml:769
 msgctxt "GlobalDrawer|"
 msgid "Close Sidebar"
 msgstr "Zapri stransko letvico"
 
-#: controls/GlobalDrawer.qml:724
+#: controls/GlobalDrawer.qml:774
 msgctxt "GlobalDrawer|"
 msgid "Open Sidebar"
 msgstr "Odpri stransko letvico"
 
-#: controls/LoadingPlaceholder.qml:58
+#: controls/LoadingPlaceholder.qml:59
 msgctxt "LoadingPlaceholder|"
 msgid "Loading…"
 msgstr "Nalaganje…"
 
-#: controls/PasswordField.qml:43
+#: controls/PasswordField.qml:44
 msgctxt "PasswordField|"
 msgid "Password"
 msgstr "Geslo"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Hide Password"
 msgstr "Skrij geslo"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Show Password"
 msgstr "Prikaži geslo"
@@ -173,30 +172,30 @@ msgctxt "NavigationButtons|"
 msgid "Navigate Forward"
 msgstr "Krmari naprej"
 
-#: controls/private/PrivateActionToolButton.qml:118
+#: controls/private/PrivateActionToolButton.qml:119
 #, qt-format
 msgctxt "@info:tooltip %1 is a keyboard shorcut|"
 msgid "Trigger this action with %1"
 msgstr "Sproži to dejavnost s %1"
 
-#: controls/private/PrivateActionToolButton.qml:125
+#: controls/private/PrivateActionToolButton.qml:126
 #, qt-format
 msgctxt ""
 "@info:tooltip %1 is the tooltip of an action, %2 is its keyboard shorcut|"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: controls/SearchField.qml:88
+#: controls/SearchField.qml:89
 msgctxt "SearchField|"
 msgid "Search…"
 msgstr "Poišči …"
 
-#: controls/SearchField.qml:90
+#: controls/SearchField.qml:91
 msgctxt "SearchField|"
 msgid "Search"
 msgstr "Išči"
 
-#: controls/SearchField.qml:100
+#: controls/SearchField.qml:101
 msgctxt "SearchField|"
 msgid "Clear search"
 msgstr "Počisti iskanje"
@@ -211,23 +210,23 @@ msgctxt "SelectableLabel|"
 msgid "Select All"
 msgstr "Izberi vse"
 
-#: controls/UrlButton.qml:52
+#: controls/UrlButton.qml:53
 #, qt-format
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link %1"
 msgstr "Odpri povezavo %1"
 
-#: controls/UrlButton.qml:53
+#: controls/UrlButton.qml:54
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link"
 msgstr "Odpri povezavo"
 
-#: controls/UrlButton.qml:101
+#: controls/UrlButton.qml:102
 msgctxt "UrlButton|"
 msgid "Copy Link to Clipboard"
 msgstr "Kopiraj povezavo na odložišče"
 
-#: dialogs/DialogHeaderTopContent.qml:103
+#: dialogs/DialogHeaderTopContent.qml:104
 msgctxt "DialogHeaderTopContent|@action:button close dialog"
 msgid "Close"
 msgstr "Zapri"
@@ -250,45 +249,53 @@ msgctxt "Kirigami::Platform::Settings|"
 msgid "Qt %2 (built against %3)"
 msgstr "Qt %2 (izgradnja za %3)"
 
-#: templates/InlineMessage.qml:350
+#: templates/InlineMessage.qml:352
 msgctxt "InlineMessage|"
 msgid "Success"
 msgstr "Uspeh"
 
-#: templates/InlineMessage.qml:352
+#: templates/InlineMessage.qml:354
 msgctxt "InlineMessage|"
 msgid "Warning"
 msgstr "Opozorilo"
 
-#: templates/InlineMessage.qml:354
+#: templates/InlineMessage.qml:356
 msgctxt "InlineMessage|"
 msgid "Error"
 msgstr "Napaka"
 
-#: templates/InlineMessage.qml:356
+#: templates/InlineMessage.qml:358
 msgctxt "InlineMessage|"
 msgid "Note"
 msgstr "Opomba"
 
-#: templates/InlineMessage.qml:443
+#: templates/InlineMessage.qml:445
 msgctxt "InlineMessage|"
 msgid "Close"
 msgstr "Zapri"
 
-#: templates/OverlayDrawer.qml:147
+#: templates/OverlayDrawer.qml:149
 msgctxt "OverlayDrawer|"
 msgid "Close drawer"
 msgstr "Zapri predal"
 
-#: templates/OverlayDrawer.qml:153
+#: templates/OverlayDrawer.qml:155
 msgctxt "OverlayDrawer|"
 msgid "Open drawer"
 msgstr "Odpri predal"
 
-#: templates/OverlaySheet.qml:294
+#: templates/OverlaySheet.qml:309
 msgctxt "OverlaySheet|@action:button close dialog"
 msgid "Close"
 msgstr "Zapri"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "License: %1"
+#~ msgstr "Dovoljenje: %1"
 
 #~ msgctxt "Dialog|@action:button close dialog"
 #~ msgid "Close"
@@ -329,10 +336,6 @@ msgstr "Zapri"
 #~ msgctxt "ToolBarApplicationHeader|"
 #~ msgid "More Actions"
 #~ msgstr "Več dejanj"
-
-#~ msgctxt "AboutItem|"
-#~ msgid "Visit %1's KDE Store page"
-#~ msgstr "Obiščite stran %1 v KDE Store"
 
 #~ msgctxt "UrlButton|"
 #~ msgid "Copy link address"

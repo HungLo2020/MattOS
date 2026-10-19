@@ -38,6 +38,7 @@ using namespace KWin;
 class InputPanelSurface : public QObject, public QtWayland::zwp_input_panel_surface_v1
 {
     Q_OBJECT
+
 public:
     InputPanelSurface(::zwp_input_panel_surface_v1 *t)
         : QtWayland::zwp_input_panel_surface_v1(t)
@@ -64,6 +65,7 @@ public:
 class InputMethodV1Context : public QObject, public QtWayland::zwp_input_method_context_v1
 {
     Q_OBJECT
+
 public:
     quint32 contentPurpose()
     {
@@ -112,6 +114,7 @@ private:
 class InputMethodV1 : public QObject, public QtWayland::zwp_input_method_v1
 {
     Q_OBJECT
+
 public:
     InputMethodV1(struct ::wl_registry *registry, int id, int version)
         : QtWayland::zwp_input_method_v1(registry, id, version)
@@ -132,13 +135,13 @@ protected:
         m_context = new InputMethodV1Context();
         m_context->init(context);
         Q_EMIT activated();
-    };
+    }
     void zwp_input_method_v1_deactivate(struct ::zwp_input_method_context_v1 *context) override
     {
         delete m_context;
         m_context = nullptr;
         Q_EMIT deactivated();
-    };
+    }
 
 private:
     InputMethodV1Context *m_context;
@@ -147,6 +150,7 @@ private:
 class TestInputMethodInterface : public QObject
 {
     Q_OBJECT
+
 public:
     TestInputMethodInterface()
     {
@@ -188,11 +192,9 @@ private:
     QList<SurfaceInterface *> m_surfaces;
 };
 
-static const QString s_socketName = QStringLiteral("kwin-wayland-server-inputmethod-test-0");
-
 void TestInputMethodInterface::initTestCase()
 {
-    m_display.addSocketName(s_socketName);
+    m_display.addSocketName(qAppName());
     m_display.start();
     QVERIFY(m_display.isRunning());
 
@@ -212,7 +214,7 @@ void TestInputMethodInterface::initTestCase()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);
@@ -462,12 +464,10 @@ void TestInputMethodInterface::testGrabkeyboard()
 
     QSignalSpy keyEventSpy(serverContext, &KWin::InputMethodContextV1Interface::key);
     imContext->key(0, 123, 56, 1);
-    QEXPECT_FAIL("", "We should be not get key event if keyboard is not grabbed", Continue);
     QVERIFY(!keyEventSpy.wait(200));
 
     QSignalSpy modifierEventSpy(serverContext, &KWin::InputMethodContextV1Interface::modifiers);
     imContext->modifiers(1234, 0, 0, 0, 0);
-    QEXPECT_FAIL("", "We should be not get modifiers event if keyboard is not grabbed", Continue);
     QVERIFY(!modifierEventSpy.wait(200));
 
     // grab the keyboard
@@ -532,7 +532,6 @@ void TestInputMethodInterface::testContentHints()
     serverContext->sendContentType(serverHints, KWin::TextInputContentPurpose::Normal);
     QVERIFY(contentTypeChangedSpy.wait());
     QCOMPARE(contentTypeChangedSpy.count(), 1);
-    QEXPECT_FAIL("SensitiveData", "SensitiveData content hint need fixing", Continue);
     QTEST(imContext->contentHints(), "imHint");
 
     // send deactivate and verify server interface resets context
@@ -590,7 +589,6 @@ void TestInputMethodInterface::testContentPurpose()
     serverContext->sendContentType(KWin::TextInputContentHints(KWin::TextInputContentHint::None), serverPurpose);
     QVERIFY(contentTypeChangedSpy.wait());
     QCOMPARE(contentTypeChangedSpy.count(), 1);
-    QEXPECT_FAIL("Pin", "Pin should return content_purpose_password", Continue);
     QTEST(imContext->contentPurpose(), "imPurpose");
 
     // send deactivate and verify server interface resets context

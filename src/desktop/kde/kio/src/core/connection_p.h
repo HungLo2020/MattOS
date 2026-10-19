@@ -78,12 +78,24 @@ public:
     bool send(int cmd, const QByteArray &arr = QByteArray());
 
     /*!
+     * Queues what a message carries. It is handed over as it is when the peer lives in another
+     * thread of this process, and written down otherwise.
+     */
+    bool send(int cmd, const TaskPayload &payload);
+
+    /*!
      * Sends the given command immediately.
      * \a _cmd the command to set
      * \a data the bytes to send
      * Returns true if successful, false otherwise
      */
     bool sendnow(int _cmd, const QByteArray &data);
+
+    /*!
+     * Sends what a message carries. It is handed over as it is when the peer lives in another thread
+     * of this process, and written down otherwise.
+     */
+    bool sendnow(int _cmd, const TaskPayload &payload);
 
     /*!
      * Returns true if there are packets to be read immediately,
@@ -109,7 +121,7 @@ public:
      * Returns >=0 indicates the received data size upon success
      *         -1  indicates error
      */
-    int read(int *_cmd, QByteArray &data);
+    int read(int *_cmd, QByteArray &data, TaskPayload *payload = nullptr);
 
     /*!
      * Don't handle incoming data until resumed.
@@ -129,6 +141,12 @@ public:
 
     void setReadMode(ReadMode mode);
 
+    /*!
+     * Adopts a ready-made backend (used to pair an in-process worker without a
+     * socket handshake), taking ownership of it.
+     */
+    void setBackend(std::unique_ptr<ConnectionBackend> backend);
+
 Q_SIGNALS:
     void readyRead();
 
@@ -144,8 +162,7 @@ class ConnectionPrivate
 {
 public:
     inline ConnectionPrivate()
-        : backend(nullptr)
-        , q(nullptr)
+        : q(nullptr)
         , suspended(false)
         , readMode(Connection::ReadMode::EventDriven)
     {
@@ -154,11 +171,11 @@ public:
     void dequeue();
     void commandReceived(const Task &task);
     void disconnected();
-    void setBackend(ConnectionBackend *b);
+    void setBackend(std::unique_ptr<ConnectionBackend> b);
 
     QList<Task> outgoingTasks;
     QList<Task> incomingTasks;
-    ConnectionBackend *backend;
+    std::unique_ptr<ConnectionBackend> backend;
     Connection *q;
     bool suspended;
     Connection::ReadMode readMode;

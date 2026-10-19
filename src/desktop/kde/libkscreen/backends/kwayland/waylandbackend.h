@@ -18,17 +18,13 @@ class WaylandConfig;
 class WaylandBackend : public KScreen::AbstractBackend
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kf6.kscreen.backends.kwayland")
 
 public:
     explicit WaylandBackend();
     ~WaylandBackend() override = default;
 
-    QString name() const override;
-    QString serviceName() const override;
     KScreen::ConfigPtr config() const override;
     QFuture<SetConfigResult> setConfig(const KScreen::ConfigPtr &config) override;
-    bool isValid() const override;
     QByteArray edid(int outputId) const override;
 
 private:

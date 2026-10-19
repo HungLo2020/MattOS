@@ -5,7 +5,7 @@
 \page qtquick-index.html
 \meta {keywords} {qmltopic}
 \title Qt Quick
-\brief The Qt Quick module implements the "standard library" for QML
+\brief The Qt Quick module implements the "standard library" for QML.
 
 The Qt Quick module is the standard library for writing QML applications.
 While the \l{Qt Qml} module provides the QML engine and
@@ -25,13 +25,13 @@ interfaces. See \l{Qt Quick Controls} for more information.
 If you're new to QML and Qt Quick, please see \l{QML Applications} for an
 introduction to writing QML applications.
 
-\section1 Using the Module
+\section1 Using the Module in your Project
 
-\section2 QML API
+\section2 Accessing the QML API
 
 \include {module-use.qdocinc} {using the qml api} {QtQuick}
 
-\section2 C++ API
+\section2 In your C++ Project
 
 \include {module-use.qdocinc} {using the c++ api}
 

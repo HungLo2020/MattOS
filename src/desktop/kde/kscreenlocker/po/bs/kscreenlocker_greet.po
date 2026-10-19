@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kde 49i410\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:40+0000\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
 "PO-Revision-Date: 2015-02-04 15:48+0000\n"
 "Last-Translator: Samir Ribić <Unknown>\n"
 "Language-Team: Bosnian\n"
@@ -20,73 +20,104 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
-#: fallbacktheme/Greeter.qml:58
+#: fallbacktheme/Greeter.qml:59
 msgid "Warning: Caps Lock on"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:74
+#: fallbacktheme/Greeter.qml:75
 msgid "The session is locked"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:75
+#: fallbacktheme/Greeter.qml:76
 msgid "The session has been locked by %1"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:99
+#: fallbacktheme/Greeter.qml:83
+msgid "Password"
+msgstr ""
+
+#: fallbacktheme/Greeter.qml:101
 msgid "(or place your fingerprint on the reader)"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:105
+#: fallbacktheme/Greeter.qml:107
 msgid "(or use your smartcard)"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:114
+#: fallbacktheme/Greeter.qml:116
 msgid "&Switch Users"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:121
+#: fallbacktheme/Greeter.qml:123
 msgid "Un&lock"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:133
+#: fallbacktheme/Greeter.qml:135
 msgid "Unlocking failed"
 msgstr ""
 
-#: main.cpp:123
+#: main.cpp:102
 #, kde-format
 msgid "Greeter for the KDE Plasma Workspaces Screen locker"
 msgstr "Pozdravni program za zaključavanje ekrana u KDE Plasma radnoj površini"
 
-#: main.cpp:127
+#: main.cpp:106
 #, kde-format
 msgid "Starts the greeter in testing mode"
 msgstr "Pokreće pozdrav u testnom režimu"
 
-#: main.cpp:130
+#: main.cpp:109
 #, fuzzy, kde-format
 #| msgid "Starts the greeter in testing mode"
 msgid "Starts the greeter with the selected shell theme (only in Testing mode)"
 msgstr "Pokreće pozdrav u testnom režimu"
 
-#: main.cpp:134
+#: main.cpp:113
 #, kde-format
 msgid "Lock immediately, ignoring any grace time etc."
 msgstr "Zaključaj odmah. Ignoriši dopušteno vrijeme itd."
 
-#: main.cpp:136
+#: main.cpp:115
 #, kde-format
 msgid "Delay till the lock user interface gets shown in milliseconds."
 msgstr ""
 "Kašnjenje dpl se zaključani korisnički interfejs ne pokaže u milisekundama."
 
-#: main.cpp:139
+#: main.cpp:118
 #, kde-format
 msgid "Don't show any lock user interface."
 msgstr "Ne prikazuj i ne zaključavaj korisnički interfejs."
 
-#: main.cpp:141
+#: pamauthenticatormodel.cpp:51
 #, kde-format
-msgid "File descriptor for connecting to ksld."
+msgctxt "authentication type in unlock dialogs"
+msgid "Password"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:60
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Smartcard"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:67
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Fingerprint"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:74
+#, kde-format
+msgctxt "authentication type in unlock dialogs - facial authentication"
+msgid "Face"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:82
+#, kde-format
+msgctxt ""
+"authentication type in unlock dialogs - universal 2 factor authentication "
+"(yubikey etc)"
+msgid "Universal 2 Factor"
 msgstr ""
 
 #~ msgid "Session"

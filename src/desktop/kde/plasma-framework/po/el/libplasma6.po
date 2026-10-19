@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-05 02:41+0000\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
 "PO-Revision-Date: 2024-08-31 12:02+0300\n"
 "Last-Translator: Αντώνης Γέραλης <capoiosct@gmail.com>\n"
 "Language-Team: Greek <kde-i18n-doc@kde.org>\n"
@@ -22,6 +22,12 @@ msgstr ""
 #, kde-format
 msgid "More actions"
 msgstr "Περισσότερες ενέργειες"
+
+#: declarativeimports/plasmaextracomponents/qml/ContextualHelpButton.qml:58
+#, kde-format
+msgctxt "@action:button"
+msgid "Show Contextual Help"
+msgstr ""
 
 #: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
 #, kde-format
@@ -40,6 +46,24 @@ msgstr "Επέκταση"
 msgid "Password"
 msgstr "Κωδικός πρόσβασης"
 
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:57
+#, fuzzy, kde-format
+#| msgid "Password"
+msgctxt ""
+"@action:button in text field, tooltip/accessible only, displays placeholders "
+"for characters"
+msgid "Hide Password"
+msgstr "Κωδικός πρόσβασης"
+
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:58
+#, fuzzy, kde-format
+#| msgid "Password"
+msgctxt ""
+"@action:button in text field, tooltip/accessible only, reveals password "
+"chracters"
+msgid "Show Password"
+msgstr "Κωδικός πρόσβασης"
+
 #: declarativeimports/plasmaextracomponents/qml/SearchField.qml:62
 #, kde-format
 msgid "Search…"
@@ -55,44 +79,44 @@ msgstr "Αναζήτηση"
 msgid "Clear search"
 msgstr "Καθαρισμός αναζήτησης"
 
-#: plasma/applet.cpp:318
+#: plasma/applet.cpp:296
 #, kde-format
 msgid "Unknown"
 msgstr "Άγνωστο"
 
-#: plasma/applet.cpp:764
+#: plasma/applet.cpp:742
 #, kde-format
 msgid "Activate %1 Widget"
 msgstr "Ενεργοποίηση συστατικού %1"
 
-#: plasma/containment.cpp:100 plasma/private/applet_p.cpp:101
+#: plasma/containment.cpp:102 plasma/private/applet_p.cpp:98
 #, kde-format
 msgctxt "%1 is the name of the applet"
 msgid "Remove %1"
 msgstr "Αφαίρεση %1"
 
-#: plasma/containment.cpp:106 plasma/corona.cpp:365 plasma/corona.cpp:486
+#: plasma/containment.cpp:108 plasma/corona.cpp:314 plasma/corona.cpp:435
 #, kde-format
 msgid "Enter Edit Mode"
 msgstr "Έναρξη επεξεργασίας"
 
-#: plasma/containment.cpp:109 plasma/private/applet_p.cpp:106
+#: plasma/containment.cpp:111 plasma/private/applet_p.cpp:103
 #, kde-format
 msgctxt "%1 is the name of the applet"
 msgid "Configure %1..."
 msgstr "Διαμόρφωση %1..."
 
-#: plasma/corona.cpp:314 plasma/corona.cpp:471
+#: plasma/corona.cpp:263 plasma/corona.cpp:420
 #, kde-format
 msgid "Lock Widgets"
 msgstr "Κλείδωμα συστατικών"
 
-#: plasma/corona.cpp:314
+#: plasma/corona.cpp:263
 #, kde-format
 msgid "Unlock Widgets"
 msgstr "Ξεκλείδωμα συστατικών"
 
-#: plasma/corona.cpp:363
+#: plasma/corona.cpp:312
 #, kde-format
 msgid "Exit Edit Mode"
 msgstr "Έξοδος επεξεργασίας"
@@ -102,95 +126,99 @@ msgstr "Έξοδος επεξεργασίας"
 msgid "Could not find requested component: %1"
 msgstr "Αδυναμία εύρεσης του απαιτούμενου συστατικού: %1"
 
-#: plasma/private/applet_p.cpp:119
+#: plasma/private/applet_p.cpp:116
 #, kde-format
 msgid "Show Alternatives..."
 msgstr "Εναλλακτικά..."
 
-#: plasma/private/applet_p.cpp:237
+#: plasma/private/applet_p.cpp:234
 #, kde-format
 msgid "Widget Removed"
 msgstr "Το συστατικό αφαιρέθηκε"
 
-#: plasma/private/applet_p.cpp:238
+#: plasma/private/applet_p.cpp:235
 #, kde-format
 msgid "The widget \"%1\" has been removed."
 msgstr "Το συστατικό «%1» αφαιρέθηκε."
 
-#: plasma/private/applet_p.cpp:242
+#: plasma/private/applet_p.cpp:239
 #, kde-format
 msgid "Panel Removed"
 msgstr "Ο πίνακας αφαιρέθηκε"
 
-#: plasma/private/applet_p.cpp:243
+#: plasma/private/applet_p.cpp:240
 #, kde-format
 msgid "A panel has been removed."
 msgstr "Ένας πίνακας αφαιρέθηκε."
 
-#: plasma/private/applet_p.cpp:246
+#: plasma/private/applet_p.cpp:243
 #, kde-format
 msgid "Desktop Removed"
 msgstr "Η επιφάνεια εργασίας αφαιρέθηκε"
 
-#: plasma/private/applet_p.cpp:247
+#: plasma/private/applet_p.cpp:244
 #, kde-format
 msgid "A desktop has been removed."
 msgstr "Μια επιφάνεια εργασίας αφαιρέθηκε."
 
-#: plasma/private/applet_p.cpp:250
+#: plasma/private/applet_p.cpp:247
 #, kde-format
 msgid "Undo"
 msgstr "Αναίρεση"
 
-#: plasma/private/applet_p.cpp:341
+#: plasma/private/applet_p.cpp:317
 #, kde-format
 msgid "Widget Settings"
 msgstr "Ρυθμίσεις συστατικού"
 
-#: plasma/private/applet_p.cpp:347
+#: plasma/private/applet_p.cpp:323
 #, kde-format
 msgid "Remove this Widget"
 msgstr "Αφαίρεση του συστατικού"
 
-#: plasma/private/containment_p.cpp:51
+#: plasma/private/containment_p.cpp:54
 #, kde-format
 msgid "Remove this Panel"
 msgstr "Αφαίρεση του πίνακα"
 
-#: plasma/private/containment_p.cpp:53
+#: plasma/private/containment_p.cpp:56
 #, kde-format
 msgid "Remove this Activity"
 msgstr "Αφαίρεση της δραστηριότητας"
 
-#: plasma/private/containment_p.cpp:58
+#: plasma/private/containment_p.cpp:61
 #, kde-format
 msgid "Activity Settings"
 msgstr "Ρυθμίσεις δραστηριότητας"
 
-#: plasma/private/containment_p.cpp:70
+#: plasma/private/containment_p.cpp:73
 #, kde-format
 msgid "Add or Manage Widgets…"
 msgstr "Προσθήκη συστατικών…"
 
-#: plasmaquick/appletquickitem.cpp:540
+#: plasmaquick/appletquickitem.cpp:548
 #, kde-format
 msgid "The root item of %1 must be of type ContainmentItem"
 msgstr "Το ριζικό στοιχείο του %1 πρέπει να είναι τύπου ContainmentItem"
 
-#: plasmaquick/appletquickitem.cpp:545
+#: plasmaquick/appletquickitem.cpp:553
 #, kde-format
 msgid "The root item of %1 must be of type PlasmoidItem"
 msgstr "Το ριζικό στοιχείο του %1 πρέπει να είναι τύπου PlasmoidItem"
 
-#: plasmaquick/appletquickitem.cpp:553
+#: plasmaquick/appletquickitem.cpp:561
 #, kde-format
 msgid "Unknown Applet"
 msgstr "Άγνωστη μικροεφαρμογή"
 
-#: plasmaquick/appletquickitem.cpp:567
-#, kde-format
+#: plasmaquick/appletquickitem.cpp:575
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for an unknown older version of Plasma and is not "
+#| "compatible with Plasma %1. Please contact the widget's author for an "
+#| "updated version."
 msgid ""
-"This Widget was written for an unknown older version of Plasma and is not "
+"This widget was written for an unknown older version of Plasma and is not "
 "compatible with Plasma %1. Please contact the widget's author for an updated "
 "version."
 msgstr ""
@@ -198,100 +226,115 @@ msgstr ""
 "δεν είναι συμβατό με το Plasma %1. Παρακαλούμε επικοινωνήστε με τον "
 "συγγραφέα του συστατικού για μια ενημερωμένη έκδοση."
 
-#: plasmaquick/appletquickitem.cpp:570 plasmaquick/appletquickitem.cpp:577
-#: plasmaquick/appletquickitem.cpp:583
+#: plasmaquick/appletquickitem.cpp:578 plasmaquick/appletquickitem.cpp:585
+#: plasmaquick/appletquickitem.cpp:591
 #, kde-format
 msgid "%1 is not compatible with Plasma %2"
 msgstr "Το %1 δεν είναι συμβατό με το Plasma %2"
 
-#: plasmaquick/appletquickitem.cpp:574
-#, kde-format
+#: plasmaquick/appletquickitem.cpp:582
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for Plasma %1 and is not compatible with Plasma "
+#| "%2. Please contact the widget's author for an updated version."
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please contact the widget's author for an updated version."
 msgstr ""
 "Αυτό το συστατικό γράφτηκε για το Plasma %1 και δεν είναι συμβατό με το "
 "Plasma %2. Παρακαλούμε επικοινωνήστε με τον δημιουργό του συστατικού για μια "
 "ενημερωμένη έκδοση."
 
-#: plasmaquick/appletquickitem.cpp:580
-#, kde-format
+#: plasmaquick/appletquickitem.cpp:588
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for Plasma %1 and is not compatible with Plasma "
+#| "%2. Please update Plasma in order to use the widget."
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please update Plasma in order to use the widget."
 msgstr ""
 "Αυτό το συστατικό γράφτηκε για το Plasma %1 και δεν είναι συμβατό με το "
 "Plasma %2. Παρακαλούμε ενημερώστε το Plasma για να χρησιμοποιήσετε το "
 "συστατικό."
 
-#: plasmaquick/appletquickitem.cpp:589 plasmaquick/appletquickitem.cpp:611
+#: plasmaquick/appletquickitem.cpp:597 plasmaquick/appletquickitem.cpp:620
 #, kde-format
 msgid "Sorry! There was an error loading %1."
 msgstr "Συγγνώμη! Υπήρξε σφάλμα κατά τη φόρτωση του %1."
 
-#: plasmaquick/appletquickitem.cpp:606
+#: plasmaquick/appletquickitem.cpp:614
 #, kde-format
 msgid "Error loading QML file: %1 %2"
 msgstr "Σφάλμα φόρτωσης αρχείου QML: %1 %2"
 
-#: plasmaquick/appletquickitem.cpp:609
+#: plasmaquick/appletquickitem.cpp:618
 #, kde-format
 msgid "Error loading Applet: package %1 does not exist."
 msgstr "Σφάλμα φόρτωσης μικροεφαρμογής: το πακέτο %1 δεν υπάρχει."
 
-#: plasmaquick/configview.cpp:189
+#: plasmaquick/appletquickitem.cpp:623
+#, fuzzy, kde-format
+#| msgid "Error loading Applet: package %1 does not exist."
+msgctxt "@info"
+msgid ""
+"Error loading Applet: package format is invalid (does not contain any "
+"metadata)."
+msgstr "Σφάλμα φόρτωσης μικροεφαρμογής: το πακέτο %1 δεν υπάρχει."
+
+#: plasmaquick/configview.cpp:194
 #, kde-format
 msgid "%1 — %2 Settings"
 msgstr "%1 — %2 Ρυθμίσεις"
 
-#: plasmaquick/configview.cpp:190
+#: plasmaquick/configview.cpp:195
 #, kde-format
 msgid "%1 Settings"
 msgstr "Ρυθμίσεις %1"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:569
+#: plasmaquick/plasmoid/containmentitem.cpp:574
 #, kde-format
 msgid "Plasma Package"
 msgstr "Πακέτο Plasma"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:573
+#: plasmaquick/plasmoid/containmentitem.cpp:578
 #, kde-format
 msgid "Install"
 msgstr "Εγκατάσταση"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:584
+#: plasmaquick/plasmoid/containmentitem.cpp:589
 #, kde-format
 msgid "Package Installation Failed"
 msgstr "Αποτυχία εγκατάστασης πακέτου"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:600
+#: plasmaquick/plasmoid/containmentitem.cpp:605
 #, kde-format
 msgid "The package you just dropped is invalid."
 msgstr "Το πακέτο που μόλις ρίξατε είναι άκυρο."
 
-#: plasmaquick/plasmoid/containmentitem.cpp:609
+#: plasmaquick/plasmoid/containmentitem.cpp:614
 #, kde-format
 msgid "Widgets"
 msgstr "Γραφικά συστατικά"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:614
+#: plasmaquick/plasmoid/containmentitem.cpp:619
 #, kde-format
 msgctxt "Add widget"
 msgid "Add %1"
 msgstr "Προσθήκη %1"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:628
+#: plasmaquick/plasmoid/containmentitem.cpp:633
 #, kde-format
 msgctxt "Add icon widget"
 msgid "Add Icon"
 msgstr "Προσθήκη εικονιδίου"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:640
+#: plasmaquick/plasmoid/containmentitem.cpp:645
 #, kde-format
 msgid "Wallpaper"
 msgstr "Ταπετσαρία"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:650
+#: plasmaquick/plasmoid/containmentitem.cpp:655
 #, kde-format
 msgctxt "Set wallpaper"
 msgid "Set %1"

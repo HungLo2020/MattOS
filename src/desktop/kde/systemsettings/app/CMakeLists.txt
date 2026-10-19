@@ -21,7 +21,6 @@ target_sources(systemsettings PRIVATE
     MenuProxyModel.h
     ModuleView.cpp
     ModuleView.h
-    ${debug_SRCS}
 )
 
 ecm_target_qml_sources(systemsettings SOURCES
@@ -62,6 +61,8 @@ target_link_libraries(systemsettings PRIVATE
     Qt::Quick
 )
 
+kconfig_target_kcfg_file(systemsettings FILE systemsettings-config.kcfg CLASS_NAME Settings MUTATORS)
+
 install(TARGETS systemsettings ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 install(PROGRAMS kdesystemsettings.desktop systemsettings.desktop DESTINATION ${KDE_INSTALL_APPDIR})
 install(DIRECTORY DESTINATION "${KDE_INSTALL_FULL_DATAROOTDIR}/kglobalaccel")
@@ -70,5 +71,6 @@ install(
 )
 install(FILES org.kde.systemsettings.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
 install(FILES systemsettings.zsh RENAME _systemsettings DESTINATION ${KDE_INSTALL_ZSHAUTOCOMPLETEDIR})
+install(FILES systemsettings-config.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})
 
 ecm_finalize_qml_module(systemsettings)

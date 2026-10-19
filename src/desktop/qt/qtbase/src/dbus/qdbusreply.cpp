@@ -20,6 +20,7 @@ using namespace Qt::StringLiterals;
 
     \brief The QDBusReply class stores the reply for a method call to a remote object.
 
+    QDBusReply\<T\> is a template class where \a T specifies the expected return type.
     A QDBusReply object is a subset of the QDBusMessage object that represents a method call's
     reply. It contains only the first output argument or the error code and is used by
     QDBusInterface-derived classes to allow returning the error code as the function's return

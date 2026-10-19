@@ -15,11 +15,13 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qaudiodevice.h>
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qthread.h>
-#include <QtMultimedia/qaudiodevice.h>
+
+#include <map>
 
 namespace vraudio {
 class ResonanceAudio;
@@ -27,11 +29,13 @@ class ResonanceAudio;
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialSound;
-class QAmbientSound;
 class QAudioOutputStream;
 class QAudioRoom;
 class QAudioListener;
+
+namespace QSpatialAudioPrivate {
+class QSpatialAudioPlaybackState;
+} // namespace QSpatialAudioPrivate
 
 class QAudioEngineThreaded final : public QAudioEnginePrivate
 {
@@ -46,27 +50,17 @@ public:
     bool isPaused() const override;
     void setOutputDevice(const QAudioDevice &device) override;
     QAudioDevice outputDevice() const override { return m_device; }
-    void setOutputMode(QAudioEngine::OutputMode) override;
-    QAudioEngine::OutputMode outputMode() const override { return m_outputMode; };
 
-    void setRoomEffectsEnabled(bool) override;
-    bool roomEffectsEnabled() const override;
-    void setListenerPosition(std::optional<QVector3D> pos) override;
+    void addSound(QSpatialAudioSoundPrivate *) override;
+    void removeSound(QSpatialAudioSoundPrivate *) override;
 
-    void addSpatialSound(QSpatialSound *sound) override;
-    void removeSpatialSound(QSpatialSound *sound) override;
-    void addStereoSound(QAmbientSound *sound) override;
-    void removeStereoSound(QAmbientSound *sound) override;
+    using SharedPlaybackState = std::shared_ptr<QSpatialAudioPrivate::QSpatialAudioPlaybackState>;
+    void setSoundPlaybackData(QSpatialAudioSoundPrivate *, SharedPlaybackState) override;
 
-    void addRoom(QAudioRoom *room) override;
-    void removeRoom(QAudioRoom *room) override;
-    QAudioRoom *currentRoom() const override { return m_currentRoom; }
-    void updateRooms();
+    void updateRoomEffects() override;
 
 private:
     friend class QAudioOutputStream;
-    QAudioEngine::OutputMode m_outputMode = QAudioEngine::Surround;
-    bool m_roomEffectsEnabled = true;
 
     QMutex mutex;
     QAudioDevice m_device;
@@ -75,11 +69,7 @@ private:
     QThread audioThread;
     std::unique_ptr<QAudioOutputStream> outputStream;
 
-    QList<QSpatialSound *> sources;
-    QList<QAmbientSound *> stereoSources;
-    QList<QAudioRoom *> rooms;
-    mutable bool listenerPositionDirty = true;
-    QAudioRoom *m_currentRoom = nullptr;
+    std::map<QSpatialAudioSoundPrivate *, SharedPlaybackState> playbackStates;
 };
 
 QT_END_NAMESPACE

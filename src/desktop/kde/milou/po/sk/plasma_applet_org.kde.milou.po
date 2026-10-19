@@ -19,7 +19,7 @@ msgstr ""
 #: SearchField.qml:34
 #, kde-format
 msgid "Search…"
-msgstr "Hľadať..."
+msgstr "Search…"
 
 #~ msgid "Search Results"
 #~ msgstr "Výsledky hľadania"

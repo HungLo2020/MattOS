@@ -31,7 +31,7 @@ class FilteredWindowModel : public QSortFilterProxyModel
     Q_OBJECT
     Q_PROPERTY(bool hasSelection READ hasSelection NOTIFY hasSelectionChanged)
 public:
-    FilteredWindowModel(QObject *parent)
+    explicit FilteredWindowModel(QObject *parent)
         : QSortFilterProxyModel(parent)
     {
     }
@@ -65,8 +65,6 @@ public:
             return false;
         }
 
-        using KWayland::Client::PlasmaWindowModel;
-        const QString uuid = index.data(PlasmaWindowModel::Uuid).toString();
         if (value == Qt::Checked) {
             m_selected.insert(index);
         } else {
@@ -155,7 +153,6 @@ ScreenChooserDialog::ScreenChooserDialog(const QString &appName, bool multiple, 
     Q_ASSERT(types != 0);
 
     QVariantMap props = {
-        {u"title"_s, i18nc("@title:window %1 is an application name (e.g. Falkon)", "Share screen with %1", Utils::applicationName(appName))},
         {u"multiple"_s, multiple},
     };
 
@@ -197,27 +194,26 @@ ScreenChooserDialog::ScreenChooserDialog(const QString &appName, bool multiple, 
 
     QString mainText;
 
-
     // App only asked for monitors
     if (types == ScreenCastPortal::Monitor) {
         if (numberOfMonitors == 1) {
             if (appName.isEmpty()) {
-                mainText = i18n("Share this screen with the requesting application?");
+                mainText = i18n("Share this screen with an unidentifiable application?");
             } else {
                 mainText = i18n("Share this screen with %1?", applicationName);
             }
         } else {
             if (multiple) {
                 if (appName.isEmpty()) {
-                    mainText = i18n("Choose screens to share with the requesting application:");
+                    mainText = i18n("Choose screens to share with an unidentifiable application:");
                 } else {
                     mainText = i18n("Choose screens to share with %1:", applicationName);
                 }
             } else {
                 if (appName.isEmpty()) {
-                    mainText = i18n("Choose which screen to share with the requesting application:");
+                    mainText = i18n("Choose a screen to share with an unidentifiable application:");
                 } else {
-                    mainText = i18n("Choose which screen to share with %1:", applicationName);
+                    mainText = i18n("Choose a screen to share with %1:", applicationName);
                 }
             }
         }
@@ -226,29 +222,29 @@ ScreenChooserDialog::ScreenChooserDialog(const QString &appName, bool multiple, 
     else if (types == ScreenCastPortal::Window) {
         if (numberOfWindows == 1) {
             if (appName.isEmpty()) {
-                mainText = i18n("Share this window with the requesting application?");
+                mainText = i18n("Share this window with an unidentifiable application?");
             } else {
                 mainText = i18n("Share this window with %1?", applicationName);
             }
         } else {
             if (multiple) {
                 if (appName.isEmpty()) {
-                    mainText = i18n("Choose windows to share with the requesting application:");
+                    mainText = i18n("Choose windows to share with an unidentifiable application:");
                 } else {
                     mainText = i18n("Choose windows to share with %1:", applicationName);
                 }
             } else {
                 if (appName.isEmpty()) {
-                    mainText = i18n("Choose which window to share with the requesting application:");
+                    mainText = i18n("Choose a window to share with an unidentifiable application:");
                 } else {
-                    mainText = i18n("Choose which window to share with %1:", applicationName);
+                    mainText = i18n("Choose a window to share with %1:", applicationName);
                 }
             }
         }
     }
     else if (types == ScreenCastPortal::Virtual) {
         if (appName.isEmpty()) {
-            mainText = i18n("Create a new virtual display to share with the requesting application:");
+            mainText = i18n("Create a new virtual display to share with an unidentifiable application:");
         } else {
             mainText = i18n("Create a new virtual display to share with %1:", applicationName);
         }
@@ -256,12 +252,16 @@ ScreenChooserDialog::ScreenChooserDialog(const QString &appName, bool multiple, 
     // Any other combination
     else {
         if (appName.isEmpty()) {
-            mainText = i18n("Choose what to share with the requesting application:");
+            mainText = i18n("Choose what to share with an unidentifiable application:");
         } else {
             mainText = i18n("Choose what to share with %1:", applicationName);
         }
     }
     props.insert(u"mainText"_s, mainText);
+
+    if (appName.isEmpty()) {
+        props.insert(u"subtitle"_s, i18nc("@info:usagetip", "Only share anything if you know which application made the request."));
+    }
 
     create(QStringLiteral("ScreenChooserDialog"), props);
     connect(m_theDialog, SIGNAL(clearSelection()), this, SIGNAL(clearSelection()));
@@ -307,6 +307,11 @@ void ScreenChooserDialog::setRegion(const QRect region)
     m_region = region;
 }
 
+QSize ScreenChooserDialog::virtualScreenResolution() const
+{
+    return m_theDialog->property("virtualScreenResolution").toSize();
+}
+
 bool ScreenChooserDialog::allowRestore() const
 {
     return m_theDialog->property("allowRestore").toBool();
@@ -314,21 +319,19 @@ bool ScreenChooserDialog::allowRestore() const
 
 void ScreenChooserDialog::accept()
 {
-    for (const auto &output : selectedOutputs()) {
-        if (output.outputType() == Output::OutputType::Region) {
-            auto selectionEditor = new SelectionEditor(this);
-            connect(selectionEditor, &SelectionEditor::finished, this, [this, selectionEditor](DialogResult result) {
-                selectionEditor->deleteLater();
-                if (result == DialogResult::Accepted) {
-                    setRegion(selectionEditor->rect());
-                    QuickDialog::accept();
-                } else {
-                    // if we selected rectangular region, but didn't actually choose a region, start over
-                    QTimer::singleShot(0, m_theDialog, SLOT(present()));
-                }
-            });
-            return;
-        }
+    if (std::ranges::contains(selectedOutputs(), Output::OutputType::Region, &Output::outputType)) {
+        auto selectionEditor = new SelectionEditor(this);
+        connect(selectionEditor, &SelectionEditor::finished, this, [this, selectionEditor](DialogResult result) {
+            selectionEditor->deleteLater();
+            if (result == DialogResult::Accepted) {
+                setRegion(selectionEditor->rect());
+                QuickDialog::accept();
+            } else {
+                // if we selected rectangular region, but didn't actually choose a region, start over
+                QTimer::singleShot(0, m_theDialog, SLOT(present()));
+            }
+        });
+        return;
     }
     QuickDialog::accept();
 }

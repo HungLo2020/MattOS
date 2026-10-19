@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the plasma-systemmonitor package.
 # Automatically generated, 2020.
 #
-# SPDX-FileCopyrightText: 2020, 2021, 2022, 2023, 2024, 2025, 2026 Eloy Cuadra <ecuadra@eloihr.net>
+# SPDX-FileCopyrightText: 2020-2026 Eloy Cuadra <ecuadra@eloihr.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2026-01-14 12:28+0100\n"
+"POT-Creation-Date: 2026-07-17 00:46+0000\n"
+"PO-Revision-Date: 2026-07-17 11:34+0100\n"
 "Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
 "Language-Team: Spanish <kde-l10n-es@kde.org>\n"
 "Language: es\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: src/GlobalMenu.qml:16
 #, kde-format
@@ -82,7 +82,7 @@ msgstr "Preferencias"
 #: src/GlobalMenu.qml:76
 #, kde-format
 msgctxt "@menu-action"
-msgid "Edit or Remove pages…"
+msgid "Edit or Remove Pages…"
 msgstr "Editar o eliminar páginas…"
 
 #: src/GlobalMenu.qml:83
@@ -195,7 +195,7 @@ msgstr "Añadir nueva página…"
 #: src/Main.qml:100
 #, kde-format
 msgctxt "@action"
-msgid "Edit or Remove pages…"
+msgid "Edit or Remove Pages…"
 msgstr "Editar o eliminar páginas…"
 
 #: src/Main.qml:106
@@ -246,37 +246,37 @@ msgctxt "@action"
 msgid "About KDE"
 msgstr "Acerca de KDE"
 
-#: src/Main.qml:251
+#: src/Main.qml:266
 #, kde-format
 msgctxt "@window:title"
 msgid "Add New Page"
 msgstr "Añadir nueva página"
 
-#: src/Main.qml:272
+#: src/Main.qml:287
 #, kde-format
 msgctxt "@window:title"
 msgid "Edit Pages"
 msgstr "Editar páginas"
 
-#: src/Main.qml:295
+#: src/Main.qml:310
 #, kde-format
 msgctxt "@title:window %1 is the name of the page that is being exported"
 msgid "Export %1"
 msgstr "Exportar %1"
 
-#: src/Main.qml:297 src/Main.qml:307
+#: src/Main.qml:312 src/Main.qml:322
 #, kde-format
 msgctxt "Name filter in file dialog"
 msgid "System Monitor page (*.page)"
 msgstr "Página del monitor del sistema (*.page)"
 
-#: src/Main.qml:305
+#: src/Main.qml:320
 #, kde-format
 msgctxt "@title:window"
 msgid "Import Page"
 msgstr "Importar página"
 
-#: src/Main.qml:331
+#: src/Main.qml:346
 #, kde-format
 msgid ""
 "System Monitor has fallen back to software rendering because hardware "
@@ -311,49 +311,49 @@ msgctxt "@action"
 msgid "Remove Background Margins"
 msgstr "Eliminar márgenes del fondo"
 
-#: src/page/EditablePage.qml:128
+#: src/page/EditablePage.qml:122
 #, kde-format
 msgctxt "@action"
 msgid "Edit Page"
 msgstr "Editar página"
 
-#: src/page/EditablePage.qml:138
+#: src/page/EditablePage.qml:132
 #, kde-format
 msgctxt "@action"
 msgid "Save Changes"
 msgstr "Guardar cambios"
 
-#: src/page/EditablePage.qml:148
+#: src/page/EditablePage.qml:142
 #, kde-format
 msgctxt "@action"
 msgid "Discard Changes"
 msgstr "Descartar cambios"
 
-#: src/page/EditablePage.qml:159
+#: src/page/EditablePage.qml:153
 #, kde-format
 msgctxt "@action"
 msgid "Configure Page…"
 msgstr "Configurar página…"
 
-#: src/page/EditablePage.qml:168
+#: src/page/EditablePage.qml:162
 #, kde-format
 msgctxt "@action"
 msgid "Add Row"
 msgstr "Añadir fila"
 
-#: src/page/EditablePage.qml:177
+#: src/page/EditablePage.qml:171
 #, kde-format
 msgctxt "@action"
 msgid "Add Title"
 msgstr "Añadir título"
 
-#: src/page/EditablePage.qml:190
+#: src/page/EditablePage.qml:184
 #, kde-format
 msgctxt "@title:window %1 is page title"
 msgid "Configure Page \"%1\""
 msgstr "Configurar la página «%1»"
 
-#: src/page/EditablePage.qml:192
+#: src/page/EditablePage.qml:186
 #, kde-format
 msgctxt "@action:button"
 msgid "Save"
@@ -743,55 +743,91 @@ msgctxt "@info:tooltip"
 msgid "Use half the height of the page."
 msgstr "Usar la mitad de la altura de la página."
 
-#: src/table/ColumnConfigurationDialog.qml:29
+#: src/table/AffinityDialog.qml:23
+#, kde-format
+msgctxt "@title:window"
+msgid "Set Affinity"
+msgstr "Definir afinidad"
+
+#: src/table/AffinityDialog.qml:54
+#, kde-format
+msgctxt "@label"
+msgid "Allow to run on:"
+msgstr "Permitir ejecución en:"
+
+#: src/table/AffinityDialog.qml:73
+#, kde-format
+msgctxt "@option:check CPU core number"
+msgid "CPU %1"
+msgstr "CPU %1"
+
+#: src/table/AffinityDialog.qml:109
+#, kde-format
+msgctxt "@action:button"
+msgid "Select All"
+msgstr "Seleccionar todo"
+
+#: src/table/AffinityDialog.qml:121
+#, kde-format
+msgctxt "@action:button"
+msgid "Clear All"
+msgstr "Borrar todo"
+
+#: src/table/AffinityDialog.qml:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Invert"
+msgstr "Invertir"
+
+#: src/table/ColumnConfigurationDialog.qml:48
 #, kde-format
 msgctxt "@window:title"
 msgid "Configure Columns"
 msgstr "Configurar columnas"
 
-#: src/table/ColumnConfigurationDialog.qml:106
+#: src/table/ColumnConfigurationDialog.qml:126
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Enabled Columns"
 msgstr "Columna activadas"
 
-#: src/table/ColumnConfigurationDialog.qml:106
+#: src/table/ColumnConfigurationDialog.qml:126
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Disabled Columns"
 msgstr "Columnas desactivadas"
 
-#: src/table/ColumnConfigurationDialog.qml:240
+#: src/table/ColumnConfigurationDialog.qml:260
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Hidden"
 msgstr "Oculta"
 
-#: src/table/ColumnConfigurationDialog.qml:241
+#: src/table/ColumnConfigurationDialog.qml:261
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only"
 msgstr "Solo texto"
 
-#: src/table/ColumnConfigurationDialog.qml:245
+#: src/table/ColumnConfigurationDialog.qml:265
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart"
 msgstr "Gráfico de líneas"
 
-#: src/table/ColumnConfigurationDialog.qml:249
+#: src/table/ColumnConfigurationDialog.qml:269
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only (Scaled to 100%)"
 msgstr "Solo texto (escalado al 100 %)"
 
-#: src/table/ColumnConfigurationDialog.qml:250
+#: src/table/ColumnConfigurationDialog.qml:270
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart (Scaled to 100%)"
 msgstr "Gráfico de líneas (escalado al 100 %)"
 
-#: src/table/ColumnConfigurationDialog.qml:287
+#: src/table/ColumnConfigurationDialog.qml:307
 #, kde-format
 msgctxt "@info"
 msgid "No columns matched the search"

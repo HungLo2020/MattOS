@@ -8,6 +8,9 @@
 #include "codeparser.h"
 #include "parsererror.h"
 #include "utilities.h"
+#include "textutils.h"
+
+#include <QtCore/qhash.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -21,14 +24,14 @@ class CppCodeParser
 {
 public:
     static inline const QSet<QString> topic_commands{
-        COMMAND_CLASS, COMMAND_DONTDOCUMENT, COMMAND_ENUM, COMMAND_EXAMPLE,
+        COMMAND_CLASS, COMMAND_CONCEPT, COMMAND_DONTDOCUMENT, COMMAND_ENUM, COMMAND_EXAMPLE,
         COMMAND_EXTERNALPAGE, COMMAND_FN, COMMAND_GROUP, COMMAND_HEADERFILE,
         COMMAND_MACRO, COMMAND_MODULE, COMMAND_NAMESPACE, COMMAND_PAGE,
         COMMAND_PROPERTY, COMMAND_TYPEALIAS, COMMAND_TYPEDEF, COMMAND_VARIABLE,
-        COMMAND_QMLTYPE, COMMAND_QMLSINGLETONTYPE, COMMAND_QMLPROPERTY, COMMAND_QMLPROPERTYGROUP,
-        COMMAND_QMLATTACHEDPROPERTY, COMMAND_QMLENUM, COMMAND_QMLSIGNAL, COMMAND_QMLATTACHEDSIGNAL,
-        COMMAND_QMLMETHOD, COMMAND_QMLATTACHEDMETHOD, COMMAND_QMLVALUETYPE, COMMAND_QMLBASICTYPE,
-        COMMAND_QMLMODULE, COMMAND_STRUCT, COMMAND_UNION,
+        COMMAND_QMLTYPE, COMMAND_QMLSINGLETONTYPE, COMMAND_QMLUNCREATABLETYPE, COMMAND_QMLPROPERTY,
+        COMMAND_QMLPROPERTYGROUP, COMMAND_QMLATTACHEDPROPERTY, COMMAND_QMLENUM, COMMAND_QMLSIGNAL,
+        COMMAND_QMLATTACHEDSIGNAL, COMMAND_QMLMETHOD, COMMAND_QMLATTACHEDMETHOD, COMMAND_QMLVALUETYPE,
+        COMMAND_QMLBASICTYPE, COMMAND_QMLMODULE, COMMAND_STRUCT, COMMAND_UNION,
     };
 
     static inline const QSet<QString> meta_commands = QSet<QString>(CodeParser::common_meta_commands)
@@ -48,9 +51,9 @@ public:
     std::pair<std::vector<TiedDocumentation>, std::vector<FnMatchError>>
     processTopicArgs(const UntiedDocumentation &untied);
 
-    void processMetaCommand(const Doc &doc, const QString &command, const ArgPair &argLocPair,
+    static void processMetaCommand(const Doc &doc, const QString &command, const ArgPair &argLocPair,
                             Node *node);
-    void processMetaCommands(const Doc &doc, Node *node);
+    static void processMetaCommands(const Doc &doc, Node *node);
     void processMetaCommands(const std::vector<TiedDocumentation> &tied);
 
 protected:
@@ -62,16 +65,23 @@ private:
     void setExampleFileLists(ExampleNode *en);
     static void processComparesCommand(Node *node, const QString &arg, const Location &loc);
     static void processOverloadCommand(Node *node, const Doc &doc);
-    void processQmlNativeTypeCommand(Node *node, const QString &cmd,
+    static void processQmlNativeTypeCommand(Node *node, const QString &cmd,
                                      const QString &arg, const Location &loc);
     EnumNode *processQmlEnumTopic(const QStringList &enumItemNames, const Location &location,
                                   const QString &arg);
 
 private:
+    [[nodiscard]] bool convenienceHeaderExists(const QString &className) const;
+    [[nodiscard]] QString computeIncludeSpelling(const Location &loc) const;
+    [[nodiscard]] const QStringList &getCleanIncludePaths() const;
+
     FnCommandParser fn_parser;
     QString m_exampleNameFilter;
     QString m_exampleImageFilter;
     bool m_showLinkErrors { false };
+    mutable QHash<QString, bool> m_convenienceHeaderCache;
+    mutable QStringList m_cleanIncludePaths;
+    mutable bool m_includePathsCached { false };
 };
 
 /*!
@@ -101,7 +111,7 @@ private:
             [index = qsizetype{ 0 }, numberOfCommands = commands.size()](
                     const QString &accumulator, const QString &topic) mutable -> QString {
                 return accumulator + QLatin1String("\\") + topic
-                        + Utilities::separator(index++, numberOfCommands);
+                        + TextUtils::separator(index++, numberOfCommands);
             }) };
 
     doc.location().warning(

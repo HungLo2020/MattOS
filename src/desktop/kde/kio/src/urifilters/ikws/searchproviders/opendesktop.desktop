@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=opendesktop,odesk,od
 Name=openDesktop.org
+Name[am]=openDesktop.org
 Name[ar]=openDesktop.org
 Name[ast]=openDesktop.org
 Name[az]=openDesktop.org
@@ -51,6 +52,8 @@ Name[lv]=openDesktop.org
 Name[mai]=openDesktop.org
 Name[mr]=ओपन डेस्कटॉप.org
 Name[my]=အိုးပန်းဒက်စ်တော့ပ် ဒေါ့ အိုအာဂျီ
+Name[nan_TW]=openDesktop.org
+Name[nan_TW@latin]=openDesktop.org
 Name[nb]=openDesktop.org
 Name[nds]=openDesktop.org
 Name[nl]=openDesktop.org
@@ -75,13 +78,13 @@ Name[tg]=openDesktop.org
 Name[th]=openDesktop.org
 Name[tok]=ilo alasa pi namako ilo openDesktop.org
 Name[tr]=openDesktop.org
-Name[ug]=openDesktop.org
 Name[uk]=openDesktop.org
 Name[vi]=openDesktop.org
 Name[wa]=openDesktop.org
 Name[zh_CN]=openDesktop.org
 Name[zh_TW]=openDesktop.org
 Query=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
+Query[am]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[ar]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[ast]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[az]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
@@ -122,6 +125,8 @@ Query[lg]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@
 Query[lt]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[lv]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[my]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
+Query[nan_TW]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
+Query[nan_TW@latin]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[nb]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[nl]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[nn]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
@@ -140,7 +145,6 @@ Query[tg]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@
 Query[th]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[tok]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[tr]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
-Query[ug]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[uk]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[vi]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}
 Query[zh_CN]=https://www.opendesktop.org/content/search.php?search=Search&name=\\{@}

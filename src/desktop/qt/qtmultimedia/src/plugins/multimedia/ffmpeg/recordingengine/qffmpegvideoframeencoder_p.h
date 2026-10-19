@@ -15,6 +15,7 @@
 //
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegrecordingengineutils_p.h>
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 
@@ -63,7 +64,7 @@ public:
 private:
     VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                       const SourceParams &sourceParams,
-                      const QMediaEncoderSettings &encoderSettings);
+                      const QMediaEncoderSettings &encoderSettings, bool needsGlobalHeader);
 
     static AVStream *createStream(const SourceParams &sourceParams, AVFormatContext *formatContext);
 
@@ -80,6 +81,7 @@ private:
     static CreationResult create(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                                  const SourceParams &sourceParams,
                                  const QMediaEncoderSettings &encoderSettings,
+                                 bool needsGlobalHeader,
                                  const AVPixelFormatSet &prohibitedTargetFormats = {});
 
     void initTargetSize();
@@ -97,10 +99,11 @@ private:
     qint64 estimateDuration(const AVPacket &packet, bool isFirstPacket);
 
 private:
-    QMediaEncoderSettings m_settings;
-    AVStream *m_stream = nullptr;
-    Codec m_codec;
-    HWAccelUPtr m_accel;
+    const QMediaEncoderSettings m_settings;
+    AVStream *const m_stream = nullptr;
+    const Codec m_codec;
+    const HWAccelUPtr m_accel;
+    const bool m_needsGlobalHeader = false;
 
     QSize m_sourceSize;
     QSize m_targetSize;
@@ -115,7 +118,18 @@ private:
     bool m_downloadFromHW = false;
     bool m_uploadToHW = false;
 
+    qreal m_sourceFrameRate = 0.f; // 0 = variable/unknown
     AVRational m_codecFrameRate = { 0, 1 };
+
+    // m_codecFrameRate as fed to AVCodecContext::framerate and used to derive the
+    // stream time base. Unlike m_codecFrameRate (which stays {0, 1} for a genuinely
+    // variable-rate stream), this is never zero
+    AVRational effectiveCodecFrameRate() const
+    {
+        return m_codecFrameRate.den > 0 && m_codecFrameRate.num > 0
+                ? m_codecFrameRate
+                : AVRational{ DefaultVideoFrameRate, 1 };
+    }
 
     int64_t m_prevPacketDts = AV_NOPTS_VALUE;
     int64_t m_packetDtsOffset = 0;

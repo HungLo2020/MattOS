@@ -15,6 +15,7 @@
 
 namespace KWin
 {
+
 class Rules;
 class RuleSettings;
 
@@ -43,7 +44,6 @@ private:
 
 private:
     QList<RuleSettings *> m_list;
-    QStringList m_storedGroups;
 };
 
 }

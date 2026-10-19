@@ -4,9 +4,11 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 #pragma once
+#include "core/graphicsbuffer.h"
 #include "kwin_export.h"
 #include "utils/filedescriptor.h"
 
+#include <QSocketNotifier>
 #include <memory>
 #include <stdint.h>
 
@@ -16,13 +18,64 @@ namespace KWin
 class SyncTimeline;
 
 /**
- * A helper to signal the release point when it goes out of scope
+ * An abstract helper to signal a synchronization mechanism when it gets out of scope
  */
 class KWIN_EXPORT SyncReleasePoint
 {
 public:
-    explicit SyncReleasePoint(const std::shared_ptr<SyncTimeline> &timeline, uint64_t timelinePoint);
-    ~SyncReleasePoint();
+    virtual ~SyncReleasePoint() = default;
+
+    virtual void addReleaseFence(const FileDescriptor &fd) = 0;
+
+    static FileDescriptor mergeSyncFds(const FileDescriptor &one, const FileDescriptor &two);
+
+protected:
+    explicit SyncReleasePoint() = default;
+};
+
+/**
+ * Helper class that keeps a graphics buffer referenced until
+ * the GPU work accessing it is completed
+ */
+class KWIN_EXPORT SyncReferencer
+{
+public:
+    explicit SyncReferencer(GraphicsBuffer *buffer, FileDescriptor &&syncFd);
+
+    GraphicsBufferRef m_buffer;
+    FileDescriptor m_sync;
+    QSocketNotifier m_notifier;
+};
+
+/**
+ * Helper class to keep track of release points of a GraphicsBuffer,
+ * and ensure proper synchronization when it's deleted.
+ * To make tracking of the GraphicsBuffer's lifetime easier, the
+ * buffer reference is optional and can be set at any time.
+ */
+class KWIN_EXPORT GraphicsBufferReleasePoint : public SyncReleasePoint
+{
+public:
+    explicit GraphicsBufferReleasePoint();
+    ~GraphicsBufferReleasePoint() override;
+
+    void setBuffer(GraphicsBuffer *buffer);
+    void addReleaseFence(const FileDescriptor &fd) override;
+    const FileDescriptor &releaseFd() const;
+
+private:
+    GraphicsBufferRef m_bufferRef;
+    FileDescriptor m_releaseFd;
+};
+
+/**
+ * A helper to signal the release point of a syncobj timeline when it goes out of scope
+ */
+class KWIN_EXPORT SyncObjReleasePoint : public SyncReleasePoint
+{
+public:
+    explicit SyncObjReleasePoint(const std::shared_ptr<SyncTimeline> &timeline, uint64_t timelinePoint);
+    ~SyncObjReleasePoint() override;
 
     SyncTimeline *timeline() const;
     uint64_t timelinePoint() const;
@@ -31,7 +84,7 @@ public:
      * Adds the fence of a graphics job that this release point should wait for
      * before the timeline point is signaled
      */
-    void addReleaseFence(const FileDescriptor &fd);
+    void addReleaseFence(const FileDescriptor &fd) override;
 
 private:
     const std::shared_ptr<SyncTimeline> m_timeline;
@@ -62,4 +115,5 @@ private:
     uint32_t m_handle = 0;
     FileDescriptor m_fileDescriptor;
 };
+
 }

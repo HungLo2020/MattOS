@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=magnatune,mt
 Name=Magnatune
+Name[am]=Magnatune
 Name[ar]=Magnatune
 Name[ast]=Magnatune
 Name[az]=Magnatune
@@ -52,6 +53,8 @@ Name[mai]=Magnatune
 Name[ml]=മാഗ്നാട്യൂണ്‍
 Name[mr]=मेग्नाट्युन
 Name[my]=မတ်ဂနက်ကျွန်း
+Name[nan_TW]=Magnatune
+Name[nan_TW@latin]=Magnatune
 Name[nb]=Magnatune
 Name[nds]=Magnatune
 Name[nl]=Magnatune
@@ -76,13 +79,13 @@ Name[tg]=Magnatune
 Name[th]=Magnatune
 Name[tok]=ilo pi kalama musi Magnatune
 Name[tr]=Magnatune
-Name[ug]=Magnatune
 Name[uk]=Magnatune
 Name[vi]=Magnatune
 Name[wa]=Magnatune
 Name[zh_CN]=Magnatune
 Name[zh_TW]=Magnatune
 Query=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
+Query[am]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[ar]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[ast]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[az]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
@@ -123,6 +126,8 @@ Query[lg]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[lt]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[lv]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[my]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
+Query[nan_TW]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
+Query[nan_TW@latin]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[nb]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[nl]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[nn]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
@@ -141,7 +146,6 @@ Query[tg]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[th]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[tok]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[tr]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
-Query[ug]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[uk]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[vi]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0
 Query[zh_CN]=https://my.magnatune.com/search?w=\\{@}&t=m&x=0&y=0

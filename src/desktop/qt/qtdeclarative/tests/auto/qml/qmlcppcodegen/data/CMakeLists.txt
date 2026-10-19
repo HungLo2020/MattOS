@@ -25,6 +25,7 @@ set(cpp_sources
     listsingleton.h
     multiforeign.h
     objectwithmethod.h
+    opaque.h
     person.cpp person.h
     propertymap.h
     qmlusing.h
@@ -279,6 +280,7 @@ set(qml_files
     objectLookupOnListElement.qml
     objectWithStringListMethod.qml
     oldEnum.qml
+    opaque.qml
     optionalComparison.qml
     outOfBounds.qml
     overriddenMember.qml
@@ -372,11 +374,21 @@ set(qml_files
     writeback.qml
 )
 
+set(qml_module_dependencies
+    QtQuick
+    QtQuick.Controls
+    QtQuick.Templates
+    QtQuick.Shapes
+)
+set(cmake_target_dependencies Qt::Quick Qt::QuickTemplates2 Qt::QuickShapesPrivate)
+
 if(QT_FEATURE_qml_labs)
     list(APPEND qml_files
         fileDialog.qml
         dummy_imports.qml
     )
+    list(APPEND qml_module_dependencies QtQuick.Dialogs)
+    list(APPEND cmake_target_dependencies Qt::QuickDialogs2)
 endif()
 
 set(resource_files
@@ -388,44 +400,12 @@ set_source_files_properties("shared/Slider.qml"
     PROPERTIES QT_RESOURCE_ALIAS "Slider.qml"
 )
 
-set_source_files_properties("hidden/Style.qml"
-    PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
-
 # Do re-evaluate on each import, please
 set_source_files_properties("NotificationsUtils.js"
     PROPERTIES QT_QML_SKIP_QMLDIR_ENTRY FALSE)
 
 qt_policy(SET QTP0001 NEW)
 qt_policy(SET QTP0004 NEW)
-
-qt_add_library(codegen_test_hidden STATIC)
-qt_autogen_tools_initial_setup(codegen_test_hidden)
-
-set_target_properties(codegen_test_hidden PROPERTIES
-    # We really want qmlcachegen here, even if qmlsc is available
-    QT_QMLCACHEGEN_EXECUTABLE qmlcachegen
-    QT_QMLCACHEGEN_ARGUMENTS --validate-basic-blocks
-)
-
-target_compile_definitions(codegen_test_hidden PUBLIC
-    -DGENERATED_CPP_FOLDER="${CMAKE_CURRENT_BINARY_DIR}/.rcc/qmlcache"
-)
-
-qt6_add_qml_module(codegen_test_hidden
-    URI HiddenTestTypes
-    QML_FILES
-        hidden/Main.qml
-        hidden/Style.qml
-    OUTPUT_DIRECTORY HiddenTestTypes
-    __QT_INTERNAL_DISAMBIGUATE_QMLDIR_RESOURCE
-
-    # Don't add a qmldir in "hidden". That  would defeat the purpose.
-    NO_GENERATE_EXTRA_QMLDIRS
-)
-
-add_dependencies(codegen_test_hidden Qt::Quick)
-
-qt_autogen_tools_initial_setup(codegen_test_hiddenplugin)
 
 qt_add_library(codegen_test_stringbuilder STATIC)
 qt_autogen_tools_initial_setup(codegen_test_stringbuilder)
@@ -474,10 +454,7 @@ qt6_add_qml_module(codegen_test_module
     URI TestTypes
     IMPORT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/imports/"
     DEPENDENCIES
-        QtQuick
-        QtQuick.Controls
-        QtQuick.Templates
-        QtQuick.Shapes
+        ${qml_module_dependencies}
     SOURCES
         ${cpp_sources}
     QML_FILES
@@ -515,10 +492,14 @@ else()
     )
 endif()
 
-add_dependencies(codegen_test_module Qt::Quick Qt::QuickTemplates2 Qt::QuickShapesPrivate)
+add_dependencies(codegen_test_module ${cmake_target_dependencies})
 
 qt_autogen_tools_initial_setup(codegen_test_moduleplugin)
 
+
+if(OHOS) # QTBUG-147585 (OpenHarmony)
+    return()
+endif()
 
 qt_add_library(codegen_test_module_verify STATIC)
 qt_autogen_tools_initial_setup(codegen_test_module_verify)
@@ -535,10 +516,7 @@ qt6_add_qml_module(codegen_test_module_verify
     URI TestTypes
     IMPORT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/imports/"
     DEPENDENCIES
-        QtQuick
-        QtQuick.Controls
-        QtQuick.Templates
-        QtQuick.Shapes
+        ${qml_module_dependencies}
     SOURCES
         ${cpp_sources}
     QML_FILES
@@ -552,7 +530,7 @@ qt6_add_qml_module(codegen_test_module_verify
 
 target_link_libraries(codegen_test_module_verify PRIVATE Qt::QmlPrivate)
 
-add_dependencies(codegen_test_module_verify Qt::Quick Qt::QuickTemplates2 Qt::QuickShapesPrivate)
+add_dependencies(codegen_test_module_verify ${cmake_target_dependencies})
 
 qt_autogen_tools_initial_setup(codegen_test_module_verifyplugin)
 

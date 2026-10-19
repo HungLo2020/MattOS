@@ -3,15 +3,15 @@
 # Yoann Laissus <yoann.laissus@gmail.com>, 2015.
 # Vincent Pinon <vpinon@kde.org>, 2016.
 # Simon Depiets <sdepiets@gmail.com>, 2018.
-# SPDX-FileCopyrightText: 2020, 2021, 2022, 2023, 2024, 2025, 2026 Xavier Besnard <xavier.besnard@kde.org>
+# SPDX-FileCopyrightText: 2020-2026 Xavier Besnard <xavier.besnard@kde.org>
 # Xavier Besnard <xavier.besnard@kde.org>, 2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-17 02:42+0000\n"
-"PO-Revision-Date: 2025-11-09 16:38+0100\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
+"PO-Revision-Date: 2026-09-13 08:56+0200\n"
 "Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
 "Language-Team: fr\n"
 "Language: fr\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Accelerator-Marker: &\n"
 "X-Environment: kde\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.08.0\n"
 "X-Text-Markup: kde4\n"
 
 #, kde-format
@@ -87,72 +87,90 @@ msgctxt "Format: month year"
 msgid "%1 %2"
 msgstr "%1 %2"
 
-#: calendar/qml/MonthViewHeader.qml:131
+#: calendar/qml/MonthViewHeader.qml:145
 #, kde-format
 msgid "Days"
 msgstr "Jours"
 
-#: calendar/qml/MonthViewHeader.qml:139
+#: calendar/qml/MonthViewHeader.qml:153
 #, kde-format
 msgid "Months"
 msgstr "Mois"
 
-#: calendar/qml/MonthViewHeader.qml:147
+#: calendar/qml/MonthViewHeader.qml:162
 #, kde-format
 msgid "Years"
 msgstr "Années"
 
-#: calendar/qml/MonthViewHeader.qml:184
+#: calendar/qml/MonthViewHeader.qml:206
 #, kde-format
 msgid "Previous Month"
 msgstr "Mois précédent"
 
-#: calendar/qml/MonthViewHeader.qml:186
+#: calendar/qml/MonthViewHeader.qml:208
 #, kde-format
 msgid "Previous Year"
 msgstr "Année précédente"
 
-#: calendar/qml/MonthViewHeader.qml:188
+#: calendar/qml/MonthViewHeader.qml:210
 #, kde-format
 msgid "Previous Decade"
 msgstr "Décennie précédente"
 
-#: calendar/qml/MonthViewHeader.qml:206
+#: calendar/qml/MonthViewHeader.qml:229
 #, kde-format
 msgctxt "Reset calendar to today"
 msgid "Today"
 msgstr "Aujourd'hui"
 
-#: calendar/qml/MonthViewHeader.qml:207
+#: calendar/qml/MonthViewHeader.qml:230
 #, kde-format
 msgid "Reset calendar to today"
 msgstr "Réinitialiser le calendrier à aujourd'hui"
 
-#: calendar/qml/MonthViewHeader.qml:220
+#: calendar/qml/MonthViewHeader.qml:243
 #, kde-format
 msgid "Next Month"
 msgstr "Mois suivant"
 
-#: calendar/qml/MonthViewHeader.qml:222
+#: calendar/qml/MonthViewHeader.qml:245
 #, kde-format
 msgid "Next Year"
 msgstr "Année suivante"
 
-#: calendar/qml/MonthViewHeader.qml:224
+#: calendar/qml/MonthViewHeader.qml:247
 #, kde-format
 msgid "Next Decade"
 msgstr "Décennie suivante"
 
-#: calendar/qml/MonthViewHeader.qml:283
+#: calendar/qml/MonthViewHeader.qml:306
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Keep Open"
 msgstr "Maintenir ouvert"
 
-#: containmentlayoutmanager/qml/BasicAppletContainer.qml:286
+#: containmentlayoutmanager/qml/BasicAppletContainer.qml:287
 #, kde-format
 msgid "Configure…"
 msgstr "Configurer..."
+
+#: loginlockscreen/Footer.qml:50
+#, kde-format
+msgctxt "@action:button"
+msgid "Hide On-Screen Keyboard"
+msgstr "Masquer le clavier virtuel"
+
+#: loginlockscreen/Footer.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Show On-Screen Keyboard"
+msgstr "Afficher le clavier virtuel"
+
+#: loginlockscreen/Footer.qml:76
+#, kde-format
+msgctxt "Button to change keyboard layout"
+msgid "Switch layout"
+msgstr "Basculer la disposition"
 
 #. i18n: ectx: label, entry, group (Daemon)
 #: sessionsprivate/kscreenlockersettings.kcfg:10
@@ -165,18 +183,6 @@ msgstr "Verrouillage d'écran activé"
 #, kde-format
 msgid "Sets whether the screen will be locked after the specified time."
 msgstr "Définit si l'écran sera verrouillé après un temps spécifié."
-
-#. i18n: ectx: label, entry, group (Daemon)
-#: sessionsprivate/kscreenlockersettings.kcfg:16
-#, kde-format
-msgid "Screen saver timeout"
-msgstr "Temps d'expiration de l'économiseur d'écran"
-
-#. i18n: ectx: whatsthis, entry, group (Daemon)
-#: sessionsprivate/kscreenlockersettings.kcfg:17
-#, kde-format
-msgid "Sets the minutes after which the screen is locked."
-msgstr "Définit le nombre de minutes après lequel l'écran est verrouillé."
 
 #: sessionsprivate/sessionsmodel.cpp:255 sessionsprivate/sessionsmodel.cpp:259
 #, kde-format
@@ -191,7 +197,7 @@ msgstr "Filtres"
 #: shellprivate/plasmaappletitemmodel.cpp:199
 #, kde-format
 msgid ""
-"This Widget was written for an unknown older version of Plasma and is not "
+"This widget was written for an unknown older version of Plasma and is not "
 "compatible with Plasma %1. Please contact the widget's author for an updated "
 "version."
 msgstr ""
@@ -202,7 +208,7 @@ msgstr ""
 #: shellprivate/plasmaappletitemmodel.cpp:203
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please contact the widget's author for an updated version."
 msgstr ""
 "Ce composant graphique a été écrit pour Plasma %1. Il est incompatible avec "
@@ -212,7 +218,7 @@ msgstr ""
 #: shellprivate/plasmaappletitemmodel.cpp:207
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please update Plasma in order to use the widget."
 msgstr ""
 "Ce composant graphique a été écrit pour Plasma %1. Il est incompatible avec "
@@ -222,12 +228,13 @@ msgstr ""
 #: shellprivate/plasmaappletitemmodel.cpp:212
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with the latest "
-"version of Plasma. Please update Plasma in order to use the widget."
+"This widget was written for Plasma %1 and is not compatible with the older "
+"version of Plasma installed on this system. Please update Plasma in order to "
+"use the widget."
 msgstr ""
 "Ce composant graphique a été écrit pour Plasma %1. Il est incompatible avec "
-"la dernière version de Plasma. Veuillez mettre à jour Plasma pour pouvoir "
-"utiliser ce composant graphique."
+"l'ancienne version de Plasma installée sur ce système. Veuillez mettre à "
+"jour Plasma pour pouvoir utiliser ce composant graphique."
 
 #: shellprivate/widgetexplorer.cpp:110
 msgctxt "applet category"
@@ -408,7 +415,7 @@ msgstr "L'installation du paquet %1 a échoué : %2."
 msgid "Installation Failure"
 msgstr "Échec de l'installation"
 
-#: timezoneselector/TimezoneSelector.qml:104
+#: timezoneselector/TimezoneSelector.qml:107
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -418,45 +425,58 @@ msgstr ""
 "Le fuseau horaire actuellement sélectionné n'est pas disponible pour "
 "l'affichage sur cette carte."
 
-#: timezoneselector/TimezoneSelector.qml:194
-#, kde-format
-msgctxt "@action:button"
-msgid "Zoom in"
-msgstr "Zoom avant"
-
-#: timezoneselector/TimezoneSelector.qml:210
-#, kde-format
-msgctxt "@action:button"
-msgid "Zoom out"
-msgstr "Zoom arrière"
-
-#: timezoneselector/TimezoneSelector.qml:239
-#, kde-format
-msgctxt "@label:listbox In the context of time zone selection"
-msgid "Region:"
-msgstr "Région :"
-
-#: timezoneselector/TimezoneSelector.qml:246
+#: timezoneselector/TimezoneSelector.qml:122
+#: timezoneselector/TimezoneSelector.qml:347
 #, kde-format
 msgctxt "Placeholder for empty time zone combobox selector"
 msgid "Choose…"
 msgstr "Sélectionner…"
 
-#: timezoneselector/TimezoneSelector.qml:250
+#: timezoneselector/TimezoneSelector.qml:124
+#: timezoneselector/TimezoneSelector.qml:339
 #, kde-format
-msgid "Timezone region selector"
-msgstr "Sélecteur de région de fuseau horaire"
+msgctxt "@label:listbox In the context of time zone selection"
+msgid "Region:"
+msgstr "Région :"
 
-#: timezoneselector/TimezoneSelector.qml:271
+#: timezoneselector/TimezoneSelector.qml:151
+#: timezoneselector/TimezoneSelector.qml:376
 #, kde-format
 msgctxt "@label:listbox In the context of time zone selection"
 msgid "Time zone:"
 msgstr "Fuseau horaire :"
 
-#: timezoneselector/TimezoneSelector.qml:281
+#: timezoneselector/TimezoneSelector.qml:294
+#, kde-format
+msgctxt "@action:button"
+msgid "Zoom in"
+msgstr "Zoom avant"
+
+#: timezoneselector/TimezoneSelector.qml:310
+#, kde-format
+msgctxt "@action:button"
+msgid "Zoom out"
+msgstr "Zoom arrière"
+
+#: timezoneselector/TimezoneSelector.qml:351
+#, kde-format
+msgid "Timezone region selector"
+msgstr "Sélecteur de région de fuseau horaire"
+
+#: timezoneselector/TimezoneSelector.qml:387
 #, kde-format
 msgid "Timezone location selector"
 msgstr "Sélecteur d'emplacement de fuseau horaire"
+
+#~ msgctxt "Button to show/hide virtual keyboard"
+#~ msgid "Virtual Keyboard"
+#~ msgstr "Clavier virtuel"
+
+#~ msgid "Screen saver timeout"
+#~ msgstr "Temps d'expiration de l'économiseur d'écran"
+
+#~ msgid "Sets the minutes after which the screen is locked."
+#~ msgstr "Définit le nombre de minutes après lequel l'écran est verrouillé."
 
 #~ msgctxt ""
 #~ "Full context is: '<region> region, <zone> time zone.' in the context of "

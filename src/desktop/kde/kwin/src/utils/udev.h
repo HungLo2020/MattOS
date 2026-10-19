@@ -21,6 +21,7 @@ struct udev_monitor;
 
 namespace KWin
 {
+
 class Udev;
 
 class KWIN_EXPORT UdevDevice
@@ -29,6 +30,7 @@ public:
     UdevDevice(udev_device *device);
     ~UdevDevice();
 
+    QByteArrayView sysName() const;
     QString devNode() const;
     dev_t devNum() const;
     const char *property(const char *key);
@@ -83,8 +85,9 @@ public:
         return m_udev != nullptr;
     }
     std::vector<std::unique_ptr<UdevDevice>> listGPUs();
+    std::vector<std::unique_ptr<UdevDevice>> listRenderNodes();
     std::unique_ptr<UdevDevice> deviceFromSyspath(const char *syspath);
-    std::unique_ptr<UdevMonitor> monitor();
+    std::unique_ptr<UdevMonitor> createMonitor();
     operator udev *() const
     {
         return m_udev;

@@ -22,7 +22,7 @@
 
     Like other extensions, support for shells is added to a compositor by instantiating them
     as direct children of the \l WaylandCompositor top-level object. The shell extensions supported
-    by Qt are: \l{WlShell}, \l{XdgShell} and \l{IviApplication}.
+    by Qt are:
 
     \list
       \li \l XdgShell is an appropriate shell for desktop-style systems, where any number of

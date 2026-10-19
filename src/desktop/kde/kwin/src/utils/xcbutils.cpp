@@ -77,7 +77,7 @@ QList<QByteArray> randrOpCodes()
     return QList<QByteArray>({QByteArrayLiteral("QueryVersion"),
                               QByteArray(""), // doesn't exist
                               QByteArrayLiteral("SetScreenConfig"),
-                              QByteArray(""), // doesn't exits
+                              QByteArray(""), // doesn't exist
                               QByteArrayLiteral("SelectInput"),
                               QByteArrayLiteral("GetScreenInfo"),
                               QByteArrayLiteral("GetScreenSizeRange"),
@@ -89,7 +89,7 @@ QList<QByteArray> randrOpCodes()
                               QByteArrayLiteral("ConfigureOutputProperty"),
                               QByteArrayLiteral("ChangeOutputProperty"),
                               QByteArrayLiteral("DeleteOutputProperty"),
-                              QByteArrayLiteral("GetOutputproperty"),
+                              QByteArrayLiteral("GetOutputProperty"),
                               QByteArrayLiteral("CreateMode"),
                               QByteArrayLiteral("DestroyMode"),
                               QByteArrayLiteral("AddOutputMode"),
@@ -112,7 +112,7 @@ QList<QByteArray> randrOpCodes()
                               QByteArrayLiteral("SetProviderOutputSource"),
                               QByteArrayLiteral("ListProviderProperties"),
                               QByteArrayLiteral("QueryProviderProperty"),
-                              QByteArrayLiteral("ConfigureProviderroperty"),
+                              QByteArrayLiteral("ConfigureProviderProperty"),
                               QByteArrayLiteral("ChangeProviderProperty"),
                               QByteArrayLiteral("DeleteProviderProperty"),
                               QByteArrayLiteral("GetProviderProperty")});
@@ -535,7 +535,7 @@ bool Shm::init()
 
 uint32_t toXNative(qreal value)
 {
-    //debug helper, check for things getting mangled
+    // debug helper, check for things getting mangled
     if (!qFuzzyIsNull(std::fmod(kwinApp()->xwaylandScale() * value, 1))) {
         qCDebug(KWIN_CORE) << "precision lost! floating value sent to X" << kwinApp()->xwaylandScale() * value;
     }
@@ -575,19 +575,6 @@ QSizeF fromXNative(const QSize &s)
 qreal nativeRound(qreal value)
 {
     return fromXNative(toXNative(value));
-}
-
-static qreal nativeFloor(qreal value)
-{
-    return std::floor(value * kwinApp()->xwaylandScale()) / kwinApp()->xwaylandScale();
-}
-
-RectF nativeFloor(const RectF &rect)
-{
-    const auto output = workspace()->outputAt(rect.center());
-    const RectF outputRect = output->mapFromGlobal(rect);
-    return output->mapToGlobal(RectF(nativeFloor(outputRect.left()), nativeFloor(outputRect.top()),
-                                     nativeFloor(outputRect.width()), nativeFloor(outputRect.height())));
 }
 
 QString atomName(xcb_atom_t atom)

@@ -18,6 +18,9 @@
 
 #include <QJSEngine>
 
+#include <libdrm/drm_mode.h>
+#include <libxcvt/libxcvt.h>
+
 namespace KWin
 {
 
@@ -42,26 +45,156 @@ QDebug operator<<(QDebug debug, const LogicalOutput *output)
     return debug;
 }
 
-OutputMode::OutputMode(const QSize &size, uint32_t refreshRate, Flags flags)
-    : m_size(size)
-    , m_refreshRate(refreshRate)
+CvtModeline CvtModeline::generate(const QSize &size, uint32_t refreshRate, bool reducedBlanking)
+{
+    libxcvt_mode_info *modeInfo = libxcvt_gen_mode_info(size.width(), size.height(), refreshRate / 1000.0f, reducedBlanking, false);
+
+    const CvtModeline modeline{
+        .clock = uint32_t(modeInfo->dot_clock),
+        .hdisplay = uint16_t(modeInfo->hdisplay),
+        .hsyncStart = modeInfo->hsync_start,
+        .hsyncEnd = modeInfo->hsync_end,
+        .htotal = modeInfo->htotal,
+        .hskew = 0,
+        .vdisplay = uint16_t(modeInfo->vdisplay),
+        .vsyncStart = modeInfo->vsync_start,
+        .vsyncEnd = modeInfo->vsync_end,
+        .vtotal = modeInfo->vtotal,
+        .vscan = 1,
+        .flags = modeInfo->mode_flags,
+    };
+
+    free(modeInfo);
+
+    return modeline;
+}
+
+QSize CvtModeline::size() const
+{
+    return QSize(hdisplay, vdisplay);
+}
+
+uint32_t CvtModeline::refreshRate() const
+{
+    uint64_t refreshRate = (clock * 1000000LL / htotal + vtotal / 2) / vtotal;
+
+    if (flags & DRM_MODE_FLAG_INTERLACE) {
+        refreshRate *= 2;
+    }
+
+    if (flags & DRM_MODE_FLAG_DBLSCAN) {
+        refreshRate /= 2;
+    }
+
+    if (vscan > 1) {
+        refreshRate /= vscan;
+    }
+
+    return refreshRate;
+}
+
+OutputModeline::OutputModeline()
+{
+}
+
+OutputModeline::OutputModeline(const QSize &size, uint32_t refreshRate, Flags flags)
+    : OutputModeline(BasicModeline{size, refreshRate}, flags)
+{
+}
+
+OutputModeline::OutputModeline(const OutputTimings &timings, Flags flags)
+    : m_timings(timings)
     , m_flags(flags)
+{
+}
+
+bool OutputModeline::isEmpty() const
+{
+    return size().isEmpty();
+}
+
+QSize OutputModeline::size() const
+{
+    if (const auto cvt = std::get_if<CvtModeline>(&m_timings)) {
+        return cvt->size();
+    } else if (const auto basic = std::get_if<BasicModeline>(&m_timings)) {
+        return basic->size;
+    }
+    return QSize();
+}
+
+uint32_t OutputModeline::refreshRate() const
+{
+    if (const auto cvt = std::get_if<CvtModeline>(&m_timings)) {
+        return cvt->refreshRate();
+    } else if (const auto basic = std::get_if<BasicModeline>(&m_timings)) {
+        return basic->refreshRate;
+    }
+    return 0;
+}
+
+OutputModeline::Flags OutputModeline::flags() const
+{
+    return m_flags;
+}
+
+std::optional<CvtModeline> OutputModeline::cvt() const
+{
+    if (const auto cvt = std::get_if<CvtModeline>(&m_timings)) {
+        return *cvt;
+    }
+    return std::nullopt;
+}
+
+std::optional<BasicModeline> OutputModeline::basic() const
+{
+    if (const auto basic = std::get_if<BasicModeline>(&m_timings)) {
+        return *basic;
+    }
+    return std::nullopt;
+}
+
+OutputModeline OutputModeline::withFlags(Flags flags) const
+{
+    return OutputModeline(m_timings, m_flags | flags);
+}
+
+std::shared_ptr<OutputMode> OutputModeline::match(const QList<std::shared_ptr<OutputMode>> &modes) const
+{
+    for (const auto &mode : modes) {
+        if (mode->isRemoved()) {
+            continue;
+        }
+        if (mode->modeline() == *this) {
+            return mode;
+        }
+    }
+    return nullptr;
+}
+
+OutputMode::OutputMode(const OutputModeline &modeline)
+    : m_modeline(modeline)
 {
 }
 
 QSize OutputMode::size() const
 {
-    return m_size;
+    return m_modeline.size();
 }
 
 uint32_t OutputMode::refreshRate() const
 {
-    return m_refreshRate;
+    return m_modeline.refreshRate();
 }
 
-OutputMode::Flags OutputMode::flags() const
+OutputModeline::Flags OutputMode::flags() const
 {
-    return m_flags;
+    return m_modeline.flags();
+}
+
+OutputModeline OutputMode::modeline() const
+{
+    return m_modeline;
 }
 
 bool OutputMode::isRemoved() const
@@ -331,17 +464,9 @@ LogicalOutput::LogicalOutput(BackendOutput *backendOutput)
     : m_backendOutput(backendOutput)
 {
     QJSEngine::setObjectOwnership(this, QJSEngine::CppOwnership);
-    connect(backendOutput, &BackendOutput::positionChanged, this, &LogicalOutput::geometryChanged);
-    connect(backendOutput, &BackendOutput::currentModeChanged, this, &LogicalOutput::geometryChanged);
-    connect(backendOutput, &BackendOutput::transformChanged, this, &LogicalOutput::geometryChanged);
-    connect(backendOutput, &BackendOutput::scaleChanged, this, &LogicalOutput::geometryChanged);
-    connect(backendOutput, &BackendOutput::scaleChanged, this, &LogicalOutput::scaleChanged);
-    // TODO dpms being kind of on the backend output and kind of here isn't great
-    connect(backendOutput, &BackendOutput::aboutToChange, this, &LogicalOutput::aboutToChange);
-    connect(backendOutput, &BackendOutput::changed, this, &LogicalOutput::changed);
     connect(backendOutput, &BackendOutput::blendingColorChanged, this, &LogicalOutput::blendingColorChanged);
-    connect(backendOutput, &BackendOutput::transformChanged, this, &LogicalOutput::transformChanged);
-    connect(backendOutput, &BackendOutput::currentModeChanged, this, &LogicalOutput::currentModeChanged);
+    // Workspace will emit "changed" when all the properties have been updated
+    connect(backendOutput, &BackendOutput::aboutToChange, this, &LogicalOutput::aboutToChange);
 }
 
 LogicalOutput::~LogicalOutput()
@@ -394,22 +519,22 @@ QPointF LogicalOutput::mapFromGlobal(const QPointF &pos) const
 
 qreal LogicalOutput::scale() const
 {
-    return m_backendOutput->scale();
+    return m_scale;
 }
 
 Rect LogicalOutput::geometry() const
 {
-    return Rect(m_backendOutput->position(), m_backendOutput->pixelSize() / scale());
+    return m_geometry.rounded();
 }
 
 RectF LogicalOutput::geometryF() const
 {
-    return RectF(m_backendOutput->position(), QSizeF(m_backendOutput->pixelSize()) / scale());
+    return m_geometry;
 }
 
 QSize LogicalOutput::modeSize() const
 {
-    return m_backendOutput->modeSize();
+    return m_modeSize;
 }
 
 QSize LogicalOutput::pixelSize() const
@@ -430,6 +555,16 @@ QSize LogicalOutput::orientateSize(const QSize &size) const
     }
 }
 
+bool LogicalOutput::canResize() const
+{
+    return m_backendOutput->canResize();
+}
+
+void LogicalOutput::resize(const QSize &size)
+{
+    m_backendOutput->resize(size);
+}
+
 BackendOutput *LogicalOutput::backendOutput() const
 {
     return m_backendOutput;
@@ -442,7 +577,7 @@ QString LogicalOutput::name() const
 
 QString LogicalOutput::description() const
 {
-    return m_backendOutput->description();
+    return m_description;
 }
 
 QString LogicalOutput::manufacturer() const
@@ -482,7 +617,7 @@ const std::shared_ptr<ColorDescription> &LogicalOutput::blendingColor() const
 
 OutputTransform LogicalOutput::transform() const
 {
-    return m_backendOutput->transform();
+    return m_transform;
 }
 
 bool LogicalOutput::isInternal() const
@@ -493,6 +628,44 @@ bool LogicalOutput::isInternal() const
 uint32_t LogicalOutput::refreshRate() const
 {
     return m_backendOutput->refreshRate();
+}
+
+void LogicalOutput::setData(const QPoint logicalPosition, const QSize &modeSize,
+                            uint32_t refreshRate, OutputTransform transform, double scale,
+                            const QString &description)
+{
+    const RectF newGeometry(logicalPosition, transform.map(QSizeF(modeSize)) / scale);
+    const bool geometryChange = m_geometry != newGeometry;
+    const bool transformChange = m_transform != transform;
+    const bool scaleChange = m_scale != scale;
+    const bool modeChanged = m_modeSize != modeSize || m_refreshRate != refreshRate;
+    const bool descriptionChange = m_description != description;
+    m_modeSize = modeSize;
+    m_refreshRate = refreshRate;
+    m_geometry = newGeometry;
+    m_transform = transform;
+    m_scale = scale;
+    m_description = description;
+    if (descriptionChange) {
+        Q_EMIT descriptionChanged();
+    }
+    if (modeChanged) {
+        Q_EMIT currentModeChanged();
+    }
+    if (geometryChange) {
+        Q_EMIT geometryChanged();
+    }
+    if (transformChange) {
+        Q_EMIT transformChanged();
+    }
+    if (scaleChange) {
+        Q_EMIT scaleChanged();
+    }
+}
+
+void LogicalOutput::copyInfoFrom(BackendOutput *output)
+{
+    setData(output->position(), output->modeSize(), output->refreshRate(), output->transform(), output->scale(), output->description());
 }
 
 } // namespace KWin

@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qmatrix4x4.h"
 #include <QtCore/qmath.h>
@@ -104,11 +105,28 @@ QMatrix4x4::QMatrix4x4(const float *values)
 /*!
     \fn template <int N, int M> QGenericMatrix<N, M, float> QMatrix4x4::toGenericMatrix() const
 
-    Constructs a NxM generic matrix from the left-most N columns and
-    top-most M rows of this 4x4 matrix.  If N or M is greater than 4,
+    Constructs an \a N x \a M generic matrix from the left-most N columns and
+    top-most M rows of this 4x4 matrix. If N or M is greater than 4,
     then the remaining elements are filled with elements from the
     identity matrix.
 */
+/*!
+    \internal
+*/
+void QMatrix4x4::toGenericMatrix_impl(float *dst, int cols, int rows) const
+{
+    for (int c = 0; c < cols; ++c) {
+        for (int r = 0; r < rows; ++r) {
+            if (c < 4 && r < 4)
+                *dst++ = m[c][r];
+            else if (c == r) // in particular, cols > 4 and rows > 4
+                *dst++ = 1.0f;
+            else
+                *dst++ = 0.0f;
+        }
+    }
+}
+
 
 /*!
     \internal

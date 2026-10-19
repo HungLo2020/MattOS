@@ -16,7 +16,9 @@
 
 #include "pluginloader.h"
 
+#if ENABLE_ACTIVITIES
 #include <plasmaactivities/info.h>
+#endif
 
 #include "debug_p.h"
 #include "private/applet_p.h"
@@ -29,13 +31,14 @@ ContainmentPrivate::ContainmentPrivate(Containment *c)
     : q(c)
     , formFactor(Types::Planar)
     , location(Types::Floating)
-    , lastScreen(-1)
     , type(Plasma::Containment::Type::NoContainment) // never had a screen
     , uiReady(false)
     , appletsUiReady(false)
 {
+#if ENABLE_ACTIVITIES
     activityInfo = new KActivities::Info(activityId, q);
     QObject::connect(activityInfo, &KActivities::Info::nameChanged, q, &Containment::activityNameChanged);
+#endif
 }
 
 Plasma::ContainmentPrivate::~ContainmentPrivate()
@@ -180,18 +183,20 @@ Applet *ContainmentPrivate::createApplet(const QString &name, const QVariantList
         return nullptr;
     }
 
-    Applet *applet = PluginLoader::self()->loadApplet(name, id, args);
+    auto applet = PluginLoader::self()->loadApplet(name, id, args);
+    auto appletPtr = applet.get();
+
     Q_ASSERT(applet);
     if (!applet) {
         return nullptr;
     }
 
-    q->addApplet(applet, geometryHint);
+    q->addApplet(std::move(applet), geometryHint);
     // mirror behavior of resorecontents: if an applet is not valid, set it immediately to uiReady
-    if (!applet->pluginMetaData().isValid()) {
-        applet->updateConstraints(Applet::UiReadyConstraint);
+    if (!appletPtr->pluginMetaData().isValid()) {
+        appletPtr->updateConstraints(Applet::UiReadyConstraint);
     }
-    return applet;
+    return appletPtr;
 }
 
 void ContainmentPrivate::appletDeleted(Plasma::Applet *applet)

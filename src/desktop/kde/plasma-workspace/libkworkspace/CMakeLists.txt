@@ -1,5 +1,4 @@
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config-outputorder.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-outputorder.h)
 
 set(kworkspace_LIB_SRCS kdisplaymanager.cpp
     sessionmanagement.cpp
@@ -12,10 +11,6 @@ set(kworkspace_LIB_SRCS kdisplaymanager.cpp
     autostartscriptdesktopfile.h
     login1_manager_interface.cpp
     login1_manager_interface.h
-    defaultservice.cpp
-    defaultservice.h
-    defaultwallpaper.cpp
-    defaultwallpaper.h
     outputorderwatcher.cpp
     outputorderwatcher.h
    )
@@ -23,7 +18,7 @@ set(kworkspace_LIB_SRCS kdisplaymanager.cpp
 add_definitions(-DTRANSLATION_DOMAIN=\"libkworkspace\")
 
 qt_add_dbus_interface(kworkspace_LIB_SRCS ${SCREENSAVER_DBUS_INTERFACE} screenlocker_interface )
-qt_add_dbus_interface(kworkspace_LIB_SRCS ${plasma-workspace_SOURCE_DIR}/ksmserver/org.kde.LogoutPrompt.xml logoutprompt_interface)
+qt_add_dbus_interface(kworkspace_LIB_SRCS ${plasma-workspace_SOURCE_DIR}/logout-greeter/org.kde.LogoutPrompt.xml logoutprompt_interface)
 qt_add_dbus_interface(kworkspace_LIB_SRCS ${plasma-workspace_SOURCE_DIR}/startkde/plasma-session/org.kde.Startup.xml startup_interface)
 qt_add_dbus_interface(kworkspace_LIB_SRCS ${plasma-workspace_SOURCE_DIR}/startkde/plasma-shutdown/org.kde.Shutdown.xml shutdown_interface)
 
@@ -42,16 +37,14 @@ generate_export_header(kworkspace)
 target_link_libraries(kworkspace
     PUBLIC
         Qt::Core
+        KF6::ConfigCore
         KF6::CoreAddons
     PRIVATE
         Qt::DBus
         Qt::WaylandClient
         KF6::I18n
         KF6::WindowSystem
-        KF6::ConfigCore
         KF6::Service
-        KF6::Package
-        Plasma::Plasma
 )
 target_include_directories(kworkspace PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
                                       INTERFACE "$<INSTALL_INTERFACE:${KDE_INSTALL_INCLUDEDIR}/kworkspace6>" )
@@ -74,11 +67,8 @@ ecm_qt_declare_logging_category(kworkspace
     EXPORT PLASMAWORKSPACE
 )
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL "6.8.0")
-    set(private_code_option  "PRIVATE_CODE")
-endif()
 qt6_generate_wayland_protocol_client_sources(kworkspace
-    ${private_code_option}
+    PRIVATE_CODE
     FILES
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/kde-output-order-v1.xml
 )

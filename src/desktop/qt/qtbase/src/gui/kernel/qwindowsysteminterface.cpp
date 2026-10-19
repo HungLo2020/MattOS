@@ -1,5 +1,6 @@
 // Copyright (C) 2020 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 #include "qwindowsysteminterface.h"
 #include <qpa/qplatformwindow.h>
 #include "qwindowsysteminterface_p.h"
@@ -621,7 +622,7 @@ QList<QEventPoint>
     QList<QWindowSystemInterface::TouchPoint>::const_iterator point = points.constBegin();
     QList<QWindowSystemInterface::TouchPoint>::const_iterator end = points.constEnd();
     while (point != end) {
-        QPointF globalPos = QHighDpi::fromNativePixels(point->area.center(), window);
+        QPointF globalPos = QHighDpi::fromNativeGlobalPosition(point->area.center(), window);
         QEventPoint p(point->id, point->state, globalPos, globalPos);
         states |= point->state;
         if (point->uniqueId >= 0)
@@ -894,7 +895,7 @@ void QWindowSystemInterfacePrivate::TabletEvent::setPlatformSynthesizesMouse(boo
 bool QWindowSystemInterface::handleTabletEvent(QWindow *window, ulong timestamp, const QPointingDevice *device,
                                                const QPointF &local, const QPointF &global,
                                                Qt::MouseButtons buttons, qreal pressure, qreal xTilt, qreal yTilt,
-                                               qreal tangentialPressure, qreal rotation, int z,
+                                               qreal tangentialPressure, qreal rotation, qreal z,
                                                Qt::KeyboardModifiers modifiers)
 {
     return handleWindowSystemEvent<QWindowSystemInterfacePrivate::TabletEvent>(window,
@@ -908,7 +909,7 @@ bool QWindowSystemInterface::handleTabletEvent(QWindow *window, ulong timestamp,
 bool QWindowSystemInterface::handleTabletEvent(QWindow *window, const QPointingDevice *device,
                                                const QPointF &local, const QPointF &global,
                                                Qt::MouseButtons buttons, qreal pressure, qreal xTilt, qreal yTilt,
-                                               qreal tangentialPressure, qreal rotation, int z,
+                                               qreal tangentialPressure, qreal rotation, qreal z,
                                                Qt::KeyboardModifiers modifiers)
 {
     const ulong time = QWindowSystemInterfacePrivate::eventTime.elapsed();
@@ -919,7 +920,7 @@ bool QWindowSystemInterface::handleTabletEvent(QWindow *window, const QPointingD
 
 bool QWindowSystemInterface::handleTabletEvent(QWindow *window, ulong timestamp, const QPointF &local, const QPointF &global,
                                                int device, int pointerType, Qt::MouseButtons buttons, qreal pressure, qreal xTilt, qreal yTilt,
-                                               qreal tangentialPressure, qreal rotation, int z, qint64 uid,
+                                               qreal tangentialPressure, qreal rotation, qreal z, qint64 uid,
                                                Qt::KeyboardModifiers modifiers)
 {
     const QPointingDevice *dev = QPointingDevicePrivate::tabletDevice(QInputDevice::DeviceType(device),QPointingDevice::PointerType(pointerType),
@@ -930,7 +931,7 @@ bool QWindowSystemInterface::handleTabletEvent(QWindow *window, ulong timestamp,
 
 bool QWindowSystemInterface::handleTabletEvent(QWindow *window, const QPointF &local, const QPointF &global,
                                                int device, int pointerType, Qt::MouseButtons buttons, qreal pressure, qreal xTilt, qreal yTilt,
-                                               qreal tangentialPressure, qreal rotation, int z, qint64 uid,
+                                               qreal tangentialPressure, qreal rotation, qreal z, qint64 uid,
                                                Qt::KeyboardModifiers modifiers)
 {
     ulong time = QWindowSystemInterfacePrivate::eventTime.elapsed();
@@ -941,28 +942,22 @@ bool QWindowSystemInterface::handleTabletEvent(QWindow *window, const QPointF &l
 bool QWindowSystemInterface::handleTabletEnterLeaveProximityEvent(QWindow *window, ulong timestamp, const QPointingDevice *device,
                                                                   bool inProximity, const QPointF &local, const QPointF &global,
                                                                   Qt::MouseButtons buttons, qreal xTilt, qreal yTilt,
-                                                                  qreal tangentialPressure, qreal rotation, int z,
+                                                                  qreal tangentialPressure, qreal rotation, qreal z,
                                                                   Qt::KeyboardModifiers modifiers)
 {
-    Q_UNUSED(window);
-    Q_UNUSED(local);
-    Q_UNUSED(global);
-    Q_UNUSED(buttons);
-    Q_UNUSED(xTilt);
-    Q_UNUSED(yTilt);
-    Q_UNUSED(tangentialPressure);
-    Q_UNUSED(rotation);
-    Q_UNUSED(z);
-    Q_UNUSED(modifiers);
     return inProximity
-        ? handleWindowSystemEvent<QWindowSystemInterfacePrivate::TabletEnterProximityEvent>(timestamp, device)
-        : handleWindowSystemEvent<QWindowSystemInterfacePrivate::TabletLeaveProximityEvent>(timestamp, device);
+        ? handleWindowSystemEvent<QWindowSystemInterfacePrivate::TabletEnterProximityEvent>(
+            window, timestamp, local, global, device, buttons,
+            xTilt, yTilt, tangentialPressure, rotation, z, modifiers)
+        : handleWindowSystemEvent<QWindowSystemInterfacePrivate::TabletLeaveProximityEvent>(
+            window, timestamp, local, global, device, buttons,
+            xTilt, yTilt, tangentialPressure, rotation, z, modifiers);
 }
 
 bool QWindowSystemInterface::handleTabletEnterLeaveProximityEvent(QWindow *window, const QPointingDevice *device,
                                                                   bool inProximity, const QPointF &local, const QPointF &global,
                                                                   Qt::MouseButtons buttons, qreal xTilt, qreal yTilt,
-                                                                  qreal tangentialPressure, qreal rotation, int z,
+                                                                  qreal tangentialPressure, qreal rotation, qreal z,
                                                                   Qt::KeyboardModifiers modifiers)
 {
     const ulong time = QWindowSystemInterfacePrivate::eventTime.elapsed();
@@ -977,7 +972,7 @@ bool QWindowSystemInterface::handleTabletEnterProximityEvent(ulong timestamp, in
     const QPointingDevice *device = QPointingDevicePrivate::tabletDevice(QInputDevice::DeviceType(deviceType),
                                                                          QPointingDevice::PointerType(pointerType),
                                                                          QPointingDeviceUniqueId::fromNumericId(uid));
-    return handleWindowSystemEvent<QWindowSystemInterfacePrivate::TabletEnterProximityEvent>(timestamp, device);
+    return handleTabletEnterLeaveProximityEvent(nullptr, timestamp, device, true);
 }
 
 void QWindowSystemInterface::handleTabletEnterProximityEvent(int deviceType, int pointerType, qint64 uid)
@@ -991,7 +986,7 @@ bool QWindowSystemInterface::handleTabletLeaveProximityEvent(ulong timestamp, in
     const QPointingDevice *device = QPointingDevicePrivate::tabletDevice(QInputDevice::DeviceType(deviceType),
                                                                          QPointingDevice::PointerType(pointerType),
                                                                          QPointingDeviceUniqueId::fromNumericId(uid));
-    return handleWindowSystemEvent<QWindowSystemInterfacePrivate::TabletLeaveProximityEvent>(timestamp, device);
+    return handleTabletEnterLeaveProximityEvent(nullptr, timestamp, device, false);
 }
 
 void QWindowSystemInterface::handleTabletLeaveProximityEvent(int deviceType, int pointerType, qint64 uid)

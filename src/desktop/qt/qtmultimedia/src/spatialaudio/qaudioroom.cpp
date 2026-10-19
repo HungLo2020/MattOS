@@ -1,6 +1,7 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
 
+#include "qaudioroom.h"
 #include "qaudioroom_p.h"
 
 #include <QtCore/qspan.h>
@@ -84,6 +85,15 @@ static_assert(QAudioRoom::Ceiling == 3);
 static_assert(QAudioRoom::FrontWall == 4);
 static_assert(QAudioRoom::BackWall == 5);
 
+void QAudioRoomPrivate::requestUpdate()
+{
+    dirty = true;
+    auto ep = QAudioEnginePrivate::get(engine);
+    if (!ep)
+        return;
+    ep->updateRooms();
+}
+
 float QAudioRoomPrivate::wallOcclusion(QAudioRoom::Wall wall) const
 {
     return m_wallOcclusion[wall] < 0 ? occlusionAndDampening[roomProperties.material_names[wall]].occlusion : m_wallOcclusion[wall];
@@ -131,10 +141,16 @@ void QAudioRoomPrivate::update()
  */
 QAudioRoom::QAudioRoom(QAudioEngine *engine) : QObject(*new QAudioRoomPrivate)
 {
-    Q_ASSERT(engine);
+    if (!engine) {
+        qWarning() << "Cannot create QAudioRoom without a valid QAudioEngine";
+        return;
+    }
+
     Q_D(QAudioRoom);
     d->engine = engine;
     auto *ep = QAudioEnginePrivate::get(engine);
+    if (!ep)
+        return;
     ep->addRoom(this);
 }
 
@@ -206,11 +222,14 @@ void QAudioRoom::setPosition(QVector3D pos)
 {
     Q_D(QAudioRoom);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     pos *= ep->distanceScale();
     if (toVector(d->roomProperties.position) == pos)
         return;
     toFloats(pos, d->roomProperties.position);
-    d->dirty = true;
+    d->requestUpdate();
     emit positionChanged();
 }
 
@@ -218,6 +237,9 @@ QVector3D QAudioRoom::position() const
 {
     Q_D(const QAudioRoom);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return {};
+
     auto pos = toVector(d->roomProperties.position);
     pos /= ep->distanceScale();
     return pos;
@@ -235,19 +257,24 @@ void QAudioRoom::setDimensions(QVector3D dim)
 {
     Q_D(QAudioRoom);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     dim *= ep->distanceScale();
     if (toVector(d->roomProperties.dimensions) == dim)
         return;
     toFloats(dim, d->roomProperties.dimensions);
-    d->dirty = true;
+    d->requestUpdate();
     emit dimensionsChanged();
 }
 
 QVector3D QAudioRoom::dimensions() const
 {
     Q_D(const QAudioRoom);
-
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return {};
+
     auto dim = toVector(d->roomProperties.dimensions);
     dim /= ep->distanceScale();
     return dim;
@@ -265,7 +292,7 @@ void QAudioRoom::setRotation(const QQuaternion &q)
     if (toQuaternion(d->roomProperties.rotation) == q)
         return;
     toFloats(q, d->roomProperties.rotation);
-    d->dirty = true;
+    d->requestUpdate();
     emit rotationChanged();
 }
 
@@ -299,7 +326,7 @@ void QAudioRoom::setWallMaterial(Wall wall, Material material)
     if (d->roomProperties.material_names[int(wall)] == int(material))
         return;
     d->roomProperties.material_names[int(wall)] = vraudio::MaterialName(int(material));
-    d->dirty = true;
+    d->requestUpdate();
     emit wallsChanged();
 }
 
@@ -333,7 +360,7 @@ void QAudioRoom::setReflectionGain(float factor)
     if (d->roomProperties.reflection_scalar == factor)
         return;
     d->roomProperties.reflection_scalar = factor;
-    d->dirty = true;
+    d->requestUpdate();
     emit reflectionGainChanged();
 }
 
@@ -362,7 +389,7 @@ void QAudioRoom::setReverbGain(float factor)
     if (d->roomProperties.reverb_gain == factor)
         return;
     d->roomProperties.reverb_gain = factor;
-    d->dirty = true;
+    d->requestUpdate();
     emit reverbGainChanged();
 }
 
@@ -391,7 +418,7 @@ void QAudioRoom::setReverbTime(float factor)
     if (d->roomProperties.reverb_time == factor)
         return;
     d->roomProperties.reverb_time = factor;
-    d->dirty = true;
+    d->requestUpdate();
     emit reverbTimeChanged();
 }
 
@@ -418,7 +445,7 @@ void QAudioRoom::setReverbBrightness(float factor)
     if (d->roomProperties.reverb_brightness == factor)
         return;
     d->roomProperties.reverb_brightness = factor;
-    d->dirty = true;
+    d->requestUpdate();
     emit reverbBrightnessChanged();
 }
 

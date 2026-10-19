@@ -32,6 +32,7 @@ namespace QQmlSA {
 
 class BindingPrivate;
 class BindingsPrivate;
+class DocumentEditPrivate;
 class Element;
 class ElementPass;
 class FixSuggestion;
@@ -259,18 +260,12 @@ public:
 
     friend size_t qHash(const Element &key, size_t seed = 0) noexcept
     {
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-        // this used the 1-to-2-arg adapter before:
-        return Element::qHashImpl(key, 0) ^ seed;
-#else
-        return Element::qHashImpl(key, seed);
-#endif
+        return key.hash(seed);
     }
 
 private:
     static bool operatorEqualsImpl(const Element &, const Element &);
-    // ### Qt 6.12: change member to size_t
-    static qsizetype qHashImpl(const Element &key, qsizetype seed) noexcept;
+    Q_DECL_PURE_FUNCTION size_t hash(size_t seed) const noexcept;
 
     static constexpr qsizetype sizeofElement = 2 * sizeof(QSharedPointer<int>);
     alignas(QSharedPointer<int>) char m_data[sizeofElement];
@@ -379,24 +374,32 @@ public:
     virtual void run(const Element &element) = 0;
 };
 
-class Q_QMLCOMPILER_EXPORT DebugElementPass : public ElementPass
+class Q_QMLCOMPILER_EXPORT DocumentEdit
 {
-    void run(const Element &element) override;
-};
+    Q_DECLARE_PRIVATE(DocumentEdit)
+    Q_DECLARE_EQUALITY_COMPARABLE(DocumentEdit)
 
-class Q_QMLCOMPILER_EXPORT DebugPropertyPass : public QQmlSA::PropertyPass
-{
 public:
-    DebugPropertyPass(QQmlSA::PassManager *manager);
+    DocumentEdit(const QString &filename, const SourceLocation &location,
+                   const QString &replacement);
+    DocumentEdit(const DocumentEdit&);
+    DocumentEdit(DocumentEdit&&);
+    DocumentEdit &operator=(const DocumentEdit&);
+    DocumentEdit &operator=(DocumentEdit &&);
+    ~DocumentEdit();
 
-    void onRead(const QQmlSA::Element &element, const QString &propertyName,
-                const QQmlSA::Element &readScope, QQmlSA::SourceLocation location) override;
-    void onBinding(const QQmlSA::Element &element, const QString &propertyName,
-                   const QQmlSA::Binding &binding, const QQmlSA::Element &bindingScope,
-                   const QQmlSA::Element &value) override;
-    void onWrite(const QQmlSA::Element &element, const QString &propertyName,
-                 const QQmlSA::Element &value, const QQmlSA::Element &writeScope,
-                 QQmlSA::SourceLocation location) override;
+    QString filename() const;
+    SourceLocation location() const;
+    QString replacement() const;
+
+private:
+    friend bool comparesEqual(const DocumentEdit &self, const DocumentEdit &other) noexcept
+    {
+        return self.filename() == other.filename() && self.location() == other.location()
+                && self.replacement() == other.replacement();
+    }
+
+    std::unique_ptr<DocumentEditPrivate> d_ptr;
 };
 
 class Q_QMLCOMPILER_EXPORT FixSuggestion
@@ -404,23 +407,24 @@ class Q_QMLCOMPILER_EXPORT FixSuggestion
     Q_DECLARE_PRIVATE(FixSuggestion)
 
 public:
-    FixSuggestion(const QString &fixDescription, const QQmlSA::SourceLocation &location,
-                  const QString &replacement = QString());
+    FixSuggestion(const QString &description, const QQmlSA::SourceLocation &location,
+                  const DocumentEdit &documentEdit);
+    FixSuggestion(const QString &description, const QQmlSA::SourceLocation &location,
+                  const QList<DocumentEdit> &documentEdits = {});
     FixSuggestion(const FixSuggestion &);
     FixSuggestion(FixSuggestion &&) noexcept;
     FixSuggestion &operator=(const FixSuggestion &);
     FixSuggestion &operator=(FixSuggestion &&) noexcept;
     ~FixSuggestion();
 
-    QString fixDescription() const;
+    QString description() const;
     QQmlSA::SourceLocation location() const;
-    QString replacement() const;
+
+    void addDocumentEdit(const DocumentEdit &);
+    QList<DocumentEdit> documentEdits() const;
 
     void setFileName(const QString &);
     QString fileName() const;
-
-    void setHint(const QString &);
-    QString hint() const;
 
     void setAutoApplicable(bool autoApplicable = true);
     bool isAutoApplicable() const;

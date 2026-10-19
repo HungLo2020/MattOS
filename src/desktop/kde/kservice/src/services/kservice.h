@@ -129,7 +129,7 @@ public:
      * now also checks for \c PrefersNonDefaultGPU key (added to the Freedesktop.org desktop
      * entry spec in version 1.4 of the spec).
      *
-     * \since KService 5.30
+     * \since 5.30
      */
     bool runOnDiscreteGpu() const;
 

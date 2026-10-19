@@ -134,12 +134,8 @@ void Interface::Lock()
     if (!KAuthorized::authorizeAction(QStringLiteral("lock_screen"))) {
         return;
     }
-    m_daemon->lock(calledFromDBus() ? EstablishLock::Immediate : EstablishLock::Delayed);
 
-    if (calledFromDBus() && m_daemon->lockState() == KSldApp::AcquiringLock) {
-        m_lockReplies << message().createReply();
-        setDelayedReply(true);
-    }
+    m_daemon->lock(calledFromDBus() ? EstablishLock::Immediate : EstablishLock::Delayed);
 }
 
 bool Interface::SetActive(bool state)
@@ -211,28 +207,17 @@ void Interface::UnThrottle(uint cookie)
 
 void Interface::slotLocked()
 {
-    sendLockReplies();
     Q_EMIT ActiveChanged(true);
 }
 
 void Interface::slotUnlocked()
 {
-    sendLockReplies();
     Q_EMIT ActiveChanged(false);
 }
 
 void Interface::configure()
 {
     m_daemon->configure();
-}
-
-void Interface::sendLockReplies()
-{
-    for (const QDBusMessage &reply : std::as_const(m_lockReplies)) {
-        QDBusConnection::sessionBus().send(reply);
-    }
-
-    m_lockReplies.clear();
 }
 
 } // namespace

@@ -267,7 +267,9 @@ function(qt_internal_add_plugin target)
     endif()
 
     set_property(TARGET "${target}" PROPERTY QT_DEFAULT_PLUGIN "${_default_plugin}")
-    set_property(TARGET "${target}" APPEND PROPERTY EXPORT_PROPERTIES "QT_PLUGIN_CLASS_NAME;QT_PLUGIN_TYPE;QT_MODULE;QT_DEFAULT_PLUGIN")
+    set_property(TARGET "${target}" APPEND PROPERTY EXPORT_PROPERTIES "QT_PLUGIN_CLASS_NAME;QT_PLUGIN_TYPE;QT_MODULE;QT_DEFAULT_PLUGIN;_qt_plugin_qt_module_dependencies")
+
+    qt_internal_android_add_target_export_properties(${target})
 
     set(private_includes
         "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -327,24 +329,57 @@ function(qt_internal_add_plugin target)
         qt_internal_set_exceptions_flags("${target}" "${arg_EXCEPTIONS}")
     endif()
 
-    set(qt_libs_private "")
+    set(qt_modules_private "")
+    set(qt_modules_public "")
     qt_internal_get_qt_all_known_modules(known_modules)
     foreach(it ${known_modules})
         list(FIND arg_LIBRARIES "Qt::${it}Private" pos)
         if(pos GREATER -1)
-            list(APPEND qt_libs_private "Qt::${it}Private")
+            list(APPEND qt_modules_private "Qt::${it}Private")
+        endif()
+        list(FIND arg_LIBRARIES "Qt::${it}" pos)
+        if(pos GREATER -1)
+            list(APPEND qt_modules_public "Qt::${it}")
         endif()
     endforeach()
+
+    # Record the union of public and private Qt module dependencies for the plugin.
+    # The private modules are recorded with their public name rather than the actual
+    # private module name.
+    #
+    # These will be used for (Android) deployment purposes.
+    set(qt_module_deps "")
+    foreach(lib IN LISTS qt_modules_private)
+        get_target_property(pub_mod "${lib}" _qt_public_module_target_name)
+        if(pub_mod)
+            list(APPEND qt_module_deps "${QT_CMAKE_EXPORT_NAMESPACE}::${pub_mod}")
+        endif()
+    endforeach()
+    # A static dep is baked into a shared plugin, but a static plugin must pass it along.
+    get_target_property(plugin_type "${target}" TYPE)
+    foreach(lib IN LISTS qt_modules_public)
+        get_target_property(lib_type "${lib}" TYPE)
+        if(NOT plugin_type STREQUAL "STATIC_LIBRARY" AND lib_type STREQUAL "STATIC_LIBRARY")
+            continue()
+        endif()
+        string(REPLACE "Qt::" "${QT_CMAKE_EXPORT_NAMESPACE}::" lib_ns "${lib}")
+        list(APPEND qt_module_deps "${lib_ns}")
+    endforeach()
+    list(REMOVE_DUPLICATES qt_module_deps)
+    if(qt_module_deps)
+        set_target_properties("${target}" PROPERTIES
+            _qt_plugin_qt_module_dependencies "${qt_module_deps}")
+    endif()
 
     set(qt_register_target_dependencies_args "")
     if(arg_PUBLIC_LIBRARIES)
         list(APPEND qt_register_target_dependencies_args PUBLIC ${arg_PUBLIC_LIBRARIES})
     endif()
-    if(qt_libs_private)
+    if(qt_modules_private)
         qt_internal_wrap_private_modules("${target}"
-            OUT_VAR qt_libs_private
-            LIBRARIES ${qt_libs_private})
-        list(APPEND qt_register_target_dependencies_args PRIVATE ${qt_libs_private})
+            OUT_VAR qt_modules_private
+            LIBRARIES ${qt_modules_private})
+        list(APPEND qt_register_target_dependencies_args PRIVATE ${qt_modules_private})
     endif()
     qt_internal_register_target_dependencies("${target}" ${qt_register_target_dependencies_args})
 
@@ -422,12 +457,12 @@ function(qt_internal_add_plugin target)
         qt_configure_file(
             OUTPUT "${config_build_dir}/${INSTALL_CMAKE_NAMESPACE}${target}TargetsPrecheck.cmake"
             CONTENT
-# TODO: Remove the CHECK_QT_NO_CREATE_TARGETS once a better approach is developed
 "
 _qt_internal_should_include_targets(
     TARGETS ${target}
     NAMESPACE ${INSTALL_CMAKE_NAMESPACE}::
     ${project_names_arg}
+    SKIP_IF_PROJECT_NAME_NOT_IN_QT_REPO_DEPENDENCIES
     OUT_VAR_SHOULD_SKIP __qt_${target}_skip_include_targets_file
     ${test_plugin_arg}
 )
@@ -542,6 +577,10 @@ function(qt_finalize_plugin target)
     endif()
 
     _qt_internal_finalize_sbom(${target})
+
+    if(ANDROID AND (FEATURE_developer_build OR QT_FEATURE_developer_build))
+        _qt_internal_android_warn_undeployable_plugin_modules(${target})
+    endif()
 endfunction()
 
 function(qt_get_sanitized_plugin_type plugin_type out_var)

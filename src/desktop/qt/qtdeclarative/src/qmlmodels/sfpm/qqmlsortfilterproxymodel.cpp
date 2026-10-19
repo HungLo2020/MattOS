@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <QtCore/qitemselectionmodel.h>
 #include <QtQmlModels/private/qqmlsortfilterproxymodel_p_p.h>
@@ -44,7 +45,7 @@ Q_LOGGING_CATEGORY (lcSortFilterProxyModel, "qt.qml.sortfilterproxymodel")
 
     SortFilterProxyModel {
         id: sfpm
-        model: processModel
+        sourceModel: processModel
         sorters: [
             RoleSorter {
                 roleName: "user"
@@ -57,9 +58,8 @@ Q_LOGGING_CATEGORY (lcSortFilterProxyModel, "qt.qml.sortfilterproxymodel")
         ]
         filters: [
             FunctionFilter {
-                component RoleData: QtObject { property qreal cpuUsage }
-                function filter(data: RoleData) : bool {
-                    return (data.cpuUsage > 90)
+                function filter(cpuUsage: real) : bool {
+                    return (cpuUsage > 90)
                 }
             }
         ]
@@ -89,12 +89,12 @@ Q_LOGGING_CATEGORY (lcSortFilterProxyModel, "qt.qml.sortfilterproxymodel")
 
     The filter \l ValueFilter and \l FunctionFilter can be configured
     in SortFilterProxyModel. Each filter can be set with the
-    \l{Filter::}{column} property, similar to the sorter, to filter data in a
+    \l{FilterBase::}{column} property, similar to the sorter, to filter data in a
     specific column. If no column is specified, then the filter will be applied
     to all the column indexes in the model. To reduce the overhead of unwanted
     checks during filtering, it's recommended to specify the column index.
 
-    To disable a specific filter, \l{Filter::}{enabled} can be set to
+    To disable a specific filter, \l{FilterBase::}{enabled} can be set to
     \c false.
 
     \snippet qml/sortfilterproxymodel/qml-sortfilterproxymodel.qml sfpm-usage
@@ -107,7 +107,7 @@ Q_LOGGING_CATEGORY (lcSortFilterProxyModel, "qt.qml.sortfilterproxymodel")
     future versions of Qt.
 */
 /*!
-    \qmlproperty list<Filter> SortFilterProxyModel::filters
+    \qmlproperty list<FilterBase> SortFilterProxyModel::filters
 
     This property holds the list of filters for the \l SortFilterProxyModel.
     If no priority is set, the \l SortFilterProxyModel applies a filter in the
@@ -159,6 +159,30 @@ QQmlListProperty<QQmlSorterBase> QQmlSortFilterProxyModel::sorters()
     Q_D(QQmlSortFilterProxyModel);
     return d->m_sorters->sortersListProperty();
 }
+
+#if QT_DEPRECATED_SINCE(6, 12)
+/*!
+    \qmlproperty QAbstractItemModel* SortFilterProxyModel::model
+    \deprecated [6.12] Use \l sourceModel instead.
+
+    This property holds the source model of type \l {QAbstractItemModel}
+    used as the source for this proxy model.
+*/
+QAbstractItemModel *QQmlSortFilterProxyModel::model()
+{
+    Q_D(QQmlSortFilterProxyModel);
+    return d->model;
+}
+
+void QQmlSortFilterProxyModel::setModel(QAbstractItemModel *model)
+{
+    Q_D(QQmlSortFilterProxyModel);
+    if (model == d->model)
+        return;
+    setSourceModel(model);
+    emit modelChanged();
+}
+#endif
 
 /*!
     \qmlproperty bool SortFilterProxyModel::dynamicSortFilter
@@ -231,33 +255,6 @@ void QQmlSortFilterProxyModel::setAutoAcceptChildRows(const bool enabled)
     emit autoAcceptChildRowsChanged();
 }
 
-/*!
-    \qmlproperty var SortFilterProxyModel::model
-
-    This property allows to set source model for the sort filter proxy model.
-*/
-QVariant QQmlSortFilterProxyModel::model() const
-{
-    Q_D(const QQmlSortFilterProxyModel);
-    return d->m_sourceModel;
-}
-
-void QQmlSortFilterProxyModel::setModel(QVariant &model)
-{
-    Q_D(QQmlSortFilterProxyModel);
-    if (d->m_sourceModel == model)
-        return;
-
-    auto *itemModel = qobject_cast<QAbstractItemModel *>(qvariant_cast<QObject*>(model));
-    if (!itemModel ) {
-        qWarning("QQmlSortFilterProxyModel: supports only QAIM for now");
-        return;
-    }
-    d->m_sourceModel = model;
-    setSourceModel(itemModel);
-    emit modelChanged();
-}
-
 /*! internal
  *
  */
@@ -320,8 +317,11 @@ void QQmlSortFilterProxyModel::setPrimarySorter(QQmlSorterBase *sorter)
 }
 
 /*!
-    \internal
- */
+    \qmlproperty var SortFilterProxyModel::sourceModel
+
+    This property allows to set source model for the sort filter proxy model.
+    The value should be of the \l {QAbstractItemModel} type.
+*/
 void QQmlSortFilterProxyModel::setSourceModel(QAbstractItemModel *sourceModel)
 {
     Q_D(QQmlSortFilterProxyModel);
@@ -510,7 +510,7 @@ bool QQmlSortFilterProxyModel::hasChildren(const QModelIndex &parent) const
 int QQmlSortFilterProxyModel::columnCount(const QModelIndex &parent) const
 {
     Q_D(const QQmlSortFilterProxyModel);
-    if (d->m_sourceModel.isNull() || !d->m_sourceModel.isValid())
+    if (!d->model)
         return 0;
     QModelIndex source_parent = mapToSource(parent);
     if (parent.isValid() && !source_parent.isValid())
@@ -522,7 +522,7 @@ int QQmlSortFilterProxyModel::columnCount(const QModelIndex &parent) const
 int QQmlSortFilterProxyModel::rowCount(const QModelIndex &parent) const
 {
     Q_D(const QQmlSortFilterProxyModel);
-    if (d->m_sourceModel.isNull() || !d->m_sourceModel.isValid())
+    if (!d->model)
         return 0;
     QModelIndex source_parent = mapToSource(parent);
     if (parent.isValid() && !source_parent.isValid())
@@ -823,6 +823,14 @@ void QQmlSortFilterProxyModel::setPrimarySortOrder(const Qt::SortOrder order)
 {
     Q_D(QQmlSortFilterProxyModel);
     d->m_sortOrder = order;
+}
+
+/*!
+    \internal
+ */
+Qt::weak_ordering QQmlSortFilterProxyModel::compareData(const QVariant &lhs, const QVariant &rhs)
+{
+    return QAbstractItemModel::compareData(lhs, rhs);
 }
 
 /*!

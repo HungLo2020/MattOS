@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: partitionmanager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
 "PO-Revision-Date: 2013-01-05 09:00+0530\n"
 "Last-Translator: A S Alam <aalam@users.sf.net>\n"
 "Language-Team: Punjabi/Panjabi <punjabi-users@lists.sf.net>\n"
@@ -1944,7 +1944,7 @@ msgstr ""
 msgid "Enter passphrase for %1:"
 msgstr ""
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info/plain"
 #| msgid "Resizing/moving partition <filename>%1</filename> failed."
@@ -1952,7 +1952,7 @@ msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
 msgstr "ਪਾਰਟੀਸ਼ਨ <filename>%1</filename> ਮੁੜ-ਸਾਈਜ਼/ਹਿਲਾਉਣ ਫੇਲ੍ਹ ਹੈ।"
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info/plain"
 #| msgid "Check file system on partition <filename>%1</filename>"
@@ -2031,7 +2031,7 @@ msgstr ""
 "ਪਾਰਟੀਸ਼ਨ <filename>%1</filename> ਉੱਤੇ NTFS ਫਾਇਲ ਸਿਸਟਮ ਲਈ ਬੂਟ ਸੈਕਟਰ ਅੱਪਡੇਟ ਕੀਤਾ ਜਾ "
 "ਰਿਹਾ ਹੈ।"
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info/plain"
 #| msgid ""
@@ -2045,7 +2045,7 @@ msgstr ""
 "ਪਾਰਟੀਸ਼ਨ <filename>%1</filename> ਉੱਤੇ ਨਵਾਂ ਸ਼ੁਰੂ ਸੈਕਟਰ ਲਿਖਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ, ਜਦੋਂ NTFS ਬੂਟ "
 "ਸੈਕਟਰ ਅੱਪਡੇਟ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕੀਤੀ।"
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info/plain"
 #| msgid ""
@@ -3072,6 +3072,41 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr "<filename>%1</filename> ਉੱਤੇ "
 
+#: jobs/takeownershipjob.cpp:28
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info"
+#| msgid ""
+#| "The file system on partition <filename>%1</filename> could not be mounted."
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr "ਪਾਰਟੀਸ਼ਨ <filename>%1</filename> ਤੋਂ ਫਾਇਲ ਸਿਸਟਮ ਨੂੰ ਮਾਊਂਟ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।"
+
+#: jobs/takeownershipjob.cpp:36
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Resizing/moving partition <filename>%1</filename> failed."
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr "ਪਾਰਟੀਸ਼ਨ <filename>%1</filename> ਮੁੜ-ਸਾਈਜ਼/ਹਿਲਾਉਣ ਫੇਲ੍ਹ ਹੈ।"
+
+#: jobs/takeownershipjob.cpp:60
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Set label for partition <filename>%1</filename> to \"%2\""
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "<filename>%1</filename> ਪਾਰਟੀਸ਼ਨ ਲਈ ਲੇਬਲ \"%2\" ਸੈੱਟ ਕਰੋ"
+
+#: jobs/takeownershipjob.cpp:62
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Set label for partition <filename>%1</filename> to \"%2\""
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "<filename>%1</filename> ਪਾਰਟੀਸ਼ਨ ਲਈ ਲੇਬਲ \"%2\" ਸੈੱਟ ਕਰੋ"
+
 #: ops/backupoperation.cpp:39
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info/plain"
@@ -3606,6 +3641,22 @@ msgstr "<filename>%1</filename> ਪਾਰਟੀਸ਼ਨ ਲਈ ਲੇਬਲ \"%
 #| msgid "Set label for partition <filename>%1</filename> to \"%2\""
 msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
+msgstr "<filename>%1</filename> ਪਾਰਟੀਸ਼ਨ ਲਈ ਲੇਬਲ \"%2\" ਸੈੱਟ ਕਰੋ"
+
+#: ops/takeownershipoperation.cpp:73
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Set label for partition <filename>%1</filename> to \"%2\""
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "<filename>%1</filename> ਪਾਰਟੀਸ਼ਨ ਲਈ ਲੇਬਲ \"%2\" ਸੈੱਟ ਕਰੋ"
+
+#: ops/takeownershipoperation.cpp:75
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Set label for partition <filename>%1</filename> to \"%2\""
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
 msgstr "<filename>%1</filename> ਪਾਰਟੀਸ਼ਨ ਲਈ ਲੇਬਲ \"%2\" ਸੈੱਟ ਕਰੋ"
 
 #: plugins/geom/geompartitiontable.cpp:91

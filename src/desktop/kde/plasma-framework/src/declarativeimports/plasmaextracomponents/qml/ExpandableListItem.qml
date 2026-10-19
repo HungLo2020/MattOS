@@ -547,7 +547,7 @@ Item {
                         textFormat: listItem.allowStyledText ? Text.StyledText : Text.PlainText
                         elide: Text.ElideRight
                         maximumLineCount: listItem.subtitleCanWrap ? (listItem.subtitleMaximumLineCount === -1 ? undefined : listItem.subtitleMaximumLineCount) : 1
-                        wrapMode: listItem.subtitleCanWrap ? Text.WordWrap : Text.NoWrap
+                        wrapMode: listItem.subtitleCanWrap ? Text.Wrap : Text.NoWrap
                     }
                 }
 
@@ -637,10 +637,12 @@ Item {
                         Layout.fillWidth: true
 
                         sourceComponent: Item {
-                            height: childrenRect.height
+                            implicitHeight: actionsListLayout.implicitHeight
                             width: actionsListLoader.width // basically, parent.width but null-proof
 
                             ColumnLayout {
+                                id: actionsListLayout
+
                                 anchors.top: parent.top
                                 anchors.left: parent.left
                                 anchors.right: parent.right
@@ -674,10 +676,7 @@ Item {
                                             }
                                         }
 
-                                        onClicked: {
-                                            modelData.trigger()
-                                            listItem.collapse()
-                                        }
+                                        onClicked: modelData.trigger()
                                     }
                                 }
                             }

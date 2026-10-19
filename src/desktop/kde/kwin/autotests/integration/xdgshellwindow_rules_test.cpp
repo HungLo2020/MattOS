@@ -16,6 +16,7 @@
 #include "core/outputconfiguration.h"
 #include "cursor.h"
 #include "rules.h"
+#include "scene/windowitem.h"
 #include "virtualdesktops.h"
 #include "wayland_server.h"
 #include "window.h"
@@ -26,8 +27,6 @@
 #include <linux/input.h>
 
 using namespace KWin;
-
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_xdgshellwindow_rules-0");
 
 class TestXdgShellWindowRules : public QObject
 {
@@ -71,6 +70,7 @@ private Q_SLOTS:
     void testDesktopsApply();
     void testDesktopsRemember();
     void testDesktopsForce();
+    void testDesktopsForceWithPerOutputDesktopsAndInteractiveMove();
     void testDesktopsApplyNow();
     void testDesktopsForceTemporarily();
 
@@ -138,12 +138,20 @@ private Q_SLOTS:
     void testInactiveOpacityForce();
     void testInactiveOpacityForceTemporarily();
 
+    // For compatibility reasons. The decorationpolicy is the new rule.
     void testNoBorderDontAffect();
     void testNoBorderApply();
     void testNoBorderRemember();
     void testNoBorderForce();
     void testNoBorderApplyNow();
     void testNoBorderForceTemporarily();
+
+    void testDecorationPolicyDontAffect();
+    void testDecorationPolicyApply();
+    void testDecorationPolicyRemember();
+    void testDecorationPolicyForce();
+    void testDecorationPolicyApplyNow();
+    void testDecorationPolicyForceTemporarily();
 
     void testScreenDontAffect();
     void testScreenApply();
@@ -162,6 +170,9 @@ private Q_SLOTS:
 
     void testMatchAfterNameChange();
     void testNotEnabled();
+
+    void testMatchTransientParent_data();
+    void testMatchTransientParent();
 
 private:
     void createTestWindow(ClientFlags flags = None);
@@ -187,7 +198,7 @@ void TestXdgShellWindowRules::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -228,6 +239,8 @@ void TestXdgShellWindowRules::cleanup()
     // Restore virtual desktops to the initial state.
     VirtualDesktopManager::self()->setCount(1);
     QCOMPARE(VirtualDesktopManager::self()->count(), 1u);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(false);
+    QCOMPARE(VirtualDesktopManager::self()->isPerOutputVirtualDesktops(), false);
 }
 
 void TestXdgShellWindowRules::createTestWindow(ClientFlags flags)
@@ -288,9 +301,7 @@ template<typename T>
 void TestXdgShellWindowRules::setWindowRule(const QString &property, const T &value, int policy)
 {
     // Initialize RuleBook with the test rule.
-    const QString ruleGroupName = QStringLiteral("test-rule");
-    m_config->group(QStringLiteral("General")).writeEntry("rules", QStringList{ruleGroupName});
-    KConfigGroup group = m_config->group(ruleGroupName);
+    KConfigGroup group = m_config->group(QStringLiteral("test-rule"));
 
     group.writeEntry(property, value);
     group.writeEntry(QStringLiteral("%1rule").arg(property), policy);
@@ -1432,6 +1443,86 @@ void TestXdgShellWindowRules::testDesktopsForce()
 
     QCOMPARE(m_window->desktops(), {vd2});
     QCOMPARE(VirtualDesktopManager::self()->currentDesktop(), vd2);
+
+    destroyTestWindow();
+}
+
+void TestXdgShellWindowRules::testDesktopsForceWithPerOutputDesktopsAndInteractiveMove()
+{
+    // We need at least two virtual desktop for this test.
+    VirtualDesktopManager::self()->setCount(2);
+    QCOMPARE(VirtualDesktopManager::self()->count(), 2u);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(true);
+    QVERIFY(VirtualDesktopManager::self()->isPerOutputVirtualDesktops());
+    VirtualDesktop *vd1 = VirtualDesktopManager::self()->desktops().at(0);
+    VirtualDesktop *vd2 = VirtualDesktopManager::self()->desktops().at(1);
+
+    setWindowRule("desktops", QStringList{vd2->id()}, int(Rules::Force));
+
+    const auto outputs = workspace()->outputs();
+    QCOMPARE_GE(outputs.size(), 2);
+    LogicalOutput *startOutput = outputs[0];
+    LogicalOutput *endOutput = outputs[1];
+    VirtualDesktopManager::self()->setCurrent(vd2, startOutput);
+    VirtualDesktopManager::self()->setCurrent(vd1, endOutput);
+    workspace()->setActiveOutput(startOutput);
+
+    createTestWindow();
+
+    QVERIFY(m_window);
+    QCOMPARE(workspace()->activeWindow(), m_window);
+    QCOMPARE(m_window->frameGeometry(), RectF(0, 0, 100, 50));
+    m_window->sendToOutput(startOutput);
+    QCOMPARE(m_window->output(), startOutput);
+    workspace()->setActiveWindow(m_window);
+
+    QSignalSpy interactiveMoveResizeStartedSpy(m_window, &Window::interactiveMoveResizeStarted);
+    QSignalSpy moveResizedChangedSpy(m_window, &Window::moveResizedChanged);
+    QSignalSpy interactiveMoveResizeSteppedSpy(m_window, &Window::interactiveMoveResizeStepped);
+    QSignalSpy interactiveMoveResizeFinishedSpy(m_window, &Window::interactiveMoveResizeFinished);
+
+    // begin move
+    QVERIFY(workspace()->moveResizeWindow() == nullptr);
+    QVERIFY(m_window->isActive());
+    QVERIFY(m_window->windowItem()->isVisible());
+    QCOMPARE(m_window->isInteractiveMove(), false);
+    workspace()->slotWindowMove();
+    QCOMPARE(workspace()->moveResizeWindow(), m_window);
+    QCOMPARE(interactiveMoveResizeStartedSpy.count(), 1);
+    QCOMPARE(moveResizedChangedSpy.count(), 1);
+    QCOMPARE(m_window->isInteractiveMove(), true);
+    QCOMPARE(m_window->geometryRestore(), RectF());
+
+    // move the window to endOutput
+    const QPointF cursorPos = Cursors::self()->mouse()->pos();
+
+    for (int i = 0; i < 40; i++) {
+        m_window->keyPressEvent(Qt::Key_Right | Qt::ALT);
+        m_window->updateInteractiveMoveResize(Cursors::self()->mouse()->pos(), Qt::KeyboardModifiers());
+    }
+
+    QCOMPARE(Cursors::self()->mouse()->pos(), cursorPos + QPoint(40 * 32, 0));
+    QCOMPARE(interactiveMoveResizeSteppedSpy.count(), 40);
+    QVERIFY(m_window->isActive());
+    QVERIFY(m_window->windowItem()->isVisible());
+    interactiveMoveResizeSteppedSpy.clear();
+
+    // end move
+    QCOMPARE(interactiveMoveResizeFinishedSpy.count(), 0);
+    m_window->keyPressEvent(Qt::Key_Enter);
+    QCOMPARE(interactiveMoveResizeFinishedSpy.count(), 1);
+    QCOMPARE(moveResizedChangedSpy.count(), 2);
+    QCOMPARE(m_window->isInteractiveMove(), false);
+    QVERIFY(workspace()->moveResizeWindow() == nullptr);
+
+    // The window should appear on the second screen. It should keep its desktop, so it should disappear.
+    QCOMPARE(m_window->desktops(), {vd2});
+    QCOMPARE(m_window->output(), endOutput);
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(endOutput), vd1);
+    QCOMPARE(m_window->isOnCurrentDesktop(), false);
+    // It's not immediate due to scale effect.
+    QTRY_COMPARE_WITH_TIMEOUT(m_window->windowItem()->isVisible(), false, 1000);
+    QCOMPARE(m_window->isActive(), false);
 
     destroyTestWindow();
 }
@@ -2699,7 +2790,7 @@ void TestXdgShellWindowRules::testNoBorderDontAffect()
     createTestWindow(ServerSideDecoration);
 
     // The window should not be affected by the rule.
-    QVERIFY(!m_window->noBorder());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
 
     destroyTestWindow();
 }
@@ -2710,18 +2801,17 @@ void TestXdgShellWindowRules::testNoBorderApply()
     createTestWindow(ServerSideDecoration);
 
     // Initially, the window should not be decorated.
-    QVERIFY(m_window->noBorder());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
     QVERIFY(!m_window->isDecorated());
 
-    // But you should be able to change "no border" property afterwards.
-    QVERIFY(m_window->userCanSetNoBorder());
-    m_window->setNoBorder(false);
-    QVERIFY(!m_window->noBorder());
+    // But you should be able to change the "decoration policy" property afterwards.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
 
     // If one re-opens the window, it should have no border again.
     destroyTestWindow();
     createTestWindow(ServerSideDecoration);
-    QVERIFY(m_window->noBorder());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
 
     destroyTestWindow();
 }
@@ -2732,19 +2822,18 @@ void TestXdgShellWindowRules::testNoBorderRemember()
     createTestWindow(ServerSideDecoration);
 
     // Initially, the window should not be decorated.
-    QVERIFY(m_window->noBorder());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
     QVERIFY(!m_window->isDecorated());
 
-    // Unset the "no border" property.
-    QVERIFY(m_window->userCanSetNoBorder());
-    m_window->setNoBorder(false);
-    QVERIFY(!m_window->noBorder());
+    // Reset the decoration policy property.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
 
     // Re-open the window, it should be decorated.
     destroyTestWindow();
     createTestWindow(ServerSideDecoration);
     QVERIFY(m_window->isDecorated());
-    QVERIFY(!m_window->noBorder());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
 
     destroyTestWindow();
 }
@@ -2755,19 +2844,19 @@ void TestXdgShellWindowRules::testNoBorderForce()
     createTestWindow(ServerSideDecoration);
 
     // The window should not be decorated.
-    QVERIFY(m_window->noBorder());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
     QVERIFY(!m_window->isDecorated());
 
-    // And the user should not be able to change the "no border" property.
-    m_window->setNoBorder(false);
-    QVERIFY(m_window->noBorder());
+    // And the user should not be able to change the decoration policy.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
 
     // Reopen the window.
     destroyTestWindow();
     createTestWindow(ServerSideDecoration);
 
-    // The "no border" property should be still forced.
-    QVERIFY(m_window->noBorder());
+    // The none decoration policy should be still forced.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
 
     destroyTestWindow();
 }
@@ -2775,21 +2864,21 @@ void TestXdgShellWindowRules::testNoBorderForce()
 void TestXdgShellWindowRules::testNoBorderApplyNow()
 {
     createTestWindow(ServerSideDecoration);
-    QVERIFY(!m_window->noBorder());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
 
     // Initialize RuleBook with the test rule.
     setWindowRule("noborder", true, int(Rules::ApplyNow));
 
-    // The "no border" property should be set now.
-    QVERIFY(m_window->noBorder());
+    // The none decoration policy should be set now.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
 
-    // One should be still able to change the "no border" property.
-    m_window->setNoBorder(false);
-    QVERIFY(!m_window->noBorder());
+    // One should be still able to change the decoration policy.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
 
     // The rule should not be applied again.
     m_window->evaluateWindowRules();
-    QVERIFY(!m_window->noBorder());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
 
     destroyTestWindow();
 }
@@ -2799,23 +2888,148 @@ void TestXdgShellWindowRules::testNoBorderForceTemporarily()
     setWindowRule("noborder", true, int(Rules::ForceTemporarily));
     createTestWindow(ServerSideDecoration);
 
-    // The "no border" property should be set.
-    QVERIFY(m_window->noBorder());
+    // The none decoration policy property should be set.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
 
     // And you should not be able to change it.
-    m_window->setNoBorder(false);
-    QVERIFY(m_window->noBorder());
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
 
     // The rule should be discarded when the window is closed.
     destroyTestWindow();
     createTestWindow(ServerSideDecoration);
-    QVERIFY(!m_window->noBorder());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
 
-    // The "no border" property is no longer forced.
-    m_window->setNoBorder(true);
-    QVERIFY(m_window->noBorder());
-    m_window->setNoBorder(false);
-    QVERIFY(!m_window->noBorder());
+    // The none decoration policy is no longer forced.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+    m_window->setDecorationPolicy(DecorationPolicy::None);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+
+    destroyTestWindow();
+}
+
+void TestXdgShellWindowRules::testDecorationPolicyDontAffect()
+{
+    setWindowRule("decorationpolicy", "none", int(Rules::DontAffect));
+    createTestWindow(ServerSideDecoration);
+
+    // The window should not be affected by the rule.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+
+    destroyTestWindow();
+}
+
+void TestXdgShellWindowRules::testDecorationPolicyApply()
+{
+    setWindowRule("decorationpolicy", "none", int(Rules::Apply));
+    createTestWindow(ServerSideDecoration);
+
+    // Initially, the window should not be decorated.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+    QVERIFY(!m_window->isDecorated());
+
+    // But you should be able to change the "decoration policy" property afterwards.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+
+    // If one re-opens the window, it should have no border again.
+    destroyTestWindow();
+    createTestWindow(ServerSideDecoration);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+
+    destroyTestWindow();
+}
+
+void TestXdgShellWindowRules::testDecorationPolicyRemember()
+{
+    setWindowRule("decorationpolicy", "none", int(Rules::Remember));
+    createTestWindow(ServerSideDecoration);
+
+    // Initially, the window should not be decorated.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+    QVERIFY(!m_window->isDecorated());
+
+    // Reset the decoration policy property.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+
+    // Re-open the window, it should be decorated.
+    destroyTestWindow();
+    createTestWindow(ServerSideDecoration);
+    QVERIFY(m_window->isDecorated());
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+
+    destroyTestWindow();
+}
+
+void TestXdgShellWindowRules::testDecorationPolicyForce()
+{
+    setWindowRule("decorationpolicy", "none", int(Rules::Force));
+    createTestWindow(ServerSideDecoration);
+
+    // The window should not be decorated.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+    QVERIFY(!m_window->isDecorated());
+
+    // And the user should not be able to change the decoration policy.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+
+    // Reopen the window.
+    destroyTestWindow();
+    createTestWindow(ServerSideDecoration);
+
+    // The none decoration policy should be still forced.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+
+    destroyTestWindow();
+}
+
+void TestXdgShellWindowRules::testDecorationPolicyApplyNow()
+{
+    createTestWindow(ServerSideDecoration);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+
+    // Initialize RuleBook with the test rule.
+    setWindowRule("decorationpolicy", "none", int(Rules::ApplyNow));
+
+    // The none decoration policy should be set now.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+
+    // One should be still able to change the decoration policy.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+
+    // The rule should not be applied again.
+    m_window->evaluateWindowRules();
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+
+    destroyTestWindow();
+}
+
+void TestXdgShellWindowRules::testDecorationPolicyForceTemporarily()
+{
+    setWindowRule("decorationpolicy", "none", int(Rules::ForceTemporarily));
+    createTestWindow(ServerSideDecoration);
+
+    // The none decoration policy property should be set.
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+
+    // And you should not be able to change it.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
+
+    // The rule should be discarded when the window is closed.
+    destroyTestWindow();
+    createTestWindow(ServerSideDecoration);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+
+    // The none decoration policy is no longer forced.
+    m_window->setDecorationPolicy(DecorationPolicy::ClientPreference);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::ClientPreference);
+    m_window->setDecorationPolicy(DecorationPolicy::None);
+    QCOMPARE(m_window->decorationPolicy(), DecorationPolicy::None);
 
     destroyTestWindow();
 }
@@ -2903,14 +3117,14 @@ void TestXdgShellWindowRules::testScreenForce()
     OutputConfiguration config;
     auto changeSet = config.changeSet(outputs.at(1));
     changeSet->enabled = false;
-    workspace()->applyOutputConfiguration(config);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
 
     QVERIFY(!outputs.at(1)->isEnabled());
     QCOMPARE(m_window->output()->name(), outputs.at(0)->name());
 
     // Enable the output and check that the window is moved there again
     changeSet->enabled = true;
-    workspace()->applyOutputConfiguration(config);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
 
     QVERIFY(outputs.at(1)->isEnabled());
     QCOMPARE(m_window->output()->name(), outputs.at(1)->name());
@@ -3079,6 +3293,57 @@ void TestXdgShellWindowRules::testCloseableForceTemporarily()
     QVERIFY(m_window->isCloseable());
 
     destroyTestWindow();
+}
+
+void TestXdgShellWindowRules::testMatchTransientParent_data()
+{
+    QTest::addColumn<bool>("hasTransientParent");
+
+    QTest::newRow("has transient") << true;
+    QTest::newRow("does not have transient") << false;
+}
+
+void TestXdgShellWindowRules::testMatchTransientParent()
+{
+    QFETCH(bool, hasTransientParent);
+
+    KConfigGroup group = m_config->group(QStringLiteral("transient-test-rule"));
+
+    group.writeEntry("above", true);
+    group.writeEntry("aboverule", int(Rules::Force));
+
+    group.writeEntry("wmclass", "org.kde.foo");
+    group.writeEntry("wmclasscomplete", false);
+    group.writeEntry("wmclassmatch", int(Rules::ExactMatch));
+    group.writeEntry("hastransientparent", hasTransientParent);
+    group.writeEntry("hastransientparentmatch", int(Rules::ExactBoolMatch));
+    group.sync();
+
+    workspace()->slotReconfigure();
+
+    std::unique_ptr<KWayland::Client::Surface> parentSurface(Test::createSurface());
+    std::unique_ptr<Test::XdgToplevel> parentToplevel(Test::createXdgToplevelSurface(parentSurface.get()));
+
+    auto surfaceWithParent = Test::createSurface();
+    auto toplevelWithParent = Test::createXdgToplevelSurface(surfaceWithParent.get(), [&parentToplevel](Test::XdgToplevel *toplevel) {
+        toplevel->set_app_id(QStringLiteral("org.kde.foo"));
+        toplevel->set_parent(parentToplevel->object());
+    });
+
+    auto windowWithParent = Test::renderAndWaitForShown(surfaceWithParent.get(), QSize(100, 50), Qt::blue);
+    QVERIFY(windowWithParent);
+    QVERIFY(windowWithParent->isActive());
+    QCOMPARE(windowWithParent->keepAbove(), hasTransientParent);
+
+    auto surfaceWithOutParent = Test::createSurface();
+    auto toplevelWithOutParent = Test::createXdgToplevelSurface(surfaceWithOutParent.get(), [](Test::XdgToplevel *toplevel) {
+        toplevel->set_app_id(QStringLiteral("org.kde.foo"));
+    });
+
+    auto windowWithOutParent = Test::renderAndWaitForShown(surfaceWithOutParent.get(), QSize(100, 50), Qt::green);
+    QVERIFY(windowWithOutParent);
+    QVERIFY(windowWithOutParent->isActive());
+    QCOMPARE(windowWithOutParent->keepAbove(), !hasTransientParent);
 }
 
 WAYLANDTEST_MAIN(TestXdgShellWindowRules)

@@ -12,8 +12,9 @@ Q_STATIC_LOGGING_CATEGORY(lcSynthesizedIterableAccess, "qt.iterable.synthesized"
 /*!
     \class QBaseIterator
     \inmodule QtCore
-    QBaseIterator forms the common base class for all iterators operating on
-    subclasses of QIterable.
+    QBaseIterator\<Container\> forms the common base class for all iterators
+    operating on subclasses of QIterable, where \a Container is the meta-type
+    descriptor.
 */
 
 /*!
@@ -119,6 +120,10 @@ Q_STATIC_LOGGING_CATEGORY(lcSynthesizedIterableAccess, "qt.iterable.synthesized"
     \since 6.0
     \inmodule QtCore
     \brief The QIterator is a template class that allows iteration over a container in a QVariant.
+
+    QIterator\<Container\> provides mutable iteration over a container, where
+    \a Container is the meta-type descriptor (either QMetaSequence or
+    QMetaAssociation) that defines the container's iteration capabilities.
 
     A QIterator can only be created by a QIterable instance, and can be used
     in a way similar to other stl-style iterators. Generally, QIterator should
@@ -262,6 +267,11 @@ Q_STATIC_LOGGING_CATEGORY(lcSynthesizedIterableAccess, "qt.iterable.synthesized"
     \since 6.0
     \inmodule QtCore
     \brief The QConstIterator allows iteration over a container in a QVariant.
+
+    QConstIterator\<Container\> provides const iteration over a container, where
+    \a Container is the meta-type descriptor (either QMetaSequence or
+    QMetaAssociation) that defines the container's iteration capabilities.
+
     \sa QIterator, QIterable
 */
 
@@ -394,6 +404,11 @@ Q_STATIC_LOGGING_CATEGORY(lcSynthesizedIterableAccess, "qt.iterable.synthesized"
     \inmodule QtCore
     \since 6.0
     \brief QIterable is a template class that is the base class for QMetaSequence::Iterable and QMetaAssociation::Iterable.
+
+    QIterable\<Container\> provides a common interface for iterating over
+    containers through QVariant, where \a Container is the meta-type descriptor
+    (either QMetaSequence or QMetaAssociation) that defines the container's
+    iteration capabilities.
 */
 
 /*!
@@ -486,6 +501,11 @@ Q_STATIC_LOGGING_CATEGORY(lcSynthesizedIterableAccess, "qt.iterable.synthesized"
     \since 6.0
     \inmodule QtCore
     \brief QTaggedIterator is a template class that wraps an iterator and exposes standard iterator traits.
+
+    QTaggedIterator\<Iterator, IteratorCategory\> wraps an iterator, where
+    \a Iterator is the underlying iterator type (such as QIterator or
+    QConstIterator) and \a IteratorCategory is a standard iterator category tag
+    (such as std::forward_iterator_tag or std::random_access_iterator_tag).
 
     In order to use an iterator any of the standard algorithms, its iterator
     traits need to be known. As QMetaSequence::Iterable can work with many different

@@ -56,11 +56,34 @@ ColorPipeline ColorPipeline::create(const std::shared_ptr<ColorDescription> &fro
     const auto range1 = getValueRange({mdBlack, mdRed, mdGreen, mdBlue, mdWhite});
     const double maxOutputLuminance = to->maxHdrLuminance().value_or(to->referenceLuminance());
     const auto rgbInputSpace = from->transferFunction().type == TransferFunction::linear ? ColorspaceType::LinearRGB : ColorspaceType::NonLinearRGB;
-    ColorPipeline ret(ValueRange{
-                          .min = from->transferFunction().nitsToEncoded(range1.min),
-                          .max = from->transferFunction().nitsToEncoded(range1.max),
-                      },
-                      rgbInputSpace);
+    const ValueRange rgbInputRange{
+        .min = from->transferFunction().whiteNitsToEncoded(range1.min),
+        .max = from->transferFunction().whiteNitsToEncoded(range1.max),
+    };
+
+    ColorspaceType inputSpace;
+    ValueRange inputRange;
+    if (from->yuvCoefficients() == YUVMatrixCoefficients::Identity) {
+        inputSpace = rgbInputSpace;
+        inputRange = rgbInputRange;
+    } else {
+        inputSpace = ColorspaceType::AnyNonRGB;
+        // the real range may be smaller, but calculating it isn't worth the effort
+        inputRange = ValueRange{
+            .min = -0.5,
+            .max = 1,
+        };
+    }
+    ColorPipeline ret(inputRange, inputSpace);
+    if (from->yuvCoefficients() != YUVMatrixCoefficients::Identity) {
+        ret.add(ColorOp{
+            .input = ret.currentOutputRange(),
+            .inputSpace = ret.currentOutputSpace(),
+            .operation = ColorYuvConversion{from->yuvCoefficients(), from->range()},
+            .output = rgbInputRange,
+            .outputSpace = rgbInputSpace,
+        });
+    }
     ret.addTransferFunction(from->transferFunction(), ColorspaceType::LinearRGB);
 
     const QMatrix4x4 toOther = from->toOther(*to, intent);
@@ -70,19 +93,24 @@ ColorPipeline ColorPipeline::create(const std::shared_ptr<ColorDescription> &fro
     const QVector3D blue = toOther.map(mdBlue);
     const QVector3D white = toOther.map(mdWhite);
 
-    ret.addMatrix(toOther, getValueRange({black, red, green, blue, white}), ColorspaceType::LinearRGB);
+    const ValueRange matrixOutputRange = getValueRange({black, red, green, blue, white});
+    ret.addMatrix(toOther, matrixOutputRange, ColorspaceType::LinearRGB);
 
     // NOTE that this is different from currentOutputRange().max, as the range
     // also takes the gamut into account. For tone mapping, we don't care about
     // the gamut though, only the luminance of white is relevant
     const double maxWhiteLuminance = std::max({white.x(), white.y(), white.z()});
-    if (!s_disableTonemapping && maxWhiteLuminance > maxOutputLuminance * 1.01 && intent == RenderingIntent::Perceptual) {
+    constexpr double eta = 1.001;
+    if (!s_disableTonemapping && maxWhiteLuminance > maxOutputLuminance * eta && intent == RenderingIntent::Perceptual) {
         ret.addTonemapper(to->containerColorimetry(), to->referenceLuminance(), maxWhiteLuminance, maxOutputLuminance);
         // if values outside of [0; 1] are possible, we must clamp
-    } else if (inputType == InputType::FloatingPoint || from->range() == EncodingRange::Limited || maxLum < from->transferFunction().maxLuminance) {
+    } else if (inputType == InputType::FloatingPoint
+               || from->range() == EncodingRange::Limited
+               || maxLum < from->transferFunction().maxLuminance
+               || matrixOutputRange.max > maxOutputLuminance * eta) {
         ret.addClamp(ValueRange{
-            .min = to->minLuminance(),
-            .max = to->maxHdrLuminance().value_or(to->referenceLuminance()),
+            .min = std::max(matrixOutputRange.min, to->minLuminance()),
+            .max = std::min(matrixOutputRange.max, maxOutputLuminance),
         });
     }
 
@@ -194,8 +222,8 @@ void ColorPipeline::addTransferFunction(TransferFunction tf, ColorspaceType outp
             .inputSpace = currentOutputSpace(),
             .operation = ColorTransferFunction(tf),
             .output = ValueRange{
-                .min = tf.encodedToNits(currentOutputRange().min),
-                .max = tf.encodedToNits(currentOutputRange().max),
+                .min = tf.whiteEncodedToNits(currentOutputRange().min),
+                .max = tf.whiteEncodedToNits(currentOutputRange().max),
             },
             .outputSpace = outputType,
         });
@@ -227,8 +255,8 @@ void ColorPipeline::addInverseTransferFunction(TransferFunction tf, ColorspaceTy
             .inputSpace = currentOutputSpace(),
             .operation = InverseColorTransferFunction(tf),
             .output = ValueRange{
-                .min = tf.nitsToEncoded(currentOutputRange().min),
-                .max = tf.nitsToEncoded(currentOutputRange().max),
+                .min = tf.whiteNitsToEncoded(currentOutputRange().min),
+                .max = tf.whiteNitsToEncoded(currentOutputRange().max),
             },
             .outputSpace = outputType,
         });
@@ -349,8 +377,8 @@ void ColorPipeline::addTonemapper(const Colorimetry &containerColorimetry, doubl
         .input = currentOutputRange(),
         .operation = ColorTonemapper(referenceLuminance, maxInputLuminance, maxOutputLuminance),
         .output = ValueRange{
-            .min = PQ.nitsToEncoded(currentOutputRange().min),
-            .max = PQ.nitsToEncoded(maxOutputLuminance),
+            .min = PQ.pqInverseEOTF(currentOutputRange().min),
+            .max = PQ.pqInverseEOTF(maxOutputLuminance),
         },
     });
     // convert back to rgb
@@ -378,13 +406,32 @@ void ColorPipeline::add1DLUT(const std::shared_ptr<ColorTransformation> &transfo
 
 void ColorPipeline::addClamp(const ValueRange &range)
 {
+    // any values outside of the range we clamp to don't need to be
+    // preserved, so we can directly clamp the last output range here
+    if (!ops.empty()) {
+        auto &last = ops.back();
+        last.output.min = std::clamp(last.output.min, range.min, range.max);
+        last.output.max = std::clamp(last.output.max, range.min, range.max);
+        if (auto otherClamp = std::get_if<ColorClamp>(&last.operation)) {
+            otherClamp->m_minValue = std::clamp(otherClamp->m_minValue, range.min, range.max);
+            otherClamp->m_maxValue = std::clamp(otherClamp->m_maxValue, range.min, range.max);
+            ValueRange &beforeLastOutput = ops.size() > 1 ? ops[ops.size() - 2].output : inputRange;
+            beforeLastOutput.min = std::clamp(beforeLastOutput.min, otherClamp->m_minValue, otherClamp->m_maxValue);
+            beforeLastOutput.max = std::clamp(beforeLastOutput.max, otherClamp->m_minValue, otherClamp->m_maxValue);
+            last.input = beforeLastOutput;
+            return;
+        }
+    } else {
+        inputRange.min = std::clamp(inputRange.min, range.min, range.max);
+        inputRange.max = std::clamp(inputRange.max, range.min, range.max);
+    }
     ops.push_back(ColorOp{
         .input = currentOutputRange(),
         .inputSpace = currentOutputSpace(),
         .operation = ColorClamp(range),
         .output = ValueRange{
-            .min = std::clamp(range.min, currentOutputRange().min, currentOutputRange().max),
-            .max = std::clamp(range.max, currentOutputRange().min, currentOutputRange().max),
+            .min = std::clamp(currentOutputRange().min, range.min, range.max),
+            .max = std::clamp(currentOutputRange().max, range.min, range.max),
         },
         .outputSpace = currentOutputSpace(),
     });
@@ -471,6 +518,8 @@ QVector3D ColorOp::applyOperation(const ColorOp::Operation &operation, const QVe
             std::clamp<float>(input.y(), clamp->m_minValue, clamp->m_maxValue),
             std::clamp<float>(input.z(), clamp->m_minValue, clamp->m_maxValue),
         };
+    } else if (auto yuv = std::get_if<ColorYuvConversion>(&operation)) {
+        return ColorDescription::yuvMatrix(yuv->m_coefficients, yuv->m_range) * input;
     } else {
         Q_UNREACHABLE();
     }
@@ -515,7 +564,7 @@ ColorTonemapper::ColorTonemapper(double referenceLuminance, double maxInputLumin
 
 double ColorTonemapper::map(double pqEncodedLuminance) const
 {
-    const double luminance = TransferFunction(TransferFunction::PerceptualQuantizer).encodedToNits(pqEncodedLuminance);
+    const double luminance = TransferFunction(TransferFunction::PerceptualQuantizer).pqEOTF(pqEncodedLuminance);
 
     double relativeLuminance = std::max(luminance / m_referenceLuminance, 0.0);
     // This is a modified Reinhart curve. It ensures that
@@ -524,7 +573,7 @@ double ColorTonemapper::map(double pqEncodedLuminance) const
     // f(inputRange) = outputRange
     // with inputRange -> infinity, f(1) = 0.5 (=at most reduces reference luminance by half)
     relativeLuminance = relativeLuminance * (1 + relativeLuminance * m_v) / (1.0 + relativeLuminance);
-    return TransferFunction(TransferFunction::PerceptualQuantizer).nitsToEncoded(relativeLuminance * m_referenceLuminance);
+    return TransferFunction(TransferFunction::PerceptualQuantizer).pqInverseEOTF(relativeLuminance * m_referenceLuminance);
 }
 
 ColorClamp::ColorClamp(ValueRange range)
@@ -538,6 +587,13 @@ ColorClamp::ColorClamp(double minValue, double maxValue)
     , m_maxValue(maxValue)
 {
 }
+
+ColorYuvConversion::ColorYuvConversion(YUVMatrixCoefficients coefficients, EncodingRange range)
+    : m_coefficients(coefficients)
+    , m_range(range)
+{
+}
+
 }
 
 QDebug operator<<(QDebug debug, const KWin::ColorOp &op)
@@ -558,6 +614,8 @@ QDebug operator<<(QDebug debug, const KWin::ColorOp &op)
         debug << "lut3d";
     } else if (auto clip = std::get_if<KWin::ColorClamp>(&op.operation)) {
         debug << "clamp(" << clip->m_minValue << clip->m_maxValue << ")";
+    } else if (std::holds_alternative<KWin::ColorYuvConversion>(op.operation)) {
+        debug << "yuv conversion";
     }
     return debug;
 }

@@ -32,12 +32,13 @@ class QAndroidAudioSinkStream final : public std::enable_shared_from_this<QAndro
 {
     using QPlatformAudioSinkStream = QtMultimediaPrivate::QPlatformAudioSinkStream;
     using AudioEndpointRole = QtMultimediaPrivate::AudioEndpointRole;
+    using NativePeriodFrames = QtMultimediaPrivate::NativePeriodFrames;
 
 public:
     explicit QAndroidAudioSinkStream(QAudioDevice, const QAudioFormat &,
                                      std::optional<qsizetype> ringbufferSize,
                                      QAndroidAudioSink *parent, float volume,
-                                     std::optional<int32_t> hardwareBufferFrames,
+                                     std::optional<NativePeriodFrames> nativePeriodFrames,
                                      AudioEndpointRole);
     Q_DISABLE_COPY_MOVE(QAndroidAudioSinkStream)
 
@@ -63,10 +64,10 @@ private:
     // QPlatformAudioSinkStream overrides
     void updateStreamIdle(bool arg) override;
 
-    QSpan<std::byte> getHostSpan(void *audioData, int numFrames) const noexcept QT_MM_NONBLOCKING;
+    QSpan<std::byte> getHostSpan(void *audioData, int numFrames) const noexcept Q_DECL_NONBLOCKING_FUNCTION;
     aaudio_data_callback_result_t processRingbuffer(QSpan<std::byte> audioSpan,
-                                                    int numFrames) noexcept QT_MM_NONBLOCKING;
-    aaudio_data_callback_result_t processCallback(QSpan<std::byte> audioSpan) noexcept QT_MM_NONBLOCKING;
+                                                    int numFrames) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    aaudio_data_callback_result_t processCallback(QSpan<std::byte> audioSpan) noexcept Q_DECL_NONBLOCKING_FUNCTION;
     void handleError(aaudio_result_t error);
 
     QAndroidAudioSink *m_parent{ nullptr };

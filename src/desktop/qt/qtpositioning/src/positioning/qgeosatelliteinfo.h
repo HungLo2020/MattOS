@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 #ifndef QGEOSATELLITEINFO_H
 #define QGEOSATELLITEINFO_H
 
@@ -46,6 +47,8 @@ public:
         GALILEO = 0x03,
         BEIDOU = 0x04,
         QZSS = 0x05,
+        IRNSS = 0x06,
+        SBAS = 0x07,
         Multiple = 0xFF,
         CustomType = 0x100
     };

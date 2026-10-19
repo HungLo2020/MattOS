@@ -10,6 +10,7 @@
 #include "screencast.h"
 #include "dbushelpers.h"
 #include "notificationinhibition.h"
+#include "remotedesktop.h"
 #include "request.h"
 #include "restoredata.h"
 #include "screencast_debug.h"
@@ -17,13 +18,13 @@
 #include "session.h"
 #include "utils.h"
 #include "waylandintegration.h"
-#include "remotedesktop.h"
 
 #include <KConfigGroup>
 #include <KLocalizedString>
 #include <KSharedConfig>
 #include <KWayland/Client/plasmawindowmanagement.h>
 #include <KWayland/Client/plasmawindowmodel.h>
+#include <MediaMonitor>
 
 #include <QDBusArgument>
 #include <QDBusConnection>
@@ -76,7 +77,7 @@ int levenshteinDistance(const QString &a, const QString &b)
     return v0[b.size()];
 }
 
-QList<KWayland::Client::PlasmaWindow *> tryMatchWindows(const QList<WindowRestoreInfo> toRestore)
+QList<KWayland::Client::PlasmaWindow *> tryMatchWindows(const QList<WindowRestoreInfo> &toRestore)
 {
     QList<KWayland::Client::PlasmaWindow *> matches;
 
@@ -106,9 +107,13 @@ QList<KWayland::Client::PlasmaWindow *> tryMatchWindows(const QList<WindowRestor
 
 ScreenCastPortal::ScreenCastPortal(QObject *parent)
     : QDBusAbstractAdaptor(parent)
+    , m_mediaMonitor(std::make_unique<MediaMonitor>())
 {
     qDBusRegisterMetaType<RestoreData>();
     qRegisterMetaType<QList<WindowRestoreInfo>>();
+    qDBusRegisterMetaType<std::pair<uint, QVariantMap>>();
+    qDBusRegisterMetaType<QList<std::pair<uint, QVariantMap>>>();
+    m_mediaMonitor->setRole(MediaRole::All);
 }
 
 ScreenCastPortal::~ScreenCastPortal()
@@ -142,24 +147,30 @@ uint ScreenCastPortal::CreateSession(const QDBusObjectPath &handle,
     qCDebug(XdgDesktopPortalKdeScreenCast) << "    app_id: " << app_id;
     qCDebug(XdgDesktopPortalKdeScreenCast) << "    options: " << options;
 
-    Session *session = new ScreenCastSession(this, app_id, session_handle.path(), QStringLiteral("media-record"));
-
-    if (!session->isValid()) {
-        return PortalResponse::OtherError;
-    }
-
     if (!WaylandIntegration::isStreamingAvailable()) {
         qCWarning(XdgDesktopPortalKdeScreenCast) << "zkde_screencast_unstable_v1 does not seem to be available";
+        auto appName = Utils::applicationName(app_id);
+        Utils::warnNoStreaming({
+            .title = i18nc("@title:window", "Screen Sharing Not Available"),
+            .genericText = xi18nc("@info",
+                                  "The application <application>%1</application> tried to start a screen sharing session but screen sharing is not available "
+                                  "on this system. Please ensure you are running a Wayland session with a compatible window manager such as KWin.",
+                                  appName),
+            .x11Text = xi18nc("@info",
+                              "The application <application>%1</application> tried to start a screen sharing session but screen sharing is not available in "
+                              "X11 sessions. Please switch to a Wayland session and try again.",
+                              appName),
+        });
         return PortalResponse::OtherError;
     }
 
-    connect(session, &Session::closed, [session] {
-        auto screencastSession = qobject_cast<ScreenCastSession *>(session);
-        const auto streams = screencastSession->streams();
-        for (const WaylandIntegration::Stream &stream : streams) {
-            WaylandIntegration::stopStreaming(stream.nodeId);
-        }
-    });
+    Session *session = new ScreenCastSession(this, app_id, session_handle.path());
+
+    if (!session->isValid()) {
+        delete session;
+        return PortalResponse::OtherError;
+    }
+
     return PortalResponse::Success;
 }
 
@@ -199,19 +210,19 @@ uint ScreenCastPortal::SelectSources(const QDBusObjectPath &handle,
     return PortalResponse::Success;
 }
 
-std::pair<PortalResponse::Response, QVariantMap> continueStartAfterDialog(ScreenCastSession *session,
-                                                                          const QList<Output> &selectedOutputs,
-                                                                          const QRect &selectedRegion,
-                                                                          QList<KWayland::Client::PlasmaWindow *> selectedWindows,
-                                                                          bool allowRestore)
+QFuture<QVariantList> continueStartAfterDialog(ScreenCastSession *session,
+                                               const QList<Output> &selectedOutputs,
+                                               const QRect &selectedRegion,
+                                               const QList<KWayland::Client::PlasmaWindow *> &selectedWindows,
+                                               const QSize &virtualScreenSize,
+                                               bool allowRestore)
 {
     QVariantList outputs;
     QList<WindowRestoreInfo> windows;
-    WaylandIntegration::Streams streams;
-    QPointer<ScreenCastSession> guardedSession(session);
+    QList<QFuture<std::unique_ptr<ScreencastingStream>>> streams;
     Screencasting::CursorMode cursorMode = Screencasting::CursorMode(session->cursorMode());
     for (const auto &output : std::as_const(selectedOutputs)) {
-        WaylandIntegration::Stream stream;
+        QFuture<std::unique_ptr<ScreencastingStream>> stream;
         switch (output.outputType()) {
         case Output::Region:
             stream = WaylandIntegration::startStreamingRegion(selectedRegion, cursorMode);
@@ -223,7 +234,8 @@ std::pair<PortalResponse::Response, QVariantMap> continueStartAfterDialog(Screen
             const QString outputName = session->appId().isEmpty()
                 ? i18n("Virtual Output")
                 : i18nc("%1 is the application name", "Virtual Output (shared with %1)", Utils::applicationName(session->appId()));
-            stream = WaylandIntegration::startStreamingVirtual(OutputsModel::virtualScreenIdForApp(session->appId()), outputName, {1920, 1080}, cursorMode);
+            stream =
+                WaylandIntegration::startStreamingVirtual(OutputsModel::virtualScreenIdForApp(session->appId()), outputName, virtualScreenSize, cursorMode);
             break;
         }
         default:
@@ -231,60 +243,69 @@ std::pair<PortalResponse::Response, QVariantMap> continueStartAfterDialog(Screen
             break;
         }
 
-        if (!stream.isValid()) {
+        streams << stream.onCanceled([output] {
             qCWarning(XdgDesktopPortalKdeScreenCast) << "Invalid screen!" << output.outputType() << output.uniqueId();
-            return {PortalResponse::OtherError, {}};
-        }
+            return nullptr;
+        });
 
         if (allowRestore) {
             outputs += output.uniqueId();
         }
-        streams << stream;
     }
     for (const auto win : std::as_const(selectedWindows)) {
-        WaylandIntegration::Stream stream = WaylandIntegration::startStreamingWindow(win, cursorMode);
-        if (!stream.isValid()) {
+        auto stream = WaylandIntegration::startStreamingWindow(win, cursorMode);
+        streams << stream.onCanceled([win] {
             qCWarning(XdgDesktopPortalKdeScreenCast) << "Invalid window!" << win;
-            return {PortalResponse::OtherError, {}};
-        }
+            return nullptr;
+        });
 
         if (allowRestore) {
             windows += WindowRestoreInfo{.appId = win->appId(), .title = win->title()};
         }
-        streams << stream;
     }
 
-    if (streams.isEmpty()) {
-        qCWarning(XdgDesktopPortalKdeScreenCast) << "Pipewire stream is not ready to be streamed";
-        return {PortalResponse::OtherError, {}};
-    }
-
-    if (!guardedSession) {
-        return {PortalResponse::OtherError, {}};
-    }
-
-    session->setStreams(streams);
-    QVariantMap results;
-    results.insert(QStringLiteral("streams"), QVariant::fromValue<WaylandIntegration::Streams>(streams));
-    if (allowRestore) {
-        results.insert(u"persist_mode"_s, quint32(session->persistMode()));
-        if (session->persistMode() != ScreenCastPortal::NoPersist) {
-            const RestoreData restoreData = {u"KDE"_s,
-                                             RestoreData::currentRestoreDataVersion(),
-                                             QVariantMap{
-                                                 {u"outputs"_s, outputs},
-                                                 {u"windows"_s, QVariant::fromValue(windows)},
-                                                 {u"region"_s, selectedRegion},
-                                             }};
-            results.insert(u"restore_data"_s, QVariant::fromValue<RestoreData>(restoreData));
-        }
-    }
-
-    if (inhibitionsEnabled()) {
-        new NotificationInhibition(session->appId(), i18nc("Do not disturb mode is enabled because...", "Screen sharing in progress"), session);
-    }
-    qCDebug(XdgDesktopPortalKdeScreenCast) << "Screencast started successfully";
-    return {PortalResponse::Success, results};
+    auto all = QtFuture::whenAll(streams.begin(), streams.end());
+    return all.then(
+        session,
+        [session, allowRestore, outputs, windows, selectedRegion, virtualScreenSize](
+            QList<QFuture<std::unique_ptr<ScreencastingStream>>> result) -> QVariantList {
+            QVariantMap results;
+            std::vector<std::unique_ptr<ScreencastingStream>> streams;
+            for (auto &future : result) {
+                auto stream = future.isValid() ? future.takeResult() : nullptr;
+                if (!stream) {
+                    return {PortalResponse::OtherError, QVariantMap{}};
+                }
+                streams.push_back(std::move(stream));
+            }
+            session->setStreams(std::move(streams));
+            QList<std::pair<uint, QVariantMap>> dbusResultForStreams;
+            std::ranges::transform(session->streams(), std::back_inserter(dbusResultForStreams), [](const std::unique_ptr<ScreencastingStream> &stream) {
+                return std::pair{stream->nodeid(), stream->metaData()};
+            });
+            results.insert(QStringLiteral("streams"), QVariant::fromValue(dbusResultForStreams));
+            if (allowRestore) {
+                results.insert(u"persist_mode"_s, quint32(session->persistMode()));
+                if (session->persistMode() != ScreenCastPortal::NoPersist) {
+                    RestoreData restoreData = {u"KDE"_s,
+                                               RestoreData::currentRestoreDataVersion(),
+                                               QVariantMap{
+                                                   {u"outputs"_s, outputs},
+                                                   {u"windows"_s, QVariant::fromValue(windows)},
+                                                   {u"region"_s, selectedRegion},
+                                               }};
+                    if (virtualScreenSize.isValid()) {
+                        restoreData.payload.insert(u"virtualSize"_s, virtualScreenSize);
+                    }
+                    results.insert(u"restore_data"_s, QVariant::fromValue<RestoreData>(restoreData));
+                }
+            }
+            if (inhibitionsEnabled()) {
+                new NotificationInhibition(session->appId(), i18nc("Do not disturb mode is enabled because...", "Screen sharing in progress"), session);
+            }
+            qCDebug(XdgDesktopPortalKdeScreenCast) << "Screencast started successfully";
+            return {PortalResponse::Success, results};
+        });
 }
 
 void ScreenCastPortal::Start(const QDBusObjectPath &handle,
@@ -294,7 +315,7 @@ void ScreenCastPortal::Start(const QDBusObjectPath &handle,
                              const QVariantMap &options,
                              const QDBusMessage &message,
                              uint &replyResponse,
-                             QVariantMap &replyResults)
+                             [[maybe_unused]] QVariantMap &replyResults)
 {
     qCDebug(XdgDesktopPortalKdeScreenCast) << "Start called with parameters:";
     qCDebug(XdgDesktopPortalKdeScreenCast) << "    handle: " << handle.path();
@@ -317,24 +338,26 @@ void ScreenCastPortal::Start(const QDBusObjectPath &handle,
         return;
     }
 
-    const PersistMode persist = session->persistMode();
     bool valid = false;
     QList<Output> selectedOutputs;
     QList<KWayland::Client::PlasmaWindow *> selectedWindows;
     QRect selectedRegion;
-    if (persist != NoPersist && session->restoreData().isValid()) {
+    QSize virtualScreenSize{1920, 1080};
+    if (session->restoreData().isValid()) {
         const RestoreData restoreData = qdbus_cast<RestoreData>(session->restoreData().value<QDBusArgument>());
         if (restoreData.session == QLatin1String("KDE") && restoreData.version == RestoreData::currentRestoreDataVersion()) {
             const QVariantMap restoreDataPayload = restoreData.payload;
             const QVariantList restoreOutputs = restoreDataPayload[QStringLiteral("outputs")].toList();
             if (!restoreOutputs.isEmpty()) {
-                OutputsModel model(OutputsModel::WorkspaceIncluded | OutputsModel::RegionIncluded | OutputsModel::VirtualIncluded, this);
+                OutputsModel model(OutputsModel::RegionIncluded | OutputsModel::VirtualIncluded, this);
+                const auto outputsView = std::views::iota(0, model.rowCount()) | std::views::transform([&model](int i) {
+                                             return model.outputAt(i);
+                                         });
                 for (const auto &outputUniqueId : restoreOutputs) {
-                    for (int i = 0, c = model.rowCount(); i < c; ++i) {
-                        const Output &iOutput = model.outputAt(i);
-                        if (iOutput.uniqueId() == outputUniqueId) {
-                            selectedOutputs << iOutput;
-                        }
+                    if (auto it = std::ranges::find(outputsView, outputUniqueId, &Output::uniqueId); it != outputsView.end()) {
+                        selectedOutputs << *it;
+                    } else if (outputUniqueId == "Workspace"_L1) {
+                        selectedOutputs << Output{Output::Workspace, nullptr, i18n("Share full Workspace"), u"Workspace"_s, {}, nullptr};
                     }
                 }
                 valid = selectedOutputs.count() == restoreOutputs.count();
@@ -344,11 +367,14 @@ void ScreenCastPortal::Start(const QDBusObjectPath &handle,
             if (restoreRegion.isValid()) {
                 selectedRegion = restoreRegion;
                 const auto screens = QGuiApplication::screens();
-                QRegion fullWorkspace;
-                for (const auto screen : screens) {
-                    fullWorkspace += screen->geometry();
-                }
+                const auto geometries = std::views::transform(screens, &QScreen::geometry);
+                const QRect fullWorkspace = std::ranges::fold_left(geometries, QRect(), &QRect::united);
                 valid = fullWorkspace.contains(selectedRegion);
+            }
+
+            const QSize restoreSize = restoreDataPayload[QStringLiteral("virtualSize")].value<QSize>();
+            if (restoreSize.isValid()) {
+                virtualScreenSize = restoreSize;
             }
 
             const auto restoreWindows = restoreDataPayload[QStringLiteral("windows")].value<QList<WindowRestoreInfo>>();
@@ -359,40 +385,46 @@ void ScreenCastPortal::Start(const QDBusObjectPath &handle,
         }
     }
 
-    if (valid) {
-        std::tie(replyResponse, replyResults) = continueStartAfterDialog(session, selectedOutputs, selectedRegion, selectedWindows, true);
-        return;
-    }
+    message.setDelayedReply(true);
 
-    auto screenDialog = new ScreenChooserDialog(app_id, session->multipleSources(), SourceTypes(session->types()));
-    Utils::setParentWindow(screenDialog->windowHandle(), parent_window);
-    Request::makeClosableDialogRequestWithSession(handle, screenDialog, session);
-    delayReply(message, screenDialog, this, [screenDialog, session](DialogResult result) -> QVariantList {
-        if (result == DialogResult::Rejected) {
-            return {PortalResponse::fromDialogResult(result), QVariantMap{}};
-        }
-        auto [response, results] = continueStartAfterDialog(session,
-                                                            screenDialog->selectedOutputs(),
-                                                            screenDialog->selectedRegion(),
-                                                            screenDialog->selectedWindows(),
-                                                            screenDialog->allowRestore());
-        return {response, results};
-    });
+    QFuture<QVariantList> result;
+    QFuture<DialogResult> dialogDone = QtFuture::makeReadyValueFuture(DialogResult::Accepted);
+
+    if (valid) {
+        result = continueStartAfterDialog(session, selectedOutputs, selectedRegion, selectedWindows, virtualScreenSize, true);
+    } else {
+        auto screenDialog = new ScreenChooserDialog(app_id, session->multipleSources(), SourceTypes(session->types()));
+        Utils::setParentWindow(screenDialog->windowHandle(), parent_window);
+        Request::makeClosableDialogRequestWithSession(handle, screenDialog, session);
+        auto dialogDone = QtFuture::connect(screenDialog, &QuickDialog::finished);
+        result = dialogDone
+                     .then(session,
+                           [screenDialog, session](DialogResult result) {
+                               if (result == DialogResult::Rejected) {
+                                   return QtFuture::makeReadyValueFuture(QVariantList{PortalResponse::fromDialogResult(result), QVariantMap{}});
+                               }
+                               return continueStartAfterDialog(session,
+                                                               screenDialog->selectedOutputs(),
+                                                               screenDialog->selectedRegion(),
+                                                               screenDialog->selectedWindows(),
+                                                               screenDialog->virtualScreenResolution(),
+                                                               screenDialog->allowRestore());
+                           })
+                     .unwrap();
+    }
+    result
+        .onCanceled([] {
+            return QVariantList{PortalResponse::OtherError, QVariantMap{}};
+        })
+        .then(session, [message](const QVariantList &result) {
+            const auto reply = message.createReply(result);
+            QDBusConnection::sessionBus().send(reply);
+        });
 }
 
-
-ScreenCastSession::ScreenCastSession(QObject *parent, const QString &appId, const QString &path, const QString &iconName)
+ScreenCastSession::ScreenCastSession(QObject *parent, const QString &appId, const QString &path)
     : Session(parent, appId, path)
-    , m_item(new KStatusNotifierItem(this))
 {
-    m_item->setStandardActionsEnabled(false);
-    m_item->setIconByName(iconName);
-
-    auto menu = new QMenu;
-    auto stopAction = menu->addAction(QIcon::fromTheme(QStringLiteral("process-stop")), i18nc("@action:inmenu stops screen/window sharing", "End"));
-    connect(stopAction, &QAction::triggered, this, &Session::close);
-    m_item->setContextMenu(menu);
-    m_item->setIsMenu(true);
 }
 
 ScreenCastSession::~ScreenCastSession()
@@ -430,57 +462,89 @@ void ScreenCastSession::setOptions(const QVariantMap &options)
     }
 }
 
-
-void ScreenCastSession::setStreams(const WaylandIntegration::Streams &streams)
+void ScreenCastSession::showStatusNotifier()
 {
-    Q_ASSERT(!streams.isEmpty());
-    m_streams = streams;
-
-    m_item->setStandardActionsEnabled(false);
-    if (qobject_cast<RemoteDesktopSession *>(this)) {
-        refreshDescription();
-    } else {
-        const bool isWindow = m_streams[0].map[QLatin1String("source_type")] == ScreenCastPortal::Window;
-        m_item->setToolTipSubTitle(i18ncp("%1 number of screens, %2 the app that receives them",
-                                          "Sharing contents to %2",
-                                          "%1 video streams to %2",
-                                          m_streams.count(),
-                                          Utils::applicationName(m_appId)));
-        m_item->setTitle(i18nc("SNI title that indicates there's a process seeing our windows or screens", "Screen casting"));
-        if (isWindow) {
-            m_item->setOverlayIconByName(QStringLiteral("window"));
-        } else {
-            m_item->setOverlayIconByName(QStringLiteral("monitor"));
-        }
+    if (m_item) {
+        return;
     }
+    m_item = std::make_unique<KStatusNotifierItem>();
+    m_item->setStandardActionsEnabled(false);
+    auto menu = new QMenu;
+    auto stopAction = menu->addAction(QIcon::fromTheme(QStringLiteral("process-stop")), i18nc("@action:inmenu stops screen/window sharing", "End"));
+    connect(stopAction, &QAction::triggered, this, &Session::close);
+    m_item->setContextMenu(menu);
+    m_item->setIsMenu(true);
+    m_item->setStandardActionsEnabled(false);
+    setupStatusNotifier();
     m_item->setToolTipIconByName(m_item->overlayIconName());
     m_item->setToolTipTitle(m_item->title());
-
-    for (const auto &s : streams) {
-        connect(s.stream, &ScreencastingStream::closed, this, &ScreenCastSession::streamClosed);
-        connect(s.stream, &ScreencastingStream::failed, this, [this](const QString &error) {
-            qCWarning(XdgDesktopPortalKdeScreenCast) << "ScreenCast session failed" << error;
-            streamClosed();
-        });
-    }
     m_item->setStatus(KStatusNotifierItem::Active);
 }
 
-void ScreenCastSession::setDescription(const QString &description)
+void ScreenCastSession::setupStatusNotifier()
 {
-    m_item->setToolTipSubTitle(description);
+    const bool isWindow = m_streams[0]->metaData()[QLatin1String("source_type")] == ScreenCastPortal::Window;
+    m_item->setToolTipSubTitle(i18nc("@info:tooltip %1 the app that receives the screencast", "Sharing contents to %1", Utils::applicationName(m_appId)));
+    m_item->setTitle(i18nc("SNI title that indicates there's a process seeing our windows or screens", "Screen casting"));
+    if (isWindow) {
+        m_item->setOverlayIconByName(QStringLiteral("window"));
+    } else {
+        m_item->setOverlayIconByName(QStringLiteral("monitor"));
+    }
+    m_item->setIconByName(u"media-record"_s);
+}
+
+void ScreenCastSession::setStreams(std::vector<std::unique_ptr<ScreencastingStream>> &&streams)
+{
+    Q_ASSERT(!streams.empty());
+    m_streams = std::move(streams);
+
+    for (const auto &s : m_streams) {
+        connect(s.get(), &ScreencastingStream::closed, this, &ScreenCastSession::streamClosed);
+    }
+    if (type() == Session::ScreenCast) {
+        connect(static_cast<ScreenCastPortal *>(parent())->mediamonitor(), &MediaMonitor::countChanged, this, &ScreenCastSession::updateSniVisiblity);
+        connect(static_cast<ScreenCastPortal *>(parent())->mediamonitor(), &MediaMonitor::dataChanged, this, &ScreenCastSession::updateSniVisiblity);
+        updateSniVisiblity();
+    }
 }
 
 void ScreenCastSession::streamClosed()
 {
     ScreencastingStream *stream = qobject_cast<ScreencastingStream *>(sender());
-    auto it = std::remove_if(m_streams.begin(), m_streams.end(), [stream](const WaylandIntegration::Stream &s) {
-        return s.stream == stream;
+    std::erase_if(m_streams, [stream](const std::unique_ptr<ScreencastingStream> &s) {
+        return s.get() == stream;
     });
-    m_streams.erase(it, m_streams.end());
 
-    if (m_streams.isEmpty()) {
+    if (type() == Session::ScreenCast) {
+        updateSniVisiblity();
+    }
+
+    if (m_streams.empty()) {
         close();
+    }
+}
+
+void ScreenCastSession::updateSniVisiblity()
+{
+    auto mediaMonitor = static_cast<ScreenCastPortal *>(parent())->mediamonitor();
+    const bool shouldShowSni = std::ranges::any_of(
+        m_streams,
+        [mediaMonitor](quint64 serial) {
+            const auto index = mediaMonitor->match(mediaMonitor->index(0, 0), MediaMonitor::ObjectSerialRole, serial, 1, Qt::MatchExactly);
+            if (index.isEmpty() || !index.at(0).isValid()) {
+                return true;
+            }
+            const auto state = index.at(0).data(MediaMonitor::StateRole);
+            // If we can't fetch state show it to be on the safe side
+            return !state.isValid() || state == NodeState::Running;
+        },
+        &ScreencastingStream::objectSerial);
+
+    if (shouldShowSni && !m_item) {
+        showStatusNotifier();
+    } else if (!shouldShowSni && m_item) {
+        m_item.reset();
     }
 }
 

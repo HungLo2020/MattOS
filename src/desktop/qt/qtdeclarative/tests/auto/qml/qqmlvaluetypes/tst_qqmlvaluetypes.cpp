@@ -1,20 +1,24 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <qtest.h>
-#include <QQmlEngine>
-#include <QQmlComponent>
-#include <QDebug>
-#include <QJSValueIterator>
-#include <QtCore/qiterable.h>
-#include <private/qquickvaluetypes_p.h>
-#include <private/qqmlglobal_p.h>
-#include <private/qv4engine_p.h>
-#include <private/qv4variantobject_p.h>
-#include <QtQuickTestUtils/private/qmlutils_p.h>
 #include "testtypes.h"
 
+#include <private/qmlutils_p.h>
+#include <private/qqmlglobal_p.h>
+#include <private/qquickvaluetypes_p.h>
+#include <private/qv4engine_p.h>
+#include <private/qv4variantobject_p.h>
+
+#include <QtQml/qjsvalueiterator.h>
+#include <QtQml/qqmlcomponent.h>
+#include <QtQml/qqmlcontext.h>
+#include <QtQml/qqmlengine.h>
+
 #include <QtGui/qquaternion.h>
+#include <QtTest/qtest.h>
+
+#include <QtCore/qdebug.h>
+#include <QtCore/qiterable.h>
 
 QT_BEGIN_NAMESPACE
 extern int qt_defaultDpi(void);
@@ -298,6 +302,10 @@ void tst_qqmlvaluetypes::qmlproperty()
     QCOMPARE(object->property("colorPropertyName").toString(), "color");
     QCOMPARE(object->property("invalidPropertyObject").value<QObject *>(), nullptr);
     QCOMPARE(object->property("invalidPropertyName").toString(), "");
+
+    QQmlProperty colorPropertyCopy = object->property("colorPropertyCopy").value<QQmlProperty>();
+    QVERIFY(colorPropertyCopy.isValid());
+    QCOMPARE(colorPropertyCopy, object->colorProperty());
 }
 
 void tst_qqmlvaluetypes::easingCurve()
@@ -965,6 +973,11 @@ void tst_qqmlvaluetypes::color()
         QCOMPARE(object->property("equalsColorRHS").toBool(), object->property("equalsColor").toBool());
         QCOMPARE(object->property("colorEqualsCopy").toBool(), true);
         QCOMPARE(object->property("copyEqualsColor").toBool(), object->property("colorEqualsCopy").toBool());
+
+        QCOMPARE(object->property("colorEqualsDifferentF16Precision").toBool(), false);
+        QCOMPARE(object->property("rgbaEqualsDifferentF16Precision").toBool(), true);
+        QCOMPARE(object->property("colorEqualsDifferentSpec").toBool(), false);
+        QCOMPARE(object->property("rgbaEqualsDifferentSpec").toBool(), true);
     }
 }
 

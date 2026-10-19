@@ -21,18 +21,42 @@
 #include "kioglobal_p.h"
 #endif
 
+// The struct the stat helpers below fill in, statx where the syscall is available.
+#if HAVE_STATX
+using StatStruct = struct statx;
+#else
+using StatStruct = QT_STATBUF;
+#endif
+
 // NOTE: these calls would be nicer if they used real dirfds instead of AT_FDCWD, but benchmarking suggests that
 // it makes no real difference since we need to concatenate a complete path anyway (for UDSEntry). The kernel seems
 // to not care much whether the input is relative or absolute either.
 
+// Qt maps QT_STATBUF to struct stat64 under large file support, and there is no QT_FSTATAT, so the
+// same choice is made here for the directory-relative fstatat().
+#if defined(QT_LARGEFILE_SUPPORT) && (defined(QT_USE_XOPEN_LFS_EXTENSIONS) || defined(Q_OS_ANDROID))
+#define FSTATAT ::fstatat64
+#else
+#define FSTATAT ::fstatat
+#endif
+
 #if HAVE_STATX
 // statx syscall is available
-inline int LSTAT(const char *path, struct statx *buff, KIO::StatDetails details)
+inline uint32_t statxMask(KIO::StatDetails details)
 {
     uint32_t mask = 0;
-    if (details & KIO::StatBasic) {
-        // filename, access, type, size, linkdest
-        mask |= STATX_SIZE | STATX_TYPE;
+    // KIO::StatAcl needs type
+    if (details & (KIO::StatBasic | KIO::StatAcl | KIO::StatResolveSymlink)) {
+        // filename, access, type
+        mask |= STATX_TYPE | STATX_MODE;
+    }
+    if (details & (KIO::StatBasic | KIO::StatResolveSymlink)) {
+        // size, linkdest
+        mask |= STATX_SIZE;
+    }
+    if (details & KIO::StatSizeOnDisk) {
+        // the space taken up on the storage
+        mask |= STATX_BLOCKS;
     }
     if (details & KIO::StatUser) {
         // uid, gid
@@ -53,48 +77,31 @@ inline int LSTAT(const char *path, struct statx *buff, KIO::StatDetails details)
     }
 #endif
 #if HAVE_STATX_MNT_ID_UNIQUE
-    if (details & KIO::StatMountId) {
+    if (details & (KIO::StatMountId | KIO::StatMimeType)) {
         // mount unique id
         mask |= STATX_MNT_ID_UNIQUE;
     }
 #endif
-    return statx(AT_FDCWD, path, AT_SYMLINK_NOFOLLOW, mask, buff);
+    return mask;
 }
+
+inline int LSTAT(const char *path, struct statx *buff, KIO::StatDetails details)
+{
+    return statx(AT_FDCWD, path, AT_SYMLINK_NOFOLLOW, statxMask(details), buff);
+}
+
+// LSTAT of a name in the directory a descriptor is held on, so that what is looked at is the name in that
+// very directory rather than whatever the path resolves to now.
+inline int LSTATAT(int dfd, const char *path, struct statx *buff, KIO::StatDetails details)
+{
+    return statx(dfd, path, AT_SYMLINK_NOFOLLOW, statxMask(details), buff);
+}
+
 inline int STAT(const char *path, struct statx *buff, const KIO::StatDetails &details)
 {
-    uint32_t mask = 0;
-    // KIO::StatAcl needs type
-    if (details & (KIO::StatBasic | KIO::StatAcl | KIO::StatResolveSymlink)) {
-        // filename, access, type
-        mask |= STATX_TYPE;
-    }
-    if (details & (KIO::StatBasic | KIO::StatResolveSymlink)) {
-        // size, linkdest
-        mask |= STATX_SIZE;
-    }
-    if (details & KIO::StatUser) {
-        // uid, gid
-        mask |= STATX_UID | STATX_GID;
-    }
-    if (details & KIO::StatTime) {
-        // atime, mtime, btime
-        mask |= STATX_ATIME | STATX_MTIME | STATX_BTIME;
-    }
-#if HAVE_STATX_SUBVOL
-    if (details & KIO::StatSubVolId) {
-        // subvol id
-        mask |= STATX_SUBVOL;
-    }
-#endif
-#if HAVE_STATX_MNT_ID_UNIQUE
-    if (details & KIO::StatMountId) {
-        // mount unique id
-        mask |= STATX_MNT_ID_UNIQUE;
-    }
-#endif
-    // KIO::Inode is ignored as when STAT is called, the entry inode field has already been filled
-    return statx(AT_FDCWD, path, AT_STATX_SYNC_AS_STAT, mask, buff);
+    return statx(AT_FDCWD, path, AT_STATX_SYNC_AS_STAT, statxMask(details), buff);
 }
+
 inline static uint16_t stat_mode(const struct statx &buf)
 {
     return buf.stx_mode;
@@ -110,6 +117,18 @@ inline static uint64_t stat_ino(const struct statx &buf)
 inline static size_t stat_size(const struct statx &buf)
 {
     return buf.stx_size;
+}
+// A filesystem does not have to report how many blocks it gave a file, and statx says in stx_mask
+// which of the things asked for came back.
+inline static bool stat_has_size_on_disk(const struct statx &buf)
+{
+    return (buf.stx_mask & STATX_BLOCKS) != 0;
+}
+// statx fixes the unit of stx_blocks at 512 bytes whatever the filesystem does with its own blocks,
+// so this is not stx_blksize, which is the size a read is best done in.
+inline static uint64_t stat_size_on_disk(const struct statx &buf)
+{
+    return uint64_t(buf.stx_blocks) * 512;
 }
 inline static uint32_t stat_uid(const struct statx &buf)
 {
@@ -149,6 +168,16 @@ inline static uint64_t stat_mnt_id(const struct statx &buf)
 #endif
 #else
 // regular stat struct (no statx)
+#ifndef Q_OS_WIN
+// Stat of a name in the directory a descriptor is held on. Windows has no fstatat, and the file
+// worker that asks for one is built on the other platforms only.
+inline int LSTATAT(int dfd, const char *path, QT_STATBUF *buff, KIO::StatDetails details)
+{
+    Q_UNUSED(details)
+    return FSTATAT(dfd, path, buff, AT_SYMLINK_NOFOLLOW);
+}
+#endif
+
 inline int LSTAT(const char *path, QT_STATBUF *buff, KIO::StatDetails details)
 {
     Q_UNUSED(details)
@@ -178,6 +207,27 @@ inline static size_t stat_size(const QT_STATBUF &buf)
 {
     return buf.st_size;
 }
+#ifndef Q_OS_WIN
+// Windows has no count of the blocks a file was given, so these are for the systems that do.
+//
+// POSIX says how many blocks st_blocks counts but not how big one is, so the systems that have an
+// answer publish it as S_BLKSIZE. The ones that do not have all used 512 bytes for decades. This is
+// not st_blksize, which is the size a read is best done in and is commonly 4096.
+#ifdef S_BLKSIZE
+constexpr uint64_t s_statBlockSize = S_BLKSIZE;
+#else
+constexpr uint64_t s_statBlockSize = 512;
+#endif
+
+inline static bool stat_has_size_on_disk(const QT_STATBUF &)
+{
+    return true;
+}
+inline static uint64_t stat_size_on_disk(const QT_STATBUF &buf)
+{
+    return uint64_t(buf.st_blocks) * s_statBlockSize;
+}
+#endif
 inline static uint32_t stat_uid(const QT_STATBUF &buf)
 {
     return buf.st_uid;

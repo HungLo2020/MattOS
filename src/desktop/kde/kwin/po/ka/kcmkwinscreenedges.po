@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
-"PO-Revision-Date: 2024-08-28 04:05+0200\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
+"PO-Revision-Date: 2026-03-20 03:45+0100\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -16,74 +16,74 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.9\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "ქმედების გარეშე"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "სამუშაო მაგიდაზე გაჭვრეტა"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "ეკრანის დაბლოკვა"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "KRunner-ის ჩვენება"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "აქტივობების მმართველის ჩვენება"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "აპლიკაციების გამშვები"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "არსებული ფანჯრები"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 - ყველა სამუშაო მაგიდა"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 - მიმდინარე სამუშაო მაგიდა"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 - მიმდინარე აპლიკაცია"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "მიმოხილვა"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "ბადე"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "ფანჯრის გადართვის ჩართ/გამორთ"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "ფანჯრების ალტერნატიული გადართვის ჩართ/გამორთ"
@@ -92,10 +92,10 @@ msgstr "ფანჯრების ალტერნატიული გა�
 #: main.ui:23
 #, kde-format
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
 msgstr ""
-"ქმედების გაშვება თაგუნას კურსორის ეკრანის შესაბამის კუთხეში ან კიდეზე "
+"ქმედების გაშვება თაგუნას მაჩვენებლის ეკრანის შესაბამის კუთხეში ან კიდეზე "
 "მიწოლით შეგიძლიათ."
 
 #. i18n: ectx: property (text), widget (QLabel, quickMaximizeLabel)
@@ -162,7 +162,8 @@ msgstr "ეკრანის"
 #: main.ui:174
 #, kde-format
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
 msgstr "სამუშაო მაგიდის გადართვა თაგუნას მაჩვენებლით წიბოს მიწოლისას"
 
 #. i18n: ectx: property (text), widget (QLabel, desktopSwitchLabel)
@@ -194,10 +195,10 @@ msgstr "ყოველთვის ჩართული"
 #: main.ui:206
 #, kde-format
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
 msgstr ""
-"დრო, რომელიც საჭიროა თაგუნას კურსორის ეკრანის კიდეზე მიწოლიდან ქმედების "
+"დრო, რომელიც საჭიროა თაგუნას მაჩვენებელმა ეკრანის კიდეზე მიწოლიდან ქმედების "
 "ტრიგერამდე"
 
 #. i18n: ectx: property (text), widget (QLabel, activationDelayLabel)
@@ -238,14 +239,14 @@ msgstr "&კუთხის ბარიერი:"
 #, kde-format
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
 msgstr ""
 "აქ შეგიძლიათ გამორთოთ ან ჩართოთ ვირტუალური კუთხის ბარიერი ეკრანებს შორის. "
-"ბარიერი ხელს უშლის კურსორს, სხვა ეკრანზე გადავიდეს, თუ ის უკვე ეხება ეკრანის "
-"კუთხეს. ეს აადვილებს ისეთი მომხმარებლის ინტერფეისის ელემენტების "
+"ბარიერი ხელს უშლის მაჩვენებელს, სხვა ეკრანზე გადავიდეს, თუ ის უკვე ეხება "
+"ეკრანის კუთხეს. ეს აადვილებს ისეთი მომხმარებლის ინტერფეისის ელემენტების "
 "გააქტიურებას, როგორიცაა მთელ ეკრანზე გაშლილი ფანჯრების დახურვის ეკრანზე "
 "დაწკაპუნება ერთზე მეტი ეკრანის ქონისას."
 
@@ -253,8 +254,8 @@ msgstr ""
 #: main.ui:283
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
-msgstr "კურსორისტვის ეკრანის კუთხეების გადაკვეთის აკრძალვა."
+msgid "Prevents the pointer from crossing at screen corners."
+msgstr "კურსორისთვის ეკრანის კუთხეების გადაკვეთის აკრძალვა."
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
 #: main.ui:290
@@ -281,9 +282,9 @@ msgstr ""
 #: main.ui:303
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
+msgid "Additional distance the pointer needs to travel to cross screen edges."
 msgstr ""
-"დამატებითი მანძილი, რომელიც კურორმა უნდა გაიაროს, რომ ეკრანის წიბოები "
+"დამატებითი მანძილი, რომელიც მაჩვენებელმა უნდა გაიაროს, რომ ეკრანის წიბოები "
 "გადაკვეთოს."
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, kcfg_EdgeBarrier)
@@ -306,17 +307,3 @@ msgid ""
 "of the screen."
 msgstr ""
 "ქმედების დატრიგერება ეკრანის კიდიდან ეკრანის ცენტრისკენ გასმით შეგიძლიათ."
-
-#~ msgctxt "NAME OF TRANSLATORS"
-#~ msgid "Your names"
-#~ msgstr "Temuri Doghonadze"
-
-#~ msgctxt "EMAIL OF TRANSLATORS"
-#~ msgid "Your emails"
-#~ msgstr "Temuri.doghonadze@gmail.com"
-
-#~ msgid "Show Desktop"
-#~ msgstr "სამუშაო მაგიდის ჩვენება"
-
-#~ msgid "Desktop Grid"
-#~ msgstr "სამუშაო მაგიდის ბადე"

@@ -86,7 +86,7 @@ public:
     {
         clear();
 
-        auto screens = qGuiApp->screens();
+        const auto screens = qGuiApp->screens();
         auto it = new QStandardItem(i18n("Follow the Current Screen"));
         it->setData(screens[0]->physicalSize(), Qt::UserRole + 1); // we use the first display to give an idea
         it->setData(screens[0]->size(), Qt::UserRole + 2);
@@ -97,7 +97,7 @@ public:
         it->setData(screens[0]->virtualSize(), Qt::UserRole + 2);
         appendRow(it);
 
-        for (auto screen : screens) {
+        for (const auto screen : screens) {
             auto geo = screen->geometry();
             auto name = screen->model().isEmpty() ? screen->name() : screen->model();
             auto it = new QStandardItem(i18nc("model - (x,y widthxheight)",
@@ -126,7 +126,7 @@ public:
         return item(row)->data(Qt::UserRole).toString();
     }
 
-    Q_SCRIPTABLE int rowForDevice(InputDevice *device)
+    Q_SCRIPTABLE int rowForDevice(KWinDevices::InputDevice *device)
     {
         if (!device) {
             return 0;
@@ -174,7 +174,7 @@ class StylusButtonsModel : public QStandardItemModel
     Q_OBJECT
 
     Q_PROPERTY(WacomDeviceDatabase *db READ db WRITE setDb NOTIFY dbChanged REQUIRED)
-    Q_PROPERTY(InputDevice *device READ device WRITE setDevice NOTIFY deviceChanged REQUIRED)
+    Q_PROPERTY(KWinDevices::InputDevice *device READ device WRITE setDevice NOTIFY deviceChanged REQUIRED)
 
 public:
     enum CustomRoles {
@@ -207,12 +207,12 @@ public:
         }
     }
 
-    InputDevice *device() const
+    KWinDevices::InputDevice *device() const
     {
         return m_device;
     }
 
-    void setDevice(InputDevice *device)
+    void setDevice(KWinDevices::InputDevice *device)
     {
         if (m_device != device) {
             m_device = device;
@@ -286,7 +286,7 @@ private:
     }
 
     WacomDeviceDatabase *m_db = nullptr;
-    InputDevice *m_device = nullptr;
+    KWinDevices::InputDevice *m_device = nullptr;
 };
 
 Tablet::Tablet(QObject *parent, const KPluginMetaData &metaData)
@@ -303,7 +303,7 @@ Tablet::Tablet(QObject *parent, const KPluginMetaData &metaData)
     qmlRegisterType<OrientationsModel>("org.kde.plasma.tablet.kcm", 1, 0, "OrientationsModel");
     qmlRegisterType<StylusButtonsModel>("org.kde.plasma.tablet.kcm", 1, 1, "StylusButtonsModel");
     qmlRegisterType<TabletEvents>("org.kde.plasma.tablet.kcm", 1, 1, "TabletEvents");
-    qmlRegisterUncreatableType<InputDevice>("org.kde.plasma.tablet.kcm", 1, 0, "InputDevice", "Access from C++ only");
+    qmlRegisterUncreatableType<KWinDevices::InputDevice>("org.kde.plasma.tablet.kcm", 1, 0, "InputDevice", "Access from C++ only");
     qmlRegisterType<CalibrationTool>("org.kde.plasma.tablet.kcm", 1, 1, "CalibrationTool");
     // This looks weird, but the first type here is the value type. The second type is here is just for the enumerations.
     // Yes, this IS what they suggest you do: https://doc.qt.io/qt-6/qtqml-cppintegration-definetypes.html#value-types-with-enumerations
@@ -328,7 +328,9 @@ void Tablet::refreshNeedsSave()
 
 bool Tablet::isSaveNeeded() const
 {
-    return !m_unsavedMappings.isEmpty() || m_tabletsModel->isSaveNeeded();
+    const auto cfg = KSharedConfig::openConfig("kcminputrc");
+    const KConfigGroup tabletGroup = cfg->group(QStringLiteral("Tablet"));
+    return !m_unsavedMappings.isEmpty() || m_tabletsModel->isSaveNeeded() || tabletGroup.readEntry(QStringLiteral("SyncWithMouse"), false) != m_syncWithMouse;
 }
 
 bool Tablet::isDefaults() const
@@ -352,6 +354,13 @@ void Tablet::load()
 
     m_unsavedMappings.clear();
     Q_EMIT settingsRestored();
+
+    const auto cfg = KSharedConfig::openConfig("kcminputrc");
+    const KConfigGroup tabletGroup = cfg->group(QStringLiteral("Tablet"));
+    m_syncWithMouse = tabletGroup.readEntry(QStringLiteral("SyncWithMouse"), false);
+    Q_EMIT syncWithMouseChanged();
+
+    refreshNeedsSave();
 }
 
 void Tablet::save()
@@ -360,7 +369,7 @@ void Tablet::save()
 
     auto generalGroup = KSharedConfig::openConfig("kcminputrc")->group("ButtonRebinds");
     // regular rebinds
-    for (const auto &device : QStringList{"Tablet", "TabletTool", "TabletDial"}) {
+    for (const auto &device : std::to_array<QString>({"Tablet", "TabletTool", "TabletDial"})) {
         for (auto it = m_unsavedMappings[device].cbegin(), itEnd = m_unsavedMappings[device].cend(); it != itEnd; ++it) {
             auto configGroup = generalGroup.group(device).group(it.key());
             for (auto itDevice = it->cbegin(), itDeviceEnd = it->cend(); itDevice != itDeviceEnd; ++itDevice) {
@@ -376,7 +385,7 @@ void Tablet::save()
         }
     }
     // mode-based rebinds
-    for (const auto &device : QStringList{"TabletRing"}) {
+    for (const auto &device : std::to_array<QString>({"TabletRing"})) {
         for (auto it = m_unsavedMappings[device].cbegin(), itEnd = m_unsavedMappings[device].cend(); it != itEnd; ++it) {
             auto configGroup = generalGroup.group(device).group(it.key());
             for (auto itDevice = it->cbegin(), itDeviceEnd = it->cend(); itDevice != itDeviceEnd; ++itDevice) {
@@ -395,13 +404,20 @@ void Tablet::save()
     }
     generalGroup.sync();
     m_unsavedMappings.clear();
+
+    const auto cfg = KSharedConfig::openConfig("kcminputrc");
+    KConfigGroup tabletGroup = cfg->group(QStringLiteral("Tablet"));
+    tabletGroup.writeEntry(QStringLiteral("SyncWithMouse"), m_syncWithMouse, KConfig::Notify);
+    cfg->sync();
 }
 
 void Tablet::defaults()
 {
     m_tabletsModel->defaults();
     m_unsavedMappings.clear();
+    m_syncWithMouse = false;
     Q_EMIT settingsRestored();
+    Q_EMIT syncWithMouseChanged();
 }
 
 void Tablet::assignPadButtonMapping(const QString &deviceName, uint button, const InputSequence &keySequence)
@@ -526,6 +542,20 @@ QList<QPointF> Tablet::fromSerializedCurve(const QString &curve)
 WacomDeviceDatabase *Tablet::db() const
 {
     return m_db;
+}
+
+bool Tablet::syncWithMouse() const
+{
+    return m_syncWithMouse;
+}
+
+void Tablet::setSyncWithMouse(bool value)
+{
+    if (m_syncWithMouse != value) {
+        m_syncWithMouse = value;
+        Q_EMIT syncWithMouseChanged();
+        refreshNeedsSave();
+    }
 }
 
 TabletsModel *Tablet::tabletsModel() const

@@ -1,0 +1,7141 @@
+# Copyright (C) 2025 This file is copyright:
+# This file is distributed under the same license as the kio package.
+#
+# SPDX-FileCopyrightText: 2025-2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: kio\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-10-01 00:41+0000\n"
+"PO-Revision-Date: 2026-08-18 02:37+0900\n"
+"Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
+"Language-Team: Min Nan Chinese <zh-l10n@lists.slat.org>\n"
+"Language: nan_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Lokalize 26.11.70\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Kisaragi Hiu"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "mail@kisaragi-hiu.com"
+
+#: core/chmodjob.cpp:197
+#, kde-format
+msgid "Could not modify the ownership of file %1"
+msgstr "無法度修改檔案 %1 ê 所有者"
+
+#: core/chmodjob.cpp:231
+#, kde-kuit-format
+msgid ""
+"Could not modify the ownership of file <filename>%1</filename>. You have "
+"insufficient access to the file to perform the change."
+msgstr "無法度修改檔案 <filename>%1</filename> ê 所有者。你無權限做這个改變。"
+
+#: core/copyjob.cpp:197 kioworkers/file/file_unix.cpp:595
+#, kde-format
+msgctxt ""
+"The first arg is the path to the symlink that couldn't be created, the "
+"secondarg is the filesystem type (e.g. vfat, exfat)"
+msgid ""
+"Could not create symlink \"%1\".\n"
+"The destination filesystem (%2) doesn't support symlinks."
+msgstr ""
+"無法度建立符號連結「%1」。\n"
+"目的地檔案系統 (%2) 無支援符號連結。"
+
+#: core/copyjob.cpp:209
+#, kde-format
+msgid ""
+"Could not create \"%1\".\n"
+"The destination filesystem (%2) disallows the following characters in folder "
+"names: %3\n"
+"Selecting Replace will replace any invalid characters (in the destination "
+"folder name) with an underscore \"_\"."
+msgstr ""
+"無法度建立「%1」。\n"
+"目的地檔案系統 (%2) 不准佇資料鋏仔名用以下字元：%3\n"
+"選「取代」會 kā 目的地資料鋏仔名無效 ê 字元攏取代做 \"_\"。"
+
+#: core/copyjob.cpp:217
+#, kde-format
+msgid ""
+"Could not create \"%1\".\n"
+"The destination filesystem (%2) disallows the following characters in file "
+"names: %3\n"
+"Selecting Replace will replace any invalid characters (in the destination "
+"file name) with an underscore \"_\"."
+msgstr ""
+"無法度建立「%1」。\n"
+"目的地檔案系統 (%2) 不准佇檔名用以下字元：%3\n"
+"選「取代」會 kā 目的地檔名無效 ê 字元攏取代做 \"_\"。"
+
+#: core/copyjob.cpp:1491 core/job_error.cpp:588
+#, kde-format
+msgid "Folder Already Exists"
+msgstr "資料鋏仔已經有--ah"
+
+#: core/copyjob.cpp:1827 core/copyjob.cpp:2561 core/filecopyjob.cpp:371
+#: core/job_error.cpp:577 widgets/paste.cpp:49
+#, kde-format
+msgid "File Already Exists"
+msgstr "檔案已經有--ah"
+
+#: core/copyjob.cpp:1827 core/copyjob.cpp:2561
+#, kde-format
+msgid "Already Exists as Folder"
+msgstr "已經有用這个名的資料鋏仔--ah"
+
+#: core/copyjob.cpp:1985 kioworkers/trash/kio_trash.cpp:294
+#, kde-format
+msgid "Trash"
+msgstr "糞埽桶"
+
+#: core/desktopexecparser.cpp:335
+#, kde-format
+msgid "No Exec field in %1"
+msgstr "%1 內底無 Exec 欄位"
+
+#: core/desktopexecparser.cpp:360
+#, kde-format
+msgid "Could not find the program '%1'"
+msgstr "揣無程式「%1」"
+
+#: core/desktopexecparser.cpp:363
+#, kde-format
+msgid ""
+"The program '%1' was found at '%2' but it is missing executable permissions."
+msgstr "程式「%1」佇「%2」有揣著，毋過伊無執行權限。"
+
+#: core/desktopexecparser.cpp:365
+#, kde-format
+msgid "The program '%1' is missing executable permissions."
+msgstr "程式「%1」無執行權限。"
+
+#: core/desktopexecparser.cpp:379
+#, kde-format
+msgid "Syntax error in command %1 coming from %2"
+msgstr "%2 ê 指令 %1 內底有語法錯誤"
+
+#: core/desktopexecparser.cpp:509
+#, kde-format
+msgid "Terminal %1 not found while trying to run %2"
+msgstr "愛執行 %2 ê 時陣揣無終端機 %1"
+
+#: core/desktopexecparser.cpp:526
+#, kde-format
+msgid "Syntax error in command %1 while trying to run %2"
+msgstr "Tī-leh 執行 %2 ê 時陣佇指令 %1 內底有語法錯誤"
+
+#: core/global.cpp:79
+#, kde-format
+msgid "1 day %2"
+msgid_plural "%1 days %2"
+msgstr[0] "%1 kang %2"
+
+#: core/global.cpp:88 core/global.cpp:104
+#, kde-format
+msgid "%1 Item"
+msgid_plural "%1 Items"
+msgstr[0] "%1 个項目"
+
+#: core/global.cpp:92
+#, kde-format
+msgid "1 Folder"
+msgid_plural "%1 Folders"
+msgstr[0] "%1 个資料鋏仔"
+
+#: core/global.cpp:93
+#, kde-format
+msgid "1 File"
+msgid_plural "%1 Files"
+msgstr[0] "%1 个檔案"
+
+#: core/global.cpp:95
+#, kde-format
+msgctxt "folders, files (size)"
+msgid "%1, %2 (%3)"
+msgstr "%1, %2 (%3)"
+
+#: core/global.cpp:96
+#, kde-format
+msgctxt "folders, files"
+msgid "%1, %2"
+msgstr "%1, %2"
+
+#: core/global.cpp:98
+#, kde-format
+msgctxt "files (size)"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: core/global.cpp:105
+#, kde-format
+msgctxt "items: folders, files (size)"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#: core/job.cpp:104
+#, kde-format
+msgctxt "@title job"
+msgid "Moving"
+msgstr "佇咧徙"
+
+#: core/job.cpp:105 core/job.cpp:113 core/job.cpp:121 core/job.cpp:150
+#: widgets/fileundomanager.cpp:136
+#, kde-format
+msgctxt "The source of a file operation"
+msgid "Source"
+msgstr "來源"
+
+#: core/job.cpp:106 core/job.cpp:114 core/job.cpp:122
+#: widgets/fileundomanager.cpp:137
+#, kde-format
+msgctxt "The destination of a file operation"
+msgid "Destination"
+msgstr "目的地"
+
+#: core/job.cpp:112
+#, kde-format
+msgctxt "@title job"
+msgid "Renaming"
+msgstr "佇咧改名"
+
+#: core/job.cpp:120
+#, kde-format
+msgctxt "@title job"
+msgid "Copying"
+msgstr "Leh khóo-pih"
+
+#: core/job.cpp:128
+#, kde-format
+msgctxt "@title job"
+msgid "Creating directory"
+msgstr "佇咧建立資料鋏仔"
+
+#: core/job.cpp:129 widgets/fileundomanager.cpp:126
+#: widgets/kurlrequester.cpp:478
+#, kde-format
+msgid "Directory"
+msgstr "資料鋏仔"
+
+#: core/job.cpp:135
+#, kde-format
+msgctxt "@title job"
+msgid "Deleting"
+msgstr "Leh 刣掉"
+
+#: core/job.cpp:136 core/job.cpp:143 widgets/fileundomanager.cpp:152
+#: widgets/kurlrequester.cpp:477
+#, kde-format
+msgid "File"
+msgstr "檔案"
+
+#: core/job.cpp:142
+#, kde-format
+msgctxt "@title job"
+msgid "Examining"
+msgstr "Tī-leh 檢查"
+
+#: core/job.cpp:149
+#, kde-format
+msgctxt "@title job"
+msgid "Transferring"
+msgstr "Tī-leh 傳輸"
+
+#: core/job.cpp:156
+#, kde-format
+msgctxt "@title job"
+msgid "Mounting"
+msgstr "Tī-leh 掛載"
+
+#: core/job.cpp:156
+#, kde-format
+msgid "Device"
+msgstr "裝置"
+
+#: core/job.cpp:156 core/job.cpp:161
+#, kde-format
+msgid "Mountpoint"
+msgstr "掛載點"
+
+#: core/job.cpp:161
+#, kde-format
+msgctxt "@title job"
+msgid "Unmounting"
+msgstr "Tī-leh 卸載"
+
+#: core/job_error.cpp:37
+#, kde-format
+msgid "Could not read %1."
+msgstr "無法度讀取 %1。"
+
+#: core/job_error.cpp:40
+#, kde-format
+msgid "Could not write to %1."
+msgstr "無法度寫入 %1。"
+
+#: core/job_error.cpp:43
+#, kde-format
+msgid "Could not start process %1."
+msgstr "無法度啟動程序 %1。"
+
+#: core/job_error.cpp:46
+#, kde-format
+msgid ""
+"Internal Error\n"
+"Please send a full bug report at https://bugs.kde.org\n"
+"%1"
+msgstr ""
+"內部錯誤\n"
+"請傳完整的 bug report 予 https://bugs.kde.org\n"
+"%1"
+
+#: core/job_error.cpp:49
+#, kde-format
+msgid "Malformed URL %1."
+msgstr "不正 ê URL %1。"
+
+#: core/job_error.cpp:52
+#, kde-format
+msgid "The protocol %1 is not supported."
+msgstr "協定 %1 無支援。"
+
+#: core/job_error.cpp:55
+#, kde-format
+msgid "The protocol %1 is only a filter protocol."
+msgstr "協定 %1 只是一个過濾協定爾爾。"
+
+#: core/job_error.cpp:62
+#, kde-format
+msgid "%1 is a folder, but a file was expected."
+msgstr "%1 是資料鋏仔，但是預期 ê 是檔案。"
+
+#: core/job_error.cpp:65
+#, kde-format
+msgid "%1 is a file, but a folder was expected."
+msgstr "%1 是檔案，但是預期 ê 是資料鋏仔。"
+
+#: core/job_error.cpp:68
+#, kde-format
+msgid "The file or folder %1 does not exist."
+msgstr "檔案猶是資料鋏仔 %1 無存在。"
+
+#: core/job_error.cpp:71
+#, kde-format
+msgid "A file named %1 already exists."
+msgstr "已經有別个叫做 %1 ê 檔案--ah。"
+
+#: core/job_error.cpp:74
+#, kde-format
+msgid "A folder named %1 already exists."
+msgstr "已經有別个叫做 %1 ê 資料鋏仔--ah。"
+
+#: core/job_error.cpp:77
+#, kde-format
+msgid "No hostname specified."
+msgstr "無指定主機名。"
+
+#: core/job_error.cpp:77
+#, kde-format
+msgid "Unknown host %1"
+msgstr "毋知 ê 主機 %1"
+
+#: core/job_error.cpp:80
+#, kde-format
+msgid "Access denied to %1."
+msgstr "拒絕存取 %1。"
+
+#: core/job_error.cpp:83
+#, kde-format
+msgid ""
+"Access denied.\n"
+"Could not write to %1."
+msgstr ""
+"拒絕存取。\n"
+"無法度寫入 %1。"
+
+#: core/job_error.cpp:86
+#, kde-format
+msgid "Could not enter folder %1."
+msgstr "無法度入去資料鋏仔 %1。"
+
+#: core/job_error.cpp:89
+#, kde-format
+msgid "The protocol %1 does not implement a folder service."
+msgstr "協定 %1 無實作資料鋏仔 ê 服務。"
+
+#: core/job_error.cpp:92
+#, kde-format
+msgid "Found a cyclic link in %1."
+msgstr "佇 %1 揣著循環連結。"
+
+#: core/job_error.cpp:95
+#, kde-format
+msgid "Found a cyclic link while copying %1."
+msgstr "Khóo-pih %1 ê 時陣揣著循環連結。"
+
+#: core/job_error.cpp:98
+#, kde-format
+msgid "Could not create socket for accessing %1."
+msgstr "無法度 uī-tio̍h 存取 %1 建立 socket。"
+
+#: core/job_error.cpp:101
+#, kde-format
+msgid "Could not connect to host %1."
+msgstr "無法度連線主機 %1。"
+
+#: core/job_error.cpp:104
+#, kde-format
+msgid "Connection to host %1 is broken."
+msgstr "Tuì 主機 %1 ê 連線斷去--ah。"
+
+#: core/job_error.cpp:107
+#, kde-format
+msgid "The protocol %1 is not a filter protocol."
+msgstr "協定 %1 毋是一个過濾協定。"
+
+#: core/job_error.cpp:110
+#, kde-format
+msgid ""
+"Could not mount device.\n"
+"The reported error was:\n"
+"%1"
+msgstr ""
+"無法度掛載裝置。\n"
+"回報 ê 錯誤是：\n"
+"%1"
+
+#: core/job_error.cpp:113
+#, kde-format
+msgid ""
+"Could not unmount device.\n"
+"The reported error was:\n"
+"%1"
+msgstr ""
+"無法度卸載裝置。\n"
+"回報 ê 錯誤是：\n"
+"%1"
+
+#: core/job_error.cpp:116
+#, kde-format
+msgid "Could not read file %1."
+msgstr "無法度讀取檔案 %1。"
+
+#: core/job_error.cpp:119
+#, kde-format
+msgid "Could not write to file %1."
+msgstr "無法度寫入檔案 %1。"
+
+#: core/job_error.cpp:122
+#, kde-format
+msgid "Could not bind %1."
+msgstr "無法度綁定 %1。"
+
+#: core/job_error.cpp:125
+#, kde-format
+msgid "Could not listen %1."
+msgstr "無法度監聽 %1。"
+
+#: core/job_error.cpp:128
+#, kde-format
+msgid "Could not accept %1."
+msgstr "無法度接受 %1。"
+
+#: core/job_error.cpp:134
+#, kde-format
+msgid "Could not access %1."
+msgstr "無法度存取 %1。"
+
+#: core/job_error.cpp:137
+#, kde-format
+msgid "Could not terminate listing %1."
+msgstr "無法度中止 kā %1 表列。"
+
+#: core/job_error.cpp:140
+#, kde-format
+msgid "Could not make folder %1."
+msgstr "無法度建立資料鋏仔 %1。"
+
+#: core/job_error.cpp:143
+#, kde-format
+msgid "Could not remove folder %1."
+msgstr "無法度移除 %1 這个資料鋏仔。"
+
+#: core/job_error.cpp:146
+#, kde-format
+msgid "Could not resume file %1."
+msgstr "無法度繼續檔案 %1。"
+
+#: core/job_error.cpp:149
+#, kde-format
+msgid "Could not rename file %1."
+msgstr "無法度 kā 檔案 %1 改名。"
+
+#: core/job_error.cpp:152
+#, kde-format
+msgid "Could not change permissions for %1."
+msgstr "無法度改變 %1 ê 權限。"
+
+#: core/job_error.cpp:155
+#, kde-format
+msgid "Could not change ownership for %1."
+msgstr "無法度改變 %1 ê 所有者。"
+
+#: core/job_error.cpp:158
+#, kde-format
+msgid "Could not delete file %1."
+msgstr "無法度刣掉檔案 %1。"
+
+#: core/job_error.cpp:161
+#, kde-format
+msgid "The process for the %1 protocol died unexpectedly."
+msgstr "協定 %1 ê 程序 hiông-hiông 無去--ah。"
+
+#: core/job_error.cpp:164
+#, kde-format
+msgid ""
+"Error. Out of memory.\n"
+"%1"
+msgstr ""
+"錯誤。無記憶體--ah。\n"
+"%1"
+
+#: core/job_error.cpp:167
+#, kde-format
+msgid ""
+"Unknown proxy host\n"
+"%1"
+msgstr ""
+"毋知 ê 代理主機\n"
+"%1"
+
+#: core/job_error.cpp:170
+#, kde-format
+msgid "Authorization failed, %1 authentication not supported"
+msgstr "授權失敗，%1 認證無支援"
+
+#: core/job_error.cpp:176
+#, kde-format
+msgid ""
+"User canceled action\n"
+"%1"
+msgstr ""
+"用者 kā 動作取消--ah\n"
+"%1"
+
+#: core/job_error.cpp:179
+#, kde-format
+msgid ""
+"Internal error in server\n"
+"%1"
+msgstr ""
+"伺服器內部錯誤\n"
+"%1"
+
+#: core/job_error.cpp:182
+#, kde-format
+msgid ""
+"Timeout on server\n"
+"%1"
+msgstr ""
+"伺服器過時--ah\n"
+"%1"
+
+#: core/job_error.cpp:185
+#, kde-format
+msgid ""
+"Unknown error\n"
+"%1"
+msgstr ""
+"毋知的錯誤\n"
+"%1"
+
+#: core/job_error.cpp:188
+#, kde-format
+msgid ""
+"Unknown interrupt\n"
+"%1"
+msgstr ""
+"毋知 ê 中斷\n"
+"%1"
+
+#: core/job_error.cpp:199
+#, kde-format
+msgid ""
+"Could not delete original file %1.\n"
+"Please check permissions."
+msgstr ""
+"無法度刣掉原本 ê 檔案 %1。\n"
+"請檢查權限。"
+
+#: core/job_error.cpp:202
+#, kde-format
+msgid ""
+"Could not delete partial file %1.\n"
+"Please check permissions."
+msgstr ""
+"無法度刣掉部份檔案 %1。\n"
+"請檢查權限。"
+
+#: core/job_error.cpp:205
+#, kde-format
+msgid ""
+"Could not rename original file %1.\n"
+"Please check permissions."
+msgstr ""
+"無法度 kā 原本 ê 檔案 %1 改名。\n"
+"請檢查權限。"
+
+#: core/job_error.cpp:208
+#, kde-format
+msgid ""
+"Could not rename partial file %1.\n"
+"Please check permissions."
+msgstr ""
+"無法度 kā 部份檔案 %1 改名。\n"
+"請檢查權限。"
+
+#: core/job_error.cpp:211
+#, kde-format
+msgid ""
+"Could not create symlink %1.\n"
+"Please check permissions."
+msgstr ""
+"無法度建立符號連結 %1。\n"
+"請檢查權限。"
+
+#: core/job_error.cpp:214
+#, kde-format
+msgid ""
+"Cannot create symlinks at %1.\n"
+"The destination filesystem doesn't support symlinks."
+msgstr ""
+"無法度佇 %1 建立符號連結。\n"
+"目的地檔案系統無支援符號連結。"
+
+#: core/job_error.cpp:220
+#, kde-format
+msgid "There is not enough space on the disk to write %1."
+msgstr "磁碟空間無夠寫入 %1。"
+
+#: core/job_error.cpp:223
+#, kde-format
+msgid ""
+"The source and destination are the same file.\n"
+"%1"
+msgstr ""
+"來源 kap 目標是仝一个檔案。\n"
+"%1"
+
+#: core/job_error.cpp:231
+#, kde-format
+msgid "%1 is required by the server, but is not available."
+msgstr "伺服器需要 %1，suah 無法度用。"
+
+#: core/job_error.cpp:234
+#, kde-format
+msgid "Access to restricted port in POST denied."
+msgstr "POST 請求存取受限制 ê 埠頭予拒絕--ah。"
+
+#: core/job_error.cpp:237
+#, kde-format
+msgid ""
+"The required content size information was not provided for a POST operation."
+msgstr "POST 操作 ê 需要 ê 內容大細資訊無提供。"
+
+#: core/job_error.cpp:240
+#, kde-format
+msgid "A file or folder cannot be dropped onto itself"
+msgstr "檔案猶是資料鋏仔無法度擲落去家己頂懸"
+
+#: core/job_error.cpp:243
+#, kde-format
+msgid "A folder cannot be moved into itself"
+msgstr "資料鋏仔無法度徙入去家己內底"
+
+#: core/job_error.cpp:246
+#, kde-format
+msgid "Communication with the local password server failed"
+msgstr "Kā 本地密碼伺服器 ê 通訊失敗--ah"
+
+#: core/job_error.cpp:249
+#, kde-format
+msgid "Unable to create KIO worker. %1"
+msgstr "無法度建立 KIO 工作器。%1"
+
+#: core/job_error.cpp:253
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Cannot transfer <filename>%1</filename> because it is too large. The "
+"destination filesystem only supports files up to 4GiB"
+msgstr ""
+"無法度傳輸 <filename>%1</filename>, 因為伊 siunn 大--ah。目的地檔案系統只支援"
+"上大 4GiB ê 檔案"
+
+#: core/job_error.cpp:258
+#, kde-format
+msgid ""
+"Privilege escalation is not necessary because \n"
+"'%1' is owned by the current user.\n"
+"Please retry after changing permissions."
+msgstr ""
+"因為「%1」ê 所有者已經是這馬 ê 用者--ah，所以無需要提升權限。\n"
+"請佇改變權限了後 koh 重試。"
+
+#: core/job_error.cpp:261
+#, kde-format
+msgid "File is too large to be trashed."
+msgstr "檔案上大，無法度徙去糞埽桶。"
+
+#: core/job_error.cpp:264
+#, kde-format
+msgid "A trash folder could not be found or created for this location."
+msgstr "無法度揣著猶是建立這个位置 ê 糞埽桶資料鋏仔。"
+
+#: core/job_error.cpp:267
+#, kde-format
+msgid ""
+"Unknown error code %1\n"
+"%2\n"
+"Please send a full bug report at https://bugs.kde.org."
+msgstr ""
+"毋知 ê 錯誤代碼 %1\n"
+"%2\n"
+"請傳完整 ê bug report 予 https://bugs.kde.org。"
+
+#: core/job_error.cpp:298
+#, kde-format
+msgctxt "@info url"
+msgid "(unknown)"
+msgstr "(毋知)"
+
+#: core/job_error.cpp:304
+#, kde-format
+msgctxt "@info %1 error name, %2 description"
+msgid "<qt><p><b>%1</b></p><p>%2</p></qt>"
+msgstr "<qt><p><b>%1</b></p><p>%2</p></qt>"
+
+#: core/job_error.cpp:308
+#, kde-format
+msgid "<b>Technical reason</b>: "
+msgstr "<b>技術原因</b>："
+
+#: core/job_error.cpp:310
+#, kde-format
+msgid "<b>Details of the request</b>:"
+msgstr "<b>請求 ê 詳細</b>："
+
+#: core/job_error.cpp:310
+#, kde-format
+msgid "<li>URL: %1</li>"
+msgstr "<li>URL：%1</li>"
+
+#: core/job_error.cpp:312
+#, kde-format
+msgid "<li>Protocol: %1</li>"
+msgstr "<li>協定：%1</li>"
+
+#: core/job_error.cpp:314
+#, kde-format
+msgid "<li>Date and time: %1</li>"
+msgstr "<li>日期 kap 時間：%1</li>"
+
+#: core/job_error.cpp:314
+#, kde-format
+msgid "<li>Additional information: %1</li>"
+msgstr "<li>其他 ê 資訊：%1</li>"
+
+#: core/job_error.cpp:316
+#, kde-format
+msgid "<b>Possible causes</b>:"
+msgstr "<b>可能 ê 原因</b>："
+
+#: core/job_error.cpp:320
+#, kde-format
+msgid "<b>Possible solutions</b>:"
+msgstr "<b>可能 ê 解決辦法</b>："
+
+#: core/job_error.cpp:364
+#, kde-format
+msgctxt "@info protocol"
+msgid "(unknown)"
+msgstr "(毋知)"
+
+#: core/job_error.cpp:377
+#, kde-format
+msgid ""
+"Contact your appropriate computer support system, whether the system "
+"administrator, or technical support group for further assistance."
+msgstr ""
+"請聯絡你 ê 電腦 ê 支援系統（親像系統管理者猶是技術支援群組）予人鬥相共。"
+
+#: core/job_error.cpp:381
+#, kde-format
+msgid "Contact the administrator of the server for further assistance."
+msgstr "請聯絡伺服器管理者予伊鬥相共。"
+
+#: core/job_error.cpp:384
+#, kde-format
+msgid "Check your access permissions on this resource."
+msgstr "請檢查你對這个資源 ê 存取權。"
+
+#: core/job_error.cpp:386
+#, kde-format
+msgid ""
+"Your access permissions may be inadequate to perform the requested operation "
+"on this resource."
+msgstr "你 ê 存取權可能無夠來 uì 這个資源執行請求 ê 動作。"
+
+#: core/job_error.cpp:389
+#, kde-format
+msgid ""
+"The file may be in use (and thus locked) by another user or application."
+msgstr "檔案可能因為佇予別个用者猶是程式使用所以予鎖定。"
+
+#: core/job_error.cpp:392
+#, kde-format
+msgid ""
+"Check to make sure that no other application or user is using the file or "
+"has locked the file."
+msgstr "請檢查無其他程式猶是用者 tī-leh 用這个檔案猶是已鎖定--ah。"
+
+#: core/job_error.cpp:395
+#, kde-format
+msgid "Although unlikely, a hardware error may have occurred."
+msgstr "雖然應該毋是 án-ne，毋過猶是有可能是硬體佇出問題。"
+
+#: core/job_error.cpp:397
+#, kde-format
+msgid "You may have encountered a bug in the program."
+msgstr "你可能是拄著程式 ê 問題。"
+
+#: core/job_error.cpp:399
+#, kde-format
+msgid ""
+"This is most likely to be caused by a bug in the program. Please consider "
+"submitting a full bug report as detailed below."
+msgstr ""
+"這誠可能是程式內底 ê 問題所造成 ê。請考慮照以下 ê 詳細資訊來回報完整 ê bug "
+"report。"
+
+#: core/job_error.cpp:402
+#, kde-format
+msgid ""
+"Update your software to the latest version. Your distribution should provide "
+"tools to update your software."
+msgstr "請 kā 你的軟體更新到上新的版本。你的發行版應該有提供更新軟體的工具。"
+
+#: core/job_error.cpp:405
+#, kde-format
+msgid ""
+"When all else fails, please consider helping the KDE team or the third party "
+"maintainer of this software by submitting a high quality bug report. If the "
+"software is provided by a third party, please contact them directly. "
+"Otherwise, first look to see if the same bug has been submitted by someone "
+"else by searching at the <a href=\"https://bugs.kde.org/\">KDE bug reporting "
+"website</a>. If not, take note of the details given above, and include them "
+"in your bug report, along with as many other details as you think might help."
+msgstr ""
+
+#: core/job_error.cpp:414
+#, kde-format
+msgid "There may have been a problem with your network connection."
+msgstr "可能是網路連線有問題。"
+
+#: core/job_error.cpp:418
+#, kde-format
+msgid ""
+"There may have been a problem with your network configuration. If you have "
+"been accessing the Internet with no problems recently, this is unlikely."
+msgstr ""
+"你 ê 網路設定可能有問題。毋過若你近來用網路無拄著問題，可能 tio̍h 毋是 án-ne。"
+
+#: core/job_error.cpp:422
+#, kde-format
+msgid ""
+"There may have been a problem at some point along the network path between "
+"the server and this computer."
+msgstr "可能佇伺服器到這个電腦 ê 網路線路有問題。"
+
+#: core/job_error.cpp:424
+#, kde-format
+msgid "Try again, either now or at a later time."
+msgstr "請重試，毋管是這馬猶是別个時陣。"
+
+#: core/job_error.cpp:425
+#, kde-format
+msgid "A protocol error or incompatibility may have occurred."
+msgstr "可能有發生協定錯誤猶是無相容 ê 問題。"
+
+#: core/job_error.cpp:426
+#, kde-format
+msgid "Ensure that the resource exists, and try again."
+msgstr "請確定資源存在，然後閣試一擺。"
+
+#: core/job_error.cpp:427
+#, kde-format
+msgid "The specified resource may not exist."
+msgstr "指定 ê 資源可能無存在。"
+
+#: core/job_error.cpp:429
+#, kde-format
+msgid "Double-check that you have entered the correct location and try again."
+msgstr "請仔細檢查你有輸入 tio̍h ê 位置，然後閣試一擺。"
+
+#: core/job_error.cpp:431
+#, kde-format
+msgid "Check your network connection status."
+msgstr "請檢查你 ê 網路連線狀態。"
+
+#: core/job_error.cpp:435
+#, kde-format
+msgid "Cannot Open Resource For Reading"
+msgstr "無法度拍開資源予讀取"
+
+#: core/job_error.cpp:437
+#, kde-format
+msgid ""
+"This means that the contents of the requested file or folder <strong>%1</"
+"strong> could not be retrieved, as read access could not be obtained."
+msgstr ""
+"這代表無法度取得要求 ê 檔案猶是資料鋏仔 <strong>%1</strong> ê 內容，因為無法"
+"度取得讀取權限。"
+
+#: core/job_error.cpp:442
+#, kde-format
+msgid "You may not have permissions to read the file or open the folder."
+msgstr "你可能無讀取檔案猶是開資料鋏仔 ê 權限。"
+
+#: core/job_error.cpp:449
+#, kde-format
+msgid "Cannot Open Resource For Writing"
+msgstr "無法度拍開資源予寫入"
+
+#: core/job_error.cpp:451
+#, kde-format
+msgid ""
+"This means that the file, <strong>%1</strong>, could not be written to as "
+"requested, because access with permission to write could not be obtained."
+msgstr ""
+"這代表檔案 <strong>%1</strong> 無法度照要求寫入，因為無法度取得寫入 ê 權限。"
+
+#: core/job_error.cpp:460
+#, kde-format
+msgid "Cannot Launch Process required by the %1 Protocol"
+msgstr "無法度啟動 %1 協定需要 ê 程序"
+
+#: core/job_error.cpp:461
+#, kde-format
+msgid "Unable to Launch Process"
+msgstr "無法度啟動程序"
+
+#: core/job_error.cpp:463
+#, kde-format
+msgid ""
+"The program on your computer which provides access to the <strong>%1</"
+"strong> protocol could not be found or started. This is usually due to "
+"technical reasons."
+msgstr ""
+"佇你 ê 電腦提供 <strong>%1</strong> 協定存取 ê 程式揣無猶是無法度啟動。這通常"
+"是因為技術上 ê 原因。"
+
+#: core/job_error.cpp:468
+#, kde-format
+msgid ""
+"The program which provides compatibility with this protocol may not have "
+"been updated with your last update of KDE. This can cause the program to be "
+"incompatible with the current version and thus not start."
+msgstr ""
+"提供對這个協定的相容的程式可能無佇頂改更新 KDE 的時陣做伙更新。這可能會害伊共"
+"這馬的版本無相容，造成伊無法度開始。"
+
+#: core/job_error.cpp:477
+#, kde-format
+msgid "Internal Error"
+msgstr "內部錯誤"
+
+#: core/job_error.cpp:479
+#, kde-format
+msgid ""
+"The program on your computer which provides access to the <strong>%1</"
+"strong> protocol has reported an internal error."
+msgstr "佇你 ê 電腦提供 <strong>%1</strong> 協定存取 ê 程式回報--ah 內部錯誤。"
+
+#: core/job_error.cpp:487
+#, kde-format
+msgid "Improperly Formatted URL"
+msgstr "格式無正確 ê URL"
+
+#: core/job_error.cpp:489
+#, kde-format
+msgid ""
+"The <strong>U</strong>niform <strong>R</strong>esource <strong>L</"
+"strong>ocator (URL) that you entered was not properly formatted. The format "
+"of a URL is generally as follows:<blockquote><strong>protocol://user:"
+"password@www.example.org:port/folder/filename.extension?query=value</"
+"strong></blockquote>"
+msgstr ""
+"你輸入 ê URL（英語：<strong>U</strong>niform <strong>R</strong>esource "
+"<strong>L</strong>ocator）ê 格式毋著。URL ê 格式基本上是 án-ne："
+"<blockquote><strong>協定://用者:密碼@www.example.org:埠頭/資料鋏仔/檔名.副檔"
+"名?query=value</strong></blockquote>"
+
+#: core/job_error.cpp:498
+#, kde-format
+msgid "Unsupported Protocol %1"
+msgstr "無支援 ê 協定 %1"
+
+#: core/job_error.cpp:500
+#, kde-format
+msgid ""
+"The protocol <strong>%1</strong> is not supported by the KDE programs "
+"currently installed on this computer."
+msgstr "這个電腦有裝 ê KDE 程式攏無支援 <strong>%1</strong> 協定。"
+
+#: core/job_error.cpp:503
+#, kde-format
+msgid "The requested protocol may not be supported."
+msgstr "請求 ê 協定可能無支援。"
+
+#: core/job_error.cpp:505
+#, kde-format
+msgid ""
+"The versions of the %1 protocol supported by this computer and the server "
+"may be incompatible."
+msgstr "這个電腦 kap 伺服器支援 ê %1 協定版本可能無相容。"
+
+#: core/job_error.cpp:509
+#, kde-format
+msgid ""
+"You may perform a search on the Internet for a software plugin (called a "
+"\"KIO worker\") which supports this protocol. Places to search include <a "
+"href=\"https://store.kde.org/\">https://store.kde.org</a>."
+msgstr ""
+"你會使佇網路頂揣支援這个協定 ê 軟體外掛程式（叫做 \"KIO worker\"，mā 叫做 "
+"KIO 工作器）。會使去揣 ê 所在包括 <a href=\"https://store.kde.org/\">https://"
+"store.kde.org</a>。"
+
+#: core/job_error.cpp:517
+#, kde-format
+msgid "URL Does Not Refer to a Resource."
+msgstr "URL 無指向一个資源。"
+
+#: core/job_error.cpp:518
+#, kde-format
+msgid "Protocol is a Filter Protocol"
+msgstr "協定是過濾協定"
+
+#: core/job_error.cpp:520
+#, kde-format
+msgid ""
+"The <strong>U</strong>niform <strong>R</strong>esource <strong>L</"
+"strong>ocator (URL) that you entered did not refer to a specific resource."
+msgstr ""
+
+#: core/job_error.cpp:524
+#, kde-format
+msgid ""
+"KDE is able to communicate through a protocol within a protocol; the "
+"protocol specified is only for use in such situations, however this is not "
+"one of these situations. This is a rare event, and is likely to indicate a "
+"programming error."
+msgstr ""
+
+#: core/job_error.cpp:532
+#, kde-format
+msgid "Unsupported Action: %1"
+msgstr "無支援 ê 動作：%1"
+
+#: core/job_error.cpp:534
+#, kde-format
+msgid ""
+"The requested action is not supported by the KDE program which is "
+"implementing the <strong>%1</strong> protocol."
+msgstr "請求 ê 動作是實作 <strong>%1</strong> 協定 ê KDE 程式猶未支援 ê。"
+
+#: core/job_error.cpp:538
+#, kde-format
+msgid ""
+"This error is very much dependent on the KDE program. The additional "
+"information should give you more information than is available to the KDE "
+"input/output architecture."
+msgstr ""
+"這个錯誤 kap 彼个 KDE 程式誠有關係。一寡追加 ê 資訊應該會予你比 KDE 輸入/輸出"
+"架構會用 ê 閣較濟 ê 資訊。"
+
+#: core/job_error.cpp:542
+#, kde-format
+msgid "Attempt to find another way to accomplish the same outcome."
+msgstr "請揣別个方法來達成仝款 ê 結果。"
+
+#: core/job_error.cpp:547
+#, kde-format
+msgid "File Expected"
+msgstr "期待 ê 是檔案"
+
+#: core/job_error.cpp:549
+#, kde-format
+msgid ""
+"The request expected a file, however the folder <strong>%1</strong> was "
+"found instead."
+msgstr "請求期待 ê 是檔案，毋過揣著 ê 是資料鋏仔 <strong>%1</strong>。"
+
+#: core/job_error.cpp:552
+#, kde-format
+msgid "This may be an error on the server side."
+msgstr "這可能是伺服器彼爿 ê 問題。"
+
+#: core/job_error.cpp:557
+#, kde-format
+msgid "Folder Expected"
+msgstr "期待 ê 是資料鋏仔"
+
+#: core/job_error.cpp:559
+#, kde-format
+msgid ""
+"The request expected a folder, however the file <strong>%1</strong> was "
+"found instead."
+msgstr "請求期待 ê 是資料鋏仔，毋過揣著 ê 是檔案 <strong>%1</strong>。"
+
+#: core/job_error.cpp:567
+#, kde-format
+msgid "File or Folder Does Not Exist"
+msgstr "檔案猶是資料鋏仔無存在"
+
+#: core/job_error.cpp:569
+#, kde-format
+msgid "The specified file or folder <strong>%1</strong> does not exist."
+msgstr "指定 ê 檔案猶是資料鋏仔 <strong>%1</strong> 無存在。"
+
+#: core/job_error.cpp:579
+#, kde-format
+msgid ""
+"The requested file could not be created because a file with the same name "
+"already exists."
+msgstr "無法度建立請求 ê 檔案，因為已經有檔案叫彼个名--ah。"
+
+#: core/job_error.cpp:582
+#, kde-format
+msgid "Try moving the current file out of the way first, and then try again."
+msgstr "請先 kā 這馬 ê 檔案徙去別位，然後閣試一擺。"
+
+#: core/job_error.cpp:584
+#, kde-format
+msgid "Delete the current file and try again."
+msgstr "請刣掉這馬 ê 檔案然後閣試一擺。"
+
+#: core/job_error.cpp:584
+#, kde-format
+msgid "Choose an alternate filename for the new file."
+msgstr "請為新 ê 檔案選另外一个名。"
+
+#: core/job_error.cpp:590
+#, kde-format
+msgid ""
+"The requested folder could not be created because a folder with the same "
+"name already exists."
+msgstr "無法度建立請求 ê 資料鋏仔，因為已經有資料鋏仔叫彼个名--ah。"
+
+#: core/job_error.cpp:593
+#, kde-format
+msgid "Try moving the current folder out of the way first, and then try again."
+msgstr "請先 kā 這馬 ê 資料鋏仔徙去別位，然後閣試一擺。"
+
+#: core/job_error.cpp:595
+#, kde-format
+msgid "Delete the current folder and try again."
+msgstr "請刣掉這馬 ê 資料鋏仔然後閣試一擺。"
+
+#: core/job_error.cpp:595
+#, kde-format
+msgid "Choose an alternate name for the new folder."
+msgstr "請為新 ê 資料鋏仔選另外一个名。"
+
+#: core/job_error.cpp:599
+#, kde-format
+msgid "Unknown Host"
+msgstr "毋知 ê 主機"
+
+#: core/job_error.cpp:601
+#, kde-format
+msgid ""
+"An unknown host error indicates that the server with the requested name, "
+"<strong>%1</strong>, could not be located on the Internet."
+msgstr "毋知 ê 主機錯誤代表無法度佇網路揣著 <strong>%1</strong> 這个伺服器。"
+
+#: core/job_error.cpp:606
+#, kde-format
+msgid ""
+"The name that you typed, %1, may not exist: it may be incorrectly typed."
+msgstr "你輸入 ê 名，%1，可能無存在：可能是輸入 ê 毋著。"
+
+#: core/job_error.cpp:614
+#, kde-format
+msgid "Access Denied"
+msgstr "拒絕存取"
+
+#: core/job_error.cpp:616
+#, kde-format
+msgid "Access was denied to the specified resource, <strong>%1</strong>."
+msgstr "Tuì 指定 ê 資源 <strong>%1</strong> ê 存取予拒絕--ah。"
+
+#: core/job_error.cpp:620 core/job_error.cpp:896
+#, kde-format
+msgid "You may have supplied incorrect authentication details or none at all."
+msgstr "這可能是因為你提供 ê 認證資訊毋著，猶是無提供認證資訊。"
+
+#: core/job_error.cpp:623 core/job_error.cpp:899
+#, kde-format
+msgid "Your account may not have permission to access the specified resource."
+msgstr "你 ê 口座可能無存取指定資源 ê 權限。"
+
+#: core/job_error.cpp:626 core/job_error.cpp:903 core/job_error.cpp:921
+#, kde-format
+msgid ""
+"Retry the request and ensure your authentication details are entered "
+"correctly."
+msgstr "請重試請求，而且 mā 請確定你 ê 認證資訊有輸入正確。"
+
+#: core/job_error.cpp:635
+#, kde-format
+msgid "Write Access Denied"
+msgstr "拒絕寫入存取"
+
+#: core/job_error.cpp:637
+#, kde-format
+msgid ""
+"This means that an attempt to write to the file <strong>%1</strong> was "
+"rejected."
+msgstr "這代表寫入檔案 <strong>%1</strong> ê 動作予拒絕--ah。"
+
+#: core/job_error.cpp:645
+#, kde-format
+msgid "Unable to Enter Folder"
+msgstr "無法度入去資料鋏仔"
+
+#: core/job_error.cpp:647
+#, kde-format
+msgid ""
+"This means that an attempt to enter (in other words, to open) the requested "
+"folder <strong>%1</strong> was rejected."
+msgstr ""
+"這代表入去要求 ê 資料鋏仔 <strong>%1</strong>（mā 就是 kā 伊拍開）ê 動作予拒"
+"絕--ah。"
+
+#: core/job_error.cpp:655
+#, kde-format
+msgid "Folder Listing Unavailable"
+msgstr "無法度用資料鋏仔表列"
+
+#: core/job_error.cpp:656
+#, kde-format
+msgid "Protocol %1 is not a Filesystem"
+msgstr "協定 %1 毋是檔案系統"
+
+#: core/job_error.cpp:658
+#, kde-format
+msgid ""
+"This means that a request was made which requires determining the contents "
+"of the folder, and the KDE program supporting this protocol is unable to do "
+"so."
+msgstr ""
+"這代表有做一个請求愛確定資料鋏仔 ê 內容，毋過支援這个協定 ê KDE 程式無法度滿"
+"足這个請求。"
+
+#: core/job_error.cpp:666
+#, kde-format
+msgid "Cyclic Link Detected"
+msgstr "發見循環連結"
+
+#: core/job_error.cpp:668
+#, kde-format
+msgid ""
+"UNIX environments are commonly able to link a file or folder to a separate "
+"name and/or location. KDE detected a link or series of links that results in "
+"an infinite loop - i.e. the file was (perhaps in a roundabout way) linked to "
+"itself."
+msgstr ""
+"UNIX 環境通常會使 kā 檔案猶是資料鋏仔連結到別个名猶是所在。KDE 檢查著會變做無"
+"限循環 ê 連結，就是講檔案最後連結到家己本身。"
+
+#: core/job_error.cpp:673 core/job_error.cpp:699
+#, kde-format
+msgid ""
+"Delete one part of the loop in order that it does not cause an infinite "
+"loop, and try again."
+msgstr "請刣掉循環 ê 一部份，確定伊袂造成無限循環，然後閣試一擺。"
+
+#: core/job_error.cpp:683
+#, kde-format
+msgid "Request Aborted By User"
+msgstr "請求予用者中止--ah"
+
+#: core/job_error.cpp:685 core/job_error.cpp:1074
+#, kde-format
+msgid "The request was not completed because it was aborted."
+msgstr "請求予中止--ah，所以無完成。"
+
+#: core/job_error.cpp:687 core/job_error.cpp:942 core/job_error.cpp:1076
+#, kde-format
+msgid "Retry the request."
+msgstr "重試請求。"
+
+#: core/job_error.cpp:691
+#, kde-format
+msgid "Cyclic Link Detected During Copy"
+msgstr "Khóo-pih ê 時陣發見循環連結"
+
+#: core/job_error.cpp:693
+#, kde-format
+msgid ""
+"UNIX environments are commonly able to link a file or folder to a separate "
+"name and/or location. During the requested copy operation, KDE detected a "
+"link or series of links that results in an infinite loop - i.e. the file was "
+"(perhaps in a roundabout way) linked to itself."
+msgstr ""
+"UNIX 環境通常會使 kā 檔案猶是資料鋏仔連結到別个名猶是所在。Teh 做要求 ê khóo-"
+"pih 操作 ê 時陣，KDE 檢查著會變做無限循環 ê 連結，就是講檔案最後連結到家己本"
+"身。"
+
+#: core/job_error.cpp:705
+#, kde-format
+msgid "Could Not Create Network Connection"
+msgstr "無法度建立網路連線"
+
+#: core/job_error.cpp:706
+#, kde-format
+msgid "Could Not Create Socket"
+msgstr "無法度建立 Socket"
+
+#: core/job_error.cpp:708
+#, kde-format
+msgid ""
+"This is a fairly technical error in which a required device for network "
+"communications (a socket) could not be created."
+msgstr ""
+"這是一个技術上 ê 錯誤：無法度建立網路通訊需要 ê 一个裝置（一个 socket）。"
+
+#: core/job_error.cpp:711 core/job_error.cpp:860 core/job_error.cpp:873
+#: core/job_error.cpp:884
+#, kde-format
+msgid ""
+"The network connection may be incorrectly configured, or the network "
+"interface may not be enabled."
+msgstr "網路連線可能無正確設定，猶是網路介面可能無啟用。"
+
+#: core/job_error.cpp:717
+#, kde-format
+msgid "Connection to Server Refused"
+msgstr "伺服器拒絕連線"
+
+#: core/job_error.cpp:719
+#, kde-format
+msgid ""
+"The server <strong>%1</strong> refused to allow this computer to make a "
+"connection."
+msgstr "伺服器 <strong>%1</strong> 拒絕這个電腦連線。"
+
+#: core/job_error.cpp:723
+#, kde-format
+msgid ""
+"The server, while currently connected to the Internet, may not be configured "
+"to allow requests."
+msgstr "伺服器雖然有連線到網路，毋過可能無設定允准請求。"
+
+#: core/job_error.cpp:726
+#, kde-format
+msgid ""
+"The server, while currently connected to the Internet, may not be running "
+"the requested service (%1)."
+msgstr "伺服器雖然有連線到網路，毋過可能無 leh 執行要求 ê 服務 (%1)。"
+
+#: core/job_error.cpp:730
+#, kde-format
+msgid ""
+"A network firewall (a device which restricts Internet requests), either "
+"protecting your network or the network of the server, may have intervened, "
+"preventing this request."
+msgstr ""
+"一个網路防火牆（限制網路請求 ê 裝置）毋知是 leh 保護你的網路猶是伺服器的網"
+"路，可能介入--ah，予這个請求無法度完成。"
+
+#: core/job_error.cpp:737
+#, kde-format
+msgid "Connection to Server Closed Unexpectedly"
+msgstr "對伺服器 ê 連線雄雄無去--ah"
+
+#: core/job_error.cpp:739
+#, kde-format
+msgid ""
+"Although a connection was established to <strong>%1</strong>, the connection "
+"was closed at an unexpected point in the communication."
+msgstr ""
+"雖然原本已經建立到 <strong>%1</strong> ê 連線，伊煞 leh 通訊 ê 毋知啥物時陣予"
+"關掉--ah。"
+
+#: core/job_error.cpp:745
+#, kde-format
+msgid ""
+"A protocol error may have occurred, causing the server to close the "
+"connection as a response to the error."
+msgstr "可能是有發生協定錯誤，予伺服器反映錯誤來關掉連線。"
+
+#: core/job_error.cpp:751
+#, kde-format
+msgid "URL Resource Invalid"
+msgstr "URL 資源無效"
+
+#: core/job_error.cpp:752
+#, kde-format
+msgid "Protocol %1 is not a Filter Protocol"
+msgstr "協定 %1 毋是一个過濾協定"
+
+#: core/job_error.cpp:754
+#, kde-format
+msgid ""
+"The <strong>U</strong>niform <strong>R</strong>esource <strong>L</"
+"strong>ocator (URL) that you entered did not refer to a valid mechanism of "
+"accessing the specific resource, <strong>%1%2</strong>."
+msgstr ""
+"你輸入 ê URL (英語: <strong>U</strong>niform <strong>R</strong>esource "
+"<strong>L</strong>ocator) 無指向會使存取指定資源 <strong>%1%2</strong> ê 有效"
+"方法。"
+
+#: core/job_error.cpp:761
+#, kde-format
+msgid ""
+"KDE is able to communicate through a protocol within a protocol. This "
+"request specified a protocol be used as such, however this protocol is not "
+"capable of such an action. This is a rare event, and is likely to indicate a "
+"programming error."
+msgstr ""
+
+#: core/job_error.cpp:769
+#, kde-format
+msgid "Unable to Initialize Input/Output Device"
+msgstr ""
+
+#: core/job_error.cpp:770
+#, kde-format
+msgid "Could Not Mount Device"
+msgstr "無法度掛載裝置"
+
+#: core/job_error.cpp:772
+#, kde-format
+msgid ""
+"The requested device could not be initialized (\"mounted\"). The reported "
+"error was: <strong>%1</strong>"
+msgstr ""
+
+#: core/job_error.cpp:776
+#, kde-format
+msgid ""
+"The device may not be ready, for example there may be no media in a "
+"removable media device (i.e. no CD-ROM in a CD drive), or in the case of a "
+"peripheral/portable device, the device may not be correctly connected."
+msgstr ""
+"裝置可能猶未準備好勢，親像可移除媒體裝置內底無媒體（CD 碟無 CD-ROM），猶是手"
+"提裝置猶是週邊裝置無正確連線。"
+
+#: core/job_error.cpp:781
+#, kde-format
+msgid ""
+"You may not have permissions to initialize (\"mount\") the device. On UNIX "
+"systems, often system administrator privileges are required to initialize a "
+"device."
+msgstr ""
+
+#: core/job_error.cpp:786
+#, kde-format
+msgid ""
+"Check that the device is ready; removable drives must contain media, and "
+"portable devices must be connected and powered on.; and try again."
+msgstr ""
+"請檢查裝置已經準備好--ah，可移除磁碟機內底愛有媒體，手提裝置愛連線而且有開；"
+"然後 koh 試一擺。"
+
+#: core/job_error.cpp:793
+#, kde-format
+msgid "Unable to Uninitialize Input/Output Device"
+msgstr ""
+
+#: core/job_error.cpp:794
+#, kde-format
+msgid "Could Not Unmount Device"
+msgstr "無法度卸載裝置"
+
+#: core/job_error.cpp:796
+#, kde-format
+msgid ""
+"The requested device could not be uninitialized (\"unmounted\"). The "
+"reported error was: <strong>%1</strong>"
+msgstr ""
+
+#: core/job_error.cpp:800
+#, kde-format
+msgid ""
+"The device may be busy, that is, still in use by another application or "
+"user. Even such things as having an open browser window on a location on "
+"this device may cause the device to remain in use."
+msgstr ""
+"裝置可能佇咧無閒，意思是講 koh 有應用程式猶是用者佇使用。親像開 ê 瀏覽器視窗"
+"猶是開 ê 一个裝置頂懸 ê 位置攏有可能會予這个裝置變做使用中。"
+
+#: core/job_error.cpp:805
+#, kde-format
+msgid ""
+"You may not have permissions to uninitialize (\"unmount\") the device. On "
+"UNIX systems, system administrator privileges are often required to "
+"uninitialize a device."
+msgstr ""
+
+#: core/job_error.cpp:810
+#, kde-format
+msgid "Check that no applications are accessing the device, and try again."
+msgstr "請確定無應用程式 teh 存取這个裝置，然後閣試一擺。"
+
+#: core/job_error.cpp:816
+#, kde-format
+msgid "Cannot Read From Resource"
+msgstr "無法度讀取資源"
+
+#: core/job_error.cpp:818
+#, kde-format
+msgid ""
+"This means that although the resource, <strong>%1</strong>, was able to be "
+"opened, an error occurred while reading the contents of the resource."
+msgstr ""
+
+#: core/job_error.cpp:822
+#, kde-format
+msgid "You may not have permissions to read from the resource."
+msgstr ""
+
+#: core/job_error.cpp:835
+#, kde-format
+msgid "Cannot Write to Resource"
+msgstr "無法度寫入資源"
+
+#: core/job_error.cpp:837
+#, kde-format
+msgid ""
+"This means that although the resource, <strong>%1</strong>, was able to be "
+"opened, an error occurred while writing to the resource."
+msgstr ""
+
+#: core/job_error.cpp:840
+#, kde-format
+msgid "You may not have permissions to write to the resource."
+msgstr ""
+
+#: core/job_error.cpp:853 core/job_error.cpp:866
+#, kde-format
+msgid "Could Not Listen for Network Connections"
+msgstr "無法度監聽網路連線"
+
+#: core/job_error.cpp:854
+#, kde-format
+msgid "Could Not Bind"
+msgstr ""
+
+#: core/job_error.cpp:856 core/job_error.cpp:869
+#, kde-format
+msgid ""
+"This is a fairly technical error in which a required device for network "
+"communications (a socket) could not be established to listen for incoming "
+"network connections."
+msgstr ""
+
+#: core/job_error.cpp:867
+#, kde-format
+msgid "Could Not Listen"
+msgstr "無法度監聽"
+
+#: core/job_error.cpp:879
+#, kde-format
+msgid "Could Not Accept Network Connection"
+msgstr "無法度接受網路連線"
+
+#: core/job_error.cpp:881
+#, kde-format
+msgid ""
+"This is a fairly technical error in which an error occurred while attempting "
+"to accept an incoming network connection."
+msgstr ""
+
+#: core/job_error.cpp:886
+#, kde-format
+msgid "You may not have permissions to accept the connection."
+msgstr "你可能無權限會使接受連線。"
+
+#: core/job_error.cpp:891
+#, kde-format
+msgid "Could Not Login: %1"
+msgstr "無法度登入：%1"
+
+#: core/job_error.cpp:893
+#, kde-format
+msgid ""
+"An attempt to login to perform the requested operation was unsuccessful."
+msgstr "為著做要求 ê 操作來登入 ê 時陣失敗--ah。"
+
+#: core/job_error.cpp:909
+#, kde-format
+msgid "Could Not Determine Resource Status"
+msgstr "無法度判斷資源狀態"
+
+#: core/job_error.cpp:910
+#, kde-format
+msgid "Could Not Stat Resource"
+msgstr "無法度取得資源 ê 狀態"
+
+#: core/job_error.cpp:912
+#, kde-format
+msgid ""
+"An attempt to determine information about the status of the resource <strong>"
+"%1</strong>, such as the resource name, type, size, etc., was unsuccessful."
+msgstr ""
+
+#: core/job_error.cpp:917
+#, kde-format
+msgid "The specified resource may not have existed or may not be accessible."
+msgstr ""
+
+#. i18n( "Could not terminate listing %1" ).arg( errorText );
+#: core/job_error.cpp:928
+#, kde-format
+msgid "Could Not Cancel Listing"
+msgstr "無法度取消表列"
+
+#: core/job_error.cpp:929
+#, kde-format
+msgid "FIXME: Document this"
+msgstr "FIXME：寫這 ê 文件"
+
+#: core/job_error.cpp:933
+#, kde-format
+msgid "Could Not Create Folder"
+msgstr "無法度建立資料鋏仔"
+
+#: core/job_error.cpp:934
+#, kde-format
+msgid "An attempt to create the requested folder failed."
+msgstr ""
+
+#: core/job_error.cpp:937
+#, kde-format
+msgid "The location where the folder was to be created may not exist."
+msgstr ""
+
+#: core/job_error.cpp:946
+#, kde-format
+msgid "Could Not Remove Folder"
+msgstr "無法度移除資料鋏仔"
+
+#: core/job_error.cpp:948
+#, kde-format
+msgid "An attempt to remove the specified folder, <strong>%1</strong>, failed."
+msgstr ""
+
+#: core/job_error.cpp:951
+#, kde-format
+msgid "The specified folder may not exist."
+msgstr "指定 ê 資料鋏仔可能無存在。"
+
+#: core/job_error.cpp:951
+#, kde-format
+msgid "The specified folder may not be empty."
+msgstr "指定 ê 資料鋏仔可能毋是空的。"
+
+#: core/job_error.cpp:956
+#, kde-format
+msgid "Ensure that the folder exists and is empty, and try again."
+msgstr ""
+
+#: core/job_error.cpp:962
+#, kde-format
+msgid "Could Not Resume File Transfer"
+msgstr ""
+
+#: core/job_error.cpp:964
+#, kde-format
+msgid ""
+"The specified request asked that the transfer of file <strong>%1</strong> be "
+"resumed at a certain point of the transfer. This was not possible."
+msgstr ""
+
+#: core/job_error.cpp:969
+#, kde-format
+msgid "The protocol, or the server, may not support file resuming."
+msgstr ""
+
+#: core/job_error.cpp:972
+#, kde-format
+msgid "Retry the request without attempting to resume transfer."
+msgstr ""
+
+#: core/job_error.cpp:977
+#, kde-format
+msgid "Could Not Rename Resource"
+msgstr ""
+
+#: core/job_error.cpp:979
+#, kde-format
+msgid "An attempt to rename the specified resource <strong>%1</strong> failed."
+msgstr ""
+
+#: core/job_error.cpp:990
+#, kde-format
+msgid "Could Not Alter Permissions of Resource"
+msgstr ""
+
+#: core/job_error.cpp:992
+#, kde-format
+msgid ""
+"An attempt to alter the permissions on the specified resource <strong>%1</"
+"strong> failed."
+msgstr ""
+
+#: core/job_error.cpp:1000
+#, kde-format
+msgid "Could Not Change Ownership of Resource"
+msgstr ""
+
+#: core/job_error.cpp:1002
+#, kde-format
+msgid ""
+"An attempt to change the ownership of the specified resource <strong>%1</"
+"strong> failed."
+msgstr ""
+
+#: core/job_error.cpp:1010
+#, kde-format
+msgid "Could Not Delete Resource"
+msgstr ""
+
+#: core/job_error.cpp:1012
+#, kde-format
+msgid "An attempt to delete the specified resource <strong>%1</strong> failed."
+msgstr ""
+
+#: core/job_error.cpp:1020
+#, kde-format
+msgid "Unexpected Program Termination"
+msgstr ""
+
+#: core/job_error.cpp:1022
+#, kde-format
+msgid ""
+"The program on your computer which provides access to the <strong>%1</"
+"strong> protocol has unexpectedly terminated."
+msgstr ""
+
+#: core/job_error.cpp:1030
+#, kde-format
+msgid "Out of Memory"
+msgstr "無記憶體--ah"
+
+#: core/job_error.cpp:1032
+#, kde-format
+msgid ""
+"The program on your computer which provides access to the <strong>%1</"
+"strong> protocol could not obtain the memory required to continue."
+msgstr ""
+
+#: core/job_error.cpp:1041
+#, kde-format
+msgid "Unknown Proxy Host"
+msgstr "毋知 ê 代理主機"
+
+#: core/job_error.cpp:1043
+#, kde-format
+msgid ""
+"While retrieving information about the specified proxy host, <strong>%1</"
+"strong>, an Unknown Host error was encountered. An unknown host error "
+"indicates that the requested name could not be located on the Internet."
+msgstr ""
+
+#: core/job_error.cpp:1049
+#, kde-format
+msgid ""
+"There may have been a problem with your network configuration, specifically "
+"your proxy's hostname. If you have been accessing the Internet with no "
+"problems recently, this is unlikely."
+msgstr ""
+
+#: core/job_error.cpp:1053
+#, kde-format
+msgid "Double-check your proxy settings and try again."
+msgstr "請檢查你的代理設定敢有著，然後閣試一擺。"
+
+#: core/job_error.cpp:1057
+#, kde-format
+msgid "Authentication Failed: Method %1 Not Supported"
+msgstr "認證失敗：方法 %1 無支援"
+
+#: core/job_error.cpp:1059
+#, kde-format
+msgid ""
+"Although you may have supplied the correct authentication details, the "
+"authentication failed because the method that the server is using is not "
+"supported by the KDE program implementing the protocol %1."
+msgstr ""
+
+#: core/job_error.cpp:1065
+#, kde-format
+msgid ""
+"Please file a bug at <a href=\"https://bugs.kde.org/\">https://bugs.kde.org/"
+"</a> to inform the KDE team of the unsupported authentication method."
+msgstr ""
+
+#: core/job_error.cpp:1072
+#, kde-format
+msgid "Request Aborted"
+msgstr "請求中止--ah"
+
+#: core/job_error.cpp:1080
+#, kde-format
+msgid "Internal Error in Server"
+msgstr "伺服器內部錯誤"
+
+#: core/job_error.cpp:1082
+#, kde-format
+msgid ""
+"The program on the server which provides access to the <strong>%1</strong> "
+"protocol has reported an internal error: %2."
+msgstr ""
+"佇伺服器提供 <strong>%1</strong> 協定存取 ê 程式回報--ah 內部錯誤：%2。"
+
+#: core/job_error.cpp:1088
+#, kde-format
+msgid ""
+"This is most likely to be caused by a bug in the server program. Please "
+"consider submitting a full bug report as detailed below."
+msgstr ""
+
+#: core/job_error.cpp:1092
+#, kde-format
+msgid "Contact the administrator of the server to advise them of the problem."
+msgstr ""
+
+#: core/job_error.cpp:1095
+#, kde-format
+msgid ""
+"If you know who the authors of the server software are, submit the bug "
+"report directly to them."
+msgstr ""
+
+#: core/job_error.cpp:1100
+#, kde-format
+msgid "Timeout Error"
+msgstr "過時錯誤"
+
+#: core/job_error.cpp:1102
+#, kde-format
+msgid ""
+"Although contact was made with the server, a response was not received "
+"within the amount of time allocated for the request."
+msgstr ""
+
+#: core/job_error.cpp:1107
+#, kde-format
+msgid "The server was too busy responding to other requests to respond."
+msgstr ""
+
+#: core/job_error.cpp:1113
+#, kde-format
+msgid "Unknown Error"
+msgstr "毋知的錯誤"
+
+#: core/job_error.cpp:1115
+#, kde-format
+msgid ""
+"The program on your computer which provides access to the <strong>%1</"
+"strong> protocol has reported an unknown error: %2."
+msgstr ""
+
+#: core/job_error.cpp:1125
+#, kde-format
+msgid "Unknown Interruption"
+msgstr ""
+
+#: core/job_error.cpp:1127
+#, kde-format
+msgid ""
+"The program on your computer which provides access to the <strong>%1</"
+"strong> protocol has reported an interruption of an unknown type: %2."
+msgstr ""
+
+#: core/job_error.cpp:1137
+#, kde-format
+msgid "Could Not Delete Original File"
+msgstr ""
+
+#: core/job_error.cpp:1139
+#, kde-format
+msgid ""
+"The requested operation required the deleting of the original file, most "
+"likely at the end of a file move operation. The original file <strong>%1</"
+"strong> could not be deleted."
+msgstr ""
+
+#: core/job_error.cpp:1148
+#, kde-format
+msgid "Could Not Delete Temporary File"
+msgstr "無法度刣掉暫時檔案"
+
+#: core/job_error.cpp:1150
+#, kde-format
+msgid ""
+"The requested operation required the creation of a temporary file in which "
+"to save the new file while being downloaded. This temporary file <strong>%1</"
+"strong> could not be deleted."
+msgstr ""
+"要求 ê 操作需要建立暫時檔案保存 leh 下載 ê 新檔案。毋過這暫時檔案 <strong>"
+"%1</strong> 煞無法度刣掉。"
+
+#: core/job_error.cpp:1160
+#, kde-format
+msgid "Could Not Rename Original File"
+msgstr ""
+
+#: core/job_error.cpp:1162
+#, kde-format
+msgid ""
+"The requested operation required the renaming of the original file <strong>"
+"%1</strong>, however it could not be renamed."
+msgstr ""
+
+#: core/job_error.cpp:1171
+#, kde-format
+msgid "Could Not Rename Temporary File"
+msgstr "無法度 kā 暫時檔案改名"
+
+#: core/job_error.cpp:1173
+#, kde-format
+msgid ""
+"The requested operation required the creation of a temporary file <strong>"
+"%1</strong>, however it could not be created."
+msgstr ""
+"要求 ê 操作需要建立暫時檔案 <strong>%1</strong>，毋過阮煞無法度 kā 伊建立。"
+
+#: core/job_error.cpp:1182
+#, kde-format
+msgid "Could Not Create Link"
+msgstr "無法度建立連結"
+
+#: core/job_error.cpp:1183
+#, kde-format
+msgid "Could Not Create Symbolic Link"
+msgstr "無法度建立符號連結"
+
+#: core/job_error.cpp:1184
+#, kde-format
+msgid "The requested symbolic link %1 could not be created."
+msgstr "要求 ê 符號連結 %1 無法度建立。"
+
+#: core/job_error.cpp:1190
+#, kde-format
+msgid "No Content"
+msgstr "無內容"
+
+#: core/job_error.cpp:1195
+#, kde-format
+msgid "Disk Full"
+msgstr "磁碟滿--ah"
+
+#: core/job_error.cpp:1197
+#, kde-format
+msgid ""
+"The requested file <strong>%1</strong> could not be written to as there is "
+"inadequate disk space."
+msgstr "要求 ê 檔案 <strong>%1</strong> 無法度寫入，因為磁碟空間無夠。"
+
+#: core/job_error.cpp:1201
+#, kde-format
+msgid ""
+"Free up enough disk space by 1) deleting unwanted and temporary files; 2) "
+"archiving files to removable media storage such as CD-Recordable discs; or "
+"3) obtain more storage capacity."
+msgstr ""
+"請先 kā 儲存容量空予出來，會使 (1) 刣掉一寡無需要的暫時的檔案、(2) kā 檔案封"
+"存到 CD-R 光碟這款會使移除的媒體、猶是 (3) 安裝閣跤濟的儲存空間。"
+
+#: core/job_error.cpp:1208
+#, kde-format
+msgid "Source and Destination Files Identical"
+msgstr "來源 kap 目標檔案仝款"
+
+#: core/job_error.cpp:1210
+#, kde-format
+msgid ""
+"The operation could not be completed because the source and destination "
+"files are the same file."
+msgstr ""
+
+#: core/job_error.cpp:1212
+#, kde-format
+msgid "Choose a different filename for the destination file."
+msgstr ""
+
+#: core/job_error.cpp:1216
+#, kde-format
+msgid "File or Folder dropped onto itself"
+msgstr ""
+
+#: core/job_error.cpp:1218
+#, kde-format
+msgid ""
+"The operation could not be completed because the source and destination file "
+"or folder are the same."
+msgstr ""
+
+#: core/job_error.cpp:1220
+#, kde-format
+msgid "Drop the item into a different file or folder."
+msgstr ""
+
+#: core/job_error.cpp:1230
+#, kde-format
+msgid "Folder moved into itself"
+msgstr "Kā 資料鋏仔徙到家己內底--ah"
+
+#: core/job_error.cpp:1232
+#, kde-format
+msgid ""
+"The operation could not be completed because the source can not be moved "
+"into itself."
+msgstr "無法度完成這个操作，因為來源袂當徙入去家己內底。"
+
+#: core/job_error.cpp:1234
+#, kde-format
+msgid "Move the item into a different folder."
+msgstr "Kā 項目徙入去別个資料鋏仔，"
+
+#: core/job_error.cpp:1238
+#, kde-format
+msgid "Could not communicate with password server"
+msgstr "無法度 kap 密碼伺服器通訊"
+
+#: core/job_error.cpp:1240
+#, kde-format
+msgid ""
+"The operation could not be completed because the service for requesting "
+"passwords (kpasswdserver) couldn't be contacted"
+msgstr "操作無法度完成，因為無法度 kap 請求密碼用 ê 服務 (kpasswdserver) 聯絡"
+
+#: core/job_error.cpp:1242
+#, kde-format
+msgid "Try restarting your session, or look in the logs for errors from kiod."
+msgstr "請重啟動你 ê 工作階段，猶是佇紀錄內底揣 uì \"kiod\" 來 ê 錯誤。"
+
+#: core/job_error.cpp:1246
+#, kde-format
+msgid "Cannot Initiate the %1 Protocol"
+msgstr "無法度初期化 %1 協定"
+
+#: core/job_error.cpp:1247
+#, kde-format
+msgid "Unable to Create KIO Worker"
+msgstr "無法度建立 KIO 工作器"
+
+#: core/job_error.cpp:1249
+#, kde-format
+msgid ""
+"The KIO worker which provides access to the <strong>%1</strong> protocol "
+"could not be started. This is usually due to technical reasons."
+msgstr ""
+"無法度啟動提供 <strong>%1</strong> 協定存取 ê KIO 工作器。這通常是因為技術上 "
+"ê 原因。"
+
+#: core/job_error.cpp:1254
+#, kde-format
+msgid ""
+"klauncher could not find or start the plugin which provides the protocol. "
+"This means you may have an outdated version of the plugin."
+msgstr ""
+"klauncher 無法度揣著猶是啟動提供彼个協定 ê 外掛程式。這可能代表你 ê 外掛程式 "
+"ê 版本上舊--ah。"
+
+#: core/job_error.cpp:1260
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Cannot transfer <filename>%1</filename>"
+msgstr "無法度傳輸 <filename>%1</filename>"
+
+#: core/job_error.cpp:1262
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The file <filename>%1</filename> cannot be transferred, because the "
+"destination filesystem does not support files that large"
+msgstr ""
+
+#: core/job_error.cpp:1265
+#, kde-format
+msgid ""
+"Reformat the destination drive to use a filesystem that supports files that "
+"large."
+msgstr ""
+
+#: core/job_error.cpp:1270
+#, kde-format
+msgid "Undocumented Error"
+msgstr "無寫入去文件內 ê 錯誤"
+
+#: core/kfileitem.cpp:1535
+#, kde-format
+msgid "(Symbolic Link to %1)"
+msgstr "(到 %1 ê 符號連結)"
+
+#: core/kfileitem.cpp:1537
+#, kde-format
+msgid "(%1, Link to %2)"
+msgstr "(%1, 到 %2 ê 連結)"
+
+#: core/kfileitem.cpp:1540
+#, kde-format
+msgid " (Points to %1)"
+msgstr " (連結目標：%1)"
+
+#: core/mimetypefinderjob.cpp:57 gui/openurljob.cpp:171
+#: widgets/renamedialog.cpp:679
+#, kde-format
+msgid ""
+"Malformed URL\n"
+"%1"
+msgstr ""
+"不正 ê URL\n"
+"%1"
+
+#: core/mimetypefinderjob.cpp:224
+#, kde-format
+msgid "Unable to determine the type of file for %1"
+msgstr "無法度為著 %1 判斷檔案類"
+
+#: core/openwith.cpp:91
+#, kde-format
+msgid ""
+"Could not extract executable name from '%1', please type a valid program "
+"name."
+msgstr ""
+
+#: core/openwith.cpp:143
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename> does not appear to be an executable program."
+msgstr ""
+
+#: core/openwith.cpp:144
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"<filename>%1</filename> was not found; please enter a valid path to an "
+"executable program."
+msgstr "揣無 <filename>%1</filename>；請輸入會使執行 ê 程式 ê 有效路徑。"
+
+#: core/slavebase.cpp:776
+#, kde-format
+msgid "Opening connections is not supported with the protocol %1."
+msgstr ""
+
+#: core/slavebase.cpp:778
+#, kde-format
+msgid "Closing connections is not supported with the protocol %1."
+msgstr ""
+
+#: core/slavebase.cpp:780
+#, kde-format
+msgid "Accessing files is not supported with the protocol %1."
+msgstr ""
+
+#: core/slavebase.cpp:782
+#, kde-format
+msgid "Writing to %1 is not supported."
+msgstr "無支援寫入 %1。"
+
+#: core/slavebase.cpp:784
+#, kde-format
+msgid "There are no special actions available for protocol %1."
+msgstr ""
+
+#: core/slavebase.cpp:786
+#, kde-format
+msgid "Listing folders is not supported for protocol %1."
+msgstr ""
+
+#: core/slavebase.cpp:788
+#, kde-format
+msgid "Retrieving data from %1 is not supported."
+msgstr "無支援 uì %1 取得資料。"
+
+#: core/slavebase.cpp:790
+#, kde-format
+msgid "Retrieving mime type information from %1 is not supported."
+msgstr "無支援 uì %1 取得 MIME 類別資訊。"
+
+#: core/slavebase.cpp:792
+#, kde-format
+msgid "Renaming or moving files within %1 is not supported."
+msgstr "無支援佇 %1 內底 kā 檔案改名猶是徙位。"
+
+#: core/slavebase.cpp:794
+#, kde-format
+msgid "Creating symlinks is not supported with protocol %1."
+msgstr "無支援用協定 %1 ê 時陣建立符號連結。"
+
+#: core/slavebase.cpp:796
+#, kde-format
+msgid "Copying files within %1 is not supported."
+msgstr "無支援佇 %1 內底 khóo-pih 檔案。"
+
+#: core/slavebase.cpp:798
+#, kde-format
+msgid "Deleting files from %1 is not supported."
+msgstr "無支援 uì %1 刣掉檔案。"
+
+#: core/slavebase.cpp:800
+#, kde-format
+msgid "Creating folders is not supported with protocol %1."
+msgstr "無支援用協定 %1 ê 時陣建立資料鋏仔。"
+
+#: core/slavebase.cpp:802
+#, kde-format
+msgid "Changing the attributes of files is not supported with protocol %1."
+msgstr ""
+
+#: core/slavebase.cpp:804
+#, kde-format
+msgid "Changing the ownership of files is not supported with protocol %1."
+msgstr "佇協定 %1 無支援改變檔案 ê 所有者。"
+
+#: core/slavebase.cpp:806
+#, kde-format
+msgid "Opening files is not supported with protocol %1."
+msgstr "佇協定 %1 無支援開檔案。"
+
+#: core/slavebase.cpp:808
+#, kde-format
+msgid "Protocol %1 does not support action %2."
+msgstr "協定 %1 無支援動作 %2。"
+
+#: core/socketconnectionbackend.cpp:120
+#, kde-format
+msgid "Unable to create KIO worker: %1"
+msgstr "無法度建立 KIO 工作器：%1"
+
+#: core/worker.cpp:403
+#, kde-format
+msgctxt "@info %2 is a path"
+msgid ""
+"The security of the KIO worker for protocol ’%1’, which typically asks for "
+"elevated permissions, can not be guaranteed because users other than root "
+"have permission to modify it at %2."
+msgstr ""
+"協定「%1」ê KIO 工作器平常會要求提高權限，毋過伊 ê 安全 suah 無法度保證，因"
+"為 root 以外 ê 用者 mā 有權限佇 %2 kā 伊修改。"
+
+#: core/worker.cpp:440
+#, kde-format
+msgid "Unknown protocol '%1'."
+msgstr "毋知 ê 協定「%1」。"
+
+#: core/worker.cpp:451
+#, kde-format
+msgid "Can not find a KIO worker for protocol '%1'."
+msgstr ""
+
+#: core/worker.cpp:458
+#, kde-format
+msgctxt "@info %2 and %3 are paths"
+msgid ""
+"The KIO worker for protocol “%1” in %2 was not loaded because all KIO "
+"workers which are located outside of %3 and ask for elevated privileges are "
+"considered insecure."
+msgstr ""
+
+#: core/worker.cpp:498
+#, kde-format
+msgid "Can not create a socket for launching a KIO worker for protocol '%1'."
+msgstr ""
+
+#: core/worker.cpp:518
+#, kde-format
+msgid "Can not find 'kioworker' executable at '%1'"
+msgstr ""
+
+#: core/workerinterface.cpp:340 widgets/sslui.cpp:61
+#: widgets/widgetsaskuseractionhandler.cpp:517
+#, kde-format
+msgid "&Details"
+msgstr "詳細(&D)"
+
+#: core/workerinterface.cpp:342 kioworkers/http/http.cpp:320
+#: widgets/sslui.cpp:97
+#, kde-format
+msgid "&Forever"
+msgstr "永遠(&F)"
+
+#: core/workerinterface.cpp:346 widgets/sslui.cpp:62
+#, kde-format
+msgid "Co&ntinue"
+msgstr "繼續(&N)"
+
+#: core/workerinterface.cpp:348 kioworkers/http/http.cpp:321
+#: widgets/sslui.cpp:98
+#, kde-format
+msgid "&Current Session only"
+msgstr "Kan-na 這个工作階段(&C)"
+
+#: filewidgets/dropIntoNewFolder/dropintonewfolderPlugin.cpp:54
+#, kde-format
+msgctxt "@action:inmenu Context menu shown when files are dragged"
+msgid "Move Into New Folder"
+msgstr "Suá 到新的資料鋏仔內"
+
+#: filewidgets/dropIntoNewFolder/dropintonewfolderPlugin.cpp:71
+#, kde-format
+msgctxt "@title:window"
+msgid "Create New Folder for These Items"
+msgstr "為遮个項目建立新的資料鋏仔"
+
+#: filewidgets/kdiroperator.cpp:314
+#, kde-format
+msgctxt "Loading bar percent value"
+msgid "%p%"
+msgstr "%p%"
+
+#: filewidgets/kdiroperator.cpp:728 filewidgets/kdiroperator.cpp:761
+#, kde-format
+msgid "You did not select a file to delete."
+msgstr "你無選 ài 刣掉 ê 檔案。"
+
+#: filewidgets/kdiroperator.cpp:728 filewidgets/kdiroperator.cpp:761
+#, kde-format
+msgid "Nothing to Delete"
+msgstr "無會當刣掉 ê 物件"
+
+#: filewidgets/kdiroperator.cpp:774 filewidgets/kdiroperator.cpp:862
+#, kde-format
+msgid "You did not select a file to trash."
+msgstr "你無選 ài 徙去糞埽桶 ê 檔案。"
+
+#: filewidgets/kdiroperator.cpp:774 filewidgets/kdiroperator.cpp:862
+#, kde-format
+msgid "Nothing to Trash"
+msgstr "無會當徙去糞埽桶 ê 物件"
+
+#: filewidgets/kdiroperator.cpp:934 filewidgets/kdiroperator.cpp:1057
+#, kde-format
+msgid "The specified folder does not exist or was not readable."
+msgstr "指定 ê 資料鋏仔無存在 á-sī 無法度讀取。"
+
+#: filewidgets/kdiroperator.cpp:2044
+#, kde-format
+msgid "Menu"
+msgstr "選單"
+
+#: filewidgets/kdiroperator.cpp:2049
+#, kde-format
+msgid "Parent Folder"
+msgstr "頂層資料鋏仔"
+
+#: filewidgets/kdiroperator.cpp:2056
+#, kde-format
+msgctxt "@info"
+msgid "Go back"
+msgstr "轉去"
+
+#: filewidgets/kdiroperator.cpp:2060
+#, kde-format
+msgctxt "@info"
+msgid "Go forward"
+msgstr "向前"
+
+#: filewidgets/kdiroperator.cpp:2064
+#, kde-format
+msgid "Home Folder"
+msgstr "家目錄"
+
+#: filewidgets/kdiroperator.cpp:2068
+#, kde-format
+msgid "Reload"
+msgstr "重載入"
+
+#: filewidgets/kdiroperator.cpp:2071
+#, kde-format
+msgctxt "@action"
+msgid "New Folder…"
+msgstr "建立資料鋏仔…"
+
+#: filewidgets/kdiroperator.cpp:2081 widgets/jobuidelegate.cpp:271
+#: widgets/jobuidelegate.cpp:272 widgets/jobuidelegate.cpp:281
+#: widgets/jobuidelegate.cpp:282 widgets/widgetsaskuseractionhandler.cpp:312
+#, kde-format
+msgid "Move to Trash"
+msgstr "徙去糞埽桶"
+
+#: filewidgets/kdiroperator.cpp:2087
+#, kde-format
+msgid "Delete"
+msgstr "刣掉"
+
+#: filewidgets/kdiroperator.cpp:2094
+#, kde-format
+msgid "Sorting"
+msgstr "順序"
+
+#: filewidgets/kdiroperator.cpp:2099
+#, kde-format
+msgid "Sort by Name"
+msgstr "用名來排序"
+
+#: filewidgets/kdiroperator.cpp:2105
+#, kde-format
+msgid "Sort by Size"
+msgstr "用大細來排序"
+
+#: filewidgets/kdiroperator.cpp:2111
+#, kde-format
+msgid "Sort by Date"
+msgstr "用日期來排序"
+
+#: filewidgets/kdiroperator.cpp:2117
+#, kde-format
+msgid "Sort by Type"
+msgstr "用類來排序"
+
+#: filewidgets/kdiroperator.cpp:2126
+#, kde-format
+msgid "Ascending"
+msgstr "增序"
+
+#: filewidgets/kdiroperator.cpp:2133
+#, kde-format
+msgid "Descending"
+msgstr "減序"
+
+#: filewidgets/kdiroperator.cpp:2140
+#, kde-format
+msgid "Folders First"
+msgstr "資料鋏仔佇頭前"
+
+#: filewidgets/kdiroperator.cpp:2146
+#, kde-format
+msgid "Hidden Files Last"
+msgstr "隱藏檔案佇上尾"
+
+#: filewidgets/kdiroperator.cpp:2153
+#, kde-format
+msgid "Icons View"
+msgstr "圖示檢視"
+
+#: filewidgets/kdiroperator.cpp:2160
+#, kde-format
+msgid "Compact View"
+msgstr ""
+
+#: filewidgets/kdiroperator.cpp:2167
+#, kde-format
+msgid "Details View"
+msgstr "詳細檢視"
+
+#: filewidgets/kdiroperator.cpp:2186
+#, kde-format
+msgid "Icon Position"
+msgstr "圖示位置"
+
+#: filewidgets/kdiroperator.cpp:2189
+#, kde-format
+msgid "Next to File Name"
+msgstr "佇檔名邊仔"
+
+#: filewidgets/kdiroperator.cpp:2195
+#, kde-format
+msgid "Above File Name"
+msgstr "Teh 檔名頂懸"
+
+#: filewidgets/kdiroperator.cpp:2209
+#, kde-format
+msgid "Short View"
+msgstr ""
+
+#: filewidgets/kdiroperator.cpp:2216
+#, kde-format
+msgid "Detailed View"
+msgstr "詳細檢視"
+
+#: filewidgets/kdiroperator.cpp:2223
+#, kde-format
+msgid "Tree View"
+msgstr ""
+
+#: filewidgets/kdiroperator.cpp:2230
+#, kde-format
+msgid "Detailed Tree View"
+msgstr ""
+
+#: filewidgets/kdiroperator.cpp:2243
+#, kde-format
+msgid "Allow Expansion in Details View"
+msgstr ""
+
+#: filewidgets/kdiroperator.cpp:2249
+#, kde-format
+msgid "Show Hidden Files"
+msgstr "顯示隱藏檔案"
+
+#: filewidgets/kdiroperator.cpp:2256
+#, kde-format
+msgid "Show Preview Panel"
+msgstr "顯示預覽面板"
+
+#: filewidgets/kdiroperator.cpp:2263
+#, kde-format
+msgid "Show Preview"
+msgstr "顯示預覽"
+
+#: filewidgets/kdiroperator.cpp:2270
+#, kde-format
+msgid "Open Containing Folder"
+msgstr "拍開保存資料鋏仔"
+
+#: filewidgets/kdiroperator.cpp:2277 filewidgets/kfileplacesview.cpp:1274
+#, kde-format
+msgid "Properties"
+msgstr "屬性"
+
+#: filewidgets/kdiroperator.cpp:2286
+#, kde-format
+msgid "&View Mode"
+msgstr "檢視模式(&V)"
+
+#: filewidgets/kdiroperator.cpp:2389 filewidgets/kdiroperator.cpp:2401
+#, kde-format
+msgctxt "Sort descending"
+msgid "Z-A"
+msgstr "Z-A"
+
+#: filewidgets/kdiroperator.cpp:2390 filewidgets/kdiroperator.cpp:2402
+#, kde-format
+msgctxt "Sort ascending"
+msgid "A-Z"
+msgstr "A-Z"
+
+#: filewidgets/kdiroperator.cpp:2393
+#, kde-format
+msgctxt "Sort ascending"
+msgid "Oldest First"
+msgstr "舊 ê 佇頭前"
+
+#: filewidgets/kdiroperator.cpp:2394
+#, kde-format
+msgctxt "Sort descending"
+msgid "Newest First"
+msgstr "新 ê 佇頭前"
+
+#: filewidgets/kdiroperator.cpp:2397
+#, kde-format
+msgctxt "Sort descending"
+msgid "Largest First"
+msgstr "大 ê 佇頭前"
+
+#: filewidgets/kdiroperator.cpp:2398
+#, kde-format
+msgctxt "Sort ascending"
+msgid "Smallest First"
+msgstr "細 ê 佇頭前"
+
+#: filewidgets/kencodingfiledialog.cpp:73
+#, kde-format
+msgid "Encoding:"
+msgstr "編碼："
+
+#: filewidgets/kencodingfiledialog.cpp:123
+#: filewidgets/kencodingfiledialog.cpp:137
+#: filewidgets/kencodingfiledialog.cpp:150
+#: filewidgets/kencodingfiledialog.cpp:164 widgets/kurlrequesterdialog.cpp:105
+#, kde-format
+msgid "Open"
+msgstr "Phah-khui"
+
+#: filewidgets/kencodingfiledialog.cpp:178
+#: filewidgets/kencodingfiledialog.cpp:196
+#, kde-format
+msgid "Save As"
+msgstr "用別个名儲存"
+
+#: filewidgets/kfilecopytomenu.cpp:88
+#, kde-format
+msgctxt "@title:menu"
+msgid "Copy To"
+msgstr "Khóo-pih 去"
+
+#: filewidgets/kfilecopytomenu.cpp:94
+#, kde-format
+msgctxt "@title:menu"
+msgid "Move To"
+msgstr "徙去"
+
+#: filewidgets/kfilecopytomenu.cpp:119
+#, kde-format
+msgctxt "@title:menu"
+msgid "Home Folder"
+msgstr "家目錄"
+
+#: filewidgets/kfilecopytomenu.cpp:127
+#, kde-format
+msgctxt "@title:menu"
+msgid "Root Folder"
+msgstr "根目錄"
+
+#: filewidgets/kfilecopytomenu.cpp:163
+#, kde-format
+msgctxt "@action:inmenu in Copy To or Move To submenu"
+msgid "Browse…"
+msgstr "瀏覽…"
+
+#: filewidgets/kfilecopytomenu.cpp:244
+#, kde-format
+msgctxt "@title:menu"
+msgid "Copy Here"
+msgstr "Khóo-pih 到遮"
+
+#: filewidgets/kfilecopytomenu.cpp:244
+#, kde-format
+msgctxt "@title:menu"
+msgid "Move Here"
+msgstr "Suá 到遮"
+
+#: filewidgets/kfilefiltercombo.cpp:37
+#, kde-format
+msgctxt "Default mime type filter that shows all file types"
+msgid "*|All Files"
+msgstr "*|所有的檔案"
+
+#: filewidgets/kfilefiltercombo.cpp:123
+#, kde-format
+msgctxt "%1 is the mimetype name, %2 is the extensions"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: filewidgets/kfilefiltercombo.cpp:160
+#, kde-format
+msgid "All Supported Files"
+msgstr "所有支援 ê 檔案"
+
+#: filewidgets/kfilefiltercombo.cpp:169 filewidgets/kfilefiltercombo.cpp:171
+#: filewidgets/kfilewidget.cpp:2057
+#, kde-format
+msgid "All Files"
+msgstr "所有 ê 檔案"
+
+#: filewidgets/kfileplaceeditdialog.cpp:68
+#, kde-format
+msgid "Add Places Entry"
+msgstr "添位置項目"
+
+#: filewidgets/kfileplaceeditdialog.cpp:70
+#, kde-format
+msgid "Edit Places Entry"
+msgstr "編輯位置項目"
+
+#: filewidgets/kfileplaceeditdialog.cpp:80
+#, kde-format
+msgid ""
+"<qt>This is the text that will appear in the Places panel.<br /><br />The "
+"label should consist of one or two words that will help you remember what "
+"this entry refers to. If you do not enter a label, it will be derived from "
+"the location's URL.</qt>"
+msgstr ""
+
+#: filewidgets/kfileplaceeditdialog.cpp:86
+#, kde-format
+msgid "L&abel:"
+msgstr ""
+
+#: filewidgets/kfileplaceeditdialog.cpp:88
+#, kde-format
+msgid "Enter descriptive label here"
+msgstr "佇 tsia 輸入說明描述"
+
+#: filewidgets/kfileplaceeditdialog.cpp:93
+#, kde-format
+msgid ""
+"<qt>This is the location associated with the entry. Any valid URL may be "
+"used. For example:<br /><br />%1<br />http://www.kde.org<br />ftp://ftp.kde."
+"org/pub/kde/stable<br /><br />By clicking on the button next to the text "
+"edit box you can browse to an appropriate URL.</qt>"
+msgstr ""
+
+#: filewidgets/kfileplaceeditdialog.cpp:100
+#, kde-format
+msgid "&Location:"
+msgstr "位置(&L):"
+
+#: filewidgets/kfileplaceeditdialog.cpp:107
+#, kde-format
+msgid ""
+"<qt>This is the icon that will appear in the Places panel.<br /><br />Click "
+"on the button to select a different icon.</qt>"
+msgstr ""
+
+#: filewidgets/kfileplaceeditdialog.cpp:128
+#, kde-format
+msgid "Choose an &icon:"
+msgstr "選圖示(&I)："
+
+#: filewidgets/kfileplaceeditdialog.cpp:138
+#, kde-format
+msgid "&Only show when using this application (%1)"
+msgstr ""
+
+#: filewidgets/kfileplaceeditdialog.cpp:141
+#, kde-format
+msgid ""
+"<qt>Select this setting if you want this entry to show only when using the "
+"current application (%1).<br /><br />If this setting is not selected, the "
+"entry will be available in all applications.</qt>"
+msgstr ""
+
+#: filewidgets/kfileplacesitem.cpp:221
+#, kde-format
+msgctxt "@item"
+msgid "Places"
+msgstr "位置"
+
+#: filewidgets/kfileplacesitem.cpp:224
+#, kde-format
+msgctxt "@item"
+msgid "Remote"
+msgstr "遠端"
+
+#: filewidgets/kfileplacesitem.cpp:227
+#, kde-format
+msgctxt "@item The place group section name for recent dynamic lists"
+msgid "Recent"
+msgstr "近來"
+
+#: filewidgets/kfileplacesitem.cpp:230
+#, kde-format
+msgctxt "@item"
+msgid "Search For"
+msgstr "Tshuē"
+
+#: filewidgets/kfileplacesitem.cpp:233
+#, kde-format
+msgctxt "@item"
+msgid "Devices"
+msgstr "裝置"
+
+#: filewidgets/kfileplacesitem.cpp:236
+#, kde-format
+msgctxt "@item"
+msgid "Removable Devices"
+msgstr "可移除裝置"
+
+#: filewidgets/kfileplacesitem.cpp:239
+#, kde-format
+msgctxt "@item"
+msgid "Tags"
+msgstr "標籤"
+
+#: filewidgets/kfileplacesitem.cpp:344
+#, kde-format
+msgctxt "@info:tooltip path (mounted from)"
+msgid "%1 (from %2)"
+msgstr "%1 (uì %2)"
+
+#: filewidgets/kfileplacesmodel.cpp:162
+msgctxt "KFile System Bookmarks"
+msgid "All tags"
+msgstr "所有 ê 標籤"
+
+#. i18nc calls has to be "KFile System Bookmarks".
+#. The real i18nc call is made later, with this context, so the two must match.
+#: filewidgets/kfileplacesmodel.cpp:258
+msgctxt "KFile System Bookmarks"
+msgid "Home"
+msgstr "頭頁"
+
+#: filewidgets/kfileplacesmodel.cpp:267
+msgctxt "KFile System Bookmarks"
+msgid "Desktop"
+msgstr "桌面"
+
+#: filewidgets/kfileplacesmodel.cpp:274
+msgctxt "KFile System Bookmarks"
+msgid "Documents"
+msgstr "文件"
+
+#: filewidgets/kfileplacesmodel.cpp:281
+msgctxt "KFile System Bookmarks"
+msgid "Downloads"
+msgstr "下載"
+
+#: filewidgets/kfileplacesmodel.cpp:286
+msgctxt "KFile System Bookmarks"
+msgid "Network"
+msgstr "網路"
+
+#: filewidgets/kfileplacesmodel.cpp:291
+msgctxt "KFile System Bookmarks"
+msgid "Trash"
+msgstr "糞埽桶"
+
+#: filewidgets/kfileplacesmodel.cpp:352
+msgctxt "KFile System Bookmarks"
+msgid "Music"
+msgstr "音樂"
+
+#: filewidgets/kfileplacesmodel.cpp:359
+msgctxt "KFile System Bookmarks"
+msgid "Pictures"
+msgstr "圖片"
+
+#: filewidgets/kfileplacesmodel.cpp:368
+msgctxt "KFile System Bookmarks"
+msgid "Videos"
+msgstr "影片"
+
+#: filewidgets/kfileplacesmodel.cpp:395
+msgctxt "KFile System Bookmarks"
+msgid "Recent Files"
+msgstr "近來 ê 檔案"
+
+#: filewidgets/kfileplacesmodel.cpp:400
+msgctxt "KFile System Bookmarks"
+msgid "Recent Locations"
+msgstr "近來 ê 位置"
+
+#: filewidgets/kfileplacesmodel.cpp:423
+msgctxt "KFile System Bookmarks"
+msgid "Modified Today"
+msgstr "今仔日修改--ê"
+
+#: filewidgets/kfileplacesmodel.cpp:427
+msgctxt "KFile System Bookmarks"
+msgid "Modified Yesterday"
+msgstr "昨昏修改--ê"
+
+#: filewidgets/kfileplacesmodel.cpp:1134
+#, kde-format
+msgctxt "Placeholder is error message"
+msgid "Could not add to the Places panel: %1"
+msgstr "無法度添到位置面板：%1"
+
+#: filewidgets/kfileplacesmodel.cpp:1141
+#, kde-format
+msgid "Only folders can be added to the Places panel."
+msgstr "只有資料鋏仔會使添到位置面板內底。"
+
+#: filewidgets/kfileplacesmodel.cpp:1384
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Configure…"
+msgstr "設定…"
+
+#: filewidgets/kfileplacesmodel.cpp:1420
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Releasing…"
+msgstr "Tī-leh 退出…"
+
+#: filewidgets/kfileplacesmodel.cpp:1422
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Release"
+msgstr "退出(&R)"
+
+#: filewidgets/kfileplacesmodel.cpp:1426
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Safely Removing…"
+msgstr "Tī-leh 安全退出…"
+
+#: filewidgets/kfileplacesmodel.cpp:1428
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Safely Remove"
+msgstr "安全退出(&S)"
+
+#: filewidgets/kfileplacesmodel.cpp:1433
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Unmounting…"
+msgstr "Tī-leh 卸載…"
+
+#: filewidgets/kfileplacesmodel.cpp:1435
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Unmount"
+msgstr "卸載(&U)"
+
+#: filewidgets/kfileplacesmodel.cpp:1459
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Eject"
+msgstr "退出(&E)"
+
+#: filewidgets/kfileplacesmodel.cpp:1506
+#, kde-format
+msgid "The device '%1' is not a disk and cannot be ejected."
+msgstr "裝置「%1」毋是磁碟，無法度退出。"
+
+#: filewidgets/kfileplacesmodel.cpp:1542
+#, kde-format
+msgid "An error occurred while accessing '%1', the system responded: %2"
+msgstr ""
+
+#: filewidgets/kfileplacesmodel.cpp:1544
+#, kde-format
+msgid "An error occurred while accessing '%1'"
+msgstr ""
+
+#: filewidgets/kfileplacesmodel.cpp:1571
+#, kde-format
+msgid "One or more files on this device are open within an application."
+msgstr "這个裝置頂懸有檔案猶予應用程式開--leh。"
+
+#: filewidgets/kfileplacesmodel.cpp:1574
+#, kde-kuit-format
+msgid ""
+"One or more files on this device are opened in application <application>"
+"\"%2\"</application>."
+msgid_plural ""
+"One or more files on this device are opened in following applications: "
+"<application>%2</application>."
+msgstr[0] ""
+"這个裝置頂懸有檔案猶予這寡應用程式開--leh：<application>%2</application>。"
+
+#: filewidgets/kfileplacesmodel.cpp:1577
+#, kde-format
+msgctxt "separator in list of apps blocking device unmount"
+msgid ", "
+msgstr ", "
+
+#: filewidgets/kfileplacesmodel.cpp:1624
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Reformat or Edit with Partition Manager"
+msgstr ""
+
+#: filewidgets/kfileplacesview.cpp:335
+#, kde-format
+msgctxt "@info:tooltip full display text since it is elided: original tooltip"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#: filewidgets/kfileplacesview.cpp:352
+#: widgets/kpropertiesdialogbuiltin_p.cpp:722
+#, kde-format
+msgctxt "Available space out of total partition size (percent used)"
+msgid "%1 free of %2 (%3% used)"
+msgstr ""
+
+#: filewidgets/kfileplacesview.cpp:678
+#, kde-format
+msgid "%1 (hidden)"
+msgstr "%1 (隱藏)"
+
+#: filewidgets/kfileplacesview.cpp:1232
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Empty Trash"
+msgstr "清除糞埽桶"
+
+#: filewidgets/kfileplacesview.cpp:1257
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Mount"
+msgstr "掛載"
+
+#: filewidgets/kfileplacesview.cpp:1267
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Open in New Tab"
+msgstr "開佇新分頁"
+
+#: filewidgets/kfileplacesview.cpp:1270
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Open in New Window"
+msgstr "開佇新視窗"
+
+#: filewidgets/kfileplacesview.cpp:1279
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Add Entry…"
+msgstr "添項目…"
+
+#: filewidgets/kfileplacesview.cpp:1285
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Edit…"
+msgstr "編輯(&E)…"
+
+#: filewidgets/kfileplacesview.cpp:1290
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Remove from Places"
+msgstr "Uì 位置面板移除"
+
+#: filewidgets/kfileplacesview.cpp:1294
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Hide"
+msgstr "隱藏(&H)"
+
+#: filewidgets/kfileplacesview.cpp:1302
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Hide Section '%1'"
+msgstr "隱藏區域「%1」"
+
+#: filewidgets/kfileplacesview.cpp:1302
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Hide Section"
+msgstr "隱藏區域"
+
+#: filewidgets/kfileplacesview.cpp:1310
+#, kde-format
+msgid "&Show All Entries"
+msgstr "顯示所有項目(&S)"
+
+#: filewidgets/kfileplacesview.cpp:1315
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Icon Size"
+msgstr "圖示大細"
+
+#: filewidgets/kfileplacesview.cpp:1436
+#, kde-format
+msgctxt ""
+"@item:inmenu Auto set icon size based on available space inthe Places side-"
+"panel"
+msgid "Auto Resize"
+msgstr "自動撨大細"
+
+#: filewidgets/kfileplacesview.cpp:1456
+#, kde-format
+msgctxt "Small icon size"
+msgid "Small (%1x%1)"
+msgstr "細 (%1x%1)"
+
+#: filewidgets/kfileplacesview.cpp:1459
+#, kde-format
+msgctxt "Medium icon size"
+msgid "Medium (%1x%1)"
+msgstr "中 (%1x%1)"
+
+#: filewidgets/kfileplacesview.cpp:1462
+#, kde-format
+msgctxt "Large icon size"
+msgid "Large (%1x%1)"
+msgstr "大 (%1x%1)"
+
+#: filewidgets/kfileplacesview.cpp:1465
+#, kde-format
+msgctxt "Huge icon size"
+msgid "Huge (%1x%1)"
+msgstr "足大 (%1x%1)"
+
+#: filewidgets/kfilewidget.cpp:637
+#, kde-format
+msgid "You can only select one file"
+msgstr "只會使選一个檔案"
+
+#: filewidgets/kfilewidget.cpp:637
+#, kde-format
+msgid "More than one file provided"
+msgstr "提供--ah 上濟檔案"
+
+#: filewidgets/kfilewidget.cpp:813
+#, kde-format
+msgid "You can only select local files"
+msgstr "只會使選本地檔案"
+
+#: filewidgets/kfilewidget.cpp:813
+#, kde-format
+msgid "Remote files not accepted"
+msgstr "無接受遠端檔案"
+
+#: filewidgets/kfilewidget.cpp:820
+#, kde-format
+msgid ""
+"The selected URL uses an unsupported scheme. Please use the following "
+"scheme: %2"
+msgid_plural ""
+"The selected URL uses an unsupported scheme. Please use one of the following "
+"schemes: %2"
+msgstr[0] ""
+
+#: filewidgets/kfilewidget.cpp:826
+#, kde-format
+msgid "Unsupported URL scheme"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:847
+#, kde-format
+msgid "The file \"%1\" could not be found"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:847
+#, kde-format
+msgid "Cannot open file"
+msgstr "無法度開檔案"
+
+#: filewidgets/kfilewidget.cpp:1216
+#, kde-format
+msgid ""
+"<qt>Click this button to enter the parent folder.<br /><br />For instance, "
+"if the current location is file:/home/konqi clicking this button will take "
+"you to file:/home.</qt>"
+msgstr ""
+"<qt>揤這个鈕來入去頂層資料鋏仔。<br /><br />例：若這馬佇 file:/home/konqi，揤"
+"這揤鈕會 tshuā 你去 file:/home。</qt>"
+
+#: filewidgets/kfilewidget.cpp:1220
+#, kde-format
+msgid "Click this button to move backwards one step in the browsing history."
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1221
+#, kde-format
+msgid "Click this button to move forward one step in the browsing history."
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1223
+#, kde-format
+msgid "Click this button to reload the contents of the current location."
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1225
+#, kde-format
+msgid "Click this button to create a new folder."
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1227
+#, kde-format
+msgid "Show Places Panel"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1234
+#, kde-format
+msgid "Show Quick Filter"
+msgstr "顯示快速過濾"
+
+#: filewidgets/kfilewidget.cpp:1242
+#, kde-format
+msgid "Options"
+msgstr "選項"
+
+#: filewidgets/kfilewidget.cpp:1245
+#, kde-format
+msgid ""
+"<qt>This is the preferences menu for the file dialog. Various options can be "
+"accessed from this menu including: <ul><li>how files are sorted in the list</"
+"li><li>types of view, including icon and list</li><li>showing of hidden "
+"files</li><li>the Places panel</li><li>file previews</li><li>separating "
+"folders from files</li></ul></qt>"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1264
+#, kde-format
+msgid "Bookmarks"
+msgstr "書籤"
+
+#: filewidgets/kfilewidget.cpp:1268
+#, kde-format
+msgid ""
+"<qt>This button allows you to bookmark specific locations. Click on this "
+"button to open the bookmark menu where you may add, edit or select a "
+"bookmark.<br /><br />These bookmarks are specific to the file dialog, but "
+"otherwise operate like bookmarks elsewhere in KDE.</qt>"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, nameLabel)
+#: filewidgets/kfilewidget.cpp:1313 widgets/kpropertiesdesktopbase.ui:22
+#, kde-format
+msgid "&Name:"
+msgstr "名(&N):"
+
+#: filewidgets/kfilewidget.cpp:1338
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Undo filename change"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1393
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Keep Filter When Changing Folders"
+msgstr "資料鋏仔有變 ê 時陣 mā 保留 Lī-á"
+
+#: filewidgets/kfilewidget.cpp:1397
+#, kde-format
+msgid "Filter by name…"
+msgstr "用名來過濾…"
+
+#: filewidgets/kfilewidget.cpp:1405
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Hide Filter Bar"
+msgstr "藏過濾列"
+
+#: filewidgets/kfilewidget.cpp:1454
+#, kde-format
+msgid ""
+"<qt>While typing in the text area, you may be presented with possible "
+"matches. This feature can be controlled by clicking with the right mouse "
+"button and selecting a preferred mode from the <b>Text Completion</b> menu.</"
+"qt>"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1461
+#, kde-format
+msgid "This is the name to save the file as."
+msgstr "這是 ài kā 檔案存做 ê 名。"
+
+#: filewidgets/kfilewidget.cpp:1464
+#, kde-format
+msgid ""
+"This is the list of files to open. More than one file can be specified by "
+"listing several files, separated by spaces."
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1469
+#, kde-format
+msgid "This is the name of the file to open."
+msgstr "這是 ài 開 ê 檔案 ê 名。"
+
+#: filewidgets/kfilewidget.cpp:1482
+#, kde-format
+msgctxt "@title:window"
+msgid "Places"
+msgstr "位置"
+
+#: filewidgets/kfilewidget.cpp:1763
+#, kde-format
+msgid "The file \"%1\" already exists. Do you wish to overwrite it?"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:1764
+#, kde-format
+msgid "Overwrite File?"
+msgstr "取代檔案？"
+
+#: filewidgets/kfilewidget.cpp:1961
+#, kde-format
+msgid "You can only select local files."
+msgstr "只會使選本地檔案。"
+
+#: filewidgets/kfilewidget.cpp:1961
+#, kde-format
+msgid "Remote Files Not Accepted"
+msgstr "無接受遠端檔案"
+
+#: filewidgets/kfilewidget.cpp:2055
+#, kde-format
+msgid "All Folders"
+msgstr "所有 ê 資料鋏仔"
+
+#: filewidgets/kfilewidget.cpp:2079
+#, kde-format
+msgid "Current Directory: %1"
+msgstr "這馬 ê 目錄：%1"
+
+#: filewidgets/kfilewidget.cpp:2208 widgets/kfileitemactions.cpp:859
+#, kde-format
+msgid "&Open"
+msgstr "Phah-khui(&O)"
+
+#: filewidgets/kfilewidget.cpp:2315
+#, kde-format
+msgid "Icon size: %1 pixels"
+msgstr "圖示大細：%1 畫素"
+
+#: filewidgets/kfilewidget.cpp:2482
+#, kde-format
+msgid "Automatically select filename e&xtension (%1)"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:2483
+#, kde-format
+msgid "the extension <b>%1</b>"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:2489
+#, kde-format
+msgid "Automatically select filename e&xtension"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:2490
+#, kde-format
+msgid "a suitable extension"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:2498
+#, kde-format
+msgid ""
+"This option enables some convenient features for saving files with "
+"extensions:<br /><ol><li>Any extension specified in the <b>%1</b> text area "
+"will be updated if you change the file type to save in.<br /><br /></"
+"li><li>If no extension is specified in the <b>%2</b> text area when you "
+"click <b>Save</b>, %3 will be added to the end of the filename (if the "
+"filename does not already exist). This extension is based on the file type "
+"that you have chosen to save in.<br /><br />If you do not want KDE to supply "
+"an extension for the filename, you can either turn this option off or you "
+"can suppress it by adding a period (.) to the end of the filename (the "
+"period will be automatically removed).</li></ol>If unsure, keep this option "
+"enabled as it makes your files more manageable."
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:2964
+#, kde-format
+msgid "&File type:"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:2968
+#, kde-format
+msgid ""
+"<qt>This is the file type selector. It is used to select the format that the "
+"file will be saved as.</qt>"
+msgstr ""
+
+#: filewidgets/kfilewidget.cpp:2970
+#, kde-format
+msgid ""
+"<qt>This is the file type selector. It is used to select the format of the "
+"files shown.</qt>"
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:233
+#, kde-format
+msgctxt "@label:textbox Prompt for new file of type"
+msgid "Enter %1 filename:"
+msgstr "輸入 %1 檔名："
+
+#: filewidgets/knewfilemenu.cpp:558
+#, kde-format
+msgid "Sorry"
+msgstr "歹勢"
+
+#: filewidgets/knewfilemenu.cpp:569
+#, kde-format
+msgid "<qt>The template file <b>%1</b> does not exist.</qt>"
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:589 filewidgets/knewfilemenu.cpp:602
+#, kde-format
+msgid "Name for new link:"
+msgstr "新連結 ê 名："
+
+#: filewidgets/knewfilemenu.cpp:592
+#, kde-format
+msgid "Create Symlink"
+msgstr "建立符號連結"
+
+#: filewidgets/knewfilemenu.cpp:606
+#, kde-format
+msgid "Create link to URL"
+msgstr "建立網址的連結"
+
+#: filewidgets/knewfilemenu.cpp:650
+#, fuzzy, kde-format
+#| msgid "Create New"
+msgctxt "@title:window New link to a program"
+msgid "Create New %1"
+msgstr "建立"
+
+#: filewidgets/knewfilemenu.cpp:784 filewidgets/knewfilemenu.cpp:806
+#, kde-format
+msgctxt "@item:inmenu Create New"
+msgid "%1"
+msgstr "%1"
+
+#: filewidgets/knewfilemenu.cpp:1131
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The name <filename>%1</filename> cannot be used because it is reserved for "
+"use by the operating system."
+msgstr "檔名 <filename>%1</filename> 袂使用，因為這是操作系統保留的名。"
+
+#: filewidgets/knewfilemenu.cpp:1139
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The name <filename>%1</filename> starts with a dot, so it will be hidden by "
+"default."
+msgstr "檔名 <filename>%1</filename> 以點開始，所以伊會預設予隱藏。"
+
+#: filewidgets/knewfilemenu.cpp:1147
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The name <filename>%1</filename> starts with a space, which will result in "
+"it being shown before other items when sorting alphabetically, among other "
+"potential oddities."
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:1165
+#, kde-format
+msgid "Using slashes in folder names will create sub-folders, like so:"
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:1179
+#, kde-format
+msgid "Using slashes in folder names will create sub-folders."
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:1191
+#, kde-format
+msgid "Slashes cannot be used in file and folder names."
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:1196
+#, kde-format
+msgid "Backslashes cannot be used in file and folder names."
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:1210
+#, kde-kuit-format
+msgctxt "@error"
+msgid ""
+"Creating a file or folder with the name <filename>%1</filename> is not "
+"possible since it would overlap with the location of a user's home folder."
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:1219
+#, kde-format
+msgid ""
+"Starting a file or folder name with a tilde is not recommended because it "
+"may be confusing or dangerous when using the terminal to delete things."
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:1291
+#, kde-kuit-format
+msgctxt "@info"
+msgid "A directory with name <filename>%1</filename> already exists."
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:1293
+#, kde-kuit-format
+msgctxt "@info"
+msgid "A file with name <filename>%1</filename> already exists."
+msgstr ""
+
+#: filewidgets/knewfilemenu.cpp:1379
+#, kde-format
+msgid "Create New"
+msgstr "建立"
+
+#: filewidgets/knewfilemenu.cpp:1451
+#, kde-format
+msgctxt "Default name for a new folder"
+msgid "New Folder"
+msgstr "建立資料鋏仔"
+
+#: filewidgets/knewfilemenu.cpp:1474
+#, kde-format
+msgctxt "@title:window"
+msgid "Create New Folder"
+msgstr "建立新 ê 資料鋏仔"
+
+#: filewidgets/knewfilemenu.cpp:1476
+#, kde-format
+msgid "Create new folder in %1:"
+msgstr "佇 %1 建立新 ê 資料鋏仔："
+
+#: filewidgets/knewfilemenu.cpp:1479 widgets/kpropertiesdialogbuiltin_p.cpp:397
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Enter folder name"
+msgstr "輸入資料鋏仔 ê 名"
+
+#: filewidgets/knewfilemenu.cpp:1536
+#, kde-format
+msgid "Default"
+msgstr "預設"
+
+#. i18n: ectx: property (windowTitle), widget (QDialog, NewFileDialog)
+#: filewidgets/knewfilemenu_newfiledialog.ui:20
+#, kde-format
+msgctxt "@title:window"
+msgid "Create New File"
+msgstr "建立新 ê 檔案"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, lineEdit)
+#: filewidgets/knewfilemenu_newfiledialog.ui:57
+#, kde-format
+msgid "Enter file name"
+msgstr "輸入檔名"
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, chooseIconBox)
+#: filewidgets/knewfilemenu_newfiledialog.ui:79
+#, kde-format
+msgid "Choose custom icon or color"
+msgstr "選自訂 ê 圖示 á-sī 色彩"
+
+#. i18n: ectx: property (text), widget (QPushButton, chooseIconButton)
+#: filewidgets/knewfilemenu_newfiledialog.ui:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Choose Other Icon…"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, iconHintLabel)
+#: filewidgets/knewfilemenu_newfiledialog.ui:145
+#, kde-format
+msgid "You can change the icon later in folder properties."
+msgstr "你會使之後佇資料鋏仔屬性對話框改變圖示。"
+
+#: filewidgets/kurlnavigator.cpp:611
+#, fuzzy, kde-format
+#| msgid "Location:"
+msgid "Copy Location"
+msgstr "位置："
+
+#. i18n: ectx: property (text), widget (QPushButton, pasteButton)
+#: filewidgets/kurlnavigator.cpp:615 widgets/checksumswidget.ui:42
+#, kde-format
+msgid "Paste"
+msgstr "Tah--khí-khì"
+
+#: filewidgets/kurlnavigator.cpp:635
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Open \"%1\" in New Tab"
+msgstr ""
+
+#: filewidgets/kurlnavigator.cpp:643
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Open \"%1\" in New Window"
+msgstr ""
+
+#: filewidgets/kurlnavigator.cpp:652
+#, kde-format
+msgid "Edit"
+msgstr "編輯"
+
+#: filewidgets/kurlnavigator.cpp:655
+#, kde-format
+msgid "Navigate"
+msgstr "瀏覽"
+
+#: filewidgets/kurlnavigator.cpp:670
+#, kde-format
+msgid "Show Full Path"
+msgstr "顯示完整路徑"
+
+#: filewidgets/kurlnavigator.cpp:840
+#, kde-kuit-format
+msgctxt "@info:tooltip for button. 1 is path"
+msgid "Go to any location on the path <filename>%1</filename>"
+msgstr ""
+
+#: filewidgets/kurlnavigatorbutton.cpp:726
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "More"
+msgstr "較濟"
+
+#: filewidgets/kurlnavigatordropdownbutton.cpp:21
+#, kde-format
+msgctxt "@action:button opening a list of locations"
+msgid "Go to Location on Path"
+msgstr ""
+
+#: filewidgets/kurlnavigatorplacesselector.cpp:49
+#, kde-format
+msgctxt ""
+"@action:button accessible name for the places selector in the URL navigator"
+msgid "Places"
+msgstr "位置"
+
+#: filewidgets/kurlnavigatorschemecombo.cpp:155
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Devices"
+msgstr "裝置"
+
+#: filewidgets/kurlnavigatorschemecombo.cpp:159
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Subversion"
+msgstr "Subversion"
+
+#: filewidgets/kurlnavigatorschemecombo.cpp:163
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Other"
+msgstr "其他"
+
+#: filewidgets/kurlnavigatortogglebutton.cpp:28
+#, kde-format
+msgid "Edit mode"
+msgstr "編輯模式"
+
+#: filewidgets/kurlnavigatortogglebutton.cpp:80
+#, kde-format
+msgid "Click for Location Navigation"
+msgstr "揤遮來用位置瀏覽"
+
+#: filewidgets/kurlnavigatortogglebutton.cpp:82
+#, kde-format
+msgid "Click to Edit Location"
+msgstr "揤遮來編輯位置"
+
+#: gui/applicationlauncherjob.cpp:125 gui/kprocessrunner.cpp:256
+#, kde-format
+msgid "You are not authorized to execute this file."
+msgstr "你無權限執行這个檔案。"
+
+#: gui/applicationlauncherjob.cpp:141 gui/commandlauncherjob.cpp:117
+#, kde-format
+msgctxt "Launching application"
+msgid "Launching %1"
+msgstr "佇啟動 %1"
+
+#: gui/applicationlauncherjob.cpp:178
+#, kde-format
+msgid ""
+"Unable to make the service %1 executable, aborting execution.\n"
+"%2."
+msgstr ""
+"無法度 kā 服務 %1 變做會使執行。中止執行。\n"
+"%2。"
+
+#: gui/applicationlauncherjob.cpp:302 gui/openurljob.cpp:689
+#, kde-format
+msgid "You are not authorized to select an application to open this file."
+msgstr "你無權限來選 ài 用佗一个應用程式開這个檔案。"
+
+#: gui/applicationlauncherjob.cpp:310
+#, kde-format
+msgid ""
+"Internal error: could not prompt the user for which application to start"
+msgstr "內部錯誤：無法度問用者 ài 啟動佗一个應用程式"
+
+#: gui/commandlauncherjob.cpp:107
+#, kde-format
+msgctxt "An error message"
+msgid "Empty command provided"
+msgstr "提供 ê 指令是空的"
+
+#: gui/faviconrequestjob.cpp:108
+#, kde-format
+msgid "No favicon found for %1"
+msgstr "揣無 %1 用的 favicon"
+
+#: gui/faviconrequestjob.cpp:156
+#, kde-format
+msgid "Error saving image to %1"
+msgstr "儲存影像 kàu %1 ê 時陣發生錯誤"
+
+#: gui/faviconrequestjob.cpp:166
+#, kde-format
+msgid "Icon file too big, download aborted"
+msgstr "圖示檔案 siunn 大--ah，下載中止"
+
+#: gui/filepreviewjob.cpp:255
+#, kde-format
+msgctxt "%1 is a file url"
+msgid "FilePreviewJob: skipping an empty file, might be a broken symlink: %1"
+msgstr "FilePreviewJob：佇咧跳過空的檔案，可能是歹去 ê 符號連結：%1"
+
+#: gui/kemailclientlauncherjob.cpp:117
+#, kde-format
+msgid "No mail client found"
+msgstr "揣無電子批信 ê client"
+
+#: gui/kprocessrunner.cpp:127
+#, kde-format
+msgid ""
+"The desktop entry file\n"
+"%1\n"
+"is not valid."
+msgstr ""
+"desktop 項目檔案\n"
+"%1\n"
+"無效。"
+
+#: gui/kprocessrunner.cpp:303
+#, kde-format
+msgid "Launching %1"
+msgstr "佇啟動 %1"
+
+#: gui/kprocessrunner.cpp:487
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The command <command>%1</command> could not be found."
+msgstr ""
+
+#: gui/kterminallauncherjob.cpp:130
+#, kde-format
+msgid "No terminal emulator found"
+msgstr "揣無終端機"
+
+#: gui/openurljob.cpp:184
+#, kde-format
+msgid "Failed to open %1"
+msgstr "開 %1 失敗"
+
+#: gui/openurljob.cpp:321
+#, kde-format
+msgid ""
+"The desktop entry file\n"
+"%1\n"
+"is of type Link but has no URL=... entry."
+msgstr ""
+"desktop 項目檔案\n"
+"%1\n"
+"是連結類的，毋過伊煞無 URL=... 值。"
+
+#: gui/openurljob.cpp:405
+#, kde-format
+msgid ""
+"The executable file \"%1\" is located on a remote filesystem. For safety "
+"reasons it will not be started."
+msgstr ""
+
+#: gui/openurljob.cpp:446
+#, kde-format
+msgid ""
+"For security reasons, launching executables is not allowed in this context."
+msgstr ""
+
+#: gui/openurljob.cpp:476
+#, kde-format
+msgid ""
+"The program \"%1\" needs to have executable permission before it can be "
+"launched."
+msgstr ""
+
+#: gui/openurljob.cpp:487
+#, kde-format
+msgid ""
+"Unable to make file \"%1\" executable.\n"
+"%2."
+msgstr ""
+
+#: gui/openurljob.cpp:573
+#, kde-format
+msgid "The desktop entry file %1 has no Type=... entry."
+msgstr "desktop 項目檔案 %1 無 Type=... 值。"
+
+#: gui/openurljob.cpp:675
+#, kde-format
+msgid ""
+"This file is incomplete and should not be opened.\n"
+"Check your open applications and the notification area for any pending tasks "
+"or downloads."
+msgstr ""
+
+#: gui/openurljob.cpp:701
+#, kde-format
+msgid "Failed to open the file."
+msgstr "開檔案失敗。"
+
+#: gui/openurljob.cpp:735
+#, kde-format
+msgid "The program \"%1\" could not be launched."
+msgstr "程式「%1」無法度啟動。"
+
+#: gui/systemd/systemdprocessrunner.cpp:200
+#, kde-format
+msgid "Failed to launch process (status code: %1)"
+msgstr ""
+
+#: kioexec/kioexecd.cpp:86
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The file <filename>%1</filename><nl/>has been modified. Do you want to "
+"upload the changes?"
+msgstr "檔案 <filename>%1</filename> 已經予改變--ah。你敢愛上傳變更？"
+
+#: kioexec/kioexecd.cpp:87 kioexec/main.cpp:240 kioexec/main.cpp:250
+#, kde-format
+msgid "File Changed"
+msgstr "檔案變--ah"
+
+#: kioexec/kioexecd.cpp:88 kioexec/main.cpp:251
+#, kde-format
+msgid "Upload"
+msgstr "上傳"
+
+#: kioexec/kioexecd.cpp:89 kioexec/main.cpp:252
+#, kde-format
+msgid "Do Not Upload"
+msgstr "Mài 上傳"
+
+#: kioexec/main.cpp:58
+#, kde-format
+msgid "Invalid URL: %1"
+msgstr "無效 ê URL：%1"
+
+#: kioexec/main.cpp:64
+#, kde-format
+msgid "File not found: %1"
+msgstr "揣無檔案：%1"
+
+#: kioexec/main.cpp:81
+#, kde-format
+msgid ""
+"The URL %1\n"
+"is malformed"
+msgstr ""
+"URL %1\n"
+"不正"
+
+#: kioexec/main.cpp:83
+#, kde-format
+msgid ""
+"Remote URL %1\n"
+"not allowed with --tempfiles switch"
+msgstr ""
+"遠端 URL %1\n"
+"佇用 --tempfiles 選項 ê 時陣袂使用"
+
+#: kioexec/main.cpp:239
+#, kde-format
+msgid ""
+"The supposedly temporary file\n"
+"%1\n"
+"has been modified.\n"
+"Do you still want to delete it?"
+msgstr ""
+"應該 ài 是暫時 ê 檔案\n"
+"%1\n"
+"已經予改變--ah。\n"
+"你敢閣 ài kā 伊刣掉？"
+
+#: kioexec/main.cpp:242
+#, kde-format
+msgid "Do Not Delete"
+msgstr "Mài 刣掉"
+
+#: kioexec/main.cpp:249
+#, kde-format
+msgid ""
+"The file\n"
+"%1\n"
+"has been modified.\n"
+"Do you want to upload the changes?"
+msgstr ""
+"檔案\n"
+"%1\n"
+"已經予改變--ah。\n"
+"你敢愛上傳變更？"
+
+#: kioexec/main.cpp:302
+#, kde-format
+msgid "KIOExec"
+msgstr "KIOExec"
+
+#: kioexec/main.cpp:304
+#, kde-format
+msgid "KIO Exec - Opens remote files, watches modifications, asks for upload"
+msgstr "KIO Exec - 開遠端檔案、監視修改、請求上傳"
+
+#: kioexec/main.cpp:306
+#, kde-format
+msgid "(c) 1998-2000,2003 The KFM/Konqueror Developers"
+msgstr "(c) 1998-2000,2003 KFM/Konqueror 開發群"
+
+#: kioexec/main.cpp:307
+#, kde-format
+msgid "David Faure"
+msgstr "David Faure"
+
+#: kioexec/main.cpp:308
+#, kde-format
+msgid "Stephan Kulow"
+msgstr "Stephan Kulow"
+
+#: kioexec/main.cpp:309
+#, kde-format
+msgid "Bernhard Rosenkraenzer"
+msgstr "Bernhard Rosenkraenzer"
+
+#: kioexec/main.cpp:310
+#, kde-format
+msgid "Waldo Bastian"
+msgstr "Waldo Bastian"
+
+#: kioexec/main.cpp:311
+#, kde-format
+msgid "Oswald Buddenhagen"
+msgstr "Oswald Buddenhagen"
+
+#: kioexec/main.cpp:316
+#, kde-format
+msgid "Treat URLs as local files and delete them afterwards"
+msgstr ""
+
+#: kioexec/main.cpp:318
+#, kde-format
+msgid "Suggested file name for the downloaded file"
+msgstr ""
+
+#: kioexec/main.cpp:319
+#, kde-format
+msgid "Command to execute"
+msgstr "Ài 執行 ê 指令"
+
+#: kioexec/main.cpp:320
+#, kde-format
+msgid "URL(s) or local file(s) used for 'command'"
+msgstr ""
+
+#: kioworkers/file/file.cpp:729
+#, kde-format
+msgid ""
+"Could not change permissions for\n"
+"%1"
+msgstr ""
+
+#: kioworkers/file/file.cpp:737
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Could not change owner and group for\n"
+"%1"
+msgstr ""
+
+#: kioworkers/file/file.cpp:817 kioworkers/file/file.cpp:909
+#, kde-format
+msgid "Could not open temporary file"
+msgstr "無法度開暫時檔案"
+
+#: kioworkers/file/file.cpp:841
+#, kde-format
+msgid "Could not find program \"mount\""
+msgstr ""
+
+#: kioworkers/file/file.cpp:918
+#, kde-format
+msgid "Could not find program \"umount\""
+msgstr ""
+
+#: kioworkers/file/file_unix.cpp:394
+#, kde-format
+msgid "No media in device for %1"
+msgstr "裝置無媒體予 %1"
+
+#: kioworkers/file/file_unix.cpp:745
+#, kde-format
+msgid "Could not get user id for given user name %1"
+msgstr ""
+
+#: kioworkers/file/file_unix.cpp:756
+#, kde-format
+msgid "Could not get group id for given group name %1"
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:361
+#, kde-format
+msgid "Opening connection to host %1"
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:376
+#, kde-format
+msgid "Connected to host %1"
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:484
+#, kde-format
+msgid "%1 (Error %2)"
+msgstr "%1 (錯誤 %2)"
+
+#: kioworkers/ftp/ftp.cpp:514
+#, kde-format
+msgid "Sending login information"
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:564
+#, kde-format
+msgid ""
+"Message sent:\n"
+"Login using username=%1 and password=[hidden]\n"
+"\n"
+"Server replied:\n"
+"%2\n"
+"\n"
+msgstr ""
+"傳去 ê 訊息：\n"
+"登入用者名=%1, 密碼=[隱藏]\n"
+"\n"
+"伺服器回答：\n"
+"%2\n"
+"\n"
+
+#: kioworkers/ftp/ftp.cpp:575 kioworkers/http/http.cpp:199
+#, kde-format
+msgid "You need to supply a username and a password to access this site."
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:577 kioworkers/http/http.cpp:201
+#, kde-format
+msgid "Site:"
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:578 kioworkers/ftp/ftp.cpp:2652
+#, kde-format
+msgid "<b>%1</b>"
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:671
+#, kde-format
+msgid "Login OK"
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:699
+#, kde-format
+msgid "Could not login to %1."
+msgstr "無法度登入到 %1。"
+
+#: kioworkers/ftp/ftp.cpp:1084
+#, kde-format
+msgid ""
+"\n"
+"The server said: \"%1\""
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:2647 kioworkers/http/http.cpp:223
+#, kde-format
+msgid ""
+"You need to supply a username and a password for the proxy server listed "
+"below before you are allowed to access any sites."
+msgstr ""
+
+#: kioworkers/ftp/ftp.cpp:2651 kioworkers/http/http.cpp:227
+#, kde-format
+msgid "Proxy:"
+msgstr "代理："
+
+#: kioworkers/ftp/ftp.cpp:2654
+#, kde-format
+msgid "Proxy Authentication Failed."
+msgstr ""
+
+#: kioworkers/help/kio_help.cpp:112
+#, kde-format
+msgid "There is no documentation available for %1."
+msgstr ""
+
+#: kioworkers/help/kio_help.cpp:157
+#, kde-format
+msgid "Looking up correct file"
+msgstr ""
+
+#: kioworkers/help/kio_help.cpp:203
+#, kde-format
+msgid "Preparing document"
+msgstr ""
+
+#: kioworkers/help/kio_help.cpp:213 kioworkers/help/kio_help.cpp:259
+#, kde-format
+msgid "The requested help file could not be parsed:<br />%1"
+msgstr ""
+
+#: kioworkers/help/kio_help.cpp:234
+#, kde-format
+msgid "Saving to cache"
+msgstr ""
+
+#: kioworkers/help/kio_help.cpp:253
+#, kde-format
+msgid "Using cached version"
+msgstr ""
+
+#: kioworkers/help/kio_help.cpp:314
+#, kde-format
+msgid "Looking up section"
+msgstr ""
+
+#: kioworkers/help/kio_help.cpp:321
+#, kde-format
+msgid "Could not find filename %1 in %2."
+msgstr ""
+
+#: kioworkers/http/http.cpp:176
+#, kde-format
+msgid "<b>%1</b> at <b>%2</b>"
+msgstr ""
+
+#: kioworkers/http/http.cpp:316 widgets/sslui.cpp:93
+#, kde-format
+msgid ""
+"Would you like to accept this certificate forever without being prompted?"
+msgstr ""
+
+#: kioworkers/http/http.cpp:319 widgets/sslui.cpp:60 widgets/sslui.cpp:96
+#: widgets/widgetsaskuseractionhandler.cpp:515
+#, kde-format
+msgid "Server Authentication"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1453
+#, kde-format
+msgid "Otherwise, the request would have succeeded."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1456
+#, kde-format
+msgctxt "request type"
+msgid "retrieve property values"
+msgstr "取得屬性值"
+
+#: kioworkers/http/http.cpp:1458
+#, kde-format
+msgctxt "request type"
+msgid "set property values"
+msgstr "設定屬性值"
+
+#: kioworkers/http/http.cpp:1460
+#, kde-format
+msgctxt "request type"
+msgid "create the requested folder"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1462
+#, kde-format
+msgctxt "request type"
+msgid "copy the specified file or folder"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1464
+#, kde-format
+msgctxt "request type"
+msgid "move the specified file or folder"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1466
+#, kde-format
+msgctxt "request type"
+msgid "search in the specified folder"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1468
+#, kde-format
+msgctxt "request type"
+msgid "lock the specified file or folder"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1470
+#, kde-format
+msgctxt "request type"
+msgid "unlock the specified file or folder"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1472
+#, kde-format
+msgctxt "request type"
+msgid "delete the specified file or folder"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1474
+#, kde-format
+msgctxt "request type"
+msgid "query the server's capabilities"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1476
+#, kde-format
+msgctxt "request type"
+msgid "retrieve the contents of the specified file or folder"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1478
+#, kde-format
+msgctxt "request type"
+msgid "run a report in the specified folder"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1486
+#, kde-format
+msgctxt "%1: code, %2: request type"
+msgid "An unexpected error (%1) occurred while attempting to %2."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1526
+#, kde-format
+msgctxt "%1: request type, %2: url"
+msgid ""
+"An error occurred while attempting to %1, %2. A summary of the reasons is "
+"below."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1544 kioworkers/http/http.cpp:1688
+#, kde-format
+msgctxt "%1: request type"
+msgid "Access was denied while attempting to %1."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1558 kioworkers/http/http.cpp:1695
+#, kde-format
+msgid ""
+"A resource cannot be created at the destination until one or more "
+"intermediate collections (folders) have been created."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1567
+#, kde-format
+msgid ""
+"The server was unable to maintain the liveness of the\n"
+"properties listed in the propertybehavior XML element\n"
+"or you attempted to overwrite a file while requesting\n"
+"that files are not overwritten.\n"
+" %1"
+msgstr ""
+"伺服器無法度維持 propertybehavior XML 元素 ê 即時更新，\n"
+"這 mā 有可能是因為你要求 mài 崁掉檔案毋過 suah 試著 kā\n"
+"檔案崁掉。\n"
+" %1"
+
+#: kioworkers/http/http.cpp:1575
+#, kde-format
+msgid "The requested lock could not be granted. %1"
+msgstr ""
+
+#: kioworkers/http/http.cpp:1581
+#, kde-format
+msgid "The server does not support the request type of the body."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1586 kioworkers/http/http.cpp:1703
+#, kde-format
+msgctxt "%1: request type"
+msgid "Unable to %1 because the resource is locked."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1590
+#, kde-format
+msgid "This action was prevented by another error."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1597 kioworkers/http/http.cpp:1710
+#, kde-format
+msgctxt "%1: request type"
+msgid ""
+"Unable to %1 because the destination server refuses to accept the file or "
+"folder."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1606 kioworkers/http/http.cpp:1719
+#, kde-format
+msgid ""
+"The destination resource does not have sufficient space to record the state "
+"of the resource after the execution of this method."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1659
+#, kde-format
+msgid "The resource cannot be deleted."
+msgstr ""
+
+#: kioworkers/http/http.cpp:1679
+#, kde-format
+msgctxt "request type"
+msgid "upload %1"
+msgstr "上傳 %1"
+
+#: kioworkers/http/http.cpp:1730
+#, kde-format
+msgctxt "%1: response code, %2: request type"
+msgid "An unexpected error (%1) occurred while attempting to %2."
+msgstr ""
+
+#: kioworkers/remote/remoteimpl.cpp:98
+#, kde-format
+msgid "Network"
+msgstr ""
+
+#: kioworkers/trash/kio_trash.cpp:117 kioworkers/trash/kio_trash.cpp:161
+#: kioworkers/trash/kio_trash.cpp:221 kioworkers/trash/kio_trash.cpp:384
+#: kioworkers/trash/kio_trash.cpp:416 kioworkers/trash/kio_trash.cpp:595
+#: kioworkers/trash/kio_trash.cpp:605
+#, kde-format
+msgid "Malformed URL %1"
+msgstr ""
+
+#: kioworkers/trash/kio_trash.cpp:136
+#, kde-format
+msgid ""
+"The directory %1 does not exist anymore, so it is not possible to restore "
+"this item to its original location. You can either recreate that directory "
+"and use the restore operation again, or drag the item anywhere else to "
+"restore it."
+msgstr ""
+
+#: kioworkers/trash/kio_trash.cpp:189 kioworkers/trash/kio_trash.cpp:210
+#, kde-format
+msgid "Invalid combination of protocols."
+msgstr ""
+
+#: kioworkers/trash/kio_trash.cpp:201 kioworkers/trash/kio_trash_win.cpp:232
+#, kde-format
+msgid "This file is already in the trash bin."
+msgstr ""
+
+#: kioworkers/trash/kio_trash_win.cpp:244
+#, kde-format
+msgid "not supported"
+msgstr ""
+
+#: kioworkers/trash/kio_trash_win.cpp:253
+#, kde-format
+msgid "Internal error in copyOrMove, should never happen"
+msgstr "佇 copyOrMove 內底有內部錯誤，這應該絕對 bē 發生"
+
+#: kioworkers/trash/ktrash.cpp:28
+#, kde-format
+msgid ""
+"Helper program to handle the KDE trash can\n"
+"Note: to move files to the trash, do not use ktrash, but \"kioclient move "
+"'url' trash:/\""
+msgstr ""
+
+#: kioworkers/trash/ktrash.cpp:31
+#, kde-format
+msgid "Empty the contents of the trash"
+msgstr ""
+
+#: kioworkers/trash/ktrash.cpp:33
+#, kde-format
+msgid "Restore a trashed file to its original location"
+msgstr ""
+
+#: kioworkers/trash/trashimpl.cpp:1315
+#, kde-format
+msgid "The trash is full. Empty it or remove items manually."
+msgstr ""
+
+#: kpasswdserver/kpasswdserver.cpp:529
+#, kde-format
+msgid "Do you want to retry?"
+msgstr "你敢 ài 重試？"
+
+#: kpasswdserver/kpasswdserver.cpp:533
+#, kde-format
+msgid "Retry Authentication"
+msgstr "重試認證"
+
+#: kpasswdserver/kpasswdserver.cpp:536
+#, kde-format
+msgctxt "@action:button filter-continue"
+msgid "Retry"
+msgstr "重試"
+
+#: kpasswdserver/kpasswdserver.cpp:797
+#, kde-format
+msgid "Authentication Dialog"
+msgstr "認證對話框"
+
+#: schemehandlers/telnet/ktelnetservice.cpp:54
+#, kde-format
+msgid "Access denied"
+msgstr "拒絕存取"
+
+#: schemehandlers/telnet/ktelnetservice.cpp:54
+#, kde-format
+msgid "You do not have permission to access the %1 protocol."
+msgstr "你無權限存取 %1 協定。"
+
+#: urifilters/ikws/kuriikwsfilter.cpp:81
+#, kde-format
+msgid "No preferred search providers were found."
+msgstr "揣無 ài 優先使用 ê 搜揣提供者。"
+
+#: urifilters/ikws/kuriikwsfilter.cpp:96
+#, kde-format
+msgid "No search providers were found."
+msgstr "揣無搜揣提供者。"
+
+#: urifilters/shorturi/kshorturifilter.cpp:247
+#, kde-format
+msgid "<qt><b>%1</b> does not have a home folder.</qt>"
+msgstr "<qt><b>%1</b> 無家目錄。</qt>"
+
+#: urifilters/shorturi/kshorturifilter.cpp:249
+#, kde-format
+msgid "<qt>There is no user called <b>%1</b>.</qt>"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, commonNameTag)
+#: widgets/certificateparty.ui:28
+#, kde-format
+msgid "Common name:"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, commonName)
+#: widgets/certificateparty.ui:38
+#, kde-format
+msgid "Acme Co."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, organizationTag)
+#: widgets/certificateparty.ui:48
+#, kde-format
+msgid "Organization:"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, organization)
+#: widgets/certificateparty.ui:58
+#, kde-format
+msgid "Acme Sundry Products Company"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, organizationalUnitTag)
+#: widgets/certificateparty.ui:68
+#, kde-format
+msgid "Organizational unit:"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, organizationalUnit)
+#: widgets/certificateparty.ui:78
+#, kde-format
+msgid "Fraud Department"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, countryTag)
+#: widgets/certificateparty.ui:88
+#, kde-format
+msgid "Country:"
+msgstr "國家："
+
+#. i18n: ectx: property (text), widget (QLabel, country)
+#: widgets/certificateparty.ui:98
+#, kde-format
+msgid "Canada"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, stateTag)
+#: widgets/certificateparty.ui:108
+#, kde-format
+msgid "State:"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, state)
+#: widgets/certificateparty.ui:118
+#, kde-format
+msgid "Quebec"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, cityTag)
+#: widgets/certificateparty.ui:128
+#, kde-format
+msgid "City:"
+msgstr "市："
+
+#. i18n: ectx: property (text), widget (QLabel, city)
+#: widgets/certificateparty.ui:138
+#, kde-format
+msgid "Lakeridge Meadows"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: widgets/checksumswidget.ui:17
+#, kde-format
+msgid ""
+"Copy and paste a checksum in the field below.<br/>A checksum is usually "
+"provided by the website you downloaded this file from."
+msgstr ""
+
+#. i18n: MD5, SHA1, SHA256 and SHA512 are hashing algorithms
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, lineEdit)
+#: widgets/checksumswidget.ui:32
+#, kde-format
+msgid "Expected checksum (MD5, SHA1, SHA256 or SHA512)..."
+msgstr ""
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, pasteButton)
+#: widgets/checksumswidget.ui:39
+#, kde-format
+msgid "Click to paste the checksum from the clipboard to the input field."
+msgstr "揤遮來 kā 檢查碼 uì 剪貼簿貼起去到輸入欄。"
+
+#. i18n: MD5 is the hashing algorithm
+#. i18n: ectx: property (text), widget (QLabel, md5Label)
+#: widgets/checksumswidget.ui:70
+#, kde-format
+msgid "MD5:"
+msgstr "MD5："
+
+#. i18n: SHA1 is the hashing algorithm
+#. i18n: ectx: property (text), widget (QLabel, sha1Label)
+#: widgets/checksumswidget.ui:80
+#, kde-format
+msgid "SHA1:"
+msgstr "SHA1："
+
+#. i18n: SHA256 is the hashing algorithm
+#. i18n: ectx: property (text), widget (QLabel, sha256Label)
+#: widgets/checksumswidget.ui:90
+#, kde-format
+msgid "SHA256:"
+msgstr "SHA256："
+
+#. i18n: SHA512 is the hashing algorithm
+#. i18n: ectx: property (text), widget (QLabel, sha512Label)
+#: widgets/checksumswidget.ui:100
+#, kde-format
+msgid "SHA512:"
+msgstr "SHA512："
+
+#. i18n: ectx: property (text), widget (QPushButton, md5Button)
+#. i18n: ectx: property (text), widget (QPushButton, sha1Button)
+#. i18n: ectx: property (text), widget (QPushButton, sha256Button)
+#. i18n: ectx: property (text), widget (QPushButton, sha512Button)
+#. i18n: ectx: property (text), widget (QPushButton, calculateSizeBtn)
+#: widgets/checksumswidget.ui:112 widgets/checksumswidget.ui:159
+#: widgets/checksumswidget.ui:206 widgets/checksumswidget.ui:253
+#: widgets/kfilepropspluginwidget.ui:302
+#, kde-format
+msgid "Calculate"
+msgstr "計算"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, md5CopyButton)
+#. i18n: ectx: property (toolTip), widget (QPushButton, sha1CopyButton)
+#. i18n: ectx: property (toolTip), widget (QPushButton, sha256CopyButton)
+#. i18n: ectx: property (toolTip), widget (QPushButton, sha512CopyButton)
+#: widgets/checksumswidget.ui:142 widgets/checksumswidget.ui:189
+#: widgets/checksumswidget.ui:236 widgets/checksumswidget.ui:283
+#, kde-format
+msgid "Click to copy the checksum to the clipboard."
+msgstr "揤遮來 khóo-pih 檢查碼到剪貼簿"
+
+#. i18n: ectx: property (text), widget (QPushButton, md5CopyButton)
+#. i18n: ectx: property (text), widget (QPushButton, sha1CopyButton)
+#. i18n: ectx: property (text), widget (QPushButton, sha256CopyButton)
+#. i18n: ectx: property (text), widget (QPushButton, sha512CopyButton)
+#: widgets/checksumswidget.ui:145 widgets/checksumswidget.ui:192
+#: widgets/checksumswidget.ui:239 widgets/checksumswidget.ui:286
+#, kde-format
+msgid "Copy"
+msgstr "Khóo-pih"
+
+#: widgets/dropjob.cpp:192
+#, kde-format
+msgid "C&ancel"
+msgstr "取消(&A)"
+
+#: widgets/dropjob.cpp:304
+#, kde-format
+msgid "&Move Here"
+msgstr "Suá 到遮(&M)"
+
+#: widgets/dropjob.cpp:310
+#, kde-format
+msgctxt "@action:inmenu Download contents of URL here"
+msgid "&Download Here"
+msgstr "下載到遮(&D)"
+
+#: widgets/dropjob.cpp:310
+#, kde-format
+msgid "&Copy Here"
+msgstr "Khóo-pih 到遮(&C)"
+
+#: widgets/dropjob.cpp:317
+#, kde-format
+msgid "&Link Here"
+msgstr "連結 kàu 遮(&L)"
+
+#: widgets/executablefileopendialog.cpp:72
+#, kde-format
+msgctxt "@action:button Launch script"
+msgid "&Launch"
+msgstr "啟動(&L)"
+
+#: widgets/executablefileopendialog.cpp:80
+#, kde-format
+msgid "What do you wish to do with this file?"
+msgstr ""
+
+#: widgets/executablefileopendialog.cpp:83
+#, kde-format
+msgctxt "@action:button"
+msgid "&Open"
+msgstr "Phah-khui(&O)"
+
+#: widgets/executablefileopendialog.cpp:85
+#, kde-format
+msgctxt "@action:button"
+msgid "&Open with %1"
+msgstr "用 %1 Phah-khui(&O)"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: widgets/executablefileopendialog.ui:26
+#, kde-format
+msgid "Would you like to launch this file?"
+msgstr ""
+
+#: widgets/fileundomanager.cpp:126
+#, kde-format
+msgid "Creating directory"
+msgstr "佇咧建立資料鋏仔"
+
+#: widgets/fileundomanager.cpp:131 widgets/renamedialog.cpp:429
+#, kde-format
+msgid "Source"
+msgstr "來源"
+
+#: widgets/fileundomanager.cpp:131 widgets/renamedialog.cpp:431
+#, kde-format
+msgid "Destination"
+msgstr "目的地"
+
+#: widgets/fileundomanager.cpp:131
+#, kde-format
+msgid "Copying"
+msgstr "Leh khóo-pih"
+
+#: widgets/fileundomanager.cpp:140
+#, kde-format
+msgid "Moving"
+msgstr "Leh 徙位"
+
+#: widgets/fileundomanager.cpp:140
+#, kde-format
+msgid "Renaming"
+msgstr "佇咧改名"
+
+#: widgets/fileundomanager.cpp:147
+#, kde-format
+msgid "Moving to Trash"
+msgstr "Leh 徙去糞埽桶"
+
+#: widgets/fileundomanager.cpp:152
+#, kde-format
+msgid "Deleting"
+msgstr "Leh 刣掉"
+
+#: widgets/fileundomanager.cpp:326
+#, kde-format
+msgid "Und&o"
+msgstr "復原(&O)"
+
+#: widgets/fileundomanager.cpp:332
+#, kde-format
+msgid "Und&o: Copy"
+msgstr "復原：Khóo-pih(&O)"
+
+#: widgets/fileundomanager.cpp:334
+#, kde-format
+msgid "Und&o: Link"
+msgstr "復原：連結(&O)"
+
+#: widgets/fileundomanager.cpp:336
+#, kde-format
+msgid "Und&o: Move"
+msgstr "復原：徙位(&O)"
+
+#: widgets/fileundomanager.cpp:338
+#, kde-format
+msgid "Und&o: Rename"
+msgstr "復原：改名(&O)"
+
+#: widgets/fileundomanager.cpp:340
+#, kde-format
+msgid "Und&o: Trash"
+msgstr "復原：徙去糞埽桶(&O)"
+
+#: widgets/fileundomanager.cpp:342
+#, kde-format
+msgid "Und&o: Create Folder"
+msgstr "復原：建立資料鋏仔(&O)"
+
+#: widgets/fileundomanager.cpp:344
+#, kde-format
+msgid "Und&o: Create Folder(s)"
+msgstr "復原：建立資料鋏仔(&O)"
+
+#: widgets/fileundomanager.cpp:346
+#, kde-format
+msgid "Und&o: Create File"
+msgstr "復原：建立檔案(&O)"
+
+#: widgets/fileundomanager.cpp:348
+#, kde-format
+msgid "Und&o: Batch Rename"
+msgstr ""
+
+#: widgets/fileundomanager.cpp:357
+#, kde-format
+msgid "&Redo"
+msgstr "取消復原(&R)"
+
+#: widgets/fileundomanager.cpp:363
+#, kde-format
+msgid "&Redo: Copy"
+msgstr "取消復原：Khóo-pih(&R)"
+
+#: widgets/fileundomanager.cpp:365
+#, kde-format
+msgid "&Redo: Link"
+msgstr "取消復原：連結(&O)"
+
+#: widgets/fileundomanager.cpp:367
+#, kde-format
+msgid "&Redo: Move"
+msgstr "取消復原：徙位(&R)"
+
+#: widgets/fileundomanager.cpp:369
+#, kde-format
+msgid "&Redo: Rename"
+msgstr "取消復原：改名(&O)"
+
+#: widgets/fileundomanager.cpp:371
+#, kde-format
+msgid "&Redo: Trash"
+msgstr "取消復原：徙去糞埽桶(&R)"
+
+#: widgets/fileundomanager.cpp:373
+#, kde-format
+msgid "&Redo: Create Folder"
+msgstr "取消復原：建立資料鋏仔(&O)"
+
+#: widgets/fileundomanager.cpp:375
+#, kde-format
+msgid "&Redo: Create Folder(s)"
+msgstr "取消復原：建立資料鋏仔(&O)"
+
+#: widgets/fileundomanager.cpp:377
+#, kde-format
+msgid "&Redo: Create File"
+msgstr "取消復原：建立檔案(&O)"
+
+#: widgets/fileundomanager.cpp:379
+#, kde-format
+msgid "&Redo: Batch Rename"
+msgstr ""
+
+#: widgets/fileundomanager.cpp:906
+#, kde-format
+msgid ""
+"The file %1 was copied from %2, but since then it has apparently been "
+"modified at %3.\n"
+"Undoing the copy will delete the file, and all modifications will be lost.\n"
+"Are you sure you want to delete %4?"
+msgstr ""
+"檔案 %1 是 uì %2 khóo-pih 的，毋過 uì khóo-pih 的時陣到這馬伊干焦已經佇 %3 予"
+"改變--ah。\n"
+"復原 khóo-pih 會 kā 伊刣掉，而且所有 ê 變更攏會無去。\n"
+"你敢真正確定 ài 刣掉 %4？"
+
+#: widgets/fileundomanager.cpp:916
+#, kde-format
+msgid "Undo File Copy Confirmation"
+msgstr "確定復原檔案 Khóo-pih"
+
+#: widgets/jobuidelegate.cpp:230
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Do you really want to permanently delete this item?<nl/><filename>%1</"
+"filename><nl/><nl/><emphasis strong='true'>This action cannot be undone.</"
+"emphasis>"
+msgstr ""
+
+#: widgets/jobuidelegate.cpp:233 widgets/jobuidelegate.cpp:247
+#: widgets/jobuidelegate.cpp:259 widgets/widgetsaskuseractionhandler.cpp:203
+#, kde-format
+msgid "Delete Permanently"
+msgstr "永遠刣掉"
+
+#: widgets/jobuidelegate.cpp:234 widgets/jobuidelegate.cpp:248
+#: widgets/widgetsaskuseractionhandler.cpp:246
+#: widgets/widgetsaskuseractionhandler.cpp:268
+#: widgets/widgetsaskuseractionhandler.cpp:290
+#, kde-format
+msgctxt "@action:button"
+msgid "Delete Permanently"
+msgstr "永遠刣掉"
+
+#: widgets/jobuidelegate.cpp:243
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Do you really want to permanently delete this item?<nl/><nl/><emphasis "
+"strong='true'>This action cannot be undone.</emphasis>"
+msgid_plural ""
+"Do you really want to permanently delete these %1 items?<nl/><nl/><emphasis "
+"strong='true'>This action cannot be undone.</emphasis>"
+msgstr[0] ""
+
+#: widgets/jobuidelegate.cpp:258 widgets/widgetsaskuseractionhandler.cpp:297
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Do you want to permanently delete all items from the Trash?<nl/><nl/"
+"><emphasis strong='true'>This action cannot be undone.</emphasis>"
+msgstr ""
+
+#: widgets/jobuidelegate.cpp:260 widgets/widgetsaskuseractionhandler.cpp:299
+#, kde-format
+msgctxt "@action:button"
+msgid "Empty Trash"
+msgstr "清除糞埽桶"
+
+#: widgets/jobuidelegate.cpp:270 widgets/widgetsaskuseractionhandler.cpp:305
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Do you really want to move this item to the Trash?<nl/><filename>%1</"
+"filename>"
+msgstr ""
+
+#: widgets/jobuidelegate.cpp:279
+#, kde-format
+msgid "Do you really want to move this item to the Trash?"
+msgid_plural "Do you really want to move these %1 items to the Trash?"
+msgstr[0] ""
+
+#: widgets/kacleditwidget.cpp:71
+#, kde-format
+msgctxt "@action:button"
+msgid "Add…"
+msgstr "添…"
+
+#: widgets/kacleditwidget.cpp:75
+#, kde-format
+msgctxt "@action:button"
+msgid "Edit…"
+msgstr "編輯…"
+
+#: widgets/kacleditwidget.cpp:79
+#, kde-format
+msgctxt "@action:button"
+msgid "Delete"
+msgstr "刣掉"
+
+#: widgets/kacleditwidget.cpp:227
+#, kde-format
+msgctxt "Unix permissions"
+msgid "Owner"
+msgstr "所有者"
+
+#: widgets/kacleditwidget.cpp:231
+#, kde-format
+msgctxt "UNIX permissions"
+msgid "Owning Group"
+msgstr "所有 ê 群組"
+
+#: widgets/kacleditwidget.cpp:235 widgets/kacleditwidget.cpp:247
+#, kde-format
+msgctxt "UNIX permissions"
+msgid "Others"
+msgstr "其他"
+
+#: widgets/kacleditwidget.cpp:239
+#, kde-format
+msgctxt "UNIX permissions"
+msgid "Mask"
+msgstr "遮罩"
+
+#: widgets/kacleditwidget.cpp:243
+#, kde-format
+msgctxt "UNIX permissions"
+msgid "Named User"
+msgstr "有名稱 ê 用者"
+
+#: widgets/kacleditwidget.cpp:254
+#, kde-format
+msgid "Owner (Default)"
+msgstr "所有者（預設）"
+
+#: widgets/kacleditwidget.cpp:384
+#, kde-format
+msgid "Edit ACL Entry"
+msgstr "編輯 ACL 項目"
+
+#: widgets/kacleditwidget.cpp:387
+#, kde-format
+msgid "Entry Type"
+msgstr "項目類"
+
+#: widgets/kacleditwidget.cpp:394
+#, kde-format
+msgid "Default for new files in this folder"
+msgstr "這个資料鋏仔 ê 新檔案 ê 預設"
+
+#: widgets/kacleditwidget.cpp:401
+#, kde-format
+msgid "Owner"
+msgstr "所有者"
+
+#: widgets/kacleditwidget.cpp:406
+#, kde-format
+msgid "Owning Group"
+msgstr "所有 ê 群組"
+
+#: widgets/kacleditwidget.cpp:411 widgets/kpropertiesdialogbuiltin_p.cpp:1496
+#, kde-format
+msgid "Others"
+msgstr "其他"
+
+#: widgets/kacleditwidget.cpp:416
+#, kde-format
+msgid "Mask"
+msgstr "遮罩"
+
+#: widgets/kacleditwidget.cpp:421
+#, kde-format
+msgid "Named user"
+msgstr "有名稱 ê 用者"
+
+#: widgets/kacleditwidget.cpp:426
+#, kde-format
+msgid "Named group"
+msgstr "Ū 名稱 ê 群組"
+
+#: widgets/kacleditwidget.cpp:444
+#, kde-format
+msgid "User: "
+msgstr "用者："
+
+#: widgets/kacleditwidget.cpp:458
+#, kde-format
+msgid "Group: "
+msgstr "群組："
+
+#: widgets/kacleditwidget.cpp:596
+#, kde-format
+msgid "Type"
+msgstr "類"
+
+#: widgets/kacleditwidget.cpp:597
+#, kde-format
+msgid "Name"
+msgstr "名"
+
+#: widgets/kacleditwidget.cpp:598
+#, kde-format
+msgctxt "read permission"
+msgid "r"
+msgstr "r"
+
+#: widgets/kacleditwidget.cpp:599
+#, kde-format
+msgctxt "write permission"
+msgid "w"
+msgstr "w"
+
+#: widgets/kacleditwidget.cpp:600
+#, kde-format
+msgctxt "execute permission"
+msgid "x"
+msgstr "x"
+
+#: widgets/kacleditwidget.cpp:601
+#, kde-format
+msgid "Effective"
+msgstr "有效"
+
+#: widgets/kbuildsycocaprogressdialog.cpp:30
+#, kde-format
+msgid "Updating System Configuration"
+msgstr "Tī-leh 更新系統設定…"
+
+#: widgets/kbuildsycocaprogressdialog.cpp:30
+#, kde-format
+msgid "Updating system configuration…"
+msgstr "Tī-leh 更新系統設定…"
+
+#: widgets/kdirmodel.cpp:1269
+#, kde-format
+msgctxt "@title:column"
+msgid "Name"
+msgstr "名"
+
+#: widgets/kdirmodel.cpp:1271
+#, kde-format
+msgctxt "@title:column"
+msgid "Size"
+msgstr "大細"
+
+#: widgets/kdirmodel.cpp:1273
+#, kde-format
+msgctxt "@title:column"
+msgid "Date"
+msgstr "日期"
+
+#: widgets/kdirmodel.cpp:1275
+#, kde-format
+msgctxt "@title:column"
+msgid "Permissions"
+msgstr "權限"
+
+#: widgets/kdirmodel.cpp:1277
+#, kde-format
+msgctxt "@title:column"
+msgid "Owner"
+msgstr "所有者"
+
+#: widgets/kdirmodel.cpp:1279
+#, kde-format
+msgctxt "@title:column"
+msgid "Group"
+msgstr "群組"
+
+#: widgets/kdirmodel.cpp:1281
+#, kde-format
+msgctxt "@title:column"
+msgid "Type"
+msgstr "類"
+
+#: widgets/kfileitemactions.cpp:250
+#, kde-format
+msgctxt "@title:menu"
+msgid "&Actions"
+msgstr "動作(&A)"
+
+#: widgets/kfileitemactions.cpp:592
+#, kde-format
+msgid "Open &with %1"
+msgstr "用 %1 Phah-khui(&W)"
+
+#: widgets/kfileitemactions.cpp:594
+#, kde-format
+msgctxt "@item:inmenu Open With, %1 is application name"
+msgid "%1"
+msgstr "%1"
+
+#: widgets/kfileitemactions.cpp:768
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Open Folder With…"
+msgstr "用程式開資料鋏仔(&O)…"
+
+#: widgets/kfileitemactions.cpp:768
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Open With…"
+msgstr "用程式開(&O)…"
+
+#: widgets/kfileitemactions.cpp:826
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Run Executable"
+msgstr "執行檔案(&R)"
+
+#: widgets/kfileitemactions.cpp:848
+#, kde-format
+msgid "&Open folder with %1"
+msgstr "用 %1 Phah-khui 資料鋏仔(&O)"
+
+#: widgets/kfileitemactions.cpp:848
+#, kde-format
+msgid "&Open with %1"
+msgstr "用 %1 Phah-khui(&O)"
+
+#: widgets/kfileitemactions.cpp:880
+#, kde-format
+msgctxt "@title:menu"
+msgid "&Open Folder With"
+msgstr "用程式開資料鋏仔(&O)"
+
+#: widgets/kfileitemactions.cpp:880
+#, kde-format
+msgctxt "@title:menu"
+msgid "&Open With"
+msgstr "用程式開(&O)"
+
+#: widgets/kfileitemactions.cpp:891
+#, kde-format
+msgctxt "@action:inmenu Open With"
+msgid "&Other Application…"
+msgstr "其他應用程式(&O)…"
+
+#: widgets/kfileitemdelegate.cpp:211
+#, kde-format
+msgctxt "Items in a folder"
+msgid "1 item"
+msgid_plural "%1 items"
+msgstr[0] "%1 个項目"
+
+#: widgets/kfileitemdelegate.cpp:266 widgets/kfileitemdelegate.cpp:270
+#, kde-format
+msgctxt "@info mimetype"
+msgid "Unknown"
+msgstr "毋知"
+
+#. i18n: ectx: property (text), widget (QLabel, typeLabel)
+#: widgets/kfilepropspluginwidget.ui:88
+#, kde-format
+msgid "Type:"
+msgstr "類："
+
+#. i18n: ectx: property (text), widget (QLabel, contentLabel)
+#: widgets/kfilepropspluginwidget.ui:118
+#, kde-format
+msgid "Content:"
+msgstr "內容："
+
+#. i18n: ectx: property (text), widget (QLabel, defaultHandlerLabel_Left)
+#: widgets/kfilepropspluginwidget.ui:138
+#, fuzzy, kde-format
+#| msgid "Open With:"
+msgid "Open with:"
+msgstr "用程式開："
+
+#. i18n: ectx: property (text), widget (QPushButton, configureMimeBtn)
+#: widgets/kfilepropspluginwidget.ui:192
+#, kde-format
+msgid "Change..."
+msgstr "改變..."
+
+#. i18n: ectx: property (text), widget (QLabel, locationLabel_Left)
+#: widgets/kfilepropspluginwidget.ui:204 widgets/kurlrequesterdialog.cpp:44
+#, kde-format
+msgid "Location:"
+msgstr "位置："
+
+#. i18n: ectx: property (text), widget (QLabel, sizeLabelLeft)
+#: widgets/kfilepropspluginwidget.ui:233
+#, kde-format
+msgid "Size:"
+msgstr "大細："
+
+#. i18n: ectx: property (text), widget (QLabel, sizeOnDiskLabelLeft)
+#: widgets/kfilepropspluginwidget.ui:259
+#, kde-format
+msgid "Size on disk:"
+msgstr ""
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, calculateSizeBtn)
+#: widgets/kfilepropspluginwidget.ui:308
+#, kde-format
+msgid "Determine the folder size"
+msgstr "判斷資料鋏仔大細"
+
+#. i18n: ectx: property (text), widget (QPushButton, stopCalculateSizeBtn)
+#: widgets/kfilepropspluginwidget.ui:315
+#, kde-format
+msgid "Stop"
+msgstr "停"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, stopCalculateSizeBtn)
+#: widgets/kfilepropspluginwidget.ui:321
+#, kde-format
+msgid "Stop determining the folder size"
+msgstr "中止判斷資料鋏仔大細"
+
+#. i18n: ectx: property (text), widget (QPushButton, sizeDetailsBtn)
+#: widgets/kfilepropspluginwidget.ui:328
+#, kde-format
+msgid "Explore in Filelight"
+msgstr "佇 Filelight 探索"
+
+#. i18n: ectx: property (text), widget (QLabel, symlinkTargetLabel)
+#: widgets/kfilepropspluginwidget.ui:356
+#, kde-format
+msgid "Points to:"
+msgstr "連結到："
+
+#. i18n: ectx: property (accessibleName), widget (QPushButton, symlinkTargetOpenDir)
+#: widgets/kfilepropspluginwidget.ui:387
+#, kde-format
+msgid "Show target"
+msgstr "顯示目標"
+
+#. i18n: ectx: property (text), widget (QLabel, createdTimeLabel_Left)
+#: widgets/kfilepropspluginwidget.ui:409
+#, kde-format
+msgid "Created:"
+msgstr "建立："
+
+#. i18n: ectx: property (text), widget (QLabel, modifiedTimeLabel_Left)
+#: widgets/kfilepropspluginwidget.ui:432
+#, kde-format
+msgid "Modified:"
+msgstr "修改："
+
+#. i18n: ectx: property (text), widget (QLabel, accessTimeLabel_Left)
+#: widgets/kfilepropspluginwidget.ui:455
+#, kde-format
+msgid "Accessed:"
+msgstr "存取："
+
+#. i18n: ectx: property (text), widget (QLabel, fsLabel_Left)
+#: widgets/kfilepropspluginwidget.ui:481
+#, fuzzy, kde-format
+#| msgid "File System:"
+msgid "File system:"
+msgstr "檔案系統："
+
+#. i18n: ectx: property (text), widget (QLabel, mountPointLabel_Left)
+#: widgets/kfilepropspluginwidget.ui:507
+#, fuzzy, kde-format
+#| msgid "Mountpoint"
+msgid "Mounted on:"
+msgstr "掛載點"
+
+#. i18n: ectx: property (text), widget (QLabel, mountSrcLabel_Left)
+#: widgets/kfilepropspluginwidget.ui:533
+#, kde-format
+msgid "Mounted from:"
+msgstr "Uì 佗位掛載："
+
+#. i18n: ectx: property (text), widget (QLabel, freespaceLabel)
+#: widgets/kfilepropspluginwidget.ui:559
+#, fuzzy, kde-format
+#| msgid "Free Space:"
+msgid "Free space:"
+msgstr "會使用 ê 空間："
+
+#. i18n: ectx: property (text), widget (KCapacityBar, capacityBar)
+#: widgets/kfilepropspluginwidget.ui:572
+#, kde-format
+msgid "Unknown size"
+msgstr "毋知大細"
+
+#: widgets/kopenwithdialog.cpp:299
+#, kde-format
+msgid "Known Applications"
+msgstr "知影 ê 應用程式"
+
+#: widgets/kopenwithdialog.cpp:558
+#, kde-format
+msgid "Open With"
+msgstr "用程式開"
+
+#: widgets/kopenwithdialog.cpp:563
+#, kde-format
+msgid ""
+"<qt>Select the program that should be used to open <b>%1</b>. If the program "
+"is not listed, enter the name or click the browse button.</qt>"
+msgstr ""
+
+#: widgets/kopenwithdialog.cpp:570
+#, kde-format
+msgid "Choose the name of the program with which to open the selected files."
+msgstr ""
+
+#: widgets/kopenwithdialog.cpp:591
+#, kde-format
+msgid "<qt>Select the program you want to use to open the file<br/>%1</qt>"
+msgstr ""
+
+#: widgets/kopenwithdialog.cpp:593
+#, kde-format
+msgid "<qt>Select the program you want to use to open the file.</qt>"
+msgid_plural ""
+"<qt>Select the program you want to use to open the %1 files.</qt>"
+msgstr[0] ""
+
+#: widgets/kopenwithdialog.cpp:598 widgets/kopenwithdialog.cpp:629
+#, kde-format
+msgid "Choose Application"
+msgstr "選應用程式"
+
+#: widgets/kopenwithdialog.cpp:613
+#, kde-format
+msgid "Choose Application for %1"
+msgstr "選 %1 ài 用的應用程式"
+
+#: widgets/kopenwithdialog.cpp:615
+#, kde-format
+msgid ""
+"<qt>Select the program for the file type: <b>%1</b>. If the program is not "
+"listed, enter the name or click the browse button.</qt>"
+msgstr ""
+
+#: widgets/kopenwithdialog.cpp:631
+#, kde-format
+msgid ""
+"<qt>Select a program. If the program is not listed, enter the name or click "
+"the browse button.</qt>"
+msgstr ""
+"<qt>選一个程式。若 ài 用 ê 程式無列出來，請直接輸入程式 ê 名猶是揤瀏覽鈕。</"
+"qt>"
+
+#: widgets/kopenwithdialog.cpp:677
+#, kde-format
+msgid ""
+"Type to filter the applications below, or specify the name of a command.\n"
+"Press down arrow to navigate the results."
+msgstr ""
+"佇下跤拍字來過濾應用程式，mā 會使指定 command ê 名。\n"
+"用 ↓ 齒來瀏覽結果。"
+
+#: widgets/kopenwithdialog.cpp:700
+#, kde-format
+msgid ""
+"Following the command, you can have several place holders which will be "
+"replaced with the actual values when the actual program is run:\n"
+"%f - a single file name\n"
+"%F - a list of files; use for applications that can open several local files "
+"at once\n"
+"%u - a single URL\n"
+"%U - a list of URLs\n"
+"%d - the directory of the file to open\n"
+"%D - a list of directories\n"
+"%i - the icon\n"
+"%m - the mini-icon\n"
+"%c - the comment"
+msgstr ""
+"佇指令後壁你會使用幾个占位符，in 會佇程式實際執行 ê 時陣取代做實際 ê 值：\n"
+"%f - 一个檔名\n"
+"%F - 一列 ê 檔名；若程式會使仝時開幾若个本地檔案，請用這个\n"
+"%u - 一个 URL\n"
+"%U - 一列 URL\n"
+"%d - ài 開 ê 檔案 ê 目錄\n"
+"%D - 一列目錄\n"
+"%i - 圖示\n"
+"%m - 細 ê 圖示\n"
+"%c - 註解"
+
+#: widgets/kopenwithdialog.cpp:744
+#, kde-format
+msgid ""
+"&Remember application association for all files of type\n"
+"\"%1\" (%2)"
+msgstr ""
+
+#: widgets/kopenwithdialog.cpp:746
+#, kde-format
+msgid ""
+"&Remember application association for all files of type\n"
+"\"%1\""
+msgstr ""
+
+#: widgets/kopenwithdialog.cpp:756
+#, kde-format
+msgid "Terminal options"
+msgstr "終端機選項"
+
+#: widgets/kopenwithdialog.cpp:761
+#, kde-format
+msgid "Run in &terminal"
+msgstr "佇終端機執行(&T)"
+
+#: widgets/kopenwithdialog.cpp:779
+#, kde-format
+msgid "&Do not close when command exits"
+msgstr ""
+
+#: widgets/kopenwithdialog.cpp:798
+#, kde-format
+msgid "Get more Apps from Discover"
+msgstr "Uì Discover 取得閣較濟應用程式"
+
+#. i18n: ectx: property (title), widget (QGroupBox, buttonGroup2)
+#: widgets/kpropertiesdesktopadvbase.ui:17
+#, kde-format
+msgctxt ""
+"@title:group Title of a group that lets the user choose options about the "
+"terminal when launching a program"
+msgid "Terminal"
+msgstr "終端機"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, terminalCheck)
+#: widgets/kpropertiesdesktopadvbase.ui:39
+#, kde-format
+msgid ""
+"Check this option if the application you want to run is a text mode "
+"application or if you want the information that is provided by the terminal "
+"emulator window."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QCheckBox, terminalCheck)
+#: widgets/kpropertiesdesktopadvbase.ui:42
+#, kde-format
+msgid "Run in terminal"
+msgstr "佇終端機執行"
+
+#. i18n: ectx: property (text), widget (QLabel, terminalEditLabel)
+#: widgets/kpropertiesdesktopadvbase.ui:49
+#, kde-format
+msgid "Terminal options:"
+msgstr "終端機選項："
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, terminalCloseCheck)
+#: widgets/kpropertiesdesktopadvbase.ui:59
+#, kde-format
+msgid ""
+"Check this option if the text mode application offers relevant information "
+"on exit. Keeping the terminal emulator open allows you to retrieve this "
+"information."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QCheckBox, terminalCloseCheck)
+#: widgets/kpropertiesdesktopadvbase.ui:62
+#, kde-format
+msgid "Do not close when command exits"
+msgstr ""
+
+#. i18n: ectx: property (title), widget (QGroupBox, buttonGroup2_2)
+#: widgets/kpropertiesdesktopadvbase.ui:75
+#, kde-format
+msgctxt ""
+"@title:group Title of a group that lets the user choose which user to use "
+"when launching a program"
+msgid "User"
+msgstr "用者"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, suidCheck)
+#: widgets/kpropertiesdesktopadvbase.ui:81
+#, kde-format
+msgid ""
+"Check this option if you want to run this application with a different user "
+"id. Every process has a different user id associated with it. This id code "
+"determines file access and other permissions. The password of the user is "
+"required to use this option."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QCheckBox, suidCheck)
+#: widgets/kpropertiesdesktopadvbase.ui:84
+#, kde-format
+msgid "Run as a different user"
+msgstr "用別个用者執行"
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, suidEditLabel)
+#: widgets/kpropertiesdesktopadvbase.ui:107
+#, kde-format
+msgid "Enter the user name you want to run the application as."
+msgstr "輸入你 ài 用啥物用者名來執行這个應用程式。"
+
+#. i18n: ectx: property (text), widget (QLabel, suidEditLabel)
+#: widgets/kpropertiesdesktopadvbase.ui:110
+#, kde-format
+msgid "Username:"
+msgstr "用者名："
+
+#. i18n: ectx: property (whatsThis), widget (KLineEdit, suidEdit)
+#: widgets/kpropertiesdesktopadvbase.ui:120
+#, kde-format
+msgid "Enter the user name you want to run the application as here."
+msgstr "請佇遮輸入你 ài 用啥物用者名執行這應用程式。"
+
+#. i18n: ectx: property (title), widget (QGroupBox, discreteGpuGroupBox)
+#: widgets/kpropertiesdesktopadvbase.ui:130
+#, kde-format
+msgid "Discrete GPU"
+msgstr "獨立 GPU"
+
+#. i18n: ectx: property (text), widget (QCheckBox, discreteGpuCheck)
+#: widgets/kpropertiesdesktopadvbase.ui:136
+#, kde-format
+msgid "Run using dedicated graphics card"
+msgstr "用獨立顯示卡執行"
+
+#. i18n: ectx: property (title), widget (QGroupBox, buttonGroup4)
+#: widgets/kpropertiesdesktopadvbase.ui:146
+#, kde-format
+msgctxt ""
+"@title:group Title of a group that lets the user choose options regarding "
+"program startup"
+msgid "Startup"
+msgstr "啟動"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, startupInfoCheck)
+#: widgets/kpropertiesdesktopadvbase.ui:152
+#, kde-format
+msgid ""
+"Check this option if you want to make clear that your application has "
+"started. This visual feedback may appear as a busy cursor or in the taskbar."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QCheckBox, startupInfoCheck)
+#: widgets/kpropertiesdesktopadvbase.ui:155
+#, kde-format
+msgid "Enable launch feedback"
+msgstr "啟用啟動回饋"
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, nameLabel)
+#. i18n: ectx: property (whatsThis), widget (QLineEdit, nameEdit)
+#: widgets/kpropertiesdesktopbase.ui:19 widgets/kpropertiesdesktopbase.ui:32
+#, kde-format
+msgid ""
+"Type the name you want to give to this application here. This application "
+"will appear under this name in the applications menu and in the panel."
+msgstr ""
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, textLabel2)
+#. i18n: ectx: property (whatsThis), widget (QLineEdit, genNameEdit)
+#: widgets/kpropertiesdesktopbase.ui:39 widgets/kpropertiesdesktopbase.ui:52
+#, kde-format
+msgid ""
+"Type a generic name for the application here. Examples: an image viewing "
+"application would be \"Image Viewer\"."
+msgstr ""
+"請佇 tsia 輸入應用程式 ê 通用名。例：檢視影像 ê 程式會叫做「影像檢視器」。"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel2)
+#: widgets/kpropertiesdesktopbase.ui:42
+#, kde-format
+msgid "&Generic name:"
+msgstr "通用名(&G)："
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, textLabel3)
+#. i18n: ectx: property (whatsThis), widget (QLineEdit, commentEdit)
+#: widgets/kpropertiesdesktopbase.ui:59 widgets/kpropertiesdesktopbase.ui:72
+#, kde-format
+msgid ""
+"Type the description of this application, based on its use, here. Examples: "
+"an image viewing application would be \"View and edit images\"."
+msgstr ""
+"請佇 tsia 以應用程式 ê 用途輸入伊 ê 說明。例：檢視影像 ê 程式會使敘述做叫做"
+"「檢視 kā 編輯影像」。"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel3)
+#: widgets/kpropertiesdesktopbase.ui:62
+#, kde-format
+msgid "Comm&ent:"
+msgstr "註解(&E)："
+
+#. i18n: ectx: property (text), widget (QLabel, labelenvvars)
+#: widgets/kpropertiesdesktopbase.ui:79
+#, kde-format
+msgid "Environment variables:"
+msgstr ""
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, textLabel4)
+#. i18n: ectx: property (whatsThis), widget (QLineEdit, programEdit)
+#: widgets/kpropertiesdesktopbase.ui:92 widgets/kpropertiesdesktopbase.ui:107
+#, kde-format
+msgid "Type the command to start this application here."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel4)
+#: widgets/kpropertiesdesktopbase.ui:95
+#, kde-format
+msgid "Program:"
+msgstr "程式："
+
+#. i18n: ectx: property (whatsThis), widget (QPushButton, browseButton)
+#: widgets/kpropertiesdesktopbase.ui:114
+#, kde-format
+msgid ""
+"Click here to browse your file system in order to find the desired "
+"executable."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, browseButton)
+#: widgets/kpropertiesdesktopbase.ui:117
+#, kde-format
+msgid "&Browse..."
+msgstr "瀏覽(&B)..."
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, argumentsLabel)
+#. i18n: ectx: property (whatsThis), widget (QLineEdit, argumentsEdit)
+#: widgets/kpropertiesdesktopbase.ui:136 widgets/kpropertiesdesktopbase.ui:159
+#, no-c-format, kde-format
+msgid ""
+"Type the arguments to use when starting this application here.\n"
+"\n"
+"You can have several placeholders which will be replaced with the actual "
+"values when the actual program is run:\n"
+"\n"
+"%f - a single filename\n"
+"%F - a list of files (for apps that can open several files at once)\n"
+"%u - a single URL\n"
+"%U - a list of URLs\n"
+"%i - the icon of the .desktop file\n"
+"%c - the name of the .desktop file\n"
+"%k - the location of the .desktop file"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, argumentsLabel)
+#: widgets/kpropertiesdesktopbase.ui:139
+#, kde-format
+msgid "&Arguments:"
+msgstr "參數(&A)："
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, textLabel5)
+#. i18n: ectx: property (whatsThis), widget (KUrlRequester, pathEdit)
+#: widgets/kpropertiesdesktopbase.ui:166 widgets/kpropertiesdesktopbase.ui:179
+#, kde-format
+msgid "Sets the working directory for your application."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel5)
+#: widgets/kpropertiesdesktopbase.ui:169
+#, kde-format
+msgid "&Work path:"
+msgstr "工作路徑(&W)："
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, textLabel7)
+#. i18n: ectx: property (whatsThis), widget (QTreeWidget, filetypeList)
+#: widgets/kpropertiesdesktopbase.ui:193 widgets/kpropertiesdesktopbase.ui:214
+#, kde-format
+msgid ""
+"<qt><p>This list should show the types of file that your application can "
+"handle. This list is organized by <u>mimetypes</u>.</p>\n"
+"<p>MIME, Multipurpose Internet (e)Mail Extension, is a standard protocol for "
+"identifying the type of data based on filename extensions and correspondent "
+"<u>mimetypes</u>. Example: the \"bmp\" part that comes after the dot in "
+"flower.bmp indicates that it is a specific kind of image, <u>image/x-bmp</"
+"u>. To know which application should open each type of file, the system "
+"should be informed about the abilities of each application to handle these "
+"extensions and mimetypes.</p>\n"
+"<p>If you want to associate this application with one or more mimetypes that "
+"are not in this list, click on the button <b>Add</b> below. If there are one "
+"or more filetypes that this application cannot handle, you may want to "
+"remove them from the list clicking on the button <b>Remove</b> below.</p></"
+"qt>"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel7)
+#: widgets/kpropertiesdesktopbase.ui:196
+#, kde-format
+msgid "&Supported file types:"
+msgstr "支援 ê 檔案類(&S)："
+
+#. i18n: ectx: property (text), widget (QTreeWidget, filetypeList)
+#: widgets/kpropertiesdesktopbase.ui:227
+#, kde-format
+msgid "Mimetype"
+msgstr "MIME 類"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, filetypeList)
+#: widgets/kpropertiesdesktopbase.ui:232
+#, kde-format
+msgid "Description"
+msgstr "說明"
+
+#. i18n: ectx: property (whatsThis), widget (QPushButton, addFiletypeButton)
+#: widgets/kpropertiesdesktopbase.ui:242
+#, kde-format
+msgid ""
+"Click on this button if you want to add a type of file (mimetype) that your "
+"application can handle."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, addFiletypeButton)
+#: widgets/kpropertiesdesktopbase.ui:245
+#, kde-format
+msgid "Add..."
+msgstr "添…"
+
+#. i18n: ectx: property (whatsThis), widget (QPushButton, delFiletypeButton)
+#: widgets/kpropertiesdesktopbase.ui:252
+#, kde-format
+msgid ""
+"If you want to remove a type of file (mimetype) that your application cannot "
+"handle, select the mimetype in the list above and click on this button."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, delFiletypeButton)
+#: widgets/kpropertiesdesktopbase.ui:255
+#, kde-format
+msgid "Remove"
+msgstr "移除"
+
+#. i18n: ectx: property (whatsThis), widget (QPushButton, advancedButton)
+#: widgets/kpropertiesdesktopbase.ui:278
+#, kde-format
+msgid ""
+"Click here to modify the way this application will run, launch feedback, D-"
+"Bus options or to run it as a different user."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, advancedButton)
+#: widgets/kpropertiesdesktopbase.ui:281
+#, kde-format
+msgid "Ad&vanced Options"
+msgstr "詳細選項(&V)"
+
+#: widgets/kpropertiesdialog.cpp:145 widgets/kpropertiesdialog.cpp:160
+#: widgets/kpropertiesdialog.cpp:172 widgets/kpropertiesdialog.cpp:190
+#: widgets/kpropertiesdialog.cpp:208 widgets/kpropertiesdialog.cpp:232
+#, kde-format
+msgid "Properties for %1"
+msgstr "%1 ê 屬性"
+
+#: widgets/kpropertiesdialog.cpp:170 widgets/kpropertiesdialog.cpp:206
+#, kde-format
+msgid "Properties for 1 item"
+msgid_plural "Properties for %1 Selected Items"
+msgstr[0] "選 ê %1 ê 項目 ê 屬性"
+
+#: widgets/kpropertiesdialog.cpp:350
+#, kde-format
+msgctxt "@title:tab"
+msgid "Share"
+msgstr "分享"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:112
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Could not save properties due to insufficient write access to:<nl/><filename>"
+"%1</filename>."
+msgstr ""
+"無法度儲存屬性，因為對這个檔案無夠寫入存取權：<nl/><filename>%1</filename>。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:159
+#, fuzzy, kde-format
+#| msgid "%1 (%2)"
+msgctxt ""
+"@label the size of a file or folder, first rounded and then to the byte"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:161
+#, kde-format
+msgctxt "@item the exact size of a file or folder"
+msgid "%1 byte"
+msgid_plural "%1 bytes"
+msgstr[0] ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:263
+#, kde-format
+msgctxt "@title:tab File properties"
+msgid "&General"
+msgstr "一般(&G)"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:397
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Enter file name"
+msgstr "輸入檔名"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:474
+#, kde-format
+msgctxt "@action:button"
+msgid "Explore in %1"
+msgstr "佇 %1 探索"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:485
+#: widgets/kpropertiesdialogbuiltin_p.cpp:762
+#, kde-format
+msgid "Refresh"
+msgstr "重整理"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:494
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Enter target location"
+msgstr "輸入目標位置"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:498
+#: widgets/kpropertiesdialogbuiltin_p.cpp:501
+#, kde-kuit-format
+msgctxt "@info:tooltip Go to path %1"
+msgid "Show <filename>%1</filename>"
+msgstr "顯示 <filename>%1</filename>"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:607
+#, kde-format
+msgid "%1:"
+msgstr "%1："
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:729
+#, kde-format
+msgctxt "@info:status"
+msgid "Unknown size"
+msgstr "毋知大細"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:739
+#, fuzzy, kde-format
+#| msgid ""
+#| "Calculating... %1 (%2)\n"
+#| "%3, %4"
+msgid ""
+"Calculating... %1\n"
+"%2, %3"
+msgstr ""
+"Tī-leh 計算… %1 (%2)\n"
+"%3, %4"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:741
+#: widgets/kpropertiesdialogbuiltin_p.cpp:756
+#, kde-format
+msgid "1 file"
+msgid_plural "%1 files"
+msgstr[0] "%1 个檔案"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:742
+#: widgets/kpropertiesdialogbuiltin_p.cpp:757
+#, kde-format
+msgid "1 sub-folder"
+msgid_plural "%1 sub-folders"
+msgstr[0] "%1 ê 子資料鋏仔"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:771
+#, kde-format
+msgid "Calculating...\n"
+msgstr "Tī-leh 計算…\n"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:794
+#, kde-format
+msgid "At least %1\n"
+msgstr "至少 %1\n"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:840
+#, kde-format
+msgid "The new file name is empty."
+msgstr "新 ê 檔名是空 ê。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1038
+#, kde-format
+msgid "No registered file type"
+msgstr "無註冊過 ê 檔案類"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1040
+#, kde-format
+msgid "No associated application"
+msgstr "無相關連 ê 應用程式"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1046
+#, kde-format
+msgctxt "@action:button Create new file type"
+msgid "Create…"
+msgstr "建立…"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1050
+#, kde-format
+msgctxt "@action:button"
+msgid "Change…"
+msgstr "改變…"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1052
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Change the default application for opening files of type “%1”."
+msgstr "改變 \"%1\" 類 ê 檔案預設愛用啥物應用程式來開。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1122
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1123
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1125
+msgid "No Access"
+msgstr "無權存取"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1122
+msgid "Can Only View"
+msgstr "只會使檢視"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1122
+msgid "Can View & Modify"
+msgstr "會使檢視 kā 改變"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1123
+msgid "Can Only View Content"
+msgstr "只會使檢視內容"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1123
+msgid "Can View & Modify Content"
+msgstr "會使檢視 kā 改變內容"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1125
+msgid "Can Only View/Read Content"
+msgstr "只會使檢視/讀取內容"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1125
+msgid "Can View/Read & Modify/Write"
+msgstr "會使檢視/讀取 kā 改變/寫入"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1224
+#, kde-format
+msgid "&Permissions"
+msgstr "權限(&P)"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1235
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1423
+#, kde-format
+msgid "Access Permissions"
+msgstr "存取權限"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1245
+#, kde-format
+msgid "This file is a link and does not have permissions."
+msgid_plural "All files are links and do not have permissions."
+msgstr[0] "遮所有 ê 檔案攏是連結所以無權限設定。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1247
+#, kde-format
+msgid "Only the owner can change permissions."
+msgstr "干焦所有者 ē-sái 改權限。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1254
+#, kde-format
+msgid "O&wner:"
+msgstr "所有者(&W)："
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1256
+#, kde-format
+msgid "Specifies the actions that the owner is allowed to do."
+msgstr "指定所有者予允准會使做的動作。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1259
+#, kde-format
+msgid "Gro&up:"
+msgstr "群組(&U)："
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1261
+#, kde-format
+msgid "Specifies the actions that the members of the group are allowed to do."
+msgstr "指定群組成員予允准會使做的動作。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1264
+#, kde-format
+msgid "O&thers:"
+msgstr "其他(&T)："
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1267
+#, kde-format
+msgid ""
+"Specifies the actions that all users, who are neither owner nor in the "
+"group, are allowed to do."
+msgstr "指定其他毋是所有者 mā 毋是佇群組內底 ê 用者有予允准會使做 ê 動作。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1271
+#, kde-format
+msgid "Only own&er can delete or rename contents"
+msgstr "只有所有者會使刣掉猶是改名內容(&E)"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1271
+#, kde-format
+msgid "Allow &executing file as program"
+msgstr "允准 kā 檔案當做程式執行(&E)"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1273
+#, kde-format
+msgid "Delete or rename:"
+msgstr "刣掉猶是改名："
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1273
+#, kde-format
+msgid "Execute:"
+msgstr "執行："
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1274
+#, kde-format
+msgid ""
+"Enable this option to allow only the folder's owner to delete or rename the "
+"contained files and folders. Other users can only add new files, which "
+"requires the 'Modify Content' permission."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1278
+#, kde-format
+msgid ""
+"Enable this option to mark the file as executable. This only makes sense for "
+"programs and scripts. It is required when you want to execute them."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1282
+#, kde-format
+msgid "A&dvanced Permissions"
+msgstr "詳細權限(&D)"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1290
+#, kde-format
+msgid "Ownership"
+msgstr "所有者"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1298
+#, kde-format
+msgid "User:"
+msgstr "用者："
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1336
+#, kde-format
+msgid "Group:"
+msgstr "群組："
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1370
+#, kde-format
+msgid "Apply changes to all subfolders and their contents"
+msgstr "套用改變到所有 ê 子資料鋏仔 kap in ê 內容"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1413
+#, kde-format
+msgid "Advanced Permissions"
+msgstr "詳細權限"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1433
+#, kde-format
+msgid "Class"
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1440
+#, kde-format
+msgid ""
+"Show\n"
+"Entries"
+msgstr ""
+"顯示\n"
+"項目"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1441
+#, kde-format
+msgid "This flag allows viewing the content of the folder."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1443
+#, kde-format
+msgid "Read"
+msgstr "讀取"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1444
+#, kde-format
+msgid "The Read flag allows viewing the content of the file."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1450
+#, kde-format
+msgid ""
+"Write\n"
+"Entries"
+msgstr ""
+"寫入\n"
+"項目"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1452
+#, kde-format
+msgid ""
+"This flag allows adding, renaming and deleting of files. Note that deleting "
+"and renaming can be limited using the Sticky flag."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1455
+#, kde-format
+msgid "Write"
+msgstr "寫入"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1456
+#, kde-format
+msgid "The Write flag allows modifying the content of the file."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1462
+#, kde-format
+msgctxt "Enter folder"
+msgid "Enter"
+msgstr "入去"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1463
+#, kde-format
+msgid "Enable this flag to allow entering the folder."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1465
+#, kde-format
+msgid "Exec"
+msgstr "執行"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1466
+#, kde-format
+msgid "Enable this flag to allow executing the file as a program."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1474
+#, kde-format
+msgid "Special"
+msgstr "特別"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1479
+#, kde-format
+msgid ""
+"Special flag. Valid for the whole folder, the exact meaning of the flag can "
+"be seen in the right hand column."
+msgstr ""
+"特別 ê flag。對規个資料鋏仔攏有效，這个 flag 實際 ê 意思會使看正手爿 ê 欄位。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1483
+#, kde-format
+msgid ""
+"Special flag. The exact meaning of the flag can be seen in the right hand "
+"column."
+msgstr "特別 ê flag。這个 flag 實際 ê 意思會使看正手爿 ê 欄位。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1488
+#, kde-format
+msgid "User"
+msgstr "用者"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1492
+#, kde-format
+msgid "Group"
+msgstr "群組"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1503
+#, kde-format
+msgid ""
+"If this flag is set, the owner of this folder will be the owner of all new "
+"files."
+msgstr "若設這个 flag，這个資料鋏仔 ê 所有者會設做所有新檔案 ê 所有者。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1507
+#, kde-format
+msgid ""
+"If this file is an executable and the flag is set, it will be executed with "
+"the permissions of the owner."
+msgstr "若 uì 執行檔設這个 flag，伊咧執行的時陣會用伊的所有者 ê 權限來執行。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1514
+#, kde-format
+msgid ""
+"If this flag is set, the group of this folder will be set for all new files."
+msgstr "若設這个 flag，這个資料鋏仔的群組會設做所有新檔案 ê 群組。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1518
+#, kde-format
+msgid ""
+"If this file is an executable and the flag is set, it will be executed with "
+"the permissions of the group."
+msgstr "若 uì 執行檔設這个 flag，伊咧執行 ê 時陣會用伊的群組 ê 權限來執行。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1525
+#, kde-format
+msgid ""
+"If the Sticky flag is set on a folder, only the owner and root can delete or "
+"rename files. Otherwise everybody with write permissions can do this."
+msgstr ""
+"若對資料鋏仔設 Sticky flag，這代表只有所有者 kap root 會使刣掉檔案猶是予檔案"
+"改名。若無設，所有有寫入權限 ê 人攏會使刣掉檔案猶是予檔案改名。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1530
+#, kde-format
+msgid ""
+"The Sticky flag on a file is ignored on Linux, but may be used on some "
+"systems"
+msgstr "檔案 ê Sticky flag 佇 Linux 無效果，毋過佇別个系統頂懸可能有路用。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1591
+#, kde-format
+msgid "Set UID"
+msgstr "設定 UID"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1595
+#, kde-format
+msgid "Set GID"
+msgstr "設定 GID"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1599
+#, kde-format
+msgctxt "File permission"
+msgid "Sticky"
+msgstr "Sticky"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1725
+#, kde-format
+msgid "Link"
+msgstr "連結"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1745
+#, kde-format
+msgid "Varying (No Change)"
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1856
+#, kde-format
+msgid "This file uses advanced permissions"
+msgid_plural "These files use advanced permissions."
+msgstr[0] ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1878
+#, kde-format
+msgid "This folder uses advanced permissions."
+msgid_plural "These folders use advanced permissions."
+msgstr[0] ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:1892
+#, kde-format
+msgid "These files use advanced permissions."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2136
+#, kde-format
+msgctxt "@title:tab"
+msgid "C&hecksums"
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2427
+#, kde-format
+msgid "Invalid checksum."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2430
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "The given input is not a valid MD5, SHA1 or SHA256 checksum."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2441
+#, kde-format
+msgid "Checksums match."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2444
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "The computed checksum and the expected checksum match."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2456
+#, kde-format
+msgid ""
+"<p>Checksums do not match.</p>This may be due to a faulty download. Try re-"
+"downloading the file.<br/>If the verification still fails, contact the "
+"source of the file."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2462
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "The computed checksum and the expected checksum differ."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2470
+#, kde-format
+msgctxt "@info:progress computation in the background"
+msgid "Verifying checksum…"
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2499
+#, kde-format
+msgid "The checksums of all files are identical."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2504
+#, kde-format
+msgid "The selected files have different checksums."
+msgstr "選 ê 檔案 ê 檢查碼無仝。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2510
+#, kde-format
+msgctxt "@info:progress"
+msgid "Calculating…"
+msgstr "Tī-leh 計算…"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2621
+#, kde-format
+msgid "U&RL"
+msgstr "U&RL"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2627
+#, kde-format
+msgid "URL:"
+msgstr "URL:"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2696
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2967
+#, kde-format
+msgid ""
+"Could not save properties. Only entries on local file systems are supported."
+msgstr "無法度儲存屬性。只支援本地檔案系統頂懸 ê 項目。"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2767
+#, kde-format
+msgid "&Application"
+msgstr "應用程式(&A)"
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2907
+#, kde-format
+msgid "Add File Type for %1"
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:2908
+#, kde-format
+msgid "Select one or more file types to add:"
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:3046
+#, kde-format
+msgid "Only executables on local file systems are supported."
+msgstr ""
+
+#: widgets/kpropertiesdialogbuiltin_p.cpp:3061
+#, kde-format
+msgid "Advanced Options for %1"
+msgstr "%1 ê 詳細選項"
+
+#: widgets/ksslinfodialog.cpp:38
+#, kde-format
+msgid "KDE SSL Information"
+msgstr "KDE SSL 資訊"
+
+#: widgets/ksslinfodialog.cpp:49
+#, kde-format
+msgctxt "The receiver of the SSL certificate"
+msgid "Subject"
+msgstr ""
+
+#: widgets/ksslinfodialog.cpp:50
+#, kde-format
+msgctxt "The authority that issued the SSL certificate"
+msgid "Issuer"
+msgstr ""
+
+#: widgets/ksslinfodialog.cpp:82
+#, kde-format
+msgid "Current connection is secured with SSL."
+msgstr ""
+
+#: widgets/ksslinfodialog.cpp:86
+#, kde-format
+msgid ""
+"The main part of this document is secured with SSL, but some parts are not."
+msgstr ""
+
+#: widgets/ksslinfodialog.cpp:93
+#, kde-format
+msgid "Some of this document is secured with SSL, but the main part is not."
+msgstr ""
+
+#: widgets/ksslinfodialog.cpp:97
+#, kde-format
+msgid "Current connection is not secured with SSL."
+msgstr ""
+
+#: widgets/ksslinfodialog.cpp:139
+#, kde-format
+msgctxt "%1, using %2 bits of a %3 bit key"
+msgid "%1, %2 %3"
+msgstr "%1, %2 %3"
+
+#: widgets/ksslinfodialog.cpp:141
+#, kde-format
+msgctxt "Part of: %1, using %2 bits of a %3 bit key"
+msgid "using %1 bit"
+msgid_plural "using %1 bits"
+msgstr[0] ""
+
+#: widgets/ksslinfodialog.cpp:142
+#, kde-format
+msgctxt "Part of: %1, using %2 bits of a %3 bit key"
+msgid "of a %1 bit key"
+msgid_plural "of a %1 bit key"
+msgstr[0] ""
+
+#: widgets/ksslinfodialog.cpp:157
+#, kde-format
+msgctxt "The certificate is not trusted"
+msgid "NO, there were errors:"
+msgstr "毋是，有錯誤："
+
+#: widgets/ksslinfodialog.cpp:163
+#, kde-format
+msgctxt "The certificate is trusted"
+msgid "Yes"
+msgstr "是"
+
+#: widgets/ksslinfodialog.cpp:168
+#, kde-format
+msgctxt "%1 is the effective date of the certificate, %2 is the expiry date"
+msgid "%1 to %2"
+msgstr "%1 kàu %2"
+
+#: widgets/kurifiltersearchprovideractions.cpp:80
+#, kde-format
+msgid "Search for '%1' with"
+msgstr ""
+
+#: widgets/kurifiltersearchprovideractions.cpp:85
+#, kde-format
+msgctxt "@action:inmenu Search for <text> with"
+msgid "%1"
+msgstr "%1"
+
+#: widgets/kurifiltersearchprovideractions.cpp:94
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Configure Web Shortcuts…"
+msgstr ""
+
+#: widgets/kurlrequester.cpp:367
+#, kde-format
+msgid "Open file dialog"
+msgstr ""
+
+#: widgets/paste.cpp:69
+#, kde-format
+msgctxt "A default file name excluding extension for some pasted content"
+msgid "pasted file"
+msgstr "貼起去 ê 檔案"
+
+#: widgets/paste.cpp:79 widgets/paste.cpp:113
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Paste Clipboard Content"
+msgstr "Kā 剪貼簿的內容貼起去"
+
+#: widgets/paste.cpp:122
+#, kde-format
+msgid ""
+"The clipboard has changed since you used 'paste': the chosen data format is "
+"no longer applicable. Please copy again what you wanted to paste."
+msgstr ""
+"你用「貼起去」以來，剪貼簿內容已經有改變--ah：選的資料格式不再是適合 ê。請重"
+"新 khóo-pih 你原本想欲貼 ê 物件。"
+
+#: widgets/paste.cpp:250
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Paste One Folder"
+msgstr "Tah 一个資料鋏仔"
+
+#: widgets/paste.cpp:250
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Paste One File"
+msgstr "Tah 一个檔案"
+
+#: widgets/paste.cpp:252
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Paste One Item"
+msgid_plural "Paste %1 Items"
+msgstr[0] "Tah %1 个項目"
+
+#: widgets/paste.cpp:254
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Paste Clipboard Contents…"
+msgstr "Kā 剪貼簿的內容貼起去…"
+
+#: widgets/paste.cpp:258
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Paste"
+msgstr "Tah--khí-khì"
+
+#: widgets/pastedialog.cpp:57
+#, kde-format
+msgctxt "@label"
+msgid "Data format:"
+msgstr ""
+
+#: widgets/pastedialog.cpp:68
+#, kde-format
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: widgets/pastejob.cpp:89
+#, kde-format
+msgid "Filename for clipboard content:"
+msgstr "剪貼簿內容 ê 檔名："
+
+#: widgets/pastejob.cpp:89
+#, kde-format
+msgid "Filename for dropped contents:"
+msgstr ""
+
+#: widgets/renamedialog.cpp:73
+#, kde-format
+msgid "Date: %1"
+msgstr "日期：%1"
+
+#: widgets/renamedialog.cpp:86
+#, kde-format
+msgid "Size: %1"
+msgstr "大細：%1"
+
+#: widgets/renamedialog.cpp:279
+#, kde-format
+msgid "Appl&y to All"
+msgstr "套用到全部(&Y)"
+
+#: widgets/renamedialog.cpp:280
+#, kde-format
+msgid ""
+"When this is checked, the button pressed will be applied to all subsequent "
+"folder conflicts for the remainder of the current job.\n"
+"Unless you press Skip you will still be prompted in case of a conflict with "
+"an existing file in the directory."
+msgstr ""
+
+#: widgets/renamedialog.cpp:284
+#, kde-format
+msgid ""
+"When this is checked, the button pressed will be applied to all subsequent "
+"conflicts for the remainder of the current job."
+msgstr ""
+
+#: widgets/renamedialog.cpp:290
+#, kde-format
+msgid "&Rename"
+msgstr "改名(&R)"
+
+#: widgets/renamedialog.cpp:292
+#, kde-format
+msgid "Suggest New &Name"
+msgstr ""
+
+#: widgets/renamedialog.cpp:298
+#, kde-format
+msgid "&Skip"
+msgstr "跳過(&S)"
+
+#: widgets/renamedialog.cpp:299
+#, kde-format
+msgid "Do not copy or move this folder, skip to the next item instead"
+msgstr "Mài khóo-pi̍h 猶是 suá 這个資料鋏仔，直接處理後一个項目"
+
+#: widgets/renamedialog.cpp:300
+#, kde-format
+msgid "Do not copy or move this file, skip to the next item instead"
+msgstr "Mài khóo-pi̍h 猶是 suá 這个檔案，直接處理後一个項目"
+
+#: widgets/renamedialog.cpp:311
+#, kde-format
+msgctxt "Write files into an existing folder"
+msgid "&Write Into"
+msgstr "寫入去(&W)"
+
+#: widgets/renamedialog.cpp:314
+#, kde-format
+msgid ""
+"Files and folders will be copied into the existing directory, alongside its "
+"existing contents.\n"
+"You will be prompted again in case of a conflict with an existing file in "
+"the directory."
+msgstr ""
+
+#: widgets/renamedialog.cpp:319
+#, kde-format
+msgctxt "Overwrite files into an existing folder when files are older"
+msgid "&Overwrite older files"
+msgstr ""
+
+#: widgets/renamedialog.cpp:323
+#, kde-format
+msgid ""
+"Destination files which have older modification times will be overwritten by "
+"the source, skipped otherwise."
+msgstr ""
+
+#: widgets/renamedialog.cpp:335
+#, kde-format
+msgid "&Resume"
+msgstr "繼續(&R)"
+
+#: widgets/renamedialog.cpp:344
+#, kde-format
+msgid ""
+"This action would overwrite '%1' with itself.\n"
+"Please enter a new file name:"
+msgstr ""
+
+#: widgets/renamedialog.cpp:350
+#, kde-format
+msgid "C&ontinue"
+msgstr "繼續(&O)"
+
+#: widgets/renamedialog.cpp:418
+#, kde-format
+msgid "Would you like to overwrite the destination?"
+msgstr ""
+
+#: widgets/renamedialog.cpp:420
+#, kde-format
+msgid "Would you like to merge the contents of '%1' into '%2'?"
+msgstr ""
+
+#: widgets/renamedialog.cpp:463
+#, kde-format
+msgid "The source is <b>more recent</b>."
+msgstr ""
+
+#: widgets/renamedialog.cpp:465
+#, kde-format
+msgid "The source is <b>older</b>."
+msgstr ""
+
+#: widgets/renamedialog.cpp:474
+#, kde-format
+msgid "The source is <b>smaller by %1</b>."
+msgstr ""
+
+#: widgets/renamedialog.cpp:477
+#, kde-format
+msgid "The source is <b>bigger by %1</b>."
+msgstr ""
+
+#: widgets/renamedialog.cpp:491
+#, kde-format
+msgid "The files are <b>identical</b>."
+msgstr ""
+
+#: widgets/renamedialog.cpp:494
+#, kde-format
+msgid "The files <b>seem identical</b>."
+msgstr ""
+
+#: widgets/renamedialog.cpp:498
+#, kde-format
+msgid "The files are <b>different</b>."
+msgstr ""
+
+#: widgets/renamedialog.cpp:506
+#, kde-format
+msgid ""
+"The files are likely to be identical: they have the same size and their "
+"contents are the same at the beginning, middle and end."
+msgstr ""
+
+#: widgets/renamedialog.cpp:520
+#, kde-format
+msgctxt "@action:button"
+msgid "Compare Files"
+msgstr ""
+
+#: widgets/renamedialog.cpp:533
+#, kde-format
+msgid "An older item named '%1' already exists."
+msgstr ""
+
+#: widgets/renamedialog.cpp:535
+#, kde-format
+msgid "A similar file named '%1' already exists."
+msgstr ""
+
+#: widgets/renamedialog.cpp:537
+#, kde-format
+msgid "A more recent item named '%1' already exists."
+msgstr ""
+
+#: widgets/renamedialog.cpp:550
+#, kde-format
+msgid "Rename:"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:138
+#, kde-kuit-format
+msgctxt "@label:textbox"
+msgid "Rename the item <filename>%1</filename> to:"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:188 widgets/renamefiledialog.cpp:574
+#, kde-kuit-format
+msgctxt "@info error a file already exists"
+msgid "A file named <filename>%1</filename> already exists."
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:191
+#, kde-kuit-format
+msgctxt "@info %1 is an invalid filename"
+msgid "<filename>%1</filename> is not a valid file name."
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:211
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Rename the %1 selected item to:"
+msgid_plural "Rename the %1 selected items to:"
+msgstr[0] ""
+
+#: widgets/renamefiledialog.cpp:214
+#, kde-format
+msgctxt "@info"
+msgid "# will be replaced by ascending numbers starting with:"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:229
+#, fuzzy, kde-format
+#| msgctxt "@item:inlistbox as in insert text before filename"
+#| msgid "Before filename"
+msgctxt "@item:inlistbox the new name is the whole file name"
+msgid "Replace filename"
+msgstr "檔名進前"
+
+#: widgets/renamefiledialog.cpp:230
+#, fuzzy, kde-format
+#| msgctxt "@item:inlistbox as in insert text before filename"
+#| msgid "Before filename"
+msgctxt "@item:inlistbox as in insert the new name before the filename"
+msgid "Before filename"
+msgstr "檔名進前"
+
+#: widgets/renamefiledialog.cpp:231
+#, fuzzy, kde-format
+#| msgctxt "@item:inlistbox as in insert text after filename"
+#| msgid "After filename"
+msgctxt "@item:inlistbox as in insert the new name after the filename"
+msgid "After filename"
+msgstr "檔名後壁"
+
+#: widgets/renamefiledialog.cpp:284
+#, kde-format
+msgctxt ""
+"Template putting the number before the old file name, # is replaced by a "
+"number later"
+msgid "#_"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:286
+#, kde-format
+msgctxt ""
+"Template putting the number after the old file name, # is replaced by a "
+"number later"
+msgid "_#"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:288
+#, kde-format
+msgctxt ""
+"This a template for new filenames, # is replaced by a number later, must be "
+"the end character"
+msgid "New name #"
+msgstr "新 ê 名 #"
+
+#: widgets/renamefiledialog.cpp:372
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Invalid filename: The new name should contain one sequence of #, unless all "
+"the files have different file extensions."
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:401
+#, kde-format
+msgctxt "@label:textbox by: [Replacing: xx] [With: yy]"
+msgid "Rename the %1 selected item by:"
+msgid_plural "Rename the %1 selected items by:"
+msgstr[0] ""
+
+#: widgets/renamefiledialog.cpp:405
+#, kde-format
+msgctxt "@info replace as in replacing [value] with [value]"
+msgid "Replacing:"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:407
+#, kde-format
+msgctxt "@info placeholder text"
+msgid "Pattern"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:411
+#, kde-format
+msgctxt "@info with as in replacing [value] with [value]"
+msgid "With:"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:413
+#, kde-format
+msgctxt "@info placeholder text"
+msgid "Replacement"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:460
+#, kde-format
+msgctxt "@info pattern as in text replacement pattern"
+msgid "No file name contains the pattern."
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:469
+#, kde-kuit-format
+msgctxt "@info pattern as in text replacement pattern"
+msgid ""
+"Replacing “%1” with an empty replacement would cause <filename>%2</filename> "
+"to have an empty file name."
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:495
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Rename the %1 selected item:"
+msgid_plural "Rename the %1 selected items:"
+msgstr[0] ""
+
+#: widgets/renamefiledialog.cpp:498
+#, kde-format
+msgctxt "@label:textbox add text to a filename"
+msgid "Add Text:"
+msgstr "添文字："
+
+#: widgets/renamefiledialog.cpp:500
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Text to add"
+msgstr "Ài 添 ê 文字"
+
+#: widgets/renamefiledialog.cpp:505
+#, kde-format
+msgctxt "@item:inlistbox as in insert text before filename"
+msgid "Before filename"
+msgstr "檔名進前"
+
+#: widgets/renamefiledialog.cpp:506
+#, kde-format
+msgctxt "@item:inlistbox as in insert text after filename"
+msgid "After filename"
+msgstr "檔名後壁"
+
+#: widgets/renamefiledialog.cpp:623
+#, kde-format
+msgctxt "@title:window"
+msgid "Rename Item"
+msgstr "改項目 ê 名"
+
+#: widgets/renamefiledialog.cpp:623
+#, kde-format
+msgctxt "@title:window"
+msgid "Rename Items"
+msgstr "改項目 ê 名"
+
+#: widgets/renamefiledialog.cpp:634
+#, kde-format
+msgctxt "@action:button"
+msgid "&Rename"
+msgstr "改名(&R)"
+
+#: widgets/renamefiledialog.cpp:643
+#, kde-format
+msgctxt "@info"
+msgid "How to rename:"
+msgstr "Ài 按怎改名："
+
+#: widgets/renamefiledialog.cpp:647
+#, kde-format
+msgctxt "@info renaming operation"
+msgid "Enumerate"
+msgstr ""
+
+#: widgets/renamefiledialog.cpp:647
+#, kde-format
+msgctxt "@info renaming operation"
+msgid "Replace text"
+msgstr "取代文字"
+
+#: widgets/renamefiledialog.cpp:647
+#, kde-format
+msgctxt "@info renaming operation"
+msgid "Add text"
+msgstr "添文字"
+
+#: widgets/renamefiledialog.cpp:664
+#, kde-format
+msgctxt "@info As in filename renaming preview"
+msgid "Preview:"
+msgstr "預覽："
+
+#: widgets/renamefiledialog.cpp:788
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename> cannot be renamed to an empty file name."
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:48
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Rename Item"
+msgctxt "@action:button"
+msgid "Rename and Hide"
+msgstr "改項目 ê 名"
+
+#: widgets/renamefilewarningdialog.cpp:50
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Adding a dot to the beginning of this folder's name will hide it from view.\n"
+"Do you still want to rename it?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:51
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Adding a dot to the beginning of this file's name will hide it from view.\n"
+"Do you still want to rename it?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:52
+#, fuzzy, kde-format
+#| msgid "Home Folder"
+msgctxt "@title:window"
+msgid "Hide this Folder?"
+msgstr "家目錄"
+
+#: widgets/renamefilewarningdialog.cpp:52
+#, kde-format
+msgctxt "@title:window"
+msgid "Hide this File?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:58
+#: widgets/renamefilewarningdialog.cpp:108
+#: widgets/widgetsaskuseractionhandler.cpp:411
+#, kde-format
+msgctxt "@option:check"
+msgid "Do not ask again"
+msgstr "Mài koh 問--ah"
+
+#: widgets/renamefilewarningdialog.cpp:89
+#, fuzzy, kde-format
+#| msgid "&Rename"
+msgctxt "@action:button"
+msgid "Rename"
+msgstr "改名(&R)"
+
+#: widgets/renamefilewarningdialog.cpp:94
+#, kde-format
+msgctxt "@info"
+msgid ""
+"This will make the file type unknown.\n"
+"The file's content won't change but applications may no longer recognize "
+"it.\n"
+"Do you still want to rename it?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:98
+#, kde-format
+msgctxt "@info"
+msgid ""
+"This will change the file type from \"%1\" to \"%2\".\n"
+"The file's content won't change but applications may no longer recognize "
+"it.\n"
+"Do you still want to rename it?"
+msgstr ""
+
+#: widgets/renamefilewarningdialog.cpp:105
+#, kde-format
+msgctxt "@title:window"
+msgid "Change File Type"
+msgstr ""
+
+#: widgets/skipdialog.cpp:29
+#, kde-format
+msgid "Information"
+msgstr "資訊"
+
+#: widgets/skipdialog.cpp:48
+#, kde-format
+msgid "Replace"
+msgstr "取代"
+
+#: widgets/skipdialog.cpp:54
+#, kde-format
+msgid "Retry"
+msgstr "重試"
+
+#: widgets/skipdialog.cpp:61
+#, kde-format
+msgid "Replace All"
+msgstr "取代全部"
+
+#: widgets/skipdialog.cpp:68
+#, kde-format
+msgid "Skip"
+msgstr "跳過"
+
+#: widgets/skipdialog.cpp:72
+#, kde-format
+msgid "Skip All"
+msgstr "跳過全部"
+
+#. i18n: ectx: property (text), widget (QLabel, encryptionIndicator)
+#: widgets/sslinfo.ui:17
+#, kde-format
+msgid "[padlock]"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, addressTag)
+#: widgets/sslinfo.ui:34
+#, kde-format
+msgctxt "Web page address"
+msgid "Address:"
+msgstr "位址："
+
+#. i18n: ectx: property (text), widget (QLabel, ipTag)
+#: widgets/sslinfo.ui:54
+#, kde-format
+msgid "IP address:"
+msgstr "IP 位址："
+
+#. i18n: ectx: property (text), widget (QLabel, encryptionTag)
+#: widgets/sslinfo.ui:74
+#, kde-format
+msgid "Encryption:"
+msgstr "加密："
+
+#. i18n: ectx: property (text), widget (QLabel, detailsTag)
+#: widgets/sslinfo.ui:94
+#, kde-format
+msgid "Details:"
+msgstr "詳細："
+
+#. i18n: ectx: property (text), widget (QLabel, sslVersionTag)
+#: widgets/sslinfo.ui:114
+#, kde-format
+msgid "SSL version:"
+msgstr "SSL 版本："
+
+#. i18n: ectx: property (text), widget (QLabel, certSelectorTag)
+#: widgets/sslinfo.ui:134
+#, kde-format
+msgid "Certificate chain:"
+msgstr "憑證鍊："
+
+#. i18n: ectx: property (text), widget (QLabel, trustedTag)
+#: widgets/sslinfo.ui:163
+#, kde-format
+msgid "Trusted:"
+msgstr "予信賴："
+
+#. i18n: ectx: property (text), widget (QLabel, validityPeriodTag)
+#: widgets/sslinfo.ui:183
+#, kde-format
+msgid "Validity period:"
+msgstr "有效期限："
+
+#. i18n: ectx: property (text), widget (QLabel, serialTag)
+#: widgets/sslinfo.ui:203
+#, kde-format
+msgid "Serial number:"
+msgstr "序號："
+
+#. i18n: ectx: property (text), widget (QLabel, digestTag)
+#: widgets/sslinfo.ui:223
+#, kde-format
+msgid "MD5 digest:"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, sha1DigestTag)
+#: widgets/sslinfo.ui:243
+#, kde-format
+msgid "SHA1 digest:"
+msgstr ""
+
+#: widgets/sslui.cpp:31
+#, kde-format
+msgid ""
+"The remote host did not send any SSL certificates.\n"
+"Aborting because the identity of the host cannot be established."
+msgstr ""
+"遠端主機無傳任何 SSL 憑證。\n"
+"這馬中止，因為無法度建立主機 ê 身份。"
+
+#: widgets/sslui.cpp:50 widgets/widgetsaskuseractionhandler.cpp:508
+#, kde-format
+msgid ""
+"The server failed the authenticity check (%1).\n"
+"\n"
+msgstr ""
+
+#: widgets/widgetsaskuseractionhandler.cpp:234
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Do you really want to permanently delete this item?<nl/><nl/><filename>%1</"
+"filename><nl/><nl/><emphasis strong='true'>This action cannot be undone.</"
+"emphasis>"
+msgstr ""
+
+#: widgets/widgetsaskuseractionhandler.cpp:240
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Do you really want to permanently delete this %1 item?<nl/><nl/><emphasis "
+"strong='true'>This action cannot be undone.</emphasis>"
+msgid_plural ""
+"Do you really want to permanently delete these %1 items?<nl/><nl/><emphasis "
+"strong='true'>This action cannot be undone.</emphasis>"
+msgstr[0] ""
+
+#: widgets/widgetsaskuseractionhandler.cpp:253
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The trash is too full to accept this file. Permanently delete it instead?<nl/"
+"><nl/><filename>%1</filename><nl/><nl/><emphasis strong='true'>This action "
+"cannot be undone.</emphasis>"
+msgstr ""
+
+#: widgets/widgetsaskuseractionhandler.cpp:260
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The trash is too full to accept this %1 file. Permanently delete it instead?"
+"<nl/><emphasis strong='true'>This action cannot be undone.</emphasis>"
+msgid_plural ""
+"The trash is too full to accept these %1 files. Permanently delete them "
+"instead?<nl/><nl/><emphasis strong='true'>This action cannot be undone.</"
+"emphasis>"
+msgstr[0] ""
+
+#: widgets/widgetsaskuseractionhandler.cpp:275
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The trash is not available for this item’s location. Permanently delete it "
+"instead?<nl/><nl/><filename>%1</filename><nl/><nl/><emphasis "
+"strong='true'>This action cannot be undone.</emphasis>"
+msgstr ""
+
+#: widgets/widgetsaskuseractionhandler.cpp:282
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The trash is not available for the location of this %1 item. Permanently "
+"delete it instead?<nl/><emphasis strong='true'>This action cannot be undone."
+"</emphasis>"
+msgid_plural ""
+"The trash is not available for the location of these %1 items. Permanently "
+"delete them instead?<nl/><nl/><emphasis strong='true'>This action cannot be "
+"undone.</emphasis>"
+msgstr[0] ""
+
+#: widgets/widgetsaskuseractionhandler.cpp:310
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Do you really want to move this %1 item to the Trash?"
+msgid_plural "Do you really want to move these %1 items to the Trash?"
+msgstr[0] ""
+
+#: widgets/widgetsaskuseractionhandler.cpp:367
+#, kde-format
+msgctxt "@option:checkbox"
+msgid "Do not ask again"
+msgstr "Mài koh 問--ah"
+
+#: widgets/widgetsaskuseractionhandler.cpp:437
+#, kde-format
+msgctxt "@option:check"
+msgid "Do not show this message again"
+msgstr "Mài koh 顯示這个訊息"
+
+#: widgets/widgetsaskuseractionhandler.cpp:574
+#, kde-format
+msgid "The peer SSL certificate chain appears to be corrupt."
+msgstr ""
+
+#: widgets/widgetsaskuseractionhandler.cpp:577
+#, kde-format
+msgid "SSL"
+msgstr "SSL"
+
+#: widgets/widgetsuntrustedprogramhandler.cpp:110
+#, kde-format
+msgctxt "Warning about executing unknown program"
+msgid "Warning"
+msgstr "警告"
+
+#: widgets/widgetsuntrustedprogramhandler.cpp:126
+#, kde-format
+msgctxt "program name follows in a line edit below"
+msgid "This will start the program:"
+msgstr "這會開始程式："
+
+#: widgets/widgetsuntrustedprogramhandler.cpp:136
+#, kde-format
+msgid "If you do not trust this program, click Cancel"
+msgstr "若你無信賴這个程式，請揤取消"
+
+#~ msgid "Link to Device"
+#~ msgstr "連結到裝置"
+
+#~ msgctxt "@info:tooltip How to undo do not ask again"
+#~ msgid ""
+#~ "You can undo this under \"Confirmations\" in Dolphin file manager "
+#~ "settings."
+#~ msgstr "你會使佇 Dolphin 檔案總管 ê「確認」選項來復原這个設定。"

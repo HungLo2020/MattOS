@@ -12,6 +12,7 @@
 #include "config-kwin.h"
 
 // KWin
+#include "core/backendoutput.h"
 #include "core/inputbackend.h"
 #include "core/inputdevice.h"
 #include "core/outputbackend.h"
@@ -31,6 +32,7 @@ namespace KWayland
 {
 namespace Client
 {
+
 class Keyboard;
 class Pointer;
 class PointerSwipeGesture;
@@ -40,13 +42,16 @@ class Seat;
 class Surface;
 class Touch;
 class SubSurface;
+
 }
 }
 
 namespace KWin
 {
+
 class GraphicsBuffer;
 class DrmDevice;
+class RenderDevice;
 
 namespace Wayland
 {
@@ -113,6 +118,7 @@ private:
 class WaylandSeat : public QObject
 {
     Q_OBJECT
+
 public:
     WaylandSeat(KWayland::Client::Seat *nativeSeat, WaylandBackend *backend);
     ~WaylandSeat() override;
@@ -210,8 +216,7 @@ public:
     bool initialize() override;
 
     std::unique_ptr<InputBackend> createInputBackend() override;
-    std::unique_ptr<EglBackend> createOpenGLBackend() override;
-    std::unique_ptr<QPainterBackend> createQPainterBackend() override;
+    std::unique_ptr<EglBackend> createOpenGLBackend(RenderDevice *device) override;
 
     WaylandDisplay *display() const
     {
@@ -246,8 +251,7 @@ public:
     {
         m_eglBackend = eglBackend;
     }
-    void setEglDisplay(std::unique_ptr<EglDisplay> &&display);
-    EglDisplay *sceneEglDisplayObject() const override;
+    RenderDevice *renderDevice() const;
 
 Q_SIGNALS:
     void pointerLockChanged(bool locked);
@@ -255,7 +259,8 @@ Q_SIGNALS:
 private:
     void createOutputs();
     void destroyOutputs();
-    WaylandOutput *createOutput(const QString &name, const QSize &size, qreal scale, bool fullscreen);
+    WaylandOutput *createOutput(const QString &name, const QSize &size, qreal scale, bool fullscreen, BackendOutput::Capabilities capabilities);
+    void removeOutput(WaylandOutput *output);
 
     WaylandBackendOptions m_options;
     std::unique_ptr<WaylandDisplay> m_display;
@@ -263,8 +268,7 @@ private:
     WaylandEglBackend *m_eglBackend = nullptr;
     QList<WaylandOutput *> m_outputs;
     bool m_pointerLockRequested = false;
-    std::unique_ptr<DrmDevice> m_drmDevice;
-    std::unique_ptr<EglDisplay> m_eglDisplay;
+    RenderDevice *m_renderDevice = nullptr;
     std::map<GraphicsBuffer *, std::unique_ptr<WaylandBuffer>> m_buffers;
 };
 

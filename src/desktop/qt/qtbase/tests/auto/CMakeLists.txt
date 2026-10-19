@@ -6,6 +6,9 @@
 
 
 add_subdirectory(util/testrunner)
+if(ANDROID)
+    add_subdirectory(util/androidtestrunner)
+endif()
 
 set(run_dbus_tests OFF)
 if (QT_FEATURE_dbus)
@@ -40,14 +43,6 @@ if(UIKIT)
         add_subdirectory(cmake)
         return()
     endif()
-
-    # Build only corelib and gui tests when targeting uikit (iOS),
-    # because the script can't handle the SUBDIRS assignment well.
-    add_subdirectory(corelib)
-    if (TARGET Qt::Gui)
-        add_subdirectory(gui)
-    endif()
-    return()
 endif()
 
 # Limit set of tests to run for Android multi-ABI Qt builds.
@@ -56,6 +51,9 @@ if(QT_BUILD_MINIMAL_ANDROID_MULTI_ABI_TESTS)
     add_subdirectory(corelib/kernel/qmath)
     add_subdirectory(widgets/effects/qpixmapfilter)
     add_subdirectory(corelib/platform)
+    if(QT_ANDROID_GRADLE_MULTI_MODULE)
+        add_subdirectory(other/android/dynamic_feature)
+    endif()
     return()
 endif()
 
@@ -137,4 +135,3 @@ if (TARGET Qt::Concurrent)
      add_subdirectory(concurrent)
 endif()
 add_subdirectory(other)
-

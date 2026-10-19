@@ -11,48 +11,9 @@
 namespace KWin
 {
 
-class GLTexture;
+class NinePatch;
 class Shadow;
 class Window;
-
-class KWIN_EXPORT ShadowTextureProvider
-{
-public:
-    explicit ShadowTextureProvider(Shadow *shadow);
-    virtual ~ShadowTextureProvider();
-
-    Shadow *shadow() const { return m_shadow; }
-
-    virtual void update() = 0;
-
-protected:
-    Shadow *m_shadow;
-};
-
-class OpenGLShadowTextureProvider : public ShadowTextureProvider
-{
-public:
-    explicit OpenGLShadowTextureProvider(Shadow *shadow);
-    ~OpenGLShadowTextureProvider() override;
-
-    GLTexture *shadowTexture()
-    {
-        return m_texture.get();
-    }
-
-    void update() override;
-
-private:
-    std::shared_ptr<GLTexture> m_texture;
-};
-
-class QPainterShadowTextureProvider : public ShadowTextureProvider
-{
-public:
-    explicit QPainterShadowTextureProvider(Shadow *shadow);
-
-    void update() override;
-};
 
 /**
  * The ShadowItem class represents a nine-tile patch server-side drop-shadow.
@@ -66,21 +27,23 @@ public:
     ~ShadowItem() override;
 
     Shadow *shadow() const;
-    ShadowTextureProvider *textureProvider() const;
+    NinePatch *ninePatch(RenderDevice *device) const;
 
 protected:
-    WindowQuadList buildQuads() const override;
-    void preprocess() override;
+    WindowQuadList buildQuads(ItemRenderer *renderer) const override;
+    void preprocess(ItemRenderer *renderer) override;
+    void releaseResources(RenderDevice *device) override;
 
 private Q_SLOTS:
     void handleTextureChanged();
     void updateGeometry();
+    void updateVisibility();
 
 private:
     Window *m_window;
     Shadow *m_shadow = nullptr;
-    std::unique_ptr<ShadowTextureProvider> m_textureProvider;
-    bool m_textureDirty = true;
+    std::unordered_map<RenderDevice *, std::shared_ptr<NinePatch>> m_ninePatch;
+    std::unordered_set<RenderDevice *> m_textureNotDirty;
 };
 
 } // namespace KWin

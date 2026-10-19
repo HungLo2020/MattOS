@@ -7,6 +7,7 @@
     \brief The QVarLengthArray class provides a low-level variable-length array.
 
     \ingroup tools
+    \ingroup containers
     \reentrant
 
     The C++ language doesn't support variable-length arrays on the stack.
@@ -34,8 +35,9 @@
 
     In the example above, QVarLengthArray will preallocate 1024
     elements on the stack and use them unless \c{n + 1} is greater
-    than 1024. If you omit the second template argument,
-    QVarLengthArray's default of 256 is used.
+    than 1024. The template parameter \a T specifies the element type
+    and \a Prealloc specifies how many elements to preallocate on the
+    stack; if omitted, \a Prealloc defaults to 256.
 
     QVarLengthArray's value type must be an \l{assignable data type}.
     This covers most data types that are commonly used, but the
@@ -603,6 +605,19 @@
     \sa insert(), replace()
 */
 
+/*!
+    \fn template<class T, qsizetype Prealloc> void QVarLengthArray<T, Prealloc>::removeAt(qsizetype i)
+    \since 6.12
+
+    Removes the element at position \a i from the array.
+
+    \include qvarlengtharray.qdoc valid-i
+
+    This function is provided for compatibility with QList.
+
+    \sa insert(), replace()
+*/
+
 /*! \fn template<class T, qsizetype Prealloc> QVarLengthArray<T, Prealloc>::iterator QVarLengthArray<T, Prealloc>::begin()
     \since 4.8
 
@@ -806,7 +821,8 @@
 
     \relates QVarLengthArray
     \since 4.8
-    Returns \c true if the two arrays, specified by \a left and \a right, are equal.
+    Returns \c true if the two arrays, specified by \a left and \a right, are
+    equal. The preallocation sizes \a Prealloc1 and \a Prealloc2 may differ.
 
     Two arrays are considered equal if they contain the same values
     in the same order.
@@ -821,7 +837,9 @@
 
     \relates QVarLengthArray
     \since 4.8
-    Returns \c true if the two arrays, specified by \a left and \a right, are \e not equal.
+    Returns \c true if the two arrays, specified by \a left and \a right, are
+    \e not equal. The preallocation sizes \a Prealloc1 and \a Prealloc2 may
+    differ.
 
     Two arrays are considered equal if they contain the same values
     in the same order.
@@ -838,7 +856,8 @@
 
     Returns \c true if variable length array \a lhs is
     \l{http://en.cppreference.com/w/cpp/algorithm/lexicographical_compare}
-    {lexicographically less than} \a rhs; otherwise returns \c false.
+    {lexicographically less than} \a rhs; otherwise returns \c false. The
+    preallocation sizes \a Prealloc1 and \a Prealloc2 may differ.
 
     This function requires the value type to have an implementation
     of \c operator<().
@@ -850,7 +869,8 @@
 
     Returns \c true if variable length array \a lhs is
     \l{http://en.cppreference.com/w/cpp/algorithm/lexicographical_compare}
-    {lexicographically less than or equal to} \a rhs; otherwise returns \c false.
+    {lexicographically less than or equal to} \a rhs; otherwise returns
+    \c false. The preallocation sizes \a Prealloc1 and \a Prealloc2 may differ.
 
     This function requires the value type to have an implementation
     of \c operator<().
@@ -862,7 +882,8 @@
 
     Returns \c true if variable length array \a lhs is
     \l{http://en.cppreference.com/w/cpp/algorithm/lexicographical_compare}
-    {lexicographically greater than} \a rhs; otherwise returns \c false.
+    {lexicographically greater than} \a rhs; otherwise returns \c false. The
+    preallocation sizes \a Prealloc1 and \a Prealloc2 may differ.
 
     This function requires the value type to have an implementation
     of \c operator<().
@@ -874,7 +895,8 @@
 
     Returns \c true if variable length array \a lhs is
     \l{http://en.cppreference.com/w/cpp/algorithm/lexicographical_compare}
-    {lexicographically greater than or equal to} \a rhs; otherwise returns \c false.
+    {lexicographically greater than or equal to} \a rhs; otherwise returns
+    \c false. The preallocation sizes \a Prealloc1 and \a Prealloc2 may differ.
 
     This function requires the value type to have an implementation
     of \c operator<().
@@ -886,9 +908,10 @@
 
     Compares the contents of \a lhs and \a rhs
     \l {https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare_three_way}
-    {lexicographically}. Returns the result of the strongest applicable category
-    type, that is \c {decltype(lhs[0] <=> rhs[0])} if \c {operator<=>()} is
-    available for type \c {T}; otherwise \c {std::weak_ordering}.
+    {lexicographically}. The preallocation sizes \a Prealloc1 and \a Prealloc2 may
+    differ. Returns the result of the strongest applicable category type, that is
+    \c {decltype(lhs[0] <=> rhs[0])} if \c {operator<=>()} is available for type
+    \c {T}; otherwise \c {std::weak_ordering}.
 
     \note This operator is only available in C++20 mode, and when the underlying
     type \c T models the \c {std::three_way_comparable} concept
@@ -971,6 +994,9 @@
     \fn template <typename T, qsizetype Prealloc> size_t qHash(const QVarLengthArray<T, Prealloc> &key, size_t seed = 0)
     \qhasholdT{QVarLengthArray}{T}
     \since 5.14
+
+    Returns the hash value for the \a key, using \a seed to seed the
+    calculation. The preallocation size \a Prealloc does not affect the hash.
 */
 
 /*! \fn template <typename T, qsizetype Prealloc> template <typename AT = T> qsizetype QVarLengthArray<T, Prealloc>::removeAll(const AT &t)
@@ -1020,7 +1046,7 @@
 
     Removes all elements for which the predicate \a pred returns true
     from the list \a array. Returns the number of elements removed, if
-    any.
+    any. The preallocation size \a Prealloc does not affect the operation.
 
     \sa erase()
 */

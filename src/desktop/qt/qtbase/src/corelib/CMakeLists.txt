@@ -20,6 +20,14 @@ if(ANDROID)
         "${CMAKE_CURRENT_SOURCE_DIR}/${QT_CMAKE_EXPORT_NAMESPACE}AndroidDynamicFeatureHelpers.cmake"
         "${CMAKE_CURRENT_SOURCE_DIR}/${QT_CMAKE_EXPORT_NAMESPACE}AndroidGradleHelpers.cmake"
         "${CMAKE_CURRENT_SOURCE_DIR}/${QT_CMAKE_EXPORT_NAMESPACE}AndroidPermissionHelpers.cmake"
+        "${CMAKE_CURRENT_SOURCE_DIR}/QtAndroidScanQmlImports.cmake"
+    )
+endif()
+if(OHOS)
+    set(corelib_extra_cmake_files
+        "${CMAKE_CURRENT_SOURCE_DIR}/${QT_CMAKE_EXPORT_NAMESPACE}HarmonyOSBlockingTestDialogHelpers.cmake"
+        "${CMAKE_CURRENT_SOURCE_DIR}/${QT_CMAKE_EXPORT_NAMESPACE}HarmonyOSMacros.cmake"
+        "${CMAKE_CURRENT_SOURCE_DIR}/${QT_CMAKE_EXPORT_NAMESPACE}HarmonyOSPermissionHelpers.cmake"
     )
 endif()
 if(WASM)
@@ -102,6 +110,7 @@ qt_internal_add_module(Core
         global/qvolatile_p.h
         global/q17memory.h
         global/q20algorithm.h
+        global/q20atomic.h
         global/q20bit.h
         global/q20chrono.h
         global/q20functional.h
@@ -202,6 +211,7 @@ qt_internal_add_module(Core
         kernel/qtranslator.cpp kernel/qtranslator.h kernel/qtranslator_p.h
         kernel/qvariant.cpp kernel/qvariant.h kernel/qvariant_p.h
         kernel/qvariantmap.h kernel/qvarianthash.h kernel/qvariantlist.h
+        parse/qtparsecommon_p.h
         plugin/qfactoryinterface.cpp plugin/qfactoryinterface.h
         plugin/qfactoryloader.cpp plugin/qfactoryloader_p.h
         plugin/qplugin.h plugin/qplugin_p.h
@@ -353,6 +363,7 @@ qt_internal_add_module(Core
         compat/removed_api.cpp
         global/qsimd.cpp
         kernel/qsocketnotifier.cpp # defines BUILDING_QSOCKETNOTIFIER
+        kernel/qobject.cpp # undef QT_NO_DISCONNECT_CONST_CONNECTION
     DEFINES
         QT_NO_CONTEXTLESS_CONNECT
         QT_NO_QPAIR
@@ -379,6 +390,8 @@ qt_internal_add_module(Core
     POLICIES
         QTP0002
         QTP0003
+        QTP0007
+        QTP0008
     ATTRIBUTION_FILE_DIR_PATHS
         text
         global
@@ -401,6 +414,9 @@ qt_internal_extend_target(Core CONDITION CMAKE_PROJECT_VERSION VERSION_LESS "7.0
     SOURCES
         text/qstringconverter_base_deprecated.h
 )
+
+set_source_files_properties(text/qstringconverter_base_deprecated.h
+    PROPERTIES _qt_exclude_from_module_map TRUE)
 
 if (NOT QT_NAMESPACE STREQUAL "")
     set(core_namespace_defs "QT_NAMESPACE=${QT_NAMESPACE}")
@@ -504,6 +520,19 @@ if(ANDROID)
     )
     qt_internal_add_android_permission(Core
         NAME android.permission.INTERNET
+    )
+endif()
+
+if(OHOS)
+    _qt_internal_add_harmonyos_executable_finalizer(Core)
+    qt_internal_add_harmonyos_permission(Core
+        NAME ohos.permission.STORE_PERSISTENT_DATA
+    )
+    qt_internal_add_harmonyos_permission(Core
+        NAME ohos.permission.FILE_ACCESS_PERSIST
+    )
+    qt_internal_add_harmonyos_permission(Core
+        NAME ohos.permission.PREPARE_APP_TERMINATE
     )
 endif()
 
@@ -634,6 +663,7 @@ qt_internal_extend_target(Core CONDITION WIN32
         ipc/qsharedmemory_win.cpp
         ipc/qsystemsemaphore_win.cpp
         kernel/qwineventnotifier.cpp kernel/qwineventnotifier.h kernel/qwineventnotifier_p.h
+        kernel/qwin32ticks_p.h
         kernel/qwinregistry.cpp kernel/qwinregistry_p.h
         plugin/qsystemlibrary.cpp plugin/qsystemlibrary_p.h
         text/qlocale_win.cpp
@@ -775,6 +805,11 @@ qt_internal_extend_target(Core CONDITION QNX AND QT_FEATURE_fsnotify
         fsnotify
 )
 
+qt_internal_extend_target(Core CONDITION QT_FEATURE_qqnx_eventfd
+    LIBRARIES
+        Eventfd::Eventfd
+)
+
 qt_internal_extend_target(Core CONDITION LINUX AND QT_BUILD_SHARED_LIBS
     SOURCES
         global/minimum-linux_p.h
@@ -831,7 +866,6 @@ qt_internal_extend_target(Core CONDITION QT_FEATURE_thread AND UNIX
 qt_internal_extend_target(Core CONDITION APPLE AND QT_FEATURE_thread
     SOURCES
         thread/qfutex_mac_p.h
-        thread/qmutex_mac.cpp
 )
 
 qt_internal_extend_target(Core CONDITION QT_FEATURE_thread AND UNIX AND NOT APPLE AND NOT LINUX
@@ -941,7 +975,7 @@ qt_internal_extend_target(Core CONDITION APPLE
         text/qlocale_mac.mm
 )
 
-qt_internal_extend_target(Core CONDITION UNIX AND NOT APPLE AND NOT WASM
+qt_internal_extend_target(Core CONDITION UNIX AND NOT APPLE AND NOT WASM AND NOT ANDROID
     SOURCES
         text/qlocale_unix.cpp
 )
@@ -1046,8 +1080,8 @@ qt_internal_extend_target(Core
 
 qt_internal_extend_target(Core
     CONDITION
-        QT_FEATURE_timezone AND UNIX AND NOT VXWORKS
-        AND NOT ANDROID AND NOT APPLE AND NOT QT_FEATURE_timezone_tzdb
+        QT_FEATURE_timezone AND UNIX AND NOT VXWORKS AND NOT WASM
+        AND NOT ANDROID AND NOT OHOS AND NOT APPLE AND NOT QT_FEATURE_timezone_tzdb
     SOURCES
         time/qtimezoneprivate_tz.cpp
 )
@@ -1055,9 +1089,17 @@ qt_internal_extend_target(Core
 qt_internal_extend_target(Core
     CONDITION
         QT_FEATURE_icu AND QT_FEATURE_timezone
-        AND (VXWORKS OR NOT UNIX) AND NOT QT_FEATURE_timezone_tzdb
+        AND (VXWORKS OR OHOS OR NOT UNIX) AND NOT QT_FEATURE_timezone_tzdb
     SOURCES
         time/qtimezoneprivate_icu.cpp
+)
+
+qt_internal_extend_target(Core
+    CONDITION
+        QT_FEATURE_icu AND QT_FEATURE_timezone
+        AND OHOS AND NOT QT_FEATURE_timezone_tzdb
+    LIBRARIES
+        time_service_ndk
 )
 
 # Even MS says we should prefer ICU over its APIs for TZ data:
@@ -1076,9 +1118,17 @@ qt_internal_extend_target(Core
         time/qtimezonelocale.cpp time/qtimezonelocale_p.h
 )
 
+qt_internal_extend_target(Core CONDITION QT_FEATURE_datestring
+    SOURCES
+        time/qttemporalpattern.cpp time/qttemporalpattern_p.h
+        parse/qtparseqttemporalformat.cpp parse/qtparseqttemporalformat_p.h
+)
+
 qt_internal_extend_target(Core CONDITION QT_FEATURE_datetimeparser
     SOURCES
         time/qdatetimeparser.cpp time/qdatetimeparser_p.h
+        parse/qtparsetemporal.cpp parse/qtparsetemporal_p.h
+        parse/qtparsetimezone.cpp parse/qtparsetimezone_p.h
 )
 
 qt_internal_extend_target(Core CONDITION QT_FEATURE_zstd
@@ -1191,12 +1241,39 @@ qt_internal_extend_target(Core CONDITION ANDROID
         platform/android/qandroidtypeconverter_p.h
         platform/android/qandroiditemmodelproxy_p.h platform/android/qandroiditemmodelproxy.cpp
         platform/android/qandroidmodelindexproxy_p.h platform/android/qandroidmodelindexproxy.cpp
+        text/qlocale_android.cpp
     NO_UNITY_BUILD_SOURCES
         platform/android/qandroidextras.cpp
         # qtNativeClassName conflicts with similar symbols in android headers
         # TODO: Resolve conflicts between various variables set as,
         # `org/qtproject/qt/android/QtNative` QtAndroidPrivate might be a good
         # place to put them.
+)
+
+qt_internal_extend_target(Core CONDITION OHOS
+    SOURCES
+        kernel/qcore_ohos.cpp kernel/qcore_ohos_p.h
+        kernel/qnapi_p.h
+        io/qfilesystemengine_ohos.cpp
+        io/qstandardpaths_ohos.cpp
+        io/qstorageinfo_linux.cpp io/qstorageinfo_linux_p.h
+        platform/ohos/qohospermissionshelper_p.h
+        platform/ohos/qohosappcontext.cpp platform/ohos/qohosappcontext_p.h
+        platform/ohos/qohoslogger.cpp platform/ohos/qohoslogger_p.h
+        platform/ohos/qohoscommon_p.h
+        platform/ohos/qohospathutils.cpp platform/ohos/qohospathutils_p.h
+        platform/ohos/qohosjstools.cpp
+        platform/ohos/qohosjstools_p.h
+    DEFINES
+        NODE_ADDON_API_ENABLE_TYPE_CHECK_ON_AS
+        NAPI_CPP_EXCEPTIONS
+    LIBRARIES
+        NodeAddonApi::NodeAddonApi
+        ace_napi.z
+        deviceinfo_ndk.z
+        hilog_ndk.z
+        ohenvironment
+        ohfileuri
 )
 
 qt_internal_extend_target(Core CONDITION QT_FEATURE_cpp_winrt
@@ -1215,13 +1292,14 @@ qt_internal_extend_target(Core CONDITION HAIKU AND NOT ANDROID
 )
 
 qt_internal_extend_target(Core
-    CONDITION UNIX AND NOT LINUX AND NOT APPLE AND NOT HAIKU AND NOT ANDROID AND NOT VXWORKS
+    CONDITION UNIX AND NOT LINUX AND NOT APPLE AND NOT HAIKU AND NOT ANDROID AND NOT OHOS
+        AND NOT VXWORKS
     SOURCES
         io/qstandardpaths_unix.cpp
         io/qstorageinfo_unix.cpp
 )
 
-qt_internal_extend_target(Core CONDITION LINUX AND NOT ANDROID AND NOT VXWORKS
+qt_internal_extend_target(Core CONDITION LINUX AND NOT ANDROID AND NOT OHOS AND NOT VXWORKS
     SOURCES
         io/qstandardpaths_unix.cpp
         io/qstorageinfo_linux.cpp
@@ -1231,6 +1309,10 @@ qt_internal_extend_target(Core CONDITION QT_FEATURE_itemmodel
     SOURCES
         itemmodels/qabstractitemmodel.cpp itemmodels/qabstractitemmodel.h itemmodels/qabstractitemmodel_p.h
         itemmodels/qitemselectionmodel.cpp itemmodels/qitemselectionmodel.h itemmodels/qitemselectionmodel_p.h
+)
+
+qt_internal_extend_target(Core CONDITION QT_FEATURE_rangemodel
+    SOURCES
         itemmodels/qrangemodel.h itemmodels/qrangemodel_impl.h itemmodels/qrangemodel.cpp
         itemmodels/qrangemodeladapter.h itemmodels/qrangemodeladapter_impl.h
 )
@@ -1457,6 +1539,11 @@ qt_internal_extend_target(Core CONDITION QT_FEATURE_permissions AND WASM
         kernel/qpermissions_wasm.cpp
 )
 
+qt_internal_extend_target(Core CONDITION QT_FEATURE_permissions AND OHOS
+    SOURCES
+        kernel/qpermissions_harmony.cpp
+)
+
 if(QT_FEATURE_mimetype AND QT_FEATURE_mimetype_database)
     include(${CMAKE_CURRENT_SOURCE_DIR}/mimetypes/mimetypes_resources.cmake)
 
@@ -1543,9 +1630,8 @@ qt_internal_extend_target(Core CONDITION QT_FEATURE_ctf
         tracing
 )
 
-# These files are included by qmutex.cpp
+# This file is included by qmutex.cpp
 set_source_files_properties(
-    thread/qmutex_mac.cpp
     thread/qmutex_unix.cpp
     PROPERTIES HEADER_FILE_ONLY ON)
 
@@ -1559,22 +1645,16 @@ endif()
 qt_internal_apply_gc_binaries_conditional(Core PUBLIC)
 
 # Add entry-point on platforms that need it. A project can opt-out of using the
-# entrypoint by setting the qt_no_entrypoint property to TRUE on a target.
+# entrypoint by setting the QT_NO_ENTRYPOINT property to TRUE on a target.
 if(WIN32 OR UIKIT)
     # find_package(Qt6Core) should call find_package(Qt6EntryPointPrivate) so that we can
     # link against EntryPointPrivate. Normally this is handled automatically for deps, but
     # it doesn't work for EntryPointPrivate since its linker line contains the generator expression.
     qt_internal_register_target_dependencies(Core PUBLIC Qt6::EntryPointPrivate)
 
-    set(entrypoint_conditions "$<NOT:$<BOOL:$<TARGET_PROPERTY:qt_no_entrypoint>>>")
-    list(APPEND entrypoint_conditions "$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>")
-
-    if(WIN32)
-        list(APPEND entrypoint_conditions "$<BOOL:$<TARGET_PROPERTY:WIN32_EXECUTABLE>>")
-    endif()
-
-    list(JOIN entrypoint_conditions "," entrypoint_conditions)
-    set(entrypoint_conditions "$<AND:${entrypoint_conditions}>")
+    get_target_property(entrypoint_src_dir Qt6::EntryPointPrivate SOURCE_DIR)
+    include("${entrypoint_src_dir}/Qt6EntryPointPrivateMacros.cmake")
+    _qt_internal_get_entrypoint_conditions(entrypoint_conditions)
 
     target_link_libraries(Core INTERFACE
         "$<${entrypoint_conditions}:${QT_CMAKE_EXPORT_NAMESPACE}::EntryPointPrivate>"
@@ -1631,9 +1711,18 @@ if(APPLE AND QT_FEATURE_framework AND QT_FEATURE_separate_debug_info)
     )
 endif()
 
+qt_internal_extend_target(Core CONDITION UIKIT
+    SOURCES platform/ios/qiosrunloopintegration_p.h
+)
+
 if(IOS)
     qt_internal_set_apple_privacy_manifest(Core
         "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/PrivacyInfo.xcprivacy")
+endif()
+
+if(QT_FEATURE_swift_interop)
+  set_target_properties(Core PROPERTIES _qt_swift_apinotes
+    "${CMAKE_CURRENT_SOURCE_DIR}/platform/swift/QtCore.apinotes")
 endif()
 
 set(elf_linker_script_contents "")
@@ -1655,6 +1744,7 @@ qt_internal_extend_target(Core
     EXTRA_ELF_LINKER_SCRIPT_CONTENT "${elf_linker_script_contents}"
 
     # Workaround for QTBUG-117514:
+    # ### Qt7: remove (fixed in code)
     # Function called by inline methods taking a pointer to a private class as a parameter
     EXTRA_ELF_LINKER_SCRIPT_EXPORTS
         # QFutureInterfaceBase::setContinuation(std::function<void (QFutureInterfaceBase const&)>, QFutureInterfaceBasePrivate*)

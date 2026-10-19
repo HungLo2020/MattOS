@@ -20,10 +20,12 @@
 
 namespace KWin
 {
+
 class LogicalOutput;
 class GLTexture;
 class EglContext;
 class EglDisplay;
+class RenderDevice;
 
 struct DmaBufAttributes;
 
@@ -32,94 +34,35 @@ class KWIN_EXPORT EglBackend : public RenderBackend
     Q_OBJECT
 
 public:
-    virtual void init() = 0;
+    explicit EglBackend(RenderDevice *device);
+
+    virtual bool init() = 0;
     CompositingType compositingType() const override final;
     bool checkGraphicsReset() override final;
 
     EglContext *openglContext() const;
     std::shared_ptr<EglContext> openglContextRef() const;
     EglDisplay *eglDisplayObject() const;
+    RenderDevice *renderDevice() const override;
 
-    /**
-     * @brief Whether the creation of the Backend failed.
-     *
-     * The SceneOpenGL should test whether the Backend got constructed correctly. If this method
-     * returns @c true, the SceneOpenGL should not try to start the rendering.
-     *
-     * @return bool @c true if the creation of the Backend failed, @c false otherwise.
-     */
-    bool isFailed() const
-    {
-        return m_failed;
-    }
-
-    /**
-     * The backend specific extensions (e.g. EGL/GLX extensions).
-     *
-     * Not the OpenGL (ES) extension!
-     */
-    QList<QByteArray> extensions() const
-    {
-        return m_extensions;
-    }
-
-    /**
-     * @returns whether the backend specific extensions contains @p extension.
-     */
-    bool hasExtension(const QByteArray &extension) const
-    {
-        return m_extensions.contains(extension);
-    }
-
-    bool testImportBuffer(GraphicsBuffer *buffer) override;
-    QHash<uint32_t, QList<uint64_t>> supportedFormats() const override;
+    bool testImportBuffer(GraphicsBuffer *buffer, dev_t targetDevice) override;
+    FormatModifierMap supportedFormats() const override;
 
     QList<LinuxDmaBufV1Feedback::Tranche> tranches() const;
 
-    std::shared_ptr<GLTexture> importDmaBufAsTexture(const DmaBufAttributes &attributes) const;
-    EGLImageKHR importDmaBufAsImage(const DmaBufAttributes &attributes) const;
-    EGLImageKHR importDmaBufAsImage(const DmaBufAttributes &attributes, int plane, int format, const QSize &size) const;
-    EGLImageKHR importBufferAsImage(GraphicsBuffer *buffer);
-    EGLImageKHR importBufferAsImage(GraphicsBuffer *buffer, int plane, int format, const QSize &size);
-
 protected:
-    EglBackend();
-
     void cleanup();
-    virtual void cleanupSurfaces();
-    void setEglDisplay(EglDisplay *display);
-    void initClientExtensions();
+    bool initClientExtensions();
     void initWayland();
     bool hasClientExtension(const QByteArray &ext) const;
-    bool isOpenGLES() const;
-    bool createContext(EGLConfig config);
+    bool createContext();
+    void updateDmabufTranches();
 
-    bool ensureGlobalShareContext(EGLConfig config);
-    void destroyGlobalShareContext();
-    ::EGLContext createContextInternal(::EGLContext sharedContext);
-    void teardown();
-
-    /**
-     * @brief Sets the backend initialization to failed.
-     *
-     * This method should be called by the concrete subclass in case the initialization failed.
-     * The given @p reason is logged as a warning.
-     *
-     * @param reason The reason why the initialization failed.
-     */
-    void setFailed(const QString &reason);
-
-    EglDisplay *m_display = nullptr;
+    RenderDevice *m_renderDevice = nullptr;
     std::shared_ptr<EglContext> m_context;
     QList<QByteArray> m_clientExtensions;
     QList<LinuxDmaBufV1Feedback::Tranche> m_tranches;
     QHash<std::pair<GraphicsBuffer *, int>, EGLImageKHR> m_importedBuffers;
-
-    /**
-     * @brief Whether the initialization failed, of course default to @c false.
-     */
-    bool m_failed = false;
-    QList<QByteArray> m_extensions;
 };
 
 }

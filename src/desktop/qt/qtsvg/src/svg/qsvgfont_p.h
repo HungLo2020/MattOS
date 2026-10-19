@@ -22,7 +22,7 @@
 #include "qlist.h"
 #include "qstring.h"
 
-#include "qsvgstyle_p.h"
+#include <QtSvg/private/qsvgnode_p.h>
 
 #include <memory>
 
@@ -40,21 +40,19 @@ public:
 };
 
 
-class Q_SVG_EXPORT QSvgFont : public QSvgRefCounted
+class Q_SVG_EXPORT QSvgFont : public QSvgNode
 {
 public:
-    static constexpr qreal DEFAULT_UNITS_PER_EM = 1000;
     QSvgFont(qreal horizAdvX);
     ~QSvgFont() override;
 
-    void setFamilyName(const QString &name);
-    QString familyName() const;
-
+    Type type() const override { return Font; }
     void setUnitsPerEm(qreal upem);
 
     void addGlyph(const QString &unicode, const QPainterPath &path, qreal horizAdvX = -1);
     bool addMissingGlyph(const QPainterPath &path, qreal horizAdvX);
 
+    void drawCommand(QPainter *, QSvgExtraStates &) override {};
     void draw(QPainter *p, const QPointF &point, const QList<const QSvgGlyph *> &glyphs,
               qreal pixelSize, Qt::Alignment alignment) const;
     QRectF boundingRect(QPainter *p, const QPointF &point, const QList<const QSvgGlyph *> &glyphs,
@@ -63,9 +61,10 @@ public:
     QList<const QSvgGlyph *> toGlyphs(QStringView text) const;
 
 public:
-    QString m_familyName;
-    qreal m_unitsPerEm = DEFAULT_UNITS_PER_EM;
+    qreal m_unitsPerEm{1000};
     qreal m_horizAdvX;
+
+private:
     // not about a missing <glyph> element, but the font's <missing-glyph> element:
     std::unique_ptr<const QSvgGlyph> m_missingGlyph;
     // The following needs to preserve the order of glyphs because
@@ -74,7 +73,6 @@ public:
     // 'glyph' element to its last in logical order"
     QList<QSvgGlyph> m_glyphs;
 
-private:
     // to speed up finding glyphs
     mutable QHash<char32_t, QList<qsizetype>> m_possibleGlyphIndicesForChar;
     mutable qsizetype m_firstUnscannedGlyphIdx = 0;
@@ -83,6 +81,8 @@ private:
                      const QList<const QSvgGlyph *> &glyphs, qreal pixelSize,
                      Qt::Alignment alignment, QRectF *boundingRect = nullptr) const;
 };
+
+using QSvgFontPtr = std::unique_ptr<QSvgFont>;
 
 QT_END_NAMESPACE
 

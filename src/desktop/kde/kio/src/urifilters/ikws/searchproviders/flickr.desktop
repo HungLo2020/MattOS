@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=flickr,flkr
 Name=Flickr
+Name[am]=Flickr
 Name[ar]=فليكر
 Name[ast]=Flickr
 Name[az]=Flickr
@@ -52,6 +53,8 @@ Name[mai]=Flickr
 Name[ml]=ഫ്ലിക്കര്‍
 Name[mr]=फ्लिकर
 Name[my]=ဖလစ်ကာ
+Name[nan_TW]=Flickr
+Name[nan_TW@latin]=Flickr
 Name[nb]=Flickr
 Name[nds]=Flickr
 Name[nl]=Flickr
@@ -76,13 +79,13 @@ Name[tg]=Flickr
 Name[th]=Flickr
 Name[tok]=ilo sitelen Flickr
 Name[tr]=Flickr
-Name[ug]=Flickr
 Name[uk]=Flickr
 Name[vi]=Flickr
 Name[wa]=Flickr
 Name[zh_CN]=Flickr
 Name[zh_TW]=Flickr
 Query=https://www.flickr.com/search/?q=\\{@}
+Query[am]=https://www.flickr.com/search/?q=\\{@}
 Query[ar]=https://www.flickr.com/search/?q=\\{@}
 Query[ast]=https://www.flickr.com/search/?q=\\{@}
 Query[az]=https://www.flickr.com/search/?q=\\{@}
@@ -123,6 +126,8 @@ Query[lg]=https://www.flickr.com/search/?q=\\{@}
 Query[lt]=https://www.flickr.com/search/?q=\\{@}
 Query[lv]=https://www.flickr.com/search/?q=\\{@}
 Query[my]=https://www.flickr.com/search/?q=\\{@}
+Query[nan_TW]=https://www.flickr.com/search/?q=\\{@}
+Query[nan_TW@latin]=https://www.flickr.com/search/?q=\\{@}
 Query[nb]=https://www.flickr.com/search/?q=\\{@}
 Query[nl]=https://www.flickr.com/search/?q=\\{@}
 Query[nn]=https://www.flickr.com/search/?q=\\{@}
@@ -141,7 +146,6 @@ Query[tg]=https://www.flickr.com/search/?q=\\{@}
 Query[th]=https://www.flickr.com/search/?q=\\{@}
 Query[tok]=https://www.flickr.com/search/?q=\\{@}
 Query[tr]=https://www.flickr.com/search/?q=\\{@}
-Query[ug]=https://www.flickr.com/search/?q=\\{@}
 Query[uk]=https://www.flickr.com/search/?q=\\{@}
 Query[vi]=https://www.flickr.com/search/?q=\\{@}
 Query[zh_CN]=https://www.flickr.com/search/?q=\\{@}

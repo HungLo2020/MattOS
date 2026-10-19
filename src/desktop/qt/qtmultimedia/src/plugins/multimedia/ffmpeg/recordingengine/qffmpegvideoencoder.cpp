@@ -25,13 +25,8 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
     setObjectName(QLatin1String("VideoEncoder"));
 
     const AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
-    qreal frameRate = format.streamFrameRate();
-    if (frameRate <= 0.) {
-        qWarning() << "Invalid frameRate" << frameRate << "; Using the default instead";
-
-        // set some default frame rate since ffmpeg has UB if it's 0.
-        frameRate = 30.;
-    }
+    if (format.streamFrameRate() > 0.)
+        m_fixedSourceFrameRate = format.streamFrameRate();
 
     m_sourceParams.size = format.frameSize();
     m_sourceParams.format = hwFormat && *hwFormat != AV_PIX_FMT_NONE ? *hwFormat : swFormat;
@@ -40,7 +35,7 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
     m_sourceParams.swFormat =
             isSwPixelFormat(m_sourceParams.format) ? m_sourceParams.format : swFormat;
     m_sourceParams.transform = qNormalizedSurfaceTransformation(format);
-    m_sourceParams.frameRate = frameRate;
+    m_sourceParams.frameRate = m_fixedSourceFrameRate.value_or(0.f);
     m_sourceParams.colorTransfer = QFFmpeg::toAvColorTransfer(format.colorTransfer());
     m_sourceParams.colorSpace = QFFmpeg::toAvColorSpace(format.colorSpace());
     m_sourceParams.colorRange = QFFmpeg::toAvColorRange(format.colorRange());
@@ -48,8 +43,12 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
     if (!m_settings.videoResolution().isValid())
         m_settings.setVideoResolution(m_sourceParams.size);
 
-    if (m_settings.videoFrameRate() <= 0.)
-        m_settings.setVideoFrameRate(m_sourceParams.frameRate);
+    // Use a provisional target before negotiation with codec. This is for first
+    // frame, before init() is called
+    const qreal provisionalTargetRate = m_settings.videoFrameRate() > 0.
+            ? m_settings.videoFrameRate()
+            : m_sourceParams.frameRate;
+    m_frameRateAdapter.setRates(m_fixedSourceFrameRate, provisionalTargetRate);
 }
 
 VideoEncoder::~VideoEncoder() = default;
@@ -57,37 +56,72 @@ VideoEncoder::~VideoEncoder() = default;
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
     if (!frame.isValid()) {
+        bool hasFlushed = false;
+        {
+            auto guard = lockLoopData();
+            if (isInitialized()) {
+                // Don't flush if not initialized, since frame rate used in adapter is only provisional
+                // Will be flushed in init()
+                std::optional<FrameInfo> flushed = m_frameRateAdapter.flush();
+                if (flushed && m_videoFrameQueue.size() < m_maxQueueSize) {
+                    m_videoFrameQueue.push(*flushed);
+                    hasFlushed = true;
+                }
+            }
+        }
+        if (hasFlushed)
+            dataReady();
         setEndOfSourceStream();
         return;
     }
 
     {
         auto guard = lockLoopData();
-
         resetEndOfSourceStream();
 
         if (m_paused) {
             m_shouldAdjustTimeBaseForNextFrame = true;
+            m_frameRateAdapter.reset();
+            m_framesBeforeInit = {};
             return;
         }
 
-        // Drop frames if encoder can not keep up with the video source data rate;
-        // canPushFrame might be used instead
-        const bool queueFull = m_videoFrameQueue.size() >= m_maxQueueSize;
-
-        if (queueFull) {
-            qCDebug(qLcFFmpegVideoEncoder) << "RecordingEngine frame queue full. Frame lost.";
+        if (!isInitialized()) {
+            // m_frameRateAdapter isn't configured with the real codec frame rate yet, so
+            // buffer the frame and adapt it once init() has set the real rates. Bounded by
+            // m_maxFramesBeforeInit. Sources should use checkIfCanPushFrame.
+            if (m_framesBeforeInit.size() >= m_maxFramesBeforeInit) {
+                qCWarning(qLcFFmpegVideoEncoder) << "Too many frames received before encoder "
+                                                    "initialization. Buffer full, dropping "
+                                                    "frame.";
+                return;
+            }
+            m_framesBeforeInit.push(frame);
             return;
         }
 
-        m_videoFrameQueue.push({ frame, m_shouldAdjustTimeBaseForNextFrame });
+        const bool adjustTimeBase = m_shouldAdjustTimeBaseForNextFrame;
         m_shouldAdjustTimeBaseForNextFrame = false;
+
+        if (m_videoFrameQueue.size() >= m_maxQueueSize) {
+            qCDebug(qLcFFmpegVideoEncoder)
+                    << "RecordingEngine frame queue full. Frame lost. This might mean we're trying "
+                       "to encode at too high of a frame rate.";
+            return;
+        }
+
+        std::vector<FrameInfo> adapted = m_frameRateAdapter.adapt(frame, adjustTimeBase);
+        if (adapted.empty())
+            return; // Adapter can return no frames if converting to a lower frame rate
+
+        for (FrameInfo &adaptedFrame : adapted)
+            m_videoFrameQueue.push(std::move(adaptedFrame));
     }
 
     dataReady();
 }
 
-VideoEncoder::FrameInfo VideoEncoder::takeFrame()
+FrameInfo VideoEncoder::takeFrame()
 {
     auto guard = lockLoopData();
     return dequeueIfPossible(m_videoFrameQueue);
@@ -107,9 +141,33 @@ bool VideoEncoder::init()
 
     qCDebug(qLcFFmpegVideoEncoder) << "VideoEncoder::init started video device thread.";
     if (!m_frameEncoder) {
+        markResolved(false);
         emit m_recordingEngine.sessionError(QMediaRecorder::ResourceError,
                                             u"Could not initialize encoder"_s);
         return false;
+    }
+
+    {
+        auto guard = lockLoopData();
+        m_frameRateAdapter.setRates(m_fixedSourceFrameRate, m_frameEncoder->codecFrameRate());
+
+        while (!m_framesBeforeInit.empty()) {
+            const QVideoFrame bufferedFrame = std::move(m_framesBeforeInit.front());
+            m_framesBeforeInit.pop();
+
+            std::vector<FrameInfo> adapted = m_frameRateAdapter.adapt(
+                    bufferedFrame, std::exchange(m_shouldAdjustTimeBaseForNextFrame, false));
+            for (FrameInfo &adaptedFrame : adapted)
+                m_videoFrameQueue.push(std::move(adaptedFrame));
+        }
+
+        // EOS may have arrived before initialization. Flush now that the buffered
+        // frames above have been adapted.
+        if (isEndOfSourceStream()) {
+            std::optional<FrameInfo> flushed = m_frameRateAdapter.flush();
+            if (flushed && m_videoFrameQueue.size() < m_maxQueueSize)
+                m_videoFrameQueue.push(std::move(*flushed));
+        }
     }
 
     return EncoderThread::init();
@@ -202,9 +260,14 @@ void VideoEncoder::processOne()
                                                new QVideoFrameHolder{ frame, img }, 0);
     }
 
-    const auto [startTime, endTime] = frameTimeStamps(frame);
+    auto [startTime, endTime] = frameTimeStamps(frame);
 
-    if (frameInfo.shouldAdjustTimeBase) {
+    if (frameInfo.overriddenPts) {
+        startTime = *frameInfo.overriddenPts;
+        endTime = startTime + m_frameRateAdapter.frameDuration();
+    }
+
+    if (frameInfo.adjustTimeBase) {
         m_baseTime += startTime - m_lastFrameTime;
         qCDebug(qLcFFmpegVideoEncoder)
                 << ">>>> adjusting base time to" << m_baseTime << startTime << m_lastFrameTime;
@@ -228,6 +291,8 @@ void VideoEncoder::processOne()
 
 bool VideoEncoder::checkIfCanPushFrame() const
 {
+    if (!isInitialized())
+        return m_framesBeforeInit.size() < m_maxFramesBeforeInit;
     if (m_encodingStarted)
         return m_videoFrameQueue.size() < m_maxQueueSize;
     if (!isFinished())
@@ -247,9 +312,11 @@ std::pair<qint64, qint64> VideoEncoder::frameTimeStamps(const QVideoFrame &frame
     }
 
     if (endTime == -1) {
+        // No endTime: advance by an assumed duration. If the frame rate
+        // adapter is enabled, these get overridden later
         qreal frameRate = frame.streamFrameRate();
         if (frameRate <= 0.)
-            frameRate = m_settings.videoFrameRate();
+            frameRate = DefaultVideoFrameRate;
 
         Q_ASSERT(frameRate > 0.f);
         endTime = startTime + static_cast<qint64>(std::round(VideoFrameTimeBase / frameRate));

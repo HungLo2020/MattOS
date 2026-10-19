@@ -184,8 +184,6 @@ public:
 private Q_SLOTS:
     void equals_data();
     void equals();
-    void notEquals_data();
-    void notEquals();
     void empty_data();
     void empty();
     void boundingRect_data();
@@ -205,6 +203,8 @@ private Q_SLOTS:
     void intersectedRect();
     void translated_data();
     void translated();
+    void scaled_data();
+    void scaled();
     void scaledAndRoundedOut_data();
     void scaledAndRoundedOut();
     void fromSortedRects();
@@ -212,6 +212,8 @@ private Q_SLOTS:
     void fromRectsSortedByY();
     void fromAndToQRegion_data();
     void fromAndToQRegion();
+    void grownBy_data();
+    void grownBy();
 
 private:
     const QSize gridSize = testGridSize();
@@ -243,31 +245,9 @@ void TestRegion::equals()
 
     QCOMPARE(region1 == region2, expected);
     QCOMPARE(region2 == region1, expected);
-}
 
-void TestRegion::notEquals_data()
-{
-    QTest::addColumn<Region>("region1");
-    QTest::addColumn<Region>("region2");
-    QTest::addColumn<bool>("expected");
-
-    QTest::addRow("default and default") << Region() << Region() << false;
-    QTest::addRow("(1,2 3x4) and default") << Region(Rect(1, 2, 3, 4)) << Region() << true;
-    QTest::addRow("(1,2 3x4) and (1,2 3x4)") << Region(Rect(1, 2, 3, 4)) << Region(Rect(1, 2, 3, 4)) << false;
-
-    QTest::addRow("[(1,2 3x4), (5,6 7x8)] and (1,2 3x4)") << (Region(Rect(1, 2, 3, 4)) | Region(Rect(5, 6, 7, 8))) << Region(Rect(1, 2, 3, 4)) << true;
-    QTest::addRow("[(1,2 3x4), (5,6 7x8)] and (5,6 7x8)") << (Region(Rect(1, 2, 3, 4)) | Region(Rect(5, 6, 7, 8))) << Region(Rect(5, 6, 7, 8)) << true;
-    QTest::addRow("[(1,2 3x4), (5,6 7x8)] and [(1,2 3x4), (5,6 7x8)]") << (Region(Rect(1, 2, 3, 4)) | Region(Rect(5, 6, 7, 8))) << (Region(Rect(1, 2, 3, 4)) | Region(Rect(5, 6, 7, 8))) << false;
-}
-
-void TestRegion::notEquals()
-{
-    QFETCH(Region, region1);
-    QFETCH(Region, region2);
-    QFETCH(bool, expected);
-
-    QCOMPARE(region1 != region2, expected);
-    QCOMPARE(region2 != region1, expected);
+    QCOMPARE(region1 != region2, !expected);
+    QCOMPARE(region2 != region1, !expected);
 }
 
 void TestRegion::empty_data()
@@ -551,6 +531,33 @@ void TestRegion::translated()
     }
 }
 
+void TestRegion::scaled_data()
+{
+    QTest::addColumn<Region>("region");
+    QTest::addColumn<qreal>("scale");
+    QTest::addColumn<RegionF>("expected");
+
+    QTest::addRow("empty") << Region() << 2.5 << RegionF();
+
+    QTest::addRow("simple")
+        << Region(Rect(1, 2, 3, 4))
+        << 2.5
+        << RegionF(Rect(1, 2, 3, 4).scaled(2.5));
+
+    QTest::addRow("complex")
+        << (Region(Rect(1, 2, 3, 4)) | Region(Rect(5, 6, 7, 8)))
+        << 2.5
+        << (RegionF(Rect(1, 2, 3, 4).scaled(2.5)) | RegionF(Rect(5, 6, 7, 8).scaled(2.5)));
+}
+
+void TestRegion::scaled()
+{
+    QFETCH(Region, region);
+    QFETCH(qreal, scale);
+
+    QTEST(region.scaled(scale), "expected");
+}
+
 void TestRegion::scaledAndRoundedOut_data()
 {
     QTest::addColumn<Region>("region");
@@ -641,6 +648,35 @@ void TestRegion::fromAndToQRegion()
 
     QCOMPARE(Region(qtRegion), region);
     QCOMPARE(QRegion(region), qtRegion);
+}
+
+void TestRegion::grownBy_data()
+{
+    QTest::addColumn<Region>("region");
+    QTest::addColumn<QMargins>("margins");
+    QTest::addColumn<Region>("expected");
+
+    QTest::addRow("empty region, empty margins") << Region() << QMargins() << Region();
+    QTest::addRow("empty region, not empty margins") << Region() << QMargins(1, 2, 3, 4) << Region(Rect(QPoint(-1, -2), QPoint(3, 4)));
+
+    QTest::addRow("simple region") << Region(Rect(QPoint(0, 0), QPoint(5, 5))) << QMargins(1, 2, 3, 4) << Region(Rect(QPoint(-1, -2), QPoint(8, 9)));
+
+    QTest::addRow("complex region - conjoined")
+        << (Region(Rect(QPoint(0, 0), QPoint(6, 6))) | Region(Rect(QPoint(6, 3), QPoint(12, 9))))
+        << QMargins(1, 2, 3, 4)
+        << (Region(Rect(QPoint(-1, -2), QPoint(9, 10))) | Region(Rect(QPoint(5, 1), QPoint(15, 13))));
+
+    QTest::addRow("complex region - disjoint")
+        << (Region(Rect(QPoint(0, 0), QPoint(6, 6))) | Region(Rect(QPoint(10, 10), QPoint(16, 16))))
+        << QMargins(1, 2, 3, 4)
+        << (Region(Rect(QPoint(-1, -2), QPoint(9, 10))) | Region(Rect(QPoint(9, 8), QPoint(19, 20))));
+}
+
+void TestRegion::grownBy()
+{
+    QFETCH(Region, region);
+    QFETCH(QMargins, margins);
+    QTEST(region.grownBy(margins), "expected");
 }
 
 QTEST_MAIN(TestRegion)

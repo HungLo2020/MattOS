@@ -34,14 +34,10 @@ private slots:
     void qtbug_26956_popupTimerDone();
     void qtbug_34759_sizeHintResetWhenSettingMenu();
     void defaultActionSynced();
+    void defaultActionChangedConnectionIsUnique();
     void deleteInHandler();
     void emptyMenu();
     void popupMode();
-
-protected slots:
-    void sendMouseClick();
-private:
-    QPointer<QWidget> m_menu;
 };
 
 class MyToolButton : public QToolButton
@@ -51,6 +47,17 @@ public:
     void initStyleOption(QStyleOptionToolButton *option) const override
     {
         QToolButton::initStyleOption(option);
+    }
+};
+
+class ReceiverCountingAction : public QAction
+{
+public:
+    using QAction::QAction;
+
+    int changedReceiverCount() const
+    {
+        return receivers(SIGNAL(changed()));
     }
 };
 
@@ -113,7 +120,7 @@ void tst_QToolButton::triggered()
     mainWidget.resize(200, 200);
     mainWidget.move(QGuiApplication::primaryScreen()->availableGeometry().center() - QPoint(100, 100));
     QToolButton *toolButton = new QToolButton(&mainWidget);
-    QSignalSpy spy(toolButton,SIGNAL(triggered(QAction*)));
+    QSignalSpy spy(toolButton, &QToolButton::triggered);
     QScopedPointer<QMenu> menu(new QMenu(QStringLiteral("Menu")));
     QAction *one = menu->addAction("one");
     menu->addAction("two");
@@ -130,18 +137,22 @@ void tst_QToolButton::triggered()
     QCOMPARE(spy.size(),1);
     QCOMPARE(qvariant_cast<QAction *>(spy.at(0).at(0)), defaultAction);
 
-    m_menu = menu.data();
-
     // QMenu uses QGuiApplicationPrivate::lastCursorPosition to detect pointer
     // movement. And GuiApplication needs at least one mouse move to properly
     // initialize it. So we send a mouse move now, before we open the menu.
     QTest::mouseMove(mainWidget.windowHandle(), mainWidget.mapFromGlobal(QPoint(0, 0)));
 
-    QTimer *timer = new QTimer(this);
-    timer->setInterval(50);
-    connect(timer, SIGNAL(timeout()), this, SLOT(sendMouseClick()));
-    timer->start();
-    QTimer::singleShot(10000, &mainWidget, SLOT(close())); // Emergency bail-out
+    QTimer timer;
+    timer.setInterval(50);
+    connect(&timer, &QTimer::timeout, this, [&timer, &menu]() {
+        if (!menu->isVisible())
+            return;
+        const QPoint pos = menu->actionGeometry(menu->actions().constFirst()).center();
+        QTest::mouseClick(menu.data(), Qt::LeftButton, {}, pos);
+        timer.stop();
+    });
+    timer.start();
+    QTimer::singleShot(10000, &mainWidget, &QWidget::close); // Emergency bail-out
     toolButton->showMenu();
     QTRY_COMPARE(spy.size(),2);
     QCOMPARE(qvariant_cast<QAction *>(spy.at(1).at(0)), one);
@@ -211,22 +222,6 @@ void tst_QToolButton::task176137_autoRepeatOfAction()
             .arg(expected)
             .arg(repeatSpy.size())
             .arg(diff)));
-}
-
-
-void tst_QToolButton::sendMouseClick()
-{
-    if (m_menu.isNull()) {
-        qWarning("m_menu is NULL");
-        return;
-    }
-    if (!m_menu->isVisible())
-        return;
-    QTest::mouseClick(m_menu.data(), Qt::LeftButton, {}, QPoint(7, 7));
-    if (QTimer *timer = qobject_cast<QTimer *>(sender())) {
-        timer->stop();
-        timer->deleteLater();
-    }
 }
 
 void tst_QToolButton::qtbug_26956_popupTimerDone()
@@ -321,6 +316,21 @@ void tst_QToolButton::defaultActionSynced()
     QCOMPARE(tbSpy.size(), ++tbToggledCount);
     QCOMPARE(aSpy.size(), aToggledCount);
     QCOMPARE(bSpy.size(), ++bToggledCount);
+}
+
+void tst_QToolButton::defaultActionChangedConnectionIsUnique()
+{
+    ReceiverCountingAction action;
+    QToolButton button;
+
+    button.setDefaultAction(&action);
+    const int initialReceiverCount = action.changedReceiverCount();
+    QCOMPARE_GT(initialReceiverCount, 0);
+
+    action.setEnabled(false);
+    QCOMPARE(action.changedReceiverCount(), initialReceiverCount);
+    action.setText(QStringLiteral("updated"));
+    QCOMPARE(action.changedReceiverCount(), initialReceiverCount);
 }
 
 void tst_QToolButton::deleteInHandler()

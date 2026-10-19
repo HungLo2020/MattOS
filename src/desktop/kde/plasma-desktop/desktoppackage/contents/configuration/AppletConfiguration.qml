@@ -439,7 +439,7 @@ Rectangle {
                     id: bottomSeparator
                     visible: (app.pageStack.currentItem
                         && app.pageStack.currentItem.flickable
-                        && !(app.pageStack.currentItem.flickable instanceof KCMUtils.GridViewKCM)
+                        && !(app.pageStack.currentItem instanceof KCMUtils.GridViewKCM)
                         && !(app.pageStack.currentItem.flickable.atYBeginning
                         && app.pageStack.currentItem.flickable.atYEnd)) ?? false
                     anchors {
@@ -454,8 +454,9 @@ Rectangle {
         QQC2.Action {
             id: acceptAction
             onTriggered: {
-                applyAction.trigger();
+                applyButton.enabled = false;
                 configDialog.close();
+                applyAction.trigger();
             }
         }
 

@@ -62,6 +62,11 @@ void LinuxDrmSyncObjV1Interface::wp_linux_drm_syncobj_manager_v1_destroy(Resourc
     wl_resource_destroy(resource->handle);
 }
 
+void LinuxDrmSyncObjV1Interface::setDrmDevice(DrmDevice *drmDevice)
+{
+    m_drmDevice = drmDevice;
+}
+
 void LinuxDrmSyncObjV1Interface::remove()
 {
     QtWaylandServer::wp_linux_drm_syncobj_manager_v1::globalRemove();
@@ -141,7 +146,7 @@ void LinuxDrmSyncObjSurfaceV1::wp_linux_drm_syncobj_surface_v1_set_release_point
         return;
     }
     const uint64_t point = (uint64_t(point_hi) << 32) | point_lo;
-    SurfaceInterfacePrivate::get(m_surface)->pending->releasePoint = std::make_shared<SyncReleasePoint>(timeline->timeline(), point);
+    SurfaceInterfacePrivate::get(m_surface)->pending->releasePoint = std::make_shared<SyncObjReleasePoint>(timeline->timeline(), point);
 }
 
 void LinuxDrmSyncObjSurfaceV1::wp_linux_drm_syncobj_surface_v1_destroy_resource(Resource *resource)
@@ -183,4 +188,5 @@ bool LinuxDrmSyncObjSurfaceV1::maybeEmitProtocolErrors()
     }
     return false;
 }
+
 }

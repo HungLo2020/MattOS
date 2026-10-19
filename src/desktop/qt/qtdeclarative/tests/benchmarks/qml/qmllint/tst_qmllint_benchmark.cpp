@@ -5,7 +5,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/QLibraryInfo>
 #include <QtCore/qdirlisting.h>
-#include <QtQmlCompiler/private/qqmljslinter_p.h>
+#include <private/qqmljslinter_p.h>
 
 using namespace Qt::StringLiterals;
 
@@ -109,10 +109,8 @@ void tst_qmllint_benchmark::runOnFile(const QString &fileName, PluginSelection a
     switch (allowedPlugins) {
     case CompilerWarnings:
         for (auto &category : categories) {
-            if (category.id() == qmlCompiler) {
-                category.setIgnored(false);
-                category.setLevel(QtWarningMsg);
-            }
+            if (category.id() == qmlCompiler)
+                category.setSeverity(QQmlSA::WarningSeverity::Warning);
         }
         Q_FALLTHROUGH(); // disable the plugins, concentrate on the compiler warnings
     case NoPlugins:
@@ -144,13 +142,19 @@ void tst_qmllint_benchmark::runOnFile(const QString &fileName, PluginSelection a
         return file.readAll();
     }();
 
+    std::vector<QQmlJSLinter::Result> results;
+    QQmlJSLinter::LintOptions options;
+    options.setFlag(QQmlJSLinter::Silent);
+
+    QVERIFY(linter.prepareFileForBatchLinting(fileName, &content, options, imports, { }, { },
+                                              categories));
     QBENCHMARK {
-        linter.lintFile(fileName, &content, true, nullptr, imports, {}, {}, categories);
+        results.push_back(linter.lintFileInBatch(fileName));
     }
     // make sure that all imports are available, otherwise we end up benchmarking less relevant
     // parts of the execution.
-    if (const QQmlJSLogger *logger = linter.logger()) {
-        logger->iterateAllMessages([](const Message &message) {
+    if (results.size() > 0 && results.front().logger) {
+        results.front().logger->iterateAllMessages([](const Message &message) {
             QVERIFY(!message.message.contains("Failed to import"_L1));
         });
     }

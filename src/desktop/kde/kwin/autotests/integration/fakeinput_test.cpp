@@ -18,8 +18,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_fakeinput-0");
-
 class FakeInputTest : public QObject
 {
     Q_OBJECT
@@ -45,7 +43,7 @@ private:
 
 void FakeInputTest::initTestCase()
 {
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),
@@ -329,16 +327,28 @@ void FakeInputTest::testKeySym()
     sendKey(0x01000000 | 0x1F60A); // smily face
     sendKey(XKB_KEY_f);
 
-    QSignalSpy receivedTextChangedSpy(keyboard, &Test::SimpleKeyboard::receviedTextChanged);
-    bool matched = false;
-    for (int i = 0; i < 10; ++i) {
-        if (keyboard->receviedText() == "aB äÄ 안😊f") {
-            matched = true;
-            break;
-        }
-        receivedTextChangedSpy.wait();
-    }
-    QVERIFY(matched);
+    QTRY_COMPARE(keyboard->receviedText(), QString("aB äÄ 안😊f"));
+
+    QSignalSpy keySymReceivedSpy(keyboard, &Test::SimpleKeyboard::keySymRecevied);
+    QSignalSpy modifiersChangedSpy(keyboard->keyboard(), &KWayland::Client::Keyboard::modifiersChanged);
+
+    fakeInput->keyboard_keysym(XKB_KEY_Control_L, WL_KEYBOARD_KEY_STATE_PRESSED);
+    QVERIFY(keySymReceivedSpy.count() == 1 || keySymReceivedSpy.wait());
+    QCOMPARE(keySymReceivedSpy.last().at(0).toUInt(), XKB_KEY_Control_L);
+    QVERIFY(modifiersChangedSpy.count() == 1 || modifiersChangedSpy.wait());
+    const auto modifiersAfterPress = modifiersChangedSpy.last();
+    QVERIFY(modifiersAfterPress.at(0).toUInt() != 0);
+
+    sendKey(XKB_KEY_a);
+    QVERIFY(keySymReceivedSpy.count() == 2 || keySymReceivedSpy.wait());
+    QCOMPARE(keySymReceivedSpy.last().at(0).toUInt(), XKB_KEY_a);
+    QCOMPARE(modifiersChangedSpy.count(), 1);
+    QCOMPARE(modifiersChangedSpy.last().at(0).toUInt(), modifiersAfterPress.at(0).toUInt());
+
+    fakeInput->keyboard_keysym(XKB_KEY_Control_L, WL_KEYBOARD_KEY_STATE_RELEASED);
+    QVERIFY(modifiersChangedSpy.count() == 2 || modifiersChangedSpy.wait());
+    QCOMPARE(keySymReceivedSpy.count(), 2);
+    QCOMPARE(modifiersChangedSpy.last().at(0).toUInt(), 0U);
 }
 
 } // namespace KWin

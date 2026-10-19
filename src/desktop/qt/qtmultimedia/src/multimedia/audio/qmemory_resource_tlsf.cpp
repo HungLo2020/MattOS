@@ -5,8 +5,6 @@
 
 #include <QtCore/qassert.h>
 
-#include <memory_resource>
-
 #include <tlsf.h>
 
 QT_BEGIN_NAMESPACE

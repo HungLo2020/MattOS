@@ -143,6 +143,7 @@ public:
     QRectF handlesRect;
     // Radius of handles is either handleRadiusMouse or handleRadiusTouch
     qreal handleRadius = s_handleRadiusMouse;
+    bool forceReleaseCapture = false;
 };
 
 SelectionEditorPrivate::SelectionEditorPrivate(SelectionEditor *q)
@@ -455,6 +456,11 @@ Location SelectionEditor::magnifierLocation() const
     return d->magnifierLocation;
 }
 
+void SelectionEditor::forceReleaseCapture(const bool enabled) const
+{
+    d->forceReleaseCapture = enabled;
+}
+
 bool SelectionEditor::acceptSelection(ExportManager::Actions actions)
 {
     if (d->screensRect.isEmpty()) {
@@ -735,7 +741,7 @@ void SelectionEditor::mouseReleaseEvent(QQuickItem *item, QMouseEvent *event)
     switch (event->button()) {
     case Qt::LeftButton:
     case Qt::RightButton:
-        if (d->dragLocation == Location::Outside && Settings::useReleaseToCapture()) {
+        if (d->dragLocation == Location::Outside && (Settings::useReleaseToCapture() || d->forceReleaseCapture)) {
             acceptSelection();
         } else {
             d->disableArrowKeys = false;

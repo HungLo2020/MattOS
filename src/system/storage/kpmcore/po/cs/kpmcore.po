@@ -2,31 +2,32 @@
 # This file is distributed under the same license as the PACKAGE package.
 # SPDX-FileCopyrightText: 2015, 2016, 2017, 2018, 2019, 2020, 2025 Vít Pelčák <vit@pelcak.org>
 # SPDX-FileCopyrightText: 2021, 2022, 2023, 2024 Vit Pelcak <vit@pelcak.org>
+# SPDX-FileCopyrightText: 2026 Libor Filípek <libor.filipek@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
-"PO-Revision-Date: 2025-12-02 11:27+0100\n"
-"Last-Translator: Vit Pelcak <vit@pelcak.org>\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
+"PO-Revision-Date: 2026-08-01 12:01+0200\n"
+"Last-Translator: Libor Filípek <libor.filipek@gmail.com>\n"
 "Language-Team: Czech <kde-i18n-doc@kde.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Vít Pelčák"
+msgstr "Vít Pelčák,Libor Filípek"
 
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
-msgstr "vit@pelcak.org"
+msgstr "vit@pelcak.org,libor.filipek@gmail.com"
 
 #: core/device.cpp:33
 #, kde-format
@@ -51,8 +52,7 @@ msgctxt "@info:status"
 msgid ""
 "Deleting a partition just created: Undoing the operation to create the "
 "partition."
-msgstr ""
-"Mažu čerstvě vytvořený oddíl: Místo toho ruším operaci pro vytvoření oddílu."
+msgstr "Odstranění právě vytvořeného oddílu: Zrušení operace vytvoření oddílu."
 
 #: core/operationstack.cpp:119
 #, kde-kuit-format
@@ -68,7 +68,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Copying a new partition: Creating a new partition instead."
-msgstr ""
+msgstr "Kopírování nového oddílu: Místo toho vytvořte nový oddíl."
 
 #: core/operationstack.cpp:156
 #, kde-kuit-format
@@ -90,6 +90,8 @@ msgid ""
 "Checking file systems is automatically done when creating them: No new "
 "operation required."
 msgstr ""
+"Kontrola souborových systémů se provádí automaticky při jejich vytváření: "
+"Není třeba provádět žádné další kroky."
 
 #: core/operationstack.cpp:233
 #, kde-kuit-format
@@ -114,14 +116,14 @@ msgid ""
 "Copying a partition that is itself a copy: Copying the original source "
 "partition instead."
 msgstr ""
-"Kopírování oddílu, který je sám kopií: Kopíruji místo toho původní zdrojový "
-"oddíl."
+"Kopírování oddílu, který je sám o sobě kopií: Místo toho kopírovat původní "
+"zdrojový oddíl."
 
 #: core/operationstack.cpp:280
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Deleting a partition just restored: Removing the restore operation."
-msgstr "Mazání právě obnoveného oddílu: Odstraňuji operaci obnovení."
+msgstr "Odstranění právě obnoveného oddílu: Zrušení operace obnovení."
 
 #: core/operationstack.cpp:285
 #, kde-kuit-format
@@ -130,20 +132,21 @@ msgid ""
 "Deleting a partition just restored to an existing partition: Removing the "
 "restore operation and deleting the existing partition."
 msgstr ""
-"Mazání právě obnoveného oddílu: odstraňuji operaci obnovení a mažu "
-"existující oddíl."
+"Odstranění oddílu, který byl právě obnoven na stávající oddíl: Zrušení "
+"operace obnovení a odstranění stávajícího oddílu."
 
 #: core/operationstack.cpp:318
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Changing flags again for the same partition: Removing old operation."
 msgstr ""
+"Opětovná změna příznaků u stejného oddílu: Odstranění předchozí operace."
 
 #: core/operationstack.cpp:349
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Changing label again for the same partition: Removing old operation."
-msgstr ""
+msgstr "Opětovná změna popisku stejného oddílu: Odstranění předchozí operace."
 
 #: core/operationstack.cpp:375
 #, kde-kuit-format
@@ -157,7 +160,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Resizing Volume Group, nothing to do."
-msgstr ""
+msgstr "Změna velikosti skupiny svazků – není třeba nic dělat."
 
 #: core/operationstack.cpp:440
 #, kde-kuit-format
@@ -303,61 +306,61 @@ msgstr "hpservice"
 #, kde-kuit-format
 msgctxt "@item partition flag"
 msgid "palo"
-msgstr ""
+msgstr "palo"
 
 #: core/partitiontable.cpp:198
 #, kde-kuit-format
 msgctxt "@item partition flag"
 msgid "prep"
-msgstr ""
+msgstr "prep"
 
 #: core/partitiontable.cpp:200
 #, kde-kuit-format
 msgctxt "@item partition flag"
 msgid "msft-reserved"
-msgstr ""
+msgstr "msft-reserved"
 
 #: core/partitiontable.cpp:202
 #, kde-kuit-format
 msgctxt "@item partition flag"
 msgid "bios-grub"
-msgstr ""
+msgstr "bios-grub"
 
 #: core/partitiontable.cpp:204
 #, kde-kuit-format
 msgctxt "@item partition flag"
 msgid "apple-tv-recovery"
-msgstr ""
+msgstr "apple-tv-recovery"
 
 #: core/partitiontable.cpp:206
 #, kde-kuit-format
 msgctxt "@item partition flag"
 msgid "diag"
-msgstr ""
+msgstr "diag"
 
 #: core/partitiontable.cpp:208
 #, kde-kuit-format
 msgctxt "@item partition flag"
 msgid "legacy-boot"
-msgstr ""
+msgstr "legacy-boot"
 
 #: core/partitiontable.cpp:210
 #, kde-kuit-format
 msgctxt "@item partition flag"
 msgid "msft-data"
-msgstr ""
+msgstr "msft-data"
 
 #: core/partitiontable.cpp:212
 #, kde-kuit-format
 msgctxt "@item partition flag"
 msgid "irst"
-msgstr ""
+msgstr "irst"
 
 #: core/partitiontable.cpp:499
 #, kde-kuit-format
 msgctxt "@item partition table name"
 msgid "unknown"
-msgstr "neznámý"
+msgstr "neznámé"
 
 #: core/raid/softwareraid.cpp:93
 #, kde-kuit-format
@@ -369,13 +372,13 @@ msgstr " [RAID %1]"
 #, kde-kuit-format
 msgctxt "@item:inlistbox [RAID level - Recovering]"
 msgid " [RAID %1 - Recovering]"
-msgstr ""
+msgstr " [RAID %1 – Probíhá obnova]"
 
 #: core/raid/softwareraid.cpp:97
 #, kde-kuit-format
 msgctxt "@item:inlistbox [RAID level - Resyncing]"
 msgid " [RAID %1 - Resyncing]"
-msgstr ""
+msgstr " [RAID %1 – Probíhá resynchronizace]"
 
 #: core/smartattribute.cpp:45
 #, kde-kuit-format
@@ -426,7 +429,7 @@ msgstr "Počet chyb při čtení"
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Rate of hardware read errors while reading data from the disk surface."
-msgstr ""
+msgstr "Míra hardwarových chyb při čtení dat z povrchu disku."
 
 #: core/smartattribute.cpp:102
 #, kde-format
@@ -442,18 +445,22 @@ msgid ""
 "of this attribute is decreasing there is a high probability that there is a "
 "problem with the disk."
 msgstr ""
+"Celkový (obecný) výkon pevného disku z hlediska propustnosti. Pokud hodnota "
+"tohoto atributu klesá, je vysoká pravděpodobnost, že na disku došlo k poruše."
 
 #: core/smartattribute.cpp:103
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Spin-Up Time"
-msgstr ""
+msgstr "Doba rozběhu"
 
 #: core/smartattribute.cpp:103
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Average time of spindle spin up from zero RPM to fully operational."
 msgstr ""
+"Průměrná doba, za kterou se disk roztočí z nulových otáček na plný provozní "
+"režim."
 
 #: core/smartattribute.cpp:104
 #, kde-format
@@ -465,13 +472,13 @@ msgstr "Počet spuštění/zastavení"
 #, kde-format
 msgctxt "SMART attr description"
 msgid "A tally of spindle start/stop cycles."
-msgstr ""
+msgstr "Počet cyklů spuštění a zastavení disku."
 
 #: core/smartattribute.cpp:105
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Reallocated Sectors Count"
-msgstr ""
+msgstr "Počet realokovaných sektorů"
 
 #: core/smartattribute.cpp:105
 #, kde-format
@@ -489,7 +496,7 @@ msgstr ""
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Read Channel Margin"
-msgstr ""
+msgstr "Hranice kanálu při čtení"
 
 #: core/smartattribute.cpp:106
 #, kde-format
@@ -498,12 +505,13 @@ msgid ""
 "Margin of a channel while reading data. The function of this attribute is "
 "not specified."
 msgstr ""
+"Hranice kanálu při čtení dat. Funkce tohoto atributu není specifikována."
 
 #: core/smartattribute.cpp:107
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Seek Error Rate"
-msgstr ""
+msgstr "Míra detekce chyb"
 
 #: core/smartattribute.cpp:107
 #, kde-format
@@ -512,12 +520,14 @@ msgid ""
 "Rate of seek errors of the magnetic heads. If there is a partial failure in "
 "the mechanical positioning system, then seek errors will arise."
 msgstr ""
+"Míra chyb vyhledávání magnetických hlav. Dojde-li k částečné poruše "
+"mechanického polohovacího systému, vzniknou chyby vyhledávání."
 
 #: core/smartattribute.cpp:108
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Seek Time Performance"
-msgstr ""
+msgstr "Časová výkonnost vyhledávání"
 
 #: core/smartattribute.cpp:108
 #, kde-format
@@ -527,6 +537,8 @@ msgid ""
 "attribute is decreasing, it is a sign of problems in the mechanical "
 "subsystem."
 msgstr ""
+"Průměrný výkon operací vyhledávání magnetických hlav. Pokud se hodnota "
+"tohoto atributu snižuje, je to známkou problémů v mechanickém subsystému."
 
 #: core/smartattribute.cpp:109
 #, kde-format
@@ -544,7 +556,7 @@ msgstr "Počet hodin v zapnutém stavu."
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Spin Retry Count"
-msgstr ""
+msgstr "Počet opakování spuštění rotace"
 
 #: core/smartattribute.cpp:110
 #, kde-format
@@ -554,12 +566,15 @@ msgid ""
 "An increase of this attribute value is a sign of problems in the hard disk "
 "mechanical subsystem."
 msgstr ""
+"Počet opakovaných pokusů o spuštění rotace v případě, že první pokus byl "
+"neúspěšný. Zvýšení hodnoty tohoto atributu signalizuje problémy v "
+"mechanickém subsystému pevného disku."
 
 #: core/smartattribute.cpp:111
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Recalibration Retries"
-msgstr ""
+msgstr "Počet pokusů o rekalibraci"
 
 #: core/smartattribute.cpp:111
 #, kde-format
@@ -569,85 +584,91 @@ msgid ""
 "increase of this attribute value is a sign of problems in the hard disk "
 "mechanical subsystem."
 msgstr ""
+"Počet požadovaných rekalibrací v případě, že první pokus nebyl úspěšný. "
+"Nárůst hodnoty tohoto atributu signalizuje problémy v mechanickém subsystému "
+"pevného disku."
 
 #: core/smartattribute.cpp:112
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Power Cycle Count"
-msgstr ""
+msgstr "Počet cyklů zapnutí a vypnutí"
 
 #: core/smartattribute.cpp:112
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Count of full hard disk power on/off cycles."
-msgstr ""
+msgstr "Počet cyklů zapnutí a vypnutí pevného disku."
 
 #: core/smartattribute.cpp:113 core/smartattribute.cpp:145
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Soft Read Error Rate"
-msgstr ""
+msgstr "Míra chyb při čtení na softwarové úrovni"
 
 #: core/smartattribute.cpp:113
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Uncorrected read errors reported to the operating system."
-msgstr ""
+msgstr "Neopravené chyby čtení nahlášené operačnímu systému."
 
 #: core/smartattribute.cpp:114
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Available Reserved Space"
-msgstr ""
+msgstr "Dostupné rezervované místo na SSD"
 
 #: core/smartattribute.cpp:114
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Number of available reserved space as a percentage of reserved space."
 msgstr ""
+"Kapacita volného rezervovaného prostoru vyjádřená jako procentní podíl z "
+"celkové rezervované kapacity."
 
 #: core/smartattribute.cpp:115
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Program Fail Count"
-msgstr ""
+msgstr "Počet selhání programu SSD"
 
 #: core/smartattribute.cpp:115 core/smartattribute.cpp:125
 #, kde-format
 msgctxt "SMART attr description"
 msgid ""
 "Number of flash program operation failures since the drive was deployed."
-msgstr ""
+msgstr "Počet selhání operací flash programu od uvedení disku do provozu."
 
 #: core/smartattribute.cpp:116 core/smartattribute.cpp:126
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Erase Fail Count"
-msgstr ""
+msgstr "Počet neúspěšných pokusů o vymazání SSD"
 
 #: core/smartattribute.cpp:116
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Number of flash erase operation failures since the drive was deployed."
 msgstr ""
+"Počet neúspěšných operací vymazání paměti flash od uvedení disku do provozu."
 
 #: core/smartattribute.cpp:117
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Wear Leveling Count"
-msgstr ""
+msgstr "Počet vyrovnání opotřebení SSD"
 
 #: core/smartattribute.cpp:117
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Counts the maximum worst erase count on any block."
-msgstr ""
+msgstr "Vypočítá maximální počet vymazání v libovolném bloku."
 
 #: core/smartattribute.cpp:118
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Unexpected power loss count"
-msgstr ""
+msgstr "Počet neočekávaných výpadků napájení SSD"
 
 #: core/smartattribute.cpp:118
 #, kde-format
@@ -657,12 +678,15 @@ msgid ""
 "(regardless of PLI activity using capacitor power). Normalized value is "
 "always 100."
 msgstr ""
+"Počet vypnutí, u nichž nebyl posledním příkazem STANDBY IMMEDIATE (bez "
+"ohledu na aktivitu PLI využívající napájení z kondenzátoru). Normalizovaná "
+"hodnota je vždy 100."
 
 #: core/smartattribute.cpp:119
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Power Loss Protection Failure"
-msgstr ""
+msgstr "Selhání ochrany SSD proti výpadku napájení"
 
 #: core/smartattribute.cpp:119
 #, kde-format
@@ -675,67 +699,75 @@ msgid ""
 "or 11 if the capacitor has been tested in an excessive temperature "
 "condition, otherwise 100."
 msgstr ""
+"Výsledek posledního testu, který dosáhl své maximální hodnoty. Bajty 0–1: "
+"výsledek posledního testu vyjádřený v mikrosekundách potřebných k vybití "
+"kondenzátoru v rozmezí [25, 5 000 000]; nižší hodnota označuje konkrétní "
+"chybový kód. Bajty 2–3: počet minut od posledního testu. Bajty 4–5: celkový "
+"počet testů za dobu životnosti. Normalizovaná hodnota je nastavena na 1 v "
+"případě selhání testu nebo na 11, pokud byl kondenzátor testován za podmínek "
+"nadměrné teploty, v opačném případě na 100."
 
 #: core/smartattribute.cpp:120
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Erase Fail Count (chip)"
-msgstr ""
+msgstr "Počet neúspěšných pokusů o vymazání SSD (čip)"
 
 #: core/smartattribute.cpp:120
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Number of flash erase command failures."
-msgstr ""
+msgstr "Počet neúspěšných příkazů k vymazání paměti flash."
 
 #: core/smartattribute.cpp:121
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Wear Range Delta"
-msgstr ""
+msgstr "Rozsah delta opotřebení SSD"
 
 #: core/smartattribute.cpp:121
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Delta between most-worn and least-worn flash blocks."
-msgstr ""
+msgstr "Rozdíl mezi nejvíce a nejméně opotřebovanými bloky paměti flash."
 
 #: core/smartattribute.cpp:122 core/smartattribute.cpp:123
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Used Reserved Block Count Total"
-msgstr ""
+msgstr "Celkový počet použitých rezervovaných bloků na SSD"
 
 #: core/smartattribute.cpp:122 core/smartattribute.cpp:123
 #: core/smartattribute.cpp:126
 #, kde-format
 msgctxt "SMART attr description"
 msgid "\"Pre-Fail\" Samsung attribute."
-msgstr ""
+msgstr "Funkce \"Pre-Fail\" společnosti Samsung."
 
 #: core/smartattribute.cpp:124
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Unused Reserved Block Count Total"
-msgstr ""
+msgstr "Celkový počet nevyužitých rezervovaných bloků SSD"
 
 #: core/smartattribute.cpp:124
 #, kde-format
 msgctxt "SMART attr description"
 msgid "\"Pre-Fail\" HP attribute."
-msgstr ""
+msgstr "Atribut HP \"Pre-Fail\"."
 
 #: core/smartattribute.cpp:125
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD Program Fail Count Total or Non-4K Aligned Access Count"
 msgstr ""
+"Celkový počet selhání programu SSD nebo počet přístupů bez zarovnání na 4K"
 
 #: core/smartattribute.cpp:127
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SATA Downshift Error Count"
-msgstr ""
+msgstr "Počet chyb při snížení rychlosti přenosu SATA"
 
 #: core/smartattribute.cpp:127
 #, kde-format
@@ -747,7 +779,7 @@ msgstr "Atributy Western Digital a Samsung."
 #, kde-format
 msgctxt "SMART attr name"
 msgid "End-to-End Error"
-msgstr ""
+msgstr "Chyba v celém řetězci"
 
 #: core/smartattribute.cpp:128
 #, kde-format
@@ -757,6 +789,9 @@ msgid ""
 "data buffer the parity data between the host and the hard drive did not "
 "match."
 msgstr ""
+"Součást technologie SMART IV společnosti HP: Po přenosu dat přes vyrovnávací "
+"paměť RAM se zjistilo, že parita dat mezi hostitelským počítačem a pevným "
+"diskem se neshodují."
 
 #: core/smartattribute.cpp:129
 #, kde-format
@@ -774,7 +809,7 @@ msgstr "Atribut Western Digital."
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Induced Op-Vibration Detection"
-msgstr ""
+msgstr "Detekce indukovaných optických vibrací"
 
 #: core/smartattribute.cpp:131
 #, kde-format
@@ -786,7 +821,7 @@ msgstr "Zaznamenané neopravitelné chyby"
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Count of errors that could not be recovered using hardware ECC."
-msgstr ""
+msgstr "Počet chyb, které nebylo možné opravit pomocí hardwarové korekce ECC."
 
 #: core/smartattribute.cpp:132
 #, kde-format
@@ -805,19 +840,19 @@ msgstr ""
 #, kde-format
 msgctxt "SMART attr name"
 msgid "High Fly Writes"
-msgstr "Zápisy High Fly"
+msgstr "Chyby výšky hlav"
 
 #: core/smartattribute.cpp:133
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Count of fly height errors detected."
-msgstr ""
+msgstr "Počet zjištěných chyb ve výšce hlav disku."
 
 #: core/smartattribute.cpp:134
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Temperature Difference From 100"
-msgstr ""
+msgstr "Teplotní rozdíl od 100"
 
 #: core/smartattribute.cpp:134
 #, kde-format
@@ -826,42 +861,44 @@ msgid ""
 "Value is equal to (100 &ndash; temp. °C), allowing manufacturer to set a "
 "minimum threshold which corresponds to a maximum temperature."
 msgstr ""
+"Hodnota se rovná (100 – teplota v °C), což výrobci umožňuje nastavit "
+"minimální prahovou hodnotu, která odpovídá maximální teplotě."
 
 #: core/smartattribute.cpp:135
 #, kde-format
 msgctxt "SMART attr name"
 msgid "G-sense Error Rate"
-msgstr ""
+msgstr "Míra chybovosti G-sense"
 
 #: core/smartattribute.cpp:135
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Count of errors resulting from externally-induced shock and vibration."
-msgstr ""
+msgstr "Počet chyb způsobených vnějšími nárazy a vibracemi."
 
 #: core/smartattribute.cpp:136
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Power Off Retract Count"
-msgstr ""
+msgstr "Počet zaparkování při vypnutí"
 
 #: core/smartattribute.cpp:136
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Count of power-off or emergency retract cycles"
-msgstr ""
+msgstr "Počet cyklů vypnutí nebo nouzového zaparkování"
 
 #: core/smartattribute.cpp:137
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Load Cycle Count"
-msgstr ""
+msgstr "Počet zatěžovacích cyklů"
 
 #: core/smartattribute.cpp:137
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Count of load/unload cycles into head landing zone position."
-msgstr ""
+msgstr "Počet cyklů v poloze přistávací zóny hlavy."
 
 #: core/smartattribute.cpp:138 core/smartattribute.cpp:166
 #, kde-format
@@ -873,25 +910,25 @@ msgstr "Teplota"
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Current internal temperature."
-msgstr "Aktuální vnitřní teplota"
+msgstr "Aktuální vnitřní teplota."
 
 #: core/smartattribute.cpp:139
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Hardware ECC Recovered"
-msgstr ""
+msgstr "Hardwarové obnovení s ECC"
 
 #: core/smartattribute.cpp:139
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Count of errors that could be recovered using hardware ECC."
-msgstr ""
+msgstr "Počet chyb, které bylo možné opravit pomocí hardwarové korekce ECC."
 
 #: core/smartattribute.cpp:140
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Reallocation Event Count"
-msgstr ""
+msgstr "Počet událostí realokace"
 
 #: core/smartattribute.cpp:140
 #, kde-format
@@ -900,12 +937,14 @@ msgid ""
 "Count of remap operations. The raw value of this attribute shows the total "
 "number of attempts to transfer data from reallocated sectors to a spare area."
 msgstr ""
+"Počet operací přemapování. Hrubá hodnota tohoto atributu udává celkový počet "
+"pokusů o přenos dat z přerozdělených sektorů do rezervní oblasti."
 
 #: core/smartattribute.cpp:141
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Current Pending Sector Count"
-msgstr ""
+msgstr "Aktuální počet čekajících sektorů"
 
 #: core/smartattribute.cpp:141
 #, kde-format
@@ -914,24 +953,26 @@ msgid ""
 "Number of &quot;unstable&quot; sectors (waiting to be remapped, because of "
 "read errors)."
 msgstr ""
+"Počet \"nestabilních\" sektorů (čekajících na přemapování z důvodu chyb při "
+"čtení)."
 
 #: core/smartattribute.cpp:142
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Uncorrectable Sector Count"
-msgstr ""
+msgstr "Počet neopravitelných sektorů"
 
 #: core/smartattribute.cpp:142
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Count of uncorrectable errors when reading/writing a sector."
-msgstr ""
+msgstr "Počet neopravitelných chyb při čtení/zápisu sektoru."
 
 #: core/smartattribute.cpp:143
 #, kde-format
 msgctxt "SMART attr name"
 msgid "UltraDMA CRC Error Count"
-msgstr ""
+msgstr "Počet chyb CRC v režimu UltraDMA"
 
 #: core/smartattribute.cpp:143
 #, kde-format
@@ -939,13 +980,13 @@ msgctxt "SMART attr description"
 msgid ""
 "Count of errors in data transfer via the interface cable as determined by "
 "ICRC."
-msgstr ""
+msgstr "Počet chyb při přenosu dat přes propojovací kabel podle údajů ICRC."
 
 #: core/smartattribute.cpp:144
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Multi-Zone Error Rate<br/>Write Error Rate"
-msgstr ""
+msgstr "Míra chyb ve více zónách <br/>Míra chyb při zápisu"
 
 #: core/smartattribute.cpp:144
 #, kde-format
@@ -957,25 +998,26 @@ msgstr "Celkový počet chyb při psaní na sektor."
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Number of off-track errors."
-msgstr ""
+msgstr "Počet chyb mimo stopu."
 
 #: core/smartattribute.cpp:146
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Data Address Mark Errors"
-msgstr ""
+msgstr "Chyby v označení datových adres"
 
 #: core/smartattribute.cpp:146
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Number of Data Address Mark errors (or vendor-specific)."
 msgstr ""
+"Počet chyb v označení datové adresy (nebo specifických pro daného výrobce)."
 
 #: core/smartattribute.cpp:147
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Run Out Cancel"
-msgstr ""
+msgstr "Neplatný kontrolní součet pro opravu chyb"
 
 #: core/smartattribute.cpp:147
 #, kde-format
@@ -999,7 +1041,7 @@ msgstr "Počet chyb opravených softwarem ECC"
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Thermal Asperity Rate"
-msgstr ""
+msgstr "Míra tepelné náročnosti"
 
 #: core/smartattribute.cpp:149
 #, kde-format
@@ -1011,7 +1053,7 @@ msgstr "Počet chyb z důvodu vysoké teploty."
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Flying Height"
-msgstr ""
+msgstr "Výška hlav"
 
 #: core/smartattribute.cpp:150
 #, kde-format
@@ -1021,24 +1063,27 @@ msgid ""
 "increases the chances of a head crash while a flying height that is too high "
 "increases the chances of a read/write error."
 msgstr ""
+"Výška čtecích a zapisovacích hlav nad povrchem disku. Příliš nízká výška "
+"zvyšuje riziko nárazu čtecí a zapisovací hlavy, zatímco příliš vysoká výška "
+"zvyšuje riziko chyby při čtení nebo zápisu."
 
 #: core/smartattribute.cpp:151
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Spin High Current"
-msgstr ""
+msgstr "Vysoký proud pro roztočení"
 
 #: core/smartattribute.cpp:151
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Amount of surge current used to spin up the drive."
-msgstr ""
+msgstr "Velikost špičkového proudu potřebného k rozběhu pohonu."
 
 #: core/smartattribute.cpp:152
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Spin Buzz"
-msgstr ""
+msgstr "Počet cyklů roztočení"
 
 #: core/smartattribute.cpp:152
 #, kde-format
@@ -1047,18 +1092,20 @@ msgid ""
 "Number of buzz routines needed to spin up the drive due to insufficient "
 "power."
 msgstr ""
+"Počet pulzovacích cyklů potřebných k roztočení disku z důvodu nedostatečného "
+"napájení."
 
 #: core/smartattribute.cpp:153
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Offline Seek Performance"
-msgstr ""
+msgstr "Výkon vyhledávání v režimu offline"
 
 #: core/smartattribute.cpp:153
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Drive's seek performance during its internal tests."
-msgstr ""
+msgstr "Výkon disku při vyhledávání v rámci interních testů."
 
 #: core/smartattribute.cpp:154
 #, kde-format
@@ -1097,25 +1144,27 @@ msgid ""
 "Distance the disk has shifted relative to the spindle (usually due to shock "
 "or temperature)."
 msgstr ""
+"Vzdálenost, o kterou se disk posunul vůči hřídeli (obvykle v důsledku nárazu "
+"nebo teplotních změn)."
 
 #: core/smartattribute.cpp:157
 #, kde-format
 msgctxt "SMART attr name"
 msgid "G-Sense Error Rate"
-msgstr ""
+msgstr "Míra chybovosti G-Sense"
 
 #: core/smartattribute.cpp:157
 #, kde-format
 msgctxt "SMART attr description"
 msgid ""
 "The number of errors resulting from externally-induced shock and vibration."
-msgstr ""
+msgstr "Počet chyb způsobených vnějšími nárazy a vibracemi."
 
 #: core/smartattribute.cpp:158
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Loaded Hours"
-msgstr ""
+msgstr "Odpracované hodiny"
 
 #: core/smartattribute.cpp:158
 #, kde-format
@@ -1127,43 +1176,43 @@ msgstr "Doba běhu pod zatížením."
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Load/Unload Retry Count"
-msgstr ""
+msgstr "Počet opakování cyklů zatížení"
 
 #: core/smartattribute.cpp:159
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Number of times head changes position."
-msgstr ""
+msgstr "Počet změn polohy hlavy."
 
 #: core/smartattribute.cpp:160
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Load Friction"
-msgstr ""
+msgstr "Tření při zatížení"
 
 #: core/smartattribute.cpp:160
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Resistance caused by friction in mechanical parts while operating."
-msgstr ""
+msgstr "Odpor způsobený třením v mechanických součástech během provozu."
 
 #: core/smartattribute.cpp:161
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Load/Unload Cycle Count"
-msgstr ""
+msgstr "Počet cyklů zatížení"
 
 #: core/smartattribute.cpp:161
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Total number of load cycles."
-msgstr ""
+msgstr "Celkový počet zatěžovacích cyklů."
 
 #: core/smartattribute.cpp:162
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Load-In Time"
-msgstr ""
+msgstr "Doba přípravy"
 
 #: core/smartattribute.cpp:162
 #, kde-format
@@ -1172,24 +1221,26 @@ msgid ""
 "Total time of loading on the magnetic heads actuator (time not spent in "
 "parking area)."
 msgstr ""
+"Celková doba zatížení pohonu magnetických hlav (čas strávený mimo parkovací "
+"polohu)."
 
 #: core/smartattribute.cpp:163
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Torque Amplification Count"
-msgstr ""
+msgstr "Počet zesílení točivého momentu"
 
 #: core/smartattribute.cpp:163
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Number of attempts to compensate for platter speed variations."
-msgstr ""
+msgstr "Počet pokusů o kompenzaci kolísání rychlosti otáčení disku."
 
 #: core/smartattribute.cpp:164
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Power-Off Retract Cycle"
-msgstr ""
+msgstr "Cykly zaparkování při vypnutí napájení"
 
 #: core/smartattribute.cpp:164
 #, kde-format
@@ -1198,12 +1249,14 @@ msgid ""
 "The number of times the magnetic armature was retracted automatically as a "
 "result of cutting power."
 msgstr ""
+"Počet případů, kdy se magnetická kotva automaticky stáhla v důsledku výpadku "
+"napájení."
 
 #: core/smartattribute.cpp:165
 #, kde-format
 msgctxt "SMART attr name"
 msgid "GMR Head Amplitude"
-msgstr ""
+msgstr "Amplituda hlavy GMR"
 
 #: core/smartattribute.cpp:165
 #, kde-format
@@ -1212,6 +1265,7 @@ msgid ""
 "Amplitude of &quot;thrashing&quot; (distance of repetitive forward/reverse "
 "head motion)"
 msgstr ""
+"Amplituda \"mávání\" (vzdálenost opakovaných pohybů hlavy dopředu a dozadu)"
 
 #: core/smartattribute.cpp:166
 #, kde-format
@@ -1223,7 +1277,7 @@ msgstr "Teplota disku"
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Endurance Remaining"
-msgstr ""
+msgstr "Zbývající výdrž"
 
 #: core/smartattribute.cpp:167
 #, kde-format
@@ -1232,12 +1286,14 @@ msgid ""
 "Count of physical erase cycles completed on the drive as a percentage of the "
 "maximum physical erase cycles the drive supports"
 msgstr ""
+"Počet fyzických cyklů vymazání provedených na disku vyjádřený jako procento "
+"z maximálního počtu fyzických cyklů vymazání, které disk podporuje"
 
 #: core/smartattribute.cpp:168
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Power-On Seconds"
-msgstr ""
+msgstr "Doba zapnutí v sekundách"
 
 #: core/smartattribute.cpp:168
 #, kde-format
@@ -1261,7 +1317,7 @@ msgstr "Počet neobnovitelných chyb ECC"
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Good Block Rate"
-msgstr ""
+msgstr "Počet dobrých bloků"
 
 #: core/smartattribute.cpp:170
 #, kde-format
@@ -1270,12 +1326,14 @@ msgid ""
 "Count of available reserved blocks as percentage of the total number of "
 "reserved blocks"
 msgstr ""
+"Počet dostupných rezervovaných bloků vyjádřený jako procentní podíl z "
+"celkového počtu rezervovaných bloků"
 
 #: core/smartattribute.cpp:171
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Head Flying Hours<br/>or Transfer Error Rate (Fujitsu)"
-msgstr ""
+msgstr "Počet hodin rotace<br/>nebo míra chyb přenosu (Fujitsu)"
 
 #: core/smartattribute.cpp:171
 #, kde-format
@@ -1284,48 +1342,50 @@ msgid ""
 "Time while head is positioning<br/>or counts the number of times the link is "
 "reset during a data transfer."
 msgstr ""
+"Doba, po kterou se hlava polohuje<br/>nebo počet případů, kdy dojde k "
+"resetování spojení během přenosu dat."
 
 #: core/smartattribute.cpp:172
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Total LBAs Written"
-msgstr ""
+msgstr "Celkový počet zápisů LBA"
 
 #: core/smartattribute.cpp:172
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Total LBAs Written"
-msgstr ""
+msgstr "Celkový počet zápisů LBA"
 
 #: core/smartattribute.cpp:173
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Total LBAs Read"
-msgstr ""
+msgstr "Celkový počet čtení LBA"
 
 #: core/smartattribute.cpp:173
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Total LBAs Read"
-msgstr ""
+msgstr "Celkový počet čtení LBA"
 
 #: core/smartattribute.cpp:174
 #, kde-format
 msgctxt "SMART attr name"
 msgid "SSD NAND_Writes_1GiB"
-msgstr ""
+msgstr "Zápisy SSD NAND po 1GiB"
 
 #: core/smartattribute.cpp:174
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Number of writes to NAND in 1 GB increments"
-msgstr ""
+msgstr "Počet zápisů do paměti NAND v krocích po 1 GB"
 
 #: core/smartattribute.cpp:175
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Read Error Retry Rate"
-msgstr ""
+msgstr "Míra opakování pokusů při chybě čtení"
 
 #: core/smartattribute.cpp:175
 #, kde-format
@@ -1337,13 +1397,13 @@ msgstr "Počet chyb při čtení z disku"
 #, kde-format
 msgctxt "SMART attr name"
 msgid "Free Fall Protection"
-msgstr ""
+msgstr "Ochrana proti volnému pádu"
 
 #: core/smartattribute.cpp:176
 #, kde-format
 msgctxt "SMART attr description"
 msgid "Number of &quot;Free Fall Events&quot; detected"
-msgstr ""
+msgstr "Počet zaznamenaných událostí volného pádu"
 
 #: core/smartstatus.cpp:78
 #, kde-kuit-format
@@ -1397,13 +1457,13 @@ msgstr "Chyba při čtení"
 #, kde-kuit-format
 msgctxt "@item"
 msgid "Handling error"
-msgstr ""
+msgstr "Chyba při zpracování"
 
 #: core/smartstatus.cpp:110
 #, kde-kuit-format
 msgctxt "@item"
 msgid "Self test in progress"
-msgstr ""
+msgstr "Probíhá autotest"
 
 #: core/smartstatus.cpp:114
 #, kde-kuit-format
@@ -1421,7 +1481,7 @@ msgstr "Zdravý"
 #, kde-kuit-format
 msgctxt "@item"
 msgid "Has been used outside of its design parameters in the past."
-msgstr ""
+msgstr "V minulosti byl používán mimo své konstrukční parametry."
 
 #: core/smartstatus.cpp:129
 #, kde-kuit-format
@@ -1433,7 +1493,7 @@ msgstr "Obsahuje několik vadných sektorů."
 #, kde-kuit-format
 msgctxt "@item"
 msgid "Is being used outside of its design parameters right now."
-msgstr ""
+msgstr "V současné době je zařízení používáno mimo své konstrukční parametry."
 
 #: core/smartstatus.cpp:135
 #, kde-kuit-format
@@ -1445,7 +1505,7 @@ msgstr "Obsahuje spoustu vadných sektorů."
 #, kde-kuit-format
 msgctxt "@item"
 msgid "Disk failure is imminent. Backup all data!"
-msgstr "Hrozí selhání disku. Zálohujte všechna data."
+msgstr "Hrozí selhání disku. Zálohujte všechna data!"
 
 #: fs/bcachefs.cpp:120
 #, kde-kuit-format
@@ -1504,6 +1564,8 @@ msgid ""
 "Resizing Btrfs file system on partition <filename>%1</filename> failed: "
 "btrfs file system resize failed."
 msgstr ""
+"Změna velikosti souborového systému Btrfs na oddílu <filename>%1</filename> "
+"se nezdařila: změna velikosti souborového systému btrfs se nezdařila."
 
 #: fs/btrfs.cpp:187
 #, kde-kuit-format
@@ -1721,7 +1783,7 @@ msgstr "fat12"
 #, kde-kuit-format
 msgctxt "@item filesystem name"
 msgid "linux_raid_member"
-msgstr ""
+msgstr "linux_raid_member"
 
 #: fs/filesystem.cpp:539
 #, kde-kuit-format
@@ -1828,13 +1890,13 @@ msgstr "Uzamknout"
 msgid "Enter passphrase for %1:"
 msgstr "Zadejte heslo pro %1:"
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
-msgstr ""
+msgstr "Změna velikosti šifrovaného oddílu LUKS <filename>%1</filename>."
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1860,6 +1922,8 @@ msgid ""
 "Resizing NILFS2 file system on partition <filename>%1</filename> failed: "
 "NILFS2 file system resize failed."
 msgstr ""
+"Změna velikosti souborového systému NILFS2 na oddílu <filename>%1</filename> "
+"se nezdařila: Změna velikosti souborového systému NILFS2 se nezdařila."
 
 #: fs/nilfs2.cpp:156
 #, kde-kuit-format
@@ -1868,6 +1932,8 @@ msgid ""
 "<warning>Resizing NILFS2 file system on partition <filename>%1</filename>: "
 "Unmount failed.</warning>"
 msgstr ""
+"<warning>Změna velikosti souborového systému NILFS2 na oddílu <filename>%1</"
+"filename>: Odpojení se nezdařilo.</warning>"
 
 #: fs/nilfs2.cpp:158
 #, kde-kuit-format
@@ -1887,20 +1953,24 @@ msgid ""
 "filename>."
 msgstr "Aktualizace zaváděcího sektoru NTFS na oddílu <filename>%1</filename>."
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
 "Could not write new start sector to partition <filename>%1</filename> when "
 "trying to update the NTFS boot sector."
 msgstr ""
+"Při pokusu o aktualizaci spouštěcího sektoru NTFS se nepodařilo zapsat nový "
+"spouštěcí sektor do oddílu <filename>%1</filename>."
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
 "Updated NTFS boot sector for partition <filename>%1</filename> successfully."
 msgstr ""
+"Zaváděcí sektor NTFS pro oddíl <filename>%1</filename> byl úspěšně "
+"aktualizován."
 
 #: fs/xfs.cpp:159
 #, kde-kuit-format
@@ -1929,6 +1999,8 @@ msgid ""
 "<warning>Resizing XFS file system on partition <filename>%1</filename> "
 "failed: Unmount failed.</warning>"
 msgstr ""
+"<warning>Změna velikosti souborového systému XFS na oddílu <filename>%1</"
+"filename> se nezdařila: Nepodařilo se odpojit.</warning>"
 
 #: fs/xfs.cpp:180
 #, kde-kuit-format
@@ -1947,6 +2019,8 @@ msgid ""
 "Could not open file system on source partition <filename>%1</filename> for "
 "backup."
 msgstr ""
+"Nelze otevřít souborový systém na zdrojovém oddílu <filename>%1</filename> "
+"pro zálohování."
 
 #: jobs/backupfilesystemjob.cpp:56
 #, kde-kuit-format
@@ -1984,6 +2058,9 @@ msgid ""
 "filename> is smaller than the file system on source partition <filename>%2</"
 "filename>."
 msgstr ""
+"Nelze zkopírovat souborový systém: Souborový systém na cílovém oddílu "
+"<filename>%1</filename> je menší než souborový systém na zdrojovém oddílu "
+"<filename>%2</filename>."
 
 #: jobs/copyfilesystemjob.cpp:56
 #, kde-kuit-format
@@ -1992,6 +2069,8 @@ msgid ""
 "Could not open file system on source partition <filename>%1</filename> for "
 "copying."
 msgstr ""
+"Nelze otevřít souborový systém na zdrojovém oddílu <filename>%1</filename> "
+"za účelem kopírování."
 
 #: jobs/copyfilesystemjob.cpp:58
 #, kde-kuit-format
@@ -2000,6 +2079,8 @@ msgid ""
 "Could not open file system on target partition <filename>%1</filename> for "
 "copying."
 msgstr ""
+"Nelze otevřít souborový systém na cílovém oddílu <filename>%1</filename> za "
+"účelem kopírování."
 
 #: jobs/copyfilesystemjob.cpp:61
 #, kde-kuit-format
@@ -2018,6 +2099,8 @@ msgid ""
 "Copy file system on partition <filename>%1</filename> to partition <filename>"
 "%2</filename>"
 msgstr ""
+"Zkopírovat souborový systém z oddílu <filename>%1</filename> na oddíl "
+"<filename>%2</filename>"
 
 #: jobs/createfilesystemjob.cpp:66
 #, kde-kuit-format
@@ -2036,6 +2119,8 @@ msgid ""
 "Could not open partition table on device <filename>%1</filename> to set the "
 "system type for partition <filename>%2</filename>."
 msgstr ""
+"Nepodařilo se otevřít tabulku oddílů na zařízení <filename>%1</filename> za "
+"účelem nastavení typu systému pro oddíl <filename>%2</filename>."
 
 #: jobs/createfilesystemjob.cpp:70
 #, kde-kuit-format
@@ -2044,6 +2129,8 @@ msgid ""
 "Could not open device <filename>%1</filename> to set the system type for "
 "partition <filename>%2</filename>."
 msgstr ""
+"Nelze otevřít zařízení <filename>%1</filename> za účelem nastavení typu "
+"systému pro oddíl <filename>%2</filename>."
 
 #: jobs/createfilesystemjob.cpp:84
 #, kde-kuit-format
@@ -2072,6 +2159,8 @@ msgid ""
 "Could not open partition table on device <filename>%1</filename> to create "
 "new partition <filename>%2</filename>."
 msgstr ""
+"Nelze otevřít tabulku oddílů na zařízení <filename>%1</filename> za účelem "
+"vytvoření nového oddílu <filename>%2</filename>."
 
 #: jobs/createpartitionjob.cpp:76
 #, kde-kuit-format
@@ -2080,18 +2169,20 @@ msgid ""
 "Could not open device <filename>%1</filename> to create new partition "
 "<filename>%2</filename>."
 msgstr ""
+"Nelze otevřít zařízení <filename>%1</filename> za účelem vytvoření nového "
+"oddílu <filename>%2</filename>."
 
 #: jobs/createpartitionjob.cpp:94
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Create new partition <filename>%1</filename>"
-msgstr ""
+msgstr "Vytvořit nový oddíl <filename>%1</filename>"
 
 #: jobs/createpartitionjob.cpp:96
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Create new partition on device <filename>%1</filename>"
-msgstr ""
+msgstr "Vytvořit nový oddíl na zařízení <filename>%1</filename>"
 
 #: jobs/createpartitiontablejob.cpp:49
 #, kde-kuit-format
@@ -2100,24 +2191,26 @@ msgid ""
 "Creating partition table failed: Could not open device <filename>%1</"
 "filename>."
 msgstr ""
+"Vytvoření tabulky oddílů se nezdařilo: Nelze otevřít zařízení <filename>%1</"
+"filename>."
 
 #: jobs/createpartitiontablejob.cpp:61
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Create new partition table on device <filename>%1</filename>"
-msgstr ""
+msgstr "Vytvořit novou tabulku oddílů na zařízení <filename>%1</filename>"
 
 #: jobs/createvolumegroupjob.cpp:49
 #, kde-kuit-format
 msgctxt "@info/plain"
 msgid "Create a new Volume Group: <filename>%1</filename> with PV: %2"
-msgstr ""
+msgstr "Vytvořte novou skupinu svazků: <filename>%1</filename> s PV: %2"
 
 #: jobs/deactivatelogicalvolumejob.cpp:50
 #, kde-kuit-format
 msgctxt "@info/plain"
 msgid "Deactivate Logical Volumes: <filename>%1</filename>"
-msgstr ""
+msgstr "Deaktivovat logické svazky: <filename>%1</filename>"
 
 #: jobs/deactivatevolumegroupjob.cpp:47
 #, kde-kuit-format
@@ -2139,7 +2232,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Could not delete file system on <filename>%1</filename>."
-msgstr ""
+msgstr "Nelze odstranit souborový systém v <filename>%1</filename>."
 
 #: jobs/deletefilesystemjob.cpp:80
 #, kde-kuit-format
@@ -2148,6 +2241,8 @@ msgid ""
 "Could not open partition table on device <filename>%1</filename> to delete "
 "file system on <filename>%2</filename>."
 msgstr ""
+"Nelze otevřít tabulku oddílů na zařízení <filename>%1</filename> za účelem "
+"odstranění souborového systému na <filename>%2</filename>."
 
 #: jobs/deletefilesystemjob.cpp:83
 #, kde-kuit-format
@@ -2156,19 +2251,21 @@ msgid ""
 "Could not delete file system signature for partition <filename>%1</"
 "filename>: Failed to open device <filename>%2</filename>."
 msgstr ""
+"Nelze odstranit podpis souborového systému pro oddíl <filename>%1</"
+"filename>: Nepodařilo se otevřít zařízení <filename>%2</filename>."
 
 #: jobs/deletefilesystemjob.cpp:93
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Delete file system on <filename>%1</filename>"
-msgstr ""
+msgstr "Odstranit souborový systém v <filename>%1</filename>"
 
 #: jobs/deletepartitionjob.cpp:61 plugins/geom/geompartitiontable.cpp:128
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:100
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Could not delete partition <filename>%1</filename>."
-msgstr ""
+msgstr "Nepodařilo se odstranit oddíl <filename>%1</filename>."
 
 #: jobs/deletepartitionjob.cpp:65
 #, kde-kuit-format
@@ -2177,6 +2274,8 @@ msgid ""
 "Could not open partition table on device <filename>%1</filename> to delete "
 "partition <filename>%2</filename>."
 msgstr ""
+"Nelze otevřít tabulku oddílů na zařízení <filename>%1</filename> za účelem "
+"odstranění oddílu <filename>%2</filename>."
 
 #: jobs/deletepartitionjob.cpp:67
 #, kde-kuit-format
@@ -2196,31 +2295,32 @@ msgstr "Smazat oddíl <filename>%1</filename>"
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Source and target for copying do not overlap: Rollback is not required."
-msgstr ""
+msgstr "Zdroj a cíl kopírování se nepřekrývají: Zpětné vrácení není nutné."
 
 #: jobs/job.cpp:69
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Rollback from: First byte: %1, last byte: %2."
-msgstr ""
+msgstr "Vracení zpět od: První bajt: %1, poslední bajt: %2."
 
 #: jobs/job.cpp:70
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Rollback to: First byte: %1, last byte: %2."
-msgstr ""
+msgstr "Vracení zpět do: První bajt: %1, poslední bajt: %2."
 
 #: jobs/job.cpp:74 jobs/job.cpp:80
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Could not open device <filename>%1</filename> to rollback copying."
 msgstr ""
+"Nelze otevřít zařízení <filename>%1</filename> za účelem vrácení kopírování."
 
 #: jobs/job.cpp:86
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Rollback failed: Source or target are not devices."
-msgstr ""
+msgstr "Vrácení zpět selhalo: Zdroj nebo cíl nejsou zařízení."
 
 #: jobs/job.cpp:106
 #, kde-kuit-format
@@ -2258,6 +2358,8 @@ msgctxt "@info:progress"
 msgid ""
 "Could not open file system on partition <filename>%1</filename> for moving."
 msgstr ""
+"Nelze otevřít souborový systém na oddílu <filename>%1</filename> za účelem "
+"přesunu."
 
 #: jobs/movefilesystemjob.cpp:54
 #, kde-kuit-format
@@ -2266,31 +2368,36 @@ msgid ""
 "Could not create target for moving file system on partition <filename>%1</"
 "filename>."
 msgstr ""
+"Nelze vytvořit cíl pro přesun souborového systému na oddílu <filename>%1</"
+"filename>."
 
 #: jobs/movefilesystemjob.cpp:63
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Rollback for file system on partition <filename>%1</filename> failed."
 msgstr ""
+"Vrácení zpět souborového systému na oddílu <filename>%1</filename> se "
+"nezdařilo."
 
 #: jobs/movefilesystemjob.cpp:65 jobs/restorefilesystemjob.cpp:89
 #: jobs/shredfilesystemjob.cpp:66
 #, kde-format, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Closing device. This may take a few seconds."
-msgstr "Uzavírám zařízení. To může pár sekund trvat."
+msgstr "Uzavírání zařízení. To může pár sekund trvat."
 
 #: jobs/movefilesystemjob.cpp:79
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Move the file system on partition <filename>%1</filename> to sector %2"
 msgstr ""
+"Přesunout souborový systém na oddílu <filename>%1</filename> do sektoru %2"
 
 #: jobs/movephysicalvolumejob.cpp:57
 #, kde-kuit-format
 msgctxt "@info/plain"
 msgid "Move used PE in %1 on %2 to other available Physical Volumes"
-msgstr ""
+msgstr "Přesunout použitý PE v %1 na %2 do jiných dostupných fyzických svazků"
 
 #: jobs/removevolumegroupjob.cpp:41
 #, kde-kuit-format
@@ -2308,20 +2415,28 @@ msgid_plural ""
 "The file system on partition <filename>%2</filename> already has the "
 "requested length of %1 sectors."
 msgstr[0] ""
+"Souborový systém na oddílu <filename>%2</filename> již má požadovanou délku "
+"1 sektoru."
 msgstr[1] ""
+"Souborový systém na oddílu <filename>%2</filename> již má požadovanou délku "
+"%1 sektorů."
 msgstr[2] ""
+"Souborový systém na oddílu <filename>%2</filename> již má požadovanou délku "
+"%1 sektorů."
 
 #: jobs/resizefilesystemjob.cpp:69
 #, kde-format
 msgctxt "@info:progress"
 msgid "Resizing file system from %1 to %2 sectors."
-msgstr ""
+msgstr "Změna velikosti souborového systému z %1 na %2 sektorů."
 
 #: jobs/resizefilesystemjob.cpp:76
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing a %1 file system using internal backend functions."
 msgstr ""
+"Změna velikosti souborového systému %1 pomocí interních funkcí podpůrné "
+"vrstvy."
 
 #: jobs/resizefilesystemjob.cpp:91
 #, kde-kuit-format
@@ -2330,12 +2445,16 @@ msgid ""
 "The file system on partition <filename>%1</filename> cannot be resized "
 "because there is no support for it."
 msgstr ""
+"Velikost souborového systému na oddílu <filename>%1</filename> nelze změnit, "
+"protože tato funkce není podporována."
 
 #: jobs/resizefilesystemjob.cpp:119
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Successfully resized file system using internal backend functions."
 msgstr ""
+"Velikost souborového systému se pomocí interních funkcí podpůrné vrstvy "
+"úspěšně změnila."
 
 #: jobs/resizefilesystemjob.cpp:123
 #, kde-kuit-format
@@ -2344,6 +2463,8 @@ msgid ""
 "Could not open partition <filename>%1</filename> while trying to resize the "
 "file system."
 msgstr ""
+"Při pokusu o změnu velikosti souborového systému se nepodařilo otevřít oddíl "
+"<filename>%1</filename>."
 
 #: jobs/resizefilesystemjob.cpp:126
 #, kde-kuit-format
@@ -2352,12 +2473,16 @@ msgid ""
 "Could not read geometry for partition <filename>%1</filename> while trying "
 "to resize the file system."
 msgstr ""
+"Při pokusu o změnu velikosti souborového systému se nepodařilo načíst "
+"geometrii oddílu <filename>%1</filename>."
 
 #: jobs/resizefilesystemjob.cpp:134
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Maximize file system on <filename>%1</filename> to fill the partition"
 msgstr ""
+"Maximalizovat souborový systém na <filename>%1</filename>, aby se zaplnil "
+"oddíl"
 
 #: jobs/resizefilesystemjob.cpp:136
 #, kde-kuit-format
@@ -2366,44 +2491,54 @@ msgid "Resize file system on partition <filename>%2</filename> to 1 sector"
 msgid_plural ""
 "Resize file system on partition <filename>%2</filename> to %1 sectors"
 msgstr[0] ""
+"Změnit velikost souborového systému na oddílu <filename>%2</filename> na 1 "
+"sektor"
 msgstr[1] ""
+"Změnit velikost souborového systému na oddílu <filename>%2</filename> na %1 "
+"sektory"
 msgstr[2] ""
+"Změnit velikost souborového systému na oddílu <filename>%2</filename> na %1 "
+"sektorů"
 
 #: jobs/resizevolumegroupjob.cpp:59
 #, kde-kuit-format
 msgctxt "@info/plain"
 msgid "Adding LVM Physical Volume %2 to %3."
 msgid_plural "Adding LVM Physical Volumes %2 to %3."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Přidávání fyzického svazku LVM %2 do %3."
+msgstr[1] "Přidávání fyzických svazků LVM %2 do %3."
+msgstr[2] "Přidávání fyzických svazků LVM %2 do %3."
 
 #: jobs/resizevolumegroupjob.cpp:62
 #, kde-kuit-format
 msgctxt "@info/plain"
 msgid "Removing LVM Physical Volume %2 from %3."
 msgid_plural "Removing LVM Physical Volumes %2 from %3."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Odstraňování fyzického svazku LVM %2 z %3."
+msgstr[1] "Odstraňování fyzických svazků LVM %2 z %3."
+msgstr[2] "Odstraňování fyzických svazků LVM %2 z %3."
 
 #: jobs/resizevolumegroupjob.cpp:64
 #, kde-kuit-format
 msgctxt "@info/plain"
 msgid "Resizing Volume Group %1 to %2."
-msgstr ""
+msgstr "Změna velikosti skupiny svazků z %1 na %2."
 
 #: jobs/restorefilesystemjob.cpp:62
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Could not open backup file <filename>%1</filename> to restore from."
 msgstr ""
+"Nepodařilo se otevřít záložní soubor <filename>%1</filename>, ze kterého se "
+"měla provést obnova."
 
 #: jobs/restorefilesystemjob.cpp:64 jobs/shredfilesystemjob.cpp:63
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Could not open target partition <filename>%1</filename> to restore to."
 msgstr ""
+"Nelze otevřít cílový oddíl <filename>%1</filename>, do kterého má být "
+"provedena obnova."
 
 #: jobs/restorefilesystemjob.cpp:100
 #, kde-kuit-format
@@ -2412,6 +2547,8 @@ msgid ""
 "Restore the file system from file <filename>%1</filename> to partition "
 "<filename>%2</filename>"
 msgstr ""
+"Obnovit souborový systém ze souboru <filename>%1</filename> na oddíl "
+"<filename>%2</filename>"
 
 #: jobs/setfilesystemlabeljob.cpp:48
 #, kde-kuit-format
@@ -2420,6 +2557,8 @@ msgid ""
 "File system on partition <filename>%1</filename> does not support setting "
 "labels. Job ignored."
 msgstr ""
+"Souborový systém na oddílu <filename>%1</filename> nepodporuje nastavení "
+"popisků. Úloha byla ignorována."
 
 #: jobs/setfilesystemlabeljob.cpp:81
 #, kde-kuit-format
@@ -2427,6 +2566,8 @@ msgctxt "@info:progress"
 msgid ""
 "Set the file system label on partition <filename>%1</filename> to \"%2\""
 msgstr ""
+"Nastavit popisek souborového systému na oddílu <filename>%1</filename> na "
+"\"%2\""
 
 #: jobs/setpartflagsjob.cpp:65
 #, kde-kuit-format
@@ -2447,6 +2588,8 @@ msgid ""
 "There was an error setting flag %1 for partition <filename>%2</filename> to "
 "state %3."
 msgstr ""
+"Při nastavení příznaku %1 pro oddíl <filename>%2</filename> na stav %3 došlo "
+"k chybě."
 
 #: jobs/setpartflagsjob.cpp:74
 #, kde-kuit-format
@@ -2455,6 +2598,8 @@ msgid ""
 "Could not open partition table on device <filename>%1</filename> to set "
 "partition flags for partition <filename>%2</filename>."
 msgstr ""
+"Nepodařilo se otevřít tabulku oddílů na zařízení <filename>%1</filename> za "
+"účelem nastavení příznaků oddílu <filename>%2</filename>."
 
 #: jobs/setpartflagsjob.cpp:76
 #, kde-kuit-format
@@ -2463,6 +2608,8 @@ msgid ""
 "Could not open device <filename>%1</filename> to set partition flags for "
 "partition <filename>%2</filename>."
 msgstr ""
+"Nelze otevřít zařízení <filename>%1</filename> za účelem nastavení příznaků "
+"oddílu <filename>%2</filename>."
 
 #: jobs/setpartflagsjob.cpp:89
 #, kde-kuit-format
@@ -2474,7 +2621,7 @@ msgstr "Vymazat příznaky pro oddíl <filename>%1</filename>"
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Set the flags for partition <filename>%1</filename> to \"%2\""
-msgstr ""
+msgstr "Nastavit příznaky oddílu <filename>%1</filename> na \"%2\""
 
 #: jobs/setpartgeometryjob.cpp:65
 #, kde-kuit-format
@@ -2483,6 +2630,8 @@ msgid ""
 "Could not open device <filename>%1</filename> while trying to resize/move "
 "partition <filename>%2</filename>."
 msgstr ""
+"Při pokusu o změnu velikosti nebo přesunutí oddílu <filename>%2</filename> "
+"se nepodařilo otevřít zařízení <filename>%1</filename>."
 
 #: jobs/setpartgeometryjob.cpp:81
 #, kde-kuit-format
@@ -2491,6 +2640,8 @@ msgid ""
 "Set geometry of partition <filename>%1</filename>: Start sector: %2, length: "
 "%3"
 msgstr ""
+"Nastavení geometrie oddílu <filename>%1</filename>: Počáteční sektor: %2, "
+"délka: %3"
 
 #: jobs/setpartitionattributesjob.cpp:47
 #, kde-kuit-format
@@ -2515,6 +2666,8 @@ msgid ""
 "Could not open partition table on device <filename>%1</filename> to set the "
 "attributes for the partition <filename>%2</filename>."
 msgstr ""
+"Nepodařilo se otevřít tabulku oddílů na zařízení <filename>%1</filename> za "
+"účelem nastavení atributů oddílu <filename>%2</filename>."
 
 #: jobs/setpartitionattributesjob.cpp:63
 #, kde-kuit-format
@@ -2523,6 +2676,8 @@ msgid ""
 "Could not open device <filename>%1</filename> to set the attributes for "
 "partition <filename>%2</filename>."
 msgstr ""
+"Nelze otevřít zařízení <filename>%1</filename> za účelem nastavení atributů "
+"oddílu <filename>%2</filename>."
 
 #: jobs/setpartitionattributesjob.cpp:74
 #, kde-kuit-format
@@ -2553,6 +2708,8 @@ msgid ""
 "Could not open partition table on device <filename>%1</filename> to set the "
 "name for the partition <filename>%2</filename>."
 msgstr ""
+"Nepodařilo se otevřít tabulku oddílů na zařízení <filename>%1</filename> za "
+"účelem nastavení názvu oddílu <filename>%2</filename>."
 
 #: jobs/setpartitionlabeljob.cpp:63
 #, kde-kuit-format
@@ -2561,6 +2718,8 @@ msgid ""
 "Could not open device <filename>%1</filename> to set the name for partition "
 "<filename>%2</filename>."
 msgstr ""
+"Nelze otevřít zařízení <filename>%1</filename> za účelem nastavení názvu "
+"oddílu <filename>%2</filename>."
 
 #: jobs/setpartitionlabeljob.cpp:74
 #, kde-kuit-format
@@ -2591,6 +2750,8 @@ msgid ""
 "Could not open partition table on device <filename>%1</filename> to set the "
 "UUID for the partition <filename>%2</filename>."
 msgstr ""
+"Nepodařilo se otevřít tabulku oddílů na zařízení <filename>%1</filename> za "
+"účelem nastavení UUID pro oddíl <filename>%2</filename>."
 
 #: jobs/setpartitionuuidjob.cpp:63
 #, kde-kuit-format
@@ -2599,6 +2760,8 @@ msgid ""
 "Could not open device <filename>%1</filename> to set the UUID for partition "
 "<filename>%2</filename>."
 msgstr ""
+"Nepodařilo se otevřít zařízení <filename>%1</filename> za účelem nastavení "
+"UUID pro oddíl <filename>%2</filename>."
 
 #: jobs/setpartitionuuidjob.cpp:74
 #, kde-kuit-format
@@ -2611,12 +2774,43 @@ msgstr "Nastavit UUID oddílu <filename>%1</filename> na \"%2\""
 msgctxt "@info:progress"
 msgid "Could not open random data source to overwrite file system."
 msgstr ""
+"Nepodařilo se otevřít náhodný zdroj dat za účelem přepsání souborového "
+"systému."
 
 #: jobs/shredfilesystemjob.cpp:77
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
+msgstr "Zničit souborový systém v <filename>%1</filename>"
+
+#: jobs/takeownershipjob.cpp:28
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr "Souborový systém na <filename>%1</filename> nepodporuje vlastnictví."
+
+#: jobs/takeownershipjob.cpp:36
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
 msgstr ""
+"Odmítnutí změny vlastníka kritického připojovacího bodu <filename>%1</"
+"filename>."
+
+#: jobs/takeownershipjob.cpp:60
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ""
+"Převzetí vlastnictví <filename>%1</filename> a jeho obsahu pro uživatele %2"
+
+#: jobs/takeownershipjob.cpp:62
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "Převzetí vlastnictví <filename>%1</filename> pro uživatele %2"
 
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
@@ -2630,7 +2824,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Check and repair partition <filename>%1</filename> (%2, %3)"
-msgstr ""
+msgstr "Zkontrolovat a opravit oddíl <filename>%1</filename> (%2, %3)"
 
 #: ops/copyoperation.cpp:147 ops/restoreoperation.cpp:131
 #, kde-kuit-format
@@ -2639,12 +2833,15 @@ msgid ""
 "<warning>Maximizing file system on target partition <filename>%1</filename> "
 "to the size of the partition failed.</warning>"
 msgstr ""
+"<warning>Zvětšení souborového systému na cílovém oddílu <filename>%1</"
+"filename> na velikost oddílu se nezdařilo.</warning>"
 
 #: ops/copyoperation.cpp:151
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Checking target partition <filename>%1</filename> after copy failed."
-msgstr "Kontroluji cílový oddíl <filename>%1</filename> po selhání kopírování."
+msgstr ""
+"Kontrolování cílového oddílu <filename>%1</filename> po selhání kopírování."
 
 #: ops/copyoperation.cpp:158
 #, kde-kuit-format
@@ -2656,7 +2853,7 @@ msgstr "Kopírování zdroje do cílového oddílu selhalo."
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Creating target partition for copying failed."
-msgstr ""
+msgstr "Vytvoření cílového oddílu pro kopírování se nezdařilo."
 
 #: ops/copyoperation.cpp:163
 #, kde-kuit-format
@@ -2678,6 +2875,8 @@ msgid ""
 "Copy partition <filename>%1</filename> (%2, %3) to <filename>%4</filename> "
 "(%5, %6)"
 msgstr ""
+"Kopírovat oddíl <filename>%1</filename> (%2, %3) do <filename>%4</filename> "
+"(%5, %6)"
 
 #: ops/copyoperation.cpp:188
 #, kde-kuit-format
@@ -2686,6 +2885,8 @@ msgid ""
 "Copy partition <filename>%1</filename> (%2, %3) to <filename>%4</filename> "
 "(%5, %6) and grow it to %7"
 msgstr ""
+"Kopírovat oddíl <filename>%1</filename> (%2, %3) do <filename>%4</filename> "
+"(%5, %6) a zvětšit jej na %7"
 
 #: ops/copyoperation.cpp:200
 #, kde-kuit-format
@@ -2694,6 +2895,8 @@ msgid ""
 "Copy partition <filename>%1</filename> (%2, %3) to unallocated space "
 "(starting at %4) on <filename>%5</filename>"
 msgstr ""
+"Kopírovat oddíl <filename>%1</filename> (%2, %3) do nepřiděleného prostoru "
+"(počínaje od %4) na disku <filename>%5</filename>"
 
 #: ops/copyoperation.cpp:208
 #, kde-kuit-format
@@ -2702,6 +2905,8 @@ msgid ""
 "Copy partition <filename>%1</filename> (%2, %3) to unallocated space "
 "(starting at %4) on <filename>%5</filename> and grow it to %6"
 msgstr ""
+"Kopírovat oddíl <filename>%1</filename> (%2, %3) do nepřiděleného prostoru "
+"(počínaje od %4) na disku <filename>%5</filename> a zvětšit jej na %6"
 
 #: ops/createfilesystemoperation.cpp:89
 #, kde-kuit-format
@@ -2786,7 +2991,7 @@ msgstr "Chyba"
 #, kde-kuit-format
 msgctxt "@info/plain"
 msgid "Remove a LVM volume group."
-msgstr ""
+msgstr "Odstranit skupinu svazků LVM."
 
 #: ops/resizeoperation.cpp:156
 #, kde-kuit-format
@@ -2799,7 +3004,8 @@ msgstr "Přesun rozšířeného oddílu <filename>%1</filename> selhal."
 msgctxt "@info:status"
 msgid "Checking partition <filename>%1</filename> after resize/move failed."
 msgstr ""
-"Kontroluji oddíl <filename>%1</filename> po selhání přesunu-změny velikosti."
+"Kontrolování oddílu <filename>%1</filename> po selhání přesunu-změny "
+"velikosti."
 
 #: ops/resizeoperation.cpp:168
 #, kde-kuit-format
@@ -2812,7 +3018,7 @@ msgstr "Změna velikosti/přesunutí oddílu <filename>%1</filename> selhalo."
 msgctxt "@info:status"
 msgid "Checking partition <filename>%1</filename> before resize/move failed."
 msgstr ""
-"Kontroluji oddíl <filename>%1</filename> před přesunem/změnou velikosti."
+"Kontrolování oddílu <filename>%1</filename> před přesunem/změnou velikosti."
 
 #: ops/resizeoperation.cpp:201
 #, kde-kuit-format
@@ -2845,6 +3051,7 @@ msgid ""
 "Move partition <filename>%1</filename> to the left by %2 and grow it from %3 "
 "to %4"
 msgstr ""
+"Přesunout oddíl <filename>%1</filename> o %2 doleva a zvětšit jej z %3 na %4"
 
 #: ops/resizeoperation.cpp:216
 #, kde-kuit-format
@@ -2853,6 +3060,7 @@ msgid ""
 "Move partition <filename>%1</filename> to the right by %2 and grow it from "
 "%3 to %4"
 msgstr ""
+"Přesunout oddíl <filename>%1</filename> o %2 doprava a zvětšit jej z %3 na %4"
 
 #: ops/resizeoperation.cpp:219
 #, kde-kuit-format
@@ -2861,6 +3069,7 @@ msgid ""
 "Move partition <filename>%1</filename> to the left by %2 and shrink it from "
 "%3 to %4"
 msgstr ""
+"Přesunout oddíl <filename>%1</filename> o %2 doleva a zmenšit jej z %3 na %4"
 
 #: ops/resizeoperation.cpp:222
 #, kde-kuit-format
@@ -2869,12 +3078,13 @@ msgid ""
 "Move partition <filename>%1</filename> to the right by %2 and shrink it from "
 "%3 to %4"
 msgstr ""
+"Přesunout oddíl <filename>%1</filename> o %2 doprava a zmenšit jej z %3 na %4"
 
 #: ops/resizeoperation.cpp:229
 #, kde-kuit-format
 msgctxt "@info:status describe resize/move action"
 msgid "Unknown resize/move action."
-msgstr ""
+msgstr "Neznámá akce změny velikosti/přesunutí."
 
 #: ops/resizeoperation.cpp:258
 #, kde-kuit-format
@@ -2883,18 +3093,22 @@ msgid ""
 "Resize/move failed: Could not resize file system to shrink partition "
 "<filename>%1</filename>."
 msgstr ""
+"Změna velikosti/přesun se nezdařil: Nepodařilo se změnit velikost "
+"souborového systému tak, aby se zmenšil oddíl <filename>%1</filename>."
 
 #: ops/resizeoperation.cpp:263
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Resize/move failed: Could not shrink partition <filename>%1</filename>."
 msgstr ""
+"Změna velikosti/přesun se nezdařil: Nepodařilo se zmenšit oddíl <filename>"
+"%1</filename>."
 
 #: ops/resizeoperation.cpp:282
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Moving partition <filename>%1</filename> failed."
-msgstr ""
+msgstr "Přesunutí oddílu <filename>%1</filename> se nezdařilo."
 
 #: ops/resizeoperation.cpp:287
 #, kde-kuit-format
@@ -2903,8 +3117,8 @@ msgid ""
 "Moving the filesystem for partition <filename>%1</filename> failed. Rolling "
 "back."
 msgstr ""
-"Přesun souborového systému na oddíl <filename>%1</filename> selhal. Vracím "
-"se zpět."
+"Přesunutí souborového systému na oddílu <filename>%1</filename> se "
+"nezdařilo. Provádí se vrácení změn."
 
 #: ops/resizeoperation.cpp:291
 #, kde-kuit-format
@@ -2913,12 +3127,15 @@ msgid ""
 "Moving back partition <filename>%1</filename> to its original position "
 "failed."
 msgstr ""
+"Přesunutí oddílu <filename>%1</filename> zpět na původní místo se nezdařilo."
 
 #: ops/resizeoperation.cpp:304
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Resize/move failed: Could not grow partition <filename>%1</filename>."
 msgstr ""
+"Změna velikosti/přesun se nezdařil: Nepodařilo se zvětšit oddíl <filename>"
+"%1</filename>."
 
 #: ops/resizeoperation.cpp:309
 #, kde-kuit-format
@@ -2927,19 +3144,21 @@ msgid ""
 "Resize/move failed: Could not resize the file system on partition <filename>"
 "%1</filename>"
 msgstr ""
+"Změna velikosti/přesun se nezdařil: Nepodařilo se změnit velikost "
+"souborového systému na oddílu <filename>%1</filename>"
 
 #: ops/resizeoperation.cpp:312
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid ""
 "Could not restore old partition size for partition <filename>%1</filename>."
-msgstr ""
+msgstr "Nepodařilo se obnovit původní velikost oddílu <filename>%1</filename>."
 
 #: ops/resizevolumegroupoperation.cpp:108
 #, kde-kuit-format
 msgctxt "@info/plain"
 msgid "Resize volume %1 from %2 to %3"
-msgstr ""
+msgstr "Změnit velikost svazku %1 z %2 na %3"
 
 #: ops/restoreoperation.cpp:133
 #, kde-kuit-format
@@ -2948,25 +3167,27 @@ msgid ""
 "Checking target file system on partition <filename>%1</filename> after the "
 "restore failed."
 msgstr ""
+"Kontrola cílového souborového systému na oddílu <filename>%1</filename> po "
+"neúspěšném obnovení."
 
 #: ops/restoreoperation.cpp:138
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Restoring file system failed."
-msgstr ""
+msgstr "Obnovení souborového systému se nezdařilo."
 
 #: ops/restoreoperation.cpp:141
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Creating the destination partition to restore to failed."
-msgstr ""
+msgstr "Vytvoření cílového oddílu pro obnovení se nezdařilo."
 
 #: ops/restoreoperation.cpp:156
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid ""
 "Restore partition from <filename>%1</filename> to <filename>%2</filename>"
-msgstr ""
+msgstr "Obnovit oddíl z <filename>%1</filename> do <filename>%2</filename>"
 
 #: ops/restoreoperation.cpp:158
 #, kde-kuit-format
@@ -2975,18 +3196,20 @@ msgid ""
 "Restore partition on <filename>%1</filename> at %2 from <filename>%3</"
 "filename>"
 msgstr ""
+"Obnovit oddíl v <filename>%1</filename> v umístění %2 ze <filename>%3</"
+"filename>"
 
 #: ops/setfilesystemlabeloperation.cpp:58
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Set label for partition <filename>%1</filename> to \"%2\""
-msgstr ""
+msgstr "Nastavit popisek oddílu <filename>%1</filename> na \"%2\""
 
 #: ops/setfilesystemlabeloperation.cpp:60
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Set label for partition <filename>%1</filename> from \"%2\" to \"%3\""
-msgstr ""
+msgstr "Nastavit popisek oddílu <filename>%1</filename> z \"%2\" na \"%3\""
 
 #: ops/setpartflagsoperation.cpp:62
 #, kde-kuit-format
@@ -2998,7 +3221,7 @@ msgstr "Vymazat příznaky pro oddíl <filename>%1</filename>"
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Set flags for partition <filename>%1</filename> to \"%2\""
-msgstr ""
+msgstr "Nastavit příznaky oddílu <filename>%1</filename> na \"%2\""
 
 #: ops/setpartlabeloperation.cpp:59
 #, kde-kuit-format
@@ -3006,13 +3229,27 @@ msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
 msgstr "Nastavit popisek oddílu GPT <filename>%1</filename> na \"%2\""
 
+#: ops/takeownershipoperation.cpp:73
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ""
+"Převést vlastnictví souboru <filename>%1</filename> a jeho obsahu na "
+"uživatele %2"
+
+#: ops/takeownershipoperation.cpp:75
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
+msgstr "Převést vlastnictví <filename>%1</filename> na uživatele %2"
+
 #: plugins/geom/geompartitiontable.cpp:91
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:65
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
 "Unknown partition role for new partition <filename>%1</filename> (roles: %2)"
-msgstr ""
+msgstr "Neznámá role nového oddílu <filename>%1</filename> (role: %2)"
 
 #: plugins/geom/geompartitiontable.cpp:109
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:89
@@ -3044,6 +3281,8 @@ msgid ""
 "Could not set geometry for partition <filename>%1</filename> while trying to "
 "resize/move it."
 msgstr ""
+"Při pokusu o změnu velikosti nebo přesunutí oddílu <filename>%1</filename> "
+"se nepodařilo nastavit jeho geometrii."
 
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:124
 #, kde-kuit-format
@@ -3137,12 +3376,12 @@ msgstr "Příkaz: %1 %2"
 #: util/externalcommandhelper.cpp:82
 #, kde-kuit-format
 msgid "Could not open device <filename>%1</filename> for reading."
-msgstr "Nelze otevřít zařízení <filename>%1</filename> pro čtení"
+msgstr "Nelze otevřít zařízení <filename>%1</filename> pro čtení."
 
 #: util/externalcommandhelper.cpp:89 util/externalcommandhelper.cpp:120
 #, kde-kuit-format
 msgid "Could not seek position %1 on device <filename>%2</filename>."
-msgstr "Nelze vyhledat pozici %1 na zařízení <filename>%2</filename>"
+msgstr "Nelze vyhledat pozici %1 na zařízení <filename>%2</filename>."
 
 #: util/externalcommandhelper.cpp:96
 #, kde-kuit-format
@@ -3173,7 +3412,7 @@ msgstr "Nelze zapisovat do souboru <filename>%1</filename>."
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Copying %1 chunks (%2 bytes) from %3 to %4, direction: %5."
-msgstr ""
+msgstr "Kopírují se bloky o velikosti %1 (%2 bajtů) z %3 do %4, směr: %5."
 
 #: util/externalcommandhelper.cpp:238
 #, kde-format
@@ -3197,7 +3436,7 @@ msgstr "Kopírování %1 MiB/s, odhadovaný zbývající čas: %2"
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Copying remainder of chunk size %1 from %2 to %3."
-msgstr ""
+msgstr "Kopíruje se zbývající část velikosti bloku %1 z %2 do %3."
 
 #: util/externalcommandhelper.cpp:288
 #, kde-format
@@ -3213,9 +3452,9 @@ msgctxt ""
 "@info:progress argument 2 is a string such as 7 bytes (localized accordingly)"
 msgid "Copying 1 chunk (%2) finished."
 msgid_plural "Copying %1 chunks (%2) finished."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Kopírování 1 bloku (%2) dokončeno."
+msgstr[1] "Kopírování %1 bloků (%2) dokončeno."
+msgstr[2] "Kopírování %1 bloků (%2) dokončeno."
 
 #: util/helpers.cpp:49
 #, kde-kuit-format
@@ -3329,7 +3568,7 @@ msgstr "David Edmundson"
 #, kde-format
 msgctxt "@info:credit"
 msgid "Port from KAuth to Polkit"
-msgstr ""
+msgstr "Portování z KAuth do Polkit"
 
 #: util/htmlreport.cpp:51 util/htmlreport.cpp:58
 #, kde-format

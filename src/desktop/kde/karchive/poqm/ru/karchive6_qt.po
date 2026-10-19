@@ -1,11 +1,11 @@
-# SPDX-FileCopyrightText: 2022, 2023, 2025 Olesya Gerasimenko <translation-team@basealt.ru>
+# SPDX-FileCopyrightText: 2022, 2023, 2025, 2026 Olesya Gerasimenko <translation-team@basealt.ru>
 # SPDX-FileCopyrightText: 2024, 2025 Alexander Yavorsky <kekcuha@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"PO-Revision-Date: 2025-11-27 19:30+0300\n"
-"Last-Translator: Alexander Yavorsky <kekcuha@gmail.com>\n"
-"Language-Team: Russian <kde-russian@lists.kde.ru>\n"
+"PO-Revision-Date: 2026-08-04 14:54+0300\n"
+"Last-Translator: Olesya Gerasimenko <goa@altlinux.org>\n"
+"Language-Team: Basealt Translation Team\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13,39 +13,39 @@ msgstr ""
 "X-Qt-Contexts: true\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 25.11.80\n"
+"X-Generator: Lokalize 23.08.5\n"
 
-#: k7zip.cpp:2541
+#: k7zip.cpp:2542
 msgctxt "K7Zip|"
 msgid "Could not get underlying device"
 msgstr "Не удалось получить базовое устройство"
 
-#: k7zip.cpp:2549
+#: k7zip.cpp:2550
 msgctxt "K7Zip|"
 msgid "Read header failed"
 msgstr "Не удалось выполнить чтение заголовка"
 
-#: k7zip.cpp:2555
+#: k7zip.cpp:2556
 msgctxt "K7Zip|"
 msgid "Check signature failed"
 msgstr "Не удалось выполнить проверку подписи"
 
-#: k7zip.cpp:2578
+#: k7zip.cpp:2579
 msgctxt "K7Zip|"
 msgid "Bad CRC"
 msgstr "Неправильная контрольная циклическая сумма"
 
-#: k7zip.cpp:2587
+#: k7zip.cpp:2588
 msgctxt "K7Zip|"
 msgid "Next header size is too big"
 msgstr "Размер следующего заголовка слишком велик"
 
-#: k7zip.cpp:2592
+#: k7zip.cpp:2593
 msgctxt "K7Zip|"
 msgid "Next header size is less than zero"
 msgstr "Размер следующего заголовка меньше нуля"
 
-#: k7zip.cpp:2603
+#: k7zip.cpp:2604
 #, qt-format
 msgctxt "K7Zip|"
 msgid "Failed read next header size; should read %1, read %2"
@@ -53,63 +53,63 @@ msgstr ""
 "Не удалось выполнить чтение размера следующего заголовка; должно быть "
 "прочитано %1, а фактически прочитано %2"
 
-#: k7zip.cpp:2616
+#: k7zip.cpp:2617
 msgctxt "K7Zip|"
 msgid "Bad next header CRC"
 msgstr "Неправильная контрольная циклическая сумма следующего заголовка"
 
-#: k7zip.cpp:2624
+#: k7zip.cpp:2625
 msgctxt "K7Zip|"
 msgid "Error in header"
 msgstr "Ошибка в заголовке"
 
-#: k7zip.cpp:2642 k7zip.cpp:2675
+#: k7zip.cpp:2643 k7zip.cpp:2676
 msgctxt "K7Zip|"
 msgid "Password needed for this archive"
 msgstr "Для этого архива требуется пароль"
 
-#: k7zip.cpp:2648
+#: k7zip.cpp:2649
 msgctxt "K7Zip|"
 msgid "Wrong header type"
 msgstr "Неверный тип заголовка"
 
-#: k7zip.cpp:2658 k7zip.cpp:2664
+#: k7zip.cpp:2659 k7zip.cpp:2665
 msgctxt "K7Zip|"
 msgid "Not implemented"
 msgstr "Не реализовано"
 
-#: k7zip.cpp:2670
+#: k7zip.cpp:2671
 msgctxt "K7Zip|"
 msgid "Error while reading main streams information"
 msgstr "Ошибка при чтении данных основных потоков"
 
-#: k7zip.cpp:2693
+#: k7zip.cpp:2694
 msgctxt "K7Zip|"
 msgid "Error while reading header"
 msgstr "Ошибка при чтении заголовка"
 
-#: k7zip.cpp:2701 k7zip.cpp:2709
+#: k7zip.cpp:2702 k7zip.cpp:2710
 #, qt-format
 msgctxt "K7Zip|"
 msgid "Archive has %1 files which is more than the supported amount (%2)"
 msgstr "Архив содержит %1 файлов, что превышает поддерживаемый предел (%2)"
 
-#: k7zip.cpp:2767
+#: k7zip.cpp:2768
 msgctxt "K7Zip|"
 msgid "Error reading modification time"
 msgstr "Ошибка чтения времени изменения"
 
-#: k7zip.cpp:2813
+#: k7zip.cpp:2814
 msgctxt "K7Zip|"
 msgid "Error reading MTime"
 msgstr "Ошибка чтения MTime"
 
-#: k7zip.cpp:2820
+#: k7zip.cpp:2821
 msgctxt "K7Zip|"
 msgid "Invalid"
 msgstr "Некорректный"
 
-#: k7zip.cpp:2844
+#: k7zip.cpp:2845
 #, qt-format
 msgctxt "K7Zip|"
 msgid "Read size failed (checkRecordsSize: %1, d->pos - ppp: %2, size: %3)"
@@ -117,32 +117,32 @@ msgstr ""
 "Не удалось выполнить чтение размера (checkRecordsSize: %1, d->pos - ppp: %2, "
 "size: %3)"
 
-#: k7zip.cpp:2884
+#: k7zip.cpp:2885
 msgctxt "K7Zip|"
 msgid "contents"
 msgstr "содержимое"
 
-#: k7zip.cpp:3079
+#: k7zip.cpp:3080
 msgctxt "K7Zip|"
 msgid "Write error"
 msgstr "Ошибка записи"
 
-#: k7zip.cpp:3109
+#: k7zip.cpp:3110
 msgctxt "K7Zip|"
 msgid "Failed while encoding header"
 msgstr "Не удалось закодировать заголовок"
 
-#: k7zip.cpp:3153
+#: k7zip.cpp:3154
 msgctxt "K7Zip|"
 msgid "No file currently selected"
 msgstr "Файл не выбран"
 
-#: k7zip.cpp:3177 k7zip.cpp:3227 k7zip.cpp:3267
+#: k7zip.cpp:3178 k7zip.cpp:3228 k7zip.cpp:3268
 msgctxt "K7Zip|"
 msgid "Application error: 7-Zip file must be open before being written into"
 msgstr "Ошибка приложения: перед записью необходимо открыть файл 7-Zip"
 
-#: k7zip.cpp:3183 k7zip.cpp:3273
+#: k7zip.cpp:3184 k7zip.cpp:3274
 msgctxt "K7Zip|"
 msgid "Application error: attempted to write into non-writable 7-Zip file"
 msgstr "Ошибка приложения: попытка записи в недоступный для записи файл 7-Zip"
@@ -211,13 +211,13 @@ msgctxt "KArchive|"
 msgid "Archive already closed"
 msgstr "Архив уже закрыт"
 
-#: karchive.cpp:287
+#: karchive.cpp:286
 #, qt-format
 msgctxt "KArchive|"
 msgid "%1 doesn't exist or is not a regular file."
 msgstr "Файл %1 не существует или не является обычным файлом."
 
-#: karchive.cpp:293
+#: karchive.cpp:292
 #, qt-format
 msgctxt "KArchive|"
 msgid ""
@@ -226,19 +226,19 @@ msgstr ""
 "Не удалось получить доступ к файлу %1 для добавления в архив. Сообщение об "
 "ошибке: %2"
 
-#: karchive.cpp:339
+#: karchive.cpp:338
 #, qt-format
 msgctxt "KArchive|"
 msgid "Couldn't open file %1: %2"
 msgstr "Не удалось открыть файл %1: %2"
 
-#: karchive.cpp:373
+#: karchive.cpp:372
 #, qt-format
 msgctxt "KArchive|"
 msgid "Directory %1 does not exist"
 msgstr "Каталог %1 не существует"
 
-#: karchive.cpp:447
+#: karchive.cpp:446
 #, qt-format
 msgctxt "KArchive|"
 msgid "Writing failed: %1"
@@ -346,48 +346,48 @@ msgctxt "KTar|"
 msgid "Application error: attempted to write into non-writable TAR file"
 msgstr "Ошибка приложения: попытка записи в недоступный для записи файл TAR"
 
-#: kzip.cpp:484 kzip.cpp:509
+#: kzip.cpp:497 kzip.cpp:522
 #, qt-format
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unexpected end of file. (Error code: %1)"
 msgstr "Некорректный файл ZIP. Неожиданный конец файла. (Код ошибки: %1)"
 
-#: kzip.cpp:535
+#: kzip.cpp:548
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Negative name length"
 msgstr "Некорректный файл ZIP. Отрицательная длина имени"
 
-#: kzip.cpp:540
+#: kzip.cpp:553
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Name not completely read (#2)"
 msgstr "Некорректный файл ZIP. Имя прочитано не полностью (#2)"
 
-#: kzip.cpp:558
+#: kzip.cpp:571
 msgctxt "KZip|"
 msgid "Invalid ZIP File. Broken ExtraField."
 msgstr "Некорректный файл ZIP. Повреждение ExtraField."
 
-#: kzip.cpp:572 kzip.cpp:595
+#: kzip.cpp:592 kzip.cpp:615
 msgctxt "KZip|"
 msgid "Could not seek to next header token"
 msgstr "Не удалось перейти к следующему маркеру заголовка"
 
-#: kzip.cpp:587
+#: kzip.cpp:607
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unexpected end of file. (#5)"
 msgstr "Некорректный файл ZIP. Неожиданный конец файла. (#5)"
 
-#: kzip.cpp:602
+#: kzip.cpp:622
 msgctxt "KZip|"
 msgid "Could not seek to file compressed size"
 msgstr "Не удалось перейти к сжатому размеру файла"
 
-#: kzip.cpp:618
+#: kzip.cpp:638
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unexpected end of file. (#1)"
 msgstr "Некорректный файл ZIP. Неожиданный конец файла. (#1)"
 
-#: kzip.cpp:655
+#: kzip.cpp:675
 msgctxt "KZip|"
 msgid ""
 "Invalid ZIP file, central entry too short (not long enough for valid entry)"
@@ -395,12 +395,12 @@ msgstr ""
 "Некорректный файл ZIP, слишком короткая центральная запись (недостаточно "
 "длинная для корректной записи)"
 
-#: kzip.cpp:670
+#: kzip.cpp:690
 msgctxt "KZip|"
 msgid "Invalid ZIP file, file path name length is zero"
 msgstr "Некорректный файл ZIP, длина имени пути к файлу равна нулю"
 
-#: kzip.cpp:676
+#: kzip.cpp:696
 #, qt-format
 msgctxt "KZip|"
 msgid ""
@@ -410,7 +410,7 @@ msgstr ""
 "Некорректный файл ZIP. Невозможно прочитать %1 + %2 байт имени файла, а "
 "также имеются дополнительные данные со смещением %3"
 
-#: kzip.cpp:726
+#: kzip.cpp:740
 #, qt-format
 msgctxt "KZip|"
 msgid ""
@@ -419,94 +419,124 @@ msgstr ""
 "Некорректный файл ZIP. Непоследовательное смещение локального заголовка в "
 "центральном каталоге (%1)"
 
-#: kzip.cpp:761
+#: kzip.cpp:775
 msgctxt "KZip|"
 msgid "Invalid ZIP file, found empty entry name"
 msgstr "Некорректный файл ZIP, обнаружено пустое имя записи"
 
-#: kzip.cpp:803
+#: kzip.cpp:817
 #, qt-format
 msgctxt "KZip|"
 msgid "File %1 is in folder %2, but %3 is actually a file."
 msgstr "Файл %1 находится в папке %2, но %3 на самом деле является файлом."
 
-#: kzip.cpp:814
+#: kzip.cpp:828
 msgctxt "KZip|"
 msgid "Could not seek to next entry"
 msgstr "Не удалось перейти к следующей записи"
 
-#: kzip.cpp:843
+#: kzip.cpp:857
 msgctxt "KZip|"
 msgid "Not a ZIP file, no Local File Header found."
 msgstr "Не является файлом ZIP. Не найден локальный заголовок файла."
 
-#: kzip.cpp:847
+#: kzip.cpp:861
 #, qt-format
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unrecognized header at offset %1"
 msgstr "Некорректный файл ZIP. Нераспознанный заголовок со смещением %1"
 
-#: kzip.cpp:875
+#: kzip.cpp:888
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not seek to next file header: %1"
 msgstr "Не удалось перейти к следующему заголовку файла: %1"
 
-#: kzip.cpp:901 kzip.cpp:995
+#: kzip.cpp:914 kzip.cpp:924 kzip.cpp:1088
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not write file header: %1"
 msgstr "Не удалось записать заголовок файла: %1"
 
-#: kzip.cpp:1042
+#: kzip.cpp:936
+#, qt-format
+msgctxt "KZip|"
+msgid "Could not seek to Zip64 extra field: %1"
+msgstr "Не удалось перейти к дополнительному полю Zip64: %1"
+
+#: kzip.cpp:944
+#, qt-format
+msgctxt "KZip|"
+msgid "Could not write Zip64 compressed size: %1"
+msgstr "Не удалось записать сжатый размер Zip64: %1"
+
+#: kzip.cpp:1131
+#, qt-format
+msgctxt "KZip|"
+msgid "Could not write Zip64 EOCD record: %1"
+msgstr "Не удалось записать EOCD-запись Zip64: %1"
+
+#: kzip.cpp:1150
+#, qt-format
+msgctxt "KZip|"
+msgid "Could not write Zip64 EOCD locator: %1"
+msgstr "Не удалось записать EOCD-указатель Zip64: %1"
+
+#: kzip.cpp:1212
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not write central dir record: %1"
 msgstr "Не удалось записать запись центрального каталога: %1"
 
-#: kzip.cpp:1078
+#: kzip.cpp:1248
 msgctxt "KZip|"
 msgid "Application error: ZIP file must be open before being written into"
 msgstr "Ошибка приложения: перед записью необходимо открыть файл ZIP"
 
-#: kzip.cpp:1084
+#: kzip.cpp:1254
 msgctxt "KZip|"
 msgid "Application error: attempted to write into non-writable ZIP file"
 msgstr "Ошибка приложения: попытка записи в недоступный для записи файл ZIP"
 
-#: kzip.cpp:1090
+#: kzip.cpp:1260
 msgctxt "KZip|"
 msgid "Cannot create a device. Disk full?"
 msgstr ""
 "Не удалось создать устройство. Возможно, на диске не осталось свободного "
 "места."
 
-#: kzip.cpp:1096
+#: kzip.cpp:1266
 msgctxt "KZip|"
 msgid "Cannot seek in ZIP file. Disk full?"
 msgstr ""
 "Не удалось выполнить перемещение по файлу ZIP. Возможно, на диске не "
 "осталось свободного места."
 
-#: kzip.cpp:1240
+#: kzip.cpp:1421
 msgctxt "KZip|"
 msgid "Could not write to the archive. Disk full?"
 msgstr ""
 "Не удалось выполнить запись в архив. Возможно, на диске не осталось "
 "свободного места."
 
-#: kzip.cpp:1259
+#: kzip.cpp:1440
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not open compression device: %1"
 msgstr "Не удалось открыть устройство сжатия: %1"
 
-#: kzip.cpp:1346
+#: kzip.cpp:1523
 msgctxt "KZip|"
 msgid "No file or device"
 msgstr "Нет файла или устройства"
 
-#: kzip.cpp:1359
+#: kzip.cpp:1540
+#, qt-format
+msgctxt "KZip|"
+msgid "Error writing data chunk: %1"
+msgstr "Ошибка записи блока данных: %1"
+
+#: kzip.cpp:1553
 #, qt-format
 msgctxt "KZip|"
 msgid "Error writing data: %1"

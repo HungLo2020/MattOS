@@ -143,7 +143,7 @@ static inline bool isIrrelevant(const Window *window, const Window *regarding, V
         || !window->isOnDesktop(desktop)
         || !window->isOnCurrentActivity()
         || window->isDesktop();
-};
+}
 
 /**
  * Place the client \a c according to a really smart placement algorithm :-)
@@ -170,7 +170,7 @@ std::optional<PlacementCommand> Placement::placeSmart(const Window *window, cons
     long int overlap, min_overlap = 0;
     int x_optimal, y_optimal;
     int possible;
-    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop() : window->desktops().front();
+    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop(window->output()) : window->desktops().front();
 
     int cxl, cxr, cyt, cyb; // temp coords
     int xl, xr, yt, yb; // temp coords
@@ -254,7 +254,6 @@ std::optional<PlacementCommand> Placement::placeSmart(const Window *window, cons
 
         // really need to loop? test if there's any overlap
         if (overlap > none) {
-
             possible = area_xr;
             if (possible - cw > x) {
                 possible -= cw;
@@ -275,7 +274,6 @@ std::optional<PlacementCommand> Placement::placeSmart(const Window *window, cons
                 // if not enough room above or under the current tested client
                 // determine the first non-overlapped x position
                 if ((y < yb) && (yt < ch + y)) {
-
                     if ((xr > x) && (possible > xr)) {
                         possible = xr;
                     }
@@ -533,7 +531,7 @@ RectF Placement::cascadeIfCovering(const Window *window, const RectF &geometry, 
     const QPointF offset = workspace()->cascadeOffset(area);
     Q_ASSERT(!offset.isNull());
 
-    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop() : window->desktops().front();
+    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop(window->output()) : window->desktops().front();
 
     RectF possibleGeo = geometry;
     bool noOverlap = false;
@@ -669,7 +667,7 @@ void Window::growHorizontal()
     }
     RectF geom = moveResizeGeometry();
     geom.setRight(workspace()->packPositionRight(this, geom.right(), true));
-    QSizeF adjsize = constrainFrameSize(geom.size(), SizeModeFixedW);
+    QSizeF adjsize = constrainFrameSize(geom.size());
     if (moveResizeGeometry().size() == adjsize && geom.size() != adjsize && resizeIncrements().width() > 1) { // take care of size increments
         qreal newright = workspace()->packPositionRight(this, geom.right() + resizeIncrements().width() - 1, true);
         // check that it hasn't grown outside of the area, due to size increments
@@ -682,8 +680,8 @@ void Window::growHorizontal()
             geom.setRight(newright);
         }
     }
-    geom.setSize(constrainFrameSize(geom.size(), SizeModeFixedW));
-    geom.setSize(constrainFrameSize(geom.size(), SizeModeFixedH));
+    geom.setSize(constrainFrameSize(geom.size()));
+    geom.setSize(constrainFrameSize(geom.size()));
     workspace()->updateFocusMousePosition(Cursors::self()->mouse()->pos()); // may cause leave event;
     exitQuickTileMode();
     moveResize(geom);
@@ -706,7 +704,7 @@ void Window::shrinkHorizontal()
     if (geom.width() <= 1) {
         return;
     }
-    geom.setSize(constrainFrameSize(geom.size(), SizeModeFixedW));
+    geom.setSize(constrainFrameSize(geom.size()));
     if (geom.width() > 20) {
         workspace()->updateFocusMousePosition(Cursors::self()->mouse()->pos()); // may cause leave event;
         exitQuickTileMode();
@@ -728,7 +726,7 @@ void Window::growVertical()
     }
     RectF geom = moveResizeGeometry();
     geom.setBottom(workspace()->packPositionDown(this, geom.bottom(), true));
-    QSizeF adjsize = constrainFrameSize(geom.size(), SizeModeFixedH);
+    QSizeF adjsize = constrainFrameSize(geom.size());
     if (moveResizeGeometry().size() == adjsize && geom.size() != adjsize && resizeIncrements().height() > 1) { // take care of size increments
         qreal newbottom = workspace()->packPositionDown(this, geom.bottom() + resizeIncrements().height(), true);
         // check that it hasn't grown outside of the area, due to size increments
@@ -740,7 +738,7 @@ void Window::growVertical()
             geom.setBottom(newbottom);
         }
     }
-    geom.setSize(constrainFrameSize(geom.size(), SizeModeFixedH));
+    geom.setSize(constrainFrameSize(geom.size()));
     workspace()->updateFocusMousePosition(Cursors::self()->mouse()->pos()); // may cause leave event;
     exitQuickTileMode();
     moveResize(geom);
@@ -763,7 +761,7 @@ void Window::shrinkVertical()
     if (geom.height() <= 1) {
         return;
     }
-    geom.setSize(constrainFrameSize(geom.size(), SizeModeFixedH));
+    geom.setSize(constrainFrameSize(geom.size()));
     if (geom.height() > 20) {
         workspace()->updateFocusMousePosition(Cursors::self()->mouse()->pos()); // may cause leave event;
         exitQuickTileMode();
@@ -801,7 +799,7 @@ qreal Workspace::packPositionLeft(const Window *window, qreal oldX, bool leftEdg
     if (oldX <= newX) {
         return oldX;
     }
-    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop() : window->desktops().front();
+    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop(window->output()) : window->desktops().front();
     for (auto it = m_windows.constBegin(), end = m_windows.constEnd(); it != end; ++it) {
         if (isIrrelevant(*it, window, desktop)) {
             continue;
@@ -828,7 +826,7 @@ qreal Workspace::packPositionRight(const Window *window, qreal oldX, bool rightE
     if (oldX >= newX) {
         return oldX;
     }
-    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop() : window->desktops().front();
+    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop(window->output()) : window->desktops().front();
     for (auto it = m_windows.constBegin(), end = m_windows.constEnd(); it != end; ++it) {
         if (isIrrelevant(*it, window, desktop)) {
             continue;
@@ -856,7 +854,7 @@ qreal Workspace::packPositionUp(const Window *window, qreal oldY, bool topEdge) 
     if (oldY <= newY) {
         return oldY;
     }
-    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop() : window->desktops().front();
+    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop(window->output()) : window->desktops().front();
     for (auto it = m_windows.constBegin(), end = m_windows.constEnd(); it != end; ++it) {
         if (isIrrelevant(*it, window, desktop)) {
             continue;
@@ -883,7 +881,7 @@ qreal Workspace::packPositionDown(const Window *window, qreal oldY, bool bottomE
     if (oldY >= newY) {
         return oldY;
     }
-    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop() : window->desktops().front();
+    VirtualDesktop *const desktop = window->isOnCurrentDesktop() ? VirtualDesktopManager::self()->currentDesktop(window->output()) : window->desktops().front();
     for (auto it = m_windows.constBegin(), end = m_windows.constEnd(); it != end; ++it) {
         if (isIrrelevant(*it, window, desktop)) {
             continue;

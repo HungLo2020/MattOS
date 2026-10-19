@@ -10,8 +10,30 @@
     <height>334</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>250</width>
+    <height>0</height>
+   </size>
+  </property>
   <layout class="QFormLayout" name="formLayout">
-   <item row="0" column="0">
+   <item row="0" column="0" colspan="2">
+    <widget class="QLabel" name="connectionSectionLabel">
+     <property name="text">
+      <string>Connection</string>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
     <widget class="QLabel" name="SSIDLabel">
      <property name="text">
       <string>SSID:</string>
@@ -24,7 +46,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
+   <item row="1" column="1">
     <widget class="SsidComboBox" name="SSIDCombo">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -35,9 +57,12 @@
      <property name="sizeAdjustPolicy">
       <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
      </property>
+     <property name="toolTip">
+      <string>The name of the Wi-Fi network to connect to</string>
+     </property>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="QLabel" name="modeLabel">
      <property name="text">
       <string>Mode:</string>
@@ -50,13 +75,19 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
+   <item row="2" column="1">
     <widget class="KComboBox" name="modeComboBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string>Wi-Fi network mode:
+• Infrastructure: connect to a Wi-Fi router (normal mode)
+• Ad-hoc: create a direct peer-to-peer network
+• Access Point: turn this computer into a Wi-Fi hotspot</string>
      </property>
      <item>
       <property name="text">
@@ -75,10 +106,26 @@
      </item>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0" colspan="2">
+    <widget class="QLabel" name="advancedSectionLabel">
+     <property name="text">
+      <string>Advanced</string>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
     <widget class="QLabel" name="BSSIDLabel">
      <property name="text">
-      <string>BSSID:</string>
+      <string>Restrict to BSSID:</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -88,7 +135,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="4" column="1">
     <widget class="BssidComboBox" name="BSSIDCombo">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -97,15 +144,14 @@
       </sizepolicy>
      </property>
      <property name="toolTip">
-      <string>This option locks this connection to the Wi-Fi access point (AP) specified by the
- BSSID entered here. Example: 00:11:22:33:44:55</string>
+      <string>Lock this connection to a specific access point. Enter the BSSID (MAC address) of the access point.</string>
      </property>
      <property name="sizeAdjustPolicy">
       <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
+   <item row="5" column="0">
     <widget class="QLabel" name="bandLabel">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -124,7 +170,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
+   <item row="5" column="1">
     <widget class="KComboBox" name="band">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
@@ -153,7 +199,7 @@
      </item>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="6" column="0">
     <widget class="QLabel" name="channelLabel">
      <property name="text">
       <string>Channel:</string>
@@ -166,7 +212,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
+   <item row="6" column="1">
     <widget class="KComboBox" name="channel">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -180,10 +226,10 @@ a Wi-Fi network on the specified channel</string>
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Restrict to device:</string>
+      <string>Restrict to network adapter:</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -193,7 +239,7 @@ a Wi-Fi network on the specified channel</string>
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
+   <item row="7" column="1">
     <widget class="HwAddrComboBox" name="macAddress">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -201,9 +247,12 @@ a Wi-Fi network on the specified channel</string>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="toolTip">
+      <string>Lock this connection to a particular network adapter by specifying its MAC address.</string>
+     </property>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item row="8" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Cloned MAC address:</string>
@@ -216,7 +265,7 @@ a Wi-Fi network on the specified channel</string>
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="8" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="KLineEdit" name="clonedMacAddress">
@@ -232,6 +281,9 @@ a Wi-Fi network on the specified channel</string>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
+       <property name="toolTip">
+        <string>Use a different MAC address instead of your network adapter's real address.</string>
+       </property>
       </widget>
      </item>
      <item>
@@ -243,7 +295,7 @@ a Wi-Fi network on the specified channel</string>
      </item>
     </layout>
    </item>
-   <item row="7" column="0">
+   <item row="9" column="0">
     <widget class="QLabel" name="label_3">
      <property name="text">
       <string>MTU:</string>
@@ -256,7 +308,7 @@ a Wi-Fi network on the specified channel</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="1">
+   <item row="9" column="1">
     <widget class="QSpinBox" name="mtu">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -279,12 +331,15 @@ a Wi-Fi network on the specified channel</string>
      <property name="maximum">
       <number>10000</number>
      </property>
+     <property name="toolTip">
+      <string>Maximum Transmission Unit: the largest packet size that can be sent without fragmentation. Larger packets will be broken into smaller frames.</string>
+     </property>
     </widget>
    </item>
-   <item row="8" column="0">
+   <item row="10" column="0">
     <widget class="QLabel" name="label_4">
      <property name="toolTip">
-      <string>Mark this if you want to create a connection for a hidden network</string>
+      <string>Create a connection for a hidden network</string>
      </property>
      <property name="text">
       <string>Visibility:</string>
@@ -297,28 +352,31 @@ a Wi-Fi network on the specified channel</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="1">
+   <item row="10" column="1">
     <widget class="QCheckBox" name="hiddenNetwork">
      <property name="toolTip">
-      <string>Mark this if you want to create a connection for a hidden network</string>
+      <string>Create a connection for a hidden network</string>
      </property>
      <property name="text">
       <string>Hidden network</string>
      </property>
     </widget>
    </item>
-   <item row="9" column="0">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+   <item row="11" column="0" colspan="2">
+    <widget class="QLabel" name="securitySectionLabel">
+     <property name="text">
+      <string>Security</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
-    </spacer>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

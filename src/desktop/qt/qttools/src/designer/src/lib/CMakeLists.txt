@@ -79,6 +79,7 @@ qt_internal_add_module(Designer
         shared/invisible_widget.cpp shared/invisible_widget_p.h
         shared/layout.cpp shared/layout_p.h
         shared/layoutinfo.cpp shared/layoutinfo_p.h
+        shared/menuactionlineedit_p.h
         shared/metadatabase.cpp shared/metadatabase_p.h
         shared/morphmenu.cpp shared/morphmenu_p.h
         shared/newactiondialog.cpp shared/newactiondialog_p.h
@@ -143,6 +144,7 @@ qt_internal_add_module(Designer
         uilib/abstractformbuilder.cpp uilib/abstractformbuilder.h
         uilib/formbuilder.cpp uilib/formbuilder.h
         uilib/formbuilderextra.cpp uilib/formbuilderextra_p.h
+        uilib/objectutils.cpp uilib/objectutils_p.h
         uilib/properties.cpp uilib/properties_p.h
         uilib/resourcebuilder.cpp uilib/resourcebuilder_p.h
         uilib/textbuilder.cpp uilib/textbuilder_p.h
@@ -161,7 +163,6 @@ qt_internal_add_module(Designer
         QDESIGNER_UILIB_LIBRARY
         QT_DESIGNER
         QT_USE_QSTRINGBUILDER
-        "QT_ENABLE_STRICT_MODE_UP_TO=QT_VERSION_CHECK(6,11,0)"
     INCLUDE_DIRECTORIES
         ../../../shared/deviceskin
         ../../../shared/findwidget

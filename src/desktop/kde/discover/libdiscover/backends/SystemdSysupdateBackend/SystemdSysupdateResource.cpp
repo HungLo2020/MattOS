@@ -5,11 +5,15 @@
  */
 
 #include "SystemdSysupdateResource.h"
+#include "SystemdSysupdateBackend.h"
 #include "SystemdSysupdateTransaction.h"
 
 #include <AppStreamQt/developer.h>
 #include <libdiscover_systemdsysupdate_debug.h>
 #include <sysupdate1.h>
+
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 
 #define SYSTEMDSYSUPDATE_LOG LIBDISCOVER_BACKEND_SYSTEMDSYSUPDATE_LOG
 
@@ -85,7 +89,30 @@ quint64 SystemdSysupdateResource::size()
 {
     // TODO implement once sysupdate offers size querying
     // https://github.com/systemd/systemd/issues/34710
-    return 0;
+
+    if (m_fetchedSize) {
+        return m_size;
+    }
+
+    const auto networkAccess = static_cast<SystemdSysupdateBackend *>(backend())->networkAccess();
+    auto updateSizeReply = networkAccess->get(QNetworkRequest{QUrl(QStringLiteral("http://localhost:3129/v1/updatesize?version=%1").arg(availableVersion()))});
+    connect(updateSizeReply, &QNetworkReply::finished, this, [this, updateSizeReply]() {
+        if (updateSizeReply->error() != QNetworkReply::NoError) {
+            qWarning() << "Update size retrieval error!" << updateSizeReply->error();
+            return;
+        }
+        auto sizeString = updateSizeReply->readAll().trimmed();
+        bool ok = false;
+        m_size = sizeString.toULongLong(&ok);
+        if (!ok) {
+            qCWarning(LIBDISCOVER_BACKEND_SYSTEMDSYSUPDATE_LOG) << "Failed to parse reply into uint" << sizeString;
+        } else {
+            m_fetchedSize = true;
+            Q_EMIT sizeChanged();
+        }
+    });
+
+    return m_size;
 }
 
 QJsonArray SystemdSysupdateResource::licenses()
@@ -161,16 +188,15 @@ void SystemdSysupdateResource::fetchChangelog()
 SystemdSysupdateTransaction *SystemdSysupdateResource::update()
 {
     qCInfo(SYSTEMDSYSUPDATE_LOG) << "Updating target" << name();
-    const QString toVersion; // empty means latest and by default doesn't require authorization
-    SystemdSysupdateUpdateReply reply = m_target->Update(toVersion, 0 /* flags - currently unused and expected to be 0 */);
 
-    auto transaction = new SystemdSysupdateTransaction(this, reply);
+    auto transaction = new SystemdSysupdateTransaction(this, m_target);
     connect(transaction, &Transaction::statusChanged, this, [this](Transaction::Status status) {
         if (status == Transaction::DoneStatus) {
             m_targetInfo.installedVersion = m_targetInfo.availableVersion;
-            Q_EMIT stateChanged();
         }
     });
 
     return transaction;
 }
+
+#include "moc_SystemdSysupdateResource.cpp"

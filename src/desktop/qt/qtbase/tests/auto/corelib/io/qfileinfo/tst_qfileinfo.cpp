@@ -42,7 +42,7 @@
 #include <QProcess>
 #endif
 
-#if defined(Q_OS_VXWORKS)
+#if defined(Q_OS_VXWORKS) || defined(Q_OS_HARMONY)
 #define Q_NO_SYMLINKS
 #endif
 
@@ -151,6 +151,7 @@ private slots:
 
     void canonicalPath();
     void canonicalFilePath();
+    void canonicalFilePathInUnreadableDir();
 
     void fileName_data();
     void fileName();
@@ -439,10 +440,11 @@ void tst_QFileInfo::isOther_data()
         file.write("JAJAJAA");
         file.close();
     }
+    const QString dirPath = m_dir.path();
+#ifndef Q_NO_SYMLINKS
     const QString linkToFile = prefix + "link-to-file"_L1;
     file.link(linkToFile);
 
-    const QString dirPath = m_dir.path();
     const QString linkToDir = prefix + "link-to-dir"_L1;
     QFile::link(dirPath, linkToDir);
 
@@ -451,12 +453,17 @@ void tst_QFileInfo::isOther_data()
     (void)dummy.open(QIODevice::WriteOnly);
     dummy.link(brokenLink);
     dummy.remove();
+#endif
 
     QTest::newRow("regular-file") << filePath << false;
+#ifndef Q_NO_SYMLINKS
     QTest::newRow("symlink-to-regular-file") << linkToFile << false;
+#endif
     QTest::newRow("dir") << dirPath << false;
+#ifndef Q_NO_SYMLINKS
     QTest::newRow("symlink-to-dir") << linkToDir << false;
     QTest::newRow("broken-symlink") << brokenLink << false;
+#endif
 
     QTest::newRow("qresources-file") << ":/tst_qfileinfo/resources/file1" << false;
     QTest::newRow("qresources-broken-dir") << ":/I/do_not_expect_this_path_to_exist/" << false;
@@ -473,11 +480,12 @@ void tst_QFileInfo::isOther_data()
     addSpecialRow("fifo-test", S_IFIFO);
     addSpecialRow("socket-test", S_IFSOCK);
 
+    QTest::newRow("character-device") << u"/dev/null"_s << true;
+#ifndef Q_NO_SYMLINKS
     const QString linkToSpecial = prefix + "link-to-dev-null"_L1;
     QFile::link(u"/dev/null"_s, linkToSpecial);
-
-    QTest::newRow("character-device") << u"/dev/null"_s << true;
     QTest::newRow("symlink-to-special") << linkToSpecial << true;
+#endif
 #elif defined(Q_OS_WIN)
     const QString name = prefix + "win-CreateSymbolicLink-file"_L1;
     const auto res = FileSystem::createSymbolicLink(name.toLatin1().constData(),
@@ -874,6 +882,47 @@ void tst_QFileInfo::canonicalFilePath()
 #endif
 }
 
+void tst_QFileInfo::canonicalFilePathInUnreadableDir()
+{
+    // Unreadable dir with a file inside (usually; root can trasverse it).
+    // Done as a separate test because QTemporaryDir can't remove this, so we
+    // want to have the explicit cleanup code.
+
+    // note: qt_error_string() may be non-sensical!
+    QVERIFY2(QDir().mkdir("unreadable-dir"), qPrintable(qt_error_string()));
+    auto cleanupUnreadableDir = qScopeGuard([] {
+        auto mode = QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner;
+        QFile::remove("unreadable-dir-file.txt");
+        QFile::setPermissions("unreadable-dir", mode);
+        QFile::remove("unreadable-dir/file.txt");
+        QDir().rmdir("unreadable-dir");
+    });
+
+    QFile f("unreadable-dir/file.txt");
+    QVERIFY(f.open(QIODevice::WriteOnly));
+    f.write("Readable file in unreadable dir");
+    f.link("unreadable-dir-file.txt");
+    f.close();
+    QFile::setPermissions("unreadable-dir", QFileDevice::Permissions{});
+
+    bool unreadableDirIsUnreadable = true;
+#ifdef Q_OS_WIN
+    // _access() can only tell whether dirs exist, not readability/transversability
+    unreadableDirIsUnreadable = QDir("unreadable-dir").entryList().isEmpty();
+#else
+    unreadableDirIsUnreadable = (access("unreadable-dir", X_OK) != 0);
+#endif
+    if (!unreadableDirIsUnreadable)
+        QSKIP("Unreadable dir was readable - running as root?");
+
+    // We CANNOT resolve the canonical path
+    QFileInfo unreadableDirFile("unreadable-dir/file.txt");
+    QCOMPARE(unreadableDirFile.canonicalFilePath(), QString());
+
+    unreadableDirFile.setFile("unreadable-dir-file.txt");
+    QCOMPARE(unreadableDirFile.canonicalFilePath(), QString());
+}
+
 void tst_QFileInfo::fileName_data()
 {
     QTest::addColumn<QString>("file");
@@ -1089,7 +1138,9 @@ void tst_QFileInfo::permission_data()
     QTest::addColumn<int>("perms");
     QTest::addColumn<bool>("expected");
 
+#ifndef Q_OS_HARMONY
     QTest::newRow("data0") << QCoreApplication::instance()->applicationFilePath() << int(QFile::ExeUser) << true;
+#endif
     QTest::newRow("data1") << m_sourceFile << int(QFile::ReadUser) << true;
     QTest::newRow("resource1") << ":/tst_qfileinfo/resources/file1.ext1" << int(QFile::ReadUser) << true;
     QTest::newRow("resource2") << ":/tst_qfileinfo/resources/file1.ext1" << int(QFile::WriteUser) << false;
@@ -1336,7 +1387,7 @@ void tst_QFileInfo::fileTimes()
     QCOMPARE(fileInfo.birthTime(QTimeZone::UTC), birthTime); // mustn't have changed
     QVERIFY(readTime.isValid());
 
-#if defined(Q_OS_QNX) || defined(Q_OS_ANDROID)
+#if defined(Q_OS_QNX) || defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
     noAccessTime = true;
 #elif defined(Q_OS_WIN)
     //In Vista the last-access timestamp is not updated when the file is accessed/touched (by default).
@@ -1385,7 +1436,11 @@ void tst_QFileInfo::fakeFileTimes_data()
 
     // This is 2^{31} seconds before 1970-01-01 15:14:8,
     // i.e. shortly after the start of time_t, in any time-zone:
+#if !defined(Q_OS_QNX) && !defined(Q_OS_HARMONY)  // qnx6 filesystem stores timestamps as 32-bit unsigned;
+                                                // pre-epoch values overflow silently to ~2038
+                                                // OHOS filesystem doesn't support pre-epoch timestamps
     QTest::newRow("early") << QDateTime(QDate(1901, 12, 14), QTime(12, 0));
+#endif
 
     // QTBUG-12006 claims XP handled this (2010-Mar-26 8:46:10) wrong due to an MS API bug:
     QTest::newRow("XP-bug") << QDateTime::fromSecsSinceEpoch(1269593170);
@@ -2144,6 +2199,9 @@ void tst_QFileInfo::isWritable()
 
 void tst_QFileInfo::isExecutable()
 {
+#ifdef Q_OS_HARMONY
+    QSKIP("Shared libraries on HarmonyOS do not have the executable bit set");
+#endif
     QString appPath = QCoreApplication::applicationDirPath();
 #ifdef Q_OS_ANDROID
     QDir dir(appPath);
@@ -2338,7 +2396,7 @@ bool IsUserAdmin()
 void tst_QFileInfo::owner()
 {
     QString userName;
-#if defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS) && !defined(Q_OS_INTEGRITY)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS) && !defined(Q_OS_INTEGRITY) && !defined(Q_OS_HARMONY)
     {
         passwd *user = getpwuid(geteuid());
         QVERIFY(user);
@@ -2397,7 +2455,7 @@ void tst_QFileInfo::owner()
 void tst_QFileInfo::group()
 {
     QString expected;
-#if defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS) && !defined(Q_OS_INTEGRITY)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS) && !defined(Q_OS_INTEGRITY) && !defined(Q_OS_HARMONY)
     struct group *gr;
     gid_t gid = getegid();
 
@@ -2613,10 +2671,12 @@ void tst_QFileInfo::stdfilesystem()
         COMPARE_PATHS(info.filesystemAbsoluteFilePath(), info.absoluteFilePath());
         COMPARE_PATHS(info.filesystemCanonicalFilePath(), info.canonicalFilePath());
 
+#ifndef Q_NO_SYMLINKS
         QVERIFY(file.link(QStringLiteral("./filesystem_test_symlink.lnk")));
         info = QFileInfo{ "./filesystem_test_symlink.lnk" };
 
         COMPARE_PATHS(info.filesystemSymLinkTarget(), info.symLinkTarget());
+#endif
 #undef COMPARE_PATHS
     }
 
@@ -2627,6 +2687,9 @@ void tst_QFileInfo::stdfilesystem()
 
 void tst_QFileInfo::readSymLink()
 {
+#ifdef Q_NO_SYMLINKS
+    QSKIP("No symlink support");
+#endif
     QString symLinkName("./a.link");
     const auto tidier = qScopeGuard([symLinkName]() { QFile::remove(symLinkName); });
 

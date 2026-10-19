@@ -23,6 +23,7 @@ class QWindow;
 
 namespace KWin
 {
+
 class Window;
 class CursorImage;
 class InputDevice;
@@ -35,13 +36,15 @@ class SurfaceInterface;
 
 namespace Decoration
 {
-class DecoratedWindowImpl;
-}
 
+class DecoratedWindowImpl;
+
+}
 
 class KWIN_EXPORT PointerInputRedirection : public InputDeviceHandler
 {
     Q_OBJECT
+
 public:
     explicit PointerInputRedirection(InputRedirection *parent);
     ~PointerInputRedirection() override;
@@ -78,6 +81,11 @@ public:
         return m_confined || m_locked;
     }
 
+    bool isAutoScroll() const
+    {
+        return m_autoscroll;
+    }
+
     bool focusUpdatesBlocked() override;
 
     /**
@@ -95,7 +103,7 @@ public:
     /**
      * @internal
      */
-    void processAxis(PointerAxis axis, qreal delta, qint32 deltaV120, PointerAxisSource source, bool inverted, std::chrono::microseconds time, InputDevice *device = nullptr);
+    void processAxis(PointerAxis axis, qreal delta, qint32 deltaV120, PointerAxisSource source, bool inverted, bool autoscroll, std::chrono::microseconds time, InputDevice *device = nullptr);
     /**
      * @internal
      */
@@ -157,7 +165,7 @@ private:
     void processWarp(const QPointF &pos, std::chrono::microseconds time, InputDevice *device = nullptr);
     enum class MotionType {
         Motion,
-        Warp
+        Warp,
     };
     void processMotionInternal(const QPointF &pos, const QPointF &delta, const QPointF &deltaNonAccelerated, std::chrono::microseconds time, InputDevice *device, MotionType type);
     void cleanupDecoration(Decoration::DecoratedWindowImpl *old, Decoration::DecoratedWindowImpl *now) override;
@@ -175,7 +183,6 @@ private:
     qreal edgeBarrier(EdgeBarrierType type) const;
     QPointF applyPointerConfinement(const QPointF &pos) const;
     void disconnectConfinedPointerRegionConnection();
-    void disconnectLockedPointerAboutToBeUnboundConnection();
     void disconnectPointerConstraintsConnection();
     void breakPointerConstraints(SurfaceInterface *surface);
     CursorImage *m_cursor;
@@ -183,17 +190,17 @@ private:
     QHash<uint32_t, PointerButtonState> m_buttons;
     Qt::MouseButtons m_qtButtons;
     QMetaObject::Connection m_focusGeometryConnection;
-    QMetaObject::Connection m_constraintsConnection;
     QMetaObject::Connection m_constraintsActivatedConnection;
-    QMetaObject::Connection m_confinedPointerRegionConnection;
-    QMetaObject::Connection m_lockedPointerAboutToBeUnboundConnection;
+    QMetaObject::Connection m_surfaceCommittedConnection;
     QMetaObject::Connection m_decorationGeometryConnection;
     QMetaObject::Connection m_decorationDestroyedConnection;
     QMetaObject::Connection m_decorationClosedConnection;
     bool m_confined = false;
+    QPointer<SurfaceInterface> m_constrainedSurface;
     bool m_locked = false;
     bool m_enableConstraints = true;
     bool m_lastOutputWasPlaceholder = true;
+    bool m_autoscroll = false;
     QPointF m_movementInEdgeBarrier;
     std::chrono::microseconds m_lastMoveTime = std::chrono::microseconds::zero();
     friend class PositionUpdateBlocker;
@@ -203,6 +210,7 @@ private:
 class WaylandCursorImage : public QObject
 {
     Q_OBJECT
+
 public:
     explicit WaylandCursorImage(QObject *parent = nullptr);
 
@@ -220,6 +228,7 @@ private:
 class CursorImage : public QObject
 {
     Q_OBJECT
+
 public:
     explicit CursorImage(PointerInputRedirection *parent = nullptr);
     ~CursorImage() override;
@@ -233,6 +242,7 @@ public:
     CursorSource *source() const;
     void setSource(CursorSource *source);
 
+    void updateScrollCursor(PointerAxis axis, qreal delta);
     void updateCursorOutputs(const QPointF &pos);
 
 Q_SIGNALS:
@@ -270,5 +280,12 @@ private:
         std::unique_ptr<ShapeCursorSource> shape;
         CursorSource *cursor = nullptr;
     } m_serverCursor;
+    struct
+    {
+        std::unique_ptr<ShapeCursorSource> shape;
+        qreal lastHorizontalDelta = 0;
+        qreal lastVerticalDelta = 0;
+    } m_scrollCursor;
 };
+
 }

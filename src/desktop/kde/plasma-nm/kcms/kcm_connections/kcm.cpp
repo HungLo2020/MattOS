@@ -94,7 +94,8 @@ KCMNetworkmanagement::KCMNetworkmanagement(QObject *parent, const KPluginMetaDat
         }
     }
 
-    m_ui->connectionView->setMinimumWidth(300);
+    m_ui->connectionView->setMinimumWidth(235);
+    m_ui->connectionView->setMaximumWidth(350);
     m_ui->connectionView->rootContext()->setContextProperty("alternateBaseColor", mainWidget->palette().color(QPalette::Active, QPalette::AlternateBase));
     m_ui->connectionView->rootContext()->setContextProperty("backgroundColor", mainWidget->palette().color(QPalette::Active, QPalette::Window));
     m_ui->connectionView->rootContext()->setContextProperty("baseColor", mainWidget->palette().color(QPalette::Active, QPalette::Base));
@@ -695,6 +696,27 @@ void KCMNetworkmanagement::resetSelection()
         m_tabWidget = nullptr;
     }
     setNeedsSave(false);
+}
+
+void KCMNetworkmanagement::onRequestDuplicateConnection(const QString &connectionPath)
+{
+    NetworkManager::Connection::Ptr connection = NetworkManager::findConnection(connectionPath);
+    if (!connection) {
+        return;
+    }
+
+    NetworkManager::ConnectionSettings::Ptr connSettings = connection->settings();
+    if (!connSettings) {
+        return;
+    }
+
+    NetworkManager::ConnectionSettings::Ptr newSettings(new NetworkManager::ConnectionSettings(connSettings->connectionType()));
+    newSettings->fromMap(connSettings->toMap());
+
+    newSettings->setUuid(NetworkManager::ConnectionSettings::createNewUuid());
+    newSettings->setId(connSettings->id() + i18nc("Suffix appended to the name of a duplicated connection", " (Copy)"));
+
+    addConnection(newSettings);
 }
 
 #include "kcm.moc"

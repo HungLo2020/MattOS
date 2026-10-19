@@ -33,8 +33,7 @@ public:
                                                   BackInsertIterator result) const override;
 };
 
-
-class QQmlLSQuickPlugin : public QObject, QQmlLSPlugin
+class QQmlLSQuickPlugin : public QObject, public QQmlLSPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID QmlLSPluginInterface_iid FILE "plugin.json")

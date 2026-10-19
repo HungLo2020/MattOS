@@ -9,10 +9,9 @@
 
 #pragma once
 
-#include "kwin_export.h"
+#include "core/rect.h"
 
 #include <QObject>
-#include <QRect>
 #include <QUrl>
 
 #include <memory>
@@ -29,9 +28,16 @@ class QQuickWindow;
 
 namespace KWin
 {
+
 class GLTexture;
 
 class OffscreenQuickView;
+struct PointerAxisEvent;
+struct PointerButtonEvent;
+struct PointerMotionEvent;
+struct TabletToolTipEvent;
+struct TabletToolAxisEvent;
+class OutputFrame;
 
 /**
  * @brief The KwinQuickView class provides a convenient API for exporting
@@ -51,7 +57,7 @@ public:
         /** The contents will be available as a texture in the shared contexts. Image will be blank */
         Texture,
         /** The contents will be blit during the update into a QImage buffer. */
-        Image
+        Image,
     };
 
     /**
@@ -71,8 +77,8 @@ public:
      * The geometry of the current view
      * This may be out of sync with the current buffer size if an update is pending
      */
-    void setGeometry(const QRect &rect);
-    QRect geometry() const;
+    void setGeometry(const Rect &rect);
+    Rect geometry() const;
 
     void setOpacity(qreal opacity);
     qreal opacity() const;
@@ -86,7 +92,7 @@ public:
      * It can be manually invoked to update the contents immediately.
      * Note this will change the GL context
      */
-    void update();
+    void update(OutputFrame *frame);
 
     /** The invisible root item of the window */
     QQuickItem *contentItem() const;
@@ -102,34 +108,39 @@ public:
 
     void show();
     void hide();
+    void scheduleFrame();
 
     bool automaticRepaint() const;
     void setAutomaticRepaint(bool set);
 
+    /**
+     * Set whether or not frames will be scheduled automatically.
+     * If false, this view will only be repainted when the compositor
+     * renders a frame anyways.
+     * The default is true.
+     */
+    void setAutomaticFrame(bool set);
+
     void setDevicePixelRatio(qreal dpr);
 
-    /**
-     * Returns the current output of the scene graph
-     * @note The render context must valid at the time of calling
-     */
-    GLTexture *bufferAsTexture();
-
-    /**
-     * Returns the current output of the scene graph
-     */
-    QImage bufferAsImage() const;
-
-    /**
-     * Inject any mouse event into the QQuickWindow.
-     * Local coordinates are transformed
-     * If it is handled the event will be accepted
-     */
-    void forwardMouseEvent(QEvent *mouseEvent);
     /**
      * Inject a key event into the window.
      * If it is handled the event will be accepted
      */
     void forwardKeyEvent(QKeyEvent *keyEvent);
+
+    /**
+     * Inject a pointer motion event into the QQuickWindow.
+     */
+    void forwardPointerMotionEvent(PointerMotionEvent *event);
+    /**
+     * Inject a pointer button event into the QQuickWindow.
+     */
+    void forwardPointerButtonEvent(PointerButtonEvent *event);
+    /**
+     * Inject a pointer axis event into the QQuickWindow.
+     */
+    void forwardPointerAxisEvent(PointerAxisEvent *event);
 
     bool forwardTouchDown(qint32 id, const QPointF &pos, std::chrono::microseconds time);
     bool forwardTouchMotion(qint32 id, const QPointF &pos, std::chrono::microseconds time);
@@ -137,11 +148,8 @@ public:
     void forwardTouchCancel();
 
 Q_SIGNALS:
-    /**
-     * The frame buffer has changed, contents need re-rendering on screen
-     */
-    void repaintNeeded();
-    void geometryChanged(const QRect &oldGeometry, const QRect &newGeometry);
+    void geometryChanged(const KWin::Rect &oldGeometry, const KWin::Rect &newGeometry);
+    void visibleChanged(bool visible);
     void renderRequested();
     void sceneChanged();
 
@@ -151,6 +159,7 @@ private:
 
     class Private;
     std::unique_ptr<Private> d;
+    friend class QuickViewItem;
 };
 
 /**

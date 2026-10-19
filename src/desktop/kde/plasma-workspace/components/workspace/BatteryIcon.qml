@@ -16,19 +16,27 @@ Item {
     property int percent
     property bool pluggedIn
     property string batteryType
+    property bool isSomehowFullyCharged: false
     property bool active: false
     property string powerProfileIconName: ""
+    property bool preferSymbolic: false
 
     // Icon for current charge level, charging status, and optionally power
     // profile indication (for batteries that support it by setting
     // "powerProfileIconName" to something other than an empty string).
     Kirigami.Icon {
         anchors.fill: parent
-        source: root.hasBattery ? fillElement(root.percent) : "battery-missing"
+        source: (root.hasBattery ? fillElement(root.percent) : "battery-missing") + (root.preferSymbolic ? "-symbolic" : "")
         visible: !otherBatteriesIcon.visible
         active: root.active
 
         function fillElement(p: int): string {
+            // Don't show the battery icon when fully charged and plugged in;
+            // it adds no value here. Only show the power profile icon
+            if (root.isSomehowFullyCharged && root.powerProfileIconName) {
+                return "battery-profile-" + root.powerProfileIconName
+            }
+
             let name
             if (p >= 95) {
                 name = "battery-100";
@@ -70,8 +78,8 @@ Item {
     Kirigami.Icon {
         id: otherBatteriesIcon
         anchors.fill: parent
-        source: elementForType(root.batteryType)
-        visible: source !== ""
+        source: elementForType(root.batteryType) + (root.preferSymbolic ? "-symbolic" : "")
+        visible: elementForType(root.batteryType) !== ""
         active: root.active
 
         function elementForType(t: string): string {

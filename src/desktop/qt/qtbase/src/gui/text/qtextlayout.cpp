@@ -9,6 +9,7 @@
 #include <qfont.h>
 #include <qmath.h>
 #include <qpainter.h>
+#include <qimage.h>
 #include <qvarlengtharray.h>
 #include <qtextformat.h>
 #include <qabstracttextdocumentlayout.h>
@@ -1121,6 +1122,11 @@ void QTextLayout::draw(QPainter *p, const QPointF &pos, const QList<FormatRange>
     QPainterPath textDoneRegion;
     for (int i = 0; i < selections.size(); ++i) {
         FormatRange selection = selections.at(i);
+        // Don't clip the selection region when it has an outline pen,
+        // because clipping creates artificial edges that get stroked (QTBUG-115232)
+        const QPen pen = selection.format.penProperty(QTextFormat::OutlinePen);
+        const bool hasOutline = (pen.style() != Qt::NoPen && pen.widthF() > 0);
+        const QRectF selectionClip = hasOutline ? QRectF() : clip;
         QPainterPath region;
         region.setFillRule(Qt::WindingFill);
 
@@ -1144,9 +1150,9 @@ void QTextLayout::draw(QPainter *p, const QPointF &pos, const QList<FormatRange>
             const bool selectionEndInLine = selection.start + selection.length < sl.from + sl_length;
 
             if (sl.length && (selectionStartInLine || selectionEndInLine)) {
-                addSelectedRegionsToPath(d, line, position, &selection, &region, clipIfValid(lineRect, clip));
+                addSelectedRegionsToPath(d, line, position, &selection, &region, clipIfValid(lineRect, selectionClip));
             } else {
-                region.addRect(clipIfValid(lineRect, clip));
+                region.addRect(clipIfValid(lineRect, selectionClip));
             }
 
             if (selection.format.boolProperty(QTextFormat::FullWidthSelection)) {
@@ -1159,17 +1165,17 @@ void QTextLayout::draw(QPainter *p, const QPointF &pos, const QList<FormatRange>
 
                 if (!selectionEndInLine) {
                     region.addRect(clipIfValid(rightToLeft ? QRectF(fullLineRect.topLeft(), lineRect.bottomLeft())
-                                                           : QRectF(lineRect.topRight(), fullLineRect.bottomRight()), clip));
+                                                           : QRectF(lineRect.topRight(), fullLineRect.bottomRight()), selectionClip));
                 }
                 if (!selectionStartInLine) {
                     region.addRect(clipIfValid(rightToLeft ? QRectF(lineRect.topRight(), fullLineRect.bottomRight())
-                                                           : QRectF(fullLineRect.topLeft(), lineRect.bottomLeft()), clip));
+                                                           : QRectF(fullLineRect.topLeft(), lineRect.bottomLeft()), selectionClip));
                 }
             } else if (!selectionEndInLine
                 && isLastLineInBlock
                 &&!(d->option.flags() & QTextOption::ShowLineAndParagraphSeparators)) {
                 region.addRect(clipIfValid(QRectF(lineRect.right(), lineRect.top(),
-                                                  lineRect.height()/4, lineRect.height()), clip));
+                                                  lineRect.height()/4, lineRect.height()), selectionClip));
             }
 
         }
@@ -1177,12 +1183,20 @@ void QTextLayout::draw(QPainter *p, const QPointF &pos, const QList<FormatRange>
             const QPen oldPen = p->pen();
             const QBrush oldBrush = p->brush();
 
+            if (hasOutline) {
+                p->save();
+                p->setClipRect(clip, Qt::IntersectClip);
+            }
+
             p->setPen(selection.format.penProperty(QTextFormat::OutlinePen));
             p->setBrush(selection.format.brushProperty(QTextFormat::BackgroundBrush));
             p->drawPath(region);
 
             p->setPen(oldPen);
             p->setBrush(oldBrush);
+
+            if (hasOutline)
+                p->restore();
         }
 
 
@@ -1348,7 +1362,16 @@ void QTextLayout::drawCursor(QPainter *p, const QPointF &pos, int cursorPosition
     if (toggleAntialiasing)
         p->setRenderHint(QPainter::Antialiasing);
     QPainter::CompositionMode origCompositionMode = p->compositionMode();
-    if (p->paintEngine()->hasFeature(QPaintEngine::RasterOpModes))
+    // Raster ops are bitwise and break the premultiplied-alpha invariant when
+    // the target has an alpha channel (e.g. QGraphicsEffect's offscreen buffer,
+    // or a translucent top-level backing store), making the cursor vanish or
+    // punch an opaque hole. Fall back to SourceOver with the pen color in that
+    // case (QTBUG-109173).
+    QPaintDevice *targetDevice = p->paintEngine()->paintDevice();
+    const bool targetHasAlphaChannel = targetDevice
+            && targetDevice->devType() == QInternal::Image
+            && static_cast<QImage *>(targetDevice)->hasAlphaChannel();
+    if (!targetHasAlphaChannel && p->paintEngine()->hasFeature(QPaintEngine::RasterOpModes))
         p->setCompositionMode(QPainter::RasterOp_NotDestination);
     const QTransform &deviceTransform = p->deviceTransform();
     const qreal xScale = deviceTransform.m11();
@@ -1893,8 +1916,12 @@ void QTextLine::layout_helper(int maxGlyphs)
         lbh.tmpData.leading = qMax(lbh.tmpData.leading + lbh.tmpData.ascent,
                                    current.leading + current.ascent) - qMax(lbh.tmpData.ascent,
                                                                             current.ascent);
-        if (current.analysis.flags != QScriptAnalysis::Object) {
-            // objects need some special treatment as they can special alignment or be floating
+        if (current.analysis.flags != QScriptAnalysis::Object
+            || QTextDocumentPrivate::get(eng->block) == nullptr) {
+            // Objects with a QTextDocument may need special vertical alignment
+            // or floating treatment handled later, so skip the ascent/descent
+            // update for them here.  Standalone objects (no document) are
+            // always included because no such post-processing exists.
             lbh.tmpData.ascent = qMax(lbh.tmpData.ascent, current.ascent);
             lbh.tmpData.descent = qMax(lbh.tmpData.descent, current.descent);
         }

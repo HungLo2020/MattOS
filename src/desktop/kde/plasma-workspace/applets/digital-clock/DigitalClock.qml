@@ -128,6 +128,10 @@ MouseArea {
         function onUse24hFormatChanged() {
             main.timeFormatCorrection();
         }
+
+        function onShowSecondsChanged() {
+            main.setupLabels();
+        }
     }
 
     function pointToPixel(pointSize: int): int {
@@ -351,8 +355,19 @@ MouseArea {
         }
     ]
 
+    acceptedButtons: Qt.LeftButton | (ApplicationIntegration.calendarInstalled ? Qt.MiddleButton : 0)
     onPressed: wasExpanded = root.expanded
-    onClicked: root.expanded = !wasExpanded
+    onClicked: mouse => {
+        if (!mouse) {
+            root.expanded = !wasExpanded;
+            return;
+        }
+        if (mouse.button === Qt.MiddleButton && ApplicationIntegration.calendarInstalled) {
+            ApplicationIntegration.launchCalendar();
+        } else if (mouse.button === Qt.LeftButton) {
+            root.expanded = !wasExpanded;
+        }
+    }
     onWheel: wheel => {
         if (!Plasmoid.configuration.wheelChangesTimezone) {
             return;
@@ -426,6 +441,7 @@ MouseArea {
             PlasmaComponents.Label {
                 id: timeZoneLabel
 
+                font.family: timeLabel.font.family
                 font.weight: timeLabel.font.weight
                 font.italic: timeLabel.font.italic
                 font.pixelSize: 1024

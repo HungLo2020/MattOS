@@ -33,7 +33,9 @@ class QColor;
 class QTextDocument;
 class QSGContext;
 class QRawFont;
+class QSGInternalImageNode;
 class QSGInternalRectangleNode;
+class QSGVisitableNode;
 class QSGClipNode;
 class QSGTexture;
 class QSGRenderContext;
@@ -43,6 +45,61 @@ class QQuickTextNodeEngine;
 class Q_QUICK_EXPORT QSGInternalTextNode : public QSGTextNode
 {
 public:
+    struct RecycleBin {
+        enum NodeType : quint8 { GlyphNode, RectangleNode, ImageNode };
+
+        struct UnusedNode {
+            QSGVisitableNode *node;
+            NodeType type;
+        };
+
+        RecycleBin() = default;
+        ~RecycleBin()
+        {
+            Q_ASSERT(unusedNodes.isEmpty());
+            Q_ASSERT(unusedTextures.isEmpty());
+        }
+
+        // Reusing a node leaves it where it already is in the child list, and the child list is
+        // the draw order, so nodes can only be handed out in the order they were collected and
+        // only as children of the text node itself. Once the requests diverge from that, the
+        // rest of the bin has to be discarded instead of reused.
+        QSGVisitableNode *takeNextReusableNode(NodeType type)
+        {
+            const UnusedNode *next = peekNextReusableNode(type);
+            if (next == nullptr)
+                return nullptr;
+
+            ++reusedNodes;
+            return next->node;
+        }
+
+        QSGGlyphNode *takeNextReusableGlyphNode(QSGTextNode::RenderType renderType);
+
+        void stopReusing() { reuseStopped = true; }
+
+        QVarLengthArray<UnusedNode, 8> unusedNodes;
+        qsizetype reusedNodes = 0;
+        bool reuseStopped = false;
+        QList<QSGTexture *> unusedTextures;
+
+    private:
+        const UnusedNode *peekNextReusableNode(NodeType type)
+        {
+            if (!reuseStopped) {
+                if (reusedNodes < unusedNodes.size()) {
+                    const UnusedNode &next = unusedNodes.at(reusedNodes);
+                    if (next.type == type)
+                        return &next;
+                }
+                stopReusing();
+            }
+            return nullptr;
+        }
+
+        Q_DISABLE_COPY(RecycleBin)
+    };
+
     QSGInternalTextNode(QSGRenderContext *renderContext);
     ~QSGInternalTextNode();
 
@@ -157,19 +214,49 @@ public:
         m_devicePixelRatio = dpr;
     }
 
-    void setCursor(const QRectF &rect, const QColor &color);
+    void setCursor(const QRectF &rect, const QColor &color, RecycleBin *recycleBin);
     void clearCursor();
 
-    void addRectangleNode(const QRectF &rect, const QColor &color);
-    virtual void addDecorationNode(const QRectF &rect, const QColor &color);
-    void addImage(const QRectF &rect, const QImage &image);
+    void addRectangleNode(const QRectF &rect, const QColor &color, RecycleBin *recycleBin);
+    virtual void addDecorationNode(const QRectF &rect,
+                                   const QColor &color,
+                                   QTextCharFormat::UnderlineStyle style,
+                                   RecycleBin *recycleBin);
+    void addImage(const QRectF &rect, const QImage &image, RecycleBin *recycleBin);
     void clear() override;
-    QSGGlyphNode *addGlyphs(const QPointF &position, const QGlyphRun &glyphs, const QColor &color,
-                            QQuickText::TextStyle style = QQuickText::Normal, const QColor &styleColor = QColor(),
+    void recycle(RecycleBin *recycleBin);
+    QSGGlyphNode *addGlyphs(const QPointF &position,
+                            const QGlyphRun &glyphs,
+                            const QColor &color,
+                            RecycleBin *recycleBin,
+                            QQuickText::TextStyle style = QQuickText::Normal,
+                            const QColor &styleColor = QColor(),
                             QSGNode *parentNode = 0);
 
     QSGInternalRectangleNode *cursorNode() const { return m_cursorNode; }
     std::pair<int, int> renderedLineRange() const { return { m_firstLineInViewport, m_firstLinePastViewport }; }
+
+    void discardUnusedNodes(RecycleBin *recycleBin);
+
+    void addTextLayout(QPointF position,
+                       QTextLayout *layout,
+                       RecycleBin *recycleBin,
+                       int selectionStart = -1,
+                       int selectionCount = -1,
+                       int lineStart = 0,
+                       int lineCount = -1)
+    {
+        doAddTextLayout(position, layout, selectionStart, selectionCount, lineStart, lineCount, recycleBin);
+    }
+
+    void addTextDocument(QPointF position,
+                         QTextDocument *document,
+                         RecycleBin *recycleBin,
+                         int selectionStart = -1,
+                         int selectionCount = -1)
+    {
+        doAddTextDocument(position, document, selectionStart, selectionCount, recycleBin);
+    }
 
 protected:
     void doAddTextLayout(QPointF position,
@@ -177,14 +264,39 @@ protected:
                          int selectionStart,
                          int selectionEnd,
                          int lineStart,
-                         int lineCount) override;
+                         int lineCount,
+                         RecycleBin *recycleBin);
+
+    void doAddTextLayout(QPointF position,
+                         QTextLayout *textLayout,
+                         int selectionStart,
+                         int selectionEnd,
+                         int lineStart,
+                         int lineCount) override
+    {
+        doAddTextLayout(position, textLayout, selectionStart, selectionEnd, lineStart, lineCount, nullptr);
+    }
 
     void doAddTextDocument(QPointF position,
                            QTextDocument *textDocument,
                            int selectionStart,
-                           int selectionEnd) override;
+                           int selectionEnd,
+                           RecycleBin *recycleBin);
+    void doAddTextDocument(QPointF position,
+                           QTextDocument *textDocument,
+                           int selectionStart,
+                           int selectionEnd) override
+    {
+        doAddTextDocument(position, textDocument, selectionStart, selectionEnd, nullptr);
+    }
 
 private:
+    QSGInternalImageNode *findOrCreateImageNode(RecycleBin *recycleBin);
+    QSGGlyphNode *findOrCreateGlyphNode(RenderType renderType,
+                                        RecycleBin *recycleBin,
+                                        QSGNode *parentNode);
+    QSGInternalRectangleNode *findOrCreateRectangleNode(RecycleBin *recycleBin);
+
     QSGInternalRectangleNode *m_cursorNode = nullptr;
     QList<QSGTexture *> m_textures;
     QSGRenderContext *m_renderContext = nullptr;

@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qtmm_rtsan_support_p.h>
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
@@ -24,6 +24,8 @@
 #include <QtCore/private/qglobal_p.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qspan.h>
+
+#include <optional>
 
 #include <array>
 #include <variant>
@@ -224,7 +226,7 @@ constexpr bool validateAudioCallback(const AudioSourceCallback &audioCallback,
 // float32) we can use a stack-allocated temporary buffer.
 // otherwise we allocate a heap buffer.
 template <size_t limit = 1024 * 64, typename Functor>
-inline auto withTemporaryBuffer(size_t bufferSize, Functor &&f) noexcept QT_MM_NONBLOCKING
+inline auto withTemporaryBuffer(size_t bufferSize, Functor &&f) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     if (bufferSize <= limit) Q_LIKELY_BRANCH {
 #ifdef alloca
@@ -251,6 +253,8 @@ inline auto withTemporaryBuffer(size_t bufferSize, Functor &&f) noexcept QT_MM_N
         return f(heapBufferSpan);
     }
 }
+
+namespace impl {
 
 template <bool IsSink>
 inline void
@@ -283,10 +287,12 @@ runAudioCallback(std::conditional_t<IsSink, AudioSinkCallback, AudioSourceCallba
     }, audioCallback);
 }
 
+} // namespace impl
+
 inline void runAudioCallback(AudioSinkCallback &audioCallback, QSpan<std::byte> hostBuffer,
                              const QAudioFormat &format, float volume)
 {
-    runAudioCallback<true>(audioCallback, hostBuffer, format);
+    impl::runAudioCallback<true>(audioCallback, hostBuffer, format);
     QAudioHelperInternal::applyVolume(volume, format, hostBuffer, hostBuffer);
 }
 
@@ -305,6 +311,22 @@ inline void runAudioCallback(AudioSinkCallback &audioCallback, QSpan<std::byte> 
     });
 }
 
+inline void runAudioCallback(AudioSinkCallback &audioCallback, QSpan<std::byte> hostBuffer,
+                             const QAudioFormat &applicationFormat, float volume,
+                             QAudioHelperInternal::NativeSampleFormat nativeHostFormat)
+{
+    using namespace QAudioHelperInternal;
+    const int32_t numberOfFrames = hostBuffer.size()
+            / (bytesPerSample(nativeHostFormat) * applicationFormat.channelCount());
+    const int32_t applicationBufferSize = applicationFormat.bytesForFrames(numberOfFrames);
+
+    withTemporaryBuffer(applicationBufferSize, [&](QSpan<std::byte> tempBuffer) {
+        runAudioCallback(audioCallback, tempBuffer, applicationFormat, volume);
+        convertSampleFormat(tempBuffer, toNativeSampleFormat(applicationFormat.sampleFormat()),
+                            hostBuffer, nativeHostFormat);
+    });
+}
+
 // NB: we we provide two overloads for running audio callbacks based on the host buffer:
 // * if the host buffer is immutable, we need to apply the volume on a temporary buffer
 // * if the host buffer is mutable, we can apply the volume in-place (currently unused)
@@ -312,11 +334,11 @@ inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<const std
                              const QAudioFormat &format, float volume)
 {
     if (volume == 1.0f) {
-        runAudioCallback<false>(audioCallback, hostBuffer, format);
+        impl::runAudioCallback<false>(audioCallback, hostBuffer, format);
     } else {
         withTemporaryBuffer(hostBuffer.size(), [&](QSpan<std::byte> tempBuffer) {
             QAudioHelperInternal::applyVolume(volume, format, hostBuffer, tempBuffer);
-            runAudioCallback<false>(audioCallback, tempBuffer, format);
+            impl::runAudioCallback<false>(audioCallback, tempBuffer, format);
         });
     }
 }
@@ -325,7 +347,7 @@ inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<std::byte
                              const QAudioFormat &format, float volume)
 {
     QAudioHelperInternal::applyVolume(volume, format, hostBuffer, hostBuffer);
-    runAudioCallback<false>(audioCallback, hostBuffer, format);
+    impl::runAudioCallback<false>(audioCallback, hostBuffer, format);
 }
 
 template <typename HostBufferType>
@@ -348,7 +370,30 @@ inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<HostBuffe
     });
 }
 
+template <typename HostBufferType>
+inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<HostBufferType> hostBuffer,
+                             const QAudioFormat &applicationFormat, float volume,
+                             QAudioHelperInternal::NativeSampleFormat nativeHostFormat)
+{
+    static_assert(std::is_same_v<HostBufferType, std::byte>
+                  || std::is_same_v<HostBufferType, const std::byte>);
+
+    using namespace QAudioHelperInternal;
+
+    const int32_t numberOfFrames = hostBuffer.size()
+            / (bytesPerSample(nativeHostFormat) * applicationFormat.channelCount());
+    const int32_t applicationBufferSize = applicationFormat.bytesForFrames(numberOfFrames);
+
+    withTemporaryBuffer(applicationBufferSize, [&](QSpan<std::byte> tempBuffer) {
+        convertSampleFormat(hostBuffer, nativeHostFormat, tempBuffer,
+                            toNativeSampleFormat(applicationFormat.sampleFormat()));
+        runAudioCallback(audioCallback, tempBuffer, applicationFormat, volume);
+    });
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum class NativePeriodFrames : uint32_t {};
 
 } // namespace QtMultimediaPrivate
 
@@ -357,6 +402,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QObject
     Q_OBJECT
 
 public:
+    using NativePeriodFrames = QtMultimediaPrivate::NativePeriodFrames;
+
     explicit QPlatformAudioEndpointBase(QAudioDevice, const QAudioFormat &, QObject *parent);
     ~QPlatformAudioEndpointBase() override;
 
@@ -415,8 +462,8 @@ public:
     virtual qsizetype bytesFree() const = 0;
     virtual void setBufferSize(qsizetype value) = 0;
     virtual qsizetype bufferSize() const = 0;
-    virtual void setHardwareBufferFrames(int32_t) { }
-    virtual int32_t hardwareBufferFrames() { return -1; }
+    virtual void setNativePeriodFrames(std::optional<NativePeriodFrames>) { }
+    virtual std::optional<NativePeriodFrames> nativePeriodFrames() { return std::nullopt; }
     virtual qint64 processedUSecs() const = 0;
 
     using AudioCallback = QtMultimediaPrivate::AudioSinkCallback;
@@ -448,8 +495,8 @@ public:
     virtual void resume() = 0;
     virtual qsizetype bytesReady() const = 0;
     virtual void setBufferSize(qsizetype value) = 0;
-    virtual void setHardwareBufferFrames(int32_t) { }
-    virtual int32_t hardwareBufferFrames() { return -1; }
+    virtual void setNativePeriodFrames(std::optional<NativePeriodFrames>) { }
+    virtual std::optional<NativePeriodFrames> nativePeriodFrames() { return std::nullopt; }
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
 

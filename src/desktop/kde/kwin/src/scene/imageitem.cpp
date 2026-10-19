@@ -5,8 +5,9 @@
 */
 
 #include "scene/imageitem.h"
-
-#include "opengl/gltexture.h"
+#include "scene/itemrenderer.h"
+#include "scene/scene.h"
+#include "scene/texture.h"
 
 namespace KWin
 {
@@ -14,6 +15,16 @@ namespace KWin
 ImageItem::ImageItem(Item *parent)
     : Item(parent)
 {
+}
+
+ImageItem::~ImageItem()
+{
+}
+
+Texture *ImageItem::texture(RenderDevice *device) const
+{
+    const auto it = m_textures.find(device);
+    return it == m_textures.end() ? nullptr : it->second.first.get();
 }
 
 QImage ImageItem::image() const
@@ -28,42 +39,24 @@ void ImageItem::setImage(const QImage &image)
     scheduleRepaint(boundingRect());
 }
 
-ImageItemOpenGL::ImageItemOpenGL(Item *parent)
-    : ImageItem(parent)
+void ImageItem::preprocess(ItemRenderer *renderer)
 {
-}
-
-ImageItemOpenGL::~ImageItemOpenGL()
-{
-}
-
-GLTexture *ImageItemOpenGL::texture() const
-{
-    return m_texture.get();
-}
-
-void ImageItemOpenGL::preprocess()
-{
+    auto &[texture, key] = m_textures[renderer->renderDevice()];
     if (m_image.isNull()) {
-        m_texture.reset();
-        m_textureKey = 0;
-    } else if (m_textureKey != m_image.cacheKey()) {
-        m_textureKey = m_image.cacheKey();
+        texture.reset();
+        key = 0;
+    } else if (!texture || key != m_image.cacheKey()) {
+        key = m_image.cacheKey();
 
-        if (!m_texture || m_texture->size() != m_image.size()) {
-            m_texture = GLTexture::upload(m_image);
-            if (!m_texture) {
-                return;
-            }
-            m_texture->setFilter(GL_LINEAR);
-            m_texture->setWrapMode(GL_CLAMP_TO_EDGE);
+        if (!texture || texture->size() != m_image.size()) {
+            texture = renderer->createTexture(m_image);
         } else {
-            m_texture->update(m_image, Rect(m_image.rect()));
+            texture->upload(m_image, m_image.rect());
         }
     }
 }
 
-WindowQuadList ImageItemOpenGL::buildQuads() const
+WindowQuadList ImageItem::buildQuads(ItemRenderer *renderer) const
 {
     const RectF geometry = boundingRect();
     if (geometry.isEmpty()) {
@@ -81,6 +74,11 @@ WindowQuadList ImageItemOpenGL::buildQuads() const
     WindowQuadList ret;
     ret.append(quad);
     return ret;
+}
+
+void ImageItem::releaseResources(RenderDevice *device)
+{
+    m_textures.erase(device);
 }
 
 } // namespace KWin

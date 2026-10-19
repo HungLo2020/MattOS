@@ -17,10 +17,12 @@
 #include <qcryptographichash.h>
 #include <qdebug.h>
 
+#include <QtCore/private/qtools_p.h>
+
 #include <memory>
 
 #define CACHE_POSTFIX ".d"_L1
-#define CACHE_VERSION 8
+#define CACHE_VERSION 9
 #define DATA_DIR "data"_L1
 
 #define MAX_COMPRESSION_SIZE (1024 * 1024 * 3)
@@ -243,13 +245,23 @@ void QNetworkDiskCache::insert(QIODevice *device)
 void QNetworkDiskCachePrivate::prepareLayout()
 {
     QDir helper;
+    static constexpr auto dirPermissions =
+        QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner;
 
     //Create directory and subdirectories 0-F
-    helper.mkpath(dataDirectory);
+    //Ensure the cache directory and any parents exist.
+    helper.mkpath(cacheDirectory);
+    // Create the data directory with owner-only permissions.
+    // If it already exists, tighten its permissions
+    if (!helper.mkdir(dataDirectory, dirPermissions)
+        && !QFile::setPermissions(dataDirectory, dirPermissions)) {
+        qWarning("QNetworkDiskCache::prepareLayout: could not create or set permissions on %ls",
+                 qUtf16Printable(dataDirectory));
+        return;
+    }
     for (uint i = 0; i < 16 ; i++) {
-        QString str = QString::number(i, 16);
-        QString subdir = dataDirectory + str;
-        helper.mkdir(subdir);
+        QString subdir = dataDirectory + char16_t(QtMiscUtils::toHexLower(i));
+        helper.mkdir(subdir, dirPermissions);
     }
 }
 

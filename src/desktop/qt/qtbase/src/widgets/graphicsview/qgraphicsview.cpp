@@ -2223,7 +2223,9 @@ QList<QGraphicsItem *> QGraphicsView::items() const
     a subclass in QGraphicsView. \a pos is in untransformed viewport
     coordinates, just like QMouseEvent::position().
 
+    \snippet code/src_gui_graphicsview_qgraphicsview.cpp 5_6_declaration
     \snippet code/src_gui_graphicsview_qgraphicsview.cpp 5
+    \snippet code/src_gui_graphicsview_qgraphicsview.cpp 5_6_end
 
     \sa QGraphicsScene::items(), {QGraphicsItem#Sorting}{Sorting}
 */
@@ -2338,7 +2340,9 @@ QList<QGraphicsItem *> QGraphicsView::items(const QPainterPath &path, Qt::ItemSe
 
     Example:
 
+    \snippet code/src_gui_graphicsview_qgraphicsview.cpp 5_6_declaration
     \snippet code/src_gui_graphicsview_qgraphicsview.cpp 6
+    \snippet code/src_gui_graphicsview_qgraphicsview.cpp 5_6_end
 
     \sa items(), {QGraphicsItem#Sorting}{Sorting}
 */
@@ -3660,17 +3664,22 @@ void QGraphicsView::scrollContentsBy(int dx, int dy)
         // Below, QPixmap::scroll() works in device pixels, while the delta values
         // and backgroundPixmapExposed are in device independent pixels.
         const qreal dpr = d->backgroundPixmap.devicePixelRatio();
-        const qreal inverseDpr = qreal(1) / dpr;
+        if (dpr == std::trunc(dpr)) {
+            const qreal inverseDpr = qreal(1) / dpr;
 
-        // Scroll the background pixmap
-        QRegion exposed;
-        if (!d->backgroundPixmap.isNull())
-            d->backgroundPixmap.scroll(dx * dpr, dy * dpr, d->backgroundPixmap.rect(), &exposed);
+            // Scroll the background pixmap
+            QRegion exposed;
+            if (!d->backgroundPixmap.isNull())
+                d->backgroundPixmap.scroll(dx * dpr, dy * dpr, d->backgroundPixmap.rect(), &exposed);
 
-        // Invalidate the background pixmap
-        d->backgroundPixmapExposed.translate(dx, dy);
-        const QRegion exposedScaled = QTransform::fromScale(inverseDpr, inverseDpr).map(exposed);
-        d->backgroundPixmapExposed += exposedScaled;
+            // Invalidate the background pixmap
+            d->backgroundPixmapExposed.translate(dx, dy);
+            const QRegion exposedScaled = QTransform::fromScale(inverseDpr, inverseDpr).map(exposed);
+            d->backgroundPixmapExposed += exposedScaled;
+        } else {
+            // Fractional dpr: scroll+partial update can mismatch from rounding, so invalidate all
+            d->backgroundPixmapExposed += QRegion(viewport()->rect());
+        }
     }
 
     // Always replay on scroll.

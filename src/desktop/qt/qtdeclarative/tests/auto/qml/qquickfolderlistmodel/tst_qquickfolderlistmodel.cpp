@@ -46,6 +46,10 @@ private slots:
 #endif
     void showDotAndDotDot();
     void showDotAndDotDot_data();
+    void showDot();
+    void showDot_data();
+    void showDotDot();
+    void showDotDot_data();
     void sortReversed();
     void introspectQrc();
     void sortCaseSensitive_data();
@@ -88,7 +92,7 @@ void tst_qquickfolderlistmodel::basicProperties()
 
     flm->setProperty("folder", dataDirectoryUrl());
     QVERIFY(folderChangedSpy.wait());
-    QCOMPARE(flm->property("count").toInt(), 9);
+    QCOMPARE(flm->property("count").toInt(), 11);
     QCOMPARE(flm->property("folder").toUrl(), dataDirectoryUrl());
 #ifndef Q_OS_ANDROID
     // On Android currentDir points to some dir in qrc://, which is not
@@ -139,7 +143,7 @@ void tst_qquickfolderlistmodel::showFiles()
 
     QSignalSpy showFilesChangedSpy(flm, &QQuickFolderListModel::showFilesChanged);
     flm->setProperty("folder", dataDirectoryUrl());
-    QTRY_COMPARE(flm->count(), 9);
+    QTRY_COMPARE(flm->count(), 11);
     QCOMPARE(flm->showFiles(), true);
 
     flm->setProperty("showFiles", false);
@@ -228,7 +232,7 @@ void tst_qquickfolderlistmodel::refresh()
     QVERIFY(flm != nullptr);
 
     flm->setProperty("folder", dataDirectoryUrl());
-    QTRY_COMPARE(flm->property("count").toInt(), 9); // wait for refresh
+    QTRY_COMPARE(flm->property("count").toInt(), 11); // wait for refresh
 
     int count = flm->rowCount();
 
@@ -343,7 +347,7 @@ void tst_qquickfolderlistmodel::showDotAndDotDot()
     flm->setProperty("showDotAndDotDot", showDotAndDotDot);
     QCOMPARE(showDotAndDotDotChangedSpy.count(),expectedShowDotAndDotDotChangedSignalCount);
 
-    int count = 10;
+    int count = 12;
     if (showDot) count++;
     if (showDotDot) count++;
     QTRY_COMPARE(flm->property("count").toInt(), count); // wait for refresh
@@ -373,6 +377,97 @@ void tst_qquickfolderlistmodel::showDotAndDotDot_data()
 
 }
 
+void tst_qquickfolderlistmodel::showDot()
+{
+    QFETCH(QUrl, folder);
+    QFETCH(bool, showDot);
+    QFETCH(int, expectedShowDotChangedSignalCount);
+
+    QQmlComponent component(&engine, testFileUrl("showDot.qml"));
+    QTRY_VERIFY2(component.isReady(), qPrintable(component.errorString()));
+
+    QQuickFolderListModel *flm = qobject_cast<QQuickFolderListModel*>(component.create());
+    QVERIFY(flm != nullptr);
+
+    flm->setProperty("folder", folder);
+
+    QSignalSpy showDotChangedSpy(flm, &QQuickFolderListModel::showDotChanged);
+    flm->setProperty("showDot", showDot);
+    QCOMPARE(showDotChangedSpy.count(), expectedShowDotChangedSignalCount);
+
+    int count = 12;
+    if (showDot) count++;
+    QTRY_COMPARE(flm->property("count").toInt(), count); // wait for refresh
+
+    if (showDot)
+        QCOMPARE(flm->data(flm->index(0),FileNameRole).toString(), QLatin1String("."));
+}
+
+void tst_qquickfolderlistmodel::showDot_data()
+{
+#ifdef Q_OS_ANDROID
+    QSKIP("Resource file system does not list '.' and '..' due to QDir::entryList() behavior");
+#endif
+    QTest::addColumn<QUrl>("folder");
+    QTest::addColumn<bool>("showDot");
+    QTest::addColumn<int>("expectedShowDotChangedSignalCount");
+
+    QTest::newRow("false") << dataDirectoryUrl() << false << 0;
+    QTest::newRow("true") << dataDirectoryUrl() << true << 1;
+}
+
+void tst_qquickfolderlistmodel::showDotDot()
+{
+    QFETCH(QUrl, folder);
+    QFETCH(QUrl, rootFolder);
+    QFETCH(bool, showDotDot);
+    QFETCH(int, expectedRootFolderChangedSignalCount);
+    QFETCH(int, expectedShowDotDotChangedSignalCount);
+
+    QQmlComponent component(&engine, testFileUrl("showDotDot.qml"));
+    QTRY_VERIFY2(component.isReady(), qPrintable(component.errorString()));
+
+    QQuickFolderListModel *flm = qobject_cast<QQuickFolderListModel*>(component.create());
+    QVERIFY(flm != nullptr);
+
+    flm->setProperty("folder", folder);
+    QSignalSpy rootFolderChangedspy(flm, &QQuickFolderListModel::rootFolderChanged);
+    flm->setProperty("rootFolder", rootFolder);
+    QCOMPARE(rootFolderChangedspy.count(),expectedRootFolderChangedSignalCount);
+
+    QSignalSpy showDotDotChangedSpy(flm, &QQuickFolderListModel::showDotDotChanged);
+    flm->setProperty("showDotDot", showDotDot);
+    QCOMPARE(showDotDotChangedSpy.count(),expectedShowDotDotChangedSignalCount);
+
+    int count = 12;
+    if (showDotDot && folder != rootFolder) count++;
+    QTRY_COMPARE(flm->property("count").toInt(), count); // wait for refresh
+
+    if (showDotDot) {
+        if (folder == rootFolder) // if we are at the root folder, .. should not be present
+            QCOMPARE_NE(flm->data(flm->index(0),FileNameRole).toString(), QLatin1String(".."));
+        else
+            QCOMPARE(flm->data(flm->index(0),FileNameRole).toString(), QLatin1String(".."));
+    }
+}
+
+void tst_qquickfolderlistmodel::showDotDot_data()
+{
+#ifdef Q_OS_ANDROID
+    QSKIP("Resource file system does not list '.' and '..' due to QDir::entryList() behavior");
+#endif
+    QTest::addColumn<QUrl>("folder");
+    QTest::addColumn<QUrl>("rootFolder");
+    QTest::addColumn<bool>("showDotDot");
+    QTest::addColumn<int>("expectedRootFolderChangedSignalCount");
+    QTest::addColumn<int>("expectedShowDotDotChangedSignalCount");
+
+    QTest::newRow("false") << dataDirectoryUrl() << QUrl() << false << 0 << 0;
+    QTest::newRow("true") << dataDirectoryUrl() << QUrl() << true << 0 << 1;
+    QTest::newRow("true but root") << dataDirectoryUrl() << dataDirectoryUrl() << true << 1 << 1;
+
+}
+
 void tst_qquickfolderlistmodel::sortReversed()
 {
     QQmlComponent component(&engine, testFileUrl("sortReversed.qml"));
@@ -380,7 +475,7 @@ void tst_qquickfolderlistmodel::sortReversed()
     QQuickFolderListModel *flm = qobject_cast<QQuickFolderListModel*>(component.create());
     QVERIFY(flm != nullptr);
     flm->setProperty("folder", dataDirectoryUrl());
-    QTRY_COMPARE(flm->property("count").toInt(), 10); // wait for refresh
+    QTRY_COMPARE(flm->property("count").toInt(), 12); // wait for refresh
     QCOMPARE(flm->data(flm->index(0),FileNameRole).toString(), QLatin1String("txtdir"));
 }
 

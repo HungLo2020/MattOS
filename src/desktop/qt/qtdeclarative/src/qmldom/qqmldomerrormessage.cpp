@@ -336,8 +336,9 @@ QLatin1String ErrorMessage::msg(QLatin1String errorId, ErrorMessage &&err)
         if (r.contains(err.errorId)) {
             old = r[err.errorId].msg;
             doubleRegister = true;
+        } else {
+            r[errorId] = StorableMsg{std::move(err.withErrorId(errorId))};
         }
-        r[errorId] = StorableMsg{std::move(err.withErrorId(errorId))};
     }
     if (doubleRegister)
         defaultErrorHandler(myErrors().warning(tr("Double registration of error %1: (%2) vs (%3)").arg(errorId, err.withErrorId(errorId).toString(), old.toString())));

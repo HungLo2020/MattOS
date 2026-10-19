@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-16 02:39+0000\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
 "PO-Revision-Date: 2026-03-17 10:02+0300\n"
 "Last-Translator: Olesya Gerasimenko <goa@altlinux.org>\n"
 "Language-Team: Basealt Translation Team\n"
@@ -30,78 +30,78 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "kekcuha@gmail.com, goa@altlinux.org"
 
-#: effectsmodel.cpp:48
+#: effectsmodel.cpp:49
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Accessibility"
 msgstr "Специальные возможности"
 
-#: effectsmodel.cpp:49
+#: effectsmodel.cpp:50
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Appearance"
 msgstr "Внешний вид"
 
-#: effectsmodel.cpp:50
+#: effectsmodel.cpp:51
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Focus"
 msgstr "Управление фокусом"
 
-#: effectsmodel.cpp:51
+#: effectsmodel.cpp:52
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Peek at Desktop Animation"
-msgstr "Быстрый просмотр рабочего стола"
+msgstr "Анимация показа рабочего стола"
 
-#: effectsmodel.cpp:52
+#: effectsmodel.cpp:53
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Tools"
 msgstr "Инструменты"
 
-#: effectsmodel.cpp:53
+#: effectsmodel.cpp:54
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Virtual Desktop Switching Animation"
 msgstr "Анимация переключения рабочих столов"
 
-#: effectsmodel.cpp:54
+#: effectsmodel.cpp:55
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Window Management"
 msgstr "Управление окнами"
 
-#: effectsmodel.cpp:55
+#: effectsmodel.cpp:56
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Window Open/Close Animation"
 msgstr "Анимация закрытия и открытия окна"
 
-#: effectsmodel.cpp:231
+#: effectsmodel.cpp:233
 #, kde-format
 msgid "KWin development team"
 msgstr "Команда разработчиков KWin"
 
-#: genericscriptedconfig.cpp:76
+#: genericscriptedconfig.cpp:71
 #, kde-format
 msgctxt "Error message"
 msgid "Could not locate package metadata"
-msgstr "Не удалось найти метаданные макета"
+msgstr "Не удалось найти метаданные пакета"
 
-#: genericscriptedconfig.cpp:82
+#: genericscriptedconfig.cpp:77
 #, kde-format
 msgctxt "Required file does not exist"
 msgid "%1 does not contain a valid metadata.json file"
 msgstr "%1 не содержит корректно сформированного файла «metadata.json»"
 
-#: genericscriptedconfig.cpp:88 genericscriptedconfig.cpp:94
+#: genericscriptedconfig.cpp:83 genericscriptedconfig.cpp:89
 #, kde-format
 msgctxt "Required file does not exist"
 msgid "%1 does not exist"
 msgstr "Файл «%1» не существует"
 
-#: genericscriptedconfig.cpp:116
+#: genericscriptedconfig.cpp:106 genericscriptedconfig.cpp:116
 #, kde-format
 msgid "Error loading widget from %1: %2"
 msgstr "Ошибка загрузки виджета (%1): %2"

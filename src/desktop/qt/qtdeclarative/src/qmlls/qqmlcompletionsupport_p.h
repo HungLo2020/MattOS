@@ -16,21 +16,16 @@
 // We mean it.
 //
 
-#include "qlanguageserver_p.h"
-#include "qqmlbasemodule_p.h"
+#include <private/qlanguageserver_p.h>
+#include <private/qqmlbasemodule_p.h>
 
 #include <QtCore/qmutex.h>
 #include <QtCore/qhash.h>
 #include <QtQmlLS/private/qqmllscompletion_p.h>
 
 QT_BEGIN_NAMESPACE
-struct CompletionRequest
-    : BaseRequest<QLspSpecification::CompletionParams,
-                  QLspSpecification::LSPPartialResponse<
-                          std::variant<QList<QLspSpecification::CompletionItem>,
-                                       QLspSpecification::CompletionList, std::nullptr_t>,
-                          std::variant<QLspSpecification::CompletionList,
-                                       QList<QLspSpecification::CompletionItem>>>>
+struct CompletionRequest : BaseRequest<QLspSpecification::CompletionParams,
+                                       QLspSpecification::Responses::CompletionResponseType>
 {
     QString code;
 
@@ -38,9 +33,11 @@ struct CompletionRequest
     void sendCompletions(const QList<QLspSpecification::CompletionItem> &completions);
     QString urlAndPos() const;
     QList<QLspSpecification::CompletionItem>
-    completions(QmlLsp::OpenDocumentSnapshot &doc, const QQmlLSCompletion &completionEngine) const;
-    QQmlJS::Dom::DomItem patchInvalidFileForParser(const QQmlJS::Dom::DomItem &file,
-                                                   qsizetype position) const;
+    completions(QmlLsp::QQmlCodeModelManager *codeModelManager,
+                const QQmlLSCompletion &completionEngine) const;
+    QQmlJS::Dom::DomItem
+    patchInvalidFileForParser(const QQmlJS::Dom::DomItem &file, qsizetype position,
+                              QmlLsp::QQmlCodeModelManager *codeModelManager) const;
 };
 
 class QmlCompletionSupport : public QQmlBaseModule<CompletionRequest>
@@ -48,10 +45,8 @@ class QmlCompletionSupport : public QQmlBaseModule<CompletionRequest>
     Q_OBJECT
 public:
     QmlCompletionSupport(QmlLsp::QQmlCodeModelManager *codeModel);
-    QString name() const override;
     void registerHandlers(QLanguageServer *server, QLanguageServerProtocol *protocol) override;
-    void setupCapabilities(const QLspSpecification::InitializeParams &clientInfo,
-                           QLspSpecification::InitializeResult &) override;
+    void setupCapabilities(QLspSpecification::ServerCapabilities &caps) override;
     void process(RequestPointerArgument req) override;
 
     QQmlLSCompletion m_completionEngine;

@@ -1,10 +1,6 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-#####################################################################
-## MockMultimediaPlugin Generic Library:
-#####################################################################
-
 qt_internal_add_plugin(MockMultimediaPlugin
     STATIC
     OUTPUT_NAME mockmultimediaplugin
@@ -27,4 +23,8 @@ qt_internal_add_plugin(MockMultimediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+)
+
+target_include_directories(MockMultimediaPlugin PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )

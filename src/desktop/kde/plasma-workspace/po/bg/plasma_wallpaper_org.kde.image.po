@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-workspace package.
 #
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Mincho Kondarev <mkondarev@yahoo.de>
+# SPDX-FileCopyrightText: 2022-2026 Mincho Kondarev <mkondarev@yahoo.de>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-17 02:39+0000\n"
-"PO-Revision-Date: 2025-10-28 16:31+0100\n"
+"POT-Creation-Date: 2026-06-21 00:46+0000\n"
+"PO-Revision-Date: 2026-06-21 12:16+0200\n"
 "Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
 "Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
 "Language: bg\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.07.70\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -27,101 +27,101 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "mkondarev@yahoo.de"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:59
+#: imagepackage/contents/ui/AddFileDialog.qml:56
 #, kde-format
 msgctxt "@title:window"
 msgid "Open Image"
 msgstr "Отваряне на изображение"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:71
+#: imagepackage/contents/ui/AddFileDialog.qml:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Directory with the wallpaper to show slides from"
 msgstr "Директория с тапета, от който да се показват сменяемите изображения"
 
-#: imagepackage/contents/ui/config.qml:146
+#: imagepackage/contents/ui/config.qml:156
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Positioning:"
 msgstr "Позициониране:"
 
-#: imagepackage/contents/ui/config.qml:149
+#: imagepackage/contents/ui/config.qml:159
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled and cropped"
 msgstr "Мащабирано и изрязано"
 
-#: imagepackage/contents/ui/config.qml:153
+#: imagepackage/contents/ui/config.qml:163
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled"
 msgstr "Мащабирано"
 
-#: imagepackage/contents/ui/config.qml:157
+#: imagepackage/contents/ui/config.qml:167
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled, keep proportions"
 msgstr "Мащабирано, запазени пропорции"
 
-#: imagepackage/contents/ui/config.qml:161
+#: imagepackage/contents/ui/config.qml:171
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered"
 msgstr "Центрирано"
 
-#: imagepackage/contents/ui/config.qml:189
+#: imagepackage/contents/ui/config.qml:199
 #, kde-format
 msgctxt ""
 "@label:listbox part of a sentence: 'Switch dynamic wallpapers [based on]'"
 msgid "Switch dynamic wallpapers:"
 msgstr "Превключване на динамични тапети:"
 
-#: imagepackage/contents/ui/config.qml:197
+#: imagepackage/contents/ui/config.qml:207
 #, kde-format
 msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on whether the Plasma style is light or dark "
 msgstr "В зависимост от това, дали стилът на Plasma е тъмен или светъл "
 
-#: imagepackage/contents/ui/config.qml:199
+#: imagepackage/contents/ui/config.qml:209
 #, kde-format
 msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on the day-night cycle"
 msgstr "Според цикъла ден–нощ"
 
-#: imagepackage/contents/ui/config.qml:203
+#: imagepackage/contents/ui/config.qml:213
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use light variant"
 msgstr "Винаги да се използва светла тема"
 
-#: imagepackage/contents/ui/config.qml:207
+#: imagepackage/contents/ui/config.qml:217
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use dark variant"
 msgstr "Винаги да се използва тъмна тема"
 
-#: imagepackage/contents/ui/config.qml:221
+#: imagepackage/contents/ui/config.qml:231
 #, kde-format
 msgctxt "@action:button Configure day-night cycle times"
 msgid "Configure…"
 msgstr "Конфигуриране…"
 
-#: imagepackage/contents/ui/config.qml:232
+#: imagepackage/contents/ui/config.qml:242
 #, kde-format
 msgid "Background:"
 msgstr "Фон:"
 
-#: imagepackage/contents/ui/config.qml:233
+#: imagepackage/contents/ui/config.qml:243
 #, kde-format
 msgid "Blur"
 msgstr "Замъгляване"
 
-#: imagepackage/contents/ui/config.qml:242
+#: imagepackage/contents/ui/config.qml:252
 #, kde-format
 msgid "Solid color"
 msgstr "Плътен цвят"
 
-#: imagepackage/contents/ui/config.qml:253
+#: imagepackage/contents/ui/config.qml:263
 #, kde-format
 msgid "Select Background Color"
 msgstr "Избиране на цвят на фона"
@@ -263,13 +263,13 @@ msgstr ""
 "Зададения файл за тапет не съществува или не може да се определи като тапет: "
 "%1"
 
-#: plugin/imagebackend.cpp:40
+#: plugin/imagebackend.cpp:42
 #, kde-format
 msgid "Next Wallpaper Image"
 msgstr "Следващо изображение на тапет"
 
 #. i18n people, this isn't a "word puzzle". there is a specific string format for QFileDialog::setNameFilters
-#: plugin/imagebackend.cpp:382
+#: plugin/imagebackend.cpp:384
 #, kde-format
 msgid "Media Files"
 msgstr "Медийни файлове"
@@ -335,34 +335,47 @@ msgid_plural "%1 seconds"
 msgstr[0] "%1 секунда"
 msgstr[1] "%1 секунди"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:203
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:175
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Set all times to 0 to disable automatic wallpaper changing. You can still "
+"change wallpapers manually with the <interface>Next Wallpaper Image</"
+"interface> menu item in the desktop context menu."
+msgstr ""
+"Настройка на всички часове на 0 за деактивиране на автоматичното променяне "
+"на тапети. Възможно е ръчно променяне на тапети с елемент на менюто "
+"<interface>Следващо изображение на тапет</interface> в контекстното меню на "
+"работния площ."
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
 #, kde-format
 msgid "Folders"
 msgstr "Папки"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:211
 #, kde-format
 msgctxt "@action button the thing being added is a folder"
 msgid "Add…"
 msgstr "Добавяне…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:208
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:212
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Folder…"
 msgstr "Добавяне на папка…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:246
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:250
 #, kde-format
 msgid "Remove Folder"
 msgstr "Премахване на папка"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:257
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:261
 #, kde-format
 msgid "Open Folder…"
 msgstr "Отваряне на папка…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:272
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:276
 #, kde-format
 msgid "There are no wallpaper locations configured"
 msgstr "Няма конфигурирано местоположение за тапети"

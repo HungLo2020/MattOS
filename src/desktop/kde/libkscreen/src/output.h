@@ -7,8 +7,7 @@
 
 #pragma once
 
-#include "kscreen_export.h"
-#include "types.h"
+#include "mode.h"
 
 #include <QDebug>
 #include <QMetaType>
@@ -37,6 +36,7 @@ public:
     QSize size;
     float refreshRate = 60.0;
     Flags flags;
+    std::optional<Cvt> cvt;
 
     bool operator==(const ModeInfo &other) const = default;
 };
@@ -130,6 +130,9 @@ public:
         SharpnessControl = 1 << 12,
         CustomModes = 1 << 13,
         AutomaticBrightness = 1 << 14,
+        HdrIccProfile = 1 << 15,
+        AbmLevel = 1 << 16,
+        Disable = 1 << 17,
     };
     Q_ENUM(Capability)
     Q_DECLARE_FLAGS(Capabilities, Capability)
@@ -544,6 +547,9 @@ public:
      */
     void setIccProfilePath(const QString &path);
 
+    QString hdrIccProfilePath() const;
+    void setHdrIccProfilePath(const QString &path);
+
     double sdrGamutWideness() const;
     void setSdrGamutWideness(double value);
 
@@ -567,6 +573,9 @@ public:
 
     ColorProfileSource colorProfileSource() const;
     void setColorProfileSource(ColorProfileSource source);
+
+    ColorProfileSource hdrColorProfileSource() const;
+    void setHdrColorProfileSource(ColorProfileSource source);
 
     double brightness() const;
     void setBrightness(double brightness);
@@ -610,6 +619,9 @@ public:
     bool automaticBrightness() const;
     void setAutomaticBrightness(bool enable);
 
+    uint32_t abmLevel() const;
+    void setAbmLevel(uint32_t level);
+
     void apply(const OutputPtr &other);
 
 Q_SIGNALS:
@@ -643,6 +655,7 @@ Q_SIGNALS:
     void maxAverageBrightnessOverrideChanged();
     void minBrightnessOverrideChanged();
     void colorProfileSourceChanged();
+    void hdrColorProfileSourceChanged();
     void brightnessChanged();
     void vendorChanged();
     void modelChanged();
@@ -655,6 +668,8 @@ Q_SIGNALS:
     void sharpnessChanged();
     void customModesChanged();
     void automaticBrightnessChanged();
+    void hdrIccProfilePathChanged();
+    void abmLevelChanged();
 
     /** The mode list changed.
      *

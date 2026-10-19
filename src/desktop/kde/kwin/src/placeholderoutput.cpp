@@ -11,9 +11,8 @@ namespace KWin
 
 PlaceholderOutput::PlaceholderOutput(const QSize &size, qreal scale)
 {
-    auto mode = std::make_shared<OutputMode>(size, 60000);
+    auto mode = std::make_shared<OutputMode>(OutputModeline(size, 60000));
 
-    m_renderLoop = std::make_unique<RenderLoop>(this);
     m_renderLoop->setRefreshRate(mode->refreshRate());
     m_renderLoop->inhibit();
 
@@ -37,19 +36,16 @@ PlaceholderOutput::~PlaceholderOutput()
     setState(state);
 }
 
-RenderLoop *PlaceholderOutput::renderLoop() const
+std::expected<void, OutputError> PlaceholderOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
 {
-    return m_renderLoop.get();
+    qFatal("This output is not supposed to be presented to");
+    return {};
 }
 
-bool PlaceholderOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> PlaceholderOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
 {
-    return false;
-}
-
-bool PlaceholderOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
-{
-    return false;
+    qFatal("This output is not supposed to be presented to");
+    return {};
 }
 
 } // namespace KWin

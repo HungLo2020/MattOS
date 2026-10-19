@@ -2,13 +2,13 @@
 # This file is distributed under the same license as the plasma-nm package.
 #
 # Kristóf Kiszel <ulysses@kubuntu.org>, 2019, 2020.
-# SPDX-FileCopyrightText: 2021, 2023, 2024, 2025 Kristof Kiszel <kiszel.kristof@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2023-2026 Kristof Kiszel <kiszel.kristof@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-nm\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-29 03:06+0000\n"
-"PO-Revision-Date: 2025-11-21 21:33+0100\n"
+"POT-Creation-Date: 2026-08-06 00:46+0000\n"
+"PO-Revision-Date: 2026-06-02 22:55+0200\n"
 "Last-Translator: Kristof Kiszel <ulysses@fsf.hu>\n"
 "Language-Team: Hungarian <kde-l10n-hu@kde.org>\n"
 "Language: hu\n"
@@ -16,35 +16,51 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 26.04.1\n"
 
 #: ui/ConnectDialog.qml:58
 #, kde-format
 msgid "Invalid input."
 msgstr "Érvénytelen bemenet."
 
-#: ui/ConnectionInfo.qml:15
+#: ui/ConnectionInfo.qml:16
 #, kde-format
 msgctxt "kcm page title"
 msgid "Connection Info for \"%1\""
 msgstr "Kapcsolatinformációk ehhez: „%1”"
 
-#: ui/ConnectionInfo.qml:22
+#: ui/ConnectionInfo.qml:55
 #, kde-format
 msgctxt "@title:group"
 msgid "Transfer Rates"
 msgstr "Átviteli sebességek"
 
-#: ui/ConnectionInfo.qml:38
+#: ui/ConnectionInfo.qml:71
 #, kde-format
 msgid "Connected, ↓ %1/s, ↑ %2/s"
 msgstr "Kapcsolódva, ↓ %1/s, ↑ %2/s"
 
-#: ui/ConnectionInfo.qml:46
+#: ui/ConnectionInfo.qml:79
 #, kde-format
 msgctxt "@title:group"
 msgid "Connection Details"
 msgstr "Kapcsolat részletei"
+
+#: ui/ConnectionInfo.qml:100
+#, kde-format
+msgctxt "@title:group"
+msgid "Share"
+msgstr "Megosztás"
+
+#: ui/ConnectionInfo.qml:107
+#, kde-format
+msgid "Share Wi-Fi via QR Code"
+msgstr "WiFi megosztás QR-kóddal"
+
+#: ui/ConnectionInfo.qml:114
+#, kde-format
+msgid "Wi-Fi QR Code"
+msgstr "WiFi QR-kód"
 
 #: ui/main.qml:26
 #, kde-format
@@ -54,23 +70,40 @@ msgstr "Szerkesztés"
 #: ui/main.qml:87
 #, kde-format
 msgid "Wi-Fi"
-msgstr "Wi-Fi"
+msgstr "WiFi"
 
 #: ui/main.qml:98
+#, fuzzy, kde-format
+#| msgctxt "@title:group"
+#| msgid "IP Settings"
+msgid "Settings"
+msgstr "IP beállítások"
+
+#: ui/main.qml:107
 #, kde-format
 msgctxt "@title:group"
 msgid "Saved Networks"
 msgstr "Mentett hálózatok"
 
-#: ui/main.qml:135
+#: ui/main.qml:144
 #, kde-format
 msgid "Available Networks"
 msgstr "Elérhető hálózatok"
 
-#: ui/main.qml:169
+#: ui/main.qml:178
 #, kde-format
 msgid "Add Custom Connection"
 msgstr "Saját kapcsolat hozzáadása"
+
+#: ui/MorePage.qml:14
+#, kde-format
+msgid "Wi-Fi Settings"
+msgstr "WiFi beállítások"
+
+#: ui/MorePage.qml:21
+#, kde-format
+msgid "Notifications for connection changes"
+msgstr "Értesítések kapcsolatváltozásokról"
 
 #: ui/NetworkSettings.qml:15
 #, kde-format
@@ -225,6 +258,9 @@ msgstr "DNS"
 msgid "Password…"
 msgstr "Jelszó…"
 
+#~ msgid "More"
+#~ msgstr "Több"
+
 #, fuzzy
 #~| msgid "Connect to"
 #~ msgid "Connect"
@@ -249,9 +285,6 @@ msgstr "Jelszó…"
 
 #~ msgid "Download"
 #~ msgstr "Letöltés"
-
-#~ msgid "Wi-Fi is disabled"
-#~ msgstr "A Wi-Fi ki van kapcsolva"
 
 #~ msgid "Enable"
 #~ msgstr "Bekapcsolás"

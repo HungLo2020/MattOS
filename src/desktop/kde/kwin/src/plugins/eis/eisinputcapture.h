@@ -1,5 +1,5 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
@@ -20,12 +20,14 @@
 
 namespace KWin
 {
+
 class BarrierSpy;
 
 class EisInputCapture : public QObject
 {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.kde.KWin.EIS.InputCapture")
+
 public:
     EisInputCapture(EisInputCaptureManager *manager, const QString &dbusService, QFlags<eis_device_capability> allowedCapabilities);
     ~EisInputCapture();
@@ -39,21 +41,21 @@ public:
     eis_device *keyboard() const;
     eis_device *absoluteDevice() const;
 
-    void activate(const QPointF &position);
+    void activate(uint id, const QPointF &position);
 
     Q_INVOKABLE QDBusUnixFileDescriptor connectToEIS();
-    Q_INVOKABLE void enable(const QList<QPair<QPoint, QPoint>> &barriers);
+    Q_INVOKABLE void enable(const QList<std::tuple<uint, QPoint, QPoint>> &barriers);
     Q_INVOKABLE void disable();
     Q_INVOKABLE void release(const QPointF &cursorPosition, bool applyPosition);
 Q_SIGNALS:
     void disabled();
-    void activated(uint activationId, const QPointF &cursorPosition);
+    void activated(uint activationId, uint id, const QPointF &cursorPosition);
     void deactivated(uint activationId);
 
 private:
     void handleEvents();
     void createDevice();
-    void deactivate();
+    void deactivate(const std::optional<QPointF> &releasePosition);
 
     EisInputCaptureManager *m_manager;
     QList<EisInputCaptureBarrier> m_barriers;

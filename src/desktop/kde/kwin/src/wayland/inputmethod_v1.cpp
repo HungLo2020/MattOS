@@ -24,6 +24,7 @@
 
 namespace KWin
 {
+
 static int s_version = 1;
 
 class InputKeyboardV1InterfacePrivate : public QtWaylandServer::wl_keyboard
@@ -73,7 +74,7 @@ void InputMethodGrabV1::sendKeymap(const QByteArray &keymap)
 
 void InputMethodGrabV1::sendKey(quint32 serial, quint32 timestamp, quint32 key, KeyboardKeyState state)
 {
-    quint32 waylandState;
+    quint32 waylandState = WL_KEYBOARD_KEY_STATE_PRESSED;
     switch (state) {
     case KeyboardKeyState::Pressed:
         waylandState = WL_KEYBOARD_KEY_STATE_PRESSED;
@@ -184,7 +185,7 @@ public:
     {
         const auto nativeState = waylandKeyStatetoKeyboardKeyState(state);
 
-        if (nativeState) {
+        if (nativeState && m_keyboardGrab) {
             Q_EMIT q->key(serial, time, key, *nativeState);
         }
     }
@@ -195,7 +196,9 @@ public:
                                                uint32_t mods_locked,
                                                uint32_t group) override
     {
-        Q_EMIT q->modifiers(serial, mods_depressed, mods_latched, mods_locked, group);
+        if (m_keyboardGrab) {
+            Q_EMIT q->modifiers(serial, mods_depressed, mods_latched, mods_locked, group);
+        }
     }
     void zwp_input_method_context_v1_language(Resource *, uint32_t serial, const QString &language) override
     {
@@ -272,7 +275,7 @@ void InputMethodContextV1Interface::sendContentType(TextInputContentHints hint, 
         contentHint |= QtWaylandServer::zwp_text_input_v1::content_hint_hidden_text;
     }
     if (hint.testFlag(TextInputContentHint::SensitiveData)) {
-        contentHint |= QtWaylandServer::zwp_text_input_v1::content_hint_lowercase;
+        contentHint |= QtWaylandServer::zwp_text_input_v1::content_hint_sensitive_data;
     }
     if (hint.testFlag(TextInputContentHint::Latin)) {
         contentHint |= QtWaylandServer::zwp_text_input_v1::content_hint_latin;
@@ -307,6 +310,7 @@ void InputMethodContextV1Interface::sendContentType(TextInputContentHints hint, 
         contentPurpose = QtWaylandServer::zwp_text_input_v1::content_purpose_name;
         break;
     case TextInputContentPurpose::Password:
+    case TextInputContentPurpose::Pin:
         contentPurpose = QtWaylandServer::zwp_text_input_v1::content_purpose_password;
         break;
     case TextInputContentPurpose::Date:

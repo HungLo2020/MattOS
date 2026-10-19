@@ -22,7 +22,7 @@ namespace KWin
 
 GameControllerManager::GameControllerManager()
     : m_udev(std::make_unique<Udev>())
-    , m_udevMonitor(m_udev->monitor())
+    , m_udevMonitor(m_udev->createMonitor())
 {
     if (!m_udevMonitor) {
         qCWarning(KWIN_GAMECONTROLLER) << "Failed to setup udev Monitor:" << strerror(errno);
@@ -161,7 +161,7 @@ bool GameControllerManager::isHandledByLibinput(const QString &devNode)
         "input",
         QFileInfo(devNode).fileName().toUtf8().constData());
     if (!udevDevice) {
-        qCDebug(KWIN_GAMECONTROLLER) << "Could not get udev device for:" << devNode << ", assuming it is handled by libintput.";
+        qCDebug(KWIN_GAMECONTROLLER) << "Could not get udev device for:" << devNode << ", assuming it is handled by libinput.";
         return true;
     }
 

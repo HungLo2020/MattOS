@@ -27,6 +27,7 @@
 #include <private/qqmljsdiagnosticmessage_p.h>
 #include <private/qqmljsimporter_p.h>
 #include <private/qqmljslogger_p.h>
+#include <private/qqmljslookupsignatures_p.h>
 #include <private/qqmljstyperesolver_p.h>
 #include <private/qv4compileddata_p.h>
 
@@ -35,6 +36,8 @@
 QT_BEGIN_NAMESPACE
 
 QT_DECLARE_EXPORTED_QT_LOGGING_CATEGORY(lcAotCompiler, Q_QMLCOMPILER_EXPORT);
+
+using LookupSignatures = QQmlPrivate::AOTLookupValidation::LookupSignatures;
 
 struct Q_QMLCOMPILER_EXPORT QQmlJSCompileError
 {
@@ -63,6 +66,7 @@ public:
         NoFlags = 0x0,
         ValidateBasicBlocks = 0x1,
         IsLintCompiler = 0x2, // When we're linting and not compiling
+        NoAOTValidation = 0x4,
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
@@ -81,7 +85,10 @@ public:
 
     virtual QQmlJSAotFunction globalCode() const;
 
+    LookupSignatures lookupSignatures() const { return m_lookupSignatures; }
+
     bool isLintCompiler() const { return m_flags & IsLintCompiler; }
+    bool noAotValidation() const { return m_flags & NoAOTValidation; }
 
     Flags m_flags;
 
@@ -104,11 +111,13 @@ protected:
     QQmlJSImporter *m_importer = nullptr;
     QQmlJSLogger *m_logger = nullptr;
 
+    LookupSignatures m_lookupSignatures;
+
 private:
     QQmlJSAotFunction doCompile(
-            const QV4::Compiler::Context *context, QQmlJSCompilePass::Function *function);
+            const QV4::Compiler::Context *context, const QQmlJSCompilePass::Function *function);
     QQmlJSAotFunction doCompileAndRecordAotStats(
-            const QV4::Compiler::Context *context, QQmlJSCompilePass::Function *function,
+            const QV4::Compiler::Context *context, const QQmlJSCompilePass::Function *function,
             const QString &name, QQmlJS::SourceLocation location);
 };
 
@@ -117,7 +126,7 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QQmlJSAotCompiler::Flags);
 using QQmlJSAotFunctionMap = QMap<int, QQmlJSAotFunction>;
 using QQmlJSSaveFunction
     = std::function<bool(const QV4::CompiledData::SaveableUnitPointer &,
-                         const QQmlJSAotFunctionMap &, QString *)>;
+                         const QQmlJSAotFunctionMap &, const LookupSignatures &, QString *)>;
 
 bool Q_QMLCOMPILER_EXPORT qCompileQmlFile(const QString &inputFileName,
                                           const QQmlJSSaveFunction &saveFunction,
@@ -141,7 +150,8 @@ bool Q_QMLCOMPILER_EXPORT qSaveQmlJSUnitAsCpp(const QString &inputFileName,
                                               const QString &outputFileName,
                                               const QV4::CompiledData::SaveableUnitPointer &unit,
                                               const QQmlJSAotFunctionMap &aotFunctions,
-                                              QString *errorString);
+                                              const LookupSignatures &lookupSignatures,
+                                              bool noAotValidation, QString *errorString);
 
 QT_END_NAMESPACE
 

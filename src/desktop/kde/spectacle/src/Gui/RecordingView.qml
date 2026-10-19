@@ -67,10 +67,15 @@ FocusScope {
         fillMode: VideoOutput.PreserveAspectFit
     }
 
+    AudioOutput {
+        id: audioOutput
+    }
+
     MediaPlayer {
         id: mediaPlayer
         source: root.hasAnimatedImage ? "" : SpectacleCore.currentVideo
         videoOutput: videoOutput
+        audioOutput: audioOutput
         onHasVideoChanged: if (hasVideo) {
             pause();
         }

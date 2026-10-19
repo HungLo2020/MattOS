@@ -8,6 +8,8 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
+import org.kde.ki18n
+import org.kde.xdgdesktopportal
 
 PortalDialog {
     id: root
@@ -17,10 +19,16 @@ PortalDialog {
     property alias screenshotImage: screenshot.source
     property alias withCursor: hasCursor.checked
     property alias withBorders: hasWindowBorders.checked
-    property QtObject app
+    property ScreenshotDialogCpp app
+    required property string appName
 
-    title: i18n("Request Screenshot")
     iconName: "preferences-system-windows-effect-screenshot"
+    title: KI18n.i18nc("@title:window", "Screenshot Requested")
+    mainText: appName === ""
+        ? KI18n.i18nc("@info", "Allow an unidentifiable application to take a screenshot?")
+        : KI18n.i18nc("@info %1 is the name of an application", "Allow %1 to take a screenshot?", appName)
+    subtitle: appName === "" ? KI18n.i18nc("@info:usagetip", "Only allow if you know which application made the request.") : undefined
+
     acceptable: screenshot.valid
 
     width: Kirigami.Units.gridUnit * 28
@@ -31,34 +39,34 @@ PortalDialog {
 
         Kirigami.FormLayout {
             Kirigami.Heading {
-                text: i18n("Capture Mode")
+                text: KI18n.i18n("Capture Mode")
             }
             QQC2.ComboBox {
                 id: areaCombo
-                Kirigami.FormData.label: i18n("Area:")
+                Kirigami.FormData.label: KI18n.i18n("Area:")
                 textRole: "display"
             }
             QQC2.SpinBox {
                 id: delayTime
-                Kirigami.FormData.label: i18n("Delay:")
+                Kirigami.FormData.label: KI18n.i18n("Delay:")
                 from: 0
                 to: 60
                 stepSize: 1
-                textFromValue: (value, locale) => i18np("%1 second", "%1 seconds", value)
+                textFromValue: (value, locale) => KI18n.i18np("%1 second", "%1 seconds", value)
                 valueFromText: (text, locale) => parseInt(text);
             }
 
             Kirigami.Heading {
-                text: i18n("Content Options")
+                text: KI18n.i18n("Content Options")
             }
             QQC2.CheckBox {
                 id: hasCursor
-                text: i18n("Include cursor pointer")
+                text: KI18n.i18nc("@option:check Refers to the on-screen 'mouse pointer'", "Include pointer")
                 checked: true
             }
             QQC2.CheckBox {
                 id: hasWindowBorders
-                text: i18n("Include window borders")
+                text: KI18n.i18n("Include window borders")
                 enabled: areaCombo.currentIndex === 2
                 checked: true
             }
@@ -72,7 +80,8 @@ PortalDialog {
     }
 
     Component.onCompleted: {
-        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Ok).text = i18n("Save")
+        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Ok).text = KI18n.i18nc("@action:button Allow the application to use the screenshot", "Allow")
+        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Cancel).text = KI18n.i18nc("@action:button Deny the application's request to take a screenshot", "Deny")
     }
 
     actions: [
@@ -82,7 +91,8 @@ PortalDialog {
                 interval: delayTime.value * 1000
                 onTriggered: root.app.takeScreenshotInteractive()
             }
-            text: i18n("Take")
+            text: KI18n.i18nc("@action:button", "Take Screenshot")
+            icon.name: "camera-photo-symbolic"
             enabled: !takeTimer.running
             onTriggered: takeTimer.restart()
         }

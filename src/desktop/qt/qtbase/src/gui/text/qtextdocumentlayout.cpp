@@ -2122,6 +2122,16 @@ void QTextDocumentLayoutPrivate::drawListItem(const QPointF &offset, QPainter *p
     QTextLine firstLine = layout->lineAt(0);
     Q_ASSERT(firstLine.isValid());
     QPointF pos = (offset + layout->position()).toPoint();
+    // Every marker style is placed relative to the top of the first line, using the
+    // metrics of the block's own font. But the marker belongs on that line's baseline.
+    // When the line is taller than the marker's font, for instance because it contains
+    // an inline image or a larger font, the line's ascent is greater and the marker has
+    // to move down by the difference. For ordinary items the two ascents are equal.
+    // Round each term separately: QFontMetrics::ascent() is already rounded, so
+    // qRound(line.ascent() - fontMetrics.ascent()) would come out as -1 rather than 0
+    // for an ordinary item whose font has an ascent ending in .5.
+    pos.ry() += qRound(firstLine.ascent()) - fontMetrics.ascent();
+
     Qt::LayoutDirection dir = bl.textDirection();
     {
         QRectF textRect = firstLine.naturalTextRect();
@@ -2804,6 +2814,15 @@ relayout:
             default:
                 break;
             };
+
+            // If the cell span straddles a page break, vertical-align is ignored
+            // per CSS paged-media spec (browsers top-align such cells).
+            if (offset > 0 && pageHeight > 0) {
+                const QFixed cellTop = absoluteTableY + td->rowPositions.at(r);
+                const QFixed cellBottom = cellTop + availableHeight;
+                if ((cellBottom / pageHeight).truncate() != (cellTop / pageHeight).truncate())
+                    offset = 0;
+            }
 
             for (int rd = 0; rd < cell.rowSpan(); ++rd) {
                 for (int cd = 0; cd < cell.columnSpan(); ++cd) {

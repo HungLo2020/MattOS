@@ -42,7 +42,7 @@ SlidingPopupsEffect::SlidingPopupsEffect()
     if (!s_slideManagerRemoveTimer) {
         s_slideManagerRemoveTimer = new QTimer(QCoreApplication::instance());
         s_slideManagerRemoveTimer->setSingleShot(true);
-        s_slideManagerRemoveTimer->callOnTimeout([]() {
+        s_slideManagerRemoveTimer->callOnTimeout(QCoreApplication::instance(), []() {
             s_slideManager->remove();
             s_slideManager = nullptr;
         });
@@ -94,10 +94,8 @@ void SlidingPopupsEffect::reconfigure(ReconfigureFlags flags)
 {
     SlidingPopupsConfig::self()->read();
     // Keep these durations in sync with the value of Kirigami.Units.longDuration
-    m_slideInDuration = std::chrono::milliseconds(
-        static_cast<int>(animationTime(SlidingPopupsConfig::slideInTime() != 0 ? std::chrono::milliseconds(SlidingPopupsConfig::slideInTime()) : 200ms)));
-    m_slideOutDuration = std::chrono::milliseconds(
-        static_cast<int>(animationTime(SlidingPopupsConfig::slideOutTime() != 0 ? std::chrono::milliseconds(SlidingPopupsConfig::slideOutTime()) : 200ms)));
+    m_slideInDuration = animationTime(SlidingPopupsConfig::slideInTime() != 0 ? std::chrono::milliseconds(SlidingPopupsConfig::slideInTime()) : 200ms);
+    m_slideOutDuration = animationTime(SlidingPopupsConfig::slideOutTime() != 0 ? std::chrono::milliseconds(SlidingPopupsConfig::slideOutTime()) : 200ms);
 
     for (auto &[window, animation] : m_animations) {
         animation.timeLine.setDuration(animation.kind == AnimationKind::In ? m_slideInDuration : m_slideOutDuration);
@@ -111,32 +109,31 @@ void SlidingPopupsEffect::reconfigure(ReconfigureFlags flags)
     }
 }
 
-void SlidingPopupsEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime)
+void SlidingPopupsEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data)
 {
     auto animationIt = m_animations.find(w);
     if (animationIt == m_animations.end()) {
-        effects->prePaintWindow(view, w, data, presentTime);
+        effects->prePaintWindow(view, w, data);
         return;
     }
 
-    animationIt->second.timeLine.advance(presentTime);
+    animationIt->second.timeLine.advance(view);
     data.setTransformed();
 
-    effects->prePaintWindow(view, w, data, presentTime);
+    effects->prePaintWindow(view, w, data);
 }
 
-void SlidingPopupsEffect::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data)
+bool SlidingPopupsEffect::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data)
 {
     auto animationIt = m_animations.find(w);
     if (animationIt == m_animations.end()) {
-        effects->paintWindow(renderTarget, viewport, w, mask, deviceGeometry, data);
-        return;
+        return effects->paintWindow(renderTarget, viewport, w, mask, deviceGeometry, data);
     }
 
     const AnimationData &animData = m_animationsData[w];
     const qreal slideLength = (animData.slideLength > 0) ? animData.slideLength : m_slideLength;
 
-    const QRectF geo = w->expandedGeometry();
+    const RectF geo = w->expandedGeometry();
     const qreal t = animationIt->second.timeLine.value();
 
     Region effectiveRegion = deviceGeometry;
@@ -169,7 +166,7 @@ void SlidingPopupsEffect::paintWindow(const RenderTarget &renderTarget, const Re
 
     effectiveRegion &= viewport.mapToDeviceCoordinatesAligned(damagedLogicalArea(w, animData));
 
-    effects->paintWindow(renderTarget, viewport, w, mask, effectiveRegion, data);
+    return effects->paintWindow(renderTarget, viewport, w, mask, effectiveRegion, data);
 }
 
 void SlidingPopupsEffect::postPaintScreen()
@@ -243,8 +240,8 @@ void SlidingPopupsEffect::slotWindowHiddenChanged(EffectWindow *w)
 
 void SlidingPopupsEffect::setupAnimData(EffectWindow *w)
 {
-    const QRectF screenRect = effects->clientArea(FullScreenArea, w->screen(), effects->currentDesktop());
-    const QRectF windowGeo = w->frameGeometry();
+    const RectF screenRect = effects->clientArea(FullScreenArea, w->screen());
+    const RectF windowGeo = w->frameGeometry();
     AnimationData &animData = m_animationsData[w];
 
     if (animData.offset == -1) {
@@ -394,28 +391,25 @@ void SlidingPopupsEffect::setupInputPanelSlide()
     setupAnimData(w);
 }
 
-QRectF SlidingPopupsEffect::damagedLogicalArea(EffectWindow *w, const AnimationData animData)
+RectF SlidingPopupsEffect::damagedLogicalArea(EffectWindow *w, const AnimationData animData)
 {
-    const QRectF screenRect = effects->clientArea(FullScreenArea, w->screen(), effects->currentDesktop());
-    qreal splitPoint = 0;
-    const QRectF geo = w->expandedGeometry();
+    const RectF screenRect = effects->clientArea(FullScreenArea, w->screen());
+    const RectF geo = w->expandedGeometry();
 
     switch (animData.location) {
     case Location::Left:
-        splitPoint = geo.width() - (geo.x() + geo.width() - screenRect.x() - animData.offset);
-        return QRectF(geo.x() + splitPoint, geo.y(), geo.width() - splitPoint, geo.height());
+        return RectF(QPointF(screenRect.left() + animData.offset, geo.top()),
+                     QPointF(geo.right(), geo.bottom()));
     case Location::Top:
-        splitPoint = geo.height() - (geo.y() + geo.height() - screenRect.y() - animData.offset);
-        return QRectF(geo.x(), geo.y() + splitPoint, geo.width(), geo.height() - splitPoint);
+        return RectF(QPointF(geo.left(), screenRect.top() + animData.offset),
+                     QPointF(geo.right(), geo.bottom()));
     case Location::Right:
-        splitPoint = screenRect.x() + screenRect.width() - geo.x() - animData.offset;
-        return QRectF(geo.x(), geo.y(), splitPoint, geo.height());
-        break;
+        return RectF(QPointF(geo.left(), geo.top()),
+                     QPointF(screenRect.right() - animData.offset, geo.bottom()));
     case Location::Bottom:
     default:
-        splitPoint = screenRect.y() + screenRect.height() - geo.y() - animData.offset;
-        return QRectF(geo.x(), geo.y(), geo.width(), splitPoint);
-        break;
+        return RectF(QPointF(geo.left(), geo.top()),
+                     QPointF(geo.right(), screenRect.bottom() - animData.offset));
     }
 }
 
@@ -439,7 +433,7 @@ void SlidingPopupsEffect::slideIn(EffectWindow *w)
         return;
     }
 
-    if (!w->isVisible()) {
+    if (!w->isOnCurrentDesktop() || !w->isOnCurrentActivity()) {
         return;
     }
 
@@ -475,7 +469,7 @@ void SlidingPopupsEffect::slideOut(EffectWindow *w)
         return;
     }
 
-    if (!w->isVisible()) {
+    if (!w->isOnCurrentDesktop() || !w->isOnCurrentActivity()) {
         return;
     }
 

@@ -1,21 +1,21 @@
 # Spanish translations for kcm_style.po package.
-# Copyright (C) 2000-2025 This file is copyright:
+# Copyright (C) 2000-2026 This file is copyright:
 # This file is distributed under the same license as the plasma-workspace package.
 #
 # SPDX-FileCopyrightText: 2000-2002 Pablo de Vicente <vicente@oan.es>
-# SPDX-FileCopyrightText: 2003, 2005, 2007, 2008 Jaime Robles <jaime@kde.org>
+# SPDX-FileCopyrightText: 2003, 2005, 2007-2008 Jaime Robles <jaime@kde.org>
 # SPDX-FileCopyrightText: 2003 Miguel Revilla Rodríguez <yo@miguelrevilla.com>
 # SPDX-FileCopyrightText: 2004 Pablo de Vicente <p.devicente@wanadoo.es>
 # SPDX-FileCopyrightText: 2007 Enrique Matias Sanchez (aka Quique) <cronopios@gmail.com>
 # SPDX-FileCopyrightText: 2010 Cristina Yenyxe González García <the.blue.valkyrie@gmail.com>
 # SPDX-FileCopyrightText: 2012 Javier Vinal <fjvinal@gmail.com>
-# SPDX-FileCopyrightText: 2012, 2014, 2017, 2019, 2020, 2021, 2023, 2024, 2025 Eloy Cuadra <ecuadra@eloihr.net>
+# SPDX-FileCopyrightText: 2012, 2014, 2017, 2019-2021, 2023-2026 Eloy Cuadra <ecuadra@eloihr.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_style\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-06-04 19:33+0100\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
+"PO-Revision-Date: 2026-09-11 01:24+0100\n"
 "Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
 "Language-Team: Spanish <kde-l10n-es@kde.org>\n"
 "Language: es\n"
@@ -23,22 +23,166 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "First-Translator: Valux (Manuel Soriano) <manu@europa3.com>\n"
-"X-Generator: Lokalize 24.05.2\n"
+"X-Generator: Lokalize 26.08.0\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: gtkpage.cpp:58
+#: gtkpage.cpp:57
 #, kde-format
 msgid "%1 is not a valid GTK Theme archive."
 msgstr "%1 no es un archivo de tema de GTK válido."
 
-#: kcmstyle.cpp:163 kcmstyle.cpp:170
+#: kcmstyle.cpp:117
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: Cannot install a style from a remote location."
+msgstr ""
+"La instalación ha fallado: No se puede instalar un estilo desde una "
+"ubicación remota."
+
+#: kcmstyle.cpp:123
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The style file could not be read."
+msgstr "La instalación ha fallado: El archivo del estilo no se puede leer."
+
+#: kcmstyle.cpp:128
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The style file does not contain any data."
+msgstr "La instalación ha fallado: El archivo del estilo no contiene datos."
+
+#: kcmstyle.cpp:134
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The style file could not be unpacked."
+msgstr ""
+"La instalación ha fallado: El archivo del estilo no se puede desempaquetar."
+
+#: kcmstyle.cpp:144
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The style could not be found."
+msgstr "La instalación ha fallado: No se puede encontrar el estilo."
+
+#: kcmstyle.cpp:148
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The selected file is not a valid Union style."
+msgstr ""
+"La instalación ha fallado: El archivo seleccionado no es un estilo válido de "
+"Unión."
+
+#: kcmstyle.cpp:151
+#, kde-format
+msgctxt "@info:status"
+msgid "Installation failed: The selected style is not supported."
+msgstr "La instalación ha fallado: El estilo seleccionado no es compatible."
+
+#: kcmstyle.cpp:165
+#, kde-format
+msgctxt "@info:status"
+msgid "Installing “%1” failed: The style is already installed."
+msgstr "La instalación de «%1» ha fallado: El estilo ya estaba instalado."
+
+#: kcmstyle.cpp:170
+#, kde-format
+msgctxt "@info:status"
+msgid "Installing “%1” failed: Permission was denied."
+msgstr "La instalación de «%1» ha fallado: Se ha denegado el permiso."
+
+#: kcmstyle.cpp:174
+#, kde-format
+msgctxt "@info:status"
+msgid "Installing “%1” failed: %2"
+msgstr "La instalación de «%1» ha fallado: %2"
+
+#: kcmstyle.cpp:179
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully installed “%1”."
+msgstr "«%1» se ha instalado correctamente."
+
+#: kcmstyle.cpp:192
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstall failed: The style with ID “%1” could not be found."
+msgstr ""
+"La desinstalación ha fallado: No se ha podido encontrar el estilo con ID "
+"«%1»."
+
+#: kcmstyle.cpp:202
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstalling “%1” failed: Permission was denied."
+msgstr "La desinstalación de «%1» ha fallado: Se ha denegado el permiso."
+
+#: kcmstyle.cpp:204
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstalling “%1” failed: The style is not installed."
+msgstr "La desinstalación de «%1» ha fallado: El estilo no está instalado."
+
+#: kcmstyle.cpp:206
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstalling “%1” failed: The style is in use."
+msgstr "La desinstalación de «%1» ha fallado: El estilo se está usando."
+
+#: kcmstyle.cpp:208
+#, kde-format
+msgctxt "@info:status"
+msgid "Uninstalling “%1” failed: %2"
+msgstr "La desinstalación de «%1» ha fallado: %2"
+
+#: kcmstyle.cpp:223
+#, kde-format
+msgctxt "@info:status"
+msgid "Could not uninstall styles:\n"
+msgstr "No se han podido desinstalar los estilos:\n"
+
+#: kcmstyle.cpp:226
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully uninstalled “%1” but could not uninstall others:\n"
+msgstr ""
+"Se ha desinstalado «%1» correctamente, pero no se han podido desinstalar "
+"otros estilos:\n"
+
+#: kcmstyle.cpp:229
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully uninstalled %1 style but could not uninstall others:\n"
+msgid_plural ""
+"Successfully uninstalled %1 styles but could not uninstall others:\n"
+msgstr[0] ""
+"Se ha desinstalado %1 estilo correctamente, pero no se han podido "
+"desinstalar otros:\n"
+msgstr[1] ""
+"Se han desinstalado %1 estilos correctamente, pero no se han podido "
+"desinstalar otros:\n"
+
+#: kcmstyle.cpp:240
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully uninstalled “%1”."
+msgstr "Se ha desinstalado «%1» correctamente."
+
+#: kcmstyle.cpp:242
+#, kde-format
+msgctxt "@info:status"
+msgid "Successfully uninstalled %1 style"
+msgid_plural "Successfully uninstalled %1 styles."
+msgstr[0] "Se ha desinstalado %1 estilo correctamente."
+msgstr[1] "Se han desinstalado %1 estilos correctamente."
+
+#: kcmstyle.cpp:306 kcmstyle.cpp:313
 #, kde-format
 msgid "There was an error loading the configuration dialog for this style."
 msgstr ""
 "Se ha producido un error al cargar el diálogo de configuración de este "
 "estilo."
 
-#: kcmstyle.cpp:276
+#: kcmstyle.cpp:420
 #, kde-format
 msgid "Failed to apply selected style '%1'."
 msgstr "No se ha podido aplicar el estilo seleccionado «%1»."
@@ -54,39 +198,45 @@ msgstr "Configurar %1"
 msgid "Tab 1"
 msgstr "Pestaña 1"
 
-#. i18n: ectx: property (text), widget (QPushButton, pushButton)
+#. i18n: ectx: property (format), widget (QProgressBar, progressBar)
 #: stylepreview.ui:65
+#, no-c-format, kde-format
+msgid "%p%"
+msgstr "%p %"
+
+#. i18n: ectx: property (text), widget (QPushButton, pushButton)
+#: stylepreview.ui:85
 #, kde-format
-msgid "Push Button"
+msgid "Button"
 msgstr "Botón"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, comboBox)
-#: stylepreview.ui:86
+#: stylepreview.ui:99
 #, kde-format
 msgid "Combo box"
 msgstr "Lista desplegable"
 
 #. i18n: ectx: property (text), widget (QCheckBox, checkBox)
-#: stylepreview.ui:96
+#: stylepreview.ui:109
 #, kde-format
 msgid "Checkbox"
 msgstr "Casilla de selección"
 
 #. i18n: ectx: property (text), widget (QRadioButton, radioButton_2)
 #. i18n: ectx: property (text), widget (QRadioButton, radioButton_1)
-#: stylepreview.ui:106 stylepreview.ui:116
+#: stylepreview.ui:119 stylepreview.ui:129
 #, kde-format
 msgid "Radio button"
 msgstr "Botón de selección excluyente"
 
-#. i18n: ectx: property (format), widget (QProgressBar, progressBar)
-#: stylepreview.ui:128
-#, no-c-format, kde-format
-msgid "%p%"
-msgstr "%p %"
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, lineEdit)
+#: stylepreview.ui:138
+#, kde-format
+msgid "Text Field"
+msgstr "Campo de texto"
 
 #. i18n: ectx: attribute (title), widget (QWidget, tab_2)
-#: stylepreview.ui:136
+#: stylepreview.ui:146
 #, kde-format
 msgid "Tab 2"
 msgstr "Pestaña 2"
@@ -97,26 +247,32 @@ msgstr "Pestaña 2"
 msgid "Application style"
 msgstr "Estilo de las aplicaciones"
 
-#. i18n: ectx: label, entry (iconsOnButtons), group (KDE)
+#. i18n: ectx: label, entry (unionStyle), group (KDE)
 #: stylesettings.kcfg:13
+#, kde-format
+msgid "Union Style ID"
+msgstr "ID del estilo Unión"
+
+#. i18n: ectx: label, entry (iconsOnButtons), group (KDE)
+#: stylesettings.kcfg:17
 #, kde-format
 msgid "Show icons on buttons"
 msgstr "Mostrar iconos en botones"
 
 #. i18n: ectx: label, entry (iconsInMenus), group (KDE)
-#: stylesettings.kcfg:17
+#: stylesettings.kcfg:21
 #, kde-format
 msgid "Show icons in menus"
 msgstr "Mostrar iconos en menús"
 
 #. i18n: ectx: label, entry (toolButtonStyle), group (Toolbar style)
-#: stylesettings.kcfg:23
+#: stylesettings.kcfg:27
 #, kde-format
 msgid "Main toolbar label"
 msgstr "Etiqueta de la barra de herramientas principal"
 
 #. i18n: ectx: label, entry (toolButtonStyleOtherToolbars), group (Toolbar style)
-#: stylesettings.kcfg:27
+#: stylesettings.kcfg:31
 #, kde-format
 msgid "Secondary toolbar label"
 msgstr "Etiqueta de la barra de herramientas secundaria"
@@ -177,47 +333,155 @@ msgstr "Etiqueta de la barra de herramientas secundaria:"
 msgid "GNOME/GTK Application Style"
 msgstr "Estilo de las aplicaciones de GNOME/GTK"
 
+#: ui/GtkStylePage.qml:38
+#, kde-format
+msgctxt "@action:button"
+msgid "Install from File…"
+msgstr "Instalar desde archivo…"
+
 #: ui/GtkStylePage.qml:43
+#, kde-format
+msgctxt "@action:button"
+msgid "Get New…"
+msgstr "Obtener novedades…"
+
+#: ui/GtkStylePage.qml:60
 #, kde-format
 msgid "GTK theme:"
 msgstr "Tema de GTK:"
 
-#: ui/GtkStylePage.qml:68
+#: ui/GtkStylePage.qml:85
 #, kde-format
 msgid "Preview…"
 msgstr "Vista previa…"
 
-#: ui/GtkStylePage.qml:87
-#, kde-format
-msgid "Install from File…"
-msgstr "Instalar desde archivo…"
-
-#: ui/GtkStylePage.qml:92
-#, kde-format
-msgid "Get New GNOME/GTK Application Styles…"
-msgstr "Obtener nuevos estilos de aplicaciones GNOME/GTK…"
-
-#: ui/GtkStylePage.qml:108
+#: ui/GtkStylePage.qml:104
 #, kde-format
 msgid "Select GTK Theme Archive"
 msgstr "Seleccione un archivo de tema de GTK"
 
-#: ui/GtkStylePage.qml:110
+#: ui/GtkStylePage.qml:106
 #, kde-format
 msgid "GTK Theme Archive (*.tar.xz *.tar.gz *.tar.bz2)"
 msgstr "Archivos de temas de GTK (*.tar.xz *.tar.gz *.tar.bz2)"
 
-#: ui/main.qml:55
+#: ui/main.qml:85
+#, kde-format
+msgctxt "@action:button"
+msgid "Install From File…"
+msgstr "Instalar de archivo…"
+
+#: ui/main.qml:90
 #, kde-format
 msgid "Configure Icons and Toolbars…"
 msgstr "Configurar los iconos y las barras de herramientas…"
 
-#: ui/main.qml:73
+#: ui/main.qml:108
 #, kde-format
 msgid "Configure GNOME/GTK Application Style…"
 msgstr "Configurar el estilo de las aplicaciones de GNOME/GTK…"
 
-#: ui/main.qml:106
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"This style is using the Union style engine which is still under development. "
+"Some things may look or behave incorrectly when using this style."
+msgstr ""
+"Este estilo usa el motor de estilos Unión, que todavía sigue en desarrollo. "
+"Es posible que algo no luzca bien o que se comporte incorrectamente cuando "
+"use este estilo."
+
+#: ui/main.qml:174
 #, kde-format
 msgid "Configure Style…"
 msgstr "Configurar estilo…"
+
+#: ui/main.qml:182
+#, kde-format
+msgctxt "@action:button"
+msgid "Uninstall…"
+msgstr "Desinstalar…"
+
+#: ui/main.qml:184
+#, kde-format
+msgctxt "@action:button"
+msgid "Cannot uninstall system-installed styles."
+msgstr "No se pueden desinstalar estilos instalados para el sistema."
+
+#: ui/main.qml:186
+#, kde-format
+msgctxt "@action:button"
+msgid "Can only uninstall Union styles."
+msgstr "Solo se pueden desinstalar estilos de Unión."
+
+#: ui/main.qml:199
+#, kde-format
+msgid "Do not uninstall this style."
+msgstr "No desinstalar este estilo."
+
+#: ui/main.qml:245
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Choose Union Style to Install"
+msgstr "Escoja el estilo de Unión a instalar"
+
+#: ui/main.qml:246
+#, kde-format
+msgctxt "@action:button"
+msgid "Install"
+msgstr "Instalar"
+
+#: ui/UnionThumbnailItem.qml:25
+#, kde-format
+msgctxt "@title:tab"
+msgid "Tab 1"
+msgstr "Pestaña 1"
+
+#: ui/UnionThumbnailItem.qml:29
+#, kde-format
+msgctxt "@title:tab"
+msgid "Tab 2"
+msgstr "Pestaña 2"
+
+#: ui/UnionThumbnailItem.qml:50
+#, kde-format
+msgctxt "@option:check"
+msgid "Checkbox"
+msgstr "Casilla de verificación"
+
+#: ui/UnionThumbnailItem.qml:56 ui/UnionThumbnailItem.qml:62
+#, kde-format
+msgctxt "@option:radio"
+msgid "Radio Button"
+msgstr "Botón de selección"
+
+#: ui/UnionThumbnailItem.qml:84
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Combo Box"
+msgstr "Lista desplegable"
+
+#: ui/UnionThumbnailItem.qml:85
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Combo Box Item"
+msgstr "Elemento de lista desplegable"
+
+#: ui/UnionThumbnailItem.qml:94
+#, kde-format
+msgctxt "@action:button"
+msgid "Button"
+msgstr "Botón"
+
+#: ui/UnionThumbnailItem.qml:107
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Text Field"
+msgstr "Campo de texto"
+
+#: ui/UnionThumbnailItem.qml:122
+#, kde-format
+msgctxt "@item:inrange Progress bar value"
+msgid "%1%"
+msgstr "%1 %"

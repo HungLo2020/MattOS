@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcminput\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-02-03 21:46+0100\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-09-29 00:30+0200\n"
 "Last-Translator: Shinjo Park <kde@peremen.name>\n"
 "Language-Team: Korean <kde-kr@kde.org>\n"
 "Language: ko\n"
@@ -16,24 +16,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Lokalize 25.08.1\n"
+"X-Generator: Lokalize 25.12.3\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr "입력 장치를 조회할 수 없습니다. 설정 모듈을 다시 여십시오."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr "%1의 정보를 조회하는 중 치명적인 오류가 발생했습니다."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "적합한 백엔드를 선택할 수 없음"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -42,12 +32,12 @@ msgstr ""
 "값을 불러오는 중 오류가 발생했습니다. 더 많은 정보를 보려면 로그를 참조하십시"
 "오. 이 설정 모듈을 다시 시작하십시오."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "포인터 장치를 찾을 수 없습니다. 연결해 주십시오."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -56,7 +46,7 @@ msgstr ""
 "모든 설정을 저장할 수 없었습니다. 더 많은 정보를 보려면 로그를 참조하십시오. "
 "이 설정 모듈을 다시 시작한 다음 다시 시도하십시오."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -65,7 +55,7 @@ msgstr ""
 "기본값을 불러오는 중 오류가 발생했습니다. 일부 옵션을 기본값으로 초기화할 수 "
 "없었습니다."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -74,13 +64,13 @@ msgstr ""
 "새로 연결된 장치를 추가하는 중 오류가 발생했습니다. 장치를 다시 연결한 다음 "
 "이 설정 모듈을 다시 시작하십시오."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr ""
 "포인터 장치가 연결 해제되었습니다. 해당 장치 설정 대화 상자를 닫았습니다."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr "포인터 장치가 연결 해제되었습니다. 다른 장치를 찾을 수 없습니다."
@@ -139,37 +129,37 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "장치:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, kde-format
 msgctxt "@title:group"
 msgid "General:"
 msgstr "일반:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr "장치 활성화"
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, kde-format
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "왼쪽과 오른쪽 단추:"
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, kde-format
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "바꾸기(왼손잡이 모드)"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
 msgstr "두 단추를 같이 클릭해서 가운데 단추 클릭"
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -179,19 +169,19 @@ msgstr ""
 "이 설정을 사용하면 클릭 지연 시간을 50 ms 추가합니다. 마우스 왼쪽과 오른쪽 단"
 "추를 같이 누른 것을 올바르게 감지하기 위해서 추가 지연 시간이 필요합니다."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "포인터 속도:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "포인터 가속 활성화"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -199,43 +189,49 @@ msgid ""
 msgstr ""
 "이 설정을 사용하면 포인터 이동 속도가 빨라지면 그만큼 이동 거리가 증가합니다."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "스크롤 속도:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "느리게"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "빠르게"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "스크롤:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "스크롤 방향 뒤집기"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr "마우스 가운데 단추를 누르면서 이동하여 스크롤"
+msgid "Scroll when moving the pointer"
+msgstr "포인터를 움직일 때 스크롤"
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr "가운데 단추를 누르고 있을 때"
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -247,6 +243,34 @@ msgstr ""
 "일부 그림 편집기, 문서 뷰어, 게임 등 가운데 단추 드래그를 사용하는 앱에서는 "
 "의도한 대로 작동하지 않을 수도 있습니다. 장치에 관계 없이 사용할 수 있으나, "
 "스크롤 휠이 없는 장치에서 스크롤 휠 대체용으로 사용될 것을 가정했습니다."
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr "가운데 단추를 클릭한 후"
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+"이 설정은 가운데 단추 클릭에 간섭합니다. 앱에서 가운데 단추 한 번 클릭 기능"
+"을 사용하려면 가운데 단추를 두 번 클릭하십시오. 가운데 단추 드래그에도 해당합"
+"니다."
+
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr "마우스 가운데 단추를 누르면서 이동하여 스크롤"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "적합한 백엔드를 선택할 수 없음"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr "입력 장치를 조회할 수 없습니다. 설정 모듈을 다시 여십시오."
 
 #~ msgid "Device enabled"
 #~ msgstr "장치 활성화됨"

@@ -11,7 +11,10 @@
 #include "connection_p.h"
 #include "connectionbackend_p.h"
 #include "kiocoredebug.h"
+#include "socketconnectionbackend_p.h"
+#include <QDataStream>
 #include <QDebug>
+#include <QIODevice>
 
 #include <cerrno>
 
@@ -24,7 +27,7 @@ void ConnectionPrivate::dequeue()
     }
 
     for (const Task &task : std::as_const(outgoingTasks)) {
-        q->sendnow(task.cmd, task.data);
+        q->sendnow(task.cmd, task.payload);
     }
     outgoingTasks.clear();
 
@@ -53,15 +56,14 @@ void ConnectionPrivate::disconnected()
     }
 }
 
-void ConnectionPrivate::setBackend(ConnectionBackend *b)
+void ConnectionPrivate::setBackend(std::unique_ptr<ConnectionBackend> b)
 {
-    delete backend;
-    backend = b;
+    backend = std::move(b);
     if (backend) {
-        q->connect(backend, &ConnectionBackend::commandReceived, q, [this](const Task &task) {
+        q->connect(backend.get(), &ConnectionBackend::commandReceived, q, [this](const Task &task) {
             commandReceived(task);
         });
-        q->connect(backend, &ConnectionBackend::disconnected, q, [this]() {
+        q->connect(backend.get(), &ConnectionBackend::disconnected, q, [this]() {
             disconnected();
         });
         backend->setSuspended(suspended);
@@ -111,8 +113,11 @@ void Connection::close()
 {
     if (d->backend) {
         d->backend->disconnect(this);
-        d->backend->deleteLater();
-        d->backend = nullptr;
+        // close() unblocks a WorkerThread parked in waitForReadyRead(). The backend itself is
+        // left owned by the unique_ptr and freed on destruction: deleting it here would either leak
+        // at teardown (deleteLater() with no event loop) or delete it from inside its own
+        // disconnected() signal.
+        d->backend->close();
     }
     d->outgoingTasks.clear();
     d->incomingTasks.clear();
@@ -125,7 +130,7 @@ bool Connection::isConnected() const
 
 bool Connection::inited() const
 {
-    return d->backend;
+    return d->backend != nullptr;
 }
 
 bool Connection::suspended() const
@@ -138,19 +143,22 @@ void Connection::connectToRemote(const QUrl &address)
     // qDebug() << "Connection requested to" << address;
     const QString scheme = address.scheme();
 
-    if (scheme == QLatin1String("local")) {
-        d->setBackend(new ConnectionBackend(this));
-    } else {
+    if (scheme != QLatin1String("local")) {
         qCWarning(KIO_CORE) << "Unknown protocol requested:" << scheme << "(" << address << ")";
         Q_ASSERT(0);
         return;
     }
 
+    // connectToRemote is socket-specific, so call it on the concrete backend. setBackend first so
+    // commandReceived/disconnected are wired before the connection can deliver anything.
+    auto socketBackend = std::make_unique<SocketConnectionBackend>();
+    auto *backendPtr = socketBackend.get();
+    d->setBackend(std::move(socketBackend));
+
     // connection succeeded
-    if (!d->backend->connectToRemote(address)) {
+    if (!backendPtr->connectToRemote(address)) {
         // qCWarning(KIO_CORE) << "could not connect to" << address << "using scheme" << scheme;
-        delete d->backend;
-        d->backend = nullptr;
+        d->backend.reset();
         return;
     }
 
@@ -168,25 +176,40 @@ bool Connection::send(int cmd, const QByteArray &data)
         return false;
     }
     if (!inited() || !d->outgoingTasks.isEmpty()) {
-        Task task;
-        task.cmd = cmd;
-        task.data = data;
-        d->outgoingTasks.append(std::move(task));
+        d->outgoingTasks.append(Task{.cmd = cmd, .payload = data});
         return true;
     } else {
         return sendnow(cmd, data);
     }
 }
 
+bool Connection::send(int cmd, const TaskPayload &payload)
+{
+    if (m_type == Type::Worker && !inited()) {
+        qCWarning(KIO_CORE) << "Connection::send() called with connection not inited";
+        return false;
+    }
+    if (!inited() || !d->outgoingTasks.isEmpty()) {
+        d->outgoingTasks.append(Task{.cmd = cmd, .payload = payload});
+        return true;
+    }
+    return sendnow(cmd, payload);
+}
+
+bool Connection::sendnow(int cmd, const TaskPayload &payload)
+{
+    if (!isConnected()) {
+        qCWarning(KIO_CORE) << "Connection::sendnow not connected";
+        return false;
+    }
+
+    return d->backend->sendPayload(cmd, payload);
+}
+
 bool Connection::sendnow(int cmd, const QByteArray &data)
 {
     if (!d->backend) {
         qCWarning(KIO_CORE) << "Connection::sendnow has no backend";
-        return false;
-    }
-
-    if (data.size() > 0xffffff) {
-        qCWarning(KIO_CORE) << "Connection::sendnow too much data";
         return false;
     }
 
@@ -216,7 +239,7 @@ bool Connection::waitForIncomingTask(int ms)
     return false;
 }
 
-int Connection::read(int *_cmd, QByteArray &data)
+int Connection::read(int *_cmd, QByteArray &data, TaskPayload *payload)
 {
     // if it's still empty, then it's an error
     if (d->incomingTasks.isEmpty()) {
@@ -224,9 +247,12 @@ int Connection::read(int *_cmd, QByteArray &data)
         return -1;
     }
     const Task &task = d->incomingTasks.constFirst();
-    // qDebug() << this << "Command" << task.cmd << "removed from the queue (size" << task.data.size() << ")";
+    // qDebug() << this << "Command" << task.cmd << "removed from the queue";
     *_cmd = task.cmd;
-    data = task.data;
+    data = task.bytes();
+    if (payload) {
+        *payload = task.payload;
+    }
 
     d->incomingTasks.removeFirst();
 
@@ -244,6 +270,11 @@ int Connection::read(int *_cmd, QByteArray &data)
 void Connection::setReadMode(ReadMode readMode)
 {
     d->readMode = readMode;
+}
+
+void Connection::setBackend(std::unique_ptr<ConnectionBackend> backend)
+{
+    d->setBackend(std::move(backend));
 }
 
 #include "moc_connection_p.cpp"

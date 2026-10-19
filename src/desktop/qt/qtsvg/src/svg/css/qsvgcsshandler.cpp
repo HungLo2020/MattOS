@@ -5,8 +5,8 @@
 #include "qsvgcsshandler_p.h"
 #include <QtSvg/private/qsvgstyleselector_p.h>
 #include <QtSvg/private/qsvganimatedproperty_p.h>
-#include <QtSvg/private/qsvgutils_p.h>
 #include <QtGui/private/qmath_p.h>
+#include <QtGui/private/qguisvg_p.h>
 #include <QtCore/qlist.h>
 
 QT_BEGIN_NAMESPACE
@@ -16,7 +16,39 @@ namespace {
 struct CssKeyFrameValue{
     qreal keyFrame;
     QList<QCss::Value> values;
+    QCss::Declaration timingFunction;
 };
+
+bool fillPropertyEasing(const QList<CssKeyFrameValue> &keyFrames, QSvgAbstractAnimatedProperty *prop)
+{
+    for (const CssKeyFrameValue &keyFrameValue : keyFrames) {
+        QStringView timingFunctionStr = QSvgCssHandler::parseDecltoString(keyFrameValue.timingFunction);
+        QSvgEasingInterfacePtr easing;
+        if (timingFunctionStr == QStringLiteral("linear")) {
+            easing = QSvgCssHandler::createEasing(QSvgCssValues::EasingFunction::Linear);
+        } else if (timingFunctionStr == QStringLiteral("ease-in")) {
+            easing = QSvgCssHandler::createEasing(QSvgCssValues::EasingFunction::EaseIn);
+        } else if (timingFunctionStr == QStringLiteral("ease-out")) {
+            easing = QSvgCssHandler::createEasing(QSvgCssValues::EasingFunction::EaseOut);
+        } else if (timingFunctionStr == QStringLiteral("ease-in-out")) {
+            easing = QSvgCssHandler::createEasing(QSvgCssValues::EasingFunction::EaseInOut);
+        } else if (timingFunctionStr == QStringLiteral("step-end")) {
+            easing = QSvgCssHandler::createEasing(QSvgCssValues::EasingFunction::Steps,
+                                                  QSvgCssValues::StepValues{quint32(1),
+                                                  QSvgCssValues::StepPosition::End});
+        } else if (timingFunctionStr == QStringLiteral("step-start")) {
+            easing = QSvgCssHandler::createEasing(QSvgCssValues::EasingFunction::Steps,
+                                                  QSvgCssValues::StepValues{quint32(1),
+                                                  QSvgCssValues::StepPosition::Start});
+        }
+
+        prop->appendEasing(std::move(easing));
+    }
+
+
+
+    return true;
+}
 
 bool fillColorProperty(const QList<CssKeyFrameValue> &keyFrames, QSvgAnimatedPropertyColor *prop)
 {
@@ -123,26 +155,26 @@ bool fillTransformProperty(const QList<CssKeyFrameValue> &keyFrames, QSvgAnimate
                         QStringView{ lst.value(1) }.split(QStringLiteral(","), Qt::SkipEmptyParts);
                 if (transformType == QStringLiteral("scale")) {
                     QSvgAnimatedPropertyTransform::TransformComponent component;
-                    qreal scale0 = QSvgUtils::toDouble(args.value(0).trimmed());
-                    qreal scale1 = QSvgUtils::toDouble(args.value(1).trimmed());
+                    qreal scale0 = QGuiSvg::toDouble(args.value(0).trimmed());
+                    qreal scale1 = QGuiSvg::toDouble(args.value(1).trimmed());
                     component.type = QSvgAnimatedPropertyTransform::TransformComponent::Scale;
                     component.values.append(scale0);
                     component.values.append(scale1);
                     components.append(component);
                 } else if (transformType == QStringLiteral("translate")) {
                     QSvgAnimatedPropertyTransform::TransformComponent component;
-                    QSvgUtils::LengthType type;
-                    qreal translate0 = QSvgUtils::parseLength(args.value(0), &type);
-                    translate0 = QSvgUtils::convertToPixels(translate0, false, type);
-                    qreal translate1 = QSvgUtils::parseLength(args.value(1), &type);
-                    translate1 = QSvgUtils::convertToPixels(translate1, false, type);
+                    QGuiSvg::LengthType type;
+                    qreal translate0 = QGuiSvg::parseLength(args.value(0), &type);
+                    translate0 = QGuiSvg::convertToPixels(translate0, false, type);
+                    qreal translate1 = QGuiSvg::parseLength(args.value(1), &type);
+                    translate1 = QGuiSvg::convertToPixels(translate1, false, type);
                     component.type = QSvgAnimatedPropertyTransform::TransformComponent::Translate;
                     component.values.append(translate0);
                     component.values.append(translate1);
                     components.append(component);
                 } else if (transformType == QStringLiteral("rotate")) {
                     QSvgAnimatedPropertyTransform::TransformComponent component;
-                    qreal rotationAngle = QSvgUtils::parseAngle(args.value(0)).value_or(0);
+                    qreal rotationAngle = QGuiSvg::parseAngle(args.value(0)).value_or(0);
                     component.type = QSvgAnimatedPropertyTransform::TransformComponent::Rotate;
                     component.values.append(rotationAngle);
                     component.values.append(0);
@@ -150,23 +182,23 @@ bool fillTransformProperty(const QList<CssKeyFrameValue> &keyFrames, QSvgAnimate
                     components.append(component);
                 } else if (transformType == QStringLiteral("skew")) {
                     QSvgAnimatedPropertyTransform::TransformComponent component;
-                    qreal skew0 = QSvgUtils::parseAngle(args.value(0)).value_or(0);
-                    qreal skew1 = QSvgUtils::parseAngle(args.value(1)).value_or(0);
+                    qreal skew0 = QGuiSvg::parseAngle(args.value(0)).value_or(0);
+                    qreal skew1 = QGuiSvg::parseAngle(args.value(1)).value_or(0);
                     component.type = QSvgAnimatedPropertyTransform::TransformComponent::Skew;
                     component.values.append(skew0);
                     component.values.append(skew1);
                     components.append(component);
                 } else if (transformType == QStringLiteral("matrix")) {
                     QSvgAnimatedPropertyTransform::TransformComponent component1, component2, component3;
-                    QSvgUtils::LengthType type;
-                    qreal translate0 = QSvgUtils::parseLength(args.value(4), &type);
-                    translate0 = QSvgUtils::convertToPixels(translate0, false, type);
-                    qreal translate1 = QSvgUtils::parseLength(args.value(5), &type);
-                    translate1 = QSvgUtils::convertToPixels(translate1, false, type);
-                    qreal scale0 = QSvgUtils::toDouble(args.value(0).trimmed());
-                    qreal scale1 = QSvgUtils::toDouble(args.value(3).trimmed());
-                    qreal skew0 = QSvgUtils::toDouble((args.value(1).trimmed()));
-                    qreal skew1 = QSvgUtils::toDouble((args.value(2).trimmed()));
+                    QGuiSvg::LengthType type;
+                    qreal translate0 = QGuiSvg::parseLength(args.value(4), &type);
+                    translate0 = QGuiSvg::convertToPixels(translate0, false, type);
+                    qreal translate1 = QGuiSvg::parseLength(args.value(5), &type);
+                    translate1 = QGuiSvg::convertToPixels(translate1, false, type);
+                    qreal scale0 = QGuiSvg::toDouble(args.value(0).trimmed());
+                    qreal scale1 = QGuiSvg::toDouble(args.value(3).trimmed());
+                    qreal skew0 = QGuiSvg::toDouble((args.value(1).trimmed()));
+                    qreal skew1 = QGuiSvg::toDouble((args.value(2).trimmed()));
                     component1.type = QSvgAnimatedPropertyTransform::TransformComponent::Translate;
                     component1.values.append(translate0);
                     component1.values.append(translate1);
@@ -250,7 +282,8 @@ QSvgCssAnimation *QSvgCssHandler::createAnimation(QStringView name)
     QHash<QString, QList<CssKeyFrameValue>> keyFrameValues;
     for (const auto &ruleSet : std::as_const(animationRule.ruleSets)) {
         for (const QCss::Declaration &decl : ruleSet.declarations) {
-            CssKeyFrameValue keyFrameValue = {ruleSet.keyFrame, decl.d->values};
+            QCss::Value timingFunction;
+            CssKeyFrameValue keyFrameValue = {ruleSet.keyFrame, decl.d->values, ruleSet.timingFunction};
             QList<CssKeyFrameValue> &value = keyFrameValues[decl.d->property];
             value.append(keyFrameValue);
         }
@@ -274,6 +307,7 @@ QSvgCssAnimation *QSvgCssHandler::createAnimation(QStringView name)
         else if (property == QLatin1StringView("offset-distance"))
             result = fillOffsetDistanceProperty(keyFrames, static_cast<QSvgAnimatedPropertyFloat*>(prop));
 
+        result &= fillPropertyEasing(keyFrames, prop);
         if (!result) {
             delete prop;
             continue;
@@ -335,67 +369,75 @@ void QSvgCssHandler::parseStyleSheet(const QStringView str)
     collectAnimations(sheet);
 }
 
-void QSvgCssHandler::parseCSStoXMLAttrs(const QList<QCss::Declaration> &declarations, QXmlStreamAttributes &attributes) const
+QString QSvgCssHandler::parseDecltoString(const QCss::Declaration &decl)
 {
-    for (int i = 0; i < declarations.size(); ++i) {
-        const QCss::Declaration &decl = declarations.at(i);
-        if (decl.d->property.isEmpty())
-            continue;
-        QString valueStr;
-        const int valCount = decl.d->values.size();
-        for (int i = 0; i < valCount; ++i) {
-            QCss::Value val = decl.d->values.at(i);
-            switch (val.type) {
-            case QCss::Value::TermOperatorComma:
-                valueStr += QLatin1Char(';');
-                break;
-            case QCss::Value::Uri:
-            {
-                QString temp = val.toString();
-                temp.prepend(QLatin1String("url("));
-                temp.append(QLatin1Char(')'));
-                valueStr += temp;
-                break;
+    if (decl.d->property.isEmpty())
+        return QString();
+
+    QString valueStr;
+    const int valCount = decl.d->values.size();
+    for (int i = 0; i < valCount; ++i) {
+        QCss::Value val = decl.d->values.at(i);
+        switch (val.type) {
+        case QCss::Value::TermOperatorComma:
+            valueStr += QLatin1Char(';');
+            break;
+        case QCss::Value::Uri:
+        {
+            QString temp = val.toString();
+            temp.prepend(QLatin1String("url("));
+            temp.append(QLatin1Char(')'));
+            valueStr += temp;
+            break;
+        }
+        case QCss::Value::Function:
+        {
+            QStringList lst = val.variant.toStringList();
+            valueStr.append(lst.at(0));
+            valueStr.append(QLatin1Char('('));
+            for (int i = 1; i < lst.size(); ++i) {
+                valueStr.append(lst.at(i));
+                if ((i +1) < lst.size())
+                    valueStr.append(QLatin1Char(','));
             }
-            case QCss::Value::Function:
-            {
-                QStringList lst = val.variant.toStringList();
-                valueStr.append(lst.at(0));
-                valueStr.append(QLatin1Char('('));
-                for (int i = 1; i < lst.size(); ++i) {
-                    valueStr.append(lst.at(i));
-                    if ((i +1) < lst.size())
-                        valueStr.append(QLatin1Char(','));
-                }
-                valueStr.append(QLatin1Char(')'));
+            valueStr.append(QLatin1Char(')'));
+            break;
+        }
+        case QCss::Value::KnownIdentifier:
+            switch (val.variant.toInt()) {
+            case QCss::Value_None:
+                valueStr += QLatin1String("none");
                 break;
-            }
-            case QCss::Value::KnownIdentifier:
-                switch (val.variant.toInt()) {
-                case QCss::Value_None:
-                    valueStr += QLatin1String("none");
-                    break;
-                case QCss::Value_Auto:
-                    valueStr += QLatin1String("auto");
-                    break;
-                default:
-                    valueStr += val.toString();
-                    break;
-                }
-                break;
-            case QCss::Value::Percentage:
-                valueStr += val.toString() + QLatin1Char('%');
+            case QCss::Value_Auto:
+                valueStr += QLatin1String("auto");
                 break;
             default:
                 valueStr += val.toString();
                 break;
             }
-
-            if (i + 1 < valCount)
-                valueStr += QLatin1Char(' ');
+            break;
+        case QCss::Value::Percentage:
+            valueStr += val.toString() + QLatin1Char('%');
+            break;
+        default:
+            valueStr += val.toString();
+            break;
         }
 
-        attributes.append(QString(), decl.d->property, valueStr);
+        if (i + 1 < valCount)
+            valueStr += QLatin1Char(' ');
+    }
+
+    return valueStr;
+}
+
+void QSvgCssHandler::parseCSStoXMLAttrs(const QList<QCss::Declaration> &declarations, QXmlStreamAttributes &attributes) const
+{
+    for (int i = 0; i < declarations.size(); ++i) {
+        const QCss::Declaration &decl = declarations.at(i);
+        QString valueStr = parseDecltoString(decl);
+        if (!valueStr.isEmpty())
+            attributes.append(QString(), decl.d->property, valueStr);
     }
 }
 

@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-02-08 17:38+0000\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-03-31 13:50+0100\n"
 "Last-Translator: Sergiu Bivol <sergiu@cip.md>\n"
 "Language-Team: Romanian <kde-i18n-ro@kde.org>\n"
 "Language: ro\n"
@@ -68,21 +68,21 @@ msgstr "Ține deasupra altor ferestre"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr "Ascunde din difuzarea ecranului"
+msgid "Hide from screenshots and screen recordings"
+msgstr ""
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
 msgstr "Spațiator"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Implicită a tematicii (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -93,7 +93,7 @@ msgstr ""
 "pentru sesiunea activă, fără a o stabili din greșeală la una indisponibilă "
 "sau care e deja stabilită."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -104,13 +104,13 @@ msgstr ""
 "pentru KWin. Transmiterea unei căi complete va duce la încercarea de a găsi "
 "o tematică în acel dosar, apoi aplicarea aceleia dacă poate fi dedusă."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr "Arată toate tematicile disponibile în sistem (și care e cea actuală)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -119,7 +119,7 @@ msgstr ""
 "%1 a fost rezolvat la tematica Aurorae KWin „%2” și se va încerca stabilirea "
 "acesteia ca tematică actuală."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -129,7 +129,7 @@ msgstr ""
 "rezolvată la o tematică și operațiunea trebuie abandonată din cauză că nu "
 "este nicio tematică de stabilit"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
@@ -137,14 +137,15 @@ msgstr ""
 "Tematica cerută „%1” e stabilită deja ca tematică pentru decorațiunile "
 "ferestrelor."
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr ""
-"Tematica pentru cursor %1 a fost aplicată cu succes la sesiunea Plasma "
+"Tematica pentru indicator %1 a fost aplicată cu succes la sesiunea Plasma "
 "actuală"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -153,7 +154,7 @@ msgstr ""
 "Salvarea configurărilor de tematică a eșuat – motivul e necunoscut, dar "
 "această eroare e fatală. Încercați iar, s-ar putea să funcționeze."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -162,7 +163,7 @@ msgstr ""
 "Tematica „%1” nu a putut fi găsită. Tematica trebuie să fie una dintre "
 "următoarele opțiuni: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr ""
@@ -208,27 +209,37 @@ msgid "Show titlebar button tooltips"
 msgstr "Arată indicii pentru butoanele barei de titlu"
 
 #: ui/ConfigureTitlebar.qml:73
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@option:check"
+#| msgid "Always show \"Hide from Screencast\" button"
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
 msgstr "Arată mereu butonul de ascundere din difuzarea ecranului"
 
 #: ui/ConfigureTitlebar.qml:85
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid ""
+#| "When unchecked the button only appears if the window is hidden from "
+#| "screencast"
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
 "Când nu e bifat, butonul apare doar dacă fereastra e ascunsă de la difuzarea "
 "ecranului"
 
 #: ui/ConfigureTitlebar.qml:86
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid ""
+#| "To enable this option, add the \"Hide from screencast\" button to the "
+#| "titlebar first"
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
 "Pentru a activa această opțiune, adăugați mai întâi butonul „Ascunde din "
 "difuzarea ecranului” pe bara de titlu"
@@ -256,50 +267,53 @@ msgstr "Obține noi…"
 msgid "Edit %1 Theme…"
 msgstr "Modifică tematica %1…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Fără contur al ferestrelor"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Fără contur lateral al ferestrelor"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Contur minuscul al ferestrelor"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Contur normal al ferestrelor"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Contur mare al ferestrelor"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Contur foarte mare al ferestrelor"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Contur imens al ferestrelor"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Contur foarte imens al ferestrelor"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Contur supradimensionat al ferestrelor"
+
+#~ msgid "Hide from screencast"
+#~ msgstr "Ascunde din difuzarea ecranului"
 
 #~ msgid "More actions for this window"
 #~ msgstr "Acțiuni suplimentare pentru această fereastră"

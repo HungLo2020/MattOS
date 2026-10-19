@@ -33,10 +33,9 @@ DEFAULT_SOCKET = Path("out/qemu/test-control/qmp.sock")
 DEFAULT_SERIAL_SOCKET = Path("out/qemu/test-control/serial.sock")
 QMP_TIMEOUT_SECONDS = 10.0
 SERIAL_PROMPT_WAKEUP = b"\r"
-# QEMU's USB tablet exposes absolute axes in the full unsigned 16-bit range.
-# Keep this tied to the emulated device contract rather than the guest's
-# screen dimensions; the latter are used only to convert screenshot pixels.
-QMP_ABSOLUTE_AXIS_MAX = 65535
+# QMP normalizes absolute input to 0..0x7fff independently of the tablet's
+# hardware axis range. Screen dimensions only convert screenshot pixels.
+QMP_ABSOLUTE_AXIS_MAX = 0x7FFF
 GRUB_PROMPT = b"grub>"
 LIVE_USERSPACE_SIGNATURES = (b"systemd[", b"MattOS Live Environment", b"login:")
 # Brush emits OSC shell-integration records immediately before its prompt, so
@@ -467,7 +466,7 @@ def display_size(client: QmpClient) -> tuple[int, int]:
 def click(client: QmpClient, x: int, y: int, width: int, height: int) -> None:
     if not 0 <= x < width or not 0 <= y < height:
         raise QmpError(f"click ({x}, {y}) is outside {width}x{height}")
-    # QMP's USB-tablet absolute axes are 0..65535, while screendump coordinates
+    # QMP's normalized absolute axes are 0..0x7fff, while screendump coordinates
     # are pixels. Scale against the dimensions captured from this guest, not
     # a host/window-size guess. HMP mouse_move is relative and therefore
     # cannot safely represent a screenshot coordinate.

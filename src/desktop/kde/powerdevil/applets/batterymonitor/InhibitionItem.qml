@@ -5,16 +5,13 @@
 
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
 
 import org.kde.notification
-import org.kde.kwindowsystem as KWindowSystem
 import org.kde.plasma.components as PlasmaComponents3
-import org.kde.plasma.extras as PlasmaExtras
-import org.kde.ksvg as KSvg
 import org.kde.kirigami as Kirigami
 
 PlasmaComponents3.ItemDelegate {
@@ -23,6 +20,7 @@ PlasmaComponents3.ItemDelegate {
     property bool pluggedIn
 
     signal inhibitionChangeRequested(bool inhibit)
+    signal inhibitionAllowedRequested(string name, string reason, bool allowed)
 
     property bool isManuallyInhibited
     property bool isManuallyInhibitedError
@@ -76,7 +74,7 @@ PlasmaComponents3.ItemDelegate {
         spacing: Kirigami.Units.gridUnit
 
         Kirigami.Icon {
-            id: icon
+            id: inhibitionIcon
             source: (root.isManuallyInhibited || root.numActiveIdleOrSleepInhibitions > 0) ? "system-suspend-inhibited" : "system-suspend-uninhibited"
             Layout.alignment: Qt.AlignTop
             Layout.preferredWidth: Kirigami.Units.iconSizes.medium
@@ -85,7 +83,7 @@ PlasmaComponents3.ItemDelegate {
 
         ColumnLayout {
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignTop
+            Layout.alignment: Qt.AlignVCenter
             spacing: Kirigami.Units.smallSpacing
 
             // UI to undo manually inhibit sleep and screen locking
@@ -100,9 +98,7 @@ PlasmaComponents3.ItemDelegate {
                     }
                 }
 
-                onToggled: {
-                    inhibitionChangeRequested(!root.isManuallyInhibited);
-                }
+                onToggled: root.inhibitionChangeRequested(!root.isManuallyInhibited);
 
                 Connections {
                     target: root
@@ -147,6 +143,7 @@ PlasmaComponents3.ItemDelegate {
                 model: root.requestedInhibitions
 
                 InhibitionHint {
+                    id: inhibitionHint
                     required property string icon
                     required property string appName
                     required property string prettyName
@@ -157,7 +154,7 @@ PlasmaComponents3.ItemDelegate {
 
                     Layout.fillWidth: true
 
-                    iconSource: icon || (KWindowSystem.KWindowSystem.isPlatformWayland ? "wayland" : "xorg")
+                    iconSource: icon || "wayland"
                     text: {
                         const why = reason ?? i18nc("An application's reason for inhibiting sleep and/or screen locking", "Unknown reason.");
 
@@ -193,18 +190,18 @@ PlasmaComponents3.ItemDelegate {
 
                     PlasmaComponents3.Button {
                         id: suppressInhibitionMenuButton
-                        visible: allowed
+                        visible: inhibitionHint.allowed
                         text: i18nc("@action:button Prevent an app from blocking automatic sleep and screen locking after inactivity", "Unblock")
                         icon.name: "edit-delete-remove"
-                        onClicked: pmControl.setInhibitionAllowed(appName, reason, false)
+                        onClicked: root.inhibitionAllowedRequested(inhibitionHint.appName, inhibitionHint.reason, false)
                     }
 
                     PlasmaComponents3.Button {
                         id: allowInhibitionMenuButton
-                        visible: !allowed
+                        visible: !inhibitionHint.allowed
                         text: i18nc("@action:button Undo preventing an app from blocking automatic sleep and screen locking after inactivity", "Allow")
                         icon.name: "dialog-ok"
-                        onClicked: pmControl.setInhibitionAllowed(appName, reason, true)
+                        onClicked: root.inhibitionAllowedRequested(inhibitionHint.appName, inhibitionHint.reason, true)
                     }
                 }
             }

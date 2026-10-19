@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_wallpaper_image\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-17 02:39+0000\n"
-"PO-Revision-Date: 2026-02-03 23:37+0100\n"
+"POT-Creation-Date: 2026-06-21 00:46+0000\n"
+"PO-Revision-Date: 2026-09-28 23:35+0200\n"
 "Last-Translator: Shinjo Park <kde@peremen.name>\n"
 "Language-Team: Korean <kde-kr@kde.org>\n"
 "Language: ko\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Lokalize 25.08.1\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -27,101 +27,101 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "kde@peremen.name"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:59
+#: imagepackage/contents/ui/AddFileDialog.qml:56
 #, kde-format
 msgctxt "@title:window"
 msgid "Open Image"
 msgstr "그림 열기"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:71
+#: imagepackage/contents/ui/AddFileDialog.qml:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Directory with the wallpaper to show slides from"
 msgstr "슬라이드 쇼에 사용할 그림이 있는 디렉터리 선택"
 
-#: imagepackage/contents/ui/config.qml:146
+#: imagepackage/contents/ui/config.qml:156
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Positioning:"
 msgstr "위치:"
 
-#: imagepackage/contents/ui/config.qml:149
+#: imagepackage/contents/ui/config.qml:159
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled and cropped"
 msgstr "크기 조정 후 자르기"
 
-#: imagepackage/contents/ui/config.qml:153
+#: imagepackage/contents/ui/config.qml:163
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled"
 msgstr "크기 조정"
 
-#: imagepackage/contents/ui/config.qml:157
+#: imagepackage/contents/ui/config.qml:167
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled, keep proportions"
 msgstr "크기 조정, 비율 유지"
 
-#: imagepackage/contents/ui/config.qml:161
+#: imagepackage/contents/ui/config.qml:171
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered"
 msgstr "가운데"
 
-#: imagepackage/contents/ui/config.qml:189
+#: imagepackage/contents/ui/config.qml:199
 #, kde-format
 msgctxt ""
 "@label:listbox part of a sentence: 'Switch dynamic wallpapers [based on]'"
 msgid "Switch dynamic wallpapers:"
 msgstr "동적 배경 그림 전환:"
 
-#: imagepackage/contents/ui/config.qml:197
+#: imagepackage/contents/ui/config.qml:207
 #, kde-format
 msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on whether the Plasma style is light or dark "
 msgstr "Plasma 스타일이 밝음인가 어두움인가에 따라서"
 
-#: imagepackage/contents/ui/config.qml:199
+#: imagepackage/contents/ui/config.qml:209
 #, kde-format
 msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on the day-night cycle"
 msgstr "주간-야간 전환에 따라서"
 
-#: imagepackage/contents/ui/config.qml:203
+#: imagepackage/contents/ui/config.qml:213
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use light variant"
 msgstr "항상 밝음 항목 사용"
 
-#: imagepackage/contents/ui/config.qml:207
+#: imagepackage/contents/ui/config.qml:217
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use dark variant"
 msgstr "항상 어두움 항목 사용"
 
-#: imagepackage/contents/ui/config.qml:221
+#: imagepackage/contents/ui/config.qml:231
 #, kde-format
 msgctxt "@action:button Configure day-night cycle times"
 msgid "Configure…"
 msgstr "설정…"
 
-#: imagepackage/contents/ui/config.qml:232
+#: imagepackage/contents/ui/config.qml:242
 #, kde-format
 msgid "Background:"
 msgstr "배경:"
 
-#: imagepackage/contents/ui/config.qml:233
+#: imagepackage/contents/ui/config.qml:243
 #, kde-format
 msgid "Blur"
 msgstr "흐리게"
 
-#: imagepackage/contents/ui/config.qml:242
+#: imagepackage/contents/ui/config.qml:252
 #, kde-format
 msgid "Solid color"
 msgstr "단색"
 
-#: imagepackage/contents/ui/config.qml:253
+#: imagepackage/contents/ui/config.qml:263
 #, kde-format
 msgid "Select Background Color"
 msgstr "배경색 선택"
@@ -257,13 +257,13 @@ msgid ""
 msgstr ""
 "배경 그림으로 설정할 파일이 존재하지 않거나 배경 그림으로 식별할 수 없음: %1"
 
-#: plugin/imagebackend.cpp:40
+#: plugin/imagebackend.cpp:42
 #, kde-format
 msgid "Next Wallpaper Image"
 msgstr "다음 배경 그림 파일"
 
 #. i18n people, this isn't a "word puzzle". there is a specific string format for QFileDialog::setNameFilters
-#: plugin/imagebackend.cpp:382
+#: plugin/imagebackend.cpp:384
 #, kde-format
 msgid "Media Files"
 msgstr "미디어 파일"
@@ -326,34 +326,46 @@ msgid "%1 second"
 msgid_plural "%1 seconds"
 msgstr[0] "%1초"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:203
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:175
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Set all times to 0 to disable automatic wallpaper changing. You can still "
+"change wallpapers manually with the <interface>Next Wallpaper Image</"
+"interface> menu item in the desktop context menu."
+msgstr ""
+"모든 시간을 0으로 설정하면 자동으로 배경 그림을 변경하지 않습니다. 바탕 화면"
+"의 상황에 맞는 메뉴에서 <interface>다음 배경 그림</interface>을 선택하면 수동"
+"으로 배경 그림을 변경할 수 있습니다."
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
 #, kde-format
 msgid "Folders"
 msgstr "폴더"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:211
 #, kde-format
 msgctxt "@action button the thing being added is a folder"
 msgid "Add…"
 msgstr "추가…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:208
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:212
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Folder…"
 msgstr "폴더 추가…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:246
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:250
 #, kde-format
 msgid "Remove Folder"
 msgstr "폴더 삭제"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:257
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:261
 #, kde-format
 msgid "Open Folder…"
 msgstr "폴더 열기…"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:272
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:276
 #, kde-format
 msgid "There are no wallpaper locations configured"
 msgstr "배경 그림 위치를 설정하지 않았습니다"

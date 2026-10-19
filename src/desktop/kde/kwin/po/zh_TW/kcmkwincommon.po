@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-16 02:39+0000\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
 "PO-Revision-Date: 2026-03-16 16:08+0900\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Traditional Chinese <zh-l10n@lists.slat.org>\n"
@@ -28,78 +28,78 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "pan93412@gmail.com"
 
-#: effectsmodel.cpp:48
+#: effectsmodel.cpp:49
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Accessibility"
 msgstr "無障礙功能"
 
-#: effectsmodel.cpp:49
+#: effectsmodel.cpp:50
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Appearance"
 msgstr "個人化"
 
-#: effectsmodel.cpp:50
+#: effectsmodel.cpp:51
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Focus"
 msgstr "焦點"
 
-#: effectsmodel.cpp:51
+#: effectsmodel.cpp:52
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Peek at Desktop Animation"
 msgstr "看一下桌面的動畫"
 
-#: effectsmodel.cpp:52
+#: effectsmodel.cpp:53
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Tools"
 msgstr "工具"
 
-#: effectsmodel.cpp:53
+#: effectsmodel.cpp:54
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Virtual Desktop Switching Animation"
 msgstr "虛擬桌面切換動畫"
 
-#: effectsmodel.cpp:54
+#: effectsmodel.cpp:55
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Window Management"
 msgstr "視窗管理"
 
-#: effectsmodel.cpp:55
+#: effectsmodel.cpp:56
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Window Open/Close Animation"
 msgstr "視窗開啟/關閉動畫"
 
-#: effectsmodel.cpp:231
+#: effectsmodel.cpp:233
 #, kde-format
 msgid "KWin development team"
 msgstr "KWin 開發團隊"
 
-#: genericscriptedconfig.cpp:76
+#: genericscriptedconfig.cpp:71
 #, kde-format
 msgctxt "Error message"
 msgid "Could not locate package metadata"
 msgstr "找不到軟體包中繼資料"
 
-#: genericscriptedconfig.cpp:82
+#: genericscriptedconfig.cpp:77
 #, kde-format
 msgctxt "Required file does not exist"
 msgid "%1 does not contain a valid metadata.json file"
 msgstr "%1 內沒有有效的 metadata.json 中繼資料檔案"
 
-#: genericscriptedconfig.cpp:88 genericscriptedconfig.cpp:94
+#: genericscriptedconfig.cpp:83 genericscriptedconfig.cpp:89
 #, kde-format
 msgctxt "Required file does not exist"
 msgid "%1 does not exist"
 msgstr "%1 不存在"
 
-#: genericscriptedconfig.cpp:116
+#: genericscriptedconfig.cpp:106 genericscriptedconfig.cpp:116
 #, kde-format
 msgid "Error loading widget from %1: %2"
 msgstr "從 %1 載入元件時發生錯誤：%2"

@@ -13,25 +13,21 @@
 #include <QQuickItem>
 
 #include <KWindowSystem>
-#include <plasmaquick/sharedqmlengine.h>
 
+#include "plasmaquick.h"
 #include "plasmashellwaylandintegration.h"
 
 ToolTipDialog::ToolTipDialog()
     : PopupPlasmaWindow(QStringLiteral("widgets/tooltip"))
-    , m_qmlObject(nullptr)
+    , m_engine(PlasmaQuick::globalEngine())
     , m_hideTimeout(-1)
     , m_interactive(false)
     , m_owner(nullptr)
 {
     Qt::WindowFlags flags = Qt::WindowDoesNotAcceptFocus | Qt::WindowStaysOnTopHint;
-    if (KWindowSystem::isPlatformX11()) {
-        flags |= Qt::ToolTip | Qt::BypassWindowManagerHint;
-    } else {
-        flags |= Qt::FramelessWindowHint;
-        PlasmaShellWaylandIntegration::get(this)->setRole(QtWayland::org_kde_plasma_surface::role_tooltip);
-        PlasmaShellWaylandIntegration::get(this)->setTakesFocus(false);
-    }
+    flags |= Qt::FramelessWindowHint;
+    PlasmaShellWaylandIntegration::get(this)->setRole(QtWayland::org_kde_plasma_surface::role_tooltip);
+    PlasmaShellWaylandIntegration::get(this)->setTakesFocus(false);
     setFlags(flags);
 
     m_hideTimer.setSingleShot(true);
@@ -76,14 +72,10 @@ void ToolTipDialog::updateSize()
 QQuickItem *ToolTipDialog::loadDefaultItem()
 {
     if (!m_qmlObject) {
-        m_qmlObject = new PlasmaQuick::SharedQmlEngine(this);
+        QQmlComponent component(m_engine.get(), "org.kde.plasma.core", "DefaultToolTip");
+        m_qmlObject = std::unique_ptr<QQuickItem>(qobject_cast<QQuickItem *>(component.create()));
     }
-
-    if (!m_qmlObject->rootObject()) {
-        m_qmlObject->setSourceFromModule("org.kde.plasma.core", "DefaultToolTip");
-    }
-
-    return qobject_cast<QQuickItem *>(m_qmlObject->rootObject());
+    return m_qmlObject.get();
 }
 
 void ToolTipDialog::showEvent(QShowEvent *event)

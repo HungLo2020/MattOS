@@ -4,11 +4,21 @@
 #include "qwasmjs_p.h"
 #include <qaudiodevice.h>
 #include <qcameradevice.h>
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 
 
-Q_GLOBAL_STATIC(JsMediaInputStream, s_wasmMediaInputStreamInstance);
+namespace {
+struct MediaInputStreamEntry
+{
+    JsMediaInputStream *stream = nullptr;
+    int referenceCount = 0;
+};
+using MediaInputStreamMap = QMap<std::string, MediaInputStreamEntry>;
+}
+
+Q_GLOBAL_STATIC(MediaInputStreamMap, s_wasmMediaInputStreams);
 
 JsMediaRecorder::JsMediaRecorder() = default;
 
@@ -359,9 +369,48 @@ JsMediaInputStream::JsMediaInputStream(QObject *parent)
 
 JsMediaInputStream::~JsMediaInputStream() = default;
 
-JsMediaInputStream *JsMediaInputStream::instance()
+JsMediaInputStream *JsMediaInputStream::instance(const std::string &deviceId)
 {
-    return s_wasmMediaInputStreamInstance();
+    MediaInputStreamEntry &entry = (*s_wasmMediaInputStreams())[deviceId];
+    if (!entry.stream)
+        entry.stream = new JsMediaInputStream;
+    ++entry.referenceCount;
+    return entry.stream;
+}
+
+void JsMediaInputStream::releaseInstance(const std::string &deviceId)
+{
+    auto it = s_wasmMediaInputStreams()->find(deviceId);
+    if (it == s_wasmMediaInputStreams()->end())
+        return;
+    if (--it->referenceCount <= 0) {
+        delete it->stream;
+        s_wasmMediaInputStreams()->erase(it);
+    }
+}
+
+void JsMediaInputStream::unregisterConsumer()
+{
+    if (--m_consumerCount <= 0) {
+        m_consumerCount = 0;
+        stopMediaStream(m_mediaStream);
+    }
+}
+
+void JsMediaInputStream::replaceAudioStreamDevice(const std::string &audioDeviceId)
+{
+    for (auto it = s_wasmMediaInputStreams()->begin(); it != s_wasmMediaInputStreams()->end(); ++it) {
+        JsMediaInputStream *stream = it->stream;
+        if (stream && stream->m_needsAudio)
+            stream->setAudioStreamDevice(audioDeviceId);
+    }
+}
+
+void JsMediaInputStream::setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate)
+{
+    m_videoResolution = resolution;
+    m_minFrameRate = minFrameRate;
+    m_maxFrameRate = maxFrameRate;
 }
 
 void JsMediaInputStream::setAudioStreamDevice(const std::string &id)
@@ -403,6 +452,7 @@ void JsMediaInputStream::replaceMediaTrack(const std::string &id)
                     emscripten::val newTracks = newStream.call<emscripten::val>(getTracksCommand.c_str());
 
                     m_mediaStream.call<void>("addTrack", newTracks[0]);
+                    newStream.call<void>("removeTrack", newTracks[0]);
 
                   // stopMediaStream(stream); stopping this stream causes the track  to stop :(
                   if (m_needsAudio)
@@ -421,7 +471,8 @@ void JsMediaInputStream::replaceMediaTrack(const std::string &id)
             << "replaceTrack getUserMedia failed."
             << error["name"].as<std::string>()
             << error["message"].as<std::string>();
-        }
+        },
+    .finallyFunc = nullptr
     };
 
     emscripten::val mediaDevices = emscripten::val::global("navigator")["mediaDevices"];
@@ -457,6 +508,18 @@ emscripten::val JsMediaInputStream::setDeviceConstraints(const std::string &id)
             videoContraints.set("deviceId", exactDeviceId);
         }
         videoContraints.set("resizeMode", std::string("crop-and-scale"));
+        if (m_videoResolution.isValid()) {
+            videoContraints.set("width", emscripten::val(m_videoResolution.width()));
+            videoContraints.set("height", emscripten::val(m_videoResolution.height()));
+        }
+        if (m_minFrameRate > 0 || m_maxFrameRate > 0) {
+            emscripten::val frameRateConstraint = emscripten::val::object();
+            if (m_minFrameRate > 0)
+                frameRateConstraint.set("min", emscripten::val(m_minFrameRate));
+            if (m_maxFrameRate > 0)
+                frameRateConstraint.set("max", emscripten::val(m_maxFrameRate));
+            videoContraints.set("frameRate", frameRateConstraint);
+        }
         constraints.set("video", videoContraints);
     }
     return constraints;
@@ -477,8 +540,18 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
     if (!m_mediaStream.isNull() && !m_mediaStream.isUndefined())
         m_active = m_mediaStream["active"].as<bool>();
 
-    if (m_active) { // if media stream is already active, we need to replace
-        replaceMediaTrack(id);
+    if (m_active) {
+        // The stream is already running and may be shared with another consumer
+        // (for example a second display of the same camera). A MediaStream can
+        // drive multiple video elements at once, so just notify the new consumer
+        // to attach to the existing stream. Deferred to avoid re-entering
+        // start() synchronously.
+        QTimer::singleShot(0, this, [this]() {
+            if (m_needsVideo)
+                emit mediaVideoStreamReady();
+            if (m_needsAudio)
+                emit mediaAudioStreamReady();
+        });
         return;
     }
 
@@ -494,7 +567,8 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
                 << "setStreamDevice getUserMedia  fail"
                 << error["name"].as<std::string>()
                 << error["message"].as<std::string>();
-            }
+            },
+        .finallyFunc = nullptr
     };
 
     // this prompts user for permissions
@@ -519,7 +593,10 @@ void JsMediaInputStream::setupMediaStream(emscripten::val mStream)
     };
     m_inactiveStreamEvent.reset(new qstdweb::EventCallback(m_mediaStream, "inactive", inactiveStreamCallback));
 
-    emit mediaVideoStreamReady();
+    if (m_needsAudio)
+        emit mediaAudioStreamReady();
+    if (m_needsVideo)
+        emit mediaVideoStreamReady();
 }
 
 void JsMediaInputStream::stopMediaStream(emscripten::val mediaStream)

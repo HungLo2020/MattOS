@@ -1,29 +1,29 @@
 # translation of libkholidays.po to
 #
+# SPDX-FileCopyrightText: 2020, 2021, 2022, 2026 Xavier Besnard <xavier.besnard@kde.org>
 # Nicolas Ternisien <nicolast@libertysurf.fr>, 2005.
 # Julien Richard-Foy <julien.rf@no-log.org>, 2008.
 # Xavier Claude <contact@xavierclaude.be>, 2010, 2011, 2012, 2013.
 # Sebastien Renard <renard@kde.org>, 2014.
 # Vincent Pinon <vpinon@kde.org>, 2017.
-# Xavier Besnard <xavier.besnard@kde.org>, 2020, 2021, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: libkholidays\n"
 "Report-Msgid-Bugs-To: http://bugs.kde.org\n"
 "POT-Creation-Date: 2015-06-13 09:34+0000\n"
-"PO-Revision-Date: 2022-08-30 07:00+0200\n"
-"Last-Translator: Xavier Besnard <xavier.besnard@neuf.fr>\n"
-"Language-Team: French <kde-francophone@kde.org>\n"
+"PO-Revision-Date: 2026-04-12 16:16+0200\n"
+"Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
+"Language-Team: fr\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 22.08.0\n"
-"X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
-"X-Text-Markup: qtrich\n"
+"X-Environment: kde\n"
+"X-Generator: Lokalize 25.12.3\n"
 "X-Qt-Contexts: true\n"
+"X-Text-Markup: qtrich\n"
 
 #: astroseasons.cpp:139
 msgctxt "AstroSeasons|"
@@ -60,334 +60,503 @@ msgctxt "HolidayRegionsDeclarativeModel|"
 msgid "Description"
 msgstr "Description"
 
-#: holidayregion.cpp:200
+#: holidaycategories.cpp:39
+msgctxt "QObject|public holiday type"
+msgid "public"
+msgstr "Public"
+
+#: holidaycategories.cpp:42
+msgctxt "QObject|civil holiday type"
+msgid "civil"
+msgstr "Civil"
+
+#: holidaycategories.cpp:45
+msgctxt "QObject|religious holiday type"
+msgid "religious"
+msgstr "Religieux"
+
+#: holidaycategories.cpp:48
+msgctxt "QObject|school holiday type"
+msgid "school"
+msgstr "Scolaire"
+
+#: holidaycategories.cpp:51
+msgctxt "QObject|government holiday type"
+msgid "government"
+msgstr "Gouvernement"
+
+#: holidaycategories.cpp:54
+msgctxt "QObject|financial holiday type"
+msgid "financial"
+msgstr "Financier"
+
+#: holidaycategories.cpp:57
+msgctxt "QObject|cultural holiday type"
+msgid "cultural"
+msgstr "Culturel"
+
+#: holidaycategories.cpp:60
+msgctxt "QObject|commemorative holiday type"
+msgid "commemorative"
+msgstr "Commémoratif"
+
+#: holidaycategories.cpp:63
+msgctxt "QObject|historical holiday type"
+msgid "historical"
+msgstr "Historique"
+
+#: holidaycategories.cpp:66
+msgctxt "QObject|nameday holiday type"
+msgid "nameday"
+msgstr "Fête"
+
+#: holidaycategories.cpp:69
+msgctxt "QObject|seasonal holiday type"
+msgid "seasonal"
+msgstr "Saisonnier"
+
+#: holidaycategories.cpp:77
+msgctxt "QObject|"
+msgid ""
+"Public Holiday: a day-off from work or school (typically) to commemorate a "
+"historical event, or to honor people.  Public holidays are always bounded to "
+"a political region at national, regional or local level."
+msgstr ""
+"Jour férié : un jour de congé pour le travail ou les écoles (Généralement) "
+"pour commémorer un évènement historique ou honorer des personnes. Les jours "
+"fériés sont toujours liés à une région politique au niveau national, "
+"régional ou local."
+
+#: holidaycategories.cpp:82
+msgctxt "QObject|"
+msgid ""
+"Civil Service Holiday: a day-off from work for government workers but not a "
+"day off for private sector workers."
+msgstr ""
+"Jour férié de la fonction publique : un jour de congé pour les personnes "
+"travaillant pour le gouvernement mais pas un jour de congé pour les "
+"personnes travaillant en secteur privé."
+
+#: holidaycategories.cpp:85
+msgctxt "QObject|"
+msgid ""
+"Religious Holiday: a special day in a religion and not bound to any "
+"political region. Religions can have holidays that range in devotion to "
+"those were work/school are forbidden, days of prayer obligation, to "
+"historical remembrances, etc. Governments often have public holidays for "
+"some religious holidays."
+msgstr ""
+"Fête religieuse : un jour spécial dans une religion et qui n'est lié à "
+"aucune région politique. Les religions peuvent avoir des fêtes dédiées à la "
+"dévotion où le travail / l'école sont interdits, aux jours d'obligation de "
+"prières, aux commémorations historiques, etc. Les gouvernements imposent "
+"souvent des jours fériés pour certaines fêtes religieuses."
+
+#: holidaycategories.cpp:91
+msgctxt "QObject|"
+msgid ""
+"School Holiday: a day-off from school, either as a one-off Public Holiday or "
+"extended periods between school terms.  This can vary widely depending on "
+"school level, type, location."
+msgstr ""
+"Vacances scolaires : un jour de congé de l'école, soit en tant que jour "
+"férié unique, soit pour des périodes prolongées entre les trimestres "
+"scolaires. Cela peut varier considérablement selon le niveau scolaire, le "
+"type et l'emplacement de l'école."
+
+#: holidaycategories.cpp:96
+msgctxt "QObject|"
+msgid ""
+"Government Holiday: a special day recognized by a political region but "
+"without a day-off for workers, students, etc."
+msgstr ""
+"Jour férié gouvernemental : un jour spécial reconnu par une région politique "
+"mais sans jour de congé pour les personnes travaillant, les étudiants, etc."
+
+#: holidaycategories.cpp:99
+msgctxt "QObject|"
+msgid "Financial Holiday: banks and markets may close on some public holidays"
+msgstr ""
+"Jour férié financier : les banques et les marchés peuvent être fermés "
+"certains jours fériés"
+
+#: holidaycategories.cpp:102
+msgctxt "QObject|"
+msgid ""
+"Cultural Holiday: a special day in the culture and therefore usually bound "
+"to a political region. A day where people celebrate in some fashion. eg. "
+"Halloween, St. Valentines"
+msgstr ""
+"Jour férié culturel : un jour spécial pour la culture et donc généralement "
+"lié à une région politique. Un jour que les gens célèbrent d'une certaine "
+"manière, par exemple, Halloween, Saint-Valentin, etc."
+
+#: holidaycategories.cpp:107
+msgctxt "QObject|"
+msgid ""
+"Commemorative Holiday: a special day to remember usually bound to a "
+"political region. Not a day-off from work or school; banks are open, etc."
+msgstr ""
+"Jour férié commémoratif : un jour spécial pour se souvenir, généralement lié "
+"à une région politique. Ce n'est pas un jour de congé pour le travail ou les "
+"écoles. Les banques sont ouvertes, etc."
+
+#: holidaycategories.cpp:111
+msgctxt "QObject|"
+msgid ""
+"Historical Holiday: similar to a Commemorative Holiday but historical in "
+"nature."
+msgstr ""
+"Jours fériés historiques : similaire à des jours fériés commémoratifs mais "
+"de nature historique."
+
+#: holidaycategories.cpp:114
+msgctxt "QObject|"
+msgid ""
+"Name Day Holiday: in some political regions each day is assigned a first "
+"name and persons with that name celebrate that day as their \"Name Day\"."
+msgstr ""
+"Fête du prénom : dans certaines régions politiques, chaque jour est associé "
+"à un prénom et les personnes portant ce prénom célèbrent ce jour comme leur "
+"« fête de leur prénom »."
+
+#: holidaycategories.cpp:119
+msgctxt "QObject|"
+msgid ""
+"Seasonal Days: the day corresponds to a seasonal event like an equinox, "
+"solstice, daylight saving time starts/ends."
+msgstr ""
+"Jours saisonniers : le jour correspond à un évènement saisonnier comme un "
+"équinoxe, un solstice, le début / fin de l'heure d'été."
+
+#: holidayregion.cpp:228
 msgctxt "HolidayRegion|Canadian region"
 msgid "Quebec"
 msgstr "Québec"
 
-#: holidayregion.cpp:203
+#: holidayregion.cpp:231
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Bavaria"
 msgstr "Bavière, Allemagne"
 
-#: holidayregion.cpp:205
+#: holidayregion.cpp:233
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Brandenburg"
 msgstr "Brandebourg, Allemagne"
 
-#: holidayregion.cpp:207
+#: holidayregion.cpp:235
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Berlin"
 msgstr "Berlin, Allemagne"
 
-#: holidayregion.cpp:209
+#: holidayregion.cpp:237
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Baden-Wuerttemberg"
 msgstr "Baden-Wuerttemberg, Allemagne"
 
-#: holidayregion.cpp:211
+#: holidayregion.cpp:239
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Hesse"
 msgstr "Hesse, Allemagne"
 
-#: holidayregion.cpp:213
+#: holidayregion.cpp:241
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Mecklenburg-Hither Pomerania"
 msgstr "Mecklenburg-Hither Poméranie, Allemagne"
 
-#: holidayregion.cpp:215
+#: holidayregion.cpp:243
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Lower Saxony"
 msgstr "Basse Saxe, Allemagne"
 
-#: holidayregion.cpp:217
+#: holidayregion.cpp:245
 msgctxt "HolidayRegion|German region"
 msgid "Germany, North Rhine-Westphalia"
 msgstr "Rhin Nord-Westphalie, Allemagne"
 
-#: holidayregion.cpp:219
+#: holidayregion.cpp:247
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Rhineland-Palatinate"
 msgstr "Rhin Palatinat, Allemagne"
 
-#: holidayregion.cpp:221
+#: holidayregion.cpp:249
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Schleswig-Holstein"
 msgstr "Schleswig-Holstein, Allemagne"
 
-#: holidayregion.cpp:223
+#: holidayregion.cpp:251
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Saarland"
 msgstr "Saarland, Allemagne"
 
-#: holidayregion.cpp:225
+#: holidayregion.cpp:253
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Saxony"
 msgstr "Saxe, Allemagne"
 
-#: holidayregion.cpp:227
+#: holidayregion.cpp:255
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Saxony-Anhalt"
 msgstr "Saxe-Anhalt, Allemagne"
 
-#: holidayregion.cpp:229
+#: holidayregion.cpp:257
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Thuringia"
 msgstr "Thuringe, Allemagne"
 
-#: holidayregion.cpp:232
+#: holidayregion.cpp:260
 msgctxt "HolidayRegion|Spanish region"
 msgid "Catalonia"
 msgstr "Catalogne"
 
-#: holidayregion.cpp:234
+#: holidayregion.cpp:262
 msgctxt "HolidayRegion|UK Region"
 msgid "England and Wales"
 msgstr "Angleterre et Pays de Galles"
 
-#: holidayregion.cpp:236
+#: holidayregion.cpp:264
 msgctxt "HolidayRegion|UK Region"
 msgid "England"
 msgstr "Angleterre"
 
-#: holidayregion.cpp:238
+#: holidayregion.cpp:266
 msgctxt "HolidayRegion|UK Region"
 msgid "Wales"
 msgstr "Pays de Galles"
 
-#: holidayregion.cpp:240
+#: holidayregion.cpp:268
 msgctxt "HolidayRegion|UK Region"
 msgid "Scotland"
 msgstr "Écosse"
 
-#: holidayregion.cpp:242
+#: holidayregion.cpp:270
 msgctxt "HolidayRegion|UK Region"
 msgid "Northern Ireland"
 msgstr "Irlande du Nord"
 
-#: holidayregion.cpp:244
+#: holidayregion.cpp:272
 msgctxt "HolidayRegion|Italian Region"
 msgid "South Tyrol"
 msgstr "Tyrol du Sud"
 
-#: holidayregion.cpp:246
+#: holidayregion.cpp:274
 msgctxt "HolidayRegion|"
 msgid "New South Wales"
 msgstr "Nouvelle-Galles du Sud"
 
-#: holidayregion.cpp:248
+#: holidayregion.cpp:276
 msgctxt "HolidayRegion|Australian Region"
 msgid "Queensland"
 msgstr "Queensland"
 
-#: holidayregion.cpp:250
+#: holidayregion.cpp:278
 msgctxt "HolidayRegion|Australian Region"
 msgid "Victoria"
 msgstr "Victoria"
 
-#: holidayregion.cpp:252
+#: holidayregion.cpp:280
 msgctxt "HolidayRegion|Australian Region"
 msgid "South Australia"
 msgstr "Australie méridionale"
 
-#: holidayregion.cpp:254
+#: holidayregion.cpp:282
 msgctxt "HolidayRegion|Australian Region"
 msgid "Northern Territory"
 msgstr "Territoire du Nord"
 
-#: holidayregion.cpp:256
+#: holidayregion.cpp:284
 msgctxt "HolidayRegion|Australian Region"
 msgid "Australian Capital Territory"
 msgstr "Territoire de la capitale australienne"
 
-#: holidayregion.cpp:258
+#: holidayregion.cpp:286
 msgctxt "HolidayRegion|Australian Region"
 msgid "Western Australia"
 msgstr "Australie occidentale"
 
-#: holidayregion.cpp:260
+#: holidayregion.cpp:288
 msgctxt "HolidayRegion|Australian Region"
 msgid "Tasmania"
 msgstr "Tasmanie"
 
-#: holidayregion.cpp:262
+#: holidayregion.cpp:290
 msgctxt "HolidayRegion|Bosnian and Herzegovinian Region"
 msgid "Republic of Srpska"
 msgstr "République serbe de Bosnie"
 
-#: holidayregion.cpp:280
+#: holidayregion.cpp:308
 msgctxt "HolidayRegion|Holiday type"
 msgid "Public"
 msgstr "Public"
 
-#: holidayregion.cpp:282
+#: holidayregion.cpp:310
 msgctxt "HolidayRegion|Holiday type"
 msgid "Civil"
 msgstr "Civil"
 
-#: holidayregion.cpp:284
+#: holidayregion.cpp:312
 msgctxt "HolidayRegion|Holiday type"
 msgid "Religious"
 msgstr "Religieux"
 
-#: holidayregion.cpp:286
+#: holidayregion.cpp:314
 msgctxt "HolidayRegion|Holiday type"
 msgid "Government"
 msgstr "Gouvernement"
 
-#: holidayregion.cpp:288
+#: holidayregion.cpp:316
 msgctxt "HolidayRegion|Holiday type"
 msgid "Financial"
 msgstr "Financier"
 
-#: holidayregion.cpp:290
+#: holidayregion.cpp:318
 msgctxt "HolidayRegion|Holiday type"
 msgid "Cultural"
 msgstr "Culturel"
 
-#: holidayregion.cpp:292
+#: holidayregion.cpp:320
 msgctxt "HolidayRegion|Holiday type"
 msgid "Commemorative"
 msgstr "Commémoratif"
 
-#: holidayregion.cpp:294
+#: holidayregion.cpp:322
 msgctxt "HolidayRegion|Holiday type"
 msgid "Historical"
 msgstr "Historique"
 
-#: holidayregion.cpp:296
+#: holidayregion.cpp:324
 msgctxt "HolidayRegion|Holiday type"
 msgid "School"
 msgstr "Scolaire"
 
-#: holidayregion.cpp:298
+#: holidayregion.cpp:326
 msgctxt "HolidayRegion|Holiday type"
 msgid "Seasonal"
 msgstr "Saisonnier"
 
-#: holidayregion.cpp:300
+#: holidayregion.cpp:328
 msgctxt "HolidayRegion|Holiday type"
 msgid "Name Days"
 msgstr "Fêtes"
 
-#: holidayregion.cpp:302
+#: holidayregion.cpp:330
 msgctxt "HolidayRegion|Holiday type"
 msgid "Personal"
 msgstr "Personnel"
 
-#: holidayregion.cpp:304
+#: holidayregion.cpp:332
 msgctxt "HolidayRegion|Holiday type"
 msgid "Christian"
 msgstr "Chrétien"
 
-#: holidayregion.cpp:306
+#: holidayregion.cpp:334
 msgctxt "HolidayRegion|Holiday type"
 msgid "Anglican"
 msgstr "Anglican"
 
-#: holidayregion.cpp:308
+#: holidayregion.cpp:336
 msgctxt "HolidayRegion|Holiday type"
 msgid "Catholic"
 msgstr "Catholique"
 
-#: holidayregion.cpp:310
+#: holidayregion.cpp:338
 msgctxt "HolidayRegion|Holiday type"
 msgid "Protestant"
 msgstr "Protestant"
 
-#: holidayregion.cpp:312
+#: holidayregion.cpp:340
 msgctxt "HolidayRegion|Holiday type"
 msgid "Orthodox"
 msgstr "Orthodoxe"
 
-#: holidayregion.cpp:314
+#: holidayregion.cpp:342
 msgctxt "HolidayRegion|Holiday type"
 msgid "Jewish"
 msgstr "Juif"
 
-#: holidayregion.cpp:316
+#: holidayregion.cpp:344
 msgctxt "HolidayRegion|Holiday type"
 msgid "Jewish Orthodox"
 msgstr "Juif orthodoxe"
 
-#: holidayregion.cpp:318
+#: holidayregion.cpp:346
 msgctxt "HolidayRegion|Holiday type"
 msgid "Jewish Conservative"
 msgstr "Juif traditionaliste"
 
-#: holidayregion.cpp:320
+#: holidayregion.cpp:348
 msgctxt "HolidayRegion|Holiday type"
 msgid "Jewish Reform"
 msgstr "Juif réformé"
 
-#: holidayregion.cpp:322
+#: holidayregion.cpp:350
 msgctxt "HolidayRegion|Holiday type"
 msgid "Islamic"
 msgstr "Islamique"
 
-#: holidayregion.cpp:324
+#: holidayregion.cpp:352
 msgctxt "HolidayRegion|Holiday type"
 msgid "Islamic Sunni"
 msgstr "Islamique Sunnite"
 
-#: holidayregion.cpp:326
+#: holidayregion.cpp:354
 msgctxt "HolidayRegion|Holiday type"
 msgid "Islamic Shia"
 msgstr "Islamique Chiite"
 
-#: holidayregion.cpp:328
+#: holidayregion.cpp:356
 msgctxt "HolidayRegion|Holiday type"
 msgid "Islamic Sufi"
 msgstr "Islamique Soufi"
 
-#: holidayregion.cpp:334
+#: holidayregion.cpp:362
 #, qt-format
 msgctxt ""
 "HolidayRegion|Holiday file display name, %1 = region name, %2 = holiday type"
 msgid "%1 - %2"
 msgstr "%1 - %2"
 
-#: holidayregion.cpp:342
+#: holidayregion.cpp:370
 msgctxt "HolidayRegion|Unknown holiday region"
 msgid "Unknown"
 msgstr "Inconnu"
 
-#: lunarphase.cpp:28
+#: lunarphase.cpp:30
 msgctxt "LunarPhase|"
 msgid "New Moon"
 msgstr "Nouvelle lune"
 
-#: lunarphase.cpp:30
+#: lunarphase.cpp:32
 msgctxt "LunarPhase|"
 msgid "Full Moon"
 msgstr "Pleine lune"
 
-#: lunarphase.cpp:32
+#: lunarphase.cpp:34
 msgctxt "LunarPhase|"
 msgid "First Quarter Moon"
 msgstr "Premier quartier"
 
-#: lunarphase.cpp:34
+#: lunarphase.cpp:36
 msgctxt "LunarPhase|"
 msgid "Last Quarter Moon"
 msgstr "Dernier quartier"
 
-#: lunarphase.cpp:38
+#: lunarphase.cpp:40
 msgctxt "LunarPhase|"
 msgid "Waxing Crescent"
 msgstr "Croisant de lune croissante"
 
-#: lunarphase.cpp:40
+#: lunarphase.cpp:42
 msgctxt "LunarPhase|"
 msgid "Waxing Gibbous"
 msgstr "Lune gibbeuse croissante"
 
-#: lunarphase.cpp:42
+#: lunarphase.cpp:44
 msgctxt "LunarPhase|"
 msgid "Waning Gibbous"
 msgstr "Lune gibbeuse décroissante"
 
-#: lunarphase.cpp:44
+#: lunarphase.cpp:46
 msgctxt "LunarPhase|"
 msgid "Waning Crescent"
 msgstr "Croisant de lune décroissante"

@@ -255,18 +255,6 @@ QString binary(quintptr) { return QString(); }
 #define SDUMP if (1) ; else qDebug
 #endif
 
-// Stores a classname -> freed count mapping.
-typedef QHash<const char*, int> MMStatsHash;
-Q_GLOBAL_STATIC(MMStatsHash, freedObjectStatsGlobal)
-
-// This indirection avoids sticking QHash code in each of the call sites, which
-// shaves off some instructions in the case that it's unused.
-static void increaseFreedCountForClass(const char *className)
-{
-    (*freedObjectStatsGlobal())[className]++;
-}
-
-//bool Chunk::sweep(ClassDestroyStatsCallback classCountPtr)
 bool Chunk::sweep(ExecutionEngine *engine)
 {
     bool hasUsedSlots = false;
@@ -314,7 +302,7 @@ bool Chunk::sweep(ExecutionEngine *engine)
         }
         Q_V4_PROFILE_DEALLOC(engine, qPopulationCount((objectBitmap[i] | extendsBitmap[i])
                                                       - (blackBitmap[i] | e)) * Chunk::SlotSize,
-                             Profiling::SmallItem);
+                             Profiling::RegularItem);
         objectBitmap[i] = blackBitmap[i];
         hasUsedSlots |= (blackBitmap[i] != 0);
         extendsBitmap[i] = e;
@@ -359,7 +347,7 @@ void Chunk::freeAll(ExecutionEngine *engine)
 #endif
         }
         Q_V4_PROFILE_DEALLOC(engine, (qPopulationCount(objectBitmap[i]|extendsBitmap[i])
-                             - qPopulationCount(e)) * Chunk::SlotSize, Profiling::SmallItem);
+                             - qPopulationCount(e)) * Chunk::SlotSize, Profiling::RegularItem);
         objectBitmap[i] = 0;
         extendsBitmap[i] = e;
         o += Chunk::Bits;
@@ -523,7 +511,7 @@ HeapItem *BlockAllocator::allocate(size_t size, bool forceAllocation) {
 
 done:
     m->setAllocatedSlots(slotsRequired);
-    Q_V4_PROFILE_ALLOC(engine, slotsRequired * Chunk::SlotSize, Profiling::SmallItem);
+    Q_V4_PROFILE_ALLOC(engine, slotsRequired * Chunk::SlotSize, Profiling::RegularItem);
 #ifdef V4_USE_HEAPTRACK
     heaptrack_report_alloc(m, slotsRequired * Chunk::SlotSize);
 #endif
@@ -597,13 +585,11 @@ HeapItem *HugeItemAllocator::allocate(size_t size) {
     return c->first();
 }
 
-static void freeHugeChunk(ChunkAllocator *chunkAllocator, const HugeItemAllocator::HugeChunk &c, ClassDestroyStatsCallback classCountPtr)
+static void freeHugeChunk(ChunkAllocator *chunkAllocator, const HugeItemAllocator::HugeChunk &c)
 {
     HeapItem *itemToFree = c.chunk->first();
     Heap::Base *b = *itemToFree;
     const VTable *v = b->internalClass->vtable;
-    if (Q_UNLIKELY(classCountPtr))
-        classCountPtr(v->className);
 
     if (v->destroy) {
         v->destroy(b);
@@ -621,14 +607,14 @@ static void freeHugeChunk(ChunkAllocator *chunkAllocator, const HugeItemAllocato
 #endif
 }
 
-void HugeItemAllocator::sweep(ClassDestroyStatsCallback classCountPtr)
+void HugeItemAllocator::sweep()
 {
-    auto isBlack = [this, classCountPtr] (const HugeChunk &c) {
+    auto isBlack = [this] (const HugeChunk &c) {
         bool b = c.chunk->first()->isBlack();
         Chunk::clearBit(c.chunk->blackBitmap, c.chunk->first() - c.chunk->realBase());
         if (!b) {
             Q_V4_PROFILE_DEALLOC(engine, c.size, Profiling::LargeItem);
-            freeHugeChunk(chunkAllocator, c, classCountPtr);
+            freeHugeChunk(chunkAllocator, c);
         }
         return !b;
     };
@@ -647,7 +633,7 @@ void HugeItemAllocator::freeAll()
 {
     for (auto &c : chunks) {
         Q_V4_PROFILE_DEALLOC(engine, c.size, Profiling::LargeItem);
-        freeHugeChunk(chunkAllocator, c, nullptr);
+        freeHugeChunk(chunkAllocator, c);
     }
 }
 
@@ -681,11 +667,14 @@ GCState initMarkPersistentValues(GCStateMachine *that, ExtraData &stateData)
     return GCState::MarkPersistentValues;
 }
 
-static constexpr int markLoopIterationCount = 1024;
+enum: int {
+    MarkLoopIterationCount = 1024,
+    MarkLoopIterationCountForDrain = 10240,
+};
 
 bool wasDrainNecessary(MarkStack *ms, QDeadlineTimer deadline)
 {
-    if (ms->remainingBeforeSoftLimit() > markLoopIterationCount)
+    if (ms->remainingBeforeSoftLimit() > MarkLoopIterationCount)
         return false;
     // drain
     ms->drain(deadline);
@@ -698,7 +687,7 @@ GCState markPersistentValues(GCStateMachine *that, ExtraData &stateData) {
         return GCState::MarkPersistentValues;
     PersistentValueStorage::Iterator& it = get<GCIteratorStorage>(stateData).it;
     // avoid repeatedly hitting the timer constantly by batching iterations
-    for (int i = 0; i < markLoopIterationCount; ++i) {
+    for (int i = 0; i < MarkLoopIterationCount; ++i) {
         if (!it.p)
             return GCState::InitMarkWeakValues;
         if (Managed *m = (*it).as<Managed>())
@@ -721,7 +710,7 @@ GCState markWeakValues(GCStateMachine *that, ExtraData &stateData)
         return GCState::MarkWeakValues;
     PersistentValueStorage::Iterator& it = get<GCIteratorStorage>(stateData).it;
     // avoid repeatedly hitting the timer constantly by batching iterations
-    for (int i = 0; i < markLoopIterationCount; ++i) {
+    for (int i = 0; i < MarkLoopIterationCount; ++i) {
         if (!it.p)
             return GCState::MarkDrain;
         QObjectWrapper *qobjectWrapper = (*it).as<QObjectWrapper>();
@@ -798,6 +787,14 @@ GCState crossValidateIncrementalMarkPhase(GCStateMachine *that, ExtraData &)
 
     auto checkBlackBitmap = [&that, &getChunk](auto& allocator, const std::vector<quintptr>& storedBitmap) {
         auto reportError = [&allocator, &getChunk, &that](std::size_t chunk_index, std::size_t bitmap_index, uint bit_index){
+            #ifdef QT_BUILD_INTERNAL
+            // If we're collecting errors, don't output the debug message.
+            if (auto errors = that->bitmapErrors) {
+                errors->emplace_back(chunk_index, bitmap_index, bit_index);
+                return;
+            }
+            #endif
+
             Q_UNUSED(that);
             auto object = reinterpret_cast<Heap::Base*>(getChunk(allocator.chunks[chunk_index])->realBase() + (bit_index + (bitmap_index*Chunk::Bits)));
             qDebug() << "Cross Validation Error on chunk" << chunk_index
@@ -805,10 +802,6 @@ GCState crossValidateIncrementalMarkPhase(GCStateMachine *that, ExtraData &)
                         << ((object->internalClass) ? "With type" : "")
                         << ((object->internalClass) ?
                             Managed::typeToString(Managed::Type(object->internalClass->vtable->type)) : QString());
-
-            #ifdef QT_BUILD_INTERNAL
-            that->bitmapErrors.emplace_back(chunk_index, bitmap_index, bit_index);
-            #endif
         };
 
         auto original = storedBitmap.begin();
@@ -827,7 +820,8 @@ GCState crossValidateIncrementalMarkPhase(GCStateMachine *that, ExtraData &)
     };
 
     #ifdef QT_BUILD_INTERNAL
-    that->bitmapErrors.clear();
+    if (auto *errors = that->bitmapErrors)
+        errors->clear();
     #endif
 
     std::vector<quintptr> blockBitmap{};
@@ -878,7 +872,7 @@ GCState callDestroyObject(GCStateMachine *that, ExtraData &stateData)
         that->mm->gcBlocked = oldState;
     });
     // avoid repeatedly hitting the timer constantly by batching iterations
-    for (int i = 0; i < markLoopIterationCount; ++i) {
+    for (int i = 0; i < MarkLoopIterationCount; ++i) {
         if (!it.p)
             return GCState::FreeWeakMaps;
         Managed *m = (*it).managed();
@@ -940,8 +934,7 @@ GCState doSweep(GCStateMachine *that, ExtraData &)
 
     mm->engine->identifierTable->sweep();
     mm->blockAllocator.sweep();
-    mm->hugeItemAllocator.sweep(
-            that->mm->collectorStatistics ? increaseFreedCountForClass : nullptr);
+    mm->hugeItemAllocator.sweep();
     mm->icAllocator.sweep();
 
     // reset all black bits
@@ -1123,8 +1116,6 @@ Heap::Object *MemoryManager::allocObjectWithMemberData(const QV4::VTable *vtable
     return o;
 }
 
-static uint markStackSize = 0;
-
 MarkStack::MarkStack(ExecutionEngine *engine)
     : m_engine(engine)
 {
@@ -1140,7 +1131,6 @@ void MarkStack::drain()
     // we're not calling drain(QDeadlineTimer::Forever) as that has higher overhead
     while (m_top > m_base) {
         Heap::Base *h = pop();
-        ++markStackSize;
         Q_ASSERT(h); // at this point we should only have Heap::Base objects in this area on the stack. If not, weird things might happen.
         Q_ASSERT(h->internalClass);
         h->internalClass->vtable->markObjects(h, this);
@@ -1150,11 +1140,10 @@ void MarkStack::drain()
 MarkStack::DrainState MarkStack::drain(QDeadlineTimer deadline)
 {
     do {
-        for (int i = 0; i <= markLoopIterationCount * 10; ++i) {
+        for (int i = 0; i <= MarkLoopIterationCountForDrain; ++i) {
             if (m_top == m_base)
                 return DrainState::Complete;
             Heap::Base *h = pop();
-            ++markStackSize;
             Q_ASSERT(h); // at this point we should only have Heap::Base objects in this area on the stack. If not, weird things might happen.
             Q_ASSERT(h->internalClass);
             h->internalClass->vtable->markObjects(h, this);
@@ -1197,7 +1186,7 @@ void MemoryManager::setGCTimeLimit(int timeMs)
     gcStateMachine->timeLimit = std::chrono::milliseconds(timeMs);
 }
 
-void MemoryManager::sweep(bool lastSweep, ClassDestroyStatsCallback classCountPtr)
+void MemoryManager::sweep(bool lastSweep)
 {
 
     for (PersistentValueStorage::Iterator it = m_weakValues->begin(); it != m_weakValues->end(); ++it) {
@@ -1219,7 +1208,7 @@ void MemoryManager::sweep(bool lastSweep, ClassDestroyStatsCallback classCountPt
     if (!lastSweep) {
         engine->identifierTable->sweep();
         blockAllocator.sweep(/*classCountPtr*/);
-        hugeItemAllocator.sweep(classCountPtr);
+        hugeItemAllocator.sweep();
         icAllocator.sweep(/*classCountPtr*/);
     }
 
@@ -1619,6 +1608,19 @@ void GCStateMachine::transition() {
                                           << QMetaEnum::fromType<GCState>().key(state) << "state";
         }
     }
+}
+
+std::vector<QObject *> MemoryManager::findObjectsForCompilationUnits(
+        std::vector<QQmlRefPointer<QV4::CompiledData::CompilationUnit>> &&units)
+{
+
+    ObjectsForCompilationUnit recorded { std::move(units), {} };
+    m_recordedObjects = &recorded;
+
+    runFullGC();
+
+    m_recordedObjects = nullptr;
+    return std::exchange(recorded.objects, {});
 }
 
 void MemoryManager::CollectorStatistics::start(MemoryManager *mm)

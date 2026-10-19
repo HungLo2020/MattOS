@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "qdesigner_propertysheet_p.h"
 #include "qdesigner_utils_p.h"
@@ -1590,14 +1591,10 @@ bool QDesignerPropertySheet::isEnabled(int index) const
     if (d->m_info.value(index).visible)
         return true;
 
-    // Enable setting of properties for statically non-designable properties
-    // as this might be done via TaskMenu/Cursor::setProperty. Note that those
-    // properties are not visible.
+    // No check for non-designable properties properties here to allow for setting them
+    // via TaskMenu/Cursor::setProperty. Note that those properties are not visible.
     const QDesignerMetaPropertyInterface *p = d->m_meta->property(index);
     if (!p->accessFlags().testFlag(QDesignerMetaPropertyInterface::WriteAccess))
-        return false;
-
-    if (!p->attributes().testFlag(QDesignerMetaPropertyInterface::DesignableAttribute))
         return false;
 
     const PropertyType type = propertyType(index);

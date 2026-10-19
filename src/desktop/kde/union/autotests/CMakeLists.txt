@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+add_subdirectory(properties)
+
+ecm_add_tests(
+    TestStyleRule.cpp
+    TestSelector.cpp
+    TestStyle.cpp
+    TestStyleRegistry.cpp
+    TestColor.cpp
+    TestStylePackage.cpp
+    LINK_LIBRARIES Qt6::Test Union::Union
+)
+
+# TestTheme requires properly working selectors for it to function
+set_tests_properties(TestSelector PROPERTIES FIXTURES_SETUP Selector)
+set_tests_properties(TestStyle PROPERTIES FIXTURES_REQUIRED Selector)
+
+# TestThemeRegistry requires properly working themes
+set_tests_properties(TestStyle PROPERTIES FIXTURES_SETUP Style)
+set_tests_properties(TestStyleRegistry PROPERTIES FIXTURES_REQUIRED Style)
+
+if (BUILD_INPUT_CSS)
+    ecm_add_test(input/TestCss.cpp LINK_LIBRARIES Qt6::Test Union::Union cxx-rust-cssparser)
+    set_tests_properties(TestCss PROPERTIES ENVIRONMENT "UNION_DISABLE_CACHE=1")
+endif()
+
+if (BUILD_OUTPUT_QTQUICK)
+    add_subdirectory(output/quick)
+endif()

@@ -226,11 +226,11 @@ void QWaylandWindow::initializeWlSurface(bool colorSpace)
     {
         QWriteLocker lock(&mSurfaceLock);
         mSurface.reset(new QWaylandSurface(mDisplay));
-        connect(mSurface.data(), &QWaylandSurface::screensChanged,
+        connect(mSurface.get(), &QWaylandSurface::screensChanged,
                 this, &QWaylandWindow::handleScreensChanged);
-        connect(mSurface.data(), &QWaylandSurface::preferredBufferScaleChanged,
+        connect(mSurface.get(), &QWaylandSurface::preferredBufferScaleChanged,
                 this, &QWaylandWindow::updateScale);
-        connect(mSurface.data(), &QWaylandSurface::preferredBufferTransformChanged,
+        connect(mSurface.get(), &QWaylandSurface::preferredBufferTransformChanged,
                 this, &QWaylandWindow::updateBufferTransform);
         mSurface->m_window = this;
     }
@@ -239,7 +239,7 @@ void QWaylandWindow::initializeWlSurface(bool colorSpace)
     if (mDisplay->fractionalScaleManager() && qApp->highDpiScaleFactorRoundingPolicy() == Qt::HighDpiScaleFactorRoundingPolicy::PassThrough) {
         mFractionalScale.reset(new QWaylandFractionalScale(mDisplay->fractionalScaleManager()->get_fractional_scale(mSurface->object())));
 
-        connect(mFractionalScale.data(), &QWaylandFractionalScale::preferredScaleChanged,
+        connect(mFractionalScale.get(), &QWaylandFractionalScale::preferredScaleChanged,
                 this, &QWaylandWindow::updateScale);
     }
     // The fractional scale manager check is needed to work around Gnome < 36 where viewports don't work
@@ -329,11 +329,16 @@ void QWaylandWindow::reset()
         {
             QWriteLocker lock(&mSurfaceLock);
             invalidateSurface();
-            mSurface.reset();
-            mViewport.reset();
-            mFractionalScale.reset();
             mColorManagementSurface.reset();
             mPendingImageDescription.reset();
+            mFractionalScale.reset();
+            mViewport.reset();
+
+            // Destroy surface last.
+            // Some compositors (e.g. ChromeOS Sommelier) crash if they receive
+            // destroy requests for these objects after the associated surface
+            // has already been destroyed.
+            mSurface.reset();
         }
         emit wlSurfaceDestroyed();
     }
@@ -378,7 +383,7 @@ void QWaylandWindow::resetFrameCallback()
             mFrameCallback = nullptr;
         }
         mFrameCallbackElapsedTimer.invalidate();
-        mWaitingForFrameCallback = false;
+        mFrameSyncWait.wakeAll();
     }
     if (mFrameCallbackCheckIntervalTimerId != -1) {
         killTimer(mFrameCallbackCheckIntervalTimerId);
@@ -620,10 +625,9 @@ void QWaylandWindow::sendExposeEvent(const QRect &rect)
       *  wanting focus.
     */
     if (mExposed && mExposeEventNeedsAttachedBuffer && !rect.isNull()) {
-        auto buffer = new QWaylandShmBuffer(mDisplay, rect.size(), QImage::Format_ARGB32);
-        buffer->image()->fill(Qt::transparent);
-        buffer->setDeleteOnRelease(true);
-        commit(buffer, QRegion());
+        QWaylandShmBuffer buffer(mDisplay, rect.size(), QImage::Format_ARGB32);
+        buffer.image()->fill(Qt::transparent);
+        commit(&buffer, QRegion());
     }
 }
 
@@ -790,7 +794,7 @@ void QWaylandWindow::safeCommit(QWaylandBuffer *buffer, const QRegion &damage)
 {
     if (isExposed()) {
         commit(buffer, damage);
-    } else {
+    } else if (!buffer->committed()) {
         buffer->setBusy(false);
     }
 }
@@ -803,13 +807,14 @@ bool QWaylandWindow::allowsIndependentThreadedRendering() const
 void QWaylandWindow::commit(QWaylandBuffer *buffer, const QRegion &damage)
 {
     Q_ASSERT(isExposed());
+
+    QReadLocker locker(&mSurfaceLock);
     if (buffer->committed()) {
         mSurface->commit();
         qCDebug(lcWaylandBackingstore) << "Buffer already committed, not attaching.";
         return;
     }
 
-    QReadLocker locker(&mSurfaceLock);
     if (!mSurface)
         return;
 
@@ -850,16 +855,13 @@ const wl_callback_listener QWaylandWindow::callbackListener = {
 void QWaylandWindow::handleFrameCallback(wl_callback* callback)
 {
     QMutexLocker locker(&mFrameSyncMutex);
-    if (!mFrameCallback) {
+    if (mFrameCallback != callback) {
         // This means the callback is already unset by QWaylandWindow::reset.
         // The wl_callback object will be destroyed there too.
         return;
     }
-    Q_ASSERT(callback == mFrameCallback);
-    wl_callback_destroy(callback);
+    wl_callback_destroy(mFrameCallback);
     mFrameCallback = nullptr;
-
-    mWaitingForFrameCallback = false;
     mFrameCallbackElapsedTimer.invalidate();
 
     // The rest can wait until we can run it on the correct thread
@@ -888,15 +890,15 @@ bool QWaylandWindow::waitForFrameSync(int timeout)
     QMutexLocker locker(&mFrameSyncMutex);
 
     QDeadlineTimer deadline(timeout);
-    while (mWaitingForFrameCallback && mFrameSyncWait.wait(&mFrameSyncMutex, deadline)) { }
+    while (mFrameCallback && mFrameSyncWait.wait(&mFrameSyncMutex, deadline)) { }
 
-    if (mWaitingForFrameCallback) {
+    if (mFrameCallback) {
         qCDebug(lcWaylandBackingstore) << "Didn't receive frame callback in time, window should now be inexposed";
         mFrameCallbackTimedOut = true;
         QMetaObject::invokeMethod(this, &QWaylandWindow::updateExposure, Qt::QueuedConnection);
     }
 
-    return !mWaitingForFrameCallback;
+    return !mFrameCallback;
 }
 
 QMargins QWaylandWindow::frameMargins() const
@@ -1586,7 +1588,7 @@ void QWaylandWindow::setStoredCursor(const QCursor &cursor) {
 }
 
 void QWaylandWindow::applyCursor(QWaylandInputDevice *device, const QCursor &cursor) {
-    if (!device || !device->pointer() || device->pointer()->focusWindow() != this)
+    if (!device || !device->pointer() || device->pointer()->focusSurface() != waylandSurface())
         return;
 
     int fallbackBufferScale = qCeil(devicePixelRatio());
@@ -1765,7 +1767,7 @@ void QWaylandWindow::requestUpdate()
     // If we have a frame callback all is good and will be taken care of there
     {
         QMutexLocker locker(&mFrameSyncMutex);
-        if (mWaitingForFrameCallback)
+        if (mFrameCallback)
             return;
     }
 
@@ -1775,7 +1777,7 @@ void QWaylandWindow::requestUpdate()
         // Things might have changed in the meantime
         {
             QMutexLocker locker(&mFrameSyncMutex);
-            if (mWaitingForFrameCallback)
+            if (mFrameCallback)
                 return;
         }
         if (hasPendingUpdateRequest())
@@ -1797,7 +1799,7 @@ void QWaylandWindow::handleUpdate()
         return;
 
     QMutexLocker locker(&mFrameSyncMutex);
-    if (mWaitingForFrameCallback)
+    if (mFrameCallback)
         return;
 
     struct ::wl_surface *wrappedSurface = reinterpret_cast<struct ::wl_surface *>(wl_proxy_create_wrapper(mSurface->object()));
@@ -1805,14 +1807,13 @@ void QWaylandWindow::handleUpdate()
     mFrameCallback = wl_surface_frame(wrappedSurface);
     wl_proxy_wrapper_destroy(wrappedSurface);
     wl_callback_add_listener(mFrameCallback, &QWaylandWindow::callbackListener, this);
-    mWaitingForFrameCallback = true;
 
     // Start a timer for handling the case when the compositor stops sending frame callbacks.
     if (mFrameCallbackTimeout > 0) {
         QMetaObject::invokeMethod(this, [this] {
             QMutexLocker locker(&mFrameSyncMutex);
 
-            if (mWaitingForFrameCallback) {
+            if (mFrameCallback) {
                 if (mFrameCallbackCheckIntervalTimerId < 0)
                     mFrameCallbackCheckIntervalTimerId = startTimer(mFrameCallbackTimeout);
                 mFrameCallbackElapsedTimer.start();
@@ -1977,6 +1978,26 @@ void QWaylandWindow::setParentControlGeometry(const QRect &parentControlGeometry
 QRect QWaylandWindow::parentControlGeometry() const
 {
     return m_popupInfo.parentControlGeometry;
+}
+
+void QWaylandWindow::handleMousePressActivation()
+{
+    if (!window() || window()->flags() & Qt::WindowDoesNotAcceptFocus)
+        return;
+
+    const QWaylandWindow *currentActiveSubSurface = mDisplay->activeSubSurface();
+    const bool isSubsurface = !!subSurfaceWindow();
+
+    auto toplevelIsActive = [&](QWaylandWindow *w) -> bool {
+        while (w && w->subSurfaceWindow())
+            w = static_cast<QWaylandWindow *>(w->QPlatformWindow::parent());
+        return mDisplay->isWindowActivated(w);
+    };
+
+    if (isSubsurface && currentActiveSubSurface != this && toplevelIsActive(this))
+        mDisplay->setActiveSubSurface(this);
+    else if (!isSubsurface && currentActiveSubSurface)
+        mDisplay->setActiveSubSurface(nullptr);
 }
 
 }

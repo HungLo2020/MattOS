@@ -51,27 +51,6 @@ namespace
 // from Lyx, so Klipper notices again, requests this data, ... you get the idea.
 constexpr auto MAX_CLIPBOARD_CHANGES = 10; // max changes per second
 
-bool ignoreClipboardChanges()
-{
-    // Changing a spinbox in klipper's config-dialog causes the lineedit-contents
-    // of the spinbox to be selected and hence the clipboard changes. But we don't
-    // want all those items in klipper's history. See #41917
-    const auto app = qobject_cast<QApplication *>(QCoreApplication::instance());
-    if (!app) {
-        return false;
-    }
-
-    QWidget *focusWidget = app->focusWidget();
-    if (focusWidget) {
-        if (focusWidget->inherits("QSpinBox")
-            || (focusWidget->parentWidget() && focusWidget->inherits("QLineEdit") && focusWidget->parentWidget()->inherits("QSpinWidget"))) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 void x11RoundTrip()
 {
 #if HAVE_X11
@@ -152,10 +131,9 @@ QMimeData *DatabaseRecordToMimeDataJob::mimeData() const
 {
     auto mimeData = new QMimeData;
     for (auto &[format, data] : m_mimeDataList) {
+        mimeData->setData(format, data);
         if (format == s_imageFormat) {
             mimeData->setImageData(QImage::fromData(data, "PNG"));
-        } else {
-            mimeData->setData(format, data);
         }
     }
     return mimeData;
@@ -211,16 +189,6 @@ void SystemClipboard::checkClipData(QClipboard::Mode mode, const QMimeData *data
 
     Ignore lock(mode == QClipboard::Selection ? m_selectionLocklevel : m_clipboardLocklevel);
 
-    // internal to klipper, ignoring QSpinBox selections
-    if (ignoreClipboardChanges()) {
-        // keep our old clipboard, thanks
-        // This won't quite work, but it's close enough for now.
-        // The trouble is that the top selection =! top clipboard
-        // but we don't track that yet. We will....
-        Q_EMIT ignored(mode);
-        return;
-    }
-
     qCDebug(KLIPPER_LOG) << "Checking clip data";
 
     if (!data) {
@@ -231,12 +199,18 @@ void SystemClipboard::checkClipData(QClipboard::Mode mode, const QMimeData *data
         Q_EMIT receivedEmptyClipboard(mode);
         return;
     } else if (data->formats().isEmpty()) {
-        // Might be a timeout. Try again
-        x11RoundTrip();
-        data = m_clip->mimeData(mode);
-        if (!data || data->formats().isEmpty()) {
-            qCDebug(KLIPPER_LOG) << "was empty. Retried, now still empty";
-            Q_EMIT receivedEmptyClipboard(mode);
+        if (KWindowSystem::isPlatformX11()) {
+            // Might be a timeout. Try again
+            x11RoundTrip();
+            data = m_clip->mimeData(mode);
+            if (!data || data->formats().isEmpty()) {
+                qCDebug(KLIPPER_LOG) << "was empty. Retried, now still empty";
+                Q_EMIT receivedEmptyClipboard(mode);
+                return;
+            }
+        } else {
+            // The selection is valid but it has no data.
+            qCDebug(KLIPPER_LOG) << "Empty selection. Nothing to synchronize";
             return;
         }
     }
@@ -398,7 +372,10 @@ void SystemClipboard::setMimeDataInternal(QMimeData *selectionMimeData, QMimeDat
         Ignore lock(m_selectionLocklevel);
         if (updateReason == ClipboardUpdateReason::PreventEmptyClipboard) {
             selectionMimeData->setData(QStringLiteral("application/x-kde-onlyReplaceEmpty"), "1");
+        } else if (updateReason == ClipboardUpdateReason::SyncSelection) {
+            selectionMimeData->setData(QStringLiteral("application/x-kde-syncselection"), "1");
         }
+
         qCDebug(KLIPPER_LOG) << "Setting selection to <" << (selectionMimeData->hasImage() ? u"image"_s : selectionMimeData->text()) << ">";
         m_clip->setMimeData(selectionMimeData, QClipboard::Selection);
     }

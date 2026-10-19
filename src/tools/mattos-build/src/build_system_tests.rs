@@ -1429,7 +1429,7 @@ fn tests_that_read_rust_source_text_do_not_grow() {
     // what it does; the kernel MAKEFLAGS regression passed every such test.
     // New tests should observe behavior (command_recorder, fixture trees,
     // data tables).  When converting one of these, lower the ceiling.
-    const CEILING: usize = 63;
+    const CEILING: usize = 62;
     let reads_source = |segment: &str| {
         segment.contains("source_item(")
             || segment.contains("packaging_source(")

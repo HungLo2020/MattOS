@@ -168,7 +168,7 @@ msgstr[0] "%1 / لا عنصر"
 msgstr[1] "%1 / عنصر واحد"
 msgstr[2] "%1 / عنصرين"
 msgstr[3] "%1 / %n عناصر"
-msgstr[4] "%1 / %n عنصراً"
+msgstr[4] "%1 / %n عنصرًا"
 msgstr[5] "%1 / %n عنصر"
 
 #: kwidgetjobtracker.cpp:424
@@ -300,7 +300,7 @@ msgstr[0] "عنصر"
 msgstr[1] "عنصر واحد"
 msgstr[2] "عنصرين"
 msgstr[3] "%n عناصر"
-msgstr[4] "%n عنصراً"
+msgstr[4] "%n عنصرًا"
 msgstr[5] "%n عنصر"
 
 #: kwidgetjobtracker.cpp:633

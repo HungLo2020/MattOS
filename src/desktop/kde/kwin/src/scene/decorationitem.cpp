@@ -6,17 +6,13 @@
 */
 
 #include "scene/decorationitem.h"
-#include "compositor.h"
-#include "core/output.h"
-#include "core/renderbackend.h"
+#include "core/gpumanager.h"
 #include "decorations/decoratedwindow.h"
-#include "opengl/eglcontext.h"
-#include "opengl/gltexture.h"
+#include "scene/atlas.h"
+#include "scene/itemrenderer.h"
 #include "scene/outlinedborderitem.h"
-#include "scene/workspacescene.h"
+#include "scene/scene.h"
 #include "window.h"
-
-#include <cmath>
 
 #include <KDecoration3/DecoratedWindow>
 #include <KDecoration3/Decoration>
@@ -28,10 +24,9 @@ namespace KWin
 
 DecorationRenderer::DecorationRenderer(Decoration::DecoratedWindowImpl *client)
     : m_client(client)
-    , m_imageSizesDirty(true)
 {
     connect(client->decoration(), &KDecoration3::Decoration::damaged, this, [this](const QRegion &region) {
-        addDamage(Region(region));
+        addDamage(RegionF(region));
     });
 
     connect(client->decoration(), &KDecoration3::Decoration::bordersChanged,
@@ -42,33 +37,35 @@ DecorationRenderer::DecorationRenderer(Decoration::DecoratedWindowImpl *client)
     invalidate();
 }
 
-Decoration::DecoratedWindowImpl *DecorationRenderer::client() const
+DecorationRenderer::~DecorationRenderer()
 {
-    return m_client;
 }
 
 void DecorationRenderer::invalidate()
 {
     if (m_client) {
-        addDamage(m_client->window()->rect().roundedOut());
+        addDamage(m_client->window()->rect());
     }
-    m_imageSizesDirty = true;
+    m_imageSizesNotDirty.clear();
 }
 
-Region DecorationRenderer::damage() const
+RegionF DecorationRenderer::damage(RenderDevice *device) const
 {
-    return m_damage;
+    return m_damage[device];
 }
 
-void DecorationRenderer::addDamage(const Region &region)
+void DecorationRenderer::addDamage(const RegionF &region)
 {
-    m_damage += region;
+    const auto &devices = GpuManager::self()->renderDevices();
+    for (const auto &device : devices) {
+        m_damage[device.get()] += region;
+    }
     Q_EMIT damaged(region);
 }
 
-void DecorationRenderer::resetDamage()
+void DecorationRenderer::resetDamage(RenderDevice *device)
 {
-    m_damage = Region();
+    m_damage.remove(device);
 }
 
 qreal DecorationRenderer::effectiveDevicePixelRatio() const
@@ -90,306 +87,114 @@ void DecorationRenderer::setDevicePixelRatio(qreal dpr)
     }
 }
 
-void DecorationRenderer::renderToPainter(QPainter *painter, const RectF &rect)
+Atlas *DecorationRenderer::atlas(RenderDevice *device) const
 {
-    client()->decoration()->paint(painter, rect);
+    const auto it = m_atlas.find(device);
+    return it == m_atlas.end() ? nullptr : it->second.get();
 }
 
-SceneOpenGLDecorationRenderer::SceneOpenGLDecorationRenderer(Decoration::DecoratedWindowImpl *client)
-    : DecorationRenderer(client)
-    , m_texture()
+bool DecorationRenderer::needsRepaint(RenderDevice *device) const
 {
+    return !m_imageSizesNotDirty.contains(device) || !damage(device).isEmpty();
 }
 
-SceneOpenGLDecorationRenderer::~SceneOpenGLDecorationRenderer()
+void DecorationRenderer::render(ItemRenderer *itemRenderer, const RegionF &region)
 {
-    if (WorkspaceScene *scene = Compositor::self()->scene()) {
-        scene->openglContext()->makeCurrent();
-    }
-}
+    const RectF geometry = region.boundingRect();
 
-static void clamp_row(int left, int width, int right, const uint32_t *src, uint32_t *dest)
-{
-    std::fill_n(dest, left, *src);
-    std::copy(src, src + width, dest + left);
-    std::fill_n(dest + left + width, right, *(src + width - 1));
-}
+    RectF decorationRects[4];
+    m_client->window()->layoutDecorationRects(decorationRects[int(DecorationPart::Left)],
+                                              decorationRects[int(DecorationPart::Top)],
+                                              decorationRects[int(DecorationPart::Right)],
+                                              decorationRects[int(DecorationPart::Bottom)]);
 
-static void clamp_sides(int left, int width, int right, const uint32_t *src, uint32_t *dest)
-{
-    std::fill_n(dest, left, *src);
-    std::fill_n(dest + left + width, right, *(src + width - 1));
-}
+    const bool resized = !m_imageSizesNotDirty.contains(itemRenderer->renderDevice());
+    if (resized) {
+        const qreal dpr = effectiveDevicePixelRatio();
 
-static void clamp(QImage &image, const Rect &viewport)
-{
-    Q_ASSERT(image.depth() == 32);
-    if (viewport.isEmpty()) {
-        image = {};
-        return;
-    }
-
-    const Rect rect = image.rect();
-
-    const int left = viewport.left() - rect.left();
-    const int top = viewport.top() - rect.top();
-    const int right = rect.right() - viewport.right();
-    const int bottom = rect.bottom() - viewport.bottom();
-
-    const int width = rect.width() - left - right;
-    const int height = rect.height() - top - bottom;
-
-    const uint32_t *firstRow = reinterpret_cast<uint32_t *>(image.scanLine(top));
-    const uint32_t *lastRow = reinterpret_cast<uint32_t *>(image.scanLine(top + height - 1));
-
-    for (int i = 0; i < top; ++i) {
-        uint32_t *dest = reinterpret_cast<uint32_t *>(image.scanLine(i));
-        clamp_row(left, width, right, firstRow + left, dest);
-    }
-
-    for (int i = 0; i < height; ++i) {
-        uint32_t *dest = reinterpret_cast<uint32_t *>(image.scanLine(top + i));
-        clamp_sides(left, width, right, dest + left, dest);
-    }
-
-    for (int i = 0; i < bottom; ++i) {
-        uint32_t *dest = reinterpret_cast<uint32_t *>(image.scanLine(top + height + i));
-        clamp_row(left, width, right, lastRow + left, dest);
-    }
-}
-
-void SceneOpenGLDecorationRenderer::render(const Region &region)
-{
-    if (areImageSizesDirty()) {
-        resizeTexture();
-        resetImageSizesDirty();
-    }
-
-    if (!m_texture) {
-        // for invalid sizes we get no texture, see BUG 361551
-        return;
-    }
-
-    RectF left, top, right, bottom;
-    client()->window()->layoutDecorationRects(left, top, right, bottom);
-
-    const qreal devicePixelRatio = effectiveDevicePixelRatio();
-    const int topHeight = std::round(top.height() * devicePixelRatio);
-    const int bottomHeight = std::round(bottom.height() * devicePixelRatio);
-    const int leftWidth = std::round(left.width() * devicePixelRatio);
-
-    const QPoint topPosition(0, 0);
-    const QPoint bottomPosition(0, topPosition.y() + topHeight + (2 * TexturePad));
-    const QPoint leftPosition(0, bottomPosition.y() + bottomHeight + (2 * TexturePad));
-    const QPoint rightPosition(0, leftPosition.y() + leftWidth + (2 * TexturePad));
-
-    const Rect dirtyRect = region.boundingRect();
-
-    renderPart(top.intersected(dirtyRect), top, topPosition, devicePixelRatio);
-    renderPart(bottom.intersected(dirtyRect), bottom, bottomPosition, devicePixelRatio);
-    renderPart(left.intersected(dirtyRect), left, leftPosition, devicePixelRatio, true);
-    renderPart(right.intersected(dirtyRect), right, rightPosition, devicePixelRatio, true);
-}
-
-void SceneOpenGLDecorationRenderer::renderPart(const RectF &rect, const RectF &partRect,
-                                               const QPoint &textureOffset,
-                                               qreal devicePixelRatio, bool rotated)
-{
-    if (!rect.isValid() || !m_texture) {
-        return;
-    }
-    // We allow partial decoration updates and it might just so happen that the
-    // dirty region is completely contained inside the decoration part, i.e.
-    // the dirty region doesn't touch any of the decoration's edges. In that
-    // case, we should **not** pad the dirty region.
-    const QMargins padding = texturePadForPart(rect, partRect);
-    int verticalPadding = padding.top() + padding.bottom();
-    int horizontalPadding = padding.left() + padding.right();
-
-    QSize imageSize(toNativeSize(rect.width()), toNativeSize(rect.height()));
-    if (rotated) {
-        imageSize = QSize(imageSize.height(), imageSize.width());
-    }
-    QSize paddedImageSize = imageSize;
-    paddedImageSize.rheight() += verticalPadding;
-    paddedImageSize.rwidth() += horizontalPadding;
-    QImage image(paddedImageSize, QImage::Format_ARGB32_Premultiplied);
-    image.setDevicePixelRatio(devicePixelRatio);
-    image.fill(Qt::transparent);
-
-    QRect padClip = QRect(padding.left(), padding.top(), imageSize.width(), imageSize.height());
-    QPainter painter(&image);
-    const qreal inverseScale = 1.0 / devicePixelRatio;
-    painter.scale(inverseScale, inverseScale);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setClipRect(padClip);
-    painter.translate(padding.left(), padding.top());
-    if (rotated) {
-        painter.translate(0, imageSize.height());
-        painter.rotate(-90);
-    }
-    painter.scale(devicePixelRatio, devicePixelRatio);
-    painter.translate(-rect.topLeft());
-    renderToPainter(&painter, rect);
-    painter.end();
-
-    // fill padding pixels by copying from the neighbour row
-    clamp(image, padClip);
-
-    QPoint dirtyOffset = ((rect.topLeft() - partRect.topLeft()) * devicePixelRatio).toPoint();
-    if (padding.top() == 0) {
-        dirtyOffset.ry() += TexturePad;
-    }
-    if (padding.left() == 0) {
-        dirtyOffset.rx() += TexturePad;
-    }
-    m_texture->update(image, Rect(image.rect()), textureOffset + dirtyOffset);
-}
-
-const QMargins SceneOpenGLDecorationRenderer::texturePadForPart(
-    const RectF &rect, const RectF &partRect)
-{
-    QMargins result = QMargins(0, 0, 0, 0);
-    if (rect.top() == partRect.top()) {
-        result.setTop(TexturePad);
-    }
-    if (rect.bottom() == partRect.bottom()) {
-        result.setBottom(TexturePad);
-    }
-    if (rect.left() == partRect.left()) {
-        result.setLeft(TexturePad);
-    }
-    if (rect.right() == partRect.right()) {
-        result.setRight(TexturePad);
-    }
-    return result;
-}
-
-static int align(int value, int align)
-{
-    return (value + align - 1) & ~(align - 1);
-}
-
-void SceneOpenGLDecorationRenderer::resizeTexture()
-{
-    RectF left, top, right, bottom;
-    client()->window()->layoutDecorationRects(left, top, right, bottom);
-    QSize size;
-
-    size.rwidth() = toNativeSize(std::max({top.width(), bottom.width(), left.height(), right.height()}));
-    size.rheight() = toNativeSize(top.height()) + toNativeSize(bottom.height()) + toNativeSize(left.width()) + toNativeSize(right.width());
-
-    size.rheight() += 4 * (2 * TexturePad);
-    size.rwidth() += 2 * TexturePad;
-    size.rwidth() = align(size.width(), 128);
-
-    if (m_texture && m_texture->size() == size) {
-        return;
-    }
-
-    if (!size.isEmpty()) {
-        m_texture = GLTexture::allocate(GL_RGBA8, size);
-        if (!m_texture) {
-            return;
+        for (int i = 0; i < 4; ++i) {
+            const QSize nativeSize = decorationRects[i]
+                                         .scaled(dpr)
+                                         .rounded()
+                                         .size();
+            if (m_images[i].size() != nativeSize || m_images[i].devicePixelRatio() != dpr) {
+                m_images[i] = QImage(nativeSize, QImage::Format_ARGB32_Premultiplied);
+                m_images[i].setDevicePixelRatio(dpr);
+                m_images[i].fill(Qt::transparent);
+            }
         }
-        m_texture->setContentTransform(OutputTransform::FlipY);
-        m_texture->setFilter(GL_LINEAR);
-        m_texture->setWrapMode(GL_CLAMP_TO_EDGE);
-    } else {
-        m_texture.reset();
-    }
-}
-
-int SceneOpenGLDecorationRenderer::toNativeSize(double size) const
-{
-    return std::round(size * effectiveDevicePixelRatio());
-}
-
-SceneQPainterDecorationRenderer::SceneQPainterDecorationRenderer(Decoration::DecoratedWindowImpl *client)
-    : DecorationRenderer(client)
-{
-}
-
-QImage SceneQPainterDecorationRenderer::image(SceneQPainterDecorationRenderer::DecorationPart part) const
-{
-    Q_ASSERT(part != DecorationPart::Count);
-    return m_images[int(part)];
-}
-
-void SceneQPainterDecorationRenderer::render(const Region &region)
-{
-    if (areImageSizesDirty()) {
-        resizeImages();
-        resetImageSizesDirty();
+        m_imageSizesNotDirty.insert(itemRenderer->renderDevice());
     }
 
-    auto imageSize = [this](DecorationPart part) {
-        return m_images[int(part)].size() / m_images[int(part)].devicePixelRatio();
-    };
-
-    const Rect top(QPoint(0, 0), imageSize(DecorationPart::Top));
-    const Rect left(QPoint(0, top.height()), imageSize(DecorationPart::Left));
-    const Rect right(QPoint(top.width() - imageSize(DecorationPart::Right).width(), top.height()), imageSize(DecorationPart::Right));
-    const Rect bottom(QPoint(0, left.y() + left.height()), imageSize(DecorationPart::Bottom));
-
-    const Rect geometry = region.boundingRect();
-    auto renderPart = [this](const QRect &rect, const QRect &partRect, int index) {
-        if (rect.isEmpty()) {
-            return;
+    const auto renderPart = [this](QImage &image, const RectF &partRect, const RectF &damageRect) {
+        const RectF dirtyRect = partRect.intersected(damageRect);
+        if (dirtyRect.isEmpty()) {
+            return Rect();
         }
-        QPainter painter(&m_images[index]);
+
+        const Rect nativeDirtyRect = dirtyRect
+                                         .scaled(image.devicePixelRatio())
+                                         .roundedOut();
+        const RectF snappedDirtyRect = nativeDirtyRect.scaled(1 / image.devicePixelRatio());
+
+        const Rect nativePartRect = partRect
+                                        .scaled(image.devicePixelRatio())
+                                        .rounded();
+        const RectF snappedPartRect = nativePartRect.scaled(1 / image.devicePixelRatio());
+
+        QPainter painter(&image);
         painter.setRenderHint(QPainter::Antialiasing);
-        painter.setWindow(QRect(partRect.topLeft(), partRect.size() * effectiveDevicePixelRatio()));
-        painter.setClipRect(rect);
-        painter.save();
+        painter.translate(-snappedPartRect.topLeft());
+        painter.setClipRect(snappedDirtyRect);
+
         // clear existing part
+        painter.save();
         painter.setCompositionMode(QPainter::CompositionMode_Source);
-        painter.fillRect(rect, Qt::transparent);
+        painter.fillRect(snappedDirtyRect, Qt::transparent);
         painter.restore();
-        client()->decoration()->paint(&painter, rect);
+
+        m_client->decoration()->paint(&painter, snappedDirtyRect);
+
+        return nativeDirtyRect
+            .translated(-nativePartRect.topLeft())
+            .intersected(image.rect());
     };
 
-    renderPart(left.intersected(geometry), left, int(DecorationPart::Left));
-    renderPart(top.intersected(geometry), top, int(DecorationPart::Top));
-    renderPart(right.intersected(geometry), right, int(DecorationPart::Right));
-    renderPart(bottom.intersected(geometry), bottom, int(DecorationPart::Bottom));
+    Rect repainted[4];
+    for (int i = 0; i < 4; ++i) {
+        repainted[i] = renderPart(m_images[i], decorationRects[i], geometry);
+    }
+
+    auto &atlas = m_atlas[itemRenderer->renderDevice()];
+    if (!atlas) {
+        atlas = itemRenderer->createAtlas({m_images[0], m_images[1], m_images[2], m_images[3]});
+        return;
+    }
+
+    if (resized) {
+        atlas->reset({m_images[0], m_images[1], m_images[2], m_images[3]});
+    } else {
+        for (int i = 0; i < 4; ++i) {
+            if (!repainted[i].isEmpty()) {
+                atlas->update(i, m_images[i], repainted[i]);
+            }
+        }
+    }
 }
 
-void SceneQPainterDecorationRenderer::resizeImages()
+void DecorationRenderer::releaseResources(RenderDevice *device)
 {
-    RectF left, top, right, bottom;
-    client()->window()->layoutDecorationRects(left, top, right, bottom);
-
-    auto checkAndCreate = [this](int index, const QSizeF &size) {
-        auto dpr = effectiveDevicePixelRatio();
-        if (m_images[index].size() != size * dpr || m_images[index].devicePixelRatio() != dpr) {
-            m_images[index] = QImage(size.toSize() * dpr, QImage::Format_ARGB32_Premultiplied);
-            m_images[index].setDevicePixelRatio(dpr);
-            m_images[index].fill(Qt::transparent);
-        }
-    };
-    checkAndCreate(int(DecorationPart::Left), left.size());
-    checkAndCreate(int(DecorationPart::Right), right.size());
-    checkAndCreate(int(DecorationPart::Top), top.size());
-    checkAndCreate(int(DecorationPart::Bottom), bottom.size());
+    m_atlas.erase(device);
+    m_damage.remove(device);
+    m_imageSizesNotDirty.erase(device);
 }
 
 DecorationItem::DecorationItem(KDecoration3::Decoration *decoration, Window *window, Item *parent)
     : Item(parent)
     , m_window(window)
     , m_decoration(decoration)
+    , m_renderer(std::make_unique<DecorationRenderer>(window->decoratedWindow()))
 {
-    switch (Compositor::self()->backend()->compositingType()) {
-    case OpenGLCompositing:
-        m_renderer = std::make_unique<SceneOpenGLDecorationRenderer>(window->decoratedWindow());
-        break;
-    case QPainterCompositing:
-        m_renderer = std::make_unique<SceneQPainterDecorationRenderer>(window->decoratedWindow());
-        break;
-    default:
-        Q_UNREACHABLE();
-    }
-
     connect(window, &Window::targetScaleChanged, this, &DecorationItem::updateScale);
 
     connect(decoration->window(), &KDecoration3::DecoratedWindow::sizeChanged,
@@ -399,8 +204,8 @@ DecorationItem::DecorationItem(KDecoration3::Decoration *decoration, Window *win
     connect(decoration, &KDecoration3::Decoration::borderOutlineChanged,
             this, &DecorationItem::updateOutline);
 
-    connect(renderer(), &DecorationRenderer::damaged,
-            this, qOverload<const Region &>(&Item::scheduleRepaint));
+    connect(m_renderer.get(), &DecorationRenderer::damaged,
+            this, qOverload<const RegionF &>(&Item::scheduleRepaint));
 
     setSize(decoration->size());
     updateScale();
@@ -411,39 +216,27 @@ DecorationItem::~DecorationItem()
 {
 }
 
-QList<RectF> DecorationItem::shape() const
+RegionF DecorationItem::shape() const
 {
     RectF left, top, right, bottom;
     m_window->layoutDecorationRects(left, top, right, bottom);
-    return {left, top, right, bottom};
+    return RegionF(left) | top | right | bottom;
 }
 
-Region DecorationItem::opaque() const
+RegionF DecorationItem::opaque() const
 {
     if (m_window->decorationHasAlpha()) {
-        return Region();
+        return RegionF();
+    } else {
+        return shape();
     }
-    RectF left, top, right, bottom;
-    m_window->layoutDecorationRects(left, top, right, bottom);
-
-    // We have to map to integers which has rounding issues
-    // it's safer for a region to be considered transparent than opaque
-    // so always align inwards
-    const QMargins roundingPad = QMargins(1, 1, 1, 1);
-    Region roundedLeft = left.roundedOut().marginsRemoved(roundingPad);
-    Region roundedTop = top.roundedOut().marginsRemoved(roundingPad);
-    Region roundedRight = right.roundedOut().marginsRemoved(roundingPad);
-    Region roundedBottom = bottom.roundedOut().marginsRemoved(roundingPad);
-
-    return roundedLeft | roundedTop | roundedRight | roundedBottom;
 }
 
-void DecorationItem::preprocess()
+void DecorationItem::preprocess(ItemRenderer *renderer)
 {
-    const Region damage = m_renderer->damage();
-    if (!damage.isEmpty()) {
-        m_renderer->render(damage);
-        m_renderer->resetDamage();
+    if (m_renderer->needsRepaint(renderer->renderDevice())) {
+        m_renderer->render(renderer, m_renderer->damage(renderer->renderDevice()));
+        m_renderer->resetDamage(renderer->renderDevice());
     }
 }
 
@@ -480,9 +273,9 @@ void DecorationItem::handleDecorationGeometryChanged()
     }
 }
 
-DecorationRenderer *DecorationItem::renderer() const
+Atlas *DecorationItem::atlas(RenderDevice *device) const
 {
-    return m_renderer.get();
+    return m_renderer ? m_renderer->atlas(device) : nullptr;
 }
 
 Window *DecorationItem::window() const
@@ -490,76 +283,56 @@ Window *DecorationItem::window() const
     return m_window;
 }
 
-WindowQuad buildQuad(const RectF &partRect, const QPoint &textureOffset,
-                     const qreal devicePixelRatio, bool rotated)
-{
-    const int p = DecorationRenderer::TexturePad;
-
-    const double x0 = partRect.left();
-    const double y0 = partRect.top();
-    const double x1 = partRect.right();
-    const double y1 = partRect.bottom();
-
-    WindowQuad quad;
-    if (rotated) {
-        const int u0 = textureOffset.y() + p;
-        const int v0 = textureOffset.x() + p;
-        const int u1 = textureOffset.y() + p + std::round(partRect.width() * devicePixelRatio);
-        const int v1 = textureOffset.x() + p + std::round(partRect.height() * devicePixelRatio);
-
-        quad[0] = WindowVertex(x0, y0, v0, u1); // Top-left
-        quad[1] = WindowVertex(x1, y0, v0, u0); // Top-right
-        quad[2] = WindowVertex(x1, y1, v1, u0); // Bottom-right
-        quad[3] = WindowVertex(x0, y1, v1, u1); // Bottom-left
-    } else {
-        const int u0 = textureOffset.x() + p;
-        const int v0 = textureOffset.y() + p;
-        const int u1 = textureOffset.x() + p + std::round(partRect.width() * devicePixelRatio);
-        const int v1 = textureOffset.y() + p + std::round(partRect.height() * devicePixelRatio);
-
-        quad[0] = WindowVertex(x0, y0, u0, v0); // Top-left
-        quad[1] = WindowVertex(x1, y0, u1, v0); // Top-right
-        quad[2] = WindowVertex(x1, y1, u1, v1); // Bottom-right
-        quad[3] = WindowVertex(x0, y1, u0, v1); // Bottom-left
-    }
-    return quad;
-}
-
-WindowQuadList DecorationItem::buildQuads() const
+WindowQuadList DecorationItem::buildQuads(ItemRenderer *renderer) const
 {
     if (m_window->frameMargins().isNull()) {
         return WindowQuadList();
     }
 
-    RectF left, top, right, bottom;
-    const qreal devicePixelRatio = m_renderer->effectiveDevicePixelRatio();
-    const int texturePad = DecorationRenderer::TexturePad;
+    const Atlas *atlas = m_renderer->atlas(renderer->renderDevice());
+    if (!atlas) {
+        return WindowQuadList();
+    }
 
-    m_window->layoutDecorationRects(left, top, right, bottom);
-
-    const int topHeight = std::round(top.height() * devicePixelRatio);
-    const int bottomHeight = std::round(bottom.height() * devicePixelRatio);
-    const int leftWidth = std::round(left.width() * devicePixelRatio);
-
-    const QPoint topPosition(0, 0);
-    const QPoint bottomPosition(0, topPosition.y() + topHeight + (2 * texturePad));
-    const QPoint leftPosition(0, bottomPosition.y() + bottomHeight + (2 * texturePad));
-    const QPoint rightPosition(0, leftPosition.y() + leftWidth + (2 * texturePad));
+    RectF decorationRects[4];
+    m_window->layoutDecorationRects(decorationRects[int(DecorationRenderer::DecorationPart::Left)],
+                                    decorationRects[int(DecorationRenderer::DecorationPart::Top)],
+                                    decorationRects[int(DecorationRenderer::DecorationPart::Right)],
+                                    decorationRects[int(DecorationRenderer::DecorationPart::Bottom)]);
 
     WindowQuadList list;
-    if (left.isValid()) {
-        list.append(buildQuad(left, leftPosition, devicePixelRatio, true));
+    list.reserve(4);
+
+    for (int i = 0; i < 4; ++i) {
+        const auto rect = decorationRects[i];
+        if (rect.isEmpty()) {
+            continue;
+        }
+
+        WindowQuad quad;
+
+        const auto sprite = atlas->sprite(i);
+        if (sprite.rotated) {
+            quad[0] = WindowVertex(rect.topLeft(), sprite.geometry.bottomLeft());
+            quad[1] = WindowVertex(rect.topRight(), sprite.geometry.topLeft());
+            quad[2] = WindowVertex(rect.bottomRight(), sprite.geometry.topRight());
+            quad[3] = WindowVertex(rect.bottomLeft(), sprite.geometry.bottomRight());
+        } else {
+            quad[0] = WindowVertex(rect.topLeft(), sprite.geometry.topLeft());
+            quad[1] = WindowVertex(rect.topRight(), sprite.geometry.topRight());
+            quad[2] = WindowVertex(rect.bottomRight(), sprite.geometry.bottomRight());
+            quad[3] = WindowVertex(rect.bottomLeft(), sprite.geometry.bottomLeft());
+        }
+
+        list.append(quad);
     }
-    if (top.isValid()) {
-        list.append(buildQuad(top, topPosition, devicePixelRatio, false));
-    }
-    if (right.isValid()) {
-        list.append(buildQuad(right, rightPosition, devicePixelRatio, true));
-    }
-    if (bottom.isValid()) {
-        list.append(buildQuad(bottom, bottomPosition, devicePixelRatio, false));
-    }
+
     return list;
+}
+
+void DecorationItem::releaseResources(RenderDevice *device)
+{
+    m_renderer->releaseResources(device);
 }
 
 } // namespace KWin

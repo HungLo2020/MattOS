@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwalletd5\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-18 00:41+0000\n"
+"POT-Creation-Date: 2026-09-19 00:41+0000\n"
 "PO-Revision-Date: 2026-02-18 08:27+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
@@ -30,31 +30,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "fr.ivan@ukrainian-orthodox.org,yurchor@ukr.net"
 
-#. i18n: ectx: property (text), widget (QPushButton, _allowOnce)
-#: ksecretd/kbetterthankdialogbase.ui:50
-#, kde-format
-msgid "Allow &Once"
-msgstr "Дозволити за&раз"
-
-#. i18n: ectx: property (text), widget (QPushButton, _allowAlways)
-#: ksecretd/kbetterthankdialogbase.ui:60
-#, kde-format
-msgid "Allow &Always"
-msgstr "Дозволяти за&вжди"
-
-#. i18n: ectx: property (text), widget (QPushButton, _deny)
-#: ksecretd/kbetterthankdialogbase.ui:67
-#, kde-format
-msgid "&Deny"
-msgstr "&Відмовити"
-
-#. i18n: ectx: property (text), widget (QPushButton, _denyForever)
-#: ksecretd/kbetterthankdialogbase.ui:74
-#, kde-format
-msgid "Deny &Forever"
-msgstr "Відмовляти з&авжди"
-
-#: ksecretd/knewwalletdialog.cpp:50
+#: ksecretd/knewwalletdialog.cpp:49
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. This is used "
@@ -66,20 +42,7 @@ msgstr ""
 "вигляді. Будь ласка, виберіть тип нової торбинки або натисніть кнопку "
 "«Скасувати», щоб відмовити у виконанні цього запиту.</qt>"
 
-#: ksecretd/knewwalletdialog.cpp:55
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. This is used to store sensitive data in a secure fashion. "
-"Please choose the new wallet's type below or click cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>Програма «<b>%1</b>» попросила систему створити нову торбинку з назвою "
-"<b>%2</b>. Торбинки використовуються для зберігання важливих даних у "
-"зашифрованому вигляді. Будь ласка, виберіть тип нової торбинки нижче або "
-"натисніть кнопку «Скасувати», щоб відмовити у виконанні цього запиту.</qt>"
-
-#: ksecretd/knewwalletdialog.cpp:125 ksecretd/knewwalletdialog.cpp:132
+#: ksecretd/knewwalletdialog.cpp:117 ksecretd/knewwalletdialog.cpp:124
 #: ksecretd/kwalletwizard.cpp:151 ksecretd/kwalletwizard.cpp:157
 #, kde-format
 msgid ""
@@ -89,7 +52,7 @@ msgstr ""
 "Бібліотеці GpgME не вдалося ініціалізуватися для роботи з протоколом "
 "OpenPGP. Будь ласка, виправте налаштування вашої системи і повторіть спробу."
 
-#: ksecretd/knewwalletdialog.cpp:153
+#: ksecretd/knewwalletdialog.cpp:145
 #, kde-format
 msgid ""
 "Seems that your system has no keys suitable for encryption. Please set-up at "
@@ -171,7 +134,7 @@ msgstr "Класичний, зашифрований blowfish файл"
 msgid "Use GPG encryption, for better protection"
 msgstr "Використати шифрування GPG для забезпечення кращого захисту"
 
-#: ksecretd/ksecretd.cpp:616
+#: ksecretd/ksecretd.cpp:334
 #, kde-format
 msgid ""
 "<qt>KDE has requested to open the wallet '<b>%1</b>'. Please enter the "
@@ -180,31 +143,21 @@ msgstr ""
 "<qt>KDE дало запит на відкриття торбинки «<b>%1</b>». Будь ласка, введіть "
 "пароль для торбинки.</qt>"
 
-#: ksecretd/ksecretd.cpp:620
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
-"b>'. Please enter the password for this wallet below.</qt>"
-msgstr ""
-"<qt>Програма «<b>%1</b>» попросила відкрити торбинку «<b>%2</b>». Будь "
-"ласка, введіть пароль для торбинки.</qt>"
-
 #. i18n( "&Open" ), "wallet-open"));
-#: ksecretd/ksecretd.cpp:631 ksecretd/ksecretd.cpp:740
-#: ksecretd/ksecretd.cpp:844 ksecretd/ksecretd.cpp:957
-#: ksecretd/ksecretd.cpp:980 ksecretd/ksecretd.cpp:991
-#: ksecretd/ksecretd.cpp:996 ksecretd/ksecretd.cpp:1586 ksecretd/main.cpp:160
-#: ksecretd/main.cpp:162
+#: ksecretd/ksecretd.cpp:342 ksecretd/ksecretd.cpp:429
+#: ksecretd/ksecretd.cpp:573 ksecretd/ksecretd.cpp:596
+#: ksecretd/ksecretd.cpp:607 ksecretd/ksecretd.cpp:612
+#: ksecretd/ksecretd.cpp:899 ksecretd/main.cpp:159 ksecretd/main.cpp:161
 #, kde-format
 msgid "KDE Wallet Service"
 msgstr "Служба торбинок KDE"
 
-#: ksecretd/ksecretd.cpp:646
+#: ksecretd/ksecretd.cpp:356
 #, kde-format
 msgid "An application has requested to open a wallet (%1)."
 msgstr "Програмою надіслано запити щодо відкриття торбинки (%1)."
 
-#: ksecretd/ksecretd.cpp:647
+#: ksecretd/ksecretd.cpp:357
 #, kde-format
 msgctxt ""
 "Text of a button for switching to the (unnamed) application requesting a "
@@ -212,19 +165,7 @@ msgctxt ""
 msgid "Switch there"
 msgstr "Перейти"
 
-#: ksecretd/ksecretd.cpp:649
-#, kde-format
-msgid "<b>%1</b> has requested to open a wallet (%2)."
-msgstr "Програма <b>%1</b> надіслала запит на відкриття торбинки (%2)."
-
-#: ksecretd/ksecretd.cpp:651
-#, kde-format
-msgctxt ""
-"Text of a button for switching to the application requesting a password"
-msgid "Switch to %1"
-msgstr "Перейти до %1"
-
-#: ksecretd/ksecretd.cpp:668 ksecretd/ksecretd.cpp:750
+#: ksecretd/ksecretd.cpp:373 ksecretd/ksecretd.cpp:439
 #, kde-format
 msgid ""
 "<qt>Error opening the wallet '<b>%1</b>'. Please try again.<br />(Error code "
@@ -233,7 +174,7 @@ msgstr ""
 "<qt>Помилка при відкритті торбинки «<b>%1</b>». Спробуйте ще раз.<br />(Код "
 "помилки %2: %3)</qt>"
 
-#: ksecretd/ksecretd.cpp:716
+#: ksecretd/ksecretd.cpp:420
 #, kde-format
 msgid ""
 "KDE has requested to open the wallet. This is used to store sensitive data "
@@ -244,20 +185,7 @@ msgstr ""
 "вразливих даних у зашифрованому вигляді. Будь ласка, введіть пароль для "
 "торбинки або натисніть скасувати, щоб відмовити у виконанні цього запиту."
 
-#: ksecretd/ksecretd.cpp:721
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the KDE wallet. This "
-"is used to store sensitive data in a secure fashion. Please enter a password "
-"to use with this wallet or click cancel to deny the application's request.</"
-"qt>"
-msgstr ""
-"<qt>Програма «<b>%1</b>» попросила відкрити торбинку. Торбинки "
-"використовуються для зберігання вразливих даних у зашифрованому вигляді. "
-"Будь ласка, введіть пароль для торбинки або натисніть скасувати, щоб "
-"відмовити у виконанні цього запиту.</qt>"
-
-#: ksecretd/ksecretd.cpp:729
+#: ksecretd/ksecretd.cpp:425
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. Please "
@@ -268,32 +196,7 @@ msgstr ""
 "ласка, виберіть пароль для цієї торбинки або натисніть скасувати, для "
 "відмови у виконанні цього запиту програми.</qt>"
 
-#: ksecretd/ksecretd.cpp:734
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. Please choose a password for this wallet, or cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>Програма «<b>%1</b>» дала запит на створення нової торбинки з назвою «<b>"
-"%2</b>». Будь ласка, виберіть пароль для цієї торбинки або натисніть "
-"скасувати, для відмови у виконанні цього запиту програми.</qt>"
-
-#: ksecretd/ksecretd.cpp:846
-#, kde-format
-msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
-msgstr "<qt>KDE попросило доступ до відкритої торбинки «<b>%1</b>».</qt>"
-
-#: ksecretd/ksecretd.cpp:848
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested access to the open wallet '<b>"
-"%2</b>'.</qt>"
-msgstr ""
-"<qt>Програма «<b>%1</b>» попросила доступ до відкритої торбинки «<b>%2</b>»."
-"</qt>"
-
-#: ksecretd/ksecretd.cpp:956
+#: ksecretd/ksecretd.cpp:572
 #, kde-format
 msgid ""
 "Unable to open wallet. The wallet must be opened in order to change the "
@@ -302,7 +205,7 @@ msgstr ""
 "Не вдається відкрити торбинку. Спочатку необхідно відкрити торбинку, щоб "
 "змінити пароль."
 
-#: ksecretd/ksecretd.cpp:972
+#: ksecretd/ksecretd.cpp:588
 #, kde-format
 msgid ""
 "<qt>The <b>%1</b> wallet is encrypted using GPG key <b>%2</b>. Please use "
@@ -313,22 +216,22 @@ msgstr ""
 "ласка, скористайтеся інструментами роботи з <b>GPG</b> (наприклад "
 "<b>kleopatra</b>), щоб змінити пароль, пов’язаний з цим ключем.</qt>"
 
-#: ksecretd/ksecretd.cpp:979
+#: ksecretd/ksecretd.cpp:595
 #, kde-format
 msgid "<qt>Please choose a new password for the wallet '<b>%1</b>'.</qt>"
 msgstr "<qt>Будь ласка, виберіть новий пароль для торбинки «<b>%1</b>».</qt>"
 
-#: ksecretd/ksecretd.cpp:991
+#: ksecretd/ksecretd.cpp:607
 #, kde-format
 msgid "Error re-encrypting the wallet. Password was not changed."
 msgstr "Помилка при перешифруванні торбинки. Пароль змінено не було."
 
-#: ksecretd/ksecretd.cpp:996
+#: ksecretd/ksecretd.cpp:612
 #, kde-format
 msgid "Error reopening the wallet. Data may be lost."
 msgstr "Помилка при повторному відкритті торбинки. Можливо дані було втрачено."
 
-#: ksecretd/ksecretd.cpp:1585
+#: ksecretd/ksecretd.cpp:898
 #, kde-format
 msgid ""
 "There have been repeated failed attempts to gain access to a wallet. An "
@@ -555,47 +458,47 @@ msgstr ""
 msgid "What kind of encryption do you wish?"
 msgstr "Яким типом шифрування слід скористатися?"
 
-#: ksecretd/main.cpp:164
+#: ksecretd/main.cpp:163
 #, kde-format
 msgid "(C) 2002-2025, The KDE Developers"
 msgstr "© Розробники KDE, 2002–2025"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Valentin Rusu"
 msgstr "Valentin Rusu"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Former Maintainer, GPG backend support"
 msgstr "Колишній супровідник, підтримка модуля GPG"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Michael Leupold"
 msgstr "Michael Leupold"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Former Maintainer"
 msgstr "Колишній супровідник"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "George Staikos"
 msgstr "George Staikos"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "Former maintainer"
 msgstr "Попередній супроводжувач"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "Thiago Maceira"
 msgstr "Thiago Maceira"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "D-Bus Interface"
 msgstr "Інтерфейс D-Bus"
@@ -699,52 +602,52 @@ msgstr ""
 "зашифровано за допомогою ключа GPG з ідентифікатором <b>%2</b>, але цього "
 "ключа у вашій системі не знайдено.</qt>"
 
-#: kwalletbackend/kwalletbackend.cc:272
+#: kwalletbackend/kwalletbackend.cc:286
 #, kde-format
 msgid "Already open."
 msgstr "Вже відкрито."
 
-#: kwalletbackend/kwalletbackend.cc:274
+#: kwalletbackend/kwalletbackend.cc:288
 #, kde-format
 msgid "Error opening file."
 msgstr "Помилка при відкритті файла."
 
-#: kwalletbackend/kwalletbackend.cc:276
+#: kwalletbackend/kwalletbackend.cc:290
 #, kde-format
 msgid "Not a wallet file."
 msgstr "Це не файл торбинки."
 
-#: kwalletbackend/kwalletbackend.cc:278
+#: kwalletbackend/kwalletbackend.cc:292
 #, kde-format
 msgid "Unsupported file format revision."
 msgstr "Версія формату файла не підтримується."
 
-#: kwalletbackend/kwalletbackend.cc:282
+#: kwalletbackend/kwalletbackend.cc:296
 #, kde-format
 msgid "Unknown encryption scheme."
 msgstr "Невідомий схема шифрування."
 
-#: kwalletbackend/kwalletbackend.cc:284
+#: kwalletbackend/kwalletbackend.cc:298
 #, kde-format
 msgid "Corrupt file?"
 msgstr "Пошкоджений файл?"
 
-#: kwalletbackend/kwalletbackend.cc:286
+#: kwalletbackend/kwalletbackend.cc:300
 #, kde-format
 msgid "Error validating wallet integrity. Possibly corrupted."
 msgstr "Помилка при перевірці цілісності торбинки. Можливо її пошкоджено."
 
-#: kwalletbackend/kwalletbackend.cc:290
+#: kwalletbackend/kwalletbackend.cc:304
 #, kde-format
 msgid "Read error - possibly incorrect password."
 msgstr "Помилка читання — можливо, неправильний пароль."
 
-#: kwalletbackend/kwalletbackend.cc:292
+#: kwalletbackend/kwalletbackend.cc:306
 #, kde-format
 msgid "Decryption error."
 msgstr "Помилка розшифрування."
 
-#: kwalletbackend/kwalletbackend.cc:472
+#: kwalletbackend/kwalletbackend.cc:486
 #, kde-format
 msgid ""
 "Failed to sync wallet <b>%1</b> to disk. Error codes are:\n"
@@ -757,92 +660,161 @@ msgstr ""
 "SF <b>%3</b>. Будь ласка, створіть повідомлення щодо вади на bugs.kde.org, "
 "використавши вказані вище дані."
 
-#: kwalletd/kwalletd.cpp:119
+#: kwalletd/kwalletd.cpp:103
 #, kde-format
 msgid "Migrating the wallet \"%1\". Please provide the password to unlock."
 msgstr ""
 "Перенесення торбинки «%1». Будь ласка, надайте пароль для розблокування."
 
-#: kwalletd/main.cpp:32
+#: kwalletd/main.cpp:31
 #, kde-format
 msgid "kwalletd"
 msgstr "kwalletd"
 
-#: kwalletd/main.cpp:34
+#: kwalletd/main.cpp:33
 #, kde-format
 msgid "A KWallet compatibility service, wrapping upon Secret Service"
 msgstr "Служба сумісності KWallet, оболонка Secret Service"
 
-#: kwalletd/main.cpp:36
+#: kwalletd/main.cpp:35
 #, kde-format
 msgid "(C) 2025, The KDE Developers"
 msgstr "© Розробники KDE, 2025"
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Marco Martin"
 msgstr "Marco Martin"
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Author"
 msgstr "Автор"
 
-#: kwalletd/secretserviceclient.cpp:241
+#: kwalletd/secretserviceclient.cpp:262
 #, kde-format
 msgid "Item not found"
 msgstr "Запис не знайдено"
 
-#: kwalletd/secretserviceclient.cpp:261
+#: kwalletd/secretserviceclient.cpp:282
 #, kde-format
 msgid "Could not connect to Secret Service"
 msgstr "Не вдалося встановити з'єднання із Secret Service"
 
-#: kwalletd/secretserviceclient.cpp:423
+#: kwalletd/secretserviceclient.cpp:482
 #, kde-format
 msgid "Unable to unlock collectionName %1"
 msgstr "Не вдалося розблокувати collectionName %1"
 
-#: kwalletd/secretserviceclient.cpp:515
+#: kwalletd/secretserviceclient.cpp:575
 #, kde-format
 msgid "No collections"
 msgstr "Немає збірок"
 
-#: kwalletd/secretserviceclient.cpp:552 kwalletd/secretserviceclient.cpp:599
-#: kwalletd/secretserviceclient.cpp:702
+#: kwalletd/secretserviceclient.cpp:612 kwalletd/secretserviceclient.cpp:659
+#: kwalletd/secretserviceclient.cpp:762
 #, kde-format
 msgid "No entries"
 msgstr "Немає записів"
 
-#: kwalletd/secretserviceclient.cpp:617
+#: kwalletd/secretserviceclient.cpp:677
 #, kde-format
 msgid "Entry not found, key: %1, folder: %2"
 msgstr "Запис не знайдено, ключ: %1, тека: %2"
 
-#: kwalletd/secretserviceclient.cpp:726
+#: kwalletd/secretserviceclient.cpp:786
 #, kde-format
 msgid "Unable to unlock item"
 msgstr "Не вдалося розблокувати запис"
 
-#: kwalletd/secretserviceclient.cpp:769 kwalletd/secretserviceclient.cpp:887
+#: kwalletd/secretserviceclient.cpp:829 kwalletd/secretserviceclient.cpp:947
 #, kde-format
 msgid "Entry to rename not found"
 msgstr "Запис для перейменування не знайдено"
 
-#: kwalletd/secretserviceclient.cpp:776
+#: kwalletd/secretserviceclient.cpp:836
 #, kde-format
 msgid "Entry named %1 in folder %2 and wallet %3 already exists."
 msgstr "Запис із назвою %1 у теці %2 і торбинці %3 вже існує."
 
-#: kwalletd/secretserviceclient.cpp:791 kwalletd/secretserviceclient.cpp:806
+#: kwalletd/secretserviceclient.cpp:851 kwalletd/secretserviceclient.cpp:866
 #, kde-format
 msgid "Entry to rename incomplete"
 msgstr "Запис для перейменування є неповним"
 
-#: kwalletd/secretserviceclient.cpp:851
+#: kwalletd/secretserviceclient.cpp:911
 #, kde-format
 msgid "Failed to create SecretValue"
 msgstr "Не вдалося створити SecretValue"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. This is used to store sensitive data in a secure "
+#~ "fashion. Please choose the new wallet's type below or click cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Програма «<b>%1</b>» попросила систему створити нову торбинку з "
+#~ "назвою <b>%2</b>. Торбинки використовуються для зберігання важливих даних "
+#~ "у зашифрованому вигляді. Будь ласка, виберіть тип нової торбинки нижче "
+#~ "або натисніть кнопку «Скасувати», щоб відмовити у виконанні цього запиту."
+#~ "</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
+#~ "b>'. Please enter the password for this wallet below.</qt>"
+#~ msgstr ""
+#~ "<qt>Програма «<b>%1</b>» попросила відкрити торбинку «<b>%2</b>». Будь "
+#~ "ласка, введіть пароль для торбинки.</qt>"
+
+#~ msgid "<b>%1</b> has requested to open a wallet (%2)."
+#~ msgstr "Програма <b>%1</b> надіслала запит на відкриття торбинки (%2)."
+
+#~ msgctxt ""
+#~ "Text of a button for switching to the application requesting a password"
+#~ msgid "Switch to %1"
+#~ msgstr "Перейти до %1"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the KDE wallet. "
+#~ "This is used to store sensitive data in a secure fashion. Please enter a "
+#~ "password to use with this wallet or click cancel to deny the "
+#~ "application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Програма «<b>%1</b>» попросила відкрити торбинку. Торбинки "
+#~ "використовуються для зберігання вразливих даних у зашифрованому вигляді. "
+#~ "Будь ласка, введіть пароль для торбинки або натисніть скасувати, щоб "
+#~ "відмовити у виконанні цього запиту.</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. Please choose a password for this wallet, or cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Програма «<b>%1</b>» дала запит на створення нової торбинки з назвою "
+#~ "«<b>%2</b>». Будь ласка, виберіть пароль для цієї торбинки або натисніть "
+#~ "скасувати, для відмови у виконанні цього запиту програми.</qt>"
+
+#~ msgid "Allow &Once"
+#~ msgstr "Дозволити за&раз"
+
+#~ msgid "Allow &Always"
+#~ msgstr "Дозволяти за&вжди"
+
+#~ msgid "&Deny"
+#~ msgstr "&Відмовити"
+
+#~ msgid "Deny &Forever"
+#~ msgstr "Відмовляти з&авжди"
+
+#~ msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
+#~ msgstr "<qt>KDE попросило доступ до відкритої торбинки «<b>%1</b>».</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested access to the open wallet "
+#~ "'<b>%2</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>Програма «<b>%1</b>» попросила доступ до відкритої торбинки «<b>%2</"
+#~ "b>».</qt>"
 
 #~ msgid "Cannot read old wallet list. Aborting."
 #~ msgstr "Не вдалося прочитати список старих торбинок! Перериваємо обробку."

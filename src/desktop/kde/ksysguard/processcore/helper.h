@@ -28,8 +28,10 @@ public:
 public Q_SLOTS:
     ActionReply sendsignal(const QVariantMap &parameters);
     ActionReply renice(const QVariantMap &parameters);
+    ActionReply setAffinity(const QVariantMap &parameters);
     ActionReply changeioscheduler(const QVariantMap &parameters);
     ActionReply changecpuscheduler(const QVariantMap &parameters);
+    ActionReply applyscheduling(const QVariantMap &parameters);
 };
 
 Q_DECLARE_METATYPE(QList<long long>)

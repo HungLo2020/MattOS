@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_smserver\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-08 08:49+0200\n"
+"POT-Creation-Date: 2026-02-17 00:47+0000\n"
+"PO-Revision-Date: 2026-02-17 07:59+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -59,9 +59,10 @@ msgstr ""
 #, kde-format
 msgctxt "@info:status inlinemessage"
 msgid ""
-"Next time the computer is restarted, it will enter the UEFI setup screen."
+"Next time the computer is restarted, it will enter UEFI firmware settings."
 msgstr ""
-"Під час наступного перезапуску комп'ютер запустить засіб налаштовування UEFI."
+"Під час наступного перезапуску комп'ютер запустить засіб налаштовування "
+"параметрів мікропрограми UEFI."
 
 #: ui/main.qml:32
 #, kde-format
@@ -186,14 +187,25 @@ msgstr "Після наступного перезапуску:"
 #: ui/main.qml:145
 #, kde-format
 msgctxt "@option:check"
-msgid "Enter UEFI setup screen"
-msgstr "Налаштувати UEFI"
+msgid "Enter UEFI firmware settings"
+msgstr "Увійти до параметрів мікропрограми UEFI"
 
 #: ui/main.qml:146
 #, kde-format
 msgctxt "@option:check"
 msgid "Enter firmware setup screen"
 msgstr "Налаштовувати мікропрограму"
+
+#~ msgctxt "@info:status inlinemessage"
+#~ msgid ""
+#~ "Next time the computer is restarted, it will enter the UEFI setup screen."
+#~ msgstr ""
+#~ "Під час наступного перезапуску комп'ютер запустить засіб налаштовування "
+#~ "UEFI."
+
+#~ msgctxt "@option:check"
+#~ msgid "Enter UEFI setup screen"
+#~ msgstr "Налаштувати UEFI"
 
 #~ msgid ""
 #~ "The system must be restarted before manual session saving becomes active."

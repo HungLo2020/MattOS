@@ -1,5 +1,6 @@
 // Copyright (C) 2020 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qinputdevice.h"
 #include "qinputdevice_p.h"
@@ -59,7 +60,7 @@ using namespace Qt::StringLiterals;
 
     \value NormalizedPosition
            Indicates that the normalized position is available, meaning that
-           QEventPoint::globalPosition() returns a valid value.
+           QEventPoint::normalizedPosition() returns a valid value.
 
     \value MouseEmulation
            Indicates that the device synthesizes mouse events.

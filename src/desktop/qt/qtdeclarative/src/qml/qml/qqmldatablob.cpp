@@ -12,6 +12,8 @@
 
 #include <QtQml/qqmlengine.h>
 
+#include <QtCore/qcryptographichash.h>
+
 #include <qtqml_tracepoints_p.h>
 
 DEFINE_BOOL_CONFIG_OPTION(dumpErrors, QML_DUMP_ERRORS);
@@ -349,8 +351,11 @@ void QQmlDataBlob::addDependency(const QQmlDataBlob::Ptr &blob)
     if (m_waitingOnMe.indexOf(blob.data()) >= 0) {
         qCWarning(lcCycle) << "Cyclic dependency detected between" << this->url().toString()
                            << "and" << blob->url().toString();
-        cancelAllWaitingFor();
-        setStatus(Error);
+        QQmlError error;
+        error.setUrl(url());
+        error.setDescription(QString::fromLatin1("Cyclic dependency detected between \"%1\" and \"%2\"")
+                                     .arg(url().toString(), blob->url().toString()));
+        setError(error);
     }
 }
 
@@ -605,13 +610,13 @@ QString QQmlDataBlob::SourceCodeData::readAll(QString *error) const
     if (hasInlineSourceCode)
         return inlineSourceCode;
 
-    QFile f(fileInfo.absoluteFilePath());
+    QFile f(fileInfo.filePath());
     if (!f.open(QIODevice::ReadOnly)) {
         *error = f.errorString();
         return QString();
     }
 
-    const qint64 fileSize = fileInfo.size();
+    const qint64 fileSize = f.size();
 
     if (uchar *mappedData = f.map(0, fileSize)) {
         QString source = QString::fromUtf8(reinterpret_cast<const char *>(mappedData), fileSize);
@@ -632,21 +637,31 @@ QDateTime QQmlDataBlob::SourceCodeData::sourceTimeStamp() const
     if (hasInlineSourceCode)
         return QDateTime();
 
+    // If the file is from the resource file system we're never
+    // interested in the timestamp. Either it's content-hashed anyway
+    // (if we're checking against a .qmlc file), or we use the
+    // application timestamp because we don't trust qrc timestamps.
+    // So don't query the file system here.
+    if (QQmlTypeLoader::isResource(fileInfo.path()))
+        return QDateTime();
+
     return fileInfo.lastModified();
 }
 
-bool QQmlDataBlob::SourceCodeData::exists() const
+QByteArray QQmlDataBlob::SourceCodeData::checksum() const
 {
-    if (hasInlineSourceCode)
-        return true;
-    return fileInfo.exists();
-}
+    QCryptographicHash hash(QCryptographicHash::Md5);
+    if (hasInlineSourceCode) {
+        hash.addData(inlineSourceCode.toUtf8());
+        return hash.result();
+    }
 
-bool QQmlDataBlob::SourceCodeData::isEmpty() const
-{
-    if (hasInlineSourceCode)
-        return inlineSourceCode.isEmpty();
-    return fileInfo.size() == 0;
+    QFile f(fileInfo.filePath());
+    if (!f.open(QIODevice::ReadOnly))
+        return QByteArray();
+    if (!hash.addData(&f))
+        return QByteArray();
+    return hash.result();
 }
 
 bool QQmlDataBlob::setStatus(Status status)

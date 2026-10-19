@@ -10,6 +10,8 @@
 #include <private/qeventdispatcher_win_p.h>
 #include "qloggingcategory.h"
 #include "qmutex.h"
+#include <private/quniquehandle_types_p.h>
+#include <private/qwin32ticks_p.h>
 
 #include <qt_windows.h>
 
@@ -40,6 +42,9 @@ typedef struct _THREAD_POWER_THROTTLING_STATE {
 } THREAD_POWER_THROTTLING_STATE;
 #endif
 
+#ifndef CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+#define CREATE_WAITABLE_TIMER_HIGH_RESOLUTION 0x2
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -336,7 +341,32 @@ void QThread::yieldCurrentThread()
 void QThread::sleep(std::chrono::nanoseconds nsecs)
 {
     using namespace std::chrono;
-    ::Sleep(DWORD(duration_cast<milliseconds>(nsecs).count()));
+    if (nsecs < 30ms) {
+        QUniqueWin32NullHandle waitableTimerHandle;
+        waitableTimerHandle.reset(CreateWaitableTimerEx(
+                nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS));
+        if (waitableTimerHandle) {
+            using namespace std::chrono_literals;
+            // SetWaitableTimerEx's uses intervals of 100ns (0.1µs)
+            const auto ticks100ns = ceil<QtPrivate::win32_ticks>(nsecs);
+            LARGE_INTEGER i;
+            // Negate to make it a relative timeout:
+            i.QuadPart = std::min(-(ticks100ns.count()), -1ll);
+            BOOL timerResult = SetWaitableTimerEx(
+                    waitableTimerHandle.get(), &i,
+                    0, // not periodic
+                    nullptr, nullptr, // no callback
+                    nullptr, // no wake context / don't wake from sleep
+                    0); // lowest tolerated delay
+
+            if (timerResult == TRUE) {
+                if (WaitForSingleObject(waitableTimerHandle.get(), INFINITE) == ERROR_SUCCESS)
+                    return;
+            }
+        }
+    }
+    // Fallback:
+    ::Sleep(DWORD(ceil<milliseconds>(nsecs).count()));
 }
 
 void QThread::sleep(unsigned long secs)
@@ -351,7 +381,7 @@ void QThread::msleep(unsigned long msecs)
 
 void QThread::usleep(unsigned long usecs)
 {
-    ::Sleep((usecs / 1000) + 1);
+    sleep(std::chrono::microseconds(usecs));
 }
 
 #if QT_CONFIG(thread)

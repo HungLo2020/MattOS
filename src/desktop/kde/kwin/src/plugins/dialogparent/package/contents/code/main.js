@@ -90,7 +90,7 @@ var dialogParentEffect = {
         cancel(window.dialogParentAnimation);
         delete window.dialogParentEffect;
     },
-    desktopChanged: function () {
+    desktopChanged: function (oldDesktop, newDesktop, withWindow, screen) {
         "use strict";
         // If there is an active full screen effect, then try smoothly dim/brighten
         // the main windows. Keep in mind that in order for this to work properly, this
@@ -103,6 +103,9 @@ var dialogParentEffect = {
 
         const windows = effects.stackingOrder;
         for (const window of windows) {
+            if (window.screen !== screen) {
+                continue;
+            }
             dialogParentEffect.cancelAnimationInstant(window);
             dialogParentEffect.restartAnimation(window);
         }

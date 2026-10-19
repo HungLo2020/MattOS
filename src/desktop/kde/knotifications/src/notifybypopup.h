@@ -16,6 +16,8 @@
 
 #include "notifications_interface.h"
 
+#include "notifybyaudio.h"
+
 class KNotification;
 class QDBusPendingCallWatcher;
 
@@ -87,6 +89,8 @@ private:
     QHash<uint, QPointer<KNotification>> m_notifications;
 
     org::freedesktop::Notifications m_dbusInterface;
+
+    std::unique_ptr<NotifyByAudio> m_audio;
 
     Q_DISABLE_COPY_MOVE(NotifyByPopup)
 };

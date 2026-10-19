@@ -29,18 +29,6 @@ void QWaylandViewPrivate::markSurfaceAsDestroyed(QWaylandSurface *surface)
 }
 
 /*!
- * \qmltype WaylandView
- * \nativetype QWaylandView
- * \inqmlmodule QtWayland.Compositor
- * \since 5.8
- * \brief Represents a view of a surface on an output.
- *
- * The WaylandView corresponds to the presentation of a surface on a specific
- * output, managing the buffers that contain the contents to be rendered.
- * You can have several views into the same surface.
- */
-
-/*!
  * \class QWaylandView
  * \inmodule QtWaylandCompositor
  * \since 5.8
@@ -85,12 +73,6 @@ QObject *QWaylandView::renderObject() const
     Q_D(const QWaylandView);
     return d->renderObject;
 }
-
-/*!
- * \qmlproperty WaylandSurface QtWayland.Compositor::WaylandView::surface
- *
- * This property holds the surface viewed by this WaylandView.
- */
 
 /*!
  * \property QWaylandView::surface
@@ -145,12 +127,6 @@ void QWaylandView::setSurface(QWaylandSurface *newSurface)
     d->clearFrontBuffer();
     emit surfaceChanged();
 }
-
-/*!
- * \qmlproperty WaylandOutput QtWayland.Compositor::WaylandView::output
- *
- * This property holds the output on which this view displays its surface.
- */
 
 /*!
  * \property QWaylandView::output
@@ -262,16 +238,6 @@ QRegion QWaylandView::currentDamage()
 }
 
 /*!
- * \qmlproperty bool QtWayland.Compositor::WaylandView::bufferLocked
- *
- * This property holds whether the view's buffer is currently locked. When
- * the buffer is locked, advance() will not advance to the next buffer and
- * returns \c false.
- *
- * The default is \c false.
- */
-
-/*!
  * \property QWaylandView::bufferLocked
  *
  * This property holds whether the view's buffer is currently locked. When
@@ -297,15 +263,6 @@ void QWaylandView::setBufferLocked(bool locked)
     if (d->surface == nullptr && !d->bufferLocked)
         d->clearFrontBuffer();
 }
-/*!
- * \qmlproperty bool QtWayland.Compositor::WaylandView::allowDiscardFrontBuffer
- *
- * By default, the view locks the current buffer until advance() is called. Set this property
- * to true to allow Qt to release the buffer when the primary view is no longer using it.
- *
- * This can be used to avoid the situation where a secondary view that updates on a lower
- * frequency will throttle the frame rate of the client application.
- */
 
 /*!
  * \property QWaylandView::allowDiscardFrontBuffer

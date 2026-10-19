@@ -80,6 +80,7 @@ void KCMultiDialogPrivate::slotCurrentPageChanged(KPageWidgetItem *current, KPag
     q->layout()->setContentsMargins(0, 0, 0, 0);
 
     const KPageWidget *pageWidget = q->pageWidget();
+    pageWidget->layout()->setContentsMargins(0, 0, 0, 0);
     pageWidget->layout()->setSpacing(0);
 
     // Then, we set the margins for the title header and the buttonBox footer
@@ -440,6 +441,9 @@ KPageWidgetItem *KCMultiDialog::addModule(const KPluginMetaData &metaData, const
     connect(kcm, &KCModule::needsSaveChanged, this, [this]() {
         d->clientChanged();
     });
+    connect(kcm, &KCModule::representsDefaultsChanged, this, [this]() {
+        d->clientChanged();
+    });
 
     if (d->modules.count() == 1 || updateCurrentPage) {
         setCurrentPage(item);
@@ -467,6 +471,13 @@ void KCMultiDialog::setDefaultsIndicatorsVisible(bool show)
     for (const auto &module : std::as_const(d->modules)) {
         module.kcm->setDefaultsIndicatorsVisible(show);
     }
+}
+
+bool KCMultiDialog::hasError() const
+{
+    return std::any_of(d->modules.cbegin(), d->modules.cend(), [](const auto &module) {
+        return QByteArrayView(module.kcm->metaObject()->className()) == "KCMError";
+    });
 }
 
 bool KCMultiDialog::eventFilter(QObject *watched, QEvent *event)

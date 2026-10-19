@@ -673,7 +673,10 @@ void Codegen::initializeAndDestructureBindingElement(AST::PatternElement *e, con
     if (hasError())
         return;
 
-    accept(e->typeAnnotation);
+    if (e->typeAnnotation) {
+        throwSyntaxError(e->firstSourceLocation(),
+                         QLatin1String("Type annotations on default parameters are not supported."));
+    }
 
     if (e->initializer) {
         if (!baseRef.isValid()) {
@@ -771,7 +774,7 @@ void Codegen::destructureElementList(const Codegen::Reference &array, PatternEle
     RegisterScope scope(this);
 
     Reference iterator = Reference::fromStackSlot(this);
-    QVarLengthArray<Reference> iteratorValues;
+    QVarLengthArray<Reference, 32> iteratorValues;
     Reference ignored;
 
     array.loadInAccumulator();

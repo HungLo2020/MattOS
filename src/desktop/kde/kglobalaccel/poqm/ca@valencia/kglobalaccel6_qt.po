@@ -3,10 +3,10 @@
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# SPDX-FileCopyrightText: 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Sebastià Pla i Sanz <sps@sastia.com>
-# SPDX-FileCopyrightText: 2003, 2006, 2011, 2012, 2013, 2014, 2020 Antoni Bella Pérez <antonibella5@yahoo.com>
-# SPDX-FileCopyrightText: 2004, 2005, 2007 Albert Astals Cid <aacid@kde.org>
-# SPDX-FileCopyrightText: 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2022 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 1998-2007 Sebastià Pla i Sanz <sps@sastia.com>
+# SPDX-FileCopyrightText: 2003, 2006, 2011-2014, 2020 Antoni Bella Pérez <antonibella5@yahoo.com>
+# SPDX-FileCopyrightText: 2004-2005, 2007 Albert Astals Cid <aacid@kde.org>
+# SPDX-FileCopyrightText: 2007-2015, 2022 Josep M. Ferrer <txemaq@gmail.com>
 # SPDX-FileCopyrightText: 2009 Robert Millan <rmh@aybabtu.com>
 # SPDX-FileCopyrightText: 2010 Orestes Mas <orestes@tsc.upc.edu>
 msgid ""
@@ -26,7 +26,7 @@ msgstr ""
 "X-Accelerator-Marker: &\n"
 "X-Qt-Contexts: true\n"
 
-#: kglobalaccel.cpp:552
+#: kglobalaccel.cpp:558
 #, qt-format
 msgctxt "KGlobalAccel|"
 msgid "The '%1' key combination is registered by application %2 for action %3."
@@ -34,13 +34,13 @@ msgstr ""
 "La combinació de tecles «%1» està registrada per l'aplicació %2 per a "
 "l'acció %3."
 
-#: kglobalaccel.cpp:556
+#: kglobalaccel.cpp:562
 #, qt-format
 msgctxt "KGlobalAccel|"
 msgid "In context '%1' for action '%2'\n"
 msgstr "En el context «%1» per a l'acció «%2»\n"
 
-#: kglobalaccel.cpp:558
+#: kglobalaccel.cpp:564
 #, qt-format
 msgctxt "KGlobalAccel|"
 msgid ""
@@ -50,12 +50,12 @@ msgstr ""
 "La combinació de tecles «%1» està registrada per l'aplicació %2.\n"
 "%3"
 
-#: kglobalaccel.cpp:561
+#: kglobalaccel.cpp:567
 msgctxt "KGlobalAccel|"
 msgid "Conflict With Registered Global Shortcut"
 msgstr "Conflicte amb una drecera global registrada"
 
-#: kglobalaccel.cpp:566
+#: kglobalaccel.cpp:572
 msgctxt "KGlobalAccel|"
 msgid "Reassign"
 msgstr "Torna a assignar"

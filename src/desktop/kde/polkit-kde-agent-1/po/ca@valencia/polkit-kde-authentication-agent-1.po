@@ -1,24 +1,24 @@
 # Translation of polkit-kde-authentication-agent-1.po to Catalan (Valencian)
-# Copyright (C) 2009-2024 This_file_is_part_of_KDE
+# Copyright (C) 2009-2026 This_file_is_part_of_KDE
 # This file is distributed under the license LGPL version 2 or later.
 #
 # SPDX-FileCopyrightText: 2009 Manuel Tortosa Moreno <manutortosa@gmail.com>
 # SPDX-FileCopyrightText: 2011 Joan Maspons <joanmaspons@gmail.com>
-# SPDX-FileCopyrightText: 2011, 2015, 2018, 2023, 2024 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2011, 2015, 2018, 2023-2024, 2026 Josep M. Ferrer <txemaq@gmail.com>
 # SPDX-FileCopyrightText: 2018, 2020 Antoni Bella Pérez <antonibella5@yahoo.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: polkit-kde-agent-1\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-01-25 12:27+0100\n"
+"POT-Creation-Date: 2026-08-29 00:47+0000\n"
+"PO-Revision-Date: 2026-08-29 08:46+0200\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
 "Language: ca@valencia\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 22.12.3\n"
+"X-Generator: Lokalize 25.04.0\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Accelerator-Marker: &\n"
 
@@ -68,12 +68,12 @@ msgstr "Jaroslav Reznik"
 msgid "Former maintainer"
 msgstr "Mantenidor anterior"
 
-#: policykitlistener.cpp:90
+#: policykitlistener.cpp:85
 #, kde-format
 msgid "Another client is already authenticating, please try again later."
 msgstr "Un altre client ja s'està autenticant. Torneu-ho a provar més tard."
 
-#: policykitlistener.cpp:97
+#: policykitlistener.cpp:92
 #, kde-format
 msgctxt "Error response when polkit calls us with an empty list of identities"
 msgid "No user to authenticate as. Please check your system configuration."
@@ -81,16 +81,46 @@ msgstr ""
 "No hi ha cap usuari per a autenticar-se. Comproveu la Configuració del "
 "sistema."
 
-#: qml/MobileQuickAuthDialog.qml:16 qml/MobileQuickAuthDialog.qml:108
-#: qml/QuickAuthDialog.qml:16 QuickAuthDialog.cpp:110
+#: qml/MediacenterQuickAuthDialog.qml:15 qml/MobileQuickAuthDialog.qml:16
+#: qml/MobileQuickAuthDialog.qml:108 qml/QuickAuthDialog.qml:16
+#: QuickAuthDialog.cpp:113
 #, kde-format
 msgid "Authentication Required"
 msgstr "Es requerix autenticació"
 
-#: qml/MobileQuickAuthDialog.qml:57 qml/QuickAuthDialog.qml:72
+#: qml/MediacenterQuickAuthDialog.qml:58 qml/MobileQuickAuthDialog.qml:57
+#: qml/QuickAuthDialog.qml:72
 #, kde-format
 msgid "Authentication failure, please try again."
 msgstr "No s'ha pogut fer l'autenticació, torneu-ho a provar."
+
+#: qml/MediacenterQuickAuthDialog.qml:78 qml/MediacenterQuickAuthDialog.qml:147
+#, kde-format
+msgid "Change user"
+msgstr "Canvi d'usuari"
+
+#: qml/MediacenterQuickAuthDialog.qml:107 qml/QuickAuthDialog.qml:175
+#, kde-format
+msgid "Authenticating as %1"
+msgstr "Autenticant-se com %1"
+
+#: qml/MediacenterQuickAuthDialog.qml:125 qml/MobileQuickAuthDialog.qml:167
+#: qml/QuickAuthDialog.qml:201
+#, kde-format
+msgid "Password…"
+msgstr "Contrasenya…"
+
+#: qml/MediacenterQuickAuthDialog.qml:158 qml/MobileQuickAuthDialog.qml:185
+#: qml/QuickAuthDialog.qml:222
+#, kde-format
+msgid "OK"
+msgstr "D'acord"
+
+#: qml/MediacenterQuickAuthDialog.qml:168 qml/MobileQuickAuthDialog.qml:191
+#: qml/QuickAuthDialog.qml:228
+#, kde-format
+msgid "Cancel"
+msgstr "Cancel·la"
 
 #: qml/MobileQuickAuthDialog.qml:141
 #, kde-format
@@ -102,25 +132,10 @@ msgstr "Usuari: %1"
 msgid "Switch…"
 msgstr "Canvia…"
 
-#: qml/MobileQuickAuthDialog.qml:167 qml/QuickAuthDialog.qml:201
-#, kde-format
-msgid "Password…"
-msgstr "Contrasenya…"
-
 #: qml/MobileQuickAuthDialog.qml:175 qml/QuickAuthDialog.qml:210
 #, kde-format
 msgid "Details"
 msgstr "Detalls"
-
-#: qml/MobileQuickAuthDialog.qml:185 qml/QuickAuthDialog.qml:222
-#, kde-format
-msgid "OK"
-msgstr "D'acord"
-
-#: qml/MobileQuickAuthDialog.qml:191 qml/QuickAuthDialog.qml:228
-#, kde-format
-msgid "Cancel"
-msgstr "Cancel·la"
 
 #: qml/MobileQuickAuthDialog.qml:201 qml/QuickAuthDialog.qml:240
 #, kde-format
@@ -136,8 +151,3 @@ msgstr "ID:"
 #, kde-format
 msgid "Vendor:"
 msgstr "Proveïdor:"
-
-#: qml/QuickAuthDialog.qml:175
-#, kde-format
-msgid "Authenticating as %1"
-msgstr "Autenticant-se com %1"

@@ -16,12 +16,12 @@
 #include <QPixmap>
 #include <QScreen>
 
-#include <KWindowSystem>
-
 #include <KConfigGroup>
 #include <KSharedConfig>
 
 #include <LayerShellQt/Shell>
+
+#include <PlasmaQuick/PlasmaQuick>
 
 #define TEST_STEP_INTERVAL 2000
 
@@ -29,7 +29,7 @@
  * There are 6 stages in ksplash
  *  - initial (from this class)
  *  - startPlasma (from startplasma)
- *  - kcminit
+ *  - kcminit (dropped)
  *  - ksmserver
  *  - wm (for X11 from KWin, for Wayland from this class)
  *  - desktop (from shellcorona)
@@ -40,6 +40,7 @@ SplashApp::SplashApp(int &argc, char **argv)
     , m_stage(0)
     , m_testing(false)
     , m_window(false)
+    , m_engine(PlasmaQuick::globalEngine())
 {
     QCommandLineParser parser;
     parser.addOption(QCommandLineOption(QStringLiteral("test"), QStringLiteral("Run in test mode")));
@@ -64,17 +65,13 @@ SplashApp::SplashApp(int &argc, char **argv)
     dbus.registerObject(QStringLiteral("/KSplash"), this, QDBusConnection::ExportScriptableSlots);
     dbus.registerService(QStringLiteral("org.kde.KSplash"));
 
-    setupWaylandIntegration();
-
     for (const auto screenList{screens()}; QScreen * screen : screenList) {
         adoptScreen(screen);
     }
 
     setStage(QStringLiteral("initial"));
-
-    if (KWindowSystem::isPlatformWayland()) {
-        setStage(QStringLiteral("wm"));
-    }
+    setStage(QStringLiteral("kcminit"));
+    setStage(QStringLiteral("wm"));
 
     if (m_testing) {
         m_timer.start(TEST_STEP_INTERVAL, this);
@@ -126,25 +123,16 @@ void SplashApp::adoptScreen(QScreen *screen)
     if (screen->geometry().isNull()) {
         return;
     }
-    auto *w = new SplashWindow(m_testing, m_window, m_theme, screen);
+    auto *w = new SplashWindow(m_engine.get(), m_testing, m_window, m_theme, screen);
     w->setGeometry(screen->geometry());
     w->setStage(m_stage);
     w->setVisible(true);
     m_windows << w;
 
-    connect(screen, &QScreen::geometryChanged, w, &SplashWindow::setGeometry);
     connect(screen, &QObject::destroyed, w, [this, w]() {
         m_windows.removeAll(w);
         w->deleteLater();
     });
-}
-
-void SplashApp::setupWaylandIntegration()
-{
-    if (!KWindowSystem::isPlatformWayland()) {
-        return;
-    }
-    LayerShellQt::Shell::useLayerShell();
 }
 
 #include "moc_splashapp.cpp"

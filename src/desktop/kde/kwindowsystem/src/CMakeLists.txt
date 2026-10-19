@@ -28,7 +28,6 @@ ecm_qt_declare_logging_category(KF6WindowSystem
     IDENTIFIER LOG_KWINDOWSYSTEM
     CATEGORY_NAME kf.windowsystem
     OLD_CATEGORY_NAMES org.kde.kwindowsystem
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "KWindowSystem"
     EXPORT KWINDOWSYSTEM
 )
@@ -55,7 +54,6 @@ if (KWINDOWSYSTEM_X11)
         HEADER kwindowsystem_xcb_debug.h
         IDENTIFIER LOG_KKEYSERVER_X11
         CATEGORY_NAME kf.windowsystem.keyserver.x11
-        DEFAULT_SEVERITY Warning
     )
 
    target_sources(KF6WindowSystem PRIVATE
@@ -88,7 +86,7 @@ ecm_generate_export_header(KF6WindowSystem
     VERSION ${KF_VERSION}
     USE_VERSION_HEADER
     DEPRECATED_BASE_VERSION 0
-    DEPRECATION_VERSIONS 6.0 6.19
+    DEPRECATION_VERSIONS 6.0 6.19 6.28
     EXCLUDE_DEPRECATED_BEFORE_AND_AT ${EXCLUDE_DEPRECATED_BEFORE_AND_AT}
 )
 
@@ -98,7 +96,7 @@ target_link_libraries(KF6WindowSystem
     PUBLIC Qt6::Gui
 )
 
-ecm_generate_headers(KWindowSystem_HEADERS
+ecm_generate_headers(KWindowSystem_CamelCase_HEADERS
   HEADER_NAMES
   KWindowEffects
   KWindowShadow,KWindowShadowTile
@@ -108,7 +106,7 @@ ecm_generate_headers(KWindowSystem_HEADERS
 )
 
 if (KWINDOWSYSTEM_X11)
-    ecm_generate_headers(KWindowSystem_HEADERS
+    ecm_generate_headers(KWindowSystem_CamelCase_HEADERS
     HEADER_NAMES
     KX11Extras
     KStartupInfo
@@ -121,13 +119,20 @@ if (KWINDOWSYSTEM_X11)
 endif()
 
 if (KWINDOWSYSTEM_WAYLAND)
-    ecm_generate_headers(KWindowSystem_HEADERS
+    ecm_generate_headers(KWindowSystem_CamelCase_HEADERS
         HEADER_NAMES
         KWaylandExtras
 
         REQUIRED_HEADERS KWindowSystem_HEADERS
     )
 endif()
+
+set(KWindowSystem_Private_HEADERS
+    kwindoweffects_p.h
+    kwindowshadow_p.h
+    kwindowsystem_p.h
+    kwindowsystemplugininterface_p.h
+)
 
 install(TARGETS KF6WindowSystem EXPORT KF6WindowSystemTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
 
@@ -136,20 +141,36 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/config-kwindowsystem.h
   ${CMAKE_CURRENT_BINARY_DIR}/kwindowsystem_export.h
   ${KWindowSystem_HEADERS}
+  ${KWindowSystem_CamelCase_HEADERS}
   netwm_def.h
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KWindowSystem COMPONENT Devel
 )
 
 install(
     FILES
-        kwindoweffects_p.h
-        kwindowshadow_p.h
-        kwindowsystem_p.h
-        kwindowsystemplugininterface_p.h
+        ${KWindowSystem_Private_HEADERS}
     DESTINATION
         ${KDE_INSTALL_INCLUDEDIR_KF}/KWindowSystem/private
     COMPONENT
         Devel
+)
+
+ecm_add_installed_library_check(KF6WindowSystem
+    PACKAGE_NAME "KF6WindowSystem"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6WindowSystem
+    HEADERS ${KWindowSystem_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_include_strings(KF6WindowSystem
+    HEADERS ${KWindowSystem_Private_HEADERS}
+    PREFIX private
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6WindowSystem
+    PREFIX KWINDOWSYSTEM
 )
 
 add_subdirectory(platforms)

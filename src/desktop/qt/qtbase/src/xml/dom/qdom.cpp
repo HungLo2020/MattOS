@@ -92,7 +92,7 @@ static void qt_split_namespace(QString& prefix, QString& name, const QString& qN
  *
  **************************************************************/
 QDomImplementation::InvalidDataPolicy QDomImplementationPrivate::invalidDataPolicy
-    = QDomImplementation::AcceptInvalidChars;
+    = QDomImplementation::ReturnNullNode;
 
 // [5] Name ::= (Letter | '_' | ':') (NameChar)*
 
@@ -542,11 +542,12 @@ bool QDomImplementation::isNull()
     This enum specifies what should be done when a factory function
     in QDomDocument is called with invalid data.
     \value AcceptInvalidChars The data should be stored in the DOM object
-        anyway. In this case the resulting XML document might not be well-formed.
-        This is the default value and QDom's behavior in Qt < 4.1.
+           anyway. In this case the resulting XML document might not be well-formed.
+           This was the default value and QDom's behavior prior to Qt 6.12.
     \value DropInvalidChars The invalid characters should be removed from
-        the data.
+           the data.
     \value ReturnNullNode The factory function should return a null node.
+           This is the default value since Qt 6.12.
 
     \sa setInvalidDataPolicy(), invalidDataPolicy()
 */
@@ -4158,29 +4159,39 @@ QDomAttrPrivate* QDomElementPrivate::removeAttributeNode(QDomAttrPrivate* oldAtt
     return static_cast<QDomAttrPrivate *>(m_attr->removeNamedItem(oldAttr->nodeName()));
 }
 
-bool QDomElementPrivate::hasAttribute(const QString& aname)
+bool QDomElementPrivate::hasAttribute(const QString& aname) const
 {
     return m_attr->contains(aname);
 }
 
-bool QDomElementPrivate::hasAttributeNS(const QString& nsURI, const QString& localName)
+bool QDomElementPrivate::hasAttributeNS(const QString& nsURI, const QString& localName) const
 {
     return m_attr->containsNS(nsURI, localName);
 }
 
-QString QDomElementPrivate::text()
+QString QDomElementPrivate::text() const
 {
     QString t(u""_s);
 
-    QDomNodePrivate* p = first;
-    while (p) {
-        if (p->isText() || p->isCDATASection())
-            t += p->nodeValue();
-        else if (p->isElement())
-            t += static_cast<QDomElementPrivate *>(p)->text();
-        p = p->next;
-    }
+    // pre-order depth-first-search; visitation is t += nodeValue()
+    if (QDomNodePrivate* p = first) {
+        while (true) {
+            if (p->isText() || p->isCDATASection()) {
+                t += p->nodeValue();
+            } else if (p->isElement() && p->first) {
+                p = p->first;    // descend into Elements
+                continue;
+            }
 
+            while (!p->next) {
+                p = p->parent(); // ascend into visited parent (pre-order DFS)
+                if (p == this)
+                    return t; // done
+            }
+
+            p = p->next;
+        }
+    }
     return t;
 }
 

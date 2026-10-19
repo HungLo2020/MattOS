@@ -46,6 +46,7 @@
 #include <KSharedConfig>
 #include <KStandardActions>
 #include <KToggleAction>
+#include <KToolBarPopupAction>
 
 /*
  * A helper function that takes a list of KActionCollection* and converts it
@@ -71,7 +72,14 @@ static QList<KCommandBar::ActionGroup> actionCollectionToActionGroup(const std::
                 continue;
             }
 
-            if (QMenu *menu = action->menu()) {
+            QMenu *menu = action->menu();
+            if (!menu) {
+                auto popupAction = qobject_cast<KToolBarPopupAction *>(action);
+                if (popupAction) {
+                    menu = popupAction->popupMenu();
+                }
+            }
+            if (menu) {
                 QList<QAction *> menuActions = menu->actions();
 
                 if (menuActions.isEmpty()) {
@@ -102,6 +110,8 @@ static QList<KCommandBar::ActionGroup> actionCollectionToActionGroup(const std::
         ag.name = collection->componentDisplayName() != qApp->applicationDisplayName() ? collection->componentDisplayName() : QString();
         ag.actions.reserve(collection->count());
         addSubGroupActions(collectionActions, ag);
+
+        actionList.append(ag);
     }
     return actionList;
 }
@@ -307,11 +317,6 @@ void KXmlGuiWindow::configureToolbars()
 
 void KXmlGuiWindow::saveNewToolbarConfig()
 {
-    // createGUI(xmlFile()); // this loses any plugged-in guiclients, so we use remove+add instead.
-
-    guiFactory()->removeClient(this);
-    guiFactory()->addClient(this);
-
     KConfigGroup cg(KSharedConfig::openConfig(), QString());
     applyMainWindowSettings(cg);
 }
@@ -559,12 +564,17 @@ void KXmlGuiWindow::checkAmbiguousShortcuts()
                         const QString existingShortcutActionName = KLocalizedString::removeAcceleratorMarker(existingShortcutAction->text());
                         QString dontShowAgainString = existingShortcutActionName + actionName + shortcut.toString();
                         dontShowAgainString.remove(QLatin1Char('\\'));
+                        QString bugAddress = KAboutData::applicationData().bugAddress();
+                        if (bugAddress == QLatin1String("submit@bugs.kde.org")) {
+                            bugAddress = QLatin1String("https://bugs.kde.org");
+                        }
                         KMessageBox::information(this,
                                                  i18n("There are two actions (%1, %2) that want to use the same shortcut (%3). This is most probably a bug. "
-                                                      "Please report it in <a href='https://bugs.kde.org'>bugs.kde.org</a>",
+                                                      "Please report it in <a href=\"%4\">%4</a>",
                                                       existingShortcutActionName,
                                                       actionName,
-                                                      shortcut.toString(QKeySequence::NativeText)),
+                                                      shortcut.toString(QKeySequence::NativeText),
+                                                      bugAddress),
                                                  i18n("Ambiguous Shortcuts"),
                                                  dontShowAgainString,
                                                  KMessageBox::Notify | KMessageBox::AllowLink);

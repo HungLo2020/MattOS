@@ -44,6 +44,9 @@ public:
 protected:
     void setVisible(bool visible) override;
 
+public:
+    bool transientParentIsGoingAway() const;
+
 private:
     bool filterPopupSpecialCases(QEvent *event);
 };
@@ -91,6 +94,9 @@ void QQuickPopupWindow::hideEvent(QHideEvent *e)
     QQuickWindow::hideEvent(e);
     // Avoid potential infinite recursion, between QWindowPrivate::setVisible(false) and this function.
     QScopedValueRollback<bool>inHideEventRollback(d->m_inHideEvent, true);
+    if (d->transientParentIsGoingAway())
+        return;
+
     if (QQuickPopup *popup = d->m_popup) {
 #if QT_CONFIG(quicktemplates2_container)
         QQuickDialog *dialog = qobject_cast<QQuickDialog *>(popup);
@@ -139,12 +145,30 @@ void QQuickPopupWindow::resizeEvent(QResizeEvent *e)
     popupPrivate->y = oldY;
 }
 
+bool QQuickPopupWindowPrivate::transientParentIsGoingAway() const
+{
+    Q_Q(const QQuickPopupWindow);
+    QWindow *transientParent = q->transientParent();
+    if (!transientParent)
+        return true;
+
+    auto *quickWindow = qobject_cast<QQuickWindow *>(transientParent);
+    return quickWindow && QQuickWindowPrivate::get(quickWindow)->inDestructor;
+}
+
 void QQuickPopupWindowPrivate::setVisible(bool visible)
 {
-    Q_Q(QQuickPopupWindow);
-    const bool isTransientParentDestroyed = !q->transientParent() ? true :
-          QQuickWindowPrivate::get(qobject_cast<QQuickWindow *>(q->transientParent()))->inDestructor;
-    if (m_inHideEvent || isTransientParentDestroyed)
+    if (m_inHideEvent)
+        return;
+
+    // Showing is pointless once the transient parent is going away, but hiding
+    // must never be skipped: it is the base implementation that updates the
+    // visible state and sends the hide event, and the hide event is what makes
+    // QSGThreadedRenderLoop stop rendering into this window. Skipping it leaves
+    // the render thread believing the window is still exposed, so it re-creates
+    // a swapchain for a window that is about to lose its platform window, and
+    // that swapchain is then leaked. (QTBUG-149041)
+    if (visible && transientParentIsGoingAway())
         return;
 
     const bool visibleChanged = QWindowPrivate::visible != visible;
@@ -159,6 +183,7 @@ void QQuickPopupWindowPrivate::setVisible(bool visible)
     }
 
 #if QT_CONFIG(wayland)
+    Q_Q(QQuickPopupWindow);
     // The parent control geoemtry is used by the wayland compositor when flipping menus and comboboxes.
     if (auto waylandWindow = dynamic_cast<QNativeInterface::Private::QWaylandWindow *>(platformWindow); waylandWindow && visible)
         waylandWindow->setParentControlGeometry(q->parentControlGeometry());
@@ -222,7 +247,6 @@ bool QQuickPopupWindowPrivate::filterPopupSpecialCases(QEvent *event)
 
     auto *pe = static_cast<QPointerEvent *>(event);
     const QPointF globalPos = pe->points().first().globalPosition();
-    const QQuickPopup::ClosePolicy closePolicy = popup->closePolicy();
     QQuickPopup *targetPopup = QQuickPopupPrivate::get(popup)->contains(contentItem->mapFromGlobal(globalPos)) ? popup : nullptr;
 
     // Resolve the Menu or MenuBar under the mouse, if any
@@ -248,13 +272,38 @@ bool QQuickPopupWindowPrivate::filterPopupSpecialCases(QEvent *event)
         menuParent = menuParent->parent();
     }
 
-    auto closePopupAndParentMenus = [q]() {
+    auto closePopups = [q, globalPos](QQuickPopup::ClosePolicy closePolicy) {
+        static const QQuickPopup::ClosePolicy outsideParentFlags =
+                QQuickPopup::CloseOnPressOutsideParent | QQuickPopup::CloseOnReleaseOutsideParent;
+
         QQuickPopup *current = q->popup();
-        do {
-            qCDebug(lcPopupWindow) << "Closing" << current << "from an outside pointer press or release event";
+        while (current && current->closePolicy().testAnyFlags(closePolicy)
+               && QQuickPopupPrivate::get(current)->popupWindow) {
+            auto *currentPrivate = QQuickPopupPrivate::get(current);
+            const QPointF scenePos = currentPrivate->popupWindow->contentItem()->mapFromGlobal(globalPos);
+            if (currentPrivate->contains(scenePos))
+                break; // clicked inside the popup itself: never closes, regardless of policy
+
+            // CloseOnPress/ReleaseOutsideParent closes the popup only when the click is
+            // outside its *parent* too, not merely outside the popup itself - e.g. a click
+            // landing on a sibling/ancestor popup's own content must not close this one
+            // unless the plain Outside flag (checked above) is also what's asked for here.
+            if (current->closePolicy().testAnyFlags(closePolicy & outsideParentFlags)) {
+                const QQuickItem *parentItem = current->parentItem();
+                if (parentItem && parentItem->contains(parentItem->mapFromGlobal(globalPos)))
+                    break;
+            }
+
+            qCDebug(lcPopupWindow)
+                    << "Closing" << current << "from an outside pointer press or release event.";
             current->close();
-            current = qobject_cast<QQuickMenu *>(current->parent());
-        } while (current);
+            auto *transientParentPopupWindow = qobject_cast<QQuickPopupWindow *>(
+                    currentPrivate->popupWindow->transientParent());
+            current = current->closePolicy().testAnyFlag(QQuickPopup::CloseMultiple)
+                            && transientParentPopupWindow
+                    ? transientParentPopupWindow->popup()
+                    : nullptr;
+        }
     };
 
     if (pe->isBeginEvent()) {
@@ -264,16 +313,24 @@ bool QQuickPopupWindowPrivate::filterPopupSpecialCases(QEvent *event)
             // to the window under the pointer, and therefore also to the MenuBar.
             // The latter would otherwise cause a menu to reopen again immediately, and
             // undermine that we want to close all popups.
-            closePopupAndParentMenus();
+            closePopups(QQuickPopup::CloseOnPressOutside | QQuickPopup::CloseOnPressOutsideParent);
             return true;
-        } else if (!targetPopup && closePolicy.testAnyFlags(QQuickPopup::CloseOnPressOutside | QQuickPopup::CloseOnPressOutsideParent)) {
+        } else if (!targetPopup) {
             // Pressed outside either a popup window, or a menu or menubar that owns a menu using popup windows.
             // Note that A QQuickPopupWindow can be bigger than the
             // menu itself, to make room for a drop-shadow. But if the press was on top
             // of the shadow, targetMenu will still be nullptr.
             // On WASM in particular, it's possible for dialogs to receive the event, when clicking in the non-client area. Don't close in those cases.
-            if (event->type() != QEvent::NonClientAreaMouseButtonPress && event->type() != QEvent::NonClientAreaMouseButtonDblClick)
-                closePopupAndParentMenus();
+            if (event->type() != QEvent::NonClientAreaMouseButtonPress && event->type() != QEvent::NonClientAreaMouseButtonDblClick) {
+                closePopups(QQuickPopup::CloseOnPressOutside | QQuickPopup::CloseOnPressOutsideParent);
+                // A modal popup must consume the press event so that forwardToPopup() sees the event as handled
+                // so that it doesn't propagate to items behind the popup window (QTBUG-131786 etc.)
+                // A QTabletEvent in particular is not accepted by default
+                if (popup->isModal()) {
+                    pe->accept();
+                    return true;
+                }
+            }
             return false;
         }
     } else if (pe->isUpdateEvent()){
@@ -313,11 +370,11 @@ bool QQuickPopupWindowPrivate::filterPopupSpecialCases(QEvent *event)
         if (grabber)
             pe->setExclusiveGrabber(pe->point(0), grabber);
     } else if (pe->isEndEvent()) {
-        if (!targetPopup && !targetMenuBar && closePolicy.testAnyFlags(QQuickPopup::CloseOnReleaseOutside | QQuickPopup::CloseOnReleaseOutsideParent)) {
+        if (!targetPopup && !targetMenuBar) {
             // Released outside either a popup window, or a menu or menubar that owns a menu using popup windows.
             // This should normally close the current popup window, unless it's inside the non-client area, which can happen in WASM dialogs.
             if (event->type() != QEvent::NonClientAreaMouseButtonRelease)
-                closePopupAndParentMenus();
+                closePopups(QQuickPopup::CloseOnReleaseOutside | QQuickPopup::CloseOnReleaseOutsideParent);
             return false;
         }
 
@@ -337,14 +394,21 @@ bool QQuickPopupWindowPrivate::filterPopupSpecialCases(QEvent *event)
 bool QQuickPopupWindow::event(QEvent *e)
 {
     Q_D(QQuickPopupWindow);
-#if QT_CONFIG(wayland)
     if (e->type() == QEvent::PlatformSurface && static_cast<QPlatformSurfaceEvent *>(e)->surfaceEventType() == QPlatformSurfaceEvent::SurfaceCreated) {
+#if QT_CONFIG(wayland)
         if (auto *waylandWindow = dynamic_cast<QNativeInterface::Private::QWaylandWindow *>(handle())) {
             waylandWindow->setExtendedWindowType(QQuickPopupPrivate::get(d->m_popup)->extendedWindowType);
             waylandWindow->setParentControlGeometry(parentControlGeometry());
         }
-    }
 #endif
+#if QT_CONFIG(xcb)
+        if (auto *xcbWindow = dynamic_cast<QNativeInterface::Private::QXcbWindow *>(handle())) {
+            const auto xcbWindowType = QQuickPopupPrivate::get(d->m_popup)->wmWindowType;
+            if (xcbWindowType != QNativeInterface::Private::QXcbWindow::None)
+                xcbWindow->setWindowType(xcbWindowType);
+        }
+#endif
+    }
 
     if (d->filterPopupSpecialCases(e))
         return true;
@@ -379,6 +443,7 @@ void QQuickPopupWindow::windowChanged(QWindow *window)
     } else {
         d->m_popupParentItemWindow.clear();
     }
+    setTransientParent(window);
 }
 
 std::optional<QPoint> QQuickPopupWindow::global2Local(const QPoint &pos) const
@@ -439,8 +504,10 @@ void QQuickPopupWindow::implicitWidthChanged()
         // (see QTBUG-130683). This matches the initial sizing logic in
         // QQuickPopupPrivate::adjustPopupItemParentAndWindow().
         const QMarginsF insets = popupPrivate->windowInsets();
-        setWidth(qCeil(popup->implicitWidth() + insets.left() + insets.right()));
-        d->m_popupItem->setWidth(popup->implicitWidth());
+        if (!popupPrivate->hasWidth) {
+            setWidth(qCeil(popup->implicitWidth() + insets.left() + insets.right()));
+            d->m_popupItem->setWidth(popup->implicitWidth());
+        }
         popupPrivate->reposition();
     }
 }
@@ -451,8 +518,10 @@ void QQuickPopupWindow::implicitHeightChanged()
     if (auto popup = d->m_popup) {
         auto *popupPrivate = QQuickPopupPrivate::get(popup);
         const QMarginsF insets = popupPrivate->windowInsets();
-        setHeight(qCeil(popup->implicitHeight() + insets.top() + insets.bottom()));
-        d->m_popupItem->setHeight(popup->implicitHeight());
+        if (!popupPrivate->hasHeight) {
+            setHeight(qCeil(popup->implicitHeight() + insets.top() + insets.bottom()));
+            d->m_popupItem->setHeight(popup->implicitHeight());
+        }
         popupPrivate->reposition();
     }
 }

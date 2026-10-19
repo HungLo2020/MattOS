@@ -216,7 +216,6 @@ ecm_qt_declare_logging_category(ktexteditor_LIB_SRCS
     IDENTIFIER LOG_KTE
     CATEGORY_NAME kf.texteditor
     OLD_CATEGORY_NAMES org.kde.ktexteditor
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "ktexteditor lib"
     EXPORT KTEXTEDITOR
 )
@@ -409,3 +408,17 @@ ecm_qt_install_logging_categories(
 )
 
 ecm_generate_qdoc(KF6TextEditor ktexteditor.qdocconf)
+
+ecm_add_installed_library_check(KF6TextEditor
+    PACKAGE_NAME "KF6TextEditor"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6TextEditor
+    HEADERS ${KTextEditor_CamelCase_HEADERS}
+    PREFIX KTextEditor
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6TextEditor
+    PREFIX KTEXTEDITOR
+)

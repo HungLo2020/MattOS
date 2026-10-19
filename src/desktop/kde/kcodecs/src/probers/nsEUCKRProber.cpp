@@ -7,10 +7,12 @@
 #include "nsEUCKRProber.h"
 #include "nsMBCSSM.h"
 
+#include <format>
+
 namespace kencodingprober
 {
 nsEUCKRProber::nsEUCKRProber()
-    : mCodingSM{std::make_unique<nsCodingStateMachine>(&EUCKRSMModel)}
+    : mCodingSM{std::make_unique<nsCodingStateMachine>(EUCKRSMModel)}
 {
 }
 
@@ -31,7 +33,7 @@ nsProbingState nsEUCKRProber::HandleData(const char *aBuf, unsigned int aLen)
             break;
         }
         if (codingState == eStart) {
-            unsigned int charLen = mCodingSM->GetCurrentCharLen();
+            const int64_t charLen = i - mLastStart;
 
             if (i == 0) {
                 mLastChar[1] = aBuf[0];
@@ -39,10 +41,12 @@ nsProbingState nsEUCKRProber::HandleData(const char *aBuf, unsigned int aLen)
             } else {
                 mDistributionAnalyser.HandleOneChar(aBuf + i - 1, charLen);
             }
+            mLastStart = i;
         }
     }
 
     mLastChar[0] = aBuf[aLen - 1];
+    mLastStart -= aLen;
 
     if (mState == eDetecting) {
         if (mDistributionAnalyser.GotEnoughData() && GetConfidence() > SHORTCUT_THRESHOLD) {
@@ -59,6 +63,15 @@ float nsEUCKRProber::GetConfidence(void)
 {
     float distribCf = mDistributionAnalyser.GetConfidence();
 
-    return (float)distribCf;
+    return distribCf;
+}
+
+std::string nsEUCKRProber::StatusOutput(uint8_t /* indent */)
+{
+    return std::format( //
+        "{:1.3f} [{}]  {}",
+        GetConfidence(),
+        GetCharSetName(),
+        mDistributionAnalyser.StatusOutput());
 }
 }

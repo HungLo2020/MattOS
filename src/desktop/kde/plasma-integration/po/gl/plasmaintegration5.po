@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-27 00:45+0000\n"
+"POT-Creation-Date: 2026-06-16 00:47+0000\n"
 "PO-Revision-Date: 2024-06-27 21:00+0200\n"
 "Last-Translator: Adrián Chaves (Gallaecio) <adrian@chaves.io>\n"
 "Language-Team: Proxecto Trasno (proxecto@trasno.gal)\n"
@@ -18,144 +18,71 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 24.05.1\n"
 
-#: platformtheme/kdeplatformfiledialoghelper.cpp:260
-#, kde-format
-msgctxt "@title:window"
-msgid "Open File"
-msgstr "Abrir un ficheiro"
-
-#: platformtheme/kdeplatformfiledialoghelper.cpp:261
+#: platformtheme/kdeplatformfiledialoghelper.cpp:242
 #, kde-format
 msgctxt "@title:window"
 msgid "Save File"
 msgstr "Gardar o ficheiro"
 
-#: platformtheme/kdeplatformtheme.cpp:278
-#, kde-format
-msgctxt "@action:button"
-msgid "Save All"
-msgstr "Gardar todo"
-
-#: platformtheme/kdeplatformtheme.cpp:282
-#, kde-format
-msgctxt "@action:button"
-msgid "&Yes"
-msgstr "&Si"
-
-#: platformtheme/kdeplatformtheme.cpp:284
-#, kde-format
-msgctxt "@action:button"
-msgid "Yes to All"
-msgstr "Si a todo"
-
-#: platformtheme/kdeplatformtheme.cpp:286
-#, kde-format
-msgctxt "@action:button"
-msgid "&No"
-msgstr "&Non"
-
-#: platformtheme/kdeplatformtheme.cpp:288
-#, kde-format
-msgctxt "@action:button"
-msgid "No to All"
-msgstr "Non a todo"
-
-#: platformtheme/kdeplatformtheme.cpp:291
-#, kde-format
-msgctxt "@action:button"
-msgid "Abort"
-msgstr "Interromper"
-
-#: platformtheme/kdeplatformtheme.cpp:293
-#, kde-format
-msgctxt "@action:button"
-msgid "Retry"
-msgstr "Intentar de novo"
-
-#: platformtheme/kdeplatformtheme.cpp:295
-#, kde-format
-msgctxt "@action:button"
-msgid "Ignore"
-msgstr "Ignorar"
-
-#: platformtheme/kdirselectdialog.cpp:133
-#, kde-format
-msgctxt "folder name"
-msgid "New Folder"
-msgstr "Novo cartafol"
-
-#: platformtheme/kdirselectdialog.cpp:139
-#, kde-format
-msgctxt "@title:window"
-msgid "New Folder"
-msgstr "Novo cartafol"
-
-#: platformtheme/kdirselectdialog.cpp:140
-#, kde-format
-msgctxt "@label:textbox"
-msgid ""
-"Create new folder in:\n"
-"%1"
-msgstr ""
-"Crear o novo cartafol en:\n"
-"%1"
-
-#: platformtheme/kdirselectdialog.cpp:171
-#, kde-format
-msgid "A file or folder named %1 already exists."
-msgstr "Xa existe un ficheiro ou cartafol chamado %1."
-
-#: platformtheme/kdirselectdialog.cpp:180
-#, kde-format
-msgid "You do not have permission to create that folder."
-msgstr "Non ten permisos para crear ese cartafol."
-
-#: platformtheme/kdirselectdialog.cpp:282
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
 #, kde-format
 msgctxt "@title:window"
 msgid "Select Folder"
 msgstr "Escoller un cartafol"
 
-#: platformtheme/kdirselectdialog.cpp:290
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
+#, kde-format
+msgctxt "@title:window"
+msgid "Open File"
+msgstr "Abrir un ficheiro"
+
+#: platformtheme/kdeplatformtheme.cpp:290
 #, kde-format
 msgctxt "@action:button"
-msgid "New Folder..."
-msgstr "Cartafol novo…"
+msgid "Save All"
+msgstr "Gardar todo"
 
-#: platformtheme/kdirselectdialog.cpp:348
+#: platformtheme/kdeplatformtheme.cpp:294
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "New Folder..."
-msgstr "Cartafol novo…"
+msgctxt "@action:button"
+msgid "&Yes"
+msgstr "&Si"
 
-#: platformtheme/kdirselectdialog.cpp:357
+#: platformtheme/kdeplatformtheme.cpp:296
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Move to Trash"
-msgstr "Botar no lixo"
+msgctxt "@action:button"
+msgid "Yes to All"
+msgstr "Si a todo"
 
-#: platformtheme/kdirselectdialog.cpp:366
+#: platformtheme/kdeplatformtheme.cpp:298
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Delete"
-msgstr "Eliminar"
+msgctxt "@action:button"
+msgid "&No"
+msgstr "&Non"
 
-#: platformtheme/kdirselectdialog.cpp:377
+#: platformtheme/kdeplatformtheme.cpp:300
 #, kde-format
-msgctxt "@option:check"
-msgid "Show Hidden Folders"
-msgstr "Amosar os cartafoles agochados"
+msgctxt "@action:button"
+msgid "No to All"
+msgstr "Non a todo"
 
-#: platformtheme/kdirselectdialog.cpp:384
+#: platformtheme/kdeplatformtheme.cpp:303
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Properties"
-msgstr "Propiedades"
+msgctxt "@action:button"
+msgid "Abort"
+msgstr "Interromper"
 
-#: platformtheme/kfiletreeview.cpp:185
+#: platformtheme/kdeplatformtheme.cpp:305
 #, kde-format
-msgid "Show Hidden Folders"
-msgstr "Amosar os cartafoles agochados"
+msgctxt "@action:button"
+msgid "Retry"
+msgstr "Intentar de novo"
+
+#: platformtheme/kdeplatformtheme.cpp:307
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "Ignorar"
 
 #: platformtheme/kioopenwith.cpp:125
 #, kde-format
@@ -164,6 +91,55 @@ msgid ""
 "application."
 msgstr ""
 "O inicio fallou por motivos descoñecido. Intente usar unha aplicación previa."
+
+#~ msgctxt "folder name"
+#~ msgid "New Folder"
+#~ msgstr "Novo cartafol"
+
+#~ msgctxt "@title:window"
+#~ msgid "New Folder"
+#~ msgstr "Novo cartafol"
+
+#~ msgctxt "@label:textbox"
+#~ msgid ""
+#~ "Create new folder in:\n"
+#~ "%1"
+#~ msgstr ""
+#~ "Crear o novo cartafol en:\n"
+#~ "%1"
+
+#~ msgid "A file or folder named %1 already exists."
+#~ msgstr "Xa existe un ficheiro ou cartafol chamado %1."
+
+#~ msgid "You do not have permission to create that folder."
+#~ msgstr "Non ten permisos para crear ese cartafol."
+
+#~ msgctxt "@action:button"
+#~ msgid "New Folder..."
+#~ msgstr "Cartafol novo…"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "New Folder..."
+#~ msgstr "Cartafol novo…"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Move to Trash"
+#~ msgstr "Botar no lixo"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Delete"
+#~ msgstr "Eliminar"
+
+#~ msgctxt "@option:check"
+#~ msgid "Show Hidden Folders"
+#~ msgstr "Amosar os cartafoles agochados"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Properties"
+#~ msgstr "Propiedades"
+
+#~ msgid "Show Hidden Folders"
+#~ msgstr "Amosar os cartafoles agochados"
 
 #~ msgid "Opening..."
 #~ msgstr "Abrindo…"

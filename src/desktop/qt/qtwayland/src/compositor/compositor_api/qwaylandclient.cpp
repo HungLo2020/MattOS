@@ -59,9 +59,9 @@ public:
  * \nativetype QWaylandClient
  * \inqmlmodule QtWayland.Compositor
  * \since 5.8
- * \brief Represents a client connecting to the WaylandCompositor.
+ * \brief Represents a client connected to the WaylandCompositor.
  *
- * This type represents a client connecting to the compositor using the Wayland protocol.
+ * This type represents a client connected to the compositor using the Wayland protocol.
  * It corresponds to the Wayland interface wl_client.
  */
 
@@ -69,9 +69,9 @@ public:
  * \class QWaylandClient
  * \inmodule QtWaylandCompositor
  * \since 5.8
- * \brief The QWaylandClient class represents a client connecting to the QWaylandCompositor.
+ * \brief The QWaylandClient class represents a client connected to the QWaylandCompositor.
  *
- * This class corresponds to a client connecting to the compositor using the Wayland protocol.
+ * This class corresponds to a client connected to the compositor using the Wayland protocol.
  * It corresponds to the Wayland interface wl_client.
  */
 

@@ -27,6 +27,8 @@
 #include <QtNetwork/qsslsocket.h>
 #include <QtNetwork/qssl.h>
 
+#include <optional>
+
 #ifndef QT_NO_SSL
 
 QT_BEGIN_NAMESPACE
@@ -34,6 +36,7 @@ QT_BEGIN_NAMESPACE
 class QSslCertificate;
 class QSslCipher;
 class QSslKey;
+class QSslKeyingMaterial;
 class QSslEllipticCurve;
 class QSslDiffieHellmanParameters;
 
@@ -157,6 +160,10 @@ public:
 
     static const char ALPNProtocolHTTP2[];
     static const char NextProtocolHttp1_1[];
+
+    [[nodiscard]] QList<QSslKeyingMaterial> takeKeyingMaterial();
+    [[nodiscard]] std::optional<QSslKeyingMaterial> takeKeyingMaterial(const QSslKeyingMaterial &material);
+    void setKeyingMaterial(const QList<QSslKeyingMaterial> &keyMaterial);
 
 private:
     friend class QSslSocket;

@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 project(Plasma5Support VERSION ${PROJECT_VERSION})
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -27,7 +27,6 @@ include(ECMSetupVersion)
 include(ECMQtDeclareLoggingCategory)
 include(ECMAddQch)
 include(KDEPackageAppTemplates)
-include(ECMGenerateQmlTypes)
 include(ECMSetupQtPluginMacroNames)
 include(ECMMarkNonGuiExecutable)
 include(ECMDeprecationSettings)
@@ -47,11 +46,7 @@ add_definitions(-DQT_NO_FOREACH)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED NO_MODULE COMPONENTS Core Gui Quick Sql Qml Widgets Gui)
 
-if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
-
-find_package(KF6 ${KF_DEP_VERSION} REQUIRED
+find_package(KF6 ${KF6_MIN_VERSION} REQUIRED
     COMPONENTS
         Config
         CoreAddons
@@ -69,11 +64,6 @@ find_package(KF6 ${KF_DEP_VERSION} REQUIRED
 find_package(KSysGuard CONFIG) #devicenotifications
 find_package(KF6NetworkManagerQt) #geolocation
 find_package(PlasmaActivities) #activites
-
-option(WITH_X11 "Build mouse data engine with X11 support." ON)
-if(WITH_X11)
-    find_package(X11 REQUIRED) #mouse
-endif()
 
 #########################################################################
 
@@ -103,7 +93,7 @@ endif()
 add_subdirectory(src)
 
 if (BUILD_TESTING)
-    find_package(Qt6Test ${REQUIRED_QT_VERSION} REQUIRED)
+    find_package(Qt6Test ${QT_MIN_VERSION} REQUIRED)
     add_subdirectory(autotests)
 endif()
 

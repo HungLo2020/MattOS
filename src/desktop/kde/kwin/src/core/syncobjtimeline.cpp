@@ -28,32 +28,16 @@ struct sync_merge_data
 namespace KWin
 {
 
-SyncReleasePoint::SyncReleasePoint(const std::shared_ptr<SyncTimeline> &timeline, uint64_t timelinePoint)
-    : m_timeline(timeline)
-    , m_timelinePoint(timelinePoint)
+FileDescriptor SyncReleasePoint::mergeSyncFds(const FileDescriptor &one, const FileDescriptor &two)
 {
-}
-
-SyncReleasePoint::~SyncReleasePoint()
-{
-    if (m_releaseFence.isValid()) {
-        m_timeline->moveInto(m_timelinePoint, m_releaseFence);
-    } else {
-        m_timeline->signal(m_timelinePoint);
-    }
-}
-
-static FileDescriptor mergeSyncFds(const FileDescriptor &fd1, const FileDescriptor &fd2)
-{
-    struct sync_merge_data data
-    {
+    struct sync_merge_data data{
         .name = "merged release fence",
-        .fd2 = fd2.get(),
+        .fd2 = two.get(),
         .fence = -1,
     };
     int err = -1;
     do {
-        err = ioctl(fd1.get(), SYNC_IOC_MERGE, &data);
+        err = ioctl(one.get(), SYNC_IOC_MERGE, &data);
     } while (err == -1 && (errno == EINTR || errno == EAGAIN));
     if (err < 0) {
         return FileDescriptor{};
@@ -62,21 +46,88 @@ static FileDescriptor mergeSyncFds(const FileDescriptor &fd1, const FileDescript
     }
 }
 
-void SyncReleasePoint::addReleaseFence(const FileDescriptor &fd)
+SyncReferencer::SyncReferencer(GraphicsBuffer *buffer, FileDescriptor &&syncFd)
+    : m_buffer(buffer)
+    , m_sync(std::move(syncFd))
+    , m_notifier(m_sync.get(), QSocketNotifier::Read)
+{
+    QObject::connect(&m_notifier, &QSocketNotifier::activated, &m_notifier, [this]() {
+        delete this;
+    });
+    m_notifier.setEnabled(true);
+    if (m_sync.isReadable()) {
+        delete this;
+    }
+}
+
+SyncObjReleasePoint::SyncObjReleasePoint(const std::shared_ptr<SyncTimeline> &timeline, uint64_t timelinePoint)
+    : m_timeline(timeline)
+    , m_timelinePoint(timelinePoint)
+{
+}
+
+GraphicsBufferReleasePoint::GraphicsBufferReleasePoint()
+{
+}
+
+GraphicsBufferReleasePoint::~GraphicsBufferReleasePoint()
+{
+    if (m_bufferRef && m_releaseFd.isValid()) {
+        // the buffer needs to stay alive until the
+        // release point is signaled
+        new SyncReferencer(m_bufferRef.get(), std::move(m_releaseFd));
+    }
+}
+
+void GraphicsBufferReleasePoint::setBuffer(GraphicsBuffer *buffer)
+{
+    m_bufferRef = buffer;
+}
+
+void GraphicsBufferReleasePoint::addReleaseFence(const FileDescriptor &fd)
+{
+    if (!fd.isValid()) {
+        return;
+    }
+    if (m_releaseFd.isValid()) {
+        m_releaseFd = SyncReleasePoint::mergeSyncFds(fd, m_releaseFd);
+    } else {
+        m_releaseFd = fd.duplicate();
+    }
+}
+
+const FileDescriptor &GraphicsBufferReleasePoint::releaseFd() const
+{
+    return m_releaseFd;
+}
+
+SyncObjReleasePoint::~SyncObjReleasePoint()
 {
     if (m_releaseFence.isValid()) {
-        m_releaseFence = mergeSyncFds(m_releaseFence, fd);
+        m_timeline->moveInto(m_timelinePoint, m_releaseFence);
+    } else {
+        m_timeline->signal(m_timelinePoint);
+    }
+}
+
+void SyncObjReleasePoint::addReleaseFence(const FileDescriptor &fd)
+{
+    if (!fd.isValid()) {
+        return;
+    }
+    if (m_releaseFence.isValid()) {
+        m_releaseFence = SyncReleasePoint::mergeSyncFds(m_releaseFence, fd);
     } else {
         m_releaseFence = fd.duplicate();
     }
 }
 
-SyncTimeline *SyncReleasePoint::timeline() const
+SyncTimeline *SyncObjReleasePoint::timeline() const
 {
     return m_timeline.get();
 }
 
-uint64_t SyncReleasePoint::timelinePoint() const
+uint64_t SyncObjReleasePoint::timelinePoint() const
 {
     return m_timelinePoint;
 }
@@ -157,4 +208,5 @@ bool SyncTimeline::isMaterialized(uint64_t timelinePoint)
                                    nullptr)
             == 0);
 }
+
 }

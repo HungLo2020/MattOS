@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-25 02:46+0000\n"
+"POT-Creation-Date: 2026-10-01 02:45+0000\n"
 "PO-Revision-Date: 2025-11-02 23:03+0100\n"
 "Last-Translator: Rasmus Rosendahl-Kaa <rasmus@rosendahl-kaa.name>\n"
 "Language-Team: Danish <kde-i18n-doc@kde.org>\n"
@@ -93,15 +93,21 @@ msgstr "Indfang hele skrivebordet (standard)"
 
 #: src/CommandLineOptions.h:26
 #, kde-format
+msgid ""
+"When used with -f/--fullscreen, capture all screens scaled to the same size"
+msgstr ""
+
+#: src/CommandLineOptions.h:30
+#, kde-format
 msgid "Capture the current monitor"
 msgstr "Indfang den aktuelle skærm"
 
-#: src/CommandLineOptions.h:30
+#: src/CommandLineOptions.h:34
 #, kde-format
 msgid "Capture the active window"
 msgstr "Indfang det aktive vindue"
 
-#: src/CommandLineOptions.h:34
+#: src/CommandLineOptions.h:38
 #, kde-format
 msgid ""
 "Capture the window currently under the cursor, including parents of pop-up "
@@ -110,7 +116,7 @@ msgstr ""
 "Indfang det vindue der aktuelt er under musemarkøren, inklusiv forældre for "
 "pop-op-menuer"
 
-#: src/CommandLineOptions.h:38
+#: src/CommandLineOptions.h:42
 #, kde-format
 msgid ""
 "Capture the window currently under the cursor, excluding parents of pop-up "
@@ -119,12 +125,12 @@ msgstr ""
 "Indfang det vindue der aktuelt er under musemarkøren, eksklusiv forældre for "
 "pop-op-menuer"
 
-#: src/CommandLineOptions.h:42
+#: src/CommandLineOptions.h:46
 #, kde-format
 msgid "Capture a rectangular region of the screen"
 msgstr "Indfang et firkantet område af skærmen"
 
-#: src/CommandLineOptions.h:46
+#: src/CommandLineOptions.h:50
 #, kde-format
 msgid ""
 "Record the screen using the given mode. Modes:\n"
@@ -137,27 +143,27 @@ msgstr ""
 "- s, skærm\n"
 "- w, vindue"
 
-#: src/CommandLineOptions.h:54
+#: src/CommandLineOptions.h:58
 #, kde-format
 msgid "Launch Spectacle without taking a screenshot"
 msgstr "Kør Spectacle uden at tage et skærmbillede"
 
-#: src/CommandLineOptions.h:58
+#: src/CommandLineOptions.h:62
 #, kde-format
 msgid "Start in GUI mode (default)"
 msgstr "Start i GUI-tilstand (standard)"
 
-#: src/CommandLineOptions.h:62
+#: src/CommandLineOptions.h:66
 #, kde-format
 msgid "Take a screenshot and exit without showing the GUI"
 msgstr "Tag skærmbillede og afslutte uden at vise GUI'en"
 
-#: src/CommandLineOptions.h:66
+#: src/CommandLineOptions.h:70
 #, kde-format
 msgid "Start in DBus-Activation mode"
 msgstr "Start i D-Bus-aktiveringstilstand"
 
-#: src/CommandLineOptions.h:70
+#: src/CommandLineOptions.h:74
 #, kde-format
 msgid ""
 "In background mode, do not pop up a notification when the screenshot is taken"
@@ -165,17 +171,17 @@ msgstr ""
 "Vis ikke en bekendtgørelses-pop-op når skærmbilledet tages i "
 "baggrundstilstand"
 
-#: src/CommandLineOptions.h:74
+#: src/CommandLineOptions.h:78
 #, kde-format
 msgid "In background mode, save image to specified file"
 msgstr "Gem billede til angiven fil i baggrundstilstand"
 
-#: src/CommandLineOptions.h:79
+#: src/CommandLineOptions.h:83
 #, kde-format
 msgid "In background mode, delay before taking the shot (in milliseconds)"
 msgstr "Forsinkelse før billedet tages (i millisekunder) i baggrundstilstand"
 
-#: src/CommandLineOptions.h:84
+#: src/CommandLineOptions.h:88
 #, kde-format
 msgid ""
 "In background mode, copy screenshot image to clipboard, unless -o is also "
@@ -184,50 +190,56 @@ msgstr ""
 "Kopiér skærmbilledet til udklipsholderen i baggrundstilstand, medmindre -o "
 "også bruges"
 
-#: src/CommandLineOptions.h:88
+#: src/CommandLineOptions.h:92
 #, kde-format
 msgid "In background mode, copy screenshot file path to clipboard"
 msgstr "Kopiér skærmbilledets filsti til udklipsholderen i baggrundstilstand"
 
-#: src/CommandLineOptions.h:92
+#: src/CommandLineOptions.h:96
 #, kde-format
 msgid "Wait for a click before taking screenshot. Invalidates delay"
 msgstr "Vent på et klik før der tages et skærmbillede. Ugyldiggør forsinkelse"
 
-#: src/CommandLineOptions.h:96
+#: src/CommandLineOptions.h:100
 #, kde-format
 msgid "Starts a new GUI instance of spectacle without registering to DBus"
 msgstr ""
 "Starter en ny grafisk instans af Spectacle uden at registrere det hos DBus"
 
-#: src/CommandLineOptions.h:100
+#: src/CommandLineOptions.h:104
 #, kde-format
 msgid "In background mode, include pointer in the screenshot"
 msgstr "Medtag musemarkøren i skærmbilledet i baggrundstilstand"
 
-#: src/CommandLineOptions.h:104
+#: src/CommandLineOptions.h:108
 #, kde-format
 msgid "In background mode, exclude decorations in the screenshot"
 msgstr "Udelad musemarkøren i skærmbilledet i baggrundstilstand"
 
-#: src/CommandLineOptions.h:106
+#: src/CommandLineOptions.h:110
 #, kde-format
 msgid "In background mode, exclude shadows in the screenshot"
 msgstr "Udelad skygger i skærmbilledet i baggrundstilstand"
 
-#: src/CommandLineOptions.h:109
+#: src/CommandLineOptions.h:113
 #, kde-format
 msgid "Open and edit existing screenshot file"
 msgstr "Åbn og redigér eksisterende skærmbilledefil"
 
-#: src/ExportManager.cpp:460
+#: src/CommandLineOptions.h:116
+#, fuzzy, kde-format
+#| msgid "Accept on click-and-release"
+msgid "Accept region selection on click-and-release"
+msgstr "Acceptér ved klik-og-slip"
+
+#: src/ExportManager.cpp:466
 #, fuzzy, kde-format
 #| msgid "QImageWriter cannot write image: %1"
 msgctxt "%1 is an error message"
 msgid "QImageWriter cannot write image: %1"
 msgstr "QImageWriter kan ikke skrive billedet: %1"
 
-#: src/ExportManager.cpp:476
+#: src/ExportManager.cpp:482
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -237,12 +249,18 @@ msgstr ""
 "Kan ikke gemme skærmbillede fordi oprettelse af mappen mislykkedes:<nl/"
 "><filename>%1</filename>"
 
-#: src/ExportManager.cpp:486
+#: src/ExportManager.cpp:491
+#, fuzzy, kde-format
+#| msgid "Cannot save screenshot. Error while writing file."
+msgid "Cannot save screenshot. Error while opening file."
+msgstr "Kan ikke gemme skærmbillede. Fejl under skrivning af fil."
+
+#: src/ExportManager.cpp:495
 #, kde-format
 msgid "Cannot save screenshot. Error while writing file."
 msgstr "Kan ikke gemme skærmbillede. Fejl under skrivning af fil."
 
-#: src/ExportManager.cpp:506
+#: src/ExportManager.cpp:515
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -252,28 +270,28 @@ msgstr ""
 "Kan ikke gemme skærmbillede fordi oprettelse af den eksterne mappe "
 "mislykkedes:<nl/><filename>%1</filename>"
 
-#: src/ExportManager.cpp:517 src/ExportManager.cpp:566
+#: src/ExportManager.cpp:526 src/ExportManager.cpp:576
 #, kde-format
 msgid "Cannot save screenshot. Error while writing temporary local file."
 msgstr ""
 "Kan ikke gemme screenshot. Fejl under skrivning af midlertidig lokal fil."
 
-#: src/ExportManager.cpp:525
+#: src/ExportManager.cpp:535
 #, kde-format
 msgid "Unable to save image. Could not upload file to remote location."
 msgstr "Kan ikke gemme billede. Kunne ikke uploade fil til ekstern placering."
 
-#: src/ExportManager.cpp:573
+#: src/ExportManager.cpp:583
 #, kde-format
 msgid "Cannot save screenshot. The save filename is invalid."
 msgstr "Kan ikke gemme skærmbillede. Filnavnet er ugyldigt."
 
-#: src/ExportManager.cpp:617
+#: src/ExportManager.cpp:627
 #, kde-format
 msgid "Cannot save an empty screenshot image."
 msgstr "Kan ikke gemme et tomt skærmbillede."
 
-#: src/ExportManager.cpp:780
+#: src/ExportManager.cpp:806
 #, kde-format
 msgctxt "@info:shell"
 msgid ""
@@ -282,7 +300,7 @@ msgstr ""
 "Kunne ikke eksporterer video: Midlertidig fil-URL skal være en eksisterende, "
 "lokal fil"
 
-#: src/ExportManager.cpp:787
+#: src/ExportManager.cpp:813
 #, kde-format
 msgctxt "@info:shell"
 msgid ""
@@ -291,7 +309,7 @@ msgstr ""
 "Kunne ikke eksporterer video: Output fil-URL skal være en gyldig URL med et "
 "filnavn"
 
-#: src/ExportManager.cpp:873
+#: src/ExportManager.cpp:899
 #, fuzzy, kde-format
 #| msgctxt "@info"
 #| msgid "Unable to save recording. Could not move file to location: %1"
@@ -299,186 +317,186 @@ msgctxt "@info, %1 is a file path"
 msgid "Unable to save recording. Could not move file to location: %1"
 msgstr "Kan ikke gemme video. Kunne ikke flytte fil til placeringen: %1"
 
-#: src/ExportManager.cpp:901
+#: src/ExportManager.cpp:927
 #, kde-format
 msgid "Printing failed. The printer failed to initialize."
 msgstr "Udskrift mislykkedes. Printeren kunne ikke initialiseres."
 
-#: src/ExportManager.cpp:918
+#: src/ExportManager.cpp:944
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Day (1–31)"
 msgstr "Dag (1-31)"
 
-#: src/ExportManager.cpp:919
+#: src/ExportManager.cpp:945
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Day (01–31)"
 msgstr "Dag (01-31)"
 
-#: src/ExportManager.cpp:920
+#: src/ExportManager.cpp:946
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Day (short name)"
 msgstr "Dag (kort navn)"
 
-#: src/ExportManager.cpp:921
+#: src/ExportManager.cpp:947
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Day (long name)"
 msgstr "Dag (langt navn)"
 
-#: src/ExportManager.cpp:922
+#: src/ExportManager.cpp:948
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Month (1–12)"
 msgstr "Måned (1-12)"
 
-#: src/ExportManager.cpp:923
+#: src/ExportManager.cpp:949
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Month (01–12)"
 msgstr "Måned (01-12)"
 
-#: src/ExportManager.cpp:924
+#: src/ExportManager.cpp:950
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Month (short name)"
 msgstr "Måned (kort navn)"
 
-#: src/ExportManager.cpp:925
+#: src/ExportManager.cpp:951
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Month (long name)"
 msgstr "Måned (langt navn)"
 
-#: src/ExportManager.cpp:926
+#: src/ExportManager.cpp:952
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Year (2 digit)"
 msgstr "År (2 cifre)"
 
-#: src/ExportManager.cpp:927
+#: src/ExportManager.cpp:953
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Year (4 digit)"
 msgstr "År (4 cifre)"
 
-#: src/ExportManager.cpp:928
+#: src/ExportManager.cpp:954
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Hour (0–23)"
 msgstr "Time (0-23)"
 
-#: src/ExportManager.cpp:929
+#: src/ExportManager.cpp:955
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Hour (00–23)"
 msgstr "Time (00-23)"
 
-#: src/ExportManager.cpp:930
+#: src/ExportManager.cpp:956
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Hour (1–12)"
 msgstr "Time (1-12)"
 
-#: src/ExportManager.cpp:931
+#: src/ExportManager.cpp:957
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Hour (01–12)"
 msgstr "Time (01-12)"
 
-#: src/ExportManager.cpp:932
+#: src/ExportManager.cpp:958
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Minute (0–59)"
 msgstr "Minut (0-59)"
 
-#: src/ExportManager.cpp:933
+#: src/ExportManager.cpp:959
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Minute (00–59)"
 msgstr "Minut (00-59)"
 
-#: src/ExportManager.cpp:934
+#: src/ExportManager.cpp:960
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Second (0–59)"
 msgstr "Sekund (0–59)"
 
-#: src/ExportManager.cpp:935
+#: src/ExportManager.cpp:961
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Second (00–59)"
 msgstr "Sekund (00-59)"
 
-#: src/ExportManager.cpp:936
+#: src/ExportManager.cpp:962
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Millisecond (0–999)"
 msgstr "Millisekund (0-999)"
 
-#: src/ExportManager.cpp:938
+#: src/ExportManager.cpp:964
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Millisecond (000–999)"
 msgstr "Millisekund (000-999)"
 
-#: src/ExportManager.cpp:939
+#: src/ExportManager.cpp:965
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "AM/PM"
 msgstr "AM/PM"
 
-#: src/ExportManager.cpp:941
+#: src/ExportManager.cpp:967
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "am/pm"
 msgstr "am/pm"
 
-#: src/ExportManager.cpp:943
+#: src/ExportManager.cpp:969
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "AM/PM or am/pm (localized)"
 msgstr "AM/PM eller am/pm (lokaliseret)"
 
-#: src/ExportManager.cpp:945
+#: src/ExportManager.cpp:971
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Timezone (short name)"
 msgstr "Tidszone (kort navn)"
 
-#: src/ExportManager.cpp:946
+#: src/ExportManager.cpp:972
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Timezone offset (±0000)"
 msgstr "Tidszoneforskydning (±0000)"
 
-#: src/ExportManager.cpp:947
+#: src/ExportManager.cpp:973
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Timezone offset (±00:00)"
 msgstr "Tidszoneforskydning (±00:00)"
 
-#: src/ExportManager.cpp:948
+#: src/ExportManager.cpp:974
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Timezone (long name)"
 msgstr "Tidszone (langt navn)"
 
-#: src/ExportManager.cpp:949
+#: src/ExportManager.cpp:975
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Seconds since the Unix epoch"
 msgstr "Sekunder siden Unix-epoken"
 
-#: src/ExportManager.cpp:950
+#: src/ExportManager.cpp:976
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Window Title"
 msgstr "Vinduestitel"
 
-#: src/ExportManager.cpp:951
+#: src/ExportManager.cpp:977
 #, kde-format
 msgctxt "filename placeholder description"
 msgid "Sequential numbering, padded by inserting additional '#' characters"
@@ -712,7 +730,7 @@ msgctxt "@info basic crop tool explanation"
 msgid "Click and drag to make a selection."
 msgstr "Klik og træk for at lave en markering"
 
-#: src/Gui/CaptureSettingsColumn.qml:16 src/Gui/RecordingSettingsColumn.qml:16
+#: src/Gui/CaptureSettingsColumn.qml:16
 #, kde-format
 msgid "Include mouse pointer"
 msgstr "Inkludér musemarkør"
@@ -847,7 +865,7 @@ msgctxt "@title:group"
 msgid "Make a Recording:"
 msgstr "Lav en optagelse:"
 
-#: src/Gui/DialogPage.qml:163
+#: src/Gui/DialogPage.qml:162
 #, kde-format
 msgctxt "@title:tab"
 msgid "Screenshot"
@@ -859,56 +877,62 @@ msgctxt "@title:tab"
 msgid "Recording"
 msgstr "Optagelse"
 
+#: src/Gui/DialogPage.qml:171 src/Gui/RecordingModeMenuButton.qml:18
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "This feature is not supported on the current platform"
+msgstr ""
+
 #: src/Gui/EditAction.qml:11
 #, kde-format
 msgctxt "@action edit screenshot"
 msgid "Edit…"
 msgstr "Redigér…"
 
-#: src/Gui/ExportMenu.cpp:45
+#: src/Gui/ExportMenu.cpp:44
 #, kde-format
 msgctxt "@title:menu"
 msgid "Export"
 msgstr "Eksportér"
 
-#: src/Gui/ExportMenu.cpp:48
+#: src/Gui/ExportMenu.cpp:47
 #, kde-format
 msgid "Open Default Screenshots Folder"
 msgstr "Åbn standard skærmbillede-mappe"
 
-#: src/Gui/ExportMenu.cpp:134
+#: src/Gui/ExportMenu.cpp:133
 #, kde-format
 msgctxt "@action:button open screenshot in other application"
 msgid "Other Application…"
 msgstr "Andet program…"
 
-#: src/Gui/ExportMenu.cpp:166
+#: src/Gui/ExportMenu.cpp:165
 #, kde-format
 msgid "Share"
 msgstr "Del"
 
-#: src/Gui/ExportMenu.cpp:259
+#: src/Gui/ExportMenu.cpp:258
 #, kde-format
 msgctxt "@action:menu"
 msgid "Extract Text by Language"
 msgstr ""
 
-#: src/Gui/ExportMenu.cpp:295
+#: src/Gui/ExportMenu.cpp:294
 #, kde-format
 msgid "OCR engine is not available."
 msgstr ""
 
-#: src/Gui/ExportMenu.cpp:303
+#: src/Gui/ExportMenu.cpp:302
 #, kde-format
 msgid "OCR is not available. Please install Tesseract OCR."
 msgstr ""
 
-#: src/Gui/ExportMenu.cpp:304
+#: src/Gui/ExportMenu.cpp:303
 #, kde-format
 msgid "OCR engine is initializing…"
 msgstr ""
 
-#: src/Gui/ExportMenu.cpp:314
+#: src/Gui/ExportMenu.cpp:313
 #, fuzzy, kde-format
 #| msgid "No KIPI plugins available"
 msgid "No OCR language data available."
@@ -1071,6 +1095,32 @@ msgctxt "@info:tooltip"
 msgid "Show the mouse cursor in the recording"
 msgstr "Vis musemarkøren i optagelsen"
 
+#: src/Gui/OptionsMenu.cpp:144
+#, kde-format
+msgctxt "@option:check for recordings"
+msgid "Record system audio"
+msgstr ""
+
+#: src/Gui/OptionsMenu.cpp:145
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Include the audio that is currently playing on the system in the recording"
+msgstr ""
+
+#: src/Gui/OptionsMenu.cpp:153
+#, fuzzy, kde-format
+#| msgid "Record Screen"
+msgctxt "@option:check for recordings"
+msgid "Record microphone"
+msgstr "Optag skærm"
+
+#: src/Gui/OptionsMenu.cpp:154
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Include audio from the default microphone in the recording"
+msgstr ""
+
 #: src/Gui/OptionsMenuButton.qml:10
 #, kde-format
 msgctxt "@action"
@@ -1089,18 +1139,59 @@ msgctxt "@title:menu"
 msgid "Recording Modes"
 msgstr "Optagelsestilstande"
 
-#: src/Gui/RecordingModeMenuButton.qml:11
+#: src/Gui/RecordingModeMenuButton.qml:12
 #, kde-format
 msgctxt "@action select new recording mode"
 msgid "New Recording"
 msgstr "Ny optagelse"
 
-#: src/Gui/RecordingSettingsColumn.qml:17
-#, kde-format
+#: src/Gui/RecordingSettingsColumn.qml:22
+#, fuzzy, kde-format
+#| msgid "Include mouse pointer"
+msgctxt "@option:check"
+msgid "Include mouse pointer"
+msgstr "Inkludér musemarkør"
+
+#: src/Gui/RecordingSettingsColumn.qml:23
+#, fuzzy, kde-format
+#| msgid "Show the mouse cursor in the screen recording."
+msgctxt "@info:tooltip"
 msgid "Show the mouse cursor in the screen recording."
 msgstr "Vis musemarkøren i skærmoptagelsen."
 
-#: src/Gui/RecordingView.qml:85
+#: src/Gui/RecordingSettingsColumn.qml:32
+#, kde-format
+msgctxt "@option:check"
+msgid "Record system audio"
+msgstr ""
+
+#: src/Gui/RecordingSettingsColumn.qml:33
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Include the audio that is currently playing on the system in the recording."
+msgstr ""
+
+#: src/Gui/RecordingSettingsColumn.qml:45
+#, fuzzy, kde-format
+#| msgid "Record Screen"
+msgctxt "@option:check"
+msgid "Record microphone"
+msgstr "Optag skærm"
+
+#: src/Gui/RecordingSettingsColumn.qml:46
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Include audio from the default microphone in the recording."
+msgstr ""
+
+#: src/Gui/RecordingSettingsColumn.qml:57
+#, kde-format
+msgctxt "@info"
+msgid "The selected video format does not support audio."
+msgstr ""
+
+#: src/Gui/RecordingView.qml:90
 #, fuzzy, kde-format
 #| msgid ""
 #| "Recording:\n"
@@ -1113,12 +1204,12 @@ msgstr ""
 "Optagelse:\n"
 "%1"
 
-#: src/Gui/RecordingView.qml:124
+#: src/Gui/RecordingView.qml:129
 #, kde-format
 msgid "Pause"
 msgstr "Pause"
 
-#: src/Gui/RecordingView.qml:124
+#: src/Gui/RecordingView.qml:129
 #, kde-format
 msgid "Play"
 msgstr "Afspil"
@@ -1555,86 +1646,100 @@ msgstr "Om musemarkøren skal medtages på skærmbilledet"
 msgid "Whether the mouse cursor is included in the video"
 msgstr "Om musemarkøren skal medtages i videoen"
 
-#. i18n: ectx: label, entry (includeDecorations), group (GuiConfig)
+#. i18n: ectx: label, entry (videoRecordSystemAudio), group (GuiConfig)
 #: src/Gui/SettingsDialog/spectacle.kcfg:99
+#, fuzzy, kde-format
+#| msgid "Whether the mouse cursor is included in the video"
+msgid "Whether system audio is included in the recording"
+msgstr "Om musemarkøren skal medtages i videoen"
+
+#. i18n: ectx: label, entry (videoRecordMicrophone), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:103
+#, fuzzy, kde-format
+#| msgid "Whether the mouse cursor is included in the video"
+msgid "Whether microphone audio is included in the recording"
+msgstr "Om musemarkøren skal medtages i videoen"
+
+#. i18n: ectx: label, entry (includeDecorations), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:107
 #, kde-format
 msgid "Whether the window decorations are included in the screenshot"
 msgstr "Om vinduesdekorationer skal medtages i skærmbilledet"
 
 #. i18n: ectx: label, entry (includeShadow), group (GuiConfig)
-#: src/Gui/SettingsDialog/spectacle.kcfg:103
+#: src/Gui/SettingsDialog/spectacle.kcfg:111
 #, kde-format
 msgid "Whether the window shadow is included in the screenshot"
 msgstr "Om vinduets skygge skal medtages i skærmbilledet"
 
 #. i18n: ectx: label, entry (transientOnly), group (GuiConfig)
-#: src/Gui/SettingsDialog/spectacle.kcfg:107
+#: src/Gui/SettingsDialog/spectacle.kcfg:115
 #, kde-format
 msgid "Only capture the current pop up menu"
 msgstr "Tag kun den aktuelle pop-op-menu"
 
 #. i18n: ectx: label, entry (quitAfterSaveCopyExport), group (GuiConfig)
-#: src/Gui/SettingsDialog/spectacle.kcfg:111
+#: src/Gui/SettingsDialog/spectacle.kcfg:119
 #, kde-format
 msgid "Quit after saving or copying an image"
 msgstr "Afslut efter billedet er gemt eller kopieret"
 
 #. i18n: ectx: label, entry (captureDelay), group (GuiConfig)
-#: src/Gui/SettingsDialog/spectacle.kcfg:115
+#: src/Gui/SettingsDialog/spectacle.kcfg:123
 #, kde-format
 msgid "Delay"
 msgstr "Forsinkelse"
 
 #. i18n: ectx: label, entry (imageSaveLocation), group (ImageSave)
 #. i18n: ectx: label, entry (videoSaveLocation), group (VideoSave)
-#: src/Gui/SettingsDialog/spectacle.kcfg:126
-#: src/Gui/SettingsDialog/spectacle.kcfg:172
+#: src/Gui/SettingsDialog/spectacle.kcfg:134
+#: src/Gui/SettingsDialog/spectacle.kcfg:180
 #, kde-format
 msgid "Default filename"
 msgstr "Standard filnavn"
 
 #. i18n: ectx: label, entry (imageCompressionQuality), group (ImageSave)
-#: src/Gui/SettingsDialog/spectacle.kcfg:143
+#: src/Gui/SettingsDialog/spectacle.kcfg:151
 #, kde-format
 msgid "Compression quality for lossy file formats"
 msgstr "Komprimeringskvalitet for tabsgivende filformater"
 
 #. i18n: ectx: label, entry (preferredImageFormat), group (ImageSave)
-#: src/Gui/SettingsDialog/spectacle.kcfg:151
+#: src/Gui/SettingsDialog/spectacle.kcfg:159
 #, kde-format
 msgid "Default save image format"
 msgstr "Standardformat at gemme billeder i"
 
 #. i18n: ectx: label, entry (imageFilenameTemplate), group (ImageSave)
-#: src/Gui/SettingsDialog/spectacle.kcfg:155
+#: src/Gui/SettingsDialog/spectacle.kcfg:163
 #, kde-format
 msgid "The filename template used when saving screenshots"
 msgstr "Filnavnskabelonen, der bruges, når der tages et skærmbillede"
 
 #. i18n: ectx: label, entry (lastImageSaveLocation), group (ImageSave)
 #. i18n: ectx: label, entry (lastVideoSaveLocation), group (VideoSave)
-#: src/Gui/SettingsDialog/spectacle.kcfg:162
-#: src/Gui/SettingsDialog/spectacle.kcfg:201
+#: src/Gui/SettingsDialog/spectacle.kcfg:170
+#: src/Gui/SettingsDialog/spectacle.kcfg:209
 #, kde-format
 msgid "The path of the file saved last"
 msgstr "Stien til den senest gemte fil"
 
 #. i18n: ectx: label, entry (lastImageSaveAsLocation), group (ImageSave)
 #. i18n: ectx: label, entry (lastVideoSaveAsLocation), group (VideoSave)
-#: src/Gui/SettingsDialog/spectacle.kcfg:166
-#: src/Gui/SettingsDialog/spectacle.kcfg:205
+#: src/Gui/SettingsDialog/spectacle.kcfg:174
+#: src/Gui/SettingsDialog/spectacle.kcfg:213
 #, kde-format
 msgid "Last path used for \"save as\" action"
 msgstr "Seneste sti der blev brugt ved \"Gem som\"-handling"
 
 #. i18n: ectx: label, entry (preferredVideoFormat), group (VideoSave)
-#: src/Gui/SettingsDialog/spectacle.kcfg:189
+#: src/Gui/SettingsDialog/spectacle.kcfg:197
 #, kde-format
 msgid "Default video format"
 msgstr "Standard videoformat"
 
 #. i18n: ectx: label, entry (videoFilenameTemplate), group (VideoSave)
-#: src/Gui/SettingsDialog/spectacle.kcfg:194
+#: src/Gui/SettingsDialog/spectacle.kcfg:202
 #, kde-format
 msgid "The filename template used when saving screencasts"
 msgstr "Filnavnskabelonen, der bruges, når der gemmes skærmcasts"
@@ -1774,7 +1879,7 @@ msgctxt "Decimal number of seconds"
 msgid " seconds"
 msgstr "sekunder"
 
-#: src/Gui/SpectacleWindow.cpp:173
+#: src/Gui/SpectacleWindow.cpp:172
 #, kde-format
 msgctxt "@title:window"
 msgid "%1 second"
@@ -1782,7 +1887,7 @@ msgid_plural "%1 seconds"
 msgstr[0] "%1 sekund"
 msgstr[1] "%1 sekunder"
 
-#: src/Gui/SpectacleWindow.cpp:176
+#: src/Gui/SpectacleWindow.cpp:175
 #, kde-format
 msgctxt "@title:window Unsaved Screenshot"
 msgid "Unsaved"
@@ -1815,16 +1920,6 @@ msgstr "Billedezoom"
 msgctxt "@info, %1 is the error message"
 msgid "There was a problem sharing the image: %1"
 msgstr "Der opstod et problem under deling af billedet: %1"
-
-#: src/Gui/ViewerWindow.cpp:56
-#, kde-format
-msgctxt "@info"
-msgid ""
-"The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
-"clipboard."
-msgstr ""
-"Linket til det delte billede (<a href=\"%1\">%1</a>) er blevet kopieret til "
-"udklipsholderen."
 
 #: src/Main.cpp:44
 #, kde-format
@@ -1864,23 +1959,23 @@ msgstr ""
 "til at være tilgængelig. Brug Spectacle på KDE Plasma eller brug et andet "
 "skærmbilledeværktøj."
 
-#: src/OcrManager.cpp:609
+#: src/OcrManager.cpp:578
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Orientation and Script Detection"
 msgstr ""
 
-#: src/OcrManager.cpp:650
+#: src/OcrManager.cpp:619
 #, kde-format
 msgid "Math/Equation Detection"
 msgstr ""
 
-#: src/OcrManager.cpp:653
+#: src/OcrManager.cpp:622
 #, kde-format
 msgid "Orientation and Script Detection"
 msgstr ""
 
-#: src/Platforms/ImagePlatformKWin.cpp:143
+#: src/Platforms/ImagePlatformKWin.cpp:134
 #, fuzzy, kde-format
 #| msgctxt "@info"
 #| msgid "Bad width for KWin screenshot: %1"
@@ -1888,7 +1983,7 @@ msgctxt "@info, %1 is the width"
 msgid "Bad width for KWin screenshot: %1"
 msgstr "Dårlig bredde for KWin-skærmbilleder: %1"
 
-#: src/Platforms/ImagePlatformKWin.cpp:148
+#: src/Platforms/ImagePlatformKWin.cpp:139
 #, fuzzy, kde-format
 #| msgctxt "@info"
 #| msgid "Bad height for KWin screenshot: %1"
@@ -1896,20 +1991,20 @@ msgctxt "@info, %1 is the height"
 msgid "Bad height for KWin screenshot: %1"
 msgstr "Dårlig højde for KWin-skærmbilleder: %1"
 
-#: src/Platforms/ImagePlatformKWin.cpp:159
+#: src/Platforms/ImagePlatformKWin.cpp:150
 #, fuzzy, kde-format
 #| msgid "After taking a screenshot:"
 msgctxt "@info, %1 is a file format like 'png', 'jpg'"
 msgid "Bad format for KWin screenshot: %1"
 msgstr "Efter der er taget et skærmbillede:"
 
-#: src/Platforms/ImagePlatformKWin.cpp:177
+#: src/Platforms/ImagePlatformKWin.cpp:168
 #, kde-format
 msgctxt "@info"
 msgid "Could not open file descriptor for reading KWin screenshot."
 msgstr "Kunne ikke åbne filbeskriver for at læse KWin-skærmbilleder."
 
-#: src/Platforms/ImagePlatformKWin.cpp:245
+#: src/Platforms/ImagePlatformKWin.cpp:238
 #, fuzzy, kde-format
 #| msgctxt "@info"
 #| msgid "pipe2() failed for KWin screenshot: %1"
@@ -1917,7 +2012,7 @@ msgctxt "@info, %1 is an error code"
 msgid "pipe2() failed for KWin screenshot: %1"
 msgstr "Pipe2() fejlede for KWin-skærmbilleder: %1"
 
-#: src/Platforms/ImagePlatformKWin.cpp:301
+#: src/Platforms/ImagePlatformKWin.cpp:294
 #, fuzzy, kde-format
 #| msgctxt "@info"
 #| msgid ""
@@ -1931,7 +2026,7 @@ msgstr ""
 "Forespørgsel for KWin-skærmbillede fejlede:\n"
 "%1"
 
-#: src/Platforms/ImagePlatformKWin.cpp:303
+#: src/Platforms/ImagePlatformKWin.cpp:296
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -1939,31 +2034,31 @@ msgid ""
 "%1"
 msgstr ""
 
-#: src/Platforms/ImagePlatformKWin.cpp:311
+#: src/Platforms/ImagePlatformKWin.cpp:304
 #, kde-format
 msgctxt "@info"
 msgid "Unsupported KWin screenshot type metadata: %1"
 msgstr ""
 
-#: src/Platforms/PlatformLoader.cpp:97
+#: src/Platforms/PlatformLoader.cpp:103
 #, kde-format
 msgctxt "@info"
 msgid "Screen recording is not available on X11."
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:160
+#: src/Platforms/VideoPlatformWayland.cpp:165
 #, kde-format
 msgctxt "@info"
 msgid "KWin Screencasting is not available."
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:173
+#: src/Platforms/VideoPlatformWayland.cpp:179
 #, kde-format
 msgctxt "@info:shell"
 msgid "Failed to record: File URL is not a local file"
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:264
+#: src/Platforms/VideoPlatformWayland.cpp:279
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -1971,7 +2066,7 @@ msgid ""
 "the recording."
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:266
+#: src/Platforms/VideoPlatformWayland.cpp:283
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -1979,7 +2074,7 @@ msgid ""
 "the recording."
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:268
+#: src/Platforms/VideoPlatformWayland.cpp:287
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -1987,7 +2082,7 @@ msgid ""
 "way that disrupted the recording."
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:282
+#: src/Platforms/VideoPlatformWayland.cpp:303
 #, fuzzy, kde-format
 #| msgctxt "@info:shell"
 #| msgid ""
@@ -1998,7 +2093,7 @@ msgstr ""
 "Kunne ikke eksporterer video: Midlertidig fil-URL skal være en eksisterende, "
 "lokal fil"
 
-#: src/Platforms/VideoPlatformWayland.cpp:292
+#: src/Platforms/VideoPlatformWayland.cpp:314
 #, fuzzy, kde-format
 #| msgctxt "@info:shell"
 #| msgid ""
@@ -2010,43 +2105,43 @@ msgstr ""
 "Kunne ikke eksporterer video: Output fil-URL skal være en gyldig URL med et "
 "filnavn"
 
-#: src/Platforms/VideoPlatformWayland.cpp:346
+#: src/Platforms/VideoPlatformWayland.cpp:381
 #, kde-format
 msgctxt "@info:shell, %1 is a directory path"
 msgid "Failed to record: Unable to create folder (%1)"
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:374
+#: src/Platforms/VideoPlatformWayland.cpp:409
 #, kde-format
 msgctxt "@info:shell"
 msgid "Screen recording canceled"
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:376
+#: src/Platforms/VideoPlatformWayland.cpp:411
 #, kde-format
 msgctxt "@info:shell"
 msgid "Window recording canceled"
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:382
+#: src/Platforms/VideoPlatformWayland.cpp:417
 #, kde-format
 msgctxt "@info:shell, %1 is an error message"
 msgid "Failed to select screen: %1"
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:384
+#: src/Platforms/VideoPlatformWayland.cpp:419
 #, kde-format
 msgctxt "@info:shell, %1 is an error message"
 msgid "Failed to select window: %1"
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:412
+#: src/Platforms/VideoPlatformWayland.cpp:447
 #, kde-format
 msgctxt "@info:shell"
 msgid "Failed to select screen: No screen contained the mouse cursor position"
 msgstr ""
 
-#: src/Platforms/VideoPlatformWayland.cpp:419
+#: src/Platforms/VideoPlatformWayland.cpp:454
 #, kde-format
 msgctxt "@info:shell"
 msgid "Failed to select window: No window found"
@@ -2136,31 +2231,47 @@ msgctxt "@action global shortcut"
 msgid "Launch Spectacle without capturing"
 msgstr "Start Spectacle uden indfangning"
 
-#: src/SpectacleCore.cpp:264
+#: src/SpectacleCore.cpp:275
 #, kde-format
 msgctxt "@info"
 msgid "An error occurred while taking a screenshot."
 msgstr "En fejl opstod mens et skærmbillede blev taget."
 
-#: src/SpectacleCore.cpp:293
+#: src/SpectacleCore.cpp:304
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip title for recording tray icon"
+#| msgid "Spectacle is Recording"
+msgctxt "@info:tooltip title for recording tray icon"
+msgid "Spectacle is Recording with Sound"
+msgstr "Spectacle optager"
+
+#: src/SpectacleCore.cpp:305
 #, kde-format
 msgctxt "@info:tooltip title for recording tray icon"
 msgid "Spectacle is Recording"
 msgstr "Spectacle optager"
 
-#: src/SpectacleCore.cpp:298
+#: src/SpectacleCore.cpp:310
+#, fuzzy, kde-format
+#| msgctxt "recording notification title"
+#| msgid "Spectacle is Recording"
+msgctxt "recording notification title"
+msgid "Spectacle is Recording with Sound"
+msgstr "Mens Spectacle optager"
+
+#: src/SpectacleCore.cpp:311
 #, kde-format
 msgctxt "recording notification title"
 msgid "Spectacle is Recording"
 msgstr "Mens Spectacle optager"
 
-#: src/SpectacleCore.cpp:324
+#: src/SpectacleCore.cpp:337
 #, kde-format
 msgctxt "recording notification message without shortcut"
 msgid "To finish the recording, click the pulsing red System Tray icon."
 msgstr ""
 
-#: src/SpectacleCore.cpp:325
+#: src/SpectacleCore.cpp:338
 #, kde-kuit-format
 msgctxt "recording notification message with shortcut"
 msgid ""
@@ -2168,13 +2279,13 @@ msgid ""
 "<shortcut>%1</shortcut>."
 msgstr ""
 
-#: src/SpectacleCore.cpp:342
+#: src/SpectacleCore.cpp:355
 #, kde-format
 msgctxt "missing webp support notification title"
 msgid "WebP support is missing."
 msgstr ""
 
-#: src/SpectacleCore.cpp:343
+#: src/SpectacleCore.cpp:356
 #, kde-format
 msgctxt "missing webp support notification message"
 msgid ""
@@ -2182,25 +2293,25 @@ msgid ""
 "Spectacle, and then report this packaging issue to your distributor."
 msgstr ""
 
-#: src/SpectacleCore.cpp:379
+#: src/SpectacleCore.cpp:392
 #, kde-format
 msgctxt "recording notification title"
 msgid "Spectacle is Finishing the Recording"
 msgstr "Spectacle er færdig med optagelsen"
 
-#: src/SpectacleCore.cpp:380
+#: src/SpectacleCore.cpp:393
 #, kde-format
 msgctxt "recording notification message"
 msgid "Please wait"
 msgstr "Vent venligst"
 
-#: src/SpectacleCore.cpp:382
+#: src/SpectacleCore.cpp:395
 #, kde-format
 msgctxt "@info:tooltip title for rendering tray icon"
 msgid "Spectacle is Finishing the Recording"
 msgstr "Spectacle færdiggører optagelsen"
 
-#: src/SpectacleCore.cpp:384
+#: src/SpectacleCore.cpp:397
 #, kde-format
 msgctxt "@info:tooltip subtitle for rendering tray icon"
 msgid ""
@@ -2208,7 +2319,7 @@ msgid ""
 "Click to stop rendering early (this will lose data)"
 msgstr ""
 
-#: src/SpectacleCore.cpp:410
+#: src/SpectacleCore.cpp:423
 #, kde-format
 msgctxt "@info:tooltip subtitle for recording tray icon"
 msgid ""
@@ -2216,13 +2327,13 @@ msgid ""
 "Click to finish recording"
 msgstr ""
 
-#: src/SpectacleCore.cpp:435
+#: src/SpectacleCore.cpp:451
 #, kde-format
 msgctxt "@info"
 msgid "An error occurred while attempting to record the screen."
 msgstr "En fejl opstod ved forsøg på at optage skærmen."
 
-#: src/SpectacleCore.cpp:479
+#: src/SpectacleCore.cpp:496
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2232,7 +2343,7 @@ msgstr ""
 "Skærmbilledet blev kopieret til udklipsholderen og gemt som <link url=\"%1\">"
 "%2</link>"
 
-#: src/SpectacleCore.cpp:482
+#: src/SpectacleCore.cpp:500
 #, fuzzy, kde-kuit-format
 #| msgid ""
 #| "The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
@@ -2245,20 +2356,20 @@ msgstr ""
 "Linket til det delte billede (<a href=\"%1\">%1</a>) er blevet kopieret til "
 "udklipsholderen."
 
-#: src/SpectacleCore.cpp:485
+#: src/SpectacleCore.cpp:505
 #, fuzzy, kde-kuit-format
 #| msgid "The screenshot was saved as <a href=\"%1\">%2</a>"
 msgctxt "@info"
 msgid "The screenshot was saved as <link url=\"%1\">%2</link>"
 msgstr "Skærmbilledet blev gemt som <a href=\"%1\">%2</a>"
 
-#: src/SpectacleCore.cpp:489
+#: src/SpectacleCore.cpp:509
 #, kde-format
 msgctxt "@info"
 msgid "The screenshot has been copied to the clipboard."
 msgstr "Skærmbilledet er blevet kopieret til udklipsholderen."
 
-#: src/SpectacleCore.cpp:520
+#: src/SpectacleCore.cpp:541
 #, fuzzy, kde-kuit-format
 #| msgid ""
 #| "The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
@@ -2271,14 +2382,14 @@ msgstr ""
 "Linket til det delte billede (<a href=\"%1\">%1</a>) er blevet kopieret til "
 "udklipsholderen."
 
-#: src/SpectacleCore.cpp:523
+#: src/SpectacleCore.cpp:546
 #, fuzzy, kde-kuit-format
 #| msgid "The screenshot was saved as <a href=\"%1\">%2</a>"
 msgctxt "@info"
 msgid "The video was saved as <link url=\"%1\">%2</link>"
 msgstr "Skærmbilledet blev gemt som <a href=\"%1\">%2</a>"
 
-#: src/SpectacleCore.cpp:527
+#: src/SpectacleCore.cpp:550
 #, fuzzy, kde-format
 #| msgid "The screenshot has been copied to the clipboard."
 msgctxt "@info"
@@ -2288,7 +2399,7 @@ msgstr "Skærmbilledet er blevet kopieret til udklipsholderen."
 #. i18nc because it doesn't work with the link replacement logic.
 #. Also see https://invent.kde.org/graphics/spectacle/-/merge_requests/432#note_1111125
 #.
-#: src/SpectacleCore.cpp:547
+#: src/SpectacleCore.cpp:570
 #, fuzzy, kde-format
 #| msgctxt "@info"
 #| msgid "QR Code found: %1"
@@ -2296,87 +2407,94 @@ msgctxt "@info"
 msgid "Code found: %1"
 msgstr "QR-kode ikke fundet: %1"
 
-#: src/SpectacleCore.cpp:551
+#: src/SpectacleCore.cpp:574
 #, kde-format
 msgctxt "@info"
 msgid "Found QR code with binary content."
 msgstr ""
 
-#: src/SpectacleCore.cpp:560
+#: src/SpectacleCore.cpp:582
 #, kde-format
 msgctxt "@info"
 msgid "Text extraction failed"
 msgstr ""
 
-#: src/SpectacleCore.cpp:566
+#: src/SpectacleCore.cpp:587
 #, kde-format
 msgctxt "@info"
 msgid "No text found in the image"
 msgstr ""
 
-#: src/SpectacleCore.cpp:571
+#: src/SpectacleCore.cpp:591
 #, kde-format
 msgctxt "@info"
 msgid "Text extraction completed"
 msgstr ""
 
-#: src/SpectacleCore.cpp:579
+#: src/SpectacleCore.cpp:599
 #, kde-format
 msgctxt "@info:notification title"
 msgid "Text Extracted"
 msgstr ""
 
-#: src/SpectacleCore.cpp:598
+#: src/SpectacleCore.cpp:618
 #, kde-format
 msgctxt "@info The variables are language names, e.g. 'English and German'"
 msgid "%1 and %2"
 msgstr ""
 
-#: src/SpectacleCore.cpp:603
+#: src/SpectacleCore.cpp:623
 #, fuzzy, kde-kuit-format
 #| msgid "Copy image to clipboard"
 msgctxt "@info:notification"
 msgid "Text copied to clipboard.<nl/>Languages used: %1"
 msgstr "Kopiér billedet til udklipsholderen"
 
-#: src/SpectacleCore.cpp:608
+#: src/SpectacleCore.cpp:628
 #, kde-format
 msgctxt "@action:button"
 msgid "Open in Text Editor"
 msgstr ""
 
-#: src/SpectacleCore.cpp:749
+#: src/SpectacleCore.cpp:770
 #, kde-format
 msgctxt "@info"
 msgid "Please select a region before extracting text"
 msgstr ""
 
-#: src/SpectacleCore.cpp:771
+#: src/SpectacleCore.cpp:792
 #, kde-format
 msgctxt "@info"
 msgid "OCR is not available."
 msgstr ""
 
-#: src/SpectacleCore.cpp:777
+#: src/SpectacleCore.cpp:798
 #, fuzzy, kde-format
 #| msgid "No KIPI plugins available"
 msgctxt "@info"
 msgid "No screenshot available."
 msgstr "Ingen KIPI-plugins tilgængelige"
 
-#: src/SpectacleCore.cpp:781
+#: src/SpectacleCore.cpp:802
 #, kde-format
 msgctxt "@info"
 msgid "Extracting text from image..."
 msgstr ""
 
-#: src/SpectacleCore.cpp:1045
+#: src/SpectacleCore.cpp:1059
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"--scaled is only allowed together with -f/--fullscreen and will be ignored"
+msgstr ""
+
+#: src/SpectacleCore.cpp:1074
 #, kde-format
 msgctxt "@info:shell"
 msgid "%1 is not a valid mode for --record"
 msgstr ""
 
-#: src/SpectacleCore.cpp:1279
+#: src/SpectacleCore.cpp:1313
 #, fuzzy, kde-format
 #| msgid ""
 #| "The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
@@ -2389,7 +2507,7 @@ msgstr ""
 "Linket til det delte billede (<a href=\"%1\">%1</a>) er blevet kopieret til "
 "udklipsholderen."
 
-#: src/SpectacleCore.cpp:1283
+#: src/SpectacleCore.cpp:1317
 #, fuzzy, kde-format
 #| msgctxt "Placeholder is filename"
 #| msgid "A screenshot was saved as '%1' to your Pictures folder."
@@ -2397,19 +2515,19 @@ msgctxt "%1 is the filename"
 msgid "A screenshot was saved as '%1' to your Pictures folder."
 msgstr "Et skærmbillede blev gemt som \"%1\" i din billedmappe."
 
-#: src/SpectacleCore.cpp:1286
+#: src/SpectacleCore.cpp:1320
 #, fuzzy, kde-format
 #| msgid "A screenshot was saved as '%1' to '%2'."
 msgctxt "%1 is the filename, %2 the path to the save location"
 msgid "A screenshot was saved as '%1' to '%2'."
 msgstr "Et skærmbillede blev gemt som \"%1\" i \"%2\"."
 
-#: src/SpectacleCore.cpp:1290
+#: src/SpectacleCore.cpp:1324
 #, kde-format
 msgid "A screenshot was saved to your clipboard."
 msgstr "Et skærmbillede blev gemt i din udklipsholder."
 
-#: src/SpectacleCore.cpp:1295
+#: src/SpectacleCore.cpp:1329
 #, fuzzy, kde-format
 #| msgid ""
 #| "The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
@@ -2422,7 +2540,7 @@ msgstr ""
 "Linket til det delte billede (<a href=\"%1\">%1</a>) er blevet kopieret til "
 "udklipsholderen."
 
-#: src/SpectacleCore.cpp:1297
+#: src/SpectacleCore.cpp:1331
 #, fuzzy, kde-format
 #| msgctxt "Placeholder is filename"
 #| msgid "A screenshot was saved as '%1' to your Pictures folder."
@@ -2430,20 +2548,20 @@ msgctxt "%1 is the filename"
 msgid "A recording was saved as '%1' to your Videos folder."
 msgstr "Et skærmbillede blev gemt som \"%1\" i din billedmappe."
 
-#: src/SpectacleCore.cpp:1299
+#: src/SpectacleCore.cpp:1333
 #, fuzzy, kde-format
 #| msgid "A screenshot was saved as '%1' to '%2'."
 msgctxt "%1 is the filename, %2 the path to the save location"
 msgid "A recording was saved as '%1' to '%2'."
 msgstr "Et skærmbillede blev gemt som \"%1\" i \"%2\"."
 
-#: src/SpectacleCore.cpp:1310
+#: src/SpectacleCore.cpp:1345
 #, kde-format
 msgctxt "Open the screenshot we just saved"
 msgid "Open"
 msgstr "Åbn"
 
-#: src/SpectacleCore.cpp:1324
+#: src/SpectacleCore.cpp:1359
 #, kde-format
 msgid "Annotate"
 msgstr "Kommentér"
@@ -2471,6 +2589,14 @@ msgstr "Animeret WebP (bedre end GIF)"
 msgctxt "@item:inlistbox Container/encoder"
 msgid "GIF (compatible, but inefficient)"
 msgstr "GIF (kompatibel, men ineffektiv)"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
+#~ "clipboard."
+#~ msgstr ""
+#~ "Linket til det delte billede (<a href=\"%1\">%1</a>) er blevet kopieret "
+#~ "til udklipsholderen."
 
 #, fuzzy
 #~| msgctxt "@action:button"
@@ -2567,12 +2693,6 @@ msgstr "GIF (kompatibel, men ineffektiv)"
 #~| msgid "Whether to show a magnifier in the region selection"
 #~ msgid "Whether to show capture instructions in the region selection"
 #~ msgstr "Om der skal vises et forstørrelsesglas når der vælges skærmområde"
-
-#, fuzzy
-#~| msgid "Record Screen"
-#~ msgctxt "@action global shortcut"
-#~ msgid "Record Screen"
-#~ msgstr "Optag skærm"
 
 #, fuzzy
 #~| msgid "Record Screen"

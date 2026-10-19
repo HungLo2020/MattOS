@@ -1,12 +1,13 @@
 # Translation of partitionmanager into Japanese.
+# SPDX-FileCopyrightText: 2026 Yuma Kakei <yumasansansan@gmail.com>
 # Yukiko Bando <ybando@k6.dion.ne.jp>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: partitionmanager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
-"PO-Revision-Date: 2009-01-06 23:32+0900\n"
-"Last-Translator: Yukiko Bando <ybando@k6.dion.ne.jp>\n"
+"POT-Creation-Date: 2026-06-29 00:49+0000\n"
+"PO-Revision-Date: 2026-03-13 18:48+0900\n"
+"Last-Translator: Yuma Kakei <yumasansansan@gmail.com>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -15,52 +16,50 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
+"X-Generator: Lokalize 25.12.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Yukiko Bando"
+msgstr "Yukiko Bando,Yuma Kakei"
 
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
-msgstr "ybando@k6.dion.ne.jp"
+msgstr "ybando@k6.dion.ne.jp,yumasansansan@gmail.com"
 
 #: config/configureoptionsdialog.cpp:42
 #, kde-kuit-format
 msgctxt "@title:tab general application settings"
 msgid "General"
-msgstr ""
+msgstr "一般"
 
 #: config/configureoptionsdialog.cpp:42 config/configureoptionsdialog.cpp:87
 #, kde-format
 msgid "General Settings"
-msgstr ""
+msgstr "一般設定"
 
 #: config/configureoptionsdialog.cpp:47
-#, fuzzy, kde-kuit-format
-#| msgid "File System"
+#, kde-kuit-format
 msgctxt "@title:tab"
 msgid "File System Colors"
-msgstr "ファイルシステム"
+msgstr "ファイルシステムの色"
 
 #: config/configureoptionsdialog.cpp:47
-#, fuzzy, kde-format
-#| msgctxt "@action:inmenu"
-#| msgid "File System Support"
+#, kde-format
 msgid "File System Color Settings"
-msgstr "ファイルシステムのサポート情報(&F)"
+msgstr "ファイルシステムの色に関する設定"
 
 #: config/configureoptionsdialog.cpp:49
 #, kde-kuit-format
 msgctxt "@title:tab advanced application settings"
 msgid "Advanced"
-msgstr ""
+msgstr "高度な設定"
 
 #: config/configureoptionsdialog.cpp:49
 #, kde-format
 msgid "Advanced Settings"
-msgstr ""
+msgstr "高度な設定"
 
 #: config/configureoptionsdialog.cpp:137
 #, kde-kuit-format
@@ -70,466 +69,411 @@ msgid ""
 "will also rescan devices and thus clear the list of pending operations.</"
 "warning></para>"
 msgstr ""
+"<para>本当にバックエンドを変更しますか？</para><para><warning>この操作を実行"
+"するとデバイスが再スキャンされ、保留中の操作のリストもクリアされます。</"
+"warning></para>"
 
 #: config/configureoptionsdialog.cpp:139
-#, fuzzy, kde-kuit-format
-#| msgctxt "@title:window"
-#| msgid "Really Rescan the Devices?"
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Really Change Backend?"
-msgstr "本当にデバイスを再スキャンしますか？"
+msgstr "本当にバックエンドを変更しますか？"
 
 #: config/configureoptionsdialog.cpp:140
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Change the File System"
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Change the Backend"
-msgstr "ファイルシステムを変更する(&C)"
+msgstr "バックエンドを変更する"
 
 #: config/configureoptionsdialog.cpp:141
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Do Not Change the File System"
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Do Not Change the Backend"
-msgstr "ファイルシステムを変更しない(&D)"
+msgstr "バックエンドを変更しない"
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
 #: config/configurepageadvanced.ui:23
 #, kde-format
 msgid "Active backend:"
-msgstr ""
+msgstr "バックエンド:"
 
 #. i18n: ectx: property (text), widget (QLabel)
 #: config/configurepageadvanced.ui:36
 #, kde-format
 msgid "Preferred unit:"
-msgstr ""
+msgstr "単位:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_preferredUnit)
 #: config/configurepageadvanced.ui:47
-#, fuzzy, kde-format
-#| msgctxt "@info/plain unit"
-#| msgid "Byte"
+#, kde-format
 msgid "Byte"
 msgstr "バイト"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_preferredUnit)
 #: config/configurepageadvanced.ui:52
-#, fuzzy, kde-format
-#| msgctxt "@info/plain unit"
-#| msgid "KiB"
+#, kde-format
 msgid "KiB"
 msgstr "KiB"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_preferredUnit)
 #: config/configurepageadvanced.ui:57
-#, fuzzy, kde-format
-#| msgctxt "@info/plain unit"
-#| msgid "MiB"
+#, kde-format
 msgid "MiB"
 msgstr "MiB"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_preferredUnit)
 #: config/configurepageadvanced.ui:62
-#, fuzzy, kde-format
-#| msgctxt "@info/plain unit"
-#| msgid "GiB"
+#, kde-format
 msgid "GiB"
 msgstr "GiB"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_preferredUnit)
 #: config/configurepageadvanced.ui:67
-#, fuzzy, kde-format
-#| msgctxt "@info/plain unit"
-#| msgid "TiB"
+#, kde-format
 msgid "TiB"
 msgstr "TiB"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_preferredUnit)
 #: config/configurepageadvanced.ui:72
-#, fuzzy, kde-format
-#| msgctxt "@info/plain unit"
-#| msgid "PiB"
+#, kde-format
 msgid "PiB"
 msgstr "PiB"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_preferredUnit)
 #: config/configurepageadvanced.ui:77
-#, fuzzy, kde-format
-#| msgctxt "@info/plain unit"
-#| msgid "EiB"
+#, kde-format
 msgid "EiB"
 msgstr "EiB"
 
-#. i18n: ectx: property (text), widget (QLabel, textLabel_7)
-#: config/configurepagefilesystemcolors.ui:27
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "reiser4"
-msgid "ReiserFS:"
-msgstr "reiser4"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_15)
-#: config/configurepagefilesystemcolors.ui:56
+#. i18n: ectx: property (text), widget (QLabel, textLabel_3)
+#: config/configurepagefilesystemcolors.ui:37
 #, kde-format
-msgid "UFS:"
-msgstr ""
+msgid "ext4:"
+msgstr "ext4:"
 
-#. i18n: ectx: property (text), widget (QLabel, textLabel_31)
-#: config/configurepagefilesystemcolors.ui:69
+#. i18n: ectx: property (text), widget (QLabel, textLabel_18)
+#: config/configurepagefilesystemcolors.ui:137
 #, kde-format
-msgid "ISO 9660:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_24)
-#: config/configurepagefilesystemcolors.ui:88
-#, kde-format
-msgid "OCFS2:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_22)
-#: config/configurepagefilesystemcolors.ui:104
-#, kde-format
-msgid "XFS:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_27)
-#: config/configurepagefilesystemcolors.ui:123
-#, kde-format
-msgid "NILFS2:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_6)
-#: config/configurepagefilesystemcolors.ui:172
-#, kde-format
-msgid "FAT16:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_13)
-#: config/configurepagefilesystemcolors.ui:185
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "extended"
-msgid "extended:"
-msgstr "拡張"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_33)
-#: config/configurepagefilesystemcolors.ui:198
-#, kde-format
-msgid "LUKS2:"
-msgstr ""
+msgid "Linux RAID:"
+msgstr "Linux RAID:"
 
 #. i18n: ectx: property (text), widget (QLabel, textLabel_17)
-#: config/configurepagefilesystemcolors.ui:214
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "unformatted"
+#: config/configurepagefilesystemcolors.ui:192
+#, kde-format
 msgid "unformatted:"
-msgstr "未フォーマット"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_30)
-#: config/configurepagefilesystemcolors.ui:233
-#, kde-format
-msgid "UDF:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_25)
-#: config/configurepagefilesystemcolors.ui:246
-#, kde-format
-msgid "ZFS:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_3)
-#: config/configurepagefilesystemcolors.ui:294
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "ext4"
-msgid "ext4:"
-msgstr "ext4"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_10)
-#: config/configurepagefilesystemcolors.ui:310
-#, kde-format
-msgid "HPFS:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_11)
-#: config/configurepagefilesystemcolors.ui:368
-#, kde-format
-msgid "JFS:"
-msgstr ""
+msgstr "未フォーマット:"
 
 #. i18n: ectx: property (text), widget (QLabel, textLabel_2)
-#: config/configurepagefilesystemcolors.ui:381
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "ext3"
+#: config/configurepagefilesystemcolors.ui:205
+#, kde-format
 msgid "ext3:"
-msgstr "ext3"
+msgstr "ext3:"
 
-#. i18n: ectx: property (text), widget (QLabel, textLabel_8)
-#: config/configurepagefilesystemcolors.ui:407
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "reiser4"
-msgid "Reiser4:"
-msgstr "reiser4"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_21)
-#: config/configurepagefilesystemcolors.ui:439
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "ntfs"
-msgid "Btrfs:"
-msgstr "ntfs"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel)
-#: config/configurepagefilesystemcolors.ui:481
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "ext2"
-msgid "ext2:"
-msgstr "ext2"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_29)
-#: config/configurepagefilesystemcolors.ui:500
+#. i18n: ectx: property (text), widget (QLabel, textLabel_13)
+#: config/configurepagefilesystemcolors.ui:273
 #, kde-format
-msgid "F2FS:"
-msgstr ""
+msgid "extended:"
+msgstr "拡張:"
 
-#. i18n: ectx: property (text), widget (QLabel, textLabel_28)
-#: config/configurepagefilesystemcolors.ui:519
+#. i18n: ectx: property (text), widget (QLabel, textLabel_4)
+#: config/configurepagefilesystemcolors.ui:322
 #, kde-format
-msgid "LVM2 PV:"
-msgstr ""
+msgid "Linux Swap:"
+msgstr "Linux Swap:"
 
-#. i18n: ectx: property (text), widget (QLabel, textLabel_26)
-#: config/configurepagefilesystemcolors.ui:545
+#. i18n: ectx: property (text), widget (QLabel, textLabel_38)
+#: config/configurepagefilesystemcolors.ui:348
 #, kde-format
-msgid "exFAT:"
+msgid "FreeBSD Swap:"
 msgstr ""
 
 #. i18n: ectx: property (text), widget (QLabel, textLabel_9)
-#: config/configurepagefilesystemcolors.ui:558
+#: config/configurepagefilesystemcolors.ui:364
 #, kde-format
 msgid "NTFS:"
-msgstr ""
+msgstr "NTFS:"
 
-#. i18n: ectx: property (text), widget (QLabel, textLabel_20)
-#: config/configurepagefilesystemcolors.ui:584
+#. i18n: ectx: property (text), widget (QLabel, textLabel_21)
+#: config/configurepagefilesystemcolors.ui:445
 #, kde-format
-msgid "LUKS:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_4)
-#: config/configurepagefilesystemcolors.ui:613
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "linuxswap"
-msgid "Linux Swap:"
-msgstr "linuxswap"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_32)
-#: config/configurepagefilesystemcolors.ui:664
-#, kde-format
-msgid "FAT12:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_12)
-#: config/configurepagefilesystemcolors.ui:677
-#, kde-format
-msgid "HFS:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_35)
-#: config/configurepagefilesystemcolors.ui:709
-#, kde-format
-msgid "APFS:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_5)
-#: config/configurepagefilesystemcolors.ui:722
-#, kde-format
-msgid "FAT32:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_18)
-#: config/configurepagefilesystemcolors.ui:751
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "linuxswap"
-msgid "Linux RAID:"
-msgstr "linuxswap"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_34)
-#: config/configurepagefilesystemcolors.ui:764
-#, kde-format
-msgid "BitLocker:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_14)
-#: config/configurepagefilesystemcolors.ui:793
-#, kde-format
-msgid "HFS+:"
-msgstr ""
+msgid "Btrfs:"
+msgstr "Btrfs:"
 
 #. i18n: ectx: property (text), widget (QLabel, textLabel_16)
-#: config/configurepagefilesystemcolors.ui:819
-#, fuzzy, kde-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "unknown"
-msgid "unknown:"
-msgstr "不明"
-
-#. i18n: ectx: property (text), widget (QLabel, textLabel_36)
-#: config/configurepagefilesystemcolors.ui:832
+#: config/configurepagefilesystemcolors.ui:458
 #, kde-format
-msgid "Minix:"
-msgstr ""
+msgid "unknown:"
+msgstr "不明:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel)
+#: config/configurepagefilesystemcolors.ui:506
+#, kde-format
+msgid "ext2:"
+msgstr "ext2:"
 
 #. i18n: ectx: property (text), widget (QLabel, textLabel_37)
-#: config/configurepagefilesystemcolors.ui:858
+#: config/configurepagefilesystemcolors.ui:522
 #, kde-format
 msgid "Bcachefs:"
-msgstr ""
+msgstr "Bcachefs:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_36)
+#: config/configurepagefilesystemcolors.ui:535
+#, kde-format
+msgid "Minix:"
+msgstr "Minix:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_35)
+#: config/configurepagefilesystemcolors.ui:545
+#, kde-format
+msgid "APFS:"
+msgstr "APFS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_34)
+#: config/configurepagefilesystemcolors.ui:564
+#, kde-format
+msgid "BitLocker:"
+msgstr "BitLocker:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_33)
+#: config/configurepagefilesystemcolors.ui:580
+#, kde-format
+msgid "LUKS2:"
+msgstr "LUKS2:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_20)
+#: config/configurepagefilesystemcolors.ui:593
+#, kde-format
+msgid "LUKS:"
+msgstr "LUKS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_31)
+#: config/configurepagefilesystemcolors.ui:612
+#, kde-format
+msgid "ISO 9660:"
+msgstr "ISO 9660:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_30)
+#: config/configurepagefilesystemcolors.ui:628
+#, kde-format
+msgid "UDF:"
+msgstr "UDF:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_29)
+#: config/configurepagefilesystemcolors.ui:644
+#, kde-format
+msgid "F2FS:"
+msgstr "F2FS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_28)
+#: config/configurepagefilesystemcolors.ui:660
+#, kde-format
+msgid "LVM2 PV:"
+msgstr "LVM2 PV:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_27)
+#: config/configurepagefilesystemcolors.ui:676
+#, kde-format
+msgid "NILFS2:"
+msgstr "NILFS2:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_26)
+#: config/configurepagefilesystemcolors.ui:689
+#, kde-format
+msgid "exFAT:"
+msgstr "exFAT:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_25)
+#: config/configurepagefilesystemcolors.ui:702
+#, kde-format
+msgid "ZFS:"
+msgstr "ZFS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_24)
+#: config/configurepagefilesystemcolors.ui:718
+#, kde-format
+msgid "OCFS2:"
+msgstr "OCFS2:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_22)
+#: config/configurepagefilesystemcolors.ui:734
+#, kde-format
+msgid "XFS:"
+msgstr "XFS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_15)
+#: config/configurepagefilesystemcolors.ui:750
+#, kde-format
+msgid "UFS:"
+msgstr "UFS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_14)
+#: config/configurepagefilesystemcolors.ui:766
+#, kde-format
+msgid "HFS+:"
+msgstr "HFS+:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_12)
+#: config/configurepagefilesystemcolors.ui:782
+#, kde-format
+msgid "HFS:"
+msgstr "HFS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_11)
+#: config/configurepagefilesystemcolors.ui:798
+#, kde-format
+msgid "JFS:"
+msgstr "JFS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_8)
+#: config/configurepagefilesystemcolors.ui:814
+#, kde-format
+msgid "Reiser4:"
+msgstr "Reiser4:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_7)
+#: config/configurepagefilesystemcolors.ui:830
+#, kde-format
+msgid "ReiserFS:"
+msgstr "ReiserFS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_10)
+#: config/configurepagefilesystemcolors.ui:846
+#, kde-format
+msgid "HPFS:"
+msgstr "HPFS:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_5)
+#: config/configurepagefilesystemcolors.ui:862
+#, kde-format
+msgid "FAT32:"
+msgstr "FAT32:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_6)
+#: config/configurepagefilesystemcolors.ui:878
+#, kde-format
+msgid "FAT16:"
+msgstr "FAT16:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel_32)
+#: config/configurepagefilesystemcolors.ui:894
+#, kde-format
+msgid "FAT12:"
+msgstr "FAT12:"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox_2)
 #: config/configurepagegeneral.ui:28
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Partition type:"
+#, kde-format
 msgid "Partition Alignment"
-msgstr "パーティションのタイプ:"
+msgstr "パーティションアライメント"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_alignDefault)
 #: config/configurepagegeneral.ui:34
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "New partition"
+#, kde-format
 msgid "Align partitions per default"
-msgstr "新しいパーティションを作成します"
+msgstr "パーティションを既定でアライメントする"
 
 #. i18n: ectx: property (text), widget (QLabel, label)
 #: config/configurepagegeneral.ui:47
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Partition type:"
+#, kde-format
 msgid "Sec&tor alignment:"
-msgstr "パーティションのタイプ:"
+msgstr "セクターアライメント(&T):"
 
 #. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_sectorAlignment)
 #: config/configurepagegeneral.ui:60
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "1 Sector"
-#| msgid_plural "%1 Sectors"
+#, kde-format
 msgid " sectors"
-msgstr "1 セクター"
+msgstr " セクター"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox_3)
 #: config/configurepagegeneral.ui:88
 #, kde-format
 msgid "Logging"
-msgstr ""
+msgstr "ログ"
 
 #. i18n: ectx: property (text), widget (QLabel, label_2)
 #: config/configurepagegeneral.ui:94
 #, kde-format
 msgid "Hide messa&ges below:"
-msgstr ""
+msgstr "非表示にするログレベルの基準(&G):"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_minLogLevel)
 #: config/configurepagegeneral.ui:105
 #, kde-format
 msgid "Debug"
-msgstr ""
+msgstr "デバッグ"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_minLogLevel)
 #: config/configurepagegeneral.ui:110
-#, fuzzy, kde-format
-#| msgctxt "@title:window"
-#| msgid "Information"
+#, kde-format
 msgid "Information"
 msgstr "情報"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_minLogLevel)
 #: config/configurepagegeneral.ui:115
-#, fuzzy, kde-format
-#| msgctxt "@info:progress operation"
-#| msgid "Warning"
+#, kde-format
 msgid "Warning"
 msgstr "警告"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_minLogLevel)
 #: config/configurepagegeneral.ui:120
-#, fuzzy, kde-format
-#| msgctxt "@info:progress operation"
-#| msgid "Error"
+#, kde-format
 msgid "Error"
 msgstr "エラー"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox_4)
 #: config/configurepagegeneral.ui:137
-#, fuzzy, kde-format
-#| msgid "File System"
+#, kde-format
 msgid "File Systems"
 msgstr "ファイルシステム"
 
 #. i18n: ectx: property (text), widget (QLabel, label_3)
 #: config/configurepagegeneral.ui:143
-#, fuzzy, kde-format
-#| msgid "File System"
+#, kde-format
 msgid "&Default file system:"
-msgstr "ファイルシステム"
+msgstr "既定のファイルシステム(&D):"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox_5)
 #: config/configurepagegeneral.ui:165
-#, fuzzy, kde-format
-#| msgid "Shrink"
+#, kde-format
 msgid "Shredding"
-msgstr "縮小"
+msgstr "シュレッダー処理"
 
 #. i18n: ectx: property (text), widget (QLabel, label_5)
 #: config/configurepagegeneral.ui:171
-#, fuzzy, kde-format
-#| msgctxt "@action:button"
-#| msgid "&Overwrite File"
+#, kde-format
 msgid "Overwrite with:"
-msgstr "ファイルを上書き(&O)"
+msgstr "上書き方法:"
 
 #. i18n: ectx: property (text), widget (QRadioButton, radioButton)
 #: config/configurepagegeneral.ui:178
 #, kde-format
 msgid "Random data"
-msgstr ""
+msgstr "ランダムなデータ"
 
 #. i18n: ectx: property (text), widget (QRadioButton, radioButton_2)
 #: config/configurepagegeneral.ui:188
 #, kde-format
 msgid "&Zeros"
-msgstr ""
+msgstr "ゼロ(&Z)"
 
 #. i18n: ectx: property (text), widget (QPushButton, m_ButtonSave)
 #: gui/applyprogressdetailswidgetbase.ui:42
-#, fuzzy, kde-format
-#| msgid "&Save"
+#, kde-format
 msgid "Save"
-msgstr "保存(&S)"
+msgstr "保存"
 
 #. i18n: ectx: property (text), widget (QPushButton, m_ButtonBrowser)
 #: gui/applyprogressdetailswidgetbase.ui:49
-#, fuzzy, kde-format
-#| msgid "&Open in External Browser"
+#, kde-format
 msgid "Open in External Browser"
-msgstr "外部ブラウザで開く(&O)"
+msgstr "外部ブラウザで開く"
 
 #: gui/applyprogressdialog.cpp:83 gui/applyprogressdialog.cpp:172
 #, kde-kuit-format
 msgctxt "@action:button"
 msgid "&Details"
-msgstr ""
+msgstr "詳細(&D)"
 
 #: gui/applyprogressdialog.cpp:125
 #, kde-kuit-format
@@ -540,20 +484,28 @@ msgstr "セットアップ中..."
 #: gui/applyprogressdialog.cpp:191
 #, kde-kuit-format
 msgctxt "@info"
-msgid "Do you really want to cancel?"
-msgstr "本当にキャンセルしますか？"
+msgid "Stopping now may cause data loss or drive errors."
+msgstr ""
 
 #: gui/applyprogressdialog.cpp:191
-#, kde-kuit-format
+#, fuzzy, kde-kuit-format
+#| msgctxt "@title:window"
+#| msgid "Cancel Running Operations"
 msgctxt "@title:window"
-msgid "Cancel Running Operations"
+msgid "Stop Running Operations"
 msgstr "実行中の操作をキャンセル"
 
 #: gui/applyprogressdialog.cpp:191
 #, kde-kuit-format
 msgctxt "@action:button"
-msgid "Yes, Cancel Operations"
-msgstr "はい、操作をキャンセルします"
+msgid "Stop Anyway"
+msgstr ""
+
+#: gui/applyprogressdialog.cpp:191
+#, kde-kuit-format
+msgctxt "@action:button"
+msgid "Keep Running"
+msgstr ""
 
 #: gui/applyprogressdialog.cpp:196
 #, kde-kuit-format
@@ -591,14 +543,16 @@ msgctxt "@info:progress"
 msgid "Total Time: %1"
 msgstr "総時間: %1"
 
-#: gui/applyprogressdialog.cpp:423 gui/mainwindow.cpp:1053
-#: gui/mainwindow.cpp:1215 gui/smartdialog.cpp:227
+#: gui/applyprogressdialog.cpp:423 gui/mainwindow.cpp:1077
+#: gui/mainwindow.cpp:1239 gui/smartdialog.cpp:227
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
 "Could not create temporary file when trying to save to <filename>%1</"
 "filename>."
 msgstr ""
+"<filename>%1</filename> に保存しようとした際に、一時ファイルを作成できません"
+"でした。"
 
 #: gui/applyprogressdialog.cpp:423
 #, kde-kuit-format
@@ -655,20 +609,15 @@ msgstr "状態"
 msgid "Total: %p%"
 msgstr "合計: %p%"
 
-# ACCELERATOR changed by translator
 #: gui/createpartitiontabledialog.cpp:31
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Create New Partition Table"
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Create a New Partition Table on <filename>%1</filename>"
-msgstr "新しいパーティションテーブルを作成(&N)"
+msgstr "<filename>%1</filename> に新しいパーティションテーブルを作成"
 
 # ACCELERATOR changed by translator
 #: gui/createpartitiontabledialog.cpp:34
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Create New Partition Table"
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Create &New Partition Table"
 msgstr "新しいパーティションテーブルを作成(&N)"
@@ -682,39 +631,41 @@ msgid ""
 "the most the MS-Dos partition table type supports, so you will not be able "
 "to use the whole device.</para>"
 msgstr ""
+"<para>本当に <filename>%1</filename> に MS-DOS パーティションテーブルを作成し"
+"ますか？</para><para>このデバイスは 2^32 セクターを超えています。これは MS-"
+"DOS パーティションテーブルがサポートする最大値であるため、デバイス全体を使用"
+"することはできなくなります。</para>"
 
 # ACCELERATOR changed by translator
 #: gui/createpartitiontabledialog.cpp:58
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Create New Partition Table"
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Really Create MS-Dos Partition Table Type?"
-msgstr "新しいパーティションテーブルを作成(&N)"
+msgstr "本当に MS-DOS 形式のパーティションテーブルを作成しますか？"
 
 #: gui/createpartitiontabledialog.cpp:59
 #, kde-kuit-format
 msgctxt "@action:button"
 msgid "Create MS-Dos Type"
-msgstr ""
+msgstr "MS-DOS 形式で作成する"
 
 #. i18n: ectx: property (text), widget (QLabel, label)
 #: gui/createpartitiontablewidgetbase.ui:24
 #, kde-format
 msgid "Choose the type of partition table you want to create:"
-msgstr ""
+msgstr "作成するパーティションテーブルの種類を選択:"
 
 #. i18n: ectx: property (text), widget (QRadioButton, m_RadioGPT)
 #: gui/createpartitiontablewidgetbase.ui:33
 #, kde-format
 msgid "GPT"
-msgstr ""
+msgstr "GPT"
 
 #. i18n: ectx: property (text), widget (QRadioButton, m_RadioMSDOS)
 #: gui/createpartitiontablewidgetbase.ui:43
 #, kde-format
 msgid "MS-Dos"
-msgstr ""
+msgstr "MS-DOS (MBR)"
 
 #. i18n: ectx: property (text), widget (QLabel, m_IconLabel)
 #: gui/createpartitiontablewidgetbase.ui:70
@@ -728,19 +679,19 @@ msgstr "なし"
 #: gui/createpartitiontablewidgetbase.ui:83
 #, kde-format
 msgid "<b>Warning:</b> This will destroy all data on the device!"
-msgstr ""
+msgstr "<b>警告:</b> この操作はデバイス上の全データを破壊します！"
 
 #: gui/createvolumegroupdialog.cpp:38
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Create new Volume Group"
-msgstr ""
+msgstr "新しいボリュームグループを作成"
 
 #: gui/devicepropsdialog.cpp:42
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Device Properties: <filename>%1</filename>"
-msgstr ""
+msgstr "デバイスのプロパティ: <filename>%1</filename>"
 
 #: gui/devicepropsdialog.cpp:76 gui/infopane.cpp:168
 #, kde-kuit-format
@@ -752,127 +703,105 @@ msgstr "%1 (読み取り専用)"
 #, kde-kuit-format
 msgctxt "@label SMART disk status"
 msgid "good"
-msgstr ""
+msgstr "良好"
 
 #: gui/devicepropsdialog.cpp:104 gui/smartdialog.cpp:84 gui/smartdialog.cpp:149
 #, kde-kuit-format
 msgctxt "@label SMART disk status"
 msgid "BAD"
-msgstr ""
+msgstr "不良"
 
 #: gui/devicepropsdialog.cpp:109 gui/smartdialog.cpp:129
-#, fuzzy, kde-kuit-format
-#| msgctxt "@item/plain filesystem name"
-#| msgid "unknown"
+#, kde-kuit-format
 msgctxt "@label"
 msgid "(unknown)"
-msgstr "不明"
+msgstr "(不明)"
 
 #: gui/devicepropsdialog.cpp:115
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:tooltip"
-#| msgid "Resize or move partition"
+#, kde-kuit-format
 msgctxt "@label device"
 msgid "LVM Volume Group"
-msgstr "パーティションをリサイズ/移動します"
+msgstr "LVM ボリュームグループ"
 
 #: gui/devicepropsdialog.cpp:117
 #, kde-kuit-format
 msgctxt "@label device"
 msgid "Software RAID Device"
-msgstr ""
+msgstr "ソフトウェア RAID デバイス"
 
 #: gui/devicepropsdialog.cpp:119
 #, kde-kuit-format
 msgctxt "@label device"
 msgid "Volume Manager Device"
-msgstr ""
+msgstr "ボリュームマネージャデバイス"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextLogicalSectorSize)
 #: gui/devicepropswidgetbase.ui:22
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Sector size:"
+#, kde-format
 msgid "Logical sector size:"
-msgstr "セクターサイズ:"
+msgstr "論理セクターサイズ:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextPrimariesMax)
 #: gui/devicepropswidgetbase.ui:32
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Primaries/Max:"
+#, kde-format
 msgid "Primaries/Max:"
-msgstr "基本パーティション/最大:"
+msgstr "基本パーティション数/最大数:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextTotalSectors)
 #: gui/devicepropswidgetbase.ui:42
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Total sectors:"
+#, kde-format
 msgid "Total sectors:"
 msgstr "総セクター数:"
 
 #. i18n: ectx: property (text), widget (QPushButton, m_ButtonSmartMore)
 #. i18n: ectx: property (text), widget (QPushButton, m_ButtonMore)
-#: gui/devicepropswidgetbase.ui:83 gui/editmountpointdialogwidgetbase.ui:102
+#: gui/devicepropswidgetbase.ui:83 gui/editmountpointdialogwidgetbase.ui:123
 #, kde-format
 msgid "More..."
-msgstr ""
+msgstr "詳細..."
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextCapacity)
 #: gui/devicepropswidgetbase.ui:92
-#, fuzzy, kde-format
-#| msgctxt "@label partition"
-#| msgid "Capacity:"
+#, kde-format
 msgid "Capacity:"
 msgstr "容量:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextSmartStatus)
 #: gui/devicepropswidgetbase.ui:112 gui/smartdialog.cpp:147
 #: gui/smartdialog.cpp:149 gui/smartdialogwidgetbase.ui:28
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Status:"
+#, kde-format
 msgid "SMART status:"
-msgstr "状態:"
+msgstr "SMART の状態:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextPhysicalSectorSize)
 #: gui/devicepropswidgetbase.ui:198
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Sector size:"
+#, kde-format
 msgid "Physical sector size:"
-msgstr "セクターサイズ:"
+msgstr "物理セクターサイズ:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextType)
 #: gui/devicepropswidgetbase.ui:267
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Partition type:"
+#, kde-format
 msgid "Partition table:"
-msgstr "パーティションのタイプ:"
+msgstr "パーティションテーブル:"
 
 #: gui/editmountoptionsdialog.cpp:25
-#, fuzzy, kde-kuit-format
-#| msgctxt "@title:window"
-#| msgid "Pending Operations"
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Edit additional mount options"
-msgstr "保留中の操作"
+msgstr "追加のマウントオプションを編集"
 
 #. i18n: ectx: property (windowTitle), widget (QWidget, EditMountOptionsDialogWidgetBase)
 #: gui/editmountoptionsdialogwidgetbase.ui:19
-#, fuzzy, kde-format
-#| msgctxt "@title:window"
-#| msgid "Pending Operations"
+#, kde-format
 msgid "Edit Mount Options"
-msgstr "保留中の操作"
+msgstr "マウントオプションを編集"
 
 #. i18n: ectx: property (text), widget (QLabel, m_Label)
 #: gui/editmountoptionsdialogwidgetbase.ui:25
 #, kde-format
 msgid "Edit the mount options for this file system:"
-msgstr ""
+msgstr "このファイルシステムに対するマウントオプションを編集:"
 
 #. i18n: ectx: property (placeholderText), widget (QPlainTextEdit, m_EditOptions)
 #: gui/editmountoptionsdialogwidgetbase.ui:32
@@ -884,7 +813,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Edit mount point for <filename>%1</filename>"
-msgstr ""
+msgstr "<filename>%1</filename> のマウントポイントを編集"
 
 #: gui/editmountpointdialog.cpp:62
 #, kde-kuit-format
@@ -895,174 +824,162 @@ msgid ""
 "overwrite the existing file on your hard drive now. This <emphasis "
 "strong='1'>can not be undone</emphasis>.</warning></para>"
 msgstr ""
+"<para>本当にファイルシステム テーブルファイル <filename>/etc/fstab</"
+"filename> に変更内容を保存しますか？</para><para><warning>この操作により、既"
+"存のシステムファイルが上書きされます。変更内容を保存すると、保存前に戻すこと"
+"は<emphasis strong='1'>できなくなります</emphasis>。</warning></para>"
 
 #: gui/editmountpointdialog.cpp:64
-#, fuzzy, kde-kuit-format
-#| msgctxt "@title:window"
-#| msgid "Really Rescan the Devices?"
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Really save changes?"
-msgstr "本当にデバイスを再スキャンしますか？"
+msgstr "本当に変更内容を保存しますか？"
 
 #: gui/editmountpointdialog.cpp:65
 #, kde-kuit-format
 msgctxt "@action:button"
 msgid "Save changes"
-msgstr ""
+msgstr "変更内容を保存"
 
 #: gui/editmountpointdialog.cpp:80
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info"
-#| msgid "Could not create temporary file <filename>%1</filename> for writing."
+#, kde-kuit-format
 msgctxt "@info"
 msgid "Could not save mount points to file <filename>/etc/fstab</filename>."
 msgstr ""
-"一時ファイル <filename>%1</filename> を書き込みのために作成できませんでした。"
+"ファイル <filename>/etc/fstab</filename> にマウントポイントを保存できませんで"
+"した。"
 
 #: gui/editmountpointdialog.cpp:81
-#, fuzzy, kde-kuit-format
-#| msgctxt "@label"
-#| msgid "Mount point:"
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Error While Saving Mount Points"
-msgstr "マウントポイント:"
-
-#. i18n: ectx: property (text), widget (QRadioButton, m_RadioLabel)
-#: gui/editmountpointdialogwidgetbase.ui:23
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "&Label:"
-msgid "&Label"
-msgstr "ラベル(&L):"
-
-#. i18n: ectx: property (text), widget (QLabel, m_LabelDumpFreq)
-#: gui/editmountpointdialogwidgetbase.ui:46
-#, kde-format
-msgid "Dump &Frequency:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoAuto)
-#: gui/editmountpointdialogwidgetbase.ui:75
-#, kde-format
-msgid "No automatic mount"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QCheckBox, m_CheckSync)
-#: gui/editmountpointdialogwidgetbase.ui:95
-#, kde-format
-msgid "Synchronous access"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, m_LabelPassNumber)
-#: gui/editmountpointdialogwidgetbase.ui:109
-#, kde-format
-msgid "Pass &Number:"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QPushButton, m_ButtonRemove)
-#: gui/editmountpointdialogwidgetbase.ui:128
-#, kde-format
-msgid "Remove"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (KMessageWidget, m_PathMessage)
-#: gui/editmountpointdialogwidgetbase.ui:141
-#, kde-format
-msgid "A valid path is required."
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, m_LabelPath)
-#: gui/editmountpointdialogwidgetbase.ui:173
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Path:"
-msgid "Path:"
-msgstr "パス:"
-
-#. i18n: ectx: property (text), widget (QCheckBox, m_CheckUsers)
-#: gui/editmountpointdialogwidgetbase.ui:183
-#, kde-format
-msgid "Users can mount and unmount"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QLabel, m_LabelType)
-#: gui/editmountpointdialogwidgetbase.ui:190
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Type:"
-msgid "Type:"
-msgstr "タイプ:"
-
-#. i18n: ectx: property (text), widget (QRadioButton, m_RadioUUID)
-#: gui/editmountpointdialogwidgetbase.ui:200
-#, kde-format
-msgid "UU&ID"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QPushButton, m_ButtonSelect)
-#: gui/editmountpointdialogwidgetbase.ui:213
-#, kde-format
-msgid "Select..."
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QRadioButton, m_RadioDeviceNode)
-#: gui/editmountpointdialogwidgetbase.ui:220
-#, fuzzy, kde-format
-#| msgctxt "@title:menu"
-#| msgid "Device"
-msgid "De&vice Node"
-msgstr "デバイス(&D)"
-
-#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoAtime)
-#: gui/editmountpointdialogwidgetbase.ui:230
-#, kde-format
-msgid "No update of file access times"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoExec)
-#: gui/editmountpointdialogwidgetbase.ui:250
-#, kde-format
-msgid "No binary execution"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QCheckBox, m_CheckRelAtime)
-#: gui/editmountpointdialogwidgetbase.ui:264
-#, kde-format
-msgid "Update access times relative to modification"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoFail)
-#: gui/editmountpointdialogwidgetbase.ui:271
-#, kde-format
-msgid "Don't prevent the system from booting if not mountable"
-msgstr ""
-
-#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoDirAtime)
-#: gui/editmountpointdialogwidgetbase.ui:285
-#, kde-format
-msgid "No update of directory access times"
-msgstr ""
+msgstr "マウントポイントの保存中にエラーが発生しました"
 
 #. i18n: ectx: property (text), widget (QLabel, label)
-#: gui/editmountpointdialogwidgetbase.ui:295
+#: gui/editmountpointdialogwidgetbase.ui:30
 #, kde-format
 msgid "Identify by:"
 msgstr ""
 
-#. i18n: ectx: property (text), widget (QCheckBox, m_CheckReadOnly)
-#: gui/editmountpointdialogwidgetbase.ui:305
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "%1 (read only)"
-msgid "Read-only"
-msgstr "%1 (読み取り専用)"
+#. i18n: ectx: property (text), widget (QLabel, m_LabelPath)
+#: gui/editmountpointdialogwidgetbase.ui:40
+#, kde-format
+msgid "Path:"
+msgstr "パス:"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_ButtonSelect)
+#: gui/editmountpointdialogwidgetbase.ui:56
+#, kde-format
+msgid "Select..."
+msgstr "選択..."
+
+#. i18n: ectx: property (text), widget (QPushButton, m_ButtonRemove)
+#: gui/editmountpointdialogwidgetbase.ui:69
+#, kde-format
+msgid "Remove"
+msgstr "削除"
+
+#. i18n: ectx: property (text), widget (QLabel, m_LabelType)
+#: gui/editmountpointdialogwidgetbase.ui:76
+#, kde-format
+msgid "Type:"
+msgstr "タイプ:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelOptions)
-#: gui/editmountpointdialogwidgetbase.ui:312
-#, fuzzy, kde-format
-#| msgid "Operation: %p%"
+#: gui/editmountpointdialogwidgetbase.ui:93
+#, kde-format
 msgid "Options:"
-msgstr "操作: %p%"
+msgstr "オプション:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoFail)
+#: gui/editmountpointdialogwidgetbase.ui:103
+#, kde-format
+msgid "Don't prevent the system from booting if not mountable"
+msgstr "マウント不可でもシステムの起動を妨げない"
+
+#. i18n: ectx: property (text), widget (QLabel, m_LabelDumpFreq)
+#: gui/editmountpointdialogwidgetbase.ui:130
+#, kde-format
+msgid "Dump &Frequency:"
+msgstr "dump の要否(&F):"
+
+#. i18n: ectx: property (text), widget (QLabel, m_LabelPassNumber)
+#: gui/editmountpointdialogwidgetbase.ui:143
+#, kde-format
+msgid "Pass &Number:"
+msgstr "fsck の順序(&N):"
+
+#. i18n: ectx: property (text), widget (KMessageWidget, m_PathMessage)
+#: gui/editmountpointdialogwidgetbase.ui:200
+#, kde-format
+msgid "A valid path is required."
+msgstr "有効なパスが必要です。"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_CheckReadOnly)
+#: gui/editmountpointdialogwidgetbase.ui:232
+#, kde-format
+msgid "Read-only"
+msgstr "読み取り専用"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoAuto)
+#: gui/editmountpointdialogwidgetbase.ui:239
+#, kde-format
+msgid "No automatic mount"
+msgstr "自動マウントしない"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_CheckSync)
+#: gui/editmountpointdialogwidgetbase.ui:246
+#, kde-format
+msgid "Synchronous access"
+msgstr "同期アクセス"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoExec)
+#: gui/editmountpointdialogwidgetbase.ui:253
+#, kde-format
+msgid "No binary execution"
+msgstr "バイナリの実行を禁止"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_CheckUsers)
+#: gui/editmountpointdialogwidgetbase.ui:264
+#, kde-format
+msgid "Users can mount and unmount"
+msgstr "ユーザがマウント/アンマウントできるようにする"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoAtime)
+#: gui/editmountpointdialogwidgetbase.ui:271
+#, kde-format
+msgid "No update of file access times"
+msgstr "ファイルのアクセス時刻を更新しない"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_CheckNoDirAtime)
+#: gui/editmountpointdialogwidgetbase.ui:278
+#, kde-format
+msgid "No update of directory access times"
+msgstr "ディレクトリのアクセス時刻を更新しない"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_CheckRelAtime)
+#: gui/editmountpointdialogwidgetbase.ui:285
+#, kde-format
+msgid "Update access times relative to modification"
+msgstr "修正時刻を基準にアクセス時刻を更新する"
+
+#. i18n: ectx: property (text), widget (QRadioButton, m_RadioDeviceNode)
+#: gui/editmountpointdialogwidgetbase.ui:311
+#, kde-format
+msgid "De&vice Node"
+msgstr "デバイスノード(&V)"
+
+#. i18n: ectx: property (text), widget (QRadioButton, m_RadioUUID)
+#: gui/editmountpointdialogwidgetbase.ui:321
+#, kde-format
+msgid "UU&ID"
+msgstr "UUID(&I)"
+
+#. i18n: ectx: property (text), widget (QRadioButton, m_RadioLabel)
+#: gui/editmountpointdialogwidgetbase.ui:328
+#, kde-format
+msgid "&Label"
+msgstr "ラベル(&L)"
 
 #: gui/filesystemsupportdialog.cpp:31
 #, kde-kuit-format
@@ -1164,16 +1081,14 @@ msgstr "復元"
 #: gui/filesystemsupportdialogwidgetbase.ui:130
 #, kde-format
 msgid "Support Tools"
-msgstr ""
+msgstr "サポートツール"
 
 #. i18n: ectx: property (text), widget (QPushButton, m_ButtonRescan)
 #: gui/filesystemsupportdialogwidgetbase.ui:140
-#, fuzzy, kde-format
-#| msgctxt "@action:button"
-#| msgid "&Rescan Support"
+#, kde-format
 msgctxt "@action:button"
 msgid "Rescan Support"
-msgstr "サポートを再スキャン(&R)"
+msgstr "サポートを再スキャン"
 
 #. i18n: ectx: property (windowTitle), widget (QDockWidget, m_DockInformation)
 #: gui/infopane.cpp:47 gui/mainwindowbase.ui:47
@@ -1204,33 +1119,31 @@ msgstr "容量:"
 #, kde-format
 msgctxt "@label partition"
 msgid "Cipher name:"
-msgstr ""
+msgstr "暗号名:"
 
 #: gui/infopane.cpp:116
 #, kde-format
 msgctxt "@label partition"
 msgid "Cipher mode:"
-msgstr ""
+msgstr "暗号モード:"
 
 #: gui/infopane.cpp:117
 #, kde-format
 msgctxt "@label partition"
 msgid "Hash:"
-msgstr ""
+msgstr "ハッシュ:"
 
 #: gui/infopane.cpp:118
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Cylinder size:"
+#, kde-format
 msgctxt "@label partition"
 msgid "Key size:"
-msgstr "シリンダーサイズ:"
+msgstr "鍵長:"
 
 #: gui/infopane.cpp:119
 #, kde-format
 msgctxt "@label partition"
 msgid "Payload offset:"
-msgstr ""
+msgstr "ペイロードオフセット:"
 
 #: gui/infopane.cpp:120 gui/infopane.cpp:135 gui/infopane.cpp:143
 #, kde-format, kde-kuit-format
@@ -1263,31 +1176,28 @@ msgid "Used:"
 msgstr "使用済み:"
 
 #: gui/infopane.cpp:131
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Size:"
+#, kde-format
 msgctxt "@label partition"
 msgid "PE Size:"
-msgstr "サイズ:"
+msgstr "PE サイズ:"
 
 #: gui/infopane.cpp:132
-#, fuzzy, kde-format
-#| msgid "Total: %p%"
+#, kde-format
 msgctxt "@label partition"
 msgid "Total PE:"
-msgstr "合計: %p%"
+msgstr "全 PE 数:"
 
 #: gui/infopane.cpp:133
 #, kde-format
 msgctxt "@label partition"
 msgid "Free PE:"
-msgstr ""
+msgstr "空き PE 数:"
 
 #: gui/infopane.cpp:134
 #, kde-format
 msgctxt "@label partition"
 msgid "Allocated PE:"
-msgstr ""
+msgstr "割り当て済み PE 数:"
 
 #: gui/infopane.cpp:157
 #, kde-kuit-format
@@ -1320,89 +1230,76 @@ msgid "Total sectors:"
 msgstr "総セクター数:"
 
 #: gui/infopane.cpp:179
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Sector size:"
+#, kde-format
 msgctxt "@label device"
 msgid "Logical sector size:"
-msgstr "セクターサイズ:"
+msgstr "論理セクターサイズ:"
 
 #: gui/infopane.cpp:180
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Sector size:"
+#, kde-format
 msgctxt "@label device"
 msgid "Physical sector size:"
-msgstr "セクターサイズ:"
+msgstr "物理セクターサイズ:"
 
 #: gui/infopane.cpp:181
 #, kde-format
 msgctxt "@label device"
 msgid "Primaries/Max:"
-msgstr "基本パーティション/最大:"
+msgstr "基本パーティション数/最大数:"
 
 #: gui/infopane.cpp:184 gui/infopane.cpp:192
-#, fuzzy, kde-format
-#| msgid "File System"
+#, kde-format
 msgctxt "@label device"
 msgid "Volume Type:"
-msgstr "ファイルシステム"
+msgstr "ボリュームタイプ:"
 
 #: gui/infopane.cpp:186
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Size:"
+#, kde-format
 msgctxt "@label device"
 msgid "PE Size:"
-msgstr "サイズ:"
+msgstr "PE サイズ:"
 
 #: gui/infopane.cpp:187
-#, fuzzy, kde-format
-#| msgid "Total: %p%"
+#, kde-format
 msgctxt "@label device"
 msgid "Total PE:"
-msgstr "合計: %p%"
+msgstr "全 PE 数:"
 
 #: gui/infopane.cpp:188
 #, kde-format
 msgctxt "@label device"
 msgid "Allocated PE:"
-msgstr ""
+msgstr "割り当て済み PE 数:"
 
 #: gui/infopane.cpp:189
 #, kde-format
 msgctxt "@label device"
 msgid "Free PE:"
-msgstr ""
+msgstr "空き PE 数:"
 
 #: gui/infopane.cpp:194
 #, kde-format
 msgctxt "@label device"
 msgid "RAID Level:"
-msgstr ""
+msgstr "RAID レベル:"
 
 #: gui/infopane.cpp:195
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Size:"
+#, kde-format
 msgctxt "@label device"
 msgid "Chunk Size:"
-msgstr "サイズ:"
+msgstr "チャンクサイズ:"
 
 #: gui/infopane.cpp:196
-#, fuzzy, kde-format
-#| msgid "Total: %p%"
+#, kde-format
 msgctxt "@label device"
 msgid "Total Chunk:"
-msgstr "合計: %p%"
+msgstr "全チャンク数:"
 
 #: gui/infopane.cpp:197
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Size:"
+#, kde-format
 msgctxt "@label device"
 msgid "Array Size:"
-msgstr "サイズ:"
+msgstr "アレイサイズ:"
 
 #: gui/insertdialog.cpp:32
 #, kde-kuit-format
@@ -1414,17 +1311,19 @@ msgstr "パーティションを挿入"
 #, kde-kuit-format
 msgctxt "@item:inlistbox Device | Capacity"
 msgid "%1 | %2"
-msgstr ""
+msgstr "%1 | %2"
 
-#: gui/mainwindow.cpp:167
+#: gui/mainwindow.cpp:170
 #, kde-format
 msgctxt "@info"
 msgid ""
 "Partition Manager requires privileges in order to work. Please refresh the "
 "devices and authenticate when prompted."
 msgstr ""
+"パーティションマネージャの使用には権限が必要です。デバイスを再読み込みして、"
+"プロンプトが表示されたら認証してください。"
 
-#: gui/mainwindow.cpp:235
+#: gui/mainwindow.cpp:238
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -1437,205 +1336,176 @@ msgstr[0] ""
 "<para>本当にアプリケーションを終了しますか？</para><para>保留中の操作がまだ "
 "%1 個あります。</para>"
 
-#: gui/mainwindow.cpp:237
+#: gui/mainwindow.cpp:240
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Discard Pending Operations and Quit?"
 msgstr "保留中の操作を破棄して終了しますか？"
 
-#: gui/mainwindow.cpp:238
+#: gui/mainwindow.cpp:241
 #, kde-kuit-format
 msgctxt "@action:button"
 msgid "Quit <application>%1</application>"
-msgstr ""
+msgstr "<application>%1</application> を終了"
 
-#: gui/mainwindow.cpp:280
+#: gui/mainwindow.cpp:283
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Undo"
-msgstr "元に戻す(&U)"
+msgstr "元に戻す"
 
-#: gui/mainwindow.cpp:281
+#: gui/mainwindow.cpp:284
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Undo the last operation"
 msgstr "最後の操作を取り消します"
 
-#: gui/mainwindow.cpp:282
+#: gui/mainwindow.cpp:285
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Remove the last operation from the list."
 msgstr "最後の操作を保留中の操作のリストから削除します。"
 
-#: gui/mainwindow.cpp:289
+#: gui/mainwindow.cpp:292
 #, kde-kuit-format
 msgctxt "@action:inmenu clear the list of operations"
 msgid "Clear"
-msgstr "クリア(&L)"
+msgstr "クリア"
 
-#: gui/mainwindow.cpp:290
+#: gui/mainwindow.cpp:293
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Clear all operations"
 msgstr "すべての操作をクリアします"
 
-#: gui/mainwindow.cpp:291
+#: gui/mainwindow.cpp:294
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Empty the list of pending operations."
 msgstr "保留中の操作のリストを空にします。"
 
-#: gui/mainwindow.cpp:297
+#: gui/mainwindow.cpp:300
 #, kde-kuit-format
 msgctxt "@action:inmenu apply all operations"
 msgid "Apply"
-msgstr "適用(&A)"
+msgstr "適用"
 
-#: gui/mainwindow.cpp:298
+#: gui/mainwindow.cpp:301
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Apply all operations"
 msgstr "すべての操作を適用します"
 
-#: gui/mainwindow.cpp:299
+#: gui/mainwindow.cpp:302
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Apply the pending operations in the list."
 msgstr "保留中のすべての操作を適用します。"
 
-#: gui/mainwindow.cpp:306
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:inmenu"
-#| msgid "Create New Partition Table"
+#: gui/mainwindow.cpp:309
+#, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "New Partition Table"
-msgstr "新しいパーティションテーブルを作成(&N)"
+msgstr "新しいパーティションテーブル"
 
-#: gui/mainwindow.cpp:307
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:tooltip"
-#| msgid "Create new partition table"
+#: gui/mainwindow.cpp:310
+#, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Create a new partition table"
 msgstr "新しいパーティションテーブルを作成します"
 
-#: gui/mainwindow.cpp:308
+#: gui/mainwindow.cpp:311
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Create a new and empty partition table on a device."
 msgstr "デバイスに新しい空のパーティションテーブルを作成します。"
 
-#: gui/mainwindow.cpp:315
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:inmenu"
-#| msgid "Create New Partition Table"
+#: gui/mainwindow.cpp:318
+#, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Export Partition Table"
-msgstr "新しいパーティションテーブルを作成(&N)"
+msgstr "パーティションテーブルをエクスポート"
 
-#: gui/mainwindow.cpp:316
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:tooltip"
-#| msgid "Create new partition table"
+#: gui/mainwindow.cpp:319
+#, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Export a partition table"
-msgstr "新しいパーティションテーブルを作成します"
+msgstr "パーティションテーブルを書き出します"
 
-#: gui/mainwindow.cpp:317
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:status"
-#| msgid "Create a new and empty partition table on a device."
+#: gui/mainwindow.cpp:320
+#, kde-kuit-format
 msgctxt "@info:status"
 msgid "Export the device's partition table to a text file."
-msgstr "デバイスに新しい空のパーティションテーブルを作成します。"
+msgstr "デバイスのパーティションテーブルをテキストファイルに書き出します。"
 
-#: gui/mainwindow.cpp:323
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:inmenu"
-#| msgid "Create New Partition Table"
+#: gui/mainwindow.cpp:326
+#, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Import Partition Table"
-msgstr "新しいパーティションテーブルを作成(&N)"
+msgstr "パーティションテーブルをインポート"
 
-#: gui/mainwindow.cpp:324
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:tooltip"
-#| msgid "Create new partition table"
+#: gui/mainwindow.cpp:327
+#, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Import a partition table"
-msgstr "新しいパーティションテーブルを作成します"
+msgstr "パーティションテーブルを読み込みます"
 
-#: gui/mainwindow.cpp:325
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:status"
-#| msgid "Restore a partition from an image file."
+#: gui/mainwindow.cpp:328
+#, kde-kuit-format
 msgctxt "@info:status"
 msgid "Import a partition table from a text file."
-msgstr "イメージファイルからパーティションを復元します。"
+msgstr "パーティションテーブルをテキストファイルから読み込みます。"
 
-#: gui/mainwindow.cpp:332
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "Resize or move partition"
+#: gui/mainwindow.cpp:335
+#, kde-format
 msgctxt "@action:inmenu"
 msgid "Remove Volume Group"
-msgstr "パーティションをリサイズ/移動します"
+msgstr "ボリュームグループを削除"
 
-#: gui/mainwindow.cpp:333
-#, fuzzy, kde-format
-#| msgctxt "@info"
-#| msgid "Please select a device."
+#: gui/mainwindow.cpp:336
+#, kde-format
 msgctxt "@info:tooltip"
 msgid "Remove selected Volume Group"
-msgstr "デバイスを選択してください。"
+msgstr "選択したボリュームグループを削除します"
 
-#: gui/mainwindow.cpp:334
-#, fuzzy, kde-format
-#| msgctxt "@info"
-#| msgid "Please select a device."
+#: gui/mainwindow.cpp:337
+#, kde-format
 msgctxt "@info:status"
 msgid "Remove selected Volume Group."
-msgstr "デバイスを選択してください。"
+msgstr "選択したボリュームグループを削除します。"
 
-#: gui/mainwindow.cpp:342
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "Resize or move partition"
+#: gui/mainwindow.cpp:345
+#, kde-format
 msgctxt "@action:inmenu"
 msgid "Resize Volume Group"
-msgstr "パーティションをリサイズ/移動します"
+msgstr "ボリュームグループをリサイズ"
 
-#: gui/mainwindow.cpp:343
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "Resize or move partition"
+#: gui/mainwindow.cpp:346
+#, kde-format
 msgctxt "@info:tooltip"
 msgid "Resize selected Volume Group"
-msgstr "パーティションをリサイズ/移動します"
+msgstr "選択したボリュームグループをリサイズします"
 
-#: gui/mainwindow.cpp:344
+#: gui/mainwindow.cpp:347
 #, kde-format
 msgctxt "@info:status"
 msgid "Extend or reduce selected Volume Group."
-msgstr ""
+msgstr "選択したボリュームグループを拡張/縮小します。"
 
-#: gui/mainwindow.cpp:352
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "Resize or move partition"
+# @action:inmenu
+#: gui/mainwindow.cpp:355
+#, kde-format
 msgctxt "@action:inmenu"
 msgid "Deactivate Volume Group"
-msgstr "パーティションをリサイズ/移動します"
+msgstr "ボリュームグループを無効化"
 
-#: gui/mainwindow.cpp:353
-#, fuzzy, kde-format
-#| msgctxt "@info"
-#| msgid "Please select a device."
+#: gui/mainwindow.cpp:356
+#, kde-format
 msgctxt "@info:tooltip"
 msgid "Deactivate selected Volume Group"
-msgstr "デバイスを選択してください。"
+msgstr "選択したボリュームグループを無効化します"
 
-#: gui/mainwindow.cpp:354
+#: gui/mainwindow.cpp:357
 #, fuzzy, kde-format
 #| msgctxt "@info"
 #| msgid "Please select a device."
@@ -1643,245 +1513,249 @@ msgctxt "@info:status"
 msgid "Deactivate selected Volume Group before unplugging removable devices."
 msgstr "デバイスを選択してください。"
 
-#: gui/mainwindow.cpp:360
-#, fuzzy, kde-kuit-format
-#| msgctxt "@label"
-#| msgid "Status:"
+#: gui/mainwindow.cpp:363
+#, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "SMART Status"
-msgstr "状態:"
+msgstr "SMART の状態"
 
-#: gui/mainwindow.cpp:361
-#, fuzzy, kde-kuit-format
-#| msgctxt "@label"
-#| msgid "Status:"
+#: gui/mainwindow.cpp:364
+#, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Show SMART status"
-msgstr "状態:"
+msgstr "SMART の状態を表示します"
 
-#: gui/mainwindow.cpp:362
+#: gui/mainwindow.cpp:365
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Show the device's SMART status if supported"
-msgstr ""
+msgstr "サポートされている場合、デバイスの SMART の状態を表示します"
 
-#: gui/mainwindow.cpp:367 gui/mainwindow.cpp:459
+#: gui/mainwindow.cpp:370 gui/mainwindow.cpp:470
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Properties"
-msgstr "プロパティ(&O)"
+msgstr "プロパティ"
 
-#: gui/mainwindow.cpp:368
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:tooltip"
-#| msgid "Show properties dialog"
+#: gui/mainwindow.cpp:371
+#, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Show device properties dialog"
-msgstr "プロパティダイアログを表示します"
+msgstr "デバイスのプロパティダイアログを表示します"
 
-#: gui/mainwindow.cpp:369
+#: gui/mainwindow.cpp:372
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "View and modify device properties"
-msgstr ""
+msgstr "デバイスのプロパティを表示/編集します"
 
-#: gui/mainwindow.cpp:376
+#: gui/mainwindow.cpp:379
 #, kde-kuit-format
 msgctxt "@action:inmenu create a new partition"
 msgid "New"
-msgstr "新規(&N)"
+msgstr "新規"
 
-#: gui/mainwindow.cpp:377
+#: gui/mainwindow.cpp:380
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "New partition"
 msgstr "新しいパーティションを作成します"
 
-#: gui/mainwindow.cpp:378
+#: gui/mainwindow.cpp:381
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Create a new partition."
 msgstr "新しいパーティションを作成します。"
 
-#: gui/mainwindow.cpp:385
+#: gui/mainwindow.cpp:388
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Resize/Move"
-msgstr "リサイズ/移動(&R)"
+msgstr "リサイズ/移動"
 
-#: gui/mainwindow.cpp:386
+#: gui/mainwindow.cpp:389
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Resize or move partition"
 msgstr "パーティションをリサイズ/移動します"
 
-#: gui/mainwindow.cpp:387
+#: gui/mainwindow.cpp:390
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Shrink, grow or move an existing partition."
-msgstr "既存のパーティションを拡大/縮小または移動します。"
+msgstr "既存のパーティションを縮小、拡大、または移動します。"
 
-#: gui/mainwindow.cpp:394
+#: gui/mainwindow.cpp:397
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Delete"
-msgstr "削除(&D)"
+msgstr "削除"
 
-#: gui/mainwindow.cpp:395 gui/mainwindow.cpp:650
+#: gui/mainwindow.cpp:398 gui/mainwindow.cpp:661
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Delete partition"
 msgstr "パーティションを削除します"
 
-#: gui/mainwindow.cpp:396
+#: gui/mainwindow.cpp:399
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Delete a partition."
 msgstr "パーティションを削除します。"
 
-#: gui/mainwindow.cpp:403
+#: gui/mainwindow.cpp:406
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Shred"
-msgstr ""
+msgstr "シュレッダー処理"
 
-#: gui/mainwindow.cpp:404
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:tooltip"
-#| msgid "Check partition"
+#: gui/mainwindow.cpp:407
+#, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Shred partition"
-msgstr "パーティションを検査します"
+msgstr "パーティションをシュレッダー処理します"
 
-#: gui/mainwindow.cpp:405
+#: gui/mainwindow.cpp:408
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Shred a partition so that its contents cannot be restored."
-msgstr ""
+msgstr "パーティションを完全に破壊し、内容を復元できないようにします。"
 
-#: gui/mainwindow.cpp:412
+#: gui/mainwindow.cpp:415
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Copy"
-msgstr "コピー(&C)"
+msgstr "コピー"
 
-#: gui/mainwindow.cpp:413
+#: gui/mainwindow.cpp:416
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Copy partition"
 msgstr "パーティションをコピーします"
 
-#: gui/mainwindow.cpp:414
+#: gui/mainwindow.cpp:417
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Copy an existing partition."
 msgstr "既存のパーティションをコピーします。"
 
-#: gui/mainwindow.cpp:421
+#: gui/mainwindow.cpp:424
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Paste"
-msgstr "貼り付け(&P)"
+msgstr "貼り付け"
 
-#: gui/mainwindow.cpp:422
+#: gui/mainwindow.cpp:425
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Paste partition"
 msgstr "パーティションを貼り付けます"
 
-#: gui/mainwindow.cpp:423
+#: gui/mainwindow.cpp:426
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Paste a copied partition."
 msgstr "コピーしたパーティションを貼り付けます。"
 
-#: gui/mainwindow.cpp:430
-#, fuzzy, kde-kuit-format
-#| msgctxt "@label"
-#| msgid "Mount Point"
+#: gui/mainwindow.cpp:433
+#, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Edit Mount Point"
-msgstr "マウントポイント"
+msgstr "マウントポイントを編集"
 
-#: gui/mainwindow.cpp:431
-#, fuzzy, kde-kuit-format
-#| msgctxt "@label"
-#| msgid "Mount point:"
+#: gui/mainwindow.cpp:434
+#, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Edit mount point"
-msgstr "マウントポイント:"
+msgstr "マウントポイントを編集します"
 
-#: gui/mainwindow.cpp:432
+#: gui/mainwindow.cpp:435
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Edit a partition's mount point and options."
-msgstr ""
+msgstr "パーティションのマウントポイントとオプションを編集します。"
 
-#: gui/mainwindow.cpp:437
+#: gui/mainwindow.cpp:440
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Mount"
-msgstr "マウント(&M)"
+msgstr "マウント"
 
-#: gui/mainwindow.cpp:438
+#: gui/mainwindow.cpp:441
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Mount or unmount partition"
 msgstr "パーティションをマウント/アンマウントします"
 
-#: gui/mainwindow.cpp:439
+#: gui/mainwindow.cpp:442
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Mount or unmount a partition."
 msgstr "パーティションをマウント/アンマウントします。"
 
-#: gui/mainwindow.cpp:444
+#: gui/mainwindow.cpp:447
+#, kde-kuit-format
+msgctxt "@action:inmenu"
+msgid "Take Ownership"
+msgstr ""
+
+#: gui/mainwindow.cpp:448
+#, fuzzy, kde-kuit-format
+#| msgctxt "@action:button"
+#| msgid "Change the File System"
+msgctxt "@info:tooltip"
+msgid "Take ownership of the file system"
+msgstr "ファイルシステムを変更する"
+
+#: gui/mainwindow.cpp:449
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Change the ownership of the mounted file system to the current user."
+msgstr ""
+
+#: gui/mainwindow.cpp:455
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Unlock"
-msgstr ""
+msgstr "ロック解除"
 
-#: gui/mainwindow.cpp:445
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:tooltip"
-#| msgid "Mount or unmount partition"
+#: gui/mainwindow.cpp:456
+#, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Unlock or lock encrypted partition"
-msgstr "パーティションをマウント/アンマウントします"
+msgstr "暗号化されたパーティションをロック/ロック解除します"
 
-#: gui/mainwindow.cpp:446
+#: gui/mainwindow.cpp:457
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Unlock or lock encrypted partition."
-msgstr ""
+msgstr "暗号化されたパーティションをロック/ロック解除します。"
 
-#: gui/mainwindow.cpp:451
+#: gui/mainwindow.cpp:462
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Check"
-msgstr "検査(&H)"
+msgstr "検査"
 
-#: gui/mainwindow.cpp:452
+#: gui/mainwindow.cpp:463
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Check partition"
 msgstr "パーティションを検査します"
 
-#: gui/mainwindow.cpp:453
+#: gui/mainwindow.cpp:464
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Check a filesystem on a partition for errors."
 msgstr "パーティションのファイルシステムにエラーがないか検査します。"
 
-#: gui/mainwindow.cpp:460
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:tooltip"
-#| msgid "Show properties dialog"
+#: gui/mainwindow.cpp:471
+#, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Show partition properties dialog"
-msgstr "プロパティダイアログを表示します"
+msgstr "パーティションのプロパティダイアログを表示します"
 
-#: gui/mainwindow.cpp:461
+#: gui/mainwindow.cpp:472
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "View and modify partition properties (label, partition flags, etc.)"
@@ -1889,196 +1763,188 @@ msgstr ""
 "パーティションのプロパティ (ラベル、フラグなど) の表示と編集のためのダイアロ"
 "グを表示します。"
 
-#: gui/mainwindow.cpp:467
+#: gui/mainwindow.cpp:478
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Backup"
-msgstr "バックアップ(&B)"
+msgstr "バックアップ"
 
-#: gui/mainwindow.cpp:468
+#: gui/mainwindow.cpp:479
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Backup partition"
 msgstr "パーティションのバックアップを作成します"
 
-#: gui/mainwindow.cpp:469
+#: gui/mainwindow.cpp:480
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Backup a partition to an image file."
 msgstr "パーティションをイメージファイルにバックアップします。"
 
-#: gui/mainwindow.cpp:475
+#: gui/mainwindow.cpp:486
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Restore"
-msgstr "復元(&E)"
+msgstr "復元"
 
-#: gui/mainwindow.cpp:476
+#: gui/mainwindow.cpp:487
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Restore partition"
 msgstr "パーティションを復元します"
 
-#: gui/mainwindow.cpp:477
+#: gui/mainwindow.cpp:488
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Restore a partition from an image file."
 msgstr "イメージファイルからパーティションを復元します。"
 
-#: gui/mainwindow.cpp:484
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "Resize or move partition"
+#: gui/mainwindow.cpp:495
+#, kde-format
 msgctxt "@action:inmenu"
 msgid "New Volume Group"
-msgstr "パーティションをリサイズ/移動します"
+msgstr "新しいボリュームグループ"
 
-#: gui/mainwindow.cpp:485
+#: gui/mainwindow.cpp:496
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Create a new LVM Volume Group"
-msgstr ""
+msgstr "新しい LVM ボリュームグループを作成します"
 
-#: gui/mainwindow.cpp:486
-#, fuzzy, kde-format
-#| msgctxt "@info:status"
-#| msgid "Create a new and empty partition table on a device."
+#: gui/mainwindow.cpp:497
+#, kde-format
 msgctxt "@info:status"
 msgid "Create a new LVM Volume Group as a device."
-msgstr "デバイスに新しい空のパーティションテーブルを作成します。"
+msgstr "新しい LVM ボリュームグループをデバイスとして作成します。"
 
-#: gui/mainwindow.cpp:492
+#: gui/mainwindow.cpp:503
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "File System Support"
 msgstr "ファイルシステムのサポート情報(&F)"
 
-#: gui/mainwindow.cpp:493
+#: gui/mainwindow.cpp:504
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "View file system support information"
 msgstr "ファイルシステムのサポート情報を表示します"
 
-#: gui/mainwindow.cpp:494
+#: gui/mainwindow.cpp:505
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Show information about supported file systems."
 msgstr "サポートされているファイルシステムに関する情報を表示します。"
 
-#: gui/mainwindow.cpp:498
+#: gui/mainwindow.cpp:509
 #, kde-kuit-format
 msgctxt "@action:inmenu refresh list of devices"
 msgid "Refresh Devices"
-msgstr "デバイスを更新(&R)"
+msgstr "デバイスを再読み込み"
 
-#: gui/mainwindow.cpp:499
+#: gui/mainwindow.cpp:510
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Refresh all devices"
 msgstr "すべてのデバイスを更新します"
 
-#: gui/mainwindow.cpp:500
+#: gui/mainwindow.cpp:511
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Renew the devices list."
 msgstr "デバイスのリストを最新の状態に更新します。"
 
-#: gui/mainwindow.cpp:516
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:inmenu clear the list of operations"
-#| msgid "Clear"
+#: gui/mainwindow.cpp:527
+#, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Clear Log"
-msgstr "クリア(&L)"
+msgstr "ログをクリア"
 
-#: gui/mainwindow.cpp:517
+#: gui/mainwindow.cpp:528
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Clear the log output"
-msgstr ""
+msgstr "ログ出力をクリアします"
 
-#: gui/mainwindow.cpp:518
+#: gui/mainwindow.cpp:529
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Clear the log output panel."
-msgstr ""
+msgstr "ログ出力パネルをクリアします。"
 
-#: gui/mainwindow.cpp:523
-#, fuzzy, kde-kuit-format
-#| msgid "&Save"
+#: gui/mainwindow.cpp:534
+#, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "Save Log"
-msgstr "保存(&S)"
+msgstr "ログを保存"
 
-#: gui/mainwindow.cpp:524
+#: gui/mainwindow.cpp:535
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Save the log output"
-msgstr ""
+msgstr "ログ出力を保存します"
 
-#: gui/mainwindow.cpp:525
+#: gui/mainwindow.cpp:536
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Save the log output to a file."
-msgstr ""
+msgstr "ログ出力をファイルに保存します。"
 
-#: gui/mainwindow.cpp:531
+#: gui/mainwindow.cpp:542
 #, kde-kuit-format
 msgctxt "@action:inmenu"
 msgid "About KPMcore Library"
-msgstr ""
+msgstr "KPMcore ライブラリについて"
 
-#: gui/mainwindow.cpp:532
+#: gui/mainwindow.cpp:543
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid "Show About KPMcore dialog"
-msgstr ""
+msgstr "KPMcore ダイアログについて表示します"
 
-#: gui/mainwindow.cpp:533
+#: gui/mainwindow.cpp:544
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Show About KPMcore dialog."
-msgstr ""
+msgstr "KPMcore ダイアログについて表示します。"
 
-#: gui/mainwindow.cpp:652
+#: gui/mainwindow.cpp:663
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
 "Cannot delete partition. Please make sure it is unmounted or locked before "
 "proceeding."
 msgstr ""
+"パーティションを削除できません。パーティションがマウントされていないことを確"
+"認してください。暗号化されたパーティションの場合は、ロックされていることを確"
+"認してください。"
 
-#: gui/mainwindow.cpp:721
+#: gui/mainwindow.cpp:745
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "One pending operation"
 msgid_plural "%1 pending operations"
-msgstr[0] "保留中の操作 %1 個"
+msgstr[0] "保留中の操作: %1 個"
 
-#: gui/mainwindow.cpp:816
+#: gui/mainwindow.cpp:840
 #, fuzzy, kde-kuit-format
 #| msgid "LibParted version:"
 msgctxt "@info:progress"
 msgid "Using backend plugin: %1 (%2)"
 msgstr "LibParted のバージョン:"
 
-#: gui/mainwindow.cpp:820
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info/plain"
-#| msgid "Rescan devices..."
+#: gui/mainwindow.cpp:844
+#, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Scanning devices..."
-msgstr "デバイスを再スキャン..."
+msgstr "デバイスをスキャンしています..."
 
-#: gui/mainwindow.cpp:858
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info/plain"
-#| msgid "Rescan finished."
+#: gui/mainwindow.cpp:882
+#, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Scan finished."
-msgstr "再スキャン完了。"
+msgstr "スキャン完了。"
 
-#: gui/mainwindow.cpp:922
+#: gui/mainwindow.cpp:946
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2088,21 +1954,19 @@ msgstr ""
 "<para>本当にデバイスを再スキャンしますか？</para><para><warning>この操作を実"
 "行すると保留中の操作のリストもクリアされます。</warning></para>"
 
-#: gui/mainwindow.cpp:924
+#: gui/mainwindow.cpp:948
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Really Rescan the Devices?"
 msgstr "本当にデバイスを再スキャンしますか？"
 
-#: gui/mainwindow.cpp:925
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Rescan Devices"
+#: gui/mainwindow.cpp:949
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Rescan Devices"
-msgstr "デバイスを再スキャン(&R)"
+msgstr "デバイスを再スキャン"
 
-#: gui/mainwindow.cpp:951
+#: gui/mainwindow.cpp:975
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2112,153 +1976,140 @@ msgstr ""
 "<para>本当に以下の保留中の操作を適用しますか？</para><para><warning>この操作"
 "はディスクを恒久的に変更します。</warning></para>"
 
-#: gui/mainwindow.cpp:953
+#: gui/mainwindow.cpp:977
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Apply Pending Operations?"
 msgstr "保留中の操作を適用しますか？"
 
-#: gui/mainwindow.cpp:954
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Apply Pending Operations"
+#: gui/mainwindow.cpp:978
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Apply Pending Operations"
-msgstr "保留中の操作を適用(&A)"
+msgstr "保留中の操作を適用"
 
-#: gui/mainwindow.cpp:956
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info/plain"
-#| msgid "Applying operations..."
+#: gui/mainwindow.cpp:980
+#, kde-kuit-format
 msgctxt "@info:status"
 msgid "Applying operations..."
 msgstr "操作を適用しています..."
 
-#: gui/mainwindow.cpp:981
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info/plain"
-#| msgid "Undoing operation: %1"
+#: gui/mainwindow.cpp:1005
+#, kde-kuit-format
 msgctxt "@info:status"
 msgid "Undoing operation: %1"
 msgstr "操作を元に戻す: %1"
 
-#: gui/mainwindow.cpp:997
+#: gui/mainwindow.cpp:1021
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Do you really want to clear the list of pending operations?"
 msgstr "本当に保留中の操作のリストをクリアしますか？"
 
-#: gui/mainwindow.cpp:998
+#: gui/mainwindow.cpp:1022
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Clear Pending Operations?"
 msgstr "保留中の操作をクリアしますか？"
 
 # ACCELERATOR changed by translator
-#: gui/mainwindow.cpp:999
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Clear Pending Operations"
+#: gui/mainwindow.cpp:1023
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Clear Pending Operations"
-msgstr "保留中の操作をクリア(&L)"
+msgstr "保留中の操作をクリア"
 
-#: gui/mainwindow.cpp:1001
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info/plain"
-#| msgid "Clearing the list of pending operations."
+#: gui/mainwindow.cpp:1025
+#, kde-kuit-format
 msgctxt "@info:status"
 msgid "Clearing the list of pending operations."
 msgstr "保留中の操作のリストをクリアしています。"
 
-#: gui/mainwindow.cpp:1043
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info"
-#| msgid "Could not create temporary file <filename>%1</filename> for writing."
+#: gui/mainwindow.cpp:1067
+#, kde-kuit-format
 msgctxt "@info"
 msgid "Could not open input file <filename>%1</filename> for import"
-msgstr ""
-"一時ファイル <filename>%1</filename> を書き込みのために作成できませんでした。"
+msgstr "インポート用のファイル <filename>%1</filename> を開けませんでした。"
 
-#: gui/mainwindow.cpp:1043 gui/mainwindow.cpp:1053 gui/mainwindow.cpp:1061
-#: gui/mainwindow.cpp:1067
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:inmenu"
-#| msgid "Create New Partition Table"
+#: gui/mainwindow.cpp:1067 gui/mainwindow.cpp:1077 gui/mainwindow.cpp:1085
+#: gui/mainwindow.cpp:1091
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Error Importing Partition Table"
-msgstr "新しいパーティションテーブルを作成(&N)"
+msgstr "パーティションテーブルのインポート中にエラーが発生しました"
 
-#: gui/mainwindow.cpp:1061
+#: gui/mainwindow.cpp:1085
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Could not open input file <filename>%1</filename> for import: %2"
-msgstr ""
+msgstr "インポート用のファイル <filename>%1</filename> を開けませんでした: %2"
 
-#: gui/mainwindow.cpp:1067
+#: gui/mainwindow.cpp:1091
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
 "Could not open temporary file <filename>%1</filename> while trying to import "
 "from <filename>%2</filename>."
 msgstr ""
+"<filename>%2</filename> からインポートしようとした際に、一時ファイル "
+"<filename>%1</filename> を開けませんでした。"
 
-#: gui/mainwindow.cpp:1097
+#: gui/mainwindow.cpp:1121
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
 "The import file <filename>%1</filename> does not contain a valid partition "
 "table."
 msgstr ""
+"インポートファイル <filename>%1</filename> 内に有効なパーティションテーブルが"
+"ありません。"
 
-#: gui/mainwindow.cpp:1097 gui/mainwindow.cpp:1107 gui/mainwindow.cpp:1114
-#: gui/mainwindow.cpp:1119 gui/mainwindow.cpp:1129 gui/mainwindow.cpp:1142
-#: gui/mainwindow.cpp:1147 gui/mainwindow.cpp:1166 gui/mainwindow.cpp:1171
-#: gui/mainwindow.cpp:1176 gui/mainwindow.cpp:1183 gui/mainwindow.cpp:1459
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:inmenu"
-#| msgid "Create New Partition Table"
+#: gui/mainwindow.cpp:1121 gui/mainwindow.cpp:1131 gui/mainwindow.cpp:1138
+#: gui/mainwindow.cpp:1143 gui/mainwindow.cpp:1153 gui/mainwindow.cpp:1166
+#: gui/mainwindow.cpp:1171 gui/mainwindow.cpp:1190 gui/mainwindow.cpp:1195
+#: gui/mainwindow.cpp:1200 gui/mainwindow.cpp:1207 gui/mainwindow.cpp:1483
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Error While Importing Partition Table"
-msgstr "新しいパーティションテーブルを作成(&N)"
+msgstr "パーティションテーブルのインポート中にエラーが発生しました"
 
-#: gui/mainwindow.cpp:1107
+#: gui/mainwindow.cpp:1131
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Found more than one partition table type in import file (line %1)."
 msgstr ""
 
-#: gui/mainwindow.cpp:1114
+#: gui/mainwindow.cpp:1138
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Partition table type \"%1\" is unknown (line %2)."
 msgstr ""
 
-#: gui/mainwindow.cpp:1119
+#: gui/mainwindow.cpp:1143
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Partition table type \"%1\" is not supported for import (line %2)."
 msgstr ""
 
-#: gui/mainwindow.cpp:1129
+#: gui/mainwindow.cpp:1153
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Found partition but no partition table type (line %1)."
 msgstr ""
 
-#: gui/mainwindow.cpp:1142
+#: gui/mainwindow.cpp:1166
 #, kde-kuit-format
 msgctxt "@info the partition is NOT a device path, just a number"
 msgid "Partition %1 would be outside the device's boundaries (line %2)."
 msgstr ""
 
-#: gui/mainwindow.cpp:1147
+#: gui/mainwindow.cpp:1171
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Partition %1 has end before start sector (line %2)."
 msgstr ""
 
-#: gui/mainwindow.cpp:1166
+#: gui/mainwindow.cpp:1190
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info/plain"
 #| msgid ""
@@ -2270,7 +2121,7 @@ msgstr ""
 "新しいパーティション <filename>%1</filename> に未知のパーティションのタイプ "
 "(タイプ: %2)"
 
-#: gui/mainwindow.cpp:1171
+#: gui/mainwindow.cpp:1195
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info/plain"
 #| msgid ""
@@ -2283,7 +2134,7 @@ msgstr ""
 "新しいパーティション <filename>%1</filename> に未知のパーティションのタイプ "
 "(タイプ: %2)"
 
-#: gui/mainwindow.cpp:1176
+#: gui/mainwindow.cpp:1200
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2291,7 +2142,7 @@ msgid ""
 "one was found (line %2)."
 msgstr ""
 
-#: gui/mainwindow.cpp:1183
+#: gui/mainwindow.cpp:1207
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info/plain"
 #| msgid "Could not resize file system on partition <filename>%1</filename>."
@@ -2301,31 +2152,29 @@ msgstr ""
 "パーティション <filename>%1</filename> のファイルシステムをリサイズできません"
 "でした。"
 
-#: gui/mainwindow.cpp:1198
+#: gui/mainwindow.cpp:1222
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Could not parse line %1 from import file. Ignoring it."
 msgstr ""
 
-#: gui/mainwindow.cpp:1215
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:inmenu"
-#| msgid "Create New Partition Table"
+#: gui/mainwindow.cpp:1239
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Error Exporting Partition Table"
-msgstr "新しいパーティションテーブルを作成(&N)"
+msgstr "パーティションのエクスポート中にエラーが発生しました"
 
-#: gui/mainwindow.cpp:1380 gui/mainwindow.cpp:1386 gui/mainwindow.cpp:1422
+#: gui/mainwindow.cpp:1404 gui/mainwindow.cpp:1410 gui/mainwindow.cpp:1446
 #, kde-kuit-format
 msgid "%1%2"
-msgstr ""
+msgstr "%1%2"
 
-#: gui/mainwindow.cpp:1386 gui/mainwindow.cpp:1397
+#: gui/mainwindow.cpp:1410 gui/mainwindow.cpp:1421
 #, kde-kuit-format
 msgid "<tr><td>%1</td><td>%2</td><td>%3</td><td><link>%4</link></td></tr>"
-msgstr ""
+msgstr "<tr><td>%1</td><td>%2</td><td>%3</td><td><link>%4</link></td></tr>"
 
-#: gui/mainwindow.cpp:1434
+#: gui/mainwindow.cpp:1458
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2341,7 +2190,7 @@ msgid ""
 "in your distribution's package manager.</para>"
 msgstr ""
 
-#: gui/mainwindow.cpp:1447
+#: gui/mainwindow.cpp:1471
 #, fuzzy, kde-kuit-format
 #| msgctxt "@title:window"
 #| msgid "File System Support"
@@ -2349,13 +2198,13 @@ msgctxt "@title:window"
 msgid "Missing File System Support Packages"
 msgstr "ファイルシステムのサポート情報"
 
-#: gui/mainwindow.cpp:1458
+#: gui/mainwindow.cpp:1482
 #, kde-kuit-format
 msgctxt "@info device should be inside of /dev"
 msgid "Unrecognized device \"%1\" "
 msgstr ""
 
-#: gui/mainwindow.cpp:1467
+#: gui/mainwindow.cpp:1491
 #, fuzzy, kde-kuit-format
 #| msgctxt "@info/plain"
 #| msgid ""
@@ -2367,13 +2216,11 @@ msgstr ""
 "新しいパーティション <filename>%1</filename> に未知のパーティションのタイプ "
 "(タイプ: %2)"
 
-#: gui/mainwindow.cpp:1468
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:inmenu"
-#| msgid "Create New Partition Table"
+#: gui/mainwindow.cpp:1492
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Error opening partition"
-msgstr "新しいパーティションテーブルを作成(&N)"
+msgstr "パーティションを開けませんでした"
 
 #. i18n: ectx: property (windowTitle), widget (QMainWindow, MainWindowBase)
 #. i18n: ectx: property (windowTitle), widget (QWidget, PartitionManagerWidgetBase)
@@ -2413,19 +2260,17 @@ msgstr "新しいパーティションを作成"
 # @item:inmenu
 #. i18n: ectx: ToolBar (partitionToolBar)
 #: gui/partitionmanagerui.rc:12
-#, fuzzy, kde-format
-#| msgctxt "@title:menu"
-#| msgid "Partition Toolbar"
+#, kde-format
 msgctxt "@title:menu"
 msgid "Partition Manager Toolbar"
-msgstr "パーティションツールバー(&P)"
+msgstr "パーティションマネージャツールバー"
 
 #. i18n: ectx: Menu (device)
 #: gui/partitionmanagerui.rc:30
 #, kde-format
 msgctxt "@title:menu"
 msgid "Device"
-msgstr "デバイス(&D)"
+msgstr "デバイス"
 
 #. i18n: ectx: Menu (selectedDevice)
 #: gui/partitionmanagerui.rc:32
@@ -2446,22 +2291,22 @@ msgstr ""
 #, kde-format
 msgctxt "@title:menu"
 msgid "Partition"
-msgstr "パーティション(&P)"
+msgstr "パーティション"
 
 #. i18n: ectx: Menu (panels)
-#: gui/partitionmanagerui.rc:77
+#: gui/partitionmanagerui.rc:78
 #, kde-format
 msgctxt "@title:menu"
 msgid "Panels Shown"
 msgstr ""
 
-#: gui/partitionmanagerwidget.cpp:201
+#: gui/partitionmanagerwidget.cpp:214
 #, kde-kuit-format
 msgctxt "@item:intable Encrypted file systems, e.g. btrfs[Encrypted]"
 msgid "%1 [Encrypted]"
-msgstr ""
+msgstr "%1 [暗号化済み]"
 
-#: gui/partitionmanagerwidget.cpp:409
+#: gui/partitionmanagerwidget.cpp:422
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2470,13 +2315,13 @@ msgstr ""
 "パーティション <filename>%1</filename> のファイルシステムをマウントできません"
 "でした。"
 
-#: gui/partitionmanagerwidget.cpp:409
+#: gui/partitionmanagerwidget.cpp:422
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Could Not Mount File System."
 msgstr "ファイルシステムをマウントできませんでした"
 
-#: gui/partitionmanagerwidget.cpp:412
+#: gui/partitionmanagerwidget.cpp:425
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2485,56 +2330,121 @@ msgstr ""
 "パーティション <filename>%1</filename> のファイルシステムをアンマウントできま"
 "せんでした。"
 
-#: gui/partitionmanagerwidget.cpp:412
+#: gui/partitionmanagerwidget.cpp:425
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Could Not Unmount File System."
 msgstr "ファイルシステムをアンマウントできませんでした"
 
-#: gui/partitionmanagerwidget.cpp:452
+#: gui/partitionmanagerwidget.cpp:460
 #, fuzzy, kde-kuit-format
-#| msgctxt "@info"
-#| msgid ""
-#| "The file system on partition <filename>%1</filename> could not be "
-#| "unmounted."
+#| msgctxt "@action:button"
+#| msgid "Change the File System"
+msgctxt "@title:window"
+msgid "Take Ownership of File System"
+msgstr "ファイルシステムを変更する"
+
+#: gui/partitionmanagerwidget.cpp:466
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"This will set the ownership of <filename>%1</filename> to user <emphasis>%2</"
+"emphasis>."
+msgstr ""
+
+#: gui/partitionmanagerwidget.cpp:473
+#, kde-kuit-format
+msgctxt "@option:check"
+msgid "Apply recursively to all subdirectories and files"
+msgstr ""
+
+#: gui/partitionmanagerwidget.cpp:481
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"This will also change the ownership of all subdirectories and files. This "
+"may cause problems if some of them are owned by other users."
+msgstr ""
+
+#: gui/partitionmanagerwidget.cpp:488
+#, kde-kuit-format
+msgctxt "@action:button"
+msgid "Take Ownership"
+msgstr ""
+
+#: gui/partitionmanagerwidget.cpp:506
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid "Taking ownership of <b>%1</b>…"
+msgstr ""
+
+#: gui/partitionmanagerwidget.cpp:508
+#, kde-kuit-format
+msgctxt "@title:window"
+msgid "Take Ownership"
+msgstr ""
+
+#: gui/partitionmanagerwidget.cpp:523
+#, fuzzy, kde-kuit-format
+#| msgctxt "@label partition state"
+#| msgid "mounted on <filename>%1</filename>"
+msgctxt "@info"
+msgid "Could not take ownership of <filename>%1</filename>."
+msgstr "<filename>%1</filename> にマウント済み"
+
+#: gui/partitionmanagerwidget.cpp:526
+#, kde-kuit-format
+msgctxt "@title:window"
+msgid "Taking Ownership Failed"
+msgstr ""
+
+#: gui/partitionmanagerwidget.cpp:531
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Ownership of <filename>%1</filename> was successfully changed to <emphasis>"
+"%2</emphasis>."
+msgstr ""
+
+#: gui/partitionmanagerwidget.cpp:533
+#, kde-kuit-format
+msgctxt "@title:window"
+msgid "Ownership Changed"
+msgstr ""
+
+#: gui/partitionmanagerwidget.cpp:561
+#, kde-kuit-format
 msgctxt "@info"
 msgid ""
 "The encrypted file system on partition <filename>%1</filename> could not be "
 "unlocked."
 msgstr ""
-"パーティション <filename>%1</filename> のファイルシステムをアンマウントできま"
-"せんでした。"
+"パーティション <filename>%1</filename> の暗号化されたファイルシステムをロック"
+"解除できませんでした。"
 
-#: gui/partitionmanagerwidget.cpp:458
-#, fuzzy, kde-kuit-format
-#| msgctxt "@title:window"
-#| msgid "Could Not Unmount File System."
+#: gui/partitionmanagerwidget.cpp:567
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Could Not Unlock Encrypted File System."
-msgstr "ファイルシステムをアンマウントできませんでした"
+msgstr "暗号化されたファイルシステムをロック解除できませんでした。"
 
-#: gui/partitionmanagerwidget.cpp:463
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info"
-#| msgid ""
-#| "The file system on partition <filename>%1</filename> could not be mounted."
+#: gui/partitionmanagerwidget.cpp:572
+#, kde-kuit-format
 msgctxt "@info"
 msgid ""
 "The encrypted file system on partition <filename>%1</filename> could not be "
 "locked."
 msgstr ""
-"パーティション <filename>%1</filename> のファイルシステムをマウントできません"
-"でした。"
+"パーティション <filename>%1</filename> の暗号化されたファイルシステムをロック"
+"できませんでした。"
 
-#: gui/partitionmanagerwidget.cpp:469
-#, fuzzy, kde-kuit-format
-#| msgctxt "@title:window"
-#| msgid "Could Not Mount File System."
+#: gui/partitionmanagerwidget.cpp:578
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Could Not Lock Encrypted File System."
-msgstr "ファイルシステムをマウントできませんでした"
+msgstr "暗号化されたファイルシステムをロックできませんでした。"
 
-#: gui/partitionmanagerwidget.cpp:498
+#: gui/partitionmanagerwidget.cpp:607
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2548,14 +2458,18 @@ msgid_plural ""
 "create, paste or restore a primary partition on it before you delete an "
 "existing one.</para>"
 msgstr[0] ""
+"<para>このデバイスにはすでに %1 個の基本パーティションがあります。これは、現"
+"在のパーティションテーブル形式が扱うことのできる最大数です。</para><para>既存"
+"のものを削除するまでは基本パーティションの作成、貼り付け、復元はできません。"
+"</para>"
 
-#: gui/partitionmanagerwidget.cpp:502
+#: gui/partitionmanagerwidget.cpp:611
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Too Many Primary Partitions."
 msgstr "基本パーティションが多すぎます"
 
-#: gui/partitionmanagerwidget.cpp:565
+#: gui/partitionmanagerwidget.cpp:674
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2568,13 +2482,13 @@ msgstr ""
 "ティション <filename>%1</filename> を削除できません。</para><para>先に論理番"
 "号が %2 より大きいパーティションをすべてアンマウントしてください。</para>"
 
-#: gui/partitionmanagerwidget.cpp:568
+#: gui/partitionmanagerwidget.cpp:677
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Cannot Delete Partition."
 msgstr "パーティションを削除できません"
 
-#: gui/partitionmanagerwidget.cpp:577
+#: gui/partitionmanagerwidget.cpp:686
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2585,26 +2499,20 @@ msgstr ""
 "本当にクリップボードのパーティションを削除しますか？削除するとそのパーティ"
 "ションを貼り付けることはできません。"
 
-#: gui/partitionmanagerwidget.cpp:579
+#: gui/partitionmanagerwidget.cpp:688
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Really Delete Partition in the Clipboard?"
 msgstr "クリップボードのパーティションを削除しますか？"
 
-#: gui/partitionmanagerwidget.cpp:580
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Delete It"
+#: gui/partitionmanagerwidget.cpp:689
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Delete It"
-msgstr "削除する(&D)"
+msgstr "削除する"
 
-#: gui/partitionmanagerwidget.cpp:633
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info/plain"
-#| msgid ""
-#| "Partition <filename>%1</filename> has the same position and size after "
-#| "resize/move. Ignoring operation."
+#: gui/partitionmanagerwidget.cpp:742
+#, kde-kuit-format
 msgctxt "@info:status"
 msgid ""
 "Partition <filename>%1</filename> has the same position and size after "
@@ -2613,16 +2521,14 @@ msgstr ""
 "パーティション <filename>%1</filename> の位置はリサイズ/移動後も同じです。操"
 "作を無視します。"
 
-#: gui/partitionmanagerwidget.cpp:661
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info/plain"
-#| msgid "Partition <filename>%1</filename> has been copied to the clipboard."
+#: gui/partitionmanagerwidget.cpp:770
+#, kde-kuit-format
 msgctxt "@info:status"
 msgid "Partition <filename>%1</filename> has been copied to the clipboard."
 msgstr ""
 "パーティション <filename>%1</filename> をクリップボードにコピーしました。"
 
-#: gui/partitionmanagerwidget.cpp:724
+#: gui/partitionmanagerwidget.cpp:833
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2633,24 +2539,26 @@ msgid ""
 "window, all data currently stored on <filename>%1</filename> will "
 "unrecoverably be overwritten.</para>"
 msgstr ""
+"<para><warning>パーティション <filename>%1</filename> のすべてのデータを失う"
+"ことになります。</warning></para><para>パーティションを別のパーティション/イ"
+"メージファイルで上書きすると、そのパーティションのすべてのデータが破壊されま"
+"す。続行してメインウィンドウで操作を適用すると、<filename>%1</filename> に保"
+"存されているすべてのデータが完全に上書きされ、元に戻すことはできなくなりま"
+"す。</para>"
 
-#: gui/partitionmanagerwidget.cpp:732
-#, fuzzy, kde-kuit-format
-#| msgctxt "@title:window"
-#| msgid "Overwrite Existing File?"
+#: gui/partitionmanagerwidget.cpp:841
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Really Overwrite Existing Partition?"
-msgstr "既存のファイルを上書きしますか？"
+msgstr "本当に既存のパーティションを上書きしますか？"
 
-#: gui/partitionmanagerwidget.cpp:733
-#, fuzzy, kde-kuit-format
-#| msgctxt "@item partition name"
-#| msgid "New Partition"
+#: gui/partitionmanagerwidget.cpp:842
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Overwrite Partition"
-msgstr "新しいパーティション"
+msgstr "パーティションを上書きする"
 
-#: gui/partitionmanagerwidget.cpp:741
+#: gui/partitionmanagerwidget.cpp:850
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2658,17 +2566,17 @@ msgid ""
 "partition or the backup file.</para><para>Pick another target or resize this "
 "partition so it is as large as the source.</para>"
 msgstr ""
-"<para>選択されたパーティションには元のパーティションまたはバックアップファイ"
-"ルが収まりません。</para><para>他の行き先を選択するか、このパーティションのサ"
-"イズを拡大してください。</para>"
+"<para>選択されたパーティションは、コピー元のパーティションまたはバックアップ"
+"ファイルを格納するための容量が不足しています。</para><para>別の対象を選択する"
+"か、このパーティションのサイズを拡大してください。</para>"
 
-#: gui/partitionmanagerwidget.cpp:742
+#: gui/partitionmanagerwidget.cpp:851
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Target Not Large Enough"
-msgstr "行き先のサイズが小さすぎます"
+msgstr "コピー先の容量が不足しています"
 
-#: gui/partitionmanagerwidget.cpp:745
+#: gui/partitionmanagerwidget.cpp:854
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -2677,137 +2585,114 @@ msgid ""
 "are correctly aligned or when copying a primary partition into an extended "
 "partition.</para>"
 msgstr ""
+"<para>コピー元を格納するのに十分なサイズのコピー先パーティションを作成できま"
+"せん。</para><para>この問題は、デバイス上のすべてのパーティションが正しくアラ"
+"イメントされていない場合や、基本パーティションを拡張パーティションにコピーす"
+"る際に発生する可能性があります。</para>"
 
-#: gui/partitionmanagerwidget.cpp:748
+#: gui/partitionmanagerwidget.cpp:857
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Cannot Create Target Partition."
-msgstr "行き先のパーティションを作成できません"
+msgstr "コピー先パーティションを作成できません。"
 
-#: gui/partitionmanagerwidget.cpp:806
+#: gui/partitionmanagerwidget.cpp:915
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
 "The file system in the image file <filename>%1</filename> is too large to be "
 "restored to the selected partition."
 msgstr ""
-"イメージファイル <filename>%1</filename> のファイルシステムは大きすぎて選択さ"
-"れたパーティションに復元できません。"
+"イメージファイル <filename>%1</filename> 内のファイルシステムはサイズが大きす"
+"ぎるため、選択されたパーティションに復元できません。"
 
-#: gui/partitionmanagerwidget.cpp:806
+#: gui/partitionmanagerwidget.cpp:915
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Not Enough Space to Restore File System."
-msgstr "ファイルシステムを復元する領域が足りません"
+msgstr "ファイルシステムを復元するための容量が不足しています。"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:79
-#, fuzzy, kde-format
-#| msgctxt "@title:menu"
-#| msgid "Partition"
+#, kde-format
 msgid "Partition"
-msgstr "パーティション(&P)"
+msgstr "パーティション"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:84
-#, fuzzy, kde-format
-#| msgctxt "@label partition type"
-#| msgid "Type"
+#, kde-format
 msgid "Type"
 msgstr "タイプ"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:89
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Mount Point"
+#, kde-format
 msgid "Mount Point"
 msgstr "マウントポイント"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:94
-#, fuzzy, kde-format
-#| msgctxt "@label file system label"
-#| msgid "Label"
+#, kde-format
 msgid "Label"
 msgstr "ラベル"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:99
-#, fuzzy, kde-format
-#| msgid "User ID:"
+#, kde-format
 msgid "UUID"
-msgstr "ユーザ ID:"
+msgstr "UUID"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:104
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Partition type:"
+#, kde-format
 msgid "Partition Name"
-msgstr "パーティションのタイプ:"
+msgstr "パーティション名"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:109
-#, fuzzy, kde-format
-#| msgctxt "@title:menu"
-#| msgid "Partition"
+#, kde-format
 msgid "Partition UUID"
-msgstr "パーティション(&P)"
+msgstr "パーティション UUID"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:114
-#, fuzzy, kde-format
-#| msgctxt "@label total file system size"
-#| msgid "Size"
+#, kde-format
 msgid "Size"
 msgstr "サイズ"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:119
-#, fuzzy, kde-format
-#| msgctxt "@label space used"
-#| msgid "Used"
+#, kde-format
 msgid "Used"
 msgstr "使用済み"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:124
-#, fuzzy, kde-format
-#| msgctxt "@label partition"
-#| msgid "Available:"
+#, kde-format
 msgid "Available"
-msgstr "利用可能:"
+msgstr "利用可能"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:129
-#, fuzzy, kde-format
-#| msgctxt "@label partition"
-#| msgid "First sector:"
+#, kde-format
 msgid "First Sector"
-msgstr "開始セクター:"
+msgstr "開始セクター"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:134
-#, fuzzy, kde-format
-#| msgctxt "@label partition"
-#| msgid "Last sector:"
+#, kde-format
 msgid "Last Sector"
-msgstr "終了セクター:"
+msgstr "終了セクター"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:139
-#, fuzzy, kde-format
-#| msgctxt "@label partition"
-#| msgid "Number of sectors:"
+#, kde-format
 msgid "Number of Sectors"
-msgstr "セクター数:"
+msgstr "セクター数"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreePartitions)
 #: gui/partitionmanagerwidgetbase.ui:144
-#, fuzzy, kde-format
-#| msgctxt "@label partition flags"
-#| msgid "Flags"
+#, kde-format
 msgid "Flags"
 msgstr "フラグ"
 
@@ -2856,17 +2741,15 @@ msgid "mounted"
 msgstr "マウント済み"
 
 #: gui/partpropsdialog.cpp:141 gui/partpropsdialog.cpp:144
-#, fuzzy, kde-kuit-format
-#| msgctxt "@item partition role"
-#| msgid "none"
+#, kde-kuit-format
 msgctxt "@item uuid"
 msgid "(none)"
-msgstr "なし"
+msgstr "(なし)"
 
 #: gui/partpropsdialog.cpp:171 gui/partpropsdialog.cpp:172
 #, kde-format
 msgid "%1% — %2"
-msgstr ""
+msgstr "%1% — %2"
 
 #: gui/partpropsdialog.cpp:370
 #, kde-kuit-format
@@ -2892,20 +2775,16 @@ msgstr ""
 "本当に <filename>%1</filename> をファイルシステム %2 で作成し直しますか？"
 
 #: gui/partpropsdialog.cpp:373
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Change the File System"
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Change the File System"
-msgstr "ファイルシステムを変更する(&C)"
+msgstr "ファイルシステムを変更する"
 
 #: gui/partpropsdialog.cpp:374
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Do Not Change the File System"
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Do Not Change the File System"
-msgstr "ファイルシステムを変更しない(&D)"
+msgstr "ファイルシステムを変更しない"
 
 #: gui/partpropsdialog.cpp:393
 #, kde-kuit-format
@@ -2917,6 +2796,11 @@ msgid ""
 "window, all data on <filesystem>%1</filesystem> will unrecoverably be lost.</"
 "para>"
 msgstr ""
+"<para><warning>パーティション <filename>%1</filename> のすべてのデータを失う"
+"ことになります。</warning></para><para>ファイルシステムを作成し直すと、その"
+"パーティションのすべての内容が消去されます。続行してメインウィンドウで操作を"
+"適用すると、<filesystem>%1</filesystem> のすべてのデータが完全に失われ、元に"
+"戻すことはできなくなります。</para>"
 
 #: gui/partpropsdialog.cpp:395
 #, kde-kuit-format
@@ -2925,20 +2809,16 @@ msgid "Really Recreate File System on <filename>%1</filename>?"
 msgstr "本当に <filename>%1</filename> のファイルシステムを作成し直しますか？"
 
 #: gui/partpropsdialog.cpp:396
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Recreate the File System"
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Recreate the File System"
-msgstr "ファイルシステムを作成し直す(&R)"
+msgstr "ファイルシステムを作成し直す"
 
 #: gui/partpropsdialog.cpp:397
-#, fuzzy, kde-kuit-format
-#| msgctxt "@action:button"
-#| msgid "&Do Not Recreate the File System"
+#, kde-kuit-format
 msgctxt "@action:button"
 msgid "Do Not Recreate the File System"
-msgstr "ファイルシステムを作成し直さない(&D)"
+msgstr "ファイルシステムを作成し直さない"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextFirstSector)
 #: gui/partpropswidgetbase.ui:26
@@ -2956,11 +2836,9 @@ msgstr "サイズ:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextPartitionUuid)
 #: gui/partpropswidgetbase.ui:66
-#, fuzzy, kde-format
-#| msgctxt "@title:menu"
-#| msgid "Partition"
+#, kde-format
 msgid "Partition UUID:"
-msgstr "パーティション(&P)"
+msgstr "パーティション UUID:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextNoSetLabel)
 #: gui/partpropswidgetbase.ui:76 gui/sizedialogwidgetbase.ui:126
@@ -2971,11 +2849,10 @@ msgstr "このファイルシステムではラベルをセットすることは
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextUuid)
 #: gui/partpropswidgetbase.ui:86
-#, fuzzy, kde-format
-#| msgid "User ID:"
+#, kde-format
 msgctxt "@label"
 msgid "UUID:"
-msgstr "ユーザ ID:"
+msgstr "UUID:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextLastSector)
 #: gui/partpropswidgetbase.ui:103
@@ -3000,9 +2877,7 @@ msgstr "空き:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextLabel)
 #: gui/partpropswidgetbase.ui:223
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "&Label:"
+#, kde-format
 msgctxt "@label"
 msgid "&Label:"
 msgstr "ラベル(&L):"
@@ -3023,11 +2898,9 @@ msgstr "パーティションのタイプ:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextDevicePath)
 #: gui/partpropswidgetbase.ui:316
-#, fuzzy, kde-format
-#| msgctxt "@title:menu"
-#| msgid "Device"
+#, kde-format
 msgid "Device path:"
-msgstr "デバイス(&D)"
+msgstr "デバイスのパス:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextNumSectors)
 #: gui/partpropswidgetbase.ui:326
@@ -3038,11 +2911,9 @@ msgstr "セクター数:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextPartitionLabel)
 #: gui/partpropswidgetbase.ui:336
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Partition type:"
+#, kde-format
 msgid "Partition Name:"
-msgstr "パーティションのタイプ:"
+msgstr "パーティション名:"
 
 #. i18n: ectx: property (whatsThis), widget (QCheckBox, m_CheckRecreate)
 #: gui/partpropswidgetbase.ui:346
@@ -3068,21 +2939,17 @@ msgstr "使用済み:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelFileSystem)
 #: gui/partpropswidgetbase.ui:383
-#, fuzzy, kde-format
-#| msgctxt "@label partition"
-#| msgid "File system:"
+#, kde-format
 msgctxt "@label:listbox"
 msgid "File syste&m:"
-msgstr "ファイルシステム:"
+msgstr "ファイルシステム(&M):"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextFlags)
 #: gui/partpropswidgetbase.ui:396
-#, fuzzy, kde-format
-#| msgctxt "@label partition flags"
-#| msgid "Flags"
+#, kde-format
 msgctxt "@label"
 msgid "&Flags:"
-msgstr "フラグ"
+msgstr "フラグ(&F):"
 
 #: gui/parttablewidget.cpp:26
 #, kde-kuit-format
@@ -3115,78 +2982,66 @@ msgid "Invalid passphrase. "
 msgstr ""
 
 #: gui/resizevolumegroupdialog.cpp:39
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:tooltip"
-#| msgid "Resize or move partition"
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Resize Volume Group"
-msgstr "パーティションをリサイズ/移動します"
+msgstr "ボリュームグループをリサイズ"
 
 #: gui/scanprogressdialog.cpp:16
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info/plain"
-#| msgid "Rescan devices..."
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Scanning Devices…"
-msgstr "デバイスを再スキャン..."
+msgstr "デバイスをスキャンしています…"
 
 #: gui/scanprogressdialog.cpp:24
 #, kde-format
 msgctxt "%p is the percent value, % is the percent sign"
 msgid "%p%"
-msgstr ""
+msgstr "%p%"
 
 #: gui/scanprogressdialog.cpp:36
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info/plain"
-#| msgid "Rescan devices..."
+#, kde-kuit-format
 msgctxt "@label"
 msgid "Scanning…"
-msgstr "デバイスを再スキャン..."
+msgstr "スキャンしています…"
 
 #: gui/scanprogressdialog.cpp:38
 #, kde-kuit-format
 msgctxt "@label"
 msgid "Scanning device: <filename>%1</filename>"
-msgstr ""
+msgstr "デバイスをスキャンしています: <filename>%1</filename>"
 
 #. i18n: ectx: property (text), widget (QLabel, label_6)
 #: gui/sizedetailswidgetbase.ui:66
-#, fuzzy, kde-format
-#| msgctxt "@label partition"
-#| msgid "First sector:"
+#, kde-format
 msgctxt "@label:listbox"
 msgid "First sector:"
 msgstr "開始セクター:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_7)
 #: gui/sizedetailswidgetbase.ui:101
-#, fuzzy, kde-format
-#| msgctxt "@label partition"
-#| msgid "Last sector:"
+#, kde-format
 msgctxt "@label:listbox"
 msgid "Last sector:"
 msgstr "終了セクター:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, m_CheckAlign)
 #: gui/sizedetailswidgetbase.ui:124
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "New partition"
+#, kde-format
 msgid "Align partition"
-msgstr "新しいパーティションを作成します"
+msgstr "パーティションをアライメントする"
 
 #: gui/sizedialogbase.cpp:66
 #, kde-kuit-format
 msgctxt "@action:button advanced settings button"
 msgid "Advanced"
-msgstr ""
+msgstr "高度な設定"
 
 #: gui/sizedialogbase.cpp:180
 #, kde-kuit-format
 msgctxt "@action:button"
 msgid "&Advanced"
-msgstr ""
+msgstr "高度な設定(&A)"
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
 #: gui/sizedialogwidgetbase.ui:30
@@ -3204,55 +3059,46 @@ msgstr "最大サイズ:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextLabel)
 #: gui/sizedialogwidgetbase.ui:98
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "&Label:"
+#, kde-format
 msgctxt "@label"
 msgid "Label:"
-msgstr "ラベル(&L):"
+msgstr "ラベル:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_2)
 #: gui/sizedialogwidgetbase.ui:160
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Si&ze:"
-msgstr ""
+msgstr "サイズ(&Z):"
 
 #. i18n: ectx: property (text), widget (QRadioButton, m_RadioPrimary)
 #: gui/sizedialogwidgetbase.ui:183
-#, fuzzy, kde-format
-#| msgid "&Primary"
+#, kde-format
 msgid "Primar&y"
-msgstr "基本(&P)"
+msgstr "基本(&Y)"
 
 #. i18n: ectx: property (text), widget (QRadioButton, m_RadioExtended)
 #: gui/sizedialogwidgetbase.ui:190
-#, fuzzy, kde-format
-#| msgid "&Extended"
+#, kde-format
 msgid "E&xtended"
-msgstr "拡張(&E)"
+msgstr "拡張(&X)"
 
 #. i18n: ectx: property (text), widget (QRadioButton, m_RadioLogical)
 #: gui/sizedialogwidgetbase.ui:197
-#, fuzzy, kde-format
-#| msgid "&Logical"
+#, kde-format
 msgid "&Logical"
 msgstr "論理(&L)"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelFileSystem)
 #: gui/sizedialogwidgetbase.ui:213
-#, fuzzy, kde-format
-#| msgctxt "@label partition"
-#| msgid "File system:"
+#, kde-format
 msgctxt "@label:listbox"
 msgid "File system:"
 msgstr "ファイルシステム:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelRole)
 #: gui/sizedialogwidgetbase.ui:249
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Partition type:"
+#, kde-format
 msgctxt "@label:listbox"
 msgid "Partition type:"
 msgstr "パーティションのタイプ:"
@@ -3264,30 +3110,33 @@ msgid ""
 "Set up encryption for this filesystem with LUKS. You will be asked to "
 "provide a passphrase."
 msgstr ""
+"このファイルシステムに、LUKS による暗号化を設定します。パスフレーズの入力が求"
+"められるようになります。"
 
 #. i18n: ectx: property (text), widget (QCheckBox, m_CheckBoxEncrypt)
 #: gui/sizedialogwidgetbase.ui:262
 #, kde-format
 msgid "Encrypt with LUKS"
-msgstr ""
+msgstr "LUKS で暗号化する"
 
 #. i18n: ectx: property (text), widget (QLabel, m_labelPermission)
 #: gui/sizedialogwidgetbase.ui:292
 #, kde-format
 msgid "Permissions"
-msgstr ""
+msgstr "権限"
 
 #. i18n: ectx: property (toolTip), widget (QRadioButton, m_permissionEveryone)
 #: gui/sizedialogwidgetbase.ui:305
 #, kde-format
 msgid "Allow everyone to write and read on this device"
 msgstr ""
+"すべてのユーザがこのデバイス上で書き込みと読み込みを行えるようにします。"
 
 #. i18n: ectx: property (text), widget (QRadioButton, m_permissionEveryone)
 #: gui/sizedialogwidgetbase.ui:308
 #, kde-format
 msgid "Everyone"
-msgstr ""
+msgstr "すべてのユーザ"
 
 #. i18n: ectx: property (toolTip), widget (QRadioButton, m_permissionOnlyRoot)
 #: gui/sizedialogwidgetbase.ui:315
@@ -3296,38 +3145,34 @@ msgid ""
 "Allow only root to write and read on this device, you will need to setup per-"
 "folder permissions"
 msgstr ""
+"root のみがこのデバイス上で書き込みと読み込みを行えるようにします。フォルダご"
+"との権限設定が必要です。"
 
 #. i18n: ectx: property (text), widget (QRadioButton, m_permissionOnlyRoot)
 #: gui/sizedialogwidgetbase.ui:318
 #, kde-format
 msgid "O&nly Root"
-msgstr ""
+msgstr "root のみ(&N)"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelFreeBefore)
 #: gui/sizedialogwidgetbase.ui:334
-#, fuzzy, kde-format
-#| msgctxt "@label:listbox"
-#| msgid "Free space &before:"
+#, kde-format
 msgctxt "@label:listbox"
 msgid "F&ree space before:"
-msgstr "前の空き領域(&B):"
+msgstr "前の空き領域(&R):"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextLVName)
 #: gui/sizedialogwidgetbase.ui:347
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Sector size:"
+#, kde-format
 msgid "Logical Volume Name:"
-msgstr "セクターサイズ:"
+msgstr "論理ボリューム名:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelFreeAfter)
 #: gui/sizedialogwidgetbase.ui:363
-#, fuzzy, kde-format
-#| msgctxt "@label:listbox"
-#| msgid "Free space &after:"
+#, kde-format
 msgctxt "@label:listbox"
 msgid "Free space after:"
-msgstr "後の空き領域(&A):"
+msgstr "後の空き領域:"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, m_CheckBoxLuks2)
 #: gui/sizedialogwidgetbase.ui:376
@@ -3336,29 +3181,29 @@ msgid ""
 "Use LUKS2 instead of LUKS1 for better security, but compatibility may be "
 "compromised."
 msgstr ""
+"LUKS1 の代わりに LUKS2 を使用してセキュリティを向上させますが、互換性が損なわ"
+"れる可能性があります。"
 
 #. i18n: ectx: property (text), widget (QCheckBox, m_CheckBoxLuks2)
 #: gui/sizedialogwidgetbase.ui:379
 #, kde-format
 msgid "Enable LUKS2"
-msgstr ""
+msgstr "LUKS2 を有効にする"
 
 #: gui/smartdialog.cpp:54
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "SMART Properties: <filename>%1</filename>"
-msgstr ""
+msgstr "SMART のプロパティ: <filename>%1</filename>"
 
 #: gui/smartdialog.cpp:58
 #, kde-kuit-format
 msgctxt "@action:button"
 msgid "Save SMART Report"
-msgstr ""
+msgstr "SMART レポートを保存"
 
 #: gui/smartdialog.cpp:96 gui/smartdialog.cpp:153
-#, fuzzy, kde-format, kde-kuit-format
-#| msgctxt "@item partition role"
-#| msgid "none"
+#, kde-format, kde-kuit-format
 msgctxt "@label SMART number of bad sectors"
 msgid "none"
 msgstr "なし"
@@ -3389,36 +3234,33 @@ msgstr ""
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextSmartModelName)
 #: gui/smartdialog.cpp:155 gui/smartdialogwidgetbase.ui:68
-#, fuzzy, kde-format
-#| msgid "Move"
+#, kde-format
 msgid "Model:"
-msgstr "移動"
+msgstr "モデル名:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextSmartSerialNumber)
 #: gui/smartdialog.cpp:156 gui/smartdialogwidgetbase.ui:97
 #, kde-format
 msgid "Serial number:"
-msgstr ""
+msgstr "シリアル番号:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextSmartFirmware)
 #: gui/smartdialog.cpp:157 gui/smartdialogwidgetbase.ui:126
 #, kde-format
 msgid "Firmware revision:"
-msgstr ""
+msgstr "ファームウェアリビジョン:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextSmartTemperature)
 #: gui/smartdialog.cpp:158 gui/smartdialogwidgetbase.ui:155
 #, kde-format
 msgid "Temperature:"
-msgstr ""
+msgstr "温度:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextSmartBadSectors)
 #: gui/smartdialog.cpp:159 gui/smartdialogwidgetbase.ui:184
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Total sectors:"
+#, kde-format
 msgid "Bad sectors:"
-msgstr "総セクター数:"
+msgstr "不良セクター数:"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextSmartPoweredOn)
 #: gui/smartdialog.cpp:160 gui/smartdialogwidgetbase.ui:213
@@ -3442,15 +3284,13 @@ msgstr ""
 #: gui/smartdialog.cpp:163 gui/smartdialogwidgetbase.ui:383
 #, kde-format
 msgid "Overall assessment:"
-msgstr ""
+msgstr "総合評価:"
 
 #: gui/smartdialog.cpp:227
-#, fuzzy, kde-kuit-format
-#| msgctxt "@title:window"
-#| msgid "Could Not Save Report."
+#, kde-kuit-format
 msgctxt "@title:window"
 msgid "Could Not Save SMART Report."
-msgstr "レポートを保存できませんでした。"
+msgstr "SMART レポートを保存できませんでした。"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreeSmartAttributes)
 #: gui/smartdialogwidgetbase.ui:294
@@ -3524,7 +3364,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Error Saving Log File"
-msgstr ""
+msgstr "ログファイルの保存中にエラーが発生しました"
 
 #. i18n: ectx: property (text), widget (QTreeWidget, m_TreeLog)
 #: gui/treelogbase.ui:59
@@ -3560,19 +3400,15 @@ msgstr "メッセージ"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextVGName)
 #: gui/volumegroupwidgetbase.ui:34
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "Resize or move partition"
+#, kde-format
 msgid "Volume Group Name: "
-msgstr "パーティションをリサイズ/移動します"
+msgstr "ボリュームグループの名前: "
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextPESize)
 #: gui/volumegroupwidgetbase.ui:47
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Sector size:"
+#, kde-format
 msgid "Physical Extent Size: "
-msgstr "セクターサイズ:"
+msgstr "物理エクステントサイズ: "
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTotalSectors)
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTotalLV)
@@ -3582,51 +3418,43 @@ msgstr "セクターサイズ:"
 #: gui/volumegroupwidgetbase.ui:166 gui/volumegroupwidgetbase.ui:176
 #, kde-format
 msgid "---"
-msgstr ""
+msgstr "---"
 
 #. i18n: ectx: property (suffix), widget (QSpinBox, m_SpinPESize)
 #: gui/volumegroupwidgetbase.ui:79
 #, kde-format
 msgid " MiB"
-msgstr ""
+msgstr " MiB"
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextTotalLV)
 #: gui/volumegroupwidgetbase.ui:107
-#, fuzzy, kde-format
-#| msgid "Total: %p%"
+#, kde-format
 msgid "Total LV: "
-msgstr "合計: %p%"
+msgstr "全 LV 数: "
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextVolumeType)
 #: gui/volumegroupwidgetbase.ui:130
-#, fuzzy, kde-format
-#| msgid "File System"
+#, kde-format
 msgid "Volume Group Type: "
-msgstr "ファイルシステム"
+msgstr "ボリュームグループタイプ: "
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextTotalSize)
 #: gui/volumegroupwidgetbase.ui:140
-#, fuzzy, kde-format
-#| msgctxt "@info:progress"
-#| msgid "Total Time: %1"
+#, kde-format
 msgid "Total Size: "
-msgstr "総時間: %1"
+msgstr "合計サイズ: "
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextTotalSectors)
 #: gui/volumegroupwidgetbase.ui:153
-#, fuzzy, kde-format
-#| msgctxt "@label device"
-#| msgid "Total sectors:"
+#, kde-format
 msgid "Total Sectors: "
-msgstr "総セクター数:"
+msgstr "総セクター数: "
 
 #. i18n: ectx: property (text), widget (QLabel, m_LabelTextTotalUsedSize)
 #: gui/volumegroupwidgetbase.ui:186
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Size:"
+#, kde-format
 msgid "Used Size: "
-msgstr "サイズ:"
+msgstr "使用済みサイズ: "
 
 #: main.cpp:77
 #, kde-kuit-format
@@ -3635,22 +3463,20 @@ msgid "<application>KDE Partition Manager</application>"
 msgstr "<application>KDE パーティションマネージャ</application>"
 
 #: main.cpp:79
-#, fuzzy, kde-kuit-format
-#| msgctxt "@title"
-#| msgid "Manage your disks, partitions and file systems"
+#, kde-kuit-format
 msgctxt "@title"
 msgid "Manage your disks, partitions and file systems"
 msgstr "ディスク、パーティション、ファイルシステムを管理します"
 
 #: main.cpp:81
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info:credit"
-#| msgid "(c) 2008 Volker Lanz"
+#, kde-kuit-format
 msgctxt "@info:credit"
 msgid ""
 "© 2008-2013 Volker Lanz\n"
 "© 2012-2020 Andrius Štikonas"
-msgstr "(c) 2008 Volker Lanz"
+msgstr ""
+"© 2008-2013 Volker Lanz\n"
+"© 2012-2020 Andrius Štikonas"
 
 #: main.cpp:85
 #, kde-kuit-format
@@ -3668,7 +3494,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info:credit"
 msgid "Andrius Štikonas"
-msgstr ""
+msgstr "Andrius Štikonas"
 
 #: main.cpp:86
 #, kde-kuit-format
@@ -3680,7 +3506,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info:credit"
 msgid "Teo Mrnjavac"
-msgstr ""
+msgstr "Teo Mrnjavac"
 
 #: main.cpp:87
 #, kde-format
@@ -3692,7 +3518,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info:credit"
 msgid "Chantara Tith"
-msgstr ""
+msgstr "Chantara Tith"
 
 #: main.cpp:88
 #, kde-format
@@ -3704,7 +3530,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info:credit"
 msgid "Pali Rohár"
-msgstr ""
+msgstr "Pali Rohár"
 
 #: main.cpp:89
 #, kde-format
@@ -3715,7 +3541,7 @@ msgstr ""
 #: main.cpp:90
 #, kde-format
 msgid "Hugo Pereira Da Costa"
-msgstr ""
+msgstr "Hugo Pereira Da Costa"
 
 #: main.cpp:90
 #, fuzzy, kde-kuit-format
@@ -3729,7 +3555,7 @@ msgstr "パーティションのタイプ:"
 #, kde-kuit-format
 msgctxt "@info:credit"
 msgid "Caio Jordão Carvalho"
-msgstr ""
+msgstr "Caio Jordão Carvalho"
 
 #: main.cpp:91
 #, kde-format
@@ -3770,12 +3596,10 @@ msgstr "パーティションのタイプ:"
 
 #. i18n: ectx: label, entry (alignDefault), group (KDE Partition Manager)
 #: partitionmanager.kcfg:57
-#, fuzzy, kde-format
-#| msgctxt "@info:tooltip"
-#| msgid "New partition"
+#, kde-format
 msgctxt "@label"
 msgid "Align partitions per default"
-msgstr "新しいパーティションを作成します"
+msgstr "パーティションを既定でアライメントする"
 
 #. i18n: ectx: label, entry, group (KDE Partition Manager)
 #: partitionmanager.kcfg:61
@@ -3786,22 +3610,21 @@ msgid "File system colors"
 msgstr "ファイルシステム"
 
 #. i18n: ectx: label, entry, group (KDE Partition Manager)
-#: partitionmanager.kcfg:139
+#: partitionmanager.kcfg:141
 #, kde-format
 msgctxt "@label"
 msgid "Show the application's menu bar"
 msgstr ""
 
 #. i18n: ectx: label, entry, group (KDE Partition Manager)
-#: partitionmanager.kcfg:143
-#, fuzzy, kde-format
-#| msgid "LibParted version:"
+#: partitionmanager.kcfg:145
+#, kde-format
 msgctxt "@label"
 msgid "Backend plugin"
-msgstr "LibParted のバージョン:"
+msgstr "バックエンドプラグイン"
 
 #. i18n: ectx: label, entry, group (KDE Partition Manager)
-#: partitionmanager.kcfg:149
+#: partitionmanager.kcfg:151
 #, kde-format
 msgctxt "@label"
 msgid "Preferred unit:"
@@ -3819,7 +3642,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@title:window"
 msgid "Error: Could Not Load Backend Plugin"
-msgstr ""
+msgstr "エラー: バックエンドプラグインを読み込めませんでした"
 
 #: util/guihelpers.cpp:57
 #, kde-kuit-format
@@ -3834,15 +3657,3 @@ msgstr ""
 msgctxt "@title:menu"
 msgid "Columns"
 msgstr ""
-
-#, fuzzy
-#~| msgctxt "@label device"
-#~| msgid "Cylinder size:"
-#~ msgid "&Cylinder alignment"
-#~ msgstr "シリンダーサイズ:"
-
-#, fuzzy
-#~| msgctxt "@label"
-#~| msgid "Partition type:"
-#~ msgid "Sector based align&ment"
-#~ msgstr "パーティションのタイプ:"

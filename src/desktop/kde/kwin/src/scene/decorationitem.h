@@ -10,12 +10,16 @@
 
 namespace KDecoration3
 {
+
 class Decoration;
+
 }
 
 namespace KWin
 {
 
+class Atlas;
+class ItemRenderer;
 class OutlinedBorderItem;
 class GLTexture;
 class Window;
@@ -23,7 +27,9 @@ class LogicalOutput;
 
 namespace Decoration
 {
+
 class DecoratedWindowImpl;
+
 }
 
 class KWIN_EXPORT DecorationRenderer : public QObject
@@ -31,99 +37,42 @@ class KWIN_EXPORT DecorationRenderer : public QObject
     Q_OBJECT
 
 public:
-    virtual void render(const Region &region) = 0;
+    enum class DecorationPart : int {
+        Left,
+        Top,
+        Right,
+        Bottom,
+    };
+
+    explicit DecorationRenderer(Decoration::DecoratedWindowImpl *client);
+    ~DecorationRenderer();
+
+    Atlas *atlas(RenderDevice *device) const;
+    bool needsRepaint(RenderDevice *device) const;
+    void render(ItemRenderer *renderer, const RegionF &region);
     void invalidate();
 
     // TODO: Move damage tracking inside DecorationItem.
-    Region damage() const;
-    void addDamage(const Region &region);
-    void resetDamage();
+    RegionF damage(RenderDevice *device) const;
+    void addDamage(const RegionF &region);
+    void resetDamage(RenderDevice *device);
 
     qreal effectiveDevicePixelRatio() const;
     qreal devicePixelRatio() const;
     void setDevicePixelRatio(qreal dpr);
 
-    // Reserve some space for padding. We pad decoration parts to avoid texture bleeding.
-    static const int TexturePad = 1;
+    void releaseResources(RenderDevice *device);
 
 Q_SIGNALS:
-    void damaged(const Region &region);
-
-protected:
-    explicit DecorationRenderer(Decoration::DecoratedWindowImpl *client);
-
-    Decoration::DecoratedWindowImpl *client() const;
-
-    bool areImageSizesDirty() const
-    {
-        return m_imageSizesDirty;
-    }
-    void resetImageSizesDirty()
-    {
-        m_imageSizesDirty = false;
-    }
-    void renderToPainter(QPainter *painter, const RectF &rect);
+    void damaged(const RegionF &region);
 
 private:
     QPointer<Decoration::DecoratedWindowImpl> m_client;
-    Region m_damage;
+    QHash<RenderDevice *, RegionF> m_damage;
     qreal m_devicePixelRatio = 1;
-    bool m_imageSizesDirty;
-};
-
-class SceneOpenGLDecorationRenderer : public DecorationRenderer
-{
-    Q_OBJECT
-public:
-    enum class DecorationPart : int {
-        Left,
-        Top,
-        Right,
-        Bottom,
-        Count
-    };
-    explicit SceneOpenGLDecorationRenderer(Decoration::DecoratedWindowImpl *client);
-    ~SceneOpenGLDecorationRenderer() override;
-
-    void render(const Region &region) override;
-
-    GLTexture *texture()
-    {
-        return m_texture.get();
-    }
-    GLTexture *texture() const
-    {
-        return m_texture.get();
-    }
-
-private:
-    void renderPart(const RectF &rect, const RectF &partRect, const QPoint &textureOffset, qreal devicePixelRatio, bool rotated = false);
-    static const QMargins texturePadForPart(const RectF &rect, const RectF &partRect);
-    void resizeTexture();
-    int toNativeSize(double size) const;
-    std::unique_ptr<GLTexture> m_texture;
-};
-
-class SceneQPainterDecorationRenderer : public DecorationRenderer
-{
-    Q_OBJECT
-public:
-    enum class DecorationPart : int {
-        Left,
-        Top,
-        Right,
-        Bottom,
-        Count
-    };
-    explicit SceneQPainterDecorationRenderer(Decoration::DecoratedWindowImpl *client);
-
-    void render(const Region &region) override;
-
-    QImage image(DecorationPart part) const;
-
-private:
-    void resizeImages();
-    QImage m_images[int(DecorationPart::Count)];
+    std::unordered_set<RenderDevice *> m_imageSizesNotDirty;
+    QImage m_images[4];
+    std::unordered_map<RenderDevice *, std::unique_ptr<Atlas>> m_atlas;
 };
 
 /**
@@ -137,11 +86,11 @@ public:
     explicit DecorationItem(KDecoration3::Decoration *decoration, Window *window, Item *parent = nullptr);
     ~DecorationItem() override;
 
-    DecorationRenderer *renderer() const;
+    Atlas *atlas(RenderDevice *device) const;
     Window *window() const;
 
-    QList<RectF> shape() const override final;
-    Region opaque() const override final;
+    RegionF shape() const override final;
+    RegionF opaque() const override final;
 
 private Q_SLOTS:
     void handleDecorationGeometryChanged();
@@ -149,8 +98,9 @@ private Q_SLOTS:
     void updateOutline();
 
 protected:
-    void preprocess() override;
-    WindowQuadList buildQuads() const override;
+    void preprocess(ItemRenderer *renderer) override;
+    WindowQuadList buildQuads(ItemRenderer *renderer) const override;
+    void releaseResources(RenderDevice *device) override;
 
 private:
     Window *m_window;

@@ -15,11 +15,14 @@ WiredSecurity::WiredSecurity(const NetworkManager::Security8021xSetting::Ptr &se
     m_ui->setupUi(this);
 
     m_8021xWidget = new Security8021x(m_8021xSetting, Security8021x::Ethernet, this);
+    connect(m_8021xWidget, &Security8021x::validChanged, this, &SettingWidget::validChanged);
+    connect(m_8021xWidget, &Security8021x::validChanged, this, &WiredSecurity::slotWidgetChanged);
     m_8021xWidget->setDisabled(true);
 
     m_ui->verticalLayout->addWidget(m_8021xWidget);
 
     connect(m_ui->use8021X, &QCheckBox::toggled, m_8021xWidget, &Security8021x::setEnabled);
+    connect(m_ui->use8021X, &QCheckBox::toggled, this, &SettingWidget::validChanged);
 
     // Connect for setting check
     watchChangedSetting();
@@ -67,6 +70,16 @@ QVariantMap WiredSecurity::setting() const
     }
 
     return {};
+}
+
+bool WiredSecurity::isValid() const
+{
+    if (m_ui->use8021X && m_ui->use8021X->isChecked()) {
+        return m_8021xWidget->isValid();
+    } else {
+        // We are valid when this setting is off
+        return true;
+    }
 }
 
 #include "moc_wiredsecurity.cpp"

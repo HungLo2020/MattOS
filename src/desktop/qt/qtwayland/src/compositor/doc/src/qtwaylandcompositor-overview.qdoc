@@ -28,10 +28,10 @@
   An application manager would typically implement additional features such as
   application life cycle, virtual keyboard input, security, and Inter-Process
   Communication (IPC). Qt provides the APIs that can be used to develop the
-  remaining parts of an application manager in other modules. The
-  \l {https://www.qt.io/qt-automotive-suite/}{Qt Automotive Suite} provides
-  \l{https://doc.qt.io/QtApplicationManager}{Qt Application Manager}, which is a complete application manager that
-  includes a compositor developed using Qt Wayland Compositor.
+  remaining parts of an application manager in other modules. In fact, Qt also
+  provides \l{https://doc.qt.io/QtApplicationManager}{Qt Application Manager},
+  a complete application manager that includes a higher-level QML API built on
+  Qt Wayland Compositor for implementing a custom compositor.
 
   For more information on Wayland, see \l{Wayland and Qt}.
 
@@ -49,24 +49,24 @@
 
   \section1 Environment Variables and Command-line Arguments
 
-  The Qt Wayland Compositor recognizes the following environment variables and
-  command-line arguments:
+  The following is an incomplete list of environment variables and command-line
+  arguments recognized by Qt Wayland Compositor:
 
   \list
   \li Environment variables:
       \list
-      \li \b QT_WAYLAND_HARDWARE_INTEGRATION Selects the hardware integration
-          plugin to use.
-      \li \b QT_WAYLAND_CLIENT_BUFFER_INTEGRATION Selects the client buffer
-          integration plugin to use.
-      \li \b QT_WAYLAND_SERVER_BUFFER_INTEGRATION Selects the server
-          integration plugin to use.
+      \li \b QT_WAYLAND_HARDWARE_INTEGRATION Defines the client buffer (hardware) integrations
+          the compositor should offer. Accepts a semicolon separated list (e.g.
+          "linux-dmabuf-unstable-v1;wayland-egl").
+      \li \b QT_WAYLAND_CLIENT_BUFFER_INTEGRATION Same as QT_WAYLAND_HARDWARE_INTEGRATION (which
+           takes precedence) for the compositor, but also evaluated by clients. Only a single
+           integration is accepted by clients.
       \li \b QT_IVI_SURFACE_ID Specifies the IVI surface ID for the client's surface
           in IVI-compositor environments.
       \endlist
   \li Command-line arguments:
       \list
-      \li \c{--wayland-socket-name} Overrides the default socket name used for
+      \li \c{--wayland-socket-name <name>} Overrides the default socket name used for
           communicating with clients.
       \endlist
   \endlist
@@ -85,7 +85,7 @@
   It requires support in the OpenGL driver on the system for this to work.
   \endlist
 
-  Other backends may be selected by setting the \c QT_WAYLAND_CLIENT_BUFFER_INTEGRATION environment variable.
+  Other backends may be selected by setting the \c QT_WAYLAND_HARDWARE_INTEGRATION environment variable.
 
   \note If Qt Wayland Compositor is unable to initialize the client buffer backend, then it will
   fall back to using the "shared memory" backend (based on \c{wl_shm}) as a fail-safe. This backend
@@ -100,10 +100,10 @@
   is not already in use.
 
   For instance, if you want to run the \l{Fancy Compositor}{fancy-compositor}
-  example with the \c wayland-egl backend, you could use the following command line:
+  example with the \c linux-dmabuf-v1 backend, you could use the following command line:
 
   \code
-  % XDG_RUNTIME_DIR=~/my_temporary_runtime QT_XCB_GL_INTEGRATION=xcb_egl QT_WAYLAND_CLIENT_BUFFER_INTEGRATION=wayland-egl ./fancy-compositor
+  % XDG_RUNTIME_DIR=~/my_temporary_runtime QT_XCB_GL_INTEGRATION=xcb_egl QT_WAYLAND_HARDWARE_INTEGRATION=linux-dmabuf-v1 ./fancy-compositor
   \endcode
 
   The client can subsequently be run on the compositor by setting the same \c XDG_RUNTIME_DIR and
@@ -144,7 +144,7 @@
   \endlist
 
   In addition, the module provides the CMake function
-  \l{qt_generate_wayland_protocol_server_sources}{qt_generate_wayland_protocol_server_sources()}.
+  \l qt_generate_wayland_protocol_server_sources().
 
   \section1 Module Evolution
   \l{Porting to Qt 6 - Qt Wayland Compositor} lists important changes in the

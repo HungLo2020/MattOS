@@ -239,9 +239,9 @@ static void loadAndroidStyle(QPalette *defaultPalette, std::shared_ptr<AndroidSt
             // Font style
             attributeIterator = item.find("TextAppearance_textStyle"_L1);
             if (attributeIterator != item.constEnd()) {
-                const int style = int(attributeIterator.value().toDouble());
-                font.setBold(style & textStyle_bold);
-                font.setItalic(style & textStyle_italic);
+                const int textStyle = int(attributeIterator.value().toDouble());
+                font.setBold(textStyle & textStyle_bold);
+                font.setItalic(textStyle & textStyle_italic);
             }
 
             // Font typeface
@@ -488,6 +488,34 @@ Java_org_qtproject_qt_android_QtActivityDelegateBase_updateUiContrast(JNIEnv *, 
     });
 }
 
+static Qt::MotionPreference s_motionPreference = Qt::MotionPreference::NoPreference;
+
+Qt::MotionPreference QAndroidPlatformTheme::motionPreference() const
+{
+    return s_motionPreference;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_org_qtproject_qt_android_QtActivityDelegateBase_updateUiMotionScale(JNIEnv *, jobject,
+                                                                         jfloat newUiMotion)
+{
+    const Qt::MotionPreference preference = qFuzzyIsNull(newUiMotion)
+                                                ? Qt::MotionPreference::ReducedMotion
+                                                : Qt::MotionPreference::NoPreference;
+
+    if (!qGuiApp) {
+        s_motionPreference = preference;
+        return;
+    }
+
+    QMetaObject::invokeMethod(qGuiApp, [preference] {
+        if (s_motionPreference == preference)
+            return;
+        s_motionPreference = preference;
+        QWindowSystemInterface::handleThemeChange();
+    });
+}
+
 static inline int paletteType(QPlatformTheme::Palette type)
 {
     switch (type) {
@@ -586,6 +614,8 @@ QVariant QAndroidPlatformTheme::themeHint(ThemeHint hint) const
         return QStringList("Fusion"_L1);
     case DialogButtonBoxLayout:
         return QVariant(QPlatformDialogHelper::AndroidLayout);
+    case PreferFileIconFromTheme:
+        return true;
     case MouseDoubleClickDistance:
     {
             int minimumDistance = qEnvironmentVariableIntValue("QT_ANDROID_MINIMUM_MOUSE_DOUBLE_CLICK_DISTANCE");
@@ -609,8 +639,6 @@ QVariant QAndroidPlatformTheme::themeHint(ThemeHint hint) const
 
             Q_FALLTHROUGH();
     }
-    case PreferFileIconFromTheme:
-        return true;
     default:
         return QPlatformTheme::themeHint(hint);
     }

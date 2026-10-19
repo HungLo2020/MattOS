@@ -1,19 +1,20 @@
 # Translation of kcm_gamecontroller to Norwegian Nynorsk
 #
+# Karl Ove Hufthammer <karl@huftis.org>, 2024, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-15 03:00+0000\n"
-"PO-Revision-Date: 2026-03-01 20:22+0100\n"
+"POT-Creation-Date: 2026-06-05 00:46+0000\n"
+"PO-Revision-Date: 2026-07-25 16:08+0200\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 26.03.70\n"
+"X-Generator: Lokalize 26.11.70\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
@@ -180,31 +181,31 @@ msgstr "Y-knapp"
 #, kde-format
 msgctxt "The back game controller button"
 msgid "Back button"
-msgstr "Tilbakeknapp"
+msgstr "Tilbake-knapp"
 
 #: device.cpp:53
 #, kde-format
 msgctxt "The guide game controller button"
 msgid "Guide button"
-msgstr "Guideknapp"
+msgstr "Guide-knapp"
 
 #: device.cpp:54
 #, kde-format
 msgctxt "The start game controller button"
 msgid "Start button"
-msgstr "Startknapp"
+msgstr "Start-knapp"
 
 #: device.cpp:55
 #, kde-format
 msgctxt "The button under the game controller's left analog stick"
 msgid "Left analog stick"
-msgstr "Venstre analog styrespak"
+msgstr "Venstre tommelspak"
 
 #: device.cpp:56
 #, kde-format
 msgctxt "The button under the game controller's right analog stick"
 msgid "Right analog stick"
-msgstr "Høgre analog styrespak"
+msgstr "Høgre tommelspak"
 
 #: device.cpp:57
 #, kde-format
@@ -303,7 +304,7 @@ msgstr "Bluetooth"
 msgid "Invalid button value"
 msgstr "Ugyldig knappverdi"
 
-#: device.cpp:246
+#: device.cpp:251
 #, kde-format
 msgid "Not a controller"
 msgstr "Ikkje ein spelkontrollar"
@@ -353,9 +354,9 @@ msgid ""
 "keyboard."
 msgstr ""
 "Systemet kan automatisk gå i dvale eller låsa skjermen når (berre) spel­"
-"kontrollaren vert brukt. Vurdera å manuelt blokkera dette når du brukar spel­"
-"kontrollaren, eller slå på automatisk blokkering vera å tillata av spel­"
-"kontrollaren vert brukt som styrepeikar og tastatur."
+"kontrollaren vert brukt. Vurder å manuelt blokkera dette når du brukar spel­"
+"kontrollaren, eller slå på automatisk blokkering ved å la spel­kontrollaren "
+"verta brukt som styrepeikar og tastatur."
 
 #: ui/main.qml:97
 #, kde-format

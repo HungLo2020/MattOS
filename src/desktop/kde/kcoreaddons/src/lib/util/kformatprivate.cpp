@@ -598,7 +598,7 @@ QString KFormatPrivate::formatRelativeDate(const QDate &date, QLocale::FormatTyp
 
 QString KFormatPrivate::formatRelativeDateTime(const QDateTime &dateTime, QLocale::FormatType format) const
 {
-    const QDateTime now = QDateTime::currentDateTime();
+    const QDateTime now = QDateTime::currentDateTime(QTimeZone::UTC);
 
     const auto secsToNow = dateTime.secsTo(now);
     constexpr int secsInAHour = 60 * 60;
@@ -660,7 +660,9 @@ QString KFormatPrivate::formatRelativeDateTime(const QDateTime &dateTime, QLocal
 
 QString KFormatPrivate::formatTime(const QDateTime &dateTime, QLocale::FormatType format, KFormat::TimeFormatOptions options) const
 {
-    auto output = m_locale.toString(dateTime.time(), format);
+    // Remove the long timezone. The TZ abbreviation might be appended later.
+    auto noTzTimeFormat = m_locale.timeFormat(format).remove("tttt"_L1).trimmed();
+    auto output = m_locale.toString(dateTime.time(), noTzTimeFormat);
     if (options == KFormat::DoNotAddTimeZone || dateTime.timeSpec() == Qt::LocalTime
         || ((options & KFormat::AddTimezoneAbbreviationIfNeeded) && !needsTimeZone(dateTime))) {
         return output;

@@ -2,6 +2,7 @@
 Keys=php
 Name=PHP Search
 Name[af]=PHP Soektog
+Name[am]=PHP ፍለጋ
 Name[ar]=بحث PHP
 Name[as]=PHP Search
 Name[az]=PHP Axtarış
@@ -60,6 +61,8 @@ Name[ml]=പിഎച്പി (PHP) തെരച്ചില്‍
 Name[mr]=PHP शोध
 Name[ms]=Carian PHP
 Name[my]=ပီအိပ့်ချ်ပီ ရှာရန်
+Name[nan_TW]=PHP 搜揣
+Name[nan_TW@latin]=PHP Tshiau-tshuē
 Name[nb]=PHP-søk
 Name[nds]=PHP-Söök
 Name[ne]=PHP खोजी
@@ -98,6 +101,7 @@ Name[xh]=Uphendlo lwe PHP
 Name[zh_CN]=PHP 搜索
 Name[zh_TW]=PHP 搜尋
 Query=https://secure.php.net/manual-lookup.php?pattern=\\{@}
+Query[am]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[ar]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[az]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[be]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
@@ -137,6 +141,8 @@ Query[lg]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[lt]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[lv]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[my]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
+Query[nan_TW]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
+Query[nan_TW@latin]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[nb]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[nl]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[nn]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
@@ -155,7 +161,6 @@ Query[tg]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[th]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[tok]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[tr]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
-Query[ug]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[uk]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[vi]=https://secure.php.net/manual-lookup.php?pattern=\\{@}
 Query[zh_CN]=https://secure.php.net/manual-lookup.php?pattern=\\{@}

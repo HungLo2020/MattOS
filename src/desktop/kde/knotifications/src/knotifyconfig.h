@@ -23,6 +23,18 @@ class KNOTIFICATIONS_EXPORT KNotifyConfig
 {
 public:
     /*!
+     * \value Popup Show a popup
+     * \value Sound Play a sound
+     *
+     * \since 6.30
+     */
+    enum Action {
+        Popup = 0x1,
+        Sound = 0x2,
+    };
+    Q_DECLARE_FLAGS(Actions, Action)
+
+    /*!
      * Creates a notify config for the given application name and event id
      *
      * \a applicationName The application name, typically the name of the notifyrc file without its extension.
@@ -77,6 +89,12 @@ public:
      * and interpret it as a path.
      */
     QString readPathEntry(const QString &key) const;
+
+    /*!
+     * The actions for this notification.
+     * \since 6.30
+     */
+    Actions actions() const;
 
     /*!
      * reparse the cached configs.  to be used when the config may have changed

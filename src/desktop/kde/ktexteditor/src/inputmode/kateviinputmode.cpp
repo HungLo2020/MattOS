@@ -11,6 +11,8 @@
 #include "kateview.h"
 #include "kateviewinternal.h"
 #include <vimode/emulatedcommandbar/emulatedcommandbar.h>
+#include <vimode/globalstate.h>
+#include <vimode/history.h>
 #include <vimode/macrorecorder.h>
 #include <vimode/marks.h>
 #include <vimode/modes/replacevimode.h>
@@ -28,10 +30,10 @@ QString viModeToString(KateVi::ViMode mode)
     QString modeStr;
     switch (mode) {
     case KateVi::InsertMode:
-        modeStr = i18n("VI: INSERT MODE");
+        modeStr = i18nc("The INSERT mode of VI", "VI: INSERT");
         break;
     case KateVi::NormalMode:
-        modeStr = i18n("VI: NORMAL MODE");
+        modeStr = i18nc("The NORMAL mode of VI", "VI: NORMAL");
         break;
     case KateVi::VisualMode:
         modeStr = i18n("VI: VISUAL");
@@ -70,8 +72,10 @@ void KateViInputMode::activate()
     reset(); // TODO: is this necessary? (well, not anymore I guess)
 
     if (view()->selection()) {
-        m_viModeManager->changeViMode(KateVi::VisualMode);
+        const KateVi::ViMode mode = view()->blockSelection() ? KateVi::VisualBlockMode : KateVi::VisualMode;
+        m_viModeManager->changeViMode(mode);
         view()->setCursorPosition(KTextEditor::Cursor(view()->selectionRange().end().line(), view()->selectionRange().end().column() - 1));
+        m_viModeManager->m_viVisualMode->setVisualModeType(mode);
         m_viModeManager->m_viVisualMode->updateSelection();
     }
     viewInternal()->iconBorder()->setRelLineNumbersOn(m_relLineNumbers);
@@ -169,7 +173,15 @@ QString KateViInputMode::viewModeHuman() const
 
 void KateViInputMode::gotFocus()
 {
-    // nothing to do
+    // Store the last visited files in the filename history
+    const QString fileName = view()->doc()->url().fileName();
+    KateVi::History *history = m_viModeManager->globalState()->filenameHistory();
+
+    if (!history->isEmpty() && fileName == history->items().last()) {
+        return;
+    }
+
+    history->append(fileName);
 }
 
 void KateViInputMode::lostFocus()

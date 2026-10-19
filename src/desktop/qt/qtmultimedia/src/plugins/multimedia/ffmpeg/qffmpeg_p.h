@@ -167,15 +167,10 @@ using AVHWFramesConstraintsUPtr =
         std::unique_ptr<AVHWFramesConstraints, AVDeleter<av_hwframe_constraints_free>>;
 using SwrContextUPtr = std::unique_ptr<SwrContext, AVDeleter<swr_free>>;
 using SwsContextUPtr = std::unique_ptr<SwsContext, AVDeleter<sws_freeContext>>;
+using AVDemuxerContextUPtr = std::unique_ptr<AVFormatContext, AVDeleter<avformat_close_input>>;
+using AVMuxerContextUPtr = std::unique_ptr<AVFormatContext, AVDeleter<avformat_free_context>>;
 
-bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format);
-
-// Returns true if the range contains the value, false otherwise
-template <typename Value>
-bool hasValue(QSpan<const Value> range, Value value)
-{
-    return ranges::contains(range, value);
-}
+bool isAVFormatSupported(const Codec &, const PixelOrSampleFormat &);
 
 // Search for the first element in the range that satisfies the predicate
 // The predicate is evaluated for each value in the range until it returns
@@ -234,35 +229,43 @@ void forEachAVPixelFormat(const Codec &codec, const Function &function)
 template <typename ValueT, typename ScoreT = AVScore>
 struct ValueAndScore
 {
-    std::optional<ValueT> value;
+    ValueT value;
     ScoreT score = std::numeric_limits<ScoreT>::min();
 };
 
-template <typename Value, typename CalculateScore,
+template <typename ValueRange, typename CalculateScore,
+          typename Value = QtMultimediaPrivate::ranges::range_value_t<ValueRange>,
           typename ScoreType = std::invoke_result_t<CalculateScore, Value>>
-ValueAndScore<Value, ScoreType> findBestAVValueWithScore(QSpan<const Value> values,
-                                                         const CalculateScore &calculateScore)
+std::optional<ValueAndScore<Value, ScoreType>>
+findBestAVValueWithScore(ValueRange &&values, const CalculateScore &calculateScore)
 {
     static_assert(std::is_invocable_v<CalculateScore, Value>);
 
-    ValueAndScore<Value, ScoreType> result;
+    std::optional<ValueAndScore<Value, ScoreType>> result;
     for (const Value &val : values) {
         const ScoreType score = calculateScore(val);
-        if (score > result.score)
-            result = { val, score }; // Note: Optional is only set if score > Limits::min()
+        if (score == std::numeric_limits<ScoreType>::min())
+            continue;
 
-        if (result.score == std::numeric_limits<ScoreType>::max())
-            break;
+        if (!result || score > result->score)
+            result = { val, score };
+
+        if (result->score == std::numeric_limits<ScoreType>::max())
+            return result;
     }
 
     return result;
 }
 
-template <typename Value, typename CalculateScore>
-std::optional<Value> findBestAVValue(QSpan<const Value> values,
-                                     const CalculateScore &calculateScore)
+template <typename ValueRange, typename CalculateScore,
+          typename Value = QtMultimediaPrivate::ranges::range_value_t<ValueRange>>
+std::optional<Value> findBestAVValue(ValueRange &&values, const CalculateScore &calculateScore)
 {
-    return findBestAVValueWithScore(values, calculateScore).value;
+    auto optionalValueAndScore = findBestAVValueWithScore(values, calculateScore);
+    if (optionalValueAndScore)
+        return optionalValueAndScore->value;
+    else
+        return std::nullopt;
 }
 
 bool isHwPixelFormat(AVPixelFormat format);
@@ -311,12 +314,29 @@ enum class AVError : int {
     Success = 0,
 };
 
+enum class AVCodecCapabilities : uint64_t { };
+enum class AVPixelFormatFlags : uint64_t { };
+enum class AVHwConfigMethods : uint64_t { };
+
+QString toString(AVCodecCapabilities capabilities);
+QString toString(AVPixelFormatFlags flags);
+QString toString(AVHwConfigMethods methods);
+
 } // namespace QFFmpeg
 
 QDebug operator<<(QDebug, const AVRational &);
 QDebug operator<<(QDebug, const AVDictionary &);
 QDebug operator<<(QDebug, const QFFmpeg::AVDictionaryHolder &);
 QDebug operator<<(QDebug, QFFmpeg::AVError);
+QDebug operator<<(QDebug, AVPixelFormat);
+QDebug operator<<(QDebug, AVHWDeviceType);
+QDebug operator<<(QDebug, AVMediaType);
+QDebug operator<<(QDebug, AVCodecID);
+QDebug operator<<(QDebug, const AVOutputFormat *);
+QDebug operator<<(QDebug, const AVInputFormat *);
+QDebug operator<<(QDebug, QFFmpeg::AVCodecCapabilities);
+QDebug operator<<(QDebug, QFFmpeg::AVPixelFormatFlags);
+QDebug operator<<(QDebug, QFFmpeg::AVHwConfigMethods);
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug, const AVChannelLayout &);

@@ -5,6 +5,8 @@
 ## QuickEffects Module:
 #####################################################################
 
+set_source_files_properties(BlurItem.qml PROPERTIES QT_QML_INTERNAL_TYPE TRUE)
+
 qt_internal_add_qml_module(QuickEffects
     URI "QtQuick.Effects"
     VERSION "${PROJECT_VERSION}"
@@ -17,6 +19,8 @@ qt_internal_add_qml_module(QuickEffects
         qgfxsourceproxy.cpp qgfxsourceproxy_p.h
         qtquickeffectsglobal_p.h
         qquickrectangularshadow.cpp qquickrectangularshadow_p.h qquickrectangularshadow_p_p.h
+    QML_FILES
+        BlurItem.qml
     DEFINES
         QT_NO_INTEGER_EVENT_COORDINATES
         QT_NO_URL_CAST_FROM_STRING
@@ -36,13 +40,6 @@ qt_internal_add_qml_module(QuickEffects
         Qt::QmlPrivate
         Qt::QuickPrivate
     )
-
-qt_internal_add_resource(QuickEffects "effects"
-    PREFIX
-        "/"
-    FILES
-        "data/BlurItem.qml"
-)
 
 qt_internal_extend_target(QuickEffects CONDITION MSVC
     DEFINES

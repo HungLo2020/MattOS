@@ -16,8 +16,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_platform_cursor-0");
-
 class PlatformCursorTest : public QObject
 {
     Q_OBJECT
@@ -28,7 +26,7 @@ private Q_SLOTS:
 
 void PlatformCursorTest::initTestCase()
 {
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),

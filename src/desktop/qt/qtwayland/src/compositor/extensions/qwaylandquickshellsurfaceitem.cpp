@@ -66,10 +66,10 @@ QWaylandQuickShellSurfaceItem *QWaylandQuickShellSurfaceItemPrivate::maybeCreate
  * \since 5.8
  * \brief A Qt Quick item type for displaying and interacting with a ShellSurface.
  *
- * This type is used to render \c wl_shell, \c xdg_shell or \c ivi_application surfaces as part of
- * a Qt Quick scene. It handles moving and resizing triggered by clicking on the window decorations.
+ * This type is used to render \c xdg_shell, \c ivi_application, \c wl_shell or \c qt_shell
+ * surfaces as part of a Qt Quick scene.
  *
- * \sa WaylandQuickItem, WlShellSurface, IviSurface
+ * \sa WaylandQuickItem, XdgSurface, IviSurface, QtShellSurface, WlShellSurface
  */
 
 /*!
@@ -78,10 +78,10 @@ QWaylandQuickShellSurfaceItem *QWaylandQuickShellSurfaceItemPrivate::maybeCreate
  * \since 5.8
  * \brief The QWaylandQuickShellSurfaceItem class provides a Qt Quick item that represents a QWaylandShellSurface.
  *
- * This class is used to render \c wl_shell, \c xdg_shell or \c ivi_application surfaces as part of
- * a Qt Quick scene. It handles moving and resizing triggered by clicking on the window decorations.
+ * This type is used to render \c xdg_shell, \c ivi_application, \c wl_shell or \c qt_shell
+ * surfaces as part of a Qt Quick scene.
  *
- * \sa QWaylandQuickItem, QWaylandWlShellSurface, QWaylandIviSurface
+ * \sa QWaylandQuickItem, QWaylandXdgSurface, QWaylandIviSurface, QWaylandWlShellSurface
  */
 
 /*!
@@ -172,6 +172,7 @@ void QWaylandQuickShellSurfaceItem::setMoveItem(QQuickItem *moveItem)
 
 /*!
  * \qmlproperty bool QtWayland.Compositor::ShellSurfaceItem::autoCreatePopupItems
+ * \default true
  *
  * This property holds whether ShellSurfaceItems for popups parented to the shell
  * surface managed by this item should automatically be created.

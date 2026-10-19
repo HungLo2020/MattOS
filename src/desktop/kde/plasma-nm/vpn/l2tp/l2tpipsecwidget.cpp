@@ -160,6 +160,7 @@ void L2tpIpsecWidget::loadConfig(const NetworkManager::VpnSetting::Ptr &setting)
 
         m_ui->cbForceEncaps->setChecked(dataMap[NM_L2TP_KEY_IPSEC_FORCEENCAPS] == yesString);
         m_ui->cbIPComp->setChecked(dataMap[NM_L2TP_KEY_IPSEC_IPCOMP] == yesString);
+        m_ui->cbIKEv2->setChecked(dataMap[NM_L2TP_KEY_IPSEC_IKEV2] == yesString);
 
         if (m_ipsecDaemonType == IpsecDaemonType::Libreswan) {
             m_ui->cbPFS->setChecked(dataMap[NM_L2TP_KEY_IPSEC_PFS] == noString);
@@ -184,6 +185,8 @@ void L2tpIpsecWidget::loadConfig(const NetworkManager::VpnSetting::Ptr &setting)
 void L2tpIpsecWidget::loadSecrets(const NetworkManager::VpnSetting::Ptr &setting)
 {
     const NMStringMap secrets = setting->secrets();
+
+    m_ui->machineKeyPassword->setText(secrets[NM_L2TP_KEY_MACHINE_CERTPASS]);
 
     QString psk = secrets[NM_L2TP_KEY_IPSEC_PSK];
     if (psk.length() > 2 && psk.startsWith(QLatin1String("0s"))) {
@@ -277,6 +280,10 @@ NMStringMap L2tpIpsecWidget::setting() const
 
         if (m_ui->cbIPComp->isChecked()) {
             result.insert(NM_L2TP_KEY_IPSEC_IPCOMP, yesString);
+        }
+
+        if (m_ui->cbIKEv2->isChecked()) {
+            result.insert(NM_L2TP_KEY_IPSEC_IKEV2, yesString);
         }
 
         if (m_ipsecDaemonType == IpsecDaemonType::Libreswan) {

@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-28 02:46+0000\n"
-"PO-Revision-Date: 2025-10-21 06:38+0200\n"
+"POT-Creation-Date: 2026-08-11 00:47+0000\n"
+"PO-Revision-Date: 2026-08-07 06:24+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -13,7 +13,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
-"X-Generator: Poedit 3.7\n"
+"X-Generator: Poedit 3.9\n"
 
 #: kcm.cpp:78
 msgid ""
@@ -35,7 +35,7 @@ msgstr ""
 "Nastavitev Plasme ni mogoče sinhronizirati, ker uporabnik 'plasmalogin' ne "
 "obstaja. Preverite namestitev prijave v Plasmo."
 
-#: kcm.cpp:265
+#: kcm.cpp:269
 msgid ""
 "Unable to reset Plasma settings because the 'plasmalogin' user does not "
 "exist. Please check your Plasma Login install."
@@ -95,24 +95,27 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
-"<para><list><item>Color scheme</item><item>Cursor theme and size</"
-"item><item>Font and font rendering</item><item>NumLock preference</"
-"item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
-"configuration</item></list></para>"
+"<para><list><item>Language and locale settings</item><item>Keyboard layouts</"
+"item><item>Screen arrangement, scale, and orientation settings</"
+"item><item>NumLock preference</item><item>Font and font rendering settings</"
+"item><item>Color scheme</item><item>Cursor theme and size</item><item>Plasma "
+"theme</item></list></para>"
 msgstr ""
-"<para><list><item>Barva shema</item><item>Tema kazalke in velikost</"
-"item><item>Pisava in upodobitve pisave</item><item>Prednost NumLock</"
-"item><item>Tema Plasme</item><item>Umerjenost DPI</item><item>Konfiguracija "
-"zaslona</item></list></para>"
+"<para><list><item>Nastavitve jezika in področnih nastavitev</"
+"item><item>Razporeditve tipkovnice</item><item>Nastavitve razporeditve, "
+"merila in orientacije zaslona</item><item>Nastavitve NumLock</"
+"item><item>Nastavitve pisave in upodabljanja pisave</item><item>Barvna "
+"shema</item><item>Tema in velikost kazalca</item><item>Tema Plasme</item></"
+"list></para>"
 
 #: ui/main.qml:67
 #, kde-format
 msgid ""
-"Please note that theme files must be installed globally to be reflected on "
-"the Plasma login screen."
+"Please note that theme and font files must be installed globally to be "
+"reflected on the Plasma login screen."
 msgstr ""
-"Upoštevajte, da morajo biti datoteke teme nameščene globalno, da se odražajo "
-"na prijavnem zaslonu Plasme."
+"Upoštevajte, da morajo biti datoteke teme in pisav nameščene globalno, da se "
+"odražajo na prijavnem zaslonu Plasme."
 
 #: ui/main.qml:71
 #, kde-format
@@ -138,7 +141,7 @@ msgctxt "@option:check"
 msgid "Automatically log in:"
 msgstr "Samodejno se prijavi:"
 
-#: ui/main.qml:99
+#: ui/main.qml:100
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the user to log in "
@@ -146,7 +149,7 @@ msgctxt ""
 msgid "as user:"
 msgstr "kot uporabnik:"
 
-#: ui/main.qml:154
+#: ui/main.qml:150
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the session that is started "
@@ -154,7 +157,7 @@ msgctxt ""
 msgid "with session:"
 msgstr "s sejo:"
 
-#: ui/main.qml:187
+#: ui/main.qml:180
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -169,42 +172,42 @@ msgstr ""
 "da ima prazno geslo. Upoštevajte, da to ni varno in se to sme izvajati le v "
 "zaupanja vrednem okolju."
 
-#: ui/main.qml:192
+#: ui/main.qml:185
 #, kde-format
 msgid "Open KDE Wallet Settings"
 msgstr "Odprite nastavitve denarnice KDE Wallet"
 
-#: ui/main.qml:199
+#: ui/main.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Log in again immediately after logging off"
 msgstr "Po odjavi se takoj znova prijavite"
 
-#: ui/main.qml:210
+#: ui/main.qml:203
 #, kde-format
 msgctxt "@title:group"
 msgid "Defaults"
 msgstr "Privzeto"
 
-#: ui/main.qml:215
+#: ui/main.qml:208
 #, kde-format
 msgctxt "@label"
 msgid "Default user:"
 msgstr "Privzeti uporabnik:"
 
-#: ui/main.qml:221
+#: ui/main.qml:214
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in user"
 msgstr "Zadnje prijavljeni uporabnik"
 
-#: ui/main.qml:293
+#: ui/main.qml:281
 #, kde-format
 msgctxt "@label"
 msgid "Default session:"
 msgstr "Privzeta seja:"
 
-#: ui/main.qml:299
+#: ui/main.qml:287
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in session"

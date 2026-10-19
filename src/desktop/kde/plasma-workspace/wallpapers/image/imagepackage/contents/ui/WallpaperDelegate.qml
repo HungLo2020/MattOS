@@ -15,7 +15,7 @@ import org.kde.kcmutils as KCM
 KCM.GridDelegate {
     id: wallpaperDelegate
 
-    property alias color: backgroundRect.color
+    property color color
     property alias previewSize: previewImage.sourceSize
     property string key: model.source
     property list<string> selectors: model.selectors
@@ -57,7 +57,7 @@ KCM.GridDelegate {
 
     thumbnail: Rectangle {
         id: backgroundRect
-        color: cfg_Color
+        color: previewImage.status === Image.Ready ? wallpaperDelegate.color : Kirigami.Theme.backgroundColor
         anchors.fill: parent
 
         Kirigami.Icon {
@@ -101,18 +101,6 @@ KCM.GridDelegate {
             anchors.top: parent.top
             checked: visible ? model.checked : false
             onToggled: model.checked = checked
-        }
-
-        Kirigami.Icon {
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: Kirigami.Units.smallSpacing
-            visible: model.selectors.includes("day-night")
-            source: "lighttable"
-            isMask: true
-            color: "white"
-            width: Kirigami.Units.iconSizes.medium
-            height: width
         }
 
         Behavior on color {

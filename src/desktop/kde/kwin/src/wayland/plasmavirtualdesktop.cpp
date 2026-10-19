@@ -8,6 +8,7 @@
 #include "wayland/quirks.h"
 
 #include <QDebug>
+#include <QSet>
 #include <QTimer>
 
 #include <qwayland-server-org-kde-plasma-virtual-desktop.h>
@@ -15,7 +16,8 @@
 
 namespace KWin
 {
-static const quint32 s_version = 3;
+
+static const quint32 s_version = 4;
 
 class PlasmaVirtualDesktopInterfacePrivate : public QtWaylandServer::org_kde_plasma_virtual_desktop
 {
@@ -28,10 +30,12 @@ public:
     QString name;
     uint position = 0;
     bool active = false;
+    QSet<QString> activeOnOutputs;
 
 protected:
     void org_kde_plasma_virtual_desktop_bind_resource(Resource *resource) override;
     void org_kde_plasma_virtual_desktop_request_activate(Resource *resource) override;
+    void org_kde_plasma_virtual_desktop_request_enter_output(Resource *resource, const QString &output_name) override;
 };
 
 class PlasmaVirtualDesktopManagementInterfacePrivate : public QtWaylandServer::org_kde_plasma_virtual_desktop_management
@@ -211,6 +215,19 @@ void PlasmaVirtualDesktopManagementInterface::removeDesktop(const QString &id)
     }
 }
 
+void PlasmaVirtualDesktopManagementInterface::setActiveDesktopForOutput(const QString &previousDesktopId, const QString &activeDesktopId, const QString &outputName)
+{
+    PlasmaVirtualDesktopInterface *activeDesktop = desktop(activeDesktopId);
+    if (activeDesktop) {
+        activeDesktop->enterOutput(outputName);
+    }
+
+    PlasmaVirtualDesktopInterface *previousDesktop = desktop(previousDesktopId);
+    if (previousDesktop) {
+        previousDesktop->leaveOutput(outputName);
+    }
+}
+
 QList<PlasmaVirtualDesktopInterface *> PlasmaVirtualDesktopManagementInterface::desktops() const
 {
     return d->desktops;
@@ -226,6 +243,11 @@ void PlasmaVirtualDesktopManagementInterface::scheduleDone()
 void PlasmaVirtualDesktopInterfacePrivate::org_kde_plasma_virtual_desktop_request_activate(Resource *resource)
 {
     Q_EMIT q->activateRequested();
+}
+
+void PlasmaVirtualDesktopInterfacePrivate::org_kde_plasma_virtual_desktop_request_enter_output(Resource *resource, const QString &output_name)
+{
+    Q_EMIT q->enterOutputRequested(output_name);
 }
 
 PlasmaVirtualDesktopInterfacePrivate::PlasmaVirtualDesktopInterfacePrivate(PlasmaVirtualDesktopInterface *q)
@@ -257,6 +279,12 @@ void PlasmaVirtualDesktopInterfacePrivate::org_kde_plasma_virtual_desktop_bind_r
 
     if (resource->version() >= ORG_KDE_PLASMA_VIRTUAL_DESKTOP_POSITION_SINCE_VERSION) {
         send_position(resource->handle, position);
+    }
+
+    if (resource->version() >= ORG_KDE_PLASMA_VIRTUAL_DESKTOP_OUTPUT_ENTERED_SINCE_VERSION) {
+        for (const auto &outputName : activeOnOutputs) {
+            send_output_entered(resource->handle, outputName);
+        }
     }
 
     send_done(resource->handle);
@@ -339,6 +367,22 @@ void PlasmaVirtualDesktopInterface::setPosition(uint position)
 uint PlasmaVirtualDesktopInterface::position() const
 {
     return d->position;
+}
+
+void PlasmaVirtualDesktopInterface::enterOutput(const QString &outputName)
+{
+    d->activeOnOutputs.insert(outputName);
+    const auto clientResources = d->resourceMap();
+    for (auto resource : clientResources) {
+        if (resource->version() >= ORG_KDE_PLASMA_VIRTUAL_DESKTOP_OUTPUT_ENTERED_SINCE_VERSION) {
+            d->send_output_entered(resource->handle, outputName);
+        }
+    }
+}
+
+void PlasmaVirtualDesktopInterface::leaveOutput(const QString &outputName)
+{
+    d->activeOnOutputs.remove(outputName);
 }
 
 void PlasmaVirtualDesktopInterface::sendDone()

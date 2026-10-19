@@ -51,7 +51,7 @@ public:
         InternalConflict,
         ConflictText,
     };
-    ShortcutsModel(const QList<ShortcutInfo> &shortcuts, QObject *parent = nullptr)
+    explicit ShortcutsModel(const QList<ShortcutInfo> &shortcuts, QObject *parent = nullptr)
         : QAbstractListModel(parent)
         , m_shortcuts(shortcuts)
     {
@@ -120,8 +120,9 @@ public:
             if (auto conflicts = m_internalConflictDetector.values(shortcut.keySequence); conflicts.size() != 1) {
                 QStringList descriptions;
                 std::ranges::sort(conflicts); // Want same order as the main view
-                for (const auto index : conflicts) {
-                    descriptions.push_back(m_shortcuts.at(index).description);
+                for (const auto conflict : conflicts) {
+                    // cppcheck-suppress useStlAlgorithm
+                    descriptions.push_back(m_shortcuts.at(conflict).description);
                 }
                 return xi18nc("@info:tooltip %1 is a list of actions",
                               "The shortcut is assigned to multiple actions (<interface>%1</interface>)",
@@ -478,8 +479,6 @@ void GlobalShortcutsSession::loadActions()
         action->setObjectName(name);
         action->setText(info.friendlyName());
         action->setShortcuts(info.keys());
-        // Explicitly load existing global shortcut setting
-        KGlobalAccel::self()->setShortcut(action.get(), action->shortcuts(), KGlobalAccel::Autoloading);
     }
 }
 

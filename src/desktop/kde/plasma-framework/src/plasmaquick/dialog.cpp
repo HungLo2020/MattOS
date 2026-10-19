@@ -8,14 +8,12 @@
 */
 
 #include "dialog.h"
-#include "../declarativeimports/core/config-x11.h"
 #include "appletquickitem.h"
-#include "config-plasma.h"
 #include "configview.h"
+#include "containmentview.h"
 #include "debug_p.h"
 #include "dialogbackground_p.h"
 #include "dialogshadows_p.h"
-#include "quickviewsharedengine.h"
 
 #include <QLayout>
 #include <QMenu>
@@ -24,19 +22,13 @@
 #include <QQuickItem>
 #include <QScreen>
 
+#include <KWindowEffects>
 #include <KWindowInfo>
 #include <KWindowSystem>
-#include <KX11Extras>
-
-#include <KWindowEffects>
 #include <Plasma/Corona>
 
 #include <QDebug>
 #include <optional>
-
-#if HAVE_X11
-#include <qpa/qplatformwindow_p.h>
-#endif
 
 #include "plasmashellwaylandintegration.h"
 
@@ -253,15 +245,8 @@ void DialogPrivate::updateTheme()
                                                  theme.backgroundSaturation(),
                                                  mask);
 
-        if (!KWindowSystem::isPlatformX11() || KX11Extras::compositingActive()) {
-            if (hasMask) {
-                hasMask = false;
-                q->setMask(QRegion());
-            }
-        } else {
-            hasMask = true;
-            q->setMask(dialogBackground->mask());
-        }
+        hasMask = true;
+        q->setMask(dialogBackground->mask());
         if (q->isVisible()) {
             DialogShadows::instance()->addWindow(q, dialogBackground->enabledBorders());
         }
@@ -711,46 +696,6 @@ QPointF DialogPrivate::positionAdjustedForMainItem(const QPointF &point) const
 
 void DialogPrivate::applyType()
 {
-    /*QXcbWindowFunctions::WmWindowType*/ int wmType = 0;
-
-#if HAVE_X11
-    if (KWindowSystem::isPlatformX11()) {
-        switch (type) {
-        case Dialog::Normal:
-            q->setFlags(Qt::FramelessWindowHint | q->flags());
-            break;
-        case Dialog::Dock:
-            wmType = QNativeInterface::Private::QXcbWindow::Dock;
-            break;
-        case Dialog::DialogWindow:
-            wmType = QNativeInterface::Private::QXcbWindow::Dialog;
-            break;
-        case Dialog::PopupMenu:
-            wmType = QNativeInterface::Private::QXcbWindow::PopupMenu;
-            break;
-        case Dialog::Tooltip:
-            wmType = QNativeInterface::Private::QXcbWindow::Tooltip;
-            break;
-        case Dialog::Notification:
-            wmType = QNativeInterface::Private::QXcbWindow::Notification;
-            break;
-        case Dialog::OnScreenDisplay:
-        case Dialog::CriticalNotification:
-        case Dialog::AppletPopup:
-            // Not supported by Qt
-            break;
-        }
-
-        if (wmType) {
-            // QXcbWindow isn't installed and thus inaccessible to us, but it does read this magic property from the window...
-            q->setProperty("_q_xcb_wm_window_type", wmType);
-        }
-    }
-#endif
-
-    if (!wmType && type != Dialog::Normal && KWindowSystem::isPlatformX11()) {
-        KX11Extras::setType(q->winId(), static_cast<NET::WindowType>(type));
-    }
     if (q->flags() & Qt::WindowStaysOnTopHint) {
         // If the AppletPopup type is not explicitly requested, then use the Dock type in this case
         // to avoid bug #454635.
@@ -812,15 +757,6 @@ void DialogPrivate::applyType()
             dialogBackground->setImagePath(prefix + QStringLiteral("dialogs/background"));
         }
     }
-
-    if (KWindowSystem::isPlatformX11()) {
-        if (type == Dialog::Dock || type == Dialog::Notification || type == Dialog::OnScreenDisplay || type == Dialog::CriticalNotification) {
-            KX11Extras::setOnAllDesktops(q->winId(), true);
-        } else {
-            KX11Extras::setOnAllDesktops(q->winId(), false);
-        }
-    }
-
     PlasmaShellWaylandIntegration::get(q)->setTakesFocus(!q->flags().testFlag(Qt::WindowDoesNotAcceptFocus));
 }
 
@@ -915,13 +851,13 @@ Dialog::Dialog(QQuickItem *parent)
     setColor(QColor(Qt::transparent));
     setFlags(Qt::FramelessWindowHint | Qt::Dialog);
 
-    connect(this, &QWindow::xChanged, [this]() {
+    connect(this, &QWindow::xChanged, this, [this]() {
         d->slotWindowPositionChanged();
     });
-    connect(this, &QWindow::yChanged, [this]() {
+    connect(this, &QWindow::yChanged, this, [this]() {
         d->slotWindowPositionChanged();
     });
-    connect(this, &Dialog::locationChanged, this, [&] {
+    connect(this, &Dialog::locationChanged, this, [this]() {
         d->updateResizableEdges();
     });
 
@@ -1080,12 +1016,6 @@ QPoint Dialog::popupPosition(QQuickItem *item, const QSize &size)
 
     // if the item is in a window that ignores WM we want to position the popups outside
     bool outsideParentWindow = (item->window()->flags() & Qt::X11BypassWindowManagerHint) && item->window()->mask().isNull();
-
-    if (KWindowSystem::isPlatformX11()) {
-        // on X11 we also consider windows with the type Dock
-        const KWindowInfo winInfo(item->window()->winId(), NET::WMWindowType);
-        outsideParentWindow = outsideParentWindow || (winInfo.windowType(NET::AllTypesMask) == NET::Dock && item->window()->mask().isNull());
-    }
 
     QRect parentGeometryBounds;
     if (outsideParentWindow) {
@@ -1341,7 +1271,7 @@ void Dialog::focusOutEvent(QFocusEvent *ev)
         const QWindow *focusWindow = QGuiApplication::focusWindow();
         bool childHasFocus = focusWindow && ((focusWindow->isActive() && isAncestorOf(focusWindow)) || (focusWindow->type() & Qt::Popup) == Qt::Popup);
 
-        const bool viewClicked = qobject_cast<const PlasmaQuick::QuickViewSharedEngine *>(focusWindow) || qobject_cast<const ConfigView *>(focusWindow);
+        const bool viewClicked = qobject_cast<const PlasmaQuick::ContainmentView *>(focusWindow) || qobject_cast<const ConfigView *>(focusWindow);
 
         if (viewClicked || (!parentHasFocus && !childHasFocus)) {
             setVisible(false);
@@ -1361,9 +1291,6 @@ void Dialog::showEvent(QShowEvent *event)
         DialogShadows::instance()->addWindow(this, d->dialogBackground->enabledBorders());
     }
 
-    if (KWindowSystem::isPlatformX11()) {
-        KX11Extras::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
-    }
     QQuickWindow::showEvent(event);
 }
 
@@ -1401,6 +1328,12 @@ bool Dialog::event(QEvent *event)
             QMoveEvent *me = static_cast<QMoveEvent *>(event);
             PlasmaShellWaylandIntegration::get(this)->setPosition(me->pos());
         }
+    }
+
+    // Everything after here is input handling, we only want to handle events coming from external sources
+    // i.e the QPA otherwise there's a risk of creating some form of loop.
+    if (!event->spontaneous()) {
+        return QQuickWindow::event(event);
     }
 
     /*Fitt's law: if the containment has margins, and the mouse cursor clicked

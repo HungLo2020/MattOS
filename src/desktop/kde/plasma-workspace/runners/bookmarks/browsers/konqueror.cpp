@@ -25,14 +25,14 @@ QIcon KDEFavicon::iconFor(const QString &url)
     return QIcon::fromTheme(iconFile);
 }
 
-KDEFavicon::KDEFavicon(QObject *parent)
-    : Favicon(parent)
+KDEFavicon::KDEFavicon()
+    : Favicon()
 {
 }
 
-Konqueror::Konqueror(QObject *parent)
-    : QObject(parent)
-    , m_favicon(new KDEFavicon(this))
+Konqueror::Konqueror()
+    : QObject()
+    , m_favicon(new KDEFavicon)
 {
     const QString bookmarksFile = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QLatin1String("/konqueror/bookmarks.xml");
     m_bookmarkManager = new KBookmarkManager(bookmarksFile, this);
@@ -76,8 +76,11 @@ QList<BookmarkMatch> Konqueror::match(const QString &term, bool addEverything)
         }
 
         const QString url = bookmark.url().url();
-        BookmarkMatch bookmarkMatch(m_favicon->iconFor(url), term, bookmark.text(), url);
-        bookmarkMatch.addTo(matches, addEverything);
+        BookmarkMatch bookmarkMatch(term, bookmark.text(), url);
+        if (addEverything || bookmarkMatch.matches()) {
+            bookmarkMatch.setIcon(m_favicon->iconFor(url));
+            matches << bookmarkMatch;
+        }
 
         bookmark = bookmarkGroup.next(bookmark);
         while (bookmark.isNull() && !groups.isEmpty()) {

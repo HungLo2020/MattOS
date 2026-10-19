@@ -1,4 +1,3 @@
-
 /*
     KWin - the KDE window manager
     This file is part of the KDE project.
@@ -13,6 +12,8 @@
 #include "cursor.h"
 #include "placement.h"
 #include "pointer_input.h"
+#include "scene/windowitem.h"
+#include "virtualdesktops.h"
 #include "wayland_server.h"
 #include "window.h"
 #include "workspace.h"
@@ -30,8 +31,6 @@ Q_DECLARE_METATYPE(KWin::MaximizeMode)
 
 namespace KWin
 {
-
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_quick_tiling-0");
 
 class MoveResizeWindowTest : public QObject
 {
@@ -65,6 +64,8 @@ private Q_SLOTS:
     void testRestrictedMoveMultiMonitor();
     void testRestrictedResizeUp();
     void testRestrictedResizeRight();
+    void testMoveWithPerOutputVirtualDesktops();
+    void testDontUpdateDesktopDueToChangeOnAnotherOutput();
 
 private:
     std::tuple<Window *, std::unique_ptr<KWayland::Client::Surface>, std::unique_ptr<Test::XdgToplevel>> showWindow();
@@ -77,7 +78,7 @@ void MoveResizeWindowTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
     qRegisterMetaType<KWin::MaximizeMode>("MaximizeMode");
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({Rect(0, 0, 1280, 1024)});
     const auto outputs = workspace()->outputs();
@@ -97,6 +98,8 @@ void MoveResizeWindowTest::init()
     m_compositor = Test::waylandCompositor();
 
     workspace()->setActiveOutput(QPoint(640, 512));
+    VirtualDesktopManager::self()->setCount(1);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(false);
 }
 
 void MoveResizeWindowTest::cleanup()
@@ -432,6 +435,7 @@ void MoveResizeWindowTest::testGrowShrink()
     QFETCH(QString, methodCall);
     QMetaObject::invokeMethod(workspace(), methodCall.toLocal8Bit().constData());
     QVERIFY(surfaceConfigureRequestedSpy.wait());
+    shellSurface->xdgSurface()->ack_configure(surfaceConfigureRequestedSpy.last()[0].toInt());
     Test::render(surface.get(), toplevelConfigureRequestedSpy.last().first().toSize(), Qt::red);
 
     QSignalSpy frameGeometryChangedSpy(window, &Window::frameGeometryChanged);
@@ -1255,6 +1259,200 @@ void MoveResizeWindowTest::testRestrictedResizeRight()
     surface.reset();
     QVERIFY(Test::waitForWindowClosed(window));
 }
+
+void MoveResizeWindowTest::testMoveWithPerOutputVirtualDesktops()
+{
+    Test::setOutputConfig({
+        Rect(0, 0, 1280, 1024),
+        Rect(1280, 0, 1280, 1024),
+    });
+    const auto outputs = workspace()->outputs();
+    QCOMPARE(outputs.count(), 2);
+    VirtualDesktopManager::self()->setCount(3);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(true);
+    const auto desktops = VirtualDesktopManager::self()->desktops();
+    VirtualDesktopManager::self()->setCurrent(desktops[0], outputs[0]);
+    VirtualDesktopManager::self()->setCurrent(desktops[1], outputs[1]);
+
+    Test::XdgToplevelWindow window;
+    QVERIFY(window.show());
+
+    QVERIFY(window.m_window);
+    QCOMPARE(workspace()->activeWindow(), window.m_window);
+    QCOMPARE(window.m_window->frameGeometry(), RectF(0, 0, 100, 100));
+    QCOMPARE(window.m_window->output(), outputs[0]);
+    QCOMPARE(window.m_window->desktops(), {desktops[0]});
+    QSignalSpy interactiveMoveResizeStartedSpy(window.m_window, &Window::interactiveMoveResizeStarted);
+    QSignalSpy moveResizedChangedSpy(window.m_window, &Window::moveResizedChanged);
+    QSignalSpy interactiveMoveResizeSteppedSpy(window.m_window, &Window::interactiveMoveResizeStepped);
+    QSignalSpy interactiveMoveResizeFinishedSpy(window.m_window, &Window::interactiveMoveResizeFinished);
+
+    // begin move
+    QVERIFY(workspace()->moveResizeWindow() == nullptr);
+    QCOMPARE(window.m_window->isInteractiveMove(), false);
+    workspace()->slotWindowMove();
+    QCOMPARE(workspace()->moveResizeWindow(), window.m_window);
+    QCOMPARE(interactiveMoveResizeStartedSpy.count(), 1);
+    QCOMPARE(moveResizedChangedSpy.count(), 1);
+    QCOMPARE(window.m_window->isInteractiveMove(), true);
+    QCOMPARE(window.m_window->geometryRestore(), RectF());
+
+    // move to other output
+    const QPointF cursorPos = Cursors::self()->mouse()->pos();
+    for (int i = 0; i < 40; i++) {
+        window.m_window->keyPressEvent(Qt::Key_Right | Qt::ALT);
+        window.m_window->updateInteractiveMoveResize(Cursors::self()->mouse()->pos(), Qt::KeyboardModifiers());
+        QCOMPARE(window.m_window->isOnCurrentDesktop(), true);
+        QCOMPARE(window.m_window->windowItem()->isVisible(), true);
+        QCOMPARE(window.m_window->isActive(), true);
+    }
+
+    QCOMPARE(Cursors::self()->mouse()->pos(), cursorPos + QPoint(40 * 32, 0));
+    QCOMPARE(interactiveMoveResizeSteppedSpy.count(), 40);
+    QVERIFY(window.m_window->isActive());
+    QVERIFY(window.m_window->windowItem()->isVisible());
+    QCOMPARE(window.m_window->output(), outputs[1]);
+    // The window should change desktops as soon as it changes outputs
+    QCOMPARE(window.m_window->desktops(), {desktops[1]});
+    interactiveMoveResizeSteppedSpy.clear();
+
+    // let's end the move
+    QCOMPARE(interactiveMoveResizeFinishedSpy.count(), 0);
+    window.m_window->keyPressEvent(Qt::Key_Enter);
+    QCOMPARE(interactiveMoveResizeFinishedSpy.count(), 1);
+    QCOMPARE(moveResizedChangedSpy.count(), 2);
+    QCOMPARE(window.m_window->isInteractiveMove(), false);
+    QVERIFY(workspace()->moveResizeWindow() == nullptr);
+    QCOMPARE(window.m_window->desktops(), {desktops[1]});
+    QCOMPARE(window.m_window->output(), outputs[1]);
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(outputs[1]), desktops[1]);
+    QCOMPARE(window.m_window->isOnCurrentDesktop(), true);
+    QCOMPARE(window.m_window->windowItem()->isVisible(), true);
+    QCOMPARE(window.m_window->isActive(), true);
+    interactiveMoveResizeStartedSpy.clear();
+    interactiveMoveResizeFinishedSpy.clear();
+    moveResizedChangedSpy.clear();
+
+    // start moving it back
+    workspace()->slotWindowMove();
+    QCOMPARE(workspace()->moveResizeWindow(), window.m_window);
+    QCOMPARE(interactiveMoveResizeStartedSpy.count(), 1);
+    QCOMPARE(moveResizedChangedSpy.count(), 1);
+    QCOMPARE(window.m_window->isInteractiveMove(), true);
+    QCOMPARE(window.m_window->geometryRestore(), RectF());
+
+    // move to other output
+    for (int i = 0; i < 40; i++) {
+        window.m_window->keyPressEvent(Qt::Key_Left | Qt::ALT);
+        window.m_window->updateInteractiveMoveResize(Cursors::self()->mouse()->pos(), Qt::KeyboardModifiers());
+        QCOMPARE(window.m_window->isOnCurrentDesktop(), true);
+        QCOMPARE(window.m_window->windowItem()->isVisible(), true);
+        QCOMPARE(window.m_window->isActive(), true);
+    }
+
+    // Change desktop on the window's starting output. This shouldn't affect it now, but only once the move is cancelled.
+    VirtualDesktopManager::self()->setCurrent(desktops[2], outputs[1]);
+    QCOMPARE(Cursors::self()->mouse()->pos(), cursorPos);
+    QCOMPARE(interactiveMoveResizeSteppedSpy.count(), 40);
+    QVERIFY(window.m_window->isActive());
+    QVERIFY(window.m_window->windowItem()->isVisible());
+    QCOMPARE(window.m_window->output(), outputs[0]);
+    // The window should change desktops as soon as it changes outputs
+    QCOMPARE(window.m_window->desktops(), {desktops[0]});
+    interactiveMoveResizeSteppedSpy.clear();
+
+    // cancel the move: it should return back to the second output and its current desktop even though it changed during the move
+    QCOMPARE(interactiveMoveResizeFinishedSpy.count(), 0);
+    window.m_window->keyPressEvent(Qt::Key_Escape);
+    QCOMPARE(interactiveMoveResizeFinishedSpy.count(), 1);
+    QCOMPARE(moveResizedChangedSpy.count(), 2);
+    QCOMPARE(window.m_window->isInteractiveMove(), false);
+    QVERIFY(workspace()->moveResizeWindow() == nullptr);
+    QCOMPARE(window.m_window->desktops(), {desktops[2]});
+    QCOMPARE(window.m_window->output(), outputs[1]);
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(outputs[1]), desktops[2]);
+    QCOMPARE(window.m_window->isOnCurrentDesktop(), true);
+    QCOMPARE(window.m_window->windowItem()->isVisible(), true);
+    QCOMPARE(window.m_window->isActive(), true);
+    interactiveMoveResizeStartedSpy.clear();
+    interactiveMoveResizeFinishedSpy.clear();
+}
+
+void MoveResizeWindowTest::testDontUpdateDesktopDueToChangeOnAnotherOutput()
+{
+    Test::setOutputConfig({
+        Rect(0, 0, 1280, 1024),
+        Rect(1280, 0, 1280, 1024),
+    });
+    const auto outputs = workspace()->outputs();
+    QCOMPARE(outputs.count(), 2);
+    VirtualDesktopManager::self()->setCount(3);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(true);
+    const auto desktops = VirtualDesktopManager::self()->desktops();
+    VirtualDesktopManager::self()->setCurrent(desktops[0], outputs[0]);
+    VirtualDesktopManager::self()->setCurrent(desktops[1], outputs[1]);
+
+    Test::XdgToplevelWindow window;
+    QVERIFY(window.show());
+    QCOMPARE(workspace()->activeWindow(), window.m_window);
+    QCOMPARE(window.m_window->frameGeometry(), RectF(0, 0, 100, 100));
+    QCOMPARE(window.m_window->output(), outputs[0]);
+    QCOMPARE(window.m_window->desktops(), {desktops[0]});
+
+    // Move the window just on the edge of the first output
+    window.m_window->move(QPointF(1180, 0));
+    QCOMPARE(window.m_window->frameGeometry(), RectF(1180, 0, 100, 100));
+    QCOMPARE(window.m_window->output(), outputs[0]);
+    QCOMPARE(window.m_window->desktops(), {desktops[0]});
+
+    QSignalSpy interactiveMoveResizeStartedSpy(window.m_window, &Window::interactiveMoveResizeStarted);
+    QSignalSpy moveResizedChangedSpy(window.m_window, &Window::moveResizedChanged);
+    QSignalSpy interactiveMoveResizeSteppedSpy(window.m_window, &Window::interactiveMoveResizeStepped);
+    QSignalSpy interactiveMoveResizeFinishedSpy(window.m_window, &Window::interactiveMoveResizeFinished);
+
+    // begin move
+    QVERIFY(workspace()->moveResizeWindow() == nullptr);
+    QCOMPARE(window.m_window->isInteractiveMove(), false);
+    workspace()->slotWindowMove();
+    QCOMPARE(workspace()->moveResizeWindow(), window.m_window);
+    QCOMPARE(interactiveMoveResizeStartedSpy.count(), 1);
+    QCOMPARE(moveResizedChangedSpy.count(), 1);
+    QCOMPARE(window.m_window->isInteractiveMove(), true);
+    QCOMPARE(window.m_window->geometryRestore(), RectF());
+
+    // Move so that it slightly overlaps the other output
+    const QPointF cursorPos = Cursors::self()->mouse()->pos();
+    window.m_window->keyPressEvent(Qt::Key_Right | Qt::ALT);
+    window.m_window->updateInteractiveMoveResize(Cursors::self()->mouse()->pos(), Qt::KeyboardModifiers());
+    QCOMPARE(Cursors::self()->mouse()->pos(), cursorPos + QPoint(32, 0));
+    QCOMPARE(window.m_window->frameGeometry(), RectF(1180 + 32, 0, 100, 100));
+    QVERIFY(window.m_window->isOnOutput(outputs[1]));
+    QCOMPARE(window.m_window->output(), outputs[0]);
+    QCOMPARE(window.m_window->desktops(), {desktops[0]});
+
+    // Change desktop on the second output and make sure the window is not affected
+    VirtualDesktopManager::self()->setCurrent(desktops[2], outputs[1]);
+    QCOMPARE(window.m_window->desktops(), {desktops[0]});
+
+    // Make sure the window is still affected by desktop changes on its own output
+    VirtualDesktopManager::self()->setCurrent(desktops[1], outputs[0]);
+    QCOMPARE(window.m_window->desktops(), {desktops[1]});
+
+    // let's end
+    QCOMPARE(interactiveMoveResizeFinishedSpy.count(), 0);
+    window.m_window->keyPressEvent(Qt::Key_Enter);
+    QCOMPARE(interactiveMoveResizeFinishedSpy.count(), 1);
+    QCOMPARE(moveResizedChangedSpy.count(), 2);
+    QCOMPARE(window.m_window->isInteractiveMove(), false);
+    QVERIFY(workspace()->moveResizeWindow() == nullptr);
+    QCOMPARE(window.m_window->desktops(), {desktops[1]});
+    QCOMPARE(window.m_window->output(), outputs[0]);
+    QCOMPARE(VirtualDesktopManager::self()->currentDesktop(outputs[0]), desktops[1]);
+    QCOMPARE(window.m_window->isOnCurrentDesktop(), true);
+    QCOMPARE(window.m_window->windowItem()->isVisible(), true);
+    QCOMPARE(window.m_window->isActive(), true);
+}
+
 }
 
 WAYLANDTEST_MAIN(KWin::MoveResizeWindowTest)

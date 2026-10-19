@@ -4,6 +4,12 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 // Qt-Security score:significant reason:default
 
+#include <QtCore/qtconfigmacros.h>
+
+#ifdef QT_NO_DISCONNECT_CONST_CONNECTION
+#  undef QT_NO_DISCONNECT_CONST_CONNECTION
+#endif
+
 #include "qobject.h"
 #include "qobject_p.h"
 #include "qobject_p_p.h"
@@ -40,6 +46,7 @@
 #include <mutex>
 #include <memory>
 #include <optional>
+#include <iterator>
 
 #include <ctype.h>
 #include <limits.h>
@@ -117,7 +124,7 @@ static int *queuedConnectionTypes(QSpan<const QArgumentType> argumentTypes)
         else if (type.name().endsWith('*'))
             types[i] = QMetaType::VoidStar;
         else
-            types[i] = QMetaType::fromName(type.name()).id();
+            types[i] = QMetaType::fromName(type.name()).rawId();
 
         if (!types[i]) {
             qCWarning(lcConnect,
@@ -140,7 +147,7 @@ Q_CONSTINIT static QBasicMutex _q_ObjectMutexPool[131];
  */
 static inline QBasicMutex *signalSlotLock(const QObject *o)
 {
-    return &_q_ObjectMutexPool[uint(quintptr(o)) % sizeof(_q_ObjectMutexPool)/sizeof(QBasicMutex)];
+    return &_q_ObjectMutexPool[quintptr(o) % std::size(_q_ObjectMutexPool)];
 }
 
 void (*QAbstractDeclarativeData::destroyed)(QAbstractDeclarativeData *, QObject *) = nullptr;
@@ -283,14 +290,15 @@ inline void QObjectPrivate::addConnection(int signal, Connection *c)
     cd->resizeSignalVector(signal + 1);
 
     ConnectionList &connectionList = cd->connectionsForSignal(signal);
-    if (connectionList.last.loadRelaxed()) {
-        Q_ASSERT(connectionList.last.loadRelaxed()->receiver.loadRelaxed());
-        connectionList.last.loadRelaxed()->nextConnectionList.storeRelease(c);
+    Connection *lastConnection = connectionList.last.loadRelaxed();
+    if (lastConnection) {
+        Q_ASSERT(lastConnection->receiver.loadRelaxed());
+        lastConnection->nextConnectionList.storeRelease(c);
     } else {
         connectionList.first.storeRelease(c);
     }
     c->id.storeRelease(++cd->currentConnectionId);
-    c->prevConnectionList = connectionList.last.loadRelaxed();
+    c->prevConnectionList = lastConnection;
     connectionList.last.storeRelaxed(c);
 
     QObjectPrivate *rd = QObjectPrivate::get(c->receiver.loadRelaxed());
@@ -330,15 +338,15 @@ void QObjectPrivate::ConnectionData::removeConnection(QObjectPrivate::Connection
         c->next->prev = c->prev;
     c->prev = nullptr;
 
+    Connection *n = c->nextConnectionList.loadRelaxed();
     if (connections.first.loadRelaxed() == c)
-        connections.first.storeRelaxed(c->nextConnectionList.loadRelaxed());
+        connections.first.storeRelaxed(n);
     if (connections.last.loadRelaxed() == c)
         connections.last.storeRelaxed(c->prevConnectionList);
     Q_ASSERT(signalVector.loadRelaxed()->at(c->signal_index).first.loadRelaxed() != c);
     Q_ASSERT(signalVector.loadRelaxed()->at(c->signal_index).last.loadRelaxed() != c);
 
     // keep c->nextConnectionList intact, as it might still get accessed by activate
-    Connection *n = c->nextConnectionList.loadRelaxed();
     if (n)
         n->prevConnectionList = c->prevConnectionList;
     if (c->prevConnectionList)
@@ -904,7 +912,7 @@ inline bool QQueuedMetaCallEvent::typeFitsInPlace(const QMetaType type)
     \l uic generates code that invokes this function to enable
     auto-connection to be performed between widgets on forms created
     with \e{\QD}. More information about using auto-connection with \e{\QD} is
-    given in the \l{Using a Designer UI File in Your Application} section of
+    given in the \l{Using a Qt Widgets Designer UI File in Your Application} section of
     the \l{Qt Widgets Designer Manual}{\QD} manual.
 
     \section1 Dynamic Properties
@@ -988,18 +996,22 @@ QObject::QObject(QObjectPrivate &dd, QObject *parent)
 
     Q_D(QObject);
     d_ptr->q_ptr = this;
-    auto threadData = (parent && !parent->thread()) ? parent->d_func()->threadData.loadRelaxed() : QThreadData::current();
+    QThreadData *parentThreadData = parent ? parent->d_func()->threadData.loadRelaxed() : nullptr;
+    QThreadData *threadData;
+    if (parent && !parentThreadData->thread.loadRelaxed()) {
+        threadData = parentThreadData;
+    } else {
+        threadData = QThreadData::current();
+        if (!check_parent_thread(parent, parentThreadData, threadData))
+            parent = nullptr;
+    }
     threadData->ref();
     d->threadData.storeRelaxed(threadData);
     if (parent) {
         QT_TRY {
-            if (!check_parent_thread(parent, parent ? parent->d_func()->threadData.loadRelaxed() : nullptr, threadData))
-                parent = nullptr;
             if (d->willBeWidget) {
-                if (parent) {
-                    d->parent = parent;
-                    d->parent->d_func()->children.append(this);
-                }
+                d->parent = parent;
+                d->parent->d_func()->children.append(this);
                 // no events sent here, this is done at the end of the QWidget constructor
             } else {
                 setParent(parent);
@@ -2164,7 +2176,7 @@ void QObject::killTimer(Qt::TimerId id)
     \fn template<typename T> T qFindChild(const QObject *obj, const QString &name)
     \relates QObject
     \overload qFindChildren()
-    \deprecated
+    \deprecated [4.8]
 
     This function is equivalent to
     \a{obj}->\l{QObject::findChild()}{findChild}<T>(\a name).
@@ -2180,7 +2192,7 @@ void QObject::killTimer(Qt::TimerId id)
     \fn template<typename T> QList<T> qFindChildren(const QObject *obj, const QString &name)
     \relates QObject
     \overload qFindChildren()
-    \deprecated
+    \deprecated [4.8]
 
     This function is equivalent to
     \a{obj}->\l{QObject::findChildren()}{findChildren}<T>(\a name).
@@ -2562,6 +2574,31 @@ void QObject::deleteLater()
     eventListLocker.unlock();
     QCoreApplication::postEvent(this,
         new QDeferredDeleteEvent(loopLevel, scopeLevel));
+}
+
+/*!
+    \internal
+
+    Destroys \a object in the thread it belongs to, via deleteLater(), so that its
+    vtable and members are not touched from the wrong thread. Falls back to deleting
+    it right away when that thread cannot run the deferred delete: it is the current
+    thread, or it has no event dispatcher (never started, or torn down at application
+    exit). This is meant for objects deleted from a thread that is usually not their
+    own, e.g. a worker handed to a thread pool.
+
+    The thread and the dispatcher are read from the object's QThreadData, which stays
+    alive as long as the object does, rather than from QThread, which the owning thread
+    may be destroying concurrently.
+*/
+void QObjectPrivate::deleteInOwnThread(QObject *object)
+{
+    QThreadData *objectData = QObjectPrivate::get(object)->threadData.loadRelaxed();
+    if (objectData->hasEventDispatcher()
+        && objectData->threadId.loadRelaxed() != QThread::currentThreadId()) {
+        object->deleteLater();
+    } else {
+        delete object;
+    }
 }
 
 /*!
@@ -4153,6 +4190,7 @@ QMetaObject::Connection QMetaObject::connectImpl(const QObject *sender, const QM
                                              QtPrivate::QSlotObjectBase *slotObjRaw, Qt::ConnectionType type)
 {
     QtPrivate::SlotObjUniquePtr slotObj(slotObjRaw);
+    Q_ASSERT_X(slotObjRaw, "QMetaObject::connect", "Internal error, caller must not pass null slotObj");
 
     const QMetaObject *senderMetaObject = sender->metaObject();
     if (!signal.isValid() || signal.methodType() != QMetaMethod::Signal) {
@@ -4825,7 +4863,7 @@ QDebug operator<<(QDebug dbg, const QObject *o)
 /*!
     \macro Q_ENUMS(...)
     \relates QObject
-    \deprecated
+    \deprecated [5.5]
 
     In new code, you should prefer the use of the Q_ENUM() macro, which makes the
     type available also to the meta type system.
@@ -4845,7 +4883,7 @@ QDebug operator<<(QDebug dbg, const QObject *o)
 /*!
     \macro Q_FLAGS(...)
     \relates QObject
-    \deprecated
+    \deprecated [5.5]
 
     This macro registers one or several \l{QFlags}{flags types} with the
     meta-object system. It is typically used in a class definition to declare
@@ -5297,6 +5335,30 @@ QDebug operator<<(QDebug dbg, const QObject *o)
 */
 
 /*!
+    \since 6.12
+    \macro QT_NO_DISCONNECT_CONST_CONNECTION
+    \relates QObject
+
+    Disables the \c{const &} overload of
+    \l{QObject::disconnect(QMetaObject::Connection&)}{QObject::disconnect()} to
+    force callers to pass non-const objects.
+
+    Passing non-const objects is preferred, because they can be reset
+    immediately, releasing resources sooner. Different versions of Qt handle
+    the const overload differently. In older Qt versions, calling the const
+    overload with a Connection originally declared \c{const} may invoke
+    undefined behavior. Current Qt versions are safe in this regard, but future
+    Qt versions may remove the const overload, or have it delay releasing
+    resources until the Connection object is reassigned or destroyed.
+
+    Passing non-const objects avoids all of the issues above.
+
+    Code that compiles with this macro set also compiles (and doesn't invoke
+    undefined behavior) without the macro enabled, and in all Qt versions since
+    5.0.
+*/
+
+/*!
     \typedef QObjectList
     \relates QObject
 
@@ -5471,6 +5533,7 @@ QMetaObject::Connection QObject::connectImpl(const QObject *sender, void **signa
                                              const int *types, const QMetaObject *senderMetaObject)
 {
     QtPrivate::SlotObjUniquePtr slotObj(slotObjRaw);
+    Q_ASSERT_X(slotObjRaw, "QObject::connect", "Internal error, caller must not pass null slotObj");
     if (!signal) {
         connectWarning(sender, senderMetaObject, receiver, "invalid nullptr parameter");
         return QMetaObject::Connection();
@@ -5505,8 +5568,9 @@ QMetaObject::Connection QObjectPrivate::connectImpl(const QObject *sender, int s
 {
     QtPrivate::SlotObjUniquePtr slotObj(slotObjRaw);
     Q_ASSERT(senderMetaObject);
+    Q_ASSERT(slotObj);
 
-    if (!sender || !receiver || !slotObj) {
+    if (!sender || !receiver) {
         connectWarning(sender, senderMetaObject, receiver, "invalid nullptr parameter");
         return QMetaObject::Connection();
     }
@@ -5569,6 +5633,7 @@ QMetaObject::Connection QObjectPrivate::connectImpl(const QObject *sender, int s
     return ret;
 }
 
+#ifndef QT_NO_DISCONNECT_CONST_CONNECTION
 /*!
     Disconnects \a connection and resets it to
     \l{QMetaObject::Connection::operator bool()}{invalid}.
@@ -5578,10 +5643,40 @@ QMetaObject::Connection QObjectPrivate::connectImpl(const QObject *sender, int s
 
     \note Future versions of Qt may only accept non-const objects here.
 
+    \sa QT_NO_DISCONNECT_CONST_CONNECTION
    \sa connect()
  */
 bool QObject::disconnect(const QMetaObject::Connection &connection)
 {
+    // keep in sync with non-const overload
+    QObjectPrivate::Connection *c = static_cast<QObjectPrivate::Connection *>(connection.d_ptr);
+    if (!c)
+        return false;
+    const bool disconnected = QObjectPrivate::removeConnection(c);
+    connection.d_ptr = nullptr;
+    c->deref(); // has been removed from the QMetaObject::Connection object
+    return disconnected;
+}
+#endif // QT_NO_DISCONNECT_CONST_CONNECTION
+
+/*!
+    \since 6.12
+    \fn bool QObject::disconnect(QMetaObject::Connection &connection)
+    \fn bool QObject::disconnect(QMetaObject::Connection &&connection)
+
+    Disconnect a connection.
+
+    If \a connection is
+    \l{QMetaObject::Connection::operator bool()}{invalid}
+    or has already been disconnected, do nothing and return false.
+
+    \note In Qt versions prior to 6.12, this function took only by \c{const-&}.
+
+    \sa connect()
+ */
+bool QObject::disconnect(QMetaObject::Connection &connection)
+{
+    // keep in sync with the overload above
     QObjectPrivate::Connection *c = static_cast<QObjectPrivate::Connection *>(connection.d_ptr);
     if (!c)
         return false;
@@ -5712,6 +5807,7 @@ QMetaObject::Connection QObjectPrivate::connect(const QObject *sender, int signa
                                                 Qt::ConnectionType type)
 {
     QtPrivate::SlotObjUniquePtr slotObj(slotObjRaw);
+    Q_ASSERT_X(slotObjRaw, "QObjectPrivate::connect", "Internal error, caller must not pass null slotObj");
     if (!sender) {
         connectWarning(sender, nullptr, receiver, "invalid nullptr parameter");
         return QMetaObject::Connection();
@@ -5865,10 +5961,10 @@ QMetaObject::Connection &QMetaObject::Connection::operator=(const QMetaObject::C
 }
 
 /*!
+    \fn QMetaObject::Connection::Connection();
+
     Creates a Connection instance.
 */
-
-QMetaObject::Connection::Connection() : d_ptr(nullptr) {}
 
 /*!
     Destructor for QMetaObject::Connection.

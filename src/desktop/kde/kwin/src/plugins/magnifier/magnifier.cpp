@@ -35,7 +35,6 @@ const int FRAME_WIDTH = 5;
 MagnifierEffect::MagnifierEffect()
     : m_zoom(1)
     , m_targetZoom(1)
-    , m_lastPresentTime(std::chrono::milliseconds::zero())
 {
     m_configurationTimer = std::make_unique<QTimer>();
     m_configurationTimer->setSingleShot(true);
@@ -43,18 +42,21 @@ MagnifierEffect::MagnifierEffect()
     connect(m_configurationTimer.get(), &QTimer::timeout, this, &MagnifierEffect::saveInitialZoom);
 
     MagnifierConfig::instance(effects->config());
+
     QAction *a;
+
     a = KStandardActions::zoomIn(this, &MagnifierEffect::zoomIn, this);
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Plus) << (Qt::META | Qt::Key_Equal));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Plus) << (Qt::META | Qt::Key_Equal));
+    KGlobalAccel::setGlobalShortcut(a, QList<QKeySequence>{{Qt::META | Qt::Key_Plus}, {Qt::META | Qt::Key_Equal}});
+    QAction *zoomInAction = a;
 
     a = KStandardActions::zoomOut(this, &MagnifierEffect::zoomOut, this);
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Minus));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Minus));
+    KGlobalAccel::setGlobalShortcut(a, QKeySequence(Qt::META | Qt::Key_Minus));
+    QAction *zoomOutAction = a;
+
+    KGlobalAccel::setInverseShortcutActions(zoomInAction, zoomOutAction);
 
     a = KStandardActions::actualSize(this, &MagnifierEffect::toggle, this);
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_0));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_0));
+    KGlobalAccel::setGlobalShortcut(a, QKeySequence(Qt::META | Qt::Key_0));
 
     m_touchpadAction = std::make_unique<QAction>();
     connect(m_touchpadAction.get(), &QAction::triggered, this, [this]() {
@@ -106,7 +108,7 @@ void MagnifierEffect::reconfigure(ReconfigureFlags)
 {
     MagnifierConfig::self()->read();
 
-    const QRect oldVisibleArea = visibleArea();
+    const Rect oldVisibleArea = visibleArea();
 
     int width, height;
     width = MagnifierConfig::width();
@@ -136,12 +138,12 @@ void MagnifierEffect::reconfigure(ReconfigureFlags)
     }
 }
 
-void MagnifierEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void MagnifierEffect::prePaintScreen(ScreenPrePaintData &data)
 {
-    const int time = m_lastPresentTime.count() ? (presentTime - m_lastPresentTime).count() : 0;
+    const int time = m_clock.tick(data.view).count();
 
     if (m_zoom != m_targetZoom) {
-        double diff = time / animationTime(500ms);
+        double diff = double(time) / animationTime(500ms).count();
         if (m_targetZoom > m_zoom) {
             m_zoom = std::min(m_zoom * std::max(1 + diff, 1.2), m_targetZoom);
         } else {
@@ -164,32 +166,32 @@ void MagnifierEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::mill
         }
     }
 
-    if (m_zoom != m_targetZoom) {
-        m_lastPresentTime = presentTime;
-    } else {
-        m_lastPresentTime = std::chrono::milliseconds::zero();
+    if (m_zoom == m_targetZoom) {
+        m_clock.reset();
     }
 
-    effects->prePaintScreen(data, presentTime);
+    effects->prePaintScreen(data);
     if (m_zoom != 1.0) {
         data.paint += visibleArea();
     }
 }
 
-void MagnifierEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
+bool MagnifierEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
 {
-    effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen); // paint normal screen
+    if (!effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen)) { // paint normal screen)
+        return false;
+    }
     if (m_zoom != 1.0 && m_fbo) {
         // get the right area from the current rendered screen
-        const QRect area = magnifierArea();
+        const Rect area = magnifierArea();
         const QPointF cursor = cursorPos();
         const auto scale = viewport.scale();
 
-        QRectF srcArea(cursor.x() - (double)area.width() / (m_zoom * 2),
-                       cursor.y() - (double)area.height() / (m_zoom * 2),
-                       (double)area.width() / m_zoom, (double)area.height() / m_zoom);
+        RectF srcArea(cursor.x() - (double)area.width() / (m_zoom * 2),
+                      cursor.y() - (double)area.height() / (m_zoom * 2),
+                      (double)area.width() / m_zoom, (double)area.height() / m_zoom);
         if (effects->isOpenGLCompositing()) {
-            m_fbo->blitFromRenderTarget(renderTarget, viewport, srcArea.toRect(), QRect(QPoint(), m_fbo->size()));
+            m_fbo->blitFromRenderTarget(renderTarget, viewport, srcArea.toRect(), Rect(QPoint(), m_fbo->size()));
             // paint magnifier
             auto s = ShaderManager::instance()->pushShader(ShaderTrait::MapTexture);
             QMatrix4x4 mvp = viewport.projectionMatrix();
@@ -201,8 +203,8 @@ void MagnifierEffect::paintScreen(const RenderTarget &renderTarget, const Render
             GLVertexBuffer *vbo = GLVertexBuffer::streamingBuffer();
             vbo->reset();
 
-            QRectF areaF = scaledRect(area, scale);
-            const QRectF frame = scaledRect(area.adjusted(-FRAME_WIDTH, -FRAME_WIDTH, FRAME_WIDTH, FRAME_WIDTH), scale);
+            RectF areaF = area.scaled(scale);
+            const RectF frame = area.adjusted(-FRAME_WIDTH, -FRAME_WIDTH, FRAME_WIDTH, FRAME_WIDTH).scaled(scale);
             QList<QVector2D> verts;
             verts.reserve(4 * 6 * 2);
             // top frame
@@ -241,6 +243,7 @@ void MagnifierEffect::paintScreen(const RenderTarget &renderTarget, const Render
             vbo->render(GL_TRIANGLES);
         }
     }
+    return true;
 }
 
 void MagnifierEffect::postPaintScreen()
@@ -251,13 +254,13 @@ void MagnifierEffect::postPaintScreen()
     effects->postPaintScreen();
 }
 
-QRect MagnifierEffect::magnifierArea(QPointF pos) const
+Rect MagnifierEffect::magnifierArea(QPointF pos) const
 {
-    return QRect(pos.x() - m_magnifierSize.width() / 2, pos.y() - m_magnifierSize.height() / 2,
-                 m_magnifierSize.width(), m_magnifierSize.height());
+    return Rect(pos.x() - m_magnifierSize.width() / 2, pos.y() - m_magnifierSize.height() / 2,
+                m_magnifierSize.width(), m_magnifierSize.height());
 }
 
-QRect MagnifierEffect::visibleArea(QPointF pos) const
+Rect MagnifierEffect::visibleArea(QPointF pos) const
 {
     return magnifierArea(pos).adjusted(-FRAME_WIDTH, -FRAME_WIDTH, FRAME_WIDTH, FRAME_WIDTH);
 }

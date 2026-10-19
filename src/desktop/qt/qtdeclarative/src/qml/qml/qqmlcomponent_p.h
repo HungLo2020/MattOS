@@ -43,10 +43,10 @@ class Q_QML_EXPORT QQmlComponentPrivate
     Q_DECLARE_PUBLIC(QQmlComponent)
 
 public:
-    enum CreateBehavior
+    enum class CreateBehavior
     {
-        CreateDefault,
-        CreateWarnAboutRequiredProperties,
+        Cpp, // Create even if required properties fail, don't warn
+        Qml, // Return nullptr on failure, warn about missing required properties
     };
 
     struct AnnotatedQmlError
@@ -170,11 +170,12 @@ public:
     }
 
     QObject *doBeginCreate(QQmlComponent *q, QQmlContext *context);
+    bool setInitialProperties(QObject *object, const QVariantMap &properties);
     bool setInitialProperty(QObject *component, const QString &name, const QVariant& value);
 
-    QObject *createWithProperties(QObject *parent, const QVariantMap &properties,
-                                  QQmlContext *context, CreateBehavior behavior = CreateDefault,
-                                  bool createFromQml = false);
+    QObject *createWithProperties(
+            QObject *parent, const QVariantMap &properties, QQmlContext *context,
+            CreateBehavior behavior);
 
     bool isBound() const { return m_compilationUnit && (m_compilationUnit->componentsAreBound()); }
     void prepareLoadFromModule(
@@ -204,6 +205,16 @@ public:
     {
         return m_compilationUnit;
     }
+    void setCompilationUnit(
+            const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit)
+    {
+        m_compilationUnit = unit;
+        if (unit)
+            m_url = unit->finalUrl();
+    }
+
+    void setData(const QByteArray &data, const QUrl &url,
+                 QQmlComponent::CompilationMode compilationMode);
 
 private:
     ConstructionState m_state;

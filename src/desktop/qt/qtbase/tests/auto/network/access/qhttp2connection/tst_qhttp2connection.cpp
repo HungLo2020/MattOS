@@ -9,8 +9,10 @@
 #include <QtNetwork/private/hpack_p.h>
 #include <QtNetwork/private/bitstreams_p.h>
 
+#include <QtCore/qbuffer.h>
 #include <QtCore/qregularexpression.h>
 #include <QtCore/qthread.h>
+#include <QtCore/private/qnoncontiguousbytedevice_p.h> // for uploadByteDeviceDestroyedWhileBlocked
 
 #include <limits>
 
@@ -49,6 +51,12 @@ private slots:
     void serverInitiatedGoaways_data();
     void serverInitiatedGoaways();
     void clientInitiatedGoaway();
+    void settingsInitialWindowSizeOverflow();
+    void windowUpdateOverflow_data();
+    void windowUpdateOverflow();
+    void uploadByteDeviceDestroyedWhileBlocked();
+    void pushPromiseOnStreamRemovedAfterRST_data();
+    void pushPromiseOnStreamRemovedAfterRST();
 
 private:
     enum PeerType { Client, Server };
@@ -217,14 +225,18 @@ void tst_QHttp2Connection::constructStream()
 void tst_QHttp2Connection::streamConfiguration_data()
 {
     QTest::addColumn<bool>("useDownloadBuffer");
+    QTest::addColumn<bool>("useHeaderBuffer");
 
-    QTest::addRow("useDownloadBuffer=true") << true;
-    QTest::addRow("useDownloadBuffer=false") << false;
+    QTest::addRow("buffers=on") << true << true;
+    QTest::addRow("downloadBuffer=off") << false << true;
+    QTest::addRow("headerBuffer=off") << true << false;
+    QTest::addRow("buffers=off") << false << false;
 }
 
 void tst_QHttp2Connection::streamConfiguration()
 {
     QFETCH(const bool, useDownloadBuffer);
+    QFETCH(const bool, useHeaderBuffer);
 
     auto [client, server] = makeFakeConnectedSockets();
     auto *clientConnection = makeHttp2Connection(client.get(), {}, Client);
@@ -232,14 +244,17 @@ void tst_QHttp2Connection::streamConfiguration()
 
     QHttp2Stream::Configuration config;
     config.useDownloadBuffer = useDownloadBuffer;
+    config.useHeaderBuffer = useHeaderBuffer;
 
     QHttp2Stream *clientStream = clientConnection->createStream(config).unwrap();
     QVERIFY(clientStream);
     QCOMPARE(clientStream->configuration().useDownloadBuffer, useDownloadBuffer);
+    QCOMPARE(clientStream->configuration().useHeaderBuffer, useHeaderBuffer);
     QVERIFY(waitForSettingsExchange(clientConnection, serverConnection));
 
     QSignalSpy newIncomingStreamSpy{ serverConnection, &QHttp2Connection::newIncomingStream };
     QSignalSpy clientDataReceivedSpy{ clientStream, &QHttp2Stream::dataReceived };
+    QSignalSpy clientHeadersReceivedSpy{ clientStream, &QHttp2Stream::headersReceived };
 
     HPack::HttpHeader headers = getRequiredHeaders();
     clientStream->sendHEADERS(headers, false);
@@ -265,6 +280,14 @@ void tst_QHttp2Connection::streamConfiguration()
     } else {
         QVERIFY(clientStream->downloadBuffer().isEmpty());
     }
+
+    // headersReceived() always fires; receivedHeaders() only accumulates when
+    // the header buffer is enabled.
+    QCOMPARE_GE(clientHeadersReceivedSpy.count(), 1);
+    if (useHeaderBuffer)
+        QCOMPARE(clientStream->receivedHeaders(), responseHeaders);
+    else
+        QVERIFY(clientStream->receivedHeaders().empty());
 }
 
 void tst_QHttp2Connection::testSETTINGSFrame()
@@ -1614,6 +1637,241 @@ void tst_QHttp2Connection::clientInitiatedGoaway()
 
     QCOMPARE(serverGoawaySpy.count(), 1);
     QTRY_COMPARE(serverClosedSpy.count(), 1);
+}
+
+void tst_QHttp2Connection::settingsInitialWindowSizeOverflow()
+{
+    // RFC 9113, 6.9.2: raising SETTINGS_INITIAL_WINDOW_SIZE so a send window
+    // exceeds 2^31-1 is a connection FLOW_CONTROL_ERROR. Reached by maxing a
+    // stream's send window, then raising it.
+    constexpr qint32 MaxWindow = std::numeric_limits<qint32>::max(); // 2^31 - 1
+
+    auto [client, server] = makeFakeConnectedSockets();
+    auto clientConn = makeHttp2Connection(client.get(), { }, Client);
+    auto serverConn = makeHttp2Connection(server.get(), { }, Server);
+
+    QHttp2Stream *clientStream = clientConn->createStream().unwrap();
+    QVERIFY(clientStream);
+    QVERIFY(waitForSettingsExchange(clientConn, serverConn));
+
+    QSignalSpy newIncomingStreamSpy{ serverConn, &QHttp2Connection::newIncomingStream };
+    clientStream->sendHEADERS(getRequiredHeaders(), false);
+    QVERIFY(newIncomingStreamSpy.wait());
+    QCOMPARE(clientStream->m_sendWindow, qint32(Http2::defaultSessionWindowSize));
+
+    // Raw peer: WINDOW_UPDATE the stream up to exactly the maximum window (QBuffer delivers
+    // readyRead deferred, so wait for the client to apply it).
+    {
+        Http2::FrameWriter wu(Http2::FrameType::WINDOW_UPDATE, Http2::FrameFlag::EMPTY,
+                              clientStream->streamID());
+        wu.append(quint32(MaxWindow - Http2::defaultSessionWindowSize));
+        QVERIFY(wu.write(*server));
+    }
+    QVERIFY(QTest::qWaitFor([&]() { return clientStream->m_sendWindow == MaxWindow; }));
+
+    QSignalSpy serverGoawaySpy{ serverConn, &QHttp2Connection::receivedGOAWAY };
+
+    // Raw peer: raise SETTINGS_INITIAL_WINDOW_SIZE by 1, overflowing the maxed-out send window.
+    QTest::ignoreMessage(QtCriticalMsg,
+                         QRegularExpression(u".*SETTINGS_INITIAL_WINDOW_SIZE overflowed.*"_s));
+    {
+        Http2::FrameWriter s(Http2::FrameType::SETTINGS, Http2::FrameFlag::EMPTY,
+                             Http2::connectionStreamID);
+        s.append(Http2::Settings::INITIAL_WINDOW_SIZE_ID);
+        s.append(quint32(Http2::defaultSessionWindowSize + 1));
+        QVERIFY(s.write(*server));
+    }
+
+    QVERIFY(QTest::qWaitFor([&]() { return serverGoawaySpy.count() == 1; }));
+    QCOMPARE(serverGoawaySpy.first().first().value<Http2::Http2Error>(), Http2::FLOW_CONTROL_ERROR);
+    QVERIFY(clientConn->m_connectionAborted);
+}
+
+void tst_QHttp2Connection::windowUpdateOverflow_data()
+{
+    QTest::addColumn<bool>("connectionLevel");
+    QTest::newRow("stream") << false;
+    QTest::newRow("connection") << true;
+}
+
+void tst_QHttp2Connection::windowUpdateOverflow()
+{
+    // RFC 9113, 6.9.1: a WINDOW_UPDATE growing a window past 2^31-1 is a
+    // FLOW_CONTROL_ERROR (RST_STREAM for a stream, GOAWAY for the connection).
+    QFETCH(const bool, connectionLevel);
+    constexpr quint32 MaxDelta = std::numeric_limits<qint32>::max(); // 2^31 - 1
+
+    auto [client, server] = makeFakeConnectedSockets();
+    auto clientConn = makeHttp2Connection(client.get(), { }, Client);
+    auto serverConn = makeHttp2Connection(server.get(), { }, Server);
+
+    QHttp2Stream *clientStream = clientConn->createStream().unwrap();
+    QVERIFY(clientStream);
+    QVERIFY(waitForSettingsExchange(clientConn, serverConn));
+
+    QSignalSpy newIncomingStreamSpy{ serverConn, &QHttp2Connection::newIncomingStream };
+    clientStream->sendHEADERS(getRequiredHeaders(), false);
+    QVERIFY(newIncomingStreamSpy.wait());
+
+    // Default window is 65535; a single maximum-sized increment overflows it.
+    const quint32 targetStreamID =
+            connectionLevel ? quint32(Http2::connectionStreamID) : clientStream->streamID();
+
+    QSignalSpy streamErrorSpy{ clientStream, &QHttp2Stream::errorOccurred };
+    QSignalSpy serverGoawaySpy{ serverConn, &QHttp2Connection::receivedGOAWAY };
+
+    if (connectionLevel) {
+        QTest::ignoreMessage(QtCriticalMsg,
+                             QRegularExpression(u".*WINDOW_UPDATE exceeds maximum window.*"_s));
+    }
+    {
+        Http2::FrameWriter wu(Http2::FrameType::WINDOW_UPDATE, Http2::FrameFlag::EMPTY,
+                              targetStreamID);
+        wu.append(MaxDelta);
+        QVERIFY(wu.write(*server));
+    }
+
+    if (connectionLevel) {
+        QVERIFY(QTest::qWaitFor([&]() { return serverGoawaySpy.count() == 1; }));
+        QCOMPARE(serverGoawaySpy.first().first().value<Http2::Http2Error>(),
+                 Http2::FLOW_CONTROL_ERROR);
+        QVERIFY(clientConn->m_connectionAborted);
+    } else {
+        QVERIFY(QTest::qWaitFor([&]() { return streamErrorSpy.count() == 1; }));
+        QCOMPARE(streamErrorSpy.first().first().value<Http2::Http2Error>(),
+                 Http2::FLOW_CONTROL_ERROR);
+        QVERIFY(!clientConn->m_connectionAborted); // stream-level error leaves the connection up
+    }
+}
+
+void tst_QHttp2Connection::uploadByteDeviceDestroyedWhileBlocked()
+{
+    // uploadDeviceDestroyed() used to clear m_uploadDevice only, leaving
+    // m_uploadByteDevice dangling. A later SETTINGS INITIAL_WINDOW_SIZE
+    // increase from the peer would then queue maybeResumeUpload(), which
+    // dereferences the freed device (heap-use-after-free).
+    auto [client, server] = makeFakeConnectedSockets();
+    auto clientConn = makeHttp2Connection(client.get(), {}, Client);
+
+    // Creating the stream flushes the client preface; handleReadyRead()
+    // ignores incoming frames until that has happened.
+    QHttp2Stream *clientStream = clientConn->createStream().unwrap();
+    QVERIFY(clientStream);
+
+    // Shrink the per-stream send window so a 4096-byte upload stalls almost
+    // immediately, well before the device is exhausted. There's no public
+    // API for this, so inject the SETTINGS frame directly.
+    {
+        Http2::FrameWriter s(Http2::FrameType::SETTINGS, Http2::FrameFlag::EMPTY,
+                             Http2::connectionStreamID);
+        s.append(Http2::Settings::INITIAL_WINDOW_SIZE_ID);
+        s.append(quint32(64));
+        QVERIFY(s.write(*server));
+    }
+    QVERIFY(QTest::qWaitFor([&]() { return clientStream->m_sendWindow == 64; }));
+
+    QVERIFY(clientStream->sendHEADERS(getRequiredHeaders(), false));
+
+    auto *buffer = new QBuffer;
+    buffer->setData(QByteArray(4096, 'A'));
+    buffer->open(QIODevice::ReadOnly);
+    auto *uploadDevice = QNonContiguousByteDeviceFactory::create(buffer);
+    buffer->setParent(uploadDevice);
+
+    QSignalSpy uploadBlockedSpy{ clientStream, &QHttp2Stream::uploadBlocked };
+    // This is the overload of sendDATA() QNetworkAccessManager's HTTP/2 handler uses: the
+    // caller (not QHttp2Stream) owns the device's lifetime. Because we can't send everything in one
+    // go it will return early and try to send more later.
+    QVERIFY(clientStream->sendDATA(uploadDevice, true));
+    QCOMPARE(uploadBlockedSpy.count(), 1);
+    QVERIFY(clientStream->isUploadingDATA());
+
+    // The upload source is destroyed while the upload is window-stalled and
+    // the stream object survives.
+    delete uploadDevice;
+    QVERIFY(!clientStream->isUploadingDATA());
+
+    // Grow the window again, as if resuming a live upload.
+    {
+        Http2::FrameWriter s(Http2::FrameType::SETTINGS, Http2::FrameFlag::EMPTY,
+                             Http2::connectionStreamID);
+        s.append(Http2::Settings::INITIAL_WINDOW_SIZE_ID);
+        s.append(quint32(1024 * 1024));
+        QVERIFY(s.write(*server));
+    }
+    // Processing the frame above queues a maybeResumeUpload() call that runs
+    // during this wait. This would crash, reading through the already-freed
+    // device's vtable, before this patch.
+    QVERIFY(QTest::qWaitFor(
+            [&]() { return clientConn->streamInitialSendWindowSize == 1024 * 1024; }));
+    QVERIFY(!clientConn->m_connectionAborted);
+}
+
+void tst_QHttp2Connection::pushPromiseOnStreamRemovedAfterRST_data()
+{
+    QTest::addColumn<bool>("pushEnabled");
+    QTest::newRow("push-disabled-default") << false;
+    QTest::newRow("push-enabled") << true;
+}
+
+void tst_QHttp2Connection::pushPromiseOnStreamRemovedAfterRST()
+{
+    QFETCH(const bool, pushEnabled);
+
+    // handleRST_STREAM() used QHash::operator[] to look up the stream,
+    // planting a null QPointer<QHttp2Stream> for an unknown/disposed stream
+    // ID. A later PUSH_PROMISE referencing that ID only checked constEnd()
+    // and dereferenced the null QPointer via (*it)->state(). Reachable with
+    // push enabled or disabled (see below).
+    auto [client, server] = makeFakeConnectedSockets();
+    QHttp2Configuration config;
+    config.setServerPushEnabled(pushEnabled);
+    auto clientConn = makeHttp2Connection(client.get(), config, Client);
+
+    QHttp2Stream *clientStream = clientConn->createStream().unwrap();
+    QVERIFY(clientStream);
+    const quint32 streamId = clientStream->streamID();
+    QVERIFY(clientStream->sendHEADERS(getRequiredHeaders(), true));
+
+    // Simulate normal disposal of a (from the client's point of view)
+    // finished stream, the same way QNetworkAccessManager's handler
+    // deleteLater()s streams. The destructor removes the m_streams entry.
+    delete clientStream;
+    QVERIFY(!clientConn->getStream(streamId));
+
+    if (!pushEnabled) {
+        // With push disabled, PUSH_PROMISE is otherwise rejected outright;
+        // the client's own initial SETTINGS being still unacknowledged is
+        // what lets it past the "!pushPromiseEnabled" gate
+        QVERIFY(clientConn->waitingForSettingsACK);
+    }
+
+    // The attack makes the *client* raise the connection error (and send its
+    // own GOAWAY out) - it never receives one, so spy on errorOccurred().
+    QSignalSpy clientErrorSpy{ clientConn, &QHttp2Connection::errorOccurred };
+
+    // RST_STREAM on the now-absent stream.
+    {
+        Http2::FrameWriter rst(Http2::FrameType::RST_STREAM, Http2::FrameFlag::EMPTY, streamId);
+        rst.append(quint32(Http2::CANCEL));
+        QVERIFY(rst.write(*server));
+    }
+    QIODevice *clientDevice = client.get();
+    QVERIFY(QTest::qWaitFor([clientDevice]() { return clientDevice->bytesAvailable() == 0; }));
+
+    // PUSH_PROMISE associated with that same now-absent stream ID.
+    {
+        Http2::FrameWriter pp(Http2::FrameType::PUSH_PROMISE, Http2::FrameFlag::END_HEADERS,
+                              streamId);
+        pp.append(quint32(streamId + 1)); // promised stream ID
+        QVERIFY(pp.write(*server));
+    }
+
+    // Processing the frame above is what would crash, dereferencing the
+    // planted null QPointer, before this patch.
+    QVERIFY(QTest::qWaitFor([&]() { return clientErrorSpy.count() == 1; }));
+    QCOMPARE(clientErrorSpy.first().first().value<Http2::Http2Error>(), Http2::ENHANCE_YOUR_CALM);
+    QVERIFY(clientConn->m_connectionAborted);
 }
 
 QTEST_MAIN(tst_QHttp2Connection)

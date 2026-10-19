@@ -8,11 +8,14 @@
 #include "surface_p.h"
 #include "textinput_v2_p.h"
 
+#include <algorithm>
+
 namespace KWin
 {
 
 namespace
 {
+
 const quint32 s_version = 1;
 
 // helpers
@@ -296,12 +299,13 @@ void TextInputV2InterfacePrivate::sendInputPanelState()
     }
     const QList<Resource *> textInputs = textInputsForClient(focusedSurface->client());
     for (auto resource : textInputs) {
+        const Rect nativeOverlappedSurfaceArea = overlappedSurfaceArea.scaled(focusedSurface->compositorToClientScale()).rounded();
         send_input_panel_state(resource->handle,
                                inputPanelVisible ? ZWP_TEXT_INPUT_V2_INPUT_PANEL_VISIBILITY_VISIBLE : ZWP_TEXT_INPUT_V2_INPUT_PANEL_VISIBILITY_HIDDEN,
-                               overlappedSurfaceArea.x(),
-                               overlappedSurfaceArea.y(),
-                               overlappedSurfaceArea.width(),
-                               overlappedSurfaceArea.height());
+                               nativeOverlappedSurfaceArea.x(),
+                               nativeOverlappedSurfaceArea.y(),
+                               nativeOverlappedSurfaceArea.width(),
+                               nativeOverlappedSurfaceArea.height());
     }
 }
 
@@ -370,9 +374,11 @@ void TextInputV2InterfacePrivate::zwp_text_input_v2_hide_input_panel(Resource *r
 
 void TextInputV2InterfacePrivate::zwp_text_input_v2_set_surrounding_text(Resource *resource, const QString &text, int32_t cursor, int32_t anchor)
 {
+    // input methods trust these byte offsets blindly, never store values outside the text
+    const int32_t size = int32_t(text.toUtf8().size());
     surroundingText = text;
-    surroundingTextCursorPosition = cursor;
-    surroundingTextSelectionAnchor = anchor;
+    surroundingTextCursorPosition = std::clamp(cursor, 0, size);
+    surroundingTextSelectionAnchor = std::clamp(anchor, 0, size);
     Q_EMIT q->surroundingTextChanged();
 }
 
@@ -389,7 +395,10 @@ void TextInputV2InterfacePrivate::zwp_text_input_v2_set_content_type(Resource *r
 
 void TextInputV2InterfacePrivate::zwp_text_input_v2_set_cursor_rectangle(Resource *resource, int32_t x, int32_t y, int32_t width, int32_t height)
 {
-    const Rect rect = Rect(x, y, width, height);
+    if (!focusedSurface) {
+        return;
+    }
+    const RectF rect = Rect(x, y, width, height).scaled(1.0 / focusedSurface->clientToCompositorScale());
     if (cursorRectangle != rect) {
         cursorRectangle = rect;
         Q_EMIT q->cursorRectangleChanged(cursorRectangle);
@@ -497,7 +506,7 @@ void TextInputV2Interface::setPreEditCursor(qint32 index)
     d->setPreEditCursor(index);
 }
 
-void TextInputV2Interface::setInputPanelState(bool visible, const Rect &overlappedSurfaceArea)
+void TextInputV2Interface::setInputPanelState(bool visible, const RectF &overlappedSurfaceArea)
 {
     if (d->inputPanelVisible == visible && d->overlappedSurfaceArea == overlappedSurfaceArea) {
         // not changed
@@ -541,7 +550,7 @@ QPointer<SurfaceInterface> TextInputV2Interface::surface() const
     return d->focusedSurface;
 }
 
-Rect TextInputV2Interface::cursorRectangle() const
+RectF TextInputV2Interface::cursorRectangle() const
 {
     return d->cursorRectangle;
 }
@@ -555,6 +564,7 @@ bool TextInputV2Interface::clientSupportsTextInput(ClientConnection *client) con
 {
     return client && d->resourceMap().contains(*client);
 }
+
 }
 
 #include "moc_textinput_v2.cpp"

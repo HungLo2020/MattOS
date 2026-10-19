@@ -15,6 +15,7 @@
 #include <QQuickItem>
 #include <QResizeEvent>
 
+#include <Plasma/Containment>
 #include <PlasmaQuick/AppletQuickItem>
 
 #include <KActionCollection>
@@ -30,13 +31,12 @@ PlasmaWindowedView::PlasmaWindowedView(QWindow *parent)
 {
     engine()->rootContext()->setContextProperty(QStringLiteral("root"), contentItem());
     // access appletInterface.Layout.minimumWidth, to create the Layout attached object for appletInterface as a sideeffect
-    auto *expr = new QQmlExpression(
-        engine()->rootContext(),
-        contentItem(),
-        QStringLiteral("Qt.createQmlObject('import QtQuick; import QtQuick.Layouts; import org.kde.kirigami as Kirigami; "
-                       "Rectangle {color: Kirigami.Theme.backgroundColor; anchors.fill:parent; "
-                       "property Item appletInterface; onAppletInterfaceChanged: print(appletInterface?.Layout.minimumWidth)}', root, \"\");"));
-    m_rootObject = expr->evaluate().value<QQuickItem *>();
+    QQmlExpression expr(engine()->rootContext(),
+                        contentItem(),
+                        QStringLiteral("Qt.createQmlObject('import QtQuick; import QtQuick.Layouts; import org.kde.kirigami as Kirigami; "
+                                       "Rectangle {color: Kirigami.Theme.backgroundColor; anchors.fill:parent; "
+                                       "property Item appletInterface; onAppletInterfaceChanged: print(appletInterface?.Layout.minimumWidth)}', root, \"\");"));
+    m_rootObject = expr.evaluate().value<QQuickItem *>();
 }
 
 PlasmaWindowedView::~PlasmaWindowedView() = default;
@@ -59,6 +59,8 @@ void PlasmaWindowedView::setApplet(Plasma::Applet *applet)
     if (!m_appletInterface) {
         return;
     }
+
+    m_hasAppletError = QByteArrayView(m_appletInterface->metaObject()->className()).startsWith("AppletError");
 
     m_appletInterface->setParentItem(m_rootObject);
     m_rootObject->setProperty("appletInterface", QVariant::fromValue(m_appletInterface.data()));
@@ -210,7 +212,9 @@ void PlasmaWindowedView::mouseReleaseEvent(QMouseEvent *ev)
 void PlasmaWindowedView::keyPressEvent(QKeyEvent *ev)
 {
     if (ev->matches(QKeySequence::Quit)) {
-        m_statusNotifier->deleteLater();
+        if (m_statusNotifier) {
+            m_statusNotifier->deleteLater();
+        }
         close();
     }
     QQuickView::keyReleaseEvent(ev);
@@ -228,7 +232,6 @@ void PlasmaWindowedView::hideEvent(QHideEvent *ev)
     m_applet->config().sync();
     if (!m_withStatusNotifier) {
         m_applet->deleteLater();
-        deleteLater();
     }
 }
 
@@ -332,6 +335,11 @@ void PlasmaWindowedView::updateSniStatus()
         m_statusNotifier->setStatus(KStatusNotifierItem::NeedsAttention);
         break;
     }
+}
+
+bool PlasmaWindowedView::hasAppletError() const
+{
+    return m_hasAppletError;
 }
 
 #include "moc_plasmawindowedview.cpp"

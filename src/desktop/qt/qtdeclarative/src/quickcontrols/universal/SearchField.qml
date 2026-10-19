@@ -29,13 +29,18 @@ T.SearchField {
     Universal.theme: activeFocus ? Universal.Light : undefined
 
     delegate: ItemDelegate {
+        id: delegate
+
         width: ListView.view.width
-        text: model[control.textRole]
-        palette.text: control.palette.text
-        palette.highlightedText: control.palette.highlightedText
-        font.weight: control.currentIndex === index ? Font.DemiBold : Font.Normal
         highlighted: control.highlightedIndex === index
         hoverEnabled: control.hoverEnabled
+
+        contentItem: Text {
+            text: delegate.model[control.textRole]
+            font.weight: control.currentIndex === index ? Font.DemiBold : Font.Normal
+            elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
+        }
 
         required property var model
         required property int index
@@ -99,12 +104,34 @@ T.SearchField {
     }
 
     contentItem: T.TextField {
-        implicitHeight: contentHeight + topPadding + bottomPadding
+        implicitHeight: Math.max(contentHeight + topPadding + bottomPadding,
+                                 placeholder.implicitHeight + topPadding + bottomPadding)
 
         leftPadding: !control.mirrored ? 6 : 0
         rightPadding: !control.mirrored ? 6 : 0
 
         text: control.text
+        placeholderText: control.placeholderText
+
+        PlaceholderText {
+            id: placeholder
+            x: parent.leftPadding
+            y: parent.topPadding
+            width: parent.width - parent.leftPadding - parent.rightPadding
+            height: parent.height - parent.topPadding - parent.bottomPadding
+
+            text: control.placeholderText
+            font: parent.font
+            color: !parent.enabled ? Universal.chromeDisabledLowColor :
+                              parent.activeFocus ? Universal.chromeBlackMediumLowColor :
+                                            Universal.baseMediumColor
+            visible: !parent.length && !parent.preeditText && (!parent.activeFocus || parent.horizontalAlignment !== Qt.AlignHCenter)
+            verticalAlignment: parent.verticalAlignment
+            elide: Text.ElideRight
+            renderType: parent.renderType
+        }
+
+        selectByMouse: control.selectTextByMouse
 
         color: !control.enabled ? control.Universal.chromeDisabledLowColor :
                                   control.activeFocus ? control.Universal.chromeBlackHighColor : control.Universal.foreground

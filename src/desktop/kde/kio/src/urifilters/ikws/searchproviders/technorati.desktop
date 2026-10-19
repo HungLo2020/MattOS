@@ -2,6 +2,7 @@
 Type=Service
 Name=Technorati
 Name[af]=Technorati
+Name[am]=Technorati
 Name[ar]=Technorati
 Name[as]=Technorati
 Name[ast]=Technorati
@@ -61,6 +62,8 @@ Name[ml]=ടെക്നോറാറ്റി
 Name[mr]=टेक्नोराती
 Name[ms]=Technorati
 Name[my]=တက့်ချ်နိုရာတီ
+Name[nan_TW]=Technorati
+Name[nan_TW@latin]=Technorati
 Name[nb]=Technorati
 Name[nds]=Technorati
 Name[ne]=टेक्नोरती
@@ -89,7 +92,6 @@ Name[tg]=Technorati
 Name[th]=Technorati
 Name[tok]=ilo alasa Technorati
 Name[tr]=Technorati
-Name[ug]=Technorati
 Name[uk]=Technorati
 Name[uz]=Technorati
 Name[uz@cyrillic]=Technorati
@@ -99,6 +101,7 @@ Name[zh_CN]=Technorati
 Name[zh_TW]=Technorati
 Keys=tr,technorati
 Query=https://technorati.com/search?return=sites&authority=high&q=\\{@}
+Query[am]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[ar]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[az]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[be]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
@@ -138,6 +141,8 @@ Query[lg]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[lt]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[lv]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[my]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
+Query[nan_TW]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
+Query[nan_TW@latin]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[nb]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[nl]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[nn]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
@@ -156,7 +161,6 @@ Query[tg]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[th]=https://technorati.com/cosmos/search.html?sourceid=kde-search&url=\\{@}
 Query[tok]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[tr]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
-Query[ug]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[uk]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[vi]=https://technorati.com/search?return=sites&authority=high&q=\\{@}
 Query[zh_CN]=https://technorati.com/search?return=sites&authority=high&q=\\{@}

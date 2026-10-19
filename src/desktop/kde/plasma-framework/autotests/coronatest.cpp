@@ -22,18 +22,10 @@ SimpleCorona::~SimpleCorona()
 {
 }
 
-QRect SimpleCorona::screenGeometry(int screen) const
+QRect SimpleCorona::screenGeometry(uint screen) const
 {
     // completely arbitrary, still not tested
     return QRect(100 * screen, 100, 100, 100);
-}
-
-int SimpleCorona::screenForContainment(const Plasma::Containment *c) const
-{
-    if (qobject_cast<const SimpleNoScreenContainment *>(c)) {
-        return -1;
-    }
-    return 0;
 }
 
 SimpleApplet::SimpleApplet(QObject *parentObject, const KPluginMetaData &data, const QVariantList &args)
@@ -43,7 +35,7 @@ SimpleApplet::SimpleApplet(QObject *parentObject, const KPluginMetaData &data, c
     m_timer.setSingleShot(true);
     m_timer.setInterval(QRandomGenerator::global()->bounded((500 + 1) - 100) + 100);
     m_timer.start();
-    connect(&m_timer, &QTimer::timeout, [this]() {
+    connect(&m_timer, &QTimer::timeout, this, [this]() {
         updateConstraints(Plasma::Applet::UiReadyConstraint);
     });
 }
@@ -55,7 +47,7 @@ SimpleContainment::SimpleContainment(QObject *parentObject, const KPluginMetaDat
     m_timer.setSingleShot(true);
     m_timer.setInterval(QRandomGenerator::global()->bounded((500 + 1) - 100) + 100);
     m_timer.start();
-    connect(&m_timer, &QTimer::timeout, [this]() {
+    connect(&m_timer, &QTimer::timeout, this, [this]() {
         updateConstraints(Plasma::Applet::UiReadyConstraint);
     });
 }

@@ -1,52 +1,50 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:9.0.0'
-    }
+plugins {
+    alias(libs.plugins.android.application)
 }
-
-apply plugin: '@GRADLE_PLUGIN_TYPE@'
 
 dependencies {
     @GRADLE_DEPENDENCIES@
 }
 
 android {
-    namespace '@PACKAGE_NAME@'
-    compileSdkVersion '@ANDROID_COMPILE_SDK_VERSION@'
-    buildToolsVersion '@ANDROID_BUILD_TOOLS_VERSION@'
-    ndkVersion '@ANDROID_NDK_REVISION@'
+    namespace = '@PACKAGE_NAME@'
+    compileSdk {
+        version = release(@ANDROID_COMPILE_SDK_RELEASE@) {
+            minorApiLevel = @ANDROID_COMPILE_SDK_MINOR@
+        }
+    }
+    buildToolsVersion = '@ANDROID_BUILD_TOOLS_VERSION@'
+    ndkVersion = '@ANDROID_NDK_REVISION@'
 
     defaultConfig {
         @DEFAULT_CONFIG_VALUES@
+        applicationId = "@APP_PACKAGE_NAME@"
+        versionCode = @APP_VERSION_CODE@
+        versionName = "@APP_VERSION_NAME@"
+        manifestPlaceholders = [
+            appName: "@APP_NAME@",
+            appLibName: "@APP_LIB_NAME@",
+            appArguments: "@APP_ARGUMENTS@"
+        ]
     }
 
     sourceSets {
         main {
-@SOURCE_SETS@
+            @SOURCE_SETS@
         }
     }
 
-    tasks.withType(JavaCompile) {
-        options.incremental = true
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs += ['-Xlint:all']
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    lintOptions {
-        abortOnError false
-    }
-
-    aaptOptions {
-        // Do not compress Qt binary resources file
-        noCompress 'rcc'
+    androidResources {
+        noCompress += ['rcc'] // Do not compress Qt binary resources file
     }
 
     @ANDROID_DEPLOYMENT_EXTRAS@

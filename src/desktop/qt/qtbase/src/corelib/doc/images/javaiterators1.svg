@@ -12,6 +12,11 @@
   svg .text-style { font: 20px arial; fill: black }
   svg .fill-style { stroke: none; fill: red }
 
+  svg.dark .box-style { stroke: #f2f2f2; fill: black }
+  svg.dark .line-style { stroke: red; fill: none }
+  svg.dark .text-style { font: 20px arial; fill: #f2f2f2 }
+  svg.dark .fill-style { stroke: none; fill: red }
+
   [data-theme="dark"] svg .box-style { stroke: #f2f2f2; fill: black }
   [data-theme="dark"] svg .line-style { stroke: red; fill: none }
   [data-theme="dark"] svg .text-style { font: 20px arial; fill: #f2f2f2 }
@@ -24,36 +29,53 @@
 </style>
 
 <g transform="translate(10.5, 10.5)">
-<path d="m 0,0 h 80 v 60 h -80 z" class="box-style" />
-<text x="35" y="36" class="text-style">A</text>
-<path d="M 0,60 v 30" class="line-style" />
-<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+<path d="m 0,0 h 80 v 60 h -80 z" stroke="black" fill="white"
+      class="box-style" />
+<text x="35" y="36" font-family="arial" font-size="20px"
+      class="text-style">A</text>
+<path d="M 0,60 v 30" stroke="red"
+      class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" stroke="red" fill="red"
+      class="fill-style" />
 </g>
 
 <g transform="translate(90.5, 10.5)">
-<path d="m 0,0 h 80 v 60 h -80 z" class="box-style" />
-<text x="35" y="36" class="text-style">B</text>
-<path d="M 0,60 v 30" class="line-style" />
-<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+<path d="m 0,0 h 80 v 60 h -80 z" stroke="black" fill="white"
+      class="box-style" />
+<text x="35" y="36" font-family="arial" font-size="20px"
+      class="text-style">B</text>
+<path d="M 0,60 v 30" stroke="red"
+      class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" stroke="red" fill="red"
+      class="fill-style" />
 </g>
 
 <g transform="translate(170.5, 10.5)">
-<path d="m 0,0 h 80 v 60 h -80 z" class="box-style" />
-<text x="35" y="36" class="text-style">C</text>
-<path d="M 0,60 v 30" class="line-style" />
-<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+<path d="m 0,0 h 80 v 60 h -80 z" stroke="black" fill="white"
+      class="box-style" />
+<text x="35" y="36" font-family="arial" font-size="20px"
+      class="text-style">C</text>
+<path d="M 0,60 v 30" stroke="red"
+      class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" stroke="red" fill="red"
+      class="fill-style" />
 </g>
 
 <g transform="translate(250.5, 10.5)">
-<path d="m 0,0 h 80 v 60 h -80 z" class="box-style" />
-<text x="35" y="36" class="text-style">D</text>
-<path d="M 0,60 v 30" class="line-style" />
-<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+<path d="m 0,0 h 80 v 60 h -80 z" stroke="black" fill="white"
+      class="box-style" />
+<text x="35" y="36" font-family="arial" font-size="20px"
+      class="text-style">D</text>
+<path d="M 0,60 v 30" stroke="red"
+      class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" stroke="red" fill="red"
+      class="fill-style" />
 </g>
 
 <g transform="translate(330.5, 10.5)">
-<path d="M 0,60 v 30" class="line-style" />
-<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+<path d="M 0,60 v 30" stroke="red"
+      class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" stroke="red" fill="red"
+      class="fill-style" />
 </g>
-
 </svg>

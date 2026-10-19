@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.16)
 
 project(systemmonitor)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
@@ -48,6 +48,10 @@ find_package(KF6Kirigami  ${KF6_MIN_VERSION})
 set_package_properties(KF6Kirigami PROPERTIES
     TYPE RUNTIME
 )
+find_package(KF6QuickCharts ${KF6_MIN_VERSION})
+set_package_properties(KF6QuickCharts PROPERTIES
+    TYPE RUNTIME
+)
 find_package(KF${QT_MAJOR_VERSION}KirigamiAddons 1.1.0 REQUIRED)
 set_package_properties(KF${QT_MAJOR_VERSION}KirigamiAddons PROPERTIES
     TYPE REQUIRED
@@ -58,8 +62,8 @@ ecm_find_qmlmodule(org.kde.iconthemes 1.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-ecm_set_disabled_deprecation_versions(QT 6.9.0
-    KF 6.16.0
+ecm_set_disabled_deprecation_versions(QT 6.11.0
+    KF 6.27.0
 )
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")

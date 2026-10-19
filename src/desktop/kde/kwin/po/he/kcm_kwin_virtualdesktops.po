@@ -6,13 +6,13 @@
 # Diego Iastrubni <elcuco@kde.org>, 2008, 2012, 2013.
 # elkana bardugo <ttv200@gmail.com>, 2016.
 # Elkana Bardugo <ttv200@gmail.com>, 2017. #zanata
-# SPDX-FileCopyrightText: 2023, 2024, 2025 Yaron Shahrabani <sh.yaron@gmail.com>
+# SPDX-FileCopyrightText: 2023, 2024, 2025, 2026 Yaron Shahrabani <sh.yaron@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_kwindesktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-12-23 00:42+0000\n"
-"PO-Revision-Date: 2025-12-09 09:56+0200\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
+"PO-Revision-Date: 2026-04-14 21:40+0300\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
 "Language: he\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -33,7 +33,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "kde-l10n-he@kde.org"
 
-#: desktopsmodel.cpp:191
+#: desktopsmodel.cpp:188
 #, kde-format
 msgctxt "A numbered name for virtual desktops"
 msgid "Desktop %1"
@@ -43,17 +43,17 @@ msgstr[1] "שולחן עבודה %1"
 msgstr[2] "שולחן עבודה %1"
 msgstr[3] "שולחן עבודה %1"
 
-#: desktopsmodel.cpp:479
+#: desktopsmodel.cpp:476
 #, kde-format
 msgid "There was an error connecting to the compositor."
 msgstr "אירעה שגיאה בהתחברות למנהל החלונאי."
 
-#: desktopsmodel.cpp:678
+#: desktopsmodel.cpp:672
 #, kde-format
 msgid "There was an error saving the settings to the compositor."
 msgstr "אירעה שגיאה בשמירת ההגדרות למנהל החלונאי."
 
-#: desktopsmodel.cpp:681
+#: desktopsmodel.cpp:675
 #, kde-format
 msgid "There was an error requesting information from the compositor."
 msgstr "אירעה שגיאה בבקשת מידע מהמנהל החלונאי."
@@ -69,6 +69,12 @@ msgstr "שורות:"
 msgctxt "@action:button"
 msgid "Add Desktop"
 msgstr "הוספת שולחן עבודה"
+
+#: ui/main.qml:82
+#, kde-kuit-format
+msgctxt "@label/rich"
+msgid "%1"
+msgstr ""
 
 #: ui/main.qml:90
 #, kde-format
@@ -118,22 +124,27 @@ msgstr "אפשרויות:"
 msgid "Navigation wraps around"
 msgstr "ניווט חוזר להתחלה אחרי הסוף"
 
-#: ui/main.qml:229
+#: ui/main.qml:225
+#, kde-format
+msgid "Switch desktops independently for each screen"
+msgstr "להחליף שולחנות עבודה עצמאית בכל מסך"
+
+#: ui/main.qml:243
 #, kde-format
 msgid "Show animation when switching:"
 msgstr "הצגת הנפשה במעבר:"
 
-#: ui/main.qml:280
+#: ui/main.qml:294
 #, kde-format
 msgid "Show on-screen display when switching:"
 msgstr "הצגת תצוגה על המסך בעת מעבר:"
 
-#: ui/main.qml:299
+#: ui/main.qml:313
 #, kde-format
 msgid "%1 ms"
 msgstr "%1 מ״ש"
 
-#: ui/main.qml:323
+#: ui/main.qml:337
 #, kde-format
 msgid "Show desktop layout indicators"
 msgstr "הצגת מחווני פריסת שולחן העבודה"

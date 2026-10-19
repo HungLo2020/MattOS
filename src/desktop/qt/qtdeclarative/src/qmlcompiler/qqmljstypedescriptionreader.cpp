@@ -252,12 +252,16 @@ void QQmlJSTypeDescriptionReader::readComponent(UiObjectDefinition *ast)
                 scope->setExtensionIsJavaScript(readBoolBinding(script));
             } else if (name == QLatin1String("extensionIsNamespace")) {
                 scope->setExtensionIsNamespace(readBoolBinding(script));
+            } else if (name == QLatin1String("isSelfExtension")) {
+                scope->setIsSelfExtension(readBoolBinding(script));
             } else if (name == QLatin1String("deferredNames")) {
                 readDeferredNames(script, scope);
             } else if (name == QLatin1String("immediateNames")) {
                 readImmediateNames(script, scope);
             } else if (name == QLatin1String("isJavaScriptBuiltin")) {
                 scope->setIsJavaScriptBuiltin(readBoolBinding(script));
+            } else if (name == QLatin1String("isTypeOpaque")) {
+                scope->setIsTypeOpaque(readBoolBinding(script));
             } else {
                 addWarning(script->firstSourceLocation(),
                            tr("Expected only lineNumber, name, prototype, defaultProperty, "

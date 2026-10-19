@@ -126,7 +126,7 @@ private slots:
     void dockWidgetSize();
     void QTBUG2774_stylechange();
     void QTBUG15080_restoreState();
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     void toggleUnifiedTitleAndToolBarOnMac();
 #endif
     void QTBUG21378_animationFinished();
@@ -1900,9 +1900,6 @@ class MainWindow : public QMainWindow {
 #ifndef QT_NO_CURSOR
 void tst_QMainWindow::setCursor()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     MainWindow mw;
     QCursor cur = Qt::WaitCursor;
     mw.setCursor(cur);
@@ -1995,9 +1992,6 @@ void tst_QMainWindow::fixedSizeCentralWidget()
 
 void tst_QMainWindow::dockWidgetSize()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QMainWindow mainWindow;
     mainWindow.menuBar()->addMenu("menu");
 
@@ -2087,7 +2081,7 @@ void tst_QMainWindow::QTBUG15080_restoreState()
     QCOMPARE(dw2->width(), 101);
 }
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 void tst_QMainWindow::toggleUnifiedTitleAndToolBarOnMac()
 {
     QMainWindow mw;
@@ -2215,9 +2209,6 @@ void tst_QMainWindow::resizeDocks()
 #if QT_CONFIG(dockwidget) && QT_CONFIG(tabbar)
 void tst_QMainWindow::QTBUG52175_tabifiedDockWidgetActivated()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QMainWindow w;
 
     QDockWidget *dwFirst = new QDockWidget(&w);

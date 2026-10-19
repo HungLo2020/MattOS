@@ -4,10 +4,13 @@
 #include "widget.h"
 #include "fixture.h"
 
-#include <qapplication.h>
-#include <qsystemsemaphore.h>
-#include <qtest.h>
+#include <QtCore/qsystemsemaphore.h>
 
+#include <QtGui/qwindow.h>
+
+#include <QtTest/qtest.h>
+
+#include <QtWidgets/qapplication.h>
 
 TestWidget::TestWidget(const QString &uuid, QScreen *screen)
 {
@@ -21,11 +24,32 @@ TestWidget::TestWidget(const QString &uuid, QScreen *screen)
     // This allows us to do pixel-perfect matching of captured content.
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setFixedSize(60, 40);
+
+    // Detect when the test application loses the foreground while a capture
+    // window is visible (e.g. the user clicks another app during a local run).
+    // This can silently affect capture results, so make it visible in the test
+    // output.
+    connect(
+        qApp,
+        &QGuiApplication::applicationStateChanged,
+        this,
+        [this](Qt::ApplicationState state) {
+            if (state != Qt::ApplicationActive && isVisible() && !isMinimized()) {
+                qCritical() << "Test application lost the foreground while test window"
+                            << windowTitle()
+                            << "was visible. This can affect test results.";
+            }
+        });
 }
 
 void TestWidget::setDisplayPattern(Pattern p)
 {
     m_pattern = p;
+
+    // The animated pattern needs continuous repaints to keep the content
+    // changing. The other patterns are static.
+    m_animated = (p == Pattern::Animated);
+
     repaint();
 }
 
@@ -42,12 +66,6 @@ QImage TestWidget::grabImage()
     return grab().toImage();
 }
 
-void TestWidget::togglePattern()
-{
-    Pattern p = m_pattern == ColoredSquares ? Grid : ColoredSquares;
-    setDisplayPattern(p);
-}
-
 void TestWidget::paintEvent(QPaintEvent *)
 {
     QPainter p(this);
@@ -55,15 +73,44 @@ void TestWidget::paintEvent(QPaintEvent *)
     p.setBrush(Qt::black);
     p.drawRect(rect());
 
-    if (m_pattern == ColoredSquares)
+    switch (m_pattern) {
+    case Pattern::ColoredSquares:
         drawColoredSquares(p);
-    else
+        break;
+    case Pattern::Grid:
         drawGrid(p);
+        break;
+    case Pattern::Animated:
+        drawAnimationFrame(p);
+        break;
+    }
 
     p.end();
+
+    if (m_animated) {
+        ++m_animationTick;
+        if (QWindow *window = windowHandle())
+            window->requestUpdate();
+    }
 }
 
-void TestWidget::drawColoredSquares(QPainter &p)
+void TestWidget::changeEvent(QEvent *event)
+{
+    switch (event->type()) {
+    case QEvent::WindowStateChange:
+        if (windowState() & Qt::WindowMinimized) {
+            qCritical() << "Test window" << windowTitle()
+                        << "was minimized during the test. This can affect window capture results";
+        }
+        break;
+    default:
+        break;
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void TestWidget::drawColoredSquares(QPainter &p) const
 {
     const std::vector<std::vector<Qt::GlobalColor>> colors = { { Qt::red, Qt::green, Qt::blue },
                                                                { Qt::white, Qt::white, Qt::white },
@@ -80,6 +127,16 @@ void TestWidget::drawColoredSquares(QPainter &p)
         }
         rect.moveTo({ 0, rect.bottom() });
     }
+}
+
+void TestWidget::drawAnimationFrame(QPainter &p) const
+{
+    // Alternate between the colored squares and the grid pattern on every tick
+    // so that the captured content changes from frame to frame.
+    if (m_animationTick % 2 == 0)
+        drawColoredSquares(p);
+    else
+        drawGrid(p);
 }
 
 void TestWidget::drawGrid(QPainter &p) const
@@ -109,7 +166,7 @@ bool showCaptureWindow(const QString &windowTitle)
     widget.show();
 
     // Wait for window to be visible and suitable for window capturing
-    const bool result = QTest::qWaitForWindowExposed(&widget, s_testTimeout.count());
+    const bool result = QTest::qWaitForWindowExposed(&widget, globalTestTimeout());
     if (!result)
         qDebug() << "Failed to show window";
 

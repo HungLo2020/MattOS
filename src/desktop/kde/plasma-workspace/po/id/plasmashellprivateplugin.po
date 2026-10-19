@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-17 02:42+0000\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
 "PO-Revision-Date: 2025-02-13 22:25+0700\n"
 "Last-Translator: Wantoyo <wantoyek@gmail.com>\n"
 "Language-Team: https://t.me/Localizations_KDE_Indonesia\n"
@@ -81,73 +81,91 @@ msgctxt "Format: month year"
 msgid "%1 %2"
 msgstr "%1 %2"
 
-#: calendar/qml/MonthViewHeader.qml:131
+#: calendar/qml/MonthViewHeader.qml:145
 #, kde-format
 msgid "Days"
 msgstr "Hari"
 
-#: calendar/qml/MonthViewHeader.qml:139
+#: calendar/qml/MonthViewHeader.qml:153
 #, kde-format
 msgid "Months"
 msgstr "Bulan"
 
-#: calendar/qml/MonthViewHeader.qml:147
+#: calendar/qml/MonthViewHeader.qml:162
 #, kde-format
 msgid "Years"
 msgstr "Tahun"
 
-#: calendar/qml/MonthViewHeader.qml:184
+#: calendar/qml/MonthViewHeader.qml:206
 #, kde-format
 msgid "Previous Month"
 msgstr "Bulan Kemarin"
 
-#: calendar/qml/MonthViewHeader.qml:186
+#: calendar/qml/MonthViewHeader.qml:208
 #, kde-format
 msgid "Previous Year"
 msgstr "Tahun Kemarin"
 
-#: calendar/qml/MonthViewHeader.qml:188
+#: calendar/qml/MonthViewHeader.qml:210
 #, kde-format
 msgid "Previous Decade"
 msgstr "Dekade Lalu"
 
-#: calendar/qml/MonthViewHeader.qml:206
+#: calendar/qml/MonthViewHeader.qml:229
 #, kde-format
 msgctxt "Reset calendar to today"
 msgid "Today"
 msgstr "Hari ini"
 
-#: calendar/qml/MonthViewHeader.qml:207
+#: calendar/qml/MonthViewHeader.qml:230
 #, kde-format
 msgid "Reset calendar to today"
 msgstr "Set ulang kalender ke hari ini"
 
-#: calendar/qml/MonthViewHeader.qml:220
+#: calendar/qml/MonthViewHeader.qml:243
 #, kde-format
 msgid "Next Month"
 msgstr "Bulan Depan"
 
-#: calendar/qml/MonthViewHeader.qml:222
+#: calendar/qml/MonthViewHeader.qml:245
 #, kde-format
 msgid "Next Year"
 msgstr "Tahun Depan"
 
-#: calendar/qml/MonthViewHeader.qml:224
+#: calendar/qml/MonthViewHeader.qml:247
 #, kde-format
 msgid "Next Decade"
 msgstr "Dasawarsa Depan"
 
-#: calendar/qml/MonthViewHeader.qml:283
+#: calendar/qml/MonthViewHeader.qml:306
 #, fuzzy, kde-format
 #| msgid "Keep Open"
 msgctxt "@info:tooltip"
 msgid "Keep Open"
 msgstr "Tetap Buka"
 
-#: containmentlayoutmanager/qml/BasicAppletContainer.qml:286
+#: containmentlayoutmanager/qml/BasicAppletContainer.qml:287
 #, kde-format
 msgid "Configure…"
 msgstr "Konfigurasi..."
+
+#: loginlockscreen/Footer.qml:50
+#, kde-format
+msgctxt "@action:button"
+msgid "Hide On-Screen Keyboard"
+msgstr ""
+
+#: loginlockscreen/Footer.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Show On-Screen Keyboard"
+msgstr ""
+
+#: loginlockscreen/Footer.qml:76
+#, kde-format
+msgctxt "Button to change keyboard layout"
+msgid "Switch layout"
+msgstr ""
 
 #. i18n: ectx: label, entry, group (Daemon)
 #: sessionsprivate/kscreenlockersettings.kcfg:10
@@ -161,18 +179,6 @@ msgstr "Kunci layar difungsikan"
 msgid "Sets whether the screen will be locked after the specified time."
 msgstr "Atur apakah layar akan dikunci sesudah waktu yang ditentukan."
 
-#. i18n: ectx: label, entry, group (Daemon)
-#: sessionsprivate/kscreenlockersettings.kcfg:16
-#, kde-format
-msgid "Screen saver timeout"
-msgstr "Batas waktu screensaver"
-
-#. i18n: ectx: whatsthis, entry, group (Daemon)
-#: sessionsprivate/kscreenlockersettings.kcfg:17
-#, kde-format
-msgid "Sets the minutes after which the screen is locked."
-msgstr "Atur menit sesudah layar dikunci."
-
 #: sessionsprivate/sessionsmodel.cpp:255 sessionsprivate/sessionsmodel.cpp:259
 #, kde-format
 msgid "New Session"
@@ -184,9 +190,13 @@ msgid "Filters"
 msgstr "Filter"
 
 #: shellprivate/plasmaappletitemmodel.cpp:199
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for an unknown older version of Plasma and is not "
+#| "compatible with Plasma %1. Please contact the widget's author for an "
+#| "updated version."
 msgid ""
-"This Widget was written for an unknown older version of Plasma and is not "
+"This widget was written for an unknown older version of Plasma and is not "
 "compatible with Plasma %1. Please contact the widget's author for an updated "
 "version."
 msgstr ""
@@ -195,28 +205,38 @@ msgstr ""
 "pembaruan versi."
 
 #: shellprivate/plasmaappletitemmodel.cpp:203
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for Plasma %1 and is not compatible with Plasma "
+#| "%2. Please contact the widget's author for an updated version."
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please contact the widget's author for an updated version."
 msgstr ""
 "Widget ini ditulis untuk Plasma %1 dan tidak kompatibel dengan Plasma %2. "
 "Silakan hubungi penulis widget untuk pembaruan versi."
 
 #: shellprivate/plasmaappletitemmodel.cpp:207
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for Plasma %1 and is not compatible with Plasma "
+#| "%2. Please update Plasma in order to use the widget."
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please update Plasma in order to use the widget."
 msgstr ""
 "Widget ini ditulis untuk Plasma %1 dan tidak kompatibel dengan Plasma %2. "
 "Silakan perbarui Plasma supaya bisa menggunakan widget."
 
 #: shellprivate/plasmaappletitemmodel.cpp:212
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for Plasma %1 and is not compatible with the "
+#| "latest version of Plasma. Please update Plasma in order to use the widget."
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with the latest "
-"version of Plasma. Please update Plasma in order to use the widget."
+"This widget was written for Plasma %1 and is not compatible with the older "
+"version of Plasma installed on this system. Please update Plasma in order to "
+"use the widget."
 msgstr ""
 "Widget ini ditulis untuk Plasma %1 dan tidak kompatibel dengan versi Plasma "
 "yang terakhir. Silakan perbarui Plasma supaya bisa menggunakan widget."
@@ -403,7 +423,7 @@ msgstr "Menginstal paket %1 gagal: %2."
 msgid "Installation Failure"
 msgstr "Kegagalan Penginstalan"
 
-#: timezoneselector/TimezoneSelector.qml:104
+#: timezoneselector/TimezoneSelector.qml:107
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -413,45 +433,54 @@ msgstr ""
 "Zona waktu yang dipilih saat ini tidak tersedia untuk visualisasi pada peta "
 "ini"
 
-#: timezoneselector/TimezoneSelector.qml:194
-#, kde-format
-msgctxt "@action:button"
-msgid "Zoom in"
-msgstr "Zoom perbesar"
-
-#: timezoneselector/TimezoneSelector.qml:210
-#, kde-format
-msgctxt "@action:button"
-msgid "Zoom out"
-msgstr "Zoom perkecil"
-
-#: timezoneselector/TimezoneSelector.qml:239
-#, kde-format
-msgctxt "@label:listbox In the context of time zone selection"
-msgid "Region:"
-msgstr "Wilayah:"
-
-#: timezoneselector/TimezoneSelector.qml:246
+#: timezoneselector/TimezoneSelector.qml:122
+#: timezoneselector/TimezoneSelector.qml:347
 #, kde-format
 msgctxt "Placeholder for empty time zone combobox selector"
 msgid "Choose…"
 msgstr "Pilih..."
 
-#: timezoneselector/TimezoneSelector.qml:250
+#: timezoneselector/TimezoneSelector.qml:124
+#: timezoneselector/TimezoneSelector.qml:339
 #, kde-format
-msgid "Timezone region selector"
-msgstr "Untuk memilih wilayah zona waktu"
+msgctxt "@label:listbox In the context of time zone selection"
+msgid "Region:"
+msgstr "Wilayah:"
 
-#: timezoneselector/TimezoneSelector.qml:271
+#: timezoneselector/TimezoneSelector.qml:151
+#: timezoneselector/TimezoneSelector.qml:376
 #, kde-format
 msgctxt "@label:listbox In the context of time zone selection"
 msgid "Time zone:"
 msgstr "Zona waktu:"
 
-#: timezoneselector/TimezoneSelector.qml:281
+#: timezoneselector/TimezoneSelector.qml:294
+#, kde-format
+msgctxt "@action:button"
+msgid "Zoom in"
+msgstr "Zoom perbesar"
+
+#: timezoneselector/TimezoneSelector.qml:310
+#, kde-format
+msgctxt "@action:button"
+msgid "Zoom out"
+msgstr "Zoom perkecil"
+
+#: timezoneselector/TimezoneSelector.qml:351
+#, kde-format
+msgid "Timezone region selector"
+msgstr "Untuk memilih wilayah zona waktu"
+
+#: timezoneselector/TimezoneSelector.qml:387
 #, kde-format
 msgid "Timezone location selector"
 msgstr "Untuk memilih lokasi zona waktu"
+
+#~ msgid "Screen saver timeout"
+#~ msgstr "Batas waktu screensaver"
+
+#~ msgid "Sets the minutes after which the screen is locked."
+#~ msgstr "Atur menit sesudah layar dikunci."
 
 #~ msgid "&Execute"
 #~ msgstr "&Eksekusi"

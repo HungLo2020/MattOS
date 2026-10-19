@@ -15,6 +15,7 @@
 #include "waylandintegration.h"
 
 class QDBusMessage;
+class MediaMonitor;
 
 class ScreenCastPortal : public QDBusAbstractAdaptor
 {
@@ -52,7 +53,7 @@ public:
 
     uint version() const
     {
-        return 4;
+        return 6;
     }
     uint AvailableSourceTypes() const
     {
@@ -62,6 +63,11 @@ public:
     {
         return Hidden | Embedded | Metadata;
     };
+
+    MediaMonitor *mediamonitor()
+    {
+        return m_mediaMonitor.get();
+    }
 
 public Q_SLOTS:
     uint CreateSession(const QDBusObjectPath &handle,
@@ -84,6 +90,9 @@ public Q_SLOTS:
                const QDBusMessage &message,
                uint &replyResponse,
                QVariantMap &replyResults);
+
+private:
+    std::unique_ptr<MediaMonitor> m_mediaMonitor;
 };
 
 
@@ -91,7 +100,7 @@ class ScreenCastSession : public Session
 {
     Q_OBJECT
 public:
-    explicit ScreenCastSession(QObject *parent, const QString &appId, const QString &path, const QString &iconName);
+    explicit ScreenCastSession(QObject *parent, const QString &appId, const QString &path);
     ~ScreenCastSession() override;
 
     void setOptions(const QVariantMap &options);
@@ -122,18 +131,16 @@ public:
         return m_persistMode;
     }
 
-    WaylandIntegration::Streams streams() const
+    const std::vector<std::unique_ptr<ScreencastingStream>> &streams() const
     {
         return m_streams;
     }
-    void setStreams(const WaylandIntegration::Streams &streams);
-    virtual void refreshDescription()
-    {
-    }
+    void setStreams(std::vector<std::unique_ptr<ScreencastingStream>> &&streams);
+    virtual void setupStatusNotifier();
+    void showStatusNotifier();
 
 protected:
-    void setDescription(const QString &description);
-    KStatusNotifierItem *const m_item;
+    std::unique_ptr<KStatusNotifierItem> m_item;
 
 private:
     bool m_multipleSources = false;
@@ -143,8 +150,9 @@ private:
     QVariant m_restoreData;
 
     void streamClosed();
+    void updateSniVisiblity();
 
-    WaylandIntegration::Streams m_streams;
+    std::vector<std::unique_ptr<ScreencastingStream>> m_streams;
     friend class RemoteDesktopPortal;
 };
 

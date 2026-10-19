@@ -148,7 +148,7 @@ static const QMap<Registry::Interface, SuppertedInterfaceData> s_interfaces = {
         &Registry::plasmaShellRemoved
     }},
     {Registry::Interface::PlasmaVirtualDesktopManagement, {
-        2,
+        4,
         QByteArrayLiteral("org_kde_plasma_virtual_desktop_management"),
         &org_kde_plasma_virtual_desktop_management_interface,
         &Registry::plasmaVirtualDesktopManagementAnnounced,
@@ -338,6 +338,7 @@ public:
     WaylandPointer<wl_registry, wl_registry_destroy> registry;
     static const struct wl_callback_listener s_callbackListener;
     WaylandPointer<wl_callback, wl_callback_destroy> callback;
+    WaylandPointer<wl_fixes, wl_fixes_destroy> fixes;
     EventQueue *queue = nullptr;
 
 private:
@@ -382,8 +383,12 @@ Registry::~Registry()
 
 void Registry::release()
 {
+    if (d->fixes && d->registry) {
+        wl_fixes_destroy_registry(d->fixes, d->registry);
+    }
     d->registry.release();
     d->callback.release();
+    d->fixes.release();
 }
 
 void Registry::destroy()
@@ -391,6 +396,7 @@ void Registry::destroy()
     Q_EMIT registryDestroyed();
     d->registry.destroy();
     d->callback.destroy();
+    d->fixes.destroy();
 }
 
 void Registry::create(wl_display *display)
@@ -428,6 +434,9 @@ void Registry::setEventQueue(EventQueue *queue)
     }
     if (d->callback) {
         d->queue->addProxy(d->callback);
+    }
+    if (d->fixes) {
+        d->queue->addProxy(d->fixes);
     }
 }
 
@@ -486,6 +495,13 @@ static Registry::Interface nameToInterface(const char *interface)
 void Registry::Private::handleAnnounce(uint32_t name, const char *interface, uint32_t version)
 {
     Interface i = nameToInterface(interface);
+    if (qstrcmp(interface, wl_fixes_interface.name) == 0) {
+        fixes.setup(reinterpret_cast<wl_fixes *>(wl_registry_bind(registry, name, &wl_fixes_interface, std::min(version, 2u))));
+        if (queue) {
+            queue->addProxy(fixes);
+        }
+    }
+
     if (i == Interface::Unknown) {
         qCDebug(KWAYLAND_CLIENT) << "Unknown interface announced: " << interface << "/" << name << "/" << version;
     } else {
@@ -513,6 +529,10 @@ void Registry::Private::handleRemove(uint32_t name)
         }
     }
     Q_EMIT q->interfaceRemoved(name);
+
+    if (fixes && wl_fixes_get_version(fixes) >= WL_FIXES_ACK_GLOBAL_REMOVE_SINCE_VERSION) {
+        wl_fixes_ack_global_remove(fixes, registry, name);
+    }
 }
 
 bool Registry::Private::hasInterface(Registry::Interface interface) const

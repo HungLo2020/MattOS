@@ -69,6 +69,7 @@ private slots:
     void toHtml_data();
     void toHtml();
     void toHtml2();
+    void toHtmlAnchorTitle();
 
     void setFragmentMarkersInHtmlExport();
     void setMediaRule();
@@ -820,6 +821,31 @@ void tst_QTextDocument::toHtml_data()
     {
         CREATE_DOC_AND_CURSOR();
 
+        // A tool tip is independent of an anchor: exported as a span title.
+        QTextCharFormat fmt;
+        fmt.setToolTip("a tip");
+        cursor.insertText("Blah", fmt);
+
+        QTest::newRow("tooltip-without-anchor") << QTextDocumentFragment(&doc)
+                                  << QString("<p DEFAULTBLOCKSTYLE><span title=\"a tip\">Blah</span></p>");
+    }
+
+    {
+        CREATE_DOC_AND_CURSOR();
+
+        // A tool tip combined with styling: both land on the same span.
+        QTextCharFormat fmt;
+        fmt.setFontFamilies({QLatin1String("Times")});
+        fmt.setToolTip("a tip");
+        cursor.insertText("Blah", fmt);
+
+        QTest::newRow("tooltip-with-style") << QTextDocumentFragment(&doc)
+                                  << QString("<p DEFAULTBLOCKSTYLE><span style=\" font-family:'Times';\" title=\"a tip\">Blah</span></p>");
+    }
+
+    {
+        CREATE_DOC_AND_CURSOR();
+
         QTextCharFormat fmt;
         fmt.setFontFamilies({QLatin1String("Foo's Family")});
         cursor.insertText("Blah", fmt);
@@ -1178,6 +1204,22 @@ void tst_QTextDocument::toHtml_data()
                                   << QString("<table border=\"1\" style=\" border-collapse:collapse;\" cellpadding=\"4\">"
                                              "\n<tr>\n<td></td>\n<td></td></tr>"
                                              "\n<tr>\n<td></td>\n<td></td></tr>"
+                                             "</table>");
+    }
+
+    {
+        CREATE_DOC_AND_CURSOR();
+
+        // A tool tip on a table cell is exported as the cell's title attribute.
+        QTextTable *table = cursor.insertTable(1, 1);
+        QTextTableCell cell = table->cellAt(0, 0);
+        QTextTableCellFormat fmt = cell.format().toTableCellFormat();
+        fmt.setToolTip("cell tip");
+        cell.setFormat(fmt);
+
+        QTest::newRow("tablecelltooltip") << QTextDocumentFragment(&doc)
+                                  << QString("<table border=\"1\" style=\" border-collapse:collapse;\" cellpadding=\"4\">"
+                                             "\n<tr>\n<td title=\"cell tip\"></td></tr>"
                                              "</table>");
     }
 
@@ -1882,6 +1924,41 @@ void tst_QTextDocument::toHtml2()
     block = block.next();
     //qDebug() << block.text();
     QCOMPARE(block.text(), QString("text"));
+}
+
+// The "title" attribute of an anchor is imported into QTextCharFormat::toolTip()
+// (TextToolTip). It must also be exported again, so that a link tool tip
+// round-trips through HTML. QTBUG-148550
+void tst_QTextDocument::toHtmlAnchorTitle()
+{
+    auto anchorToolTip = [](const QTextDocument &doc) {
+        for (QTextBlock block = doc.begin(); block.isValid(); block = block.next()) {
+            for (QTextBlock::Iterator it = block.begin(); !it.atEnd(); ++it) {
+                const QTextCharFormat fmt = it.fragment().charFormat();
+                if (fmt.isAnchor())
+                    return fmt.toolTip();
+            }
+        }
+        return QString();
+    };
+
+    QTextDocument doc;
+    doc.setHtml("Hover <a href=\"https://qt.io\" title=\"the tip\">Qt</a>");
+    QCOMPARE(anchorToolTip(doc), QStringLiteral("the tip"));
+
+    const QString html = doc.toHtml();
+    QVERIFY(html.contains(QLatin1String("href=\"https://qt.io\"")));
+    QVERIFY(html.contains(QLatin1String("title=\"the tip\"")));
+
+    // The exported HTML must reproduce the tool tip when imported again.
+    QTextDocument roundTrip;
+    roundTrip.setHtml(html);
+    QCOMPARE(anchorToolTip(roundTrip), QStringLiteral("the tip"));
+
+    // An anchor without a title must not gain a title attribute.
+    QTextDocument noTitle;
+    noTitle.setHtml("Hover <a href=\"https://qt.io\">Qt</a>");
+    QVERIFY(!noTitle.toHtml().contains(QLatin1String("title=")));
 }
 
 void tst_QTextDocument::setFragmentMarkersInHtmlExport()

@@ -1,0 +1,333 @@
+# Nemanja Hiršl <nemhirsl@gmail.com>, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: libksysguard\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-22 00:47+0000\n"
+"PO-Revision-Date: 2026-10-07 11:45+0200\n"
+"Last-Translator: Nemanja Hiršl <nemhirsl@gmail.com>\n"
+"Language-Team: Serbian <kde-i18n-sr@kde.org>\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+"X-Environment: kde\n"
+
+#: ConfigAppearance.qml:72
+#, kde-format
+msgid "Load Preset"
+msgstr "Учитавање претподешавања"
+
+#: ConfigAppearance.qml:99
+#, kde-format
+msgid "Delete this preset"
+msgstr "Обриши ово претподешавање"
+
+#: ConfigAppearance.qml:125
+#, kde-format
+msgid "Presets:"
+msgstr "Претподешавања:"
+
+#: ConfigAppearance.qml:129
+#, kde-format
+msgid "Load Preset..."
+msgstr "Учитај претподешавање..."
+
+#: ConfigAppearance.qml:134
+#, kde-format
+msgid "Get new presets..."
+msgstr "Добави нова претподешавања..."
+
+#: ConfigAppearance.qml:146
+#, kde-format
+msgid "Save Settings As Preset"
+msgstr "Сачувај поставке као претподешавање"
+
+#: ConfigAppearance.qml:156
+#, kde-format
+msgid "Title:"
+msgstr "Наслов:"
+
+#: ConfigAppearance.qml:162
+#, kde-format
+msgid "Show Title"
+msgstr "Прикажи наслов"
+
+#: ConfigAppearance.qml:167
+#, kde-format
+msgid "Display Style:"
+msgstr "Стил приказа:"
+
+#: ConfigAppearance.qml:187
+#, kde-format
+msgid "Get New Display Styles..."
+msgstr "Добави нове стилове приказа..."
+
+#: ConfigAppearance.qml:197
+#, kde-format
+msgid "Minimum Time Between Updates:"
+msgstr "Најмање време између ажурирања:"
+
+#: ConfigAppearance.qml:206
+#, kde-format
+msgid "No Limit"
+msgstr "без ограничења"
+
+#. i18ndp doesn't handle floats :(
+#: ConfigAppearance.qml:210
+#, kde-format
+msgid "1 second"
+msgstr "1 секунда"
+
+#: ConfigAppearance.qml:212
+#, kde-format
+msgid "%1 seconds"
+msgstr "%1 секунди"
+
+#: ConfigSensors.qml:131
+#, kde-format
+msgid "Total Sensor"
+msgid_plural "Total Sensors"
+msgstr[0] "Укупни сензор"
+msgstr[1] "Укупни сензори"
+msgstr[2] "Укупни сензори"
+msgstr[3] "Укупни сензор"
+
+#: ConfigSensors.qml:150
+#, kde-format
+msgid "Sensors"
+msgstr "Сензори"
+
+#: ConfigSensors.qml:176
+#, kde-format
+msgid "Text-Only Sensors"
+msgstr "Сензори само као текст"
+
+#: facepackages/barchart/contents/ui/Config.qml:35
+#, kde-format
+msgctxt "@title:group General options"
+msgid "General:"
+msgstr "Опште:"
+
+#: facepackages/barchart/contents/ui/Config.qml:37
+#: facepackages/linechart/contents/ui/Config.qml:47
+#: facepackages/piechart/contents/ui/Config.qml:34
+#, kde-format
+msgctxt "@option:check"
+msgid "Show legend"
+msgstr "Прикажи легенду"
+
+#: facepackages/barchart/contents/ui/Config.qml:41
+#, kde-format
+msgctxt "@option:check"
+msgid "Stacked bars"
+msgstr "Наслагане траке"
+
+#: facepackages/barchart/contents/ui/Config.qml:49
+#, kde-format
+msgctxt "@label for radiobutton group, Orientation of bar chart"
+msgid "Bar orientation:"
+msgstr "Усмерење трака:"
+
+#: facepackages/barchart/contents/ui/Config.qml:51
+#, kde-format
+msgctxt "@option:radio Vertical option for the bar chart"
+msgid "Vertical"
+msgstr "Усправно"
+
+#: facepackages/barchart/contents/ui/Config.qml:56
+#, kde-format
+msgctxt "@option:radio Horizontal option for the bar chart"
+msgid "Horizontal"
+msgstr "Водоравно"
+
+#: facepackages/barchart/contents/ui/Config.qml:67
+#, kde-format
+msgctxt "@label Options about axis and label of bar chart"
+msgid "Axis:"
+msgstr "Оса:"
+
+#: facepackages/barchart/contents/ui/Config.qml:69
+#: facepackages/linechart/contents/ui/Config.qml:63
+#, kde-format
+msgctxt "@option:check"
+msgid "Show Y axis labels"
+msgstr "Прикажи етикете Y осе"
+
+#: facepackages/barchart/contents/ui/Config.qml:74
+#: facepackages/linechart/contents/ui/Config.qml:59
+#, kde-format
+msgctxt "@option:check"
+msgid "Show grid lines"
+msgstr "Прикажи линије мреже"
+
+#: facepackages/barchart/contents/ui/Config.qml:78
+#: facepackages/horizontalbars/contents/ui/Config.qml:29
+#: facepackages/piechart/contents/ui/Config.qml:61
+#, kde-format
+msgctxt "@option:check"
+msgid "Automatic data range"
+msgstr "Аутоматски опсег података"
+
+#: facepackages/barchart/contents/ui/Config.qml:82
+#: facepackages/horizontalbars/contents/ui/Config.qml:33
+#: facepackages/piechart/contents/ui/Config.qml:65
+#, kde-format
+msgctxt "@label:spinbox data range"
+msgid "From:"
+msgstr "Од:"
+
+#: facepackages/barchart/contents/ui/Config.qml:89
+#: facepackages/horizontalbars/contents/ui/Config.qml:40
+#: facepackages/piechart/contents/ui/Config.qml:72
+#, kde-format
+msgctxt "@label:spinbox data range"
+msgid "To:"
+msgstr "До:"
+
+#: facepackages/colorgrid/contents/ui/Config.qml:22
+#, kde-format
+msgctxt "@option:check"
+msgid "Use sensor color:"
+msgstr "Користи боју сензора:"
+
+#: facepackages/colorgrid/contents/ui/Config.qml:27
+#: facepackages/facegrid/contents/ui/Config.qml:35
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Number of columns:"
+msgstr "Број колона:"
+
+#: facepackages/colorgrid/contents/ui/Config.qml:34
+#: facepackages/facegrid/contents/ui/Config.qml:42
+#, kde-format
+msgctxt "@label automatic number of columns"
+msgid "Automatic"
+msgstr "аутоматски"
+
+#: facepackages/facegrid/contents/ui/Config.qml:54
+#, kde-format
+msgctxt "@label:listbox items are sensor face names"
+msgid "Display style:"
+msgstr "Стил приказа:"
+
+#: facepackages/linechart/contents/ui/Config.qml:42
+#, kde-format
+msgctxt "@title:group"
+msgid "Appearance"
+msgstr "Изглед"
+
+#: facepackages/linechart/contents/ui/Config.qml:51
+#, kde-format
+msgctxt "@option:check"
+msgid "Stacked charts"
+msgstr "Наслагани графици"
+
+#: facepackages/linechart/contents/ui/Config.qml:55
+#, kde-format
+msgctxt "@option:check"
+msgid "Smooth lines"
+msgstr "Глатке линије"
+
+#: facepackages/linechart/contents/ui/Config.qml:67
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Opacity of area below line:"
+msgstr "Непрозирност површине испод линије:"
+
+#: facepackages/linechart/contents/ui/Config.qml:73
+#, kde-format
+msgctxt "title:group"
+msgid "Data Ranges"
+msgstr "Опсези података"
+
+#: facepackages/linechart/contents/ui/Config.qml:78
+#, kde-format
+msgctxt "@option:check"
+msgid "Automatic Y data range"
+msgstr "Аутоматски опсег података по Y оси"
+
+#: facepackages/linechart/contents/ui/Config.qml:82
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "From (Y):"
+msgstr "Од (Y):"
+
+#: facepackages/linechart/contents/ui/Config.qml:89
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "To (Y):"
+msgstr "До (Y):"
+
+#: facepackages/linechart/contents/ui/Config.qml:96
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "History to show:"
+msgstr "Историјат за приказ:"
+
+#: facepackages/linechart/contents/ui/Config.qml:98
+#, kde-format
+msgctxt "@item:valuesuffix %1 is seconds of history"
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "секунда"
+msgstr[1] "секунде"
+msgstr[2] "секунди"
+msgstr[3] "секунда"
+
+#: facepackages/piechart/contents/ui/Config.qml:38
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Starting angle:"
+msgstr "Почетни угао:"
+
+#: facepackages/piechart/contents/ui/Config.qml:43
+#: facepackages/piechart/contents/ui/Config.qml:52
+#, kde-format
+msgctxt "@label angle degrees"
+msgid "°"
+msgstr "°"
+
+#: facepackages/piechart/contents/ui/Config.qml:47
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Total pie angle:"
+msgstr "Укупни угао пите:"
+
+#: facepackages/piechart/contents/ui/Config.qml:56
+#, kde-format
+msgctxt "@option:check"
+msgid "Rounded lines"
+msgstr "Заобљене линије"
+
+#: facepackages/textonly/contents/ui/Config.qml:24
+#, kde-format
+msgctxt "@option:check"
+msgid "Group sensors based on the value of the total sensors."
+msgstr "Групиши сензоре према вредности укупних сензора."
+
+#: import/Choices.qml:53
+#, kde-format
+msgctxt "@label"
+msgid "Click to select a sensor…"
+msgstr "Кликните да изаберете сензор…"
+
+#: import/Choices.qml:373
+#, kde-format
+msgid "Search..."
+msgstr "Тражи..."
+
+#: import/Choices.qml:387
+#, kde-format
+msgctxt "@action:button"
+msgid "Back"
+msgstr "Назад"
+
+#: SensorFaceController.cpp:450
+#, kde-format
+msgid "System Monitor Sensor"
+msgstr "Сензор надзорника система"

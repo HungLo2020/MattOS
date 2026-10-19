@@ -37,9 +37,6 @@ KCMUtils.SimpleKCM {
         text: i18ndc("kcmmouse", "@action:button", "Configure Extra Buttons…")
 
         visible: {
-            if (root.backend.isAnonymousInputDevice) {
-                return false;
-            }
             return root.backend.buttonMappingCount > 0
                 || root.backend.inputDevices.some(root.supportsExtraButtons);
         }
@@ -54,220 +51,197 @@ KCMUtils.SimpleKCM {
         hotplugMessage: root.KCMUtils.ConfigModule.hotplugMessage
     }
 
-    Kirigami.FormLayout {
+    Kirigami.Form {
         id: formLayout
         enabled: root.device !== null && root.backend.inputDevices.length > 0
 
-        // Device
-        QQC2.ComboBox {
-            id: deviceSelector
-            Kirigami.FormData.label: i18ndc("kcmmouse", "@title:listbox select device", "Device:")
-            visible: !root.backend.isAnonymousInputDevice
-            enabled: count > 1
-            Layout.fillWidth: true
-            model: root.backend.inputDevices
-            textRole: "name"
+        Kirigami.FormGroup {
+            // Device
+            Kirigami.FormEntry {
+                enabled: deviceSelector.count > 1
+                contentItem: QQC2.ComboBox {
+                    id: deviceSelector
+                    Kirigami.FormData.label: i18ndc("kcmmouse", "@title:listbox select device", "Device:")
+                    Layout.fillWidth: true
+                    model: root.backend.inputDevices
+                    textRole: "name"
 
-            Component.onCompleted: {
-                currentIndex = Qt.binding(() => root.KCMUtils.ConfigModule.currentDeviceIndex);
-            }
+                    Component.onCompleted: {
+                        currentIndex = Qt.binding(() => root.KCMUtils.ConfigModule.currentDeviceIndex);
+                    }
 
-            onActivated: {
-                root.KCMUtils.ConfigModule.currentDeviceIndex = currentIndex;
-            }
-        }
-
-        Item {
-            Kirigami.FormData.isSection: false
-        }
-
-        // General
-        QQC2.CheckBox {
-            id: deviceEnabled
-            Kirigami.FormData.label: i18ndc("kcmmouse", "@title:group", "General:")
-            text: i18ndc("kcmmouse", "@option:check enable this mouse device", "Enable device")
-            visible: !root.backend.isAnonymousInputDevice
-            enabled: root.device?.supportsDisableEvents ?? false
-            checked: root.device && (!root.device.supportsDisableEvents || root.device.enabled)
-
-            onToggled: {
-                if (root.device) {
-                    root.device.enabled = checked
-                }
-            }
-        }
-
-        Item {
-            Kirigami.FormData.isSection: false
-        }
-
-        QQC2.CheckBox {
-            Kirigami.FormData.label: i18ndc("kcmmouse", "@title:group", "Left and right buttons:")
-            text: i18ndc("kcmmouse", "@option:check Left and right buttons", "Swap (left-handed mode)")
-            enabled: root.device?.supportsLeftHanded ?? false
-            checked: enabled && (root.device?.leftHanded ?? false)
-
-            onToggled: {
-                if (root.device) {
-                    root.device.leftHanded = checked
-                }
-            }
-        }
-
-        RowLayout {
-            spacing: Kirigami.Units.smallSpacing
-            QQC2.CheckBox {
-                id: middleEmulation
-                text: i18ndc("kcmmouse", "@option:check 'both' refers to the left and right buttons'", "Press both simultaneously to middle-click")
-                enabled: root.device?.supportsMiddleEmulation ?? false
-                checked: enabled && (root.device?.middleEmulation ?? false)
-
-                onToggled: {
-                    if (root.device) {
-                        root.device.middleEmulation = checked
+                    onActivated: {
+                        root.KCMUtils.ConfigModule.currentDeviceIndex = currentIndex;
                     }
                 }
             }
 
-            Kirigami.ContextualHelpButton {
-                toolTipText: i18ndc("kcmmouse", "@info:tooltip from ContextualHelpButton", "Activating this setting increases click latency by 50ms. The extra delay is needed to correctly detect simultaneous left and right button presses.")
-            }
-        }
+            Kirigami.FormSeparator {}
 
+            // General
+            Kirigami.FormEntry {
+                enabled: root.device?.supportsDisableEvents ?? false
+                contentItem: QQC2.CheckBox {
+                    id: deviceEnabled
+                    Kirigami.FormData.label: i18ndc("kcmmouse", "@title:group", "General:")
+                    text: i18ndc("kcmmouse", "@option:check enable this mouse device", "Enable device")
+                    checked: root.device && (!root.device.supportsDisableEvents || root.device.enabled)
 
-        // Speed section
-        Kirigami.Separator {
-            Layout.fillWidth: true
-            Kirigami.FormData.isSection: true
-        }
-
-        // Acceleration
-        RowLayout {
-            id: accelSpeed
-
-            Kirigami.FormData.label: i18ndc("kcmmouse", "@label:slider and @label:spinbox", "Pointer speed:")
-            Layout.fillWidth: true
-
-            spacing: Kirigami.Units.smallSpacing
-
-            function onAccelSpeedChanged(value: int): void {
-                if (root.device && (value / 1000) !== root.device.pointerAcceleration) {
-                    root.device.pointerAcceleration = value / 100
-                }
-            }
-
-            QQC2.Slider {
-                id: accelSpeedSlider
-                Layout.fillWidth: true
-
-                from: 1
-                to: 11
-                stepSize: 1
-                enabled: root.device?.supportsPointerAcceleration ?? false
-
-                // convert libinput pointer acceleration range [-1, 1] to slider range [1, 11]
-                value: enabled && root.device ? Math.round(6 + root.device.pointerAcceleration / 0.2) : 0
-
-                onMoved: {
-                    if (root.device) {
-                        // convert slider range [1, 11] to accelSpeedValue range [-100, 100]
-                        const accelSpeedValue = Math.round(((value - 6) * 0.2) * 100)
-                        accelSpeed.onAccelSpeedChanged(accelSpeedValue)
+                    onToggled: {
+                        if (root.device) {
+                            root.device.enabled = checked
+                        }
                     }
                 }
             }
 
-            QQC2.SpinBox {
-                id: accelSpeedSpinbox
-                Layout.minimumWidth: Kirigami.Units.gridUnit * 5
+            Kirigami.FormSeparator {}
 
-                from: -100
-                to: 100
-                stepSize: 1
-                editable: true
-                enabled: root.device?.supportsPointerAcceleration ?? false
+            Kirigami.FormEntry {
+                contentItem: QQC2.CheckBox {
+                    Kirigami.FormData.label: i18ndc("kcmmouse", "@title:group", "Left and right buttons:")
+                    text: i18ndc("kcmmouse", "@option:check Left and right buttons", "Swap (left-handed mode)")
+                    enabled: root.device?.supportsLeftHanded ?? false
+                    checked: enabled && (root.device?.leftHanded ?? false)
 
-                // if existing configuration or another application set a value with more than 2 decimals
-                // we reduce the precision to 2
-                value: enabled && root.device ? Math.round(root.device.pointerAcceleration * 100) : 0
-
-                validator: DoubleValidator {
-                    bottom: accelSpeedSpinbox.from
-                    top: accelSpeedSpinbox.to
+                    onToggled: {
+                        if (root.device) {
+                            root.device.leftHanded = checked
+                        }
+                    }
                 }
+            }
 
-                onValueModified: {
-                    if (root.device) {
-                        accelSpeed.onAccelSpeedChanged(value)
-                        // Keyboard input breaks SpinBox value bindings with current Qt.
-                        // Restore the binding so clicking "Reset" will update it correctly.
-                        value = Qt.binding(() => accelSpeedSpinbox.enabled && root.device
-                            ? Math.round(root.device.pointerAcceleration * 100)
-                            : 0
-                        );
+            Kirigami.FormEntry {
+                contentItem: QQC2.CheckBox {
+                    id: middleEmulation
+                    text: i18ndc("kcmmouse", "@option:check 'both' refers to the left and right buttons'", "Press both simultaneously to middle-click")
+                    enabled: root.device?.supportsMiddleEmulation ?? false
+                    checked: enabled && (root.device?.middleEmulation ?? false)
+
+                    onToggled: {
+                        if (root.device) {
+                            root.device.middleEmulation = checked
+                        }
                     }
                 }
 
-                textFromValue: function(val, locale) {
-                    return Number(val / 100).toLocaleString(locale, "f", 2)
-                }
-
-                valueFromText: function(text, locale) {
-                    return Number.fromLocaleString(locale, text) * 100
+                trailingItems: Kirigami.ContextualHelpButton {
+                    toolTipText: i18ndc("kcmmouse", "@info:tooltip from ContextualHelpButton", "Activating this setting increases click latency by 50ms. The extra delay is needed to correctly detect simultaneous left and right button presses.")
                 }
             }
         }
 
-        RowLayout {
-            Kirigami.FormData.buddyFor: accelProfileEnabled
-            spacing: Kirigami.Units.smallSpacing
 
-            QQC2.CheckBox {
-                id: accelProfileEnabled
-                text: i18ndc("kcmmouse", "@option:check", "Enable pointer acceleration")
+        Kirigami.FormGroup {
+            // Acceleration
+            Kirigami.FormEntry {
+                contentItem: RowLayout {
+                    id: accelSpeed
+
+                    Kirigami.FormData.label: i18ndc("kcmmouse", "@label:slider and @label:spinbox", "Pointer speed:")
+                    Layout.fillWidth: true
+
+                    spacing: Kirigami.Units.smallSpacing
+
+                    function onAccelSpeedChanged(value: int): void {
+                        const newPointerAcceleration = value / 100
+                        if (root.device && newPointerAcceleration !== root.device.pointerAcceleration) {
+                            root.device.pointerAcceleration = newPointerAcceleration
+                        }
+                    }
+
+                    QQC2.Slider {
+                        id: accelSpeedSlider
+                        Layout.fillWidth: true
+
+                        from: 1
+                        to: 11
+                        stepSize: 1
+                        Kirigami.StyleHints.tickMarkStepSize: 1
+                        enabled: root.device?.supportsPointerAcceleration ?? false
+
+                        // convert libinput pointer acceleration range [-1, 1] to slider range [1, 11]
+                        value: enabled && root.device ? Math.round(6 + root.device.pointerAcceleration / 0.2) : 0
+
+                        onMoved: {
+                            if (root.device) {
+                                // convert slider range [1, 11] to accelSpeedValue range [-100, 100]
+                                const accelSpeedValue = Math.round(((value - 6) * 0.2) * 100)
+                                accelSpeed.onAccelSpeedChanged(accelSpeedValue)
+                            }
+                        }
+                    }
+
+                    QQC2.SpinBox {
+                        id: accelSpeedSpinbox
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 5
+
+                        from: -100
+                        to: 100
+                        stepSize: 1
+                        editable: true
+                        enabled: root.device?.supportsPointerAcceleration ?? false
+
+                        // if existing configuration or another application set a value with more than 2 decimals
+                        // we reduce the precision to 2
+                        value: enabled && root.device ? Math.round(root.device.pointerAcceleration * 100) : 0
+
+                        validator: DoubleValidator {
+                            bottom: accelSpeedSpinbox.from
+                            top: accelSpeedSpinbox.to
+                        }
+
+                        onValueModified: {
+                            if (root.device) {
+                                accelSpeed.onAccelSpeedChanged(value)
+                                // Keyboard input breaks SpinBox value bindings with current Qt.
+                                // Restore the binding so clicking "Reset" will update it correctly.
+                                value = Qt.binding(() => accelSpeedSpinbox.enabled && root.device
+                                    ? Math.round(root.device.pointerAcceleration * 100)
+                                    : 0
+                                );
+                            }
+                        }
+
+                        textFromValue: function(val, locale) {
+                            return Number(val / 100).toLocaleString(locale, "f", 2)
+                        }
+
+                        valueFromText: function(text, locale) {
+                            return Number.fromLocaleString(locale, text) * 100
+                        }
+                    }
+                }
+            }
+
+            Kirigami.FormEntry {
                 enabled: root.device?.supportsPointerAccelerationProfileAdaptive ?? false
                 visible: enabled
-                checked: enabled && !(root.device?.pointerAccelerationProfileFlat ?? false)
+                contentItem: QQC2.CheckBox {
+                    id: accelProfileEnabled
+                    text: i18ndc("kcmmouse", "@option:check", "Enable pointer acceleration")
+                    checked: enabled && !(root.device?.pointerAccelerationProfileFlat ?? false)
 
-                onToggled: {
-                    if (root.device) {
-                        root.device.pointerAccelerationProfileFlat = !checked
-                        root.device.pointerAccelerationProfileAdaptive = checked
+                    onToggled: {
+                        if (root.device) {
+                            root.device.pointerAccelerationProfileFlat = !checked
+                            root.device.pointerAccelerationProfileAdaptive = checked
+                        }
                     }
+                }
+
+                trailingItems: Kirigami.ContextualHelpButton {
+                    toolTipText: i18ndc("kcmmouse", "@info:whatsthis ContextualHelpButton tooltip", "When enabled, pointer travel distance increases with faster movement speed.")
                 }
             }
 
-            Kirigami.ContextualHelpButton {
-                toolTipText: i18ndc("kcmmouse", "@info:whatsthis ContextualHelpButton tooltip", "When enabled, pointer travel distance increases with faster movement speed.")
-            }
-        }
 
+            Kirigami.FormSeparator {}
 
-        // Scrolling section
-        Kirigami.Separator {
-            Layout.fillWidth: true
-            Kirigami.FormData.isSection: true
-        }
-
-        // Scroll Speed aka scroll Factor
-        GridLayout {
-            Kirigami.FormData.label: i18ndc("kcmmouse", "@label:slider and @label:spinbox", "Scrolling speed:")
-            Kirigami.FormData.buddyFor: scrollFactor
-            Layout.fillWidth: true
-
-            visible: !root.backend.isAnonymousInputDevice
-            columns: 3
-
-            QQC2.Slider {
-                id: scrollFactor
-                Layout.fillWidth: true
-                Layout.columnSpan: 3
-
-                from: 0
-                to: 14
-                stepSize: 1
-                enabled: root.device !== null
-
+            Kirigami.FormEntry {
+                // Scroll Speed aka scroll Factor
+                id: scrollProfile
                 readonly property list<real> values: [
                     0.1,
                     0.3,
@@ -286,69 +260,164 @@ KCMUtils.SimpleKCM {
                     20,
                 ]
 
-                function indexOf(val: real): int {
-                    const index = values.indexOf(val)
-                    return index === -1 ? values.indexOf(1) : index
-                }
-                value: indexOf(root.device?.scrollFactor ?? 1)
+                contentItem: GridLayout {
+                    Kirigami.FormData.label: i18ndc("kcmmouse", "@label:slider and @label:spinbox", "Scrolling speed:")
+                    Kirigami.FormData.buddyFor: scrollFactor
+                    Layout.fillWidth: true
 
-                onMoved: {
-                    if (root.device) {
-                        root.device.scrollFactor = values[value]
+                    columns: 4
+
+                    QQC2.Slider {
+                        id: scrollFactor
+                        Layout.fillWidth: true
+                        Layout.columnSpan: 3
+
+                        from: 0
+                        to: 14
+                        stepSize: 1
+                        Kirigami.StyleHints.tickMarkStepSize: 1
+                        enabled: root.device !== null
+
+                        function indexOf(val: real): int {
+                            const index = scrollProfile.values.indexOf(val)
+                            return index === -1 ? scrollProfile.values.indexOf(1) : index
+                        }
+                        value: indexOf(root.device?.scrollFactor ?? 1)
+
+                        onMoved: {
+                            if (root.device) {
+                                root.device.scrollFactor = scrollProfile.values[value]
+                            }
+                        }
+                    }
+
+                    QQC2.SpinBox {
+                        id: scrollFactorSpinBox
+
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+
+                        from: 0
+                        to: 14
+                        stepSize: 1
+
+                        function indexOf(val: real): int {
+                            const index = scrollProfile.values.indexOf(val)
+                            return index === -1 ? scrollProfile.values.indexOf(1) : index
+                        }
+                        value: indexOf(root.device?.scrollFactor ?? 1)
+
+                        onValueChanged: {
+                            if (root.device) {
+                                root.device.scrollFactor = scrollProfile.values[value]
+                            }
+                        }
+
+
+                        textFromValue: function(val, locale) {
+                            return Number(val + 1).toLocaleString(locale, "d", 0)
+                        }
+
+                        valueFromText: function(text, locale) {
+                            return Number.fromLocaleString(locale, text) - 1
+                        }
+                    }
+
+
+                    //row 2
+                    QQC2.Label {
+                        text: i18ndc("kcmmouse", "Slower Scroll", "Slower")
+                        textFormat: Text.PlainText
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+
+                    QQC2.Label {
+                        text: i18ndc("kcmmouse", "Faster Scroll Speed", "Faster")
+                        textFormat: Text.PlainText
                     }
                 }
             }
 
-            //row 2
-            QQC2.Label {
-                text: i18ndc("kcmmouse", "Slower Scroll", "Slower")
-                textFormat: Text.PlainText
-            }
+            // Scrolling
+            Kirigami.FormEntry {
+                contentItem: QQC2.CheckBox {
+                    id: naturalScroll
+                    Kirigami.FormData.label: i18ndc("kcmmouse", "@title:group", "Scrolling:")
+                    text: i18ndc("kcmmouse", "@option:check", "Invert scroll direction")
+                    enabled: root.device?.supportsNaturalScroll ?? false
+                    checked: enabled && (root.device?.naturalScroll ?? false)
 
-            Item {
-                Layout.fillWidth: true
-            }
-
-            QQC2.Label {
-                text: i18ndc("kcmmouse", "Faster Scroll Speed", "Faster")
-                textFormat: Text.PlainText
-            }
-        }
-
-        // Scrolling
-        QQC2.CheckBox {
-            id: naturalScroll
-            Kirigami.FormData.label: i18ndc("kcmmouse", "@title:group", "Scrolling:")
-            text: i18ndc("kcmmouse", "@option:check", "Invert scroll direction")
-            enabled: root.device?.supportsNaturalScroll ?? false
-            checked: enabled && (root.device?.naturalScroll ?? false)
-
-            onToggled: {
-                if (root.device) {
-                    root.device.naturalScroll = checked
-                }
-            }
-        }
-
-        RowLayout {
-            Kirigami.FormData.buddyFor: scrollOnButtonDown
-            spacing: Kirigami.Units.smallSpacing
-
-            QQC2.CheckBox {
-                id: scrollOnButtonDown
-                text: i18ndc("kcmmouse", "@option:check", "Hold down middle button and move mouse to scroll")
-                enabled: root.device?.supportsScrollOnButtonDown ?? false
-                checked: enabled && (root.device?.scrollOnButtonDown ?? false)
-
-                onToggled: {
-                    if (root.device) {
-                        root.device.scrollOnButtonDown = checked
+                    onToggled: {
+                        if (root.device) {
+                            root.device.naturalScroll = checked
+                        }
                     }
                 }
             }
 
-            Kirigami.ContextualHelpButton {
-                toolTipText: i18ndc("kcmmouse", "@info:whatsthis ContextualHelpButton tooltip", "This will interfere with applications that use middle-button drag, such as some image editors, document viewers, or video games. It may be used on any device, but is intended primarily as a substitute for scroll wheels on devices that do not have any.")
+            Kirigami.FormEntry {
+                contentItem: QQC2.CheckBox {
+                    id: scrollButton
+                    text: i18ndc("kcmmouse", "@option:check", "Scroll when moving the pointer")
+                    enabled: root.device?.supportsScrollOnButtonDown ?? false
+                    checked: enabled && (root.device?.scrollOnButtonDown ?? false)
+
+                    onToggled: {
+                        if (root.device) {
+                            root.device.scrollOnButtonDown = checked
+                        }
+                    }
+                }
+            }
+
+            QQC2.ButtonGroup { id: autoScrollRadioGroup }
+
+            Kirigami.FormEntry {
+                contentItem: QQC2.RadioButton {
+                    leftPadding: Kirigami.Units.largeSpacing
+                    enabled: scrollButton.checked
+
+                    id: scrollOnButtonDown
+                    text: i18ndc("kcmmouse", "@option:radio", "while pressing the middle button")
+                    checked: !(root.device?.scrollButtonLock ?? false)
+
+                    QQC2.ButtonGroup.group: autoScrollRadioGroup
+
+                    onToggled: {
+                        if (root.device) {
+                            root.device.scrollButtonLock = false
+                        }
+                    }
+                }
+
+                trailingItems: Kirigami.ContextualHelpButton {
+                    toolTipText: i18ndc("kcmmouse", "@info:whatsthis ContextualHelpButton tooltip", "This will interfere with applications that use middle-button drag, such as some image editors, document viewers, or video games. It may be used on any device, but is intended primarily as a substitute for scroll wheels on devices that do not have any.")
+                }
+            }
+
+            Kirigami.FormEntry {
+                contentItem: QQC2.RadioButton {
+                    leftPadding: Kirigami.Units.largeSpacing
+                    enabled: scrollButton.checked
+
+                    id: scrollButtonLock
+                    text: i18ndc("kcmmouse", "@option:radio", "after clicking the middle button")
+                    checked: root.device?.scrollButtonLock ?? false
+
+                    QQC2.ButtonGroup.group: autoScrollRadioGroup
+
+                    onToggled: {
+                        if (root.device) {
+                            root.device.scrollButtonLock = true
+                        }
+                    }
+                }
+
+                trailingItems: Kirigami.ContextualHelpButton {
+                    toolTipText: i18ndc("kcmmouse", "@info:whatsthis ContextualHelpButton tooltip", "This will interfere with middle-clicks in general; middle-click twice when you want the application to receive a single middle-click. This includes middle-click dragging.")
+                }
             }
         }
     }

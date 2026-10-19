@@ -7,18 +7,28 @@
 #include "grabber.h"
 #include "widget.h"
 
+#include <QtCore/qobject.h>
+#include <QtCore/qprocess.h>
+
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qwindowcapture.h>
+
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+
+#include <QtTest/qtest.h>
+#include <QtTest/qsignalspy.h>
+
 #include <chrono>
-#include <qmediacapturesession.h>
-#include <qmediarecorder.h>
-#include <qobject.h>
-#include <qsignalspy.h>
-#include <qtest.h>
-#include <qvideoframe.h>
-#include <qwindowcapture.h>
-#include <qprocess.h>
+#include <optional>
 
-
-constexpr inline std::chrono::milliseconds s_testTimeout = std::chrono::seconds(60);
+inline std::chrono::milliseconds globalTestTimeout() {
+    if (isCI())
+        return std::chrono::seconds(60);
+    else
+        return std::chrono::seconds(5);
+}
 
 /*!
     Utility used to hide application cursor for image comparison tests.
@@ -52,12 +62,18 @@ public:
     static bool compareImages(QImage actual, const QImage &expected,
                               const QString &fileSuffix = "");
 
+    /*!
+        Waits until the a captured frame is received and returns it
+    */
+    QVideoFrame waitForFrame(qint64 noOlderThanTime = 0);
+
     QMediaCaptureSession m_session;
     QWindowCapture m_capture;
     FrameGrabber m_grabber;
 
     QSignalSpy m_errors{ &m_capture, &QWindowCapture::errorOccurred };
     QSignalSpy m_activations{ &m_capture, &QWindowCapture::activeChanged };
+    QSignalSpy m_frameRates{ &m_capture, &QWindowCapture::maximumFrameRateChanged };
 
 private:
     /*!
@@ -86,17 +102,13 @@ public:
     */
     bool start(QSize size = { 60, 40 });
 
-    /*!
-        Waits until the a captured frame is received and returns it
-    */
-    QVideoFrame waitForFrame(qint64 noOlderThanTime = 0);
-
     DisableCursor m_cursorDisabled; // Avoid mouse cursor causing image differences
     TestWidget m_widget;
     QCapturableWindow m_captureWindow;
 
-protected:
-    static QCapturableWindow findCaptureWindow(const QString &windowTitle);
+    [[nodiscard]] static std::optional<QCapturableWindow> findCaptureWindow(
+        const QString &windowTitle,
+        QWindow *sourceWindow = nullptr);
 };
 
 class WindowCaptureWithWidgetInOtherProcessFixture : public WindowCaptureWithWidgetFixture

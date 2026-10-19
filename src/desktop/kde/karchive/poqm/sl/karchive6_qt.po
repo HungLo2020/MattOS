@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2025-08-07 07:04+0200\n"
+"PO-Revision-Date: 2026-08-02 07:32+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -13,102 +13,102 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100>=3 && n"
 "%100<=4 ? 2 : 3);\n"
 "X-Qt-Contexts: true\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.9\n"
 
-#: k7zip.cpp:2541
+#: k7zip.cpp:2542
 msgctxt "K7Zip|"
 msgid "Could not get underlying device"
 msgstr "Ni mogoče dobiti spodnje naprave"
 
-#: k7zip.cpp:2549
+#: k7zip.cpp:2550
 msgctxt "K7Zip|"
 msgid "Read header failed"
 msgstr "Branje glave ni uspelo"
 
-#: k7zip.cpp:2555
+#: k7zip.cpp:2556
 msgctxt "K7Zip|"
 msgid "Check signature failed"
 msgstr "Preverjanje podpisa ni uspelo"
 
-#: k7zip.cpp:2578
+#: k7zip.cpp:2579
 msgctxt "K7Zip|"
 msgid "Bad CRC"
 msgstr "Slab CRC"
 
-#: k7zip.cpp:2587
+#: k7zip.cpp:2588
 msgctxt "K7Zip|"
 msgid "Next header size is too big"
 msgstr "Velikost naslednja glave je prevelika"
 
-#: k7zip.cpp:2592
+#: k7zip.cpp:2593
 msgctxt "K7Zip|"
 msgid "Next header size is less than zero"
 msgstr "Velikost naslednja glave je manjša od nič"
 
-#: k7zip.cpp:2603
+#: k7zip.cpp:2604
 #, qt-format
 msgctxt "K7Zip|"
 msgid "Failed read next header size; should read %1, read %2"
 msgstr ""
 "Branje velikosti naslednje glave; bi moralo biti prebrano %1, prebrano %2"
 
-#: k7zip.cpp:2616
+#: k7zip.cpp:2617
 msgctxt "K7Zip|"
 msgid "Bad next header CRC"
 msgstr "Slab CRC naslednje glave"
 
-#: k7zip.cpp:2624
+#: k7zip.cpp:2625
 msgctxt "K7Zip|"
 msgid "Error in header"
 msgstr "Napaka v glavi"
 
-#: k7zip.cpp:2642 k7zip.cpp:2675
+#: k7zip.cpp:2643 k7zip.cpp:2676
 msgctxt "K7Zip|"
 msgid "Password needed for this archive"
 msgstr "Geslo je potrebno za ta arhiv"
 
-#: k7zip.cpp:2648
+#: k7zip.cpp:2649
 msgctxt "K7Zip|"
 msgid "Wrong header type"
 msgstr "Napačna vrsta glave"
 
-#: k7zip.cpp:2658 k7zip.cpp:2664
+#: k7zip.cpp:2659 k7zip.cpp:2665
 msgctxt "K7Zip|"
 msgid "Not implemented"
 msgstr "Ni izdelano"
 
-#: k7zip.cpp:2670
+#: k7zip.cpp:2671
 msgctxt "K7Zip|"
 msgid "Error while reading main streams information"
 msgstr "Napaka ob branju informacije o glavnih tokovih"
 
-#: k7zip.cpp:2693
+#: k7zip.cpp:2694
 msgctxt "K7Zip|"
 msgid "Error while reading header"
 msgstr "Napaka ob branju glave"
 
-#: k7zip.cpp:2701 k7zip.cpp:2709
+#: k7zip.cpp:2702 k7zip.cpp:2710
 #, qt-format
 msgctxt "K7Zip|"
 msgid "Archive has %1 files which is more than the supported amount (%2)"
 msgstr "Arhiv ima %1 datotek, kar je več kot podprto število (%2)"
 
-#: k7zip.cpp:2767
+#: k7zip.cpp:2768
 msgctxt "K7Zip|"
 msgid "Error reading modification time"
 msgstr "Napaka ob branju časa spremembe"
 
-#: k7zip.cpp:2813
+#: k7zip.cpp:2814
 msgctxt "K7Zip|"
 msgid "Error reading MTime"
 msgstr "Napaka ob branju MTime"
 
-#: k7zip.cpp:2820
+#: k7zip.cpp:2821
 msgctxt "K7Zip|"
 msgid "Invalid"
 msgstr "Neveljavno"
 
-#: k7zip.cpp:2844
+#: k7zip.cpp:2845
 #, qt-format
 msgctxt "K7Zip|"
 msgid "Read size failed (checkRecordsSize: %1, d->pos - ppp: %2, size: %3)"
@@ -116,32 +116,32 @@ msgstr ""
 "Branje velikosti ni uspelo  (preverjanje velikosti zapisa: %1, d->pos - ppp: "
 "%2, velikost: %3)"
 
-#: k7zip.cpp:2884
+#: k7zip.cpp:2885
 msgctxt "K7Zip|"
 msgid "contents"
 msgstr "vsebina"
 
-#: k7zip.cpp:3079
+#: k7zip.cpp:3080
 msgctxt "K7Zip|"
 msgid "Write error"
 msgstr "Napaka pisanja"
 
-#: k7zip.cpp:3109
+#: k7zip.cpp:3110
 msgctxt "K7Zip|"
 msgid "Failed while encoding header"
 msgstr "Napaka med kodiranjem glave"
 
-#: k7zip.cpp:3153
+#: k7zip.cpp:3154
 msgctxt "K7Zip|"
 msgid "No file currently selected"
 msgstr "Trenutno ni izbrane nobene datoteke"
 
-#: k7zip.cpp:3177 k7zip.cpp:3227 k7zip.cpp:3267
+#: k7zip.cpp:3178 k7zip.cpp:3228 k7zip.cpp:3268
 msgctxt "K7Zip|"
 msgid "Application error: 7-Zip file must be open before being written into"
 msgstr "Napaka aplikacije: datoteka 7-Zip mora biti odprta pred pisanjem vanjo"
 
-#: k7zip.cpp:3183 k7zip.cpp:3273
+#: k7zip.cpp:3184 k7zip.cpp:3274
 msgctxt "K7Zip|"
 msgid "Application error: attempted to write into non-writable 7-Zip file"
 msgstr "Napaka aplikacije: poskus pisanja v nezapisljivo datoteko 7-Zip"
@@ -210,13 +210,13 @@ msgctxt "KArchive|"
 msgid "Archive already closed"
 msgstr "Arhiv je že zaprt"
 
-#: karchive.cpp:287
+#: karchive.cpp:286
 #, qt-format
 msgctxt "KArchive|"
 msgid "%1 doesn't exist or is not a regular file."
 msgstr "%1 ne obstaja ali ni regularna datoteka."
 
-#: karchive.cpp:293
+#: karchive.cpp:292
 #, qt-format
 msgctxt "KArchive|"
 msgid ""
@@ -224,19 +224,19 @@ msgid ""
 msgstr ""
 "Ni mogoče dostopati do datoteke %1 za dodajanje k arhivu. Napaka je bila: %2"
 
-#: karchive.cpp:339
+#: karchive.cpp:338
 #, qt-format
 msgctxt "KArchive|"
 msgid "Couldn't open file %1: %2"
 msgstr "Ni bilo mogoče odpreti datoteke %1: %2"
 
-#: karchive.cpp:373
+#: karchive.cpp:372
 #, qt-format
 msgctxt "KArchive|"
 msgid "Directory %1 does not exist"
 msgstr "Imenik %1 ne obstaja"
 
-#: karchive.cpp:447
+#: karchive.cpp:446
 #, qt-format
 msgctxt "KArchive|"
 msgid "Writing failed: %1"
@@ -341,49 +341,49 @@ msgctxt "KTar|"
 msgid "Application error: attempted to write into non-writable TAR file"
 msgstr "Napaka aplikacije: poskus pisanja v nezapisljivo datoteko TAR"
 
-#: kzip.cpp:484 kzip.cpp:509
+#: kzip.cpp:497 kzip.cpp:522
 #, qt-format
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unexpected end of file. (Error code: %1)"
 msgstr ""
 "Neveljavna datoteka ZIP. Nepričakovan konec datoteke. (Koda napake: %1)"
 
-#: kzip.cpp:535
+#: kzip.cpp:548
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Negative name length"
 msgstr "Neveljavna datoteka ZIP. Negativna dolžina imena"
 
-#: kzip.cpp:540
+#: kzip.cpp:553
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Name not completely read (#2)"
 msgstr "Neveljavna datoteka ZIP. Nepopolno prebrano ime (#2)"
 
-#: kzip.cpp:558
+#: kzip.cpp:571
 msgctxt "KZip|"
 msgid "Invalid ZIP File. Broken ExtraField."
 msgstr "Neveljavna datoteka ZIP. Pokvarjen ExtraField."
 
-#: kzip.cpp:572 kzip.cpp:595
+#: kzip.cpp:592 kzip.cpp:615
 msgctxt "KZip|"
 msgid "Could not seek to next header token"
 msgstr "Ni bilo mogoče preiskati do naslednjega žetona glave"
 
-#: kzip.cpp:587
+#: kzip.cpp:607
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unexpected end of file. (#5)"
 msgstr "Neveljavna datoteka ZIP. Nepričakovan konec datoteke. (#5)"
 
-#: kzip.cpp:602
+#: kzip.cpp:622
 msgctxt "KZip|"
 msgid "Could not seek to file compressed size"
 msgstr "Ni bilo mogoče preiskati do velikosti stisnjene datoteke"
 
-#: kzip.cpp:618
+#: kzip.cpp:638
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unexpected end of file. (#1)"
 msgstr "Neveljavna datoteka ZIP. Nepričakovan konec datoteke. (#1)"
 
-#: kzip.cpp:655
+#: kzip.cpp:675
 msgctxt "KZip|"
 msgid ""
 "Invalid ZIP file, central entry too short (not long enough for valid entry)"
@@ -391,12 +391,12 @@ msgstr ""
 "Neveljavna datoteka ZIP, osrednji vnos prekratek (ni dovolj dolg za veljavni "
 "vnos)"
 
-#: kzip.cpp:670
+#: kzip.cpp:690
 msgctxt "KZip|"
 msgid "Invalid ZIP file, file path name length is zero"
 msgstr "Neveljavna datoteka ZIP, dolžina imena poti datoteke je nič"
 
-#: kzip.cpp:676
+#: kzip.cpp:696
 #, qt-format
 msgctxt "KZip|"
 msgid ""
@@ -406,7 +406,7 @@ msgstr ""
 "Neveljavna datoteka ZIP, ni mogoče prebrati %1 + %2 byta za ime datoteke in "
 "dodatnih podatkov pri odmiku %3"
 
-#: kzip.cpp:726
+#: kzip.cpp:740
 #, qt-format
 msgctxt "KZip|"
 msgid ""
@@ -415,88 +415,118 @@ msgstr ""
 "Neveljavna datoteka ZIP, nedosleden odmik lokalne glave v osrednjem imeniku "
 "na %1"
 
-#: kzip.cpp:761
+#: kzip.cpp:775
 msgctxt "KZip|"
 msgid "Invalid ZIP file, found empty entry name"
 msgstr "Neveljavna datoteka ZIP, najdeno prazno ime vnosa"
 
-#: kzip.cpp:803
+#: kzip.cpp:817
 #, qt-format
 msgctxt "KZip|"
 msgid "File %1 is in folder %2, but %3 is actually a file."
 msgstr "Datoteka %1 je v mapi %2, ampak %3 je dejansko datoteka."
 
-#: kzip.cpp:814
+#: kzip.cpp:828
 msgctxt "KZip|"
 msgid "Could not seek to next entry"
 msgstr "Ni bilo mogoče preiskati do naslednjega vnosa"
 
-#: kzip.cpp:843
+#: kzip.cpp:857
 msgctxt "KZip|"
 msgid "Not a ZIP file, no Local File Header found."
 msgstr "Ni datoteka ZIP, glave lokalne datoteke ni bilo najdene."
 
-#: kzip.cpp:847
+#: kzip.cpp:861
 #, qt-format
 msgctxt "KZip|"
 msgid "Invalid ZIP file. Unrecognized header at offset %1"
 msgstr "Neveljavna datoteka ZIP. Neprepoznana glava pri odmiku %1"
 
-#: kzip.cpp:875
+#: kzip.cpp:888
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not seek to next file header: %1"
 msgstr "Ni bilo mogoče preiskati do naslednje glave datoteke: %1"
 
-#: kzip.cpp:901 kzip.cpp:995
+#: kzip.cpp:914 kzip.cpp:924 kzip.cpp:1088
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not write file header: %1"
 msgstr "Ni mogoče zapisati glave datoteke: %1"
 
-#: kzip.cpp:1042
+#: kzip.cpp:936
+#, qt-format
+msgctxt "KZip|"
+msgid "Could not seek to Zip64 extra field: %1"
+msgstr "Ni bilo mogoče preiskati do posebnega polja Zip64: %1"
+
+#: kzip.cpp:944
+#, qt-format
+msgctxt "KZip|"
+msgid "Could not write Zip64 compressed size: %1"
+msgstr "Ni bilo mogoče zapisati velikosti stisnjenega Zip64: %1"
+
+#: kzip.cpp:1131
+#, qt-format
+msgctxt "KZip|"
+msgid "Could not write Zip64 EOCD record: %1"
+msgstr "Ni mogoče zapisati zapisa Zip64 EOCD: %1"
+
+#: kzip.cpp:1150
+#, qt-format
+msgctxt "KZip|"
+msgid "Could not write Zip64 EOCD locator: %1"
+msgstr "Ni mogoče zapisati lokatorja Zip64 EOCD: %1"
+
+#: kzip.cpp:1212
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not write central dir record: %1"
 msgstr "Ni mogoče zapisati osrednjega zapisa imenika: %1"
 
-#: kzip.cpp:1078
+#: kzip.cpp:1248
 msgctxt "KZip|"
 msgid "Application error: ZIP file must be open before being written into"
 msgstr "Napaka aplikacije: datoteka ZIP mora biti odprta pred pisanjem vanjo"
 
-#: kzip.cpp:1084
+#: kzip.cpp:1254
 msgctxt "KZip|"
 msgid "Application error: attempted to write into non-writable ZIP file"
 msgstr "Napaka aplikacije: poskus pisanja v nezapisljivo  datoteko ZIP"
 
-#: kzip.cpp:1090
+#: kzip.cpp:1260
 msgctxt "KZip|"
 msgid "Cannot create a device. Disk full?"
 msgstr "Ni mogoče ustvariti naprave. Disk poln?"
 
-#: kzip.cpp:1096
+#: kzip.cpp:1266
 msgctxt "KZip|"
 msgid "Cannot seek in ZIP file. Disk full?"
 msgstr "Ni mogoče iskati po datoteki ZIP. Disk poln?"
 
-#: kzip.cpp:1240
+#: kzip.cpp:1421
 msgctxt "KZip|"
 msgid "Could not write to the archive. Disk full?"
 msgstr "Ni mogoče pisati v arhiv. Disk poln?"
 
-#: kzip.cpp:1259
+#: kzip.cpp:1440
 #, qt-format
 msgctxt "KZip|"
 msgid "Could not open compression device: %1"
 msgstr "Ni mogoče odpreti naprave za stiskanje: %1"
 
-#: kzip.cpp:1346
+#: kzip.cpp:1523
 msgctxt "KZip|"
 msgid "No file or device"
 msgstr "Ni datoteke ali naprave"
 
-#: kzip.cpp:1359
+#: kzip.cpp:1540
+#, qt-format
+msgctxt "KZip|"
+msgid "Error writing data chunk: %1"
+msgstr "Napaka pri pisanju kosa podatkov: %1"
+
+#: kzip.cpp:1553
 #, qt-format
 msgctxt "KZip|"
 msgid "Error writing data: %1"

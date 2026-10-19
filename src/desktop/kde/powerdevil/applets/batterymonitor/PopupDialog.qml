@@ -4,9 +4,9 @@
 
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
+pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Layouts
 
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
@@ -47,10 +47,11 @@ PlasmaExtras.Representation {
 
     property string inhibitionReason
     property string degradationReason
-    // type: [{ Name: string, Icon: string, Profile: string, Reason: string }]
+    // type: [{ name: string, icon: string, profile: string, reason: string }]
     required property var profileHolds
 
     signal inhibitionChangeRequested(bool inhibit)
+    signal inhibitionAllowedRequested(string appName, string reason, bool allowed)
     signal activateProfileRequested(string profile)
 
     collapseMarginsHint: true
@@ -67,10 +68,11 @@ PlasmaExtras.Representation {
                 return;
             }
             const rect = batteryRepeater.contentItem.mapFromItem(item, 0, 0, item.width, item.height);
-            if (rect.y < scrollView.contentItem.contentY) {
-                scrollView.contentItem.contentY = rect.y;
-            } else if (rect.y + rect.height > scrollView.contentItem.contentY + scrollView.height) {
-                scrollView.contentItem.contentY = rect.y + rect.height - scrollView.height;
+            const flickable = scrollView.contentItem as Flickable
+            if (rect.y < flickable.contentY) {
+                flickable.contentY = rect.y;
+            } else if (rect.y + rect.height > flickable.contentY + scrollView.height) {
+                flickable.contentY = rect.y + rect.height - scrollView.height;
             }
         }
 
@@ -113,16 +115,19 @@ PlasmaExtras.Representation {
             }
 
             delegate: BatteryItem {
+                required property var model // can't use individual required properties as the names are upper case
+                required property int index
+
                 width: scrollView.availableWidth
 
-                batteryPercent: Percent
-                batteryCapacity: Capacity
-                batteryEnergy: Energy
-                batteryPluggedIn: PluggedIn
-                batteryIsPowerSupply: IsPowerSupply
-                batteryChargeState: ChargeState
-                batteryPrettyName: PrettyName
-                batteryType: Type
+                batteryPercent: model.Percent
+                batteryCapacity: model.Capacity
+                batteryEnergy: model.Energy
+                batteryPluggedIn: model.PluggedIn
+                batteryIsPowerSupply: model.IsPowerSupply
+                batteryChargeState: model.ChargeState
+                batteryPrettyName: model.PrettyName
+                batteryType: model.Type
                 remainingTime: dialog.remainingTime
 
                 KeyNavigation.up: index === 0 ? null : batteryRepeater.itemAtIndex(index - 1)
@@ -147,8 +152,6 @@ PlasmaExtras.Representation {
             }
 
             footer: InhibitionItem {
-                readonly property var inhibitionControl: dialog.inhibitionControl
-
                 width: scrollView.availableWidth
 
                 KeyNavigation.up: batteryRepeater.itemAtIndex(batteryRepeater.count - 1)
@@ -161,9 +164,8 @@ PlasmaExtras.Representation {
                 inhibitsLidAction: dialog.inhibitsLidAction
                 pluggedIn: dialog.pluggedIn
 
-                onInhibitionChangeRequested: inhibit => {
-                    batterymonitor.inhibitionChangeRequested(inhibit);
-                }
+                onInhibitionChangeRequested: inhibit => dialog.inhibitionChangeRequested(inhibit)
+                onInhibitionAllowedRequested: (name, reason, allowed) => dialog.inhibitionAllowedRequested(name, reason, allowed)
 
                 onActiveFocusChanged: if (activeFocus) scrollView.positionViewAtItem(this)
             }

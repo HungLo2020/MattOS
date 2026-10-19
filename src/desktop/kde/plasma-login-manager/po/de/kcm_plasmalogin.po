@@ -2,22 +2,22 @@
 # German translation for plasma-login-manager.
 # Copyright (C) 2025 This file is copyright:
 # This file is distributed under the same license as the plasma-login-manager package.
-# SPDX-FileCopyrightText: 2025 Alois Spitzbart <spitz234@hotmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Alois Spitzbart <spitz234@hotmail.com>
 # SPDX-FileCopyrightText: 2025-2026 Philipp Kiemle <l10n.daphipz@fastmail.de>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-login-manager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-28 02:46+0000\n"
-"PO-Revision-Date: 2025-11-24 11:11+0100\n"
-"Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
+"POT-Creation-Date: 2026-08-11 00:47+0000\n"
+"PO-Revision-Date: 2026-09-22 23:45+0200\n"
+"Last-Translator: Alois Spitzbart <spitz234@hotmail.com>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.08.0\n"
 
 #: kcm.cpp:78
 msgid ""
@@ -41,7 +41,7 @@ msgstr ""
 "„plasmalogin“ nicht existiert. Bitte überprüfen Sie Ihre Installation von "
 "Plasma Login."
 
-#: kcm.cpp:265
+#: kcm.cpp:269
 msgid ""
 "Unable to reset Plasma settings because the 'plasmalogin' user does not "
 "exist. Please check your Plasma Login install."
@@ -102,24 +102,27 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
-"<para><list><item>Color scheme</item><item>Cursor theme and size</"
-"item><item>Font and font rendering</item><item>NumLock preference</"
-"item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
-"configuration</item></list></para>"
+"<para><list><item>Language and locale settings</item><item>Keyboard layouts</"
+"item><item>Screen arrangement, scale, and orientation settings</"
+"item><item>NumLock preference</item><item>Font and font rendering settings</"
+"item><item>Color scheme</item><item>Cursor theme and size</item><item>Plasma "
+"theme</item></list></para>"
 msgstr ""
-"<para><list><item>Farbschema</item><item>Zeigerdesign und -größe</"
-"item><item>Schriftart und -rendering</item><item>Num-Lock-Taste</"
-"item><item>Plasma-Design</item><item>DPI-Skalierung</"
-"item><item>Anzeigeeinstellungen</item></list></para>"
+"<para><list><item>Sprach- und Regionseinstellungen</"
+"item><item>Tastaturbelegungen</item><item>Einstellungen zur "
+"Bildschirmanordnung, Skalierung und Ausrichtung</item><item>NumLock-"
+"Einstellungen</item><item>Einstellungen zur Schriftart und "
+"Schriftartdarstellung</item><item>Farbschema</item><item>Mauszeigerdesign "
+"und -größe</item><item>Plasma-Design</item></list></para>"
 
 #: ui/main.qml:67
 #, kde-format
 msgid ""
-"Please note that theme files must be installed globally to be reflected on "
-"the Plasma login screen."
+"Please note that theme and font files must be installed globally to be "
+"reflected on the Plasma login screen."
 msgstr ""
-"Beachten Sie, dass Designdateien global installiert sein müssen, damit diese "
-"im Plasma-Anmeldebildschirm verwendet werden können."
+"Beachten Sie, dass Design- und Schriftartendateien global installiert sein "
+"müssen, damit sie im Plasma-Anmeldebildschirm verwendet werden können."
 
 #: ui/main.qml:71
 #, kde-format
@@ -145,7 +148,7 @@ msgctxt "@option:check"
 msgid "Automatically log in:"
 msgstr "Automatisch anmelden:"
 
-#: ui/main.qml:99
+#: ui/main.qml:100
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the user to log in "
@@ -153,7 +156,7 @@ msgctxt ""
 msgid "as user:"
 msgstr "als Benutzer:"
 
-#: ui/main.qml:154
+#: ui/main.qml:150
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the session that is started "
@@ -161,7 +164,7 @@ msgctxt ""
 msgid "with session:"
 msgstr "mit Sitzung:"
 
-#: ui/main.qml:187
+#: ui/main.qml:180
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -171,47 +174,48 @@ msgid ""
 "insecure and should only be done in a trusted environment."
 msgstr ""
 "Das automatische Anmelden unterstützt nicht das automatische Entsperren des "
-"KDE-Passwortspeichers. Sie werden deshalb bei jeder Anmeldung zum Entsperren "
-"aufgefordert.    <nl/><nl/>    Um das zu vermeiden, können Sie den "
+"KDE-Passwortspeichers. Sie werden deshalb bei jeder Anmeldung aufgefordert, "
+"ihn zu entsperren.    <nl/><nl/>    Um das zu vermeiden, können Sie den "
 "Passwortspeicher mit einem leeren Passwort versehen. Bitte beachten Sie, "
-"dass dies unsicher ist und nur in vertrauten Umgebungen erfolgen sollte."
+"dass dies unsicher ist und nur in vertrauenswürdigen Umgebungen erfolgen "
+"sollte."
 
-#: ui/main.qml:192
+#: ui/main.qml:185
 #, kde-format
 msgid "Open KDE Wallet Settings"
 msgstr "Einstellungen der KDE-Passwortverwaltung öffnen"
 
-#: ui/main.qml:199
+#: ui/main.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Log in again immediately after logging off"
 msgstr "Nach dem Abmelden sofort wieder anmelden"
 
-#: ui/main.qml:210
+#: ui/main.qml:203
 #, kde-format
 msgctxt "@title:group"
 msgid "Defaults"
 msgstr "Voreinstellungen"
 
-#: ui/main.qml:215
+#: ui/main.qml:208
 #, kde-format
 msgctxt "@label"
 msgid "Default user:"
 msgstr "Standard-Benutzer:"
 
-#: ui/main.qml:221
+#: ui/main.qml:214
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in user"
 msgstr "Zuletzt angemeldeter Benutzer"
 
-#: ui/main.qml:293
+#: ui/main.qml:281
 #, kde-format
 msgctxt "@label"
 msgid "Default session:"
 msgstr "Standard-Sitzung:"
 
-#: ui/main.qml:299
+#: ui/main.qml:287
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in session"

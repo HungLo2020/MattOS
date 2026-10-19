@@ -3,141 +3,45 @@
 
 #include "qambientsound.h"
 
+#include <QtSpatialAudio/private/qaudioengine_p.h>
+#include <QtSpatialAudio/private/qspatialaudiosound_p.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
-#include <QtMultimedia/qaudiodecoder.h>
-#include <QtMultimedia/qaudiosink.h>
-#include <QtMultimedia/private/qaudio_qspan_support_p.h>
-#include <QtSpatialAudio/private/qambientsound_p.h>
-#include <QtSpatialAudio/private/qaudioengine_p.h>
 
 #include <resonance_audio.h>
+
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels)
-    : nchannels(nchannels), engine(engine)
-{
-}
+namespace {
 
-QAmbientSoundPrivate::~QAmbientSoundPrivate() = default;
-
-void QAmbientSoundPrivate::setVolume(float volume)
-{
-    m_volume = volume;
-    applyVolume();
-}
-
-void QAmbientSoundPrivate::applyVolume()
+int addStereoSource(QAudioEngine *engine)
 {
     auto *ep = QAudioEnginePrivate::get(engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSourceVolume(sourceId, m_volume);
+    if (!ep)
+        return -1;
+    return ep->resonanceAudio->api->CreateStereoSource(2);
 }
 
-void QAmbientSoundPrivate::load()
+} // namespace
+
+class QAmbientSoundPrivate final : public QSpatialAudioSoundPrivate
 {
-    decoder = std::make_unique<QAudioDecoder>();
-    sourceDeviceFile.reset(nullptr);
-    {
-        QMutexLocker l(&mutex);
-        buffers.clear();
-        currentBuffer = 0;
-        bufPos = 0;
-        m_currentLoop = 0;
-        m_playing = false;
-        m_loading = true;
-    }
-    auto *ep = QAudioEnginePrivate::get(engine);
-    QAudioFormat f;
-    f.setSampleFormat(QAudioFormat::Float);
-    f.setSampleRate(ep->sampleRate());
-    f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo : QAudioFormat::ChannelConfigMono);
-    decoder->setAudioFormat(f);
-    if (url.scheme().compare(u"qrc", Qt::CaseInsensitive) == 0) {
-        auto qrcFile = std::make_unique<QFile>(u':' + url.path());
-        if (!qrcFile->open(QFile::ReadOnly))
-            return;
-        sourceDeviceFile = std::move(qrcFile);
-        decoder->setSourceDevice(sourceDeviceFile.get());
-    } else {
-        decoder->setSource(url);
-    }
-    QObject::connect(decoder.get(), &QAudioDecoder::bufferReady, decoder.get(), [this] {
-        Q_PRESUME(this);
+    Q_DECLARE_PUBLIC(QAmbientSound)
 
-        QMutexLocker l(&mutex);
-        auto b = decoder->read();
-        buffers.append(b);
-        if (m_autoPlay)
-            m_playing = true;
-    });
-    QObject::connect(decoder.get(), &QAudioDecoder::finished, decoder.get(), [this] {
-        m_loading = false;
-    });
-    decoder->start();
-}
+public:
+    explicit QAmbientSoundPrivate(QAudioEngine *engine);
+};
 
-void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int channels)
+QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine)
+    : QSpatialAudioSoundPrivate{
+          engine,
+          2,
+          addStereoSource(engine),
+      }
 {
-    Q_ASSERT(channels == nchannels);
-    Q_ASSERT(output.size() == channels * nframes);
-
-    QMutexLocker l(&mutex);
-
-    if (!m_playing || currentBuffer >= buffers.size()) {
-        std::fill(output.begin(), output.end(), 0.f);
-    } else {
-        using QtMultimediaPrivate::drop;
-        using QtMultimediaPrivate::take;
-
-        int frames = nframes;
-        while (frames) {
-            if (currentBuffer < buffers.size()) {
-                const QAudioBuffer &b = buffers.at(currentBuffer);
-                const float *sourceData = b.constData<float>() + bufPos * nchannels;
-
-                // Copy frames
-                int framesToCopy = qMin(b.frameCount() - bufPos, frames);
-                QSpan<const float> source(sourceData, framesToCopy * nchannels);
-                QSpan<float> destination = take(output, framesToCopy * nchannels);
-                std::copy(source.begin(), source.end(), destination.begin());
-
-                // Advance output span
-                output = drop(output, framesToCopy * nchannels);
-
-                frames -= framesToCopy;
-                bufPos += framesToCopy;
-                Q_ASSERT(bufPos <= b.frameCount());
-
-                if (bufPos == b.frameCount()) {
-                    ++currentBuffer;
-                    bufPos = 0;
-                }
-            } else {
-                // no more data available
-                if (m_loading)
-                    qDebug() << "underrun" << frames << "frames when loading" << url;
-
-                // Fill remaining with silence
-                std::fill(output.begin(), output.end(), 0.f);
-
-                frames = 0;
-            }
-            if (!m_loading) {
-                if (currentBuffer == buffers.size()) {
-                    currentBuffer = 0;
-                    ++m_currentLoop;
-                }
-                if (m_loops > 0 && m_currentLoop >= m_loops) {
-                    m_playing = false;
-                    m_currentLoop = 0;
-                }
-            }
-        }
-        Q_ASSERT(output.size() == 0);
-    }
+    QSpatialAudioSoundPrivate::applyVolume();
 }
 
 /*!
@@ -163,22 +67,15 @@ void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int chann
  */
 QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundPrivate(engine))
 {
-    Q_D(QAmbientSound);
-
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep) {
-        ep->addStereoSound(this);
-        d->applyVolume();
-    }
+    if (!engine)
+        qWarning() << "Cannot create QAmbientSound without a valid QAudioEngine";
 }
 
 QAmbientSound::~QAmbientSound()
 {
     Q_D(QAmbientSound);
-
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->removeStereoSound(this);
+    if (d->state() != QSpatialAudioSoundPrivate::State::Stopped)
+        d->stop();
 }
 
 /*!
@@ -207,11 +104,10 @@ float QAmbientSound::volume() const
 void QAmbientSound::setSource(const QUrl &url)
 {
     Q_D(QAmbientSound);
-    if (d->url == url)
+    if (d->url() == url)
         return;
-    d->url = url;
+    d->loadUrl(url);
 
-    d->load();
     emit sourceChanged();
 }
 
@@ -223,7 +119,7 @@ void QAmbientSound::setSource(const QUrl &url)
 QUrl QAmbientSound::source() const
 {
     Q_D(const QAmbientSound);
-    return d->url;
+    return d->url();
 }
 /*!
     \enum QAmbientSound::Loops
@@ -245,15 +141,16 @@ QUrl QAmbientSound::source() const
 int QAmbientSound::loops() const
 {
     Q_D(const QAmbientSound);
-    return d->m_loops.load(std::memory_order_relaxed);
+    return d->loops();
 }
 
 void QAmbientSound::setLoops(int loops)
 {
     Q_D(QAmbientSound);
-    int oldLoops = d->m_loops.exchange(loops, std::memory_order_relaxed);
-    if (oldLoops != loops)
+    if (loops != d->loops()) {
+        d->setLoops(loops);
         emit loopsChanged();
+    }
 }
 
 /*!
@@ -267,16 +164,16 @@ void QAmbientSound::setLoops(int loops)
 bool QAmbientSound::autoPlay() const
 {
     Q_D(const QAmbientSound);
-    return d->m_autoPlay.load(std::memory_order_relaxed);
+    return d->autoPlay();
 }
 
 void QAmbientSound::setAutoPlay(bool autoPlay)
 {
     Q_D(QAmbientSound);
-
-    bool old = d->m_autoPlay.exchange(autoPlay, std::memory_order_relaxed);
-    if (old != autoPlay)
+    if (autoPlay != d->autoPlay()) {
+        d->setAutoPlay(autoPlay);
         emit autoPlayChanged();
+    }
 }
 
 /*!

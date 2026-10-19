@@ -16,7 +16,7 @@ import org.kde.kirigami.forms.private.templates as FT
 FT.FormEntry {
     id: root
 
-    implicitWidth: Math.max(mainLayout.implicitWidth + impl.padding * 2, Math.min(contentItemWrapper.implicitWidth, Platform.Units.gridUnit * 20 + impl.padding * 2))
+    implicitWidth: Math.max(contentItemWrapper.implicitWidth +  Platform.Units.largeSpacing * 2, Platform.Units.gridUnit * 20 +  Platform.Units.largeSpacing * 2)
     implicitHeight: impl.implicitHeight
 
     Layout.fillWidth: true
@@ -24,7 +24,7 @@ FT.FormEntry {
     hovered: impl.hovered
 
     //Internal: never rely on this
-    readonly property real __textLabelWidth: label.implicitWidth
+    readonly property real __textLabelWidth: root.fullWidth ? 0 : label.implicitWidth
 
     QQC.Label {
         id: label
@@ -34,9 +34,9 @@ FT.FormEntry {
             rightMargin: -impl.leftPadding + Platform.Units.largeSpacing
             topMargin: root.contentItem.KirigamiLayouts.FormData.buddyFor.y + root.contentItem.KirigamiLayouts.FormData.buddyFor.height/2 - label.height/2 + contentItemWrapper.y + impl.topPadding
         }
-        visible: text.length > 0 && !impl.formLayout.__collapsed
+        visible: text.length > 0 && !impl.formLayout.__collapsed && !root.fullWidth
         Primitives.MnemonicData.enabled: {
-                const buddy = root.contentItem?.KirigamiLayouts.FormData.buddyFor;
+                const buddy = root.contentItem?.KirigamiLayouts.FormData.buddyFor as Item;
                 if (buddy && buddy.enabled && buddy.visible && buddy.activeFocusOnTab) {
                     // Only set mnemonic if the buddy doesn't already have one.
                     const buddyMnemonic = buddy.Primitives.MnemonicData;
@@ -56,9 +56,13 @@ FT.FormEntry {
             sequence: label.Primitives.MnemonicData.sequence
             onActivated: {
                 const buddy = root.contentItem?.KirigamiLayouts.FormData.buddyFor;
+                buddy.forceActiveFocus(Qt.ShortcutFocusReason);
 
-                const buttonBuddy = buddy as T.AbstractButton;
-                buttonBuddy.animateClick();
+                if (buddy instanceof T.AbstractButton) {
+                    buddy.animateClick();
+                } else if (buddy instanceof T.ComboBox) {
+                    buddy.popup.open();
+                }
             }
         }
     }
@@ -77,7 +81,7 @@ FT.FormEntry {
         implicitHeight: mainLayout.implicitHeight + topPadding + bottomPadding
         padding: Platform.Units.largeSpacing + Platform.Units.smallSpacing
 
-        leftPadding: impl.formLayout.__collapsed ? padding : root.parent?.__assignedWidthForLabels + Platform.Units.largeSpacing * 2
+        leftPadding: impl.formLayout.__collapsed || root.fullWidth ? padding : root.parent?.__assignedWidthForLabels + Platform.Units.largeSpacing * 2
 
         readonly property bool nextIsFormEntry: root.parent?.visibleChildren[root.parent.visibleChildren.indexOf(root) + 1] instanceof FormEntry ?? false
         readonly property bool prevIsFormEntry: root.parent?.visibleChildren[root.parent.visibleChildren.indexOf(root) - 1] instanceof FormEntry ?? false
@@ -85,21 +89,21 @@ FT.FormEntry {
         topPadding: prevIsFormEntry ? Platform.Units.largeSpacing : Platform.Units.largeSpacing + Platform.Units.smallSpacing
         bottomPadding: nextIsFormEntry ? Platform.Units.largeSpacing : Platform.Units.largeSpacing + Platform.Units.smallSpacing
 
-        readonly property Item formLayout: {
+        readonly property Form formLayout: {
             let candidate = root.parent
             while (candidate) {
                 if (candidate instanceof Form) {
-                    return candidate;
+                    return candidate as Form;
                 }
                 candidate = candidate.parent
             }
             return null
         }
 
-        hoverEnabled: clickEnabled && !Platform.Settings.hasTransientTouchInput
+        hoverEnabled: !Platform.Settings.hasTransientTouchInput
 
         onClicked: {
-            if (!clickEnabled) {
+            if (!root.clickEnabled) {
                 return;
             }
             const buddy = root.contentItem?.KirigamiLayouts.FormData.buddyFor;
@@ -115,14 +119,15 @@ FT.FormEntry {
 
         contentItem: GridLayout {
             id: mainLayout
-            columnSpacing: Platform.Units.smallSpacing
-            rowSpacing: Platform.Units.smallSpacing
+            readonly property real spacing: Platform.Units.smallSpacing
+            columnSpacing: spacing
+            rowSpacing: spacing
             columns: 1 + leadingItems.visible + trailingItems.visible
             QQC.Label {
                 id: inlineLabel
                 Layout.fillWidth: true
                 Layout.columnSpan: mainLayout.columns
-                visible: text.length > 0 && impl.formLayout.__collapsed
+                visible: (impl.formLayout.__collapsed || root.fullWidth) && text.length > 0
                 text: label.Primitives.MnemonicData.richTextLabel
                 wrapMode: Text.WordWrap
                 Accessible.name: label.Primitives.MnemonicData.plainTextLabel
@@ -130,30 +135,35 @@ FT.FormEntry {
             RowLayout {
                 id: leadingItems
                 Layout.rowSpan: subtitleLabel.visible ? 2 : 1
-                visible: children.length > 0
-                spacing: Platform.Units.smallSpacing
+                visible: children.length > 0 && width > 0
+                spacing: parent.spacing
                 children: root.leadingItems
             }
             QQC.Control {
                 id: contentItemWrapper
-                LayoutMirroring.childrenInherit: true
-                LayoutMirroring.enabled: contentItem instanceof QQC.Switch
-                        ? Qt.application.layoutDirection === Qt.LeftToRight
-                        : Qt.application.layoutDirection === Qt.RightToLeft
 
                 leftPadding: 0
                 rightPadding: 0
                 topPadding: 0
                 bottomPadding: 0
-                Layout.fillWidth: true
+
+                spacing: parent.spacing // Ensure that `contentItem.parent.spacing` works
+                implicitWidth: contentItem.Layout.preferredWidth > 0 ? contentItem.Layout.preferredWidth : contentItem.implicitWidth
+                Layout.fillWidth: contentItem.Layout.fillWidth
+                Layout.minimumWidth: contentItem.Layout.minimumWidth
+                Layout.preferredWidth: contentItem.Layout.preferredWidth
+                Layout.maximumWidth: contentItem.Layout.maximumWidth
+
                 Layout.alignment: Qt.AlignVCenter
                 visible: contentItem
                 contentItem: root.contentItem
                 Binding {
-                    when: (contentItemWrapper.contentItem instanceof QQC.Switch) && (contentItemWrapper.contentItem?.contentItem ?? false)
-                    target: contentItemWrapper.contentItem?.contentItem ?? null
+                    when: contentItemWrapper.contentItem instanceof QQC.Switch
+                    target: contentItemWrapper.contentItem
                     property: "LayoutMirroring.enabled"
-                    value: !contentItemWrapper.LayoutMirroring.enabled
+                    value: contentItemWrapper.contentItem instanceof QQC.Switch
+                        ? Application.layoutDirection === Qt.LeftToRight
+                        : Application.layoutDirection === Qt.RightToLeft
                 }
             }
 
@@ -161,8 +171,9 @@ FT.FormEntry {
                 id: trailingItems
                 Layout.rowSpan: subtitleLabel.visible ? 2 : 1
                 Layout.minimumWidth: visible ? implicitWidth : 0
-                visible: children.length > 0
-                spacing: Platform.Units.smallSpacing
+                Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                visible: children.length > 0 && width > 0
+                spacing: parent.spacing
                 children: root.trailingItems
             }
 
@@ -175,8 +186,12 @@ FT.FormEntry {
                 wrapMode: Text.WordWrap
                 elide: Text.ElideRight
                 leftPadding: Application.layoutDirection === Qt.LeftToRight
-                    ? root.contentItem.KirigamiLayouts.FormData.buddyFor?.indicator?.width ?? 0 + root.contentItem.KirigamiLayouts.FormData.buddyFor?.spacing ?? 0
+                    ? (root.contentItem.KirigamiLayouts.FormData.buddyFor?.indicator?.width ?? 0) + (root.contentItem.KirigamiLayouts.FormData.buddyFor?.spacing ?? 0)
                     : padding
+                onLinkActivated: (link) => Qt.openUrlExternally(link)
+                HoverHandler {
+                    cursorShape: parent.hoveredLink.length > 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
+                }
             }
         }
 

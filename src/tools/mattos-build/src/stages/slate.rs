@@ -42,7 +42,7 @@ fn slate_gui_environment(repo_root: &Path, root: &Path) -> Result<Vec<(&'static 
         }
     }
     fs::write(&toolchain, contents)?;
-    let mut environment = kde_target_environment(repo_root, &root, &components, true)?;
+    let mut environment = kde_target_environment(repo_root, &root, "slate-gui", &components, true)?;
     environment.push(("CMAKE_TOOLCHAIN_FILE", toolchain.display().to_string()));
     environment.push(("CMAKE_GENERATOR", "Ninja".to_string()));
     Ok(environment)

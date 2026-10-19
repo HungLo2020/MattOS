@@ -41,6 +41,8 @@
 #include <qmath.h>
 #include <QtGui/private/qhighdpiscaling_p.h>
 
+using namespace Qt::StringLiterals;
+
 Q_DECLARE_METATYPE(QQuickTextEdit::SelectionMode)
 Q_DECLARE_METATYPE(Qt::Key)
 DEFINE_BOOL_CONFIG_OPTION(qmlDisableDistanceField, QML_DISABLE_DISTANCEFIELD)
@@ -163,6 +165,7 @@ private slots:
     void implicitSizeBinding();
     void textEditedSignal();
     void textEditedSignalNotEmittedOnProgrammaticChange();
+    void textEditedSignalOnInputMethodCommit();
     void largeTextObservesViewport_data();
     void largeTextObservesViewport();
     void largeTextSelection();
@@ -251,6 +254,7 @@ private slots:
     void textObjectBaselineAlignment();
     void textObjectBaselineVsBottomAlignment();
     void selectedTextColorOrderedList();
+    void testSelectFunction();
 
 private:
     void simulateKeys(QWindow *window, const QList<Key> &keys);
@@ -3858,6 +3862,32 @@ void tst_qquicktextedit::textEditedSignalNotEmittedOnProgrammaticChange()
     QCOMPARE(textEditedSpy.count(), 0);
 }
 
+void tst_qquicktextedit::textEditedSignalOnInputMethodCommit()
+{
+    // Committing input-method text (e.g. accented characters such as é, ç, à)
+    // must emit textEdited(), just like direct key input. (QTBUG-146177)
+    QQuickView window;
+    QVERIFY(QQuickTest::showView(window, testFileUrl("textEdit.qml")));
+
+    QQuickTextEdit *textEdit = qmlobject_cast<QQuickTextEdit *>(window.rootObject());
+    QVERIFY(textEdit != nullptr);
+
+    textEdit->forceActiveFocus();
+    QVERIFY_ACTIVE_FOCUS(textEdit);
+
+    QSignalSpy textEditedSpy(textEdit, &QQuickTextEdit::textEdited);
+
+    // Commit a single accented character via the input method.
+    {
+        QInputMethodEvent ev;
+        ev.setCommitString(u"é"_s);
+        QGuiApplication::sendEvent(textEdit, &ev);
+    }
+
+    QCOMPARE(textEditedSpy.count(), 1);
+    QCOMPARE(textEdit->text(), u"é"_s);
+}
+
 void tst_qquicktextedit::geometrySignals()
 {
     QQmlComponent component(&engine, testFileUrl("geometrySignals.qml"));
@@ -7396,6 +7426,52 @@ void tst_qquicktextedit::selectedTextColorOrderedList()
              qPrintable(QString("No red pixels found on line y=%1; "
                                 "selectedTextColor was not applied to selected list text")
                                 .arg(lineY)));
+}
+
+void tst_qquicktextedit::testSelectFunction()
+{
+    // Create a QQuickTextEdit instance
+    QQmlComponent textEditComponent(&engine);
+    textEditComponent.setData("import QtQuick \nTextEdit { text: \"Hello, world!\" }", QUrl());
+    QQuickTextEdit *textEditObject = qobject_cast<QQuickTextEdit *>(textEditComponent.create());
+    QVERIFY(textEditObject != nullptr);
+
+    // Set up signal spy
+    QSignalSpy selectedTextSpy(textEditObject, &QQuickTextEdit::selectedTextChanged);
+    QSignalSpy selectionStartSpy(textEditObject, &QQuickTextEdit::selectionStartChanged);
+    QSignalSpy selectionEndSpy(textEditObject, &QQuickTextEdit::selectionEndChanged);
+    QSignalSpy textChangeSpy(textEditObject, &QQuickTextEdit::textChanged);
+
+    // Verify initial state
+    QCOMPARE(textEditObject->selectedText(), QString());
+    QCOMPARE(textEditObject->selectionStart(), 0);
+    QCOMPARE(textEditObject->selectionEnd(), 0);
+    QCOMPARE(selectedTextSpy.count(), 0);
+    QCOMPARE(selectionStartSpy.count(), 0);
+    QCOMPARE(selectionEndSpy.count(), 0);
+    QCOMPARE(textChangeSpy.count(), 0);
+
+    // Test valid selection
+    textEditObject->select(0, 5);
+    QCOMPARE(textEditObject->selectedText(), QString("Hello"));
+    QCOMPARE(textEditObject->selectionStart(), 0);
+    QCOMPARE(textEditObject->selectionEnd(), 5);
+    QCOMPARE(selectedTextSpy.count(), 1);
+    QCOMPARE(selectionStartSpy.count(), 0);
+    QCOMPARE(selectionEndSpy.count(), 1);
+    QCOMPARE(textChangeSpy.count(), 0);
+
+    // Test deselection
+    textEditObject->deselect();
+    QCOMPARE(textEditObject->selectedText(), QString());
+    QCOMPARE(textEditObject->selectionStart(), 5); // Cursor remains at the end of the previous selection
+    QCOMPARE(textEditObject->selectionEnd(), 5);
+    QCOMPARE(selectedTextSpy.count(), 2);
+    QCOMPARE(selectionStartSpy.count(), 1);
+    QCOMPARE(selectionEndSpy.count(), 1);
+    QCOMPARE(textChangeSpy.count(), 0);
+
+    delete textEditObject;
 }
 
 QT_END_NAMESPACE

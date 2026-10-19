@@ -10,8 +10,7 @@
 #include "../flags.h"
 #include "../keyboard_config.h"
 #include "../keyboardsettings.h"
-#include "../x11_helper.h"
-#include "../xkb_rules.h"
+#include "../layoutunit.h"
 
 class FlagsTest : public QObject
 {
@@ -53,13 +52,6 @@ private Q_SLOTS:
         QCOMPARE(flags->getLongText(layoutUnit), QString("English (US)"));
         QCOMPARE(flags->getLongText(layoutUnit2), QString("other"));
     }
-
-    //    void loadRulesBenchmark() {
-    //    	QBENCHMARK {
-    //    		Flags* flags = new Flags();
-    //    		delete flags;
-    //    	}
-    //    }
 };
 
 // need GUI for xkb protocol in xkb_rules.cpp

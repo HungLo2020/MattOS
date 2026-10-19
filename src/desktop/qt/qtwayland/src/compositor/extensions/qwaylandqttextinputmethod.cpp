@@ -11,6 +11,8 @@
 #include <QtGui/qcolor.h>
 #include <QtGui/qtextformat.h>
 
+#include <QtCore/qelapsedtimer.h>
+
 #include <QtWaylandCompositor/qwaylandcompositor.h>
 #include <QtWaylandCompositor/qwaylandsurface.h>
 
@@ -316,7 +318,17 @@ void QWaylandQtTextInputMethod::sendInputMethodEvent(QInputMethodEvent *event)
                                    event->replacementStart(),
                                    event->replacementLength());
 
+    static const qint64 acknowledgeTimeoutMs = qEnvironmentVariable("QT_WAYLAND_QTTEXTINPUTMETHOD_TIMEOUT",
+                                                                    QLatin1String("1000")).toInt();
+    QElapsedTimer timer;
+    timer.start();
     while (d->waitingForSync) {
+        if (acknowledgeTimeoutMs > 0 && timer.hasExpired(acknowledgeTimeoutMs)) {
+            qCWarning(qLcWaylandCompositorInputMethods)
+                    << "Timed out waiting for acknowledge_input_method()";
+            d->waitingForSync = false;
+            break;
+        }
         d->compositor->processWaylandEvents();
         // We might get into a situation where the client is waiting for us to
         // until we confirm the frame is rendered until that he cannot answer

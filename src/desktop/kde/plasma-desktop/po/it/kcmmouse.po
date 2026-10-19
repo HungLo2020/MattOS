@@ -1,15 +1,15 @@
 # translation of kcminput.po to Italian
-# SPDX-FileCopyrightText: 2017, 2018, 2020, 2022, 2023, 2024, 2025, 2026 Paolo Zamponi <feus73@gmail.com>
 # Andrea Rizzi <rizzi@kde.org>, 2003, 2004, 2005, 2007.
 # Pino Toscano <toscano.pino@tiscali.it>, 2006.
 # Luciano Montanaro <mikelima@cirulla.net>, 2008.
 # Nicola Ruggero <nicola@nxnt.org>, 2010, 2011, 2012.
+# SPDX-FileCopyrightText: 2017-2018, 2020, 2022-2026 Paolo Zamponi <feus73@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcminput\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-10 15:49+0100\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-09-04 22:15+0200\n"
 "Last-Translator: Paolo Zamponi <feus73@gmail.com>\n"
 "Language-Team: Italian <kde-i18n-it@kde.org>\n"
 "Language: it\n"
@@ -17,28 +17,16 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 26.08.0\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr ""
-"Interrogazione del dispositivo di immissione non riuscita. Riapri questo "
-"modulo di configurazione."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr ""
 "Errore critico nella lettura delle informazioni fondamentali del dispositivo "
 "%1."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "Impossibile selezionare un motore appropriato"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -47,12 +35,12 @@ msgstr ""
 "Errore nel caricamento dei valori; controlla i log per ulteriori "
 "informazioni. Riavvia questo modulo di configurazione."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "Nessun dispositivo di puntamento trovato. Connettilo adesso."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -61,7 +49,7 @@ msgstr ""
 "Impossibile salvare tutti i cambiamenti; controlla i log per ulteriori "
 "informazioni. Riavvia questo modulo di configurazione e riprova."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -70,7 +58,7 @@ msgstr ""
 "Errore nel caricamento dei valori predefiniti; impossibile impostare alcune "
 "opzioni al loro valore predefinito."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -79,12 +67,12 @@ msgstr ""
 "Errore nell'aggiunta del nuovo dispositivo connesso; riconnettilo e riavvia "
 "questo modulo di configurazione."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr "Dispositivo di puntamento disconnesso; chiudi la sua finestra."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr ""
@@ -146,37 +134,37 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "Dispositivo:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, kde-format
 msgctxt "@title:group"
 msgid "General:"
 msgstr "Generale:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr "Abilita dispositivo"
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, kde-format
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "Pulsanti sinistro e destro:"
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, kde-format
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "Inverti (modalità mancino)"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
 msgstr "Premili contemporaneamente per il clic centrale"
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -187,19 +175,19 @@ msgstr ""
 "ritardo aggiuntivo è necessario per rilevare correttamente i clic destri e "
 "sinistri simultanei."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "Velocità del puntatore:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "Abilita l'accelerazione del puntatore"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -208,43 +196,49 @@ msgstr ""
 "Quando è abilitata, la distanza di spostamento del cursore aumenta con una "
 "velocità di movimento maggiore."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "Velocità di scorrimento:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "Più lenta"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "Più veloce"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "Scorrimento:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "Inverti la direzione di scorrimento"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr "Tieni premuto il pulsante centrale e sposta il mouse per scorrere"
+msgid "Scroll when moving the pointer"
+msgstr "Scorri quando il puntatore si sposta"
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr "tenendo premuto il pulsante centrale"
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -258,6 +252,36 @@ msgstr ""
 "documenti, o qualche videogioco. Può essere utilizzato su qualsiasi "
 "dispositivo, ma è inteso principalmente come sostituto delle rotelle di "
 "scorrimento sui dispositivi che non ne hanno."
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr "dopo aver fatto clic col pulsante centrale"
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+"Ciò influirà sui clic con il tasto centrale in generale; fanne due se vuoi "
+"che l'applicazione riconosca un singolo clic con il tasto centrale. Questo "
+"vale anche per il trascinamento con il tasto centrale."
+
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr "Tieni premuto il pulsante centrale e sposta il mouse per scorrere"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "Impossibile selezionare un motore appropriato"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr ""
+#~ "Interrogazione del dispositivo di immissione non riuscita. Riapri questo "
+#~ "modulo di configurazione."
 
 #~ msgid "Device enabled"
 #~ msgstr "Dispositivo abilitato"

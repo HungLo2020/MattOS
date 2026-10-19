@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-08 05:15+0100\n"
+"POT-Creation-Date: 2026-02-17 00:47+0000\n"
+"PO-Revision-Date: 2026-02-17 04:13+0100\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -52,10 +52,10 @@ msgstr "მიკროკოდის მორგებაზე გადა�
 #, kde-format
 msgctxt "@info:status inlinemessage"
 msgid ""
-"Next time the computer is restarted, it will enter the UEFI setup screen."
+"Next time the computer is restarted, it will enter UEFI firmware settings."
 msgstr ""
-"კომპიუტერის შემდეგი გადატვირთვის შემდეგ თქვენ UEFI-ის მორგების ეკრანზე "
-"მოხვდებით."
+"კომპიუტერის შემდეგი გადატვირთვის შემდეგ თქვენ UEFI მიკროკოდის მორგების "
+"ეკრანზე მოხვდებით."
 
 #: ui/main.qml:32
 #, kde-format
@@ -179,14 +179,25 @@ msgstr "შემდეგი გადატვირთვის შემდ�
 #: ui/main.qml:145
 #, kde-format
 msgctxt "@option:check"
-msgid "Enter UEFI setup screen"
-msgstr "გადატვირთვისას UEFI-ის მორგების ეკრანზე გადასვლა"
+msgid "Enter UEFI firmware settings"
+msgstr "UEFI მიკროკოდის მორგებაზე გადასვლა"
 
 #: ui/main.qml:146
 #, kde-format
 msgctxt "@option:check"
 msgid "Enter firmware setup screen"
 msgstr "გადატვირთვისას მიკროკოდის ეკრანზე გადასვლა"
+
+#~ msgctxt "@info:status inlinemessage"
+#~ msgid ""
+#~ "Next time the computer is restarted, it will enter the UEFI setup screen."
+#~ msgstr ""
+#~ "კომპიუტერის შემდეგი გადატვირთვის შემდეგ თქვენ UEFI-ის მორგების ეკრანზე "
+#~ "მოხვდებით."
+
+#~ msgctxt "@option:check"
+#~ msgid "Enter UEFI setup screen"
+#~ msgstr "გადატვირთვისას UEFI-ის მორგების ეკრანზე გადასვლა"
 
 #~ msgid ""
 #~ "The system must be restarted before manual session saving becomes active."

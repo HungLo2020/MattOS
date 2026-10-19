@@ -5,13 +5,13 @@
 # Jeff Huang <s8321414@gmail.com>, 2016, 2017.
 # pan93412 <pan93412@gmail.com>, 2018, 2019.
 # Chaoting Liu <brli@chakralinux.org>, 2021.
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025, 2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
+# SPDX-FileCopyrightText: 2022-2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-05 00:45+0000\n"
-"PO-Revision-Date: 2026-01-09 00:11+0900\n"
+"POT-Creation-Date: 2026-06-10 00:48+0000\n"
+"PO-Revision-Date: 2026-04-08 22:35+0900\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Traditional Chinese <zh-l10n@lists.slat.org>\n"
 "Language: zh_TW\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Lokalize 26.03.70\n"
+"X-Generator: Lokalize 26.07.70\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -318,12 +318,12 @@ msgstr "佈局設定："
 msgid "Desktop layout"
 msgstr "桌面佈局"
 
-#: ui/MoreOptions.qml:33
+#: ui/MoreOptions.qml:32
 #, kde-format
 msgid "Titlebar Buttons layout"
 msgstr "標題列按鈕配置"
 
-#: ui/MoreOptions.qml:56 ui/SimpleOptions.qml:64
+#: ui/MoreOptions.qml:55 ui/SimpleOptions.qml:64
 #, kde-format
 msgid ""
 "Applying a Desktop layout will delete the current set of desktops, panels, "
@@ -332,57 +332,57 @@ msgstr ""
 "套用桌面佈局將會刪除目前的桌面、面板、dock 與元件設定，並將它們取代為主題所指"
 "定的。"
 
-#: ui/MoreOptions.qml:67
+#: ui/MoreOptions.qml:66
 #, kde-format
 msgid "Appearance settings:"
 msgstr "外觀設定："
 
-#: ui/MoreOptions.qml:70
+#: ui/MoreOptions.qml:69
 #, kde-format
 msgid "Colors"
 msgstr "顏色"
 
-#: ui/MoreOptions.qml:71
+#: ui/MoreOptions.qml:70
 #, kde-format
 msgid "Application Style"
 msgstr "應用程式風格"
 
-#: ui/MoreOptions.qml:72
+#: ui/MoreOptions.qml:71
 #, kde-format
 msgid "Window Decoration Style"
 msgstr "視窗裝飾風格"
 
-#: ui/MoreOptions.qml:73
+#: ui/MoreOptions.qml:72
 #, kde-format
 msgid "Window Decoration Size"
 msgstr "視窗裝飾大小"
 
-#: ui/MoreOptions.qml:74
+#: ui/MoreOptions.qml:73
 #, kde-format
 msgid "Icons"
 msgstr "圖示"
 
-#: ui/MoreOptions.qml:75
+#: ui/MoreOptions.qml:74
 #, kde-format
 msgid "Plasma Style"
 msgstr "Plasma 風格"
 
-#: ui/MoreOptions.qml:76
+#: ui/MoreOptions.qml:75
 #, kde-format
-msgid "Cursors"
+msgid "Pointers"
 msgstr "游標"
 
-#: ui/MoreOptions.qml:77
+#: ui/MoreOptions.qml:76
 #, kde-format
 msgid "Fonts"
 msgstr "字型"
 
-#: ui/MoreOptions.qml:78
+#: ui/MoreOptions.qml:77
 #, kde-format
 msgid "Task Switcher"
 msgstr "工作切換器"
 
-#: ui/MoreOptions.qml:79
+#: ui/MoreOptions.qml:78
 #, kde-format
 msgid "Splash Screen"
 msgstr "啟動畫面"
@@ -444,6 +444,9 @@ msgstr "選擇要套用的…"
 #, kde-format
 msgid "Show fewer options…"
 msgstr "顯示較少選項…"
+
+#~ msgid "Cursors"
+#~ msgstr "游標"
 
 #~ msgid ""
 #~ "You have to restart the Plasma session for these changes to take effect."

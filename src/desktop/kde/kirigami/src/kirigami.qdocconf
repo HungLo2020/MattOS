@@ -16,6 +16,8 @@ excludedirs = platform
 
 navigation.landingpage  = "Kirigami"
 
+spurious = "Can't link to 'index.html'"
+
 qhp.projects            = Kirigami
 
 qhp.Kirigami.file          = kirigami.qhp
@@ -24,7 +26,7 @@ qhp.Kirigami.virtualFolder = kirigami
 qhp.Kirigami.indexTitle    = Kirigami
 qhp.Kirigami.indexRoot     =
 
-qhp.Kirigami.subprojects = controls delegates dialogs layouts primitives
+qhp.Kirigami.subprojects = controls delegates dialogs layouts primitives forms
 
 qhp.Kirigami.subprojects.controls.title = Kirigami QML Types
 qhp.Kirigami.subprojects.controls.indexTitle = Kirigami QML Types
@@ -50,5 +52,10 @@ qhp.Kirigami.subprojects.primitives.title = Kirigami Primitives QML Types
 qhp.Kirigami.subprojects.primitives.indexTitle = Kirigami Primitives QML Types
 qhp.Kirigami.subprojects.primitives.selectors = qmlmodule:org.kde.kirigami.primitives
 qhp.Kirigami.subprojects.primitives.sortPages = true
+
+qhp.Kirigami.subprojects.forms.title = Kirigami Forms QML Types
+qhp.Kirigami.subprojects.forms.indexTitle = Kirigami Forms QML Types
+qhp.Kirigami.subprojects.forms.selectors = qmlmodule:org.kde.kirigami.forms
+qhp.Kirigami.subprojects.forms.sortPages = true
 
 tagfile = kirigami.tags

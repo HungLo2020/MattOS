@@ -18,6 +18,9 @@
 #define PLASMALOGIN_DAEMONAPP_H
 
 #include <QCoreApplication>
+#include <QtCore>
+
+#include <optional>
 
 #define daemonApp DaemonApp::instance()
 
@@ -26,7 +29,6 @@ namespace PLASMALOGIN
 class Configuration;
 class DisplayManager;
 class SeatManager;
-class SignalHandler;
 
 class DaemonApp : public QCoreApplication
 {
@@ -40,12 +42,10 @@ public:
         return self;
     }
 
-    bool first{true};
+    bool isFirstBoot();
 
-    QString hostName() const;
     DisplayManager *displayManager() const;
     SeatManager *seatManager() const;
-    SignalHandler *signalHandler() const;
 
 public slots:
     int newSessionId();
@@ -55,10 +55,10 @@ private:
 
     int m_lastSessionId{0};
 
-    bool m_testing{false};
+    std::optional<bool> m_isFirstBoot;
+
     DisplayManager *m_displayManager{nullptr};
     SeatManager *m_seatManager{nullptr};
-    SignalHandler *m_signalHandler{nullptr};
 };
 }
 

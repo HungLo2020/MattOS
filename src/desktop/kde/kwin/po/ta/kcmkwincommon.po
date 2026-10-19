@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-16 02:39+0000\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
 "PO-Revision-Date: 2023-04-23 14:52+0530\n"
 "Last-Translator: Kishore G <kishore96@gmail.com>\n"
 "Language-Team: Tamil <kde-i18n-doc@kde.org>\n"
@@ -27,78 +27,78 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "Kde-l10n-ta@kde.org"
 
-#: effectsmodel.cpp:48
+#: effectsmodel.cpp:49
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Accessibility"
 msgstr "அணுகல்தன்மை"
 
-#: effectsmodel.cpp:49
+#: effectsmodel.cpp:50
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Appearance"
 msgstr "தோற்றம்"
 
-#: effectsmodel.cpp:50
+#: effectsmodel.cpp:51
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Focus"
 msgstr "குவியம்"
 
-#: effectsmodel.cpp:51
+#: effectsmodel.cpp:52
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Peek at Desktop Animation"
 msgstr "பணிமேடையை காட்டும் அசைவூட்டங்கள்"
 
-#: effectsmodel.cpp:52
+#: effectsmodel.cpp:53
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Tools"
 msgstr "கருவிகள்"
 
-#: effectsmodel.cpp:53
+#: effectsmodel.cpp:54
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Virtual Desktop Switching Animation"
 msgstr "மெய்நிகர் பணிமேடையை மாற்றும்போது அசைவூட்டம்"
 
-#: effectsmodel.cpp:54
+#: effectsmodel.cpp:55
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Window Management"
 msgstr "சாளர மேலாண்மை"
 
-#: effectsmodel.cpp:55
+#: effectsmodel.cpp:56
 #, kde-format
 msgctxt "Category of Desktop Effects, used as section header"
 msgid "Window Open/Close Animation"
 msgstr "சாளரங்களை மூடுவதற்கும் திறப்பதற்குமான அசைவூட்டம்"
 
-#: effectsmodel.cpp:231
+#: effectsmodel.cpp:233
 #, kde-format
 msgid "KWin development team"
 msgstr "கேவின் நிரலாக்க குழு"
 
-#: genericscriptedconfig.cpp:76
+#: genericscriptedconfig.cpp:71
 #, kde-format
 msgctxt "Error message"
 msgid "Could not locate package metadata"
 msgstr "தொகுப்பைக் குறித்த மேனிலைத் தரவை கண்டுபிடிக்க முடியவில்லை"
 
-#: genericscriptedconfig.cpp:82
+#: genericscriptedconfig.cpp:77
 #, kde-format
 msgctxt "Required file does not exist"
 msgid "%1 does not contain a valid metadata.json file"
 msgstr "%1 என்பதில் முறையான metadata.json கோப்பு இல்லை"
 
-#: genericscriptedconfig.cpp:88 genericscriptedconfig.cpp:94
+#: genericscriptedconfig.cpp:83 genericscriptedconfig.cpp:89
 #, kde-format
 msgctxt "Required file does not exist"
 msgid "%1 does not exist"
 msgstr "%1 என்பது இல்லை"
 
-#: genericscriptedconfig.cpp:116
+#: genericscriptedconfig.cpp:106 genericscriptedconfig.cpp:116
 #, kde-format
 msgid "Error loading widget from %1: %2"
 msgstr ""

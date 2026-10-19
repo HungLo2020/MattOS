@@ -14,13 +14,14 @@
 #if KWIN_BUILD_X11
 #include "atoms.h"
 #endif
+#include "a11ymanager.h"
 #include "compositor.h"
+#include "core/gpumanager.h"
 #include "core/outputbackend.h"
 #include "core/rendertarget.h"
 #include "core/session.h"
 #include "cursor.h"
 #include "cursorsource.h"
-#include "effect/effecthandler.h"
 #include "input.h"
 #include "inputmethod.h"
 #include "opengl/gltexture.h"
@@ -76,14 +77,9 @@ Options *options;
 #if KWIN_BUILD_X11
 Atoms *atoms;
 #endif
-int Application::crashes = 0;
 
 Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
-#if KWIN_BUILD_X11
-    , m_eventFilter(new XcbEventFilter())
-#endif
-    , m_configLock(false)
     , m_config(KSharedConfig::openConfig(QStringLiteral("kwinrc")))
     , m_kxkbConfig()
     , m_kdeglobals(KSharedConfig::openConfig(QStringLiteral("kdeglobals")))
@@ -93,11 +89,6 @@ Application::Application(int &argc, char **argv)
     qRegisterMetaType<KWin::SurfaceInterface *>("KWin::SurfaceInterface *");
     qRegisterMetaType<KSharedConfigPtr>();
     qRegisterMetaType<std::chrono::nanoseconds>();
-}
-
-void Application::setConfigLock(bool lock)
-{
-    m_configLock = lock;
 }
 
 void Application::start()
@@ -111,11 +102,6 @@ void Application::start()
     setQuitOnLastWindowClosed(false);
     setQuitLockEnabled(false);
 
-    if (!m_config->isImmutable() && m_configLock) {
-        // TODO: This shouldn't be necessary
-        // config->setReadOnly( true );
-        m_config->reparseConfiguration();
-    }
     if (!m_kxkbConfig) {
         m_kxkbConfig = KSharedConfig::openConfig(QStringLiteral("kxkbrc"), KConfig::NoGlobals);
     }
@@ -131,6 +117,7 @@ Application::~Application()
     delete options;
     destroyAtoms();
     destroyPlatform();
+    GpuManager::s_self.reset();
     m_session.reset();
 }
 
@@ -145,21 +132,6 @@ void Application::destroyAtoms()
 void Application::destroyPlatform()
 {
     m_outputBackend.reset();
-}
-
-void Application::resetCrashesCount()
-{
-    crashes = 0;
-}
-
-void Application::setCrashCount(int count)
-{
-    crashes = count;
-}
-
-bool Application::wasCrash()
-{
-    return crashes > 0;
 }
 
 void Application::createAboutData()
@@ -183,17 +155,9 @@ void Application::createAboutData()
     KAboutData::setApplicationData(aboutData);
 }
 
-static const QString s_lockOption = QStringLiteral("lock");
-static const QString s_crashesOption = QStringLiteral("crashes");
-
 void Application::setupCommandLine(QCommandLineParser *parser)
 {
-    QCommandLineOption lockOption(s_lockOption, i18n("Disable configuration options"));
-    QCommandLineOption crashesOption(s_crashesOption, i18n("Indicate that KWin has recently crashed n times"), QStringLiteral("n"));
-
     parser->setApplicationDescription(i18n("KDE window manager"));
-    parser->addOption(lockOption);
-    parser->addOption(crashesOption);
     KAboutData::applicationData().setupCommandLine(parser);
 }
 
@@ -201,8 +165,6 @@ void Application::processCommandLine(QCommandLineParser *parser)
 {
     KAboutData aboutData = KAboutData::applicationData();
     aboutData.processCommandLine(parser);
-    setConfigLock(parser->isSet(s_lockOption));
-    Application::setCrashCount(parser->value(s_crashesOption).toInt());
 }
 
 void Application::setupMalloc()
@@ -251,9 +213,14 @@ void Application::createAtoms()
 #endif
 }
 
+void Application::createGpuManager()
+{
+    GpuManager::s_self = std::make_unique<GpuManager>();
+}
+
 void Application::createOptions()
 {
-    options = new Options;
+    options = new Options(nullptr);
 }
 
 void Application::createPlugins()
@@ -276,17 +243,15 @@ TabletModeManager *Application::tabletModeManager() const
     return m_tabletModeManager.get();
 }
 
-#if KWIN_BUILD_X11
-void Application::installNativeX11EventFilter()
+void Application::createA11yManager()
 {
-    installNativeEventFilter(m_eventFilter.get());
+    m_a11yManager = std::make_unique<A11yManager>();
 }
 
-void Application::removeNativeX11EventFilter()
+A11yManager *Application::a11yManager() const
 {
-    removeNativeEventFilter(m_eventFilter.get());
+    return m_a11yManager.get();
 }
-#endif
 
 void Application::destroyInput()
 {
@@ -339,8 +304,8 @@ void Application::applyXwaylandScale()
 
 #if KWIN_BUILD_X11
     if (x11Connection()) {
-        // rerun the fonts kcm init that does the appropriate xrdb call with the new settings
-        QProcess::startDetached("kcminit", {"kcm_fonts_init", "kcm_style_init"});
+        // rerun the script that runs xrdb with the new settings
+        QProcess::startDetached(QString(LIBEXEC_DIR) + QStringLiteral("/plasma-setup-xwayland"));
     }
 #endif
 }
@@ -378,7 +343,7 @@ void Application::unregisterEventFilter(X11EventFilter *filter)
     delete container;
 }
 
-bool Application::dispatchEvent(xcb_generic_event_t *event)
+void Application::dispatchEvent(xcb_generic_event_t *event)
 {
     static const QList<QByteArray> s_xcbEerrors({QByteArrayLiteral("Success"),
                                                  QByteArrayLiteral("BadRequest"),
@@ -425,10 +390,10 @@ bool Application::dispatchEvent(xcb_generic_event_t *event)
                           int(error->major_code), extension.name.constData(),
                           int(error->minor_code),
                           extension.opCodes.size() > error->minor_code ? extension.opCodes.at(error->minor_code).constData() : "Unknown");
-                return true;
+                return;
             }
         }
-        return false;
+        return;
     }
 
     if (x11EventType == XCB_GE_GENERIC) {
@@ -444,7 +409,7 @@ bool Application::dispatchEvent(xcb_generic_event_t *event)
             }
             X11EventFilter *filter = container->filter();
             if (filter->extension() == ge->extension && filter->genericEventTypes().contains(ge->event_type) && filter->event(event)) {
-                return true;
+                return;
             }
         }
     } else {
@@ -458,16 +423,14 @@ bool Application::dispatchEvent(xcb_generic_event_t *event)
             }
             X11EventFilter *filter = container->filter();
             if (filter->eventTypes().contains(x11EventType) && filter->event(event)) {
-                return true;
+                return;
             }
         }
     }
 
     if (workspace()) {
-        return workspace()->workspaceEvent(event);
+        workspace()->workspaceEvent(event);
     }
-
-    return false;
 }
 
 static quint32 monotonicTime()
@@ -486,15 +449,6 @@ xcb_timestamp_t Application::x11Time() const
 {
     return monotonicTime();
 }
-
-bool XcbEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result)
-{
-    if (eventType == "xcb_generic_event_t") {
-        return kwinApp()->dispatchEvent(static_cast<xcb_generic_event_t *>(message));
-    }
-    return false;
-}
-
 #endif
 
 QProcessEnvironment Application::processStartupEnvironment() const
@@ -534,12 +488,8 @@ XwaylandInterface *Application::xwayland() const
     return nullptr;
 }
 
-static PlatformCursorImage grabCursorOpenGL()
+static PlatformCursorImage grabCursorOpenGL(WorkspaceScene *scene)
 {
-    auto scene = Compositor::self()->scene();
-    if (!scene) {
-        return PlatformCursorImage{};
-    }
     Cursor *cursor = Cursors::self()->currentCursor();
     LogicalOutput *output = workspace()->outputAt(cursor->pos());
 
@@ -551,37 +501,13 @@ static PlatformCursorImage grabCursorOpenGL()
     GLFramebuffer framebuffer(texture.get());
     RenderTarget renderTarget(&framebuffer);
 
-    SceneView sceneView(scene, output, nullptr, nullptr);
+    SceneView sceneView(scene, output, nullptr, nullptr, Compositor::self()->primaryDevice());
     ItemTreeView cursorView(&sceneView, scene->cursorItem(), output, nullptr, nullptr);
-    cursorView.prePaint();
     cursorView.paint(renderTarget, QPoint(), Region::infinite());
-    cursorView.postPaint();
 
     QImage image = texture->toImage();
     image.setDevicePixelRatio(output->scale());
 
-    return PlatformCursorImage(image, cursor->hotspot());
-}
-
-static PlatformCursorImage grabCursorSoftware()
-{
-    auto scene = Compositor::self()->scene();
-    if (!scene) {
-        return PlatformCursorImage{};
-    }
-    Cursor *cursor = Cursors::self()->currentCursor();
-    LogicalOutput *output = workspace()->outputAt(cursor->pos());
-
-    QImage image((cursor->geometry().size() * output->scale()).toSize(), QImage::Format_ARGB32_Premultiplied);
-    RenderTarget renderTarget(&image);
-
-    SceneView sceneView(scene, output, nullptr, nullptr);
-    ItemTreeView cursorView(&sceneView, scene->cursorItem(), output, nullptr, nullptr);
-    cursorView.prePaint();
-    cursorView.paint(renderTarget, QPoint(), Region::infinite());
-    cursorView.postPaint();
-
-    image.setDevicePixelRatio(output->scale());
     return PlatformCursorImage(image, cursor->hotspot());
 }
 
@@ -597,14 +523,7 @@ PlatformCursorImage Application::cursorImage() const
     }
 
     // The cursor content is provided by a client, grab the contents of the cursor scene.
-    switch (effects->compositingType()) {
-    case OpenGLCompositing:
-        return grabCursorOpenGL();
-    case QPainterCompositing:
-        return grabCursorSoftware();
-    default:
-        Q_UNREACHABLE();
-    }
+    return grabCursorOpenGL(m_scene.get());
 }
 
 void Application::startInteractiveWindowSelection(std::function<void(KWin::Window *)> callback, const QByteArray &cursorName)
@@ -623,6 +542,21 @@ void Application::startInteractivePositionSelection(std::function<void(const QPo
         return;
     }
     input()->startInteractivePositionSelection(callback);
+}
+
+WorkspaceScene *Application::scene() const
+{
+    return m_scene.get();
+}
+
+void Application::createScene()
+{
+    m_scene = std::make_unique<WorkspaceScene>();
+}
+
+void Application::destroyScene()
+{
+    m_scene.reset();
 }
 
 } // namespace

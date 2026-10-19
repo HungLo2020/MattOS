@@ -10,6 +10,7 @@
 #include "nsCharSetProber.h"
 
 #include <array>
+#include <span>
 
 #define SAMPLE_SIZE 64
 #define SYMBOL_CAT_ORDER 250
@@ -18,7 +19,7 @@ namespace kencodingprober
 {
 typedef struct {
     const unsigned char *charToOrderMap; // [256] table use to find a char's order
-    const char *precedenceMatrix; // [SAMPLE_SIZE][SAMPLE_SIZE]; table to find a 2-char sequence's frequency
+    const std::span<const uint8_t, 64 * 64> precedenceMatrix; // [SAMPLE_SIZE][SAMPLE_SIZE]; table to find a 2-char sequence's frequency
     float mTypicalPositiveRatio; // = freqSeqs / totalSeqs
     bool keepEnglishLetter; // says if this script contains English characters (not implemented)
     const char *charsetName;
@@ -28,7 +29,7 @@ template<bool Reversed = false>
 class KCODECS_NO_EXPORT nsSingleByteCharSetProber : public nsCharSetProber
 {
 public:
-    explicit nsSingleByteCharSetProber(const SequenceModel *model)
+    explicit nsSingleByteCharSetProber(const SequenceModel &model)
         : mModel(model)
     {
     }
@@ -41,13 +42,11 @@ public:
     }
     float GetConfidence(void) override;
 
-#ifdef DEBUG_PROBE
-    void DumpStatus() override;
-#endif
+    std::string StatusOutput(uint8_t indent) override;
 
 protected:
     nsProbingState mState = eDetecting;
-    const SequenceModel *mModel = nullptr;
+    const SequenceModel &mModel;
 
     // char order of last character
     unsigned char mLastOrder = 255;

@@ -1,28 +1,28 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Emir SARI <emir_sari@icloud.com>
+# SPDX-FileCopyrightText: 2022-2026 Emir SARI <emir_sari@icloud.com>
 # Volkan Gezer <volkangezer@gmail.com>, 2021, 2022.
 # Emir SARI <emir_sari@icloud.com>, 2023.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasmashell\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-27 02:42+0000\n"
-"PO-Revision-Date: 2025-10-06 09:54+0300\n"
-"Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
+"PO-Revision-Date: 2026-07-02 19:46+0300\n"
+"Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.08.1\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Kaan Özdinçer, M. Hayseme Karamuk, Emir SARI"
+msgstr "Kaan ÖZDİNÇER, M. Hayseme KARAMUK, Emir SARI"
 
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
@@ -35,103 +35,103 @@ msgstr ""
 msgid "Configure Mouse Actions Plugin"
 msgstr "Fare Eylemleri Eklentisini Yapılandır"
 
-#: desktopview.cpp:223
+#: desktopview.cpp:206
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma 6.0 Dev"
 msgstr "KDE Plasma 6.0 Geliştirme Sürümü"
 
-#: desktopview.cpp:226
+#: desktopview.cpp:209
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma 6.0 Alpha"
 msgstr "KDE Plasma 6.0 Alfa"
 
-#: desktopview.cpp:229
+#: desktopview.cpp:212
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma 6.0 Beta 1"
 msgstr "KDE Plasma 6.0 Beta 1"
 
-#: desktopview.cpp:232
+#: desktopview.cpp:215
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma 6.0 Beta 2"
 msgstr "KDE Plasma 6.0 Beta 2"
 
-#: desktopview.cpp:235
+#: desktopview.cpp:218
 #, kde-format
 msgctxt "@label %1 is the Plasma version, RC meaning Release Candidate"
 msgid "KDE Plasma 6.0 RC1"
 msgstr "KDE Plasma 6.0 Sürüm Adayı 1"
 
-#: desktopview.cpp:238
+#: desktopview.cpp:221
 #, kde-format
 msgctxt "@label %1 is the Plasma version, RC meaning Release Candidate"
 msgid "KDE Plasma 6.0 RC2"
 msgstr "KDE Plasma 6.0 Sürüm Adayı 2"
 
-#: desktopview.cpp:264
+#: desktopview.cpp:247
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma %1 Dev"
 msgstr "KDE Plasma %1 Geliştirme Sürümü"
 
-#: desktopview.cpp:268
+#: desktopview.cpp:251
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma %1 Beta"
 msgstr "KDE Plasma %1 Beta"
 
-#: desktopview.cpp:271
+#: desktopview.cpp:254
 #, kde-format
 msgctxt "@label %1 is the Plasma version, %2 is the beta release number"
 msgid "KDE Plasma %1 Beta %2"
 msgstr "KDE Plasma %1 Beta %2"
 
-#: desktopview.cpp:275
+#: desktopview.cpp:258
 #, kde-format
 msgctxt "@label %1 is the Plasma version"
 msgid "KDE Plasma %1"
 msgstr "KDE Plasma %1"
 
-#: desktopview.cpp:281
+#: desktopview.cpp:264
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "Visit bugs.kde.org to report issues"
 msgstr "Hataları bildirmek için bugs.kde.org adresine gidin"
 
-#: desktopview.cpp:289
+#: desktopview.cpp:272
 #, kde-format
 msgctxt "@action:button"
 msgid "Copy Plasma Version"
 msgstr "Plasma Sürümünü Kopyala"
 
-#: desktopview.cpp:295
+#: desktopview.cpp:278
 #, kde-format
 msgctxt "@action:button"
 msgid "Report a Bug…"
 msgstr "Hata Bildir…"
 
-#: desktopview.cpp:305
+#: desktopview.cpp:288
 #, kde-format
 msgctxt "@title:menu"
 msgid "Hide Preview Banner"
 msgstr "Önizleme Afişini Gizle"
 
-#: desktopview.cpp:307
+#: desktopview.cpp:290
 #, kde-format
 msgctxt "@action:button Hide the preview banner until the system is restarted"
 msgid "Hide Until Restart"
 msgstr "Yeniden Başlatılana Dek Gizle"
 
-#: desktopview.cpp:314
+#: desktopview.cpp:297
 #, kde-format
 msgctxt "@action:button Hide the preview banner permanently"
 msgid "Hide Permanently…"
 msgstr "Kalıcı Olarak Gizle…"
 
-#: desktopview.cpp:320
+#: desktopview.cpp:303
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -145,58 +145,58 @@ msgstr ""
 "<icode>ShowDesktopPreviewBanner</icode> ile başlayan satır kaldırılarak geri "
 "alınabilir."
 
-#: desktopview.cpp:322
+#: desktopview.cpp:305
 #, kde-format
 msgctxt "@title:window"
 msgid "Hide Preview Banner?"
 msgstr "Önizleme Afişini Gizle?"
 
-#: desktopview.cpp:557 desktopview.cpp:573
+#: desktopview.cpp:520 desktopview.cpp:536
 #, kde-format
 msgid "Enter Edit Mode"
 msgstr "Düzenleme Kipine Gir"
 
-#: desktopview.cpp:571
+#: desktopview.cpp:534
 #, kde-format
 msgid "Exit Edit Mode"
 msgstr "Düzenleme Kipinden Çık"
 
-#: main.cpp:108
+#: main.cpp:126
 #, kde-format
 msgid "Plasma Shell"
 msgstr "Plasma Kabuğu"
 
-#: main.cpp:121
+#: main.cpp:139
 #, kde-format
 msgid "Enable QML Javascript debugger"
 msgstr "Plasma Kabuğu"
 
-#: main.cpp:124
+#: main.cpp:142
 #, kde-format
 msgid "Do not restart plasma-shell automatically after a crash"
 msgstr "Çökme sonrası plasma-shell’i kendiliğinden yeniden başlatma"
 
-#: main.cpp:127
+#: main.cpp:145
 #, kde-format
 msgid "Force loading the given shell plugin"
 msgstr "Verilen kabuk eklentisini yüklemeyi zorla"
 
-#: main.cpp:131
+#: main.cpp:149
 #, kde-format
 msgid "Replace an existing instance"
 msgstr "Var olan bir örneği değiştir"
 
-#: main.cpp:134
+#: main.cpp:152
 #, kde-format
 msgid "Lists the available options for user feedback"
 msgstr "Kullanıcı geri bildirimi için kullanılabilir seçenekleri listeler"
 
-#: main.cpp:190
+#: main.cpp:208
 #, kde-format
 msgid "Plasma Failed To Start"
 msgstr "Plasma Başlatılamadı"
 
-#: main.cpp:191
+#: main.cpp:209
 #, kde-format
 msgid ""
 "Plasma is unable to start as it could not correctly use OpenGL 2 or software "
@@ -206,79 +206,79 @@ msgstr ""
 "Plasma, OpenGL 2’yi doğru kullanamadığı için başlatılamadı.\n"
 "Lütfen grafik sürücülerinizin doğru şekilde kurulduğundan emin olun."
 
-#: osd.cpp:63
+#: osd.cpp:70
 #, kde-format
 msgctxt "Brightness OSD: display name and brightness percentage"
 msgid "%1: %2%"
 msgstr "%1: %​%2"
 
-#: osd.cpp:91
+#: osd.cpp:98
 #, kde-format
 msgctxt "OSD informing that the system is muted, keep short"
 msgid "Audio Muted"
 msgstr "Ses Kapalı"
 
-#: osd.cpp:114
+#: osd.cpp:121
 #, kde-format
 msgctxt "OSD informing that the microphone is muted, keep short"
 msgid "Microphone Muted"
 msgstr "Mikrofon Kapalı"
 
-#: osd.cpp:130
+#: osd.cpp:137
 #, kde-format
 msgctxt "OSD informing that some media app is muted, eg. Amarok Muted"
 msgid "%1 Muted"
 msgstr "%1 Sessiz"
 
-#: osd.cpp:152
+#: osd.cpp:159
 #, kde-format
 msgctxt "touchpad was enabled, keep short"
 msgid "Touchpad On"
 msgstr "Dokunmatik Yüzey Açık"
 
-#: osd.cpp:154
+#: osd.cpp:161
 #, kde-format
 msgctxt "touchpad was disabled, keep short"
 msgid "Touchpad Off"
 msgstr "Dokunmatik Yüzey Kapalı"
 
-#: osd.cpp:161
+#: osd.cpp:168
 #, kde-format
 msgctxt "wireless lan was enabled, keep short"
 msgid "Wifi On"
 msgstr "Wi-Fi Açık"
 
-#: osd.cpp:163
+#: osd.cpp:170
 #, kde-format
 msgctxt "wireless lan was disabled, keep short"
 msgid "Wifi Off"
 msgstr "Wi-Fi Kapalı"
 
-#: osd.cpp:170
+#: osd.cpp:177
 #, kde-format
 msgctxt "Bluetooth was enabled, keep short"
 msgid "Bluetooth On"
 msgstr "Bluetooth Açık"
 
-#: osd.cpp:172
+#: osd.cpp:179
 #, kde-format
 msgctxt "Bluetooth was disabled, keep short"
 msgid "Bluetooth Off"
 msgstr "Bluetooth Kapalı"
 
-#: osd.cpp:179
+#: osd.cpp:186
 #, kde-format
 msgctxt "mobile internet was enabled, keep short"
 msgid "Mobile Internet On"
 msgstr "Taşınabilir İnternet Açık"
 
-#: osd.cpp:181
+#: osd.cpp:188
 #, kde-format
 msgctxt "mobile internet was disabled, keep short"
 msgid "Mobile Internet Off"
 msgstr "Taşınabilir İnternet Kapalı"
 
-#: osd.cpp:189
+#: osd.cpp:196
 #, kde-format
 msgctxt ""
 "on screen keyboard was enabled because physical keyboard got unplugged, keep "
@@ -286,7 +286,7 @@ msgctxt ""
 msgid "On-Screen Keyboard Activated"
 msgstr "Ekran Klavyesi Etkin"
 
-#: osd.cpp:192
+#: osd.cpp:199
 #, kde-format
 msgctxt ""
 "on screen keyboard was disabled because physical keyboard was plugged in, "
@@ -294,54 +294,43 @@ msgctxt ""
 msgid "On-Screen Keyboard Deactivated"
 msgstr "Ekran Klavyesi Kapalı"
 
-#: osd.cpp:199
+#: osd.cpp:206
 #, kde-format
 msgctxt "power management was inhibited, keep short"
 msgid "Sleep and Screen Locking Blocked"
 msgstr "Uyku ve Ekran Kilidi Engelli"
 
-#: osd.cpp:201
+#: osd.cpp:208
 #, kde-format
 msgctxt "power management was uninhibited, keep short"
 msgid "Sleep and Screen Locking Unblocked"
 msgstr "Uyku ve Ekran Kilidi Engeli Açık"
 
-#: osd.cpp:211
+#: osd.cpp:218
 #, kde-format
 msgctxt "Power profile was changed to power save mode, keep short"
 msgid "Power Save Mode"
 msgstr "Güç Tasarrufu Kipi"
 
-#: osd.cpp:214
+#: osd.cpp:221
 #, kde-format
 msgctxt "Power profile was changed to balanced mode, keep short"
 msgid "Balanced Power Mode"
 msgstr "Dengeli Güç Kipi"
 
-#: osd.cpp:217
+#: osd.cpp:224
 #, kde-format
 msgctxt "Power profile was changed to performance mode, keep short"
 msgid "Performance Mode"
 msgstr "Başarım Kipi"
 
-#: panelview.cpp:458
-#, kde-format
-msgid ""
-"With an NVIDIA GPU on X11, the Floating style and Adaptive opacity mode are "
-"known to cause poor window drag and resize performance. Consider using other "
-"settings."
-msgstr ""
-"X11 üzerinde NVIDIA GPU kullanırken “Yüzer” biçem ve “Uyarlanır” matlık "
-"kipinin pencere sürükleme ve yeniden boyutlandırma başarımını kötü biçimde "
-"etkilediği bilinmektedir. Başka bir ayar kullanmayı düşünün."
-
-#: panelview.cpp:1144
+#: panelview.cpp:1066
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Hide Panel Configuration"
 msgstr "Panel Yapılandırmasını Gizle"
 
-#: panelview.cpp:1146
+#: panelview.cpp:1068
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Show Panel Configuration"
@@ -353,74 +342,63 @@ msgctxt "Percentage value"
 msgid "%1%"
 msgstr "%%1"
 
-#: shellcontainmentconfig.cpp:107
+#: shellcontainmentconfig.cpp:109
 #, kde-format
-msgid "Internal Screen on %1"
-msgstr "%1 Üzerindeki İç Ekran"
+msgid "Built-in Screen"
+msgstr "Yerleşik Ekran"
 
-#: shellcontainmentconfig.cpp:111
-#, kde-format
-msgctxt "Screen manufacturer and model on connector"
-msgid "%1 %2 on %3"
-msgstr "%3 Üzerindeki %1 %2"
-
-#: shellcontainmentconfig.cpp:134
+#: shellcontainmentconfig.cpp:138
 #, kde-format
 msgid "Disconnected Screen %1"
 msgstr "%1. Ekran Bağlantısı Kesildi"
 
-#: shellcorona.cpp:180 shellcorona.cpp:182
+#: shellcorona.cpp:174 shellcorona.cpp:176
 #, kde-format
 msgid "Show Desktop"
 msgstr "Masaüstünü Göster"
 
-#: shellcorona.cpp:182
+#: shellcorona.cpp:176
 #, kde-format
 msgid "Hide Desktop"
 msgstr "Masaüstünü Gizle"
 
-#: shellcorona.cpp:197
+#: shellcorona.cpp:192
 #, kde-format
 msgid "Activate Application Launcher"
 msgstr "Uygulama Başlatıcısını Etkinleştir"
 
-#: shellcorona.cpp:205
+#: shellcorona.cpp:200
 #, kde-format
 msgid "Show Activity Switcher"
 msgstr "Etkinlik Değiştiriciyi Göster"
 
-#: shellcorona.cpp:214
+#: shellcorona.cpp:209
 #, kde-format
 msgid "Switch to Previous Activity"
 msgstr "Önceki Etkinliğe Geç"
 
-#: shellcorona.cpp:222
+#: shellcorona.cpp:217
 #, kde-format
 msgid "Switch to Next Activity"
 msgstr "Sonraki Etkinliğe Geç"
 
-#: shellcorona.cpp:237
-#, kde-format
-msgid "Activate Task Manager Entry %1"
-msgstr "Etkin Görev Yöneticisi Girdisi %1"
-
-#: shellcorona.cpp:272
+#: shellcorona.cpp:248
 #, kde-format
 msgctxt "@action:button"
 msgid "Manage Desktops and Panels…"
 msgstr "Masaüstlerini ve Panelleri Yönet…"
 
-#: shellcorona.cpp:294
+#: shellcorona.cpp:270
 #, kde-format
 msgid "Move keyboard focus between panels"
 msgstr "Klavye odağını paneller arasında taşı"
 
-#: shellcorona.cpp:2250
+#: shellcorona.cpp:2282
 #, kde-format
 msgid "Add Panel"
 msgstr "Panel Ekle"
 
-#: shellcorona.cpp:2333
+#: shellcorona.cpp:2369
 #, kde-format
 msgctxt "Creates an empty containment (%1 is the containment name)"
 msgid "Empty %1"
@@ -457,6 +435,25 @@ msgstr "Panel Sayısı"
 #, kde-format
 msgid "Counts the panels"
 msgstr "Panelleri sayar"
+
+#~ msgid "Activate Task Manager Entry %1"
+#~ msgstr "Etkin Görev Yöneticisi Girdisi %1"
+
+#~ msgid "Internal Screen on %1"
+#~ msgstr "%1 Üzerindeki İç Ekran"
+
+#~ msgctxt "Screen manufacturer and model on connector"
+#~ msgid "%1 %2 on %3"
+#~ msgstr "%3 Üzerindeki %1 %2"
+
+#~ msgid ""
+#~ "With an NVIDIA GPU on X11, the Floating style and Adaptive opacity mode "
+#~ "are known to cause poor window drag and resize performance. Consider "
+#~ "using other settings."
+#~ msgstr ""
+#~ "X11 üzerinde NVIDIA GPU kullanırken “Yüzer” biçem ve “Uyarlanır” matlık "
+#~ "kipinin pencere sürükleme ve yeniden boyutlandırma başarımını kötü "
+#~ "biçimde etkilediği bilinmektedir. Başka bir ayar kullanmayı düşünün."
 
 #~ msgid "Stop Current Activity"
 #~ msgstr "Geçerli Etkinliği Durdur"

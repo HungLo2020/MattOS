@@ -56,8 +56,8 @@ for more information.
 */
 QQmlLanguageServer::QQmlLanguageServer(std::function<void(const QByteArray &)> sendData,
                                        QQmlToolingSharedSettings *settings)
-    : m_codeModelManager(nullptr, settings),
-      m_server(sendData),
+    : QLanguageServer(sendData),
+      m_codeModelManager(nullptr, settings),
       m_textSynchronization(&m_codeModelManager),
       m_workspace(&m_codeModelManager),
       m_completionSupport(&m_codeModelManager),
@@ -68,26 +68,31 @@ QQmlLanguageServer::QQmlLanguageServer(std::function<void(const QByteArray &)> s
       m_renameSupport(&m_codeModelManager),
       m_rangeFormatting(&m_codeModelManager),
       m_hover(&m_codeModelManager),
+      m_codeActionSupport(&m_codeModelManager),
       m_highlightSupport(&m_codeModelManager),
       m_documentSymbolSupport(&m_codeModelManager),
-      m_lint(&m_server, &m_codeModelManager)
+      m_progressSupport(&m_codeModelManager),
+      m_lint(this, &m_codeModelManager)
 {
-    m_server.addServerModule(this);
-    m_server.addServerModule(&m_textSynchronization);
-    m_server.addServerModule(&m_lint);
-    m_server.addServerModule(&m_workspace);
-    m_server.addServerModule(&m_completionSupport);
-    m_server.addServerModule(&m_navigationSupport);
-    m_server.addServerModule(&m_definitionSupport);
-    m_server.addServerModule(&m_referencesSupport);
-    m_server.addServerModule(&m_documentFormatting);
-    m_server.addServerModule(&m_renameSupport);
-    m_server.addServerModule(&m_rangeFormatting);
-    m_server.addServerModule(&m_hover);
-    m_server.addServerModule(&m_documentSymbolSupport);
-    m_server.addServerModule(&m_highlightSupport);
-    m_server.finishSetup();
-    qCWarning(lspServerLog) << "Did Setup";
+    QObject::connect(this, &QLanguageServer::lifecycleError, this, &QQmlLanguageServer::errorExit);
+    QObject::connect(this, &QLanguageServer::exit, this, &QQmlLanguageServer::exit);
+
+    registerModule(&m_textSynchronization);
+    registerModule(&m_codeActionSupport);
+    registerModule(&m_workspace);
+    registerModule(&m_completionSupport);
+    registerModule(&m_navigationSupport);
+    registerModule(&m_definitionSupport);
+    registerModule(&m_referencesSupport);
+    registerModule(&m_documentFormatting);
+    registerModule(&m_renameSupport);
+    registerModule(&m_rangeFormatting);
+    registerModule(&m_hover);
+    registerModule(&m_documentSymbolSupport);
+    registerModule(&m_progressSupport);
+    registerModule(&m_highlightSupport);
+
+    qCDebug(lspServerLog) << "Did Setup";
 }
 
 QQmlLanguageServer::~QQmlLanguageServer()
@@ -95,46 +100,6 @@ QQmlLanguageServer::~QQmlLanguageServer()
     // note: the server modules might be in use by the QQmlCodeModel thread, so wait for the
     // QQmlCodeModel threads to finish before destroying the server modules.
     m_codeModelManager.prepareForShutdown();
-}
-
-void QQmlLanguageServer::registerHandlers(QLanguageServer *server,
-                                          QLanguageServerProtocol *protocol)
-{
-    Q_UNUSED(protocol);
-    QObject::connect(server, &QLanguageServer::lifecycleError, this,
-                     &QQmlLanguageServer::errorExit);
-    QObject::connect(server, &QLanguageServer::exit, this, &QQmlLanguageServer::exit);
-    QObject::connect(
-            server, &QLanguageServer::runStatusChanged, this,
-            [](QLanguageServer::RunStatus r) { qCDebug(lspServerLog) << "runStatus" << int(r); });
-    protocol->typedRpc()->registerNotificationHandler<Notifications::AddBuildDirsParams>(
-            QByteArray(Notifications::AddBuildDirsMethod),
-            [this](const QByteArray &, const Notifications::AddBuildDirsParams &params) {
-                for (const auto &buildDirs : params.buildDirsToSet) {
-                    QStringList dirPaths;
-                    dirPaths.resize(buildDirs.buildDirs.size());
-                    std::transform(buildDirs.buildDirs.begin(), buildDirs.buildDirs.end(),
-                                   dirPaths.begin(), [](const QByteArray &utf8Str) {
-                                       return QString::fromUtf8(utf8Str);
-                                   });
-                    m_codeModelManager.setBuildPathsForRootUrl(buildDirs.baseUri, dirPaths);
-                }
-            });
-}
-
-void QQmlLanguageServer::setupCapabilities(const QLspSpecification::InitializeParams &,
-                                           QLspSpecification::InitializeResult &serverInfo)
-{
-    QJsonObject expCap;
-    if (serverInfo.capabilities.experimental.has_value() && serverInfo.capabilities.experimental->isObject())
-        expCap = serverInfo.capabilities.experimental->toObject();
-    expCap.insert(u"addBuildDirs"_s, QJsonObject({ { u"supported"_s, true } }));
-    serverInfo.capabilities.experimental = expCap;
-}
-
-QString QQmlLanguageServer::name() const
-{
-    return u"QQmlLanguageServer"_s;
 }
 
 void QQmlLanguageServer::errorExit()
@@ -157,26 +122,6 @@ int QQmlLanguageServer::returnValue() const
 QQmlCodeModelManager *QQmlLanguageServer::codeModelManager()
 {
     return &m_codeModelManager;
-}
-
-QLanguageServer *QQmlLanguageServer::server()
-{
-    return &m_server;
-}
-
-TextSynchronization *QQmlLanguageServer::textSynchronization()
-{
-    return &m_textSynchronization;
-}
-
-QmlLintSuggestions *QQmlLanguageServer::lint()
-{
-    return &m_lint;
-}
-
-WorkspaceHandlers *QQmlLanguageServer::worspace()
-{
-    return &m_workspace;
 }
 
 } // namespace QmlLsp

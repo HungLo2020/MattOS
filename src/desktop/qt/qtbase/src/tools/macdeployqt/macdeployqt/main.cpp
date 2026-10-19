@@ -15,7 +15,7 @@ int main(int argc, char **argv)
     if (argc > 1)
         appBundlePath = QString::fromLocal8Bit(argv[1]);
 
-    if (argc < 2 || appBundlePath.startsWith("-")) {
+    if (argc < 2 || appBundlePath.startsWith('-')) {
         qDebug() << "Usage: macdeployqt app-bundle [options]";
         qDebug() << "";
         qDebug() << "Options:";
@@ -86,22 +86,22 @@ int main(int argc, char **argv)
 
     for (int i = 2; i < argc; ++i) {
         QByteArray argument = QByteArray(argv[i]);
-        if (argument == QByteArray("-no-plugins")) {
+        if (argument == QByteArrayView("-no-plugins")) {
             LogDebug() << "Argument found:" << argument;
             plugins = false;
-        } else if (argument == QByteArray("-dmg")) {
+        } else if (argument == QByteArrayView("-dmg")) {
             LogDebug() << "Argument found:" << argument;
             dmg = true;
-        } else if (argument == QByteArray("-no-strip")) {
+        } else if (argument == QByteArrayView("-no-strip")) {
             LogDebug() << "Argument found:" << argument;
             runStripEnabled = false;
-        } else if (argument == QByteArray("-use-debug-libs")) {
+        } else if (argument == QByteArrayView("-use-debug-libs")) {
             LogDebug() << "Argument found:" << argument;
             useDebugLibs = true;
             runStripEnabled = false;
-        } else if (argument.startsWith(QByteArray("-verbose"))) {
+        } else if (argument.startsWith(QByteArrayView("-verbose"))) {
             LogDebug() << "Argument found:" << argument;
-            int index = argument.indexOf("=");
+            int index = argument.indexOf('=');
             bool ok = false;
             int number = argument.mid(index+1).toInt(&ok);
             if (!ok) {
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
             } else {
                 logLevel = number;
             }
-        } else if (argument.startsWith(QByteArray("-executable"))) {
+        } else if (argument.startsWith(QByteArrayView("-executable"))) {
             LogDebug() << "Argument found:" << argument;
             int index = argument.indexOf('=');
             if (index == -1) {
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
             } else {
                 additionalExecutables << argument.mid(index+1);
             }
-        } else if (argument.startsWith(QByteArray("-qmldir"))) {
+        } else if (argument.startsWith(QByteArrayView("-qmldir"))) {
             LogDebug() << "Argument found:" << argument;
             qmldirArgumentUsed = true;
             int index = argument.indexOf('=');
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
             } else {
                 qmlDirs << argument.mid(index+1);
             }
-        } else if (argument.startsWith(QByteArray("-qmlimport"))) {
+        } else if (argument.startsWith(QByteArrayView("-qmlimport"))) {
             LogDebug() << "Argument found:" << argument;
             int index = argument.indexOf('=');
             if (index == -1) {
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
             } else {
                 qmlImportPaths << argument.mid(index+1);
             }
-        } else if (argument.startsWith(QByteArray("-libpath"))) {
+        } else if (argument.startsWith(QByteArrayView("-libpath"))) {
             LogDebug() << "Argument found:" << argument;
             int index = argument.indexOf('=');
             if (index == -1) {
@@ -147,20 +147,20 @@ int main(int argc, char **argv)
             } else {
                 librarySearchPath << argument.mid(index+1);
             }
-        } else if (argument == QByteArray("-always-overwrite")) {
+        } else if (argument == QByteArrayView("-always-overwrite")) {
             LogDebug() << "Argument found:" << argument;
             alwaysOwerwriteEnabled = true;
-        } else if (argument == QByteArray("-no-codesign")) {
+        } else if (argument == QByteArrayView("-no-codesign")) {
             LogDebug() << "Argument found:" << argument;
             runCodesign = false;
             noCodesignExplicit = true;
-        } else if (argument.startsWith(QByteArray("-codesign"))) {
+        } else if (argument.startsWith(QByteArrayView("-codesign"))) {
             LogDebug() << "Argument found:" << argument;
             if (noCodesignExplicit) {
                 LogError() << "Error: -no-codesign cannot be combined with -codesign\n";
                 return 1;
             }
-            int index = argument.indexOf("=");
+            int index = argument.indexOf('=');
             if (index < 0 || index >= argument.size()) {
                 LogError() << "Missing code signing identity";
                 return 1;
@@ -168,13 +168,13 @@ int main(int argc, char **argv)
                 runCodesign = true;
                 codesignIdentity = argument.mid(index + 1);
             }
-        } else if (argument.startsWith(QByteArray("-sign-for-notarization"))) {
+        } else if (argument.startsWith(QByteArrayView("-sign-for-notarization"))) {
             LogDebug() << "Argument found:" << argument;
             if (noCodesignExplicit) {
                 LogError() << "Error: -no-codesign cannot be combined with -sign-for-notarization\n";
                 return 1;
             }
-            int index = argument.indexOf("=");
+            int index = argument.indexOf('=');
             if (index < 0 || index >= argument.size()) {
                 LogError() << "Missing code signing identity";
                 return 1;
@@ -184,22 +184,22 @@ int main(int argc, char **argv)
                 secureTimestamp = true;
                 codesignIdentity = argument.mid(index + 1);
             }
-        } else if (argument.startsWith(QByteArray("-hardened-runtime"))) {
+        } else if (argument.startsWith(QByteArrayView("-hardened-runtime"))) {
             LogDebug() << "Argument found:" << argument;
             hardenedRuntime = true;
-        } else if (argument.startsWith(QByteArray("-timestamp"))) {
+        } else if (argument.startsWith(QByteArrayView("-timestamp"))) {
             LogDebug() << "Argument found:" << argument;
             secureTimestamp = true;
-        } else if (argument == QByteArray("-appstore-compliant")) {
+        } else if (argument == QByteArrayView("-appstore-compliant")) {
             LogDebug() << "Argument found:" << argument;
             appstoreCompliant = true;
 
         // Undocumented option, may not work as intended
-        } else if (argument == QByteArray("-deploy-framework")) {
+        } else if (argument == QByteArrayView("-deploy-framework")) {
             LogDebug() << "Argument found:" << argument;
             deployFramework = true;
 
-        } else if (argument.startsWith(QByteArray("-fs"))) {
+        } else if (argument.startsWith(QByteArrayView("-fs"))) {
             LogDebug() << "Argument found:" << argument;
             int index = argument.indexOf('=');
             if (index == -1) {
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
             } else {
                 filesystem = argument.mid(index+1);
             }
-        } else if (argument.startsWith("-")) {
+        } else if (argument.startsWith('-')) {
             LogError() << "Unknown argument" << argument << "\n";
             return 1;
         }
@@ -247,14 +247,15 @@ int main(int argc, char **argv)
     // Handle plugins
     if (plugins) {
         // Set the plugins search directory
-        deploymentInfo.pluginPath = QLibraryInfo::path(QLibraryInfo::PluginsPath);
+        QStringList pluginPaths = QLibraryInfo::paths(QLibraryInfo::PluginsPath);
 
         // Sanity checks
-        if (deploymentInfo.pluginPath.isEmpty()) {
+        if (pluginPaths.isEmpty()) {
             LogError() << "Missing Qt plugins path\n";
             return 1;
         }
 
+        deploymentInfo.pluginPath = pluginPaths.takeFirst();
         if (!QDir(deploymentInfo.pluginPath).exists()) {
             LogError() << "Plugins path does not exist" << deploymentInfo.pluginPath << "\n";
             return 1;
@@ -265,7 +266,6 @@ int main(int argc, char **argv)
         if (!deploymentInfo.pluginPath.isEmpty()) {
             LogNormal();
             deployPlugins(appBundlePath, deploymentInfo, useDebugLibs);
-            createQtConf(appBundlePath);
         }
     }
 

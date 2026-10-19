@@ -141,6 +141,24 @@ OptionsMenu::OptionsMenu(QWidget *parent)
         videoIncludeMousePointerAction->setChecked(Settings::videoIncludePointer());
     });
 
+    auto videoRecordSystemAudioAction = addAction(i18nc("@option:check for recordings", "Record system audio"));
+    videoRecordSystemAudioAction->setToolTip(i18nc("@info:tooltip", "Include the audio that is currently playing on the system in the recording"));
+    videoRecordSystemAudioAction->setCheckable(true);
+    videoRecordSystemAudioAction->setChecked(Settings::videoRecordSystemAudio());
+    QObject::connect(videoRecordSystemAudioAction, &QAction::toggled, Settings::self(), &Settings::setVideoRecordSystemAudio);
+    QObject::connect(Settings::self(), &Settings::videoRecordSystemAudioChanged, videoRecordSystemAudioAction, [videoRecordSystemAudioAction]() {
+        videoRecordSystemAudioAction->setChecked(Settings::videoRecordSystemAudio());
+    });
+
+    auto videoRecordMicrophoneAction = addAction(i18nc("@option:check for recordings", "Record microphone"));
+    videoRecordMicrophoneAction->setToolTip(i18nc("@info:tooltip", "Include audio from the default microphone in the recording"));
+    videoRecordMicrophoneAction->setCheckable(true);
+    videoRecordMicrophoneAction->setChecked(Settings::videoRecordMicrophone());
+    QObject::connect(videoRecordMicrophoneAction, &QAction::toggled, Settings::self(), &Settings::setVideoRecordMicrophone);
+    QObject::connect(Settings::self(), &Settings::videoRecordMicrophoneChanged, videoRecordMicrophoneAction, [videoRecordMicrophoneAction]() {
+        videoRecordMicrophoneAction->setChecked(Settings::videoRecordMicrophone());
+    });
+
     addSeparator();
 
     addAction(KStandardActions::preferences(this, &OptionsMenu::showPreferencesDialog, this));

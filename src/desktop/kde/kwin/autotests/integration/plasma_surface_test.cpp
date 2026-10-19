@@ -27,8 +27,6 @@ using namespace KWin;
 
 Q_DECLARE_METATYPE(KWin::Layer)
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_plasma_surface-0");
-
 class PlasmaSurfaceTest : public QObject
 {
     Q_OBJECT
@@ -56,7 +54,7 @@ private:
 void PlasmaSurfaceTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({Rect(0, 0, 1280, 1024)});
 }

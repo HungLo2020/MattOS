@@ -60,6 +60,12 @@
 #include <sys/neutrino.h>
 #endif
 
+#if defined(Q_OS_HARMONY)
+// OHOS SDK defines PTHREAD_CANCEL_DISABLE but lacks matching pthread_*() functions
+// Details in QTBUG-146708
+#  undef PTHREAD_CANCEL_DISABLE
+#endif
+
 QT_BEGIN_NAMESPACE
 
 [[maybe_unused]]
@@ -352,6 +358,13 @@ static void setCurrentThreadName(QThread *thr, String &objectName)
         pthread_set_name_np(pthread_self(), name);
 #  elif defined(Q_OS_QNX) || defined(Q_OS_BSD4)
         pthread_setname_np(pthread_self(), name);
+#  elif defined(Q_OS_VXWORKS)
+        // VxWorks limits task names; pthread_setname_np() fails with ERANGE
+        // for names that are too long, leaving the task unnamed. Truncate the
+        // name to a safe length so the task gets named like it did in Qt 5.15.
+        char vxName[16];
+        qstrncpy(vxName, name, sizeof(vxName));
+        pthread_setname_np(pthread_self(), vxName);
 #  else
         Q_UNUSED(name)
 #  endif
@@ -818,6 +831,23 @@ void QThread::start(Priority priority)
                 break;
             }
 
+            // QNX's sched_param has more members than sched_priority
+            sched_param sp = {};
+
+#if defined(Q_OS_QNX) && !defined(SCHED_NOCHANGE)
+#  error "SCHED_NOCHANGE is expected on QNX; it is behind __EXT_QNX, so build with -std=gnu++NN"
+#endif
+#ifdef SCHED_NOCHANGE
+            // QNX since 8.0.5: pthread_attr_init() leaves the policy for the
+            // kernel to resolve; calculateUnixPriority() can't use that sentinel
+            if (sched_policy == SCHED_NOCHANGE) {
+                if (int code = pthread_getschedparam(pthread_self(), &sched_policy, &sp)) {
+                    qErrnoWarning(code, "QThread::start: Cannot resolve inherited scheduler policy");
+                    break;
+                }
+            }
+#endif // SCHED_NOCHANGE
+
             int prio;
             if (!calculateUnixPriority(priority, &sched_policy, &prio)) {
                 // failed to get the scheduling parameters, don't
@@ -826,7 +856,6 @@ void QThread::start(Priority priority)
                 break;
             }
 
-            sched_param sp;
             sp.sched_priority = prio;
 
             if (pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED) != 0
@@ -895,7 +924,7 @@ void QThread::start(Priority priority)
 
 void QThread::terminate()
 {
-#if !defined(Q_OS_ANDROID)
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_HARMONY)
     Q_D(QThread);
     QMutexLocker locker(&d->mutex);
 

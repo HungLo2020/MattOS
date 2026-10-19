@@ -1,16 +1,14 @@
 # Copyright (C) 2025 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-#####################################################################
-## tst_qffmpegvideoencoderutils Test:
-#####################################################################
-
-if(QT_FEATURE_ffmpeg_stubs)
-    message(WARNING "tst_qffmpegmath can not run with stubbed ffmpeg because of QTBUG-133914")
-    return()
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    cmake_minimum_required(VERSION 3.16)
+    project(tst_qffmpegvideoencoderutils LANGUAGES CXX)
+    find_package(Qt6BuildInternals REQUIRED COMPONENTS STANDALONE_TEST)
 endif()
 
-qt_internal_add_test(tst_qffmpegvideoencoderutils
+qt_internal_multimedia_add_test(tst_qffmpegvideoencoderutils
+    LINK_FFMPEG_STUBS
     SOURCES
         tst_qffmpegvideoencoderutils.cpp
     LIBRARIES

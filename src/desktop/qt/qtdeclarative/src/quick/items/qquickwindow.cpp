@@ -17,6 +17,7 @@
 #include <QtQuick/private/qquickpointerhandler_p.h>
 #include <QtQuick/private/qquickpointerhandler_p_p.h>
 #include <QtQuick/private/qquicktaphandler_p.h>
+#include <QtQuick/private/qsgnode_p.h>
 #include <private/qsgrenderloop_p.h>
 #include <private/qsgrhisupport_p.h>
 #include <private/qquickrendercontrol_p.h>
@@ -58,6 +59,7 @@
 
 #include <rhi/qrhi.h>
 
+#include <algorithm>
 #include <utility>
 #include <mutex>
 
@@ -879,7 +881,7 @@ QQmlListProperty<QObject> QQuickWindowPrivate::data()
     return ret;
 }
 
-void QQuickWindowPrivate::dirtyItem(QQuickItem *item)
+void QQuickWindowPrivate::dirtyItem(QQuickItem *item, bool maySkipUpdate)
 {
     Q_Q(QQuickWindow);
 
@@ -887,7 +889,10 @@ void QQuickWindowPrivate::dirtyItem(QQuickItem *item)
     if (itemPriv->dirtyAttributes & QQuickItemPrivate::ChildrenStackingChanged)
         needsChildWindowStackingOrderUpdate = true;
 
-    q->maybeUpdate();
+    if (!maySkipUpdate
+        || (itemPriv->effectiveVisible || item->isTextureProvider()
+            || (itemPriv->extra.isAllocated() && itemPriv->extra->effectRefCount > 0)))
+        q->maybeUpdate();
 }
 
 /*!
@@ -1605,6 +1610,22 @@ bool QQuickWindow::event(QEvent *event)
         // TODO should we deliver to all DAs at once then, since we don't know which one should get it?
         // or fix QTBUG-90851 so that the event always has points?
         bool ret = (da && da->event(event));
+
+        // The default QWindow mousePressEvent/mouseMoveEvent/mouseReleaseEvent handlers
+        // dispatched to above always ignore() the event, and Quick's own handlers don't
+        // reliably accept() the whole event either (e.g. QQuickDragHandler only does so
+        // incidentally). So isAccepted() may not reflect whether a point actually got
+        // grabbed. Fix that up before clearGrabbers() discards the grab state, so external
+        // code that still checks QEvent::isAccepted() (e.g. QWindowPrivate::forwardToPopup)
+        // gets a meaningful answer.
+        // Tablet events are excluded: QGuiApplicationPrivate::processTabletEvent() gives
+        // isAccepted() an unrelated meaning for them (whether to synthesize a compatibility
+        // QMouseEvent for items/handlers that only understand mouse events), and accepting
+        // here purely because a point got grabbed would suppress that synthesis (see the
+        // dedicated tablet handling below, which accepts tablet events on its own terms).
+        if (pe->isPointerEvent() && !QQuickDeliveryAgentPrivate::isTabletEvent(pe) && d->isPopup()
+            && std::any_of(std::cbegin(pe->points()), std::cend(pe->points()), [pe](auto &p){ return pe->exclusiveGrabber(p);}))
+            pe->accept();
 
         d->deliveryAgentPrivate()->clearGrabbers(pe);
 
@@ -2407,15 +2428,26 @@ void QQuickWindowPrivate::updateDirtyNode(QQuickItem *item)
                      itemPriv->paintNode->parent() == nullptr ||
                      itemPriv->paintNode->parent() == itemPriv->childContainerNode());
 
-            if (itemPriv->paintNode && itemPriv->paintNode->parent() == nullptr) {
-                QSGNode *before = qquickitem_before_paintNode(itemPriv);
-                if (before && before->parent()) {
-                    Q_ASSERT(before->parent() == itemPriv->childContainerNode());
-                    itemPriv->childContainerNode()->insertChildNodeAfter(itemPriv->paintNode, before);
-                } else {
-                    itemPriv->childContainerNode()->prependChildNode(itemPriv->paintNode);
+            if (itemPriv->paintNode) {
+                if (itemPriv->paintNode->parent() == nullptr) {
+                    QSGNode *before = qquickitem_before_paintNode(itemPriv);
+                    if (before && before->parent()) {
+                        Q_ASSERT(before->parent() == itemPriv->childContainerNode());
+                        itemPriv->childContainerNode()->insertChildNodeAfter(itemPriv->paintNode, before);
+                    } else {
+                        itemPriv->childContainerNode()->prependChildNode(itemPriv->paintNode);
+                    }
+                }
+
+                // Ensure paint node subtree has same mutability group as item, but only if
+                // the mutability group has been explicitly set (avoiding this extra pass for
+                // the majority of items which never touch this property)
+                if (itemPriv->extra.isAllocated() && itemPriv->extra->mutabilityGroupSet) {
+                    QSGNodePrivate::setMutabilityGroupOfSubtree(itemPriv->paintNode,
+                                                                itemPriv->extra->mutabilityGroup);
                 }
             }
+
         } else if (itemPriv->paintNode) {
             delete itemPriv->paintNode;
             itemPriv->paintNode = nullptr;
@@ -2623,7 +2655,7 @@ bool QQuickWindow::isSceneGraphInitialized() const
     This signal is emitted when the window receives the event \a close from
     the windowing system.
 
-    On \macOs, Qt will create a menu item \c Quit if there is no menu item
+    On \macos, Qt will create a menu item \c Quit if there is no menu item
     whose text is "quit" or "exit". This menu item calls the \c QCoreApplication::quit
     signal, not the \c QQuickWindow::closing() signal.
 

@@ -1,0 +1,555 @@
+# SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+# SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+# SPDX-FileCopyrightText: 2024 Noah Davis <noahadvs@gmail.com>
+
+button:
+    selectors:
+    -   type: Button
+    -   type: CheckBox
+        child:
+            type: Indicator
+    -   type: CheckDelegate
+        child:
+            type: Indicator
+    -   type: MenuItem
+        child:
+            type: Indicator
+
+    path: widgets/button
+    prefix: normal
+    colorSet: Button
+
+    layout:
+        width:
+            property: sum
+            function: element-width
+            elements:
+            -   hint-left-margin
+            -   center
+            -   hint-right-margin
+        height:
+            property: sum
+            function: element-height
+            elements:
+            -   hint-top-margin
+            -   center
+            -   hint-bottom-margin
+
+        spacing:
+            property: named-value
+            name: small-spacing
+
+        padding: &button-padding
+            left:
+                property: element-width
+                element: hint-left-margin
+            right:
+                property: element-width
+                element: hint-right-margin
+            top:
+                property: element-height
+                element: hint-top-margin
+            bottom:
+                property: element-height
+                element: hint-bottom-margin
+
+    text:
+        alignment:
+            container: Content
+            horizontal: Center
+            vertical: Center
+            order: 1
+
+        color: palette-foreground
+        font:
+            property: font-name
+            name: system-normal
+
+    icon:
+        alignment:
+            container: Content
+            horizontal: Center
+            vertical: Center
+            order: 0
+
+        width:
+            property: icon-size
+            name: small
+        height:
+            property: icon-size
+            name: small
+
+    background:
+        <<: *standard-background
+
+        shadow:
+            prefix: shadow
+
+            offsets:
+                left:
+                    property: element-width
+                    element: hint-left-margin
+                right:
+                    property: element-width
+                    element: hint-right-margin
+                top:
+                    property: element-height
+                    element: hint-top-margin
+                bottom:
+                    property: element-height
+                    element: hint-bottom-margin
+
+            left:
+                element: left
+                size:
+                    property: element-width
+                image:
+                    property: element-image
+            right:
+                element: right
+                size:
+                    property: element-width
+                image:
+                    property: element-image
+            top:
+                element: top
+                size:
+                    property: element-height
+                image:
+                    property: element-image
+            bottom:
+                element: bottom
+                size:
+                    property: element-height
+                image:
+                    property: element-image
+
+            top-left:
+                element: topleft
+                image:
+                    property: element-image
+            top-right:
+                element: topright
+                image:
+                    property: element-image
+            bottom-left:
+                element: bottomleft
+                image:
+                    property: element-image
+            bottom-right:
+                element: bottomright
+                image:
+                    property: element-image
+
+button-hovered:
+    selectors:
+    -   type: Button
+        state: Hovered
+    -   type: CheckBox
+        state: Hovered
+        child:
+            type: Indicator
+    -   type: CheckDelegate
+        state: Hovered
+        child:
+            type: Indicator
+    -   type: MenuItem
+        state: Hovered
+        child:
+            type: Indicator
+
+    path: widgets/button
+    colorSet: Button
+
+    background:
+        image:
+            property: element-image-blend
+            elements:
+            -   normal-center
+            -   hover-center
+
+        border:
+            left:
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-left
+                    -   hover-left
+            right:
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-right
+                    -   hover-right
+            top:
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-top
+                    -   hover-top
+            bottom:
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    elements:
+                    -   normal-bottom
+                    -   hover-bottom
+
+        corners:
+            top-left:
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-topleft
+                    -   hover-topleft
+            top-right:
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-topright
+                    -   hover-topright
+            bottom-left:
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-bottomleft
+                    -   hover-bottomleft
+            bottom-right:
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-bottomright
+                    -   hover-bottomright
+
+button-focus:
+    selectors:
+    -   type: Button
+        state: VisualFocus
+    -   type: CheckBox
+        state: VisualFocus
+        child:
+            type: Indicator
+    -   type: CheckDelegate
+        state: VisualFocus
+        child:
+            type: Indicator
+    -   type: MenuItem
+        state: VisualFocus
+        child:
+            type: Indicator
+
+    path: widgets/button
+    colorSet: Button
+
+    layout:
+        inset:
+            prefix: focus
+            left:
+                property: element-width
+                element: hint-left-margin
+                invert: true
+            right:
+                property: element-width
+                element: hint-right-margin
+                invert: true
+            top:
+                property: element-height
+                element: hint-top-margin
+                invert: true
+            bottom:
+                property: element-height
+                element: hint-bottom-margin
+                invert: true
+
+    background:
+        image:
+            property: element-image-blend
+            elements:
+            -   normal-center
+            -   focus-center
+
+        border:
+            left:
+                size:
+                    property: element-width
+                    element: focus-left
+                image:
+                    property: element-image-blend
+                    align:
+                        horizontal: right
+                        vertical: center
+                    elements:
+                    -   normal-left
+                    -   focus-left
+            right:
+                size:
+                    property: element-width
+                    element: focus-right
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    align:
+                        horizontal: left
+                        vertical: center
+                    elements:
+                    -   normal-right
+                    -   focus-right
+            top:
+                size:
+                    property: element-height
+                    element: focus-top
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    align:
+                        horizontal: center
+                        vertical: bottom
+                    elements:
+                    -   normal-top
+                    -   focus-top
+            bottom:
+                size:
+                    property: element-height
+                    element: focus-bottom
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    align:
+                        horizontal: center
+                        vertical: top
+                    elements:
+                    -   normal-bottom
+                    -   focus-bottom
+
+        corners:
+            top-left:
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    align:
+                        horizontal: right
+                        vertical: bottom
+                    elements:
+                    -   normal-topleft
+                    -   focus-topleft
+            top-right:
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    align:
+                        horizontal: left
+                        vertical: bottom
+                    elements:
+                    -   normal-topright
+                    -   focus-topright
+            bottom-left:
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    align:
+                        horizontal: right
+                        vertical: top
+                    elements:
+                    -   normal-bottomleft
+                    -   focus-bottomleft
+            bottom-right:
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    align:
+                        horizontal: left
+                        vertical: top
+                    elements:
+                    -   normal-bottomright
+                    -   focus-bottomright
+
+        shadow:
+            offsets:
+                left:
+                    property: sum
+                    elements:
+                    -   property: element-width
+                        element: shadow-hint-left-margin
+                    -   property: element-width
+                        element: focus-hint-left-margin
+                        invert: true
+                right:
+                    property: sum
+                    elements:
+                    -   property: element-width
+                        element: shadow-hint-right-margin
+                    -   property: element-width
+                        element: focus-hint-right-margin
+                        invert: true
+                top:
+                    property: sum
+                    elements:
+                    -   property: element-height
+                        element: shadow-hint-top-margin
+                    -   property: element-height
+                        element: focus-hint-top-margin
+                        invert: true
+                bottom:
+                    property: sum
+                    elements:
+                    -   property: element-height
+                        element: shadow-hint-bottom-margin
+                    -   property: element-height
+                        element: focus-hint-bottom-margin
+                        invert: true
+
+button-pressed:
+    selectors:
+    -   type: Button
+        state: Pressed
+    -   type: Button
+        state: Checked
+
+    path: widgets/button
+    colorSet: Button
+
+    layout:
+        padding:
+            <<: *button-padding
+            prefix: pressed
+
+        inset: empty
+
+    background:
+        image:
+            property: element-image-blend
+            elements:
+            -   normal-center
+            -   pressed-center
+
+        border:
+            left:
+                size:
+                    property: element-width
+                    element: pressed-left
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-left
+                    -   pressed-left
+            right:
+                size:
+                    property: element-width
+                    element: pressed-right
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-right
+                    -   pressed-right
+
+            top:
+                size:
+                    property: element-height
+                    element: pressed-top
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-top
+                    -   pressed-top
+
+            bottom:
+                size:
+                    property: element-height
+                    element: pressed-bottom
+                image:
+                    property: element-image-blend
+                    elements:
+                    -   normal-bottom
+                    -   pressed-bottom
+
+        corners:
+            top-left:
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    elements:
+                    -   normal-topleft
+                    -   pressed-topleft
+            top-right:
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    elements:
+                    -   normal-topright
+                    -   pressed-topright
+            bottom-left:
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    elements:
+                    -   normal-bottomleft
+                    -   pressed-bottomleft
+            bottom-right:
+                image:
+                    property: element-image-blend
+                    prefix: ""
+                    elements:
+                    -   normal-bottomright
+                    -   pressed-bottomright
+
+        shadow: empty
+
+button-disabled:
+    selectors:
+    -   type: Button
+        state: Disabled
+    -   type: CheckBox
+        state: Disabled
+        child:
+            type: Indicator
+    -   type: CheckDelegate
+        state: Disabled
+        child:
+            type: Indicator
+    -   type: MenuItem
+        state: Disabled
+        child:
+            type: Indicator
+
+    path: widgets/button
+    prefix: normal
+    colorSet: Button
+    colorGroup: Disabled
+
+    background:
+        <<: *standard-background
+
+        shadow: empty
+
+button-with-icon:
+    selectors:
+    -   type: Button
+        hints: with-icon
+        attributes:
+            display: text-beside-icon
+
+    icon:
+        alignment:
+            horizontal: Start
+            vertical: Center
+
+    text:
+        alignment:
+            horizontal: Start
+            vertical: Center
+
+button-display-textundericon:
+    selectors:
+    -   type: Button
+        attributes:
+            display: text-under-icon
+
+    icon:
+        alignment:
+            horizontal: Center
+            vertical: Stack
+
+    text:
+        alignment:
+            horizontal: Center
+            vertical: Stack

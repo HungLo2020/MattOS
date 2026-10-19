@@ -852,14 +852,14 @@ void QWaylandOutput::setScaleFactor(int scale)
 
 /*!
  * \qmlproperty bool QtWayland.Compositor::WaylandOutput::sizeFollowsWindow
+ * \default false
  *
  * This property controls whether the size of the WaylandOutput matches the
  * size of its window.
  *
  * If this property is true, all modes previously added are replaced by a
- * mode that matches window size and screen refresh rate.
- *
- * The default is false.
+ * mode that matches window size and screen refresh rate. It is especially
+ * useful in a nested compositor setup during development.
  */
 
 /*!

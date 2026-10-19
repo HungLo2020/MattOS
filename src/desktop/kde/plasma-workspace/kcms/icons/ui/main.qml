@@ -53,12 +53,12 @@ KCM.GridViewKCM {
     DropArea {
         enabled: view.enabled
         anchors.fill: parent
-        onEntered: {
+        onEntered: drag => {
             if (!drag.hasUrls) {
                 drag.accepted = false;
             }
         }
-        onDropped: kcm.installThemeFromFile(drop.urls[0])
+        onDropped: drop => kcm.installThemeFromFile(drop.urls[0])
     }
 
     actions: [
@@ -185,14 +185,20 @@ KCM.GridViewKCM {
         actions: [
             Kirigami.Action {
                 icon.name: "edit-delete"
-                tooltip: i18n("Remove Icon Theme")
-                enabled: model.removable
+                tooltip: if (enabled) {
+                    return i18nc("@info:tooltip", "Remove icon theme");
+                } else if (delegate.GridView.isCurrentItem) {
+                    return i18nc("@info:tooltip", "Cannot delete the active icon theme");
+                } else {
+                    return i18nc("@info:tooltip", "Cannot delete system-installed icon themes");
+                }
+                enabled: model.removable && !delegate.GridView.isCurrentItem
                 visible: !model.pendingDeletion
                 onTriggered: model.pendingDeletion = true
             },
             Kirigami.Action {
                 icon.name: "edit-undo"
-                tooltip: i18n("Restore Icon Theme")
+                tooltip: i18nc("@info:tooltip", "Don’t delete this icon theme")
                 visible: model.pendingDeletion
                 onTriggered: model.pendingDeletion = false
             }
@@ -225,7 +231,7 @@ KCM.GridViewKCM {
 
         Connections {
             target: kcm
-            function onShowProgress() {
+            function onShowProgress(message) {
                 progressLabel.text = message;
                 progressBusy.running = true;
                 progressRow.visible = true;

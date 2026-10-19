@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 #include "qgeosatelliteinfo.h"
 #include "private/qgeosatelliteinfo_p.h"
 
@@ -39,6 +40,8 @@ QT_IMPL_METATYPE_EXTERN(QGeoSatelliteInfo)
     \value GALILEO Global navigation satellite system (EU).
     \value BEIDOU BeiDou navigation satellite system (China).
     \value QZSS Quasi-Zenith Satellite System (Japan).
+    \value [since 6.12] IRNSS Indian Regional Navigation Satellite System.
+    \value [since 6.12] SBAS Satellite-based augmentation system.
     \value Multiple This type normally indicates that the information is
            received from a device that supports multiple satellite systems, and
            the satellite system is not explicitly specified. Depending on the

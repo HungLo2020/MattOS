@@ -27,6 +27,7 @@ using TimePoint = std::chrono::steady_clock::time_point;
 class DrmCommitThread : public QObject
 {
     Q_OBJECT
+
 public:
     explicit DrmCommitThread(DrmGpu *gpu, const QString &name);
     ~DrmCommitThread();
@@ -34,14 +35,15 @@ public:
     void addCommit(std::unique_ptr<DrmAtomicCommit> &&commit);
     void setPendingCommit(std::unique_ptr<DrmLegacyCommit> &&commit);
 
-    void setModeInfo(uint32_t maximum, std::chrono::nanoseconds vblankTime);
-    void pageFlipped(std::chrono::nanoseconds timestamp);
-    bool pageflipsPending();
     /**
-     * @return how long before the desired presentation timestamp the commit has to be added
-     *         in order to get presented at that timestamp
+     * @return the updated presentation safety margin
      */
-    std::chrono::nanoseconds safetyMargin() const;
+    std::chrono::nanoseconds setModeInfo(uint32_t maximum, std::chrono::nanoseconds vblankTime);
+    /**
+     * @return the current presentation safety margin
+     */
+    std::chrono::nanoseconds pageFlipped(std::chrono::nanoseconds timestamp);
+    bool pageflipsPending();
 
 private:
     void clearDroppedCommits();

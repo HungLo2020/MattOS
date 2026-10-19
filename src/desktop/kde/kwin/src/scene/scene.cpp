@@ -8,20 +8,23 @@
 #include "core/backendoutput.h"
 #include "core/outputlayer.h"
 #include "core/pixelgrid.h"
+#include "core/renderdevice.h"
 #include "core/renderviewport.h"
 #include "effect/effect.h"
 #include "scene/cursoritem.h"
 #include "scene/item.h"
 #include "scene/itemrenderer.h"
 #include "scene/surfaceitem.h"
+#include "scene/windowitem.h"
 
 namespace KWin
 {
 
-RenderView::RenderView(LogicalOutput *logicalOutput, BackendOutput *backendOutput, OutputLayer *layer)
+RenderView::RenderView(LogicalOutput *logicalOutput, BackendOutput *backendOutput, OutputLayer *layer, RenderDevice *renderDevice)
     : m_logicalOutput(logicalOutput)
     , m_backendOutput(backendOutput)
     , m_layer(layer)
+    , m_renderDevice(renderDevice)
 {
 }
 
@@ -45,6 +48,11 @@ void RenderView::setLayer(OutputLayer *layer)
     m_layer = layer;
 }
 
+RenderDevice *RenderView::renderDevice() const
+{
+    return m_renderDevice;
+}
+
 void RenderView::addDeviceRepaint(const Region &deviceRegion)
 {
     if (!m_layer) {
@@ -53,12 +61,12 @@ void RenderView::addDeviceRepaint(const Region &deviceRegion)
     m_layer->addDeviceRepaint(deviceRegion);
 }
 
-void RenderView::scheduleRepaint(Item *item)
+void RenderView::scheduleRepaint(Item *item, std::optional<std::chrono::steady_clock::time_point> targetTime)
 {
     if (!m_layer) {
         return;
     }
-    m_layer->scheduleRepaint(item);
+    m_layer->scheduleRepaint(item, targetTime);
 }
 
 bool RenderView::canSkipMoveRepaint(Item *item)
@@ -86,6 +94,11 @@ bool RenderView::isVisible() const
 }
 
 bool RenderView::shouldRenderHole(Item *item) const
+{
+    return false;
+}
+
+bool RenderView::presentationIsZeroCopy(Item *item) const
 {
     return false;
 }
@@ -175,9 +188,10 @@ void RenderView::setRenderOffset(const QPoint &offset)
     addDeviceRepaint(deviceRect());
 }
 
-SceneView::SceneView(Scene *scene, LogicalOutput *logicalOutput, BackendOutput *backendOutput, OutputLayer *layer)
-    : RenderView(logicalOutput, backendOutput, layer)
+SceneView::SceneView(Scene *scene, LogicalOutput *logicalOutput, BackendOutput *backendOutput, OutputLayer *layer, RenderDevice *renderDevice)
+    : RenderView(logicalOutput, backendOutput, layer, renderDevice)
     , m_scene(scene)
+    , m_nextPresentationTimestamp(std::chrono::steady_clock::now().time_since_epoch())
 {
     m_scene->addView(this);
 }
@@ -187,14 +201,14 @@ SceneView::~SceneView()
     m_scene->removeView(this);
 }
 
-QList<SurfaceItem *> SceneView::scanoutCandidates(ssize_t maxCount) const
+SurfaceItem *SceneView::scanoutCandidate() const
 {
-    return m_scene->scanoutCandidates(maxCount);
+    return nullptr;
 }
 
-void SceneView::prePaint()
+void SceneView::prePaint(OutputFrame *frame)
 {
-    m_scene->prePaint(this);
+    m_scene->prePaint(this, frame);
 }
 
 Region SceneView::collectDamage()
@@ -237,6 +251,12 @@ void SceneView::setScale(qreal scale)
     addDeviceRepaint(deviceRect());
 }
 
+void SceneView::setNextPresentationTimestamp(std::chrono::nanoseconds timestamp, uint32_t refreshRate)
+{
+    m_nextPresentationTimestamp = timestamp;
+    m_refreshRate = refreshRate;
+}
+
 RectF SceneView::viewport() const
 {
     return m_viewport;
@@ -245,6 +265,16 @@ RectF SceneView::viewport() const
 qreal SceneView::scale() const
 {
     return m_scale;
+}
+
+std::chrono::nanoseconds SceneView::nextPresentationTimestamp() const
+{
+    return m_nextPresentationTimestamp;
+}
+
+uint SceneView::refreshRate() const
+{
+    return m_refreshRate;
 }
 
 void SceneView::addExclusiveView(RenderView *view)
@@ -282,6 +312,13 @@ bool SceneView::shouldRenderHole(Item *item) const
     });
 }
 
+bool SceneView::presentationIsZeroCopy(Item *item) const
+{
+    return std::ranges::any_of(m_exclusiveViews, [item](RenderView *view) {
+        return view->layer()->presentedDirectScanoutItem() == item;
+    });
+}
+
 Scene *SceneView::scene() const
 {
     return m_scene;
@@ -299,8 +336,17 @@ bool SceneView::shouldHideWindow(Window *window) const
     });
 }
 
+bool SceneView::shouldHideItem(Item *item) const
+{
+    if (auto window = qobject_cast<WindowItem *>(item)) {
+        return shouldHideWindow(window->window());
+    } else {
+        return false;
+    }
+}
+
 ItemView::ItemView(SceneView *parentView, Item *item, LogicalOutput *logicalOutput, BackendOutput *backendOutput, OutputLayer *layer)
-    : RenderView(logicalOutput, backendOutput, layer)
+    : RenderView(logicalOutput, backendOutput, layer, parentView->renderDevice())
     , m_parentView(parentView)
     , m_item(item)
 {
@@ -341,12 +387,22 @@ RectF ItemView::viewport() const
     return calculateViewport(m_item->rect());
 }
 
+std::chrono::nanoseconds ItemView::nextPresentationTimestamp() const
+{
+    return m_parentView->nextPresentationTimestamp();
+}
+
+uint ItemView::refreshRate() const
+{
+    return m_parentView->refreshRate();
+}
+
 RectF ItemView::calculateViewport(const RectF &itemRect) const
 {
     const RectF snapped = snapToPixels(itemRect, scale());
     const auto recommendedSizes = m_layer ? m_layer->recommendedSizes() : QList<QSize>{};
     if (!recommendedSizes.empty()) {
-        const auto bufferSize = scaledRect(itemRect, scale()).size();
+        const auto bufferSize = itemRect.scaled(scale()).size();
         auto bigEnough = recommendedSizes | std::views::filter([bufferSize](const auto &size) {
             return size.width() >= bufferSize.width() && size.height() >= bufferSize.height();
         });
@@ -366,17 +422,9 @@ bool ItemView::isVisible() const
     return m_item->isVisible();
 }
 
-QList<SurfaceItem *> ItemView::scanoutCandidates(ssize_t maxCount) const
+SurfaceItem *ItemView::scanoutCandidate() const
 {
-    if (auto item = dynamic_cast<SurfaceItem *>(m_item.get())) {
-        return {item};
-    } else {
-        return {};
-    }
-}
-
-void ItemView::prePaint()
-{
+    return dynamic_cast<SurfaceItem *>(m_item.get());
 }
 
 Region ItemView::collectDamage()
@@ -384,15 +432,11 @@ Region ItemView::collectDamage()
     return m_item->takeDeviceRepaints(this);
 }
 
-void ItemView::postPaint()
-{
-}
-
 void ItemView::paint(const RenderTarget &renderTarget, const QPoint &deviceOffset, const Region &region)
 {
     const Region globalRegion = region == Region::infinite() ? Region::infinite() : region.translated(viewport().topLeft().toPoint());
     RenderViewport renderViewport(viewport(), m_logicalOutput->scale(), renderTarget, deviceOffset);
-    auto renderer = m_item->scene()->renderer();
+    auto renderer = m_item->scene()->renderer(renderDevice());
     renderer->beginFrame(renderTarget, renderViewport);
     renderer->renderBackground(renderTarget, renderViewport, globalRegion);
     WindowPaintData data;
@@ -486,7 +530,7 @@ RectF ItemTreeView::viewport() const
     return calculateViewport(m_item->boundingRect());
 }
 
-QList<SurfaceItem *> ItemTreeView::scanoutCandidates(ssize_t maxCount) const
+SurfaceItem *ItemTreeView::scanoutCandidate() const
 {
     if (dynamic_cast<SurfaceItem *>(m_item.get())) {
         const bool visibleChildren = std::ranges::any_of(m_item->childItems(), [](Item *child) {
@@ -495,7 +539,7 @@ QList<SurfaceItem *> ItemTreeView::scanoutCandidates(ssize_t maxCount) const
         if (visibleChildren) {
             return {};
         }
-        return {static_cast<SurfaceItem *>(m_item.get())};
+        return static_cast<SurfaceItem *>(m_item.get());
     }
     return {};
 }
@@ -522,7 +566,7 @@ Region ItemTreeView::collectDamage()
 void ItemTreeView::paint(const RenderTarget &renderTarget, const QPoint &deviceOffset, const Region &deviceRegion)
 {
     RenderViewport renderViewport(viewport(), m_logicalOutput->scale(), renderTarget, deviceOffset);
-    auto renderer = m_item->scene()->renderer();
+    auto renderer = m_item->scene()->renderer(renderDevice());
     renderer->beginFrame(renderTarget, renderViewport);
     renderer->renderBackground(renderTarget, renderViewport, deviceRegion);
     WindowPaintData data;
@@ -611,8 +655,7 @@ double ItemTreeView::desiredHdrHeadroom() const
     return recursiveMaxHdrHeadroom(m_item);
 }
 
-Scene::Scene(std::unique_ptr<ItemRenderer> &&renderer)
-    : m_renderer(std::move(renderer))
+Scene::Scene()
 {
 }
 
@@ -620,9 +663,10 @@ Scene::~Scene()
 {
 }
 
-ItemRenderer *Scene::renderer() const
+ItemRenderer *Scene::renderer(RenderDevice *device) const
 {
-    return m_renderer.get();
+    const auto it = m_renderers.find(device);
+    return it == m_renderers.end() ? nullptr : it->second.get();
 }
 
 void Scene::addRepaintFull()
@@ -691,9 +735,14 @@ void Scene::removeView(RenderView *view)
     Q_EMIT viewRemoved(view);
 }
 
-QList<SurfaceItem *> Scene::scanoutCandidates(ssize_t maxCount) const
+void Scene::releaseResources(RenderDevice *device, Item *item)
 {
-    return {};
+    item->releaseResources(device);
+
+    const auto childItems = item->m_childItems;
+    for (Item *childItem : childItems) {
+        releaseResources(device, childItem);
+    }
 }
 
 } // namespace KWin

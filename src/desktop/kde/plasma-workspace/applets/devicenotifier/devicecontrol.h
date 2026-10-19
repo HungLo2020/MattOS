@@ -5,14 +5,15 @@
  */
 #pragma once
 
-#include "actionscontrol.h"
-
 #include <QAbstractListModel>
+#include <QTimer>
 #include <qqmlregistration.h>
 
-#include "devicemessagemonitor_p.h"
-#include "devicestatemonitor_p.h"
-#include "spacemonitor_p.h"
+#include "actionsinfo.h"
+#include "messageinfo.h"
+#include "spaceinfo.h"
+#include "stateinfo.h"
+#include "storageinfo.h"
 
 class DeviceControl : public QAbstractListModel
 {
@@ -27,6 +28,7 @@ public:
         Emblems,
         IsBusy,
         IsRemovable,
+        IsRemote,
         FreeSpace,
         Size,
         FreeSpaceText,
@@ -41,49 +43,48 @@ public:
 
     Q_ENUM(DeviceModels)
 
-    explicit DeviceControl(QObject *parent = nullptr);
+    static std::shared_ptr<DeviceControl> instance();
     ~DeviceControl() override;
 
     int rowCount(const QModelIndex &parent) const override;
     QVariant data(const QModelIndex &index, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
 
+Q_SIGNALS:
+    void deviceAboutToBeRemoved(const QString &udi);
+
 private Q_SLOTS:
     void onDeviceAdded(const QString &udi);
     void onDeviceRemoved(const QString &udi);
-    void onDeviceChanged(const QMap<QString, int> &props);
 
     void onDeviceSizeChanged(const QString &udi);
     void onDeviceStatusChanged(const QString &udi);
     void onDeviceMessageChanged(const QString &udi);
 
 private:
+    explicit DeviceControl(QObject *parent = nullptr);
+
     void deviceDelayRemove(const QString &udi, const QString &parentUdi);
+    QString findParentUdi(const QString &udi) const;
 
-    QList<Solid::Device> m_devices;
-    QHash<QString, ActionsControl *> m_actions;
+    struct DeviceInfo {
+        std::shared_ptr<StorageInfo> storageInfo;
+        std::shared_ptr<StateInfo> stateInfo;
+        std::shared_ptr<SpaceInfo> spaceInfo;
+        std::shared_ptr<MessageInfo> messageInfo;
+        std::shared_ptr<ActionsInfo> actionsInfo;
+        bool pendingRemoval = false;
+    };
 
-    // save device type to properly sort and icon and description as workaround because
-    // solid removes it and list model show empty device(without icon and description).
-    // first = type
-    // second.first = icon
-    // second.second = description
-    QHash<QString, std::pair<QString, std::pair<QString, QString>>> m_deviceTypes;
+    QList<DeviceInfo> m_devices;
+    QSet<QString> m_devicesUdi;
 
-    QHash<QString, QList<Solid::Device>> m_parentDevices;
+    QHash<QString, QList<std::shared_ptr<StorageInfo>>> m_parentDevices;
 
     struct RemoveTimerData {
-        QTimer *timer = nullptr;
+        std::shared_ptr<QTimer> timer;
         QString udi;
         QString parentUdi;
     };
     QHash<QString, RemoveTimerData> m_removeTimers;
-    Solid::Predicate m_predicateDeviceMatch;
-    Solid::Predicate m_encryptedPredicate;
-    const QList<Solid::DeviceInterface::Type> m_types;
-    bool m_isVisible = false;
-
-    std::shared_ptr<SpaceMonitor> m_spaceMonitor;
-    std::shared_ptr<DevicesStateMonitor> m_stateMonitor;
-    std::shared_ptr<DeviceMessageMonitor> m_messageMonitor;
 };

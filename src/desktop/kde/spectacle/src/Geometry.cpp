@@ -3,6 +3,7 @@
  */
 
 #include "Geometry.h"
+#include "Config.h"
 
 #include <KWindowSystem>
 
@@ -52,17 +53,21 @@ qreal Geometry::dprFloor(qreal value, qreal dpr)
 
 qreal Geometry::mapFromPlatformValue(qreal value, qreal dpr)
 {
+#if WITH_X11
     if (KWindowSystem::isPlatformX11()) {
         return value / dpr;
     }
+#endif
     return value;
 }
 
 QPointF Geometry::mapFromPlatformPoint(const QPointF &point, qreal dpr)
 {
+#if WITH_X11
     if (KWindowSystem::isPlatformX11()) {
         return point / dpr;
     }
+#endif
     return point;
 }
 
@@ -88,17 +93,21 @@ QRectF Geometry::logicalScreensRect()
 
 qreal Geometry::mapToPlatformValue(qreal value, qreal dpr)
 {
+#if WITH_X11
     if (KWindowSystem::isPlatformX11()) {
         return value * dpr;
     }
+#endif
     return value;
 }
 
 QPointF Geometry::mapToPlatformPoint(const QPointF &point, qreal dpr)
 {
+#if WITH_X11
     if (KWindowSystem::isPlatformX11()) {
         return point * dpr;
     }
+#endif
     return point;
 }
 
@@ -192,6 +201,10 @@ QRectF Geometry::rectBounded(const QRectF &rect, const QRectF &boundsRect,
 QRectF Geometry::rectBounded(qreal x, qreal y, qreal width, qreal height, const QRectF &boundsRect,
                              Qt::Orientations orientations)
 {
+    if (boundsRect.isEmpty()) {
+        return {};
+    }
+
     return rectBounded({x, y, width, height}, boundsRect, orientations);
 }
 

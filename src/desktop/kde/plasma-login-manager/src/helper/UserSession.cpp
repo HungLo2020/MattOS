@@ -7,11 +7,13 @@
  *
  */
 
+#include <QDir>
+#include <QFileInfo>
 #include <QSocketNotifier>
 
-#include "Configuration.h"
 #include "Constants.h"
 #include "HelperApp.h"
+#include "MainConfigLoader.h"
 #include "UserSession.h"
 #include "VirtualTerminal.h"
 
@@ -31,10 +33,8 @@ namespace PLASMALOGIN
 UserSession::UserSession(HelperApp *parent)
     : QProcess(parent)
 {
-    connect(this, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &UserSession::finished);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    connect(this, &QProcess::finished, this, &UserSession::finished);
     setChildProcessModifier(std::bind(&UserSession::childModifier, this));
-#endif
 }
 
 bool UserSession::start()
@@ -45,22 +45,10 @@ bool UserSession::start()
     bool isWaylandGreeter = false;
 
     if (env.value(QStringLiteral("XDG_SESSION_TYPE")) == QLatin1String("x11")) {
-        QString command;
-        if (env.value(QStringLiteral("XDG_SESSION_CLASS")) == QLatin1String("greeter")) {
-            command = m_path;
-        } else {
-            command = QStringLiteral("%1 \"%2\"").arg(SESSION_COMMAND).arg(m_path);
-        }
+        QString command = QStringLiteral("%1 \"%2\"").arg(SESSION_COMMAND).arg(m_path);
 
-        qInfo() << "Starting X11 session:" << m_displayServerCmd << command;
-        if (m_displayServerCmd.isEmpty()) {
-            auto args = QProcess::splitCommand(command);
-            setProgram(args.takeFirst());
-            setArguments(args);
-        } else {
-            setProgram(QStringLiteral(LIBEXEC_INSTALL_DIR "/plasmalogin-helper-start-x11user"));
-            setArguments({m_displayServerCmd, command});
-        }
+        setProgram(QStringLiteral(LIBEXEC_INSTALL_DIR "/plasmalogin-helper-start-x11user"));
+        setArguments({command});
         QProcess::start();
 
     } else if (env.value(QStringLiteral("XDG_SESSION_TYPE")) == QLatin1String("wayland")) {
@@ -106,16 +94,6 @@ void UserSession::stop()
     }
 }
 
-QString UserSession::displayServerCommand() const
-{
-    return m_displayServerCmd;
-}
-
-void UserSession::setDisplayServerCommand(const QString &command)
-{
-    m_displayServerCmd = command;
-}
-
 void UserSession::setPath(const QString &path)
 {
     m_path = path;
@@ -126,13 +104,8 @@ QString UserSession::path() const
     return m_path;
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void UserSession::childModifier()
 {
-#else
-void UserSession::setupChildProcess()
-{
-#endif
     // Session type
     QString sessionType = processEnvironment().value(QStringLiteral("XDG_SESSION_TYPE"));
     QString sessionClass = processEnvironment().value(QStringLiteral("XDG_SESSION_CLASS"));
@@ -177,7 +150,7 @@ void UserSession::setupChildProcess()
 
 #ifdef Q_OS_LINUX
     // enter Linux namespaces
-    for (const QString &ns : mainConfig.Namespaces.get()) {
+    for (const QString &ns : PlasmaLogin::config()->namespaces()) {
         qInfo() << "Entering namespace" << ns;
         int fd = ::open(qPrintable(ns), O_RDONLY);
         if (fd < 0) {
@@ -280,9 +253,10 @@ void UserSession::setupChildProcess()
         // we want to redirect after we setuid so that the log file is owned by the user
 
         // determine stderr log file based on session type
-        QString sessionLog = QStringLiteral("%1/%2")
-                                 .arg(QString::fromLocal8Bit(pw.pw_dir))
-                                 .arg(sessionType == QLatin1String("x11") ? mainConfig.X11.SessionLogFile.get() : mainConfig.Wayland.SessionLogFile.get());
+        QString sessionLog =
+            QStringLiteral("%1/%2")
+                .arg(QString::fromLocal8Bit(pw.pw_dir))
+                .arg(sessionType == QLatin1String("x11") ? PlasmaLogin::config()->x11SessionLogFile() : PlasmaLogin::config()->waylandSessionLogFile());
 
         // create the path
         QFileInfo finfo(sessionLog);
@@ -307,7 +281,6 @@ void UserSession::setupChildProcess()
         }
     }
 }
-
 }
 
 #include "moc_UserSession.cpp"

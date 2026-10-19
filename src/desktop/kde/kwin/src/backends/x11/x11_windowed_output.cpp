@@ -16,6 +16,7 @@
 #include "core/graphicsbuffer.h"
 #include "core/outputlayer.h"
 #include "core/renderbackend.h"
+#include "core/renderdevice.h"
 #include "core/renderloop_p.h"
 
 #include <NETWM>
@@ -137,8 +138,7 @@ void X11WindowedCursor::update(const QImage &image, const QPointF &hotspot)
 }
 
 X11WindowedOutput::X11WindowedOutput(X11WindowedBackend *backend)
-    : BackendOutput()
-    , m_renderLoop(std::make_unique<RenderLoop>(this))
+    : BackendOutput(backend->renderDevice()->drmDevice())
     , m_backend(backend)
 {
     m_window = xcb_generate_id(m_backend->connection());
@@ -175,11 +175,6 @@ void X11WindowedOutput::clearExposedArea()
     m_exposedArea = Region();
 }
 
-RenderLoop *X11WindowedOutput::renderLoop() const
-{
-    return m_renderLoop.get();
-}
-
 X11WindowedBackend *X11WindowedOutput::backend() const
 {
     return m_backend;
@@ -210,7 +205,7 @@ void X11WindowedOutput::init(const QSize &pixelSize, qreal scale, bool fullscree
     const int refreshRate = 60000; // TODO: get refresh rate via randr
     m_renderLoop->setRefreshRate(refreshRate);
 
-    auto mode = std::make_shared<OutputMode>(pixelSize, m_renderLoop->refreshRate());
+    auto mode = std::make_shared<OutputMode>(OutputModeline(pixelSize, m_renderLoop->refreshRate()));
 
     State initialState;
     initialState.modes = {mode};
@@ -298,9 +293,9 @@ void X11WindowedOutput::initXInputForWindow()
 #endif
 }
 
-void X11WindowedOutput::resize(const QSize &pixelSize)
+void X11WindowedOutput::setSize(const QSize &pixelSize)
 {
-    auto mode = std::make_shared<OutputMode>(pixelSize, m_renderLoop->refreshRate());
+    auto mode = std::make_shared<OutputMode>(OutputModeline(pixelSize, m_renderLoop->refreshRate()));
 
     State next = m_state;
     next.modes = {mode};
@@ -345,10 +340,17 @@ QPointF X11WindowedOutput::mapFromGlobal(const QPointF &pos) const
     return (pos - hostPosition() + internalPosition()) / scale();
 }
 
-bool X11WindowedOutput::presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay)
+std::expected<void, OutputError> X11WindowedOutput::presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay)
 {
     // Xorg moves the cursor, there's nothing to do
-    return layer->type() == OutputLayerType::CursorOnly;
+    if (layer->type() == OutputLayerType::CursorOnly) {
+        return {};
+    } else {
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::Other,
+            .message = QStringLiteral("Async presentation isn't implemented for non-cursor planes"),
+        });
+    }
 }
 
 xcb_pixmap_t X11WindowedOutput::importDmaBufBuffer(const DmaBufAttributes *attributes)
@@ -443,12 +445,12 @@ void X11WindowedOutput::setPrimaryBuffer(GraphicsBuffer *buffer)
     m_pendingBuffer = importBuffer(buffer);
 }
 
-bool X11WindowedOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> X11WindowedOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
 {
-    return true;
+    return {};
 }
 
-bool X11WindowedOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> X11WindowedOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
 {
     auto cursorLayers = Compositor::self()->backend()->compatibleOutputLayers(this) | std::views::filter([](OutputLayer *layer) {
         return layer->type() == OutputLayerType::CursorOnly;
@@ -464,7 +466,10 @@ bool X11WindowedOutput::present(const QList<OutputLayer *> &layersToUpdate, cons
     // we still present the window, even if the primary layer isn't in the list
     // in order to get presentation feedback
     if (!m_pendingBuffer) {
-        return false;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::InvalidApiUsage,
+            .message = QStringLiteral("Can't present without a buffer"),
+        });
     }
 
     xcb_xfixes_region_t valid = 0;
@@ -493,7 +498,7 @@ bool X11WindowedOutput::present(const QList<OutputLayer *> &layersToUpdate, cons
 
     Q_ASSERT(!m_frame);
     m_frame = frame;
-    return true;
+    return {};
 }
 
 void X11WindowedOutput::setOutputLayers(std::vector<std::unique_ptr<OutputLayer>> &&layers)

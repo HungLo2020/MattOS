@@ -18,7 +18,9 @@
 
 namespace Ui
 {
+
 class KWinTabBoxConfigForm;
+
 }
 
 namespace KWin
@@ -26,8 +28,10 @@ namespace KWin
 
 namespace TabBox
 {
+
 class TabBoxSettings;
 class ShortcutSettings;
+
 }
 
 class KWinTabBoxConfigForm : public QWidget
@@ -70,6 +74,7 @@ private Q_SLOTS:
     void onOrderMinimizedMode();
     void onShowDesktopMode();
     void onSwitchingMode();
+    void onShowScreenMode();
     void onEffectCombo();
     void updateDefaultIndicators();
 
@@ -87,6 +92,7 @@ private:
     int orderMinimizedMode() const;
     int showDesktopMode() const;
     int switchingMode() const;
+    int showScreenMode() const;
     QString layoutName() const;
 
     // UI property setters
@@ -98,6 +104,7 @@ private:
     void setOrderMinimizedMode(TabBox::TabBoxConfig::OrderMinimizedMode mode);
     void setShowDesktopMode(TabBox::TabBoxConfig::ShowDesktopMode mode);
     void setSwitchingModeChanged(TabBox::TabBoxConfig::ClientSwitchingMode mode);
+    void setShowScreenMode(TabBox::TabBoxConfig::ShowScreenMode mode);
     void setLayoutName(const QString &layoutName);
 
 private:

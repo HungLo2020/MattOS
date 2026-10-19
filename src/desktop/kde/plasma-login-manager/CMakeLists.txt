@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 
 project(PLASMALOGIN VERSION ${PROJECT_VERSION})
 
@@ -8,10 +8,10 @@ project(PLASMALOGIN VERSION ${PROJECT_VERSION})
 option(INSTALL_PAM_CONFIGURATION "Install PAM configuration files" ON)
 
 # Version settings
-set(PROJECT_DEP_VERSION "6.6.5")
+set(PROJECT_DEP_VERSION "6.8.0")
 
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -38,7 +38,7 @@ include(ECMConfiguredInstall)
 include(ECMQmlModule)
 
 find_package(Qt6 CONFIG REQUIRED Core DBus Gui Qml Quick LinguistTools Test QuickTest ShaderTools)
-find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS Config Package WindowSystem I18n DBusAddons KCMUtils Auth KIO)
+find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS Config Package WindowSystem I18n DBusAddons KCMUtils Auth KIO CoreAddons)
 find_package(PlasmaQuick ${PROJECT_DEP_VERSION} REQUIRED)
 find_package(LayerShellQt ${PROJECT_DEP_VERSION} REQUIRED)
 find_package(LibKWorkspace ${PROJECT_DEP_VERSION} REQUIRED)
@@ -91,36 +91,8 @@ set(LOG_FILE                    "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/log/plasmal
 set(DBUS_CONFIG_FILENAME        "org.freedesktop.DisplayManager.conf"               CACHE STRING    "Name of the plasmalogin config file")
 set(PLASMALOGIN_INITIAL_VT             "1"                                                 CACHE STRING    "Initial tty to use")
 
-
-# Autodetect UID_MIN and UID_MAX from /etc/login.defs
 if(NOT DEFINED LOGIN_DEFS_PATH)
     set(LOGIN_DEFS_PATH "/etc/login.defs" CACHE PATH "Path to login.defs")
-endif()
-
-if(NOT EXISTS "${LOGIN_DEFS_PATH}" AND NOT DEFINED UID_MIN AND NOT DEFINED UID_MAX)
-    message(FATAL_ERROR "Could not find login.defs at ${LOGIN_DEFS_PATH}. Try -DLOGIN_DEFS_PATH.")
-endif()
-
-if(NOT DEFINED UID_MIN)
-    file(STRINGS "${LOGIN_DEFS_PATH}" UID_MIN LIMIT_COUNT 1 REGEX "^UID_MIN")
-    string(REGEX REPLACE "^UID_MIN[\t ]+([0-9]+)" "\\1" UID_MIN "${UID_MIN}")
-    if(NOT UID_MIN MATCHES "[0-9]+")
-        message(WARNING "Could not detect a valid UID_MIN (got '${UID_MIN}'). You should review your login.defs file.")
-        set(UID_MIN 1000)
-    else()
-        message(STATUS "Autodetected UID_MIN=${UID_MIN} from ${LOGIN_DEFS_PATH}")
-    endif()
-endif()
-
-if(NOT DEFINED UID_MAX)
-    file(STRINGS "${LOGIN_DEFS_PATH}" UID_MAX LIMIT_COUNT 1 REGEX "^UID_MAX")
-    string(REGEX REPLACE "^UID_MAX[\t ]+([0-9]+)" "\\1" UID_MAX "${UID_MAX}")
-    if(NOT UID_MAX MATCHES "[0-9]+")
-        message(WARNING "Could not detect a valid UID_MAX (got '${UID_MAX}'). You should review your login.defs file.")
-        set(UID_MAX 65000)
-    else()
-        message(STATUS "Autodetected UID_MAX=${UID_MAX} from ${LOGIN_DEFS_PATH}")
-    endif()
 endif()
 
 # Add subdirectories
@@ -128,7 +100,9 @@ add_subdirectory(data)
 add_subdirectory(services)
 add_subdirectory(src)
 
-add_subdirectory(test)
+if (BUILD_TESTING)
+    add_subdirectory(autotests)
+endif()
 
 ki18n_install(po)
 

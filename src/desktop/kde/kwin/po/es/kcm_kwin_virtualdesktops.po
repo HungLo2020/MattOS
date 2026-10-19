@@ -1,23 +1,23 @@
 # Spanish translations for kcm_kwin_virtualdesktops.po package.
-# Copyright (C) 2007-2025 This file is copyright:
+# Copyright (C) 2007-2026 This file is copyright:
 # This file is distributed under the same license as the kwin package.
 #
 # SPDX-FileCopyrightText: 2007 Jaime Robles <jaime@robles.nu>
-# SPDX-FileCopyrightText: 2010, 2013, 2014, 2018, 2019, 2021, 2022, 2024, 2025 Eloy Cuadra <ecuadra@eloihr.net>
+# SPDX-FileCopyrightText: 2010, 2013-2014, 2018-2019, 2021-2022, 2024-2026 Eloy Cuadra <ecuadra@eloihr.net>
 # SPDX-FileCopyrightText: 2012 Javier Vinal <fjvinal@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_kwin_virtualdesktops\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-12-23 00:42+0000\n"
-"PO-Revision-Date: 2025-12-09 11:50+0100\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
+"PO-Revision-Date: 2026-09-15 11:34+0100\n"
 "Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
 "Language-Team: Spanish <kde-l10n-es@kde.org>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
 #, kde-format
@@ -30,7 +30,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "ecuadra@eloihr.net,the.blue.valkyrie@gmail.com"
 
-#: desktopsmodel.cpp:191
+#: desktopsmodel.cpp:188
 #, kde-format
 msgctxt "A numbered name for virtual desktops"
 msgid "Desktop %1"
@@ -38,17 +38,17 @@ msgid_plural "Desktop %1"
 msgstr[0] "Escritorio %1"
 msgstr[1] "Escritorio %1"
 
-#: desktopsmodel.cpp:479
+#: desktopsmodel.cpp:476
 #, kde-format
 msgid "There was an error connecting to the compositor."
 msgstr "Ha ocurrido un error al conectar con el compositor."
 
-#: desktopsmodel.cpp:678
+#: desktopsmodel.cpp:672
 #, kde-format
 msgid "There was an error saving the settings to the compositor."
 msgstr "Ha ocurrido un error al guardar las preferencias en el compositor."
 
-#: desktopsmodel.cpp:681
+#: desktopsmodel.cpp:675
 #, kde-format
 msgid "There was an error requesting information from the compositor."
 msgstr "Ha ocurrido un error al solicitar información del compositor."
@@ -64,6 +64,12 @@ msgstr "Filas:"
 msgctxt "@action:button"
 msgid "Add Desktop"
 msgstr "Añadir escritorio"
+
+#: ui/main.qml:82
+#, kde-kuit-format
+msgctxt "@label/rich"
+msgid "%1"
+msgstr "%1"
 
 #: ui/main.qml:90
 #, kde-format
@@ -114,22 +120,27 @@ msgstr "Opciones:"
 msgid "Navigation wraps around"
 msgstr "Navegación cíclica"
 
-#: ui/main.qml:229
+#: ui/main.qml:225
+#, kde-format
+msgid "Switch desktops independently for each screen"
+msgstr "Cambiar escritorios independientemente para cada pantalla"
+
+#: ui/main.qml:243
 #, kde-format
 msgid "Show animation when switching:"
 msgstr "Mostrar animación al cambiar:"
 
-#: ui/main.qml:280
+#: ui/main.qml:294
 #, kde-format
 msgid "Show on-screen display when switching:"
 msgstr "Mostrar información en la pantalla al cambiar:"
 
-#: ui/main.qml:299
+#: ui/main.qml:313
 #, kde-format
 msgid "%1 ms"
 msgstr "%1 ms"
 
-#: ui/main.qml:323
+#: ui/main.qml:337
 #, kde-format
 msgid "Show desktop layout indicators"
 msgstr "Mostrar indicadores de disposición de escritorio"

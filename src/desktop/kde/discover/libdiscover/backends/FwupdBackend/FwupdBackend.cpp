@@ -12,6 +12,7 @@
 #include "FwupdTransaction.h"
 #include <QtConcurrent/QtConcurrentRun>
 #include <Transaction/Transaction.h>
+#include <Transaction/TransactionModel.h>
 #include <resources/SourcesModel.h>
 #include <resources/StandardBackendUpdater.h>
 
@@ -46,6 +47,7 @@ FwupdBackend::FwupdBackend(QObject *parent)
         }
         fwupd_client_set_user_agent_for_package(client, "plasma-discover", version.data());
         connect(m_updater, &StandardBackendUpdater::updatesCountChanged, this, &FwupdBackend::updatesCountChanged);
+        connect(TransactionModel::global(), &TransactionModel::lastTransactionFinished, this, &FwupdBackend::checkForUpdates);
 
         SourcesModel::global()->addSourcesBackend(new FwupdSourcesBackend(this));
         QTimer::singleShot(0, this, &FwupdBackend::checkForUpdates);
@@ -112,6 +114,7 @@ void FwupdBackend::addUpdates()
         return;
     }
 
+    bool needsReboot = false;
     for (uint i = 0; i < devices->len && !g_cancellable_is_cancelled(m_cancellable); i++) {
         FwupdDevice *device = (FwupdDevice *)g_ptr_array_index(devices, i);
 
@@ -123,6 +126,8 @@ void FwupdBackend::addUpdates()
 
         if (!fwupd_device_has_flag(device, FWUPD_DEVICE_FLAG_UPDATABLE))
             continue;
+
+        needsReboot |= fwupd_device_get_update_state(device) == FWUPD_UPDATE_STATE_NEEDS_REBOOT;
 
         g_autoptr(GError) error2 = nullptr;
         g_autoptr(GPtrArray) rels = fwupd_client_get_upgrades(client, fwupd_device_get_id(device), m_cancellable, &error2);
@@ -163,6 +168,7 @@ void FwupdBackend::addUpdates()
             }
         }
     }
+    m_updater->setNeedsReboot(needsReboot);
 }
 
 QByteArray FwupdBackend::getChecksum(const QString &filename, QCryptographicHash::Algorithm hashAlgorithm)
@@ -238,11 +244,8 @@ FwupdResource *FwupdBackend::createApp(FwupdDevice *device)
 void FwupdBackend::handleError(GError *perror)
 {
     // TODO: localise the error message
-    if (perror && !g_error_matches(perror, FWUPD_ERROR, FWUPD_ERROR_INVALID_FILE)
-        && !g_error_matches(perror, FWUPD_ERROR, FWUPD_ERROR_NOTHING_TO_DO)
-        // "Systemd service is masked" error, which is not really an error, but has no clean GError string,
-        // so we have to compare codes and strings. Thankfully it's unlocalized!
-        && !(perror->code == 3 && QString::fromUtf8(perror->message).contains(QStringLiteral("unit is masked")))) {
+    if (perror && !g_error_matches(perror, FWUPD_ERROR, FWUPD_ERROR_INVALID_FILE) && !g_error_matches(perror, FWUPD_ERROR, FWUPD_ERROR_NOT_SUPPORTED)
+        && !g_error_matches(perror, FWUPD_ERROR, FWUPD_ERROR_NOTHING_TO_DO)) {
         const QString msg = QString::fromUtf8(perror->message);
         QTimer::singleShot(0, this, [this, msg]() {
             Q_EMIT passiveMessage(msg);
@@ -251,6 +254,10 @@ void FwupdBackend::handleError(GError *perror)
     }
     // else
     //     qDebug() << "Fwupd skipped" << perror->code << perror->message;
+
+    m_fetching = false;
+    Q_EMIT fetchingUpdatesProgressChanged();
+    Q_EMIT contentsChanged();
 }
 
 QString FwupdBackend::cacheFile(const QString &kind, const QString &basename)
@@ -303,7 +310,7 @@ void FwupdBackend::setDevices(GPtrArray *devices)
         auto res = new FwupdResource(device, this);
         for (uint i = 0; releases && i < releases->len; ++i) {
             FwupdRelease *release = (FwupdRelease *)g_ptr_array_index(releases, i);
-            if (res->installedVersion().toUtf8() == fwupd_release_get_version(release)) {
+            if (res->installedVersion() == QUtf8StringView(fwupd_release_get_version(release))) {
                 res->setReleaseDetails(release);
                 break;
             }

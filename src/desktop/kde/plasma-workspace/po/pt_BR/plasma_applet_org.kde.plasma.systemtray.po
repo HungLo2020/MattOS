@@ -5,15 +5,15 @@
 # André Marcelo Alvarenga <alvarenga@kde.org>, 2016, 2019, 2020.
 # Aracele Torres <aracele@kde.org>, 2017.
 # Luiz Fernando Ranghetti <elchevive@opensuse.org>, 2020, 2021, 2022.
-# SPDX-FileCopyrightText: 2024, 2025 Geraldo Simiao <geraldosimiao@fedoraproject.org>
+# SPDX-FileCopyrightText: 2024-2026 Geraldo Simiao <geraldosimiao@fedoraproject.org>
 # SPDX-FileCopyrightText: 2025 Guilherme Marçal Silva <guimarcalsilva@gmail.com>
-# SPDX-FileCopyrightText: 2025 Marcus Gama <marcus.gama@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Marcus Gama <marcus.gama@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-19 02:48+0000\n"
-"PO-Revision-Date: 2025-12-04 07:15-0300\n"
+"POT-Creation-Date: 2026-08-28 00:48+0000\n"
+"PO-Revision-Date: 2026-05-17 07:21-0300\n"
 "Last-Translator: Marcus Gama <marcus.gama@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
 "Language: pt_BR\n"
@@ -21,63 +21,69 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 26.04.1\n"
+
+#: qml/BackgroundAppItem.qml:76
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Quit %1"
+msgstr "Sair %1"
 
 #: qml/config.qml:13
 #, kde-format
 msgid "General"
 msgstr "Geral"
 
-#: qml/ConfigGeneral.qml:43
+#: qml/ConfigGeneral.qml:45
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item when relevant"
 msgid "Show when relevant"
 msgstr "Mostrar quando relevante"
 
-#: qml/ConfigGeneral.qml:47
+#: qml/ConfigGeneral.qml:49
 #, kde-format
 msgctxt "@item:inlistbox Always show this System Tray item"
 msgid "Always show"
 msgstr "Sempre mostrar"
 
-#: qml/ConfigGeneral.qml:51
+#: qml/ConfigGeneral.qml:53
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item only in the expanded popup"
 msgid "Show only in popup"
-msgstr "Mostrar somente em popup"
+msgstr "Mostrar somente no popup"
 
-#: qml/ConfigGeneral.qml:55
+#: qml/ConfigGeneral.qml:57
 #, kde-format
 msgctxt "@item:inlistbox Never show this System Tray item; disable it"
 msgid "Never show (disabled)"
 msgstr "Nunca mostrar (desativado)"
 
-#: qml/ConfigGeneral.qml:126
+#: qml/ConfigGeneral.qml:128
 #, kde-format
 msgid "Application Status"
 msgstr "Status dos aplicativos"
 
-#: qml/ConfigGeneral.qml:128
+#: qml/ConfigGeneral.qml:130
 #, kde-format
 msgid "Communications"
 msgstr "Comunicações"
 
-#: qml/ConfigGeneral.qml:130
+#: qml/ConfigGeneral.qml:132
 #, kde-format
 msgid "System Services"
 msgstr "Serviços do sistema"
 
-#: qml/ConfigGeneral.qml:132
+#: qml/ConfigGeneral.qml:134
 #, kde-format
 msgid "Hardware Control"
 msgstr "Controle do hardware"
 
-#: qml/ConfigGeneral.qml:135
+#: qml/ConfigGeneral.qml:137
 #, kde-format
 msgid "Miscellaneous"
 msgstr "Diversos"
 
-#: qml/ConfigGeneral.qml:172
+#: qml/ConfigGeneral.qml:174
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -94,13 +100,13 @@ msgstr ""
 "<nl/><nl/>Use essa configuração por sua conta e risco, e não relate "
 "problemas ao KDE ou ao autor do aplicativo."
 
-#: qml/ConfigGeneral.qml:175
+#: qml/ConfigGeneral.qml:177
 #, kde-format
 msgctxt "@action:button"
 msgid "I understand the risks"
 msgstr "Eu entendo os riscos"
 
-#: qml/ConfigGeneral.qml:187
+#: qml/ConfigGeneral.qml:189
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -119,7 +125,7 @@ msgstr ""
 "desativar o histórico da área de transferência, ou selecione a opção para "
 "lembrar de apenas um item por vez."
 
-#: qml/ConfigGeneral.qml:196
+#: qml/ConfigGeneral.qml:198
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -134,66 +140,97 @@ msgstr ""
 "em outro lugar ou se estiver usando intencionalmente um gerenciador de "
 "notificações de terceiros para lidar com as notificações."
 
-#: qml/ConfigGeneral.qml:208
+#: qml/ConfigGeneral.qml:210
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel height"
 msgstr "Escalar com a altura do painel"
 
-#: qml/ConfigGeneral.qml:209
+#: qml/ConfigGeneral.qml:211
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel width"
 msgstr "Escalar com a largura do painel"
 
-#: qml/ConfigGeneral.qml:211
+#: qml/ConfigGeneral.qml:213
 #, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgctxt ""
+"@label:listbox Whether the system tray icons in the Panel always stay small "
+"or scale with the Panel's size"
 msgid "Panel icon size:"
 msgstr "Tamanho do ícone no painel:"
 
-#: qml/ConfigGeneral.qml:215 qml/ConfigGeneral.qml:256
+#: qml/ConfigGeneral.qml:217
+#, kde-format
+msgctxt "@item:inlistbox Icon size"
+msgid "Small"
+msgstr "Pequeno"
+
+#: qml/ConfigGeneral.qml:237
+#, kde-format
+msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgid "Spacing:"
+msgstr "Espaçamento:"
+
+#: qml/ConfigGeneral.qml:241
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Small"
 msgstr "Pequeno"
 
-#: qml/ConfigGeneral.qml:244
-#, kde-format
-msgid "Automatically enabled when in Touch Mode"
-msgstr "Habilitado automaticamente quando no modo de toque"
-
-#: qml/ConfigGeneral.qml:252
-#, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
-msgid "Panel icon spacing:"
-msgstr "Espaçamento do ícone no painel:"
-
-#: qml/ConfigGeneral.qml:260
+#: qml/ConfigGeneral.qml:245
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Normal"
 msgstr "Normal"
 
-#: qml/ConfigGeneral.qml:264
+#: qml/ConfigGeneral.qml:249
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Large"
 msgstr "Grande"
 
-#: qml/ConfigGeneral.qml:289
+#: qml/ConfigGeneral.qml:269
+#, kde-format
+msgctxt ""
+"@label:listbox Which direction system tray icons in the Panel emerge from "
+"the expander arrow"
+msgid "Direction:"
+msgstr "Direção:"
+
+#: qml/ConfigGeneral.qml:283
+#, kde-format
+msgid "Bottom-to-top"
+msgstr "De baixo para cima"
+
+#: qml/ConfigGeneral.qml:284
+#, kde-format
+msgid "Top-to-bottom"
+msgstr "De cima para baixo"
+
+#: qml/ConfigGeneral.qml:289 qml/ConfigGeneral.qml:296
+#, kde-format
+msgid "Left-to-right"
+msgstr "Esquerda para a direita"
+
+#: qml/ConfigGeneral.qml:290 qml/ConfigGeneral.qml:295
+#, kde-format
+msgid "Right-to-left"
+msgstr "Direita para a esquerda"
+
+#: qml/ConfigGeneral.qml:307
 #, kde-format
 msgctxt "@info:usagetip under a combobox when Touch Mode is on"
 msgid "Automatically set to Large when in Touch Mode"
 msgstr "Definir automaticamente para grande quando no modo de toque"
 
-#: qml/ConfigGeneral.qml:315
+#: qml/ConfigGeneral.qml:332
 #, kde-format
 msgctxt "@title:column"
 msgid "Entries"
 msgstr "Entradas"
 
-#: qml/ConfigGeneral.qml:319
+#: qml/ConfigGeneral.qml:336
 #, kde-format
 msgctxt "@option:check, This is referring to system tray entries"
 msgid "Always show all"
@@ -205,17 +242,17 @@ msgctxt "@action:button"
 msgid "Go Back"
 msgstr "Voltar"
 
-#: qml/ExpandedRepresentation.qml:72
+#: qml/ExpandedRepresentation.qml:76
 #, kde-format
 msgid "Status and Notifications"
 msgstr "Notificações e status"
 
-#: qml/ExpandedRepresentation.qml:169
+#: qml/ExpandedRepresentation.qml:175
 #, kde-format
 msgid "More actions"
 msgstr "Mais ações"
 
-#: qml/ExpandedRepresentation.qml:255
+#: qml/ExpandedRepresentation.qml:260
 #, kde-format
 msgid "Keep Open"
 msgstr "Manter aberta"
@@ -247,14 +284,18 @@ msgctxt "Some letters with tall characters, ascenders, descenders, etc"
 msgid "AILlmyjgGJP"
 msgstr "AILlmyjgGJP"
 
+#~ msgid "Automatically enabled when in Touch Mode"
+#~ msgstr "Habilitado automaticamente quando no modo de toque"
+
+#~ msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+#~ msgid "Panel icon spacing:"
+#~ msgstr "Espaçamento do ícone no painel:"
+
 #~ msgid "Always hidden"
 #~ msgstr "Sempre oculto"
 
 #~ msgid "Disabled"
 #~ msgstr "Desativado"
-
-#~ msgid "Small"
-#~ msgstr "Pequeno"
 
 #~ msgctxt "Name of the system tray entry"
 #~ msgid "Entry"

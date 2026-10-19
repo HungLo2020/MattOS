@@ -5,9 +5,9 @@
 */
 
 #include "ImagePlatformKWin.h"
+#include "Config.h"
 #include "ExportManager.h"
 #include "Geometry.h"
-#include "QtCV.h"
 #include "DebugUtils.h"
 #include "ImageMetaData.h"
 
@@ -103,30 +103,21 @@ QImage combinedImage(const QList<QImage> &images)
     }
     // We ceil to the next integer size up so that integer DPR images are always crisp.
     const auto finalDpr = std::ceil(maxDpr);
-    // An RGBA8888 based format is needed for compatibility with OpenCV.
-    // If we used an ARGB32 based format, we'd need to swap red and blue.
-    // Not sure what to do if we end up having different formats for different screens.
     QImage finalImage{imageRect.size().toSize() * finalDpr, finalFormat};
     finalImage.fill(Qt::transparent);
-    auto mainMat = QtCV::qImageToMat(finalImage);
+    QPainter painter(&finalImage);
     for (auto &image : images) {
-        // Region Of Interest to put the image in the main image.
-        // Prevent ROI from going out of bounds or having negative size.
-        const auto rect = [finalDpr, &image, &finalImage] {
-            auto pos = ImageMetaData::logicalXY(image) * finalDpr;
-            auto size = image.deviceIndependentSize() * finalDpr;
-            auto rect = Geometry::rectClipped(QRectF(pos, size).toRect(), //
-                                              finalImage.rect());
-            return cv::Rect(rect.x(), rect.y(), rect.width(), rect.height());
-        }();
+        const auto pos = ImageMetaData::logicalXY(image) * finalDpr;
+        const auto size = (image.deviceIndependentSize() * finalDpr).toSize();
         const auto imageDpr = image.devicePixelRatio();
         const bool hasIntDpr = static_cast<int>(imageDpr) == imageDpr;
-        const auto interpolation = hasIntDpr ? cv::INTER_AREA : cv::INTER_LANCZOS4;
-        auto rgbaImage = image.format() == finalImage.format() ? image : image.convertedTo(finalFormat);
-        const auto mat = QtCV::qImageToMat(rgbaImage);
-        // Will just copy if there's no difference in size
-        cv::resize(mat, mainMat(rect), rect.size(), 0, 0, interpolation);
+        const auto interpolation = hasIntDpr ? Qt::FastTransformation : Qt::SmoothTransformation;
+        painter.drawImage(QRectF{pos, size},
+                          size == image.size() //
+                              ? image
+                              : image.scaled(size, Qt::KeepAspectRatio, interpolation));
     }
+    painter.end();
     finalImage.setDevicePixelRatio(finalDpr);
     ImageMetaData::setSubGeometryList(finalImage, geometryList);
     return finalImage;
@@ -186,11 +177,13 @@ static ResultVariant readImage(int fileDescriptor, const QVariantMap &metadata)
     bool ok = false;
     qreal scale = metadata.value(u"scale"_s).toReal(&ok);
     if (ok) {
+#if WITH_X11
         // NOTE: KWin X11Output DPR is always 1. This is intentional.
         // https://bugs.kde.org/show_bug.cgi?id=474778
         if (KWindowSystem::isPlatformX11() && scale == 1) {
             scale = qGuiApp->devicePixelRatio();
         }
+#endif
         resultImage.setDevicePixelRatio(scale);
     }
 

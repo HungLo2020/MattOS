@@ -64,6 +64,7 @@ qt_internal_add_module(Test
         qtesttostring.h
         qtestwheel.h
         qttestglobal.h
+        qmeanvarianceaccumulator_p.h
         qxmltestlogger.cpp qxmltestlogger_p.h
     DEFINES
         QT_NO_CAST_FROM_ASCII
@@ -151,6 +152,11 @@ qt_internal_extend_target(Test CONDITION MACOS
         ${FWApplicationServices}
         ${FWFoundation}
         ${FWIOKit}
+)
+
+qt_internal_extend_target(Test CONDITION OHOS
+    LIBRARIES
+        hilog_ndk.z
 )
 
 qt_internal_extend_target(Test CONDITION UNIX

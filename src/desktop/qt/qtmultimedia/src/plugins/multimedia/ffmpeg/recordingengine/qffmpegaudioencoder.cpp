@@ -35,7 +35,12 @@ void setupStreamParameters(AVStream *stream, const Codec &codec,
     const auto sampleRate = adjustSampleRate(sampleRates, requestedAudioFormat.sampleRate);
 
     stream->codecpar->sample_rate = sampleRate;
-    stream->codecpar->frame_size = 1024;
+    // Codecs with a variable frame size (e.g. PCM) must keep frame_size at 0;
+    // FFmpeg 9 rejects any frame whose nb_samples exceeds a non-zero frame_size,
+    // even for such codecs. Codecs with a fixed frame size determine and set
+    // their own frame_size during avcodec_open2, overriding this default.
+    if (!(codec.capabilities() & AV_CODEC_CAP_VARIABLE_FRAME_SIZE))
+        stream->codecpar->frame_size = 1024;
     const auto sampleFormats = codec.sampleFormats();
     stream->codecpar->format = adjustSampleFormat(sampleFormats, requestedAudioFormat.sampleFormat);
 
@@ -51,7 +56,12 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
     Q_ASSERT(codecContext);
     codecContext->time_base = stream->time_base;
 
-    avcodec_parameters_to_context(codecContext, stream->codecpar);
+    int status = avcodec_parameters_to_context(codecContext, stream->codecpar);
+    if (status < 0) {
+        qCWarning(qLcFFmpegAudioEncoder)
+                << "Cannot set codec parameters; result:" << AVError(status);
+        return false;
+    }
 
     // if avcodec_open2 fails, it may clean codecContext->codec
     Codec codec{ codecContext->codec };
@@ -60,18 +70,23 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
     applyAudioEncoderOptions(settings, codec.name(), codecContext, opts);
     applyExperimentalCodecOptions(codec, opts);
 
-    const int res = avcodec_open2(codecContext, codec.get(), opts);
+    status = avcodec_open2(codecContext, codec.get(), opts);
 
-    if (res != 0) {
+    if (status != 0) {
         qCWarning(qLcFFmpegAudioEncoder)
-                << "Cannot open audio codec" << codec.name() << "; result:" << AVError(res);
+                << "Cannot open audio codec" << codec.name() << "; result:" << AVError(status);
         return false;
     }
 
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << codecContext->sample_fmt
                                    << "rate=" << codecContext->sample_rate;
 
-    avcodec_parameters_from_context(stream->codecpar, codecContext);
+    status = avcodec_parameters_from_context(stream->codecpar, codecContext);
+    if (status < 0) {
+        qCWarning(qLcFFmpegAudioEncoder) << "Cannot get parameters from audio codec context"
+                                         << codec.name() << "; result:" << AVError(status);
+        return false;
+    }
 
     return true;
 }
@@ -133,44 +148,48 @@ QAudioBuffer AudioEncoder::takeBuffer()
 bool AudioEncoder::init()
 {
     const AVAudioFormat requestedAudioFormat(m_sourceFormat);
+    const AVCodecID codecId = m_stream->codecpar->codec_id;
 
-    QFFmpeg::findAndOpenAVEncoder(
-            m_stream->codecpar->codec_id,
-            [&](const Codec &codec) {
-                AVScore result = DefaultAVScore;
+    namespace ranges = QtMultimediaPrivate::ranges;
 
-                // Attempt to find no-conversion format
-                if (auto fmts = codec.sampleFormats(); !fmts.empty())
-                    result += hasValue(fmts, requestedAudioFormat.sampleFormat) ? 1 : -1;
+    const auto encoders = findAndScoreEncoders(codecId, [&](const Codec &codec) {
+        AVScore result = DefaultAVScore;
 
-                if (auto rates = codec.sampleRates(); !rates.empty())
-                    result += hasValue(rates, requestedAudioFormat.sampleRate) ? 1 : -1;
+        // Attempt to find no-conversion format
+        if (auto fmts = codec.sampleFormats(); !fmts.empty())
+            result += ranges::contains(fmts, requestedAudioFormat.sampleFormat) ? 1 : -1;
+
+        if (auto rates = codec.sampleRates(); !rates.empty())
+            result += ranges::contains(rates, requestedAudioFormat.sampleRate) ? 1 : -1;
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
-                if (auto layouts = codec.channelLayouts(); !layouts.empty())
-                    result += hasValue(layouts, requestedAudioFormat.channelLayout) ? 1 : -1;
+        if (auto layouts = codec.channelLayouts(); !layouts.empty())
+            result += ranges::contains(layouts, requestedAudioFormat.channelLayout) ? 1 : -1;
 #else
-                if (auto layouts = codec.channelLayouts(); !layouts.empty())
-                    result += hasValue(layouts, requestedAudioFormat.channelLayoutMask) ? 1 : -1;
+        if (auto layouts = codec.channelLayouts(); !layouts.empty())
+            result +=
+                    ranges::contains(layouts, requestedAudioFormat.channelLayoutMask) ? 1 : -1;
 #endif
 
-                return result;
-            },
-            [&](const Codec &codec) {
-                AVCodecContextUPtr codecContext(avcodec_alloc_context3(codec.get()));
-                if (!codecContext)
-                    return false;
+        return result;
+    });
 
-                setupStreamParameters(m_stream, Codec{ codecContext->codec }, requestedAudioFormat);
-                if (!openCodecContext(codecContext.get(), m_stream, m_settings))
-                    return false;
+    for (const auto &[codec, score] : encoders) {
+        AVCodecContextUPtr codecContext(avcodec_alloc_context3(codec.get()));
+        if (!codecContext)
+            continue;
 
-                m_codecContext = std::move(codecContext);
-                return true;
-            });
+        setupStreamParameters(m_stream, Codec{ codecContext->codec }, requestedAudioFormat);
+        if (!openCodecContext(codecContext.get(), m_stream, m_settings))
+            continue;
+
+        m_codecContext = std::move(codecContext);
+        break;
+    }
 
     if (!m_codecContext) {
         qCWarning(qLcFFmpegAudioEncoder) << "Unable to open any audio codec";
+        markResolved(false);
         emit m_recordingEngine.sessionError(QMediaRecorder::FormatError,
                                             QStringLiteral("Cannot open any audio codec"));
         return false;
@@ -316,8 +335,12 @@ void AudioEncoder::ensurePendingFrame(int availableSamplesCount)
             !(m_codecContext->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
             && m_codecContext->frame_size;
     m_avFrame->nb_samples = isFixedFrameSize ? m_codecContext->frame_size : availableSamplesCount;
-    if (m_avFrame->nb_samples)
-        av_frame_get_buffer(m_avFrame.get(), 0);
+    if (m_avFrame->nb_samples) {
+        const int status = av_frame_get_buffer(m_avFrame.get(), 0);
+        if (status < 0)
+            qCWarning(qLcFFmpegAudioEncoder)
+                    << "Failed to allocate audio frame buffer:" << AVError(status);
+    }
 
     const auto &timeBase = m_stream->time_base;
     const auto pts = timeBase.den && timeBase.num

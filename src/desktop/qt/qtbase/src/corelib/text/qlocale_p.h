@@ -398,8 +398,10 @@ public:
                 break;
             }
         }
-        Q_AUTOTEST_EXPORT
+        Q_NODISCARD_CTOR Q_AUTOTEST_EXPORT
         NumericData(const QLocaleData *data, QLocaleData::NumberMode mode);
+
+        [[nodiscard]] qsizetype zeroWidth() const { return isC ? 1 : zeroLen; }
         [[nodiscard]] const GroupSizes &groupSizes() const { return grouping; }
 
         [[nodiscard]] bool isValid(NumberMode mode) const // Asserted as a sanity check.
@@ -446,6 +448,97 @@ public:
             return Q_UNLIKELY(!isC && group == decimal);
         }
     };
+
+    struct DigitSequence
+    {
+        QByteArray digits; // ASCII digits
+        // Indices of (starts of) digits and the index just after the last digit:
+        QList<qsizetype> digitBounds;
+        // digits.sliced(n, m), a.k.a. digits.first(n+m).sliced(n), comes from
+        // text.first(digitBounds(n+m)).sliced(digitBounds[n])
+        char sign = '\0'; // '\0' for unspecified, or '-' or '+' if specified.
+
+        enum class Option {
+            Default       = 0,
+            AllowSign     = 1,
+        };
+        Q_DECLARE_FLAGS(Options, Option);
+
+        Q_AUTOTEST_EXPORT // All the hard work is in this constructor:
+        DigitSequence(QStringView text, NumericData &&numeric,
+                      DigitSequence::Options flags = DigitSequence::Option::Default,
+                      qsizetype from = 0);
+        DigitSequence(const DigitSequence &) = default;
+        DigitSequence(DigitSequence &&) = default;
+        DigitSequence &operator=(const DigitSequence &) = default;
+        DigitSequence &operator=(DigitSequence &&) = default;
+        ~DigitSequence() = default;
+
+        // Where in text did the parse end:
+        qsizetype endIndex() const
+        {
+            return digitBounds.back();
+        }
+
+        // How many ASCII characters the sequence transcribes to:
+        qsizetype size() const
+        {
+            return digits.size() + (hasSign() ? 1 : 0);
+        }
+
+        bool isEmpty() const { return size() == 0; }
+        bool hasSign() const { return sign != '\0'; }
+
+        void transcribeTo(CharBuff *buff) const
+        {
+            if (sign)
+                buff->append(sign);
+            buff->append(digits.constData(), digits.size());
+        }
+
+        // Subsequences (for when partitioning among fields).
+        // Sign, when present, is treated as entry 0, bumping digit indices up by 1.
+        // Generally, first(c) and sliced(c) abut but don't overlap.
+        DigitSequence first(qsizetype count) const
+        {
+            Q_PRE(count >= 0);
+            Q_PRE(count <= size());
+            const qsizetype n = hasSign() ? count - 1 : count;
+            // Stop at end of last included (sign or) digit:
+            return { digits.first(n), digitBounds.first(n + 1), count ? sign : '\0' };
+        }
+        DigitSequence last(qsizetype count) const
+        { return sliced(size() - count); }
+        DigitSequence sliced(qsizetype from) const
+        {
+            Q_PRE(from >= 0);
+            Q_PRE(from <= size());
+            const qsizetype n = hasSign() ? from - 1 : from;
+            Q_ASSERT(n <= digits.size());
+            return { digits.sliced(n), digitBounds.sliced(n), from ? '\0' : sign };
+        }
+        DigitSequence sliced(qsizetype from, qsizetype count) const
+        { return sliced(from).first(count); }
+
+        // Portion of the view from which it was constructed:
+        [[nodiscard]] QStringView used(const QStringView text, qsizetype from) const
+        { return text.first(endIndex()).sliced(from); }
+        [[nodiscard]] QStringView used(const QStringView text) const // digits-only:
+        { return text.first(digitBounds.back()).sliced(digitBounds.front()); }
+        // (can apply to the first()/last()/sliced() of the result of parsing)
+    private:
+        // Used by first(), sliced():
+        DigitSequence(QByteArray &&digs, QList<qsizetype> &&bounds, char sgn)
+            : digits(std::move(digs)), digitBounds(std::move(bounds)), sign(sgn)
+        {
+        }
+    };
+
+    [[nodiscard]]
+    DigitSequence digitSequence(QStringView text,
+                                DigitSequence::Options flags = DigitSequence::Option::Default,
+                                qsizetype from = 0) const
+    { return DigitSequence(text, NumericData(this, IntegerMode), flags, from); }
 
     // this function is used in QIntValidator (QtGui)
     [[nodiscard]] Q_CORE_EXPORT ParsingResult
@@ -514,7 +607,7 @@ public:
         }
         [[nodiscard]] DataRange listEntry(const char16_t *table, qsizetype index) const
         {
-            const char16_t separator = ';';
+            constexpr char16_t separator = u';';
             Index i = 0;
             while (index > 0 && i < size) {
                 if (table[offset + i] == separator)
@@ -572,6 +665,7 @@ public:
     quint8 m_grouping_least : 3; // Number of digits after last grouping separator (before decimal).
 };
 
+Q_DECLARE_OPERATORS_FOR_FLAGS(QLocaleData::DigitSequence::Options)
 Q_DECLARE_TYPEINFO(QLocaleData::GroupSizes, Q_PRIMITIVE_TYPE);
 
 class QLocalePrivate

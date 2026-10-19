@@ -49,9 +49,13 @@ KCM.GridViewKCM {
         highlight: !Qt.colorEqual(kcm.accentColor, "transparent")
     }
 
+    FontMetrics {
+        id: fontMetrics
+    }
+
     // The thumbnails are a bit more elaborate and need more room, especially when translated
-    view.implicitCellWidth: Kirigami.Units.gridUnit * 15
-    view.implicitCellHeight: Kirigami.Units.gridUnit * 13
+    view.implicitCellWidth: Math.max(Kirigami.Units.gridUnit, fontMetrics.averageCharacterWidth) * 15
+    view.implicitCellHeight: Math.max(Kirigami.Units.gridUnit, fontMetrics.height) * 13
 
     // we have a duplicate property here as "var" instead of "color", so that we
     // can set it to "undefined", which lets us use the "a || b" shorthand for
@@ -60,12 +64,12 @@ KCM.GridViewKCM {
 
     DropArea {
         anchors.fill: parent
-        onEntered: {
+        onEntered: drag => {
             if (!drag.hasUrls) {
                 drag.accepted = false;
             }
         }
-        onDropped: {
+        onDropped: drop => {
             infoLabel.visible = false;
             kcm.installSchemeFromFile(drop.urls[0]);
         }
@@ -117,7 +121,6 @@ KCM.GridViewKCM {
 
                 QtControls.ComboBox {
                     id: filterCombo
-                    Layout.rightMargin: parent.spacing * 3
                     textRole: "text"
                     model: [
                         {text: i18nc("@item:inlistbox filter displayed schemes", "All schemes"), filter: Private.KCM.AllSchemes},
@@ -125,23 +128,7 @@ KCM.GridViewKCM {
                         {text: i18nc("@item:inlistbox filter displayed schemes", "Dark schemes"), filter: Private.KCM.DarkSchemes}
                     ]
 
-                    // HACK QQC2 doesn't support icons, so we just tamper with the desktop style ComboBox's background
-                    // and inject a nice little filter icon.
-                    Component.onCompleted: {
-                        if (!background || !background.hasOwnProperty("properties")) {
-                            // not a KQuickStyleItem
-                            return;
-                        }
-
-                        var props = background.properties || {};
-
-                        background.properties = Qt.binding(function() {
-                            var newProps = props;
-                            newProps.currentIcon = "view-filter";
-                            newProps.iconColor = Kirigami.Theme.textColor;
-                            return newProps;
-                        });
-                    }
+                    Kirigami.StyleHints.iconName: "view-filter"
                 }
             }
         }
@@ -320,14 +307,20 @@ KCM.GridViewKCM {
             },
             Kirigami.Action {
                 icon.name: "edit-delete"
-                tooltip: i18n("Remove Color Scheme")
-                enabled: model.removable
+                tooltip: if (enabled) {
+                    return i18nc("@info:tooltip", "Remove color scheme");
+                } else if (delegate.GridView.isCurrentItem) {
+                    return i18nc("@info:tooltip", "Cannot delete the active color scheme");
+                } else {
+                    return i18nc("@info:tooltip", "Cannot delete system-installed color schemes");
+                }
+                enabled: model.removable && !delegate.GridView.isCurrentItem
                 visible: !model.pendingDeletion
                 onTriggered: model.pendingDeletion = true
             },
             Kirigami.Action {
                 icon.name: "edit-undo"
-                tooltip: i18n("Restore Color Scheme")
+                tooltip: i18n("Don’t delete this color scheme")
                 visible: model.pendingDeletion
                 onTriggered: model.pendingDeletion = false
             }

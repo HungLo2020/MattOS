@@ -292,11 +292,7 @@ void Core::reparseConfiguration()
 
     // Check if critical threshold might have changed and cancel the timer if necessary.
     if (currentChargePercent() > m_globalSettings->batteryCriticalLevel()) {
-        m_criticalBatteryTimer->stop();
-        if (m_criticalBatteryNotification) {
-            m_criticalBatteryNotification->close();
-            m_criticalBatteryNotification = nullptr;
-        }
+        cancelCriticalBatteryNotification();
     }
 
     if (m_lowBatteryNotification && currentChargePercent() > m_globalSettings->batteryLowLevel()) {
@@ -422,7 +418,7 @@ void Core::loadProfile(bool force)
     // If the lid is closed, retrigger the lid close signal
     // so that "switching profile then closing the lid" has the same result as
     // "closing lid then switching profile".
-    if (m_lidController->isLidClosed()) {
+    if (m_lidController->isLidClosed() && (m_currentProfile != profileId || force)) {
         Q_EMIT m_lidController->lidClosedChanged(true);
     }
 }
@@ -469,17 +465,14 @@ void Core::onDeviceAdded(const QString &udi)
     }
 
     if (currentChargePercent() > m_globalSettings->batteryCriticalLevel()) {
-        if (m_criticalBatteryNotification) {
-            m_criticalBatteryNotification->close();
-            m_criticalBatteryNotification = nullptr;
-        }
-
         if (m_criticalBatteryTimer->isActive()) {
             m_criticalBatteryTimer->stop();
             emitRichNotification(QStringLiteral("pluggedin"), //
                                  i18n("Extra Battery Added"),
                                  i18n("The system will no longer go to sleep."));
         }
+        // This stops the timer, so for the notification we check if it was active before that.
+        cancelCriticalBatteryNotification();
     }
 }
 
@@ -528,9 +521,9 @@ bool Core::emitBatteryChargePercentNotification(int currentPercent, int previous
             return false;
         }
 
-        // if you leave the device out of reach or it has not been initialized yet
-        // it won't be "there" and report 0%, don't show anything in this case
-        if (!b->isPresent() || b->chargePercent() == 0) {
+        // If you leave the device out of reach or it has not been initialized yet,
+        // it won't be "there" and can report an empty or unknown percentage.
+        if (!b->isPresent() || b->chargePercent() <= 0) {
             return false;
         }
 
@@ -546,10 +539,12 @@ bool Core::emitBatteryChargePercentNotification(int currentPercent, int previous
             }
 
             QString title = i18nc("The battery in an external device", "Device Battery Low (%1% Remaining)", currentPercent);
-            QString msg = i18nc("Placeholder is device name",
-                                "The battery in \"%1\" is running low, and the device may turn off at any time. "
-                                "Please recharge or replace the battery.",
-                                name);
+            QString msg;
+            if (b->isRechargeable()) {
+                msg = i18nc("Placeholder is device name", "The battery in “%1” is running low. Please recharge the battery.", name);
+            } else {
+                msg = i18nc("Placeholder is device name", "The battery in “%1” is running low.", name);
+            }
             QString icon = QStringLiteral("battery-caution");
 
             switch (b->type()) {
@@ -567,12 +562,12 @@ bool Core::emitBatteryChargePercentNotification(int currentPercent, int previous
             case Battery::HeadsetBattery:
                 icon = QStringLiteral("audio-headset-battery");
                 break;
+            case Battery::PhoneBattery:
+                title = i18n("Phone Battery Low (%1% Remaining)", currentPercent);
+                icon = QStringLiteral("phone-battery");
+                break;
             case Battery::BluetoothBattery:
                 title = i18n("Bluetooth Device Battery Low (%1% Remaining)", currentPercent);
-                msg = i18nc("Placeholder is device name",
-                            "The battery in Bluetooth device \"%1\" is running low, and the device may turn off at any time. "
-                            "Please recharge or replace the battery.",
-                            name);
                 icon = QStringLiteral("preferences-system-bluetooth");
                 break;
             default:
@@ -666,11 +661,7 @@ void Core::handleCriticalBattery(int percent)
     auto cancelAction =
         m_criticalBatteryNotification->addAction(i18nc("Cancel timeout that will automatically put system to sleep because of low battery", "Cancel"));
     connect(cancelAction, &KNotificationAction::activated, this, [this] {
-        m_criticalBatteryTimer->stop();
-        if (m_criticalBatteryNotification) {
-            m_criticalBatteryNotification->close();
-            m_criticalBatteryNotification = nullptr;
-        }
+        cancelCriticalBatteryNotification();
     });
 
     m_criticalBatteryNotification->sendEvent();
@@ -679,10 +670,17 @@ void Core::handleCriticalBattery(int percent)
 void Core::updateBatteryNotifications(int percent)
 {
     if (m_lowBatteryNotification) {
-        m_lowBatteryNotification->setTitle(i18n("Battery Low (%1% Remaining)", percent));
+        if (percent > m_globalSettings->batteryLowLevel()) {
+            m_lowBatteryNotification->close();
+            m_lowBatteryNotification = nullptr;
+        } else {
+            m_lowBatteryNotification->setTitle(i18n("Battery Low (%1% Remaining)", percent));
+        }
     }
 
-    if (m_criticalBatteryNotification) {
+    if (percent > m_globalSettings->batteryCriticalLevel()) {
+        cancelCriticalBatteryNotification();
+    } else if (m_criticalBatteryNotification) {
         m_criticalBatteryNotification->setTitle(i18n("Battery Critical (%1% Remaining)", percent));
     }
 }
@@ -699,11 +697,6 @@ void Core::onAcAdapterStateChanged(BatteryController::AcAdapterState state)
         if (m_lowBatteryNotification) {
             m_lowBatteryNotification->close();
             m_lowBatteryNotification = nullptr;
-        }
-
-        if (m_criticalBatteryNotification) {
-            m_criticalBatteryNotification->close();
-            m_criticalBatteryNotification = nullptr;
         }
 
         if (m_powerCordUnpluggedNotification) {
@@ -723,6 +716,9 @@ void Core::onAcAdapterStateChanged(BatteryController::AcAdapterState state)
             m_powerCordPluggedInNotification->setTitle(i18n("Running on AC Power"));
             m_powerCordPluggedInNotification->setText(i18n("The power cord has been plugged in."));
         }
+        // This stops the timer, so for the notification we check if it was active before that.
+        cancelCriticalBatteryNotification();
+
         m_powerCordPluggedInNotification->sendEvent();
     } else if (state == BatteryController::Unplugged) {
         if (m_powerCordPluggedInNotification) {
@@ -765,6 +761,8 @@ void Core::onBatteryChargePercentChanged(int percent, const QString &udi)
             // Only refresh status if a notification has actually been emitted
             loadProfile();
         }
+    } else if (currentPercent > previousPercent) {
+        updateBatteryNotifications(currentPercent);
     }
 }
 
@@ -804,10 +802,7 @@ void Core::onBatteryChargeStateChanged(int state, const QString &udi)
 
 void Core::onCriticalBatteryTimerExpired()
 {
-    if (m_criticalBatteryNotification) {
-        m_criticalBatteryNotification->close();
-        m_criticalBatteryNotification = nullptr;
-    }
+    cancelCriticalBatteryNotification();
 
     // Do that only if we're not on AC and battery level is still critical
     if (m_batteryController->acAdapterState() == BatteryController::Unplugged && currentChargePercent() <= m_globalSettings->batteryCriticalLevel()) {
@@ -823,6 +818,15 @@ void Core::triggerCriticalBatteryAction()
         args[QStringLiteral("Type")] = QVariant::fromValue<uint>(m_globalSettings->batteryCriticalAction());
         args[QStringLiteral("Explicit")] = true;
         helperAction->trigger(args);
+    }
+}
+
+void Core::cancelCriticalBatteryNotification()
+{
+    m_criticalBatteryTimer->stop();
+    if (m_criticalBatteryNotification) {
+        m_criticalBatteryNotification->close();
+        m_criticalBatteryNotification = nullptr;
     }
 }
 

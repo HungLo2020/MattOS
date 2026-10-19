@@ -13,7 +13,9 @@
 #include "backends/drm/drm_backend.h"
 #include "core/backendoutput.h"
 #include "core/drmdevice.h"
+#include "core/gpumanager.h"
 #include "core/outputbackend.h"
+#include "core/renderdevice.h"
 #include "core/session.h"
 #include "idle_inhibition.h"
 #include "inputpanelv1integration.h"
@@ -23,13 +25,14 @@
 #include "options.h"
 #include "utils/envvar.h"
 #include "utils/kernel.h"
-#include "utils/serviceutils.h"
 #include "virtualdesktops.h"
 #include "wayland/alphamodifier_v1.h"
 #include "wayland/appmenu.h"
+#include "wayland/backgroundeffect_v1.h"
 #include "wayland/clientconnection.h"
 #include "wayland/colormanagement_v1.h"
 #include "wayland/colorrepresentation_v1.h"
+#include "wayland/commit_timing_v1.h"
 #include "wayland/compositor.h"
 #include "wayland/contenttype_v1.h"
 #include "wayland/cursorshape_v1.h"
@@ -37,14 +40,13 @@
 #include "wayland/datadevicemanager.h"
 #include "wayland/display.h"
 #include "wayland/dpms.h"
-#include "wayland/drmclientbuffer.h"
 #include "wayland/drmlease_v1.h"
 #include "wayland/externalbrightness_v1.h"
 #include "wayland/fifo_v1.h"
 #include "wayland/filtered_display.h"
 #include "wayland/fixes.h"
 #include "wayland/fractionalscale_v1.h"
-#include "wayland/frog_colormanagement_v1.h"
+#include "wayland/fractionalscale_v2.h"
 #include "wayland/idle.h"
 #include "wayland/idleinhibit_v1.h"
 #include "wayland/idlenotify_v1.h"
@@ -126,20 +128,14 @@ public:
     {
     }
 
-    QStringList fetchRequestedInterfaces(ClientConnection *client) const
-    {
-        if (!client->securityContextAppId().isEmpty()) {
-            return KWin::fetchRequestedInterfacesForDesktopId(client->securityContextAppId());
-        }
-        return KWin::fetchRequestedInterfaces(client->executablePath());
-    }
-
-    const QSet<QByteArray> interfacesBlackList = {
+    const QSet<QByteArray> restrictedInterfaces = {
         QByteArrayLiteral("org_kde_plasma_window_management"),
         QByteArrayLiteral("org_kde_kwin_fake_input"),
         QByteArrayLiteral("zkde_screencast_unstable_v1"),
         QByteArrayLiteral("org_kde_plasma_activation_feedback"),
         QByteArrayLiteral("kde_lockscreen_overlay_v1"),
+        QByteArrayLiteral("wp_security_context_manager_v1"),
+        QByteArrayLiteral("ext_data_control_manager_v1"),
     };
 
     const QSet<QByteArray> inputmethodInterfaces = {"zwp_input_panel_v1", "zwp_input_method_v1"};
@@ -148,54 +144,22 @@ public:
         QByteArrayLiteral("xwayland_shell_v1"),
     };
 
-    QSet<QString> m_reported;
-
     bool allowInterface(ClientConnection *client, const QByteArray &interfaceName) override
     {
-        if (!client->securityContextAppId().isEmpty() && interfaceName == QByteArrayLiteral("wp_security_context_manager_v1")) {
-            return false;
-        }
-
-        if (client->processId() == getpid()) {
-            return true;
-        }
-
-        if (client != waylandServer()->inputMethodConnection() && inputmethodInterfaces.contains(interfaceName)) {
-            return false;
-        }
-
         if (client != waylandServer()->xWaylandConnection() && xwaylandInterfaces.contains(interfaceName)) {
             return false;
         }
 
-        if (!interfacesBlackList.contains(interfaceName)) {
+        if (client == waylandServer()->inputMethodConnection()) {
             return true;
+        } else if (inputmethodInterfaces.contains(interfaceName)) {
+            return false;
         }
 
-        static bool permissionCheckDisabled = qEnvironmentVariableIntValue("KWIN_WAYLAND_NO_PERMISSION_CHECKS") == 1;
-        if (!permissionCheckDisabled) {
-            if (client->executablePath().isEmpty()) {
-                qCDebug(KWIN_CORE) << "Could not identify process with pid" << client->processId();
-                return false;
-            }
-            auto requestedInterfaces = client->property("requestedInterfaces");
-            if (requestedInterfaces.isNull()) {
-                requestedInterfaces = fetchRequestedInterfaces(client);
-                client->setProperty("requestedInterfaces", requestedInterfaces);
-            }
-            if (!requestedInterfaces.toStringList().contains(QString::fromUtf8(interfaceName))) {
-                if (KWIN_CORE().isDebugEnabled()) {
-                    const QString id = client->executablePath() + QLatin1Char('|') + QString::fromUtf8(interfaceName);
-                    if (!m_reported.contains(id)) {
-                        m_reported.insert(id);
-                        qCDebug(KWIN_CORE) << "Interface" << interfaceName << "not in X-KDE-Wayland-Interfaces of" << client->executablePath();
-                    }
-                }
-                return false;
-            }
+        if (client->isSandboxed()) {
+            return !restrictedInterfaces.contains(interfaceName);
         }
 
-        qCDebug(KWIN_CORE) << "authorized" << client->executablePath() << interfaceName;
         return true;
     }
 };
@@ -222,6 +186,9 @@ WaylandServer::WaylandServer(QObject *parent)
 
 WaylandServer::~WaylandServer()
 {
+    // Delete the outputs while m_display is still alive.
+    qDeleteAll(m_waylandOutputs);
+    m_waylandOutputs.clear();
     s_self = nullptr;
 }
 
@@ -293,9 +260,6 @@ void WaylandServer::registerXdgGenericWindow(Window *window)
     }
     if (auto popup = qobject_cast<XdgPopupWindow *>(window)) {
         registerWindow(popup);
-        if (auto shellSurface = PlasmaShellSurfaceInterface::get(popup->surface())) {
-            popup->installPlasmaShellSurface(shellSurface);
-        }
         return;
     }
     qCDebug(KWIN_CORE) << "Received invalid xdg shell window:" << window->surface();
@@ -304,15 +268,13 @@ void WaylandServer::registerXdgGenericWindow(Window *window)
 void WaylandServer::handleOutputAdded(BackendOutput *output)
 {
     if (!output->isPlaceholder() && !output->isNonDesktop()) {
-        m_waylandOutputDevices.insert(output, new OutputDeviceV2Interface(m_display, output));
+        m_outputDeviceRegistry->offer(output);
     }
 }
 
 void WaylandServer::handleOutputRemoved(BackendOutput *output)
 {
-    if (auto outputDevice = m_waylandOutputDevices.take(output)) {
-        outputDevice->remove();
-    }
+    m_outputDeviceRegistry->withdraw(output);
 }
 
 void WaylandServer::handleOutputEnabled(LogicalOutput *output)
@@ -380,13 +342,10 @@ bool WaylandServer::init()
     m_tabletManagerV2 = new TabletManagerV2Interface(m_display, m_display);
     m_keyboardShortcutsInhibitManager = new KeyboardShortcutsInhibitManagerV1Interface(m_display, m_display);
 
-    if (qEnvironmentVariableIntValue("KWIN_WAYLAND_SUPPORT_XX_SESSION_MANAGER") == 1) {
-        const int defaultStoreSizeInBytes = 5 * 1024 * 1024;
-        const int expectedSessionSizeInBytes = 512;
-        auto storage = std::make_unique<XdgSessionStorageV1>(QStringLiteral("kwinsession"), defaultStoreSizeInBytes, expectedSessionSizeInBytes);
-
-        new XdgSessionManagerV1Interface(m_display, std::move(storage), m_display);
-    }
+    const int defaultStoreSizeInBytes = 5 * 1024 * 1024;
+    const int expectedSessionSizeInBytes = 512;
+    auto storage = std::make_unique<XdgSessionStorageV1>(QStringLiteral("kwinsession"), defaultStoreSizeInBytes, expectedSessionSizeInBytes);
+    new XdgSessionManagerV1Interface(m_display, std::move(storage), m_display);
 
     m_xdgDecorationManagerV1 = new XdgDecorationManagerV1Interface(m_display, m_display);
     connect(m_xdgDecorationManagerV1, &XdgDecorationManagerV1Interface::decorationCreated, this, [this](XdgToplevelDecorationV1Interface *decoration) {
@@ -394,6 +353,10 @@ bool WaylandServer::init()
             toplevel->installXdgDecoration(decoration);
         }
     });
+
+    if (qEnvironmentVariableIntValue("KWIN_WAYLAND_SUPPORT_XX_FRACTIONAL_SCALE_V2") == 1) {
+        new FractionalScaleManagerV2(m_display, m_display);
+    }
 
     new ViewporterInterface(m_display, m_display);
     new SecurityContextManagerV1Interface(m_display, m_display);
@@ -418,7 +381,7 @@ bool WaylandServer::init()
     new IdleNotifyV1Interface(m_display, m_display);
     m_plasmaShell = new PlasmaShellInterface(m_display, m_display);
     connect(m_plasmaShell, &PlasmaShellInterface::surfaceCreated, this, [this](PlasmaShellSurfaceInterface *surface) {
-        if (XdgSurfaceWindow *window = findXdgSurfaceWindow(surface->surface())) {
+        if (XdgToplevelWindow *window = findXdgToplevelWindow(surface->surface())) {
             window->installPlasmaShellSurface(surface);
         }
     });
@@ -460,8 +423,6 @@ bool WaylandServer::init()
     });
 
     m_virtualDesktopManagement = new PlasmaVirtualDesktopManagementInterface(m_display, m_display);
-    m_windowManagement->setPlasmaVirtualDesktopManagementInterface(m_virtualDesktopManagement);
-
     m_plasmaActivationFeedback = new PlasmaWindowActivationFeedbackInterface(m_display, m_display);
 
     new ShadowManagerInterface(m_display, m_display);
@@ -475,6 +436,7 @@ bool WaylandServer::init()
     });
 
     m_outputManagement = new OutputManagementV2Interface(m_display, m_display);
+    m_outputDeviceRegistry = new OutputDeviceRegistryV2(m_display, m_display);
 
     m_xdgOutputManagerV1 = new XdgOutputManagerV1Interface(m_display, m_display);
     new SubCompositorInterface(m_display, m_display);
@@ -516,7 +478,6 @@ bool WaylandServer::init()
         }
     });
 
-    new FrogColorManagementV1(m_display, m_display);
     new PresentationTime(m_display, m_display);
     m_colorManager = new ColorManagerV1(m_display, m_display);
     m_xdgDialogWm = new KWin::XdgDialogWmV1Interface(m_display, m_display);
@@ -534,17 +495,9 @@ bool WaylandServer::init()
     m_toplevelTag = new XdgToplevelTagManagerV1(m_display, m_display);
     m_colorRepresentation = new ColorRepresentationManagerV1(m_display, m_display);
     m_pointerWarp = new PointerWarpV1(m_display, m_display);
+    m_backgroundEffect = new ExtBackgroundEffectManagerV1(m_display, m_display);
+    m_commitTiming = new CommitTimingManagerV1(m_display, m_display);
     return true;
-}
-
-static const bool s_reenableWlDrm = environmentVariableBoolValue("KWIN_WAYLAND_REENABLE_WL_DRM").value_or(false);
-
-DrmClientBufferIntegration *WaylandServer::drm()
-{
-    if (!m_drm && s_reenableWlDrm) {
-        m_drm = new DrmClientBufferIntegration(m_display);
-    }
-    return m_drm;
 }
 
 LinuxDmaBufV1ClientBufferIntegration *WaylandServer::linuxDmabuf()
@@ -646,6 +599,10 @@ void WaylandServer::initWorkspace()
         m_outputOrder->setOutputOrder(workspace()->outputOrder());
     });
 
+    updateSyncobjSupport();
+    connect(GpuManager::self(), &GpuManager::renderDeviceAdded, this, &WaylandServer::updateSyncobjSupport);
+    connect(GpuManager::self(), &GpuManager::renderDeviceRemoved, this, &WaylandServer::updateSyncobjSupport);
+
     Q_EMIT initialized();
 }
 
@@ -655,10 +612,6 @@ void WaylandServer::initScreenLocker()
     auto *screenLockerApp = ScreenLocker::KSldApp::self();
 
     ScreenLocker::KSldApp::self()->setGreeterEnvironment(kwinApp()->processStartupEnvironment());
-
-    connect(ScreenLocker::KSldApp::self(), &ScreenLocker::KSldApp::aboutToLock, this, [this]() {
-        new LockScreenPresentationWatcher(this);
-    });
 
     connect(ScreenLocker::KSldApp::self(), &ScreenLocker::KSldApp::aboutToStartGreeter, this, [this]() {
         if (m_screenLockerClientConnection) {
@@ -702,6 +655,12 @@ WaylandServer::SocketPairConnection WaylandServer::createConnection()
         return ret;
     }
     ret.connection = m_display->createClient(sx[0]);
+    if (!ret.connection) {
+        close(sx[0]);
+        close(sx[1]);
+        return ret;
+    }
+
     ret.fd = sx[1];
     return ret;
 }
@@ -808,7 +767,7 @@ bool WaylandServer::isScreenLocked() const
     if (!kwinApp()->supportsLockScreen()) {
         return false;
     }
-    return ScreenLocker::KSldApp::self()->lockState() == ScreenLocker::KSldApp::Locked || ScreenLocker::KSldApp::self()->lockState() == ScreenLocker::KSldApp::AcquiringLock;
+    return ScreenLocker::KSldApp::self()->lockState() == ScreenLocker::KSldApp::Locked;
 #else
     return false;
 #endif
@@ -855,20 +814,32 @@ PointerWarpV1 *WaylandServer::pointerWarp() const
     return m_pointerWarp;
 }
 
-void WaylandServer::setRenderBackend(RenderBackend *backend)
+ExtBackgroundEffectManagerV1 *WaylandServer::backgroundEffectManager() const
 {
-    if (backend->drmDevice()->supportsSyncObjTimelines()) {
+    return m_backgroundEffect;
+}
+
+void WaylandServer::updateSyncobjSupport()
+{
+    const auto &devices = GpuManager::self()->renderDevices();
+    const auto it = std::ranges::find_if(devices, [](const auto &device) {
+        return device->drmDevice()
+            && device->drmDevice()->supportsSyncObjTimelines();
+    });
+    if (it != devices.end()) {
         // ensure the DRM_IOCTL_SYNCOBJ_EVENTFD ioctl is supported
         const auto linuxVersion = linuxKernelVersion();
-        if (linuxVersion.majorVersion() < 6 && linuxVersion.minorVersion() < 6) {
+        if (linuxVersion < Version(6, 6)) {
             return;
         }
         // also ensure the implementation isn't totally broken, see https://lists.freedesktop.org/archives/dri-devel/2024-January/439101.html
         if (linuxVersion.majorVersion() == 6 && (linuxVersion.minorVersion() == 7 || (linuxVersion.minorVersion() == 6 && linuxVersion.patchVersion() < 19))) {
             return;
         }
-        if (!m_linuxDrmSyncObj) {
-            m_linuxDrmSyncObj = new LinuxDrmSyncObjV1Interface(m_display, m_display, backend->drmDevice());
+        if (m_linuxDrmSyncObj) {
+            m_linuxDrmSyncObj->setDrmDevice((*it)->drmDevice());
+        } else {
+            m_linuxDrmSyncObj = new LinuxDrmSyncObjV1Interface(m_display, m_display, (*it)->drmDevice());
         }
     } else if (m_linuxDrmSyncObj) {
         m_linuxDrmSyncObj->remove();
@@ -876,33 +847,6 @@ void WaylandServer::setRenderBackend(RenderBackend *backend)
     }
 }
 
-#if KWIN_BUILD_SCREENLOCKER
-WaylandServer::LockScreenPresentationWatcher::LockScreenPresentationWatcher(WaylandServer *server)
-{
-    connect(ScreenLocker::KSldApp::self(), &ScreenLocker::KSldApp::unlocked, this, [this] {
-        delete this;
-    });
-    connect(server, &WaylandServer::windowAdded, this, [this](Window *window) {
-        if (window->isLockScreen()) {
-            // only signal lockScreenShown once all outputs have been presented at least once
-            connect(window->output()->backendOutput()->renderLoop(), &RenderLoop::framePresented, this, [this, windowGuard = QPointer(window)]() {
-                // window might be destroyed before a frame is presented, so it's wrapped in QPointer
-                if (windowGuard) {
-                    m_signaledOutputs << windowGuard->output();
-                    if (m_signaledOutputs.size() == workspace()->outputs().size()) {
-                        ScreenLocker::KSldApp::self()->lockScreenShown();
-                        delete this;
-                    }
-                }
-            });
-        }
-    });
-    QTimer::singleShot(1000, this, [this]() {
-        ScreenLocker::KSldApp::self()->lockScreenShown();
-        delete this;
-    });
-}
-#endif
 }
 
 #include "moc_wayland_server.cpp"

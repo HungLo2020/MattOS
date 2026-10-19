@@ -4,9 +4,12 @@
 #include <errno.h>
 
 #include <QDebug>
+#include "qqnxglobal.h"
 #include "qqnxintegration.h"
 
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(lcQpaQnx, "qt.qpa.qnx");
 
 void qScreenCheckError(int rc, const char *funcInfo, const char *message, bool critical)
 {

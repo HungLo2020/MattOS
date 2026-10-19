@@ -374,9 +374,10 @@ struct Q_QMLCOMPILER_EXPORT QQmlJSUtils
             act(begin->scope, begin->extensionSpecifier);
     }
 
-    static std::optional<QQmlJSFixSuggestion> didYouMean(const QString &userInput,
-                                                   QStringList candidates,
-                                                   QQmlJS::SourceLocation location);
+
+    static std::optional<QQmlJSFixSuggestion> didYouMean(
+            const QString &userInput, QStringList candidates, const QString &filename,
+            const QQmlJS::SourceLocation &location);
 
     static std::variant<QString, QQmlJS::DiagnosticMessage>
     sourceDirectoryPath(const QQmlJSImporter *importer, const QString &buildDirectoryPath);

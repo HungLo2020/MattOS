@@ -127,6 +127,31 @@ private:
     QString m_message;
 };
 
+class MultipleDocumentEditsFixSuggestionTest : public QQmlSA::ElementPass
+{
+public:
+    MultipleDocumentEditsFixSuggestionTest(QQmlSA::PassManager *manager)
+        : QQmlSA::ElementPass(manager)
+    {
+    }
+
+    bool shouldRun(const QQmlSA::Element &element) override
+    {
+        return element.baseTypeName() == "MultipleDocumentEditsFixSuggestion"_L1;
+    }
+
+    void run(const QQmlSA::Element &element) override
+    {
+        QList<QQmlSA::DocumentEdit> edits{
+            { element.filePath(), element.sourceLocation(), "NewTypeName"_L1 },
+            { element.filePath(), QQmlSA::SourceLocation::documentOrigin(), "pragma Yep\n" }
+        };
+        QQmlSA::FixSuggestion fix("Rename and add pragma"_L1, element.sourceLocation(), edits);
+        fix.setAutoApplicable(true);
+        emitWarning("Multiple document edits"_L1, plugin, element.sourceLocation(), fix);
+    }
+};
+
 void LintPlugin::registerPasses(QQmlSA::PassManager *manager, const QQmlSA::Element &rootElement)
 {
     if (!rootElement.filePath().endsWith(u"_pluginTest.qml"))
@@ -157,4 +182,6 @@ void LintPlugin::registerPasses(QQmlSA::PassManager *manager, const QQmlSA::Elem
                     manager, "QtQuick.Controls and NO QtQuick present"));
         }
     }
+
+    manager->registerElementPass(std::make_unique<MultipleDocumentEditsFixSuggestionTest>(manager));
 }

@@ -4,7 +4,7 @@
 #include "qvideoframe.h"
 #include "qgrabwindowsurfacecapture_p.h"
 #include "qscreencapture.h"
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 
 #include "private/qimagevideobuffer_p.h"
 #include "private/qcapturablewindow_p.h"
@@ -32,7 +32,7 @@ using WindowUPtr = std::unique_ptr<QWindow>;
 
 } // namespace
 
-class QGrabWindowSurfaceCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
+class QGrabWindowSurfaceCapture::Grabber : public QSurfaceCaptureGrabber
 {
 public:
     Grabber(QGrabWindowSurfaceCapture &capture, QScreen *screen) : Grabber(capture, screen, nullptr)
@@ -62,17 +62,20 @@ public:
 
 private:
     Grabber(QGrabWindowSurfaceCapture &capture, QScreen *screen, WindowUPtr window)
-        : QFFmpegSurfaceCaptureGrabber(
+        : QSurfaceCaptureGrabber(
                 QGuiApplication::platformName() == QLatin1String("eglfs")
-                        ? QFFmpegSurfaceCaptureGrabber::UseCurrentThread
-                        : QFFmpegSurfaceCaptureGrabber::CreateGrabbingThread),
-          m_capture(capture),
+                        ? QSurfaceCaptureGrabber::UseCurrentThread
+                        : QSurfaceCaptureGrabber::CreateGrabbingThread),
           m_screen(screen),
           m_window(std::move(window))
     {
         connect(qApp, &QGuiApplication::screenRemoved, this, &Grabber::onScreenRemoved);
-        addFrameCallback(m_capture, &QGrabWindowSurfaceCapture::newVideoFrame);
-        connect(this, &Grabber::errorUpdated, &m_capture, &QGrabWindowSurfaceCapture::updateError);
+        addFrameCallback(&capture, &QGrabWindowSurfaceCapture::newVideoFrame);
+        connect(this, &Grabber::errorUpdated, &capture, &QGrabWindowSurfaceCapture::updateError);
+
+        const auto defaultRate = screen ? qMin(screen->refreshRate(), DefaultScreenCaptureFrameRate)
+                                        : DefaultScreenCaptureFrameRate;
+        setFrameRate(capture.frameRate().value_or(defaultRate));
     }
 
     void onScreenRemoved(QScreen *screen)
@@ -131,11 +134,9 @@ private:
         QScreen *screen = m_window ? m_window->screen() : m_screen ? m_screen.data() : nullptr;
 
         if (!screen) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed, u"Screen not found"_s);
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed, u"Screen not found"_s);
             return {};
         }
-
-        setFrameRate(screen->refreshRate());
 
         QPixmap p = screen->grabWindow(wid);
         auto buffer = std::make_unique<QImageVideoBuffer>(p.toImage());
@@ -143,11 +144,11 @@ private:
 
         QVideoFrameFormat format(img.size(),
                                  QVideoFrameFormat::pixelFormatFromImageFormat(img.format()));
-        format.setStreamFrameRate(screen->refreshRate());
+        format.setStreamFrameRate(frameRate());
         updateFormat(format);
 
         if (!format.isValid()) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         u"Failed to grab the screen content"_s);
             return {};
         }
@@ -156,7 +157,6 @@ private:
     }
 
 private:
-    QGrabWindowSurfaceCapture &m_capture;
     QPointer<QScreen> m_screen;
     WindowUPtr m_window;
 
@@ -212,14 +212,14 @@ void QGrabWindowSurfaceCapture::activate(const WindowSource& window)
     auto wid = handle ? handle->id : 0;
     if (auto wnd = WindowUPtr(QWindow::fromWinId(wid))) {
         if (!wnd->screen()) {
-            updateError(InternalError,
+            updateError(QPlatformSurfaceCapture::Error::InternalError,
                         u"Window " + QString::number(wid) + u" doesn't belong to any screen");
         } else {
             m_grabber = std::make_unique<Grabber>(*this, std::move(wnd));
             m_grabber->start();
         }
     } else {
-        updateError(NotFound,
+        updateError(QPlatformSurfaceCapture::Error::NotFound,
                     u"Window " + QString::number(wid) + u"doesn't exist or permissions denied");
     }
 }

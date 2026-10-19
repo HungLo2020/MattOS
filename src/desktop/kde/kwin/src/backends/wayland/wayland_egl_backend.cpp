@@ -11,6 +11,7 @@
 #include "wayland_egl_backend.h"
 #include "core/drmdevice.h"
 #include "core/gbmgraphicsbufferallocator.h"
+#include "core/renderdevice.h"
 #include "opengl/eglswapchain.h"
 #include "opengl/glrendertimequery.h"
 #include "opengl/glutils.h"
@@ -52,7 +53,7 @@ GLFramebuffer *WaylandEglLayer::fbo() const
     return m_buffer->framebuffer();
 }
 
-std::optional<OutputLayerBeginFrameInfo> WaylandEglLayer::doBeginFrame()
+std::optional<OutputLayerBeginFrameInfo> WaylandEglLayer::beginFrame(OutputFrame *frame)
 {
     if (!m_backend->openglContext()->makeCurrent()) {
         qCCritical(KWIN_WAYLAND_BACKEND) << "Make Context Current failed";
@@ -66,14 +67,21 @@ std::optional<OutputLayerBeginFrameInfo> WaylandEglLayer::doBeginFrame()
 
     const QSize nativeSize = targetRect().size();
     if (!m_swapchain || m_swapchain->size() != nativeSize) {
-        const QHash<uint32_t, QList<uint64_t>> formatTable = m_backend->backend()->display()->linuxDmabuf()->formats();
+        const FormatModifierMap formatTable = m_backend->backend()->display()->linuxDmabuf()->formats();
         const auto suitableFormats = filterAndSortFormats(formatTable, m_requiredAlphaBits, m_output->colorPowerTradeoff());
         for (const auto &candidate : suitableFormats) {
             auto it = formatTable.constFind(candidate.drmFormat);
             if (it == formatTable.constEnd()) {
                 continue;
             }
-            m_swapchain = EglSwapchain::create(m_backend->drmDevice()->allocator(), m_backend->openglContext(), nativeSize, it.key(), it.value());
+            GraphicsBufferOptions options{
+                .size = nativeSize,
+                .format = it.key(),
+                .modifiers = it.value(),
+                .software = false,
+                .scanout = false,
+            };
+            m_swapchain = EglSwapchain::create(m_backend->renderDevice(), options);
             if (m_swapchain) {
                 break;
             }
@@ -89,49 +97,59 @@ std::optional<OutputLayerBeginFrameInfo> WaylandEglLayer::doBeginFrame()
         return std::nullopt;
     }
 
+    // The picture is composed for the display as the user sees it, while the buffer has the
+    // size the panel is driven at, so a rotated display has to be turned on the way in. The
+    // journal is about where things changed, and after a turn its entries describe somewhere
+    // else entirely.
+    const OutputTransform contentTransform = bufferTransform().combine(OutputTransform::FlipY);
+    if (m_buffer->framebuffer()->colorAttachment()->contentTransform() != contentTransform) {
+        m_damageJournal.clear();
+    }
+    m_buffer->framebuffer()->colorAttachment()->setContentTransform(contentTransform);
+
     const Region repair = bufferAgeEnabled ? m_damageJournal.accumulate(m_buffer->age(), Region::infinite()) : Region::infinite();
-    m_query = std::make_unique<GLRenderTimeQuery>(m_backend->openglContextRef());
-    m_query->begin();
+    m_query = GLRenderTimeQuery::begin(m_backend->openglContextRef());
     return OutputLayerBeginFrameInfo{
         .renderTarget = RenderTarget(m_buffer->framebuffer(), m_color),
         .repaint = repair,
     };
 }
 
-bool WaylandEglLayer::doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame)
+bool WaylandEglLayer::endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame)
 {
-    m_query->end();
-    frame->addRenderTimeQuery(std::move(m_query));
+    if (frame && m_query) {
+        m_query->end();
+        frame->addRenderTimeQuery(std::move(m_query));
+    }
     // Flush rendering commands to the dmabuf.
     glFlush();
     EGLNativeFence releaseFence{m_backend->eglDisplayObject()};
 
-    setBuffer(m_backend->backend()->importBuffer(m_buffer->buffer()), damagedDeviceRegion);
+    // The damage is where the picture changed, and the picture is composed the way the user
+    // sees it. What the host reads is the buffer, which a rotated display fills turned, so
+    // the region has to be turned with it - the journal stays in the picture's own
+    // coordinates, because that is what it is compared against next time.
+    const auto mapping = m_buffer->framebuffer()->colorAttachment()->contentTransform().combine(OutputTransform::FlipY);
+    const QSize pictureSize = mapping.map(m_swapchain->size());
+    setBuffer(m_buffer->buffer(), mapping.map(damagedDeviceRegion & Rect(QPoint(), pictureSize), pictureSize));
     m_swapchain->release(m_buffer, releaseFence.takeFileDescriptor());
 
     m_damageJournal.add(damagedDeviceRegion);
     return true;
 }
 
+bool WaylandEglLayer::earlyScanoutChecks()
+{
+    return test();
+}
+
 bool WaylandEglLayer::importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_ptr<OutputFrame> &frame)
 {
-    if (!test()) {
-        return false;
-    }
-    auto presentationBuffer = m_backend->backend()->importBuffer(buffer);
-    if (!presentationBuffer) {
-        return false;
-    }
-    setBuffer(presentationBuffer, Region::infinite());
+    setBuffer(buffer, Region::infinite());
     return true;
 }
 
-DrmDevice *WaylandEglLayer::scanoutDevice() const
-{
-    return m_backend->drmDevice();
-}
-
-QHash<uint32_t, QList<uint64_t>> WaylandEglLayer::supportedDrmFormats() const
+FormatModifierMap WaylandEglLayer::supportedDrmFormats() const
 {
     return m_backend->backend()->display()->linuxDmabuf()->formats();
 }
@@ -150,10 +168,10 @@ WaylandEglCursorLayer::WaylandEglCursorLayer(WaylandOutput *output, WaylandEglBa
 
 WaylandEglCursorLayer::~WaylandEglCursorLayer()
 {
-    m_backend->openglContext()->makeCurrent();
+    (void)m_backend->openglContext()->makeCurrent();
 }
 
-std::optional<OutputLayerBeginFrameInfo> WaylandEglCursorLayer::doBeginFrame()
+std::optional<OutputLayerBeginFrameInfo> WaylandEglCursorLayer::beginFrame(OutputFrame *frame)
 {
     if (!m_backend->openglContext()->makeCurrent()) {
         qCCritical(KWIN_WAYLAND_BACKEND) << "Make Context Current failed";
@@ -162,14 +180,21 @@ std::optional<OutputLayerBeginFrameInfo> WaylandEglCursorLayer::doBeginFrame()
 
     const auto bufferSize = targetRect().size();
     if (!m_swapchain || m_swapchain->size() != bufferSize) {
-        const QHash<uint32_t, QList<uint64_t>> formatTable = m_backend->backend()->display()->linuxDmabuf()->formats();
+        const FormatModifierMap formatTable = m_backend->backend()->display()->linuxDmabuf()->formats();
         const auto suitableFormats = filterAndSortFormats(formatTable, m_requiredAlphaBits, m_output->colorPowerTradeoff());
         for (const auto &candidate : suitableFormats) {
             auto it = formatTable.constFind(candidate.drmFormat);
             if (it == formatTable.constEnd()) {
                 continue;
             }
-            m_swapchain = EglSwapchain::create(m_backend->drmDevice()->allocator(), m_backend->openglContext(), bufferSize, it.key(), it.value());
+            GraphicsBufferOptions options{
+                .size = bufferSize,
+                .format = it.key(),
+                .modifiers = it.value(),
+                .software = false,
+                .scanout = false,
+            };
+            m_swapchain = EglSwapchain::create(m_backend->renderDevice(), options);
             if (m_swapchain) {
                 break;
             }
@@ -184,18 +209,21 @@ std::optional<OutputLayerBeginFrameInfo> WaylandEglCursorLayer::doBeginFrame()
         return std::nullopt;
     }
 
-    m_query = std::make_unique<GLRenderTimeQuery>(m_backend->openglContextRef());
-    m_query->begin();
+    // The hotspot is handed over turned with the display, so the picture it points into has
+    // to be turned as well - and on a rotated screen the cursor has to stand upright anyway.
+    m_buffer->framebuffer()->colorAttachment()->setContentTransform(bufferTransform().combine(OutputTransform::FlipY));
+
+    m_query = GLRenderTimeQuery::begin(m_backend->openglContextRef());
     return OutputLayerBeginFrameInfo{
         .renderTarget = RenderTarget(m_buffer->framebuffer()),
         .repaint = Region::infinite(),
     };
 }
 
-bool WaylandEglCursorLayer::doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame)
+bool WaylandEglCursorLayer::endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame)
 {
-    m_query->end();
-    if (frame) {
+    if (frame && m_query) {
+        m_query->end();
         frame->addRenderTimeQuery(std::move(m_query));
     }
     // Flush rendering commands to the dmabuf.
@@ -211,12 +239,7 @@ bool WaylandEglCursorLayer::doEndFrame(const Region &renderedDeviceRegion, const
     return true;
 }
 
-DrmDevice *WaylandEglCursorLayer::scanoutDevice() const
-{
-    return m_backend->drmDevice();
-}
-
-QHash<uint32_t, QList<uint64_t>> WaylandEglCursorLayer::supportedDrmFormats() const
+FormatModifierMap WaylandEglCursorLayer::supportedDrmFormats() const
 {
     return m_backend->supportedFormats();
 }
@@ -227,8 +250,9 @@ void WaylandEglCursorLayer::releaseBuffers()
     m_swapchain.reset();
 }
 
-WaylandEglBackend::WaylandEglBackend(WaylandBackend *b)
-    : m_backend(b)
+WaylandEglBackend::WaylandEglBackend(WaylandBackend *b, RenderDevice *device)
+    : EglBackend(device)
+    , m_backend(b)
 {
     connect(m_backend, &WaylandBackend::outputAdded, this, &WaylandEglBackend::createOutputLayers);
 
@@ -237,25 +261,16 @@ WaylandEglBackend::WaylandEglBackend(WaylandBackend *b)
 
 WaylandEglBackend::~WaylandEglBackend()
 {
+    const auto outputs = m_backend->outputs();
+    for (BackendOutput *output : outputs) {
+        static_cast<WaylandOutput *>(output)->setOutputLayers({});
+    }
     cleanup();
 }
 
 WaylandBackend *WaylandEglBackend::backend() const
 {
     return m_backend;
-}
-
-DrmDevice *WaylandEglBackend::drmDevice() const
-{
-    return m_backend->drmDevice();
-}
-
-void WaylandEglBackend::cleanupSurfaces()
-{
-    const auto outputs = m_backend->outputs();
-    for (BackendOutput *output : outputs) {
-        static_cast<WaylandOutput *>(output)->setOutputLayers({});
-    }
 }
 
 void WaylandEglBackend::createOutputLayers(BackendOutput *output)
@@ -274,46 +289,23 @@ void WaylandEglBackend::createOutputLayers(BackendOutput *output)
     waylandOutput->setOutputLayers(std::move(layers));
 }
 
-bool WaylandEglBackend::initializeEgl()
+bool WaylandEglBackend::init()
 {
-    initClientExtensions();
-
-    if (!m_backend->sceneEglDisplayObject()) {
-        for (const QByteArray &extension : {QByteArrayLiteral("EGL_EXT_platform_base"), QByteArrayLiteral("EGL_KHR_platform_gbm")}) {
-            if (!hasClientExtension(extension)) {
-                qCWarning(KWIN_WAYLAND_BACKEND) << extension << "client extension is not supported by the platform";
-                return false;
-            }
-        }
-
-        m_backend->setEglDisplay(EglDisplay::create(eglGetPlatformDisplayEXT(EGL_PLATFORM_GBM_KHR, m_backend->drmDevice()->gbmDevice(), nullptr)));
-    }
-
-    const auto display = m_backend->sceneEglDisplayObject();
-    if (!display) {
+    if (!initClientExtensions()) {
+        qCWarning(KWIN_WAYLAND_BACKEND, "Could not initialize egl");
         return false;
     }
-    setEglDisplay(display);
-    return true;
-}
-
-void WaylandEglBackend::init()
-{
-    if (!initializeEgl()) {
-        setFailed("Could not initialize egl");
-        return;
-    }
     if (!initRenderingContext()) {
-        setFailed("Could not initialize rendering context");
-        return;
+        qCWarning(KWIN_WAYLAND_BACKEND, "Could not initialize rendering context");
+        return false;
     }
-
     initWayland();
+    return true;
 }
 
 bool WaylandEglBackend::initRenderingContext()
 {
-    if (!createContext(EGL_NO_CONFIG_KHR)) {
+    if (!createContext()) {
         return false;
     }
 

@@ -114,9 +114,6 @@ QWidgetTextControlPrivate::QWidgetTextControlPrivate()
       acceptRichText(true),
       preeditCursor(0), hideCursor(false),
       hasFocus(false),
-#ifdef QT_KEYPAD_NAVIGATION
-      hasEditFocus(false),
-#endif
       isEnabled(true),
       hadSelectionOnMousePress(false),
       ignoreUnusedNavigationEvents(false),
@@ -265,16 +262,8 @@ bool QWidgetTextControlPrivate::cursorMoveKeyEvent(QKeyEvent *e)
     q->ensureCursorVisible();
 
     bool ignoreNavigationEvents = ignoreUnusedNavigationEvents;
-    bool isNavigationEvent = e->key() == Qt::Key_Up || e->key() == Qt::Key_Down;
-
-#ifdef QT_KEYPAD_NAVIGATION
-    ignoreNavigationEvents = ignoreNavigationEvents || QApplicationPrivate::keypadNavigationEnabled();
-    isNavigationEvent = isNavigationEvent ||
-                        (QApplication::navigationMode() == Qt::NavigationModeKeypadDirectional
-                         && (e->key() == Qt::Key_Left || e->key() == Qt::Key_Right));
-#else
-    isNavigationEvent = isNavigationEvent || e->key() == Qt::Key_Left || e->key() == Qt::Key_Right;
-#endif
+    bool isNavigationEvent = e->key() == Qt::Key_Up || e->key() == Qt::Key_Down ||
+                             e->key() == Qt::Key_Left || e->key() == Qt::Key_Right;
 
     if (moved) {
         if (cursor.position() != oldCursorPos)
@@ -1161,13 +1150,6 @@ void QWidgetTextControl::processEvent(QEvent *e, const QTransform &transform, QW
                 ev->accept();
             break; }
 #endif // QT_CONFIG(graphicsview)
-#ifdef QT_KEYPAD_NAVIGATION
-        case QEvent::EnterEditFocus:
-        case QEvent::LeaveEditFocus:
-            if (QApplicationPrivate::keypadNavigationEnabled())
-                d->editFocusEvent(e);
-            break;
-#endif
         case QEvent::ShortcutOverride:
             if (d->interactionFlags & Qt::TextEditable) {
                 QKeyEvent* ke = static_cast<QKeyEvent *>(e);
@@ -1248,11 +1230,7 @@ void QWidgetTextControlPrivate::keyPressEvent(QKeyEvent *e)
 
     if (interactionFlags & Qt::LinksAccessibleByKeyboard) {
         if ((e->key() == Qt::Key_Return
-             || e->key() == Qt::Key_Enter
-#ifdef QT_KEYPAD_NAVIGATION
-             || e->key() == Qt::Key_Select
-#endif
-             )
+             || e->key() == Qt::Key_Enter)
             && cursor.hasSelection()) {
 
             e->accept();
@@ -1888,7 +1866,17 @@ void QWidgetTextControlPrivate::mouseDoubleClickEvent(QEvent *e, Qt::MouseButton
             cursor.select(QTextCursor::WordUnderCursor);
             doEmit = true;
         }
-        repaintOldAndNewSelection(oldSelection);
+        if (!cursorIsFocusIndicator)
+            repaintOldAndNewSelection(oldSelection);
+        else {
+            // When the focus indicator is active (link selected with outline style),
+            // we need to repaint the entire old and new selection areas rather than
+            // just the difference. The visual style changes from outline to background
+            // highlight, but repaintOldAndNewSelection's optimization would skip the
+            // repaint when the text range is unchanged.
+            emit q->updateRequest(q->selectionRect(oldSelection));
+            repaintSelection();
+        }
 
         cursorIsFocusIndicator = false;
         selectedWordOnDoubleClick = cursor;
@@ -2256,16 +2244,10 @@ void QWidgetTextControlPrivate::focusEvent(QFocusEvent *e)
     Q_Q(QWidgetTextControl);
     emit q->updateRequest(q->selectionRect());
     if (e->gotFocus()) {
-#ifdef QT_KEYPAD_NAVIGATION
-        if (!QApplicationPrivate::keypadNavigationEnabled() || (hasEditFocus && (e->reason() == Qt::PopupFocusReason))) {
-#endif
         cursorOn = (interactionFlags & (Qt::TextSelectableByKeyboard | Qt::TextEditable));
         if (interactionFlags & Qt::TextEditable) {
             setCursorVisible(true);
         }
-#ifdef QT_KEYPAD_NAVIGATION
-        }
-#endif
     } else {
         setCursorVisible(false);
         cursorOn = false;
@@ -2294,33 +2276,6 @@ QString QWidgetTextControlPrivate::anchorForCursor(const QTextCursor &anchorCurs
     return QString();
 }
 
-#ifdef QT_KEYPAD_NAVIGATION
-void QWidgetTextControlPrivate::editFocusEvent(QEvent *e)
-{
-    Q_Q(QWidgetTextControl);
-
-    if (QApplicationPrivate::keypadNavigationEnabled()) {
-        if (e->type() == QEvent::EnterEditFocus && interactionFlags & Qt::TextEditable) {
-            const QTextCursor oldSelection = cursor;
-            const int oldCursorPos = cursor.position();
-            const bool moved = cursor.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
-            q->ensureCursorVisible();
-            if (moved) {
-                if (cursor.position() != oldCursorPos)
-                    emit q->cursorPositionChanged();
-                emit q->microFocusChanged();
-            }
-            selectionChanged();
-            repaintOldAndNewSelection(oldSelection);
-
-            setBlinkingCursorEnabled(true);
-        } else
-            setBlinkingCursorEnabled(false);
-    }
-
-    hasEditFocus = e->type() == QEvent::EnterEditFocus;
-}
-#endif
 
 #ifndef QT_NO_CONTEXTMENU
 void setActionIcon(QAction *action, const QString &name)
@@ -2629,8 +2584,15 @@ void QWidgetTextControl::moveCursor(QTextCursor::MoveOperation op, QTextCursor::
 bool QWidgetTextControl::canPaste() const
 {
 #ifndef QT_NO_CLIPBOARD
-    Q_D(const QWidgetTextControl);
-    if (d->interactionFlags & Qt::TextEditable) {
+    const bool isEditable = d_func()->interactionFlags & Qt::TextEditable;
+#if defined(Q_OS_WASM)
+    // The web platform provides no synchronous, permission-free way to inspect the
+    // clipboard, so canPaste() cannot know whether pasteable data exists. Enable
+    // unconditionally for editable text controls and make paste menu items available
+    // to the user.
+    return isEditable;
+#endif
+    if (isEditable) {
         const QMimeData *md = QGuiApplication::clipboard()->mimeData();
         return md && canInsertFromMimeData(md);
     }
@@ -3369,9 +3331,6 @@ QAbstractTextDocumentLayout::PaintContext QWidgetTextControl::getPaintContext(QW
 
     if (!d->dndFeedbackCursor.isNull())
         ctx.cursorPosition = d->dndFeedbackCursor.position();
-#ifdef QT_KEYPAD_NAVIGATION
-    if (!QApplicationPrivate::keypadNavigationEnabled() || d->hasEditFocus)
-#endif
     if (d->cursor.hasSelection()) {
         QAbstractTextDocumentLayout::Selection selection;
         selection.cursor = d->cursor;

@@ -17,6 +17,7 @@
 #include <QPushButton>
 #include <QScrollBar>
 #include <QScroller>
+#include <QScrollerProperties>
 #include <QSignalSpy>
 #include <QSortFilterProxyModel>
 #include <QSpinBox>
@@ -28,6 +29,7 @@
 #include <QTreeWidget>
 #include <QTest>
 #include <QVBoxLayout>
+#include <QtMath>
 #include <QtTest/private/qtesthelpers_p.h>
 #include <private/qabstractitemview_p.h>
 #include <QtWidgets/private/qapplication_p.h>
@@ -85,16 +87,6 @@ private slots:
     void pressClosesReleaseDoesntOpenEditor();
     void setItemDelegate();
     void setItemDelegate_data();
-    // The dragAndDrop() test doesn't work, and is thus disabled on Mac and Windows
-    // for the following reasons:
-    //   Mac: use of GetCurrentEventButtonState() in QDragManager::drag()
-    //   Win: unknown reason
-#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
-#if 0
-    void dragAndDrop();
-    void dragAndDropOnChild();
-#endif
-#endif
     void noFallbackToRoot();
     void setCurrentIndex_data();
     void setCurrentIndex();
@@ -151,6 +143,7 @@ private slots:
     void inputMethodOpensEditor();
     void selectionAutoScrolling_data();
     void selectionAutoScrolling();
+    void autoScrollStopsOnMouseRelease();
     void testSpinBoxAsEditor_data();
     void testSpinBoxAsEditor();
     void removeIndexWhileEditing();
@@ -774,225 +767,6 @@ void tst_QAbstractItemView::pressClosesReleaseDoesntOpenEditor()
 }
 
 
-#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
-
-#if 0
-
-static void sendMouseMove(QWidget *widget, QPoint pos = QPoint())
-{
-    if (pos.isNull())
-        pos = widget->rect().center();
-    QMouseEvent event(QEvent::MouseMove, pos, widget->mapToGlobal(pos), Qt::NoButton, 0, 0);
-    QCursor::setPos(widget->mapToGlobal(pos));
-    qApp->processEvents();
-    QVERIFY(QTest::qWaitForWindowExposed(widget));
-    QApplication::sendEvent(widget, &event);
-}
-
-static void sendMousePress(
-    QWidget *widget, QPoint pos = QPoint(), Qt::MouseButton button = Qt::LeftButton)
-{
-    if (pos.isNull())
-         pos = widget->rect().center();
-    QMouseEvent event(QEvent::MouseButtonPress, pos, widget->mapToGlobal(pos), button, 0, 0);
-    QApplication::sendEvent(widget, &event);
-}
-
-static void sendMouseRelease(
-    QWidget *widget, QPoint pos = QPoint(), Qt::MouseButton button = Qt::LeftButton)
-{
-    if (pos.isNull())
-         pos = widget->rect().center();
-    QMouseEvent event(QEvent::MouseButtonRelease, pos, widget->mapToGlobal(pos), button, 0, 0);
-    QApplication::sendEvent(widget, &event);
-}
-
-class DnDTestModel : public QStandardItemModel
-{
-    Q_OBJECT
-    bool dropMimeData(const QMimeData *md, Qt::DropAction action, int r, int c, const QModelIndex &p)
-    {
-        dropAction_result = action;
-        QStandardItemModel::dropMimeData(md, action, r, c, p);
-        return true;
-    }
-    Qt::DropActions supportedDropActions() const { return Qt::CopyAction | Qt::MoveAction; }
-
-    Qt::DropAction dropAction_result;
-public:
-    DnDTestModel() : QStandardItemModel(20, 20), dropAction_result(Qt::IgnoreAction) {
-        for (int i = 0; i < rowCount(); ++i)
-            setData(index(i, 0), QString::number(i));
-    }
-    Qt::DropAction dropAction() const { return dropAction_result; }
-};
-
-class DnDTestView : public QTreeView
-{
-    Q_OBJECT
-
-    QPoint dropPoint;
-    Qt::DropAction dropAction;
-
-    void dragEnterEvent(QDragEnterEvent *event)
-    {
-        QAbstractItemView::dragEnterEvent(event);
-    }
-
-    void dropEvent(QDropEvent *event)
-    {
-        event->setDropAction(dropAction);
-        QTreeView::dropEvent(event);
-    }
-
-    void timerEvent(QTimerEvent *event)
-    {
-        killTimer(event->timerId());
-        sendMouseMove(this, dropPoint);
-        sendMouseRelease(this);
-    }
-
-    void mousePressEvent(QMouseEvent *e)
-    {
-        QTreeView::mousePressEvent(e);
-
-        startTimer(0);
-        setState(DraggingState);
-        startDrag(dropAction);
-    }
-
-public:
-    DnDTestView(Qt::DropAction dropAction, QAbstractItemModel *model)
-        : dropAction(dropAction)
-    {
-        header()->hide();
-        setModel(model);
-        setDragDropMode(QAbstractItemView::DragDrop);
-        setAcceptDrops(true);
-        setDragEnabled(true);
-    }
-
-    void dragAndDrop(QPoint drag, QPoint drop)
-    {
-        dropPoint = drop;
-        setCurrentIndex(indexAt(drag));
-        sendMousePress(viewport(), drag);
-    }
-};
-
-class DnDTestWidget : public QWidget
-{
-    Q_OBJECT
-
-    Qt::DropAction dropAction_request;
-    Qt::DropAction dropAction_result;
-    QWidget *dropTarget;
-
-    void timerEvent(QTimerEvent *event)
-    {
-        killTimer(event->timerId());
-        sendMouseMove(dropTarget);
-        sendMouseRelease(dropTarget);
-    }
-
-    void mousePressEvent(QMouseEvent *)
-    {
-        QDrag *drag = new QDrag(this);
-        QMimeData *mimeData = new QMimeData;
-        mimeData->setData("application/x-qabstractitemmodeldatalist", QByteArray(""));
-        drag->setMimeData(mimeData);
-        startTimer(0);
-        dropAction_result = drag->start(dropAction_request);
-    }
-
-public:
-    Qt::DropAction dropAction() const { return dropAction_result; }
-
-    void dragAndDrop(QWidget *dropTarget, Qt::DropAction dropAction)
-    {
-        this->dropTarget = dropTarget;
-        dropAction_request = dropAction;
-        sendMousePress(this);
-    }
-};
-
-void tst_QAbstractItemView::dragAndDrop()
-{
-    // From Task 137729
-
-
-    const int attempts = 10;
-    int successes = 0;
-    for (int i = 0; i < attempts; ++i) {
-        Qt::DropAction dropAction = Qt::MoveAction;
-
-        DnDTestModel model;
-        DnDTestView view(dropAction, &model);
-        DnDTestWidget widget;
-
-        const int size = 200;
-        widget.setFixedSize(size, size);
-        view.setFixedSize(size, size);
-
-        widget.move(0, 0);
-        view.move(int(size * 1.5), int(size * 1.5));
-
-        widget.show();
-        view.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&widget));
-        QVERIFY(QTest::qWaitForWindowExposed(&view));
-
-        widget.dragAndDrop(&view, dropAction);
-        if (model.dropAction() == dropAction
-            && widget.dropAction() == dropAction)
-            ++successes;
-    }
-
-    if (successes < attempts) {
-        QString msg = QString("# successes (%1) < # attempts (%2)").arg(successes).arg(attempts);
-        qWarning() << qPrintable(msg);
-    }
-    QVERIFY(successes > 0); // allow for some "event unstability" (i.e. unless
-                            // successes == 0, QAbstractItemView is probably ok!)
-}
-
-void tst_QAbstractItemView::dragAndDropOnChild()
-{
-
-    const int attempts = 10;
-    int successes = 0;
-    for (int i = 0; i < attempts; ++i) {
-        Qt::DropAction dropAction = Qt::MoveAction;
-
-        DnDTestModel model;
-        QModelIndex parent = model.index(0, 0);
-        model.insertRow(0, parent);
-        model.insertColumn(0, parent);
-        QModelIndex child = model.index(0, 0, parent);
-        model.setData(child, "child");
-        QCOMPARE(model.rowCount(parent), 1);
-        DnDTestView view(dropAction, &model);
-        view.setExpanded(parent, true);
-        view.setDragDropMode(QAbstractItemView::InternalMove);
-
-        const int size = 200;
-        view.setFixedSize(size, size);
-        view.move(int(size * 1.5), int(size * 1.5));
-        view.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&view));
-
-        view.dragAndDrop(view.visualRect(parent).center(),
-                         view.visualRect(child).center());
-        if (model.dropAction() == dropAction)
-            ++successes;
-    }
-
-    QCOMPARE(successes, 0);
-}
-
-#endif // 0
-#endif // !Q_OS_MAC && !Q_OS_WIN
-
 class TestModel : public QStandardItemModel
 {
     Q_OBJECT
@@ -1311,7 +1085,6 @@ void tst_QAbstractItemView::task250754_fontChange()
     tree.setModel(m);
 
     tree.setHeaderHidden(true); // The header is (in certain styles) dpi dependent
-    w.resize(160, 350); // Minimum width for windows with frame on Windows 8
     centerOnScreen(&w);
     moveCursorAway(&w);
     w.showNormal();
@@ -1319,6 +1092,11 @@ void tst_QAbstractItemView::task250754_fontChange()
     QFont font = tree.font();
     font.setPixelSize(10);
     tree.setFont(font);
+
+    int itemHeight = tree.visualRect(m->index(0, 0)).height();
+    int margin = vLayout->contentsMargins().top() + vLayout->contentsMargins().bottom();
+    w.resize(160, itemHeight * tree.model()->rowCount() + margin + tree.frameWidth() * 2);
+
     QTRY_VERIFY(!tree.verticalScrollBar()->isVisible());
 
     font.setPixelSize(60);
@@ -1331,15 +1109,8 @@ void tst_QAbstractItemView::task250754_fontChange()
 
 void tst_QAbstractItemView::task200665_itemEntered()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-    {
-        // skip if we can't move mouse
-        const QPoint cursorPos = QCursor::pos() + QPoint(10, 10);
-        QCursor::setPos(cursorPos);
-        if (!QTest::qWaitFor([cursorPos] { return QCursor::pos() == cursorPos; }, 500))
-            QSKIP("Can't move mouse");
-    }
+    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::MouseCursorPositioning))
+        QSKIP("Platform does not support cursor positioning");
     //we test that view will emit entered
     //when the scrollbar move but not the mouse itself
     QStandardItemModel model(1000, 1);
@@ -2016,9 +1787,6 @@ void tst_QAbstractItemView::shiftSelectionAfterChangingModelContents()
 
 void tst_QAbstractItemView::QTBUG48968_reentrant_updateEditorGeometries()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QTreeView tree;
     QStandardItemModel *m = new QStandardItemModel(&tree);
     for (int i = 0; i < 10; ++i) {
@@ -2352,9 +2120,6 @@ public:
 
 void tst_QAbstractItemView::QTBUG46785_mouseout_hover_state()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     HoverItemDelegate delegate;
 
     QTableWidget table(5, 5);
@@ -3094,6 +2859,13 @@ void tst_QAbstractItemView::mouseSelection()
     view->setDragEnabled(dragEnabled);
     view->setSelectionMode(selectionMode);
     view->setEditTriggers(editTrigger);
+
+    // Ensure all items are visible in the viewport
+    const int rowHeight = view->sizeHintForRow(0);
+    const auto *treeView = static_cast<QTreeView *>(view);
+    const int headerHeight = treeView->header()->isHidden() ? 0: treeView->header()->height();
+    view->resize(view->sizeHint().width(),
+            rowHeight * model.rowCount() + headerHeight + 2 * view->frameWidth());
     view->show();
     QVERIFY(QTest::qWaitForWindowActive(view));
 
@@ -3224,11 +2996,19 @@ void tst_QAbstractItemView::scrollerSmoothScroll()
     if (!(QTest::qWaitFor([&]{ return view.currentItem() == pressItem; })))
         QSKIP("Current item didn't change on press, skipping test");
 
+    const QScroller *scroller = QScroller::scroller(view.viewport());
+    const qreal dragStartDistanceInMeters = scroller->scrollerProperties()
+            .scrollMetric(QScrollerProperties::DragStartDistance).toReal();
+    const int firstPixelPastDragStart =
+            qFloor(dragStartDistanceInMeters * scroller->pixelPerMeter().y()) + 1;
+    constexpr int minimumDragStepInPixels = 10;
+    const int pixelsPerMove = qMax(minimumDragStepInPixels, firstPixelPastDragStart);
+
     // QAIV will reset the current item when the scroller changes state to Dragging
     for (int y = 0; y < QApplication::startDragDistance() * 2; ++y) {
         // gesture recognizer needs some throttling
         QTest::qWait(10);
-        dragPosition -= QPoint(0, 10);
+        dragPosition -= QPoint(0, pixelsPerMove);
         const QPoint globalPos = view.viewport()->mapToGlobal(dragPosition);
         QMouseEvent mouseMoveEvent(QEvent::MouseMove, dragPosition, dragPosition, globalPos,
                                     Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
@@ -3370,42 +3150,62 @@ void tst_QAbstractItemView::selectionAutoScrolling()
 
     // remove all visible items so that we don't select any items at the edges, as that
     // would scroll the view already
-    for (int x = 0; x < listview.viewport()->width(); x += 5) {
-        for (int y = 0; y < listview.viewport()->height(); y += 5) {
-            const QModelIndex index = listview.indexAt(QPoint(x, y));
-            if (index.isValid())
-                delete listModel->itemFromIndex(index);
+    {
+        QList<QStandardItem *> itemsToRemove;
+        for (int x = 0; x < listview.viewport()->width(); x += 5) {
+            for (int y = 0; y < listview.viewport()->height(); y += 5) {
+                const QModelIndex index = listview.indexAt(QPoint(x, y));
+                if (index.isValid()) {
+                    QStandardItem *item = listModel->itemFromIndex(index);
+                    if (!itemsToRemove.contains(item))
+                        itemsToRemove.append(item);
+                }
+            }
         }
+        qDeleteAll(itemsToRemove);
     }
     // remove all items around the edges of the model
     QRect topLeftRect = listview.visualRect(listModel->index(0, 0));
     const QPoint topLeftCenter(topLeftRect.center());
     QPoint bottomRightCenter;
-    for (int x = 0; x < listview.horizontalScrollBar()->maximum() + listview.viewport()->width(); x += 5) {
-        const QModelIndex index = listview.indexAt(topLeftCenter + QPoint(x, 0));
-        if (index.isValid()) {
-            delete listModel->itemFromIndex(index);
-            bottomRightCenter.rx() = x;
+    {
+        QList<QStandardItem *> itemsToRemove;
+        for (int x = 0; x < listview.horizontalScrollBar()->maximum() + listview.viewport()->width(); x += 5) {
+            const QModelIndex index = listview.indexAt(topLeftCenter + QPoint(x, 0));
+            if (index.isValid()) {
+                QStandardItem *item = listModel->itemFromIndex(index);
+                if (!itemsToRemove.contains(item))
+                    itemsToRemove.append(item);
+                bottomRightCenter.rx() = x;
+            }
         }
-    }
-    for (int y = 0; y < listview.verticalScrollBar()->maximum() + listview.viewport()->height(); y += 5) {
-        const QModelIndex index = listview.indexAt(topLeftCenter + QPoint(0, y));
-        if (index.isValid()) {
-            delete listModel->itemFromIndex(index);
-            bottomRightCenter.ry() = y;
+        for (int y = 0; y < listview.verticalScrollBar()->maximum() + listview.viewport()->height(); y += 5) {
+            const QModelIndex index = listview.indexAt(topLeftCenter + QPoint(0, y));
+            if (index.isValid()) {
+                QStandardItem *item = listModel->itemFromIndex(index);
+                if (!itemsToRemove.contains(item))
+                    itemsToRemove.append(item);
+                bottomRightCenter.ry() = y;
+            }
         }
+        for (int x = 0; x < bottomRightCenter.x(); x += 5) {
+            const QModelIndex index = listview.indexAt(topLeftCenter + QPoint(x, bottomRightCenter.y()));
+            if (index.isValid()) {
+                QStandardItem *item = listModel->itemFromIndex(index);
+                if (!itemsToRemove.contains(item))
+                    itemsToRemove.append(item);
+            }
+        }
+        for (int y = 0; y < bottomRightCenter.y(); y += 5) {
+            const QModelIndex index = listview.indexAt(topLeftCenter + QPoint(bottomRightCenter.x(), y));
+            if (index.isValid()) {
+                QStandardItem *item = listModel->itemFromIndex(index);
+                if (!itemsToRemove.contains(item))
+                    itemsToRemove.append(item);
+            }
+        }
+        qDeleteAll(itemsToRemove);
     }
-    for (int x = 0; x < bottomRightCenter.x(); x += 5) {
-        const QModelIndex index = listview.indexAt(topLeftCenter + QPoint(x, bottomRightCenter.y()));
-        if (index.isValid())
-            delete listModel->itemFromIndex(index);
-    }
-    for (int y = 0; y < bottomRightCenter.y(); y += 5) {
-        const QModelIndex index = listview.indexAt(topLeftCenter + QPoint(bottomRightCenter.x(), y));
-        if (index.isValid())
-            delete listModel->itemFromIndex(index);
-    }
-
 
     // Simulate multiple select behavior; start in the middle, drag to the edge
     const QPoint pressPoint(listview.viewport()->width() / 2, listview.viewport()->height() / 2);
@@ -3429,12 +3229,50 @@ void tst_QAbstractItemView::selectionAutoScrolling()
                           : listview.horizontalScrollBar();
 
     if (direction < 0)
-        QTRY_COMPARE(scrollBar->value(), 0);
+        QTRY_COMPARE_WITH_TIMEOUT(scrollBar->value(), 0, qMax(5000, scrollBar->maximum() * 20));
     else
-        QTRY_COMPARE(scrollBar->value(), scrollBar->maximum());
+        QTRY_COMPARE_WITH_TIMEOUT(scrollBar->value(), scrollBar->maximum(), qMax(5000, scrollBar->maximum() * 20));
     QVERIFY(listview.selectionModel()->selectedIndexes().size() > 0);
 
     QTest::mouseRelease(listview.viewport(), Qt::LeftButton, Qt::NoModifier, dragPoint);
+}
+
+void tst_QAbstractItemView::autoScrollStopsOnMouseRelease()
+{
+    // QTBUG-147278: autoscroll triggered during a drag must stop on mouse release.
+    QTableView table;
+    table.setAutoScroll(true);
+    table.setGeometry(0, 0, 200, 200);
+
+    QStandardItemModel model(1000, 1);
+    for (int i = 0; i < 1000; ++i)
+        model.setItem(i, 0, new QStandardItem(QString::number(i)));
+    table.setModel(&model);
+    table.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&table));
+
+    // Put the view into DragSelectingState with the mouse pressed, so that
+    // mouseReleaseEvent() runs its full cleanup path including the fix.
+    const QPoint pressPos(100, 100);
+    QTest::mousePress(table.viewport(), Qt::LeftButton, Qt::NoModifier, pressPos);
+    {
+        QMouseEvent mm(QEvent::MouseMove, pressPos + QPoint(0, 20),
+                       table.viewport()->mapToGlobal(pressPos + QPoint(0, 20)),
+                       Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+        QApplication::sendEvent(table.viewport(), &mm);
+    }
+
+    // Start the autoscroll timer directly. Reproducing the full mouse-move
+    // chain that triggers startAutoScroll() is fragile across platforms
+    // (depends on item geometry at the viewport edge); the fix under test is
+    // only that mouseReleaseEvent stops the timer, which is what we assert.
+    auto *d = static_cast<QAbstractItemViewPrivate *>(QAbstractItemViewPrivate::get(&table));
+    d->startAutoScroll();
+    QVERIFY(d->autoScrollTimer.isActive());
+
+    // Release mouse button — autoscroll must stop synchronously here.
+    QTest::mouseRelease(table.viewport(), Qt::LeftButton, Qt::NoModifier, pressPos);
+    QVERIFY(!d->autoScrollTimer.isActive());
 }
 class SpinBoxDelegate : public QStyledItemDelegate
 {

@@ -16,11 +16,11 @@ class QSize;
 
 namespace KWin
 {
+
 class Display;
 class OutputInterface;
 class PlasmaWindowActivationFeedbackInterfacePrivate;
 class PlasmaWindowInterface;
-class PlasmaVirtualDesktopManagementInterface;
 class PlasmaWindowActivationInterfacePrivate;
 class PlasmaWindowManagementInterfacePrivate;
 class PlasmaWindowInterfacePrivate;
@@ -77,18 +77,6 @@ public:
     QList<PlasmaWindowInterface *> windows() const;
 
     /**
-     * Associate a PlasmaVirtualDesktopManagementInterface to this window management.
-     * It's necessary to associate one in orderto use the plasma virtual desktop features
-     * of PlasmaWindowInterface, as a window must know what are the deasktops available
-     */
-    void setPlasmaVirtualDesktopManagementInterface(PlasmaVirtualDesktopManagementInterface *manager);
-
-    /**
-     * @returns the PlasmaVirtualDesktopManagementInterface associated to this PlasmaWindowManagementInterface
-     */
-    PlasmaVirtualDesktopManagementInterface *plasmaVirtualDesktopManagementInterface() const;
-
-    /**
      * Associate stacking order to this window management
      */
     void setStackingOrder(const QList<quint32> &stackingOrder);
@@ -108,8 +96,11 @@ private:
 class KWIN_EXPORT PlasmaWindowInterface : public QObject
 {
     Q_OBJECT
+
 public:
     ~PlasmaWindowInterface() override;
+
+    void map();
 
     void setTitle(const QString &title);
     void setAppId(const QString &appId);
@@ -140,14 +131,6 @@ public:
     void setNoBorder(bool set);
     void setCanSetNoBorder(bool set);
     void setExcludeFromCapture(bool set);
-
-    /**
-     * This method removes the Window and the Client is supposed to release the resource
-     * bound for this Window.
-     *
-     * No more events should be sent afterwards.
-     */
-    void unmap();
 
     /**
      * @returns Geometries of the taskbar entries, indicized by the

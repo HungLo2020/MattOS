@@ -1,6 +1,9 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#pragma once
+
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qrangemodel.h>
 #include <QtCore/qstring.h>
@@ -95,6 +98,15 @@ template <>
 struct QRangeModel::RowOptions<MultiRoleGadget>
 {
     static constexpr auto rowCategory = QRangeModel::RowCategory::MultiRoleItem;
+    static QVariant headerData(int section, int role)
+    {
+        if (role == Qt::DisplayRole) {
+            switch (section) {
+            case 0: return QCoreApplication::translate("MultiRoleGadget", "The Gadget");
+            }
+        }
+        return {};
+    }
 };
 
 struct ItemAccessType
@@ -105,6 +117,11 @@ struct ItemAccessType
 template <>
 struct QRangeModel::ItemAccess<ItemAccessType>
 {
+    static Qt::ItemFlags flags(const ItemAccessType &)
+    {
+        return Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+    }
+
     static QVariant readRole(const ItemAccessType &item, int role)
     {
         switch (role) {
@@ -187,7 +204,11 @@ class MetaObjectTuple : public QObject
     Q_PROPERTY(QString display MEMBER m_string)
     Q_PROPERTY(int number MEMBER m_number)
 public:
-    using QObject::QObject;
+    MetaObjectTuple() = default;
+
+    MetaObjectTuple(const QString &string, int number)
+        : m_string(string), m_number(number)
+    {}
 
 private:
     QString m_string = "4321";
@@ -507,27 +528,33 @@ struct Data {
     };
 
     std::list<Object *> listOfObjects = {
-        new Object, new Object, new Object
+        new Object("3", 3), new Object("1", 1), nullptr, new Object("2", 2)
     };
 
-    std::array<std::unique_ptr<Object>, 3> arrayOfUniqueObjects = {
-        std::make_unique<Object>(), std::make_unique<Object>(), std::make_unique<Object>()
+    std::array<std::unique_ptr<Object>, 4> arrayOfUniqueObjects = {
+        std::make_unique<Object>("5", 5),
+        std::make_unique<Object>("1", 1),
+        std::unique_ptr<Object>(),
+        std::make_unique<Object>("4", 4)
     };
 
     std::vector<std::tuple<MetaObjectTuple *>> listOfMetaObjectTuple = {
-        new MetaObjectTuple,
-        new MetaObjectTuple,
-        new MetaObjectTuple,
+        new MetaObjectTuple("6", 6),
+        new MetaObjectTuple("2", 2),
+        nullptr,
+        new MetaObjectTuple("7", 7),
     };
     std::vector<MetaObjectTuple *> tableOfMetaObjectTuple = {
-        new MetaObjectTuple,
-        new MetaObjectTuple,
-        new MetaObjectTuple,
+        new MetaObjectTuple("6", 6),
+        new MetaObjectTuple("2", 2),
+        nullptr,
+        new MetaObjectTuple("7", 7),
     };
-    std::array<std::tuple<std::unique_ptr<MetaObjectTuple>>, 3> arrayOfUniqueMultiObjectTuples {
-        std::make_unique<MetaObjectTuple>(),
-        std::make_unique<MetaObjectTuple>(),
-        std::make_unique<MetaObjectTuple>()
+    std::array<std::tuple<std::unique_ptr<MetaObjectTuple>>, 4> arrayOfUniqueMultiObjectTuples {
+        std::make_unique<MetaObjectTuple>("3", 3),
+        std::make_unique<MetaObjectTuple>("-5", -5),
+        std::unique_ptr<MetaObjectTuple>(),
+        std::make_unique<MetaObjectTuple>("1", 1)
     };
 
     // bad (but legal) get() overload that never returns a mutable reference
@@ -547,27 +574,33 @@ struct Data {
     };
 
     // item is pointer
-    Item itemAsPointer = {"red", Qt::red, "0xff0000"};
+    Item itemAsPointer0 = {"red", Qt::red, "0xff0000"};
+    Item itemAsPointer1 = {"green", Qt::green, "0x00ff00"};
+    Item itemAsPointer2 = {"blue", Qt::blue, "0x0000ff"};
     std::vector<std::vector<Item *>> tableOfPointers = {
-        {&itemAsPointer, &itemAsPointer},
-        {&itemAsPointer, &itemAsPointer},
-        {&itemAsPointer, &itemAsPointer},
+        {&itemAsPointer0, &itemAsPointer2},
+        {&itemAsPointer1, &itemAsPointer1},
+        {&itemAsPointer2, &itemAsPointer0},
     };
 
     // rows are pointers
-    Row rowAsPointer = {{"blue", Qt::blue, "0x0000ff"}, 0x0000ff, "Blau"};
+    Row rowAsPointer0 = {itemAsPointer0, 0xff0000, "Rot"};
+    Row rowAsPointer1 = {itemAsPointer1, 0x00ff00, "Grün"};
+    Row rowAsPointer2 = {itemAsPointer2, 0x0000ff, "Blau"};
     std::vector<Row *> tableOfRowPointers = {
-        &rowAsPointer,
-        &rowAsPointer,
-        &rowAsPointer,
+        &rowAsPointer0,
+        &rowAsPointer1,
+        &rowAsPointer2,
     };
 
     // rows are refs
-    Row rowAsRef = {{"blue", Qt::blue, "0x0000ff"}, 0x0000ff, "Blau"};
+    Row rowAsRef0 = rowAsPointer0;
+    Row rowAsRef1 = rowAsPointer1;
+    Row rowAsRef2 = rowAsPointer2;
     std::vector<std::reference_wrapper<Row>> tableOfRowRefs = {
-        std::ref(rowAsRef),
-        std::ref(rowAsRef),
-        std::ref(rowAsRef)
+        std::ref(rowAsRef0),
+        std::ref(rowAsRef1),
+        std::ref(rowAsRef2)
     };
 
     // constness
@@ -630,37 +663,6 @@ struct Data {
     std::unique_ptr<pointer_tree, TreeDeleter> m_pointer_tree;
 };
 
-#define ADD_HELPER(Model, Tag, Policy, ColumnCount, Actions, HeaderData) \
-    { \
-        Factory factory = [this]() -> std::unique_ptr<QAbstractItemModel> { \
-            auto result = std::make_unique<QRangeModel>(Policy(m_data->Model)); \
-            createBackup(result.get(), m_data->Model); \
-            return result; \
-        }; \
-        QTest::addRow(#Model #Tag) << std::move(factory) << int(std::size(m_data->Model)) \
-                                   << int(ColumnCount) << ChangeActions(Actions) \
-                                   << QVariant::fromValue(HeaderData); \
-    }
-
-#define ADD_POINTER(Model, ColumnCount, Actions, HeaderData) \
-    ADD_HELPER(Model, Pointer, &, ColumnCount, Actions, HeaderData)
-#define ADD_COPY(Model, ColumnCount, Actions, HeaderData) \
-    ADD_HELPER(Model, Copy, *&, ColumnCount, Actions, HeaderData)
-#define ADD_MOVE(Model, ColumnCount, Actions, HeaderData) \
-    ADD_HELPER(Model, Move, std::move, ColumnCount, Actions, HeaderData)
-#define ADD_REF(Model, ColumnCount, Actions, HeaderData) \
-    ADD_HELPER(Model, Ref, std::ref, ColumnCount, Actions, HeaderData)
-#define ADD_UPTR(Model, ColumnCount, Actions, HeaderData) \
-    ADD_HELPER(Model, UPtr, asUPtr, ColumnCount, Actions, HeaderData)
-#define ADD_SPTR(Model, ColumnCount, Actions, HeaderData) \
-    ADD_HELPER(Model, SPtr, asSPtr, ColumnCount, Actions, HeaderData)
-#define ADD_ALL(Model, ColumnCount, Actions, HeaderData) \
-    ADD_COPY(Model, ColumnCount, Actions, HeaderData) \
-    ADD_REF(Model, ColumnCount, Actions, HeaderData) \
-    ADD_POINTER(Model, ColumnCount, Actions, HeaderData) \
-    ADD_UPTR(Model, ColumnCount, Actions, HeaderData) \
-    ADD_SPTR(Model, ColumnCount, Actions, HeaderData)
-
 class QRangeModelTest : public QObject
 {
 public:
@@ -676,6 +678,7 @@ public:
         SetData         = 0x10,
         All             = ChangeRows | ChangeColumns | SetData,
         SetItemData     = 0x20,
+        Sort            = 0x40,
     };
     Q_DECLARE_FLAGS(ChangeActions, ChangeAction);
 };

@@ -1,19 +1,19 @@
 # Translation of kcmmouse.po to Catalan
-# Copyright (C) 1998-2025 This_file_is_part_of_KDE
+# Copyright (C) 1998-2026 This_file_is_part_of_KDE
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# SPDX-FileCopyrightText: 1998, 1999, 2000, 2001, 2002, 2004, 2005, 2006 Sebastià Pla i Sanz <sps@sastia.com>
+# SPDX-FileCopyrightText: 1998-2002, 2004-2006 Sebastià Pla i Sanz <sps@sastia.com>
 # SPDX-FileCopyrightText: 2003, 2011, 2014, 2018, 2020 Antoni Bella Pérez <antonibella5@yahoo.com>
-# SPDX-FileCopyrightText: 2004, 2005 Albert Astals Cid <aacid@kde.org>
+# SPDX-FileCopyrightText: 2004-2005 Albert Astals Cid <aacid@kde.org>
 # SPDX-FileCopyrightText: 2019 Empar Montoro Martín <montoro_mde@gva.es>
-# SPDX-FileCopyrightText: 2007, 2008, 2009, 2010, 2011, 2012, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2007-2012, 2015-2026 Josep M. Ferrer <txemaq@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2025-12-04 11:42+0100\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-09-04 09:54+0200\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
 "Language: ca\n"
@@ -24,24 +24,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Accelerator-Marker: &\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr ""
-"La consulta dels dispositius d'entrada ha fallat. Torneu a obrir aquest "
-"mòdul d'arranjament."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr "Error crític en llegir la informació fonamental del dispositiu %1."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "No s'ha pogut seleccionar el dorsal adequat"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -50,12 +38,12 @@ msgstr ""
 "Error en carregar els valors. Vegeu els registres per a més informació. "
 "Torneu a iniciar aquest mòdul de configuració."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "No s'ha trobat cap dispositiu apuntador. Connecteu-lo ara."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -65,7 +53,7 @@ msgstr ""
 "informació. Torneu a iniciar aquest mòdul de configuració i proveu-ho un "
 "altre cop."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -74,7 +62,7 @@ msgstr ""
 "Error en carregar els valors predeterminats. Ha fallat en establir diverses "
 "opcions als seus valors predeterminats."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -83,14 +71,14 @@ msgstr ""
 "Error en afegir un dispositiu connectat nou. Torneu a connectar-lo i "
 "reinicieu aquest mòdul de configuració."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr ""
 "S'ha desconnectat el dispositiu apuntador. Es tanca el seu diàleg de "
 "configuració."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr ""
@@ -151,37 +139,37 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "Dispositiu:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, kde-format
 msgctxt "@title:group"
 msgid "General:"
 msgstr "General:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr "Activa el dispositiu"
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, kde-format
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "Botons esquerre i dret:"
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, kde-format
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "Intercanvia (mode esquerrà)"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
 msgstr "Prémer simultàniament els dos botons fa un clic del mig"
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -192,19 +180,19 @@ msgstr ""
 "un retard addicional per a detectar correctament els clics simultanis dels "
 "botons esquerre i dret."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "Velocitat del punter:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "Activa l'acceleració del punter"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -213,43 +201,49 @@ msgstr ""
 "Quan està activat, la distància del moviment del punter augmenta amb una "
 "velocitat de moviment més ràpida."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "Velocitat de desplaçament:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "Més lenta"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "Més ràpida"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "Desplaçament:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "Inverteix la direcció de desplaçament"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr "Mantingueu premut el botó del mig i mogueu el ratolí per a desplaçar"
+msgid "Scroll when moving the pointer"
+msgstr "Desplaça en moure el punter"
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr "mentre es prem el botó del mig"
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -263,3 +257,50 @@ msgstr ""
 "videojocs. Es pot utilitzar en qualsevol dispositiu, però està destinat "
 "principalment com a substitut de les rodes de desplaçament en dispositius "
 "que no en tenen."
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr "després de fer clic al botó del mig"
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+"Això interferirà amb els clics del mig en general; feu clic del mig dues "
+"vegades quan vulgueu que l'aplicació rebi un únic clic del mig. Això inclou "
+"l'arrossegament amb el clic del mig."
+
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr ""
+#~ "Mantingueu premut el botó del mig i mogueu el ratolí per a desplaçar"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "No s'ha pogut seleccionar el dorsal adequat"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr ""
+#~ "La consulta dels dispositius d'entrada ha fallat. Torneu a obrir aquest "
+#~ "mòdul d'arranjament."
+
+#~ msgid "Device enabled"
+#~ msgstr "Dispositiu activat"
+
+#~ msgctxt "@option:check"
+#~ msgid "Press left and right buttons for middle-click"
+#~ msgstr "Prémer els botons esquerre i dret per al clic del mig"
+
+#~ msgid "Accept input through this device."
+#~ msgstr "Accepta l'entrada a través d'aquest dispositiu."
+
+#~ msgid "Touchscreen-like scrolling."
+#~ msgstr "Pantalla tàctil com el desplaçament."
+
+#~ msgid "Scrolling with the mouse while the middle button is pressed."
+#~ msgstr "Desplaçament amb el ratolí mentre es prem el botó del mig."

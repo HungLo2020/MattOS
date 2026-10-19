@@ -128,13 +128,14 @@ bool ScriptedEffectLoader::loadEffect(const KPluginMetaData &effect, LoadEffectF
     }
 
     const QString api = effect.value(QStringLiteral("X-Plasma-API"));
-    if (api == QLatin1String("javascript")) {
+    if (api == QLatin1StringView("javascript")) {
         return loadJavascriptEffect(effect);
-    } else if (api == QLatin1String("declarativescript")) {
+    } else if (api == QLatin1StringView("declarativescript")) {
         return loadDeclarativeEffect(effect);
     } else {
         qCWarning(KWIN_CORE, "Failed to load %s effect: invalid X-Plasma-API field: %s. "
-                             "Available options are javascript, and declarativescript", qPrintable(name), qPrintable(api));
+                             "Available options are javascript, and declarativescript",
+                  qPrintable(name), qPrintable(api));
     }
 
     return false;
@@ -166,13 +167,10 @@ bool ScriptedEffectLoader::loadJavascriptEffect(const KPluginMetaData &effect)
 bool ScriptedEffectLoader::loadDeclarativeEffect(const KPluginMetaData &metadata)
 {
     const QString name = metadata.pluginId();
-    QString scriptFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin-wayland/effects/") + name + QLatin1String("/contents/ui/main.qml"));
+    const QString scriptFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1StringView("kwin/effects/") + name + QLatin1StringView("/contents/ui/main.qml"));
     if (scriptFile.isNull()) {
-        scriptFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin/effects/") + name + QLatin1String("/contents/ui/main.qml"));
-        if (scriptFile.isNull()) {
-            qCWarning(KWIN_CORE) << "Could not locate the effect script";
-            return false;
-        }
+        qCWarning(KWIN_CORE) << "Could not locate the effect script";
+        return false;
     }
 
     QQmlEngine *engine = Scripting::self()->qmlEngine();
@@ -210,37 +208,28 @@ void ScriptedEffectLoader::queryAndLoadAll()
     }
     // perform querying for the services in a thread
     QFutureWatcher<QList<KPluginMetaData>> *watcher = new QFutureWatcher<QList<KPluginMetaData>>(this);
-    m_queryConnection = connect(
-        watcher, &QFutureWatcher<QList<KPluginMetaData>>::finished, this, [this, watcher]() {
-            const auto effects = watcher->result();
-            for (const auto &effect : effects) {
-                const LoadEffectFlags flags = readConfig(effect.pluginId(), effect.isEnabledByDefault());
-                if (flags.testFlag(LoadEffectFlag::Load)) {
-                    m_queue->enqueue(qMakePair(effect, flags));
-                }
+    m_queryConnection = connect(watcher, &QFutureWatcher<QList<KPluginMetaData>>::finished, this, [this, watcher]() {
+        const auto effects = watcher->result();
+        for (const auto &effect : effects) {
+            const LoadEffectFlags flags = readConfig(effect.pluginId(), effect.isEnabledByDefault());
+            if (flags.testFlag(LoadEffectFlag::Load)) {
+                m_queue->enqueue(qMakePair(effect, flags));
             }
-            watcher->deleteLater();
-            m_queryConnection = QMetaObject::Connection();
-        },
-        Qt::QueuedConnection);
+        }
+        watcher->deleteLater();
+        m_queryConnection = QMetaObject::Connection();
+    }, Qt::QueuedConnection);
     watcher->setFuture(QtConcurrent::run(&ScriptedEffectLoader::findAllEffects, this));
 }
 
 QList<KPluginMetaData> ScriptedEffectLoader::findAllEffects() const
 {
-    return KPackage::PackageLoader::self()->listPackages(s_serviceType, QStringLiteral("kwin-wayland/effects"))
-        + KPackage::PackageLoader::self()->listPackages(s_serviceType, QStringLiteral("kwin/effects"));
+    return KPackage::PackageLoader::self()->listPackages(s_serviceType, QStringLiteral("kwin/effects"));
 }
 
 KPluginMetaData ScriptedEffectLoader::findEffect(const QString &name) const
 {
-    auto plugins = KPackage::PackageLoader::self()->findPackages(s_serviceType, QStringLiteral("kwin-wayland/effects"), [name](const KPluginMetaData &metadata) {
-        return metadata.pluginId().compare(name, Qt::CaseInsensitive) == 0;
-    });
-    if (!plugins.isEmpty()) {
-        return plugins.first();
-    }
-    plugins = KPackage::PackageLoader::self()->findPackages(s_serviceType, QStringLiteral("kwin/effects"), [name](const KPluginMetaData &metadata) {
+    const auto plugins = KPackage::PackageLoader::self()->findPackages(s_serviceType, QStringLiteral("kwin/effects"), [name](const KPluginMetaData &metadata) {
         return metadata.pluginId().compare(name, Qt::CaseInsensitive) == 0;
     });
     if (!plugins.isEmpty()) {
@@ -274,10 +263,9 @@ bool PluginEffectLoader::hasEffect(const QString &name) const
 
 KPluginMetaData PluginEffectLoader::findEffect(const QString &name) const
 {
-    const auto plugins = KPluginMetaData::findPlugins(m_pluginSubDirectory,
-                                                      [name](const KPluginMetaData &data) {
-                                                          return data.pluginId().compare(name, Qt::CaseInsensitive) == 0;
-                                                      });
+    const auto plugins = KPluginMetaData::findPlugins(m_pluginSubDirectory, [name](const KPluginMetaData &data) {
+        return data.pluginId().compare(name, Qt::CaseInsensitive) == 0;
+    });
     if (plugins.isEmpty()) {
         return KPluginMetaData();
     }
@@ -307,9 +295,9 @@ EffectPluginFactory *PluginEffectLoader::factory(const KPluginMetaData &info) co
         error = result.errorText;
     } else {
         QPluginLoader loader(info.fileName());
-        if (loader.metaData().value("IID").toString() != QLatin1String(EffectPluginFactory_iid)) {
-            qCDebug(KWIN_CORE) << info.pluginId() << " has not matching plugin version, expected " << EffectPluginFactory_iid << "got "
-                               << loader.metaData().value("IID");
+        if (const QString iid = loader.metaData().value("IID").toString(); iid != QLatin1StringView(EffectPluginFactory_iid)) {
+            qCWarning(KWIN_CORE) << "Effect" << info.pluginId() << "was built for a different version of KWin and needs to be rebuilt, expected"
+                                 << QLatin1StringView(EffectPluginFactory_iid) << "got" << iid;
             return nullptr;
         }
         factory = qobject_cast<KPluginFactory *>(loader.instance());

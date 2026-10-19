@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
 "PO-Revision-Date: 2010-01-21 11:18+0100\n"
 "Last-Translator: Andrej Dundović <adundovi@gmail.com>\n"
 "Language-Team: Croatian <kde-croatia-list@lists.sourceforge.net>\n"
@@ -1872,7 +1872,7 @@ msgstr ""
 msgid "Enter passphrase for %1:"
 msgstr ""
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, fuzzy, kde-kuit-format
 #| msgctxt "@title:window"
 #| msgid "Partition Information"
@@ -1880,7 +1880,7 @@ msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
 msgstr "Informacije o particijama"
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, fuzzy, kde-kuit-format
 #| msgctxt "@title:window"
 #| msgid "Partition Information"
@@ -1939,7 +1939,7 @@ msgid ""
 "filename>."
 msgstr "Informacije o particijama"
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, fuzzy, kde-kuit-format
 #| msgctxt "@title:window"
 #| msgid "Partition Information"
@@ -1949,7 +1949,7 @@ msgid ""
 "trying to update the NTFS boot sector."
 msgstr "Informacije o particijama"
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, fuzzy, kde-kuit-format
 #| msgctxt "@title:window"
 #| msgid "Partition Information"
@@ -2805,6 +2805,40 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr "Informacije o particijama"
 
+#: jobs/takeownershipjob.cpp:28
+#, fuzzy, kde-kuit-format
+#| msgctxt "@title:window"
+#| msgid "Partition Information"
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr "Informacije o particijama"
+
+#: jobs/takeownershipjob.cpp:36
+#, fuzzy, kde-kuit-format
+#| msgctxt "@title:window"
+#| msgid "Partition Information"
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr "Informacije o particijama"
+
+#: jobs/takeownershipjob.cpp:60
+#, fuzzy, kde-kuit-format
+#| msgctxt "@title:window"
+#| msgid "Partition Information"
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "Informacije o particijama"
+
+#: jobs/takeownershipjob.cpp:62
+#, fuzzy, kde-kuit-format
+#| msgctxt "@title:window"
+#| msgid "Partition Information"
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "Informacije o particijama"
+
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
 msgctxt "@info:status"
@@ -3257,6 +3291,22 @@ msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
 msgstr "Informacije o particijama"
 
+#: ops/takeownershipoperation.cpp:73
+#, fuzzy, kde-kuit-format
+#| msgctxt "@title:window"
+#| msgid "Partition Information"
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "Informacije o particijama"
+
+#: ops/takeownershipoperation.cpp:75
+#, fuzzy, kde-kuit-format
+#| msgctxt "@title:window"
+#| msgid "Partition Information"
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
+msgstr "Informacije o particijama"
+
 #: plugins/geom/geompartitiontable.cpp:91
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:65
 #, fuzzy, kde-kuit-format
@@ -3527,7 +3577,9 @@ msgid "&copy; 2008-2022 KPMcore developers"
 msgstr ""
 
 #: util/helpers.cpp:56
-#, kde-kuit-format
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:credit"
+#| msgid "Volker Lanz"
 msgctxt "@info:credit"
 msgid "Volker Lanz"
 msgstr "Volker Lanz"

@@ -26,5 +26,5 @@
 +    // KWin's QPA is the compositor's internal platform integration, not a
 +    // client application.  Keep its style-hint provider independent of the
 +    // optional KDE client-theme factory during shell startup.
-     return QStringList({QLatin1String(QGenericUnixTheme::name)});
+     return QStringList({QLatin1StringView(QGenericUnixTheme::name)});
  }

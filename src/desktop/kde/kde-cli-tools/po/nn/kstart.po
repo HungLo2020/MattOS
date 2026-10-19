@@ -1,15 +1,16 @@
 # Translation of kstart to Norwegian Nynorsk
 #
 # Gaute Hvoslef Kvalnes <gaute@verdsveven.com>, 1999, 2000, 2002, 2003, 2004, 2005.
+# Karl Ove Hufthammer <karl@huftis.org>, 2007, 2008, 2020, 2023, 2024.
 # Eirik U. Birkeland <eirbir@gmail.com>, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: kstart\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"POT-Creation-Date: 2026-06-26 00:47+0000\n"
 "PO-Revision-Date: 2024-07-30 22:45+0200\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -45,41 +46,41 @@ msgstr "Verktøy for å starta program"
 msgid "(C) 1997-2000 Matthias Ettrich (ettrich@kde.org)"
 msgstr "© 1997–2000 Matthias Ettrich (ettrich@kde.org)"
 
-#: kstart.cpp:83
+#: kstart.cpp:85
 #, kde-format
 msgid "Matthias Ettrich"
 msgstr "Matthias Ettrich"
 
-#: kstart.cpp:84
+#: kstart.cpp:86
 #, kde-format
 msgid "David Faure"
 msgstr "David Faure"
 
-#: kstart.cpp:85
+#: kstart.cpp:87
 #, kde-format
 msgid "Richard J. Moore"
 msgstr "Richard J. Moore"
 
-#: kstart.cpp:90
+#: kstart.cpp:92
 #, kde-format
 msgid "Command to execute"
 msgstr "Kommando som skal køyrast"
 
 # skip-rule: mellomrom-før
-#: kstart.cpp:92
+#: kstart.cpp:94
 #, kde-format
 msgid "Alternative to <command>: desktop file name to start, e.g. org.kde.kate"
 msgstr ""
 "Alternativ til <command>: Namn på skrivebordsfila som skal startast. "
 "Eksempel: org.kde.kate"
 
-#: kstart.cpp:95
+#: kstart.cpp:97
 #, kde-format
 msgid "Optional URL to pass to the application when using --application"
 msgstr ""
 "Valfri adresse som skal sendast til programmet når du brukar «--application»."
 
-#: kstart.cpp:107
+#: kstart.cpp:109
 #, kde-format
 msgid "No command specified"
 msgstr "Ingen kommando oppgjeven"

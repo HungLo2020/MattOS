@@ -17,6 +17,8 @@ set_target_properties(KF6KIOCore PROPERTIES
 
 target_sources(KF6KIOCore PRIVATE
   connectionbackend.cpp
+  socketconnectionbackend.cpp
+  threadconnectionbackend.cpp
   connection.cpp
   connectionserver.cpp
   krecentdocument.cpp
@@ -113,7 +115,6 @@ ecm_qt_export_logging_category(
     IDENTIFIER KIO_COPYJOB_DEBUG
     CATEGORY_NAME kf.kio.core.copyjob
     OLD_CATEGORY_NAMES kf5.kio.core.copyjob
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "KIO::CopyJob (KIO)"
     EXPORT KIO
 )
@@ -122,7 +123,6 @@ ecm_qt_export_logging_category(
     IDENTIFIER KIO_CORE_DIRLISTER
     CATEGORY_NAME kf.kio.core.dirlister
     OLD_CATEGORY_NAMES kf5.kio.core.dirlister
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "KCoreDirLister (KIO)"
     EXPORT KIO
 )
@@ -131,7 +131,6 @@ ecm_qt_export_logging_category(
     IDENTIFIER KIO_CORE_SAMBASHARE
     CATEGORY_NAME kf.kio.core.sambashare
     OLD_CATEGORY_NAMES kf5.kio.core.sambashare
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "sambashare (KIO)"
     EXPORT KIO
 )
@@ -140,7 +139,6 @@ ecm_qt_declare_logging_category(KF6KIOCore
     HEADER kiocoreconnectiondebug.h
     IDENTIFIER KIO_CORE_CONNECTION
     CATEGORY_NAME kf.kio.core.connection
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "Connection (KIO)"
     EXPORT KIO
 )
@@ -177,7 +175,7 @@ ecm_generate_export_header(KF6KIOCore
     USE_VERSION_HEADER
     VERSION_BASE_NAME KIO
     DEPRECATED_BASE_VERSION 0
-    DEPRECATION_VERSIONS 5.101 6.3 6.4 6.6 6.9 6.11 6.15 6.19 6.26
+    DEPRECATION_VERSIONS 5.101 6.3 6.4 6.6 6.9 6.11 6.15 6.19 6.26 6.29
     EXCLUDE_DEPRECATED_BEFORE_AND_AT ${EXCLUDE_DEPRECATED_BEFORE_AND_AT}
 )
 
@@ -196,7 +194,6 @@ PUBLIC
  Qt6::Network
 PRIVATE
  Qt6::Xml # davjob.cpp uses QDom
- Qt6::Concurrent
  KF6::ConfigCore
  KF6::I18n
  KF6::Service
@@ -229,7 +226,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU
 endif()
 
 # Headers prefixed with KIO/
-ecm_generate_headers(KIOCore_CamelCase_HEADERS
+ecm_generate_headers(KIOCore_Namespaced_CamelCase_HEADERS
   HEADER_NAMES
   DirectorySizeJob
   Job #     ### should forward to job_base.h, not job.h...
@@ -293,7 +290,7 @@ install(FILES
 )
 
 # Headers not prefixed with KIO/
-ecm_generate_headers(KIOCore_HEADERS
+ecm_generate_headers(KIOCore_CamelCase_HEADERS
   HEADER_NAMES
   KACL
   KUrlAuthorized
@@ -319,9 +316,28 @@ ecm_generate_headers(KIOCore_HEADERS
 
 ecm_generate_qdoc(KF6KIOCore kiocore.qdocconf)
 
-install(FILES ${KIOCore_CamelCase_HEADERS} DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KIOCore/KIO COMPONENT Devel)
+install(FILES ${KIOCore_Namespaced_CamelCase_HEADERS} DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KIOCore/KIO COMPONENT Devel)
 
 install(FILES
   ${KIOCore_HEADERS}
+  ${KIOCore_CamelCase_HEADERS}
   ${CMAKE_CURRENT_BINARY_DIR}/kiocore_export.h
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KIOCore COMPONENT Devel)
+
+ecm_add_installed_library_check(KF6KIOCore
+    PACKAGE_NAME "KF6KIO"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6KIOCore
+    HEADERS ${KIOCore_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_include_strings(KF6KIOCore
+    HEADERS ${KIOCore_Namespaced_CamelCase_HEADERS}
+    PREFIX KIO
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6KIOCore
+    PREFIX KIO
+)

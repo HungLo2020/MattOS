@@ -180,10 +180,6 @@ void QTextMarkdownImporter::import(const QString &markdown)
     const auto defaultFont = doc->defaultFont();
     m_paragraphMargin = defaultFont.pointSize() * 2 / 3;
     doc->clear();
-    if (defaultFont.pointSize() != -1)
-        m_monoFont.setPointSize(defaultFont.pointSize());
-    else
-        m_monoFont.setPixelSize(defaultFont.pixelSize());
     qCDebug(lcMD) << "default font" << defaultFont << "mono font" << m_monoFont;
     QStringView md = markdown;
 
@@ -447,11 +443,16 @@ int QTextMarkdownImporter::cbEnterSpan(int spanType, void *det)
         m_imageFormat = QTextImageFormat();
         MD_SPAN_IMG_DETAIL *detail = static_cast<MD_SPAN_IMG_DETAIL *>(det);
         m_imageFormat.setName(QString::fromUtf8(detail->src.text, int(detail->src.size)));
-        m_imageFormat.setProperty(QTextFormat::ImageTitle, QString::fromUtf8(detail->title.text, int(detail->title.size)));
+        const QVariant tooltip = QString::fromUtf8(detail->title.text, int(detail->title.size));
+        m_imageFormat.setProperty(QTextFormat::ImageTitle, tooltip);
+        m_imageFormat.setProperty(QTextFormat::TextToolTip, tooltip);
         break;
     }
     case MD_SPAN_CODE:
         charFmt.setFont(m_monoFont);
+        // Let font size be inherited from the document's default font
+        charFmt.clearProperty(QTextFormat::FontPointSize);
+        charFmt.clearProperty(QTextFormat::FontPixelSize);
         charFmt.setFontFixedPitch(true);
         break;
     case MD_SPAN_DEL:
@@ -459,7 +460,7 @@ int QTextMarkdownImporter::cbEnterSpan(int spanType, void *det)
         break;
     }
     m_spanFormatStack.push(charFmt);
-    qCDebug(lcMD) << spanType << "setCharFormat" << charFmt.font().families().constFirst()
+    qCDebug(lcMD) << spanType << "setCharFormat" << charFmt.font().family()
                   << charFmt.fontWeight() << (charFmt.fontItalic() ? "italic" : "")
                   << charFmt.foreground().color().name();
     m_cursor.setCharFormat(charFmt);
@@ -476,7 +477,7 @@ int QTextMarkdownImporter::cbLeaveSpan(int spanType, void *detail)
             charFmt = m_spanFormatStack.top();
     }
     m_cursor.setCharFormat(charFmt);
-    qCDebug(lcMD) << spanType << "setCharFormat" << charFmt.font().families().constFirst()
+    qCDebug(lcMD) << spanType << "setCharFormat" << charFmt.font().family()
                   << charFmt.fontWeight() << (charFmt.fontItalic() ? "italic" : "")
                   << charFmt.foreground().color().name();
     if (spanType == int(MD_SPAN_IMG))
@@ -642,7 +643,13 @@ void QTextMarkdownImporter::insertBlock()
             blockFormat.setProperty(QTextFormat::BlockCodeFence, QString(QLatin1Char(m_blockCodeFence)));
         }
         charFormat.setFont(m_monoFont);
+        // Let font size be inherited from the document's default font
+        charFormat.clearProperty(QTextFormat::FontPointSize);
+        charFormat.clearProperty(QTextFormat::FontPixelSize);
     } else {
+        blockFormat.clearProperty(QTextFormat::BlockCodeLanguage);
+        blockFormat.clearProperty(QTextFormat::BlockCodeFence);
+        blockFormat.setNonBreakableLines(false);
         blockFormat.setTopMargin(m_paragraphMargin);
         blockFormat.setBottomMargin(m_paragraphMargin);
     }
@@ -668,6 +675,9 @@ void QTextMarkdownImporter::insertBlock()
     }
     m_needsInsertList = false;
     m_needsInsertBlock = false;
+    // Any further blocks in a list item (e.g. a fenced code block) are
+    // continuations, even if it's a tight list and MD4C doesn't emit MD_BLOCK_P.
+    m_listItem = false;
 }
 
 QT_END_NAMESPACE

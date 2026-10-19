@@ -30,6 +30,7 @@
 #include <private/qqmlcomponentattached_p.h>
 #include <private/qv4objectiterator_p.h>
 #include <private/qqmlabstractbinding_p.h>
+#include <private/qqmldata_p.h>
 #include <private/qqmlvaluetypeproxybinding_p.h>
 #include <private/qqmltimer_p.h>
 #include <QtCore/private/qproperty_p.h>
@@ -317,6 +318,7 @@ private slots:
     void signalEmitted();
     void threadSignal();
     void qqmldataDestroyed();
+    void gcCollectedListPropertyOwner();
     void secondAlias();
     void varAlias();
     void overrideDataAssert();
@@ -446,6 +448,8 @@ private slots:
 
     void anonymousFunctionReturnTypeAnnotationIsPreserved();
     void namedFunctionExpressionReturnTypeIsPreserved();
+    void cuObjectIndex();
+    void vmeMetaObjectAccessors();
 
 private:
 //    static void propertyVarWeakRefCallback(v8::Persistent<v8::Value> object, void* parameter);
@@ -3221,14 +3225,14 @@ void tst_qqmlecmascript::callQtInvokables()
     QCOMPARE(o->error(), false);
     QCOMPARE(o->invoked(), 11);
     QCOMPARE(o->actuals().size(), 1);
-    QCOMPARE(o->actuals().at(0), QVariant(QString()));
+    QCOMPARE(o->actuals().at(0), QVariant(QStringLiteral("null")));
 
     o->reset();
     QVERIFY(EVALUATE_VALUE("object.method_QString(undefined)", QV4::Primitive::undefinedValue()));
     QCOMPARE(o->error(), false);
     QCOMPARE(o->invoked(), 11);
     QCOMPARE(o->actuals().size(), 1);
-    QCOMPARE(o->actuals().at(0), QVariant(QString()));
+    QCOMPARE(o->actuals().at(0), QVariant(QStringLiteral("undefined")));
 
     o->reset();
     QVERIFY(EVALUATE_ERROR("object.method_QPointF(0)"));
@@ -6135,7 +6139,12 @@ void tst_qqmlecmascript::stringArg()
     QMetaObject::invokeMethod(object.data(), "success");
     QVERIFY(object->property("returnValue").toBool());
 
-    QString w1 = testFileUrl("stringArg.qml").toString() + QLatin1String(":45: Error: String.arg(): Invalid arguments");
+    // Test multiple arguments support
+    QMetaObject::invokeMethod(object.data(), "multipleArgs");
+    QVERIFY(object->property("returnValue").toBool());
+
+    // Test that calling arg() with no arguments throws an error
+    QString w1 = testFileUrl("stringArg.qml").toString() + QLatin1String(":71: Error: String.arg(): Invalid arguments");
     QTest::ignoreMessage(QtWarningMsg, w1.toLatin1().constData());
     QMetaObject::invokeMethod(object.data(), "failure");
     QVERIFY(object->property("returnValue").toBool());
@@ -8369,6 +8378,25 @@ void tst_qqmlecmascript::qqmldataDestroyed()
         object.reset();
         // shouldn't have crashed.
     }
+}
+
+void tst_qqmlecmascript::gcCollectedListPropertyOwner()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("gcCollectedListOwner.qml"));
+    QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+    QScopedPointer<QObject> root(component.create());
+    QVERIFY(root);
+
+    QMetaObject::invokeMethod(root.data(), "createAndForget");
+
+    // runs gc, but we don't let the event loop run, which would delete
+    // the object created from the component in QML (by createAndForget)
+    // and then delete its child (via QObject ownership)
+    engine.collectGarbage();
+
+    // re-evaluate list property binding
+    root->setProperty("flip", true); // must not crash
 }
 
 void tst_qqmlecmascript::secondAlias()
@@ -10865,6 +10893,45 @@ void tst_qqmlecmascript::namedFunctionExpressionReturnTypeIsPreserved() {
 
     QVERIFY(!signature.empty());
     QCOMPARE(signature.first(), QQmlMetaType::qmlType(QMetaType::fromType<int>()));
+}
+
+void tst_qqmlecmascript::cuObjectIndex()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("Simple.qml"));
+    QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+    QScopedPointer<QObject> obj(component.create());
+    QVERIFY(obj);
+
+    QQmlData *ddata = QQmlData::get(obj.data());
+    QVERIFY(ddata);
+
+    // The root object of a component should have cuObjectIndex >= 0.
+    QVERIFY(ddata->cuObjectIndex >= 0);
+}
+
+void tst_qqmlecmascript::vmeMetaObjectAccessors()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("Simple.qml"));
+    QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+    QScopedPointer<QObject> obj(component.create());
+    QVERIFY(obj);
+
+    QQmlVMEMetaObject *vme = QQmlVMEMetaObject::get(obj.data());
+    QVERIFY(vme);
+
+    // qmlObjectId() should return a non-negative index for the root object.
+    QVERIFY(vme->qmlObjectId() >= 0);
+
+    // setCompilationUnit round-trip.
+    auto cu = vme->compilationUnit();
+    QVERIFY(cu);
+    vme->setCompilationUnit(cu);
+    QCOMPARE(vme->compilationUnit().data(), cu.data());
+
+    // Verify parentVMEMetaObject accessor is available.
+    vme->parentVMEMetaObject();
 }
 
 QTEST_MAIN(tst_qqmlecmascript)

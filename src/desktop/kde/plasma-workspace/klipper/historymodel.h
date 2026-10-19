@@ -23,6 +23,9 @@ class UpdateDatabaseJob;
 class KLIPPER_EXPORT HistoryModel : public QAbstractListModel
 {
     Q_OBJECT
+
+    Q_PROPERTY(bool hasPassword READ hasPassword NOTIFY hasPasswordChanged)
+
 public:
     enum RoleType {
         HistoryItemConstPtrRole = Qt::UserRole,
@@ -96,10 +99,16 @@ public:
 
     int pendingJobs() const;
 
+    [[nodiscard]] bool hasPassword() const;
+
+    Q_INVOKABLE void clearSecret();
+
 Q_SIGNALS:
     void changed(bool isTop = false);
 
     void actionInvoked(const std::shared_ptr<const HistoryItem> &item);
+
+    void hasPasswordChanged();
 
 private Q_SLOTS:
     /**
@@ -108,7 +117,6 @@ private Q_SLOTS:
      */
     void checkClipData(QClipboard::Mode mode, const QMimeData *data);
 
-    void slotIgnored(QClipboard::Mode mode);
     void slotReceivedEmptyClipboard(QClipboard::Mode mode);
 
 private:
@@ -129,6 +137,8 @@ private:
      */
     bool isItemStarred(const QString &uuid) const;
 
+    void setHasPassword(bool hasPassword);
+
     std::shared_ptr<SystemClipboard> m_clip;
     QList<std::shared_ptr<HistoryItem>> m_items;
     Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(HistoryModel, int, m_starredCount, 0)
@@ -136,12 +146,12 @@ private:
     QString m_dbFolder;
     QSqlDatabase m_db;
     qsizetype m_maxSize = 0;
-    bool m_displayImages = false;
+    bool m_bSaveImages = false;
     bool m_bNoNullClipboard = true;
-    bool m_bIgnoreSelection = true;
+    bool m_bSaveSelection = false;
     bool m_bKeepContents = true;
     bool m_bSynchronize = false;
-    bool m_bSelectionTextOnly = true;
+    bool m_hasPassword = false;
 
     friend class DeclarativeHistoryModel;
     friend class HistoryModelTest;

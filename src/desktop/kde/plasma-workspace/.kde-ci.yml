@@ -29,7 +29,6 @@ Dependencies:
     'frameworks/kjobwidgets': '@latest-kf6'
     'frameworks/knewstuff': '@latest-kf6'
     'frameworks/knotifications': '@latest-kf6'
-    'frameworks/knotifyconfig': '@latest-kf6'
     'frameworks/kpackage': '@latest-kf6'
     'frameworks/kparts': '@latest-kf6'
     'frameworks/krunner': '@latest-kf6'
@@ -61,8 +60,8 @@ Dependencies:
     'plasma/plasma-activities-stats': '@same'
     'plasma/knighttime': '@same'
     'plasma/kwin': '@same'
+    'plasma/union': '@same'
     'libraries/plasma-wayland-protocols': '@latest-kf6'
-    'libraries/phonon': '@latest-kf6'
     'libraries/kirigami-addons': '@latest-kf6'
     'graphics/libkexiv2': '@latest-kf6'
     'third-party/appstream': '@latest'
@@ -72,6 +71,7 @@ Dependencies:
 
  - 'on': ['Linux']
    'require':
+    'frameworks/networkmanager-qt': '@latest-kf6'
     'libraries/polkit-qt-1': '@latest-kf6'
     'third-party/packagekit-qt': '@latest'
 
@@ -87,8 +87,8 @@ RuntimeDependencies:
     'plasma/milou': '@same'
 
 Options:
- ctest-arguments: '--repeat until-pass:5'
  use-ccache: True
  require-passing-tests-on: ['@all']
  clang-format-versions: [14, 18]
  run-qmllint: True
+ gcovr-arguments: '--merge-mode-functions=separate'

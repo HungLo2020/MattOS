@@ -1,0 +1,279 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ * SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+ */
+
+/*
+ * Kirigami-specific controls
+ */
+
+:root {
+    --chip-background-color: var(--window-background-alternate-color);
+}
+
+applicationheader
+{
+    background-color: var(--header-active-background-color);
+    color: var(--header-active-text-color);
+
+    &[colorset="window"]
+    {
+        background-color: var(--window-background-color);
+        color: var(--window-text-color);
+    }
+
+    &.with-separator
+    {
+        border-bottom: 1px solid var(--header-active-border-color);
+    }
+
+    .inactive &
+    {
+        background-color: var(--header-inactive-background-color);
+        border-color: var(--header-inactive-border-color);
+        color: var(--header-inactive-text-color);
+    }
+}
+
+card
+{
+    background-color: var(--card-background-color);
+    border: 1px solid var(--card-border-color);
+    border-radius: var(--corner-radius);
+    box-shadow: 0px 2px var(--grid-unit) 0px rgba(0, 0, 0, 0.1);
+    color: var(--card-text-color);
+
+    &:hovered {
+        background-color: var(--card-hover-color);
+    }
+
+    &:pressed {
+        background-color: var(--card-pressed-color);
+    }
+}
+
+chip
+{
+    width: var(--medium-element-size);
+    height: var(--medium-element-size);
+    padding: var(--medium-spacing);
+
+    layout-alignment: content fill fill 0;
+    text-alignment: content fill center 0;
+    icon-alignment: content start center 0;
+
+    background-color: var(--chip-background-color);
+    border-radius: var(--corner-radius);
+    border: 1px solid var(--button-active-border-color);
+    color: var(--button-active-text-color);
+
+    spacing: var(--small-spacing);
+
+    & > .indicator
+    {
+        width: var(--small-element-size);
+        height: var(--small-element-size);
+
+        icon-name: "edit-delete-remove";
+        icon-width: var(--icon-size-small);
+        icon-height: var(--icon-size-small);
+
+        layout-alignment: item end center 0;
+    }
+
+    &:hovered
+    {
+        border-color: var(--highlight-color);
+    }
+
+    &:pressed
+    {
+        border-color: var(--highlight-color);
+        background-color: var(--button-active-highlight-color);
+    }
+}
+
+heading
+{
+    color: var(--window-text-color);
+
+    &.primary
+    {
+        font-weight: 600;
+    }
+
+    &.level-1
+    {
+        font-size: 135%;
+    }
+
+    &.primary.level-1
+    {
+        font-size: 135%;
+        font-weight: 600;
+    }
+
+    &.level-2
+    {
+        font-size: 120%;
+    }
+
+    &.primary.level-2
+    {
+        font-size: 120%;
+        font-weight: 600;
+    }
+
+    &.level-3
+    {
+        font-size: 115%;
+    }
+
+    &.primary.level-3
+    {
+        font-size: 115%;
+        font-weight: 600;
+    }
+
+    &.level-4
+    {
+        font-size: 110%;
+    }
+
+    &.primary.level-4
+    {
+        font-size: 110%;
+        font-weight: 600;
+    }
+
+    &.secondary
+    {
+        color: modify-color(var(--window-text-color) set-alpha 0.75);
+    }
+}
+
+inlinemessage
+{
+    padding: var(--small-spacing);
+
+    background-color: mix(var(--window-background-color), var(--highlight-color), 0.2);
+    border: 1px solid var(--highlight-color);
+    border-radius: var(--corner-radius);
+    color: var(--window-text-color);
+
+    &[type="positive"] {
+        background-color: var(--positive-background);
+        border: 1px solid var(--positive-text);
+    }
+
+    &[type="warning"] {
+        background-color: var(--neutral-background);
+        border: 1px solid var(--neutral-text);
+    }
+
+    &[type="error"] {
+        background-color: var(--negative-background);
+        border: 1px solid var(--negative-text);
+    }
+
+    &[position="header"] {
+        border-radius: 0px;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+    }
+
+    &[position="footer"] {
+        border-radius: 0px;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+    }
+}
+
+navigationtabbar {
+    background-color: var(--window-background-color);
+
+    &.header {
+        border-bottom: 1px solid var(--window-border-color);
+    }
+
+    &.footer {
+        border-top: 1px solid var(--window-border-color);
+    }
+}
+
+navigationtabbutton {
+    height: 54px; /* grid-unit * 3 */
+    padding: var(--small-spacing);
+    inset: var(--small-spacing);
+    spacing: var(--small-spacing);
+
+    icon-size: var(--icon-size-smallmedium);
+    border-radius: var(--corner-radius);
+
+    layout-alignment: content fill fill 0;
+    text-alignment-horizontal: start;
+    icon-alignment-horizontal: start;
+
+    color: var(--window-text-color);
+
+    &:disabled {
+        color: var(--window-disabled-text-color);
+    }
+
+    &:hovered
+    {
+        background-color: var(--highlight-hover-color);
+    }
+
+    &:pressed
+    {
+        background-color: var(--highlight-hover-color);
+        border-color: var(--highlight-color);
+        box-shadow: none;
+    }
+
+    &:checked
+    {
+        color: var(--window-text-color);
+        background-color: var(--highlight-hover-color);
+        border: 1px solid var(--highlight-color);
+    }
+
+    &[display="text-beside-icon"] {
+        height: 0px;
+        padding: 12px var(--small-spacing) 12px var(--grid-unit); /* small-spacing + large-spacing */
+        spacing: var(--grid-unit);
+        icon-size: var(--icon-size-small);
+    }
+
+    &[display="text-under-icon"] {
+        icon-alignment: content center stack-center 0;
+        text-alignment: content center stack-center 1;
+    }
+}
+
+overlaydrawer
+{
+    background-color: var(--view-background-color);
+    color: var(--view-text-color);
+
+    &.modal
+    {
+        background-color: var(--window-background-color);
+        color: var(--window-text-color);
+    }
+
+    /* Collapsible sidebar expects 32px in Kirigami by default */
+    itemdelegate {
+        width: var(--icon-size-medium);
+        height: var(--icon-size-medium);
+    }
+
+    &[colorset="window"]
+    {
+        background-color: var(--window-background-color);
+        color: var(--window-text-color);
+    }
+}

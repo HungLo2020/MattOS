@@ -19,6 +19,10 @@
 #include <QtMultimedia/private/qplatformvideosource_p.h>
 #include <QtMultimedia/qcamera.h>
 
+// NOLINTBEGIN (bugprone-reserved-identifier)
+typedef struct _GstElement GstElement;
+// NOLINTEND (bugprone-reserved-identifier)
+
 QT_BEGIN_NAMESPACE
 
 class Q_MULTIMEDIA_EXPORT QPlatformCamera : public QPlatformVideoSource
@@ -113,6 +117,10 @@ public:
     virtual void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) {}
     virtual void setColorTemperature(int /*temperature*/) {}
 
+#if QT_CONFIG(gstreamer_qt_api)
+    virtual GstElement *rawGstElement() const { return nullptr; }
+#endif
+
     QVideoFrameFormat frameFormat() const override;
 
     // Note: Because FocusModeManual effectively cannot function without
@@ -176,7 +184,7 @@ Q_SIGNALS:
     void errorOccurred(QCamera::Error error, const QString &errorString);
 
 protected:
-    explicit QPlatformCamera(QCamera *parent);
+    explicit QPlatformCamera(QObject *parent);
 
     virtual int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat /*format*/,
                                        QVideoFrameFormat::ColorRange /*colorRange*/) const

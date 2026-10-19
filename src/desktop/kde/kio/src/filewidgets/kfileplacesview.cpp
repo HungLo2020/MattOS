@@ -36,6 +36,7 @@
 #include <KColorUtils>
 #include <KConfig>
 #include <KConfigGroup>
+#include <KIconLoader>
 #include <KJob>
 #include <KLocalizedString>
 #include <KProtocolInfo>
@@ -250,7 +251,6 @@ void KFilePlacesViewDelegate::paint(QPainter *painter, const QStyleOptionViewIte
 
             const int radius = capacityBarHeight / 2;
             QRect capacityBgRect(rectText.x(), rectText.bottom(), rectText.width(), capacityBarHeight);
-            capacityBgRect.adjust(0.5, 0.5, -0.5, -0.5);
             QRect capacityFillRect = capacityBgRect;
             capacityFillRect.setWidth(capacityFillRect.width() * usedSpace);
 
@@ -289,17 +289,8 @@ void KFilePlacesViewDelegate::paint(QPainter *painter, const QStyleOptionViewIte
     }
 
     const QString text = index.model()->data(index).toString();
-    const QString elidedText = opt.fontMetrics.elidedText(text, Qt::ElideRight, rectText.width());
 
-    const bool isElided = (text != elidedText);
-
-    if (isElided) {
-        m_elidedTexts.insert(persistentIndex);
-    } else if (auto it = m_elidedTexts.find(persistentIndex); it != m_elidedTexts.end()) {
-        m_elidedTexts.erase(it);
-    }
-
-    painter->drawText(rectText, Qt::AlignLeft | Qt::AlignVCenter, elidedText);
+    painter->drawText(rectText, Qt::AlignLeft | Qt::AlignVCenter, elidedName(persistentIndex, text, opt, rectText.width()));
 
     painter->restore();
 }
@@ -333,7 +324,8 @@ bool KFilePlacesViewDelegate::helpEvent(QHelpEvent *event, QAbstractItemView *vi
             event->setAccepted(true);
             return true;
         } else {
-            const bool isElided = m_elidedTexts.find(QPersistentModelIndex(index)) != m_elidedTexts.end();
+            const auto elided = m_elidedNames.constFind(QPersistentModelIndex(index));
+            const bool isElided = elided != m_elidedNames.constEnd() && elided->elided != elided->name;
 
             const QString displayText = index.data(Qt::DisplayRole).toString();
             QString toolTipText = index.data(Qt::ToolTipRole).toString();
@@ -615,9 +607,22 @@ void KFilePlacesViewDelegate::checkFreeSpace(const QModelIndex &index) const
     startPollingFreeSpace();
 }
 
+QString KFilePlacesViewDelegate::elidedName(const QPersistentModelIndex &index, const QString &name, const QStyleOptionViewItem &option, int width) const
+{
+    ElidedName &known = m_elidedNames[index];
+    if (known.width != width || known.name != name || known.font != option.font) {
+        known.name = name;
+        known.font = option.font;
+        known.width = width;
+        known.elided = option.fontMetrics.elidedText(name, Qt::ElideRight, width);
+    }
+
+    return known.elided;
+}
+
 void KFilePlacesViewDelegate::clearFreeSpaceInfo()
 {
-    for (auto &info: m_freeSpaceInfo) {
+    for (auto &info : m_freeSpaceInfo) {
         delete info.job;
     }
     m_freeSpaceInfo.clear();
@@ -1533,10 +1538,10 @@ void KFilePlacesView::dragMoveEvent(QDragMoveEvent *event)
     QListView::dragMoveEvent(event);
 
     bool autoActivate = false;
-    // update the drop indicator
+    // compute the new drop indicator
     const QPoint pos = event->position().toPoint();
     const QModelIndex index = indexAt(pos);
-    setDirtyRegion(d->m_dropRect);
+    const QRect previousDropRect = d->m_dropRect;
     if (index.isValid()) {
         d->m_dropIndex = index;
         const QRect rect = visualRect(index);
@@ -1569,7 +1574,9 @@ void KFilePlacesView::dragMoveEvent(QDragMoveEvent *event)
         }
     }
 
-    setDirtyRegion(d->m_dropRect);
+    if (d->m_dropRect != previousDropRect) {
+        setDirtyRegion(QRegion(previousDropRect).united(d->m_dropRect));
+    }
 }
 
 void KFilePlacesView::dropEvent(QDropEvent *event)
@@ -1865,7 +1872,16 @@ void KFilePlacesViewPrivate::adaptItemSize()
     }
 
     const int totalSectionsHeight = m_delegate->sectionHeaderHeight(QModelIndex()) * sectionsCount();
-    const int maxHeight = qCeil((q->height() - totalSectionsHeight) / rowCount) - s_lateralMargin;
+
+    // Height a row needs beyond the icon (item frame padding), from the style, so the chosen
+    // icon size leaves all rows fitting the viewport and does not force a scrollbar.
+    QStyleOptionViewItem rowOption;
+    rowOption.initFrom(q);
+    rowOption.features |= QStyleOptionViewItem::HasDecoration;
+    rowOption.decorationSize = QSize(maxSize, maxSize);
+    const int rowOverhead = q->style()->sizeFromContents(QStyle::CT_ItemViewItem, &rowOption, {}, q).height() - maxSize;
+
+    const int maxHeight = (q->height() - totalSectionsHeight) / rowCount - rowOverhead;
 
     int size = qMin(maxHeight, maxWidth);
 

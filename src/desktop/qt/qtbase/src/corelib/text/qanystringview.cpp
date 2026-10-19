@@ -361,10 +361,10 @@ static_assert(QtPrivate::IsContainerCompatibleWithQUtf8StringView<QAnyStringView
 /*!
     \fn template <typename Char, size_t Size> static QAnyStringView fromArray(const Char (&string)[Size]) noexcept
 
-    Constructs a string view on the full character string literal \a string,
-    including any trailing \c{Char(0)}. If you don't want the
-    null-terminator included in the view then you can use the constructor
-    overload taking a pointer and a size:
+    Constructs a string view on the full character string literal \a string
+    of \a Size elements, including any trailing \c{Char(0)}. If you don't
+    want the null-terminator included in the view then you can use the
+    constructor overload taking a pointer and a size:
 
     \snippet code/src_corelib_text_qanystringview.cpp 2
 
@@ -490,7 +490,7 @@ static_assert(QtPrivate::IsContainerCompatibleWithQUtf8StringView<QAnyStringView
     Returns the substring of length \a n starting at position
     \a pos in this object.
 
-    \deprecated Use sliced() instead in new code.
+    \deprecated [6.5] Use sliced() instead in new code.
 
     Returns an empty string view if \a n exceeds the
     length of the string view. If there are less than \a n code points
@@ -505,7 +505,7 @@ static_assert(QtPrivate::IsContainerCompatibleWithQUtf8StringView<QAnyStringView
     \fn QAnyStringView::left(qsizetype n) const
     \since 6.5
 
-    \deprecated Use first() instead in new code.
+    \deprecated [6.5] Use first() instead in new code.
 
     Returns the substring of length \a n starting at position
     0 in this object.
@@ -520,7 +520,7 @@ static_assert(QtPrivate::IsContainerCompatibleWithQUtf8StringView<QAnyStringView
     \fn QAnyStringView::right(qsizetype n) const
     \since 6.5
 
-    \deprecated Use last() instead in new code.
+    \deprecated [6.5] Use last() instead in new code.
 
     Returns the substring of length \a n starting at position
     size() - \a n in this object.
@@ -778,7 +778,7 @@ static_assert(QtPrivate::IsContainerCompatibleWithQUtf8StringView<QAnyStringView
     Outputs \a s to debug stream \a d.
 
     If \c{d.quotedString()} is \c true, indicates which encoding the string is
-    in. If you just want the string data, use visit() like this:
+    in. If you just want the string data, use \l{QAnyStringView::visit()}{visit()} like this:
 
     \code
     s.visit([&d) (auto s) { d << s; });
@@ -823,8 +823,8 @@ QDebug operator<<(QDebug d, QAnyStringView s)
 /*!
     \fn template <typename Char, size_t Size, QAnyStringView::if_compatible_char<Char>> QAnyStringView QAnyStringView::fromArray(const Char (&string)[Size])
 
-    Constructs a string view on the full character string literal \a string,
-    including any trailing \c{Char(0)}. If you don't want the
+    Constructs a string view on the full character string literal \a string
+    of \a Size elements, including any trailing \c{Char(0)}. If you don't want the
     null-terminator included in the view then you can chop() it off
     when you are certain it is at the end. Alternatively you can use
     the constructor overload taking an array literal which will create

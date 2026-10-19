@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
-"PO-Revision-Date: 2026-02-26 12:29+0400\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
+"PO-Revision-Date: 2026-08-10 18:32+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -67,7 +67,7 @@ msgstr "تغيير حجم قسم أنشأ لتوّه: تحديث البداية 
 #, kde-kuit-format
 msgctxt "@info:status"
 msgid "Copying a new partition: Creating a new partition instead."
-msgstr "نسخ قسم جديد: إنشاء قسم جديد بدلاً من ذلك."
+msgstr "نسخ قسم جديد: إنشاء قسم جديد بدلًا من ذلك."
 
 #: core/operationstack.cpp:156
 #, kde-kuit-format
@@ -1863,13 +1863,13 @@ msgstr "اقفل"
 msgid "Enter passphrase for %1:"
 msgstr "أدخل عبارة مرور لـ %1:"
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
 msgstr "تغيير حجم ملف LUKS على القسم <filename>%1</filename>."
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1926,7 +1926,7 @@ msgid ""
 msgstr ""
 "تحديث قطاع التمهيد لنظام الملفات NTFS على القسم <filename>%1</filename>."
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1936,7 +1936,7 @@ msgstr ""
 "تعذّر كتابة قطاع بداية جديد في القسم <filename>%1</filename> أثناء محاولة "
 "تحديث قطاع إقلاع NTFS."
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2013,7 +2013,7 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info/plain"
 msgid "Change the permissions of: <filename>%1</filename> to %2"
-msgstr "تغيير أذونات: <filename>%1</filename> إلى %2"
+msgstr "تغيير أذون: <filename>%1</filename> إلى %2"
 
 #: jobs/checkfilesystemjob.cpp:43
 #, kde-kuit-format
@@ -2726,6 +2726,33 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr "مزّق نظام الملفات في <filename>%1</filename>"
 
+#: jobs/takeownershipjob.cpp:28
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr ""
+"لا يتيح نظام الملفات الموجود على القسم <filename>%1</filename> ميزة الملكية."
+
+#: jobs/takeownershipjob.cpp:36
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr "رفض تغيير ملكية نقطة الوصل المهمة <filename>%1</filename>."
+
+#: jobs/takeownershipjob.cpp:60
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "تخصيص ملف <filename>%1</filename> ومحتوياته للمستخدم %2"
+
+#: jobs/takeownershipjob.cpp:62
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "تخصيص ملف <filename>%1</filename> للمستخدم %2"
+
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
 msgctxt "@info:status"
@@ -3130,6 +3157,18 @@ msgstr "عيّن أعلام القسم <filename>%1</filename> إلى \"%2\""
 msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
 msgstr "عيّن لصيقة قسم GPT <filename>%1</filename> إلى \"%2\""
+
+#: ops/takeownershipoperation.cpp:73
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "خصص ملف <filename>%1</filename> ومحتوياته للمستخدم %2"
+
+#: ops/takeownershipoperation.cpp:75
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
+msgstr "خصص ملف <filename>%1</filename> للمستخدم %2"
 
 #: plugins/geom/geompartitiontable.cpp:91
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:65

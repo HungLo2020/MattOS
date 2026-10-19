@@ -945,6 +945,20 @@ private:
     QString m_foreignProperty;
 };
 
+struct QBarSet : public QObject
+{
+    Q_OBJECT
+    QML_ELEMENT
+};
+
+struct CppQListBarSet
+{
+    Q_GADGET
+    QML_ANONYMOUS
+    QML_FOREIGN(QList<QBarSet *>)
+    QML_SEQUENTIAL_CONTAINER(QBarSet *)
+};
+
 class tst_qmltyperegistrar : public QObject
 {
     Q_OBJECT
@@ -994,9 +1008,11 @@ private slots:
     void typeInModuleMajorVersionZero();
     void resettableProperty();
     void duplicateExportWarnings();
+
     void clonedSignal();
     void baseVersionInQmltypes();
     void unconstructibleValueType();
+    void valueTypeList();
     void constructibleValueType();
     void structuredValueType();
     void anonymousAndUncreatable();
@@ -1017,6 +1033,8 @@ private slots:
     void deduplicateCleanPaths();
     void enumWarnings();
 
+    void lowercaseEnumWarning();
+
     void relatedAddedInVersion();
     void longNumberTypes();
     void enumList();
@@ -1033,11 +1051,14 @@ private slots:
     void preserveVoidStarPropTypes();
 
     void inaccessibleBase();
+    void opaqueBase();
     void enumsExplicitlyScoped();
     void namespacedExtracted();
     void derivedFromInvisible();
     void foreignFileAndLinePointsToNonForeign();
     void foreignNamespacedWithEnum();
+
+    void mergeQtConfImportPathOrder();
 
 #ifdef QT_QMLJSROOTGEN_PRESENT
     void verifyJsRoot();

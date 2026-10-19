@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
 project(KItemModels VERSION ${KF_VERSION})
 
 include(FeatureSummary)
-find_package(ECM 6.26.0 NO_MODULE)
+find_package(ECM 6.31.0 NO_MODULE)
 set_package_properties(ECM PROPERTIES
     TYPE REQUIRED
     DESCRIPTION "Extra CMake Modules."
@@ -27,8 +27,9 @@ include(ECMGenerateExportHeader)
 include(ECMDeprecationSettings)
 include(CMakePackageConfigHelpers)
 include(ECMGenerateQDoc)
+include(ECMInstalledLibraryCheck)
 
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 find_package(Qt6Core ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
 find_package(Qt6Qml ${REQUIRED_QT_VERSION} NO_MODULE)
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwinrules\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
+"POT-Creation-Date: 2026-07-17 00:45+0000\n"
 "PO-Revision-Date: 2004-07-03 17:42+0100\n"
 "Last-Translator: KD at KGyfieithu <kyfieithu@dotmon.com>\n"
 "Language-Team: Cymraeg <cy@li.org>\n"
@@ -22,46 +22,57 @@ msgstr ""
 msgid "Copy of %1"
 msgstr ""
 
-#: kcmrules.cpp:414
+#: kcmrules.cpp:426
 #, kde-format
 msgid "Application settings for %1"
 msgstr ""
 
-#: kcmrules.cpp:436 rulesmodel.cpp:221 rulesmodel.cpp:224
+#: kcmrules.cpp:448 rulesmodel.cpp:222 rulesmodel.cpp:225
 #, kde-format
 msgid "Window settings for %1"
 msgstr ""
 
-#: optionsmodel.cpp:198
-#, kde-format
+#: optionsmodel.cpp:199 optionsmodel.cpp:204
+#, fuzzy, kde-format
+#| msgid "Unimportant"
+msgctxt "@item:inlistbox"
 msgid "Unimportant"
 msgstr "Dim o bwys"
 
-#: optionsmodel.cpp:199
+#: optionsmodel.cpp:200
 #, fuzzy, kde-format
 #| msgid "Exact Match"
+msgctxt "@item:inlistbox"
 msgid "Exact match"
 msgstr "Cydweddiad Union"
 
-#: optionsmodel.cpp:200
+#: optionsmodel.cpp:201
 #, fuzzy, kde-format
 #| msgid "Substring Match"
+msgctxt "@item:inlistbox"
 msgid "Substring match"
 msgstr "Cydweddiad Is-linyn"
 
-#: optionsmodel.cpp:201
+#: optionsmodel.cpp:202
 #, fuzzy, kde-format
 #| msgid "Regular Expression"
+msgctxt "@item:inlistbox"
 msgid "Regular expression"
 msgstr "Mynegiad Rheolaidd"
 
 #: optionsmodel.cpp:205
+#, kde-format
+msgctxt "@item:inlistbox This is a noun"
+msgid "Match"
+msgstr ""
+
+#: optionsmodel.cpp:210
 #, fuzzy, kde-format
 #| msgid "Apply Initially"
 msgid "Apply initially"
 msgstr "Gweithredu yn Gychwynnol"
 
-#: optionsmodel.cpp:206
+#: optionsmodel.cpp:211
 #, kde-format
 msgid ""
 "The window property will be only set to the given value after the window is "
@@ -69,12 +80,12 @@ msgid ""
 "No further changes will be affected."
 msgstr ""
 
-#: optionsmodel.cpp:209
+#: optionsmodel.cpp:214
 #, kde-format
 msgid "Apply now"
 msgstr ""
 
-#: optionsmodel.cpp:210
+#: optionsmodel.cpp:215
 #, kde-format
 msgid ""
 "The window property will be set to the given value immediately and will not "
@@ -82,25 +93,25 @@ msgid ""
 "(this action will be deleted afterwards)."
 msgstr ""
 
-#: optionsmodel.cpp:213
+#: optionsmodel.cpp:218
 #, kde-format
 msgid "Remember"
 msgstr "Cofio"
 
-#: optionsmodel.cpp:214
+#: optionsmodel.cpp:219
 #, kde-format
 msgid ""
 "The value of the window property will be remembered and, every time the "
 "window is created, the last remembered value will be applied."
 msgstr ""
 
-#: optionsmodel.cpp:217
+#: optionsmodel.cpp:222
 #, fuzzy, kde-format
 #| msgid "Do Not Affect"
 msgid "Do not affect"
 msgstr "Dim Effaith"
 
-#: optionsmodel.cpp:218
+#: optionsmodel.cpp:223
 #, kde-format
 msgid ""
 "The window property will not be affected and therefore the default handling "
@@ -108,39 +119,39 @@ msgid ""
 "Specifying this will block more generic window settings from taking effect."
 msgstr ""
 
-#: optionsmodel.cpp:221
+#: optionsmodel.cpp:226
 #, kde-format
 msgid "Force"
 msgstr "Gorfodi"
 
-#: optionsmodel.cpp:222
+#: optionsmodel.cpp:227
 #, kde-format
 msgid "The window property will be always forced to the given value."
 msgstr ""
 
-#: optionsmodel.cpp:224
+#: optionsmodel.cpp:229
 #, kde-format
 msgid "Force temporarily"
 msgstr ""
 
-#: optionsmodel.cpp:225
+#: optionsmodel.cpp:230
 #, kde-format
 msgid ""
 "The window property will be forced to the given value until it is hidden\n"
 "(this action will be deleted after the window is hidden)."
 msgstr ""
 
-#: rulesmodel.cpp:227
+#: rulesmodel.cpp:228
 #, kde-format
 msgid "Settings for %1"
 msgstr ""
 
-#: rulesmodel.cpp:230
+#: rulesmodel.cpp:231
 #, kde-format
 msgid "New window settings"
 msgstr ""
 
-#: rulesmodel.cpp:246
+#: rulesmodel.cpp:247
 #, kde-format
 msgid ""
 "You have specified the window class as unimportant.\n"
@@ -154,7 +165,7 @@ msgstr ""
 "cymhwysiad.  Os hoffech greu gosodiad generig o ddifrif, argymhellir o leiaf "
 "gyfyngu'r mathau ffenestr er mwyn osgoi mathau ffenestr arbennig."
 
-#: rulesmodel.cpp:253
+#: rulesmodel.cpp:254
 #, kde-format
 msgid ""
 "Some applications set their own geometry after starting, overriding your "
@@ -162,145 +173,151 @@ msgid ""
 "force the property \"%1\" to \"Yes\"."
 msgstr ""
 
-#: rulesmodel.cpp:260
+#: rulesmodel.cpp:261
 #, kde-format
 msgid ""
 "Readability may be impaired with extremely low opacity values. At 0%, the "
 "window becomes invisible."
 msgstr ""
 
-#: rulesmodel.cpp:387
+#: rulesmodel.cpp:388
 #, fuzzy, kde-format
 #| msgid "De&scription:"
 msgid "Description"
 msgstr "Di&sgrifiad:"
 
-#: rulesmodel.cpp:387 rulesmodel.cpp:395 rulesmodel.cpp:403 rulesmodel.cpp:410
-#: rulesmodel.cpp:416 rulesmodel.cpp:424 rulesmodel.cpp:429 rulesmodel.cpp:435
-#: rulesmodel.cpp:440
+#: rulesmodel.cpp:388 rulesmodel.cpp:396 rulesmodel.cpp:404 rulesmodel.cpp:411
+#: rulesmodel.cpp:417 rulesmodel.cpp:425 rulesmodel.cpp:430 rulesmodel.cpp:436
+#: rulesmodel.cpp:441 rulesmodel.cpp:447
 #, fuzzy, kde-format
 #| msgid "&Window"
 msgid "Window matching"
 msgstr "&Ffenestr"
 
-#: rulesmodel.cpp:395
+#: rulesmodel.cpp:396
 #, fuzzy, kde-format
 msgid "Window class (application)"
 msgstr "Dosbarth ffenestr (math cymhwysiad):"
 
-#: rulesmodel.cpp:403
+#: rulesmodel.cpp:404
 #, fuzzy, kde-format
 msgid "Match whole window class"
 msgstr "Cydweddu holl ddosbarth ffenestr"
 
-#: rulesmodel.cpp:410
+#: rulesmodel.cpp:411
 #, fuzzy, kde-format
 msgid "Whole window class"
 msgstr "Cydweddu holl ddosbarth ffenestr"
 
-#: rulesmodel.cpp:416
+#: rulesmodel.cpp:417
 #, fuzzy, kde-format
 msgid "Window types"
 msgstr "Mathau ffenestr:"
 
-#: rulesmodel.cpp:424
+#: rulesmodel.cpp:425
 #, fuzzy, kde-format
 #| msgid "Window &role:"
 msgid "Window role"
 msgstr "&Rôl y ffenestr:"
 
-#: rulesmodel.cpp:429
+#: rulesmodel.cpp:430
 #, fuzzy, kde-format
 #| msgid "Window t&itle:"
 msgid "Window title"
 msgstr "Te&itl Ffenestr:"
 
-#: rulesmodel.cpp:435
+#: rulesmodel.cpp:436
 #, fuzzy, kde-format
 msgid "Machine (hostname)"
 msgstr "Peiriant (enw gwesteiwr):"
 
-#: rulesmodel.cpp:440
+#: rulesmodel.cpp:441
 #, fuzzy, kde-format
 msgid "Window tag"
 msgstr "Ffenestr Ychwanegol"
 
 #: rulesmodel.cpp:447
 #, fuzzy, kde-format
+#| msgid "On Main Window"
+msgid "Has parent window"
+msgstr "Ar Brif Ffenestr"
+
+#: rulesmodel.cpp:453
+#, fuzzy, kde-format
 #| msgid "&Position"
 msgid "Position"
 msgstr "&Lleoliad"
 
-#: rulesmodel.cpp:447 rulesmodel.cpp:453 rulesmodel.cpp:459 rulesmodel.cpp:464
-#: rulesmodel.cpp:472 rulesmodel.cpp:478 rulesmodel.cpp:497 rulesmodel.cpp:513
-#: rulesmodel.cpp:518 rulesmodel.cpp:523 rulesmodel.cpp:528 rulesmodel.cpp:535
-#: rulesmodel.cpp:549 rulesmodel.cpp:554 rulesmodel.cpp:559
+#: rulesmodel.cpp:453 rulesmodel.cpp:459 rulesmodel.cpp:465 rulesmodel.cpp:470
+#: rulesmodel.cpp:478 rulesmodel.cpp:484 rulesmodel.cpp:503 rulesmodel.cpp:519
+#: rulesmodel.cpp:524 rulesmodel.cpp:529 rulesmodel.cpp:534 rulesmodel.cpp:541
+#: rulesmodel.cpp:555 rulesmodel.cpp:560
 #, fuzzy, kde-format
 #| msgid "&Position"
 msgid "Size & Position"
 msgstr "&Lleoliad"
 
-#: rulesmodel.cpp:453
+#: rulesmodel.cpp:459
 #, fuzzy, kde-format
 #| msgid "&Size"
 msgid "Size"
 msgstr "&Maint"
 
-#: rulesmodel.cpp:459
+#: rulesmodel.cpp:465
 #, fuzzy, kde-format
 msgid "Maximized horizontally"
 msgstr "Wedi'i Ehangu yn Llorweddol"
 
-#: rulesmodel.cpp:464
+#: rulesmodel.cpp:470
 #, fuzzy, kde-format
 msgid "Maximized vertically"
 msgstr "Wedi'i Ehangu yn Fertigol"
 
-#: rulesmodel.cpp:472
+#: rulesmodel.cpp:478
 #, fuzzy, kde-format
 #| msgid "All Desktops"
 msgid "Virtual desktop"
 msgstr "Pob penbwrdd"
 
-#: rulesmodel.cpp:478
+#: rulesmodel.cpp:484
 #, fuzzy, kde-format
 #| msgid "All Desktops"
 msgid "Virtual desktops"
 msgstr "Pob penbwrdd"
 
-#: rulesmodel.cpp:497
+#: rulesmodel.cpp:503
 #, kde-format
 msgid "Activities"
 msgstr ""
 
-#: rulesmodel.cpp:513
+#: rulesmodel.cpp:519
 #, fuzzy, kde-format
 #| msgid "Splash Screen"
 msgid "Screen"
 msgstr "Sgrin Croeso"
 
-#: rulesmodel.cpp:518 rulesmodel.cpp:927
+#: rulesmodel.cpp:524 rulesmodel.cpp:924
 #, fuzzy, kde-format
 #| msgid "&Fullscreen"
 msgid "Fullscreen"
 msgstr "S&grîn Llawn"
 
-#: rulesmodel.cpp:523
+#: rulesmodel.cpp:529
 #, fuzzy, kde-format
 msgid "Minimized"
 msgstr "Wedi'i Leihau"
 
-#: rulesmodel.cpp:528
+#: rulesmodel.cpp:534
 #, fuzzy, kde-format
 msgid "Initial placement"
 msgstr "Lleoliad"
 
-#: rulesmodel.cpp:535
+#: rulesmodel.cpp:541
 #, fuzzy, kde-format
 msgid "Ignore requested geometry"
 msgstr "Anwybyddu'r lleoliad a ofynnir amdano"
 
-#: rulesmodel.cpp:538
+#: rulesmodel.cpp:544
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -312,77 +329,61 @@ msgid ""
 "can also be used to map to a different <interface>Screen</interface>"
 msgstr ""
 
-#: rulesmodel.cpp:549
+#: rulesmodel.cpp:555
 #, fuzzy, kde-format
 msgid "Minimum Size"
 msgstr "Maint lleiaf"
 
-#: rulesmodel.cpp:554
+#: rulesmodel.cpp:560
 #, fuzzy, kde-format
 msgid "Maximum Size"
 msgstr "Maint mwyaf"
 
-#: rulesmodel.cpp:559
-#, kde-format
-msgid "Obey geometry restrictions"
-msgstr ""
-
-#: rulesmodel.cpp:561
-#, kde-kuit-format
-msgctxt "@info:tooltip"
-msgid ""
-"Some apps like video players or terminals can ask KWin to constrain them to "
-"certain aspect ratios or only grow by values larger than the dimensions of "
-"one character. Use this property to ignore such restrictions and allow those "
-"windows to be resized to arbitrary sizes.<nl/><nl/>This can be helpful for "
-"windows that can't quite fit the full screen area when maximized."
-msgstr ""
-
-#: rulesmodel.cpp:572
+#: rulesmodel.cpp:566
 #, kde-format
 msgid "Keep above other windows"
 msgstr ""
 
-#: rulesmodel.cpp:572 rulesmodel.cpp:577 rulesmodel.cpp:582 rulesmodel.cpp:588
-#: rulesmodel.cpp:594 rulesmodel.cpp:600
+#: rulesmodel.cpp:566 rulesmodel.cpp:571 rulesmodel.cpp:576 rulesmodel.cpp:582
+#: rulesmodel.cpp:588 rulesmodel.cpp:594
 #, kde-format
 msgid "Arrangement & Access"
 msgstr ""
 
-#: rulesmodel.cpp:577
+#: rulesmodel.cpp:571
 #, kde-format
 msgid "Keep below other windows"
 msgstr ""
 
-#: rulesmodel.cpp:582
+#: rulesmodel.cpp:576
 #, fuzzy, kde-format
 msgid "Skip taskbar"
 msgstr "Hepgor bar tasgiau"
 
-#: rulesmodel.cpp:584
+#: rulesmodel.cpp:578
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Controls whether or not the window appears in the Task Manager."
 msgstr ""
 
-#: rulesmodel.cpp:588
+#: rulesmodel.cpp:582
 #, fuzzy, kde-format
 msgid "Skip pager"
 msgstr "Hepgor tudalennydd"
 
-#: rulesmodel.cpp:590
+#: rulesmodel.cpp:584
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "Controls whether or not the window appears in the Virtual Desktop manager."
 msgstr ""
 
-#: rulesmodel.cpp:594
+#: rulesmodel.cpp:588
 #, fuzzy, kde-format
 msgid "Skip switcher"
 msgstr "Hepgor tudalennydd"
 
-#: rulesmodel.cpp:596
+#: rulesmodel.cpp:590
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -390,45 +391,45 @@ msgid ""
 "shortcut> window list."
 msgstr ""
 
-#: rulesmodel.cpp:600
+#: rulesmodel.cpp:594
 #, kde-format
 msgid "Shortcut"
 msgstr "Byrlwybr"
 
-#: rulesmodel.cpp:606
+#: rulesmodel.cpp:600
 #, kde-format
-msgid "No titlebar and frame"
+msgid "Window manager draws titlebar, frame, and shadows"
 msgstr ""
 
-#: rulesmodel.cpp:606 rulesmodel.cpp:611 rulesmodel.cpp:617 rulesmodel.cpp:622
-#: rulesmodel.cpp:628 rulesmodel.cpp:655 rulesmodel.cpp:683 rulesmodel.cpp:689
-#: rulesmodel.cpp:701 rulesmodel.cpp:706 rulesmodel.cpp:711 rulesmodel.cpp:716
-#: rulesmodel.cpp:722 rulesmodel.cpp:727
+#: rulesmodel.cpp:600 rulesmodel.cpp:606 rulesmodel.cpp:612 rulesmodel.cpp:617
+#: rulesmodel.cpp:623 rulesmodel.cpp:650 rulesmodel.cpp:678 rulesmodel.cpp:684
+#: rulesmodel.cpp:696 rulesmodel.cpp:701 rulesmodel.cpp:706 rulesmodel.cpp:712
+#: rulesmodel.cpp:717 rulesmodel.cpp:722
 #, kde-format
 msgid "Appearance & Fixes"
 msgstr ""
 
-#: rulesmodel.cpp:611
+#: rulesmodel.cpp:606
 #, kde-format
 msgid "Titlebar color scheme"
 msgstr ""
 
-#: rulesmodel.cpp:617
+#: rulesmodel.cpp:612
 #, kde-format
 msgid "Active opacity"
 msgstr ""
 
-#: rulesmodel.cpp:622
+#: rulesmodel.cpp:617
 #, kde-format
 msgid "Inactive opacity"
 msgstr ""
 
-#: rulesmodel.cpp:628
+#: rulesmodel.cpp:623
 #, fuzzy, kde-format
 msgid "Focus stealing prevention"
 msgstr "Atal dwyn canolbwynt"
 
-#: rulesmodel.cpp:630
+#: rulesmodel.cpp:625
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -450,12 +451,12 @@ msgid ""
 "emphasis> The window will never be raised and focused.</item></list>"
 msgstr ""
 
-#: rulesmodel.cpp:655
+#: rulesmodel.cpp:650
 #, fuzzy, kde-format
 msgid "Focus protection"
 msgstr "Atal dwyn canolbwynt"
 
-#: rulesmodel.cpp:657
+#: rulesmodel.cpp:652
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -479,22 +480,22 @@ msgid ""
 "item></list>"
 msgstr ""
 
-#: rulesmodel.cpp:683
+#: rulesmodel.cpp:678
 #, fuzzy, kde-format
 msgid "Accept focus"
 msgstr "Derbyn canolbwyntio"
 
-#: rulesmodel.cpp:685
+#: rulesmodel.cpp:680
 #, kde-format
 msgid "Controls whether or not the window becomes focused when clicked."
 msgstr ""
 
-#: rulesmodel.cpp:689
+#: rulesmodel.cpp:684
 #, kde-format
 msgid "Ignore global shortcuts"
 msgstr ""
 
-#: rulesmodel.cpp:691
+#: rulesmodel.cpp:686
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -506,42 +507,42 @@ msgid ""
 "activate KRunner."
 msgstr ""
 
-#: rulesmodel.cpp:701
+#: rulesmodel.cpp:696
 #, fuzzy, kde-format
 msgid "Closeable"
 msgstr "Gellir ei gau"
 
-#: rulesmodel.cpp:706
+#: rulesmodel.cpp:701
 #, kde-format
 msgid "Desktop file name"
 msgstr ""
 
-#: rulesmodel.cpp:711
-#, kde-format
-msgid "Block compositing"
-msgstr ""
-
-#: rulesmodel.cpp:716
+#: rulesmodel.cpp:706
 #, kde-format
 msgid "Layer"
 msgstr ""
 
-#: rulesmodel.cpp:722
+#: rulesmodel.cpp:712
 #, kde-format
 msgid "Adaptive sync"
 msgstr ""
 
-#: rulesmodel.cpp:727
+#: rulesmodel.cpp:717
 #, kde-format
 msgid "Allow tearing"
 msgstr ""
 
-#: rulesmodel.cpp:778
+#: rulesmodel.cpp:722
+#, kde-format
+msgid "Hide from screenshots and screen recordings"
+msgstr ""
+
+#: rulesmodel.cpp:775
 #, fuzzy, kde-format
 msgid "Window class not available"
 msgstr "Dosbarth ffenestr (math cymhwysiad):"
 
-#: rulesmodel.cpp:779
+#: rulesmodel.cpp:776
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -551,204 +552,228 @@ msgid ""
 ">Please consider reporting this bug to the application's developers."
 msgstr ""
 
-#: rulesmodel.cpp:813
+#: rulesmodel.cpp:810
 #, fuzzy, kde-format
 msgid "All window types"
 msgstr "Mathau ffenestr:"
 
-#: rulesmodel.cpp:814
+#: rulesmodel.cpp:811
 #, fuzzy, kde-format
 #| msgid "Normal Window"
 msgid "Normal window"
 msgstr "Ffenestr Arferol"
 
-#: rulesmodel.cpp:815
+#: rulesmodel.cpp:812
 #, fuzzy, kde-format
 #| msgid "Dialog Window"
 msgid "Dialog window"
 msgstr "Ffenestr Ymgom"
 
-#: rulesmodel.cpp:816
+#: rulesmodel.cpp:813
 #, fuzzy, kde-format
 #| msgid "Utility Window"
 msgid "Utility window"
 msgstr "Ffenestr Ddefnyddioldeb"
 
-#: rulesmodel.cpp:817
+#: rulesmodel.cpp:814
 #, kde-format
 msgid "Dock (panel)"
 msgstr "Docydd (panel)"
 
-#: rulesmodel.cpp:818
+#: rulesmodel.cpp:815
 #, kde-format
 msgid "Toolbar"
 msgstr "Bar Offer"
 
-#: rulesmodel.cpp:819
+#: rulesmodel.cpp:816
 #, fuzzy, kde-format
 msgid "Torn-off menu"
 msgstr "Dewislen wedi'i Rhwygo"
 
-#: rulesmodel.cpp:820
+#: rulesmodel.cpp:817
 #, fuzzy, kde-format
 #| msgid "Splash Screen"
 msgid "Splash screen"
 msgstr "Sgrin Croeso"
 
-#: rulesmodel.cpp:821 rulesmodel.cpp:922
+#: rulesmodel.cpp:818 rulesmodel.cpp:919
 #, kde-format
 msgid "Desktop"
 msgstr "Penbwrdd"
 
 #. i18n("Unmanaged Window")},  deprecated
-#: rulesmodel.cpp:823
+#: rulesmodel.cpp:820
 #, fuzzy, kde-format
 #| msgid "Standalone Menubar"
 msgid "Standalone menubar"
 msgstr "Bar Dewislen Unigol"
 
-#: rulesmodel.cpp:824 rulesmodel.cpp:930
+#: rulesmodel.cpp:821 rulesmodel.cpp:927
 #, kde-format
 msgid "On-screen display"
 msgstr ""
 
-#: rulesmodel.cpp:834
+#: rulesmodel.cpp:831
 #, fuzzy, kde-format
 #| msgid "All Desktops"
 msgid "All desktops"
 msgstr "Pob penbwrdd"
 
-#: rulesmodel.cpp:836
+#: rulesmodel.cpp:833
 #, kde-format
 msgctxt "@info:tooltip in the virtual desktop list"
 msgid "Make the window available on all desktops"
 msgstr ""
 
-#: rulesmodel.cpp:855
+#: rulesmodel.cpp:852
 #, kde-format
 msgid "All activities"
 msgstr ""
 
-#: rulesmodel.cpp:857
+#: rulesmodel.cpp:854
 #, kde-format
 msgctxt "@info:tooltip in the activity list"
 msgid "Make the window available on all activities"
 msgstr ""
 
-#: rulesmodel.cpp:878
+#: rulesmodel.cpp:875
 #, kde-format
 msgid "Default"
 msgstr ""
 
-#: rulesmodel.cpp:879
+#: rulesmodel.cpp:876
 #, fuzzy, kde-format
 #| msgid "No Placement"
 msgid "No placement"
 msgstr "Dim Lleoli"
 
-#: rulesmodel.cpp:880
+#: rulesmodel.cpp:877
 #, kde-format
 msgid "Minimal overlapping"
 msgstr ""
 
-#: rulesmodel.cpp:881
+#: rulesmodel.cpp:878
 #, fuzzy, kde-format
 msgid "Maximized"
 msgstr "Maint mwyaf"
 
-#: rulesmodel.cpp:882
+#: rulesmodel.cpp:879
 #, kde-format
 msgid "Centered"
 msgstr "Canolig"
 
-#: rulesmodel.cpp:883
+#: rulesmodel.cpp:880
 #, kde-format
 msgid "Random"
 msgstr "Hap"
 
-#: rulesmodel.cpp:884
+#: rulesmodel.cpp:881
 #, fuzzy, kde-format
 #| msgid "Top-Left Corner"
 msgid "In top-left corner"
 msgstr "Cornel Pen-chwith"
 
-#: rulesmodel.cpp:885
+#: rulesmodel.cpp:882
 #, fuzzy, kde-format
 #| msgid "Under Mouse"
 msgid "Under mouse"
 msgstr "Dan Lygoden"
 
-#: rulesmodel.cpp:886
+#: rulesmodel.cpp:883
 #, fuzzy, kde-format
 #| msgid "On Main Window"
 msgid "On main window"
 msgstr "Ar Brif Ffenestr"
 
-#: rulesmodel.cpp:893
+#: rulesmodel.cpp:890
 #, fuzzy, kde-format
 #| msgid "None"
 msgid "None"
 msgstr "Dim"
 
-#: rulesmodel.cpp:894
+#: rulesmodel.cpp:891
 #, kde-format
 msgid "Low"
 msgstr "Isel"
 
-#: rulesmodel.cpp:895 rulesmodel.cpp:924
+#: rulesmodel.cpp:892 rulesmodel.cpp:921
 #, kde-format
 msgid "Normal"
 msgstr "Arferol"
 
-#: rulesmodel.cpp:896
+#: rulesmodel.cpp:893
 #, kde-format
 msgid "High"
 msgstr "Uchel"
 
-#: rulesmodel.cpp:897
+#: rulesmodel.cpp:894
 #, kde-format
 msgid "Extreme"
 msgstr "Eithaf"
 
-#: rulesmodel.cpp:923
+#: rulesmodel.cpp:920
 #, kde-format
 msgid "Below"
 msgstr ""
 
-#: rulesmodel.cpp:925
+#: rulesmodel.cpp:922
 #, kde-format
 msgid "Above"
 msgstr ""
 
-#: rulesmodel.cpp:926
+#: rulesmodel.cpp:923
 #, fuzzy, kde-format
 #| msgid "&Position"
 msgid "Notification"
 msgstr "&Lleoliad"
 
-#: rulesmodel.cpp:928
+#: rulesmodel.cpp:925
 #, kde-format
 msgid "Popup"
 msgstr ""
 
-#: rulesmodel.cpp:929
+#: rulesmodel.cpp:926
 #, fuzzy, kde-format
 #| msgid "&Position"
 msgid "Critical notification"
 msgstr "&Lleoliad"
 
-#: rulesmodel.cpp:931
+#: rulesmodel.cpp:928
 #, kde-format
 msgid "Overlay"
 msgstr ""
 
-#: rulesmodel.cpp:956
+#: rulesmodel.cpp:936
+#, kde-format
+msgctxt "Never draw a server side decoration"
+msgid "Never"
+msgstr ""
+
+#: rulesmodel.cpp:937
+#, kde-format
+msgctxt "Draw a server side decoration if the application asks for it"
+msgid "If the application asks"
+msgstr ""
+
+#: rulesmodel.cpp:938
+#, kde-format
+msgctxt "Always draw a server side decoration"
+msgid "Always"
+msgstr ""
+
+#: rulesmodel.cpp:939
+#, kde-format
+msgctxt "Always draw a server side drop shadow"
+msgid "Only shadow"
+msgstr ""
+
+#: rulesmodel.cpp:964
 #, fuzzy, kde-format
 #| msgid "On Main Window"
 msgid "Unmanaged window"
 msgstr "Ar Brif Ffenestr"
 
-#: rulesmodel.cpp:957
+#: rulesmodel.cpp:965
 #, kde-format
 msgid "Could not detect window properties. The window is not managed by KWin."
 msgstr ""
@@ -901,43 +926,43 @@ msgstr[1] ""
 msgid "Add property to the rule"
 msgstr ""
 
-#: ui/RulesEditor.qml:271
+#: ui/RulesEditor.qml:269
 #, fuzzy, kde-format
 #| msgid "Detect Window Properties"
 msgctxt "@info:placeholder"
 msgid "No properties left to add"
 msgstr "Darganfod Priodweddau Ffenestr"
 
-#: ui/RulesEditor.qml:273
+#: ui/RulesEditor.qml:271
 #, fuzzy, kde-format
 #| msgid "Detect Window Properties"
 msgctxt "@info:placeholder %1 is a filter text introduced by the user"
 msgid "No properties match \"%1\""
 msgstr "Darganfod Priodweddau Ffenestr"
 
-#: ui/RulesEditor.qml:294 ui/ValueEditor.qml:54
+#: ui/RulesEditor.qml:292 ui/ValueEditor.qml:54
 #, kde-format
 msgid "Yes"
 msgstr ""
 
-#: ui/RulesEditor.qml:294 ui/ValueEditor.qml:60
+#: ui/RulesEditor.qml:292 ui/ValueEditor.qml:60
 #, fuzzy, kde-format
 #| msgid "None"
 msgid "No"
 msgstr "Dim"
 
-#: ui/RulesEditor.qml:296 ui/ValueEditor.qml:168 ui/ValueEditor.qml:175
+#: ui/RulesEditor.qml:294 ui/ValueEditor.qml:168 ui/ValueEditor.qml:175
 #, kde-format
 msgid "%1 %"
 msgstr ""
 
-#: ui/RulesEditor.qml:298
+#: ui/RulesEditor.qml:296
 #, kde-format
 msgctxt "Coordinates (x, y)"
 msgid "(%1, %2)"
 msgstr ""
 
-#: ui/RulesEditor.qml:300
+#: ui/RulesEditor.qml:298
 #, kde-format
 msgctxt "Size (width, height)"
 msgid "(%1, %2)"

@@ -2,6 +2,7 @@
 Type=Service
 Name=Microsoft Developer Network Search
 Name[af]=Microsoft Developer Network Soektog
+Name[am]=Microsoft Developer Network Search
 Name[ar]=بحث شبكة مايكروسوفت للمطورين
 Name[as]=Microsoft Developer Network Search
 Name[az]=Microsoft Developer Network Axtarışı
@@ -43,7 +44,7 @@ Name[id]=Pencarian Jaringan Pengembang Microsoft
 Name[ie]=Serchar in li Microsoft Developer Network
 Name[is]=Microsoft Developer Network Search
 Name[it]=Ricerca su Microsoft Developer Network
-Name[ja]=Microsoft Developer Network Search
+Name[ja]=Microsoft Developer Network 検索
 Name[ka]=Microsoft Developer Network-ში ძებნა
 Name[kk]=Microsoft Developer Network-те іздеу
 Name[km]=ស្វែងរក​តាម​រយៈ​បណ្ដាញ​អ្នក​អភិវឌ្ឍន៍​ម៉ៃក្រូសូហ្វ (Microsoft)
@@ -59,6 +60,8 @@ Name[ml]=മൈക്രോസോഫ്റ്റ് ഡെവലപ്പര്�
 Name[mr]=माइक्रोसॉफ्ट डेवलपर संजाळ शोध
 Name[ms]=Carian Rangkaian Pembangun Microsoft
 Name[my]=မိုက်ခရိုဆော့ဖ်လ်ဒက်ဗ်ဗလောပါကွန်ရက် ရှာဖွေရန်
+Name[nan_TW]=Microsoft 開發者網路搜揣
+Name[nan_TW@latin]=Microsoft Khai-huat-tsiá Bāng-lōo Tshiau-tshuē
 Name[nb]=Microsoft Developer Network-søk
 Name[nds]=MDNS - Microsoft sien Schrieverslüüd-Nettwarksöök
 Name[ne]=माइक्रोसफ्ट विकासकर्ता सञ्जाल खोज्नुहोस्
@@ -98,6 +101,7 @@ Name[zh_CN]=MSDN 微软开发者网络搜索
 Name[zh_TW]=微軟開發者網路搜尋
 Keys=msdn
 Query=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
+Query[am]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[ar]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[az]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[be]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
@@ -132,7 +136,7 @@ Query[id]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[ie]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[is]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[it]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
-Query[ja]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
+Query[ja]=https://social.msdn.microsoft.com/Search/ja-JP?query=\\{@}
 Query[ka]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[kk]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[ko]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
@@ -141,6 +145,8 @@ Query[lt]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[lv]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[mr]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[my]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
+Query[nan_TW]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
+Query[nan_TW@latin]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[nb]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[nds]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[nl]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
@@ -164,7 +170,6 @@ Query[tg]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[th]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[tok]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[tr]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
-Query[ug]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[uk]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[vi]=https://social.msdn.microsoft.com/Search/en-US?query=\\{@}
 Query[wa]=https://social.msdn.microsoft.com/Search/fr-BE?query=\\{@}

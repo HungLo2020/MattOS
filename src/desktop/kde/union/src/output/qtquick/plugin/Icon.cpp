@@ -1,0 +1,302 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@quantumproductions.info>
+
+#include "Icon.h"
+
+#include <QQmlFile>
+#include <QQmlProperty>
+#include <QQuickRenderControl>
+#include <QSGImageNode>
+
+#include <StyleRegistry.h>
+
+#include "PixelAlignment.h"
+#include "QuickStyle.h"
+
+#include "qtquick_logging.h"
+
+using namespace Union::Quick;
+using namespace Qt::StringLiterals;
+
+// Find a matching icon size for a given size.
+// This will try to find a size that matches size as close as possible without
+// it ever ending up larger. Unlike `QIcon::actualSize()` this ignores scalable
+// icons in favour of using a smaller icon.
+QSize iconSizeForSize(const QIcon &icon, const QSizeF &size)
+{
+    auto availableSizes = icon.availableSizes();
+    if (availableSizes.isEmpty()) {
+        return icon.actualSize(size.toSize());
+    }
+
+    std::ranges::sort(availableSizes, [](const QSize &first, const QSize &second) {
+        return first.width() < second.width();
+    });
+
+    auto smallest = availableSizes.end();
+    for (auto itr = availableSizes.begin(); itr != availableSizes.end(); ++itr) {
+        if (itr->width() > size.width() || itr->height() > size.height()) {
+            if (itr != availableSizes.begin()) {
+                smallest = itr - 1;
+            }
+            break;
+        }
+    }
+
+    if (smallest == availableSizes.end()) {
+        return icon.actualSize(size.toSize());
+    } else {
+        return *smallest;
+    }
+}
+
+Icon::Icon(QQuickItem *parent)
+    : QQuickItem(parent)
+{
+    setFlag(QQuickItem::ItemHasContents, true);
+    setFlag(QQuickItem::ItemObservesViewport, true);
+    setSmooth(false);
+}
+
+QString Icon::name() const
+{
+    return m_name;
+}
+
+void Icon::setName(const QString &newName)
+{
+    if (newName == m_name) {
+        return;
+    }
+
+    m_name = newName;
+    polish();
+    Q_EMIT nameChanged();
+}
+
+void Icon::resetName()
+{
+    setName(QString{});
+}
+
+QUrl Icon::source() const
+{
+    return m_source;
+}
+
+void Icon::setSource(const QUrl &newSource)
+{
+    if (newSource == m_source) {
+        return;
+    }
+
+    if (!QQmlFile::isLocalFile(newSource)) {
+        if (newSource.isRelative()) {
+            // Some code might incorrectly set icon.source to an icon name, in that case
+            // treat the URL as a name.
+            qCWarning(UNION_QTQUICK) << "Relative URL" << newSource.toString() << "used as an Icon source. This is wrong, interpreting it as icon name instead";
+            setName(newSource.toString());
+        } else {
+            qCDebug(UNION_QTQUICK) << "Non-local source URL" << newSource << "used as Icon source is unsupported";
+        }
+    }
+
+    m_source = newSource;
+    Q_EMIT sourceChanged();
+}
+
+void Icon::resetSource()
+{
+    setSource(QUrl{});
+}
+
+QColor Icon::color() const
+{
+    return m_color;
+}
+
+void Icon::setColor(const QColor &newColor)
+{
+    if (newColor == m_color) {
+        return;
+    }
+
+    m_color = newColor;
+    polish();
+    Q_EMIT colorChanged();
+}
+
+void Icon::resetColor()
+{
+    setColor(Qt::transparent);
+}
+
+QQuickItem *Icon::control() const
+{
+    return m_control;
+}
+
+void Icon::setControl(QQuickItem *newControl)
+{
+    if (newControl == m_control) {
+        return;
+    }
+
+    if (m_control) {
+        m_control->disconnect(this);
+    }
+
+    if (m_style) {
+        m_style->removeEventFilter(this);
+    }
+
+    m_control = newControl;
+
+    if (m_control) {
+        QQmlProperty iconProperty(m_control, u"icon"_s);
+        iconProperty.connectNotifySignal(this, SLOT(onControlIconChanged()));
+
+        m_style = qobject_cast<QuickStyle *>(qmlAttachedPropertiesObject<QuickStyle>(this, true));
+        m_style->installEventFilter(this);
+
+        onControlIconChanged();
+    }
+
+    Q_EMIT controlChanged();
+}
+
+void Icon::resetControl()
+{
+    setControl(nullptr);
+}
+
+QSGNode *Icon::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeData *)
+{
+    if (m_icon.isNull()) {
+        return nullptr;
+    }
+
+    if (!node) {
+        node = window()->createImageNode();
+    }
+
+    auto imageNode = static_cast<QSGImageNode *>(node);
+
+    auto renderWindow = QQuickRenderControl::renderWindowFor(window());
+    if (!renderWindow) {
+        renderWindow = window();
+    }
+
+    auto dpr = renderWindow->devicePixelRatio();
+
+    auto bounds = boundingRect();
+    auto centerPos = QPointF{std::round(bounds.x() + (bounds.width() - m_iconSize.width()) / 2.0), //
+                             std::round(bounds.y() + (bounds.height() - m_iconSize.height()) / 2.0)};
+    imageNode->setRect(QRectF{alignPoint(centerPos, this), m_iconSize.toSizeF()});
+    imageNode->setOwnsTexture(true);
+
+    if (smooth()) {
+        imageNode->setFiltering(QSGTexture::Linear);
+    } else {
+        imageNode->setFiltering(QSGTexture::Nearest);
+    }
+
+    if (m_iconChanged || !imageNode->texture() || !qFuzzyCompare(m_iconDpr, dpr)) {
+        const auto mode = isEnabled() ? QIcon::Mode::Normal : QIcon::Mode::Disabled;
+        auto image = m_icon.pixmap(m_iconSize, dpr, mode).toImage();
+        imageNode->setTexture(window()->createTextureFromImage(image, QQuickWindow::TextureCanUseAtlas));
+        m_iconChanged = false;
+        m_iconDpr = dpr;
+    }
+
+    return node;
+}
+
+bool Icon::eventFilter(QObject *watched, QEvent *event)
+{
+    if (event->type() == QuickStyleUpdatedEvent::s_type) {
+        onControlIconChanged();
+        return false;
+    }
+
+    return QQuickItem::eventFilter(watched, event);
+}
+
+void Icon::itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &value)
+{
+    if (change == QQuickItem::ItemChange::ItemEnabledHasChanged) {
+        m_iconChanged = true;
+        update();
+    }
+
+    if (change == QQuickItem::ItemChange::ItemTransformHasChanged) {
+        update();
+    }
+
+    QQuickItem::itemChange(change, value);
+}
+
+void Icon::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
+{
+    auto oldIconSize = m_iconSize;
+    m_iconSize = iconSizeForSize(m_icon, newGeometry.size());
+
+    if (oldIconSize != m_iconSize) {
+        m_iconChanged = true;
+    }
+    update();
+
+    QQuickItem::geometryChange(newGeometry, oldGeometry);
+}
+
+void Icon::updatePolish()
+{
+    if (!m_source.isEmpty() && QQmlFile::isLocalFile(m_source)) {
+        m_icon = QIcon(QQmlFile::urlToLocalFileOrQrc(m_source));
+    } else {
+        m_icon = Union::StyleRegistry::instance()->platform()->platformIcon(m_name, m_color);
+    }
+
+    m_iconSize = iconSizeForSize(m_icon, boundingRect().size());
+    m_iconChanged = true;
+    update();
+}
+
+void Icon::onControlIconChanged()
+{
+    static auto iconType = QMetaType::fromName("QQuickIcon").metaObject();
+    static auto widthProperty = iconType->property(iconType->indexOfProperty("width"));
+    static auto heightProperty = iconType->property(iconType->indexOfProperty("height"));
+    static auto nameProperty = iconType->property(iconType->indexOfProperty("name"));
+    static auto sourceProperty = iconType->property(iconType->indexOfProperty("source"));
+    static auto colorProperty = iconType->property(iconType->indexOfProperty("color"));
+
+    if (!m_control) {
+        return;
+    }
+
+    auto icon = m_control->property("icon");
+    if (!icon.isValid()) {
+        return;
+    }
+
+    auto data = icon.constData();
+
+    auto width = widthProperty.readOnGadget(data).toReal();
+    auto height = heightProperty.readOnGadget(data).toReal();
+
+    if ((width <= 0 || height <= 0) && m_style->query()) {
+        auto properties = m_style->query()->properties();
+        if (properties && properties->icon()) {
+            width = properties->icon()->width().value_or(0.0);
+            height = properties->icon()->height().value_or(0.0);
+        }
+    }
+
+    setImplicitSize(width, height);
+    setName(nameProperty.readOnGadget(data).toString());
+    setSource(sourceProperty.readOnGadget(data).toUrl());
+    setColor(colorProperty.readOnGadget(data).value<QColor>());
+}
+
+#include "moc_Icon.cpp"

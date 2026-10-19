@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qquickrectangleshape_p.h"
 #include "qquickrectangleshape_p_p.h"
@@ -441,6 +442,7 @@ QQuickRectangleShape::QQuickRectangleShape(QQuickItem *parent)
     connect(d->shapePath, &QQuickShapePath::strokeStyleChanged, this, &QQuickRectangleShape::strokeStyleChanged);
     connect(d->shapePath, &QQuickShapePath::dashOffsetChanged, this, &QQuickRectangleShape::dashOffsetChanged);
     connect(d->shapePath, &QQuickShapePath::dashPatternChanged, this, &QQuickRectangleShape::dashPatternChanged);
+    connect(d->shapePath, &QQuickShapePath::fillItemChanged, this, &QQuickRectangleShape::fillItemChanged);
     connect(d->shapePath, &QQuickShapePath::fillGradientChanged, this, &QQuickRectangleShape::fillGradientChanged);
 
     // Add the path as a child of us.
@@ -466,6 +468,7 @@ QQuickRectangleShape::~QQuickRectangleShape()
 
 /*!
     \since 6.11
+    \qmlproperty bool QtQuick.Shapes.DesignHelpers::RectangleShape::drawTop
 
     This property holds whether the top border is drawn.
 
@@ -495,7 +498,8 @@ void QQuickRectangleShape::resetDrawTop()
 
 /*!
     \since 6.11
-
+    \qmlproperty bool QtQuick.Shapes.DesignHelpers::RectangleShape::drawRight
+   
     This property holds whether the right border is drawn.
 
     The default value is \c true.
@@ -524,6 +528,7 @@ void QQuickRectangleShape::resetDrawRight()
 
 /*!
     \since 6.11
+    \qmlproperty bool QtQuick.Shapes.DesignHelpers::RectangleShape::drawBottom
 
     This property holds whether the bottom border is drawn.
 
@@ -553,6 +558,7 @@ void QQuickRectangleShape::resetDrawBottom()
 
 /*!
     \since 6.11
+    \qmlproperty bool QtQuick.Shapes.DesignHelpers::RectangleShape::drawLeft
 
     This property holds whether the left border is drawn.
 
@@ -1084,6 +1090,18 @@ void QQuickRectangleShape::componentComplete()
     // present in order for the connections to them to be made.
     d->maybeUpdateElements();
     QQuickShape::componentComplete();
+}
+
+QQuickItem *QQuickRectangleShape::fillItem() const
+{
+    Q_D(const QQuickRectangleShape);
+    return d->shapePath->fillItem();
+}
+
+void QQuickRectangleShape::setFillItem(QQuickItem *newFillItem)
+{
+    Q_D(QQuickRectangleShape);
+    d->shapePath->setFillItem(newFillItem);
 }
 
 void QQuickRectangleShape::itemChange(ItemChange change, const ItemChangeData &value)

@@ -29,6 +29,21 @@
 
 enum { spacing  = 50, windowSize = 200 };
 
+// helper to skip an autotest that shows two top-level windows at once
+#if defined(Q_OS_HARMONY)
+// FIXME: the plugin backs every top-level window with its own UIAbility instance, and the
+// platform runs several instances on 2-in-1 devices and in free-window mode only. Drop this
+// once several top-level windows work outside free-window mode.
+#define SKIP_IF_TWO_TOP_LEVEL_WINDOWS_UNSUPPORTED()                                      \
+    do {                                                                                 \
+        if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(               \
+                QPlatformIntegration::MultipleWindows))                                  \
+            QSKIP("Two top-level windows require free-window mode on OHOS.");            \
+    } while (0)
+#else
+#define SKIP_IF_TWO_TOP_LEVEL_WINDOWS_UNSUPPORTED() do {} while (0)
+#endif
+
 class tst_QGuiApplication: public tst_QCoreApplication
 {
     Q_OBJECT
@@ -188,6 +203,8 @@ void tst_QGuiApplication::focusObject()
 
     if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::WindowActivation))
         QSKIP("QWindow::requestActivate() is not supported.");
+
+    SKIP_IF_TWO_TOP_LEVEL_WINDOWS_UNSUPPORTED();
 
     QObject obj1, obj2, obj3;
     const QRect screenGeometry = QGuiApplication::primaryScreen()->availableVirtualGeometry();
@@ -359,6 +376,8 @@ void tst_QGuiApplication::changeFocusWindow()
 
     if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::WindowActivation))
         QSKIP("QWindow::requestActivate() is not supported.");
+
+    SKIP_IF_TWO_TOP_LEVEL_WINDOWS_UNSUPPORTED();
 
     const QRect screenGeometry = QGuiApplication::primaryScreen()->availableVirtualGeometry();
 
@@ -636,6 +655,9 @@ void tst_QGuiApplication::modalWindow()
 {
     int argc = 0;
     QGuiApplication app(argc, nullptr);
+
+    SKIP_IF_TWO_TOP_LEVEL_WINDOWS_UNSUPPORTED();
+
     const QRect screenGeometry = QGuiApplication::primaryScreen()->availableVirtualGeometry();
 
     int x = screenGeometry.left() + spacing;
@@ -1405,6 +1427,27 @@ void tst_QGuiApplication::topLevelAt()
     top.showNormal();
     QVERIFY(QTest::qWaitForWindowExposed(&top));
     top.raise();
+    QTRY_COMPARE(app.topLevelAt(QPoint(300, 300)), &top);
+
+    // A window that is transparent for input is still "a top level window at pos":
+    // topLevelAt() answers where the windows are, not where input would go. Callers that
+    // want the latter filter the flag themselves -- QSimpleDrag, QNSView's dragging code
+    // and the Windows pointer handler all do. Pinned here because the QShapedPixmapWindow
+    // that QBasicDrag drags along under the cursor carries this flag, so anything that
+    // starts filtering it in topLevelAt() changes drag and drop. Restricted to offscreen
+    // because that is the platform using the base QPlatformScreen::topLevelAt(); the
+    // native implementations differ and are not all contractually bound to agree.
+    if (QGuiApplication::platformName() == QLatin1String("offscreen")) {
+        QWindow transparent;
+        transparent.setObjectName("TransparentForInput");
+        transparent.setFlag(Qt::FramelessWindowHint);
+        transparent.setFlag(Qt::WindowTransparentForInput);
+        transparent.setGeometry(200, 200, 200, 200);
+        transparent.showNormal();
+        QVERIFY(QTest::qWaitForWindowExposed(&transparent));
+        transparent.raise();
+        QTRY_COMPARE(app.topLevelAt(QPoint(300, 300)), &transparent);
+    }
     QTRY_COMPARE(app.topLevelAt(QPoint(300, 300)), &top);
 
     if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::WindowMasks))

@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 
 project(kglobalacceld)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -37,34 +37,14 @@ include(ECMAddTests)
 # Therefore we must not exclude those by default
 set(EXCLUDE_DEPRECATED_BEFORE_AND_AT 0 CACHE STRING "Control the range of deprecated API excluded from the build [default=0].")
 
-find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED DBus Gui Widgets)
-
-if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
+find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED DBus Gui)
 
 find_package(KF6Config ${KF6_MIN_VERSION} REQUIRED)
 find_package(KF6CoreAddons ${KF6_MIN_VERSION} REQUIRED)
-find_package(KF6Crash ${KF6_MIN_VERSION} REQUIRED)
-find_package(KF6DBusAddons ${KF6_MIN_VERSION} REQUIRED)
-find_package(KF6WindowSystem ${KF6_MIN_VERSION} REQUIRED)
 find_package(KF6GlobalAccel ${KF6_MIN_VERSION} REQUIRED)
 find_package(KF6Service ${KF6_MIN_VERSION} REQUIRED)
 find_package(KF6KIO ${KF6_MIN_VERSION} REQUIRED)
 find_package(KF6JobWidgets ${KF6_MIN_VERSION} REQUIRED)
-
-
-option(WITH_X11 "Build with X11 support." ON)
-
-if(WITH_X11)
-    find_package(XCB MODULE COMPONENTS XCB KEYSYMS XKB RECORD OPTIONAL_COMPONENTS XTEST)
-    set_package_properties(XCB PROPERTIES DESCRIPTION "X protocol C-language Binding"
-                        TYPE REQUIRED
-                        )
-    set(HAVE_X11 1)
-else()
-    set(HAVE_X11 0)
-endif()
 
 find_program(qdbus_EXECUTABLE NAMES qdbus qdbus6 qdbus-qt6)
 
@@ -78,8 +58,8 @@ ecm_setup_version(PROJECT VARIABLE_PREFIX KGLOBALACCELD
                         SOVERSION 0)
 
 ecm_set_disabled_deprecation_versions(
-    QT 6.9.0
-    KF 6.16.0
+    QT 6.11.0
+    KF 6.29.0
 )
 
 add_subdirectory(src)
@@ -105,9 +85,6 @@ install(FILES  "${CMAKE_CURRENT_BINARY_DIR}/KGlobalAccelDConfig.cmake"
 
 install(EXPORT KGlobalAccelDTargets DESTINATION "${CMAKECONFIG_INSTALL_DIR}" FILE KGlobalAccelDTargets.cmake NAMESPACE K:: )
 
-
-install(FILES ${kglobalaccel_version_header}
-        DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KGlobalAccel COMPONENT Devel)
 
 ecm_qt_install_logging_categories(
     EXPORT KGLOBALACCELD

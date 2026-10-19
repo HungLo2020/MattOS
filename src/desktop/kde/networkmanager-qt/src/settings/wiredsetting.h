@@ -101,7 +101,6 @@ public:
         WakeOnLanIgnore = 1 << 15,
     };
     Q_DECLARE_FLAGS(WakeOnLanFlags, WakeOnLanFlag)
-    Q_FLAGS(WakeOnLanFlag)
 
     /*!
      */

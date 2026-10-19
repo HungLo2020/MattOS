@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_splashscreen\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-09 00:33+0100\n"
+"POT-Creation-Date: 2026-06-07 00:47+0000\n"
+"PO-Revision-Date: 2026-02-03 22:58+0100\n"
 "Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
 "Language-Team: Spanish <kde-l10n-es@kde.org>\n"
 "Language: es\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 25.12.1\n"
 
-#: kcm.cpp:162
+#: kcm.cpp:164
 #, kde-format
 msgid "None"
 msgstr "Ninguna"
 
-#: kcm.cpp:165
+#: kcm.cpp:167
 #, kde-format
 msgid "No splash screen will be shown"
 msgstr "No se mostrará ninguna pantalla de bienvenida"
 
-#: kcm.cpp:183
+#: kcm.cpp:185
 #, kde-format
 msgid "You cannot delete the currently selected splash screen"
 msgstr "No puede borrar la pantalla de bienvenida actual"
@@ -60,12 +60,24 @@ msgstr "No se ha podido mostrar la vista previa de la pantalla de bienvenida."
 
 #: ui/main.qml:81
 #, kde-format
-msgctxt "@action:button"
-msgid "Preview Splash Screen"
+msgctxt "@info:tooltip"
+msgid "Preview splash screen"
 msgstr "Vista previa de la pantalla de bienvenida"
 
-#: ui/main.qml:86
+#: ui/main.qml:88
 #, kde-format
-msgctxt "@action:button"
-msgid "Uninstall"
-msgstr "Desinstalar"
+msgctxt "@info:tooltip"
+msgid "Remove splash screen"
+msgstr "Eliminar pantalla de bienvenida"
+
+#: ui/main.qml:90
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active splash screen"
+msgstr "No puede borrar la pantalla de bienvenida activa"
+
+#: ui/main.qml:92
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed splash screens"
+msgstr "No puede borrar pantallas de bienvenida instaladas en el sistema"

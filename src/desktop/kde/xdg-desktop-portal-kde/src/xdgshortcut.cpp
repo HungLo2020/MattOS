@@ -11,24 +11,19 @@
 
 using namespace Qt::StringLiterals;
 
-struct Modifier {
-    const char *xkbModifier;
-    Qt::KeyboardModifier qtModifier;
-};
-
 std::optional<QKeySequence> XdgShortcut::parse(const QString &shortcutString)
 {
-    static const QHash<QString, Modifier> allowedModifiers = {
-        {u"SHIFT"_s, {XKB_MOD_NAME_SHIFT, Qt::ShiftModifier}},
-        {u"CAPS"_s, {XKB_MOD_NAME_CAPS, Qt::GroupSwitchModifier}},
-        {u"CTRL"_s, {XKB_MOD_NAME_CTRL, Qt::ControlModifier}},
-        {u"ALT"_s, {XKB_MOD_NAME_ALT, Qt::AltModifier}},
-        {u"NUM"_s, {XKB_MOD_NAME_NUM, Qt::KeypadModifier}},
-        {u"LOGO"_s, {XKB_MOD_NAME_LOGO, Qt::MetaModifier}},
+    static const QHash<QString, Qt::KeyboardModifier> allowedModifiers = {
+        {u"SHIFT"_s, Qt::ShiftModifier},
+        {u"CAPS"_s, Qt::GroupSwitchModifier},
+        {u"CTRL"_s, Qt::ControlModifier},
+        {u"ALT"_s, Qt::AltModifier},
+        {u"NUM"_s, Qt::KeypadModifier},
+        {u"LOGO"_s, Qt::MetaModifier},
     };
 
     xkb_keysym_t identifier = XKB_KEY_NoSymbol;
-    QStringList modifiers;
+    Qt::KeyboardModifiers modifiers;
 
     QStringView remaining(shortcutString);
     while (!remaining.isEmpty()) {
@@ -55,21 +50,17 @@ std::optional<QKeySequence> XdgShortcut::parse(const QString &shortcutString)
             break;
         } else { // A modifier
             auto modifier = remaining.left(nextPlus);
-            if (!allowedModifiers.contains(modifier.toString())) {
+            auto it = allowedModifiers.find(modifier.toString());
+            if (it == allowedModifiers.cend()) {
                 qWarning() << "Unknown modifier" << modifier;
                 return {};
             }
 
-            modifiers << modifier.toString();
+            modifiers |= it.value();
             remaining = remaining.mid(nextPlus + 1);
         }
     }
 
-    int keys = 0;
-    for (const QString &modifier : std::as_const(modifiers)) {
-        keys |= allowedModifiers[modifier].qtModifier;
-    }
-
-    keys |= QXkbCommon::keysymToQtKey(identifier, Qt::NoModifier, nullptr, XKB_KEYCODE_INVALID);
-    return QKeySequence(keys);
+    int keys = QXkbCommon::keysymToQtKey(identifier, Qt::NoModifier, nullptr, XKB_KEYCODE_INVALID);
+    return QKeySequence(modifiers | keys);
 }

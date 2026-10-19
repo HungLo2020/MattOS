@@ -5,6 +5,7 @@
 */
 
 #include "outputlocator.h"
+#include "core/backendoutput.h"
 #include "core/output.h"
 #include "effect/effecthandler.h"
 #include "effect/offscreenquickview.h"
@@ -21,12 +22,12 @@ namespace KWin
 
 static QString outputName(const LogicalOutput *screen)
 {
+    if (screen->isInternal()) {
+        return i18nc("@label", "Built-in Screen");
+    }
     const auto screens = effects->screens();
     const bool shouldShowSerialNumber = std::any_of(screens.cbegin(), screens.cend(), [screen](const LogicalOutput *other) {
         return other != screen && other->manufacturer() == screen->manufacturer() && other->model() == screen->model();
-    });
-    const bool shouldShowConnector = shouldShowSerialNumber && std::any_of(screens.cbegin(), screens.cend(), [screen](const LogicalOutput *other) {
-        return other != screen && other->serialNumber() == screen->serialNumber();
     });
 
     QStringList parts;
@@ -42,15 +43,9 @@ static QString outputName(const LogicalOutput *screen)
         parts.append(screen->serialNumber());
     }
 
-    if (shouldShowConnector) {
-        parts.append(screen->name());
-    }
+    parts.append(screen->name());
 
-    if (parts.isEmpty()) {
-        return i18nc("@label", "Unknown");
-    } else {
-        return parts.join(QLatin1Char(' '));
-    }
+    return parts.join(QLatin1Char('\n'));
 }
 
 OutputLocatorEffect::OutputLocatorEffect(QObject *parent)
@@ -76,15 +71,27 @@ void OutputLocatorEffect::show()
     }
 
     const auto screens = effects->screens();
+
+    // Sort screens in the same order as KScreen does
+    QList<LogicalOutput *> sortedScreens = screens;
+    std::sort(sortedScreens.begin(), sortedScreens.end(), [](LogicalOutput *a, LogicalOutput *b) {
+        const uint32_t priorityA = a->backendOutput()->priority();
+        const uint32_t priorityB = b->backendOutput()->priority();
+        if (priorityA != priorityB) {
+            return priorityA < priorityB;
+        }
+        return QString::compare(a->name(), b->name(), Qt::CaseInsensitive) < 0;
+    });
+
     for (const auto screen : screens) {
+        const int index = sortedScreens.indexOf(screen);
+        const QString number = (index >= 0) ? QString::number(index + 1) : QString();
+
         auto scene = new OffscreenQuickScene();
-        scene->loadFromModule(QStringLiteral("org.kde.kwin.outputlocator"), QStringLiteral("OutputLabel"), {{QStringLiteral("outputName"), outputName(screen)}, {QStringLiteral("resolution"), screen->pixelSize()}, {QStringLiteral("scale"), screen->scale()}});
-        QRectF geometry(0, 0, scene->rootItem()->implicitWidth(), scene->rootItem()->implicitHeight());
+        scene->loadFromModule(QStringLiteral("org.kde.kwin.outputlocator"), QStringLiteral("OutputLabel"), {{QStringLiteral("outputName"), outputName(screen)}, {QStringLiteral("number"), number},{QStringLiteral("resolution"), screen->pixelSize()}, {QStringLiteral("scale"), screen->scale()}});
+        RectF geometry(0, 0, scene->rootItem()->implicitWidth(), scene->rootItem()->implicitHeight());
         geometry.moveCenter(screen->geometry().center());
         scene->setGeometry(geometry.toRect());
-        connect(scene, &OffscreenQuickView::repaintNeeded, this, [scene] {
-            effects->addRepaint(scene->geometry());
-        });
         m_scenesByScreens[screen].reset(scene);
     }
 
@@ -104,14 +111,6 @@ void OutputLocatorEffect::hide()
     effects->addRepaint(repaintRegion);
 }
 
-void OutputLocatorEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
-{
-    effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
-
-    if (auto it = m_scenesByScreens.find(screen); it != m_scenesByScreens.end()) {
-        effects->renderOffscreenQuickView(renderTarget, viewport, it->second.get());
-    }
-}
 }
 
 #include "moc_outputlocator.cpp"

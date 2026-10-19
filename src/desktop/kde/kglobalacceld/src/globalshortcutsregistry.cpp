@@ -11,80 +11,23 @@
 #include "component.h"
 #include "globalshortcut.h"
 #include "globalshortcutcontext.h"
-#include "kglobalaccel_interface.h"
 #include "kglobalshortcutinfo_p.h"
 #include "kserviceactioncomponent.h"
 #include "logging.h"
 #include "sequencehelpers_p.h"
-#include <config-kglobalaccel.h>
 
 #include <KApplicationTrader>
 #include <KDesktopFile>
 #include <KFileUtils>
-#include <KPluginMetaData>
 #include <KSycoca>
 
 #include <QDBusConnection>
 #include <QDir>
-#include <QGuiApplication>
-#include <QJsonArray>
-#include <QPluginLoader>
 #include <QStandardPaths>
 
+#include <algorithm>
+
 using namespace Qt::StringLiterals;
-
-static bool checkPlatform(const QJsonObject &metadata, const QString &platformName)
-{
-    const QJsonArray platforms = metadata.value(QStringLiteral("MetaData")).toObject().value(QStringLiteral("platforms")).toArray();
-    return std::any_of(platforms.begin(), platforms.end(), [&platformName](const QJsonValue &value) {
-        return QString::compare(platformName, value.toString(), Qt::CaseInsensitive) == 0;
-    });
-}
-
-static KGlobalAccelInterface *loadPlugin(GlobalShortcutsRegistry *parent)
-{
-    QString platformName = QString::fromLocal8Bit(qgetenv("KGLOBALACCELD_PLATFORM"));
-    if (platformName.isEmpty()) {
-        platformName = QGuiApplication::platformName();
-    }
-
-    const QList<QStaticPlugin> staticPlugins = QPluginLoader::staticPlugins();
-    for (const QStaticPlugin &staticPlugin : staticPlugins) {
-        const QJsonObject metadata = staticPlugin.metaData();
-        if (metadata.value(QLatin1String("IID")) != QLatin1String(KGlobalAccelInterface_iid)) {
-            continue;
-        }
-        if (checkPlatform(metadata, platformName)) {
-            KGlobalAccelInterface *interface = qobject_cast<KGlobalAccelInterface *>(staticPlugin.instance());
-            if (interface) {
-                qCDebug(KGLOBALACCELD) << "Loaded a static plugin for platform" << platformName;
-                interface->setRegistry(parent);
-                return interface;
-            }
-        }
-    }
-
-    const QList<KPluginMetaData> candidates = KPluginMetaData::findPlugins(QStringLiteral("org.kde.kglobalacceld.platforms"));
-    for (const KPluginMetaData &candidate : candidates) {
-        QPluginLoader loader(candidate.fileName());
-        if (checkPlatform(loader.metaData(), platformName)) {
-            KGlobalAccelInterface *interface = qobject_cast<KGlobalAccelInterface *>(loader.instance());
-            if (interface) {
-                qCDebug(KGLOBALACCELD) << "Loaded plugin" << candidate.fileName() << "for platform" << platformName;
-                interface->setRegistry(parent);
-                return interface;
-            }
-        }
-    }
-
-    qCWarning(KGLOBALACCELD) << "Could not find any platform plugin";
-    return nullptr;
-}
-
-static QString getConfigFile()
-{
-    return qEnvironmentVariableIsSet("KGLOBALACCEL_TEST_MODE") ? QString() : QStringLiteral("kglobalshortcutsrc");
-}
 
 void GlobalShortcutsRegistry::migrateKHotkeys()
 {
@@ -187,7 +130,8 @@ void GlobalShortcutsRegistry::migrateConfig()
 
             const QStringList triplet = value.split(QLatin1Char(','));
             if (triplet.size() != 3) {
-                qCWarning(KGLOBALACCELD, "Not migrating %s in %s because it contains an invalid value: %s (expected a triplet: shortcut,default_shortcut,friendly_name)",
+                qCWarning(KGLOBALACCELD,
+                          "Not migrating %s in %s because it contains an invalid value: %s (expected a triplet: shortcut,default_shortcut,friendly_name)",
                           qPrintable(key),
                           qPrintable(componentName),
                           qPrintable(value));
@@ -224,7 +168,9 @@ void GlobalShortcutsRegistry::migrateConfig()
 
             const QStringList migrateFromParts = migrateFrom.split(QLatin1Char(','));
             if (migrateFromParts.size() != 2) {
-                qCWarning(KGLOBALACCELD, "Skipping X-KDE-Migrate-Shortcut in %s because it contains an invalid value: %s (expected a value with the format: old_component,old_action_name)",
+                qCWarning(KGLOBALACCELD,
+                          "Skipping X-KDE-Migrate-Shortcut in %s because it contains an invalid value: %s (expected a value with the format: "
+                          "old_component,old_action_name)",
                           qPrintable(fileName),
                           qPrintable(migrateFrom));
                 return;
@@ -237,7 +183,8 @@ void GlobalShortcutsRegistry::migrateConfig()
 
             const QStringList shortcutTriple = _config.group(migrateFromParts[0]).readEntry<QStringList>(migrateFromParts[1], QStringList());
             if (shortcutTriple.size() != 3) {
-                qCWarning(KGLOBALACCELD, "Not migrating %s in %s because X-KDE-Migrate-Shortcut=%s points to an invalid shortcut entry",
+                qCWarning(KGLOBALACCELD,
+                          "Not migrating %s in %s because X-KDE-Migrate-Shortcut=%s points to an invalid shortcut entry",
                           qPrintable(actionName),
                           qPrintable(fileName),
                           qPrintable(migrateFrom));
@@ -275,8 +222,8 @@ void GlobalShortcutsRegistry::migrateConfig()
 
 GlobalShortcutsRegistry::GlobalShortcutsRegistry()
     : QObject()
-    , _manager(loadPlugin(this))
-    , _config(getConfigFile(), KConfig::SimpleConfig)
+    , _config(QStringLiteral("kglobalshortcutsrc"), KConfig::SimpleConfig, QStandardPaths::GenericConfigLocation)
+    , _state(QStringLiteral("kglobalshortcutsstaterc"), KConfig::SimpleConfig, QStandardPaths::GenericStateLocation)
 {
     migrateKHotkeys();
     migrateConfig();
@@ -293,19 +240,7 @@ GlobalShortcutsRegistry::GlobalShortcutsRegistry()
 GlobalShortcutsRegistry::~GlobalShortcutsRegistry()
 {
     m_components.clear();
-
-    if (_manager) {
-        // Ungrab all keys. We don't go over GlobalShortcuts because
-        // GlobalShortcutsRegistry::self() doesn't work anymore.
-        const auto listKeys = _active_keys.keys();
-        for (const QKeySequence &key : listKeys) {
-            for (int i = 0; i < key.count(); i++) {
-                _manager->grabKey(key[i].toCombined(), false);
-            }
-        }
-    }
     _active_keys.clear();
-    _keys_count.clear();
 }
 
 Component *GlobalShortcutsRegistry::registerComponent(ComponentPtr component)
@@ -355,11 +290,6 @@ void GlobalShortcutsRegistry::clear()
     Q_ASSERT(_active_keys.isEmpty());
 }
 
-QDBusObjectPath GlobalShortcutsRegistry::dbusPath() const
-{
-    return _dbusPath;
-}
-
 void GlobalShortcutsRegistry::deactivateShortcuts(bool temporarily)
 {
     for (ComponentPtr &component : m_components) {
@@ -373,27 +303,56 @@ Component *GlobalShortcutsRegistry::getComponent(const QString &uniqueName)
     return it != m_components.cend() ? (*it).get() : nullptr;
 }
 
-GlobalShortcut *GlobalShortcutsRegistry::getShortcutByKey(const QKeySequence &key, KGlobalAccel::MatchType type) const
+Component *GlobalShortcutsRegistry::getOrCreateComponent(const QString &uniqueName, const QString &friendlyName)
 {
-    for (const ComponentPtr &component : m_components) {
-        GlobalShortcut *rc = component->getShortcutByKey(key, type);
-        if (rc) {
-            return rc;
-        }
+    if (const auto it = findByName(uniqueName); it != m_components.cend()) {
+        return (*it).get();
     }
-    return nullptr;
+
+    if (uniqueName.endsWith(QLatin1String(".desktop"))) {
+        auto *actionComp = createServiceActionComponent(uniqueName);
+        if (!actionComp) {
+            return nullptr;
+        }
+        actionComp->activateGlobalShortcutContext(QStringLiteral("default"));
+        actionComp->loadSettings(_config.group(QStringLiteral("services")).group(uniqueName),
+                                 _state.group(QStringLiteral("services")).group(uniqueName));
+        return actionComp;
+    } else {
+        return createComponent(uniqueName, friendlyName);
+    }
 }
 
 QList<GlobalShortcut *> GlobalShortcutsRegistry::getShortcutsByKey(const QKeySequence &key, KGlobalAccel::MatchType type) const
 {
     QList<GlobalShortcut *> rc;
     for (const ComponentPtr &component : m_components) {
-        rc = component->getShortcutsByKey(key, type);
-        if (!rc.isEmpty()) {
-            return rc;
-        }
+        rc += component->getShortcutsByKey(key, type);
     }
-    return {};
+    return rc;
+}
+
+GlobalShortcut *GlobalShortcutsRegistry::activeShortcutByKey(const QKeySequence &keySequence) const
+{
+    const auto range = _active_keys.equal_range(keySequence);
+    if (range.first == range.second) {
+        return nullptr;
+    }
+
+    QVarLengthArray<GlobalShortcut *, 4> shortcuts;
+    for (auto it = range.first; it != range.second; ++it) {
+        shortcuts.append(*it);
+    }
+
+    if (shortcuts.size() == 1) {
+        return shortcuts[0];
+    }
+
+    std::sort(shortcuts.begin(), shortcuts.end(), [](const auto &a, const auto &b) {
+        return a->serial() < b->serial();
+    });
+
+    return shortcuts[0];
 }
 
 bool GlobalShortcutsRegistry::isShortcutAvailable(const QKeySequence &shortcut, const QString &componentName, const QString &contextName) const
@@ -512,17 +471,20 @@ bool GlobalShortcutsRegistry::processKey(int keyQt, ShortcutKeyState state)
 
     _active_sequence = QKeySequence(keys[0], keys[1], keys[2], keys[3]);
 
+    // The active sequence comes from the user, so it should be normalized.
+    const QKeySequence normalizedSequence = Utils::normalizeSequence(_active_sequence);
+
     GlobalShortcut *shortcut = nullptr;
-    QKeySequence tempSequence;
-    for (int length = 1; length <= _active_sequence.count(); length++) {
+    for (int length = 1; length <= normalizedSequence.count(); length++) {
         // We have to check all possible matches from the end since we're rotating active sequence
         // instead of cleaning it when it's full
         int sequenceToCheck[maxSequenceLength] = {0, 0, 0, 0};
         for (int i = 0; i < length; i++) {
-            sequenceToCheck[i] = _active_sequence[_active_sequence.count() - length + i].toCombined();
+            sequenceToCheck[i] = normalizedSequence[normalizedSequence.count() - length + i].toCombined();
         }
-        tempSequence = QKeySequence(sequenceToCheck[0], sequenceToCheck[1], sequenceToCheck[2], sequenceToCheck[3]);
-        shortcut = getShortcutByKey(tempSequence);
+
+        const QKeySequence rotatedSequence(sequenceToCheck[0], sequenceToCheck[1], sequenceToCheck[2], sequenceToCheck[3]);
+        shortcut = activeShortcutByKey(rotatedSequence);
 
         if (shortcut) {
             break;
@@ -679,6 +641,9 @@ void GlobalShortcutsRegistry::loadSettings()
         return;
     }
 
+    const KConfigGroup general = _state.group(QStringLiteral("$General"));
+    m_serial = general.readEntry<uint64_t>("LastSerial", 0);
+
     auto groupList = _config.groupList();
     for (const QString &groupName : groupList) {
         if (groupName == QLatin1String("services")) {
@@ -698,6 +663,7 @@ void GlobalShortcutsRegistry::loadSettings()
         Q_ASSERT(!getComponent(groupName));
 
         const KConfigGroup configGroup(&_config, groupName);
+        const KConfigGroup stateGroup(&_state, groupName);
 
         const QString friendlyName = configGroup.readEntry("_k_friendly_name");
 
@@ -710,17 +676,22 @@ void GlobalShortcutsRegistry::loadSettings()
             if (context == QLatin1String("Friendly Name")) {
                 continue;
             }
+            // Skip any other sub-groups that are used to store extended action info
+            if (Component::isReservedConfigGroupName(context)) {
+                continue;
+            }
 
-            const KConfigGroup contextGroup(&configGroup, context);
-            QString contextFriendlyName = contextGroup.readEntry("_k_friendly_name");
+            const KConfigGroup contextConfigGroup(&configGroup, context);
+            const KConfigGroup contextStateGroup(&stateGroup, context);
+            QString contextFriendlyName = contextConfigGroup.readEntry("_k_friendly_name");
             component->createGlobalShortcutContext(context, contextFriendlyName);
             component->activateGlobalShortcutContext(context);
-            component->loadSettings(contextGroup);
+            component->loadSettings(contextConfigGroup, contextStateGroup);
         }
 
         // Load the default context
         component->activateGlobalShortcutContext(QStringLiteral("default"));
-        component->loadSettings(configGroup);
+        component->loadSettings(configGroup, stateGroup);
     }
 
     groupList = _config.group(QStringLiteral("services")).groupList();
@@ -734,16 +705,17 @@ void GlobalShortcutsRegistry::loadSettings()
         Q_ASSERT(!getComponent(groupName));
 
         const KConfigGroup configGroup = _config.group(QStringLiteral("services")).group(groupName);
+        const KConfigGroup stateGroup = _state.group(QStringLiteral("services")).group(groupName);
 
         Component *component = createServiceActionComponent(groupName);
 
         if (!component) {
-            qDebug() << "could not create a component for " << groupName;
+            qCWarning(KGLOBALACCELD) << "could not create a component for" << groupName;
             continue;
         }
         Q_ASSERT(!component->uniqueName().isEmpty());
         component->activateGlobalShortcutContext(QStringLiteral("default"));
-        component->loadSettings(configGroup);
+        component->loadSettings(configGroup, stateGroup);
     }
 
     // Load the configured KServiceActions
@@ -764,9 +736,12 @@ void GlobalShortcutsRegistry::loadSettings()
             continue;
         }
 
+        const KConfigGroup configGroup = _config.group(QStringLiteral("services")).group(fileName);
+        const KConfigGroup stateGroup = _state.group(QStringLiteral("services")).group(fileName);
+
         auto *actionComp = createServiceActionComponent(service);
         actionComp->activateGlobalShortcutContext(QStringLiteral("default"));
-        actionComp->loadFromService();
+        actionComp->loadSettings(configGroup, stateGroup);
     }
 
     detectAppsWithShortcuts();
@@ -797,109 +772,34 @@ void GlobalShortcutsRegistry::detectAppsWithShortcuts()
         auto *component = createServiceActionComponent(service);
         component->activateGlobalShortcutContext(QStringLiteral("default"));
 
-        if (const KConfigGroup configGroup = _config.group(QStringLiteral("services")).group(component->uniqueName()); configGroup.exists()) {
-            component->loadSettings(configGroup);
-        } else {
-            component->loadFromService();
-        }
+        const KConfigGroup configGroup = _config.group(QStringLiteral("services")).group(component->uniqueName());
+        const KConfigGroup stateGroup = _state.group(QStringLiteral("services")).group(component->uniqueName());
+        component->loadSettings(configGroup, stateGroup);
     }
-}
-
-void GlobalShortcutsRegistry::grabKeys()
-{
-    activateShortcuts();
 }
 
 bool GlobalShortcutsRegistry::registerKey(const QKeySequence &key, GlobalShortcut *shortcut)
 {
-    if (!_manager) {
-        return false;
-    }
     if (key.isEmpty()) {
-        qCDebug(KGLOBALACCELD) << shortcut->uniqueName() << ": Key '" << QKeySequence(key).toString() << "' already taken by "
-                               << _active_keys.value(key)->uniqueName() << ".";
-        return false;
-    } else if (_active_keys.value(key)) {
         qCDebug(KGLOBALACCELD) << shortcut->uniqueName() << ": Attempt to register key 0.";
         return false;
+    } else if (_active_keys.contains(key, shortcut)) {
+        return true;
     }
 
     qCDebug(KGLOBALACCELD) << "Registering key" << QKeySequence(key).toString() << "for" << shortcut->context()->component()->uniqueName() << ":"
                            << shortcut->uniqueName();
-
-    bool error = false;
-    int i;
-    for (i = 0; i < key.count(); i++) {
-        const int combined = key[i].toCombined();
-        if (!_manager->grabKey(combined, true)) {
-            error = true;
-            break;
-        }
-        ++_keys_count[combined];
-    }
-
-    if (error) {
-        // Last key was not registered, rewind index by 1
-        for (--i; i >= 0; i--) {
-            const int combined = key[i].toCombined();
-            auto it = _keys_count.find(combined);
-            if (it == _keys_count.end()) {
-                continue;
-            }
-
-            if (it.value() == 1) {
-                _keys_count.erase(it);
-                _manager->grabKey(combined, false);
-            } else {
-                --(it.value());
-            }
-        }
-        return false;
-    }
 
     _active_keys.insert(key, shortcut);
 
     return true;
 }
 
-void GlobalShortcutsRegistry::setDBusPath(const QDBusObjectPath &path)
-{
-    _dbusPath = path;
-}
-
-void GlobalShortcutsRegistry::ungrabKeys()
-{
-    deactivateShortcuts();
-}
-
 bool GlobalShortcutsRegistry::unregisterKey(const QKeySequence &key, GlobalShortcut *shortcut)
 {
-    if (!_manager) {
-        return false;
-    }
-    if (_active_keys.value(key) != shortcut) {
+    if (!_active_keys.contains(key, shortcut)) {
         // The shortcut doesn't own the key or the key isn't grabbed
         return false;
-    }
-
-    for (int i = 0; i < key.count(); i++) {
-        auto iter = _keys_count.find(key[i].toCombined());
-        if ((iter == _keys_count.end()) || (iter.value() <= 0)) {
-            continue;
-        }
-
-        // Unregister if there's only one ref to given key
-        // We should fail earlier when key is not registered
-        if (iter.value() == 1) {
-            qCDebug(KGLOBALACCELD) << "Unregistering key" << QKeySequence(key[i]).toString() << "for" << shortcut->context()->component()->uniqueName() << ":"
-                                   << shortcut->uniqueName();
-
-            _manager->grabKey(key[i].toCombined(), false);
-            _keys_count.erase(iter);
-        } else {
-            qCDebug(KGLOBALACCELD) << "Refused to unregister key" << QKeySequence(key[i]).toString() << ": used by another global shortcut";
-            --(iter.value());
-        }
     }
 
     if (shortcut && shortcut == m_lastShortcut) {
@@ -907,29 +807,35 @@ bool GlobalShortcutsRegistry::unregisterKey(const QKeySequence &key, GlobalShort
         m_lastShortcut = nullptr;
     }
 
-    _active_keys.remove(key);
+    _active_keys.remove(key, shortcut);
     return true;
 }
 
 void GlobalShortcutsRegistry::writeSettings()
 {
+    KConfigGroup general = _state.group(QStringLiteral("$General"));
+    general.writeEntry("LastSerial", m_serial);
+
     auto it = std::remove_if(m_components.begin(), m_components.end(), [this](const ComponentPtr &component) {
         bool isService = component->uniqueName().endsWith(QLatin1String(".desktop"));
 
         KConfigGroup configGroup =
             isService ? _config.group(QStringLiteral("services")).group(component->uniqueName()) : _config.group(component->uniqueName());
+        KConfigGroup stateGroup = isService ? _state.group(QStringLiteral("services")).group(component->uniqueName()) : _state.group(component->uniqueName());
 
         if (component->allShortcuts().isEmpty()) {
             configGroup.deleteGroup();
+            stateGroup.deleteGroup();
             return true;
         } else {
-            component->writeSettings(configGroup);
+            component->writeSettings(configGroup, stateGroup);
             return false;
         }
     });
 
     m_components.erase(it, m_components.end());
     _config.sync();
+    _state.sync();
 }
 
 void GlobalShortcutsRegistry::scheduleRefreshServices()
@@ -966,9 +872,9 @@ void GlobalShortcutsRegistry::refreshServices()
     detectAppsWithShortcuts();
 }
 
-KGlobalAccelInterface *GlobalShortcutsRegistry::interface() const
+uint64_t GlobalShortcutsRegistry::nextSerial()
 {
-    return _manager;
+    return ++m_serial;
 }
 
 #include "moc_globalshortcutsregistry.cpp"

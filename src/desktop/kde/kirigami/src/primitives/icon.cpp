@@ -480,7 +480,7 @@ QImage Icon::findIcon(const QSize &size)
         if (iconSource.startsWith(QLatin1String("qrc:/"))) {
             iconSource = iconSource.mid(3);
         } else if (iconSource.startsWith(QLatin1String("file:/"))) {
-            iconSource = QUrl(iconSource).path();
+            iconSource = QUrl(iconSource).toLocalFile();
         }
 
         const QIcon icon = loadFromTheme(iconSource);
@@ -493,7 +493,9 @@ QImage Icon::findIcon(const QSize &size)
 
     if (!iconSource.isEmpty() && img.isNull()) {
         setStatus(Error);
-        img = iconPixmap(QIcon::fromTheme(m_fallback));
+        // Qt as of 6.11.1 will try accessing icon files even when given an empty icon name.
+        // Reported upstream: https://qt-project.atlassian.net/browse/QTBUG-149099
+        img = m_fallback.isEmpty() ? QImage{} : iconPixmap(QIcon::fromTheme(m_fallback));
     }
     return img;
 }
@@ -610,7 +612,11 @@ void Icon::updatePaintedGeometry()
         }
         if (m_roundToIconSize && m_units) {
             if (m_icon.width() > m_icon.height()) {
+                // landscape image
                 newSize = QSizeF(roundedWidth, m_icon.height() * (roundedWidth / static_cast<qreal>(m_icon.width())));
+            } else if (m_icon.height() > m_icon.width()) {
+                // portrait image
+                newSize = QSizeF(m_icon.width() * (roundedWidth / static_cast<qreal>(m_icon.height())), roundedWidth);
             } else {
                 newSize = QSizeF(roundedWidth, roundedWidth);
             }
@@ -627,6 +633,9 @@ void Icon::updatePaintedGeometry()
             } else if (heightScale < widthScale) {
                 newSize = QSizeF(heightScale * iconPixSize.width(), h);
             }
+            // Snap to whole device pixels so the texture stays crisp at fractional DPR.
+            newSize = QSizeF(std::round(newSize.width() * m_devicePixelRatio) / m_devicePixelRatio,
+                             std::round(newSize.height() * m_devicePixelRatio) / m_devicePixelRatio);
         }
     }
     if (newSize != m_paintedSize) {
@@ -714,22 +723,10 @@ void Icon::windowVisibleChanged(bool visible)
 
 QRectF Icon::calculateNodeRect()
 {
-    const QSizeF iconPixSize(m_icon.width() / m_devicePixelRatio, m_icon.height() / m_devicePixelRatio);
-    const QSizeF itemPixSize = QSizeF((size() * m_devicePixelRatio).toSize()) / m_devicePixelRatio;
-    QRectF nodeRect(QPoint(0, 0), itemPixSize);
-
-    if (itemPixSize.width() != 0 && itemPixSize.height() != 0) {
-        if (iconPixSize != itemPixSize) {
-            // At this point, the image will already be scaled, but we need to output it in
-            // the correct aspect ratio, painted centered in the viewport. So:
-            QRectF destination(QPointF(0, 0), QSizeF(m_icon.size()).scaled(m_paintedSize, Qt::KeepAspectRatio));
-            destination.moveCenter(nodeRect.center());
-            destination.moveTopLeft(QPointF(destination.topLeft().toPoint() * m_devicePixelRatio) / m_devicePixelRatio);
-            nodeRect = destination;
-        }
-    }
-
-    return nodeRect;
+    // m_paintedSize should have the correct size for painting the icon already.
+    // So we just need to make sure the node is centered.
+    auto position = QPointF{(width() - m_paintedSize.width()) / 2.0, (height() - m_paintedSize.height()) / 2.0};
+    return QRectF{position, m_paintedSize};
 }
 
 bool Icon::isSoftwareRendering() const

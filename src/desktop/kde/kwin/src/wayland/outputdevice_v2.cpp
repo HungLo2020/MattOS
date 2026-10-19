@@ -5,13 +5,9 @@
     SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
 */
 #include "outputdevice_v2.h"
-
-#include "display.h"
-#include "display_p.h"
-#include "utils/common.h"
-#include "utils/resource.h"
-
 #include "core/backendoutput.h"
+#include "display.h"
+#include "utils/resource.h"
 
 #include <QDebug>
 #include <QPointer>
@@ -23,7 +19,73 @@
 namespace KWin
 {
 
-static const quint32 s_version = 20;
+static const quint32 s_version = 26;
+
+class OutputDeviceRegistryV2Private : public QtWaylandServer::kde_output_device_registry_v2
+{
+public:
+    explicit OutputDeviceRegistryV2Private(Display *display);
+
+    void announce(Resource *resource, OutputDeviceV2Interface *outputDevice);
+
+    std::unordered_map<BackendOutput *, std::unique_ptr<OutputDeviceV2Interface>> outputDevices;
+
+protected:
+    void kde_output_device_registry_v2_bind_resource(Resource *resource) override;
+    void kde_output_device_registry_v2_stop(Resource *resource) override;
+};
+
+OutputDeviceRegistryV2Private::OutputDeviceRegistryV2Private(Display *display)
+    : QtWaylandServer::kde_output_device_registry_v2(*display, s_version)
+{
+}
+
+void OutputDeviceRegistryV2Private::announce(Resource *target, OutputDeviceV2Interface *outputDevice)
+{
+    outputDevice->offer(target->client(), target->version(), [this, target](wl_resource *resource) {
+        send_output(target->handle, resource);
+    });
+}
+
+void OutputDeviceRegistryV2Private::kde_output_device_registry_v2_bind_resource(Resource *resource)
+{
+    if (resource->version() < 21) {
+        wl_resource_post_error(resource->handle, error_unsupported_version, "unsupported version");
+        return;
+    }
+
+    for (const auto &[handle, outputDevice] : outputDevices) {
+        announce(resource, outputDevice.get());
+    }
+}
+
+void OutputDeviceRegistryV2Private::kde_output_device_registry_v2_stop(Resource *resource)
+{
+    send_finished(resource->handle);
+    wl_resource_destroy(resource->handle);
+}
+
+OutputDeviceRegistryV2::OutputDeviceRegistryV2(Display *display, QObject *parent)
+    : QObject(parent)
+    , d(std::make_unique<OutputDeviceRegistryV2Private>(display))
+{
+}
+
+void OutputDeviceRegistryV2::offer(BackendOutput *output)
+{
+    auto &outputDevice = d->outputDevices[output];
+    outputDevice = std::make_unique<OutputDeviceV2Interface>(output);
+
+    const auto resources = d->resourceMap();
+    for (const auto &resource : resources) {
+        d->announce(resource, outputDevice.get());
+    }
+}
+
+void OutputDeviceRegistryV2::withdraw(BackendOutput *output)
+{
+    d->outputDevices.erase(output);
+}
 
 static QtWaylandServer::kde_output_device_v2::transform kwinTransformToOutputDeviceTransform(OutputTransform transform)
 {
@@ -83,6 +145,15 @@ static uint32_t kwinCapabilitiesToOutputDeviceCapabilities(BackendOutput::Capabi
     if (caps & BackendOutput::Capability::AutomaticBrightness) {
         ret |= QtWaylandServer::kde_output_device_v2::capability_auto_brightness;
     }
+    if (caps & BackendOutput::Capability::HdrIccProfile) {
+        ret |= QtWaylandServer::kde_output_device_v2::capability_hdr_icc_profile;
+    }
+    if (caps & BackendOutput::Capability::AbmLevel) {
+        ret |= QtWaylandServer::kde_output_device_v2::capability_abm_level;
+    }
+    if (caps & BackendOutput::Capability::Disable) {
+        ret |= QtWaylandServer::kde_output_device_v2::capability_disable;
+    }
     return ret;
 }
 
@@ -109,7 +180,7 @@ static QtWaylandServer::kde_output_device_v2::edr_policy kwinEdrPolicyToOutputDe
 class OutputDeviceV2InterfacePrivate : public QtWaylandServer::kde_output_device_v2
 {
 public:
-    OutputDeviceV2InterfacePrivate(OutputDeviceV2Interface *q, Display *display, BackendOutput *handle);
+    OutputDeviceV2InterfacePrivate(OutputDeviceV2Interface *q, BackendOutput *handle);
     ~OutputDeviceV2InterfacePrivate() override;
 
     void sendGeometry(Resource *resource);
@@ -146,9 +217,11 @@ public:
     void sendSharpness(Resource *resource);
     void sendPriority(Resource *resource);
     void sendAutoBrightness(Resource *resource);
+    void sendHdrIccProfilePath(Resource *resource);
+    void sendHdrColorProfileSource(Resource *resource);
+    void sendAbmLevel(Resource *resource);
 
     OutputDeviceV2Interface *q;
-    QPointer<Display> m_display;
     BackendOutput *m_handle;
     QSize m_physicalSize;
     QPoint m_globalPosition;
@@ -195,10 +268,13 @@ public:
     double m_sharpness = 0;
     uint32_t m_priority = 0;
     bool m_autoBrightness = false;
+    QString m_hdrIccProfilePath;
+    color_profile_source m_hdrColorProfile = color_profile_source::color_profile_source_EDID;
+    uint32_t m_abmLevel = 0;
 
 protected:
     void kde_output_device_v2_bind_resource(Resource *resource) override;
-    void kde_output_device_v2_destroy_global() override;
+    void kde_output_device_v2_release(Resource *resource) override;
 };
 
 class OutputDeviceModeV2InterfacePrivate : public QtWaylandServer::kde_output_device_mode_v2
@@ -224,35 +300,25 @@ public:
 
     OutputDeviceModeV2Interface *q;
     std::weak_ptr<OutputMode> m_handle;
-    QSize m_size;
-    int m_refreshRate = 60000;
-    OutputMode::Flags m_flags;
+    OutputModeline m_modeline;
 
 protected:
     Resource *kde_output_device_mode_v2_allocate() override;
+    void kde_output_device_mode_v2_release(Resource *resource) override;
 };
 
-OutputDeviceV2InterfacePrivate::OutputDeviceV2InterfacePrivate(OutputDeviceV2Interface *q, Display *display, BackendOutput *handle)
-    : QtWaylandServer::kde_output_device_v2(*display, s_version)
-    , q(q)
-    , m_display(display)
+OutputDeviceV2InterfacePrivate::OutputDeviceV2InterfacePrivate(OutputDeviceV2Interface *q, BackendOutput *handle)
+    : q(q)
     , m_handle(handle)
 {
-    DisplayPrivate *displayPrivate = DisplayPrivate::get(display);
-    displayPrivate->outputdevicesV2.append(q);
 }
 
 OutputDeviceV2InterfacePrivate::~OutputDeviceV2InterfacePrivate()
 {
-    if (m_display) {
-        DisplayPrivate *displayPrivate = DisplayPrivate::get(m_display);
-        displayPrivate->outputdevicesV2.removeOne(q);
-    }
 }
 
-OutputDeviceV2Interface::OutputDeviceV2Interface(Display *display, BackendOutput *handle, QObject *parent)
-    : QObject(parent)
-    , d(new OutputDeviceV2InterfacePrivate(this, display, handle))
+OutputDeviceV2Interface::OutputDeviceV2Interface(BackendOutput *handle)
+    : d(new OutputDeviceV2InterfacePrivate(this, handle))
 {
     updateEnabled();
     updateManufacturer();
@@ -291,6 +357,9 @@ OutputDeviceV2Interface::OutputDeviceV2Interface(Display *display, BackendOutput
     updateSharpness();
     updatePriority();
     updateAutoBrightness();
+    updateHdrIccProfilePath();
+    updateHdrColorProfileSource();
+    updateAbmLevel();
 
     connect(handle, &BackendOutput::positionChanged,
             this, &OutputDeviceV2Interface::updateGlobalPosition);
@@ -332,6 +401,9 @@ OutputDeviceV2Interface::OutputDeviceV2Interface(Display *display, BackendOutput
     connect(handle, &BackendOutput::sharpnessChanged, this, &OutputDeviceV2Interface::updateSharpness);
     connect(handle, &BackendOutput::priorityChanged, this, &OutputDeviceV2Interface::updatePriority);
     connect(handle, &BackendOutput::automaticBrightnessChanged, this, &OutputDeviceV2Interface::updateAutoBrightness);
+    connect(handle, &BackendOutput::hdrIccProfilePathChanged, this, &OutputDeviceV2Interface::updateHdrIccProfilePath);
+    connect(handle, &BackendOutput::hdrColorProfileSourceChanged, this, &OutputDeviceV2Interface::updateHdrColorProfileSource);
+    connect(handle, &BackendOutput::abmLevelChanged, this, &OutputDeviceV2Interface::updateAbmLevel);
 
     // Delay the done event to batch property updates.
     d->m_doneTimer.setSingleShot(true);
@@ -346,29 +418,35 @@ OutputDeviceV2Interface::OutputDeviceV2Interface(Display *display, BackendOutput
 
 OutputDeviceV2Interface::~OutputDeviceV2Interface()
 {
-}
-
-void OutputDeviceV2Interface::remove()
-{
-    if (d->isGlobalRemoved()) {
-        return;
-    }
-
     d->m_doneTimer.stop();
 
-    if (d->m_display) {
-        DisplayPrivate *displayPrivate = DisplayPrivate::get(d->m_display);
-        displayPrivate->outputdevicesV2.removeOne(this);
+    const auto resources = d->resourceMap();
+    for (const auto resource : resources) {
+        d->send_removed(resource->handle);
     }
 
-    // NOTE that output modes can only be deleted after the global remove,
-    // otherwise the client temporarily has an output without any modes
-    d->globalRemove();
+    // The output modes should be deleted after the removed event is sent, otherwise the client
+    // will temporarily have an output without any modes, which is illegal and can make clients crash.
+    d->m_modes.clear();
 }
 
 void OutputDeviceV2Interface::scheduleDone()
 {
+    if (d->m_uuid.isEmpty()) {
+        // This output isn't ready yet
+        return;
+    }
     d->m_doneTimer.start();
+}
+
+template<typename AnnounceCallback>
+void OutputDeviceV2Interface::offer(wl_client *client, uint32_t version, AnnounceCallback onAnnounce)
+{
+    wl_resource *resource = wl_resource_create(client, &kde_output_device_v2_interface, version, 0);
+    onAnnounce(resource);
+
+    // This will add the resource to the resource map and call the bind_resource callback.
+    d->add(resource);
 }
 
 BackendOutput *OutputDeviceV2Interface::handle() const
@@ -376,17 +454,13 @@ BackendOutput *OutputDeviceV2Interface::handle() const
     return d->m_handle;
 }
 
-void OutputDeviceV2InterfacePrivate::kde_output_device_v2_destroy_global()
+void OutputDeviceV2InterfacePrivate::kde_output_device_v2_release(Resource *resource)
 {
-    delete q;
+    wl_resource_destroy(resource->handle);
 }
 
 void OutputDeviceV2InterfacePrivate::kde_output_device_v2_bind_resource(Resource *resource)
 {
-    if (isGlobalRemoved()) {
-        return;
-    }
-
     sendGeometry(resource);
     sendScale(resource);
     sendEisaId(resource);
@@ -423,7 +497,12 @@ void OutputDeviceV2InterfacePrivate::kde_output_device_v2_bind_resource(Resource
     sendSharpness(resource);
     sendPriority(resource);
     sendAutoBrightness(resource);
-    sendDone(resource);
+    sendHdrIccProfilePath(resource);
+    sendHdrColorProfileSource(resource);
+    sendAbmLevel(resource);
+    if (!m_uuid.isEmpty()) {
+        sendDone(resource);
+    }
 }
 
 wl_resource *OutputDeviceV2InterfacePrivate::sendNewMode(Resource *resource, OutputDeviceModeV2Interface *mode)
@@ -652,6 +731,27 @@ void OutputDeviceV2InterfacePrivate::sendAutoBrightness(Resource *resource)
 {
     if (resource->version() >= KDE_OUTPUT_DEVICE_V2_AUTO_BRIGHTNESS_SINCE_VERSION) {
         send_auto_brightness(resource->handle, m_autoBrightness);
+    }
+}
+
+void OutputDeviceV2InterfacePrivate::sendHdrIccProfilePath(Resource *resource)
+{
+    if (resource->version() >= KDE_OUTPUT_DEVICE_V2_HDR_ICC_PROFILE_PATH_SINCE_VERSION) {
+        send_hdr_icc_profile_path(resource->handle, m_hdrIccProfilePath);
+    }
+}
+
+void OutputDeviceV2InterfacePrivate::sendHdrColorProfileSource(Resource *resource)
+{
+    if (resource->version() >= KDE_OUTPUT_DEVICE_V2_HDR_COLOR_PROFILE_SOURCE_SINCE_VERSION) {
+        send_hdr_color_profile_source(resource->handle, m_hdrColorProfile);
+    }
+}
+
+void OutputDeviceV2InterfacePrivate::sendAbmLevel(Resource *resource)
+{
+    if (resource->version() >= KDE_OUTPUT_DEVICE_V2_ABM_LEVEL_SINCE_VERSION) {
+        send_abm_level(resource->handle, m_abmLevel);
     }
 }
 
@@ -972,19 +1072,22 @@ void OutputDeviceV2Interface::updateSdrGamutWideness()
     }
 }
 
+static QtWaylandServer::kde_output_device_v2::color_profile_source kwinToWaylandColorProfileSource(BackendOutput::ColorProfileSource source)
+{
+    switch (source) {
+    case BackendOutput::ColorProfileSource::sRGB:
+        return QtWaylandServer::kde_output_device_v2::color_profile_source_sRGB;
+    case BackendOutput::ColorProfileSource::ICC:
+        return QtWaylandServer::kde_output_device_v2::color_profile_source_ICC;
+    case BackendOutput::ColorProfileSource::EDID:
+        return QtWaylandServer::kde_output_device_v2::color_profile_source_EDID;
+    }
+    Q_UNREACHABLE();
+}
+
 void OutputDeviceV2Interface::updateColorProfileSource()
 {
-    const auto waylandColorProfileSource = [this]() {
-        switch (d->m_handle->colorProfileSource()) {
-        case BackendOutput::ColorProfileSource::sRGB:
-            return QtWaylandServer::kde_output_device_v2::color_profile_source_sRGB;
-        case BackendOutput::ColorProfileSource::ICC:
-            return QtWaylandServer::kde_output_device_v2::color_profile_source_ICC;
-        case BackendOutput::ColorProfileSource::EDID:
-            return QtWaylandServer::kde_output_device_v2::color_profile_source_EDID;
-        };
-        Q_UNREACHABLE();
-    }();
+    const auto waylandColorProfileSource = kwinToWaylandColorProfileSource(d->m_handle->colorProfileSource());
     if (d->m_colorProfile != waylandColorProfileSource) {
         d->m_colorProfile = waylandColorProfileSource;
         const auto clientResources = d->resourceMap();
@@ -1134,9 +1237,46 @@ void OutputDeviceV2Interface::updateAutoBrightness()
     }
 }
 
+void OutputDeviceV2Interface::updateHdrIccProfilePath()
+{
+    if (d->m_hdrIccProfilePath != d->m_handle->hdrIccProfilePath()) {
+        d->m_hdrIccProfilePath = d->m_handle->hdrIccProfilePath();
+        const auto clientResources = d->resourceMap();
+        for (const auto &resource : clientResources) {
+            d->sendHdrIccProfilePath(resource);
+        }
+        scheduleDone();
+    }
+}
+
+void OutputDeviceV2Interface::updateHdrColorProfileSource()
+{
+    const auto waylandColorProfileSource = kwinToWaylandColorProfileSource(d->m_handle->hdrColorProfileSource());
+    if (d->m_hdrColorProfile != waylandColorProfileSource) {
+        d->m_hdrColorProfile = waylandColorProfileSource;
+        const auto clientResources = d->resourceMap();
+        for (auto resource : clientResources) {
+            d->sendHdrColorProfileSource(resource);
+        }
+        scheduleDone();
+    }
+}
+
+void OutputDeviceV2Interface::updateAbmLevel()
+{
+    if (d->m_abmLevel != d->m_handle->abmLevel()) {
+        d->m_abmLevel = d->m_handle->abmLevel();
+        const auto clientResources = d->resourceMap();
+        for (const auto &resource : clientResources) {
+            d->sendAbmLevel(resource);
+        }
+        scheduleDone();
+    }
+}
+
 OutputDeviceV2Interface *OutputDeviceV2Interface::get(wl_resource *native)
 {
-    if (auto devicePrivate = resource_cast<OutputDeviceV2InterfacePrivate *>(native); devicePrivate && !devicePrivate->isGlobalRemoved()) {
+    if (auto devicePrivate = resource_cast<OutputDeviceV2InterfacePrivate *>(native)) {
         return devicePrivate->q;
     }
     return nullptr;
@@ -1146,9 +1286,7 @@ OutputDeviceModeV2InterfacePrivate::OutputDeviceModeV2InterfacePrivate(OutputDev
     : QtWaylandServer::kde_output_device_mode_v2()
     , q(q)
     , m_handle(handle)
-    , m_size(handle->size())
-    , m_refreshRate(handle->refreshRate())
-    , m_flags(handle->flags())
+    , m_modeline(handle->modeline())
 {
 }
 
@@ -1191,6 +1329,11 @@ OutputDeviceModeV2InterfacePrivate::Resource *OutputDeviceModeV2InterfacePrivate
     return new ModeResource;
 }
 
+void OutputDeviceModeV2InterfacePrivate::kde_output_device_mode_v2_release(Resource *resource)
+{
+    wl_resource_destroy(resource->handle);
+}
+
 std::weak_ptr<OutputMode> OutputDeviceModeV2Interface::handle() const
 {
     return d->m_handle;
@@ -1198,21 +1341,36 @@ std::weak_ptr<OutputMode> OutputDeviceModeV2Interface::handle() const
 
 void OutputDeviceModeV2InterfacePrivate::bindResource(Resource *resource)
 {
-    send_size(resource->handle, m_size.width(), m_size.height());
-    send_refresh(resource->handle, m_refreshRate);
+    send_size(resource->handle, m_modeline.size().width(), m_modeline.size().height());
+    send_refresh(resource->handle, m_modeline.refreshRate());
 
-    if (m_flags & OutputMode::Flag::Preferred) {
+    if (m_modeline.flags() & OutputModeline::Flag::Preferred) {
         send_preferred(resource->handle);
     }
     if (resource->version() >= KDE_OUTPUT_DEVICE_MODE_V2_FLAGS_CUSTOM) {
         uint32_t flags = 0;
-        if (m_flags & OutputMode::Flag::Custom) {
+        if (m_modeline.flags() & OutputModeline::Flag::Custom) {
             flags |= KDE_OUTPUT_DEVICE_MODE_V2_FLAGS_CUSTOM;
         }
-        if (m_flags & OutputMode::Flag::ReducedBlanking) {
-            flags |= KDE_OUTPUT_DEVICE_MODE_V2_FLAGS_REDUCED_BLANKING;
-        }
         send_flags(resource->handle, flags);
+    }
+
+    if (resource->version() >= KDE_OUTPUT_DEVICE_MODE_V2_CVT_SINCE_VERSION) {
+        if (const auto cvt = m_modeline.cvt()) {
+            send_cvt(resource->handle,
+                     cvt->clock,
+                     cvt->hdisplay,
+                     cvt->hsyncStart,
+                     cvt->hsyncEnd,
+                     cvt->htotal,
+                     cvt->hskew,
+                     cvt->vdisplay,
+                     cvt->vsyncStart,
+                     cvt->vsyncEnd,
+                     cvt->vtotal,
+                     cvt->vscan,
+                     cvt->flags);
+        }
     }
 }
 

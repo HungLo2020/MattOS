@@ -92,9 +92,6 @@ QString AttachedPropertyTypeValidatorPass::addWarning(TypeDescription attachType
 
     const QQmlSA::Element attachedType = resolveAttached(attachType.module, attachType.name);
     if (!attachedType) {
-        emitWarning(
-                "Cannot find attached type for %1/%2"_L1.arg(attachType.module, attachType.name),
-                quickAttachedPropertyType);
         return QString();
     }
 
@@ -727,7 +724,7 @@ void ColorValidatorPass::onBinding(const QQmlSA::Element &element, const QString
         return;
 
     auto suggestion = QQmlJSUtils::didYouMean(
-            colorName, m_colorNames,
+            colorName, m_colorNames, element.filePath(),
             QQmlSA::SourceLocationPrivate::sourceLocation(binding.sourceLocation()));
 
     emitWarningWithOptionalFix(*this, "Invalid color \"%1\"."_L1.arg(colorName), quickColor,
@@ -768,12 +765,14 @@ void AttachedPropertyReuse::onRead(const QQmlSA::Element &element, const QString
             const QQmlSA::SourceLocation idInsertLocation{ attachedLocation.offset(), 0,
                                                            attachedLocation.startLine(),
                                                            attachedLocation.startColumn() };
-            QQmlSA::FixSuggestion suggestion{ "Reference it by id instead:"_L1, idInsertLocation,
-                                              id.isEmpty() ? u"<id>."_s : (id + '.'_L1) };
+            QString m = "Reference it by id instead%1:"_L1;
+            m = m.arg(id.isEmpty() ? " (You first have to give the element and id)"_L1 : ""_L1);
+            QQmlSA::FixSuggestion suggestion{
+                m, idInsertLocation, { readScope.filePath(), idInsertLocation,
+                                       id.isEmpty() ? u"<id>."_s : (id + '.'_L1) }
+            };
 
-            if (id.isEmpty())
-                suggestion.setHint("You first have to give the element an id"_L1);
-            else
+            if (!id.isEmpty())
                 suggestion.setAutoApplicable();
 
             emitWarning("Using attached type %1 already initialized in a parent scope."_L1.arg(
@@ -1039,7 +1038,7 @@ StateNoItemChildrenValidator::StateNoItemChildrenValidator(QQmlSA::PassManager *
 
 bool StateNoItemChildrenValidator::shouldRun(const QQmlSA::Element &element)
 {
-    return element.inherits(m_state);
+    return !m_state.isNull() && element.inherits(m_state);
 }
 
 void StateNoItemChildrenValidator::run(const QQmlSA::Element &element)

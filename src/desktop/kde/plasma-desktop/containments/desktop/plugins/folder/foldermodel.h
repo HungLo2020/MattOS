@@ -64,6 +64,29 @@ private:
     void handleJobError(KIO::Job *job);
 };
 
+// Small helper exposed to QML to check whether KRunner is installed/running.
+class KRunnerChecker : public QObject
+{
+    Q_OBJECT
+    QML_ELEMENT
+    QML_SINGLETON
+    Q_PROPERTY(bool krunnerAvailable READ krunnerAvailable NOTIFY krunnerAvailableChanged)
+
+public:
+    explicit KRunnerChecker(QObject *parent = nullptr);
+
+    bool krunnerAvailable() const
+    {
+        return m_krunnerAvailable;
+    }
+
+Q_SIGNALS:
+    void krunnerAvailableChanged();
+
+private:
+    bool m_krunnerAvailable;
+};
+
 class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
 {
     Q_OBJECT
@@ -93,6 +116,7 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(Plasma::Applet *applet READ applet WRITE setApplet NOTIFY appletChanged)
     Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged)
     Q_PROPERTY(bool creatingNewItems READ creatingNewItems NOTIFY creatingNewItemsChanged)
+    Q_PROPERTY(int selectionCount READ selectionCount NOTIFY selectionCountChanged)
 
 public:
     enum DataRole {
@@ -210,6 +234,7 @@ public:
     Q_INVOKABLE int fileExtensionBoundary(int row);
 
     Q_INVOKABLE bool hasSelection() const;
+    Q_INVOKABLE int selectionCount() const;
     Q_INVOKABLE bool isSelected(int row);
     Q_INVOKABLE void setSelected(int row);
     Q_INVOKABLE void toggleSelected(int row);
@@ -294,11 +319,11 @@ Q_SIGNALS:
     void popupMenuAboutToShow(KIO::DropJob *dropJob, QMimeData *mimeData, int x, int y);
     void selectionChanged() const;
     void showHiddenFilesChanged() const;
-    void itemAboutToRename(const QString &filename) const;
     void itemRenamed(const QString &filename, const QString &newFilename) const;
     void screenGeometryChanged() const;
     void selectionDone();
     void creatingNewItemsChanged() const;
+    void selectionCountChanged() const;
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;

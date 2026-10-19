@@ -10,7 +10,10 @@
 
 
 #include "ffmpegextractor.h"
+#include "embeddedimagedata.h"
 #include "kfilemetadata_debug.h"
+
+#include <QRegularExpression>
 
 #ifdef __cplusplus
 #define __STDC_CONSTANT_MACROS
@@ -29,6 +32,36 @@ extern "C" {
 }
 
 using namespace KFileMetaData;
+
+namespace {
+QMap<EmbeddedImageData::ImageType, QByteArray>
+extractCover(const AVStream* stream)
+{
+    if (const auto e = av_dict_get(stream->metadata, "filename", nullptr, 0)) {
+        const std::string_view value{e->value};
+        if (!(value.starts_with("cover") || value.starts_with("small_cover"))) {
+            qCDebug(KFILEMETADATA_LOG) << "Ignore attached" << value;
+            return {};
+        }
+        if (!(value.ends_with(".png") || value.ends_with(".jpg") || value.ends_with(".jpeg"))) {
+            qCDebug(KFILEMETADATA_LOG) << "Ignore attached" << value;
+            return {};
+        }
+    }
+    if (const auto e = av_dict_get(stream->metadata, "mimetype", nullptr, 0)) {
+        const std::string_view value{e->value};
+        if (!value.starts_with("image/")) {
+            qCDebug(KFILEMETADATA_LOG) << "Ignore attached file with type" << value;
+            return {};
+        }
+    }
+    const auto &ap = stream->attached_pic;
+    if (!(ap.data && ap.size)) {
+        return {};
+    }
+    return {std::pair{EmbeddedImageData::FrontCover, QByteArray{QByteArrayView(ap.data, ap.size)}}};
+}
+} // namespace <anonymous>
 
 FFmpegExtractor::FFmpegExtractor(QObject* parent)
     : ExtractorPlugin(parent)
@@ -88,7 +121,7 @@ void FFmpegExtractor::extract(ExtractionResult* result)
 
     result->addType(Type::Video);
 
-    if (result->inputFlags() & ExtractionResult::ExtractMetaData) {
+    if (result->inputFlags() & (ExtractionResult::ExtractMetaData | ExtractionResult::ExtractImageData)) {
         int totalSecs = fmt_ctx->duration / AV_TIME_BASE;
         int bitrate = fmt_ctx->bit_rate;
 
@@ -96,12 +129,24 @@ void FFmpegExtractor::extract(ExtractionResult* result)
         result->add(Property::BitRate, bitrate);
 
         const int index_stream = av_find_default_stream_index(fmt_ctx);
-        if (index_stream >= 0) {
-            AVStream* stream = fmt_ctx->streams[index_stream];
+
+        for (unsigned int index = 0; index < fmt_ctx->nb_streams; index++) {
+            AVStream* stream = fmt_ctx->streams[index];
 
             const AVCodecParameters* codec = stream->codecpar;
 
             if (codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+                if (stream->disposition & AV_DISPOSITION_ATTACHED_PIC) {
+                    if (auto images = extractCover(stream); !images.isEmpty()) {
+                        result->addImageData(std::move(images));
+                    }
+                    continue;
+                } else if (index_stream < 0) {
+                    continue;
+                } else if (unsigned int t = index_stream; index != t) {
+                    continue;
+                }
+
                 result->add(Property::Width, codec->width);
                 result->add(Property::Height, codec->height);
 
@@ -209,6 +254,64 @@ void FFmpegExtractor::extract(ExtractionResult* result)
         if (entry) {
             int year = QString::fromUtf8(entry->value).toInt();
             result->add(Property::ReleaseYear, year);
+        }
+
+        entry = av_dict_get(dict, "creation_time", nullptr, 0);
+        if (!entry) {
+            entry = av_dict_get(dict, "com.apple.quicktime.creationdate", nullptr, 0);
+        }
+        if (entry) {
+            const QDateTime date = QDateTime::fromString(QString::fromUtf8(entry->value), Qt::ISODate);
+            if (date.isValid()) {
+                result->add(Property::CreationDate, date);
+            }
+        }
+
+        // TODO support localized location names through three letter language name (e.g. location-eng)
+        entry = av_dict_get(dict, "location", nullptr, 0);
+        if (!entry) {
+            entry = av_dict_get(dict, "com.apple.quicktime.location.ISO6709", nullptr, 0);
+        }
+        if (entry) {
+            const QString location = QString::fromUtf8(entry->value);
+
+            // Format follows ISO 6709 Annex H: ±latitude±longitude±elevation/crs_name
+            // Latitude/longitude is always in integral degrees (i.e. 2 digit/3 digit) format
+            // Coordinate Reference System (crs) is omitted, though required
+            static const QRegularExpression iso6709rx(QStringLiteral(R"([+-]\d+(?:\.\d+)?)"));
+
+            auto matches = iso6709rx.globalMatch(location);
+            int i = 0;
+            while (matches.hasNext()) {
+                const auto match = matches.next();
+                bool ok;
+                const qreal value = match.captured(0).toFloat(&ok);
+                if (ok) {
+                    if (i == 0) {
+                        result->add(Property::PhotoGpsLatitude, value);
+                    } else if (i == 1) {
+                        result->add(Property::PhotoGpsLongitude, value);
+                    } else if (i == 2) { // elevation, optional
+                        result->add(Property::PhotoGpsAltitude, value);
+                    }
+                }
+                ++i;
+            }
+        }
+
+        entry = av_dict_get(dict, "com.apple.quicktime.make", nullptr, 0);
+        if (entry) {
+            result->add(Property::Manufacturer, QString::fromUtf8(entry->value));
+        }
+
+        entry = av_dict_get(dict, "com.apple.quicktime.model", nullptr, 0);
+        if (entry) {
+            result->add(Property::Model, QString::fromUtf8(entry->value));
+        }
+
+        entry = av_dict_get(dict, "com.apple.quicktime.software", nullptr, 0);
+        if (entry) {
+            result->add(Property::Generator, QString::fromUtf8(entry->value));
         }
     }
 }

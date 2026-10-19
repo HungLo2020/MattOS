@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
-set(KF_DEP_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
+set(KF_DEP_VERSION "6.31.0") # handled by release scripts
 
 project(KIO VERSION ${KF_VERSION})
 
 include(FeatureSummary)
-find_package(ECM 6.26.0 NO_MODULE)
+find_package(ECM 6.31.0 NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -27,6 +27,7 @@ include(ECMQtDeclareLoggingCategory)
 include(ECMSourceVersionControl)
 include(ECMDeprecationSettings)
 include(ECMGenerateQDoc)
+include(ECMInstalledLibraryCheck)
 
 ecm_setup_version(
   PROJECT
@@ -95,7 +96,7 @@ set_package_properties(KF6DocTools PROPERTIES DESCRIPTION "Provides tools to gen
                        PURPOSE "Required to build help KIO worker and documentation"
                       )
 
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 find_package(Qt6 ${REQUIRED_QT_VERSION} CONFIG REQUIRED Widgets Network Concurrent Xml Test)
 
 if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
@@ -136,13 +137,15 @@ set_package_properties(ACL PROPERTIES DESCRIPTION "LibACL"
 
 # Used by KMountPoint
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    find_package(LibMount REQUIRED)
+    find_package(LibMount 2.26 REQUIRED)
     set(HAVE_LIB_MOUNT ${LibMount_FOUND})
+    set_package_properties(LibMount PROPERTIES TYPE REQUIRED
+                           PURPOSE "Reading and watching the mount table in KMountPoint")
 endif()
 
 ecm_set_disabled_deprecation_versions(
     QT 6.11.0
-    KF 6.23.0
+    KF 6.27.0
 )
 
 add_definitions(-DTRANSLATION_DOMAIN=\"kio6\")
@@ -180,7 +183,6 @@ include(CMakePackageConfigHelpers)
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/KF6KIOConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/KF6KIOConfig.cmake"
-  PATH_VARS KDE_INSTALL_DBUSINTERFACEDIR
   INSTALL_DESTINATION  ${CMAKECONFIG_INSTALL_DIR}
 )
 

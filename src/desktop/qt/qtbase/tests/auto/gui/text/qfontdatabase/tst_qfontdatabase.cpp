@@ -36,7 +36,7 @@ private slots:
     void fixedPitch();
     void systemFixedFont();
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     void trickyFonts_data();
     void trickyFonts();
 #endif
@@ -75,6 +75,8 @@ private slots:
     void addApplicationEmojiFontFamily();
 
     void propertiesForStyleName();
+
+    void brokenSTAT();
 
 private:
     QString m_ledFont;
@@ -143,7 +145,7 @@ void tst_QFontDatabase::fixedPitch_data()
     QTest::newRow( "Andale Mono" ) << QString( "Andale Mono" ) << true;
     QTest::newRow( "Courier" ) << QString( "Courier" ) << true;
     QTest::newRow( "Courier New" ) << QString( "Courier New" ) << true;
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
     QTest::newRow( "Script" ) << QString( "Script" ) << false;
     QTest::newRow( "Lucida Console" ) << QString( "Lucida Console" ) << true;
     QTest::newRow( "DejaVu Sans" ) << QString( "DejaVu Sans" ) << false;
@@ -173,6 +175,8 @@ void tst_QFontDatabase::systemFixedFont() // QTBUG-54623
 {
 #if defined(Q_OS_VXWORKS)
     QSKIP("QTBUG-130071: VxWorks doesn't support fixed system font out of the box");
+#elif defined(Q_OS_HARMONY)
+    QSKIP("QT6HAROS-190: OHOS doesn't support fixed system font out of the box");
 #endif
     if (QSysInfo::productType() == "rhel" && QSysInfo::productVersion().startsWith(u'1'))
        QEXPECT_FAIL("", "Known failure on RHEL 10", Abort); // QTBUG-147798
@@ -185,7 +189,7 @@ void tst_QFontDatabase::systemFixedFont() // QTBUG-54623
     QVERIFY(fontInfo.fixedPitch());
 }
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 void tst_QFontDatabase::trickyFonts_data()
 {
     QTest::addColumn<QString>("font");
@@ -893,6 +897,60 @@ void tst_QFontDatabase::propertiesForStyleName()
     QCOMPARE(fi.style(), QFont::StyleItalic);
     QCOMPARE(fi.italic(), true);
     QCOMPARE(fi.bold(), true);
+}
+
+void tst_QFontDatabase::brokenSTAT()
+{
+    {
+        QPlatformFontDatabase *pfdb = QGuiApplicationPrivate::platformIntegration()->fontDatabase();
+        if (!pfdb->supportsVariableApplicationFonts())
+            QSKIP("Variable application fonts not supported on this platform");
+    }
+
+    int id = -1;
+    auto cleanup = qScopeGuard([&id] {
+        if (id >= 0)
+            QFontDatabase::removeApplicationFont(id);
+    });
+
+    id = QFontDatabase::addApplicationFont(QFINDTESTDATA("testfont_brokenSTAT.ttf"));
+    if (id == -1)
+        QSKIP("Skip the test since app fonts are not supported on this system");
+
+    QVERIFY(!QFontDatabase::applicationFontFamilies(id).isEmpty());
+
+    const QString familyName = QFontDatabase::applicationFontFamilies(id).first();
+
+    auto weights = { QFont::Thin, QFont::Light, QFont::Normal, QFont::Medium, QFont::Bold, QFont::Black };
+    for (QFont::Weight weight : weights) {
+        QFont fontByWeight;
+        fontByWeight.setWeight(weight);
+        fontByWeight.setFamily(familyName);
+
+        QImage fontByWeightImg;
+        {
+            QRawFont rawFont = QRawFont::fromFont(fontByWeight);
+            auto glyphIndexes = rawFont.glyphIndexesForString(QStringLiteral("A"));
+            QVERIFY(!glyphIndexes.isEmpty());
+
+            fontByWeightImg = rawFont.alphaMapForGlyph(glyphIndexes.first());
+        }
+
+        QFont fontByWght;
+        fontByWght.setVariableAxis("wght", weight);
+        fontByWght.setFamily(familyName);
+
+        QImage fontByWghtImg;
+        {
+            QRawFont rawFont = QRawFont::fromFont(fontByWght);
+            auto glyphIndexes = rawFont.glyphIndexesForString(QStringLiteral("A"));
+            QVERIFY(!glyphIndexes.isEmpty());
+
+            fontByWghtImg = rawFont.alphaMapForGlyph(glyphIndexes.first());
+        }
+
+        QCOMPARE(fontByWeightImg, fontByWghtImg);
+    }
 }
 
 QTEST_MAIN(tst_QFontDatabase)

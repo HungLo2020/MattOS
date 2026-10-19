@@ -70,7 +70,10 @@ DEFAULT_VM_CPUS = 4
 # xres/yres explicitly: they are only firmware hints, not a Wayland policy,
 # and leaving the device defaults intact lets KWin select the
 # preferred DRM mode exposed by the virtual output.
-VIRTIO_GPU_GL_DEVICE = "virtio-vga-gl,blob=true,hostmem=256M"
+# Standard VirGL keeps accelerated GL without blob-resource imports. With
+# QEMU 10.2.1 / virglrenderer 1.2.0, blob imports can reject a KWin texture
+# and leave its render-time query blocked forever in the guest GPU ioctl.
+VIRTIO_GPU_GL_DEVICE = "virtio-vga-gl"
 QEMU_TABLET_CONTROLLER = "qemu-xhci,id=mattos-xhci"
 QEMU_TABLET_DEVICE = "usb-tablet,bus=mattos-xhci.0"
 TEST_CONTROL_DIRECTORY_RELATIVE = Path("out/qemu/test-control")
@@ -1062,11 +1065,25 @@ def installed_slate_probes(profile: str) -> tuple[tuple[str, str], ...]:
     return probes
 
 
+def installed_wayland_environment() -> str:
+    """Use the display exported by Plasma, including a nonzero socket index."""
+    return (
+        "{ WAYLAND_DISPLAY=$(systemctl --user show-environment | sed -n 's/^WAYLAND_DISPLAY=//p'); "
+        'case "$WAYLAND_DISPLAY" in /*) w=$WAYLAND_DISPLAY;; '
+        '*) w="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/$WAYLAND_DISPLAY";; esac; '
+        'test -n "$WAYLAND_DISPLAY" && test -S "$w" && export WAYLAND_DISPLAY; }'
+    )
+
+
 def installed_wallet_open_probe() -> str:
     return (
         "for n in $(seq 1 90); do "
         "busctl --user --no-pager list | grep -q '^org.kde.ksecretd[[:space:]]' && "
-        "busctl --user call org.kde.ksecretd /ksecretd org.kde.KWallet isOpen s kdewallet | grep -Fx 'b true' && "
+        "collection=$(busctl --user call org.freedesktop.secrets /org/freedesktop/secrets "
+        "org.freedesktop.Secret.Service ReadAlias s default | cut -d '\"' -f2) && "
+        'test -n "$collection" && test "$collection" != / && '
+        'busctl --user get-property org.freedesktop.secrets "$collection" '
+        "org.freedesktop.Secret.Collection Locked | grep -Fx 'b false' && "
         "test -s ~/.local/share/kwalletd/kdewallet.kwl && exit 0; sleep 1; done; "
         "printf '%s\\n' mattos | sudo -S journalctl -b --no-pager -n 150; exit 1"
     )
@@ -1083,8 +1100,8 @@ def verify_installed_desktop_defaults(repo_root: Path, control_paths: tuple[Path
     for name, command, process in applications:
         unit = f"mattos-desktop-check-{name}"
         serial_command_stream(serial,
-            f"systemd-run --user --collect --unit={unit} -E QT_QPA_PLATFORM=wayland "
-            f"-E WAYLAND_DISPLAY=wayland-0 {command}", 120, on_output=stream)
+            f'{installed_wayland_environment()} && systemd-run --user --collect --unit={unit} -E QT_QPA_PLATFORM=wayland '
+            f'-E WAYLAND_DISPLAY="$WAYLAND_DISPLAY" {command}', 120, on_output=stream)
         readiness = f"pgrep -u mattos -x {process}" if process else f"systemctl --user is-active --quiet {unit}"
         serial_command_stream(serial, f"sleep 3; {readiness}", 120, on_output=stream)
         image = repo_root / f"out/logs/installed-desktop-{name}.png"
@@ -1094,18 +1111,41 @@ def verify_installed_desktop_defaults(repo_root: Path, control_paths: tuple[Path
             serial_command_stream(serial, f"pkill -u mattos -x {process} || true", 120, on_output=stream)
         serial_command_stream(serial, f"systemctl --user stop {unit} 2>/dev/null || true", 120, on_output=stream)
 
+    # The engine moved from a standalone daemon into KWin in Plasma 6.8.
+    # Exercise the shipped desktop-file shortcut through virtual hardware,
+    # after closing the directly launched Dolphin used by the checks above.
+    with QmpClient(control_paths[0], 10) as qmp:
+        send_key(qmp, "meta_l-e")
+    serial_command_stream(serial,
+        "for n in $(seq 1 30); do pgrep -u mattos -x dolphin >/dev/null && exit 0; sleep 1; done; exit 1",
+        60, on_output=stream)
+    image = repo_root / "out/logs/installed-global-shortcut.png"
+    _capture_plasma_verification_window(repo_root, image, qmp_socket=control_paths[0])
+    stream(f"[installed-check] PASS global-shortcut-meta-e; screenshot={image}\n")
+    serial_command_stream(serial, "pkill -u mattos -x dolphin", 120, on_output=stream)
+
 
 def verify_installed_slate_gui(repo_root: Path, control_paths: tuple[Path, Path], stream: Callable[[str], None]) -> None:
     """Open the default text application, edit/save through Qt, and verify --wait."""
     serial = control_paths[1].resolve()
 
     def command(text: str) -> None:
-        serial_command_stream(serial, text, 120, on_output=stream)
+        # ttyS0 is outside Plasma's environment.d session. Desktop-launched
+        # Slate inherits Qt's multiarch plugin directories from that session.
+        qt_environment = (
+            "QT_PLUGIN_PATH=$(systemctl --user show-environment | sed -n 's/^QT_PLUGIN_PATH=//p'); "
+            "QML2_IMPORT_PATH=$(systemctl --user show-environment | sed -n 's/^QML2_IMPORT_PATH=//p'); "
+            'test -n "$QT_PLUGIN_PATH" && test -n "$QML2_IMPORT_PATH" && '
+            'export QT_PLUGIN_PATH QML2_IMPORT_PATH'
+        )
+        serial_command_stream(serial,
+            f"{installed_wayland_environment()} && {{ {qt_environment}; }} && {text}",
+            120, on_output=stream)
 
     # Each serial command stays short enough for the guest UART line discipline.
     command("d=$(mktemp -d /tmp/mattos-slate-test.XXXXXX) && printf '%s' \"$d\" > /tmp/mattos-slate-test-dir && "
             "printf 'initial\\n' > \"$d/document.txt\"")
-    command('d=$(cat /tmp/mattos-slate-test-dir) && WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=wayland '
+    command('d=$(cat /tmp/mattos-slate-test-dir) && QT_QPA_PLATFORM=wayland '
             'gio open "$d/document.txt"')
     command('for n in $(seq 1 60); do pgrep -u "$(id -u)" -x slate-gui >/dev/null && exit 0; sleep 1; done; exit 1')
     time.sleep(3)
@@ -1113,7 +1153,7 @@ def verify_installed_slate_gui(repo_root: Path, control_paths: tuple[Path, Path]
         repo_root, repo_root / "out/logs/installed-slate-launched.png", qmp_socket=control_paths[0]
     )
     command('d=$(cat /tmp/mattos-slate-test-dir); '
-            '(WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=wayland "$VISUAL" "$d/document.txt" > "$d/wait.log" 2>&1; '
+            '(QT_QPA_PLATFORM=wayland "$VISUAL" "$d/document.txt" > "$d/wait.log" 2>&1; '
             'printf "%s\\n" "$?" > "$d/wait-status") < /dev/null > /dev/null 2>&1 &')
     time.sleep(2)
     command('d=$(cat /tmp/mattos-slate-test-dir) && test ! -e "$d/wait-status"')
@@ -1595,7 +1635,7 @@ def _verify_installed_disk_boot_with(
             "(for n in $(seq 1 90); do "
             "pgrep -u mattos -x kwin_wayland >/dev/null && pgrep -u mattos -x plasmashell >/dev/null && "
             "systemctl --user is-active --quiet plasma-workspace.target && "
-            "test -S \"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/wayland-0\" && "
+            f"{installed_wayland_environment()} && "
             "busctl --user --no-pager list | grep -q '^org.kde.plasmashell[[:space:]]' && exit 0; "
             "sleep 1; done; "
             "echo 'Plasma compositor/session readiness timed out'; "
@@ -1604,6 +1644,9 @@ def _verify_installed_disk_boot_with(
             "printf '%s\\n' mattos | sudo -S journalctl -b --no-pager -n 200 -u plasmalogin.service; "
             "exit 1)",
         ),
+        ("global-shortcut-service", "p=$(busctl --user call org.freedesktop.DBus /org/freedesktop/DBus "
+         "org.freedesktop.DBus GetConnectionUnixProcessID s org.kde.kglobalaccel) && "
+         "test \"$(cat /proc/${p#u }/comm)\" = kwin_wayland"),
         ("hardware-audio", "python3 /usr/share/doc/pipewire/examples/audio-smoke.py"),
         *installed_upstream_probes(),
         *installed_plasma_applet_runtime_probes(),
@@ -1621,7 +1664,7 @@ def _verify_installed_disk_boot_with(
          "! grep -F 'Failed to load cursor theme' /tmp/mattos-kwin-cursor-check.log"),
         *installed_kde_application_probes(),
         ("desktop-defaults-packages", "dpkg-query -W plasma-integration kde-cli-tools bluedevil kf6-bluez-qt libpam-kwallet5 libsecret-1-0 xdg-utils fonts-noto-cjk fonts-noto-color-emoji"),
-        ("desktop-defaults-runtime", "systemd-run --user --wait --pipe --collect -E QT_QPA_PLATFORM=wayland -E WAYLAND_DISPLAY=wayland-0 python3 /usr/share/doc/mattos-plasma-theme/examples/smoke-test.py"),
+        ("desktop-defaults-runtime", f'{installed_wayland_environment()} && systemd-run --user --wait --pipe --collect -E QT_QPA_PLATFORM=wayland -E WAYLAND_DISPLAY="$WAYLAND_DISPLAY" python3 /usr/share/doc/mattos-plasma-theme/examples/smoke-test.py'),
         ("wallet-unlocked-by-login", installed_wallet_open_probe()),
         ("wallet-secret-service-roundtrip", "printf '%s' mattos-wallet-test-value | timeout 30 secret-tool store --label='MattOS disposable verification' mattos-test desktop && "
          "test \"$(timeout 30 secret-tool lookup mattos-test desktop)\" = mattos-wallet-test-value && secret-tool clear mattos-test desktop"),
@@ -1796,10 +1839,8 @@ def _verify_installed_disk_boot_with(
             stream(f"[installed-check] screenshot desktop={desktop_image} size={desktop_size}\n")
             height = desktop_size[1]
             popups = (
-                # The launcher sits at the panel's left edge.  Right-edge
-                # targets (the clock) are not clicked: with the secondary
-                # display head, absolute pointer coordinates span both heads,
-                # so they land on the show-desktop button instead.
+                # Exercise the launcher at the panel's left edge with QMP's
+                # normalized absolute coordinates and the captured dimensions.
                 ("launcher", 30, height - 22),
             )
             popup_images = []
@@ -1855,7 +1896,7 @@ def _verify_installed_disk_boot_with(
                 control_paths[1].resolve(),
                 "for n in $(seq 1 90); do pgrep -u mattos -x kwin_wayland >/dev/null && "
                 "pgrep -u mattos -x plasmashell >/dev/null && systemctl --user is-active --quiet plasma-workspace.target && "
-                "test -S /run/user/$(id -u)/wayland-0 && exit 0; sleep 1; done; exit 1",
+                f"{installed_wayland_environment()} && exit 0; sleep 1; done; exit 1",
                 INSTALL_BOOT_IDLE_SECONDS, on_output=stream,
             )
             stream("[installed-check] PASS second-graphical-login\n")

@@ -12,6 +12,7 @@
 #include <QObject>
 
 class SplashWindow;
+class QQmlEngine;
 
 class SplashApp : public QGuiApplication
 {
@@ -30,7 +31,6 @@ protected:
     void setStage(int stage);
 
 private:
-    void setupWaylandIntegration();
     int m_stage;
     QList<SplashWindow *> m_windows;
     bool m_testing;
@@ -38,6 +38,7 @@ private:
     QStringList m_stages;
     QBasicTimer m_timer;
     QString m_theme;
+    std::shared_ptr<QQmlEngine> m_engine;
 
 private Q_SLOTS:
     void adoptScreen(QScreen *);

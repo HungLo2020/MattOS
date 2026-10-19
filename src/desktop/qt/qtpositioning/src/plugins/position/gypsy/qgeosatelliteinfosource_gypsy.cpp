@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qgeosatelliteinfosource_gypsy_p.h"
 
@@ -142,6 +143,8 @@ static QGeoSatelliteInfo::SatelliteSystem idToSystem(int prn)
 {
     if (prn >= 1 && prn <= 32)
         return QGeoSatelliteInfo::GPS;
+    if (prn >= 33 && prn <= 64)
+        return QGeoSatelliteInfo::SBAS;
     else if (prn >= 65 && prn <= 96)
         return QGeoSatelliteInfo::GLONASS;
     else if (prn >= 193 && prn <= 200)

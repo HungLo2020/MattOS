@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fc57ad16a28d02dea100ceb1c60de14e\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
 "PO-Revision-Date: 2024-11-11 19:00\n"
 "Last-Translator: Zmicier <zmicerturok@gmail.com>\n"
 "Language-Team: Belarusian\n"
@@ -22,81 +22,84 @@ msgstr ""
 "kcmkwinscreenedges.po\n"
 "X-Crowdin-File-ID: 10436\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "Няма дзеяння"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "Аглядзець працоўны стол"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "Заблакаваць экран"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "Паказаць KRunner"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "Кіраўнік пакояў"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "Сродак запуску праграм"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "Бягучыя вокны"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 - усе працоўныя сталы"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 - бягучы працоўны стол"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 - бягучая праграма"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "Агляд"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "Сетка"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "Змена рэжыму пераключэння акон"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "Змена рэжыму альтэрнатыўнага пераключэння акон"
 
 #. i18n: ectx: property (text), widget (QLabel, infoLabel)
 #: main.ui:23
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "You can trigger an action by pushing the mouse cursor against the "
+#| "corresponding screen edge or corner."
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
 msgstr ""
 "Вы можаце запусціць дзеянне, калі наведзяце курсор мышы на адпаведны край "
@@ -164,9 +167,13 @@ msgstr "экрана"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, desktopSwitchLabel)
 #: main.ui:174
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Change desktop when the mouse cursor is pushed against the edge of the "
+#| "screen"
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
 msgstr "Змяняць працоўны стол пры падвядзенні курсора мышы да краю экрана"
 
 #. i18n: ectx: property (text), widget (QLabel, desktopSwitchLabel)
@@ -198,9 +205,12 @@ msgstr "Заўсёды ўключана"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, activationDelayLabel)
 #: main.ui:206
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Amount of time required for the mouse cursor to be pushed against the "
+#| "edge of the screen before the action is triggered"
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
 msgstr ""
 "Прамежак часу, неабходны для таго, каб курсор мышы быў падведзены да краю "
@@ -242,10 +252,16 @@ msgstr "&Бар'ер кута:"
 
 #. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:280
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Here you can enable or disable the virtual corner barrier between "
+#| "screens. The barrier prevents the cursor from moving to another screen "
+#| "when it is already touching a screen corner. This makes it easier to "
+#| "trigger user interface elements like maximized windows' close buttons "
+#| "when using multiple screens."
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
@@ -257,9 +273,11 @@ msgstr ""
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:283
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Prevents cursors from crossing at screen corners."
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
+msgid "Prevents the pointer from crossing at screen corners."
 msgstr "Прадухіляе перасячэнне курсорам кутоў экрана."
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
@@ -286,9 +304,11 @@ msgstr ""
 
 #. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:303
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Additional distance cursor needs to travel to cross screen edges."
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
+msgid "Additional distance the pointer needs to travel to cross screen edges."
 msgstr ""
 "Дадатковая адлегласць, якую курсор павінен прайсці, каб перасягнуць край "
 "экрана."

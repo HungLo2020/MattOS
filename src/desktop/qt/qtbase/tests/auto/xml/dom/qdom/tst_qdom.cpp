@@ -105,6 +105,8 @@ private slots:
     void germanUmlautToFile() const;
     void setInvalidDataPolicy() const;
     void crashInSetContent() const;
+    void invalidCharDataInSetContent() const;
+    void invalidCharDataInSetContent_data() const;
     void doubleNamespaceDeclarations() const;
     void setContentQXmlReaderOverload() const;
     void toStringWithoutNewlines() const;
@@ -129,6 +131,7 @@ private slots:
     void noCrashOnDeepNesting() const;
     void noCrashOnDeepNestingDtor() const { noCrashOnDeepNesting_impl(DeepNestingOp::Dtor); }
     void noCrashOnDeepNestingClear() const { noCrashOnDeepNesting_impl(DeepNestingOp::Clear); }
+    void noCrashOnDeepNestingElementText() const { noCrashOnDeepNesting_impl(DeepNestingOp::ElementText); }
 
     void cleanupTestCase() const;
 
@@ -144,6 +147,7 @@ private:
     enum class DeepNestingOp {
         Dtor,
         Clear,
+        ElementText,
     };
     static constexpr size_t DeepNestingDepth = 250'000;
     static void noCrashOnDeepNesting_impl(DeepNestingOp op);
@@ -2336,6 +2340,60 @@ void tst_QDom::crashInSetContent() const
     QVERIFY(docImport.setContent(QLatin1String("<?xml version=\"1.0\"?><e/>")));
 }
 
+void tst_QDom::invalidCharDataInSetContent_data() const
+{
+    QTest::addColumn<QByteArray>("input");
+    QTest::addColumn<bool>("parsed");
+    QTest::addColumn<QString>("document");
+
+    QTest::newRow("control")
+            << "<r><before/><a>TextNode</a><after/></r>"_ba << true
+            << u"<r><before/><a>TextNode</a><after/></r>"_s;
+    QTest::newRow("text-with-nul")
+            << "<r><before/><a>te\0xt</a><after/></r>"_ba << false
+            << u"<r><before/><a>te</a></r>"_s;
+    QTest::newRow("cdata")
+            << "<r><before/><![CDATA[da\0ta]]><after/></r>"_ba << false
+            << u"<r><before/></r>"_s;
+    QTest::newRow("comment")
+            << "<r><before/><!-- co\0m --><after/></r>"_ba << false
+            << u"<r><before/></r>"_s;
+    QTest::newRow("pi-data")
+            << "<r><before/><?pi da\0ta?><after/></r>"_ba << false
+            << u"<r><before/></r>"_s;
+    QTest::newRow("start-element")
+            << "<r><before/><a\0b/><after/></r>"_ba << false
+            << u"<r><before/></r>"_s;
+    QTest::newRow("nul-at-end")
+            << "<r><before/><before2/></r>\0"_ba << false
+            << u"<r><before/><before2/></r>"_s;
+}
+
+void tst_QDom::invalidCharDataInSetContent() const
+{
+    QFETCH(const QByteArray, input);
+    QFETCH(const bool, parsed);
+    QFETCH(const QString, document);
+
+    const auto policy = QDomImplementation::invalidDataPolicy();
+    const auto restoreInvalidDataPolicy = qScopeGuard([policy] {
+        QDomImplementation::setInvalidDataPolicy(policy);
+    });
+    QDomImplementation::setInvalidDataPolicy(QDomImplementation::ReturnNullNode);
+
+    QDomDocument doc;
+    const QDomDocument::ParseResult result =
+            doc.setContent(input, QDomDocument::ParseOption::UseNamespaceProcessing);
+
+    QCOMPARE(bool(result), parsed);
+    if (!parsed) {
+        QVERIFY(!result.errorMessage.isEmpty());
+        QCOMPARE(result.errorLine, qsizetype(1));
+        QVERIFY(result.errorColumn > 0);
+    }
+    QCOMPARE(doc.toString(-1), document);
+}
+
 void tst_QDom::doubleNamespaceDeclarations() const
 {
     QDomDocument doc;
@@ -2733,11 +2791,18 @@ static QDomDocument makeNested(size_t depth)
 
     // Need to build it bottom-up (QTBUG-147190)...
 
-    QDomElement a = doc.createElement("a");
-    for (size_t i = 1; i < depth; ++i) {
-        QDomElement parent = doc.createElement("a");
+    const QDomElement proto = [&] {
+        QDomElement e = doc.createElement(u"a"_s);
+        e.appendChild(doc.createTextNode(u"0123456789"_s));
+        return e;
+    }();
+
+    QDomElement a;
+    size_t i = 0;
+    do {
+        QDomElement parent = proto.cloneNode().toElement();
         parent.appendChild(std::exchange(a, parent));
-    }
+    } while (++i < depth);
 
     doc.appendChild(a); // only now associate it with the doc (QTBUG-147190)
 
@@ -2785,6 +2850,10 @@ void tst_QDom::noCrashOnDeepNesting_impl(DeepNestingOp op)
     case DeepNestingOp::Clear:
         operation = "cleared";
         doc->clear();
+        break;
+    case DeepNestingOp::ElementText:
+        operation = "text()";
+        (void)doc->firstChildElement().text();
         break;
     }
     print(timer, operation);

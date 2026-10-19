@@ -3,11 +3,11 @@
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# Yuri Chornoivan <yurchor@ukr.net>, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026.
+# SPDX-FileCopyrightText: 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Yuri Chornoivan <yurchor@ukr.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: libkirigami2plugin_qt\n"
-"PO-Revision-Date: 2026-02-16 08:26+0200\n"
+"PO-Revision-Date: 2026-08-06 08:35+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -18,77 +18,76 @@ msgstr ""
 "X-Qt-Contexts: true\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Lokalize 23.04.3\n"
+"X-Generator: Lokalize 25.12.1\n"
 
-#: controls/AboutItem.qml:166
+#: controls/AboutItem.qml:180
 #, qt-format
 msgctxt "AboutItem|"
-msgid "%1 (%2)"
-msgstr "%1 (%2)"
+msgid "Visit %1's KDE Store page"
+msgstr "Відвідайте сторінку %1 у KDE Store"
 
-#: controls/AboutItem.qml:186
+#: controls/AboutItem.qml:196
 #, qt-format
 msgctxt "AboutItem|"
 msgid "Send an email to %1"
 msgstr "Надіслати повідомлення ел. пошти до %1"
 
-#: controls/AboutItem.qml:228
-msgctxt "AboutItem|"
-msgid "Get Involved"
-msgstr "Участь у команді"
-
 #: controls/AboutItem.qml:234
-msgctxt "AboutItem|"
-msgid "Donate"
-msgstr "Підтримати фінансово"
-
-#: controls/AboutItem.qml:251
-msgctxt "AboutItem|"
-msgid "Report a Bug"
-msgstr "Повідомити про ваду"
-
-#: controls/AboutItem.qml:264
 msgctxt "AboutItem|"
 msgid "Copyright"
 msgstr "Авторські права"
 
-#: controls/AboutItem.qml:313
+#: controls/AboutItem.qml:243
 msgctxt "AboutItem|"
-msgid "License:"
-msgstr "Ліцензування:"
+msgid "License"
+msgstr "Ліцензування"
 
-#: controls/AboutItem.qml:336
-#, qt-format
+#: controls/AboutItem.qml:265
 msgctxt "AboutItem|"
-msgid "License: %1"
-msgstr "Ліцензування: %1"
+msgid "Homepage"
+msgstr "Домашня сторінка"
 
-#: controls/AboutItem.qml:347
+#: controls/AboutItem.qml:279
+msgctxt "AboutItem|"
+msgid "Donate"
+msgstr "Підтримати фінансово"
+
+#: controls/AboutItem.qml:293
+msgctxt "AboutItem|"
+msgid "Get Involved"
+msgstr "Участь у команді"
+
+#: controls/AboutItem.qml:307
+msgctxt "AboutItem|"
+msgid "Report a bug"
+msgstr "Повідомити про ваду"
+
+#: controls/AboutItem.qml:325
 msgctxt "AboutItem|"
 msgid "Libraries in use"
 msgstr "Використані бібліотеки"
 
-#: controls/AboutItem.qml:379
-msgctxt "AboutItem|"
-msgid "Authors"
-msgstr "Автори"
-
-#: controls/AboutItem.qml:389
+#: controls/AboutItem.qml:345
 msgctxt "AboutItem|"
 msgid "Show author photos"
 msgstr "Показати фотографії авторів"
 
-#: controls/AboutItem.qml:400
+#: controls/AboutItem.qml:348
+msgctxt "AboutItem|"
+msgid "Authors"
+msgstr "Автори"
+
+#: controls/AboutItem.qml:358
 msgctxt "AboutItem|"
 msgid "Credits"
 msgstr "Подяки"
 
-#: controls/AboutItem.qml:412
+#: controls/AboutItem.qml:368
 msgctxt "AboutItem|"
 msgid "Translators"
 msgstr "Перекладачі"
 
-#: controls/AboutPage.qml:103
+#: controls/AboutPage.qml:102
 #, qt-format
 msgctxt "AboutPage|"
 msgid "About %1"
@@ -119,37 +118,37 @@ msgctxt "ContextualHelpButton|"
 msgid "Show Contextual Help"
 msgstr "Показати контекстну довідку"
 
-#: controls/GlobalDrawer.qml:366
+#: controls/GlobalDrawer.qml:372
 msgctxt "GlobalDrawer|"
 msgid "Back"
 msgstr "Назад"
 
-#: controls/GlobalDrawer.qml:719
+#: controls/GlobalDrawer.qml:769
 msgctxt "GlobalDrawer|"
 msgid "Close Sidebar"
 msgstr "Закрити бічну панель"
 
-#: controls/GlobalDrawer.qml:724
+#: controls/GlobalDrawer.qml:774
 msgctxt "GlobalDrawer|"
 msgid "Open Sidebar"
 msgstr "Відкрити бічну панель"
 
-#: controls/LoadingPlaceholder.qml:58
+#: controls/LoadingPlaceholder.qml:59
 msgctxt "LoadingPlaceholder|"
 msgid "Loading…"
 msgstr "Завантаження…"
 
-#: controls/PasswordField.qml:43
+#: controls/PasswordField.qml:44
 msgctxt "PasswordField|"
 msgid "Password"
 msgstr "Пароль"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Hide Password"
 msgstr "Приховати пароль"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Show Password"
 msgstr "Показати пароль"
@@ -174,30 +173,30 @@ msgctxt "NavigationButtons|"
 msgid "Navigate Forward"
 msgstr "Перейти далі"
 
-#: controls/private/PrivateActionToolButton.qml:118
+#: controls/private/PrivateActionToolButton.qml:119
 #, qt-format
 msgctxt "@info:tooltip %1 is a keyboard shorcut|"
 msgid "Trigger this action with %1"
 msgstr "Виконати цю дію у відповідь на %1"
 
-#: controls/private/PrivateActionToolButton.qml:125
+#: controls/private/PrivateActionToolButton.qml:126
 #, qt-format
 msgctxt ""
 "@info:tooltip %1 is the tooltip of an action, %2 is its keyboard shorcut|"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: controls/SearchField.qml:88
+#: controls/SearchField.qml:89
 msgctxt "SearchField|"
 msgid "Search…"
 msgstr "Шукати…"
 
-#: controls/SearchField.qml:90
+#: controls/SearchField.qml:91
 msgctxt "SearchField|"
 msgid "Search"
 msgstr "Пошук"
 
-#: controls/SearchField.qml:100
+#: controls/SearchField.qml:101
 msgctxt "SearchField|"
 msgid "Clear search"
 msgstr "Спорожнити поле пошуку"
@@ -212,23 +211,23 @@ msgctxt "SelectableLabel|"
 msgid "Select All"
 msgstr "Вибрати все"
 
-#: controls/UrlButton.qml:52
+#: controls/UrlButton.qml:53
 #, qt-format
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link %1"
 msgstr "Відкрити посилання %1"
 
-#: controls/UrlButton.qml:53
+#: controls/UrlButton.qml:54
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link"
 msgstr "Відкрити посилання"
 
-#: controls/UrlButton.qml:101
+#: controls/UrlButton.qml:102
 msgctxt "UrlButton|"
 msgid "Copy Link to Clipboard"
 msgstr "Копіювати посилання до буфера"
 
-#: dialogs/DialogHeaderTopContent.qml:103
+#: dialogs/DialogHeaderTopContent.qml:104
 msgctxt "DialogHeaderTopContent|@action:button close dialog"
 msgid "Close"
 msgstr "Закрити"
@@ -251,45 +250,53 @@ msgctxt "Kirigami::Platform::Settings|"
 msgid "Qt %2 (built against %3)"
 msgstr "Qt %2 (зібрано з використанням %3)"
 
-#: templates/InlineMessage.qml:350
+#: templates/InlineMessage.qml:352
 msgctxt "InlineMessage|"
 msgid "Success"
 msgstr "Успіх"
 
-#: templates/InlineMessage.qml:352
+#: templates/InlineMessage.qml:354
 msgctxt "InlineMessage|"
 msgid "Warning"
 msgstr "Попередження"
 
-#: templates/InlineMessage.qml:354
+#: templates/InlineMessage.qml:356
 msgctxt "InlineMessage|"
 msgid "Error"
 msgstr "Помилка"
 
-#: templates/InlineMessage.qml:356
+#: templates/InlineMessage.qml:358
 msgctxt "InlineMessage|"
 msgid "Note"
 msgstr "Нотатка"
 
-#: templates/InlineMessage.qml:443
+#: templates/InlineMessage.qml:445
 msgctxt "InlineMessage|"
 msgid "Close"
 msgstr "Закрити"
 
-#: templates/OverlayDrawer.qml:147
+#: templates/OverlayDrawer.qml:149
 msgctxt "OverlayDrawer|"
 msgid "Close drawer"
 msgstr "Закрити висувну панель"
 
-#: templates/OverlayDrawer.qml:153
+#: templates/OverlayDrawer.qml:155
 msgctxt "OverlayDrawer|"
 msgid "Open drawer"
 msgstr "Відкрити висувну панель"
 
-#: templates/OverlaySheet.qml:294
+#: templates/OverlaySheet.qml:309
 msgctxt "OverlaySheet|@action:button close dialog"
 msgid "Close"
 msgstr "Закрити"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "License: %1"
+#~ msgstr "Ліцензування: %1"
 
 #~ msgctxt "Dialog|@action:button close dialog"
 #~ msgid "Close"
@@ -330,10 +337,6 @@ msgstr "Закрити"
 #~ msgctxt "ToolBarApplicationHeader|"
 #~ msgid "More Actions"
 #~ msgstr "Інші дії"
-
-#~ msgctxt "AboutItem|"
-#~ msgid "Visit %1's KDE Store page"
-#~ msgstr "Відвідайте сторінку %1 у KDE Store"
 
 #~ msgctxt "UrlButton|"
 #~ msgid "Copy link address"

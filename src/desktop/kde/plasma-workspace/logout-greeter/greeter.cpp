@@ -9,16 +9,17 @@
 
 #include "greeter.h"
 
+#include <PlasmaQuick/PlasmaQuick>
 #include <QApplication>
 #include <QDebug>
 #include <QScreen>
+
+#include <KLocalizedQmlContext>
 
 #include "debug.h"
 #include "logoutpromptadaptor.h"
 #include "shutdowndlg.h"
 
-#include <KWindowSystem>
-#include <LayerShellQt/Shell>
 #include <algorithm>
 
 using namespace std::chrono_literals;
@@ -27,23 +28,18 @@ using namespace Qt::StringLiterals;
 Greeter::Greeter(const KPackage::Package &package)
     : QObject()
     , m_package(package)
+    , m_engine(PlasmaQuick::globalEngine())
 {
     new LogoutPromptAdaptor(this);
     QDBusConnection::sessionBus().registerObject(QStringLiteral("/LogoutPrompt"), this);
     QDBusConnection::sessionBus().registerService(QStringLiteral("org.kde.LogoutPrompt"));
+
+    KLocalization::setupLocalizedContext(m_engine.get());
 }
 
 Greeter::~Greeter()
 {
     qDeleteAll(m_dialogs);
-}
-
-void Greeter::setupWaylandIntegration()
-{
-    if (!KWindowSystem::isPlatformWayland() || m_windowed) {
-        return;
-    }
-    LayerShellQt::Shell::useLayerShell();
 }
 
 void Greeter::init()
@@ -55,8 +51,6 @@ void Greeter::init()
         QApplication::quit();
         return;
     }
-
-    setupWaylandIntegration();
 
     if (!m_windowed) {
         // Quit if we lost focus or failed to gain it after 3 seconds
@@ -106,8 +100,7 @@ void Greeter::adoptScreen(QScreen *screen)
         return;
     }
     // TODO: last argument is the theme, maybe add command line option for it?
-    auto *w = new KSMShutdownDlg(nullptr, m_shutdownType, screen);
-    w->setWindowed(m_windowed);
+    auto *w = new KSMShutdownDlg(m_engine.get(), m_shutdownType, m_windowed, screen);
     w->installEventFilter(this);
     m_dialogs << w;
 

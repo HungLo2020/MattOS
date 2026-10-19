@@ -1,11 +1,13 @@
 [Desktop Entry]
 Type=Service
 Name=npm
+Name[am]=npm
 Name[ar]=npm
 Name[az]=npm
 Name[bg]=npm
 Name[ca]=npm
 Name[ca@valencia]=npm
+Name[cs]=npm
 Name[de]=npm
 Name[eo]=npm
 Name[es]=npm
@@ -28,8 +30,11 @@ Name[lg]=npm
 Name[lt]=npm
 Name[lv]=npm
 Name[my]=npm
+Name[nan_TW]=npm
+Name[nan_TW@latin]=npm
 Name[nb]=npm
 Name[nl]=npm
+Name[nn]=npm
 Name[pl]=npm
 Name[pt]=npm
 Name[pt_BR]=npm
@@ -40,17 +45,18 @@ Name[sl]=npm
 Name[sv]=npm
 Name[th]=npm
 Name[tr]=npm
-Name[ug]=npm
 Name[uk]=npm
 Name[zh_CN]=npm
 Name[zh_TW]=npm
 Keys=npm,npmjs
 Query=https://www.npmjs.com/search?q=\\{@}
+Query[am]=https://www.npmjs.com/search?q=\\{@}
 Query[ar]=https://www.npmjs.com/search?q=\\{@}
 Query[az]=https://www.npmjs.com/search?q=\\{@}
 Query[bg]=https://www.npmjs.com/search?q=\\{@}
 Query[ca]=https://www.npmjs.com/search?q=\\{@}
 Query[ca@valencia]=https://www.npmjs.com/search?q=\\{@}
+Query[cs]=https://www.npmjs.com/search?q=\\{@}
 Query[de]=https://www.npmjs.com/search?q=\\{@}
 Query[eo]=https://www.npmjs.com/search?q=\\{@}
 Query[es]=https://www.npmjs.com/search?q=\\{@}
@@ -73,8 +79,11 @@ Query[lg]=https://www.npmjs.com/search?q=\\{@}
 Query[lt]=https://www.npmjs.com/search?q=\\{@}
 Query[lv]=https://www.npmjs.com/search?q=\\{@}
 Query[my]=https://www.npmjs.com/search?q=\\{@}
+Query[nan_TW]=https://www.npmjs.com/search?q=\\{@}
+Query[nan_TW@latin]=https://www.npmjs.com/search?q=\\{@}
 Query[nb]=https://www.npmjs.com/search?q=\\{@}
 Query[nl]=https://www.npmjs.com/search?q=\\{@}
+Query[nn]=https://www.npmjs.com/search?q=\\{@}
 Query[pl]=https://www.npmjs.com/search?q=\\{@}
 Query[pt]=https://www.npmjs.com/search?q=\\{@}
 Query[pt_BR]=https://www.npmjs.com/search?q=\\{@}
@@ -85,7 +94,6 @@ Query[sl]=https://www.npmjs.com/search?q=\\{@}
 Query[sv]=https://www.npmjs.com/search?q=\\{@}
 Query[th]=https://www.npmjs.com/search?q=\\{@}
 Query[tr]=https://www.npmjs.com/search?q=\\{@}
-Query[ug]=https://www.npmjs.com/search?q=\\{@}
 Query[uk]=https://www.npmjs.com/search?q=\\{@}
 Query[zh_CN]=https://www.npmjs.com/search?q=\\{@}
 Query[zh_TW]=https://www.npmjs.com/search?q=\\{@}

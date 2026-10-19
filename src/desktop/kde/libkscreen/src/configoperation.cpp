@@ -13,6 +13,8 @@
 
 #include "kscreen_debug.h"
 
+#include <QEventLoop>
+
 using namespace KScreen;
 
 ConfigOperationPrivate::ConfigOperationPrivate(ConfigOperation *qq)
@@ -24,21 +26,6 @@ ConfigOperationPrivate::ConfigOperationPrivate(ConfigOperation *qq)
 
 ConfigOperationPrivate::~ConfigOperationPrivate()
 {
-}
-
-void ConfigOperationPrivate::requestBackend()
-{
-    Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
-    connect(BackendManager::instance(), &BackendManager::backendReady, this, &ConfigOperationPrivate::backendReady);
-    BackendManager::instance()->requestBackend();
-}
-
-void ConfigOperationPrivate::backendReady(org::kde::kscreen::Backend *backend)
-{
-    Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
-    Q_UNUSED(backend);
-
-    disconnect(BackendManager::instance(), &BackendManager::backendReady, this, &ConfigOperationPrivate::backendReady);
 }
 
 void ConfigOperationPrivate::doEmitResult()
@@ -118,10 +105,8 @@ bool ConfigOperation::exec()
 
 KScreen::AbstractBackend *ConfigOperationPrivate::loadBackend()
 {
-    Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
     Q_Q(ConfigOperation);
-    const QString &name = QString::fromUtf8(qgetenv("KSCREEN_BACKEND"));
-    auto backend = KScreen::BackendManager::instance()->loadBackendInProcess(name);
+    auto backend = KScreen::BackendManager::instance()->loadBackendInProcess();
     if (backend == nullptr) {
         const QString &e = QStringLiteral("Plugin does not provide valid KScreen backend");
         qCDebug(KSCREEN) << e;

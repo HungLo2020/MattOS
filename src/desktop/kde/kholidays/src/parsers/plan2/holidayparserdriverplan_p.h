@@ -149,6 +149,7 @@ private:
 
     bool m_parseMetadataOnly; // Only parse file for metadata
     QDate m_parseYearStart; // First day of year being parsed
+    QDate m_parseYearEnd; // End day of year being parsed
     QDate m_parseYearEaster; // Easter in the parse year, Gregorian only
     QDate m_parseYearPascha; // Orthodox Easter in the parse year, Gregorian only
 
@@ -160,6 +161,9 @@ private:
     int m_eventDay; // Event date fields
 
     std::string *m_fileToParse = nullptr;
+
+private:
+    Q_DISABLE_COPY_MOVE(HolidayParserDriverPlan);
 };
 
 }

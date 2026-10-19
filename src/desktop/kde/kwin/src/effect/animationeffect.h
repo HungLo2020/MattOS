@@ -202,7 +202,8 @@ public:
                   Bottom = 1 << 3,
                   Horizontal = Left | Right,
                   Vertical = Top | Bottom,
-                  Mouse = 1 << 4 };
+                  Mouse = 1 << 4,
+    };
     Q_ENUM(Anchor)
 
     enum Attribute {
@@ -227,7 +228,7 @@ public:
          * The uniform location must be provided as metadata.
          **/
         ShaderUniform,
-        NonFloatBase = Position
+        NonFloatBase = Position,
     };
     Q_ENUM(Attribute)
 
@@ -237,7 +238,8 @@ public:
                     RelativeSourceY,
                     RelativeTargetX,
                     RelativeTargetY,
-                    Axis };
+                    Axis,
+    };
     Q_ENUM(MetaType)
 
     /**
@@ -247,7 +249,7 @@ public:
      */
     enum Direction {
         Forward, ///< The animation goes from source to target.
-        Backward ///< The animation goes from target to source.
+        Backward, ///< The animation goes from target to source.
     };
     Q_ENUM(Direction)
 
@@ -271,7 +273,7 @@ public:
          * Terminate the animation when it reaches the target position. If this flag
          * is not set, then the animation will be persistent.
          */
-        TerminateAtTarget = 0x02
+        TerminateAtTarget = 0x02,
     };
     Q_DECLARE_FLAGS(TerminationFlags, TerminationFlag)
     Q_FLAG(TerminationFlags)
@@ -323,8 +325,8 @@ public:
 
     // Reimplemented from KWin::Effect.
     QString debug(const QString &parameter) const override;
-    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data) override;
+    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data) override;
+    bool paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data) override;
     void postPaintScreen() override;
 
     /**
@@ -356,7 +358,7 @@ protected:
      * @param meta Basically a wildcard to carry various extra information, e.g.
      *   the anchor, relativity or rotation axis. You will probably use it when
      *   performing Generic animations.
-     * @param ms How long the transition will last.
+     * @param duration How long the transition will last.
      * @param to The target value. FPx2 is an agnostic two component float type
      *   (like QPointF or QSizeF, but without requiring to be either and supporting
      *   an invalid state).
@@ -373,9 +375,9 @@ protected:
      * @returns An ID that you can use to cancel a running animation.
      * @since 4.8
      */
-    quint64 animate(EffectWindow *w, Attribute a, uint meta, int ms, const FPx2 &to, const QEasingCurve &curve = QEasingCurve(), int delay = 0, const FPx2 &from = FPx2(), bool fullScreen = false, bool keepAlive = true, GLShader *shader = nullptr)
+    quint64 animate(EffectWindow *w, Attribute a, uint meta, std::chrono::milliseconds duration, const FPx2 &to, const QEasingCurve &curve = QEasingCurve(), int delay = 0, const FPx2 &from = FPx2(), bool fullScreen = false, bool keepAlive = true, GLShader *shader = nullptr)
     {
-        return p_animate(w, a, meta, ms, to, curve, delay, from, false, fullScreen, keepAlive, shader);
+        return p_animate(w, a, meta, duration, to, curve, delay, from, false, fullScreen, keepAlive, shader);
     }
 
     /**
@@ -406,9 +408,9 @@ protected:
      * @returns An ID that you need to use to cancel this manipulation.
      * @since 4.11
      */
-    quint64 set(EffectWindow *w, Attribute a, uint meta, int ms, const FPx2 &to, const QEasingCurve &curve = QEasingCurve(), int delay = 0, const FPx2 &from = FPx2(), bool fullScreen = false, bool keepAlive = true, GLShader *shader = nullptr)
+    quint64 set(EffectWindow *w, Attribute a, uint meta, std::chrono::milliseconds duration, const FPx2 &to, const QEasingCurve &curve = QEasingCurve(), int delay = 0, const FPx2 &from = FPx2(), bool fullScreen = false, bool keepAlive = true, GLShader *shader = nullptr)
     {
-        return p_animate(w, a, meta, ms, to, curve, delay, from, true, fullScreen, keepAlive, shader);
+        return p_animate(w, a, meta, duration, to, curve, delay, from, true, fullScreen, keepAlive, shader);
     }
 
     /**
@@ -418,13 +420,13 @@ protected:
      *
      * @param animationId The id of the animation to be retargetted.
      * @param newTarget The new target.
-     * @param newRemainingTime The new duration of the transition. By default (-1),
+     * @param newRemainingTime The new duration of the transition. If not specified,
      *   the remaining time remains unchanged.
      * @returns @c true if the animation was retargetted successfully, @c false otherwise.
      * @note You can NOT retarget an animation that just has just ended!
      * @since 5.6
      */
-    bool retarget(quint64 animationId, FPx2 newTarget, int newRemainingTime = -1);
+    bool retarget(quint64 animationId, FPx2 newTarget, std::optional<std::chrono::milliseconds> newRemainingTime = std::nullopt);
 
     bool freezeInTime(quint64 animationId, qint64 frozenTime);
 
@@ -498,7 +500,7 @@ protected:
     /**
      * @internal
      */
-    typedef std::unordered_map<EffectWindow *, std::pair<std::vector<AniData>, QRect>> AniMap;
+    typedef std::unordered_map<EffectWindow *, std::pair<std::vector<AniData>, RectF>> AniMap;
 
     /**
      * @internal
@@ -506,7 +508,7 @@ protected:
     const AniMap &state() const;
 
 private:
-    quint64 p_animate(EffectWindow *w, Attribute a, uint meta, int ms, FPx2 to, const QEasingCurve &curve, int delay, FPx2 from, bool keepAtTarget, bool fullScreenEffect, bool keepAlive, GLShader *shader);
+    quint64 p_animate(EffectWindow *w, Attribute a, uint meta, std::chrono::milliseconds duration, FPx2 to, const QEasingCurve &curve, int delay, FPx2 from, bool keepAtTarget, bool fullScreenEffect, bool keepAlive, GLShader *shader);
     Rect clipRect(const Rect &windowRect, const AniData &) const;
     float interpolated(const AniData &, int i = 0) const;
     float progress(const AniData &) const;

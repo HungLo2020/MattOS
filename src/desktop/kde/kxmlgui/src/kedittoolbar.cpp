@@ -18,6 +18,8 @@
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QDomDocument>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
 #include <QFile>
 #include <QGridLayout>
 #include <QLabel>
@@ -326,6 +328,25 @@ ToolBarItem *ToolBarListWidget::currentItem() const
     return static_cast<ToolBarItem *>(QListWidget::currentItem());
 }
 
+void ToolBarListWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+    // no internal drag in inactive list
+    if (!m_activeList && (event->source() == this)) {
+        event->ignore();
+        return;
+    }
+    QListWidget::dragEnterEvent(event);
+}
+void ToolBarListWidget::dragMoveEvent(QDragMoveEvent *event)
+{
+    // no internal drag in inactive list
+    if (!m_activeList && (event->source() == this)) {
+        event->ignore();
+        return;
+    }
+    QListWidget::dragMoveEvent(event);
+}
+
 IconTextEditDialog::IconTextEditDialog(QWidget *parent)
     : QDialog(parent)
 {
@@ -398,8 +419,8 @@ public:
      * but it probably isn't used.
      */
     KEditToolBarWidgetPrivate(KEditToolBarWidget *widget, const QString &cName, KActionCollection *collection)
-        : m_collection(collection)
-        , m_widget(widget)
+        : m_widget(widget)
+        , m_collection(collection)
         , m_factory(nullptr)
         , m_componentName(cName)
         , m_helpArea(nullptr)
@@ -494,6 +515,9 @@ public:
     }
 #endif
 
+public:
+    KEditToolBarWidget *const m_widget;
+
     QComboBox *m_toolbarCombo;
 
     QToolButton *m_upAction;
@@ -503,7 +527,6 @@ public:
 
     // QValueList<QAction*> m_actionList;
     KActionCollection *m_collection;
-    KEditToolBarWidget *const m_widget;
     KXMLGUIFactory *m_factory;
     QString m_componentName;
 
@@ -553,7 +576,9 @@ public:
     void applyClicked();
     void defaultClicked();
 
+public:
     KEditToolBar *const q;
+
     bool m_accept = false;
     // Save parameters for recreating widget after resetting toolbar
     bool m_global = false;
@@ -899,15 +924,17 @@ void KEditToolBarWidget::save()
             continue;
         }
 
-        // Add noMerge="1" to all the menus since we are saving the merged data
-        QDomNodeList menuNodes = xmlFile.domDocument().elementsByTagName(QStringLiteral("Menu"));
-        for (int i = 0; i < menuNodes.length(); ++i) {
-            QDomNode menuNode = menuNodes.item(i);
-            QDomElement menuElement = menuNode.toElement();
-            if (menuElement.isNull()) {
-                continue;
+        if (xmlFile.type() == XmlData::Local) {
+            // Add noMerge="1" to all the menus since we are saving the merged data
+            QDomNodeList menuNodes = xmlFile.domDocument().elementsByTagName(QStringLiteral("Menu"));
+            for (int i = 0; i < menuNodes.length(); ++i) {
+                QDomNode menuNode = menuNodes.item(i);
+                QDomElement menuElement = menuNode.toElement();
+                if (menuElement.isNull()) {
+                    continue;
+                }
+                menuElement.setAttribute(QStringLiteral("noMerge"), QStringLiteral("1"));
             }
-            menuElement.setAttribute(QStringLiteral("noMerge"), QStringLiteral("1"));
         }
 
         // qCDebug(DEBUG_KXMLGUI) << (*it).domDocument().toString();

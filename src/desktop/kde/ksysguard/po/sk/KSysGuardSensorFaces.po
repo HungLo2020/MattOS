@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KSysGuardSensorFaces\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-22 02:43+0000\n"
+"POT-Creation-Date: 2026-04-22 00:47+0000\n"
 "PO-Revision-Date: 2023-06-09 16:50+0200\n"
 "Last-Translator: Ferdinand Galko <galko.ferdinand@gmail.com>\n"
 "Language-Team: Slovak <opensuse-translation@opensuse.org>\n"
@@ -118,7 +118,7 @@ msgstr "Všeobecné:"
 #, kde-format
 msgctxt "@option:check"
 msgid "Show legend"
-msgstr "Zobraziť legendu senzorov"
+msgstr "Ukázať legendu"
 
 #: facepackages/barchart/contents/ui/Config.qml:41
 #, kde-format
@@ -130,19 +130,19 @@ msgstr "Zaplnené stlpce"
 #, kde-format
 msgctxt "@label for radiobutton group, Orientation of bar chart"
 msgid "Bar orientation:"
-msgstr "Orientácia stĺpcov:"
+msgstr "Orientácia stĺpca:"
 
 #: facepackages/barchart/contents/ui/Config.qml:51
 #, kde-format
 msgctxt "@option:radio Vertical option for the bar chart"
 msgid "Vertical"
-msgstr "Zvisle"
+msgstr "Vertikálne"
 
 #: facepackages/barchart/contents/ui/Config.qml:56
 #, kde-format
 msgctxt "@option:radio Horizontal option for the bar chart"
 msgid "Horizontal"
-msgstr "Vodorovne"
+msgstr "Horizontálne"
 
 #: facepackages/barchart/contents/ui/Config.qml:67
 #, kde-format
@@ -212,7 +212,7 @@ msgstr "Automatické"
 #, kde-format
 msgctxt "@label:listbox items are sensor face names"
 msgid "Display style:"
-msgstr "Stýl zobrazenia:"
+msgstr "Štýl zobrazenia:"
 
 #: facepackages/linechart/contents/ui/Config.qml:42
 #, kde-format
@@ -266,16 +266,16 @@ msgstr "Do (Y):"
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "History to show:"
-msgstr "Zobrazená história:"
+msgstr "History to show:"
 
 #: facepackages/linechart/contents/ui/Config.qml:98
 #, kde-format
 msgctxt "@item:valuesuffix %1 is seconds of history"
 msgid "second"
 msgid_plural "seconds"
-msgstr[0] "1 sekunda"
-msgstr[1] "1 sekunda"
-msgstr[2] "1 sekunda"
+msgstr[0] "second"
+msgstr[1] "seconds"
+msgstr[2] "seconds"
 
 #: facepackages/piechart/contents/ui/Config.qml:38
 #, kde-format
@@ -306,7 +306,7 @@ msgstr "Zaoblené čiary"
 #, kde-format
 msgctxt "@option:check"
 msgid "Group sensors based on the value of the total sensors."
-msgstr "Zoskupiť senzory na základe hodnoty celkových senzorov."
+msgstr "Zoskupiť senzory podľa hodnoty celkových senzorov."
 
 #: import/Choices.qml:53
 #, kde-format

@@ -4,6 +4,7 @@ Hidden=false
 Keys=en2de
 Name=dict.cc Translation: English to German
 Name[af]=dict.cc Vertaling: Engels na Duits
+Name[am]=dict.cc ትርጉም፡ እንግሊዝኛ ወደ ጀርመንኛ
 Name[ar]=ترجمة dict.cc: من الانجليزية إلى الألمانية
 Name[as]=dict.cc Translation: English to German
 Name[az]=dict.cc  tərcümə: İngiliscədən Almancaya
@@ -60,6 +61,8 @@ Name[mk]=dict.cc превод: од англиски на германски
 Name[ml]=dict.cc പരിഭാഷ: ഇംഗ്ലീഷില്‍ നിന്നും ജര്‍മനിലേയ്ക്കു്
 Name[mr]=dict.cc अनुवादः अंग्रेजी ते जर्मन
 Name[my]=ဒစ် ဒေါ့ စီစီ ဘာသာပြန်မှု - အင်္ဂလိပ်မှ ဂျာမန်သို့
+Name[nan_TW]=dict.cc 翻譯：英語 kàu 德語
+Name[nan_TW@latin]=dict.cc Huan-i̍k: Ing-gí kàu Tik-gí
 Name[nb]=dict.cc Oversettelse: engelsk til tysk
 Name[nds]=dict.cc Översetten: Engelsch na Hoochdüütsch
 Name[ne]=dict.cc अनुवाद: अङ्ग्रेजीलाई जर्मनीमा
@@ -97,6 +100,7 @@ Name[wa]=Ratournaedje dict.cc: di l' inglès viè l' almand
 Name[zh_CN]=dict.cc 翻译：英语译德语
 Name[zh_TW]=dict.cc 翻譯: 英文至德文
 Query=https://www.dict.cc/?s=\\{@}
+Query[am]=https://www.dict.cc/?s=\\{@}
 Query[ar]=https://www.dict.cc/?s=\\{@}
 Query[ast]=https://www.dict.cc/?s=\\{@}
 Query[az]=https://www.dict.cc/?s=\\{@}
@@ -137,6 +141,8 @@ Query[lg]=https://www.dict.cc/?s=\\{@}
 Query[lt]=https://www.dict.cc/?s=\\{@}
 Query[lv]=https://www.dict.cc/?s=\\{@}
 Query[my]=https://www.dict.cc/?s=\\{@}
+Query[nan_TW]=https://www.dict.cc/?s=\\{@}
+Query[nan_TW@latin]=https://www.dict.cc/?s=\\{@}
 Query[nb]=https://www.dict.cc/?s=\\{@}
 Query[nl]=https://www.dict.cc/?s=\\{@}
 Query[nn]=https://www.dict.cc/?s=\\{@}
@@ -155,7 +161,6 @@ Query[tg]=https://www.dict.cc/?s=\\{@}
 Query[th]=https://www.dict.cc/?s=\\{@}
 Query[tok]=https://www.dict.cc/?s=\\{@}
 Query[tr]=https://www.dict.cc/?s=\\{@}
-Query[ug]=https://www.dict.cc/?s=\\{@}
 Query[uk]=https://www.dict.cc/?s=\\{@}
 Query[vi]=https://www.dict.cc/?s=\\{@}
 Query[zh_CN]=https://www.dict.cc/?s=\\{@}

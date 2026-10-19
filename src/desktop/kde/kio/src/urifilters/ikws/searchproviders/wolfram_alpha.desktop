@@ -1,6 +1,7 @@
 [Desktop Entry]
 Keys=wa,wolfram
 Name=Wolfram Alpha
+Name[am]=Wolfram Alpha
 Name[ar]=Wolfram Alpha
 Name[az]=Wolfram Alpha
 Name[be]=Wolfram Alpha
@@ -52,6 +53,8 @@ Name[mk]=Волфрам Алфа
 Name[ml]=വുള്‍ഫ്രാം ആല്‍ഫ
 Name[mr]=वोल्फ्राम अल्फा
 Name[my]=ဝုဖ်ဖရန်အယ်ဖာ
+Name[nan_TW]=Wolfram Alpha
+Name[nan_TW@latin]=Wolfram Alpha
 Name[nb]=Wolfram Alpha
 Name[nds]=Wolfram Alpha
 Name[nl]=Wolfram Alpha
@@ -76,13 +79,13 @@ Name[tg]=Wolfram Alpha
 Name[th]=Wolfram Alpha
 Name[tok]=ilo pi nasin nanpa WolframAlpha
 Name[tr]=Tungsten Işığı
-Name[ug]=Wolfram Alpha
 Name[uk]=Wolfram Alpha
 Name[vi]=Wolfram Alpha
 Name[wa]=Wolfram Alpha
 Name[zh_CN]=Wolfram Alpha
 Name[zh_TW]=Wolfram Alpha
 Query=https://www.wolframalpha.com/input/?i=\\{@}
+Query[am]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[ar]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[ast]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[az]=https://www.wolframalpha.com/input/?i=\\{@}
@@ -118,7 +121,7 @@ Query[id]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[ie]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[is]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[it]=https://www.wolframalpha.com/input/?i=\\{@}
-Query[ja]=https://www.wolframalpha.com/input/?i=\\{@}
+Query[ja]=https://ja.wolframalpha.com/input/?i=\\{@}
 Query[ka]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[kk]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[ko]=https://www.wolframalpha.com/input/?i=\\{@}
@@ -127,6 +130,8 @@ Query[lt]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[lv]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[mr]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[my]=https://www.wolframalpha.com/input/?i=\\{@}
+Query[nan_TW]=https://www.wolframalpha.com/input/?i=\\{@}
+Query[nan_TW@latin]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[nb]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[nds]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[nl]=https://www.wolframalpha.com/input/?i=\\{@}
@@ -150,7 +155,6 @@ Query[tg]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[th]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[tok]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[tr]=https://www.wolframalpha.com/input/?i=\\{@}
-Query[ug]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[uk]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[vi]=https://www.wolframalpha.com/input/?i=\\{@}
 Query[wa]=https://www.wolframalpha.com/input/?i=\\{@}

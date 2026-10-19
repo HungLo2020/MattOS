@@ -41,15 +41,26 @@ public:
         QtMsgType severity = QtWarningMsg;
     };
 
-    struct FixMessage
+    struct Edit
+    {
+        QString replacement;
+        quint32 line = 0;
+        quint32 column = 0;
+    };
+    using Edits = QList<Edit>;
+
+    struct Fix
     {
         QString text;
-        QString replacement;
+        QList<Edit> edits;
         quint32 line = 0, column = 0;
 
-        FixMessage(const QString &text, const QString &replacement, quint32 line = 0,
-                   quint32 column = 0)
-            : text(text), replacement(replacement), line(line), column(column)
+        Fix(const QString &text, const QList<Edit> &&edits, quint32 line = 0, quint32 column = 0)
+            : text(text), edits(edits), line(line), column(column)
+        {}
+
+        Fix(const QString &text, Edit &&edit, quint32 line = 0, quint32 column = 0)
+            : text(text), edits(QList<Edit>() << edit), line(line), column(column)
         {}
     };
 
@@ -72,11 +83,31 @@ public:
 
         QList<Message> expectedMessages = {};
         QList<Message> badMessages = {};
-        QList<FixMessage> expectedReplacements = {};
+        QList<Fix> expectedFixes = {};
 
         Flags flags = {};
 
         Result &withFlags(Flags flags) { this->flags =flags; return *this;  }
+    };
+
+    struct BatchElement
+    {
+        QString file;
+        Result result;
+    };
+    struct Batch
+    {
+        QList<BatchElement> elements;
+        Batch &addCleanFile(const QString &file)
+        {
+            elements.push_back({ file, Result::clean() });
+            return *this;
+        }
+        Batch &addDirtyFile(const QString &file, const Result &result)
+        {
+            elements.push_back({ file, result });
+            return *this;
+        }
     };
 
     struct Environment : public QList<std::pair<QString, QString>>
@@ -89,6 +120,9 @@ private Q_SLOTS:
 
     void testUnqualified();
     void testUnqualified_data();
+
+    void batches_data();
+    void batches();
 
     void cleanQmlCode_data();
     void cleanQmlCode();
@@ -120,6 +154,8 @@ private Q_SLOTS:
     void compilerWarnings_data();
     void compilerWarnings();
 
+    void jsFileInBatch();
+
     void testUnknownCausesFail();
 
     void directoryPassedAsQmlTypesFile();
@@ -132,6 +168,10 @@ private Q_SLOTS:
     void resources();
 
     void multiDirectory();
+
+    void typeInstantiatedRecursively_data();
+    void typeInstantiatedRecursively();
+    void typeInstantiatedRecursivelyInBuildFolder();
 
     void requiredProperty();
 
@@ -147,6 +187,7 @@ private Q_SLOTS:
     void attachedPropertyReuse();
 
     void missingBuiltinsNoCrash();
+    void stubQtQuickNoCrash();
     void absolutePath();
 
     void importMultipartUri();
@@ -170,12 +211,16 @@ private Q_SLOTS:
     void shadow_data();
     void shadow();
 
+    void uselessExpressionStatements_data();
+    void uselessExpressionStatements();
+
     void crashes();
 
     void useProperFunction_data();
     void useProperFunction();
 
     void registerMergeTreeRecursion();
+    void weakPointers();
 
 #if QT_CONFIG(library)
     void hasTestPlugin();
@@ -197,6 +242,12 @@ private Q_SLOTS:
     void errorCategory();
     void noSettingsPollution_data();
     void noSettingsPollution();
+    void syntaxIsEssential();
+    void essentialCantBeLowered();
+    void essentialCanBeRaised();
+
+    void onlyExplicitCategories();
+    void onlyExplicitCategoriesIni();
 
 private:
     enum DefaultImportOption { NoDefaultImports, UseDefaultImports };
@@ -243,7 +294,7 @@ private:
         QList<QQmlJS::LoggerCategory> *categories = nullptr;
         LintType type = LintFile;
         bool readSettings = false;
-        QStringList enableCategories = {};
+        QHash<QString, QQmlJS::WarningSeverity> categorySeverityOverrides = {};
         QStringList rootUrls = {};
         QHash<QString, QString> qrcToFilePaths = {};
     };
@@ -256,16 +307,16 @@ private:
     QJsonArray callQmllintOnSnippet(const QString &snippet, const CallQmllintOptions &options,
                                     CallQmllintChecks checks);
 
-    void testFixes(bool shouldSucceed, QStringList importPaths, QStringList qmldirFiles,
-                   QStringList resources, DefaultImportOption defaultImports,
-                   QList<QQmlJS::LoggerCategory> *categories, bool autoFixable, bool readSettings,
-                   const QString &fixedPath);
+    void testFixes(QQmlJSLogger *logger, bool shouldSucceed, QStringList importPaths,
+                   QStringList qmldirFiles, QStringList resources,
+                   DefaultImportOption defaultImports, QList<QQmlJS::LoggerCategory> *categories,
+                   bool autoFixable, bool readSettings, const QString &fixedPath);
 
     void searchWarnings(const QJsonArray &warnings, const QString &string,
                         QtMsgType type = QtWarningMsg, quint32 line = 0, quint32 column = 0,
                         ContainOption shouldContain = StringContained);
-    void searchReplacements(const QJsonArray &warnings, const QString &substring,
-                            const QString &replacementSubString, quint32 line, quint32 column);
+    void searchFixes(const QJsonArray &warnings, const QString &substring, const Edits &edits,
+                     quint32 line, quint32 column);
 
     template<typename ExpectedMessageFailureHandler, typename BadMessageFailureHandler,
              typename ReplacementFailureHandler>
@@ -288,7 +339,40 @@ private:
     QString m_qmllintPath;
 
     QStringList m_defaultImportPaths;
-    QQmlJSLinter m_linter;
+    class TestLinter : public QQmlJSLinter
+    {
+    public:
+        using QQmlJSLinter::QQmlJSLinter;
+
+        void prepareScopeForReuse(const QString &filePath)
+        {
+            QQmlJSScope::Ptr scope = m_importer.importFile(filePath);
+            QQmlJSScope::resetForReparse(scope);
+            resetFactory(
+                    scope, &m_importer,
+                    [](QQmlJSImporter *, const QString &, const QSharedPointer<QQmlJSScope> &) { });
+        }
+
+        QQmlJSLinter::Result lintFile(const QString &filename, const QString *fileContents,
+                                      LintOptions options, const QStringList &qmlImportPaths,
+                                      const QStringList &qmldirFiles,
+                                      const QStringList &resourceFiles,
+                                      const QList<QQmlJS::LoggerCategory> &categories)
+        {
+            if (!prepareFileForBatchLinting(filename, fileContents, options, qmlImportPaths,
+                                            qmldirFiles, resourceFiles, categories)) {
+                // Calling clearCache for each linted file/snippet slows down the tests by a factor of 2.5.
+                // Therefore, only call it when scope re-using happens (prepareFileForBatchLinting returns false).
+                clearCache();
+                const bool result =
+                        prepareFileForBatchLinting(filename, fileContents, options, qmlImportPaths,
+                                                   qmldirFiles, resourceFiles, categories);
+                Q_ASSERT(result);
+            }
+            return lintFileInBatch(filename);
+        }
+    };
+    TestLinter m_linter;
     QList<QQmlJS::LoggerCategory> m_categories = QQmlJSLogger::builtinCategories();
 };
 
@@ -347,10 +431,10 @@ void TestQmllint::testUnqualified_data()
                    {},
                    { { { u"unqualified is a member of a parent element.\n      "_s
                          u"You can qualify the access with its id to avoid this warning."_s,
-                         u"root."_s, 9, 16 },
+                         Edit{ u"root."_s, 9, 16 } },
                        { u"x is a member of a parent element.\n      "_s
                          u"You can qualify the access with its id to avoid this warning."_s,
-                         u"root."_s, 13, 33 } } } };
+                         Edit{ u"root."_s, 13, 33 } } } } };
     // access injected name from signal
     QTest::newRow("SignalHandler")
             << QStringLiteral("SignalHandler.qml")
@@ -360,13 +444,13 @@ void TestQmllint::testUnqualified_data()
                          { "Unqualified access"_L1, 12, 34 } },
                        { },
                        { { "\"mouse\" is ambiguous. Use a function instead: function(mouse) { ... }"_L1,
-                           "function(mouse) "_L1, 4, 22 },
+                           Edit{ "function(mouse) "_L1, 4, 22 } },
                          { "\"mouse\" is ambiguous. Use a function instead: function(mouse) { ... }"_L1,
-                           "function(mouse) "_L1, 9, 24 },
+                           Edit{ "function(mouse) "_L1, 9, 24 } },
                          { "\"mouse\" is ambiguous. Use a function instead: (mouse) => ..."_L1,
-                           "(mouse) => "_L1, 8, 16 },
+                           Edit{ "(mouse) => "_L1, 8, 16 } },
                          { "\"mouse\" is ambiguous. Use a function instead: (mouse) => ..."_L1,
-                           "(mouse) => "_L1, 12, 21 } } };
+                           Edit{ "(mouse) => "_L1, 12, 21 } } } };
     // access catch identifier outside catch block
     QTest::newRow("CatchStatement")
             << QStringLiteral("CatchStatement.qml")
@@ -375,9 +459,9 @@ void TestQmllint::testUnqualified_data()
             << QStringLiteral("nonSpuriousParentWarning.qml")
             << Result{ { { "Unqualified access"_L1, 6, 25 } },
                        { },
-                       { { { u"parent is a member of a parent element.\n      "_s
-                             u"You can qualify the access with its id to avoid this warning."_s,
-                             u"<id>."_s, 6, 25 } } } };
+                       { { { u"You can qualify the access with its id to avoid this warning "_s
+                             u"(You first have to give the element an id)."_s,
+                             Edit{ u"<id>."_s, 6, 25 } } } } };
 
     QTest::newRow("crashConnections")
             << QStringLiteral("crashConnections.qml")
@@ -555,6 +639,56 @@ void TestQmllint::multiDirectory()
     callQmllint(testFile("MultiDirectory/qml/pages/Page.qml"), options);
 }
 
+void TestQmllint::typeInstantiatedRecursively_data()
+{
+    QTest::addColumn<QString>("filename");
+    QTest::addColumn<Result>("result");
+    QTest::addColumn<CallQmllintOptions>("options");
+
+    const CallQmllintOptions defaultOptions;
+
+    QTest::newRow("withQmldirAlias")
+            << u"qmldirs/renameSnippetToCustomName/Snippet.qml"_s
+            << Result{ { { "Type \"Snippet\" can't be instantiated recursively"_L1, 4, 5 } } }
+            << defaultOptions;
+
+    constexpr QLatin1String warningForRecursiveMain =
+            "Type \"%1\" can't be instantiated recursively"_L1;
+    QTest::newRow("withMultipleQmldirAliases")
+            << u"qmldirs/renameFileToMultipleNames/Main.qml"_s
+            << Result{ {
+                       { warningForRecursiveMain.arg("Main"_L1), 4, 5 },
+                       { warningForRecursiveMain.arg("Name1"_L1), 5, 5 },
+                       { warningForRecursiveMain.arg("Name2"_L1), 6, 5 },
+                       { warningForRecursiveMain.arg("Name3"_L1), 7, 5 },
+                       { warningForRecursiveMain.arg("Name4"_L1), 8, 5 },
+               } }
+            << defaultOptions;
+}
+
+void TestQmllint::typeInstantiatedRecursively()
+{
+    m_linter.clearCache(); // note: clearing the cache in dirtyQmlCode() slows down the test suite considerably.
+    dirtyQmlCode();
+}
+
+void TestQmllint::typeInstantiatedRecursivelyInBuildFolder()
+{
+    CallQmllintOptions options;
+    options.resources.append(testFile("mymodule-build/.qt/rcc/qmake_app.qrc"));
+    options.resources.append(testFile("mymodule-build/.qt/rcc/app_raw_qml_0.qrc"));
+
+    checkResult(
+            callQmllint(testFile("mymodule-source/MyModule/Main.qml"), options,
+                        CallQmllintCheck::ShouldFail),
+            Result{ {
+                    { "Type \"Main\" can't be instantiated recursively"_L1, 4, 5 },
+                    { "\"Main\" is explicitly renamed to \"NewName\" via a qmldir entry or QT_QML_SOURCE_TYPENAME CMake property, use \"NewName\" instead."_L1,
+                      4, 5 },
+                    { "Type \"NewName\" can't be instantiated recursively"_L1, 5, 5 },
+            } });
+}
+
 void TestQmllint::dirtyQmlCode_data()
 {
     QTest::addColumn<QString>("filename");
@@ -579,12 +713,12 @@ void TestQmllint::dirtyQmlCode_data()
             << defaultOptions;
     QTest::newRow("AutomatchedSignalHandler")
             << QStringLiteral("AutomatchedSignalHandler.qml")
-            << Result{ { { "Unqualified access"_L1, 12, 36 } } } << defaultOptions;
-    QTest::newRow("AutomatchedSignalHandler2")
-            << QStringLiteral("AutomatchedSignalHandler.qml")
-            << Result{ { { "Implicitly defining \"onClicked\" as signal handler in Connections "
-                           "is deprecated. Create a function instead: \"function onClicked() "
-                           "{ ... }\""_L1 } } }
+            << Result{ {
+                       { "Unqualified access"_L1, 12, 36 },
+                       { "Implicitly defining \"onClicked\" as signal handler in Connections "
+                         "is deprecated. Create a function instead: \"function onClicked() "
+                         "{ ... }\""_L1 },
+               } }
             << defaultOptions;
     QTest::newRow("BadAttached")
             << QStringLiteral("badAttached.qml")
@@ -779,9 +913,9 @@ void TestQmllint::dirtyQmlCode_data()
             << QStringLiteral("IsNotAnEntryOfEnum.qml")
             << Result{ { { "Member \"Mode\" not found on type \"IsNotAnEntryOfEnum\""_L1, 12, 29 },
                          { "\"Hour\" is not an entry of enum \"Mode\"."_L1, 13, 62 } },
-                       { },
-                       { { "Did you mean \"mode\"?"_L1, "mode"_L1, 12, 29 },
-                         { "Did you mean \"Hours\"?"_L1, "Hours"_L1, 13, 62 } } }
+                       {},
+                       { { "Did you mean \"mode\"?"_L1, Edit{ "mode"_L1, 12, 29 } },
+                         { "Did you mean \"Hours\"?"_L1, Edit{ "Hours"_L1, 13, 62 } } } }
             << defaultOptions;
     QTest::newRow("MemberNotFound")
             << QStringLiteral("memberNotFound.qml")
@@ -871,11 +1005,11 @@ void TestQmllint::dirtyQmlCode_data()
     QTest::newRow("WithStatement")
             << QStringLiteral("WithStatement.qml")
             << Result{ { { "with statements are strongly discouraged"_L1 } } } << defaultOptions;
-    QTest::newRow("aliasCycle1") << QStringLiteral(
-            "aliasCycle.qml") << Result{ { { "Alias \"b\" is part of an alias cycle"_L1, 6, 5 } } }
-                                 << defaultOptions;
-    QTest::newRow("aliasCycle2") << QStringLiteral(
-            "aliasCycle.qml") << Result{ { { "Alias \"a\" is part of an alias cycle"_L1, 5, 5 } } }
+    QTest::newRow("aliasCycle1") << QStringLiteral("aliasCycle.qml")
+                                 << Result{ {
+                                            { "Alias \"b\" is part of an alias cycle"_L1, 6, 5 },
+                                            { "Alias \"a\" is part of an alias cycle"_L1, 5, 5 },
+                                    } }
                                  << defaultOptions;
     QTest::newRow("anchors3")
             << QStringLiteral("anchors3.qml")
@@ -1008,15 +1142,6 @@ void TestQmllint::dirtyQmlCode_data()
             << Result{ { { "Component is missing required property bar from Rectangle"_L1, 11,
                            13 } } }
             << defaultOptions;
-    QTest::newRow("connectionsBinding")
-            << QStringLiteral("autofix/ConnectionsHandler.qml")
-            << Result{ { { "Implicitly defining \"onWidthChanged\" as signal handler in "
-                           "Connections is deprecated. Create a function instead: \"function "
-                           "onWidthChanged() { ... }\"."_L1 },
-                         { "Implicitly defining \"onColorChanged\" as signal handler in "
-                           "Connections is deprecated. Create a function instead: "
-                           "\"function onColorChanged(collie) { ... }\"."_L1 } } }
-            << defaultOptions;
     QTest::newRow("cppPropertyChangeHandlers-no-property")
             << QStringLiteral("badCppPropertyChangeHandlers3.qml")
             << Result{ { { "no matching signal found for handler \"onXChanged\""_L1 } } }
@@ -1053,7 +1178,7 @@ void TestQmllint::dirtyQmlCode_data()
             << QStringLiteral("didYouMeanBinding.qml")
             << Result{ { { "Could not find property \"witdh\"."_L1 } },
                        { },
-                       { { "Did you mean \"width\"?"_L1, "width"_L1 } } }
+                       { { "Did you mean \"width\"?"_L1, Edit{ "width"_L1 } } } }
             << defaultOptions;
     QTest::newRow("didYouMean(component)")
             << QStringLiteral("didYouMeanComponent.qml")
@@ -1083,13 +1208,13 @@ void TestQmllint::dirtyQmlCode_data()
             << QStringLiteral("didYouMeanUnqualified.qml")
             << Result{ { { "Unqualified access"_L1 } },
                        { },
-                       { { "Did you mean \"height\"?"_L1, "height"_L1 } } }
+                       { { "Did you mean \"height\"?"_L1, Edit{ "height"_L1 } } } }
             << defaultOptions;
     QTest::newRow("didYouMean(unqualifiedCall)")
             << QStringLiteral("didYouMeanUnqualifiedCall.qml")
             << Result{ { { "Unqualified access"_L1 } },
                        { },
-                       { { "Did you mean \"func\""_L1, "func"_L1 } } }
+                       { { "Did you mean \"func\""_L1, Edit{ "func"_L1 } } } }
             << defaultOptions;
     QTest::newRow("duplicateImportsDirty")
             << QStringLiteral("duplicateImportsDirty.qml")
@@ -1110,13 +1235,12 @@ void TestQmllint::dirtyQmlCode_data()
             << defaultOptions;
     QTest::newRow("duplicatedPropertyName")
             << QStringLiteral("duplicatedPropertyName.qml")
-            << Result{ { { "Duplicated property name \"cat\", \"cat\" is already a property."_L1, 5,
-                           21 } } }
-            << defaultOptions;
-    QTest::newRow("duplicatedSignalName")
-            << QStringLiteral("duplicatedPropertyName.qml")
-            << Result{ { { "Duplicated signal name \"clicked\", \"clicked\" is already a signal"_L1,
-                           8, 12 } } }
+            << Result{ {
+                       { "Duplicated property name \"cat\", \"cat\" is already a property."_L1, 5,
+                         21 },
+                       { "Duplicated signal name \"clicked\", \"clicked\" is already a signal"_L1,
+                         8, 12 },
+               } }
             << defaultOptions;
     QTest::newRow("enumInvalid")
             << QStringLiteral("enumInvalid.qml")
@@ -1125,16 +1249,14 @@ void TestQmllint::dirtyQmlCode_data()
                                { "Member \"red\" not found on type \"QtObject\""_L1, 6, 25 },
                                { "Member \"S2\" not found on type \"EnumTesterScoped\""_L1, 8, 38 },
                        },
-                       { },
-                       { { "Did you mean \"U2\"?"_L1, "U2"_L1, 8, 38 } } }
+                       {},
+                       { { "Did you mean \"U2\"?"_L1, Edit{ "U2"_L1, 8, 38 } } } }
             << defaultOptions;
     QTest::newRow("enumsAreNotTypes_functionAnnotations")
             << QStringLiteral("EnumsAreNotTypes_functionAnnotations.qml")
-            << Result{ { { "QML enumerations are not types. Use underlying type "
-                           "(int or double) instead."_L1,
+            << Result{ { { "QML enumerations are not types. Use int, or use double if the enum's underlying type does not fit into int."_L1,
                            5, 17 },
-                         { "QML enumerations are not types. Use underlying type "
-                           "(int or double) instead."_L1,
+                         { "QML enumerations are not types. Use int, or use double if the enum's underlying type does not fit into int."_L1,
                            6, 9 } } }
             << defaultOptions;
     QTest::newRow("id_in_value_type")
@@ -1179,19 +1301,15 @@ void TestQmllint::dirtyQmlCode_data()
             << defaultOptions;
     QTest::newRow("invalidAliasTarget1")
             << QStringLiteral("invalidAliasTarget.qml")
-            << Result{ { { "Invalid alias expression - an initializer is needed."_L1, 6, 18 } } }
-            << defaultOptions;
-    QTest::newRow("invalidAliasTarget2")
-            << QStringLiteral("invalidAliasTarget.qml")
-            << Result{ { { "Invalid alias expression. Only IDs and field member expressions can "
-                           "be aliased"_L1,
-                           7, 30 } } }
-            << defaultOptions;
-    QTest::newRow("invalidAliasTarget3")
-            << QStringLiteral("invalidAliasTarget.qml")
-            << Result{ { { "Invalid alias expression. Only IDs and field member expressions can be "
-                           "aliased"_L1,
-                           9, 34 } } }
+            << Result{ {
+                       { "Invalid alias expression - an initializer is needed."_L1, 6, 18 },
+                       { "Invalid alias expression. Only IDs and field member expressions can "
+                         "be aliased"_L1,
+                         7, 30 },
+                       { "Invalid alias expression. Only IDs and field member expressions can be "
+                         "aliased"_L1,
+                         9, 34 },
+               } }
             << defaultOptions;
     QTest::newRow("invalidInterceptor")
             << QStringLiteral("invalidInterceptor.qml")
@@ -1232,11 +1350,11 @@ void TestQmllint::dirtyQmlCode_data()
             << defaultOptions;
     QTest::newRow("missingComponentBehaviorBound")
             << QStringLiteral("missingComponentBehaviorBound.qml")
-            << Result{ { { "Unqualified access"_L1, 8, 31 } },
-                       { },
+            << Result{ { { "Unqualified access"_L1, 8, 31  } },
+                       {},
                        { { "Set \"pragma ComponentBehavior: Bound\" in order to use IDs from "
                            "outer components in nested components."_L1,
-                           "pragma ComponentBehavior: Bound\n"_L1, 0, 0 } },
+                           Edit{ "pragma ComponentBehavior: Bound\n"_L1, 0, 0 } } },
                        Result::AutoFixable }
             << defaultOptions;
     QTest::newRow("missingQmltypes")
@@ -1252,23 +1370,23 @@ void TestQmllint::dirtyQmlCode_data()
                            26 } } }
             << defaultOptions;
     QTest::newRow("missingSingletonPragma")
-            << QStringLiteral("missingSingletonPragma.qml")
+            << QStringLiteral("Singletons/MissingPragma.qml")
             << Result{ { { "Type MissingPragma declared as singleton in qmldir but missing pragma "
                            "Singleton"_L1 } } }
             << defaultOptions;
     QTest::newRow("missingSingletonQmldir")
-            << QStringLiteral("missingSingletonQmldir.qml")
+            << QStringLiteral("Singletons/MissingQmldirSingleton.qml")
             << Result{ { { "Type MissingQmldirSingleton not declared as singleton in qmldir but "
                            "using pragma Singleton"_L1 } } }
             << defaultOptions;
     QTest::addRow("multifix")
             << QStringLiteral("multifix.qml")
-            << Result{ { { "Unqualified access"_L1, 7, 19, QtWarningMsg },
+            << Result{ { { "Unqualified access"_L1, 7,  19, QtWarningMsg },
                          { "Unqualified access"_L1, 11, 19, QtWarningMsg } },
-                       { },
+                       {},
                        { { "Set \"pragma ComponentBehavior: Bound\" in order to use IDs from "
                            "outer components in nested components."_L1,
-                           "pragma ComponentBehavior: Bound\n"_L1, 1, 1 } },
+                           Edit{ "pragma ComponentBehavior: Bound\n"_L1, 1, 1 } } },
                        { Result::AutoFixable } }
             << defaultOptions;
     QTest::newRow("multilineString")
@@ -1276,24 +1394,24 @@ void TestQmllint::dirtyQmlCode_data()
             << Result{ { { "String contains unescaped line terminator which is deprecated."_L1, 0,
                            0, QtInfoMsg } },
                        { },
-                       { { "Use a template literal instead."_L1, "`Foo\nmultiline\\`\nstring`"_L1,
-                           4, 32 },
-                         { "Use a template literal instead."_L1, "`another\\`\npart\nof it`"_L1, 6,
-                           11 },
+                       { { "Use a template literal instead."_L1,
+                           Edit{ "`Foo\nmultiline\\`\nstring`"_L1, 4, 32 } },
                          { "Use a template literal instead."_L1,
-                           R"(`
+                           Edit{ "`another\\`\npart\nof it`"_L1, 6, 11 } },
+                         { "Use a template literal instead."_L1,
+                           Edit{ R"(`
 quote: " \\" \\\\"
 ticks: \` \` \\\` \\\`
 singleTicks: ' \' \\' \\\'
 expression: \${expr} \${expr} \\\${expr} \\\${expr}`)"_L1,
-                           10, 28 },
+                                 10, 28 } },
                          { "Use a template literal instead."_L1,
-                           R"(`
+                           Edit{ R"(`
 quote: " \" \\" \\\"
 ticks: \` \` \\\` \\\`
 singleTicks: ' \\' \\\\'
 expression: \${expr} \${expr} \\\${expr} \\\${expr}`)"_L1,
-                           16, 27 } },
+                                 16, 27 } } },
                        { Result::ExitsNormally, Result::AutoFixable } }
             << defaultOptions;
 
@@ -1336,6 +1454,27 @@ expression: \${expr} \${expr} \\\${expr} \\\${expr}`)"_L1,
             << Result{ { { "Redundant optional chaining for enum lookup"_L1, 5, 54 },
                          { "Redundant optional chaining for enum lookup"_L1, 6, 26 } } }
             << defaultOptions;
+    QTest::newRow("renamedType")
+            << u"qmldirs/renameSnippetToCustomName/UseOldName.qml"_s
+            << Result{ {
+                       { "\"UseOldName\" is explicitly renamed to \"NewName\" via a qmldir entry or QT_QML_SOURCE_TYPENAME CMake property, use \"NewName\" instead."_L1,
+                         4, 14 },
+                       { "\"UseOldName\" is explicitly renamed to \"NewName\" via a qmldir entry or QT_QML_SOURCE_TYPENAME CMake property, use \"NewName\" instead."_L1,
+                         5, 19 },
+                       { "\"UseOldName\" is explicitly renamed to \"NewName\" via a qmldir entry or QT_QML_SOURCE_TYPENAME CMake property, use \"NewName\" instead."_L1,
+                         5, 32 },
+               } }
+            << defaultOptions;
+    constexpr QLatin1String renameTypeWarning =
+            "\"Main\" is explicitly renamed to \"Name1\", \"Name2\", \"Name3\", \"Name4\" via a qmldir entry or QT_QML_SOURCE_TYPENAME CMake property, use \"Name1\", \"Name2\", \"Name3\", \"Name4\" instead."_L1;
+    QTest::newRow("renamedTypeUsage") << u"qmldirs/renameFileToMultipleNames/AnotherFile.qml"_s
+                                      << Result{ {
+                                                 { renameTypeWarning, 4, 5 },
+                                                 { renameTypeWarning, 10, 26 },
+                                                 { renameTypeWarning, 16, 19 },
+                                                 { renameTypeWarning, 16, 38 },
+                                         } }
+                                      << defaultOptions;
     QTest::newRow("segFault (bad)")
             << QStringLiteral("SegFault.bad.qml")
             << Result{ { { "Member \"foobar\" not found on type \"QQuickScreenAttached\""_L1 } } }
@@ -1364,7 +1503,7 @@ expression: \${expr} \${expr} \\\${expr} \\\${expr}`)"_L1,
                        { },
                        { { "i is a member of a parent element.\n      "
                            "You can qualify the access with its id to avoid this warning."_L1,
-                           "stringy."_L1 } } }
+                           Edit{ "stringy."_L1 } } } }
             << defaultOptions;
     QTest::newRow("unboundComponents") << QStringLiteral("unboundComponents.qml")
                                        << Result{ { { "Unqualified access"_L1, 10, 25 },
@@ -1487,17 +1626,22 @@ void TestQmllint::dirtyQmlCode()
 static void addLocationOffsetTo(TestQmllint::Result *result, qsizetype lineOffset,
                                 qsizetype columnOffset = 0)
 {
-    auto processMessages = [lineOffset, columnOffset](auto messages) {
-        for (auto &message : *messages) {
-            if (message.line != 0)
-                message.line += lineOffset;
-            if (message.column != 0)
-                message.column += columnOffset;
-        }
+    auto adjustLineAndColumn = [lineOffset, columnOffset](auto &lineAndColumnHolder) {
+        if (lineAndColumnHolder.line != 0)
+            lineAndColumnHolder.line += lineOffset;
+        if (lineAndColumnHolder.column != 0)
+            lineAndColumnHolder.column += columnOffset;
     };
-    processMessages(&result->expectedMessages);
-    processMessages(&result->badMessages);
-    processMessages(&result->expectedReplacements);
+
+    for (auto &expectedMessage : result->expectedMessages)
+        adjustLineAndColumn(expectedMessage);
+    for (auto &badMessage : result->badMessages)
+        adjustLineAndColumn(badMessage);
+    for (auto &expectedFix : result->expectedFixes) {
+        adjustLineAndColumn(expectedFix);
+        for (auto &edit : expectedFix.edits)
+            adjustLineAndColumn(edit);
+    }
 }
 
 void TestQmllint::dirtyQmlSnippet_data()
@@ -1513,6 +1657,12 @@ void TestQmllint::dirtyQmlSnippet_data()
             << Result{ { { "Unqualified access"_L1, 1, 57 } },
                        { { "Unqualified access"_L1, 1, 66 } } }
             << defaultOptions;
+
+    QTest::newRow("assignToMissingProperty")
+            << u"Rectangle { id: foo } function f() { foo.bar = 42; }"_s
+            << Result{ { { "Member \"bar\" not found on type"_L1, 1, 38 } } }
+            << defaultOptions;
+
     QTest::newRow("color-hex")
             << u"property color myColor: \"#12345\""_s
             << Result{ { { "Invalid color"_L1, 1, 25 } } }
@@ -1541,7 +1691,7 @@ void TestQmllint::dirtyQmlSnippet_data()
             << u"property color myColor: \"lbue\""_s
             << Result{ { { "Invalid color \"lbue\""_L1, 1, 25 } },
                        {},
-                       { { "Did you mean \"blue\"?", "blue"_L1, 1, 25 } } }
+                       { { "Did you mean \"blue\"?", Edit{ "blue"_L1, 1, 25 } } } }
             << defaultOptions;
     QTest::newRow("componentExactlyOneChild1")
             << u"Component { Item {} Item {} }"_s
@@ -1701,6 +1851,12 @@ void TestQmllint::dirtyQmlSnippet_data()
             << Result{ { { "Duplicate inline component 'A'"_L1, 2, 8 },
                          { "Note: previous component named 'A' here"_L1, 1, 1 } } }
             << defaultOptions;
+    QTest::newRow("enumsAreNotTypes")
+            << u"function f(a: enum) {}"_s
+            << Result{ { { "QML does not have an `enum` type. Use int, or use double if the enum's underlying type does not fit into int."_L1,
+               1, 15 } },
+    { { "QML enumerations are not types"_L1} }, }
+            << defaultOptions;
     QTest::newRow("equality-with-coercion")
             << u"function f(a: int, b: string): bool { return a == b; }"_s
             << Result{ { { "== and != may perform type coercion, use === or !== to avoid it."_L1, 1,
@@ -1778,6 +1934,12 @@ void TestQmllint::dirtyQmlSnippet_data()
                        { { "Enum declared outside the root element. It won't be accessible."_L1,
                            1, 40 } } }
             << defaultOptions;
+    QTest::newRow("pragmaFunctionSignatureBehavior")
+            << u"pragma FunctionSignatureBehavior: Ignored\n"_s
+               u"import QtQuick\n"_s
+               u"Item { function f() { return unqualified(); } }"_s
+            << Result{ { { "Unqualified", 3, 30 } } }
+            << defaultOptions;
     QTest::newRow("preferNonVarProperties")
             << u"readonly property var i: 1     \n"_s
                u"readonly property var r: 1.0   \n"_s
@@ -1788,6 +1950,11 @@ void TestQmllint::dirtyQmlSnippet_data()
                          { "Prefer more specific type string over var", 3, 1 },
                          { "Prefer more specific type bool over var", 4, 1 } } }
             << defaultOptions;
+    QTest::newRow("renamedDoesntCrash")
+            << u"import QML\n"
+               u"import QtQuick as QQ\n"
+               u"QQ.Item { component Yo: MissingType {} }"_s
+            << Result{ { { "MissingType was not found."_L1, 3, 25 } } } << defaultOptions;
     QTest::newRow("reservedIdentifier")
             << u"property int interface"_s
             << Result { { {"Reserved keyword \"interface\" cannot be used as a QML identifier.", 1, 14} } }
@@ -1873,6 +2040,18 @@ void TestQmllint::dirtyQmlSnippet_data()
             << u"property int qwer: \"Hello\""_s
             << Result{ { { "Cannot assign literal of type string to int"_L1 } } }
             << defaultOptions;
+    QTest::newRow("typeInstantiatedRecursively")
+            << u"Snippet {}"_s
+            << Result{ { { "Type \"Snippet\" can't be instantiated recursively"_L1, 1, 1 } } }
+            << defaultOptions;
+    QTest::newRow("typeInstantiatedRecursivelyInlineComponent")
+            << u"component MyIC: Item { MyIC {} }"_s
+            << Result{ { { "Type \"MyIC\" can't be instantiated recursively"_L1, 1, 24 } } }
+            << defaultOptions;
+    QTest::newRow("typeInstantiatedRecursivelyInlineComponent2")
+            << u"component MyIC: Item { Snippet {} }"_s
+            << Result{ { { "Type \"Snippet\" can't be instantiated recursively"_L1, 1, 24 } } }
+            << defaultOptions;
     QTest::newRow("unintentionalEmptyBlock-dirty")
             << u"property var v: {}"_s
             << Result{ { { "Unintentional empty block, use ({}) for empty object literal"_L1, 1, 17 } } }
@@ -1886,10 +2065,6 @@ void TestQmllint::dirtyQmlSnippet_data()
     QTest::newRow("upperCaseId")
             << u"id: Root"_s
             << Result{ { { "Id must start with a lower case letter or an '_'"_L1, 1, 5 } } }
-            << defaultOptions;
-    QTest::newRow("uselessExpressionStatement")
-            << u"property int i: { let x = 0; 0 + 1; return i + 3; }"_s
-            << Result{ { { "Expression statement has no obvious effect."_L1, 1, 30 } } }
             << defaultOptions;
 }
 
@@ -1920,6 +2095,9 @@ void TestQmllint::cleanQmlSnippet_data()
 
     const CallQmllintOptions defaultOptions;
 
+    QTest::newRow("assignToVariantProperty")
+            << u"Rectangle { id: foo; property var bar; } function f() { foo.bar.foo.bar = 42; }"_s
+            << defaultOptions;
     QTest::newRow("color-hex") << u"property color myColor: \"#123456\""_s << defaultOptions;
     QTest::newRow("color-hex2") << u"property color myColor: \"#FFFFFFFF\""_s << defaultOptions;
     QTest::newRow("color-hex3") << u"property color myColor: \"#A0AAff1f\""_s << defaultOptions;
@@ -1966,6 +2144,11 @@ void TestQmllint::cleanQmlSnippet_data()
                                            }
                                          })"_s
                                       << defaultOptions;
+    QTest::newRow("pragmaFunctionSignatureBehavior")
+            << u"pragma FunctionSignatureBehavior: Ignored\n"_s
+               u"import QtQuick\n"_s
+               u"Item { property rect rect: ({ x: 12, y: 13 }); }"_s
+            << defaultOptions;
     QTest::newRow("preferNonVarProperties_nonReadOnly")
             << u"property var i: 1     \n"_s
                u"property var r: 1.0   \n"_s
@@ -2024,6 +2207,10 @@ void TestQmllint::cleanQmlSnippet_data()
             << defaultOptions;
     QTest::newRow("testSnippet") << u"property int qwer: 123"_s << defaultOptions;
     QTest::newRow("underScoreId") << u"id: _Root"_s << defaultOptions;
+    QTest::newRow("underScoreGroupedProperty")
+            << u"component Foo: Item { property alias _bar: theItem; Item { id: theItem; } }\n"
+               "Foo { _bar { width: 10 } }"_s
+            << defaultOptions;
     QTest::newRow("unintentionalEmptyBlock-clean")
             << uR"(
                     property var p1: ({})
@@ -2034,7 +2221,8 @@ void TestQmllint::cleanQmlSnippet_data()
                 )"_s
             << defaultOptions;
     CallQmllintOptions withUnusedImports;
-    withUnusedImports.enableCategories.append("unused-import"_L1);
+    withUnusedImports.categorySeverityOverrides[qmlUnusedImports.name().toString()] =
+            QQmlSA::WarningSeverity::Warning;
     QTest::newRow("used-import") << uR"(import QtQuick
 import QtQuick.Controls
 Item { id: root; Component.onCompleted: { root.ToolTip.text = "Hola" }})"_s
@@ -2079,8 +2267,8 @@ void TestQmllint::cleanQmlSnippet()
     QFETCH(QString, code);
     QFETCH(CallQmllintOptions, options);
 
-    const QString qmlCode =
-            code.startsWith("import"_L1) ? code : "import QtQuick\nItem {%1}"_L1.arg(code);
+    const QString qmlCode = code.startsWith("import"_L1) || code.startsWith("pragma"_L1)
+            ? code : "import QtQuick\nItem {%1}"_L1.arg(code);
     const Result result = Result::clean();
 
     const QJsonArray warnings =
@@ -2156,6 +2344,14 @@ void TestQmllint::dirtyJsSnippet_data()
             << u"return new Math();"_s
             << Result{ { { "Do not use 'Math' as a constructor."_L1, 1, 12 } } }
             << defaultOptions;
+    QTest::newRow("constructorArray")
+            << u"return new Array(1, 2);"_s
+            << Result{ { { "Array has confusing semantics, use an array literal ([]) instead."_L1,
+                           1, 12 } },
+                       {},
+                       { { "Replace with array literal"_L1,
+                           Edits{ { "["_L1, 1, 8 }, { "]"_L1, 1, 22 } } } } }
+            << defaultOptions;
     QTest::newRow("doubleConst")
             << u"const x = 4; const x = 4;"_s
             << Result{ { { "Identifier 'x' has already been declared"_L1, 1, 20 },
@@ -2191,7 +2387,8 @@ void TestQmllint::dirtyJsSnippet_data()
             << defaultOptions;
     {
         CallQmllintOptions options;
-        options.enableCategories.append("function-used-before-declaration"_L1);
+        options.categorySeverityOverrides.insert(qmlFunctionUsedBeforeDeclaration.name().toString(),
+                                                 QQmlJS::WarningSeverity::Warning);
         QTest::newRow("functionUsedBeforeDeclaration")
                 << u"fff(); function fff() {}"_s
                 << Result{ { { "Function 'fff' is used here before its declaration"_L1, 1, 1 },
@@ -2250,12 +2447,36 @@ void TestQmllint::dirtyJsSnippet_data()
                 case 5:                 // ok: nothing to fall through to ...
                     1 + 2
                 })"_s
-            << Result{ { { "Unterminated non-empty case block"_L1, 6, 17 },
-                         { "Unterminated non-empty case block"_L1, 8, 17 } },
-                       { { "Unterminated non-empty case block"_L1, 3, 17 },
-                         { "Unterminated non-empty case block"_L1, 4, 17 },
-                         { "Unterminated non-empty case block"_L1, 10, 17 },
-                         { "Unterminated non-empty case block"_L1, 13, 17 } } }
+            << Result{ {
+                               { "Non-empty case block potentially falls through to the next case "
+                                 "or default "
+                                 "statement. Add \"// fallthrough\" at the end of the block to "
+                                 "silence this "
+                                 "warning."_L1,
+                                 6, 17 },
+                               { "Non-empty case block potentially falls through to the next case "
+                                 "or default "
+                                 "statement. Add \"// fallthrough\" at the end of the block to "
+                                 "silence this "
+                                 "warning."_L1,
+                                 8, 17 },
+                       },
+                       { { "Non-empty case block potentially falls through to the next case or "
+                           "default"
+                           " statement. Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                           3, 17 },
+                         { "Non-empty case block potentially falls through to the next case or "
+                           "default statement."
+                           " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                           4, 17 },
+                         { "Non-empty case block potentially falls through to the next case or "
+                           "default statement."
+                           " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                           10, 17 },
+                         { "Non-empty case block potentially falls through to the next case or "
+                           "default statement. "
+                           "Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                           13, 17 } } }
             << defaultOptions;
     QTest::newRow("unterminatedCaseBlockNested")
             << uR"(switch (0) {
@@ -2275,30 +2496,65 @@ void TestQmllint::dirtyJsSnippet_data()
                 case -1: return // dummy
                 })"_s
             << Result{ {
-                       { "Unterminated non-empty case block"_L1, 2, 17 },
-                       { "Unterminated non-empty case block"_L1, 4, 25 },
-                       { "Unterminated non-empty case block"_L1, 5, 25 },
-                       { "Unterminated non-empty case block"_L1, 6, 25 },
-                       { "Unterminated non-empty case block"_L1, 7, 25 },
-                       { "Unterminated non-empty case block"_L1, 8, 25 },
-                       { "Unterminated non-empty case block"_L1, 9, 25 },
-                       { "Unterminated non-empty case block"_L1, 10, 25 },
-                       { "Unterminated non-empty case block"_L1, 11, 25 },
-                       { "Unterminated non-empty case block"_L1, 12, 25 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         2, 17 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         4, 25 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         5, 25 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         6, 25 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         7, 25 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         8, 25 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         9, 25 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         10, 25 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         11, 25 },
+                       { "Non-empty case block potentially falls through to the next case or "
+                         "default statement."
+                         " Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                         12, 25 },
                } }
             << defaultOptions;
-    QTest::newRow("unterminatedCaseBlockNested2") << uR"(switch (0) {
+    QTest::newRow("unterminatedCaseBlockNested2")
+            << uR"(switch (0) {
                 case 0: // one case is KO, so this one too
                     switch (2) {
                         case 1: return;
                         default: f(); // not ok
                     }
                 case -1: return // dummy
-                })"_s << Result{ { { "Unterminated non-empty case block"_L1, 2, 17 } } }
-                                                  << defaultOptions;
+                })"_s
+            << Result{ { { "Non-empty case block potentially falls through to the next case or "
+                           "default "
+                           "statement. Add \"// fallthrough\" at the end of the block to silence this warning."_L1,
+                           2, 17 } } }
+            << defaultOptions;
     {
         CallQmllintOptions options;
-        options.enableCategories.append(qmlVoid.name().toString());
+        options.categorySeverityOverrides.insert(qmlVoid.name().toString(), QQmlJS::WarningSeverity::Warning);
         QTest::newRow("void")
                 << u"void 1;"_s
                 << Result{ { { "Do not use void expressions"_L1, 1, 1 } } }
@@ -2315,6 +2571,14 @@ void TestQmllint::dirtyJsSnippet_data()
     QTest::newRow("uselessExpressionStatement2")
             << u"for (;;) { x + 3; return x; }"_s
             << Result{ { { "Expression statement has no obvious effect."_L1, 1, 12 } } }
+            << defaultOptions;
+    QTest::newRow("varVariableInBlockScope")
+            << uR"(let i = 0;
+        {
+            var j = 1;
+        }
+        i = j;)"_s
+            << Result { { { "var declaration in block scope is hoisted to function scope"_L1, 3, 17 } } }
             << defaultOptions;
 }
 
@@ -2354,6 +2618,8 @@ void TestQmllint::cleanJsSnippet_data()
     QTest::newRow("comma") << u"let i, end; for (i = 0, end = 42; i < end; ++i) {}"_s
                            << defaultOptions;
     QTest::newRow("constructor") << u"function F() {}; return new F();"_s << defaultOptions;
+    QTest::newRow("constructorArray") << u"return new Array();"_s << defaultOptions;
+    QTest::newRow("constructorArray2") << u"return new Array(42);"_s << defaultOptions;
     QTest::newRow("doubleInDifferentScopes")
             << u"const a = 42; for (let a = 1; a < 10; ++a) {}"_s << defaultOptions;
     QTest::newRow("doubleVar") << u"var x = 5; var y = 5"_s << defaultOptions;
@@ -2785,6 +3051,7 @@ void TestQmllint::cleanQmlCode_data()
     QTest::newRow("on binding in grouped property")
             << QStringLiteral("onBindingInGroupedProperty.qml") << defaultOptions;
     QTest::newRow("onlyMajorVersion") << QStringLiteral("onlyMajorVersion.qml") << defaultOptions;
+    QTest::newRow("OpaqueTest") << QStringLiteral("OpaqueTest.qml") << defaultOptions;
     QTest::newRow("optionalChainingCall")
             << QStringLiteral("optionalChainingCall.qml") << defaultOptions;
 #ifdef HAS_QC_BASIC
@@ -2808,6 +3075,8 @@ void TestQmllint::cleanQmlCode_data()
     QTest::newRow("qtquickdialog") << QStringLiteral("qtquickdialog.qml") << defaultOptions;
     QTest::newRow("qualifiedAttached") << QStringLiteral("Drawer.qml") << defaultOptions;
     QTest::addRow("regExp") << u"regExp.qml"_s << defaultOptions;
+    QTest::newRow("renamedTypeUsageFromOtherFile")
+            << u"qmldirs/renameFileToMultipleNames/AnotherFileClean.qml"_s << defaultOptions;
     QTest::newRow("requiredPropertyInGroupedPropertyScope")
             << QStringLiteral("requiredPropertyInGroupedPropertyScope.qml") << defaultOptions;
     QTest::newRow("requiredPropertySetViaOnBinding")
@@ -2846,6 +3115,10 @@ void TestQmllint::cleanQmlCode_data()
     QTest::newRow("v4SequenceMethods") << QStringLiteral("v4SequenceMethods.qml") << defaultOptions;
     QTest::newRow("valueSource") << QStringLiteral("valueSource.qml") << defaultOptions;
     QTest::newRow("var") << QStringLiteral("var.qml") << defaultOptions;
+    QTest::newRow("recognizeComponentWithinItself1")
+            << u"recognizeComponentWithinItself/A.qml"_s << defaultOptions;
+    QTest::newRow("recognizeComponentWithinItself2")
+            << u"recognizeComponentWithinItself/B.qml"_s << defaultOptions;
     {
         CallQmllintOptions options = defaultOptions;
         options.resources << testFile("mymodulewithsingleton-build/.qt/rcc/app_raw_qml_0.qrc")
@@ -2984,12 +3257,68 @@ void TestQmllint::compilerWarnings()
     });
     Q_ASSERT(category != categories.end());
 
-    if (enableCompilerWarnings) {
-        category->setLevel(QtWarningMsg);
-        category->setIgnored(false);
-    }
+    if (enableCompilerWarnings)
+        category->setSeverity(QQmlJS::WarningSeverity::Warning);
 
     runTest(filename, result, {}, {}, {}, UseDefaultImports, &categories);
+}
+
+void TestQmllint::batches_data()
+{
+
+    QTest::addColumn<Batch>("batch");
+
+    QTest::addRow("AConstructB")
+            << Batch().addCleanFile("AConstructB/A.qml"_L1).addCleanFile("AConstructB/B.qml"_L1);
+    QTest::addRow("BConstructA")
+            << Batch().addCleanFile("BConstructA/A.qml"_L1).addCleanFile("BConstructA/B.qml"_L1);
+
+    QTest::addRow("BadRecursiveConstruction")
+            << Batch().addCleanFile("BadRecursiveConstruction/A.qml"_L1)
+                       .addDirtyFile("BadRecursiveConstruction/B.qml"_L1,
+                                     { { { "Could not find property \"hello\""_L1 } } });
+
+    QTest::addRow("RecursiveGroupedProperties")
+            << Batch().addCleanFile("RecursiveGroupedProperties/A.qml"_L1)
+                       .addCleanFile("RecursiveGroupedProperties/B.qml"_L1);
+
+    QTest::addRow("RecursiveLists") << Batch().addCleanFile("RecursiveLists/A.qml"_L1)
+                                               .addCleanFile("RecursiveLists/B.qml"_L1);
+}
+
+void TestQmllint::batches()
+{
+    QFETCH(Batch, batch);
+
+    QQmlJSLinter::LintOptions options;
+    options.setFlag(QQmlJSLinter::Silent);
+    options.setFlag(QQmlJSLinter::GenerateJson);
+
+    for (const auto &element : std::as_const(batch.elements)) {
+        QVERIFY(m_linter.prepareFileForBatchLinting(testFile("batches/" + element.file), nullptr,
+                                                    options, m_defaultImportPaths, { }, { },
+                                                    m_categories));
+    }
+
+    for (const auto &element : std::as_const(batch.elements)) {
+        QQmlJSLinter::Result result = m_linter.lintFileInBatch(testFile("batches/" + element.file));
+        checkResult(result.json["warnings"].toArray(), element.result);
+    }
+}
+
+void TestQmllint::jsFileInBatch() {
+    QQmlJSLinter::LintOptions options = QQmlJSLinter::LintOption::GenerateJson;
+    std::array filenames {"SharedFunctions.js", "dontCheckJSTypes.qml"};
+    for (const auto& filename: filenames) {
+        m_linter.prepareFileForBatchLinting(testFile(filename), nullptr, options,
+                                            QLibraryInfo::paths(QLibraryInfo::QmlImportsPath), { },
+                                            { }, m_categories);
+    }
+
+    for (const auto& filename: filenames) {
+        QQmlJSLinter::Result result = m_linter.lintFileInBatch(testFile(filename));
+        checkResult(result.json["warnings"].toArray(), Result::clean());
+    }
 }
 
 QString TestQmllint::runQmllint(const QString &fileToLint,
@@ -3108,13 +3437,15 @@ static void writeQrcFileMapping(const QHash<QString, QString> &mapping, const QS
 QJsonArray TestQmllint::callQmllintImpl(const QString &fileToLint, const QString &content,
                                         const CallQmllintOptions &options, CallQmllintChecks checks)
 {
-    QJsonArray jsonOutput;
     QJsonArray result;
 
     const QFileInfo info = QFileInfo(fileToLint);
     const QString lintedFile = info.isAbsolute() ? fileToLint : testFile(fileToLint);
 
-    QQmlJSLinter::LintResult lintResult;
+    QQmlJSLinter::Result lintResult;
+    QQmlJSLinter::LintOptions lintOptions;
+    lintOptions.setFlag(QQmlJSLinter::Silent);
+    lintOptions.setFlag(QQmlJSLinter::GenerateJson);
 
     const QStringList resolvedImportPaths = options.defaultImports == UseDefaultImports
             ? m_defaultImportPaths + options.importPaths
@@ -3123,15 +3454,11 @@ QJsonArray TestQmllint::callQmllintImpl(const QString &fileToLint, const QString
         QList<QQmlJS::LoggerCategory> resolvedCategories =
                 options.categories != nullptr ? *options.categories : m_categories;
 
-        for (const QString &name : options.enableCategories) {
+        for (const auto &[cat, severity] : options.categorySeverityOverrides.asKeyValueRange()) {
             for (QQmlJS::LoggerCategory &category : resolvedCategories) {
-                if (category.name() != name)
+                if (category.name() != cat)
                     continue;
-
-                [&category]() {
-                    QVERIFY2(category.isIgnored(), "Can't enable already enabled category!");
-                }();
-                category.setIgnored(false);
+                category.setSeverity(severity);
                 break;
             }
         }
@@ -3139,7 +3466,7 @@ QJsonArray TestQmllint::callQmllintImpl(const QString &fileToLint, const QString
         if (options.readSettings) {
             QQmlToolingSettings settings(QLatin1String("qmllint"), { "General"_L1, "Warnings"_L1 });
             if (settings.search(lintedFile).isValid())
-                QQmlJS::LoggingUtils::updateLogLevels(resolvedCategories, settings, nullptr);
+                QQmlJS::LoggingUtils::updateLogSeverities(resolvedCategories, settings, nullptr);
         }
 
         QList<QString> resourceFiles = options.resources;
@@ -3151,29 +3478,26 @@ QJsonArray TestQmllint::callQmllintImpl(const QString &fileToLint, const QString
             resourceFiles.append(qrcFile);
         }
 
-        const auto contextProperties =
-                QQmlJS::HeuristicContextProperties::collectFromCppSourceDirs(options.rootUrls);
-
-        lintResult = m_linter.lintFile(lintedFile, content.isEmpty() ? nullptr : &content, true,
-                                       &jsonOutput, resolvedImportPaths, options.qmldirFiles,
-                                       resourceFiles, resolvedCategories, contextProperties);
+        lintResult = m_linter.lintFile(lintedFile, content.isEmpty() ? nullptr : &content,
+                                       lintOptions, resolvedImportPaths, options.qmldirFiles,
+                                       resourceFiles, resolvedCategories);
     } else {
-        lintResult = m_linter.lintModule(fileToLint, true, &jsonOutput, resolvedImportPaths,
+        lintResult = m_linter.lintModule(fileToLint, lintOptions, resolvedImportPaths,
                                          options.resources);
     }
 
     [&]() {
-        const bool success = lintResult == QQmlJSLinter::LintSuccess;
-        const QByteArray errorOutput = QJsonDocument(jsonOutput).toJson();
+        const bool success = lintResult.status == QQmlJSLinter::LintSuccess;
+        const QByteArray errorOutput = QJsonDocument(lintResult.json).toJson();
         QVERIFY2(success == (checks.testFlag(ShouldSucceed)), errorOutput);
-        QVERIFY2(jsonOutput.size() == 1, errorOutput);
-        result = jsonOutput.at(0)[u"warnings"_s].toArray();
+        result = lintResult.json[u"warnings"_s].toArray();
     }();
 
-    if (lintResult == QQmlJSLinter::LintSuccess || lintResult == QQmlJSLinter::HasWarnings) {
-        testFixes(checks.testFlag(ShouldSucceed), options.importPaths, options.qmldirFiles,
-                  options.resources, options.defaultImports, options.categories,
-                  checks.testFlag(HasAutoFix), options.readSettings,
+    if (lintResult.status == QQmlJSLinter::LintSuccess
+        || lintResult.status == QQmlJSLinter::HasWarnings) {
+        testFixes(lintResult.logger.get(), checks.testFlag(ShouldSucceed), options.importPaths,
+                  options.qmldirFiles, options.resources, options.defaultImports,
+                  options.categories, checks.testFlag(HasAutoFix), options.readSettings,
                   info.baseName() + u".fixed.qml"_s);
     }
     return result;
@@ -3189,16 +3513,28 @@ QJsonArray TestQmllint::callQmllintOnSnippet(const QString &snippet,
                                              const CallQmllintOptions &options,
                                              CallQmllintChecks checks)
 {
-    return callQmllintImpl(QString(), snippet, options, checks);
+    m_linter.prepareScopeForReuse(testFile("Snippet.qml"));
+
+    if (options.rootUrls.isEmpty())
+        return callQmllintImpl("Snippet.qml", snippet, options, checks);
+    QTemporaryDir dir;
+    [&dir]() { QVERIFY(dir.isValid()); }();
+    if (QTest::currentTestFailed())
+        return { };
+    const auto contextProperties =
+            QQmlJS::HeuristicContextProperties::collectFromCppSourceDirs(options.rootUrls);
+    contextProperties.writeCache(dir.path());
+    return callQmllintImpl(dir.filePath("Snippet.qml"), snippet, options, checks);
 }
 
-void TestQmllint::testFixes(bool shouldSucceed, QStringList importPaths, QStringList qmldirFiles,
-                            QStringList resources, DefaultImportOption defaultImports,
+void TestQmllint::testFixes(QQmlJSLogger *logger, bool shouldSucceed, QStringList importPaths,
+                            QStringList qmldirFiles, QStringList resources,
+                            DefaultImportOption defaultImports,
                             QList<QQmlJS::LoggerCategory> *categories, bool autoFixable,
                             bool readSettings, const QString &fixedPath)
 {
     QString fixedCode;
-    QQmlJSLinter::FixResult fixResult = m_linter.applyFixes(&fixedCode, true);
+    QQmlJSLinter::FixResult fixResult = QQmlJSLinter::applyFixes(logger, &fixedCode, true);
 
     if (autoFixable) {
         QCOMPARE(fixResult, QQmlJSLinter::FixSuccess);
@@ -3330,10 +3666,9 @@ void TestQmllint::checkResult(const QJsonArray &warnings, const Result &result,
         searchWarnings(warnings, msg.text, msg.severity, msg.line, msg.column, StringNotContained);
     }
 
-    for (const FixMessage &replacement : result.expectedReplacements) {
+    for (const Fix &fix: result.expectedFixes) {
         onReplacementFailures();
-        searchReplacements(warnings, replacement.text, replacement.replacement, replacement.line,
-                           replacement.column);
+        searchFixes(warnings, fix.text, fix.edits, fix.line, fix.column);
     }
 
     // check for duplicates
@@ -3350,43 +3685,70 @@ void TestQmllint::checkResult(const QJsonArray &warnings, const Result &result,
     QVERIFY2(firstDuplicate == sortedWarnings.constEnd(), "Found duplicate warnings!");
 }
 
-static bool warningsContainReplacement(const QJsonArray &warnings, const QString &substring,
-                                       const QString &replacementSubString, quint32 line,
-                                       quint32 column)
+static bool foundAllExpectedEdits(const TestQmllint::Edits &expectedEdits,
+                                  const QJsonArray &actualEdits)
 {
-    for (const QJsonValueConstRef warningJson : warnings) {
-        for (const QJsonValueConstRef fix : warningJson[u"suggestions"].toArray()) {
-            QString replacement = fix[u"replacement"].toString();
+    for (const TestQmllint::Edit &expectedEdit : expectedEdits) {
+        bool found = false;
+        for (const auto &actualEdit : actualEdits) {
+            auto replacement = actualEdit[u"replacement"_s].toString();
+
 #ifdef Q_OS_WIN
             // Replacements can contain native line endings
             // but we need them to be uniform in order for them to conform to our test data
             replacement = replacement.replace(u"\r\n"_s, u"\n"_s);
 #endif
-            if (replacement != replacementSubString)
+
+            if (replacement != expectedEdit.replacement)
                 continue;
 
+            if (expectedEdit.line != 0 || expectedEdit.column != 0) {
+                const auto actualLocation = actualEdit[u"location"_s].toObject();
+                if (actualLocation[u"line"_s].toInt() != int(expectedEdit.line))
+                    continue;
+                if (actualLocation[u"column"_s].toInt() != int(expectedEdit.column))
+                    continue;
+            }
+
+            found = true;
+            break;
+        }
+
+        if (!found)
+            return false;
+    }
+    return true;
+}
+
+static bool warningsContainFix(const QJsonArray &warnings, const QString &substring,
+                                 const TestQmllint::Edits &edits, quint32 line, quint32 column)
+{
+    for (const QJsonValueConstRef warningJson : warnings) {
+        for (const QJsonValueConstRef fix : warningJson[u"suggestions"].toArray()) {
             if (!fix[u"message"].toString().contains(substring))
                 continue;
 
-            const quint32 fixLine = fix[u"line"].toInt();
-            const quint32 fixColumn = fix[u"column"].toInt();
             if (line != 0 || column != 0) {
-                if (fixLine != line || fixColumn != column) {
+                const quint32 fixLine = fix[u"line"].toInt();
+                const quint32 fixColumn = fix[u"column"].toInt();
+                if (fixLine != line || fixColumn != column)
                     continue;
-                }
             }
+
+            const QJsonArray editsJson = fix[u"documentEdits"_s].toArray();
+            if (!foundAllExpectedEdits(edits, editsJson))
+                continue;
+
             return true;
         }
     }
     return false;
 }
 
-void TestQmllint::searchReplacements(const QJsonArray &warnings, const QString &substring,
-                                     const QString &replacementSubString, quint32 line, quint32 column)
+void TestQmllint::searchFixes(const QJsonArray &warnings, const QString &substring,
+                              const Edits &edits, quint32 line, quint32 column)
 {
-    const bool contains =
-            warningsContainReplacement(warnings, substring, replacementSubString, line, column);
-
+    const bool contains = warningsContainFix(warnings, substring, edits, line, column);
     const auto toDescription = [](const QJsonArray &warnings, const QString &substring,
                                   quint32 line, quint32 column) {
         const auto indentedJson =
@@ -3414,17 +3776,16 @@ void TestQmllint::searchWarnings(const QJsonArray &warnings, const QString &subs
         SimplifiedWarning warning(warningJson);
 
         if (warning.message.contains(substring)) {
-            if (warning.type != type) {
-                continue;
-            }
+            bool locationMismatch = false;
             if (line != 0 || column != 0) {
-                if (warning.line != line || warning.column != column) {
-                    continue;
-                }
+                if (warning.line != line || warning.column != column)
+                    locationMismatch = true;
             }
 
-            contains = true;
-            break;
+            if (warning.type == type && !locationMismatch) {
+                contains = true;
+                break;
+            }
         }
 
         for (const QJsonValueConstRef fix : warningJson[u"suggestions"].toArray()) {
@@ -3552,8 +3913,7 @@ void TestQmllint::attachedPropertyReuse()
     });
     Q_ASSERT(category != categories.end());
 
-    category->setLevel(QtWarningMsg);
-    category->setIgnored(false);
+    category->setSeverity(QQmlJS::WarningSeverity::Warning);
     runTest("attachedPropNotReused.qml",
             Result { { Message { QStringLiteral("Using attached type QQuickKeyNavigationAttached "
                                                 "already initialized in a parent "
@@ -3566,7 +3926,7 @@ void TestQmllint::attachedPropertyReuse()
                             "Using attached type MyStyle already initialized in a parent scope"_L1,
                             10, 16 } },
                     {},
-                    { { "Reference it by id instead"_L1, "control."_L1, 10, 16 } },
+                    { { "Reference it by id instead"_L1, Edit{ "control."_L1, 10, 16 } } },
                     Result::AutoFixable },
             {}, {}, {}, UseDefaultImports, &categories);
     runTest("pluginQuick_multipleAttachedPropertyReuse.qml",
@@ -3579,23 +3939,48 @@ void TestQmllint::missingBuiltinsNoCrash()
 {
     // We cannot use the normal linter here since the other tests might have cached the builtins
     // alread
-    QQmlJSLinter linter(m_defaultImportPaths);
+    TestLinter linter(m_defaultImportPaths);
 
-    QJsonArray jsonOutput;
-    QJsonArray warnings;
-
-    bool success = linter.lintFile(testFile("missingBuiltinsNoCrash.qml"), nullptr, true,
-                                   &jsonOutput, {}, {}, {}, {})
-            == QQmlJSLinter::LintSuccess;
-    QVERIFY2(!success, QJsonDocument(jsonOutput).toJson());
-
-    QVERIFY2(jsonOutput.size() == 1, QJsonDocument(jsonOutput).toJson());
-    warnings = jsonOutput.at(0)[u"warnings"_s].toArray();
+    QQmlJSLinter::LintOptions lintOptions;
+    lintOptions.setFlag(QQmlJSLinter::Silent);
+    lintOptions.setFlag(QQmlJSLinter::GenerateJson);
+    QQmlJSLinter::Result result = linter.lintFile(testFile("missingBuiltinsNoCrash.qml"), nullptr,
+                                                  lintOptions, { }, { }, { }, { });
+    QVERIFY2(result.status != QQmlJSLinter::LintSuccess, QJsonDocument(result.json).toJson());
 
     checkResult(
-            warnings,
+            result.json[u"warnings"_s].toArray(),
             Result{ { Message{
                     u"Failed to import QtQuick. Are your import paths set up properly?"_s } } });
+}
+
+void TestQmllint::stubQtQuickNoCrash()
+{
+    // QTBUG-149360: A module that resolves without usable type information, such
+    // as a stub that only contains "module QtQuick", used to crash the Quick lint
+    // plugin on two independent paths:
+    // * when StateNoItemChildrenValidator::shouldRun dereferenced a null Element.
+    // * when GenericPass::resolveAttached dereferenced a null scope (obtained
+    //   from a null Element).
+    // qmllint has to exit normally instead of segfaulting.
+    QProcess process;
+    process.setWorkingDirectory(testFile("stubQuick"));
+    process.start(m_qmllintPath,
+                  warningsShouldFailArgs()
+                          << QStringLiteral("--bare")
+                          << QStringLiteral("-I")
+                          << QFileInfo(testFile("stubQuick")).absoluteFilePath()
+                          << QStringLiteral("test.qml"));
+
+    QVERIFY(process.waitForFinished());
+
+    // The point of this test is that qmllint terminates normally instead of
+    // segfaulting.
+    QCOMPARE(process.exitStatus(), QProcess::NormalExit);
+    QVERIFY(process.exitCode() != 0);
+
+    // The type information is unusable, so warnings are expected.
+    QVERIFY(process.readAllStandardError().contains("Item was not found"));
 }
 
 void TestQmllint::absolutePath()
@@ -3697,6 +4082,8 @@ void TestQmllint::lintModule()
 
 void TestQmllint::testLineEndings()
 {
+    QQmlJSLinter::LintOptions lintOptions;
+    lintOptions.setFlag(QQmlJSLinter::Silent);
     {
         const auto textWithLF = QString::fromUtf16(u"import QtQuick 2.0\nimport QtTest 2.0 // qmllint disable unused-imports\n"
             "import QtTest 2.0 // qmllint disable\n\nItem {\n    @Deprecated {}\n    property string deprecated\n\n    "
@@ -3706,7 +4093,9 @@ void TestQmllint::testLineEndings()
             "//qmllint d       4isable\n    property string e: root.a\n    Component.onCompleted: {\n        console.log"
             "(deprecated);\n    }\n    // qmllint enable\n\n}\n");
 
-        const auto lintResult = m_linter.lintFile( {}, &textWithLF, true, nullptr, {}, {}, {}, {});
+        const auto lintResult = m_linter.lintFile(testFile("snippetWithLF.qml"), &textWithLF,
+                                                  lintOptions, { }, { }, { }, { })
+                                        .status;
 
         QCOMPARE(lintResult, QQmlJSLinter::LintResult::HasWarnings);
     }
@@ -3719,7 +4108,9 @@ void TestQmllint::testLineEndings()
         "root.a\n    // qmllint enable unqualified\n\n    //qmllint d       4isable\n    property string e: root.a\n    Component.onCompleted: "
         "{\n        console.log(deprecated);\n    }\n    // qmllint enable\n\n}\n");
 
-        const auto lintResult = m_linter.lintFile( {}, &textWithCRLF, true, nullptr, {}, {}, {}, {});
+        const auto lintResult = m_linter.lintFile(testFile("snippetWithCRLF.qml"), &textWithCRLF,
+                                                  lintOptions, { }, { }, { }, { })
+                                        .status;
 
         QCOMPARE(lintResult, QQmlJSLinter::LintResult::HasWarnings);
     }
@@ -3748,23 +4139,23 @@ void TestQmllint::valueTypesFromString()
                     },
                     { /*bad messages */ },
                     { { u"Replace string by structured value construction"_s,
-                        u"({ width: 30, height: 50 })"_s },
+                        Edit{ u"({ width: 30, height: 50 })"_s } },
                       { u"Replace string by structured value construction"_s,
-                        u"({ x: 10, y: 20, width: 30, height: 50 })"_s },
+                        Edit{ u"({ x: 10, y: 20, width: 30, height: 50 })"_s } },
                       { u"Replace string by structured value construction"_s,
-                        u"({ x: 30, y: 50 })"_s },
+                        Edit{ u"({ x: 30, y: 50 })"_s } },
                       { u"Replace string by structured value construction"_s,
-                        u"({ x: 1, y: 2 })"_s },
+                        Edit{ u"({ x: 1, y: 2 })"_s } },
                       { u"Replace string by structured value construction"_s,
-                        u"({ x: 1, y: 2 })"_s },
+                        Edit{ u"({ x: 1, y: 2 })"_s } },
                       { u"Replace string by structured value construction"_s,
-                        u"({ x: 1, y: 2, z: 3 })"_s },
+                        Edit{ u"({ x: 1, y: 2, z: 3 })"_s } },
                       { u"Replace string by structured value construction"_s,
-                        u"({ x: 1, y: 2, z: 3, w: 4 })"_s },
+                        Edit{ u"({ x: 1, y: 2, z: 3, w: 4 })"_s } },
                       { u"Replace string by structured value construction"_s,
-                        u"({ scalar: 1, x: 2, y: 3, z: 4 })"_s },
+                        Edit{ u"({ scalar: 1, x: 2, y: 3, z: 4 })"_s } },
                       { u"Replace string by structured value construction"_s,
-                        u"({ m11: 1, m12: 2, m13: 3, m14: 4, m21: 5, m22: 6, m23: 7, m24: 8, m31: 9, m32: 10, m33: 11, m34: 12, m41: 13, m42: 14, m43: 15, m44: 16 })"_s },
+                        Edit{ u"({ m11: 1, m12: 2, m13: 3, m14: 4, m21: 5, m22: 6, m23: 7, m24: 8, m31: 9, m32: 10, m33: 11, m34: 12, m41: 13, m42: 14, m43: 15, m44: 16 })"_s } },
                     } });
 }
 
@@ -3783,20 +4174,15 @@ void TestQmllint::hasTestPlugin()
 
         for (auto &category : plugin.categories()) {
             if (category.name() == u"testPlugin.TestDefaultValue") {
-                QCOMPARE(category.level(), QtCriticalMsg);
-                QCOMPARE(category.isIgnored(), true);
+                QCOMPARE(category.severity(), QQmlJS::WarningSeverity::Disable);
             } else if (category.name() == u"testPlugin.TestDefaultValue2") {
-                QCOMPARE(category.level(), QtInfoMsg);
-                QCOMPARE(category.isIgnored(), false);
+                QCOMPARE(category.severity(), QQmlJS::WarningSeverity::Info);
             } else if (category.name() == u"testPlugin.test") {
-                QCOMPARE(category.level(), QtWarningMsg);
-                QCOMPARE(category.isIgnored(), false);
+                QCOMPARE(category.severity(), QQmlJS::WarningSeverity::Warning);
             } else if (category.name() == u"testPlugin.TestDefaultValue3"){
-                QCOMPARE(category.level(), QtWarningMsg);
-                QCOMPARE(category.isIgnored(), false);
+                QCOMPARE(category.severity(), QQmlJS::WarningSeverity::Warning);
             } else if (category.name() == u"testPlugin.TestDefaultValue4"){
-                QCOMPARE(category.level(), QtCriticalMsg);
-                QCOMPARE(category.isIgnored(), false);
+                QCOMPARE(category.severity(), QQmlJS::WarningSeverity::Error);
             } else {
                 QFAIL("This category was not tested!");
             }
@@ -3907,6 +4293,12 @@ void TestQmllint::testPlugin_data()
     QTest::addRow("nosettings_pluginTest")
             << testFile(u"settings/plugin/elementpass_pluginTest.qml"_s)
             << Result{ { Message{ u"ElementTest OK"_s } }, {}, {} };
+    QTest::addRow("multipleDocumentEditsFixSuggestion")
+            << testFile("testPluginData/multipleDocumentEditsFixSuggestion_pluginTest.qml")
+            << Result{ { { u"Multiple document edits"_s, 3, 1 } },
+                       { },
+                       { { "Rename and add pragma"_L1,
+                           Edits{ { "pragma Yep\n", 1, 1 }, { "NewTypeName", 3, 1 } } } } };
 }
 
 void TestQmllint::testPlugin()
@@ -4285,7 +4677,7 @@ void TestQmllint::backslashedQmldirPath()
             = testFile(u"ImportPath/ModuleInImportPath/qmldir"_s).replace('/', QDir::separator());
     const QString output = runQmllint(
             testFile(u"something.qml"_s), true, QStringList{ u"-i"_s, qmldirPath });
-    QVERIFY(output.isEmpty());
+    QVERIFY2(output.isEmpty(), qPrintable(output));
 }
 
 #if QT_CONFIG(process)
@@ -4350,9 +4742,10 @@ void TestQmllint::shadow_data()
     QTest::addColumn<CallQmllintOptions>("options");
 
     CallQmllintOptions defaultOptions;
-    defaultOptions.enableCategories.append(qmlShadow.name().toString());
+    defaultOptions.categorySeverityOverrides[qmlShadow.name().toString()] =
+            QQmlJS::WarningSeverity::Warning;
     // filename of the snippet is empty
-    const QString fileName = testFile("");
+    const QString fileName = testFile("Snippet.qml");
 
     QTest::newRow("duplicatedMethod")
             << u"function hello() {}"
@@ -4381,6 +4774,79 @@ void TestQmllint::shadow_data()
                        },
                        { { "Signal \"hello\" already exists in base type" } } }
             << defaultOptions;
+
+    QTest::newRow("idShadowsMember-noUsage") // shadowing but no usage -> don't warn
+            << u"id: i\n"_s
+               u"property int i\n"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("idShadowsMember-property")
+            << u"id: i\n"_s
+               u"property int i\n"_s
+               u"property var v: i\n"_s
+            << Result{ { { "Id for object Item shadows property \"i\""_L1, 3, 17 },
+                         { "Note: Id defined here"_L1, 1, 5 } } }
+            << defaultOptions;
+    QTest::newRow("idShadowsMember-method")
+            << u"id: i\n"_s
+               u"function i() {}\n"_s
+               u"property var v: i\n"_s
+            << Result{ { { "Id for object Item shadows method \"i\""_L1, 3, 17 },
+                         { "Note: Id defined here"_L1, 1, 5 } } }
+            << defaultOptions;
+    QTest::newRow("idShadowsMember-signal")
+            << u"id: a\n"_s
+               u"signal a\n"_s
+               u"property var v: a\n"_s
+            << Result{ { { "Id for object Item shadows signal \"a\""_L1, 3, 17 },
+                         { "Note: Id defined here"_L1, 1, 5 } } }
+            << defaultOptions;
+    QTest::newRow("idShadowsMember-baseProperty")
+            << u"id: i\n"_s
+               u"component C : Item { property int i }\n"_s
+               u"C { property var v: i }\n"_s
+            << Result{ { { "Id for object Item shadows property \"i\""_L1, 3, 21 } } }
+            << defaultOptions;
+    QTest::newRow("idShadowsMember-baseMethod")
+            << u"id: i\n"_s
+               u"component C : Item { function i() {} }\n"_s
+               u"C { property var v: i }\n"_s
+            << Result{ { { "Id for object Item shadows method \"i\""_L1, 3, 21 } } }
+            << defaultOptions;
+    QTest::newRow("idShadowsMember-noDuplicateWarnings") // 1 shadowing, 2 usages -> 1 warning
+            << u"id: i\n"_s
+               u"property int i\n"_s
+               u"property var v1: i\n"_s
+               u"property var v2: i\n"_s
+            << Result{ { { "Id for object Item shadows property \"i\""_L1, 3, 18 } },
+                       { { "Id for object Item shadows property \"i\""_L1, 4, 18 } } }
+            << defaultOptions;
+    QTest::newRow("idShadowsMember-componentBoundaries-Bound")
+            << u"pragma ComponentBehavior: Bound\n"_s
+               u"import QtQuick\n"_s
+               u"Item {\n"_s
+               u"    id: i\n"_s
+               u"    component C : Item { property int i; property var v: i }\n"_s
+               u"}\n"_s
+            << Result{ { { "Id for object Item shadows property \"i\""_L1, 5, 58 },
+                         { "Note: Id defined here"_L1, 4, 9 } } }
+            << defaultOptions;
+    QTest::newRow("idShadowsMember-componentBoundaries-Unbound")
+            << u"pragma ComponentBehavior: Unbound\n"_s
+               u"import QtQuick\n"_s
+               u"Item {\n"_s
+               u"    id: i\n"_s
+               u"    component C : Item { property int i; property var v: i }\n"_s
+               u"}\n"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("idShadowsMember-disableDirective")
+            << u"id: i\n"_s
+               u"property int i\n"_s
+               u"property var v: i // qmllint disable id-shadows-member\n"_s
+            << Result::clean()
+            << defaultOptions;
+
     QTest::newRow("shadowMethod")
             << u"component IC: Item { function f() {} }\n"
                u"IC { function f() {} }"_s
@@ -4515,6 +4981,230 @@ void TestQmllint::shadow()
     dirtyQmlSnippet();
 }
 
+void TestQmllint::uselessExpressionStatements_data()
+{
+    QTest::addColumn<QString>("code");
+    QTest::addColumn<Result>("result");
+    QTest::addColumn<CallQmllintOptions>("options");
+
+    const CallQmllintOptions defaultOptions;
+    const auto warning = "Expression statement has no obvious effect."_L1;
+
+    QTest::newRow("uselessExpressionStatement")
+            << u"property int i: { let x = 0; 0 + 1; return i + 3; }"_s
+            << Result{ { { "Expression statement has no obvious effect."_L1, 1, 30 } } }
+            << defaultOptions;
+
+    QTest::newRow("propertyDef-last-simple")
+            << u"property int i: 1"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("propertyDef-last-block")
+            << u"property int i: { 1 }"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("propertyDef-last-nested")
+            << u"property int i: (1)"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("propertyDef-last-blockNested")
+            << u"property int i: { (1) }"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("propertyDef-last-complex")
+            << u"property int i: { 1 + i < 0 ? ~i : i**i }"_s
+            << Result::clean()
+            << defaultOptions;
+
+    QTest::newRow("propertyBinding-last-simple")
+            << u"x: 1"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("propertyBinding-last-block")
+            << u"x: { 1 }"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("propertyBinding-last-nested")
+            << u"x: (1)"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("propertyBinding-last-blockNested")
+            << u"x: { (1) }"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("propertyBinding-last-complex")
+            << u"x: { 1 + x < 0 ? ~x : x**x }"_s
+            << Result::clean()
+            << defaultOptions;
+
+    QTest::newRow("propertyDef-dirty1")
+            << u"property int i: { 1; 1 }"_s
+            << Result{ { { warning, 1, 19 } } }
+            << defaultOptions;
+    QTest::newRow("propertyDef-dirty2")
+            << u"property int i: { if (true) 1; 1 }"_s
+            << Result{ { { warning, 1, 29 } } }
+            << defaultOptions;
+    QTest::newRow("propertyBinding-dirty1")
+            << u"x: { 1; 1 }"_s
+            << Result{ { { warning, 1, 6 } } }
+            << defaultOptions;
+    QTest::newRow("propertyBinding-dirty2")
+            << u"x: { if (true) 1; 1 }"_s
+            << Result{ { { warning, 1, 16 } } }
+            << defaultOptions;
+
+    QTest::newRow("signalHandler1")
+            << u"onXChanged: 1"_s
+            << Result{ { { warning, 1, 13 } } }
+            << defaultOptions;
+    QTest::newRow("signalHandler2")
+            << u"onXChanged: { 1 }"_s
+            << Result{ { { warning, 1, 15 } } }
+            << defaultOptions;
+    QTest::newRow("signalHandler3")
+            << u"onXChanged: 9 / 8"_s
+            << Result{ { { warning, 1, 13 } } }
+            << defaultOptions;
+    QTest::newRow("signalHandler4")
+            << u"id: item; onXChanged: item.dumpItemTree()"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("attachedSignalHandler")
+            << u"Component.onCompleted: 1"_s
+            << Result{ { { warning, 1, 24 } } }
+            << defaultOptions;
+
+    QTest::newRow("function1")
+            << u"function f() { 1 }"_s
+            << Result{ { { warning, 1, 16 } } }
+            << defaultOptions;
+    QTest::newRow("function2")
+            << u"function f() { 1; return 1 }"_s
+            << Result{ { { warning, 1, 16 } } }
+            << defaultOptions;
+    QTest::newRow("function3")
+            << u"function f() { { x + 1 } }"_s
+            << Result{ { { warning, 1, 18 } } }
+            << defaultOptions;
+
+    QTest::newRow("id")
+            << u"id: a"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("groupedProperty1")
+            << u"anchors { right: anchors.right }"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("groupedProperty2")
+            << u"anchors.right: anchors.right"_s
+            << Result::clean()
+            << defaultOptions;
+    QTest::newRow("groupedProperty3")
+            << u"Text { font.bold: { 1; true } }"_s
+            << Result{ { { warning, 1, 19 } } }
+            << defaultOptions;
+
+    QTest::newRow("recursive")
+            << uR"( function f() {
+                        let i = 0
+                        {
+                            1;
+                            (2)
+                        }
+
+                        try {
+                            3
+                        } catch(e) {
+                            4
+                        }
+
+                        for (;;)
+                            5
+                        for (let i in ii) // qmllint disable unqualified
+                            6
+                        for (let i of ii) // qmllint disable unqualified
+                            7
+
+                        while (true)
+                            8
+
+                        if (true)
+                            9
+                        else
+                            10
+
+                        switch (i) {
+                        case 0:
+                            11
+                            break
+                        default:
+                            12
+                            break;
+                        case 2:
+                            13
+                        }
+
+                        with (1) // qmllint disable with
+                            14
+
+                    label: 15
+
+                        16
+                    })"_s
+            << Result{ { { warning, 4, 29 },    // block
+                         { warning, 5, 29 },    // nested
+                         { warning, 9, 29 },    // try
+                         { warning, 11, 29 },   // catch
+                         { warning, 15, 29 },   // for
+                         { warning, 17, 29 },   // for-in
+                         { warning, 19, 29 },   // for-of
+                         { warning, 22, 29 },   // while
+                         { warning, 25, 29 },   // if
+                         { warning, 27, 29 },   // else
+                         { warning, 31, 29 },   // case 0
+                         { warning, 34, 29 },   // default
+                         { warning, 37, 29 },   // case 2
+                         { warning, 41, 29 },   // with
+                         { warning, 43, 28 },   // label
+                         { warning, 45, 25 },   // bare
+                       } }
+            << defaultOptions;
+
+    QTest::newRow("emptyCaseClause")
+            << uR"(width: {
+                        switch (0) {
+                        case 1:
+                        default:
+                            1;
+                        }
+                    })"_s
+            << Result::clean()
+            << defaultOptions;
+
+    QTest::newRow("emptyBlock")
+            << uR"(width: {
+                        if (true)
+                            1;
+                        else {}
+                    })"_s
+            << Result::clean()
+            << defaultOptions;
+}
+
+void TestQmllint::uselessExpressionStatements()
+{
+    QEXPECT_FAIL("attachedSignalHandler", "", Abort);
+    QEXPECT_FAIL("groupedProperty3", "", Abort);
+    if (QTest::currentDataTag() == "attachedSignalHandler"_L1
+            || QTest::currentDataTag() == "groupedProperty3"_L1) {
+        QFAIL("Incomplete attached and grouped properties support");
+    }
+
+    // reuse testing logic from dirtyQmlSnippet
+    dirtyQmlSnippet();
+}
+
 void TestQmllint::useProperFunction_data()
 {
     // note: use the same column as dirtyQmlSnippet_data() to reuse dirtyQmlSnippet() in shadow().
@@ -4523,7 +5213,8 @@ void TestQmllint::useProperFunction_data()
     QTest::addColumn<CallQmllintOptions>("options");
 
     CallQmllintOptions defaultOptions;
-    defaultOptions.enableCategories.append(qmlUseProperFunction.name().toString());
+    defaultOptions.categorySeverityOverrides[qmlUseProperFunction.name().toString()] =
+            QQmlJS::WarningSeverity::Warning;
 
     QTest::newRow("shadowedMethod")
             << u"function foo() {}\n property bool foo: false"_s
@@ -4595,6 +5286,110 @@ void TestQmllint::noSettingsPollution()
     QCOMPARE(output, expectedOutput);
 }
 
+void TestQmllint::syntaxIsEssential()
+{
+    const auto &builtins = QQmlJSLogger::builtinCategories();
+    builtins.first().name();
+    const auto it = std::find_if(builtins.cbegin(), builtins.cend(), [](const auto &c) {
+        return c.name() == "syntax"_L1;
+    });
+    QVERIFY(it != builtins.cend());
+    QVERIFY(it->isEssential());
+}
+
+void TestQmllint::essentialCantBeLowered()
+{
+    const auto warning = "In order to ensure the proper function of qmllint, the severity of the "
+                         "essential category syntax cannot be lowered."_L1;
+    {
+        QProcess process;
+        process.setProcessChannelMode(QProcess::MergedChannels);
+        process.start(m_qmllintPath, { "--syntax=info"_L1, testFile("dummy.qml") });
+        QVERIFY(process.waitForFinished());
+        const QString output = process.readAllStandardOutput();
+        QVERIFY(output.contains(warning));
+    }
+    {
+        QProcess process;
+        process.setProcessChannelMode(QProcess::MergedChannels);
+        process.start(m_qmllintPath, { testFile("essentialCantBeLowered/file.qml") });
+        QVERIFY(process.waitForFinished());
+        const QString output = process.readAllStandardOutput();
+        QVERIFY(output.contains(warning));
+    }
+}
+
+void TestQmllint::essentialCanBeRaised()
+{
+    CallQmllintOptions options;
+    options.readSettings = true;
+    const QJsonArray json = callQmllint(testFile("essentialCanBeRaised/file.qml"), options,
+                                        CallQmllintCheck::ShouldFail);
+
+    const QString error = "Nested inline components are not supported"_L1;
+    bool foundSyntaxError = false;
+    for (const auto &entry : json) {
+        const QJsonObject &message = entry.toObject();
+        if (message["id"] == "syntax"_L1 && message["type"] == "critical"_L1
+                && message["message"].toString().contains(error)) {
+            foundSyntaxError = true;
+            break;
+        }
+    }
+    QVERIFY(foundSyntaxError);
+}
+
+static const auto OnlyExplicitCategories_unqualified = "7:26: Unqualified access"_L1;
+static const auto OnlyExplicitCategories_unqualifiedFix = "property bool b: root.i === 1"_L1;
+static const auto OnlyExplicitCategories_comma = "11:10: Do not use comma expressions"_L1;
+static const auto OnlyExplicitCategories_ifAssign = "12:15: Assignment in condition"_L1;
+
+void TestQmllint::onlyExplicitCategories()
+{
+    const QString qmlFilePath = testFile("OnlyExplicitCategories/file.qml"_L1);
+    bool shouldSucceed = true;
+    QStringList extraArgs;
+    bool ignoreSettings = false;
+
+    QString output = runQmllint(qmlFilePath, shouldSucceed, extraArgs, ignoreSettings);
+    QVERIFY(output.contains(OnlyExplicitCategories_unqualified));
+    QVERIFY(output.contains(OnlyExplicitCategories_unqualifiedFix));
+    QVERIFY(output.contains(OnlyExplicitCategories_comma));
+    QVERIFY(!output.contains(OnlyExplicitCategories_ifAssign)); // per .qmllint.ini
+
+    extraArgs << "--ignore-settings"_L1;
+    output = runQmllint(qmlFilePath, shouldSucceed, extraArgs, ignoreSettings);
+    QVERIFY(output.contains(OnlyExplicitCategories_unqualified));
+    QVERIFY(output.contains(OnlyExplicitCategories_unqualifiedFix));
+    QVERIFY(output.contains(OnlyExplicitCategories_comma));
+    QVERIFY(output.contains(OnlyExplicitCategories_ifAssign));
+
+    extraArgs << "--only-explicit-categories"_L1;
+    output = runQmllint(qmlFilePath, shouldSucceed, extraArgs, ignoreSettings);
+    QVERIFY(output.isEmpty());
+
+    extraArgs << QStringList{ "--unqualified=warning"_L1 };
+    output = runQmllint(qmlFilePath, shouldSucceed, extraArgs, ignoreSettings);
+    QVERIFY(output.contains(OnlyExplicitCategories_unqualified));
+    QVERIFY(output.contains(OnlyExplicitCategories_unqualifiedFix));
+    QVERIFY(!output.contains(OnlyExplicitCategories_comma));
+    QVERIFY(!output.contains(OnlyExplicitCategories_ifAssign));
+}
+
+void TestQmllint::onlyExplicitCategoriesIni()
+{
+    const QString qmlFilePath = testFile("OnlyExplicitCategoriesIni/file.qml"_L1);
+    bool shouldSucceed = true;
+    QStringList extraArgs;
+    bool ignoreSettings = false;
+
+    const QString output = runQmllint(qmlFilePath, shouldSucceed, extraArgs, ignoreSettings);
+    QVERIFY(!output.contains(OnlyExplicitCategories_unqualified));
+    QVERIFY(!output.contains(OnlyExplicitCategories_unqualifiedFix));
+    QVERIFY(output.contains(OnlyExplicitCategories_comma));
+    QVERIFY(!output.contains(OnlyExplicitCategories_ifAssign));
+}
+
 void TestQmllint::crashes()
 {
     CallQmllintOptions options;
@@ -4619,6 +5414,32 @@ void TestQmllint::registerMergeTreeRecursion()
         QCOMPARE(process.exitStatus(), QProcess::NormalExit);
         QCOMPARE(process.exitCode(), 0);
     });
+}
+
+void TestQmllint::weakPointers()
+{
+    // linting scenario from QTBUG-146688, where grouped properties types disappeared when linting
+    // these files in exact that order:
+    // HomePage populates all other qml scopes
+    // NavBarForm.ui.qml used to drop data weakly referenced from NewTaskForm to NavBar
+    // NewTask can't find the type weakly referenced from NewTaskForm's "backbutton" property and
+    // emits bogus warnings.
+    std::array filesToLint = {
+        testFile("weakpointers/HomePage.qml"),
+        testFile("weakpointers/NavBarForm.ui.qml"),
+        testFile("weakpointers/NewTask.qml"),
+    };
+
+    // actual testing, prove that this bug does not happen anymore in linter:
+    for (const auto &file : filesToLint) {
+        m_linter.prepareFileForBatchLinting(file, nullptr, { }, m_defaultImportPaths, { }, { },
+                                            m_categories);
+    }
+
+    for (const auto &file : filesToLint) {
+        auto result = m_linter.lintFileInBatch(file);
+        QCOMPARE(result.status, QQmlJSLinter::LintSuccess);
+    }
 }
 
 QTEST_GUILESS_MAIN(TestQmllint)

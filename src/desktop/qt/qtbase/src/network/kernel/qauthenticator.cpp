@@ -393,7 +393,11 @@ bool QAuthenticator::isNull() const
 
 void QAuthenticator::clear()
 {
-    *d = QAuthenticatorPrivate();
+    if (!d)
+        d = new QAuthenticatorPrivate;
+    else
+        *d = QAuthenticatorPrivate();
+
     d->phase = QAuthenticatorPrivate::Done;
 }
 
@@ -408,8 +412,19 @@ public:
 class QGssApiHandles
 {
 public:
+    Q_DISABLE_COPY_MOVE(QGssApiHandles)
+    QGssApiHandles() = default;
+    ~QGssApiHandles()
+    {
+        OM_uint32 ignored = 0;
+        if (targetName)
+            gss_release_name(&ignored, &targetName);
+        if (gssCtx)
+            gss_delete_sec_context(&ignored, &gssCtx, GSS_C_NO_BUFFER);
+    }
+
     gss_ctx_id_t gssCtx = nullptr;
-    gss_name_t targetName;
+    gss_name_t targetName = nullptr;
 };
 #endif // gssapi
 
@@ -1101,12 +1116,6 @@ static constexpr quint16 NtlmFileTimeSize = 8;
    qNtlmDecodePhase2(response, pb);
    response = qNtlmPhase3(ctx, pb);
    // send response (b64 encoded??)
-*/
-
-/*
-   TODO:
-    - Fix unicode handling
-    - add v2 handling
 */
 
 class QNtlmBuffer {
@@ -1870,16 +1879,9 @@ static QByteArray qGssapiContinue(QAuthenticatorPrivate *ctx, QByteArrayView cha
         result = QByteArray(reinterpret_cast<const char*>(outBuf.value), outBuf.length);
     gss_release_buffer(&ignored, &outBuf);
 
-    if (majStat != GSS_S_COMPLETE && majStat != GSS_S_CONTINUE_NEEDED) {
-        q_GSSAPI_error("gss_init_sec_context error", majStat, minStat);
-        gss_release_name(&ignored, &ctx->gssApiHandles->targetName);
-        if (ctx->gssApiHandles->gssCtx)
-            gss_delete_sec_context(&ignored, &ctx->gssApiHandles->gssCtx, GSS_C_NO_BUFFER);
-        ctx->gssApiHandles.reset(nullptr);
-    }
-
-    if (majStat == GSS_S_COMPLETE) {
-        gss_release_name(&ignored, &ctx->gssApiHandles->targetName);
+    if (majStat != GSS_S_CONTINUE_NEEDED) {
+        if (majStat != GSS_S_COMPLETE)
+            q_GSSAPI_error("gss_init_sec_context error", majStat, minStat);
         ctx->gssApiHandles.reset(nullptr);
     }
 

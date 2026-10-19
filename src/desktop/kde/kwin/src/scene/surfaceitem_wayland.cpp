@@ -8,6 +8,8 @@
 #include "core/backendoutput.h"
 #include "core/drmdevice.h"
 #include "core/renderbackend.h"
+#include "scene/scene.h"
+#include "texture.h"
 #include "wayland/linuxdmabufv1clientbuffer.h"
 #include "wayland/subcompositor.h"
 #include "wayland/surface.h"
@@ -47,6 +49,7 @@ SurfaceItemWayland::SurfaceItemWayland(SurfaceInterface *surface, Item *parent)
             this, &SurfaceItemWayland::handlePresentationModeHintChanged);
     connect(surface, &SurfaceInterface::bufferReleasePointChanged, this, &SurfaceItemWayland::handleReleasePointChanged);
     connect(surface, &SurfaceInterface::alphaMultiplierChanged, this, &SurfaceItemWayland::handleAlphaMultiplierChanged);
+    connect(surface, &SurfaceInterface::waitingOnCommitTiming, this, &SurfaceItemWayland::handleCommitTiming);
 
     connect(surface, &SurfaceInterface::mapped,
             this, &SurfaceItemWayland::handleSurfaceMappedChanged);
@@ -65,29 +68,25 @@ SurfaceItemWayland::SurfaceItemWayland(SurfaceInterface *surface, Item *parent)
     setDestinationSize(surface->size());
     setBufferTransform(surface->bufferTransform());
     setBufferSourceBox(surface->bufferSourceBox());
-    setBuffer(surface->buffer());
+    setBuffer(surface->buffer(), FileDescriptor{});
     m_bufferReleasePoint = m_surface->bufferReleasePoint();
     setColorDescription(surface->colorDescription());
     setRenderingIntent(surface->renderingIntent());
     setPresentationHint(surface->presentationModeHint());
     setOpacity(surface->alphaMultiplier());
-
-    m_fifoFallbackTimer.setInterval(1000 / 20);
-    m_fifoFallbackTimer.setSingleShot(true);
-    connect(&m_fifoFallbackTimer, &QTimer::timeout, this, &SurfaceItemWayland::handleFifoFallback);
 }
 
-QList<RectF> SurfaceItemWayland::shape() const
+RegionF SurfaceItemWayland::shape() const
 {
-    return {rect()};
+    return RegionF{rect()};
 }
 
-Region SurfaceItemWayland::opaque() const
+RegionF SurfaceItemWayland::opaque() const
 {
     if (m_surface) {
         return m_surface->opaque();
     }
-    return Region();
+    return RegionF();
 }
 
 SurfaceInterface *SurfaceItemWayland::surface() const
@@ -102,7 +101,7 @@ void SurfaceItemWayland::handleSurfaceSizeChanged()
 
 void SurfaceItemWayland::handleBufferChanged()
 {
-    setBuffer(m_surface->buffer());
+    setBuffer(m_surface->buffer(), FileDescriptor{});
 }
 
 void SurfaceItemWayland::handleBufferSourceBoxChanged()
@@ -117,11 +116,8 @@ void SurfaceItemWayland::handleBufferTransformChanged()
 
 void SurfaceItemWayland::handleSurfaceCommitted()
 {
-    if (m_surface->hasFifoBarrier()) {
-        m_fifoFallbackTimer.start();
-    }
     if (m_surface->hasFrameCallbacks() || m_surface->hasFifoBarrier() || m_surface->hasPresentationFeedback()) {
-        scheduleFrame();
+        scheduleFrame(m_surface->requestedTimingOfNextCommit());
     }
 }
 
@@ -170,13 +166,13 @@ ContentType SurfaceItemWayland::contentType() const
     return m_surface ? m_surface->contentType() : ContentType::None;
 }
 
-void SurfaceItemWayland::setScanoutHint(DrmDevice *device, const QHash<uint32_t, QList<uint64_t>> &drmFormats)
+void SurfaceItemWayland::setScanoutHint(DrmDevice *device, const FormatModifierMap &drmFormats)
 {
     if (!m_surface || !m_surface->dmabufFeedbackV1()) {
         return;
     }
     if (!device && m_scanoutFeedback.has_value()) {
-        m_surface->dmabufFeedbackV1()->setTranches({});
+        m_surface->dmabufFeedbackV1()->setScanoutTranches({});
         m_scanoutFeedback.reset();
         return;
     }
@@ -205,7 +201,6 @@ void SurfaceItemWayland::freeze()
     }
 
     m_surface = nullptr;
-    m_fifoFallbackTimer.stop();
 }
 
 void SurfaceItemWayland::handleColorDescriptionChanged()
@@ -214,8 +209,10 @@ void SurfaceItemWayland::handleColorDescriptionChanged()
     if (m_surface->colorDescriptionType() == ColorDescriptionType::Windows) {
         // TODO also react to config changes after the image description is set?
         const auto group = kwinApp()->config()->group("Windows_HDR");
-        description = description->withReference(group.readEntry("Reference", 203.0));
-        description = description->withHdrMetadata(group.readEntry("MaxFrameAverage", 600), group.readEntry("MaxLuminance", 1'000));
+        const double reference = group.readEntry("Reference", 203.0);
+        description = description->withReference(reference);
+        // the max average is intentionally ignored, since the calibration app doesn't set it (anymore)
+        description = description->withHdrMetadata(reference, group.readEntry("MaxLuminance", 1'000));
     }
     setColorDescription(description);
     setRenderingIntent(m_surface->renderingIntent());
@@ -229,6 +226,11 @@ void SurfaceItemWayland::handlePresentationModeHintChanged()
 void SurfaceItemWayland::handleReleasePointChanged()
 {
     m_bufferReleasePoint = m_surface->bufferReleasePoint();
+    for (const auto &[device, texture] : m_textures) {
+        if (texture) {
+            texture->setReleasePoint(m_bufferReleasePoint);
+        }
+    }
 }
 
 void SurfaceItemWayland::handleAlphaMultiplierChanged()
@@ -236,7 +238,20 @@ void SurfaceItemWayland::handleAlphaMultiplierChanged()
     setOpacity(m_surface->alphaMultiplier());
 }
 
-void SurfaceItemWayland::handleFramePainted(LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp)
+void SurfaceItemWayland::handleCommitTiming()
+{
+    scheduleFrame(m_surface->requestedTimingOfNextCommit());
+}
+
+void SurfaceItemWayland::handlePrepareFrame(std::chrono::nanoseconds timestamp)
+{
+    if (!m_surface) {
+        return;
+    }
+    m_surface->tryApplyState(timestamp);
+}
+
+void SurfaceItemWayland::handleFramePainted(RenderView *view, LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp)
 {
     if (!m_surface) {
         return;
@@ -245,26 +260,13 @@ void SurfaceItemWayland::handleFramePainted(LogicalOutput *output, OutputFrame *
     if (frame) {
         // FIXME make frame always valid
         if (auto feedback = m_surface->presentationFeedback(output)) {
-            frame->addFeedback(std::move(feedback));
+            frame->addFeedback(std::move(feedback), view && view->presentationIsZeroCopy(this) ? PresentationFeedbackFlag::ZeroCopy : PresentationFeedbackFlags{});
         }
     }
     // TODO only call this once per refresh cycle
-    m_surface->clearFifoBarrier();
-    if (m_fifoFallbackTimer.isActive() && output) {
-        // TODO once we can rely on frame being not-nullptr, use its refresh duration instead
-        const auto refreshDuration = std::chrono::nanoseconds(1'000'000'000'000) / output->backendOutput()->refreshRate();
-        // some games don't work properly if the refresh rate goes too low with FIFO. 30Hz is assumed to be fine here.
-        // this must still be slower than the actual screen though, or fifo behavior would be broken!
-        const auto fallbackRefreshDuration = std::max(refreshDuration * 5 / 4, std::chrono::nanoseconds(1'000'000'000) / 30);
-        // reset the timer, it should only trigger if we don't present fast enough
-        m_fifoFallbackTimer.start(std::chrono::duration_cast<std::chrono::milliseconds>(fallbackRefreshDuration));
-    }
-}
-
-void SurfaceItemWayland::handleFifoFallback()
-{
-    if (m_surface) {
-        m_surface->clearFifoBarrier();
+    m_surface->clearFifoBarrier(output ? std::optional(std::chrono::nanoseconds(1'000'000'000'000) / output->refreshRate()) : std::nullopt);
+    if (const auto timing = m_surface->requestedTimingOfNextCommit()) {
+        scheduleFrame(timing);
     }
 }
 
@@ -279,38 +281,27 @@ SurfaceItemXwayland::SurfaceItemXwayland(X11Window *window, Item *parent)
 void SurfaceItemXwayland::handleShapeChange()
 {
     const auto newShape = m_window->shapeRegion();
-    Region newBufferShape;
-    for (const auto &rect : newShape) {
-        newBufferShape |= rect.toAlignedRect();
-    }
-    scheduleRepaint(newBufferShape.xored(m_previousBufferShape));
-    m_previousBufferShape = newBufferShape;
+    scheduleRepaint(newShape.xored(m_previousBufferShape));
+    m_previousBufferShape = newShape;
     discardQuads();
 }
 
-QList<RectF> SurfaceItemXwayland::shape() const
+RegionF SurfaceItemXwayland::shape() const
 {
-    QList<RectF> shape = m_window->shapeRegion();
-    for (RectF &shapePart : shape) {
-        shapePart = shapePart.intersected(rect());
-    }
-    return shape;
+    return m_window->shapeRegion() & rect();
 }
 
-Region SurfaceItemXwayland::opaque() const
+RegionF SurfaceItemXwayland::opaque() const
 {
-    Region shapeRegion;
-    for (const RectF &shapePart : shape()) {
-        shapeRegion += shapePart.toRect();
-    }
     if (!m_window->hasAlpha()) {
-        return shapeRegion;
+        return shape();
     } else {
-        return m_window->opaqueRegion() & shapeRegion;
+        return m_window->opaqueRegion() & shape();
     }
-    return Region();
+    return RegionF();
 }
 #endif
+
 } // namespace KWin
 
 #include "moc_surfaceitem_wayland.cpp"

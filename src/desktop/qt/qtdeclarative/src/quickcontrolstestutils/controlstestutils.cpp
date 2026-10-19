@@ -360,9 +360,21 @@ QString QQuickControlsTestUtils::visualFocusFailureMessage(QQuickControl *contro
     return message;
 }
 
+bool QQuickControlsTestUtils::ApplicationAttributes::test(Qt::ApplicationAttribute attribute) const
+{
+    return QCoreApplication::testAttribute(attribute);
+}
+
+void QQuickControlsTestUtils::ApplicationAttributes::set(Qt::ApplicationAttribute attribute, bool on)
+{
+    QCoreApplication::setAttribute(attribute, on);
+}
+
 bool QQuickControlsTestUtils::arePopupWindowsSupported()
 {
-#if defined(Q_OS_WINDOWS) || defined(Q_OS_MACOS)
+#if defined(Q_OS_LINUX) && !defined(Q_OS_QNX) && QT_CONFIG(xcb)
+    return QGuiApplication::platformName().startsWith(QLatin1String("xcb"));
+#elif defined(Q_OS_WINDOWS) || defined(Q_OS_MACOS)
     return QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::Capability::MultipleWindows);
 #else
     return false;

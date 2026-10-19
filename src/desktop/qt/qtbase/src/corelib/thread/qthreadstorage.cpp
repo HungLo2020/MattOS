@@ -101,12 +101,15 @@ void **QThreadStorageData::set(void *p)
     if (tls.size() <= id)
         tls.resize(id + 1);
 
-    void *&value = tls[id];
+    void* *ptr = &tls[id];
+    if (*ptr == p) // pointer-based setLocalData(localData()) → must be no-op
+        return ptr;
+
     // delete any previous data
-    if (value != nullptr) {
+    if (*ptr != nullptr) {
         DEBUG_MSG("QThreadStorageData: Deleting previous storage %d, data %p, for thread %p",
                 id,
-                value,
+                *ptr,
                 data->thread.loadRelaxed());
 
         QMutexLocker locker(&destructorsMutex);
@@ -114,17 +117,18 @@ void **QThreadStorageData::set(void *p)
         void (*destructor)(void *) = destr ? destr->value(id) : nullptr;
         locker.unlock();
 
-        void *q = value;
-        value = nullptr;
-
-        if (destructor)
+        if (destructor) {
+            void *q = std::exchange(*ptr, nullptr);
             destructor(q);
+            // `destructor` may have re-entered and grown `tls`; re-seat `ptr`:
+            ptr = &tls[id];
+        }
     }
 
     // store new data
-    value = p;
+    *ptr = p;
     DEBUG_MSG("QThreadStorageData: Set storage %d for thread %p to %p", id, data->thread.loadRelaxed(), p);
-    return &value;
+    return ptr;
 }
 
 void QThreadStoragePrivate::init()
@@ -183,8 +187,8 @@ void QThreadStoragePrivate::finish(QList<void *> *tls, bool suppressWarnings)
 
     \ingroup thread
 
-    QThreadStorage is a template class that provides per-thread data
-    storage.
+    QThreadStorage is a template class where the template parameter \a T
+    specifies the type of data stored per-thread.
 
     The setLocalData() function stores a single thread-specific value
     for the calling thread. The data can be accessed later using
@@ -210,6 +214,10 @@ void QThreadStoragePrivate::finish(QList<void *> *tls, bool suppressWarnings)
     \section1 Caveats
 
     \list
+
+    \li Calling hasLocalData(), localData() or setLocalData() during thread or
+    program shutdown may re-create the thread-local storage for the current
+    thread with nothing left to destroy it afterwards.
 
     \li The QThreadStorage destructor does not delete per-thread data.
     QThreadStorage only deletes per-thread data when the thread exits

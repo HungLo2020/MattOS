@@ -24,5 +24,6 @@
         \li \l{Kirigami Platform C++ Classes}
         \li \l{Kirigami Layouts QML Types}
         \li \l{Kirigami Dialogs QML Types}
+        \li \l{Kirigami Forms QML Types}
     \endlist
 */

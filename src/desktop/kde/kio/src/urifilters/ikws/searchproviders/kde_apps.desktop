@@ -1,11 +1,13 @@
 [Desktop Entry]
 Type=Service
 Name=Plasma Add-Ons and Extensions
+Name[am]=Plasma Add-Ons and Extensions
 Name[ar]=امتدادات وملاحق بلازما
 Name[az]=Plasma əlavələri və genişlənmələri
 Name[bg]=Разширения и добавки на Plasma
 Name[ca]=Complements i extensions del Plasma
 Name[ca@valencia]=Complements i extensions de Plasma
+Name[cs]=Doplňky a rozšíření pro Plasma
 Name[de]=Plasma-Erweiterungen
 Name[eo]=Plasma Aldonoj kaj Etendoj
 Name[es]=Complementos y extensiones de Plasma
@@ -28,8 +30,11 @@ Name[lg]=Ebyongerwako n'Ebyongezabusobozi ebya Plasma
 Name[lt]=Plasma papildiniai ir plėtiniai
 Name[lv]=„Plasma“ pielikumi un paplašinājumi
 Name[my]=ပလက်စမာ တိုးချဲ့ပရိုဂရမ်ငယ်များ
+Name[nan_TW]=Plasma Addon kap 擴充功能
+Name[nan_TW@latin]=Plasma Addon kap khok-tshiong-kong-lîng
 Name[nb]=Plasma tillegg og utvidelser
 Name[nl]=Plasma Add-ons en Extensies
+Name[nn]=Plasma-tillegg og -utvidingar
 Name[pl]=Dodatki i rozszerzenia do Plazmy
 Name[pt]=Complementos e Extensões do Plasma
 Name[pt_BR]=Adicionais e extensões do Plasma
@@ -46,11 +51,13 @@ Name[zh_CN]=Plasma 附加组件和扩展
 Name[zh_TW]=Plasma 延伸元件與擴充功能
 Keys=ext,extension
 Query=https://store.kde.org/browse?tag=\\{@}
+Query[am]=https://store.kde.org/browse?tag=\\{@}
 Query[ar]=https://store.kde.org/browse?tag=\\{@}
 Query[az]=https://store.kde.org/browse?tag=\\{@}
 Query[bg]=https://store.kde.org/browse?tag=\\{@}
 Query[ca]=https://store.kde.org/browse?tag=\\{@}
 Query[ca@valencia]=https://store.kde.org/browse?tag=\\{@}
+Query[cs]=https://store.kde.org/browse?tag=\\{@}
 Query[de]=https://store.kde.org/browse?tag=\\{@}
 Query[eo]=https://store.kde.org/browse?tag=\\{@}
 Query[es]=https://store.kde.org/browse?tag=\\{@}
@@ -73,8 +80,11 @@ Query[lg]=https://store.kde.org/browse?tag=\\{@}
 Query[lt]=https://store.kde.org/browse?tag=\\{@}
 Query[lv]=https://store.kde.org/browse?tag=\\{@}
 Query[my]=https://store.kde.org/browse?tag=\\{@}
+Query[nan_TW]=https://store.kde.org/browse?tag=\\{@}
+Query[nan_TW@latin]=https://store.kde.org/browse?tag=\\{@}
 Query[nb]=https://store.kde.org/browse?tag=\\{@}
 Query[nl]=https://store.kde.org/browse?tag=\\{@}
+Query[nn]=https://store.kde.org/browse?tag=\\{@}
 Query[pl]=https://store.kde.org/browse?tag=\\{@}
 Query[pt]=https://store.kde.org/browse?tag=\\{@}
 Query[pt_BR]=https://store.kde.org/browse?tag=\\{@}
@@ -85,7 +95,6 @@ Query[sl]=https://store.kde.org/browse?tag=\\{@}
 Query[sv]=https://store.kde.org/browse?tag=\\{@}
 Query[th]=https://store.kde.org/browse?tag=\\{@}
 Query[tr]=https://store.kde.org/browse?tag=\\{@}
-Query[ug]=https://store.kde.org/browse?tag=\\{@}
 Query[uk]=https://store.kde.org/browse?tag=\\{@}
 Query[zh_CN]=https://store.kde.org/browse?tag=\\{@}
 Query[zh_TW]=https://store.kde.org/browse?tag=\\{@}

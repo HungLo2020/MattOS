@@ -3,7 +3,7 @@
 /*!
 \page qtqml-cppintegration-contextproperties.html
 \title Embedding C++ Objects into QML with Context Properties
-\brief Description of how to embed C++ data into QML using context properties
+\brief Description of how to embed C++ data into QML using context properties.
 
 \warning By using context properties in your QML code, you create a dependency from your QML code
          to the specific context you have in mind when writing it. This limits re-usability of your
@@ -78,17 +78,6 @@ dataChanged(), this signal can be connected to using an \c onDataChanged handler
 a \l Connections object:
 
 \snippet qml/qtbinding/context-advanced/connections.qml 0
-
-Context properties can be useful for using C++ based data models in a QML view. See the
-following examples:
-\list
-    \li \l {Models and Views: String ListModel Example}{String ListModel}
-    \li \l {Models and Views: Object ListModel Example}{Object ListModel}
-    \li \l {Models and Views: AbstractItemModel Example}{AbstractItemModel}
-\endlist
-
-demonstrating the use of QStringList, QList<QObject*>-based models and
-QAbstractItemModel in QML views.
 
 Also see the QQmlContext documentation for more information.
 

@@ -74,13 +74,11 @@ KFileSystemType::Type determineFileSystemTypeImpl(const QByteArray &path)
     return kde_typeFromName(buf.f_fstypename);
 }
 
-#elif defined(Q_OS_LINUX) || defined(Q_OS_HURD)
+#elif defined(Q_OS_LINUX)
 #include <sys/statfs.h>
 
-#ifdef Q_OS_LINUX
 #include <linux/magic.h> // A lot of the filesystem superblock MAGIC numbers
 #include <sys/stat.h>
-#endif
 
 // Add known missig magics
 // Can use https://github.com/systemd/systemd/blob/main/src/basic/missing_magic.h
@@ -120,7 +118,6 @@ KFileSystemType::Type determineFileSystemTypeImpl(const QByteArray &path)
 #define AUTOFSNG_SUPER_MAGIC 0x7d92b1a0
 #endif
 
-#ifdef Q_OS_HURD
 #ifndef NFS_SUPER_MAGIC
 #define NFS_SUPER_MAGIC 0x00006969
 #endif
@@ -135,7 +132,6 @@ KFileSystemType::Type determineFileSystemTypeImpl(const QByteArray &path)
 #endif
 #ifndef RAMFS_MAGIC
 #define RAMFS_MAGIC 0x858458F6
-#endif
 #endif
 
 KFileSystemType::Type probeFuseBlkType(const QByteArray &path)
@@ -160,8 +156,9 @@ KFileSystemType::Type probeFuseBlkType(const QByteArray &path)
     // 'b' for block devices
     auto devPtr = UDevicePtr(udev_device_new_from_devnum(udevP.get(), 'b', buf.st_dev), udev_device_unref);
     if (!devPtr) {
-        // If is not block device, assume conservatively it is a remote FS under FUSE.
-        return Nfs;
+        // No block device, so a program is serving these files, and it can be serving them from
+        // anywhere, this machine or another one.
+        return FuseNoDev;
     }
 
     const QLatin1String fsType(udev_device_get_property_value(devPtr.get(), "ID_FS_TYPE"));
@@ -197,7 +194,17 @@ static KFileSystemType::Type determineFileSystemTypeImpl(const QByteArray &path)
             if (fstype == QLatin1String("fuseblk")) {
                 return probeFuseBlkType(path);
             }
-            return kde_typeFromName(fstype);
+            const KFileSystemType::Type type = kde_typeFromName(fstype);
+            // The kernel names a fuse mount after the program serving it, so the name reads
+            // fuse.sshfs, fuse.rclone, fuse.gvfsd-fuse and so on, one per backing store, and
+            // plain fuse when the program named no subtype. The table above cannot list them
+            // all, and the name of any of them already says nodev, which is the whole of what
+            // the block device lookup would have found out.
+            const bool isFuseName = fstype == QLatin1String("fuse") || fstype.startsWith(QLatin1String("fuse."));
+            if (type == KFileSystemType::Other && isFuseName) {
+                return KFileSystemType::FuseNoDev;
+            }
+            return type;
         }
     }
 #endif
@@ -248,6 +255,30 @@ KFileSystemType::Type determineFileSystemTypeImpl(const QByteArray &path)
     return kde_typeFromName(buf.f_basetype);
 #endif
 }
+
+#elif defined(Q_OS_HURD)
+#include <sys/statfs.h>
+#include <hurd/hurd_types.h>
+
+static KFileSystemType::Type determineFileSystemTypeImpl(const QByteArray &path)
+{
+    struct statfs buf;
+    if (statfs(path.constData(), &buf) != 0) {
+        return KFileSystemType::Unknown;
+    }
+
+    switch (buf.f_type) {
+    case FSTYPE_NFS:
+    case FSTYPE_AFS:
+        return KFileSystemType::Nfs;
+    case FSTYPE_MSLOSS:
+        return KFileSystemType::Fat;
+    case FSTYPE_MEMFS:
+        return KFileSystemType::Ramfs;
+    default:
+        return KFileSystemType::Other;
+    }
+}
 #endif
 #else
 KFileSystemType::Type determineFileSystemTypeImpl(const QByteArray &path)
@@ -286,6 +317,7 @@ QString KFileSystemType::fileSystemName(KFileSystemType::Type type)
     case KFileSystemType::Exfat:
         return QCoreApplication::translate("KFileSystemType", "ExFAT");
     case KFileSystemType::Fuse:
+    case KFileSystemType::FuseNoDev:
         return QCoreApplication::translate("KFileSystemType", "FUSE");
     case KFileSystemType::Unknown:
         return QCoreApplication::translate("KFileSystemType", "Unknown");

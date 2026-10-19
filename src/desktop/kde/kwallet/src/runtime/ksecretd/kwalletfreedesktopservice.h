@@ -17,7 +17,6 @@
 
 #include "kwalletdbuscontext.h"
 
-#define FDO_APPID QString()
 #define FDO_SECRETS_SERVICE_OBJECT "/org/freedesktop/secrets"
 #define FDO_ALIAS_PATH "/org/freedesktop/secrets/aliases/"
 
@@ -158,9 +157,9 @@ public:
     void onCollectionDeleted(const QDBusObjectPath &path);
     void onPropertiesChanged(const QVariantMap &properties);
 
-private Q_SLOTS:
     void lockCollection(const QString &name);
-    void entryUpdated(const QString &walletName, const QString &folder, const QString &entryName);
+
+private Q_SLOTS:
     void entryDeleted(const QString &walletName, const QString &folder, const QString &entryName);
     void entryRenamed(const QString &walletName, const QString &folder, const QString &oldName, const QString &newName);
     void walletDeleted(const QString &walletName);
@@ -174,7 +173,7 @@ private:
     std::unique_ptr<KWalletFreedesktopSessionAlgorithm> createSessionAlgorithmPlain() const;
     std::unique_ptr<KWalletFreedesktopSessionAlgorithm> createSessionAlgorithmDhAes(const QByteArray &clientKey) const;
     QString createSession(std::unique_ptr<KWalletFreedesktopSessionAlgorithm> algorithm);
-    QString defaultWalletName(KConfigGroup &cfg);
+    QString defaultWalletName();
 
 private:
     // must come first for the proper construction/destruction order
@@ -198,7 +197,7 @@ private:
 public Q_SLOTS:
     QDBusObjectPath CreateCollection(const QVariantMap &properties, const QString &alias, QDBusObjectPath &prompt);
     FreedesktopSecretMap GetSecrets(const QList<QDBusObjectPath> &items, const QDBusObjectPath &session);
-    QList<QDBusObjectPath> Lock(const QList<QDBusObjectPath> &objects, QDBusObjectPath &Prompt);
+    QList<QDBusObjectPath> Lock(const QList<QDBusObjectPath> &objects, QDBusObjectPath &prompt);
     QDBusVariant OpenSession(const QString &algorithm, const QDBusVariant &input, QDBusObjectPath &result);
     QDBusObjectPath ReadAlias(const QString &name);
     QList<QDBusObjectPath> SearchItems(const StrStrMap &attributes, QList<QDBusObjectPath> &locked);

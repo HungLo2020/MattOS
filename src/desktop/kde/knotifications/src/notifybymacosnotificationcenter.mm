@@ -103,6 +103,10 @@ void NotifyByMacOSNotificationCenter::notify(KNotification *notification, const 
 {
     Q_UNUSED(notifyConfig);
 
+    if (!notifyConfig.actions().testFlag(KNotifyConfig::Popup)) {
+        return;
+    }
+
     int internalId = MacOSNotificationCenterPrivate::instance()->m_internalCounter++;
     NSUserNotification *osxNotification = [[[NSUserNotification alloc] init] autorelease];
     NSString *notificationId = [NSString stringWithFormat: @"%d", notification->id()];

@@ -64,8 +64,6 @@ static PlatformCursorImage loadReferenceThemeCursor(const CursorShape &shape)
     return loadReferenceThemeCursor(shape.name());
 }
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_pointer_input-0");
-
 class PointerInputTest : public QObject
 {
     Q_OBJECT
@@ -108,6 +106,9 @@ private Q_SLOTS:
     void testDefaultInputRegion();
     void testEmptyInputRegion();
     void testUnfocusedModifiers();
+    void testTabletNoCursorSync();
+    void testTabletCursorSync();
+    void testTabletCursorSyncRelative();
 
 private:
     void render(KWayland::Client::Surface *surface, const QSize &size = QSize(100, 50));
@@ -118,7 +119,7 @@ private:
 void PointerInputTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->setConfig(KSharedConfig::openConfig(QString(), KConfig::SimpleConfig));
 
@@ -140,7 +141,7 @@ void PointerInputTest::initTestCase()
 
 void PointerInputTest::init()
 {
-    QVERIFY(Test::setupWaylandConnection(Test::AdditionalWaylandInterface::Seat | Test::AdditionalWaylandInterface::XdgDecorationV1 | Test::AdditionalWaylandInterface::CursorShapeV1));
+    QVERIFY(Test::setupWaylandConnection(Test::AdditionalWaylandInterface::Seat | Test::AdditionalWaylandInterface::XdgDecorationV1 | Test::AdditionalWaylandInterface::CursorShapeV1 | Test::AdditionalWaylandInterface::WpTabletV2));
     QVERIFY(Test::waitForWaylandPointer());
     m_compositor = Test::waylandCompositor();
     m_seat = Test::waylandSeat();
@@ -1104,7 +1105,7 @@ void PointerInputTest::testCursorImage()
     auto cursorSurface = Test::createSurface();
     QVERIFY(cursorSurface);
     QSignalSpy cursorRenderedSpy(cursorSurface.get(), &KWayland::Client::Surface::frameRendered);
-    QImage red = QImage(QSize(10, 10), QImage::Format_ARGB32_Premultiplied);
+    QImage red = QImage(QSize(10, 10), QImage::Format_RGBA8888_Premultiplied);
     red.fill(Qt::red);
     cursorSurface->attachBuffer(Test::waylandShmPool()->createBuffer(red));
     cursorSurface->damage(QRect(0, 0, 10, 10));
@@ -1120,7 +1121,7 @@ void PointerInputTest::testCursorImage()
     QCOMPARE(kwinApp()->cursorImage().image(), red);
 
     // change the buffer
-    QImage blue = QImage(QSize(10, 10), QImage::Format_ARGB32_Premultiplied);
+    QImage blue = QImage(QSize(10, 10), QImage::Format_RGBA8888_Premultiplied);
     blue.fill(Qt::blue);
     auto b = Test::waylandShmPool()->createBuffer(blue);
     cursorSurface->attachBuffer(b);
@@ -1190,6 +1191,7 @@ void PointerInputTest::testCursorShapeV1()
 class HelperEffect : public Effect
 {
     Q_OBJECT
+
 public:
     HelperEffect()
     {
@@ -1732,7 +1734,7 @@ void PointerInputTest::testResizeCursor()
     Test::pointerButtonReleased(BTN_RIGHT, timestamp++);
     QVERIFY(!window->isInteractiveResize());
 
-    QCOMPARE(kwinApp()->cursorImage().image(), arrowCursor.image());
+    QCOMPARE(kwinApp()->cursorImage().image(), arrowCursor.image().convertedTo(QImage::Format_RGBA8888_Premultiplied));
     QCOMPARE(kwinApp()->cursorImage().hotSpot(), arrowCursor.hotSpot());
 }
 
@@ -1799,7 +1801,7 @@ void PointerInputTest::testMoveCursor()
     Test::pointerButtonReleased(BTN_LEFT, timestamp++);
     QVERIFY(!window->isInteractiveMove());
 
-    QCOMPARE(kwinApp()->cursorImage().image(), arrowCursor.image());
+    QCOMPARE(kwinApp()->cursorImage().image(), arrowCursor.image().convertedTo(QImage::Format_RGBA8888_Premultiplied));
     QCOMPARE(kwinApp()->cursorImage().hotSpot(), arrowCursor.hotSpot());
 }
 
@@ -1886,14 +1888,14 @@ void PointerInputTest::testUnfocusedModifiers()
     QVERIFY(surface != nullptr);
     std::unique_ptr<Test::XdgToplevel> shellSurface(Test::createXdgToplevelSurface(surface.get()));
     QVERIFY(shellSurface != nullptr);
-    Window *waylandWindow = Test::renderAndWaitForShown(surface.get(), QSize(10, 10), Qt::blue);
+    Window *waylandWindow = Test::renderAndWaitForShown(surface.get(), QSize(100, 100), Qt::blue);
     QVERIFY(waylandWindow);
     waylandWindow->move(QPoint(0, 0));
 
     // Create an xcb window.
     Test::XcbConnectionPtr c = Test::createX11Connection();
     QVERIFY(!xcb_connection_has_error(c.get()));
-    const Rect windowGeometry(0, 0, 10, 10);
+    const Rect windowGeometry(0, 0, 100, 100);
     xcb_window_t windowId = xcb_generate_id(c.get());
     xcb_create_window(c.get(), XCB_COPY_FROM_PARENT, windowId, rootWindow(),
                       windowGeometry.x(),
@@ -1911,7 +1913,7 @@ void PointerInputTest::testUnfocusedModifiers()
     QVERIFY(windowCreatedSpy.wait());
     X11Window *x11window = windowCreatedSpy.last().first().value<X11Window *>();
     QVERIFY(waylandWindow);
-    x11window->move(QPoint(10, 10));
+    x11window->move(QPoint(100, 100));
 
     workspace()->activateWindow(x11window, true);
 
@@ -1938,6 +1940,169 @@ void PointerInputTest::testUnfocusedModifiers()
     QVERIFY(Test::waitForWindowClosed(waylandWindow));
 #endif
 }
+
+void PointerInputTest::testTabletNoCursorSync()
+{
+    // This test verifies that moving the stylus cursor doesn't reflect the mouse pointer.
+
+    // create pointer and signal spy for enter and leave signals
+    auto pointer = m_seat->createPointer(m_seat);
+    QVERIFY(pointer);
+    QVERIFY(pointer->isValid());
+
+    QSignalSpy enteredSpy(pointer, &KWayland::Client::Pointer::entered);
+
+    // create a window
+    QSignalSpy windowAddedSpy(workspace(), &Workspace::windowAdded);
+    std::unique_ptr<KWayland::Client::Surface> surface = Test::createSurface();
+    QVERIFY(surface);
+    std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
+    QVERIFY(shellSurface);
+    render(surface.get());
+    QVERIFY(windowAddedSpy.wait());
+    Window *window = workspace()->activeWindow();
+    QVERIFY(window);
+
+    // currently there should not be a focused pointer surface
+    QVERIFY(!waylandServer()->seat()->focusedPointerSurface());
+    QVERIFY(!pointer->enteredSurface());
+
+    quint32 timestamp = 0;
+    Test::tabletToolProximityEvent(window->frameGeometry().center(), 0, 0, 0, 0, true, 0, timestamp++);
+    Test::tabletToolProximityEvent(window->frameGeometry().center(), 0, 0, 0, 0, false, 0, timestamp++);
+
+    QVERIFY(!enteredSpy.wait(std::chrono::seconds{1}));
+    QCOMPARE(enteredSpy.count(), 0);
+}
+
+void PointerInputTest::testTabletCursorSync()
+{
+    // This test verifies that moving the stylus cursor doesn't reflect the mouse pointer, because it was explicitly requested.
+    auto cfg = kwinApp()->inputConfig();
+    KConfigGroup tabletGroup = cfg->group(QStringLiteral("Tablet"));
+    tabletGroup.writeEntry(QStringLiteral("SyncWithMouse"), true, KConfig::Notify);
+    cfg->sync();
+
+    // create pointer and signal spy for enter and leave signals
+    auto pointer = m_seat->createPointer(m_seat);
+    QVERIFY(pointer);
+    QVERIFY(pointer->isValid());
+
+    QSignalSpy enteredSpy(pointer, &KWayland::Client::Pointer::entered);
+
+    // create a window
+    QSignalSpy windowAddedSpy(workspace(), &Workspace::windowAdded);
+    std::unique_ptr<KWayland::Client::Surface> surface = Test::createSurface();
+    QVERIFY(surface);
+    std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
+    QVERIFY(shellSurface);
+    render(surface.get());
+    QVERIFY(windowAddedSpy.wait());
+    Window *window = workspace()->activeWindow();
+    QVERIFY(window);
+
+    // currently there should not be a focused pointer surface
+    QVERIFY(!waylandServer()->seat()->focusedPointerSurface());
+    QVERIFY(!pointer->enteredSurface());
+
+    quint32 timestamp = 0;
+    Test::tabletToolProximityEvent(window->frameGeometry().center(), 0, 0, 0, 0, true, 0, timestamp++);
+    Test::tabletToolProximityEvent(window->frameGeometry().center(), 0, 0, 0, 0, false, 0, timestamp++);
+
+    // Move the cursor 5px down
+    Test::pointerMotionRelative({0, 5}, timestamp++);
+
+    QVERIFY(enteredSpy.wait());
+    QCOMPARE(enteredSpy.count(), 1);
+
+    // It will be 30px since the center is 25px, and we moved 5px with the mouse.
+    QCOMPARE(enteredSpy.first().at(1).toPointF(), QPointF(50, 30));
+    // window should have focus
+    QCOMPARE(pointer->enteredSurface(), surface.get());
+    // also on the server
+    QCOMPARE(waylandServer()->seat()->focusedPointerSurface(), window->surface());
+}
+
+void PointerInputTest::testTabletCursorSyncRelative()
+{
+    // This test verifies that moving the stylus cursor doesn't reflect the mouse pointer, because it was explicitly requested.
+    auto cfg = kwinApp()->inputConfig();
+    KConfigGroup tabletGroup = cfg->group(QStringLiteral("Tablet"));
+    tabletGroup.writeEntry(QStringLiteral("SyncWithMouse"), true, KConfig::Notify);
+    cfg->sync();
+
+    // create pointer and signal spy for enter and leave signals
+    auto pointer = m_seat->createPointer(m_seat);
+    QVERIFY(pointer);
+    QVERIFY(pointer->isValid());
+
+    QSignalSpy enteredSpy(pointer, &KWayland::Client::Pointer::entered);
+    QSignalSpy motionSpy(pointer, &KWayland::Client::Pointer::motion);
+
+    // create a window
+    QSignalSpy windowAddedSpy(workspace(), &Workspace::windowAdded);
+    std::unique_ptr<KWayland::Client::Surface> surface = Test::createSurface();
+    QVERIFY(surface);
+    std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
+    QVERIFY(shellSurface);
+    render(surface.get());
+    QVERIFY(windowAddedSpy.wait());
+    Window *window = workspace()->activeWindow();
+    QVERIFY(window);
+
+    // currently there should not be a focused pointer surface
+    QVERIFY(!waylandServer()->seat()->focusedPointerSurface());
+    QVERIFY(!pointer->enteredSurface());
+
+    // Start at the center of the window (50,25)
+    // Normally for relative tablet devices this is done automatically, but in our test we need to do this.
+    quint32 timestamp = 0;
+    Test::pointerMotion(window->frameGeometry().center(), timestamp++);
+
+    QVERIFY(enteredSpy.wait());
+    QCOMPARE(enteredSpy.count(), 1);
+
+    // It will be 30px since the center is 25px, and we moved 5px with the mouse.
+    QCOMPARE(enteredSpy.first().at(1).toPointF(), QPointF(50, 25));
+    // window should have focus
+    QCOMPARE(pointer->enteredSurface(), surface.get());
+    // also on the server
+    QCOMPARE(waylandServer()->seat()->focusedPointerSurface(), window->surface());
+
+    // Set tablet tool to relative
+    auto tablet = static_cast<WaylandTestApplication *>(kwinApp())->virtualTablet();
+    tablet->setTabletToolIsRelative(true);
+
+    // Move 5px down (to 50,30)
+    Test::tabletToolProximityEvent(window->frameGeometry().center(), 0, 0, 0, 0, true, 0, timestamp++);
+    Test::tabletToolAxisEventRelative(QPointF{0, 5}, 0, 0, 0, 0, 0, true, 0, timestamp++);
+    Test::tabletToolProximityEvent(window->frameGeometry().center(), 0, 0, 0, 0, false, 0, timestamp++);
+
+    // Move the cursor another 10px down to 50,40)
+    Test::pointerMotionRelative({0, 10}, timestamp++);
+
+    QVERIFY(motionSpy.wait());
+    QCOMPARE(motionSpy.count(), 1);
+    QCOMPARE(motionSpy.first().at(0).toPointF(), QPointF(50, 40));
+    motionSpy.clear();
+
+    // Then move another 5px up with the tablet tool (to 50,35)
+    // (These proximity event positions are supposed to be non-sensical because the TabletInputRedirection shouldn't be dependent on them for relative tablet events.)
+    Test::tabletToolProximityEvent(window->frameGeometry().center(), 0, 0, 0, 0, true, 0, timestamp++);
+    Test::tabletToolAxisEventRelative(QPointF{0, -5}, 0, 0, 0, 0, 0, true, 0, timestamp++);
+    Test::tabletToolProximityEvent(window->frameGeometry().center(), 0, 0, 0, 0, false, 0, timestamp++);
+
+    // Move the cursor another 5px up (to 50,30)
+    Test::pointerMotionRelative({0, -5}, timestamp++);
+
+    QVERIFY(motionSpy.wait());
+    QCOMPARE(motionSpy.count(), 1);
+    QCOMPARE(motionSpy.first().at(0).toPointF(), QPointF(50, 30));
+
+    // Reset
+    tablet->setTabletToolIsRelative(false);
+}
+
 }
 
 WAYLANDTEST_MAIN(KWin::PointerInputTest)

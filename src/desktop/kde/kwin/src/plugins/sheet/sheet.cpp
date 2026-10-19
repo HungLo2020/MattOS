@@ -41,21 +41,20 @@ void SheetEffect::reconfigure(ReconfigureFlags flags)
     SheetConfig::self()->read();
 
     // TODO: Rename AnimationTime config key to Duration.
-    const double d = animationTime(SheetConfig::animationTime() != 0
-                                       ? std::chrono::milliseconds(SheetConfig::animationTime())
-                                       : 300ms);
-    m_duration = std::chrono::milliseconds(int(d));
+    m_duration = animationTime(SheetConfig::animationTime() != 0
+                                   ? std::chrono::milliseconds(SheetConfig::animationTime())
+                                   : 300ms);
 }
 
-void SheetEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime)
+void SheetEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data)
 {
     auto animationIt = m_animations.find(w);
     if (animationIt != m_animations.end()) {
-        (*animationIt).timeLine.advance(presentTime);
+        (*animationIt).timeLine.advance(view);
         data.setTransformed();
     }
 
-    effects->prePaintWindow(view, w, data, presentTime);
+    effects->prePaintWindow(view, w, data);
 }
 
 void SheetEffect::apply(EffectWindow *window, int mask, WindowPaintData &data, WindowQuadList &quads)
@@ -67,7 +66,7 @@ void SheetEffect::apply(EffectWindow *window, int mask, WindowPaintData &data, W
 
     const qreal t = (*animationIt).timeLine.value();
 
-    const QRectF rect = window->expandedGeometry().translated(-window->pos());
+    const RectF rect = window->expandedGeometry().translated(-window->pos());
     const float fovY = std::tan(qDegreesToRadians(60.0f) / 2);
     const float aspect = rect.width() / rect.height();
     const float zNear = 0.1f;
@@ -154,13 +153,8 @@ void SheetEffect::slotWindowAdded(EffectWindow *w)
     animation.timeLine.setDirection(TimeLine::Forward);
     animation.timeLine.setEasingCurve(QEasingCurve::Linear);
 
-    const auto windows = effects->stackingOrder();
-    auto parentIt = std::find_if(windows.constBegin(), windows.constEnd(),
-                                 [w](EffectWindow *p) {
-                                     return p->findModal() == w;
-                                 });
-    if (parentIt != windows.constEnd()) {
-        animation.parentY = (*parentIt)->y();
+    if (EffectWindow *parent = findClosestParentWindow(w)) {
+        animation.parentY = parent->y();
     }
 
     w->setData(WindowAddedGrabRole, QVariant::fromValue(static_cast<void *>(this)));
@@ -187,13 +181,8 @@ void SheetEffect::slotWindowClosed(EffectWindow *w)
     animation.timeLine.setDirection(TimeLine::Backward);
     animation.timeLine.setEasingCurve(QEasingCurve::Linear);
 
-    const auto windows = effects->stackingOrder();
-    auto parentIt = std::find_if(windows.constBegin(), windows.constEnd(),
-                                 [w](EffectWindow *p) {
-                                     return p->findModal() == w;
-                                 });
-    if (parentIt != windows.constEnd()) {
-        animation.parentY = (*parentIt)->y();
+    if (EffectWindow *parent = findClosestParentWindow(w)) {
+        animation.parentY = parent->y();
     }
 
     w->setData(WindowClosedGrabRole, QVariant::fromValue(static_cast<void *>(this)));
@@ -205,6 +194,18 @@ void SheetEffect::slotWindowClosed(EffectWindow *w)
 bool SheetEffect::isSheetWindow(EffectWindow *w) const
 {
     return w->isModal();
+}
+
+EffectWindow *SheetEffect::findClosestParentWindow(EffectWindow *w) const
+{
+    const auto windows = effects->stackingOrder();
+    auto parentIt = std::find_if(windows.crbegin(), windows.crend(), [w](EffectWindow *p) {
+        return p->findModal() == w;
+    });
+    if (parentIt != windows.crend()) {
+        return *parentIt;
+    }
+    return nullptr;
 }
 
 } // namespace KWin

@@ -35,6 +35,9 @@ public:
 
     void setAudioFormat(const QAudioFormat &format) override;
 
+    bool canReadQrc() const override { return mCanReadQrc; }
+    void setCanReadQrc(bool canReadQrc) { mCanReadQrc = canReadQrc; }
+
     // When decoding we decode to first buffer, then second buffer
     // we then stop until the first is read again and so on, for
     // 5 buffers
@@ -46,10 +49,6 @@ public:
 
     bool bufferAvailable() const override;
 
-    qint64 position() const override;
-
-    qint64 duration() const override;
-
 private slots:
     void pretendDecode();
 
@@ -57,10 +56,10 @@ public:
     QUrl mSource;
     QIODevice *mDevice;
     QAudioFormat mFormat;
-    qint64 mPosition;
 
     int mSerial;
     QList<QAudioBuffer> mBuffers;
+    bool mCanReadQrc = false;
 };
 
 QT_END_NAMESPACE

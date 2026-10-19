@@ -24,7 +24,7 @@ wayland-egl client buffer integration is used.
 
 Available client buffer integrations are:
 wayland-egl (this is the default)
-linux-dmabuf-unstable-v1
+linux-dmabuf-v1
 brcm
 
 Testing a Qt-based compositor on X11:

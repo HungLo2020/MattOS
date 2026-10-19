@@ -8,6 +8,7 @@
 */
 // own
 #include "screentransform.h"
+#include "compositor.h"
 #include "core/outputconfiguration.h"
 #include "core/outputlayer.h"
 #include "core/rendertarget.h"
@@ -19,6 +20,8 @@
 #include <QDebug>
 
 using namespace std::chrono_literals;
+
+Q_LOGGING_CATEGORY(KWIN_SCREENTRANSFORM, "kwin_effect_screentransform", QtWarningMsg)
 
 static void ensureResources()
 {
@@ -39,6 +42,10 @@ ScreenTransformEffect::ScreenTransformEffect()
         ShaderTrait::MapTexture,
         QStringLiteral(":/effects/screentransform/shaders/crossfade.vert"),
         QStringLiteral(":/effects/screentransform/shaders/crossfade.frag"));
+    if (!m_shader) {
+        qCCritical(KWIN_SCREENTRANSFORM) << "Failed to load the crossfade shader.";
+        return;
+    }
 
     m_modelViewProjectioMatrixLocation = m_shader->uniformLocation("modelViewProjectionMatrix");
     m_blendFactorLocation = m_shader->uniformLocation("blendFactor");
@@ -93,7 +100,7 @@ void ScreenTransformEffect::addScreen(LogicalOutput *screen)
         auto &state = m_states[screen];
         state.m_oldTransform = screen->transform();
         state.m_oldGeometry = screen->geometry();
-        state.m_timeLine.setDuration(std::chrono::milliseconds(long(animationTime(250ms))));
+        state.m_timeLine.setDuration(animationTime(250ms));
         state.m_timeLine.setEasingCurve(QEasingCurve::InOutCubic);
         state.m_angle = transformAngle(changeSet->transform.value(), state.m_oldTransform);
         state.m_prev.texture = std::move(texture);
@@ -101,7 +108,7 @@ void ScreenTransformEffect::addScreen(LogicalOutput *screen)
         RenderTarget renderTarget(state.m_prev.framebuffer.get(), screen->blendingColor());
 
         Scene *scene = effects->scene();
-        SceneView delegate(scene, screen, nullptr, nullptr);
+        SceneView delegate(scene, screen, nullptr, nullptr, Compositor::self()->primaryDevice());
         delegate.setViewport(screen->geometryF());
         delegate.setScale(screen->scale());
         scene->prePaint(&delegate);
@@ -119,21 +126,21 @@ void ScreenTransformEffect::removeScreen(LogicalOutput *screen)
     }
 }
 
-void ScreenTransformEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void ScreenTransformEffect::prePaintScreen(ScreenPrePaintData &data)
 {
     m_currentView = data.view;
     auto it = m_states.find(data.screen);
     if (it != m_states.end()) {
-        it->m_timeLine.advance(presentTime);
+        it->m_timeLine.advance(data.view);
         if (it->m_timeLine.done()) {
             m_states.remove(data.screen);
         }
     }
 
-    effects->prePaintScreen(data, presentTime);
+    effects->prePaintScreen(data);
 }
 
-static GLVertexBuffer *texturedRectVbo(const QRectF &geometry, qreal scale)
+static GLVertexBuffer *texturedRectVbo(const RectF &geometry, qreal scale)
 {
     GLVertexBuffer *vbo = GLVertexBuffer::streamingBuffer();
     vbo->reset();
@@ -145,7 +152,7 @@ static GLVertexBuffer *texturedRectVbo(const QRectF &geometry, qreal scale)
     }
     const auto map = *opt;
 
-    auto deviceGeometry = scaledRect(geometry, scale);
+    auto deviceGeometry = geometry.scaled(scale);
 
     // first triangle
     map[0] = GLVertex2D{
@@ -184,21 +191,20 @@ static qreal lerp(qreal a, qreal b, qreal t)
     return (1 - t) * a + t * b;
 }
 
-static QRectF lerp(const QRectF &a, const QRectF &b, qreal t)
+static RectF lerp(const RectF &a, const RectF &b, qreal t)
 {
-    QRectF ret;
+    RectF ret;
     ret.setWidth(lerp(a.width(), b.width(), t));
     ret.setHeight(lerp(a.height(), b.height(), t));
     ret.moveCenter(b.center());
     return ret;
 }
 
-void ScreenTransformEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
+bool ScreenTransformEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
 {
     auto it = m_states.find(screen);
     if (it == m_states.end() || m_currentView->backendOutput() != screen->backendOutput()) {
-        effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
-        return;
+        return effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
     }
 
     // Render the screen in an offscreen texture.
@@ -208,7 +214,8 @@ void ScreenTransformEffect::paintScreen(const RenderTarget &renderTarget, const 
         it->m_current.texture = GLTexture::allocate(renderTarget.texture()->internalFormat(), nativeSize);
         if (!it->m_current.texture) {
             m_states.remove(screen);
-            return;
+            EglContext::currentContext()->setFailed();
+            return false;
         }
         it->m_current.framebuffer = std::make_unique<GLFramebuffer>(it->m_current.texture.get());
     }
@@ -217,7 +224,9 @@ void ScreenTransformEffect::paintScreen(const RenderTarget &renderTarget, const 
     RenderViewport fboViewport(viewport.renderRect(), viewport.scale(), fboRenderTarget, QPoint());
 
     GLFramebuffer::pushFramebuffer(it->m_current.framebuffer.get());
-    effects->paintScreen(fboRenderTarget, fboViewport, mask, deviceRegion, screen);
+    if (!effects->paintScreen(fboRenderTarget, fboViewport, mask, deviceRegion, screen)) {
+        return false;
+    }
     GLFramebuffer::popFramebuffer();
 
     const qreal blendFactor = it->m_timeLine.value();
@@ -244,7 +253,8 @@ void ScreenTransformEffect::paintScreen(const RenderTarget &renderTarget, const 
 
     GLVertexBuffer *vbo = texturedRectVbo(lerp(it->m_oldGeometry, screenRect, blendFactor), scale);
     if (!vbo) {
-        return;
+        EglContext::currentContext()->setFailed();
+        return false;
     }
 
     ShaderManager *sm = ShaderManager::instance();
@@ -265,6 +275,7 @@ void ScreenTransformEffect::paintScreen(const RenderTarget &renderTarget, const 
     it->m_current.texture->unbind();
 
     effects->addRepaintFull();
+    return true;
 }
 
 bool ScreenTransformEffect::isActive() const

@@ -7,15 +7,14 @@
 
 */
 
+#include "config-kwin.h"
+
 #include <sys/types.h>
 #include <sys/wait.h>
 
 #include <KAuth/Action>
 #include <KAuth/ExecuteJob>
-#include <KIconUtils>
 #include <KLocalizedString>
-#include <KMessageBox>
-#include <KMessageDialog>
 #include <KService>
 #include <KWindowSystem>
 
@@ -30,21 +29,25 @@
 #include <QThread>
 #include <QWindow>
 
-#include <qpa/qplatformwindow_p.h>
+#include <QtConcurrentRun>
 
+#if KWIN_BUILD_X11
 #include <private/qtx11extras_p.h>
 #include <xcb/xcb.h>
+#endif
 
 #include <cerrno>
 #include <csignal>
 #include <memory>
 
 #include "debug.h"
+#include "killdialog.h"
 
 using namespace std::chrono_literals;
 
 namespace
 {
+
 #if defined(Q_OS_LINUX)
 std::optional<QString> exeOf(pid_t pid)
 {
@@ -69,7 +72,7 @@ std::optional<QString> bootId()
 
 void writeApplicationNotResponding(pid_t pid)
 {
-    const QString dirPath = QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation) + QLatin1String("/drkonqi/application-not-responding/");
+    const QString dirPath = QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation) + QLatin1StringView("/drkonqi/application-not-responding/");
     QDir dir(dirPath);
     if (!dir.exists()) {
         if (!dir.mkpath(dirPath)) {
@@ -124,7 +127,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName(QStringLiteral("kwin_killer_helper"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("kde.org"));
     QApplication::setApplicationDisplayName(i18n("Window Manager"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.0"));
+    QCoreApplication::setApplicationVersion(KWIN_VERSION_STRING);
     QApplication::setDesktopFileName(QStringLiteral("org.kde.kwin.killer"));
 
     QCommandLineOption pidOption(QStringLiteral("pid"),
@@ -153,128 +156,106 @@ int main(int argc, char *argv[])
 
     parser.process(app);
 
-    const bool isX11 = app.platformName() == QLatin1String("xcb");
-
     QString hostname = parser.value(hostNameOption);
     bool pid_ok = false;
     pid_t pid = parser.value(pidOption).toULong(&pid_ok);
-    QString caption = parser.value(windowNameOption);
+    QString windowName = parser.value(windowNameOption);
     QString appname = parser.value(applicationNameOption);
     QString windowHandle = parser.value(widOption);
 
+#if KWIN_BUILD_X11
+    const bool isX11 = app.platformName() == QLatin1StringView("xcb");
     bool time_ok = false;
     xcb_timestamp_t timestamp = parser.value(timestampOption).toULong(&time_ok);
+#endif
 
     if (!pid_ok || pid == 0 || windowHandle.isEmpty()
+#if KWIN_BUILD_X11
         || (isX11 && (!time_ok || timestamp == XCB_CURRENT_TIME))
-        || hostname.isEmpty() || caption.isEmpty() || appname.isEmpty()) {
+#endif
+        || hostname.isEmpty() || windowName.isEmpty() || appname.isEmpty()) {
         fprintf(stdout, "%s\n", qPrintable(i18n("This helper utility is not supposed to be called directly.")));
         parser.showHelp(1);
     }
     bool isLocal = hostname == QLatin1StringView("localhost");
 
+    QIcon icon;
+
     const auto service = KService::serviceByDesktopName(appname);
     if (service) {
         appname = service->name();
+        icon = QIcon::fromTheme(service->icon());
         QApplication::setApplicationDisplayName(appname);
     }
 
-    // Drop redundant application name, cf. QXcbWindow::setWindowTitle.
-    const QString titleSeparator = QString::fromUtf8(" \xe2\x80\x94 "); // // U+2014, EM DASH
-    caption.remove(titleSeparator + appname);
-    caption.remove(QStringLiteral(" – ") + appname); // EN dash (Firefox)
-    caption.remove(QStringLiteral(" - ") + appname); // classic minus :-)
+    KillDialog dialog(appname, icon, windowName);
+    dialog.setPid(pid);
+    dialog.setHostName(hostname);
 
-    caption = caption.toHtmlEscaped();
-    appname = appname.toHtmlEscaped();
-    hostname = hostname.toHtmlEscaped();
-    QString pidString = QString::number(pid); // format pid ourself as it does not make sense to format an ID according to locale settings
-
-    const QString question = (caption == appname)
-        ? xi18nc("@info",
-                 "<para><application>%1</application> is not responding. Do you want to terminate this application?</para>"
-                 "<para><emphasis strong='true'>Terminating this application will close all of its windows. Any unsaved data will be lost.</emphasis></para>",
-                 appname)
-        : xi18nc("@info \"window title\" of application name is not responding.",
-                 "<para>\"%1\" of <application>%2</application> is not responding. Do you want to terminate this application?</para>"
-                 "<para><emphasis strong='true'>Terminating this application will close all of its windows. Any unsaved data will be lost.</emphasis></para>",
-                 caption, appname);
-
-    KGuiItem continueButton = KGuiItem(i18nc("@action:button Terminate app", "&Terminate %1", appname), QStringLiteral("application-exit"));
-    KGuiItem cancelButton = KGuiItem(i18nc("@action:button Wait for frozen app to maybe respond again", "&Wait Longer"), QStringLiteral("chronometer"));
-
+#if KWIN_BUILD_X11
     if (isX11) {
         QX11Info::setAppUserTime(timestamp);
     }
+#endif
 
-    auto *dialog = new KMessageDialog(KMessageDialog::WarningContinueCancel, question);
-    dialog->setAttribute(Qt::WA_DeleteOnClose);
-    dialog->setModal(true);
-    dialog->setCaption(i18nc("@title:window", "Not Responding"));
-
-    QIcon icon;
-    if (service) {
-        const QIcon appIcon = QIcon::fromTheme(service->icon());
-        if (!appIcon.isNull()) {
-            // emblem-warning is non-standard, fall back to emblem-important if necessary.
-            const QIcon warningBadge = QIcon::fromTheme(QStringLiteral("emblem-warning"), QIcon::fromTheme(QStringLiteral("emblem-important")));
-
-            icon = KIconUtils::addOverlay(appIcon, warningBadge, qApp->isRightToLeft() ? Qt::BottomLeftCorner : Qt::BottomRightCorner);
+    QObject::connect(&dialog, &KillDialog::terminateRequested, &dialog, [&dialog, pid, &hostname, &isLocal] {
+        if (!isLocal) {
+            const QStringList args{
+                hostname, QStringLiteral("kill"), QString::number(pid)};
+            QProcess::startDetached(QStringLiteral("xon"), args);
+            dialog.reject();
+            return;
         }
-    }
-    dialog->setIcon(icon); // null icon will result in default warning icon.
-    dialog->setButtons(continueButton, KGuiItem(), cancelButton);
 
-    QStringList details{
-        i18nc("@info", "Process ID: %1", pidString)};
-    if (!isLocal) {
-        details << i18nc("@info", "Host name: %1", hostname);
-    }
-    dialog->setDetails(details.join(QLatin1Char('\n')));
-    dialog->winId();
+        dialog.setBusy(true);
 
-    KWindowSystem::setMainWindow(dialog->windowHandle(), windowHandle);
-
-    QObject::connect(dialog, &QDialog::finished, &app, [pid, hostname, isLocal](int result) {
-        if (result == KMessageBox::PrimaryAction) {
+        auto future = QtConcurrent::run([pid] {
 #if defined(Q_OS_LINUX)
             writeApplicationNotResponding(pid);
 #endif
-            if (!isLocal) {
-                QStringList lst;
-                lst << hostname << QStringLiteral("kill") << QString::number(pid);
-                QProcess::startDetached(QStringLiteral("xon"), lst);
-            } else {
-                // First try to abort so KCrash (or other handlers) and/or coredumpd can kick in and record the malfunction.
-                // This specifically allows application authors to notice that something is broken.
-                if (::kill(pid, SIGABRT) == 0 && hasPidAborted(pid)) {
-                    return;
-                }
+            // First try to abort so KCrash (or other handlers) and/or coredumpd can kick in and record the malfunction.
+            // This specifically allows application authors to notice that something is broken.
+            if (::kill(pid, SIGABRT) == 0 && hasPidAborted(pid)) {
+                return 0;
+            }
 
-                // If that did not work send a kill. Kill cannot be ignored and always terminates.
-                if (::kill(pid, SIGKILL) && errno == EPERM) {
-                    // If killing failed on permissions try again with the polkit helper.
-                    KAuth::Action killer(QStringLiteral("org.kde.ksysguard.processlisthelper.sendsignal"));
-                    killer.setHelperId(QStringLiteral("org.kde.ksysguard.processlisthelper"));
-                    killer.addArgument(QStringLiteral("pid0"), pid);
-                    killer.addArgument(QStringLiteral("pidcount"), 1);
-                    killer.addArgument(QStringLiteral("signal"), SIGKILL);
-                    if (killer.isValid()) {
-                        qDebug() << "Using KAuth to kill pid: " << pid;
-                        auto *job = killer.execute();
-                        job->exec();
-                    } else {
-                        qDebug() << "KWin process killer action not valid";
+            // If that did not work send a kill. Kill cannot be ignored and always terminates.
+            if (::kill(pid, SIGKILL) == 0) {
+                return 0;
+            }
+
+            return errno;
+        }).then(&dialog, [&dialog, pid](int result) {
+            if (result == EPERM) {
+                // killing failed on permissions try again with the polkit helper.
+                KAuth::Action killer(QStringLiteral("org.kde.ksysguard.processlisthelper.sendsignal"));
+                killer.setHelperId(QStringLiteral("org.kde.ksysguard.processlisthelper"));
+                killer.addArgument(QStringLiteral("pid0"), pid);
+                killer.addArgument(QStringLiteral("pidcount"), 1);
+                killer.addArgument(QStringLiteral("signal"), SIGKILL);
+                killer.setParentWindow(dialog.windowHandle());
+                if (!killer.isValid()) {
+                    qDebug() << "KWin process killer action not valid";
+                } else {
+                    qDebug() << "Using KAuth to kill pid: " << pid;
+                    auto *job = killer.execute();
+                    if (!job->exec()) {
+                        // Don't reject dialog on failure, give the user a chance to try again.
+                        dialog.setBusy(false);
+                        return;
                     }
                 }
             }
-        }
 
-        qApp->quit();
+            dialog.reject();
+        });
     });
 
-    dialog->show();
-    dialog->windowHandle()->requestActivate();
+    dialog.winId();
+    KWindowSystem::setMainWindow(dialog.windowHandle(), windowHandle);
+
+    dialog.show();
+    dialog.windowHandle()->requestActivate();
 
     return app.exec();
 }

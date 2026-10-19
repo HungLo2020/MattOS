@@ -11,6 +11,7 @@
 
 #include <QObject>
 #include <QSize>
+#include <sys/types.h>
 #include <utility>
 
 namespace KWin
@@ -25,6 +26,7 @@ struct DmaBufAttributes
     int height = 0;
     uint32_t format = 0;
     uint64_t modifier = 0;
+    dev_t device;
 
     std::array<FileDescriptor, 4> fd;
     std::array<uint32_t, 4> offset{0, 0, 0, 0};
@@ -46,6 +48,15 @@ struct SinglePixelAttributes
     uint32_t green;
     uint32_t blue;
     uint32_t alpha;
+};
+
+struct HostMemoryAttributes
+{
+    std::unique_ptr<std::byte[]> data;
+    QSize size;
+    uint32_t stride;
+    uint32_t format;
+    uint64_t sizeInBytes;
 };
 
 /**
@@ -87,9 +98,27 @@ public:
     virtual QSize size() const = 0;
     virtual bool hasAlphaChannel() const = 0;
 
+    virtual const DmaBufAttributes *udmabufAttributes() const;
     virtual const DmaBufAttributes *dmabufAttributes() const;
     virtual const ShmAttributes *shmAttributes() const;
     virtual const SinglePixelAttributes *singlePixelAttributes() const;
+    virtual const HostMemoryAttributes *hostDataAttributes() const;
+
+    /**
+     * @returns the drm format of the buffer.
+     *          May be of limited meaning with some buffer types
+     */
+    virtual uint32_t format() const = 0;
+    /**
+     * @returns the drm format modifier of the buffer.
+     *          May be of limited meaning with some buffer types
+     */
+    virtual uint64_t modifier() const = 0;
+    /**
+     * @returns the pitch / stride of the buffer.
+     *          May be of limited meaning with some buffer types
+     */
+    virtual uint32_t pitch() const = 0;
 
     /**
      * the added release point will be referenced as long as this buffer is referenced
@@ -99,6 +128,10 @@ public:
     static bool alphaChannelFromDrmFormat(uint32_t format);
 
 Q_SIGNALS:
+    /**
+     * emitted the first time the buffer is referenced after it's created or released
+     */
+    void referenced();
     void released();
 
 protected:
@@ -190,7 +223,7 @@ public:
         return *this;
     }
 
-    inline GraphicsBuffer *buffer() const
+    inline GraphicsBuffer *get() const
     {
         return m_buffer;
     }
@@ -205,10 +238,17 @@ public:
         return m_buffer;
     }
 
-    inline operator bool() const
+    inline explicit operator bool() const
     {
         return m_buffer;
     }
+
+    inline bool operator==(GraphicsBuffer *buffer) const
+    {
+        return m_buffer == buffer;
+    }
+
+    inline bool operator==(const GraphicsBufferRef &other) const = default;
 
 private:
     GraphicsBuffer *m_buffer;

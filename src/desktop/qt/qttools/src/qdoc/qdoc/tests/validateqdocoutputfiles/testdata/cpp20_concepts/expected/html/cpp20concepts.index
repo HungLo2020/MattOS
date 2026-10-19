@@ -2,6 +2,20 @@
 <!DOCTYPE QDOCINDEX>
 <INDEX url="" title="Test for C++20 concepts and requires clauses" version="1.0" project="Cpp20Concepts">
     <namespace name="" status="active" access="public" module="cpp20concepts">
+        <function name="doubleValue" href="cpp20concepts-cpp20concepts-proxy.html#doubleValue" status="active" access="public" location="concepts.h" documented="true" related="0" meta="plain" type="void" signature="void doubleValue(Integral auto value)">
+            <parameter type="Integral auto" name="value" default=""/>
+        </function>
+        <function name="pick" href="cpp20concepts-cpp20concepts-proxy.html#pick" status="active" access="public" location="concepts.h" documented="true" related="1" meta="plain" type="T" signature="T pick(T a, T b)">
+            <parameter type="T" name="a" default=""/>
+            <parameter type="T" name="b" default=""/>
+        </function>
+        <function name="processConcept" href="cpp20concepts-cpp20concepts-proxy.html#processConcept" status="active" access="public" location="concepts.h" documented="true" related="2" meta="plain" trailing_requires="Integral&lt;T&gt;" type="T" signature="T processConcept(T value) requires Integral&lt;T&gt;">
+            <parameter type="T" name="value" default=""/>
+        </function>
+        <function name="sum" href="cpp20concepts-cpp20concepts-proxy.html#sum" status="active" access="public" location="concepts.h" documented="true" related="3" meta="plain" type="T" signature="T sum(T a, T b)">
+            <parameter type="T" name="a" default=""/>
+            <parameter type="T" name="b" default=""/>
+        </function>
         <class name="ConceptExample" href="conceptexample.html" status="active" access="public" location="concepts.h" documented="true" module="Cpp20Concepts" brief="A class demonstrating functions with requires clauses">
             <function name="addIntegrals" fullname="ConceptExample::addIntegrals" href="conceptexample.html#addIntegrals" status="active" access="public" location="concepts.h" documented="true" meta="plain" type="T" signature="T addIntegrals(T a, T b)">
                 <parameter type="T" name="a" default=""/>
@@ -21,6 +35,7 @@
             </function>
             <function name="size" fullname="ConstrainedContainer::size" href="constrainedcontainer.html#size" status="active" access="public" location="concepts.h" documented="true" meta="plain" const="true" type="int" signature="int size() const"/>
         </class>
+        <class name="IntegralBox" href="integralbox.html" status="active" access="public" location="concepts.h" documented="true" module="Cpp20Concepts" brief="A box holding any Integral type"/>
         <class name="RequiresExpressionExample" href="requiresexpressionexample.html" status="active" access="public" location="concepts.h" documented="true" module="Cpp20Concepts" brief="A class demonstrating requires-expressions for ad-hoc constraints">
             <function name="getSize" fullname="RequiresExpressionExample::getSize" href="requiresexpressionexample.html#getSize" status="active" access="public" location="concepts.h" documented="true" meta="plain" type="int" signature="int getSize(const T &amp;container)">
                 <parameter type="const T &amp;" name="container" default=""/>
@@ -29,6 +44,7 @@
                 <parameter type="T &amp;" name="container" default=""/>
             </function>
         </class>
+        <class name="SortableBox" href="sortablebox.html" status="active" access="public" location="concepts.h" documented="true" module="Cpp20Concepts" brief="A box holding any Sortable type"/>
         <class name="TrailingRequiresExample" href="trailingrequiresexample.html" status="active" access="public" location="concepts.h" documented="true" module="Cpp20Concepts" brief="A class demonstrating functions with trailing requires clauses">
             <function name="combine" fullname="TrailingRequiresExample::combine" href="trailingrequiresexample.html#combine" status="active" access="public" location="concepts.h" documented="true" meta="plain" trailing_requires="(sizeof(T) &lt;= 4)" type="T" signature="T combine(T a, T b) requires (sizeof(T) &lt;= 4)">
                 <parameter type="T" name="a" default=""/>
@@ -41,6 +57,29 @@
                 <parameter type="T" name="input" default=""/>
             </function>
         </class>
+        <page name="since.html" href="since.html" status="active" location="since.qdoc" documented="true" subtype="page" title="What's New in version 1.0" fulltitle="What's New in version 1.0" subtitle=""/>
         <module name="Cpp20Concepts" href="cpp20concepts-module.html" status="active" location="concepts.h" documented="true" seen="true" title="C++20 Concepts Test Module" brief="A module for testing C++20 concepts documentation"/>
+        <concept name="Integral" href="integral.html" status="active" location="concepts.h" documented="true" seen="true" title="Integral" module="Cpp20Concepts" brief="A type that satisfies integral arithmetic">
+            <contents name="definition" title="Definition" level="1"/>
+        </concept>
+        <concept name="traits::Sortable" href="traits-sortable.html" status="active" location="concepts.h" since="1.0" documented="true" seen="true" title="traits::Sortable" module="Cpp20Concepts" brief="A namespaced concept satisfied by sortable types">
+            <contents name="definition" title="Definition" level="1"/>
+        </concept>
+        <proxy name="Cpp20Concepts" href="cpp20concepts-cpp20concepts-proxy.html" status="active" access="public">
+            <function name="doubleValue" href="cpp20concepts-cpp20concepts-proxy.html#doubleValue" status="active" access="public" location="concepts.h" documented="true" related="0" meta="plain" type="void" signature="void doubleValue(Integral auto value)">
+                <parameter type="Integral auto" name="value" default=""/>
+            </function>
+            <function name="pick" href="cpp20concepts-cpp20concepts-proxy.html#pick" status="active" access="public" location="concepts.h" documented="true" related="1" meta="plain" type="T" signature="T pick(T a, T b)">
+                <parameter type="T" name="a" default=""/>
+                <parameter type="T" name="b" default=""/>
+            </function>
+            <function name="processConcept" href="cpp20concepts-cpp20concepts-proxy.html#processConcept" status="active" access="public" location="concepts.h" documented="true" related="2" meta="plain" trailing_requires="Integral&lt;T&gt;" type="T" signature="T processConcept(T value) requires Integral&lt;T&gt;">
+                <parameter type="T" name="value" default=""/>
+            </function>
+            <function name="sum" href="cpp20concepts-cpp20concepts-proxy.html#sum" status="active" access="public" location="concepts.h" documented="true" related="3" meta="plain" type="T" signature="T sum(T a, T b)">
+                <parameter type="T" name="a" default=""/>
+                <parameter type="T" name="b" default=""/>
+            </function>
+        </proxy>
     </namespace>
 </INDEX>

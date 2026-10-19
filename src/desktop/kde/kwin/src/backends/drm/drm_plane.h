@@ -9,6 +9,7 @@
 */
 #pragma once
 
+#include "core/drm_formats.h"
 #include "core/output.h"
 #include "drm_colorop.h"
 #include "drm_object.h"
@@ -16,6 +17,7 @@
 #include <QMap>
 #include <QPoint>
 #include <QSize>
+#include <deque>
 #include <memory>
 #include <qobjectdefs.h>
 
@@ -29,6 +31,7 @@ class DrmCrtc;
 class DrmPlane : public DrmObject
 {
     Q_GADGET
+
 public:
     DrmPlane(DrmGpu *gpu, uint32_t planeId);
 
@@ -38,9 +41,9 @@ public:
     void disable(DrmAtomicCommit *commit) override;
 
     bool isCrtcSupported(int pipeIndex) const;
-    QHash<uint32_t, QList<uint64_t>> lowBandwidthFormats() const;
-    QHash<uint32_t, QList<uint64_t>> formats() const;
-    QHash<uint32_t, QList<uint64_t>> tearingFormats() const;
+    FormatModifierMap lowBandwidthFormats() const;
+    FormatModifierMap formats() const;
+    FormatModifierMap tearingFormats() const;
     bool supportsTransformation(OutputTransform transform) const;
 
     std::shared_ptr<DrmFramebuffer> currentBuffer() const;
@@ -55,7 +58,7 @@ public:
     enum class TypeIndex : uint64_t {
         Overlay = 0,
         Primary = 1,
-        Cursor = 2
+        Cursor = 2,
     };
     enum class Transformation : uint32_t {
         Rotate0 = 1 << 0,
@@ -63,7 +66,7 @@ public:
         Rotate180 = 1 << 2,
         Rotate270 = 1 << 3,
         ReflectX = 1 << 4,
-        ReflectY = 1 << 5
+        ReflectY = 1 << 5,
     };
     Q_ENUM(Transformation)
     Q_DECLARE_FLAGS(Transformations, Transformation)
@@ -71,16 +74,16 @@ public:
     enum class PixelBlendMode : uint64_t {
         None,
         PreMultiplied,
-        Coverage
+        Coverage,
     };
     enum class ColorEncoding : uint64_t {
         BT601_YCbCr,
         BT709_YCbCr,
-        BT2020_YCbCr
+        BT2020_YCbCr,
     };
     enum class ColorRange : uint64_t {
         Limited_YCbCr,
-        Full_YCbCr
+        Full_YCbCr,
     };
 
     DrmEnumProperty<TypeIndex> type;
@@ -107,14 +110,15 @@ public:
     DrmProperty inFormatsForTearing;
     DrmProperty zpos;
     DrmProperty colorPipeline;
+    DrmProperty fbDamage;
 
 private:
     std::shared_ptr<DrmFramebuffer> m_current;
-    QList<std::shared_ptr<DrmFramebufferData>> m_lastBuffers;
+    std::deque<std::shared_ptr<DrmFramebufferData>> m_lastBuffers;
 
-    QHash<uint32_t, QList<uint64_t>> m_supportedFormats;
-    QHash<uint32_t, QList<uint64_t>> m_lowBandwidthFormats;
-    QHash<uint32_t, QList<uint64_t>> m_supportedTearingFormats;
+    FormatModifierMap m_supportedFormats;
+    FormatModifierMap m_lowBandwidthFormats;
+    FormatModifierMap m_supportedTearingFormats;
     uint32_t m_possibleCrtcs = 0;
     QList<QSize> m_sizeHints;
 

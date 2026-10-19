@@ -27,10 +27,14 @@ enum class GreeterMessages {
 };
 
 enum class DaemonMessages {
-    HostName,
     LoginSucceeded,
     LoginFailed,
     InformationMessage,
+};
+
+enum class SessionType {
+    X11 = 0,
+    Wayland
 };
 }
 

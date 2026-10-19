@@ -48,6 +48,9 @@
 #include <KNotification>
 #include <KUser>
 
+#include <QHBoxLayout>
+#include <QScrollArea>
+
 ConnectionEditorBase::ConnectionEditorBase(const NetworkManager::ConnectionSettings::Ptr &connection, QWidget *parent, Qt::WindowFlags f)
     : QWidget(parent, f)
     , m_initialized(false)
@@ -73,7 +76,9 @@ void ConnectionEditorBase::setConnection(const NetworkManager::ConnectionSetting
     m_connection.clear();
     m_connection = connection;
     m_initialized = false;
-    m_wifiSecurity = nullptr;
+    m_wifiConnectionWidget = nullptr;
+    m_wifiScrollArea = nullptr;
+    m_wifiTabIndex = -1;
 
     // Reset UI setting widgets
     delete m_connectionWidget;
@@ -90,28 +95,31 @@ NMVariantMapMap ConnectionEditorBase::setting() const
 
     for (SettingWidget *widget : m_settingWidgets) {
         const QString type = widget->type();
-        if (type != NetworkManager::Setting::typeAsString(NetworkManager::Setting::Security8021x)
-            && type != NetworkManager::Setting::typeAsString(NetworkManager::Setting::WirelessSecurity)) {
+        if (type != NetworkManager::Setting::typeAsString(NetworkManager::Setting::Security8021x)) {
             settings.insert(type, widget->setting());
         }
 
         // add 802.1x security if needed
         QVariantMap security8021x;
-        if (type == NetworkManager::Setting::typeAsString(NetworkManager::Setting::WirelessSecurity)) {
-            auto wifiSecurity = static_cast<WifiSecurity *>(widget);
-            if (wifiSecurity->enabled()) {
-                settings.insert(type, wifiSecurity->setting());
-            }
-            if (wifiSecurity->enabled8021x()) {
-                security8021x = static_cast<WifiSecurity *>(widget)->setting8021x();
-                settings.insert(NetworkManager::Setting::typeAsString(NetworkManager::Setting::Security8021x), security8021x);
-            }
-        } else if (type == NetworkManager::Setting::typeAsString(NetworkManager::Setting::Security8021x)) {
+        if (type == NetworkManager::Setting::typeAsString(NetworkManager::Setting::Security8021x)) {
             auto wiredSecurity = static_cast<WiredSecurity *>(widget);
             if (wiredSecurity->enabled8021x()) {
                 security8021x = static_cast<WiredSecurity *>(widget)->setting();
                 settings.insert(NetworkManager::Setting::typeAsString(NetworkManager::Setting::Security8021x), security8021x);
             }
+        }
+    }
+
+    // Handle Wi-Fi security from the embedded WifiSecurity widget
+    if (m_wifiConnectionWidget && m_wifiConnectionWidget->wifiSecurity()) {
+        WifiSecurity *wifiSecurity = m_wifiConnectionWidget->wifiSecurity();
+        if (wifiSecurity->enabled()) {
+            settings.insert(NetworkManager::Setting::typeAsString(NetworkManager::Setting::WirelessSecurity),
+                            wifiSecurity->setting());
+        }
+        if (wifiSecurity->enabled8021x()) {
+            settings.insert(NetworkManager::Setting::typeAsString(NetworkManager::Setting::Security8021x),
+                            wifiSecurity->setting8021x());
         }
     }
 
@@ -172,13 +180,30 @@ bool ConnectionEditorBase::isValid() const
     return m_valid;
 }
 
+int ConnectionEditorBase::wifiTabIndex() const
+{
+    return m_wifiTabIndex;
+}
+
+void ConnectionEditorBase::focusWifiSecurityUsername()
+{
+    if (!m_wifiConnectionWidget || !m_wifiConnectionWidget->wifiSecurity()) {
+        return;
+    }
+
+    QWidget *usernameField = m_wifiConnectionWidget->wifiSecurity()->focusUsernameField();
+    if (usernameField && m_wifiScrollArea) {
+        m_wifiScrollArea->ensureWidgetVisible(usernameField);
+    }
+}
+
 void ConnectionEditorBase::addConnectionWidget(ConnectionWidget *widget, const QString &text)
 {
     m_connectionWidget = widget;
 
     connect(widget, &ConnectionWidget::settingChanged, this, &ConnectionEditorBase::settingChanged);
 
-    addWidget(widget, text);
+    addWidget(wrapWithPreferredWidth(widget), text);
 }
 
 void ConnectionEditorBase::addSettingWidget(SettingWidget *widget, const QString &text)
@@ -187,7 +212,7 @@ void ConnectionEditorBase::addSettingWidget(SettingWidget *widget, const QString
 
     connect(widget, &SettingWidget::settingChanged, this, &ConnectionEditorBase::settingChanged);
 
-    addWidget(widget, text);
+    addWidget(wrapWithPreferredWidth(widget), text);
 }
 
 void ConnectionEditorBase::initialize()
@@ -200,7 +225,7 @@ void ConnectionEditorBase::initialize()
     } else {
         // Status tab showing connection details (first tab)
         m_statusWidget = new ConnectionStatusWidget(m_connection->uuid());
-        addWidget(m_statusWidget, i18nc("@title:tab Connection status and details", "Status"));
+        addWidget(wrapWithPreferredWidth(m_statusWidget), i18nc("@title:tab Connection status and details", "Status"));
         updateStatusWidget();
     }
 
@@ -218,14 +243,25 @@ void ConnectionEditorBase::initialize()
             new WiredSecurity(m_connection->setting(NetworkManager::Setting::Security8021x).staticCast<NetworkManager::Security8021xSetting>(), this);
         addSettingWidget(wiredSecurity, i18n("802.1x Security"));
     } else if (type == NetworkManager::ConnectionSettings::Wireless) {
-        auto wifiWidget = new WifiConnectionWidget(m_connection->setting(NetworkManager::Setting::Wireless), this);
-        addSettingWidget(wifiWidget, i18n("Wi-Fi"));
-        auto wifiSecurity = new WifiSecurity(m_connection->setting(NetworkManager::Setting::WirelessSecurity),
-                                             m_connection->setting(NetworkManager::Setting::Security8021x).staticCast<NetworkManager::Security8021xSetting>(),
-                                             this);
-        addSettingWidget(wifiSecurity, i18n("Wi-Fi Security"));
-        connect(wifiWidget, QOverload<const QString &>::of(&WifiConnectionWidget::ssidChanged), wifiSecurity, &WifiSecurity::onSsidChanged);
-        m_wifiSecurity = wifiSecurity;
+        auto wifiWidget = new WifiConnectionWidget(m_connection->setting(NetworkManager::Setting::Wireless),
+                                                   m_connection->setting(NetworkManager::Setting::WirelessSecurity),
+                                                   m_connection->setting(NetworkManager::Setting::Security8021x).staticCast<NetworkManager::Security8021xSetting>(),
+                                                   this);
+        m_settingWidgets << wifiWidget;
+        connect(wifiWidget, &SettingWidget::settingChanged, this, &ConnectionEditorBase::settingChanged);
+
+        // Wrap in scroll area for vertical scrolling, allow horizontal when needed
+        auto scrollArea = new QScrollArea(this);
+        scrollArea->setWidget(wifiWidget);
+        scrollArea->setWidgetResizable(true);
+        scrollArea->setFrameShape(QFrame::NoFrame);
+        scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+        m_wifiTabIndex = emptyConnection ? 1 : 2;
+        addWidget(wrapWithPreferredWidth(scrollArea), i18n("Wi-Fi"));
+        m_wifiConnectionWidget = wifiWidget;
+        m_wifiScrollArea = scrollArea;
     } else if (type == NetworkManager::ConnectionSettings::Pppoe) { // DSL
         auto pppoeWidget = new PppoeWidget(m_connection->setting(NetworkManager::Setting::Pppoe), this);
         addSettingWidget(pppoeWidget, i18n("DSL"));
@@ -482,11 +518,17 @@ void ConnectionEditorBase::replyFinished(QDBusPendingCallWatcher *watcher)
                 NetworkManager::Setting::Ptr setting = m_connection->setting(NetworkManager::Setting::typeFromString(key));
                 if (setting) {
                     setting->secretsFromMap(secrets.value(key));
+
+                    // Handle Wi-Fi security secrets via the combined WifiConnectionWidget
+                    if (m_wifiConnectionWidget
+                        && (settingName == NetworkManager::Setting::typeAsString(NetworkManager::Setting::WirelessSecurity)
+                            || settingName == NetworkManager::Setting::typeAsString(NetworkManager::Setting::Security8021x))) {
+                        m_wifiConnectionWidget->loadSecrets(setting);
+                    }
+
                     for (SettingWidget *widget : std::as_const(m_settingWidgets)) {
                         const QString type = widget->type();
-                        if (type == settingName
-                            || (settingName == NetworkManager::Setting::typeAsString(NetworkManager::Setting::Security8021x)
-                                && type == NetworkManager::Setting::typeAsString(NetworkManager::Setting::WirelessSecurity))) {
+                        if (type == settingName) {
                             widget->loadSecrets(setting);
                         }
                     }
@@ -532,24 +574,23 @@ void ConnectionEditorBase::validChanged(bool valid)
 
 void ConnectionEditorBase::onAllUsersChanged()
 {
-    if (!m_wifiSecurity) {
+    if (!m_wifiConnectionWidget) {
+        return;
+    }
+
+    WifiSecurity *wifiSecurity = m_wifiConnectionWidget->wifiSecurity();
+    if (!wifiSecurity) {
         return;
     }
 
     auto allUsers = m_connectionWidget->allUsers();
-    m_wifiSecurity->setStoreSecretsSystemWide(allUsers);
+    wifiSecurity->setStoreSecretsSystemWide(allUsers);
 }
 
 void ConnectionEditorBase::updateStatusWidget()
 {
     if (!m_statusWidget || !m_connection) {
         return;
-    }
-
-    // Find the NetworkManager connection object
-    NetworkManager::Connection::Ptr nmConnection = NetworkManager::findConnectionByUuid(m_connection->uuid());
-    if (!nmConnection) {
-        return; // Connection not found in NetworkManager
     }
 
     // Find active connection with matching UUID
@@ -559,6 +600,18 @@ void ConnectionEditorBase::updateStatusWidget()
             activeConnection = active;
             break;
         }
+    }
+
+    // Find the NetworkManager connection object
+    NetworkManager::Connection::Ptr nmConnection = NetworkManager::findConnectionByUuid(m_connection->uuid());
+
+    // Fallback - try to get the connection from active connection
+    if (!nmConnection && activeConnection) {
+        nmConnection = activeConnection->connection();
+    }
+
+    if (!nmConnection) {
+        return; // Connection not found in NetworkManager
     }
 
     // Get the device for this connection
@@ -638,6 +691,28 @@ void ConnectionEditorBase::updateStatusWidget()
 
     // Pass connection, device, and access point path to status widget
     m_statusWidget->setConnectionAndDevice(nmConnection, device, accessPointPath);
+}
+
+QWidget *ConnectionEditorBase::wrapWithPreferredWidth(QWidget *content)
+{
+    auto *container = new QWidget(this);
+    auto *layout = new QHBoxLayout(container);
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    layout->addStretch(1);
+
+    // Set size constraints on content:
+    // - Preferred width: 600px for typical English labels
+    // - Maximum width: 800px to handle longer labels in other languages
+    // - Content can grow between preferred and max as needed
+    content->setMinimumWidth(TAB_CONTENT_PREFERRED_WIDTH);
+    content->setMaximumWidth(TAB_CONTENT_MAX_WIDTH);
+    content->setParent(container);
+    layout->addWidget(content);
+
+    layout->addStretch(1);
+
+    return container;
 }
 
 #include "moc_connectioneditorbase.cpp"

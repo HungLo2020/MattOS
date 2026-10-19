@@ -96,7 +96,7 @@ class QCalendarRegistry
     QAtomicInt status = Unpopulated;
 
     void ensurePopulated();
-    QCalendarBackend *registerSystemBackendLockHeld(QCalendar::System system);
+    const QCalendarBackend *registerSystemBackendLockHeld(QCalendar::System system);
     void registerBackendLockHeld(QCalendarBackend *backend, const QStringList &names,
                                  QCalendar::System system);
 
@@ -221,7 +221,7 @@ void QCalendarRegistry::ensurePopulated()
 
     \sa registerSystemBackend
 */
-QCalendarBackend *QCalendarRegistry::registerSystemBackendLockHeld(QCalendar::System system)
+const QCalendarBackend *QCalendarRegistry::registerSystemBackendLockHeld(QCalendar::System system)
 {
     Q_ASSERT(system != QCalendar::System::User);
 
@@ -388,8 +388,8 @@ const QCalendarBackend *QCalendarRegistry::fromIndex(size_t index)
 */
 const QCalendarBackend *QCalendarRegistry::fromEnum(QCalendar::System system)
 {
-    Q_ASSERT(system <= QCalendar::System::Last);
     auto index = size_t(system);
+    Q_ASSERT(index <= size_t(QCalendar::System::Last));
 
     {
         QReadLocker locker(&lock);
@@ -645,8 +645,8 @@ QString QCalendar::name() const
    Returns number of days in the month number \a month, in year \a year.
 
    An implementation should return 0 if the given year had no such month. If
-   year is QCalendar::Unspecified, return the usual number of days for the
-   month, in those years that include it.
+   year is QCalendar::Unspecified, return the greatest number of days for the
+   month, in any year.
 
    Calendars with intercalary days may represent these as extra days of the
    preceding month, or as short months separate from the usual ones. In the
@@ -827,7 +827,8 @@ int QCalendarBackend::maximumMonthsInYear() const
 
     Computes the Julian day number corresponding to the specified \a year, \a
     month, and \a day. Returns true and sets \a jd if there is such a date in
-    this calendar; otherwise, returns false.
+    this calendar; otherwise, returns false. (Its caller will deal with any case
+    where the result falls outside the range that QDate can represnt.)
 
     \sa QCalendar::partsFromDate(), julianDayToDate()
 */
@@ -837,9 +838,10 @@ int QCalendarBackend::maximumMonthsInYear() const
 
     Computes the year, month, and day in this calendar for the given Julian day
     number \a jd. If the given day falls outside this calendar's scope
-    (e.g. before the start-date of a non-proleptic calendar), the returned
-    structure's isValid() is false; otherwise, its year, month, and day fields
-    provide this calendar's description of the date.
+    (e.g. before the start-date of a non-proleptic calendar, or outside the
+    range in which \c int can represent all fields), the returned structure's
+    isValid() is false; otherwise, its year, month, and day fields provide this
+    calendar's description of the date.
 
     \sa QCalendar::dateFromParts(), dateToJulianDay()
 */
@@ -948,7 +950,7 @@ qint64 QCalendarBackend::matchCenturyToWeekday(const QCalendar::YearMonthDay &pa
 */
 
 /*!
-    \fn QString QCalendarBackend::standaloneMonthName(const QLocale &locale, int month, int year
+    \fn QString QCalendarBackend::standaloneMonthName(const QLocale &locale, int month, int year,
                                                       QLocale::FormatType format) const
 
     Returns the standalone name of the specified \a month in the chosen \a
@@ -1088,7 +1090,9 @@ const QCalendarBackend *QCalendarBackend::fromId(QCalendar::SystemId id)
 */
 const QCalendarBackend *QCalendarBackend::fromEnum(QCalendar::System system)
 {
-    if (Q_UNLIKELY(calendarRegistry.isDestroyed() || system == QCalendar::System::User))
+    if (Q_UNLIKELY(calendarRegistry.isDestroyed()))
+        return nullptr;
+    if (size_t(system) > size_t(QCalendar::System::Last)) // User, at -1, casts to > Last.
         return nullptr;
 
     return calendarRegistry->fromEnum(system);
@@ -1463,7 +1467,9 @@ int QCalendar::maximumMonthsInYear() const
     packaged together as the members of \a parts. Returns a QDate with the given
     year, month, and day of the month in this calendar, if there is one.
     Otherwise, including the case where any of the values is
-    QCalendar::Unspecified, returns a QDate whose isNull() is true.
+    QCalendar::Unspecified, returns a QDate whose isNull() is true. If the date
+    represented falls outside QDate's supported range, the returned QDate's
+    isValid() shall be false.
 
     \sa isDateValid(), partsFromDate()
 */
@@ -1510,8 +1516,9 @@ QDate QCalendar::matchCenturyToWeekday(const QCalendar::YearMonthDay &parts, int
     Converts a QDate to a year, month, and day of the month.
 
     The returned structure's isValid() shall be false if the calendar is unable
-    to represent the given \a date. Otherwise its year, month, and day
-    members record the so-named parts of its representation.
+    to represent the given \a date (or its year would be outside the range that
+    \c int can represent). Otherwise its year, month, and day members record the
+    so-named parts of its representation.
 
     \sa dateFromParts(), isProleptic(), hasYearZero()
 */

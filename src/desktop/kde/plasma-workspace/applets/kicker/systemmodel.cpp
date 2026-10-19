@@ -10,7 +10,6 @@
 
 #include <QStandardPaths>
 
-#include <KDirWatch>
 #include <KLocalizedString>
 
 SystemModel::SystemModel(QObject *parent)
@@ -57,6 +56,16 @@ QVariant SystemModel::data(const QModelIndex &index, int role) const
         return entry->actions();
     } else if (role == Kicker::DisabledRole) {
         return !entry->isValid();
+    } else if (role == Kicker::UrlRole) {
+        return QUrl();
+    } else if (role == Kicker::HasChildrenRole) {
+        return false;
+    } else if (role == Kicker::IsParentRole) {
+        return false;
+    } else if (role == Kicker::IsSeparatorRole) {
+        return false;
+    } else if (role == Kicker::IsNewlyInstalledRole) {
+        return false;
     }
 
     return {};

@@ -1,0 +1,1000 @@
+# Nemanja Hiršl <nemhirsl@gmail.com>, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-systemmonitor\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-07-17 00:46+0000\n"
+"PO-Revision-Date: 2026-10-07 11:45+0200\n"
+"Last-Translator: Nemanja Hiršl <nemhirsl@gmail.com>\n"
+"Language-Team: Serbian <kde-i18n-sr@kde.org>\n"
+"Language: sr@ijekavian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+"X-Environment: kde\n"
+
+#: src/GlobalMenu.qml:16
+#, kde-format
+msgctxt "@menu"
+msgid "File"
+msgstr "Фајл"
+
+#: src/GlobalMenu.qml:19
+#, kde-format
+msgctxt "@menu-action"
+msgid "Add New Page…"
+msgstr "Додај нову страницу…"
+
+#: src/GlobalMenu.qml:25
+#, kde-format
+msgctxt "@menu-action"
+msgid "Import Page…"
+msgstr "Увези страницу…"
+
+#: src/GlobalMenu.qml:31
+#, kde-format
+msgctxt "@menu-action"
+msgid "Export Current Page…"
+msgstr "Извези текућу страницу…"
+
+#: src/GlobalMenu.qml:38
+#, kde-format
+msgctxt "@menu-action"
+msgid "Get New Pages…"
+msgstr "Добави нове странице…"
+
+#: src/GlobalMenu.qml:55
+#, kde-format
+msgctxt "@menu-action"
+msgid "Quit"
+msgstr "Напусти"
+
+#: src/GlobalMenu.qml:63
+#, kde-format
+msgctxt "@menu"
+msgid "View"
+msgstr "Приказ"
+
+#: src/GlobalMenu.qml:66
+#, kde-format
+msgctxt "@menu-action"
+msgid "Expand Sidebar"
+msgstr "Рашири бочну траку"
+
+#: src/GlobalMenu.qml:66
+#, kde-format
+msgctxt "@menu-action"
+msgid "Collapse Sidebar"
+msgstr "Сажми бочну траку"
+
+#: src/GlobalMenu.qml:73
+#, kde-format
+msgctxt "@menu"
+msgid "Settings"
+msgstr "Подешавање"
+
+#: src/GlobalMenu.qml:76
+#, kde-format
+msgctxt "@menu-action"
+msgid "Edit or Remove Pages…"
+msgstr "Уреди или уклони странице…"
+
+#: src/GlobalMenu.qml:83
+#, kde-format
+msgctxt "@menu"
+msgid "Help"
+msgstr "Помоћ"
+
+#: src/GlobalMenu.qml:86
+#, kde-format
+msgctxt "@menu-action"
+msgid "Report Bug…"
+msgstr "Пријави грешку…"
+
+#: src/GlobalMenu.qml:92
+#, kde-format
+msgctxt "@menu-action"
+msgid "About System Monitor"
+msgstr "О надзорнику система"
+
+#: src/main.cpp:61
+#, kde-format
+msgid "System Monitor"
+msgstr "Надзорник система"
+
+#: src/main.cpp:63
+#, kde-format
+msgid "An application for monitoring system resources"
+msgstr "Програм за надгледање системских ресурса"
+
+#: src/main.cpp:65
+#, kde-format
+msgid "© 2025 Plasma Development Team"
+msgstr "© 2025, развојни тим Плазме"
+
+#: src/main.cpp:71
+#, kde-format
+msgid "Arjen Hiemstra"
+msgstr "Arjen Hiemstra"
+
+#: src/main.cpp:71 src/main.cpp:74 src/main.cpp:76 src/main.cpp:77
+#, kde-format
+msgid "Development"
+msgstr "Развој"
+
+#: src/main.cpp:72
+#, kde-format
+msgid "Uri Herrera"
+msgstr "Ури Ерера"
+
+#: src/main.cpp:72
+#, kde-format
+msgid "Design"
+msgstr "Дизајн"
+
+#: src/main.cpp:73
+#, kde-format
+msgid "Nate Graham"
+msgstr "Nate Graham"
+
+#: src/main.cpp:73 src/main.cpp:75
+#, kde-format
+msgid "Design and Quality Assurance"
+msgstr "Дизајн и осигурање квалитета"
+
+#: src/main.cpp:74
+#, kde-format
+msgid "David Redondo"
+msgstr "David Redondo"
+
+#: src/main.cpp:75
+#, kde-format
+msgid "Noah Davis"
+msgstr "Noah Davis"
+
+#: src/main.cpp:76
+#, kde-format
+msgid "Marco Martin"
+msgstr "Марко Мартин"
+
+#: src/main.cpp:77
+#, kde-format
+msgid "David Edmundson"
+msgstr "Дејвид Едмундсон"
+
+#: src/main.cpp:79
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Немања Хиршл"
+
+#: src/main.cpp:79
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "nemhirsl@gmail.com"
+
+#: src/Main.qml:88
+#, kde-format
+msgctxt "@action"
+msgid "Tools"
+msgstr "Алатке"
+
+#: src/Main.qml:93
+#, kde-format
+msgctxt "@action"
+msgid "Add New Page…"
+msgstr "Додај нову страницу…"
+
+#: src/Main.qml:100
+#, kde-format
+msgctxt "@action"
+msgid "Edit or Remove Pages…"
+msgstr "Уреди или уклони странице…"
+
+#: src/Main.qml:106
+#, kde-format
+msgctxt "@action"
+msgid "Export Current Page…"
+msgstr "Извези текућу страницу…"
+
+#: src/Main.qml:114
+#, kde-format
+msgctxt "@action"
+msgid "Import Page…"
+msgstr "Увези страницу…"
+
+#: src/Main.qml:120
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Get New Pages…"
+msgstr "Добави нове странице…"
+
+#: src/Main.qml:137
+#, kde-format
+msgctxt "@action"
+msgid "Expand Sidebar"
+msgstr "Рашири бочну траку"
+
+#: src/Main.qml:137
+#, kde-format
+msgctxt "@action"
+msgid "Collapse Sidebar"
+msgstr "Сажми бочну траку"
+
+#: src/Main.qml:147
+#, kde-format
+msgctxt "@action"
+msgid "Report Bug…"
+msgstr "Пријави грешку…"
+
+#: src/Main.qml:153
+#, kde-format
+msgctxt "@action"
+msgid "About System Monitor"
+msgstr "О надзорнику система"
+
+#: src/Main.qml:160
+#, kde-format
+msgctxt "@action"
+msgid "About KDE"
+msgstr "О КДЕ‑у"
+
+#: src/Main.qml:266
+#, kde-format
+msgctxt "@window:title"
+msgid "Add New Page"
+msgstr "Додавање нове странице"
+
+#: src/Main.qml:287
+#, kde-format
+msgctxt "@window:title"
+msgid "Edit Pages"
+msgstr "Уређивање страница"
+
+#: src/Main.qml:310
+#, kde-format
+msgctxt "@title:window %1 is the name of the page that is being exported"
+msgid "Export %1"
+msgstr "Извоз странице „%1“"
+
+#: src/Main.qml:312 src/Main.qml:322
+#, kde-format
+msgctxt "Name filter in file dialog"
+msgid "System Monitor page (*.page)"
+msgstr "Страница надзорника система (*.page)"
+
+#: src/Main.qml:320
+#, kde-format
+msgctxt "@title:window"
+msgid "Import Page"
+msgstr "Увоз странице"
+
+#: src/Main.qml:346
+#, kde-format
+msgid ""
+"System Monitor has fallen back to software rendering because hardware "
+"acceleration is not available, and visual glitches may appear. Please check "
+"your graphics drivers."
+msgstr ""
+"Надзорник система је прешао на софтверско рендеровање јер хардверско убрзање "
+"није доступно, па се могу јавити визуелне грешке. Провјерите драјвере "
+"графичке картице."
+
+#: src/page/ColumnControl.qml:117
+#, kde-format
+msgctxt "@action"
+msgid "Add Section"
+msgstr "Додај одјељак"
+
+#: src/page/ColumnControl.qml:121
+#, kde-format
+msgctxt "@action"
+msgid "Add Separator"
+msgstr "Додај раздвајач"
+
+#: src/page/ColumnControl.qml:130
+#, kde-format
+msgctxt "@action"
+msgid "Show Background"
+msgstr "Прикажи позадину"
+
+#: src/page/ColumnControl.qml:137
+#, kde-format
+msgctxt "@action"
+msgid "Remove Background Margins"
+msgstr "Уклони маргине позадине"
+
+#: src/page/EditablePage.qml:122
+#, kde-format
+msgctxt "@action"
+msgid "Edit Page"
+msgstr "Уреди страницу"
+
+#: src/page/EditablePage.qml:132
+#, kde-format
+msgctxt "@action"
+msgid "Save Changes"
+msgstr "Сачувај измјене"
+
+#: src/page/EditablePage.qml:142
+#, kde-format
+msgctxt "@action"
+msgid "Discard Changes"
+msgstr "Одбаци измјене"
+
+#: src/page/EditablePage.qml:153
+#, kde-format
+msgctxt "@action"
+msgid "Configure Page…"
+msgstr "Подеси страницу…"
+
+#: src/page/EditablePage.qml:162
+#, kde-format
+msgctxt "@action"
+msgid "Add Row"
+msgstr "Додај ред"
+
+#: src/page/EditablePage.qml:171
+#, kde-format
+msgctxt "@action"
+msgid "Add Title"
+msgstr "Додај наслов"
+
+#: src/page/EditablePage.qml:184
+#, kde-format
+msgctxt "@title:window %1 is page title"
+msgid "Configure Page \"%1\""
+msgstr "Подешавање странице „%1“"
+
+#: src/page/EditablePage.qml:186
+#, kde-format
+msgctxt "@action:button"
+msgid "Save"
+msgstr "Сачувај"
+
+#: src/page/EditorToolBar.qml:36
+#, kde-format
+msgctxt "@action"
+msgid "Add"
+msgstr "Додај"
+
+#: src/page/EditorToolBar.qml:56
+#, kde-format
+msgctxt "@action"
+msgid "Remove"
+msgstr "Уклони"
+
+#: src/page/FaceConfigurationPage.qml:25
+#, kde-format
+msgctxt "@title:window %1 is face name"
+msgid "Configure %1"
+msgstr "Подешавање: %1"
+
+#: src/page/FaceConfigurationPage.qml:32
+#, kde-format
+msgctxt "@action"
+msgid "Close"
+msgstr "Затвори"
+
+#: src/page/FaceConfigurationPage.qml:39
+#, kde-format
+msgctxt "@action"
+msgid "Load Preset…"
+msgstr "Учитај претподешавање…"
+
+#: src/page/FaceConfigurationPage.qml:45
+#, kde-format
+msgctxt "@action"
+msgid "Get New Presets…"
+msgstr "Добави нова претподешавања…"
+
+#: src/page/FaceConfigurationPage.qml:56
+#, kde-format
+msgctxt "@action"
+msgid "Save Settings as Preset"
+msgstr "Сачувај поставке као претподешавање"
+
+#: src/page/FaceConfigurationPage.qml:60
+#, kde-format
+msgctxt "@info:status %1 is preset name"
+msgid "Saved settings as preset %1."
+msgstr "Поставке сачуване као претподешавање %1."
+
+#: src/page/FaceConfigurationPage.qml:66 src/page/PageContents.qml:357
+#, kde-format
+msgctxt "@action"
+msgid "Add Chart as Desktop Widget"
+msgstr "Додај график као виџет површи"
+
+#: src/page/FaceConfigurationPage.qml:77
+#, kde-format
+msgctxt "@action"
+msgid "Get New Display Styles…"
+msgstr "Добави нове стилове приказа…"
+
+#: src/page/FaceConfigurationPage.qml:100
+#, kde-format
+msgctxt "@info:status %1 is preset name"
+msgid "Loaded preset %1."
+msgstr "Учитано претподешавање %1."
+
+#: src/page/FaceConfigurationPage.qml:117
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Title"
+msgstr "Наслов"
+
+#: src/page/FaceConfigurationPage.qml:123
+#, kde-format
+msgctxt "@option:check"
+msgid "Show Title"
+msgstr "Прикажи наслов"
+
+#: src/page/FaceConfigurationPage.qml:141
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Display Style"
+msgstr "Стил приказа"
+
+#: src/page/FaceConfigurationPage.qml:169
+#, kde-format
+msgctxt "@label"
+msgid "Minimum time between updates:"
+msgstr "Најмање вријеме између ажурирања:"
+
+#: src/page/FaceConfigurationPage.qml:186
+#, kde-format
+msgid "No Limit"
+msgstr "без ограничења"
+
+#. i18ndp doesn't handle floats :(
+#: src/page/FaceConfigurationPage.qml:190
+#, kde-format
+msgid "1 second"
+msgstr "1 секунда"
+
+#: src/page/FaceConfigurationPage.qml:192
+#, kde-format
+msgid "%1 seconds"
+msgstr "%1 секунди"
+
+#: src/page/FacesModel.cpp:46
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No Chart"
+msgstr "Без графика"
+
+#: src/page/LoadPresetDialog.qml:23
+#, kde-format
+msgctxt "@title:window"
+msgid "Load Preset"
+msgstr "Учитавање претподешавања"
+
+#: src/page/LoadPresetDialog.qml:38
+#, kde-format
+msgctxt "@action:button"
+msgid "Load"
+msgstr "Учитај"
+
+#: src/page/MissingSensorsDialog.qml:23
+#, kde-format
+msgctxt "@title"
+msgid "Replace Missing Sensors"
+msgstr "Замјена недостајућих сензора"
+
+#: src/page/MoveButton.qml:23
+#, kde-format
+msgctxt "@action"
+msgid "Move"
+msgstr "Помјери"
+
+#: src/page/PageContents.qml:107 src/page/PageEditor.qml:141
+#, kde-format
+msgid "This page is missing some sensors and will not display correctly."
+msgstr "Овој страници недостају неки сензори и неће се исправно приказивати."
+
+#: src/page/PageContents.qml:112 src/page/PageEditor.qml:145
+#, kde-format
+msgctxt "@action:button"
+msgid "Fix…"
+msgstr "Поправи…"
+
+#: src/page/PageContents.qml:124
+#, kde-format
+msgid ""
+"A new version of this page was installed, but you made changes to this page. "
+"The changes have been copied to %1 (Old Version)."
+msgstr ""
+"Инсталирана је нова верзија ове странице, али сте ову страницу измијенили. "
+"Измјене су копиране у страницу „%1 (стара верзија)“."
+
+#: src/page/PageContents.qml:125
+#, kde-format
+msgid ""
+"A new version of this page was installed, but you made changes to this page. "
+"Would you like to keep your changes or discard your changes and use the new "
+"version of the page?"
+msgstr ""
+"Инсталирана је нова верзија ове странице, али сте ову страницу измијенили. "
+"Желите ли да задржите своје измјене или да их одбаците и користите нову "
+"верзију странице?"
+
+#: src/page/PageContents.qml:133
+#, kde-format
+msgctxt "@action:button"
+msgid "Keep Changes"
+msgstr "Задржи измјене"
+
+#: src/page/PageContents.qml:139
+#, kde-format
+msgctxt "@action:button"
+msgid "Discard Changes"
+msgstr "Одбаци измјене"
+
+#: src/page/PageDialog.qml:21
+#, kde-format
+msgctxt "@action:button"
+msgid "Add"
+msgstr "Додај"
+
+#: src/page/PageDialog.qml:24
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "New Page"
+msgstr "Нова страница"
+
+#: src/page/PageDialog.qml:85
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Name:"
+msgstr "Име:"
+
+#: src/page/PageDialog.qml:96
+#, kde-format
+msgctxt "@info:status"
+msgid "Name cannot be empty."
+msgstr "Име не може бити празно."
+
+#: src/page/PageDialog.qml:100
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Icon:"
+msgstr "Иконица:"
+
+#: src/page/PageDialog.qml:105
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Page Margins:"
+msgstr "Маргине странице:"
+
+#: src/page/PageDialog.qml:118
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "None"
+msgstr "никакве"
+
+#: src/page/PageDialog.qml:119
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Small"
+msgstr "мале"
+
+#: src/page/PageDialog.qml:120
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Large"
+msgstr "велике"
+
+#: src/page/PageDialog.qml:129
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Use Actions From:"
+msgstr "Извор радњи:"
+
+#: src/page/PageDialog.qml:147
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Load this page:"
+msgstr "Учитавање странице:"
+
+#: src/page/PageDialog.qml:160
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "When needed"
+msgstr "по потреби"
+
+#: src/page/PageDialog.qml:161
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "During application startup"
+msgstr "при покретању програма"
+
+#: src/page/PageEditor.qml:191
+#, kde-format
+msgid "New Title"
+msgstr "Нови наслов"
+
+#: src/page/PageSortDialog.qml:97
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show Page"
+msgstr "Прикажи страницу"
+
+#: src/page/PageSortDialog.qml:98
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Hide Page"
+msgstr "Сакриј страницу"
+
+#: src/page/PageSortDialog.qml:142
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Do not reset the page"
+msgstr "Не ресетуј страницу"
+
+#: src/page/PageSortDialog.qml:146
+#, kde-format
+msgctxt "@item:intable"
+msgid "The page will be reset to its default state"
+msgstr "страница ће бити ресетована на подразумијевано стање"
+
+#: src/page/PageSortDialog.qml:155
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Reset the page to its default state"
+msgstr "Ресетуј страницу на подразумијевано стање"
+
+#: src/page/PageSortDialog.qml:164
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Do not remove this page"
+msgstr "Не уклањај ову страницу"
+
+#: src/page/PageSortDialog.qml:168
+#, kde-format
+msgctxt "@item:intable"
+msgid "The page will be removed"
+msgstr "страница ће бити уклоњена"
+
+#: src/page/PageSortDialog.qml:177
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Remove this page"
+msgstr "Уклони ову страницу"
+
+#: src/page/PageSortDialog.qml:195
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Start with:"
+msgstr "Почетна страница:"
+
+#: src/page/PageSortDialog.qml:204
+#, kde-format
+msgid "Last Visited Page"
+msgstr "Посљедња посјећена страница"
+
+#: src/page/RowControl.qml:127
+#, kde-format
+msgctxt "@action"
+msgid "Add Column"
+msgstr "Додај колону"
+
+#: src/page/RowControl.qml:136
+#, kde-format
+msgctxt "@action"
+msgid "Height"
+msgstr "Висина"
+
+#: src/page/RowControl.qml:140
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Balanced"
+msgstr "Уравнотежена"
+
+#: src/page/RowControl.qml:141
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Try and use the same height across different rows."
+msgstr "Користи исту висину у различитим редовима, колико је могуће."
+
+#: src/page/RowControl.qml:149
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Minimum"
+msgstr "Најмања"
+
+#: src/page/RowControl.qml:150
+#, kde-format
+msgctxt "@info:tooltop"
+msgid "Use the minimum amount of height needed to display contents correctly."
+msgstr "Користи најмању висину потребну да се садржај исправно прикаже."
+
+#: src/page/RowControl.qml:158
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Maximum"
+msgstr "Највећа"
+
+#: src/page/RowControl.qml:159
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Try to use as much height as possible."
+msgstr "Користи што је могуће више висине."
+
+#: src/page/RowControl.qml:167
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Half Page Height"
+msgstr "Пола висине странице"
+
+#: src/page/RowControl.qml:168
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Use half the height of the page."
+msgstr "Користи пола висине странице."
+
+#: src/table/AffinityDialog.qml:23
+#, kde-format
+msgctxt "@title:window"
+msgid "Set Affinity"
+msgstr "Постављање афинитета"
+
+#: src/table/AffinityDialog.qml:54
+#, kde-format
+msgctxt "@label"
+msgid "Allow to run on:"
+msgstr "Дозволи рад на:"
+
+#: src/table/AffinityDialog.qml:73
+#, kde-format
+msgctxt "@option:check CPU core number"
+msgid "CPU %1"
+msgstr "ЦПУ %1"
+
+#: src/table/AffinityDialog.qml:109
+#, kde-format
+msgctxt "@action:button"
+msgid "Select All"
+msgstr "Изабери све"
+
+#: src/table/AffinityDialog.qml:121
+#, kde-format
+msgctxt "@action:button"
+msgid "Clear All"
+msgstr "Очисти све"
+
+#: src/table/AffinityDialog.qml:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Invert"
+msgstr "Изврни"
+
+#: src/table/ColumnConfigurationDialog.qml:48
+#, kde-format
+msgctxt "@window:title"
+msgid "Configure Columns"
+msgstr "Подешавање колона"
+
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Enabled Columns"
+msgstr "Укључене колоне"
+
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Disabled Columns"
+msgstr "Искључене колоне"
+
+#: src/table/ColumnConfigurationDialog.qml:260
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Hidden"
+msgstr "скривена"
+
+#: src/table/ColumnConfigurationDialog.qml:261
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Text Only"
+msgstr "само текст"
+
+#: src/table/ColumnConfigurationDialog.qml:265
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Line Chart"
+msgstr "линијски график"
+
+#: src/table/ColumnConfigurationDialog.qml:269
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Text Only (Scaled to 100%)"
+msgstr "само текст (сведено на 100%)"
+
+#: src/table/ColumnConfigurationDialog.qml:270
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Line Chart (Scaled to 100%)"
+msgstr "линијски график (сведено на 100%)"
+
+#: src/table/ColumnConfigurationDialog.qml:307
+#, kde-format
+msgctxt "@info"
+msgid "No columns matched the search"
+msgstr "Ниједна колона не одговара претрази"
+
+#: src/table/KillDialog.qml:83
+#, kde-format
+msgctxt "@option:check"
+msgid "Do not ask again"
+msgstr "Не питај више"
+
+#: src/table/ReniceDialog.qml:25
+#, kde-format
+msgctxt "@title:window"
+msgid "Set Priority"
+msgstr "Постављање приоритета"
+
+#: src/table/ReniceDialog.qml:57
+#, kde-format
+msgctxt "@title:group"
+msgid "CPU Scheduler"
+msgstr "Распоређивач ЦПУ‑а"
+
+#: src/table/ReniceDialog.qml:83
+#, kde-format
+msgctxt "@option:radio for process scheduler mode"
+msgid "Normal"
+msgstr "нормални"
+
+#: src/table/ReniceDialog.qml:84
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid ""
+"The standard time-sharing scheduler for processes without special "
+"requirements."
+msgstr ""
+"Уобичајени диобновременски распоређивач за процесе без посебних захтјева."
+
+#: src/table/ReniceDialog.qml:89
+#, kde-format
+msgctxt "@option:radio for process scheduler mode"
+msgid "Batch"
+msgstr "пакетни"
+
+#: src/table/ReniceDialog.qml:90
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid ""
+"Process is mildly disfavored in scheduling decisions, for CPU-intensive non-"
+"interactive processes."
+msgstr ""
+"Процесу се благо закида у одлукама распоређивања; за процесорски захтјевне, "
+"неинтерактивне процесе."
+
+#: src/table/ReniceDialog.qml:95
+#, kde-format
+msgctxt "@option:radio for process scheduler mode"
+msgid "Round robin"
+msgstr "кружни"
+
+#: src/table/ReniceDialog.qml:96
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid "Process will run whenever runnable, with timeslicing."
+msgstr "Процес ће радити кад год је то могуће, уз сјецкање времена."
+
+#: src/table/ReniceDialog.qml:101
+#, kde-format
+msgctxt "@option:radio for process scheduler mode"
+msgid "FIFO"
+msgstr "ФИФО"
+
+#: src/table/ReniceDialog.qml:102
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid "Process will run whenever runnable, with no timeslicing."
+msgstr "Процес ће радити кад год је то могуће, без сјецкања времена."
+
+#: src/table/ReniceDialog.qml:120
+#, kde-format
+msgctxt "@title:group"
+msgid "I/O Scheduler"
+msgstr "Распоређивач У/И‑ја"
+
+#: src/table/ReniceDialog.qml:146
+#, kde-format
+msgctxt "@option:radio for I/O scheduler mode"
+msgid "Normal"
+msgstr "нормални"
+
+#: src/table/ReniceDialog.qml:147
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid "Process' priority is based on the CPU priority."
+msgstr "Приоритет процеса заснива се на приоритету ЦПУ‑а."
+
+#: src/table/ReniceDialog.qml:152
+#, kde-format
+msgctxt "@option:radio for I/O scheduler mode"
+msgid "Idle"
+msgstr "мирујући"
+
+#: src/table/ReniceDialog.qml:153
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid ""
+"Process can only use the hard disk when no other process has used it very "
+"recently."
+msgstr ""
+"Процес може да користи диск само ако га ниједан други процес није недавно "
+"користио."
+
+#: src/table/ReniceDialog.qml:158
+#, kde-format
+msgctxt "@option:radio for I/O scheduler mode"
+msgid "Best Effort"
+msgstr "најнапорнији"
+
+#: src/table/ReniceDialog.qml:159
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid "Process is given higher priority to access the hard disk than normal."
+msgstr "Процесу се даје већи приоритет од нормалног за приступ диску."
+
+#: src/table/ReniceDialog.qml:164
+#, kde-format
+msgctxt "@option:radio for I/O scheduler mode"
+msgid "Real Time"
+msgstr "стварновременски"
+
+#: src/table/ReniceDialog.qml:165
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid ""
+"Process gets immediate access to the hard disk whenever needed, regardless "
+"of what else is going on."
+msgstr ""
+"Процес тренутачно добија приступ диску чим му затреба, без обзира на то шта "
+"се друго одвија."
+
+#: src/table/ReniceDialog.qml:211
+#, kde-format
+msgctxt "Lower process priority"
+msgid "Low priority"
+msgstr "низак приоритет"
+
+#: src/table/ReniceDialog.qml:218
+#, kde-format
+msgctxt "Higher process priority"
+msgid "High priority"
+msgstr "висок приоритет"
+
+#: src/table/ReniceDialog.qml:268
+#, kde-format
+msgctxt "Lower I/O priority"
+msgid "Low priority"
+msgstr "низак приоритет"
+
+#: src/table/ReniceDialog.qml:275
+#, kde-format
+msgctxt "Higher I/O priority"
+msgid "High priority"
+msgstr "висок приоритет"
+
+#: src/ToolsModel.cpp:37
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Kill a Window…"
+msgstr "Убиј прозор…"
+
+#: src/ToolsModel.cpp:115
+#, kde-format
+msgctxt "@action:inmenu %1 is application name"
+msgid "Launch %1"
+msgstr "Покрени %1|/|Покрени $[аку %1]"

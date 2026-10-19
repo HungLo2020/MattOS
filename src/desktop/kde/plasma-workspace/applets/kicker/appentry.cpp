@@ -16,6 +16,8 @@
 #include <QProcess>
 #include <QQmlPropertyMap>
 #include <QStandardPaths>
+#include <QUrl>
+#include <QUrlQuery>
 
 #include <KApplicationTrader>
 #include <KConfigGroup>
@@ -28,8 +30,6 @@
 #include <KWindowSystem>
 #include <PlasmaActivities/ResourceInstance>
 
-#include <defaultservice.h>
-
 #include <Plasma/Plasma>
 
 #ifdef HAVE_ICU
@@ -38,6 +38,20 @@
 
 namespace
 {
+
+std::optional<KServiceAction> serviceActionFromUrl(const KService::Ptr &service, const QUrl &url)
+{
+    const QString actionId = QUrlQuery(url).queryItemValue(QStringLiteral("action"));
+    if (!actionId.isEmpty()) {
+        const auto actions = service->actions();
+        for (const auto &action : actions) {
+            if (action.name() == actionId) {
+                return action;
+            }
+        }
+    }
+    return std::nullopt;
+}
 
 #ifdef HAVE_ICU
 std::unique_ptr<icu::Transliterator> getICUTransliterator(const QLocale &locale)
@@ -113,11 +127,11 @@ QString groupName(const QString &name)
         if (transliterator) {
             icu::UnicodeString icuText(reinterpret_cast<const char16_t *>(name.data()), name.size());
             transliterator->transliterate(icuText);
-            return QStringView(icuText.getBuffer(), static_cast<int>(icuText.length())).sliced(0, 1).toString();
+            return QStringView(icuText.getBuffer(), static_cast<int>(icuText.length())).sliced(0, 1).toString().toUpper();
         }
     }
 #endif
-    return name.left(1);
+    return name.left(1).toUpper();
 }
 
 static constexpr int s_newlyInstalledDays = 3; // how many days an app counts as newly installed
@@ -139,7 +153,12 @@ AppEntry::AppEntry(AbstractModel *owner, const QString &id)
         m_service = defaultAppByName(url.host());
         m_id = id;
     } else {
-        m_service = KService::serviceByStorageId(id);
+        m_service = KService::serviceByStorageId(url.path());
+        if (!m_service) {
+            m_service = KService::serviceByStorageId(id);
+        } else {
+            m_serviceAction = serviceActionFromUrl(m_service, url);
+        }
     }
     if (!m_service) {
         m_service = new KService(QString());
@@ -161,13 +180,22 @@ void AppEntry::init(NameFormat nameFormat)
     switch (nameFormat) {
     case NameOnly:
         m_description = comment;
+        [[fallthrough]];
     case NameAndGenericName:
-        m_compactName = nameFromService(m_service, NameOnly);
+        if (m_serviceAction) {
+            m_compactName = m_serviceAction->text();
+        } else {
+            m_compactName = nameFromService(m_service, NameOnly);
+        }
         m_description = comment;
         break;
     case GenericNameOnly:
     case GenericNameAndName:
-        m_compactName = nameFromService(m_service, GenericNameOnly);
+        if (m_serviceAction) {
+            m_compactName = m_serviceAction->text();
+        } else {
+            m_compactName = nameFromService(m_service, GenericNameOnly);
+        }
         m_description = m_service->name();
     }
 }
@@ -180,7 +208,12 @@ bool AppEntry::isValid() const
 QString AppEntry::icon() const
 {
     if (m_icon.isNull()) {
-        m_icon = m_service->icon();
+        if (m_serviceAction) {
+            m_icon = m_serviceAction->icon();
+        }
+        if (m_icon.isEmpty()) {
+            m_icon = m_service->icon();
+        }
     }
     return m_icon;
 }
@@ -223,7 +256,17 @@ QString AppEntry::id() const
         return m_id;
     }
 
-    return m_service->storageId();
+    // build these like the KRunner service runner does
+    QUrl url;
+    url.setScheme(QStringLiteral("applications"));
+    url.setPath(m_service->storageId());
+
+    if (m_serviceAction) {
+        QUrlQuery urlQuery;
+        urlQuery.addQueryItem(QStringLiteral("action"), m_serviceAction.value().name());
+        url.setQuery(urlQuery);
+    }
+    return url.toString();
 }
 
 void AppEntry::reload()
@@ -237,11 +280,12 @@ void AppEntry::reload()
             m_icon = QString();
         }
     } else {
-        m_service = KService::serviceByStorageId(id());
+        m_service = KService::serviceByStorageId(m_id.isEmpty() ? m_service->storageId() : m_id);
         // This happens when the application has just been uninstalled
         if (!m_service) {
             m_service = new KService(QString());
         }
+        m_serviceAction = serviceActionFromUrl(m_service, url);
         init((NameFormat)owner()->rootModel()->property("appNameFormat").toInt());
         m_icon = QString();
     }
@@ -312,9 +356,11 @@ QVariantList AppEntry::actions() const
 {
     QVariantList actionList;
 
-    actionList << Kicker::jumpListActions(m_service);
-    if (!actionList.isEmpty()) {
-        actionList << Kicker::createSeparatorActionItem();
+    if (!m_serviceAction) {
+        actionList << Kicker::jumpListActions(m_service);
+        if (!actionList.isEmpty()) {
+            actionList << Kicker::createSeparatorActionItem();
+        }
     }
 
     auto *appletInterface = m_owner->rootModel()->property("appletInterface").value<QObject *>();
@@ -324,9 +370,12 @@ QVariantList AppEntry::actions() const
         systemImmutable = (appletInterface->property("immutability").toInt() == Plasma::Types::SystemImmutable);
     }
 
-    const QVariantList &addLauncherActions = Kicker::createAddLauncherActionList(appletInterface, m_service);
-    if (!systemImmutable && !addLauncherActions.isEmpty()) {
-        actionList << addLauncherActions;
+    // We cannot yet link to jump list actions directly from desktop/task manager.
+    if (!m_serviceAction) {
+        const QVariantList &addLauncherActions = Kicker::createAddLauncherActionList(appletInterface, m_service);
+        if (!systemImmutable && !addLauncherActions.isEmpty()) {
+            actionList << addLauncherActions;
+        }
     }
 
     const QVariantList &recentDocuments = Kicker::recentDocumentActions(m_service);
@@ -374,7 +423,7 @@ bool AppEntry::run(const QString &actionId, const QVariant &argument)
     }
 
     if (actionId.isEmpty()) {
-        auto *job = new KIO::ApplicationLauncherJob(m_service);
+        auto *job = m_serviceAction ? new KIO::ApplicationLauncherJob(*m_serviceAction) : new KIO::ApplicationLauncherJob(m_service);
         job->setUiDelegate(new KNotificationJobUiDelegate(KJobUiDelegate::AutoHandlingEnabled));
         job->start();
 
@@ -429,7 +478,7 @@ QString AppEntry::nameFromService(const KService::Ptr &service, NameFormat nameF
 KService::Ptr AppEntry::defaultAppByName(const QString &name)
 {
     Q_UNUSED(name)
-    return DefaultService::browser();
+    return KApplicationTrader::preferredService(QStringLiteral("x-scheme-handler/http"));
 }
 
 AppEntry::~AppEntry() = default;

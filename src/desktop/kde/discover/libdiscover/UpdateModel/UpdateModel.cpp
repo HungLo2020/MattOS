@@ -30,7 +30,6 @@ UpdateModel::UpdateModel(QObject *parent)
 {
     connect(ResourcesModel::global(), &ResourcesModel::fetchingChanged, this, &UpdateModel::activityChanged);
     connect(ResourcesModel::global(), &ResourcesModel::updatesCountChanged, this, &UpdateModel::activityChanged);
-    connect(ResourcesModel::global(), &ResourcesModel::resourceDataChanged, this, &UpdateModel::resourceDataChanged);
     connect(this, &UpdateModel::toUpdateChanged, this, &UpdateModel::updateSizeChanged);
 
     m_updateSizeTimer->setInterval(100);
@@ -242,7 +241,16 @@ void UpdateModel::setResources(const QList<AbstractResource *> &resources)
     if (resources == m_resources) {
         return;
     }
+    const auto oldResources = m_resources;
+    for (auto resource : std::as_const(m_resources)) {
+        if (!resources.contains(resource)) {
+            disconnect(resource, nullptr, this, nullptr);
+        }
+    }
     m_resources = resources;
+    for (auto resource : std::as_const(resources)) {
+        connect(resource, &QObject::destroyed, this, &UpdateModel::resourceDestroyed, Qt::UniqueConnection);
+    }
 
     beginResetModel();
     qDeleteAll(m_updateItems);
@@ -250,7 +258,18 @@ void UpdateModel::setResources(const QList<AbstractResource *> &resources)
 
     QVector<UpdateItem *> appItems, appSupportItems, systemItems, addonItems;
     for (AbstractResource *resource : resources) {
-        connect(resource, &AbstractResource::changelogFetched, this, &UpdateModel::integrateChangelog, Qt::UniqueConnection);
+        if (!oldResources.contains(resource)) {
+            connect(resource, &AbstractResource::changelogFetched, this, &UpdateModel::integrateChangelog, Qt::UniqueConnection);
+            connect(resource, &AbstractResource::sizeChanged, this, [this, resource] {
+                const auto index = indexFromResource(resource);
+                Q_EMIT dataChanged(index, index, {SizeRole});
+                m_updateSizeTimer->start();
+            });
+            connect(resource, &AbstractResource::iconChanged, this, [this, resource] {
+                const auto index = indexFromResource(resource);
+                Q_EMIT dataChanged(index, index, {Qt::DecorationRole});
+            });
+        }
 
         UpdateItem *updateItem = new UpdateItem(resource);
 
@@ -283,6 +302,11 @@ void UpdateModel::setResources(const QList<AbstractResource *> &resources)
 
     Q_EMIT hasUpdatesChanged(!resources.isEmpty());
     Q_EMIT toUpdateChanged();
+}
+
+void UpdateModel::resourceDestroyed(QObject *resource)
+{
+    m_resources.removeAll(resource);
 }
 
 bool UpdateModel::hasUpdates() const
@@ -325,9 +349,9 @@ int UpdateModel::totalUpdatesCount() const
     return ret;
 }
 
-UpdateItem *UpdateModel::itemFromResource(AbstractResource *res)
+UpdateItem *UpdateModel::itemFromResource(AbstractResource *res) const
 {
-    for (UpdateItem *item : std::as_const(m_updateItems)) {
+    for (UpdateItem *item : m_updateItems) {
         if (item->app() == res) {
             return item;
         }
@@ -356,23 +380,9 @@ UpdateItem *UpdateModel::itemFromIndex(const QModelIndex &index) const
     return m_updateItems[index.row()];
 }
 
-void UpdateModel::resourceDataChanged(AbstractResource *res, const QVector<QByteArray> &properties)
+QModelIndex UpdateModel::indexFromResource(AbstractResource *res) const
 {
-    auto item = itemFromResource(res);
-    if (!item) {
-        return;
-    }
-
-    const auto index = indexFromItem(item);
-    if (properties.contains("icon")) {
-        Q_EMIT dataChanged(index, index, {Qt::DecorationRole});
-    }
-    if (properties.contains("state")) {
-        Q_EMIT dataChanged(index, index, {SizeRole});
-    } else if (properties.contains("size")) {
-        Q_EMIT dataChanged(index, index, {SizeRole});
-        m_updateSizeTimer->start();
-    }
+    return indexFromItem(itemFromResource(res));
 }
 
 void UpdateModel::checkAll()

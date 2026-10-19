@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the kdebase package.
 # Teemu Rytilahti <teemu.rytilahti@d5k.net>, 2008.
 # Jorma Karvonen <karvonen.jorma@gmail.com>, 2010.
-# SPDX-FileCopyrightText: 2010, 2017, 2018, 2019, 2020, 2021, 2023, 2024 Tommi Nieminen <translator@legisign.org>
+# SPDX-FileCopyrightText: 2010, 2017, 2018, 2019, 2020, 2021, 2023, 2024, 2026 Tommi Nieminen <translator@legisign.org>
 # Lasse Liehu <lasse.liehu@gmail.com>, 2011, 2013, 2014, 2015, 2016.
 #
 # KDE Finnish translation sprint participants:
@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_desktopthemedetails\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-10-16 18:49+0300\n"
+"POT-Creation-Date: 2026-03-27 00:47+0000\n"
+"PO-Revision-Date: 2026-02-25 18:56+0200\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 24.08.2\n"
+"X-Generator: Lokalize 25.04.0\n"
 
 #. i18n: ectx: label, entry (name), group (Theme)
 #: desktopthemesettings.kcfg:9
@@ -132,51 +132,68 @@ msgctxt "@item:inlistbox filters displayed themes"
 msgid "Color scheme compatible"
 msgstr "Väriteemaan mukautuvat"
 
-#: ui/main.qml:130
+#: ui/main.qml:114
 #, kde-format
 msgid "Install from File…"
 msgstr "Asenna tiedostosta…"
 
-#: ui/main.qml:135
+#: ui/main.qml:119
 #, kde-format
 msgid "Get New…"
 msgstr "Hae uusia…"
 
-#: ui/main.qml:148
+#: ui/main.qml:132
 #, kde-format
 msgid "Follows color scheme"
 msgstr "Noudattaa väriteemaa"
 
-#: ui/main.qml:166
+#: ui/main.qml:150
 #, kde-format
 msgid "Edit Theme…"
 msgstr "Muokkaa teemaa…"
 
-#: ui/main.qml:173
+#: ui/main.qml:158
 #, kde-format
-msgid "Remove Theme"
-msgstr "Poista teema"
+msgctxt "@info:tooltip"
+msgid "Remove Plasma style"
+msgstr "Poista Plasma-tyyli"
 
-#: ui/main.qml:180
+#: ui/main.qml:160
 #, kde-format
-msgid "Restore Theme"
-msgstr "Palauta teema"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active Plasma style"
+msgstr "Aktiivista Plasma-tyyliä ei voi poistaa"
 
-#: ui/main.qml:199
+#: ui/main.qml:162
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed Plasma styles"
+msgstr "Järjestelmän asentamia Plasma-tyylejä ei voi poistaa"
+
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this Plasma style"
+msgstr "Älä poista tätä Plasma-tyyliä"
+
+#: ui/main.qml:189
 #, kde-format
 msgid "Open Theme"
 msgstr "Avaa teema"
 
-#: ui/main.qml:201
+#: ui/main.qml:191
 #, kde-format
 msgid "Theme Files (*.zip *.tar.gz *.tar.bz2)"
 msgstr "Teematiedostot (*.zip *.tar.gz *.tar.bz2)"
 
+#~ msgid "Remove Theme"
+#~ msgstr "Poista teema"
+
+#~ msgid "Restore Theme"
+#~ msgstr "Palauta teema"
+
 #~ msgid "Get New Plasma Styles…"
 #~ msgstr "Hae uusia Plasma-tyylejä…"
-
-#~ msgid "This module lets you choose the Plasma style."
-#~ msgstr "Tässä osiossa voit valita Plasma-tyylin."
 
 #~ msgctxt "NAME OF TRANSLATORS"
 #~ msgid "Your names"
@@ -187,9 +204,6 @@ msgstr "Teematiedostot (*.zip *.tar.gz *.tar.bz2)"
 #~ msgstr ""
 #~ "teemu.rytilahti@kde-fi.org,karvonen.jorma@gmail.com,translator@legisign."
 #~ "org"
-
-#~ msgid "Plasma Style"
-#~ msgstr "Plasma-tyyli"
 
 #~ msgid "David Rosca"
 #~ msgstr "David Rosca"

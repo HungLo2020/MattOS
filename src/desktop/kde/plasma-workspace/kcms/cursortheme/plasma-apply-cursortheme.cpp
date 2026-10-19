@@ -9,7 +9,6 @@
 #include "../kcms-common_p.h"
 
 #include "xcursor/cursortheme.h"
-#include "xcursor/themeapplicator.h"
 #include "xcursor/thememodel.h"
 
 #include <KLocalizedString>
@@ -18,36 +17,10 @@
 #include <QCommandLineParser>
 #include <QDebug>
 #include <QFile>
+#include <QProcess>
 #include <QTimer>
 
 using namespace Qt::StringLiterals;
-
-namespace
-{
-/** Apply a theme, log warnings
- *
- * Applies @p theme; if @p sizeSpecifier is an integer that is an available
- * size for the theme, use it rather than the theme's default size.
- * If @p sizeSpecifier is non-empty but doesn't name an integer that
- * is an available size, prints an error message to @p ts and uses the
- * theme's default size instead.
- */
-bool applyThemeAndSize(const CursorTheme *theme, const QString &sizeSpecifier, QTextStream &ts)
-{
-    auto chosenSize = theme->defaultCursorSize();
-    if (!sizeSpecifier.isEmpty()) {
-        bool ok = false;
-        int specificSize = sizeSpecifier.toInt(&ok);
-        if (ok && theme->availableSizes().contains(specificSize)) {
-            chosenSize = specificSize;
-        } else {
-            ts << i18n("The requested size '%1' is not available, using %2 instead.").arg(sizeSpecifier).arg(chosenSize) << Qt::endl;
-            // Not an error condition
-        }
-    }
-    return applyTheme(theme, chosenSize);
-}
-}
 
 int main(int argc, char **argv)
 {
@@ -62,11 +35,11 @@ int main(int argc, char **argv)
     auto *parser = new QCommandLineParser;
     parser->addHelpOption();
     parser->setApplicationDescription(
-        i18n("This tool allows you to set the mouse cursor theme for the current Plasma session, without accidentally setting it to one that is either not "
+        i18n("This tool allows you to set the mouse pointer theme for the current Plasma session, without accidentally setting it to one that is either not "
              "available, or which is already set."));
     parser->addPositionalArgument(
         QStringLiteral("cursortheme"),
-        i18n("The name of the cursor theme you wish to set for your current Plasma session (passing a full path will only use the last part of the path)"));
+        i18n("The name of the pointer theme you wish to set for your current Plasma session (passing a full path will only use the last part of the path)"));
     parser->addOption(QCommandLineOption(QStringLiteral("list-themes"), i18n("Show all the themes available on the system (and which is the current theme)")));
     parser->addOption(QCommandLineOption(QStringLiteral("size"), i18n("Use a specific size, rather than the theme default size"), QStringLiteral("size")));
     parser->process(app);
@@ -85,11 +58,11 @@ int main(int argc, char **argv)
             // and since one of the main purposes of this tool is to allow adopting things from a KNS dialog,
             // we handle that little weirdness here.
             splitTheme.removeAll(QStringLiteral("*"));
-            requestedTheme = splitTheme.last();
+            requestedTheme = splitTheme.constLast();
         }
 
         if (settings->cursorTheme() == requestedTheme) {
-            ts << i18n("The requested theme \"%1\" is already set as the theme for the current Plasma session.", requestedTheme) << Qt::endl;
+            ts << i18n("The requested theme “%1” is already set as the theme for the current Plasma session.", requestedTheme) << Qt::endl;
             // This is not an error condition, no reason to set an error code
         } else {
             auto results = model->findIndex(requestedTheme);
@@ -98,11 +71,12 @@ int main(int argc, char **argv)
 
             if (theme) {
                 settings->setCursorTheme(theme->name());
-                if (settings->save() && applyThemeAndSize(theme, parser->value(u"size"_s), ts)) {
+                if (settings->save()) {
                     notifyKcmChange(GlobalChangeType::CursorChanged);
-                    ts << i18n("Successfully applied the mouse cursor theme %1 to your current Plasma session", theme->title()) << Qt::endl;
+                    QProcess::startDetached(QStringLiteral(CMAKE_INSTALL_FULL_LIBEXECDIR "/plasma-setup-xwayland"));
+                    ts << i18n("Successfully applied the mouse pointer theme %1 to your current Plasma session", theme->title()) << Qt::endl;
                 } else {
-                    ts << i18n("You have to restart the Plasma session for your newly applied mouse cursor theme to display correctly.") << Qt::endl;
+                    ts << i18n("You have to restart the Plasma session for your newly applied mouse pointer theme to display correctly.") << Qt::endl;
                     // A bit of an odd one, more a warning than an error, but this means we can forward it
                     errorCode = -1;
                 }
@@ -112,7 +86,7 @@ int main(int argc, char **argv)
                     const CursorTheme *theme = model->theme(model->index(i, 0));
                     availableThemes << theme->name();
                 }
-                ts << i18n("Could not find theme \"%1\". The theme should be one of the following options: %2",
+                ts << i18n("Could not find theme “%1”. The theme should be one of the following options: %2",
                            requestedTheme,
                            availableThemes.join(QLatin1String{", "}))
                    << Qt::endl;
@@ -120,7 +94,7 @@ int main(int argc, char **argv)
             }
         }
     } else if (parser->isSet(QStringLiteral("list-themes"))) {
-        ts << i18n("You have the following mouse cursor themes on your system:") << Qt::endl;
+        ts << i18n("You have the following mouse pointer themes on your system:") << Qt::endl;
         for (int i = 0; i < model->rowCount(); ++i) {
             const CursorTheme *theme = model->theme(model->index(i, 0));
             ts << QStringLiteral(" * %1 [%2]").arg(theme->title()).arg(theme->name());

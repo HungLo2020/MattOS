@@ -21,9 +21,11 @@
 #include <QSqlQuery>
 #include <QStandardPaths>
 
+#include <KConfigGroup>
 #include <KIO/DeleteJob>
 #include <KLocalizedString>
 #include <KMessageBox>
+#include <KMessageDialog>
 
 #include "config-klipper.h"
 #include "historyitem.h"
@@ -82,6 +84,36 @@ struct TransactionGuard {
     bool committed = true;
 };
 
+// Temporary function added in Plasma 6.8 in September 2026,
+// TODO: Drop when we hit 7.0 or in 2032
+void migrateSettings()
+{
+    KConfigGroup general = KlipperSettings::self()->sharedConfig()->group(u"General"_s);
+    if (!general.hasKey("IgnoreSelection") && !general.hasKey("IgnoreImages") && !general.hasKey("SelectionTextOnly")) {
+        return;
+    }
+
+    if (general.hasKey("IgnoreSelection")) {
+        KlipperSettings::setSaveSelection(!general.readEntry("IgnoreSelection", true));
+        // Will be useful in Plasma 6.9, when this MR gets merged: https://invent.kde.org/plasma/plasma-workspace/-/merge_requests/7016
+        // That MR will delete this comment
+        // This was added in 6.8, which deleted IgnoreSelection, so only there can this safely run only once
+        // If it was not merged in 6.8, existing behaviour would break with the MR 7016
+        if (KlipperSettings::saveSelection() && KlipperSettings::uRLGrabberEnabled()) {
+            general.writeEntry("ActionOnSelection", true);
+        }
+        general.deleteEntry("IgnoreSelection");
+    }
+    if (general.hasKey("IgnoreImages")) {
+        KlipperSettings::setSaveImages(!general.readEntry("IgnoreImages", true));
+        general.deleteEntry("IgnoreImages");
+    }
+    if (general.hasKey("SelectionTextOnly")) {
+        general.deleteEntry("SelectionTextOnly");
+    }
+    KlipperSettings::self()->save();
+}
+
 QString computeUuid(const QMimeData *data)
 {
     QCryptographicHash hash(QCryptographicHash::Sha1);
@@ -117,13 +149,13 @@ std::shared_ptr<HistoryModel> HistoryModel::self()
 HistoryModel::HistoryModel()
     : QAbstractListModel(nullptr)
     , m_clip(SystemClipboard::self())
-    , m_displayImages(true)
 {
     if (!QSqlDatabase::isDriverAvailable(u"QSQLITE"_s)) {
         qCCritical(KLIPPER_LOG) << "SQLITE driver isn't available";
         return;
     }
 
+    migrateSettings();
     loadSettings();
     if (!loadHistory()) [[unlikely]] {
         return;
@@ -170,7 +202,6 @@ HistoryModel::HistoryModel()
         }
     });
 
-    connect(m_clip.get(), &SystemClipboard::ignored, this, &HistoryModel::slotIgnored);
     connect(m_clip.get(), &SystemClipboard::newClipData, this, &HistoryModel::checkClipData);
 }
 
@@ -260,59 +291,44 @@ void HistoryModel::clearNonStarredHistory()
 
     // Remove items from the model that were deleted
     // We need to work backwards to maintain correct indices
+    beginResetModel();
     for (qsizetype i = m_items.size() - 1; i >= 0; --i) {
         if (nonStarredUuids.contains(m_items[i]->uuid())) {
-            beginRemoveRows(QModelIndex(), i, i);
             m_items.removeAt(i);
-            endRemoveRows();
         }
     }
+    endResetModel();
 
     QSqlQuery(u"VACUUM"_s, m_db).exec();
+    // Clear system clipboard in case it contains secrets, BUG 516403
     m_clip->clear(SystemClipboard::SelectionMode(SystemClipboard::Selection | SystemClipboard::Clipboard));
 }
 
 void HistoryModel::clearHistory()
 {
-    // First check if there are any starred items
-    if (m_starredCount > 0) {
-        // Offer choice to keep starred items or clear everything
-        // TODO: Consider adding a setting in Klipper configuration UI to customize this behavior
-        // (e.g., always ask, always keep starred, always clear all)
-        int clearChoice = KMessageBox::questionTwoActionsCancel(nullptr,
-                                                               i18n("The clipboard history contains starred items. Clear them too?"),
-                                                               i18n("Clear Clipboard History"),
-                                                               KGuiItem(i18n("Clear Everything"), QStringLiteral("edit-clear-history")),
-                                                               KGuiItem(i18n("Keep Starred Items"), QStringLiteral("starred-symbolic")),
-                                                               KStandardGuiItem::cancel(),
-                                                               QStringLiteral("klipperClearHistoryStarredChoice"));
-
-        if (clearChoice == KMessageBox::Cancel) {
-            return; // User cancelled
-        } else if (clearChoice == KMessageBox::ButtonCode::SecondaryAction) {
-            // Keep starred items - delete only non-starred
-            clearNonStarredHistory();
-            return;
-        }
-        // If FirstAction (Clear All), fall through to normal clear()
-    } else {
-        // No starred items, show normal confirmation
-        // TODO: Consider adding a "Reset 'Don't ask again' dialogs" button in Klipper settings
-        // to help users recover from accidentally dismissed confirmations
-        int clearHist = KMessageBox::warningContinueCancel(nullptr,
-                                                           i18n("Do you really want to clear and delete the entire clipboard history?"),
-                                                           i18n("Clear Clipboard History"),
-                                                           KStandardGuiItem::del(),
-                                                           KStandardGuiItem::cancel(),
-                                                           QStringLiteral("klipperClearHistoryAskAgain"),
-                                                           KMessageBox::Dangerous);
-        if (clearHist != KMessageBox::Continue) {
-            return; // User cancelled
-        }
+    // No starred items, show normal confirmation
+    // TODO: Consider adding a "Reset 'Don't ask again' dialogs" button in Klipper settings
+    // to help users recover from accidentally dismissed confirmations
+    if (!KMessageBox::shouldBeShownContinue(QStringLiteral("klipperClearHistoryAskAgain"))) {
+        clearNonStarredHistory();
+        return;
     }
 
-    // Clear everything (including starred items)
-    clear();
+    auto *dialog = new KMessageDialog(KMessageDialog::WarningContinueCancel, i18n("Do you really want to clear and delete the entire clipboard history?"));
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setCaption(i18n("Clear Clipboard History"));
+    dialog->setButtons(KStandardGuiItem::del(), KGuiItem(), KStandardGuiItem::cancel());
+    dialog->setDontAskAgainText(i18nc("@option:check", "Do not ask again"));
+    connect(dialog, &QDialog::finished, this, [this, dialog](int result) {
+        if (result != KMessageDialog::PrimaryAction) {
+            return; // User cancelled
+        }
+        if (dialog->isDontAskAgainChecked()) {
+            KMessageBox::saveDontShowAgainContinue(QStringLiteral("klipperClearHistoryAskAgain"));
+        }
+        clearNonStarredHistory();
+    });
+    dialog->open();
 }
 
 qsizetype HistoryModel::maxSize() const
@@ -553,28 +569,39 @@ bool HistoryModel::removeRows(int row, int count, const QModelIndex &parent)
 
 bool HistoryModel::remove(const QString &uuid)
 {
-    const int index = indexOf(uuid);
-    if (index < 0) {
+    if (indexOf(uuid) < 0) {
         return false;
     }
 
     // Check if the item is starred before removing
     bool isStarred = isItemStarred(uuid);
 
-    // Show confirmation dialog for starred items
-    if (isStarred) {
-        int result = KMessageBox::warningContinueCancel(nullptr,
-                                                       i18n("This item is starred. Do you really want to remove it from history?"),
-                                                       i18n("Remove Starred Item"),
-                                                       KStandardGuiItem::del(),
-                                                       KStandardGuiItem::cancel(),
-                                                       QStringLiteral("klipperRemoveStarredItemAskAgain"));
-        if (result != KMessageBox::Continue) {
-            return false; // User cancelled deletion
-        }
+    // Non-starred items are removed without confirmation
+    if (!isStarred) {
+        return removeRow(indexOf(uuid), QModelIndex());
     }
 
-    return removeRow(index, QModelIndex());
+    auto *dialog = new KMessageDialog(KMessageDialog::WarningContinueCancel, i18n("This item is starred. Do you really want to remove it from history?"));
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setCaption(i18n("Remove Starred Item"));
+    dialog->setButtons(KStandardGuiItem::del(), KGuiItem(), KStandardGuiItem::cancel());
+    dialog->setDontAskAgainText(i18nc("@option:check", "Do not ask again"));
+    connect(dialog, &QDialog::finished, this, [this, uuid, dialog](int result) {
+        if (result != KMessageDialog::PrimaryAction) {
+            return; // User cancelled deletion
+        }
+        if (dialog->isDontAskAgainChecked()) {
+            KMessageBox::saveDontShowAgainContinue(QStringLiteral("klipperRemoveStarredItemAskAgain"));
+        }
+        // The model may have changed while the dialog was open, re-look up the index
+        const int index = indexOf(uuid);
+        if (index < 0) {
+            return;
+        }
+        removeRow(index, QModelIndex());
+    });
+    dialog->open();
+    return true;
 }
 
 int HistoryModel::indexOf(const QString &uuid) const
@@ -793,13 +820,11 @@ bool HistoryModel::saveClipboardHistory()
 void HistoryModel::loadSettings()
 {
     setMaxSize(KlipperSettings::maxClipItems());
-    m_displayImages = !KlipperSettings::ignoreImages();
+    m_bSaveImages = KlipperSettings::saveImages();
     m_bNoNullClipboard = KlipperSettings::preventEmptyClipboard();
-    // 0 is the id of "Ignore selection" radiobutton
-    m_bIgnoreSelection = KlipperSettings::ignoreSelection();
+    m_bSaveSelection = KlipperSettings::saveSelection();
     m_bKeepContents = KlipperSettings::keepClipboardContents();
     m_bSynchronize = KlipperSettings::syncClipboards();
-    m_bSelectionTextOnly = KlipperSettings::selectionTextOnly();
 
     if (m_bNoNullClipboard) {
         connect(m_clip.get(), &SystemClipboard::receivedEmptyClipboard, this, &HistoryModel::slotReceivedEmptyClipboard, Qt::UniqueConnection);
@@ -849,6 +874,7 @@ void HistoryModel::moveToTop(qsizetype row)
     beginMoveRows(QModelIndex(), row, row, QModelIndex(), 0);
     m_items.move(row, 0);
     endMoveRows();
+    setHasPassword(false);
 }
 
 void HistoryModel::saveToFile(QStringView dbFolder, const QByteArray &data, QStringView newUuid, QStringView dataUuid)
@@ -901,42 +927,30 @@ void HistoryModel::checkClipData(QClipboard::Mode mode, const QMimeData *data)
     // XXX: I want a better handling of selection/clipboard in general.
     // XXX: Order sensitive code. Must die.
     const bool selectionMode = mode == QClipboard::Selection;
-    if (selectionMode && m_bIgnoreSelection) {
+    if (selectionMode && !m_bSaveSelection) {
         if (m_bSynchronize) {
             m_clip->setMimeData(data, SystemClipboard::Clipboard, SystemClipboard::ClipboardUpdateReason::SyncSelection);
         }
         return;
     }
 
-    if (selectionMode && m_bSelectionTextOnly && !data->hasText()) {
-        return;
-    }
-
     if (data->data(QStringLiteral("x-kde-passwordManagerHint")) == QByteArrayView("secret")) {
+        setHasPassword(true);
         return;
     }
+    setHasPassword(false);
 
-    if (!m_displayImages && data->hasImage() && !data->hasText() /*BUG 491488*/ && !data->hasFormat(QStringLiteral("x-kde-force-image-copy"))) {
+    if (!m_bSaveImages && data->hasImage() && !data->hasText() /*BUG 491488*/ && !data->hasFormat(QStringLiteral("x-kde-force-image-copy"))) {
         return;
     }
 
     if (changed && insert(data)) [[likely]] {
         qCDebug(KLIPPER_LOG) << "Synchronize?" << m_bSynchronize;
         if (m_bSynchronize) { // applyClipChanges can return nullptr
-            m_clip->setMimeData(data, mode == QClipboard::Selection ? SystemClipboard::Clipboard : SystemClipboard::Selection);
+            m_clip->setMimeData(data,
+                                mode == QClipboard::Selection ? SystemClipboard::Clipboard : SystemClipboard::Selection,
+                                SystemClipboard::ClipboardUpdateReason::SyncSelection);
         }
-    }
-}
-
-void HistoryModel::slotIgnored(QClipboard::Mode mode)
-{
-    // internal to klipper, ignoring QSpinBox selections
-    // keep our old clipboard, thanks
-    // This won't quite work, but it's close enough for now.
-    // The trouble is that the top selection =! top clipboard
-    // but we don't track that yet. We will....
-    if (auto top = first()) {
-        m_clip->setMimeData(top, mode == QClipboard::Selection ? SystemClipboard::Selection : SystemClipboard::Clipboard);
     }
 }
 
@@ -950,6 +964,7 @@ void HistoryModel::slotReceivedEmptyClipboard(QClipboard::Mode mode)
                             mode == QClipboard::Selection ? SystemClipboard::Selection : SystemClipboard::Clipboard,
                             SystemClipboard::ClipboardUpdateReason::PreventEmptyClipboard);
     }
+    setHasPassword(false);
 }
 
 bool HistoryModel::isItemStarred(const QString &uuid) const
@@ -961,6 +976,26 @@ bool HistoryModel::isItemStarred(const QString &uuid) const
         return query.value(0).toBool();
     }
     return false;
+}
+
+bool HistoryModel::hasPassword() const
+{
+    return m_hasPassword;
+}
+
+void HistoryModel::setHasPassword(bool hasPassword)
+{
+    if (m_hasPassword == hasPassword) {
+        return;
+    }
+
+    m_hasPassword = hasPassword;
+    Q_EMIT hasPasswordChanged();
+}
+
+void HistoryModel::clearSecret()
+{
+    m_clip->clear();
 }
 
 #include "moc_historymodel.cpp"

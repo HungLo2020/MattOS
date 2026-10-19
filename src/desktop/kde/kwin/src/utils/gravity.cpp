@@ -10,7 +10,7 @@ namespace KWin
 {
 
 Gravity::Gravity()
-    : m_kind(None)
+    : m_kind(Center)
 {
 }
 
@@ -29,26 +29,40 @@ RectF Gravity::apply(const RectF &rect, const RectF &bounds) const
     RectF geometry = rect;
 
     switch (m_kind) {
+    case Gravity::Center:
+        geometry.moveCenter(bounds.center());
+        break;
     case Gravity::TopLeft:
         geometry.moveRight(bounds.right());
         geometry.moveBottom(bounds.bottom());
         break;
     case Gravity::Top:
+        geometry.moveBottom(bounds.bottom());
+        geometry.moveHorizontalCenter(bounds.horizontalCenter());
+        break;
     case Gravity::TopRight:
         geometry.moveLeft(bounds.left());
         geometry.moveBottom(bounds.bottom());
         break;
     case Gravity::Right:
+        geometry.moveLeft(bounds.left());
+        geometry.moveVerticalCenter(bounds.verticalCenter());
+        break;
     case Gravity::BottomRight:
-    case Gravity::Bottom:
-    case Gravity::None:
         geometry.moveLeft(bounds.left());
         geometry.moveTop(bounds.top());
         break;
+    case Gravity::Bottom:
+        geometry.moveHorizontalCenter(bounds.horizontalCenter());
+        geometry.moveTop(bounds.top());
+        break;
     case Gravity::BottomLeft:
-    case Gravity::Left:
         geometry.moveRight(bounds.right());
         geometry.moveTop(bounds.top());
+        break;
+    case Gravity::Left:
+        geometry.moveRight(bounds.right());
+        geometry.moveVerticalCenter(bounds.verticalCenter());
         break;
     }
 

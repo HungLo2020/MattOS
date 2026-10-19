@@ -580,7 +580,7 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
     for required in [
         "XDG_CURRENT_DESKTOP=KDE",
         "XDG_SESSION_TYPE=wayland",
-        "QML2_IMPORT_PATH=/usr/lib/x86_64-linux-gnu/qml:/usr/lib/qt6/qml",
+        "QML2_IMPORT_PATH=/usr/qml:/usr/lib/x86_64-linux-gnu/qml:/usr/lib/qt6/qml",
         "QT_QPA_PLATFORM_PLUGIN_PATH=/usr/plugins/platforms:/usr/lib/x86_64-linux-gnu/plugins/platforms",
     ] {
         if !plasma_environment.contains(required) {

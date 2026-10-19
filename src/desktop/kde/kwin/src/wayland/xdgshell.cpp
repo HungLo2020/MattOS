@@ -17,6 +17,7 @@
 
 namespace KWin
 {
+
 static const int s_version = 6;
 
 XdgShellInterfacePrivate::XdgShellInterfacePrivate(XdgShellInterface *shell)
@@ -120,8 +121,9 @@ Display *XdgShellInterface::display() const
 quint32 XdgShellInterface::ping(XdgSurfaceInterface *surface)
 {
     XdgShellInterfacePrivate::Resource *clientResource = d->resourceForXdgSurface(surface);
-    if (!clientResource)
+    if (!clientResource) {
         return 0;
+    }
 
     quint32 serial = d->display->nextSerial();
     d->send_ping(clientResource->handle, serial);
@@ -156,17 +158,20 @@ void XdgSurfaceInterfacePrivate::apply(XdgSurfaceCommit *commit)
     }
 
     if (commit->windowGeometry.has_value()) {
-        windowGeometry = commit->windowGeometry.value();
-        Q_EMIT q->windowGeometryChanged(windowGeometry);
+        explicitWindowGeometryIsSet = true;
+        effectiveWindowGeometry = *commit->windowGeometry;
+    } else if (!explicitWindowGeometryIsSet) {
+        effectiveWindowGeometry = surface->boundingRect();
     }
 }
 
 void XdgSurfaceInterfacePrivate::reset()
 {
+    effectiveWindowGeometry = RectF();
+    explicitWindowGeometryIsSet = false;
     firstBufferAttached = false;
     isConfigured = false;
     isInitialized = false;
-    windowGeometry = Rect();
     Q_EMIT q->resetOccurred();
 }
 
@@ -246,17 +251,21 @@ void XdgSurfaceInterfacePrivate::xdg_surface_get_popup(Resource *resource, uint3
 
 void XdgSurfaceInterfacePrivate::xdg_surface_set_window_geometry(Resource *resource, int32_t x, int32_t y, int32_t width, int32_t height)
 {
+    if (Q_UNLIKELY(!surface)) {
+        return;
+    }
+
     if (Q_UNLIKELY(!pending)) {
         wl_resource_post_error(resource->handle, error_not_constructed, "xdg_surface must have a role");
         return;
     }
 
     if (width < 1 || height < 1) {
-        wl_resource_post_error(resource->handle, -1, "invalid window geometry size (%dx%d)", width, height);
+        wl_resource_post_error(resource->handle, error_invalid_size, "invalid window geometry size (%dx%d)", width, height);
         return;
     }
 
-    pending->windowGeometry = Rect(x, y, width, height);
+    pending->windowGeometry = Rect(x, y, width, height).scaled(1.0 / surface->clientToCompositorScale());
 }
 
 void XdgSurfaceInterfacePrivate::xdg_surface_ack_configure(Resource *resource, uint32_t serial)
@@ -311,9 +320,9 @@ bool XdgSurfaceInterface::isConfigured() const
     return d->isConfigured;
 }
 
-Rect XdgSurfaceInterface::windowGeometry() const
+RectF XdgSurfaceInterface::windowGeometry() const
 {
-    return d->windowGeometry;
+    return d->effectiveWindowGeometry;
 }
 
 XdgSurfaceInterface *XdgSurfaceInterface::get(::wl_resource *resource)
@@ -348,8 +357,9 @@ void XdgToplevelInterfacePrivate::apply(XdgToplevelCommit *commit)
 
     xdgSurfacePrivate->apply(commit);
 
-    const auto minSize = commit->minimumSize.value_or(minimumSize);
-    const auto maxSize = commit->maximumSize.value_or(maximumSize);
+    const QSizeF minSize = commit->minimumSize.value_or(minimumSize);
+    const QSizeF maxSize = commit->maximumSize.value_or(maximumSize);
+
     if ((minSize.width() > 0) && (maxSize.width() > 0) && (minSize.width() > maxSize.width())) {
         wl_resource_post_error(resource()->handle, error_invalid_size, "minimum width can't be bigger than the maximum width");
         return;
@@ -359,12 +369,12 @@ void XdgToplevelInterfacePrivate::apply(XdgToplevelCommit *commit)
         return;
     }
 
-    if (commit->minimumSize && commit->minimumSize != minimumSize) {
-        minimumSize = commit->minimumSize.value();
+    if (commit->minimumSize && minimumSize != minSize) {
+        minimumSize = minSize;
         Q_EMIT q->minimumSizeChanged(minimumSize);
     }
-    if (commit->maximumSize && commit->maximumSize != maximumSize) {
-        maximumSize = commit->maximumSize.value();
+    if (commit->maximumSize && maximumSize != maxSize) {
+        maximumSize = maxSize;
         Q_EMIT q->maximumSizeChanged(maximumSize);
     }
 
@@ -431,6 +441,9 @@ void XdgToplevelInterfacePrivate::xdg_toplevel_set_app_id(Resource *resource, co
 void XdgToplevelInterfacePrivate::xdg_toplevel_show_window_menu(Resource *resource, ::wl_resource *seatResource, uint32_t serial, int32_t x, int32_t y)
 {
     auto xdgSurfacePrivate = XdgSurfaceInterfacePrivate::get(xdgSurface);
+    if (Q_UNLIKELY(!xdgSurfacePrivate->surface)) {
+        return;
+    }
 
     if (!xdgSurfacePrivate->isConfigured) {
         wl_resource_post_error(resource->handle, QtWaylandServer::xdg_surface::error_not_constructed, "surface has not been configured yet");
@@ -438,7 +451,7 @@ void XdgToplevelInterfacePrivate::xdg_toplevel_show_window_menu(Resource *resour
     }
 
     SeatInterface *seat = SeatInterface::get(seatResource);
-    Q_EMIT q->windowMenuRequested(seat, QPoint(x, y), serial);
+    Q_EMIT q->windowMenuRequested(seat, QPointF(x, y) / xdgSurfacePrivate->surface->clientToCompositorScale(), serial);
 }
 
 void XdgToplevelInterfacePrivate::xdg_toplevel_move(Resource *resource, ::wl_resource *seatResource, uint32_t serial)
@@ -466,7 +479,7 @@ void XdgToplevelInterfacePrivate::xdg_toplevel_resize(Resource *resource, ::wl_r
     Gravity gravity;
     switch (xdgEdges) {
     case resize_edge_none:
-        gravity = Gravity::None;
+        gravity = Gravity::Center;
         break;
     case resize_edge_top:
         gravity = Gravity::Top;
@@ -503,20 +516,32 @@ void XdgToplevelInterfacePrivate::xdg_toplevel_resize(Resource *resource, ::wl_r
 
 void XdgToplevelInterfacePrivate::xdg_toplevel_set_max_size(Resource *resource, int32_t width, int32_t height)
 {
+    if (Q_UNLIKELY(!surface)) {
+        return;
+    }
+
     if (width < 0 || height < 0) {
         wl_resource_post_error(resource->handle, error_invalid_size, "width and height must be positive or zero");
         return;
     }
-    pending->maximumSize = QSize(width, height);
+
+    pending->maximumSize = QSizeF(width / surface->clientToCompositorScale(),
+                                  height / surface->clientToCompositorScale());
 }
 
 void XdgToplevelInterfacePrivate::xdg_toplevel_set_min_size(Resource *resource, int32_t width, int32_t height)
 {
+    if (Q_UNLIKELY(!surface)) {
+        return;
+    }
+
     if (width < 0 || height < 0) {
         wl_resource_post_error(resource->handle, error_invalid_size, "width and height must be positive or zero");
         return;
     }
-    pending->minimumSize = QSize(width, height);
+
+    pending->minimumSize = QSizeF(width / surface->clientToCompositorScale(),
+                                  height / surface->clientToCompositorScale());
 }
 
 void XdgToplevelInterfacePrivate::xdg_toplevel_set_maximized(Resource *resource)
@@ -625,12 +650,12 @@ QString XdgToplevelInterface::description() const
     return d->description;
 }
 
-QSize XdgToplevelInterface::minimumSize() const
+QSizeF XdgToplevelInterface::minimumSize() const
 {
     return d->minimumSize;
 }
 
-QSize XdgToplevelInterface::maximumSize() const
+QSizeF XdgToplevelInterface::maximumSize() const
 {
     return d->maximumSize;
 }
@@ -645,7 +670,7 @@ XdgToplevelSessionV1Interface *XdgToplevelInterface::session() const
     return d->session;
 }
 
-quint32 XdgToplevelInterface::sendConfigure(const QSize &size, const States &states)
+quint32 XdgToplevelInterface::sendConfigure(const QSizeF &size, const States &states)
 {
     // Note that the states listed in the configure event must be an array of uint32_t.
 
@@ -689,7 +714,8 @@ quint32 XdgToplevelInterface::sendConfigure(const QSize &size, const States &sta
     const QByteArray xdgStates = QByteArray::fromRawData(reinterpret_cast<char *>(statesData), sizeof(uint32_t) * i);
     const quint32 serial = xdgSurface()->shell()->display()->nextSerial();
 
-    d->send_configure(size.width(), size.height(), xdgStates);
+    const QSize nativeSize = (size * d->xdgSurface->surface()->compositorToClientScale()).toSize();
+    d->send_configure(nativeSize.width(), nativeSize.height(), xdgStates);
 
     auto xdgSurfacePrivate = XdgSurfaceInterfacePrivate::get(xdgSurface());
     xdgSurfacePrivate->send_configure(serial);
@@ -703,10 +729,11 @@ void XdgToplevelInterface::sendClose()
     d->send_close();
 }
 
-void XdgToplevelInterface::sendConfigureBounds(const QSize &size)
+void XdgToplevelInterface::sendConfigureBounds(const QSizeF &size)
 {
     if (d->resource()->version() >= XDG_TOPLEVEL_CONFIGURE_BOUNDS_SINCE_VERSION) {
-        d->send_configure_bounds(size.width(), size.height());
+        const QSize nativeSize = (size * d->xdgSurface->surface()->compositorToClientScale()).toSize();
+        d->send_configure_bounds(nativeSize.width(), nativeSize.height());
     }
 }
 
@@ -759,6 +786,12 @@ XdgPopupInterfacePrivate::XdgPopupInterfacePrivate(XdgPopupInterface *popup, Xdg
     , q(popup)
     , xdgSurface(xdgSurface)
 {
+}
+
+void XdgPopupInterfacePrivate::attachTo(SurfaceInterface *parent)
+{
+    parentSurface = parent;
+    positioner.setParentScale(parent->clientToCompositorScale());
 }
 
 void XdgPopupInterfacePrivate::apply(XdgPopupCommit *commit)
@@ -824,6 +857,10 @@ void XdgPopupInterfacePrivate::xdg_popup_grab(Resource *resource, ::wl_resource 
 void XdgPopupInterfacePrivate::xdg_popup_reposition(Resource *resource, ::wl_resource *positionerResource, uint32_t token)
 {
     positioner = XdgPositioner::get(positionerResource);
+    positioner.setPopupScale(surface->clientToCompositorScale());
+    if (parentSurface) {
+        positioner.setParentScale(parentSurface->clientToCompositorScale());
+    }
     Q_EMIT q->repositionRequested(token);
 }
 
@@ -834,8 +871,12 @@ XdgPopupInterface::XdgPopupInterface(XdgSurfaceInterface *xdgSurface, SurfaceInt
     surfacePrivate->popup = this;
     surfacePrivate->pending = d->pending;
 
-    d->parentSurface = parentSurface;
     d->positioner = positioner;
+    d->positioner.setPopupScale(xdgSurface->surface()->clientToCompositorScale());
+    if (parentSurface) {
+        d->attachTo(parentSurface);
+    }
+
     d->init(resource);
 }
 
@@ -879,11 +920,12 @@ XdgPositioner XdgPopupInterface::positioner() const
     return d->positioner;
 }
 
-quint32 XdgPopupInterface::sendConfigure(const Rect &rect)
+quint32 XdgPopupInterface::sendConfigure(const RectF &rect)
 {
     const quint32 serial = xdgSurface()->shell()->display()->nextSerial();
 
-    d->send_configure(rect.x(), rect.y(), rect.width(), rect.height());
+    const Rect nativeRect = rect.scaled(d->xdgSurface->surface()->compositorToClientScale()).rounded();
+    d->send_configure(nativeRect.x(), nativeRect.y(), nativeRect.width(), nativeRect.height());
 
     auto xdgSurfacePrivate = XdgSurfaceInterfacePrivate::get(xdgSurface());
     xdgSurfacePrivate->send_configure(serial);
@@ -1092,6 +1134,8 @@ XdgPositioner::XdgPositioner()
 
 XdgPositioner::XdgPositioner(const XdgPositioner &other)
     : d(other.d)
+    , m_popupScale(other.m_popupScale)
+    , m_parentScale(other.m_parentScale)
 {
 }
 
@@ -1102,6 +1146,8 @@ XdgPositioner::~XdgPositioner()
 XdgPositioner &XdgPositioner::operator=(const XdgPositioner &other)
 {
     d = other.d;
+    m_parentScale = other.m_parentScale;
+    m_popupScale = other.m_popupScale;
     return *this;
 }
 
@@ -1110,9 +1156,9 @@ bool XdgPositioner::isComplete() const
     return d->size.isValid() && d->anchorRect.isValid();
 }
 
-QSize XdgPositioner::size() const
+QSizeF XdgPositioner::size() const
 {
-    return d->size;
+    return QSizeF(d->size) / m_popupScale;
 }
 
 bool XdgPositioner::isReactive() const
@@ -1192,7 +1238,11 @@ RectF XdgPositioner::placement(const RectF &bounds) const
         return true;
     };
 
-    RectF popupRect(popupOffset(d->anchorRect, d->anchorEdges, d->gravityEdges, d->size) + d->offset, d->size);
+    const RectF anchorRect = d->anchorRect.scaled(1.0 / m_parentScale);
+    const QPointF offset = QPointF(d->offset) / m_parentScale;
+    const QSizeF size = QSizeF(d->size) / m_popupScale;
+
+    RectF popupRect(popupOffset(anchorRect, d->anchorEdges, d->gravityEdges, size) + offset, size);
 
     // if that fits, we don't need to do anything
     if (inBounds(popupRect)) {
@@ -1211,7 +1261,7 @@ RectF XdgPositioner::placement(const RectF &bounds) const
             if (flippedGravity & (Qt::LeftEdge | Qt::RightEdge)) {
                 flippedGravity ^= (Qt::LeftEdge | Qt::RightEdge);
             }
-            auto flippedPopupRect = RectF(popupOffset(d->anchorRect, flippedAnchorEdge, flippedGravity, d->size) + d->offset, d->size);
+            auto flippedPopupRect = RectF(popupOffset(anchorRect, flippedAnchorEdge, flippedGravity, size) + offset, size);
 
             // if it still doesn't fit we should continue with the unflipped version
             if (inBounds(flippedPopupRect, Qt::LeftEdge | Qt::RightEdge)) {
@@ -1253,7 +1303,7 @@ RectF XdgPositioner::placement(const RectF &bounds) const
             if (flippedGravity & (Qt::TopEdge | Qt::BottomEdge)) {
                 flippedGravity ^= (Qt::TopEdge | Qt::BottomEdge);
             }
-            auto flippedPopupRect = RectF(popupOffset(d->anchorRect, flippedAnchorEdge, flippedGravity, d->size) + d->offset, d->size);
+            auto flippedPopupRect = RectF(popupOffset(anchorRect, flippedAnchorEdge, flippedGravity, size) + offset, size);
 
             // if it still doesn't fit we should continue with the unflipped version
             if (inBounds(flippedPopupRect, Qt::TopEdge | Qt::BottomEdge)) {
@@ -1290,14 +1340,25 @@ RectF XdgPositioner::placement(const RectF &bounds) const
 XdgPositioner XdgPositioner::get(::wl_resource *resource)
 {
     XdgPositionerPrivate *xdgPositionerPrivate = XdgPositionerPrivate::get(resource);
-    if (xdgPositionerPrivate)
+    if (xdgPositionerPrivate) {
         return XdgPositioner(xdgPositionerPrivate->data);
+    }
     return XdgPositioner();
 }
 
 XdgPositioner::XdgPositioner(const QSharedDataPointer<XdgPositionerData> &data)
     : d(data)
 {
+}
+
+void XdgPositioner::setParentScale(qreal scale)
+{
+    m_parentScale = scale;
+}
+
+void XdgPositioner::setPopupScale(qreal scale)
+{
+    m_popupScale = scale;
 }
 
 } // namespace KWin

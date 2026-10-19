@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdeorg\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-19 02:48+0000\n"
+"POT-Creation-Date: 2026-08-28 00:48+0000\n"
 "PO-Revision-Date: 2024-04-22 15:58\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
@@ -14,65 +14,71 @@ msgstr ""
 "X-Crowdin-Project: kdeorg\n"
 "X-Crowdin-Project-ID: 269464\n"
 "X-Crowdin-Language: zh-CN\n"
-"X-Crowdin-File: /kf6-stable/messages/plasma-workspace/plasma_applet_org.kde."
+"X-Crowdin-File: /kf6-trunk/messages/plasma-workspace/plasma_applet_org.kde."
 "plasma.systemtray.pot\n"
-"X-Crowdin-File-ID: 57582\n"
+"X-Crowdin-File-ID: 57367\n"
+
+#: qml/BackgroundAppItem.qml:76
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Quit %1"
+msgstr "退出 %1"
 
 #: qml/config.qml:13
 #, kde-format
 msgid "General"
 msgstr "常规"
 
-#: qml/ConfigGeneral.qml:43
+#: qml/ConfigGeneral.qml:45
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item when relevant"
 msgid "Show when relevant"
 msgstr "有作用时显示"
 
-#: qml/ConfigGeneral.qml:47
+#: qml/ConfigGeneral.qml:49
 #, kde-format
 msgctxt "@item:inlistbox Always show this System Tray item"
 msgid "Always show"
 msgstr "始终显示"
 
-#: qml/ConfigGeneral.qml:51
+#: qml/ConfigGeneral.qml:53
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item only in the expanded popup"
 msgid "Show only in popup"
 msgstr "仅在弹窗中显示"
 
-#: qml/ConfigGeneral.qml:55
+#: qml/ConfigGeneral.qml:57
 #, kde-format
 msgctxt "@item:inlistbox Never show this System Tray item; disable it"
 msgid "Never show (disabled)"
 msgstr "不显示 (禁用)"
 
-#: qml/ConfigGeneral.qml:126
+#: qml/ConfigGeneral.qml:128
 #, kde-format
 msgid "Application Status"
 msgstr "应用程序状态"
 
-#: qml/ConfigGeneral.qml:128
+#: qml/ConfigGeneral.qml:130
 #, kde-format
 msgid "Communications"
 msgstr "通信"
 
-#: qml/ConfigGeneral.qml:130
+#: qml/ConfigGeneral.qml:132
 #, kde-format
 msgid "System Services"
 msgstr "系统服务"
 
-#: qml/ConfigGeneral.qml:132
+#: qml/ConfigGeneral.qml:134
 #, kde-format
 msgid "Hardware Control"
 msgstr "硬件控制"
 
-#: qml/ConfigGeneral.qml:135
+#: qml/ConfigGeneral.qml:137
 #, kde-format
 msgid "Miscellaneous"
 msgstr "其他"
 
-#: qml/ConfigGeneral.qml:172
+#: qml/ConfigGeneral.qml:174
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -87,13 +93,13 @@ msgstr ""
 "会导致它们工作异常。<nl/><nl/>使用此设置需自行承担风险，如果您遇到问题，请不"
 "要向 KDE 或应用程序作者报告。"
 
-#: qml/ConfigGeneral.qml:175
+#: qml/ConfigGeneral.qml:177
 #, kde-format
 msgctxt "@action:button"
 msgid "I understand the risks"
 msgstr "我明白上述风险"
 
-#: qml/ConfigGeneral.qml:187
+#: qml/ConfigGeneral.qml:189
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -109,7 +115,7 @@ msgstr ""
 "器时禁用系统剪贴板。另外，您也可以将剪贴板配置为不保存任何历史记录，或者每次"
 "仅记住一个项目。"
 
-#: qml/ConfigGeneral.qml:196
+#: qml/ConfigGeneral.qml:198
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -121,66 +127,97 @@ msgstr ""
 "不建议禁用通知小部件，因为应用发送的通知将不再显示。<nl/><nl/>请仅在您已经手"
 "动添加了一个独立的通知小部件或使用第三方通知管理器时禁用系统通知。"
 
-#: qml/ConfigGeneral.qml:208
+#: qml/ConfigGeneral.qml:210
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel height"
 msgstr "按面板高度缩放"
 
-#: qml/ConfigGeneral.qml:209
+#: qml/ConfigGeneral.qml:211
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel width"
 msgstr "按面板宽度缩放"
 
-#: qml/ConfigGeneral.qml:211
+#: qml/ConfigGeneral.qml:213
 #, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgctxt ""
+"@label:listbox Whether the system tray icons in the Panel always stay small "
+"or scale with the Panel's size"
 msgid "Panel icon size:"
 msgstr "面板图标大小："
 
-#: qml/ConfigGeneral.qml:215 qml/ConfigGeneral.qml:256
+#: qml/ConfigGeneral.qml:217
+#, kde-format
+msgctxt "@item:inlistbox Icon size"
+msgid "Small"
+msgstr "小"
+
+#: qml/ConfigGeneral.qml:237
+#, kde-format
+msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgid "Spacing:"
+msgstr "间距："
+
+#: qml/ConfigGeneral.qml:241
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Small"
 msgstr "小"
 
-#: qml/ConfigGeneral.qml:244
-#, kde-format
-msgid "Automatically enabled when in Touch Mode"
-msgstr "在触摸模式下自动启用"
-
-#: qml/ConfigGeneral.qml:252
-#, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
-msgid "Panel icon spacing:"
-msgstr "面板图标间距："
-
-#: qml/ConfigGeneral.qml:260
+#: qml/ConfigGeneral.qml:245
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Normal"
 msgstr "标准"
 
-#: qml/ConfigGeneral.qml:264
+#: qml/ConfigGeneral.qml:249
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Large"
 msgstr "大"
 
-#: qml/ConfigGeneral.qml:289
+#: qml/ConfigGeneral.qml:269
+#, kde-format
+msgctxt ""
+"@label:listbox Which direction system tray icons in the Panel emerge from "
+"the expander arrow"
+msgid "Direction:"
+msgstr "方向："
+
+#: qml/ConfigGeneral.qml:283
+#, kde-format
+msgid "Bottom-to-top"
+msgstr "从下到上"
+
+#: qml/ConfigGeneral.qml:284
+#, kde-format
+msgid "Top-to-bottom"
+msgstr "从上到下"
+
+#: qml/ConfigGeneral.qml:289 qml/ConfigGeneral.qml:296
+#, kde-format
+msgid "Left-to-right"
+msgstr "从左到右"
+
+#: qml/ConfigGeneral.qml:290 qml/ConfigGeneral.qml:295
+#, kde-format
+msgid "Right-to-left"
+msgstr "从右到左"
+
+#: qml/ConfigGeneral.qml:307
 #, kde-format
 msgctxt "@info:usagetip under a combobox when Touch Mode is on"
 msgid "Automatically set to Large when in Touch Mode"
 msgstr "在触摸模式下自动设置为大间距"
 
-#: qml/ConfigGeneral.qml:315
+#: qml/ConfigGeneral.qml:332
 #, kde-format
 msgctxt "@title:column"
 msgid "Entries"
 msgstr "项目"
 
-#: qml/ConfigGeneral.qml:319
+#: qml/ConfigGeneral.qml:336
 #, kde-format
 msgctxt "@option:check, This is referring to system tray entries"
 msgid "Always show all"
@@ -192,17 +229,17 @@ msgctxt "@action:button"
 msgid "Go Back"
 msgstr "返回"
 
-#: qml/ExpandedRepresentation.qml:72
+#: qml/ExpandedRepresentation.qml:76
 #, kde-format
 msgid "Status and Notifications"
 msgstr "状态和通知"
 
-#: qml/ExpandedRepresentation.qml:169
+#: qml/ExpandedRepresentation.qml:175
 #, kde-format
 msgid "More actions"
 msgstr "更多操作"
 
-#: qml/ExpandedRepresentation.qml:255
+#: qml/ExpandedRepresentation.qml:260
 #, kde-format
 msgid "Keep Open"
 msgstr "保持展开状态"

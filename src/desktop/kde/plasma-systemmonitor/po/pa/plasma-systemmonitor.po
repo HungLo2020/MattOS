@@ -1,21 +1,21 @@
 # Copyright (C) 2023 This file is copyright:
 # This file is distributed under the same license as the plasma-systemmonitor package.
 #
-# SPDX-FileCopyrightText: 2020, 2021, 2022, 2023, 2024, 2025 A S Alam <aalam.yellow@gmail.com>
+# SPDX-FileCopyrightText: 2020-2026 A S Alam <aalam.yellow@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2025-09-15 10:08-0500\n"
-"Last-Translator: A S Alam <aalam@punlinux.org>\n"
+"POT-Creation-Date: 2026-07-17 00:46+0000\n"
+"PO-Revision-Date: 2026-07-24 22:44-0500\n"
+"Last-Translator: A S Alam <aman@punlinux.org>\n"
 "Language-Team: Punjabi <kde-i18n-doc@kde.org>\n"
 "Language: pa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.08.0\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: src/GlobalMenu.qml:16
 #, kde-format
@@ -80,8 +80,8 @@ msgstr "ਸੈਟਿੰਗਾਂ"
 #: src/GlobalMenu.qml:76
 #, kde-format
 msgctxt "@menu-action"
-msgid "Edit or Remove pages…"
-msgstr "…ਸਫ਼ੇ ਨੂੰ ਸੋਧੋ ਜਾਂ ਹਟਾਓ"
+msgid "Edit or Remove Pages…"
+msgstr "…ਸਫ਼ਿਆਂ ਨੂੰ ਸੋਧੋ ਜਾਂ ਹਟਾਓ"
 
 #: src/GlobalMenu.qml:83
 #, kde-format
@@ -119,7 +119,7 @@ msgstr "© 2025 ਪਲਾਜ਼ਮਾ ਡਿਵੈਲਪਮੈਂਟ ਟੀਮ"
 #: src/main.cpp:71
 #, kde-format
 msgid "Arjen Hiemstra"
-msgstr ""
+msgstr "ਅਰਜੇਨ ਹਿਮਸਤਰਾ"
 
 #: src/main.cpp:71 src/main.cpp:74 src/main.cpp:76 src/main.cpp:77
 #, kde-format
@@ -193,8 +193,8 @@ msgstr "…ਨਵਾਂ ਸਫ਼ਾ ਜੋੜੋ"
 #: src/Main.qml:100
 #, kde-format
 msgctxt "@action"
-msgid "Edit or Remove pages…"
-msgstr "…ਸਫ਼ੇ ਨੂੰ ਸੋਧੋ ਜਾਂ ਹਟਾਓ"
+msgid "Edit or Remove Pages…"
+msgstr "…ਸਫ਼ਿਆਂ ਨੂੰ ਸੋਧੋ ਜਾਂ ਹਟਾਓ"
 
 #: src/Main.qml:106
 #, kde-format
@@ -244,37 +244,37 @@ msgctxt "@action"
 msgid "About KDE"
 msgstr "KDE ਬਾਰੇ"
 
-#: src/Main.qml:251
+#: src/Main.qml:266
 #, kde-format
 msgctxt "@window:title"
 msgid "Add New Page"
 msgstr "ਨਵਾਂ ਸਫ਼ਾ ਜੋੜੋ"
 
-#: src/Main.qml:272
+#: src/Main.qml:287
 #, kde-format
 msgctxt "@window:title"
 msgid "Edit Pages"
 msgstr "ਸਫ਼ਿਆਂ ਨੂੰ ਸੋਧੋ"
 
-#: src/Main.qml:295
+#: src/Main.qml:310
 #, kde-format
 msgctxt "@title:window %1 is the name of the page that is being exported"
 msgid "Export %1"
 msgstr "%1 ਐਕਸਪੋਰਟ ਕਰੋ"
 
-#: src/Main.qml:297 src/Main.qml:307
+#: src/Main.qml:312 src/Main.qml:322
 #, kde-format
 msgctxt "Name filter in file dialog"
 msgid "System Monitor page (*.page)"
 msgstr "ਸਿਸਟਮ ਮਾਨੀਟਰ ਸਫ਼ਾ (*.page)"
 
-#: src/Main.qml:305
+#: src/Main.qml:320
 #, kde-format
 msgctxt "@title:window"
 msgid "Import Page"
 msgstr "ਸਫ਼ੇ ਨੂੰ ਇੰਪੋਰਟ ਕਰੋ"
 
-#: src/Main.qml:331
+#: src/Main.qml:346
 #, kde-format
 msgid ""
 "System Monitor has fallen back to software rendering because hardware "
@@ -306,49 +306,49 @@ msgctxt "@action"
 msgid "Remove Background Margins"
 msgstr "ਬੈਕਗਰਾਊਂਡ ਹਾਸ਼ੀਏ ਹਟਾਓ"
 
-#: src/page/EditablePage.qml:128
+#: src/page/EditablePage.qml:122
 #, kde-format
 msgctxt "@action"
 msgid "Edit Page"
 msgstr "ਸਫ਼ੇ ਨੂੰ ਸੋਧੋ"
 
-#: src/page/EditablePage.qml:138
+#: src/page/EditablePage.qml:132
 #, kde-format
 msgctxt "@action"
 msgid "Save Changes"
 msgstr "ਤਬਦੀਲੀਆਂ ਸੰਭਾਲੋ"
 
-#: src/page/EditablePage.qml:148
+#: src/page/EditablePage.qml:142
 #, kde-format
 msgctxt "@action"
 msgid "Discard Changes"
 msgstr "ਤਬਦੀਲੀਆਂ ਅਣਡਿੱਠੀਆਂ ਕਰੋ"
 
-#: src/page/EditablePage.qml:159
+#: src/page/EditablePage.qml:153
 #, kde-format
 msgctxt "@action"
 msgid "Configure Page…"
 msgstr "…ਸਫ਼ੇ ਦੀ ਸੰਰਚਨਾ"
 
-#: src/page/EditablePage.qml:168
+#: src/page/EditablePage.qml:162
 #, kde-format
 msgctxt "@action"
 msgid "Add Row"
 msgstr "ਕਤਾਰ ਜੋੜੋ"
 
-#: src/page/EditablePage.qml:177
+#: src/page/EditablePage.qml:171
 #, kde-format
 msgctxt "@action"
 msgid "Add Title"
 msgstr "ਨਾਂ ਜੋੜੋ"
 
-#: src/page/EditablePage.qml:190
+#: src/page/EditablePage.qml:184
 #, kde-format
 msgctxt "@title:window %1 is page title"
 msgid "Configure Page \"%1\""
 msgstr "\"%1\" ਸਫ਼ੇ ਦੀ ਸੰਰਚਨਾ"
 
-#: src/page/EditablePage.qml:192
+#: src/page/EditablePage.qml:186
 #, kde-format
 msgctxt "@action:button"
 msgid "Save"
@@ -493,7 +493,7 @@ msgstr "ਭੇਜੋ"
 #: src/page/PageContents.qml:107 src/page/PageEditor.qml:141
 #, kde-format
 msgid "This page is missing some sensors and will not display correctly."
-msgstr ""
+msgstr "ਇਸ ਸਫ਼ੇ ਉੱਤੇ ਕੁਝ ਸੈਂਸਰ ਮੌਜੂਦ ਨਹੀਂ ਹਨ ਅਤੇ ਠੀਕ ਤਰ੍ਹਾਂ ਦਿਖਾਇਆ ਨਹੀਂ ਜਾਵੇਗਾ।"
 
 #: src/page/PageContents.qml:112 src/page/PageEditor.qml:145
 #, kde-format
@@ -730,63 +730,95 @@ msgctxt "@info:tooltip"
 msgid "Use half the height of the page."
 msgstr ""
 
-#: src/table/ColumnConfigurationDialog.qml:29
+#: src/table/AffinityDialog.qml:23
+#, kde-format
+msgctxt "@title:window"
+msgid "Set Affinity"
+msgstr "ਬੰਧਨ ਸੈੱਟ ਕਰੋ"
+
+#: src/table/AffinityDialog.qml:54
+#, kde-format
+msgctxt "@label"
+msgid "Allow to run on:"
+msgstr "ਇਸ ਨਾਲ ਚਲਾਉਣ ਦੀ ਮਨਜ਼ੂਰੀ:"
+
+#: src/table/AffinityDialog.qml:73
+#, kde-format
+msgctxt "@option:check CPU core number"
+msgid "CPU %1"
+msgstr "CPU %1"
+
+#: src/table/AffinityDialog.qml:109
+#, kde-format
+msgctxt "@action:button"
+msgid "Select All"
+msgstr "ਸਭ ਚੁਣੋ"
+
+#: src/table/AffinityDialog.qml:121
+#, kde-format
+msgctxt "@action:button"
+msgid "Clear All"
+msgstr "ਸਭ ਮਿਟਾਓ"
+
+#: src/table/AffinityDialog.qml:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Invert"
+msgstr "ਉਲਟ"
+
+#: src/table/ColumnConfigurationDialog.qml:48
 #, kde-format
 msgctxt "@window:title"
 msgid "Configure Columns"
 msgstr "ਕਾਲਮਾਂ ਦੀ ਸੰਰਚਨਾ"
 
-#: src/table/ColumnConfigurationDialog.qml:106
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Add Column"
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Enabled Columns"
-msgstr "ਕਾਲਮ ਜੋੜੋ"
+msgstr "ਕਾਲਮਾਂ ਨੂੰ ਸਮਰੱਥ ਕੀਤਾ"
 
-#: src/table/ColumnConfigurationDialog.qml:106
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Add Column"
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Disabled Columns"
-msgstr "ਕਾਲਮ ਜੋੜੋ"
+msgstr "ਕਾਲਮਾਂ ਨੂੰ ਅਸਮਰੱਥ ਕੀਤਾ"
 
-#: src/table/ColumnConfigurationDialog.qml:240
+#: src/table/ColumnConfigurationDialog.qml:260
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Hidden"
 msgstr "ਓਹਲੇ"
 
-#: src/table/ColumnConfigurationDialog.qml:241
+#: src/table/ColumnConfigurationDialog.qml:261
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only"
 msgstr "ਸਿਰਫ਼ ਲਿਖਤ"
 
-#: src/table/ColumnConfigurationDialog.qml:245
+#: src/table/ColumnConfigurationDialog.qml:265
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart"
 msgstr "ਰੇਖਾ ਚਾਰਟ"
 
-#: src/table/ColumnConfigurationDialog.qml:249
+#: src/table/ColumnConfigurationDialog.qml:269
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only (Scaled to 100%)"
 msgstr "ਸਿਰਫ਼ ਲਿਖਤ (100% ਸਕੇਲ ਕੀਤਾ)"
 
-#: src/table/ColumnConfigurationDialog.qml:250
+#: src/table/ColumnConfigurationDialog.qml:270
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart (Scaled to 100%)"
 msgstr "ਲਾਈਨ ਚਾਰਟ (100% ਸਕੇਲ ਕੀਤਾ)"
 
-#: src/table/ColumnConfigurationDialog.qml:287
+#: src/table/ColumnConfigurationDialog.qml:307
 #, kde-format
 msgctxt "@info"
 msgid "No columns matched the search"
-msgstr ""
+msgstr "ਖੋਜ ਨਾਲ ਮਿਲਦਾ ਕੋਈ ਕਾਲਮ ਨਹੀਂ ਹੈ"
 
 #: src/table/KillDialog.qml:83
 #, kde-format
@@ -798,19 +830,19 @@ msgstr "ਮੁੜ ਨਾ ਪੁੱਛੋ"
 #, kde-format
 msgctxt "@title:window"
 msgid "Set Priority"
-msgstr ""
+msgstr "ਤਰਜੀਹ ਸੈੱਟ ਕਰੋ"
 
 #: src/table/ReniceDialog.qml:57
 #, kde-format
 msgctxt "@title:group"
 msgid "CPU Scheduler"
-msgstr ""
+msgstr "CPU ਸੈਡਿਊਲਰ"
 
 #: src/table/ReniceDialog.qml:83
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Normal"
-msgstr ""
+msgstr "ਸਧਾਰਨ"
 
 #: src/table/ReniceDialog.qml:84
 #, kde-format
@@ -824,7 +856,7 @@ msgstr ""
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Batch"
-msgstr ""
+msgstr "ਬੈਚ"
 
 #: src/table/ReniceDialog.qml:90
 #, kde-format
@@ -838,7 +870,7 @@ msgstr ""
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Round robin"
-msgstr ""
+msgstr "ਰਾਊਂਡ ਰੌਬਿਨ"
 
 #: src/table/ReniceDialog.qml:96
 #, kde-format
@@ -850,7 +882,7 @@ msgstr ""
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "FIFO"
-msgstr ""
+msgstr "FIFO"
 
 #: src/table/ReniceDialog.qml:102
 #, kde-format
@@ -862,13 +894,13 @@ msgstr ""
 #, kde-format
 msgctxt "@title:group"
 msgid "I/O Scheduler"
-msgstr ""
+msgstr "I/O ਸੈਡਿਊਲਰ"
 
 #: src/table/ReniceDialog.qml:146
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Normal"
-msgstr ""
+msgstr "ਸਧਾਰਨ"
 
 #: src/table/ReniceDialog.qml:147
 #, kde-format
@@ -880,7 +912,7 @@ msgstr ""
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Idle"
-msgstr ""
+msgstr "ਵੇਹਲਾ"
 
 #: src/table/ReniceDialog.qml:153
 #, kde-format
@@ -894,7 +926,7 @@ msgstr ""
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Best Effort"
-msgstr ""
+msgstr "ਸਭ ਤੋਂ ਵਧੀਆ ਯਤਨ"
 
 #: src/table/ReniceDialog.qml:159
 #, kde-format
@@ -906,7 +938,7 @@ msgstr ""
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Real Time"
-msgstr ""
+msgstr "ਰੀਅਲ ਟਾਈਮ"
 
 #: src/table/ReniceDialog.qml:165
 #, kde-format
@@ -920,25 +952,25 @@ msgstr ""
 #, kde-format
 msgctxt "Lower process priority"
 msgid "Low priority"
-msgstr ""
+msgstr "ਘੱਟ ਤਰਜੀਹ"
 
 #: src/table/ReniceDialog.qml:218
 #, kde-format
 msgctxt "Higher process priority"
 msgid "High priority"
-msgstr ""
+msgstr "ਵੱਧ ਤਰਜੀਹ"
 
 #: src/table/ReniceDialog.qml:268
 #, kde-format
 msgctxt "Lower I/O priority"
 msgid "Low priority"
-msgstr ""
+msgstr "ਘੱਟ ਤਰਜੀਹ"
 
 #: src/table/ReniceDialog.qml:275
 #, kde-format
 msgctxt "Higher I/O priority"
 msgid "High priority"
-msgstr ""
+msgstr "ਵੱਧ ਤਰਜੀਹ"
 
 #: src/ToolsModel.cpp:37
 #, kde-format

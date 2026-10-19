@@ -21,7 +21,52 @@ if(TARGET WrapLibClang::WrapLibClang)
     set(TEST_libclang "ON" CACHE BOOL "Required libclang version found." FORCE)
 endif()
 
+# We need the LLVM Support library for the objcnamemangler tool. That target can depend on the
+# zstd::libzstd_shared target. The LLVM package creates the Support target regardless of
+# whether the zstd dependency was found, which leads to cmake generation time errors when trying
+# to link to it. Explicitly check if the dependency exists before enabling the tool feature.
+if(MACOS)
+    # Check LLVM_ZSTD_MARKER for reasoning
+    find_package(WrapZSTD QUIET)
+    set(__qt_wrapllvm_CMAKE_DISABLE_FIND_PACKAGE_zstd ${CMAKE_DISABLE_FIND_PACKAGE_zstd})
+    if(WrapZSTD_FOUND)
+        set(CMAKE_DISABLE_FIND_PACKAGE_zstd TRUE)
+    endif()
 
+    qt_find_package(LLVM CONFIG)
+
+    set(CMAKE_DISABLE_FIND_PACKAGE_zstd ${__qt_wrapllvm_CMAKE_DISABLE_FIND_PACKAGE_zstd})
+endif()
+set(llvm_support_lib_available FALSE)
+if(NOT QT_CONFIGURE_RUNNING AND LLVM_FOUND AND COMMAND llvm_map_components_to_libnames)
+    llvm_map_components_to_libnames(support_target Support)
+    if(support_target AND TARGET "${support_target}")
+        get_target_property(llvm_support_interface_link_libs "${support_target}"
+            INTERFACE_LINK_LIBRARIES)
+        if(zstd::libzstd_shared IN_LIST llvm_support_interface_link_libs)
+            if(TARGET zstd::libzstd_shared)
+                set(llvm_support_lib_available TRUE)
+            else()
+                string(CONCAT llvm_support_lib_missing_message
+                    "The objcnamemangler tool will not be built, due to unmet dependencies. The "
+                    "'LLVM Support' library depends on zstd::libzstd_shared, but the target was "
+                    "not found. If you need the tool, ensure that the zstd CMake package is "
+                    "installed and found."
+                )
+                qt_configure_add_report_entry(
+                    TYPE WARNING MESSAGE "${llvm_support_lib_missing_message}"
+                )
+            endif()
+        else()
+            # Not sure if there's a case where the Support library can not have a dependency on
+            # zstd, but if it doesn't, treat the library as available.
+            set(llvm_support_lib_available TRUE)
+        endif()
+    endif()
+    unset(support_target)
+    unset(llvm_support_interface_link_libs)
+    unset(llvm_support_lib_missing_message)
+endif()
 
 #### Features
 
@@ -101,12 +146,12 @@ qt_feature("qtattributionsscanner" PRIVATE
 qt_feature("qtdiag" PRIVATE
     LABEL "qtdiag"
     PURPOSE "qtdiag outputs information about the Qt installation it was built with."
-    CONDITION QT_FEATURE_commandlineparser AND TARGET Qt::Gui AND NOT ANDROID AND NOT QNX AND NOT UIKIT AND NOT WASM
+    CONDITION QT_FEATURE_commandlineparser AND TARGET Qt::Gui AND NOT ANDROID AND NOT QNX AND NOT UIKIT AND NOT WASM AND NOT OHOS
 )
 qt_feature("qtplugininfo" PRIVATE
     LABEL "qtplugininfo"
     PURPOSE "qtplugininfo dumps metadata about Qt plugins in JSON format."
-    CONDITION QT_FEATURE_commandlineparser AND QT_FEATURE_library AND (android_app OR NOT ANDROID)
+    CONDITION QT_FEATURE_commandlineparser AND QT_FEATURE_library AND (android_app OR NOT ANDROID) AND NOT OHOS
 )
 qt_feature("fullqthelp" PUBLIC
     LABEL "fullqthelp"
@@ -114,6 +159,11 @@ qt_feature("fullqthelp" PUBLIC
     CONDITION (TARGET Qt::Widgets) AND (TARGET Qt::Network) AND QT_FEATURE_png AND
         QT_FEATURE_pushbutton AND QT_FEATURE_toolbutton
 )
+qt_feature("objcnamemangler" PRIVATE
+    LABEL "Objective-C Name Mangler"
+    CONDITION MACOS AND LLVM_FOUND AND llvm_support_lib_available
+)
+
 qt_configure_add_summary_section(NAME "Qt Tools")
 qt_configure_add_summary_entry(ARGS "assistant")
 qt_configure_add_summary_entry(ARGS "clang")
@@ -129,6 +179,7 @@ qt_configure_add_summary_entry(ARGS "qdoc_coverage")
 qt_configure_add_summary_entry(ARGS "qtattributionsscanner")
 qt_configure_add_summary_entry(ARGS "qtdiag")
 qt_configure_add_summary_entry(ARGS "qtplugininfo")
+qt_configure_add_summary_entry(ARGS "objcnamemangler")
 qt_configure_end_summary_section() # end of "Qt Tools" section
 
 # Register QDoc-related configure warnings

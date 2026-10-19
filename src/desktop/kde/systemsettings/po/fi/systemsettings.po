@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the kdenetwork package.
 # Mikko Piippo <piippo@cc.helsinki.fi>, 2007.
 # Teemu Rytilahti <teemu.rytilahti@d5k.net>, 2008.
-# SPDX-FileCopyrightText: 2009, 2017, 2018, 2019, 2020, 2021, 2023, 2024, 2025 Tommi Nieminen <translator@legisign.org>
+# SPDX-FileCopyrightText: 2009, 2017, 2018, 2019, 2020, 2021, 2023, 2024, 2025, 2026 Tommi Nieminen <translator@legisign.org>
 # Jorma Karvonen <karvonen.jorma@gmail.com>, 2009.
 # Lasse Liehu <lasse.liehu@gmail.com>, 2010, 2011, 2014, 2015, 2018, 2022.
 #
@@ -13,8 +13,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: systemsettings\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-23 02:40+0000\n"
-"PO-Revision-Date: 2025-09-11 17:39+0300\n"
+"POT-Creation-Date: 2026-08-21 00:47+0000\n"
+"PO-Revision-Date: 2026-03-04 19:09+0200\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -52,17 +52,17 @@ msgstr "Käynnistä uudelleen %1"
 msgid "Dialog"
 msgstr "Valintaikkuna"
 
-#: app/main.cpp:54 app/SettingsBase.cpp:53
+#: app/main.cpp:61 app/SettingsBase.cpp:54
 #, kde-format
 msgid "Info Center"
 msgstr "Tietokeskus"
 
-#: app/main.cpp:56
+#: app/main.cpp:63
 #, kde-format
 msgid "Centralized and convenient overview of system information."
 msgstr "Keskitetty ja mukava yleisnäkymä järjestelmätietoihin."
 
-#: app/main.cpp:58 app/main.cpp:69
+#: app/main.cpp:65 app/main.cpp:76
 #, kde-format
 msgid "(c) 2009, Ben Cooksley"
 msgstr "© 2009 Ben Cooksley"
@@ -70,94 +70,94 @@ msgstr "© 2009 Ben Cooksley"
 # pmap: =:gen=Järjestelmäasetusten:
 # pmap: =:elat=Järjestelmäasetuksista:
 # pmap: =:yleisnimi=kyllä:
-#: app/main.cpp:65 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:56
-#: runner/systemsettingsrunner.cpp:114
+#: app/main.cpp:72 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:57
+#: runner/systemsettingsrunner.cpp:124
 #, kde-format
 msgid "System Settings"
 msgstr "Järjestelmäasetukset"
 
-#: app/main.cpp:67
+#: app/main.cpp:74
 #, kde-format
 msgid "Central configuration center by KDE."
 msgstr "KDE:n yleinen asetuskeskus."
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Ben Cooksley"
 msgstr "Ben Cooksley"
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Maintainer"
 msgstr "Ylläpitäjä"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Marco Martin"
 msgstr "Marco Martin"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Author"
 msgstr "Tekijä"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Mathias Soeken"
 msgstr "Mathias Soeken"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Developer"
 msgstr "Kehittäjä"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Will Stephenson"
 msgstr "Will Stephenson"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Internal module representation, internal module model"
 msgstr "Sisäinen moduuliesitys, sisäinen moduulimalli"
 
-#: app/main.cpp:91
+#: app/main.cpp:98
 #, kde-format
 msgid "List all possible modules"
 msgstr "Luettele kaikki mahdolliset moduulit"
 
-#: app/main.cpp:92 app/main.cpp:153
+#: app/main.cpp:99 app/main.cpp:160
 #, kde-format
 msgid "Configuration module to open"
 msgstr "Avattava asetusmoduuli"
 
-#: app/main.cpp:93 app/main.cpp:154
+#: app/main.cpp:100 app/main.cpp:161
 #, kde-format
 msgid "Arguments for the module"
 msgstr "Moduulin parametrit"
 
-#: app/main.cpp:101
+#: app/main.cpp:108
 #, kde-format
 msgid "The following modules are available:"
 msgstr "Seuraavat moduulit ovat käytettävissä:"
 
-#: app/main.cpp:119
+#: app/main.cpp:126
 #, kde-format
 msgid "No description available"
 msgstr "Kuvausta ei ole saatavilla"
 
-#: app/ModuleView.cpp:185
+#: app/ModuleView.cpp:186
 #, kde-format
 msgid "Reset all current changes to previous values"
 msgstr "Palauta kaikki muutokset aikaisempiin arvoihinsa"
 
-#: app/ModuleView.cpp:278
+#: app/ModuleView.cpp:279
 #, kde-format
 msgctxt "@info:whatsthis"
 msgid "Scrollable area"
 msgstr "Vieritettävä alue"
 
-#: app/ModuleView.cpp:368
+#: app/ModuleView.cpp:373
 #, kde-format
 msgid ""
 "The current page has unsaved changes.\n"
@@ -166,7 +166,7 @@ msgstr ""
 "Nykyisellä sivulla on muutoksia tallentamatta.\n"
 "Otetaanko ne käyttöön vai hylätäänkö?"
 
-#: app/ModuleView.cpp:373
+#: app/ModuleView.cpp:378
 #, kde-format
 msgid "Apply Settings"
 msgstr "Hyväksy asetukset"
@@ -187,7 +187,14 @@ msgstr "Näytä valikko"
 msgid "Plasma"
 msgstr "Plasma"
 
-#: app/SettingsBase.cpp:144
+#: app/qml/SubCategoryPage.qml:74
+#, kde-format
+msgctxt "@action:button go back"
+msgid "Back"
+msgstr "Takaisin"
+
+#. i18n: ectx: label, entry (HighlightNonDefaultSettings), group (systemsettings_sidebar_mode)
+#: app/SettingsBase.cpp:144 app/systemsettings-config.kcfg:8
 #, kde-format
 msgid "Highlight Changed Settings"
 msgstr "Korosta muuttuneet asetukset"
@@ -199,7 +206,7 @@ msgctxt ""
 msgid "Show Inapplicable Pages"
 msgstr "Näytä sivut, jotka eivät sovi"
 
-#: app/SettingsBase.cpp:163
+#: app/SettingsBase.cpp:167
 #, kde-format
 msgid "Report a Bug in the Current Page…"
 msgstr "Ilmoita virheestä tällä sivulla…"
@@ -214,12 +221,12 @@ msgstr "Sivupalkki"
 msgid "Most Used"
 msgstr "Käytetyin"
 
-#: runner/systemsettingsrunner.cpp:32
+#: runner/systemsettingsrunner.cpp:33
 #, kde-format
 msgid "Finds system settings modules whose names or descriptions match :q:"
 msgstr "Etsii järjestelmäasetusosiota, jonka nimessä tai kuvauksessa on :q:"
 
-#: runner/systemsettingsrunner.cpp:112
+#: runner/systemsettingsrunner.cpp:122
 #, kde-format
 msgid "System Information"
 msgstr "Järjestelmätiedot"
@@ -333,9 +340,6 @@ msgstr "Järjestelmätiedot"
 
 #~ msgid "About Active Module"
 #~ msgstr "Tietoa nykyisestä osiosta"
-
-#~ msgid "Back"
-#~ msgstr "Takaisin"
 
 #~ msgid "Configure your system"
 #~ msgstr "Määritä järjestelmäsi"

@@ -99,6 +99,9 @@ set_target_properties(KirigamiForms PROPERTIES
     EXPORT_NAME "KirigamiForms"
 )
 
+target_sources(KirigamiForms PRIVATE
+    formalignmentgroup.cpp
+)
 
 target_sources(KirigamiFormsplugin PRIVATE
     kirigamiformsplugin.cpp
@@ -113,6 +116,13 @@ if (NOT BUILD_SHARED_LIBS)
             KirigamiFormsPrivateTemplatesplugin
             KirigamiFormsPrivateFlatplugin
             KirigamiFormsPrivateCardsplugin
+            Qt6::Qml
+            Qt6::Quick
+    )
+    target_link_libraries(KirigamiForms
+        PRIVATE
+            Qt6::Qml
+            Qt6::Quick
     )
     # for tests to find this under the name it's actually installed with'
     add_library(KF6KirigamiFormsplugin ALIAS KirigamiFormsplugin)
@@ -122,6 +132,8 @@ else()
             KirigamiFormsPrivateTemplates
             KirigamiFormsPrivateFlat
             KirigamiFormsPrivateCards
+            Qt6::Qml
+            Qt6::Quick
     )
 endif()
 
@@ -130,7 +142,7 @@ ecm_finalize_qml_module(KirigamiFormsPrivateFlat DESTINATION ${KDE_INSTALL_QMLDI
 ecm_finalize_qml_module(KirigamiFormsPrivateCards DESTINATION ${KDE_INSTALL_QMLDIR} EXPORT KirigamiTargets)
 ecm_finalize_qml_module(KirigamiForms DESTINATION ${KDE_INSTALL_QMLDIR} EXPORT KirigamiTargets)
 
-install(TARGETS KirigamiFormsPrivateTemplates EXPORT KirigamiTargets ${KF_INSTALL_DEFAULT_ARGUMENTS})
-install(TARGETS KirigamiFormsPrivateFlat EXPORT KirigamiTargets ${KF_INSTALL_DEFAULT_ARGUMENTS})
-install(TARGETS KirigamiFormsPrivateCards EXPORT KirigamiTargets ${KF_INSTALL_DEFAULT_ARGUMENTS})
-install(TARGETS KirigamiForms EXPORT KirigamiTargets ${KF_INSTALL_DEFAULT_ARGUMENTS})
+install(TARGETS KirigamiFormsPrivateTemplates EXPORT KirigamiTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS KirigamiFormsPrivateFlat EXPORT KirigamiTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS KirigamiFormsPrivateCards EXPORT KirigamiTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS KirigamiForms EXPORT KirigamiTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})

@@ -23,50 +23,31 @@
 #include <KPackage/Package>
 #include <KPackage/PackageLoader>
 
-#include <KWindowSystem>
-
 using namespace Qt::StringLiterals;
 
-SplashWindow::SplashWindow(bool testing, bool window, const QString &theme, QScreen *screen)
-    : PlasmaQuick::QuickViewSharedEngine()
+SplashWindow::SplashWindow(QQmlEngine *engine, bool testing, bool window, const QString &theme, QScreen *screen)
+    : QQuickView(engine, nullptr)
     , m_stage(0)
     , m_testing(testing)
     , m_window(window)
     , m_theme(theme)
 {
-    if (KWindowSystem::isPlatformWayland()) {
-        if (auto layerShellWindow = LayerShellQt::Window::get(this)) {
-            layerShellWindow->setScope(QStringLiteral("ksplashqml"));
-            layerShellWindow->setLayer(LayerShellQt::Window::LayerOverlay);
-            layerShellWindow->setExclusiveZone(-1);
-            layerShellWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityExclusive);
-            layerShellWindow->setScreen(screen);
-        }
+    if (auto layerShellWindow = LayerShellQt::Window::get(this)) {
+        layerShellWindow->setScope(QStringLiteral("ksplashqml"));
+        layerShellWindow->setLayer(LayerShellQt::Window::LayerOverlay);
+        layerShellWindow->setExclusiveZone(-1);
+        layerShellWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityExclusive);
+        layerShellWindow->setScreen(screen);
     }
 
     setCursor(Qt::BlankCursor);
     setScreen(screen);
     setColor(Qt::transparent);
     setDefaultAlphaBuffer(true);
-    setResizeMode(PlasmaQuick::QuickViewSharedEngine::SizeRootObjectToView);
+    setResizeMode(QQuickView::SizeRootObjectToView);
 
     if (!m_window) {
         setFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-    }
-
-    if (!m_testing && !m_window) {
-        if (KWindowSystem::isPlatformX11()) {
-            // X11 specific hint only on X11
-            setFlags(Qt::BypassWindowManagerHint);
-        } else if (!KWindowSystem::isPlatformWayland()) {
-            // on other platforms go fullscreen
-            // on Wayland we cannot go fullscreen due to QTBUG 54883
-            setWindowState(Qt::WindowFullScreen);
-        }
-    }
-
-    if (m_testing && !m_window && !KWindowSystem::isPlatformWayland()) {
-        setWindowState(Qt::WindowFullScreen);
     }
 
     // be sure it will be eventually closed
@@ -85,7 +66,7 @@ void SplashWindow::setStage(int stage)
 
 void SplashWindow::keyPressEvent(QKeyEvent *event)
 {
-    PlasmaQuick::QuickViewSharedEngine::keyPressEvent(event);
+    QQuickView::keyPressEvent(event);
     if (m_testing && !event->isAccepted() && event->key() == Qt::Key_Escape) {
         close();
     }
@@ -93,7 +74,7 @@ void SplashWindow::keyPressEvent(QKeyEvent *event)
 
 void SplashWindow::mousePressEvent(QMouseEvent *event)
 {
-    PlasmaQuick::QuickViewSharedEngine::mousePressEvent(event);
+    QQuickView::mousePressEvent(event);
     if (m_testing && !event->isAccepted()) {
         close();
     }
@@ -102,7 +83,7 @@ void SplashWindow::mousePressEvent(QMouseEvent *event)
 void SplashWindow::setGeometry(const QRect &rect)
 {
     bool oldGeometryEmpty = geometry().isNull();
-    PlasmaQuick::QuickViewSharedEngine::setGeometry(rect);
+    QQuickView::setGeometry(rect);
 
     if (oldGeometryEmpty) {
         KPackage::Package package = KPackage::PackageLoader::self()->loadPackage(QStringLiteral("Plasma/LookAndFeel"));
@@ -132,7 +113,7 @@ void SplashWindow::setGeometry(const QRect &rect)
             exit(1);
         }
         setSource(url);
-        if (status() == QQmlComponent::Error) {
+        if (status() == QQuickView::Error) {
             qCWarning(KSPLASHQML_DEBUG) << "Failed loading" << source();
             qCWarning(KSPLASHQML_DEBUG) << errors();
             if (!m_testing) {
@@ -140,7 +121,7 @@ void SplashWindow::setGeometry(const QRect &rect)
                 if (!fallbackUrl.isEmpty() && source() != fallbackUrl) {
                     qCWarning(KSPLASHQML_DEBUG) << "Loading default theme" << fallbackUrl;
                     setSource(fallbackUrl);
-                    if (status() == QQmlComponent::Error) {
+                    if (status() == QQuickView::Error) {
                         qCCritical(KSPLASHQML_DEBUG) << "Failed loading default theme";
                         exit(1);
                     }

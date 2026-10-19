@@ -76,6 +76,12 @@
 #include <QtCore/qjniobject.h>
 #endif
 
+#if defined(Q_OS_HARMONY) && !defined(QT_BOOTSTRAPPED)
+#include <QtCore/private/qcore_ohos_p.h>
+#include <QtCore/private/qnapi_p.h>
+#include <QtCore/private/qohoslogger_p.h>
+#endif
+
 #ifdef Q_OS_DARWIN
 #  include "qcore_mac_p.h"
 #endif
@@ -95,6 +101,9 @@
 
 #if __has_include(<sys/auxv.h>)     // Linux and FreeBSD
 #  include <sys/auxv.h>
+#  if defined(Q_OS_LINUX) && !defined(AT_EXECFN)
+#    define AT_EXECFN 31
+#  endif
 #endif
 
 #ifdef Q_OS_VXWORKS
@@ -216,6 +225,24 @@ QString QCoreApplicationPrivate::appVersion() const
             }
         }
     }
+#elif defined(Q_OS_HARMONY) && !defined(QT_BOOTSTRAPPED)
+    applicationVersion = QOhosJsThreadGateway::eval(
+        [](QOhosJsState &jsState) -> QString {
+            try {
+                const auto flag = jsState.eval<QNapi::Number>(
+                    "@ohos.bundle.bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_APPLICATION");
+                return QString::fromStdString(
+                    jsState.eval<QNapi::String>(
+                        "@ohos.bundle.bundleManager.getBundleInfoForSelfSync(*).versionName",
+                        {flag}));
+            } catch (const Napi::Error &error) {
+                qOhosPrintfError(
+                    "%s: failed to read bundle versionName: %s",
+                    Q_FUNC_INFO, error.what());
+                return QString();
+            }
+        },
+        Q_FUNC_INFO);
 #endif
     return applicationVersion;
 }
@@ -827,7 +854,7 @@ void Q_TRACE_INSTRUMENT(qtcore) QCoreApplicationPrivate::init()
     if (!coreappdata()->applicationVersionSet)
         coreappdata()->applicationVersion = appVersion();
 
-#if defined(Q_OS_ANDROID) && !defined(QT_BOOTSTRAPPED)
+#if (defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)) && !defined(QT_BOOTSTRAPPED)
     // We've deferred initializing the logging registry due to not being
     // able to guarantee that logging happened on the same thread as the
     // Qt main thread, but now that the Qt main thread is set up, we can
@@ -2429,11 +2456,19 @@ QString QCoreApplication::applicationDirPath()
 // qcoreapplication_win.cpp or qcoreapplication_mac.cpp for those
 static QString qAppFileName()
 {
-#  if defined(Q_OS_ANDROID)
+#  if defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
     // the actual process on Android is the Java VM, so this doesn't help us
     return QString();
 #  elif defined(Q_OS_LINUX)
     // this includes the Embedded Android builds
+
+#    if QT_CONFIG(getauxval)
+    // AT_EXECFN has been provided since v2.6.27; use it if it is an absolute path
+    if (auto ptr = reinterpret_cast<const char *>(getauxval(AT_EXECFN)); ptr && *ptr == '/')
+        return QFile::decodeName(ptr);
+#    endif
+
+    // /proc/self/exe is always is an absolute path
     return QFile::decodeName(qt_readlink("/proc/self/exe"));
 #  elif defined(AT_EXECPATH)
     // seen on FreeBSD, but I suppose the other BSDs could adopt this API
@@ -2446,7 +2481,7 @@ static QString qAppFileName()
 #  else
     // other OS or something
     return QString();
-#endif
+#  endif
 }
 #endif // !Q_OS_WIN && !Q_OS_DARWIN
 
@@ -2779,6 +2814,9 @@ QString QCoreApplication::applicationName()
     \row
         \li Android
         \li android:versionName property of the AndroidManifest.xml manifest element
+    \row
+        \li HarmonyOS
+        \li versionName field of the app.json5 configuration file
     \endtable
 
     On other platforms, the default is the empty string.
@@ -2983,13 +3021,17 @@ static QStringList libraryPathsLocked();
     until a QCoreApplication is created. If it is not found when calling
     this function, the default library paths will be used.
 
-    The list will include the installation directory for plugins if
-    it exists (the default installation directory for plugins is \c
+    The list will include the installation directories for plugins if
+    they exist (the default installation directory for plugins is \c
     INSTALL/plugins, where \c INSTALL is the directory where Qt was
     installed). The colon separated entries of the \c QT_PLUGIN_PATH
     environment variable are always added. The plugin installation
     directory (and its existence) may change when the directory of
     the application executable becomes known.
+
+    \warning This function does not currently include QLibraryInfo::LibrariesPath
+    in its default paths, and QLibrary does not currently use this function to look
+    up non-absolute library paths.
 
     \sa setLibraryPaths(), addLibraryPath(), removeLibraryPath(), QLibrary,
         {How to Create Qt Plugins}
@@ -3025,32 +3067,15 @@ static QStringList libraryPathsLocked()
             }
         };
         setPathsFromEnv(qEnvironmentVariable("QT_PLUGIN_PATH"));
-#ifdef Q_OS_DARWIN
-        // Check the main bundle's PlugIns directory as this is a standard location for Apple OSes.
-        // Note that the QLibraryInfo::PluginsPath below will coincidentally be the same as this value
-        // but with a different casing, so it can't be relied upon when the underlying filesystem
-        // is case sensitive (and this is always the case on newer OSes like iOS).
-        if (CFBundleRef bundleRef = CFBundleGetMainBundle()) {
-            if (QCFType<CFURLRef> urlRef = CFBundleCopyBuiltInPlugInsURL(bundleRef)) {
-                if (QCFType<CFURLRef> absoluteUrlRef = CFURLCopyAbsoluteURL(urlRef)) {
-                    if (QCFString path = CFURLCopyFileSystemPath(absoluteUrlRef, kCFURLPOSIXPathStyle)) {
-                        if (QFile::exists(path)) {
-                            path = QDir(path).canonicalPath();
-                            if (!app_libpaths->contains(path))
-                                app_libpaths->append(path);
-                        }
-                    }
-                }
-            }
-        }
-#endif // Q_OS_DARWIN
 
-        QString installPathPlugins =  QLibraryInfo::path(QLibraryInfo::PluginsPath);
-        if (QFile::exists(installPathPlugins)) {
-            // Make sure we convert from backslashes to slashes.
-            installPathPlugins = QDir(installPathPlugins).canonicalPath();
-            if (!app_libpaths->contains(installPathPlugins))
-                app_libpaths->append(installPathPlugins);
+        const auto pluginPaths = QLibraryInfo::paths(QLibraryInfo::PluginsPath);
+        for (auto path : pluginPaths) {
+            if (QFile::exists(path)) {
+                // Make sure we convert from backslashes to slashes.
+                path = QDir(path).canonicalPath();
+                if (!app_libpaths->contains(path))
+                    app_libpaths->append(path);
+            }
         }
 
         // If QCoreApplication is not yet instantiated,
@@ -3080,6 +3105,9 @@ static QStringList libraryPathsLocked()
 
     The library paths are reset to the default when an instance of
     QCoreApplication is destructed.
+
+    \warning QLibrary does not currently use the given paths to look
+    up non-absolute library paths.
 
     \sa libraryPaths(), addLibraryPath(), removeLibraryPath(), QLibrary
  */
@@ -3116,6 +3144,9 @@ void QCoreApplication::setLibraryPaths(const QStringList &paths)
 
   The library paths are reset to the default when an instance of
   QCoreApplication is destructed.
+
+  \warning QLibrary does not currently use the given path to look
+  up non-absolute library paths.
 
   \sa removeLibraryPath(), libraryPaths(), setLibraryPaths()
  */
@@ -3157,6 +3188,9 @@ void QCoreApplication::addLibraryPath(const QString &path)
 
     The library paths are reset to the default when an instance of
     QCoreApplication is destructed.
+
+    \warning QLibrary does not currently use libraryPaths()
+    to look up non-absolute library paths.
 
     \sa addLibraryPath(), libraryPaths(), setLibraryPaths()
 */

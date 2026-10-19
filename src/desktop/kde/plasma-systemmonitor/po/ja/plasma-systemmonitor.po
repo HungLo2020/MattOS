@@ -1,13 +1,14 @@
-# SPDX-FileCopyrightText: 2024 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2021.
+# SPDX-FileCopyrightText: 2024 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # SPDX-FileCopyrightText: 2025 Yuma Kakei <yumasansansan@gmail.com>
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2025-09-21 16:12+0900\n"
-"Last-Translator: Yuma Kakei <yumasansansan@gmail.com>\n"
+"POT-Creation-Date: 2026-07-17 00:46+0000\n"
+"PO-Revision-Date: 2026-07-25 22:24+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 25.08.1\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: src/GlobalMenu.qml:16
 #, kde-format
@@ -81,7 +82,7 @@ msgstr "設定"
 #: src/GlobalMenu.qml:76
 #, kde-format
 msgctxt "@menu-action"
-msgid "Edit or Remove pages…"
+msgid "Edit or Remove Pages…"
 msgstr "ページを編集または削除…"
 
 #: src/GlobalMenu.qml:83
@@ -171,13 +172,13 @@ msgstr "David Edmundson"
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Ryuichi Yamada,Yuma Kakei"
+msgstr "Ryuichi Yamada,Yuma Kakei,Mint"
 
 #: src/main.cpp:79
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
-msgstr "ryuichi_ya220@outlook.jp,yumasansansan@gmail.com"
+msgstr "ryuichi_ya220@outlook.jp,yumasansansan@gmail.com,5602mint@gmail.com"
 
 #: src/Main.qml:88
 #, kde-format
@@ -194,7 +195,7 @@ msgstr "新しいページを追加…"
 #: src/Main.qml:100
 #, kde-format
 msgctxt "@action"
-msgid "Edit or Remove pages…"
+msgid "Edit or Remove Pages…"
 msgstr "ページを編集または削除…"
 
 #: src/Main.qml:106
@@ -245,37 +246,37 @@ msgctxt "@action"
 msgid "About KDE"
 msgstr "KDE について"
 
-#: src/Main.qml:251
+#: src/Main.qml:266
 #, kde-format
 msgctxt "@window:title"
 msgid "Add New Page"
 msgstr "新しいページを追加"
 
-#: src/Main.qml:272
+#: src/Main.qml:287
 #, kde-format
 msgctxt "@window:title"
 msgid "Edit Pages"
 msgstr "ページを編集"
 
-#: src/Main.qml:295
+#: src/Main.qml:310
 #, kde-format
 msgctxt "@title:window %1 is the name of the page that is being exported"
 msgid "Export %1"
 msgstr "%1をエクスポート"
 
-#: src/Main.qml:297 src/Main.qml:307
+#: src/Main.qml:312 src/Main.qml:322
 #, kde-format
 msgctxt "Name filter in file dialog"
 msgid "System Monitor page (*.page)"
 msgstr "システムモニタページ (*.page)"
 
-#: src/Main.qml:305
+#: src/Main.qml:320
 #, kde-format
 msgctxt "@title:window"
 msgid "Import Page"
 msgstr "ページをインポート"
 
-#: src/Main.qml:331
+#: src/Main.qml:346
 #, kde-format
 msgid ""
 "System Monitor has fallen back to software rendering because hardware "
@@ -310,49 +311,49 @@ msgctxt "@action"
 msgid "Remove Background Margins"
 msgstr "背景の余白を削除"
 
-#: src/page/EditablePage.qml:128
+#: src/page/EditablePage.qml:122
 #, kde-format
 msgctxt "@action"
 msgid "Edit Page"
 msgstr "ページを編集"
 
-#: src/page/EditablePage.qml:138
+#: src/page/EditablePage.qml:132
 #, kde-format
 msgctxt "@action"
 msgid "Save Changes"
 msgstr "変更を保存"
 
-#: src/page/EditablePage.qml:148
+#: src/page/EditablePage.qml:142
 #, kde-format
 msgctxt "@action"
 msgid "Discard Changes"
 msgstr "変更を破棄"
 
-#: src/page/EditablePage.qml:159
+#: src/page/EditablePage.qml:153
 #, kde-format
 msgctxt "@action"
 msgid "Configure Page…"
 msgstr "ページを設定…"
 
-#: src/page/EditablePage.qml:168
+#: src/page/EditablePage.qml:162
 #, kde-format
 msgctxt "@action"
 msgid "Add Row"
 msgstr "行を追加"
 
-#: src/page/EditablePage.qml:177
+#: src/page/EditablePage.qml:171
 #, kde-format
 msgctxt "@action"
 msgid "Add Title"
 msgstr "タイトルを追加"
 
-#: src/page/EditablePage.qml:190
+#: src/page/EditablePage.qml:184
 #, kde-format
 msgctxt "@title:window %1 is page title"
 msgid "Configure Page \"%1\""
 msgstr "ページ \"%1\" を設定"
 
-#: src/page/EditablePage.qml:192
+#: src/page/EditablePage.qml:186
 #, kde-format
 msgctxt "@action:button"
 msgid "Save"
@@ -684,7 +685,7 @@ msgstr "最後に表示したページ"
 #, kde-format
 msgctxt "@action"
 msgid "Add Column"
-msgstr "列を追加"
+msgstr "カラムを追加"
 
 #: src/page/RowControl.qml:136
 #, kde-format
@@ -732,71 +733,103 @@ msgstr "利用可能な高さをできるだけ使用します。"
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Half Page Height"
-msgstr ""
+msgstr "ページ高さの半分"
 
 #: src/page/RowControl.qml:168
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Use half the height of the page."
-msgstr ""
+msgstr "ページの高さの半分を使用します。"
 
-#: src/table/ColumnConfigurationDialog.qml:29
+#: src/table/AffinityDialog.qml:23
+#, kde-format
+msgctxt "@title:window"
+msgid "Set Affinity"
+msgstr "コアの割り当てを設定"
+
+#: src/table/AffinityDialog.qml:54
+#, kde-format
+msgctxt "@label"
+msgid "Allow to run on:"
+msgstr "実行を許可するコア:"
+
+#: src/table/AffinityDialog.qml:73
+#, kde-format
+msgctxt "@option:check CPU core number"
+msgid "CPU %1"
+msgstr "CPU %1"
+
+#: src/table/AffinityDialog.qml:109
+#, kde-format
+msgctxt "@action:button"
+msgid "Select All"
+msgstr "すべて選択"
+
+#: src/table/AffinityDialog.qml:121
+#, kde-format
+msgctxt "@action:button"
+msgid "Clear All"
+msgstr "すべて選択解除"
+
+#: src/table/AffinityDialog.qml:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Invert"
+msgstr "入れ替え"
+
+#: src/table/ColumnConfigurationDialog.qml:48
 #, kde-format
 msgctxt "@window:title"
 msgid "Configure Columns"
 msgstr "カラムの設定"
 
-#: src/table/ColumnConfigurationDialog.qml:106
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Add Column"
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Enabled Columns"
-msgstr "列を追加"
+msgstr "表示中のカラム"
 
-#: src/table/ColumnConfigurationDialog.qml:106
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Add Column"
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Disabled Columns"
-msgstr "列を追加"
+msgstr "非表示のカラム"
 
-#: src/table/ColumnConfigurationDialog.qml:240
+#: src/table/ColumnConfigurationDialog.qml:260
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Hidden"
 msgstr "非表示"
 
-#: src/table/ColumnConfigurationDialog.qml:241
+#: src/table/ColumnConfigurationDialog.qml:261
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only"
 msgstr "テキストのみ"
 
-#: src/table/ColumnConfigurationDialog.qml:245
+#: src/table/ColumnConfigurationDialog.qml:265
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart"
 msgstr "折れ線グラフ"
 
-#: src/table/ColumnConfigurationDialog.qml:249
+#: src/table/ColumnConfigurationDialog.qml:269
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only (Scaled to 100%)"
 msgstr "テキストのみ (100%に縮尺)"
 
-#: src/table/ColumnConfigurationDialog.qml:250
+#: src/table/ColumnConfigurationDialog.qml:270
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart (Scaled to 100%)"
 msgstr "折れ線グラフ (100%に縮尺)"
 
-#: src/table/ColumnConfigurationDialog.qml:287
+#: src/table/ColumnConfigurationDialog.qml:307
 #, kde-format
 msgctxt "@info"
 msgid "No columns matched the search"
-msgstr ""
+msgstr "検索ワードに一致するカラムはありません"
 
 #: src/table/KillDialog.qml:83
 #, kde-format
@@ -808,19 +841,19 @@ msgstr "次回から確認しない"
 #, kde-format
 msgctxt "@title:window"
 msgid "Set Priority"
-msgstr ""
+msgstr "優先度を設定"
 
 #: src/table/ReniceDialog.qml:57
 #, kde-format
 msgctxt "@title:group"
 msgid "CPU Scheduler"
-msgstr ""
+msgstr "CPU スケジューラ"
 
 #: src/table/ReniceDialog.qml:83
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Normal"
-msgstr ""
+msgstr "通常"
 
 #: src/table/ReniceDialog.qml:84
 #, kde-format
@@ -829,12 +862,13 @@ msgid ""
 "The standard time-sharing scheduler for processes without special "
 "requirements."
 msgstr ""
+"特別な要件がないプロセス向けの標準的なタイムシェアリングスケジューラです。"
 
 #: src/table/ReniceDialog.qml:89
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Batch"
-msgstr ""
+msgstr "バッチ"
 
 #: src/table/ReniceDialog.qml:90
 #, kde-format
@@ -843,54 +877,56 @@ msgid ""
 "Process is mildly disfavored in scheduling decisions, for CPU-intensive non-"
 "interactive processes."
 msgstr ""
+"CPU 負荷の高い非インタラクティブなプロセス向けに、スケジューリングの決定時に"
+"プロセスの優先度をわずかに下げます。"
 
 #: src/table/ReniceDialog.qml:95
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Round robin"
-msgstr ""
+msgstr "ラウンドロビン"
 
 #: src/table/ReniceDialog.qml:96
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process will run whenever runnable, with timeslicing."
-msgstr ""
+msgstr "プロセスは実行可能なときに、タイムスライスありで実行されます。"
 
 #: src/table/ReniceDialog.qml:101
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "FIFO"
-msgstr ""
+msgstr "FIFO"
 
 #: src/table/ReniceDialog.qml:102
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process will run whenever runnable, with no timeslicing."
-msgstr ""
+msgstr "プロセスは実行可能なときに、タイムスライスなしで実行されます。"
 
 #: src/table/ReniceDialog.qml:120
 #, kde-format
 msgctxt "@title:group"
 msgid "I/O Scheduler"
-msgstr ""
+msgstr "I/O スケジューラ"
 
 #: src/table/ReniceDialog.qml:146
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Normal"
-msgstr ""
+msgstr "通常"
 
 #: src/table/ReniceDialog.qml:147
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process' priority is based on the CPU priority."
-msgstr ""
+msgstr "プロセスの優先度を CPU 優先度に基づき設定します。"
 
 #: src/table/ReniceDialog.qml:152
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Idle"
-msgstr ""
+msgstr "アイドル"
 
 #: src/table/ReniceDialog.qml:153
 #, kde-format
@@ -899,24 +935,28 @@ msgid ""
 "Process can only use the hard disk when no other process has used it very "
 "recently."
 msgstr ""
+"直近でほかのプロセスがハードディスクを使用していない場合のみ、プロセスはハー"
+"ドディスクを使用できるようになります。"
 
 #: src/table/ReniceDialog.qml:158
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Best Effort"
-msgstr ""
+msgstr "ベストエフォート"
 
 #: src/table/ReniceDialog.qml:159
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process is given higher priority to access the hard disk than normal."
 msgstr ""
+"プロセスが通常よりも高い優先度でハードディスクにアクセスできるようになりま"
+"す。"
 
 #: src/table/ReniceDialog.qml:164
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Real Time"
-msgstr ""
+msgstr "リアルタイム"
 
 #: src/table/ReniceDialog.qml:165
 #, kde-format
@@ -925,30 +965,32 @@ msgid ""
 "Process gets immediate access to the hard disk whenever needed, regardless "
 "of what else is going on."
 msgstr ""
+"実行中の処理にかかわらず、プロセスは必要なとき即時にハードディスクにアクセス"
+"できるようになります。"
 
 #: src/table/ReniceDialog.qml:211
 #, kde-format
 msgctxt "Lower process priority"
 msgid "Low priority"
-msgstr ""
+msgstr "低優先度"
 
 #: src/table/ReniceDialog.qml:218
 #, kde-format
 msgctxt "Higher process priority"
 msgid "High priority"
-msgstr ""
+msgstr "高優先度"
 
 #: src/table/ReniceDialog.qml:268
 #, kde-format
 msgctxt "Lower I/O priority"
 msgid "Low priority"
-msgstr ""
+msgstr "低優先度"
 
 #: src/table/ReniceDialog.qml:275
 #, kde-format
 msgctxt "Higher I/O priority"
 msgid "High priority"
-msgstr ""
+msgstr "高優先度"
 
 #: src/ToolsModel.cpp:37
 #, kde-format

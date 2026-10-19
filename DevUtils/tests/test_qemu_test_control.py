@@ -126,16 +126,16 @@ class QemuTestControlTests(unittest.TestCase):
         control.click(client, 300, 145, 640, 480)
         self.assertEqual(client.execute.call_args_list[0].args[0], "input-send-event")
         events = client.execute.call_args_list[0].args[1]["events"]
-        self.assertEqual(events[0]["data"]["value"], round(300 * control.QMP_ABSOLUTE_AXIS_MAX / 639))
-        self.assertEqual(events[1]["data"]["value"], round(145 * control.QMP_ABSOLUTE_AXIS_MAX / 479))
+        self.assertEqual(events[0]["data"]["value"], round(300 * 0x7FFF / 639))
+        self.assertEqual(events[1]["data"]["value"], round(145 * 0x7FFF / 479))
         self.assertEqual(len(client.execute.call_args_list), 3)
 
-    def test_click_uses_full_qemu_tablet_axis_range(self) -> None:
+    def test_click_uses_the_qmp_protocol_axis_range(self) -> None:
         client = mock.Mock()
         control.click(client, 639, 479, 640, 480)
         events = client.execute.call_args_list[0].args[1]["events"]
-        self.assertEqual(events[0]["data"]["value"], control.QMP_ABSOLUTE_AXIS_MAX)
-        self.assertEqual(events[1]["data"]["value"], control.QMP_ABSOLUTE_AXIS_MAX)
+        self.assertEqual(events[0]["data"]["value"], 0x7FFF)
+        self.assertEqual(events[1]["data"]["value"], 0x7FFF)
 
     def test_serial_subcommand_keeps_command_text_separate_from_subcommand_name(self) -> None:
         with mock.patch.object(sys, "argv", ["qemu_test_control.py", "serial", "uname -a"]):

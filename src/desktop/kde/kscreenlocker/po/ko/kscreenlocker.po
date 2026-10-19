@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"POT-Creation-Date: 2026-10-01 20:15+0000\n"
 "PO-Revision-Date: 2025-04-06 23:59+0200\n"
 "Last-Translator: Shinjo Park <kde@peremen.name>\n"
 "Language-Team: Korean <kde-kr@kde.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Lokalize 23.08.5\n"
 
-#: abstractlocker.cpp:43
+#: emergencywindow.cpp:54
 #, kde-format
 msgid ""
 "The screen locker is broken and unlocking is not possible anymore.\n"
@@ -28,7 +28,7 @@ msgstr ""
 "화면 잠금을 해제하려면 ConsoleKit 및 LoginD가 필요하지만,\n"
 "현재 시스템에 둘 다 설치되어 있지 않습니다."
 
-#: abstractlocker.cpp:47
+#: emergencywindow.cpp:58
 #, kde-format
 msgctxt "%1 = other terminal"
 msgid ""
@@ -46,7 +46,7 @@ msgstr ""
 "# ck-unlock-session <session-name>\n"
 "\n"
 
-#: abstractlocker.cpp:52
+#: emergencywindow.cpp:63
 #, kde-format
 msgctxt "%1 = other terminal, %2 = session ID, %3 = this terminal"
 msgid ""
@@ -74,34 +74,34 @@ msgstr ""
 "이 화면으로 돌아올 수 있습니다\n"
 "\n"
 
-#: ksldapp.cpp:183
+#: ksldapp.cpp:117
 #, kde-format
 msgctxt ""
 "Name of a category in System Settings' Shortcuts KCM; match it exactly"
 msgid "Session Management"
 msgstr "세션 관리"
 
-#: ksldapp.cpp:185
+#: ksldapp.cpp:119
 #, kde-format
 msgid "Lock Session"
 msgstr "세션 잠금"
 
-#: ksldapp.cpp:451
+#: ksldapp.cpp:335
 #, kde-format
 msgid "Screen locked"
 msgstr "화면 잠김"
 
-#: ksldapp.cpp:619
+#: ksldapp.cpp:363
 #, kde-format
 msgid "Screen unlocked"
 msgstr "화면 잠금 풀림"
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Screen Locker"
 msgstr "화면 잠금"
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Ensuring that the screen gets locked before going to sleep"
 msgstr "대기 모드로 진입하기 전에 화면이 잠길 수 있도록 함"

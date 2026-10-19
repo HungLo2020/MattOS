@@ -184,7 +184,7 @@ void Base::dump(const Sink &sink, const QString &name, bool hasSquareBrackets) c
         sink(u"]");
 }
 
-Filter::Filter(const function<bool(const DomItem &)> &f, QStringView filterDescription)
+Filter::Filter(const std::function<bool(const DomItem &)> &f, QStringView filterDescription)
     : filterFunction(f), filterDescription(filterDescription) {}
 
 QString Filter::name() const {
@@ -361,7 +361,7 @@ index_type Path::headIndex(index_type defaultValue) const
     return component(0).index(defaultValue);
 }
 
-function<bool(const DomItem &)> Path::headFilter() const
+std::function<bool(const DomItem &)> Path::headFilter() const
 {
     auto &comp = component(0);
     if (PathEls::Filter const * f = comp.asFilter()) {
@@ -739,14 +739,14 @@ Path Path::withAny() const
                     QStringList(), QList<Component>(1,Component(PathEls::Any())), m_data));
 }
 
-Path Path::withFilter(const function<bool(const DomItem &)> &filterF, const QString &desc) const
+Path Path::withFilter(const std::function<bool(const DomItem &)> &filterF, const QString &desc) const
 {
     auto res = withFilter(filterF, QStringView(desc));
     res.m_data->strData.append(desc);
     return res;
 }
 
-Path Path::withFilter(const function<bool(const DomItem &)> &filter, QStringView desc) const
+Path Path::withFilter(const std::function<bool(const DomItem &)> &filter, QStringView desc) const
 {
     if (m_endOffset != 0)
         return noEndOffset().withFilter(filter, desc);

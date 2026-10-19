@@ -371,8 +371,9 @@ void QWaylandAdwaitaDecoration::updateColors(bool isDark)
                  { BackgroundInactive, isDark ? QColor(0x222226) : QColor(0xfafafb) },
                  { Foreground, isDark ? QColor(0xffffff) : QColor(0x333338) },
                  { ForegroundInactive, isDark ? QColor(0x919193) : QColor(0x969699) },
-                 { Border, isDark ? QColor(0x2e2e32) : QColor(0xffffff) },
-                 { BorderInactive, isDark ? QColor(0x2e2e32) : QColor(0xffffff) },
+                 { Border, isDark ? QColor(0x3d3d40) : QColor(0xc8c8c8) },
+                 { BorderInactive, isDark ? QColor(0x313135) : QColor(0xe2e2e2) },
+                 { Shadow, isDark ? QColor(0x2e2e32) : QColor(0x2e2e32) },
                  { ButtonBackground, isDark ? QColor(0x434347) : QColor(0xebebeb) },
                  { ButtonBackgroundInactive, isDark ? QColor(0x2d2d31) : QColor(0xf0f0f1) },
                  { HoveredButtonBackground, isDark ? QColor(0x4d4d51) : QColor(0xe0e0e1) },
@@ -477,9 +478,12 @@ static void renderButtonIcon(const QString &svgIcon, QPainter *painter, const QR
     QRegularExpression regexp("fill=[\"']#[0-9A-F]{6}[\"']", QRegularExpression::CaseInsensitiveOption);
     QRegularExpression regexpAlt("fill:#[0-9A-F]{6}", QRegularExpression::CaseInsensitiveOption);
     QRegularExpression regexpCurrentColor("fill=[\"']currentColor[\"']");
+    QRegularExpression regexpCurrentColorCss("fill:currentColor",
+                                             QRegularExpression::CaseInsensitiveOption);
     icon.replace(regexp, QString("fill=\"%1\"").arg(color.name()));
     icon.replace(regexpAlt, QString("fill:%1").arg(color.name()));
     icon.replace(regexpCurrentColor, QString("fill=\"%1\"").arg(color.name()));
+    icon.replace(regexpCurrentColorCss, QString("fill:%1").arg(color.name()));
     QSvgRenderer svgRenderer(icon.toLocal8Bit());
     svgRenderer.render(painter, rect);
 
@@ -526,13 +530,6 @@ void QWaylandAdwaitaDecoration::drawButton(Button button, QPainter *painter)
         renderButtonIcon(iconFromButtonAndState(button, maximized), painter, adjustedBtnRect);
 }
 
-static QColor makeTransparent(const QColor &color, qreal level)
-{
-    QColor transparentColor = color;
-    transparentColor.setAlphaF(level);
-    return transparentColor;
-}
-
 QColor QWaylandAdwaitaDecoration::color(ColorType type, Button button)
 {
     const bool active = waylandWindow()->windowStates() & Qt::WindowActive;
@@ -546,7 +543,7 @@ QColor QWaylandAdwaitaDecoration::color(ColorType type, Button button)
         return active ? m_colors[Foreground] : m_colors[ForegroundInactive];
     case Border:
     case BorderInactive:
-        return active ? makeTransparent(m_colors[Border], 0.5) : makeTransparent(m_colors[BorderInactive], 0.5);
+        return active ? m_colors[Border] : m_colors[BorderInactive];
     case ButtonBackground:
     case ButtonBackgroundInactive:
     case HoveredButtonBackground: {

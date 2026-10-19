@@ -113,6 +113,8 @@ static uint32_t kwinTFtoProtoTF(TransferFunction tf)
         return wp_color_manager_v1_transfer_function::WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_GAMMA22;
     case TransferFunction::BT1886:
         return wp_color_manager_v1_transfer_function::WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_BT1886;
+    case TransferFunction::HLG:
+        return wp_color_manager_v1_transfer_function::WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_HLG;
     }
     Q_UNREACHABLE();
 }
@@ -244,6 +246,9 @@ constexpr wp_image_description_info_v1_listener ImageDescriptionListener::s_list
         case WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_BT1886:
             listener->m_transferFunctionType = TransferFunction::BT1886;
             break;
+        case WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_HLG:
+            listener->m_transferFunctionType = TransferFunction::HLG;
+            break;
         }
     },
     .luminances = [](void *data, wp_image_description_info_v1 *wp_image_description_info_v1, uint32_t min_lum, uint32_t max_lum, uint32_t reference_lum) {
@@ -325,5 +330,6 @@ const std::shared_ptr<ColorDescription> &ColorSurfaceFeedback::preferredColor() 
 {
     return m_preferred;
 }
+
 }
 }

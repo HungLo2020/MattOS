@@ -18,10 +18,8 @@ namespace KWin
 {
 
 class GraphicsBuffer;
-class BlurInterface;
 class ClientConnection;
 class ConfinedPointerV1Interface;
-class ContrastInterface;
 class CompositorInterface;
 class LinuxDmaBufV1Feedback;
 class LockedPointerV1Interface;
@@ -38,6 +36,11 @@ class RawSurfaceExtension;
 enum class ColorDescriptionType {
     Normal,
     Windows,
+};
+
+enum class PointerConstraintLifetime : uint {
+    OneShot = 1,
+    Persistent = 2,
 };
 
 /**
@@ -77,8 +80,6 @@ private:
  * @see CompositorInterface
  * @see GraphicsBuffer
  * @see SubSurfaceInterface
- * @see BlurInterface
- * @see ContrastInterface
  * @see ShadowInterface
  * @see SlideInterface
  * @see LinuxDmaBufV1Feedback
@@ -137,8 +138,8 @@ public:
     std::shared_ptr<PresentationFeedback> presentationFeedback(LogicalOutput *output);
     bool hasPresentationFeedback() const;
 
-    Region opaque() const;
-    Region input() const;
+    RegionF opaque() const;
+    RegionF input() const;
     Region bufferDamage() const;
     RectF bufferSourceBox() const;
     /**
@@ -153,7 +154,7 @@ public:
      * @returns the current GraphicsBuffer, might be @c nullptr.
      */
     GraphicsBuffer *buffer() const;
-    QPoint offset() const;
+    QPointF offset() const;
     /**
      * Returns the current size of the surface, in surface coordinates.
      *
@@ -188,20 +189,12 @@ public:
      */
     ShadowInterface *shadow() const;
 
-    /**
-     * @returns The Blur for this Surface.
-     */
-    BlurInterface *blur() const;
+    RegionF blurRegion() const;
 
     /**
      * @returns The Slide for this Surface.
      */
     SlideInterface *slideOnShowHide() const;
-
-    /**
-     * @returns The Contrast for this Surface.
-     */
-    ContrastInterface *contrast() const;
 
     /**
      * Whether the SurfaceInterface is currently considered to be mapped.
@@ -292,19 +285,28 @@ public:
     static SurfaceInterface *get(wl_resource *native);
 
     /**
-     * @see ClientConnection::setScaleOverride
+     * The scale factor forced by the server side. Mainly intended towards scaling Xwayland surfaces.
      */
-    qreal scaleOverride() const;
+    qreal serverScale() const;
+
+    /**
+     * The logical coordinate scale factor applied by the client. The coordinates in client
+     * requests will be scaled by this scale factor.
+     */
+    qreal clientToCompositorScale() const;
+
+    /**
+     * The logical coordinate scale factor applied by the compositor. The coordinates in events
+     * sent by the compositor will be scaled by this scale factor.
+     */
+    qreal compositorToClientScale() const;
+
     /**
      * Convert a coordinate from kwin logical space to surface logical space
-     * @internal
-     */
-    QPoint toSurfaceLocal(const QPoint &point) const;
-    /**
-     * Convert a coordinate from kwin logical space to surface logical space
-     * @internal
      */
     QPointF toSurfaceLocal(const QPointF &point) const;
+
+    QSizeF snappedSize(const QSizeF &size) const;
 
     /**
      * @returns if the client thinks the content of this surface is suitable for presentation with tearing
@@ -364,12 +366,14 @@ public:
     SurfaceInterface *mainSurface();
 
     /**
-     * Should be called immediately after compositing a non-tearing frame
-     * but always at a minimum rate that guarantees forward progress for the application
-     * (for example 30Hz)
+     * Should be called immediately after compositing a non-tearing frame.
+     * If it's not called within one refreshDuration after the barrier is set,
+     * it will be cleared automatically.
      */
-    void clearFifoBarrier();
+    void clearFifoBarrier(std::optional<std::chrono::nanoseconds> refreshDuration = std::nullopt);
     bool hasFifoBarrier() const;
+
+    void tryApplyState(std::chrono::nanoseconds timestamp);
 
     /**
      * Registers the specified @a extension. Returns the pending state for the extension.
@@ -387,6 +391,14 @@ public:
     void removeExtension(RawSurfaceExtension *extension);
 
     QPointF mapToMainSurface(const QPointF &localPoint) const;
+
+    std::optional<RegionF> confinedPointerRegion() const;
+    std::optional<RegionF> lockedPointerRegion() const;
+    std::optional<QPointF> lockedPointerHint() const;
+    void setPointerConfined(bool confined);
+    void setPointerLocked(bool locked);
+
+    std::optional<std::chrono::steady_clock::time_point> requestedTimingOfNextCommit() const;
 
 Q_SIGNALS:
     /**
@@ -408,8 +420,8 @@ Q_SIGNALS:
      * @see damage
      */
     void damaged(const Region &);
-    void opaqueChanged(const Region &);
-    void inputChanged(const Region &);
+    void opaqueChanged(const RegionF &);
+    void inputChanged(const RegionF &);
     /**
      * This signal is emitted when the buffer transform has changed.
      */
@@ -431,7 +443,6 @@ Q_SIGNALS:
     void shadowChanged();
     void blurChanged();
     void slideOnShowHideChanged();
-    void contrastChanged();
     /**
      * Emitted whenever a new child sub-surface @p subSurface is added.
      */
@@ -445,16 +456,8 @@ Q_SIGNALS:
      */
     void childSubSurfacesChanged();
 
-    /**
-     * Emitted whenever a pointer constraint get (un)installed on this SurfaceInterface.
-     *
-     * The pointer constraint does not get activated, the compositor needs to activate
-     * the lock/confinement.
-     *
-     * @see confinedPointer
-     * @see lockedPointer
-     */
-    void pointerConstraintsChanged();
+    void confinedPointerRegionChanged();
+    void lockedPointerRegionChanged();
 
     /**
      * Emitted whenever the SurfaceInterface starts/ends to inhibit idle.
@@ -467,6 +470,8 @@ Q_SIGNALS:
     void bufferReleasePointChanged();
     void alphaMultiplierChanged();
 
+    void waitingOnCommitTiming();
+
     /**
      * Emitted when the Surface has been committed.
      *
@@ -476,6 +481,8 @@ Q_SIGNALS:
     void committed();
 
 private:
+    void handleCommitFallback();
+
     std::unique_ptr<SurfaceInterfacePrivate> d;
     friend class SurfaceInterfacePrivate;
 };

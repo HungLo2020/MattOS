@@ -49,6 +49,21 @@ msgctxt "FontHelpers|@item Font name [foundry]"
 msgid "%1 [%2]"
 msgstr "%1 [%2]"
 
+#: kabstractcoloredit.cpp:70
+#, fuzzy
+#| msgctxt "palette name"
+#| msgid "Forty Colors"
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Copy Color"
+msgstr "Patruzeci de culori"
+
+#: kabstractcoloredit.cpp:81
+#, fuzzy
+#| msgid "Named Colors"
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Paste Color"
+msgstr "Culori denumite"
+
 #: kactionselector.cpp:98
 msgctxt "KActionSelector|@label:listbox"
 msgid "&Available:"
@@ -74,12 +89,12 @@ msgctxt "KAssistantDialog|@action:button Opposite to Back"
 msgid "Next"
 msgstr "Următor"
 
-#: kassistantdialog.cpp:114
+#: kassistantdialog.cpp:113
 msgctxt "KAssistantDialog|@action:button"
 msgid "Finish"
 msgstr "Termină"
 
-#: kcharselect-translation.cpp:11 kcharselectdata.cpp:277
+#: kcharselect-translation.cpp:11 kcharselectdata.cpp:279
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "All"
 msgstr "Toate"
@@ -147,7 +162,7 @@ msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Phonetic Symbols"
 msgstr "Simboluri fonetice"
 
-#: kcharselect-translation.cpp:24 kcharselectdata.cpp:743
+#: kcharselect-translation.cpp:24 kcharselectdata.cpp:745
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Combining Diacritics"
 msgstr "Diacritice combinatorii"
@@ -1576,47 +1591,47 @@ msgctxt "KCharSelectItemModel|Character"
 msgid "In decimal"
 msgstr "În zecimal:"
 
-#: kcharselectdata.cpp:303
+#: kcharselectdata.cpp:305
 msgctxt "KCharSelectData|"
 msgid "<noncharacter>"
 msgstr "<non-caracter>"
 
-#: kcharselectdata.cpp:324
+#: kcharselectdata.cpp:326
 #, fuzzy
 #| msgid "<Non Private Use High Surrogate>"
 msgctxt "KCharSelectData|"
 msgid "<Non Private Use High Surrogate>"
 msgstr "<Surogat mare altele decât uz privat>"
 
-#: kcharselectdata.cpp:326
+#: kcharselectdata.cpp:328
 #, fuzzy
 #| msgid "<Private Use High Surrogate>"
 msgctxt "KCharSelectData|"
 msgid "<Private Use High Surrogate>"
 msgstr "<Surogat mare uz privat>"
 
-#: kcharselectdata.cpp:328
+#: kcharselectdata.cpp:330
 #, fuzzy
 #| msgid "<Low Surrogate>"
 msgctxt "KCharSelectData|"
 msgid "<Low Surrogate>"
 msgstr "<Surogat mic>"
 
-#: kcharselectdata.cpp:330
+#: kcharselectdata.cpp:332
 #, fuzzy
 #| msgid "<Private Use>"
 msgctxt "KCharSelectData|"
 msgid "<Private Use>"
 msgstr "<Utilizare privată>"
 
-#: kcharselectdata.cpp:362
+#: kcharselectdata.cpp:364
 #, fuzzy
 #| msgid "<not assigned>"
 msgctxt "KCharSelectData|"
 msgid "<not assigned>"
 msgstr "<neatribuit>"
 
-#: kcharselectdata.cpp:440
+#: kcharselectdata.cpp:442
 #, fuzzy
 #| msgctxt "@action:button Replace all occurrences"
 #| msgid "&All"
@@ -1624,201 +1639,201 @@ msgctxt "KCharSelectData|KCharselect unicode section name"
 msgid "All"
 msgstr "To&ate"
 
-#: kcharselectdata.cpp:752
+#: kcharselectdata.cpp:754
 #, fuzzy
 #| msgid "Non-printable"
 msgctxt "KCharSelectData|"
 msgid "Non-printable"
 msgstr "Neimprimabil"
 
-#: kcharselectdata.cpp:785
+#: kcharselectdata.cpp:787
 #, fuzzy
 #| msgid "Other, Control"
 msgctxt "KCharSelectData|"
 msgid "Other, Control"
 msgstr "Altele, Control"
 
-#: kcharselectdata.cpp:787
+#: kcharselectdata.cpp:789
 #, fuzzy
 #| msgid "Other, Format"
 msgctxt "KCharSelectData|"
 msgid "Other, Format"
 msgstr "Altele, Format"
 
-#: kcharselectdata.cpp:789
+#: kcharselectdata.cpp:791
 #, fuzzy
 #| msgid "Other, Not Assigned"
 msgctxt "KCharSelectData|"
 msgid "Other, Not Assigned"
 msgstr "Altele, Neatribuit"
 
-#: kcharselectdata.cpp:791
+#: kcharselectdata.cpp:793
 #, fuzzy
 #| msgid "Other, Private Use"
 msgctxt "KCharSelectData|"
 msgid "Other, Private Use"
 msgstr "Altele, Uz privat"
 
-#: kcharselectdata.cpp:793
+#: kcharselectdata.cpp:795
 #, fuzzy
 #| msgid "Other, Surrogate"
 msgctxt "KCharSelectData|"
 msgid "Other, Surrogate"
 msgstr "Altele, surogate"
 
-#: kcharselectdata.cpp:795
+#: kcharselectdata.cpp:797
 #, fuzzy
 #| msgid "Letter, Lowercase"
 msgctxt "KCharSelectData|"
 msgid "Letter, Lowercase"
 msgstr "Literă, minusculă"
 
-#: kcharselectdata.cpp:797
+#: kcharselectdata.cpp:799
 #, fuzzy
 #| msgid "Letter, Modifier"
 msgctxt "KCharSelectData|"
 msgid "Letter, Modifier"
 msgstr "Literă, modificator"
 
-#: kcharselectdata.cpp:799
+#: kcharselectdata.cpp:801
 #, fuzzy
 #| msgid "Letter, Other"
 msgctxt "KCharSelectData|"
 msgid "Letter, Other"
 msgstr "Literă, alta"
 
-#: kcharselectdata.cpp:801
+#: kcharselectdata.cpp:803
 #, fuzzy
 #| msgid "Letter, Titlecase"
 msgctxt "KCharSelectData|"
 msgid "Letter, Titlecase"
 msgstr "Literă, de titlu"
 
-#: kcharselectdata.cpp:803
+#: kcharselectdata.cpp:805
 #, fuzzy
 #| msgid "Letter, Uppercase"
 msgctxt "KCharSelectData|"
 msgid "Letter, Uppercase"
 msgstr "Literă, majusculă"
 
-#: kcharselectdata.cpp:805
+#: kcharselectdata.cpp:807
 #, fuzzy
 #| msgid "Mark, Spacing Combining"
 msgctxt "KCharSelectData|"
 msgid "Mark, Spacing Combining"
 msgstr "Semn, spațiu combinator"
 
-#: kcharselectdata.cpp:807
+#: kcharselectdata.cpp:809
 #, fuzzy
 #| msgid "Mark, Enclosing"
 msgctxt "KCharSelectData|"
 msgid "Mark, Enclosing"
 msgstr "Semn, închidere"
 
-#: kcharselectdata.cpp:809
+#: kcharselectdata.cpp:811
 #, fuzzy
 #| msgid "Mark, Non-Spacing"
 msgctxt "KCharSelectData|"
 msgid "Mark, Non-Spacing"
 msgstr "Semn, ne-spațiator"
 
-#: kcharselectdata.cpp:811
+#: kcharselectdata.cpp:813
 #, fuzzy
 #| msgid "Number, Decimal Digit"
 msgctxt "KCharSelectData|"
 msgid "Number, Decimal Digit"
 msgstr "Număr, cifră zecimală"
 
-#: kcharselectdata.cpp:813
+#: kcharselectdata.cpp:815
 #, fuzzy
 #| msgid "Number, Letter"
 msgctxt "KCharSelectData|"
 msgid "Number, Letter"
 msgstr "Număr, literă"
 
-#: kcharselectdata.cpp:815
+#: kcharselectdata.cpp:817
 #, fuzzy
 #| msgid "Number, Other"
 msgctxt "KCharSelectData|"
 msgid "Number, Other"
 msgstr "Număr, altul"
 
-#: kcharselectdata.cpp:817
+#: kcharselectdata.cpp:819
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Connector"
 msgstr "Punctuație, conector"
 
-#: kcharselectdata.cpp:819
+#: kcharselectdata.cpp:821
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Dash"
 msgstr "Punctuație, cratimă"
 
-#: kcharselectdata.cpp:821
+#: kcharselectdata.cpp:823
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Close"
 msgstr "Punctuație, închidere"
 
-#: kcharselectdata.cpp:823
+#: kcharselectdata.cpp:825
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Final Quote"
 msgstr "Punctuație, ghilimele finale"
 
-#: kcharselectdata.cpp:825
+#: kcharselectdata.cpp:827
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Initial Quote"
 msgstr "Punctuație, ghilimele inițiale"
 
-#: kcharselectdata.cpp:827
+#: kcharselectdata.cpp:829
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Other"
 msgstr "Punctuație, alta"
 
-#: kcharselectdata.cpp:829
+#: kcharselectdata.cpp:831
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Open"
 msgstr "Punctuație, deschidere"
 
-#: kcharselectdata.cpp:831
+#: kcharselectdata.cpp:833
 msgctxt "KCharSelectData|"
 msgid "Symbol, Currency"
 msgstr "Simbol, monedă"
 
-#: kcharselectdata.cpp:833
+#: kcharselectdata.cpp:835
 msgctxt "KCharSelectData|"
 msgid "Symbol, Modifier"
 msgstr "Simbol, modificator"
 
-#: kcharselectdata.cpp:835
+#: kcharselectdata.cpp:837
 msgctxt "KCharSelectData|"
 msgid "Symbol, Math"
 msgstr "Simbol, matematic"
 
-#: kcharselectdata.cpp:837
+#: kcharselectdata.cpp:839
 msgctxt "KCharSelectData|"
 msgid "Symbol, Other"
 msgstr "Simbol, altul"
 
-#: kcharselectdata.cpp:839
+#: kcharselectdata.cpp:841
 msgctxt "KCharSelectData|"
 msgid "Separator, Line"
 msgstr "Separator, linie"
 
-#: kcharselectdata.cpp:841
+#: kcharselectdata.cpp:843
 msgctxt "KCharSelectData|"
 msgid "Separator, Paragraph"
 msgstr "Separator, paragraf"
 
-#: kcharselectdata.cpp:843
+#: kcharselectdata.cpp:845
 msgctxt "KCharSelectData|"
 msgid "Separator, Space"
 msgstr "Separator, spațiu"
 
-#: kcharselectdata.cpp:845
+#: kcharselectdata.cpp:847
 msgctxt "KCharSelectData|"
 msgid "Unknown"
 msgstr "Necunoscut"
 
-#: kcolorcombo.cpp:333
+#: kcolorcombo.cpp:389
 #, fuzzy
 #| msgctxt "@item license"
 #| msgid "Custom"
@@ -2270,7 +2285,7 @@ msgctxt "KMessageBox|"
 msgid "Do not show this message again"
 msgstr "Nu mai arăta acest mesaj"
 
-#: kmessagedialog.cpp:140
+#: kmessagedialog.cpp:137
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Details"
@@ -2278,7 +2293,7 @@ msgctxt "KMessageDialog|"
 msgid "Details"
 msgstr "Detalii"
 
-#: kmessagedialog.cpp:226
+#: kmessagedialog.cpp:218
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Question"
@@ -2286,7 +2301,7 @@ msgctxt "KMessageDialog|"
 msgid "Question"
 msgstr "Întrebare"
 
-#: kmessagedialog.cpp:231
+#: kmessagedialog.cpp:223
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Warning"
@@ -2294,7 +2309,7 @@ msgctxt "KMessageDialog|"
 msgid "Warning"
 msgstr "Avertisment"
 
-#: kmessagedialog.cpp:234
+#: kmessagedialog.cpp:226
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Information"
@@ -2302,7 +2317,7 @@ msgctxt "KMessageDialog|"
 msgid "Information"
 msgstr "Informații"
 
-#: kmessagedialog.cpp:237
+#: kmessagedialog.cpp:229
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Error"
@@ -5955,10 +5970,6 @@ msgstr "Afișează fereastra pe tot ecranul"
 #~ msgstr "* Culori personalizate *"
 
 #~ msgctxt "palette name"
-#~ msgid "Forty Colors"
-#~ msgstr "Patruzeci de culori"
-
-#~ msgctxt "palette name"
 #~ msgid "Oxygen Colors"
 #~ msgstr "Culori Oxygen"
 
@@ -5973,9 +5984,6 @@ msgstr "Afișează fereastra pe tot ecranul"
 #~ msgctxt "palette name"
 #~ msgid "Web Colors"
 #~ msgstr "Culori Web"
-
-#~ msgid "Named Colors"
-#~ msgstr "Culori denumite"
 
 #~ msgctxt ""
 #~ "%1 is the number of paths, %2 is the list of paths (with newlines between "

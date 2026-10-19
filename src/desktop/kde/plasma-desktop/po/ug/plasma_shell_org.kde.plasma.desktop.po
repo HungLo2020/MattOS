@@ -7,21 +7,22 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_shell_org\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-13 02:40+0000\n"
-"PO-Revision-Date: 2013-09-08 07:05+0900\n"
-"Last-Translator: Gheyret Kenji <gheyret@gmail.com>\n"
+"POT-Creation-Date: 2026-10-09 03:00+0000\n"
+"PO-Revision-Date: 2026-07-22 17:24-0400\n"
+"Last-Translator: Abduqadir Abliz <sahranbay@gmail.com>\n"
 "Language-Team: Uyghur <kde-i18n-doc@kde.org>\n"
 "Language: ug\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.9\n"
 
 #: contents/activitymanager/ActivityItem.qml:203
 #, kde-format
 msgctxt "@info:status currently active activity"
 msgid "Currently being used"
-msgstr ""
+msgstr "نۆۋەتتە ئىشلىتىۋاتقىنى"
 
 #: contents/activitymanager/ActivityItem.qml:243
 #, kde-format
@@ -29,7 +30,7 @@ msgctxt "@action shows when dragging file over item"
 msgid ""
 "Move to\n"
 "this activity"
-msgstr ""
+msgstr "بۇ پائالىيەتنى يۆتكە"
 
 #: contents/activitymanager/ActivityItem.qml:273
 #, kde-format
@@ -37,136 +38,155 @@ msgctxt "@action shows when dragging file over item"
 msgid ""
 "Show also\n"
 "in this activity"
-msgstr ""
+msgstr "بۇ پائالىيەتتىمۇ كۆرسەت"
 
-#: contents/activitymanager/ActivityItem.qml:335
+#: contents/activitymanager/ActivityItem.qml:333
 #, kde-format
-msgctxt "@action:button tooltip only, opens kcm"
-msgid "Configure"
+msgctxt "@action:button tooltip only, opens kcm showing the indicated activity"
+msgid "Configure Activity “%1”"
 msgstr ""
 
 #: contents/activitymanager/ActivityManager.qml:118
 #, kde-format
 msgctxt "@action:button opens Activity kcm"
 msgid "Create activity…"
-msgstr ""
+msgstr "پائالىيەت قۇر…"
 
 #: contents/activitymanager/Heading.qml:59
 #, kde-format
 msgctxt "@title:window"
 msgid "Activities"
+msgstr "پائالىيەت"
+
+#: contents/activitymanager/Heading.qml:86
+#, kde-format
+msgctxt "@action:button tooltip only"
+msgid "Search"
 msgstr ""
+
+#: contents/activitymanager/Heading.qml:103
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Activities"
+msgctxt "@action:button tooltip only, opens kcm"
+msgid "Configure Activities"
+msgstr "پائالىيەت"
+
+#: contents/activitymanager/Heading.qml:122
+#, fuzzy, kde-format
+#| msgctxt "@action:button Close the panel configuration window"
+#| msgid "Close"
+msgctxt "@action:button tooltip only, close panel"
+msgid "Close"
+msgstr "ياپ"
 
 #: contents/applet/AppletError.qml:165
 #, kde-format
 msgctxt "@action:button"
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "چاپلاش تاختىسىغا كۆچۈر"
 
 #: contents/applet/AppletError.qml:188
 #, kde-format
 msgctxt "@action:button opens dialog"
 msgid "View Error Details…"
-msgstr ""
+msgstr "خاتالىق تەپسىلاتىنى كۆرسەت…"
 
 #: contents/applet/CompactApplet.qml:91
 #, kde-format
 msgctxt "@info:whatsthis Accessible description for panel widget %1"
 msgid "Open %1"
-msgstr ""
+msgstr "%1 نى ئاچ"
 
-#: contents/configuration/AboutPlugin.qml:21
+#: contents/configuration/AboutPlugin.qml:22
 #, kde-format
 msgctxt "@title:window About this widget"
 msgid "About"
-msgstr ""
+msgstr "ھەققىدە"
 
-#: contents/configuration/AboutPlugin.qml:51
+#: contents/configuration/AboutPlugin.qml:52
 #, kde-format
 msgctxt "plasma_shell_org.kde.plasma.desktop"
 msgid "Send an email to %1"
-msgstr ""
+msgstr "%1 غا ئېلخەت يوللايدۇ"
 
-#: contents/configuration/AboutPlugin.qml:65
+#: contents/configuration/AboutPlugin.qml:66
 #, kde-format
 msgctxt "@action:button icononly for tooltip & accessible %1 is url"
 msgid "Open website %1"
-msgstr ""
+msgstr "%1 تور بېكەتنى ئاچ"
 
-#: contents/configuration/AboutPlugin.qml:146
+#: contents/configuration/AboutPlugin.qml:159
 #, kde-format
 msgctxt "@title:group"
 msgid "Website"
-msgstr ""
+msgstr "تور بېكەت"
 
-#: contents/configuration/AboutPlugin.qml:157
+#: contents/configuration/AboutPlugin.qml:170
 #, kde-format
 msgctxt "@title:group"
 msgid "Get Help"
-msgstr ""
+msgstr "ياردەمگە ئېرىش"
 
-#: contents/configuration/AboutPlugin.qml:165
+#: contents/configuration/AboutPlugin.qml:178
 #, kde-format
 msgctxt "@action:button urlbutton"
 msgid "Report an issue"
-msgstr ""
+msgstr "مەسىلە مەلۇم قىل"
 
-#: contents/configuration/AboutPlugin.qml:172
+#: contents/configuration/AboutPlugin.qml:185
 #, kde-format
 msgctxt "@title license information"
 msgid "Copyright"
-msgstr ""
+msgstr "نەشر ھوقۇقى"
 
-#: contents/configuration/AboutPlugin.qml:191
-#, fuzzy, kde-format
-#| msgid "License:"
+#: contents/configuration/AboutPlugin.qml:204
+#, kde-format
 msgctxt "@label %1 is the short SPDX text for the license"
 msgid "License: %1"
-msgstr "ئىجازەتنامە:"
+msgstr "ئىجازەتنامە: %1"
 
-#: contents/configuration/AboutPlugin.qml:197
-#, fuzzy, kde-format
-#| msgid "License:"
+#: contents/configuration/AboutPlugin.qml:210
+#, kde-format
 msgctxt "@action:button"
 msgid "Read License"
-msgstr "ئىجازەتنامە:"
+msgstr "ئىجازەتنامە ئوقۇڭ"
 
-#: contents/configuration/AboutPlugin.qml:211
-#, fuzzy, kde-format
-#| msgid "Author:"
-msgctxt "@title:group"
-msgid "Authors"
-msgstr "ئاپتور:"
-
-#: contents/configuration/AboutPlugin.qml:223
+#: contents/configuration/AboutPlugin.qml:224
 #, kde-format
 msgctxt "@title:group"
-msgid "Credits"
-msgstr ""
+msgid "Authors"
+msgstr "يازغۇچى"
 
 #: contents/configuration/AboutPlugin.qml:236
 #, kde-format
 msgctxt "@title:group"
+msgid "Credits"
+msgstr "تەشەككۈر"
+
+#: contents/configuration/AboutPlugin.qml:249
+#, kde-format
+msgctxt "@title:group"
 msgid "Translators"
-msgstr ""
+msgstr "تەرجىمان"
 
 #: contents/configuration/AppletConfiguration.qml:90
 #, kde-format
 msgctxt "@title:group for configuration dialog page"
 msgid "Keyboard Shortcuts"
-msgstr ""
+msgstr "ھەرپتاختا تېزلەتمىسى"
 
 #: contents/configuration/AppletConfiguration.qml:337
 #, kde-format
 msgctxt "@title:group for About dialog page"
 msgid "About"
-msgstr ""
+msgstr "ھەققىدە"
 
 #: contents/configuration/AppletConfiguration.qml:385
 #, kde-format
 msgctxt "@title:window dialog title"
 msgid "Apply Settings"
-msgstr ""
+msgstr "تەڭشەك قوللان"
 
 #: contents/configuration/AppletConfiguration.qml:386
 #, kde-format
@@ -174,24 +194,26 @@ msgctxt "@label dialog body"
 msgid ""
 "The current page has unsaved changes. Apply the changes or discard them?"
 msgstr ""
+"نۆۋەتتىكى بەتتە تېخى ساقلانمىغان ئۆزگىرىش بار. ئۆزگىرىشنى قوللىنامدۇ ياكى "
+"تاشلىۋېتەمدۇ؟"
 
 #: contents/configuration/AppletConfiguration.qml:418
 #, kde-format
 msgctxt "@action:button"
 msgid "OK"
-msgstr ""
+msgstr "جەزملە"
 
 #: contents/configuration/AppletConfiguration.qml:425
 #, kde-format
 msgctxt "@action:button"
 msgid "Apply"
-msgstr ""
+msgstr "قوللان"
 
 #: contents/configuration/AppletConfiguration.qml:431
 #, kde-format
 msgctxt "@action:button"
 msgid "Cancel"
-msgstr ""
+msgstr "ۋاز كەچ"
 
 #: contents/configuration/ConfigCategoryDelegate.qml:26
 #, kde-format
@@ -199,81 +221,70 @@ msgctxt ""
 "@info:whatsthis Accessible description for sidebar entries opening "
 "configuration page"
 msgid "Open configuration page"
-msgstr ""
+msgstr "سەپلىمە بەتنى ئاچ"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:19
-#, fuzzy, kde-format
-#| msgid "Left-Button"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Left-Button"
-msgstr "سول توپچا"
+msgstr "سول توپچە"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:20
-#, fuzzy, kde-format
-#| msgid "Right-Button"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Right-Button"
-msgstr "ئوڭ توپچا"
+msgstr "ئوڭ توپچە"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:21
-#, fuzzy, kde-format
-#| msgid "Middle-Button"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Middle-Button"
-msgstr "ئوتتۇرا توپچا"
+msgstr "ئوتتۇرا توپچە"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:22
-#, fuzzy, kde-format
-#| msgid "Left-Button"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Back-Button"
-msgstr "سول توپچا"
+msgstr "قايت توپچە"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:23
-#, fuzzy, kde-format
-#| msgid "Left-Button"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Forward-Button"
-msgstr "سول توپچا"
+msgstr "ئالدىغا توپچە"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:25
-#, fuzzy, kde-format
-#| msgid "Vertical-Scroll"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Vertical-Scroll"
 msgstr "بويىغا سۈرگۈچ"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:26
-#, fuzzy, kde-format
-#| msgid "Horizontal-Scroll"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Horizontal-Scroll"
 msgstr "توغرىسىغا سۈرگۈچ"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:28
-#, fuzzy, kde-format
-#| msgid "Shift"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Shift"
 msgstr "Shift"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:29
-#, fuzzy, kde-format
-#| msgid "Ctrl"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Ctrl"
 msgstr "Ctrl"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:30
-#, fuzzy, kde-format
-#| msgid "Alt"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Alt"
 msgstr "Alt"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:31
-#, fuzzy, kde-format
-#| msgid "Meta"
+#, kde-format
 msgctxt "@label for shortcuts"
 msgid "Meta"
 msgstr "Meta"
@@ -282,92 +293,93 @@ msgstr "Meta"
 #, kde-format
 msgctxt "Concatenation sign for shortcuts, e.g. Ctrl+Shift"
 msgid "+"
-msgstr ""
+msgstr "+"
 
 #: contents/configuration/ConfigurationContainmentActions.qml:139
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Action"
-msgstr ""
+msgstr "مەشغۇلات قوش"
 
 #: contents/configuration/ConfigurationContainmentAppearance.qml:76
 #, kde-format
 msgctxt "@info:status inlinemessage"
 msgid "Layout changes have been restricted by the system administrator"
-msgstr ""
+msgstr "جايلاشتۇرۇش ئۆزگەرتىشنى سىستېما باشقۇرغۇچى چەكلىگەن"
 
 #: contents/configuration/ConfigurationContainmentAppearance.qml:91
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Layout:"
-msgstr ""
+msgstr "جايلاشتۇرۇش:"
 
 #: contents/configuration/ConfigurationContainmentAppearance.qml:114
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Wallpaper type:"
-msgstr ""
+msgstr "تام قەغەز تۈرى:"
 
 #: contents/configuration/ConfigurationContainmentAppearance.qml:153
-#, fuzzy, kde-format
-#| msgid "Get new widgets"
+#, kde-format
 msgctxt "@action:button"
 msgid "Get New Plugins…"
-msgstr "يېڭى كىچىك ئەپلەرنى ئال"
+msgstr "يېڭى قىستۇرمىغا ئېرىش…"
 
 #: contents/configuration/ConfigurationContainmentAppearance.qml:243
 #, kde-format
 msgctxt "@info"
 msgid "Layout changes must be applied before other changes can be made"
 msgstr ""
+"جايلاشتۇرۇش ئۆزگەرتىلسە ئۇنى قوللانغاندىن كېيىن ئاندىن باشقا ئۆزگەرتىش ئېلىپ "
+"بېرىشقا بولىدۇ"
 
 #: contents/configuration/ConfigurationContainmentAppearance.qml:247
 #, kde-format
 msgctxt "@action:button"
 msgid "Apply Now"
-msgstr ""
+msgstr "ھازىرلا قوللان"
 
 #: contents/configuration/ConfigurationShortcuts.qml:16
 #, kde-format
 msgctxt "@title:window for configuration page"
 msgid "Shortcuts"
-msgstr ""
+msgstr "تېزلەتمە"
 
 #: contents/configuration/ConfigurationShortcuts.qml:29
 #, kde-format
 msgctxt "@action:button set keyboard shortcut for"
 msgid "Activate widget as if clicked:"
-msgstr ""
+msgstr "چېكىلگەندەك ئەپچىنى ئاكتىپلايدۇ:"
 
 #: contents/configuration/ContainmentConfiguration.qml:26
 #, kde-format
 msgctxt "@title:group for configuration dialog page"
 msgid "Wallpaper"
-msgstr ""
+msgstr "تام قەغەز"
 
 #: contents/configuration/ContainmentConfiguration.qml:31
 #, kde-format
 msgctxt "@title:group for configuration dialog page"
 msgid "Mouse Actions"
-msgstr ""
+msgstr "چاشقىنەك مەشغۇلاتى"
 
 #: contents/configuration/MouseEventInputButton.qml:13
 #, kde-format
 msgctxt "@action:button inactive state for button recording mouse input"
 msgid "Add Action"
-msgstr ""
+msgstr "مەشغۇلات قوش"
 
 #: contents/configuration/MouseEventInputButton.qml:20
 #, kde-format
 msgctxt "@action:button active state for button recording mouse input"
 msgid "Input Here"
-msgstr ""
+msgstr "بۇ جايغا كىرگۈزۈلىدۇ"
 
 #: contents/configuration/PanelConfiguration.qml:99
 #, kde-format
 msgctxt "@title:window"
 msgid "Panel Settings"
-msgstr ""
+msgstr "كۆزنەكچە تەڭشەك"
 
 #: contents/configuration/PanelConfiguration.qml:108
 #, kde-format
@@ -375,339 +387,343 @@ msgctxt ""
 "@action:button label of button to open a menu that lets you add widgets or "
 "spacers"
 msgid "Add New"
-msgstr ""
+msgstr "يېڭىدىن قوش"
 
 #: contents/configuration/PanelConfiguration.qml:126
 #, kde-format
 msgctxt "@action:menu add a spacer"
 msgid "Spacer"
-msgstr ""
+msgstr "بوشلۇق"
 
 #: contents/configuration/PanelConfiguration.qml:133
-#, fuzzy, kde-format
-#| msgid "Get new widgets"
+#, kde-format
+msgctxt "@action:menu add a margins separator"
+msgid "Margins Separator"
+msgstr "گىرۋەك ئايرىغۇچ"
+
+#: contents/configuration/PanelConfiguration.qml:140
+#, kde-format
 msgctxt "@action:menu add a widget"
 msgid "Widgets…"
-msgstr "يېڭى كىچىك ئەپلەرنى ئال"
-
-#: contents/configuration/PanelConfiguration.qml:162
-#, kde-format
-msgctxt "@title:group"
-msgid "Position"
-msgstr ""
-
-#: contents/configuration/PanelConfiguration.qml:167
-#, kde-format
-msgctxt "@label panel screen edge"
-msgid "Top"
-msgstr ""
-
-#: contents/configuration/PanelConfiguration.qml:168
-#, kde-format
-msgctxt "@label panel screen edge"
-msgid "Right"
-msgstr ""
+msgstr "ئەپچە…"
 
 #: contents/configuration/PanelConfiguration.qml:169
 #, kde-format
+msgctxt "@title:group"
+msgid "Position"
+msgstr "ئورنى"
+
+#: contents/configuration/PanelConfiguration.qml:174
+#, kde-format
+msgctxt "@label panel screen edge"
+msgid "Top"
+msgstr "ئۈستى"
+
+#: contents/configuration/PanelConfiguration.qml:175
+#, kde-format
+msgctxt "@label panel screen edge"
+msgid "Right"
+msgstr "ئوڭ"
+
+#: contents/configuration/PanelConfiguration.qml:176
+#, kde-format
 msgctxt "@label panel screen edge"
 msgid "Left"
-msgstr ""
+msgstr "سول"
 
-#: contents/configuration/PanelConfiguration.qml:170
+#: contents/configuration/PanelConfiguration.qml:177
 #, kde-format
 msgctxt "@label panel screen edge"
 msgid "Bottom"
-msgstr ""
+msgstr "ئاستى"
 
-#: contents/configuration/PanelConfiguration.qml:190
+#: contents/configuration/PanelConfiguration.qml:197
 #, kde-format
 msgctxt "action:button"
 msgid "Set Position…"
-msgstr ""
+msgstr "ئورۇن تەڭشىكى…"
 
-#: contents/configuration/PanelConfiguration.qml:217
+#: contents/configuration/PanelConfiguration.qml:224
 #, kde-format
 msgctxt "@title:group"
 msgid "Alignment"
-msgstr ""
+msgstr "توغرىلاش"
 
-#: contents/configuration/PanelConfiguration.qml:282
+#: contents/configuration/PanelConfiguration.qml:289
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Top"
-msgstr ""
+msgstr "ئۈستى"
 
-#: contents/configuration/PanelConfiguration.qml:282
+#: contents/configuration/PanelConfiguration.qml:289
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Left"
-msgstr ""
+msgstr "سول"
 
-#: contents/configuration/PanelConfiguration.qml:283
+#: contents/configuration/PanelConfiguration.qml:290
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Center"
-msgstr ""
+msgstr "ئوتتۇرا"
 
-#: contents/configuration/PanelConfiguration.qml:284
+#: contents/configuration/PanelConfiguration.qml:291
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Bottom"
-msgstr ""
+msgstr "ئاستى"
 
-#: contents/configuration/PanelConfiguration.qml:284
+#: contents/configuration/PanelConfiguration.qml:291
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Right"
-msgstr ""
+msgstr "ئوڭ"
 
-#: contents/configuration/PanelConfiguration.qml:314
+#: contents/configuration/PanelConfiguration.qml:321
 #, kde-format
 msgctxt "@title:group panel height"
 msgid "Height"
-msgstr ""
+msgstr "ئېگىزلىك"
 
-#: contents/configuration/PanelConfiguration.qml:315
+#: contents/configuration/PanelConfiguration.qml:322
 #, kde-format
 msgctxt "@title:group panel width"
 msgid "Width"
-msgstr ""
+msgstr "كەڭلىك"
 
-#: contents/configuration/PanelConfiguration.qml:334
-#, fuzzy, kde-format
-#| msgid "Uninstall"
+#: contents/configuration/PanelConfiguration.qml:341
+#, kde-format
 msgctxt "@item:inlistbox panel fills the full height of the display"
 msgid "Fill height"
-msgstr "يوقات"
+msgstr "ئېگىزلىكنى تولدۇر"
 
-#: contents/configuration/PanelConfiguration.qml:334
-#, fuzzy, kde-format
-#| msgid "Uninstall"
+#: contents/configuration/PanelConfiguration.qml:341
+#, kde-format
 msgctxt "@item:inlistbox panel fills the full width of the display"
 msgid "Fill width"
-msgstr "يوقات"
+msgstr "كەڭلىكنى تولدۇر"
 
-#: contents/configuration/PanelConfiguration.qml:335
+#: contents/configuration/PanelConfiguration.qml:342
 #, kde-format
 msgctxt "@item:inlistbox panel is just big enough to fit its content"
 msgid "Fit content"
-msgstr ""
+msgstr "مەزمۇنغا ماسلاشتۇر"
 
-#: contents/configuration/PanelConfiguration.qml:336
+#: contents/configuration/PanelConfiguration.qml:343
 #, kde-format
 msgctxt "@item:inlistbox panel size"
 msgid "Custom"
-msgstr ""
+msgstr "ئىختىيارى"
 
-#: contents/configuration/PanelConfiguration.qml:369
+#: contents/configuration/PanelConfiguration.qml:376
 #, kde-format
 msgctxt "@title:group"
 msgid "Visibility"
-msgstr ""
+msgstr "كۆرۈشچانلىقى"
 
-#: contents/configuration/PanelConfiguration.qml:386
+#: contents/configuration/PanelConfiguration.qml:393
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always visible"
-msgstr ""
+msgstr "ھەمىشە كۆرسەت"
 
-#: contents/configuration/PanelConfiguration.qml:387
+#: contents/configuration/PanelConfiguration.qml:394
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Auto hide"
-msgstr ""
+msgstr "ئۆزلۈكىدىن يوشۇر"
 
-#: contents/configuration/PanelConfiguration.qml:388
+#: contents/configuration/PanelConfiguration.qml:395
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Dodge windows"
-msgstr ""
+msgstr "كۆزنەكتىن دالدىلان"
 
-#: contents/configuration/PanelConfiguration.qml:389
+#: contents/configuration/PanelConfiguration.qml:396
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Windows go below"
-msgstr ""
+msgstr "كۆزنەكنى تۆۋەنلەت"
 
-#: contents/configuration/PanelConfiguration.qml:449
+#: contents/configuration/PanelConfiguration.qml:459
 #, kde-format
 msgctxt "@title:group"
 msgid "Opacity"
-msgstr ""
+msgstr "غۇۋالىقى"
 
 #: contents/configuration/PanelConfiguration.qml:465
 #, kde-format
+msgctxt "@info:tooltip"
+msgid "The current Plasma style does not support opacity options."
+msgstr "نۆۋەتتىكى Plasma ئۇسلۇبى تۇتۇق ئۇسلۇبنى قوللىمايدۇ."
+
+#: contents/configuration/PanelConfiguration.qml:487
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Adaptive"
-msgstr ""
+msgstr "ماسلىشىشچان"
 
-#: contents/configuration/PanelConfiguration.qml:466
+#: contents/configuration/PanelConfiguration.qml:488
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Opaque"
-msgstr ""
+msgstr "تۇتۇق"
 
-#: contents/configuration/PanelConfiguration.qml:467
+#: contents/configuration/PanelConfiguration.qml:489
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Translucent"
-msgstr ""
+msgstr "يېرىم سۈزۈك"
 
-#: contents/configuration/PanelConfiguration.qml:499
+#: contents/configuration/PanelConfiguration.qml:521
 #, kde-format
 msgctxt "@title:group Degree of floatingness of panel and applets"
 msgid "Floating"
-msgstr ""
+msgstr "لەيلىتىش"
 
-#: contents/configuration/PanelConfiguration.qml:515
+#: contents/configuration/PanelConfiguration.qml:537
 #, kde-format
 msgctxt "@item:inlistbox Option to disable floating panels or applets"
 msgid "Disabled"
-msgstr ""
+msgstr "چەكلەنگەن"
 
-#: contents/configuration/PanelConfiguration.qml:516
+#: contents/configuration/PanelConfiguration.qml:538
 #, kde-format
 msgctxt "@item:inlistbox Option to make only panel applets always float"
 msgid "Applets only"
-msgstr ""
+msgstr "ئەپچىلا"
 
-#: contents/configuration/PanelConfiguration.qml:517
+#: contents/configuration/PanelConfiguration.qml:539
 #, kde-format
 msgctxt "@item:inlistbox Option to make panel and applets floating"
 msgid "Panel and applets"
-msgstr ""
+msgstr "كۆزنەكچە ۋە ئەپچە"
 
-#: contents/configuration/PanelConfiguration.qml:560
-#, kde-format
-msgctxt ""
-"@action:button Revert an unsupported configuration back to the defaults"
-msgid "Fix it"
-msgstr ""
-
-#: contents/configuration/PanelConfiguration.qml:646
+#: contents/configuration/PanelConfiguration.qml:636
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Panel Width:"
-msgstr ""
+msgstr "كۆزنەكچە كەڭلىكى:"
 
-#: contents/configuration/PanelConfiguration.qml:647
+#: contents/configuration/PanelConfiguration.qml:637
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Panel Height:"
-msgstr ""
+msgstr "كۆزنەكچە ئېگىزلىكى:"
 
-#: contents/configuration/PanelConfiguration.qml:670
+#: contents/configuration/PanelConfiguration.qml:660
 #, kde-format
 msgctxt "@title:group shortcut that moves focus to the panel"
 msgid "Focus shortcut:"
-msgstr ""
+msgstr "مەركەزلەشتۈرۈش تېزلەتمىسى:"
 
-#: contents/configuration/PanelConfiguration.qml:680
+#: contents/configuration/PanelConfiguration.qml:670
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Press this keyboard shortcut to move focus to the Panel"
-msgstr ""
+msgstr "دىققەتنى كۆزنەكچىگە مەركەزلەشتۈرۈشتە بۇ ھەرپتاختا تېزلەتمىسى بېسىلىدۇ"
 
-#: contents/configuration/PanelConfiguration.qml:687
+#: contents/configuration/PanelConfiguration.qml:677
 #, kde-format
 msgctxt "@action:button accessible name"
 msgid "Focus Shortcut Setter"
-msgstr ""
+msgstr "تېزلەتمە تەڭشىگۈچكە مەركەزلەشتۈر"
 
-#: contents/configuration/PanelConfiguration.qml:688
+#: contents/configuration/PanelConfiguration.qml:678
 #, kde-format
 msgctxt "@info:whatsthis Accessible description for button"
 msgid "Button to set the shortcut for the panel to gain focus"
-msgstr ""
+msgstr "كۆزنەكچىگە فوكۇس توغرىلاش ئۈچۈن تېزلەتمە تەڭشەش توپچىسى"
 
-#: contents/configuration/PanelConfiguration.qml:714
+#: contents/configuration/PanelConfiguration.qml:705
 #, kde-format
 msgctxt "@action:button Delete the panel"
 msgid "Delete Panel"
-msgstr ""
+msgstr "كۆزنەكچە ئۆچۈر"
 
-#: contents/configuration/PanelConfiguration.qml:717
+#: contents/configuration/PanelConfiguration.qml:708
 #, kde-format
 msgctxt "@info:tooltip for button"
 msgid "Remove this panel; this action can be undone"
-msgstr ""
+msgstr "بۇ كۆزنەكچىنى چىقىرىۋېتىدۇ؛ بۇ مەشغۇلاتتىن يېنىۋالغىلى بولىدۇ"
 
-#: contents/configuration/PanelConfiguration.qml:726
+#: contents/configuration/PanelConfiguration.qml:717
 #, kde-format
 msgctxt "@action:button Clone the panel"
 msgid "Clone Panel"
-msgstr ""
+msgstr "كۆزنەكچە ياپ"
 
-#: contents/configuration/PanelConfiguration.qml:730
+#: contents/configuration/PanelConfiguration.qml:721
 #, kde-format
 msgctxt "@info:tooltip for button"
 msgid "Create a new panel with the same settings and applets"
-msgstr ""
+msgstr "ئوخشاش تەڭشەك ۋە ئەپچە بار يېڭى كۆزنەكچە قۇرىدۇ"
 
-#: contents/configuration/PanelConfiguration.qml:739
+#: contents/configuration/PanelConfiguration.qml:730
 #, kde-format
 msgctxt "@action:button Close the panel configuration window"
 msgid "Close"
-msgstr ""
+msgstr "ياپ"
 
-#: contents/configuration/PanelConfiguration.qml:739
+#: contents/configuration/PanelConfiguration.qml:730
 #, kde-format
 msgctxt ""
 "@action:button Close the panel configuration window and exit edit mode"
 msgid "Exit Edit Mode"
-msgstr ""
+msgstr "تەھرىرلەش ھالىتىدىن چېكىنىدۇ"
 
-#: contents/configuration/PanelConfiguration.qml:742
+#: contents/configuration/PanelConfiguration.qml:733
 #, kde-format
 msgctxt "@info:tooltip for button"
 msgid "Close Panel Settings window and exit Edit Mode"
-msgstr ""
+msgstr "كۆزنەكچە تەڭشەش كۆزنىكىنى يېپىپ ۋە تەھرىرلەش ھالىتىدىن چېكىنىدۇ"
+
+#: contents/configuration/panelconfiguration/Ruler.qml:24
+#, kde-format
+msgctxt "@info:tooltip slider handle"
+msgid "Drag to change maximum height."
+msgstr "ئەڭ چوڭ ئېگىزلىكىنى ئۆزگەرتىش ئۈچۈن سۆرىلىدۇ."
 
 #: contents/configuration/panelconfiguration/Ruler.qml:25
 #, kde-format
 msgctxt "@info:tooltip slider handle"
-msgid "Drag to change maximum height."
-msgstr ""
+msgid "Drag to change maximum width."
+msgstr "ئەڭ چوڭ كەڭلىكىنى ئۆزگەرتىش ئۈچۈن سۆرىلىدۇ."
 
 #: contents/configuration/panelconfiguration/Ruler.qml:26
-#, kde-format
-msgctxt "@info:tooltip slider handle"
-msgid "Drag to change maximum width."
-msgstr ""
-
-#: contents/configuration/panelconfiguration/Ruler.qml:27
-#: contents/configuration/panelconfiguration/Ruler.qml:32
+#: contents/configuration/panelconfiguration/Ruler.qml:31
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Double-click to reset."
-msgstr ""
+msgstr "قوش چېكىلسە ئەسلىگە قايتۇرىدۇ."
+
+#: contents/configuration/panelconfiguration/Ruler.qml:29
+#, kde-format
+msgctxt "@info:tooltip slider handle"
+msgid "Drag to change minimum height."
+msgstr "ئەڭ كىچىك ئېگىزلىكىنى ئۆزگەرتىش ئۈچۈن سۆرىلىدۇ."
 
 #: contents/configuration/panelconfiguration/Ruler.qml:30
 #, kde-format
 msgctxt "@info:tooltip slider handle"
-msgid "Drag to change minimum height."
-msgstr ""
-
-#: contents/configuration/panelconfiguration/Ruler.qml:31
-#, kde-format
-msgctxt "@info:tooltip slider handle"
 msgid "Drag to change minimum width."
-msgstr ""
+msgstr "ئەڭ كىچىك كەڭلىكىنى ئۆزگەرتىش ئۈچۈن سۆرىلىدۇ."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:80
+#: contents/configuration/panelconfiguration/Ruler.qml:79
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid ""
 "Drag to change position on this screen edge.\n"
 "Double-click to reset."
 msgstr ""
+"ئېكران گىرۋىكىدىكى ئورنىنى ئۆزگەرتىش ئۈچۈن سۆرىلىدۇ.\n"
+"قوش چېكىلسە ئەسلىگە قايتۇرىدۇ."
 
 #: contents/configuration/ShellContainmentConfiguration.qml:19
 #, kde-format
 msgctxt "@title:window"
 msgid "Manage Panels and Desktops"
-msgstr ""
+msgstr "كۆزنەكچە ۋە ئۈستەلئۈستىنى باشقۇرىدۇ"
 
 #: contents/configuration/ShellContainmentConfiguration.qml:34
 #, kde-format
@@ -715,364 +731,523 @@ msgctxt "@info:usagetip"
 msgid ""
 "You can drag Panels and Desktops around to move them to different screens."
 msgstr ""
+"كۆزنەكچە ۋە ئۈستەلئۈستىنى ئوخشاش بولمىغان ئېكران ئارىسىدا سۆرەپ "
+"يۆتكىيەلەيسىز."
 
 #: contents/configuration/ShellContainmentConfiguration.qml:44
 #, kde-format
 msgctxt "@action:button Close window"
 msgid "Close"
-msgstr ""
+msgstr "ياپ"
 
 #: contents/configuration/shellcontainmentconfiguration/Delegate.qml:187
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Swap with Desktop on Screen %1"
-msgstr ""
+msgstr "%1-ئېكراندىكى ئۈستەلئۈستى بىلەن ئالماشتۇر"
 
 #: contents/configuration/shellcontainmentconfiguration/Delegate.qml:188
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Move to Screen %1"
-msgstr ""
+msgstr "%1-ئېكرانغا يۆتكە"
 
 #: contents/configuration/shellcontainmentconfiguration/Delegate.qml:202
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Remove Desktop"
-msgstr ""
+msgstr "ئۈستەلئۈستىنى چىقىرىۋەت"
 
 #: contents/configuration/shellcontainmentconfiguration/Delegate.qml:203
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Remove Panel"
-msgstr ""
+msgstr "كۆزنەكچىنى چىقىرىۋەت"
 
 #: contents/configuration/shellcontainmentconfiguration/Delegate.qml:279
 #, kde-format
 msgctxt "@info % is screen name"
 msgid "%1 (primary)"
-msgstr ""
+msgstr "%1 (ئاساسىي)"
 
 #: contents/explorer/AppletAlternatives.qml:70
-#, fuzzy, kde-format
-#| msgid "Get new widgets"
+#, kde-format
 msgctxt "@title:window for widget alternatives explorer"
 msgid "Alternative Widgets"
-msgstr "يېڭى كىچىك ئەپلەرنى ئال"
+msgstr "ئورۇن باسار ئەپچە"
 
 #: contents/explorer/AppletDelegate.qml:28
 #, kde-format
 msgctxt "@action:button accessible only, %1 is widget name"
 msgid "Add %1"
-msgstr ""
+msgstr "«%1» نى قوش"
 
 #: contents/explorer/AppletDelegate.qml:47
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Unsupported Widget"
-msgstr ""
+msgstr "قوللىمايدىغان ئەپچە"
 
-#: contents/explorer/AppletDelegate.qml:202
+#: contents/explorer/AppletDelegate.qml:196
 #, kde-format
-msgctxt "Text displayed on top of newly installed widgets"
+msgctxt "Text displayed on top of newly-installed widgets"
 msgid "New!"
-msgstr ""
+msgstr "يېڭى!"
 
-#: contents/explorer/AppletDelegate.qml:204
+#: contents/explorer/AppletDelegate.qml:198
 #, kde-format
 msgctxt "@info:other accessible for badge showing applet count"
 msgid "%1 widget active"
 msgid_plural "%1 widgets active"
-msgstr[0] ""
+msgstr[0] "%1 ئەپچە ئاكتىپ"
 
-#: contents/explorer/AppletDelegate.qml:205
+#: contents/explorer/AppletDelegate.qml:199
 #, kde-format
 msgctxt " @info:other accessible for badge indicating new widget"
 msgid "Recently installed"
-msgstr ""
+msgstr "يېقىندا ئورنىتىلغان"
 
-#: contents/explorer/AppletDelegate.qml:217
-#, fuzzy, kde-format
-#| msgid "Uninstall"
+#: contents/explorer/AppletDelegate.qml:212
+#, kde-format
 msgctxt "@action:button tooltip and accessible cancel uninstall widget"
 msgid "Cancel Uninstallation"
-msgstr "يوقات"
+msgstr "ئورنىتىشتىن ۋاز كەچتى"
 
-#: contents/explorer/AppletDelegate.qml:218
-#, fuzzy, kde-format
-#| msgid "Uninstall"
+#: contents/explorer/AppletDelegate.qml:213
+#, kde-format
 msgctxt "@action:button tooltip and accessible uninstall widget"
 msgid "Mark for Uninstallation"
-msgstr "يوقات"
+msgstr "سۆكۈش بەلگىسى سال"
 
-#: contents/explorer/AppletDelegate.qml:222
+#: contents/explorer/AppletDelegate.qml:217
 #, kde-format
 msgctxt "@action:button accessible only, %1 is widget name"
 msgid "Cancel pending uninstallation for widget %1"
-msgstr ""
+msgstr "%1 ئەپچىنى كېچىكتۈرۈپ سۆكۈشتىن ۋاز كەچ"
 
-#: contents/explorer/AppletDelegate.qml:223
+#: contents/explorer/AppletDelegate.qml:218
 #, kde-format
 msgctxt "@action:button accessible only, %1 is widget name"
 msgid "Mark widget %1 for uninstallation. Requires confirmation"
-msgstr ""
+msgstr "%1 ئەپچىگە سۆكۈش بەلگىسى سالىدۇ. جەزملەش زۆرۈر"
 
-#: contents/explorer/AppletDelegate.qml:265
+#: contents/explorer/AppletDelegate.qml:260
 #, kde-format
 msgctxt "@action:button"
 msgid "Remove all instances"
-msgstr ""
+msgstr "ھەممە ئەمەلىي مىسالنى چىقىرىۋەت"
 
-#: contents/explorer/AppletDelegate.qml:269
+#: contents/explorer/AppletDelegate.qml:264
 #, kde-format
 msgctxt ""
 "@action:button accessible description, %1 number of instances %2 is widget "
 "name"
 msgid "Remove running instance of widget %2"
 msgid_plural "Remove all %1 running instances of widget %2"
-msgstr[0] ""
+msgstr[0] "%2 ئەپچىنىڭ ئىجرا قىلىنىۋاتقان %1 ئەمەلىي مىسالىنى چىقىرىۋېتىدۇ"
 
-#: contents/explorer/WidgetExplorer.qml:140
-#: contents/explorer/WidgetExplorer.qml:223
-#, fuzzy, kde-format
-#| msgid "Get new widgets"
+#: contents/explorer/WidgetExplorer.qml:146
+#: contents/explorer/WidgetExplorer.qml:229
+#, kde-format
 msgctxt "@action:button like listbox, switches category to all widgets"
 msgid "All Widgets"
-msgstr "يېڭى كىچىك ئەپلەرنى ئال"
+msgstr "ھەممە ئەپچە"
 
-#: contents/explorer/WidgetExplorer.qml:169
-#, fuzzy, kde-format
-#| msgid "Get new widgets"
+#: contents/explorer/WidgetExplorer.qml:175
+#, kde-format
 msgctxt "@title:group for widget grid"
 msgid "Widgets"
-msgstr "يېڭى كىچىك ئەپلەرنى ئال"
+msgstr "ئەپچە"
 
-#: contents/explorer/WidgetExplorer.qml:178
-#, fuzzy, kde-format
-#| msgid "Get new widgets"
+#: contents/explorer/WidgetExplorer.qml:184
+#, kde-format
 msgctxt "@action:button The word 'new' refers to widgets"
 msgid "Get New…"
-msgstr "يېڭى كىچىك ئەپلەرنى ئال"
+msgstr "يېڭىسىغا ئېرىش…"
 
-#: contents/explorer/WidgetExplorer.qml:179
-#, fuzzy, kde-format
-#| msgid "Get new widgets"
+#: contents/explorer/WidgetExplorer.qml:185
+#, kde-format
 msgctxt "@action:button"
 msgid "Get New Widgets…"
-msgstr "يېڭى كىچىك ئەپلەرنى ئال"
+msgstr "يېڭى ئەپچىگە ئېرىش…"
 
-#: contents/explorer/WidgetExplorer.qml:192
+#: contents/explorer/WidgetExplorer.qml:198
 #, kde-format
 msgctxt "@action:button accessible for close button"
 msgid "Close Widget Explorer"
-msgstr ""
+msgstr "ئەپچە كۆرگۈنى ياپ"
 
-#: contents/explorer/WidgetExplorer.qml:208
-#, fuzzy, kde-format
-#| msgid "Get new widgets"
+#: contents/explorer/WidgetExplorer.qml:214
+#, kde-format
 msgctxt "@label:textbox accessible"
 msgid "Search through widgets"
-msgstr "يېڭى كىچىك ئەپلەرنى ئال"
+msgstr "ئەپچىدىن ئىزدەيدۇ"
 
-#: contents/explorer/WidgetExplorer.qml:237
-#, fuzzy, kde-format
-#| msgid "Categories"
+#: contents/explorer/WidgetExplorer.qml:243
+#, kde-format
 msgctxt "@action:button tooltip only"
 msgid "Categories"
-msgstr "كاتېگورىيە"
+msgstr "سەھىپە"
 
-#: contents/explorer/WidgetExplorer.qml:259
-#, fuzzy, kde-format
-#| msgid "Uninstall"
+#: contents/explorer/WidgetExplorer.qml:265
+#, kde-format
 msgctxt "@action:button uninstall widgets in widget explorer"
 msgid "Uninstall (%1 Widget)"
 msgid_plural "Uninstall (%1 Widgets)"
-msgstr[0] "يوقات"
+msgstr[0] "سۆك (%1 ئەپچە)"
 
-#: contents/explorer/WidgetExplorer.qml:389
+#: contents/explorer/WidgetExplorer.qml:395
 #, kde-format
 msgctxt "@info placeholdermessage"
 msgid "No widgets matched the search terms"
-msgstr ""
+msgstr "ئىزدىگەن ئاتالغۇغا ھېچ قانداق ئەپچە ماس كەلمىدى"
 
-#: contents/explorer/WidgetExplorer.qml:389
+#: contents/explorer/WidgetExplorer.qml:395
 #, kde-format
 msgctxt "@info placeholdermessage"
 msgid "No widgets available"
-msgstr ""
+msgstr "ھېچقانداق ئەپچە يوق"
 
 #: contents/lockscreen/config.qml:23
 #, kde-format
 msgctxt "@title: group"
 msgid "Show clock:"
-msgstr ""
+msgstr "سائەتنى كۆرسەت:"
 
 #: contents/lockscreen/config.qml:24
 #, kde-format
 msgctxt "@option:radio Clock always shown"
 msgid "Always"
-msgstr ""
+msgstr "ھەمىشە"
 
 #: contents/lockscreen/config.qml:25
 #, kde-format
 msgctxt "@option:radio"
 msgid "Always show clock"
-msgstr ""
+msgstr "سائەتنى ھەمىشە كۆرسىتىدۇ"
 
 #: contents/lockscreen/config.qml:40
 #, kde-format
 msgctxt "@option:radio Clock shown only while unlock prompt is visible"
 msgid "On unlocking prompt"
-msgstr ""
+msgstr "قۇلۇپ ئېچىش ئەسكەرتىشىدىلا"
 
 #: contents/lockscreen/config.qml:41
 #, kde-format
 msgctxt "@option:radio"
 msgid "Show clock only on unlocking prompt"
-msgstr ""
+msgstr "پەقەت قۇلۇپ ئېچىش ئەسكەرتىشىدىلا سائەتنى كۆرسىتىدۇ"
 
 #: contents/lockscreen/config.qml:54
 #, kde-format
 msgctxt "@option:radio Clock never shown"
 msgid "Never"
-msgstr ""
+msgstr "ھەرگىز"
 
 #: contents/lockscreen/config.qml:55
 #, kde-format
 msgctxt "@option:radio"
 msgid "Never show clock"
-msgstr ""
+msgstr "سائەتنى ھەرگىز كۆرسەتمەيدۇ"
 
 #: contents/lockscreen/config.qml:70
 #, kde-format
 msgctxt "@title: group UI controls for playback of multimedia content"
 msgid "Media controls:"
-msgstr ""
+msgstr "ۋاسىتە تىزگىنى:"
 
 #: contents/lockscreen/config.qml:73
 #, kde-format
 msgctxt "@option:check"
 msgid "Show under unlocking prompt"
-msgstr ""
+msgstr "قۇلۇپ ئېچىش ئەسكەرتىشىدىلا كۆرسىتىدۇ"
 
-#: contents/lockscreen/LockScreenUi.qml:48
+#: contents/lockscreen/LockScreenUi.qml:62
 #, kde-format
 msgctxt "@info:status"
 msgid "Unlocking failed"
+msgstr "قۇلۇپ ئاچالمىدى"
+
+#: contents/lockscreen/LockScreenUi.qml:352
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"This authentication method is not functioning correctly. Please try another "
+"method, and check your system configuration."
 msgstr ""
 
-#: contents/lockscreen/LockScreenUi.qml:285
+#: contents/lockscreen/LockScreenUi.qml:384
 #, kde-format
 msgctxt "@info:status"
 msgid "Caps Lock is on"
-msgstr ""
+msgstr "Caps Lock ئوچوق"
 
-#: contents/lockscreen/LockScreenUi.qml:299
+#: contents/lockscreen/LockScreenUi.qml:387
+#, kde-format
+msgctxt "@info:status"
+msgid "Slow Keys are enabled"
+msgstr "ئاستا كۇنۇپكا قوزغىتىلدى"
+
+#: contents/lockscreen/LockScreenUi.qml:407
 #, kde-format
 msgctxt "@action:button"
 msgid "Slee&p"
-msgstr ""
+msgstr "ئۇخلات(&P)"
 
-#: contents/lockscreen/LockScreenUi.qml:305
+#: contents/lockscreen/LockScreenUi.qml:414
 #, kde-format
 msgctxt "@action:button"
 msgid "&Hibernate"
-msgstr ""
+msgstr "ئۈچەك(&H)"
 
-#: contents/lockscreen/LockScreenUi.qml:311
+#: contents/lockscreen/LockScreenUi.qml:421
 #, kde-format
 msgctxt "@action:button"
 msgid "Switch &User"
-msgstr ""
+msgstr "ئىشلەتكۈچى ئالماشتۇر(&U)"
 
-#: contents/lockscreen/LockScreenUi.qml:372
+#: contents/lockscreen/LockScreenUi.qml:471
 #, kde-format
 msgctxt "Button to show/hide virtual keyboard"
 msgid "Virtual Keyboard"
-msgstr ""
+msgstr "مەۋھۇم ھەرپتاختا"
 
-#: contents/lockscreen/LockScreenUi.qml:396
+#: contents/lockscreen/LockScreenUi.qml:497
 #, kde-format
 msgctxt "Button to change keyboard layout"
 msgid "Switch layout"
-msgstr ""
+msgstr "جايلاشتۇرۇش ئالماشتۇر"
 
-#: contents/lockscreen/MainBlock.qml:65
+#: contents/lockscreen/MainBlock.qml:67
 #, kde-format
 msgctxt "@info:placeholder in text field"
 msgid "Password"
-msgstr ""
+msgstr "ئىم"
 
-#: contents/lockscreen/MainBlock.qml:114
+#: contents/lockscreen/MainBlock.qml:115
 #, kde-format
 msgctxt "@action:button accessible only"
 msgid "Unlock"
-msgstr ""
+msgstr "قۇلۇپ ئاچ"
 
-#: contents/lockscreen/MainBlock.qml:163
+#: contents/lockscreen/MainBlock.qml:164
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "(or scan your fingerprint on the reader)"
-msgstr ""
+msgstr "(ياكى ئوقۇغۇچتا بارماق ئىزىڭىزنى تاراڭ)"
 
-#: contents/lockscreen/MainBlock.qml:167
+#: contents/lockscreen/MainBlock.qml:168
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "(or scan your smartcard)"
-msgstr ""
+msgstr "(ئىدراكلىق كارتىڭىزنى تاراڭ)"
 
 #: contents/lockscreen/MediaControls.qml:59
 #, kde-format
 msgctxt "@info:status"
 msgid "No title"
-msgstr ""
+msgstr "ماۋزۇ يوق"
 
 #: contents/lockscreen/MediaControls.qml:60
 #, kde-format
 msgctxt "@info:status"
 msgid "No media playing"
-msgstr ""
+msgstr "ھېچقانداق ۋاسىتە ياڭرىمايۋاتىدۇ"
 
 #: contents/lockscreen/MediaControls.qml:88
 #, kde-format
 msgctxt "@action:button Accessible only"
 msgid "Previous track"
-msgstr ""
+msgstr "ئالدىنقى نەغمە"
 
 #: contents/lockscreen/MediaControls.qml:100
 #, kde-format
 msgctxt "@action:button Accessible only"
 msgid "Play or Pause media"
-msgstr ""
+msgstr "ۋاسىتىنى ياڭرات ياكى ۋاقىتلىق توختات"
 
 #: contents/lockscreen/MediaControls.qml:110
 #, kde-format
 msgctxt "@action:button Accessible only"
 msgid "Next track"
-msgstr ""
+msgstr "كېيىنكى نەغمە"
 
 #: contents/lockscreen/NoPasswordUnlock.qml:17
 #, kde-format
 msgctxt "@action:button no-password unlock"
 msgid "Unlock"
+msgstr "قۇلۇپ ئاچ"
+
+#: contents/logout/LogoutControls.qml:97
+#, kde-format
+msgid "Installing software updates and restarting in 1 second"
+msgid_plural "Installing software updates and restarting in %1 seconds"
+msgstr[0] ""
+
+#: contents/logout/LogoutControls.qml:98
+#, kde-format
+msgid "Restarting in 1 second"
+msgid_plural "Restarting in %1 seconds"
+msgstr[0] ""
+
+#: contents/logout/LogoutControls.qml:100
+#, kde-format
+msgid "Logging out in 1 second"
+msgid_plural "Logging out in %1 seconds"
+msgstr[0] ""
+
+#: contents/logout/LogoutControls.qml:103
+#, kde-format
+msgid "Installing software updates and shutting down in 1 second"
+msgid_plural "Installing software updates and shutting down in %1 seconds"
+msgstr[0] ""
+
+#: contents/logout/LogoutControls.qml:104
+#, kde-format
+msgid "Shutting down in 1 second"
+msgid_plural "Shutting down in %1 seconds"
+msgstr[0] ""
+
+#: contents/logout/LogoutControls.qml:119
+#, kde-format
+msgid ""
+"One other user is currently logged in. If the computer is shut down or "
+"restarted, that user may lose work."
+msgid_plural ""
+"%1 other users are currently logged in. If the computer is shut down or "
+"restarted, those users may lose work."
+msgstr[0] ""
+
+#: contents/logout/LogoutControls.qml:136
+#, kde-format
+msgid "When restarted, the computer will enter UEFI firmware settings."
 msgstr ""
 
-#: contents/views/DesktopEditMode.qml:122
+#: contents/logout/LogoutControls.qml:138
+#, kde-format
+msgid "When restarted, the computer will enter the firmware setup screen."
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:153
+#, kde-format
+msgid "When restarted, the computer will enter the boot loader menu."
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:166
+#, kde-format
+msgctxt "%1 is a boot loader entry"
+msgid "When restarted, the computer will switch to %1."
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:189
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Slee&p"
+msgctxt "Suspend to RAM"
+msgid "Slee&p"
+msgstr "ئۇخلات(&P)"
+
+#: contents/logout/LogoutControls.qml:190
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Slee&p"
+msgctxt "Suspend to RAM"
+msgid "Slee&p Now"
+msgstr "ئۇخلات(&P)"
+
+#: contents/logout/LogoutControls.qml:200
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "&Hibernate"
+msgid "&Hibernate"
+msgstr "ئۈچەك(&H)"
+
+#: contents/logout/LogoutControls.qml:201
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "&Hibernate"
+msgid "&Hibernate Now"
+msgstr "ئۈچەك(&H)"
+
+#: contents/logout/LogoutControls.qml:213
+#, kde-format
+msgctxt "@action:button Keep short"
+msgid "Install Updates and Restart"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:215
+#: contents/logout/LogoutControls.qml:235
+#, kde-format
+msgid "&Restart"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:216
+#: contents/logout/LogoutControls.qml:236
+#, kde-format
+msgid "&Restart Now"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:250
+#, kde-format
+msgctxt "@action:button Keep short"
+msgid "Install Updates and Shut Down"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:252
+#: contents/logout/LogoutControls.qml:272
+#, kde-format
+msgid "&Shut Down"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:253
+#: contents/logout/LogoutControls.qml:273
+#, kde-format
+msgid "&Shut Down Now"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:286
+#, kde-format
+msgid "&Log Out"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:287
+#, kde-format
+msgid "&Log Out Now"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:298
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Cancel"
+msgid "&Cancel"
+msgstr "ۋاز كەچ"
+
+#: contents/views/DesktopEditMode.qml:135
 #, kde-format
 msgctxt "@action:button"
 msgid "More"
-msgstr ""
+msgstr "تېخىمۇ كۆپ"
 
-#: contents/views/DesktopEditMode.qml:131
+#: contents/views/DesktopEditMode.qml:144
 #, kde-format
 msgctxt "@action:button"
 msgid "Exit Edit Mode"
-msgstr ""
+msgstr "تەھرىرلەش ھالىتىدىن چېكىنىدۇ"
 
-#: contents/views/Panel.qml:326
+#: contents/views/Panel.qml:322
 #, kde-format
 msgctxt "@info:whatsthis Accessible name"
 msgid "Panel Focus Indicator"
-msgstr ""
+msgstr "كۆزنەكچە فوكۇس كۆرسەتكۈچ"
+
+#~ msgctxt "@action:button tooltip only, opens kcm"
+#~ msgid "Configure"
+#~ msgstr "سەپلە"
+
+#~ msgctxt ""
+#~ "@action:button Revert an unsupported configuration back to the defaults"
+#~ msgid "Fix it"
+#~ msgstr "تۈزەت"
 
 #~ msgid "Author:"
 #~ msgstr "ئاپتور:"
@@ -1083,23 +1258,19 @@ msgstr ""
 #~ msgid "Uninstall"
 #~ msgstr "يوقات"
 
-#, fuzzy
 #~| msgid "Get new widgets"
 #~ msgid "Add or Manage Widgets…"
 #~ msgstr "يېڭى كىچىك ئەپلەرنى ئال"
 
-#, fuzzy
 #~| msgid "Uninstall"
 #~ msgid "Undo uninstall"
 #~ msgstr "يوقات"
 
-#, fuzzy
 #~| msgid "Uninstall"
 #~ msgctxt "@info:tooltip uninstall a widget"
 #~ msgid "Uninstall"
 #~ msgstr "يوقات"
 
-#, fuzzy
 #~| msgid "Get new widgets"
 #~ msgid "Add Widgets..."
 #~ msgstr "يېڭى كىچىك ئەپلەرنى ئال"

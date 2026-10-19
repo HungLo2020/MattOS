@@ -16,7 +16,8 @@
 #include <QTextCharFormat>
 #include <QWindow>
 
-namespace KWin {
+namespace KWin
+{
 
 InternalInputMethodContext::InternalInputMethodContext(QObject *parent)
     : QPlatformInputContext()
@@ -30,7 +31,7 @@ InternalInputMethodContext::~InternalInputMethodContext()
 
 bool InternalInputMethodContext::isEnabled() const
 {
-    return QGuiApplication::focusObject() != nullptr;
+    return QGuiApplication::focusObject() != nullptr && inputMethodAccepted();
 }
 
 QString InternalInputMethodContext::surroundingText() const
@@ -69,7 +70,7 @@ void InternalInputMethodContext::update(Qt::InputMethodQueries queries)
     }
 
     if (queries & Qt::ImHints) {
-        // When kwin gets some text input with numbers and passwords this needs pouplating
+        // When kwin gets some text input with numbers and passwords this needs populating
     }
 
     if (queries & Qt::ImEnabled) {
@@ -180,7 +181,7 @@ void InternalInputMethodContext::handleDeleteSurroundingText(int deleteBefore, u
     if (!focusObject) {
         return;
     }
-    // insprired by QtWayland client code
+    // inspired by QtWayland client code
     const QString &surrounding = QInputMethod::queryFocusObject(Qt::ImSurroundingText, QVariant()).toString();
     const int cursor = QInputMethod::queryFocusObject(Qt::ImCursorPosition, QVariant()).toInt();
     const int anchor = QInputMethod::queryFocusObject(Qt::ImAnchorPosition, QVariant()).toInt();
@@ -188,11 +189,11 @@ void InternalInputMethodContext::handleDeleteSurroundingText(int deleteBefore, u
     const int selectionStart = qMin(cursor, anchor);
     const int selectionEnd = qMax(cursor, anchor);
 
-    const int deleteBeforeTrasnslated = selectionStart - indexFromWayland(surrounding, -deleteBefore, selectionStart);
+    const int deleteBeforeTranslated = selectionStart - indexFromWayland(surrounding, -deleteBefore, selectionStart);
     const int deleteAfterTranslated = indexFromWayland(surrounding, deleteAfter, selectionEnd) - selectionEnd;
 
     QInputMethodEvent event(QString(), {});
-    event.setCommitString(QString(), deleteBeforeTrasnslated, deleteAfterTranslated);
+    event.setCommitString(QString(), deleteBeforeTranslated, deleteAfterTranslated);
     QCoreApplication::sendEvent(focusObject, &event);
 }
 
@@ -210,4 +211,4 @@ int InternalInputMethodContext::indexFromWayland(const QString &text, int length
     }
 }
 
-} //namespace
+} // namespace

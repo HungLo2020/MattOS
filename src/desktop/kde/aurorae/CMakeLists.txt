@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VERSION "6.6.5") # Handled by release scripts
+set(PROJECT_VERSION "6.8.0") # Handled by release scripts
 project(aurorae VERSION ${PROJECT_VERSION})
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
@@ -29,6 +29,7 @@ include(KDEGitCommitHooks)
 
 include(ECMDeprecationSettings)
 include(ECMSetupVersion)
+include(ECMQmlModule)
 
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Core
@@ -121,4 +122,4 @@ install(
         ${KDE_INSTALL_LIBEXECDIR}
 )
 
-feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
+feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

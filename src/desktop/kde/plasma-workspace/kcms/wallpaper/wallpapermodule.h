@@ -9,6 +9,7 @@
 
 #include <QQmlPropertyMap>
 #include <QScreen>
+#include <QPointer>
 
 class KConfigLoader;
 class WallpaperConfigModel;
@@ -85,12 +86,11 @@ private:
     std::unique_ptr<KConfigPropertyMap> m_wallpaperConfiguration = nullptr;
     QString m_loadedWallpaperplugin;
     QString m_currentWallpaperPlugin;
-    QScreen *m_selectedScreen = nullptr;
+    QPointer<QScreen> m_selectedScreen = nullptr;
     KConfigGroup m_wallpaperConfigGeneral;
     QString m_activityId;
     QString m_containmentIdx;
     QString m_defaultWallpaper;
-    QList<QScreen *> m_screens;
     bool m_allScreens = false;
 };
 

@@ -11,6 +11,7 @@
 #include "ui_openvpnadvanced.h"
 
 #include <QComboBox>
+#include <QFileInfo>
 #include <QStandardPaths>
 #include <QUrl>
 
@@ -89,13 +90,13 @@ OpenVpnAdvancedWidget::OpenVpnAdvancedWidget(const NetworkManager::VpnSetting::P
     connect(m_ui->cbCertCheck, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &OpenVpnAdvancedWidget::certCheckTypeChanged);
     connect(m_ui->cmbProxyType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &OpenVpnAdvancedWidget::proxyTypeChanged);
     connect(m_ui->cboTLSMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
-        if (index == 0) {
+        if (index == 0) { // None
             m_ui->kurlTlsAuthKey->setDisabled(true);
             m_ui->cboDirection->setDisabled(true);
         } else if (index == 1) { // TLS-Auth
             m_ui->kurlTlsAuthKey->setEnabled(true);
             m_ui->cboDirection->setEnabled(true);
-        } else { // TLS-Crypt
+        } else if (index == 2 || index == 3) { // TLS-Crypt or TLS-Crypt v2
             m_ui->kurlTlsAuthKey->setEnabled(true);
             m_ui->cboDirection->setDisabled(true);
         }
@@ -125,6 +126,14 @@ OpenVpnAdvancedWidget::OpenVpnAdvancedWidget(const NetworkManager::VpnSetting::P
     connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &OpenVpnAdvancedWidget::accept);
     connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &OpenVpnAdvancedWidget::reject);
 
+    connect(m_ui->kurlCrlVerifyFile, &KUrlRequester::urlSelected, m_ui->kurlCrlVerifyDir, &KUrlRequester::clear);
+    connect(m_ui->kurlCrlVerifyDir, &KUrlRequester::urlSelected, m_ui->kurlCrlVerifyFile, &KUrlRequester::clear);
+
+    connect(m_ui->chkUseCompression, &QCheckBox::checkStateChanged, this, [this]() {
+        const bool compressionEnabled = m_ui->chkUseCompression->isChecked();
+        m_ui->chkUseAsymCompression->setEnabled(compressionEnabled);
+    });
+
     KAcceleratorManager::manage(this);
 
     if (d->setting) {
@@ -152,13 +161,21 @@ void OpenVpnAdvancedWidget::openVpnCipherError(QProcess::ProcessError)
 {
     m_ui->cboCipher->removeItem(0);
     m_ui->cboCipher->addItem(i18nc("@item:inlistbox Item added when OpenVPN cipher lookup failed", "OpenVPN cipher lookup failed"));
+    m_ui->cboDataCiphers->removeItem(0);
+    m_ui->cboDataCiphers->addItem(i18nc("@item:inlistbox Item added when OpenVPN cipher lookup failed", "OpenVPN cipher lookup failed"));
+    m_ui->cboDataCiphersFallback->removeItem(0);
+    m_ui->cboDataCiphersFallback->addItem(i18nc("@item:inlistbox Item added when OpenVPN cipher lookup failed", "OpenVPN cipher lookup failed"));
 }
 
 void OpenVpnAdvancedWidget::openVpnCipherFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     m_ui->cboCipher->removeItem(0);
+    m_ui->cboDataCiphers->removeItem(0);
+    m_ui->cboDataCiphersFallback->removeItem(0);
     if (!exitCode && exitStatus == QProcess::NormalExit) {
         m_ui->cboCipher->addItem(i18nc("@item::inlist Default openvpn cipher item", "Default"));
+        m_ui->cboDataCiphers->addItem(i18nc("@item::inlist Default openvpn cipher item", "Default"));
+        m_ui->cboDataCiphersFallback->addItem(i18nc("@item::inlist Default openvpn cipher item", "Default"));
         const QList<QByteArray> rawOutputLines = d->openvpnCiphers.split('\n');
         bool foundFirstSpace = false;
         for (const QByteArray &cipher : rawOutputLines) {
@@ -169,18 +186,29 @@ void OpenVpnAdvancedWidget::openVpnCipherFinished(int exitCode, QProcess::ExitSt
                 const auto match = cipherRe.match(cipher);
 
                 if (match.hasMatch()) {
-                    m_ui->cboCipher->addItem(match.captured(1));
+                    const QString c = match.captured(1);
+                    m_ui->cboCipher->addItem(c);
+                    m_ui->cboDataCiphers->addItem(c);
+                    m_ui->cboDataCiphersFallback->addItem(c);
                 }
             }
         }
 
         if (m_ui->cboCipher->count()) {
             m_ui->cboCipher->setEnabled(true);
+            m_ui->cboDataCiphers->setEnabled(true);
+            m_ui->cboDataCiphersFallback->setEnabled(true);
         } else {
-            m_ui->cboCipher->addItem(i18nc("@item:inlistbox Item added when OpenVPN cipher lookup failed", "No OpenVPN ciphers found"));
+            const QString noCiphers = i18nc("@item:inlistbox Item added when OpenVPN cipher lookup failed", "No OpenVPN ciphers found");
+            m_ui->cboCipher->addItem(noCiphers);
+            m_ui->cboDataCiphers->addItem(noCiphers);
+            m_ui->cboDataCiphersFallback->addItem(noCiphers);
         }
     } else {
-        m_ui->cboCipher->addItem(i18nc("@item:inlistbox Item added when OpenVPN cipher lookup failed", "OpenVPN cipher lookup failed"));
+        const QString err = i18nc("@item:inlistbox Item added when OpenVPN cipher lookup failed", "OpenVPN cipher lookup failed");
+        m_ui->cboCipher->addItem(err);
+        m_ui->cboDataCiphers->addItem(err);
+        m_ui->cboDataCiphersFallback->addItem(err);
     }
     delete d->openvpnCipherProcess;
     d->openvpnCipherProcess = nullptr;
@@ -191,6 +219,12 @@ void OpenVpnAdvancedWidget::openVpnCipherFinished(int exitCode, QProcess::ExitSt
         const NMStringMap dataMap = d->setting->data();
         if (dataMap.contains(NM_OPENVPN_KEY_CIPHER)) {
             m_ui->cboCipher->setCurrentIndex(m_ui->cboCipher->findText(dataMap.value(NM_OPENVPN_KEY_CIPHER)));
+        }
+        if (dataMap.contains(NM_OPENVPN_KEY_DATA_CIPHERS)) {
+            m_ui->cboDataCiphers->setCurrentIndex(m_ui->cboDataCiphers->findText(dataMap.value(NM_OPENVPN_KEY_DATA_CIPHERS)));
+        }
+        if (dataMap.contains(NM_OPENVPN_KEY_DATA_CIPHERS_FALLBACK)) {
+            m_ui->cboDataCiphersFallback->setCurrentIndex(m_ui->cboDataCiphersFallback->findText(dataMap.value(NM_OPENVPN_KEY_DATA_CIPHERS_FALLBACK)));
         }
     }
 }
@@ -296,6 +330,22 @@ void OpenVpnAdvancedWidget::loadConfig()
         m_ui->sbCustomFragmentSize->setValue(1300);
     }
 
+    // Path MTU discovery
+    if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_MTU_DISC))) {
+        const QString v = dataMap.value(QLatin1String(NM_OPENVPN_KEY_MTU_DISC));
+        m_ui->chkMtuDisc->setChecked(true);
+        if (v == QLatin1String("no")) {
+            m_ui->cmbMtuDisc->setCurrentIndex(0);
+        } else if (v == QLatin1String("maybe")) {
+            m_ui->cmbMtuDisc->setCurrentIndex(1);
+        } else if (v == QLatin1String("yes")) {
+            m_ui->cmbMtuDisc->setCurrentIndex(2);
+        }
+    } else {
+        m_ui->chkMtuDisc->setChecked(false);
+        m_ui->cmbMtuDisc->setCurrentIndex(0);
+    }
+
     if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_RENEG_SECONDS))) {
         m_ui->chkUseCustomReneg->setChecked(true);
         m_ui->sbCustomReneg->setValue(dataMap[QLatin1String(NM_OPENVPN_KEY_RENEG_SECONDS)].toUInt());
@@ -330,6 +380,11 @@ void OpenVpnAdvancedWidget::loadConfig()
         }
         m_ui->chkUseCompression->setChecked(true);
     }
+    m_ui->chkUseAsymCompression->setEnabled(m_ui->chkUseCompression->isChecked());
+    if (dataMap.value(QLatin1String(NM_OPENVPN_KEY_ALLOW_COMPRESSION)) == QLatin1String("asym")) {
+        m_ui->chkUseAsymCompression->setChecked(true);
+    }
+
     m_ui->chkUseTCP->setChecked(dataMap[QLatin1String(NM_OPENVPN_KEY_PROTO_TCP)] == QLatin1String("yes"));
     if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_DEV_TYPE))) {
         m_ui->chkUseVirtualDeviceType->setChecked(true);
@@ -343,8 +398,18 @@ void OpenVpnAdvancedWidget::loadConfig()
     }
     m_ui->chkMssRestrict->setChecked(dataMap[QLatin1String(NM_OPENVPN_KEY_MSSFIX)] == QLatin1String("yes"));
     m_ui->chkRandRemHosts->setChecked(dataMap[QLatin1String(NM_OPENVPN_KEY_REMOTE_RANDOM)] == QLatin1String("yes"));
+    m_ui->chkRandRemHostname->setChecked(dataMap[QLatin1String(NM_OPENVPN_KEY_REMOTE_RANDOM_HOSTNAME)] == QLatin1String("yes"));
+    m_ui->chkPushPeerInfo->setChecked(dataMap[QLatin1String(NM_OPENVPN_KEY_PUSH_PEER_INFO)] == QLatin1String("yes"));
+    m_ui->chkAllowPullFqdn->setChecked(dataMap[QLatin1String(NM_OPENVPN_KEY_ALLOW_PULL_FQDN)] == QLatin1String("yes"));
 
     m_ui->chkIpv6TunLink->setChecked(dataMap[QLatin1String(NM_OPENVPN_KEY_TUN_IPV6)] == QLatin1String("yes"));
+
+    // Connect timeout (seconds); 0 means not set/Automatic
+    if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_CONNECT_TIMEOUT))) {
+        m_ui->sbConnectTimeout->setValue(dataMap[QLatin1String(NM_OPENVPN_KEY_CONNECT_TIMEOUT)].toInt());
+    } else {
+        m_ui->sbConnectTimeout->setValue(0);
+    }
 
     if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_PING))) {
         m_ui->chkPingInterval->setChecked(true);
@@ -399,9 +464,18 @@ void OpenVpnAdvancedWidget::loadConfig()
     }
 
     // ciphers populated above?
-    if (d->gotOpenVpnCiphers && dataMap.contains(QLatin1String(NM_OPENVPN_KEY_CIPHER))) {
-        m_ui->cboCipher->setCurrentIndex(m_ui->cboCipher->findText(dataMap[QLatin1String(NM_OPENVPN_KEY_CIPHER)]));
+    if (d->gotOpenVpnCiphers) {
+        if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_CIPHER))) {
+            m_ui->cboCipher->setCurrentIndex(m_ui->cboCipher->findText(dataMap[QLatin1String(NM_OPENVPN_KEY_CIPHER)]));
+        }
+        if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_DATA_CIPHERS))) {
+            m_ui->cboDataCiphers->setCurrentIndex(m_ui->cboDataCiphers->findText(dataMap[QLatin1String(NM_OPENVPN_KEY_DATA_CIPHERS)]));
+        }
+        if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_DATA_CIPHERS_FALLBACK))) {
+            m_ui->cboDataCiphersFallback->setCurrentIndex(m_ui->cboDataCiphersFallback->findText(dataMap[QLatin1String(NM_OPENVPN_KEY_DATA_CIPHERS_FALLBACK)]));
+        }
     }
+    m_ui->chkDisableCipherNegotiation->setChecked(dataMap[QLatin1String(NM_OPENVPN_KEY_NCP_DISABLE)] == QLatin1String("yes"));
 
     // Optional TLS
     if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_TLS_REMOTE))) {
@@ -444,8 +518,12 @@ void OpenVpnAdvancedWidget::loadConfig()
 
     const QString openvpnKeyTa = dataMap[QLatin1String(NM_OPENVPN_KEY_TA)];
     const QString openvpnKeyTlsCrypt = dataMap[QLatin1String(NM_OPENVPN_KEY_TLS_CRYPT)];
+    const QString openvpnKeyTlsCryptV2 = dataMap[QLatin1String(NM_OPENVPN_KEY_TLS_CRYPT_V2)];
 
-    if (!openvpnKeyTlsCrypt.isEmpty()) {
+    if (!openvpnKeyTlsCryptV2.isEmpty()) {
+        m_ui->cboTLSMode->setCurrentIndex(3); // TLS-Crypt v2
+        m_ui->kurlTlsAuthKey->setUrl(QUrl::fromLocalFile(openvpnKeyTlsCryptV2));
+    } else if (!openvpnKeyTlsCrypt.isEmpty()) {
         m_ui->cboTLSMode->setCurrentIndex(2); // TLS-Crypt
         m_ui->kurlTlsAuthKey->setUrl(QUrl::fromLocalFile(openvpnKeyTlsCrypt));
     } else if (!openvpnKeyTa.isEmpty()) {
@@ -455,6 +533,30 @@ void OpenVpnAdvancedWidget::loadConfig()
             const uint tlsAuthDirection = dataMap[QLatin1String(NM_OPENVPN_KEY_TA_DIR)].toUInt();
             m_ui->cboDirection->setCurrentIndex(tlsAuthDirection + 1);
         }
+    }
+
+    if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_EXTRA_CERTS))) {
+        m_ui->kurlExtraCerts->setUrl(QUrl::fromLocalFile(dataMap.value(QLatin1String(NM_OPENVPN_KEY_EXTRA_CERTS))));
+    }
+
+    // CRL verify file/dir
+    if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_CRL_VERIFY_FILE))) {
+        m_ui->kurlCrlVerifyFile->setUrl(QUrl::fromLocalFile(dataMap.value(QLatin1String(NM_OPENVPN_KEY_CRL_VERIFY_FILE))));
+    }
+    if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_CRL_VERIFY_DIR))) {
+        m_ui->kurlCrlVerifyDir->setUrl(QUrl::fromLocalFile(dataMap.value(QLatin1String(NM_OPENVPN_KEY_CRL_VERIFY_DIR))));
+    }
+
+    // TLS version min/max and "or highest"
+    if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_TLS_VERSION_MIN))) {
+        m_ui->leTlsVersionMin->setText(dataMap.value(QLatin1String(NM_OPENVPN_KEY_TLS_VERSION_MIN)));
+    }
+    if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_TLS_VERSION_MIN_OR_HIGHEST))) {
+        const QString v = dataMap.value(QLatin1String(NM_OPENVPN_KEY_TLS_VERSION_MIN_OR_HIGHEST));
+        m_ui->chkTlsVersionMinOrHighest->setChecked(v == QLatin1String("yes") || v.isEmpty());
+    }
+    if (dataMap.contains(QLatin1String(NM_OPENVPN_KEY_TLS_VERSION_MAX))) {
+        m_ui->leTlsVersionMax->setText(dataMap.value(QLatin1String(NM_OPENVPN_KEY_TLS_VERSION_MAX)));
     }
 
     // Proxies
@@ -538,6 +640,13 @@ NetworkManager::VpnSetting::Ptr OpenVpnAdvancedWidget::setting() const
             data.insert(QLatin1String(NM_OPENVPN_KEY_COMPRESS), QLatin1String("yes"));
             break;
         }
+        if (m_ui->chkUseAsymCompression) {
+            data.insert(QLatin1String(NM_OPENVPN_KEY_ALLOW_COMPRESSION), QLatin1String("asym"));
+        } else {
+            data.insert(QLatin1String(NM_OPENVPN_KEY_ALLOW_COMPRESSION), QLatin1String("yes"));
+        }
+    } else {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_ALLOW_COMPRESSION), QLatin1String("no"));
     }
 
     if (m_ui->chkUseVirtualDeviceType->isChecked()) {
@@ -548,11 +657,36 @@ NetworkManager::VpnSetting::Ptr OpenVpnAdvancedWidget::setting() const
     }
 
     data.insert(QLatin1String(NM_OPENVPN_KEY_MSSFIX), m_ui->chkMssRestrict->isChecked() ? QLatin1String("yes") : QLatin1String("no"));
+    if (m_ui->chkMtuDisc->isChecked()) {
+        QString mtuDiscVal;
+        switch (m_ui->cmbMtuDisc->currentIndex()) {
+        case 0:
+            mtuDiscVal = QLatin1String("no");
+            break;
+        case 1:
+            mtuDiscVal = QLatin1String("maybe");
+            break;
+        case 2:
+            mtuDiscVal = QLatin1String("yes");
+            break;
+        }
+        if (!mtuDiscVal.isEmpty()) {
+            data.insert(QLatin1String(NM_OPENVPN_KEY_MTU_DISC), mtuDiscVal);
+        }
+    }
     data.insert(QLatin1String(NM_OPENVPN_KEY_REMOTE_RANDOM), m_ui->chkRandRemHosts->isChecked() ? QLatin1String("yes") : QLatin1String("no"));
+    data.insert(QLatin1String(NM_OPENVPN_KEY_REMOTE_RANDOM_HOSTNAME), m_ui->chkRandRemHostname->isChecked() ? QLatin1String("yes") : QLatin1String("no"));
+    data.insert(QLatin1String(NM_OPENVPN_KEY_PUSH_PEER_INFO), m_ui->chkPushPeerInfo->isChecked() ? QLatin1String("yes") : QLatin1String("no"));
+    data.insert(QLatin1String(NM_OPENVPN_KEY_ALLOW_PULL_FQDN), m_ui->chkAllowPullFqdn->isChecked() ? QLatin1String("yes") : QLatin1String("no"));
     data.insert(QLatin1String(NM_OPENVPN_KEY_TUN_IPV6), m_ui->chkIpv6TunLink->isChecked() ? QLatin1String("yes") : QLatin1String("no"));
 
     if (m_ui->chkPingInterval->isChecked()) {
         data.insert(QLatin1String(NM_OPENVPN_KEY_PING), QString::number(m_ui->sbPingInterval->value()));
+    }
+
+    // Connect timeout; omit when value is 0 (Automatic)
+    if (m_ui->sbConnectTimeout->value() > 0) {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_CONNECT_TIMEOUT), QString::number(m_ui->sbConnectTimeout->value()));
     }
 
     if (m_ui->chkSpecifyExitRestartPing->isChecked()) {
@@ -609,6 +743,13 @@ NetworkManager::VpnSetting::Ptr OpenVpnAdvancedWidget::setting() const
     if (m_ui->cboCipher->currentIndex() != 0) {
         data.insert(QLatin1String(NM_OPENVPN_KEY_CIPHER), m_ui->cboCipher->currentText());
     }
+    if (m_ui->cboDataCiphers->currentIndex() != 0) {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_DATA_CIPHERS), m_ui->cboDataCiphers->currentText());
+    }
+    if (m_ui->cboDataCiphersFallback->currentIndex() != 0) {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_DATA_CIPHERS_FALLBACK), m_ui->cboDataCiphersFallback->currentText());
+    }
+    data.insert(QLatin1String(NM_OPENVPN_KEY_NCP_DISABLE), m_ui->chkDisableCipherNegotiation->isChecked() ? QLatin1String("yes") : QLatin1String("no"));
 
     // optional tls authentication
     switch (m_ui->cbCertCheck->currentIndex()) {
@@ -660,6 +801,36 @@ NetworkManager::VpnSetting::Ptr OpenVpnAdvancedWidget::setting() const
         if (!tlsCryptKeyUrl.isEmpty()) {
             data.insert(QLatin1String(NM_OPENVPN_KEY_TLS_CRYPT), tlsCryptKeyUrl.path());
         }
+    } else if (m_ui->cboTLSMode->currentIndex() == 3) { // TLS-Crypt v2
+        QUrl tlsCryptV2KeyUrl = m_ui->kurlTlsAuthKey->url();
+        if (!tlsCryptV2KeyUrl.isEmpty()) {
+            data.insert(QLatin1String(NM_OPENVPN_KEY_TLS_CRYPT_V2), tlsCryptV2KeyUrl.path());
+        }
+    }
+
+    // TLS version min/max and "or highest"
+    if (!m_ui->leTlsVersionMin->text().trimmed().isEmpty()) {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_TLS_VERSION_MIN), m_ui->leTlsVersionMin->text().trimmed());
+    }
+    if (m_ui->chkTlsVersionMinOrHighest->isChecked()) {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_TLS_VERSION_MIN_OR_HIGHEST), QLatin1String("yes"));
+    }
+    if (!m_ui->leTlsVersionMax->text().trimmed().isEmpty()) {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_TLS_VERSION_MAX), m_ui->leTlsVersionMax->text().trimmed());
+    }
+
+    // Extra certificates file
+    const QUrl extraCertsUrl = m_ui->kurlExtraCerts->url();
+    if (!extraCertsUrl.isEmpty() && !extraCertsUrl.toLocalFile().isEmpty()) {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_EXTRA_CERTS), extraCertsUrl.toLocalFile());
+    }
+
+    const QUrl crlFileUrl = m_ui->kurlCrlVerifyFile->url();
+    const QUrl crlDirUrl = m_ui->kurlCrlVerifyDir->url();
+    if (!crlFileUrl.isEmpty()) {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_CRL_VERIFY_FILE), crlFileUrl.toLocalFile());
+    } else if (!crlDirUrl.isEmpty()) {
+        data.insert(QLatin1String(NM_OPENVPN_KEY_CRL_VERIFY_DIR), crlDirUrl.toLocalFile());
     }
 
     // Proxies

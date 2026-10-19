@@ -24,7 +24,7 @@ static WindowType scopeToType(const QString &scope)
     static const QHash<QString, WindowType> scopeToType{
         {QStringLiteral("desktop"), WindowType::Desktop},
         {QStringLiteral("dock"), WindowType::Dock},
-        {QStringLiteral("crititical-notification"), WindowType::CriticalNotification},
+        {QStringLiteral("critical-notification"), WindowType::CriticalNotification},
         {QStringLiteral("notification"), WindowType::Notification},
         {QStringLiteral("tooltip"), WindowType::Tooltip},
         {QStringLiteral("on-screen-display"), WindowType::OnScreenDisplay},
@@ -140,37 +140,37 @@ StrutRect LayerShellV1Window::strutRect(StrutArea area) const
     switch (area) {
     case StrutAreaLeft:
         if (m_shellSurface->exclusiveEdge() == Qt::LeftEdge) {
-            return StrutRect(m_moveResizeGeometry.x(),
-                             m_moveResizeGeometry.y(),
-                             m_shellSurface->exclusiveZone(),
-                             m_moveResizeGeometry.height(),
+            return StrutRect(QPointF(m_moveResizeGeometry.left(),
+                                     m_moveResizeGeometry.top()),
+                             QPointF(m_moveResizeGeometry.left() + m_shellSurface->exclusiveZone(),
+                                     m_moveResizeGeometry.bottom()),
                              StrutAreaLeft);
         }
         return StrutRect();
     case StrutAreaRight:
         if (m_shellSurface->exclusiveEdge() == Qt::RightEdge) {
-            return StrutRect(m_moveResizeGeometry.x() + m_moveResizeGeometry.width() - m_shellSurface->exclusiveZone(),
-                             m_moveResizeGeometry.y(),
-                             m_shellSurface->exclusiveZone(),
-                             m_moveResizeGeometry.height(),
+            return StrutRect(QPointF(m_moveResizeGeometry.right() - m_shellSurface->exclusiveZone(),
+                                     m_moveResizeGeometry.top()),
+                             QPointF(m_moveResizeGeometry.right(),
+                                     m_moveResizeGeometry.bottom()),
                              StrutAreaRight);
         }
         return StrutRect();
     case StrutAreaTop:
         if (m_shellSurface->exclusiveEdge() == Qt::TopEdge) {
-            return StrutRect(m_moveResizeGeometry.x(),
-                             m_moveResizeGeometry.y(),
-                             m_moveResizeGeometry.width(),
-                             m_shellSurface->exclusiveZone(),
+            return StrutRect(QPointF(m_moveResizeGeometry.left(),
+                                     m_moveResizeGeometry.top()),
+                             QPointF(m_moveResizeGeometry.right(),
+                                     m_moveResizeGeometry.top() + m_shellSurface->exclusiveZone()),
                              StrutAreaTop);
         }
         return StrutRect();
     case StrutAreaBottom:
         if (m_shellSurface->exclusiveEdge() == Qt::BottomEdge) {
-            return StrutRect(m_moveResizeGeometry.x(),
-                             m_moveResizeGeometry.y() + m_moveResizeGeometry.height() - m_shellSurface->exclusiveZone(),
-                             m_moveResizeGeometry.width(),
-                             m_shellSurface->exclusiveZone(),
+            return StrutRect(QPointF(m_moveResizeGeometry.left(),
+                                     m_moveResizeGeometry.bottom() - m_shellSurface->exclusiveZone()),
+                             QPointF(m_moveResizeGeometry.right(),
+                                     m_moveResizeGeometry.bottom()),
                              StrutAreaBottom);
         }
         return StrutRect();
@@ -199,7 +199,6 @@ void LayerShellV1Window::destroyWindow()
     Q_EMIT closed();
 
     m_rescalingTimer.stop();
-    cleanTabBox();
     StackingUpdatesBlocker blocker(workspace());
     cleanGrouping();
     waylandServer()->removeWindow(this);
@@ -237,7 +236,7 @@ bool LayerShellV1Window::acceptsFocus() const
 
 void LayerShellV1Window::moveResizeInternal(const RectF &rect, MoveResizeMode mode)
 {
-    const QSize requestedClientSize = nextFrameSizeToClientSize(rect.size()).toSize();
+    const QSizeF requestedClientSize = surface()->snappedSize(nextFrameSizeToClientSize(rect.size()));
 
     if (!m_configureEvents.isEmpty()) {
         const LayerShellV1ConfigureEvent &lastLayerShellV1ConfigureEvent = m_configureEvents.constLast();

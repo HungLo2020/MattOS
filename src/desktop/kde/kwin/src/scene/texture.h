@@ -1,0 +1,45 @@
+/*
+    SPDX-FileCopyrightText: 2026 Vlad Zahorodnii <vlad.zahorodnii@kde.org>
+
+    SPDX-License-Identifier: GPL-2.0-or-later
+*/
+
+#pragma once
+
+#include <QSize>
+
+class QImage;
+
+namespace KWin
+{
+
+class GraphicsBuffer;
+class Rect;
+class Region;
+class SyncReleasePoint;
+class ColorDescription;
+class FileDescriptor;
+
+class Texture
+{
+public:
+    virtual ~Texture();
+
+    QSize size() const;
+    bool isFloatingPoint() const;
+    std::shared_ptr<SyncReleasePoint> releasePoint() const;
+    void setReleasePoint(const std::shared_ptr<SyncReleasePoint> &releasePoint);
+
+    virtual void attach(GraphicsBuffer *buffer, const FileDescriptor &sync, const Region &region,
+                        const std::shared_ptr<SyncReleasePoint> &releasePoint, const std::shared_ptr<ColorDescription> &color) = 0;
+    virtual void upload(const QImage &image, const Rect &region) = 0;
+
+protected:
+    Texture();
+
+    QSize m_size;
+    bool m_isFloatingPoint = false;
+    std::shared_ptr<SyncReleasePoint> m_releasePoint;
+};
+
+} // namespace KWin

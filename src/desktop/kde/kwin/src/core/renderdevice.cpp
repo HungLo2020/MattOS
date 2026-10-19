@@ -1,0 +1,443 @@
+/*
+    KWin - the KDE window manager
+    This file is part of the KDE project.
+
+    SPDX-FileCopyrightText: 2026 Xaver Hugl <xaver.hugl@kde.org>
+
+    SPDX-License-Identifier: GPL-2.0-or-later
+*/
+#include "renderdevice.h"
+
+#include "drmdevice.h"
+#include "gpumanager.h"
+#include "graphicsbuffer.h"
+#include "opengl/eglcontext.h"
+#include "opengl/egldisplay.h"
+#include "opengl/glplatform.h"
+#include "udmabufallocator.h"
+#include "utils/common.h"
+#include "utils/envvar.h"
+#include "vulkan/vulkan_device.h"
+#include "vulkan/vulkan_logging.h"
+
+#include <expected>
+#include <vulkan/vulkan_raii.hpp>
+#if __has_include(<sys/sysmacros.h>)
+#include <sys/sysmacros.h>
+#endif
+
+namespace KWin
+{
+
+static const bool s_disableVulkan = environmentVariableBoolValue("KWIN_DISABLE_VULKAN").value_or(false);
+
+// NOTE that we have to create an instance per render device, as Mesa
+// only updates the list of devices on the first vkEnumeratePhysicalDevices
+// call per VkInstance!
+static vk::raii::Instance createVulkanInstance(const vk::raii::Context &context)
+{
+    if (s_disableVulkan) {
+        return nullptr;
+    }
+    vk::ApplicationInfo appInfo{
+        "kwin_wayland",
+        VK_MAKE_VERSION(PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH),
+        "kwin_wayland",
+        VK_MAKE_VERSION(1, 3, 0),
+        VK_MAKE_VERSION(1, 3, 0),
+    };
+    std::vector<const char *> validationLayers;
+    if (environmentVariableBoolValue("KWIN_VULKAN_VALIDATION").value_or(PROJECT_VERSION_PATCH >= 80)) {
+        validationLayers.push_back("VK_LAYER_KHRONOS_validation");
+    }
+    vk::InstanceCreateInfo instanceInfo{
+        vk::InstanceCreateFlags(),
+        &appInfo,
+        validationLayers,
+    };
+    auto [result, instance] = context.createInstance(instanceInfo);
+    if (result != vk::Result::eSuccess && !validationLayers.empty()) {
+        // try again without the validation layer
+        validationLayers.clear();
+        instanceInfo.setPEnabledLayerNames(validationLayers);
+        auto [result, instance] = context.createInstance(instanceInfo);
+        if (result == vk::Result::eSuccess) {
+            qCWarning(KWIN_CORE, "Vulkan validation layer is not installed");
+            return std::move(instance);
+        }
+    }
+    return std::move(instance);
+}
+
+static FormatModifierMap getImportFormats(EglDisplay *eglDisplay, VulkanDevice *vulkanDevice)
+{
+    FormatModifierMap ret;
+    if (eglDisplay) {
+        ret = eglDisplay->allSupportedDrmFormats();
+    }
+    if (vulkanDevice) {
+        ret = ret.merged(vulkanDevice->transferFormats());
+    }
+    return ret;
+}
+
+RenderDevice::RenderDevice(std::unique_ptr<DrmDevice> &&device, std::unique_ptr<EglDisplay> &&display)
+    : m_device(std::move(device))
+    , m_display(std::move(display))
+    , m_vulkanInstance(createVulkanInstance(m_vulkanContext))
+    , m_path(m_device->path())
+    , m_deviceId(m_device->deviceId())
+{
+    createVulkanDevice();
+    fetchName();
+    m_allImportableFormats = getImportFormats(m_display.get(), m_vulkanDevice.get());
+}
+
+RenderDevice::RenderDevice(std::unique_ptr<UDmabufAllocator> &&allocator, std::unique_ptr<EglDisplay> &&display, dev_t deviceId)
+    : m_udmabufAllocator(std::move(allocator))
+    , m_display(std::move(display))
+    , m_vulkanInstance(createVulkanInstance(m_vulkanContext))
+    , m_path(QStringLiteral("/dev/udmabuf"))
+    , m_deviceId(deviceId)
+{
+    createVulkanDevice();
+    fetchName();
+    m_allImportableFormats = getImportFormats(m_display.get(), m_vulkanDevice.get());
+}
+
+RenderDevice::~RenderDevice()
+{
+}
+
+DrmDevice *RenderDevice::drmDevice() const
+{
+    return m_device.get();
+}
+
+QString RenderDevice::path() const
+{
+    return m_path;
+}
+
+QString RenderDevice::name() const
+{
+    return m_name;
+}
+
+dev_t RenderDevice::deviceId() const
+{
+    return m_deviceId;
+}
+
+GraphicsBufferAllocator *RenderDevice::allocator() const
+{
+    return m_udmabufAllocator ? m_udmabufAllocator.get() : m_device->allocator();
+}
+
+EglDisplay *RenderDevice::eglDisplay() const
+{
+    return m_display.get();
+}
+
+std::shared_ptr<EglContext> RenderDevice::eglContext()
+{
+    auto ret = m_eglContext.lock();
+    if (!ret || ret->isFailed()) {
+        const auto share = eglShareContext();
+        if (!share) {
+            return nullptr;
+        }
+        ret = EglContext::create(m_display.get(), EGL_NO_CONFIG_KHR, share);
+        m_eglContext = ret;
+    }
+    return ret;
+}
+
+std::shared_ptr<EglContext> RenderDevice::eglShareContext()
+{
+    auto ret = m_shareContext.lock();
+    if (!ret || ret->isFailed()) {
+        ret = EglContext::create(m_display.get(), EGL_NO_CONFIG_KHR, nullptr);
+        m_shareContext = ret;
+    }
+    return ret;
+}
+
+VulkanDevice *RenderDevice::vulkanDevice() const
+{
+    return m_vulkanDevice.get();
+}
+
+const FormatModifierMap &RenderDevice::allImportableFormats() const
+{
+    return m_allImportableFormats;
+}
+
+static constexpr std::array s_requiredVulkanExtensions = {
+    // allows getting the dev_t of each VkPhysicalDevice
+    VK_EXT_PHYSICAL_DEVICE_DRM_EXTENSION_NAME,
+    // allow importing dma-bufs
+    VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+    VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME,
+    VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
+    // allow importing and exporting sync fds
+    VK_KHR_EXTERNAL_FENCE_FD_EXTENSION_NAME,
+    VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+};
+
+static const auto s_supportHostMemoryPointer = environmentVariableBoolValue("KWIN_SUPPORT_EXTERNAL_MEMORY_HOST");
+
+static std::unique_ptr<VulkanDevice> openVulkanDevice(const vk::raii::Instance &instance, DrmDevice *drm, const QString &path)
+{
+    const auto [enumerateResult, physicalDevices] = instance.enumeratePhysicalDevices();
+    if (enumerateResult != vk::Result::eSuccess) {
+        qCWarning(KWIN_VULKAN) << "querying vulkan devices failed:" << vk::to_string(enumerateResult);
+        return nullptr;
+    }
+    // with faux devices like vkms and vgem, we can only do software rendering
+    const bool needsSoftwareDevice = !drm || drm->busType() == DRM_BUS_FAUX;
+    for (const vk::raii::PhysicalDevice &physicalDevice : physicalDevices) {
+        const auto basicProperties = physicalDevice.getProperties2();
+        const bool isSoftwareDevice = basicProperties.properties.deviceType == vk::PhysicalDeviceType::eCpu;
+        const char *deviceName = basicProperties.properties.deviceName.data();
+        if (isSoftwareDevice != needsSoftwareDevice) {
+            continue;
+        }
+
+        const auto [extensionPropResult, extensionProps] = physicalDevice.enumerateDeviceExtensionProperties();
+        if (extensionPropResult != vk::Result::eSuccess) {
+            continue;
+        }
+        std::vector usedExtensions = s_requiredVulkanExtensions | std::ranges::to<std::vector>();
+        if (isSoftwareDevice) {
+            // software devices don't usually have a render node
+            std::erase(usedExtensions, VK_EXT_PHYSICAL_DEVICE_DRM_EXTENSION_NAME);
+        }
+        std::vector missingExtensions = usedExtensions;
+        std::erase_if(missingExtensions, [&extensionProps](std::string_view required) {
+            return std::ranges::any_of(extensionProps, [required](const auto &ext) {
+                return required == ext.extensionName;
+            });
+        });
+        if (!missingExtensions.empty()) {
+            qCWarning(KWIN_VULKAN, "Device %s misses required Vulkan extensions", deviceName);
+            for (const char *str : missingExtensions) {
+                qCWarning(KWIN_VULKAN) << str;
+            }
+            continue;
+        }
+        const auto fenceProperties = physicalDevice.getExternalFenceProperties(vk::PhysicalDeviceExternalFenceInfo{
+            vk::ExternalFenceHandleTypeFlagBits::eSyncFd,
+        });
+        if (!(fenceProperties.externalFenceFeatures & vk::ExternalFenceFeatureFlagBits::eExportable)) {
+            qCWarning(KWIN_VULKAN, "Vulkan device %s can't export sync fds", deviceName);
+            continue;
+        }
+
+        if (!isSoftwareDevice) {
+            const auto propertiesChain = physicalDevice.getProperties2<vk::PhysicalDeviceProperties2, vk::PhysicalDeviceDrmPropertiesEXT>();
+            const auto &drmProps = propertiesChain.get<vk::PhysicalDeviceDrmPropertiesEXT>();
+            if (!drmProps.hasRender) {
+                qCDebug(KWIN_VULKAN, "Skipping device %s without a render node", deviceName);
+                continue;
+            }
+            if (drm->deviceId() != makedev(drmProps.renderMajor, drmProps.renderMinor)) {
+                continue;
+            }
+        }
+        std::vector<vk::QueueFamilyProperties> queueProperties = physicalDevice.getQueueFamilyProperties();
+        const bool hasGraphics = std::ranges::any_of(queueProperties, [](const vk::QueueFamilyProperties &props) {
+            return bool(props.queueFlags & vk::QueueFlagBits::eGraphics);
+        });
+        if (!hasGraphics) {
+            qCWarning(KWIN_VULKAN, "Physical device %s has no graphics queue", deviceName);
+            continue;
+        }
+
+        std::optional<VkDeviceSize> minImportedHostPointerAlignment;
+        const bool supportsHostMemory = std::ranges::any_of(extensionProps, [](const vk::ExtensionProperties &props) {
+            return props.extensionName == std::string_view(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
+        });
+        if (supportsHostMemory && s_supportHostMemoryPointer.value_or(true)) {
+            usedExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
+            const auto chain = physicalDevice.getProperties2<vk::PhysicalDeviceProperties2, vk::PhysicalDeviceExternalMemoryHostPropertiesEXT>();
+            const auto hostProperties = chain.get<vk::PhysicalDeviceExternalMemoryHostPropertiesEXT>();
+            minImportedHostPointerAlignment = hostProperties.minImportedHostPointerAlignment;
+        }
+
+        std::vector<VkDeviceQueueCreateInfo> queueInfo;
+        float priority = 1;
+        for (uint32_t i = 0; i < queueProperties.size(); i++) {
+            queueInfo.push_back(VkDeviceQueueCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = {},
+                .queueFamilyIndex = i,
+                .queueCount = 1,
+                .pQueuePriorities = &priority,
+            });
+        }
+
+        const auto featuresChain = physicalDevice.getFeatures2<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceHostQueryResetFeatures>();
+        if (!featuresChain.get<vk::PhysicalDeviceHostQueryResetFeatures>().hostQueryReset) {
+            qCWarning(KWIN_VULKAN, "Physical device %s doesn't support host query resets", deviceName);
+            continue;
+        }
+
+        vk::PhysicalDeviceHostQueryResetFeatures hostQueryReset;
+        hostQueryReset.hostQueryReset = true;
+        vk::PhysicalDeviceSynchronization2Features syncFeatures;
+        syncFeatures.synchronization2 = true;
+        syncFeatures.pNext = &hostQueryReset;
+        VkPhysicalDeviceFeatures features{
+            .robustBufferAccess = true,
+        };
+        VkDeviceCreateInfo deviceInfo{
+            .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            .pNext = &syncFeatures,
+            .flags = {},
+            .queueCreateInfoCount = uint32_t(queueInfo.size()),
+            .pQueueCreateInfos = queueInfo.data(),
+            .enabledLayerCount = 0,
+            .ppEnabledLayerNames = nullptr,
+            .enabledExtensionCount = uint32_t(usedExtensions.size()),
+            .ppEnabledExtensionNames = usedExtensions.data(),
+            .pEnabledFeatures = &features,
+        };
+
+        auto [result, logicalDevice] = physicalDevice.createDevice(deviceInfo);
+        if (result != vk::Result::eSuccess) {
+            qCWarning(KWIN_VULKAN, "vkCreateDevice for %s failed: %s", deviceName, vk::to_string(vk::Result(result)).c_str());
+            continue;
+        }
+
+        auto ret = std::make_unique<VulkanDevice>(
+            physicalDevice,
+            std::move(logicalDevice),
+            queueProperties | std::ranges::to<std::vector<VkQueueFamilyProperties>>(),
+            basicProperties.properties.deviceType,
+            minImportedHostPointerAlignment);
+        if (ret->transferFormats().isEmpty()) {
+            continue;
+        }
+        qCDebug(KWIN_VULKAN, "Found Vulkan device %s for %s", deviceName, qPrintable(path));
+        return ret;
+    }
+    qCDebug(KWIN_VULKAN, "No Vulkan device found for %s", qPrintable(path));
+    return nullptr;
+}
+
+void RenderDevice::handleVulkanDeviceLoss()
+{
+    if (m_inReset) {
+        return;
+    }
+    m_inReset = true;
+    // This is done with a queued connection to avoid deleting the Vulkan device
+    // before other parts of KWin are able to clean up their Vulkan resources
+    QMetaObject::invokeMethod(this, &RenderDevice::createVulkanDevice, Qt::QueuedConnection);
+}
+
+void RenderDevice::createVulkanDevice()
+{
+    if (!*m_vulkanInstance) {
+        return;
+    }
+    m_vulkanDevice = openVulkanDevice(m_vulkanInstance, m_device.get(), m_path);
+    if (m_vulkanDevice) {
+        connect(m_vulkanDevice.get(), &VulkanDevice::deviceLost, this, &RenderDevice::handleVulkanDeviceLoss);
+    }
+    m_inReset = false;
+}
+
+bool RenderDevice::isInReset() const
+{
+    return m_inReset;
+}
+
+std::unique_ptr<RenderDevice> RenderDevice::open(const QString &path, int authenticatedFd)
+{
+    auto drmDevice = DrmDevice::openWithAuthentication(path, authenticatedFd);
+    if (!drmDevice) {
+        return nullptr;
+    }
+    auto eglDisplay = EglDisplay::create(eglGetPlatformDisplayEXT(EGL_PLATFORM_GBM_KHR, drmDevice->gbmDevice(), nullptr), drmDevice.get());
+    if (!eglDisplay) {
+        return nullptr;
+    }
+    return std::make_unique<RenderDevice>(std::move(drmDevice), std::move(eglDisplay));
+}
+
+std::unique_ptr<RenderDevice> RenderDevice::createSoftwareDevice(dev_t deviceId)
+{
+    EGLint numDevices = 0;
+    if (eglQueryDevicesEXT(0, nullptr, &numDevices) != EGL_TRUE) {
+        return nullptr;
+    }
+    QList<EGLDeviceEXT> devices;
+    devices.resize(numDevices);
+    if (eglQueryDevicesEXT(numDevices, devices.data(), &numDevices) != EGL_TRUE) {
+        return nullptr;
+    }
+    devices.resize(numDevices);
+    const auto it = std::ranges::find_if(devices, [](EGLDeviceEXT device) {
+        return QByteArrayView(eglQueryDeviceStringEXT(device, EGL_EXTENSIONS)).contains("EGL_MESA_device_software");
+    });
+    if (it == devices.end()) {
+        return nullptr;
+    }
+    auto eglDisplay = EglDisplay::create(eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, *it, nullptr), nullptr);
+    if (!eglDisplay) {
+        return nullptr;
+    }
+    return std::make_unique<RenderDevice>(std::make_unique<UDmabufAllocator>(), std::move(eglDisplay), deviceId);
+}
+
+bool RenderDevice::isSoftwareDevice() const
+{
+    return m_display->isSoftwareRenderer() && (!m_vulkanDevice || m_vulkanDevice->isSoftwareRenderer());
+}
+
+bool RenderDevice::isInternal() const
+{
+    if (m_vulkanDevice) {
+        return m_vulkanDevice->type() == vk::PhysicalDeviceType::eIntegratedGpu;
+    }
+    return m_display->type() == EglDisplay::GpuType::Internal;
+}
+
+bool RenderDevice::isIntel() const
+{
+    return m_device && (m_device->isI915() || m_device->isIntelXE());
+}
+
+bool RenderDevice::isNvidia() const
+{
+    return m_device && m_device->isNvidia();
+}
+
+static QString prettify(const QString &name)
+{
+    QString ret = name;
+    ret.replace(QStringLiteral("(TM)"), QChar(8482));
+    ret.replace(QStringLiteral("(R)"), QChar(174));
+    ret = ret.mid(0, ret.indexOf('('));
+    return ret.trimmed();
+}
+
+void RenderDevice::fetchName()
+{
+    if (m_vulkanDevice) {
+        m_name = prettify(m_vulkanDevice->name());
+        return;
+    }
+    auto context = eglContext();
+    if (context && context->makeCurrent()) {
+        m_name = prettify(QString::fromLatin1(context->glPlatform()->glRendererString()));
+        return;
+    }
+    // better than nothing
+    m_name = m_path;
+}
+
+}

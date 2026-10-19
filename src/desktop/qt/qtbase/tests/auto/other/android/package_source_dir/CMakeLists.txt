@@ -23,11 +23,11 @@ qt_internal_add_test(tst_package_source_dir_custom_android_manifest
         EXPECTED_APP_NAME="tst_package_source_dir_custom_android_manifest_my"
 )
 
-if(QT_USE_ANDROID_MODERN_BUNDLE)
+if(QT_ANDROID_GRADLE_MULTI_MODULE)
     set_target_properties(tst_package_source_dir_custom_android_manifest
         PROPERTIES
             QT_ANDROID_PACKAGE_SOURCE_DIR
-            "${CMAKE_CURRENT_SOURCE_DIR}/custom_android_manifest_bundle"
+            "${CMAKE_CURRENT_SOURCE_DIR}/custom_android_manifest_bundle/app"
     )
 else()
     set_target_properties(tst_package_source_dir_custom_android_manifest
@@ -37,8 +37,8 @@ else()
     )
 endif()
 
-if(QT_USE_ANDROID_MODERN_BUNDLE)
-    # Partial gradle template is only supported by QT_USE_ANDROID_MODERN_BUNDLE
+if(QT_ANDROID_GRADLE_MULTI_MODULE)
+    # Partial gradle template is only supported by QT_ANDROID_GRADLE_MULTI_MODULE
     #
     # Package name from user-provided gradle.build.in
     qt_internal_add_test(tst_package_source_dir_partial_template
@@ -49,6 +49,6 @@ if(QT_USE_ANDROID_MODERN_BUNDLE)
     )
     set_target_properties(tst_package_source_dir_partial_template
         PROPERTIES
-            QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/partial_template"
+            QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/partial_template/app"
     )
 endif()

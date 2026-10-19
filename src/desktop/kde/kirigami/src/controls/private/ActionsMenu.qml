@@ -19,9 +19,13 @@ QQC2.Menu {
     property Component itemDelegate: ActionMenuItem {}
     property Component separatorDelegate: QQC2.MenuSeparator {
         property T.Action action
+        visible: (action as KC.Action)?.visible ?? true
+        height: visible ? implicitHeight : 0
     }
     property Component loaderDelegate: Loader {
         property T.Action action
+        visible: (action as KC.Action)?.visible ?? true
+        height: visible ? implicitHeight : 0
     }
     property T.Action parentAction
     property T.MenuItem parentItem

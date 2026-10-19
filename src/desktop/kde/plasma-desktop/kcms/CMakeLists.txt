@@ -1,11 +1,7 @@
 remove_definitions(-DQT_NO_CAST_FROM_ASCII -DQT_STRICT_ITERATORS -DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_KEYWORDS)
 
 add_subdirectory(libkwindevices)
-
-if(X11_Xkb_FOUND AND XCB_XKB_FOUND)
-    add_subdirectory( keyboard )
-endif()
-
+add_subdirectory( keyboard )
 add_subdirectory( access )
 add_subdirectory( dateandtime )
 add_subdirectory( ksplash )
@@ -33,13 +29,9 @@ if (KF6Baloo_FOUND)
 endif()
 add_subdirectory(solid_actions)
 
-if (BUILD_KCM_MOUSE_KWIN_WAYLAND OR BUILD_KCM_MOUSE_X11)
-    add_subdirectory(mouse)
-endif()
+add_subdirectory(mouse)
 
-if (BUILD_KCM_TOUCHPAD_KWIN_WAYLAND OR BUILD_KCM_TOUCHPAD_X11)
-    add_subdirectory(touchpad)
-endif()
+add_subdirectory(touchpad)
 
 if(BUILD_KCM_TABLET)
     add_subdirectory(tablet)

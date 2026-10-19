@@ -16,13 +16,14 @@
 #include "core/renderviewport.h"
 #include "effect/effecthandler.h"
 #include "input_event.h"
+#include "opengl/glshader.h"
+#include "opengl/glshadermanager.h"
+#include "opengl/glvertexbuffer.h"
 
 #include <QAction>
 
 #include <KConfigGroup>
 #include <KGlobalAccel>
-
-#include <QPainter>
 
 #include <cmath>
 
@@ -37,8 +38,7 @@ MouseClickEffect::MouseClickEffect()
     QAction *a = new QAction(this);
     a->setObjectName(QStringLiteral("ToggleMouseClick"));
     a->setText(i18n("Toggle Mouse Click Animation"));
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Asterisk));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Asterisk));
+    KGlobalAccel::self()->setGlobalShortcut(a, QKeySequence(Qt::META | Qt::Key_Asterisk));
     connect(a, &QAction::triggered, this, &MouseClickEffect::toggleEnabled);
 
     reconfigure(ReconfigureAll);
@@ -66,9 +66,9 @@ void MouseClickEffect::reconfigure(ReconfigureFlags)
     m_font = MouseClickConfig::font();
 }
 
-void MouseClickEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void MouseClickEffect::prePaintScreen(ScreenPrePaintData &data)
 {
-    const int time = m_lastPresentTime.count() ? (presentTime - m_lastPresentTime).count() : 0;
+    const int time = m_clock.tick(data.view).count();
 
     for (auto &click : m_clicks) {
         click->m_time += time;
@@ -87,22 +87,20 @@ void MouseClickEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::mil
         m_clicks.pop_front();
     }
 
-    if (isActive()) {
-        m_lastPresentTime = presentTime;
-    } else {
-        m_lastPresentTime = std::chrono::milliseconds::zero();
+    if (!isActive()) {
+        m_clock.reset();
     }
 
-    effects->prePaintScreen(data, presentTime);
+    effects->prePaintScreen(data);
 }
 
-void MouseClickEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
+bool MouseClickEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
 {
-    effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
-
-    if (effects->isOpenGLCompositing()) {
-        paintScreenSetupGl(renderTarget, viewport.projectionMatrix());
+    if (!effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen)) {
+        return false;
     }
+
+    paintScreenSetupGl(renderTarget, viewport.projectionMatrix());
     for (const auto &click : m_clicks) {
         for (int i = 0; i < m_ringCount; ++i) {
             float alpha = computeAlpha(click.get(), i);
@@ -126,9 +124,8 @@ void MouseClickEffect::paintScreen(const RenderTarget &renderTarget, const Rende
             drawCircle(viewport, tool.m_color, tool.m_globalPosition.x(), tool.m_globalPosition.y(), size);
         }
     }
-    if (effects->isOpenGLCompositing()) {
-        paintScreenFinishGl();
-    }
+    paintScreenFinishGl();
+    return true;
 }
 
 void MouseClickEffect::postPaintScreen()
@@ -199,7 +196,7 @@ void MouseClickEffect::repaint()
         Region dirtyRegion;
         const int radius = m_ringMaxSize + m_lineWidth;
         for (auto &click : m_clicks) {
-            dirtyRegion += QRect(click->m_pos.x() - radius, click->m_pos.y() - radius, 2 * radius, 2 * radius);
+            dirtyRegion += Rect(click->m_pos.x() - radius, click->m_pos.y() - radius, 2 * radius, 2 * radius);
             if (click->m_frame) {
                 dirtyRegion += click->m_frame->geometry();
             }
@@ -210,7 +207,7 @@ void MouseClickEffect::repaint()
         Region dirtyRegion;
         const int radius = m_ringMaxSize + m_lineWidth;
         for (const auto &event : std::as_const(m_tabletTools)) {
-            dirtyRegion += QRect(event.m_globalPosition.x() - radius, event.m_globalPosition.y() - radius, 2 * radius, 2 * radius);
+            dirtyRegion += Rect(event.m_globalPosition.x() - radius, event.m_globalPosition.y() - radius, 2 * radius, 2 * radius);
         }
         effects->addRepaint(dirtyRegion);
     }
@@ -252,11 +249,7 @@ bool MouseClickEffect::isActive() const
 
 void MouseClickEffect::drawCircle(const RenderViewport &viewport, const QColor &color, float cx, float cy, float r)
 {
-    if (effects->isOpenGLCompositing()) {
-        drawCircleGl(viewport, color, cx, cy, r);
-    } else if (effects->compositingType() == QPainterCompositing) {
-        drawCircleQPainter(color, cx, cy, r);
-    }
+    drawCircleGl(viewport, color, cx, cy, r);
 }
 
 void MouseClickEffect::drawCircleGl(const RenderViewport &viewport, const QColor &color, float cx, float cy, float r)
@@ -288,15 +281,6 @@ void MouseClickEffect::drawCircleGl(const RenderViewport &viewport, const QColor
     vbo->render(GL_LINE_LOOP);
 }
 
-void MouseClickEffect::drawCircleQPainter(const QColor &color, float cx, float cy, float r)
-{
-    QPainter *painter = effects->scenePainter();
-    painter->save();
-    painter->setPen(color);
-    painter->drawArc(cx - r, cy - r, r * 2, r * 2, 0, 5760);
-    painter->restore();
-}
-
 void MouseClickEffect::paintScreenSetupGl(const RenderTarget &renderTarget, const QMatrix4x4 &projectionMatrix)
 {
     GLShader *shader = ShaderManager::instance()->pushShader(ShaderTrait::UniformColor | ShaderTrait::TransformColorspace);
@@ -305,7 +289,7 @@ void MouseClickEffect::paintScreenSetupGl(const RenderTarget &renderTarget, cons
 
     glLineWidth(m_lineWidth);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void MouseClickEffect::paintScreenFinishGl()

@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "qdesigner_utils_p.h"
 #include "qdesigner_propertycommand_p.h"
@@ -705,10 +706,18 @@ namespace qdesigner_internal {
         static constexpr auto uicBinary =
             QOperatingSystemVersion::currentType() != QOperatingSystemVersion::Windows
             ? "/uic"_L1 : "/uic.exe"_L1;
-        QString binary = QLibraryInfo::path(QLibraryInfo::LibraryExecutablesPath) + uicBinary;
+        QString binary = [] {
+            const QStringList paths = QLibraryInfo::paths(QLibraryInfo::LibraryExecutablesPath);
+            for (const QString &path : paths) {
+                const QString candidate = path + uicBinary;
+                if (QFile::exists(candidate))
+                    return candidate;
+            }
+            return QString();
+        }();
         // In a PySide6 installation, there is no libexec directory; uic.exe is
         // in the main wheel directory next to designer.exe.
-        if (!QFileInfo::exists(binary))
+        if (binary.isEmpty())
             binary = QCoreApplication::applicationDirPath() + uicBinary;
         if (!QFileInfo::exists(binary)) {
             errorMessage = QApplication::translate("Designer", "%1 does not exist.").
@@ -725,9 +734,7 @@ namespace qdesigner_internal {
         }
         arguments << fileName;
 
-        // AXIVION DISABLE Style Qt-Security-QProcessStart: False positive, path is absolute
         uic.start(binary, arguments);
-        // AXIVION ENABLE Style Qt-Security-QProcessStart
 
         if (!uic.waitForStarted()) {
             errorMessage = QApplication::translate("Designer", "Unable to launch %1: %2").

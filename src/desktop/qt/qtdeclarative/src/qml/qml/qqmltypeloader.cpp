@@ -30,10 +30,6 @@
 #include <QtCore/qlibraryinfo.h>
 #include <QtCore/qthread.h>
 
-#ifdef Q_OS_MACOS
-#include "private/qcore_mac_p.h"
-#endif
-
 #include <functional>
 
 #define ASSERT_LOADTHREAD() \
@@ -307,9 +303,12 @@ void QQmlTypeLoader::loadThread(const QQmlDataBlob::Ptr &blob)
 
     if (QQmlFile::isSynchronous(blob->m_url)) {
         const QString fileName = QQmlFile::urlToLocalFileOrQrc(blob->m_url);
-        if (!fileExists(fileName) && QFileInfo::exists(fileName)) {
+
+        const bool exists = fileExists(fileName);
+        if (!exists && !isResource(fileName) && QFileInfo::exists(fileName)) {
             // If the file doesn't exist at all, that's fine. It may be cached. If it's a case
             // mismatch, though, we have to error out.
+            // NB: The resource file system is case-sensitive. No need to check there.
             blob->setError(QLatin1String("File name case mismatch"));
             return;
         }
@@ -317,7 +316,7 @@ void QQmlTypeLoader::loadThread(const QQmlDataBlob::Ptr &blob)
         if (blob->setProgress(1.f) && blob->isAsync())
             thread()->callDownloadProgressChanged(blob, 1.);
 
-        setData(blob, fileName);
+        setData(blob, fileName, exists);
 
     } else {
 #if QT_CONFIG(qml_network)
@@ -453,12 +452,13 @@ void QQmlTypeLoader::setData(const QQmlDataBlob::Ptr &blob, const QByteArray &da
     setData(blob, d);
 }
 
-void QQmlTypeLoader::setData(const QQmlDataBlob::Ptr &blob, const QString &fileName)
+void QQmlTypeLoader::setData(const QQmlDataBlob::Ptr &blob, const QString &fileName, bool exists)
 {
     ASSERT_LOADTHREAD();
 
     QQmlDataBlob::SourceCodeData d;
     d.fileInfo = QFileInfo(fileName);
+    d.fileExists = exists;
     setData(blob, d);
 }
 
@@ -510,7 +510,6 @@ static bool isPathAbsolute(const QString &path)
 #endif
 }
 
-
 /*!
     \internal
 */
@@ -533,7 +532,7 @@ QStringList QQmlTypeLoader::importPathList(PathType type) const
 /*!
     \internal
 */
-void QQmlTypeLoader::addImportPath(const QString &path)
+void QQmlTypeLoader::addImportPath(const QString &path, AddPathMode mode)
 {
     qCDebug(lcQmlImport) << "addImportPath:" << path;
 
@@ -561,10 +560,18 @@ void QQmlTypeLoader::addImportPath(const QString &path)
 
     QQmlTypeLoaderConfiguredDataPtr data(&m_data);
     if (!cPath.isEmpty()) {
-        if (data->importPaths.contains(cPath))
-            data->importPaths.move(data->importPaths.indexOf(cPath), 0);
-        else
-            data->importPaths.prepend(cPath);
+        if (mode == PrependPath) {
+            // Prepending an existing path moves it to the front, to reflect
+            // its new, higher priority.
+            if (data->importPaths.contains(cPath))
+                data->importPaths.move(data->importPaths.indexOf(cPath), 0);
+            else
+                data->importPaths.prepend(cPath);
+        } else if (!data->importPaths.contains(cPath)) {
+            // Appending leaves an already known path untouched, so that we
+            // don't lower the priority of a path that was explicitly prepended.
+            data->importPaths.append(cPath);
+        }
     }
 }
 
@@ -577,8 +584,8 @@ void QQmlTypeLoader::setImportPathList(const QStringList &paths)
 
     QQmlTypeLoaderConfiguredDataPtr data(&m_data);
     data->importPaths.clear();
-    for (auto it = paths.crbegin(); it != paths.crend(); ++it)
-        addImportPath(*it);
+    for (const QString &path : paths)
+        addImportPath(path, AppendPath);
 
     // Our existing cached paths may have been invalidated
     clearQmldirInfo();
@@ -598,20 +605,24 @@ void QQmlTypeLoader::setPluginPathList(const QStringList &paths)
 /*!
     \internal
 */
-void QQmlTypeLoader::addPluginPath(const QString& path)
+void QQmlTypeLoader::addPluginPath(const QString& path, AddPathMode mode)
 {
     qCDebug(lcQmlImport) << "addPluginPath:" << path;
 
     QQmlTypeLoaderConfiguredDataPtr data(&m_data);
 
     QUrl url = QUrl(path);
+    QString canonicalPath = path;
     if (url.isRelative() || url.scheme() == QLatin1String("file")
         || (url.scheme().size() == 1 && QFile::exists(path)) ) {  // windows path
         QDir dir = QDir(path);
-        data->pluginPaths.prepend(dir.canonicalPath());
-    } else {
-        data->pluginPaths.prepend(path);
+        canonicalPath = dir.canonicalPath();
     }
+
+    if (mode == PrependPath)
+        data->pluginPaths.prepend(canonicalPath);
+    else
+        data->pluginPaths.append(canonicalPath);
 }
 
 #if QT_CONFIG(qml_network)
@@ -1240,76 +1251,54 @@ Constructs a new type loader that uses the given \a engine.
 QQmlTypeLoader::QQmlTypeLoader(QV4::ExecutionEngine *engine)
     : m_data(engine)
 {
-    QQmlTypeLoaderConfiguredDataPtr data(&m_data);
-    data->pluginPaths << QLatin1String(".");
-    // Search order is:
-    // 1. android or macos specific bundle paths.
-    // 2. applicationDirPath()
-    // 3. qrc:/qt-project.org/imports
-    // 4. qrc:/qt/qml
-    // 5. $QML2_IMPORT_PATH
-    // 6. $QML_IMPORT_PATH
-    // 7. QLibraryInfo::QmlImportsPath
-    //
-    // ... unless we're a plugin application. Then we don't pick up any special paths
-    // from environment variables or bundles and we also don't add the application dir path.
-
-    const auto paths = QLibraryInfo::paths(QLibraryInfo::QmlImportsPath);
-    for (const auto &installImportsPath: paths)
-        addImportPath(installImportsPath);
+    // Add default import and plugin paths. Paths are added in decreasting
+    // priority, by appending to the path lists.
 
     const bool isPluginApplication = QCoreApplication::testAttribute(Qt::AA_PluginApplication);
 
-    auto addEnvImportPath = [this, isPluginApplication](const char *var) {
+    auto addEnvPath = [this, isPluginApplication](const char *var, auto addPath) {
         if (Q_UNLIKELY(!isPluginApplication && !qEnvironmentVariableIsEmpty(var))) {
             const QStringList paths = parseEnvPath(qEnvironmentVariable(var));
-            for (int ii = paths.size() - 1; ii >= 0; --ii)
-                addImportPath(paths.at(ii));
+            for (const QString &path : paths)
+                (this->*addPath)(path, AppendPath);
         }
     };
 
-    // env import paths
-    addEnvImportPath("QML_IMPORT_PATH");
-    addEnvImportPath("QML2_IMPORT_PATH");
+    // Import paths, used for looking up QML modules, e.g. `MyModules/qmldir`
 
-    addImportPath(QStringLiteral("qrc:/qt/qml"));
-    addImportPath(QStringLiteral("qrc:/qt-project.org/imports"));
+#if defined(Q_OS_ANDROID)
+    addImportPath(QStringLiteral("qrc:/android_rcc_bundle/qml"), AppendPath);
+#endif
 
     if (!isPluginApplication)
-        addImportPath(QCoreApplication::applicationDirPath());
+        addImportPath(QCoreApplication::applicationDirPath(), AppendPath);
 
-    auto addEnvPluginPath = [this, isPluginApplication](const char *var) {
-        if (Q_UNLIKELY(!isPluginApplication && !qEnvironmentVariableIsEmpty(var))) {
-            const QStringList paths = parseEnvPath(qEnvironmentVariable(var));
-            for (int ii = paths.size() - 1; ii >= 0; --ii)
-                addPluginPath(paths.at(ii));
-        }
-    };
+    addImportPath(QStringLiteral("qrc:/qt-project.org/imports"), AppendPath);
+    addImportPath(QStringLiteral("qrc:/qt/qml"), AppendPath);
 
-    addEnvPluginPath("QML_PLUGIN_PATH");
+    addEnvPath("QML2_IMPORT_PATH", &QQmlTypeLoader::addImportPath);
+    addEnvPath("QML_IMPORT_PATH", &QQmlTypeLoader::addImportPath);
+
+    const auto qmlImportPaths = QLibraryInfo::paths(QLibraryInfo::QmlImportsPath);
+    for (const auto &qmlImportPath : qmlImportPaths)
+        addImportPath(qmlImportPath, AppendPath);
+
+    // Plugin paths, used for looking up the backing library of a QML module
+
 #if defined(Q_OS_ANDROID)
-    addImportPath(QStringLiteral("qrc:/android_rcc_bundle/qml"));
-    addEnvPluginPath("QT_BUNDLED_LIBS_PATH");
-#elif defined(Q_OS_MACOS)
-    // Add the main bundle's Resources/qml directory as an import path, so that QML modules are
-    // found successfully when running the app from its build dir.
-    // This is where macdeployqt and our CMake deployment logic puts Qt and user qmldir files.
-    if (!isPluginApplication) {
-        if (CFBundleRef bundleRef = CFBundleGetMainBundle()) {
-            if (QCFType<CFURLRef> urlRef = CFBundleCopyResourceURL(
-                        bundleRef, QCFString(QLatin1String("qml")), 0, 0)) {
-                if (QCFType<CFURLRef> absoluteUrlRef = CFURLCopyAbsoluteURL(urlRef)) {
-                    if (QCFString path = CFURLCopyFileSystemPath(
-                                absoluteUrlRef, kCFURLPOSIXPathStyle)) {
-                        if (QFile::exists(path)) {
-                            addImportPath(QDir(path).canonicalPath());
-                        }
-                    }
-                }
-            }
-        }
-    }
-#endif // Q_OS_DARWIN
+    addEnvPath("QT_BUNDLED_LIBS_PATH", &QQmlTypeLoader::addPluginPath);
+#endif
+    addEnvPath("QML_PLUGIN_PATH", &QQmlTypeLoader::addPluginPath);
+
+    const auto pluginPaths = QLibraryInfo::paths(QLibraryInfo::PluginsPath);
+    for (const auto &pluginPath : pluginPaths)
+        addPluginPath(pluginPath, AppendPath);
+
+    // Explicitly add "." to the plugin paths, to represent the path relative
+    // to where the qmldir was found. We can't use addPluginPath() here, as
+    // it will resolve the path to an absolute path based on the working dir.
+    QQmlTypeLoaderConfiguredDataPtr data(&m_data);
+    data->pluginPaths << QLatin1String(".");
 }
 
 /*!
@@ -1518,7 +1507,7 @@ QQmlRefPointer<QQmlQmldirData> QQmlTypeLoader::getQmldir(const QUrl &url)
 }
 
 /*!
-Returns the absolute filename of path via a directory cache.
+Returns the clean filename of path via a directory cache.
 Returns a empty string if the path does not exist.
 
 Why a directory cache?  QML checks for files in many paths with
@@ -1526,38 +1515,43 @@ invalid directories.  By caching whether a directory exists
 we avoid many stats.  We also cache the files' existence in the
 directory, for the same reason.
 */
-QString QQmlTypeLoader::absoluteFilePath(const QString &path)
+QString QQmlTypeLoader::cleanFilePath(const QString &path) const
 {
     // Can be called from either thread.
 
     if (path.isEmpty())
         return QString();
-    if (path.at(0) == QLatin1Char(':')) {
+
+    const QString cleanPath = QDir::cleanPath(path);
+    if (cleanPath.at(0) == QLatin1Char(':')) {
         // qrc resource
-        QFileInfo fileInfo(path);
-        return fileInfo.isFile() ? fileInfo.absoluteFilePath() : QString();
-    } else if (path.size() > 3 && path.at(3) == QLatin1Char(':') &&
-               path.startsWith(QLatin1String("qrc"), Qt::CaseInsensitive)) {
-        // qrc resource url
-        QFileInfo fileInfo(QQmlFile::urlToLocalFileOrQrc(path));
-        return fileInfo.isFile() ? fileInfo.absoluteFilePath() : QString();
+        QFileInfo fileInfo(cleanPath);
+        return fileInfo.isFile() ? cleanPath : QString();
+    } else if (cleanPath.size() > 3 && cleanPath.at(3) == QLatin1Char(':')
+               && cleanPath.startsWith(QLatin1String("qrc"), Qt::CaseInsensitive)) {
+        // qrc resource url. Turn into path by stripping "qrc".
+        const QString actualPath = cleanPath.mid(3);
+        QFileInfo fileInfo(actualPath);
+        return fileInfo.isFile() ? actualPath : QString();
     }
 #if defined(Q_OS_ANDROID)
-    else if (path.size() > 7 && path.at(6) == QLatin1Char(':') && path.at(7) == QLatin1Char('/') &&
-           path.startsWith(QLatin1String("assets"), Qt::CaseInsensitive)) {
+    else if (cleanPath.size() > 7 && cleanPath.at(6) == QLatin1Char(':')
+             && cleanPath.at(7) == QLatin1Char('/')
+             && cleanPath.startsWith(QLatin1String("assets"), Qt::CaseInsensitive)) {
         // assets resource url
-        QFileInfo fileInfo(QQmlFile::urlToLocalFileOrQrc(path));
-        return fileInfo.isFile() ? fileInfo.absoluteFilePath() : QString();
-    } else if (path.size() > 8 && path.at(7) == QLatin1Char(':') && path.at(8) == QLatin1Char('/') &&
-           path.startsWith(QLatin1String("content"), Qt::CaseInsensitive)) {
+        QFileInfo fileInfo(cleanPath);
+        return fileInfo.isFile() ? cleanPath : QString();
+    } else if (cleanPath.size() > 8 && cleanPath.at(7) == QLatin1Char(':')
+               && cleanPath.at(8) == QLatin1Char('/')
+               && cleanPath.startsWith(QLatin1String("content"), Qt::CaseInsensitive)) {
         // content url
-        QFileInfo fileInfo(QQmlFile::urlToLocalFileOrQrc(path));
-        return fileInfo.isFile() ? fileInfo.absoluteFilePath() : QString();
+        QFileInfo fileInfo(cleanPath);
+        return fileInfo.isFile() ? cleanPath : QString();
     }
 #endif
 
-    return fileExists(path)
-            ? QFileInfo(path).absoluteFilePath()
+    return fileExists(cleanPath)
+            ? cleanPath
             : QString();
 }
 
@@ -1598,7 +1592,7 @@ static QString stripTrailingSlashes(const QString &path)
     return QString();
 }
 
-static bool isResource(const QString &path)
+bool QQmlTypeLoader::isResource(const QString &path)
 {
     const bool startsWithColon = path.at(0) == QLatin1Char(':');
 #if defined(Q_OS_ANDROID)
@@ -1609,7 +1603,7 @@ static bool isResource(const QString &path)
 #endif
 }
 
-bool QQmlTypeLoader::fileExists(const QString &dirPath, const QString &file)
+bool QQmlTypeLoader::fileExists(const QString &dirPath, const QString &file) const
 {
     // Can be called from either thread.
 
@@ -1637,7 +1631,7 @@ bool QQmlTypeLoader::fileExists(const QString &dirPath, const QString &file)
 
     const QString path = stripTrailingSlashes(dirPath);
 
-    QQmlTypeLoaderSharedDataPtr data(&m_data);
+    QQmlTypeLoaderSharedDataConstPtr data(&m_data);
     QCache<QString, bool> *fileSet = data->importDirCache.object(path);
     if (fileSet) {
         if (const bool *exists = fileSet->object(file))
@@ -1690,7 +1684,7 @@ bool QQmlTypeLoader::fileExists(const QString &dirPath, const QString &file)
 
 /*!
 Returns true if the path is a directory via a directory cache.  Cache is
-shared with absoluteFilePath().
+shared with cleanFilePath().
 */
 bool QQmlTypeLoader::directoryExists(const QString &path)
 {
@@ -1725,11 +1719,14 @@ bool QQmlTypeLoader::directoryExists(const QString &path)
 
 
 /*!
-Return a QQmlTypeLoaderQmldirContent for absoluteFilePath.  The QQmlTypeLoaderQmldirContent may be cached.
 
-\a filePath is a local file path.
+\internal
 
-It can also be a remote path for a remote directory import, but it will have been cached by now in this case.
+Return a QQmlTypeLoaderQmldirContent for \a filePathIn.
+The QQmlTypeLoaderQmldirContent may be cached.
+
+It can also be a remote path for a remote directory import, but it will have
+been cached by now in this case.
 */
 const QQmlTypeLoaderQmldirContent QQmlTypeLoader::qmldirContent(const QString &filePathIn)
 {
@@ -1780,7 +1777,7 @@ const QQmlTypeLoaderQmldirContent QQmlTypeLoader::qmldirContent(const QString &f
 
 #undef ERROR
 #undef NOT_READABLE_ERROR
-#undef CASE_MISMATCH_ERROR
+#undef NOT_FOUND_ERROR
 
     data->importQmlDirCache.insert(filePath, qmldir);
     return *qmldir;
@@ -1841,6 +1838,20 @@ void QQmlTypeLoader::clearCache()
     data->importDirCache.clear();
 
     // The thread will auto-restart next time we need it.
+}
+
+/*!
+    \internal
+    Remove any cached artifacts for \a url.
+
+    Returns \c true if anything was removed, or \c false otherwise.
+*/
+bool QQmlTypeLoader::removeFromCache(const QUrl &url)
+{
+    const QUrl normalized = QQmlMetaType::normalizedUrl(url);
+    const QQmlTypeLoaderSharedDataPtr data(&m_data);
+    return data->typeCache.remove(normalized) || data->scriptCache.remove(normalized)
+            || data->qmldirCache.remove(normalized);
 }
 
 void QQmlTypeLoader::trimCache()
@@ -1927,6 +1938,31 @@ bool QQmlTypeLoader::isScriptLoaded(const QUrl &url) const
     return data->scriptCache.contains(url);
 }
 
+static QString pathToUrl(const QString &path)
+{
+    const auto dir = path.left(path.lastIndexOf(u"/") + 1);
+    if (dir.at(0) == u':')
+        return QStringLiteral("qrc") + dir;
+    else
+        return QUrl::fromLocalFile(dir).toString();
+};
+
+QStringList QQmlTypeLoader::urlsForModule(const QString &module) const
+{
+    const auto &importPaths = importPathList();
+    const auto completedImportPaths = QQmlImports::completeQmldirPaths(module, importPaths, {});
+    QStringList urls;
+    for (const auto &importPath : completedImportPaths) {
+        const auto cleanPath = cleanFilePath(importPath);
+        if (cleanPath.isEmpty())
+            continue;
+        if (const std::optional<QString> url = pathToUrl(cleanPath))
+            urls.append(url.value());
+    }
+
+    return urls;
+};
+
 /*!
 \internal
 
@@ -1988,7 +2024,7 @@ QQmlTypeLoader::LocalQmldirResult QQmlTypeLoader::locateLocalQmldir(
     const QStringList qmlDirPaths = QQmlImports::completeQmldirPaths(
             import->uri, localImportPaths, import->version);
 
-    QString qmldirAbsoluteFilePath;
+    QString qmldirCleanFilePath;
     for (QString qmldirPath : qmlDirPaths) {
         if (hasInterceptors) {
             // TODO:
@@ -2013,21 +2049,19 @@ QQmlTypeLoader::LocalQmldirResult QQmlTypeLoader::locateLocalQmldir(
             }
         }
 
-        qmldirAbsoluteFilePath = absoluteFilePath(qmldirPath);
-        if (!qmldirAbsoluteFilePath.isEmpty()) {
-            QString url;
-            const QString absolutePath = qmldirAbsoluteFilePath.left(
-                    qmldirAbsoluteFilePath.lastIndexOf(u'/') + 1);
-            if (absolutePath.at(0) == u':') {
-                url = QStringLiteral("qrc") + absolutePath;
-            } else {
-                url = QUrl::fromLocalFile(absolutePath).toString();
-                sanitizeUNCPath(&qmldirAbsoluteFilePath);
-            }
+        // qmldirPath can be a path or a URL at this point because we've inherited that property
+        // from importPathList(). cleanFilePath() however, wants only paths, not URLs. It may
+        // also be empty here if an interceptor redirected it to a non-local URL above.
+        qmldirCleanFilePath = cleanFilePath(qmldirPath);
+
+        if (!qmldirCleanFilePath.isEmpty()) {
+            QString url = pathToUrl(qmldirCleanFilePath);
+            if (url.startsWith(QStringLiteral("file:")))
+                sanitizeUNCPath(&qmldirCleanFilePath);
 
             QQmlTypeLoaderThreadData::QmldirInfo *cache = new QQmlTypeLoaderThreadData::QmldirInfo;
             cache->version = import->version;
-            cache->qmldirFilePath = qmldirAbsoluteFilePath;
+            cache->qmldirFilePath = qmldirCleanFilePath;
             cache->qmldirPathUrl = url;
             cache->next = nullptr;
             if (cacheTail)
@@ -2038,7 +2072,7 @@ QQmlTypeLoader::LocalQmldirResult QQmlTypeLoader::locateLocalQmldir(
 
             if (result != QmldirFound) {
                 result = blob->handleLocalQmldirForImport(
-                                 import, qmldirAbsoluteFilePath, url, errors)
+                                 import, qmldirCleanFilePath, url, errors)
                         ? QmldirFound
                         : QmldirRejected;
             }
@@ -2067,7 +2101,7 @@ QQmlTypeLoader::LocalQmldirResult QQmlTypeLoader::locateLocalQmldir(
     } else {
         qCDebug(lcQmlImport)
                 << "locateLocalQmldir:" << qPrintable(import->uri) << "module's qmldir found at"
-                << qmldirAbsoluteFilePath;
+                << qmldirCleanFilePath;
     }
 
     return result;

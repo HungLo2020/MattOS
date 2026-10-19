@@ -1,13 +1,13 @@
-# Copyright (C) YEAR This file is copyright:
+# Copyright (C) 2026 This file is copyright:
 # This file is distributed under the same license as the plasma-settings package.
 #
-# Kheyyam Gojayev <xxmn77@gmail.com>, 2020, 2021, 2022, 2023.
+# SPDX-FileCopyrightText: 2020, 2021, 2022, 2023, 2026 Kheyyam Gojayev <xxmn77@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-settings\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2023-02-19 17:36+0400\n"
+"POT-Creation-Date: 2026-06-06 00:45+0000\n"
+"PO-Revision-Date: 2026-03-26 02:34+0400\n"
 "Last-Translator: Kheyyam <xxmn77@gmail.com>\n"
 "Language-Team: Azerbaijani <kde-i18n-doc@kde.org>\n"
 "Language: az\n"
@@ -15,48 +15,65 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 22.12.2\n"
+"X-Generator: Lokalize 25.12.3\n"
 
-#: mobilepower.cpp:33
+#: mobilepower.cpp:36
 #, kde-format
 msgid "30 sec"
 msgstr "30 san"
 
-#: mobilepower.cpp:34
+#: mobilepower.cpp:37
 #, kde-format
 msgid "1 min"
 msgstr "1 dəq"
 
-#: mobilepower.cpp:35
+#: mobilepower.cpp:38
 #, kde-format
 msgid "2 min"
 msgstr "2 dəq"
 
-#: mobilepower.cpp:36
+#: mobilepower.cpp:39
 #, kde-format
 msgid "5 min"
 msgstr "5 dəq"
 
-#: mobilepower.cpp:37
+#: mobilepower.cpp:40
 #, kde-format
 msgid "10 min"
 msgstr "10 dəq"
 
-#: mobilepower.cpp:38
+#: mobilepower.cpp:41
 #, kde-format
 msgid "15 min"
 msgstr "15 dəq"
 
-#: mobilepower.cpp:39
-#, fuzzy, kde-format
-#| msgid "10 min"
+#: mobilepower.cpp:42
+#, kde-format
 msgid "30 min"
-msgstr "10 dəq"
+msgstr "30 dəq"
 
-#: mobilepower.cpp:40
+#: mobilepower.cpp:43
 #, kde-format
 msgid "Never"
 msgstr "Heç vaxt"
+
+#: PowerProfileModel.cpp:41
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Power Save"
+msgstr "Enerjiyə qənaət"
+
+#: PowerProfileModel.cpp:42
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Balanced"
+msgstr "Tarazlaşdırılmış"
+
+#: PowerProfileModel.cpp:43
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Performance"
+msgstr "Məhsuldar"
 
 #: ui/BatteryPage.qml:23
 #, kde-format
@@ -124,12 +141,10 @@ msgid "Current Charge"
 msgstr "Hazırkı doldurulma"
 
 #: ui/BatteryPage.qml:108 ui/BatteryPage.qml:116
-#, fuzzy, kde-format
-#| msgctxt "%1 is value, %2 is unit"
-#| msgid "%1 %2"
+#, kde-format
 msgctxt "%1 is percentage value"
 msgid "%1 %"
-msgstr "%1 %2"
+msgstr "%1 %"
 
 #: ui/BatteryPage.qml:115
 #, kde-format
@@ -192,12 +207,10 @@ msgid "Unknown technology"
 msgstr "Naməlum texnologiya"
 
 #: ui/Graph.qml:141
-#, fuzzy, kde-format
-#| msgctxt "%1 is value, %2 is unit"
-#| msgid "%1%2"
+#, kde-format
 msgctxt "%1 is a percentage value"
 msgid "%1%"
-msgstr "%1%2"
+msgstr "%1%"
 
 #: ui/main.qml:33
 #, kde-format
@@ -245,12 +258,10 @@ msgid "Unknown battery"
 msgstr "Naməlum batareya"
 
 #: ui/main.qml:89
-#, fuzzy, kde-format
-#| msgctxt "%1 is value, %2 is unit"
-#| msgid "%1%2"
+#, kde-format
 msgctxt "%1 is the charge percent, % is the percent sign"
 msgid "%1%"
-msgstr "%1%2"
+msgstr "%1%"
 
 #: ui/main.qml:91
 #, kde-format
@@ -286,6 +297,17 @@ msgstr "Bu vaxtdan sonra ekran sönür:"
 msgctxt "Part of a sentence like 'Suspend device after 5 minutes'"
 msgid "Suspend device after"
 msgstr "Bu vaxtdan sonra cihazın işi dayanır:"
+
+#: ui/main.qml:149
+#, kde-format
+msgid "Power Profile"
+msgstr "Enerji profili"
+
+#: ui/main.qml:158
+#, kde-format
+msgctxt "@label:combobox Power Save, Balanced or Performance profile"
+msgid "Power profile"
+msgstr "Enerji profili"
 
 #~ msgid "%"
 #~ msgstr "%"

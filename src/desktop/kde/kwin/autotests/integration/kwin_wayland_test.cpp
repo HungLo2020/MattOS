@@ -8,6 +8,7 @@
 */
 #include "kwin_wayland_test.h"
 
+#include "backends/drm/drm_backend.h"
 #include "backends/virtual/virtual_backend.h"
 #include "compositor.h"
 #include "core/outputconfiguration.h"
@@ -19,7 +20,7 @@
 #include "pluginmanager.h"
 #include "wayland_server.h"
 #include "workspace.h"
-#include "backends/drm/drm_backend.h"
+#include "wayland/display.h"
 
 #include <KWayland/Client/seat.h>
 
@@ -45,9 +46,6 @@
 #include <unistd.h>
 
 Q_IMPORT_PLUGIN(KWinIntegrationPlugin)
-#if KWIN_BUILD_GLOBALSHORTCUTS
-Q_IMPORT_PLUGIN(KGlobalAccelImpl)
-#endif
 Q_IMPORT_PLUGIN(KWindowSystemKWinPlugin)
 Q_IMPORT_PLUGIN(KWinIdleTimePoller)
 
@@ -57,28 +55,17 @@ namespace KWin
 WaylandTestApplication::WaylandTestApplication(int &argc, char **argv, bool runOnKMS)
     : Application(argc, argv)
 {
-    QStandardPaths::setTestModeEnabled(true);
-
-    const QStringList configs{
-        QStringLiteral("kaccessrc"),
-        QStringLiteral("kglobalshortcutsrc"),
-        QStringLiteral("kcminputrc"),
-        QStringLiteral("kxkbrc"),
-        QStringLiteral("kwinoutputconfig.json"),
-    };
-    for (const QString &config : configs) {
-        if (const QString &fileName = QStandardPaths::locate(QStandardPaths::ConfigLocation, config); !fileName.isEmpty()) {
-            QFile::remove(fileName);
-        }
+    // create a temporary folder for test configs
+    if (!m_temporaryHome.isValid() || !qputenv("HOME", qPrintable(m_temporaryHome.path()))) {
+        qFatal("Couldn't create temporary home folder for the test");
+        return;
     }
+    QStandardPaths::setTestModeEnabled(true);
 
     QIcon::setThemeName(QStringLiteral("breeze"));
 #if KWIN_BUILD_ACTIVITIES
     setUseKActivities(false);
 #endif
-    if (!runOnKMS) {
-        qputenv("KWIN_COMPOSE", QByteArrayLiteral("Q"));
-    }
     qputenv("XDG_CURRENT_DESKTOP", QByteArrayLiteral("KDE"));
     qunsetenv("XKB_DEFAULT_RULES");
     qunsetenv("XKB_DEFAULT_MODEL");
@@ -116,6 +103,10 @@ WaylandTestApplication::WaylandTestApplication(int &argc, char **argv, bool runO
     }
     m_waylandServer.reset(WaylandServer::create());
     setProcessStartupEnvironment(QProcessEnvironment::systemEnvironment());
+
+    // Kwin uses QAbstractEventDispatcher::aboutToBlock to flush calls
+    // QTRY_COMPARE dispatches events manually but only calls awake and not aboutToBlock, so we have a new hook just for tests
+    connect(eventDispatcher(), &QAbstractEventDispatcher::awake, m_waylandServer->display(), &Display::flush);
 }
 
 WaylandTestApplication::~WaylandTestApplication()
@@ -127,6 +118,9 @@ WaylandTestApplication::~WaylandTestApplication()
         effects->unloadAllEffects();
     }
     destroyPlugins();
+
+    Compositor::self()->stop();
+
 #if KWIN_BUILD_X11
     m_xwayland.reset();
 #endif
@@ -134,6 +128,7 @@ WaylandTestApplication::~WaylandTestApplication()
     destroyWorkspace();
     destroyInputMethod();
     destroyCompositor();
+    destroyScene();
     destroyInput();
     m_waylandServer.reset();
 }
@@ -189,7 +184,7 @@ void WaylandTestApplication::destroyVirtualInputDevices()
     if (m_virtualTabletPad) {
         input()->removeInputDevice(m_virtualTabletPad.get());
     }
-    if (m_virtualTabletTool) {
+    if (m_virtualTablet) {
         input()->removeInputDevice(m_virtualTablet.get());
     }
 }
@@ -200,12 +195,14 @@ void WaylandTestApplication::performStartup()
         createInputMethod();
         if (m_inputMethodServerToStart != QStringLiteral("internal")) {
             inputMethod()->setInputMethodCommand(m_inputMethodServerToStart);
-            inputMethod()->setEnabled(true);
+            inputMethod()->setMode(InputMethod::VirtualKeyboardVisibility::NonMouseInput);
         }
     }
 
     // first load options - done internally by a different thread
     createOptions();
+
+    createGpuManager();
     if (!outputBackend()->initialize()) {
         std::exit(1);
     }
@@ -214,10 +211,12 @@ void WaylandTestApplication::performStartup()
     createInput();
     createVirtualInputDevices();
     createTabletModeManager();
+    createA11yManager();
 
     auto compositor = Compositor::create();
     compositor->createRenderer();
     createWorkspace();
+    createScene();
     createPlugins();
 
     compositor->start();
@@ -310,7 +309,7 @@ void Test::setOutputConfig(const QList<OutputInfo> &infos)
     QList<VirtualBackend::OutputInfo> converted;
     std::transform(infos.begin(), infos.end(), std::back_inserter(converted), [](const auto &info) {
         return VirtualBackend::OutputInfo{
-            .geometry = info.geometry,
+            .size = info.geometry.size(),
             .scale = info.scale,
             .internal = info.internal,
             .physicalSizeInMM = info.physicalSizeInMM,
@@ -329,14 +328,17 @@ void Test::setOutputConfig(const QList<OutputInfo> &infos)
     for (int i = 0; i < outputs.size(); i++) {
         const auto &info = infos[i];
         *config.changeSet(outputs[i]) = OutputChangeSet{
-            .desiredModeSize = info.geometry.size() * info.scale,
+            .desiredMode = OutputModeline(info.geometry.size() * info.scale, 60000),
             .enabled = true,
             .pos = info.geometry.topLeft(),
             .scale = info.scale,
             .scaleSetting = info.scale,
         };
     }
-    workspace()->applyOutputConfiguration(config);
+    const auto result = workspace()->applyOutputConfiguration(config);
+    if (!result) {
+        qWarning() << "Applying output configuration failed!" << result.error().message;
+    }
 }
 
 Test::SimpleKeyboard::SimpleKeyboard(QObject *parent)
@@ -408,10 +410,17 @@ KWayland::Client::Keyboard *Test::SimpleKeyboard::keyboard()
     return m_keyboard;
 }
 
+void Test::SimpleKeyboard::clearReceivedText()
+{
+    m_receviedText.clear();
+    Q_EMIT receviedTextChanged();
+}
+
 QString Test::SimpleKeyboard::receviedText()
 {
     return m_receviedText;
 }
+
 }
 
 #include "moc_kwin_wayland_test.cpp"

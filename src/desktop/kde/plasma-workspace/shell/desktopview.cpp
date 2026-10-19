@@ -24,7 +24,6 @@
 #include <KAuthorized>
 #include <KStartupInfo>
 #include <KWaylandExtras>
-#include <KX11Extras>
 #include <klocalizedstring.h>
 #include <kwindowsystem.h>
 #include <plasmaactivities/controller.h>
@@ -44,18 +43,13 @@ DesktopView::DesktopView(Plasma::Corona *corona, QScreen *targetScreen)
     setColor(Qt::black);
     setFlags(Qt::Window | Qt::FramelessWindowHint);
 
-    if (KWindowSystem::isPlatformWayland()) {
-        m_layerWindow = LayerShellQt::Window::get(this);
-        m_layerWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityOnDemand);
-        m_layerWindow->setExclusiveZone(-1);
-        m_layerWindow->setLayer(LayerShellQt::Window::LayerBackground);
-        m_layerWindow->setScope(QStringLiteral("desktop"));
-        m_layerWindow->setCloseOnDismissed(false);
-        m_layerWindow->setActivateOnShow(false);
-    } else {
-        KX11Extras::setType(winId(), NET::Desktop);
-        KX11Extras::setState(winId(), NET::KeepBelow);
-    }
+    m_layerWindow = LayerShellQt::Window::get(this);
+    m_layerWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityOnDemand);
+    m_layerWindow->setExclusiveZone(-1);
+    m_layerWindow->setLayer(LayerShellQt::Window::LayerBackground);
+    m_layerWindow->setScope(QStringLiteral("desktop"));
+    m_layerWindow->setCloseOnDismissed(false);
+    m_layerWindow->setActivateOnShow(false);
 
     if (targetScreen) {
         setScreenToFollow(targetScreen);
@@ -74,17 +68,7 @@ DesktopView::DesktopView(Plasma::Corona *corona, QScreen *targetScreen)
     QObject::connect(m_activityController, &KActivities::Controller::activityAdded, this, &DesktopView::candidateContainmentsChanged);
     QObject::connect(m_activityController, &KActivities::Controller::activityRemoved, this, &DesktopView::candidateContainmentsChanged);
 
-    // KRunner settings
-    KSharedConfig::Ptr config = KSharedConfig::openConfig(QStringLiteral("krunnerrc"));
-    KConfigGroup configGroup(config, u"General"_s);
-    m_activateKRunnerWhenTypingOnDesktop = configGroup.readEntry("ActivateWhenTypingOnDesktop", true);
-
-    m_configWatcher = KConfigWatcher::create(config);
-    connect(m_configWatcher.data(), &KConfigWatcher::configChanged, this, [this](const KConfigGroup &group, const QByteArrayList &names) {
-        if (names.contains(QByteArrayView("ActivateWhenTypingOnDesktop"))) {
-            m_activateKRunnerWhenTypingOnDesktop = group.readEntry("ActivateWhenTypingOnDesktop", true);
-        }
-    });
+    // KRunner settings: activation on typing is always enabled (no config flag)
 
     // Accent color setting
     connect(static_cast<ShellCorona *>(corona), &ShellCorona::accentColorFromWallpaperEnabledChanged, this, &DesktopView::usedInAccentColorChanged);
@@ -116,7 +100,7 @@ void DesktopView::setScreenToFollow(QScreen *screen)
     }
 
     // layer surfaces can't be moved between outputs, so hide and show the window on a new output
-    const bool remap = m_layerWindow && isVisible();
+    const bool remap = isVisible();
     if (remap) {
         setVisible(false);
     }
@@ -125,9 +109,8 @@ void DesktopView::setScreenToFollow(QScreen *screen)
         disconnect(m_screenToFollow.data(), &QScreen::geometryChanged, this, &DesktopView::screenGeometryChanged);
     }
     m_screenToFollow = screen;
-    if (m_layerWindow) {
-        m_layerWindow->setScreen(screen);
-    }
+    m_layerWindow->setScreen(screen);
+
     setScreen(screen);
     connect(m_screenToFollow.data(), &QScreen::geometryChanged, this, &DesktopView::screenGeometryChanged);
 
@@ -341,22 +324,9 @@ QRect DesktopView::strictAvailableScreenRect() const
         return {};
     }
 
-    int screenId = m_containment->screen();
+    const uint screenId = m_containment->screen();
 
-    // If corona returned an invalid screenId, try to use lastScreen value if it is valid
-    if (screenId == -1 && m_containment->lastScreen() > -1) {
-        screenId = m_containment->lastScreen();
-        // Is this a screen not actually valid?
-        if (screenId >= corona()->numScreens()) {
-            screenId = -1;
-        }
-    }
-
-    if (screenId < 0) {
-        return {};
-    }
-
-    QRect rect = static_cast<ShellCorona *>(corona())->strictAvailableScreenRect(containment()->screen());
+    QRect rect = static_cast<ShellCorona *>(corona())->strictAvailableScreenRect(screenId);
     // make it relative
     QRect geometry = corona()->screenGeometry(screenId);
     rect.moveTo(rect.topLeft() - geometry.topLeft());
@@ -398,7 +368,7 @@ bool DesktopView::event(QEvent *e)
 bool DesktopView::handleKRunnerTextInput(QKeyEvent *e)
 {
     // allow only Shift and GroupSwitch modifiers
-    if (e->modifiers() & ~Qt::ShiftModifier & ~Qt::GroupSwitchModifier) {
+    if (e->modifiers() & ~Qt::ShiftModifier & ~Qt::GroupSwitchModifier & ~Qt::KeypadModifier) {
         return false;
     }
     bool krunnerTextChanged = false;
@@ -471,11 +441,7 @@ void DesktopView::keyPressEvent(QKeyEvent *e)
         return;
     }
 
-    if (!m_activateKRunnerWhenTypingOnDesktop) {
-        return;
-    }
-
-    // When a key is pressed on desktop when nothing else is active forward the key to krunner
+    // When a key is pressed on desktop when nothing else is active and type-ahead is disabled in FolderView, forward the key to krunner
     if (handleKRunnerTextInput(e)) {
         e->accept();
         return;
@@ -490,10 +456,6 @@ void DesktopView::showConfigurationInterface(Plasma::Applet *applet)
             m_configView->deleteLater();
         } else {
             m_configView->show();
-            auto window = qobject_cast<QWindow *>(m_configView);
-            if (window && qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) {
-                KStartupInfo::setNewStartupId(window, qgetenv("DESKTOP_STARTUP_ID"));
-            }
             m_configView->requestActivate();
             return;
         }
@@ -512,6 +474,11 @@ void DesktopView::showConfigurationInterface(Plasma::Applet *applet)
         // if we changed containment with the config open, relaunch the config dialog but for the new containment
         // third arg is used to disconnect when the config closes
         connect(this, &ContainmentView::containmentChanged, m_configView.data(), [this]() {
+            // If m_configView is not visible anymore, the user clicked OK instead of apply:
+            // don't reopen it anymore
+            if (!m_configView->isVisible()) {
+                return;
+            }
             if (containment()->property("wallpaperGraphicsObject").value<QObject *>()) {
                 showConfigurationInterface(containment());
             } else {
@@ -533,25 +500,21 @@ void DesktopView::showConfigurationInterface(Plasma::Applet *applet)
         m_configView->deleteLater();
     });
 
-    auto window = qobject_cast<QWindow *>(m_configView);
-    if (window && qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) {
-        KStartupInfo::setNewStartupId(window, qgetenv("DESKTOP_STARTUP_ID"));
-    }
     m_configView->requestActivate();
 }
 
 void DesktopView::slotContainmentChanged()
 {
     if (m_containment) {
-        disconnect(m_containment, &Plasma::Containment::screenChanged, this, &DesktopView::slotScreenChanged);
+        disconnect(m_containment, &Plasma::Containment::screenChanged, this, &DesktopView::usedInAccentColorChanged);
         disconnect(m_containment, &Plasma::Containment::availableRelativeScreenRectChanged, this, &DesktopView::strictAvailableScreenRectChanged);
     }
 
     m_containment = containment();
 
     if (m_containment) {
-        connect(m_containment, &Plasma::Containment::screenChanged, this, &DesktopView::slotScreenChanged);
-        slotScreenChanged(m_containment->screen());
+        connect(m_containment, &Plasma::Containment::screenChanged, this, &DesktopView::usedInAccentColorChanged);
+        Q_EMIT usedInAccentColorChanged();
         connect(m_containment, &Plasma::Containment::availableRelativeScreenRectChanged, this, &DesktopView::strictAvailableScreenRectChanged);
 
         auto *desktopEditMode = new QAction(QIcon::fromTheme(QStringLiteral("document-edit")), i18n("Enter Edit Mode"), m_containment);
@@ -600,16 +563,6 @@ void DesktopView::slotContainmentChanged()
 bool DesktopView::enteredEditMode() const
 {
     return m_enteredEditMode;
-}
-
-void DesktopView::slotScreenChanged(int newId)
-{
-    if (m_containmentScreenId == newId) {
-        return;
-    }
-
-    m_containmentScreenId = newId;
-    Q_EMIT usedInAccentColorChanged();
 }
 
 void DesktopView::screenGeometryChanged()

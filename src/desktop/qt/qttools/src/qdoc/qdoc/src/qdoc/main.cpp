@@ -10,19 +10,25 @@
 #include "docbookgenerator.h"
 #include "htmlgenerator.h"
 #include "inclusionpolicy.h"
+#include "outputproducer.h"
 #include "location.h"
+#include "outputproducerregistry.h"
 #include "puredocparser.h"
 #include "qdocdatabase.h"
 #include "qmlcodemarker.h"
 #include "qmlcodeparser.h"
 #include "sourcefileparser.h"
 #include "utilities.h"
+#ifdef QDOC_TEMPLATE_GENERATOR_ENABLED
+#include "templategenerator.h"
+#endif
 #include "tokenizer.h"
 #include "tree.h"
 #include "webxmlgenerator.h"
 
 #include "filesystem/fileresolver.h"
 #include "boundaries/filesystem/directorypath.h"
+#include "outputdirectory.h"
 
 #include <QtCore/qcompilerdetection.h>
 #include <QtCore/qdatetime.h>
@@ -38,6 +44,8 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <memory>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 
@@ -130,17 +138,8 @@ static void loadIndexFiles(const QSet<QString> &formats)
 {
     Config &config = Config::instance();
     QDocDatabase *qdb = QDocDatabase::qdocDB();
-    QStringList indexFiles;
-    const QStringList configIndexes{config.get(CONFIG_INDEXES).asStringList()};
+    QStringList indexFiles{config.getCanonicalPathList(CONFIG_INDEXES, Config::Validate)};
     bool warn = !config.get(CONFIG_NOLINKERRORS).asBool();
-
-    for (const auto &index : configIndexes) {
-        QFileInfo fi(index);
-        if (fi.exists() && fi.isFile())
-            indexFiles << index;
-        else if (warn)
-            Location().warning(QString("Index file not found: %1").arg(index));
-    }
 
     config.dependModules() += config.get(CONFIG_DEPENDS).asStringList();
     config.dependModules().removeDuplicates();
@@ -216,7 +215,7 @@ static void loadIndexFiles(const QSet<QString> &formats)
                 for (const auto &dir : config.indexDirs()) {
                     for (const auto &subDir : std::as_const(subDirs)) {
                         QString fileToLookFor = dir + QLatin1Char('/') + subDir + QLatin1Char('/')
-                                + module + ".index";
+                                + module.toLower() + ".index";
                         if (QFile::exists(fileToLookFor)) {
                             QFileInfo tempFileInfo(fileToLookFor);
                             if (!foundIndices.contains(tempFileInfo))
@@ -293,6 +292,54 @@ void logStartEndMessage(const QLatin1String &startStop, Config &config)
 
     const QString msg = startStop + runName;
     qCInfo(lcQdoc) << msg.toUtf8().data();
+}
+
+/*!
+    \internal
+    Generates the index file for the current project.
+
+    Index files contain documentation metadata used for cross-module linking.
+    Index hrefs are relative paths to HTML files, so the index file must be
+    co-located with HTML output for correct link resolution.
+
+    Index generation only occurs during the prepare phase (single-exec mode)
+    or when not in generate-only mode (dual-exec mode).
+ */
+static void generateIndexFile(const Config &config)
+{
+    if (config.generating())
+        return;
+
+    const QString project = config.get(CONFIG_PROJECT).asString();
+    const QString url = config.get(CONFIG_URL).asString();
+    const QString description = config.get(CONFIG_DESCRIPTION)
+            .asString(project + " Reference Documentation"_L1);
+
+    // Index files must be co-located with HTML files for correct href resolution.
+    // Use HTML output directory when available; this handles HTML.outputsubdir.
+    QString outputDirPath;
+    if (config.getOutputFormats().contains(u"HTML"_s)) {
+        outputDirPath = config.getOutputDir(u"HTML"_s);
+    } else {
+        // Fallback for non-HTML builds (e.g., DocBook-only)
+        outputDirPath = Config::overrideOutputDir.isNull()
+                ? config.get(CONFIG_OUTPUTDIR).asString()
+                : Config::overrideOutputDir;
+        if (config.singleExec())
+            outputDirPath += '/'_L1 + project.toLower();
+    }
+
+    const QString fileBase = project.toLower().simplified().replace(' '_L1, '-'_L1);
+
+    OutputDirectory outputDir = OutputDirectory::ensure(outputDirPath, Location());
+    const QString indexFileName = fileBase + ".index"_L1;
+    const QString indexPath = outputDir.absoluteFilePath(indexFileName);
+
+    // Index files use HTML-style hrefs (e.g., "qstring.html#append"),
+    // so we pass the HTML generator for correct file extension handling.
+    auto *htmlGenerator = Generator::generatorForFormat(u"HTML"_s);
+
+    QDocDatabase::qdocDB()->generateIndex(indexPath, url, description, htmlGenerator);
 }
 
 /*!
@@ -435,6 +482,29 @@ static void processQdocconfFile(const QString &fileName)
     HtmlGenerator htmlGenerator{file_resolver};
     WebXMLGenerator webXMLGenerator{file_resolver};
     DocBookGenerator docBookGenerator{file_resolver};
+#ifdef QDOC_TEMPLATE_GENERATOR_ENABLED
+    // Create a TemplateGenerator instance for each template-based output format.
+    // Convention: any format whose name starts with "template" (case-insensitive)
+    // is recognized as template-based. This includes the legacy "template" format
+    // and multi-format names such as "TemplateHTML" or "TemplateMarkdown".
+    // Per-format config keys (e.g., TemplateHTML.extension) must match the format
+    // name exactly — config lookups are case-sensitive.
+    // Each instance self-registers with OutputProducerRegistry and unregisters
+    // on destruction, so the registry stays clean across runs.
+    // Formats are sorted for deterministic registration order.
+    auto configuredFormats = config.getOutputFormats().values();
+    std::sort(configuredFormats.begin(), configuredFormats.end(),
+              [](const QString &a, const QString &b) {
+                  return QString::compare(a, b, Qt::CaseInsensitive) < 0;
+              });
+    std::vector<std::unique_ptr<TemplateGenerator>> templateGenerators;
+    templateGenerators.reserve(configuredFormats.size());
+    for (const auto &fmt : configuredFormats) {
+        if (fmt.startsWith("template"_L1, Qt::CaseInsensitive))
+            templateGenerators.push_back(
+                    std::make_unique<TemplateGenerator>(file_resolver, *QDocDatabase::qdocDB(), fmt));
+    }
+#endif
 
     Generator::initialize();
 
@@ -514,8 +584,27 @@ static void processQdocconfFile(const QString &fileName)
         }
     }
 
+    /*
+      Initialize all the classes and data structures with the
+      qdoc configuration. This is safe to do for each qdocconf
+      file processed, because all the data structures created
+      are either cleared after they have been used, or they
+      are cleared in the terminate() functions below.
+
+      NOTE: This must happen before buildPCH() because during
+      header parsing, auto-generated documentation may be created
+      that uses QDoc markup commands (e.g., \a for parameters).
+      Those commands require Doc::initialize() to have populated
+      the command hash.
+     */
+    Location::initialize();
+    Tokenizer::initialize();
+    CodeMarker::initialize();
+    CodeParser::initialize();
+    Doc::initialize(file_resolver);
+
     std::optional<PCHFile> pch = std::nullopt;
-    if (config.dualExec() || config.preparing()) {
+    if (Config::parseCppComments && (config.dualExec() || config.preparing())) {
         const QString moduleHeader = config.get(CONFIG_MODULEHEADER).asString();
         pch = buildPCH(
             QDocDatabase::qdocDB(),
@@ -529,19 +618,6 @@ static void processQdocconfFile(const QString &fileName)
 
     ClangCodeParser clangParser(QDocDatabase::qdocDB(), Config::instance(), include_paths, clang_defines, pch);
     PureDocParser docParser{config.location()};
-
-    /*
-      Initialize all the classes and data structures with the
-      qdoc configuration. This is safe to do for each qdocconf
-      file processed, because all the data structures created
-      are either cleared after they have been used, or they
-      are cleared in the terminate() functions below.
-     */
-    Location::initialize();
-    Tokenizer::initialize();
-    CodeMarker::initialize();
-    CodeParser::initialize();
-    Doc::initialize(file_resolver);
 
     if (config.dualExec() || config.preparing()) {
         QStringList sourceList;
@@ -604,17 +680,36 @@ static void processQdocconfFile(const QString &fileName)
       one.
      */
     qCDebug(lcQdoc, "Generating docs");
+    int producedFormats = 0;
     for (const auto &format : outputFormats) {
         auto *generator = Generator::generatorForFormat(format);
         if (generator) {
             generator->initializeFormat();
             generator->generateDocs();
+            ++producedFormats;
+        } else if (auto *producer = OutputProducerRegistry::instance().producerForFormat(format)) {
+            // Non-Generator OutputProducer implementation (e.g., TemplateGenerator)
+            producer->prepare();
+            producer->produce();
+            producer->finalize();
+            ++producedFormats;
         } else {
             config.get(CONFIG_OUTPUTFORMATS)
                     .location()
-                    .fatal(QStringLiteral("QDoc: Unknown output format '%1'").arg(format));
+                    .warning(QStringLiteral("QDoc: Unknown output format '%1'; skipping. "
+                                            "Check for typos or ensure the corresponding "
+                                            "generator is enabled in this QDoc build.")
+                                     .arg(format));
         }
     }
+
+    if (!outputFormats.isEmpty() && producedFormats == 0) {
+        config.get(CONFIG_OUTPUTFORMATS)
+                .location()
+                .fatal(QStringLiteral("QDoc: None of the configured output formats could be produced; aborting"));
+    }
+
+    generateIndexFile(config);
 
     qCDebug(lcQdoc, "Terminating qdoc classes");
     if (Utilities::debugging())

@@ -22,6 +22,7 @@
 #include <QtCore/qlist.h>
 
 #include <list>
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 
@@ -36,7 +37,7 @@ public:
     QSvgStructureNode(QSvgNode *parent);
     ~QSvgStructureNode() override;
 
-    void addChild(std::unique_ptr<QSvgNode> child, const QString &id);
+    void addChild(QSvgDocument *doc, std::unique_ptr<QSvgNode> child, const QString &id);
     QRectF internalBounds(QPainter *p, QSvgExtraStates &states) const override;
     QRectF decoratedInternalBounds(QPainter *p, QSvgExtraStates &states) const override;
     QSvgNode *previousSiblingNode(QSvgNode *n) const;
@@ -48,10 +49,6 @@ protected:
 protected:
     std::list<std::unique_ptr<QSvgNode>>          m_renderers;
     mutable bool              m_recursing = false;
-
-private:
-    Q_DISABLE_COPY_X(QSvgStructureNode, "Class has a vector of unique"
-                                        "pointers as member variable")
 };
 
 class Q_SVG_EXPORT QSvgG : public QSvgStructureNode
@@ -291,9 +288,13 @@ public:
     QImage patternImage(QPainter *p, QSvgExtraStates &states, const QSvgNode *patternElement);
     Type type() const override;
     const QTransform& appliedTransform() const { return m_appliedTransform; }
+    const QTransform &transform() const { return m_transform; }
+    const QSvgRectF &rect() const { return m_rect; }
+    const QRectF &viewBox() const { return m_viewBox; }
+    QtSvg::UnitTypes contentUnits() const { return m_contentUnits; }
 
 private:
-    QImage renderPattern(QSize size, qreal contentScaleX, qreal contentScaleY);
+    QImage renderPattern(QSize size, std::pair<qreal, qreal> contentScale, const QSvgExtraStates &states);
     void calculateAppliedTransform(QTransform& worldTransform, QRectF peLocalBB, QSize imageSize);
 
 private:

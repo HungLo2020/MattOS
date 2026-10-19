@@ -11,6 +11,7 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
     SOURCES
         ffmpeg_pch.h
         qffmpeg.cpp qffmpeg_p.h
+        qffmpeg_ranges_p.h
         qffmpegdefs_p.h
         qffmpegcodecstorage.cpp qffmpegcodecstorage_p.h
         qffmpegioutils.cpp qffmpegioutils_p.h
@@ -34,7 +35,6 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
         qffmpegresampler.cpp qffmpegresampler_p.h
         qffmpegencodingformatcontext.cpp qffmpegencodingformatcontext_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
-        qffmpegsurfacecapturegrabber.cpp qffmpegsurfacecapturegrabber_p.h
 
         qffmpegplaybackengine.cpp qffmpegplaybackengine_p.h
         playbackengine/qffmpegplaybackenginedefs_p.h
@@ -70,6 +70,8 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
         recordingengine/qffmpegencodinginitializer.cpp
         recordingengine/qffmpegrecordingengineutils_p.h
         recordingengine/qffmpegrecordingengineutils.cpp
+        recordingengine/qffmpegframerateadapter_p.h
+        recordingengine/qffmpegframerateadapter.cpp
         recordingengine/qffmpegvideoencoder_p.h
         recordingengine/qffmpegvideoencoder.cpp
         recordingengine/qffmpegvideoencoderutils_p.h
@@ -114,8 +116,6 @@ if (QT_FEATURE_vaapi)
         NO_UNITY_BUILD_SOURCES
             # Conflicts with macros defined in X11.h, and Xlib.h
             qffmpeghwaccel_vaapi.cpp
-        LIBRARIES
-            EGL::EGL
     )
 
     list(FIND FFMPEG_STUBS "va" va_stub_index)
@@ -153,15 +153,18 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
         ${FWCoreMedia}
         ${FWCoreVideo}
         ${FWSecurity}
+        ${FWVideoToolbox}
 )
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION MACOS
     SOURCES
-        darwin/qavfscreencapture.mm darwin/qavfscreencapture_p.h
-        darwin/qcgwindowcapture.mm darwin/qcgwindowcapture_p.h
-        darwin/qcgcapturablewindows.mm darwin/qcgcapturablewindows_p.h
+        darwin/qsckscreencapture.mm darwin/qsckscreencapture_p.h
+        darwin/qsckwindowcapture.mm darwin/qsckwindowcapture_p.h
+        darwin/qsckcapturablewindows.mm darwin/qsckcapturablewindows_p.h
+        darwin/qmacscreencapturekit_p.h darwin/qmacscreencapturekit.mm
     LIBRARIES
         ${FWAppKit}
+        ${FWScreenCaptureKit}
 )
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
@@ -263,7 +266,7 @@ if (ANDROID)
 endif()
 
 # signalsmith-stretch is header-only and rather slow in debug builds. so let's optimize it:
-if(GCC OR CLANG)
+if(GCC OR (CLANG AND NOT MSVC))
     set_source_files_properties(playbackengine/qffmpegaudioframeconverter.cpp PROPERTIES
         COMPILE_OPTIONS $<$<CONFIG:Debug>:-O3>)
 elseif(MSVC)
@@ -323,9 +326,29 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
 )
 
 if (ANDROID)
-    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
-        ${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_ffmpegmediaplugin.so
-    )
+    set(lib_deps "${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_ffmpegmediaplugin.so")
+
+    if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES)
+        foreach(ffmpeg_lib IN LISTS FFMPEG_SHARED_LIBRARIES)
+            get_filename_component(ffmpeg_lib_name "${ffmpeg_lib}" NAME)
+            list(APPEND lib_deps "${INSTALL_LIBDIR}/${ffmpeg_lib_name}")
+        endforeach()
+
+        foreach(stub IN LISTS FFMPEG_STUBS)
+            set(stub_target "Qt${PROJECT_VERSION_MAJOR}FFmpegStub-${stub}")
+            if(TARGET ${stub_target})
+                list(APPEND lib_deps "${INSTALL_LIBDIR}/lib${stub_target}.so")
+            endif()
+        endforeach()
+    endif()
+
+    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES ${lib_deps})
+
+    if(FFMPEG_USES_OPENSSL)
+        set_property(TARGET QFFmpegMediaPlugin PROPERTY _qt_internal_android_openssl_needed TRUE)
+        set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY
+            EXPORT_PROPERTIES _qt_internal_android_openssl_needed)
+    endif()
 
     qt_internal_add_android_permission(QFFmpegMediaPlugin
         NAME android.permission.CAMERA

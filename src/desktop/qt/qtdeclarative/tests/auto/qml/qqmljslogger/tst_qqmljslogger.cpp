@@ -21,18 +21,17 @@ private slots:
 void TestQQmlJSLogger::printFix()
 {
     // This test verifies that we can correctly print out a fixit hint even
-    // when there's no valid replacement text
+    // when there are no associated document edits
     QQmlJSLogger logger;
     logger.setFilePath("test.qml");
     logger.setCode(""_L1);
-    QQmlJS::SourceLocation loc(0, 0, 1, 1);
-    QQmlJSFixSuggestion info("Purely informative"_L1, loc, ""_L1);
+    QQmlJS::SourceLocation loc = QQmlJS::s_documentOrigin;
+    QQmlJSFixSuggestion info("Purely informative"_L1, loc);
     info.setFilename("test.qml"_L1);
     info.setAutoApplicable(false);
-    info.setHint("Just a hint"_L1);
     logger.startTransaction();
     logger.log("Test"_L1, qmlSyntax, loc, false, false, info);
-    logger.rollback();;
+    logger.rollback();
     QVERIFY(true); // no assert hit
 }
 

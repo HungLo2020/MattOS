@@ -24,6 +24,11 @@
 
 #include <memory>
 #include <mutex>
+#include <variant>
+
+// NOLINTBEGIN (bugprone-reserved-identifier)
+typedef struct _GstElement GstElement;
+// NOLINTEND (bugprone-reserved-identifier)
 
 QT_BEGIN_NAMESPACE
 
@@ -38,6 +43,7 @@ class QImageCapture;
 class QMediaDevices;
 class QMediaPlayer;
 class QMediaRecorder;
+class QGStreamerVideoSource;
 class QPlatformAudioDecoder;
 class QPlatformAudioDevices;
 class QPlatformAudioInput;
@@ -57,6 +63,9 @@ class QScreenCapture;
 class QVideoFrame;
 class QVideoSink;
 class QWindowCapture;
+class QGStreamerInterface;
+
+using GstElementOrDescription = std::variant<QString, GstElement *>;
 
 class Q_MULTIMEDIA_EXPORT QAbstractPlatformSpecificInterface
 {
@@ -124,16 +133,27 @@ public:
     QPlatformAudioDevices *audioDevices();
 
     static QStringList availableBackends();
+
+    [[nodiscard]] static QString defaultBackend();
+
+    static void setBackend(const QString &backend);
+
     QLatin1String name(); // for unit tests
 
     // Convert a QVideoFrame to the destination format
     virtual QVideoFrame convertVideoFrame(QVideoFrame &, const QVideoFrameFormat &);
 
-    virtual QAbstractPlatformSpecificInterface *platformSpecificInterface() { return nullptr; }
-
     static QLatin1String audioBackendName();
 
     virtual bool isCameraSwitchingDuringRecordingSupported() const { return true; }
+
+    virtual q23::expected<QPlatformCamera *, QString>
+    createGStreamerVideoSource(QGStreamerVideoSource *, const GstElementOrDescription &)
+    {
+        return q23::unexpected{ notAvailable };
+    }
+
+    virtual QGStreamerInterface *gstreamerInterface() { return nullptr; }
 
     void resetInstance(); // tests only
 

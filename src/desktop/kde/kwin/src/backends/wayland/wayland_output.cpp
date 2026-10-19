@@ -118,9 +118,8 @@ const wp_fractional_scale_v1_listener WaylandOutput::s_fractionalScaleListener{
     .preferred_scale = &WaylandOutput::handleFractionalScaleChanged,
 };
 
-WaylandOutput::WaylandOutput(const QString &name, WaylandBackend *backend)
-    : BackendOutput()
-    , m_renderLoop(std::make_unique<RenderLoop>(this))
+WaylandOutput::WaylandOutput(const QString &name, Capabilities capabilities, WaylandBackend *backend)
+    : BackendOutput(backend->drmDevice())
     , m_surface(backend->display()->compositor()->createSurface())
     , m_xdgShellSurface(backend->display()->xdgShell()->createSurface(m_surface.get()))
     , m_backend(backend)
@@ -131,10 +130,7 @@ WaylandOutput::WaylandOutput(const QString &name, WaylandBackend *backend)
         m_xdgDecoration.reset(manager->getToplevelDecoration(m_xdgShellSurface.get()));
         m_xdgDecoration->setMode(KWayland::Client::XdgDecoration::Mode::ServerSide);
     }
-    Capabilities caps = Capability::Dpms;
-    if (backend->display()->tearingControl()) {
-        caps |= Capability::Tearing;
-    }
+
     if (auto manager = backend->display()->colorManager()) {
         const bool supportsMinFeatures = manager->supportsFeature(WP_COLOR_MANAGER_V1_FEATURE_PARAMETRIC)
             && manager->supportsFeature(WP_COLOR_MANAGER_V1_FEATURE_SET_PRIMARIES)
@@ -153,7 +149,7 @@ WaylandOutput::WaylandOutput(const QString &name, WaylandBackend *backend)
     setInformation(Information{
         .name = name,
         .model = name,
-        .capabilities = caps,
+        .capabilities = capabilities,
     });
 
     m_configureThrottleTimer.setSingleShot(true);
@@ -170,7 +166,7 @@ WaylandOutput::WaylandOutput(const QString &name, WaylandBackend *backend)
     }
 
     connect(m_xdgShellSurface.get(), &XdgShellSurface::configureRequested, this, &WaylandOutput::handleConfigure);
-    connect(m_xdgShellSurface.get(), &XdgShellSurface::closeRequested, qApp, &QCoreApplication::quit);
+    connect(m_xdgShellSurface.get(), &XdgShellSurface::closeRequested, this, &WaylandOutput::closeRequested);
     connect(this, &WaylandOutput::enabledChanged, this, &WaylandOutput::updateWindowTitle);
     connect(this, &WaylandOutput::dpmsModeChanged, this, &WaylandOutput::updateWindowTitle);
 }
@@ -258,15 +254,18 @@ const wl_callback_listener WaylandOutput::s_frameCallbackListener{
     .done = &WaylandOutput::handleFrame,
 };
 
-bool WaylandOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> WaylandOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
 {
     auto cursorLayers = Compositor::self()->backend()->compatibleOutputLayers(this) | std::views::filter([](OutputLayer *layer) {
         return layer->type() == OutputLayerType::CursorOnly;
     });
     if (m_hasPointerLock && std::ranges::any_of(cursorLayers, &OutputLayer::isEnabled)) {
-        return false;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::Other,
+            .message = QStringLiteral("Pointer lock forces a software cursor"),
+        });
     }
-    return true;
+    return {};
 }
 
 WaylandOutput::FrameData::FrameData(const std::shared_ptr<OutputFrame> &frame, struct wp_presentation_feedback *presentationFeedback, struct wl_callback *frameCallback)
@@ -294,14 +293,17 @@ WaylandOutput::FrameData::~FrameData()
     }
 }
 
-bool WaylandOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> WaylandOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
 {
     auto cursorLayers = layersToUpdate | std::views::filter([](OutputLayer *layer) {
         return layer->type() == OutputLayerType::CursorOnly;
     });
     if (!cursorLayers.empty()) {
         if (m_hasPointerLock && cursorLayers.front()->isEnabled()) {
-            return false;
+            return std::unexpected(OutputError{
+                .code = OutputErrorCode::Other,
+                .message = QStringLiteral("Pointer lock forces a software cursor"),
+            });
         }
         m_cursor->setEnabled(cursorLayers.front()->isEnabled());
         // TODO also move the actual cursor image update here too...
@@ -312,7 +314,9 @@ bool WaylandOutput::present(const QList<OutputLayer *> &layersToUpdate, const st
         m_surface->attachBuffer(buffer);
         m_mapped = true;
     }
-    m_viewport->setDestination(QSize(std::round(modeSize().width() / scale()), std::round(modeSize().height() / scale())));
+    const Rect rect(QPoint(), QSize(std::round(modeSize().width() / scale()), std::round(modeSize().height() / scale())));
+    m_xdgShellSurface->setWindowGeometry(rect);
+    m_viewport->setDestination(rect.size());
     m_surface->setScale(1);
     // commit the subsurfaces before the main surface
     for (OutputLayer *layer : layersToUpdate) {
@@ -333,7 +337,7 @@ bool WaylandOutput::present(const QList<OutputLayer *> &layersToUpdate, const st
     wl_callback_add_listener(frameData.frameCallback, &s_frameCallbackListener, this);
     m_surface->commit(KWayland::Client::Surface::CommitFlag::None);
     m_frames.push_back(std::move(frameData));
-    return true;
+    return {};
 }
 
 void WaylandOutput::frameDiscarded()
@@ -345,7 +349,7 @@ void WaylandOutput::framePresented(std::chrono::nanoseconds timestamp, uint32_t 
 {
     if (refreshRate != this->refreshRate()) {
         m_refreshRate = refreshRate;
-        const auto mode = std::make_shared<OutputMode>(pixelSize(), m_refreshRate);
+        const auto mode = std::make_shared<OutputMode>(OutputModeline(pixelSize(), m_refreshRate));
         State next = m_state;
         next.modes = {mode};
         next.currentMode = mode;
@@ -378,9 +382,7 @@ void WaylandOutput::applyChanges(const OutputConfiguration &config)
     // intentionally ignored, as it would get overwritten
     // with the fractional scale protocol anyways
     // next.scale = props->scale.value_or(m_state.scale);
-    next.desiredModeSize = props->desiredModeSize.value_or(m_state.desiredModeSize);
-    next.desiredModeRefreshRate = props->desiredModeRefreshRate.value_or(m_state.desiredModeRefreshRate);
-    next.desiredModeFlags = props->desiredModeFlags.value_or(m_state.desiredModeFlags);
+    next.desiredMode = props->desiredMode.value_or(m_state.desiredMode);
     next.uuid = props->uuid.value_or(m_state.uuid);
     next.replicationSource = props->replicationSource.value_or(m_state.replicationSource);
     next.dpmsMode = props->dpmsMode.value_or(m_state.dpmsMode);
@@ -415,22 +417,24 @@ WaylandBackend *WaylandOutput::backend() const
     return m_backend;
 }
 
-RenderLoop *WaylandOutput::renderLoop() const
-{
-    return m_renderLoop.get();
-}
-
-bool WaylandOutput::presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay)
+std::expected<void, OutputError> WaylandOutput::presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay)
 {
     // the host compositor moves the cursor, there's nothing to do
-    return layer->type() == OutputLayerType::CursorOnly;
+    if (layer->type() == OutputLayerType::CursorOnly) {
+        return {};
+    } else {
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::Other,
+            .message = QStringLiteral("Async presentation isn't implemented for non-cursor planes yet"),
+        });
+    }
 }
 
 void WaylandOutput::init(const QSize &pixelSize, qreal scale, bool fullscreen)
 {
     m_renderLoop->setRefreshRate(m_refreshRate);
 
-    auto mode = std::make_shared<OutputMode>(pixelSize, m_refreshRate);
+    auto mode = std::make_shared<OutputMode>(OutputModeline(pixelSize, m_refreshRate));
 
     State initialState;
     initialState.modes = {mode};
@@ -463,7 +467,7 @@ void WaylandOutput::applyConfigure(const QSize &size, quint32 serial)
 {
     m_xdgShellSurface->ackConfigure(serial);
     if (!size.isEmpty()) {
-        auto mode = std::make_shared<OutputMode>(size * m_pendingScale, m_refreshRate);
+        auto mode = std::make_shared<OutputMode>(OutputModeline(size * m_pendingScale, m_refreshRate));
 
         State next = m_state;
         next.modes = {mode};
@@ -560,6 +564,7 @@ QList<OutputLayer *> WaylandOutput::outputLayers() const
 {
     return m_layers | std::views::transform(&std::unique_ptr<OutputLayer>::get) | std::ranges::to<QList>();
 }
+
 }
 }
 

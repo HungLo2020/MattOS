@@ -16,7 +16,7 @@
 
 class ShaderMaterial;
 
-/*!
+/*
  * A base class for scene graph nodes that want to use a shader to render something.
  */
 class ShaderNode : public QSGGeometryNode
@@ -38,19 +38,19 @@ public:
 
     void preprocess() override;
 
-    /*!
+    /*
      * The rectangle describing the geometry of this node.
      */
     QRectF rect() const;
     void setRect(const QRectF &newRect);
 
-    /*!
+    /*
      * The UV coordinates of the geometry of this node.
      */
     QRectF uvs(TextureChannel channel) const;
     void setUVs(TextureChannel channel, const QRectF &newUvs);
 
-    /*!
+    /*
      * The variant of the material used for rendering.
      *
      * This will be passed to createMaterialVariant() to perform the actual
@@ -59,7 +59,7 @@ public:
     QSGMaterialType *materialVariant() const;
     void setMaterialVariant(QSGMaterialType *variant);
 
-    /*!
+    /*
      * Set the name of the shader to use for rendering.
      *
      * By default this will create and use an instance of ShaderMaterial that
@@ -67,7 +67,7 @@ public:
      */
     void setShader(const QString &shader);
 
-    /*!
+    /*
      * Set the size of buffer used by the material for storing uniform values.
      *
      * The given size is in bytes. Note that you should account for all uniforms
@@ -75,7 +75,7 @@ public:
      */
     void setUniformBufferSize(qsizetype size);
 
-    /*!
+    /*
      * A writeable view of the material's uniform data buffer.
      *
      * This can be used in combination with UniformDataStream to write the
@@ -83,7 +83,7 @@ public:
      */
     std::span<char> uniformData();
 
-    /*!
+    /*
      * Set the number of texture channels.
      *
      * Each texture channel gets its own set of UV coordinates and texture. By
@@ -93,7 +93,7 @@ public:
      */
     void setTextureChannels(unsigned char count);
 
-    /*!
+    /*
      * Set the texture for a channel to an image.
      *
      * This will create a texture from \a image using \a window and the options
@@ -103,7 +103,7 @@ public:
      */
     void setTexture(TextureChannel channel, const QImage &image, QQuickWindow *window, QQuickWindow::CreateTextureOptions options = {});
 
-    /*!
+    /*
      * Set the texture for a channel to a texture provider.
      *
      * This will use \a provider to provide the texture for channel \a channel.
@@ -112,12 +112,12 @@ public:
      */
     void setTexture(TextureChannel channel, QSGTextureProvider *provider, QQuickWindow::CreateTextureOptions options = {});
 
-    /*!
+    /*
      * Set the texture filtering mode for texture \a channel to \a filtering.
      */
     void setTextureFiltering(TextureChannel channel, QSGTexture::Filtering filtering);
 
-    /*!
+    /*
      * Update internal state based on newly-set parameters.
      *
      * This is done as an explicit step to ensure we don't modify expensive GPU
@@ -125,7 +125,7 @@ public:
      */
     virtual void update();
 
-    /*!
+    /*
      * Helper function that returns a pre-multiplied version of a color.
      */
     static inline QColor toPremultiplied(const QColor &value)
@@ -137,7 +137,7 @@ public:
     }
 
 protected:
-    /*!
+    /*
      * Create a new instance of a certain material variant.
      *
      * This should return a new instance of the material that matches \a variant,

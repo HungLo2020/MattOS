@@ -442,6 +442,8 @@ private slots:
     void getIf_QString() { getIf_impl(u"string"_s); };
     void getIf_QTransform() { getIf_impl(QTransform{1, 2, 3, 4, 5, 6, 7, 8, 9}); } // too large
     void getIf_NonDefaultConstructible();
+    void getIf_Pointers();
+    void getIf_ConstPointers();
     void getIfSpecial();
 
     void get_int() { get_impl(42); }
@@ -459,6 +461,8 @@ private:
     using StdVariant = std::variant<std::monostate,
             // list here all the types with which we instantiate getIf_impl:
             int,
+            int *,
+            const int *,
             QString,
             QTransform,
             NonDefaultConstructible
@@ -482,6 +486,8 @@ const qlonglong intMax1 = (qlonglong)INT_MAX + 1;
 
 template <typename T>
 T mutate(const T &t) { return t + t; }
+template <typename T>
+T *mutate(T *t) { return t + 1; }
 template <>
 QTransform mutate(const QTransform &t)
 {
@@ -3120,11 +3126,13 @@ void tst_QVariant::compareNumerics_data() const
             return v.metaType().flags() & QMetaType::IsUnsignedEnumeration ?
                         QString::number(v.toULongLong()) :
                         QString::number(v.toLongLong());
+
         switch (v.typeId()) {
+        case QMetaType::QChar:
         case QMetaType::Char16:
-            return QString::number(qvariant_cast<char16_t>(v));
+            return u"0x%1"_s.arg(+qvariant_cast<char16_t>(v));
         case QMetaType::Char32:
-            return QString::number(qvariant_cast<char32_t>(v));
+            return u"0x%1"_s.arg(+qvariant_cast<char32_t>(v));
         case QMetaType::Char:
         case QMetaType::UChar:
             return QString::number(v.toUInt());
@@ -3143,6 +3151,7 @@ void tst_QVariant::compareNumerics_data() const
     };
     addCompareToInvalid(false);
     addCompareToInvalid(true);
+    addCompareToInvalid(QChar(0));
     addCompareToInvalid(char(0));
     addCompareToInvalid(qint8(0));
     addCompareToInvalid(quint8(0));
@@ -3180,6 +3189,8 @@ QT_WARNING_DISABLE_MSVC(4018)   // '<': signed/unsigned mismatch
         else if (value1 > value2)
             order = QPartialOrdering::Greater;
         addComparePairWithResult(value1, value2, order);
+        if constexpr (std::is_same_v<decltype(value1), char16_t>)
+            addComparePairWithResult(QChar(value1), value2, order);
     };
 QT_WARNING_POP
 
@@ -3203,6 +3214,7 @@ QT_WARNING_POP
     };
     addList(std::array{ false, true });
     addList(std::array{ QCborSimpleType{}, QCborSimpleType::False, QCborSimpleType(0xff) });
+    addList(std::array{ QChar(0), QChar(1), QChar(127), QChar(256), QChar(0xffff) });
     addSingleType(char(0));
     addSingleType(char16_t(0));
     addSingleType(char32_t(0));
@@ -3223,6 +3235,8 @@ QT_WARNING_POP
     addList(std::array{ Qt::AlignRight|Qt::AlignHCenter, Qt::AlignCenter|Qt::AlignVCenter });
 
     // heterogeneous
+    addComparePairWithResult(QChar(u'π'), quint8(0xc0), QPartialOrdering::Greater);   // a.k.a. uchar
+    addComparePair(QChar(256), char16_t(256));
     addComparePair(char(0), qint8(-127));
     addComparePair(char(127), qint8(127));
     addComparePair(char(127), quint8(127));
@@ -4006,29 +4020,41 @@ void tst_QVariant::fpStringRoundtrip() const
 void tst_QVariant::numericalConvert_data()
 {
     QTest::addColumn<QVariant>("v");
+    QTest::addColumn<double>("num");
     QTest::addColumn<bool>("isInteger");
-    QTest::newRow("float") << QVariant(float(5.3)) << false;
-    QTest::newRow("double") << QVariant(double(5.3)) << false;
-    QTest::newRow("qreal") << QVariant(qreal(5.3)) << false;
-    QTest::newRow("int") << QVariant(int(5)) << true;
-    QTest::newRow("uint") << QVariant(uint(5)) << true;
-    QTest::newRow("short") << QVariant(short(5)) << true;
-    QTest::newRow("longlong") << QVariant(quint64(5)) << true;
-    QTest::newRow("long") << QVariant::fromValue(long(5)) << true;
-    QTest::newRow("stringint") << QVariant(QString::fromLatin1("5")) << true;
-    QTest::newRow("string") << QVariant(QString::fromLatin1("5.30000019")) << false;
+    QTest::newRow("float-zero") << QVariant(float(0)) << 0.0 << false;
+    QTest::newRow("double-zero") << QVariant(double(0)) << 0.0 << false;
+    QTest::newRow("qreal-zero") << QVariant(qreal(0)) << 0.0 << false;
+    QTest::newRow("int-zero") << QVariant(int(0)) << 0.0 << true;
+    QTest::newRow("uint-zero") << QVariant(uint(0)) << 0.0 << true;
+    QTest::newRow("short-zero") << QVariant(short(0)) << 0.0 << true;
+    QTest::newRow("longlong-zero") << QVariant(quint64(0)) << 0.0 << true;
+    QTest::newRow("long-zero") << QVariant::fromValue(long(0)) << 0.0 << true;
+    QTest::newRow("stringint-zero") << QVariant(QString::fromLatin1("0")) << 0.0 << true;
+    QTest::newRow("string-zero") << QVariant(QString::fromLatin1("0.0")) << 0.0 << false;
+
+    QTest::newRow("float") << QVariant(float(5.3)) << 5.3 << false;
+    QTest::newRow("double") << QVariant(double(5.3)) << 5.3 << false;
+    QTest::newRow("qreal") << QVariant(qreal(5.3)) << 5.3 << false;
+    QTest::newRow("int") << QVariant(int(5)) << 5.0 << true;
+    QTest::newRow("uint") << QVariant(uint(5)) << 5.0 << true;
+    QTest::newRow("short") << QVariant(short(5)) << 5.0 << true;
+    QTest::newRow("longlong") << QVariant(quint64(5)) << 5.0 << true;
+    QTest::newRow("long") << QVariant::fromValue(long(5)) << 5.0 << true;
+    QTest::newRow("stringint") << QVariant(QString::fromLatin1("5")) << 5.0 << true;
+    QTest::newRow("string") << QVariant(QString::fromLatin1("5.30000019")) << 5.3 << false;
 }
 
 void tst_QVariant::numericalConvert()
 {
     QFETCH(QVariant, v);
     QFETCH(bool, isInteger);
-    double num = isInteger ? 5 : 5.3;
+    QFETCH(double, num);
 
     QCOMPARE(v.toFloat() , float(num));
     QCOMPARE(float(v.toReal()) , float(num));
     QCOMPARE(float(v.toDouble()) , float(num));
-    if (isInteger) {
+    if (isInteger || v.userType() != QMetaType::QString) {
         QCOMPARE(v.toInt() , int(num));
         QCOMPARE(v.toUInt() , uint(num));
         QCOMPARE(v.toULongLong() , quint64(num));
@@ -6805,6 +6831,18 @@ void tst_QVariant::getIf_NonDefaultConstructible()
     getIf_impl(NonDefaultConstructible{42});
 }
 
+void tst_QVariant::getIf_Pointers()
+{
+    int array[2] = { 42, -47 };
+    getIf_impl(&array[0]);
+}
+
+void tst_QVariant::getIf_ConstPointers()
+{
+    const int array[2] = { 42, -47 };
+    getIf_impl(&array[0]);
+}
+
 void tst_QVariant::getIfSpecial()
 {
     QVariant v{QString{}}; // used to be a null QVariant in Qt 5
@@ -7121,6 +7159,7 @@ NonDefaultConstructible mutate(const NonDefaultConstructible &t)
 template <typename T>
 void tst_QVariant::getIf_impl(T t) const
 {
+    using Pointed = std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, void>;
     QVariant v = QVariant::fromValue(t);
 
     QVariant null;
@@ -7148,6 +7187,16 @@ void tst_QVariant::getIf_impl(T t) const
         // mutable
         QCOMPARE_EQ(get_if<T>(&stdn), nullptr);
         QCOMPARE_EQ(get_if<T>(&date), nullptr);
+
+        if constexpr (std::is_pointer_v<T> && std::is_const_v<Pointed>) {
+            // we cannot get a non-const pointer to Pointed from a const one
+            using NonConstPointed = std::remove_const_t<Pointed>;
+            QCOMPARE_EQ(get_if<NonConstPointed *>(&std::as_const(stdn)), nullptr);
+            QCOMPARE_EQ(get_if<NonConstPointed *>(&std::as_const(v)), nullptr);
+
+            QCOMPARE_EQ(get_if<NonConstPointed *>(&stdn), nullptr);
+            QCOMPARE_EQ(get_if<NonConstPointed *>(&v), nullptr);
+        }
     }
 
     // returns nullptr on null variant (QVariant only):
@@ -7155,11 +7204,13 @@ void tst_QVariant::getIf_impl(T t) const
         QCOMPARE_EQ(get_if<T>(&std::as_const(null)), nullptr);
         QCOMPARE_EQ(get_if<T>(&null), nullptr);
         if constexpr (std::is_default_constructible_v<T>) {
-            // const access return nullptr
-            QCOMPARE_EQ(get_if<T>(&std::as_const(nulT)), nullptr);
+            // const access to a typed null returns a pointer to the default-constructed value
+            QCOMPARE_NE(get_if<T>(&std::as_const(nulT)), nullptr);
+            QCOMPARE_EQ(*get_if<T>(&std::as_const(nulT)), T{});
             // but mutable access makes typed null QVariants non-null (like data())
             QCOMPARE_NE(get_if<T>(&nulT), nullptr);
-            QVERIFY(!nulT.isNull());
+            if constexpr (!std::is_pointer_v<T>)
+                QVERIFY(!nulT.isNull());
             nulT = make_null_QVariant_of_type<T>(); // reset to null state
         }
     }
@@ -7175,6 +7226,14 @@ void tst_QVariant::getIf_impl(T t) const
         static_assert(std::is_same_v<decltype(ps), const T*>);
         QCOMPARE_NE(pv, nullptr);
         QCOMPARE_EQ(*pv, t);
+
+        if constexpr (std::is_pointer_v<T> && !std::is_const_v<Pointed>) {
+            // we *can* get a const Pointed* from a non-const one (QVariant only)
+            auto pnc = get_if<const Pointed *>(&std::as_const(v));
+            static_assert(std::is_same_v<decltype(pnc), const Pointed *const *>);
+            QCOMPARE_NE(pnc, nullptr);
+            QCOMPARE_EQ(*pnc, t);
+        }
     }
 
     // mutable access:
@@ -7199,11 +7258,28 @@ void tst_QVariant::getIf_impl(T t) const
         QCOMPARE_NE(pv2, nullptr);
         QCOMPARE_EQ(*pv2, t2);
 
+        if constexpr (std::is_pointer_v<T> && !std::is_const_v<Pointed>) {
+            // we *can* get a const Pointed* from a non-const one (QVariant only)
+            auto pnc = get_if<const Pointed *>(&v);
+            static_assert(std::is_same_v<decltype(pnc), const Pointed **>);
+            QCOMPARE_NE(pnc, nullptr);
+            QCOMPARE_EQ(*pnc, t2);
+        }
+
+        // QVariant detaches (data() behavior):
+        QVariant copy = v;
+        pv = get_if<T>(&v);
+        pv2 = get_if<T>(&copy);
+        QVERIFY(v.isDetached());
+        QVERIFY(copy.isDetached());
+        QCOMPARE_NE(pv, pv2);
+
         // typed null QVariants become non-null (data() behavior):
         if constexpr (std::is_default_constructible_v<T>) {
             QVERIFY(nulT.isNull());
             auto pn = get_if<T>(&nulT);
-            QVERIFY(!nulT.isNull());
+            if constexpr (!std::is_pointer_v<T>)
+                QVERIFY(!nulT.isNull());
             static_assert(std::is_same_v<decltype(pn), T*>);
             QCOMPARE_NE(pn, nullptr);
             QCOMPARE_EQ(*pn, T{});
@@ -7211,6 +7287,16 @@ void tst_QVariant::getIf_impl(T t) const
             auto pn2 = get_if<T>(&nulT);
             QCOMPARE_NE(pn2, nullptr);
             QCOMPARE_EQ(*pn2, t2);
+
+            if constexpr (std::is_pointer_v<T> && !std::is_const_v<Pointed>) {
+                // we *can* get a const Pointed* from a non-const one
+                nulT = make_null_QVariant_of_type<T>();
+                QVERIFY(nulT.isNull());
+                auto pnc = get_if<const Pointed *>(&nulT);
+                static_assert(std::is_same_v<decltype(pnc), const Pointed **>);
+                QCOMPARE_NE(pnc, nullptr);
+                QCOMPARE_EQ(*pnc, T{});
+            }
         }
     }
 }
@@ -7272,6 +7358,21 @@ void tst_QVariant::get_impl(T t) const
         rv = t2;
         auto &&rv2 = get<T>(v);
         QCOMPARE_EQ(rv2, t2);
+    }
+
+    // const-null access: a typed-null QVariant has valid default-constructed
+    // storage, so get<T>() / get_if<T>() on it must return the default value.
+    if constexpr (std::is_default_constructible_v<T>) {
+        const QVariant nulV(QMetaType::fromType<T>());
+        QVERIFY(nulV.isNull());
+        const T *p = get_if<T>(&nulV);
+        QCOMPARE_NE(p, nullptr);
+        QCOMPARE(*p, T{});
+        QCOMPARE(get<T>(nulV), T{});
+        // Creating a copy must not invalidate the pointer into the original:
+        const QVariant copy = nulV;
+        QCOMPARE_EQ(get_if<T>(&nulV), p);
+        Q_UNUSED(copy);
     }
 }
 

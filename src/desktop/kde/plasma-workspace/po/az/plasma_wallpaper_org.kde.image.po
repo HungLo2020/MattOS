@@ -2,21 +2,21 @@
 # This file is distributed under the same license as the plasma-workspace package.
 #
 # SPDX-FileCopyrightText: 2024 X əyyam
-# SPDX-FileCopyrightText: 2024, 2025 Kheyyam Godjayev <xxmn77@gmail.com>
+# SPDX-FileCopyrightText: 2024, 2025, 2026 Kheyyam Godjayev <xxmn77@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-17 02:39+0000\n"
-"PO-Revision-Date: 2025-05-28 16:40+0400\n"
-"Last-Translator: linux <xxmn77@gmail.com>\n"
+"POT-Creation-Date: 2026-06-21 00:46+0000\n"
+"PO-Revision-Date: 2026-02-10 22:05+0400\n"
+"Last-Translator: Kheyyam <xxmn77@gmail.com>\n"
 "Language-Team: Azerbaijani <kde-i18n-doc@kde.org>\n"
 "Language: az\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.04.1\n"
+"X-Generator: Lokalize 25.12.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -28,49 +28,49 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "xxmn77@gmail.com"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:59
+#: imagepackage/contents/ui/AddFileDialog.qml:56
 #, kde-format
 msgctxt "@title:window"
 msgid "Open Image"
 msgstr "Şəkil aşın"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:71
+#: imagepackage/contents/ui/AddFileDialog.qml:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Directory with the wallpaper to show slides from"
 msgstr "Slaydları göstərmək üçün divar kağızı qovluğu"
 
-#: imagepackage/contents/ui/config.qml:146
+#: imagepackage/contents/ui/config.qml:156
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Positioning:"
 msgstr "Yerləşdirmə:"
 
-#: imagepackage/contents/ui/config.qml:149
+#: imagepackage/contents/ui/config.qml:159
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled and cropped"
-msgstr "Miqyaslandırılmış və əsilmiş"
+msgstr "Miqyaslandırılmış və kəsilmiş"
 
-#: imagepackage/contents/ui/config.qml:153
+#: imagepackage/contents/ui/config.qml:163
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled"
 msgstr "Miqyaslanmış"
 
-#: imagepackage/contents/ui/config.qml:157
+#: imagepackage/contents/ui/config.qml:167
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled, keep proportions"
 msgstr "Nisbətləri saxlanılmaqla miqyaslanmış"
 
-#: imagepackage/contents/ui/config.qml:161
+#: imagepackage/contents/ui/config.qml:171
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered"
 msgstr "Mərkəzdə"
 
-#: imagepackage/contents/ui/config.qml:189
+#: imagepackage/contents/ui/config.qml:199
 #, fuzzy, kde-format
 #| msgctxt "part of a sentence: 'Switch dynamic wallpapers [based on]'"
 #| msgid "Switch dynamic wallpapers:"
@@ -79,7 +79,7 @@ msgctxt ""
 msgid "Switch dynamic wallpapers:"
 msgstr "Hərəkətli divar kağızlarını dəyişmək"
 
-#: imagepackage/contents/ui/config.qml:197
+#: imagepackage/contents/ui/config.qml:207
 #, fuzzy, kde-format
 #| msgctxt "part of a sentence: 'Switch dynamic wallpapers'"
 #| msgid "Based on whether the color scheme is dark or light"
@@ -87,46 +87,46 @@ msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on whether the Plasma style is light or dark "
 msgstr "Rəng sxeminin qaranlıq və işıqlı olmasına görə"
 
-#: imagepackage/contents/ui/config.qml:199
+#: imagepackage/contents/ui/config.qml:209
 #, kde-format
 msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
 msgid "Based on the day-night cycle"
 msgstr ""
 
-#: imagepackage/contents/ui/config.qml:203
+#: imagepackage/contents/ui/config.qml:213
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use light variant"
 msgstr ""
 
-#: imagepackage/contents/ui/config.qml:207
+#: imagepackage/contents/ui/config.qml:217
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use dark variant"
 msgstr ""
 
-#: imagepackage/contents/ui/config.qml:221
+#: imagepackage/contents/ui/config.qml:231
 #, kde-format
 msgctxt "@action:button Configure day-night cycle times"
 msgid "Configure…"
 msgstr ""
 
-#: imagepackage/contents/ui/config.qml:232
+#: imagepackage/contents/ui/config.qml:242
 #, kde-format
 msgid "Background:"
 msgstr "Arxa fon:"
 
-#: imagepackage/contents/ui/config.qml:233
+#: imagepackage/contents/ui/config.qml:243
 #, kde-format
 msgid "Blur"
 msgstr "Tutqun"
 
-#: imagepackage/contents/ui/config.qml:242
+#: imagepackage/contents/ui/config.qml:252
 #, kde-format
 msgid "Solid color"
 msgstr "Bütöv rəng"
 
-#: imagepackage/contents/ui/config.qml:253
+#: imagepackage/contents/ui/config.qml:263
 #, kde-format
 msgid "Select Background Color"
 msgstr "Arxa fon şəklini seçmək"
@@ -270,13 +270,13 @@ msgstr ""
 "Divar kağızı kimi quraşdırılmağa ayrılan fayl mövcud deyil və ya biz onu "
 "divar kağızı faylı kimi tanıya bilmədik: %1"
 
-#: plugin/imagebackend.cpp:40
+#: plugin/imagebackend.cpp:42
 #, kde-format
 msgid "Next Wallpaper Image"
 msgstr "Növbəti divar kağızı"
 
 #. i18n people, this isn't a "word puzzle". there is a specific string format for QFileDialog::setNameFilters
-#: plugin/imagebackend.cpp:382
+#: plugin/imagebackend.cpp:384
 #, kde-format
 msgid "Media Files"
 msgstr "Media fayllar"
@@ -342,34 +342,43 @@ msgid_plural "%1 seconds"
 msgstr[0] "%1 saniyə"
 msgstr[1] "%1 saniyə"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:203
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:175
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Set all times to 0 to disable automatic wallpaper changing. You can still "
+"change wallpapers manually with the <interface>Next Wallpaper Image</"
+"interface> menu item in the desktop context menu."
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
 #, kde-format
 msgid "Folders"
 msgstr "Qovluqlar"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:211
 #, kde-format
 msgctxt "@action button the thing being added is a folder"
 msgid "Add…"
 msgstr "Əlavə edin..."
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:208
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:212
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Folder…"
 msgstr "Qovluq əlavə etmək..."
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:246
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:250
 #, kde-format
 msgid "Remove Folder"
 msgstr "Qovluğu silmək"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:257
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:261
 #, kde-format
 msgid "Open Folder…"
 msgstr "Qovluğu açın..."
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:272
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:276
 #, kde-format
 msgid "There are no wallpaper locations configured"
 msgstr "Divar kağızı yeri müəyyən edilməyib"

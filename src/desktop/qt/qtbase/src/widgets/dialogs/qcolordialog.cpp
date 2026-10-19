@@ -682,7 +682,7 @@ private:
     int val2y(int val);
     void setVal(int v);
 
-    QPixmap *pix;
+    QPixmap pix;
 };
 
 
@@ -702,14 +702,12 @@ QColorLuminancePicker::QColorLuminancePicker(QWidget* parent)
     :QWidget(parent)
 {
     hue = 100; val = 100; sat = 100;
-    pix = nullptr;
     //    setAttribute(WA_NoErase, true);
     setFocusPolicy(Qt::StrongFocus);
 }
 
 QColorLuminancePicker::~QColorLuminancePicker()
 {
-    delete pix;
 }
 
 void QColorLuminancePicker::keyPressEvent(QKeyEvent *event)
@@ -745,7 +743,7 @@ void QColorLuminancePicker::setVal(int v)
     if (val == v)
         return;
     val = qMax(0, qMin(v,255));
-    delete pix; pix=nullptr;
+    pix = QPixmap();
     repaint();
     emit newHsv(hue, sat, val);
 }
@@ -764,8 +762,7 @@ void QColorLuminancePicker::paintEvent(QPaintEvent *)
     QRect r(0, foff, w, height() - 2*foff);
     int wi = r.width() - 2;
     int hi = r.height() - 2;
-    if (!pix || pix->height() != hi || pix->width() != wi) {
-        delete pix;
+    if (pix.isNull() || pix.height() != hi || pix.width() != wi) {
         QImage img(wi, hi, QImage::Format_RGB32);
         int y;
         uint *pixel = (uint *) img.scanLine(0);
@@ -774,10 +771,10 @@ void QColorLuminancePicker::paintEvent(QPaintEvent *)
             std::fill(pixel, end, QColor::fromHsv(hue, sat, y2val(y + coff)).rgb());
             pixel = end;
         }
-        pix = new QPixmap(QPixmap::fromImage(img));
+        pix = QPixmap::fromImage(img);
     }
     QPainter p(this);
-    p.drawPixmap(1, coff, *pix);
+    p.drawPixmap(1, coff, pix);
     const QPalette &g = palette();
     qDrawShadePanel(&p, r, g, true);
     p.setPen(g.windowText().color());
@@ -793,7 +790,7 @@ void QColorLuminancePicker::setCol(int h, int s , int v)
     val = v;
     hue = h;
     sat = s;
-    delete pix; pix=nullptr;
+    pix = QPixmap();
     repaint();
 }
 
@@ -1656,10 +1653,18 @@ void QColorDialogPrivate::pickScreenColor()
 
 void QColorDialogPrivate::updateColorLabelText(const QPoint &globalPos)
 {
-    if (lblScreenColorInfo)
-        lblScreenColorInfo->setText(QColorDialog::tr("Cursor at %1, %2\nPress ESC to cancel")
+    if (!lblScreenColorInfo)
+        return;
+#ifdef Q_OS_HARMONY
+    Q_UNUSED(globalPos)
+    lblScreenColorInfo->setText(QColorDialog::tr("Cursor at %1, %2\nPress ESC to cancel")
+                                .arg(QStringLiteral("-"))
+                                .arg(QStringLiteral("-")));
+#else
+    lblScreenColorInfo->setText(QColorDialog::tr("Cursor at %1, %2\nPress ESC to cancel")
                                 .arg(globalPos.x())
                                 .arg(globalPos.y()));
+#endif
 }
 
 void QColorDialogPrivate::releaseColorPicking()

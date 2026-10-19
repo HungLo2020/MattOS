@@ -2,13 +2,13 @@
 # This file is distributed under the same license as the plasma-systemmonitor package.
 #
 # SPDX-FileCopyrightText: 2021, 2023 Kristóf Kiszel <kiszel.kristof@gmail.com>
-# SPDX-FileCopyrightText: 2024, 2025 Kristof Kiszel <ulysses@fsf.hu>
+# SPDX-FileCopyrightText: 2024-2026 Kristof Kiszel <ulysses@fsf.hu>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2025-06-06 23:24+0200\n"
+"POT-Creation-Date: 2026-07-17 00:46+0000\n"
+"PO-Revision-Date: 2026-06-08 22:25+0200\n"
 "Last-Translator: Kristof Kiszel <ulysses@fsf.hu>\n"
 "Language-Team: Hungarian <kde-l10n-hu@kde.org>\n"
 "Language: hu\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.04.1\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #: src/GlobalMenu.qml:16
 #, kde-format
@@ -79,9 +79,11 @@ msgid "Settings"
 msgstr "Beállítások"
 
 #: src/GlobalMenu.qml:76
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@menu-action"
+#| msgid "Edit or Remove pages…"
 msgctxt "@menu-action"
-msgid "Edit or Remove pages…"
+msgid "Edit or Remove Pages…"
 msgstr "Oldalak szerkesztése vagy eltávolítása…"
 
 #: src/GlobalMenu.qml:83
@@ -192,9 +194,11 @@ msgid "Add New Page…"
 msgstr "Új oldal hozzáadása…"
 
 #: src/Main.qml:100
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Edit or Remove pages…"
 msgctxt "@action"
-msgid "Edit or Remove pages…"
+msgid "Edit or Remove Pages…"
 msgstr "Oldalak szerkesztése vagy eltávolítása…"
 
 #: src/Main.qml:106
@@ -245,37 +249,37 @@ msgctxt "@action"
 msgid "About KDE"
 msgstr "A KDE névjegye"
 
-#: src/Main.qml:251
+#: src/Main.qml:266
 #, kde-format
 msgctxt "@window:title"
 msgid "Add New Page"
 msgstr "Új oldal hozzáadása"
 
-#: src/Main.qml:272
+#: src/Main.qml:287
 #, kde-format
 msgctxt "@window:title"
 msgid "Edit Pages"
 msgstr "Oldalak szerkesztése"
 
-#: src/Main.qml:295
+#: src/Main.qml:310
 #, kde-format
 msgctxt "@title:window %1 is the name of the page that is being exported"
 msgid "Export %1"
 msgstr "%1 exportálása"
 
-#: src/Main.qml:297 src/Main.qml:307
+#: src/Main.qml:312 src/Main.qml:322
 #, kde-format
 msgctxt "Name filter in file dialog"
 msgid "System Monitor page (*.page)"
 msgstr "Rendszermonitor oldal (*.page)"
 
-#: src/Main.qml:305
+#: src/Main.qml:320
 #, kde-format
 msgctxt "@title:window"
 msgid "Import Page"
 msgstr "Oldal importálása"
 
-#: src/Main.qml:331
+#: src/Main.qml:346
 #, kde-format
 msgid ""
 "System Monitor has fallen back to software rendering because hardware "
@@ -310,49 +314,49 @@ msgctxt "@action"
 msgid "Remove Background Margins"
 msgstr "Háttérkép keretének eltávolítása"
 
-#: src/page/EditablePage.qml:128
+#: src/page/EditablePage.qml:122
 #, kde-format
 msgctxt "@action"
 msgid "Edit Page"
 msgstr "Oldal szerkesztése"
 
-#: src/page/EditablePage.qml:138
+#: src/page/EditablePage.qml:132
 #, kde-format
 msgctxt "@action"
 msgid "Save Changes"
 msgstr "Változtatások mentése"
 
-#: src/page/EditablePage.qml:148
+#: src/page/EditablePage.qml:142
 #, kde-format
 msgctxt "@action"
 msgid "Discard Changes"
 msgstr "Változtatások eldobása"
 
-#: src/page/EditablePage.qml:159
+#: src/page/EditablePage.qml:153
 #, kde-format
 msgctxt "@action"
 msgid "Configure Page…"
 msgstr "Oldalbeállítás…"
 
-#: src/page/EditablePage.qml:168
+#: src/page/EditablePage.qml:162
 #, kde-format
 msgctxt "@action"
 msgid "Add Row"
 msgstr "Sor hozzáadása"
 
-#: src/page/EditablePage.qml:177
+#: src/page/EditablePage.qml:171
 #, kde-format
 msgctxt "@action"
 msgid "Add Title"
 msgstr "Cím hozzáadása"
 
-#: src/page/EditablePage.qml:190
+#: src/page/EditablePage.qml:184
 #, kde-format
 msgctxt "@title:window %1 is page title"
 msgid "Configure Page \"%1\""
 msgstr "A(z) „%1” oldal beállítása"
 
-#: src/page/EditablePage.qml:192
+#: src/page/EditablePage.qml:186
 #, kde-format
 msgctxt "@action:button"
 msgid "Save"
@@ -741,63 +745,97 @@ msgctxt "@info:tooltip"
 msgid "Use half the height of the page."
 msgstr "Az oldalmagasság felének használata."
 
-#: src/table/ColumnConfigurationDialog.qml:29
+#: src/table/AffinityDialog.qml:23
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Set Priority"
+msgctxt "@title:window"
+msgid "Set Affinity"
+msgstr "Prioritás beállítása"
+
+#: src/table/AffinityDialog.qml:54
+#, kde-format
+msgctxt "@label"
+msgid "Allow to run on:"
+msgstr ""
+
+#: src/table/AffinityDialog.qml:73
+#, kde-format
+msgctxt "@option:check CPU core number"
+msgid "CPU %1"
+msgstr ""
+
+#: src/table/AffinityDialog.qml:109
+#, kde-format
+msgctxt "@action:button"
+msgid "Select All"
+msgstr ""
+
+#: src/table/AffinityDialog.qml:121
+#, kde-format
+msgctxt "@action:button"
+msgid "Clear All"
+msgstr ""
+
+#: src/table/AffinityDialog.qml:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Invert"
+msgstr ""
+
+#: src/table/ColumnConfigurationDialog.qml:48
 #, kde-format
 msgctxt "@window:title"
 msgid "Configure Columns"
 msgstr "Oszlopbeállítások"
 
-#: src/table/ColumnConfigurationDialog.qml:106
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Add Column"
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Enabled Columns"
-msgstr "Oszlop hozzáadása"
+msgstr "Aktív oszlopok"
 
-#: src/table/ColumnConfigurationDialog.qml:106
-#, fuzzy, kde-format
-#| msgctxt "@action"
-#| msgid "Add Column"
+#: src/table/ColumnConfigurationDialog.qml:126
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Disabled Columns"
-msgstr "Oszlop hozzáadása"
+msgstr "Kikapcsolt oszlopok"
 
-#: src/table/ColumnConfigurationDialog.qml:240
+#: src/table/ColumnConfigurationDialog.qml:260
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Hidden"
 msgstr "Rejtett"
 
-#: src/table/ColumnConfigurationDialog.qml:241
+#: src/table/ColumnConfigurationDialog.qml:261
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only"
 msgstr "Csak szöveg"
 
-#: src/table/ColumnConfigurationDialog.qml:245
+#: src/table/ColumnConfigurationDialog.qml:265
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart"
 msgstr "Vonaldiagram"
 
-#: src/table/ColumnConfigurationDialog.qml:249
+#: src/table/ColumnConfigurationDialog.qml:269
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Text Only (Scaled to 100%)"
 msgstr "Csak szöveg (100%-ra méretezve)"
 
-#: src/table/ColumnConfigurationDialog.qml:250
+#: src/table/ColumnConfigurationDialog.qml:270
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Line Chart (Scaled to 100%)"
 msgstr "Vonaldiagram (100%-ra méretezve)"
 
-#: src/table/ColumnConfigurationDialog.qml:287
+#: src/table/ColumnConfigurationDialog.qml:307
 #, kde-format
 msgctxt "@info"
 msgid "No columns matched the search"
-msgstr ""
+msgstr "Nincs a keresésre illeszkedő oszlop"
 
 #: src/table/KillDialog.qml:83
 #, kde-format
@@ -809,19 +847,19 @@ msgstr "Ne kérdezzen rá többször"
 #, kde-format
 msgctxt "@title:window"
 msgid "Set Priority"
-msgstr ""
+msgstr "Prioritás beállítása"
 
 #: src/table/ReniceDialog.qml:57
 #, kde-format
 msgctxt "@title:group"
 msgid "CPU Scheduler"
-msgstr ""
+msgstr "CPU-ütemező"
 
 #: src/table/ReniceDialog.qml:83
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Normal"
-msgstr ""
+msgstr "Normál"
 
 #: src/table/ReniceDialog.qml:84
 #, kde-format
@@ -830,12 +868,14 @@ msgid ""
 "The standard time-sharing scheduler for processes without special "
 "requirements."
 msgstr ""
+"A speciális követelményekkel nem rendelkező folyamatokhoz használt "
+"alapértelmezett időmegosztásos ütemező."
 
 #: src/table/ReniceDialog.qml:89
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Batch"
-msgstr ""
+msgstr "Kötegelt"
 
 #: src/table/ReniceDialog.qml:90
 #, kde-format
@@ -844,54 +884,56 @@ msgid ""
 "Process is mildly disfavored in scheduling decisions, for CPU-intensive non-"
 "interactive processes."
 msgstr ""
+"Az ütemezési döntések során a folyamatok enyhén hátrányos megkülönböztetést "
+"kapnak, amennyiben CPU-igényes, neminteraktív folyamatokról van szó."
 
 #: src/table/ReniceDialog.qml:95
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "Round robin"
-msgstr ""
+msgstr "Ciklikus időkiosztás"
 
 #: src/table/ReniceDialog.qml:96
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process will run whenever runnable, with timeslicing."
-msgstr ""
+msgstr "A folyamat akkor fut, amikor futtatható, időosztással."
 
 #: src/table/ReniceDialog.qml:101
 #, kde-format
 msgctxt "@option:radio for process scheduler mode"
 msgid "FIFO"
-msgstr ""
+msgstr "FIFO"
 
 #: src/table/ReniceDialog.qml:102
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process will run whenever runnable, with no timeslicing."
-msgstr ""
+msgstr "A folyamat akkor fut, amikor futtatható, időosztás nélkül."
 
 #: src/table/ReniceDialog.qml:120
 #, kde-format
 msgctxt "@title:group"
 msgid "I/O Scheduler"
-msgstr ""
+msgstr "I/O-ütemező"
 
 #: src/table/ReniceDialog.qml:146
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Normal"
-msgstr ""
+msgstr "Normál"
 
 #: src/table/ReniceDialog.qml:147
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process' priority is based on the CPU priority."
-msgstr ""
+msgstr "A folyamat prioritása a CPU-prioritáson alapul."
 
 #: src/table/ReniceDialog.qml:152
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Idle"
-msgstr ""
+msgstr "Inaktív"
 
 #: src/table/ReniceDialog.qml:153
 #, kde-format
@@ -900,24 +942,28 @@ msgid ""
 "Process can only use the hard disk when no other process has used it very "
 "recently."
 msgstr ""
+"A folyamat csak akkor használhatja a merevlemezt, ha más folyamat nem "
+"használta azt a közelmúltban."
 
 #: src/table/ReniceDialog.qml:158
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Best Effort"
-msgstr ""
+msgstr "Legjobb teljesítmény"
 
 #: src/table/ReniceDialog.qml:159
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid "Process is given higher priority to access the hard disk than normal."
 msgstr ""
+"A folyamat a merevlemezhez való hozzáférés során a szokásosnál magasabb "
+"prioritást kap."
 
 #: src/table/ReniceDialog.qml:164
 #, kde-format
 msgctxt "@option:radio for I/O scheduler mode"
 msgid "Real Time"
-msgstr ""
+msgstr "Valós idejű"
 
 #: src/table/ReniceDialog.qml:165
 #, kde-format
@@ -926,30 +972,32 @@ msgid ""
 "Process gets immediate access to the hard disk whenever needed, regardless "
 "of what else is going on."
 msgstr ""
+"A folyamat szükség esetén azonnal hozzáfér a merevlemezhez, függetlenül "
+"attól, hogy éppen mi más történik."
 
 #: src/table/ReniceDialog.qml:211
 #, kde-format
 msgctxt "Lower process priority"
 msgid "Low priority"
-msgstr ""
+msgstr "Alacsony prioritás"
 
 #: src/table/ReniceDialog.qml:218
 #, kde-format
 msgctxt "Higher process priority"
 msgid "High priority"
-msgstr ""
+msgstr "Magas prioritás"
 
 #: src/table/ReniceDialog.qml:268
 #, kde-format
 msgctxt "Lower I/O priority"
 msgid "Low priority"
-msgstr ""
+msgstr "Alacsony prioritás"
 
 #: src/table/ReniceDialog.qml:275
 #, kde-format
 msgctxt "Higher I/O priority"
 msgid "High priority"
-msgstr ""
+msgstr "Magas prioritás"
 
 #: src/ToolsModel.cpp:37
 #, kde-format

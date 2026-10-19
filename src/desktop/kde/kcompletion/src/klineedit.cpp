@@ -907,7 +907,7 @@ QMenu *KLineEdit::createStandardContextMenu()
             separatorAction = actionList.at(idx);
         }
         if (separatorAction) {
-            QAction *clearAllAction = new QAction(QIcon::fromTheme(QStringLiteral("edit-clear")), tr("C&lear", "@action:inmenu"), this);
+            QAction *clearAllAction = new QAction(QIcon::fromTheme(QStringLiteral("edit-clear")), tr("C&lear", "@action:inmenu"), popup);
             clearAllAction->setShortcuts(QKeySequence::keyBindings(QKeySequence::DeleteCompleteLine));
             connect(clearAllAction, &QAction::triggered, this, &QLineEdit::clear);
             if (text().isEmpty()) {
@@ -928,7 +928,7 @@ QMenu *KLineEdit::createStandardContextMenu()
 
         popup->addSeparator();
 
-        QActionGroup *ag = new QActionGroup(this);
+        QActionGroup *ag = new QActionGroup(popup);
         d->noCompletionAction = ag->addAction(tr("None", "@item:inmenu Text Completion"));
         d->shellCompletionAction = ag->addAction(tr("Manual", "@item:inmenu Text Completion"));
         d->autoCompletionAction = ag->addAction(tr("Automatic", "@item:inmenu Text Completion"));

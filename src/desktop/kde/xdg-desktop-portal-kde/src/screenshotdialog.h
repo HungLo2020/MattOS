@@ -12,12 +12,15 @@
 #include "quickdialog.h"
 #include <QFuture>
 #include <QImage>
+#include <qqmlintegration.h>
 
 class ScreenshotDialog : public QuickDialog
 {
     Q_OBJECT
+    QML_NAMED_ELEMENT(ScreenshotDialogCpp)
+    QML_UNCREATABLE("")
 public:
-    explicit ScreenshotDialog(QObject *parent = nullptr);
+    explicit ScreenshotDialog(const QString &appName, QObject *parent = nullptr);
 
     enum Flags {
         Borders = 1,

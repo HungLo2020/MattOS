@@ -3,25 +3,24 @@
 
 
 #include "avfmediaencoder_p.h"
-#include "avfcamerarenderer_p.h"
-#include "avfcamerasession_p.h"
-#include "avfcamera_p.h"
-#include "avfcameraservice_p.h"
+
+#include <camera/avfcamera_p.h>
+#include <camera/avfcamerarenderer_p.h>
+#include <camera/avfcameraservice_p.h>
+#include <camera/avfcamerasession_p.h>
+#include <qdarwinformatsinfo_p.h>
+
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
-#include "qaudiodevice.h"
-
-#include "qmediadevices.h"
-#include "private/qmediastoragelocation_p.h"
-#include "private/qmediarecorder_p.h"
-#include "qdarwinformatsinfo_p.h"
-#include "private/qplatformaudiooutput_p.h"
-#include <private/qplatformaudioinput_p.h>
-
-#include <QtCore/qmath.h>
+#include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qmediarecorder_p.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
 #include <QtCore/qdebug.h>
-
-#include <private/qcoreaudioutils_p.h>
+#include <QtCore/qmath.h>
 
 QT_USE_NAMESPACE
 
@@ -107,7 +106,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
 
     // Codec
     int codecId = QDarwinFormatInfo::audioFormatForCodec(encoderSettings.mediaFormat().audioCodec());
-    [settings setObject:[NSNumber numberWithInt:codecId] forKey:AVFormatIDKey];
+    settings[AVFormatIDKey] = @(codecId);
 
     // Setting AVEncoderQualityKey is not allowed when format ID is alac or lpcm
     if (codecId != kAudioFormatAppleLossless && codecId != kAudioFormatLinearPCM
@@ -132,7 +131,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
             quality = AVAudioQualityMedium;
             break;
         }
-        [settings setObject:[NSNumber numberWithInt:quality] forKey:AVEncoderAudioQualityKey];
+        settings[AVEncoderAudioQualityKey] = @(quality);
     } else {
         // BitRate
         bool isBitRateSupported = false;
@@ -147,8 +146,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
                 }
             }
             if (isBitRateSupported)
-                [settings setObject:[NSNumber numberWithInt:encoderSettings.audioBitRate()]
-                                              forKey:AVEncoderBitRateKey];
+                settings[AVEncoderBitRateKey] = @(encoderSettings.audioBitRate());
         }
     }
 
@@ -166,7 +164,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
     }
     if (!isSampleRateSupported)
         sampleRate = 44100;
-    [settings setObject:[NSNumber numberWithInt:sampleRate] forKey:AVSampleRateKey];
+    settings[AVSampleRateKey] = @(sampleRate);
 
     // Channels
     int channelCount = encoderSettings.audioChannelCount();
@@ -194,14 +192,14 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
             auto channelLayoutTags = qt_supported_channel_layout_tags_for_format(codecId, channelCount);
             if (channelLayoutTags.size()) {
                 channelLayout.mChannelLayoutTag = channelLayoutTags.first();
-                [settings setObject:[NSData dataWithBytes: &channelLayout length: sizeof(channelLayout)] forKey:AVChannelLayoutKey];
+                settings[AVChannelLayoutKey] = [NSData dataWithBytes:&channelLayout length:sizeof(channelLayout)];
             } else {
                 isChannelCountSupported = false;
             }
         }
 
         if (isChannelCountSupported)
-            [settings setObject:[NSNumber numberWithInt:channelCount] forKey:AVNumberOfChannelsKey];
+            settings[AVNumberOfChannelsKey] = @(channelCount);
     }
 
     if (!isChannelCountSupported) {
@@ -211,21 +209,21 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
             auto layout = QCoreAudioUtils::toAudioChannelLayout(format, &size);
             UInt32 layoutSize = offsetof(AudioChannelLayout, mChannelDescriptions)
                     + layout->mNumberChannelDescriptions * sizeof(AudioChannelDescription);
-            [settings setObject:[NSData dataWithBytes:layout.get() length:layoutSize] forKey:AVChannelLayoutKey];
+            settings[AVChannelLayoutKey] = [NSData dataWithBytes:layout.get() length:layoutSize];
         } else {
             // finally default to setting channel count to 1
-            [settings setObject:[NSNumber numberWithInt:1] forKey:AVNumberOfChannelsKey];
+            settings[AVNumberOfChannelsKey] = @(1);
         }
     }
 
     if (codecId == kAudioFormatAppleLossless)
-        [settings setObject:[NSNumber numberWithInt:24] forKey:AVEncoderBitDepthHintKey];
+        settings[AVEncoderBitDepthHintKey] = @(24);
 
     if (codecId == kAudioFormatLinearPCM) {
-        [settings setObject:[NSNumber numberWithInt:16] forKey:AVLinearPCMBitDepthKey];
-        [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsBigEndianKey];
-        [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsFloatKey];
-        [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsNonInterleaved];
+        settings[AVLinearPCMBitDepthKey] = @(16);
+        settings[AVLinearPCMIsBigEndianKey] = @NO;
+        settings[AVLinearPCMIsFloatKey] = @NO;
+        settings[AVLinearPCMIsNonInterleaved] = @NO;
     }
 
     return settings;
@@ -338,8 +336,8 @@ static NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings,
         h = nativeSize.height();
         encoderSettings.setVideoResolution(nativeSize);
     }
-    [videoSettings setObject:[NSNumber numberWithInt:w] forKey:AVVideoWidthKey];
-    [videoSettings setObject:[NSNumber numberWithInt:h] forKey:AVVideoHeightKey];
+    videoSettings[AVVideoWidthKey] = @(w);
+    videoSettings[AVVideoHeightKey] = @(h);
 
     // -- FPS
 
@@ -389,11 +387,11 @@ static NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings,
     }
 
     if (bitrate != -1)
-        [codecProperties setObject:[NSNumber numberWithInt:bitrate] forKey:AVVideoAverageBitRateKey];
+        codecProperties[AVVideoAverageBitRateKey] = @(bitrate);
     if (quality != -1.f)
-        [codecProperties setObject:[NSNumber numberWithFloat:quality] forKey:AVVideoQualityKey];
+        codecProperties[AVVideoQualityKey] = @(quality);
 
-    [videoSettings setObject:codecProperties forKey:AVVideoCompressionPropertiesKey];
+    videoSettings[AVVideoCompressionPropertiesKey] = codecProperties;
 
     return videoSettings;
 }

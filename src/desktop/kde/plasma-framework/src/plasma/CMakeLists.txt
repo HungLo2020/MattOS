@@ -10,7 +10,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config-plasma.h.cmake ${CMAKE_CURRENT
 add_library(Plasma)
 add_library(Plasma::Plasma ALIAS Plasma)
 
-qt_extract_metatypes(Plasma)
+qt_extract_metatypes(Plasma OUTPUT_FILES METATYPES_FILE)
+
+# see https://qt-project.atlassian.net/browse/QTBUG-123052
+# might be replaced with proper Qt API once that exists
+if (ECM_VERSION VERSION_GREATER_EQUAL "6.27.0")
+    get_filename_component(METATYPES_FILE_NAME ${METATYPES_FILE} NAME)
+    target_sources(Plasma INTERFACE $<INSTALL_INTERFACE:${KDE_INSTALL_QTMETATYPESDIR}/${METATYPES_FILE_NAME}>)
+endif()
 
 set_target_properties(Plasma PROPERTIES
     VERSION     ${PLASMA_VERSION}
@@ -53,13 +60,10 @@ target_sources(Plasma PRIVATE
     private/blureffectwatcher_p.h
 )
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL "6.8.0")
-    set(private_code_option  "PRIVATE_CODE")
-endif()
 qt6_generate_wayland_protocol_client_sources(Plasma
-    ${private_code_option}
+    PRIVATE_CODE
     FILES
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/blur.xml
+        ${WaylandProtocols_DATADIR}/staging/ext-background-effect/ext-background-effect-v1.xml
 )
 
 ecm_qt_declare_logging_category(Plasma
@@ -82,10 +86,6 @@ ecm_generate_export_header(Plasma
     DEPRECATION_VERSIONS
 )
 
-if(HAVE_X11)
-    set(PLASMA_EXTRA_LIBS ${PLASMA_EXTRA_LIBS} XCB::XCB)
-endif()
-
 target_link_libraries(Plasma
 PUBLIC
     Qt6::Gui
@@ -104,10 +104,12 @@ PRIVATE
     KF6::GlobalAccel #Applet::setGlobalShortcut
     KF6::Notifications
     KF6::IconThemes
-    Plasma::Activities
     KF6::Svg
-    ${PLASMA_EXTRA_LIBS}
 )
+
+if(ENABLE_ACTIVITIES)
+    target_link_libraries(Plasma PRIVATE Plasma::Activities)
+endif()
 
 target_link_libraries(Plasma PRIVATE KF6::Package)
 
@@ -154,30 +156,6 @@ install(
 
 install(TARGETS Plasma EXPORT PlasmaTargets ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 
-if(BUILD_QCH)
-    ecm_add_qch(
-        Plasma_QCH
-        NAME Plasma
-        BASE_NAME Plasma
-        VERSION ${PLASMA_VERSION}
-        ORG_DOMAIN org.kde
-        SOURCES # using only public headers, to cover only public API
-            ${Plasma_HEADERS}
-            Mainpage.dox
-        MD_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md"
-        LINK_QCHS
-            Qt6Gui_QCH
-            KF6Service_QCH
-            KF6Package_QCH
-        INCLUDE_DIRS
-            ${Plasma_BUILD_INCLUDE_DIRS}
-        BLANK_MACROS
-            PLASMA_EXPORT
-            PLASMA_DEPRECATED
-            PLASMA_DEPRECATED_EXPORT
-            "PLASMA_DEPRECATED_VERSION(x, y, t)"
-        TAGFILE_INSTALL_DESTINATION ${KDE_INSTALL_QTQCHDIR}
-        QCH_INSTALL_DESTINATION ${KDE_INSTALL_QTQCHDIR}
-        COMPONENT Devel
-    )
+if (ECM_VERSION VERSION_GREATER_EQUAL "6.27.0")
+    install(FILES ${METATYPES_FILE} DESTINATION ${KDE_INSTALL_QTMETATYPESDIR})
 endif()

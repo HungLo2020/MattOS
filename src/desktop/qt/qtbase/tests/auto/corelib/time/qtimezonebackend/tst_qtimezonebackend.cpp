@@ -28,6 +28,9 @@ private Q_SLOTS:
     void isValidId();
     void roundtripDisplayNames_data();
     void roundtripDisplayNames();
+    void findOffsetPrefix_data();
+    void findOffsetPrefix();
+
     // Tests of specific backends (see also ../qtimezone/):
     void icuTest();
     void tzTest();
@@ -215,6 +218,8 @@ void tst_QTimeZoneBackend::roundtripDisplayNames_data()
         if (!zone.isValid())
             continue;
         for (const auto type : types) {
+            if (type == QTimeZone::DaylightTime && !zone.hasDaylightTime())
+                continue;
             QTest::addRow("%s@fr_FR/%s", id.constData(), typeName(type))
                 << zone << fr << type;
             QTest::addRow("%s@hi_IN/%s", id.constData(), typeName(type))
@@ -279,13 +284,156 @@ void tst_QTimeZoneBackend::roundtripDisplayNames()
     }
 }
 
+static void addOffsetPrefixCase(int mins, QByteArrayView name, const QLocale &loc)
+{
+    constexpr QTimeZone::TimeType seasons[] = {
+        QTimeZone::GenericTime, QTimeZone::StandardTime, QTimeZone::DaylightTime
+    };
+    const auto typeTag = [](QTimeZone::TimeType type) {
+        switch (type) {
+        case QTimeZone::GenericTime: return "gen";
+        case QTimeZone::StandardTime: return "std";
+        case QTimeZone::DaylightTime: return "dst";
+        }
+        Q_UNREACHABLE_RETURN("<unknown season>");
+    };
+    const auto flagsFor = [](QTimeZone::TimeType season) {
+        using Flag = QtTemporalPattern::TemporalFieldFlag;
+        switch (season) {
+        case QTimeZone::GenericTime:
+            return Flag::Numeric | Flag::GenericTime;
+        case QTimeZone::StandardTime:
+            return Flag::Numeric | Flag::StandardTime;
+        case QTimeZone::DaylightTime:
+            return Flag::Numeric | Flag::DaylightSavingTime;
+        }
+        Q_UNREACHABLE_RETURN(QtTemporalPattern::TemporalFieldFlags{});
+    };
+    constexpr QtTemporalPattern::TemporalFieldFlags NoFlags = {};
+    constexpr auto AllSeasons = QtTemporalPattern::TemporalFieldFlag::GenericTime
+        | QtTemporalPattern::TemporalFieldFlag::StandardTime
+        | QtTemporalPattern::TemporalFieldFlag::DaylightSavingTime
+        | QtTemporalPattern::TemporalFieldFlag::Numeric;
+    const char sign = mins < 0 ? '-' : '+';
+    const int absMin = qAbs(mins);
+    const int hour = absMin / 60;
+    const int min = absMin % 60;
+    for (const auto type : seasons) {
+        QTest::addRow("%s/%c%02d:%02d/%s/only", name.data(),
+                      sign, hour, min, typeTag(type))
+            << loc << mins << type << flagsFor(type);
+        QTest::addRow("%s/%c%02d:%02d/%s/none", name.data(),
+                      sign, hour, min, typeTag(type))
+            << loc << mins << type << NoFlags;
+        QTest::addRow("%s/%c%02d:%02d/%s/all", name.data(),
+                      sign, hour, min, typeTag(type))
+            << loc << mins << type << AllSeasons;
+    }
+}
+
+void tst_QTimeZoneBackend::findOffsetPrefix_data()
+{
+    QTest::addColumn<QLocale>("locale");
+    QTest::addColumn<int>("offsetMinutes");
+    QTest::addColumn<QTimeZone::TimeType>("season");
+    QTest::addColumn<QtTemporalPattern::TemporalFieldFlags>("flags");
+
+#ifdef EXHAUSTIVE_ZONE_DISPLAY
+    bool ok = QLocaleData::allLocaleDataRows([](qsizetype, const QLocaleData &item) {
+        const QLocale loc(QLocale::Language(item.m_language_id),
+                          QLocale::Script(item.m_script_id),
+                          QLocale::Territory(item.m_territory_id));
+        const QByteArray name = item.id().name();
+        // We only consider whole numbers of minutes, as locales usually only
+        // support HH:mm offsets.
+        for (int mins = QTimeZone::MinUtcOffsetSecs / 60;
+             mins <= QTimeZone::MaxUtcOffsetSecs / 60; ++mins) {
+            addOffsetPrefixCase(mins, name, loc);
+        }
+        return true;
+    });
+    Q_ASSERT(ok); // Function called for each locale always returns true.
+#else
+    addOffsetPrefixCase(-120, "kl-GL", QLocale(QLocale::Kalaallisut, QLocale::Greenland));
+    addOffsetPrefixCase(-30, "en-GB", QLocale(QLocale::English, QLocale::UnitedKingdom));
+    addOffsetPrefixCase(0, "en-GB", QLocale(QLocale::English, QLocale::UnitedKingdom));
+    addOffsetPrefixCase(30, "en-GB", QLocale(QLocale::English, QLocale::UnitedKingdom));
+    addOffsetPrefixCase(-16 * 60, "en", QLocale(QLocale::English));
+    addOffsetPrefixCase(-15 * 60, "en", QLocale(QLocale::English));
+    addOffsetPrefixCase(-11 * 60, "en", QLocale(QLocale::English));
+    addOffsetPrefixCase(-4 * 60, "en", QLocale(QLocale::English));
+    addOffsetPrefixCase(15 * 60, "en", QLocale(QLocale::English));
+    addOffsetPrefixCase(16 * 60, "en", QLocale(QLocale::English));
+    addOffsetPrefixCase(120, "ar-SD", QLocale(QLocale::Arabic, QLocale::Sudan));
+    addOffsetPrefixCase(180, "am-ET", QLocale(QLocale::Amharic, QLocale::Ethiopia));
+    addOffsetPrefixCase(-30, "eu-ES", QLocale(QLocale::Basque, QLocale::Spain));
+    addOffsetPrefixCase(-30, "ee-GH", QLocale(QLocale::Ewe, QLocale::Ghana));
+    addOffsetPrefixCase(+30, "ee-TG", QLocale(QLocale::Ewe, QLocale::Togo));
+    addOffsetPrefixCase(180, "he-IL", QLocale(QLocale::Hebrew, QLocale::Israel));
+    addOffsetPrefixCase(120, "se-FI", QLocale(QLocale::Swedish, QLocale::Finland));
+    addOffsetPrefixCase(210, "fa-IR", QLocale(QLocale::Persian, QLocale::Iran));
+    addOffsetPrefixCase(270, "fa-AF", QLocale(QLocale::Persian, QLocale::Afghanistan));
+    addOffsetPrefixCase(60, "blo-BJ", QLocale(QLocale::Anii, QLocale::Benin));
+#endif
+}
+
+void tst_QTimeZoneBackend::findOffsetPrefix()
+{
+    // Round-trip test
+    QFETCH(const QLocale, locale);
+    QFETCH(const int, offsetMinutes);
+    QFETCH(const QTimeZone::TimeType, season);
+    QFETCH(const QtTemporalPattern::TemporalFieldFlags, flags);
+
+    const QTimeZone zone(offsetMinutes * 60);
+    const QString text = zone.displayName(season, QTimeZone::OffsetName, locale);
+    auto parsed = QTimeZonePrivate::findOffsetPrefix(text, locale, flags);
+    {
+        auto report = qScopeGuard([text]() { qDebug() << "Offset name was:" << text; });
+        QVERIFY2(parsed, "Failed to round-trip parsing of offset zone");
+        // We may parse std or dst as generic, since fixed-offset zones are
+        // typically the same for all three.
+        if (parsed.timeType != QTimeZone::GenericTime)
+            QCOMPARE(parsed.timeType, season);
+        QCOMPARE(parsed.nameLength, text.size());
+        QCOMPARE(parsed.ianaId, zone.id());
+        report.dismiss();
+    }
+
+    {
+        // Dangling cruft: easy mode.
+        QString extended = text + " s0me+dang1ing-cruft"_L1;
+        auto report = qScopeGuard([extended]() { qDebug() << "Extended name was:" << extended; });
+        parsed = QTimeZonePrivate::findOffsetPrefix(extended, locale, flags);
+        QVERIFY2(parsed, "Round-trip parsing of offset zone ran afoul of dangling cruft");
+        if (parsed.timeType != QTimeZone::GenericTime)
+            QCOMPARE(parsed.timeType, season);
+        QCOMPARE(parsed.nameLength, text.size());
+        QCOMPARE(parsed.ianaId, zone.id());
+        report.dismiss();
+    }
+
+    {
+        // Dangling cruft: hard mode - must recognise and discard extraneous digits.
+        QString extended = text + locale.toString(9876543210UL).remove(locale.groupSeparator());
+        auto report = qScopeGuard([extended]() { qDebug() << "Extended name was:" << extended; });
+        parsed = QTimeZonePrivate::findOffsetPrefix(extended, locale, flags);
+        QVERIFY2(parsed, "Round-trip parsing of offset zone ran afoul of dangling digits");
+        if (parsed.timeType != QTimeZone::GenericTime)
+            QCOMPARE(parsed.timeType, season);
+        QCOMPARE(parsed.nameLength, text.size());
+        QCOMPARE(parsed.ianaId, zone.id());
+        report.dismiss();
+    }
+}
+
 // Relies on local variable names: zone tzp and locale enUS.
 #define ZONE_DNAME_CHECK(type, name, val) \
         QCOMPARE(tzp.displayName(QTimeZone::type, QTimeZone::name, enUS), val);
 
 void tst_QTimeZoneBackend::icuTest()
 {
-#if QT_CONFIG(icu) && !QT_CONFIG(timezone_tzdb) && (defined(Q_OS_VXWORKS) || !defined(Q_OS_UNIX))
+#if QT_CONFIG(icu) && !QT_CONFIG(timezone_tzdb) && (defined(Q_OS_VXWORKS) || defined(Q_OS_HARMONY) || !defined(Q_OS_UNIX))
     // Known datetimes
     qint64 std = QDateTime(QDate(2012, 1, 1), QTime(0, 0), QTimeZone::UTC).toMSecsSinceEpoch();
     qint64 dst = QDateTime(QDate(2012, 6, 1), QTime(0, 0), QTimeZone::UTC).toMSecsSinceEpoch();
@@ -307,7 +455,7 @@ void tst_QTimeZoneBackend::icuTest()
     // Only test names in debug mode, names used can vary by ICU version installed
     if constexpr (debug) {
         // Test display names by type
-        QLocale enUS("en_US");
+        QLocale enUS(u"en_US");
         ZONE_DNAME_CHECK(StandardTime, LongName, u"Central European Standard Time");
         ZONE_DNAME_CHECK(StandardTime, ShortName, u"GMT+01:00");
         ZONE_DNAME_CHECK(StandardTime, OffsetName, u"UTC+01:00");
@@ -334,7 +482,7 @@ void tst_QTimeZoneBackend::icuTest()
 void tst_QTimeZoneBackend::tzTest()
 {
 #if defined(Q_OS_UNIX) && !(QT_CONFIG(timezone_tzdb) || defined(Q_OS_DARWIN) \
-                            || defined(Q_OS_ANDROID) || defined(Q_OS_VXWORKS))
+                            || defined(Q_OS_ANDROID) || defined(Q_OS_VXWORKS) || defined(Q_OS_HARMONY))
     const auto UTC = QTimeZone::UTC;
     // Known datetimes
     qint64 std = QDateTime(QDate(2012, 1, 1), QTime(0, 0), UTC).toMSecsSinceEpoch();
@@ -383,6 +531,27 @@ void tst_QTimeZoneBackend::tzTest()
     QTimeZone tzBrazil("BRT+3"); // parts of Northern Brazil, as a POSIX rule
     QVERIFY(tzBrazil.isValid());
     QCOMPARE(tzBrazil.offsetFromUtc(QDateTime(QDate(1111, 11, 11).startOfDay())), -10800);
+
+    // An empty date sub-token must be rejected, not asserted on (QTBUG-149952):
+    QVERIFY(!QTimeZone::isTimeZoneIdAvailable("EST5EDT,/2,M11.1.0"));
+    QTimeZone emptyStartDate("EST5EDT,/2,M11.1.0");
+    QVERIFY(!emptyStartDate.isValid());
+    QTimeZone emptyEndDate("EST5EDT,M3.2.0,/2");
+    QVERIFY(!emptyEndDate.isValid());
+    QTimeZone emptyBothDates("EST5EDT,/,/");
+    QVERIFY(!emptyBothDates.isValid());
+    // A malformed but non-empty date rule must also be rejected:
+    QTimeZone unparsedDateRule("EST5EDT,Xyzzy,M11.1.0");
+    QVERIFY(!unparsedDateRule.isValid());
+    QTimeZone monthOutOfRange("EST5EDT,M99.9.9,M11.1.0");
+    QVERIFY(!monthOutOfRange.isValid());
+    QTimeZone dayOfYearOutOfRange("EST5EDT,M3.2.0,J999");
+    QVERIFY(!dayOfYearOutOfRange.isValid());
+
+    // The time-of-day sub-token, however, is valid and must keep working:
+    QTimeZone withTimeOfDay("EST5EDT,M3.2.0/2,M11.1.0/2");
+    QVERIFY(withTimeOfDay.isValid());
+    QVERIFY(withTimeOfDay.hasDaylightTime());
 
     // Test display names by type, either ICU or abbreviation only
     QLocale enUS(u"en_US");
@@ -538,7 +707,7 @@ void tst_QTimeZoneBackend::tzTest()
         QDateTime dt(QDate(2016, 3, 28), QTime(0, 0), UTC);
         QCOMPARE(tzBarnaul.data(dt.toMSecsSinceEpoch()).abbreviation, u"+07");
     }
-#endif // Unix && !(timezone_tzdb || Darwin || Android || VxWorks)
+#endif // Unix && !(timezone_tzdb || Darwin || Android || VxWorks || OHOS)
 }
 
 void tst_QTimeZoneBackend::macTest()

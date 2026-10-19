@@ -1,7 +1,7 @@
 # Translation for plasmanetworkmanagement_openconnectui.po to Euskara/Basque (eu).
 # Copyright (C) 2017-2026 This file is copyright:
 # This file is distributed under the same license as the plasma-nm package.
-# SPDX-FileCopyrightText: 2024, 2025 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
+# SPDX-FileCopyrightText: 2024-2026 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
 #
 # Translators:
 # Osoitz <oelkoro@gmail.com>, 2017.
@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-nm\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-12-07 22:07+0100\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-07-15 22:40+0200\n"
 "Last-Translator: Iñigo Salvador Azurmendi <xalba@ni.eus>\n"
 "Language-Team: Basque <kde-i18n-eu@kde.org>\n"
 "Language: eu\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: openconnectauth.cpp:345
 #, kde-format
@@ -66,7 +66,7 @@ msgstr "OpenConnect VPN Autentifikazioa"
 msgid "VPN Host"
 msgstr "VPN ostalaria"
 
-#. i18n: ectx: property (toolTip), widget (QPushButton, btnConnect)
+#. i18n: ectx: property (text), widget (QPushButton, btnConnect)
 #: openconnectauth.ui:81
 #, kde-format
 msgid "Connect"
@@ -285,17 +285,22 @@ msgid "Machine Certificate:"
 msgstr "Makinaren ziurtagiria:"
 
 #. i18n: ectx: property (text), widget (QLabel, leMcaPrivateKeyLabel)
-#. i18n: ectx: property (text), widget (QLabel, label_6)
-#: openconnectprop.ui:261 openconnectprop.ui:299
+#: openconnectprop.ui:261
 #, kde-format
-msgid "Private Key:"
-msgstr "Gako pribatua:"
+msgid "Machine Private Key:"
+msgstr "Makinaren gako pribatua:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_5)
 #: openconnectprop.ui:280
 #, kde-format
 msgid "User Certificate:"
 msgstr "Erabiltzaile-ziurtagiria:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_6)
+#: openconnectprop.ui:299
+#, kde-format
+msgid "User Private Key:"
+msgstr "Erabiltzailearen gako pribatua:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkUseFsid)
 #: openconnectprop.ui:318

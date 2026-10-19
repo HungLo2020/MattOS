@@ -12,7 +12,7 @@ import org.kde.kirigami.layouts as KirigamiLayouts
   \qmltype FormEntry
   \inqmlmodule org.kde.kirigami.forms
 
-  \brief The base type of all Form entries
+  \brief The base type of all Form entries.
 
   This element should always be positioned in a FormGroup.
   It is The base for all the items livinging in a Form and will take
@@ -124,6 +124,14 @@ Item {
         const buddy = root.contentItem?.KirigamiLayouts.FormData.buddyFor;
         return buddy instanceof T.AbstractButton || buddy instanceof T.ComboBox || buddy instanceof T.TextField || buddy instanceof T.SpinBox || buddy instanceof T.TextArea;
     }
+
+    /*!
+     \brief Make sure the contentItem will always take the full width
+
+     When true, there will never be a label laid out on the left of the contentItem.
+     If a title is set, it will always be on top
+     */
+    property bool fullWidth: false
 
     property bool hovered: false
 

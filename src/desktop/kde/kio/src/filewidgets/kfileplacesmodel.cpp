@@ -140,8 +140,12 @@ KFilePlacesModelPrivate::KFilePlacesModelPrivate(KFilePlacesModel *qq)
     , fileIndexingEnabled(isFileIndexingEnabled())
     , tagsLister(new KCoreDirLister(q))
 {
-    if (KProtocolInfo::isKnownProtocol(QStringLiteral("tags"))) {
+    if (fileIndexingEnabled && KProtocolInfo::isKnownProtocol(QStringLiteral("tags"))) {
         QObject::connect(tagsLister, &KCoreDirLister::itemsAdded, q, [this](const QUrl &, const KFileItemList &items) {
+            if (!supportedSchemes.isEmpty() && !supportedSchemes.contains(QLatin1String("tags"))) {
+                return;
+            }
+
             if (tags.isEmpty()) {
                 QList<QUrl> existingBookmarks;
 
@@ -1533,12 +1537,14 @@ void KFilePlacesModelPrivate::storageSetupDone(Solid::ErrorType error, const QVa
     if (!error) {
         Q_EMIT q->setupDone(index, true);
     } else {
-        if (errorData.isValid()) {
-            Q_EMIT q->errorMessage(i18n("An error occurred while accessing '%1', the system responded: %2", q->text(index), errorData.toString()));
-        } else {
-            Q_EMIT q->errorMessage(i18n("An error occurred while accessing '%1'", q->text(index)));
+        if (error != Solid::ErrorType::UserCanceled) {
+            if (errorData.isValid() && !errorData.toString().isEmpty()) {
+                Q_EMIT q->errorMessage(i18n("An error occurred while accessing '%1', the system responded: %2", q->text(index), errorData.toString()));
+            } else {
+                Q_EMIT q->errorMessage(i18n("An error occurred while accessing '%1'", q->text(index)));
+            }
+            Q_EMIT q->setupDone(index, false);
         }
-        Q_EMIT q->setupDone(index, false);
     }
 }
 

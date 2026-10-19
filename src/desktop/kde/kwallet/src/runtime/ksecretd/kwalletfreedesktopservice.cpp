@@ -13,6 +13,7 @@
 #include "kwalletfreedesktopprompt.h"
 #include "kwalletfreedesktopserviceadaptor.h"
 #include "kwalletfreedesktopsession.h"
+#include "kwalletsettings.h"
 #include <KConfigGroup>
 #include <QWidget>
 #include <string.h>
@@ -152,10 +153,8 @@ KWalletFreedesktopService::KWalletFreedesktopService(KSecretD *parent)
     /* register */
     QDBusConnection::sessionBus().registerObject(QStringLiteral(FDO_SECRETS_SERVICE_OBJECT), this);
 
-    KConfig kwalletrc(QStringLiteral("kwalletrc"));
-    KConfigGroup cfgSecrets(&kwalletrc, "org.freedesktop.secrets");
-
-    if (cfgSecrets.readEntry<bool>("apiEnabled", true)) {
+    KWalletSettings settings;
+    if (settings.fdoSecretsApiEnabled()) {
         QDBusConnection::sessionBus().registerService(QStringLiteral("org.freedesktop.secrets"));
     }
 
@@ -166,7 +165,6 @@ KWalletFreedesktopService::KWalletFreedesktopService(KSecretD *parent)
     }
 
     connect(m_parent, static_cast<void (KSecretD::*)(const QString &)>(&KSecretD::walletClosed), this, &KWalletFreedesktopService::lockCollection);
-    connect(m_parent, &KSecretD::entryUpdated, this, &KWalletFreedesktopService::entryUpdated);
     connect(m_parent, &KSecretD::entryDeleted, this, &KWalletFreedesktopService::entryDeleted);
     connect(m_parent, &KSecretD::entryRenamed, this, &KWalletFreedesktopService::entryRenamed);
     connect(m_parent, &KSecretD::walletDeleted, this, &KWalletFreedesktopService::walletDeleted);
@@ -254,7 +252,7 @@ QList<QDBusObjectPath> KWalletFreedesktopService::Lock(const QList<QDBusObjectPa
         const auto foundCollection = m_collections.find(collectionPath);
         if (foundCollection != m_collections.end()) {
             const int walletHandle = foundCollection->second->walletHandle();
-            const int rc = m_parent->close(walletHandle, true, FDO_APPID, message());
+            const int rc = m_parent->close(walletHandle);
 
             if (rc == 0) {
                 result.push_back(QDBusObjectPath(collectionPath));
@@ -304,8 +302,7 @@ QDBusObjectPath KWalletFreedesktopService::ReadAlias(const QString &name)
 
     m_kwalletrc.reparseConfiguration();
     if (name == QStringLiteral("default")) {
-        KConfigGroup cfg(&m_kwalletrc, "Wallet");
-        walletName = defaultWalletName(cfg);
+        walletName = defaultWalletName();
 
     } else {
         KConfigGroup cfg(&m_kwalletrc, "org.freedesktop.secrets.aliases");
@@ -447,13 +444,10 @@ QString KWalletFreedesktopService::createSession(std::unique_ptr<KWalletFreedesk
     return sessionPath;
 }
 
-QString KWalletFreedesktopService::defaultWalletName(KConfigGroup &cfg)
+QString KWalletFreedesktopService::defaultWalletName()
 {
-    auto walletName = cfg.readEntry("Default Wallet", "kdewallet");
-    if (walletName.isEmpty()) {
-        walletName = QStringLiteral("kdewallet");
-    }
-    return walletName;
+    KWalletSettings settings;
+    return settings.defaultWallet();
 }
 
 QDBusObjectPath KWalletFreedesktopService::promptUnlockCollection(const QString &walletName, int handle)
@@ -476,32 +470,12 @@ QDBusObjectPath KWalletFreedesktopService::promptUnlockCollection(const QString 
     return QDBusObjectPath(objectPath);
 }
 
-/* Triggered after KSecretD::walletClosed signal */
 void KWalletFreedesktopService::lockCollection(const QString &name)
 {
     auto *collection = getCollectionByWalletName(name);
     if (collection) {
         collection->onWalletChangeState(-1);
         onCollectionChanged(collection->fdoObjectPath());
-    }
-}
-
-/* Triggered after KSecretD::entryUpdated signal */
-void KWalletFreedesktopService::entryUpdated(const QString &walletName, const QString &folder, const QString &entryName)
-{
-    auto *collection = getCollectionByWalletName(walletName);
-    if (!collection) {
-        return;
-    }
-
-    const EntryLocation entryLocation{folder, entryName};
-    const auto *item = collection->findItemByEntryLocation(entryLocation);
-    if (item) {
-        collection->onItemChanged(item->fdoObjectPath());
-    } else {
-        auto objectPath = collection->nextItemPath();
-        collection->pushNewItem(entryLocation.toUniqueLabel(), objectPath);
-        collection->onItemCreated(objectPath);
     }
 }
 
@@ -541,7 +515,7 @@ void KWalletFreedesktopService::entryRenamed(const QString &walletName, const QS
 
     if (item) {
         collection->itemAttributes().renameLabel(oldLocation, newLocation);
-        item->uniqueLabel(newLocation.toUniqueLabel());
+        item->setUniqueLabel(newLocation.toUniqueLabel());
         collection->onItemChanged(item->fdoObjectPath());
     }
 }
@@ -732,8 +706,7 @@ QStringList KWalletFreedesktopService::readAliasesFor(const QString &walletName)
         }
     }
 
-    KConfigGroup cfgWallet(&m_kwalletrc, "Wallet");
-    if (defaultWalletName(cfgWallet) == walletName) {
+    if (defaultWalletName() == walletName) {
         aliases.push_back(QStringLiteral("default"));
     }
 

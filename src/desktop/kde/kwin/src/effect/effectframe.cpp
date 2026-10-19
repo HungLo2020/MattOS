@@ -20,7 +20,6 @@ EffectFrameQuickScene::EffectFrameQuickScene(EffectFrameStyle style, bool static
     , m_point(position)
     , m_alignment(alignment)
 {
-
     QString name;
     switch (style) {
     case EffectFrameNone:
@@ -34,7 +33,7 @@ EffectFrameQuickScene::EffectFrameQuickScene(EffectFrameStyle style, bool static
         break;
     }
 
-    const QString defaultPath = QStringLiteral("kwin-wayland/frames/plasma/frame_%1.qml").arg(name);
+    const QString defaultPath = QStringLiteral("kwin/frames/plasma/frame_%1.qml").arg(name);
     // TODO read from kwinApp()->config() "QmlPath" like Outline/OnScreenNotification
     // *if* someone really needs this to be configurable.
     const QString path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, defaultPath);
@@ -201,20 +200,22 @@ void EffectFrameQuickScene::reposition()
         size = QSizeF(rootItem()->implicitWidth(), rootItem()->implicitHeight());
     }
 
-    QRect geometry(QPoint(), size.toSize());
+    Rect geometry(QPoint(), size.toSize());
 
-    if (m_alignment & Qt::AlignLeft)
+    if (m_alignment & Qt::AlignLeft) {
         geometry.moveLeft(m_point.x());
-    else if (m_alignment & Qt::AlignRight)
+    } else if (m_alignment & Qt::AlignRight) {
         geometry.moveLeft(m_point.x() - geometry.width());
-    else
+    } else {
         geometry.moveLeft(m_point.x() - geometry.width() / 2);
-    if (m_alignment & Qt::AlignTop)
+    }
+    if (m_alignment & Qt::AlignTop) {
         geometry.moveTop(m_point.y());
-    else if (m_alignment & Qt::AlignBottom)
+    } else if (m_alignment & Qt::AlignBottom) {
         geometry.moveTop(m_point.y() - geometry.height());
-    else
+    } else {
         geometry.moveTop(m_point.y() - geometry.height() / 2);
+    }
 
     if (geometry == this->geometry()) {
         return;
@@ -226,13 +227,6 @@ void EffectFrameQuickScene::reposition()
 EffectFrame::EffectFrame(EffectFrameStyle style, bool staticSize, QPoint position, Qt::Alignment alignment)
     : m_view(new EffectFrameQuickScene(style, staticSize, position, alignment))
 {
-    connect(m_view, &OffscreenQuickScene::repaintNeeded, this, [this] {
-        effects->addRepaint(geometry());
-    });
-    connect(m_view, &OffscreenQuickScene::geometryChanged, this, [](const QRect &oldGeometry, const QRect &newGeometry) {
-        effects->addRepaint(oldGeometry);
-        effects->addRepaint(newGeometry);
-    });
 }
 
 EffectFrame::~EffectFrame()
@@ -269,12 +263,12 @@ void EffectFrame::free()
     m_view->hide();
 }
 
-QRect EffectFrame::geometry() const
+Rect EffectFrame::geometry() const
 {
     return m_view->geometry();
 }
 
-void EffectFrame::setGeometry(const QRect &geometry, bool force)
+void EffectFrame::setGeometry(const Rect &geometry, bool force)
 {
     m_view->setGeometry(geometry);
 }
@@ -318,8 +312,6 @@ void EffectFrame::render(const RenderTarget &renderTarget, const RenderViewport 
 
     m_view->setOpacity(opacity);
     m_view->setFrameOpacity(frameOpacity);
-
-    effects->renderOffscreenQuickView(renderTarget, viewport, m_view);
 }
 
 QString EffectFrame::text() const

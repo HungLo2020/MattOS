@@ -4,6 +4,7 @@ Hidden=false
 Keys=es2en
 Name=WordReference.com Translation: Spanish to English
 Name[af]=WordReference.com Vertaling: Spaans na Engels
+Name[am]=WordReference.com ትርጉም፡ ስፓኒሽኛ ወደ እንግሊዝኛ
 Name[ar]=ترجمة WordReference.com: من الإسبانية إلى الانجليزية
 Name[as]=WordReference.com Translation: Spanish to English
 Name[az]=WordReference.com  Tərcümə: İspancadan İngiliscəyə
@@ -60,6 +61,8 @@ Name[mk]=WordReference.com превод: од шпански на англиск
 Name[ml]=WordReference.com പരിഭാഷ: സ്പാനിഷില്‍ നിന്നും ഇംഗ്ലീഷിലേയ്ക്കു്
 Name[mr]=WordReference.com अनुवादः स्पेनी ते अंग्रेजी
 Name[my]=ဝါ့ဒ်ရပ်ဖ်ဖရမ့် ဒေါ့ ကွန်း ဘာသာပြန်ခြင်း - စပိန်မှ အင်္ဂလိပ်သို့
+Name[nan_TW]=WordReference.com 翻譯：西班牙語 kàu 英語
+Name[nan_TW@latin]=WordReference.com Huan-i̍k: Se-pan-gâ-gí kàu Ing-gí
 Name[nb]=WordReference.com – oversettelse: spansk til engelsk
 Name[nds]=WordReference.com Översetten: Spaansch na Engelsch
 Name[ne]=WordReference.com Translation: स्पेनिसलाई अङ्ग्रेजीमा
@@ -97,6 +100,7 @@ Name[wa]=WordReference.com ratournaedje do castiyan viè l' inglès
 Name[zh_CN]=WordReference.com 翻译：西班牙语译英语
 Name[zh_TW]=WordReference.com 翻譯: 西班牙文至英文
 Query=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
+Query[am]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[ar]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[az]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[be]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
@@ -136,6 +140,8 @@ Query[lg]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[lt]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[lv]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[my]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
+Query[nan_TW]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
+Query[nan_TW@latin]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[nb]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[nl]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[nn]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
@@ -154,7 +160,6 @@ Query[tg]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[th]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[tok]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[tr]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
-Query[ug]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[uk]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[vi]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}
 Query[zh_CN]=https://www.wordreference.com/es/en/translation.asp?spen=\\{@}

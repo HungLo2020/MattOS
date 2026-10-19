@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025, 2026 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
 "POT-Creation-Date: 2025-11-17 11:49+0000\n"
-"PO-Revision-Date: 2025-08-09 22:55+0400\n"
+"PO-Revision-Date: 2026-08-10 18:22+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -13,7 +13,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #: attica/atticaprovider.cpp:167
 #, kde-format
@@ -528,7 +528,7 @@ msgstr "الكلّ"
 #, kde-format
 msgctxt "@action:button opening menu similar to combobox, filter list"
 msgid "Installed"
-msgstr "الأكثر تثبيتاً"
+msgstr "الأكثر تثبيتًا"
 
 #: qtquick/qml/Page.qml:183
 #, kde-format
@@ -550,7 +550,7 @@ msgctxt ""
 "@option:radio similar to combobox item, List option which will set the "
 "filter so only installed items are shown"
 msgid "Installed"
-msgstr "الأكثر تثبيتاً"
+msgstr "الأكثر تثبيتًا"
 
 #: qtquick/qml/Page.qml:215
 #, kde-format
@@ -582,7 +582,7 @@ msgstr "رتب حسب: التقييم"
 #, kde-format
 msgctxt "@action:button opening menu similar to combobox, filter list"
 msgid "Sort: Downloads"
-msgstr "رتب حسب: الأكثر تحميلاً"
+msgstr "رتب حسب: الأكثر تحميلًا"
 
 #: qtquick/qml/Page.qml:243
 #, kde-format
@@ -833,7 +833,7 @@ msgstr ""
 "لتحميل إدخالات جديدة، أو لإضافة محتوى إلى إدخال موجود، يرجى فتح موقع المزود "
 "واتباع التعليمات هناك. ستحتاج على الأرجح إلى إنشاء مستخدم وتسجيل الدخول إلى "
 "نظام إدارة المنتج، حيث ستحتاج إلى اتباع التعليمات الخاصة بكيفية الإضافة. "
-"بدلاً من ذلك، قد يُطلب منك الاتصال بمديري الموقع مباشرةً لإضافة محتوى جديد."
+"بدلًا من ذلك، قد يُطلب منك الاتصال بمديري الموقع مباشرةً لإضافة محتوى جديد."
 
 #: qtquick/quickengine.cpp:82 qtquick/quickengine.cpp:168
 #: qtquick/quickengine.cpp:176
@@ -855,8 +855,8 @@ msgid ""
 "You are not authorized to Get Hot New Stuff. If you think this is in error, "
 "please contact the person in charge of your permissions."
 msgstr ""
-"لست مخولاً للحصول على الأشياء الجديدة. إذا كنت تعتقد أن هذا عن طريق الخطأ، "
-"فيرجى الاتصال بالمسؤول عن الأذونات الخاصة بك."
+"لست مخولًا للحصول على الأشياء الجديدة. إذا كنت تعتقد أن هذا عن طريق الخطأ، "
+"فيرجى الاتصال بالمسؤول عن الأذون الخاصة بك."
 
 #: qtquick/searchpresetmodel.cpp:46
 #, kde-format

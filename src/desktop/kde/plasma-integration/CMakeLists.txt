@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(PlasmaIntegration)
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 
 set(QT5_MIN_VERSION "5.15.2")
-set(QT_MIN_VERSION "6.10.0")
+set(QT_MIN_VERSION "6.11.0")
 set(KF5_MIN_VERSION "5.102.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -48,29 +48,41 @@ elseif($ENV{CI_JOB_NAME_SLUG} MATCHES "qt6")
     set(BUILD_QT6 ON)
 endif()
 
-find_package(XCB COMPONENTS XCB)
-set_package_properties(XCB PROPERTIES
-    DESCRIPTION "X protocol C-language Binding"
-    URL "https://xcb.freedesktop.org"
-    TYPE REQUIRED
-    PURPOSE "Required to pass style properties to native Windows on X11 Platform"
-)
+option(WITH_X11 "Build platformtheme with X11 (and XWayland) support" ON)
+
+if (WITH_X11)
+    find_package(XCB COMPONENTS XCB)
+    set_package_properties(XCB PROPERTIES
+        DESCRIPTION "X protocol C-language Binding"
+        URL "https://xcb.freedesktop.org"
+        TYPE REQUIRED
+        PURPOSE "Required to pass style properties to native Windows on X11 Platform"
+    )
+    find_package(X11)
+    set_package_properties(X11 PROPERTIES DESCRIPTION "Required for updating the Cursor theme on X11"
+                            URL "https://www.x.org"
+                            TYPE REQUIRED
+                            )
+    if (NOT TARGET X11::Xcursor)
+        message(SEND_ERROR "Required component Xcursor of X11 was not found")
+    endif()
+endif()
 
 find_package(FontNotoSans)
 set_package_properties(FontNotoSans PROPERTIES
-    PURPOSE "Default sans-serif font -- this is not detected automatically, pass -DCMAKE_DISABLE_FIND_PACKAGE_FontNotoSans=true to mark it ignored."
+    PURPOSE "Default sans-serif font"
     URL "https://www.google.com/get/noto/"
     TYPE RUNTIME
 )
 find_package(FontNotoColorEmoji)
 set_package_properties(FontNotoColorEmoji PROPERTIES
-    PURPOSE "Default emoji font -- this is not detected automatically, pass -DCMAKE_DISABLE_FIND_PACKAGE_FontNotoColorEmoji=true to mark it ignored."
+    PURPOSE "Default emoji font"
     URL "https://www.google.com/get/noto/"
     TYPE RUNTIME
 )
 find_package(FontHack)
 set_package_properties(FontHack PROPERTIES
-    PURPOSE "Default monospace font -- this is not detected automatically, pass -DCMAKE_DISABLE_FIND_PACKAGE_FontHack=true to mark it ignored."
+    PURPOSE "Default monospace font"
     URL "https://sourcefoundry.org/hack/"
     TYPE RUNTIME
 )

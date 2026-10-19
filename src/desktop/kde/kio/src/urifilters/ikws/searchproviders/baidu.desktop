@@ -1,6 +1,7 @@
 [Desktop Entry]
 Type=Service
 Name=Baidu
+Name[am]=Baidu
 Name[ar]=بايدو
 Name[ast]=Baidu
 Name[az]=Baidu
@@ -50,6 +51,8 @@ Name[mai]=बैडू
 Name[ml]=ബൈഡു
 Name[mr]=बैदु
 Name[my]=ဘိုင်ဒူ
+Name[nan_TW]=百度
+Name[nan_TW@latin]=Pah-tōo
 Name[nb]=Baidu
 Name[nds]=Baidu
 Name[nl]=Baidu
@@ -74,7 +77,6 @@ Name[tg]=Baidu
 Name[th]=Baidu
 Name[tok]=ilo alasa Baidu
 Name[tr]=Baidu
-Name[ug]=Baidu
 Name[uk]=Baidu
 Name[vi]=Baidu
 Name[wa]=Baidu
@@ -82,6 +84,7 @@ Name[zh_CN]=百度
 Name[zh_TW]=百度
 Keys=baidu
 Query=https://www.baidu.com/s?wd=\\{@}
+Query[am]=https://www.baidu.com/s?wd=\\{@}
 Query[ar]=https://www.baidu.com/s?wd=\\{@}
 Query[ast]=https://www.baidu.com/s?wd=\\{@}
 Query[az]=https://www.baidu.com/s?wd=\\{@}
@@ -122,6 +125,8 @@ Query[lg]=https://www.baidu.com/s?wd=\\{@}
 Query[lt]=https://www.baidu.com/s?wd=\\{@}
 Query[lv]=https://www.baidu.com/s?wd=\\{@}
 Query[my]=https://www.baidu.com/s?wd=\\{@}
+Query[nan_TW]=https://www.baidu.com/s?wd=\\{@}
+Query[nan_TW@latin]=https://www.baidu.com/s?wd=\\{@}
 Query[nb]=https://www.baidu.com/s?wd=\\{@}
 Query[nl]=https://www.baidu.com/s?wd=\\{@}
 Query[nn]=https://www.baidu.com/s?wd=\\{@}
@@ -140,7 +145,6 @@ Query[tg]=https://www.baidu.com/s?wd=\\{@}
 Query[th]=https://www.baidu.com/s?wd=\\{@}
 Query[tok]=https://www.baidu.com/s?wd=\\{@}
 Query[tr]=https://www.baidu.com/s?wd=\\{@}
-Query[ug]=https://www.baidu.com/s?wd=\\{@}
 Query[uk]=https://www.baidu.com/s?wd=\\{@}
 Query[vi]=https://www.baidu.com/s?wd=\\{@}
 Query[zh_CN]=https://www.baidu.com/s?wd=\\{@}

@@ -190,20 +190,6 @@
 <varlistentry>
 <term
 ><option
->Controlla date e ore dei file</option
-></term>
-<listitem
-><para
->Se controllare le date e le ore dei file nell'effettuare l'aggiornamento iniziale di sycoca (predefinito: <constant
->true</constant
->). Vedi la documentazione di <command
->kbuildsycoca6</command
-> per maggiori dettagli.</para>
-</listitem>
-</varlistentry>
-<varlistentry>
-<term
-><option
 >Controllo ritardato</option
 ></term>
 <listitem
@@ -250,13 +236,7 @@
 ><manvolnum
 >8</manvolnum
 ></citerefentry
->, <citerefentry
-><refentrytitle
->kdeinit6</refentrytitle
-><manvolnum
->8</manvolnum
-></citerefentry
-> </para>
+>, </para>
 </refsect1>
 
 

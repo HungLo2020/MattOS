@@ -105,6 +105,11 @@
     \ingroup frameworks-technologies
     \since 6.8
 
+    QJniArray is a template class where \a T specifies the element type of the
+    Java array. The type can be a JNI primitive type such as \c jint or \c jbyte,
+    or an object type such as \c jobject, \c jstring, or a type declared with
+    Q_DECLARE_JNI_CLASS.
+
     The QJniArray template makes it easy to work with Java methods that return
     or take a Java array.
 

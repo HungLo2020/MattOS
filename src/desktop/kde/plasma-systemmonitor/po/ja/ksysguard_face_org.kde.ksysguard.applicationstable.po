@@ -1,13 +1,14 @@
-# SPDX-FileCopyrightText: 2024 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2021.
+# SPDX-FileCopyrightText: 2024 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # SPDX-FileCopyrightText: 2025 Yuma Kakei <yumasansansan@gmail.com>
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2025-09-21 16:19+0900\n"
-"Last-Translator: Yuma Kakei <yumasansansan@gmail.com>\n"
+"POT-Creation-Date: 2026-08-25 00:47+0000\n"
+"PO-Revision-Date: 2026-07-25 22:24+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 25.08.1\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: src/faces/applicationstable/contents/ui/ApplicationDetails.qml:51
 #, kde-format
@@ -60,7 +61,7 @@ msgctxt "Warning message shown on runtime error"
 msgid "Applications view is unsupported on your system"
 msgstr "お使いのシステムではアプリケーション表示はサポートされていません"
 
-#: src/faces/applicationstable/contents/ui/ApplicationsTableView.qml:192
+#: src/faces/applicationstable/contents/ui/ApplicationsTableView.qml:197
 #, kde-format
 msgctxt "@label"
 msgid "Background Services"
@@ -108,108 +109,114 @@ msgctxt "@action"
 msgid "Configure Columns…"
 msgstr "カラムの設定…"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:200
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:203
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Set priority…"
 msgstr "優先度を設定…"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:207
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:210
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Set affinity…"
+msgstr "コアの割り当てを設定…"
+
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:218
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Send Signal"
 msgstr "シグナルを送る"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:212
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:223
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Suspend (STOP)"
 msgstr "一時停止 (STOP)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:216
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:227
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Continue (CONT)"
 msgstr "再開 (CONT)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:220
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:231
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Hangup (HUP)"
 msgstr "ハングアップ (HUP)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:224
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:235
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Interrupt (INT)"
 msgstr "割り込み (INT)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:228
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:239
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Terminate (TERM)"
 msgstr "終了 (TERM)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:232
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:243
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Kill (KILL)"
 msgstr "強制終了 (KILL)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:236
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:247
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "User 1 (USR1)"
 msgstr "ユーザ 1 (USR1)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:240
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:251
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "User 2 (USR2)"
 msgstr "ユーザ 2 (USR2)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:248
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:259
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Quit Application"
 msgid_plural "Quit %1 Applications"
 msgstr[0] "%1 個のアプリケーションを終了"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:258
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:269
 #, kde-format
 msgctxt "@action:inmenu hide column"
 msgid "Hide"
 msgstr "隠す"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:273
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:284
 #, kde-format
 msgctxt "@title:window"
 msgid "Force Quit Application"
 msgid_plural "Force Quit %1 Applications"
 msgstr[0] "%1 個のアプリケーションを強制終了"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:274
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:285
 #, kde-format
 msgctxt "@title:window"
 msgid "Quit Application"
 msgid_plural "Quit %1 Applications"
 msgstr[0] "%1 個のアプリケーションを終了"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:276
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Force Quit Application"
 msgid_plural "Force Quit Applications"
 msgstr[0] "アプリケーションを強制終了"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:277
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:288
 #, kde-format
 msgctxt "@action:button"
 msgid "Quit Application"
 msgid_plural "Quit Applications"
 msgstr[0] "アプリケーションを終了"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:280
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:291
 #, kde-format
 msgid "Force quit (SIGKILL) the application? Unsaved work may be lost."
 msgid_plural ""
@@ -218,7 +225,7 @@ msgstr[0] ""
 "これら %1 個のアプリケーションを強制終了 (SIGKILL) しますか？\n"
 "保存されていない作業は失われる可能性があります。"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:283
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:294
 #, kde-format
 msgid "Quit this application? Unsaved work may be lost."
 msgid_plural "Quit these %1 applications? Unsaved work may be lost."
@@ -226,13 +233,9 @@ msgstr[0] ""
 "これら %1 個のアプリケーションを終了しますか？\n"
 "保存されていない作業は失われる可能性があります。"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:298
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:309
 #, kde-format
 msgctxt "@item:intable"
 msgid "%1 Process"
 msgid_plural "%1 Processes"
 msgstr[0] "%1 個のプロセス"
-
-#~ msgctxt "@title:group"
-#~ msgid "Processes: %1"
-#~ msgstr "プロセス数: %1"

@@ -430,6 +430,10 @@ void QRecursiveMutex::unlock() noexcept
 
     \ingroup thread
 
+    QMutexLocker is a template class where the template parameter \a Mutex
+    specifies the mutex type (such as QMutex or QRecursiveMutex) to be locked
+    and unlocked.
+
     Locking and unlocking a QMutex or QRecursiveMutex in complex functions and
     statements or in exception handling code is error-prone and
     difficult to debug. QMutexLocker can be used in such situations
@@ -946,8 +950,6 @@ QT_END_NAMESPACE
 
 #if defined(QT_ALWAYS_USE_FUTEX)
 // nothing
-#elif defined(Q_OS_DARWIN)
-#  include "qmutex_mac.cpp"
 #else
 #  include "qmutex_unix.cpp"
 #endif

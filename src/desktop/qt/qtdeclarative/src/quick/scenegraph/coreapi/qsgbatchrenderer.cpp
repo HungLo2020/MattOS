@@ -2,6 +2,7 @@
 // Copyright (C) 2016 Jolla Ltd, author: <gunnar.sletta@jollamobile.com>
 // Copyright (C) 2016 Robin Burchell <robin.burchell@viroteck.net>
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgbatchrenderer_p.h"
 
@@ -16,6 +17,8 @@
 #include "qsgmaterialshader_p.h"
 
 #include "qsgrhivisualizer_p.h"
+
+#include <QtQuick/private/qsgnode_p.h>
 
 #include <algorithm>
 
@@ -1448,7 +1451,14 @@ void Renderer::nodeChanged(QSGNode *node, QSGNode::DirtyState state)
     if (state & QSGNode::DirtyGeometry && node->type() == QSGNode::GeometryNodeType) {
         QSGGeometryNode *gn = static_cast<QSGGeometryNode *>(node);
         Element *e = shadowNode->element();
+
         if (e) {
+            const quint8 nodeMutabilityGroup = QSGNodePrivate::mutabilityGroup(gn);
+            if (nodeMutabilityGroup != e->mutabilityGroup) {
+                m_rebuild |= Renderer::FullRebuild;
+                e->mutabilityGroup = nodeMutabilityGroup;
+            }
+
             e->boundsComputed = false;
             Batch *b = e->batch;
             if (b) {
@@ -1797,7 +1807,8 @@ void Renderer::prepareOpaqueBatches()
                     && gni->inheritedOpacity() == gnj->inheritedOpacity()
                     && gniMaterial->type() == gnjMaterial->type()
                     && gniMaterial->viewCount() == gnjMaterial->viewCount()
-                    && gniMaterial->compare(gnjMaterial) == 0)
+                    && gniMaterial->compare(gnjMaterial) == 0
+                    && ei->mutabilityGroup == ej->mutabilityGroup)
             {
                 ej->batch = batch;
                 next->nextInBatch = ej;
@@ -1915,7 +1926,8 @@ void Renderer::prepareAlphaBatches()
                     && gni->inheritedOpacity() == gnj->inheritedOpacity()
                     && gniMaterial->type() == gnjMaterial->type()
                     && gniMaterial->viewCount() == gnjMaterial->viewCount()
-                    && gniMaterial->compare(gnjMaterial) == 0)
+                    && gniMaterial->compare(gnjMaterial) == 0
+                    && ei->mutabilityGroup == ej->mutabilityGroup)
             {
                 if (!overlapBounds.intersects(ej->bounds) || !checkOverlap(i+1, j - 1, ej->bounds)) {
                     ej->batch = batch;
@@ -2962,7 +2974,6 @@ void Renderer::updateMaterialDynamicData(ShaderManager::Shader *sms,
                                          const Batch *batch,
                                          Element *e,
                                          int ubufOffset,
-                                         int ubufRegionSize,
                                          char *directUpdatePtr)
 {
     m_current_resource_update_batch = m_resourceUpdates;
@@ -2978,16 +2989,16 @@ void Renderer::updateMaterialDynamicData(ShaderManager::Shader *sms,
 
         if (changed || !batch->ubufDataValid) {
             if (directUpdatePtr)
-                memcpy(directUpdatePtr + ubufOffset, pd->masterUniformData.constData(), ubufRegionSize);
+                memcpy(directUpdatePtr + ubufOffset, pd->masterUniformData.constData(), pd->masterUniformData.size());
             else
-                m_resourceUpdates->updateDynamicBuffer(batch->ubuf, ubufOffset, ubufRegionSize, pd->masterUniformData.constData());
+                m_resourceUpdates->updateDynamicBuffer(batch->ubuf, ubufOffset, pd->masterUniformData);
         }
 
         bindings.append(QRhiShaderResourceBinding::uniformBuffer(pd->ubufBinding,
                                                                  pd->ubufStages,
                                                                  batch->ubuf,
                                                                  ubufOffset,
-                                                                 ubufRegionSize));
+                                                                 pd->masterUniformData.size()));
     }
 
     for (int binding = 0; binding < QSGMaterialShaderPrivate::MAX_SHADER_RESOURCE_BINDINGS; ++binding) {
@@ -3206,7 +3217,8 @@ bool Renderer::prepareRenderMergedBatch(Batch *batch, PreparedRenderBatch *rende
               << " Nodes:" << QString::fromLatin1("%1").arg(qsg_countNodesInBatch(batch), 4).toLatin1().constData()
               << " Vertices:" << QString::fromLatin1("%1").arg(batch->vertexCount, 5).toLatin1().constData()
               << " Indices:" << QString::fromLatin1("%1").arg(batch->indexCount, 5).toLatin1().constData()
-              << " root:" << batch->root;
+              << " root:" << batch->root
+              << " mutability group: " << e->mutabilityGroup;
         if (batch->drawSets.size() > 1)
             debug << "sets:" << batch->drawSets.size();
         if (!batch->isOpaque)
@@ -3288,7 +3300,7 @@ bool Renderer::prepareRenderMergedBatch(Batch *batch, PreparedRenderBatch *rende
     if (batch->ubuf->nativeBuffer().slotCount == 0)
         directUpdatePtr = batch->ubuf->beginFullDynamicBufferUpdateForCurrentFrame();
 
-    updateMaterialDynamicData(sms, renderState, material, batch, e, 0, ubufSize, directUpdatePtr);
+    updateMaterialDynamicData(sms, renderState, material, batch, e, 0, directUpdatePtr);
 
     if (directUpdatePtr)
         batch->ubuf->endFullDynamicBufferUpdateForCurrentFrame();
@@ -3394,7 +3406,9 @@ bool Renderer::prepareRenderUnmergedBatch(Batch *batch, PreparedRenderBatch *ren
                  << " Nodes:" << QString::fromLatin1("%1").arg(qsg_countNodesInBatch(batch), 4).toLatin1().constData()
                  << " Vertices:" << QString::fromLatin1("%1").arg(batch->vertexCount, 5).toLatin1().constData()
                  << " Indices:" << QString::fromLatin1("%1").arg(batch->indexCount, 5).toLatin1().constData()
-                 << " root:" << batch->root;
+                 << " root:" << batch->root
+                 << " mutability group: " << e->mutabilityGroup;
+
 
         batch->uploadedThisFrame = false;
     }
@@ -3500,7 +3514,7 @@ bool Renderer::prepareRenderUnmergedBatch(Batch *batch, PreparedRenderBatch *ren
         }
 
         QSGMaterialShader::RenderState renderState = state(QSGMaterialShader::RenderState::DirtyStates(int(dirty)));
-        updateMaterialDynamicData(sms, renderState, material, batch, e, ubufOffset, ubufSize, directUpdatePtr);
+        updateMaterialDynamicData(sms, renderState, material, batch, e, ubufOffset, directUpdatePtr);
 
         ubufOffset += aligned(ubufSize, m_ubufAlignment);
 

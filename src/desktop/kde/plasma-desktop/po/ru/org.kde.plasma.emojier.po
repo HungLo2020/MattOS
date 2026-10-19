@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the plasma-desktop package.
 #
 # Alexander Potashev <aspotashev@gmail.com>, 2019.
-# SPDX-FileCopyrightText: 2020, 2021, 2022, 2023, 2025, 2026 Alexander Yavorsky <kekcuha@gmail.com>
+# SPDX-FileCopyrightText: 2020-2023, 2025-2026 Alexander Yavorsky <kekcuha@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-13 08:43+0000\n"
-"PO-Revision-Date: 2026-01-27 20:04+0300\n"
-"Last-Translator: Alexander Yavorsky <kekcuha@gmail.com>\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
+"PO-Revision-Date: 2026-10-09 15:24+0200\n"
+"Last-Translator: Alexander Yavorskiy <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.08.0\n"
 
 #: app/emojier.cpp:43 app/emojier.cpp:45
 #, kde-format
@@ -46,119 +46,163 @@ msgstr "kekcuha@gmail.com"
 msgid "Replace an existing instance"
 msgstr "Заменить существующий запущенный процесс."
 
-#: app/ui/CategoryPage.qml:112
+#: app/ui/CategoryPage.qml:41
+#, kde-format
+msgctxt "@action Search field action"
+msgid "Search"
+msgstr "Поиск"
+
+#: app/ui/CategoryPage.qml:102
 #, kde-format
 msgctxt "@action:button clear emoji history"
 msgid "Clear History"
 msgstr "Очистить журнал"
 
-#: app/ui/CategoryPage.qml:124
+#: app/ui/CategoryPage.qml:133
 #, kde-format
 msgctxt "@action:button Button to open a menu that lets you choose a skin tone"
-msgid "Skin tone:"
-msgstr "Цвет кожи:"
+msgid "Skin tone: %1"
+msgstr "Цвет кожи: %1"
 
-#: app/ui/CategoryPage.qml:135 app/ui/Emojier.qml:73
-#, kde-format
-msgctxt "@title:page All emojis"
-msgid "All"
-msgstr "Все"
-
-#: app/ui/CategoryPage.qml:189
+#: app/ui/CategoryPage.qml:139
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐️ Neutral"
 msgstr "🖐 По умолчанию"
 
-#: app/ui/CategoryPage.qml:190
+#: app/ui/CategoryPage.qml:140
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Neutral"
 msgstr "По умолчанию"
 
-#: app/ui/CategoryPage.qml:198
+#: app/ui/CategoryPage.qml:148
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏻 Light"
 msgstr "🖐🏻 Светлый"
 
-#: app/ui/CategoryPage.qml:199
+#: app/ui/CategoryPage.qml:149
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Light"
 msgstr "Светлый"
 
-#: app/ui/CategoryPage.qml:207
+#: app/ui/CategoryPage.qml:157
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏼 Medium Light"
 msgstr "🖐🏼 Medium Light"
 
-#: app/ui/CategoryPage.qml:208
+#: app/ui/CategoryPage.qml:158
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Medium Light"
 msgstr "Светлый средний"
 
-#: app/ui/CategoryPage.qml:216
+#: app/ui/CategoryPage.qml:166
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏽 Medium"
 msgstr "🖐🏽 Средний"
 
-#: app/ui/CategoryPage.qml:217
+#: app/ui/CategoryPage.qml:167
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Medium"
 msgstr "Средний"
 
-#: app/ui/CategoryPage.qml:225
+#: app/ui/CategoryPage.qml:175
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏾 Medium Dark"
 msgstr "🖐🏾 Тёмный средний"
 
-#: app/ui/CategoryPage.qml:226
+#: app/ui/CategoryPage.qml:176
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Medium Dark"
 msgstr "Тёмный средний"
 
-#: app/ui/CategoryPage.qml:234
+#: app/ui/CategoryPage.qml:184
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏿 Dark"
 msgstr "🖐🏿 Тёмный"
 
-#: app/ui/CategoryPage.qml:235
+#: app/ui/CategoryPage.qml:185
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Dark"
 msgstr "Тёмный"
 
-#: app/ui/CategoryPage.qml:264
+#: app/ui/CategoryPage.qml:196
+#, kde-format
+msgctxt "@action:button zoom the emoji grid out"
+msgid "Zoom Out"
+msgstr "Уменьшить"
+
+#: app/ui/CategoryPage.qml:200
+#, kde-format
+msgctxt "@info:status label for the current zoom-level indicator"
+msgid "Zoom level"
+msgstr "Масштаб:"
+
+#: app/ui/CategoryPage.qml:202
+#, kde-format
+msgctxt "@info:status current emoji zoom level as a percentage, %1 is a number"
+msgid "%1%"
+msgstr "%1 %"
+
+#: app/ui/CategoryPage.qml:215
+#, kde-format
+msgctxt "@action:button zoom the emoji grid in"
+msgid "Zoom In"
+msgstr "Увеличить"
+
+#: app/ui/CategoryPage.qml:222
+#, kde-format
+msgctxt "@action:button reset the emoji grid zoom to 100%"
+msgid "Reset Zoom"
+msgstr "Сбросить масштаб"
+
+#: app/ui/CategoryPage.qml:229
+#, kde-format
+msgctxt "@title:window A two-tone skin variant can be selected here"
+msgid "Select Variant"
+msgstr "Выбор варианта"
+
+#: app/ui/CategoryPage.qml:294
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Copy Character"
 msgstr "Копировать символ"
 
-#: app/ui/CategoryPage.qml:269
+#: app/ui/CategoryPage.qml:302
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Copy Description"
 msgstr "Копировать описание"
 
-#: app/ui/CategoryPage.qml:368
+#: app/ui/CategoryPage.qml:395
 #, kde-format
 msgctxt "@label placeholder for empty recent emoji list"
-msgid "No recent Emojis"
+msgid "No recent emojis"
 msgstr "Нет недавних эмодзи"
 
-#: app/ui/CategoryPage.qml:368
+#: app/ui/CategoryPage.qml:395
 #, kde-format
 msgctxt "@label placeholder for no emoji found in category"
 msgid "No matching emoji found"
 msgstr "Не найдено ни одного соответствующего эмодзи"
+
+#: app/ui/CategoryPage.qml:442
+#, kde-format
+msgctxt ""
+"@action:button Opens a window where a two-tone skin variant can be selected. "
+"%1 is the emoji's name"
+msgid "Select Variant of \"%1\""
+msgstr "Выбрать «%1»"
 
 #: app/ui/Emojier.qml:44
 #, kde-format
@@ -172,6 +216,12 @@ msgctxt "@title page title for Recent Emoji view, and sidebar label for it"
 msgid "Recent"
 msgstr "Недавно использованные"
 
+#: app/ui/Emojier.qml:73
+#, kde-format
+msgctxt "@title:page All emojis"
+msgid "All"
+msgstr "Все"
+
 #: emojicategory.cpp:14
 msgctxt "Emoji Category"
 msgid "Smileys and Emotion"
@@ -180,7 +230,7 @@ msgstr "Смайлы и эмоции"
 #: emojicategory.cpp:15
 msgctxt "Emoji Category"
 msgid "People and Body"
-msgstr "Люди"
+msgstr "Люди и тело"
 
 #: emojicategory.cpp:16
 msgctxt "Emoji Category"
@@ -224,9 +274,6 @@ msgstr "Флаги"
 
 #~ msgid "Categories"
 #~ msgstr "Категории"
-
-#~ msgid "Search"
-#~ msgstr "Поиск"
 
 #~ msgid "Search…"
 #~ msgstr "Введите текст для поиска…"

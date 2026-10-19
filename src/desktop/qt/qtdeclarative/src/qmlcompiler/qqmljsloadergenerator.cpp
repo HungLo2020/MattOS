@@ -108,10 +108,11 @@ bool qQmlJSGenerateLoader(const QStringList &compiledFiles, const QString &outpu
             const QString compiledFile = compiledFiles.at(i);
             const QString ns = qQmlJSSymbolNamespaceForPath(compiledFile);
             stream << "namespace " << ns << " { \n";
+            stream << "    extern bool validateLookupSignatures(QQmlEngine *engine, QV4::CompiledData::CompilationUnit *cu);\n";
             stream << "    extern const unsigned char qmlData[];\n";
             stream << "    extern const QQmlPrivate::AOTCompiledFunction aotBuiltFunctions[];\n";
             stream << "    const QQmlPrivate::CachedQmlUnit unit = {\n";
-            stream << "        reinterpret_cast<const QV4::CompiledData::Unit*>(&qmlData), &aotBuiltFunctions[0], nullptr\n";
+            stream << "        reinterpret_cast<const QV4::CompiledData::Unit*>(&qmlData), &aotBuiltFunctions[0], &validateLookupSignatures\n";
             stream << "    };\n";
             stream << "}\n";
         }

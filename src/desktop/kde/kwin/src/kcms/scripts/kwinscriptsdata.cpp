@@ -22,8 +22,7 @@ KWinScriptsData::KWinScriptsData(QObject *parent)
 
 QList<KPluginMetaData> KWinScriptsData::pluginMetaDataList() const
 {
-    return KPackage::PackageLoader::self()->findPackages(QStringLiteral("KWin/Script"), QStringLiteral("kwin-wayland/scripts/"))
-        + KPackage::PackageLoader::self()->findPackages(QStringLiteral("KWin/Script"), QStringLiteral("kwin/scripts/"));
+    return KPackage::PackageLoader::self()->findPackages(QStringLiteral("KWin/Script"), QStringLiteral("kwin/scripts/"));
 }
 
 bool KWinScriptsData::isDefaults() const
@@ -31,7 +30,7 @@ bool KWinScriptsData::isDefaults() const
     QList<KPluginMetaData> plugins = pluginMetaDataList();
     KConfigGroup cfgGroup(m_kwinConfig, QStringLiteral("Plugins"));
     for (auto &plugin : plugins) {
-        if (cfgGroup.readEntry(plugin.pluginId() + QLatin1String("Enabled"), plugin.isEnabledByDefault()) != plugin.isEnabledByDefault()) {
+        if (cfgGroup.readEntry(plugin.pluginId() + QLatin1StringView("Enabled"), plugin.isEnabledByDefault()) != plugin.isEnabledByDefault()) {
             return false;
         }
     }

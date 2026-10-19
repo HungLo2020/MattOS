@@ -23,16 +23,19 @@
 QT_BEGIN_NAMESPACE
 
 class QAudioDecoder;
+class QTemporaryFile;
 
 class QAudioDecoderPrivate : public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QAudioDecoder)
 
 public:
-    QAudioDecoderPrivate() = default;
+    explicit QAudioDecoderPrivate(QAudioDecoder *);
+    ~QAudioDecoderPrivate() = default;
 
     QUrl unresolvedUrl;
-    std::unique_ptr<QPlatformAudioDecoder> decoder;
+    const std::unique_ptr<QPlatformAudioDecoder> decoder;
+    std::unique_ptr<QTemporaryFile> qrcFile;
 };
 
 QT_END_NAMESPACE

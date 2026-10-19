@@ -38,6 +38,8 @@ class TASKMANAGER_EXPORT TaskFilterProxyModel : public QSortFilterProxyModel, pu
     Q_PROPERTY(QString activity READ activity WRITE setActivity NOTIFY activityChanged)
 
     Q_PROPERTY(bool filterByVirtualDesktop READ filterByVirtualDesktop WRITE setFilterByVirtualDesktop NOTIFY filterByVirtualDesktopChanged)
+    Q_PROPERTY(bool filterByCurrentVirtualDesktop READ filterByCurrentVirtualDesktop WRITE setFilterByCurrentVirtualDesktop NOTIFY
+                   filterByCurrentVirtualDesktopChanged)
     Q_PROPERTY(bool filterByScreen READ filterByScreen WRITE setFilterByScreen NOTIFY filterByScreenChanged)
     Q_PROPERTY(bool filterByActivity READ filterByActivity WRITE setFilterByActivity NOTIFY filterByActivityChanged)
     Q_PROPERTY(RegionFilterMode::Mode filterByRegion READ filterByRegion WRITE setFilterByRegion NOTIFY filterByRegionChanged)
@@ -50,6 +52,7 @@ class TASKMANAGER_EXPORT TaskFilterProxyModel : public QSortFilterProxyModel, pu
 
     Q_PROPERTY(bool demandingAttentionSkipsFilters READ demandingAttentionSkipsFilters WRITE setDemandingAttentionSkipsFilters NOTIFY
                    demandingAttentionSkipsFiltersChanged)
+    Q_PROPERTY(bool hideActivatedLaunchers READ hideActivatedLaunchers WRITE setHideActivatedLaunchers NOTIFY hideActivatedLaunchersChanged)
 
 public:
     explicit TaskFilterProxyModel(QObject *parent = nullptr);
@@ -159,6 +162,25 @@ public:
      * @param filter Whether tasks should be filtered by virtual desktop.
      **/
     void setFilterByVirtualDesktop(bool filter);
+
+    /**
+     * Whether tasks should be filtered by its screen's virtual desktop.
+     * Defaults to @c false.
+     *
+     * @see setFilterByCurrentVirtualDesktop
+     * @returns @c true if tasks should be filtered by their screen's
+     * virtual desktops.
+     **/
+    bool filterByCurrentVirtualDesktop() const;
+
+    /**
+     * Set whether tasks should be filtered by virtual desktop.
+     *
+     * @see filterByCurrentVirtualDesktop
+     * @param filter Whether tasks should be filtered by their screen's
+     * virtual desktop.
+     **/
+    void setFilterByCurrentVirtualDesktop(bool filter);
 
     /**
      * Whether tasks should be filtered by screen. Defaults to @c false.
@@ -367,6 +389,18 @@ public:
     void setDemandingAttentionSkipsFilters(bool skip);
 
     /**
+     * Whether launchers with a matching visible startup or window task are
+     * filtered out. Defaults to @c true.
+     */
+    bool hideActivatedLaunchers() const;
+
+    /**
+     * Set whether launchers with a matching visible startup or window task
+     * should be filtered out.
+     */
+    void setHideActivatedLaunchers(bool hide);
+
+    /**
      * Returns whether the filter model accepts this source row.
      *
      * @param int A row in the source model.
@@ -379,6 +413,7 @@ Q_SIGNALS:
     void regionGeometryChanged();
     void activityChanged() const;
     void filterByVirtualDesktopChanged() const;
+    void filterByCurrentVirtualDesktopChanged() const;
     void filterByScreenChanged() const;
     void filterByActivityChanged() const;
     void filterByRegionChanged();
@@ -389,6 +424,7 @@ Q_SIGNALS:
     void filterSkipTaskbarChanged() const;
     void filterSkipPagerChanged() const;
     void demandingAttentionSkipsFiltersChanged() const;
+    void hideActivatedLaunchersChanged() const;
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;

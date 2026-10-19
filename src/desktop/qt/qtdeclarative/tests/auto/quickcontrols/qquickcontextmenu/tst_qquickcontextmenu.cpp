@@ -111,6 +111,8 @@ void tst_QQuickContextMenu::initTestCase()
     // Can't test native menus with QTest.
     QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuWindows);
 
+    setFastAnimations(true);
+
     contextMenuTriggeredOnRelease = QGuiApplicationPrivate::platformTheme()->themeHint(
         QPlatformTheme::ContextMenuOnMouseRelease).toBool();
 

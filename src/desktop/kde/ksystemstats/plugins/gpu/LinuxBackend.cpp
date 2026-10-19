@@ -10,15 +10,30 @@
 
 #include <libudev.h>
 
+#include <processcore/gpu_utils.h>
+
 #include "LinuxAmdGpu.h"
 #include "LinuxIntelGpu.h"
 #include "LinuxNvidiaGpu.h"
+#ifdef HAVE_XE_DRM_H
+#include "LinuxXeGpu.h"
+#endif
 #include "debug.h"
 
 // Vendor ID strings, as used in sysfs
 static const char *amdVendor = "0x1002";
 static const char *intelVendor = "0x8086";
 static const char *nvidiaVendor = "0x10de";
+// PCI Device class strings
+static const char *VGAController =      "0x030000";
+static const char *threeDController =   "0x030200";
+static const char *displayController =  "0x038000";
+
+static bool isXeDriver(udev_device *pciDevice)
+{
+    const char *driver = udev_device_get_driver(pciDevice);
+    return driver && strcmp(driver, "xe") == 0;
+}
 
 LinuxBackend::LinuxBackend(QObject *parent)
     : GpuBackend(parent)
@@ -33,44 +48,52 @@ void LinuxBackend::start()
 
     auto enumerate = udev_enumerate_new(m_udev);
 
-    udev_enumerate_add_match_property(enumerate, "DEVTYPE", "drm_minor");
-    udev_enumerate_add_match_subsystem(enumerate, "drm");
+    udev_enumerate_add_match_subsystem(enumerate, "pci");
+    udev_enumerate_add_match_sysattr(enumerate, "class", VGAController);
+    udev_enumerate_add_match_sysattr(enumerate, "class", threeDController);
+    udev_enumerate_add_match_sysattr(enumerate, "class", displayController);
     udev_enumerate_scan_devices(enumerate);
 
     auto devices = udev_enumerate_get_list_entry(enumerate);
+    int gpuNumber = 0;
     for (auto entry = devices; entry; entry = udev_list_entry_get_next(entry)) {
         auto path = udev_list_entry_get_name(entry);
-        auto drmDevice = udev_device_new_from_syspath(m_udev, path);
-        auto pciDevice = udev_device_get_parent(drmDevice);
-
-        if (strstr(udev_device_get_sysname(drmDevice), "render") != NULL) {
-            udev_device_unref(drmDevice);
-            continue;
-        }
+        auto pciDevice = udev_device_new_from_syspath(m_udev, path);
 
         auto vendor = QByteArray(udev_device_get_sysattr_value(pciDevice, "vendor"));
-        auto drmNumber = std::atoi(udev_device_get_sysnum(drmDevice));
-        auto gpuId = QStringLiteral("gpu%1").arg(drmNumber);
-        auto gpuName = i18nc("@title %1 is GPU number", "GPU %1", drmNumber + 1);
+        auto gpuId = QStringLiteral("gpu%1").arg(gpuNumber);
+
+        QString gpuName = KSysGuard::gpuName(pciDevice, gpuNumber);
 
         GpuDevice *gpu = nullptr;
-        if (vendor == amdVendor) {
+        if (isXeDriver(pciDevice)) {
+#ifdef HAVE_XE_DRM_H
+            gpu = new LinuxXeGpu{gpuId, gpuName, pciDevice};
+#else
+            qCWarning(KSYSTEMSTATS_GPU) << "Found Xe GPU but ksystemstats compiled without Xe support";
+            udev_device_unref(pciDevice);
+            continue;
+#endif
+        } else if (vendor == amdVendor) {
             gpu = new LinuxAmdGpu{gpuId, gpuName, pciDevice};
         } else if (vendor == nvidiaVendor) {
             gpu = new LinuxNvidiaGpu{gpuId, gpuName, pciDevice};
         } else if (vendor == intelVendor) {
             gpu = new LinuxIntelGpu{gpuId, gpuName, pciDevice};
-        } else {
+        }
+
+        if (!gpu) {
             qCDebug(KSYSTEMSTATS_GPU) << "Found unsupported GPU:" << path;
-            udev_device_unref(drmDevice);
+            udev_device_unref(pciDevice);
             continue;
         }
 
         gpu->initialize();
         m_devices.append(gpu);
         Q_EMIT deviceAdded(gpu);
+        gpuNumber++;
 
-        udev_device_unref(drmDevice);
+        udev_device_unref(pciDevice);
     }
 
     udev_enumerate_unref(enumerate);

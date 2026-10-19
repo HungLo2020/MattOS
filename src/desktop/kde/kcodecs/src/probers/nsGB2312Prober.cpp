@@ -4,18 +4,15 @@
     SPDX-License-Identifier: MIT
 */
 
-// for S-JIS encoding, observe characteristic:
-// 1, kana character (or hankaku?) often have high frequency of appearance
-// 2, kana character often exist in group
-// 3, certain combination of kana is never used in japanese language
-
 #include "nsGB2312Prober.h"
 #include "nsMBCSSM.h"
+
+#include <format>
 
 namespace kencodingprober
 {
 nsGB18030Prober::nsGB18030Prober()
-    : mCodingSM{std::make_unique<nsCodingStateMachine>(&GB18030SMModel)}
+    : mCodingSM{std::make_unique<nsCodingStateMachine>(GB18030SMModel)}
 {
 }
 
@@ -31,12 +28,8 @@ nsProbingState nsGB18030Prober::HandleData(const char *aBuf, unsigned int aLen)
             mState = eNotMe;
             break;
         }
-        if (codingState == eItsMe) {
-            mState = eFoundIt;
-            break;
-        }
         if (codingState == eStart) {
-            unsigned int charLen = mCodingSM->GetCurrentCharLen();
+            const int64_t charLen = i - mLastStart;
 
             if (i == 0) {
                 mLastChar[1] = aBuf[0];
@@ -44,10 +37,12 @@ nsProbingState nsGB18030Prober::HandleData(const char *aBuf, unsigned int aLen)
             } else {
                 mDistributionAnalyser.HandleOneChar(aBuf + i - 1, charLen);
             }
+            mLastStart = i;
         }
     }
 
     mLastChar[0] = aBuf[aLen - 1];
+    mLastStart -= aLen;
 
     if (mState == eDetecting) {
         if (mDistributionAnalyser.GotEnoughData() && GetConfidence() > SHORTCUT_THRESHOLD) {
@@ -64,6 +59,15 @@ float nsGB18030Prober::GetConfidence(void)
 {
     float distribCf = mDistributionAnalyser.GetConfidence();
 
-    return (float)distribCf;
+    return distribCf;
+}
+
+std::string nsGB18030Prober::StatusOutput(uint8_t /* indent */)
+{
+    return std::format( //
+        "{:1.3f} [{}]  {}",
+        GetConfidence(),
+        GetCharSetName(),
+        mDistributionAnalyser.StatusOutput());
 }
 }

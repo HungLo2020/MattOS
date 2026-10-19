@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_desktoptheme\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-12-04 20:36+0100\n"
+"POT-Creation-Date: 2026-03-27 00:47+0000\n"
+"PO-Revision-Date: 2026-03-01 16:56+0100\n"
 "Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
@@ -131,51 +131,68 @@ msgctxt "@item:inlistbox filters displayed themes"
 msgid "Color scheme compatible"
 msgstr "Kompatibel zum Farbschema"
 
-#: ui/main.qml:130
+#: ui/main.qml:114
 #, kde-format
 msgid "Install from File…"
 msgstr "Aus Datei installieren …"
 
-#: ui/main.qml:135
+#: ui/main.qml:119
 #, kde-format
 msgid "Get New…"
 msgstr "Neue holen …"
 
-#: ui/main.qml:148
+#: ui/main.qml:132
 #, kde-format
 msgid "Follows color scheme"
 msgstr "Folgt dem Farbschema"
 
-#: ui/main.qml:166
+#: ui/main.qml:150
 #, kde-format
 msgid "Edit Theme…"
 msgstr "Design bearbeiten …"
 
-#: ui/main.qml:173
+#: ui/main.qml:158
 #, kde-format
-msgid "Remove Theme"
-msgstr "Design entfernen"
+msgctxt "@info:tooltip"
+msgid "Remove Plasma style"
+msgstr "Plasma-Stil entfernen"
 
-#: ui/main.qml:180
+#: ui/main.qml:160
 #, kde-format
-msgid "Restore Theme"
-msgstr "Design wiederherstellen"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active Plasma style"
+msgstr "Löschen des aktiven Plasma-Stils nicht möglich"
 
-#: ui/main.qml:199
+#: ui/main.qml:162
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed Plasma styles"
+msgstr "Löschen von durch das System installierten Plasma-Stilen nicht möglich"
+
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this Plasma style"
+msgstr "Diesen Plasma-Stil nicht löschen"
+
+#: ui/main.qml:189
 #, kde-format
 msgid "Open Theme"
 msgstr "Design öffnen"
 
-#: ui/main.qml:201
+#: ui/main.qml:191
 #, kde-format
 msgid "Theme Files (*.zip *.tar.gz *.tar.bz2)"
 msgstr "Designdateien (*.zip *.tar.gz *.tar.bz2)"
 
+#~ msgid "Remove Theme"
+#~ msgstr "Design entfernen"
+
+#~ msgid "Restore Theme"
+#~ msgstr "Design wiederherstellen"
+
 #~ msgid "Get New Plasma Styles…"
 #~ msgstr "Neue Plasma-Stile holen ..."
-
-#~ msgid "This module lets you choose the Plasma style."
-#~ msgstr "Mit diesem Modul können Sie den Plasma-Stil auswählen."
 
 #~ msgctxt "NAME OF TRANSLATORS"
 #~ msgid "Your names"
@@ -184,9 +201,6 @@ msgstr "Designdateien (*.zip *.tar.gz *.tar.bz2)"
 #~ msgctxt "EMAIL OF TRANSLATORS"
 #~ msgid "Your emails"
 #~ msgstr "tr@erdfunkstelle.de"
-
-#~ msgid "Plasma Style"
-#~ msgstr "Plasma-Stil"
 
 #~ msgid "David Rosca"
 #~ msgstr "David Rosca"

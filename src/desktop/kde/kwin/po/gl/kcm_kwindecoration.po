@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
 "PO-Revision-Date: 2025-06-19 10:03+0200\n"
 "Last-Translator: Adrián Chaves (Gallaecio) <adrian@chaves.gal>\n"
 "Language-Team: Proxecto Trasno (proxecto@trasno.gal)\n"
@@ -73,7 +73,7 @@ msgstr "Manter enriba doutras xanelas"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
+msgid "Hide from screenshots and screen recordings"
 msgstr ""
 
 #: declarative-plugin/buttonsmodel.cpp:76
@@ -81,13 +81,13 @@ msgstr ""
 msgid "Spacer"
 msgstr "Espazador"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Predeterminado do tema (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -98,7 +98,7 @@ msgstr ""
 "sesión activa, sen definir accidentalmente unha que non estea dispoñíbel ou "
 "xa estea definida."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -109,13 +109,13 @@ msgstr ""
 "indica a ruta completa intentarase atopar un tema no cartafol indicado, e "
 "aplicalo en caso de atopalo."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr "Amosar todos os temas dispoñíbeis no sistema (e cal é o actual)."
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -124,7 +124,7 @@ msgstr ""
 "Resolveuse %1 ao tema Aurorae de KWin «%2», e intentarase definilo como o "
 "tema actual."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -133,7 +133,7 @@ msgstr ""
 "Intentou indicar unha ruta de ficheiro, pero non foi posíbel resolvela a un "
 "tema, e o proceso interromperase por non haber un tema para definir."
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
@@ -141,12 +141,15 @@ msgstr ""
 "O tema solicitado, «%1», xa está definido como o tema de decoración de "
 "xanelas."
 
-#: kwin-applywindowdecoration.cpp:99
-#, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+#: kwin-applywindowdecoration.cpp:101
+#, fuzzy, kde-format
+#| msgid ""
+#| "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr "Aplicouse o tema de cursores %1 á sesión actual de Plasma."
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -155,7 +158,7 @@ msgstr ""
 "Non foi posíbel gardar a configuración do tema. Descoñécese o motivo, pero "
 "trátase dun erro irrecuperábel. Pode que intentalo de novo funcione."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -164,7 +167,7 @@ msgstr ""
 "Non foi posíbel atopar o tema «%1». O tema debería ser unha das seguintes "
 "opcións: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "Ten os seguintes temas de decoración de xanelas de KWin no sistema:"
@@ -210,7 +213,7 @@ msgstr "Amosar indicacións emerxentes nos botóns da barra de título."
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:85
@@ -218,15 +221,15 @@ msgstr ""
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
 
 #: ui/main.qml:29
@@ -252,47 +255,47 @@ msgstr "Obter novidades…"
 msgid "Edit %1 Theme…"
 msgstr "Editar o tema %1…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Sen bordos de xanela"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Sen bordos de xanela laterais"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Bordos de xanela ananos"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Bordos de xanela normais"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Bordos de xanela grandes"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Bordos de xanela enormes"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Bordos de xanela moi grandes"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Bordos de xanela enormes"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Bordos de xanela descomunais"

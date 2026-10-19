@@ -119,6 +119,7 @@ function(qt_internal_add_headersclean_target module_target module_headers)
         # Compile header in strict C++20 (or later) mode for C++17 build. Enable further warnings.
         set(hcleanFLAGS -std=${QT_HEADERS_CLEAN_CXX_STANDARD}
             -Wall -Wextra -Werror -pedantic-errors
+            -Wframe-larger-than=1024 # anything larger than 1KiB should be out-of-line!
             -Woverloaded-virtual -Wshadow -Wundef -Wfloat-equal
             -Wnon-virtual-dtor -Wpointer-arith -Wformat-security
             -Wchar-subscripts -Wold-style-cast
@@ -171,6 +172,13 @@ function(qt_internal_add_headersclean_target module_target module_headers)
                         "-iframework" "${libdir}")
                 endif()
             endforeach()
+
+            # Avoid '#include_next is a language extension' enabled by `-pedantic-errors` in
+            # `Xcode 26`. We use the directive in framework forwarding headers.
+            if("${CMAKE_CXX_COMPILER_ID}" MATCHES "AppleClang"
+                    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "17.0.0.17000319")
+                list(APPEND hcleanFLAGS -Wno-gnu-include-next)
+            endif()
         endif()
 
         set(compiler_command_line

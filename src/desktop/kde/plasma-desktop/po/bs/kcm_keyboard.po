@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2015-01-09 11:57+0100\n"
 "Last-Translator: Samir Ribic <samir.ribic@etf.unsa.ba>\n"
 "Language-Team: bosanski <bs@li.org>\n"
@@ -99,7 +99,7 @@ msgstr ""
 #, fuzzy, kde-format
 #| msgid "Configure layouts"
 msgctxt "@title"
-msgid "Configure Key Bindings…"
+msgid "Key Bindings"
 msgstr "Podesi rasporede"
 
 #: ui/KeyBindings.qml:62
@@ -144,14 +144,14 @@ msgstr "Dodaj raspored"
 
 # >> @option:checkbox Layout Indicator
 # rewrite-msgid: /layout//
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, fuzzy, kde-format
 #| msgid "Show layout indicator"
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Prikaži pokazatelj"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -159,14 +159,14 @@ msgid ""
 "system tray. You can change this setting yourself."
 msgstr ""
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, fuzzy, kde-format
 #| msgid "Shortcut:"
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Prečica:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, fuzzy, kde-format
 #| msgid "Preview"
 msgctxt "@action:button"
@@ -588,7 +588,7 @@ msgid ""
 msgstr ""
 
 #         translations.
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
@@ -596,7 +596,7 @@ msgstr[0] "%1 kratica"
 msgstr[1] "%1 kratice"
 msgstr[2] "%1 kratica"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"

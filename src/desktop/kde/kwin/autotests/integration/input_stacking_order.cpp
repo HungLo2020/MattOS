@@ -29,8 +29,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_input_stacking_order-0");
-
 class InputStackingOrderTest : public QObject
 {
     Q_OBJECT
@@ -47,7 +45,7 @@ private:
 void InputStackingOrderTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({

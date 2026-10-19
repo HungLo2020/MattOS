@@ -12,11 +12,14 @@
 
 #include "core/backendoutput.h"
 #include "core/brightnessdevice.h"
+#include "core/drm_formats.h"
 #include "core/drmdevice.h"
+#include "core/gpumanager.h"
 #include "core/graphicsbufferview.h"
 #include "core/outputbackend.h"
 #include "core/outputlayer.h"
 #include "core/renderbackend.h"
+#include "core/renderdevice.h"
 #include "core/renderloop.h"
 #include "cursor.h"
 #include "cursorsource.h"
@@ -25,11 +28,9 @@
 #include "ftrace.h"
 #include "opengl/eglbackend.h"
 #include "opengl/glplatform.h"
-#include "qpainter/qpainterbackend.h"
 #include "renderloopdrivenqanimationdriver.h"
 #include "scene/cursoritem.h"
 #include "scene/itemrenderer_opengl.h"
-#include "scene/itemrenderer_qpainter.h"
 #include "scene/surfaceitem.h"
 #include "scene/surfaceitem_wayland.h"
 #include "scene/workspacescene.h"
@@ -40,17 +41,11 @@
 #include "window.h"
 #include "workspace.h"
 
-#include "utils/drm_format_helper.h"
-
 #include <KCrash>
-#if KWIN_BUILD_NOTIFICATIONS
-#include <KLocalizedString>
-#include <KNotification>
-#endif
-
 #include <QQuickWindow>
 #include <optional>
 #include <ranges>
+#include <sys/stat.h>
 
 namespace KWin
 {
@@ -87,6 +82,23 @@ Compositor::Compositor(QObject *workspace)
     });
 
     FTraceLogger::create();
+
+    connect(GpuManager::self(), &GpuManager::renderDeviceRemoved, this, [this](RenderDevice *device) {
+        if (m_primaryDevice != device) {
+            return;
+        }
+        if (GpuManager::self()->renderDevices().empty()) {
+            qCFatal(KWIN_CORE, "All GPUs were removed!");
+            return;
+        }
+        qCWarning(KWIN_CORE, "Primary GPU %s was removed", qPrintable(m_primaryDevice->path()));
+        stop();
+        m_primaryDevice = nullptr;
+        // this will choose a new render device
+        start();
+        qCWarning(KWIN_CORE, "Switched primary GPU to %s", qPrintable(m_primaryDevice->path()));
+        Q_EMIT primaryGpuChanged();
+    });
 }
 
 Compositor::~Compositor()
@@ -124,6 +136,16 @@ bool Compositor::isActive()
     return m_state == State::On;
 }
 
+RenderBackend *Compositor::backend() const
+{
+    return m_backend.get();
+}
+
+RenderDevice *Compositor::primaryDevice() const
+{
+    return m_primaryDevice;
+}
+
 static QVariantHash collectCrashInformation(const EglBackend *backend)
 {
     const GLPlatform *glPlatform = backend->openglContext()->glPlatform();
@@ -131,7 +153,8 @@ static QVariantHash collectCrashInformation(const EglBackend *backend)
     QVariantHash gpuInformation;
     gpuInformation[QStringLiteral("api_type")] = QStringLiteral("OpenGL");
     gpuInformation[QStringLiteral("name")] = QString::fromUtf8(glPlatform->glRendererString());
-    if (const auto pciInfo = backend->drmDevice()->pciDeviceInfo()) {
+    if (backend->renderDevice()->drmDevice() && backend->renderDevice()->drmDevice()->pciDeviceInfo()) {
+        const auto pciInfo = backend->renderDevice()->drmDevice()->pciDeviceInfo();
         gpuInformation[QStringLiteral("id")] = QString::number(pciInfo->device_id, 16);
         gpuInformation[QStringLiteral("vendor_id")] = QString::number(pciInfo->vendor_id, 16);
     }
@@ -142,16 +165,100 @@ static QVariantHash collectCrashInformation(const EglBackend *backend)
     return gpuInformation;
 }
 
+static QList<QByteArray> splitPathList(const QByteArray &input, const char delimiter)
+{
+    QList<QByteArray> ret;
+    QByteArray tmp;
+    for (int i = 0; i < input.size(); i++) {
+        if (input[i] == delimiter) {
+            if (i > 0 && input[i - 1] == '\\') {
+                tmp[tmp.size() - 1] = delimiter;
+            } else if (!tmp.isEmpty()) {
+                ret.append(tmp);
+                tmp = QByteArray();
+            }
+        } else {
+            tmp.append(input[i]);
+        }
+    }
+    if (!tmp.isEmpty()) {
+        ret.append(tmp);
+    }
+    return ret;
+}
+
+const auto s_drmDevicesEnv = splitPathList(qgetenv("KWIN_DRM_DEVICES"), ':');
+
+static RenderDevice *selectRenderDevice()
+{
+    for (const QByteArray &path : s_drmDevicesEnv) {
+        struct stat buf;
+        if (stat(path.data(), &buf) == -1) {
+            qCWarning(KWIN_CORE) << "Failed to fstat drm fd" << path;
+            continue;
+        }
+        RenderDevice *device = GpuManager::self()->compatibleRenderDevice(buf.st_rdev);
+        if (device) {
+            return device;
+        }
+    }
+    if (!s_drmDevicesEnv.isEmpty()) {
+        return GpuManager::self()->softwareDevice();
+    }
+
+    const auto &devices = GpuManager::self()->renderDevices();
+    if (devices.empty()) {
+        return nullptr;
+    }
+    const auto filterOutputs = [](RenderDevice *device) {
+        return kwinApp()->outputBackend()->outputs()
+            | std::views::filter([device](BackendOutput *output) {
+            return output->scanoutDevice()
+                && GpuManager::self()->compatibleRenderDevice(&*output->scanoutDevice()) == device;
+        })
+            | std::ranges::to<QList>();
+    };
+    std::unordered_map<RenderDevice *, QList<BackendOutput *>> outputs;
+    for (const auto &device : devices) {
+        outputs[device.get()] = filterOutputs(device.get());
+    }
+
+    return std::ranges::min_element(devices, [&outputs](const auto &gpu1, const auto &gpu2) {
+        const bool software1 = gpu1->eglDisplay()->isSoftwareRenderer();
+        const bool software2 = gpu2->eglDisplay()->isSoftwareRenderer();
+        if (software1 != software2) {
+            // avoid needing to do software rendering with the primary GPU
+            return !software1;
+        }
+
+        const auto &outputs1 = outputs[gpu1.get()];
+        const auto &outputs2 = outputs[gpu2.get()];
+        const size_t internalOutputs1 = std::ranges::count_if(outputs1, &BackendOutput::isInternal);
+        const size_t internalOutputs2 = std::ranges::count_if(outputs2, &BackendOutput::isInternal);
+        if (internalOutputs1 != internalOutputs2) {
+            return internalOutputs1 > internalOutputs2;
+        }
+        const size_t desktopOutputs1 = std::ranges::count_if(outputs1, std::not_fn(&BackendOutput::isNonDesktop));
+        const size_t desktopOutputs2 = std::ranges::count_if(outputs2, std::not_fn(&BackendOutput::isNonDesktop));
+        if (desktopOutputs1 != desktopOutputs2) {
+            return desktopOutputs1 > desktopOutputs2;
+        }
+        return outputs1.size() > outputs2.size();
+    })->get();
+}
+
 bool Compositor::attemptOpenGLCompositing()
 {
-    std::unique_ptr<EglBackend> backend = kwinApp()->outputBackend()->createOpenGLBackend();
-    if (!backend) {
-        return false;
+    if (!m_primaryDevice) {
+        m_primaryDevice = selectRenderDevice();
+        if (!m_primaryDevice) {
+            qCWarning(KWIN_CORE, "Found no render device!");
+            return false;
+        }
+        qCDebug(KWIN_CORE, "Chose %s as the primary GPU", qPrintable(m_primaryDevice->path()));
     }
-    if (!backend->isFailed()) {
-        backend->init();
-    }
-    if (backend->isFailed()) {
+    std::unique_ptr<EglBackend> backend = kwinApp()->outputBackend()->createOpenGLBackend(m_primaryDevice);
+    if (!backend->init()) {
         return false;
     }
 
@@ -179,17 +286,6 @@ bool Compositor::attemptOpenGLCompositing()
     }
     m_backend = std::move(backend);
     qCDebug(KWIN_CORE) << "OpenGL compositing has been successfully initialized";
-    return true;
-}
-
-bool Compositor::attemptQPainterCompositing()
-{
-    std::unique_ptr<QPainterBackend> backend(kwinApp()->outputBackend()->createQPainterBackend());
-    if (!backend || backend->isFailed()) {
-        return false;
-    }
-    m_backend = std::move(backend);
-    qCDebug(KWIN_CORE) << "QPainter compositing has been successfully initialized";
     return true;
 }
 
@@ -221,8 +317,7 @@ void Compositor::createRenderer()
             stop = attemptOpenGLCompositing();
             break;
         case QPainterCompositing:
-            qCDebug(KWIN_CORE) << "Attempting to load the QPainter scene";
-            stop = attemptQPainterCompositing();
+            stop = true;
             break;
         case NoCompositing:
             qCDebug(KWIN_CORE) << "Starting without compositing...";
@@ -237,16 +332,6 @@ void Compositor::createRenderer()
             qApp->quit();
         }
     }
-}
-
-void Compositor::createScene()
-{
-    if (const auto eglBackend = qobject_cast<EglBackend *>(m_backend.get())) {
-        m_scene = std::make_unique<WorkspaceScene>(std::make_unique<ItemRendererOpenGL>(eglBackend->eglDisplayObject()));
-    } else {
-        m_scene = std::make_unique<WorkspaceScene>(std::make_unique<ItemRendererQPainter>());
-    }
-    Q_EMIT sceneCreated();
 }
 
 void Compositor::start()
@@ -289,7 +374,10 @@ void Compositor::start()
         }
     }
 
-    createScene();
+    const auto &devices = GpuManager::self()->renderDevices();
+    for (const auto &device : devices) {
+        kwinApp()->scene()->attachRenderer(device.get(), std::make_unique<ItemRendererOpenGL>(device.get()));
+    }
 
     handleOutputsChanged();
     connect(workspace(), &Workspace::outputsChanged, this, &Compositor::handleOutputsChanged);
@@ -297,13 +385,8 @@ void Compositor::start()
 
     m_state = State::On;
 
-    const auto windows = workspace()->windows();
-    for (Window *window : windows) {
-        window->setupCompositing();
-    }
-
     // Sets also the 'effects' pointer.
-    new EffectsHandler(this, m_scene.get());
+    new EffectsHandler(this, kwinApp()->scene());
 
     Q_EMIT compositingToggled(true);
 }
@@ -315,6 +398,7 @@ void Compositor::stop()
     }
     m_state = State::Stopping;
     Q_EMIT aboutToToggleCompositing();
+    Q_EMIT aboutToStop();
 
     // Some effects might need access to effect windows when they are about to
     // be destroyed, for example to unreference deleted windows, so we have to
@@ -322,18 +406,12 @@ void Compositor::stop()
     delete effects;
     effects = nullptr;
 
-    if (Workspace::self()) {
-        const auto windows = workspace()->windows();
-        for (Window *window : windows) {
-            window->finishCompositing();
-        }
-        disconnect(workspace(), &Workspace::outputsChanged, this, &Compositor::handleOutputsChanged);
-        disconnect(kwinApp()->outputBackend(), &OutputBackend::outputRemoved, this, &Compositor::removeOutput);
-    }
+    disconnect(workspace(), &Workspace::outputsChanged, this, &Compositor::handleOutputsChanged);
+    disconnect(kwinApp()->outputBackend(), &OutputBackend::outputRemoved, this, &Compositor::removeOutput);
 
     if (m_backend->compositingType() == OpenGLCompositing) {
         // some layers need a context current for destruction
-        static_cast<EglBackend *>(m_backend.get())->openglContext()->makeCurrent();
+        (void)static_cast<EglBackend *>(m_backend.get())->openglContext()->makeCurrent();
     }
 
     const auto loops = m_primaryViews | std::views::transform([](const auto &pair) {
@@ -343,7 +421,11 @@ void Compositor::stop()
         removeOutput(findOutput(loop));
     }
 
-    m_scene.reset();
+    const auto &devices = GpuManager::self()->renderDevices();
+    for (const auto &device : devices) {
+        kwinApp()->scene()->detachRenderer(device.get());
+    }
+
     m_backend.reset();
 
     m_state = State::Off;
@@ -378,33 +460,21 @@ static Rect mapItemToOutputDeviceCoordinates(Item *item, RenderView *view, Logic
 
 static bool prepareDirectScanout(RenderView *view, LogicalOutput *logicalOutput, BackendOutput *backendOutput, const std::shared_ptr<OutputFrame> &frame)
 {
-    if (!view->isVisible()) {
+    if (!view->isVisible() || !view->layer()->scanoutDevice()) {
         return false;
     }
     const auto layer = view->layer();
-    const auto scanoutCandidates = view->scanoutCandidates(1);
-    if (scanoutCandidates.isEmpty()) {
-        layer->setScanoutCandidate(nullptr);
+    const auto candidate = view->scanoutCandidate();
+    layer->setScanoutCandidate(candidate);
+    if (!candidate) {
         return false;
     }
-    SurfaceItem *candidate = scanoutCandidates.front();
-    SurfaceItemWayland *wayland = qobject_cast<SurfaceItemWayland *>(candidate);
-    if (!wayland || !wayland->surface()) {
-        return false;
-    }
-    const auto buffer = wayland->surface()->buffer();
+    const auto buffer = candidate->buffer();
     if (!buffer) {
         return false;
     }
     const auto attrs = buffer->dmabufAttributes();
     if (!attrs) {
-        return false;
-    }
-    const bool tearing = frame->presentationMode() == PresentationMode::Async || frame->presentationMode() == PresentationMode::AdaptiveAsync;
-    const auto formats = tearing ? layer->supportedAsyncDrmFormats() : layer->supportedDrmFormats();
-    if (auto it = formats.find(attrs->format); it == formats.end() || !it->contains(attrs->modifier)) {
-        layer->setScanoutCandidate(candidate);
-        candidate->setScanoutHint(layer->scanoutDevice(), formats);
         return false;
     }
     layer->setTargetRect(mapItemToOutputDeviceCoordinates(candidate, view, logicalOutput, backendOutput));
@@ -413,13 +483,16 @@ static bool prepareDirectScanout(RenderView *view, LogicalOutput *logicalOutput,
     layer->setBufferTransform(candidate->bufferTransform());
     layer->setOffloadTransform(candidate->bufferTransform().combine(backendOutput->transform().inverted()));
     layer->setColor(candidate->colorDescription(), candidate->renderingIntent(), ColorPipeline::create(candidate->colorDescription(), backendOutput->layerBlendingColor(), candidate->renderingIntent()));
-    const bool ret = layer->importScanoutBuffer(candidate->buffer(), frame);
-    if (ret) {
-        candidate->resetDamage();
-        // ensure the pixmap is updated when direct scanout ends
-        candidate->destroyTexture();
+    if (!layer->earlyScanoutChecks()) {
+        return false;
     }
-    return ret;
+    const bool tearing = frame->presentationMode() == PresentationMode::Async || frame->presentationMode() == PresentationMode::AdaptiveAsync;
+    const auto formats = tearing ? layer->supportedAsyncDrmFormats() : layer->supportedDrmFormats();
+    if (!formats.containsFormat(attrs->format, attrs->modifier) || !layer->importScanoutBuffer(candidate->buffer(), frame)) {
+        candidate->setScanoutHint(layer->scanoutDevice(), formats);
+        return false;
+    }
+    return true;
 }
 
 static bool prepareRendering(RenderView *view, LogicalOutput *logicalOutput, BackendOutput *backendOutput, uint32_t requiredAlphaBits)
@@ -453,7 +526,7 @@ static bool prepareRendering(RenderView *view, LogicalOutput *logicalOutput, Bac
 
 static bool renderLayer(RenderView *view, LogicalOutput *logicalOutput, BackendOutput *backendOutput, const std::shared_ptr<OutputFrame> &frame, const Region &surfaceDamage)
 {
-    auto beginInfo = view->layer()->beginFrame();
+    auto beginInfo = view->layer()->beginFrame(frame.get());
     if (!beginInfo) {
         return false;
     }
@@ -463,12 +536,9 @@ static bool renderLayer(RenderView *view, LogicalOutput *logicalOutput, BackendO
     return view->layer()->endFrame(bufferDamage, surfaceDamage, frame.get());
 }
 
-static OutputLayer *findLayer(std::span<OutputLayer *const> layers, OutputLayerType type, std::optional<int> minZPos)
+static OutputLayer *findLayer(std::span<OutputLayer *const> layers, OutputLayerType type)
 {
-    const auto it = std::ranges::find_if(layers, [type, minZPos](OutputLayer *layer) {
-        if (minZPos.has_value() && layer->maxZpos() < *minZPos) {
-            return false;
-        }
+    const auto it = std::ranges::find_if(layers, [type](OutputLayer *layer) {
         return layer->type() == type;
     });
     return it == layers.end() ? nullptr : *it;
@@ -477,38 +547,24 @@ static OutputLayer *findLayer(std::span<OutputLayer *const> layers, OutputLayerT
 /**
  * items and layers need to be sorted top to bottom
  */
-static std::unordered_map<Item *, OutputLayer *> assignOverlays(RenderView *sceneView, std::span<Item *const> underlays, std::span<Item *const> overlays, std::span<OutputLayer *const> layers)
+static std::optional<std::unordered_map<OutputLayer *, Item *>> assignLayers(RenderView *sceneView, std::span<Item *const> items, std::span<OutputLayer *const> layers)
 {
-    if (layers.empty() || (underlays.empty() && overlays.empty())) {
-        return {};
+    if (layers.empty() || items.empty()) {
+        return std::nullopt;
     }
-    // TODO also allow assigning the primary view to a different plane
-    const int primaryZpos = sceneView->layer()->zpos();
     auto layerIt = layers.begin();
     int zpos = (*layerIt)->maxZpos();
-    std::unordered_map<Item *, OutputLayer *> ret;
-    auto overlaysIt = overlays.begin();
-    for (; overlaysIt != overlays.end();) {
-        Item *item = *overlaysIt;
-        const bool compositingAllowed = qobject_cast<CursorItem *>(item) != nullptr;
-        const RectF sceneRect = item->mapToView(compositingAllowed ? item->boundingRect() : item->rect(), sceneView);
-        if (sceneRect.contains(sceneView->viewport())) {
-            // leave fullscreen direct scanout to the primary plane
-            overlaysIt++;
-            continue;
-        }
+    std::unordered_map<OutputLayer *, Item *> ret;
+    for (auto itemIt = items.begin(); itemIt != items.end();) {
+        Item *item = *itemIt;
         if (layerIt == layers.end()) {
-            return {};
+            return std::nullopt;
         }
         OutputLayer *layer = *layerIt;
         const int nextZpos = std::min(zpos, layer->maxZpos());
         if (layer->minZpos() > nextZpos) {
             layerIt++;
             continue;
-        }
-        if (nextZpos < primaryZpos) {
-            // can't use this
-            return {};
         }
         if (layer->type() == OutputLayerType::CursorOnly && qobject_cast<CursorItem *>(item) == nullptr) {
             layerIt++;
@@ -517,6 +573,8 @@ static std::unordered_map<Item *, OutputLayer *> assignOverlays(RenderView *scen
         const auto recommendedSizes = layer->recommendedSizes();
         if (!recommendedSizes.isEmpty()) {
             // it's likely that sizes other than the recommended ones won't work
+            const bool compositingAllowed = qobject_cast<CursorItem *>(item) != nullptr;
+            const RectF sceneRect = item->mapToView(compositingAllowed ?  item->boundingRect() : item->rect(), sceneView);
             const Rect deviceRect = sceneRect.translated(-sceneView->viewport().topLeft()).scaled(sceneView->scale()).rounded();
             const bool hasFittingSize = std::ranges::any_of(recommendedSizes, [compositingAllowed, deviceRect](const QSize &size) {
                 if (compositingAllowed) {
@@ -532,87 +590,206 @@ static std::unordered_map<Item *, OutputLayer *> assignOverlays(RenderView *scen
             }
         }
         layer->setZpos(nextZpos);
-        ret[item] = layer;
-        overlaysIt++;
+        ret[layer] = item;
+        itemIt++;
         layerIt++;
         zpos = nextZpos - 1;
     }
-    if (overlaysIt != overlays.end()) {
-        // not all items were assigned, we need to composite
-        return {};
+    const bool primaryUsed = std::ranges::any_of(ret, [](const auto &pair) {
+        return pair.first->type() == OutputLayerType::Primary;
+    });
+    if (primaryUsed) {
+        return ret;
     }
-    if (layerIt == layers.end()) {
-        if (underlays.empty()) {
-            return ret;
-        } else {
-            return {};
-        }
-    }
-    zpos = std::min(primaryZpos - 1, (*layerIt)->maxZpos());
-    auto underlaysIt = underlays.begin();
-    for (; underlaysIt != underlays.end();) {
-        Item *item = *underlaysIt;
-        const bool compositingAllowed = qobject_cast<CursorItem *>(item) != nullptr;
-        const RectF sceneRect = item->mapToView(compositingAllowed ? item->boundingRect() : item->rect(), sceneView);
-        if (sceneRect.contains(sceneView->viewport())) {
-            // leave fullscreen direct scanout to the primary plane
-            underlaysIt++;
-            continue;
-        }
-        if (layerIt == layers.end()) {
-            return {};
-        }
-        OutputLayer *layer = *layerIt;
-        const int nextZpos = std::min(zpos, layer->maxZpos());
-        if (layer->minZpos() > nextZpos) {
-            layerIt++;
-            continue;
-        }
-        if (layer->type() == OutputLayerType::CursorOnly && qobject_cast<CursorItem *>(item) == nullptr) {
-            layerIt++;
-            continue;
-        }
-        const auto recommendedSizes = layer->recommendedSizes();
-        if (!recommendedSizes.isEmpty()) {
-            // it's likely that sizes other than the recommended ones won't work
-            const Rect deviceRect = sceneRect.translated(-sceneView->viewport().topLeft()).scaled(sceneView->scale()).rounded();
-            const bool hasFittingSize = std::ranges::any_of(recommendedSizes, [compositingAllowed, deviceRect](const QSize &size) {
-                if (compositingAllowed) {
-                    return deviceRect.size().width() <= size.width()
-                        && deviceRect.size().height() <= size.height();
-                } else {
-                    return deviceRect.size() == size;
-                }
-            });
-            if (!hasFittingSize) {
-                layerIt++;
+    // the primary plane *must* be used, so swap a different layer out for it
+    const auto primary = findLayer(layers, OutputLayerType::Primary);
+    Q_ASSERT(primary);
+    auto sortedLayers = ret | std::views::keys | std::ranges::to<QList>();
+    std::ranges::sort(sortedLayers, [](OutputLayer *left, OutputLayer *right) {
+        return left->zpos() < right->zpos();
+    });
+    for (ssize_t i = 0; i < sortedLayers.size(); i++) {
+        // the primary layer has to fit in between the previous
+        // and the next layer
+        if (i > 0) {
+            OutputLayer *previous = sortedLayers[i - 1];
+            if (primary->maxZpos() < previous->zpos()) {
                 continue;
             }
         }
-        layer->setZpos(nextZpos);
-        ret[item] = layer;
-        underlaysIt++;
-        layerIt++;
-        zpos = nextZpos - 1;
+        if (i < sortedLayers.size() - 1) {
+            OutputLayer *next = sortedLayers[i + 1];
+            if (primary->minZpos() > next->zpos()) {
+                continue;
+            }
+        }
+        primary->setZpos(std::clamp(sortedLayers[i]->zpos(), primary->minZpos(), primary->maxZpos()));
+        Item *item = ret[sortedLayers[i]];
+        ret.erase(sortedLayers[i]);
+        ret[primary] = item;
+        return ret;
     }
-    if (underlaysIt != underlays.end()) {
-        // not all items were assigned, we need to composite
-        return {};
+    return std::nullopt;
+}
+
+std::pair<QList<Compositor::LayerData>, std::expected<void, OutputError>> Compositor::setupLayers(SceneView *sceneView,
+                                                                                                  LogicalOutput *logicalOutput,
+                                                                                                  BackendOutput *backendOutput,
+                                                                                                  const QList<OutputLayer *> &outputLayers,
+                                                                                                  const std::unordered_map<OutputLayer *, Item *> &assignments,
+                                                                                                  const std::shared_ptr<OutputFrame> &frame,
+                                                                                                  std::unordered_set<OutputLayer *> &toUpdate)
+{
+    QList<OutputLayer *> unusedOutputLayers = outputLayers;
+    QList<LayerData> layers;
+
+    auto sortedLayers = assignments | std::views::keys | std::ranges::to<QList>();
+    std::ranges::sort(sortedLayers, [](OutputLayer *left, OutputLayer *right) {
+        return left->zpos() < right->zpos();
+    });
+
+    // every item below the scene needs to be treated as an underlay
+    bool underlay = std::ranges::any_of(assignments | std::views::values, [](Item *item) {
+        return item == kwinApp()->scene()->containerItem();
+    });
+    for (auto it = sortedLayers.begin(); it != sortedLayers.end(); it++) {
+        OutputLayer *layer = *it;
+        Item *item = assignments.at(layer);
+        const bool isCursor = qobject_cast<CursorItem *>(item) != nullptr;
+        const bool isScene = item == kwinApp()->scene()->containerItem();
+        if (isScene) {
+            sceneView->setLayer(layer);
+            underlay = false;
+            layers.push_back(LayerData{
+                .view = sceneView,
+                .directScanout = false,
+                .directScanoutOnly = false,
+                .highPriority = true,
+                .surfaceDamage = Region(),
+                .requiredAlphaBits = 0,
+            });
+            if (it != sortedLayers.begin()) {
+                // require more alpha bits for the scene if there is an underlay,
+                // otherwise shadows from windows on top of the underlay will look terrible
+                // TODO also make sure we still use more than 8 color bits when possible?
+                layers.back().requiredAlphaBits = 8;
+            }
+            m_overlayViews[backendOutput->renderLoop()].erase(layer);
+            unusedOutputLayers.removeOne(layer);
+            continue;
+        }
+        auto &view = m_overlayViews[backendOutput->renderLoop()][layer];
+        if (!view || view->item() != item) {
+            if (isCursor) {
+                // special handling for the cursor
+                view = std::make_unique<ItemTreeView>(sceneView, item, logicalOutput, backendOutput, layer);
+                connect(layer, &OutputLayer::repaintScheduled, view.get(), [logicalOutput, backendOutput, cursorView = view.get()]() {
+                    // this just deals with moving the plane asynchronously, for improved latency.
+                    // enabling and disabling the cursor image still happen in composite()
+                    const auto outputLayer = cursorView->layer();
+                    if (!outputLayer->isEnabled()
+                        || !outputLayer->deviceRepaints().isEmpty()
+                        || !cursorView->isVisible()) {
+                        // composite() handles this
+                        return;
+                    }
+                    std::optional<std::chrono::nanoseconds> maxVrrCursorDelay;
+                    if (backendOutput->renderLoop()->activeWindowControlsVrrRefreshRate()) {
+                        const auto effectiveMinRate = backendOutput->minVrrRefreshRateHz().transform([](uint32_t value) {
+                            // this is intentionally using a tiny bit higher refresh rate than the minimum
+                            // so that slight differences in timing don't drop us below the minimum
+                            return value + 2;
+                        }).value_or(30);
+                        maxVrrCursorDelay = std::chrono::nanoseconds(1'000'000'000) / std::max(effectiveMinRate, 30u);
+                    }
+                    outputLayer->setTargetRect(mapGlobalLogicalToOutputDeviceCoordinates(cursorView->viewport(), logicalOutput, backendOutput));
+                    outputLayer->setEnabled(true);
+                    if (cursorView->needsRepaint() && prepareRendering(cursorView, logicalOutput, backendOutput, 8)) {
+                        renderLayer(cursorView, logicalOutput, backendOutput, nullptr, cursorView->collectDamage());
+                    }
+                    if (backendOutput->presentAsync(outputLayer, maxVrrCursorDelay)) {
+                        // prevent composite() from also pushing an update with the cursor layer
+                        // to avoid adding cursor updates that are synchronized with primary layer updates
+                        outputLayer->resetRepaints();
+                    }
+                });
+            } else {
+                view = std::make_unique<ItemView>(sceneView, item, logicalOutput, backendOutput, layer);
+            }
+        }
+        layers.push_back(LayerData{
+            .view = view.get(),
+            .directScanout = !isCursor,
+            .directScanoutOnly = !isCursor,
+            .highPriority = isCursor,
+            .surfaceDamage = Region(),
+            .requiredAlphaBits = isCursor ? 8u : 0u,
+        });
+        view->setUnderlay(underlay);
+        unusedOutputLayers.removeOne(layer);
     }
-    return ret;
+
+    // disable entirely unused output layers
+    for (OutputLayer *layer : unusedOutputLayers) {
+        m_overlayViews[backendOutput->renderLoop()].erase(layer);
+        layer->setEnabled(false);
+        // TODO only add the layer to `toUpdate` when necessary
+        toUpdate.insert(layer);
+    }
+
+    // If a single layer covers the whole output, try to move the trailing encode of its color
+    // pipeline (the panel OETF, which the plane's own gamma often can't represent) to the
+    // output's post blending stage, by re-targeting the layer at a linear intermediate
+    // colorspace. That keeps the layer on direct scanout instead of falling back to shader
+    // composition. It's only safe with a single layer though, as the post blending stage
+    // applies to the whole output
+    bool postBlendOffloaded = false;
+    if (layers.size() == 1 && layers[0].directScanout) {
+        RenderView *const view = layers[0].view;
+        SurfaceItem *const candidate = view->layer()->scanoutDevice() ? view->scanoutCandidate() : nullptr;
+        // note that layerBlendingColor may already be an intermediate from the last frame's offload
+        const auto baseBlend = backendOutput->blendingColor();
+        if (candidate && !ColorPipeline::create(candidate->colorDescription(), baseBlend, candidate->renderingIntent()).isIdentity()) {
+            const auto linearBlend = baseBlend->withTransferFunction(TransferFunction(TransferFunction::linear, 0, baseBlend->transferFunction().maxLuminance));
+            // the output merges this before its own post blending color management, so that the
+            // shared blend space encode cancels and the panel OETF ends up after blending
+            const auto postBlend = ColorPipeline::create(linearBlend, baseBlend, RenderingIntent::AbsoluteColorimetricNoAdaptation);
+            postBlendOffloaded = backendOutput->setPostBlendPipeline(postBlend, linearBlend);
+        }
+    }
+    if (!postBlendOffloaded) {
+        backendOutput->resetPostBlendPipeline();
+    }
+
+    // import buffers and prepare rendering
+    for (auto &layer : layers) {
+        if (layer.directScanout && !prepareDirectScanout(layer.view, logicalOutput, backendOutput, frame)) {
+            return std::make_pair(layers, std::unexpected(OutputError{
+                                              .code = OutputErrorCode::Other,
+                                              .message = QStringLiteral("preparing direct scanout failed"),
+                                          }));
+        }
+    }
+    for (auto &layer : layers) {
+        if (!layer.directScanout && !prepareRendering(layer.view, logicalOutput, backendOutput, layer.requiredAlphaBits)) {
+            return std::make_pair(layers, std::unexpected(OutputError{
+                                              .code = OutputErrorCode::Other,
+                                              .message = QStringLiteral("preparing rendering failed"),
+                                          }));
+        }
+    }
+    return std::make_pair(layers, backendOutput->testPresentation(frame));
 }
 
 void Compositor::composite(RenderLoop *renderLoop)
 {
     if (m_backend->checkGraphicsReset()) {
         qCDebug(KWIN_CORE) << "Graphics reset occurred";
-#if KWIN_BUILD_NOTIFICATIONS
-        KNotification::event(QStringLiteral("graphicsreset"), i18n("Desktop effects were restarted due to a graphics reset"));
-#endif
         reinitialize();
         return;
     }
 
+    WorkspaceScene *scene = kwinApp()->scene();
     BackendOutput *output = findOutput(renderLoop);
     LogicalOutput *logicalOutput = workspace()->findOutput(output);
     const auto primaryView = m_primaryViews[renderLoop].get();
@@ -620,6 +797,7 @@ void Compositor::composite(RenderLoop *renderLoop)
 
     // This must come first.
     renderLoop->prepareNewFrame();
+    primaryView->setNextPresentationTimestamp(renderLoop->nextPresentationTimestamp(), output->refreshRate());
 
     if (m_renderLoopDrivenAnimationDriver->isRunning()) {
         m_renderLoopDrivenAnimationDriver->advanceToNextFrame(renderLoop->nextPresentationTimestamp());
@@ -673,27 +851,7 @@ void Compositor::composite(RenderLoop *renderLoop)
         frame->setPresentationMode(tearing ? PresentationMode::Async : PresentationMode::VSync);
     }
 
-    // collect all the layers we may use
-    struct LayerData
-    {
-        RenderView *view;
-        bool directScanout = false;
-        bool directScanoutOnly = false;
-        bool highPriority = false;
-        Region surfaceDamage;
-        uint32_t requiredAlphaBits;
-    };
-    QList<LayerData> layers;
-
-    primaryView->prePaint();
-    layers.push_back(LayerData{
-        .view = primaryView,
-        .directScanout = false,
-        .directScanoutOnly = false,
-        .highPriority = false,
-        .surfaceDamage = Region{},
-        .requiredAlphaBits = 0,
-    });
+    primaryView->prePaint(frame.get());
 
     // slowly adjust the artificial HDR headroom for the next frame. Note that
     // - this has to happen (right) after prePaint, so that the scene's stacking order is valid
@@ -712,153 +870,84 @@ void Compositor::composite(RenderLoop *renderLoop)
     }
 
     QList<OutputLayer *> unusedOutputLayers = m_backend->compatibleOutputLayers(output);
-    // the primary output layer is currently always used for the main content
-    unusedOutputLayers.removeOne(primaryView->layer());
 
-    const bool overlaysAllowed = m_allowOverlaysEnv.value_or(!output->overlayLayersLikelyBroken() && PROJECT_VERSION_PATCH >= 80);
-    QList<OutputLayer *> specialLayers = unusedOutputLayers | std::views::filter([this, renderLoop, overlaysAllowed](OutputLayer *layer) {
-        return layer->type() != OutputLayerType::Primary
-            && (!m_brokenCursors.contains(renderLoop) || layer->type() != OutputLayerType::CursorOnly)
+    const bool overlaysAllowed = m_allowOverlaysEnv.value_or(output->recommendsOverlayUse());
+    QList<OutputLayer *> allowedOutputLayers = unusedOutputLayers | std::views::filter([this, renderLoop, overlaysAllowed](OutputLayer *layer) {
+        return (!m_brokenCursors.contains(renderLoop) || layer->type() != OutputLayerType::CursorOnly)
             && (overlaysAllowed || layer->type() != OutputLayerType::GenericLayer);
     }) | std::ranges::to<QList>();
-    std::ranges::sort(specialLayers, [](OutputLayer *left, OutputLayer *right) {
+    std::ranges::sort(allowedOutputLayers, [](OutputLayer *left, OutputLayer *right) {
         return left->maxZpos() > right->maxZpos();
     });
-    const size_t maxOverlayCount = std::ranges::count_if(specialLayers, [primaryView](OutputLayer *layer) {
-        return layer->maxZpos() > primaryView->layer()->zpos();
-    });
-    const size_t maxUnderlayCount = std::ranges::count_if(specialLayers, [primaryView](OutputLayer *layer) {
-        return layer->minZpos() < primaryView->layer()->zpos();
-    });
-    const auto [overlayCandidates, underlayCandidates] = m_scene->overlayCandidates(specialLayers.size(), maxOverlayCount, maxUnderlayCount);
-    auto overlayAssignments = assignOverlays(primaryView, underlayCandidates, overlayCandidates, specialLayers);
-    if (overlayAssignments.empty()) {
-        // the cursor is important, so try again without other over/underlays
-        const auto cursorOnly = overlayCandidates | std::views::filter([](Item *item) {
-            return qobject_cast<CursorItem *>(item) != nullptr;
-        }) | std::ranges::to<QList>();
-        overlayAssignments = assignOverlays(primaryView, {}, cursorOnly, specialLayers);
-    }
-    for (const auto &[item, layer] : overlayAssignments) {
-        const bool isCursor = qobject_cast<CursorItem *>(item) != nullptr;
-        auto &view = m_overlayViews[output->renderLoop()][layer];
-        if (!view || view->item() != item) {
-            if (isCursor) {
-                // special handling for the cursor
-                view = std::make_unique<ItemTreeView>(primaryView, item, logicalOutput, output, layer);
-                connect(layer, &OutputLayer::repaintScheduled, view.get(), [logicalOutput, output, cursorView = view.get()]() {
-                    // this just deals with moving the plane asynchronously, for improved latency.
-                    // enabling, disabling and updating the cursor image still happen in composite()
-                    const auto outputLayer = cursorView->layer();
-                    if (!outputLayer->isEnabled()
-                        || !outputLayer->deviceRepaints().isEmpty()
-                        || !cursorView->isVisible()
-                        || cursorView->needsRepaint()) {
-                        // composite() handles this
-                        return;
-                    }
-                    std::optional<std::chrono::nanoseconds> maxVrrCursorDelay;
-                    if (output->renderLoop()->activeWindowControlsVrrRefreshRate()) {
-                        const auto effectiveMinRate = output->minVrrRefreshRateHz().transform([](uint32_t value) {
-                            // this is intentionally using a tiny bit higher refresh rate than the minimum
-                            // so that slight differences in timing don't drop us below the minimum
-                            return value + 2;
-                        }).value_or(30);
-                        maxVrrCursorDelay = std::chrono::nanoseconds(1'000'000'000) / std::max(effectiveMinRate, 30u);
-                    }
-                    outputLayer->setTargetRect(mapGlobalLogicalToOutputDeviceCoordinates(cursorView->viewport(), logicalOutput, output));
-                    outputLayer->setEnabled(true);
-                    if (output->presentAsync(outputLayer, maxVrrCursorDelay)) {
-                        // prevent composite() from also pushing an update with the cursor layer
-                        // to avoid adding cursor updates that are synchronized with primary layer updates
-                        outputLayer->resetRepaints();
-                    }
-                });
-            } else {
-                view = std::make_unique<ItemView>(primaryView, item, logicalOutput, output, layer);
-            }
-        }
-        view->prePaint();
-        layers.push_back(LayerData{
-            .view = view.get(),
-            .directScanout = !isCursor,
-            .directScanoutOnly = !isCursor,
-            .highPriority = isCursor,
-            .surfaceDamage = Region(),
-            .requiredAlphaBits = isCursor ? 8u : 0u,
-        });
-        unusedOutputLayers.removeOne(layer);
-        if (layer->zpos() < primaryView->layer()->zpos()) {
-            view->setUnderlay(true);
-            // require more alpha bits on the primary plane,
-            // otherwise shadows from windows on top of the
-            // underlay will look terrible
-            // TODO also make sure we still use more than 8 color bits when possible?
-            layers.front().requiredAlphaBits = 8;
-        } else {
-            view->setUnderlay(false);
-        }
+    const QList<Item *> layerCandidates = scene->layerCandidates(allowedOutputLayers.size());
+    auto idealLayerAssignments = assignLayers(primaryView, layerCandidates, allowedOutputLayers);
+
+    // fallback 1
+    auto scenePlusCursor = layerCandidates | std::views::filter([](Item *item) {
+        return qobject_cast<CursorItem *>(item) != nullptr;
+    }) | std::ranges::to<QList>();
+    scenePlusCursor.push_back(scene->containerItem());
+    if (!idealLayerAssignments.has_value()) {
+        idealLayerAssignments = assignLayers(primaryView, scenePlusCursor, allowedOutputLayers);
     }
 
-    QList<OutputLayer *> toUpdate;
-
-    // disable entirely unused output layers
-    for (OutputLayer *layer : unusedOutputLayers) {
-        m_overlayViews[renderLoop].erase(layer);
-        layer->setEnabled(false);
-        // TODO only add the layer to `toUpdate` when necessary
-        toUpdate.push_back(layer);
+    // fallback 2
+    QList<Item *> sceneOnly{scene->containerItem()};
+    if (!idealLayerAssignments.has_value()) {
+        idealLayerAssignments = assignLayers(primaryView, sceneOnly, allowedOutputLayers);
+        // this must always work
+        Q_ASSERT(idealLayerAssignments.has_value());
     }
 
-    // update all of them for the ideal configuration
-    for (auto &layer : layers) {
-        if (prepareDirectScanout(layer.view, logicalOutput, output, frame)) {
-            layer.directScanout = true;
-        } else if (!layer.directScanoutOnly && prepareRendering(layer.view, logicalOutput, output, layer.requiredAlphaBits)) {
-            layer.directScanout = false;
-        } else {
-            layer.view->layer()->setEnabled(false);
-            layer.view->layer()->scheduleRepaint(nullptr);
-        }
-    }
+    std::unordered_set<OutputLayer *> toUpdate;
+    auto [layers, result] = setupLayers(primaryView, logicalOutput, output, allowedOutputLayers,
+                                        *idealLayerAssignments, frame, toUpdate);
 
     // test and downgrade the configuration until the test is successful
-    bool result = output->testPresentation(frame);
     if (!result) {
-        bool primaryFailure = false;
-        auto &primary = layers.front();
-        if (primary.directScanout) {
-            if (prepareRendering(primary.view, logicalOutput, output, primary.requiredAlphaBits)) {
-                primary.directScanout = false;
-                result = output->testPresentation(frame);
-            } else {
-                primaryFailure = true;
-                // this should be very rare, but could happen with GPU resets
-                qCWarning(KWIN_CORE, "Preparing the primary layer failed!");
-            }
+        // first, fall back to composited primary + hardware cursor, if that's not already done
+        const bool fallback1 = layers.size() <= 2 && std::ranges::all_of(layers, [](const LayerData &layer) {
+            return layer.highPriority;
+        });
+        if (!fallback1) {
+            idealLayerAssignments = assignLayers(primaryView, scenePlusCursor, allowedOutputLayers);
+            std::tie(layers, result) = setupLayers(primaryView, logicalOutput, output, allowedOutputLayers,
+                                                   *idealLayerAssignments, frame, toUpdate);
         }
-        if (!result && !primaryFailure) {
-            // disable all low priority layers, and if that isn't enough
-            // the high priority layers as well
-            for (bool priority : {false, true}) {
-                auto toDisable = layers | std::views::filter([priority](const LayerData &layer) {
-                    return layer.view->layer()->isEnabled()
-                        && layer.highPriority == priority
-                        && layer.view->layer()->type() != OutputLayerType::Primary;
-                });
-                if (!toDisable.empty()) {
-                    for (const auto &layer : toDisable) {
-                        layer.view->layer()->setEnabled(false);
-                        layer.view->layer()->scheduleRepaint(nullptr);
-                    }
-                    result = output->testPresentation(frame);
-                    if (result) {
-                        break;
-                    }
+
+        // if this still doesn't work, fall back to primary only
+        const bool fallback2 = layers.size() == 1 && layers.front().view == primaryView;
+        if (!result && !fallback2) {
+            idealLayerAssignments = assignLayers(primaryView, sceneOnly, allowedOutputLayers);
+            std::tie(layers, result) = setupLayers(primaryView, logicalOutput, output, allowedOutputLayers,
+                                                   *idealLayerAssignments, frame, toUpdate);
+        }
+    }
+
+    const auto renderLayers = [&]() -> std::expected<void, OutputError> {
+        for (auto &layer : layers) {
+            if (!layer.view->layer()->needsRepaint()) {
+                continue;
+            }
+            toUpdate.insert(layer.view->layer());
+            layer.surfaceDamage |= layer.view->collectDamage();
+            layer.surfaceDamage |= layer.view->layer()->deviceRepaints();
+            layer.view->layer()->resetRepaints();
+            if (layer.view->layer()->isEnabled() && !layer.directScanout) {
+                if (!renderLayer(layer.view, logicalOutput, output, frame, layer.surfaceDamage)) {
+                    return std::unexpected(OutputError{
+                        .code = OutputErrorCode::Other,
+                        .message = QStringLiteral("Rendering a layer failed"),
+                    });
                 }
             }
         }
-    }
+        return {};
+    };
+    const auto present = [&]() {
+        // TODO make Output::present take a set instead of a list
+        return output->present(toUpdate | std::ranges::to<QList>(), frame);
+    };
 
     // now actually render the layers that need rendering
     if (result) {
@@ -870,23 +959,7 @@ void Compositor::composite(RenderLoop *renderLoop)
 
         // Note that effects may schedule repaints while rendering
         renderLoop->newFramePrepared();
-
-        for (auto &layer : layers) {
-            if (!layer.view->layer()->needsRepaint()) {
-                continue;
-            }
-            toUpdate.push_back(layer.view->layer());
-            layer.surfaceDamage |= layer.view->collectDamage();
-            layer.surfaceDamage |= layer.view->layer()->deviceRepaints();
-            layer.view->layer()->resetRepaints();
-            if (layer.view->layer()->isEnabled() && !layer.directScanout) {
-                result &= renderLayer(layer.view, logicalOutput, output, frame, layer.surfaceDamage);
-                if (!result) {
-                    qCWarning(KWIN_CORE, "Rendering a layer failed!");
-                    break;
-                }
-            }
-        }
+        result = renderLayers();
     } else {
         renderLoop->newFramePrepared();
     }
@@ -895,62 +968,48 @@ void Compositor::composite(RenderLoop *renderLoop)
     // but the drm backend, where that's necessary, tracks that time itself
     totalTimeQuery->end();
     frame->addRenderTimeQuery(std::move(totalTimeQuery));
-    if (result && !output->present(toUpdate, frame)) {
+    result = result.and_then(present);
+    if (!result) {
         // legacy modesetting can't do (useful) presentation tests
         // and even with atomic modesetting, drivers are buggy and atomic tests
         // sometimes have false positives
-        result = false;
-        // first, remove all non-primary layers we attempted direct scanout with
-        auto toDisable = layers | std::views::filter([](const LayerData &layer) {
-            return layer.view->layer()->type() != OutputLayerType::Primary
-                && layer.view->layer()->isEnabled()
-                && layer.directScanout;
+
+        // same fallbacks as above:
+        // first, fall back to composited primary + hardware cursor, if that's not already done
+        const bool fallback1 = layers.size() <= 2 && std::ranges::all_of(layers, [](const LayerData &layer) {
+            return layer.highPriority;
         });
-        auto &primary = layers.front();
-        if (primary.directScanout || !toDisable.empty()) {
-            for (const auto &layer : toDisable) {
-                layer.view->layer()->setEnabled(false);
-                layer.view->setExclusive(false);
-            }
-            // re-render without direct scanout
-            if (prepareRendering(primary.view, logicalOutput, output, primary.requiredAlphaBits)
-                && renderLayer(primary.view, logicalOutput, output, frame, primary.surfaceDamage)) {
-                result = output->present(toUpdate, frame);
-            } else {
-                qCWarning(KWIN_CORE, "Rendering the primary layer failed!");
-            }
+        if (!fallback1) {
+            idealLayerAssignments = assignLayers(primaryView, scenePlusCursor, allowedOutputLayers);
+            std::tie(layers, result) = setupLayers(primaryView, logicalOutput, output, allowedOutputLayers, *idealLayerAssignments, frame, toUpdate);
+            result = result.and_then(renderLayers).and_then(present);
         }
 
-        if (!result && layers.size() == 2 && layers[1].view->layer()->isEnabled()) {
-            // presentation failed even without direct scanout.
-            // try again even without the cursor layer
-            layers[1].view->layer()->setEnabled(false);
-            layers[1].view->setExclusive(false);
-            if (prepareRendering(primary.view, logicalOutput, output, primary.requiredAlphaBits)
-                && renderLayer(primary.view, logicalOutput, output, frame, Region::infinite())) {
-                result = output->present(toUpdate, frame);
-                if (result) {
-                    // disabling the cursor layer helped... so disable it permanently,
-                    // to prevent constantly attempting to render the hardware cursor again
-                    // this should only ever happen with legacy modesetting, where
-                    // presentation can't be tested
-                    qCWarning(KWIN_CORE, "Disabling hardware cursor because of presentation failure");
-                    m_brokenCursors.insert(renderLoop);
-                }
-            } else {
-                qCWarning(KWIN_CORE, "Rendering the primary layer failed!");
+        // if this still doesn't work, fall back to primary only
+        const bool fallback2 = layers.size() == 1 && layers.front().view == primaryView;
+        if (!result && !fallback2) {
+            idealLayerAssignments = assignLayers(primaryView, sceneOnly, allowedOutputLayers);
+            std::tie(layers, result) = setupLayers(primaryView, logicalOutput, output, allowedOutputLayers, *idealLayerAssignments, frame, toUpdate);
+            result = result.and_then(renderLayers).and_then(present);
+            if (result && !fallback1) {
+                // Disabling the cursor layer helped... so disable it permanently,
+                // to prevent constantly attempting to render the hardware cursor again.
+                // This should only ever happen with legacy modesetting, where
+                // presentation can't be tested.
+                // TODO move this to the drm backend?
+                qCWarning(KWIN_CORE, "Disabling hardware cursor because of presentation failure");
+                m_brokenCursors.insert(renderLoop);
             }
         }
     }
 
-    m_scene->frame(primaryView, frame.get());
-    for (auto &layer : layers) {
-        layer.view->postPaint();
-    }
+    scene->frame(primaryView, frame.get());
+    primaryView->postPaint();
 
     // the layers have to stay valid until after postPaint, so this needs to happen after it
     if (!result) {
-        qCWarning(KWIN_CORE, "Failed to find a working output layer configuration! Enabled layers:");
+        qCWarning(KWIN_CORE, "Failed to find a working output layer configuration: %s", qPrintable(result.error().message));
+        qCWarning(KWIN_CORE, "Enabled layers:");
         for (const auto &layer : layers) {
             if (!layer.view->layer()->isEnabled()) {
                 continue;
@@ -1010,13 +1069,13 @@ void Compositor::removeOutput(BackendOutput *output)
 void Compositor::assignOutputLayers(LogicalOutput *logicalOutput, BackendOutput *backendOutput)
 {
     const auto layers = m_backend->compatibleOutputLayers(backendOutput);
-    const auto primaryLayer = findLayer(layers, OutputLayerType::Primary, std::nullopt);
+    const auto primaryLayer = findLayer(layers, OutputLayerType::Primary);
     Q_ASSERT(primaryLayer);
     auto &sceneView = m_primaryViews[backendOutput->renderLoop()];
     if (sceneView) {
         sceneView->setLayer(primaryLayer);
     } else {
-        sceneView = std::make_unique<SceneView>(m_scene.get(), logicalOutput, backendOutput, primaryLayer);
+        sceneView = std::make_unique<SceneView>(kwinApp()->scene(), logicalOutput, backendOutput, primaryLayer, m_primaryDevice);
         sceneView->setScale(backendOutput->scale());
         sceneView->setRenderOffset(backendOutput->deviceOffset());
         const auto updateViewport = [view = sceneView.get(), logicalOutput, backendOutput]() {

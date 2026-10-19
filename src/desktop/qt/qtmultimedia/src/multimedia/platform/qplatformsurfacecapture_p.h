@@ -32,7 +32,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformSurfaceCapture : public QPlatformVideoSource
     Q_OBJECT
 
 public:
-    enum Error {
+    enum class Error {
         NoError = 0,
         InternalError = 1,
         CapturingNotSupported = 2,
@@ -63,6 +63,17 @@ public:
     Error error() const;
     QString errorString() const final;
 
+    void setFrameRate(std::optional<qreal>);
+    [[nodiscard]] std::optional<qreal> frameRate() const;
+
+    void setIgnoreCursor(bool);
+    // Applied on next stream start.
+    [[nodiscard]] bool ignoreCursor() const;
+
+    void setIgnoreDropShadow(bool);
+    // Applied on next stream start.
+    [[nodiscard]] bool ignoreDropShadow() const;
+
 protected:
     virtual bool setActiveInternal(bool) = 0;
 
@@ -75,11 +86,18 @@ Q_SIGNALS:
     void sourceChanged(WindowSource);
     void sourceChanged(ScreenSource);
     void errorOccurred(Error error, QString errorString);
+    void frameRateChanged(std::optional<qreal>);
 
 private:
+    std::optional<qreal> m_frameRate;
     QErrorInfo<Error> m_error;
     Source m_source;
     bool m_active = false;
+
+    // While not part of public API, these settings tend to impact
+    // integration tests.
+    bool m_ignoreCursor = false;
+    bool m_ignoreDropShadow = false;
 };
 
 QT_END_NAMESPACE

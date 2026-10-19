@@ -26,14 +26,14 @@ ApplicationWindow {
                 border.color: "gray"
             }
             indicator {
-                implicitWidth: 20
-                implicitHeight: 20
+                width: 20
+                height: 20
                 border.width: 1
                 radius: 3
             }
             handle {
-                implicitWidth: 20
-                implicitHeight: 20
+                width: 20
+                height: 20
                 radius: 10
             }
         }
@@ -43,8 +43,8 @@ ApplicationWindow {
             // Unset properties fall back to control.
             handle.color: "white"
             indicator {
-                implicitWidth: Style.Stretch
-                implicitHeight: 6
+                fillWidth: true
+                height: 6
                 color: "steelblue"
                 foreground.color: "skyblue"
             }
@@ -67,7 +67,7 @@ ApplicationWindow {
             // button defines the styling for a Qt Quick Button.
             // Unset properties fall back to abstractButton.
             background {
-                implicitWidth: 120
+                width: 120
                 color: "lightsteelblue"
                 gradient: Gradient {
                     GradientStop { position: 0.0; color: Qt.alpha("black", 0.0)}
@@ -76,8 +76,8 @@ ApplicationWindow {
             }
         }
 
-        // Controls left undefined — such as radioButton, checkBox, or
-        // switchControl — fall back to their immediate base type, which in
+        // Controls left undefined — such as radioButton, checkBox, roundButton
+        // or switchControl — fall back to their immediate base type, which in
         // this style will be either abstractButton or control directly.
     }
     //! [Plain Style]

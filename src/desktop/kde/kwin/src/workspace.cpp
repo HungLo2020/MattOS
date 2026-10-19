@@ -31,17 +31,16 @@
 #include "outline.h"
 #include "placement.h"
 #include "pluginmanager.h"
-#include "pointer_input.h"
 #include "rules.h"
 #include "screenedge.h"
 #include "scripting/scripting.h"
 #include "syncalarmx11filter.h"
-#include "tiles/tilemanager.h"
 #include "window.h"
 #if KWIN_BUILD_TABBOX
 #include "tabbox/tabbox.h"
 #endif
 #include "compositor.h"
+#include "core/renderdevice.h"
 #include "core/session.h"
 #include "decorations/decorationbridge.h"
 #include "dpmsinputeventfilter.h"
@@ -108,7 +107,6 @@ Workspace::Workspace()
     , active_popup(nullptr)
     , m_activePopupWindow(nullptr)
     , m_activeWindow(nullptr)
-    , m_lastActiveWindow(nullptr)
     , m_moveResizeWindow(nullptr)
     , m_delayFocusWindow(nullptr)
     , force_restacking(false)
@@ -152,8 +150,8 @@ Workspace::Workspace()
 
 #if KWIN_BUILD_ACTIVITIES
     if (m_activities) {
-        connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this, [this](VirtualDesktop *previous, VirtualDesktop *current) {
-            m_activities->notifyCurrentDesktopChanged(current);
+        connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this, [this](VirtualDesktop *previous, VirtualDesktop *current, LogicalOutput *output) {
+            m_activities->notifyCurrentDesktopChanged(current, output);
         });
     }
 #endif
@@ -180,13 +178,20 @@ Workspace::Workspace()
         Q_EMIT dpmsStateChanged(animationTime);
         // applyOutputConfiguration sets the correct value
         OutputConfiguration cfg;
-        applyOutputConfiguration(cfg);
+        const auto result = applyOutputConfiguration(cfg);
+        if (!result) {
+            qCWarning(KWIN_CORE, "Setting DPMS mode to \"TurningOff\" failed: %s", qPrintable(result.error().message));
+        }
     });
 
     initShortcuts();
 
     init();
 }
+
+static const double s_autoBrightnessDeadzone = environmentVariableIntValue("KWIN_AUTO_BRIGHTNESS_DEADZONE").transform([](int percent) {
+    return percent / 100.0;
+}).value_or(0.2);
 
 void Workspace::init()
 {
@@ -199,9 +204,6 @@ void Workspace::init()
 
     connect(this, &Workspace::windowRemoved, m_focusChain.get(), &FocusChain::remove);
     connect(this, &Workspace::windowActivated, m_focusChain.get(), &FocusChain::setActiveWindow);
-    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, m_focusChain.get(), [this]() {
-        m_focusChain->setCurrentDesktop(VirtualDesktopManager::self()->currentDesktop());
-    });
     connect(options, &Options::separateScreenFocusChanged, m_focusChain.get(), &FocusChain::setSeparateScreenFocus);
     m_focusChain->setSeparateScreenFocus(options->isSeparateScreenFocus());
 
@@ -214,6 +216,8 @@ void Workspace::init()
     connect(vds, &VirtualDesktopManager::currentChangingCancelled, this, &Workspace::slotCurrentDesktopChangingCancelled);
     vds->setNavigationWrappingAround(options->isRollOverDesktops());
     connect(options, &Options::rollOverDesktopsChanged, vds, &VirtualDesktopManager::setNavigationWrappingAround);
+    vds->setPerOutputVirtualDesktops(options->isPerOutputVirtualDesktops());
+    connect(options, &Options::perOutputVirtualDesktopsChanged, vds, &VirtualDesktopManager::setPerOutputVirtualDesktops);
     vds->setConfig(config);
 
     // Now we know how many desktops we'll have, thus we initialize the positioning object
@@ -237,7 +241,10 @@ void Workspace::init()
             return;
         }
         auto &[config, type] = *opt;
-        applyOutputConfiguration(config);
+        const auto result = applyOutputConfiguration(config);
+        if (!result) {
+            qCWarning(KWIN_CORE, "Applying sensor changes failed: %s", qPrintable(result.error().message));
+        }
     };
     connect(m_lidSwitchTracker.get(), &LidSwitchTracker::lidStateChanged, this, applySensorChanges);
     connect(kwinApp()->tabletModeManager(), &TabletModeManager::tabletModeChanged, this, applySensorChanges);
@@ -247,50 +254,50 @@ void Workspace::init()
     m_orientationSensor->setEnabled(m_outputConfigStore->isAutoRotateActive(kwinApp()->outputBackend()->outputs(), kwinApp()->tabletModeManager()->effectiveTabletMode()));
 
     const auto applyLightChanges = [this]() {
-        if (!m_lightSensor->reading()) {
+        const auto &reading = m_lightSensor->reading();
+        if (!reading) {
             return;
         }
-        const double lux = *m_lightSensor->reading();
-        m_luxAtLastBrightnessAdjust = lux;
+        const double lux = *reading;
         const auto outputs = kwinApp()->outputBackend()->outputs();
         OutputConfiguration config;
+        bool outsideDeadzone = false;
         for (BackendOutput *output : outputs) {
             if ((output->capabilities() & BackendOutput::Capability::AutomaticBrightness) && output->automaticBrightness()) {
                 const auto change = config.changeSet(output);
                 change->brightness = output->autoBrightnessCurve().sample(lux);
                 change->brightnessReason = BackendOutput::BrightnessReason::AutomaticBrightness;
+                outsideDeadzone = outsideDeadzone || std::fabs(output->brightnessSetting() / *change->brightness - 1) > s_autoBrightnessDeadzone;
             }
         }
-        applyOutputConfiguration(config);
+        if (!outsideDeadzone) {
+            return;
+        }
+        const auto result = applyOutputConfiguration(config);
+        if (!result) {
+            qCWarning(KWIN_CORE, "Applying light sensor changes failed: %s", qPrintable(result.error().message));
+        }
     };
 
     // constant brightness adjustments can be rather annoying and be perceived as flicker, so
-    // delay them a bit and only do anything if environment brightness changes by at least 10%
-    connect(m_lightSensor.get(), &LightSensor::readingReceived, this, [applyLightChanges, this]() {
+    // only do anything if some output's current brightness lies outside of the dead zone
+    // centered around its curve-implied brightness
+    connect(m_lightSensor.get(), &LightSensor::readingReceived, this, [applyLightChanges, this, firstReading = true]() mutable {
         if (m_delayedLightTimer->isActive()) {
             return;
         }
-        if (!m_luxAtLastBrightnessAdjust.has_value()) {
+        if (firstReading) {
+            // initial sensor reading; apply auto-brightness immediately
             applyLightChanges();
-            return;
-        }
-        const double relativeLux = *m_lightSensor->reading() / *m_luxAtLastBrightnessAdjust;
-        if (relativeLux > 1.1 || relativeLux < 0.9) {
+            firstReading = false;
+        } else {
+            // subsequent sensor reading; use timer to ignore lightness transients
             m_delayedLightTimer->start();
         }
     });
     m_delayedLightTimer->setSingleShot(true);
     m_delayedLightTimer->setInterval(std::chrono::seconds(2));
-    connect(m_delayedLightTimer.get(), &QTimer::timeout, this, [applyLightChanges, this]() {
-        if (!m_lightSensor->reading()) {
-            return;
-        }
-        // check again if brightness is still changed as much as when the timer was started
-        const double relativeLux = *m_lightSensor->reading() / *m_luxAtLastBrightnessAdjust;
-        if (relativeLux > 1.1 || relativeLux < 0.9) {
-            applyLightChanges();
-        }
-    });
+    connect(m_delayedLightTimer.get(), &QTimer::timeout, this, applyLightChanges);
     m_lightSensor->setEnabled(m_outputConfigStore->isAutoBrightnessActive(kwinApp()->outputBackend()->outputs()));
 
     const auto updateSensorAvailability = [this]() {
@@ -506,7 +513,7 @@ Workspace::~Workspace()
     _self = nullptr;
 }
 
-OutputConfigurationError Workspace::applyOutputConfiguration(OutputConfiguration &config)
+std::expected<void, OutputError> Workspace::applyOutputConfiguration(OutputConfiguration &config)
 {
     assignBrightnessDevices(config);
     const auto backendOutputs = kwinApp()->outputBackend()->outputs();
@@ -526,6 +533,16 @@ OutputConfigurationError Workspace::applyOutputConfiguration(OutputConfiguration
         }
     }
 
+    // if the configuration contains a diabled output, but the output is not disable-able, abort
+    for (BackendOutput *output : backendOutputs) {
+        if (config.changeSet(output)->enabled == false && !(output->capabilities() & BackendOutput::Capability::Disable)) {
+            return std::unexpected(OutputError{
+                .code = OutputErrorCode::InvalidApiUsage,
+                .message = QStringLiteral("Attempted to disable an output that doesn't have the capability"),
+            });
+        }
+    }
+
     m_outputConfigStore->applyMirroring(config, backendOutputs);
     for (BackendOutput *output : backendOutputs) {
         if (m_dpms == DpmsState::Off || m_dpms == DpmsState::TurningOff) {
@@ -534,12 +551,12 @@ OutputConfigurationError Workspace::applyOutputConfiguration(OutputConfiguration
             config.changeSet(output)->dpmsMode = BackendOutput::DpmsMode::On;
         }
     }
-    auto error = kwinApp()->outputBackend()->applyOutputChanges(config);
-    if (error != OutputConfigurationError::None) {
-        return error;
+    auto result = kwinApp()->outputBackend()->applyOutputChanges(config);
+    if (!result) {
+        return result;
     }
     updateOutputs();
-    m_outputConfigStore->storeConfig(backendOutputs, m_lidSwitchTracker->isLidClosed(), config);
+    m_outputConfigStore->storeConfig(backendOutputs, m_lidSwitchTracker->isLidClosed());
     m_orientationSensor->setEnabled(m_outputConfigStore->isAutoRotateActive(backendOutputs, kwinApp()->tabletModeManager()->effectiveTabletMode()));
     m_lightSensor->setEnabled(m_outputConfigStore->isAutoBrightnessActive(backendOutputs));
 
@@ -549,7 +566,7 @@ OutputConfigurationError Workspace::applyOutputConfiguration(OutputConfiguration
         output->backendOutput()->renderLoop()->scheduleRepaint();
     }
 
-    return OutputConfigurationError::None;
+    return {};
 }
 
 void Workspace::requestDpmsState(DpmsState state)
@@ -569,12 +586,15 @@ void Workspace::requestDpmsState(DpmsState state)
 
     // the config can be empty, it gets adjusted in applyOutputConfiguration
     OutputConfiguration cfg;
+    const auto result = applyOutputConfiguration(cfg);
+    if (!result) {
+        qCWarning(KWIN_CORE, "Setting dpms mode to %s failed: %s", m_dpms == DpmsState::On ? "On" : "AboutToTurnOff", qPrintable(result.error().message));
+    }
     if (m_dpms == DpmsState::On) {
-        applyOutputConfiguration(cfg);
         m_dpmsFilter.reset();
         m_dpmsTimer.stop();
+        m_sleepInhibitor.reset();
     } else {
-        applyOutputConfiguration(cfg);
         m_dpmsFilter = std::make_unique<DpmsInputEventFilter>();
         input()->installInputEventFilter(m_dpmsFilter.get());
         m_dpmsTimer.start(animationTime);
@@ -638,7 +658,7 @@ void Workspace::updateOutputConfiguration()
     });
 
     QList<BackendOutput *> toEnable = outputs;
-    OutputConfigurationError error = OutputConfigurationError::None;
+    std::expected<void, OutputError> result;
     do {
         auto opt = m_outputConfigStore->queryConfig(toEnable, m_lidSwitchTracker->isLidClosed(), m_orientationSensor->reading(), kwinApp()->tabletModeManager()->effectiveTabletMode());
         if (!opt) {
@@ -652,9 +672,8 @@ void Workspace::updateOutputConfiguration()
             }
         }
 
-        error = applyOutputConfiguration(cfg);
-        switch (error) {
-        case OutputConfigurationError::None:
+        result = applyOutputConfiguration(cfg);
+        if (result) {
             if (type == OutputConfigurationStore::ConfigType::Generated) {
                 const bool hasInternal = std::any_of(outputs.begin(), outputs.end(), [](BackendOutput *o) {
                     return o->isInternal();
@@ -670,19 +689,17 @@ void Workspace::updateOutputConfiguration()
                 }
             }
             return;
-        case OutputConfigurationError::Unknown:
-        case OutputConfigurationError::TooManyEnabledOutputs:
-        case OutputConfigurationError::Timeout:
+        }
+        if (result.error().code != OutputErrorCode::NotActive) {
             if (alreadyHaveEnabledOutputs) {
                 // just keeping the old output configuration is preferable
                 break;
             }
             toEnable.removeLast();
-            break;
         }
-    } while (error == OutputConfigurationError::TooManyEnabledOutputs && !toEnable.isEmpty() && !alreadyHaveEnabledOutputs);
+    } while (result.error().code != OutputErrorCode::NotActive && !toEnable.isEmpty() && !alreadyHaveEnabledOutputs);
 
-    qCCritical(KWIN_CORE, "Applying output configuration failed!");
+    qCCritical(KWIN_CORE, "Applying output configuration failed: %s", qPrintable(result.error().message));
     // Update the output order to a fallback list, to avoid dangling pointers
     updateOutputOrder();
     // If applying the output configuration failed, brightness devices weren't assigned either.
@@ -699,6 +716,14 @@ void Workspace::setupWindowConnections(Window *window)
 {
     connect(window, &Window::minimizedChanged, this, std::bind(&Workspace::windowMinimizedChanged, this, window));
     connect(window, &Window::fullScreenChanged, m_screenEdges.get(), &ScreenEdges::checkBlocking);
+    connect(window, &Window::interactiveMoveResizeFinished, this, [this, window]() {
+        // Activate another window if the resized/moved window "disappeared" (e.g. due to force desktop window rule).
+        if (!window->isActive() || window->isOnCurrentDesktop()) {
+            return;
+        }
+
+        activateWindowOnDesktop(VirtualDesktopManager::self()->currentDesktop());
+    });
 }
 
 void Workspace::constrain(Window *below, Window *above)
@@ -848,7 +873,6 @@ void Workspace::addX11Window(X11Window *window)
     window->checkActiveModal();
     checkTransients(window->window()); // SELI TODO: Does this really belong here?
     updateStackingOrder(true); // Propagatem new window
-    updateTabbox();
 }
 
 void Workspace::addUnmanaged(X11Window *window)
@@ -938,7 +962,6 @@ void Workspace::addWaylandWindow(Window *window)
             window->demandAttention();
         }
     }
-    updateTabbox();
     Q_EMIT windowAdded(window);
 }
 
@@ -965,9 +988,6 @@ void Workspace::removeWindow(Window *window)
     if (window == m_activeWindow) {
         m_activeWindow = nullptr;
     }
-    if (window == m_lastActiveWindow) {
-        m_lastActiveWindow = nullptr;
-    }
     if (m_windowKeysWindow == window) {
         setupWindowShortcutDone(false);
     }
@@ -978,7 +998,6 @@ void Workspace::removeWindow(Window *window)
     Q_EMIT windowRemoved(window);
 
     updateStackingOrder(true);
-    updateTabbox();
 }
 
 void Workspace::slotReloadConfig()
@@ -1027,16 +1046,16 @@ void Workspace::slotReconfigure()
     }
 }
 
-void Workspace::slotCurrentDesktopChanged(VirtualDesktop *oldDesktop, VirtualDesktop *newDesktop)
+void Workspace::slotCurrentDesktopChanged(VirtualDesktop *oldDesktop, VirtualDesktop *newDesktop, LogicalOutput *output)
 {
-    updateWindowVisibilityAndActivateOnDesktopChange(newDesktop);
-    Q_EMIT currentDesktopChanged(oldDesktop, m_moveResizeWindow);
+    updateWindowVisibilityAndActivateOnDesktopChange(newDesktop, output);
+    Q_EMIT currentDesktopChanged(oldDesktop, newDesktop, output, m_moveResizeWindow);
 }
 
-void Workspace::slotCurrentDesktopChanging(VirtualDesktop *currentDesktop, QPointF offset)
+void Workspace::slotCurrentDesktopChanging(VirtualDesktop *currentDesktop, QPointF offset, LogicalOutput *output)
 {
     closeActivePopup();
-    Q_EMIT currentDesktopChanging(currentDesktop, offset, m_moveResizeWindow);
+    Q_EMIT currentDesktopChanging(currentDesktop, offset, output, m_moveResizeWindow);
 }
 
 void Workspace::slotCurrentDesktopChangingCancelled()
@@ -1044,7 +1063,7 @@ void Workspace::slotCurrentDesktopChangingCancelled()
     Q_EMIT currentDesktopChangingCancelled();
 }
 
-void Workspace::updateWindowVisibilityOnDesktopChange(VirtualDesktop *newDesktop)
+void Workspace::updateWindowVisibilityOnDesktopChange(VirtualDesktop *newDesktop, LogicalOutput *output)
 {
 #if KWIN_BUILD_X11
     for (auto it = stacking_order.constBegin(); it != stacking_order.constEnd(); ++it) {
@@ -1052,19 +1071,15 @@ void Workspace::updateWindowVisibilityOnDesktopChange(VirtualDesktop *newDesktop
         if (!c) {
             continue;
         }
-        if (!(c->isOnDesktop(newDesktop) && c->isOnCurrentActivity()) && c != m_moveResizeWindow) {
+        if (!(c->isOnDesktop(newDesktop) && c->isOnCurrentActivity() && c->isOnOutput(output)) && c != m_moveResizeWindow) {
             (c)->updateVisibility();
         }
-    }
-    // Now propagate the change, after hiding, before showing
-    if (rootInfo()) {
-        rootInfo()->setCurrentDesktop(VirtualDesktopManager::self()->current());
     }
 #endif
 
     // FIXME: Keep Move/Resize window across activities
 
-    if (m_moveResizeWindow && !m_moveResizeWindow->isOnDesktop(newDesktop)) {
+    if (m_moveResizeWindow && m_moveResizeWindow->output() == output && !m_moveResizeWindow->isOnDesktop(newDesktop)) {
         m_moveResizeWindow->setDesktops({newDesktop});
     }
 
@@ -1074,7 +1089,7 @@ void Workspace::updateWindowVisibilityOnDesktopChange(VirtualDesktop *newDesktop
         if (!c) {
             continue;
         }
-        if (c->isOnDesktop(newDesktop) && c->isOnCurrentActivity()) {
+        if (c->isOnDesktop(newDesktop) && c->isOnCurrentActivity() && c->isOnOutput(output)) {
             c->updateVisibility();
         }
     }
@@ -1084,22 +1099,22 @@ void Workspace::updateWindowVisibilityOnDesktopChange(VirtualDesktop *newDesktop
     }
 }
 
-void Workspace::updateWindowVisibilityAndActivateOnDesktopChange(VirtualDesktop *newDesktop)
+void Workspace::updateWindowVisibilityAndActivateOnDesktopChange(VirtualDesktop *newDesktop, LogicalOutput *output)
 {
     closeActivePopup();
     ++block_focus;
     StackingUpdatesBlocker blocker(this);
-    updateWindowVisibilityOnDesktopChange(newDesktop);
+    updateWindowVisibilityOnDesktopChange(newDesktop, output);
     // Restore the focus on this desktop
     --block_focus;
 
     for (Window *window : std::as_const(m_windows)) {
-        if (!window->isOnDesktop(newDesktop)) {
+        if (!window->isOnDesktop(newDesktop) || !window->isOnOutput(output)) {
             continue;
         }
 
         Tile *tile = nullptr;
-        for (const auto &[output, manager] : m_tileManagers) {
+        for (const auto &[tileOutput, manager] : m_tileManagers) {
             if (Tile *candidate = manager->tileForWindow(window, newDesktop)) {
                 tile = candidate;
             }
@@ -1108,7 +1123,9 @@ void Workspace::updateWindowVisibilityAndActivateOnDesktopChange(VirtualDesktop 
         window->requestTile(tile);
     }
 
-    activateWindowOnDesktop(newDesktop);
+    if (output == m_activeOutput) {
+        activateWindowOnDesktop(newDesktop);
+    }
 }
 
 void Workspace::activateWindowOnDesktop(VirtualDesktop *desktop)
@@ -1181,7 +1198,9 @@ void Workspace::updateCurrentActivity(const QString &new_activity)
         return;
     }
 
-    updateWindowVisibilityAndActivateOnDesktopChange(VirtualDesktopManager::self()->currentDesktop());
+    for (LogicalOutput *output : std::as_const(m_outputs)) {
+        updateWindowVisibilityAndActivateOnDesktopChange(VirtualDesktopManager::self()->currentDesktop(output), output);
+    }
 
     Q_EMIT currentActivityChanged();
 #endif
@@ -1299,6 +1318,40 @@ void Workspace::slotOutputBackendOutputsQueried()
 
 static const int s_dpmsTimeout = environmentVariableIntValue("KWIN_DPMS_WORKAROUND_TIMEOUT").value_or(2000);
 
+static QString generateDescription(BackendOutput *output, const QList<BackendOutput *> &relevantOutputs)
+{
+    if (output->isInternal() && std::ranges::count_if(relevantOutputs, &BackendOutput::isInternal) == 1) {
+        return i18n("Built-in Screen");
+    }
+    const bool hasModel = !output->manufacturer().isEmpty() && !output->model().isEmpty();
+    if (!hasModel) {
+        return output->name();
+    }
+    const bool shouldShowConnector = std::ranges::any_of(relevantOutputs, [output](BackendOutput *other) {
+        return other != output
+            && other->manufacturer() == output->manufacturer()
+            && other->model() == output->model()
+            && other->serialNumber() == output->serialNumber();
+    });
+    if (shouldShowConnector) {
+        return i18nc("Display label: manufacturer + model name + connector name", "%1 %2 %3",
+                     output->manufacturer(), output->model(), output->name());
+    }
+    const bool shouldShowSerialNumber = !output->serialNumber().isEmpty()
+        && std::ranges::any_of(relevantOutputs, [output](BackendOutput *other) {
+        return other != output
+            && other->manufacturer() == output->manufacturer()
+            && other->model() == output->model();
+    });
+    if (shouldShowSerialNumber) {
+        return i18nc("Display label: manufacturer + model name + serial number", "%1 %2 %3",
+                     output->manufacturer(), output->model(), output->serialNumber());
+    } else {
+        return i18nc("Display label: manufacturer + model name", "%1 %2",
+                     output->manufacturer(), output->model());
+    }
+}
+
 void Workspace::updateOutputs()
 {
     QHash<Window *, LogicalOutput *> oldMoveResizeOutputs;
@@ -1347,6 +1400,13 @@ void Workspace::updateOutputs()
     // Re-create m_outputs list, creating new outputs as necessary
     // Removed outputs will be unreferenced later
     m_outputs.clear();
+    // we need to normalize output positions, as some applications
+    // make assumptions about output positions starting at 0,0
+    QPoint topLeftMostCoordinates = QPoint(std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
+    for (BackendOutput *output : newBackendOutputs) {
+        topLeftMostCoordinates.setX(std::min(topLeftMostCoordinates.x(), output->position().x()));
+        topLeftMostCoordinates.setY(std::min(topLeftMostCoordinates.y(), output->position().y()));
+    }
     for (BackendOutput *output : newBackendOutputs) {
         const auto existing = std::ranges::find_if(oldLogicalOutputs, [output](LogicalOutput *logical) {
             return output == logical->backendOutput();
@@ -1355,6 +1415,13 @@ void Workspace::updateOutputs()
             m_outputs.push_back(new LogicalOutput(output));
         } else {
             m_outputs.push_back(*existing);
+        }
+        // update geometry
+        m_outputs.back()->setData(output->position() - topLeftMostCoordinates, output->modeSize(),
+                                  output->refreshRate(), output->transform(), output->scale(),
+                                  generateDescription(output, newBackendOutputs));
+        if (existing != oldLogicalOutputs.end()) {
+            Q_EMIT m_outputs.back()->changed();
         }
     }
 
@@ -1508,42 +1575,32 @@ static VirtualDesktop *pickNewVirtualDesktopForWindow(const Window *window, cons
 
 void Workspace::slotDesktopRemoved(VirtualDesktop *desktop)
 {
-    // Note that sendWindowToDesktops() does far more than just assigning the new desktop. It cannot
-    // be used with initializing windows.
-    {
-        const auto windows = waylandServer()->windows();
-        for (Window *window : windows) {
-            if (m_windows.contains(window)) {
-                continue;
-            }
-
-            if (!window->desktops().contains(desktop)) {
-                continue;
-            }
-
-            if (window->desktops().count() > 1) {
-                window->leaveDesktop(desktop);
-            } else {
-                window->setDesktops({pickNewVirtualDesktopForWindow(window, desktop)});
-            }
+    const auto tryEvacuateWindow = [desktop](Window *window) {
+        if (!window->desktops().contains(desktop)) {
+            return;
         }
-    }
 
-    for (auto it = m_windows.constBegin(); it != m_windows.constEnd(); ++it) {
-        if (!(*it)->desktops().contains(desktop)) {
-            continue;
-        }
-        if ((*it)->desktops().count() > 1) {
-            (*it)->leaveDesktop(desktop);
+        if (window->desktops().count() > 1) {
+            window->leaveDesktop(desktop);
         } else {
-            sendWindowToDesktops(*it, {pickNewVirtualDesktopForWindow(*it, desktop)}, true);
+            window->setDesktops({pickNewVirtualDesktopForWindow(window, desktop)});
+        }
+    };
+
+    // Evacuate initializing Wayland windows, i.e. windows that are not managed by the Workspace yet.
+    const auto waylandWindows = waylandServer()->windows();
+    for (Window *window : waylandWindows) {
+        if (!m_windows.contains(window)) {
+            tryEvacuateWindow(window);
         }
     }
 
-    for (auto it = deleted.constBegin(); it != deleted.constEnd(); ++it) {
-        if ((*it)->desktops().contains(desktop)) {
-            (*it)->leaveDesktop(desktop);
-        }
+    for (Window *window : std::as_const(m_windows)) {
+        tryEvacuateWindow(window);
+    }
+
+    for (Window *window : std::as_const(deleted)) {
+        tryEvacuateWindow(window);
     }
 
     rearrange();
@@ -1603,7 +1660,6 @@ void Workspace::removeWindowFromDesktop(Window *window, VirtualDesktop *desktop)
  */
 void Workspace::sendWindowToDesktops(Window *window, const QList<VirtualDesktop *> &desktops, bool dont_activate)
 {
-    const QList<VirtualDesktop *> oldDesktops = window->desktops();
     const bool wasOnCurrent = window->isOnCurrentDesktop();
     const bool wasActive = window->isActive();
     window->setDesktops(desktops);
@@ -1619,16 +1675,15 @@ void Workspace::sendWindowToDesktops(Window *window, const QList<VirtualDesktop 
             restackWindowUnderActive(window);
         }
     } else {
-
         // raise the window on the desktop it has been added to
         raiseWindow(window);
         // but set a new active window on the current desktop
         if (wasActive) {
-            activateWindowOnDesktop(VirtualDesktopManager::self()->currentDesktop());
+            activateWindowOnDesktop(VirtualDesktopManager::self()->currentDesktop(window->output()));
         }
     }
 
-    window->checkWorkspacePosition(Rect(), oldDesktops.isEmpty() ? nullptr : oldDesktops.last());
+    window->checkWorkspacePosition(Rect());
 
     auto transients_stacking_order = ensureStackingOrder(window->transients());
     for (auto it = transients_stacking_order.constBegin(); it != transients_stacking_order.constEnd(); ++it) {
@@ -1827,10 +1882,10 @@ QString Workspace::supportInformation() const
     support.append(QStringLiteral("\n"));
 
     const Cursor *cursor = Cursors::self()->mouse();
-    support.append(QLatin1String("Cursor\n"));
-    support.append(QLatin1String("======\n"));
-    support.append(QLatin1String("themeName: ") + cursor->themeName() + QLatin1Char('\n'));
-    support.append(QLatin1String("themeSize: ") + QString::number(cursor->themeSize()) + QLatin1Char('\n'));
+    support.append(QLatin1StringView("Cursor\n"));
+    support.append(QLatin1StringView("======\n"));
+    support.append(QLatin1StringView("themeName: ") + cursor->themeName() + QLatin1Char('\n'));
+    support.append(QLatin1StringView("themeSize: ") + QString::number(cursor->themeSize()) + QLatin1Char('\n'));
     support.append(QLatin1Char('\n'));
 
     support.append(QStringLiteral("Options\n"));
@@ -1841,14 +1896,14 @@ QString Workspace::supportInformation() const
             const QSize &s = variant.toSize();
             return QStringLiteral("%1x%2").arg(s.width()).arg(s.height());
         }
-        if (QLatin1String(variant.typeName()) == QLatin1String("KWin::OpenGLPlatformInterface") || QLatin1String(variant.typeName()) == QLatin1String("KWin::Options::WindowOperation")) {
+        if (QLatin1StringView(variant.typeName()) == QLatin1StringView("KWin::OpenGLPlatformInterface") || QLatin1StringView(variant.typeName()) == QLatin1StringView("KWin::Options::WindowOperation")) {
             return QString::number(variant.toInt());
         }
         return variant.toString();
     };
     for (int i = 0; i < metaOptions->propertyCount(); ++i) {
         const QMetaProperty property = metaOptions->property(i);
-        if (QLatin1String(property.name()) == QLatin1String("objectName")) {
+        if (QLatin1StringView(property.name()) == QLatin1StringView("objectName")) {
             continue;
         }
         support.append(QStringLiteral("%1: %2\n").arg(property.name(), printProperty(options->property(property.name()))));
@@ -1858,7 +1913,7 @@ QString Workspace::supportInformation() const
     const QMetaObject *metaScreenEdges = m_screenEdges->metaObject();
     for (int i = 0; i < metaScreenEdges->propertyCount(); ++i) {
         const QMetaProperty property = metaScreenEdges->property(i);
-        if (QLatin1String(property.name()) == QLatin1String("objectName")) {
+        if (QLatin1StringView(property.name()) == QLatin1StringView("objectName")) {
             continue;
         }
         support.append(QStringLiteral("%1: %2\n").arg(property.name(), printProperty(m_screenEdges->property(property.name()))));
@@ -1909,13 +1964,9 @@ QString Workspace::supportInformation() const
         support.append(QStringLiteral("Compositing is active\n"));
         switch (effects->compositingType()) {
         case OpenGLCompositing: {
-            const auto context = Compositor::self()->scene()->openglContext();
+            const auto context = Compositor::self()->primaryDevice()->eglContext();
             GLPlatform *platform = context->glPlatform();
-            if (context->isOpenGLES()) {
-                support.append(QStringLiteral("Compositing Type: OpenGL ES 2.0\n"));
-            } else {
-                support.append(QStringLiteral("Compositing Type: OpenGL\n"));
-            }
+            support.append(QStringLiteral("Compositing Type: OpenGL ES\n"));
             support.append(QStringLiteral("OpenGL vendor string: ") + QString::fromUtf8(platform->glVendorString()) + QStringLiteral("\n"));
             support.append(QStringLiteral("OpenGL renderer string: ") + QString::fromUtf8(platform->glRendererString()) + QStringLiteral("\n"));
             support.append(QStringLiteral("OpenGL version string: ") + QString::fromUtf8(platform->glVersionString()) + QStringLiteral("\n"));
@@ -1965,11 +2016,9 @@ QString Workspace::supportInformation() const
             break;
         }
         case QPainterCompositing:
-            support.append("Compositing Type: QPainter\n");
-            break;
         case NoCompositing:
         default:
-            support.append(QStringLiteral("Something is really broken, neither OpenGL nor QPainter is used"));
+            support.append(QStringLiteral("Something is really broken, no supported compositing type is used"));
         }
         support.append(QStringLiteral("\nLoaded Effects:\n"));
         support.append(QStringLiteral("---------------\n"));
@@ -1989,15 +2038,15 @@ QString Workspace::supportInformation() const
             support.append(effects->supportInformation(effect));
             support.append(QStringLiteral("\n"));
         }
-        support.append(QLatin1String("\nLoaded Plugins:\n"));
-        support.append(QLatin1String("---------------\n"));
+        support.append(QLatin1StringView("\nLoaded Plugins:\n"));
+        support.append(QLatin1StringView("---------------\n"));
         QStringList loadedPlugins = kwinApp()->pluginManager()->loadedPlugins();
         loadedPlugins.sort();
         for (const QString &plugin : std::as_const(loadedPlugins)) {
             support.append(plugin + QLatin1Char('\n'));
         }
-        support.append(QLatin1String("\nAvailable Plugins:\n"));
-        support.append(QLatin1String("------------------\n"));
+        support.append(QLatin1StringView("\nAvailable Plugins:\n"));
+        support.append(QLatin1StringView("------------------\n"));
         QStringList availablePlugins = kwinApp()->pluginManager()->availablePlugins();
         availablePlugins.sort();
         for (const QString &plugin : std::as_const(availablePlugins)) {
@@ -2110,15 +2159,6 @@ Window *Workspace::findInternal(QWindow *w) const
 void Workspace::setWasUserInteraction()
 {
     was_user_interaction = true;
-}
-
-void Workspace::updateTabbox()
-{
-#if KWIN_BUILD_TABBOX
-    // Need to reset the client model even if the task switcher is hidden otherwise there
-    // might be dangling pointers. Consider rewriting client model logic!
-    m_tabbox->reset(true);
-#endif
 }
 
 void Workspace::addInternalWindow(InternalWindow *window)
@@ -2380,16 +2420,11 @@ void Workspace::rearrange(const QHash<Window *, LogicalOutput *> &oldOutputs)
 
     const QList<VirtualDesktop *> desktops = VirtualDesktopManager::self()->desktops();
 
-    QHash<const VirtualDesktop *, RectF> workAreas;
-    QHash<const VirtualDesktop *, StrutRects> restrictedAreas;
-    QHash<const VirtualDesktop *, QHash<const LogicalOutput *, RectF>> screenAreas;
-
-    for (const VirtualDesktop *desktop : desktops) {
-        workAreas[desktop] = m_geometry;
-
-        for (const LogicalOutput *output : std::as_const(m_outputs)) {
-            screenAreas[desktop][output] = output->geometryF();
-        }
+    RectF workArea = m_geometry;
+    StrutRects restrictedArea;
+    QHash<const LogicalOutput *, RectF> screenAreas;
+    for (const LogicalOutput *output : std::as_const(m_outputs)) {
+        screenAreas[output] = output->geometryF();
     }
 
     for (Window *window : std::as_const(m_windows)) {
@@ -2424,31 +2459,27 @@ void Workspace::rearrange(const QHash<Window *, LogicalOutput *> &oldOutputs)
         }
 
         const auto vds = window->isOnAllDesktops() ? desktops : window->desktops();
-        for (VirtualDesktop *vd : vds) {
-            workAreas[vd] &= r;
-            restrictedAreas[vd] += strutRegion;
-            for (LogicalOutput *output : std::as_const(m_outputs)) {
-                const auto geo = screenAreas[vd][output].intersected(adjustClientArea(window, output->geometryF()));
-                // ignore the geometry if it results in the screen getting removed completely
-                if (!geo.isEmpty()) {
-                    screenAreas[vd][output] = geo;
-                }
+        workArea &= r;
+        restrictedArea += strutRegion;
+        for (LogicalOutput *output : std::as_const(m_outputs)) {
+            const auto geo = screenAreas[output].intersected(adjustClientArea(window, output->geometryF()));
+            // ignore the geometry if it results in the screen getting removed completely
+            if (!geo.isEmpty()) {
+                screenAreas[output] = geo;
             }
         }
     }
 
-    if (m_workAreas != workAreas || m_restrictedAreas != restrictedAreas || m_screenAreas != screenAreas) {
-        m_workAreas = workAreas;
+    if (m_workArea != workArea || m_restrictedArea != restrictedArea || m_screenAreas != screenAreas) {
+        m_workArea = workArea;
         m_screenAreas = screenAreas;
 
         m_inRearrange = true;
-        m_oldRestrictedAreas = m_restrictedAreas;
-        m_restrictedAreas = restrictedAreas;
+        m_restrictedArea = restrictedArea;
 
 #if KWIN_BUILD_X11
         if (rootInfo()) {
             for (VirtualDesktop *desktop : desktops) {
-                const RectF &workArea = m_workAreas[desktop];
                 NETRect r(Xcb::toXNative(workArea));
                 rootInfo()->setWorkArea(desktop->x11DesktopNumber(), r);
             }
@@ -2457,11 +2488,10 @@ void Workspace::rearrange(const QHash<Window *, LogicalOutput *> &oldOutputs)
 
         for (auto it = m_windows.constBegin(); it != m_windows.constEnd(); ++it) {
             if ((*it)->isClient()) {
-                (*it)->checkWorkspacePosition(RectF(), nullptr, oldOutputs.value(*it, nullptr));
+                (*it)->checkWorkspacePosition(RectF(), oldOutputs.value(*it, nullptr));
             }
         }
 
-        m_oldRestrictedAreas.clear(); // reset, no longer valid or needed
         m_inRearrange = false;
     }
 }
@@ -2471,15 +2501,13 @@ void Workspace::rearrange(const QHash<Window *, LogicalOutput *> &oldOutputs)
  * geometry minus windows on the dock. Placement algorithms should
  * refer to this rather than Screens::geometry.
  */
-RectF Workspace::clientArea(clientAreaOption opt, const LogicalOutput *output, const VirtualDesktop *desktop) const
+RectF Workspace::clientArea(clientAreaOption opt, const LogicalOutput *output) const
 {
     switch (opt) {
     case MaximizeArea:
     case PlacementArea:
-        if (auto desktopIt = m_screenAreas.constFind(desktop); desktopIt != m_screenAreas.constEnd()) {
-            if (auto outputIt = desktopIt->constFind(output); outputIt != desktopIt->constEnd()) {
-                return *outputIt;
-            }
+        if (auto outputIt = m_screenAreas.constFind(output); outputIt != m_screenAreas.constEnd()) {
+            return *outputIt;
         }
         return output->geometryF();
     case MaximizeFullArea:
@@ -2488,7 +2516,7 @@ RectF Workspace::clientArea(clientAreaOption opt, const LogicalOutput *output, c
     case ScreenArea:
         return output->geometryF();
     case WorkArea:
-        return m_workAreas.value(desktop, m_geometry);
+        return m_workArea;
     case FullArea:
         return m_geometry;
     default:
@@ -2503,13 +2531,7 @@ RectF Workspace::clientArea(clientAreaOption opt, const Window *window) const
 
 RectF Workspace::clientArea(clientAreaOption opt, const Window *window, const LogicalOutput *output) const
 {
-    const VirtualDesktop *desktop;
-    if (window->isOnCurrentDesktop()) {
-        desktop = VirtualDesktopManager::self()->currentDesktop();
-    } else {
-        desktop = window->desktops().constLast();
-    }
-    return clientArea(opt, output, desktop);
+    return clientArea(opt, output);
 }
 
 RectF Workspace::clientArea(clientAreaOption opt, const Window *window, const QPointF &pos) const
@@ -2522,16 +2544,15 @@ Rect Workspace::geometry() const
     return m_geometry;
 }
 
-StrutRects Workspace::restrictedMoveArea(const VirtualDesktop *desktop, StrutAreas areas) const
+StrutRects Workspace::restrictedMoveArea(StrutAreas areas) const
 {
-    const StrutRects strut = m_restrictedAreas.value(desktop);
     if (areas == StrutAreaAll) {
-        return strut;
+        return m_restrictedArea;
     }
 
     StrutRects ret;
-    ret.reserve(strut.size());
-    for (const StrutRect &rect : strut) {
+    ret.reserve(m_restrictedArea.size());
+    for (const StrutRect &rect : m_restrictedArea) {
         if (rect.area() & areas) {
             ret.append(rect);
         }
@@ -2542,23 +2563,6 @@ StrutRects Workspace::restrictedMoveArea(const VirtualDesktop *desktop, StrutAre
 bool Workspace::inRearrange() const
 {
     return m_inRearrange;
-}
-
-StrutRects Workspace::previousRestrictedMoveArea(const VirtualDesktop *desktop, StrutAreas areas) const
-{
-    const StrutRects strut = m_oldRestrictedAreas.value(desktop);
-    if (areas == StrutAreaAll) {
-        return strut;
-    }
-
-    StrutRects ret;
-    ret.reserve(strut.size());
-    for (const StrutRect &rect : strut) {
-        if (rect.area() & areas) {
-            ret.append(rect);
-        }
-    }
-    return ret;
 }
 
 QHash<const LogicalOutput *, Rect> Workspace::previousScreenSizes() const
@@ -2621,7 +2625,11 @@ LogicalOutput *Workspace::activeOutput() const
 
 void Workspace::setActiveOutput(LogicalOutput *output)
 {
+    if (m_activeOutput == output) {
+        return;
+    }
     m_activeOutput = output;
+    Q_EMIT activeOutputChanged(output);
 }
 
 void Workspace::setActiveOutput(const QPointF &pos)
@@ -2674,7 +2682,6 @@ QPointF Workspace::adjustWindowPosition(const Window *window, QPointF pos, bool 
     }
 
     if (options->windowSnapZone() || !borderSnapZone.isNull() || options->centerSnapZone()) {
-
         const bool sOWO = options->isSnapOnlyWhenOverlapping();
         const LogicalOutput *output = outputAt(pos + window->rect().center());
         if (maxRect.isNull()) {
@@ -3121,7 +3128,7 @@ TileManager *Workspace::tileManager(LogicalOutput *output) const
 
 RootTile *Workspace::rootTile(LogicalOutput *output) const
 {
-    return rootTile(output, VirtualDesktopManager::self()->currentDesktop());
+    return rootTile(output, VirtualDesktopManager::self()->currentDesktop(output));
 }
 
 RootTile *Workspace::rootTile(LogicalOutput *output, VirtualDesktop *desktop) const

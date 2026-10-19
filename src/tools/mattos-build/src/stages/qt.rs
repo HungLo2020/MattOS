@@ -1,3 +1,39 @@
+/// Read the source-owned module version without executing upstream CMake.
+/// Private Qt APIs and generators must belong to one exact Qt cohort.
+fn qt_module_source_version(repo_root: &Path, component: &str) -> Result<String> {
+    let path = repo_root.join("src/desktop/qt").join(component).join(".cmake.conf");
+    let text = fs::read_to_string(&path)
+        .with_context(|| format!("cannot read Qt module version from {}", path.display()))?;
+    let declarations = text.lines().map(str::trim)
+        .filter(|line| line.starts_with("set(QT_REPO_MODULE_VERSION "))
+        .collect::<Vec<_>>();
+    let version = match declarations.as_slice() {
+        [line] => line.strip_prefix("set(QT_REPO_MODULE_VERSION \"")
+            .and_then(|value| value.strip_suffix("\")")),
+        _ => None,
+    }.ok_or_else(|| anyhow!("expected one literal QT_REPO_MODULE_VERSION in {}", path.display()))?;
+    let numbers = version.split('.').collect::<Vec<_>>();
+    if numbers.len() != 3 || numbers[0] != "6"
+        || numbers.iter().any(|part| part.is_empty() || !part.bytes().all(|byte| byte.is_ascii_digit()))
+    {
+        bail!("invalid Qt 6 module version {version:?} in {}", path.display());
+    }
+    Ok(version.to_owned())
+}
+
+fn qt_source_version(repo_root: &Path) -> Result<String> {
+    qt_module_source_version(repo_root, "qtbase")
+}
+
+fn validate_qt_module_cohort(repo_root: &Path, component: &str) -> Result<()> {
+    let base = qt_source_version(repo_root)?;
+    let module = qt_module_source_version(repo_root, component)?;
+    if base != module {
+        bail!("Qt module {component} is {module}, but QtBase is {base}; import one matching Qt cohort");
+    }
+    Ok(())
+}
+
 /// Qt is configured with trusted host executables and a target-only package
 /// search domain. The generated bridge deliberately names every target ABI
 /// file it exposes; it is not a copy of the host's OpenGL CMake metadata.
@@ -40,6 +76,7 @@ fn qt_opengl_bridge(repo_root: &Path) -> Result<PathBuf> {
 }
 
 fn qt_private_targets_bridge(repo_root: &Path, build: &Path, qt: &Path) -> Result<PathBuf> {
+    let version = qt_source_version(repo_root)?;
     // This is a deterministic, consumer-private CMake include file.  Keep it
     // in QtSvg's disposable build tree rather than publishing an auxiliary
     // mutable tree beside stage outputs.
@@ -49,10 +86,10 @@ fn qt_private_targets_bridge(repo_root: &Path, build: &Path, qt: &Path) -> Resul
     let text = format!(r#"list(PREPEND CMAKE_PREFIX_PATH "{qt}")
 set(XKB_INCLUDE_DIR "{xkb}/include")
 set(XKB_LIBRARY "{xkb}/lib/x86_64-linux-gnu/libxkbcommon.so")
-find_package(Qt6 6.11.2 CONFIG REQUIRED COMPONENTS BuildInternals Core Gui Widgets)
-find_package(Qt6CorePrivate 6.11.2 CONFIG REQUIRED)
-find_package(Qt6GuiPrivate 6.11.2 CONFIG REQUIRED)
-find_package(Qt6WidgetsPrivate 6.11.2 CONFIG REQUIRED)
+find_package(Qt6 {version} EXACT CONFIG REQUIRED COMPONENTS BuildInternals Core Gui Widgets)
+find_package(Qt6CorePrivate {version} EXACT CONFIG REQUIRED)
+find_package(Qt6GuiPrivate {version} EXACT CONFIG REQUIRED)
+find_package(Qt6WidgetsPrivate {version} EXACT CONFIG REQUIRED)
 set(Qt6QmlTools_FOUND TRUE)
 foreach(tool IN ITEMS qmllint qmlcontextpropertydump qmlformat qmltc)
   if(NOT TARGET Qt6::${{tool}})
@@ -72,26 +109,28 @@ endforeach()
 }
 
 fn qt_shader_tools_private_bridge(repo_root: &Path, build: &Path, qt: &Path) -> Result<PathBuf> {
+    let version = qt_source_version(repo_root)?;
     // QtShaderTools is the producer of qsb and must remain below
     // QtDeclarative in the graph.  Its private dependency is only Gui; using
     // the full QML/Quick bridge here creates a false circular requirement.
     let cmake = build.join("MattOSQtShaderToolsPrivateTargets.cmake");
     let xkb = repo_root.join("out/build/xkbcommon/install/usr");
     fs::write(&cmake, format!(
-        "list(PREPEND CMAKE_PREFIX_PATH \"{qt}\")\nset(XKB_INCLUDE_DIR \"{xkb}/include\")\nset(XKB_LIBRARY \"{xkb}/lib/x86_64-linux-gnu/libxkbcommon.so\")\nfind_package(Qt6 6.11.2 CONFIG REQUIRED COMPONENTS BuildInternals Core Gui)\nfind_package(Qt6CorePrivate 6.11.2 CONFIG REQUIRED)\nfind_package(Qt6GuiPrivate 6.11.2 CONFIG REQUIRED)\n",
+        "list(PREPEND CMAKE_PREFIX_PATH \"{qt}\")\nset(XKB_INCLUDE_DIR \"{xkb}/include\")\nset(XKB_LIBRARY \"{xkb}/lib/x86_64-linux-gnu/libxkbcommon.so\")\nfind_package(Qt6 {version} EXACT CONFIG REQUIRED COMPONENTS BuildInternals Core Gui)\nfind_package(Qt6CorePrivate {version} EXACT CONFIG REQUIRED)\nfind_package(Qt6GuiPrivate {version} EXACT CONFIG REQUIRED)\n",
         qt = qt.display(), xkb = xkb.display(),
     ))?;
     Ok(cmake)
 }
 
 fn qt_declarative_private_bridge(repo_root: &Path, build: &Path, qt: &Path) -> Result<PathBuf> {
+    let version = qt_source_version(repo_root)?;
     // The QML generators are built by this very stage.  Do not predeclare
     // imported targets for them (which would point at nonexistent files in a
     // disposable view); only expose QtBase's private ABI to the project.
     let cmake = build.join("MattOSQtDeclarativePrivateTargets.cmake");
     let xkb = repo_root.join("out/build/xkbcommon/install/usr");
     fs::write(&cmake, format!(
-        "list(PREPEND CMAKE_PREFIX_PATH \"{qt}\")\nset(XKB_INCLUDE_DIR \"{xkb}/include\")\nset(XKB_LIBRARY \"{xkb}/lib/x86_64-linux-gnu/libxkbcommon.so\")\nfind_package(Qt6 6.11.2 CONFIG REQUIRED COMPONENTS BuildInternals Core Gui Widgets)\nfind_package(Qt6CorePrivate 6.11.2 CONFIG REQUIRED)\nfind_package(Qt6GuiPrivate 6.11.2 CONFIG REQUIRED)\nfind_package(Qt6WidgetsPrivate 6.11.2 CONFIG REQUIRED)\n",
+        "list(PREPEND CMAKE_PREFIX_PATH \"{qt}\")\nset(XKB_INCLUDE_DIR \"{xkb}/include\")\nset(XKB_LIBRARY \"{xkb}/lib/x86_64-linux-gnu/libxkbcommon.so\")\nfind_package(Qt6 {version} EXACT CONFIG REQUIRED COMPONENTS BuildInternals Core Gui Widgets)\nfind_package(Qt6CorePrivate {version} EXACT CONFIG REQUIRED)\nfind_package(Qt6GuiPrivate {version} EXACT CONFIG REQUIRED)\nfind_package(Qt6WidgetsPrivate {version} EXACT CONFIG REQUIRED)\n",
         qt = qt.display(), xkb = xkb.display(),
     ))?;
     Ok(cmake)
@@ -278,7 +317,7 @@ fn qt_target_environment(
         repo_root,
         &[
             "wayland", "xkbcommon", "libglvnd", "mesa", "openssl", "x11-compat",
-            "freetype", "fontconfig", "expat", "zlib",
+            "freetype", "fontconfig", "expat", "zlib", "glib", "pcre2", "libffi",
         ],
     )?;
     for (key, value) in target {
@@ -378,7 +417,7 @@ fn qt_host_qsb(repo_root: &Path) -> Result<PathBuf> {
     if !target.is_file() || !target.starts_with(repo_root.join("out/build")) {
         bail!("Qt Declarative requires the verified QtShaderTools qsb host tool at {}", target.display());
     }
-    let host_root = repo_root.join("out/host-tools/qt-6.11.2");
+    let host_root = repo_root.join(format!("out/host-tools/qt-{}", qt_source_version(repo_root)?));
     let host_bin = host_root.join("bin");
     fs::create_dir_all(&host_bin)?;
     let host_qsb = host_bin.join("qsb");
@@ -447,6 +486,8 @@ fn normalize_qt_target_metadata(repo_root: &Path, install: &Path) -> Result<()> 
     // closures.  Each provider is installed by its own MattOS package at `/usr`.
     let mut published_prefixes = [
         "libglvnd", "mesa", "wayland", "xkbcommon", "x11-compat", "freetype", "fontconfig", "expat", "libpng", "openssl", "zlib",
+        // QtCore's GLib event dispatcher and its native SDK closure.
+        "glib", "pcre2", "libffi",
         // Qt Multimedia's FFmpeg and PipeWire backends and X11 capture.
         "ffmpeg", "pipewire", "libxrandr",
     ]
@@ -701,12 +742,15 @@ fn build_qtbase(repo_root: &Path) -> Result<()> {
     let install = root.join("install");
     sync_build_source(&repo_root.join("src/desktop/qt/qtbase"), &source)?;
     remove_path_if_exists(&install)?;
-    prepare_incremental_qt_build(&build, "qtbase-ninja-v1")?;
+    prepare_incremental_qt_build(&build, &format!("qtbase-{}-ninja-v1", qt_source_version(repo_root)?))?;
     let mut command = vec![
         "-S".into(), source.display().to_string(), "-B".into(), build.display().to_string(),
         "-G".into(), "Ninja".into(), "-DCMAKE_INSTALL_PREFIX=/usr".into(),
         "-DINSTALL_LIBDIR=lib/x86_64-linux-gnu".into(),
         "-DQT_BUILD_EXAMPLES_BY_DEFAULT=OFF".into(), "-DQT_BUILD_TESTS_BY_DEFAULT=OFF".into(),
+        // PulseAudioQt integrates libpulse through GLib sources. Without
+        // this dispatcher Plasma silently disables its volume controls.
+        "-DFEATURE_glib=ON".into(),
         "-DFEATURE_icu=OFF".into(), "-DFEATURE_fontconfig=ON".into(), "-DINPUT_freetype=system".into(), "-DINPUT_harfbuzz=qt".into(),
         // KWin's documented Qt closure uses the UI compiler package. Keep it
         // in the source-owned QtBase target rather than accepting a host
@@ -729,6 +773,9 @@ fn build_qtbase(repo_root: &Path) -> Result<()> {
         repo_root.join("out/build/freetype/install/usr"),
         repo_root.join("out/build/fontconfig/install/usr"),
         repo_root.join("out/build/expat/install/usr"),
+        repo_root.join("out/build/glib/install/usr"),
+        repo_root.join("out/build/pcre2/install/usr"),
+        repo_root.join("out/build/libffi/install/usr"),
     ];
     command.extend(qt_target_cmake_args(repo_root, &target_prefixes)?);
     let refs = command.iter().map(String::as_str).collect::<Vec<_>>();
@@ -761,13 +808,14 @@ fn build_qtbase(repo_root: &Path) -> Result<()> {
 }
 
 fn build_qt_module(repo_root: &Path, component: &str) -> Result<()> {
+    validate_qt_module_cohort(repo_root, component)?;
     let root = repo_root.join("out/build").join(component);
     let source = root.join("source");
     let build = root.join("build");
     let install = root.join("install");
     sync_build_source(&repo_root.join("src/desktop/qt").join(component), &source)?;
     remove_path_if_exists(&install)?;
-    prepare_incremental_qt_build(&build, &format!("{component}-ninja-v1"))?;
+    prepare_incremental_qt_build(&build, &format!("{component}-{}-ninja-v1", qt_source_version(repo_root)?))?;
     let qt = repo_root.join("out/build/qtbase/install/usr");
     let mut prefixes = vec![qt.clone()];
     let mut command = vec![
@@ -1172,6 +1220,32 @@ fn build_qtspeech(repo_root: &Path) -> Result<()> { build_qt_module(repo_root, "
 mod qt_tests {
     use super::*;
 
+    fn write_module_version(repo: &Path, component: &str, version: &str) {
+        let path = repo.join("src/desktop/qt").join(component).join(".cmake.conf");
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, format!("set(QT_REPO_MODULE_VERSION \"{version}\")\n")).unwrap();
+    }
+
+    #[test]
+    fn qt_module_cohort_rejects_mixed_missing_and_nonliteral_versions() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        assert!(qt_source_version(repo).is_err());
+        write_module_version(repo, "qtbase", "6.12.0");
+        write_module_version(repo, "qtdeclarative", "6.12.0");
+        validate_qt_module_cohort(repo, "qtdeclarative").unwrap();
+        write_module_version(repo, "qtdeclarative", "6.11.2");
+        assert!(validate_qt_module_cohort(repo, "qtdeclarative").is_err());
+        for version in ["${QT_VERSION}", "6.12.0;message(FATAL_ERROR)", "6.12", "7.0.0", "6..0"] {
+            write_module_version(repo, "qtbase", version);
+            assert!(qt_source_version(repo).is_err(), "accepted {version}");
+        }
+        let path = repo.join("src/desktop/qt/qtbase/.cmake.conf");
+        fs::write(path, "set(QT_REPO_MODULE_VERSION \"6.12.0\")\nset(QT_REPO_MODULE_VERSION \"6.11.2\")\n").unwrap();
+        assert!(qt_source_version(repo).is_err());
+    }
+
+
     #[test]
     fn qt_view_writes_never_reach_the_provider_install_tree() {
         let temporary = tempfile::tempdir().unwrap();
@@ -1247,16 +1321,17 @@ mod qt_tests {
     }
 
     #[test]
-    fn qt_target_environment_exposes_the_source_owned_qtgui_font_closure() {
+    fn qt_target_environment_exposes_the_source_owned_font_and_glib_closure() {
         let temporary = tempfile::tempdir().unwrap();
         let repo = temporary.path();
         install_fake_mattos_target_toolchain(repo);
-        for component in ["wayland", "xkbcommon", "libglvnd", "mesa", "openssl", "x11-compat", "freetype", "fontconfig", "expat"] {
+        for component in ["wayland", "xkbcommon", "libglvnd", "mesa", "openssl", "x11-compat", "freetype", "fontconfig", "expat", "glib", "pcre2", "libffi"] {
             fs::create_dir_all(repo.join("out/build").join(component).join("install/usr/lib/x86_64-linux-gnu")).unwrap();
         }
         let environment = qt_target_environment(repo, &repo.join("out/build/qtbase/build"), None).unwrap();
         let ldflags = environment.iter().find(|(key, _)| *key == "LD_LIBRARY_PATH").unwrap().1.clone();
-        for component in ["freetype", "fontconfig", "expat"] {
+        for component in ["freetype", "fontconfig", "expat", "glib", "pcre2", "libffi"] {
+            assert!(direct_dependencies(BuildStage::QtBase).contains(&component));
             assert!(ldflags.contains(&repo.join("out/build").join(component).join("install/usr/lib/x86_64-linux-gnu").display().to_string()));
         }
     }
@@ -1265,6 +1340,7 @@ mod qt_tests {
     fn private_target_bridge_uses_only_staged_multiarch_metadata() {
         let temp = tempfile::tempdir().unwrap();
         let repo = temp.path();
+        write_module_version(repo, "qtbase", "6.12.0");
         let qt = repo.join("out/build/qtbase/install/usr");
         let build = repo.join("out/build/qtsvg/build");
         fs::create_dir_all(repo.join("out/build/xkbcommon/install/usr/include")).unwrap();
@@ -1273,6 +1349,8 @@ mod qt_tests {
         let bridge = qt_private_targets_bridge(repo, &build, &qt).unwrap();
         assert!(bridge.starts_with(&build));
         let contents = fs::read_to_string(bridge).unwrap();
+        assert!(contents.contains("find_package(Qt6 6.12.0 EXACT"));
+        assert!(!contents.contains("6.11.2"));
         assert!(!contents.contains("set(Qt6_DIR"));
         assert!(contents.contains("out/build/xkbcommon/install/usr"));
         assert!(!contents.contains("/usr/lib/cmake/Qt6"));
@@ -1326,6 +1404,7 @@ libs/libplasmanm_internal.so: CXX_SHARED_LIBRARY_LINKER__plasmanm_internal_
     fn qsb_is_exposed_only_through_the_build_only_host_tool_view() {
         let temporary = tempfile::tempdir().unwrap();
         let repo = temporary.path();
+        write_module_version(repo, "qtbase", "6.12.0");
         let target = repo.join("out/build/qtshadertools/install/usr/bin/qsb");
         fs::create_dir_all(target.parent().unwrap()).unwrap();
         fs::write(&target, b"verified qsb").unwrap();
@@ -1336,6 +1415,7 @@ libs/libplasmanm_internal.so: CXX_SHARED_LIBRARY_LINKER__plasmanm_internal_
         fs::write(macros, "# fixture shader-tools macros\n").unwrap();
 
         let host_root = qt_host_qsb(repo).unwrap();
+        assert!(host_root.ends_with("qt-6.12.0"));
         let host_qsb = host_root.join("bin/qsb");
         assert!(host_qsb.is_symlink());
         assert_eq!(fs::canonicalize(host_qsb).unwrap(), fs::canonicalize(target).unwrap());
@@ -1368,6 +1448,31 @@ libs/libplasmanm_internal.so: CXX_SHARED_LIBRARY_LINKER__plasmanm_internal_
         assert!(metadata.contains("QMAKE_INCDIR_OPENGL = /usr/include"));
         assert!(metadata.contains("QMAKE_INCDIR_WAYLAND_CLIENT = /usr/include"));
         assert!(metadata.contains("QMAKE_INCDIR_XRENDER = /usr/include"));
+        assert!(!metadata.contains("out/build"));
+    }
+
+    #[test]
+    fn qmake_glib_metadata_keeps_installed_multiarch_sdk_paths() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        let install = repo.join("out/build/qtbase/install");
+        let modules = install.join("usr/mkspecs/modules");
+        fs::create_dir_all(&modules).unwrap();
+        fs::create_dir_all(install.join("usr/lib/x86_64-linux-gnu/cmake/Qt6")).unwrap();
+        let glib = repo.join("out/build/glib/install/usr");
+        fs::write(modules.join("qt_lib_core_private.pri"), format!(
+            "QMAKE_INCDIR_GLIB = {glib}/include/glib-2.0 {glib}/lib/x86_64-linux-gnu/glib-2.0/include\n\
+             QMAKE_LIBS_GLIB = -L\"{glib}/lib/x86_64-linux-gnu\" -lglib-2.0 -lgthread-2.0\n\
+             QMAKE_INCDIR_PCRE = {}/out/build/pcre2/install/usr/include\n\
+             QMAKE_INCDIR_FFI = {}/out/build/libffi/install/usr/include\n",
+            repo.display(), repo.display(), glib = glib.display(),
+        )).unwrap();
+        normalize_qt_target_metadata(repo, &install).unwrap();
+        let metadata = fs::read_to_string(modules.join("qt_lib_core_private.pri")).unwrap();
+        assert!(metadata.contains("QMAKE_INCDIR_GLIB = /usr/include/glib-2.0 /usr/lib/x86_64-linux-gnu/glib-2.0/include"));
+        assert!(metadata.contains("QMAKE_LIBS_GLIB = -L\"/usr/lib/x86_64-linux-gnu\" -lglib-2.0 -lgthread-2.0"));
+        assert!(metadata.contains("QMAKE_INCDIR_PCRE = /usr/include"));
+        assert!(metadata.contains("QMAKE_INCDIR_FFI = /usr/include"));
         assert!(!metadata.contains("out/build"));
     }
 

@@ -1566,15 +1566,16 @@ void KArchiveTest::testZip64ExtraZip64SizeFirst()
 
     QBuffer zipBuffer(&zipData);
     KZip zip(&zipBuffer);
-    QEXPECT_FAIL("", "Zip64 extra at front incorrectly parsed", Abort);
     QVERIFY2(zip.open(QIODevice::ReadOnly), qPrintable(zip.errorString()));
-
     QCOMPARE(zip.directory()->entries().size(), 2);
-    QCOMPARE(zip.directory()->entries(), (QList{QStringLiteral("4200M.bin"), QStringLiteral("4.bin")}));
 
     auto entry = zip.directory()->file(QStringLiteral("4200M.bin"));
     QVERIFY(entry);
     QCOMPARE(entry->size(), 4404019208);
+
+    auto entry2 = zip.directory()->file(QStringLiteral("4.bin"));
+    QVERIFY(entry2);
+    QCOMPARE(entry2->size(), 4);
 
     auto readDev = std::unique_ptr<QIODevice>(entry->createDevice());
     auto head = readDev->read(8);
@@ -1958,6 +1959,31 @@ void KArchiveTest::test7ZipReadNumber()
 
     QCOMPARE(listing.count(), 1);
     QCOMPARE(listing[0], QString("mode=644 path=file.txt type=file size=5"));
+
+    QVERIFY(k7zip.close());
+}
+
+// This test was added to verify that K7ZipPrivate::readNumber() decodes values
+// which do not fit in 32 bits. The archive holds 2 GiB of zeros, so the unpack
+// size stored in its header is 0x80000000. Before the fix the byte carrying bit
+// 31 was promoted to int before being shifted left by 24, which made the int
+// negative and sign-extended it to 0xffffffff80000000, reported here as -2147483648.
+// See: https://invent.kde.org/frameworks/karchive/-/merge_requests/213
+void KArchiveTest::test7ZipLargeUnpackSize()
+{
+    const QString fileName = QFINDTESTDATA("data/7z_large_unpack_size.7z");
+    QVERIFY(!fileName.isEmpty());
+
+    K7Zip k7zip(fileName);
+    QVERIFY2(k7zip.open(QIODevice::ReadOnly), "data/7z_large_unpack_size.7z");
+
+    const KArchiveDirectory *dir = k7zip.directory();
+    QVERIFY(dir != nullptr);
+
+    const KArchiveEntry *entry = dir->entry(QStringLiteral("2gib-zeros.bin"));
+    QVERIFY(entry != nullptr);
+    QVERIFY(entry->isFile());
+    QCOMPARE(static_cast<const KArchiveFile *>(entry)->size(), Q_INT64_C(2147483648));
 
     QVERIFY(k7zip.close());
 }

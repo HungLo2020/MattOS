@@ -82,7 +82,6 @@ ecm_qt_declare_logging_category(Kirigami
     IDENTIFIER KirigamiLog
     CATEGORY_NAME kf.kirigami
     DESCRIPTION "Kirigami"
-    DEFAULT_SEVERITY Warning
     EXPORT KIRIGAMI
 )
 
@@ -144,7 +143,6 @@ target_link_libraries(Kirigami
     Qt6::Quick
     PRIVATE
     Qt6::Concurrent
-    ${Kirigami_EXTRA_LIBS}
 )
 
 if (HAVE_OpenMP)

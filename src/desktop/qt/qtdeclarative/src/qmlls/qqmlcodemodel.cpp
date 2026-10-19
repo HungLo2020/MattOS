@@ -120,8 +120,6 @@ void QQmlCodeModel::tryEnableCMakeCalls(QProcessScheduler *scheduler)
         }
     }
 
-    QObject::connect(scheduler, &QProcessScheduler::done, this,
-                     &QQmlCodeModel::onCMakeProcessFinished);
     QObject::connect(&m_cppFileWatcher, &QFileSystemWatcher::fileChanged, scheduler,
                      [this, scheduler] { callCMakeBuild(scheduler); });
     setCMakeStatus(HasCMake);
@@ -361,14 +359,12 @@ void QQmlCodeModel::callCMakeBuild(QProcessScheduler *scheduler)
     }
     if (commands.isEmpty())
         return;
-    scheduler->schedule(commands, m_rootUrl);
+    qCInfo(codeModelLog) << "Starting background build on paths" << buildPaths.join(", "_L1);
+    scheduler->schedule(commands, m_rootUrl.isEmpty() ? "Default workspace"_ba : m_rootUrl);
 }
 
-void QQmlCodeModel::onCMakeProcessFinished(const QByteArray &id)
+void QQmlCodeModel::reloadAllOpenFiles()
 {
-    if (id != m_rootUrl)
-        return;
-
     QMutexLocker guard(&m_mutex);
     for (auto it = m_openDocuments.begin(), end = m_openDocuments.end(); it != end; ++it)
         m_openDocumentsToUpdate[it.key()] = ForceUpdate;
@@ -602,8 +598,7 @@ void QQmlCodeModel::newDocForOpenFile(const QByteArray &url, int version, const 
     }
     if (codeModelLog().isDebugEnabled()) {
         qCDebug(codeModelLog) << "Finished update doc of " << url << "to version" << version;
-        snapshotByUrl(url).dump(qDebug() << "postSnapshot",
-                                OpenDocumentSnapshot::DumpOption::AllCode);
+        snapshotByUrl(url).dump(qDebug() << "postSnapshot");
     }
     // we should update the scope in the future thus call addOpen(url)
     emit updatedSnapshot(url, policy);
@@ -772,31 +767,20 @@ void QQmlCodeModel::addOpenToUpdate(const QByteArray &url, UpdatePolicy policy)
     openNeedUpdate();
 }
 
-QDebug OpenDocumentSnapshot::dump(QDebug dbg, DumpOptions options)
+QDebug OpenDocumentSnapshot::dump(QDebug dbg)
 {
     dbg.noquote().nospace() << "{";
     dbg << "  url:" << QString::fromUtf8(url) << "\n";
     dbg << "  docVersion:" << (docVersion ? QString::number(*docVersion) : u"*none*"_s) << "\n";
-    if (options & DumpOption::LatestCode) {
-        dbg << "  doc: ------------\n"
-            << doc.field(Fields::code).value().toString() << "\n==========\n";
-    } else {
-        dbg << u"  doc:"
-            << (doc ? u"%1chars"_s.arg(doc.field(Fields::code).value().toString().size())
-                    : u"*none*"_s)
-            << "\n";
-    }
+    dbg << u"  doc:"
+        << (doc ? u"%1chars"_s.arg(doc.field(Fields::code).value().toString().size()) : u"*none*"_s)
+        << "\n";
     dbg << "  validDocVersion:"
         << (validDocVersion ? QString::number(*validDocVersion) : u"*none*"_s) << "\n";
-    if (options & DumpOption::ValidCode) {
-        dbg << "  validDoc: ------------\n"
-            << validDoc.field(Fields::code).value().toString() << "\n==========\n";
-    } else {
-        dbg << u"  validDoc:"
-            << (validDoc ? u"%1chars"_s.arg(validDoc.field(Fields::code).value().toString().size())
-                         : u"*none*"_s)
-            << "\n";
-    }
+    dbg << u"  validDoc:"
+        << (validDoc ? u"%1chars"_s.arg(validDoc.field(Fields::code).value().toString().size())
+                     : u"*none*"_s)
+        << "\n";
     dbg << "  scopeDependenciesLoadTime:" << scopeDependenciesLoadTime << "\n";
     dbg << "  scopeDependenciesChanged" << scopeDependenciesChanged << "\n";
     dbg << "}";
@@ -807,14 +791,53 @@ static ModuleSetting *moduleSettingFor(const QString &sourceFolder, ModuleSettin
                                        UpdatePolicy policy)
 {
     if (policy != ForceUpdate)
-        return &moduleSettings->emplaceBack();
+        return &moduleSettings->emplaceBack(ModuleSetting {sourceFolder, {}, {}});
 
     auto it = std::find_if(
             moduleSettings->begin(), moduleSettings->end(),
             [&sourceFolder](const ModuleSetting s) { return s.sourceFolder == sourceFolder; });
     if (it == moduleSettings->end())
-        return &moduleSettings->emplaceBack();
+        return &moduleSettings->emplaceBack(ModuleSetting {sourceFolder, {}, {}});
     return &*it;
+}
+
+static QStringList asStringList(const QVariant &variant)
+{
+    return variant.toString().split(QDir::listSeparator(), Qt::SkipEmptyParts);
+}
+
+// hotfix for projects targeting Qt 6.11, where the .ini array starts at 0 instead of 1
+static void handleArrayStartingAt0(QSettings *settings, ModuleSettings *moduleSettings,
+                                   UpdatePolicy policy)
+{
+    static constexpr QLatin1String sourcePathKey = "workspaces/0/sourcePath"_L1;
+    if (!settings->contains(sourcePathKey))
+        return;
+
+    ModuleSetting *moduleSetting =
+            moduleSettingFor(settings->value(sourcePathKey).toString(), moduleSettings, policy);
+    moduleSetting->importPaths = asStringList(settings->value("workspaces/0/importPaths"_L1));
+    moduleSetting->resourceFiles = asStringList(settings->value("workspaces/0/resourceFiles"_L1));
+}
+
+static void loadWorkspacesV2(QSettings *settings, ModuleSettings *moduleSettings,
+                             UpdatePolicy policy)
+{
+    handleArrayStartingAt0(settings, moduleSettings, policy);
+
+    const int entries = settings->beginReadArray("workspaces"_L1);
+    for (int i = 0; i < entries; ++i) {
+        settings->setArrayIndex(i);
+
+        if (!settings->contains("sourcePath"_L1))
+            continue;
+
+        ModuleSetting *moduleSetting =
+                moduleSettingFor(settings->value("sourcePath").toString(), moduleSettings, policy);
+        moduleSetting->importPaths = asStringList(settings->value("importPaths"_L1));
+        moduleSetting->resourceFiles = asStringList(settings->value("resourceFiles"_L1));
+    }
+    settings->endArray();
 }
 
 void QQmllsBuildInformation::loadSettingsFrom(const QStringList &buildPaths, UpdatePolicy policy)
@@ -831,21 +854,25 @@ void QQmllsBuildInformation::loadSettingsFrom(const QStringList &buildPaths, Upd
 
         QSettings settings(iniPath, QSettings::IniFormat);
         m_docDir = settings.value("docDir"_L1).toString();
-        for (const QString &group : settings.childGroups()) {
-            settings.beginGroup(group);
+        const qsizetype version = settings.value("version"_L1, "1"_L1).toString().toInt();
+        switch (version) {
+        case 2: {
+            loadWorkspacesV2(&settings, &m_moduleSettings, policy);
+            break;
+        }
+        case 1:
+        default: {
+            for (const QString &group : settings.childGroups()) {
+                settings.beginGroup(group);
 
-            const QString sourceFolder = QString(group).replace("<SLASH>"_L1, "/"_L1);
-            ModuleSetting *moduleSetting =
-                    moduleSettingFor(sourceFolder, &m_moduleSettings, policy);
-            moduleSetting->sourceFolder = sourceFolder;
-            moduleSetting->importPaths = settings.value("importPaths"_L1)
-                                                 .toString()
-                                                 .split(QDir::listSeparator(), Qt::SkipEmptyParts);
-            moduleSetting->resourceFiles =
-                    settings.value("resourceFiles"_L1)
-                            .toString()
-                            .split(QDir::listSeparator(), Qt::SkipEmptyParts);
-            settings.endGroup();
+                ModuleSetting *moduleSetting = moduleSettingFor(
+                        QString(group).replace("<SLASH>"_L1, "/"_L1), &m_moduleSettings, policy);
+                moduleSetting->importPaths = asStringList(settings.value("importPaths"_L1));
+                moduleSetting->resourceFiles = asStringList(settings.value("resourceFiles"_L1));
+                settings.endGroup();
+            }
+            break;
+        }
         }
     }
 #else
@@ -886,14 +913,19 @@ void QQmllsBuildInformation::addModuleSetting(const ModuleSetting &moduleSetting
 void QQmllsBuildInformation::writeQmllsBuildIniContent(const QString &file) const
 {
 #if QT_CONFIG(settings)
-    QFile f(file);
-    if (!f.open(QFile::WriteOnly | QFile::Text))
-        return;
+    QSettings settings(file, QSettings::IniFormat);
+    settings.setValue("docDir"_L1, m_docDir);
+    settings.setValue("version"_L1, "2"_L1);
+    settings.beginWriteArray("workspaces"_L1, m_moduleSettings.size());
     for (int i = 0; i < m_moduleSettings.size(); ++i) {
-        const QString key = QString(m_moduleSettings[i].sourceFolder).replace("/"_L1, "<SLASH>"_L1);
-        const QString imports = m_moduleSettings[i].importPaths.join(QDir::listSeparator());
-        f.write("[%1]\nimportPaths=\"%7\"\n"_L1.arg(key, imports).toUtf8());
+        settings.setArrayIndex(i);
+        settings.setValue("sourcePath"_L1, m_moduleSettings[i].sourceFolder);
+        settings.setValue("importPaths"_L1,
+                          m_moduleSettings[i].importPaths.join(QDir::listSeparator()));
+        settings.setValue("resourceFiles"_L1,
+                          m_moduleSettings[i].resourceFiles.join(QDir::listSeparator()));
     }
+    settings.endArray();
 
 #else
     Q_UNUSED(file);

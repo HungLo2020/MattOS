@@ -254,7 +254,7 @@ static bool sendAsShortcut(const KeyEvent &keyEvent, QWindow *window)
     }
 }
 
-#if QT_MACOS_PLATFORM_SDK_EQUAL_OR_ABOVE(150000)
+#if QT_APPLE_SDK_EQUAL_OR_ABOVE(MACOS(15))
 - (void)contextMenuKeyDown:(NSEvent *)nsevent
 {
     qCDebug(lcQpaKeys) << "Handling context menu key down for" << nsevent;
@@ -281,8 +281,12 @@ QT_BEGIN_NAMESPACE
 
 KeyEvent::KeyEvent(NSEvent *nsevent)
 {
-    timestamp = nsevent.timestamp * 1000;
-    nativeModifiers = nsevent.modifierFlags;
+    // We may not have an event to base the key event on, for example when
+    // the input method asks us to insert text outside of interpreting a
+    // key event. In that case we fall back to the current state, and the
+    // remaining members are left for the caller to fill in.
+    timestamp = (nsevent ? nsevent.timestamp : NSProcessInfo.processInfo.systemUptime) * 1000;
+    nativeModifiers = nsevent ? nsevent.modifierFlags : NSEvent.modifierFlags;
     modifiers = QAppleKeyMapper::fromCocoaModifiers(nativeModifiers);
 
     switch (nsevent.type) {

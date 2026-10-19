@@ -27,9 +27,6 @@
 
 #include <QAbstractEventDispatcher>
 #include <QDataStream>
-#include <QFile>
-#include <QRandomGenerator>
-#include <QScopeGuard>
 #include <QSocketNotifier>
 #include <QTimer>
 
@@ -45,19 +42,18 @@ namespace KWin
 namespace Xwl
 {
 
-XwaylandLauncher::XwaylandLauncher(QObject *parent)
-    : QObject(parent)
+XwaylandLauncher::XwaylandLauncher()
+    : m_resetCrashCountTimer(std::make_unique<QTimer>())
 {
-    m_resetCrashCountTimer = new QTimer(this);
     m_resetCrashCountTimer->setSingleShot(true);
-    connect(m_resetCrashCountTimer, &QTimer::timeout, this, &XwaylandLauncher::resetCrashCount);
+    connect(m_resetCrashCountTimer.get(), &QTimer::timeout, this, &XwaylandLauncher::resetCrashCount);
 }
 
 XwaylandLauncher::~XwaylandLauncher()
 {
 }
 
-void XwaylandLauncher::setListenFDs(const QList<int> &listenFds)
+void XwaylandLauncher::setListenFds(const QList<int> &listenFds)
 {
     m_listenFds = listenFds;
 }
@@ -65,6 +61,20 @@ void XwaylandLauncher::setListenFDs(const QList<int> &listenFds)
 void XwaylandLauncher::setDisplayName(const QString &displayName)
 {
     m_displayName = displayName;
+}
+
+void XwaylandLauncher::setInitFd(int initFd)
+{
+    if (initFd >= 0) {
+        m_initFd = initFd;
+    } else {
+        m_initFd.reset();
+    }
+}
+
+void XwaylandLauncher::setInitDisplayName(const QString &displayName)
+{
+    m_initDisplayName = displayName;
 }
 
 void XwaylandLauncher::setXauthority(const QString &xauthority)
@@ -80,7 +90,7 @@ void XwaylandLauncher::addEnvironmentVariables(const QMap<QString, QString> &ext
 void XwaylandLauncher::passFileDescriptors(std::vector<FileDescriptor> &&fds)
 {
     m_fdsToPreserve.reserve(m_fdsToPreserve.size() + fds.size());
-    for (auto & fd : fds) {
+    for (auto &fd : fds) {
         m_fdsToPreserve.emplace_back(std::move(fd));
     }
 }
@@ -104,8 +114,23 @@ void XwaylandLauncher::enable()
         m_listenFds = m_socket->fileDescriptors();
     }
 
+    if (m_initFd.has_value()) {
+        Q_ASSERT(!m_initDisplayName.isEmpty());
+    } else {
+        auto socket = std::make_unique<XwaylandSocket>(XwaylandSocket::OperationMode::CloseFdsOnExec);
+        if (!socket->isValid()) {
+            qCWarning(KWIN_XWL) << "Failed to establish X11 init socket";
+            return;
+        }
+        m_initDisplayName = socket->name();
+        const auto initFds = socket->fileDescriptors();
+        Q_ASSERT(!initFds.isEmpty());
+        m_initFd = initFds.constLast();
+        m_initFdSocket = std::move(socket);
+    }
+
     for (int socket : std::as_const(m_listenFds)) {
-        QSocketNotifier *notifier = new QSocketNotifier(socket, QSocketNotifier::Read, this);
+        QSocketNotifier *notifier = m_socketNotifiers.emplace_back(std::make_unique<QSocketNotifier>(socket, QSocketNotifier::Read)).get();
         connect(notifier, &QSocketNotifier::activated, this, &XwaylandLauncher::start);
         connect(this, &XwaylandLauncher::started, notifier, [notifier]() {
             notifier->setEnabled(false);
@@ -175,13 +200,12 @@ bool XwaylandLauncher::start()
     arguments << QStringLiteral("-wm") << QString::number(wmfd->fds[1].get());
     fdsToPass << wmfd->fds[1].get();
 
-    arguments << QStringLiteral("-rootless");
-
-#if HAVE_XWAYLAND_ENABLE_EI_PORTAL
-    if (!options->xwaylandEisNoPrompt()) {
-        arguments << QStringLiteral("-enable-ei-portal");
+    if (m_initFd.has_value()) {
+        arguments << QStringLiteral("-initfd") << QString::number(*m_initFd);
+        fdsToPass << *m_initFd;
     }
-#endif
+
+    arguments << QStringLiteral("-rootless");
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 
@@ -200,7 +224,7 @@ bool XwaylandLauncher::start()
         fdsToPass.push_back(fd.get());
     }
 
-    m_xwaylandProcess = new QProcess(this);
+    m_xwaylandProcess = std::make_unique<QProcess>();
     m_xwaylandProcess->setProgram(QStandardPaths::findExecutable("Xwayland"));
     m_xwaylandProcess->setArguments(arguments);
     m_xwaylandProcess->setProcessChannelMode(QProcess::ForwardedErrorChannel);
@@ -220,8 +244,8 @@ bool XwaylandLauncher::start()
         }
     });
 
-    connect(m_xwaylandProcess, &QProcess::errorOccurred, this, &XwaylandLauncher::handleXwaylandError);
-    connect(m_xwaylandProcess, &QProcess::finished, this, &XwaylandLauncher::handleXwaylandFinished);
+    connect(m_xwaylandProcess.get(), &QProcess::errorOccurred, this, &XwaylandLauncher::handleXwaylandError);
+    connect(m_xwaylandProcess.get(), &QProcess::finished, this, &XwaylandLauncher::handleXwaylandFinished);
 
     // When Xwayland starts writing the display name to displayfd, it is ready. Alternatively,
     // the Xwayland can send us the SIGUSR1 signal, but it's already reserved for VT hand-off.
@@ -257,9 +281,14 @@ FileDescriptor XwaylandLauncher::takeXcbConnectionFd()
     return std::move(m_xcbConnectionFd);
 }
 
+QString XwaylandLauncher::initDisplayName() const
+{
+    return m_initDisplayName;
+}
+
 QProcess *XwaylandLauncher::process() const
 {
-    return m_xwaylandProcess;
+    return m_xwaylandProcess.get();
 }
 
 void XwaylandLauncher::stop()
@@ -279,12 +308,11 @@ void XwaylandLauncher::stop()
     // however we don't actually want to process it anymore. Furthermore, we also don't really
     // want to handle any errors that may occur during the teardown.
     if (m_xwaylandProcess->state() != QProcess::NotRunning) {
-        disconnect(m_xwaylandProcess, nullptr, this, nullptr);
+        disconnect(m_xwaylandProcess.get(), nullptr, this, nullptr);
         m_xwaylandProcess->terminate();
         m_xwaylandProcess->waitForFinished(5000);
     }
-    delete m_xwaylandProcess;
-    m_xwaylandProcess = nullptr;
+    m_xwaylandProcess.reset();
 }
 
 void XwaylandLauncher::handleXwaylandFinished(int exitCode, QProcess::ExitStatus exitStatus)

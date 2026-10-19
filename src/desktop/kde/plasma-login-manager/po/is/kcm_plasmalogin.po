@@ -1,13 +1,13 @@
 # Copyright (C) 2025 This file is copyright:
 # This file is distributed under the same license as the plasma-login-manager package.
 #
-# SPDX-FileCopyrightText: 2025 Sveinn í Felli <sv1@fellsnet.is>
+# SPDX-FileCopyrightText: 2025, 2026 Sveinn í Felli <sv1@fellsnet.is>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-login-manager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-28 02:46+0000\n"
-"PO-Revision-Date: 2025-11-27 07:31+0000\n"
+"POT-Creation-Date: 2026-08-11 00:47+0000\n"
+"PO-Revision-Date: 2026-04-13 17:29+0000\n"
 "Last-Translator: Sveinn í Felli <sv1@fellsnet.is>\n"
 "Language-Team: Icelandic\n"
 "Language: is\n"
@@ -36,7 +36,7 @@ msgstr ""
 "Tókst ekki að samstilla stillingar Plasma þar sem notandinn 'plasmalogin' er "
 "ekki til. Athugaðu uppsetninguna þína á Plasma Login."
 
-#: kcm.cpp:265
+#: kcm.cpp:269
 msgid ""
 "Unable to reset Plasma settings because the 'plasmalogin' user does not "
 "exist. Please check your Plasma Login install."
@@ -93,23 +93,34 @@ msgstr ""
 "eftirfarandi stillingum Plasma:"
 
 #: ui/main.qml:66
-#, kde-kuit-format
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info"
+#| msgid ""
+#| "<para><list><item>Color scheme</item><item>Cursor theme and size</"
+#| "item><item>Font and font rendering</item><item>NumLock preference</"
+#| "item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
+#| "configuration</item><item>Keyboard layouts</item></list></para>"
 msgctxt "@info"
 msgid ""
-"<para><list><item>Color scheme</item><item>Cursor theme and size</"
-"item><item>Font and font rendering</item><item>NumLock preference</"
-"item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
-"configuration</item></list></para>"
+"<para><list><item>Language and locale settings</item><item>Keyboard layouts</"
+"item><item>Screen arrangement, scale, and orientation settings</"
+"item><item>NumLock preference</item><item>Font and font rendering settings</"
+"item><item>Color scheme</item><item>Cursor theme and size</item><item>Plasma "
+"theme</item></list></para>"
 msgstr ""
 "<para><list><item>Litastef</item><item>Bendilþema og stærð</item><item>Letur "
 "og myndgerð leturs</item><item>Kjörstilling NumLock</item><item>Plasma-þema</"
-"item><item>Kvörðun PÁT/DPI</item><item>Skjástillingar</item></list></para>"
+"item><item>Kvörðun PÁT/DPI</item><item>Skjástillingar</"
+"item><item>Framsetning lyklaborðs</item></list></para>"
 
 #: ui/main.qml:67
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Please note that theme files must be installed globally to be reflected "
+#| "on the Plasma login screen."
 msgid ""
-"Please note that theme files must be installed globally to be reflected on "
-"the Plasma login screen."
+"Please note that theme and font files must be installed globally to be "
+"reflected on the Plasma login screen."
 msgstr ""
 "Athugaðu að þemaskrár verða að vera settar upp fyrir allt kerfið svo þær "
 "geti haft áhrif á innskráningarskjá Plasma."
@@ -138,7 +149,7 @@ msgctxt "@option:check"
 msgid "Automatically log in:"
 msgstr "Skrá sjálfkrafa inn:"
 
-#: ui/main.qml:99
+#: ui/main.qml:100
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the user to log in "
@@ -146,7 +157,7 @@ msgctxt ""
 msgid "as user:"
 msgstr "sem notandi:"
 
-#: ui/main.qml:154
+#: ui/main.qml:150
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the session that is started "
@@ -154,7 +165,7 @@ msgctxt ""
 msgid "with session:"
 msgstr "með setu:"
 
-#: ui/main.qml:187
+#: ui/main.qml:180
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -169,42 +180,42 @@ msgstr ""
 "lykilorð. Slíkt er hinsvegar óöruggt og ætti ekki að gera nema í alveg "
 "öruggu umhverfi."
 
-#: ui/main.qml:192
+#: ui/main.qml:185
 #, kde-format
 msgid "Open KDE Wallet Settings"
 msgstr "Opna stillingar KDE-veskis"
 
-#: ui/main.qml:199
+#: ui/main.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Log in again immediately after logging off"
 msgstr "Skrá strax aftur inn eftir að hafa skráð út"
 
-#: ui/main.qml:210
+#: ui/main.qml:203
 #, kde-format
 msgctxt "@title:group"
 msgid "Defaults"
 msgstr "Sjálfgefin gildi"
 
-#: ui/main.qml:215
+#: ui/main.qml:208
 #, kde-format
 msgctxt "@label"
 msgid "Default user:"
 msgstr "Sjálfgefinn notandi:"
 
-#: ui/main.qml:221
+#: ui/main.qml:214
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in user"
 msgstr "Síðast innskráður notandi"
 
-#: ui/main.qml:293
+#: ui/main.qml:281
 #, kde-format
 msgctxt "@label"
 msgid "Default session:"
 msgstr "Sjálfgefin seta:"
 
-#: ui/main.qml:299
+#: ui/main.qml:287
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in session"

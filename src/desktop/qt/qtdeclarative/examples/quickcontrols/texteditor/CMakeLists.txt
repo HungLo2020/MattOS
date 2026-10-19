@@ -32,10 +32,12 @@ target_link_libraries(texteditorexample PUBLIC
     Qt6::QuickControls2
 )
 
-if(CMAKE_CROSSCOMPILING)
-    target_compile_definitions(texteditorexample PUBLIC
-        QT_EXTRA_FILE_SELECTOR="touch"
-    )
+if (NOT EMSCRIPTEN)
+    if(CMAKE_CROSSCOMPILING)
+        target_compile_definitions(texteditorexample PUBLIC
+            QT_EXTRA_FILE_SELECTOR="touch"
+        )
+    endif()
 endif()
 
 install(TARGETS texteditorexample
@@ -47,7 +49,6 @@ install(TARGETS texteditorexample
 qt_generate_deploy_qml_app_script(
     TARGET texteditorexample
     OUTPUT_SCRIPT deploy_script
-    MACOS_BUNDLE_POST_BUILD
     NO_UNSUPPORTED_PLATFORM_ERROR
     DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM
 )

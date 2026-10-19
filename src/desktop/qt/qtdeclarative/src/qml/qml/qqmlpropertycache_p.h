@@ -214,6 +214,7 @@ public:
     void invalidate(const QMetaObject *);
 
     QQmlPropertyCache::Ptr copy() const;
+    QQmlPropertyCache::Ptr rebased(const QQmlPropertyCache::ConstPtr &parent) const;
 
     QQmlPropertyCache::Ptr copyAndAppend(
                 const QMetaObject *, QTypeRevision typeVersion,
@@ -281,7 +282,7 @@ public:
     inline int signalCount() const;
     inline int ownSignalCount() const { return int(signalHandlerIndexCache.count()); }
     inline int signalOffset() const;
-    inline int qmlEnumCount() const;
+    inline int ownEnumCount() const;
 
     void toMetaObjectBuilder(QMetaObjectBuilder &) const;
 
@@ -294,6 +295,8 @@ public:
 
     QTypeRevision allowedRevision(int index) const { return allowedRevisionCache[index]; }
     void setAllowedRevision(int index, QTypeRevision allowed) { allowedRevisionCache[index] = allowed; }
+
+    bool isComposite() const { return _metaObject.isShared(); }
 
 private:
     friend class QQmlEnginePrivate;
@@ -328,7 +331,8 @@ private:
     AppendResult appendPropertyAttr(const QString &name, QQmlPropertyData &&data);
     AppendResult appendAlias(const QString &, QQmlPropertyData::Flags flags, int coreIndex,
                              QMetaType propType, QTypeRevision version, int notifyIndex,
-                             int encodedTargetIndex);
+                             int encodedTargetIndex, int targetObjectId);
+    AppendResult appendComponentWrapper(int coreIndex, int wrappedObjectIndex);
     void appendSignal(const QString &, QQmlPropertyData::Flags, int coreIndex,
                       const QMetaType *types = nullptr,
                       const QList<QByteArray> &names = QList<QByteArray>());
@@ -540,6 +544,10 @@ QQmlPropertyCache::overrideData(const QQmlPropertyData *data) const
 
 bool QQmlPropertyCache::isAllowedInRevision(const QQmlPropertyData *data) const
 {
+    // Aliases can't be revisioned.
+    if (data->isAlias())
+        return true;
+
     const QTypeRevision requested = data->revision();
     const int offset = data->metaObjectOffset();
     if (offset == -1 && requested == QTypeRevision::zero())
@@ -589,7 +597,7 @@ int QQmlPropertyCache::signalOffset() const
     return signalHandlerIndexCacheStart;
 }
 
-int QQmlPropertyCache::qmlEnumCount() const
+int QQmlPropertyCache::ownEnumCount() const
 {
     return int(enumCache.size());
 }

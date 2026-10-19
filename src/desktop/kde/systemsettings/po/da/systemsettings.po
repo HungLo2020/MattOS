@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: systemsettings\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-23 02:40+0000\n"
+"POT-Creation-Date: 2026-08-21 00:47+0000\n"
 "PO-Revision-Date: 2024-10-21 11:43+0200\n"
 "Last-Translator: rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>\n"
 "Language-Team: Danish <kde-i18n-doc@kde.org>\n"
@@ -46,109 +46,109 @@ msgstr "Start %1 igen"
 msgid "Dialog"
 msgstr "Dialog"
 
-#: app/main.cpp:54 app/SettingsBase.cpp:53
+#: app/main.cpp:61 app/SettingsBase.cpp:54
 #, kde-format
 msgid "Info Center"
 msgstr "Infocenter"
 
-#: app/main.cpp:56
+#: app/main.cpp:63
 #, kde-format
 msgid "Centralized and convenient overview of system information."
 msgstr "Centraliseret og bekvem oversigt over systeminformation."
 
-#: app/main.cpp:58 app/main.cpp:69
+#: app/main.cpp:65 app/main.cpp:76
 #, kde-format
 msgid "(c) 2009, Ben Cooksley"
 msgstr "(c) 2009, Ben Cooksley"
 
-#: app/main.cpp:65 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:56
-#: runner/systemsettingsrunner.cpp:114
+#: app/main.cpp:72 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:57
+#: runner/systemsettingsrunner.cpp:124
 #, kde-format
 msgid "System Settings"
 msgstr "Systemindstillinger"
 
-#: app/main.cpp:67
+#: app/main.cpp:74
 #, kde-format
 msgid "Central configuration center by KDE."
 msgstr "Centralt konfigurationscenter fra KDE."
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Ben Cooksley"
 msgstr "Ben Cooksley"
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Maintainer"
 msgstr "Vedligeholder"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Marco Martin"
 msgstr "Marco Martin"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Author"
 msgstr "Udvikler"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Mathias Soeken"
 msgstr "Mathias Soeken"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Developer"
 msgstr "Udvikler"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Will Stephenson"
 msgstr "Will Stephenson"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Internal module representation, internal module model"
 msgstr "Intern modulrepræsentation, model for interne moduler"
 
-#: app/main.cpp:91
+#: app/main.cpp:98
 #, kde-format
 msgid "List all possible modules"
 msgstr "Liste over samtlige mulige moduler"
 
-#: app/main.cpp:92 app/main.cpp:153
+#: app/main.cpp:99 app/main.cpp:160
 #, kde-format
 msgid "Configuration module to open"
 msgstr "Indstillingsmodul som skal åbnes"
 
-#: app/main.cpp:93 app/main.cpp:154
+#: app/main.cpp:100 app/main.cpp:161
 #, kde-format
 msgid "Arguments for the module"
 msgstr "Argumenter til modulet"
 
-#: app/main.cpp:101
+#: app/main.cpp:108
 #, kde-format
 msgid "The following modules are available:"
 msgstr "Følgende moduler er tilgængelige:"
 
-#: app/main.cpp:119
+#: app/main.cpp:126
 #, kde-format
 msgid "No description available"
 msgstr "Ingen beskrivelse tilgængelig"
 
-#: app/ModuleView.cpp:185
+#: app/ModuleView.cpp:186
 #, kde-format
 msgid "Reset all current changes to previous values"
 msgstr "Nulstil alle nuværende ændringer til tidligere værdier"
 
-#: app/ModuleView.cpp:278
+#: app/ModuleView.cpp:279
 #, kde-format
 msgctxt "@info:whatsthis"
 msgid "Scrollable area"
-msgstr ""
+msgstr "Område der kan scrolles i"
 
-#: app/ModuleView.cpp:368
+#: app/ModuleView.cpp:373
 #, kde-format
 msgid ""
 "The current page has unsaved changes.\n"
@@ -157,7 +157,7 @@ msgstr ""
 "Den nuværende side har ikke-gemte ændringer.\n"
 "Anvend ændringerne eller forkast dem?"
 
-#: app/ModuleView.cpp:373
+#: app/ModuleView.cpp:378
 #, kde-format
 msgid "Apply Settings"
 msgstr "Anvend indstillinger"
@@ -178,7 +178,15 @@ msgstr "Vis i menu"
 msgid "Plasma"
 msgstr "Plasma"
 
-#: app/SettingsBase.cpp:144
+#: app/qml/SubCategoryPage.qml:74
+#, fuzzy, kde-format
+#| msgid "Back"
+msgctxt "@action:button go back"
+msgid "Back"
+msgstr "Tilbage"
+
+#. i18n: ectx: label, entry (HighlightNonDefaultSettings), group (systemsettings_sidebar_mode)
+#: app/SettingsBase.cpp:144 app/systemsettings-config.kcfg:8
 #, kde-format
 msgid "Highlight Changed Settings"
 msgstr "Fremhæv ændrede indstillinger"
@@ -188,9 +196,9 @@ msgstr "Fremhæv ændrede indstillinger"
 msgctxt ""
 "@option:check the pages being referred to here are System Settings KCMs"
 msgid "Show Inapplicable Pages"
-msgstr ""
+msgstr "Vis problematiske sider"
 
-#: app/SettingsBase.cpp:163
+#: app/SettingsBase.cpp:167
 #, kde-format
 msgid "Report a Bug in the Current Page…"
 msgstr "Rapportér en fejl på den nuværende side…"
@@ -205,13 +213,13 @@ msgstr "Sidepanel"
 msgid "Most Used"
 msgstr "Mest brugte"
 
-#: runner/systemsettingsrunner.cpp:32
+#: runner/systemsettingsrunner.cpp:33
 #, kde-format
 msgid "Finds system settings modules whose names or descriptions match :q:"
 msgstr ""
 "Finder systemindstillingsmoduler hvis navn eller beskrivelse indeholder :q:"
 
-#: runner/systemsettingsrunner.cpp:112
+#: runner/systemsettingsrunner.cpp:122
 #, kde-format
 msgid "System Information"
 msgstr "Systeminformation"
@@ -322,9 +330,6 @@ msgstr "Systeminformation"
 
 #~ msgid "About Active Module"
 #~ msgstr "Om dette modul"
-
-#~ msgid "Back"
-#~ msgstr "Tilbage"
 
 #~ msgid "Configure your system"
 #~ msgstr "Indstil dit system"

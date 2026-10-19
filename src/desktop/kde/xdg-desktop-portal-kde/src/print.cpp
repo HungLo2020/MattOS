@@ -189,12 +189,12 @@ static const StandardPageSize qt_pageSizes[] = {
 // Return key name for PageSize
 static QString qt_keyForPageSizeId(QPageSize::PageSizeId id)
 {
-    for (const auto &pagesize : qt_pageSizes) {
-        if (id == pagesize.id) {
-            return QString::fromLatin1(pagesize.mediaOption);
-        }
+    auto pageSize = std::ranges::find(qt_pageSizes, id, [](const StandardPageSize &pageSize) {
+        return pageSize.id;
+    });
+    if (pageSize != std::ranges::end(qt_pageSizes)) {
+        return QString::fromLatin1(pageSize->mediaOption);
     }
-
     return QLatin1String("Custom");
 }
 
@@ -205,10 +205,11 @@ static QPageSize::PageSizeId qt_idForPpdKey(const QString &ppdKey)
         return QPageSize::Custom;
     }
 
-    for (int i = 0; i <= int(QPageSize::LastPageSize); ++i) {
-        if (QLatin1String(qt_pageSizes[i].mediaOption) == ppdKey) {
-            return qt_pageSizes[i].id;
-        }
+    auto pageSize = std::ranges::find(qt_pageSizes, ppdKey, [](const StandardPageSize &pageSize) {
+        return QLatin1StringView(pageSize.mediaOption);
+    });
+    if (pageSize != std::ranges::end(qt_pageSizes)) {
+        return pageSize->id;
     }
     return QPageSize::Custom;
 }
@@ -774,7 +775,7 @@ QStringList PrintPortal::optionPageMargins(const QPrinter *printer)
 QStringList PrintPortal::optionCupsProperties(const QPrinter *printer)
 {
     QStringList dialogOptions = printer->printEngine()->property(QPrintEngine::PrintEnginePropertyKey(0xfe00)).toStringList();
-    QStringList cupsOptions;
+    QStringList options;
 
     for (int i = 0; i < dialogOptions.count(); i = i + 2) {
         // Ignore some cups properties as the pdf we get is already formatted using these
@@ -783,13 +784,13 @@ QStringList PrintPortal::optionCupsProperties(const QPrinter *printer)
         }
 
         if (dialogOptions[i + 1].isEmpty()) {
-            cupsOptions << QStringLiteral("-o") << dialogOptions[i];
+            options << QStringLiteral("-o") << dialogOptions[i];
         } else {
-            cupsOptions << QStringLiteral("-o") << dialogOptions[i] + QLatin1Char('=') + dialogOptions[i + 1];
+            options << QStringLiteral("-o") << dialogOptions[i] + QLatin1Char('=') + dialogOptions[i + 1];
         }
     }
 
-    return cupsOptions;
+    return options;
 }
 
 QStringList PrintPortal::optionMedia(const QPrinter *printer)

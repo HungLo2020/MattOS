@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2024-10-18 17:02+0100\n"
 "Last-Translator: Steve Allewell <steve.allewell@gmail.com>\n"
 "Language-Team: British English\n"
@@ -95,12 +95,10 @@ msgstr ""
 "fine if applied"
 
 #: ui/KeyBindings.qml:18
-#, fuzzy, kde-format
-#| msgctxt "@action:button"
-#| msgid "Configure Switching…"
+#, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Configure Switching…"
+msgid "Key Bindings"
+msgstr "Key Bindings"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -140,13 +138,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Add Layout"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Short layout name"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -156,13 +154,13 @@ msgstr ""
 "The abbreviated name of the selected layout, which will be displayed in the "
 "system tray. You can change this setting yourself."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Shortcut:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -562,22 +560,25 @@ msgstr ""
 "Modifier keys can be used to type additional characters, symbols, and "
 "diacritical marks."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
 msgstr[0] "%1 shortcut"
 msgstr[1] "%1 shortcuts"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "None"
 
+#, fuzzy
+#~| msgctxt "@action:button"
+#~| msgid "Configure Switching…"
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Key Bindings"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Configure Switching…"
 
 #~ msgctxt "@option:radio"
 #~ msgid "Turn Off"

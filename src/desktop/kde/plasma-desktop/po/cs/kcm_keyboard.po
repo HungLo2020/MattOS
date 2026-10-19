@@ -4,22 +4,23 @@
 # Lukáš Tinkl <ltinkl@redhat.com>, 2010, 2011.
 # Tomáš Chvátal <tomas.chvatal@gmail.com>, 2013.
 # SPDX-FileCopyrightText: 2021, 2024, 2025 Vit Pelcak <vit@pelcak.org>
+# SPDX-FileCopyrightText: 2026 Libor Filípek <libor.filipek@gmail.com>
 #
 # SPDX-FileCopyrightText: 2026 Jan Papez (honyczek)
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
-"PO-Revision-Date: 2026-01-27 18:41+0100\n"
-"Last-Translator: Jan Papez (honyczek) <honyczek@centrum.cz>\n"
-"Language-Team: Czech <kde-i18n-cs@kde.org>\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-06-19 11:30+0200\n"
+"Last-Translator: Libor Filípek <libor.filipek@gmail.com>\n"
+"Language-Team: Czech <kde-i18n-doc@kde.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -98,8 +99,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Nastavit klávesové zkratky..."
+msgid "Key Bindings"
+msgstr "Klávesové zkratky"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -137,13 +138,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Přidat rozvržení"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Krátký název rozvržení"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -153,13 +154,13 @@ msgstr ""
 "Zkrácený název vybraného rozvržení, který bude zobrazený v systémové liště. "
 "Toto nastavení si můžete změnit."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Zkratka:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -546,7 +547,7 @@ msgstr ""
 "Modifikační klávesy lze použít k zadávání dalších znaků, symbolů a "
 "diakritických znamének."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
@@ -554,8 +555,12 @@ msgstr[0] "%1 zkratka"
 msgstr[1] "%1 zkratky"
 msgstr[2] "%1 zkratek"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Žádné"
+
+#~ msgctxt "@title"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Nastavit klávesové zkratky..."

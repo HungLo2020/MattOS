@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=qt6,qt
 Name=Qt6 Online Documentation
+Name[am]=Qt6 Online ሰነዶች
 Name[ar]=توثيق عبر الإنترنت كيوت7
 Name[az]=Qt6 onlayn sənədləşməsi
 Name[be]=Сеціўная дакументацыя Qt6
@@ -42,6 +43,8 @@ Name[lg]=Ebiwandiko Ebikwata ku Qt6
 Name[lt]=Qt6 dokumentacija internete
 Name[lv]=„Qt6“ tiešsaistes dokumentācija
 Name[my]=ကျူတီ၆ အွန်လိုင်းဒိုကူမန်တေးရှင်း
+Name[nan_TW]=Qt6 線頂文件
+Name[nan_TW@latin]=Qt6 Suànn-tíng Bûn-kiānn
 Name[nb]=Qt6-dokumentasjon på nett
 Name[nl]=Qt6 online-documentatie
 Name[nn]=Qt6-dokumentasjon på nett
@@ -64,6 +67,7 @@ Name[vi]=Tài liệu trực tuyến Qt6
 Name[zh_CN]=Qt6 在线文档
 Name[zh_TW]=Qt6 線上說明文件
 Query=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
+Query[am]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[ar]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[az]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[be]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
@@ -103,6 +107,8 @@ Query[lg]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[lt]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[lv]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[my]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
+Query[nan_TW]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
+Query[nan_TW@latin]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[nb]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[nl]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[nn]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
@@ -119,7 +125,6 @@ Query[sq]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[sv]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[th]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[tr]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
-Query[ug]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[uk]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[vi]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}
 Query[zh_CN]=https://doc.qt.io/qt-6/search-results.html?q=\\{@}

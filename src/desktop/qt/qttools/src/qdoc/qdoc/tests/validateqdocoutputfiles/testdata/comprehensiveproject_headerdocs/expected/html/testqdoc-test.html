@@ -4,6 +4,7 @@
   <meta charset="utf-8">
 <!-- testcpp.h -->
   <meta name="description" content="A class in a namespace.">
+  <meta name="keywords" content="class">
   <title>TestQDoc::Test Class | Qt 6.2.11</title>
 </head>
 <body>
@@ -31,7 +32,7 @@
 <p>A class in a namespace. <a href="#details">More...</a></p>
 <!-- @@@Test -->
 <div class="table"><table class="alignedsummary requisites" translate="no">
-<tr><td class="memItemLeft rightAlign topAlign"> Header:</td><td class="memItemRight bottomAlign"> <code translate="no">#include &lt;Test&gt;</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Header:</td><td class="memItemRight bottomAlign"> <code translate="no">#include &lt;testcpp.h&gt;</code></td></tr>
 <tr><td class="memItemLeft rightAlign topAlign"> CMake:</td><td class="memItemRight bottomAlign"> <code translate="no">find_package(Qt6 REQUIRED COMPONENTS QDocTest)</code><br/>
 <code translate="no">target_link_libraries(mytarget PRIVATE Qt6::QDocTest)</code></td></tr>
 <tr><td class="memItemLeft rightAlign topAlign"> qmake:</td><td class="memItemRight bottomAlign"> <code translate="no">QT += testcpp</code></td></tr>
@@ -99,6 +100,7 @@
 <!-- @@@SomeType -->
 <!-- $$$Specialized -->
 <h3 class="fn" translate="no" id="Specialized-typedef"><code class="details extra" translate="no">[alias]</code> template &lt;typename T&gt; Test::<span class="name">Specialized</span></h3>
+<p><i translate="no">T</i> is the specialization type.</p>
 <!-- @@@Specialized -->
 </div>
 <div class="prop">
@@ -110,7 +112,7 @@
 <div class="func">
 <h2>Member Function Documentation</h2>
 <!-- $$$Test[overload1]$$$Test -->
-<h3 class="fn" translate="no" id="Test">Test::<span class="name">Test</span>()</h3>
+<h3 class="fn" translate="no" id="Test"><code class="details extra" translate="no">[<a href="https://en.cppreference.com/w/cpp/language/function#Deleted_functions" translate="no">delete</a>]</code> Test::<span class="name">Test</span>()</h3>
 <p>The constructor is deleted.</p>
 <!-- @@@Test -->
 <!-- $$$funcPtr[overload1]$$$funcPtrboolconstchar* -->
@@ -136,8 +138,8 @@
 <!-- $$$methodWithEnDashInItsDocs[overload1]$$$methodWithEnDashInItsDocs -->
 <h3 class="fn" translate="no" id="methodWithEnDashInItsDocs"><span class="type">void</span> Test::<span class="name">methodWithEnDashInItsDocs</span>()</h3>
 <p>This method has en dashes in its documentation &ndash; as you'll find represented by <code translate="no">--</code> in the sources &ndash; here and there. The important bit to note is that when passed e.g. to the <span translate="no">\c</span> command, the two hyphens are processed as input to the command and not replaced by an en dash. This also applies to code blocks, where otherwise, the decrement operator would get completely borked:</p>
-<pre class="cpp" translate="no"><span class="keyword">for</span> (<span class="type">int</span> i <span class="operator">=</span> <span class="number">42</span>; i <span class="operator">&gt;</span> <span class="number">0</span>; <span class="operator">-</span><span class="operator">-</span>i)
-    <span class="comment">// Do something cool during countdown.</span></pre>
+<pre class="cpp" translate="no"><code class="cpp"><span class="keyword">for</span> (<span class="type">int</span> i <span class="operator">=</span> <span class="number">42</span>; i <span class="operator">&gt;</span> <span class="number">0</span>; <span class="operator">-</span><span class="operator">-</span>i)
+    <span class="comment">// Do something cool during countdown.</span></code></pre>
 <p>...as it would be silly if this would output &ndash;i instead of <code translate="no">--i</code>.</p>
 <p>-----------------------------------------------------------------------</p>
 <p>It still allows people to add a bunch of dashes, though, without replacing them all with a series of en dashes. Of course, they might want to use the <span translate="no">\hr</span> command instead, like this:</p>
@@ -172,7 +174,7 @@
 <p>Conversion operator.</p>
 <!-- @@@operator bool -->
 <!-- $$$operator=[overload1]$$$operator=TestQDoc::Test&& -->
-<h3 class="fn" translate="no" id="operator-eq"><span class="type"><a href="testqdoc-test.html" translate="no">TestQDoc::Test</a></span> &amp;Test::<span class="name">operator=</span>(<span class="type"><a href="testqdoc-test.html" translate="no">TestQDoc::Test</a></span> &amp;&amp;<i>other</i>)</h3>
+<h3 class="fn" translate="no" id="operator-eq"><code class="details extra" translate="no">[<a href="https://en.cppreference.com/w/cpp/language/function#Deleted_functions" translate="no">delete</a>]</code> <span class="type"><a href="testqdoc-test.html" translate="no">TestQDoc::Test</a></span> &amp;Test::<span class="name">operator=</span>(<span class="type"><a href="testqdoc-test.html" translate="no">TestQDoc::Test</a></span> &amp;&amp;<i>other</i>)</h3>
 <p>The move assignment operator is deleted. <i translate="no">other</i> cannot be moved from.</p>
 <!-- @@@operator= -->
 </div>

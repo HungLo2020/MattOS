@@ -8,33 +8,30 @@ msgstr ""
 "Project-Id-Version: freespacenotifier\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
 "POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2013-09-08 07:05+0900\n"
-"Last-Translator: Gheyret Kenji <gheyret@gmail.com>\n"
+"PO-Revision-Date: 2026-06-01 18:15-0400\n"
+"Last-Translator: Abduqadir Abliz <sahranbay@gmail.com>\n"
 "Language-Team: Uyghur Computer Science Association <UKIJ@yahoogroups.com>\n"
 "Language: ug\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.9\n"
 
 #: freespacenotifier.cpp:121
 #, kde-format
 msgid "Open in Filelight"
-msgstr ""
+msgstr "Filelight تا ئاچ"
 
 #: freespacenotifier.cpp:127
-#, fuzzy, kde-format
-#| msgctxt "Opens a file manager like dolphin"
-#| msgid "Open File Manager"
+#, kde-format
 msgid "Open in File Manager"
-msgstr "ھۆججەت باشقۇرغۇچنى ئاچ"
+msgstr "ھۆججەت باشقۇرغۇچتا ئاچ"
 
 #: freespacenotifier.cpp:134
-#, fuzzy, kde-format
-#| msgctxt "Allows the user to configure the warning notification being shown"
-#| msgid "Configure Warning"
+#, kde-format
 msgid "Configure Warning…"
-msgstr "ئاگاھلاندۇرۇش سەپلىمىسى"
+msgstr "ئاگاھلاندۇرۇش سەپلەيدۇ…"
 
 #. i18n: ectx: label, entry (minimumSpace), group (General)
 #: freespacenotifier.kcfg:9
@@ -44,10 +41,11 @@ msgstr "ئەركىن دىسكا بوشلۇقى ئاز قالغاندا ئۇقت�
 
 #. i18n: ectx: label, entry (minimumSpacePercentage), group (General)
 #: freespacenotifier.kcfg:15
-#, fuzzy, kde-format
-#| msgid "Minimum free space before user starts being notified."
+#, kde-format
 msgid "Minimum percentage free space before user starts being notified."
-msgstr "ئەركىن دىسكا بوشلۇقى ئاز قالغاندا ئۇقتۇرىدىغان دەسلەپكى قىممەت."
+msgstr ""
+"ئەركىن دىسكا بوشلۇقى ئاز قالغاندا ئۇقتۇرىدىغان ئەڭ تۆۋەن بوسۇغا قىممىتىنىڭ "
+"پىرسەنتى."
 
 #. i18n: ectx: label, entry (enableNotification), group (General)
 #: freespacenotifier.kcfg:21
@@ -59,32 +57,31 @@ msgstr "قالغان ئەركىن دىسكا بوشلۇقى ئۇقتۇرۇشىن
 #: freespacenotifier_prefs_base.ui:17
 #, kde-format
 msgid "Enable low disk space warning"
-msgstr "دىسكىدىكى بوشلۇقى ئاز ئاگاھلاندۇرۇشىنى قوزغات"
+msgstr "دىسكىدىكى بوشلۇق ئاز ئاگاھلاندۇرۇشىنى قوزغىتىدۇ"
 
 #. i18n: ectx: property (text), widget (QLabel, label_minimumSpace)
 #: freespacenotifier_prefs_base.ui:27
 #, kde-format
 msgid "Warn when free space is below:"
-msgstr "ئەركىن دىسكا بوشلۇقى ئاز قالغاندا ئاگاھلاندۇر:"
+msgstr "ئەركىن دىسكا بوشلۇقى ئاز قالغاندا ئاگاھلاندۇرىدۇ:"
 
 #. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_minimumSpace)
 #: freespacenotifier_prefs_base.ui:37
 #, kde-format
 msgid " MiB"
-msgstr " مېگابايت"
+msgstr " MiB"
 
 #. i18n: ectx: property (text), widget (QLabel, label_minimumSpacePercentage)
 #: freespacenotifier_prefs_base.ui:44
-#, fuzzy, kde-format
-#| msgid "Warn when free space is below:"
+#, kde-format
 msgid "And when free space is under:"
-msgstr "ئەركىن دىسكا بوشلۇقى ئاز قالغاندا ئاگاھلاندۇر:"
+msgstr "ئەركىن دىسكا بوشلۇقى بۇ قىممەتتىن كىچىك بولغاندا:"
 
 #. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_minimumSpacePercentage)
 #: freespacenotifier_prefs_base.ui:54
 #, no-c-format, kde-format
 msgid "%"
-msgstr ""
+msgstr "%"
 
 #. i18n: ectx: property (text), widget (QLabel, label_info)
 #: freespacenotifier_prefs_base.ui:67
@@ -93,6 +90,8 @@ msgid ""
 "The system will notify you if the free space drops below the specified MiB "
 "and the specified percentage of available space."
 msgstr ""
+"ئەگەر ئىشلەتكىلى بولىدىغان ئەركىن بوشلۇق ۋە ئېنىقلىما بېرىلگەن پىرسەنتى "
+"بەلگىلەنگەن MiB قىممىتىدىن تۆۋەن بولغاندا سىستېما سىزگە ئۇقتۇرىدۇ."
 
 #: module.cpp:121
 #, kde-format
@@ -100,6 +99,8 @@ msgid ""
 "Your %1 partition is running out of disk space; %2 MiB of space remaining "
 "(%3%)."
 msgstr ""
+"سىزنىڭ %1 دىسكا رايونىڭىزنىڭ دىسكا بوشلۇقى تۈگەي دەپ قالدى؛ %2MiB بوشلۇق "
+"قالدى (%3%)."
 
 #: module.cpp:123
 #, kde-format
@@ -107,6 +108,8 @@ msgid ""
 "Your Root partition is running out of disk space; %1 MiB of space remaining "
 "(%2%)."
 msgstr ""
+"سىزنىڭ غول‎‏ دىسكا رايونىڭىزنىڭ دىسكا بوشلۇقى تۈگەي دەپ قالدى؛ %1MiB بوشلۇق "
+"قالدى (%2%)."
 
 #: module.cpp:125
 #, kde-format
@@ -114,6 +117,7 @@ msgid ""
 "Your Home folder is running out of disk space; %1 MiB of space remaining "
 "(%2%)."
 msgstr ""
+"باش قىسقۇچىڭىزنىڭ دىسكا بوشلۇقى تۈگەي دەپ قالدى؛ %1MiB بوشلۇق قالدى (%2%)."
 
 #: module.cpp:150
 #, kde-format

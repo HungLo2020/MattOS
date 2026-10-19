@@ -9,6 +9,10 @@
     \ingroup tools
     \reentrant
 
+    QSpan\<T, E\> is a template class where \a T is the element type and \a E
+    is the extent (number of elements, or \c{std::dynamic_extent} for a
+    variable-sized span).
+
     A QSpan references a contiguous portion of another contiguous container.
     It acts as an interface type for all kinds of contiguous containers,
     without the need to construct an owning container such as QList or

@@ -7,13 +7,12 @@
  */
 
 /**
- * This application sole purpose is to launch an X11 rootless compositor compositor (first
- * argument) and as soon as it's set up to launch a client (second argument)
+ * This application sole purpose is to launch an X11 rootless compositor compositor and as soon as it's set up to launch a client (second argument)
  */
 
 #include "MessageHandler.h"
-#include "SignalHandler.h"
 #include "xorguserhelper.h"
+#include <KSignalHandler>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QProcess>
@@ -30,13 +29,16 @@ int main(int argc, char **argv)
 {
     qInstallMessageHandler(X11UserHelperMessageHandler);
     QCoreApplication app(argc, argv);
-    PLASMALOGIN::SignalHandler s;
-    QObject::connect(&s, &PLASMALOGIN::SignalHandler::sigtermReceived, &app, [] {
-        QCoreApplication::instance()->exit(-1);
+    auto sig = KSignalHandler::self();
+    sig->watchSignal(SIGTERM);
+    QObject::connect(sig, &KSignalHandler::signalReceived, &app, [](int s) {
+        if (s == SIGTERM) {
+            QCoreApplication::instance()->exit(0);
+        }
     });
 
     Q_ASSERT(::getuid() != 0);
-    if (argc != 3) {
+    if (argc != 2) {
         QTextStream(stderr) << "Wrong number of arguments\n";
         return 33;
     }
@@ -49,7 +51,7 @@ int main(int argc, char **argv)
     });
     QObject::connect(&helper, &XOrgUserHelper::displayChanged, &app, [&helper, &app] {
         qDebug() << "starting XOrg Greeter..." << helper.sessionEnvironment().value(QStringLiteral("DISPLAY"));
-        auto args = QProcess::splitCommand(app.arguments()[2]);
+        auto args = QProcess::splitCommand(app.arguments()[1]);
 
         QProcess *process = new QProcess(&app);
         process->setProcessChannelMode(QProcess::ForwardedChannels);
@@ -57,9 +59,9 @@ int main(int argc, char **argv)
         process->setArguments(args);
         process->setProcessEnvironment(helper.sessionEnvironment());
         process->start();
-        QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), &app, &QCoreApplication::quit);
+        QObject::connect(process, &QProcess::finished, &app, &QCoreApplication::quit);
     });
 
-    helper.start(app.arguments()[1]);
+    helper.start();
     return app.exec();
 }

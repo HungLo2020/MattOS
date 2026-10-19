@@ -11,17 +11,24 @@
 
 #include <QtQuick>
 #include <QtQml>
+#include <QtQuick/private/qquickrectangle_p.h>
+#include <QtTest/QSignalSpy>
 
 #if QT_CONFIG(opengl)
 #include <private/qopenglcontext_p.h>
 #endif
 
 #include <QtGui/qrawfont.h>
+#include <QtGui/qtextdocument.h>
+
+#include <QtQuick/qsgtextnode.h>
 
 #include <private/qsgcontext_p.h>
 #include <private/qsgrenderloop_p.h>
 #include <private/qsgrhisupport_p.h>
 #include <private/qsgplaintexture_p.h>
+#include <private/qsgnode_p.h>
+#include <private/qquickitem_p.h>
 
 #include <QtQuickTestUtils/private/qmlutils_p.h>
 #include <QtQuickTestUtils/private/visualtestutils_p.h>
@@ -101,7 +108,18 @@ private slots:
     void resizeTextureFromImage();
     void textureNativeInterface();
     void distanceFieldCacheInvalidation();
+    void pregeneratedDistanceFieldCache_data();
+    void pregeneratedDistanceFieldCache();
     void unexposeDuringPolish();
+
+#ifdef QT_BUILD_INTERNAL
+    void mutabilityGroups();
+#endif
+
+    void sgTextNode_data();
+    void sgTextNode();
+    void sgInternalTextNodeRecycle_data();
+    void sgInternalTextNodeRecycle();
 
 private:
     QQuickView *createView(const QString &file, QWindow *parent = nullptr, int x = -1, int y = -1, int w = -1, int h = -1);
@@ -374,6 +392,7 @@ void tst_SceneGraph::render_data()
         u"render_OpacityThroughBatchRoot.qml"_s,
         u"render_Mipmap.qml"_s,
         u"render_AlphaOverlapRebuild.qml"_s,
+        u"render_MutabilityGroups.qml"_s,
     };
 
     QRegularExpression sampleCount("#samples: *(\\d+)");
@@ -892,6 +911,77 @@ void tst_SceneGraph::distanceFieldCacheInvalidation()
     }
 }
 
+void tst_SceneGraph::pregeneratedDistanceFieldCache_data()
+{
+    QTest::addColumn<QString>("fontFileName");
+    QTest::addColumn<bool>("expectLoaded");
+
+    // Various tests for
+    QTest::newRow("control, one 64x64 texture") << QStringLiteral("ok_single.ttf") << true;
+    QTest::newRow("control, two 64x64 textures") << QStringLiteral("ok_double.ttf") << true;
+    QTest::newRow("control, two 64x64 textures") << QStringLiteral("ok_double.ttf") << true;
+    QTest::newRow("allocatedWidth -1, height 256 -> size -256") << QStringLiteral("neg_single.ttf") << true;
+    QTest::newRow("allocatedWidth -1, height 1024 -> size -1024, pointer slides back 1 KB") << QStringLiteral("neg_double.ttf") << true;
+    QTest::newRow("allocatedWidth INT_MIN -> size -2147483648") << QStringLiteral("wild.ttf") << true;
+
+    // In the 5.12 version of the qtdf format, the texture size in the header
+    // is the slice height of the stacked area allocator, and the texture
+    // holding a glyph that crosses a slice boundary is taller than this.
+    QTest::newRow("multiple textures, version 5.12")
+            << QStringLiteral("qtdf_multitexture_5_12.ttf") << true;
+
+    // QTBUG-149508: an allocated height with the high bit set becomes
+    // negative when narrowed to int, defeating the payload bounds check.
+    // Such geometry must be rejected.
+    QTest::newRow("invalid geometry, version 5.12")
+            << QStringLiteral("qtdf_invalidgeometry_5_12.ttf") << false;
+}
+
+void tst_SceneGraph::pregeneratedDistanceFieldCache()
+{
+    if (!isRunningOnRhi())
+        QSKIP("Skipping complex rendering tests due to not running with QRhi");
+
+    QFETCH(QString, fontFileName);
+    QFETCH(bool, expectLoaded);
+
+    const int fontId = QFontDatabase::addApplicationFont(testFile(fontFileName));
+    QVERIFY(fontId >= 0);
+    const auto cleanup = qScopeGuard([fontId] { QFontDatabase::removeApplicationFont(fontId); });
+
+    const QStringList families = QFontDatabase::applicationFontFamilies(fontId);
+    QVERIFY(!families.isEmpty());
+
+    // Verify that the font resolves and carries a pregenerated cache, so that
+    // the text below cannot accidentally pass by using another font or by
+    // generating distance fields dynamically.
+    QCOMPARE(QFontInfo(QFont(families.first())).family(), families.first());
+    {
+        const QRawFont rawFont(testFile(fontFileName), 32.0);
+        QVERIFY(rawFont.isValid());
+        QVERIFY(!rawFont.fontTable("qtdf").isEmpty());
+    }
+
+    // The scene renders "ABC" with the given font. The pregenerated cache
+    // contains the glyphs for "A" and "B" in the first texture, where "B"
+    // crosses the boundary into the next slice, and "C" in the second
+    // texture. The distance field data marks the glyphs' texture rects as
+    // fully inside, so if (and only if) the pregenerated cache is loaded, the
+    // glyphs are rendered as solid boxes.
+    QQuickView view;
+    view.setInitialProperties({{ QStringLiteral("fontFamily"), families.first() }});
+    view.setSource(testFileUrl(QLatin1String("pregeneratedDistanceFieldCache.qml")));
+    view.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&view));
+
+    const QImage content = view.grabWindow();
+    QVERIFY(!content.isNull());
+    if (expectLoaded)
+        QVERIFY(containsSomethingOtherThanWhite(content));
+    else
+        QVERIFY(!containsSomethingOtherThanWhite(content));
+}
+
 class NotificationItem : public QQuickItem
 {
     Q_OBJECT
@@ -957,6 +1047,458 @@ void tst_SceneGraph::unexposeDuringPolish()
     QVERIFY(waitForWindowUnexposed(&view));
     QVERIFY(!view.isExposed());
     QVERIFY(!view.isVisible());
+}
+
+#ifdef QT_BUILD_INTERNAL
+void tst_SceneGraph::mutabilityGroups()
+{
+    QQuickView view;
+    view.setSource(testFileUrl(QLatin1String("simple.qml")));
+    view.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&view));
+
+    QQuickItem *rootItem = view.rootObject();
+    QVERIFY(rootItem);
+
+    // Default mutability group
+    QQuickRectangle *rect1 = new QQuickRectangle(rootItem);
+    rect1->setWidth(100);
+    rect1->setHeight(100);
+    rect1->setColor(Qt::red);
+    QCOMPARE(rect1->mutabilityGroup(), int(QQuickItem::AutoMutabilityGroup));
+
+    view.grabWindow(); // Force a frame to create nodes
+
+    QQuickItemPrivate *rect1Private = QQuickItemPrivate::get(rect1);
+
+    {
+        QSGNode *node1 = rect1Private->paintNode;
+        QVERIFY(node1);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(node1), quint8(QQuickItem::AutoMutabilityGroup));
+    }
+
+    // Change mutability group
+    QSignalSpy spy(rect1, &QQuickItem::mutabilityGroupChanged);
+    rect1->setMutabilityGroup(QQuickItem::StaticMutabilityGroup);
+    QCOMPARE(rect1->mutabilityGroup(), int(QQuickItem::StaticMutabilityGroup));
+    QCOMPARE(spy.count(), 1);
+
+    view.grabWindow();
+
+    {
+        QSGNode *node1 = rect1Private->paintNode;
+        QVERIFY(node1);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(node1), quint8(QQuickItem::StaticMutabilityGroup));
+    }
+
+    // Set mutability group to Dynamic updates
+    rect1->setMutabilityGroup(QQuickItem::DynamicMutabilityGroup);
+    QCOMPARE(rect1->mutabilityGroup(), int(QQuickItem::DynamicMutabilityGroup));
+    QCOMPARE(spy.count(), 2);
+
+    view.grabWindow();
+    {
+        QSGNode *node1 = rect1Private->paintNode;
+        QVERIFY(node1);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(node1), quint8(QQuickItem::DynamicMutabilityGroup));
+    }
+
+    // Setting identical value for group does not re-emit
+    rect1->setMutabilityGroup(QQuickItem::DynamicMutabilityGroup);
+    QCOMPARE(spy.count(), 2);
+
+    // Test value clamping
+    rect1->setMutabilityGroup(255);
+    QCOMPARE(rect1->mutabilityGroup(), quint8(15));
+
+    // Parent-child relationships
+    QQuickRectangle *parent = new QQuickRectangle(rootItem);
+    parent->setWidth(200);
+    parent->setHeight(200);
+    parent->setMutabilityGroup(QQuickItem::StaticMutabilityGroup);
+
+    QQuickRectangle *child1 = new QQuickRectangle(parent);
+    child1->setWidth(50);
+    child1->setHeight(50);
+    QCOMPARE(child1->mutabilityGroup(), int(QQuickItem::AutoMutabilityGroup));
+
+    QQuickRectangle *child2 = new QQuickRectangle(parent);
+    child2->setWidth(50);
+    child2->setHeight(50);
+    child2->setMutabilityGroup(QQuickItem::ModerateMutabilityGroup);
+    QCOMPARE(child2->mutabilityGroup(), int(QQuickItem::ModerateMutabilityGroup));
+
+    view.grabWindow();
+
+    QQuickItemPrivate *parentPrivate = QQuickItemPrivate::get(parent);
+    QVERIFY(parentPrivate);
+
+    QQuickItemPrivate *childPrivate1 = QQuickItemPrivate::get(child1);
+    QVERIFY(childPrivate1);
+
+    QQuickItemPrivate *childPrivate2 = QQuickItemPrivate::get(child2);
+    QVERIFY(childPrivate2);
+
+    // Parent should have its mutability group
+    {
+        QSGNode *parentNode = parentPrivate->paintNode;
+        QVERIFY(parentNode);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(parentNode), quint8(QQuickItem::StaticMutabilityGroup));
+    }
+
+    // Child should not inherit parent's mutability group in the scene graph
+    {
+        QSGNode *childNode1 = childPrivate1->paintNode;
+        QVERIFY(childNode1);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(childNode1), quint8(QQuickItem::AutoMutabilityGroup));
+    }
+
+    {
+        QSGNode *childNode2 = childPrivate2->paintNode;
+        QVERIFY(childNode2);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(childNode2), quint8(QQuickItem::ModerateMutabilityGroup));
+    }
+
+    // Changing parent's mutability group should not propagate to children
+    parent->setMutabilityGroup(QQuickItem::DynamicMutabilityGroup);
+    view.grabWindow();
+
+    {
+        QSGNode *parentNode = parentPrivate->paintNode;
+        QVERIFY(parentNode);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(parentNode), quint8(QQuickItem::DynamicMutabilityGroup));
+    }
+
+    {
+        QSGNode *childNode1 = childPrivate1->paintNode;
+        QVERIFY(childNode1);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(childNode1), quint8(QQuickItem::AutoMutabilityGroup));
+    }
+
+    {
+        QSGNode *childNode2 = childPrivate2->paintNode;
+        QVERIFY(childNode2);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(childNode2), quint8(QQuickItem::ModerateMutabilityGroup));
+    }
+
+    // Updating child mutability group
+    child1->setMutabilityGroup(QQuickItem::StaticMutabilityGroup);
+    view.grabWindow();
+
+    {
+        QSGNode *parentNode = parentPrivate->paintNode;
+        QVERIFY(parentNode);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(parentNode), quint8(QQuickItem::DynamicMutabilityGroup));
+    }
+
+    {
+        QSGNode *childNode1 = childPrivate1->paintNode;
+        QVERIFY(childNode1);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(childNode1), quint8(QQuickItem::StaticMutabilityGroup));
+    }
+
+    {
+        QSGNode *childNode2 = childPrivate2->paintNode;
+        QVERIFY(childNode2);
+        QCOMPARE(QSGNodePrivate::mutabilityGroup(childNode2), quint8(QQuickItem::ModerateMutabilityGroup));
+    }
+}
+#endif // QT_BUILD_INTERNAL
+
+class CustomTextItem : public QQuickItem {
+public:
+    CustomTextItem(const QUrl &imgUrl)
+        : m_imgUrl(imgUrl)
+    {
+        setFlag(ItemHasContents);
+    }
+
+    QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
+    {
+        Q_D(QQuickItem);
+        delete oldNode;
+
+        QSGTextNode *node = window()->createTextNode();
+
+        if (!m_imgUrl.isEmpty()) {
+            QTextDocument textDocument;
+            textDocument.setHtml(QStringLiteral("<html><body>Text هناك<u>Underline</u><img src=\"%1\" width=20 height=20 />").arg(m_imgUrl.toString()));
+
+            node->addTextDocument(QPointF(0, 0), &textDocument, 0, 3);
+        } else {
+            QTextLayout textLayout;
+            textLayout.setText(QStringLiteral("Text هناك"));
+            textLayout.beginLayout();
+            textLayout.createLine();
+            textLayout.endLayout();
+
+            node->addTextLayout(QPointF(0, 0), &textLayout, 0, 3);
+        }
+
+        return node;
+    }
+
+private:
+    Q_DECLARE_PRIVATE(QQuickItem)
+
+    QUrl m_imgUrl;
+};
+
+class ChildNodeRegister : public QSGNodeVisitorEx
+{
+public:
+    ChildNodeRegister()
+    {
+    }
+
+    bool visit(QSGTransformNode *node) override
+    {
+        Q_UNREACHABLE();
+        return false;
+    }
+
+    void endVisit(QSGTransformNode *) override
+    {
+    }
+
+    bool visit(QSGClipNode *node) override
+    {
+        return false;
+    }
+
+    void endVisit(QSGClipNode *) override
+    {
+    }
+
+    bool visit(QSGGeometryNode *) override
+    {
+        return false;
+    }
+
+    void endVisit(QSGGeometryNode *) override
+    {
+    }
+
+    bool visit(QSGOpacityNode *) override
+    {
+        return false;
+    }
+
+    void endVisit(QSGOpacityNode *) override
+    {
+    }
+
+    bool visit(QSGInternalImageNode *) override
+    {
+        hasImageNode = true;
+        return false;
+    }
+
+    void endVisit(QSGInternalImageNode *) override
+    {
+    }
+
+    bool visit(QSGPainterNode *) override
+    {
+        return false;
+    }
+
+    void endVisit(QSGPainterNode *) override
+    {
+    }
+
+    bool visit(QSGInternalRectangleNode *) override
+    {
+        return false;
+    }
+
+    void endVisit(QSGInternalRectangleNode *) override
+    {
+    }
+
+    bool visit(QSGGlyphNode *) override
+    {
+        hasGlyphNode = true;
+        return false;
+    }
+
+    void endVisit(QSGGlyphNode *) override
+    {
+    }
+
+    bool visit(QSGRootNode *) override
+    {
+        return false;
+    }
+
+    void endVisit(QSGRootNode *) override
+    {
+    }
+
+#if QT_CONFIG(quick_sprite)
+    bool visit(QSGSpriteNode *) override
+    {
+        return false;
+    }
+
+    void endVisit(QSGSpriteNode *) override
+    {
+    }
+#endif
+    bool visit(QSGRenderNode *) override
+    {
+        return false;
+    }
+
+    void endVisit(QSGRenderNode *) override
+    {
+    }
+
+    bool hasImageNode = false;
+    bool hasGlyphNode = false;
+};
+
+
+void tst_SceneGraph::sgTextNode_data()
+{
+    QTest::addColumn<QUrl>("imgUrl");
+
+    QTest::newRow("text layout") << QUrl{};
+    QTest::newRow("text document") << testFileUrl(QLatin1String("blacknwhite.png"));
+}
+
+void tst_SceneGraph::sgTextNode()
+{
+    QFETCH(QUrl, imgUrl);
+
+    QQuickView view;
+    view.setSource(testFileUrl("simple.qml"));
+    view.setResizeMode(QQuickView::SizeViewToRootObject);
+    view.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&view));
+
+    CustomTextItem *item = new CustomTextItem(imgUrl);
+    item->setParentItem(view.rootObject());
+    item->setParent(view.rootObject());
+
+    view.grabWindow(); // Create nodes
+
+    QQuickItemPrivate *d = QQuickItemPrivate::get(item);
+    QVERIFY(d);
+    QVERIFY(d->paintNode);
+    QVERIFY(d->paintNode->childCount());
+
+    ChildNodeRegister reg;
+    QSGNode *node = d->paintNode->firstChild();
+    while (node != nullptr) {
+        if (node->flags().testFlag(QSGNode::IsVisitableNode)) {
+            QSGVisitableNode *visitableNode = static_cast<QSGVisitableNode *>(node);
+            visitableNode->accept(&reg);
+        }
+
+        node = node->nextSibling();
+    }
+
+    QVERIFY(reg.hasGlyphNode);
+    QCOMPARE(reg.hasImageNode, !imgUrl.isEmpty());
+}
+
+void tst_SceneGraph::sgInternalTextNodeRecycle_data()
+{
+    QTest::addColumn<QUrl>("imgUrl");
+    QTest::addColumn<QQuickText::RenderType>("renderType");
+
+    QTest::newRow("Text layout, Qt Rendering") << QUrl{} << QQuickText::QtRendering;
+    QTest::newRow("Text document, Qt Rendering") << testFileUrl(QLatin1String("blacknwhite.png")) << QQuickText::QtRendering;
+
+    QTest::newRow("Text layout, Native Rendering") << QUrl{} << QQuickText::NativeRendering;
+    QTest::newRow("Text document, Native Rendering") << testFileUrl(QLatin1String("blacknwhite.png")) << QQuickText::NativeRendering;
+
+    QTest::newRow("Text layout, Curve Rendering") << QUrl{} << QQuickText::CurveRendering;
+    QTest::newRow("Text document, Curve Rendering") << testFileUrl(QLatin1String("blacknwhite.png")) << QQuickText::CurveRendering;
+}
+
+void tst_SceneGraph::sgInternalTextNodeRecycle()
+{
+    QFETCH(QUrl, imgUrl);
+    QFETCH(QQuickText::RenderType, renderType);
+
+    QQuickView view;
+    view.setSource(testFileUrl("simple.qml"));
+    view.setResizeMode(QQuickView::SizeViewToRootObject);
+    view.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&view));
+
+    QQuickText *textItem = view.rootObject()->findChild<QQuickText *>();
+    QVERIFY(textItem);
+    textItem->setRenderType(renderType);
+
+    view.grabWindow(); // Create nodes
+
+    QQuickItemPrivate *d = QQuickItemPrivate::get(textItem);
+    QVERIFY(d);
+
+    {
+        QVERIFY(d->paintNode);
+    }
+
+    if (imgUrl.isEmpty()) {
+        textItem->setText(QStringLiteral("<u>Tex</u>t هناك"));
+    } else {
+        textItem->setTextFormat(QQuickText::RichText);
+        textItem->setText(QStringLiteral("<html><body>Text هناك<u>Underline</u><img src=\"%1\" width=20 height=20 />").arg(imgUrl.toString()));
+    }
+
+    view.grabWindow();
+
+    // Did we successfully make some nodes?
+    {
+        ChildNodeRegister reg;
+        QSGNode *node = d->paintNode->firstChild();
+        while (node != nullptr) {
+            if (node->flags().testFlag(QSGNode::IsVisitableNode)) {
+                QSGVisitableNode *visitableNode = static_cast<QSGVisitableNode *>(node);
+                visitableNode->accept(&reg);
+            }
+
+            node = node->nextSibling();
+        }
+
+        QVERIFY(reg.hasGlyphNode);
+        QCOMPARE(reg.hasImageNode, !imgUrl.isEmpty());
+    }
+
+    // Replace with a single glyph and check that everything else was cleared out
+    textItem->setText(QStringLiteral("a"));
+    view.grabWindow();
+
+    QSGNode *childNode = nullptr;
+    {
+        QVERIFY(d->paintNode);
+        QCOMPARE(d->paintNode->childCount(), 1);
+        childNode = d->paintNode->childAtIndex(0);
+    }
+
+    // Replace single glyph with single glyph and verify that glyph node is reused
+    // Skip this test for CurveRendering, since we don't recycle curve-rendered nodes currently.
+    if (renderType != QQuickText::CurveRendering) {
+        textItem->setText(QStringLiteral("b"));
+        view.grabWindow();
+
+        {
+            QVERIFY(d->paintNode);
+            QCOMPARE(d->paintNode->childCount(), 1);
+            QCOMPARE(d->paintNode->childAtIndex(0), childNode);
+        }
+    }
+
+    textItem->setText(QString{});
+    view.grabWindow();
+
+    {
+        QVERIFY(!d->paintNode);
+    }
+
 }
 
 #include "tst_scenegraph.moc"

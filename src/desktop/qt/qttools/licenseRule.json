@@ -28,6 +28,11 @@
                    "comment": "",
                    "file type": "test",
                    "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only"]
+                  },
+            "src/qdoc/qdoc/tests/validatetemplategeneratoroutput/testdata/.*/expected/": {
+                   "comment": "Templates are distributed with QDoc; their license propagates to generated output",
+                   "file type": "test",
+                   "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"]
                   }
        }
     },
@@ -44,8 +49,9 @@
         }
     },
     {
-        "file_pattern_ending": [".qdoc", ".qdocinc" , ".qdocconf", ".qdoc.sample", "README.md",
-                                 "README", "qt_attribution.json", "README_test.chromium"],
+        "file_pattern_ending": [".qdoc", ".qdocinc" , ".qdocconf", ".qdoc.sample",
+                                "README.md", "README", "README_test.chromium", "CONTRIBUTING.md",
+                                "qt_attribution.json"],
         "location":{
             "": {
                 "comment": "",
@@ -58,6 +64,42 @@
                 "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only"]
             },
             "src/qdoc/qdoc/tests/validateqdocoutputfiles/testdata/(?!REUSE.toml)": {
+                "comment": "",
+                "file type": "test",
+                "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only"]
+            },
+            "src/qdoc/qdoc/tests/multimoduleconfigurations/testdata/(?!REUSE.toml)": {
+                "comment": "",
+                "file type": "test",
+                "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only"]
+            },
+            "src/qdoc/qdoc/tests/validatetemplategeneratoroutput/testdata/qtlottie_validation/src/": {
+                "comment": "Test data adapted from qtlottie.git; original license headers preserved",
+                "file type": "test",
+                "spdx": ["LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only",
+                          "LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0",
+                          "LicenseRef-Qt-Commercial OR GPL-3.0-only"]
+            },
+            "src/qdoc/qdoc/tests/validatetemplategeneratoroutput/testdata/qtlottie_validation/examples/": {
+                "comment": "Test data adapted from qtlottie.git; original license headers preserved",
+                "file type": "test",
+                "spdx": ["LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only",
+                          "LicenseRef-Qt-Commercial OR BSD-3-Clause"]
+            },
+            "src/qdoc/qdoc/tests/validatetemplategeneratoroutput/testdata/cppref_validation/src/": {
+                "comment": "Test data adapted from qtcoap.git; original license headers preserved",
+                "file type": "test",
+                "spdx": ["LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only",
+                          "LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0",
+                          "LicenseRef-Qt-Commercial OR GPL-3.0-only"]
+            },
+            "src/qdoc/qdoc/tests/validatetemplategeneratoroutput/testdata/cppref_validation/examples/": {
+                "comment": "Test data adapted from qtcoap.git; original license headers preserved",
+                "file type": "test",
+                "spdx": ["LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only",
+                          "LicenseRef-Qt-Commercial OR BSD-3-Clause"]
+            },
+            "src/qdoc/qdoc/tests/validatetemplategeneratoroutput/testdata/(?!REUSE.toml)": {
                 "comment": "",
                 "file type": "test",
                 "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only"]
@@ -85,6 +127,11 @@
                 "comment": "",
                 "file type": "test",
                 "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only"]
+            },
+            "tests/auto/cmake/linguist/xcodebuild_wrapper.sh": {
+                "comment": "Test utility script for QTBUG-138855",
+                "file type": "test",
+                "spdx": ["BSD-3-Clause"]
             },
             "(.*)(examples/|snippets/)": {
                 "comment": "Example takes precedence",
@@ -183,6 +230,16 @@
                 "comment": "",
                 "file type": "test",
                 "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only"]
+            },
+            "src/qdoc/qdoc/tests/validatetemplategeneratoroutput/testdata/.*/expected/": {
+                "comment": "Templates are distributed with QDoc; their license propagates to generated output",
+                "file type": "test",
+                "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"]
+            },
+            "src/qdoc/qdoc/tests/validatetemplategeneratoroutput/testdata/.*/template/": {
+                "comment": "Templates are distributed with QDoc and carry the qdoc tool license; fixture stays byte-identical to the qtbase deployment",
+                "file type": "test",
+                "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"]
             },
             "src/qdoc/qdoc/tests/": {
                 "comment": "",

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwinscreenedges\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
-"PO-Revision-Date: 2025-08-04 20:18+0400\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
+"PO-Revision-Date: 2026-07-04 21:42+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -18,72 +18,72 @@ msgstr ""
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
 "X-Generator: Lokalize 23.08.5\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "لا إجراء"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "نظرة على سطح المكتب"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "اقفل الشّاشة"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "أظهر مشغل.ك"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "مدير الأنشطة"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "مُطلق التّطبيقات"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "النوافذ الحاضرة"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 - كلّ أسطح المكتب"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 - سطح المكتب الحاليّ"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 - التّطبيق الحاليّ"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "نظرة عامة"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "الشبكة"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "بدّل تنقل النوافذ"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "بدّل تنقل النوافذ البديل"
@@ -92,7 +92,7 @@ msgstr "بدّل تنقل النوافذ البديل"
 #: main.ui:23
 #, kde-format
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
 msgstr ""
 "يمكنك تشغيل إجراء عن طريق دفع مؤشر الفأرة لحافة الشاشة أو الزاوية الحالية."
@@ -107,7 +107,7 @@ msgstr "&كبّر:"
 #: main.ui:77
 #, kde-format
 msgid "Windows dragged to top edge"
-msgstr "النوافذ المسحوبة إلى الحافة العليا"
+msgstr "النوافذ المسحوبة إلى الحافة العُليا"
 
 #. i18n: ectx: property (text), widget (QLabel, quickTileLabel)
 #: main.ui:84
@@ -131,7 +131,7 @@ msgstr "السّلوك:"
 #: main.ui:108
 #, kde-format
 msgid "Remain active when windows are fullscreen"
-msgstr "ابق نشط عندما تكون النوافذ ملء الشاشة"
+msgstr "ابقِ نشط عندما تكون النوافذ ملء الشاشة"
 
 #. i18n: ectx: property (text), widget (QLabel, electricBorderCornerRatioLabel)
 #: main.ui:115
@@ -161,7 +161,8 @@ msgstr "من الشّاشة"
 #: main.ui:174
 #, kde-format
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
 msgstr "غيّر سطح المكتب عند الدّفع بمؤشّر الفأرة إلى حافّة الشّاشة"
 
 #. i18n: ectx: property (text), widget (QLabel, desktopSwitchLabel)
@@ -193,7 +194,7 @@ msgstr "ممكّن دائمًا"
 #: main.ui:206
 #, kde-format
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
 msgstr ""
 "كمّ الوقت اللازم قبل تحفيز الإجراء بعد الدّفع بمؤشّر الفأرة إلى حافّة الشّاشة"
@@ -236,7 +237,7 @@ msgstr "&حاجز الزاوية:"
 #, kde-format
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
@@ -250,7 +251,7 @@ msgstr ""
 #: main.ui:283
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
+msgid "Prevents the pointer from crossing at screen corners."
 msgstr "يمنع المؤشرات من العبور في زوايا الشاشة."
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
@@ -278,7 +279,7 @@ msgstr ""
 #: main.ui:303
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
+msgid "Additional distance the pointer needs to travel to cross screen edges."
 msgstr "المسافة الإضافية يحتاج المؤشر إلى قطعها لعبور حواف الشاشة."
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, kcfg_EdgeBarrier)

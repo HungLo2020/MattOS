@@ -14,6 +14,8 @@
 #include <qnamespace.h>
 #include <qtmetamacros.h>
 
+#include "configview.h"
+#include "containmentview.h"
 #include "plasmashellwaylandintegration.h"
 #include "transientplacementhint_p.h"
 #include "utils.h"
@@ -29,10 +31,11 @@ public:
     void updateEffectivePopupDirection(const QRect &anchorRect, const QRect &relativePopupPosition);
     void updateSlideEffect(const QRect &globalPosition);
     void updatePosition();
-    void updatePositionX11(const QPoint &position);
-    void updatePositionWayland(const QPoint &position);
+    void updatePosition(const QPoint &position);
     void updateBorders(const QRect &globalPosition);
     void updateVisualParentWindow();
+
+    void handleFocusChanged();
 
     PopupPlasmaWindow *q;
     QPointer<QQuickItem> m_visualParent;
@@ -41,6 +44,7 @@ public:
     bool m_needsReposition = false;
     bool m_floating = false;
     bool m_animated = false;
+    bool m_hideOnWindowDeactivate = false;
     int m_margin = 0;
     Qt::Edge m_popupDirection = Qt::TopEdge;
     Qt::Edge m_effectivePopupDirection = Qt::TopEdge;
@@ -172,21 +176,14 @@ void PopupPlasmaWindowPrivate::updatePosition()
     updateEffectivePopupDirection(parentAnchorRect.toRect(), relativePopupPosition);
     updateSlideEffect(popupPosition);
 
-    if (KWindowSystem::isPlatformX11()) {
-        updatePositionX11(popupPosition.topLeft());
-    } else if (KWindowSystem::isPlatformWayland()) {
-        updatePositionWayland(popupPosition.topLeft());
+    if (KWindowSystem::isPlatformWayland()) {
+        updatePosition(popupPosition.topLeft());
     }
 
     updateBorders(popupPosition);
 }
 
-void PopupPlasmaWindowPrivate::updatePositionX11(const QPoint &position)
-{
-    q->setPosition(position);
-}
-
-void PopupPlasmaWindowPrivate::updatePositionWayland(const QPoint &position)
+void PopupPlasmaWindowPrivate::updatePosition(const QPoint &position)
 {
     // still update's Qt internal reference as it's used by the next dialog
     // this can be dropped when we're using true semantic positioning in the backend
@@ -278,6 +275,33 @@ void PopupPlasmaWindowPrivate::updateVisualParentWindow()
     }
 }
 
+void PopupPlasmaWindowPrivate::handleFocusChanged()
+{
+    const QWindow *focusWindow = QGuiApplication::focusWindow();
+    if (m_hideOnWindowDeactivate && focusWindow != q) {
+        bool parentHasFocus = false;
+
+        QWindow *parentWindow = q->transientParent();
+
+        while (parentWindow) {
+            if (parentWindow->isActive() && !(parentWindow->flags() & Qt::WindowDoesNotAcceptFocus)) {
+                parentHasFocus = true;
+                break;
+            }
+
+            parentWindow = parentWindow->transientParent();
+        }
+
+        bool childHasFocus = focusWindow && ((focusWindow->isActive() && q->isAncestorOf(focusWindow)) || (focusWindow->type() & Qt::Popup) == Qt::Popup);
+
+        const bool viewClicked = qobject_cast<const PlasmaQuick::ContainmentView *>(focusWindow) || qobject_cast<const ConfigView *>(focusWindow);
+
+        if (viewClicked || (!parentHasFocus && !childHasFocus)) {
+            q->setVisible(false);
+        }
+    }
+}
+
 PopupPlasmaWindow::PopupPlasmaWindow(const QString &svgPrefix)
     : PlasmaWindow(svgPrefix)
     , d(new PopupPlasmaWindowPrivate(this))
@@ -285,6 +309,10 @@ PopupPlasmaWindow::PopupPlasmaWindow(const QString &svgPrefix)
     if (KWindowSystem::isPlatformWayland()) {
         PlasmaShellWaylandIntegration::get(this)->setTakesFocus(true);
     }
+
+    QObject::connect(static_cast<QGuiApplication *>(QCoreApplication::instance()), &QGuiApplication::focusWindowChanged, this, [this]() {
+        d->handleFocusChanged();
+    });
 }
 
 PopupPlasmaWindow::~PopupPlasmaWindow()
@@ -367,6 +395,20 @@ void PopupPlasmaWindow::setAnimated(bool animated)
     d->m_animated = animated;
     queuePositionUpdate();
     Q_EMIT animatedChanged();
+}
+
+bool PopupPlasmaWindow::hideOnWindowDeactivate() const
+{
+    return d->m_hideOnWindowDeactivate;
+}
+
+void PopupPlasmaWindow::setHideOnWindowDeactivate(bool hideOnWindowDeactivate)
+{
+    if (hideOnWindowDeactivate == d->m_hideOnWindowDeactivate) {
+        return;
+    }
+    d->m_hideOnWindowDeactivate = hideOnWindowDeactivate;
+    Q_EMIT hideOnWindowDeactivateChanged();
 }
 
 PopupPlasmaWindow::RemoveBorders PopupPlasmaWindow::removeBorderStrategy() const

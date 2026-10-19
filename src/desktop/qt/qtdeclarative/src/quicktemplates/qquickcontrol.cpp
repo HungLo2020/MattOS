@@ -20,6 +20,8 @@
 #include "qquickapplicationwindow_p_p.h"
 #include "qquickdeferredexecute_p_p.h"
 #include "qquickcontentitem_p.h"
+#include "qquicktooltip_p.h"
+#include "qquicktooltip_p_p.h"
 
 #if QT_CONFIG(accessibility)
 #include <QtQuick/private/qquickaccessibleattached_p.h>
@@ -2158,6 +2160,7 @@ void QQuickControl::fontChange(const QFont &newFont, const QFont &oldFont)
 #if QT_CONFIG(quicktemplates2_hover)
 void QQuickControl::hoverChange()
 {
+    QQuickToolTipAttachedPrivate::maybeSetVisibleImplicitly(this, isHovered());
 }
 #endif
 

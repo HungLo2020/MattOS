@@ -1,8 +1,13 @@
 # Add RunCMake tests using `add_RunCMake_test()`
 
 qt_internal_add_RunCMake_test(QtFlagHandlingHelpers)
+qt_internal_add_RunCMake_test(QtPrlHelpers)
+
+qt_internal_add_RunCMake_test(AutomocParser)
 
 qt_internal_add_RunCMake_test(find_package)
+
+qt_internal_add_RunCMake_test(ConfigVersionOverride)
 
 set(extra_run_cmake_args "")
 if(TARGET Qt::Gui)
@@ -29,6 +34,10 @@ endif()
 
 if(WIN32 AND TARGET Qt::Gui AND QT6_IS_SHARED_LIBS_BUILD)
     qt_internal_add_RunCMake_test(WinDeployQtLockedFile)
+endif()
+
+if(QT6_IS_SHARED_LIBS_BUILD AND NOT CMAKE_CROSSCOMPILING)
+    qt_internal_add_RunCMake_test(QtGenerateDeployScript)
 endif()
 
 if(TARGET Qt6::Platform)

@@ -21,8 +21,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_xwayland_server_crash-0");
-
 class XwaylandServerCrashTest : public QObject
 {
     Q_OBJECT
@@ -35,7 +33,7 @@ private Q_SLOTS:
 void XwaylandServerCrashTest::initTestCase()
 {
     qRegisterMetaType<X11Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     KSharedConfig::Ptr config = KSharedConfig::openConfig(QString(), KConfig::SimpleConfig);
     KConfigGroup xwaylandGroup = config->group(QStringLiteral("Xwayland"));
@@ -113,8 +111,8 @@ void XwaylandServerCrashTest::testCrash()
     QCOMPARE(kwinApp()->x11RootWindow(), XCB_WINDOW_NONE);
 
     // Render a frame to ensure that the compositor doesn't crash.
-    Compositor::self()->scene()->addRepaintFull();
-    QSignalSpy frameRenderedSpy(Compositor::self()->scene(), &WorkspaceScene::frameRendered);
+    kwinApp()->scene()->addRepaintFull();
+    QSignalSpy frameRenderedSpy(kwinApp()->scene(), &WorkspaceScene::frameRendered);
     QVERIFY(frameRenderedSpy.wait());
 }
 

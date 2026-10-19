@@ -230,6 +230,7 @@ Window {
 
                         anchors.centerIn: parent
                         scale: Number.isNaN(s) ? 1 : 0.5 * s
+                        asynchronous: true
 
 //! [textShape]
                         ShapePath {

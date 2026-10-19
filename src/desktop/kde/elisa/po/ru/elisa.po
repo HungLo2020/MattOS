@@ -244,19 +244,19 @@ msgstr "Альбом:"
 #, kde-format
 msgctxt "@label:textbox Album artist for track metadata view"
 msgid "Album artist"
-msgstr "Исполнитель альбома"
+msgstr "Исполнитель альбома:"
 
 #: models/trackmetadatamodel.cpp:540
 #, kde-format
 msgctxt "@label:textbox Track number for track metadata view"
 msgid "Track number"
-msgstr "Номер дорожки"
+msgstr "Номер дорожки:"
 
 #: models/trackmetadatamodel.cpp:543
 #, kde-format
 msgctxt "@label:textbox Disc number for track metadata view"
 msgid "Disc number"
-msgstr "Номер диска"
+msgstr "Номер диска:"
 
 #: models/trackmetadatamodel.cpp:546
 #, kde-format
@@ -304,13 +304,13 @@ msgstr "Каналов:"
 #, kde-format
 msgctxt "@label:textbox Bit rate label for track metadata view"
 msgid "Bit rate"
-msgstr "Битрейт"
+msgstr "Битрейт:"
 
 #: models/trackmetadatamodel.cpp:570
 #, kde-format
 msgctxt "@label:textbox Sample Rate label for track metadata view"
 msgid "Sample rate"
-msgstr "Частота дискретизации"
+msgstr "Частота дискретизации:"
 
 #: models/trackmetadatamodel.cpp:573
 #, kde-format
@@ -401,7 +401,7 @@ msgstr "Воспроизвести и заменить список воспро
 #, kde-format
 msgctxt "@action:button"
 msgid "Play next"
-msgstr "Воспроизвести далее"
+msgstr "Воспроизвести следующим"
 
 #: qml/AbstractBrowserDelegate.qml:54 qml/TrackBrowserDelegate.qml:82
 #, kde-format
@@ -432,7 +432,7 @@ msgstr "Совпадений не найдено"
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "Nothing to display"
-msgstr "Ничего не найдено"
+msgstr "Нечего показать"
 
 #: qml/ApplicationMenu.qml:19 qml/NativeTrayMenu.qml:18
 #, kde-format
@@ -866,7 +866,7 @@ msgstr ""
 #, kde-format
 msgctxt "@action:button"
 msgid "Edit Playlist File"
-msgstr "Редактировать файл списка воспроизведений"
+msgstr "Редактировать файл списка воспроизведения"
 
 #: qml/MediaPlayListView.qml:304
 #, kde-format
@@ -1097,7 +1097,7 @@ msgstr "Следующая дорожка"
 #, kde-format
 msgctxt "@action:button"
 msgid "Track Options"
-msgstr "Свойства дорожки"
+msgstr "Параметры дорожки"
 
 #: qml/mobile/MobilePlayListDelegate.qml:147 qml/PlayListEntry.qml:365
 #, kde-format
@@ -1484,7 +1484,8 @@ msgid ""
 msgstr ""
 "При использовании этого параметра потребуется вручную обновлять коллекцию "
 "музыки при каждом добавлении новых файлов в настроенные папки с музыкой. Это "
-"можно сделать с помощью параметра в раскрывающемся меню."
+"можно сделать с помощью пункта <interface>Искать новые файлы</interface> в "
+"меню приложения."
 
 #: qml/SettingsForm.qml:150
 #, kde-format
@@ -1496,7 +1497,7 @@ msgstr "Способ оценки:"
 #, kde-format
 msgctxt "@option:radio"
 msgid "0-5 stars"
-msgstr "0-5 звёзд"
+msgstr "0–5 звёзд"
 
 #: qml/SettingsForm.qml:166
 #, kde-format
@@ -1572,7 +1573,7 @@ msgstr "Жанры"
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Initial view on startup:"
-msgstr "Режим при запуске :"
+msgstr "Вид при запуске:"
 
 #: qml/SettingsForm.qml:289
 #, kde-format
@@ -1585,7 +1586,7 @@ msgstr "Сейчас проигрывается"
 #, kde-format
 msgctxt "@item:inlistbox Title of the view of recently played tracks"
 msgid "Recently Played"
-msgstr "Последние"
+msgstr "Недавно воспроизведённые"
 
 #: qml/SettingsForm.qml:291
 #, kde-format
@@ -1633,7 +1634,7 @@ msgstr "Радиостанции"
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Initial location for Files view:"
-msgstr "Начальное расположение для режима просмотра «Файлы»"
+msgstr "Начальное расположение для режима просмотра «Файлы»:"
 
 #: qml/SettingsForm.qml:331
 #, kde-format
@@ -1804,7 +1805,7 @@ msgstr "По убыванию"
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "A–Z"
-msgstr "А-Я"
+msgstr "А–Я"
 
 #: viewmanager.cpp:44 viewmanager.cpp:57 viewmanager.cpp:71 viewmanager.cpp:85
 #: viewmanager.cpp:104 viewmanager.cpp:105 viewslistdata.cpp:63
@@ -1813,7 +1814,7 @@ msgstr "А-Я"
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Z–A"
-msgstr "Я-А"
+msgstr "Я–А"
 
 #: viewmanager.cpp:55 viewmanager.cpp:83
 #, kde-format
@@ -1924,7 +1925,7 @@ msgstr "Сейчас проигрывается"
 #, kde-format
 msgctxt "@title:window Title of the view of recently played tracks"
 msgid "Recently Played"
-msgstr "Последние"
+msgstr "Недавно воспроизведённые"
 
 #: viewslistdata.cpp:35
 #, kde-format

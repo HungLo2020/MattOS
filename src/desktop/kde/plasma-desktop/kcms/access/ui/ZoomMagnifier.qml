@@ -13,44 +13,17 @@ import org.kde.kirigami as Kirigami
 import org.kde.kquickcontrols as KQuickControls
 import org.kde.kwindowsystem
 
-Kirigami.FormLayout {
+Kirigami.Form {
     id: pageLayout
 
-    QQC2.RadioButton {
-        id: zoomRadioButton
-        QQC2.ButtonGroup.group: effectGroup
-        Kirigami.FormData.label: i18nc("@label, followed by 'full screen' or 'magnify region'", "Zoom:")
-
-        text: i18nc("@option:check, enable zoom effect, following 'Zoom:'", "Full screen")
-        checked: kcm.zoomMagnifierSettings.zoom
-        onToggled: { kcm.zoomMagnifierSettings.zoom = true; kcm.zoomMagnifierSettings.magnifier = false; }
-
-        QQC2.ButtonGroup { id: effectGroup }
-
-        KCM.SettingHighlighter { highlight: !kcm.zoomMagnifierSettings.zoom }
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-
-        spacing: 0
-
-        Item {
-            // Provide indentation for child FormLayout
-            implicitWidth: Application.layoutDirection === Qt.RightToLeft ? magnifierRadioButton.contentItem.rightPadding : magnifierRadioButton.contentItem.leftPadding
-        }
-
-        Kirigami.FormLayout {
-            id: zoomLayout
-
-            twinFormLayouts: magnifierLayout
-            wideMode: pageLayout.wideMode
-
-            enabled: kcm.zoomMagnifierSettings.zoom
-
-            QQC2.SpinBox {
+    component FullScreenZoomSettingsModel : ObjectModel {
+        id: objectModel
+        property bool visible: kcm.zoomMagnifierSettings.zoom
+        Kirigami.FormEntry {
+            visible: objectModel.visible
+            title: i18nc("@label:spinbox", "Show pixel grid at zoom level:")
+            contentItem: QQC2.SpinBox {
                 id: zoomPixelGridZoomSpinBox
-                Kirigami.FormData.label: i18nc("@label:spinbox", "Show pixel grid at zoom level:")
 
                 from: toInt(0)
                 to: toInt(100)
@@ -80,26 +53,13 @@ Kirigami.FormLayout {
                     settingName: "ZoomPixelGridZoom"
                 }
             }
+        }
 
-            QQC2.ComboBox {
-                Kirigami.FormData.label: i18nc("@label:listbox", "Pointer appearance:")
-
-                model: [i18nc("@item:inlistbox", "Scale"), i18nc("@item:inlistbox", "Keep"), i18nc("@item:inlistbox", "Hide")]
-                currentIndex: kcm.zoomMagnifierSettings.zoomMousePointer
-                onActivated: (index) => kcm.zoomMagnifierSettings.zoomMousePointer = index
-
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 15
-
-                KCM.SettingStateBinding {
-                    configObject: kcm.zoomMagnifierSettings
-                    settingName: "ZoomMousePointer"
-                }
-            }
-
-            Component {
-                id: mouseTrackingItemDelegate
-
-                QQC2.ItemDelegate {
+        Kirigami.FormEntry {
+            visible: objectModel.visible
+            title: i18nc("@label:listbox", "Pointer tracking:")
+            contentItem: QQC2.ComboBox {
+                delegate: QQC2.ItemDelegate {
                     id: delegate
 
                     required property string title
@@ -117,12 +77,6 @@ Kirigami.FormLayout {
                         wrapMode: Text.Wrap
                     }
                 }
-            }
-
-            QQC2.ComboBox {
-                Kirigami.FormData.label: i18nc("@label:listbox", "Pointer tracking:")
-
-                delegate: mouseTrackingItemDelegate
                 model: [
                     {
                         title: i18nc("@item:inlistbox", "Proportional"),
@@ -161,20 +115,25 @@ Kirigami.FormLayout {
                     settingName: "ZoomMouseTracking"
                 }
             }
+        }
 
-            QQC2.CheckBox {
-                text: i18nc("@option:check", "Enable focus tracking")
-                checked: kcm.zoomMagnifierSettings.zoomEnableFocusTracking
-                onCheckedChanged: kcm.zoomMagnifierSettings.zoomEnableFocusTracking = checked
-                visible: KWindowSystem.isPlatformX11
+        Kirigami.FormEntry {
+            visible: objectModel.visible
+            contentItem: QQC2.CheckBox {
+                text: i18nc("@option:check", "Sharpen screen content while zoomed in")
+                checked: kcm.zoomMagnifierSettings.zoomUsePatternUpscaler
+                onCheckedChanged: kcm.zoomMagnifierSettings.zoomUsePatternUpscaler = checked
 
                 KCM.SettingStateBinding {
                     configObject: kcm.zoomMagnifierSettings
-                    settingName: "ZoomEnableFocusTracking"
+                    settingName: "ZoomUsePatternUpscaler"
                 }
             }
+        }
 
-            QQC2.CheckBox {
+        Kirigami.FormEntry {
+            visible: objectModel.visible
+            contentItem: QQC2.CheckBox {
                 text: i18nc("@option:check", "Enable text caret tracking")
                 checked: kcm.zoomMagnifierSettings.zoomEnableTextCaretTracking
                 onCheckedChanged: kcm.zoomMagnifierSettings.zoomEnableTextCaretTracking = checked
@@ -187,38 +146,14 @@ Kirigami.FormLayout {
         }
     }
 
-    QQC2.RadioButton {
-        id: magnifierRadioButton
-        QQC2.ButtonGroup.group: effectGroup
-
-        text: i18nc("@option:check, enable magnify effect, following 'Zoom:'", "Magnify region")
-        checked: kcm.zoomMagnifierSettings.magnifier
-        onToggled: { kcm.zoomMagnifierSettings.zoom = false; kcm.zoomMagnifierSettings.magnifier = true; }
-
-        KCM.SettingHighlighter { highlight: !kcm.zoomMagnifierSettings.zoom }
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-
-        spacing: 0
-
-        Item {
-            // Provide indentation for child FormLayout
-            implicitWidth: Application.layoutDirection === Qt.RightToLeft ? magnifierRadioButton.contentItem.rightPadding : magnifierRadioButton.contentItem.leftPadding
-        }
-
-        Kirigami.FormLayout {
-            id: magnifierLayout
-
-            twinFormLayouts: zoomLayout
-            wideMode: pageLayout.wideMode
-
-            enabled: kcm.zoomMagnifierSettings.magnifier
-
-            QQC2.SpinBox {
+    component MagnifierZoomSettingsModel : ObjectModel {
+        id: objectModel
+        property bool visible: kcm.zoomMagnifierSettings.magnifier
+        Kirigami.FormEntry {
+            visible: objectModel.visible
+            title: i18nc("@label:spinbox", "Width:")
+            contentItem: QQC2.SpinBox {
                 id: magnifierWidthSpinBox
-                Kirigami.FormData.label: i18nc("@label:spinbox", "Width:")
 
                 from: 100
                 to: 2000
@@ -240,10 +175,13 @@ Kirigami.FormLayout {
                     settingName: "MagnifierWidth"
                 }
             }
+        }
 
-            QQC2.SpinBox {
+        Kirigami.FormEntry {
+            visible: objectModel.visible
+            title: i18nc("@label:spinbox", "Height:")
+            contentItem: QQC2.SpinBox {
                 id: magnifierHeightSpinBox
-                Kirigami.FormData.label: i18nc("@label:spinbox", "Height:")
 
                 from: 100
                 to: 2000
@@ -268,71 +206,105 @@ Kirigami.FormLayout {
         }
     }
 
-    QQC2.RadioButton {
-        id: noneRadioButton
-        QQC2.ButtonGroup.group: effectGroup
+    Kirigami.FormGroup {
+        Kirigami.FormEntry {
+            title: i18nc("@label, followed by 'full screen' or 'magnify region'", "Zoom:")
+            contentItem: QQC2.RadioButton {
+                id: zoomRadioButton
+                QQC2.ButtonGroup.group: effectGroup
 
-        text: i18nc("@option:check, disable zoom/magnify effect", "Disabled")
-        checked: !(kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier)
-        onToggled: { kcm.zoomMagnifierSettings.zoom = false; kcm.zoomMagnifierSettings.magnifier = false; }
+                text: i18nc("@option:check, enable zoom effect, following 'Zoom:'", "Full screen")
+                checked: kcm.zoomMagnifierSettings.zoom
+                onToggled: { kcm.zoomMagnifierSettings.zoom = true; kcm.zoomMagnifierSettings.magnifier = false; }
 
-        KCM.SettingHighlighter { highlight: !kcm.zoomMagnifierSettings.zoom }
+                QQC2.ButtonGroup { id: effectGroup }
+
+                KCM.SettingHighlighter { highlight: !kcm.zoomMagnifierSettings.zoom }
+            }
+        }
+
+        Kirigami.FormEntry {
+            contentItem: QQC2.RadioButton {
+                id: magnifierRadioButton
+                QQC2.ButtonGroup.group: effectGroup
+
+                text: i18nc("@option:check, enable magnify effect, following 'Zoom:'", "Magnify region")
+                checked: kcm.zoomMagnifierSettings.magnifier
+                onToggled: { kcm.zoomMagnifierSettings.zoom = false; kcm.zoomMagnifierSettings.magnifier = true; }
+
+                KCM.SettingHighlighter { highlight: !kcm.zoomMagnifierSettings.zoom }
+            }
+        }
+
+        Kirigami.FormEntry {
+            contentItem: QQC2.RadioButton {
+                id: noneRadioButton
+                QQC2.ButtonGroup.group: effectGroup
+
+                text: i18nc("@option:check, disable zoom/magnify effect", "Disabled")
+                checked: !(kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier)
+                onToggled: { kcm.zoomMagnifierSettings.zoom = false; kcm.zoomMagnifierSettings.magnifier = false; }
+
+                KCM.SettingHighlighter { highlight: !kcm.zoomMagnifierSettings.zoom }
+            }
+        }
+
+        Kirigami.FormSeparator { visible: kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier}
+
+        Repeater {
+            model: FullScreenZoomSettingsModel {}
+        }
+
+        Repeater {
+            model: MagnifierZoomSettingsModel {}
+        }
+
+        Kirigami.FormSeparator {}
+
+        Kirigami.FormEntry {
+            title: i18nc("@label:spinbox", "Zoom factor:")
+            contentItem: QQC2.SpinBox {
+                id: sharedZoomFactorSpinBox
+
+                from: toInt(1.05)
+                to: toInt(4)
+                stepSize: toInt(0.05)
+
+                validator: IntValidator {
+                    bottom: Math.min(sharedZoomFactorSpinBox.from, sharedZoomFactorSpinBox.to)
+                    top: Math.max(sharedZoomFactorSpinBox.from, sharedZoomFactorSpinBox.to)
+                }
+
+                textFromValue: (value, locale) => fromInt(value).toLocaleString(locale, 'f', 2)
+                valueFromText: (text, locale) => Math.round(toInt(Number.fromLocaleString(locale, text)))
+
+                value: toInt(kcm.zoomMagnifierSettings.sharedZoomFactor)
+                onValueModified: kcm.zoomMagnifierSettings.sharedZoomFactor = fromInt(value)
+
+                function toInt(value: double) : int {
+                    return value * 20;
+                }
+
+                function fromInt(value: int) : double {
+                    return value / 20;
+                }
+
+                KCM.SettingStateBinding {
+                    configObject: kcm.zoomMagnifierSettings
+                    settingName: "SharedZoomFactor"
+                    extraEnabledConditions: kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier
+                }
+            }
+        }
     }
 
-    Item {
-        Kirigami.FormData.isSection: true
-    }
-
-    QQC2.SpinBox {
-        id: sharedZoomFactorSpinBox
-        Kirigami.FormData.label: i18nc("@label:spinbox", "Zoom factor:")
-
-        from: toInt(1.05)
-        to: toInt(4)
-        stepSize: toInt(0.05)
-
-        validator: IntValidator {
-            bottom: Math.min(sharedZoomFactorSpinBox.from, sharedZoomFactorSpinBox.to)
-            top: Math.max(sharedZoomFactorSpinBox.from, sharedZoomFactorSpinBox.to)
-        }
-
-        textFromValue: (value, locale) => fromInt(value).toLocaleString(locale, 'f', 2)
-        valueFromText: (text, locale) => Math.round(toInt(Number.fromLocaleString(locale, text)))
-
-        value: toInt(kcm.zoomMagnifierSettings.sharedZoomFactor)
-        onValueModified: kcm.zoomMagnifierSettings.sharedZoomFactor = fromInt(value)
-
-        function toInt(value: double) : int {
-            return value * 20;
-        }
-
-        function fromInt(value: int) : double {
-            return value / 20;
-        }
-
-        KCM.SettingStateBinding {
-            configObject: kcm.zoomMagnifierSettings
-            settingName: "SharedZoomFactor"
-            extraEnabledConditions: kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier
-        }
-    }
-
-    RowLayout {
-        Kirigami.FormData.label: i18nc("@label", "Scroll gesture modifier keys:")
-
-        spacing: Kirigami.Units.smallSpacing
-
-        Item {
-            // For some reason, here setting enabled directly on
-            // KeySequenceItem does not work, so we wrap it
-            enabled: !kcm.isPlatformX11 && (kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier)
-
-            implicitWidth: zoomPointerAxisGestureModifiersBox.implicitWidth
-            implicitHeight: zoomPointerAxisGestureModifiersBox.implicitHeight
-
-            KQuickControls.KeySequenceItem {
+    Kirigami.FormGroup {
+        Kirigami.FormEntry {
+            title: i18nc("@label", "Scroll gesture modifier keys:")
+            subtitle: i18nc("@label Hint for scroll gestures", "Scroll while modifier keys are pressed to zoom")
+            contentItem: KQuickControls.KeySequenceItem {
                 id: zoomPointerAxisGestureModifiersBox
-
+                enabled: kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier
                 keySequence: kcm.zoomMagnifierSettings.zoomPointerAxisGestureModifiers
                 onKeySequenceModified: kcm.zoomMagnifierSettings.zoomPointerAxisGestureModifiers = keySequence
                 patterns: KQuickControls.ShortcutPattern.Modifier
@@ -353,39 +325,15 @@ Kirigami.FormLayout {
                 }
             }
         }
-
-        Kirigami.ContextualHelpButton {
-            visible: kcm.isPlatformX11
-            toolTipText: i18nc("@info:tooltip, indicates feature unavailable on X11", "Zoom scroll gestures are only available on Wayland.")
+        Kirigami.FormSeparator {}
+        Kirigami.FormAction {
+            enabled: action.enabled
+            action: QQC2.Action {
+                enabled: (kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier)
+                text: i18nc("@action:button", "Configure Shortcuts…")
+                icon.name: "preferences-desktop-keyboard-shortcut"
+                onTriggered: kcm.configureZoomMagnifyShortcuts()
+            }
         }
-    }
-
-    QQC2.Label {
-        enabled: !kcm.isPlatformX11 && zoomPointerAxisGestureModifiersBox.keySequence != ""
-        text: i18nc("@label Hint for scroll gestures", "Scroll while modifier keys are pressed to zoom")
-        textFormat: Text.PlainText
-        wrapMode: Text.Wrap
-        font: Kirigami.Theme.smallFont
-    }
-
-    Item {
-        Kirigami.FormData.isSection: true
-    }
-
-    QQC2.Button {
-        text: i18nc("@action:button", "Configure Shortcuts…")
-        icon.name: "preferences-desktop-keyboard-shortcut"
-
-        enabled: (kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier)
-
-        onClicked: kcm.configureZoomMagnifyShortcuts()
-    }
-
-    QQC2.Label {
-        enabled: (kcm.zoomMagnifierSettings.zoom || kcm.zoomMagnifierSettings.magnifier)
-        text: i18nc("@label Hint for zoom/magnify effect usage", "Use shortcuts to control zoom")
-        textFormat: Text.PlainText
-        wrapMode: Text.Wrap
-        font: Kirigami.Theme.smallFont
     }
 }

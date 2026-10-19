@@ -28,14 +28,9 @@ Item {
     readonly property bool fit: barcodeItem.implicitWidth <= barcodeItem.width && barcodeItem.implicitHeight <= barcodeItem.height
     property alias text: barcodeItem.content
 
-    readonly property var barcodeMap: [
-        {text: i18nd("klipper", "QR Code"), type: Prison.Barcode.QRCode, code: "QRCode"},
-        {text: i18nd("klipper", "Data Matrix"), type: Prison.Barcode.DataMatrix, code: "DataMatrix"},
-        {text: i18ndc("klipper", "Aztec barcode", "Aztec"), type: Prison.Barcode.Aztec, code: "Aztec"},
-        {text: i18nd("klipper", "Code 39"), type: Prison.Barcode.Code39, code: "Code39"},
-        {text: i18nd("klipper", "Code 93"), type: Prison.Barcode.Code93, code: "Code93"},
-        {text: i18nd("klipper", "Code 128"), type: Prison.Barcode.Code128, code: "Code128"}
-    ]
+    readonly property alias copyAction: copyQRButton.action
+
+    required property bool showHeader
 
     Keys.onPressed: event => {
         if (event.key == Qt.Key_Escape) {
@@ -45,43 +40,31 @@ Item {
     }
 
     property PlasmaExtras.PlasmoidHeading header: PlasmaExtras.PlasmoidHeading {
+        visible: barcodeView.showHeader
         RowLayout {
             anchors.fill: parent
-            PlasmaComponents3.Button {
-                Layout.fillWidth: true
+            PlasmaComponents3.ToolButton {
                 icon.name: "go-previous-view"
                 text: i18nd("klipper", "Return to Clipboard")
-                onClicked: barcodeView.stack.popCurrentItem()
-            }
-
-            PlasmaComponents3.Menu {
-                id: menu
-            }
-
-            Instantiator {
-                id: menuItemInstantiator
-                active: barcodeView.expanded && menu.opened
-                asynchronous: true
-                delegate: PlasmaComponents3.MenuItem {
-                    required property var modelData
-                    text: modelData.text
-                    checkable: true
-                    autoExclusive: true
-                    checked: barcodeItem.barcodeType === modelData.type
-
-                    onClicked: {
-                        barcodeView.barcodeType = modelData.code;
-                        Plasmoid.configuration.barcodeType = modelData.code;
-                    }
+                onClicked: {
+                    barcodeView.stack.popCurrentItem()
+                    barcodeView.stack.forceActiveFocus(Qt.OtherFocusReason)
                 }
-                model: barcodeView.barcodeMap
+                visible: barcodeView.showHeader
+            }
 
-                onObjectAdded: (index, object) => menu.insertItem(index, object as PlasmaComponents3.MenuItem)
+            Item {
+                Layout.fillWidth: true
+            }
+
+            Item {
+                Layout.fillWidth: true
             }
 
             PlasmaComponents3.ToolButton {
                 id: copyQRButton
 
+                visible: barcodeView.showHeader
                 action: Kirigami.Action {
                     enabled: barcodeView.valid && barcodeView.fit
                     icon.name: "edit-copy"
@@ -95,26 +78,11 @@ Item {
                                 i18ndc("klipper", "@info:status", "An image of the QR code has been copied to clipboard"), 5000)
                         });
                     }
+                    tooltip: i18ndc("klipper", "@info:tooltip", "Copy QR code image to clipboard")
                 }
 
                 PlasmaComponents3.ToolTip {
-                    text: i18ndc("klipper", "@info:tooltip", "Copy QR code image to clipboard")
-                }
-            }
-
-            PlasmaComponents3.ToolButton {
-                id: configureButton
-                checkable: true
-                checked: menu.opened
-                icon.name: "configure"
-
-                display: PlasmaComponents3.AbstractButton.IconOnly
-                text: i18nd("klipper", "Change the QR code type")
-
-                onClicked: menu.opened ? menu.close() : menu.popup()
-
-                PlasmaComponents3.ToolTip {
-                    text: configureButton.text
+                    text: copyQRButton.action.tooltip
                 }
             }
         }
@@ -143,9 +111,9 @@ Item {
             anchors.fill: parent
             anchors.margins: Kirigami.Units.cornerRadius
 
-            barcodeType: barcodeView.barcodeMap.find(data => data.code === barcodeView.barcodeType)?.type ?? barcodeView.barcodeMap[0].type
+            barcodeType: Prison.Barcode.QRCode
 
-            Accessible.name: barcodeView.barcodeMap.find(data => data.type === barcodeItem.barcodeType)?.text ?? barcodeView.barcodeMap[0].text
+            Accessible.name: i18nd("klipper", "QR Code")
             Accessible.role: Accessible.Graphic
             Drag.dragType: Drag.Automatic
             Drag.supportedActions: Qt.CopyAction
@@ -162,6 +130,7 @@ Item {
                 onActiveChanged: {
                     if (active) {
                         barcodeItem.grabToImage((result) => {
+                            barcodeItem.Drag.imageSource = result.url;
                             barcodeItem.Drag.mimeData = {
                                 "image/png": result.image,
                             };

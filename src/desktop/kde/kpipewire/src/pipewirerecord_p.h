@@ -10,16 +10,24 @@
 
 struct gbm_device;
 struct AVFormatContext;
+struct AVStream;
 class PipeWireProduce;
 
 class PipeWireRecordProduce : public PipeWireProduce
 {
     Q_OBJECT
 public:
-    PipeWireRecordProduce(PipeWireBaseEncodedStream::Encoder encoder, uint nodeId, uint fd, const Fraction &framerate, const QString &output);
+    PipeWireRecordProduce(PipeWireBaseEncodedStream::Encoder encoder,
+                          uint nodeId,
+                          quint64 objectSerial,
+                          uint fd,
+                          const Fraction &framerate,
+                          const QString &output,
+                          AudioSources audioSources);
 
     void processFrame(const PipeWireFrame &frame) override;
     void processPacket(AVPacket *packet) override;
+    void processAudioPacket(AVPacket *packet) override;
     int64_t framePts(const std::optional<std::chrono::nanoseconds> &presentationTimestamp) override;
     void aboutToEncode(PipeWireFrame &frame) override;
     bool setupFormat() override;
@@ -28,9 +36,12 @@ public:
 private:
     const QString m_output;
     AVFormatContext *m_avFormatContext = nullptr;
+    AVStream *m_audioStream = nullptr;
     PipeWireFrame m_frameWithoutMetadataCursor;
 };
 
 struct PipeWireRecordPrivate {
     QString m_output;
+    bool m_recordSystemAudio = false;
+    bool m_recordMicrophone = false;
 };

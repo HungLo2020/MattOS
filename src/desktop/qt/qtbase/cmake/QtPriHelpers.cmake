@@ -371,7 +371,9 @@ function(qt_generate_module_pri_file target)
     if(is_fw)
         qt_internal_get_framework_info(fw ${target})
         set(framework_base_path "$$QT_MODULE_LIB_BASE")
-        set(public_module_includes "${framework_base_path}/${fw_header_dir}")
+        # Expose the non-framework include/QtFoo dir, which holds forwarding
+        # headers, so that non-framework-style includes (<qfoo.h>) work.
+        set(public_module_includes "$$QT_MODULE_INCLUDE_BASE/${module}")
         set(public_module_frameworks "${framework_base_path}")
         set(private_module_includes "")
         qt_internal_append_include_directories_with_headers_check(${target}
@@ -728,7 +730,7 @@ function(qt_generate_global_config_pri_file)
     list(JOIN corrected_qt_public_config " " qt_public_config_joined)
 
     set(content "")
-    if(GCC OR CLANG AND NOT "${CMAKE_SYSROOT}" STREQUAL "")
+    if((GCC OR CLANG) AND NOT "${CMAKE_SYSROOT}" STREQUAL "" AND NOT OHOS)
         string(APPEND content "!host_build {
     QMAKE_CFLAGS    += --sysroot=\$\$[QT_SYSROOT]
     QMAKE_CXXFLAGS  += --sysroot=\$\$[QT_SYSROOT]
@@ -899,6 +901,16 @@ function(qt_generate_global_device_pri_file)
         if(QT_ANDROID_JAVAC_TARGET)
             string(APPEND content "ANDROID_JAVAC_TARGET_VERSION = ${QT_ANDROID_JAVAC_TARGET}\n")
         endif()
+    endif()
+
+    # Write OHOS specific device info.
+    if(OHOS)
+        _qt_internal_harmonyos_get_sdk_ndk_paths(unused_sdk_root ohos_ndk_root)
+        if(ohos_ndk_root)
+            file(TO_CMAKE_PATH "${ohos_ndk_root}" ohos_ndk_root)
+            string(APPEND content "DEFAULT_OHOS_NDK_ROOT = ${ohos_ndk_root}\n")
+        endif()
+        string(APPEND content "DEFAULT_OHOS_TARGET_ARCH = ${OHOS_ARCH}\n")
     endif()
 
     if(QT_APPLE_SDK)

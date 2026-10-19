@@ -6,11 +6,11 @@
 \ingroup cmake-commands-qtmultimedia
 
 \title qt_add_ios_ffmpeg_libraries
-\keyword qt6_add_ios_ffmpeg_libraries
+\keyword qt_add_ios_ffmpeg_libraries()
 
 \summary {Auxiliary function which embeds FFmpeg binaries in iOS app bundle.}
 
-\include cmake-find-package-multimedia.qdocinc
+\include cmake-find-package-multimedia.qdocinc {find-package-only}
 
 \cmakecommandsince 6.8
 \preliminarycmakecommand
@@ -54,5 +54,8 @@ qt_add_ios_ffmpeg_libraries(target)
  \endcode
 
  \note \c qt_add_ios_ffmpeg_libraries requires CMake 3.28 or later.
+
+ \note This command does nothing if the FFmpeg backend was not built for this Qt for iOS
+ package.
 */
 

@@ -1,5 +1,6 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qdxgivsyncservice_p.h"
 #include <QThread>
@@ -12,6 +13,8 @@
 #include <QtCore/private/qsystemerror_p.h>
 
 QT_BEGIN_NAMESPACE
+
+using namespace Qt::StringLiterals;
 
 Q_STATIC_LOGGING_CATEGORY(lcQpaScreenUpdates, "qt.qpa.screen.updates", QtCriticalMsg);
 
@@ -39,6 +42,8 @@ QDxgiVSyncThread::QDxgiVSyncThread(IDXGIOutput *output, float vsyncIntervalMsRep
       vsyncIntervalMsReportedForScreen(vsyncIntervalMsReportedForScreen),
       callback(callback)
 {
+    QThread::setObjectName(u"QDxgiVSyncThread"_s);
+
     DXGI_OUTPUT_DESC desc;
     output->GetDesc(&desc);
     monitor = desc.Monitor;
@@ -400,6 +405,17 @@ void QDxgiVSyncService::registerWindow(QWindow *window)
     // It has been observed that with DirectConnection _sometimes_ we do not
     // find any IDXGIOutput for the window when moving it to a different screen.
     // Add a delay by going through the event loop.
+
+    // Ensure a missed unregisterWindow() does not leave a dangling QWindow pointer
+    // behind. unregisterWindow() only ever uses the pointer as an opaque hash key, so
+    // this is safe to call on QObject::destroyed even though the QWindow part of the
+    // object has already been destroyed by this point.
+    QObject::connect(window, &QObject::destroyed, window, [this, window](QObject *) {
+        qCDebug(lcQpaScreenUpdates)
+            << "QDxgiVSyncService: window destroyed, pruning stale registration for:"
+            << window;
+        unregisterWindow(window);
+    }, Qt::DirectConnection);
 }
 
 void QDxgiVSyncService::unregisterWindow(QWindow *window)

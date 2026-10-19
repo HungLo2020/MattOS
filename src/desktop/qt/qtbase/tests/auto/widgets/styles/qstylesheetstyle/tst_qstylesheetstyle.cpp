@@ -69,7 +69,7 @@ private slots:
     void dynamicProperty();
     // NB! Invoking this slot after layoutSpacing crashes on Mac.
     void namespaces();
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     void layoutSpacing();
 #endif
     void qproperty();
@@ -108,6 +108,8 @@ private slots:
     void complexWidgetFocus();
     void task188195_baseBackground();
     void task232085_spinBoxLineEditBg();
+    void QTBUG140497_spinBoxSizeHintWithEmptyStyleSheet_data();
+    void QTBUG140497_spinBoxSizeHintWithEmptyStyleSheet();
     void changeStyleInChangeEvent();
     void QTBUG15910_crashNullWidget();
     void QTBUG36933_brokenPseudoClassLookup();
@@ -659,7 +661,7 @@ void tst_QStyleSheetStyle::dynamicProperty()
     QVERIFY(COLOR(pb2) == Qt::blue);
 }
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 void tst_QStyleSheetStyle::layoutSpacing()
 {
     qApp->setStyleSheet("* { color: red }");
@@ -980,9 +982,6 @@ void tst_QStyleSheetStyle::focusColors()
           "That doesn't mean that the feature doesn't work in practice.");
 #endif
 
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     TestDialog frame(QStringLiteral("*:focus { border:none; background: #e8ff66; color: #ff0084 }"));
     frame.setWindowTitle(QTest::currentTestFunction());
 
@@ -1019,8 +1018,6 @@ void tst_QStyleSheetStyle::hoverColors()
 #ifdef Q_OS_MACOS
     QSKIP("This test is fragile on Mac, most likely due to QTBUG-33959.");
 #endif
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
 
     TestDialog frame(QStringLiteral("*:hover { border:none; background: #e8ff66; color: #ff0084 }"));
     frame.setWindowTitle(QTest::currentTestFunction());
@@ -1467,9 +1464,6 @@ void tst_QStyleSheetStyle::attributesList()
 
 void tst_QStyleSheetStyle::minmaxSizes()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QTabWidget tabWidget;
     tabWidget.resize(m_testSize);
     tabWidget.setWindowTitle(QTest::currentTestFunction());
@@ -1498,11 +1492,11 @@ void tst_QStyleSheetStyle::minmaxSizes()
     QVERIFY(qAbs(page3->minimumSize().height() - 250 - 2) <= 2);
     QTabBar *bar = tabWidget.findChild<QTabBar*>();
     QVERIFY(bar);
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QEXPECT_FAIL("", "QTBUG-23686", Continue);
 #endif
     QVERIFY(qAbs(bar->tabRect(index1).width() - 100 - 2) <= 2);
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QEXPECT_FAIL("", "QTBUG-23686", Continue);
 #endif
     QVERIFY(qAbs(bar->tabRect(index3).width() - 130 - 2) <= 2);
@@ -1510,9 +1504,6 @@ void tst_QStyleSheetStyle::minmaxSizes()
 
 void tst_QStyleSheetStyle::task206238_twice()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     const QColor red(Qt::red);
     QMainWindow w;
     w.resize(m_testSize);
@@ -1687,9 +1678,6 @@ void ProxyStyle::drawControl(ControlElement ce, const QStyleOption *opt,
 
 void tst_QStyleSheetStyle::proxyStyle()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     //Should not crash;   task 158984
 
     ProxyStyle *proxy = new ProxyStyle(QApplication::style());
@@ -1840,7 +1828,6 @@ void tst_QStyleSheetStyle::emptyStyleSheet()
         img2.save("emptyStyleSheet_img2.png");
     }
 
-    QEXPECT_FAIL("", "QTBUG-21468", Abort);
     QCOMPARE(img1,img2);
 }
 
@@ -1869,9 +1856,6 @@ void tst_QStyleSheetStyle::toolTip_data()
 void tst_QStyleSheetStyle::toolTip()
 {
     QFETCH(QString, style);
-
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
 
     QWidget w;
     w.resize(m_testSize);
@@ -1981,9 +1965,6 @@ void tst_QStyleSheetStyle::toolTip()
 
 void tst_QStyleSheetStyle::embeddedFonts()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     //task 235622 and 210551
     QSpinBox spin;
     spin.setWindowTitle(QTest::currentTestFunction());
@@ -2057,9 +2038,6 @@ void tst_QStyleSheetStyle::opaquePaintEvent()
 
 void tst_QStyleSheetStyle::complexWidgetFocus()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     // This test is a simplified version of the focusColors() test above.
 
     // Tests if colors can be changed by altering the focus of the widget.
@@ -2105,9 +2083,6 @@ void tst_QStyleSheetStyle::complexWidgetFocus()
 
 void tst_QStyleSheetStyle::task188195_baseBackground()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QTreeView tree;
     tree.setWindowTitle(QTest::currentTestFunction());
     tree.setStyleSheet( "QTreeView:disabled { background-color:#ab1251; }" );
@@ -2143,9 +2118,6 @@ void tst_QStyleSheetStyle::task188195_baseBackground()
 
 void tst_QStyleSheetStyle::task232085_spinBoxLineEditBg()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     // This test is a simplified version of the focusColors() test above.
 
     // Tests if colors can be changed by altering the focus of the widget.
@@ -2191,6 +2163,36 @@ void tst_QStyleSheetStyle::task232085_spinBoxLineEditBg()
             + " did not contain text color #ff0084, using style "
             + QString::fromLatin1(QApplication::style()->metaObject()->className()))
             .toLocal8Bit().constData());
+}
+
+void tst_QStyleSheetStyle::QTBUG140497_spinBoxSizeHintWithEmptyStyleSheet_data()
+{
+    QTest::addColumn<QString>("style");
+    QTest::newRow("fusion") << QString("Fusion");
+#ifdef Q_OS_WINDOWS
+    QTest::newRow("windowsvista") << QString("WindowsVista");
+#endif
+}
+
+void tst_QStyleSheetStyle::QTBUG140497_spinBoxSizeHintWithEmptyStyleSheet()
+{
+    // Setting an empty stylesheet on a QSpinBox should not change its size
+    // hint compared to the unstyled spin box. Regression test for an issue
+    // where the styled spin box ended up shorter than the unstyled one.
+    QFETCH(QString, style);
+    QStyle *appStyle = QStyleFactory::create(style);
+    QVERIFY(appStyle);
+    ApplicationStyleSetter as(appStyle);
+
+    QSpinBox unstyled;
+    QSpinBox styled;
+    styled.setStyleSheet(QStringLiteral(" "));
+
+    unstyled.ensurePolished();
+    styled.ensurePolished();
+
+    QCOMPARE(styled.sizeHint(), unstyled.sizeHint());
+    QCOMPARE(styled.minimumSizeHint(), unstyled.minimumSizeHint());
 }
 
 class ChangeEventWidget : public QWidget
@@ -2278,9 +2280,6 @@ void tst_QStyleSheetStyle::QTBUG15910_crashNullWidget()
 
 void tst_QStyleSheetStyle::QTBUG36933_brokenPseudoClassLookup()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     const int rowCount = 10;
     const int columnCount = 10;
 

@@ -1,41 +1,80 @@
 # Translation of kcm_soundtheme to Norwegian Nynorsk
 #
+# Karl Ove Hufthammer <karl@huftis.org>, 2023, 2024, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-28 02:51+0000\n"
-"PO-Revision-Date: 2024-03-17 10:53+0100\n"
+"POT-Creation-Date: 2026-07-07 00:45+0000\n"
+"PO-Revision-Date: 2026-06-24 20:29+0200\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 24.02.0\n"
+"X-Generator: Lokalize 26.07.70\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
 
-#: kcm_soundtheme.cpp:112
+#: kcm_soundtheme.cpp:156
 #, kde-format
 msgctxt "Name of the fallback \"freedesktop\" sound theme"
 msgid "FreeDesktop"
 msgstr "FreeDesktop"
 
-#: kcm_soundtheme.cpp:113
+#: kcm_soundtheme.cpp:157
 #, kde-format
 msgid "Fallback sound theme from freedesktop.org"
 msgstr "Reserve-lydtema frå freedesktop.org"
 
-#: ui/main.qml:29
+#: kcm_soundtheme.cpp:250
+#, kde-format
+msgctxt "@info:status"
+msgid "Unable to create a temporary file."
+msgstr "Klarte ikkje laga mellombels fil."
+
+#: kcm_soundtheme.cpp:260
+#, kde-format
+msgctxt "@info:status"
+msgid "Unable to download the sound theme archive: %1"
+msgstr "Klarte ikkje lasta ned lydtema-arkivet: %1"
+
+#: kcm_soundtheme.cpp:271
+#, kde-format
+msgctxt "@info:status"
+msgid "The archive could not be opened."
+msgstr "Klarte ikkje opna arkivet."
+
+#: kcm_soundtheme.cpp:276
+#, kde-format
+msgctxt "@info:status"
+msgid "Theme installed successfully."
+msgid_plural "Themes installed successfully."
+msgstr[0] "Temaet er no installert."
+msgstr[1] "Temaa er no installerte."
+
+#: kcm_soundtheme.cpp:279
+#, kde-format
+msgctxt "@info:status"
+msgid "The archive does not contain a valid sound theme."
+msgstr "Arkivet inneheld ikkje eit gyldig lydtema."
+
+#: ui/main.qml:35
+#, kde-format
+msgctxt "@action:button Install sound theme from file"
+msgid "Install from File…"
+msgstr "Installer frå fil …"
+
+#: ui/main.qml:42
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable notification sounds"
 msgstr "Bruk varslingslydar"
 
-#: ui/main.qml:96
+#: ui/main.qml:134
 #, kde-format
 msgctxt ""
 "%2 is a theme name or a list of theme names that the current theme inherits "
@@ -46,7 +85,7 @@ msgstr[0] "Basert på: %2"
 msgstr[1] "Basert på: %2"
 
 # Unødvvendig og rart å kalla dette «førehandsvising». Det er jo rett og slett avspeling av lydane.
-#: ui/main.qml:109
+#: ui/main.qml:147
 #, kde-format
 msgctxt ""
 "@label Precedes a list of buttons which can be clicked to preview the "
@@ -54,25 +93,36 @@ msgctxt ""
 msgid "Preview:"
 msgstr "Avspeling:"
 
-#: ui/main.qml:128
+#: ui/main.qml:166
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Preview sound \"%1\""
 msgstr "Spel av lyden «%1»"
 
-#: ui/main.qml:150
+#: ui/main.qml:188
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Preview the demo sound for the theme \"%1\""
 msgstr "Spel av demolyden til temaet «%1»"
 
-#: ui/main.qml:187
+#: ui/main.qml:225
 #, kde-format
 msgctxt "%1 is a sound theme name. %2 is a sound name"
 msgid "The %1 theme doesn't include the sound '%2'"
 msgstr "Temaet %1 har ikkje ein lyd for «%2»"
 
-#: ui/main.qml:192
+#: ui/main.qml:230
 #, kde-format
 msgid "Failed to preview sound: %1"
 msgstr "Klarte ikkje spela av lyden: %1"
+
+#: ui/main.qml:246
+#, kde-format
+msgctxt "@title:window"
+msgid "Choose Sound Theme"
+msgstr "Vel lydtema"
+
+#: ui/main.qml:248
+#, kde-format
+msgid "Theme Files (*.tar.gz *.tar.bz2 *.tar.xz *.tar.lz *.zip)"
+msgstr "Temafiler (*.tar.gz *.tar.bz2 *.tar.xz *.tar.lz *.zip)"

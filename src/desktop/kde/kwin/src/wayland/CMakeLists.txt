@@ -13,8 +13,6 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
         ${Wayland_DATADIR}/wayland.xml
 
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/appmenu.xml
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/blur.xml
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/contrast.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/dpms.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/fake-input.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/idle.xml
@@ -35,12 +33,11 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/text-input-unstable-v2.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/zkde-screencast-unstable-v1.xml
 
-        ${PROJECT_SOURCE_DIR}/src/wayland/protocols/drm.xml
-        ${PROJECT_SOURCE_DIR}/src/wayland/protocols/frog-color-management-v1.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/wlr-layer-shell-unstable-v1.xml
+        ${PROJECT_SOURCE_DIR}/src/wayland/protocols/xx-fractional-scale-v2.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/xx-pip-v1.xml
-        ${PROJECT_SOURCE_DIR}/src/wayland/protocols/xx-session-management-v1.xml
 
+        ${WaylandProtocols_DATADIR}/stable/linux-dmabuf/linux-dmabuf-v1.xml
         ${WaylandProtocols_DATADIR}/stable/presentation-time/presentation-time.xml
         ${WaylandProtocols_DATADIR}/stable/tablet/tablet-v2.xml
         ${WaylandProtocols_DATADIR}/stable/viewporter/viewporter.xml
@@ -48,9 +45,11 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
         ${WaylandProtocols_DATADIR}/staging/alpha-modifier/alpha-modifier-v1.xml
         ${WaylandProtocols_DATADIR}/staging/color-management/color-management-v1.xml
         ${WaylandProtocols_DATADIR}/staging/color-representation/color-representation-v1.xml
+        ${WaylandProtocols_DATADIR}/staging/commit-timing/commit-timing-v1.xml
         ${WaylandProtocols_DATADIR}/staging/content-type/content-type-v1.xml
         ${WaylandProtocols_DATADIR}/staging/cursor-shape/cursor-shape-v1.xml
         ${WaylandProtocols_DATADIR}/staging/drm-lease/drm-lease-v1.xml
+        ${WaylandProtocols_DATADIR}/staging/ext-background-effect/ext-background-effect-v1.xml
         ${WaylandProtocols_DATADIR}/staging/ext-data-control/ext-data-control-v1.xml
         ${WaylandProtocols_DATADIR}/staging/ext-idle-notify/ext-idle-notify-v1.xml
         ${WaylandProtocols_DATADIR}/staging/fifo/fifo-v1.xml
@@ -62,6 +61,7 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
         ${WaylandProtocols_DATADIR}/staging/tearing-control/tearing-control-v1.xml
         ${WaylandProtocols_DATADIR}/staging/xdg-activation/xdg-activation-v1.xml
         ${WaylandProtocols_DATADIR}/staging/xdg-dialog/xdg-dialog-v1.xml
+        ${WaylandProtocols_DATADIR}/staging/xdg-session-management/xdg-session-management-v1.xml
         ${WaylandProtocols_DATADIR}/staging/xdg-system-bell/xdg-system-bell-v1.xml
         ${WaylandProtocols_DATADIR}/staging/xdg-toplevel-drag/xdg-toplevel-drag-v1.xml
         ${WaylandProtocols_DATADIR}/staging/xdg-toplevel-icon/xdg-toplevel-icon-v1.xml
@@ -70,7 +70,6 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
         ${WaylandProtocols_DATADIR}/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml
         ${WaylandProtocols_DATADIR}/unstable/input-method/input-method-unstable-v1.xml
         ${WaylandProtocols_DATADIR}/unstable/keyboard-shortcuts-inhibit/keyboard-shortcuts-inhibit-unstable-v1.xml
-        ${WaylandProtocols_DATADIR}/unstable/linux-dmabuf/linux-dmabuf-unstable-v1.xml
         ${WaylandProtocols_DATADIR}/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml
         ${WaylandProtocols_DATADIR}/unstable/pointer-gestures/pointer-gestures-unstable-v1.xml
         ${WaylandProtocols_DATADIR}/unstable/primary-selection/primary-selection-unstable-v1.xml
@@ -88,13 +87,13 @@ target_sources(kwin PRIVATE
     abstract_drop_handler.cpp
     alphamodifier_v1.cpp
     appmenu.cpp
-    blur.cpp
+    backgroundeffect_v1.cpp
     clientconnection.cpp
     colormanagement_v1.cpp
     colorrepresentation_v1.cpp
-    compositor.cpp
+    commit_timing_v1.cpp
+    compositor_interface.cpp
     contenttype_v1.cpp
-    contrast.cpp
     cursorshape_v1.cpp
     datacontroldevice_v1.cpp
     datacontroldevicemanager_v1.cpp
@@ -106,14 +105,13 @@ target_sources(kwin PRIVATE
     datasource.cpp
     display.cpp
     dpms.cpp
-    drmclientbuffer.cpp
     drmlease_v1.cpp
     externalbrightness_v1.cpp
     fifo_v1.cpp
     filtered_display.cpp
     fixes.cpp
     fractionalscale_v1.cpp
-    frog_colormanagement_v1.cpp
+    fractionalscale_v2.cpp
     idle.cpp
     idleinhibit_v1.cpp
     idlenotify_v1.cpp
@@ -125,7 +123,7 @@ target_sources(kwin PRIVATE
     linux_drm_syncobj_v1.cpp
     linuxdmabufv1clientbuffer.cpp
     lockscreen_overlay_v1.cpp
-    output.cpp
+    output_interface.cpp
     output_order_v1.cpp
     outputdevice_v2.cpp
     outputmanagement_v2.cpp
@@ -149,7 +147,7 @@ target_sources(kwin PRIVATE
     securitycontext_v1.cpp
     server_decoration.cpp
     server_decoration_palette.cpp
-    shadow.cpp
+    shadow_interface.cpp
     shmclientbuffer.cpp
     singlepixelbuffer.cpp
     slide.cpp
@@ -157,13 +155,11 @@ target_sources(kwin PRIVATE
     surface.cpp
     tablet_v2.cpp
     tearingcontrol_v1.cpp
-    textinput.cpp
-    textinput_v1.cpp
     textinput_v2.cpp
     textinput_v3.cpp
     touch.cpp
     transaction.cpp
-    viewporter.cpp
+    viewporter_interface.cpp
     xdgactivation_v1.cpp
     xdgdecoration_v1.cpp
     xdgdialog_v1.cpp
@@ -183,13 +179,13 @@ target_sources(kwin PRIVATE
 install(FILES
     alphamodifier_v1.h
     appmenu.h
-    blur.h
+    backgroundeffect_v1.h
     clientconnection.h
     colormanagement_v1.h
     colorrepresentation_v1.h
+    commit_timing_v1.h
     compositor.h
     contenttype_v1.h
-    contrast.h
     cursorshape_v1.h
     datacontroldevice_v1.h
     datacontroldevicemanager_v1.h
@@ -205,7 +201,7 @@ install(FILES
     externalbrightness_v1.h
     fifo_v1.h
     fractionalscale_v1.h
-    frog_colormanagement_v1.h
+    fractionalscale_v2.h
     idle.h
     idleinhibit_v1.h
     idlenotify_v1.h
@@ -248,7 +244,6 @@ install(FILES
     tablet_v2.h
     tearingcontrol_v1.h
     textinput.h
-    textinput_v1.h
     textinput_v2.h
     textinput_v3.h
     touch.h
@@ -270,8 +265,8 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/qwayland-server-color-management-v1.h
     ${CMAKE_CURRENT_BINARY_DIR}/qwayland-server-color-representation-v1.h
     ${CMAKE_CURRENT_BINARY_DIR}/qwayland-server-content-type-v1.h
+    ${CMAKE_CURRENT_BINARY_DIR}/qwayland-server-ext-background-effect-v1.h
     ${CMAKE_CURRENT_BINARY_DIR}/qwayland-server-fifo-v1.h
-    ${CMAKE_CURRENT_BINARY_DIR}/qwayland-server-frog-color-management-v1.h
     ${CMAKE_CURRENT_BINARY_DIR}/qwayland-server-kde-external-brightness-v1.h
     ${CMAKE_CURRENT_BINARY_DIR}/qwayland-server-linux-drm-syncobj-v1.h
     ${CMAKE_CURRENT_BINARY_DIR}/qwayland-server-pointer-warp-v1.h
@@ -282,8 +277,8 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/wayland-color-management-v1-server-protocol.h
     ${CMAKE_CURRENT_BINARY_DIR}/wayland-color-representation-v1-server-protocol.h
     ${CMAKE_CURRENT_BINARY_DIR}/wayland-content-type-v1-server-protocol.h
+    ${CMAKE_CURRENT_BINARY_DIR}/wayland-ext-background-effect-v1-server-protocol.h
     ${CMAKE_CURRENT_BINARY_DIR}/wayland-fifo-v1-server-protocol.h
-    ${CMAKE_CURRENT_BINARY_DIR}/wayland-frog-color-management-v1-server-protocol.h
     ${CMAKE_CURRENT_BINARY_DIR}/wayland-kde-external-brightness-v1-server-protocol.h
     ${CMAKE_CURRENT_BINARY_DIR}/wayland-linux-drm-syncobj-v1-server-protocol.h
     ${CMAKE_CURRENT_BINARY_DIR}/wayland-pointer-warp-v1-server-protocol.h

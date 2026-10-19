@@ -20,20 +20,20 @@
 namespace KWin
 {
 
-DrmVirtualOutput::DrmVirtualOutput(DrmBackend *backend, const QString &name, const QString &description, const QSize &size, qreal scale)
+DrmVirtualOutput::DrmVirtualOutput(DrmBackend *backend, const QString &name, const QString &description, const QSize &size, qreal scale, Capabilities capabilities)
     : m_backend(backend)
     , m_vsyncMonitor(SoftwareVsyncMonitor::create())
 {
     connect(m_vsyncMonitor.get(), &VsyncMonitor::vblankOccurred, this, &DrmVirtualOutput::vblank);
 
-    auto mode = std::make_shared<OutputMode>(size, 60000, OutputMode::Flag::Preferred);
+    auto mode = std::make_shared<OutputMode>(OutputModeline(size, 60000, OutputModeline::Flag::Preferred));
     m_renderLoop->setRefreshRate(mode->refreshRate());
 
     setInformation(Information{
         .name = QStringLiteral("Virtual-") + name,
         .model = description,
         .physicalSize = size,
-        .capabilities = Capability::CustomModes,
+        .capabilities = capabilities,
     });
 
     setState(State{
@@ -49,16 +49,16 @@ DrmVirtualOutput::~DrmVirtualOutput()
 {
 }
 
-bool DrmVirtualOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> DrmVirtualOutput::testPresentation(const std::shared_ptr<OutputFrame> &frame)
 {
-    return true;
+    return {};
 }
 
-bool DrmVirtualOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> DrmVirtualOutput::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
 {
     m_frame = frame;
     m_vsyncMonitor->arm();
-    return true;
+    return {};
 }
 
 void DrmVirtualOutput::vblank(std::chrono::nanoseconds timestamp)
@@ -93,47 +93,42 @@ void DrmVirtualOutput::applyChanges(const OutputConfiguration &config)
     next.position = props->pos.value_or(m_state.position);
     next.scale = props->scale.value_or(m_state.scale);
     next.scaleSetting = props->scaleSetting.value_or(m_state.scaleSetting);
-    next.desiredModeSize = props->desiredModeSize.value_or(m_state.desiredModeSize);
-    next.desiredModeRefreshRate = props->desiredModeRefreshRate.value_or(m_state.desiredModeRefreshRate);
-    next.desiredModeFlags = props->desiredModeFlags.value_or(m_state.desiredModeFlags);
-    next.currentMode = props->mode.value_or(m_state.currentMode).lock();
-    if (!next.currentMode) {
-        next.currentMode = next.modes.front();
-    }
     next.uuid = props->uuid.value_or(m_state.uuid);
     next.replicationSource = props->replicationSource.value_or(m_state.replicationSource);
     next.priority = props->priority.value_or(m_state.priority);
     next.deviceOffset = props->deviceOffset.value_or(m_state.deviceOffset);
     if (props->customModes.has_value()) {
-        next.customModes = *props->customModes;
+        next.customModes = *props->customModes | std::views::transform([](const OutputModeline &modeline) {
+            return modeline.withFlags(OutputModeline::Flag::Generated | OutputModeline::Flag::Custom);
+        }) | std::ranges::to<QList>();
 
         QList<std::shared_ptr<OutputMode>> newModes;
         for (const auto &mode : next.modes) {
-            if (mode->flags() & OutputMode::Flag::Custom) {
+            if (mode->flags() & OutputModeline::Flag::Custom) {
                 continue;
             }
             newModes.push_back(mode);
         }
-        for (const auto &custom : next.customModes) {
-            newModes.push_back(std::make_shared<OutputMode>(custom.size, custom.refreshRate, custom.flags | OutputMode::Flag::Custom));
-        }
-        next.modes = newModes;
-
-        if (!next.currentMode) {
-            next.currentMode = next.modes.front();
-        } else if (!next.modes.contains(next.currentMode)) {
-            const auto it = std::ranges::find_if(next.modes, [&next](const auto &mode) {
-                return mode->size() == next.currentMode->size()
-                    && mode->refreshRate() == next.currentMode->refreshRate()
-                    && mode->flags() == next.currentMode->flags();
-            });
-            if (it != next.modes.end()) {
-                next.currentMode = *it;
+        for (const auto &modeline : next.customModes) {
+            if (auto mode = modeline.match(next.modes)) {
+                newModes.push_back(mode);
             } else {
-                next.modes.push_front(next.currentMode);
-                next.currentMode->setRemoved();
+                newModes.push_back(std::make_shared<OutputMode>(modeline));
             }
         }
+        next.modes = newModes;
+    }
+
+    next.desiredMode = props->desiredMode.value_or(m_state.desiredMode);
+    if (props->currentMode) {
+        next.currentMode = props->currentMode->match(next.modes);
+    }
+
+    if (!next.currentMode) {
+        next.currentMode = next.modes.front();
+    } else if (!next.modes.contains(next.currentMode)) {
+        next.modes.push_front(next.currentMode);
+        next.currentMode->setRemoved();
     }
 
     setState(next);
@@ -142,6 +137,22 @@ void DrmVirtualOutput::applyChanges(const OutputConfiguration &config)
 
     Q_EMIT changed();
 }
+
+bool DrmVirtualOutput::canResize() const
+{
+    return true;
+}
+
+void DrmVirtualOutput::resize(const QSize &size)
+{
+    auto mode = std::make_shared<OutputMode>(OutputModeline(size, 60000, OutputModeline::Flag::Preferred));
+    auto next = m_state;
+    next.modes = {mode};
+    next.currentMode = mode;
+    setState(next);
+    Q_EMIT m_backend->outputsQueried();
+}
+
 }
 
 #include "moc_drm_virtual_output.cpp"

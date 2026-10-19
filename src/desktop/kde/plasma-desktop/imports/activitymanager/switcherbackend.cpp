@@ -30,10 +30,8 @@
 #include <KLocalizedString>
 #include <KWindowInfo>
 #include <KWindowSystem>
-#include <KX11Extras>
 #include <waylandtasksmodel.h>
 #include <windowtasksmodel.h>
-#include <xwindowtasksmodel.h>
 
 static const char *s_action_name_next_activity = "next activity";
 static const char *s_action_name_previous_activity = "previous activity";
@@ -58,8 +56,7 @@ bool areModifiersPressed(const QKeySequence &seq, const KModifierKeyInfo &modifi
     if (mod & Qt::AltModifier && modifierInfo.isKeyPressed(Qt::Key_Alt)) {
         return true;
     }
-    // On X11 KModifierKeyInfo reports what we call Meta via Key_Super_L
-    if (mod & Qt::MetaModifier && (modifierInfo.isKeyPressed(Qt::Key_Meta) || modifierInfo.isKeyPressed(Qt::Key_Super_L))) {
+    if (mod & Qt::MetaModifier && (modifierInfo.isKeyPressed(Qt::Key_Meta))) {
         return true;
     }
     return false;
@@ -121,12 +118,10 @@ ThumbnailImageResponse::ThumbnailImageResponse(const QString &id, const QSize &r
 
     connect(
         job,
-        &KIO::PreviewJob::gotPreview,
+        &KIO::PreviewJob::generated,
         this,
-        [this, file](const KFileItem &item, const QPixmap &pixmap) {
+        [this, file](const KFileItem &item, const QImage &image) {
             Q_UNUSED(item);
-
-            auto image = pixmap.toImage();
 
             m_texture = QQuickTextureFactory::textureFactoryForImage(image);
             Q_EMIT finished();
@@ -303,7 +298,7 @@ void SwitcherBackend::onCurrentActivityChanged(const QString &id)
     KConfig config(QStringLiteral("plasma/activitiesstaterc"), KConfig::SimpleConfig, QStandardPaths::GenericStateLocation);
     KConfigGroup times(&config, QStringLiteral("LastUsed"));
 
-    const auto now = QDateTime::currentDateTime().toSecsSinceEpoch();
+    const auto now = QDateTime::currentSecsSinceEpoch();
 
     // Updating the time for the activity we just switched to
     // in the case we do not power off properly, and on the next
@@ -363,11 +358,7 @@ void SwitcherBackend::removeActivity(const QString &activity)
 
 bool SwitcherBackend::dropEnabled() const
 {
-#if HAVE_X11
     return true;
-#else
-    return false;
-#endif
 }
 
 void SwitcherBackend::dropCopy(QMimeData *mimeData, const QVariant &activityId)
@@ -383,48 +374,6 @@ void SwitcherBackend::dropMove(QMimeData *mimeData, const QVariant &activityId)
 void SwitcherBackend::drop(QMimeData *mimeData, int modifiers, const QVariant &activityId)
 {
     setDropMode(false);
-
-#if HAVE_X11
-    if (KWindowSystem::isPlatformX11()) {
-        bool ok = false;
-        const QList<WId> &ids = TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok);
-
-        if (!ok) {
-            return;
-        }
-
-        const QString newActivity = activityId.toString();
-        const QStringList runningActivities = m_activities.activities();
-
-        if (!runningActivities.contains(newActivity)) {
-            return;
-        }
-
-        for (const auto &id : ids) {
-            QStringList activities = KWindowInfo(id, NET::Properties(), NET::WM2Activities).activities();
-
-            if (modifiers & Qt::ControlModifier) {
-                // Add to the activity instead of moving.
-                // This is a hack because the task manager reports that
-                // is supports only the 'Move' DND action.
-                if (!activities.contains(newActivity)) {
-                    activities << newActivity;
-                }
-
-            } else {
-                // Move to this activity
-                // if on only one activity, set it to only the new activity
-                // if on >1 activity, remove it from the current activity and add it to the new activity
-
-                const QString currentActivity = m_activities.currentActivity();
-                activities.removeAll(currentActivity);
-                activities << newActivity;
-            }
-
-            KX11Extras::setOnActivities(id, activities);
-        }
-    }
-#endif
 }
 
 void SwitcherBackend::setDropMode(bool value)
@@ -443,9 +392,6 @@ void SwitcherBackend::setDropMode(bool value)
 
 bool SwitcherBackend::dragContainsWindows(QMimeData *mimeData) const
 {
-    if (KWindowSystem::isPlatformX11()) {
-        return TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData).count();
-    }
     if (KWindowSystem::isPlatformWayland()) {
         return TaskManager::WaylandTasksModel::winIdsFromMimeData(mimeData).count();
     }

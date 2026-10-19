@@ -8,16 +8,14 @@
 
 #include "actioninterface.h"
 
-#include <devicestatemonitor_p.h>
+#include <stateinfo.h>
 
 class MountAction : public ActionInterface
 {
     Q_OBJECT
 
-    Q_INTERFACES(ActionInterface)
-
 public:
-    explicit MountAction(const QString &udi, QObject *parent = nullptr);
+    explicit MountAction(const std::shared_ptr<StorageInfo> &storageInfo, const std::shared_ptr<StateInfo> &stateInfo, QObject *parent = nullptr);
     ~MountAction() override;
 
     void triggered() override;
@@ -29,11 +27,9 @@ public:
     QString text() const override;
 
 private Q_SLOTS:
-    void updateIsValid(const QString &udi);
+    void updateIsValid();
 
 private:
     bool m_supportsMTP;
     bool m_hasStorageAccess;
-
-    std::shared_ptr<DevicesStateMonitor> m_stateMonitor;
 };

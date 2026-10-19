@@ -9,6 +9,7 @@
 #include "../src/probers/nsEscSM.h"
 #include "../src/probers/nsMBCSSM.h"
 
+#include "../src/probers/nsBig5Prober.h"
 #include "../src/probers/nsCodingStateMachine.h"
 #include "../src/probers/nsHebrewProber.h"
 #include "../src/probers/nsLatin1Prober.h"
@@ -34,6 +35,8 @@ private Q_SLOTS:
     void testHzCharset_data();
     void testIso2022JPCharset();
     void testIso2022JPCharset_data();
+    void testBig5Charset();
+    void testBig5Charset_data();
 };
 
 void KEncodingProberUnitTest::testUtf8()
@@ -43,7 +46,7 @@ void KEncodingProberUnitTest::testUtf8()
 
     using namespace kencodingprober;
 
-    nsCodingStateMachine stateMachine{&UTF8SMModel};
+    nsCodingStateMachine stateMachine{UTF8SMModel};
     nsSMState state = eStart;
 
     for (auto b : data) {
@@ -133,7 +136,7 @@ void KEncodingProberUnitTest::testUtf16BE()
 
     using namespace kencodingprober;
 
-    nsCodingStateMachine stateMachine{&UCS2BESMModel};
+    nsCodingStateMachine stateMachine{UCS2BESMModel};
     nsSMState state = eStart;
 
     QEXPECT_FAIL("UTF16 ZWNBSP little", "zero width no-break space rejected", Abort);
@@ -151,7 +154,7 @@ void KEncodingProberUnitTest::testUtf16LE()
 
     using namespace kencodingprober;
 
-    nsCodingStateMachine stateMachine{&UCS2LESMModel};
+    nsCodingStateMachine stateMachine{UCS2LESMModel};
     nsSMState state = eStart;
 
     QEXPECT_FAIL("UTF16 ZWNBSP big", "zero width no-break space rejected", Abort);
@@ -184,10 +187,10 @@ void KEncodingProberUnitTest::testUtf16_common_data()
     QTest::addRow("LE LS at start") << QByteArray("\x00\xDC", 2) << true << false;
 
     struct Utf16TestData {
-        const char *name;
+        const char *name = nullptr;
         const std::span<const char16_t> data;
-        bool validBig;
-        bool validLittle;
+        bool validBig = false;
+        bool validLittle = false;
     };
     using namespace std::string_view_literals;
     constexpr std::array<Utf16TestData, 7> utf16TestData = {
@@ -240,9 +243,6 @@ void KEncodingProberUnitTest::testWindows1252()
 
     QCOMPARE(win1252Valid, (state != eNotMe));
 
-    QEXPECT_FAIL("Windows-1252 German", "Valid vowel + sharp s considered unlikely", Abort);
-    QEXPECT_FAIL("Windows-1252 French", "Accented vowel pair considered unlikely", Abort);
-    QEXPECT_FAIL("Windows-1252 Spanish", "Accented vowel pair considered unlikely", Abort);
     if (win1252Valid) {
         QCOMPARE_GE(win1252Prober.GetConfidence(), minConfidence);
     }
@@ -264,7 +264,7 @@ void KEncodingProberUnitTest::testWindows1252_data()
 
     // "Victor jagt zwölf Boxkämpfer quer über den großen Sylter Deich." - "Victor chases twelve boxers across the Great Levee of Sylt"
     QTest::addRow("Windows-1252 German") << //
-        "Victor jagt zw\xf6lf Boxk\xe4mpfer quer \xfc\x62\x65r den gro\xdf\x65n Sylter Deich."_ba << true << 0.45;
+        "Victor jagt zw\xf6lf Boxk\xe4mpfer quer \xfc\x62\x65r den gro\xdf\x65n Sylter Deich."_ba << true << 0.8;
 
     // Same "Victor jagt zwölf Boxkämpfer quer über den großen Sylter Deich.", but using UTF-8
     // Unfortunately, these are all valid codepoints for Windows-1252, but the confidence should be lower than for UTF-8,
@@ -275,12 +275,12 @@ void KEncodingProberUnitTest::testWindows1252_data()
     // "L'ergothérapeute effectue des prestations de rééducation et de réadaptation."
     // - "The occupational therapist provides rehabilitation and re-adaptation services."
     QTest::addRow("Windows-1252 French") << //
-        "L'ergoth\xe9rapeute effectue des prestations de r\xe9\xe9\x64ucation et de r\xe9\x61\x64\x61ptation."_ba << true << 0.45;
+        "L'ergoth\xe9rapeute effectue des prestations de r\xe9\xe9\x64ucation et de r\xe9\x61\x64\x61ptation."_ba << true << 0.8;
 
     // "La sociolingüística sincrónica se centra en la estructura sociolingüística y en las variaciones lingüísticas."
     // - "Synchronic sociolinguistics focuses on sociolinguistic structure and linguistic variations."
     QTest::addRow("Windows-1252 Spanish") << //
-        "La socioling\xfc\xedstica sincr\xf3nica se centra en la estructura socioling\xfc\xedstica y en las variaciones ling\xfc\xedsticas."_ba << true << 0.45;
+        "La socioling\xfc\xedstica sincr\xf3nica se centra en la estructura socioling\xfc\xedstica y en las variaciones ling\xfc\xedsticas."_ba << true << 0.8;
 
     // "שפן אכל קצת גזר בטעם חסה, ודי" - "A bunny ate some lettuce-flavored carrots, and he had enough"
     QTest::addRow("Windows-1255 Hebrew") //
@@ -345,7 +345,7 @@ void KEncodingProberUnitTest::testHzCharset()
 
     using namespace kencodingprober;
 
-    nsCodingStateMachine stateMachine{&HZSMModel};
+    nsCodingStateMachine stateMachine{HZSMModel};
 
     nsSMState state = eStart;
 
@@ -364,7 +364,7 @@ void KEncodingProberUnitTest::testIso2022JPCharset()
 
     using namespace kencodingprober;
 
-    nsCodingStateMachine stateMachine{&ISO2022JPSMModel};
+    nsCodingStateMachine stateMachine{ISO2022JPSMModel};
 
     nsSMState state = eStart;
 
@@ -417,6 +417,39 @@ void KEncodingProberUnitTest::testHzCharset_data()
 void KEncodingProberUnitTest::testIso2022JPCharset_data()
 {
     testEsc_common_data();
+}
+
+void KEncodingProberUnitTest::testBig5Charset()
+{
+    QFETCH(QByteArray, data);
+    QFETCH(bool, big5Valid);
+
+    using namespace kencodingprober;
+
+    nsBig5Prober big5Prober{};
+
+    auto state = big5Prober.HandleData(data.constData(), data.size());
+
+    QCOMPARE((state != eNotMe), big5Valid);
+}
+
+void KEncodingProberUnitTest::testBig5Charset_data()
+{
+    using namespace Qt::StringLiterals;
+
+    QTest::addColumn<QByteArray>("data");
+    QTest::addColumn<bool>("big5Valid");
+
+    // ASCII without escape sequence is always valid
+    QTest::addRow("empty") << QByteArray() << true;
+
+    // "維基百科係正嘢嚟㗎" - "Wikipedia is awesome"
+    QTest::addRow("Big5 HKSCS Cantonese") //
+        << QByteArray::fromHex("bafbb0f2a6caacecab59a5bf9dcf91c19dee") //
+        << true;
+
+    // "10 × 10 = 100"
+    QTest::addRow("UTF-8") << "10 \xc3\x97 10 = 100"_ba << false;
 }
 
 QTEST_MAIN(KEncodingProberUnitTest)

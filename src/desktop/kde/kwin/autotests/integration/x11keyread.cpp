@@ -19,9 +19,6 @@
 #include "workspace.h"
 
 #include <KConfigGroup>
-#include <KWayland/Client/keyboard.h>
-#include <KWayland/Client/seat.h>
-
 #include <QAbstractEventDispatcher>
 #include <QSocketNotifier>
 
@@ -35,11 +32,9 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_x11-key-read-0");
-
 enum class State {
     Press,
-    Release
+    Release,
 } state;
 typedef QPair<State, int> KeyAction;
 Q_DECLARE_METATYPE(KeyAction);
@@ -63,7 +58,7 @@ private Q_SLOTS:
     void tabBox();
 
 private:
-    QList<KeyAction> recievedX11EventsForInput(const QList<KeyAction> &keyEventsIn);
+    QList<KeyAction> receivedX11EventsForInput(const QList<KeyAction> &keyEventsIn);
 };
 
 void X11KeyReadTest::initTestCase_data()
@@ -77,7 +72,7 @@ void X11KeyReadTest::initTestCase_data()
 
 void X11KeyReadTest::initTestCase()
 {
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     qputenv("KWIN_XKB_DEFAULT_KEYMAP", "1");
     qputenv("XKB_DEFAULT_RULES", "evdev");
@@ -114,7 +109,7 @@ void X11KeyReadTest::testSimpleLetter()
         {State::Press, KEY_A},
         {State::Release, KEY_A},
     };
-    auto received = recievedX11EventsForInput(keyEvents);
+    auto received = receivedX11EventsForInput(keyEvents);
 
     QList<KeyAction> expected;
     QFETCH_GLOBAL(XwaylandEavesdropsMode, operatingMode);
@@ -135,10 +130,10 @@ void X11KeyReadTest::testSimpleLetter()
 void X11KeyReadTest::onlyModifier()
 {
     QList<KeyAction> keyEvents = {
-                                  {State::Press, KEY_LEFTALT},
-                                  {State::Release, KEY_LEFTALT},
-                                  };
-    auto received = recievedX11EventsForInput(keyEvents);
+        {State::Press, KEY_LEFTALT},
+        {State::Release, KEY_LEFTALT},
+    };
+    auto received = receivedX11EventsForInput(keyEvents);
 
     QList<KeyAction> expected;
     QFETCH_GLOBAL(XwaylandEavesdropsMode, operatingMode);
@@ -159,12 +154,12 @@ void X11KeyReadTest::onlyModifier()
 void X11KeyReadTest::letterWithModifier()
 {
     QList<KeyAction> keyEvents = {
-                                  {State::Press, KEY_LEFTALT},
-                                  {State::Press, KEY_F},
-                                  {State::Release, KEY_F},
-                                  {State::Release, KEY_LEFTALT},
-                                  };
-    auto received = recievedX11EventsForInput(keyEvents);
+        {State::Press, KEY_LEFTALT},
+        {State::Press, KEY_F},
+        {State::Release, KEY_F},
+        {State::Release, KEY_LEFTALT},
+    };
+    auto received = receivedX11EventsForInput(keyEvents);
 
     QList<KeyAction> expected;
     QFETCH_GLOBAL(XwaylandEavesdropsMode, operatingMode);
@@ -193,9 +188,9 @@ void X11KeyReadTest::testWaylandWindowHasFocus()
 
     std::unique_ptr<KWayland::Client::Surface> surface(Test::createSurface());
     std::unique_ptr<Test::XdgToplevel> shellSurface(Test::createXdgToplevelSurface(surface.get()));
-    std::unique_ptr<KWayland::Client::Keyboard> keyboard(Test::waylandSeat()->createKeyboard());
-    QSignalSpy modifierSpy(keyboard.get(), &KWayland::Client::Keyboard::modifiersChanged);
-    QSignalSpy keyChangedSpy(keyboard.get(), &KWayland::Client::Keyboard::keyChanged);
+    std::unique_ptr<Test::WlKeyboard> keyboard(Test::kwinSeat()->getKeyboard());
+    QSignalSpy modifierSpy(keyboard.get(), &Test::WlKeyboard::modifiers);
+    QSignalSpy keyChangedSpy(keyboard.get(), &Test::WlKeyboard::key);
 
     Window *waylandWindow = Test::renderAndWaitForShown(surface.get(), QSize(10, 10), Qt::blue);
     QVERIFY(waylandWindow->isActive());
@@ -204,35 +199,35 @@ void X11KeyReadTest::testWaylandWindowHasFocus()
 
     Test::keyboardKeyPressed(KEY_LEFTALT, timestamp++);
     QVERIFY(keyChangedSpy.wait());
-    QCOMPARE(keyChangedSpy.last()[0], KEY_LEFTALT);
-    QCOMPARE(keyChangedSpy.last()[1].value<KWayland::Client::Keyboard::KeyState>(), KWayland::Client::Keyboard::KeyState::Pressed);
+    QCOMPARE(keyChangedSpy.last()[2], KEY_LEFTALT);
+    QCOMPARE(keyChangedSpy.last()[3].value<Test::WlKeyboard::key_state>(), Test::WlKeyboard::key_state::key_state_pressed);
 
     QCOMPARE(modifierSpy.count(), 1);
-    QCOMPARE(modifierSpy.last()[0], 8);
-    QCOMPARE(modifierSpy.last()[1], 0);
+    QCOMPARE(modifierSpy.last()[1], 8);
     QCOMPARE(modifierSpy.last()[2], 0);
     QCOMPARE(modifierSpy.last()[3], 0);
+    QCOMPARE(modifierSpy.last()[4], 0);
 
     Test::keyboardKeyPressed(KEY_G, timestamp++);
     QVERIFY(keyChangedSpy.wait());
-    QCOMPARE(keyChangedSpy.last()[0], KEY_G);
-    QCOMPARE(keyChangedSpy.last()[1].value<KWayland::Client::Keyboard::KeyState>(), KWayland::Client::Keyboard::KeyState::Pressed);
+    QCOMPARE(keyChangedSpy.last()[2], KEY_G);
+    QCOMPARE(keyChangedSpy.last()[3].value<Test::WlKeyboard::key_state>(), Test::WlKeyboard::key_state::key_state_pressed);
 
     Test::keyboardKeyReleased(KEY_G, timestamp++);
     QVERIFY(keyChangedSpy.wait());
-    QCOMPARE(keyChangedSpy.last()[0], KEY_G);
-    QCOMPARE(keyChangedSpy.last()[1].value<KWayland::Client::Keyboard::KeyState>(), KWayland::Client::Keyboard::KeyState::Released);
+    QCOMPARE(keyChangedSpy.last()[2], KEY_G);
+    QCOMPARE(keyChangedSpy.last()[3].value<Test::WlKeyboard::key_state>(), Test::WlKeyboard::key_state::key_state_released);
 
     Test::keyboardKeyReleased(KEY_LEFTALT, timestamp++);
     QVERIFY(keyChangedSpy.wait());
-    QCOMPARE(keyChangedSpy.last()[0], KEY_LEFTALT);
-    QCOMPARE(keyChangedSpy.last()[1].value<KWayland::Client::Keyboard::KeyState>(), KWayland::Client::Keyboard::KeyState::Released);
+    QCOMPARE(keyChangedSpy.last()[2], KEY_LEFTALT);
+    QCOMPARE(keyChangedSpy.last()[3].value<Test::WlKeyboard::key_state>(), Test::WlKeyboard::key_state::key_state_released);
 
     QCOMPARE(modifierSpy.count(), 2);
-    QCOMPARE(modifierSpy.last()[0], 0);
     QCOMPARE(modifierSpy.last()[1], 0);
     QCOMPARE(modifierSpy.last()[2], 0);
     QCOMPARE(modifierSpy.last()[3], 0);
+    QCOMPARE(modifierSpy.last()[4], 0);
 }
 
 void X11KeyReadTest::tabBox()
@@ -247,7 +242,7 @@ void X11KeyReadTest::tabBox()
         {State::Release, KEY_TAB},
         {State::Release, KEY_LEFTALT},
     };
-    auto received = recievedX11EventsForInput(keyEvents);
+    auto received = receivedX11EventsForInput(keyEvents);
 
     QList<KeyAction> expected;
     QFETCH_GLOBAL(XwaylandEavesdropsMode, operatingMode);
@@ -273,6 +268,7 @@ void X11KeyReadTest::tabBox()
 class X11EventRecorder : public QObject
 {
     Q_OBJECT
+
 public:
     X11EventRecorder(xcb_connection_t *c);
     QList<KeyAction> keyEvents() const
@@ -326,7 +322,6 @@ void X11EventRecorder::processXcbEvents()
         if (responseType == XCB_GE_GENERIC) {
             auto *geEvent = reinterpret_cast<xcb_ge_generic_event_t *>(event);
             if (geEvent->event_type == XCB_INPUT_KEY_PRESS || geEvent->event_type == XCB_INPUT_KEY_RELEASE) {
-
                 auto keyEvent = reinterpret_cast<xcb_input_key_press_event_t *>(geEvent);
                 int nativeKeyCode = keyEvent->detail - 0x08;
 
@@ -346,7 +341,7 @@ void X11EventRecorder::processXcbEvents()
     xcb_flush(m_connection);
 }
 
-QList<KeyAction> X11KeyReadTest::recievedX11EventsForInput(const QList<KeyAction> &keysIn)
+QList<KeyAction> X11KeyReadTest::receivedX11EventsForInput(const QList<KeyAction> &keysIn)
 {
     quint32 timestamp = 1;
     Test::XcbConnectionPtr c = Test::createX11Connection();

@@ -192,7 +192,7 @@ QStringList KConfigGroupPrivate::deserializeList(const QString &data)
 static QVarLengthArray<int, 8> asIntList(QByteArrayView string)
 {
     int start = 0;
-    int next = start;
+    int next;
     QVarLengthArray<int, 8> ret;
     while ((next = string.indexOf(',', start)) != -1) {
         ret.push_back(string.sliced(start, next - start).toInt());
@@ -205,7 +205,7 @@ static QVarLengthArray<int, 8> asIntList(QByteArrayView string)
 static QVarLengthArray<qreal, 8> asRealList(QByteArrayView string)
 {
     int start = 0;
-    int next = start;
+    int next;
     QVarLengthArray<qreal, 8> ret;
     while ((next = string.indexOf(',', start)) != -1) {
         ret.push_back(string.sliced(start, next - start).toDouble());
@@ -1072,7 +1072,7 @@ void KConfigGroup::writePathEntry(const char *pKey, const QString &path, WriteCo
     Q_ASSERT_X(isValid(), "KConfigGroup::writePathEntry", "accessing an invalid group");
     Q_ASSERT_X(!d->bConst, "KConfigGroup::writePathEntry", "writing to a read-only group");
 
-    config()->d_func()->putData(d->fullName(), pKey, translatePath(path).toUtf8(), pFlags, true);
+    config()->d_func()->putData(d->fullName(), pKey, path.isNull() ? QByteArray("") : translatePath(path).toUtf8(), pFlags, true);
 }
 
 void KConfigGroup::writePathEntry(const QString &pKey, const QStringList &value, WriteConfigFlags pFlags)
@@ -1091,7 +1091,7 @@ void KConfigGroup::writePathEntry(const char *pKey, const QStringList &value, Wr
         list << translatePath(path).toUtf8();
     }
 
-    config()->d_func()->putData(d->fullName(), pKey, KConfigGroupPrivate::serializeList(list), pFlags, true);
+    config()->d_func()->putData(d->fullName(), pKey, value.isEmpty() ? QByteArray("") : KConfigGroupPrivate::serializeList(list), pFlags, true);
 }
 
 void KConfigGroup::deleteEntry(const char *key, WriteConfigFlags flags)

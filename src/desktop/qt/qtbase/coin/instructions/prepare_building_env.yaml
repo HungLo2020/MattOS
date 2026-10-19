@@ -83,8 +83,10 @@ instructions:
 
   # Test network integrity on Linux
   - type: ExecuteCommand
-    command: [ "sh", "-c", "if [ -f /opt/CiNetworkTest/bin/CiNetworkTest ]; then LD_LIBRARY_PATH=/opt/icu/lib64 /opt/CiNetworkTest/bin/CiNetworkTest -d 2; fi " ]
+    command: [ "sh", "-c", "if [ -f /opt/CiNetworkTest/bin/CiNetworkTest ]; then LD_LIBRARY_PATH=/opt/icu/lib64 /opt/CiNetworkTest/bin/CiNetworkTest -d 2 --dt 11000 --ml 1; fi " ]
     resetOnFailure: true
+    maxTimeInSeconds: 60
+    maxTimeBetweenOutput: 60
     userMessageOnFailure: "VM Network inconsistent"
     enable_if:
       condition: property
@@ -93,8 +95,10 @@ instructions:
 
   # Test network integrity on Windows
   - type: ExecuteCommand
-    command: [ "cmd", "/k", "if exist %ProgramFiles%\\CiNetworkTest.exe call %ProgramFiles%\\CiNetworkTest.exe -d 2" ]
+    command: ["powershell.exe", "-Command", "if(test-path \"C:/Program Files/CiNetworkTest.exe\") { & \"C:/Program Files/CiNetworkTest.exe\" -d 2 --dt 11000 --ml 1}"]
     resetOnFailure: true
+    maxTimeInSeconds: 60
+    maxTimeBetweenOutput: 60
     userMessageOnFailure: "VM Network inconsistent"
     enable_if:
       condition: property
@@ -164,9 +168,15 @@ instructions:
         variableName: TARGET_ARCHITECTURE
         variableValue: amd64 # TODO add something like "{{toLower .Config host.arch}}"
         disable_if:
-          condition: property
-          property: host.arch
-          not_equals_property: target.arch
+          condition: or
+          conditions:
+            - condition: property
+              property: host.arch
+              not_equals_property: target.arch
+            - condition: property
+              property: features
+              contains_value: ARM64EC
+
       - type: EnvironmentVariable
         variableName: TARGET_ARCHITECTURE
         variableValue: amd64_x86
@@ -203,6 +213,22 @@ instructions:
             - condition: property
               property: host.arch
               in_values: ["AARCH64", "ARM64"]
+      - type: EnvironmentVariable
+        variableName: TARGET_ARCHITECTURE
+        variableValue: x64_arm64
+        enable_if:
+          condition: and
+          conditions:
+            - condition: property
+              property: target.arch
+              in_values: ["AARCH64", "ARM64"]
+            - condition: property
+              property: host.arch
+              equals_value: X86_64
+            - condition: property
+              property: features
+              contains_value: ARM64EC
+
       - type: EnvironmentVariable
         # HACK. Overwrite TARGET_ARCHITECTURE as we do not use standard MSVC cross
         # compilation targets here. The target architecture will be detected by Qt.
@@ -775,6 +801,9 @@ instructions:
     - type: AppendToEnvironmentVariable
       variableName: COMMON_TARGET_TEST_CMAKE_ARGS
       variableValue: " -DQT_USE_VCPKG=ON -DVCPKG_INSTALLED_DIR={{.Env.VCPKG_INSTALLED_DIR}} -DVCPKG_HOST_TRIPLET={{.Env.VCPKG_HOST_TRIPLET}} -DVCPKG_TARGET_TRIPLET={{.Env.VCPKG_TARGET_TRIPLET}}"
+    - type: AppendToEnvironmentVariable
+      variableName: COMMON_TARGET_EXAMPLES_CMAKE_ARGS
+      variableValue: " -DQT_USE_VCPKG=ON -DVCPKG_INSTALLED_DIR={{.Env.VCPKG_INSTALLED_DIR}} -DVCPKG_HOST_TRIPLET={{.Env.VCPKG_HOST_TRIPLET}} -DVCPKG_TARGET_TRIPLET={{.Env.VCPKG_TARGET_TRIPLET}}"
     enable_if:
       condition: runtime
       env_var: USE_VCPKG
@@ -798,6 +827,15 @@ instructions:
       - type: AppendToEnvironmentVariable
         variableName: COMMON_TARGET_CMAKE_ARGS
         variableValue: " -DQT_DEPLOY_MINIMAL_EXAMPLES=ON"
+
+      # Show verbose ninja build logs when building examples as external
+      - type: AppendToEnvironmentVariable
+        variableName: COMMON_CMAKE_ARGS
+        variableValue: " -DQT_INTERNAL_VERBOSE_EXAMPLES=ON"
+      - type: AppendToEnvironmentVariable
+        variableName: COMMON_TARGET_CMAKE_ARGS
+        variableValue: " -DQT_INTERNAL_VERBOSE_EXAMPLES=ON"
+
       - type: Group
         instructions:
           - type: AppendToEnvironmentVariable
@@ -929,5 +967,43 @@ instructions:
       # Only enable if cross-compiling
       condition: property
       property: target.osVersion
-      in_values: [Android_ANY, QEMU, IMX8, IOS_ANY, QNX_710, QNX_800, WebAssembly, INTEGRITY, VxWorks]
+      in_values: [HarmonyOS_ANY, Android_ANY, QEMU, IMX8, IOS_ANY, QNX_710, QNX_800, WebAssembly, INTEGRITY, VxWorks]
 
+  # Dump important version information
+  - type: Group
+    instructions:
+    # macOS
+    - type: Group
+      enable_if:
+        condition: property
+        property: host.os
+        equals_value: MacOS
+      instructions:
+        - type: ExecuteCommand
+          command: "sw_vers"
+          ignoreExitCode: true
+          userMessageOnFailure: "Failed to run command"
+        - type: ExecuteCommand
+          command: "arch"
+          ignoreExitCode: true
+          userMessageOnFailure: "Failed to run command"
+        - type: ExecuteCommand
+          command: "pkgutil --pkg-info com.apple.pkg.RosettaUpdateAuto"
+          ignoreExitCode: true
+          userMessageOnFailure: "Failed to run command"
+          enable_if:
+            condition: property
+            property: host.arch
+            equals_value: "ARM64"
+        - type: ExecuteCommand
+          command: "xcode-select -p"
+          ignoreExitCode: true
+          userMessageOnFailure: "Failed to run command"
+        - type: ExecuteCommand
+          command: "xcodebuild -version"
+          ignoreExitCode: true
+          userMessageOnFailure: "Failed to run command"
+        - type: ExecuteCommand
+          command: "brew list --versions"
+          ignoreExitCode: true
+          userMessageOnFailure: "Failed to run command"

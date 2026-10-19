@@ -539,7 +539,7 @@ void Compiler::compilePropertyInitializer(Type &current, const QQmlJSScope::Cons
 
         const QString name = property.propertyName();
         const auto propertyType = property.type();
-        if (propertyType.isNull()) {
+        if (propertyType.isNull() || propertyType->isOpaqueType()) {
             recordError(type->sourceLocation(), u"Type of property '%1' is unknown"_s.arg(name));
             continue;
         }

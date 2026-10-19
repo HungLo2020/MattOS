@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "plasmawindowedcorona.h"
+#include <Plasma/Applet>
 #include <PlasmaQuick/ConfigView>
 #include <QPointer>
 #include <QQuickView>
@@ -25,6 +25,8 @@ public:
     void setApplet(Plasma::Applet *applet);
     void setHasStatusNotifier(bool stay);
     void showConfigurationInterface();
+
+    bool hasAppletError() const;
 
 protected:
     void resizeEvent(QResizeEvent *ev) override;
@@ -54,4 +56,5 @@ private:
     QPointer<QQuickItem> m_appletInterface;
     QPointer<KStatusNotifierItem> m_statusNotifier;
     bool m_withStatusNotifier;
+    bool m_hasAppletError = false;
 };

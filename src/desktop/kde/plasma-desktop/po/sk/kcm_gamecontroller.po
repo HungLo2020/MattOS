@@ -1,21 +1,20 @@
 # translation of kcm_gamecontroller.po to Slovak
 # SPDX-FileCopyrightText: 2023 Roman Paholík <wizzardsk@gmail.com>
 # SPDX-FileCopyrightText: 2024 Matej Mrenica <matejm98mthw@gmail.com>
-# SPDX-FileCopyrightText: 2026 Lucia Mrenica <lucia.mrenica@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_gamecontroller\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-15 03:00+0000\n"
-"PO-Revision-Date: 2026-01-31 17:20+0100\n"
-"Last-Translator: Lucia Mrenica <lucia.mrenica@gmail.com>\n"
+"POT-Creation-Date: 2026-06-05 00:46+0000\n"
+"PO-Revision-Date: 2024-06-26 14:10+0200\n"
+"Last-Translator: Matej Mrenica <matejm98mthw@gmail.com>\n"
 "Language-Team: Slovak <kde-i18n-doc@kde.org>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 24.05.1\n"
 
 #: axesmodel.cpp:122 hatmodel.cpp:80
 #, kde-format
@@ -48,7 +47,7 @@ msgstr "Herný ovládač"
 #: device.cpp:19
 #, kde-format
 msgid "Wheel"
-msgstr "Volant"
+msgstr "Koliesko"
 
 #: device.cpp:20
 #, kde-format
@@ -301,7 +300,7 @@ msgstr "Bluetooth"
 msgid "Invalid button value"
 msgstr "Neplatná hodnota tlačidla"
 
-#: device.cpp:246
+#: device.cpp:251
 #, kde-format
 msgid "Not a controller"
 msgstr "Nie je herný ovládač"

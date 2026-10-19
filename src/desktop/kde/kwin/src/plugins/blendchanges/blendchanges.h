@@ -25,9 +25,9 @@ public:
     static bool supported();
 
     // Effect interface
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime) override;
+    void prePaintScreen(ScreenPrePaintData &data) override;
     void postPaintScreen() override;
-    void paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data) override;
+    bool paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data) override;
 
     bool isActive() const override;
 
@@ -49,7 +49,7 @@ private:
     enum State {
         Off,
         ShowingCache,
-        Blending
+        Blending,
     };
     State m_state = Off;
 };

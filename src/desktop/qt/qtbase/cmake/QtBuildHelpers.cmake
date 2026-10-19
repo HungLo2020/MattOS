@@ -18,6 +18,25 @@ function(qt_internal_validate_cmake_generator)
     endif()
 endfunction()
 
+# Error out when CMAKE_CONFIGURATION_TYPES is provided for a single-config generator.
+# Otherwise the build might fail in weird ways.
+# This can happen when passing -G Ninja Multi-Config without quotes.
+function(qt_internal_validate_cmake_configuration_types)
+    get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(is_multi_config OR NOT CMAKE_CONFIGURATION_TYPES)
+        return()
+    endif()
+
+    message(FATAL_ERROR
+        "CMAKE_CONFIGURATION_TYPES is set to '${CMAKE_CONFIGURATION_TYPES}', but "
+        "'${CMAKE_GENERATOR}' is a single-configuration generator that ignores it.\n"
+        "To build multiple configurations, use a multi-config generator, making sure to quote "
+        "generator names that contain spaces, for example -G \"Ninja Multi-Config\".\n"
+        "To build a single configuration, remove CMAKE_CONFIGURATION_TYPES from the command line "
+        "and use -DCMAKE_BUILD_TYPE=<config> instead.\n"
+    )
+endfunction()
+
 macro(qt_internal_set_qt_building_qt)
     # Set the QT_BUILDING_QT variable so we can verify whether we are building
     # Qt from source.
@@ -166,6 +185,7 @@ function(qt_internal_get_qt_build_private_helpers out_var)
     set(${out_var}
         Qt3rdPartyLibraryHelpers
         QtAndroidHelpers
+        QtHarmonyOSHelpers
         QtAppHelpers
         QtAutoDetectHelpers
         QtAutogenHelpers
@@ -190,6 +210,7 @@ function(qt_internal_get_qt_build_private_helpers out_var)
         QtLalrHelpers
         QtMkspecHelpers
         QtModuleHelpers
+        QtModuleMapHelpers
         QtNoLinkTargetHelpers
         QtPkgConfigHelpers
         QtPlatformTargetHelpers
@@ -234,7 +255,9 @@ function(qt_internal_get_qt_build_private_files_to_install out_var)
         QtBuild.cmake
         QtBuildHelpers.cmake
         QtBuildStaticDocToolsScript.cmake
+        QtBuildCMakeFromSourcesScript.cmake
         QtCMakePackageVersionFile.cmake.in
+        QtCMakePackageVersionFileOverride.cmake.in
         QtCompilerFlags.cmake
         QtCompilerOptimization.cmake
         QtConfigDependencies.cmake.in
@@ -264,6 +287,7 @@ function(qt_internal_get_qt_build_private_files_to_install out_var)
         QtProcessConfigureArgs.cmake
         QtSeparateDebugInfo.Info.plist.in
         QtSetup.cmake
+        QtSetupAndroid.cmake
         QtStandaloneTestsConfig.cmake.in
         QtVcpkgManifestHelpers.cmake
         QtVersionlessAliasTargets.cmake.in
@@ -339,6 +363,7 @@ function(qt_internal_get_qt_build_public_files_to_install out_var)
 
         # Public CMake files that are installed next Qt6Config.cmake, but are NOT included by it.
         # Instead they are included by the generated CMake toolchain file.
+        QtPublicHarmonyOSToolchainHelpers.cmake
         QtPublicWasmToolchainHelpers.cmake
 
         PARENT_SCOPE
@@ -379,14 +404,6 @@ macro(qt_internal_setup_find_host_info_package)
     _qt_internal_setup_qt_host_path("${__qt_build_requires_host_info_package}" "" "")
     _qt_internal_find_host_info_package("${__qt_build_requires_host_info_package}"
         ${INSTALL_CMAKE_NAMESPACE})
-endmacro()
-
-macro(qt_internal_setup_poor_mans_scope_finalizer)
-    # This sets up the poor man's scope finalizer mechanism.
-    # For newer CMake versions, we use cmake_language(DEFER CALL) instead.
-    if(CMAKE_VERSION VERSION_LESS "3.19.0")
-        variable_watch(CMAKE_CURRENT_LIST_DIR qt_watch_current_list_dir)
-    endif()
 endmacro()
 
 macro(qt_internal_set_qt_namespace)
@@ -494,7 +511,6 @@ macro(qt_internal_setup_build_and_global_variables)
     qt_internal_set_top_level_source_dir()
     qt_internal_set_apple_archiver_flags()
     qt_internal_set_debug_extend_target()
-    qt_internal_setup_poor_mans_scope_finalizer()
 
     qt_internal_set_compiler_optimization_flags()
     qt_internal_set_compiler_warning_flags()

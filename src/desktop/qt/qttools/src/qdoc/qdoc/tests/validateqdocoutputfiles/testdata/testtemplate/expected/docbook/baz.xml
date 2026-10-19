@@ -13,7 +13,7 @@
 <db:varlistentry>
 <db:term>Header</db:term>
 <db:listitem>
-<db:para>Baz</db:para>
+<db:para>testtemplate.h</db:para>
 </db:listitem>
 </db:varlistentry>
 <db:varlistentry>
@@ -38,5 +38,6 @@
 </db:variablelist>
 <db:section xml:id="details">
 <db:title>Detailed Description</db:title>
+<db:para><db:code role="parameter">X</db:code> is the template-template parameter, <db:code role="parameter">Y</db:code> is the type used with it.</db:para>
 </db:section>
 </db:article>

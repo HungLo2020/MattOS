@@ -23,6 +23,7 @@ class ProximitySensor;
 class KWIN_EXPORT DpmsInputEventFilter : public QObject, public InputEventFilter
 {
     Q_OBJECT
+
 public:
     DpmsInputEventFilter();
     ~DpmsInputEventFilter() override;
@@ -42,6 +43,7 @@ public:
     bool tabletPadStripEvent(TabletPadStripEvent *event) override;
     bool tabletPadRingEvent(TabletPadRingEvent *event) override;
     bool tabletPadDialEvent(TabletPadDialEvent *event) override;
+    bool switchEvent(SwitchEvent *event) override;
 
 private Q_SLOTS:
     void updateProximitySensor();

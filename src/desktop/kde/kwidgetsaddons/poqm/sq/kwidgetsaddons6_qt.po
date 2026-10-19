@@ -46,6 +46,21 @@ msgctxt "FontHelpers|@item Font name [foundry]"
 msgid "%1 [%2]"
 msgstr "%1 [%2]"
 
+#: kabstractcoloredit.cpp:70
+#, fuzzy
+#| msgctxt "palette name"
+#| msgid "Forty Colors"
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Copy Color"
+msgstr "Dyzet Ngjyra"
+
+#: kabstractcoloredit.cpp:81
+#, fuzzy
+#| msgid "Named Colors"
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Paste Color"
+msgstr "Ngjyra të Emërtuara"
+
 #: kactionselector.cpp:98
 msgctxt "KActionSelector|@label:listbox"
 msgid "&Available:"
@@ -71,12 +86,12 @@ msgctxt "KAssistantDialog|@action:button Opposite to Back"
 msgid "Next"
 msgstr "Tjetra"
 
-#: kassistantdialog.cpp:114
+#: kassistantdialog.cpp:113
 msgctxt "KAssistantDialog|@action:button"
 msgid "Finish"
 msgstr "Përfundo"
 
-#: kcharselect-translation.cpp:11 kcharselectdata.cpp:277
+#: kcharselect-translation.cpp:11 kcharselectdata.cpp:279
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "All"
 msgstr "Të Gjitha"
@@ -141,7 +156,7 @@ msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Phonetic Symbols"
 msgstr "Simbolet Fonetike"
 
-#: kcharselect-translation.cpp:24 kcharselectdata.cpp:743
+#: kcharselect-translation.cpp:24 kcharselectdata.cpp:745
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Combining Diacritics"
 msgstr "Shenjat diakritike të kombinuara"
@@ -1622,37 +1637,37 @@ msgctxt "KCharSelectItemModel|Character"
 msgid "In decimal"
 msgstr "Entiteti dhjetor XML:"
 
-#: kcharselectdata.cpp:303
+#: kcharselectdata.cpp:305
 msgctxt "KCharSelectData|"
 msgid "<noncharacter>"
 msgstr "<noncharacter>"
 
-#: kcharselectdata.cpp:324
+#: kcharselectdata.cpp:326
 msgctxt "KCharSelectData|"
 msgid "<Non Private Use High Surrogate>"
 msgstr "<Non Private Use High Surrogate>"
 
-#: kcharselectdata.cpp:326
+#: kcharselectdata.cpp:328
 msgctxt "KCharSelectData|"
 msgid "<Private Use High Surrogate>"
 msgstr "<Private Use High Surrogate>"
 
-#: kcharselectdata.cpp:328
+#: kcharselectdata.cpp:330
 msgctxt "KCharSelectData|"
 msgid "<Low Surrogate>"
 msgstr "<Low Surrogate>"
 
-#: kcharselectdata.cpp:330
+#: kcharselectdata.cpp:332
 msgctxt "KCharSelectData|"
 msgid "<Private Use>"
 msgstr "<Private Use>"
 
-#: kcharselectdata.cpp:362
+#: kcharselectdata.cpp:364
 msgctxt "KCharSelectData|"
 msgid "<not assigned>"
 msgstr "<not assigned>"
 
-#: kcharselectdata.cpp:440
+#: kcharselectdata.cpp:442
 #, fuzzy
 #| msgctxt "@action:button Replace all occurrences"
 #| msgid "&All"
@@ -1660,167 +1675,167 @@ msgctxt "KCharSelectData|KCharselect unicode section name"
 msgid "All"
 msgstr "&Të Gjitha"
 
-#: kcharselectdata.cpp:752
+#: kcharselectdata.cpp:754
 msgctxt "KCharSelectData|"
 msgid "Non-printable"
 msgstr "Non-printable"
 
-#: kcharselectdata.cpp:785
+#: kcharselectdata.cpp:787
 msgctxt "KCharSelectData|"
 msgid "Other, Control"
 msgstr "Tjetër, Kontrolli"
 
-#: kcharselectdata.cpp:787
+#: kcharselectdata.cpp:789
 msgctxt "KCharSelectData|"
 msgid "Other, Format"
 msgstr "Tjetër, Formati"
 
-#: kcharselectdata.cpp:789
+#: kcharselectdata.cpp:791
 msgctxt "KCharSelectData|"
 msgid "Other, Not Assigned"
 msgstr "Tjetër, i Pa Caktuar"
 
-#: kcharselectdata.cpp:791
+#: kcharselectdata.cpp:793
 msgctxt "KCharSelectData|"
 msgid "Other, Private Use"
 msgstr "Tjetër, përdorim privat"
 
-#: kcharselectdata.cpp:793
+#: kcharselectdata.cpp:795
 msgctxt "KCharSelectData|"
 msgid "Other, Surrogate"
 msgstr "Tjetër, Surrogat"
 
-#: kcharselectdata.cpp:795
+#: kcharselectdata.cpp:797
 msgctxt "KCharSelectData|"
 msgid "Letter, Lowercase"
 msgstr "Shkronja, e Vogël"
 
-#: kcharselectdata.cpp:797
+#: kcharselectdata.cpp:799
 msgctxt "KCharSelectData|"
 msgid "Letter, Modifier"
 msgstr "Shkronja, Ndryshuesi"
 
-#: kcharselectdata.cpp:799
+#: kcharselectdata.cpp:801
 msgctxt "KCharSelectData|"
 msgid "Letter, Other"
 msgstr "Shkronja, Tjetër"
 
-#: kcharselectdata.cpp:801
+#: kcharselectdata.cpp:803
 msgctxt "KCharSelectData|"
 msgid "Letter, Titlecase"
 msgstr "Shkronja, Titulli"
 
-#: kcharselectdata.cpp:803
+#: kcharselectdata.cpp:805
 msgctxt "KCharSelectData|"
 msgid "Letter, Uppercase"
 msgstr "Shkronja, e Madhe"
 
-#: kcharselectdata.cpp:805
+#: kcharselectdata.cpp:807
 msgctxt "KCharSelectData|"
 msgid "Mark, Spacing Combining"
 msgstr "Shenjë, hapësirë e kombinuar"
 
-#: kcharselectdata.cpp:807
+#: kcharselectdata.cpp:809
 msgctxt "KCharSelectData|"
 msgid "Mark, Enclosing"
 msgstr "Shenjë, e mbyllur"
 
-#: kcharselectdata.cpp:809
+#: kcharselectdata.cpp:811
 msgctxt "KCharSelectData|"
 msgid "Mark, Non-Spacing"
 msgstr "Shenjë, pa hapësira"
 
-#: kcharselectdata.cpp:811
+#: kcharselectdata.cpp:813
 msgctxt "KCharSelectData|"
 msgid "Number, Decimal Digit"
 msgstr "Numër, shifra dhjetore"
 
-#: kcharselectdata.cpp:813
+#: kcharselectdata.cpp:815
 msgctxt "KCharSelectData|"
 msgid "Number, Letter"
 msgstr "Numër, shkronja"
 
-#: kcharselectdata.cpp:815
+#: kcharselectdata.cpp:817
 msgctxt "KCharSelectData|"
 msgid "Number, Other"
 msgstr "Numër, tjetër"
 
-#: kcharselectdata.cpp:817
+#: kcharselectdata.cpp:819
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Connector"
 msgstr "Pikësimi, Lidhësi"
 
-#: kcharselectdata.cpp:819
+#: kcharselectdata.cpp:821
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Dash"
 msgstr "Pikësimi, vizë"
 
-#: kcharselectdata.cpp:821
+#: kcharselectdata.cpp:823
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Close"
 msgstr "Pikësimi, e mbyllur"
 
-#: kcharselectdata.cpp:823
+#: kcharselectdata.cpp:825
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Final Quote"
 msgstr "Pikësimi, thonjëza e fundit"
 
-#: kcharselectdata.cpp:825
+#: kcharselectdata.cpp:827
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Initial Quote"
 msgstr "Pikësimi, thonjëza e parë"
 
-#: kcharselectdata.cpp:827
+#: kcharselectdata.cpp:829
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Other"
 msgstr "Pikësimi, tjetër"
 
-#: kcharselectdata.cpp:829
+#: kcharselectdata.cpp:831
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Open"
 msgstr "Pikësimi, e hapur"
 
-#: kcharselectdata.cpp:831
+#: kcharselectdata.cpp:833
 msgctxt "KCharSelectData|"
 msgid "Symbol, Currency"
 msgstr "Simboli, valutë"
 
-#: kcharselectdata.cpp:833
+#: kcharselectdata.cpp:835
 msgctxt "KCharSelectData|"
 msgid "Symbol, Modifier"
 msgstr "Simboli, ndryshues"
 
-#: kcharselectdata.cpp:835
+#: kcharselectdata.cpp:837
 msgctxt "KCharSelectData|"
 msgid "Symbol, Math"
 msgstr "Simboli, Matematikë"
 
-#: kcharselectdata.cpp:837
+#: kcharselectdata.cpp:839
 msgctxt "KCharSelectData|"
 msgid "Symbol, Other"
 msgstr "Simboli, tjetër"
 
-#: kcharselectdata.cpp:839
+#: kcharselectdata.cpp:841
 msgctxt "KCharSelectData|"
 msgid "Separator, Line"
 msgstr "Ndarës, vijë"
 
-#: kcharselectdata.cpp:841
+#: kcharselectdata.cpp:843
 msgctxt "KCharSelectData|"
 msgid "Separator, Paragraph"
 msgstr "Ndarës, paragraf"
 
-#: kcharselectdata.cpp:843
+#: kcharselectdata.cpp:845
 msgctxt "KCharSelectData|"
 msgid "Separator, Space"
 msgstr "Ndarës, hapësirë"
 
-#: kcharselectdata.cpp:845
+#: kcharselectdata.cpp:847
 msgctxt "KCharSelectData|"
 msgid "Unknown"
 msgstr "E Panjohur"
 
-#: kcolorcombo.cpp:333
+#: kcolorcombo.cpp:389
 #, fuzzy
 #| msgctxt "@item license"
 #| msgid "Custom"
@@ -2230,35 +2245,35 @@ msgctxt "KMessageBox|"
 msgid "Do not show this message again"
 msgstr "Mos ma trego më këtë mesazh"
 
-#: kmessagedialog.cpp:140
+#: kmessagedialog.cpp:137
 #, fuzzy
 #| msgid "Details"
 msgctxt "KMessageDialog|"
 msgid "Details"
 msgstr "Detajet"
 
-#: kmessagedialog.cpp:226
+#: kmessagedialog.cpp:218
 #, fuzzy
 #| msgid "Question"
 msgctxt "KMessageDialog|"
 msgid "Question"
 msgstr "Pyetje"
 
-#: kmessagedialog.cpp:231
+#: kmessagedialog.cpp:223
 #, fuzzy
 #| msgid "Warning"
 msgctxt "KMessageDialog|"
 msgid "Warning"
 msgstr "Kujdes"
 
-#: kmessagedialog.cpp:234
+#: kmessagedialog.cpp:226
 #, fuzzy
 #| msgid "Information"
 msgctxt "KMessageDialog|"
 msgid "Information"
 msgstr "Informacion"
 
-#: kmessagedialog.cpp:237
+#: kmessagedialog.cpp:229
 #, fuzzy
 #| msgid "Error"
 msgctxt "KMessageDialog|"
@@ -5526,10 +5541,6 @@ msgstr ""
 #~ msgstr "* Ngjyra të Vetëzgjedhura *"
 
 #~ msgctxt "palette name"
-#~ msgid "Forty Colors"
-#~ msgstr "Dyzet Ngjyra"
-
-#~ msgctxt "palette name"
 #~ msgid "Oxygen Colors"
 #~ msgstr "Ngjyra Oksigjeni"
 
@@ -5544,9 +5555,6 @@ msgstr ""
 #~ msgctxt "palette name"
 #~ msgid "Web Colors"
 #~ msgstr "Ngjyra Interneti"
-
-#~ msgid "Named Colors"
-#~ msgstr "Ngjyra të Emërtuara"
 
 #~ msgid "Select Color"
 #~ msgstr "Zgjidh Ngjyrën"

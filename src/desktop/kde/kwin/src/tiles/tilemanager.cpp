@@ -29,7 +29,7 @@ namespace KWin
 QDebug operator<<(QDebug debug, const TileManager *tileManager)
 {
     if (tileManager) {
-        QList<Tile *> tiles({tileManager->rootTile(VirtualDesktopManager::self()->currentDesktop())});
+        QList<Tile *> tiles({tileManager->rootTile(VirtualDesktopManager::self()->currentDesktop(tileManager->output()))});
         QList<Tile *> tilePath;
         QString indent(QStringLiteral("|-"));
         debug << tileManager->metaObject()->className() << '(' << static_cast<const void *>(tileManager) << ')' << '\n';
@@ -86,7 +86,10 @@ TileManager::TileManager(LogicalOutput *parent)
         delete m_quickRootTiles.take(desk);
     });
     connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged,
-            this, [this](VirtualDesktop *oldDesk, VirtualDesktop *newDesk) {
+            this, [this](VirtualDesktop *oldDesk, VirtualDesktop *newDesk, LogicalOutput *output) {
+        if (output != m_output) {
+            return;
+        }
         Q_EMIT rootTileChanged(rootTile());
         Q_EMIT modelChanged(model());
     });
@@ -119,12 +122,12 @@ RootTile *TileManager::rootTile(VirtualDesktop *desktop) const
 
 RootTile *TileManager::rootTile() const
 {
-    return m_rootTiles.value(VirtualDesktopManager::self()->currentDesktop());
+    return m_rootTiles.value(VirtualDesktopManager::self()->currentDesktop(m_output));
 }
 
 QuickRootTile *TileManager::quickRootTile() const
 {
-    return m_quickRootTiles.value(VirtualDesktopManager::self()->currentDesktop());
+    return m_quickRootTiles.value(VirtualDesktopManager::self()->currentDesktop(m_output));
 }
 
 QuickRootTile *TileManager::quickRootTile(VirtualDesktop *desktop) const

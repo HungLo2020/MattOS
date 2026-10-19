@@ -336,10 +336,6 @@ bool qt_in_tab_key_event = false;
 int qt_antialiasing_threshold = -1;
 int QApplicationPrivate::enabledAnimations = QPlatformTheme::GeneralUiEffect;
 bool QApplicationPrivate::widgetCount = false;
-#ifdef QT_KEYPAD_NAVIGATION
-Qt::NavigationMode QApplicationPrivate::navigationMode = Qt::NavigationModeKeypadTabOrder;
-QWidget *QApplicationPrivate::oldEditFocus = nullptr;
-#endif
 
 inline bool QApplicationPrivate::isAlien(QWidget *widget)
 {
@@ -844,10 +840,28 @@ bool QApplicationPrivate::compressEvent(QEvent *event, QObject *receiver, QPostE
     \brief the application style sheet
     \since 4.2
 
-    By default, this property returns an empty string unless the user specifies
-    the \c{-stylesheet} option on the command line when running the application.
+    The application style sheet applies to all widgets in the application, in
+    addition to any style sheet set on individual widgets. See
+    \l{Qt Style Sheets} for the cascading rules.
 
-    \sa QWidget::setStyle(), {Qt Style Sheets}
+    Setting this property replaces the application style with a style sheet
+    style that wraps the current \l{style()}{style}, and every later change
+    repolishes all widgets in the application. Set the style sheet once,
+    before the first window is shown, and do not use it to switch themes at
+    runtime. For when to use style sheets at all, see
+    \l{Styling Approaches for Qt Widgets}.
+
+    If the value is a \c{file:///} URL, Qt loads the style sheet from the named
+    file and resolves relative URLs inside it, such as image references, against
+    that file's directory. Only the application style sheet accepts a
+    \c{file:///} URL; \l QWidget::styleSheet does not.
+
+    By default, this property is an empty string unless the user specifies the
+    \c{-stylesheet} option on the command line when running the application;
+    that option sets this property to a \c{file:///} URL for the given file.
+
+    \sa QWidget::styleSheet, setStyle(), {Qt Style Sheets},
+        {Styling Approaches for Qt Widgets}
 */
 
 /*!
@@ -964,9 +978,6 @@ QStyle *QApplication::style()
     Setting the style before a palette has been set, i.e., before creating
     QApplication, will cause the application to use QStyle::standardPalette()
     for the palette.
-
-    \warning Qt style sheets are currently not supported for custom QStyle
-    subclasses. We plan to address this in some future release.
 
     \sa style(), QStyle, setPalette(), desktopSettingsAware()
 */
@@ -1254,6 +1265,7 @@ void QApplicationPrivate::initializeWidgetPalettesFromTheme()
         { "QTextEdit", QPlatformTheme::TextEditPalette },
         { "QTextControl", QPlatformTheme::TextEditPalette },
         { "QLineEdit", QPlatformTheme::TextLineEditPalette },
+        { "QComboBox", QPlatformTheme::ComboBoxPalette },
     };
 
     for (const auto themedWidget : themedWidgets) {
@@ -1289,7 +1301,7 @@ QFont QApplication::font(const QWidget *widget)
     FontHash *hash = app_fonts();
 
     if (widget && hash  && hash->size()) {
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
         // short circuit for small and mini controls
         if (widget->testAttribute(Qt::WA_MacSmallSize)) {
             return hash->value(QByteArrayLiteral("QSmallFont"));
@@ -1531,12 +1543,6 @@ void QApplicationPrivate::setFocusWidget(QWidget *focus, Qt::FocusReason reason)
 
             //send events
             if (prev) {
-#ifdef QT_KEYPAD_NAVIGATION
-                if (QApplicationPrivate::keyboardNavigationEnabled()) {
-                    if (prev->hasEditFocus() && reason != Qt::PopupFocusReason)
-                        prev->setEditFocus(false);
-                }
-#endif
                 QFocusEvent out(QEvent::FocusOut, reason);
                 QPointer<QWidget> that = prev;
                 QCoreApplication::sendEvent(prev, &out);
@@ -3193,7 +3199,7 @@ bool QApplication::notify(QObject *receiver, QEvent *e)
             break;
         }
 #endif // QT_NO_GESTURES
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
         // Enable touch events on enter, disable on leave.
         typedef void (*RegisterTouchWindowFn)(QWindow *,  bool);
         case QEvent::Enter:
@@ -3384,32 +3390,6 @@ void QApplicationPrivate::openPopup(QWidget *popup)
         }
     }
 }
-
-#ifdef QT_KEYPAD_NAVIGATION
-/*!
-    Sets the kind of focus navigation Qt should use to \a mode.
-
-    This feature is available in Qt for Embedded Linux only.
-
-    \since 4.6
-*/
-void QApplication::setNavigationMode(Qt::NavigationMode mode)
-{
-    QApplicationPrivate::navigationMode = mode;
-}
-
-/*!
-    Returns what kind of focus navigation Qt is using.
-
-    This feature is available in Qt for Embedded Linux only.
-
-    \since 4.6
-*/
-Qt::NavigationMode QApplication::navigationMode()
-{
-    return QApplicationPrivate::navigationMode;
-}
-#endif
 
 /*!
     \fn void QApplication::alert(QWidget *widget, int msec)

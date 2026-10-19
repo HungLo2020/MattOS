@@ -14,10 +14,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-24 02:42+0000\n"
-"PO-Revision-Date: 2026-03-31 10:49+0900\n"
+"POT-Creation-Date: 2026-10-07 02:54+0000\n"
+"PO-Revision-Date: 2026-07-23 17:22+0900\n"
 "Last-Translator: Mint <5602mint@gmail.com>\n"
-"Language-Team: Japanese <kde-i18n-doc@kde.org>\n"
+"Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,7 +25,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -41,399 +41,408 @@ msgstr ""
 "kom@kde.gr.jp,shinobo@leo.bekkoame.ne.jp,ryuk@user.script.nu,okushi@kde.gr."
 "jp,tsuno@ngy.1st.ne.jp,5602mint@gmail.com"
 
-#: backends/wayland/wayland_output.cpp:482
+#: backends/wayland/wayland_output.cpp:486
 #, kde-format
 msgid "Press right control to ungrab pointer"
-msgstr ""
-
-#: backends/wayland/wayland_output.cpp:484
-#, kde-format
-msgid "Press right control key to grab pointer"
-msgstr ""
+msgstr "右 Ctrl でポインタのキャプチャを解除します"
 
 #: backends/wayland/wayland_output.cpp:488
+#, kde-format
+msgid "Press right control key to grab pointer"
+msgstr "右 Ctrl でポインタをキャプチャします"
+
+#: backends/wayland/wayland_output.cpp:492
 #, kde-format
 msgctxt ""
 "Title of nested KWin Wayland with Wayland socket identifier as argument"
 msgid "KDE Wayland Compositor %1"
-msgstr ""
+msgstr "KDE Wayland コンポジター %1"
 
-#: backends/wayland/wayland_output.cpp:491
+#: backends/wayland/wayland_output.cpp:495
 #, kde-format
 msgid "- Output disabled"
-msgstr ""
+msgstr "- 出力を無効化済み"
 
-#: backends/wayland/wayland_output.cpp:493
+#: backends/wayland/wayland_output.cpp:497
 #, kde-format
 msgid "- Output dimmed"
-msgstr ""
+msgstr "- 出力をスリープ中"
 
-#: backends/x11/x11_windowed_backend.cpp:497
+#: backends/x11/x11_windowed_backend.cpp:500
 #, kde-format
 msgid "Press right control to ungrab input"
-msgstr ""
+msgstr "右 Ctrl で入力のキャプチャを解除します"
 
-#: backends/x11/x11_windowed_backend.cpp:497
+#: backends/x11/x11_windowed_backend.cpp:500
 #, kde-format
 msgid "Press right control key to grab input"
-msgstr ""
+msgstr "右 Ctrl で入力をキャプチャします"
 
-#: backends/x11/x11_windowed_backend.cpp:498
+#: backends/x11/x11_windowed_backend.cpp:501
 #, kde-format
 msgid "KDE Wayland Compositor"
+msgstr "KDE Wayland コンポジター"
+
+#: core/gpumanager.cpp:278
+#, kde-format
+msgctxt "@info: status"
+msgid "Graphics card “%1” (%2) was reset"
 msgstr ""
 
-#: compositor.cpp:610
+#: core/gpumanager.cpp:280
 #, kde-format
-msgid "Desktop effects were restarted due to a graphics reset"
-msgstr ""
-
-#: core/iccprofile.cpp:390
-#, kde-format
-msgid "Failed to open ICC profile \"%1\""
-msgstr ""
-
-#: core/iccprofile.cpp:392
-#, kde-format
-msgid "ICC profile \"%1\" doesn't exist"
-msgstr ""
-
-#: core/iccprofile.cpp:396
-#, kde-format
-msgid "ICC profile \"%1\" is not usable for displays"
-msgstr ""
-
-#: core/iccprofile.cpp:399
-#, kde-format
-msgid ""
-"ICC profile \"%1\" has unsupported connection space, only XYZ is supported"
+msgctxt "@info: status"
+msgid "Graphics card “%1” was reset"
 msgstr ""
 
 #: core/iccprofile.cpp:402
 #, kde-format
+msgid "Failed to open ICC profile \"%1\""
+msgstr "ICC プロファイル \"%1\" を開けませんでした"
+
+#: core/iccprofile.cpp:404
+#, kde-format
+msgid "ICC profile \"%1\" doesn't exist"
+msgstr "ICC プロファイル \"%1\" は存在しません"
+
+#: core/iccprofile.cpp:408
+#, kde-format
+msgid "ICC profile \"%1\" is not usable for displays"
+msgstr "ICC プロファイル \"%1\" はディスプレイに使用できません"
+
+#: core/iccprofile.cpp:411
+#, kde-format
+msgid ""
+"ICC profile \"%1\" has unsupported connection space, only XYZ is supported"
+msgstr ""
+"ICC プロファイル \"%1\" の接続色空間には対応していません (XYZ のみ対応)"
+
+#: core/iccprofile.cpp:414
+#, kde-format
 msgid "ICC profile \"%1\" is broken, input/output color space isn't RGB"
 msgstr ""
+"ICC プロファイル \"%1\" は壊れています (入出力色空間が RGB ではありません)"
 
-#: core/iccprofile.cpp:415
+#: core/iccprofile.cpp:427
 #, kde-format
 msgid "ICC profile \"%1\" is broken, it has no whitepoint"
-msgstr ""
+msgstr "ICC プロファイル \"%1\" は壊れています (白色点がありません)"
 
-#: core/iccprofile.cpp:418
+#: core/iccprofile.cpp:430
 #, kde-format
 msgid "ICC profile \"%1\" is broken, its whitepoint is invalid"
-msgstr ""
+msgstr "ICC プロファイル \"%1\" は壊れています (白色点が無効です)"
 
-#: core/iccprofile.cpp:431
+#: core/iccprofile.cpp:441
 #, kde-format
 msgid ""
 "ICC profile \"%1\" is broken, parsing chromatic adaptation matrix failed"
-msgstr ""
+msgstr "ICC プロファイル \"%1\" は壊れています (色順応行列の解析に失敗)"
 
-#: core/iccprofile.cpp:436
+#: core/iccprofile.cpp:446
 #, kde-format
 msgid ""
 "ICC profile \"%1\" is broken, inverting chromatic adaptation matrix failed"
-msgstr ""
+msgstr "ICC プロファイル \"%1\" は壊れています (色順応行列の反転に失敗)"
 
-#: core/iccprofile.cpp:449
-#, kde-format
-msgid "ICC profile \"%1\" is broken, it has no primaries"
-msgstr ""
-
-#: core/iccprofile.cpp:464
-#, kde-format
-msgid "ICC profile \"%1\" is broken, couldn't calculate its primaries"
-msgstr ""
-
-#: core/iccprofile.cpp:473
+#: core/iccprofile.cpp:455 core/iccprofile.cpp:470 core/iccprofile.cpp:488
 #, kde-format
 msgid "ICC profile \"%1\" is broken, its primaries are invalid"
-msgstr ""
+msgstr "ICC プロファイル \"%1\" は壊れています (原色データが無効です)"
 
-#: core/iccprofile.cpp:489
+#: core/iccprofile.cpp:463
+#, kde-format
+msgid "ICC profile \"%1\" is broken, it has no primaries"
+msgstr "ICC プロファイル \"%1\" は壊れています (原色データがありません)"
+
+#: core/iccprofile.cpp:482
+#, kde-format
+msgid "ICC profile \"%1\" is broken, couldn't calculate its primaries"
+msgstr "ICC プロファイル \"%1\" は壊れています (原色データを計算できません)"
+
+#: core/iccprofile.cpp:507
 #, kde-format
 msgid "ICC profile \"%1\" with only BToD tags isn't supported"
-msgstr ""
+msgstr "BToD タグのみを持つ ICC プロファイル \"%1\" には対応していません"
 
-#: core/iccprofile.cpp:527
+#: core/iccprofile.cpp:545
 #, kde-format
 msgid "Color profile is missing TRC tags"
-msgstr ""
+msgstr "カラープロファイルに TRC タグがありません"
 
-#: core/iccprofile.cpp:534
+#: core/iccprofile.cpp:552
 #, kde-format
 msgid "Couldn't invert tone curves of ICC profile \"%1\""
-msgstr ""
+msgstr "ICC プロファイル \"%1\" のトーンカーブを反転できませんでした"
 
-#: debug_console.cpp:86
+#: debug_console.cpp:87
 #, kde-format
 msgid "Timestamp"
 msgstr "タイムスタンプ"
 
-#: debug_console.cpp:91
+#: debug_console.cpp:92
 #, kde-format
 msgid "Timestamp (µsec)"
 msgstr "タイムスタンプ (マイクロ秒)"
 
-#: debug_console.cpp:98
+#: debug_console.cpp:99
 #, kde-format
 msgctxt "A mouse button"
 msgid "Left"
 msgstr "左"
 
-#: debug_console.cpp:100
+#: debug_console.cpp:101
 #, kde-format
 msgctxt "A mouse button"
 msgid "Right"
 msgstr "右"
 
-#: debug_console.cpp:102
+#: debug_console.cpp:103
 #, kde-format
 msgctxt "A mouse button"
 msgid "Middle"
 msgstr "中ボタン"
 
-#: debug_console.cpp:104
+#: debug_console.cpp:105
 #, kde-format
 msgctxt "A mouse button"
 msgid "Back"
 msgstr "戻る"
 
-#: debug_console.cpp:106
+#: debug_console.cpp:107
 #, kde-format
 msgctxt "A mouse button"
 msgid "Forward"
 msgstr "進む"
 
-#: debug_console.cpp:108
+#: debug_console.cpp:109
 #, kde-format
 msgctxt "A mouse button"
 msgid "Task"
 msgstr "タスク"
 
-#: debug_console.cpp:110
+#: debug_console.cpp:111
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 4"
 msgstr "追加ボタン 4"
 
-#: debug_console.cpp:112
+#: debug_console.cpp:113
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 5"
 msgstr "追加ボタン 5"
 
-#: debug_console.cpp:114
+#: debug_console.cpp:115
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 6"
 msgstr "追加ボタン 6"
 
-#: debug_console.cpp:116
+#: debug_console.cpp:117
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 7"
 msgstr "追加ボタン 7"
 
-#: debug_console.cpp:118
+#: debug_console.cpp:119
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 8"
 msgstr "追加ボタン 8"
 
-#: debug_console.cpp:120
+#: debug_console.cpp:121
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 9"
 msgstr "追加ボタン 9"
 
-#: debug_console.cpp:122
+#: debug_console.cpp:123
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 10"
 msgstr "追加ボタン 10"
 
-#: debug_console.cpp:124
+#: debug_console.cpp:125
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 11"
 msgstr "追加ボタン 11"
 
-#: debug_console.cpp:126
+#: debug_console.cpp:127
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 12"
 msgstr "追加ボタン 12"
 
-#: debug_console.cpp:128
+#: debug_console.cpp:129
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 13"
 msgstr "追加ボタン 13"
 
-#: debug_console.cpp:130
+#: debug_console.cpp:131
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 14"
 msgstr "追加ボタン 14"
 
-#: debug_console.cpp:132
+#: debug_console.cpp:133
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 15"
 msgstr "追加ボタン 15"
 
-#: debug_console.cpp:134
+#: debug_console.cpp:135
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 16"
 msgstr "追加ボタン 16"
 
-#: debug_console.cpp:136
+#: debug_console.cpp:137
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 17"
 msgstr "追加ボタン 17"
 
-#: debug_console.cpp:138
+#: debug_console.cpp:139
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 18"
 msgstr "追加ボタン 18"
 
-#: debug_console.cpp:140
+#: debug_console.cpp:141
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 19"
 msgstr "追加ボタン 19"
 
-#: debug_console.cpp:142
+#: debug_console.cpp:143
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 20"
 msgstr "追加ボタン 20"
 
-#: debug_console.cpp:144
+#: debug_console.cpp:145
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 21"
 msgstr "追加ボタン 21"
 
-#: debug_console.cpp:146
+#: debug_console.cpp:147
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 22"
 msgstr "追加ボタン 22"
 
-#: debug_console.cpp:148
+#: debug_console.cpp:149
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 23"
 msgstr "追加ボタン 23"
 
-#: debug_console.cpp:150
+#: debug_console.cpp:151
 #, kde-format
 msgctxt "A mouse button"
 msgid "Extra Button 24"
 msgstr "追加ボタン 24"
 
-#: debug_console.cpp:159 debug_console.cpp:161
+#: debug_console.cpp:160 debug_console.cpp:162
 #, kde-format
 msgid "Input Device"
 msgstr "入力デバイス"
 
-#: debug_console.cpp:159
+#: debug_console.cpp:160
 #, kde-format
 msgctxt "The input device of the event is not known"
 msgid "Unknown"
 msgstr "不明"
 
-#: debug_console.cpp:194
+#: debug_console.cpp:195
 #, kde-format
 msgctxt "A mouse pointer motion event"
 msgid "Pointer Motion"
 msgstr "ポインタ 移動"
 
-#: debug_console.cpp:199
+#: debug_console.cpp:200
 #, kde-format
 msgctxt "The relative mouse movement"
 msgid "Delta"
 msgstr "デルタ"
 
-#: debug_console.cpp:203
+#: debug_console.cpp:204
 #, kde-format
 msgctxt "The relative mouse movement"
 msgid "Delta (not accelerated)"
 msgstr "デルタ (加速なし)"
 
-#: debug_console.cpp:206
+#: debug_console.cpp:207
 #, kde-format
 msgctxt "The global mouse pointer position"
 msgid "Global Position"
 msgstr "絶対位置"
 
-#: debug_console.cpp:220
+#: debug_console.cpp:221
 #, kde-format
 msgctxt "A mouse pointer button press event"
 msgid "Pointer Button Press"
 msgstr "ポインタボタン 押下"
 
-#: debug_console.cpp:223 debug_console.cpp:230
+#: debug_console.cpp:224 debug_console.cpp:231
 #, kde-format
 msgctxt "A button in a mouse press/release event"
 msgid "Button"
 msgstr "ボタン"
 
-#: debug_console.cpp:224 debug_console.cpp:231
+#: debug_console.cpp:225 debug_console.cpp:232
 #, kde-format
 msgctxt "A button in a mouse press/release event"
 msgid "Native Button code"
 msgstr "ネイティブボタンコード"
 
-#: debug_console.cpp:225 debug_console.cpp:232
+#: debug_console.cpp:226 debug_console.cpp:233
 #, kde-format
 msgctxt "All currently pressed buttons in a mouse press/release event"
 msgid "Pressed Buttons"
 msgstr "押下ボタン"
 
-#: debug_console.cpp:227
+#: debug_console.cpp:228
 #, kde-format
 msgctxt "A mouse pointer button release event"
 msgid "Pointer Button Release"
 msgstr "ポインタボタン リリース"
 
-#: debug_console.cpp:244
+#: debug_console.cpp:245
 #, kde-format
 msgctxt "A mouse pointer axis (wheel) event"
 msgid "Pointer Axis"
 msgstr "ポインタ 方向入力"
 
-#: debug_console.cpp:247
+#: debug_console.cpp:248
 #, kde-format
 msgctxt "The orientation of a pointer axis event"
 msgid "Orientation"
 msgstr "向き"
 
-#: debug_console.cpp:248
+#: debug_console.cpp:249
 #, kde-format
 msgctxt "An orientation of a pointer axis event"
 msgid "Horizontal"
 msgstr "水平"
 
-#: debug_console.cpp:249
+#: debug_console.cpp:250
 #, kde-format
 msgctxt "An orientation of a pointer axis event"
 msgid "Vertical"
 msgstr "垂直"
 
-#: debug_console.cpp:250
+#: debug_console.cpp:251
 #, kde-format
 msgctxt "The angle delta of a pointer axis event"
 msgid "Delta"
 msgstr "デルタ"
 
-#: debug_console.cpp:251
+#: debug_console.cpp:252
 #, kde-format
 msgctxt ""
 "The normalized V120 angle delta of a pointer axis event. V120 is a technical "
@@ -441,648 +450,648 @@ msgctxt ""
 msgid "Delta (V120)"
 msgstr "デルタ (V120)"
 
-#: debug_console.cpp:266
+#: debug_console.cpp:267
 #, kde-format
 msgctxt "A key press event"
 msgid "Key Press"
 msgstr "キー 押下"
 
-#: debug_console.cpp:269
+#: debug_console.cpp:270
 #, kde-format
 msgctxt "A key release event"
 msgid "Key Release"
 msgstr "キー リリース"
 
-#: debug_console.cpp:278
+#: debug_console.cpp:279
 #, kde-format
 msgctxt "A keyboard modifier"
 msgid "Shift"
 msgstr "Shift"
 
-#: debug_console.cpp:282
+#: debug_console.cpp:283
 #, kde-format
 msgctxt "A keyboard modifier"
 msgid "Control"
 msgstr "Control"
 
-#: debug_console.cpp:286
+#: debug_console.cpp:287
 #, kde-format
 msgctxt "A keyboard modifier"
 msgid "Alt"
 msgstr "Alt"
 
-#: debug_console.cpp:290
+#: debug_console.cpp:291
 #, kde-format
 msgctxt "A keyboard modifier"
 msgid "Meta"
 msgstr "Meta"
 
-#: debug_console.cpp:294
+#: debug_console.cpp:295
 #, kde-format
 msgctxt "A keyboard modifier"
 msgid "Keypad"
 msgstr "キーパッド"
 
-#: debug_console.cpp:298
+#: debug_console.cpp:299
 #, kde-format
 msgctxt "A keyboard modifier"
 msgid "Group-switch"
 msgstr "グループ切り替え"
 
-#: debug_console.cpp:304
+#: debug_console.cpp:305
 #, kde-format
 msgctxt "Whether the event is an automatic key repeat"
 msgid "Repeat"
 msgstr "リピート"
 
-#: debug_console.cpp:308
+#: debug_console.cpp:309
 #, kde-format
 msgctxt "The code reported by the kernel"
 msgid "Keycode"
 msgstr "キーコード"
 
-#: debug_console.cpp:309
+#: debug_console.cpp:310
 #, kde-format
 msgctxt "Key according to Qt"
 msgid "Qt::Key code"
 msgstr "Qt::Key コード"
 
-#: debug_console.cpp:310
+#: debug_console.cpp:311
 #, kde-format
 msgctxt "The translated code to an Xkb symbol"
 msgid "Xkb symbol"
 msgstr "Xkb シンボル"
 
-#: debug_console.cpp:311
+#: debug_console.cpp:312
 #, kde-format
 msgctxt "The translated code interpreted as text"
 msgid "Utf8"
 msgstr "Utf8"
 
-#: debug_console.cpp:312
+#: debug_console.cpp:313
 #, kde-format
 msgctxt "The currently active modifiers"
 msgid "Modifiers"
 msgstr "修飾子"
 
-#: debug_console.cpp:324
+#: debug_console.cpp:325
 #, kde-format
 msgctxt "A touch down event"
 msgid "Touch down"
 msgstr "タッチ 開始"
 
-#: debug_console.cpp:326 debug_console.cpp:341 debug_console.cpp:356
+#: debug_console.cpp:327 debug_console.cpp:342 debug_console.cpp:357
 #, kde-format
 msgctxt "The id of the touch point in the touch event"
 msgid "Point identifier"
 msgstr "ポイント識別子"
 
-#: debug_console.cpp:327 debug_console.cpp:342
+#: debug_console.cpp:328 debug_console.cpp:343
 #, kde-format
 msgctxt "The global position of the touch point"
 msgid "Global position"
 msgstr "絶対位置"
 
-#: debug_console.cpp:339
+#: debug_console.cpp:340
 #, kde-format
 msgctxt "A touch motion event"
 msgid "Touch Motion"
 msgstr "タッチ 移動"
 
-#: debug_console.cpp:354
+#: debug_console.cpp:355
 #, kde-format
 msgctxt "A touch up event"
 msgid "Touch Up"
 msgstr "移動"
 
-#: debug_console.cpp:367
+#: debug_console.cpp:368
 #, kde-format
 msgctxt "A pinch gesture is started"
 msgid "Pinch start"
 msgstr "ピンチ 開始"
 
-#: debug_console.cpp:369
+#: debug_console.cpp:370
 #, kde-format
 msgctxt "Number of fingers in this pinch gesture"
 msgid "Finger count"
 msgstr "指カウント"
 
-#: debug_console.cpp:380
+#: debug_console.cpp:381
 #, kde-format
 msgctxt "A pinch gesture is updated"
 msgid "Pinch update"
 msgstr "ピンチ 更新"
 
-#: debug_console.cpp:382
+#: debug_console.cpp:383
 #, kde-format
 msgctxt "Current scale in pinch gesture"
 msgid "Scale"
 msgstr "スケール"
 
-#: debug_console.cpp:383
+#: debug_console.cpp:384
 #, kde-format
 msgctxt "Current angle in pinch gesture"
 msgid "Angle delta"
 msgstr "方向デルタ"
 
-#: debug_console.cpp:384
+#: debug_console.cpp:385
 #, kde-format
 msgctxt "Current delta in pinch gesture"
 msgid "Delta x"
 msgstr "デルタ x"
 
-#: debug_console.cpp:385
+#: debug_console.cpp:386
 #, kde-format
 msgctxt "Current delta in pinch gesture"
 msgid "Delta y"
 msgstr "デルタ y"
 
-#: debug_console.cpp:396
+#: debug_console.cpp:397
 #, kde-format
 msgctxt "A pinch gesture ended"
 msgid "Pinch end"
 msgstr "ピンチ 終了"
 
-#: debug_console.cpp:408
+#: debug_console.cpp:409
 #, kde-format
 msgctxt "A pinch gesture got cancelled"
 msgid "Pinch cancelled"
 msgstr "ピンチ キャンセル"
 
-#: debug_console.cpp:420
+#: debug_console.cpp:421
 #, kde-format
 msgctxt "A swipe gesture is started"
 msgid "Swipe start"
 msgstr "スワイプ 開始"
 
-#: debug_console.cpp:422
+#: debug_console.cpp:423
 #, kde-format
 msgctxt "Number of fingers in this swipe gesture"
 msgid "Finger count"
 msgstr "指カウント"
 
-#: debug_console.cpp:433
+#: debug_console.cpp:434
 #, kde-format
 msgctxt "A swipe gesture is updated"
 msgid "Swipe update"
 msgstr "スワイプ 更新"
 
-#: debug_console.cpp:435
+#: debug_console.cpp:436
 #, kde-format
 msgctxt "Current delta in swipe gesture"
 msgid "Delta x"
 msgstr "デルタ x"
 
-#: debug_console.cpp:436
+#: debug_console.cpp:437
 #, kde-format
 msgctxt "Current delta in swipe gesture"
 msgid "Delta y"
 msgstr "デルタ y"
 
-#: debug_console.cpp:447
+#: debug_console.cpp:448
 #, kde-format
 msgctxt "A swipe gesture ended"
 msgid "Swipe end"
 msgstr "スワイプ 終了"
 
-#: debug_console.cpp:459
+#: debug_console.cpp:460
 #, kde-format
 msgctxt "A swipe gesture got cancelled"
 msgid "Swipe cancelled"
 msgstr "スワイプ キャンセル"
 
-#: debug_console.cpp:471
+#: debug_console.cpp:472
 #, kde-format
 msgctxt "A hold gesture is started"
 msgid "Hold start"
 msgstr "長押し 開始"
 
-#: debug_console.cpp:473
+#: debug_console.cpp:474
 #, kde-format
 msgctxt "Number of fingers in this hold gesture"
 msgid "Finger count"
 msgstr "指カウント"
 
-#: debug_console.cpp:484
+#: debug_console.cpp:485
 #, kde-format
 msgctxt "A hold gesture ended"
 msgid "Hold end"
 msgstr "長押し 終了"
 
-#: debug_console.cpp:496
+#: debug_console.cpp:497
 #, kde-format
 msgctxt "A hold gesture got cancelled"
 msgid "Hold cancelled"
 msgstr "長押し キャンセル"
 
-#: debug_console.cpp:508
+#: debug_console.cpp:509
 #, kde-format
 msgctxt "A hardware switch (e.g. notebook lid) got toggled"
 msgid "Switch toggled"
 msgstr "スイッチ 切り替え"
 
-#: debug_console.cpp:514
+#: debug_console.cpp:515
 #, kde-format
 msgctxt "Name of a hardware switch"
 msgid "Notebook lid"
 msgstr "ノートパソコン ふた"
 
-#: debug_console.cpp:516
+#: debug_console.cpp:517
 #, kde-format
 msgctxt "Name of a hardware switch"
 msgid "Tablet mode"
 msgstr "タブレットモード"
 
-#: debug_console.cpp:518
+#: debug_console.cpp:519
 #, kde-format
 msgctxt "A hardware switch"
 msgid "Switch"
 msgstr "スイッチ"
 
-#: debug_console.cpp:522
+#: debug_console.cpp:523
 #, kde-format
 msgctxt "The hardware switch got turned off"
 msgid "Off"
 msgstr "OFF"
 
-#: debug_console.cpp:525
+#: debug_console.cpp:526
 #, kde-format
 msgctxt "The hardware switch got turned on"
 msgid "On"
 msgstr "ON"
 
-#: debug_console.cpp:530
+#: debug_console.cpp:531
 #, kde-format
 msgctxt "State of a hardware switch (on/off)"
 msgid "State"
 msgstr "状態"
 
-#: debug_console.cpp:539
+#: debug_console.cpp:540
 #, kde-format
 msgid "Tablet Tool Proximity"
 msgstr "タブレットツール 近接"
 
-#: debug_console.cpp:543
+#: debug_console.cpp:544
 #, kde-format
 msgid "Proximity"
 msgstr "近接"
 
-#: debug_console.cpp:543
+#: debug_console.cpp:544
 #, kde-format
 msgid "In"
 msgstr ""
 
-#: debug_console.cpp:543
+#: debug_console.cpp:544
 #, kde-format
 msgid "Out"
 msgstr ""
 
-#: debug_console.cpp:544 debug_console.cpp:562 debug_console.cpp:582
-#: debug_console.cpp:632 debug_console.cpp:649
+#: debug_console.cpp:545 debug_console.cpp:563 debug_console.cpp:583
+#: debug_console.cpp:633 debug_console.cpp:650
 #, kde-format
 msgid "Position"
 msgstr "位置"
 
-#: debug_console.cpp:546 debug_console.cpp:564 debug_console.cpp:584
+#: debug_console.cpp:547 debug_console.cpp:565 debug_console.cpp:585
 #, kde-format
 msgid "Tilt"
 msgstr "傾き"
 
-#: debug_console.cpp:548 debug_console.cpp:566 debug_console.cpp:586
+#: debug_console.cpp:549 debug_console.cpp:567 debug_console.cpp:587
 #, kde-format
 msgid "Rotation"
 msgstr "回転"
 
-#: debug_console.cpp:549 debug_console.cpp:568
+#: debug_console.cpp:550 debug_console.cpp:569
 #, kde-format
 msgid "Distance"
 msgstr "距離"
 
-#: debug_console.cpp:558
+#: debug_console.cpp:559
 #, kde-format
 msgid "Tablet Tool Axis"
 msgstr "タブレットツール 方向"
 
-#: debug_console.cpp:567 debug_console.cpp:587
+#: debug_console.cpp:568 debug_console.cpp:588
 #, kde-format
 msgid "Pressure"
 msgstr "筆圧"
 
-#: debug_console.cpp:577
+#: debug_console.cpp:578
 #, kde-format
 msgid "Tablet Tool Tip"
 msgstr "タブレットツール 指先ボタン"
 
-#: debug_console.cpp:581
+#: debug_console.cpp:582
 #, kde-format
 msgid "Tip"
 msgstr "指先"
 
-#: debug_console.cpp:581
+#: debug_console.cpp:582
 #, kde-format
 msgid "Down"
 msgstr "下"
 
-#: debug_console.cpp:581
+#: debug_console.cpp:582
 #, kde-format
 msgid "Up"
 msgstr "上"
 
-#: debug_console.cpp:588
+#: debug_console.cpp:589
 #, fuzzy, kde-format
 #| msgid "Window Operations Menu"
 msgid "Slider Position"
 msgstr "ウィンドウ操作メニュー"
 
-#: debug_console.cpp:597
+#: debug_console.cpp:598
 #, kde-format
 msgid "Tablet Tool Button"
 msgstr "タブレットツール ボタン"
 
-#: debug_console.cpp:599 debug_console.cpp:614
+#: debug_console.cpp:600 debug_console.cpp:615
 #, kde-format
 msgid "Button"
 msgstr "ボタン"
 
-#: debug_console.cpp:600 debug_console.cpp:615
+#: debug_console.cpp:601 debug_console.cpp:616
 #, kde-format
 msgid "Pressed"
 msgstr "押下"
 
-#: debug_console.cpp:601 debug_console.cpp:619 debug_console.cpp:636
-#: debug_console.cpp:653 debug_console.cpp:667
+#: debug_console.cpp:602 debug_console.cpp:620 debug_console.cpp:637
+#: debug_console.cpp:654 debug_console.cpp:668
 #, kde-format
 msgid "Tablet"
 msgstr "タブレット"
 
-#: debug_console.cpp:612
+#: debug_console.cpp:613
 #, kde-format
 msgid "Tablet Pad Button"
 msgstr "タブレットパッド ボタン"
 
-#: debug_console.cpp:616 debug_console.cpp:634 debug_console.cpp:651
+#: debug_console.cpp:617 debug_console.cpp:635 debug_console.cpp:652
 #, kde-format
 msgid "Group"
 msgstr "グループ"
 
-#: debug_console.cpp:617 debug_console.cpp:635 debug_console.cpp:652
+#: debug_console.cpp:618 debug_console.cpp:636 debug_console.cpp:653
 #, kde-format
 msgid "Mode"
 msgstr "モード"
 
-#: debug_console.cpp:618
+#: debug_console.cpp:619
 #, kde-format
 msgid "Is Mode Switch"
 msgstr ""
 
-#: debug_console.cpp:629
+#: debug_console.cpp:630
 #, kde-format
 msgid "Tablet Pad Strip"
 msgstr "タブレットパッド ストリップ"
 
-#: debug_console.cpp:631 debug_console.cpp:648 debug_console.cpp:665
+#: debug_console.cpp:632 debug_console.cpp:649 debug_console.cpp:666
 #, kde-format
 msgid "Number"
 msgstr ""
 
-#: debug_console.cpp:633 debug_console.cpp:650
+#: debug_console.cpp:634 debug_console.cpp:651
 #, kde-format
 msgid "isFinger"
 msgstr ""
 
-#: debug_console.cpp:646
+#: debug_console.cpp:647
 #, kde-format
 msgid "Tablet Pad Ring"
 msgstr "タブレットパッド リング"
 
-#: debug_console.cpp:663
+#: debug_console.cpp:664
 #, kde-format
 msgid "Tablet Pad Dial"
 msgstr "タブレットパッド ダイヤル"
 
-#: debug_console.cpp:666
+#: debug_console.cpp:667
 #, kde-format
 msgid "Delta"
 msgstr "デルタ"
 
-#: debug_console.cpp:719
+#: debug_console.cpp:721
 #, kde-format
 msgctxt "@label"
 msgid "Effects"
 msgstr "効果"
 
-#: debug_console.cpp:949
+#: debug_console.cpp:977
 #, kde-format
 msgid "No Mouse Buttons"
 msgstr "マウスボタンなし"
 
-#: debug_console.cpp:953
+#: debug_console.cpp:981
 #, kde-format
 msgctxt "Mouse Button"
 msgid "left"
 msgstr "左"
 
-#: debug_console.cpp:956
+#: debug_console.cpp:984
 #, kde-format
 msgctxt "Mouse Button"
 msgid "right"
 msgstr "右"
 
-#: debug_console.cpp:959
+#: debug_console.cpp:987
 #, kde-format
 msgctxt "Mouse Button"
 msgid "middle"
 msgstr "中ボタン"
 
-#: debug_console.cpp:962
+#: debug_console.cpp:990
 #, kde-format
 msgctxt "Mouse Button"
 msgid "back"
 msgstr "戻る"
 
-#: debug_console.cpp:965
+#: debug_console.cpp:993
 #, kde-format
 msgctxt "Mouse Button"
 msgid "forward"
 msgstr "進む"
 
-#: debug_console.cpp:968
+#: debug_console.cpp:996
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 1"
 msgstr "追加 1"
 
-#: debug_console.cpp:971
+#: debug_console.cpp:999
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 2"
 msgstr "追加 2"
 
-#: debug_console.cpp:974
+#: debug_console.cpp:1002
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 3"
 msgstr "追加 3"
 
-#: debug_console.cpp:977
+#: debug_console.cpp:1005
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 4"
 msgstr "追加 4"
 
-#: debug_console.cpp:980
+#: debug_console.cpp:1008
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 5"
 msgstr "追加 5"
 
-#: debug_console.cpp:983
+#: debug_console.cpp:1011
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 6"
 msgstr "追加 6"
 
-#: debug_console.cpp:986
+#: debug_console.cpp:1014
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 7"
 msgstr "追加 7"
 
-#: debug_console.cpp:989
+#: debug_console.cpp:1017
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 8"
 msgstr "追加 8"
 
-#: debug_console.cpp:992
+#: debug_console.cpp:1020
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 9"
 msgstr "追加 9"
 
-#: debug_console.cpp:995
+#: debug_console.cpp:1023
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 10"
 msgstr "追加 10"
 
-#: debug_console.cpp:998
+#: debug_console.cpp:1026
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 11"
 msgstr "追加 11"
 
-#: debug_console.cpp:1001
+#: debug_console.cpp:1029
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 12"
 msgstr "追加 12"
 
-#: debug_console.cpp:1004
+#: debug_console.cpp:1032
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 13"
 msgstr "追加 13"
 
-#: debug_console.cpp:1007
+#: debug_console.cpp:1035
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 14"
 msgstr "追加 14"
 
-#: debug_console.cpp:1010
+#: debug_console.cpp:1038
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 15"
 msgstr "追加 15"
 
-#: debug_console.cpp:1013
+#: debug_console.cpp:1041
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 16"
 msgstr "追加 16"
 
-#: debug_console.cpp:1016
+#: debug_console.cpp:1044
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 17"
 msgstr "追加 17"
 
-#: debug_console.cpp:1019
+#: debug_console.cpp:1047
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 18"
 msgstr "追加 18"
 
-#: debug_console.cpp:1022
+#: debug_console.cpp:1050
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 19"
 msgstr "追加 19"
 
-#: debug_console.cpp:1025
+#: debug_console.cpp:1053
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 20"
 msgstr "追加 20"
 
-#: debug_console.cpp:1028
+#: debug_console.cpp:1056
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 21"
 msgstr "追加 21"
 
-#: debug_console.cpp:1031
+#: debug_console.cpp:1059
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 22"
 msgstr "追加 22"
 
-#: debug_console.cpp:1034
+#: debug_console.cpp:1062
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 23"
 msgstr "追加 23"
 
-#: debug_console.cpp:1037
+#: debug_console.cpp:1065
 #, kde-format
 msgctxt "Mouse Button"
 msgid "extra 24"
 msgstr "追加 24"
 
-#: debug_console.cpp:1040
+#: debug_console.cpp:1068
 #, kde-format
 msgctxt "Mouse Button"
 msgid "task"
 msgstr "タスク"
 
-#: debug_console.cpp:1427
+#: debug_console.cpp:1457
 #, kde-format
 msgid "X11 Windows"
 msgstr "X11 ウィンドウ"
 
-#: debug_console.cpp:1429
+#: debug_console.cpp:1459
 #, kde-format
 msgid "X11 Unmanaged Windows"
 msgstr "X11 管理外ウィンドウ"
 
-#: debug_console.cpp:1431
+#: debug_console.cpp:1461
 #, kde-format
 msgid "Wayland Windows"
 msgstr "Wayland ウィンドウ"
 
-#: debug_console.cpp:1433
+#: debug_console.cpp:1463
 #, kde-format
 msgid "Internal Windows"
 msgstr "内部ウィンドウ"
 
-#: debug_console.cpp:1790
+#: debug_console.cpp:1820
 #, kde-format
 msgctxt "@action:button unload an effect"
 msgid "Unload"
 msgstr "アンロード"
 
-#: debug_console.cpp:1794
+#: debug_console.cpp:1824
 #, kde-format
 msgctxt "@action:button load an effect"
 msgid "Load"
@@ -1100,233 +1109,289 @@ msgstr "デバッグコンソール"
 msgid "Windows"
 msgstr "ウィンドウ"
 
+#. i18n: ectx: property (text), widget (QPushButton, pickWindowButton)
+#: debug_console.ui:43
+#, kde-format
+msgctxt "@action:button"
+msgid "Pick Window…"
+msgstr "ウィンドウを選ぶ…"
+
 #. i18n: ectx: attribute (title), widget (QWidget, input)
-#: debug_console.ui:44
+#: debug_console.ui:54
 #, kde-format
 msgid "Input Events"
 msgstr "入力イベント"
 
 #. i18n: ectx: attribute (title), widget (QWidget, inputDevices)
-#: debug_console.ui:61
+#: debug_console.ui:71
 #, kde-format
 msgid "Input Devices"
 msgstr "入力デバイス"
 
 #. i18n: ectx: attribute (title), widget (QWidget, tab)
-#: debug_console.ui:71
+#: debug_console.ui:81
 #, kde-format
 msgid "OpenGL"
 msgstr "OpenGL"
 
 #. i18n: ectx: property (text), widget (QLabel, noOpenGLLabel)
-#: debug_console.ui:77
+#: debug_console.ui:87
 #, kde-format
 msgid "No OpenGL compositor running"
 msgstr "動作中の OpenGL コンソールなし"
 
 #. i18n: ectx: property (title), widget (QGroupBox, driverInfoBox)
-#: debug_console.ui:105
+#: debug_console.ui:115
 #, kde-format
 msgid "OpenGL (ES) driver information"
 msgstr "OpenGL (ES) ドライバ情報"
 
 #. i18n: ectx: property (text), widget (QLabel, label)
-#: debug_console.ui:111
+#: debug_console.ui:121
 #, kde-format
 msgid "Vendor:"
 msgstr "ベンダー:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_2)
-#: debug_console.ui:118
+#: debug_console.ui:128
 #, kde-format
 msgid "Renderer:"
 msgstr "レンダラー:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_3)
-#: debug_console.ui:125
+#: debug_console.ui:135
 #, kde-format
 msgid "Version:"
 msgstr "バージョン:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
-#: debug_console.ui:132
+#: debug_console.ui:142
 #, kde-format
 msgid "Shading Language Version:"
 msgstr "シェーディング言語 バージョン:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_5)
-#: debug_console.ui:139
+#: debug_console.ui:149
 #, kde-format
 msgid "Driver:"
 msgstr "ドライバ:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_6)
-#: debug_console.ui:146
+#: debug_console.ui:156
 #, kde-format
 msgid "GPU class:"
 msgstr "GPU クラス:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_7)
-#: debug_console.ui:153
+#: debug_console.ui:163
 #, kde-format
 msgid "OpenGL Version:"
 msgstr "OpenGL バージョン:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_8)
-#: debug_console.ui:160
+#: debug_console.ui:170
 #, kde-format
 msgid "GLSL Version:"
 msgstr "GLSL バージョン:"
 
 #. i18n: ectx: property (title), widget (QGroupBox, platformExtensionsBox)
-#: debug_console.ui:226
+#: debug_console.ui:236
 #, kde-format
 msgid "Platform Extensions"
 msgstr "プラットフォーム 拡張機能"
 
 #. i18n: ectx: property (title), widget (QGroupBox, glExtensionsBox)
-#: debug_console.ui:242
+#: debug_console.ui:252
 #, kde-format
 msgid "OpenGL (ES) Extensions"
 msgstr "OpenGL (ES) 拡張機能"
 
 #. i18n: ectx: attribute (title), widget (QWidget, keyboard)
-#: debug_console.ui:263
+#: debug_console.ui:273
 #, kde-format
 msgid "Keyboard"
 msgstr "キーボード"
 
 #. i18n: ectx: property (title), widget (QGroupBox, layoutBox)
-#: debug_console.ui:290
+#: debug_console.ui:300
 #, kde-format
 msgid "Keymap Layouts"
 msgstr "キーマップレイアウト"
 
 #. i18n: ectx: property (text), widget (QLabel, label_9)
-#: debug_console.ui:312
+#: debug_console.ui:322
 #, kde-format
 msgid "Current Layout:"
 msgstr "現在のレイアウト:"
 
 #. i18n: ectx: property (title), widget (QGroupBox, modifiersBox)
-#: debug_console.ui:331
+#: debug_console.ui:341
 #, kde-format
 msgid "Modifiers"
 msgstr "修飾子"
 
 #. i18n: ectx: property (title), widget (QGroupBox, activeModifiersBox)
-#: debug_console.ui:347
+#: debug_console.ui:357
 #, kde-format
 msgid "Active Modifiers"
 msgstr "アクティブな修飾子"
 
 #. i18n: ectx: property (title), widget (QGroupBox, ledsBox)
-#: debug_console.ui:363
+#: debug_console.ui:373
 #, kde-format
 msgid "LEDs"
 msgstr "LED"
 
 #. i18n: ectx: property (title), widget (QGroupBox, activeLedsBox)
-#: debug_console.ui:379
+#: debug_console.ui:389
 #, kde-format
 msgid "Active LEDs"
 msgstr "アクティブな LED"
 
 #. i18n: ectx: attribute (title), widget (QWidget, clipboard)
 #. i18n: ectx: property (text), widget (QLabel, label_10)
-#: debug_console.ui:400 debug_console.ui:420
+#: debug_console.ui:410 debug_console.ui:430
 #, kde-format
 msgid "Clipboard"
 msgstr "クリップボード"
 
 #. i18n: ectx: property (text), widget (QLabel, label_11)
-#: debug_console.ui:466
+#: debug_console.ui:476
 #, kde-format
 msgid "Primary Selection"
 msgstr "プライマリセレクション"
 
-#: helpers/killer/killer.cpp:126
+#: helpers/dialoghelper/dialoghelper.cpp:38 helpers/killer/killer.cpp:129
 #, kde-format
 msgid "Window Manager"
 msgstr "ウィンドウマネージャ"
 
-#: helpers/killer/killer.cpp:131
-#, kde-format
-msgid "PID of the application to terminate"
-msgstr "強制終了させるアプリケーションの PID"
-
-#: helpers/killer/killer.cpp:131
-#, kde-format
-msgid "pid"
-msgstr ""
-
-#: helpers/killer/killer.cpp:133
-#, kde-format
-msgid "Hostname on which the application is running"
-msgstr "アプリケーションが実行されているホストの名前"
-
-#: helpers/killer/killer.cpp:133
-#, kde-format
-msgid "hostname"
-msgstr ""
-
-#: helpers/killer/killer.cpp:135
-#, kde-format
-msgid "Caption of the window to be terminated"
-msgstr "強制終了させるウィンドウのキャプション"
-
-#: helpers/killer/killer.cpp:135
-#, kde-format
-msgid "caption"
-msgstr ""
-
-#: helpers/killer/killer.cpp:137
-#, kde-format
-msgid "Name of the application to be terminated"
-msgstr "強制終了させるアプリケーションの名前"
-
-#: helpers/killer/killer.cpp:137
-#, kde-format
-msgid "name"
-msgstr ""
-
-#: helpers/killer/killer.cpp:139
+#: helpers/dialoghelper/dialoghelper.cpp:43 helpers/killer/killer.cpp:142
 #, kde-format
 msgid "ID of resource belonging to the application"
 msgstr "このアプリケーションに属するリソースの ID"
 
-#: helpers/killer/killer.cpp:139
+#: helpers/dialoghelper/dialoghelper.cpp:43 helpers/killer/killer.cpp:142
 #, kde-format
 msgid "id"
 msgstr ""
 
-#: helpers/killer/killer.cpp:141
+#: helpers/dialoghelper/dialoghelper.cpp:45 helpers/killer/killer.cpp:144
 #, kde-format
 msgid "Time of user action causing termination"
 msgstr "ユーザが強制終了させた時間"
 
-#: helpers/killer/killer.cpp:141
+#: helpers/dialoghelper/dialoghelper.cpp:45 helpers/killer/killer.cpp:144
 #, kde-format
 msgid "time"
 msgstr ""
 
-#: helpers/killer/killer.cpp:143
+#: helpers/dialoghelper/dialoghelper.cpp:46
+#, kde-format
+msgid "The message to show (fullscreen, noborder)"
+msgstr ""
+
+#: helpers/dialoghelper/dialoghelper.cpp:48 helpers/killer/killer.cpp:146
 #, kde-format
 msgid "KWin helper utility"
 msgstr "KWin ヘルパーユーティリティ"
 
-#: helpers/killer/killer.cpp:171
+#: helpers/dialoghelper/dialoghelper.cpp:72
+#: helpers/dialoghelper/dialoghelper.cpp:122 helpers/killer/killer.cpp:177
 #, kde-format
 msgid "This helper utility is not supposed to be called directly."
 msgstr "このヘルパーユーティリティは、直接実行されるものではありません。"
 
-#: helpers/killer/killer.cpp:195
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info"
-#| msgid ""
-#| "<p>Do you want to terminate this application?</p><p><warning>Terminating "
-#| "the application will close all of its child windows. Any unsaved data "
-#| "will be lost.</warning></p>"
+#: helpers/dialoghelper/dialoghelper.cpp:83
+#, kde-format
+msgid ""
+"You have selected to show a window in fullscreen mode.\n"
+"If the application itself does not have an option to turn the fullscreen "
+"mode off you will not be able to disable it again using the mouse: use the "
+"%1 keyboard shortcut instead."
+msgstr ""
+"ウィンドウをフルスクリーンにしました。\n"
+"アプリケーションにフルスクリーンモードを解除する機能がない場合、マウスを使っ"
+"てフルスクリーンモードを解除することができなくなります。その場合、キーボード"
+"ショートカットの %1 で解除してください。"
+
+#: helpers/dialoghelper/dialoghelper.cpp:89
+#, kde-format
+msgid ""
+"You have selected to show a window in fullscreen mode.\n"
+"If the application itself does not have an option to turn the fullscreen "
+"mode off you will not be able to disable it again using the mouse: use the "
+"window menu instead, activated using the %1 keyboard shortcut."
+msgstr ""
+"ウィンドウをフルスクリーンにしました。\n"
+"アプリケーションにフルスクリーンモードを解除する機能がない場合、マウスを使っ"
+"てフルスクリーンモードを解除することができなくなります。その場合、キーボード"
+"ショートカットの %1 でウィンドウメニューを表示し、そこから解除してください。"
+
+#: helpers/dialoghelper/dialoghelper.cpp:97
+#, kde-format
+msgid ""
+"You have selected to show a window in fullscreen mode.\n"
+"If the application itself does not have an option to turn the fullscreen "
+"mode off you will not be able to disable it again using the mouse."
+msgstr ""
+"ウィンドウをフルスクリーンにしました。\n"
+"アプリケーションにフルスクリーンモードを解除する機能がない場合、マウスを使っ"
+"てフルスクリーンモードを解除することができなくなります。"
+
+#: helpers/dialoghelper/dialoghelper.cpp:102
+#, kde-format
+msgctxt "@action:button Un-fullscreen"
+msgid "Undo Fullscreen"
+msgstr "フルスクリーンをやめる"
+
+#: helpers/dialoghelper/dialoghelper.cpp:105
+#, kde-format
+msgid ""
+"You have selected to show a window without its border.\n"
+"Without the border, you will not be able to enable the border again using "
+"the mouse: use the %1 keyboard shortcut instead."
+msgstr ""
+"ウィンドウの枠を消しました。\n"
+"枠を消すと、マウスを使って枠を再び表示させることができなくなります。キーボー"
+"ドショートカットの %1 を使用してください。"
+
+#: helpers/dialoghelper/dialoghelper.cpp:110
+#, kde-format
+msgid ""
+"You have selected to show a window without its border.\n"
+"Without the border, you will not be able to enable the border again using "
+"the mouse: use the window menu instead, activated using the %1 keyboard "
+"shortcut."
+msgstr ""
+"ウィンドウの枠を消しました。\n"
+"枠を消すと、マウスを使って枠を再び表示させることができなくなります。キーボー"
+"ドショートカットの %1 でウィンドウメニューを表示し、そこから設定してくださ"
+"い。"
+
+#: helpers/dialoghelper/dialoghelper.cpp:116
+#, kde-format
+msgid ""
+"You have selected to show a window without its border.\n"
+"Without the border, you will not be able to enable the border again using "
+"the mouse."
+msgstr ""
+"ウィンドウの枠を消しました。\n"
+"枠を消すと、マウスを使って枠を再び表示させることができなくなります。"
+
+#: helpers/dialoghelper/dialoghelper.cpp:120
+#, kde-format
+msgctxt "@action:button"
+msgid "Restore Border"
+msgstr "枠をもどす"
+
+#: helpers/dialoghelper/dialoghelper.cpp:139
+#, kde-format
+msgid "Do not show again"
+msgstr "再度表示しない"
+
+#: helpers/killer/killdialog.cpp:37
+#, kde-kuit-format
 msgctxt "@info"
 msgid ""
 "<para><application>%1</application> is not responding. Do you want to "
@@ -1334,17 +1399,13 @@ msgid ""
 "this application will close all of its windows. Any unsaved data will be "
 "lost.</emphasis></para>"
 msgstr ""
-"<p>このアプリケーションを強制終了しますか？</p><p><warning>アプリケーションを"
-"強制終了するとすべての子ウィンドウが閉じられ、未保存のデータはすべて失われま"
-"す</warning></p>"
+"<para><application>%1</application> が応答していません。このアプリケーション"
+"を強制終了しますか？</para><para><emphasis strong='true'>強制終了するとアプリ"
+"ケーションのすべてのウィンドウが閉じられ、保存していないデータは失われます。"
+"</emphasis></para>"
 
-#: helpers/killer/killer.cpp:199
-#, fuzzy, kde-kuit-format
-#| msgctxt "@info"
-#| msgid ""
-#| "<p>Do you want to terminate this application?</p><p><warning>Terminating "
-#| "the application will close all of its child windows. Any unsaved data "
-#| "will be lost.</warning></p>"
+#: helpers/killer/killdialog.cpp:41
+#, kde-kuit-format
 msgctxt "@info \"window title\" of application name is not responding."
 msgid ""
 "<para>\"%1\" of <application>%2</application> is not responding. Do you want "
@@ -1352,48 +1413,98 @@ msgid ""
 "strong='true'>Terminating this application will close all of its windows. "
 "Any unsaved data will be lost.</emphasis></para>"
 msgstr ""
-"<p>このアプリケーションを強制終了しますか？</p><p><warning>アプリケーションを"
-"強制終了するとすべての子ウィンドウが閉じられ、未保存のデータはすべて失われま"
-"す</warning></p>"
+"<para><application>%2</application> の \"%1\" が応答していません。このアプリ"
+"ケーションを強制終了しますか？</para><para><emphasis strong='true'>強制終了す"
+"るとアプリケーションのすべてのウィンドウが閉じられ、保存していないデータは失"
+"われます。</emphasis></para>"
 
-#: helpers/killer/killer.cpp:203
-#, fuzzy, kde-format
-#| msgid "&Terminate Application %1"
+#: helpers/killer/killdialog.cpp:66
+#, kde-format
+msgid "Terminating %1…"
+msgstr "%1 を強制終了中…"
+
+#: helpers/killer/killdialog.cpp:69
+#, kde-format
 msgctxt "@action:button Terminate app"
 msgid "&Terminate %1"
-msgstr "アプリケーション %1 を強制終了(&T)"
+msgstr "%1 を強制終了(&T)"
 
-#: helpers/killer/killer.cpp:204
-#, fuzzy, kde-format
-#| msgid "Wait Longer"
+#: helpers/killer/killdialog.cpp:72
+#, kde-format
 msgctxt "@action:button Wait for frozen app to maybe respond again"
 msgid "&Wait Longer"
-msgstr "待機する"
+msgstr "待機する(&W)"
 
-#: helpers/killer/killer.cpp:213
-#, fuzzy, kde-format
-#| msgctxt "Application is not responding, appended to window title"
-#| msgid "(Not Responding)"
-msgctxt "@title:window"
-msgid "Not Responding"
-msgstr "(応答なし)"
-
-#: helpers/killer/killer.cpp:229
+#: helpers/killer/killdialog.cpp:84
 #, kde-format
 msgctxt "@info"
 msgid "Process ID: %1"
-msgstr ""
+msgstr "プロセス ID: %1"
 
-#: helpers/killer/killer.cpp:231
+#: helpers/killer/killdialog.cpp:91
 #, kde-format
 msgctxt "@info"
 msgid "Host name: %1"
+msgstr "ホスト名: %1"
+
+#. i18n: ectx: property (windowTitle), widget (QDialog, KillDialog)
+#: helpers/killer/killdialog.ui:14
+#, kde-format
+msgctxt "@title:window"
+msgid "Not Responding"
+msgstr "応答なし"
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, kcollapsiblegroupbox)
+#: helpers/killer/killdialog.ui:53
+#, kde-format
+msgid "&Details"
+msgstr "詳細(&D)"
+
+#: helpers/killer/killer.cpp:134
+#, kde-format
+msgid "PID of the application to terminate"
+msgstr "強制終了させるアプリケーションの PID"
+
+#: helpers/killer/killer.cpp:134
+#, kde-format
+msgid "pid"
 msgstr ""
 
-#: keyboard_layout.cpp:46 keyboard_layout.cpp:56 keyboard_layout.cpp:140
+#: helpers/killer/killer.cpp:136
+#, kde-format
+msgid "Hostname on which the application is running"
+msgstr "アプリケーションが実行されているホストの名前"
+
+#: helpers/killer/killer.cpp:136
+#, kde-format
+msgid "hostname"
+msgstr ""
+
+#: helpers/killer/killer.cpp:138
+#, kde-format
+msgid "Caption of the window to be terminated"
+msgstr "強制終了させるウィンドウのキャプション"
+
+#: helpers/killer/killer.cpp:138
+#, kde-format
+msgid "caption"
+msgstr ""
+
+#: helpers/killer/killer.cpp:140
+#, kde-format
+msgid "Name of the application to be terminated"
+msgstr "強制終了させるアプリケーションの名前"
+
+#: helpers/killer/killer.cpp:140
+#, kde-format
+msgid "name"
+msgstr ""
+
+# おそらく内部ログ用の文字列
+#: keyboard_layout.cpp:46 keyboard_layout.cpp:54 keyboard_layout.cpp:136
 #, kde-format
 msgid "Keyboard Layout Switcher"
-msgstr ""
+msgstr "Keyboard Layout Switcher"
 
 #: killwindow.cpp:31
 #, kde-format
@@ -1401,11 +1512,13 @@ msgid ""
 "Select window to force close with left click or enter.\n"
 "Escape or right click to cancel."
 msgstr ""
+"左クリックや Enter で強制終了するウィンドウを選択してください。\n"
+"Esc や右クリックでキャンセルできます。"
 
-#: main.cpp:168 plugins/mouseclick/mouseclick_config.cpp:40
+#: main.cpp:140 plugins/mouseclick/mouseclick_config.cpp:40
 #: plugins/mousemark/mousemark_config.cpp:43
 #: plugins/overview/kcm/overvieweffectkcm.cpp:35
-#: plugins/thumbnailaside/thumbnailaside_config.cpp:45
+#: plugins/thumbnailaside/thumbnailaside_config.cpp:46
 #: plugins/tileseditor/kcm/tileseditoreffectkcm.cpp:31
 #: plugins/trackmouse/trackmouse_config.cpp:44
 #: plugins/windowview/kcm/windowvieweffectkcm.cpp:36
@@ -1413,198 +1526,204 @@ msgstr ""
 msgid "KWin"
 msgstr "KWin"
 
-#: main.cpp:170 main.cpp:194
+#: main.cpp:142 main.cpp:160
 #, kde-format
 msgid "KDE window manager"
 msgstr "KDE ウィンドウマネージャ"
 
-#: main.cpp:172
+#: main.cpp:144
 #, fuzzy, kde-format
 #| msgid "(c) 1999-2008, The KDE Developers"
 msgid "(c) 1999-2019, The KDE Developers"
 msgstr "(c) 1999-2008, KDE 開発チーム"
 
-#: main.cpp:174
+#: main.cpp:146
 #, kde-format
 msgid "Matthias Ettrich"
 msgstr "Matthias Ettrich"
 
-#: main.cpp:175
+#: main.cpp:147
 #, kde-format
 msgid "Cristian Tibirna"
 msgstr "Cristian Tibirna"
 
-#: main.cpp:176
+#: main.cpp:148
 #, kde-format
 msgid "Daniel M. Duley"
 msgstr "Daniel M. Duley"
 
-#: main.cpp:177
+#: main.cpp:149
 #, kde-format
 msgid "Luboš Luňák"
 msgstr "Luboš Luňák"
 
-#: main.cpp:178
+#: main.cpp:150
 #, kde-format
 msgid "Martin Flöser"
 msgstr "Martin Flöser"
 
-#: main.cpp:179
+#: main.cpp:151
 #, kde-format
 msgid "David Edmundson"
 msgstr "David Edmundson"
 
-#: main.cpp:180
+#: main.cpp:152
 #, kde-format
 msgid "Roman Gilg"
 msgstr "Roman Gilg"
 
-#: main.cpp:181
+#: main.cpp:153
 #, kde-format
 msgid "Vlad Zahorodnii"
 msgstr "Vlad Zahorodnii"
 
-#: main.cpp:182
+#: main.cpp:154
 #, kde-format
 msgid "Xaver Hugl"
 msgstr "Xaver Hugl"
 
-#: main.cpp:191
-#, kde-format
-msgid "Disable configuration options"
-msgstr "設定オプションを無効にする"
-
-#: main.cpp:192
-#, kde-format
-msgid "Indicate that KWin has recently crashed n times"
-msgstr "KWin が最近 n 回クラッシュしたことを示す"
-
-#: main_wayland.cpp:303
+#: main_wayland.cpp:340
 #, kde-format
 msgid "Start a rootless Xwayland server."
-msgstr ""
+msgstr "ルートレス XWayland を開始"
 
-#: main_wayland.cpp:306
+#: main_wayland.cpp:343
 #, kde-format
 msgid ""
 "Name of the Wayland socket to listen on. If not set \"wayland-0\" is used."
 msgstr ""
+"リッスンする Wayland ソケット名 (未指定の場合 \"wayland-0\" が使用されます)"
 
-#: main_wayland.cpp:310
+#: main_wayland.cpp:347
 #, kde-format
 msgid "The X11 Display to use in windowed mode on platform X11."
-msgstr ""
+msgstr "X11 プラットフォームのウィンドウモードで使用する X11 ディスプレイ"
 
-#: main_wayland.cpp:314
+#: main_wayland.cpp:351
 #, kde-format
 msgid "The Wayland Display to use in windowed mode on platform Wayland."
 msgstr ""
+"Wayland プラットフォームのウィンドウモードで使用する Wayland ディスプレイ"
 
-#: main_wayland.cpp:316
+#: main_wayland.cpp:353
 #, kde-format
 msgid "Render to a virtual framebuffer."
-msgstr ""
+msgstr "仮想フレームバッファにレンダリングする"
 
-#: main_wayland.cpp:318
+#: main_wayland.cpp:355
 #, kde-format
 msgid "The width for windowed mode. Default width is 1024."
-msgstr ""
+msgstr "ウィンドウモードの幅 (デフォルトは 1024 です)"
 
-#: main_wayland.cpp:322
+#: main_wayland.cpp:359
 #, kde-format
 msgid "The height for windowed mode. Default height is 768."
-msgstr ""
+msgstr "ウィンドウモードの高さ (デフォルトは 768 です)"
 
-#: main_wayland.cpp:327
+#: main_wayland.cpp:364
 #, kde-format
 msgid "Whether or not to make windowed mode fullscreen"
-msgstr ""
+msgstr "ウィンドウモードをフルスクリーンにするかどうか"
 
-#: main_wayland.cpp:331
+#: main_wayland.cpp:368
 #, kde-format
 msgid "The scale for windowed mode. Default value is 1."
-msgstr ""
+msgstr "ウィンドウモードのスケール (デフォルトは 1 です)"
 
-#: main_wayland.cpp:336
+#: main_wayland.cpp:373
 #, kde-format
 msgid ""
 "The number of windows to open as outputs in windowed mode. Default value is 1"
-msgstr ""
+msgstr "ウィンドウモードで出力先として開くウィンドウ数 (デフォルトは 1 です)"
 
-#: main_wayland.cpp:341
+#: main_wayland.cpp:378
 #, kde-format
 msgid ""
 "Wayland socket to use for incoming connections. This can be combined with --"
 "socket to name the socket"
 msgstr ""
+"Wayland の着信接続に使用するソケット (--socket と組み合わせてソケットに名前を"
+"つけることができます)"
 
-#: main_wayland.cpp:345
+#: main_wayland.cpp:382
 #, kde-format
 msgid ""
 "XWayland socket to use for Xwayland's incoming connections. This can be set "
 "multiple times"
 msgstr ""
+"XWayland の着信接続に使用するソケット名 (このオプションは複数回使用できます)"
 
-#: main_wayland.cpp:349
+#: main_wayland.cpp:386
 #, kde-format
 msgid "Name of the xwayland display that has been pre-set up"
-msgstr ""
+msgstr "セットアップ済みの XWayland ディスプレイの名前"
 
-#: main_wayland.cpp:353
+#: main_wayland.cpp:390
+#, kde-format
+msgid "XWayland socket to use for Xwayland's init connections"
+msgstr "XWayland の初期接続に使用する XWayland ソケットの名前"
+
+#: main_wayland.cpp:394
+#, kde-format
+msgid "Name of the xwayland init display that has been pre-set up"
+msgstr "セットアップ済みの XWayland 初期ディスプレイの名前"
+
+#: main_wayland.cpp:398
 #, kde-format
 msgid "Name of the xauthority file "
-msgstr ""
-
-#: main_wayland.cpp:357
-#, kde-format
-msgid "Exits this instance so it can be restarted by kwin_wayland_wrapper."
-msgstr ""
-
-#: main_wayland.cpp:359
-#, kde-format
-msgid "Render through drm node."
-msgstr ""
-
-#: main_wayland.cpp:360
-#, kde-format
-msgid ""
-"Extract locale information from locale1 rather than the user's configuration"
-msgstr ""
-
-#: main_wayland.cpp:387
-#, kde-format
-msgid "Input method that KWin starts."
-msgstr ""
-
-#: main_wayland.cpp:393
-#, kde-format
-msgid "Starts the session in locked mode."
-msgstr ""
-
-#: main_wayland.cpp:397
-#, kde-format
-msgid "Starts the session without lock screen support."
-msgstr ""
+msgstr "Xauthority ファイルの名前"
 
 #: main_wayland.cpp:402
 #, kde-format
-msgid "Starts the session without global shortcuts support."
-msgstr ""
+msgid "Exits this instance so it can be restarted by kwin_wayland_wrapper."
+msgstr "kwin_wayland_wrapper によって再起動できるようこのインスタンスを終了"
 
-#: main_wayland.cpp:407
+#: main_wayland.cpp:404
+#, kde-format
+msgid "Render through drm node."
+msgstr "DRM ノードを通してレンダリングする"
+
+#: main_wayland.cpp:405
+#, kde-format
+msgid ""
+"Extract locale information from locale1 rather than the user's configuration"
+msgstr "ロケール情報を抽出する際、ユーザー設定よりも locale1 を優先する"
+
+#: main_wayland.cpp:434
+#, kde-format
+msgid "Input method that KWin starts."
+msgstr "KWin が開始する入力メゾット"
+
+#: main_wayland.cpp:440
+#, kde-format
+msgid "Starts the session in locked mode."
+msgstr "ロック状態でセッションを開始"
+
+#: main_wayland.cpp:444
+#, kde-format
+msgid "Starts the session without lock screen support."
+msgstr "ロック画面に未対応のセッションを開始"
+
+#: main_wayland.cpp:449
+#, kde-format
+msgid "Starts the session without global shortcuts support."
+msgstr "グローバルショートカットに未対応のセッションを開始"
+
+#: main_wayland.cpp:454
 #, kde-format
 msgid "Disable KActivities integration."
-msgstr ""
+msgstr "KActivities の統合を無効化"
 
-#: main_wayland.cpp:412
+#: main_wayland.cpp:459
 #, kde-format
 msgid "Exit after the session application, which is started by KWin, closed."
-msgstr ""
+msgstr "KWin が開始したセッションアプリが閉じたら終了する"
 
-#: main_wayland.cpp:417
+#: main_wayland.cpp:464
 #, kde-format
 msgid "Applications to start once Wayland and Xwayland server are started"
 msgstr ""
+"Wayland と XWayland サーバーの開始後に起動するアプリケーション (複数選択可)"
 
 #. i18n: ectx: property (text), widget (QLabel, labelConstantBlurDescription)
 #: plugins/blur/blur_config.ui:17
@@ -1648,67 +1767,146 @@ msgstr "彩度:"
 msgid "None"
 msgstr "なし"
 
-#: plugins/colorpicker/colorpicker.cpp:153
+#: plugins/colorpicker/colorpicker.cpp:151
 #, kde-format
 msgid ""
 "Select a position for color picking with left click or enter.\n"
 "Escape or right click to cancel."
 msgstr ""
+"左クリックや Enter で色を取得する位置を選択してください。\n"
+"Esc や右クリックでキャンセルできます。"
 
 #. i18n: ectx: property (text), widget (QLabel, label_Strength)
 #: plugins/diminactive/diminactive_config.ui:17
-#, fuzzy, kde-format
-#| msgid "Strength:"
+#, kde-format
 msgid "Strength:"
-msgstr "強さ:"
+msgstr "強度:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_Dim)
 #: plugins/diminactive/diminactive_config.ui:43
-#, fuzzy, kde-format
-#| msgid "Dim:"
+#, kde-format
 msgid "Dim:"
 msgstr "暗くする:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_DimPanels)
 #: plugins/diminactive/diminactive_config.ui:50
-#, fuzzy, kde-format
-#| msgid "Docks and panels"
+#, kde-format
 msgid "Docks and panels"
 msgstr "ドックとパネル"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_DimDesktop)
 #: plugins/diminactive/diminactive_config.ui:57
-#, fuzzy, kde-format
-#| msgid "&All Desktops"
+#, kde-format
 msgid "Desktop"
-msgstr "すべてのデスクトップ(&A)"
+msgstr "デスクトップ"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_DimKeepAbove)
 #: plugins/diminactive/diminactive_config.ui:64
-#, fuzzy, kde-format
-#| msgid "Keep &Above Others"
+#, kde-format
 msgid "Keep above windows"
-msgstr "常に最前面に表示(&A)"
+msgstr "常に最前面に表示するウィンドウ"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_DimByGroup)
 #: plugins/diminactive/diminactive_config.ui:71
-#, fuzzy, kde-format
-#| msgid "Windows"
+#, kde-format
 msgid "By window group"
-msgstr "ウィンドウ"
+msgstr "ウィンドウグループで"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_DimFullScreen)
 #: plugins/diminactive/diminactive_config.ui:78
-#, fuzzy, kde-format
-#| msgid "&Fullscreen"
+#, kde-format
 msgid "Fullscreen windows"
-msgstr "フルスクリーン(&F)"
+msgstr "フルスクリーンウィンドウ"
 
-#: plugins/eis/eisinputcapturemanager.cpp:130
+#. i18n: ectx: label, entry (DelayTime), group (Effect-dwellclicker)
+#: plugins/dwellclicker/dwellclickerconfig.kcfg:9
+#, kde-format
+msgid "Delay Time"
+msgstr ""
+
+#. i18n: ectx: label, entry (DwellTime), group (Effect-dwellclicker)
+#: plugins/dwellclicker/dwellclickerconfig.kcfg:13
+#, kde-format
+msgid "Dwell Time"
+msgstr ""
+
+#. i18n: ectx: label, entry (MotionThreshold), group (Effect-dwellclicker)
+#: plugins/dwellclicker/dwellclickerconfig.kcfg:17
+#, kde-format
+msgid "Motion Threshold"
+msgstr ""
+
+#. i18n: ectx: label, entry (DefaultButton), group (Effect-dwellclicker)
+#: plugins/dwellclicker/dwellclickerconfig.kcfg:21
+#, fuzzy, kde-format
+#| msgid "Default"
+msgid "Default Button"
+msgstr "デフォルト"
+
+#. i18n: ectx: label, entry (ButtonLocked), group (Effect-dwellclicker)
+#: plugins/dwellclicker/dwellclickerconfig.kcfg:33
+#, fuzzy, kde-format
+#| msgid "Button"
+msgid "Lock Button"
+msgstr "ボタン"
+
+#. i18n: ectx: label, entry (DwellColor), group (Effect-dwellclicker)
+#: plugins/dwellclicker/dwellclickerconfig.kcfg:37
+#, kde-format
+msgid "Dwell Color"
+msgstr ""
+
+#: plugins/eis/eisinputcapturemanager.cpp:140
 #, kde-format
 msgctxt "@action shortcut"
 msgid "Disable Active Input Capture"
+msgstr "実行中の操作キャプチャを無効化"
+
+#: plugins/eis/eisprompter.cpp:51
+#, kde-format
+msgctxt "@title:window"
+msgid "Remote Control"
+msgstr "リモート操作"
+
+#: plugins/eis/eisprompter.cpp:52
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<application>%1</application> is asking to control input devices"
+msgstr "<application>%1</application> が入力デバイスの制御を要求しています"
+
+#: plugins/eis/eisprompter.cpp:64
+#, kde-format
+msgctxt ""
+"@option:check, %1 is the application name. This option always allow apps "
+"claiming to be a given application name to control input devices"
+msgid "Always allow apps claiming to be %1"
+msgstr "%1 を名乗るアプリは常に許可"
+
+#: plugins/eis/eisprompter.cpp:66
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Identities of legacy X11 apps cannot be verified. Any app claiming to be "
+"<application>%1</application> will be able to control input devices. You can "
+"revoke this permission later on <application>System Settings</application>’ "
+"“Legacy X11 App Support” page."
 msgstr ""
+"古い X11 アプリが本物かどうか検証することはできません。そのため <application>"
+"%1</application> を名乗るすべてのアプリが入力デバイスを制御できるようになりま"
+"す。後から <application>システム設定</application> の「レガシー X11 アプリ"
+"ケーションのサポート」で権限を削除することができます。"
+
+#: plugins/eis/eisprompter.cpp:69
+#, kde-format
+msgctxt "@action:button Allow control of input devices"
+msgid "Allow"
+msgstr "許可"
+
+#: plugins/eis/eisprompter.cpp:70
+#, kde-format
+msgctxt "@action:button Deny control of input devices"
+msgid "Deny"
+msgstr "拒否"
 
 #. i18n: ectx: property (text), widget (QLabel, label_3)
 #. i18n: ectx: property (text), widget (QLabel, label)
@@ -1742,185 +1940,174 @@ msgstr " ミリ秒"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox_InAnimation)
 #: plugins/glide/glide_config.ui:50
-#, fuzzy, kde-format
-#| msgid "Window Operations Menu"
+#, kde-format
 msgid "Window Open Animation"
-msgstr "ウィンドウ操作メニュー"
+msgstr "ウィンドウを開くアニメーション"
 
 #. i18n: ectx: property (text), widget (QLabel, label_InRotationEdge)
 #. i18n: ectx: property (text), widget (QLabel, label_OutRotationEdge)
 #: plugins/glide/glide_config.ui:56 plugins/glide/glide_config.ui:154
-#, fuzzy, kde-format
-#| msgid "Rotation duration:"
+#, kde-format
 msgid "Rotation edge:"
-msgstr "回転の長さ:"
+msgstr "グライドの軸:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_InRotationEdge)
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_OutRotationEdge)
 #: plugins/glide/glide_config.ui:70 plugins/glide/glide_config.ui:168
-#, fuzzy, kde-format
-#| msgid "Top"
+#, kde-format
 msgid "Top"
 msgstr "上"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_InRotationEdge)
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_OutRotationEdge)
 #: plugins/glide/glide_config.ui:75 plugins/glide/glide_config.ui:173
-#, fuzzy, kde-format
-#| msgid "Right"
+#, kde-format
 msgid "Right"
 msgstr "右"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_InRotationEdge)
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_OutRotationEdge)
 #: plugins/glide/glide_config.ui:80 plugins/glide/glide_config.ui:178
-#, fuzzy, kde-format
-#| msgid "Bottom"
+#, kde-format
 msgid "Bottom"
 msgstr "下"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_InRotationEdge)
 #. i18n: ectx: property (text), item, widget (QComboBox, kcfg_OutRotationEdge)
 #: plugins/glide/glide_config.ui:85 plugins/glide/glide_config.ui:183
-#, fuzzy, kde-format
-#| msgid "Left"
+#, kde-format
 msgid "Left"
 msgstr "左"
 
 #. i18n: ectx: property (text), widget (QLabel, label_InRotationAngle)
 #. i18n: ectx: property (text), widget (QLabel, label_OutRotationAngle)
 #: plugins/glide/glide_config.ui:93 plugins/glide/glide_config.ui:191
-#, fuzzy, kde-format
-#| msgid "Rotation duration:"
+#, kde-format
 msgid "Rotation angle:"
-msgstr "回転の長さ:"
+msgstr "グライドの角度:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_InDistance)
 #. i18n: ectx: property (text), widget (QLabel, label_OutDistance)
 #: plugins/glide/glide_config.ui:119 plugins/glide/glide_config.ui:198
 #, kde-format
 msgid "Distance:"
-msgstr ""
+msgstr "距離:"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox_OutAnimation)
 #: plugins/glide/glide_config.ui:148
-#, fuzzy, kde-format
-#| msgid "Window Operations Menu"
+#, kde-format
 msgid "Window Close Animation"
-msgstr "ウィンドウ操作メニュー"
+msgstr "ウィンドウを閉じるアニメーション"
 
 #: plugins/hidecursor/hidecursor_config.cpp:56
 #, kde-format
 msgctxt "@item:inmenu never hide cursor on inactivity"
 msgid "Never"
-msgstr ""
+msgstr "しない"
 
 #: plugins/hidecursor/hidecursor_config.cpp:58
 #: plugins/hidecursor/hidecursor_config.cpp:62
-#, fuzzy, kde-format
-#| msgid " milliseconds"
+#, kde-format
 msgid "%1 second"
 msgid_plural "%1 seconds"
-msgstr[0] " ミリ秒"
+msgstr[0] "%1 秒"
 
 #. i18n: ectx: property (text), widget (QLabel, label_InactivityDuration)
 #: plugins/hidecursor/hidecursor_config.ui:17
 #, kde-format
-msgid "Hide cursor on inactivity:"
-msgstr "動いていないときカーソルを非表示:"
+msgid "Hide pointer on inactivity:"
+msgstr "無操作状態でポインタを非表示:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_HideOnTyping)
 #: plugins/hidecursor/hidecursor_config.ui:24
 #, kde-format
-msgid "Hide cursor on typing"
-msgstr "タイピング中カーソルを非表示"
+msgid "Hide pointer on typing"
+msgstr "タイピング中ポインタを非表示"
 
 #: plugins/invert/invert.cpp:44
-#, fuzzy, kde-format
-#| msgid "Toggle Invert Effect"
+#, kde-format
 msgid "Toggle Invert Effect"
-msgstr "色調反転効果をオン/オフ"
+msgstr "色相反転をオン/オフ"
 
-#: plugins/invert/invert.cpp:52
-#, fuzzy, kde-format
-#| msgid "Toggle Invert Effect on Window"
+#: plugins/invert/invert.cpp:51
+#, kde-format
 msgid "Toggle Invert Effect on Window"
-msgstr "ウィンドウの色調反転効果をオン/オフ"
+msgstr "ウィンドウごとの色相反転をオン/オフ"
 
-#: plugins/invert/invert.cpp:59
+#: plugins/invert/invert.cpp:57
 #, kde-format
 msgid "Invert Screen Colors"
-msgstr ""
+msgstr "画面の色を反転する"
 
-#: plugins/keynotification/keynotification.cpp:44
+#: plugins/keynotification/keynotification.cpp:45
 #, kde-format
 msgid "The Caps Lock key has been activated"
-msgstr ""
+msgstr "Caps Lock キーがアクティブになりました"
 
-#: plugins/keynotification/keynotification.cpp:48
+#: plugins/keynotification/keynotification.cpp:49
 #, kde-format
 msgid "The Caps Lock key is now inactive"
-msgstr ""
+msgstr "Caps Lock キーが非アクティブになりました"
 
-#: plugins/keynotification/keynotification.cpp:52
+#: plugins/keynotification/keynotification.cpp:53
 #, kde-format
 msgid "The Num Lock key has been activated"
-msgstr ""
+msgstr "Num Lock キーがアクティブになりました"
 
-#: plugins/keynotification/keynotification.cpp:56
+#: plugins/keynotification/keynotification.cpp:57
 #, kde-format
 msgid "The Num Lock key is now inactive"
-msgstr ""
+msgstr "Num Lock キーが非アクティブになりました"
 
-#: plugins/keynotification/keynotification.cpp:60
+#: plugins/keynotification/keynotification.cpp:61
 #, kde-format
 msgid "The Scroll Lock key has been activated"
-msgstr ""
+msgstr "Scroll Lock キーがアクティブになりました"
 
-#: plugins/keynotification/keynotification.cpp:64
+#: plugins/keynotification/keynotification.cpp:65
 #, kde-format
 msgid "The Scroll Lock key is now inactive"
-msgstr ""
+msgstr "Scroll Lock キーが非アクティブになりました"
 
-#: plugins/keynotification/keynotification.cpp:77
+#: plugins/keynotification/keynotification.cpp:78
 #, kde-format
 msgid "The Shift key is now active."
-msgstr ""
+msgstr "Shift キーがアクティブになりました。"
 
-#: plugins/keynotification/keynotification.cpp:81
+#: plugins/keynotification/keynotification.cpp:82
 #, kde-format
 msgid "The Shift key is now inactive."
-msgstr ""
+msgstr "Shift キーが非アクティブになりました。"
 
-#: plugins/keynotification/keynotification.cpp:85
+#: plugins/keynotification/keynotification.cpp:86
 #, kde-format
 msgid "The Control key is now active."
-msgstr ""
+msgstr "Control キーがアクティブになりました。"
 
-#: plugins/keynotification/keynotification.cpp:89
+#: plugins/keynotification/keynotification.cpp:90
 #, kde-format
 msgid "The Control key is now inactive."
-msgstr ""
+msgstr "Control キーが非アクティブになりました。"
 
-#: plugins/keynotification/keynotification.cpp:93
+#: plugins/keynotification/keynotification.cpp:94
 #, kde-format
 msgid "The Alt key is now active."
-msgstr ""
+msgstr "Alt キーがアクティブになりました。"
 
-#: plugins/keynotification/keynotification.cpp:97
+#: plugins/keynotification/keynotification.cpp:98
 #, kde-format
 msgid "The Alt key is now inactive."
-msgstr ""
+msgstr "Alt キーが非アクティブになりました。"
 
-#: plugins/keynotification/keynotification.cpp:101
+#: plugins/keynotification/keynotification.cpp:102
 #, kde-format
 msgid "The Meta key is now active."
-msgstr ""
+msgstr "Meta キーがアクティブになりました。"
 
-#: plugins/keynotification/keynotification.cpp:105
+#: plugins/keynotification/keynotification.cpp:106
 #, kde-format
 msgid "The Meta key is now inactive."
-msgstr ""
+msgstr "Meta キーが非アクティブになりました。"
 
 #: plugins/krunner-integration/windowsrunnerinterface.cpp:41
 #, fuzzy, kde-format
@@ -2078,33 +2265,26 @@ msgctxt "Duration of rotation"
 msgid "Default"
 msgstr "デフォルト"
 
-#: plugins/mouseclick/mouseclick.cpp:39
+#: plugins/mouseclick/mouseclick.cpp:40
 #: plugins/mouseclick/mouseclick_config.cpp:43
-#, fuzzy, kde-format
-#| msgid "Toggle Invert Effect"
+#, kde-format
 msgid "Toggle Mouse Click Animation"
-msgstr "色調反転効果をオン/オフ"
+msgstr "マウスクリックアニメーションをオン/オフ"
 
 #: plugins/mouseclick/mouseclick.cpp:46
-#, fuzzy, kde-format
-#| msgctxt "Left mouse button"
-#| msgid "Left"
+#, kde-format
 msgctxt "Left mouse button"
 msgid "Left"
 msgstr "左"
 
 #: plugins/mouseclick/mouseclick.cpp:47
-#, fuzzy, kde-format
-#| msgctxt "Middle mouse button"
-#| msgid "Middle"
+#, kde-format
 msgctxt "Middle mouse button"
 msgid "Middle"
 msgstr "中"
 
 #: plugins/mouseclick/mouseclick.cpp:48
-#, fuzzy, kde-format
-#| msgctxt "Right mouse button"
-#| msgid "Right"
+#, kde-format
 msgctxt "Right mouse button"
 msgid "Right"
 msgstr "右"
@@ -2113,113 +2293,100 @@ msgstr "右"
 #: plugins/mouseclick/mouseclick_config.ui:21
 #, kde-format
 msgid "Basic Settings"
-msgstr ""
+msgstr "基本設定"
 
 #. i18n: ectx: property (text), widget (QLabel, button1_label)
 #: plugins/mouseclick/mouseclick_config.ui:37
-#, fuzzy, kde-format
-#| msgid "Left Mouse Button Color:"
+#, kde-format
 msgid "Left Mouse Button Color:"
-msgstr "左ボタンの色:"
+msgstr "左クリックの色:"
 
 #. i18n: ectx: property (text), widget (QLabel, button2_label)
 #: plugins/mouseclick/mouseclick_config.ui:50
-#, fuzzy, kde-format
-#| msgid "Middle Mouse Button Color:"
+#, kde-format
 msgid "Middle Mouse Button Color:"
-msgstr "中ボタンの色:"
+msgstr "中クリックの色:"
 
 #. i18n: ectx: property (text), widget (QLabel, button3_label)
 #: plugins/mouseclick/mouseclick_config.ui:70
-#, fuzzy, kde-format
-#| msgid "Right Mouse Button Color:"
+#, kde-format
 msgid "Right Mouse Button Color:"
-msgstr "右ボタンの色:"
+msgstr "右クリックの色:"
 
 #. i18n: ectx: attribute (title), widget (QWidget, advanced_tab)
 #: plugins/mouseclick/mouseclick_config.ui:91
-#, fuzzy, kde-format
-#| msgid "Advanced Settings"
+#, kde-format
 msgid "Advanced Settings"
-msgstr "詳細設定"
+msgstr "詳細オプション"
 
 #. i18n: ectx: property (title), widget (QGroupBox, rings)
 #: plugins/mouseclick/mouseclick_config.ui:97
 #, kde-format
 msgid "Rings"
-msgstr ""
+msgstr "リング"
 
 #. i18n: ectx: property (text), widget (QLabel, ring_line_width_label)
 #: plugins/mouseclick/mouseclick_config.ui:103
-#, fuzzy, kde-format
-#| msgid "Line Width:"
+#, kde-format
 msgid "Line Width:"
-msgstr "線の幅:"
+msgstr "線の太さ:"
 
 #. i18n: ectx: property (suffix), widget (QDoubleSpinBox, kcfg_LineWidth)
 #. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_RingSize)
 #: plugins/mouseclick/mouseclick_config.ui:119
 #: plugins/mouseclick/mouseclick_config.ui:171
-#, fuzzy, kde-format
-#| msgid " pixel"
+#, kde-format
 msgid " pixel"
 msgstr " ピクセル"
 
 #. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_RingLife)
 #: plugins/mouseclick/mouseclick_config.ui:132
-#, fuzzy, kde-format
-#| msgid " msec"
+#, kde-format
 msgid " msec"
 msgstr " ミリ秒"
 
 #. i18n: ectx: property (text), widget (QLabel, ring_duration_label)
 #: plugins/mouseclick/mouseclick_config.ui:145
-#, fuzzy, kde-format
-#| msgid "Fading duration:"
+#, kde-format
 msgid "Ring Duration:"
-msgstr "フェードの長さ:"
+msgstr "リングの表示時間:"
 
 #. i18n: ectx: property (text), widget (QLabel, ring_radius_label)
 #: plugins/mouseclick/mouseclick_config.ui:155
-#, fuzzy, kde-format
-#| msgid "&Radius:"
+#, kde-format
 msgid "Ring Radius:"
-msgstr "半径(&R):"
+msgstr "リングの半径:"
 
 #. i18n: ectx: property (text), widget (QLabel, ring_count_label)
 #: plugins/mouseclick/mouseclick_config.ui:184
 #, kde-format
 msgid "Ring Count:"
-msgstr ""
+msgstr "リングの数:"
 
 #. i18n: ectx: property (title), widget (QGroupBox, font)
 #: plugins/mouseclick/mouseclick_config.ui:210
-#, fuzzy, kde-format
-#| msgid "Text"
+#, kde-format
 msgid "Text"
 msgstr "テキスト"
 
 #. i18n: ectx: property (text), widget (QLabel, font_label)
 #: plugins/mouseclick/mouseclick_config.ui:216
-#, fuzzy, kde-format
-#| msgid "Font:"
+#, kde-format
 msgid "Font:"
 msgstr "フォント:"
 
 #. i18n: ectx: property (text), widget (QLabel, showtext_label)
 #: plugins/mouseclick/mouseclick_config.ui:233
-#, fuzzy, kde-format
-#| msgctxt "Special entry in alt+tab list for minimizing all windows"
-#| msgid "Show Desktop"
+#, kde-format
 msgid "Show Text:"
-msgstr "デスクトップを表示"
+msgstr "テキストを表示:"
 
-#: plugins/mousemark/mousemark.cpp:43
+#: plugins/mousemark/mousemark.cpp:36
 #, kde-format
 msgid "Clear All Mouse Marks"
 msgstr "すべてのマウスマークをクリア"
 
-#: plugins/mousemark/mousemark.cpp:49 plugins/mousemark/mousemark_config.cpp:52
+#: plugins/mousemark/mousemark.cpp:41 plugins/mousemark/mousemark_config.cpp:51
 #, kde-format
 msgid "Clear Last Mouse Mark"
 msgstr "直近のマウスマークを取り消し"
@@ -2229,7 +2396,7 @@ msgstr "直近のマウスマークを取り消し"
 msgid "Clear Mouse Marks"
 msgstr "マウスマークをクリア"
 
-#: plugins/mousemark/mousemark_config.cpp:88
+#: plugins/mousemark/mousemark_config.cpp:86
 #, kde-format
 msgctxt "Suffix"
 msgid " pixel"
@@ -2317,32 +2484,45 @@ msgstr "矢印の修飾キー:"
 #, kde-format
 msgctxt "Night Light was temporarily disabled"
 msgid "Night Light Suspended"
-msgstr ""
+msgstr "Night Light をオフにしました"
 
 #: plugins/nightlight/nightlightmanager.cpp:56
 #, kde-format
 msgctxt "Night Light was reenabled from temporary suspension"
 msgid "Night Light Resumed"
-msgstr ""
+msgstr "Night Light をオンにしました"
 
 #: plugins/nightlight/nightlightmanager.cpp:77
 #, kde-format
 msgctxt "Temporarily disable/reenable Night Light"
 msgid "Suspend/Resume Night Light"
-msgstr ""
+msgstr "Night Light のオン/オフ"
 
 #: plugins/nightlight/nightlightmanager.cpp:393
 #, kde-format
 msgid "Color Temperature Preview"
 msgstr ""
 
-#: plugins/outputlocator/outputlocator.cpp:50
-#, fuzzy, kde-format
-#| msgctxt "@label"
-#| msgid "Unknown"
+#: plugins/outputlocator/outputlocator.cpp:26
+#, kde-format
 msgctxt "@label"
-msgid "Unknown"
-msgstr "不明"
+msgid "Built-in Screen"
+msgstr ""
+
+#: plugins/overview/DesktopBar.qml:162
+#, kde-format
+msgid "Delete Virtual Desktop"
+msgstr "仮想デスクトップを削除"
+
+#: plugins/overview/DesktopBar.qml:261
+#, kde-format
+msgid "Add Virtual Desktop"
+msgstr "仮想デスクトップを追加"
+
+#: plugins/overview/DesktopBar.qml:263
+#, kde-format
+msgid "Virtual Desktop limit reached"
+msgstr "仮想デスクトップ数の上限に達しました"
 
 #: plugins/overview/kcm/overvieweffectkcm.cpp:40
 #, kde-format
@@ -2350,26 +2530,26 @@ msgctxt "@action Overview and Grid View are the name of KWin effects"
 msgid "Cycle through Overview and Grid View"
 msgstr "オーバービューとグリッドビューを切り替え"
 
-#: plugins/overview/kcm/overvieweffectkcm.cpp:46
-#: plugins/overview/overvieweffect.cpp:135
+#: plugins/overview/kcm/overvieweffectkcm.cpp:45
+#: plugins/overview/overvieweffect.cpp:145
 #, kde-format
 msgctxt "@action Grid View and Overview are the name of KWin effects"
 msgid "Cycle through Grid View and Overview"
 msgstr "グリッドビューとオーバービューを切り替え"
 
-#: plugins/overview/kcm/overvieweffectkcm.cpp:53
+#: plugins/overview/kcm/overvieweffectkcm.cpp:50
 #, kde-format
 msgctxt "@action Overview is the name of a KWin effect"
 msgid "Toggle Overview"
 msgstr "オーバービューを切り替え"
 
-#: plugins/overview/kcm/overvieweffectkcm.cpp:60
+#: plugins/overview/kcm/overvieweffectkcm.cpp:55
 #, kde-format
 msgctxt "@action Grid View is the name of a KWin effect"
 msgid "Toggle Grid View"
 msgstr "グリッドビューを切り替え"
 
-#. i18n: ectx: property (text), widget (QLabel, label)
+#. i18n: ectx: property (text), widget (QLabel, label_IgnoreMinimized)
 #: plugins/overview/kcm/overvieweffectkcm.ui:22
 #, kde-format
 msgid "Ignore minimized windows:"
@@ -2387,57 +2567,47 @@ msgstr "グリッドビューでウィンドウを管理:"
 msgid "Search results include filtered windows:"
 msgstr "フィルタリングされたウィンドウを検索結果に含める:"
 
-#: plugins/overview/overvieweffect.cpp:127
-#, kde-format
-msgctxt "@action Grid View and Overview are the name of KWin effects"
-msgid "Cycle through Overview and Grid View"
-msgstr "オーバービューとグリッドビューを切り替え"
-
-#: plugins/overview/overvieweffect.cpp:143
-#, kde-format
-msgctxt "@action Overview is the name of a Kwin effect"
-msgid "Toggle Overview"
-msgstr "オーバービューを切り替え"
-
-#: plugins/overview/overvieweffect.cpp:152
-#, kde-format
-msgctxt "@action Grid view is the name of a Kwin effect"
-msgid "Toggle Grid View"
-msgstr "グリッドビューを切り替え"
-
-#: plugins/overview/qml/DesktopBar.qml:165
-#, kde-format
-msgid "Delete Virtual Desktop"
-msgstr "仮想デスクトップを削除"
-
-#: plugins/overview/qml/DesktopBar.qml:264
-#, kde-format
-msgid "Add Virtual Desktop"
-msgstr "仮想デスクトップを追加"
-
-#: plugins/overview/qml/Main.qml:378
+#: plugins/overview/Main.qml:428
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "No other Virtual Desktops to show"
-msgstr "ほかに仮想デスクトップなし"
+msgstr "ほかに仮想デスクトップはありません"
 
-#: plugins/overview/qml/Main.qml:384
+#: plugins/overview/Main.qml:434
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Virtual Desktop"
 msgstr "仮想デスクトップを追加"
 
-#: plugins/overview/qml/Main.qml:391
+#: plugins/overview/Main.qml:441
 #, kde-format
 msgctxt "@action:button"
 msgid "Configure Virtual Desktops…"
 msgstr "仮想デスクトップを設定…"
 
-#: plugins/overview/qml/Main.qml:742
+#: plugins/overview/Main.qml:792
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "No matching windows"
 msgstr "検索結果なし"
+
+#: plugins/overview/overvieweffect.cpp:139
+#, kde-format
+msgctxt "@action Grid View and Overview are the name of KWin effects"
+msgid "Cycle through Overview and Grid View"
+msgstr "オーバービューとグリッドビューを切り替え"
+
+#: plugins/overview/overvieweffect.cpp:152
+#, kde-format
+msgctxt "@action Overview is the name of a Kwin effect"
+msgid "Toggle Overview"
+msgstr "オーバービューを切り替え"
+
+#: plugins/overview/overvieweffect.cpp:158
+#, kde-format
+msgctxt "@action Grid view is the name of a Kwin effect"
+msgid "Toggle Grid View"
+msgstr "グリッドビューを切り替え"
 
 #: plugins/private/qml/WindowHeapDelegate.qml:229
 #, kde-format
@@ -2445,8 +2615,7 @@ msgid "Drag Down To Close"
 msgstr ""
 
 #: plugins/private/qml/WindowHeapDelegate.qml:373
-#, fuzzy, kde-format
-#| msgid "Close Window"
+#, kde-format
 msgctxt "@info:tooltip as in: 'close this window'"
 msgid "Close window"
 msgstr "ウィンドウを閉じる"
@@ -2482,7 +2651,7 @@ msgstr ""
 #: plugins/screencast/screencastmanager.cpp:56
 #: plugins/screencast/screencastmanager.cpp:81
 #: plugins/screencast/screencastmanager.cpp:97
-#: plugins/screencast/screencastmanager.cpp:151
+#: plugins/screencast/screencastmanager.cpp:152
 #, fuzzy, kde-format
 #| msgid "Suspend Compositing"
 msgid "Unsupported compositing type"
@@ -2493,78 +2662,58 @@ msgstr "コンポジティングを一時停止"
 msgid "Could not find window id %1"
 msgstr ""
 
-#: plugins/screencast/screencastmanager.cpp:118
+#: plugins/screencast/screencastmanager.cpp:119
 #, kde-format
 msgid "Could not find output"
 msgstr ""
 
-#: plugins/screencast/screencastmanager.cpp:156
+#: plugins/screencast/screencastmanager.cpp:157
 #, kde-format
 msgid "Invalid region"
 msgstr ""
 
-#: plugins/screencast/screencaststream.cpp:375
-#, kde-format
-msgid "OpenGL compositing is required for screencasting"
-msgstr ""
-
-#: plugins/screencast/screencaststream.cpp:383
+#: plugins/screencast/screencaststream.cpp:404
 #, kde-format
 msgid "Failed to create PipeWire stream"
 msgstr ""
 
-#: plugins/screenshot/screenshotdbusinterface2.cpp:425
+#: plugins/screenshot/screenshotdbusinterface2.cpp:388
 #, kde-format
 msgid ""
 "Select window to screen shot with left click or enter.\n"
 "Escape or right click to cancel."
 msgstr ""
 
-#: plugins/screenshot/screenshotdbusinterface2.cpp:443
+#: plugins/screenshot/screenshotdbusinterface2.cpp:406
 #, kde-format
 msgid ""
 "Create screen shot with left click or enter.\n"
 "Escape or right click to cancel."
 msgstr ""
 
-#: plugins/showcompositing/qml/Main.qml:12
-#, fuzzy, kde-format
-#| msgid "Suspend Compositing"
-msgctxt "@label"
-msgid "Compositing"
-msgstr "コンポジティングを一時停止"
-
-#: plugins/showfps/qml/Fallback.qml:26 plugins/showfps/qml/Main.qml:192
+#: plugins/showfps/Fallback.qml:26
 #, kde-format
 msgctxt "@label"
 msgid "This effect is not a benchmark"
-msgstr ""
+msgstr "このデスクトップ効果はベンチマークではありません"
 
-#: plugins/showfps/qml/Main.qml:110
-#, fuzzy, kde-format
-#| msgid "Fading duration:"
-msgctxt "@label"
-msgid "Paint Duration"
-msgstr "フェードの長さ:"
-
-#: plugins/showfps/qml/Main.qml:162
+#: plugins/showfps/Main.qml:108
 #, kde-format
 msgctxt "@label"
-msgid "Paint Amount"
-msgstr ""
+msgid "Paint Duration"
+msgstr "描画時間"
 
-#: plugins/showfps/qml/Main.qml:175
+#: plugins/showfps/Main.qml:121
 #, kde-format
 msgctxt "@label"
 msgid "Current FPS"
-msgstr ""
+msgstr "現在の FPS"
 
-#: plugins/showfps/qml/Main.qml:184
-#, fuzzy, kde-format
-#| msgid "Maximum &width:"
+#: plugins/showfps/Main.qml:130
+#, kde-format
 msgctxt "@label"
 msgid "Maximum FPS"
-msgstr "最大幅(&W):"
+msgstr "最大 FPS"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox_Gaps)
 #: plugins/slide/slide_config.ui:17
@@ -2621,7 +2770,7 @@ msgid ""
 msgstr ""
 
 #: plugins/thumbnailaside/thumbnailaside.cpp:31
-#: plugins/thumbnailaside/thumbnailaside_config.cpp:50
+#: plugins/thumbnailaside/thumbnailaside_config.cpp:51
 #, kde-format
 msgid "Toggle Thumbnail for Current Window"
 msgstr "現在のウィンドウのサムネイル表示を切り替え"
@@ -2658,60 +2807,53 @@ msgstr "不透明度(&O):"
 msgid " %"
 msgstr " %"
 
-#: plugins/tileseditor/kcm/tileseditoreffectkcm.cpp:37
-#: plugins/tileseditor/tileseditoreffect.cpp:32
-#, fuzzy, kde-format
-#| msgid "Toggle Tiles Editor"
+#: plugins/tileseditor/kcm/tileseditoreffectkcm.cpp:36
+#: plugins/tileseditor/tileseditoreffect.cpp:31
+#, kde-format
 msgid "Toggle Tiles Editor"
-msgstr "タイルエディタ"
+msgstr "タイルエディタの表示を切り替え"
 
-#: plugins/tileseditor/qml/Main.qml:153
-#, fuzzy, kde-format
-#| msgid "Padding:"
+#: plugins/tileseditor/Main.qml:153
+#, kde-format
 msgid "Padding:"
 msgstr "余白:"
 
-#: plugins/tileseditor/qml/Main.qml:163
-#, fuzzy, kde-format
-#| msgid "Load Layout..."
+#: plugins/tileseditor/Main.qml:163
+#, kde-format
 msgid "Load Layout…"
-msgstr "レイアウトを読み込む..."
+msgstr "レイアウトを読み込む…"
 
-#: plugins/tileseditor/qml/Main.qml:270
-#, fuzzy, kde-format
-#| msgid "&Close"
+#: plugins/tileseditor/Main.qml:270
+#, kde-format
 msgid "Close"
-msgstr "閉じる(&C)"
+msgstr "閉じる"
 
-#: plugins/tileseditor/qml/TileDelegate.qml:167
+#: plugins/tileseditor/TileDelegate.qml:167
 #, kde-format
 msgid "Split Left/Right"
-msgstr ""
+msgstr "左右に分割"
 
-#: plugins/tileseditor/qml/TileDelegate.qml:174
+#: plugins/tileseditor/TileDelegate.qml:174
 #, kde-format
 msgid "Split Top/Bottom"
-msgstr ""
+msgstr "上下に分割"
 
-#: plugins/tileseditor/qml/TileDelegate.qml:182
-#: plugins/tileseditor/qml/TileDelegate.qml:211
-#, fuzzy, kde-format
-#| msgid "Add Floating Tile"
+#: plugins/tileseditor/TileDelegate.qml:182
+#: plugins/tileseditor/TileDelegate.qml:211
+#, kde-format
 msgid "Add Floating Tile"
 msgstr "フロートタイルを追加"
 
-#: plugins/tileseditor/qml/TileDelegate.qml:191
-#, fuzzy, kde-format
-#| msgid "Delete"
+#: plugins/tileseditor/TileDelegate.qml:191
+#, kde-format
 msgid "Delete"
 msgstr "削除"
 
-#: plugins/trackmouse/trackmouse.cpp:71
+#: plugins/trackmouse/trackmouse.cpp:70
 #: plugins/trackmouse/trackmouse_config.cpp:49
-#, fuzzy, kde-format
-#| msgid "Track mouse"
+#, kde-format
 msgid "Track mouse"
-msgstr "マウスを捕捉"
+msgstr "マウスを追跡"
 
 #. i18n: ectx: property (text), widget (QLabel, label)
 #: plugins/trackmouse/trackmouse_config.ui:26
@@ -2721,15 +2863,13 @@ msgstr "マウスを追跡するとき:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_KeyboardShortcut)
 #: plugins/trackmouse/trackmouse_config.ui:33
-#, fuzzy, kde-format
-#| msgid "Keyboard"
+#, kde-format
 msgid "Keyboard shortcut:"
-msgstr "キーボード"
+msgstr "キーボードショートカット:"
 
 #. i18n: ectx: property (text), widget (QLabel, label_ModifierKeys)
 #: plugins/trackmouse/trackmouse_config.ui:43
-#, fuzzy, kde-format
-#| msgid "Modifier keys:"
+#, kde-format
 msgid "Modifier keys:"
 msgstr "修飾キー:"
 
@@ -2754,7 +2894,7 @@ msgstr "コンボボックスポップアップ:"
 #. i18n: ectx: property (text), widget (QLabel, label_3)
 #. i18n: ectx: property (text), widget (QLabel, label_7)
 #: plugins/translucency/package/contents/ui/config.ui:121
-#: plugins/translucency/package/contents/ui/config.ui:431
+#: plugins/translucency/package/contents/ui/config.ui:441
 #, kde-format
 msgid "Opaque"
 msgstr "不透明"
@@ -2768,7 +2908,7 @@ msgstr "ダイアログ:"
 #. i18n: ectx: property (text), widget (QLabel, label_2)
 #. i18n: ectx: property (text), widget (QLabel, label_6)
 #: plugins/translucency/package/contents/ui/config.ui:156
-#: plugins/translucency/package/contents/ui/config.ui:418
+#: plugins/translucency/package/contents/ui/config.ui:428
 #, kde-format
 msgid "Transparent"
 msgstr "透明"
@@ -2779,38 +2919,44 @@ msgstr "透明"
 msgid "Menus:"
 msgstr "メニュー:"
 
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_ExcludeFullScreen)
+#: plugins/translucency/package/contents/ui/config.ui:201
+#, kde-format
+msgid "Exclude fullscreen windows"
+msgstr "フルスクリーンウィンドウを除外"
+
 #. i18n: ectx: property (text), widget (QLabel, moveresize_label)
-#: plugins/translucency/package/contents/ui/config.ui:207
+#: plugins/translucency/package/contents/ui/config.ui:217
 #, kde-format
 msgid "Moving windows:"
 msgstr "移動中のウィンドウ:"
 
 #. i18n: ectx: property (text), widget (QLabel, inactive_label)
-#: plugins/translucency/package/contents/ui/config.ui:226
+#: plugins/translucency/package/contents/ui/config.ui:236
 #, kde-format
 msgid "Inactive windows:"
 msgstr "非アクティブのウィンドウ:"
 
 #. i18n: ectx: property (title), widget (QGroupBox, kcfg_IndividualMenuConfig)
-#: plugins/translucency/package/contents/ui/config.ui:267
+#: plugins/translucency/package/contents/ui/config.ui:277
 #, kde-format
 msgid "Set menu translucency independently"
 msgstr "メニューの不透明性を個別に設定"
 
 #. i18n: ectx: property (text), widget (QLabel, dropdownmenus_label)
-#: plugins/translucency/package/contents/ui/config.ui:285
+#: plugins/translucency/package/contents/ui/config.ui:295
 #, kde-format
 msgid "Dropdown menus:"
 msgstr "ドロップダウンメニュー:"
 
 #. i18n: ectx: property (text), widget (QLabel, popupmenus_label)
-#: plugins/translucency/package/contents/ui/config.ui:329
+#: plugins/translucency/package/contents/ui/config.ui:339
 #, kde-format
 msgid "Popup menus:"
 msgstr "ポップアップメニュー:"
 
 #. i18n: ectx: property (text), widget (QLabel, tornoffmenus_label)
-#: plugins/translucency/package/contents/ui/config.ui:367
+#: plugins/translucency/package/contents/ui/config.ui:377
 #, kde-format
 msgid "Torn-off menus:"
 msgstr "切り離しメニュー:"
@@ -2819,19 +2965,19 @@ msgstr "切り離しメニュー:"
 #: plugins/videowall/package/contents/ui/config.ui:14
 #, kde-format
 msgid "Video Wall"
-msgstr ""
+msgstr "ビデオウォール"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_ApplyTo)
 #: plugins/videowall/package/contents/ui/config.ui:20
 #, kde-format
 msgid "Apply to"
-msgstr ""
+msgstr "適用先:"
 
 #. i18n: ectx: property (text), widget (QLineEdit, kcfg_Whitelist)
 #: plugins/videowall/package/contents/ui/config.ui:32
 #, kde-format
 msgid "vlc, xv, vdpau, smplayer, dragon, xine, ffplay"
-msgstr ""
+msgstr "vlc, xv, vdpau, smplayer, dragon, xine, ffplay"
 
 #. i18n: ectx: property (placeholderText), widget (QLineEdit, kcfg_Whitelist)
 #. i18n: ectx: property (placeholderText), widget (QLineEdit, kcfg_Blacklist)
@@ -2839,47 +2985,44 @@ msgstr ""
 #: plugins/videowall/package/contents/ui/config.ui:66
 #, kde-format
 msgid "Comma separated list of window classes"
-msgstr ""
+msgstr "コンマ区切りでウィンドウクラスを指定"
 
 #. i18n: ectx: property (text), widget (QLabel, applyLabel)
 #: plugins/videowall/package/contents/ui/config.ui:45
 #, kde-format
 msgid "All"
-msgstr ""
+msgstr "すべて"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_Ignore)
 #: plugins/videowall/package/contents/ui/config.ui:54
 #, kde-format
 msgid "Ignore"
-msgstr ""
+msgstr "無視"
 
-#: plugins/windowview/kcm/windowvieweffectkcm.cpp:42
+#: plugins/windowview/kcm/windowvieweffectkcm.cpp:41
 #: plugins/windowview/windowvieweffect.cpp:48
-#, fuzzy, kde-format
-#| msgid "Toggle Present Windows (Current desktop)"
+#, kde-format
 msgid "Toggle Present Windows (Current desktop)"
-msgstr "ウィンドウを並べて表示 (現在のデスクトップ)"
+msgstr "ウィンドウ一覧の表示を切り替え (現在のデスクトップ)"
 
-#: plugins/windowview/kcm/windowvieweffectkcm.cpp:49
+#: plugins/windowview/kcm/windowvieweffectkcm.cpp:46
 #: plugins/windowview/windowvieweffect.cpp:57
-#, fuzzy, kde-format
-#| msgid "Keep Window on All Desktops"
+#, kde-format
 msgid "Toggle Present Windows (All desktops)"
-msgstr "ウィンドウをすべてのデスクトップに表示"
+msgstr "ウィンドウ一覧の表示を切り替え (全デスクトップ)"
+
+#: plugins/windowview/kcm/windowvieweffectkcm.cpp:51
+#: plugins/windowview/windowvieweffect.cpp:66
+#, kde-format
+msgid "Toggle Present Windows (Window class)"
+msgstr "ウィンドウ一覧の表示を切り替え (ウィンドウクラスごと)"
 
 #: plugins/windowview/kcm/windowvieweffectkcm.cpp:56
-#: plugins/windowview/windowvieweffect.cpp:66
-#, fuzzy, kde-format
-#| msgid "Toggle Present Windows (Window class)"
-msgid "Toggle Present Windows (Window class)"
-msgstr "ウィンドウを並べて表示 (ウィンドウのクラス)"
-
-#: plugins/windowview/kcm/windowvieweffectkcm.cpp:62
 #: plugins/windowview/windowvieweffect.cpp:75
-#, fuzzy, kde-format
-#| msgid "Toggle Present Windows (Current desktop)"
+#, kde-format
 msgid "Toggle Present Windows (Window class on current desktop)"
-msgstr "ウィンドウを並べて表示 (現在のデスクトップ)"
+msgstr ""
+"ウィンドウ一覧の表示を切り替え (現在のデスクトップ&ウィンドウクラスごと)"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_IgnoreMinimized)
 #: plugins/windowview/kcm/windowvieweffectkcm.ui:22
@@ -2888,23 +3031,20 @@ msgstr "ウィンドウを並べて表示 (現在のデスクトップ)"
 msgid "Ignore &minimized windows"
 msgstr "ウィンドウを最小化"
 
-#: plugins/windowview/qml/Main.qml:107
-#, fuzzy, kde-format
-#| msgid "No Matches"
+#: plugins/windowview/Main.qml:107
+#, kde-format
 msgid "No Matches"
-msgstr "一致なし"
+msgstr "マッチするものがありません"
 
-#: plugins/windowview/qml/Main.qml:107
-#, fuzzy, kde-format
-#| msgid "Windows"
+#: plugins/windowview/Main.qml:107
+#, kde-format
 msgid "No Windows"
-msgstr "ウィンドウ"
+msgstr "ウィンドウはありません"
 
-#: plugins/windowview/qml/Main.qml:122
-#, fuzzy, kde-format
-#| msgid "Lower Window"
+#: plugins/windowview/Main.qml:122
+#, kde-format
 msgid "Filter windows…"
-msgstr "ウィンドウを背面に"
+msgstr "ウィンドウを検索…"
 
 #. i18n: ectx: property (title), widget (QGroupBox, advancedGroup)
 #: plugins/wobblywindows/wobblywindows_config.ui:20
@@ -2966,616 +3106,560 @@ msgstr "弱"
 msgid "More"
 msgstr "強"
 
-#: plugins/zoom/zoom.cpp:88
-#, fuzzy, kde-format
-#| msgid "Window One Desktop to the Left"
+#: plugins/zoom/zoom.cpp:89
+#, kde-format
 msgid "Move Zoomed Area to Left"
-msgstr "ウィンドウを一つ左のデスクトップへ"
+msgstr "拡大エリアを左に移動"
 
-#: plugins/zoom/zoom.cpp:95
-#, fuzzy, kde-format
-#| msgid "Window One Desktop to the Right"
+#: plugins/zoom/zoom.cpp:96
+#, kde-format
 msgid "Move Zoomed Area to Right"
-msgstr "ウィンドウを一つ右のデスクトップへ"
+msgstr "拡大エリアを右に移動"
 
-#: plugins/zoom/zoom.cpp:102
+#: plugins/zoom/zoom.cpp:105
 #, kde-format
 msgid "Move Zoomed Area Upwards"
-msgstr ""
+msgstr "拡大エリアを上に移動"
 
-#: plugins/zoom/zoom.cpp:109
+#: plugins/zoom/zoom.cpp:112
 #, kde-format
 msgid "Move Zoomed Area Downwards"
-msgstr ""
-
-#: plugins/zoom/zoom.cpp:117
-#, kde-format
-msgid "Move Mouse to Focus"
-msgstr ""
-
-#: plugins/zoom/zoom.cpp:124
-#, fuzzy, kde-format
-#| msgid "Pack Window to the Left"
-msgid "Move Mouse to Center"
-msgstr "ウィンドウを左へ寄せる"
+msgstr "拡大エリアを下に移動"
 
 #. i18n: ectx: label, entry (count), group (General)
-#: rulebooksettingsbase.kcfg:9
-#, kde-format
-msgid "Total rules count (legacy)"
-msgstr ""
-
-#. i18n: ectx: label, entry (ruleGroupList), group (General)
 #: rulebooksettingsbase.kcfg:13
 #, kde-format
+msgid "Total rules count (legacy)"
+msgstr "ルール総数 (レガシー)"
+
+#. i18n: ectx: label, entry (ruleGroupList), group (General)
+#. i18n: ectx: label, entry (order), group (General)
+#: rulebooksettingsbase.kcfg:22 rulebooksettingsbase.kcfg:27
+#, kde-format
 msgid "Ordered list of rules groups"
-msgstr ""
+msgstr "ルールグループの順序リスト"
 
 #. i18n: ectx: label, entry (description), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:10
 #, kde-format
 msgid "Rule description"
-msgstr ""
+msgstr "ルールの説明"
 
 #. i18n: ectx: label, entry (descriptionLegacy), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:13
 #, kde-format
 msgid "Rule description (legacy)"
-msgstr ""
+msgstr "ルールの説明 (レガシー)"
 
 #. i18n: ectx: label, entry (DeleteRule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:16
 #, kde-format
 msgid "Delete this rule (for use in imports)"
-msgstr ""
+msgstr "このルールを削除 (インポート時に使用)"
 
 #. i18n: ectx: label, entry (enabled), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:20
 #, kde-format
 msgid "This rule is enabled"
-msgstr ""
+msgstr "このルールは有効です"
 
 #. i18n: ectx: label, entry (wmclass), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:24
 #, kde-format
 msgid "Window class (application)"
-msgstr ""
+msgstr "ウィンドウクラス (アプリケーション)"
 
 #. i18n: ectx: label, entry (wmclassmatch), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:27
 #, kde-format
 msgid "Window class string match type"
-msgstr ""
+msgstr "ウィンドウクラス文字列のマッチタイプ"
 
 #. i18n: ectx: label, entry (wmclasscomplete), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:33
 #, kde-format
 msgid "Match whole window class"
-msgstr ""
+msgstr "すべてのウィンドウクラスにマッチ"
 
 #. i18n: ectx: label, entry (windowrole), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:38
-#, fuzzy, kde-format
-#| msgid "Windows"
+#, kde-format
 msgid "Window role"
-msgstr "ウィンドウ"
+msgstr "ウィンドウの役割"
 
 #. i18n: ectx: label, entry (windowrolematch), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:41
 #, kde-format
 msgid "Window role string match type"
-msgstr ""
+msgstr "ウィンドウロール文字列のマッチタイプ"
 
 #. i18n: ectx: label, entry (title), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:48
-#, fuzzy, kde-format
-#| msgid "Windows"
+#, kde-format
 msgid "Window title"
-msgstr "ウィンドウ"
+msgstr "ウィンドウタイトル"
 
 #. i18n: ectx: label, entry (titlematch), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:51
 #, kde-format
 msgid "Window title string match type"
-msgstr ""
+msgstr "ウィンドウタイトル文字列のマッチタイプ"
 
 #. i18n: ectx: label, entry (clientmachine), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:58
 #, kde-format
 msgid "Machine (hostname)"
-msgstr ""
+msgstr "マシン (ホスト名)"
 
 #. i18n: ectx: label, entry (clientmachinematch), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:61
 #, kde-format
 msgid "Machine string match type"
-msgstr ""
+msgstr "マシン文字列のマッチタイプ"
 
 #. i18n: ectx: label, entry (tag), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:68
-#, fuzzy, kde-format
-#| msgid "KDE window manager"
+#, kde-format
 msgid "Window tag"
-msgstr "KDE ウィンドウマネージャ"
+msgstr "ウィンドウのタグ"
 
 #. i18n: ectx: label, entry (tagmatch), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:71
 #, kde-format
 msgid "Window tag string match type"
-msgstr ""
+msgstr "ウィンドウのタグ文字列のマッチタイプ"
 
-#. i18n: ectx: label, entry (types), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (hastransientparent), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:78
 #, kde-format
+msgid "Has parent window"
+msgstr "親ウィンドウが存在"
+
+#. i18n: ectx: label, entry (hastransientparentmatch), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:82
+#, kde-format
+msgid "Has parent window match type"
+msgstr "親ウィンドウが存在のマッチタイプ"
+
+#. i18n: ectx: label, entry (types), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:89
+#, kde-format
 msgid "Window types that match"
-msgstr ""
+msgstr "一致するウィンドウタイプ"
 
 #. i18n: ectx: label, entry (placement), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:83
+#: rulesettings.kcfg:94
 #, kde-format
 msgid "Initial placement"
-msgstr ""
+msgstr "初期配置"
 
 #. i18n: ectx: label, entry (placementrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:88
-#, fuzzy, kde-format
-#| msgid "&Fullscreen"
+#: rulesettings.kcfg:99
+#, kde-format
 msgid "Initial placement rule type"
-msgstr "フルスクリーン(&F)"
+msgstr "初期配置ルールタイプ"
 
 #. i18n: ectx: label, entry (position), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:93
-#, fuzzy, kde-format
-#| msgid "Window Operations Menu"
+#: rulesettings.kcfg:104
+#, kde-format
 msgid "Window position"
-msgstr "ウィンドウ操作メニュー"
+msgstr "ウィンドウの位置"
 
 #. i18n: ectx: label, entry (positionrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:97
+#: rulesettings.kcfg:108
 #, kde-format
 msgid "Window position rule type"
-msgstr ""
+msgstr "ウィンドウ位置ルールタイプ"
 
 #. i18n: ectx: label, entry (size), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:104
-#, fuzzy, kde-format
-#| msgid "Windows"
+#: rulesettings.kcfg:115
+#, kde-format
 msgid "Window size"
-msgstr "ウィンドウ"
+msgstr "ウィンドウのサイズ"
 
 #. i18n: ectx: label, entry (sizerule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:107
-#, kde-format
-msgid "Window size rule type"
-msgstr ""
-
-#. i18n: ectx: label, entry (minsize), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:114
-#, kde-format
-msgid "Window minimum size"
-msgstr ""
-
-#. i18n: ectx: label, entry (minsizerule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:118
 #, kde-format
+msgid "Window size rule type"
+msgstr "ウィンドウのサイズのルールタイプ"
+
+#. i18n: ectx: label, entry (minsize), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:125
+#, kde-format
+msgid "Window minimum size"
+msgstr "ウィンドウの最小サイズ"
+
+#. i18n: ectx: label, entry (minsizerule), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:129
+#, kde-format
 msgid "Window minimum size rule type"
-msgstr ""
+msgstr "ウィンドウの最小サイズのルールタイプ"
 
 #. i18n: ectx: label, entry (maxsize), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:123
+#: rulesettings.kcfg:134
 #, kde-format
 msgid "Window maximum size"
-msgstr ""
+msgstr "ウィンドウの最大サイズ"
 
 #. i18n: ectx: label, entry (maxsizerule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:127
-#, kde-format
-msgid "Window maximum size rule type"
-msgstr ""
-
-#. i18n: ectx: label, entry (opacityactive), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:132
-#, kde-format
-msgid "Active opacity"
-msgstr ""
-
-#. i18n: ectx: label, entry (opacityactiverule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:138
 #, kde-format
-msgid "Active opacity rule type"
-msgstr ""
+msgid "Window maximum size rule type"
+msgstr "ウィンドウの最大サイズのルールタイプ"
 
-#. i18n: ectx: label, entry (opacityinactive), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (opacityactive), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:143
 #, kde-format
-msgid "Inactive opacity"
-msgstr ""
+msgid "Active opacity"
+msgstr "アクティブの不透明度"
 
-#. i18n: ectx: label, entry (opacityinactiverule), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (opacityactiverule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:149
 #, kde-format
-msgid "Inactive opacity rule type"
-msgstr ""
+msgid "Active opacity rule type"
+msgstr "アクティブの不透明度のルールタイプ"
 
-#. i18n: ectx: label, entry (ignoregeometry), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (opacityinactive), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:154
 #, kde-format
+msgid "Inactive opacity"
+msgstr "非アクティブの不透明度"
+
+#. i18n: ectx: label, entry (opacityinactiverule), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:160
+#, kde-format
+msgid "Inactive opacity rule type"
+msgstr "非アクティブの不透明度のルールタイプ"
+
+#. i18n: ectx: label, entry (ignoregeometry), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:165
+#, kde-format
 msgid "Ignore requested geometry"
-msgstr ""
+msgstr "要求されたジオメトリを無視"
 
 #. i18n: ectx: label, entry (ignoregeometryrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:158
+#: rulesettings.kcfg:169
 #, kde-format
 msgid "Ignore requested geometry rule type"
-msgstr ""
+msgstr "要求されたジオメトリを無視のルールタイプ"
 
 #. i18n: ectx: label, entry (desktops), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:165
-#, fuzzy, kde-format
-#| msgid "Switch to Desktop 1"
-msgid "List of Desktop Ids"
-msgstr "デスクトップ 1 に切り替え"
-
-#. i18n: ectx: label, entry (desktopsrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:169
-#, fuzzy, kde-format
-#| msgid "Keep &Above Others"
-msgid "Desktop Ids rule type"
-msgstr "常に最前面に表示(&A)"
-
-#. i18n: ectx: label, entry (screen), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:176
 #, kde-format
-msgid "Screen number"
-msgstr ""
+msgid "List of Desktop Ids"
+msgstr "デスクトップ ID のリスト"
 
-#. i18n: ectx: label, entry (screenrule), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (desktopsrule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:180
 #, kde-format
+msgid "Desktop Ids rule type"
+msgstr "デスクトップ ID のルールタイプ"
+
+#. i18n: ectx: label, entry (screen), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:187
+#, kde-format
+msgid "Screen number"
+msgstr "スクリーン番号"
+
+#. i18n: ectx: label, entry (screenrule), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:191
+#, kde-format
 msgid "Screen number rule type"
-msgstr ""
+msgstr "スクリーン番号のルールタイプ"
 
 #. i18n: ectx: label, entry (activity), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:187
-#, fuzzy, kde-format
-#| msgid "&All Activities"
+#: rulesettings.kcfg:198
+#, kde-format
 msgid "Activity"
-msgstr "すべてのアクティビティ(&A)"
+msgstr "アクティビティ"
 
 #. i18n: ectx: label, entry (activityrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:190
+#: rulesettings.kcfg:201
 #, kde-format
 msgid "Activity rule type"
-msgstr ""
+msgstr "アクティビティのルールタイプ"
 
 #. i18n: ectx: label, entry (maximizevert), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:197
-#, fuzzy, kde-format
-#| msgid "Maximize Window Vertically"
+#: rulesettings.kcfg:208
+#, kde-format
 msgid "Maximized vertically"
-msgstr "ウィンドウを縦に最大化"
+msgstr "縦に最大化"
 
 #. i18n: ectx: label, entry (maximizevertrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:201
-#, fuzzy, kde-format
-#| msgid "Maximize Window Vertically"
+#: rulesettings.kcfg:212
+#, kde-format
 msgid "Maximized vertically rule type"
-msgstr "ウィンドウを縦に最大化"
+msgstr "縦に最大化のルールタイプ"
 
 #. i18n: ectx: label, entry (maximizehoriz), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:208
-#, fuzzy, kde-format
-#| msgid "Maximize Window Horizontally"
+#: rulesettings.kcfg:219
+#, kde-format
 msgid "Maximized horizontally"
-msgstr "ウィンドウを横に最大化"
+msgstr "横に最大化"
 
 #. i18n: ectx: label, entry (maximizehorizrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:212
-#, fuzzy, kde-format
-#| msgid "Maximize Window Horizontally"
-msgid "Maximized horizontally rule type"
-msgstr "ウィンドウを横に最大化"
-
-#. i18n: ectx: label, entry (minimize), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:219
-#, fuzzy, kde-format
-#| msgid "Mi&nimize"
-msgid "Minimized"
-msgstr "最小化(&N)"
-
-#. i18n: ectx: label, entry (minimizerule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:223
 #, kde-format
-msgid "Minimized rule type"
-msgstr ""
+msgid "Maximized horizontally rule type"
+msgstr "横に最大化のルールタイプ"
 
-#. i18n: ectx: label, entry (skiptaskbar), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (minimize), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:230
 #, kde-format
-msgid "Skip taskbar"
-msgstr ""
+msgid "Minimized"
+msgstr "最小化"
 
-#. i18n: ectx: label, entry (skiptaskbarrule), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (minimizerule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:234
 #, kde-format
-msgid "Skip taskbar rule type"
-msgstr ""
+msgid "Minimized rule type"
+msgstr "最小化のルールタイプ"
 
-#. i18n: ectx: label, entry (skippager), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (skiptaskbar), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:241
 #, kde-format
-msgid "Skip pager"
-msgstr ""
+msgid "Skip taskbar"
+msgstr "タスクバーをスキップ"
 
-#. i18n: ectx: label, entry (skippagerrule), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (skiptaskbarrule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:245
 #, kde-format
-msgid "Skip pager rule type"
-msgstr ""
+msgid "Skip taskbar rule type"
+msgstr "タスクバーをスキップのルールタイプ"
 
-#. i18n: ectx: label, entry (skipswitcher), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (skippager), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:252
-#, fuzzy, kde-format
-#| msgid "Switch to Tab"
-msgid "Skip switcher"
-msgstr "ウィンドウのタブを切り替え"
+#, kde-format
+msgid "Skip pager"
+msgstr "ページャをスキップ"
 
-#. i18n: ectx: label, entry (skipswitcherrule), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (skippagerrule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:256
 #, kde-format
+msgid "Skip pager rule type"
+msgstr "ページャをスキップのルールタイプ"
+
+#. i18n: ectx: label, entry (skipswitcher), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:263
+#, kde-format
+msgid "Skip switcher"
+msgstr "スイッチャーをスキップ"
+
+#. i18n: ectx: label, entry (skipswitcherrule), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:267
+#, kde-format
 msgid "Skip switcher rule type"
-msgstr ""
+msgstr "スイッチャーをスキップのルールタイプ"
 
 #. i18n: ectx: label, entry (above), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:263
-#, fuzzy, kde-format
-#| msgid "Keep &Above Others"
+#: rulesettings.kcfg:274
+#, kde-format
 msgid "Keep above"
-msgstr "常に最前面に表示(&A)"
+msgstr "常に最前面に表示"
 
 #. i18n: ectx: label, entry (aboverule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:267
-#, fuzzy, kde-format
-#| msgid "Keep &Above Others"
+#: rulesettings.kcfg:278
+#, kde-format
 msgid "Keep above rule type"
-msgstr "常に最前面に表示(&A)"
+msgstr "常に最前面に表示のルールタイプ"
 
 #. i18n: ectx: label, entry (below), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:274
-#, fuzzy, kde-format
-#| msgid "Keep &Below Others"
+#: rulesettings.kcfg:285
+#, kde-format
 msgid "Keep below"
-msgstr "常に最背面に表示(&B)"
+msgstr "常に最背面に表示"
 
 #. i18n: ectx: label, entry (belowrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:278
-#, fuzzy, kde-format
-#| msgid "Keep &Below Others"
+#: rulesettings.kcfg:289
+#, kde-format
 msgid "Keep below rule type"
-msgstr "常に最背面に表示(&B)"
+msgstr "常に最背面に表示のルールタイプ"
 
 #. i18n: ectx: label, entry (fullscreen), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:285
-#, fuzzy, kde-format
-#| msgid "&Fullscreen"
+#: rulesettings.kcfg:296
+#, kde-format
 msgid "Fullscreen"
-msgstr "フルスクリーン(&F)"
+msgstr "フルスクリーン"
 
 #. i18n: ectx: label, entry (fullscreenrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:289
-#, fuzzy, kde-format
-#| msgid "&Fullscreen"
+#: rulesettings.kcfg:300
+#, kde-format
 msgid "Fullscreen rule type"
-msgstr "フルスクリーン(&F)"
+msgstr "フルスクリーンのルールタイプ"
 
 #. i18n: ectx: label, entry (noborder), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:296
+#: rulesettings.kcfg:311
 #, kde-format
 msgid "No titlebar and frame"
 msgstr "タイトルバーとフレームを消す"
 
 #. i18n: ectx: label, entry (noborderrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:300
+#: rulesettings.kcfg:315
 #, kde-format
 msgid "No titlebar rule type"
+msgstr "タイトルバーを消すのルールタイプ"
+
+#. i18n: ectx: label, entry (decorationpolicy), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:322
+#, kde-format
+msgid "Decoration policy"
 msgstr ""
+
+#. i18n: ectx: label, entry (decorationpolicyrule), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:332
+#, fuzzy, kde-format
+#| msgid "Keep &Above Others"
+msgid "Decoration policy rule type"
+msgstr "常に最前面に表示(&A)"
 
 #. i18n: ectx: label, entry (decocolor), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:307
+#: rulesettings.kcfg:339
 #, kde-format
 msgid "Titlebar color and scheme"
-msgstr ""
+msgstr "タイトルバーの色とスキーム"
 
 #. i18n: ectx: label, entry (decocolorrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:310
+#: rulesettings.kcfg:342
 #, kde-format
 msgid "Titlebar color rule type"
-msgstr ""
-
-#. i18n: ectx: label, entry (blockcompositing), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:315
-#, fuzzy, kde-format
-#| msgid "Suspend Compositing"
-msgid "Block Compositing"
-msgstr "コンポジティングを一時停止"
-
-#. i18n: ectx: label, entry (blockcompositingrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:319
-#, kde-format
-msgid "Block Compositing rule type"
-msgstr ""
+msgstr "タイトルバーの色のルールタイプ"
 
 #. i18n: ectx: label, entry (fsplevel), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:324
+#: rulesettings.kcfg:347
 #, kde-format
 msgid "Focus stealing prevention"
-msgstr ""
+msgstr "フォーカスの移動を防止"
 
 #. i18n: ectx: label, entry (fsplevelrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:330
+#: rulesettings.kcfg:353
 #, kde-format
 msgid "Focus stealing prevention rule type"
-msgstr ""
+msgstr "フォーカスの移動を防止のルールタイプ"
 
 #. i18n: ectx: label, entry (fpplevel), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:335
+#: rulesettings.kcfg:358
 #, kde-format
 msgid "Focus protection"
-msgstr ""
+msgstr "フォーカス保護"
 
 #. i18n: ectx: label, entry (fpplevelrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:341
-#, kde-format
-msgid "Focus protection rule type"
-msgstr ""
-
-#. i18n: ectx: label, entry (acceptfocus), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:346
-#, kde-format
-msgid "Accept Focus"
-msgstr ""
-
-#. i18n: ectx: label, entry (acceptfocusrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:350
-#, kde-format
-msgid "Accept Focus rule type"
-msgstr ""
-
-#. i18n: ectx: label, entry (closeable), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:355
-#, fuzzy, kde-format
-#| msgid "&Close"
-msgid "Closeable"
-msgstr "閉じる(&C)"
-
-#. i18n: ectx: label, entry (closeablerule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:359
-#, kde-format
-msgid "Closeable rule type"
-msgstr ""
-
-#. i18n: ectx: label, entry (autogroup), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:364
 #, kde-format
-msgid "Autogroup with identical"
-msgstr ""
+msgid "Focus protection rule type"
+msgstr "フォーカス保護のルールタイプ"
 
-#. i18n: ectx: label, entry (autogrouprule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:368
+#. i18n: ectx: label, entry (acceptfocus), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:369
 #, kde-format
-msgid "Autogroup with identical rule type"
-msgstr ""
+msgid "Accept Focus"
+msgstr "フォーカスを受け付ける"
 
-#. i18n: ectx: label, entry (autogroupfg), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (acceptfocusrule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:373
 #, kde-format
-msgid "Autogroup in foreground"
-msgstr ""
+msgid "Accept Focus rule type"
+msgstr "フォーカスを受け付けるのルールタイプ"
 
-#. i18n: ectx: label, entry (autogroupfgrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:377
+#. i18n: ectx: label, entry (closeable), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:378
 #, kde-format
-msgid "Autogroup in foreground rule type"
-msgstr ""
+msgid "Closeable"
+msgstr "閉じることが可能"
 
-#. i18n: ectx: label, entry (autogroupid), group ($(ruleDescriptionOrNumber))
+#. i18n: ectx: label, entry (closeablerule), group ($(ruleDescriptionOrNumber))
 #: rulesettings.kcfg:382
 #, kde-format
-msgid "Autogroup by ID"
-msgstr ""
-
-#. i18n: ectx: label, entry (autogroupidrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:385
-#, kde-format
-msgid "Autogroup by ID rule type"
-msgstr ""
-
-#. i18n: ectx: label, entry (strictgeometry), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:390
-#, kde-format
-msgid "Obey geometry restrictions"
-msgstr ""
-
-#. i18n: ectx: label, entry (strictgeometryrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:394
-#, kde-format
-msgid "Obey geometry restrictions rule type"
-msgstr ""
+msgid "Closeable rule type"
+msgstr "閉じることが可能のルールタイプ"
 
 #. i18n: ectx: label, entry (shortcut), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:399
+#: rulesettings.kcfg:387
 #, kde-format
 msgid "Shortcut"
-msgstr ""
+msgstr "ショートカット"
 
 #. i18n: ectx: label, entry (shortcutrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:402
+#: rulesettings.kcfg:390
 #, kde-format
 msgid "Shortcut rule type"
-msgstr ""
+msgstr "ショートカットのルールタイプ"
 
 #. i18n: ectx: label, entry (disableglobalshortcuts), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:409
+#: rulesettings.kcfg:397
 #, kde-format
 msgid "Ignore global shortcuts"
-msgstr ""
+msgstr "グローバルショートカットを無視"
 
 #. i18n: ectx: label, entry (disableglobalshortcutsrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:413
+#: rulesettings.kcfg:401
 #, kde-format
 msgid "Ignore global shortcuts rule type"
-msgstr ""
+msgstr "グローバルショートカットを無視のルールタイプ"
 
 #. i18n: ectx: label, entry (desktopfile), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:418
+#: rulesettings.kcfg:406
 #, kde-format
 msgid "Desktop file name"
-msgstr ""
+msgstr "デスクトップファイルの名前"
 
 #. i18n: ectx: label, entry (desktopfilerule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:421
+#: rulesettings.kcfg:409
 #, kde-format
 msgid "Desktop file name rule type"
-msgstr ""
+msgstr "デスクトップファイルの名前のルールタイプ"
 
 #. i18n: ectx: label, entry (layer), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:428
+#: rulesettings.kcfg:416
 #, kde-format
 msgid "Layer"
-msgstr ""
+msgstr "レイヤー"
 
 #. i18n: ectx: label, entry (layerrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:444
-#, fuzzy, kde-format
-#| msgid "Keep &Above Others"
+#: rulesettings.kcfg:432
+#, kde-format
 msgid "Layer rule type"
-msgstr "常に最前面に表示(&A)"
+msgstr "レイヤーのルールタイプ"
 
 #. i18n: ectx: label, entry (adaptivesync), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:449
+#: rulesettings.kcfg:437
 #, kde-format
 msgid "AdaptiveSync"
-msgstr ""
+msgstr "AdaptiveSync"
 
 #. i18n: ectx: label, entry (adaptivesyncrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:453
-#, fuzzy, kde-format
-#| msgid "Keep &Above Others"
+#: rulesettings.kcfg:441
+#, kde-format
 msgid "AdaptiveSync rule type"
-msgstr "常に最前面に表示(&A)"
+msgstr "AdaptiveSync のルールタイプ"
 
 #. i18n: ectx: label, entry (tearing), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:458
+#: rulesettings.kcfg:446
 #, kde-format
 msgid "Allow Tearing"
-msgstr ""
+msgstr "ティアリングを許可"
 
 #. i18n: ectx: label, entry (tearingrule), group ($(ruleDescriptionOrNumber))
-#: rulesettings.kcfg:462
-#, fuzzy, kde-format
-#| msgid "Keep &Above Others"
+#: rulesettings.kcfg:450
+#, kde-format
 msgid "Tearing rule type"
-msgstr "常に最前面に表示(&A)"
+msgstr "ティアリングのルールタイプ"
+
+#. i18n: ectx: label, entry (excludefromcapture), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:455
+#, kde-format
+msgid "Hide from screenshots and screen recordings"
+msgstr "画面撮影と録画から消す"
+
+#. i18n: ectx: label, entry (excludefromcapturerule), group ($(ruleDescriptionOrNumber))
+#: rulesettings.kcfg:459
+#, kde-format
+msgid "Hide from screenshots and screen recordings rule type"
+msgstr "画面撮影と録画から消すのルールタイプ"
+
+#: scene/workspacescene.cpp:115
+#, kde-format
+msgid "Toggle “Show Compositing” effect"
+msgstr ""
 
 #. i18n: ectx: property (windowTitle), widget (QDialog, ShortcutDialog)
 #: shortcutdialog.ui:14
@@ -3593,13 +3677,13 @@ msgstr ""
 #, kde-format
 msgctxt "@action:button"
 msgid "Cancel Logout"
-msgstr ""
+msgstr "ログアウトをキャンセル"
 
 #: sm.cpp:422
 #, kde-format
 msgctxt "@action::button"
 msgid "Log Out Anyway"
-msgstr ""
+msgstr "強制ログアウト"
 
 #: sm.cpp:468
 #, kde-format
@@ -3608,6 +3692,9 @@ msgid ""
 "%1\n"
 "Logging out anyway in 2 minutes."
 msgstr ""
+"以下のアプリケーションを閉じることができません。\n"
+"%1\n"
+"2分後に強制的にログアウトします。"
 
 #: tabbox/clientmodel.cpp:58
 #, kde-format
@@ -3621,47 +3708,39 @@ msgctxt "@info:placeholder no entries in the task switcher"
 msgid "No open windows"
 msgstr "開いているウィンドウなし"
 
-#: tabbox/tabbox.cpp:310
+#: tabbox/tabbox.cpp:319
 msgid "Walk Through Windows"
 msgstr "ウィンドウを巡回"
 
-#: tabbox/tabbox.cpp:311
+#: tabbox/tabbox.cpp:320
 msgid "Walk Through Windows (Reverse)"
 msgstr "ウィンドウを巡回 (反対回り)"
 
-#: tabbox/tabbox.cpp:312
+#: tabbox/tabbox.cpp:321
 msgid "Walk Through Windows Alternative"
-msgstr "ウィンドウを巡回の代替"
+msgstr "ウィンドウを巡回 / サブ"
 
-#: tabbox/tabbox.cpp:313
+#: tabbox/tabbox.cpp:322
 msgid "Walk Through Windows Alternative (Reverse)"
-msgstr "ウィンドウを巡回 (反対回り) の代替"
+msgstr "ウィンドウを巡回 (反対回り) / サブ"
 
-#: tabbox/tabbox.cpp:314
-#, fuzzy
-#| msgid "Walk Through Windows Alternative"
+#: tabbox/tabbox.cpp:323
 msgid "Walk Through Windows of Current Application"
-msgstr "ウィンドウを巡回の代替"
+msgstr "現在のアプリのウィンドウを巡回"
 
-#: tabbox/tabbox.cpp:315
-#, fuzzy
-#| msgid "Walk Through Windows Alternative (Reverse)"
+#: tabbox/tabbox.cpp:324
 msgid "Walk Through Windows of Current Application (Reverse)"
-msgstr "ウィンドウを巡回 (反対回り) の代替"
+msgstr "現在のアプリのウィンドウを巡回 (反対回り)"
 
-#: tabbox/tabbox.cpp:316
-#, fuzzy
-#| msgid "Walk Through Windows Alternative"
+#: tabbox/tabbox.cpp:325
 msgid "Walk Through Windows of Current Application Alternative"
-msgstr "ウィンドウを巡回の代替"
+msgstr "現在のアプリのウィンドウを巡回 / サブ"
 
-#: tabbox/tabbox.cpp:317
-#, fuzzy
-#| msgid "Walk Through Windows Alternative (Reverse)"
+#: tabbox/tabbox.cpp:326
 msgid "Walk Through Windows of Current Application Alternative (Reverse)"
-msgstr "ウィンドウを巡回 (反対回り) の代替"
+msgstr "現在のアプリのウィンドウを巡回 (反対回り) / サブ"
 
-#: tabbox/tabboxhandler.cpp:190
+#: tabbox/tabboxhandler.cpp:189
 #, kde-format
 msgid ""
 "The Window Switcher installation is broken, resources are missing.\n"
@@ -3671,7 +3750,7 @@ msgstr ""
 #: tablet_input.cpp:119
 #, kde-format
 msgid "Move the tablet to the next output"
-msgstr ""
+msgstr "次の入力にタブレットを移動"
 
 #: tablet_input.cpp:199
 #, kde-format
@@ -3683,146 +3762,120 @@ msgstr ""
 msgid "Tablets switched outputs"
 msgstr ""
 
-#: useractions.cpp:162
-#, kde-format
-msgid ""
-"You have selected to show a window without its border.\n"
-"Without the border, you will not be able to enable the border again using "
-"the mouse: use the window menu instead, activated using the %1 keyboard "
-"shortcut."
-msgstr ""
-"ウィンドウの枠を消しました。\n"
-"枠なしでは、マウスを使って枠を再び表示させることはできません。キーボード"
-"ショートカットの %1 を使ってウィンドウメニューを表示し、そこから設定してくだ"
-"さい。"
-
-#: useractions.cpp:169
-#, kde-format
-msgid ""
-"You have selected to show a window in fullscreen mode.\n"
-"If the application itself does not have an option to turn the fullscreen "
-"mode off you will not be able to disable it again using the mouse: use the "
-"window menu instead, activated using the %1 keyboard shortcut."
-msgstr ""
-"ウィンドウをフルスクリーンにしました。\n"
-"アプリケーションにフルスクリーンモードを解除する機能がない場合、マウスを使っ"
-"てフルスクリーンモードを解除することはできません。その場合、キーボードショー"
-"トカットの %1 を使ってウィンドウメニューを表示し、そこから解除してください。"
-
-#: useractions.cpp:217
+#: useractions.cpp:220
 #, kde-format
 msgid "&Move"
 msgstr "移動(&M)"
 
-#: useractions.cpp:222
+#: useractions.cpp:225
 #, kde-format
 msgid "&Resize"
 msgstr "リサイズ(&R)"
 
-#: useractions.cpp:227
-#, kde-format
-msgid "Keep &Above Others"
-msgstr "常に最前面に表示(&A)"
-
-#: useractions.cpp:233
+#: useractions.cpp:230
 #, kde-format
 msgid "Keep &Below Others"
 msgstr "常に最背面に表示(&B)"
 
-#: useractions.cpp:239
+#: useractions.cpp:236
 #, kde-format
 msgid "&Fullscreen"
 msgstr "フルスクリーン(&F)"
 
-#: useractions.cpp:245
+#: useractions.cpp:242
 #, kde-format
 msgid "&No Titlebar and Frame"
 msgstr "タイトルバーとフレームを消す(&N)"
 
-#: useractions.cpp:251
+#: useractions.cpp:248
 #, kde-format
-msgid "&Hide from Screencast"
-msgstr "画面録画から消す(&H)"
+msgid "&Hide from Screenshots and Screen Recordings"
+msgstr "画面撮影と録画から消す(&H)"
 
-#: useractions.cpp:259
+#: useractions.cpp:256
 #, kde-format
 msgid "Set Window Short&cut…"
 msgstr "ウィンドウにショートカットを割り当てる(&C)…"
 
-#: useractions.cpp:265
+#: useractions.cpp:262
 #, kde-format
 msgid "Configure Special &Window Settings…"
 msgstr "ウィンドウ固有の設定(&W)…"
 
-#: useractions.cpp:270
+#: useractions.cpp:267
 #, kde-format
 msgid "Configure S&pecial Application Settings…"
 msgstr "アプリケーション固有の設定(&P)…"
 
-#: useractions.cpp:276
+#: useractions.cpp:273
 #, kde-format
 msgid "Ma&ximize"
 msgstr "最大化(&X)"
 
-#: useractions.cpp:282
+#: useractions.cpp:279
 #, kde-format
 msgid "Mi&nimize"
 msgstr "最小化(&N)"
 
-#: useractions.cpp:288
+#: useractions.cpp:284
+#, kde-format
+msgid "Keep &Above Others"
+msgstr "常に最前面に表示(&A)"
+
+#: useractions.cpp:291
 #, kde-format
 msgid "&More Actions"
 msgstr "その他のアクション(&M)"
 
-#: useractions.cpp:293
+#: useractions.cpp:296
 #, kde-format
 msgid "&Close"
 msgstr "閉じる(&C)"
 
-#: useractions.cpp:359
+#: useractions.cpp:362
 #, kde-format
 msgid "&Extensions"
 msgstr ""
 
-#: useractions.cpp:409
+#: useractions.cpp:412
 #, fuzzy, kde-format
 #| msgid "&All Desktops"
 msgid "&Desktops"
 msgstr "すべてのデスクトップ(&A)"
 
-#: useractions.cpp:425
+#: useractions.cpp:428
 #, kde-format
 msgid "Move to &Screen"
 msgstr "スクリーンを移動(&S)"
 
-#: useractions.cpp:441
+#: useractions.cpp:444
 #, kde-format
 msgid "Show in &Activities"
 msgstr "アクティビティに表示(&A)"
 
-#: useractions.cpp:457
+#: useractions.cpp:460
 #, kde-format
 msgid "&All Desktops"
 msgstr "すべてのデスクトップ(&A)"
 
-#: useractions.cpp:492 useractions.cpp:624
+#: useractions.cpp:495 useractions.cpp:627
 #, kde-format
 msgid "Move to %1"
 msgstr "%1 へ移動"
 
-#: useractions.cpp:506
+#: useractions.cpp:509
 #, kde-format
 msgctxt "Create a new desktop and add the window to that desktop"
 msgid "Add to &New Desktop"
 msgstr "新しいデスクトップに追加"
 
-#: useractions.cpp:518
+#: useractions.cpp:521
 #, kde-format
 msgctxt "Create a new desktop and move the window to that desktop"
 msgid "Move to New Desktop"
 msgstr "新しいデスクトップへ移動"
 
-#: useractions.cpp:549
+#: useractions.cpp:552
 #, fuzzy, kde-format
 #| msgid "Window to Screen 1"
 msgctxt ""
@@ -3831,7 +3884,7 @@ msgctxt ""
 msgid "Screen &%1 (%2)"
 msgstr "ウィンドウをスクリーン 1 へ"
 
-#: useractions.cpp:576
+#: useractions.cpp:579
 #, kde-format
 msgid "&All Activities"
 msgstr "すべてのアクティビティ(&A)"
@@ -3875,406 +3928,486 @@ msgstr "ウィンドウを横に最大化"
 
 #: useractions.cpp:836
 #, kde-format
+msgid "Restore Window"
+msgstr "ウィンドウを元のサイズに戻す"
+
+#: useractions.cpp:838
+#, kde-format
 msgid "Minimize Window"
 msgstr "ウィンドウを最小化"
 
-#: useractions.cpp:838
+#: useractions.cpp:840
 #, kde-format
 msgid "Move Window"
 msgstr "ウィンドウを移動"
 
-#: useractions.cpp:840
+#: useractions.cpp:842
 #, kde-format
 msgid "Resize Window"
 msgstr "ウィンドウをリサイズ"
 
-#: useractions.cpp:842
+#: useractions.cpp:844
 #, kde-format
 msgid "Raise Window"
 msgstr "ウィンドウを前面に"
 
-#: useractions.cpp:844
+#: useractions.cpp:846
 #, kde-format
 msgid "Lower Window"
 msgstr "ウィンドウを背面に"
 
-#: useractions.cpp:846
+#: useractions.cpp:850
 #, kde-format
 msgid "Toggle Window Raise/Lower"
 msgstr "ウィンドウを前面/背面に"
 
-#: useractions.cpp:848
+#: useractions.cpp:852
 #, kde-format
 msgid "Make Window Fullscreen"
 msgstr "ウィンドウをフルスクリーンに"
 
-#: useractions.cpp:850
+#: useractions.cpp:854
 #, kde-format
 msgid "Toggle Window Titlebar and Frame"
 msgstr "ウィンドウのタイトルバーと枠の表示を切り替え"
 
-#: useractions.cpp:852
+#: useractions.cpp:856
 #, kde-format
 msgid "Keep Window Above Others"
 msgstr "ウィンドウを常に最前面に表示"
 
-#: useractions.cpp:854
+#: useractions.cpp:858
 #, kde-format
 msgid "Keep Window Below Others"
 msgstr "ウィンドウを常に最背面に表示"
 
-#: useractions.cpp:856
+#: useractions.cpp:860
 #, kde-format
 msgid "Activate Window Demanding Attention"
 msgstr "操作を要求しているウィンドウをアクティブに"
 
-#: useractions.cpp:858
+#: useractions.cpp:862
 #, kde-format
 msgid "Setup Window Shortcut"
 msgstr "ウィンドウショートカットの設定"
 
-#: useractions.cpp:860
+#: useractions.cpp:864
 #, kde-format
 msgid "Move Window to the Center"
 msgstr "ウィンドウを中央に移動"
 
-#: useractions.cpp:862
+#: useractions.cpp:866
 #, kde-format
 msgid "Move Window Right"
 msgstr "ウィンドウを右に移動"
 
-#: useractions.cpp:864
+#: useractions.cpp:868
 #, kde-format
 msgid "Move Window Left"
 msgstr "ウィンドウを左に移動"
 
-#: useractions.cpp:866
+#: useractions.cpp:872
 #, kde-format
 msgid "Move Window Up"
 msgstr "ウィンドウを上に移動"
 
-#: useractions.cpp:868
+#: useractions.cpp:874
 #, kde-format
 msgid "Move Window Down"
 msgstr "ウィンドウを下に移動"
 
-#: useractions.cpp:870
+#: useractions.cpp:878
 #, kde-format
 msgid "Expand Window Horizontally"
 msgstr "ウィンドウを横に拡大"
 
-#: useractions.cpp:872
-#, kde-format
-msgid "Expand Window Vertically"
-msgstr "ウィンドウを縦に拡大"
-
-#: useractions.cpp:874
+#: useractions.cpp:880
 #, kde-format
 msgid "Shrink Window Horizontally"
 msgstr "ウィンドウを横に縮小"
 
-#: useractions.cpp:876
+#: useractions.cpp:884
+#, kde-format
+msgid "Expand Window Vertically"
+msgstr "ウィンドウを縦に拡大"
+
+#: useractions.cpp:886
 #, kde-format
 msgid "Shrink Window Vertically"
 msgstr "ウィンドウを縦に縮小"
 
-#: useractions.cpp:878
+#: useractions.cpp:890
 #, kde-format
 msgid "Quick Tile Window to the Left"
 msgstr "ウィンドウを左にタイル化"
 
-#: useractions.cpp:880
+#: useractions.cpp:892
 #, kde-format
 msgid "Quick Tile Window to the Right"
 msgstr "ウィンドウを右にタイル化"
 
-#: useractions.cpp:882
+#: useractions.cpp:894
 #, kde-format
 msgid "Quick Tile Window to the Top"
 msgstr "ウィンドウを上にタイル化"
 
-#: useractions.cpp:884
+#: useractions.cpp:896
 #, kde-format
 msgid "Quick Tile Window to the Bottom"
 msgstr "ウィンドウを下にタイル化"
 
-#: useractions.cpp:886
+#: useractions.cpp:898
 #, kde-format
 msgid "Quick Tile Window to the Top Left"
 msgstr "ウィンドウを左上にタイル化"
 
-#: useractions.cpp:888
+#: useractions.cpp:900
 #, kde-format
 msgid "Quick Tile Window to the Bottom Left"
 msgstr "ウィンドウを左下にタイル化"
 
-#: useractions.cpp:890
+#: useractions.cpp:902
 #, kde-format
 msgid "Quick Tile Window to the Top Right"
 msgstr "ウィンドウを右上にタイル化"
 
-#: useractions.cpp:892
+#: useractions.cpp:904
 #, kde-format
 msgid "Quick Tile Window to the Bottom Right"
 msgstr "ウィンドウを右下にタイル化"
 
-#: useractions.cpp:894
+#: useractions.cpp:906
 #, kde-format
 msgid "Switch to Window Above"
 msgstr "上のウィンドウに切り替え"
 
-#: useractions.cpp:896
+#: useractions.cpp:908
 #, kde-format
 msgid "Switch to Window Below"
 msgstr "下のウィンドウに切り替え"
 
-#: useractions.cpp:898
+#: useractions.cpp:912
 #, kde-format
 msgid "Switch to Window to the Right"
 msgstr "右のウィンドウに切り替え"
 
-#: useractions.cpp:900
+#: useractions.cpp:914
 #, kde-format
 msgid "Switch to Window to the Left"
 msgstr "左のウィンドウに切り替え"
 
-#: useractions.cpp:902
+#: useractions.cpp:918
 #, kde-format
 msgid "Increase Opacity of Active Window by 5%"
 msgstr "アクティブウィンドウの不透明度を 5% 上げる"
 
-#: useractions.cpp:904
+#: useractions.cpp:920
 #, kde-format
 msgid "Decrease Opacity of Active Window by 5%"
 msgstr "アクティブウィンドウの不透明度を 5% 下げる"
 
-#: useractions.cpp:907
+#: useractions.cpp:924
 #, kde-format
 msgid "Keep Window on All Desktops"
 msgstr "ウィンドウをすべてのデスクトップに表示"
 
-#: useractions.cpp:910
+#: useractions.cpp:927
 #, kde-format
 msgid "Custom Quick Tile Window to the Left"
 msgstr "ウィンドウをカスタムタイルで左にタイル化"
 
-#: useractions.cpp:912
+#: useractions.cpp:929
 #, kde-format
 msgid "Custom Quick Tile Window to the Right"
 msgstr "ウィンドウをカスタムタイルで右にタイル化"
 
-#: useractions.cpp:914
+#: useractions.cpp:931
 #, kde-format
 msgid "Custom Quick Tile Window to the Top"
 msgstr "ウィンドウをカスタムタイルで上にタイル化"
 
-#: useractions.cpp:916
+#: useractions.cpp:933
 #, kde-format
 msgid "Custom Quick Tile Window to the Bottom"
 msgstr "ウィンドウをカスタムタイルで下にタイル化"
 
-#: useractions.cpp:927
+#: useractions.cpp:944
 #, kde-format
 msgid "Window to Desktop %1"
 msgstr "ウィンドウをデスクトップ %1 へ"
 
-#: useractions.cpp:929
+#: useractions.cpp:946
 #, kde-format
 msgid "Window to Next Desktop"
 msgstr "ウィンドウを次のデスクトップへ"
 
-#: useractions.cpp:930
+#: useractions.cpp:947
 #, kde-format
 msgid "Window to Previous Desktop"
 msgstr "ウィンドウを前のデスクトップへ"
 
-#: useractions.cpp:931
+#: useractions.cpp:950
 #, kde-format
 msgid "Window One Desktop to the Right"
 msgstr "ウィンドウを一つ右のデスクトップへ"
 
-#: useractions.cpp:933
+#: useractions.cpp:952
 #, kde-format
 msgid "Window One Desktop to the Left"
 msgstr "ウィンドウを一つ左のデスクトップへ"
 
-#: useractions.cpp:935
+#: useractions.cpp:956
 #, kde-format
 msgid "Window One Desktop Up"
 msgstr "ウィンドウを一つ上のデスクトップへ"
 
-#: useractions.cpp:937
+#: useractions.cpp:958
 #, kde-format
 msgid "Window One Desktop Down"
 msgstr "ウィンドウを一つ下のデスクトップへ"
 
-#: useractions.cpp:941
+#: useractions.cpp:963
 #, kde-format
 msgid "Move Window to Screen %1"
 msgstr "ウィンドウをスクリーン %1 へ"
 
-#: useractions.cpp:948
+#: useractions.cpp:970
 #, kde-format
 msgid "Move Window to Next Screen"
 msgstr "ウィンドウを次のスクリーンへ"
 
-#: useractions.cpp:950
+#: useractions.cpp:972
 #, kde-format
 msgid "Move Window to Previous Screen"
 msgstr "ウィンドウを前のスクリーンへ"
 
-#: useractions.cpp:952
+#: useractions.cpp:976
 #, kde-format
 msgid "Move Window One Screen to the Right"
 msgstr "ウィンドウを一つ右のスクリーンへ"
 
-#: useractions.cpp:954
+#: useractions.cpp:978
 #, kde-format
 msgid "Move Window One Screen to the Left"
 msgstr "ウィンドウを一つ左のスクリーンへ"
 
-#: useractions.cpp:956
+#: useractions.cpp:982
 #, kde-format
 msgid "Move Window One Screen Up"
 msgstr "ウィンドウを一つ上のスクリーンへ"
 
-#: useractions.cpp:958
+#: useractions.cpp:984
 #, kde-format
 msgid "Move Window One Screen Down"
 msgstr "ウィンドウを一つ下のスクリーンへ"
 
-#: useractions.cpp:962
+#: useractions.cpp:989
 #, kde-format
 msgid "Switch to Screen %1"
 msgstr "スクリーン %1 に切り替え"
 
-#: useractions.cpp:969
+#: useractions.cpp:996
 #, kde-format
 msgid "Switch to Next Screen"
 msgstr "次のスクリーンに切り替え"
 
-#: useractions.cpp:970
+#: useractions.cpp:997
 #, kde-format
 msgid "Switch to Previous Screen"
 msgstr "前のスクリーンに切り替え"
 
-#: useractions.cpp:971
+#: useractions.cpp:1000
 #, kde-format
 msgid "Switch to Screen to the Right"
 msgstr "右のスクリーンに切り替え"
 
-#: useractions.cpp:973
+#: useractions.cpp:1002
 #, kde-format
 msgid "Switch to Screen to the Left"
 msgstr "左のスクリーンに切り替え"
 
-#: useractions.cpp:975
+#: useractions.cpp:1006
 #, kde-format
 msgid "Switch to Screen Above"
 msgstr "上のスクリーンに切り替え"
 
-#: useractions.cpp:977
+#: useractions.cpp:1008
 #, kde-format
 msgid "Switch to Screen Below"
 msgstr "下のスクリーンに切り替え"
 
-#: useractions.cpp:980
+#: useractions.cpp:1012
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "デスクトップをプレビュー"
 
-#: useractions.cpp:983
+#: useractions.cpp:1015
 #, kde-format
 msgid "Kill Window"
 msgstr "ウィンドウを強制終了"
 
-#: useractions.cpp:1048
+#: useractions.cpp:1017
+#, kde-format
+msgctxt "@action"
+msgid "Center Pointer in Focused Window"
+msgstr ""
+
+#: useractions.cpp:1018
+#, kde-format
+msgctxt "@action"
+msgid "Center Pointer in Screen"
+msgstr ""
+
+#: useractions.cpp:1083
 #, kde-format
 msgid "Activate Window (%1)"
 msgstr "ウィンドウをアクティブに (%1)"
 
-#: utils/edid.cpp:360
+#: utils/edid.cpp:375
 #, kde-format
 msgid "unknown"
 msgstr "不明"
 
-#: virtualdesktops.cpp:732 virtualdesktops.cpp:811
+#: virtualdesktops.cpp:697 virtualdesktops.cpp:762
 #, kde-format
 msgid "Desktop %1"
 msgstr "デスクトップ %1"
 
-#: virtualdesktops.cpp:818
+#: virtualdesktops.cpp:769
 #, kde-format
 msgid "Switch to Next Desktop"
 msgstr "次のデスクトップに切り替え"
 
-#: virtualdesktops.cpp:819
+#: virtualdesktops.cpp:770
 #, kde-format
 msgid "Switch to Previous Desktop"
 msgstr "前のデスクトップに切り替え"
 
-#: virtualdesktops.cpp:822
+#: virtualdesktops.cpp:775
 #, kde-format
 msgid "Switch One Desktop to the Right"
 msgstr "一つ右のデスクトップに切り替え"
 
-#: virtualdesktops.cpp:823
+#: virtualdesktops.cpp:776
 #, kde-format
 msgid "Switch One Desktop to the Left"
 msgstr "一つ左のデスクトップに切り替え"
 
-#: virtualdesktops.cpp:824
+#: virtualdesktops.cpp:777
 #, kde-format
 msgid "Switch One Desktop Up"
 msgstr "一つ上のデスクトップに切り替え"
 
-#: virtualdesktops.cpp:825
+#: virtualdesktops.cpp:778
 #, kde-format
 msgid "Switch One Desktop Down"
 msgstr "一つ下のデスクトップに切り替え"
 
-#: virtualdesktops.cpp:913
+#: virtualdesktops.cpp:882
 #, kde-format
 msgid "Switch to Desktop %1"
 msgstr "デスクトップ %1 に切り替え"
 
-#: wayland/outputmanagement_v2.cpp:603
+#: wayland/outputmanagement_v2.cpp:521
+#, kde-format
+msgid ""
+"Setting custom modes with too old kde-output-management-v2 protocol versions "
+"is unsupported"
+msgstr ""
+"古すぎる kde-output-management-v2 protocol のバージョンでカスタムモードを設定"
+"する動作は対応していません"
+
+#: wayland/outputmanagement_v2.cpp:575
+#, kde-format
+msgid "abm level is larger than the maximum (4): %1"
+msgstr "abm レベルが最大値 (4) よりも大きいです: %1"
+
+#: wayland/outputmanagement_v2.cpp:673
 #, kde-format
 msgid "One of the relevant outputs is no longer available"
-msgstr ""
+msgstr "関連する出力の一つが使用できなくなっています"
 
-#: wayland/outputmanagement_v2.cpp:621
+#: wayland/outputmanagement_v2.cpp:691
 #, kde-format
 msgid "Disabling all outputs through configuration changes is not allowed"
-msgstr ""
+msgstr "設定変更によってすべての出力を無効にすることは許可されていません"
 
-#: wayland/outputmanagement_v2.cpp:638
+#: wayland/outputmanagement_v2.cpp:701
+#, kde-format
+msgid "%1 cannot mirror itself"
+msgstr "%1 はそれ自体をミラーできません"
+
+#: wayland/outputmanagement_v2.cpp:708
 #, kde-format
 msgid "Cannot add a custom mode with an empty size"
-msgstr ""
+msgstr "サイズが空のカスタムモードは追加できません"
 
-#: wayland/outputmanagement_v2.cpp:642
+#: wayland/outputmanagement_v2.cpp:712
 #, kde-format
 msgid "Cannot add a custom mode with a refresh rate of zero Hz"
-msgstr ""
+msgstr "リフレッシュレートが 0Hz のカスタムモードは追加できません"
 
-#: wayland/outputmanagement_v2.cpp:660
+#: wayland/outputmanagement_v2.cpp:723
 #, kde-format
-msgid "Position of output %s is way too large (%d, %d)"
-msgstr ""
+msgid "Position of output %1 is way too negative (%2, %3)"
+msgstr "出力 %1 の位置の負の値が大きすぎます (%2, %3)"
 
-#: wayland/outputmanagement_v2.cpp:677
+#: wayland/outputmanagement_v2.cpp:726
 #, kde-format
-msgid "The driver rejected the output configuration"
+msgid "Position of enabled output %1 is negative (%2, %3)"
+msgstr "有効な出力 %1 の位置が負の値です (%2, %3)"
+
+#: wayland/outputmanagement_v2.cpp:730
+#, kde-format
+msgid "Position of output %1 is way too large (%2, %3)"
+msgstr "出力 %1 の位置が大きすぎます (%2, %3)"
+
+#: wayland/outputmanagement_v2.cpp:744
+#, kde-format
+msgid "The session is not active"
+msgstr "セッションが非アクティブです"
+
+#: wayland/outputmanagement_v2.cpp:747
+#, kde-format
+msgid "More displays are enabled than are supported by the graphics card."
 msgstr ""
 
-#: window.cpp:3140
+#: wayland/outputmanagement_v2.cpp:750
+#, fuzzy, kde-format
+#| msgid "The driver rejected the output configuration"
+msgid "The driver rejected the output configuration: %s"
+msgstr "ドライバーが出力設定を拒否しました"
+
+#: window.cpp:3178
 #, kde-format
 msgctxt "Application is not responding, appended to window title"
 msgid "(Not Responding)"
 msgstr "(応答なし)"
 
-#: workspace.cpp:1764
+#: workspace.cpp:1324
+#, kde-format
+msgid "Built-in Screen"
+msgstr ""
+
+#: workspace.cpp:1337
+#, kde-format
+msgctxt "Display label: manufacturer + model name + connector name"
+msgid "%1 %2 %3"
+msgstr ""
+
+#: workspace.cpp:1347
+#, kde-format
+msgctxt "Display label: manufacturer + model name + serial number"
+msgid "%1 %2 %3"
+msgstr ""
+
+#: workspace.cpp:1350
+#, kde-format
+msgctxt "Display label: manufacturer + model name"
+msgid "%1 %2"
+msgstr ""
+
+#: workspace.cpp:1819
 #, kde-format
 msgctxt "Introductory text shown in the support information."
 msgid ""
@@ -4288,8 +4421,28 @@ msgid ""
 "paste bin service\n"
 "like https://paste.kde.org instead of pasting into support threads.\n"
 msgstr ""
+"KWin サポート情報\n"
+"以下の情報は https://discuss.kde.org などでサポートを依頼する際に使用するため"
+"のものです。\n"
+"この情報には現在実行中のインスタンスに関する情報、使用されているオプション"
+"や\n"
+"実行中の OpenGL ドライバ、デスクトップ効果の情報が含まれています。\n"
+"サポートスレッドに直接貼り付けるのではなく、この説明テキストの下に表示されて"
+"いる情報を\n"
+"https://paste.kde.org などのテキスト共有サービスに投稿してリンクを共有してく"
+"ださい。\n"
 
-#: xwayland/xwaylandlauncher.cpp:295
+#: xwayland/xwaylandlauncher.cpp:323
 #, kde-format
 msgid "Xwayland has crashed"
-msgstr ""
+msgstr "Xwayland がクラッシュしました"
+
+#~ msgctxt "@label"
+#~ msgid "Paint Amount"
+#~ msgstr "描画量"
+
+#~ msgid "Desktop effects were restarted due to a graphics reset"
+#~ msgstr "グラフィックスのリセットにより、デスクトップ効果が再起動しました"
+
+#~ msgid "Disable configuration options"
+#~ msgstr "設定オプションを無効化"

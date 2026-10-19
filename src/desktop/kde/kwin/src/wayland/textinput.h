@@ -59,6 +59,10 @@ enum class TextInputContentHint {
      * the text input is multi line
      */
     MultiLine = 1 << 9,
+    // since text-input-unstable-v3 version 2
+    OnScreenInputProvided = 1 << 10,
+    NoEmoji = 1 << 11,
+    PreeditShown = 1 << 12,
 };
 
 Q_DECLARE_FLAGS(TextInputContentHints, TextInputContentHint)
@@ -139,6 +143,7 @@ enum class TextInputChangeCause {
      */
     Other,
 };
+
 }
 
 Q_DECLARE_METATYPE(KWin::TextInputContentHint)

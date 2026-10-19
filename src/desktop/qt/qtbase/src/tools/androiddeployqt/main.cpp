@@ -173,7 +173,7 @@ struct Options
     QString versionName;
     QString versionCode;
     QByteArray minSdkVersion{"28"};
-    QByteArray targetSdkVersion{"36"};
+    QByteArray targetSdkVersion{"37"};
 
     // lib c++ path
     QString stdCppPath;
@@ -707,13 +707,15 @@ Optional arguments:
 // gives the natural order.
 bool quasiLexicographicalReverseLessThan(const QFileInfo &fi1, const QFileInfo &fi2)
 {
+    // baseName() drops the minor, so sort by API level, then by minor.
     QString s1 = fi1.baseName();
     QString s2 = fi2.baseName();
 
-    if (s1.size() == s2.size())
-        return s1 > s2;
-    else
+    if (s1.size() != s2.size())
         return s1.size() > s2.size();
+    if (s1 != s2)
+        return s1 > s2;
+    return fi1.fileName() > fi2.fileName();
 }
 
 // Files which contain templates that need to be overwritten by build data should be overwritten every
@@ -913,8 +915,11 @@ QString detectLatestAndroidPlatform(const QString &sdkPath)
 
     std::sort(fileInfos.begin(), fileInfos.end(), quasiLexicographicalReverseLessThan);
 
+    // Prefer the plain name any AGP understands, else the minor revision.
     const QFileInfo& latestPlatform = fileInfos.constFirst();
-    return latestPlatform.baseName();
+    if (dir.exists(latestPlatform.baseName()))
+        return latestPlatform.baseName();
+    return latestPlatform.fileName();
 }
 
 QString extractPackageName(Options *options)
@@ -1531,10 +1536,12 @@ bool isDeployment(const Options *options, Options::DeploymentMechanism deploymen
     return options->deploymentMechanism == deployment;
 }
 
-bool copyFiles(const QDir &sourceDirectory, const QDir &destinationDirectory, const Options &options, bool forceOverwrite = false)
+bool copyFiles(const QDir &sourceDirectory, const QDir &destinationDirectory, const Options &options, bool forceOverwrite = false, const QSet<QString> &excludedAbsolutePaths = {})
 {
     const QFileInfoList entries = sourceDirectory.entryInfoList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
     for (const QFileInfo &entry : entries) {
+        if (excludedAbsolutePaths.contains(entry.absoluteFilePath()))
+            continue;
         if (entry.isDir()) {
             QDir dir(entry.absoluteFilePath());
             const bool destinationInCopyDir = destinationDirectory.absolutePath().startsWith(dir.absolutePath());
@@ -1546,7 +1553,7 @@ bool copyFiles(const QDir &sourceDirectory, const QDir &destinationDirectory, co
                 return false;
             }
 
-            if (!copyFiles(dir, QDir(destinationDirectory.path() + u'/' + dir.dirName()), options, forceOverwrite))
+            if (!copyFiles(dir, QDir(destinationDirectory.path() + u'/' + dir.dirName()), options, forceOverwrite, excludedAbsolutePaths))
                 return false;
         } else {
             QString destination = destinationDirectory.absoluteFilePath(entry.fileName());
@@ -1650,7 +1657,21 @@ bool copyAndroidSources(const Options &options)
         return false;
     }
 
-    return copyFiles(sourceDirectory, QDir(options.outputDirectory), options, true);
+    QSet<QString> excludedAbsolutePaths;
+    const QString providerPaths = sourceDirectory.absoluteFilePath(
+        QStringLiteral("res/xml/qtprovider_paths.xml"));
+    if (QFileInfo::exists(providerPaths)) {
+        fprintf(stderr,
+            "Warning: %s in the package source directory is being excluded. Qt "
+            "now bundles its own copy of it under the Android sources directory, "
+            "and a duplicate would fail the Gradle build. Remove this file from "
+            "your package source directory to silence this warning.\n",
+            qPrintable(providerPaths));
+        excludedAbsolutePaths.insert(providerPaths);
+    }
+
+    return copyFiles(sourceDirectory, QDir(options.outputDirectory), options, true,
+                     excludedAbsolutePaths);
 }
 
 bool copyAndroidExtraLibs(Options *options)
@@ -2089,6 +2110,9 @@ bool updateAndroidFiles(Options &options)
 
 static QString absoluteFilePath(const Options *options, const QString &relativeFileName)
 {
+    if (QDir::isAbsolutePath(relativeFileName))
+        return relativeFileName;
+
     // Use extraLibraryDirs as the extra library lookup folder if it is expected to find a file in
     // any $prefix/lib folder.
     // Library directories from a build tree(extraLibraryDirs) have the higher priority.
@@ -2126,6 +2150,25 @@ static QString absoluteFilePath(const Options *options, const QString &relativeF
                u'/' + relativeFileName.mid(sizeof("lib/") - 1);
     }
     return options->qtInstallDirectory + u'/' + relativeFileName;
+}
+
+// Returns the entry as recorded, or with the ABI suffix added or stripped, whichever is on disk.
+static QString resolveLibDependency(const Options *options, const QString &fileName)
+{
+    if (QFile::exists(absoluteFilePath(options, fileName)))
+        return fileName;
+
+    const QString abiSuffix = u'_' + options->currentArchitecture + ".so"_L1;
+    QString alternative;
+    if (fileName.endsWith(abiSuffix))
+        alternative = fileName.chopped(abiSuffix.size()) + ".so"_L1;
+    else
+        alternative = fileName.chopped(sizeof(".so") - 1) + abiSuffix;
+
+    if (QFile::exists(absoluteFilePath(options, alternative)))
+        return alternative;
+
+    return fileName;
 }
 
 QList<QtDependency> findFilesRecursively(const Options &options, const QFileInfo &info, const QString &rootPath)
@@ -2257,6 +2300,8 @@ bool readAndroidDependencyXml(Options *options,
                     }
                 } else if (reader.name() == "lib"_L1) {
                     QString fileName = QDir::cleanPath(reader.attributes().value("file"_L1).toString());
+                    if (fileName.endsWith(".so"_L1))
+                        fileName = resolveLibDependency(options, fileName);
                     if (reader.attributes().hasAttribute("replaces"_L1)) {
                         QString replaces = reader.attributes().value("replaces"_L1).toString();
                         for (int i=0; i<options->localLibs.size(); ++i) {
@@ -2268,8 +2313,9 @@ bool readAndroidDependencyXml(Options *options,
                     } else if (!fileName.isEmpty()) {
                         options->localLibs[options->currentArchitecture].append(fileName);
                     }
-                    if (fileName.endsWith(".so"_L1) && checkArchitecture(*options, fileName)) {
-                        remainingDependencies->insert(fileName);
+                    if (fileName.endsWith(".so"_L1)) {
+                        if (checkArchitecture(*options, absoluteFilePath(options, fileName)))
+                            remainingDependencies->insert(fileName);
                     }
                 } else if (reader.name() == "permission"_L1) {
                     QString name = reader.attributes().value("name"_L1).toString();
@@ -3075,7 +3121,16 @@ bool buildAndroidProject(const Options &options)
     // Provide the integer version only if build.gradle explicitly converts to Integer,
     // to avoid regression to existing projects that build for sdk platform of form android-xx.
     if (gradleConfigs.usesIntegerCompileSdkVersion) {
-        const QByteArray tmp = options.androidPlatform.split(u'-').last().toLocal8Bit();
+        // An integer holds no minor, and Gradle resolves it to android-xx.0.
+        const QStringList platformParts = options.androidPlatform.split(u'-').last().split(u'.');
+        const QString apiLevel = platformParts.constFirst();
+        if (platformParts.size() > 1 && platformParts.at(1) != "0"_L1) {
+            fprintf(stderr,
+                "Warning: build.gradle takes an integer compile SDK version, "
+                "building against API level %s instead of platform %s.\n",
+                qPrintable(apiLevel), qPrintable(options.androidPlatform));
+        }
+        const QByteArray tmp = apiLevel.toLocal8Bit();
         bool ok;
         tmp.toInt(&ok);
         if (ok) {

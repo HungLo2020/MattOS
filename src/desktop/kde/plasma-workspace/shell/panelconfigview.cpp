@@ -5,7 +5,6 @@
 */
 
 #include "panelconfigview.h"
-#include "config-X11.h"
 #include "desktopview.h"
 #include "panelshadows_p.h"
 #include "shellcorona.h"
@@ -21,17 +20,15 @@
 #include <QScreen>
 
 #include <KWindowSystem>
-#include <plasmaquick/popupplasmawindow.h>
-#include <qnamespace.h>
-#if HAVE_X11
-#include <KX11Extras>
-#endif
 #include <klocalizedstring.h>
 #include <kwindoweffects.h>
+#include <plasmaquick/popupplasmawindow.h>
+#include <qnamespace.h>
 
 #include <Plasma/Containment>
 #include <Plasma/PluginLoader>
 #include <PlasmaQuick/Dialog>
+#include <PlasmaQuick/PlasmaQuick>
 
 #include <KWayland/Client/plasmashell.h>
 #include <KWayland/Client/surface.h>
@@ -47,14 +44,13 @@ PanelRulerView::PanelRulerView(Plasma::Containment *containment, PanelView *pane
     , m_panelView(panelView)
     , m_mainConfigView(mainConfigView)
 {
-    if (KWindowSystem::isPlatformWayland()) {
-        m_layerWindow = LayerShellQt::Window::get(this);
-        m_layerWindow->setLayer(LayerShellQt::Window::LayerTop);
-        m_layerWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityOnDemand);
-        m_layerWindow->setScope(QStringLiteral("dock"));
-        m_layerWindow->setCloseOnDismissed(false);
-        m_layerWindow->setScreen(m_panelView->screen());
-    }
+    m_layerWindow = LayerShellQt::Window::get(this);
+    m_layerWindow->setLayer(LayerShellQt::Window::LayerTop);
+    m_layerWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityOnDemand);
+    m_layerWindow->setScope(QStringLiteral("dock"));
+    m_layerWindow->setCloseOnDismissed(false);
+    m_layerWindow->setScreen(m_panelView->screen());
+
     setScreen(m_panelView->screen());
 
     connect(this, &PanelRulerView::mainItemChanged, this, &PanelRulerView::syncPanelLocation);
@@ -91,101 +87,65 @@ void PanelRulerView::syncPanelLocation()
         setBorders(Qt::TopEdge);
     }
 
-    if (KWindowSystem::isPlatformX11()) {
-#if HAVE_X11
-        KX11Extras::setType(winId(), NET::Dock);
-        KX11Extras::setState(winId(), NET::KeepAbove);
+    switch (m_containment->location()) {
+    case Plasma::Types::LeftEdge:
+    case Plasma::Types::RightEdge:
+        m_layerWindow->setDesiredSize(QSize(mainItem()->implicitWidth(), available.height()));
+        break;
+    case Plasma::Types::TopEdge:
+    case Plasma::Types::BottomEdge:
+    default:
+        m_layerWindow->setDesiredSize(QSize(available.width(), mainItem()->implicitHeight()));
+        break;
+    }
 
-        switch (m_containment->location()) {
-        case Plasma::Types::LeftEdge:
-        case Plasma::Types::RightEdge:
-            setWidth(mainItem()->implicitWidth());
-            setHeight(available.height());
-            break;
-        case Plasma::Types::TopEdge:
-        case Plasma::Types::BottomEdge:
-        default:
-            setWidth(available.width());
-            setHeight(mainItem()->implicitHeight());
-            break;
-        }
+    m_layerWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityOnDemand);
+    LayerShellQt::Window::Anchors anchors;
 
-        switch (m_containment->location()) {
-        case Plasma::Types::TopEdge:
-            setPosition(available.topLeft() + screen->geometry().topLeft());
-            break;
-        case Plasma::Types::LeftEdge:
-            setPosition(available.topLeft() + screen->geometry().topLeft());
-            break;
-        case Plasma::Types::RightEdge:
-            setPosition(available.topLeft() + screen->geometry().topRight() - QPoint(width(), 0));
-            break;
-        case Plasma::Types::BottomEdge:
-        default:
-            setPosition(available.bottomLeft() + screen->geometry().topLeft() - QPoint(0, height()));
-        }
-#endif
-    } else if (m_layerWindow) {
-        switch (m_containment->location()) {
-        case Plasma::Types::LeftEdge:
-        case Plasma::Types::RightEdge:
-            m_layerWindow->setDesiredSize(QSize(mainItem()->implicitWidth(), available.height()));
-            break;
-        case Plasma::Types::TopEdge:
-        case Plasma::Types::BottomEdge:
-        default:
-            m_layerWindow->setDesiredSize(QSize(available.width(), mainItem()->implicitHeight()));
-            break;
-        }
+    switch (m_containment->location()) {
+    case Plasma::Types::TopEdge:
+        anchors.setFlag(LayerShellQt::Window::AnchorTop);
+        break;
+    case Plasma::Types::LeftEdge:
+        anchors.setFlag(LayerShellQt::Window::AnchorLeft);
+        break;
+    case Plasma::Types::RightEdge:
+        anchors.setFlag(LayerShellQt::Window::AnchorRight);
+        break;
+    case Plasma::Types::BottomEdge:
+    default:
+        anchors.setFlag(LayerShellQt::Window::AnchorBottom);
+        break;
+    }
 
-        m_layerWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityOnDemand);
-        LayerShellQt::Window::Anchors anchors;
-
-        switch (m_containment->location()) {
-        case Plasma::Types::TopEdge:
-            anchors.setFlag(LayerShellQt::Window::AnchorTop);
-            break;
-        case Plasma::Types::LeftEdge:
+    if (m_containment->formFactor() == Plasma::Types::Horizontal) {
+        switch (m_panelView->alignment()) {
+        case Qt::AlignLeft:
             anchors.setFlag(LayerShellQt::Window::AnchorLeft);
             break;
-        case Plasma::Types::RightEdge:
+        case Qt::AlignCenter:
+            break;
+        case Qt::AlignRight:
             anchors.setFlag(LayerShellQt::Window::AnchorRight);
             break;
-        case Plasma::Types::BottomEdge:
-        default:
+        }
+    } else {
+        switch (m_panelView->alignment()) {
+        case Qt::AlignLeft:
+            anchors.setFlag(LayerShellQt::Window::AnchorTop);
+            break;
+        case Qt::AlignCenter:
+            break;
+        case Qt::AlignRight:
             anchors.setFlag(LayerShellQt::Window::AnchorBottom);
             break;
         }
-
-        if (m_containment->formFactor() == Plasma::Types::Horizontal) {
-            switch (m_panelView->alignment()) {
-            case Qt::AlignLeft:
-                anchors.setFlag(LayerShellQt::Window::AnchorLeft);
-                break;
-            case Qt::AlignCenter:
-                break;
-            case Qt::AlignRight:
-                anchors.setFlag(LayerShellQt::Window::AnchorRight);
-                break;
-            }
-        } else {
-            switch (m_panelView->alignment()) {
-            case Qt::AlignLeft:
-                anchors.setFlag(LayerShellQt::Window::AnchorTop);
-                break;
-            case Qt::AlignCenter:
-                break;
-            case Qt::AlignRight:
-                anchors.setFlag(LayerShellQt::Window::AnchorBottom);
-                break;
-            }
-        }
-
-        // m_layerWindow->setMargins(margins);
-        m_layerWindow->setAnchors(anchors);
-
-        requestUpdate();
     }
+
+    // m_layerWindow->setMargins(margins);
+    m_layerWindow->setAnchors(anchors);
+
+    requestUpdate();
 }
 
 void PanelRulerView::showEvent(QShowEvent *ev)
@@ -211,14 +171,14 @@ PanelConfigView::PanelConfigView(Plasma::Containment *containment, PanelView *pa
     : PlasmaQuick::PopupPlasmaWindow()
     , m_containment(containment)
     , m_panelView(panelView)
-    , m_sharedQmlEngine(std::make_unique<PlasmaQuick::SharedQmlEngine>(this))
+    , m_engine(PlasmaQuick::globalEngine())
 {
     auto *c = qobject_cast<ShellCorona *>(m_containment->corona());
     setProperty("restrictedPopupGeometry", QVariant(c->availableScreenRect(m_containment->screen())));
-    connect(m_containment, &Plasma::Containment::screenChanged, this, [this, c](int screen) {
+    connect(m_containment, &Plasma::Containment::screenChanged, this, [this, c](uint screen) {
         setProperty("restrictedPopupGeometry", QVariant(c->availableScreenRect(screen)));
     });
-    connect(m_containment->corona(), &Plasma::Corona::availableScreenRectChanged, this, [this, c](int screen) {
+    connect(m_containment->corona(), &Plasma::Corona::availableScreenRectChanged, this, [this, c](uint screen) {
         if (screen == m_containment->screen()) {
             setProperty("restrictedPopupGeometry", QVariant(c->availableScreenRect(screen)));
         }
@@ -236,7 +196,8 @@ PanelConfigView::PanelConfigView(Plasma::Containment *containment, PanelView *pa
         syncGeometry();
     });
 
-    m_sharedQmlEngine->rootContext()->setContextProperties({
+    m_qmlContext = std::make_unique<QQmlContext>(m_engine.get());
+    m_qmlContext->setContextProperties({
         QQmlContext::PropertyPair{u"plasmoid"_s, QVariant::fromValue(containment)},
         QQmlContext::PropertyPair{u"panel"_s, QVariant::fromValue(panelView)},
         QQmlContext::PropertyPair{u"configDialog"_s, QVariant::fromValue(this)},
@@ -258,14 +219,18 @@ PanelConfigView::PanelConfigView(Plasma::Containment *containment, PanelView *pa
     m_focusWindow = qApp->focusWindow();
 }
 
-PanelConfigView::~PanelConfigView() = default;
+PanelConfigView::~PanelConfigView()
+{
+    delete mainItem();
+}
 
 void PanelConfigView::init()
 {
-    m_sharedQmlEngine->setInitializationDelayed(true);
-    m_sharedQmlEngine->setSource(m_containment->corona()->kPackage().fileUrl("panelconfigurationui"));
-    m_sharedQmlEngine->completeInitialization({{QStringLiteral("panelConfiguration"), QVariant::fromValue(this)}});
-    setMainItem(qobject_cast<QQuickItem *>(m_sharedQmlEngine->rootObject()));
+    QQmlComponent component(m_engine.get(), m_containment->corona()->kPackage().fileUrl("panelconfigurationui"));
+
+    auto obj = component.createWithInitialProperties({{QStringLiteral("panelConfiguration"), QVariant::fromValue(this)}}, m_qmlContext.get());
+
+    setMainItem(qobject_cast<QQuickItem *>(obj));
     if (mainItem()) {
         if (m_panelRulerView) {
             auto *ruler = mainItem()->property("panelRuler").value<QQuickItem *>();
@@ -307,6 +272,17 @@ void PanelConfigView::addPanelSpacer()
                                        "} else {"
                                        "    panel.addWidget(\"org.kde.plasma.panelspacer\");"
                                        "}"));
+}
+
+void PanelConfigView::addPanelMarginsSeparator()
+{
+    auto *c = qobject_cast<ShellCorona *>(m_containment->corona());
+    if (!c) {
+        return;
+    }
+    c->evaluateScript(u"panel = panelById(" + QString::number(m_containment->id())
+                      + QStringLiteral(");"
+                                       "    panel.addWidget(\"org.kde.plasma.marginsseparator\");"));
 }
 
 void PanelConfigView::syncGeometry()

@@ -34,7 +34,6 @@ Q_IMPORT_PLUGIN(KWinIdleTimePoller)
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_gamecontroller-0");
 static const QString s_pluginName = QStringLiteral("gamecontroller");
 
 class TestGameController : public QObject
@@ -77,7 +76,7 @@ void TestGameController::initTestCase()
     }
 
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         QRect(0, 0, 1280, 1024),
@@ -231,9 +230,9 @@ void TestGameController::testKeyboardMapping()
     std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
     Test::renderAndWaitForShown(surface.get(), QSize(100, 50), Qt::blue);
 
-    std::unique_ptr<KWayland::Client::Keyboard> keyboard(Test::waylandSeat()->createKeyboard());
-    QSignalSpy keyboardEnteredSpy(keyboard.get(), &KWayland::Client::Keyboard::entered);
-    QSignalSpy keyChangedSpy(keyboard.get(), &KWayland::Client::Keyboard::keyChanged);
+    std::unique_ptr<Test::WlKeyboard> keyboard(Test::kwinSeat()->getKeyboard());
+    QSignalSpy keyboardEnteredSpy(keyboard.get(), &Test::WlKeyboard::enter);
+    QSignalSpy keyChangedSpy(keyboard.get(), &Test::WlKeyboard::key);
     QVERIFY(keyboardEnteredSpy.wait());
 
     libevdev_set_name(m_evdev, "Test Virtual Game Controller");
@@ -275,9 +274,9 @@ void TestGameController::testKeyboardMapping()
     QFETCH(QList<quint32>, keyboardKey);
     QCOMPARE(keyChangedSpy.count(), keyboardKey.count());
     for (int i = 0; i < keyChangedSpy.count(); i++) {
-        QCOMPARE(keyChangedSpy.at(i).at(0).value<quint32>(), keyboardKey.at(i));
-        QCOMPARE(keyChangedSpy.at(i).at(1).value<KWayland::Client::Keyboard::KeyState>(),
-                 KWayland::Client::Keyboard::KeyState::Pressed);
+        QCOMPARE(keyChangedSpy.at(i).at(2).value<quint32>(), keyboardKey.at(i));
+        QCOMPARE(keyChangedSpy.at(i).at(3).value<Test::WlKeyboard::key_state>(),
+                 Test::WlKeyboard::key_state::key_state_pressed);
     }
 
     keyChangedSpy.clear();
@@ -294,9 +293,9 @@ void TestGameController::testKeyboardMapping()
     QVERIFY(keyChangedSpy.wait());
     QCOMPARE(keyChangedSpy.count(), keyboardKey.count());
     for (int i = 0; i < keyChangedSpy.count(); i++) {
-        QCOMPARE(keyChangedSpy.at(i).at(0).value<quint32>(), keyboardKey.at(i));
-        QCOMPARE(keyChangedSpy.at(i).at(1).value<KWayland::Client::Keyboard::KeyState>(),
-                 KWayland::Client::Keyboard::KeyState::Released);
+        QCOMPARE(keyChangedSpy.at(i).at(2).value<quint32>(), keyboardKey.at(i));
+        QCOMPARE(keyChangedSpy.at(i).at(3).value<Test::WlKeyboard::key_state>(),
+                 Test::WlKeyboard::key_state::key_state_released);
     }
 }
 

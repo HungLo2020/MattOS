@@ -27,7 +27,7 @@ namespace QQmltc {
 
 QSpan<const QmltcLoggingCategoryOverride> categoryOverrides()
 {
-    const auto Error = std::make_optional(QtCriticalMsg);
+    const auto Error = std::make_optional(QQmlJS::WarningSeverity::Error);
 
     // We want qmltc to be stricter than qmllint. Override certain categories.
     // Kept in sync via tst_qmltc::ensureWarningCategoryOverridesSync
@@ -36,6 +36,7 @@ QSpan<const QmltcLoggingCategoryOverride> categoryOverrides()
         QmltcLoggingCategoryOverride{ qmlAliasCycle, Error },
         QmltcLoggingCategoryOverride{ qmlAssignmentInCondition, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlAttachedPropertyReuse, std::nullopt },
+        QmltcLoggingCategoryOverride{ qmlBlockScopeVarDeclaration, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlComma, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlCompiler, Error },
         QmltcLoggingCategoryOverride{ qmlComponentChildrenCount, Error },
@@ -53,12 +54,15 @@ QSpan<const QmltcLoggingCategoryOverride> categoryOverrides()
         QmltcLoggingCategoryOverride{ qmlDuplicatePropertyBinding, Error },
         QmltcLoggingCategoryOverride{ qmlDuplicatedName, Error },
         QmltcLoggingCategoryOverride{ qmlEnumEntryMatchesEnum, std::nullopt },
+        QmltcLoggingCategoryOverride{ qmlEnumKeyCase, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlEval, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlFunctionUsedBeforeDeclaration, std::nullopt },
+        QmltcLoggingCategoryOverride{ qmlIdShadowsMember, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlImport, Error },
         QmltcLoggingCategoryOverride{ qmlImportFileSelector, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlIncompatibleType, Error },
         QmltcLoggingCategoryOverride{ qmlInheritanceCycle, Error },
+        QmltcLoggingCategoryOverride{ qmlInlineComponentEnums, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlInvalidLintDirective, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlLiteralConstructor, Error },
         QmltcLoggingCategoryOverride{ qmlMissingEnumEntry, std::nullopt },
@@ -69,12 +73,12 @@ QSpan<const QmltcLoggingCategoryOverride> categoryOverrides()
         QmltcLoggingCategoryOverride{ qmlNonRootEnums, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlPropertyOverride, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlUnterminatedCase, std::nullopt },
-        QmltcLoggingCategoryOverride{ qmlPlugin, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlPreferNonVarProperties, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlPrefixedImportType, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlReadOnlyProperty, Error },
         QmltcLoggingCategoryOverride{ qmlRecursionDepthErrors, Error },
         QmltcLoggingCategoryOverride{ qmlRedundantOptionalChaining, std::nullopt },
+        QmltcLoggingCategoryOverride{ qmlRenamedType, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlRequired, Error },
         QmltcLoggingCategoryOverride{ qmlShadow, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlSignalParameters, Error },
@@ -82,8 +86,8 @@ QSpan<const QmltcLoggingCategoryOverride> categoryOverrides()
         QmltcLoggingCategoryOverride{ qmlSyntax, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlSyntaxDuplicateIds, Error },
         QmltcLoggingCategoryOverride{ qmlSyntaxIdQuotation, std::nullopt },
+        QmltcLoggingCategoryOverride{ qmlTypeInstantiatedRecursively, Error },
         QmltcLoggingCategoryOverride{ qmlTopLevelComponent, Error },
-        QmltcLoggingCategoryOverride{ qmlTranslationFunctionMismatch, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlUncreatableType, Error },
         QmltcLoggingCategoryOverride{ qmlUnintentionalEmptyBlock, std::nullopt },
         QmltcLoggingCategoryOverride{ qmlUnqualified, std::nullopt },

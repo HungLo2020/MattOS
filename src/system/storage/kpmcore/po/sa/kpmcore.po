@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kpmcore\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
 "PO-Revision-Date: 2024-12-24 20:39+0530\n"
 "Last-Translator: kali <shreekantkalwar@gmail.com>\n"
 "Language-Team: Sanskrit <kde-i18n-doc@kde.org>\n"
@@ -1854,13 +1854,13 @@ msgstr "ताल"
 msgid "Enter passphrase for %1:"
 msgstr "%1 कृते गुप्तवाक्यं प्रविशन्तु:"
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
 msgstr "<filename>%1</filename> विभाजने LUKS क्रिप्ट् इत्यस्य आकारं परिवर्तयति ।"
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1916,7 +1916,7 @@ msgid ""
 msgstr ""
 "<filename>%1</filename> विभाजने NTFS सञ्चिकातन्त्रस्य कृते बूट् सेक्टर् अद्यतनीकरणम् ।"
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1926,7 +1926,7 @@ msgstr ""
 "NTFS बूट् सेक्टर् अपडेट् कर्तुं प्रयतमाने <filename>%1</filename> विभाजने नूतनं आरम्भक्षेत्रं "
 "लिखितुं न शक्तम् ।"
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2707,6 +2707,44 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr "<filename>%1</filename> इत्यत्र सञ्चिकातन्त्रं खण्डयन्तु"
 
+#: jobs/takeownershipjob.cpp:28
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:progress"
+#| msgid ""
+#| "File system on partition <filename>%1</filename> does not support setting "
+#| "labels. Job ignored."
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr ""
+"<filename>%1</filename> विभाजने सञ्चिकातन्त्रं लेबल् सेटिङ्ग् समर्थयति न । अय्यूबः "
+"अवहेलितवान्।"
+
+#: jobs/takeownershipjob.cpp:36
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:progress"
+#| msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr "<filename>%1</filename> विभाजने LUKS क्रिप्ट् इत्यस्य आकारं परिवर्तयति ।"
+
+#: jobs/takeownershipjob.cpp:60
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Change the permissions of: <filename>%1</filename> to %2"
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ": <filename>%1</filename> इत्यस्य अनुमतिः %2 इति परिवर्तयन्तु"
+
+#: jobs/takeownershipjob.cpp:62
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Change the permissions of: <filename>%1</filename> to %2"
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr ": <filename>%1</filename> इत्यस्य अनुमतिः %2 इति परिवर्तयन्तु"
+
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
 msgctxt "@info:status"
@@ -3124,6 +3162,22 @@ msgstr "<filename>%1</filename> इति विभाजनस्य ध्व�
 msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
 msgstr "विभाजनस्य <filename>%1</filename> इत्यस्य लेबलं \"%2\" इति सेट् कुर्वन्तु ।"
+
+#: ops/takeownershipoperation.cpp:73
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Change the permissions of: <filename>%1</filename> to %2"
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ": <filename>%1</filename> इत्यस्य अनुमतिः %2 इति परिवर्तयन्तु"
+
+#: ops/takeownershipoperation.cpp:75
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info/plain"
+#| msgid "Change the permissions of: <filename>%1</filename> to %2"
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
+msgstr ": <filename>%1</filename> इत्यस्य अनुमतिः %2 इति परिवर्तयन्तु"
 
 #: plugins/geom/geompartitiontable.cpp:91
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:65

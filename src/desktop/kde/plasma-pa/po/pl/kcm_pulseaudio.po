@@ -1,13 +1,13 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
-# SPDX-FileCopyrightText: 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024, 2025, 2026 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
+# SPDX-FileCopyrightText: 2015-2022, 2024-2026 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
-"PO-Revision-Date: 2026-03-14 06:46+0100\n"
+"POT-Creation-Date: 2026-08-20 00:47+0000\n"
+"PO-Revision-Date: 2026-10-04 13:01+0200\n"
 "Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
 "Language-Team: pl\n"
 "Language: pl\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 25.08.2\n"
+"X-Generator: Lokalize 26.08.0\n"
 
 #: devicerenamesaver.cpp:115
 #, kde-kuit-format
@@ -80,7 +80,7 @@ msgctxt "@action retry connecting to pulseaudio"
 msgid "Retry"
 msgstr "Ponów"
 
-#: kcm/ui/DeviceListItem.qml:57 kded/audioshortcutsservice.cpp:224
+#: kcm/ui/DeviceListItem.qml:57 kded/audioshortcutsservice.cpp:235
 #, kde-format
 msgid "Device name not found"
 msgstr "Nie znaleziono nazwy urządzenia"
@@ -90,13 +90,13 @@ msgstr "Nie znaleziono nazwy urządzenia"
 msgid "Port:"
 msgstr "Port:"
 
-#: kcm/ui/DeviceListItem.qml:128 qml/listitemmenu.cpp:371
+#: kcm/ui/DeviceListItem.qml:128 qml/listitemmenu.cpp:373
 #, kde-format
 msgctxt "Port is unavailable"
 msgid "%1 (unavailable)"
 msgstr "%1 (niedostępne)"
 
-#: kcm/ui/DeviceListItem.qml:130 qml/listitemmenu.cpp:373
+#: kcm/ui/DeviceListItem.qml:130 qml/listitemmenu.cpp:375
 #, kde-format
 msgctxt "Port is unplugged"
 msgid "%1 (unplugged)"
@@ -108,13 +108,19 @@ msgctxt "Placeholder is channel name"
 msgid "%1:"
 msgstr "%1:"
 
-#: kcm/ui/DeviceListItem.qml:230
+#: kcm/ui/DeviceListItem.qml:231
 #, kde-format
 msgctxt "Perform an audio test of the device"
 msgid "Test"
 msgstr "Próba"
 
-#: kcm/ui/DeviceListItem.qml:239
+#: kcm/ui/DeviceListItem.qml:238
+#, kde-format
+msgctxt "Perform an audio test of the device"
+msgid "Test…"
+msgstr "Próba…"
+
+#: kcm/ui/DeviceListItem.qml:246
 #, kde-format
 msgctxt "Show audio channels (e.g. to control left/right audio balance"
 msgid "Show Channels"
@@ -187,16 +193,17 @@ msgid "Recording Streams"
 msgstr "Nagrywane strumienie"
 
 #: kcm/ui/main.qml:312
-#, kde-format
+#, kde-kuit-format
 msgctxt ""
-"%1 is an error string produced by an external component, and probably "
+"@info %1 is an error string produced by an external component, and probably "
 "untranslated"
 msgid ""
-"Error trying to play a test sound. \n"
-"The system said: \"%1\""
+"The PulseAudio audio subsystem was unable to play a test sound, and reported "
+"the following error:<nl/><nl/>“%1”<nl/><nl/>Restart the system and try again."
 msgstr ""
-"Nie udało się odtworzyć dźwięku próbnego.\n"
-"System odpowiedział: \"%1\""
+"Podsystem dźwiękowy PulseAudio nie był w stanie odtworzyć dźwięku próbnego i "
+"zgłosił następujący błąd:<nl/><nl/>“%1”<nl/><nl/>Spróbuj ponownie po "
+"ponownym uruchomieniu systemu."
 
 #: kcm/ui/main.qml:416
 #, kde-format
@@ -247,6 +254,73 @@ msgstr "Mono"
 #, kde-format
 msgid "Click on any speaker to test sound"
 msgstr "Naciśnij na dowolnym głośniku, aby wypróbować jego dźwięk"
+
+#: kcm/ui/main.qml:507
+#, kde-kuit-format
+msgctxt ""
+"@info %1 is an error string produced by an external component, and probably "
+"untranslated"
+msgid ""
+"The PulseAudio audio subsystem was unable to record sound, and reported the "
+"following error:<nl/><nl/>“%1”<nl/><nl/>Restart the system and try again."
+msgstr ""
+"Podsystem dźwiękowy PulseAudio nie był w stanie nagrać dźwięku i zgłosił "
+"następujący błąd:<nl/><nl/>“%1”<nl/><nl/>Spróbuj ponownie po ponownym "
+"uruchomieniu systemu."
+
+#: kcm/ui/main.qml:572
+#, kde-format
+msgctxt "Button to stop microphone recording in test mode"
+msgid "Stop"
+msgstr "Zatrzymaj"
+
+#: kcm/ui/main.qml:572
+#, kde-format
+msgctxt "Button to start microphone recording in test mode"
+msgid "Record"
+msgstr "Nagraj"
+
+#: kcm/ui/main.qml:585
+#, kde-format
+msgctxt "Button to stop microphone playing in test mode"
+msgid "Stop"
+msgstr "Zatrzymaj"
+
+#: kcm/ui/main.qml:585
+#, kde-format
+msgctxt "Button to start microphone playing in test mode"
+msgid "Play"
+msgstr "Odtwórz"
+
+#: kcm/ui/main.qml:604
+#, kde-format
+msgctxt "Label above the microphone volume meter in test overlay"
+msgid "Volume level"
+msgstr "Poziom głośności"
+
+#: kcm/ui/main.qml:634
+#, kde-format
+msgctxt "Label showing current microphone input level percentage in test mode"
+msgid "%1 %"
+msgstr "%1 %"
+
+#: kcm/ui/main.qml:649
+#, kde-format
+msgctxt "Label above the microphone sensitivity slider in test overlay"
+msgid "Sensitivity"
+msgstr "Czułość"
+
+#: kcm/ui/main.qml:680 kcm/ui/VolumeSlider.qml:68
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: kcm/ui/main.qml:693 kcm/ui/VolumeSlider.qml:89
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "100%"
 
 #: kcm/ui/MuteButton.qml:24
 #, kde-format
@@ -370,95 +444,131 @@ msgstr "Czułość mikrofonu"
 msgid "Mute state"
 msgstr "Stan wyciszenia"
 
-#: kcm/ui/VolumeControlsConfig.qml:97
+#: kcm/ui/VolumeControlsConfig.qml:98
+#, kde-format
+msgctxt "Show OSD when"
+msgid "Push to talk"
+msgstr "Naciśnij, aby porozmawiać"
+
+#: kcm/ui/VolumeControlsConfig.qml:104
 #, kde-format
 msgctxt "Show OSD when"
 msgid "Application starts using muted microphone"
 msgstr "Aplikacja uruchamia się przy wyciszonym mikrofonie"
 
-#: kcm/ui/VolumeControlsConfig.qml:104
+#: kcm/ui/VolumeControlsConfig.qml:111
 #, kde-format
 msgid "Default output device"
 msgstr "Domyślne urządzenie wyjściowe"
 
-#: kcm/ui/VolumeSlider.qml:68
-#, kde-format
-msgctxt "volume percentage"
-msgid "%1%"
-msgstr "%1%"
-
-#: kcm/ui/VolumeSlider.qml:89
-#, kde-format
-msgctxt "only used for sizing, should be widest possible string"
-msgid "100%"
-msgstr "100%"
-
-#: kded/audioshortcutsservice.cpp:82
+#: kded/audioshortcutsservice.cpp:84
 #, kde-format
 msgid "Increase Volume"
 msgstr "Zwiększ głośność"
 
-#: kded/audioshortcutsservice.cpp:97
+#: kded/audioshortcutsservice.cpp:99
 #, kde-format
 msgid "Decrease Volume"
 msgstr "Zmniejsz głośność"
 
-#: kded/audioshortcutsservice.cpp:112
+#: kded/audioshortcutsservice.cpp:114
 #, kde-format
 msgid "Increase Volume by 1%"
 msgstr "Podnosi głośność o 1%"
 
-#: kded/audioshortcutsservice.cpp:127
+#: kded/audioshortcutsservice.cpp:129
 #, kde-format
 msgid "Decrease Volume by 1%"
 msgstr "Obniża głośność o 1%"
 
-#: kded/audioshortcutsservice.cpp:142
+#: kded/audioshortcutsservice.cpp:144
 #, kde-format
 msgid "Increase Microphone Volume"
 msgstr "Zwiększ głośność mikrofonu"
 
-#: kded/audioshortcutsservice.cpp:156
+#: kded/audioshortcutsservice.cpp:158
 #, kde-format
 msgid "Decrease Microphone Volume"
 msgstr "Zmniejsz głośność mikrofonu"
 
-#: kded/audioshortcutsservice.cpp:170 qml/microphoneindicator.cpp:109
+#: kded/audioshortcutsservice.cpp:172 qml/microphoneindicator.cpp:133
 #, kde-format
 msgid "Mute"
 msgstr "Wycisz"
 
-#: kded/audioshortcutsservice.cpp:183
+#: kded/audioshortcutsservice.cpp:185
 #, kde-format
 msgid "Mute Microphone"
 msgstr "Wycisz mikrofon"
 
-#: kded/audioshortcutsservice.cpp:195
+#: kded/audioshortcutsservice.cpp:198
+#, kde-format
+msgctxt "Microphone unmuted only while holding the key"
+msgid "Push to talk"
+msgstr "Naciśnij, aby porozmawiać"
+
+#: kded/audioshortcutsservice.cpp:206
 #, kde-format
 msgid "Audio Volume"
 msgstr "Głośność dźwięku"
 
-#: kded/audioshortcutsservice.cpp:213
+#: kded/audioshortcutsservice.cpp:224
 #, kde-format
 msgid "No such device"
 msgstr "Nie ma takiego urządzenia"
 
-#: kded/audioshortcutsservice.cpp:259
+#: kded/audioshortcutsservice.cpp:270
 #, kde-format
 msgid "No output device"
 msgstr "Brak urządzenia wyjściowego"
 
-#: kded/audioshortcutsservice.cpp:280 kded/audioshortcutsservice.cpp:300
+#: kded/audioshortcutsservice.cpp:291 kded/audioshortcutsservice.cpp:311
 #, kde-format
 msgctxt "Device name (Battery percent)"
 msgid "%1 (%2% Battery)"
 msgstr "%1 (%2% Bateria)"
+
+#: kded/audioshortcutsservice.cpp:397
+#, kde-format
+msgctxt "Push to talk button depressed, microphone unmuted"
+msgid "Speak…"
+msgstr "Mów…"
 
 #: kded/mutedmicrophonereminder.cpp:131
 #, kde-format
 msgctxt "Microphone name: is currently muted (osd, keep short)"
 msgid "%1: Muted"
 msgstr "%1: Wyciszone"
+
+#: microphonetest.cpp:105 microphonetest.cpp:147 microphonetest.cpp:258
+#, kde-format
+msgctxt "@info:status"
+msgid "PulseAudio context is not ready."
+msgstr "Kontekst PulseAudio nie jest gotowy."
+
+#: microphonetest.cpp:155
+#, kde-format
+msgctxt "@info:status"
+msgid "Couldn’t create a recording stream."
+msgstr "Nie udało się utworzyć strumienia nagrywania."
+
+#: microphonetest.cpp:171
+#, kde-format
+msgctxt "@info:status"
+msgid "Couldn’t connect to recording stream: %1."
+msgstr "Nie udało się podłączyć do strumienia nagrywania: %1."
+
+#: microphonetest.cpp:268
+#, kde-format
+msgctxt "@info:status"
+msgid "Couldn’t create a playback stream."
+msgstr "Nie można utworzyć strumienia odtwarzania."
+
+#: microphonetest.cpp:284
+#, kde-format
+msgctxt "@info:status"
+msgid "Couldn’t connect to playback stream: %1"
+msgstr "Nie udało się podłączyć do strumienia odtwarzania: %1."
 
 #: qml/listitemmenu.cpp:323
 #, kde-format
@@ -470,7 +580,7 @@ msgstr "Odtwarzaj każdy dźwięk tym urządzeniem"
 msgid "Record all audio via this device"
 msgstr "Nagrywaj każdy dźwięk tym urządzeniem"
 
-#: qml/listitemmenu.cpp:359
+#: qml/listitemmenu.cpp:361
 #, kde-format
 msgctxt ""
 "Heading for a list of ports of a device (for example built-in laptop "
@@ -478,7 +588,7 @@ msgctxt ""
 msgid "Ports"
 msgstr "Porty"
 
-#: qml/listitemmenu.cpp:429
+#: qml/listitemmenu.cpp:431
 #, kde-format
 msgctxt ""
 "Heading for a list of device profiles (5.1 surround sound, stereo, speakers "
@@ -486,7 +596,7 @@ msgctxt ""
 msgid "Profiles"
 msgstr "Profile"
 
-#: qml/listitemmenu.cpp:463
+#: qml/listitemmenu.cpp:465
 #, kde-format
 msgctxt ""
 "Heading for a list of possible output devices (speakers, headphones, ...) to "
@@ -494,7 +604,7 @@ msgctxt ""
 msgid "Play audio using"
 msgstr "Odtwarzaj dźwięk przy użyciu"
 
-#: qml/listitemmenu.cpp:465
+#: qml/listitemmenu.cpp:467
 #, kde-format
 msgctxt ""
 "Heading for a list of possible input devices (built-in microphone, "
@@ -502,39 +612,56 @@ msgctxt ""
 msgid "Record audio using"
 msgstr "Nagrywaj dźwięk przy użyciu"
 
-#: qml/microphoneindicator.cpp:143 qml/microphoneindicator.cpp:145
+#: qml/microphoneindicator.cpp:167 qml/microphoneindicator.cpp:169
 #, kde-format
 msgid "Microphone"
 msgstr "Mikrofon"
 
-#: qml/microphoneindicator.cpp:145
+#: qml/microphoneindicator.cpp:169
 #, kde-format
 msgid "Microphone Muted"
 msgstr "Mikrofon wyciszony"
 
-#: qml/microphoneindicator.cpp:291
+#: qml/microphoneindicator.cpp:316
 #, kde-format
 msgctxt "list separator"
 msgid ", "
 msgstr ", "
 
-#: qml/microphoneindicator.cpp:291
+#: qml/microphoneindicator.cpp:316
 #, kde-format
 msgctxt "List of apps is using mic"
 msgid "%1 are using the microphone"
 msgstr "%1 używają mikrofonu"
 
-#: qml/microphoneindicator.cpp:317
+#: qml/microphoneindicator.cpp:342
 #, kde-format
 msgctxt "App %1 is using mic with name %2"
 msgid "%1 is using the microphone (%2)"
 msgstr "%1 używa mikrofonu (%2)"
 
-#: qml/microphoneindicator.cpp:324
+#: qml/microphoneindicator.cpp:349
 #, kde-format
 msgctxt "App is using mic"
 msgid "%1 is using the microphone"
 msgstr "%1 używa mikrofonu"
+
+#~ msgctxt ""
+#~ "%1 is an error string produced by an external component, and probably "
+#~ "untranslated"
+#~ msgid ""
+#~ "Error trying to play a test sound. \n"
+#~ "The system said: \"%1\""
+#~ msgstr ""
+#~ "Nie udało się odtworzyć dźwięku próbnego.\n"
+#~ "System odpowiedział: \"%1\""
+
+#~ msgctxt "@info"
+#~ msgid "Microphone test error:<nl/><nl/>%1"
+#~ msgstr "Błąd próby mikrofonu:<nl/><nl/>%1"
+
+#~ msgid "Couldn't connect playback"
+#~ msgstr "Nie można podłączyć odtwarzania"
 
 #~ msgctxt "@item:inlistbox a type of name source"
 #~ msgid "Device Nickname"

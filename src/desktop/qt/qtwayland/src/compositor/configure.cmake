@@ -19,6 +19,10 @@ if(TARGET Libdrm::Libdrm)
 endif()
 qt_find_package(Libdrm PROVIDED_TARGETS Libdrm::Libdrm MODULE_NAME gui QMAKE_LIB drm MARK_OPTIONAL)
 
+if(TARGET EGL::EGL)
+    qt_internal_disable_find_package_global_promotion(EGL::EGL)
+endif()
+qt_find_package(EGL PROVIDED_TARGETS EGL::EGL MODULE_NAME gui QMAKE_LIB egl MARK_OPTIONAL)
 
 #### Tests
 

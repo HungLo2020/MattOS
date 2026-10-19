@@ -35,17 +35,17 @@ import QtQuick
 See the \l{Qt Quick} module documentation for more information about its types.
 
 The QML types for creating lists and models, such as \l ListModel and
-\l ListElement, belong to a submodule, \l{Qt QML Models QML Types}{QtQml.Models}.
+\l ListElement, belong to a submodule, \l{Qt Qml Models QML Types}{QtQml.Models}.
 
 The \l WorkerScript QML type belongs to the submodule
 \l{Qt Qml WorkerScript QML Types}{QtQml.WorkerScript}.
 
-Both, \l{Qt QML Models QML Types}{QtQml.Models} and
+Both, \l{Qt Qml Models QML Types}{QtQml.Models} and
 \l{Qt Qml WorkerScript QML Types}{QtQml.WorkerScript} are automatically imported
 whenever you import \c QtQml. All their types are then available, too.
 
 The \l{Qt Quick} module automatically imports \c QtQml and, transitively,
-\l{Qt QML Models QML Types}{QtQml.Models} and
+\l{Qt Qml Models QML Types}{QtQml.Models} and
 \l{Qt Qml WorkerScript QML Types}{QtQml.WorkerScript}, making all their types
 available whenever you import \c QtQuick.
 
@@ -80,6 +80,7 @@ provided:
 
 /*!
 \qmlvaluetype date
+\inqmlmodule QtQml
 \ingroup qmlvaluetypes
 \brief a date value.
 
@@ -121,6 +122,7 @@ to a \l{The Date JavaScript Object}{Date} object.
 
 /*!
 \qmlvaluetype point
+\inqmlmodule QtQml
 \ingroup qtqmlvaluetypes
 \brief a value with x and y attributes.
 
@@ -150,6 +152,7 @@ Properties of type \c point are \c {Qt.point(0, 0)} by default.
 
 /*!
 \qmlvaluetype size
+\inqmlmodule QtQml
 \ingroup qtqmlvaluetypes
 \brief a value with width and height attributes.
 
@@ -189,6 +192,7 @@ is automatically converted into a QSizeF value.
 
 /*!
 \qmlvaluetype rect
+\inqmlmodule QtQml
 \ingroup qtqmlvaluetypes
 \brief a value with x, y, width and height attributes.
 
@@ -233,6 +237,36 @@ is automatically converted into a QRectF value.
 */
 
 /*!
+\qmlvaluetype qmlProperty
+\nativetype QQmlProperty
+\inqmlmodule QtQml
+\ingroup qtqmlvaluetypes
+\since 6.12
+\brief a value referring to a property of an object.
+
+The \c qmlProperty type refers to a property of a specific object instance.
+
+An invalid value of type \c qmlProperty has a \c null \c object and
+an empty \c name.
+
+\c qmlProperty values are not constructible from QML but can be passed from C++.
+
+\sa {QML Value Types}
+*/
+
+/*!
+\qmlproperty QtObject qmlProperty::object
+
+This read-only property holds the object of the referenced property.
+*/
+
+/*!
+\qmlproperty string qmlProperty::name
+
+This read-only property holds the name of the referenced property.
+*/
+
+/*!
 \qmltype Easing
 \nativetype QQmlEasing
 \inqmlmodule QtQml
@@ -252,6 +286,7 @@ value type.
 
 /*!
 \qmlvaluetype easingCurve
+\inqmlmodule QtQml
 \ingroup qtqmlvaluetypes
 \since 6.11
 \brief Value that represents an easing curve.

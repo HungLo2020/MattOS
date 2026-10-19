@@ -3,12 +3,14 @@
 
     SPDX-License-Identifier: LGPL-2.1-or-later
 */
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import org.kde.purpose
 import org.kde.kitemmodels as KItemModels
+import org.kde.ki18n
 
 /*!
   \qmltype AlternativesView
@@ -37,6 +39,12 @@ StackView {
       \qmlproperty var AlternativesView::inputData
      */
     property alias inputData: altsModel.inputData
+
+    /*!
+      \qmlproperty var AlternativesView::disabledPlugins
+      \since 6.29
+     */
+    property alias disabledPlugins: altsModel.disabledPlugins
 
     /*!
      */
@@ -71,11 +79,11 @@ StackView {
                 elide: Text.ElideRight
             }
             Button {
-                text: i18nd("libpurpose6_quick", "Use")
-                onClicked: createJob(listDelegate.index);
+                text: _tr.i18n("Use")
+                onClicked: stack.createJob(listDelegate.index);
             }
-            Keys.onReturnPressed: createJob(listDelegate.index)
-            Keys.onEnterPressed: createJob(listDelegate.index)
+            Keys.onReturnPressed: stack.createJob(listDelegate.index)
+            Keys.onEnterPressed: stack.createJob(listDelegate.index)
         }
     }
 
@@ -107,6 +115,11 @@ StackView {
         {}
     }
 
+    KI18nContext {
+        id: _tr
+        translationDomain: "libpurpose6_quick"
+    }
+
     initialItem: ListView {
         ScrollBar.vertical: ScrollBar {}
         focus: true
@@ -132,10 +145,10 @@ StackView {
             id: jobView
             model: altsModel
 
-            onStateChanged: {
-                if (state === PurposeJobController.Finished || state === PurposeJobController.Error) {
+            onJobStateChanged: {
+                if (jobState === PurposeJobController.Finished || jobState === PurposeJobController.Error) {
                     stack.finished(jobView.job.output, jobView.job.error, jobView.job.errorString);
-                } else if (state === PurposeJobController.Cancelled) {
+                } else if (jobState === PurposeJobController.Cancelled) {
                     stack.pop();
                 }
             }

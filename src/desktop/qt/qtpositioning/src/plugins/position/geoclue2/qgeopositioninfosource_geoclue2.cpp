@@ -1,5 +1,6 @@
 // Copyright (C) 2018 Denis Shienkov <denis.shienkov@gmail.com>
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qgeopositioninfosource_geoclue2_p.h"
 
@@ -9,11 +10,11 @@
 #include <QtDBus/QDBusPendingCallWatcher>
 
 // Auto-generated D-Bus files.
-#include <client_interface.h>
-#include "moc_client_interface.cpp" // includemocs
-#include <location_interface.h>
-#include "moc_location_interface.cpp" // includemocs
-#include "moc_manager_interface.cpp" // includemocs
+#include <client_interface_p.h>
+#include "moc_client_interface_p.cpp" // includemocs
+#include <location_interface_p.h>
+#include "moc_location_interface_p.cpp" // includemocs
+#include "moc_manager_interface_p.cpp" // includemocs
 
 Q_DECLARE_LOGGING_CATEGORY(lcPositioningGeoclue2)
 

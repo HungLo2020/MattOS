@@ -58,6 +58,7 @@ private Q_SLOTS:
     void statDirectoryInRoot();
     void statSymlinkInRoot();
     void statFileInDirectory();
+    void statInvalid();
     void statBrokenSymlinkInSubdir();
     void testRemoveStaleInfofile();
 
@@ -80,6 +81,7 @@ private Q_SLOTS:
     void listRecursiveRootDir();
     void mostLocalUrlTest();
     void listSubDir();
+    void dirListerUpdatesWithoutDBus();
 
     void delRootFile();
     void delFileInDirectory();

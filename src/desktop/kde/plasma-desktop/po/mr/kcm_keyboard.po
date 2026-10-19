@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2013-02-23 17:39+0530\n"
 "Last-Translator: Chetan Khona <chetan@kompkin.com>\n"
 "Language-Team: American English <kde-i18n-doc@kde.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 #, fuzzy, kde-format
 #| msgid "Configure layouts"
 msgctxt "@title"
-msgid "Configure Key Bindings…"
+msgid "Key Bindings"
 msgstr "रचना संयोजीत करा"
 
 #: ui/KeyBindings.qml:62
@@ -136,14 +136,14 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "रचना जोडा"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, fuzzy, kde-format
 #| msgid "Show layout indicator"
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "रचना सूचक दर्शवा"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -151,14 +151,14 @@ msgid ""
 "system tray. You can change this setting yourself."
 msgstr ""
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, fuzzy, kde-format
 #| msgid "Shortcut:"
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "शॉर्टकट :"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, fuzzy, kde-format
 #| msgid "Preview"
 msgctxt "@action:button"
@@ -573,7 +573,7 @@ msgid ""
 "diacritical marks."
 msgstr ""
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, fuzzy, kde-format
 #| msgid "Shortcut:"
 msgid "%1 shortcut"
@@ -581,7 +581,7 @@ msgid_plural "%1 shortcuts"
 msgstr[0] "शॉर्टकट :"
 msgstr[1] "शॉर्टकट :"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, fuzzy, kde-format
 #| msgctxt "no shortcut defined"
 #| msgid "None"

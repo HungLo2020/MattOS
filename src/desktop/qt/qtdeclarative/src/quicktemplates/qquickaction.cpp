@@ -20,6 +20,7 @@
 QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(lcAction, "qt.quick.controls.action")
+Q_STATIC_LOGGING_CATEGORY(lcShortcutEntry, "qt.quick.controls.action.shortcutEntry")
 
 /*!
     \qmltype Action
@@ -120,6 +121,8 @@ int QQuickActionPrivate::ShortcutEntry::shortcutId() const
 
 void QQuickActionPrivate::ShortcutEntry::grab(const QKeySequence &shortcut, bool enabled)
 {
+    qCDebug(lcShortcutEntry) << "- grab called with" << shortcut << "enabled" << enabled
+        << "for" << m_target;
     if (shortcut.isEmpty() || m_shortcutId)
         return;
 
@@ -132,6 +135,8 @@ void QQuickActionPrivate::ShortcutEntry::grab(const QKeySequence &shortcut, bool
 
 void QQuickActionPrivate::ShortcutEntry::ungrab()
 {
+    qCDebug(lcShortcutEntry).nospace() << "- ungrab called for " << m_target << ", m_shortcutId is "
+        << m_shortcutId;
     if (!m_shortcutId)
         return;
 
@@ -158,6 +163,7 @@ void QQuickActionPrivate::setShortcut(const QVariant &var)
     if (vshortcut == var)
         return;
 
+    qCDebug(lcAction) << q << "setShortcut called with" << var;
     defaultShortcutEntry->ungrab();
     for (QQuickActionPrivate::ShortcutEntry *entry : std::as_const(shortcutEntries))
         entry->ungrab();
@@ -218,6 +224,7 @@ void QQuickActionPrivate::registerItem(QQuickItem *item)
         return;
 
 #if QT_CONFIG(shortcut)
+    qCDebug(lcAction) << q_func() << "registerItem called with" << item;
     QQuickActionPrivate::ShortcutEntry *entry = new QQuickActionPrivate::ShortcutEntry(item);
     if (item->isVisible())
         entry->grab(keySequence, enabled);
@@ -234,6 +241,7 @@ void QQuickActionPrivate::unregisterItem(QQuickItem *item)
     if (!entry || !unwatchItem(item))
         return;
 
+    qCDebug(lcAction) << q_func() << "unregisterItem called with" << item;
     shortcutEntries.removeOne(entry);
     delete entry;
 
@@ -250,6 +258,8 @@ void QQuickActionPrivate::itemVisibilityChanged(QQuickItem *item)
     if (!entry)
         return;
 
+    qCDebug(lcAction) << q_func() << "visibility of" << item << "changed to" << item->isVisible()
+        << "- grabbing/ungrabbing shortcut";
     if (item->isVisible())
         entry->grab(keySequence, enabled);
     else
@@ -303,10 +313,14 @@ void QQuickActionPrivate::updateDefaultShortcutEntry()
         }
     }
 
-    if (hasActiveShortcutEntries)
+    if (hasActiveShortcutEntries) {
+        // There is an item that is using us as its action; let it have the shortcut.
         defaultShortcutEntry->ungrab();
-    else if (!defaultShortcutEntry->shortcutId())
+    } else if (!defaultShortcutEntry->shortcutId()) {
+        // There are no items that are using us as their action (or they aren't visible) and we
+        // haven't already grabbed the shortcut; grab it.
         defaultShortcutEntry->grab(keySequence, enabled);
+    }
 }
 #endif // QT_CONFIG(shortcut)
 

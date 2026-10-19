@@ -73,15 +73,15 @@ void GlideEffect::reconfigure(ReconfigureFlags flags)
     m_outParams.opacity.to = GlideConfig::outOpacity();
 }
 
-void GlideEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime)
+void GlideEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data)
 {
     auto animationIt = m_animations.find(w);
     if (animationIt != m_animations.end()) {
-        animationIt->second.timeLine.advance(presentTime);
+        animationIt->second.timeLine.advance(view);
         data.setTransformed();
     }
 
-    effects->prePaintWindow(view, w, data, presentTime);
+    effects->prePaintWindow(view, w, data);
 }
 
 void GlideEffect::apply(EffectWindow *window, int mask, WindowPaintData &data, WindowQuadList &quads)
@@ -94,7 +94,7 @@ void GlideEffect::apply(EffectWindow *window, int mask, WindowPaintData &data, W
     const GlideParams params = window->isDeleted() ? m_outParams : m_inParams;
     const qreal t = animationIt->second.timeLine.value();
 
-    const QRectF rect = window->expandedGeometry().translated(-window->pos());
+    const RectF rect = window->expandedGeometry().translated(-window->pos());
     const float fovY = std::tan(qDegreesToRadians(60.0f) / 2);
     const float aspect = rect.width() / rect.height();
     const float zNear = 0.1f;
@@ -260,13 +260,13 @@ bool GlideEffect::isGlideWindow(EffectWindow *w) const
     // So, the only way to decide whether a window should be animated is
     // to use a heuristic: if a window has decoration, then it's most
     // likely a dialog or a settings window so we have to animate it.
-    if (w->windowClass() == QLatin1String("plasmashell plasmashell")
-        || w->windowClass() == QLatin1String("plasmashell org.kde.plasmashell")) {
+    if (w->windowClass() == QLatin1StringView("plasmashell plasmashell")
+        || w->windowClass() == QLatin1StringView("plasmashell org.kde.plasmashell")) {
         return w->hasDecoration();
     }
 
-    if (w->windowClass() == QLatin1String("spectacle org.kde.spectacle")
-        && w->tag() == QLatin1String("region-editor")) {
+    if (w->windowClass() == QLatin1StringView("spectacle org.kde.spectacle")
+        && w->tag() == QLatin1StringView("region-editor")) {
         return false;
     }
 

@@ -1,10 +1,13 @@
 /*
  *   SPDX-FileCopyrightText: 2012 Aleix Pol Gonzalez <aleixpol@blue-systems.com>
- *   SPDX-FileCopyrightText: 2018-2021 Nate Graham <nate@kde.org>
+ *   SPDX-FileCopyrightText: 2018-2026 Nate Graham <nate@kde.org>
+ *   SPDX-FileCopyrightText: 2021 Carl Schwan <carlschwan@kde.org>
  *   SPDX-FileCopyrightText: 2023 ivan tkachenko <me@ratijas.tk>
  *
  *   SPDX-License-Identifier: LGPL-2.0-or-later
  */
+
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls as QQC2
@@ -18,200 +21,183 @@ BasicAbstractCard {
     required property int index
     required property Discover.AbstractResource application
 
-    property bool compact: false
     property bool showRating: true
     property bool showSize: false
+    property bool showInstallButton: !compact
 
+    readonly property bool compact: !applicationWindow().wideScreen
+    readonly property int appIconSize: Kirigami.Units.iconSizes.large
     readonly property bool appIsFromNonDefaultBackend: Discover.ResourcesModel.currentApplicationBackend !== application.backend && application.backend.hasApplications
+    readonly property int nonDefaultBackendLogoSize: Kirigami.Units.iconSizes.smallMedium
+    readonly property int maximumLineCount: compact ? 3 : 4
+
     showClickFeedback: true
+    activeFocusOnTab: true
+    highlighted: focus
+
+    Accessible.name: application.name
+    Accessible.role: Accessible.ListItem
+    Accessible.onPressAction: trigger()
+    onClicked: trigger()
 
     function trigger() {
         ListView.currentIndex = index
         Navigation.openApplication(application)
     }
-    padding: Kirigami.Units.largeSpacing * 2
-    highlighted: ListView.isCurrentItem
 
-    Keys.onReturnPressed: trigger()
-    onClicked: trigger()
+    QQC2.ToolTip.text: "<b>" + appName.text + "</b><br/>" + appDescription.text
+    QQC2.ToolTip.visible: (hovered || activeFocus) && (appName.truncated || appDescription.truncated)
+    QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
 
-    content: Item {
-        implicitHeight: Math.max(columnLayout.implicitHeight, resourceIconFrame.implicitHeight)
+    content: RowLayout {
+        spacing: Kirigami.Units.largeSpacing
 
-        Kirigami.Padding {
-            id: resourceIconFrame
-            anchors {
-                top: parent.top
-                left: parent.left
-                bottom: parent.bottom
-            }
-            padding: Kirigami.Units.largeSpacing
-            contentItem: Kirigami.Icon {
-                source: root.application.icon
-                animated: false
+        // Container to center the app icon nicely
+        // Also includes non-default backend badge and app size, if shown
+        Item {
+            Layout.fillHeight: true
+            Layout.preferredWidth: height
 
-                implicitHeight: root.compact ? Kirigami.Units.iconSizes.large : Kirigami.Units.iconSizes.huge
-                implicitWidth: implicitHeight
-            }
-        }
+            // Container for app icon and size (if visible)
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 0
 
-        // Container for everything but the app icon
-        ColumnLayout {
-            id: columnLayout
-
-            anchors {
-                top: parent.top
-                right: parent.right
-                bottom: parent.bottom
-                left: resourceIconFrame.right
-                leftMargin: Kirigami.Units.gridUnit
-            }
-            spacing: 0
-
-            // Container for app name and backend name labels
-            RowLayout {
-                spacing: Kirigami.Units.largeSpacing
-
-                // App name label
-                Kirigami.Heading {
-                    id: head
-                    Layout.fillWidth: true
-                    // We want the heading visually top-aligned with the top margin, the icon background and that in general
-                    // it's root.padding away from the border. We can't just align the label to the top for it because internally
-                    // everything is aligned respecting the text boundingRect, which includes blank space on the top as a "line" height, called "leading". Instead we need to base ourselves on tightBoundingRect which is a rect only around the
-                    // painted area of the label, not including the leading
-                    topPadding: headMetrics.boundingRect.y - headMetrics.tightBoundingRect.y
-                    level: root.compact ? 2 : 1
-                    type: Kirigami.Heading.Type.Primary
-                    text: root.application.name
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
-                    TextMetrics {
-                        id: headMetrics
-                        font: head.font
-                        text: head.text
-                    }
+                // App Icon
+                Kirigami.Icon {
+                    Layout.alignment: Qt.AlignHCenter
+                    implicitWidth: root.appIconSize
+                    implicitHeight: root.appIconSize
+                    source: root.application.icon
+                    animated: false
                 }
 
-                // Backend name label (shown if app is from a non-default backend and
-                // we're not using the compact view, where there's no space for it)
-                RowLayout {
-                    Layout.alignment: Qt.AlignRight
-                    visible: root.appIsFromNonDefaultBackend && !root.compact
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Kirigami.Icon {
-                        source: root.application.sourceIcon
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                    }
-                    QQC2.Label {
-                        text: root.application.backend.displayName
-                        font: Kirigami.Theme.smallFont
-                    }
-                }
-            }
-
-            // Description/"Comment" label
-            QQC2.Label {
-                id: description
-                Layout.fillWidth: true
-                Layout.preferredHeight: descriptionMetrics.height
-                text: root.application.comment
-                elide: Text.ElideRight
-                maximumLineCount: 1
-                textFormat: Text.PlainText
-
-                // reserve space for description even if none is available
-                TextMetrics {
-                    id: descriptionMetrics
-                    font: description.font
-                    text: "Sample text"
-                }
-            }
-            // Container for rating, size, and install button
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.largeSpacing
-
-                // Combined condition of both children items
-                visible: root.showRating || (!root.compact && root.showSize) || !root.compact
-
-                // Container for rating and size labels
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    // Include height of sizeInfo for full-sized view even when
-                    // the actual sizeInfo layout isn't visible. This tightens up
-                    // the layout and prevents the install button from appearing
-                    // at a different position based on whether or not the
-                    // sizeInfo text is visible, because the base layout is
-                    // vertically centered rather than filling a distinct space.
-                    Layout.preferredHeight: root.compact ? -1 : rating.implicitHeight + sizeInfo.implicitHeight
-                    Layout.alignment: Qt.AlignBottom
-                    spacing: 0
-
-                    // Combined condition of both children items
-                    visible: root.showRating || (!root.compact && root.showSize)
-
-                    // Rating stars + label
-                    RowLayout {
-                        id: rating
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignBottom
-                        visible: root.showRating
-                        opacity: 0.6
-                        spacing: Kirigami.Units.largeSpacing
-
-                        Rating {
-                            Layout.alignment: Qt.AlignVCenter
-                            value: root.application.rating.rating
-                            starSize: root.compact ? description.font.pointSize : head.font.pointSize
-                            precision: Rating.Precision.HalfStar
-                            padding: 0
-                        }
-                        QQC2.Label {
-                            Layout.fillWidth: true
-                            Layout.alignment: Qt.AlignVCenter
-                            topPadding: (ratingLabelMetrics.boundingRect.y - ratingLabelMetrics.tightBoundingRect.y)/2
-                            visible: root.application.backend.reviewsBackend?.isResourceSupported(root.application) ?? false
-                            text: root.application.rating.ratingCount > 0 ? i18np("%1 rating", "%1 ratings", root.application.rating.ratingCount) : i18n("No ratings yet")
-                            font: Kirigami.Theme.smallFont
-                            elide: Text.ElideRight
-                            TextMetrics {
-                                id: ratingLabelMetrics
-                                font: head.font
-                                text: head.text
-                            }
-                        }
-                    }
-
-                    // Size label
-                    QQC2.Label {
-                        id: sizeInfo
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignBottom
-                        visible: !root.compact && root.showSize
-                        text: visible ? root.application.sizeDescription : ""
-                        horizontalAlignment: Text.AlignRight
-                        opacity: 0.6;
+                // App size
+                Loader {
+                    Layout.alignment: Qt.AlignHCenter
+                    active: root.showSize
+                    visible: active
+                    sourceComponent: QQC2.Label {
+                        text: root.application.sizeDescription
+                        opacity: 0.75
                         font: Kirigami.Theme.smallFont
                         elide: Text.ElideRight
                         maximumLineCount: 1
+                        textFormat: Text.PlainText
                     }
                 }
+            }
 
-                // Install button
-                InstallApplicationButton {
-                    id: installButton
-                    Layout.alignment: Qt.AlignBottom | Qt.AlignRight
-                    visible: !root.compact
-                    application: root.application
-                    installOrRemoveButtonDisplayStyle: QQC2.AbstractButton.IconOnly
+            // "Non-default backend" badge
+            Loader {
+                anchors.top: root.showSize ? parent.top : undefined
+                anchors.bottom: root.showSize ? undefined : parent.bottom
+                anchors.right: parent.right
+                active: root.appIsFromNonDefaultBackend
+                visible: active
+                sourceComponent: Kirigami.Badge {
+                    padding: 0
+                    icon.width: root.nonDefaultBackendLogoSize
+                    icon.height: root.nonDefaultBackendLogoSize
+                    icon.source: root.application.sourceIcon
+                    customColor: "white" // Backend logos aren't color-scheme-aware
+
+                    QQC2.ToolTip.text: root.application.backend.displayName
+                    QQC2.ToolTip.visible: hovered || activeFocus
+                    QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                 }
+            }
+        }
+
+        // Container for app name, ratings, and description
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumHeight: (Kirigami.Units.gridUnit * root.maximumLineCount) + (appName.lineCount * Kirigami.Units.smallSpacing)
+            spacing: 0
+
+            // App Name
+            Kirigami.Heading {
+                id: appName
+                level: 2
+                type: Kirigami.Heading.Type.Primary
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignBottom
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
+                elide: Text.ElideRight
+
+                text: root.application.name
+            }
+
+            // App rating, stars, and rating count
+            Loader {
+                id: ratingsLoader
+                readonly property bool ratingsSupported: root.application.backend.reviewsBackend?.isResourceSupported(root.application) ?? false
+                readonly property bool hasRatings: root.application.rating.ratingCount > 0
+                Layout.alignment: Qt.AlignVCenter
+                active: root.showRating && ratingsSupported
+                visible: active
+                sourceComponent: RowLayout {
+                    opacity: 0.75
+                    spacing: Kirigami.Units.smallSpacing
+
+                    // Rating
+                    QQC2.Label {
+                        visible: ratingsLoader.hasRatings
+                        text: visible ? (root.application.rating.rating / 2).toPrecision(2) : ""
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        font.family: Kirigami.Theme.smallFont.family
+                        font.bold: true
+                        textFormat: Text.PlainText
+                    }
+                    Rating {
+                        padding: 0
+                        visible: ratingsLoader.hasRatings
+                        value: visible ? root.application.rating.rating : 0
+                        starSize: Kirigami.Theme.smallFont.pointSize
+                        precision: Rating.Precision.HalfStar
+                    }
+                    QQC2.Label {
+                        text: ratingsLoader.hasRatings > 0 ? "(" + root.application.rating.ratingCount + ")" : i18n("No ratings")
+                        font: Kirigami.Theme.smallFont
+                        textFormat: Text.PlainText
+                    }
+                }
+            }
+
+            // App Description
+            QQC2.Label {
+                id: appDescription
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignTop
+                maximumLineCount: root.maximumLineCount - appName.lineCount - (root.showRating ? 1 : 0)
+                visible: maximumLineCount > 0
+                opacity: 0.75
+                wrapMode: Text.Wrap
+                elide: Text.ElideRight
+                textFormat: Text.PlainText
+
+                text: root.application.comment
+            }
+        }
+
+        // Install button
+        Loader {
+            active: root.showInstallButton
+            visible: active
+            Layout.rightMargin: Math.round((root.height - root.topPadding - root.leftPadding - root.bottomPadding - height) / 2)
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+            sourceComponent: InstallApplicationButton {
+                application: root.application
+                installOrRemoveButtonDisplayStyle: QQC2.AbstractButton.IconOnly
             }
         }
     }
 
-    Accessible.name: head.text
-    Accessible.onPressAction: trigger()
+    onFocusChanged: {
+        if (focus) {
+            page.ensureVisible(root)
+        }
+    }
 }

@@ -20,15 +20,14 @@
 
 using namespace Qt::StringLiterals;
 
-Firefox::Firefox(const QString &firefoxConfigDir, QObject *parent)
-    : QObject(parent)
+Firefox::Firefox(const QString &firefoxConfigDir)
+    : QObject()
     , m_dbCacheFile(QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation)
                     + QStringLiteral("/bookmarksrunner/bookmarkrunnerfirefoxdbfile.sqlite"))
     , m_dbCacheFile_fav(QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation)
                         + QStringLiteral("/bookmarksrunner/bookmarkrunnerfirefoxfavdbfile.sqlite"))
-    , m_favicon(new FallbackFavicon(this))
+    , m_favicon(new FallbackFavicon)
     , m_fetchsqlite(nullptr)
-    , m_fetchsqlite_fav(nullptr)
 {
     if (!QSqlDatabase::isDriverAvailable(QStringLiteral("QSQLITE"))) {
         qCWarning(RUNNER_BOOKMARKS) << "SQLITE driver isn't available";
@@ -43,7 +42,7 @@ Firefox::Firefox(const QString &firefoxConfigDir, QObject *parent)
     QString profilePath;
     if (profilesList.size() == 1) {
         // There is only 1 profile so we select it
-        KConfigGroup fGrp = firefoxProfile.group(profilesList.first());
+        KConfigGroup fGrp = firefoxProfile.group(profilesList.constFirst());
         profilePath = fGrp.readEntry("Path");
     } else {
         const QStringList installConfig = firefoxProfile.groupList().filter(QRegularExpression(u"^Install.*"_s));
@@ -73,9 +72,8 @@ Firefox::Firefox(const QString &firefoxConfigDir, QObject *parent)
     // We can reuse the favicon instance over the lifetime of the plugin consequently the
     // icons that are already written to disk can be reused in multiple match sessions
     updateCacheFile(m_dbFile_fav, m_dbCacheFile_fav);
-    m_fetchsqlite_fav = new FetchSqlite(m_dbCacheFile_fav, this);
-    delete m_favicon;
-    m_favicon = FaviconFromBlob::firefox(m_fetchsqlite_fav, this);
+    auto fetchsqlite_fav = std::make_unique<FetchSqlite>(m_dbCacheFile_fav);
+    m_favicon = FaviconFromBlob::firefox(std::move(fetchsqlite_fav));
 }
 
 Firefox::~Firefox()
@@ -98,7 +96,7 @@ Firefox::~Firefox()
 void Firefox::prepare()
 {
     if (updateCacheFile(m_dbFile, m_dbCacheFile) != Error) {
-        m_fetchsqlite = new FetchSqlite(m_dbCacheFile);
+        m_fetchsqlite = std::make_unique<FetchSqlite>(m_dbCacheFile);
         m_fetchsqlite->prepare();
     }
     updateCacheFile(m_dbFile_fav, m_dbCacheFile_fav);
@@ -168,8 +166,11 @@ QList<BookmarkMatch> Firefox::match(const QString &term, bool addEverything)
 
     for (auto result = uniqueResults.constKeyValueBegin(); result != uniqueResults.constKeyValueEnd(); ++result) {
         const QString url = (*result).first;
-        BookmarkMatch bookmarkMatch(m_favicon->iconFor(url), term, (*result).second, url);
-        bookmarkMatch.addTo(matches, addEverything);
+        BookmarkMatch bookmarkMatch(term, (*result).second, url);
+        if (addEverything || bookmarkMatch.matches()) {
+            bookmarkMatch.setIcon(m_favicon->iconFor(url));
+            matches << bookmarkMatch;
+        }
     }
 
     return matches;
@@ -179,7 +180,6 @@ void Firefox::teardown()
 {
     if (m_fetchsqlite) {
         m_fetchsqlite->teardown();
-        delete std::exchange(m_fetchsqlite, nullptr);
     }
     m_favicon->teardown();
 }

@@ -26,7 +26,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-25 00:42+0000\n"
+"POT-Creation-Date: 2026-09-17 00:40+0000\n"
 "PO-Revision-Date: 2024-05-19 14:17+0200\n"
 "Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
 "Language-Team: French <French <kde-francophone@kde.org>>\n"
@@ -140,14 +140,7 @@ msgctxt "home page"
 msgid "&Home"
 msgstr "&Début"
 
-#: kstandardaction.cpp:230
-#, kde-format
-msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
-msgstr ""
-"Afficher la barre de menus<p>Affiche la barre de menus à nouveau après "
-"qu'elle a été cachée</p>"
-
-#: kstandardaction.cpp:251
+#: kstandardaction.cpp:248
 #, kde-format
 msgid ""
 "Show Statusbar<p>Shows the statusbar, which is the bar at the bottom of the "
@@ -186,7 +179,7 @@ msgstr "&Enregistrer"
 
 #: kstandardaction_p.h:66
 msgid "Save document"
-msgstr "Enregistrer un document"
+msgstr "Enregistrer le document"
 
 #: kstandardaction_p.h:67
 msgid "Save &As…"
@@ -210,7 +203,7 @@ msgstr "&Fermer"
 
 #: kstandardaction_p.h:69
 msgid "Close document"
-msgstr "Fermer un document"
+msgstr "Fermer le document"
 
 #: kstandardaction_p.h:70
 msgid "&Print…"
@@ -218,7 +211,7 @@ msgstr "Im&primer..."
 
 #: kstandardaction_p.h:70
 msgid "Print document"
-msgstr "Imprimer un document"
+msgstr "Imprimer le document"
 
 #: kstandardaction_p.h:71
 msgid "Print Previe&w"
@@ -234,7 +227,7 @@ msgstr "Envoyer par &courrier électronique..."
 
 #: kstandardaction_p.h:72
 msgid "Send document by mail"
-msgstr "Envoie un document par courriel"
+msgstr "Envoie le document par courriel"
 
 #: kstandardaction_p.h:73
 msgid "&Quit"
@@ -362,11 +355,11 @@ msgstr "Sélectionner le niveau de zoom"
 
 #: kstandardaction_p.h:95
 msgid "&Refresh"
-msgstr "&Rafraîchir"
+msgstr "&Rafraichir"
 
 #: kstandardaction_p.h:95
 msgid "Refresh document"
-msgstr "Rafraîchir le document"
+msgstr "Rafraichir le document"
 
 #: kstandardaction_p.h:97
 msgid "&Up"
@@ -548,10 +541,15 @@ msgstr "Ouvrir le &menu"
 msgid "Application Style"
 msgstr "Style d'application"
 
-#: kstylemanager.cpp:78
+#: kstylemanager.cpp:84
 #, kde-format
 msgid "Default"
 msgstr "Par défaut"
+
+#~ msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
+#~ msgstr ""
+#~ "Afficher la barre de menus<p>Affiche la barre de menus à nouveau après "
+#~ "qu'elle a été cachée</p>"
 
 #~ msgid "&Open..."
 #~ msgstr "&Ouvrir..."

@@ -15,19 +15,39 @@
 
 #include <QPoint>
 #include <QSize>
+#include <QWaylandClientExtension>
 
 namespace KScreen
 {
 class WaylandOutputConfiguration;
+class WaylandOutputDevice;
 class WaylandOutputManagement;
+
+class WaylandOutputDeviceRegistry : public QWaylandClientExtensionTemplate<WaylandOutputDeviceRegistry>, public QtWayland::kde_output_device_registry_v2
+{
+    Q_OBJECT
+
+public:
+    WaylandOutputDeviceRegistry();
+    ~WaylandOutputDeviceRegistry() override;
+
+Q_SIGNALS:
+    void outputAdded(WaylandOutputDevice *outputDevice);
+    void outputRemoved(WaylandOutputDevice *outputDevice);
+
+protected:
+    void kde_output_device_registry_v2_output(struct ::kde_output_device_v2 *output) override;
+
+private:
+    std::vector<std::unique_ptr<WaylandOutputDevice>> m_outputDevices;
+};
 
 class WaylandOutputDevice : public QObject, public QtWayland::kde_output_device_v2
 {
     Q_OBJECT
 
 public:
-    WaylandOutputDevice(int id);
-
+    explicit WaylandOutputDevice(::kde_output_device_v2 *outputDevice);
     ~WaylandOutputDevice();
 
     QByteArray edid() const;
@@ -49,7 +69,6 @@ public:
     void updateKScreenOutput(OutputPtr &output, const QMap<int, WaylandOutputDevice *> &outputMap);
     void updateKScreenModes(OutputPtr &output);
 
-    uint32_t index() const;
     bool setWlConfig(WaylandOutputManagement *management,
                      WaylandOutputConfiguration *wlConfig,
                      const KScreen::OutputPtr &output,
@@ -63,6 +82,7 @@ public:
 
 Q_SIGNALS:
     void done();
+    void removed();
 
 protected:
     void kde_output_device_v2_geometry(int32_t x,
@@ -108,6 +128,10 @@ protected:
     void kde_output_device_v2_sharpness(uint32_t sharpness) override;
     void kde_output_device_v2_priority(uint32_t priority) override;
     void kde_output_device_v2_auto_brightness(uint32_t enabled) override;
+    void kde_output_device_v2_removed() override;
+    void kde_output_device_v2_hdr_icc_profile_path(const QString &profile_path) override;
+    void kde_output_device_v2_hdr_color_profile_source(uint32_t source) override;
+    void kde_output_device_v2_abm_level(uint32_t level) override;
 
 private:
     QString modeName(const WaylandOutputDeviceMode *m) const;
@@ -134,7 +158,7 @@ private:
     uint32_t m_overscan;
     uint32_t m_vrr_policy;
     uint32_t m_rgbRange;
-    uint32_t m_index;
+    uint32_t m_priority;
     bool m_hdrEnabled = false;
     uint32_t m_sdrBrightness = 200;
     bool m_wideColorGamutEnabled = false;
@@ -163,6 +187,9 @@ private:
     uint32_t m_sharpness = 0;
     QList<ModeInfo> m_customModes;
     bool m_autoBrightness = false;
+    QString m_hdrIccProfilePath;
+    uint32_t m_hdrColorProfileSource = color_profile_source_EDID;
+    uint32_t m_abmLevel = 0;
 };
 
 }

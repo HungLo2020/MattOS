@@ -224,8 +224,14 @@ void Activities::Private::removeActivity(const QString &activity)
         }
     }
 
+    // Jump to the next activity before removing if it's current
+    if (currentActivity == activity) {
+        nextActivity();
+    }
+
     {
         QWriteLocker lock(&activitiesLock);
+
         // Removing the activity
         activities.remove(activity);
 
@@ -240,8 +246,6 @@ void Activities::Private::removeActivity(const QString &activity)
     activityNameConfig().deleteEntry(activity);
     activityDescriptionConfig().deleteEntry(activity);
     activityIconConfig().deleteEntry(activity);
-
-    Q_EMIT q->ActivityRemoved(activity);
 
     QMetaObject::invokeMethod(q, "ActivityRemoved", Qt::QueuedConnection, Q_ARG(QString, activity));
 

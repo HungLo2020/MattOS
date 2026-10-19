@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegwindowcapture_uwp_p.h"
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qscopeguard.h>
 #include <QtCore/qthread.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/private/qfactorycacheregistration_p.h>
 #include <QtCore/private/qsystemerror_p.h>
 #include <QtGui/qguiapplication.h>
@@ -294,24 +295,26 @@ private:
 
 } // namespace
 
-class QFFmpegWindowCaptureUwp::Grabber : public QFFmpegSurfaceCaptureGrabber
+class QFFmpegWindowCaptureUwp::Grabber : public QSurfaceCaptureGrabber
 {
 public:
     Grabber(QFFmpegWindowCaptureUwp &capture, HWND hwnd)
-        : m_hwnd(hwnd),
+        : QSurfaceCaptureGrabber(),
+          m_hwnd(hwnd),
           m_format(QVideoFrameFormat(asQSize(getWindowSize(hwnd)),
                                      QVideoFrameFormat::Format_RGBX8888))
     {
         const HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
         m_adapter = getAdapter(monitor);
 
-        const qreal refreshRate = getMonitorRefreshRateHz(monitor);
-
-        m_format.setStreamFrameRate(refreshRate);
-        setFrameRate(refreshRate);
-
-        addFrameCallback(capture, &QFFmpegWindowCaptureUwp::newVideoFrame);
+        addFrameCallback(&capture, &QFFmpegWindowCaptureUwp::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &capture, &QFFmpegWindowCaptureUwp::updateError);
+
+        const auto refreshRate = getMonitorRefreshRateHz(monitor);
+        const auto defaultRate = refreshRate ? qMin(*refreshRate, DefaultScreenCaptureFrameRate)
+                                             : DefaultScreenCaptureFrameRate;
+        setFrameRate(capture.frameRate().value_or(defaultRate));
+        m_format.setStreamFrameRate(frameRate());
     }
 
     ~Grabber() override { stop(); }
@@ -328,19 +331,19 @@ protected:
         try {
             m_windowGrabber = std::make_unique<WindowGrabber>(m_adapter.get(), m_hwnd);
 
-            QFFmpegSurfaceCaptureGrabber::initializeGrabbingContext();
+            QSurfaceCaptureGrabber::initializeGrabbingContext();
         } catch (const winrt::hresult_error &err) {
 
             const QString message = QLatin1String("Unable to capture window: ")
                     + QString::fromWCharArray(err.message().c_str());
 
-            updateError(InternalError, message);
+            updateError(QPlatformSurfaceCapture::Error::InternalError, message);
         }
     }
 
     void finalizeGrabbingContext() override
     {
-        QFFmpegSurfaceCaptureGrabber::finalizeGrabbingContext();
+        QSurfaceCaptureGrabber::finalizeGrabbingContext();
         m_windowGrabber = nullptr;
     }
 
@@ -355,6 +358,9 @@ protected:
 
             m_format.setFrameSize(size);
 
+            if (m_format.streamFrameRate() != frameRate())
+                m_format.setStreamFrameRate(frameRate());
+
             return QVideoFramePrivate::createFrame(
                     std::make_unique<QUwpTextureVideoBuffer>(std::move(texture)), m_format);
 
@@ -363,9 +369,9 @@ protected:
             const QString message = QLatin1String("Window capture failed: ")
                     + QString::fromWCharArray(err.message().c_str());
 
-            updateError(InternalError, message);
+            updateError(QPlatformSurfaceCapture::Error::InternalError, message);
         } catch (const std::runtime_error& e) {
-            updateError(CaptureFailed, QString::fromLatin1(e.what()));
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed, QString::fromLatin1(e.what()));
         }
 
         return {};
@@ -401,8 +407,11 @@ private:
         return { static_cast<int>(desc.Width), static_cast<int>(desc.Height) };
     }
 
-    static qreal getMonitorRefreshRateHz(HMONITOR handle)
+    static q23::expected<qreal, QString> getMonitorRefreshRateHz(HMONITOR handle)
     {
+        if (!handle)
+            return q23::unexpected{ u"No monitor"_s };
+
         DWORD count = 0;
         if (GetNumberOfPhysicalMonitorsFromHMONITOR(handle, &count)) {
             std::vector<PHYSICAL_MONITOR> monitors{ count };
@@ -421,7 +430,7 @@ private:
                 }
             }
         }
-        return DefaultScreenCaptureFrameRate;
+        return q23::unexpected{ u"Couldn't get monitor refresh rate"_s };
     }
 
     HWND m_hwnd{};
@@ -487,7 +496,7 @@ bool QFFmpegWindowCaptureUwp::setActiveInternal(bool active)
 
     const auto hwnd = reinterpret_cast<HWND>(handle ? handle->id : 0);
     if (const QString error = isCapturableWindow(hwnd); !error.isEmpty()) {
-        updateError(InternalError, error);
+        updateError(QPlatformSurfaceCapture::Error::InternalError, error);
         return false;
     }
 
@@ -499,7 +508,22 @@ bool QFFmpegWindowCaptureUwp::setActiveInternal(bool active)
 
 bool QFFmpegWindowCaptureUwp::isSupported()
 {
-    return GraphicsCaptureSession::IsSupported();
+    // It has been observed that GraphicsCaptureSession::IsSupported()
+    // may throw under certain environments, such as when running
+    // Qt in a headless Windows environment.
+    try {
+        return GraphicsCaptureSession::IsSupported();
+    } catch (const winrt::hresult_error &err) {
+        qCWarning(qLcWindowCaptureUwp)
+            << "GraphicsCaptureSession::IsSupported() threw exception:"
+            << QString::fromWCharArray(err.message().c_str());
+        return false;
+    } catch (const std::exception &err) {
+        qCWarning(qLcWindowCaptureUwp)
+            << "GraphicsCaptureSession::IsSupported() failed, threw exception:"
+            << err.what();
+        return false;
+    }
 }
 
 QVideoFrameFormat QFFmpegWindowCaptureUwp::frameFormat() const

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
-"PO-Revision-Date: 2026-02-06 16:52+0100\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-02-16 11:53+0100\n"
 "Last-Translator: giovanni <g.sora@tiscali.it>\n"
 "Language-Team: Interlingua <kde-i18n-doc@kde.org>\n"
 "Language: ia\n"
@@ -95,8 +95,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Configura ligamines de clave…"
+msgid "Key Bindings"
+msgstr "Ligamines Clave"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -134,13 +134,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Adder Disposition"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Monstra nomine de disposition"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -151,13 +151,13 @@ msgstr ""
 "monstrate in le tabuliero de systema. Tu pote cambiar iste prefrentia per te "
 "mesme."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Via breve:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -295,13 +295,13 @@ msgstr "TAxa de Repetition de clave %1"
 #, kde-format
 msgctxt "@spinbox:value  Key repeat rate"
 msgid "%1 repeats/s"
-msgstr "%1 repite/s"
+msgstr "%1 repete/s"
 
 #: ui/main.qml:231 ui/main_phone.qml:181
 #, kde-format
 msgctxt "@spinbox:value  Key repeat rate"
 msgid "repeats/s"
-msgstr "repite/s"
+msgstr "repete/s"
 
 #: ui/main.qml:243
 #, kde-format
@@ -545,22 +545,22 @@ msgstr ""
 "Clave modificator pote esser usate per typar characteres additional, "
 "symbolos, e signos diacritic."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
 msgstr[0] "%1 via breve"
 msgstr[1] "%1 Vias breve:"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Necun"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Ligamines Clave"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Configura cligamines de clave…"
 
 #~ msgctxt "@option:radio"
 #~ msgid "Turn Off"

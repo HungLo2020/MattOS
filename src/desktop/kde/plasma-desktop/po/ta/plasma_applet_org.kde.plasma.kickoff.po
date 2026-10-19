@@ -6,16 +6,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-05 02:42+0000\n"
-"PO-Revision-Date: 2026-01-31 20:40+0530\n"
+"POT-Creation-Date: 2026-09-10 00:48+0000\n"
+"PO-Revision-Date: 2026-04-12 18:18+0530\n"
 "Last-Translator: Kishore G <kishore96@gmail.com>\n"
-"Language-Team: Tamil <kde-i18n-doc@kde.org>\n"
+"Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
 "Language: ta\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #: code/tools.js:32
 #, kde-format
@@ -182,113 +182,107 @@ msgstr "சுருக்கமான காட்சிமுறையை ப�
 
 #: ConfigGeneral.qml:187
 #, kde-format
-msgctxt "@info:usagetip under a checkbox when Touch Mode is on"
-msgid "Automatically disabled when in Touch Mode"
-msgstr "பலகைக்கணினி பயன்முறையில் தானாக முடக்கப்படும்"
-
-#: ConfigGeneral.qml:195
-#, kde-format
 msgctxt "@option:check"
-msgid "Highlight newly installed applications"
+msgid "Highlight newly-installed applications"
 msgstr "புதியதாக நிறுவியுள்ள செயலிகளை முன்னிலைப்படுத்து"
 
-#: ConfigGeneral.qml:200
+#: ConfigGeneral.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Switch sidebar categories when hovering over them"
 msgstr "ஓரப்பட்டையிலுள்ள பகுப்புகளின் மீது சுட்டியை வைக்கும்போது அவற்றிற்கு தாவு"
 
-#: ConfigGeneral.qml:206
+#: ConfigGeneral.qml:198
 #, kde-format
 msgctxt "@action:button opens plasmasearch kcm"
 msgid "Configure Search Plugins…"
 msgstr "தேடல் செருகுநிரல்களை அமை…"
 
-#: ConfigGeneral.qml:216
+#: ConfigGeneral.qml:208
 #, kde-format
 msgctxt "@label:group prefix for radio button group"
 msgid "Sidebar position:"
 msgstr "ஓரப்பட்டையின் இருப்பிடம்:"
 
-#: ConfigGeneral.qml:217 ConfigGeneral.qml:225
+#: ConfigGeneral.qml:209 ConfigGeneral.qml:217
 #, kde-format
 msgctxt "@option:radio sidebar position"
 msgid "Right"
 msgstr "வலதில்"
 
-#: ConfigGeneral.qml:217
+#: ConfigGeneral.qml:209
 #, kde-format
 msgctxt "option:radio sidebar position"
 msgid "Left"
 msgstr "இடதில்"
 
-#: ConfigGeneral.qml:225
+#: ConfigGeneral.qml:217
 #, kde-format
 msgctxt "@option:radio sidebar position"
 msgid "Left"
 msgstr "இடதில்"
 
-#: ConfigGeneral.qml:233
+#: ConfigGeneral.qml:225
 #, kde-format
 msgctxt "@title:group prefix for radio button group"
 msgid "Show favorites:"
 msgstr "பிடித்தவற்றை காட்டுவது:"
 
-#: ConfigGeneral.qml:234
+#: ConfigGeneral.qml:226
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show favorites in a grid'"
 msgid "In a grid"
 msgstr "நெடுவரிசைகளில்"
 
-#: ConfigGeneral.qml:242
+#: ConfigGeneral.qml:234
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show favorites in a list'"
 msgid "In a list"
 msgstr "பட்டியலாக"
 
-#: ConfigGeneral.qml:250
+#: ConfigGeneral.qml:242
 #, kde-format
 msgctxt "@title:group prefix for radio button group"
 msgid "Show other applications:"
 msgstr "மற்ற செயலிகளை காட்டுவது:"
 
-#: ConfigGeneral.qml:251
+#: ConfigGeneral.qml:243
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show other applications in a grid'"
 msgid "In a grid"
 msgstr "நெடுவரிசைகளில்"
 
-#: ConfigGeneral.qml:259
+#: ConfigGeneral.qml:251
 #, kde-format
 msgctxt "@option:radio Part of a sentence: 'Show other applications in a list'"
 msgid "In a list"
 msgstr "பட்டியலாக"
 
-#: ConfigGeneral.qml:271
+#: ConfigGeneral.qml:263
 #, kde-format
 msgctxt "@title:group prefix for radio button group"
 msgid "Show buttons for:"
 msgstr "இவற்றிற்கு பட்டன்களை காட்டு:"
 
-#: ConfigGeneral.qml:272
+#: ConfigGeneral.qml:264
 #, kde-format
 msgctxt "@option:radio Show buttons for"
 msgid "Power"
 msgstr "ஆற்றல்"
 
-#: ConfigGeneral.qml:281
+#: ConfigGeneral.qml:273
 #, kde-format
 msgctxt "@option:radio Show buttons for"
 msgid "Session"
 msgstr "அமர்வு"
 
-#: ConfigGeneral.qml:290
+#: ConfigGeneral.qml:282
 #, kde-format
 msgctxt "@option:radio Show buttons for"
 msgid "Power and session"
 msgstr "ஆற்றல் மற்றும் அமர்வு"
 
-#: ConfigGeneral.qml:299
+#: ConfigGeneral.qml:291
 #, kde-format
 msgctxt "@option:check"
 msgid "Show action button captions"
@@ -306,7 +300,7 @@ msgctxt "@title:tab kickoff sidebar tab"
 msgid "Places"
 msgstr "இடங்கள்"
 
-#: FullRepresentation.qml:133
+#: FullRepresentation.qml:143
 #, kde-format
 msgctxt "@info:status"
 msgid "No matches"
@@ -328,38 +322,36 @@ msgstr "திறந்தே வைத்திரு"
 
 #: KickoffGridDelegate.qml:59
 #, kde-format
-msgctxt "@label Newly installed app, badge, keep short"
+msgctxt "@label Newly-installed app, badge, keep short"
 msgid "New!"
 msgstr "புதியது!"
 
-#: KickoffGridDelegate.qml:60
+#: KickoffGridDelegate.qml:61
 #, kde-format
 msgctxt "@label Accessible name for badge"
-msgid "Newly installed application"
+msgid "Newly-installed application"
 msgstr "புதியதாக நிறுவியுள்ள செயலி"
 
-#: KickoffGridView.qml:105
+#: KickoffGridView.qml:116
 #, kde-format
 msgctxt "@info:whatsthis Accessible description"
 msgid "Grid with %1 rows, %2 columns"
 msgstr "%1 வரிசைகளும் %2 நெடுவரிசைகளும் கொண்ட கிரிட்"
 
-#: KickoffListDelegate.qml:117
+#: KickoffListDelegate.qml:120
 #, kde-format
-msgctxt "Newly installed app, badge, keep short"
+msgctxt "Newly-installed app, badge, keep short"
 msgid "New!"
 msgstr "புதியது!"
 
-#: KickoffListDelegate.qml:118
+#: KickoffListDelegate.qml:125
 #, kde-format
-msgctxt "@info:whatsthis Accessible description for badge"
-msgid "There is a newly installed application in this category"
+msgid "There is a newly-installed application in this category"
 msgstr "இப்பகுப்பில் புதியதாக நிறுவியுள்ள செயலி உள்ளது"
 
-#: KickoffListDelegate.qml:119
+#: KickoffListDelegate.qml:126
 #, kde-format
-msgctxt "@info:whatsthis Accessible description for badge"
-msgid "Newly installed application"
+msgid "Newly-installed application"
 msgstr "புதியதாக நிறுவியுள்ள செயலி"
 
 #: LeaveButtons.qml:171
@@ -386,29 +378,41 @@ msgctxt "@title:menu menubutton"
 msgid "Session and Power"
 msgstr "அமர்வும் ஆற்றலும்"
 
-#: main.qml:357
+#: main.qml:358
 #, kde-format
 msgctxt "@action:inmenu launches kmenuedit"
 msgid "Edit Applications…"
 msgstr "செயலிகளை திருத்து…"
 
-#: PlacesPage.qml:64
+#: PlacesPage.qml:61
 #, kde-format
 msgctxt "category in Places sidebar"
 msgid "Computer"
 msgstr "கணினி"
 
-#: PlacesPage.qml:65
+#: PlacesPage.qml:62
 #, kde-format
 msgctxt "category in Places sidebar"
 msgid "History"
 msgstr "வரலாறு"
 
-#: PlacesPage.qml:66
+#: PlacesPage.qml:63
 #, kde-format
 msgctxt "category in Places sidebar"
 msgid "Frequently Used"
 msgstr "அடிக்கடி பயன்படுபவை"
+
+#~ msgctxt "Newly installed app, badge, keep short"
+#~ msgid "New!"
+#~ msgstr "புதியது!"
+
+#~ msgctxt "@info:whatsthis Accessible description for badge"
+#~ msgid "Newly installed application"
+#~ msgstr "புதியதாக நிறுவியுள்ள செயலி"
+
+#~ msgctxt "@info:usagetip under a checkbox when Touch Mode is on"
+#~ msgid "Automatically disabled when in Touch Mode"
+#~ msgstr "பலகைக்கணினி பயன்முறையில் தானாக முடக்கப்படும்"
 
 #~ msgctxt "Part of a sentence: 'Show other applications in a grid'"
 #~ msgid "In a grid"

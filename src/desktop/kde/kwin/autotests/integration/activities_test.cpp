@@ -26,8 +26,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_activities-0");
-
 class ActivitiesTest : public QObject
 {
     Q_OBJECT
@@ -44,7 +42,7 @@ private:
 void ActivitiesTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->setUseKActivities(true);
     kwinApp()->start();
     Test::setOutputConfig({
@@ -115,8 +113,8 @@ void ActivitiesTest::testSetOnActivitiesValidates()
     QVERIFY(!Workspace::self()->activities()->all().contains(QStringLiteral("bar")));
 
     window->setOnActivities(QStringList{QStringLiteral("foo"), QStringLiteral("bar")});
-    QVERIFY(!window->activities().contains(QLatin1String("foo")));
-    QVERIFY(!window->activities().contains(QLatin1String("bar")));
+    QVERIFY(!window->activities().contains(QLatin1StringView("foo")));
+    QVERIFY(!window->activities().contains(QLatin1StringView("bar")));
 
     // and destroy the window again
     xcb_unmap_window(c.get(), windowId);

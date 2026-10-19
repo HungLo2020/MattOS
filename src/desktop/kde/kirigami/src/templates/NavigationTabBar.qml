@@ -331,6 +331,56 @@ QQC.ToolBar {
         }
     }
 
+    function nextTab() {
+        if (root.currentIndex < root.count - 1) {
+            root.currentIndex += 1;
+        }
+    }
+
+    function previousTab() {
+        if (root.currentIndex > 0) {
+            root.currentIndex -= 1;
+        }
+    }
+
+    Shortcut {
+        sequences: [
+            "Ctrl+PgDown",
+            "Ctrl+]",
+            "Ctrl+Tab"
+        ]
+        onActivated: root.nextTab()
+    }
+
+    Shortcut {
+        sequences: [
+            "Ctrl+PgUp",
+            "Ctrl+[",
+            "Ctrl+Shift+Tab"
+        ]
+        onActivated: root.previousTab()
+    }
+
+    WheelHandler {
+        orientation: Qt.Vertical | Qt.Horizontal
+        property int wheelDelta: 0
+        acceptedButtons: Qt.NoButton
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        onWheel: wheel => {
+            wheelDelta += wheel.angleDelta.y || wheel.angleDelta.x;
+            // magic number 120 for common "one click"
+            // See: https://doc.qt.io/qt-6/qml-qtquick-wheelevent.html#angleDelta-prop
+            while (wheelDelta >= 120) {
+                wheelDelta -= 120;
+                root.previousTab();
+            }
+            while (wheelDelta <= -120) {
+                wheelDelta += 120;
+                root.nextTab();
+            }
+        }
+    }
+
     // Using a Repeater here because Instantiator was causing issues:
     // NavigationTabButtons that were supposed to be destroyed were still
     // registered as buttons in tabGroup.

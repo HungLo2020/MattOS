@@ -13,6 +13,7 @@
 
 #include "core/colorspace.h"
 #include "effect/effect.h"
+#include "effect/timeline.h"
 
 #include <QAction>
 #include <QTime>
@@ -21,7 +22,6 @@
 namespace KWin
 {
 
-class CursorItem;
 class GLFramebuffer;
 class GLTexture;
 class GLVertexBuffer;
@@ -33,7 +33,6 @@ class ZoomEffect : public Effect
 {
     Q_OBJECT
     Q_PROPERTY(qreal zoomFactor READ configuredZoomFactor)
-    Q_PROPERTY(int mousePointer READ configuredMousePointer)
     Q_PROPERTY(int mouseTracking READ configuredMouseTracking)
     Q_PROPERTY(int focusDelay READ configuredFocusDelay)
     Q_PROPERTY(qreal moveFactor READ configuredMoveFactor)
@@ -44,15 +43,14 @@ public:
     ~ZoomEffect() override;
 
     void reconfigure(ReconfigureFlags flags) override;
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
+    void prePaintScreen(ScreenPrePaintData &data) override;
+    bool paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
     void postPaintScreen() override;
     bool isActive() const override;
     int requestedEffectChainPosition() const override;
 
     // for properties
     qreal configuredZoomFactor() const;
-    int configuredMousePointer() const;
     int configuredMouseTracking() const;
     int configuredFocusDelay() const;
     qreal configuredMoveFactor() const;
@@ -68,8 +66,6 @@ private Q_SLOTS:
     void moveZoomRight();
     void moveZoomUp();
     void moveZoomDown();
-    void moveMouseToFocus();
-    void moveMouseToCenter();
     void timelineFrameChanged(int frame);
     void moveFocus(const QPointF &point);
     void slotMouseChanged(const QPointF &pos, const QPointF &old);
@@ -87,17 +83,11 @@ private:
         MouseTrackingCenteredStrict = 4,
     };
 
-    enum MousePointerType {
-        MousePointerScale = 0,
-        MousePointerKeep = 1,
-        MousePointerHide = 2,
-    };
-
     struct OffscreenData
     {
         std::unique_ptr<GLTexture> texture;
         std::unique_ptr<GLFramebuffer> framebuffer;
-        QRectF viewport;
+        RectF viewport;
         std::shared_ptr<ColorDescription> color = ColorDescription::sRGB;
     };
 
@@ -105,12 +95,7 @@ private:
     bool screenExistsAt(const QPoint &point) const;
     void realtimeZoom(double delta);
 
-    QPointF calculateCursorItemPosition() const;
-    void showCursor();
-    void hideCursor();
-    GLTexture *ensureCursorTexture();
     OffscreenData *ensureOffscreenData(const RenderTarget &renderTarget, const RenderViewport &viewport, LogicalOutput *screen);
-    void markCursorTextureDirty();
 
     GLShader *shaderForZoom(double zoom);
     void trackTextCaret();
@@ -122,20 +107,18 @@ private:
     double m_sourceZoom = 1.0;
     double m_zoomFactor = 1.25;
     MouseTrackingType m_mouseTracking = MouseTrackingProportional;
-    MousePointerType m_mousePointer = MousePointerScale;
     QPoint m_cursorPoint;
     QPoint m_prevPoint;
     QTime m_lastMouseEvent;
-    std::unique_ptr<CursorItem> m_cursorItem;
-    bool m_cursorHidden = false;
     QTimeLine m_timeline;
     int m_xMove = 0;
     int m_yMove = 0;
     int m_xTranslation = 0;
     int m_yTranslation = 0;
     double m_moveFactor = 20.0;
-    std::chrono::milliseconds m_lastPresentTime = std::chrono::milliseconds::zero();
+    AnimationClock m_clock;
     std::map<LogicalOutput *, OffscreenData> m_offscreenData;
+    std::unique_ptr<GLShader> m_upscalerShader;
     std::unique_ptr<GLShader> m_pixelGridShader;
     double m_pixelGridZoom;
     std::unique_ptr<QAction> m_zoomInAxisAction;
@@ -143,6 +126,7 @@ private:
     Qt::KeyboardModifiers m_axisModifiers;
     std::unique_ptr<QAction> m_touchpadAction;
     double m_lastPinchProgress = 0;
+    bool m_usePatternUpscaler = true;
 
     std::unique_ptr<TextCaretTracker> m_textCaretTracker;
 #if KWIN_BUILD_QACCESSIBILITYCLIENT

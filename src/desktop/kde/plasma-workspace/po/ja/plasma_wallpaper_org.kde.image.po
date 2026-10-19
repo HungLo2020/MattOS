@@ -7,15 +7,16 @@
 # Jumpei Ogawa (phanect) <phanective@gmail.com>, 2010.
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2020.
 # Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2023.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma_wallpaper_image\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-17 02:39+0000\n"
-"PO-Revision-Date: 2025-03-08 19:02+0900\n"
-"Last-Translator: Ryuichi Yamada <ryuichi_ya220@outlook.jp>\n"
-"Language-Team: Japanese <kde-jp@kde.org>\n"
+"POT-Creation-Date: 2026-06-21 00:46+0000\n"
+"PO-Revision-Date: 2026-05-10 12:25+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
+"Language-Team: Japanese <kde-i18n-doc@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,116 +24,114 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 24.12.2\n"
+"X-Generator: Lokalize 26.04.1\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Yukiko Bando,Ryuichi Yamada"
+msgstr "Yukiko Bando,Ryuichi Yamada,Mint"
 
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
-msgstr "ybando@k6.dion.ne.jp,ryuichi_ya220@outlook.jp"
+msgstr "ybando@k6.dion.ne.jp,ryuichi_ya220@outlook.jp,5602mint@gmail.com"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:59
+#: imagepackage/contents/ui/AddFileDialog.qml:56
 #, kde-format
 msgctxt "@title:window"
 msgid "Open Image"
 msgstr "画像を開く"
 
-#: imagepackage/contents/ui/AddFileDialog.qml:71
+#: imagepackage/contents/ui/AddFileDialog.qml:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Directory with the wallpaper to show slides from"
 msgstr "スライドショーで表示する壁紙が含まれるディレクトリ"
 
-#: imagepackage/contents/ui/config.qml:146
+#: imagepackage/contents/ui/config.qml:156
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Positioning:"
 msgstr "配置:"
 
-#: imagepackage/contents/ui/config.qml:149
+#: imagepackage/contents/ui/config.qml:159
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled and cropped"
 msgstr "拡大/縮小と切り取り"
 
-#: imagepackage/contents/ui/config.qml:153
+#: imagepackage/contents/ui/config.qml:163
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled"
 msgstr "拡大/縮小"
 
 # Maxpect
-#: imagepackage/contents/ui/config.qml:157
+#: imagepackage/contents/ui/config.qml:167
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Scaled, keep proportions"
 msgstr "拡大/縮小 (アスペクト比を保つ)"
 
-#: imagepackage/contents/ui/config.qml:161
+#: imagepackage/contents/ui/config.qml:171
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered"
 msgstr "中央に表示"
 
-#: imagepackage/contents/ui/config.qml:189
-#, fuzzy, kde-format
-#| msgctxt "@action:inmenu"
-#| msgid "Set as Wallpaper"
+#: imagepackage/contents/ui/config.qml:199
+#, kde-format
 msgctxt ""
 "@label:listbox part of a sentence: 'Switch dynamic wallpapers [based on]'"
 msgid "Switch dynamic wallpapers:"
-msgstr "壁紙として設定"
-
-#: imagepackage/contents/ui/config.qml:197
-#, kde-format
-msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
-msgid "Based on whether the Plasma style is light or dark "
-msgstr ""
-
-#: imagepackage/contents/ui/config.qml:199
-#, kde-format
-msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
-msgid "Based on the day-night cycle"
-msgstr ""
-
-#: imagepackage/contents/ui/config.qml:203
-#, kde-format
-msgctxt "@item:inlistbox"
-msgid "Always use light variant"
-msgstr ""
+msgstr "ダイナミック壁紙の切り替え:"
 
 #: imagepackage/contents/ui/config.qml:207
 #, kde-format
+msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
+msgid "Based on whether the Plasma style is light or dark "
+msgstr "Plasma スタイルのライト/ダークに合わせる"
+
+#: imagepackage/contents/ui/config.qml:209
+#, kde-format
+msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
+msgid "Based on the day-night cycle"
+msgstr "昼夜サイクルに合わせる"
+
+#: imagepackage/contents/ui/config.qml:213
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Always use light variant"
+msgstr "常にライトを使用する"
+
+#: imagepackage/contents/ui/config.qml:217
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always use dark variant"
-msgstr ""
+msgstr "常にダークを使用する"
 
-#: imagepackage/contents/ui/config.qml:221
+#: imagepackage/contents/ui/config.qml:231
 #, kde-format
 msgctxt "@action:button Configure day-night cycle times"
 msgid "Configure…"
 msgstr ""
 
-#: imagepackage/contents/ui/config.qml:232
+#: imagepackage/contents/ui/config.qml:242
 #, kde-format
 msgid "Background:"
 msgstr "背景:"
 
-#: imagepackage/contents/ui/config.qml:233
+#: imagepackage/contents/ui/config.qml:243
 #, kde-format
 msgid "Blur"
 msgstr "ぼかし"
 
-#: imagepackage/contents/ui/config.qml:242
+#: imagepackage/contents/ui/config.qml:252
 #, kde-format
 msgid "Solid color"
 msgstr "単色"
 
-#: imagepackage/contents/ui/config.qml:253
+#: imagepackage/contents/ui/config.qml:263
 #, kde-format
 msgid "Select Background Color"
 msgstr "背景色を選択"
@@ -264,13 +263,13 @@ msgid ""
 "it as a wallpaper: %1"
 msgstr ""
 
-#: plugin/imagebackend.cpp:40
+#: plugin/imagebackend.cpp:42
 #, kde-format
 msgid "Next Wallpaper Image"
 msgstr "次の壁紙画像"
 
 #. i18n people, this isn't a "word puzzle". there is a specific string format for QFileDialog::setNameFilters
-#: plugin/imagebackend.cpp:382
+#: plugin/imagebackend.cpp:384
 #, kde-format
 msgid "Media Files"
 msgstr "メディアファイル"
@@ -333,34 +332,43 @@ msgid "%1 second"
 msgid_plural "%1 seconds"
 msgstr[0] "%1秒"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:203
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:175
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Set all times to 0 to disable automatic wallpaper changing. You can still "
+"change wallpapers manually with the <interface>Next Wallpaper Image</"
+"interface> menu item in the desktop context menu."
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
 #, kde-format
 msgid "Folders"
 msgstr "フォルダ"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:211
 #, kde-format
 msgctxt "@action button the thing being added is a folder"
 msgid "Add…"
 msgstr "追加..."
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:208
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:212
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Folder…"
 msgstr "フォルダを追加..."
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:246
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:250
 #, kde-format
 msgid "Remove Folder"
 msgstr "フォルダを削除"
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:257
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:261
 #, kde-format
 msgid "Open Folder…"
 msgstr "フォルダを開く..."
 
-#: slideshowpackage/contents/ui/SlideshowComponent.qml:272
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:276
 #, kde-format
 msgid "There are no wallpaper locations configured"
 msgstr "設定された壁紙の場所はありません"
@@ -399,7 +407,3 @@ msgstr "壁紙の設定中にエラーが発生しました:<nl/>%1"
 #, kde-format
 msgid "An error occurred while attempting to open kscreenlockerrc config file."
 msgstr "kscreenlockerrc の設定ファイルを開く際にエラーが発生しました。"
-
-#~ msgctxt "@item:inlistbox"
-#~ msgid "Tiled"
-#~ msgstr "タイル状に表示"

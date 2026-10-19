@@ -1,5 +1,6 @@
 // Copyright (C) 2019 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgmaterial.h"
 #include "qsgrenderer_p.h"
@@ -253,6 +254,13 @@ void QSGMaterialShaderPrivate::prepare(QShader::Variant vertexShaderVariant)
         }
         for (int i = 0; i < ubufCount; ++i) {
             const QShaderDescription::UniformBlock &ubuf(ubufs[i]);
+            if (ubuf.size <= 0) {
+                // QByteArray::fill() would treat a negative size as "keep the current
+                // size", leaving a buffer that every member offset then writes past.
+                qWarning("Uniform block %s has an invalid size (%d); ignored",
+                         ubuf.blockName.constData(), ubuf.size);
+                continue;
+            }
             if (ubufBinding == -1 && ubuf.binding >= 0) {
                 ubufBinding = ubuf.binding;
                 ubufSize = ubuf.size;
@@ -370,8 +378,8 @@ void QSGMaterialShader::setShaderFileName(Stage stage, const QString &filename)
     The file is expected to contain a serialized QShader.
 
     This overload is used when enabling \l{QSGMaterial::viewCount()}{multiview}
-    rendering, in particular when the \l{Qt Shader Tools Build System
-    Integration}{build system's MULTIVIEW convenience option} is used.
+    rendering, in particular when the \l{qt_add_shaders}
+    {build system's MULTIVIEW convenience option} is used.
 
     \a viewCount should be 2, 3, or 4. The \a filename is adjusted automatically
     based on this.

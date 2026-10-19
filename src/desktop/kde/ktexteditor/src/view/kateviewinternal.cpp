@@ -1098,9 +1098,9 @@ public:
  * when you press Ctrl+Shift+Left/Right for selection and Ctrl+Del
  * Ctrl + backspace for deletion.
  *
- * When SubWordBehavior::StopAtCamelCaseSubWords is set, the cursor
- * additionally stops at camel case sub-word boundaries (e.g. "KateView"
- * is two sub-words: "Kate" and "View").
+ * When SubWordBehavior::StopAtSubWords is set, the cursor additionally
+ * stops at camelCase and snake_case sub-word boundaries (e.g. "KateView"
+ * is two sub-words: "Kate" and "View", and similarly for "kate_view").
  *
  * It is absolutely essential that if you move through a word in 'n'
  * jumps, you should be able to move back with exactly same 'n' movements
@@ -1120,9 +1120,10 @@ public:
  * |   |   |
  * KateViewInternal
  *
- * In addition to simple camel case, this class also handles snake_case
- * capitalized snake, and mixtures of Camel + snake/underscore, for example
- * m_someMember. If a word has underscores in it, for example:
+ * In addition to camelCase and snake_case, StopAtSubWords also handles
+ * capitalized snake, and mixtures of Camel + snake, for example m_someMember.
+ *
+ * If a word has underscores in it, for example:
  *
  * snake_case_word
  *
@@ -1178,7 +1179,7 @@ public:
  * @author Waqar Ahmed <waqar.17a@gmail.com>
  */
 enum class SubWordBehavior {
-    StopAtCamelCaseSubWords,
+    StopAtSubWords,
     None,
 };
 
@@ -1202,6 +1203,10 @@ public:
         auto isSurrogate = [](QChar c) {
             return c.isLowSurrogate() || c.isHighSurrogate();
         };
+        const bool stopAtSubWords = m_subWordBehavior == SubWordBehavior::StopAtSubWords;
+        const auto isWordChar = [stopAtSubWords](QChar c) {
+            return c.isLetterOrNumber() || (!stopAtSubWords && c == QLatin1Char('_'));
+        };
 
         if (bias == KateViewInternal::right) {
             auto skipCaps = [](QStringView text, int &col) {
@@ -1223,7 +1228,7 @@ public:
             int col = column();
             const QString text = m_vi->doc()->line(thisLine->line());
 
-            if (m_subWordBehavior == SubWordBehavior::StopAtCamelCaseSubWords && col < text.size() && text.at(col).isUpper()) {
+            if (stopAtSubWords && col < text.size() && text.at(col).isUpper()) {
                 skipCaps(text, col);
             }
 
@@ -1232,14 +1237,14 @@ public:
                 if (isSurrogate(c)) {
                     col++;
                     continue;
-                } else if ((m_subWordBehavior == SubWordBehavior::StopAtCamelCaseSubWords && c.isUpper()) || !c.isLetterOrNumber()) {
+                } else if ((stopAtSubWords && c.isUpper()) || !isWordChar(c)) {
                     break;
                 }
                 ++col;
             }
 
             // eat any '_' that are after the word BEFORE any space happens
-            if (col < text.size() && text.at(col) == QLatin1Char('_')) {
+            if (stopAtSubWords && col < text.size() && text.at(col) == QLatin1Char('_')) {
                 while (col < text.size() && text.at(col) == QLatin1Char('_')) {
                     ++col;
                 }
@@ -1299,13 +1304,13 @@ public:
             }
 
             // Skip Underscores
-            if (col > 0 && text.at(col) == QLatin1Char('_')) {
+            if (stopAtSubWords && col > 0 && text.at(col) == QLatin1Char('_')) {
                 while (col > 0 && text.at(col) == QLatin1Char('_')) {
                     --col;
                 }
             }
 
-            if (m_subWordBehavior == SubWordBehavior::StopAtCamelCaseSubWords && col > 0 && text.at(col).isUpper()) {
+            if (stopAtSubWords && col > 0 && text.at(col).isUpper()) {
                 skipCapsRev(text, col);
             }
 
@@ -1314,13 +1319,13 @@ public:
                 if (isSurrogate(c)) {
                     --col;
                     continue;
-                } else if ((m_subWordBehavior == SubWordBehavior::StopAtCamelCaseSubWords && c.isUpper()) || !c.isLetterOrNumber()) {
+                } else if ((stopAtSubWords && c.isUpper()) || !isWordChar(c)) {
                     break;
                 }
                 --col;
             }
 
-            if (col >= 0 && !text.at(col).isLetterOrNumber() && !isSurrogate(text.at(col))) {
+            if (col >= 0 && !isWordChar(text.at(col)) && !isSurrogate(text.at(col))) {
                 ++col;
             }
 
@@ -1419,7 +1424,7 @@ void KateViewInternal::wordPrev(bool sel, bool subword)
         if (c.atEdge(left)) {
             c.moveBack();
         } else if (h->isInWord(characterAtPreviousColumn(c))) {
-            WordCursor cc(this, cursor, (subword || doc()->config()->camelCursor()) ? SubWordBehavior::StopAtCamelCaseSubWords : SubWordBehavior::None);
+            WordCursor cc(this, cursor, (subword || doc()->config()->camelCursor()) ? SubWordBehavior::StopAtSubWords : SubWordBehavior::None);
             cc.moveBack();
             return cc;
         } else {
@@ -1472,7 +1477,7 @@ void KateViewInternal::wordNext(bool sel, bool subword)
         if (c.atEdge(right)) {
             c.moveForward();
         } else if (h->isInWord(doc()->characterAt(c))) {
-            WordCursor cc(this, cursor, (subword || doc()->config()->camelCursor()) ? SubWordBehavior::StopAtCamelCaseSubWords : SubWordBehavior::None);
+            WordCursor cc(this, cursor, (subword || doc()->config()->camelCursor()) ? SubWordBehavior::StopAtSubWords : SubWordBehavior::None);
             cc.moveForward();
             return cc;
         } else {
@@ -3822,10 +3827,7 @@ void KateViewInternal::paintEvent(QPaintEvent *e)
 
     QPainter paint(this);
 
-    // THIS IS ULTRA EVIL AND ADDS STRANGE RENDERING ARTIFACTS WITH SCALING!!!!
-    // SEE BUG https://bugreports.qt.io/browse/QTBUG-66036
-    // paint.setRenderHints(QPainter::TextAntialiasing);
-
+    // save for the text animation
     paint.save();
 
     renderer()->setCaretStyle(m_currentInputMode->caretStyle());
@@ -3891,6 +3893,7 @@ void KateViewInternal::paintEvent(QPaintEvent *e)
         paint.translate(0, h);
     }
 
+    // restore for the text animation
     paint.restore();
 
     if (m_textAnimation) {
@@ -4138,7 +4141,8 @@ void KateViewInternal::doDrag()
     }
 
     // Create a pixmap this selection and set it, if not null
-    const qreal dpr = devicePixelRatioF();
+    // Use highest screen device pixel ratio as drag could be moved to any screen
+    const qreal dpr = qApp->devicePixelRatio();
     if (QPixmap pixmap(w * dpr, h * dpr); !pixmap.isNull()) {
         pixmap.setDevicePixelRatio(dpr);
         pixmap.fill(Qt::transparent);
@@ -4162,7 +4166,7 @@ void KateViewInternal::doDrag()
      */
     const int y = lineToY(view()->m_textFolding.lineToVisibleLine(startLine));
     const QPoint pos = mapFromGlobal(QCursor::pos()) - QPoint(x, y);
-    m_dragInfo.dragObject->setHotSpot(pos);
+    m_dragInfo.dragObject->setHotSpot(pos * scale);
     m_dragInfo.dragObject->setMimeData(mimeData.release());
     m_dragInfo.dragObject->exec(Qt::MoveAction | Qt::CopyAction);
 }
@@ -4501,14 +4505,18 @@ void KateViewInternal::editEnd(int editTagLineStart, int editTagLineEnd, bool ta
 
     updateView(true);
 
-    if (editOldCursor != m_cursor.toCursor() || m_view == doc()->activeView()) {
-        // Only scroll the view to the cursor if the insertion happens at the cursor.
-        // This might not be the case for e.g. collaborative editing, when a remote user
-        // inserts text at a position not at the caret.
-        if (m_cursor.line() >= editTagLineStart && m_cursor.line() <= editTagLineEnd) {
-            m_madeVisible = false;
-            updateCursor(m_cursor, true);
-        }
+    // Only scroll the view to the cursor if the insertion happens at the cursor.
+    // This might not be the case for e.g. collaborative editing, when a remote user
+    // inserts text at a position not at the caret.
+    if ((editOldCursor != m_cursor.toCursor() || m_view == doc()->activeView()) && m_cursor.line() >= editTagLineStart && m_cursor.line() <= editTagLineEnd) {
+        m_madeVisible = false;
+        updateCursor(m_cursor, true);
+    }
+
+    // keep cursor consistent with m_displayCursor in any case!
+    // see bug 525170
+    else {
+        updateCursor(m_cursor, false, false, false, false);
     }
 
     // selection changed?
@@ -4804,8 +4812,8 @@ void KateViewInternal::flashChar(const KTextEditor::Cursor pos, KTextEditor::Att
 
 void KateViewInternal::showBracketMatchPreview()
 {
-    // only show when main window is active
-    if (window() && !window()->isActiveWindow()) {
+    // only show when main window is active and the view is visible
+    if ((window() && !window()->isActiveWindow()) || !isVisible()) {
         return;
     }
 

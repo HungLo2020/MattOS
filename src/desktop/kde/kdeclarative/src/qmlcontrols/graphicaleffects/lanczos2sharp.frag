@@ -27,13 +27,14 @@
 
 #version 440
 
-layout(location = 0) in vec2 texcoord;
+layout(location = 0) in vec2 coord;
 layout(location = 0) out vec4 fragColor;
 
 layout(std140, binding = 0) uniform buf {
     mat4 qt_Matrix;
     float qt_Opacity;
 
+    vec2 sourceSize;
     vec2 targetSize;
     float windowSinc;
     float sinc;
@@ -55,7 +56,16 @@ const vec3 dtt = vec3(65536.0, 255.0, 1.0);
 
 vec4 reduce4(vec3 A, vec3 B, vec3 C, vec3 D)
 {
-    return dtt * mat4x3(A, B, C, D);
+    return vec4(dot(dtt, A), dot(dtt, B), dot(dtt, C), dot(dtt, D));
+}
+
+vec3 weightedSum4(vec4 w, vec3 a, vec3 b, vec3 c, vec3 d)
+{
+    return vec3(
+        dot(w, vec4(a.x, b.x, c.x, d.x)),
+        dot(w, vec4(a.y, b.y, c.y, d.y)),
+        dot(w, vec4(a.z, b.z, c.z, d.z))
+    );
 }
 
 vec3 min4(vec3 a, vec3 b, vec3 c, vec3 d)
@@ -77,14 +87,14 @@ void main()
 {
     // Discard any pixels that are outside the bounds of the texture.
     // This prevents artifacts when the texture doesn't have a full-alpha border.
-    if (any(lessThan(texcoord, vec2(0.0))) || any(greaterThan(texcoord, vec2(1.0)))) {
+    if (any(lessThan(coord, vec2(0.0))) || any(greaterThan(coord, vec2(1.0)))) {
         discard;
     }
 
     vec2 dx = vec2(1.0, 0.0);
     vec2 dy = vec2(0.0, 1.0);
 
-    vec2 pixelCoord = texcoord * ubuf.targetSize / ubuf.resolution;
+    vec2 pixelCoord = coord * ubuf.targetSize / ubuf.resolution;
     vec2 texel = (floor(pixelCoord) + vec2(0.5, 0.5)) * ubuf.resolution / ubuf.targetSize;
 
     vec2 texelCenter = (floor(pixelCoord - vec2(0.5, 0.5)) + vec2(0.5, 0.5));
@@ -112,7 +122,7 @@ void main()
     texelCenter = texelCenter * ubuf.resolution / ubuf.targetSize;
 
     // reading the texels
-    vec3 color = texture(source, texcoord).xyz;
+    vec3 color = texture(source, coord).xyz;
 
     vec3 c00 = texture(source, texelCenter - dx - dy).xyz;
     vec3 c10 = texture(source, texelCenter - dy).xyz;
@@ -148,10 +158,11 @@ void main()
     vec3 min_sample = min4(c11, c21, c12, c22);
     vec3 max_sample = max4(c11, c21, c12, c22);
 
-    color = weights[0] * transpose(mat4x3(c00, c10, c20, c30));
-    color += weights[1] * transpose(mat4x3(c01, c11, c21, c31));
-    color += weights[2] * transpose(mat4x3(c02, c12, c22, c32));
-    color += weights[3] * transpose(mat4x3(c03, c13, c23, c33));
+    color  = weightedSum4(weights[0], c00, c10, c20, c30);
+    color += weightedSum4(weights[1], c01, c11, c21, c31);
+    color += weightedSum4(weights[2], c02, c12, c22, c32);
+    color += weightedSum4(weights[3], c03, c13, c23, c33);
+
     color = color / dot(vec4(1.0) * weights, vec4(1.0));
 
     // Anti-ringing
@@ -160,6 +171,6 @@ void main()
 
     color = mix(aux, color, ubuf.antiRingingStrength);
 
-    float alpha = texture(source, texcoord).a * ubuf.qt_Opacity;
+    float alpha = texture(source, coord).a * ubuf.qt_Opacity;
     fragColor = vec4(color, alpha);
 }

@@ -20,7 +20,6 @@ using namespace std::chrono_literals;
 
 namespace KWin
 {
-
 OverviewEffect::OverviewEffect()
     // manages the transition between inactive -> overview
     : m_overviewState(new EffectTogglableState(this))
@@ -31,6 +30,7 @@ OverviewEffect::OverviewEffect()
     , m_border(new EffectTogglableTouchBorder(m_overviewState))
     , m_gridBorder(new EffectTogglableTouchBorder(m_gridState))
     , m_shutdownTimer(new QTimer(this))
+    , m_manager(new KRunner::RunnerManager(this))
 {
     auto gesture = new EffectTogglableGesture(m_overviewState);
     gesture->addTouchpadSwipeGesture(SwipeDirection::Up, 4);
@@ -50,7 +50,7 @@ OverviewEffect::OverviewEffect()
 
     connect(m_overviewState, &EffectTogglableState::statusChanged, this, [this](EffectTogglableState::Status status) {
         if (status == EffectTogglableState::Status::Activating || status == EffectTogglableState::Status::Active) {
-            m_searchText = QString();
+            setSearchText(QString());
             setRunning(true);
             m_gridState->stop();
         }
@@ -83,7 +83,7 @@ OverviewEffect::OverviewEffect()
 
     connect(m_gridState, &EffectTogglableState::statusChanged, this, [this](EffectTogglableState::Status status) {
         if (status == EffectTogglableState::Status::Activating || status == EffectTogglableState::Status::Active) {
-            m_searchText = QString();
+            setSearchText(QString());
             setRunning(true);
             m_overviewState->stop();
         }
@@ -105,57 +105,61 @@ OverviewEffect::OverviewEffect()
     connect(m_gridState, &EffectTogglableState::inProgressChanged, this, &OverviewEffect::gridGestureInProgressChanged);
     connect(m_gridState, &EffectTogglableState::partialActivationFactorChanged, this, &OverviewEffect::gridPartialActivationFactorChanged);
 
-    connect(effects, &EffectsHandler::desktopChanging, this, [this](VirtualDesktop *old, QPointF desktopOffset, EffectWindow *with) {
-        m_desktopOffset = desktopOffset;
-        Q_EMIT desktopOffsetChanged();
+    connect(effects, &EffectsHandler::desktopChanging, this, [this](VirtualDesktop *old, QPointF desktopOffset, EffectWindow *, LogicalOutput *output) {
+        m_screenDesktopOffsets.insertOrAssign(output, desktopOffset);
+        Q_EMIT desktopOffsetChanged(output);
     });
-    connect(effects, &EffectsHandler::desktopChanged, this, [this](VirtualDesktop *old, VirtualDesktop *current, EffectWindow *with) {
-        m_desktopOffset = QPointF(0, 0);
-        Q_EMIT desktopOffsetChanged();
+    connect(effects, &EffectsHandler::desktopChanged, this, [this](KWin::VirtualDesktop *, KWin::VirtualDesktop *, EffectWindow *, KWin::LogicalOutput *output) {
+        m_screenDesktopOffsets.insertOrAssign(output, QPointF(0, 0));
+        Q_EMIT desktopOffsetChanged(output);
     });
     connect(effects, &EffectsHandler::desktopChangingCancelled, this, [this]() {
-        m_desktopOffset = QPointF(0, 0);
-        Q_EMIT desktopOffsetChanged();
+        m_screenDesktopOffsets.clear();
+        const auto screens = effects->screens();
+
+        for (LogicalOutput *output : screens) {
+            Q_EMIT desktopOffsetChanged(output);
+        }
+    });
+    connect(effects, &EffectsHandler::screenRemoved, this, [this](KWin::LogicalOutput *output) {
+        m_screenDesktopOffsets.remove(output);
+        Q_EMIT desktopOffsetChanged(output);
     });
 
     m_shutdownTimer->setSingleShot(true);
-    connect(m_shutdownTimer, &QTimer::timeout, this, &OverviewEffect::realDeactivate);
+    connect(m_shutdownTimer, &QTimer::timeout, this, [this]() {
+        if (m_overviewState->status() == EffectTogglableState::Status::Inactive) {
+            setRunning(false);
+        }
+    });
 
     auto cycleAction = new QAction(this);
     connect(cycleAction, &QAction::triggered, this, &OverviewEffect::cycle);
     cycleAction->setObjectName(QStringLiteral("Cycle Overview"));
     cycleAction->setText(i18nc("@action Grid View and Overview are the name of KWin effects", "Cycle through Overview and Grid View"));
-    KGlobalAccel::self()->setDefaultShortcut(cycleAction, {});
-    KGlobalAccel::self()->setShortcut(cycleAction, {});
-    m_cycleShortcut = KGlobalAccel::self()->shortcut(cycleAction);
+    KGlobalAccel::setGlobalShortcut(cycleAction, QList<QKeySequence>{});
 
     auto reverseCycleAction = new QAction(this);
     connect(reverseCycleAction, &QAction::triggered, this, &OverviewEffect::reverseCycle);
     reverseCycleAction->setObjectName(QStringLiteral("Cycle Overview Opposite"));
     reverseCycleAction->setText(i18nc("@action Grid View and Overview are the name of KWin effects", "Cycle through Grid View and Overview"));
-    KGlobalAccel::self()->setDefaultShortcut(reverseCycleAction, {});
-    KGlobalAccel::self()->setShortcut(reverseCycleAction, {});
-    m_reverseCycleShortcut = KGlobalAccel::self()->shortcut(reverseCycleAction);
+    KGlobalAccel::setGlobalShortcut(reverseCycleAction, QList<QKeySequence>{});
 
-    const QKeySequence defaultOverviewShortcut = Qt::META | Qt::Key_W;
+    KGlobalAccel::setInverseShortcutActions(cycleAction, reverseCycleAction);
+
     auto overviewAction = m_overviewState->toggleAction();
     overviewAction->setObjectName(QStringLiteral("Overview"));
     overviewAction->setText(i18nc("@action Overview is the name of a Kwin effect", "Toggle Overview"));
     overviewAction->setAutoRepeat(false);
-    KGlobalAccel::self()->setDefaultShortcut(overviewAction, {defaultOverviewShortcut});
-    KGlobalAccel::self()->setShortcut(overviewAction, {defaultOverviewShortcut});
-    m_overviewShortcut = KGlobalAccel::self()->shortcut(overviewAction);
+    KGlobalAccel::setGlobalShortcut(overviewAction, QKeySequence(Qt::META | Qt::Key_W));
 
-    const QKeySequence defaultGridShortcut = Qt::META | Qt::Key_G;
     auto gridAction = m_gridState->toggleAction();
     gridAction->setObjectName(QStringLiteral("Grid View"));
     gridAction->setText(i18nc("@action Grid view is the name of a Kwin effect", "Toggle Grid View"));
     gridAction->setAutoRepeat(false);
-    KGlobalAccel::self()->setDefaultShortcut(gridAction, {defaultGridShortcut});
-    KGlobalAccel::self()->setShortcut(gridAction, {defaultGridShortcut});
-    m_gridShortcut = KGlobalAccel::self()->shortcut(gridAction);
+    KGlobalAccel::setGlobalShortcut(gridAction, QKeySequence(Qt::META | Qt::Key_G));
 
-    connect(effects, &EffectsHandler::screenAboutToLock, this, &OverviewEffect::realDeactivate);
+    connect(effects, &EffectsHandler::screenAboutToLock, this, &OverviewEffect::deactivateNow);
 
     OverviewConfig::instance(effects->config());
     reconfigure(ReconfigureAll);
@@ -177,7 +181,7 @@ OverviewEffect::~OverviewEffect()
 void OverviewEffect::reconfigure(ReconfigureFlags)
 {
     OverviewConfig::self()->read();
-    setAnimationDuration(animationTime(300ms));
+    setAnimationDuration(animationTime(300ms).count());
     setFilterWindows(OverviewConfig::filterWindows());
 
     for (const ElectricBorder &border : std::as_const(m_borderActivate)) {
@@ -204,6 +208,10 @@ void OverviewEffect::reconfigure(ReconfigureFlags)
 
     m_border->setBorders(OverviewConfig::touchBorderActivate());
     m_gridBorder->setBorders(OverviewConfig::gridTouchBorderActivate());
+
+    m_overviewState->setThreshold(gestureThreshold());
+    m_transitionState->setThreshold(gestureThreshold());
+    m_gridState->setThreshold(gestureThreshold());
 }
 
 int OverviewEffect::animationDuration() const
@@ -262,9 +270,9 @@ bool OverviewEffect::gridGestureInProgress() const
     return m_gridState->inProgress();
 }
 
-QPointF OverviewEffect::desktopOffset() const
+QPointF OverviewEffect::desktopOffsetForScreen(LogicalOutput *screen) const
 {
-    return m_desktopOffset;
+    return m_screenDesktopOffsets.value(screen, QPointF(0, 0));
 }
 
 bool OverviewEffect::ignoreMinimized() const
@@ -275,6 +283,11 @@ bool OverviewEffect::ignoreMinimized() const
 bool OverviewEffect::organizedGrid() const
 {
     return OverviewConfig::organizedGrid();
+}
+
+qreal OverviewEffect::gestureThreshold() const
+{
+    return 0.10;
 }
 
 int OverviewEffect::requestedEffectChainPosition() const
@@ -301,6 +314,7 @@ void OverviewEffect::activate()
     }
 
     m_overviewState->activate();
+    m_shutdownTimer->stop();
 }
 
 void OverviewEffect::deactivate()
@@ -310,11 +324,11 @@ void OverviewEffect::deactivate()
     m_overviewState->deactivate();
 }
 
-void OverviewEffect::realDeactivate()
+void OverviewEffect::deactivateNow()
 {
-    if (m_overviewState->status() == EffectTogglableState::Status::Inactive) {
-        setRunning(false);
-    }
+    m_shutdownTimer->stop();
+    m_overviewState->deactivate();
+    setRunning(false);
 }
 
 void OverviewEffect::cycle()
@@ -336,6 +350,14 @@ void OverviewEffect::reverseCycle()
         m_transitionState->deactivate();
     } else if (m_gridState->status() == EffectTogglableState::Status::Inactive) {
         m_gridState->activate();
+    }
+}
+
+void OverviewEffect::setSearchText(const QString &text)
+{
+    if (text != m_searchText) {
+        m_searchText = text;
+        Q_EMIT searchTextChanged();
     }
 }
 

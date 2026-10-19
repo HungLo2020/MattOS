@@ -5,10 +5,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:49+0000\n"
+"POT-Creation-Date: 2026-09-26 00:41+0000\n"
 "PO-Revision-Date: 2023-03-04 17:11+0100\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,7 +24,7 @@ msgstr ""
 msgid "Send File"
 msgstr "Send fil"
 
-#: JobDialog.qml:40
+#: JobDialog.qml:45
 #, kde-format
 msgid "Configuration cancelled"
 msgstr "Oppsett avbrote"

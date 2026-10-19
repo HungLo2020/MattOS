@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=boo,bsc
 Name=openSUSE Bugzilla
+Name[am]=openSUSE Bugzilla
 Name[ar]=أوبن سوي بَغ‌زِلّا
 Name[az]=openSUSE Bugzilla
 Name[be]=openSUSE Bugzilla
@@ -35,6 +36,8 @@ Name[lg]=puloguramu eza openSUSE
 Name[lt]=openSUSE Bugzilla
 Name[lv]=openSUSE Bugzilla
 Name[my]=openSUSE Bugzilla
+Name[nan_TW]=openSUSE Bugzilla
+Name[nan_TW@latin]=openSUSE Bugzilla
 Name[nb]=openSUSE-Bugzilla
 Name[nl]=openSUSE Bugzilla
 Name[nn]=openSUSE-Bugzilla
@@ -51,11 +54,11 @@ Name[sq]=Bugzilla e openSUSE-s
 Name[sv]=openSUSE Bugzilla
 Name[th]=openSUSE Bugzilla
 Name[tr]=openSUSE Bugzilla
-Name[ug]=openSUSE Bugzilla
 Name[uk]=Bugzilla openSUSE
 Name[zh_CN]=openSUSE Bugzilla
 Name[zh_TW]=openSUSE Bugzilla
 Query=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
+Query[am]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[ar]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[ast]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[az]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
@@ -89,6 +92,8 @@ Query[lg]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[lt]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[lv]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[my]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
+Query[nan_TW]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
+Query[nan_TW@latin]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[nb]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[nl]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[nn]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
@@ -104,7 +109,6 @@ Query[sq]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[sv]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[th]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[tr]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
-Query[ug]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[uk]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[zh_CN]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}
 Query[zh_TW]=https://bugzilla.opensuse.org/show_bug.cgi?id=\\{@}

@@ -1,7 +1,7 @@
-# Translation for kcm_mobile_powermanagement.po to Euskara/Basque (eu).
-# Copyright (C) 2021-2024 This file is copyright:
+# Translation for kcm_mobile_power.po to Euskara/Basque (eu).
+# Copyright (C) 2021-2026 This file is copyright:
 # This file is distributed under the same license as the plasma-mobile package.
-# SPDX-FileCopyrightText: 2024 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
+# SPDX-FileCopyrightText: 2024, 2026 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
 #
 # Translators:
 # Iñigo Salvador Azurmendi <xalba@ni.eus>, 2020, 2021, 2022, 2023, 2024, 2026.
@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-mobile\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-01-04 10:13+0100\n"
+"POT-Creation-Date: 2026-06-06 00:45+0000\n"
+"PO-Revision-Date: 2026-03-08 16:22+0100\n"
 "Last-Translator: Iñigo Salvador Azurmendi <xalba@ni.eus>\n"
 "Language-Team: Basque <kde-i18n-eu@kde.org>\n"
 "Language: eu\n"
@@ -18,47 +18,65 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 23.08.4\n"
+"X-Generator: Lokalize 25.12.3\n"
 
-#: mobilepower.cpp:33
+#: mobilepower.cpp:36
 #, kde-format
 msgid "30 sec"
 msgstr "30 seg"
 
-#: mobilepower.cpp:34
+#: mobilepower.cpp:37
 #, kde-format
 msgid "1 min"
 msgstr "min 1"
 
-#: mobilepower.cpp:35
+#: mobilepower.cpp:38
 #, kde-format
 msgid "2 min"
 msgstr "2 min"
 
-#: mobilepower.cpp:36
+#: mobilepower.cpp:39
 #, kde-format
 msgid "5 min"
 msgstr "5 min"
 
-#: mobilepower.cpp:37
+#: mobilepower.cpp:40
 #, kde-format
 msgid "10 min"
 msgstr "10 min"
 
-#: mobilepower.cpp:38
+#: mobilepower.cpp:41
 #, kde-format
 msgid "15 min"
 msgstr "15 min"
 
-#: mobilepower.cpp:39
+#: mobilepower.cpp:42
 #, kde-format
 msgid "30 min"
 msgstr "30 min"
 
-#: mobilepower.cpp:40
+#: mobilepower.cpp:43
 #, kde-format
 msgid "Never"
 msgstr "Inoiz ez"
+
+#: PowerProfileModel.cpp:41
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Power Save"
+msgstr "Energia aurrezpena"
+
+#: PowerProfileModel.cpp:42
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Balanced"
+msgstr "Orekatua"
+
+#: PowerProfileModel.cpp:43
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Performance"
+msgstr "Errendimendua"
 
 #: ui/BatteryPage.qml:23
 #, kde-format
@@ -282,6 +300,17 @@ msgstr "Itzali pantaila hau igarota:"
 msgctxt "Part of a sentence like 'Suspend device after 5 minutes'"
 msgid "Suspend device after"
 msgstr "Eseki gailua hau igarota:"
+
+#: ui/main.qml:149
+#, kde-format
+msgid "Power Profile"
+msgstr "Energia profila"
+
+#: ui/main.qml:158
+#, kde-format
+msgctxt "@label:combobox Power Save, Balanced or Performance profile"
+msgid "Power profile"
+msgstr "Energia profila"
 
 #~ msgid "%"
 #~ msgstr "%"

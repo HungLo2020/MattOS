@@ -8,38 +8,40 @@
 
 #include "globalshortcutcontext.h"
 #include "globalshortcutsregistry.h"
-#include "kglobalaccel_interface.h"
 #include "logging.h"
-#include <config-kglobalaccel.h>
+#include "sequencehelpers_p.h"
 
 #include <QKeySequence>
 #include <QStringList>
 
-#if HAVE_X11
-#include <private/qtx11extras_p.h>
-#endif
+using namespace Qt::StringLiterals;
 
-QList<QKeySequence> Component::keysFromString(const QString &str)
+QSet<QKeySequence> Component::keysFromString(const QString &str)
 {
-    QList<QKeySequence> ret;
+    QSet<QKeySequence> ret;
     if (str == QLatin1String("none")) {
         return ret;
     }
     const QStringList strList = str.split(QLatin1Char('\t'));
     for (const QString &s : strList) {
         QKeySequence key = QKeySequence::fromString(s, QKeySequence::PortableText);
-        ret.append(key);
+        ret.insert(key);
     }
-    return ret;
+    return Utils::normalizeSequences(ret);
 }
 
-QString Component::stringFromKeys(const QList<QKeySequence> &keys)
+QString Component::stringFromKeys(const QSet<QKeySequence> &keys)
 {
     if (keys.isEmpty()) {
         return QStringLiteral("none");
     }
+
+    QList<QKeySequence> sortedKeys(keys.begin(), keys.end());
+    std::sort(sortedKeys.begin(), sortedKeys.end());
+
     QString ret;
-    for (const QKeySequence &key : keys) {
+    for (const QKeySequence &key : sortedKeys) {
+        Q_ASSERT(!key.isEmpty());
         ret.append(key.toString(QKeySequence::PortableText));
         ret.append(QLatin1Char('\t'));
     }
@@ -154,7 +156,7 @@ QDBusObjectPath Component::dbusPath() const
     std::replace_if(dbusPath.begin(), dbusPath.end(), isNonAscii, QLatin1Char('_'));
 
     // QDBusObjectPath could be a little bit easier to handle :-)
-    return QDBusObjectPath(_registry->dbusPath().path() + QLatin1String("component/") + dbusPath);
+    return QDBusObjectPath(QLatin1String("/component/") + dbusPath);
 }
 
 void Component::deactivateShortcuts(bool temporarily)
@@ -171,12 +173,7 @@ void Component::deactivateShortcuts(bool temporarily)
 
 void Component::emitGlobalShortcutEvent(const GlobalShortcut &shortcut, ShortcutKeyState state)
 {
-#if HAVE_X11
-    // pass X11 timestamp
-    const long timestamp = QX11Info::appTime();
-#else
     const long timestamp = 0;
-#endif
 
     if (shortcut.context()->component() != this) {
         return;
@@ -208,19 +205,11 @@ QString Component::friendlyName() const
     return !_friendlyName.isEmpty() ? _friendlyName : _uniqueName;
 }
 
-GlobalShortcut *Component::getShortcutByKey(const QKeySequence &key, KGlobalAccel::MatchType type) const
-{
-    return _current->getShortcutByKey(key, type);
-}
-
 QList<GlobalShortcut *> Component::getShortcutsByKey(const QKeySequence &key, KGlobalAccel::MatchType type) const
 {
     QList<GlobalShortcut *> rc;
     for (GlobalShortcutContext *context : std::as_const(_contexts)) {
-        GlobalShortcut *sc = context->getShortcutByKey(key, type);
-        if (sc) {
-            rc.append(sc);
-        }
+        rc += context->getShortcutsByKey(key, type);
     }
     return rc;
 }
@@ -267,17 +256,49 @@ bool Component::isShortcutAvailable(const QKeySequence &key, const QString &comp
     return true;
 }
 
-GlobalShortcut *
-Component::registerShortcut(const QString &uniqueName, const QString &friendlyName, const QString &shortcutString, const QString &defaultShortcutString)
+GlobalShortcut *Component::registerShortcut(const QString &uniqueName,
+                                            const QString &friendlyName,
+                                            const QString &shortcutString,
+                                            const QString &defaultShortcutString,
+                                            uint64_t serial)
 {
-    GlobalShortcut *shortcut = new GlobalShortcut(uniqueName, friendlyName, currentContext(), _registry);
+    if (!serial) {
+        serial = _registry->nextSerial();
+        Q_EMIT _registry->needsSave();
+    }
+
+    GlobalShortcut *shortcut = new GlobalShortcut(uniqueName, friendlyName, serial, currentContext(), _registry);
     shortcut->setKeys(keysFromString(shortcutString));
     shortcut->setDefaultKeys(keysFromString(defaultShortcutString));
     shortcut->setIsFresh(false);
     return shortcut;
 }
 
-void Component::loadSettings(const KConfigGroup &configGroup)
+void Component::loadInverseAction(const QString &aUniqueName, const QStringList &configEntry)
+{
+    if (configEntry.size() != 1) { // possibility of later expansion with optional list entries
+        qCWarning(KGLOBALACCELD) << "Inverse action invalid format, ignoring:" << aUniqueName << configEntry;
+        return;
+    }
+    const QString &bUniqueName = configEntry.last();
+    GlobalShortcut *a = currentContext()->_actionsMap.value(aUniqueName);
+    GlobalShortcut *b = currentContext()->_actionsMap.value(bUniqueName);
+    if (!a || !b) {
+        qCWarning(KGLOBALACCELD) << "Inverse action configured but one or both shortcuts not found, ignoring:" << //
+            aUniqueName << static_cast<bool>(a) << "|" << bUniqueName << static_cast<bool>(b);
+        return;
+    }
+    if ((!a->inverseActionUniqueName().isEmpty() && a->inverseActionUniqueName() != bUniqueName)
+        || (!b->inverseActionUniqueName().isEmpty() && b->inverseActionUniqueName() != aUniqueName)) {
+        qCWarning(KGLOBALACCELD) << "Inverse action configured for actions with a pre-existing assignment:" << //
+            aUniqueName << a->inverseActionUniqueName() << "|" << bUniqueName << b->inverseActionUniqueName();
+        return;
+    }
+    a->setInverseActionUniqueName(bUniqueName);
+    b->setInverseActionUniqueName(aUniqueName);
+}
+
+void Component::loadSettings(const KConfigGroup &configGroup, const KConfigGroup &stateGroup)
 {
     // GlobalShortcutsRegistry::loadSettings handles contexts.
     const auto listKeys = configGroup.keyList();
@@ -287,7 +308,16 @@ void Component::loadSettings(const KConfigGroup &configGroup)
             continue;
         }
 
-        registerShortcut(confKey, entry[2], entry[0], entry[1]);
+        const uint64_t serial = stateGroup.readEntry<uint64_t>(confKey, 0);
+
+        registerShortcut(confKey, entry[2], entry[0], entry[1], serial);
+    }
+
+    const KConfigGroup inverseActionGroup(&configGroup, "$InverseAction"_L1);
+
+    const auto inverseActionKeys = inverseActionGroup.keyList();
+    for (const QString &confKey : inverseActionKeys) {
+        loadInverseAction(confKey, inverseActionGroup.readEntry(confKey, QStringList()));
     }
 }
 
@@ -327,11 +357,12 @@ void Component::unregisterShortcut(const QString &uniqueName)
     }
 }
 
-void Component::writeSettings(KConfigGroup &configGroup) const
+void Component::writeSettings(KConfigGroup &configGroup, KConfigGroup &stateGroup) const
 {
     // If we don't delete the current content global shortcut
     // registrations will never not deleted after forgetGlobalShortcut()
     configGroup.deleteGroup();
+    stateGroup.deleteGroup();
 
     // Now write all contexts
     for (GlobalShortcutContext *context : std::as_const(_contexts)) {
@@ -346,6 +377,8 @@ void Component::writeSettings(KConfigGroup &configGroup) const
             // Write the friendly name
             contextGroup.writeEntry("_k_friendly_name", context->friendlyName());
         }
+
+        KConfigGroup inverseActionGroup(&contextGroup, "$InverseAction"_L1);
 
         // qCDebug(KGLOBALACCELD) << "writing group " << _uniqueName << ":" << context->uniqueName();
 
@@ -364,8 +397,19 @@ void Component::writeSettings(KConfigGroup &configGroup) const
             entry.append(shortcut->friendlyName());
 
             contextGroup.writeEntry(shortcut->uniqueName(), entry);
+            stateGroup.writeEntry(shortcut->uniqueName(), shortcut->serial());
+
+            if (!shortcut->inverseActionUniqueName().isEmpty() && !inverseActionGroup.hasKey(shortcut->inverseActionUniqueName())) {
+                inverseActionGroup.writeEntry(shortcut->uniqueName(), QStringList{shortcut->inverseActionUniqueName()});
+            }
         }
     }
+}
+
+// static
+bool Component::isReservedConfigGroupName(const QString &name)
+{
+    return name.startsWith("$"_L1); // "$InverseAction", "$Trigger", etc.
 }
 
 #include "moc_component.cpp"

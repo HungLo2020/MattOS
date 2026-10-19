@@ -11,6 +11,7 @@
 #include <QObject>
 #include <QString>
 #include <QVariant>
+#include <qqmlregistration.h>
 
 namespace KWin
 {
@@ -67,6 +68,7 @@ namespace KWin
 class DBusCall : public QObject
 {
     Q_OBJECT
+    QML_ELEMENT
 
     /*!
      * \qmlproperty string DBusCall::service
@@ -106,6 +108,7 @@ class DBusCall : public QObject
      * This property specifies the arguments that will be passed to the request.
      */
     Q_PROPERTY(QVariantList arguments READ arguments WRITE setArguments NOTIFY argumentsChanged)
+
 public:
     explicit DBusCall(QObject *parent = nullptr);
     ~DBusCall() override;

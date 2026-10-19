@@ -20,10 +20,12 @@ namespace KWayland
 {
 namespace Client
 {
+
 class Surface;
 class Pointer;
 class LockedPointer;
 class XdgDecoration;
+
 }
 }
 
@@ -39,14 +41,18 @@ struct wl_callback_listener;
 
 namespace KWin
 {
+
 class OutputFrame;
 namespace WaylandClient
 {
+
 class Viewport;
+
 }
 
 namespace Wayland
 {
+
 class WaylandBackend;
 class ColorSurfaceFeedback;
 
@@ -77,12 +83,12 @@ private:
 class WaylandOutput : public BackendOutput
 {
     Q_OBJECT
+
 public:
-    WaylandOutput(const QString &name, WaylandBackend *backend);
+    WaylandOutput(const QString &name, Capabilities capabilities, WaylandBackend *backend);
     ~WaylandOutput() override;
 
-    RenderLoop *renderLoop() const override;
-    bool presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay) override;
+    std::expected<void, OutputError> presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay) override;
 
     void init(const QSize &pixelSize, qreal scale, bool fullscreen);
 
@@ -93,8 +99,8 @@ public:
 
     void lockPointer(KWayland::Client::Pointer *pointer, bool lock);
 
-    bool testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
-    bool present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
+    std::expected<void, OutputError> testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
+    std::expected<void, OutputError> present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
 
     void frameDiscarded();
     void framePresented(std::chrono::nanoseconds timestamp, uint32_t refreshRate);
@@ -103,6 +109,9 @@ public:
 
     void setOutputLayers(std::vector<std::unique_ptr<OutputLayer>> &&layers);
     QList<OutputLayer *> outputLayers() const;
+
+Q_SIGNALS:
+    void closeRequested();
 
 private:
     void handleConfigure(const QSize &size, KWayland::Client::XdgShellSurface::States states, quint32 serial);
@@ -117,7 +126,6 @@ private:
     static void handleFrame(void *data, wl_callback *callback, uint32_t time);
 
     std::vector<std::unique_ptr<OutputLayer>> m_layers;
-    std::unique_ptr<RenderLoop> m_renderLoop;
     std::unique_ptr<KWayland::Client::Surface> m_surface;
     std::unique_ptr<KWayland::Client::XdgShellSurface> m_xdgShellSurface;
     std::unique_ptr<KWayland::Client::LockedPointer> m_pointerLock;

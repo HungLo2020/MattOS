@@ -25,11 +25,11 @@ PlasmoidItem {
 
         filterType: {
             if (Plasmoid.configuration.allDevices) {
-                return DeviceFilterControl.All
+                return DeviceFilterControl.All;
             } else if (Plasmoid.configuration.removableDevices) {
-                return DeviceFilterControl.Removable
+                return DeviceFilterControl.Removable;
             } else {
-                return DeviceFilterControl.Unremovable
+                return DeviceFilterControl.Unremovable;
             }
         }
 
@@ -40,10 +40,14 @@ PlasmoidItem {
                     devicenotifier.expanded = true;
                     (devicenotifier.fullRepresentationItem as FullRepresentation).spontaneousOpen = true;
                 }
-                devicenotifier.popupIcon = "preferences-desktop-notification";
-                popupIconTimer.restart();
             }
         }
+    }
+
+    Timer {
+        id: popupIconTimer
+        interval: 3000
+        onTriggered: devicenotifier.popupIcon = ""
     }
 
     readonly property bool openAutomounterKcmAuthorized: KAuthorized.authorizeControlModule("device_automounter_kcm")
@@ -53,11 +57,11 @@ PlasmoidItem {
         || Plasmoid.location === PlasmaCore.Types.BottomEdge
         || Plasmoid.location === PlasmaCore.Types.LeftEdge)
 
-    property string popupIcon: ""
-
     property bool itemClicked: false
     property int currentIndex: -1
     property int mountedRemovables: 0
+
+    property string popupIcon: ""
 
     signal unmountAllRequested
 
@@ -74,13 +78,13 @@ PlasmoidItem {
         if (filterModel.lastUdi !== "") {
             return filterModel.lastDescription;
         }
-        return ""
+        return "";
     }
     Plasmoid.icon: {
         let iconName;
-        if (popupIcon !== ""){
+        if (popupIcon !== "") {
             iconName = popupIcon;
-        } else if (filterModel.lastUdi !== "") {
+        } else if (filterModel.lastUdi !== "" && filterModel.lastIcon !== "kdeconnect") {
             iconName = filterModel.lastIcon;
         } else {
             iconName = "device-notifier";
@@ -208,12 +212,5 @@ PlasmoidItem {
         }
 
         return iconName + symbolicSuffix;
-    }
-
-
-    Timer {
-        id: popupIconTimer
-        interval: 3000
-        onTriggered: devicenotifier.popupIcon  = "";
     }
 }

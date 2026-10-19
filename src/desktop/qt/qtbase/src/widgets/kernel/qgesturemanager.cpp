@@ -16,6 +16,10 @@
 #include "qgesture.h"
 #include "qevent.h"
 
+#ifdef Q_OS_HARMONY
+#include "qohosgesturerecognizer_p.h"
+#endif
+
 #ifdef Q_OS_MACOS
 #include "qmacgesturerecognizer_p.h"
 #endif
@@ -59,6 +63,12 @@ QGestureManager::QGestureManager(QObject *parent)
     registerGestureRecognizer(new QMacSwipeGestureRecognizer);
     registerGestureRecognizer(new QMacPinchGestureRecognizer);
     registerGestureRecognizer(new QMacPanGestureRecognizer);
+#elif defined(Q_OS_HARMONY)
+    registerGestureRecognizer(new QPanGestureRecognizer(panTouchPoints()));
+    registerGestureRecognizer(new QPinchGestureRecognizer);
+    registerGestureRecognizer(makeQOhosPinchGestureRecognizer().release());
+    registerGestureRecognizer(new QSwipeGestureRecognizer);
+    registerGestureRecognizer(new QTapGestureRecognizer);
 #else
     registerGestureRecognizer(new QPanGestureRecognizer(panTouchPoints()));
     registerGestureRecognizer(new QPinchGestureRecognizer);

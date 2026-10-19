@@ -7,7 +7,6 @@
 #include "fake.h"
 #include "parser.h"
 
-#include "edid.h"
 #include <output.h>
 
 #include <stdlib.h>
@@ -18,10 +17,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-
-#include <QDBusConnection>
-
-#include "fakebackendadaptor.h"
 
 using namespace KScreen;
 
@@ -45,44 +40,21 @@ void Fake::init(const QVariantMap &arguments)
 
     mConfigFile = arguments[QStringLiteral("TEST_DATA")].toString();
 
-    if (arguments.contains(QStringLiteral("SUPPORTED_FEATURES"))) {
-        bool ok = false;
-        const int features = arguments[QStringLiteral("SUPPORTED_FEATURES")].toInt(&ok);
-        if (ok) {
-            mSupportedFeatures = static_cast<KScreen::Config::Features>(features);
-        }
-    }
-
-    qCDebug(KSCREEN_FAKE) << "Fake profile file:" << mConfigFile << "features" << mSupportedFeatures;
+    qCDebug(KSCREEN_FAKE) << "Fake profile file:" << mConfigFile;
 }
 
 void Fake::delayedInit()
 {
-    new FakeBackendAdaptor(this);
-    QDBusConnection::sessionBus().registerObject(QStringLiteral("/fake"), this);
 }
 
 Fake::~Fake()
 {
 }
 
-QString Fake::name() const
-{
-    return QStringLiteral("Fake");
-}
-
-QString Fake::serviceName() const
-{
-    return QStringLiteral("org.kde.KScreen.Backend.Fake");
-}
-
 ConfigPtr Fake::config() const
 {
     if (mConfig.isNull()) {
         mConfig = Parser::fromJson(mConfigFile);
-        if (mConfig) {
-            mConfig->setSupportedFeatures(mSupportedFeatures);
-        }
     }
 
     return mConfig;
@@ -94,11 +66,6 @@ QFuture<SetConfigResult> Fake::setConfig(const ConfigPtr &config)
     mConfig = config->clone();
     Q_EMIT configChanged(mConfig);
     return QtFuture::makeReadyFuture<SetConfigResult>(SetConfigResult());
-}
-
-bool Fake::isValid() const
-{
-    return true;
 }
 
 QByteArray Fake::edid(int outputId) const
@@ -173,6 +140,7 @@ void Fake::addOutput(int outputId, const QString &name)
     KScreen::OutputPtr output(new KScreen::Output);
     output->setId(outputId);
     output->setName(name);
+    output->setCapabilities(KScreen::Output::Capability::Disable);
     mConfig->addOutput(output);
     Q_EMIT configChanged(mConfig);
 }

@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "formlayoutmenu_p.h"
 #include "layoutinfo_p.h"
@@ -25,11 +26,12 @@
 #include <QtGui/qvalidator.h>
 #include <QtGui/qundostack.h>
 
-#include <QtCore/qpair.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qregularexpression.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qdebug.h>
+
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 

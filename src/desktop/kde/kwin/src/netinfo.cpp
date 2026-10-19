@@ -128,12 +128,6 @@ void RootInfo::destroy()
     xcb_destroy_window(kwinApp()->x11Connection(), supportWindow);
 }
 
-bool RootInfo::desktopEnabled()
-{
-    static const bool enabled = environmentVariableIntValue("KWIN_XWAYLAND_ENABLE_NETWM_DESKTOP").value_or(0);
-    return enabled;
-}
-
 RootInfo::RootInfo(xcb_window_t w, const char *name, NET::Properties properties, NET::WindowTypes types,
                    NET::States states, NET::Properties2 properties2, NET::Actions actions, int scr)
     : NETRootInfo(kwinApp()->x11Connection(), w, name, properties, types, states, properties2, actions, scr)
@@ -168,12 +162,12 @@ void RootInfo::changeActiveWindow(xcb_window_t w, NET::RequestSource src, xcb_ti
             return; // WORKAROUND? With > 1 plasma activities, we cause this ourselves. bug #240673
         } else { // NET::FromApplication
             X11Window *c2;
-            if (c->allowWindowActivation(timestamp, false)) {
+            if (c->allowWindowActivation(timestamp)) {
                 workspace->activateWindow(c);
                 // if activation of the requestor's window would be allowed, allow activation too
             } else if (active_window != XCB_WINDOW_NONE
                        && (c2 = workspace->findClient(active_window)) != nullptr
-                       && c2->allowWindowActivation(timestampCompare(timestamp, c2->userTime() > 0 ? timestamp : c2->userTime()), false)) {
+                       && c2->allowWindowActivation(timestampCompare(timestamp, c2->userTime() > 0 ? timestamp : c2->userTime()))) {
                 workspace->activateWindow(c);
             } else {
                 c->demandAttention();
@@ -262,17 +256,6 @@ WinInfo::WinInfo(X11Window *c, xcb_window_t window,
     : NETWinInfo(kwinApp()->x11Connection(), window, rwin, properties, properties2, NET::WindowManager)
     , m_client(c)
 {
-}
-
-void WinInfo::changeDesktop(int desktopId)
-{
-    if (RootInfo::desktopEnabled()) {
-        if (desktopId == NET::OnAllDesktops) {
-            Workspace::self()->sendWindowToDesktops(m_client, {}, true);
-        } else if (VirtualDesktop *desktop = VirtualDesktopManager::self()->desktopForX11Id(desktopId)) {
-            Workspace::self()->sendWindowToDesktops(m_client, {desktop}, true);
-        }
-    }
 }
 
 void WinInfo::changeFullscreenMonitors(NETFullscreenMonitors topology)

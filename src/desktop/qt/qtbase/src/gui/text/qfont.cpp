@@ -47,6 +47,8 @@ QT_BEGIN_NAMESPACE
 #  define QFONTCACHE_DECREASE_TRIGGER_LIMIT 256
 #endif
 
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QFontPrivate)
+
 bool QFontDef::exactMatch(const QFontDef &other) const
 {
     /*
@@ -829,7 +831,7 @@ QFont &QFont::operator=(const QFont &font)
 */
 QString QFont::family() const
 {
-    return d->request.families.isEmpty() ? QString() : d->request.families.constFirst();
+    return d->request.family();
 }
 
 /*!
@@ -1948,6 +1950,8 @@ QString QFont::substitute(const QString &familyName)
 {
     QFontSubst *fontSubst = globalFontSubst();
     Q_ASSERT(fontSubst != nullptr);
+    if (fontSubst->isEmpty())
+        return familyName;
     QFontSubst::ConstIterator it = fontSubst->constFind(familyName.toLower());
     if (it != fontSubst->constEnd() && !(*it).isEmpty())
         return (*it).first();
@@ -1969,6 +1973,8 @@ QStringList QFont::substitutes(const QString &familyName)
 {
     QFontSubst *fontSubst = globalFontSubst();
     Q_ASSERT(fontSubst != nullptr);
+    if (fontSubst->isEmpty())
+        return {};
     return fontSubst->value(familyName.toLower(), QStringList());
 }
 
@@ -2819,9 +2825,9 @@ void QFont::setFamilies(const QStringList &families)
 QDataStream &operator<<(QDataStream &s, const QFont &font)
 {
     if (s.version() == 1) {
-        s << font.d->request.families.constFirst().toLatin1();
+        s << font.d->request.family().toLatin1();
     } else {
-        s << font.d->request.families.constFirst();
+        s << font.d->request.family();
         if (s.version() >= QDataStream::Qt_5_4)
             s << font.d->request.styleName;
     }
@@ -3166,7 +3172,7 @@ QString QFontInfo::family() const
 {
     QFontEngine *engine = d->engineForScript(QChar::Script_Common);
     Q_ASSERT(engine != nullptr);
-    return engine->fontDef.families.isEmpty() ? QString() : engine->fontDef.families.constFirst();
+    return engine->fontDef.family();
 }
 
 /*!
@@ -3340,7 +3346,7 @@ bool QFontInfo::fixedPitch() const
 {
     QFontEngine *engine = d->engineForScript(QChar::Script_Common);
     Q_ASSERT(engine != nullptr);
-#ifdef Q_OS_MAC
+#ifdef Q_OS_APPLE
     if (!engine->fontDef.fixedPitchComputed) {
         QChar ch[2] = { u'i', u'm' };
         QGlyphLayoutArray<2> g;

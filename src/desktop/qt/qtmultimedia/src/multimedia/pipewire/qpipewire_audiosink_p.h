@@ -39,7 +39,7 @@ struct QPipewireAudioSinkStream final : QPipewireAudioStream, QPlatformAudioSink
 
     QPipewireAudioSinkStream(QAudioDevice, const QAudioFormat &,
                              std::optional<qsizetype> ringbufferSize, QPipewireAudioSink *parent,
-                             float volume, std::optional<int32_t> hardwareBufferFrames,
+                             float volume, std::optional<NativePeriodFrames> nativePeriodFrames,
                              AudioEndpointRole);
     Q_DISABLE_COPY_MOVE(QPipewireAudioSinkStream)
     ~QPipewireAudioSinkStream();
@@ -67,8 +67,8 @@ private:
 
     // QPipewireAudioStream overrides
     void handleDeviceRemoved() override;
-    void processRingbuffer() noexcept QT_MM_NONBLOCKING override;
-    void processCallback() noexcept QT_MM_NONBLOCKING override;
+    void processRingbuffer() noexcept Q_DECL_NONBLOCKING_FUNCTION override;
+    void processCallback() noexcept Q_DECL_NONBLOCKING_FUNCTION override;
     void stateChanged(pw_stream_state /*old*/, pw_stream_state state,
                       const char * /*error*/) override;
     void finalizeStream() override;
@@ -83,7 +83,7 @@ private:
     QAutoResetEvent m_ringbufferDrained;
 
     // process helpers
-    void queueBuffer(struct pw_buffer *b, uint64_t samplesWritten) noexcept QT_MM_NONBLOCKING;
+    void queueBuffer(struct pw_buffer *b, uint64_t samplesWritten) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     // xrun detection
     void xrunOccurred(int /*xrunCount*/) override { m_xrunOccurred.set(); }

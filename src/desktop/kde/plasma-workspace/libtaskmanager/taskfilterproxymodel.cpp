@@ -6,16 +6,14 @@
 
 #include "taskfilterproxymodel.h"
 #include "abstracttasksmodel.h"
+#include "tasktools.h"
+#include "virtualdesktopinfo.h"
 
 #include "launchertasksmodel_p.h"
 
-#include "config-X11.h"
-#if HAVE_X11
 #include <QGuiApplication>
 #include <QScreen>
-
-#include <KWindowSystem>
-#endif
+#include <memory>
 
 namespace TaskManager
 {
@@ -27,11 +25,13 @@ public:
     AbstractTasksModelIface *sourceTasksModel = nullptr;
 
     QVariant virtualDesktop;
+    std::unique_ptr<VirtualDesktopInfo> virtualDesktopInfo;
     QRect screenGeometry;
     QRect regionGeometry;
     QString activity;
 
     bool filterByVirtualDesktop = false;
+    bool filterByCurrentVirtualDesktop = false;
     bool filterByScreen = false;
     bool filterByActivity = false;
     RegionFilterMode::Mode filterByRegion = RegionFilterMode::Mode::Disabled;
@@ -43,6 +43,7 @@ public:
     bool filterSkipPager = false;
 
     bool demandingAttentionSkipsFilters = true;
+    bool hideActivatedLaunchers = true;
 };
 
 TaskFilterProxyModel::Private::Private(TaskFilterProxyModel *)
@@ -59,9 +60,34 @@ TaskFilterProxyModel::~TaskFilterProxyModel() = default;
 
 void TaskFilterProxyModel::setSourceModel(QAbstractItemModel *sourceModel)
 {
+    if (QAbstractItemModel *oldSourceModel = QSortFilterProxyModel::sourceModel()) {
+        disconnect(oldSourceModel, nullptr, this, nullptr);
+    }
+
     d->sourceTasksModel = dynamic_cast<AbstractTasksModelIface *>(sourceModel);
 
     QSortFilterProxyModel::setSourceModel(sourceModel);
+
+    if (!sourceModel) {
+        return;
+    }
+
+    connect(sourceModel, &QAbstractItemModel::rowsInserted, this, [this](const QModelIndex &parent) {
+        if (!parent.isValid() && d->hideActivatedLaunchers) {
+            invalidateFilter();
+        }
+    });
+    connect(sourceModel, &QAbstractItemModel::rowsRemoved, this, [this](const QModelIndex &parent) {
+        if (!parent.isValid() && d->hideActivatedLaunchers) {
+            invalidateFilter();
+        }
+    });
+    connect(sourceModel, &QAbstractItemModel::dataChanged, this, [this](const QModelIndex &, const QModelIndex &, const QList<int> &roles) {
+        if (d->hideActivatedLaunchers
+            && (roles.isEmpty() || roles.contains(AbstractTasksModel::AppId) || roles.contains(AbstractTasksModel::LauncherUrlWithoutIcon))) {
+            invalidateFilter();
+        }
+    });
 }
 
 QVariant TaskFilterProxyModel::virtualDesktop() const
@@ -153,6 +179,33 @@ void TaskFilterProxyModel::setFilterByVirtualDesktop(bool filter)
     }
 }
 
+bool TaskFilterProxyModel::filterByCurrentVirtualDesktop() const
+{
+    return d->filterByCurrentVirtualDesktop;
+}
+
+void TaskFilterProxyModel::setFilterByCurrentVirtualDesktop(bool filter)
+{
+    if (d->filterByCurrentVirtualDesktop != filter) {
+        d->filterByCurrentVirtualDesktop = filter;
+
+        if (filter) {
+            d->virtualDesktopInfo = std::make_unique<VirtualDesktopInfo>();
+            connect(d->virtualDesktopInfo.get(), &VirtualDesktopInfo::currentDesktopForScreenChanged, this, [this]() {
+                if (d->filterByCurrentVirtualDesktop) {
+                    invalidateFilter();
+                }
+            });
+        } else {
+            d->virtualDesktopInfo = nullptr;
+        }
+
+        invalidateFilter();
+
+        Q_EMIT filterByCurrentVirtualDesktopChanged();
+    }
+}
+
 bool TaskFilterProxyModel::filterByScreen() const
 {
     return d->filterByScreen;
@@ -198,7 +251,7 @@ void TaskFilterProxyModel::setFilterByRegion(RegionFilterMode::Mode mode)
 
     d->filterByRegion = mode;
     invalidateFilter();
-    Q_EMIT filterByActivityChanged();
+    Q_EMIT filterByRegionChanged();
 }
 
 bool TaskFilterProxyModel::filterMinimized() const
@@ -314,6 +367,23 @@ void TaskFilterProxyModel::setDemandingAttentionSkipsFilters(bool skip)
     }
 }
 
+bool TaskFilterProxyModel::hideActivatedLaunchers() const
+{
+    return d->hideActivatedLaunchers;
+}
+
+void TaskFilterProxyModel::setHideActivatedLaunchers(bool hide)
+{
+    if (d->hideActivatedLaunchers == hide) {
+        return;
+    }
+
+    d->hideActivatedLaunchers = hide;
+    invalidateFilter();
+
+    Q_EMIT hideActivatedLaunchersChanged();
+}
+
 QModelIndex TaskFilterProxyModel::mapIfaceToSource(const QModelIndex &index) const
 {
     return mapToSource(index);
@@ -349,6 +419,27 @@ bool TaskFilterProxyModel::acceptsRow(int sourceRow) const
         }
     }
 
+    // Filter by per-screen virtual desktop.
+    if (d->filterByCurrentVirtualDesktop && d->virtualDesktopInfo != nullptr) {
+        if (!sourceIdx.data(AbstractTasksModel::IsOnAllVirtualDesktops).toBool()
+            && (!d->demandingAttentionSkipsFilters || !sourceIdx.data(AbstractTasksModel::IsDemandingAttention).toBool())) {
+            const QVariantList &virtualDesktops = sourceIdx.data(AbstractTasksModel::VirtualDesktops).toList();
+            const QRect &screenGeometry = sourceIdx.data(AbstractTasksModel::ScreenGeometry).toRect();
+
+            if (!virtualDesktops.isEmpty() && screenGeometry.isValid()) {
+                for (auto screen : qGuiApp->screens()) {
+                    if (screen->geometry() != screenGeometry) {
+                        continue;
+                    }
+                    if (!virtualDesktops.contains(d->virtualDesktopInfo->currentDesktopByScreenName(screen->name()))) {
+                        return false;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     // Filter by screen.
     if (d->filterByScreen && d->screenGeometry.isValid()) {
         const QRect &screenGeometry = sourceIdx.data(AbstractTasksModel::ScreenGeometry).toRect();
@@ -363,19 +454,6 @@ bool TaskFilterProxyModel::acceptsRow(int sourceRow) const
         QRect windowGeometry = sourceIdx.data(AbstractTasksModel::Geometry).toRect();
 
         QRect regionGeometry = d->regionGeometry;
-#if HAVE_X11
-        if (static const bool isX11 = KWindowSystem::isPlatformX11(); isX11 && windowGeometry.isValid()) {
-            // On X11, in regionGeometry, the original point of the topLeft position belongs to the device coordinate system
-            // but the size belongs to the logical coordinate system (which means the reported size is already divided by DPR)
-            // Converting regionGeometry to device coordinate system is better than converting windowGeometry to logical
-            // coordinate system because the window may span multiple screens, while the region is always on one screen.
-            const double devicePixelRatio = qGuiApp->devicePixelRatio();
-            const QPoint screenTopLeft = d->screenGeometry.topLeft();
-            const QPoint regionTopLeft =
-                screenTopLeft + QPoint(regionGeometry.x() - screenTopLeft.x(), regionGeometry.y() - screenTopLeft.y()) * devicePixelRatio;
-            regionGeometry = QRect(regionTopLeft, regionGeometry.size() * devicePixelRatio);
-        }
-#endif
         switch (d->filterByRegion) {
         case RegionFilterMode::Mode::Inside: {
             if (!regionGeometry.contains(windowGeometry)) {
@@ -448,6 +526,20 @@ bool TaskFilterProxyModel::acceptsRow(int sourceRow) const
 
         if (isHidden) {
             return false;
+        }
+    }
+
+    if (d->hideActivatedLaunchers && sourceIdx.data(AbstractTasksModel::IsLauncher).toBool()) {
+        for (int row = 0; row < sourceModel()->rowCount(); ++row) {
+            const QModelIndex taskIndex = sourceModel()->index(row, 0);
+
+            if ((!taskIndex.data(AbstractTasksModel::IsWindow).toBool() && !taskIndex.data(AbstractTasksModel::IsStartup).toBool()) || !acceptsRow(row)) {
+                continue;
+            }
+
+            if (appsMatch(sourceIdx, taskIndex)) {
+                return false;
+            }
         }
     }
 

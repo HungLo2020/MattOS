@@ -1065,7 +1065,6 @@ endfunction()
 #       OUT_VAR_SHOULD_SKIP <var>
 #       [PROJECT_NAME <str>]
 #       [TEST_PLUGIN]
-#       [CHECK_QT_NO_CREATE_TARGETS]
 #   )
 #
 # Arguments
@@ -1092,12 +1091,15 @@ endfunction()
 #   If the module is a TEST_PLUGIN, we do additional checks based on
 #   `QT_BUILD_STANDALONE_TESTS`
 #
-# `CHECK_QT_NO_CREATE_TARGETS`
-#   Whether to check `QT_NO_CREATE_TARGETS` as a compatibility step
+# `SKIP_IF_PROJECT_NAME_NOT_IN_QT_REPO_DEPENDENCIES`
+#   If the target's project name is not in the current QT_REPO_DEPENDENCIES, skip including it.
+#   Mainly used for qt and qml plugins. Avoids issues when reconfiguring parent repos.
 function(_qt_internal_should_include_targets)
     set(option_args
         TEST_PLUGIN
+        # Deprecated
         CHECK_QT_NO_CREATE_TARGETS
+        SKIP_IF_PROJECT_NAME_NOT_IN_QT_REPO_DEPENDENCIES
     )
     set(single_args
         NAMESPACE
@@ -1137,7 +1139,7 @@ function(_qt_internal_should_include_targets)
 
     # Check for deprecated inputs, i.e. the Config.cmake were already created
     # with a version of qtbase that removed the specific compatibilities
-    foreach(check_arg IN ITEMS )
+    foreach(check_arg IN ITEMS CHECK_QT_NO_CREATE_TARGETS)
         if(arg_${check_arg})
             get_property(skip_warning GLOBAL
                 PROPERTY _qt_skip_warning__qt_internal_should_include_targets
@@ -1155,11 +1157,16 @@ function(_qt_internal_should_include_targets)
     endforeach()
 
     set(project_names "")
+    set(lower_case_project_names "")
     if(arg_PROJECT_NAMES)
         list(APPEND project_names ${arg_PROJECT_NAMES})
     endif()
     if(arg_PROJECT_NAME)
         list(APPEND project_names ${arg_PROJECT_NAME})
+    endif()
+
+    if(project_names)
+        list(TRANSFORM project_names TOLOWER OUTPUT_VARIABLE lower_case_project_names)
     endif()
 
     if(project_names)
@@ -1178,19 +1185,35 @@ function(_qt_internal_should_include_targets)
             return()
         endif()
 
+        # We're building a Qt repository because QT_REPO_DEPENDENCIES is set.
+        # Skip including the target if it has not been provided by one of this repo's
+        # dependencies.
+        if(arg_SKIP_IF_PROJECT_NAME_NOT_IN_QT_REPO_DEPENDENCIES
+                AND DEFINED QT_REPO_DEPENDENCIES
+                AND NOT QT_INTERNAL_BUILD_STANDALONE_PARTS
+                # safety opt out
+                AND NOT QT_NO_SKIP_IF_PROJECT_NAME_NOT_IN_QT_REPO_DEPENDENCIES
+            )
+            set(target_project_name_in_repo_deps FALSE)
+            foreach(lower_case_project_name IN LISTS lower_case_project_names)
+                if(lower_case_project_name IN_LIST QT_REPO_DEPENDENCIES)
+                    set(target_project_name_in_repo_deps TRUE)
+                    break()
+                endif()
+            endforeach()
+
+            if(NOT target_project_name_in_repo_deps)
+                set(${arg_OUT_VAR_SHOULD_SKIP} ON PARENT_SCOPE)
+                return()
+            endif()
+        endif()
+
         # Check if we are building the standalone tests
         if(arg_TEST_PLUGIN AND QT_BUILD_STANDALONE_TESTS AND
             PROJECT_NAME IN_LIST project_names)
             set(${arg_OUT_VAR_SHOULD_SKIP} ON PARENT_SCOPE)
             return()
         endif()
-    endif()
-
-    # Compatibility using the old global `QT_NO_CREATE_TARGETS`
-    # TODO: Remove these once developers have reconfigured their project.
-    if(arg_CHECK_QT_NO_CREATE_TARGETS AND QT_NO_CREATE_TARGETS)
-        set(${arg_OUT_VAR_SHOULD_SKIP} ON PARENT_SCOPE)
-        return()
     endif()
 
     # We might still be generating the Targets.cmake file, so we do the same

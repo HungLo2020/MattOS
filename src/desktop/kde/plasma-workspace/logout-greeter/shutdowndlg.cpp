@@ -32,15 +32,9 @@
 #include <KUser>
 #include <KWindowEffects>
 #include <KWindowSystem>
-#include <KX11Extras>
 #include <LayerShellQt/Window>
 
-#include <cstdio>
-#include <netwm.h>
-
-#include <X11/Xatom.h>
-#include <X11/Xutil.h>
-#include <fixx11h.h>
+#include <Plasma/Plasma>
 
 #include <debug.h>
 
@@ -70,11 +64,10 @@ static const QString s_login1RebootToFirmwareSetup = QStringLiteral("RebootToFir
 static const QString s_login1RebootToBootLoaderMenu = QStringLiteral("RebootToBootLoaderMenu");
 static const QString s_login1RebootToBootLoaderEntry = QStringLiteral("RebootToBootLoaderEntry");
 
-KSMShutdownDlg::KSMShutdownDlg(QWindow *parent, KWorkSpace::ShutdownType sdtype, QScreen *screen)
-    : QuickViewSharedEngine(parent)
+KSMShutdownDlg::KSMShutdownDlg(QQmlEngine *engine, KWorkSpace::ShutdownType sdtype, bool windowed, QScreen *screen)
+    : QQuickView(engine, nullptr)
     , m_result(false)
-// this is a WType_Popup on purpose. Do not change that! Not
-// having a popup here has severe side effects.
+    , m_windowed(windowed)
 {
     // window stuff
     setColor(QColor(Qt::transparent));
@@ -89,30 +82,7 @@ KSMShutdownDlg::KSMShutdownDlg(QWindow *parent, KWorkSpace::ShutdownType sdtype,
         }
     }
 
-    setResizeMode(PlasmaQuick::QuickViewSharedEngine::SizeRootObjectToView);
-
-    // Qt doesn't set this on unmanaged windows
-    // FIXME: or does it?
-    if (KWindowSystem::isPlatformX11()) {
-        constexpr auto role = std::string_view("logoutdialog");
-        constexpr std::size_t roleLength = role.length();
-
-        auto x11App = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
-        XChangeProperty(x11App->display(),
-                        winId(),
-                        XInternAtom(x11App->display(), "WM_WINDOW_ROLE", False),
-                        XA_STRING,
-                        8,
-                        PropModeReplace,
-                        reinterpret_cast<const unsigned char *>(role.data()),
-                        roleLength);
-
-        XClassHint classHint;
-        classHint.res_name = const_cast<char *>("ksmserver-logout-greeter");
-        classHint.res_class = const_cast<char *>("ksmserver-logout-greeter");
-        XSetClassHint(x11App->display(), winId(), &classHint);
-        KX11Extras::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
-    }
+    setResizeMode(QQuickView::SizeRootObjectToView);
 
     // QQuickView *windowContainer = QQuickView::createWindowContainer(m_view, this);
     // windowContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -137,6 +107,7 @@ KSMShutdownDlg::KSMShutdownDlg(QWindow *parent, KWorkSpace::ShutdownType sdtype,
 
     // Trying to access a non-existent context property throws an error, always create the property and then update it later
     context->setContextProperty(u"rebootToFirmwareSetup"_s, false);
+    context->setContextProperty(u"isUefi"_s, false);
     context->setContextProperty(u"rebootToBootLoaderMenu"_s, false);
     context->setContextProperty(u"rebootToBootLoaderEntry"_s, u""_s);
 
@@ -148,6 +119,11 @@ KSMShutdownDlg::KSMShutdownDlg(QWindow *parent, KWorkSpace::ShutdownType sdtype,
         connect(callWatcher, &QDBusPendingCallWatcher::finished, context, [context](QDBusPendingCallWatcher *watcher) {
             QDBusPendingReply<QVariant> reply = *watcher;
             watcher->deleteLater();
+
+            // check whether we're UEFI to provide a more descriptive button label
+            if (QFileInfo(QStringLiteral("/sys/firmware/efi")).isDir()) {
+                context->setContextProperty(u"isUefi"_s, true);
+            }
 
             if (reply.value().toBool()) {
                 context->setContextProperty(u"rebootToFirmwareSetup"_s, true);
@@ -234,16 +210,10 @@ KSMShutdownDlg::KSMShutdownDlg(QWindow *parent, KWorkSpace::ShutdownType sdtype,
     rebootOptionsMap->insert(QStringLiteral("options"), QVariant::fromValue(rebootOptions));
     rebootOptionsMap->insert(QStringLiteral("default"), QVariant::fromValue(def));
     context->setContextProperty(QStringLiteral("rebootOptions"), rebootOptionsMap);
-
-    // engine stuff
-    engine()->rootContext()->setContextObject(new KLocalizedContext(engine().get()));
-    engine()->setProperty("_kirigamiTheme", QStringLiteral("KirigamiPlasmaStyle"));
 }
 
 void KSMShutdownDlg::init(const KPackage::Package &package)
 {
-    rootContext()->setContextProperty(QStringLiteral("screenGeometry"), screen()->geometry());
-
     const QString fileName = package.filePath("logoutmainscript");
 
     if (QFile::exists(fileName)) {
@@ -273,12 +243,7 @@ void KSMShutdownDlg::init(const KPackage::Package &package)
     connect(rootObject(), SIGNAL(lockScreenRequested()), SLOT(slotLockScreen()));
     connect(rootObject(), SIGNAL(cancelSoftwareUpdateRequested()), SLOT(slotCancelSoftwareUpdate()));
 
-    connect(screen(), &QScreen::geometryChanged, this, [this] {
-        setGeometry(screen()->geometry());
-    });
-
     KWindowEffects::enableBlurBehind(this, true);
-    KWindowEffects::enableBackgroundContrast(this, true, 1.0, 1.0, 1.5);
     if (m_windowed) {
         show();
     } else {
@@ -288,18 +253,6 @@ void KSMShutdownDlg::init(const KPackage::Package &package)
     requestActivate();
 
     setKeyboardGrabEnabled(true);
-}
-
-void KSMShutdownDlg::resizeEvent(QResizeEvent *e)
-{
-    QuickViewSharedEngine::resizeEvent(e);
-
-    if (KX11Extras::compositingActive()) {
-        // TODO: reenable window mask when we are without composite?
-        //        clearMask();
-    } else {
-        //        setMask(m_view->mask());
-    }
 }
 
 void KSMShutdownDlg::slotLogout()

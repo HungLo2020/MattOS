@@ -145,6 +145,10 @@ inline constexpr bool isApiGenus(Genus g) {
     \value Proxy The Node subclass is ProxyNode, which represents one or more
            entities that are documented in the current module but which actually
            reside in a different module.
+    \value Concept Represented by CollectionNode tagged with this type.
+           A concept is rendered as a collection page that lists items
+           constrained by it, matching the pattern used by e.g. \c Group and
+           \c Module.
     \omitvalue LastType
 */
 enum class NodeType : unsigned char {
@@ -172,7 +176,74 @@ enum class NodeType : unsigned char {
     QmlValueType,
     SharedComment,
     Collection,
-    Proxy
+    Proxy,
+    Concept
+};
+
+/*!
+  \enum QmlNativeTypeAttribute
+  \relates genustypes.h
+
+  \brief Defines QML-specific attributes affecting QmlTypeNode instances.
+
+  Both QmlTypeNode and ClassNode store this attribute. QmlTypeNode can set
+  it explicitly with the \\qmlsingletontype command, or it can be adopted
+  from a ClassNode that acts as the QML type's native type (via the
+  \\nativetype command).
+
+  \value None
+         A standard instantiable QML type.
+
+  \value Singleton
+         A singleton QML type.
+
+  \value Uncreatable
+         A type that cannot be instantiated directly in QML.
+*/
+enum class QmlNativeTypeAttribute : unsigned char {
+    None,
+    Singleton,
+    Uncreatable
+};
+
+/*!
+    \enum Metaness
+    \relates genustypes.h
+
+    Specifies the kind of function a FunctionNode represents.
+
+    \value Plain       A plain C++ function.
+    \value Signal      A Qt signal.
+    \value Slot        A Qt slot.
+    \value Ctor        A constructor.
+    \value Dtor        A destructor.
+    \value CCtor       A copy constructor.
+    \value MCtor       A move constructor.
+    \value MacroWithParams    A macro that takes parameters.
+    \value MacroWithoutParams A macro that takes no parameters.
+    \value Native      A native (non-virtual) function.
+    \value CAssign     A copy-assignment operator.
+    \value MAssign     A move-assignment operator.
+    \value QmlSignal         A QML signal.
+    \value QmlSignalHandler  A QML signal handler.
+    \value QmlMethod         A QML method.
+*/
+enum class Metaness : unsigned char {
+    Plain,
+    Signal,
+    Slot,
+    Ctor,
+    Dtor,
+    CCtor,
+    MCtor,
+    MacroWithParams,
+    MacroWithoutParams,
+    Native,
+    CAssign,
+    MAssign,
+    QmlSignal,
+    QmlSignalHandler,
+    QmlMethod,
 };
 
 QT_END_NAMESPACE

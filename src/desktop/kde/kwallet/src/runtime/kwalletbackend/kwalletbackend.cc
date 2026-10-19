@@ -14,9 +14,9 @@
 #ifdef HAVE_GPGMEPP
 #include <gpgme++/key.h>
 #endif
-#include <gcrypt.h>
-#include <KNotification>
 #include <KLocalizedString>
+#include <KNotification>
+#include <gcrypt.h>
 
 #include <QDir>
 #include <QFile>
@@ -29,6 +29,7 @@
 #include "blowfish.h"
 #include "sha1.h"
 #include "cbc.h"
+#include "kwalletsettings.h"
 
 #include <assert.h>
 #include <cerrno>
@@ -62,6 +63,23 @@ QString Backend::decodeWalletName(const QString &encodedName) {
     return QString::fromUtf8(QByteArray::fromPercentEncoding(encodedName.toUtf8(), ';'));
 }
 
+QString Backend::networkWallet()
+{
+    KWalletSettings settings;
+    return settings.defaultWallet();
+}
+
+QString Backend::localWallet()
+{
+    KWalletSettings settings;
+
+    if (!settings.useOneWallet()) {
+        return settings.localWallet();
+    }
+
+    return settings.defaultWallet();
+}
+
 gcry_error_t ensureGcryptInit()
 {
     bool static gcry_secmem_init = false;
@@ -89,20 +107,16 @@ class Backend::BackendPrivate
 //     KGlobal::dirs()->addResourceType("kwallet", 0, "share/apps/kwallet");
 // }
 
-Backend::Backend(const QString &name, bool isPath)
-    : d(nullptr),
-      _name(name),
-      _cipherType(KWallet::BACKEND_CIPHER_UNKNOWN)
+Backend::Backend(const QString &name)
+    : d(nullptr)
+    , _name(name)
+    , _cipherType(KWallet::BACKEND_CIPHER_UNKNOWN)
 {
 //  initKWalletDir();
 
     ensureGcryptInit();
 
-    if (isPath) {
-        _path = name;
-    } else {
-        _path = getSaveLocation() + '/' + encodeWalletName(_name) + ".kwl";
-    }
+    _path = getSaveLocation() + '/' + encodeWalletName(_name) + ".kwl";
 
     _open = false;
 }
@@ -110,7 +124,7 @@ Backend::Backend(const QString &name, bool isPath)
 Backend::~Backend()
 {
     if (_open) {
-        close();
+        close(false);
     }
     delete d;
 }
@@ -347,7 +361,7 @@ int Backend::openInternal(WId w)
         }
         newfile.close();
         _open = true;
-        if (sync(w) != 0) {
+        if (sync() != 0) {
             return -2;
         }
     }
@@ -427,7 +441,7 @@ QByteArray Backend::createAndSaveSalt(const QString &path) const
     return salt;
 }
 
-int Backend::sync(WId w)
+int Backend::sync()
 {
     if (!_open) {
         return -255;  // not open yet
@@ -464,7 +478,7 @@ int Backend::sync(WId w)
     if (nullptr == phandler) {
         return -4; // write error
     }
-    int rc = phandler->write(this, sf, version, w);
+    int rc = phandler->write(this, sf, version);
     if (rc < 0) {
         // Oops! wallet file sync filed! Display a notification about that
         // TODO: change kwalletd status flags, when status flags will be implemented
@@ -480,7 +494,7 @@ int Backend::closeInternal(bool save)
 {
     // save if requested
     if (save) {
-        int rc = sync(0);
+        int rc = sync();
         if (rc != 0) {
             return rc;
         }
@@ -516,16 +530,12 @@ const QString &Backend::walletName() const
     return _name;
 }
 
-int Backend::renameWallet(const QString &newName, bool isPath)
+int Backend::renameWallet(const QString &newName)
 {
     QString newPath;
     const auto saveLocation = getSaveLocation();
 
-    if (isPath) {
-        newPath = newName;
-    } else {
-        newPath = saveLocation + QChar::fromLatin1('/') + encodeWalletName(newName) + QStringLiteral(".kwl");
-    }
+    newPath = saveLocation + QChar::fromLatin1('/') + encodeWalletName(newName) + QStringLiteral(".kwl");
 
     if (newPath == _path) {
         return 0;
@@ -580,30 +590,6 @@ Entry *Backend::readEntry(const QString &key)
 
     return rc;
 }
-
-#if KWALLET_BUILD_DEPRECATED_SINCE(5, 72)
-QList<Entry *> Backend::readEntryList(const QString &key)
-{
-    QList<Entry *> rc;
-
-    if (!_open) {
-        return rc;
-    }
-
-    // HACK: see Wallet::WalletPrivate::forEachItemThatMatches()
-    const QString pattern = QRegularExpression::wildcardToRegularExpression(key).replace(
-                                                         QLatin1String("[^/]"), QLatin1String("."));
-    const QRegularExpression re(pattern);
-
-    const EntryMap &map = _entries[_folder];
-    for (EntryMap::ConstIterator i = map.begin(); i != map.end(); ++i) {
-        if (re.match(i.key()).hasMatch()) {
-            rc.append(i.value());
-        }
-    }
-    return rc;
-}
-#endif
 
 QList<Entry *> Backend::entriesList() const
 {

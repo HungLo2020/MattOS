@@ -198,6 +198,12 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::KNotifyConfig => vec!["out/build/knotifyconfig/install".into()],
         BuildStage::KParts => vec!["out/build/kparts/install".into()],
         BuildStage::KXmlGui => vec!["out/build/kxmlgui/install/usr/lib/x86_64-linux-gnu/libKF6XmlGui.so".into()],
+        BuildStage::CxxRustCssparser => vec!["out/build/cxx-rust-cssparser/install".into()],
+        BuildStage::Union => vec!["out/build/union/install".into()],
+        BuildStage::QtKeychain => vec!["out/build/qtkeychain/install".into()],
+        BuildStage::Leptonica => vec!["out/build/leptonica/install".into()],
+        BuildStage::Tesseract => vec!["out/build/tesseract/install".into()],
+        BuildStage::TessdataFast => vec!["out/build/tessdata-fast/install".into()],
         BuildStage::KPrison => vec!["out/build/prison/install".into()],
         BuildStage::KRunner => vec!["out/build/krunner/install".into()],
         BuildStage::KStatusNotifierItem => vec!["out/build/kstatusnotifieritem/install".into()],
@@ -650,7 +656,8 @@ fn stage_precedes_target_toolchain(stage_id: &str) -> bool {
 /// keying them on it would let them build before it exists and then rebuild
 /// once it does.
 fn stage_independent_of_target_toolchain(stage_id: &str) -> bool {
-    matches!(stage_id, "pop-fonts" | "material-cursors" | "noto-color-emoji" | "noto-sans-cjk" | "xdg-utils" | "alsa-ucm-conf")
+    matches!(stage_id, "pop-fonts" | "material-cursors" | "noto-color-emoji" | "noto-sans-cjk" | "xdg-utils" | "alsa-ucm-conf"
+            | "tessdata-fast")
 }
 
 /// Whether `stage_id` is compiled by the target toolchain, and so is keyed on
@@ -870,6 +877,13 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Icu => build_icu(repo_root),
         BuildStage::LmSensors => build_lm_sensors(repo_root),
         BuildStage::Highway => build_highway(repo_root),
+        BuildStage::CxxRustCssparser => build_cxx_rust_cssparser(repo_root),
+        BuildStage::Union => build_union(repo_root),
+        BuildStage::QtKeychain => build_qtkeychain(repo_root),
+        BuildStage::Leptonica => build_leptonica(repo_root),
+        BuildStage::Tesseract => build_tesseract(repo_root),
+        BuildStage::TessdataFast => build_tessdata_fast(repo_root),
+
         BuildStage::PlasmaWorkspace => build_plasma_workspace(repo_root),
         BuildStage::PlasmaDesktop => build_plasma_desktop(repo_root),
         BuildStage::PlasmaLoginManager => build_plasma_login_manager(repo_root),

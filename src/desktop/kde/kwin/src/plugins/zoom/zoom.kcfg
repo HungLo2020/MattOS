@@ -9,9 +9,6 @@
         <entry name="ZoomFactor" type="Double">
             <default>1.2</default>
         </entry>
-        <entry name="MousePointer" type="UInt">
-            <default>0</default>
-        </entry>
         <entry name="MouseTracking" type="UInt">
             <default>0</default>
         </entry>
@@ -36,6 +33,9 @@
         </entry>
         <entry name="PointerAxisGestureModifiers" type="String">
             <default>Meta+Control</default>
+        </entry>
+        <entry name="UsePatternUpscaler" type="Bool">
+            <default>true</default>
         </entry>
     </group>
 </kcfg>

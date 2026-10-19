@@ -22,7 +22,7 @@ Kirigami.ApplicationWindow {
     minimumWidth: Math.round(minimumHeight * 1.25)
     // minimumHeight is set in Component.onCompleted to avoid a binding loop
 
-    width: Kirigami.Units.gridUnit * 25
+    width: Kirigami.Units.gridUnit * 27
     height: Kirigami.Units.gridUnit * 25
 
     pageStack.initialPage: Qt.resolvedUrl("CategoryPage.qml")// { }
@@ -59,7 +59,7 @@ Kirigami.ApplicationWindow {
 
         icon.name: "document-open-recent-symbolic"
         onTriggered: {
-            window.currentPage.category = "";
+            window.currentPage.category = "Recent";
             window.currentPage.model = recentEmojiModel;
             window.currentPage.title = text;
             window.currentPage.showClearHistoryButton = true;
@@ -74,7 +74,7 @@ Kirigami.ApplicationWindow {
         icon.name: "view-list-icons"
 
         onTriggered: {
-            window.currentPage.category = "";
+            window.currentPage.category = "All";
             window.currentPage.model = emoji;
             window.currentPage.title = text;
             window.currentPage.showClearHistoryButton = false;
@@ -165,10 +165,10 @@ Kirigami.ApplicationWindow {
         function onClearHistoryRequested() : void { window.clearHistory() }
         function onAllDataRequested() : void {
             if (window.currentPage.category.length > 0 || window.currentPage.model != emoji) {
-                window.currentPage.category = "";
+                window.currentPage.category = "All";
                 window.currentPage.model = emoji;
                 window.currentPage.title = allAction.text
-                window.currentPage.showClearHistoryButton = true;
+                window.currentPage.showClearHistoryButton = false;
             }
         }
     }
@@ -181,10 +181,11 @@ Kirigami.ApplicationWindow {
         }
 
         // Correct height required for no scrolling — drawer's header's
-        // implicit height is used instead of height, so add the difference.
+        // implicit height is used instead of height, so add the difference
+        // rounded up to avoid being too small with fractional explicit sizes.
         // Set imperatively to avoid binding loop
         window.minimumHeight = Qt.binding( () => {
-            return drawer.contentHeight + (drawer.header.height - drawer.header.implicitHeight)
+            return drawer.contentHeight + (Math.ceil(drawer.header.height) - drawer.header.implicitHeight)
         })
     }
 }

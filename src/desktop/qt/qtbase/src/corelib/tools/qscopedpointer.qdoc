@@ -13,7 +13,8 @@
     common result that code leaks memory and is hard to maintain.
     QScopedPointer is a small utility class that heavily simplifies this by
     assigning stack-based memory ownership to heap allocations, more generally
-    called resource acquisition is initialization(RAII).
+    called resource acquisition is initialization(RAII). The template parameter
+    \a T specifies the type of the pointer being managed.
 
     QScopedPointer guarantees that the object pointed to will get deleted when
     the current scope disappears.
@@ -28,7 +29,7 @@
     \snippet code/src_corelib_tools_qscopedpointer.cpp 1
 
     The code the compiler generates for QScopedPointer is the same as when
-    writing it manually. Code that makes use of \a delete are candidates for
+    writing it manually. Code that makes use of \c delete are candidates for
     QScopedPointer usage (and if not, possibly another type of smart pointer
     such as QSharedPointer). QScopedPointer intentionally has no copy
     constructor or assignment operator, such that ownership and lifetime is
@@ -44,8 +45,9 @@
     \section1 Custom Cleanup Handlers
 
     Arrays as well as pointers that have been allocated with \c malloc must
-    not be deleted using \c delete. QScopedPointer's second template parameter
-    can be used for custom cleanup handlers.
+    not be deleted using \c delete. The \a Cleanup template parameter specifies
+    the cleanup handler to use when the scoped pointer is destroyed;
+    QScopedPointerDeleter is used by default.
 
     The following custom cleanup handlers exist:
 
@@ -255,8 +257,10 @@
   \ingroup misc
 
   A QScopedArrayPointer is a QScopedPointer that defaults to
-  deleting the object it is pointing to with the delete[] operator. It
-  also features operator[] for convenience, so we can write:
+  deleting the object it is pointing to with the delete[] operator.
+  The template parameter \a T specifies the type of the array elements,
+  and the optional \a Cleanup parameter specifies the cleanup handler.
+  It also features operator[] for convenience, so we can write:
 
   \code
     void foo()

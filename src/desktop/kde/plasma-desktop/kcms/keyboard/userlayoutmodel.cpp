@@ -10,7 +10,7 @@
 
 #include "debug.h"
 #include "keyboard_config.h"
-#include "x11_helper.h"
+#include "layoutunit.h"
 #include "xkb_rules.h"
 
 UserLayoutModel::UserLayoutModel(KeyboardConfig *config, QObject *parent) noexcept
@@ -44,11 +44,11 @@ QVariant UserLayoutModel::data(const QModelIndex &index, int role) const
         return QVariant::fromValue(layout.variant());
     } else if (role == Roles::VariantNameRole) {
         if (layout.variant().isEmpty())
-            return QVariant();
+            return QString();
 
         const std::optional<LayoutInfo> layoutInfo = Rules::self().getLayoutInfo(layout.layout());
         if (!layoutInfo)
-            return QVariant();
+            return QString();
 
         const std::optional<VariantInfo> variantInfo = layoutInfo->getVariantInfo(layout.variant());
         return variantInfo ? variantInfo->description : layout.variant();

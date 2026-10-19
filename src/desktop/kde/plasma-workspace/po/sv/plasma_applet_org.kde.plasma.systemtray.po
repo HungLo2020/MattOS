@@ -1,13 +1,13 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2013, 2014, 2015, 2016, 2017, 2018, 2020, 2021, 2022, 2024, 2025, 2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
+# SPDX-FileCopyrightText: 2013-2018, 2020-2022, 2024-2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-19 02:48+0000\n"
-"PO-Revision-Date: 2026-01-18 08:53+0100\n"
+"POT-Creation-Date: 2026-08-28 00:48+0000\n"
+"PO-Revision-Date: 2026-07-07 22:10+0200\n"
 "Last-Translator: Stefan Asserhäll <stefan.asserhall@gmail.com>\n"
 "Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
 "Language: sv\n"
@@ -15,63 +15,69 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.04.3\n"
+
+#: qml/BackgroundAppItem.qml:76
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Quit %1"
+msgstr "Avsluta %1"
 
 #: qml/config.qml:13
 #, kde-format
 msgid "General"
 msgstr "Allmänt"
 
-#: qml/ConfigGeneral.qml:43
+#: qml/ConfigGeneral.qml:45
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item when relevant"
 msgid "Show when relevant"
 msgstr "Visa om relevant"
 
-#: qml/ConfigGeneral.qml:47
+#: qml/ConfigGeneral.qml:49
 #, kde-format
 msgctxt "@item:inlistbox Always show this System Tray item"
 msgid "Always show"
 msgstr "Visa alltid"
 
-#: qml/ConfigGeneral.qml:51
+#: qml/ConfigGeneral.qml:53
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item only in the expanded popup"
 msgid "Show only in popup"
 msgstr "Visa bara i panelruta"
 
-#: qml/ConfigGeneral.qml:55
+#: qml/ConfigGeneral.qml:57
 #, kde-format
 msgctxt "@item:inlistbox Never show this System Tray item; disable it"
 msgid "Never show (disabled)"
 msgstr "Visa aldrig (inaktiverad)"
 
-#: qml/ConfigGeneral.qml:126
+#: qml/ConfigGeneral.qml:128
 #, kde-format
 msgid "Application Status"
 msgstr "Programstatus"
 
-#: qml/ConfigGeneral.qml:128
+#: qml/ConfigGeneral.qml:130
 #, kde-format
 msgid "Communications"
 msgstr "Kommunikation"
 
-#: qml/ConfigGeneral.qml:130
+#: qml/ConfigGeneral.qml:132
 #, kde-format
 msgid "System Services"
 msgstr "Systemtjänster"
 
-#: qml/ConfigGeneral.qml:132
+#: qml/ConfigGeneral.qml:134
 #, kde-format
 msgid "Hardware Control"
 msgstr "Maskinvarukontroll"
 
-#: qml/ConfigGeneral.qml:135
+#: qml/ConfigGeneral.qml:137
 #, kde-format
 msgid "Miscellaneous"
 msgstr "Diverse"
 
-#: qml/ConfigGeneral.qml:172
+#: qml/ConfigGeneral.qml:174
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -87,13 +93,13 @@ msgstr ""
 "de bete sig på oväntat sätt.<nl/><nl/>Använd inställningen på egen risk och "
 "rapportera inte problem till KDE eller programmets upphovsman."
 
-#: qml/ConfigGeneral.qml:175
+#: qml/ConfigGeneral.qml:177
 #, kde-format
 msgctxt "@action:button"
 msgid "I understand the risks"
 msgstr "Jag förstår riskerna"
 
-#: qml/ConfigGeneral.qml:187
+#: qml/ConfigGeneral.qml:189
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -111,7 +117,7 @@ msgstr ""
 "Överväg också att ställa in klippbordet så att historiken inte sparas, eller "
 "att bara komma ihåg ett objekt åt gången."
 
-#: qml/ConfigGeneral.qml:196
+#: qml/ConfigGeneral.qml:198
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -126,66 +132,97 @@ msgstr ""
 "annanstans, eller om du avsiktligt använder en underrättelsehanterare från "
 "tredje part för att hantera underrättelser."
 
-#: qml/ConfigGeneral.qml:208
+#: qml/ConfigGeneral.qml:210
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel height"
 msgstr "Skala till panelhöjd"
 
-#: qml/ConfigGeneral.qml:209
+#: qml/ConfigGeneral.qml:211
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel width"
 msgstr "Skala till panelbredd"
 
-#: qml/ConfigGeneral.qml:211
+#: qml/ConfigGeneral.qml:213
 #, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgctxt ""
+"@label:listbox Whether the system tray icons in the Panel always stay small "
+"or scale with the Panel's size"
 msgid "Panel icon size:"
 msgstr "Panelens ikonstorlek:"
 
-#: qml/ConfigGeneral.qml:215 qml/ConfigGeneral.qml:256
+#: qml/ConfigGeneral.qml:217
+#, kde-format
+msgctxt "@item:inlistbox Icon size"
+msgid "Small"
+msgstr "Liten"
+
+#: qml/ConfigGeneral.qml:237
+#, kde-format
+msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgid "Spacing:"
+msgstr "Mellanrum:"
+
+#: qml/ConfigGeneral.qml:241
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Small"
 msgstr "Litet"
 
-#: qml/ConfigGeneral.qml:244
-#, kde-format
-msgid "Automatically enabled when in Touch Mode"
-msgstr "Automatiskt aktiverat vid användning i pekläge"
-
-#: qml/ConfigGeneral.qml:252
-#, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
-msgid "Panel icon spacing:"
-msgstr "Panelens ikonmellanrum:"
-
-#: qml/ConfigGeneral.qml:260
+#: qml/ConfigGeneral.qml:245
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Normal"
 msgstr "Normalt"
 
-#: qml/ConfigGeneral.qml:264
+#: qml/ConfigGeneral.qml:249
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Large"
 msgstr "Stort"
 
-#: qml/ConfigGeneral.qml:289
+#: qml/ConfigGeneral.qml:269
+#, kde-format
+msgctxt ""
+"@label:listbox Which direction system tray icons in the Panel emerge from "
+"the expander arrow"
+msgid "Direction:"
+msgstr "Riktning:"
+
+#: qml/ConfigGeneral.qml:283
+#, kde-format
+msgid "Bottom-to-top"
+msgstr "Nerifrån och upp"
+
+#: qml/ConfigGeneral.qml:284
+#, kde-format
+msgid "Top-to-bottom"
+msgstr "Uppifrån och neråt"
+
+#: qml/ConfigGeneral.qml:289 qml/ConfigGeneral.qml:296
+#, kde-format
+msgid "Left-to-right"
+msgstr "Vänster till höger"
+
+#: qml/ConfigGeneral.qml:290 qml/ConfigGeneral.qml:295
+#, kde-format
+msgid "Right-to-left"
+msgstr "Höger till vänster"
+
+#: qml/ConfigGeneral.qml:307
 #, kde-format
 msgctxt "@info:usagetip under a combobox when Touch Mode is on"
 msgid "Automatically set to Large when in Touch Mode"
 msgstr "Ställ automatiskt in till stort med pekläge"
 
-#: qml/ConfigGeneral.qml:315
+#: qml/ConfigGeneral.qml:332
 #, kde-format
 msgctxt "@title:column"
 msgid "Entries"
 msgstr "Poster"
 
-#: qml/ConfigGeneral.qml:319
+#: qml/ConfigGeneral.qml:336
 #, kde-format
 msgctxt "@option:check, This is referring to system tray entries"
 msgid "Always show all"
@@ -197,17 +234,17 @@ msgctxt "@action:button"
 msgid "Go Back"
 msgstr "Gå tillbaka"
 
-#: qml/ExpandedRepresentation.qml:72
+#: qml/ExpandedRepresentation.qml:76
 #, kde-format
 msgid "Status and Notifications"
 msgstr "Status och underrättelser"
 
-#: qml/ExpandedRepresentation.qml:169
+#: qml/ExpandedRepresentation.qml:175
 #, kde-format
 msgid "More actions"
 msgstr "Fler åtgärder"
 
-#: qml/ExpandedRepresentation.qml:255
+#: qml/ExpandedRepresentation.qml:260
 #, kde-format
 msgid "Keep Open"
 msgstr "Behåll öppen"
@@ -239,14 +276,18 @@ msgctxt "Some letters with tall characters, ascenders, descenders, etc"
 msgid "AILlmyjgGJP"
 msgstr "AILlmyjgGJP"
 
+#~ msgid "Automatically enabled when in Touch Mode"
+#~ msgstr "Automatiskt aktiverat vid användning i pekläge"
+
+#~ msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+#~ msgid "Panel icon spacing:"
+#~ msgstr "Panelens ikonmellanrum:"
+
 #~ msgid "Always hidden"
 #~ msgstr "Alltid dold"
 
 #~ msgid "Disabled"
 #~ msgstr "Aktiverad"
-
-#~ msgid "Small"
-#~ msgstr "Liten"
 
 #~ msgctxt "Name of the system tray entry"
 #~ msgid "Entry"

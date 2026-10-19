@@ -77,7 +77,8 @@ class KShortcutsEditorDelegate : public KExtendableItemDelegate
 {
     Q_OBJECT
 public:
-    KShortcutsEditorDelegate(QTreeWidget *parent, bool allowLetterShortcuts);
+    KShortcutsEditorDelegate(QTreeWidget *parent, KKeySequenceRecorder::Patterns patterns);
+
     // reimplemented to have some extra height
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
@@ -99,7 +100,7 @@ protected:
 
 private:
     mutable QPersistentModelIndex m_editingIndex;
-    const bool m_allowLetterShortcuts;
+    const KKeySequenceRecorder::Patterns m_patterns;
     QWidget *m_editor = nullptr;
 
     //! List of actionCollections to check for conflicts.
@@ -148,7 +149,7 @@ class ShortcutEditWidget : public TabConnectedWidget
 {
     Q_OBJECT
 public:
-    ShortcutEditWidget(QWidget *viewport, const QKeySequence &defaultSeq, const QKeySequence &activeSeq, bool allowLetterShortcuts);
+    ShortcutEditWidget(QWidget *viewport, const QKeySequence &defaultSeq, const QKeySequence &activeSeq, KKeySequenceRecorder::Patterns patterns);
 
     //! \sa KKeySequenceWidget::setCheckActionCollections()
     void setCheckActionCollections(const QList<KActionCollection *> &checkActionCollections);
@@ -349,9 +350,10 @@ public:
     void setGlobalColumnsHidden(bool hide);
     void setLocalColumnsHidden(bool hide);
 
-    // members
+public: // members
+    KShortcutsEditor *const q;
+
     QList<KActionCollection *> actionCollections;
-    KShortcutsEditor *q;
 
     Ui::KShortcutsDialog ui;
 

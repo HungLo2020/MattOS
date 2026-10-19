@@ -8,11 +8,11 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \qmltype AbstractStylableControls
+    \qmltype StylableControls
     \inqmlmodule Qt.labs.StyleKit
     \brief Abstract base type containing the control types that can be styled.
 
-    AbstractControls is an abstract base type. It contains a \l ControlStyle for
+    StylableControls is an abstract base type. It contains a \l ControlStyle for
     each control type that can be styled by a \l Style, \l Theme, or \l StyleVariation.
 
     The control types form a hierarchy where properties set on a base type
@@ -36,13 +36,13 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::control
+    \qmlproperty ControlStyle StylableControls::control
 
     Grouped property for styling all controls.
 
     \c control is the base type in the control hierarchy, and properties set here
     serve as defaults for all other control types. For example, setting
-    \c{control.implicitWidth: 200} makes \e all controls 200 pixels wide,
+    \c{control.width: 200} makes \e all controls 200 pixels wide,
     including buttons, scroll indicators and every other control.
     It also overrides any values inherited from a higher level in the style
     hierarchy (the \l Style for a \l Theme, or the
@@ -55,11 +55,12 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::abstractButton
+    \qmlproperty ControlStyle StylableControls::abstractButton
 
     Grouped property for styling all button-like controls, including
     \l [QtQuickControls]{Button}, \l [QtQuickControls]{CheckBox},
-    \l [QtQuickControls]{RadioButton}, and \l [QtQuickControls]{Switch}.
+    \l [QtQuickControls]{RadioButton}, \l [QtQuickControls]{Switch}
+    and \l [QtQuickControls]{RoundButton}.
     Unset properties fall back to \l control.
 
     \snippet ControlsSnippets.qml abstractButton
@@ -68,7 +69,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::applicationWindow
+    \qmlproperty ControlStyle StylableControls::applicationWindow
 
     Grouped property for styling \l [QtQuickControls] ApplicationWindow.
 
@@ -82,7 +83,24 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::button
+    \qmlproperty ControlStyle StylableControls::busyIndicator
+
+    Grouped property for styling \l [QtQuickControls]{BusyIndicator}.
+
+    Unset properties fall back to \l control.
+
+    \snippet ControlsSnippets.qml busyIndicator
+
+    StyleKit doesn't provide dedicated properties to style the animation of the
+    spinning indicator. To change the shape or animation of the spinning indicator,
+    you need to implement a custom indicator foreground \l {DelegateStyle::}{delegate}
+    instead:
+
+    \snippet ControlsSnippets.qml busyIndicator delegate
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::button
 
     Grouped property for styling \l [QtQuickControls]{Button}.
 
@@ -92,7 +110,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::checkBox
+    \qmlproperty ControlStyle StylableControls::checkBox
 
     Grouped property for styling \l [QtQuickControls]{CheckBox}.
 
@@ -102,17 +120,73 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::comboBox
+    \qmlproperty ControlStyle StylableControls::checkDelegate
+
+    Grouped property for styling \l [QtQuickControls]{CheckDelegate}.
+
+    Unset properties fall back to \l itemDelegate.
+
+    \snippet ControlsSnippets.qml checkDelegate
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::comboBox
 
     Grouped property for styling \l [QtQuickControls]{ComboBox}.
 
     Unset properties fall back to \l control.
 
+    \note Style the popup through \l popup, and its items through \l itemDelegate.
+
     \snippet ControlsSnippets.qml comboBox
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::flatButton
+    \qmlproperty ControlStyle StylableControls::delayButton
+
+    Grouped property for styling \l [QtQuickControls]{DelayButton}.
+
+    For a delay button, the progress is styled through the indicator. By
+    default, the indicator itself is transparent and without a border,
+    so only the indicator's foreground is visible as it fills up.
+
+    Unset properties fall back to \l abstractButton.
+
+    \snippet ControlsSnippets.qml delayButton
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::dial
+
+    Grouped property for styling \l [QtQuickControls]{Dial}.
+
+    Unset properties fall back to \l control.
+
+    \snippet ControlsSnippets.qml dial
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::dialog
+
+    Grouped property for styling \l [QtQuickControls]{Dialog}.
+
+    Unset properties fall back to \l popup.
+
+    \snippet ControlsSnippets.qml dialog
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::dialogButtonBox
+
+    Grouped property for styling \l [QtQuickControls]{DialogButtonBox}.
+
+    Unset properties fall back to \l pane.
+
+    \snippet ControlsSnippets.qml dialogButtonBox
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::flatButton
 
     Grouped property for styling flat buttons (buttons with no visible
     background in their normal state). The styling will take effect for
@@ -124,7 +198,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::frame
+    \qmlproperty ControlStyle StylableControls::frame
 
     Grouped property for styling \l [QtQuickControls]{Frame}.
 
@@ -134,7 +208,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::groupBox
+    \qmlproperty ControlStyle StylableControls::groupBox
 
     Grouped property for styling \l [QtQuickControls]{GroupBox}.
 
@@ -144,7 +218,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::itemDelegate
+    \qmlproperty ControlStyle StylableControls::itemDelegate
 
     Grouped property for styling \l [QtQuickControls]{ItemDelegate}.
 
@@ -159,7 +233,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::label
+    \qmlproperty ControlStyle StylableControls::label
 
     Grouped property for styling \l [QtQuickControls]{Label}.
 
@@ -169,7 +243,75 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::page
+    \qmlproperty ControlStyle StylableControls::menu
+
+    Grouped property for styling \l [QtQuickControls]{Menu}.
+
+    Unset properties fall back to \l popup.
+
+    \snippet ControlsSnippets.qml menu
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::menuItem
+
+    Grouped property for styling \l [QtQuickControls]{MenuItem}.
+
+    Unset properties fall back to \l control.
+
+    \note In Qt Quick Controls, a \l [QtQuickControls]{MenuItem} inherits from
+    \l [QtQuickControls]{AbstractButton}. In StyleKit, however, \c menuItem
+    falls back to \l control instead of \l abstractButton, since menu items are
+    typically \e styled very differently from regular buttons
+    (flat, no borders or drop shadows, etc.).
+
+    \snippet ControlsSnippets.qml menuItem
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::menuBar
+
+    Grouped property for styling \l [QtQuickControls]{MenuBar}.
+
+    Unset properties fall back to \l control.
+
+    \note Styling \l [QtQuickControls]{MenuBar}, \l [QtQuickControls]{MenuBarItem},
+    and \l [QtQuickControls]{MenuSeparator} normally only affects non-native
+    menu bars. When a MenuBar is implemented as a native menu bar, its delegates
+    are not used for rendering, so StyleKit style properties may have no visual
+    effect. See \l {MenuBar QML Type} {Native Menu Bars} for details.
+
+    \snippet ControlsSnippets.qml menuBar
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::menuBarItem
+
+    Grouped property for styling menu items in a \l [QtQuickControls]{MenuBar}.
+
+    Unset properties fall back to \l control.
+
+    \note In Qt Quick Controls, a \l [QtQuickControls]{MenuBarItem} inherits from
+    \l [QtQuickControls]{AbstractButton}. In StyleKit, however, \c menuBarItem is a
+    separate control type that falls back to \l control instead of \l abstractButton,
+    since menu bar items are typically styled very differently from regular buttons
+    (flat, no borders or drop shadows, etc.).
+
+    \snippet ControlsSnippets.qml menuBarItem
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::menuSeparator
+
+    Grouped property for styling \l [QtQuickControls]{MenuSeparator}.
+
+    Unset properties fall back to \l control.
+
+    \snippet ControlsSnippets.qml menuSeparator
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::page
 
     Grouped property for styling \l [QtQuickControls]{Page}.
 
@@ -186,7 +328,17 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::pane
+    \qmlproperty ControlStyle StylableControls::pageIndicator
+
+    Grouped property for styling \l [QtQuickControls]{PageIndicator}.
+
+    Unset properties fall back to \l control.
+
+    \snippet ControlsSnippets.qml pageIndicator
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::pane
 
     Grouped property for styling \l [QtQuickControls]{Pane}.
 
@@ -196,7 +348,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::popup
+    \qmlproperty ControlStyle StylableControls::popup
 
     Grouped property for styling \l [QtQuickControls]{Popup}.
 
@@ -206,7 +358,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::progressBar
+    \qmlproperty ControlStyle StylableControls::progressBar
 
     Grouped property for styling \l [QtQuickControls]{ProgressBar}.
     For a progress bar, the groove is styled through the indicator, while the progress
@@ -224,7 +376,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::radioButton
+    \qmlproperty ControlStyle StylableControls::radioButton
 
     Grouped property for styling \l [QtQuickControls]{RadioButton}.
 
@@ -234,7 +386,27 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::scrollBar
+    \qmlproperty ControlStyle StylableControls::radioDelegate
+
+    Grouped property for styling \l [QtQuickControls]{RadioDelegate}.
+
+    Unset properties fall back to \l itemDelegate.
+
+    \snippet ControlsSnippets.qml radioDelegate
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::roundButton
+
+    Grouped property for styling \l [QtQuickControls]{RoundButton}.
+
+    Unset properties fall back to \l abstractButton.
+
+    \snippet ControlsSnippets.qml roundButton
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::scrollBar
 
     Grouped property for styling \l [QtQuickControls]{ScrollBar}.
     The groove is styled through \l {ControlStyleProperties::}{background}, and the
@@ -246,7 +418,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::scrollIndicator
+    \qmlproperty ControlStyle StylableControls::scrollIndicator
 
     Grouped property for styling \l [QtQuickControls]{ScrollIndicator}.
     The groove is styled through \l {ControlStyleProperties::}{background}, and the
@@ -258,7 +430,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::scrollView
+    \qmlproperty ControlStyle StylableControls::scrollView
 
     Grouped property for styling \l [QtQuickControls]{ScrollView}.
 
@@ -273,18 +445,34 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::slider
+    \qmlproperty ControlStyle StylableControls::searchField
+
+    Grouped property for styling \l [QtQuickControls]{SearchField}.
+
+    Unset properties fall back to \l control.
+
+    \snippet ControlsSnippets.qml searchField
+
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::slider
 
     Grouped property for styling \l [QtQuickControls]{Slider}.
-    For a slider bar, the groove is styled through the indicator, while the progress
+    For a slider, the groove is styled through the indicator, while the progress
     track is styled through the indicator's foreground.
+
     Unset properties fall back to \l control.
+
+    For vertical sliders, swap the \l {DelegateStyle::width}{width}
+    and \l {DelegateStyle::height}{height} of the relevant delegates
+    so that the control is taller than it is wide, as shown in the snippet below.
 
     \snippet ControlsSnippets.qml slider
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::spinBox
+    \qmlproperty ControlStyle StylableControls::spinBox
 
     Grouped property for styling \l [QtQuickControls]{SpinBox}.
 
@@ -297,7 +485,17 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::switchControl
+    \qmlproperty ControlStyle StylableControls::swipeDelegate
+
+    Grouped property for styling \l [QtQuickControls]{SwipeDelegate}.
+
+    Unset properties fall back to \l itemDelegate.
+
+    \snippet ControlsSnippets.qml swipeDelegate
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::switchControl
 
     Grouped property for styling \l [QtQuickControls]{Switch}.
 
@@ -307,7 +505,17 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::tabBar
+    \qmlproperty ControlStyle StylableControls::switchDelegate
+
+    Grouped property for styling \l [QtQuickControls]{SwitchDelegate}.
+
+    Unset properties fall back to \l itemDelegate.
+
+    \snippet ControlsSnippets.qml switchDelegate
+*/
+
+/*!
+    \qmlproperty ControlStyle StylableControls::tabBar
 
     Grouped property for styling \l [QtQuickControls]{TabBar}.
 
@@ -317,7 +525,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::tabButton
+    \qmlproperty ControlStyle StylableControls::tabButton
 
     Grouped property for styling \l [QtQuickControls]{TabButton}.
 
@@ -327,7 +535,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::textArea
+    \qmlproperty ControlStyle StylableControls::textArea
 
     Grouped property for styling \l [QtQuickControls]{TextArea}.
 
@@ -337,7 +545,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::textField
+    \qmlproperty ControlStyle StylableControls::textField
 
     Grouped property for styling \l [QtQuickControls]{TextField}.
 
@@ -347,7 +555,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::textInput
+    \qmlproperty ControlStyle StylableControls::textInput
 
     Grouped property for styling all text input controls, including
     \l [QtQuickControls]{TextField} and \l [QtQuickControls]{TextArea}.
@@ -358,7 +566,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::toolBar
+    \qmlproperty ControlStyle StylableControls::toolBar
 
     Grouped property for styling \l [QtQuickControls]{ToolBar}.
 
@@ -368,7 +576,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::toolButton
+    \qmlproperty ControlStyle StylableControls::toolButton
 
     Grouped property for styling \l [QtQuickControls]{ToolButton}.
 
@@ -378,11 +586,15 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty ControlStyle AbstractStylableControls::toolSeparator
+    \qmlproperty ControlStyle StylableControls::toolSeparator
 
     Grouped property for styling \l [QtQuickControls]{ToolSeparator}.
 
     Unset properties fall back to \l control.
+
+    For vertical separators, swap the \l {DelegateStyle::width}{width}
+    and \l {DelegateStyle::height}{height} of the relevant delegates
+    so that the control is taller than it is wide, as shown in the snippet below.
 
     \snippet ControlsSnippets.qml toolSeparator
 */
@@ -404,17 +616,44 @@ const QList<QObject *> QQStyleKitControls::children() const
     return m_data;
 }
 
+/*!
+    \qmlmethod ControlStyle StylableControls::getControlStyle(controlType)
+
+    Returns the \l ControlStyle for the given \a controlType, or \c null, if
+    no \l ControlStyle for the type has been defined.
+
+    \a controlType can be one of the built-in types documented by
+    \l {StyleReader::controlType}{StyleReader.controlType}, or the
+    \l {CustomControl::controlType}{controlType} of a \l CustomControl.
+
+    This function can be used to, for example, read or write a property on
+    a \l CustomControl's style at runtime:
+
+    \snippet ControlsSnippets.qml getControlStyle
+
+    \snippet ControlsSnippets.qml getControlStyle-function
+
+    If \a controlType is a built-in type (such as \c {StyleReader.Button}),
+    using for example \c {myStyle.button} or \c {myStyle.getControlStyle(StyleReader.Button)}
+    to get the \l ControlStyle is \e almost equivalent.
+    The difference is that the former will lazily create a \l ControlStyle if
+    it's not yet defined, while the latter will instead return \c null.
+    This means that for example \c {myStyle.button.padding = 10} is always
+    safe, while \c {myStyle.getControlStyle(StyleReader.Button).padding = 10} will
+    fail if \c {myStyle.button} has not been defined in the \l Style.
+
+    \sa CustomControl, StyleReader
+*/
+
 /* Lazy-create the controls that the style is actually using, when accessed
- * them from the style/application (e.g from Style or Theme). We don't lazy
+ * from the style/application (e.g from Style or Theme). We don't lazy
  * create any controls while resolving style properties, as undefined controls would
  * anyway not contain any property overrides. The properties have setters too, to
  * allow the style/application to share custom ControlStyle the classical
  * way, e.g button: ControlStyle { id: button }. */
-QQStyleKitControl* QQStyleKitControls::getControl(QQStyleKitExtendableControlType controlType) const
+QQStyleKitControl* QQStyleKitControls::getControlStyle(QQStyleKitExtendableControlType controlType) const
 {
-    if (!m_controls.contains(controlType))
-        return nullptr;
-    return m_controls[controlType];
+    return m_controls.value(controlType, nullptr);
 }
 
 #define IMPLEMENT_ACCESSORS(NAME, TYPE) \
@@ -436,17 +675,26 @@ void QQStyleKitControls::set_ ## NAME(QQStyleKitControl *control) \
 IMPLEMENT_ACCESSORS(abstractButton, QQStyleKitReader::ControlType::AbstractButton)
 IMPLEMENT_ACCESSORS(applicationWindow, QQStyleKitReader::ControlType::ApplicationWindow)
 IMPLEMENT_ACCESSORS(control, QQStyleKitReader::ControlType::Control)
+IMPLEMENT_ACCESSORS(busyIndicator, QQStyleKitReader::ControlType::BusyIndicator)
 IMPLEMENT_ACCESSORS(button, QQStyleKitReader::ControlType::Button)
 IMPLEMENT_ACCESSORS(flatButton, QQStyleKitReader::ControlType::FlatButton)
 IMPLEMENT_ACCESSORS(checkBox, QQStyleKitReader::ControlType::CheckBox)
+IMPLEMENT_ACCESSORS(checkDelegate, QQStyleKitReader::ControlType::CheckDelegate)
 IMPLEMENT_ACCESSORS(comboBox, QQStyleKitReader::ControlType::ComboBox)
+IMPLEMENT_ACCESSORS(delayButton, QQStyleKitReader::ControlType::DelayButton)
+IMPLEMENT_ACCESSORS(dial, QQStyleKitReader::ControlType::Dial)
+IMPLEMENT_ACCESSORS(dialog, QQStyleKitReader::ControlType::Dialog)
+IMPLEMENT_ACCESSORS(dialogButtonBox, QQStyleKitReader::ControlType::DialogButtonBox)
 IMPLEMENT_ACCESSORS(progressBar, QQStyleKitReader::ControlType::ProgressBar)
 IMPLEMENT_ACCESSORS(scrollBar, QQStyleKitReader::ControlType::ScrollBar)
 IMPLEMENT_ACCESSORS(scrollIndicator, QQStyleKitReader::ControlType::ScrollIndicator)
 IMPLEMENT_ACCESSORS(scrollView, QQStyleKitReader::ControlType::ScrollView)
+IMPLEMENT_ACCESSORS(searchField, QQStyleKitReader::SearchField)
 IMPLEMENT_ACCESSORS(slider, QQStyleKitReader::ControlType::Slider)
 IMPLEMENT_ACCESSORS(spinBox, QQStyleKitReader::ControlType::SpinBox)
+IMPLEMENT_ACCESSORS(swipeDelegate, QQStyleKitReader::ControlType::SwipeDelegate)
 IMPLEMENT_ACCESSORS(switchControl, QQStyleKitReader::ControlType::SwitchControl)
+IMPLEMENT_ACCESSORS(switchDelegate, QQStyleKitReader::ControlType::SwitchDelegate)
 IMPLEMENT_ACCESSORS(tabBar, QQStyleKitReader::ControlType::TabBar)
 IMPLEMENT_ACCESSORS(tabButton, QQStyleKitReader::ControlType::TabButton)
 IMPLEMENT_ACCESSORS(textField, QQStyleKitReader::ControlType::TextField)
@@ -455,14 +703,22 @@ IMPLEMENT_ACCESSORS(toolBar, QQStyleKitReader::ControlType::ToolBar)
 IMPLEMENT_ACCESSORS(toolButton, QQStyleKitReader::ControlType::ToolButton)
 IMPLEMENT_ACCESSORS(toolSeparator, QQStyleKitReader::ControlType::ToolSeparator)
 IMPLEMENT_ACCESSORS(radioButton, QQStyleKitReader::ControlType::RadioButton)
+IMPLEMENT_ACCESSORS(radioDelegate, QQStyleKitReader::ControlType::RadioDelegate)
+IMPLEMENT_ACCESSORS(roundButton, QQStyleKitReader::ControlType::RoundButton)
 IMPLEMENT_ACCESSORS(itemDelegate, QQStyleKitReader::ControlType::ItemDelegate)
 IMPLEMENT_ACCESSORS(popup, QQStyleKitReader::ControlType::Popup)
 IMPLEMENT_ACCESSORS(pane, QQStyleKitReader::ControlType::Pane)
 IMPLEMENT_ACCESSORS(page, QQStyleKitReader::ControlType::Page)
+IMPLEMENT_ACCESSORS(pageIndicator, QQStyleKitReader::ControlType::PageIndicator)
 IMPLEMENT_ACCESSORS(frame, QQStyleKitReader::ControlType::Frame)
 IMPLEMENT_ACCESSORS(label, QQStyleKitReader::ControlType::Label)
 IMPLEMENT_ACCESSORS(groupBox, QQStyleKitReader::ControlType::GroupBox)
 IMPLEMENT_ACCESSORS(textArea, QQStyleKitReader::ControlType::TextArea)
+IMPLEMENT_ACCESSORS(menu, QQStyleKitReader::ControlType::Menu)
+IMPLEMENT_ACCESSORS(menuBar, QQStyleKitReader::ControlType::MenuBar)
+IMPLEMENT_ACCESSORS(menuBarItem, QQStyleKitReader::ControlType::MenuBarItem)
+IMPLEMENT_ACCESSORS(menuItem, QQStyleKitReader::ControlType::MenuItem)
+IMPLEMENT_ACCESSORS(menuSeparator, QQStyleKitReader::ControlType::MenuSeparator)
 
 #undef IMPLEMENT_ACCESSORS
 

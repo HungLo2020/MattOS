@@ -1,13 +1,14 @@
+# SPDX-FileCopyrightText: 2023, 2026 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2019.
-# Ryuichi Yamada <ryuichi_ya220@outlook.jp>, 2023.
 # Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2023.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasmanetworkmanagement-kcm\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-29 03:06+0000\n"
-"PO-Revision-Date: 2023-02-25 14:51-0800\n"
-"Last-Translator: Fumiaki Okushi <fumiaki.okushi@gmail.com>\n"
+"POT-Creation-Date: 2026-09-16 02:45+0000\n"
+"PO-Revision-Date: 2026-07-06 23:18+0900\n"
+"Last-Translator: Ryuichi Yamada <ryuichi_ya220@outlook.jp>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -16,78 +17,80 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 22.12.1\n"
-
-#: kcm.cpp:269
-#, kde-format
-msgid "Import the VPN configuration from \"%1\"?"
-msgstr ""
+"X-Generator: Lokalize 26.04.2\n"
 
 #: kcm.cpp:270
-#, fuzzy, kde-format
-#| msgid "Import VPN Connection"
-msgctxt "@title:window"
-msgid "Import VPN Configuration"
-msgstr "VPN 接続をインポート"
+#, kde-format
+msgid "Import the VPN configuration from \"%1\"?"
+msgstr "VPN 設定を \"%1\" からインポートしますか？"
 
 #: kcm.cpp:271
-#, fuzzy, kde-format
-#| msgid "Export"
+#, kde-format
+msgctxt "@title:window"
+msgid "Import VPN Configuration"
+msgstr "VPN 設定をインポート"
+
+#: kcm.cpp:272
+#, kde-format
 msgid "Import"
-msgstr "エクスポート"
+msgstr "インポート"
 
-#: kcm.cpp:278 kcm.cpp:351
-#, fuzzy, kde-format
-#| msgid "Import VPN Connection"
+#: kcm.cpp:279 kcm.cpp:352
+#, kde-format
 msgid "Failed to import VPN connection: %1"
-msgstr "VPN 接続をインポート"
+msgstr "VPN 接続のインポートに失敗しました: %1"
 
-#: kcm.cpp:281 kcm.cpp:354
-#, fuzzy, kde-format
-#| msgid "Connected"
+#: kcm.cpp:282 kcm.cpp:355
+#, kde-format
 msgid "Connection imported."
-msgstr "接続済み"
+msgstr "接続がインポートされました。"
 
-#: kcm.cpp:423
+#: kcm.cpp:424
 #, kde-format
 msgid "my_shared_connection"
 msgstr "my_shared_connection"
 
-#: kcm.cpp:495
+#: kcm.cpp:496
 #, kde-format
 msgid "Export VPN Connection"
 msgstr "VPN 接続をエクスポート"
 
-#: kcm.cpp:515
+#: kcm.cpp:516
 #, kde-format
 msgid "Do you want to save changes made to the connection '%1'?"
 msgstr "接続 '%1' への変更を保存しますか？"
 
-#: kcm.cpp:516
+#: kcm.cpp:517
 #, kde-format
 msgctxt "@title:window"
 msgid "Save Changes"
 msgstr "変更を保存"
 
-#: kcm.cpp:611
+#: kcm.cpp:612
 #, kde-format
 msgid "Import VPN Connection"
 msgstr "VPN 接続をインポート"
 
-#: kcm.cpp:613
+#: kcm.cpp:614
 #, kde-format
 msgid "VPN connections (%1)"
 msgstr "VPN 接続 (%1)"
 
-#: kcm.cpp:616
+#: kcm.cpp:617
 #, kde-format
 msgid "No file was provided"
-msgstr ""
+msgstr "ファイルが提供されませんでした"
 
-#: kcm.cpp:684
+#: kcm.cpp:685
 #, kde-format
 msgid "Unknown VPN type"
-msgstr ""
+msgstr "不明の VPN タイプ"
+
+#: kcm.cpp:717
+#, kde-format
+msgctxt "Suffix appended to the name of a duplicated connection"
+msgid " (Copy)"
+msgstr " (コピー)"
 
 #: qml/AddConnectionDialog.qml:18
 msgctxt "@title:window"
@@ -113,7 +116,7 @@ msgstr "仮想接続を表示"
 
 #: qml/ConfigurationDialog.qml:57
 msgid "Create new connections as system connections"
-msgstr ""
+msgstr "新しい接続設定をシステム接続設定として作成"
 
 #: qml/ConfigurationDialog.qml:62
 msgid "Hotspot"
@@ -122,24 +125,23 @@ msgstr "ホットスポット"
 #: qml/ConfigurationDialog.qml:70
 msgctxt "@label Hotspot name"
 msgid "Name:"
-msgstr ""
+msgstr "名前:"
 
 #: qml/ConfigurationDialog.qml:76
-#, fuzzy
-#| msgid "Hotspot password:"
 msgctxt "@label Hotspot password"
 msgid "Password:"
-msgstr "ホットスポットのパスワード:"
+msgstr "パスワード:"
 
 #: qml/ConfigurationDialog.qml:95
 msgid "Hotspot name must not be empty"
-msgstr ""
+msgstr "ホットスポットの名前を空にすることはできません"
 
 #: qml/ConfigurationDialog.qml:105
 msgid ""
 "Hotspot password must either be empty or consist of anywhere from 8 up to 64 "
 "characters"
 msgstr ""
+"ホットスポットのパスワードは空か 8 文字以上 64 文字以下である必要があります"
 
 #: qml/ConfigurationDialog.qml:106
 msgid ""
@@ -147,110 +149,118 @@ msgid ""
 "<ul><li>Exactly 5 or 13 any characters</li><li>Exactly 10 or 26 hexadecimal "
 "characters:<br/>abcdef, ABCDEF or 0-9</li></ul>"
 msgstr ""
+"ホットスポットのパスワードは空か以下の内 1 つの条件を満たす必要があります:"
+"<ul><li>任意の 5 文字または 13 文字</li><li>10 文字もしくは 26 文字の 16 進数"
+"文字:<br/>abcdef, ABCDEF または 0 から 9</li></ul>"
 
 #. i18n is a way to use something pre-exposed to QML.
-#: qml/ConnectionItem.qml:29
+#: qml/ConnectionItem.qml:29 ui/ConnectionItem.qml:29
 msgctxt "@label/rich"
 msgid "%1"
-msgstr ""
+msgstr "%1"
 
-#: qml/ConnectionItem.qml:85
+#: qml/ConnectionItem.qml:85 ui/ConnectionItem.qml:81
 msgid "Connect"
 msgstr "接続"
 
-#: qml/ConnectionItem.qml:85
+#: qml/ConnectionItem.qml:85 ui/ConnectionItem.qml:81
 msgid "Disconnect"
 msgstr "切断"
 
-#: qml/ConnectionItem.qml:90
+#: qml/ConnectionItem.qml:90 ui/ConnectionItem.qml:86
 msgctxt "@info:tooltip"
 msgid "Cannot connect to this network because it was not detected."
-msgstr ""
+msgstr "検出されなかったため、このネットワークに接続することはできません。"
 
-#: qml/ConnectionItem.qml:95
+#: qml/ConnectionItem.qml:94 ui/ConnectionItem.qml:90
+msgctxt "@action:inmenu duplicate network connection"
+msgid "Duplicate"
+msgstr "複製"
+
+#: qml/ConnectionItem.qml:102 ui/ConnectionItem.qml:98
 msgid "Delete"
 msgstr "削除"
 
-#: qml/ConnectionItem.qml:106
+#: qml/ConnectionItem.qml:113 ui/ConnectionItem.qml:109
 msgid "Export"
 msgstr "エクスポート"
 
-#: qml/ConnectionItem.qml:120
+#: qml/ConnectionItem.qml:127 ui/ConnectionItem.qml:123
 msgid "Connected"
 msgstr "接続済み"
 
-#: qml/ConnectionItem.qml:122
+#: qml/ConnectionItem.qml:129 ui/ConnectionItem.qml:125
 msgid "Connecting"
 msgstr "接続中"
 
-#: qml/ConnectionItem.qml:124
+#: qml/ConnectionItem.qml:131 ui/ConnectionItem.qml:127
 msgctxt "@title:column Available networks"
 msgid "Available"
-msgstr ""
+msgstr "利用可能"
 
-#: qml/main.qml:151
+#: qml/main.qml:148 ui/main.qml:220
 msgid "Add new connection"
 msgstr "新しい接続を追加"
 
-#: qml/main.qml:169
+#: qml/main.qml:166 ui/main.qml:238
 msgid "Remove selected connection"
 msgstr "選択された接続を削除"
 
-#: qml/main.qml:187
+#: qml/main.qml:184 ui/main.qml:256
 msgid "Export selected connection"
 msgstr "選択された接続をエクスポート"
 
-#: qml/main.qml:212
+#: qml/main.qml:209 ui/main.qml:192
 msgid "Configuration"
 msgstr "設定"
 
-#: qml/main.qml:239
+#: qml/main.qml:236 ui/main.qml:321
 msgctxt "@title:window"
 msgid "Remove Connection"
 msgstr "接続を削除"
 
-#: qml/main.qml:240
+#: qml/main.qml:237 ui/main.qml:322
 msgid "Do you want to remove the connection '%1'?"
 msgstr "接続'%1'を削除しますか？"
 
-#: qml/main.qml:262
-#, fuzzy
-#| msgid "Connect"
+#: qml/main.qml:259
 msgctxt "@action:button Connect to network"
 msgid "Connect"
 msgstr "接続"
 
-#: qml/main.qml:268
-#, fuzzy
-#| msgid "Cancel"
+#: qml/main.qml:265
 msgctxt "@action:button Cancel connecting to network"
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: qml/main.qml:274
-#, fuzzy
-#| msgid "Hotspot password:"
+#: qml/main.qml:271
 msgctxt "@title:window"
 msgid "Enter Password"
-msgstr "ホットスポットのパスワード:"
+msgstr "パスワードを入力"
 
-#: qml/main.qml:280
+#: qml/main.qml:277
 msgctxt "@label %1 is the name of the network the user is connecting to"
 msgid "Network: %1"
-msgstr ""
+msgstr "ネットワーク: %1"
 
-#: qml/main.qml:301
+#: qml/main.qml:298
 msgctxt "@label key is a passcode"
 msgid "Password must be a valid WEP key"
-msgstr ""
+msgstr "パスワードは有効な WEP キーである必要があります"
 
-#: qml/main.qml:302
+#: qml/main.qml:299
 msgctxt "@label password invalid length message"
 msgid "Password must be between 8 and 64 characters"
-msgstr ""
+msgstr "パスワードは 8 文字以上 64 文字以下である必要があります"
 
-#~ msgid "Create"
-#~ msgstr "作成"
+#: ui/main.qml:46
+#, fuzzy
+#| msgid "Disconnect"
+msgid "Disconnected"
+msgstr "切断"
 
-#~ msgid "Cancel"
-#~ msgstr "キャンセル"
+#: ui/main.qml:280
+#, fuzzy
+#| msgid "Connection imported."
+msgid "Connection name:"
+msgstr "接続がインポートされました。"

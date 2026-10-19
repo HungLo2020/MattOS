@@ -717,7 +717,7 @@ QV4::CompiledData::Unit QV4::Compiler::JSUnitGenerator::generateHeader(QV4::Comp
 
         quint32 size = QV4::CompiledData::Function::calculateSize(
                     f->arguments.size(), f->locals.size(), f->lineAndStatementNumberMapping.size(),
-                    f->nestedContexts.size(), int(f->labelInfo.size()), f->code.size());
+                    int(f->labelInfo.size()), f->code.size());
         functionSize += size - f->code.size();
         nextOffset += size;
     }

@@ -22,8 +22,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_keymap_creation_failure-0");
-
 class KeymapCreationFailureTest : public QObject
 {
     Q_OBJECT
@@ -46,7 +44,7 @@ void KeymapCreationFailureTest::initTestCase()
     qputenv("XKB_DEFAULT_OPTIONS", "no");
 
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->setConfig(KSharedConfig::openConfig(QString(), KConfig::SimpleConfig));
     kwinApp()->setKxkbConfig(KSharedConfig::openConfig(QString(), KConfig::SimpleConfig));

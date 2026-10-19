@@ -2,16 +2,14 @@
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 add_library(widgets_snippets OBJECT
+    customstyle/checkboxstyle.cpp
     customstyle/customstyle.cpp
     customstyle/main.cpp
     customviewstyle/customviewstyle.cpp
     dialogs/dialogs.cpp
-    dockwidgets/mainwindow.cpp
     itemselection/main.cpp
     layouts/layouts.cpp
-    qlistview-dnd/mainwindow.cpp
     qlistview-dnd/model.cpp
-    qlistwidget-dnd/mainwindow.cpp
     qrhiwidget/rhiwidgetintro.cpp
     qsortfilterproxymodel/main.cpp
     qsplashscreen/main.cpp
@@ -19,10 +17,6 @@ add_library(widgets_snippets OBJECT
     qstackedwidget/main.cpp
     qstyleoption/main.cpp
     qstyleplugin/main.cpp
-    qtablewidget-resizing/mainwindow.cpp
-    qtablewidget-using/mainwindow.cpp
-    qtreewidget-using/mainwindow.cpp
-    qtreewidgetitemiterator-using/mainwindow.cpp
     reading-selections/window.cpp
     shareddirmodel/main.cpp
     simplemodel-use/main.cpp
@@ -34,7 +28,6 @@ add_library(widgets_snippets OBJECT
     timeline/main.cpp
     tooltips/main.cpp
     updating-selections/window.cpp
-    whatsthis/whatsthis.cpp
     widget-mask/main.cpp
     widgets-tutorial/template.cpp
     mainwindowsnippet.cpp
@@ -47,6 +40,19 @@ target_link_libraries(widgets_snippets PRIVATE
     Qt::GuiPrivate
     Qt::Widgets
 )
+
+if(QT_FEATURE_shortcut)
+    target_sources(widgets_snippets PRIVATE
+        dockwidgets/mainwindow.cpp
+        qlistview-dnd/mainwindow.cpp
+        qlistwidget-dnd/mainwindow.cpp
+        qtablewidget-resizing/mainwindow.cpp
+        qtablewidget-using/mainwindow.cpp
+        qtreewidget-using/mainwindow.cpp
+        qtreewidgetitemiterator-using/mainwindow.cpp
+        whatsthis/whatsthis.cpp
+    )
+endif()
 
 if(QT_FEATURE_filedialog)
     target_sources(widgets_snippets PRIVATE

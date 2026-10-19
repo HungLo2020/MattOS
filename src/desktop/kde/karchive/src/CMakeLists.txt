@@ -57,7 +57,6 @@ ecm_qt_declare_logging_category(KF6Archive
     IDENTIFIER KArchiveLog
     CATEGORY_NAME kf.archive
     OLD_CATEGORY_NAMES kf5.karchive
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "KArchive"
     EXPORT KARCHIVE
 )
@@ -83,7 +82,7 @@ target_link_libraries(KF6Archive
         ZLIB::ZLIB
 )
 
-ecm_generate_headers(KArchive_HEADERS
+ecm_generate_headers(KArchive_CamelCase_HEADERS
     HEADER_NAMES
     KArchive
     KArchiveEntry
@@ -105,7 +104,7 @@ install(TARGETS KF6Archive
         ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
 
 if(LIBLZMA_FOUND)
-    ecm_generate_headers(KArchive_HEADERS
+    ecm_generate_headers(KArchive_CamelCase_HEADERS
         HEADER_NAMES
         K7Zip
         REQUIRED_HEADERS KArchive_HEADERS
@@ -115,6 +114,7 @@ endif()
 install(FILES
             ${CMAKE_CURRENT_BINARY_DIR}/karchive_export.h
             ${KArchive_HEADERS}
+            ${KArchive_CamelCase_HEADERS}
         DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KArchive
         COMPONENT Devel)
 
@@ -125,3 +125,42 @@ ecm_qt_install_logging_categories(
 )
 
 ecm_generate_qdoc(KF6Archive karchive.qdocconf)
+
+ecm_add_installed_library_check(KF6Archive
+    PACKAGE_NAME "KF6Archive"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6Archive
+    HEADERS ${KArchive_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_cmake_variable(KF6Archive
+    NAME "KArchive_HAVE_ZLIB"
+    VALUE ${ZLIB_FOUND}
+    TYPE BOOL
+)
+ecm_installed_library_check_cmake_variable(KF6Archive
+    NAME "KArchive_HAVE_BZIP2"
+    VALUE ${BZIP2_FOUND}
+    TYPE BOOL
+)
+ecm_installed_library_check_cmake_variable(KF6Archive
+    NAME "KArchive_HAVE_LZMA"
+    VALUE ${LIBLZMA_FOUND}
+    TYPE BOOL
+)
+ecm_installed_library_check_cmake_variable(KF6Archive
+    NAME "KArchive_HAVE_OPENSSL"
+    VALUE ${OpenSSL_FOUND}
+    TYPE BOOL
+)
+ecm_installed_library_check_cmake_variable(KF6Archive
+    NAME "KArchive_HAVE_ZSTD"
+    VALUE ${LibZstd_FOUND}
+    TYPE BOOL
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6Archive
+    PREFIX KARCHIVE
+)

@@ -7,8 +7,6 @@
 #include "secretserviceclient.h"
 #include "kwalletd_debug.h"
 
-#include <KConfig>
-#include <KConfigGroup>
 #include <KLocalizedString>
 #include <QDBusConnection>
 #include <QDBusInterface>
@@ -16,6 +14,8 @@
 #include <QDBusServiceWatcher>
 #include <QEventLoop>
 #include <QTimer>
+
+#include "kwalletsettings.h"
 
 // Copied from
 // https://github.com/frankosterfeld/qtkeychain/blob/main/qtkeychain/libsecret.cpp
@@ -58,9 +58,17 @@ struct SecretValueDeleter {
     }
 };
 
+struct GCharDeleter {
+    void operator()(gchar *data) const
+    {
+        g_free(data);
+    }
+};
+
 using GListPtr = std::unique_ptr<GList, GListDeleter>;
 using GHashTablePtr = std::unique_ptr<GHashTable, GHashTableDeleter>;
 using SecretValuePtr = std::unique_ptr<SecretValue, SecretValueDeleter>;
+using GCharPtr = std::unique_ptr<gchar, GCharDeleter>;
 
 static bool wasErrorFree(GError **error)
 {
@@ -104,9 +112,8 @@ static SecretServiceClient::Type stringToType(const QString &typeName)
 SecretServiceClient::SecretServiceClient(QObject *parent)
     : QObject(parent)
 {
-    KConfig cfg(QStringLiteral("kwalletrc"));
-    KConfigGroup ksecretGroup(&cfg, QStringLiteral("KSecretD"));
-    m_useKSecretBackend = ksecretGroup.readEntry("Enabled", true);
+    KWalletSettings settings;
+    m_useKSecretBackend = settings.kSecretDEnabled();
 
     if (m_useKSecretBackend) {
         // Tell libsecret where the secretservice api is
@@ -154,6 +161,12 @@ SecretServiceClient::SecretServiceClient(QObject *parent)
                 QStringLiteral("CollectionDeleted"),
                 this,
                 SLOT(onCollectionDeleted(QDBusObjectPath)));
+    bus.connect(m_serviceBusName,
+                QStringLiteral("/org/freedesktop/secrets"),
+                QStringLiteral("org.freedesktop.Secret.Service"),
+                QStringLiteral("CollectionChanged"),
+                this,
+                SLOT(onCollectionChanged(QDBusObjectPath)));
 }
 
 QString SecretServiceClient::collectionLabelForPath(const QDBusObjectPath &path)
@@ -189,14 +202,22 @@ SecretCollection *SecretServiceClient::retrieveCollection(const QString &name)
         return it->second.get();
     }
 
+    // get_collections() can return a cached, stale list; force a reload, as listCollections() does.
+    GError *error = nullptr;
+    secret_service_load_collections_sync(m_service.get(), nullptr, &error);
+    if (!wasErrorFree(&error)) {
+        return nullptr;
+    }
+
     GListPtr collections = GListPtr(secret_service_get_collections(m_service.get()));
 
     for (GList *l = collections.get(); l != nullptr; l = l->next) {
         SecretCollectionPtr colPtr = SecretCollectionPtr(SECRET_COLLECTION(l->data));
-        const gchar *label = secret_collection_get_label(colPtr.get());
-        if (QString::fromUtf8(label) == name) {
-            m_openCollections.insert(std::make_pair(name, std::move(colPtr)));
+        const GCharPtr label = GCharPtr(secret_collection_get_label(colPtr.get()));
+        if (QString::fromUtf8(label.get()) == name) {
+            // get() must run before the move: a moved-from unique_ptr is null.
             SecretCollection *collection = colPtr.get();
+            m_openCollections.insert(std::make_pair(name, std::move(colPtr)));
             return collection;
         }
     }
@@ -211,7 +232,7 @@ SecretServiceClient::retrieveItem(const QString &key, const SecretServiceClient:
 
     SecretCollection *collection = retrieveCollection(collectionName);
 
-    GHashTablePtr attributes = GHashTablePtr(g_hash_table_new(g_str_hash, g_str_equal));
+    GHashTablePtr attributes = GHashTablePtr(g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free));
     g_hash_table_insert(attributes.get(), g_strdup("server"), g_strdup(folder.toUtf8().constData()));
     g_hash_table_insert(attributes.get(), g_strdup("user"), g_strdup(key.toUtf8().constData()));
     if (type != Unknown) {
@@ -274,8 +295,15 @@ void SecretServiceClient::watchCollection(const QString &collectionName, bool *o
 
     SecretCollection *collection = retrieveCollection(collectionName);
 
-    GObjectPtr<GDBusProxy> proxy = GObjectPtr<GDBusProxy>(G_DBUS_PROXY(collection));
-    const QString path = QString::fromUtf8(g_strdup(g_dbus_proxy_get_object_path(proxy.get())));
+    // retrieveCollection() may return null; g_dbus_proxy_get_object_path() asserts on that.
+    if (!collection || !G_IS_DBUS_PROXY(collection)) {
+        qCWarning(KWALLETD_LOG) << "Not watching collection" << collectionName << "- no valid Secret Service proxy";
+        *ok = false;
+        return;
+    }
+
+    // path is owned by the proxy: no strdup, and don't wrap the borrowed collection
+    const QString path = QString::fromUtf8(g_dbus_proxy_get_object_path(G_DBUS_PROXY(collection)));
     if (path.isEmpty()) {
         *ok = false;
         return;
@@ -351,6 +379,34 @@ void SecretServiceClient::onCollectionDeleted(const QDBusObjectPath &path)
     Q_EMIT collectionListDirty();
 }
 
+void SecretServiceClient::onCollectionChanged(const QDBusObjectPath &path)
+{
+    const QString label = collectionLabelForPath(path);
+    if (label.isEmpty()) {
+        return;
+    }
+
+    if (!attemptConnection()) {
+        return;
+    }
+
+    QDBusInterface collectionInterface(m_serviceBusName, path.path(), QStringLiteral("org.freedesktop.Secret.Collection"), QDBusConnection::sessionBus());
+
+    if (!collectionInterface.isValid()) {
+        qCWarning(KWALLETD_LOG) << "Failed to connect to the DBus collection object:" << path.path();
+        return;
+    }
+
+    QVariant reply = collectionInterface.property("Locked");
+
+    if (!reply.isValid()) {
+        qCWarning(KWALLETD_LOG) << "Error reading locked:" << collectionInterface.lastError();
+        return;
+    }
+
+    Q_EMIT collectionLockedChanged(label, reply.toBool());
+}
+
 void SecretServiceClient::onSecretItemChanged(const QDBusObjectPath &path)
 {
     if (!attemptConnection()) {
@@ -367,6 +423,9 @@ void SecretServiceClient::onSecretItemChanged(const QDBusObjectPath &path)
 
     // 6 items: /org/freedesktop/secrets/collection/collectionName/itemName
     if (pieces.length() != 6) {
+        // unexpected path shape: refresh all collections so the change isn't lost
+        qCWarning(KWALLETD_LOG) << "Secret item changed at unexpected path" << path.path() << "- refreshing all collections";
+        Q_EMIT collectionListDirty();
         return;
     }
     pieces.pop_back();
@@ -463,6 +522,7 @@ QString SecretServiceClient::defaultCollection(bool *ok)
         return QStringLiteral("kdewallet");
     }
 
+    *ok = true;
     return label;
 }
 
@@ -505,8 +565,8 @@ QStringList SecretServiceClient::listCollections(bool *ok)
     if (glist) {
         for (GList *iter = glist.get(); iter != nullptr; iter = iter->next) {
             SecretCollection *collection = SECRET_COLLECTION(iter->data);
-            const gchar *rawLabel = secret_collection_get_label(collection);
-            const QString label = QString::fromUtf8(rawLabel);
+            const GCharPtr rawLabel = GCharPtr(secret_collection_get_label(collection));
+            const QString label = QString::fromUtf8(rawLabel.get());
             if (!label.isEmpty()) {
                 collections.append(label);
             }
@@ -540,9 +600,9 @@ QStringList SecretServiceClient::listFolders(const QString &collectionName, bool
         for (GList *iter = glist.get(); iter != nullptr; iter = iter->next) {
             SecretItem *item = static_cast<SecretItem *>(iter->data);
 
-            GHashTable *attributes = secret_item_get_attributes(item);
+            GHashTablePtr attributes = GHashTablePtr(secret_item_get_attributes(item));
             if (attributes) {
-                const gchar *value = (const char *)g_hash_table_lookup(attributes, "server");
+                const gchar *value = (const char *)g_hash_table_lookup(attributes.get(), "server");
                 if (value) {
                     folders.insert(QString::fromUtf8(value));
                 }
@@ -573,7 +633,7 @@ QStringList SecretServiceClient::listEntries(const QString &folder, const QStrin
         return {};
     }
 
-    GHashTablePtr attributes = GHashTablePtr(g_hash_table_new(g_str_hash, g_str_equal));
+    GHashTablePtr attributes = GHashTablePtr(g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free));
     g_hash_table_insert(attributes.get(), g_strdup("server"), g_strdup(folder.toUtf8().constData()));
 
     GListPtr glist = GListPtr(secret_collection_search_sync(collection, qtKeychainSchema(), attributes.get(), SECRET_SEARCH_ALL, nullptr, &error));
@@ -680,7 +740,7 @@ void SecretServiceClient::deleteFolder(const QString &folder, const QString &col
 
     SecretCollection *collection = retrieveCollection(collectionName);
 
-    GHashTablePtr attributes = GHashTablePtr(g_hash_table_new(g_str_hash, g_str_equal));
+    GHashTablePtr attributes = GHashTablePtr(g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free));
     g_hash_table_insert(attributes.get(), g_strdup("server"), g_strdup(folder.toUtf8().constData()));
 
     GListPtr glist = GListPtr(secret_collection_search_sync(collection, qtKeychainSchema(), attributes.get(), SECRET_SEARCH_ALL, nullptr, &error));
@@ -852,7 +912,7 @@ void SecretServiceClient::writeEntry(const QString &display_name,
         return;
     }
 
-    GHashTablePtr attributes = GHashTablePtr(g_hash_table_new(g_str_hash, g_str_equal));
+    GHashTablePtr attributes = GHashTablePtr(g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free));
     g_hash_table_insert(attributes.get(), g_strdup("user"), g_strdup(key.toUtf8().constData()));
     g_hash_table_insert(attributes.get(), g_strdup("type"), g_strdup(typeToString(type).toUtf8().constData()));
     g_hash_table_insert(attributes.get(), g_strdup("server"), g_strdup(folder.toUtf8().constData()));

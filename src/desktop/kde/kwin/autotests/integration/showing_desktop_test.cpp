@@ -16,8 +16,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_showing_desktop-0");
-
 class ShowingDesktopTest : public QObject
 {
     Q_OBJECT
@@ -37,7 +35,7 @@ private Q_SLOTS:
 void ShowingDesktopTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),
@@ -86,9 +84,9 @@ void ShowingDesktopTest::testRestoreFocusWithDesktopWindow()
     desktopShellSurface->set_size(0, 0);
     desktopShellSurface->set_exclusive_zone(-1);
     desktopShellSurface->set_anchor(Test::LayerSurfaceV1::anchor_bottom
-        | Test::LayerSurfaceV1::anchor_top
-        | Test::LayerSurfaceV1::anchor_left
-        | Test::LayerSurfaceV1::anchor_right);
+                                    | Test::LayerSurfaceV1::anchor_top
+                                    | Test::LayerSurfaceV1::anchor_left
+                                    | Test::LayerSurfaceV1::anchor_right);
     desktopSurface->commit(KWayland::Client::Surface::CommitFlag::None);
     QSignalSpy desktopConfigureRequestedSpy(desktopShellSurface.get(), &Test::LayerSurfaceV1::configureRequested);
     QVERIFY(desktopConfigureRequestedSpy.wait());

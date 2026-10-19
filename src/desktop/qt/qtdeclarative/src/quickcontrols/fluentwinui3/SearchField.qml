@@ -48,13 +48,19 @@ T.SearchField {
     readonly property bool __isHighContrast: Application.styleHints.accessibility.contrastPreference === Qt.HighContrast
 
     delegate: ItemDelegate {
+        id: delegate
+
         width: ListView.view.width
-        text: model[control.textRole]
-        palette.text: control.palette.text
-        palette.highlightedText: control.palette.highlightedText
-        font.weight: control.currentIndex === index ? Font.DemiBold : Font.Normal
         highlighted: control.highlightedIndex === index
         hoverEnabled: control.hoverEnabled
+
+        contentItem: Text {
+            text: delegate.model[control.textRole]
+            font.weight: control.currentIndex === index ? Font.DemiBold : Font.Normal
+            color: delegate.highlighted ? palette.highlightedText : palette.windowText
+            elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
+        }
 
         required property var model
         required property int index
@@ -126,7 +132,8 @@ T.SearchField {
 
     contentItem: T.TextField {
         implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                                 contentHeight + topPadding + bottomPadding)
+                                 contentHeight + topPadding + bottomPadding,
+                                 placeholder.implicitHeight + topPadding + bottomPadding)
 
         leftPadding: control.__config.label_contentItem.leftPadding
         rightPadding: control.__config.label_contentItem.rightPadding
@@ -137,6 +144,25 @@ T.SearchField {
         bottomInset: -control.__config.label_contentItem.bottomInset || 0
 
         text: control.text
+        placeholderText: control.placeholderText
+
+        PlaceholderText {
+            id: placeholder
+            x: parent.leftPadding
+            y: parent.topPadding
+            width: parent.width - parent.leftPadding - parent.rightPadding
+            height: parent.height - parent.topPadding - parent.bottomPadding
+
+            text: control.placeholderText
+            font: parent.font
+            color: control.palette.placeholderText
+            visible: !parent.length && !parent.preeditText && (!parent.activeFocus || parent.horizontalAlignment !== Qt.AlignHCenter)
+            verticalAlignment: parent.verticalAlignment
+            elide: Text.ElideRight
+            renderType: parent.renderType
+        }
+
+        selectByMouse: control.selectTextByMouse
 
         color: control.palette.text
         selectionColor: control.palette.highlight

@@ -98,7 +98,7 @@ auto makeScores(const auto &notNormalizedString, const auto &queryList) {
     ScoreCards cards;
     for (const auto &queryItem : queryList) {
         constexpr auto maxDistance = 1;
-        const auto bitap = Bitap::bitap(string, queryItem, maxDistance);
+        const auto bitap = Bitap::bitap(string, QStringView(queryItem).left(Bitap::MaxLength), maxDistance);
         if (!bitap) {
             // One of the query items didn't match. This means the entire query is not a match
             return ScoreCards{};
@@ -247,8 +247,9 @@ private:
 
         match.setText(name);
 
-        QUrl url(service->storageId());
+        QUrl url;
         url.setScheme(QStringLiteral("applications"));
+        url.setPath(service->storageId());
         match.setData(url);
         match.setUrls({QUrl::fromLocalFile(service->entryPath())});
 
@@ -282,7 +283,7 @@ private:
         if (KIO::DesktopExecParser::executableName(service->exec()) == QLatin1String("env")) {
             resultingArgs.removeFirst(); // remove "env".
 
-            while (!resultingArgs.isEmpty() && resultingArgs.first().contains(QLatin1Char('='))) {
+            while (!resultingArgs.isEmpty() && resultingArgs.constFirst().contains(QLatin1Char('='))) {
                 resultingArgs.removeFirst();
             }
 
@@ -477,8 +478,9 @@ private:
                                     action.text(),
                                     service->name()));
 
-                QUrl url(service->storageId());
+                QUrl url;
                 url.setScheme(QStringLiteral("applications"));
+                url.setPath(service->storageId());
 
                 QUrlQuery urlQuery;
                 urlQuery.addQueryItem(QStringLiteral("action"), action.name());

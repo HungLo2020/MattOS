@@ -7,7 +7,6 @@
 #include "hostinfo.h"
 
 #include <QCache>
-#include <QFutureWatcher>
 #include <QHash>
 #include <QHostInfo>
 #include <QList>
@@ -17,7 +16,6 @@
 #include <QThread>
 #include <QTime>
 #include <QTimer>
-#include <QtConcurrentRun>
 
 #ifdef Q_OS_UNIX
 #include <QFileInfo>

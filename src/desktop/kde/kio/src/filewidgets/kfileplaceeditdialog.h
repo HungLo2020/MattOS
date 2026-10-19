@@ -11,7 +11,6 @@
 
 #include "kiofilewidgets_export.h"
 
-#include <KIconLoader>
 #include <QDialog>
 #include <QUrl>
 
@@ -31,8 +30,13 @@ class KUrlRequester;
  * See the class-method getInformation() for easy usage.
  *
  * \since 5.53
+ * \deprecated[6.27] Only internally used.
  */
-class KIOFILEWIDGETS_EXPORT KFilePlaceEditDialog : public QDialog
+class
+#if KIOFILEWIDGETS_BUILD_DEPRECATED_SINCE(6, 27)
+    KIOFILEWIDGETS_EXPORT
+#endif
+    KFilePlaceEditDialog : public QDialog
 {
     Q_OBJECT
 
@@ -62,6 +66,7 @@ public:
      * If you leave the icon empty, the default icon for the given url will be
      * used (KMimeType::pixmapForUrl()).
      */
+    KIOFILEWIDGETS_DEPRECATED_VERSION(6, 27, "Only internally used.")
     static bool
     getInformation(bool allowGlobal, QUrl &url, QString &label, QString &icon, bool isAddingNewPlace, bool &appLocal, int iconSize, QWidget *parent = nullptr);
 
@@ -88,13 +93,14 @@ public:
      * If you leave the icon empty, the default icon for the given url will be
      * used (KMimeType::pixmapForUrl()).
      */
+    KIOFILEWIDGETS_DEPRECATED_VERSION(6, 27, "Only internally used.")
     KFilePlaceEditDialog(bool allowGlobal,
                          const QUrl &url,
                          const QString &label,
                          const QString &icon,
                          bool isAddingNewPlace,
                          bool appLocal = true,
-                         int iconSize = KIconLoader::SizeMedium,
+                         int iconSize = 32,
                          QWidget *parent = nullptr);
 
     ~KFilePlaceEditDialog() override;

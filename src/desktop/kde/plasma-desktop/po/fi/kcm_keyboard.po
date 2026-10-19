@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
-"PO-Revision-Date: 2026-01-05 17:57+0200\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-02-25 20:36+0200\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -105,8 +105,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Näppäinkytkösasetukset…"
+msgid "Key Bindings"
+msgstr "Näppäinsidokset"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -144,13 +144,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Lisää asettelu"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Asettelun lyhenne"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -159,13 +159,13 @@ msgid ""
 msgstr ""
 "Valitun asettelun ilmoitusalueella näkyvä lyhenne. Asetusta voi muuttaa."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Pikanäppäin:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -416,8 +416,7 @@ msgid "or"
 msgstr "tai"
 
 #: ui/main_phone.qml:36
-#, fuzzy, kde-format
-#| msgid "Model & Layout"
+#, kde-format
 msgctxt "@title form header"
 msgid "Model & Layout"
 msgstr "Malli ja asettelu"
@@ -553,22 +552,22 @@ msgid ""
 "diacritical marks."
 msgstr "Muunnosnäppäimin voi kirjoittaa lisämerkkejä, symboleja ja tarkkeita."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
 msgstr[0] "%1 pikanäppäin"
 msgstr[1] "%1 pikanäppäintä"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Ei asetettu"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Näppäinsidokset"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Näppäinkytkösasetukset…"
 
 #, fuzzy
 #~| msgid "&Turn off"

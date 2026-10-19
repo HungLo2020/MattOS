@@ -4,21 +4,22 @@
 # SPDX-FileCopyrightText: 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019, 2020, 2023, 2024 Vít Pelčák <vit@pelcak.org>
 # Tomáš Chvátal <tomas.chvatal@gmail.com>, 2012, 2013.
 # SPDX-FileCopyrightText: 2021, 2022, 2024 Vit Pelcak <vit@pelcak.org>
+# SPDX-FileCopyrightText: 2026 Libor Filípek <libor.filipek@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-28 00:41+0000\n"
-"PO-Revision-Date: 2024-05-29 11:33+0200\n"
-"Last-Translator: Vit Pelcak <vit@pelcak.org>\n"
+"POT-Creation-Date: 2026-09-23 00:42+0000\n"
+"PO-Revision-Date: 2026-09-23 23:23+0200\n"
+"Last-Translator: Libor Filipek <libor.filipek@gmail.com>\n"
 "Language-Team: Czech <kde-i18n-doc@kde.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 24.02.2\n"
+"X-Generator: Lokalize 26.08.1\n"
 "X-Language: cs_CZ\n"
 "X-Source-Language: en_US\n"
 
@@ -70,7 +71,7 @@ msgstr "O KDE"
 #: kaboutkdedialog_p.cpp:34
 #, kde-format
 msgid "<html><font size=\"5\">KDE</font><br />Be Free!</html>"
-msgstr ""
+msgstr "<html><font size=\"5\">KDE</font><br />Buďte svobodní!</html>"
 
 #: kaboutkdedialog_p.cpp:45
 #, kde-format
@@ -199,70 +200,71 @@ msgstr "License: %1"
 #, kde-format
 msgctxt "@info Platform name"
 msgid "%1 (%2)"
-msgstr ""
+msgstr "%1 (%2)"
 
 #: kabstractaboutdialog_p.cpp:123
 #, kde-format
 msgid "KDE Frameworks"
-msgstr "KDE Frameworks "
+msgstr "KDE Frameworks"
 
 #: kabstractaboutdialog_p.cpp:124
 #, kde-format
 msgctxt "@info"
 msgid "Collection of libraries created by the KDE Community to extend Qt."
-msgstr ""
+msgstr "Soubor knihoven vytvořených komunitou KDE za účelem rozšíření Qt."
 
 #: kabstractaboutdialog_p.cpp:128
 #, kde-format
 msgid "Qt"
 msgstr "Qt"
 
+# 55869 AttribValues/description
 #: kabstractaboutdialog_p.cpp:129
 #, kde-format
 msgctxt "@info"
 msgid "Cross-platform application development framework."
-msgstr ""
+msgstr "Aplikační rámec pro vývoj aplikací napříč platformami."
 
 #: kabstractaboutdialog_p.cpp:130
 #, kde-format
 msgid "Using %1 and built against %2"
-msgstr ""
+msgstr "S využitím %1 a sestaveno proti %2"
 
 #: kabstractaboutdialog_p.cpp:136
 #, kde-format
 msgctxt "Linux packaging format"
 msgid "Flatpak"
-msgstr ""
+msgstr "Flatpak"
 
 #: kabstractaboutdialog_p.cpp:139
 #, kde-format
 msgctxt "Linux packaging format"
 msgid "Snap"
-msgstr ""
+msgstr "Snap"
 
 #: kabstractaboutdialog_p.cpp:142
 #, kde-format
 msgctxt "Linux packaging format"
 msgid "AppImage"
-msgstr ""
+msgstr "AppImage"
 
 #: kabstractaboutdialog_p.cpp:145
 #, kde-format
 msgctxt "@info"
 msgid "Distribution method."
-msgstr ""
+msgstr "Metoda distribuce."
 
 #: kabstractaboutdialog_p.cpp:148
 #, kde-format
 msgctxt "@info"
 msgid "Underlying platform."
-msgstr ""
+msgstr "Podkladová platforma."
 
 #: kabstractaboutdialog_p.cpp:176
 #, kde-format
 msgctxt "@action:button"
 msgid "Visit component's homepage"
-msgstr ""
+msgstr "Navštívit domovskou stránku složky"
 
 #: kabstractaboutdialog_p.cpp:177
 #, kde-format
@@ -284,7 +286,7 @@ msgstr "Zkopírovat do schránky"
 #, kde-format
 msgctxt "@action:button"
 msgid "Visit author's homepage"
-msgstr ""
+msgstr "Navštívit domovskou stránku autora"
 
 #: kabstractaboutdialog_p.cpp:260
 #, kde-format
@@ -293,18 +295,20 @@ msgid ""
 "Visit author's homepage\n"
 "%1"
 msgstr ""
+"Navštívit domovskou stránku autora\n"
+"%1"
 
 #: kabstractaboutdialog_p.cpp:274
 #, kde-format
 msgctxt "@action:button Send an email to a contributor"
 msgid "Email contributor"
-msgstr ""
+msgstr "E-mail přispěvatele"
 
 #: kabstractaboutdialog_p.cpp:275
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Email contributor: %1"
-msgstr ""
+msgstr "E-mail přispěvatele: %1"
 
 #: kabstractaboutdialog_p.cpp:314
 #, kde-format
@@ -313,6 +317,8 @@ msgid ""
 "Please use %1 to report bugs.<br/>If you have questions or need help, please "
 "visit %2.<br/>"
 msgstr ""
+"K nahlášení chyb prosím použijte %1.<br/>Máte-li dotazy nebo potřebujete-li "
+"pomoc, navštivte prosím %2.<br/>"
 
 #: kabstractaboutdialog_p.cpp:324
 #, kde-format
@@ -337,18 +343,18 @@ msgctxt "@title:window"
 msgid "Ambiguous shortcut detected"
 msgstr "Zjištěna nejednoznačná zkratka"
 
-#: kbugreport.cpp:67
+#: kbugreport.cpp:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Submit Bug Report"
 msgstr "Poslat chybové hlášení"
 
-#: kbugreport.cpp:89
+#: kbugreport.cpp:90
 #, kde-format
 msgid "Submit Bug Report"
 msgstr "Poslat chybové hlášení"
 
-#: kbugreport.cpp:101
+#: kbugreport.cpp:102
 #, kde-format
 msgid ""
 "The application for which you wish to submit a bug report - if incorrect, "
@@ -357,12 +363,12 @@ msgstr ""
 "Aplikace, pro kterou si přejete poslat chybové hlášení - pokud nesouhlasí, "
 "použijte nabídku 'Nahlásit chybu' u příslušné aplikace"
 
-#: kbugreport.cpp:102
+#: kbugreport.cpp:103
 #, kde-format
 msgid "Application: "
 msgstr "Aplikace: "
 
-#: kbugreport.cpp:112
+#: kbugreport.cpp:113
 #, kde-format
 msgid ""
 "The version of this application - please make sure that no newer version is "
@@ -371,28 +377,28 @@ msgstr ""
 "Verze aplikace - prosím přesvědčte se, že není dostupná novější verze před "
 "tím, než pošlete chybové hlášení"
 
-#: kbugreport.cpp:113
+#: kbugreport.cpp:114
 #, kde-format
 msgid "Version:"
 msgstr "Verze:"
 
-#: kbugreport.cpp:118
+#: kbugreport.cpp:119
 #, kde-format
 msgid "no version set (programmer error)"
 msgstr "neurčená verze (chyba programátora.)"
 
-#: kbugreport.cpp:122
+#: kbugreport.cpp:123
 #, kde-format
 msgctxt "%1 is the program version, %2 is the kde framework version"
 msgid "%1 with KDE Frameworks %2"
-msgstr ""
+msgstr "%1 s KDE Frameworks %2"
 
-#: kbugreport.cpp:130
+#: kbugreport.cpp:131
 #, kde-format
 msgid "OS:"
 msgstr "OS:"
 
-#: kbugreport.cpp:135
+#: kbugreport.cpp:136
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Windows 10', %2 is the CPU "
@@ -400,7 +406,7 @@ msgctxt ""
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: kbugreport.cpp:142
+#: kbugreport.cpp:143
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Fedora Linux', %2 is the operating "
@@ -408,7 +414,7 @@ msgctxt ""
 msgid "%1 %2 (%3)"
 msgstr "%1 %2 (%3)"
 
-#: kbugreport.cpp:148
+#: kbugreport.cpp:149
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Fedora Linux', %2 is the CPU "
@@ -416,7 +422,7 @@ msgctxt ""
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: kbugreport.cpp:162
+#: kbugreport.cpp:163
 #, kde-format
 msgid ""
 "<qt>To submit a bug report, click on the button below. This will open a web "
@@ -429,7 +435,7 @@ msgstr ""
 "kde.org</a>, kde naleznete formulář k vyplnění. Informace zobrazené výše "
 "budou odeslány na server.</qt>"
 
-#: kbugreport.cpp:168
+#: kbugreport.cpp:169
 #, kde-format
 msgid ""
 "<qt>To submit a bug report, click on the button below. This will open a web "
@@ -438,13 +444,13 @@ msgstr ""
 "<qt>K odeslání chybového hlášení klikněte na tlačítko níže. Otevře se okno "
 "webového prohlížeče na adrese <a href=\"%1\">%2</a>.</qt>"
 
-#: kbugreport.cpp:185
+#: kbugreport.cpp:186
 #, kde-format
 msgctxt "@action:button"
 msgid "&Launch Bug Report Wizard"
 msgstr "Spustit průvodce chybovým h&lášením"
 
-#: kbugreport.cpp:187
+#: kbugreport.cpp:188
 #, kde-format
 msgctxt "@action:button"
 msgid "&Submit Bug Report"
@@ -487,30 +493,30 @@ msgstr "<h2>Akcelerátory odstraněny</h2>"
 msgid "<h2>Accelerators added (just for your info)</h2>"
 msgstr "<h2>Akcelerátory přidány (pouze pro informaci)</h2>"
 
-#: kedittoolbar.cpp:332
+#: kedittoolbar.cpp:353
 #, kde-format
 msgctxt "@title:window"
 msgid "Change Text"
 msgstr "Změnit text"
 
-#: kedittoolbar.cpp:342
+#: kedittoolbar.cpp:363
 #, kde-format
 msgid "Icon te&xt:"
 msgstr "Te&xt ikony:"
 
-#: kedittoolbar.cpp:347
+#: kedittoolbar.cpp:368
 #, kde-format
 msgctxt "@option:check"
 msgid "&Hide text when toolbar shows text alongside icons"
 msgstr "Sk&rýt text, pokud jej panel zobrazuje vedle ikon"
 
-#: kedittoolbar.cpp:596
+#: kedittoolbar.cpp:621
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Toolbars"
 msgstr "Nastavit panely nástrojů"
 
-#: kedittoolbar.cpp:659
+#: kedittoolbar.cpp:684
 #, kde-format
 msgid ""
 "Do you really want to reset all toolbars of this application to their "
@@ -519,17 +525,17 @@ msgstr ""
 "Opravdu si přejete vrátit všechny panely nástrojů této aplikace do výchozího "
 "stavu? Změny budou provedeny okamžitě."
 
-#: kedittoolbar.cpp:660
+#: kedittoolbar.cpp:685
 #, kde-format
 msgid "Reset Toolbars"
 msgstr "Obnovit panely nástrojů"
 
-#: kedittoolbar.cpp:661
+#: kedittoolbar.cpp:686
 #, kde-format
 msgid "Reset"
 msgstr "Obnovit"
 
-#: kedittoolbar.cpp:980
+#: kedittoolbar.cpp:1007
 #, kde-format
 msgid "&Toolbar:"
 msgstr "Panel nás&trojů:"
@@ -541,66 +547,66 @@ msgstr "Panel nás&trojů:"
 #. del_toolbar->setPixmap(BarIcon("edit-delete", KIconLoader::SizeSmall));
 #. del_toolbar->setEnabled(false); // disabled until implemented
 #. our list of inactive actions
-#: kedittoolbar.cpp:996
+#: kedittoolbar.cpp:1023
 #, kde-format
 msgid "A&vailable actions:"
 msgstr "Do&stupné činnosti:"
 
-#: kedittoolbar.cpp:1017 kedittoolbar.cpp:1042
+#: kedittoolbar.cpp:1044 kedittoolbar.cpp:1069
 #, kde-format
 msgid "Filter"
 msgstr "Filtr"
 
-#: kedittoolbar.cpp:1020
+#: kedittoolbar.cpp:1047
 #, kde-format
 msgid "Curr&ent actions:"
 msgstr "Současné či&nnosti:"
 
-#: kedittoolbar.cpp:1045
+#: kedittoolbar.cpp:1072
 #, kde-format
 msgctxt "@action:button"
 msgid "Change &Icon…"
 msgstr "Změnit &ikonu…"
 
-#: kedittoolbar.cpp:1054
+#: kedittoolbar.cpp:1081
 #, kde-format
 msgctxt "@action:button"
 msgid "Change Te&xt…"
 msgstr "Změnit te&xt…"
 
-#: kedittoolbar.cpp:1196
+#: kedittoolbar.cpp:1223
 #, kde-format
 msgid "--- separator ---"
 msgstr "--- oddělovač ---"
 
-#: kedittoolbar.cpp:1197
+#: kedittoolbar.cpp:1224
 #, kde-format
 msgid "--- expanding spacer ---"
 msgstr "--- mezera ---"
 
-#: kedittoolbar.cpp:1219
+#: kedittoolbar.cpp:1246
 #, kde-format
 msgctxt "@item:intable Action name in toolbar editor"
 msgid "%1"
 msgstr "%1"
 
-#: kedittoolbar.cpp:1247
+#: kedittoolbar.cpp:1274
 #, kde-format
 msgid ""
 "This element will be replaced with all the elements of an embedded component."
 msgstr "Tento element bude nahrazen elementy vnořené komponenty."
 
-#: kedittoolbar.cpp:1249
+#: kedittoolbar.cpp:1276
 #, kde-format
 msgid "<Merge>"
 msgstr "<Sloučení>"
 
-#: kedittoolbar.cpp:1251
+#: kedittoolbar.cpp:1278
 #, kde-format
 msgid "<Merge %1>"
 msgstr "<Sloučení %1>"
 
-#: kedittoolbar.cpp:1261
+#: kedittoolbar.cpp:1288
 #, kde-format
 msgid ""
 "This is a dynamic list of actions. You can move it, but if you remove it you "
@@ -609,18 +615,18 @@ msgstr ""
 "Toto je dynamický seznam činností, můžete je přesunout, ale pokud jej "
 "odstraníte, už jej nebudete moci přidat zpět."
 
-#: kedittoolbar.cpp:1262
+#: kedittoolbar.cpp:1289
 #, kde-format
 msgid "ActionList: %1"
 msgstr "Seznam činností: %1"
 
-#: kedittoolbar.cpp:1363 kedittoolbar.cpp:1388
+#: kedittoolbar.cpp:1390 kedittoolbar.cpp:1415
 #, kde-format
 msgctxt "@label Action tooltip in toolbar editor, below the action list"
 msgid "%1"
 msgstr "%1"
 
-#: kedittoolbar.cpp:1616
+#: kedittoolbar.cpp:1643
 #, kde-format
 msgid "Change Icon"
 msgstr "Změnit ikonu"
@@ -631,7 +637,7 @@ msgstr "Změnit ikonu"
 msgid "&Help"
 msgstr "Nápo&věda"
 
-#: kkeysequencewidget.cpp:146
+#: kkeysequencewidget.cpp:147
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -641,13 +647,13 @@ msgstr ""
 "Klikněte na tlačítko a poté zadejte zkratku, kterou si přejete v programu.\n"
 "Příklad pro Ctrl+A: držte klávesu Ctrl a stiskněte A."
 
-#: kkeysequencewidget.cpp:150
+#: kkeysequencewidget.cpp:151
 #, kde-format
 msgctxt "@action:button"
 msgid "Clear"
 msgstr "Vyprázdnit"
 
-#: kkeysequencewidget.cpp:169
+#: kkeysequencewidget.cpp:170
 #, kde-format
 msgctxt "%1 is the number of conflicts"
 msgid "Shortcut Conflict"
@@ -656,12 +662,12 @@ msgstr[0] "Konflikt zkratek"
 msgstr[1] "Konflikty zkratek"
 msgstr[2] "Konflikty zkratek"
 
-#: kkeysequencewidget.cpp:173
+#: kkeysequencewidget.cpp:174
 #, kde-format
 msgid "Shortcut '%1' for action '%2'\n"
 msgstr "Zkratka '%1' pro činnost '%2'\n"
 
-#: kkeysequencewidget.cpp:178
+#: kkeysequencewidget.cpp:179
 #, kde-format
 msgctxt "%1 is the number of ambiguous shortcut clashes (hidden)"
 msgid ""
@@ -685,20 +691,20 @@ msgstr[2] ""
 "Přejete si těmto akcím přiřadit prázdné zkratky?\n"
 "%3"
 
-#: kkeysequencewidget.cpp:188 kkeysequencewidget.cpp:295
-#: kkeysequencewidget.cpp:357
+#: kkeysequencewidget.cpp:189 kkeysequencewidget.cpp:296
+#: kkeysequencewidget.cpp:358
 #, kde-format
 msgctxt "@action:button"
 msgid "Reassign"
 msgstr "Přeřadit"
 
-#: kkeysequencewidget.cpp:193
+#: kkeysequencewidget.cpp:194
 #, kde-format
 msgctxt "@title:window"
 msgid "Shortcut conflict"
 msgstr "Konflikt zkratek"
 
-#: kkeysequencewidget.cpp:195
+#: kkeysequencewidget.cpp:196
 #, kde-format
 msgid ""
 "<qt>The '%1' key combination is already used by the <b>%2</b> action."
@@ -707,12 +713,12 @@ msgstr ""
 "<qt>Klávesová kombinace '%1' je již používána činností <b>%2</b>. <br>Prosím "
 "zvolte jinou zkratku.</qt>"
 
-#: kkeysequencewidget.cpp:275
+#: kkeysequencewidget.cpp:276
 #, kde-format
 msgid "Shortcut '%1' in Application '%2' for action '%3'\n"
 msgstr "Zkratka '%1' v aplikaci '%2, činnosti '%3'\n"
 
-#: kkeysequencewidget.cpp:284
+#: kkeysequencewidget.cpp:285
 #, kde-format
 msgctxt ""
 "%1 is the number of conflicts (hidden), %2 is the key sequence of the "
@@ -724,7 +730,7 @@ msgstr[0] "Zkratka '%2' koliduje s následující kombinací kláves:\n"
 msgstr[1] "Zkratka '%2' koliduje s následujícími kombinacemi kláves:\n"
 msgstr[2] "Zkratka '%2' koliduje s následujícími kombinacemi kláves:\n"
 
-#: kkeysequencewidget.cpp:291
+#: kkeysequencewidget.cpp:292
 #, kde-format
 msgctxt "%1 is the number of shortcuts with which there is a conflict"
 msgid "Conflict with Registered Global Shortcut"
@@ -733,12 +739,12 @@ msgstr[0] "Konflikt s registrovanou globální zkratkou"
 msgstr[1] "Konflikt s registrovanými globálními zkratkami"
 msgstr[2] "Konflikt s registrovanými globálními zkratkami"
 
-#: kkeysequencewidget.cpp:304
+#: kkeysequencewidget.cpp:305
 #, kde-format
 msgid "Reserved Shortcut"
 msgstr "Rezervovaná klávesová zkratka"
 
-#: kkeysequencewidget.cpp:306
+#: kkeysequencewidget.cpp:307
 #, kde-format
 msgid ""
 "The F12 key is reserved on Windows, so cannot be used for a global "
@@ -748,13 +754,13 @@ msgstr ""
 "Klávesa F12 je na Windows rezervována a nelze ji tedy použít jako globální.\n"
 "Vyberte prosím jinou."
 
-#: kkeysequencewidget.cpp:349
+#: kkeysequencewidget.cpp:350
 #, kde-format
 msgctxt "@title:window"
 msgid "Conflict with Standard Application Shortcut"
 msgstr "Konflikt se standardní zkratkou aplikace"
 
-#: kkeysequencewidget.cpp:351
+#: kkeysequencewidget.cpp:352
 #, kde-format
 msgid ""
 "The '%1' key combination is also used for the standard action \"%2\" that "
@@ -765,13 +771,13 @@ msgstr ""
 "kterou mnoho aplikací využívá.\n"
 "Opravdu si ji přejete použít jako globální klávesovou zkratku?"
 
-#: kkeysequencewidget.cpp:395
+#: kkeysequencewidget.cpp:396
 #, kde-format
 msgctxt "What the user inputs now will be taken as the new shortcut"
 msgid "Input"
 msgstr "Vstup"
 
-#: kkeysequencewidget.cpp:397 kshortcuteditwidget.cpp:51
+#: kkeysequencewidget.cpp:398 kshortcuteditwidget.cpp:54
 #, kde-format
 msgctxt "No shortcut defined"
 msgid "None"
@@ -787,13 +793,13 @@ msgstr "Licenční ujednání"
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Vít Pelčák, Marián Kyral"
+msgstr "Vít Pelčák,Marián Kyral,Libor Filípek"
 
 #: kmainwindow.cpp:258
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
-msgstr "vit@pelcak.org,mkyral@email.cz"
+msgstr "vit@pelcak.org,mkyral@email.cz,libor.filipek@gmail.com"
 
 #: kmenumenuhandler_p.cpp:37
 #, kde-format
@@ -806,13 +812,13 @@ msgctxt "@action:inmenu"
 msgid "Configure Shortcut…"
 msgstr "Nastavit klávesovou zkratku…"
 
-#: kshortcuteditwidget.cpp:55
+#: kshortcuteditwidget.cpp:58
 #, kde-format
 msgctxt "@option:radio"
 msgid "Default:"
 msgstr "Výchozí:"
 
-#: kshortcuteditwidget.cpp:62
+#: kshortcuteditwidget.cpp:65
 #, kde-format
 msgctxt "@option:radio"
 msgid "Custom:"
@@ -901,26 +907,26 @@ msgctxt "@title:window"
 msgid "Export Shortcuts"
 msgstr "Exportovat klávesové zkratky"
 
-#: kshortcutschemeseditor.cpp:187 kshortcutschemeseditor.cpp:198
+#: kshortcutschemeseditor.cpp:187 kshortcutschemeseditor.cpp:202
 #, kde-format
 msgid "Shortcuts (*.shortcuts)"
 msgstr "Zkratky (*.shortcuts)"
 
-#: kshortcutschemeseditor.cpp:198
+#: kshortcutschemeseditor.cpp:202
 #, kde-format
 msgctxt "@title:window"
 msgid "Import Shortcuts"
 msgstr "Importovat klávesové zkratky"
 
-#: kshortcutschemeseditor.cpp:209
+#: kshortcutschemeseditor.cpp:213
 #, kde-format
 msgid "Shortcut scheme successfully saved."
 msgstr "Schéma zkratky bylo úspěšně uloženo."
 
-#: kshortcutschemeseditor.cpp:212
+#: kshortcutschemeseditor.cpp:216
 #, kde-format
 msgid "Error saving the shortcut scheme."
-msgstr ""
+msgstr "Došlo k chybě při ukládání schématu zkratek."
 
 #: kshortcutsdialog.cpp:70
 #, kde-format
@@ -934,7 +940,7 @@ msgstr "Aktuální schéma zkratek je změněno. Uložit jej před přepnutím n
 msgid "Manage &Schemes"
 msgstr "Spravovat &schémata"
 
-#: kshortcutsdialog.cpp:149
+#: kshortcutsdialog.cpp:151
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Keyboard Shortcuts"
@@ -1004,45 +1010,45 @@ msgstr "Gesto tlačítka myši"
 msgid "Mouse Shape Gesture"
 msgstr "Gesto tahu myší"
 
-#: kshortcutseditor.cpp:521
+#: kshortcutseditor.cpp:526
 #, kde-format
 msgctxt "header for an applications shortcut list"
 msgid "Shortcuts for %1"
 msgstr "Zkratky pro %1"
 
 #. i18n: ectx: property (text), widget (QLabel, priLabel)
-#: kshortcutseditor.cpp:541 kshortcutwidget.ui:22
+#: kshortcutseditor.cpp:546 kshortcutwidget.ui:22
 #, kde-format
 msgid "Main:"
 msgstr "Základ:"
 
 #. i18n: ectx: property (text), widget (QLabel, altLabel)
-#: kshortcutseditor.cpp:542 kshortcutwidget.ui:52
+#: kshortcutseditor.cpp:547 kshortcutwidget.ui:52
 #, kde-format
 msgid "Alternate:"
 msgstr "Alternativní:"
 
-#: kshortcutseditor.cpp:543
+#: kshortcutseditor.cpp:548
 #, kde-format
 msgid "Global:"
 msgstr "Globální:"
 
-#: kshortcutseditor.cpp:544
+#: kshortcutseditor.cpp:549
 #, kde-format
 msgid "Global alternate:"
 msgstr "Globální alternativa:"
 
-#: kshortcutseditor.cpp:560
+#: kshortcutseditor.cpp:565
 #, kde-format
 msgid "Action Name"
 msgstr "Název činnosti"
 
-#: kshortcutseditor.cpp:564
+#: kshortcutseditor.cpp:569
 #, kde-format
 msgid "Shortcuts"
 msgstr "Zkratky"
 
-#: kshortcutseditor.cpp:568
+#: kshortcutseditor.cpp:573
 #, kde-format
 msgid "Description"
 msgstr "Popis"
@@ -1053,24 +1059,24 @@ msgctxt "@item:intable Action name in shortcuts configuration"
 msgid "%1"
 msgstr "%1"
 
-#: kswitchlanguagedialog_p.cpp:137
+#: kswitchlanguagedialog_p.cpp:138
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Language"
 msgstr "Nastavit jazyk"
 
-#: kswitchlanguagedialog_p.cpp:141
+#: kswitchlanguagedialog_p.cpp:142
 #, kde-format
 msgid "Please choose the language which should be used for this application:"
 msgstr "Prosím zvolte jazyk pro tuto aplikaci:"
 
-#: kswitchlanguagedialog_p.cpp:168
+#: kswitchlanguagedialog_p.cpp:169
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Fallback Language"
 msgstr "Přidat záložní jazyk"
 
-#: kswitchlanguagedialog_p.cpp:169
+#: kswitchlanguagedialog_p.cpp:170
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1080,7 +1086,7 @@ msgstr ""
 "Přidá dodatečný jazyk, který se použije v případě, že ostatní překlady "
 "neobsahují platný překlad."
 
-#: kswitchlanguagedialog_p.cpp:261 kswitchlanguagedialog_p.cpp:282
+#: kswitchlanguagedialog_p.cpp:262 kswitchlanguagedialog_p.cpp:283
 #, kde-format
 msgid ""
 "The language for this application has been changed. The change will take "
@@ -1089,34 +1095,34 @@ msgstr ""
 "Jazyk této aplikace byl změněn. Změna se projeví při následujícím startu "
 "aplikace."
 
-#: kswitchlanguagedialog_p.cpp:262
+#: kswitchlanguagedialog_p.cpp:263
 #, kde-format
 msgctxt "@title:window"
 msgid "Application Language Changed"
 msgstr "Jazyk aplikace změněn"
 
-#: kswitchlanguagedialog_p.cpp:283
+#: kswitchlanguagedialog_p.cpp:284
 #, kde-format
 msgid "Application Language Changed"
 msgstr "Jazyk aplikace změněn"
 
-#: kswitchlanguagedialog_p.cpp:368
+#: kswitchlanguagedialog_p.cpp:369
 #, kde-format
 msgid "Primary language:"
 msgstr "Primární jazyk:"
 
-#: kswitchlanguagedialog_p.cpp:368
+#: kswitchlanguagedialog_p.cpp:369
 #, kde-format
 msgid "Fallback language:"
 msgstr "Sekundární jazyk:"
 
-#: kswitchlanguagedialog_p.cpp:383
+#: kswitchlanguagedialog_p.cpp:384
 #, kde-format
 msgctxt "@action:button"
 msgid "Remove"
 msgstr "Odstranit"
 
-#: kswitchlanguagedialog_p.cpp:389
+#: kswitchlanguagedialog_p.cpp:390
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1125,7 +1131,7 @@ msgid ""
 msgstr ""
 "Toto je hlavní jazyk, který bude použitý jako první před ostatními jazyky."
 
-#: kswitchlanguagedialog_p.cpp:390
+#: kswitchlanguagedialog_p.cpp:391
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1135,109 +1141,109 @@ msgstr ""
 "Toto je jazyk, který bude použitý, pokud žádný předchozí jazyk neobsahuje "
 "platný překlad."
 
-#: ktoolbar.cpp:309 ktoolbar.cpp:316
+#: ktoolbar.cpp:311 ktoolbar.cpp:318
 #, kde-format
 msgctxt "@title:menu"
 msgid "Toolbar Settings"
 msgstr "Nastavení panelu nástrojů"
 
-#: ktoolbar.cpp:311
+#: ktoolbar.cpp:313
 #, kde-format
 msgctxt "@title:menu"
 msgid "Show Text"
 msgstr "Zobrazovat text"
 
-#: ktoolbar.cpp:318
+#: ktoolbar.cpp:320
 #, kde-format
 msgctxt "Toolbar orientation"
 msgid "Orientation"
 msgstr "Natočení"
 
-#: ktoolbar.cpp:320
+#: ktoolbar.cpp:322
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Top"
 msgstr "Nahoře"
 
-#: ktoolbar.cpp:324
+#: ktoolbar.cpp:326
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Left"
 msgstr "Vlevo"
 
-#: ktoolbar.cpp:327
+#: ktoolbar.cpp:329
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Right"
 msgstr "Vpravo"
 
-#: ktoolbar.cpp:330
+#: ktoolbar.cpp:332
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Bottom"
 msgstr "Dole"
 
-#: ktoolbar.cpp:341
+#: ktoolbar.cpp:343
 #, kde-format
 msgid "Text Position"
 msgstr "Pozice textu"
 
-#: ktoolbar.cpp:343
+#: ktoolbar.cpp:345
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Icons Only"
 msgstr "Pouze ikony"
 
-#: ktoolbar.cpp:346
+#: ktoolbar.cpp:348
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Only"
 msgstr "Pouze text"
 
-#: ktoolbar.cpp:349
+#: ktoolbar.cpp:351
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Alongside Icons"
 msgstr "Text vedle ikony"
 
-#: ktoolbar.cpp:352
+#: ktoolbar.cpp:354
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Under Icons"
 msgstr "Text pod ikonou"
 
-#: ktoolbar.cpp:363
+#: ktoolbar.cpp:365
 #, kde-format
 msgid "Icon Size"
 msgstr "Velikost ikon"
 
-#: ktoolbar.cpp:365
+#: ktoolbar.cpp:367
 #, kde-format
 msgctxt "@item:inmenu Icon size"
 msgid "Default"
 msgstr "Výchozí"
 
-#: ktoolbar.cpp:385 ktoolbar.cpp:409
+#: ktoolbar.cpp:387 ktoolbar.cpp:411
 #, kde-format
 msgid "Small (%1x%2)"
 msgstr "Malá (%1x%2)"
 
-#: ktoolbar.cpp:387 ktoolbar.cpp:411
+#: ktoolbar.cpp:389 ktoolbar.cpp:413
 #, kde-format
 msgid "Medium (%1x%2)"
 msgstr "Střední (%1x%2)"
 
-#: ktoolbar.cpp:389 ktoolbar.cpp:413
+#: ktoolbar.cpp:391 ktoolbar.cpp:415
 #, kde-format
 msgid "Large (%1x%2)"
 msgstr "Velká (%1x%2)"
 
-#: ktoolbar.cpp:391 ktoolbar.cpp:415
+#: ktoolbar.cpp:393 ktoolbar.cpp:417
 #, kde-format
 msgid "Huge (%1x%2)"
 msgstr "Obrovská (%1x%2)"
 
-#: ktoolbar.cpp:441
+#: ktoolbar.cpp:443
 #, kde-format
 msgid "Lock Toolbar Positions"
 msgstr "Zamknout pozice panelů nástrojů"
@@ -1287,20 +1293,22 @@ msgstr "Zpět"
 msgid "No text"
 msgstr "Žádný text"
 
-#: kxmlguiwindow.cpp:193
+#: kxmlguiwindow.cpp:203
 #, kde-format
 msgid "Find Action…"
-msgstr "Najít činnost"
+msgstr "Najít činnost…"
 
-#: kxmlguiwindow.cpp:563
+#: kxmlguiwindow.cpp:572
 #, kde-format
 msgid ""
 "There are two actions (%1, %2) that want to use the same shortcut (%3). This "
-"is most probably a bug. Please report it in <a href='https://bugs.kde."
-"org'>bugs.kde.org</a>"
+"is most probably a bug. Please report it in <a href=\"%4\">%4</a>"
 msgstr ""
+"Existují dvě akce (%1, %2), které chtějí používat stejnou klávesovou zkratku "
+"(%3). S největší pravděpodobností se jedná o chybu. Nahlaste ji prosím na <a "
+"href=\"%4\">%4</a>"
 
-#: kxmlguiwindow.cpp:568
+#: kxmlguiwindow.cpp:578
 #, kde-format
 msgid "Ambiguous Shortcuts"
 msgstr "Nejednoznačné zkratky"

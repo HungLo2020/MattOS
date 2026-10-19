@@ -1,12 +1,13 @@
 # Translation of plasmaintegration5.po into Serbian.
 # Chusslove Illich <caslav.ilic@gmx.net>, 2014, 2016, 2017.
+# Nemanja Hiršl <nemhirsl@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasmaintegration5\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-27 00:45+0000\n"
-"PO-Revision-Date: 2017-09-28 17:58+0200\n"
-"Last-Translator: Chusslove Illich <caslav.ilic@gmx.net>\n"
+"POT-Creation-Date: 2026-06-16 00:47+0000\n"
+"PO-Revision-Date: 2026-10-03 22:09+0200\n"
+"Last-Translator: Nemanja Hiršl <nemhirsl@gmail.com>\n"
 "Language-Team: Serbian <kde-i18n-sr@kde.org>\n"
 "Language: sr\n"
 "MIME-Version: 1.0\n"
@@ -18,144 +19,71 @@ msgstr ""
 "X-Text-Markup: kde4\n"
 "X-Environment: kde\n"
 
-#: platformtheme/kdeplatformfiledialoghelper.cpp:260
-#, kde-format
-msgctxt "@title:window"
-msgid "Open File"
-msgstr "Отварање фајла"
-
-#: platformtheme/kdeplatformfiledialoghelper.cpp:261
+#: platformtheme/kdeplatformfiledialoghelper.cpp:242
 #, kde-format
 msgctxt "@title:window"
 msgid "Save File"
 msgstr "Уписивање фајла"
 
-#: platformtheme/kdeplatformtheme.cpp:278
-#, kde-format
-msgctxt "@action:button"
-msgid "Save All"
-msgstr "Сачувај све"
-
-#: platformtheme/kdeplatformtheme.cpp:282
-#, kde-format
-msgctxt "@action:button"
-msgid "&Yes"
-msgstr ""
-
-#: platformtheme/kdeplatformtheme.cpp:284
-#, kde-format
-msgctxt "@action:button"
-msgid "Yes to All"
-msgstr "Да за све"
-
-#: platformtheme/kdeplatformtheme.cpp:286
-#, kde-format
-msgctxt "@action:button"
-msgid "&No"
-msgstr ""
-
-#: platformtheme/kdeplatformtheme.cpp:288
-#, kde-format
-msgctxt "@action:button"
-msgid "No to All"
-msgstr "Не за све"
-
-#: platformtheme/kdeplatformtheme.cpp:291
-#, kde-format
-msgctxt "@action:button"
-msgid "Abort"
-msgstr "Обустави"
-
-#: platformtheme/kdeplatformtheme.cpp:293
-#, kde-format
-msgctxt "@action:button"
-msgid "Retry"
-msgstr "Покушај поново"
-
-#: platformtheme/kdeplatformtheme.cpp:295
-#, kde-format
-msgctxt "@action:button"
-msgid "Ignore"
-msgstr "Игнориши"
-
-#: platformtheme/kdirselectdialog.cpp:133
-#, kde-format
-msgctxt "folder name"
-msgid "New Folder"
-msgstr "Нова фасцикла"
-
-#: platformtheme/kdirselectdialog.cpp:139
-#, kde-format
-msgctxt "@title:window"
-msgid "New Folder"
-msgstr "Нова фасцикла"
-
-#: platformtheme/kdirselectdialog.cpp:140
-#, kde-format
-msgctxt "@label:textbox"
-msgid ""
-"Create new folder in:\n"
-"%1"
-msgstr ""
-"Направи нову фасциклу у:\n"
-"‘%1’"
-
-#: platformtheme/kdirselectdialog.cpp:171
-#, kde-format
-msgid "A file or folder named %1 already exists."
-msgstr "Фајл или фасцикла по имену ‘%1’ већ постоји."
-
-#: platformtheme/kdirselectdialog.cpp:180
-#, kde-format
-msgid "You do not have permission to create that folder."
-msgstr "Немате дозволу да направите ту фасциклу."
-
-#: platformtheme/kdirselectdialog.cpp:282
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
 #, kde-format
 msgctxt "@title:window"
 msgid "Select Folder"
 msgstr "Избор фасцикле"
 
-#: platformtheme/kdirselectdialog.cpp:290
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
+#, kde-format
+msgctxt "@title:window"
+msgid "Open File"
+msgstr "Отварање фајла"
+
+#: platformtheme/kdeplatformtheme.cpp:290
 #, kde-format
 msgctxt "@action:button"
-msgid "New Folder..."
-msgstr "Нова фасцикла..."
+msgid "Save All"
+msgstr "Сачувај све"
 
-#: platformtheme/kdirselectdialog.cpp:348
+#: platformtheme/kdeplatformtheme.cpp:294
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "New Folder..."
-msgstr "Нова фасцикла..."
+msgctxt "@action:button"
+msgid "&Yes"
+msgstr "&Да"
 
-#: platformtheme/kdirselectdialog.cpp:357
+#: platformtheme/kdeplatformtheme.cpp:296
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Move to Trash"
-msgstr "Премести у смеће"
+msgctxt "@action:button"
+msgid "Yes to All"
+msgstr "Да за све"
 
-#: platformtheme/kdirselectdialog.cpp:366
+#: platformtheme/kdeplatformtheme.cpp:298
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Delete"
-msgstr "Обриши"
+msgctxt "@action:button"
+msgid "&No"
+msgstr "&Не"
 
-#: platformtheme/kdirselectdialog.cpp:377
+#: platformtheme/kdeplatformtheme.cpp:300
 #, kde-format
-msgctxt "@option:check"
-msgid "Show Hidden Folders"
-msgstr "Скривене фасцикле"
+msgctxt "@action:button"
+msgid "No to All"
+msgstr "Не за све"
 
-#: platformtheme/kdirselectdialog.cpp:384
+#: platformtheme/kdeplatformtheme.cpp:303
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Properties"
-msgstr "Својства"
+msgctxt "@action:button"
+msgid "Abort"
+msgstr "Обустави"
 
-#: platformtheme/kfiletreeview.cpp:185
+#: platformtheme/kdeplatformtheme.cpp:305
 #, kde-format
-msgid "Show Hidden Folders"
-msgstr "Скривене фасцикле"
+msgctxt "@action:button"
+msgid "Retry"
+msgstr "Покушај поново"
+
+#: platformtheme/kdeplatformtheme.cpp:307
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "Игнориши"
 
 #: platformtheme/kioopenwith.cpp:125
 #, kde-format
@@ -163,3 +91,5 @@ msgid ""
 "Failed to launch for unknown reasons. Please try with a pre-existing "
 "application."
 msgstr ""
+"Не могу да покренем из непознатих разлога. Покушајте са неким постојећим "
+"програмом."

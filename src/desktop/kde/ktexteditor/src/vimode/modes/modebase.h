@@ -96,8 +96,12 @@ protected:
     int findLineStartingWitchChar(const QChar &c, int count, bool forward = true) const;
     void updateCursor(const KTextEditor::Cursor c) const;
     static const QChar getCharAtVirtualColumn(const QString &line, int virtualColumn, int tabWidht);
+    static KTextEditor::Cursor cursorPosAtEndOfPaste(const KTextEditor::Cursor pasteLocation, const QString &pastedText, bool isBlock);
 
-    void addToNumberUnderCursor(int count);
+    Range swapRangeColumns(const Range &r) const;
+
+    void addToNumber(int count, bool isCumulative = false);
+    QString calculateNumberIncrement(const QString &numberAsString, int amount);
 
     Range goLineUp();
     Range goLineDown();
@@ -114,10 +118,8 @@ protected:
 
     bool startNormalMode();
     bool startInsertMode();
-    bool startVisualMode();
-    bool startVisualLineMode();
-    bool startVisualBlockMode();
     bool startReplaceMode();
+    bool startVisualMode(ViMode mode);
 
     QChar getChosenRegister(const QChar &defaultReg) const;
     QString getRegisterContent(const QChar &reg);

@@ -13,6 +13,7 @@
 #include <QApplication>
 #include <QDBusConnection>
 #include <QDBusMessage>
+#include <QDBusReply>
 #include <QFileDialog>
 #include <QProcess>
 #include <QQuickItem>
@@ -21,17 +22,12 @@
 #include <QWindow>
 
 #include <KActionCollection>
-#include <KConfigGroup>
 #include <KGlobalAccel>
-#include <KKeyServer>
 #include <KLocalizedString>
 #include <KNotifyConfigWidget>
 #include <KPluginFactory>
-#include <KSharedConfig>
 #include <KShortcutsDialog>
-#include <KWindowSystem>
 
-#include "kcmaccessibilityactivationgestures.h"
 #include "kcmaccessibilitybell.h"
 #include "kcmaccessibilitycolorblindnesscorrection.h"
 #include "kcmaccessibilitydata.h"
@@ -39,9 +35,12 @@
 #include "kcmaccessibilitykeyboard.h"
 #include "kcmaccessibilitykeyboardfilters.h"
 #include "kcmaccessibilitymouse.h"
-#include "kcmaccessibilityscreenreader.h"
 #include "kcmaccessibilityshakecursor.h"
+#include "kcmaccessibilitydwellclicker.h"
 #include "kcmaccessibilityzoommagnifier.h"
+#include "logging.h"
+
+using namespace Qt::Literals;
 
 K_PLUGIN_FACTORY_WITH_JSON(KCMAccessFactory, "kcm_access.json", registerPlugin<KAccessConfig>(); registerPlugin<AccessibilityData>();)
 
@@ -55,7 +54,6 @@ public:
         QRegularExpression re("\\d+");
         QRegularExpressionMatchIterator i = re.globalMatch(text);
 
-        QString numbers;
         while (i.hasNext()) {
             QRegularExpressionMatch match = i.next();
             strippedText += match.captured();
@@ -72,9 +70,8 @@ KAccessConfig::KAccessConfig(QObject *parent, const KPluginMetaData &metaData)
     qmlRegisterAnonymousType<BellSettings>("org.kde.plasma.access.kcm", 0);
     qmlRegisterAnonymousType<KeyboardSettings>("org.kde.plasma.access.kcm", 0);
     qmlRegisterAnonymousType<KeyboardFiltersSettings>("org.kde.plasma.access.kcm", 0);
-    qmlRegisterAnonymousType<ActivationGesturesSettings>("org.kde.plasma.access.kcm", 0);
-    qmlRegisterAnonymousType<ScreenReaderSettings>("org.kde.plasma.access.kcm", 0);
     qmlRegisterAnonymousType<ShakeCursorSettings>("org.kde.plasma.access.kcm", 0);
+    qmlRegisterAnonymousType<DwellClickerSettings>("org.kde.plasma.access.kcm", 0);
     qmlRegisterAnonymousType<ColorblindnessCorrectionSettings>("org.kde.plasma.access.kcm", 0);
     qmlRegisterAnonymousType<InvertSettings>("org.kde.plasma.access.kcm", 0);
     qmlRegisterAnonymousType<ZoomMagnifierSettings>("org.kde.plasma.access.kcm", 0);
@@ -87,11 +84,10 @@ KAccessConfig::KAccessConfig(QObject *parent, const KPluginMetaData &metaData)
 
     connect(m_data->bellSettings(), &BellSettings::configChanged, this, &KAccessConfig::bellIsDefaultsChanged);
     connect(m_data->mouseSettings(), &MouseSettings::configChanged, this, &KAccessConfig::mouseIsDefaultsChanged);
-    connect(m_data->activationGesturesSettings(), &ActivationGesturesSettings::configChanged, this, &KAccessConfig::activationGesturesIsDefaultsChanged);
     connect(m_data->keyboardFiltersSettings(), &KeyboardFiltersSettings::configChanged, this, &KAccessConfig::keyboardFiltersIsDefaultsChanged);
     connect(m_data->keyboardSettings(), &KeyboardSettings::configChanged, this, &KAccessConfig::keyboardModifiersIsDefaultsChanged);
-    connect(m_data->screenReaderSettings(), &ScreenReaderSettings::configChanged, this, &KAccessConfig::screenReaderIsDefaultsChanged);
     connect(m_data->shakeCursorSettings(), &ShakeCursorSettings::configChanged, this, &KAccessConfig::shakeCursorIsDefaultsChanged);
+    connect(m_data->dwellClickerSettings(), &DwellClickerSettings::configChanged, this, &KAccessConfig::dwellClickerIsDefaultsChanged);
     connect(m_data->colorblindnessCorrectionSettings(),
             &ColorblindnessCorrectionSettings::configChanged,
             this,
@@ -264,10 +260,32 @@ void KAccessConfig::launchOrcaConfiguration()
     }
 }
 
+void KAccessConfig::load()
+{
+    KQuickManagedConfigModule::load();
+
+    QDBusMessage screenReaderEnabledMessage =
+        QDBusMessage::createMethodCall(u"org.kde.kded6"_s, u"/modules/screenreader"_s, u"org.kde.screenreader"_s, u"enabled"_s);
+    QDBusReply<bool> reply = QDBusConnection::sessionBus().call(screenReaderEnabledMessage);
+
+    if (reply.isValid()) {
+        m_screenReaderEnabled = reply.value();
+        Q_EMIT screenReaderEnabledChanged();
+    } else {
+        qCWarning(KCM_ACCESS) << "Failed to read screenreader enabled" << reply.error().message();
+    }
+}
+
 void KAccessConfig::save()
 {
     const bool shakeCursorSaveNeeded = m_data->shakeCursorSettings()->findItem(QStringLiteral("ShakeCursor"))->isSaveNeeded();
     const bool shakeCursorMagnificationSaveNeeded = m_data->shakeCursorSettings()->findItem(QStringLiteral("ShakeCursorMagnification"))->isSaveNeeded();
+
+    const bool dwellClickerSaveNeeded = m_data->dwellClickerSettings()->findItem(QStringLiteral("DwellClicker"))->isSaveNeeded();
+    const bool dwellClickerDelayTimeSaveNeeded = m_data->dwellClickerSettings()->findItem(QStringLiteral("DwellClickerDelayTime"))->isSaveNeeded();
+    const bool dwellClickerDwellTimeSaveNeeded = m_data->dwellClickerSettings()->findItem(QStringLiteral("DwellClickerDwellTime"))->isSaveNeeded();
+    const bool dwellClickerDwellColorSaveNeeded = m_data->dwellClickerSettings()->findItem(QStringLiteral("DwellClickerDwellColor"))->isSaveNeeded();
+    const bool dwellClickerMotionThresholdSaveNeeded = m_data->dwellClickerSettings()->findItem(QStringLiteral("DwellClickerMotionThreshold"))->isSaveNeeded();
 
     const bool colorblindnessCorrectionSaveNeeded =
         m_data->colorblindnessCorrectionSettings()->findItem(QStringLiteral("ColorblindnessCorrection"))->isSaveNeeded();
@@ -279,10 +297,9 @@ void KAccessConfig::save()
     const bool zoomMagnifierSaveNeeded = m_data->zoomMagnifierSettings()->findItem(QStringLiteral("Zoom"))->isSaveNeeded()
         || m_data->zoomMagnifierSettings()->findItem(QStringLiteral("Magnifier"))->isSaveNeeded();
     const bool zoomSettingsSaveNeeded = m_data->zoomMagnifierSettings()->findItem(QStringLiteral("SharedZoomFactor"))->isSaveNeeded()
-        || m_data->zoomMagnifierSettings()->findItem(QStringLiteral("ZoomMousePointer"))->isSaveNeeded()
         || m_data->zoomMagnifierSettings()->findItem(QStringLiteral("ZoomMouseTracking"))->isSaveNeeded()
-        || m_data->zoomMagnifierSettings()->findItem(QStringLiteral("ZoomEnableFocusTracking"))->isSaveNeeded()
         || m_data->zoomMagnifierSettings()->findItem(QStringLiteral("ZoomEnableTextCaretTracking"))->isSaveNeeded()
+        || m_data->zoomMagnifierSettings()->findItem(QStringLiteral("ZoomUsePatternUpscaler"))->isSaveNeeded()
         || m_data->zoomMagnifierSettings()->findItem(QStringLiteral("ZoomPixelGridZoom"))->isSaveNeeded()
         || m_data->zoomMagnifierSettings()->findItem(QStringLiteral("ZoomPointerAxisGestureModifiers"))->isSaveNeeded();
     const bool magnifierSettingsSaveNeeded = m_data->zoomMagnifierSettings()->findItem(QStringLiteral("SharedZoomFactor"))->isSaveNeeded()
@@ -290,13 +307,6 @@ void KAccessConfig::save()
         || m_data->zoomMagnifierSettings()->findItem(QStringLiteral("MagnifierHeight"))->isSaveNeeded();
 
     KQuickManagedConfigModule::save();
-
-    if (bellSettings()->systemBell() || bellSettings()->customBell() || bellSettings()->visibleBell()) {
-        KConfig _cfg(QStringLiteral("kdeglobals"), KConfig::NoGlobals);
-        KConfigGroup cfg(&_cfg, QStringLiteral("General"));
-        cfg.writeEntry("UseSystemBell", true);
-        cfg.sync();
-    }
 
     // make kaccess reread the configuration
     // turning a11y features off needs to be done by kaccess
@@ -318,6 +328,24 @@ void KAccessConfig::save()
                                                                          QStringLiteral("org.kde.kwin.Effects"),
                                                                          QStringLiteral("reconfigureEffect"));
         reconfigureMessage.setArguments({QStringLiteral("shakecursor")});
+        QDBusConnection::sessionBus().call(reconfigureMessage);
+    }
+
+    if (dwellClickerSaveNeeded) {
+        QDBusMessage reloadMessage =
+            QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"),
+                                           QStringLiteral("/Effects"),
+                                           QStringLiteral("org.kde.kwin.Effects"),
+                                           dwellClickerSettings()->dwellClicker() ? QStringLiteral("loadEffect") : QStringLiteral("unloadEffect"));
+        reloadMessage.setArguments({QStringLiteral("dwellclicker")});
+        QDBusConnection::sessionBus().call(reloadMessage);
+    }
+    if (dwellClickerDelayTimeSaveNeeded || dwellClickerDwellTimeSaveNeeded || dwellClickerDwellColorSaveNeeded || dwellClickerMotionThresholdSaveNeeded) {
+        QDBusMessage reconfigureMessage = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"),
+                                                                         QStringLiteral("/Effects"),
+                                                                         QStringLiteral("org.kde.kwin.Effects"),
+                                                                         QStringLiteral("reconfigureEffect"));
+        reconfigureMessage.setArguments({QStringLiteral("dwellclicker")});
         QDBusConnection::sessionBus().call(reconfigureMessage);
     }
 
@@ -388,6 +416,43 @@ void KAccessConfig::save()
         reconfigureMessage.setArguments({QStringLiteral("magnifier")});
         QDBusConnection::sessionBus().call(reconfigureMessage);
     }
+
+    QDBusMessage enableScreenReaderMessage =
+        QDBusMessage::createMethodCall(u"org.kde.kded6"_s, u"/modules/screenreader"_s, u"org.kde.screenreader"_s, u"setEnabled"_s);
+    enableScreenReaderMessage.setArguments({m_screenReaderEnabled});
+    QDBusReply<void> reply = QDBusConnection::sessionBus().call(enableScreenReaderMessage);
+
+    if (!reply.isValid()) {
+        qCWarning(KCM_ACCESS) << "Failed to send setEnabled" << reply.error().message();
+    }
+}
+
+void KAccessConfig::defaults()
+{
+    KQuickManagedConfigModule::defaults();
+
+    m_screenReaderEnabled = false;
+    Q_EMIT screenReaderEnabledChanged();
+    Q_EMIT settingsChanged();
+    Q_EMIT screenReaderIsDefaultsChanged();
+}
+
+bool KAccessConfig::isDefaults() const
+{
+    return screenReaderIsDefaults();
+}
+
+bool KAccessConfig::isSaveNeeded() const
+{
+    QDBusMessage msg = QDBusMessage::createMethodCall(u"org.kde.kded6"_s, u"/modules/screenreader"_s, u"org.kde.screenreader"_s, u"enabled"_s);
+    QDBusReply<bool> reply = QDBusConnection::sessionBus().call(msg);
+
+    if (!reply.isValid()) {
+        qCWarning(KCM_ACCESS) << "Failed to read isSaveNeeded" << reply.error().message();
+        return false;
+    }
+
+    return m_screenReaderEnabled != reply.value();
 }
 
 QString KAccessConfig::orcaLaunchFeedback() const
@@ -410,11 +475,6 @@ bool KAccessConfig::orcaInstalled()
     return tryOrcaRun != -2;
 }
 
-bool KAccessConfig::isPlatformX11() const
-{
-    return KWindowSystem::isPlatformX11();
-}
-
 MouseSettings *KAccessConfig::mouseSettings() const
 {
     return m_data->mouseSettings();
@@ -435,19 +495,14 @@ KeyboardFiltersSettings *KAccessConfig::keyboardFiltersSettings() const
     return m_data->keyboardFiltersSettings();
 }
 
-ActivationGesturesSettings *KAccessConfig::activationGesturesSettings() const
-{
-    return m_data->activationGesturesSettings();
-}
-
-ScreenReaderSettings *KAccessConfig::screenReaderSettings() const
-{
-    return m_data->screenReaderSettings();
-}
-
 ShakeCursorSettings *KAccessConfig::shakeCursorSettings() const
 {
     return m_data->shakeCursorSettings();
+}
+
+DwellClickerSettings *KAccessConfig::dwellClickerSettings() const
+{
+    return m_data->dwellClickerSettings();
 }
 
 ColorblindnessCorrectionSettings *KAccessConfig::colorblindnessCorrectionSettings() const
@@ -485,19 +540,26 @@ bool KAccessConfig::keyboardModifiersIsDefaults() const
     return keyboardSettings()->isDefaults();
 }
 
-bool KAccessConfig::activationGesturesIsDefaults() const
-{
-    return activationGesturesSettings()->isDefaults();
-}
-
 bool KAccessConfig::screenReaderIsDefaults() const
 {
-    return screenReaderSettings()->isDefaults();
+    QDBusMessage msg = QDBusMessage::createMethodCall(u"org.kde.kded6"_s, u"/modules/screenreader"_s, u"org.kde.screenreader"_s, u"enabledByDefault"_s);
+    QDBusReply<bool> reply = QDBusConnection::sessionBus().call(msg);
+
+    if (!reply.isValid()) {
+        qCWarning(KCM_ACCESS) << "Failed to read enabledByDefault" << reply.error().message();
+    }
+
+    return m_screenReaderEnabled == reply.value();
 }
 
 bool KAccessConfig::shakeCursorIsDefaults() const
 {
     return shakeCursorSettings()->isDefaults();
+}
+
+bool KAccessConfig::dwellClickerIsDefaults() const
+{
+    return dwellClickerSettings()->isDefaults();
 }
 
 bool KAccessConfig::colorblindnessCorrectionIsDefaults() const
@@ -513,6 +575,19 @@ bool KAccessConfig::invertIsDefaults() const
 bool KAccessConfig::zoomMagnifierIsDefaults() const
 {
     return zoomMagnifierSettings()->isDefaults();
+}
+
+bool KAccessConfig::screenReaderEnabled() const
+{
+    return m_screenReaderEnabled;
+}
+
+void KAccessConfig::setScreenReaderEnabled(bool enabled)
+{
+    m_screenReaderEnabled = enabled;
+    Q_EMIT screenReaderEnabledChanged();
+    Q_EMIT screenReaderIsDefaultsChanged();
+    Q_EMIT settingsChanged();
 }
 
 #include "kcmaccess.moc"

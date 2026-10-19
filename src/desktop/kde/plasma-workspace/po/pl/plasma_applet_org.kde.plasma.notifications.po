@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-04 02:42+0000\n"
-"PO-Revision-Date: 2025-08-17 12:11+0200\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
+"PO-Revision-Date: 2026-03-14 07:01+0100\n"
 "Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
 "Language-Team: pl\n"
 "Language: pl\n"
@@ -112,40 +112,40 @@ msgctxt "Row description, e.g. Source"
 msgid "%1:"
 msgstr "%1:"
 
-#: components/JobDetails.qml:116
+#: components/JobDetails.qml:118
 #, kde-format
 msgctxt "How many bytes have been copied"
 msgid "%2 of %1"
 msgstr "%2 z %1"
 
-#: components/JobDetails.qml:120
+#: components/JobDetails.qml:122
 #, kde-format
 msgctxt "How many files have been copied"
-msgid "%2 of %1 file"
-msgid_plural "%2 of %1 files"
-msgstr[0] "%2 z %1 pliku"
-msgstr[1] "%2 z %1 plików"
-msgstr[2] "%2 z %1 plików"
+msgid "%3 of %2 file"
+msgid_plural "%3 of %2 files"
+msgstr[0] "%3 z %2 pliku"
+msgstr[1] "%3 z %2 plików"
+msgstr[2] "%3 z %2 plików"
 
-#: components/JobDetails.qml:123
+#: components/JobDetails.qml:125
 #, kde-format
 msgctxt "How many dirs have been copied"
-msgid "%2 of %1 folder"
-msgid_plural "%2 of %1 folders"
-msgstr[0] "%2 z %1 katalogu"
-msgstr[1] "%2 z %1 katalogów"
-msgstr[2] "%2 z %1 katalogów"
+msgid "%3 of %2 folder"
+msgid_plural "%3 of %2 folders"
+msgstr[0] "%3 z %2 katalogu"
+msgstr[1] "%3 z %2 katalogów"
+msgstr[2] "%3 z %2 katalogów"
 
-#: components/JobDetails.qml:126
+#: components/JobDetails.qml:128
 #, kde-format
 msgctxt "How many items (that includes files and dirs) have been copied"
-msgid "%2 of %1 item"
-msgid_plural "%2 of %1 items"
-msgstr[0] "%2 z %1 elementu"
-msgstr[1] "%2 z %1 elementów"
-msgstr[2] "%2 z %1 elementów"
+msgid "%3 of %2 item"
+msgid_plural "%3 of %2 items"
+msgstr[0] "%3 z %2 elementu"
+msgstr[1] "%3 z %2 elementów"
+msgstr[2] "%3 z %2 elementów"
 
-#: components/JobDetails.qml:135
+#: components/JobDetails.qml:137
 #, kde-format
 msgid "%1 file"
 msgid_plural "%1 files"
@@ -153,7 +153,7 @@ msgstr[0] "%1 plik"
 msgstr[1] "%1 pliki"
 msgstr[2] "%1 plików"
 
-#: components/JobDetails.qml:137
+#: components/JobDetails.qml:139
 #, kde-format
 msgid "%1 folder"
 msgid_plural "%1 folders"
@@ -161,7 +161,7 @@ msgstr[0] "%1 katalog"
 msgstr[1] "%1 katalogi"
 msgstr[2] "%1 katalogów"
 
-#: components/JobDetails.qml:139
+#: components/JobDetails.qml:141
 #, kde-format
 msgid "%1 item"
 msgid_plural "%1 items"
@@ -169,9 +169,9 @@ msgstr[0] "%1 element"
 msgstr[1] "%1 elementy"
 msgstr[2] "%1 elementów"
 
-#: components/JobDetails.qml:156 components/SpeedChart.qml:72
-#: components/SpeedChart.qml:98 components/SpeedChart.qml:193
-#: components/SpeedChart.qml:204
+#: components/JobDetails.qml:158 components/SpeedChart.qml:75
+#: components/SpeedChart.qml:103 components/SpeedChart.qml:204
+#: components/SpeedChart.qml:217
 #, kde-format
 msgctxt "Bytes per second"
 msgid "%1/s"
@@ -201,7 +201,7 @@ msgctxt "Cancel running job"
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: components/JobItem.qml:125 components/ThumbnailStrip.qml:159
+#: components/JobItem.qml:125 components/ThumbnailStrip.qml:154
 #, kde-format
 msgid "More Options…"
 msgstr "Więcej ustawień…"
@@ -228,17 +228,17 @@ msgctxt "@action:button"
 msgid "Send"
 msgstr "Wyślij"
 
-#: components/SpeedChart.qml:145
+#: components/SpeedChart.qml:155
 #, kde-format
 msgid "Speed"
 msgstr "Szybkość"
 
-#: components/SpeedChart.qml:200
+#: components/SpeedChart.qml:212
 #, kde-format
 msgid "Average Speed"
 msgstr "Średnia szybkość"
 
-#: components/SpeedChart.qml:258
+#: components/SpeedChart.qml:272
 #, kde-format
 msgctxt "Percentage of a job"
 msgid "%1%"
@@ -272,12 +272,12 @@ msgstr "%1: (ukończone)"
 msgid "Job Finished"
 msgstr "Ukończono zadanie"
 
-#: fileinfo.cpp:170
+#: fileinfo.cpp:186
 #, kde-format
 msgid "Open with %1"
 msgstr "Otwórz w %1"
 
-#: fileinfo.cpp:174
+#: fileinfo.cpp:190
 #, kde-format
 msgid "Open with…"
 msgstr "Otwórz za pomocą…"
@@ -401,22 +401,34 @@ msgctxt "Vendor and product name"
 msgid "Notifications are currently provided by '%1 %2'"
 msgstr "Powiadomienia są obecnie dostarczane przez '%1 %2'"
 
-#: globalshortcuts.cpp:23
+#: globalshortcuts.cpp:24
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "Przestaw \"nie przeszkadzać\""
 
-#: globalshortcuts.cpp:42
+#: globalshortcuts.cpp:33
+#, kde-format
+msgctxt "@action"
+msgid "Clear Notification History"
+msgstr "Wyczyść historię powiadomień"
+
+#: globalshortcuts.cpp:52
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications Off"
 msgstr "Powiadomienia wyłączone"
 
-#: globalshortcuts.cpp:43
+#: globalshortcuts.cpp:53
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications On"
 msgstr "Powiadomienia włączone"
+
+#: globalshortcuts.cpp:68
+#, kde-format
+msgctxt "@label OSD popup, keep short"
+msgid "Notification history cleared"
+msgstr "Wyczyszczono historię powiadomień"
 
 #: main.qml:61
 #, kde-format
@@ -472,12 +484,12 @@ msgstr "W trybie nieprzeszkadzania; naciśnij środkowy, aby wyjść z niego"
 msgid "Middle-click to enter do not disturb mode"
 msgstr "Kliknij środkowym, aby przejść w tryb nieprzeszkadzania"
 
-#: main.qml:238
+#: main.qml:245
 #, kde-format
 msgid "Clear All Notifications"
 msgstr "Wyczyść wszystkie powiadomienia"
 
-#: main.qml:257
+#: main.qml:264
 #, kde-format
 msgid "&Configure Event Notifications and Actions…"
 msgstr "U&stawienia powiadomień i działań wydarzeń…"

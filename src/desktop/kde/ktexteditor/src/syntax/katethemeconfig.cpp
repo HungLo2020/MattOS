@@ -1019,6 +1019,7 @@ KateThemeConfigPage::KateThemeConfigPage(QWidget *parent)
 
     QTabWidget *tabWidget = new QTabWidget(this);
     tabWidget->setDocumentMode(true);
+    tabWidget->tabBar()->setExpanding(true);
     layout->addWidget(tabWidget);
 
     auto *themeEditor = new QWidget(this);
@@ -1086,7 +1087,7 @@ int main(uint64_t magicArgument)
 })sample";
 
     m_doc->setText(QString::fromUtf8(code));
-    m_doc->setHighlightingMode(QStringLiteral("C++"));
+    m_doc->updateFileType(QStringLiteral("C++"));
     m_themePreview = new KTextEditor::ViewPrivate(m_doc, this);
 
     layout->addWidget(m_themePreview);
@@ -1151,6 +1152,8 @@ void KateThemeConfigPage::layoutThemeEditorTab(QWidget *tab)
 
     // tabs
     QTabWidget *tabWidget = new QTabWidget(this);
+    tabWidget->setDocumentMode(true);
+    tabWidget->tabBar()->setExpanding(true);
     layout->addWidget(tabWidget);
 
     m_colorTab = new KateThemeConfigColorTab();
@@ -1301,12 +1304,14 @@ void KateThemeConfigPage::refillCombos(const QString &schemaName, const QString 
     // reinitialize combo boxes
     schemaCombo->clear();
     defaultSchemaCombo->clear();
-    defaultSchemaCombo->addItem(i18n("Follow System Color Scheme"), QString());
+    defaultSchemaCombo->addItem(KateHlManager::self()->repository().themeForPalette(qGuiApp->palette()).previewIcon(),
+                                i18n("Follow System Color Scheme"),
+                                QString());
     defaultSchemaCombo->insertSeparator(1);
     const auto themes = KateHlManager::self()->sortedThemes();
     for (const auto &theme : themes) {
-        schemaCombo->addItem(theme.translatedName(), theme.name());
-        defaultSchemaCombo->addItem(theme.translatedName(), theme.name());
+        schemaCombo->addItem(theme.previewIcon(), theme.translatedName(), theme.name());
+        defaultSchemaCombo->addItem(theme.previewIcon(), theme.translatedName(), theme.name());
     }
 
     // set the correct indexes again, fallback to always existing default theme

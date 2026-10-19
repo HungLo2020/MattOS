@@ -1,7 +1,12 @@
 add_library(KF6ConfigGui)
 add_library(KF6::ConfigGui ALIAS KF6ConfigGui)
 
-qt_extract_metatypes(KF6ConfigGui)
+qt_extract_metatypes(KF6ConfigGui OUTPUT_FILES METATYPES_FILE)
+
+# see https://qt-project.atlassian.net/browse/QTBUG-123052
+# might be replaced with proper Qt API once that exists
+get_filename_component(METATYPES_FILE_NAME ${METATYPES_FILE} NAME)
+target_sources(KF6ConfigGui INTERFACE $<INSTALL_INTERFACE:${KDE_INSTALL_QTMETATYPESDIR}/${METATYPES_FILE_NAME}>)
 
 set_target_properties(KF6ConfigGui PROPERTIES
     VERSION     ${KCONFIG_VERSION}
@@ -47,7 +52,7 @@ target_include_directories(KF6ConfigGui
 
 target_link_libraries(KF6ConfigGui PUBLIC Qt6::Gui KF6::ConfigCore)
 
-ecm_generate_headers(KConfigGui_HEADERS
+ecm_generate_headers(KConfigGui_CamelCase_HEADERS
   HEADER_NAMES
   KConfigGui
   KConfigLoader
@@ -70,12 +75,28 @@ if(NOT BUILD_SHARED_LIBS)
     )
 endif()
 
+install(FILES ${METATYPES_FILE} DESTINATION ${KDE_INSTALL_QTMETATYPESDIR})
+
 install(TARGETS KF6ConfigGui EXPORT KF6ConfigTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/kconfiggui_export.h
   kstandardactions_p.h
   ${KConfigGui_HEADERS}
+  ${KConfigGui_CamelCase_HEADERS}
   kconfigguistaticinitializer.cpp
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KConfigGui COMPONENT Devel
+)
+
+ecm_add_installed_library_check(KF6ConfigGui
+    PACKAGE_NAME "KF6Config"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6ConfigGui
+    HEADERS ${KConfigGui_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6ConfigGui
+    PREFIX KCONFIG
 )

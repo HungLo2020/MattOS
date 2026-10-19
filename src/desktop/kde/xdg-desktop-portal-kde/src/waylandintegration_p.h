@@ -66,22 +66,21 @@ private:
 public:
     void authenticate();
 
-    bool isStreamingEnabled() const;
     bool isStreamingAvailable() const;
 
     void acquireStreamingInput(bool acquire);
 
-    Stream startStreamingOutput(QScreen *screen, Screencasting::CursorMode mode);
-    Stream startStreamingWindow(KWayland::Client::PlasmaWindow *window, Screencasting::CursorMode mode);
-    Stream startStreamingWorkspace(Screencasting::CursorMode mode);
-    Stream startStreamingRegion(const QRect region, Screencasting::CursorMode mode);
-    Stream startStreamingVirtualOutput(const QString &name, const QString &description, const QSize &size, Screencasting::CursorMode mode);
-    void stopStreaming(uint32_t nodeid);
+    QFuture<std::unique_ptr<ScreencastingStream>> startStreamingOutput(QScreen *screen, Screencasting::CursorMode mode);
+    QFuture<std::unique_ptr<ScreencastingStream>> startStreamingWindow(KWayland::Client::PlasmaWindow *window, Screencasting::CursorMode mode);
+    QFuture<std::unique_ptr<ScreencastingStream>> startStreamingWorkspace(Screencasting::CursorMode mode);
+    QFuture<std::unique_ptr<ScreencastingStream>> startStreamingRegion(const QRect region, Screencasting::CursorMode mode);
+    QFuture<std::unique_ptr<ScreencastingStream>>
+    startStreamingVirtualOutput(const QString &name, const QString &description, const QSize &size, Screencasting::CursorMode mode);
 
     void requestPointerButtonPress(quint32 linuxButton);
     void requestPointerButtonRelease(quint32 linuxButton);
     void requestPointerMotion(const QSizeF &delta);
-    void requestPointerMotionAbsolute(uint stream, const QPointF &pos);
+    void requestPointerMotionAbsolute(ScreencastingStream *const stream, const QPointF &pos);
     void requestPointerAxis(qreal x, qreal y);
     void requestPointerAxisDiscrete(Qt::Orientation axis, qreal delta);
     void requestKeyboardKeycode(int keycode, bool state);
@@ -93,13 +92,10 @@ public:
     void setParentWindow(QWindow *window, const QString &parentHandle);
 
 private:
-    Stream startStreaming(ScreencastingStream *stream, const QVariantMap &streamOptions);
+    QFuture<std::unique_ptr<ScreencastingStream>> startStreaming(ScreencastingStream *stream, const QVariantMap &streamOptions = {});
 
     uint m_streamInput = 0;
     bool m_waylandAuthenticationRequested = false;
-
-    QDateTime m_lastFrameTime;
-    QList<Stream> m_streams;
 
     std::unique_ptr<FakeInput> m_fakeInput;
     Screencasting *m_screencasting = nullptr;

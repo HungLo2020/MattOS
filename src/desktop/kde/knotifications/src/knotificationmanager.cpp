@@ -38,15 +38,11 @@
 #endif
 #include "debug_p.h"
 
-#if defined(HAVE_CANBERRA)
-#include "notifybyaudio.h"
-#endif
-
 typedef QHash<QString, QString> Dict;
 
 struct Q_DECL_HIDDEN KNotificationManager::Private {
     QHash<int, KNotification *> notifications;
-    QHash<QString, KNotificationPlugin *> notifyPlugins;
+    KNotificationPlugin *plugin = nullptr;
 
     QStringList dirtyConfigCache;
     bool portalDBusServiceExists = false;
@@ -68,9 +64,6 @@ KNotificationManager *KNotificationManager::self()
 KNotificationManager::KNotificationManager()
     : d(new Private)
 {
-    qDeleteAll(d->notifyPlugins);
-    d->notifyPlugins.clear();
-
 #ifdef HAVE_DBUS
     if (isInsideSandbox()) {
         QDBusConnectionInterface *interface = QDBusConnection::sessionBus().interface();
@@ -86,51 +79,9 @@ KNotificationManager::KNotificationManager()
 #endif
 }
 
-KNotificationManager::~KNotificationManager() = default;
-
-KNotificationPlugin *KNotificationManager::pluginForAction(const QString &action)
+KNotificationManager::~KNotificationManager()
 {
-    KNotificationPlugin *plugin = d->notifyPlugins.value(action);
-
-    // We already loaded a plugin for this action.
-    if (plugin) {
-        return plugin;
-    }
-
-    auto addPlugin = [this](KNotificationPlugin *plugin) {
-        d->notifyPlugins[plugin->optionName()] = plugin;
-        connect(plugin, &KNotificationPlugin::finished, this, &KNotificationManager::notifyPluginFinished);
-        connect(plugin, &KNotificationPlugin::xdgActivationTokenReceived, this, &KNotificationManager::xdgActivationTokenReceived);
-        connect(plugin, &KNotificationPlugin::actionInvoked, this, &KNotificationManager::notificationActivated);
-        connect(plugin, &KNotificationPlugin::replied, this, &KNotificationManager::notificationReplied);
-    };
-
-    // Load plugin.
-    // We have a series of built-ins up first, and fall back to trying
-    // to instantiate an externally supplied plugin.
-    if (action == QLatin1String("Popup")) {
-#if defined(Q_OS_ANDROID)
-        plugin = new NotifyByAndroid(this);
-#elif defined(WITH_SNORETOAST)
-        plugin = new NotifyBySnore(this);
-#elif defined(Q_OS_MACOS)
-        plugin = new NotifyByMacOSNotificationCenter(this);
-#elif defined(HAVE_DBUS)
-        if (d->portalDBusServiceExists) {
-            plugin = new NotifyByPortal(this);
-        } else {
-            plugin = new NotifyByPopup(this);
-        }
-#endif
-        addPlugin(plugin);
-    } else if (action == QLatin1String("Sound")) {
-#if defined(HAVE_CANBERRA)
-        plugin = new NotifyByAudio(this);
-        addPlugin(plugin);
-#endif
-    }
-
-    return plugin;
+    delete d->plugin;
 }
 
 void KNotificationManager::notifyPluginFinished(KNotification *notification)
@@ -206,25 +157,8 @@ void KNotificationManager::close(int id)
         KNotification *n = d->notifications.value(id);
         qCDebug(LOG_KNOTIFICATIONS) << "Closing notification" << id;
 
-        // Find plugins that are actually acting on this notification
-        // call close() only on those, otherwise each KNotificationPlugin::close()
-        // will call finish() which may close-and-delete the KNotification object
-        // before it finishes calling close on all the other plugins.
-        // For example: Action=Popup is a single actions but there is 5 loaded
-        // plugins, calling close() on the second would already close-and-delete
-        // the notification
-        KNotifyConfig notifyConfig(n->appName(), n->eventId());
-        QString notifyActions = notifyConfig.readEntry(QStringLiteral("Action"));
-
-        const auto listActions = notifyActions.split(QLatin1Char('|'));
-        for (const QString &action : listActions) {
-            if (!d->notifyPlugins.contains(action)) {
-                qCDebug(LOG_KNOTIFICATIONS) << "No plugin for action" << action;
-                continue;
-            }
-
-            d->notifyPlugins[action]->close(n);
-        }
+        Q_ASSERT(d->plugin);
+        d->plugin->close(n);
     }
 }
 
@@ -264,45 +198,43 @@ void KNotificationManager::notify(KNotification *n)
         } else if (urgency == QLatin1String("Critical")) {
             n->setUrgency(KNotification::CriticalUrgency);
         }
+        n->d->needUpdate = false;
     }
 
-    const auto actionsList = notifyActions.split(QLatin1Char('|'));
+    n->ref();
 
-    // Make sure all plugins can ref the notification
-    // otherwise a plugin may finish and deref before everyone got a chance to ref
-    for (const QString &action : actionsList) {
-        KNotificationPlugin *notifyPlugin = pluginForAction(action);
-
-        if (!notifyPlugin) {
-            qCDebug(LOG_KNOTIFICATIONS) << "No plugin for action" << action;
-            continue;
+    if (!d->plugin) {
+#if defined(Q_OS_ANDROID)
+        d->plugin = new NotifyByAndroid(this);
+#elif defined(WITH_SNORETOAST)
+        d->plugin = new NotifyBySnore(this);
+#elif defined(Q_OS_MACOS)
+        d->plugin = new NotifyByMacOSNotificationCenter(this);
+#elif defined(HAVE_DBUS)
+        if (d->portalDBusServiceExists) {
+            d->plugin = new NotifyByPortal(this);
+        } else {
+            d->plugin = new NotifyByPopup(this);
         }
+#endif
 
-        n->ref();
+        connect(d->plugin, &KNotificationPlugin::finished, this, &KNotificationManager::notifyPluginFinished);
+        connect(d->plugin, &KNotificationPlugin::xdgActivationTokenReceived, this, &KNotificationManager::xdgActivationTokenReceived);
+        connect(d->plugin, &KNotificationPlugin::actionInvoked, this, &KNotificationManager::notificationActivated);
+        connect(d->plugin, &KNotificationPlugin::replied, this, &KNotificationManager::notificationReplied);
     }
 
-    for (const QString &action : actionsList) {
-        KNotificationPlugin *notifyPlugin = pluginForAction(action);
-
-        if (!notifyPlugin) {
-            qCDebug(LOG_KNOTIFICATIONS) << "No plugin for action" << action;
-            continue;
-        }
-
-        qCDebug(LOG_KNOTIFICATIONS) << "Calling notify on" << notifyPlugin->optionName();
-        notifyPlugin->notify(n, notifyConfig);
-    }
+    d->plugin->notify(n, notifyConfig);
 
     connect(n, &KNotification::closed, this, &KNotificationManager::notificationClosed);
 }
 
 void KNotificationManager::update(KNotification *n)
 {
-    KNotifyConfig notifyConfig(n->appName(), n->eventId());
+    Q_ASSERT(d->plugin);
 
-    for (KNotificationPlugin *p : std::as_const(d->notifyPlugins)) {
-        p->update(n, notifyConfig);
-    }
+    KNotifyConfig notifyConfig(n->appName(), n->eventId());
+    d->plugin->update(n, notifyConfig);
 }
 
 void KNotificationManager::reemit(KNotification *n)

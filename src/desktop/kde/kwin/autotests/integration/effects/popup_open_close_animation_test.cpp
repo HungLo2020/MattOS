@@ -25,8 +25,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_effects_popup_open_close_animation-0");
-
 class PopupOpenCloseAnimationTest : public QObject
 {
     Q_OBJECT
@@ -47,7 +45,7 @@ void PopupOpenCloseAnimationTest::initTestCase()
 
     qRegisterMetaType<KWin::Window *>();
     qRegisterMetaType<KWin::InternalWindow *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     auto config = KSharedConfig::openConfig(QString(), KConfig::SimpleConfig);
     KConfigGroup plugins(config, QStringLiteral("Plugins"));

@@ -64,6 +64,11 @@ VideoPlatform::Format VideoPlatform::formatForPath(const QString &path)
     return formatForExtension(path.mid(path.lastIndexOf(u'.') + 1));
 }
 
+bool VideoPlatform::formatSupportsAudio(VideoPlatform::Format format)
+{
+    return format == WebM_VP9 || format == MP4_H264;
+}
+
 VideoPlatform::RecordingState VideoPlatform::recordingState() const
 {
     return m_recordingState;

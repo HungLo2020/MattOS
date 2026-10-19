@@ -30,7 +30,9 @@
 #include <KLocalizedString>
 #include <KPackage/Package>
 #include <KPackage/PackageLoader>
-#include <KProcess>
+#if KWIN_BUILD_NOTIFICATIONS
+#include <KNotification>
+#endif
 
 namespace KWin
 {
@@ -165,14 +167,11 @@ QObject *TabBoxHandlerPrivate::createSwitcherItem()
         QStandardPaths::GenericDataLocation,
         QStringLiteral("plasma/look-and-feel/%1/contents/windowswitcher/WindowSwitcher.qml").arg(config.layoutName()));
     if (file.isNull()) {
-        QString path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin-wayland/tabbox/") + config.layoutName(), QStandardPaths::LocateDirectory);
-        if (path.isEmpty()) {
-            path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin/tabbox/") + config.layoutName(), QStandardPaths::LocateDirectory);
-        }
+        QString path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1StringView("kwin/tabbox/") + config.layoutName(), QStandardPaths::LocateDirectory);
         if (path.isEmpty()) {
             // load default
             qCWarning(KWIN_TABBOX) << "Could not load window switcher package" << config.layoutName() << ". Falling back to default";
-            path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1String("kwin-wayland/tabbox/") + TabBoxConfig::defaultLayoutName(), QStandardPaths::LocateDirectory);
+            path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QLatin1StringView("kwin/tabbox/") + TabBoxConfig::defaultLayoutName(), QStandardPaths::LocateDirectory);
         }
 
         KPackage::Package pkg = KPackage::PackageLoader::self()->loadPackage(QStringLiteral("KWin/WindowSwitcher"));
@@ -186,11 +185,10 @@ QObject *TabBoxHandlerPrivate::createSwitcherItem()
     m_qmlComponent->loadUrl(QUrl::fromLocalFile(file));
     if (m_qmlComponent->isError()) {
         qCWarning(KWIN_TABBOX) << "Component failed to load: " << m_qmlComponent->errors();
-        QStringList args;
-        args << QStringLiteral("--passivepopup") << i18n("The Window Switcher installation is broken, resources are missing.\n"
-                                                         "Contact your distribution about this.")
-             << QStringLiteral("20");
-        KProcess::startDetached(QStringLiteral("kdialog"), args);
+#if KWIN_BUILD_NOTIFICATIONS
+        KNotification::event(QStringLiteral("brokentabbox"), i18n("The Window Switcher installation is broken, resources are missing.\n"
+                                                                  "Contact your distribution about this."));
+#endif
         m_qmlComponent.reset(nullptr);
     } else {
         QObject *object = m_qmlComponent->create(m_qmlContext.get());
@@ -205,7 +203,6 @@ void TabBoxHandlerPrivate::show()
 {
 #ifndef KWIN_UNIT_TEST
     if (!m_qmlContext) {
-        qmlRegisterType<SwitcherItem>("org.kde.kwin", 3, 0, "TabBoxSwitcher");
         m_qmlContext = std::make_unique<QQmlContext>(Scripting::self()->qmlEngine());
     }
     if (!m_qmlComponent) {

@@ -24,10 +24,9 @@ class KServiceActionComponent : public Component
 public:
     ~KServiceActionComponent() override;
 
-    void loadFromService();
     void emitGlobalShortcutEvent(const GlobalShortcut &shortcut, ShortcutKeyState state) override;
-    void writeSettings(KConfigGroup &config) const override;
-    void loadSettings(const KConfigGroup &config) override;
+    void writeSettings(KConfigGroup &config, KConfigGroup &state) const override;
+    void loadSettings(const KConfigGroup &config, const KConfigGroup &state) override;
     bool cleanUp() override;
 
 private:

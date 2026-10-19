@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-25 00:42+0000\n"
+"POT-Creation-Date: 2026-09-17 00:40+0000\n"
 "PO-Revision-Date: 2024-05-20 12:33+0200\n"
 "Last-Translator: giovanni <g.sora@tiscali.it>\n"
 "Language-Team: Interlingua <kde-i18n-doc@kde.org>\n"
@@ -113,14 +113,7 @@ msgctxt "home page"
 msgid "&Home"
 msgstr "&Domo"
 
-#: kstandardaction.cpp:230
-#, kde-format
-msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
-msgstr ""
-"Monstra barra de menu <p> Il monstra le barra de menu de nove postea que "
-"habeva essite celate</p>"
-
-#: kstandardaction.cpp:251
+#: kstandardaction.cpp:248
 #, kde-format
 msgid ""
 "Show Statusbar<p>Shows the statusbar, which is the bar at the bottom of the "
@@ -521,10 +514,15 @@ msgstr "Aperi &Menu"
 msgid "Application Style"
 msgstr "Stilo de Application"
 
-#: kstylemanager.cpp:78
+#: kstylemanager.cpp:84
 #, kde-format
 msgid "Default"
 msgstr "Predefinite"
+
+#~ msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
+#~ msgstr ""
+#~ "Monstra barra de menu <p> Il monstra le barra de menu de nove postea que "
+#~ "habeva essite celate</p>"
 
 #~ msgid "&Open..."
 #~ msgstr "&Aperi ..."
@@ -1508,7 +1506,7 @@ msgstr "Predefinite"
 #~ msgstr "Patronos"
 
 #~ msgid "Wallpapers"
-#~ msgstr "Tapetes de papiro"
+#~ msgstr "Fundos de schermo"
 
 #~ msgid "XDG Application menu (.desktop files)"
 #~ msgstr "XDG Menu de applicationes (files .desktop)"
@@ -8777,7 +8775,7 @@ msgstr "Predefinite"
 
 #~ msgid "Too many requests to server. Please try again in a few minutes."
 #~ msgstr ""
-#~ "Troppo requestas a le servitor. Pro favor prova de nove inter pauc "
+#~ "Troppo requestas a le servitor. Pro favor prova de nove inter pauco "
 #~ "minutas."
 
 #~ msgid "Unknown Open Collaboration Service API error. (%1)"

@@ -15,7 +15,6 @@
 #include "xcursor/cursortheme.h"
 #include "xcursor/previewwidget.h"
 #include "xcursor/sortproxymodel.h"
-#include "xcursor/themeapplicator.h"
 #include "xcursor/thememodel.h"
 
 #include <KIO/CopyJob>
@@ -29,16 +28,9 @@
 #include <KUrlRequesterDialog>
 
 #include <QDir>
+#include <QProcess>
 #include <QStandardItemModel>
 #include <QTemporaryFile>
-#include <private/qtx11extras_p.h>
-
-#include <X11/Xcursor/Xcursor.h>
-#include <X11/Xlib.h>
-
-#ifdef HAVE_XFIXES
-#include <X11/extensions/Xfixes.h>
-#endif
 
 using namespace Qt::StringLiterals;
 
@@ -206,9 +198,11 @@ void CursorThemeConfig::updateSizeComboBox()
 
             // insert the items
             m_pixmap = theme->createIcon(0);
+            m_pixmap = m_pixmap.copy(QRegion(m_pixmap.createHeuristicMask(true)).boundingRect());
 
             for (int i : sizes) {
                 m_pixmap = theme->createIcon(i);
+                m_pixmap = m_pixmap.copy(QRegion(m_pixmap.createHeuristicMask(true)).boundingRect());
                 auto *item = new QStandardItem(QIcon(m_pixmap), QString::number(i));
                 item->setData(i);
                 m_sizesModel->appendRow(item);
@@ -304,13 +298,8 @@ void CursorThemeConfig::save()
     KQuickManagedConfigModule::save();
     setPreferredSize(cursorThemeSettings()->cursorSize());
 
-    int row = cursorThemeIndex(cursorThemeSettings()->cursorTheme());
-    QModelIndex selected = m_themeProxyModel->index(row, 0);
-    const CursorTheme *theme = selected.isValid() ? m_themeProxyModel->theme(selected) : nullptr;
+    QProcess::startDetached(QStringLiteral(CMAKE_INSTALL_FULL_LIBEXECDIR "/plasma-setup-xwayland"));
 
-    if (!applyTheme(theme, cursorThemeSettings()->cursorSize())) {
-        Q_EMIT showInfoMessage(i18n("You have to restart the Plasma session for these changes to take effect."));
-    }
     removeThemes();
 
     notifyKcmChange(GlobalChangeType::CursorChanged);
@@ -348,10 +337,10 @@ void CursorThemeConfig::ghnsEntryChanged(const KNSCore::Entry &entry)
     if (entry.status() == KNSCore::Entry::Deleted) {
         for (const QString &deleted : entry.uninstalledFiles()) {
             auto list = QStringView(deleted).split(QLatin1Char('/'));
-            if (list.last() == QLatin1Char('*')) {
+            if (list.constLast() == QLatin1Char('*')) {
                 list.takeLast();
             }
-            QModelIndex idx = m_themeModel->findIndex(list.last().toString());
+            QModelIndex idx = m_themeModel->findIndex(list.constLast().toString());
             if (idx.isValid()) {
                 m_themeModel->removeTheme(idx);
             }
@@ -407,7 +396,10 @@ void CursorThemeConfig::installThemeFromFile(const QUrl &url)
 void CursorThemeConfig::installThemeFile(const QString &path)
 {
     KTar archive(path);
-    archive.open(QIODevice::ReadOnly);
+    if (!archive.open(QIODevice::ReadOnly)) {
+        Q_EMIT showErrorMessage(i18nc("@info", "Unable to open the icon theme archive."));
+        return;
+    }
 
     const KArchiveDirectory *archiveDir = archive.directory();
     QStringList themeDirs;

@@ -52,13 +52,11 @@ private:
     KWayland::Client::PlasmaShell *m_plasmaShell = nullptr;
 };
 
-static const QString s_socketName = QStringLiteral("kwayland-test-wayland-plasma-shell-0");
-
 void TestPlasmaShell::init()
 {
     delete m_display;
     m_display = new KWin::Display(this);
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
 
@@ -70,7 +68,7 @@ void TestPlasmaShell::init()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);
@@ -95,8 +93,8 @@ void TestPlasmaShell::init()
     m_registry->setup();
 
     QVERIFY(interfacesAnnouncedSpy.wait());
-#define CREATE(variable, factory, iface)                                                                                                                      \
-    variable =                                                                                                                                                \
+#define CREATE(variable, factory, iface)                                                                                                                                                          \
+    variable =                                                                                                                                                                                    \
         m_registry->create##factory(m_registry->interface(KWayland::Client::Registry::Interface::iface).name, m_registry->interface(KWayland::Client::Registry::Interface::iface).version, this); \
     QVERIFY(variable);
 
@@ -264,7 +262,6 @@ void TestPlasmaShell::testSkipTaskbar()
     QVERIFY(sps->skipTaskbar());
     // setting to same again should not emit the signal
     ps->setSkipTaskbar(true);
-    QEXPECT_FAIL("", "Should not be emitted if not changed", Continue);
     QVERIFY(!skipTaskbarChangedSpy.wait(100));
     QVERIFY(sps->skipTaskbar());
 
@@ -297,7 +294,6 @@ void TestPlasmaShell::testSkipSwitcher()
     QVERIFY(sps->skipSwitcher());
     // setting to same again should not emit the signal
     ps->setSkipSwitcher(true);
-    QEXPECT_FAIL("", "Should not be emitted if not changed", Continue);
     QVERIFY(!skipSwitcherChangedSpy.wait(100));
     QVERIFY(sps->skipSwitcher());
 

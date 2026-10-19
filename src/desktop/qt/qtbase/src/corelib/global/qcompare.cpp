@@ -19,7 +19,7 @@ QT_BEGIN_NAMESPACE
     static_assert(std::bit_cast<std:: type ## _ordering>(Qt:: type ## _ordering:: flag) \
                   == std:: type ## _ordering :: flag) \
     /* end */
-#if !defined(Q_STL_LIBSTDCPP)
+#if !defined(Q_STL_LIBSTDCPP) || QT_VERSION >= QT_VERSION_CHECK(7, 0, 0)
 CHECK(partial, unordered);
 #endif
 CHECK(partial, less);
@@ -1518,6 +1518,21 @@ CHECK(strong, equivalent);
 */
 
 /*!
+    \fn template <typename T1, typename T2, typename U1, typename U2> Qt::compareThreeWay(const std::pair<T1, T2> &lhs, const std::pair<U1, U2> &rhs)
+    \since 6.12
+    \relates <QtCompare>
+    \overload
+
+    \note \c T1 should be comparable to \c U1 and \c T2 should be comparable to
+    \c U2 using \c {compareThreeWay()} or \c {operator<()}.
+
+    This overload uses \c auto return type, because the strength of the ordering
+    depends on the template arguments of the pair. For example, if either of
+    the arguments is a floating point type, the ordering would be
+    \l {Qt::partial_ordering}, if they both are integral - \l {Qt::strong_ordering}.
+*/
+
+/*!
     \fn template <typename LeftType, typename RightType> qCompareThreeWay(const LeftType &lhs, const RightType &rhs)
     \since 6.7
     \relates <QtCompare>
@@ -1610,6 +1625,9 @@ CHECK(strong, equivalent);
     total order for the wrapped types.
     \since 6.8
 
+    Qt::totally_ordered_wrapper\<P\> is a template class where \a P specifies
+    the type to wrap.
+
     One of its primary usecases is to prevent \e {Undefined Behavior} (UB) when
     comparing pointers.
 
@@ -1653,6 +1671,39 @@ CHECK(strong, equivalent);
     As a result, the relational operators for \c {PointerWrapperGood::ptr}
     member will be well-defined, and we can even \c {=default} the relational
     operators for the \c {PointerWrapperGood} class, like it's shown above.
+*/
+
+/*!
+    \struct Qt::has_qt_compare_three_way
+    \inmodule QtCore
+    \inheaderfile QtCompare
+    \brief A type trait for checking if a type supports
+    \c {compareThreeWay()}.
+    \since 6.12
+
+    This struct is a
+    \l {https://en.cppreference.com/w/cpp/named_req/UnaryTypeTrait}
+    {UnaryTypeTrait} that inherits \c {std::true_type} if \c T supports
+    three-way comparison via \c {compareThreeWay()}, and \c {std::false_type}
+    otherwise.
+
+    Use Qt::if_has_qt_compare_three_way to constrain function templates
+    on this property.
+
+    \sa Qt::if_has_qt_compare_three_way, Qt::compareThreeWay()
+*/
+
+/*!
+    \typealias Qt::if_has_qt_compare_three_way
+    \inmodule QtCore
+    \relates <QtCompare>
+    \since 6.12
+
+    A convenience alias for \c {std::enable_if_t} that can be used to
+    constrain function templates to types that support three-way comparison
+    via \c {compareThreeWay()}.
+
+    \sa Qt::has_qt_compare_three_way
 */
 
 QT_END_NAMESPACE

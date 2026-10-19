@@ -6,6 +6,7 @@
 
 #include "screencasting.h"
 #include "qwayland-zkde-screencast-unstable-v1.h"
+#include "screencast.h"
 #include "screencast_debug.h"
 
 #include <KWayland/Client/output.h>
@@ -17,25 +18,35 @@
 #include <QGuiApplication>
 #include <qpa/qplatformnativeinterface.h>
 
+#include <pipewire/core.h>
+
 using namespace KWayland::Client;
+using namespace Qt::StringLiterals;
+
+constexpr int implementedVersion = 6;
 
 class ScreencastingStreamPrivate : public QtWayland::zkde_screencast_stream_unstable_v1
 {
 public:
-    ScreencastingStreamPrivate(ScreencastingStream *q)
+    explicit ScreencastingStreamPrivate(ScreencastingStream *q)
         : q(q)
     {
     }
     ~ScreencastingStreamPrivate() override
     {
         close();
-        q->deleteLater();
     }
 
     void zkde_screencast_stream_unstable_v1_created(uint32_t node) override
     {
         m_nodeid = node;
         Q_EMIT q->created(node);
+    }
+
+    void zkde_screencast_stream_unstable_v1_serial(uint32_t object_serial_hi, uint32_t object_serial_low) override
+    {
+        m_objectSerial = static_cast<quint64>(object_serial_hi) << 32 | object_serial_low;
+        metaData.insert(u"pipewire-serial"_s, m_objectSerial);
     }
 
     void zkde_screencast_stream_unstable_v1_closed() override
@@ -49,7 +60,9 @@ public:
     }
 
     uint m_nodeid = 0;
+    quint64 m_objectSerial = PW_ID_ANY;
     QRect m_geometry;
+    QVariantMap metaData;
     QPointer<ScreencastingStream> q;
 };
 
@@ -66,16 +79,26 @@ quint32 ScreencastingStream::nodeid() const
     return d->m_nodeid;
 }
 
+quint64 ScreencastingStream::objectSerial() const
+{
+    return d->m_objectSerial;
+}
+
 QRect ScreencastingStream::geometry() const
 {
     return d->m_geometry;
+}
+
+QVariantMap ScreencastingStream::metaData() const
+{
+    return d->metaData;
 }
 
 class ScreencastingPrivate : public QtWayland::zkde_screencast_unstable_v1
 {
 public:
     ScreencastingPrivate(Registry *registry, int id, int version, Screencasting *q)
-        : QtWayland::zkde_screencast_unstable_v1(*registry, id, version)
+        : QtWayland::zkde_screencast_unstable_v1(*registry, id, std::min(version, implementedVersion))
         , q(q)
     {
     }
@@ -124,6 +147,12 @@ ScreencastingStream *Screencasting::createOutputStream(QScreen *screen, CursorMo
     connect(screen, &QScreen::geometryChanged, stream, [stream](const QRect &geometry) {
         stream->d->m_geometry = geometry;
     });
+    stream->d->metaData = {
+        {QLatin1String("position"), screen->geometry().topLeft()},
+        {QLatin1String("size"), screen->size()},
+        {QLatin1String("source_type"), static_cast<uint>(ScreenCastPortal::Monitor)},
+        {QLatin1String("mapping_id"), screen->name()},
+    };
     return stream;
 }
 
@@ -135,6 +164,7 @@ ScreencastingStream *Screencasting::createWindowStream(const KWayland::Client::P
     connect(window, &KWayland::Client::PlasmaWindow::geometryChanged, stream, [window, stream] {
         stream->d->m_geometry = window->geometry();
     });
+    stream->d->metaData = {{QLatin1String("source_type"), static_cast<uint>(ScreenCastPortal::Window)}};
     return stream;
 }
 
@@ -143,6 +173,10 @@ ScreencastingStream *Screencasting::createRegionStream(const QRect &g, qreal sca
     auto stream = new ScreencastingStream(this);
     stream->d->init(d->stream_region(g.x(), g.y(), g.width(), g.height(), wl_fixed_from_double(scale), mode));
     stream->d->m_geometry = g;
+    stream->d->metaData = {
+        {QLatin1String("size"), g.size()},
+        {QLatin1String("source_type"), static_cast<uint>(ScreenCastPortal::Monitor)},
+    };
     return stream;
 }
 
@@ -155,15 +189,21 @@ Screencasting::createVirtualOutputStream(const QString &name, const QString &des
     } else {
         stream->d->init(d->stream_virtual_output(name, s.width(), s.height(), wl_fixed_from_double(scale), mode));
     }
-    connect(qGuiApp, &QGuiApplication::screenAdded, stream, [stream, name](const QScreen *screen) {
-        // KWin adds "Virtual-" to virtual screen naems
-        if (screen->name() == QLatin1StringView("Virtual-") + name) {
+    // KWin adds "Virtual-" to virtual screen naems
+    const QString screenId = QLatin1StringView("Virtual-") + name;
+    connect(qGuiApp, &QGuiApplication::screenAdded, stream, [stream, screenId](const QScreen *screen) {
+        if (screen->name() == screenId) {
             stream->d->m_geometry = screen->geometry();
             connect(screen, &QScreen::geometryChanged, stream, [stream](const QRect &geometry) {
                 stream->d->m_geometry = geometry;
             });
         }
     });
+    stream->d->metaData = {
+        {QLatin1String("size"), s},
+        {QLatin1String("source_type"), static_cast<uint>(ScreenCastPortal::Virtual)},
+        {QLatin1String("mapping_id"), screenId}
+    };
     return stream;
 }
 

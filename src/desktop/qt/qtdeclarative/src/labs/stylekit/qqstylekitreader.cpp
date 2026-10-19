@@ -34,7 +34,7 @@ QT_BEGIN_NAMESPACE
     \l highlighted, etc. — tell StyleReader which state the control is in.
     It uses these to resolve and read the correct property values from
     the \l Style, taking \l {Theme}{Themes}, \l {StyleVariation}{StyleVariations},
-    \l {AbstractStylableControls}{fallback types}, and property propagation
+    \l {StylableControls}{fallback types}, and property propagation
     into account.
 
     When implementing a \l CustomControl, you can follow the same approach as
@@ -62,33 +62,47 @@ QT_BEGIN_NAMESPACE
     below, or to a \l {CustomControl::controlType}{custom control type} defined in the
     \l Style.
 
-    \value StyleReader.Button         \l {Button}
-    \value StyleReader.CheckBox       \l {CheckBox}
-    \value StyleReader.ComboBox       \l {ComboBox}
-    \value StyleReader.Frame          \l {Frame}
-    \value StyleReader.GroupBox       \l {GroupBox}
-    \value StyleReader.ItemDelegate   \l {ItemDelegate}
-    \value StyleReader.Label          \l {Label}
-    \value StyleReader.Menu           \l {Menu}
-    \value StyleReader.Dialog         \l {Dialog}
-    \value StyleReader.Page           \l {Page}
-    \value StyleReader.Pane           \l {Pane}
-    \value StyleReader.Popup          \l {Popup}
-    \value StyleReader.ProgressBar    \l {ProgressBar}
-    \value StyleReader.RadioButton    \l {RadioButton}
-    \value StyleReader.ScrollBar      \l {ScrollBar}
-    \value StyleReader.ScrollView     \l {ScrollView}
-    \value StyleReader.SearchField    \l {SearchField}
-    \value StyleReader.Slider         \l {Slider}
-    \value StyleReader.SpinBox        \l {SpinBox}
-    \value StyleReader.Switch         \l {Switch}
-    \value StyleReader.TabBar         \l {TabBar}
-    \value StyleReader.TabButton      \l {TabButton}
-    \value StyleReader.TextArea       \l {TextArea}
-    \value StyleReader.TextField      \l {TextField}
-    \value StyleReader.ToolBar        \l {ToolBar}
-    \value StyleReader.ToolButton     \l {ToolButton}
-    \value StyleReader.ToolSeparator  \l {ToolSeparator}
+    \value StyleReader.BusyIndicator    \l {BusyIndicator}
+    \value StyleReader.Button           \l {Button}
+    \value StyleReader.CheckBox         \l {CheckBox}
+    \value StyleReader.CheckDelegate    \l {CheckDelegate}
+    \value StyleReader.ComboBox         \l {ComboBox}
+    \value StyleReader.DelayButton      \l {DelayButton}
+    \value StyleReader.Dial             \l {Dial}
+    \value StyleReader.Dialog           \l {Dialog}
+    \value StyleReader.DialogButtonBox  \l {DialogButtonBox}
+    \value StyleReader.Frame            \l {Frame}
+    \value StyleReader.GroupBox         \l {GroupBox}
+    \value StyleReader.ItemDelegate     \l {ItemDelegate}
+    \value StyleReader.Label            \l {Label}
+    \value StyleReader.Menu             \l {Menu}
+    \value StyleReader.MenuBar          \l {MenuBar}
+    \value StyleReader.MenuBarItem      \l {MenuBarItem}
+    \value StyleReader.MenuItem         \l {MenuItem}
+    \value StyleReader.MenuSeparator    \l {MenuSeparator}
+    \value StyleReader.Page             \l {Page}
+    \value StyleReader.PageIndicator    \l {PageIndicator}
+    \value StyleReader.Pane             \l {Pane}
+    \value StyleReader.Popup            \l {Popup}
+    \value StyleReader.ProgressBar      \l {ProgressBar}
+    \value StyleReader.RadioButton      \l {RadioButton}
+    \value StyleReader.RadioDelegate    \l {RadioDelegate}
+    \value StyleReader.RoundButton      \l {RoundButton}
+    \value StyleReader.ScrollBar        \l {ScrollBar}
+    \value StyleReader.ScrollView       \l {ScrollView}
+    \value StyleReader.SearchField      \l {SearchField}
+    \value StyleReader.Slider           \l {Slider}
+    \value StyleReader.SpinBox          \l {SpinBox}
+    \value StyleReader.SwipeDelegate    \l {SwipeDelegate}
+    \value StyleReader.Switch           \l {Switch}
+    \value StyleReader.SwitchDelegate   \l {SwitchDelegate}
+    \value StyleReader.TabBar           \l {TabBar}
+    \value StyleReader.TabButton        \l {TabButton}
+    \value StyleReader.TextArea         \l {TextArea}
+    \value StyleReader.TextField        \l {TextField}
+    \value StyleReader.ToolBar          \l {ToolBar}
+    \value StyleReader.ToolButton       \l {ToolButton}
+    \value StyleReader.ToolSeparator    \l {ToolSeparator}
 
     \sa {StyleVariation::controlType}{StyleVariation.controlType}
 */
@@ -261,14 +275,13 @@ static quint64 textFontOverridesSignature(const QQStyleKitTextProperties *t)
 }
 
 QList<QQStyleKitReader *> QQStyleKitReader::s_allReaders;
-QMap<QString, QQmlComponent *> QQStyleKitReader::s_propertyChangesComponents;
-
-
+QQStyleKitReader::PropertyChangesComponents QQStyleKitReader::s_propertyChangesComponents;
 
 QQStyleKitReader::QQStyleKitReader(QObject *parent)
     : QQStyleKitControlProperties(QQSK::PropertyGroup::Control, parent)
     , m_dontEmitChangedSignals(false)
     , m_effectiveVariationsDirty(true)
+    , m_transitionsEnabled(true)
     , m_completed(false)
     , m_global(QQStyleKitControlProperties(QQSK::PropertyGroup::GlobalFlag, this))
 {
@@ -285,7 +298,7 @@ QQuickStateGroup *QQStyleKitReader::stateGroup()
     if (m_stateGroup)
         return m_stateGroup;
 
-    /* Lazy create a StyleKitReaderStateGroup as soon as we have delegates
+    /* Lazy create a QQuickStateGroup as soon as we have delegates
      * that needs to be "tracked". That is, the user of this StyleKitReader
      * has read one or more properties, so we need to check and emit changes for
      * those properties whenever our state changes. */
@@ -311,7 +324,8 @@ QQuickStateGroup *QQStyleKitReader::stateGroup()
 
 QQmlComponent *QQStyleKitReader::createControlChangesComponent() const
 {
-    const auto key = u"control"_s;
+    QQmlEngine *engine = qmlEngine(style());
+    auto key = PropertyChangesComponents::key_type{engine, u"control"_s};
     if (auto r = s_propertyChangesComponents.value(key, nullptr))
         return r;
 
@@ -338,23 +352,28 @@ QQmlComponent *QQStyleKitReader::createControlChangesComponent() const
     )");
 
     // TODO: cache propertyName to component!
-    QQmlComponent *component = new QQmlComponent(qmlEngine(style()));
+    QQmlComponent *component = new QQmlComponent(engine);
     component->setData(qmlControlCode.toUtf8(), QUrl());
     Q_ASSERT_X(!component->isError(), __FUNCTION__, component->errorString().toUtf8().constData());
     s_propertyChangesComponents.insert(key, component);
+    QObject::connect(engine, &QObject::destroyed, engine, [key = std::move(key)] {
+        s_propertyChangesComponents.remove(key);
+    });
     return component;
 }
 
 QQmlComponent *QQStyleKitReader::createDelegateChangesComponent(const QString &delegateName) const
 {
-    if (auto r = s_propertyChangesComponents.value(delegateName, nullptr))
+    QQmlEngine *engine = qmlEngine(style());
+    auto key = PropertyChangesComponents::key_type{engine, delegateName};
+    if (auto r = s_propertyChangesComponents.value(key, nullptr))
         return r;
 
     static const QString qmlTemplateCode = QString::fromUtf8(R"(
     import QtQuick
     PropertyChanges { $ {
-        implicitWidth: global.$.implicitWidth
-        implicitHeight: global.$.implicitHeight
+        width: global.$.width
+        height: global.$.height
         visible: global.$.visible
         color: global.$.color
         gradient: global.$.gradient
@@ -392,10 +411,13 @@ QQmlComponent *QQStyleKitReader::createDelegateChangesComponent(const QString &d
 
     QString substitutedCode = qmlTemplateCode;
     substitutedCode.replace('$'_L1, delegateName);
-    QQmlComponent *component = new QQmlComponent(qmlEngine(style()));
+    QQmlComponent *component = new QQmlComponent(engine);
     component->setData(substitutedCode.toUtf8(), QUrl());
     Q_ASSERT_X(!component->isError(), __FUNCTION__, component->errorString().toUtf8().constData());
-    s_propertyChangesComponents.insert(delegateName, component);
+    s_propertyChangesComponents.insert(key, component);
+    QObject::connect(engine, &QObject::destroyed, engine, [key = std::move(key)] {
+        s_propertyChangesComponents.remove(key);
+    });
     return component;
 }
 
@@ -451,50 +473,58 @@ void QQStyleKitReader::maybeTrackDelegates()
         });
 }
 
-void QQStyleKitReader::updateControl()
+void QQStyleKitReader::updateControl(bool applyStateChange)
 {
-    const QQStyleKitStyle *currentStyle = QQStyleKitStyle::current();
+    const QQStyleKitStyle *currentStyle = style();
     if (!m_completed || !currentStyle || !currentStyle->loaded())
         return;
 
-    /* Alternate between two states to trigger a state change. The state group
-     * will, upon changing state, take care of reading the updated property values,
-     * compare them against the current ones in the local storage, and emit changes
-     * (possibly using a transition) if changed. Since the new state might change the
-     * transition, we need to update it first before we do the state change, so that
-     * it takes effect.
-     * If we have skipped tracking some delegates because they are hidden, we need to
-     * check again if this is still the case for the current state. Otherwise, we now
-     * need to track them. Untracked delegates are not backed by PropertyChanges objects,
-     * and hence, will not update when we do a state swap below.
-     * Note that the first time this function is called after start-up, none of the
-     * delegates are yet tracked, and therefore will be created now. */
+    if (applyStateChange) {
+        /* Alternate between two states to trigger a state change. The state group
+        * will, upon changing state, take care of reading the updated property values,
+        * compare them against the current ones in the local storage, and emit changes
+        * (possibly using a transition) if changed. Since the new state might change the
+        * transition, we need to update it first before we do the state change, so that
+        * it takes effect.
+        * If we have skipped tracking some delegates because they are hidden, we need to
+        * check again if this is still the case for the current state. Otherwise, we now
+        * need to track them. Untracked delegates are not backed by PropertyChanges objects,
+        * and hence, will not update when we do a state swap below.
+        * Note that the first time this function is called after start-up, none of the
+        * delegates are yet tracked, and therefore will be created now. */
 
-    maybeTrackDelegates();
+        maybeTrackDelegates();
 
-    auto transitionProp = stateGroup()->transitionsProperty();
-    const int transitionCountInStateGroup = transitionProp.count(&transitionProp);
-    const bool enabled = QQStyleKit::qmlAttachedProperties()->transitionsEnabled();
-    QQuickTransition *transitionInStyle = enabled ? transition() : nullptr;
-    QQuickTransition *transitionInStateGroup =
-        transitionCountInStateGroup > 0 ? transitionProp.at(&transitionProp, 0) : nullptr;
-    if (transitionInStyle != transitionInStateGroup) {
-        transitionProp.clear(&transitionProp);
-        if (transitionInStyle)
-            transitionProp.append(&transitionProp, transitionInStyle);
-    }
+        auto transitionProp = stateGroup()->transitionsProperty();
+        const int transitionCountInStateGroup = transitionProp.count(&transitionProp);
+        const bool enabled = m_transitionsEnabled && QQStyleKit::qmlAttachedProperties()->transitionsEnabled();
+        QQuickTransition *transitionInStyle = enabled ? transition() : nullptr;
+        QQuickTransition *transitionInStateGroup =
+            transitionCountInStateGroup > 0 ? transitionProp.at(&transitionProp, 0) : nullptr;
+        if (transitionInStyle != transitionInStateGroup) {
+            transitionProp.clear(&transitionProp);
+            if (transitionInStyle)
+                transitionProp.append(&transitionProp, transitionInStyle);
+        }
 
-    switch (m_alternateState) {
-    case AlternateState::Alternate1:
-        m_alternateState = AlternateState::Alternate2;
-        stateGroup()->setState(kAlternate2);
-        break;
-    case AlternateState::Alternate2:
-        m_alternateState = AlternateState::Alternate1;
-        stateGroup()->setState(kAlternate1);
-        break;
-    default:
-        Q_UNREACHABLE();
+        switch (m_alternateState) {
+        case AlternateState::Alternate1:
+            m_alternateState = AlternateState::Alternate2;
+            stateGroup()->setState(kAlternate2);
+            break;
+        case AlternateState::Alternate2:
+            m_alternateState = AlternateState::Alternate1;
+            stateGroup()->setState(kAlternate1);
+            break;
+        default:
+            Q_UNREACHABLE();
+        }
+    } else {
+        // Since no state change occurs, the property values in
+        // the local storage no longer reflect this StyleReader's
+        // current state. Clear it to avoid returning stale values
+        // from subsequent property reads.
+        clearLocalStorage();
     }
 
     auto textOverrideSig = textFontOverridesSignature(global()->text());
@@ -504,15 +534,17 @@ void QQStyleKitReader::updateControl()
     rebuildEffectiveFont();
 }
 
-void QQStyleKitReader::resetAll()
+void QQStyleKitReader::resetReadersForStyle(const QQStyleKitStyle *style)
 {
     for (QQStyleKitReader *reader : s_allReaders) {
-        reader->m_effectiveVariationsDirty = true;
-        reader->m_fontDirty = true;
-        reader->clearLocalStorage();
-        reader->rebuildEffectivePalette();
-        reader->rebuildEffectiveFont();
-        reader->emitChangedForAllStyleProperties(EmitFlag::AllProperties);
+        if (reader->style() == style) {
+            reader->m_effectiveVariationsDirty = true;
+            reader->m_fontDirty = true;
+            reader->clearLocalStorage();
+            reader->rebuildEffectivePalette();
+            reader->rebuildEffectiveFont();
+            reader->emitChangedForAllStyleProperties(EmitFlag::AllProperties);
+        }
     }
 }
 
@@ -733,6 +765,82 @@ void QQStyleKitReader::setHighlighted(bool highlighted)
     updateControl();
 }
 
+void QQStyleKitReader::setControlTypeAndState(QQStyleKitExtendableControlType controlType, QQSK::State flags,
+                                              bool applyStateChange)
+{
+    // Apply type and states in one shot to avoid calling
+    // populateLocalStorage() + updateControl() once per individual setter
+    const bool typeChanged = m_type != controlType;
+    const QQSK::State stateChanged = m_state ^ flags;
+
+    if (!typeChanged && !stateChanged)
+        return;
+
+    if (applyStateChange)
+        populateLocalStorage();
+
+    m_type = controlType;
+    m_state = flags;
+
+    updateControl(applyStateChange);
+}
+
+QObject *QQStyleKitReader::target() const
+{
+    return m_target.data();
+}
+
+void QQStyleKitReader::setTarget(QObject *target)
+{
+    /* A reader can optionally set a target object which represents
+    the current object that is being styled, ie: using this StyleReader
+    to read properties from the style. It is needed so that the widget style using
+    the StyleReader is able to post StyleAnimationUpdate events to the correct
+    target during a transition. */
+    m_target = target;
+}
+
+void QQStyleKitReader::setCompleted(bool completed)
+{
+    m_completed = completed;
+}
+
+bool QQStyleKitReader::transitionsEnabled() const
+{
+    return m_transitionsEnabled;
+}
+
+void QQStyleKitReader::setTransitionsEnabled(bool enabled)
+{
+    if (m_transitionsEnabled == enabled)
+        return;
+    m_transitionsEnabled = enabled;
+}
+
+QQStyleKitStyle *QQStyleKitReader::explicitStyle() const
+{
+    return m_explicitStyle.data();
+}
+
+void QQStyleKitReader::setExplicitStyle(QQStyleKitStyle *style)
+{
+    if (m_explicitStyle == style)
+        return;
+    m_explicitStyle = style;
+
+    if (!m_explicitStyle || !m_explicitStyle->loaded()) {
+        clearLocalStorage();
+        return;
+    }
+
+    m_effectiveVariationsDirty = true;
+    m_fontDirty = true;
+    clearLocalStorage();
+    rebuildEffectivePalette();
+    rebuildEffectiveFont();
+    emitChangedForAllStyleProperties(EmitFlag::AllProperties);
+}
+
 QQuickPalette *QQStyleKitReader::palette() const
 {
     return m_palette.data();
@@ -765,8 +873,8 @@ QPalette QQStyleKitReader::effectivePalette() const
 
 void QQStyleKitReader::onPaletteChanged()
 {
-    const QQStyleKitStyle *style = QQStyleKitStyle::current();
-    if (!style || !style->loaded())
+    const QQStyleKitStyle *currentStyle = style();
+    if (!currentStyle || !currentStyle->loaded())
         return;
 
     if (rebuildEffectivePalette()) {
@@ -801,14 +909,14 @@ QFont QQStyleKitReader::font() const
 
 bool QQStyleKitReader::rebuildEffectiveFont()
 {
-    const QQStyleKitStyle *style = QQStyleKitStyle::current();
-    if (!style || !style->loaded())
+    const QQStyleKitStyle *currentStyle = style();
+    if (!currentStyle || !currentStyle->loaded())
         return false;
 
     if (!m_fontDirty)
         return false;
 
-    QFont font = style->fontForControlType(controlType());
+    QFont font = currentStyle->fontForControlType(controlType());
     const QQStyleKitTextProperties *textProps = global()->text();
     if (textProps) {
         if (textProps->isDefined(QQSK::Property::Bold))
@@ -830,6 +938,11 @@ bool QQStyleKitReader::rebuildEffectiveFont()
 QQStyleKitControlProperties *QQStyleKitReader::global() const
 {
     return &const_cast<QQStyleKitReader *>(this)->m_global;
+}
+
+void QQStyleKitReader::componentComplete()
+{
+    setCompleted(true);
 }
 
 QT_END_NAMESPACE

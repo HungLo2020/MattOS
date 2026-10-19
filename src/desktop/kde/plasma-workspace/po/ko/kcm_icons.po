@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmicons\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2023-08-06 22:35+0200\n"
+"POT-Creation-Date: 2026-06-13 00:46+0000\n"
+"PO-Revision-Date: 2026-02-03 23:19+0100\n"
 "Last-Translator: Shinjo Park <kde@peremen.name>\n"
 "Language-Team: Korean <kde-kr@kde.org>\n"
 "Language: ko\n"
@@ -53,12 +53,12 @@ msgstr ""
 msgid "Theme installed successfully."
 msgstr "테마를 설치했습니다."
 
-#: main.cpp:225
+#: main.cpp:227
 #, kde-format
 msgid "Installing icon themes…"
 msgstr "아이콘 테마 설치 중…"
 
-#: main.cpp:235
+#: main.cpp:239
 #, kde-format
 msgid "Installing %1 theme…"
 msgstr "%1 테마 설치 중…"
@@ -73,25 +73,42 @@ msgstr "파일에서 설치…"
 msgid "Get New…"
 msgstr "새 항목 가져오기…"
 
-#: ui/main.qml:188
+#: ui/main.qml:189
 #, kde-format
-msgid "Remove Icon Theme"
+msgctxt "@info:tooltip"
+msgid "Remove icon theme"
 msgstr "아이콘 테마 삭제"
 
-#: ui/main.qml:195
+#: ui/main.qml:191
 #, kde-format
-msgid "Restore Icon Theme"
-msgstr "아이콘 테마 복원"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active icon theme"
+msgstr "활성 아이콘 테마를 삭제할 수 없음"
 
-#: ui/main.qml:244
+#: ui/main.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed icon themes"
+msgstr "시스템에서 설치한 아이콘 테마를 삭제할 수 없음"
+
+#: ui/main.qml:201
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this icon theme"
+msgstr "이 아이콘 테마를 삭제하지 마십시오"
+
+#: ui/main.qml:250
 #, kde-format
 msgid "Open Theme"
 msgstr "테마 열기"
 
-#: ui/main.qml:246
+#: ui/main.qml:252
 #, kde-format
 msgid "Theme Files (*.tar.gz *.tar.bz2)"
 msgstr "테마 파일 (*.tar.gz *.tar.bz2)"
+
+#~ msgid "Restore Icon Theme"
+#~ msgstr "아이콘 테마 복원"
 
 #~ msgid "Main Toolbar"
 #~ msgstr "주 도구 모음"

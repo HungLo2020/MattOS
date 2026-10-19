@@ -17,6 +17,8 @@
 #include "qdocdatabase.h"
 #include "text.h"
 #include "typedefnode.h"
+#include "utilities.h"
+#include "textutils.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -849,7 +851,7 @@ QString Tree::getRef(const QString &target, const Node *node) const
             ++it;
         } while (it != m_nodesByTargetTitle.constEnd() && it.key() == target);
     }
-    QString key = Utilities::asAsciiPrintable(target);
+    QString key = TextUtils::asAsciiPrintable(target);
     it = m_nodesByTargetRef.constFind(key);
     if (it != m_nodesByTargetRef.constEnd()) {
         do {
@@ -909,7 +911,7 @@ void Tree::addTargetsToTargetMap(Node *node) {
         const QString ref = refForAtom(i);
         const QString title = i->string();
         if (!ref.isEmpty() && !title.isEmpty()) {
-            QString key = Utilities::asAsciiPrintable(title);
+            QString key = TextUtils::asAsciiPrintable(title);
             auto *target = new TargetRec(std::move(ref), TargetRec::Target, node, 2);
             m_nodesByTargetRef.insert(key, target);
             m_nodesByTargetTitle.insert(title, target);
@@ -943,7 +945,7 @@ void Tree::addKeywordsToTargetMaps(Node *node) {
         QString title = i->string();
         if (!ref.isEmpty() && !title.isEmpty()) {
             auto *target = new TargetRec(ref, nextSection(i) ? TargetRec::ContentsKeyword : TargetRec::Keyword, node, 1);
-            m_nodesByTargetRef.insert(Utilities::asAsciiPrintable(title), target);
+            m_nodesByTargetRef.insert(TextUtils::asAsciiPrintable(title), target);
             m_nodesByTargetTitle.insert(title, target);
             if (!target->isEmpty())
                 i->append(target->m_ref);
@@ -991,7 +993,7 @@ void Tree::populateTocSectionTargetMap(Node *node) {
             atom->next()->append(ref);
         ++index;
 
-        const QString &key = Utilities::asAsciiPrintable(title);
+        const QString &key = TextUtils::asAsciiPrintable(title);
         auto *target = new TargetRec(ref, TargetRec::Contents, node, 3);
         m_nodesByTargetRef.insert(key, target);
         m_nodesByTargetTitle.insert(title, target);
@@ -1014,7 +1016,7 @@ void Tree::addToPageNodeByTitleMap(Node *node) {
         return;
 
     if (key.contains(QChar(' ')))
-        key = Utilities::asAsciiPrintable(key);
+        key = TextUtils::asAsciiPrintable(key);
     const QList<PageNode *> nodes = m_pageNodesByTitle.values(key);
 
     bool alreadyThere = std::any_of(nodes.cbegin(), nodes.cend(), [&](const auto &knownNode) {
@@ -1047,7 +1049,7 @@ const TargetRec *Tree::findUnambiguousTarget(const QString &target, Genus genus)
 
     TargetRec *bestTarget = findBestCandidate(m_nodesByTargetTitle, target);
     if (!bestTarget)
-        bestTarget = findBestCandidate(m_nodesByTargetRef, Utilities::asAsciiPrintable(target));
+        bestTarget = findBestCandidate(m_nodesByTargetRef, TextUtils::asAsciiPrintable(target));
 
     return bestTarget;
 }
@@ -1059,7 +1061,7 @@ const PageNode *Tree::findPageNodeByTitle(const QString &title) const
 {
     PageNodeMultiMap::const_iterator it;
     if (title.contains(QChar(' ')))
-        it = m_pageNodesByTitle.constFind(Utilities::asAsciiPrintable(title));
+        it = m_pageNodesByTitle.constFind(TextUtils::asAsciiPrintable(title));
     else
         it = m_pageNodesByTitle.constFind(title);
     if (it != m_pageNodesByTitle.constEnd()) {
@@ -1106,13 +1108,13 @@ QString Tree::refForAtom(const Atom *atom)
     case Atom::SectionHeadingLeft:
         if (atom->count() == 2)
             return atom->string(1);
-        return Utilities::asAsciiPrintable(Text::sectionHeading(atom).toString());
+        return TextUtils::asAsciiPrintable(Text::sectionHeading(atom).toString());
     case Atom::Target:
         [[fallthrough]];
     case Atom::Keyword:
         if (const auto *section = nextSection(atom))
             return refForAtom(section);
-        return Utilities::asAsciiPrintable(atom->string());
+        return TextUtils::asAsciiPrintable(atom->string());
     default:
         return {};
     }
@@ -1149,6 +1151,8 @@ CNMap *Tree::getCollectionMap(NodeType type)
         return &m_modules;
     case NodeType::QmlModule:
         return &m_qmlModules;
+    case NodeType::Concept:
+        return &m_concepts;
     default:
         break;
     }
@@ -1533,7 +1537,7 @@ void Tree::markDontDocumentNodes()
     for (auto it = m_dontDocumentMap.begin(); it != m_dontDocumentMap.end(); ++it) {
         Aggregate *node = findAggregate(it.key());
         if (node != nullptr)
-            node->setStatus(Node::DontDocument);
+            node->setStatus(Status::DontDocument);
     }
 }
 

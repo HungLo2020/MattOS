@@ -170,138 +170,140 @@ void tst_qqmllistmodelworkerscript::dynamic_data()
     QTest::addColumn<QString>("warning");
     QTest::addColumn<bool>("dynamicRoles");
 
-    for (int i = 0; i < 2; ++i) {
-        bool dr = (i != 0);
+    for (const bool dr : { false, true }) {
+        const auto t = [dr]() {
+            return dr ? "_dr" : "";
+        };
 
         // Simple flat model
-        QTest::newRow("count") << "count" << 0 << "" << dr;
+        QTest::addRow("count%s", t()) << "count" << 0 << "" << dr;
 
-        QTest::newRow("get1") << "{get(0) === undefined}" << 1 << "" << dr;
-        QTest::newRow("get2") << "{get(-1) === undefined}" << 1 << "" << dr;
-        QTest::newRow("get3") << "{append({'foo':123});get(0) != undefined}" << 1 << "" << dr;
-        QTest::newRow("get4") << "{append({'foo':123});get(0).foo}" << 123 << "" << dr;
-        QTest::newRow("get-modify1") << "{append({'foo':123,'bar':456});get(0).foo = 333;get(0).foo}" << 333 << "" << dr;
-        QTest::newRow("get-modify2") << "{append({'z':1});append({'foo':123,'bar':456});get(1).bar = 999;get(1).bar}" << 999 << "" << dr;
-        QTest::newRow("get-set") << "{append({'foo':123});get(0).foo;setProperty(0, 'foo', 999);get(0).foo}" << 999 << "" << dr;
+        QTest::addRow("get1%s", t()) << "{get(0) === undefined}" << 1 << "" << dr;
+        QTest::addRow("get2%s", t()) << "{get(-1) === undefined}" << 1 << "" << dr;
+        QTest::addRow("get3%s", t()) << "{append({'foo':123});get(0) != undefined}" << 1 << "" << dr;
+        QTest::addRow("get4%s", t()) << "{append({'foo':123});get(0).foo}" << 123 << "" << dr;
+        QTest::addRow("get-modify1%s", t()) << "{append({'foo':123,'bar':456});get(0).foo = 333;get(0).foo}" << 333 << "" << dr;
+        QTest::addRow("get-modify2%s", t()) << "{append({'z':1});append({'foo':123,'bar':456});get(1).bar = 999;get(1).bar}" << 999 << "" << dr;
+        QTest::addRow("get-set%s", t()) << "{append({'foo':123});get(0).foo;setProperty(0, 'foo', 999);get(0).foo}" << 999 << "" << dr;
 
-        QTest::newRow("append1") << "{append({'foo':123});count}" << 1 << "" << dr;
-        QTest::newRow("append2") << "{append({'foo':123,'bar':456});count}" << 1 << "" << dr;
-        QTest::newRow("append3a") << "{append({'foo':123});append({'foo':456});get(0).foo}" << 123 << "" << dr;
-        QTest::newRow("append3b") << "{append({'foo':123});append({'foo':456});get(1).foo}" << 456 << "" << dr;
-        QTest::newRow("append4a") << "{append(123)}" << 0 << "<Unknown File>: QML ListModel: append: value is not an object" << dr;
-        QTest::newRow("append4b") << "{append([{'foo':123},{'foo':456},{'foo':789}]);count}" << 3 << "" << dr;
-        QTest::newRow("append4c") << "{append([{'foo':123},{'foo':456},{'foo':789}]);get(1).foo}" << 456 << "" << dr;
+        QTest::addRow("append1%s", t()) << "{append({'foo':123});count}" << 1 << "" << dr;
+        QTest::addRow("append2%s", t()) << "{append({'foo':123,'bar':456});count}" << 1 << "" << dr;
+        QTest::addRow("append3a%s", t()) << "{append({'foo':123});append({'foo':456});get(0).foo}" << 123 << "" << dr;
+        QTest::addRow("append3b%s", t()) << "{append({'foo':123});append({'foo':456});get(1).foo}" << 456 << "" << dr;
+        QTest::addRow("append4a%s", t()) << "{append(123)}" << 0 << "<Unknown File>: QML ListModel: append: value is not an object" << dr;
+        QTest::addRow("append4b%s", t()) << "{append([{'foo':123},{'foo':456},{'foo':789}]);count}" << 3 << "" << dr;
+        QTest::addRow("append4c%s", t()) << "{append([{'foo':123},{'foo':456},{'foo':789}]);get(1).foo}" << 456 << "" << dr;
 
-        QTest::newRow("clear1") << "{append({'foo':456});clear();count}" << 0 << "" << dr;
-        QTest::newRow("clear2") << "{append({'foo':123});append({'foo':456});clear();count}" << 0 << "" << dr;
-        QTest::newRow("clear3") << "{append({'foo':123});clear()}" << 0 << "" << dr;
+        QTest::addRow("clear1%s", t()) << "{append({'foo':456});clear();count}" << 0 << "" << dr;
+        QTest::addRow("clear2%s", t()) << "{append({'foo':123});append({'foo':456});clear();count}" << 0 << "" << dr;
+        QTest::addRow("clear3%s", t()) << "{append({'foo':123});clear()}" << 0 << "" << dr;
 
-        QTest::newRow("remove1") << "{append({'foo':123});remove(0);count}" << 0 << "" << dr;
-        QTest::newRow("remove2a") << "{append({'foo':123});append({'foo':456});remove(0);count}" << 1 << "" << dr;
-        QTest::newRow("remove2b") << "{append({'foo':123});append({'foo':456});remove(0);get(0).foo}" << 456 << "" << dr;
-        QTest::newRow("remove2c") << "{append({'foo':123});append({'foo':456});remove(1);get(0).foo}" << 123 << "" << dr;
-        QTest::newRow("remove3") << "{append({'foo':123});remove(0)}" << 0 << "" << dr;
-        QTest::newRow("remove3a") << "{append({'foo':123});remove(-1);count}" << 1 << "<Unknown File>: QML ListModel: remove: indices [-1 - 0] out of range [0 - 1]" << dr;
-        QTest::newRow("remove4a") << "{remove(0)}" << 0 << "<Unknown File>: QML ListModel: remove: indices [0 - 1] out of range [0 - 0]" << dr;
-        QTest::newRow("remove4b") << "{append({'foo':123});remove(0);remove(0);count}" << 0 << "<Unknown File>: QML ListModel: remove: indices [0 - 1] out of range [0 - 0]" << dr;
-        QTest::newRow("remove4c") << "{append({'foo':123});remove(1);count}" << 1 << "<Unknown File>: QML ListModel: remove: indices [1 - 2] out of range [0 - 1]" << dr;
-        QTest::newRow("remove5a") << "{append({'foo':123});append({'foo':456});remove(0,2);count}" << 0 << "" << dr;
-        QTest::newRow("remove5b") << "{append({'foo':123});append({'foo':456});remove(0,1);count}" << 1 << "" << dr;
-        QTest::newRow("remove5c") << "{append({'foo':123});append({'foo':456});remove(1,1);count}" << 1 << "" << dr;
-        QTest::newRow("remove5d") << "{append({'foo':123});append({'foo':456});remove(0,1);get(0).foo}" << 456 << "" << dr;
-        QTest::newRow("remove5e") << "{append({'foo':123});append({'foo':456});remove(1,1);get(0).foo}" << 123 << "" << dr;
-        QTest::newRow("remove5f") << "{append({'foo':123});append({'foo':456});append({'foo':789});remove(0,1);remove(1,1);get(0).foo}" << 456 << "" << dr;
-        QTest::newRow("remove6a") << "{remove();count}" << 0 << "<Unknown File>: QML ListModel: remove: incorrect number of arguments" << dr;
-        QTest::newRow("remove6b") << "{remove(1,2,3);count}" << 0 << "<Unknown File>: QML ListModel: remove: incorrect number of arguments" << dr;
-        QTest::newRow("remove7a") << "{append({'foo':123});remove(0,0);count}" << 1 << "<Unknown File>: QML ListModel: remove: indices [0 - 0] out of range [0 - 1]" << dr;
-        QTest::newRow("remove7b") << "{append({'foo':123});remove(0,-1);count}" << 1 << "<Unknown File>: QML ListModel: remove: indices [0 - -1] out of range [0 - 1]" << dr;
+        QTest::addRow("remove1%s", t()) << "{append({'foo':123});remove(0);count}" << 0 << "" << dr;
+        QTest::addRow("remove2a%s", t()) << "{append({'foo':123});append({'foo':456});remove(0);count}" << 1 << "" << dr;
+        QTest::addRow("remove2b%s", t()) << "{append({'foo':123});append({'foo':456});remove(0);get(0).foo}" << 456 << "" << dr;
+        QTest::addRow("remove2c%s", t()) << "{append({'foo':123});append({'foo':456});remove(1);get(0).foo}" << 123 << "" << dr;
+        QTest::addRow("remove3%s", t()) << "{append({'foo':123});remove(0)}" << 0 << "" << dr;
+        QTest::addRow("remove3a%s", t()) << "{append({'foo':123});remove(-1);count}" << 1 << "<Unknown File>: QML ListModel: remove: indices [-1 - 0] out of range [0 - 1]" << dr;
+        QTest::addRow("remove4a%s", t()) << "{remove(0)}" << 0 << "<Unknown File>: QML ListModel: remove: indices [0 - 1] out of range [0 - 0]" << dr;
+        QTest::addRow("remove4b%s", t()) << "{append({'foo':123});remove(0);remove(0);count}" << 0 << "<Unknown File>: QML ListModel: remove: indices [0 - 1] out of range [0 - 0]" << dr;
+        QTest::addRow("remove4c%s", t()) << "{append({'foo':123});remove(1);count}" << 1 << "<Unknown File>: QML ListModel: remove: indices [1 - 2] out of range [0 - 1]" << dr;
+        QTest::addRow("remove5a%s", t()) << "{append({'foo':123});append({'foo':456});remove(0,2);count}" << 0 << "" << dr;
+        QTest::addRow("remove5b%s", t()) << "{append({'foo':123});append({'foo':456});remove(0,1);count}" << 1 << "" << dr;
+        QTest::addRow("remove5c%s", t()) << "{append({'foo':123});append({'foo':456});remove(1,1);count}" << 1 << "" << dr;
+        QTest::addRow("remove5d%s", t()) << "{append({'foo':123});append({'foo':456});remove(0,1);get(0).foo}" << 456 << "" << dr;
+        QTest::addRow("remove5e%s", t()) << "{append({'foo':123});append({'foo':456});remove(1,1);get(0).foo}" << 123 << "" << dr;
+        QTest::addRow("remove5f%s", t()) << "{append({'foo':123});append({'foo':456});append({'foo':789});remove(0,1);remove(1,1);get(0).foo}" << 456 << "" << dr;
+        QTest::addRow("remove6a%s", t()) << "{remove();count}" << 0 << "<Unknown File>: QML ListModel: remove: incorrect number of arguments" << dr;
+        QTest::addRow("remove6b%s", t()) << "{remove(1,2,3);count}" << 0 << "<Unknown File>: QML ListModel: remove: incorrect number of arguments" << dr;
+        QTest::addRow("remove7a%s", t()) << "{append({'foo':123});remove(0,0);count}" << 1 << "<Unknown File>: QML ListModel: remove: indices [0 - 0] out of range [0 - 1]" << dr;
+        QTest::addRow("remove7b%s", t()) << "{append({'foo':123});remove(0,-1);count}" << 1 << "<Unknown File>: QML ListModel: remove: indices [0 - -1] out of range [0 - 1]" << dr;
 
-        QTest::newRow("insert1") << "{insert(0,{'foo':123});count}" << 1 << "" << dr;
-        QTest::newRow("insert2") << "{insert(1,{'foo':123});count}" << 0 << "<Unknown File>: QML ListModel: insert: index 1 out of range" << dr;
-        QTest::newRow("insert3a") << "{append({'foo':123});insert(1,{'foo':456});count}" << 2 << "" << dr;
-        QTest::newRow("insert3b") << "{append({'foo':123});insert(1,{'foo':456});get(0).foo}" << 123 << "" << dr;
-        QTest::newRow("insert3c") << "{append({'foo':123});insert(1,{'foo':456});get(1).foo}" << 456 << "" << dr;
-        QTest::newRow("insert3d") << "{append({'foo':123});insert(0,{'foo':456});get(0).foo}" << 456 << "" << dr;
-        QTest::newRow("insert3e") << "{append({'foo':123});insert(0,{'foo':456});get(1).foo}" << 123 << "" << dr;
-        QTest::newRow("insert4") << "{append({'foo':123});insert(-1,{'foo':456});count}" << 1 << "<Unknown File>: QML ListModel: insert: index -1 out of range" << dr;
-        QTest::newRow("insert5a") << "{insert(0,123)}" << 0 << "<Unknown File>: QML ListModel: insert: value is not an object" << dr;
-        QTest::newRow("insert5b") << "{insert(0,[{'foo':11},{'foo':22},{'foo':33}]);count}" << 3 << "" << dr;
-        QTest::newRow("insert5c") << "{insert(0,[{'foo':11},{'foo':22},{'foo':33}]);get(2).foo}" << 33 << "" << dr;
+        QTest::addRow("insert1%s", t()) << "{insert(0,{'foo':123});count}" << 1 << "" << dr;
+        QTest::addRow("insert2%s", t()) << "{insert(1,{'foo':123});count}" << 0 << "<Unknown File>: QML ListModel: insert: index 1 out of range" << dr;
+        QTest::addRow("insert3a%s", t()) << "{append({'foo':123});insert(1,{'foo':456});count}" << 2 << "" << dr;
+        QTest::addRow("insert3b%s", t()) << "{append({'foo':123});insert(1,{'foo':456});get(0).foo}" << 123 << "" << dr;
+        QTest::addRow("insert3c%s", t()) << "{append({'foo':123});insert(1,{'foo':456});get(1).foo}" << 456 << "" << dr;
+        QTest::addRow("insert3d%s", t()) << "{append({'foo':123});insert(0,{'foo':456});get(0).foo}" << 456 << "" << dr;
+        QTest::addRow("insert3e%s", t()) << "{append({'foo':123});insert(0,{'foo':456});get(1).foo}" << 123 << "" << dr;
+        QTest::addRow("insert4%s", t()) << "{append({'foo':123});insert(-1,{'foo':456});count}" << 1 << "<Unknown File>: QML ListModel: insert: index -1 out of range" << dr;
+        QTest::addRow("insert5a%s", t()) << "{insert(0,123)}" << 0 << "<Unknown File>: QML ListModel: insert: value is not an object" << dr;
+        QTest::addRow("insert5b%s", t()) << "{insert(0,[{'foo':11},{'foo':22},{'foo':33}]);count}" << 3 << "" << dr;
+        QTest::addRow("insert5c%s", t()) << "{insert(0,[{'foo':11},{'foo':22},{'foo':33}]);get(2).foo}" << 33 << "" << dr;
 
-        QTest::newRow("set1") << "{append({'foo':123});set(0,{'foo':456});count}" << 1 << "" << dr;
-        QTest::newRow("set2") << "{append({'foo':123});set(0,{'foo':456});get(0).foo}" << 456 << "" << dr;
-        QTest::newRow("set3a") << "{append({'foo':123,'bar':456});set(0,{'foo':999});get(0).foo}" << 999 << "" << dr;
-        QTest::newRow("set3b") << "{append({'foo':123,'bar':456});set(0,{'foo':999});get(0).bar}" << 456 << "" << dr;
-        QTest::newRow("set4a") << "{set(0,{'foo':456});count}" << 1 << "" << dr;
-        QTest::newRow("set4c") << "{set(-1,{'foo':456})}" << 0 << "<Unknown File>: QML ListModel: set: index -1 out of range" << dr;
-        QTest::newRow("set5a") << "{append({'foo':123,'bar':456});set(0,123);count}" << 1 << "<Unknown File>: QML ListModel: set: value is not an object" << dr;
-        QTest::newRow("set5b") << "{append({'foo':123,'bar':456});set(0,[1,2,3]);count}" << 1 << "" << dr;
-        QTest::newRow("set6") << "{append({'foo':123});set(1,{'foo':456});count}" << 2 << "" << dr;
+        QTest::addRow("set1%s", t()) << "{append({'foo':123});set(0,{'foo':456});count}" << 1 << "" << dr;
+        QTest::addRow("set2%s", t()) << "{append({'foo':123});set(0,{'foo':456});get(0).foo}" << 456 << "" << dr;
+        QTest::addRow("set3a%s", t()) << "{append({'foo':123,'bar':456});set(0,{'foo':999});get(0).foo}" << 999 << "" << dr;
+        QTest::addRow("set3b%s", t()) << "{append({'foo':123,'bar':456});set(0,{'foo':999});get(0).bar}" << 456 << "" << dr;
+        QTest::addRow("set4a%s", t()) << "{set(0,{'foo':456});count}" << 1 << "" << dr;
+        QTest::addRow("set4c%s", t()) << "{set(-1,{'foo':456})}" << 0 << "<Unknown File>: QML ListModel: set: index -1 out of range" << dr;
+        QTest::addRow("set5a%s", t()) << "{append({'foo':123,'bar':456});set(0,123);count}" << 1 << "<Unknown File>: QML ListModel: set: value is not an object" << dr;
+        QTest::addRow("set5b%s", t()) << "{append({'foo':123,'bar':456});set(0,[1,2,3]);count}" << 1 << "" << dr;
+        QTest::addRow("set6%s", t()) << "{append({'foo':123});set(1,{'foo':456});count}" << 2 << "" << dr;
 
-        QTest::newRow("setprop1") << "{append({'foo':123});setProperty(0,'foo',456);count}" << 1 << "" << dr;
-        QTest::newRow("setprop2") << "{append({'foo':123});setProperty(0,'foo',456);get(0).foo}" << 456 << "" << dr;
-        QTest::newRow("setprop3a") << "{append({'foo':123,'bar':456});setProperty(0,'foo',999);get(0).foo}" << 999 << "" << dr;
-        QTest::newRow("setprop3b") << "{append({'foo':123,'bar':456});setProperty(0,'foo',999);get(0).bar}" << 456 << "" << dr;
-        QTest::newRow("setprop4a") << "{setProperty(0,'foo',456)}" << 0 << "<Unknown File>: QML ListModel: set: index 0 out of range" << dr;
-        QTest::newRow("setprop4b") << "{setProperty(-1,'foo',456)}" << 0 << "<Unknown File>: QML ListModel: set: index -1 out of range" << dr;
-        QTest::newRow("setprop4c") << "{append({'foo':123,'bar':456});setProperty(1,'foo',456);count}" << 1 << "<Unknown File>: QML ListModel: set: index 1 out of range" << dr;
-        QTest::newRow("setprop5") << "{append({'foo':123,'bar':456});append({'foo':111});setProperty(1,'bar',222);get(1).bar}" << 222 << "" << dr;
+        QTest::addRow("setprop1%s", t()) << "{append({'foo':123});setProperty(0,'foo',456);count}" << 1 << "" << dr;
+        QTest::addRow("setprop2%s", t()) << "{append({'foo':123});setProperty(0,'foo',456);get(0).foo}" << 456 << "" << dr;
+        QTest::addRow("setprop3a%s", t()) << "{append({'foo':123,'bar':456});setProperty(0,'foo',999);get(0).foo}" << 999 << "" << dr;
+        QTest::addRow("setprop3b%s", t()) << "{append({'foo':123,'bar':456});setProperty(0,'foo',999);get(0).bar}" << 456 << "" << dr;
+        QTest::addRow("setprop4a%s", t()) << "{setProperty(0,'foo',456)}" << 0 << "<Unknown File>: QML ListModel: set: index 0 out of range" << dr;
+        QTest::addRow("setprop4b%s", t()) << "{setProperty(-1,'foo',456)}" << 0 << "<Unknown File>: QML ListModel: set: index -1 out of range" << dr;
+        QTest::addRow("setprop4c%s", t()) << "{append({'foo':123,'bar':456});setProperty(1,'foo',456);count}" << 1 << "<Unknown File>: QML ListModel: set: index 1 out of range" << dr;
+        QTest::addRow("setprop5%s", t()) << "{append({'foo':123,'bar':456});append({'foo':111});setProperty(1,'bar',222);get(1).bar}" << 222 << "" << dr;
 
-        QTest::newRow("move1a") << "{append({'foo':123});append({'foo':456});move(0,1,1);count}" << 2 << "" << dr;
-        QTest::newRow("move1b") << "{append({'foo':123});append({'foo':456});move(0,1,1);get(0).foo}" << 456 << "" << dr;
-        QTest::newRow("move1c") << "{append({'foo':123});append({'foo':456});move(0,1,1);get(1).foo}" << 123 << "" << dr;
-        QTest::newRow("move1d") << "{append({'foo':123});append({'foo':456});move(1,0,1);get(0).foo}" << 456 << "" << dr;
-        QTest::newRow("move1e") << "{append({'foo':123});append({'foo':456});move(1,0,1);get(1).foo}" << 123 << "" << dr;
-        QTest::newRow("move2a") << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,1,2);count}" << 3 << "" << dr;
-        QTest::newRow("move2b") << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,1,2);get(0).foo}" << 789 << "" << dr;
-        QTest::newRow("move2c") << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,1,2);get(1).foo}" << 123 << "" << dr;
-        QTest::newRow("move2d") << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,1,2);get(2).foo}" << 456 << "" << dr;
-        QTest::newRow("move3a") << "{append({'foo':123});append({'foo':456});append({'foo':789});move(1,0,3);count}" << 3 << "<Unknown File>: QML ListModel: move: out of range" << dr;
-        QTest::newRow("move3b") << "{append({'foo':123});append({'foo':456});append({'foo':789});move(1,-1,1);count}" << 3 << "<Unknown File>: QML ListModel: move: out of range" << dr;
-        QTest::newRow("move3c") << "{append({'foo':123});append({'foo':456});append({'foo':789});move(1,0,-1);count}" << 3 << "<Unknown File>: QML ListModel: move: out of range" << dr;
-        QTest::newRow("move3d") << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,3,1);count}" << 3 << "<Unknown File>: QML ListModel: move: out of range" << dr;
+        QTest::addRow("move1a%s", t()) << "{append({'foo':123});append({'foo':456});move(0,1,1);count}" << 2 << "" << dr;
+        QTest::addRow("move1b%s", t()) << "{append({'foo':123});append({'foo':456});move(0,1,1);get(0).foo}" << 456 << "" << dr;
+        QTest::addRow("move1c%s", t()) << "{append({'foo':123});append({'foo':456});move(0,1,1);get(1).foo}" << 123 << "" << dr;
+        QTest::addRow("move1d%s", t()) << "{append({'foo':123});append({'foo':456});move(1,0,1);get(0).foo}" << 456 << "" << dr;
+        QTest::addRow("move1e%s", t()) << "{append({'foo':123});append({'foo':456});move(1,0,1);get(1).foo}" << 123 << "" << dr;
+        QTest::addRow("move2a%s", t()) << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,1,2);count}" << 3 << "" << dr;
+        QTest::addRow("move2b%s", t()) << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,1,2);get(0).foo}" << 789 << "" << dr;
+        QTest::addRow("move2c%s", t()) << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,1,2);get(1).foo}" << 123 << "" << dr;
+        QTest::addRow("move2d%s", t()) << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,1,2);get(2).foo}" << 456 << "" << dr;
+        QTest::addRow("move3a%s", t()) << "{append({'foo':123});append({'foo':456});append({'foo':789});move(1,0,3);count}" << 3 << "<Unknown File>: QML ListModel: move: out of range" << dr;
+        QTest::addRow("move3b%s", t()) << "{append({'foo':123});append({'foo':456});append({'foo':789});move(1,-1,1);count}" << 3 << "<Unknown File>: QML ListModel: move: out of range" << dr;
+        QTest::addRow("move3c%s", t()) << "{append({'foo':123});append({'foo':456});append({'foo':789});move(1,0,-1);count}" << 3 << "<Unknown File>: QML ListModel: move: out of range" << dr;
+        QTest::addRow("move3d%s", t()) << "{append({'foo':123});append({'foo':456});append({'foo':789});move(0,3,1);count}" << 3 << "<Unknown File>: QML ListModel: move: out of range" << dr;
 
-        QTest::newRow("large1") << "{append({'a':1,'b':2,'c':3,'d':4,'e':5,'f':6,'g':7,'h':8});get(0).h}" << 8 << "" << dr;
+        QTest::addRow("large1%s", t()) << "{append({'a':1,'b':2,'c':3,'d':4,'e':5,'f':6,'g':7,'h':8});get(0).h}" << 8 << "" << dr;
 
-        QTest::newRow("datatypes1") << "{append({'a':1});append({'a':'string'});}" << 0 << "<Unknown File>: Can't assign to existing role 'a' of different type [String -> Number]" << dr;
+        QTest::addRow("datatypes1%s", t()) << "{append({'a':1});append({'a':'string'});}" << 0 << "<Unknown File>: Can't assign to existing role 'a' of different type [String -> Number]" << dr;
 
-        QTest::newRow("null") << "{append({'a':null});}" << 0 << "" << dr;
-        QTest::newRow("setNull") << "{append({'a':1});set(0, {'a':null});}" << 0 << "" << dr;
-        QTest::newRow("setString") << "{append({'a':'hello'});set(0, {'a':'world'});get(0).a == 'world'}" << 1 << "" << dr;
-        QTest::newRow("setInt") << "{append({'a':5});set(0, {'a':10});get(0).a}" << 10 << "" << dr;
-        QTest::newRow("setNumber") << "{append({'a':6});set(0, {'a':5.5});get(0).a < 5.6}" << 1 << "" << dr;
-        QTest::newRow("badType0") << "{append({'a':'hello'});set(0, {'a':1});}" << 0 << "<Unknown File>: Can't assign to existing role 'a' of different type [Number -> String]" << dr;
-        QTest::newRow("invalidInsert0") << "{insert(0);}" << 0 << "<Unknown File>: QML ListModel: insert: value is not an object" << dr;
-        QTest::newRow("invalidAppend0") << "{append();}" << 0 << "<Unknown File>: QML ListModel: append: value is not an object" << dr;
-        QTest::newRow("invalidInsert1") << "{insert(0, 34);}" << 0 << "<Unknown File>: QML ListModel: insert: value is not an object" << dr;
-        QTest::newRow("invalidAppend1") << "{append(37);}" << 0 << "<Unknown File>: QML ListModel: append: value is not an object" << dr;
+        QTest::addRow("null%s", t()) << "{append({'a':null});}" << 0 << "" << dr;
+        QTest::addRow("setNull%s", t()) << "{append({'a':1});set(0, {'a':null});}" << 0 << "" << dr;
+        QTest::addRow("setString%s", t()) << "{append({'a':'hello'});set(0, {'a':'world'});get(0).a == 'world'}" << 1 << "" << dr;
+        QTest::addRow("setInt%s", t()) << "{append({'a':5});set(0, {'a':10});get(0).a}" << 10 << "" << dr;
+        QTest::addRow("setNumber%s", t()) << "{append({'a':6});set(0, {'a':5.5});get(0).a < 5.6}" << 1 << "" << dr;
+        QTest::addRow("badType0%s", t()) << "{append({'a':'hello'});set(0, {'a':1});}" << 0 << "<Unknown File>: Can't assign to existing role 'a' of different type [Number -> String]" << dr;
+        QTest::addRow("invalidInsert0%s", t()) << "{insert(0);}" << 0 << "<Unknown File>: QML ListModel: insert: value is not an object" << dr;
+        QTest::addRow("invalidAppend0%s", t()) << "{append();}" << 0 << "<Unknown File>: QML ListModel: append: value is not an object" << dr;
+        QTest::addRow("invalidInsert1%s", t()) << "{insert(0, 34);}" << 0 << "<Unknown File>: QML ListModel: insert: value is not an object" << dr;
+        QTest::addRow("invalidAppend1%s", t()) << "{append(37);}" << 0 << "<Unknown File>: QML ListModel: append: value is not an object" << dr;
 
         // QObjects
-        QTest::newRow("qobject0") << "{append({'a':dummyItem0});}" << 0 << "" << dr;
-        QTest::newRow("qobject1") << "{append({'a':dummyItem0});set(0,{'a':dummyItem1});get(0).a == dummyItem1;}" << 1 << "" << dr;
-        QTest::newRow("qobject2") << "{append({'a':dummyItem0});get(0).a == dummyItem0;}" << 1 << "" << dr;
-        QTest::newRow("qobject3") << "{append({'a':dummyItem0});append({'b':1});}" << 0 << "" << dr;
+        QTest::addRow("qobject0%s", t()) << "{append({'a':dummyItem0});}" << 0 << "" << dr;
+        QTest::addRow("qobject1%s", t()) << "{append({'a':dummyItem0});set(0,{'a':dummyItem1});get(0).a == dummyItem1;}" << 1 << "" << dr;
+        QTest::addRow("qobject2%s", t()) << "{append({'a':dummyItem0});get(0).a == dummyItem0;}" << 1 << "" << dr;
+        QTest::addRow("qobject3%s", t()) << "{append({'a':dummyItem0});append({'b':1});}" << 0 << "" << dr;
 
         // JS objects
-        QTest::newRow("js1") << "{append({'foo':{'prop':1}});count}" << 1 << "" << dr;
-        QTest::newRow("js2") << "{append({'foo':{'prop':27}});get(0).foo.prop}" << 27 << "" << dr;
-        QTest::newRow("js3") << "{append({'foo':{'prop':27}});append({'bar':1});count}" << 2 << "" << dr;
-        QTest::newRow("js4") << "{append({'foo':{'prop':27}});append({'bar':1});set(0, {'foo':{'prop':28}});get(0).foo.prop}" << 28 << "" << dr;
-        QTest::newRow("js5") << "{append({'foo':{'prop':27}});append({'bar':1});set(1, {'foo':{'prop':33}});get(1).foo.prop}" << 33 << "" << dr;
-        QTest::newRow("js6") << "{append({'foo':{'prop':27}});clear();count}" << 0 << "" << dr;
-        QTest::newRow("js7") << "{append({'foo':{'prop':27}});set(0, {'foo':null});count}" << 1 << "" << dr;
-        QTest::newRow("js8") << "{append({'foo':{'prop':27}});set(0, {'foo':{'prop2':31}});get(0).foo.prop2}" << 31 << "" << dr;
+        QTest::addRow("js1%s", t()) << "{append({'foo':{'prop':1}});count}" << 1 << "" << dr;
+        QTest::addRow("js2%s", t()) << "{append({'foo':{'prop':27}});get(0).foo.prop}" << 27 << "" << dr;
+        QTest::addRow("js3%s", t()) << "{append({'foo':{'prop':27}});append({'bar':1});count}" << 2 << "" << dr;
+        QTest::addRow("js4%s", t()) << "{append({'foo':{'prop':27}});append({'bar':1});set(0, {'foo':{'prop':28}});get(0).foo.prop}" << 28 << "" << dr;
+        QTest::addRow("js5%s", t()) << "{append({'foo':{'prop':27}});append({'bar':1});set(1, {'foo':{'prop':33}});get(1).foo.prop}" << 33 << "" << dr;
+        QTest::addRow("js6%s", t()) << "{append({'foo':{'prop':27}});clear();count}" << 0 << "" << dr;
+        QTest::addRow("js7%s", t()) << "{append({'foo':{'prop':27}});set(0, {'foo':null});count}" << 1 << "" << dr;
+        QTest::addRow("js8%s", t()) << "{append({'foo':{'prop':27}});set(0, {'foo':{'prop2':31}});get(0).foo.prop2}" << 31 << "" << dr;
 
         // Nested models
-        QTest::newRow("nested-append1") << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]});count}" << 1 << "" << dr;
-        QTest::newRow("nested-append2") << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]});get(0).bars.get(1).a}" << 2 << "" << dr;
-        QTest::newRow("nested-append3") << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]});get(0).bars.append({'a':4});get(0).bars.get(3).a}" << 4 << "" << dr;
+        QTest::addRow("nested-append1%s", t()) << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]});count}" << 1 << "" << dr;
+        QTest::addRow("nested-append2%s", t()) << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]});get(0).bars.get(1).a}" << 2 << "" << dr;
+        QTest::addRow("nested-append3%s", t()) << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]});get(0).bars.append({'a':4});get(0).bars.get(3).a}" << 4 << "" << dr;
 
-        QTest::newRow("nested-insert") << "{append({'foo':123});insert(0,{'bars':[{'a':1},{'b':2},{'c':3}]});get(0).bars.get(0).a}" << 1 << "" << dr;
-        QTest::newRow("nested-set") << "{append({'foo':[{'x':1}]});set(0,{'foo':[{'x':123}]});get(0).foo.get(0).x}" << 123 << "" << dr;
+        QTest::addRow("nested-insert%s", t()) << "{append({'foo':123});insert(0,{'bars':[{'a':1},{'b':2},{'c':3}]});get(0).bars.get(0).a}" << 1 << "" << dr;
+        QTest::addRow("nested-set%s", t()) << "{append({'foo':[{'x':1}]});set(0,{'foo':[{'x':123}]});get(0).foo.get(0).x}" << 123 << "" << dr;
 
-        QTest::newRow("nested-count") << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]}); get(0).bars.count}" << 3 << "" << dr;
-        QTest::newRow("nested-clear") << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]}); get(0).bars.clear(); get(0).bars.count}" << 0 << "" << dr;
+        QTest::addRow("nested-count%s", t()) << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]}); get(0).bars.count}" << 3 << "" << dr;
+        QTest::addRow("nested-clear%s", t()) << "{append({'foo':123,'bars':[{'a':1},{'a':2},{'a':3}]}); get(0).bars.clear(); get(0).bars.count}" << 0 << "" << dr;
     }
 }
 

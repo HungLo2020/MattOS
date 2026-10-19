@@ -5,8 +5,11 @@
 */
 
 #include "pipewirerecord.h"
+#include "aacencoder_p.h"
+#include "audioconstants_p.h"
 #include "encoder_p.h"
 #include "glhelpers.h"
+#include "libopusencoder_p.h"
 #include "pipewirerecord_p.h"
 #include <logging_record.h>
 
@@ -77,6 +80,36 @@ QString PipeWireRecord::output() const
     return d->m_output;
 }
 
+bool PipeWireRecord::recordSystemAudio() const
+{
+    return d->m_recordSystemAudio;
+}
+
+void PipeWireRecord::setRecordSystemAudio(bool recordSystemAudio)
+{
+    if (d->m_recordSystemAudio == recordSystemAudio) {
+        return;
+    }
+
+    d->m_recordSystemAudio = recordSystemAudio;
+    Q_EMIT recordSystemAudioChanged(recordSystemAudio);
+}
+
+bool PipeWireRecord::recordMicrophone() const
+{
+    return d->m_recordMicrophone;
+}
+
+void PipeWireRecord::setRecordMicrophone(bool recordMicrophone)
+{
+    if (d->m_recordMicrophone == recordMicrophone) {
+        return;
+    }
+
+    d->m_recordMicrophone = recordMicrophone;
+    Q_EMIT recordMicrophoneChanged(recordMicrophone);
+}
+
 QString PipeWireRecord::extension() const
 {
     static QHash<PipeWireBaseEncodedStream::Encoder, QString> s_extensions = {
@@ -90,11 +123,17 @@ QString PipeWireRecord::extension() const
     return s_extensions.value(encoder());
 }
 
-PipeWireRecordProduce::PipeWireRecordProduce(PipeWireBaseEncodedStream::Encoder encoder, uint nodeId, uint fd, const Fraction &framerate, const QString &output)
-    : PipeWireProduce(encoder, nodeId, fd, framerate)
+PipeWireRecordProduce::PipeWireRecordProduce(PipeWireBaseEncodedStream::Encoder encoder,
+                                             uint nodeId,
+                                             quint64 objectSerial,
+                                             uint fd,
+                                             const Fraction &framerate,
+                                             const QString &output,
+                                             AudioSources audioSources)
+    : PipeWireProduce(encoder, nodeId, objectSerial, fd, framerate)
     , m_output(output)
 {
-    m_enableFrameRepeat = false;
+    m_audioSources = audioSources;
 }
 
 bool PipeWireRecordProduce::setupFormat()
@@ -129,6 +168,52 @@ bool PipeWireRecordProduce::setupFormat()
     if (ret < 0) {
         qCWarning(PIPEWIRERECORD_LOGGING) << "Error occurred when passing the codec:" << av_err2str(ret);
         return false;
+    }
+
+    if (m_audioSources) {
+        if (!m_encoder->supportsAudio() || m_avFormatContext->oformat->audio_codec == AV_CODEC_ID_NONE) {
+            qCWarning(PIPEWIRERECORD_LOGGING) << "Audio recording is not supported for this format, ignoring";
+        } else {
+            std::unique_ptr<AudioEncoder> audioEncoder;
+            if (m_encoderType == PipeWireBaseEncodedStream::VP8 || m_encoderType == PipeWireBaseEncodedStream::VP9) {
+                audioEncoder = std::make_unique<LibOpusEncoder>(this);
+            } else {
+                audioEncoder = std::make_unique<AacEncoder>(this);
+            }
+            audioEncoder->setQuality(m_quality);
+
+            const int inputCount = m_audioSources.testFlag(AudioSource::SystemAudio) + m_audioSources.testFlag(AudioSource::Microphone);
+            if (!audioEncoder->initialize(inputCount, m_avFormatContext->oformat->flags & AVFMT_GLOBALHEADER)) {
+                qCWarning(PIPEWIRERECORD_LOGGING) << "Could not initialize the audio encoder, recording without audio";
+            } else {
+                // Copy the codec parameters into a temporary first: once a
+                // stream has been added to the muxer it cannot be removed, and
+                // a half-configured stream makes avformat_write_header() fail.
+                AVCodecParameters *audioParameters = avcodec_parameters_alloc();
+                if (!audioParameters) {
+                    qFatal("Failed to allocate memory");
+                }
+                ret = avcodec_parameters_from_context(audioParameters, audioEncoder->avCodecContext());
+                if (ret < 0) {
+                    qCWarning(PIPEWIRERECORD_LOGGING) << "Error occurred when passing the audio codec, recording without audio:" << av_err2str(ret);
+                } else {
+                    m_audioStream = avformat_new_stream(m_avFormatContext, nullptr);
+                    if (!m_audioStream) {
+                        qCWarning(PIPEWIRERECORD_LOGGING) << "Could not create an audio stream, recording without audio";
+                    } else if (ret = avcodec_parameters_copy(m_audioStream->codecpar, audioParameters); ret < 0) {
+                        qCWarning(PIPEWIRERECORD_LOGGING)
+                            << "Error occurred when copying the audio codec parameters, recording without audio:" << av_err2str(ret);
+                    } else {
+                        m_audioStream->time_base = AVRational{1, AudioSampleRate};
+                        // A static screen produces no video packets while audio keeps
+                        // flowing, don't make the muxer wait for video to interleave.
+                        m_avFormatContext->max_interleave_delta = 1000000;
+                        m_audioEncoder = std::move(audioEncoder);
+                    }
+                }
+                avcodec_parameters_free(&audioParameters);
+            }
+        }
     }
 
     AVDictionary *options = nullptr;
@@ -181,19 +266,38 @@ void PipeWireRecordProduce::processPacket(AVPacket *packet)
     }
 }
 
+void PipeWireRecordProduce::processAudioPacket(AVPacket *packet)
+{
+    packet->stream_index = m_audioStream->index;
+    av_packet_rescale_ts(packet, m_audioEncoder->avCodecContext()->time_base, m_audioStream->time_base);
+    log_packet(m_avFormatContext, packet);
+    auto ret = av_interleaved_write_frame(m_avFormatContext, packet);
+    if (ret < 0) {
+        qCWarning(PIPEWIRERECORD_LOGGING) << "Error while writing audio packet:" << av_err2str(ret);
+    }
+}
+
 std::unique_ptr<PipeWireProduce> PipeWireRecord::makeProduce()
 {
-    return std::make_unique<PipeWireRecordProduce>(encoder(), nodeId(), fd(), maxFramerate(), d->m_output);
+    AudioSources audioSources;
+    audioSources.setFlag(AudioSource::SystemAudio, d->m_recordSystemAudio);
+    audioSources.setFlag(AudioSource::Microphone, d->m_recordMicrophone);
+    return std::make_unique<PipeWireRecordProduce>(encoder(), nodeId(), objectSerial(), fd(), maxFramerate(), d->m_output, audioSources);
 }
 
 int64_t PipeWireRecordProduce::framePts(const std::optional<std::chrono::nanoseconds> &presentationTimestamp)
 {
-    const auto current = std::chrono::duration_cast<std::chrono::milliseconds>(*presentationTimestamp).count();
-    if ((*m_avFormatContext->streams)->start_time == 0) {
-        (*m_avFormatContext->streams)->start_time = current;
+    if (!presentationTimestamp) {
+        // No timestamp to place this frame on the timeline; treat it as the
+        // very start rather than dereferencing an empty optional.
+        return 0;
     }
-
-    return current - (*m_avFormatContext->streams)->start_time;
+    // A frame rendered before the recording started (the screencast stream
+    // delivers the current screen content as its first frame, timestamped
+    // with when it was originally rendered) belongs at the very start.
+    const auto pts =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::time_point(*presentationTimestamp) - recordEpoch()).count();
+    return std::max<int64_t>(pts, 0);
 }
 
 void PipeWireRecordProduce::cleanup()

@@ -14,6 +14,7 @@
 #include <QtQml/qqmlcontext.h>
 
 #include <QtQuickTemplates2/private/qquickbutton_p.h>
+#include <QtQuickTemplates2/private/qquickmenu_p.h>
 
 #include <QtGui/qguiapplication.h>
 #include <QtGui/private/qpointingdevice_p.h>
@@ -38,6 +39,7 @@ private slots:
     void hover_controlAndMouseArea();
     void buttonTapHandler_data();
     void buttonTapHandler();
+    void checkableButtonRightClickTapHandler();
     void buttonDragHandler_data();
     void buttonDragHandler();
 
@@ -222,6 +224,46 @@ void tst_pointerhandlers::buttonTapHandler() // QTBUG-105609
         break;
     }
     QCOMPARE(handler->isPressed(), false);
+}
+
+void tst_pointerhandlers::checkableButtonRightClickTapHandler()
+{
+    QQuickView window;
+    QVERIFY(QQuickTest::showView(window, testFileUrl("tapHandlerContextMenuCheckableButton.qml")));
+    QQuickItem *rootItem = window.rootObject();
+    QVERIFY(rootItem);
+
+    QQuickTapHandler *inButtonHandler = rootItem->findChild<QQuickTapHandler*>("in button");
+    QVERIFY(inButtonHandler);
+    QQuickAbstractButton *leftButton = qmlobject_cast<QQuickAbstractButton *>(inButtonHandler->parentItem());
+    QVERIFY(leftButton);
+    QQuickMenu *leftMenu = leftButton->findChild<QQuickMenu *>();
+    QVERIFY(leftMenu);
+    QSignalSpy inButtonTappedSpy(inButtonHandler, &QQuickTapHandler::tapped);
+
+    QQuickTapHandler *buttonParentHandler = rootItem->findChild<QQuickTapHandler*>("in button parent");
+    QVERIFY(buttonParentHandler);
+    QQuickAbstractButton *rightButton = buttonParentHandler->parentItem()->findChild<QQuickAbstractButton *>();
+    QVERIFY(rightButton);
+    QQuickMenu *rightMenu = rightButton->findChild<QQuickMenu *>();
+    QVERIFY(rightMenu);
+    QSignalSpy buttonParentTappedSpy(buttonParentHandler, &QQuickTapHandler::tapped);
+
+    // right-click the left-side button which has a TapHandler inside:
+    // TapHandler opens the context menu, and the Button itself does not react
+    QPoint pos = rootItem->mapFromItem(inButtonHandler->parentItem(), QPointF(10, 10)).toPoint();
+    QTest::mouseClick(&window, Qt::RightButton, Qt::NoModifier, pos);
+    QCOMPARE(inButtonTappedSpy.size(), 1);
+    QTRY_VERIFY(leftMenu->isOpened());
+    QCOMPARE(leftButton->isChecked(), false);
+
+    // right-click the right-side button which has a TapHandler in its parent:
+    // TapHandler opens the context menu, and the Button itself does not react
+    pos = rootItem->mapFromItem(buttonParentHandler->parentItem(), QPointF(10, 10)).toPoint();
+    QTest::mouseClick(&window, Qt::RightButton, Qt::NoModifier, pos);
+    QCOMPARE(buttonParentTappedSpy.size(), 1);
+    QTRY_VERIFY(rightMenu->isOpened());
+    QCOMPARE(rightButton->isChecked(), false);
 }
 
 void tst_pointerhandlers::buttonDragHandler_data()

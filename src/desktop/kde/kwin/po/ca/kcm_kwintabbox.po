@@ -1,17 +1,17 @@
 # Translation of kcm_kwintabbox.po to Catalan
-# Copyright (C) 2009-2025 This_file_is_part_of_KDE
+# Copyright (C) 2009-2026 This_file_is_part_of_KDE
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
 # SPDX-FileCopyrightText: 2016, 2019 Antoni Bella Pérez <antonibella5@yahoo.com>
 # SPDX-FileCopyrightText: 2019 Empar Montoro Martín <montoro_mde@gva.es>
-# SPDX-FileCopyrightText: 2009, 2010, 2011, 2012, 2014, 2018, 2021, 2022, 2023, 2024, 2025 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2009-2012, 2014, 2018, 2021-2026 Josep M. Ferrer <txemaq@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2025-09-23 11:41+0200\n"
+"POT-Creation-Date: 2026-04-14 00:45+0000\n"
+"PO-Revision-Date: 2026-04-14 09:35+0200\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
 "Language: ca\n"
@@ -264,16 +264,8 @@ msgstr "Aplicació actual"
 msgid "Visualization"
 msgstr "Visualització"
 
-#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
-#: main.ui:645
-#, kde-format
-msgid "The effect to replace the list window when desktop effects are active."
-msgstr ""
-"L'efecte de substituir la llista de finestres quan els efectes d'escriptori "
-"estan actius."
-
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:678
+#: main.ui:624
 #, kde-format
 msgid ""
 "The currently selected window will be highlighted by fading out all other "
@@ -283,11 +275,74 @@ msgstr ""
 "finestres. Aquesta opció requereix que els efectes d'escriptori estiguin "
 "actius."
 
-#. i18n: ectx: property (text), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:681
+#. i18n: ectx: property (text), widget (QLabel, label_HighlightWindows)
+#: main.ui:634
 #, kde-format
 msgid "Show selected window"
 msgstr "Mostra la finestra seleccionada"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_ShowTabBox)
+#: main.ui:644
+#, kde-format
+msgid "Enable the window list effect"
+msgstr "Activa l'efecte de llista de finestres"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
+#: main.ui:678
+#, kde-format
+msgid "The effect to replace the list window when desktop effects are active."
+msgstr ""
+"L'efecte de substituir la llista de finestres quan els efectes d'escriptori "
+"estan actius."
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, label_DelayTime)
+#: main.ui:701
+#, kde-format
+msgid "The time in milliseconds to wait before showing the task switcher."
+msgstr ""
+"El temps en mil·lisegons a esperar abans de mostrar el commutador de tasques."
+
+#. i18n: ectx: property (text), widget (QLabel, label_DelayTime)
+#: main.ui:704
+#, kde-format
+msgid "Delay:"
+msgstr "Retard:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:720
+#, kde-format
+msgid " ms"
+msgstr " ms"
+
+#. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:735
+#, kde-format
+msgid "Delay before the window list appears"
+msgstr "Retard abans que aparegui la llista de finestres"
+
+#. i18n: ectx: property (text), widget (QLabel, label_showScreen)
+#: main.ui:742
+#, kde-format
+msgid "Show on screen:"
+msgstr "Mostra en pantalla:"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, showScreenCombo)
+#: main.ui:758
+#, kde-format
+msgid "Select which screen the task switcher should be displayed on."
+msgstr "Selecciona a quina pantalla s'ha de mostrar el commutador de tasques."
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:762
+#, kde-format
+msgid "Active screen"
+msgstr "Pantalla activa"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:767
+#, kde-format
+msgid "Primary screen"
+msgstr "Pantalla primària"
 
 #: shortcutsettings.cpp:131
 #, kde-format
@@ -329,3 +384,9 @@ msgstr "Recorre les finestres de l'aplicació actual en alternativa"
 msgid "Walk Through Windows of Current Application Alternative (Reverse)"
 msgstr ""
 "Recorre les finestres de l'aplicació actual en alternativa (a la inversa)"
+
+#~ msgid "Show delay:"
+#~ msgstr "Retard de visualització:"
+
+#~ msgid "Show Desktop"
+#~ msgstr "Mostra l'escriptori"

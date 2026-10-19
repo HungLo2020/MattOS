@@ -20,6 +20,7 @@ struct wl_buffer;
 
 namespace KWin
 {
+
 class EglSwapchainSlot;
 class EglSwapchain;
 class GLFramebuffer;
@@ -28,6 +29,7 @@ class GLRenderTimeQuery;
 
 namespace Wayland
 {
+
 class WaylandBackend;
 class WaylandOutput;
 class WaylandEglBackend;
@@ -39,11 +41,11 @@ public:
     ~WaylandEglLayer() override;
 
     GLFramebuffer *fbo() const;
-    std::optional<OutputLayerBeginFrameInfo> doBeginFrame() override;
-    bool doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
+    std::optional<OutputLayerBeginFrameInfo> beginFrame(OutputFrame *frame) override;
+    bool endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
+    bool earlyScanoutChecks() override;
     bool importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_ptr<OutputFrame> &frame) override;
-    DrmDevice *scanoutDevice() const override;
-    QHash<uint32_t, QList<uint64_t>> supportedDrmFormats() const override;
+    FormatModifierMap supportedDrmFormats() const override;
     void releaseBuffers() override;
 
 private:
@@ -64,10 +66,9 @@ public:
     WaylandEglCursorLayer(WaylandOutput *output, WaylandEglBackend *backend);
     ~WaylandEglCursorLayer() override;
 
-    std::optional<OutputLayerBeginFrameInfo> doBeginFrame() override;
-    bool doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
-    DrmDevice *scanoutDevice() const override;
-    QHash<uint32_t, QList<uint64_t>> supportedDrmFormats() const override;
+    std::optional<OutputLayerBeginFrameInfo> beginFrame(OutputFrame *frame) override;
+    bool endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
+    FormatModifierMap supportedDrmFormats() const override;
     void releaseBuffers() override;
 
 private:
@@ -92,21 +93,19 @@ private:
 class WaylandEglBackend : public EglBackend
 {
     Q_OBJECT
+
 public:
-    WaylandEglBackend(WaylandBackend *b);
+    WaylandEglBackend(WaylandBackend *b, RenderDevice *device);
     ~WaylandEglBackend() override;
 
     WaylandBackend *backend() const;
-    DrmDevice *drmDevice() const override;
 
-    void init() override;
+    bool init() override;
     QList<OutputLayer *> compatibleOutputLayers(BackendOutput *output) override;
 
 private:
-    bool initializeEgl();
     bool initRenderingContext();
     void createOutputLayers(BackendOutput *output);
-    void cleanupSurfaces() override;
 
     WaylandBackend *m_backend;
 };

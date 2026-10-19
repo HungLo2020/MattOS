@@ -5,7 +5,6 @@
 #include "kcm_wallpaper_debug.h"
 #include <QDBusInterface>
 #include <QDBusReply>
-#include <defaultwallpaper.h>
 #include <outputorderwatcher.h>
 
 #include <KPackage/Package>
@@ -77,7 +76,7 @@ WallpaperModule::WallpaperModule(QObject *parent, const KPluginMetaData &data)
     qmlRegisterAnonymousType<QScreen>(uri, 1);
     qmlRegisterAnonymousType<KConfigPropertyMap>(uri, 1);
 
-    m_outputOrderWatcher = OutputOrderWatcher::instance(this);
+    m_outputOrderWatcher = new OutputOrderWatcher(this);
     connect(m_outputOrderWatcher, &OutputOrderWatcher::outputOrderChanged, this, [this](const QStringList &outputOrder) {
         if (!m_selectedScreen) {
             return;
@@ -107,15 +106,8 @@ WallpaperModule::WallpaperModule(QObject *parent, const KPluginMetaData &data)
 
     setButtons(Apply | Default);
 
-    m_screens = qApp->screens();
-    connect(qApp, &QGuiApplication::screenRemoved, this, [this](QScreen *screen) {
-        m_screens.removeAll(screen);
-        Q_EMIT screensChanged();
-    });
-    connect(qApp, &QGuiApplication::screenAdded, this, [this](QScreen *screen) {
-        m_screens << screen;
-        Q_EMIT screensChanged();
-    });
+    connect(qApp, &QGuiApplication::screenRemoved, this, &WallpaperModule::screensChanged);
+    connect(qApp, &QGuiApplication::screenAdded, this, &WallpaperModule::screensChanged);
 }
 
 void WallpaperModule::connectToPlasmaShell()
@@ -396,7 +388,7 @@ void WallpaperModule::setAllScreens(const bool allScreens)
 
 QList<QScreen *> WallpaperModule::screens() const
 {
-    return m_screens;
+    return qGuiApp->screens();;
 }
 
 QScreen *WallpaperModule::selectedScreen() const

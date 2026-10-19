@@ -90,159 +90,162 @@ void KCompletionBox::slotActivated(QListWidgetItem *item)
 
 bool KCompletionBox::eventFilter(QObject *o, QEvent *e)
 {
-    int type = e->type();
-    QWidget *wid = qobject_cast<QWidget *>(o);
+    if (o != this) {
+        if (const auto *const wid = qobject_cast<QWidget *>(o)) {
+            const int type = e->type();
 
-    if (o == this) {
-        return false;
-    }
+            if (type == QEvent::Resize) {
+                if (wid == d->m_parent) {
+                    resizeAndReposition();
+                    return false;
+                }
+            } else if (type == QEvent::Move) {
+                if (wid == d->m_parent) {
+                    resizeAndReposition();
+                    return false;
+                }
 
-    if (wid && wid == d->m_parent //
-        && (type == QEvent::Move || type == QEvent::Resize)) {
-        resizeAndReposition();
-        return false;
-    }
-
-    if (wid && (wid->windowFlags() & Qt::Window) //
-        && type == QEvent::Move && wid == d->m_parent->window()) {
-        hide();
-        return false;
-    }
-
-    if (type == QEvent::MouseButtonPress && (wid && !isAncestorOf(wid))) {
-        if (!d->emitSelected && currentItem() && !qobject_cast<QScrollBar *>(o)) {
-            Q_ASSERT(currentItem());
-            Q_EMIT currentTextChanged(currentItem()->text());
-        }
-        hide();
-        e->accept();
-        return true;
-    }
-
-    if (wid && wid->isAncestorOf(d->m_parent) && isVisible()) {
-        if (type == QEvent::KeyPress) {
-            QKeyEvent *ev = static_cast<QKeyEvent *>(e);
-            switch (ev->key()) {
-            case Qt::Key_Backtab:
-                if (d->tabHandling && (ev->modifiers() == Qt::NoButton || (ev->modifiers() & Qt::ShiftModifier))) {
-                    up();
-                    ev->accept();
+                if ((wid->windowFlags() & Qt::Window) //
+                    && wid == d->m_parent->window()) {
+                    hide();
+                    return false;
+                }
+            } else if (type == QEvent::MouseButtonPress) {
+                if ((!isAncestorOf(wid))) {
+                    if (!d->emitSelected && currentItem() && !qobject_cast<QScrollBar *>(o)) {
+                        Q_ASSERT(currentItem());
+                        Q_EMIT currentTextChanged(currentItem()->text());
+                    }
+                    hide();
+                    e->accept();
                     return true;
                 }
-                break;
-            case Qt::Key_Tab:
-                if (d->tabHandling && (ev->modifiers() == Qt::NoButton)) {
-                    down();
-                    // #65877: Key_Tab should complete using the first
-                    // (or selected) item, and then offer completions again
-                    if (count() == 1) {
-                        KLineEdit *parent = qobject_cast<KLineEdit *>(d->m_parent);
-                        if (parent) {
-                            parent->doCompletion(currentItem()->text());
+            } else if (wid->isAncestorOf(d->m_parent) && isVisible()) {
+                if (type == QEvent::KeyPress) {
+                    QKeyEvent *ev = static_cast<QKeyEvent *>(e);
+                    switch (ev->key()) {
+                    case Qt::Key_Backtab:
+                        if (d->tabHandling && (ev->modifiers() == Qt::NoButton || (ev->modifiers() & Qt::ShiftModifier))) {
+                            up();
+                            ev->accept();
+                            return true;
+                        }
+                        break;
+                    case Qt::Key_Tab:
+                        if (d->tabHandling && (ev->modifiers() == Qt::NoButton)) {
+                            down();
+                            // #65877: Key_Tab should complete using the first
+                            // (or selected) item, and then offer completions again
+                            if (count() == 1) {
+                                KLineEdit *parent = qobject_cast<KLineEdit *>(d->m_parent);
+                                if (parent) {
+                                    parent->doCompletion(currentItem()->text());
+                                } else {
+                                    hide();
+                                }
+                            }
+                            ev->accept();
+                            return true;
+                        }
+                        break;
+                    case Qt::Key_Down:
+                        down();
+                        ev->accept();
+                        return true;
+                    case Qt::Key_Up:
+                        // If there is no selected item and we've popped up above
+                        // our parent, select the first item when they press up.
+                        if (!selectedItems().isEmpty() //
+                            || mapToGlobal(QPoint(0, 0)).y() > d->m_parent->mapToGlobal(QPoint(0, 0)).y()) {
+                            up();
                         } else {
+                            down();
+                        }
+                        ev->accept();
+                        return true;
+                    case Qt::Key_PageUp:
+                        pageUp();
+                        ev->accept();
+                        return true;
+                    case Qt::Key_PageDown:
+                        pageDown();
+                        ev->accept();
+                        return true;
+                    case Qt::Key_Escape:
+                        if (!d->cancelText.isNull()) {
+                            Q_EMIT userCancelled(d->cancelText);
+                        }
+                        if (isVisible()) {
                             hide();
                         }
+                        ev->accept();
+                        return true;
+                    case Qt::Key_Enter:
+                    case Qt::Key_Return:
+                        if (ev->modifiers() & Qt::ShiftModifier) {
+                            hide();
+                            ev->accept(); // Consume the Enter event
+                            return true;
+                        }
+                        break;
+                    case Qt::Key_End:
+                        if (ev->modifiers() & Qt::ControlModifier) {
+                            end();
+                            ev->accept();
+                            return true;
+                        }
+                        break;
+                    case Qt::Key_Home:
+                        if (ev->modifiers() & Qt::ControlModifier) {
+                            home();
+                            ev->accept();
+                            return true;
+                        }
+                        Q_FALLTHROUGH();
+                    default:
+                        break;
                     }
-                    ev->accept();
-                    return true;
-                }
-                break;
-            case Qt::Key_Down:
-                down();
-                ev->accept();
-                return true;
-            case Qt::Key_Up:
-                // If there is no selected item and we've popped up above
-                // our parent, select the first item when they press up.
-                if (!selectedItems().isEmpty() //
-                    || mapToGlobal(QPoint(0, 0)).y() > d->m_parent->mapToGlobal(QPoint(0, 0)).y()) {
-                    up();
-                } else {
-                    down();
-                }
-                ev->accept();
-                return true;
-            case Qt::Key_PageUp:
-                pageUp();
-                ev->accept();
-                return true;
-            case Qt::Key_PageDown:
-                pageDown();
-                ev->accept();
-                return true;
-            case Qt::Key_Escape:
-                if (!d->cancelText.isNull()) {
-                    Q_EMIT userCancelled(d->cancelText);
-                }
-                if (isVisible()) {
-                    hide();
-                }
-                ev->accept();
-                return true;
-            case Qt::Key_Enter:
-            case Qt::Key_Return:
-                if (ev->modifiers() & Qt::ShiftModifier) {
-                    hide();
-                    ev->accept(); // Consume the Enter event
-                    return true;
-                }
-                break;
-            case Qt::Key_End:
-                if (ev->modifiers() & Qt::ControlModifier) {
-                    end();
-                    ev->accept();
-                    return true;
-                }
-                break;
-            case Qt::Key_Home:
-                if (ev->modifiers() & Qt::ControlModifier) {
-                    home();
-                    ev->accept();
-                    return true;
-                }
-                Q_FALLTHROUGH();
-            default:
-                break;
-            }
-        } else if (type == QEvent::ShortcutOverride) {
-            // Override any accelerators that match
-            // the key sequences we use here...
-            QKeyEvent *ev = static_cast<QKeyEvent *>(e);
-            switch (ev->key()) {
-            case Qt::Key_Down:
-            case Qt::Key_Up:
-            case Qt::Key_PageUp:
-            case Qt::Key_PageDown:
-            case Qt::Key_Escape:
-            case Qt::Key_Enter:
-            case Qt::Key_Return:
-                ev->accept();
-                return true;
-            case Qt::Key_Tab:
-            case Qt::Key_Backtab:
-                if (ev->modifiers() == Qt::NoButton || (ev->modifiers() & Qt::ShiftModifier)) {
-                    ev->accept();
-                    return true;
-                }
-                break;
-            case Qt::Key_Home:
-            case Qt::Key_End:
-                if (ev->modifiers() & Qt::ControlModifier) {
-                    ev->accept();
-                    return true;
-                }
-                break;
-            default:
-                break;
-            }
-        } else if (type == QEvent::FocusOut) {
-            QFocusEvent *event = static_cast<QFocusEvent *>(e);
-            if (event->reason() != Qt::PopupFocusReason
+                } else if (type == QEvent::ShortcutOverride) {
+                    // Override any accelerators that match
+                    // the key sequences we use here...
+                    QKeyEvent *ev = static_cast<QKeyEvent *>(e);
+                    switch (ev->key()) {
+                    case Qt::Key_Down:
+                    case Qt::Key_Up:
+                    case Qt::Key_PageUp:
+                    case Qt::Key_PageDown:
+                    case Qt::Key_Escape:
+                    case Qt::Key_Enter:
+                    case Qt::Key_Return:
+                        ev->accept();
+                        return true;
+                    case Qt::Key_Tab:
+                    case Qt::Key_Backtab:
+                        if (ev->modifiers() == Qt::NoButton || (ev->modifiers() & Qt::ShiftModifier)) {
+                            ev->accept();
+                            return true;
+                        }
+                        break;
+                    case Qt::Key_Home:
+                    case Qt::Key_End:
+                        if (ev->modifiers() & Qt::ControlModifier) {
+                            ev->accept();
+                            return true;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                } else if (type == QEvent::FocusOut) {
+                    QFocusEvent *event = static_cast<QFocusEvent *>(e);
+                    if (event->reason() != Qt::PopupFocusReason
 #ifdef Q_OS_WIN
-                && (event->reason() != Qt::ActiveWindowFocusReason || QApplication::activeWindow() != this)
+                        && (event->reason() != Qt::ActiveWindowFocusReason || QApplication::activeWindow() != this)
 #endif
-            ) {
-                hide();
+                    ) {
+                        hide();
+                    }
+                }
             }
         }
     }

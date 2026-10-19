@@ -12,6 +12,7 @@ add_subdirectory(qmltoolingsettings)
 add_subdirectory(qmltyperegistrar)
 add_subdirectory(qmlintegration)
 add_subdirectory(qml)
+add_subdirectory(qmlpreview)
 add_subdirectory(qmlmodels)
 
 add_subdirectory(core)
@@ -62,10 +63,6 @@ if(TARGET Qt::Gui AND TARGET Qt::qsb AND QT_FEATURE_qml_animation)
     add_subdirectory(quickcontrolsimpl)
     add_subdirectory(quickcontrols)
 
-    if(QT_FEATURE_quickcontrols2_macos OR QT_FEATURE_quickcontrols2_windows)
-        add_subdirectory(quicknativestyle)
-    endif()
-
 else()
     qt_configure_add_summary_section(NAME "Qt Quick")
     qt_configure_add_summary_entry(TYPE "message" ARGS "Qt Quick support" MESSAGE "no")
@@ -89,6 +86,7 @@ endif()
 
 add_subdirectory(qmlcompiler)
 add_subdirectory(qmldom)
+add_subdirectory(qmllint)
 add_subdirectory(qmltc)
 
 if(QT_FEATURE_commandlineparser)
@@ -130,6 +128,10 @@ if(TARGET Qt::Gui AND TARGET Qt::qsb AND QT_FEATURE_qml_animation)
             endif()
         endif()
     endif()
+endif()
+
+if(QT_FEATURE_qml_designsupport)
+    add_subdirectory(qmldesignsupport)
 endif()
 
 # special case end

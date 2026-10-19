@@ -9,6 +9,7 @@ qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit)
 qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio)
 qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia)
 qt_internal_find_apple_system_framework(FWCoreVideo CoreVideo)
+qt_internal_find_apple_system_framework(FWScreenCaptureKit ScreenCaptureKit)
 qt_internal_find_apple_system_framework(FWSecurity Security)
 qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox)
 
@@ -24,10 +25,10 @@ if(QT_FEATURE_spatialaudio)
 endif()
 
 # special case begin
-if(TARGET Qt::Quick)
+if(QT_FEATURE_multimedia_quick)
     add_subdirectory(multimediaquick)
 endif()
-if(TARGET Qt::Quick3D AND QT_FEATURE_spatialaudio)
+if(QT_FEATURE_spatialaudio_quick3d)
     add_subdirectory(spatialaudioquick3d)
 endif()
 

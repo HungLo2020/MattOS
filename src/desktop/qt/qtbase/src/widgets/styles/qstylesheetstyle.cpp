@@ -1167,8 +1167,19 @@ void QRenderRule::fixupBorder(int nativeWidth)
 void QRenderRule::drawBorderImage(QPainter *p, const QRect& rect)
 {
     setClip(p, rect);
-    static const Qt::TileRule tileMode2TileRule[] = {
-        Qt::StretchTile, Qt::RoundTile, Qt::StretchTile, Qt::RepeatTile, Qt::StretchTile };
+    const auto tileMode2TileRule = [](TileMode tileMode) -> Qt::TileRule {
+        switch (tileMode) {
+        case TileMode_Unknown:
+        case TileMode_Stretch:
+            return Qt::StretchTile;
+        case TileMode_Round:
+            return Qt::RoundTile;
+        case TileMode_Repeat:
+            return Qt::RepeatTile;
+        }
+        qWarning() << "Invalid tile mode:" << tileMode;
+        Q_UNREACHABLE_RETURN(Qt::StretchTile);
+    };
 
     const QStyleSheetBorderImageData *borderImageData = border()->borderImage();
     const auto &targetBorders = border()->borders;
@@ -1182,7 +1193,8 @@ void QRenderRule::drawBorderImage(QPainter *p, const QRect& rect)
     p->setRenderHint(QPainter::SmoothPixmapTransform);
     qDrawBorderPixmap(p, rect, targetMargins, borderImageData->pixmap,
                       QRect(QPoint(), borderImageData->pixmap.size()), sourceMargins,
-                      QTileRules(tileMode2TileRule[borderImageData->horizStretch], tileMode2TileRule[borderImageData->vertStretch]));
+                      QTileRules(tileMode2TileRule(borderImageData->horizStretch),
+                                 tileMode2TileRule(borderImageData->vertStretch)));
     p->setRenderHint(QPainter::SmoothPixmapTransform, wasSmoothPixmapTransform);
     unsetClip(p);
 }
@@ -1795,10 +1807,6 @@ static quint64 pseudoClass(QStyle::State state)
         pc |= PseudoClass_ReadOnly;
     if (state & QStyle::State_Item)
         pc |= PseudoClass_Item;
-#ifdef QT_KEYPAD_NAVIGATION
-    if (state & QStyle::State_HasEditFocus)
-        pc |= PseudoClass_EditFocus;
-#endif
     return pc;
 }
 
@@ -5330,7 +5338,8 @@ QSize QStyleSheetStyle::sizeFromContents(ContentsType ct, const QStyleOption *op
                     QRect r = positionRect(w, rule, subRule, PseudoElement_SpinBoxUpButton,
                                            opt->rect, opt->direction);
                     sz.rwidth() += r.width();
-                } else {
+                } else if (!rule.baseStyleCanDraw()) {
+                    // Otherwise the base style's hint already accounts for the buttons.
                     QSize defaultUpSize = defaultSize(w, subRule.size(), spinbox->rect, PseudoElement_SpinBoxUpButton);
                     sz.rwidth() += defaultUpSize.width();
                 }
@@ -5401,8 +5410,15 @@ QSize QStyleSheetStyle::sizeFromContents(ContentsType ct, const QStyleOption *op
     case CT_GroupBox:
     case CT_LineEdit:
 #if QT_CONFIG(spinbox)
-        if (qobject_cast<QAbstractSpinBox *>(w ? w->parentWidget() : nullptr))
-            return csz; // we only care about the size hint of the line edit
+        if (auto *spinBox = qobject_cast<QAbstractSpinBox *>(w ? w->parentWidget() : nullptr)) {
+            // If the spin box draws its own frame (custom box or non-native border),
+            // return the contents size; otherwise defer to the base style so the line
+            // edit still contributes its natural frame.
+            const QRenderRule spinBoxRule = renderRule(spinBox, opt);
+            if (spinBoxRule.hasBox() || !spinBoxRule.hasNativeBorder())
+                return csz;
+            return baseStyle()->sizeFromContents(ct, opt, sz, w);
+        }
 #endif
         if (rule.hasBox() || !rule.hasNativeBorder()) {
             return rule.boxSize(sz);
@@ -5870,17 +5886,28 @@ QRect QStyleSheetStyle::subControlRect(ComplexControl cc, const QStyleOptionComp
                         downAlign = resolveAlignment(opt->direction, downAlign);
 
                         const bool hasButtons = (spin->buttonSymbols != QAbstractSpinBox::NoButtons);
-                        const int upSize = hasButtons
-                                ? subControlRect(CC_SpinBox, opt, SC_SpinBoxUp, w).width() : 0;
-                        const int downSize = hasButtons
-                                ? subControlRect(CC_SpinBox, opt, SC_SpinBoxDown, w).width() : 0;
 
-                        int widestL = qMax((upAlign & Qt::AlignLeft) ? upSize : 0,
-                                (downAlign & Qt::AlignLeft) ? downSize : 0);
-                        int widestR = qMax((upAlign & Qt::AlignRight) ? upSize : 0,
-                                (downAlign & Qt::AlignRight) ? downSize : 0);
-                        r.setRight(r.right() - widestR);
-                        r.setLeft(r.left() + widestL);
+                        const QRect upRect = hasButtons
+                                ? subControlRect(CC_SpinBox, opt, SC_SpinBoxUp, w) : QRect(0,0,0,0);
+                        const QRect downRect = hasButtons
+                                ? subControlRect(CC_SpinBox, opt, SC_SpinBoxDown, w) : QRect(0,0,0,0);
+
+                        int cutLeft = 0;
+                        int cutRight = r.right();
+                        if (upAlign & Qt::AlignLeft && downAlign & Qt::AlignLeft) {
+                            cutLeft = qMax(upRect.x() + upRect.width(), downRect.x() + downRect.width());
+                        } else if (upAlign & Qt::AlignRight && downAlign & Qt::AlignRight) {
+                            cutRight = qMin(upRect.x(), downRect.x());
+                        } else if (upAlign & Qt::AlignLeft && downAlign & Qt::AlignRight) {
+                            cutLeft = upRect.x() + upRect.width();
+                            cutRight = downRect.x();
+                        } else if (upAlign & Qt::AlignRight && downAlign & Qt::AlignLeft) {
+                            cutLeft = downRect.x() + downRect.width();
+                            cutRight = upRect.x();
+                        }
+
+                        r.setRight(cutRight);
+                        r.setLeft(cutLeft);
                         return r;
                     }
                 case SC_SpinBoxDown:

@@ -48,12 +48,12 @@ KCM.GridViewKCM {
 
     DropArea {
         anchors.fill: parent
-        onEntered: {
+        onEntered: drag => {
             if (!drag.hasUrls) {
                 drag.accepted = false;
             }
         }
-        onDropped: kcm.installThemeFromFile(drop.urls[0])
+        onDropped: drop => kcm.installThemeFromFile(drop.urls[0])
     }
 
     headerPaddingEnabled: false // Let the InlineMessage touch the edges
@@ -104,23 +104,7 @@ KCM.GridViewKCM {
                     {text: i18nc("@item:inlistbox filters displayed themes", "Color scheme compatible"), filter: Private.FilterProxyModel.ThemesFollowingColors}
                 ]
 
-                // HACK QQC2 doesn't support icons, so we just tamper with the desktop style ComboBox's background
-                // and inject a nice little filter icon.
-                Component.onCompleted: {
-                    if (!background || !background.hasOwnProperty("properties")) {
-                        // not a KQuickStyleItem
-                        return;
-                    }
-
-                    var props = background.properties || {};
-
-                    background.properties = Qt.binding(function() {
-                        var newProps = props;
-                        newProps.currentIcon = "view-filter";
-                        newProps.iconColor = Kirigami.Theme.textColor;
-                        return newProps;
-                    });
-                }
+                Kirigami.StyleHints.iconName: "view-filter"
             }
         }
     }
@@ -170,14 +154,20 @@ KCM.GridViewKCM {
             },
             Kirigami.Action {
                 icon.name: "edit-delete"
-                tooltip: i18n("Remove Theme")
-                enabled: model.isLocal
+                tooltip: if (enabled) {
+                    return i18nc("@info:tooltip", "Remove Plasma style");
+                } else if (delegate.GridView.isCurrentItem) {
+                    return i18nc("@info:tooltip", "Cannot delete the active Plasma style");
+                } else {
+                    return i18nc("@info:tooltip", "Cannot delete system-installed Plasma styles");
+                }
+                enabled: model.isLocal && !delegate.GridView.isCurrentItem
                 visible: !model.pendingDeletion
                 onTriggered: model.pendingDeletion = true;
             },
             Kirigami.Action {
                 icon.name: "edit-undo"
-                tooltip: i18n("Restore Theme")
+                tooltip: i18nc("@info:tooltip", "Don’t delete this Plasma style")
                 visible: model.pendingDeletion
                 onTriggered: model.pendingDeletion = false;
             }

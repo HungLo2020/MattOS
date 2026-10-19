@@ -16,11 +16,11 @@
 // We mean it.
 //
 
-#include "qlanguageserver_p.h"
-#include "qtextdocument_p.h"
-#include "qprocessscheduler_p.h"
-#include "qqmllshelputils_p.h"
-#include "qqmlsemantictokens_p.h"
+#include <private/qlanguageserver_p.h>
+#include <private/qtextdocument_p.h>
+#include <private/qprocessscheduler_p.h>
+#include <private/qqmllshelputils_p.h>
+#include <private/qqmlsemantictokens_p.h>
 
 #include <QObject>
 #include <QHash>
@@ -40,13 +40,6 @@ namespace QmlLsp {
 class OpenDocumentSnapshot
 {
 public:
-    enum class DumpOption {
-        NoCode = 0,
-        LatestCode = 0x1,
-        ValidCode = 0x2,
-        AllCode = LatestCode | ValidCode
-    };
-    Q_DECLARE_FLAGS(DumpOptions, DumpOption)
     QStringList searchPath;
     QByteArray url;
     std::optional<int> docVersion;
@@ -56,10 +49,8 @@ public:
     QDateTime scopeDependenciesLoadTime;
     bool scopeDependenciesChanged = false;
     QQmlJSScope::ConstPtr scope;
-    QDebug dump(QDebug dbg, DumpOptions dump = DumpOption::NoCode);
+    QDebug dump(QDebug dbg);
 };
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(OpenDocumentSnapshot::DumpOptions)
 
 class OpenDocument
 {
@@ -76,6 +67,22 @@ struct RegisteredSemanticTokens
 
 struct ModuleSetting
 {
+    auto asTuple() const { return std::make_tuple(sourceFolder, importPaths, resourceFiles); }
+    friend Qt::strong_ordering compareThreeWay(const ModuleSetting &a,
+                                               const ModuleSetting &b) noexcept
+    {
+        if (auto result = compareThreeWay(a.sourceFolder, b.sourceFolder); is_neq(result))
+            return result;
+        if (auto result = compareThreeWay(a.importPaths, b.importPaths); is_neq(result))
+            return result;
+        return compareThreeWay(a.resourceFiles, b.resourceFiles);
+    }
+    friend bool comparesEqual(const ModuleSetting &a, const ModuleSetting &b) noexcept
+    {
+        return a.asTuple() == b.asTuple();
+    }
+    Q_DECLARE_STRONGLY_ORDERED(ModuleSetting);
+
     QString sourceFolder;
     QStringList importPaths;
     QStringList resourceFiles;
@@ -96,7 +103,7 @@ public:
     void addModuleSetting(const ModuleSetting &moduleSetting);
     void writeQmllsBuildIniContent(const QString &file) const;
 
-private:
+protected:
     QString m_docDir;
     ModuleSettings m_moduleSettings;
     QSet<QString> m_seenSettings;
@@ -173,6 +180,7 @@ public:
     }
     void setCMakeJobs(int jobs) { m_cmakeJobs = jobs; }
     int cmakeJobs() const { return m_cmakeJobs; }
+    void reloadAllOpenFiles();
 
 Q_SIGNALS:
     void updatedSnapshot(const QByteArray &url, UpdatePolicy policy);
@@ -194,7 +202,6 @@ private:
     QString url2Path(const QByteArray &url, UrlLookup options = UrlLookup::Caching);
 
     void callCMakeBuild(QProcessScheduler *scheduler);
-    void onCMakeProcessFinished(const QByteArray &id);
 
     void addFileWatches(const QQmlJS::Dom::DomItem &qmlFile);
 

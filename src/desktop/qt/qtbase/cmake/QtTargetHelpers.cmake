@@ -89,7 +89,8 @@ function(qt_internal_extend_target target)
                     BASENAME
                     FLAGS
             )
-            qt_create_qdbusxml2cpp_command("${target}" "${adaptor}" ADAPTOR ${forwarded_args})
+            qt_internal_create_qdbusxml2cpp_command("${target}" "${adaptor}"
+                ADAPTOR ${forwarded_args})
             list(APPEND dbus_sources "${adaptor}")
         endforeach()
 
@@ -101,7 +102,8 @@ function(qt_internal_extend_target target)
                     BASENAME
                     FLAGS
             )
-            qt_create_qdbusxml2cpp_command("${target}" "${interface}" INTERFACE ${forwarded_args})
+            qt_internal_create_qdbusxml2cpp_command("${target}" "${interface}"
+                INTERFACE ${forwarded_args})
             list(APPEND dbus_sources "${interface}")
         endforeach()
 
@@ -406,6 +408,7 @@ function(qt_internal_wrap_private_modules target)
         if(TARGET "${lib}")
             get_target_property(lib_is_private_module ${lib} _qt_is_private_module)
             get_target_property(lib_is_internal_module ${lib} _qt_is_internal_module)
+            get_target_property(lib_force_export ${lib} _qt_internal_force_export_module_dependency)
 
             if(lib_is_private_module)
                 # Add the public module as non-wrapped link dependency. This is necessary for
@@ -415,10 +418,14 @@ function(qt_internal_wrap_private_modules target)
                 list(APPEND result "${INSTALL_CMAKE_NAMESPACE}::${lib_public_module_target}")
             endif()
 
-            if(lib_is_private_module
+            # A dependency marked for forced export stays unwrapped so it remains in the
+            # exported interface and the deployment can find its library. The platform
+            # restriction is applied at the call site.
+            if((lib_is_private_module
                     OR
                     (lib_is_internal_module
-                        AND NOT target_type STREQUAL "STATIC_LIBRARY")
+                        AND NOT target_type STREQUAL "STATIC_LIBRARY"))
+                    AND NOT lib_force_export
                 )
                 # Wrap the private or internal module in BUILD_LOCAL_INTERFACE.
                 set(lib "$<${wrapper_genex}:${lib}>")
@@ -428,6 +435,13 @@ function(qt_internal_wrap_private_modules target)
     endforeach()
 
     set("${arg_OUT_VAR}" "${result}" PARENT_SCOPE)
+endfunction()
+
+# Marks ${target} to be exported by consumers instead of wrapped in BUILD_LOCAL_INTERFACE.
+function(qt_internal_force_export_module_dependency target)
+    set_property(TARGET ${target} PROPERTY _qt_internal_force_export_module_dependency TRUE)
+    set_property(TARGET ${target} APPEND PROPERTY
+        EXPORT_PROPERTIES _qt_internal_force_export_module_dependency)
 endfunction()
 
 # Given CMAKE_CONFIG and ALL_CMAKE_CONFIGS, determines if a directory suffix needs to be appended
@@ -2024,4 +2038,138 @@ function(qt_internal_apply_dynamic_list_linker_flags target dynlist_template)
     )
 
     target_link_options(${target} PRIVATE "LINKER:--dynamic-list=${dynlist_file_abspath}")
+endfunction()
+
+function(qt_internal_workaround_static_lib_gcc_lto_issue target)
+    get_target_property(target_type "${target}" TYPE)
+    get_target_property(target_lto_enabled "${target}" INTERPROCEDURAL_OPTIMIZATION)
+    get_target_property(target_lto_enabled_debug "${target}" INTERPROCEDURAL_OPTIMIZATION_DEBUG)
+    set(target_lto_enabled_debug_unset FALSE)
+
+    if(target_lto_enabled_debug MATCHES "-NOTFOUND")
+        set(target_lto_enabled_debug_unset TRUE)
+    endif()
+
+    set(general_lto_enabled FALSE)
+
+    if(FEATURE_ltcg
+            OR QT_FEATURE_ltcg
+            OR CMAKE_INTERPROCEDURAL_OPTIMIZATION
+            OR target_lto_enabled)
+        set(general_lto_enabled TRUE)
+    endif()
+
+    if((general_lto_enabled OR target_lto_enabled_debug)
+        AND GCC
+        AND target_type STREQUAL "STATIC_LIBRARY")
+        # CMake <= 3.19 appends -fno-fat-lto-objects for all library types if
+        # CMAKE_INTERPROCEDURAL_OPTIMIZATION is enabled. Static libraries need
+        # the opposite compiler option.
+        # (https://gitlab.kitware.com/cmake/cmake/-/issues/21696)
+        set(flag_name -ffat-lto-objects)
+
+        if((general_lto_enabled AND target_lto_enabled_debug_unset)
+                OR (general_lto_enabled AND target_lto_enabled)
+            )
+            set(flag_wrapped "${flag_name}")
+        elseif(general_lto_enabled AND NOT target_lto_enabled_debug)
+            set(flag_wrapped "$<$<NOT:$<CONFIG:Debug>>:${flag_name}>")
+        elseif(target_lto_enabled_debug)
+            set(flag_wrapped "$<$<CONFIG:Debug>:${flag_name}>")
+        endif()
+
+        target_compile_options("${target}" PRIVATE "${flag_wrapped}")
+    endif()
+endfunction()
+
+# Enable LTO for the debug configuration of optimized tool or library targets.
+# Can be opted out via various options.
+function(qt_internal_enable_optimized_tools_lto target)
+    string(TOLOWER "${PROJECT_NAME}" project_name_lower)
+
+    if(QT_FEATURE_optimized_tools
+            AND NOT QT_FORCE_NO_OPTIMIZED_TOOLS_LTO
+            AND NOT QT_FORCE_NO_OPTIMIZE_${target}
+            AND NOT QT_FORCE_NO_OPTIMIZE_${project_name_lower}
+            AND NOT QT_FORCE_NO_LTO_${target}
+            AND NOT QT_FORCE_NO_LTO_${project_name_lower}
+        )
+        set_target_properties("${target}" PROPERTIES INTERPROCEDURAL_OPTIMIZATION_DEBUG ON)
+    endif()
+endfunction()
+
+# Adds dependencies from ${target} to the specified PLUGIN_TARGETS. The latter
+# must be a list of Qt plugin target names that qt_import_plugins would accept.
+#
+# This is mostly useful for command line tools that depend on more than the
+# default QPA plugin.
+#
+# The function yields an error if ${target} or a plugin target cannot be found.
+# The check for plugin targets can be turned off with the
+# SKIP_MISSING_PLUGIN_TARGETS option.
+#
+# Example:
+#   qt_internal_add_plugin_dependencies(svgtoqml PLUGIN_TARGETS Qt::QMinimalIntegrationPlugin)
+function(qt_internal_add_plugin_dependencies target)
+    set(no_value_options SKIP_MISSING_PLUGIN_TARGETS)
+    set(single_value_options "")
+    set(multi_value_options PLUGIN_TARGETS)
+    cmake_parse_arguments(PARSE_ARGV 1 arg
+        "${no_value_options}" "${single_value_options}" "${multi_value_options}"
+    )
+
+    if(NOT DEFINED arg_PLUGIN_TARGETS)
+        message(FATAL_ERROR "PLUGIN_TARGETS argument needs to be specified")
+    endif()
+
+    if(NOT TARGET "${target}")
+        message(FATAL_ERROR "Target '${target}' does not exist.")
+    endif()
+
+    # Filter out non-existent plugin targets / yield an error.
+    set(plugin_targets "")
+    foreach(plugin_target IN LISTS arg_PLUGIN_TARGETS)
+        string(REGEX REPLACE "^.*::" "" bare "${plugin_target}")
+        set(versioned "${QT_CMAKE_EXPORT_NAMESPACE}::${bare}")
+        if(TARGET "${versioned}")
+            list(APPEND plugin_targets "${versioned}")
+        elseif(TARGET "${plugin_target}")
+            list(APPEND plugin_targets "${plugin_target}")
+        elseif(NOT arg_SKIP_MISSING_PLUGIN_TARGETS)
+            message(FATAL_ERROR "Plugin target '${plugin_target}' does not exist.")
+        endif()
+    endforeach()
+
+    # Bail out if there are no valid plugin targets.
+    if(plugin_targets STREQUAL "")
+        return()
+    endif()
+
+    if(QT_BUILD_SHARED_LIBS)
+        # Add a dependency such that building ${target} builds the plugin targets too.
+        add_dependencies(${target} ${plugin_targets})
+    else()
+        if(QT_SUPERBUILD)
+            # In a top-level build, qt_import_plugins() is a no-op because
+            # __qt_internal_add_static_plugins_once() is not called.
+            # So we need to initialize and link the plugin manually.
+            set(out_file_path "${CMAKE_CURRENT_BINARY_DIR}/${target}_plugin_imports_custom.cpp")
+
+            # Create a string with the necessary Q_IMPORT_PLUGIN(...) statements.
+            __qt_internal_get_plugin_include_prelude(import_plugin_code)
+            string(APPEND import_plugin_code "\n")
+            string(PREPEND import_plugin_code "// This file is auto-generated. Do not edit.\n\n")
+            foreach(plugin_target IN LISTS plugin_targets)
+                __qt_internal_get_plugin_import_macro("${plugin_target}" import_macro)
+                string(APPEND import_plugin_code "${import_macro}")
+            endforeach()
+            file(GENERATE OUTPUT "${out_file_path}" CONTENT "${import_plugin_code}\n")
+            _qt_internal_set_source_file_generated(SOURCES "${out_file_path}")
+
+            target_sources(${target} PRIVATE "${out_file_path}")
+            target_link_libraries(${target} PRIVATE ${plugin_targets})
+        else()
+            qt_import_plugins(${target} INCLUDE ${plugin_targets})
+        endif()
+    endif()
 endfunction()

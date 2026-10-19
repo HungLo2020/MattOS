@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "qlayout_widget_p.h"
 #include "qdesigner_utils_p.h"
@@ -26,8 +27,9 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qstack.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qset.h>
+
+#include <utility>
 
 #include <algorithm>
 

@@ -54,12 +54,12 @@ DrmCommitThread::DrmCommitThread(DrmGpu *gpu, const QString &name)
                         m_pong.wait(lock);
                     }
                     if (m_committed) {
-                        qCCritical(KWIN_DRM, "Pageflip timed out! This is a bug in the %s kernel driver", qPrintable(m_gpu->driverName()));
-                        if (m_gpu->isAmdgpu()) {
+                        qCCritical(KWIN_DRM, "Pageflip timed out! This is a bug in the %s kernel driver", qPrintable(m_gpu->drmDevice()->driverName()));
+                        if (m_gpu->drmDevice()->isAmdgpu()) {
                             qCCritical(KWIN_DRM, "Please report this at https://gitlab.freedesktop.org/drm/amd/-/issues");
-                        } else if (m_gpu->isNVidia()) {
+                        } else if (m_gpu->drmDevice()->isNvidia()) {
                             qCCritical(KWIN_DRM, "Please report this at https://forums.developer.nvidia.com/c/gpu-graphics/linux");
-                        } else if (m_gpu->isI915()) {
+                        } else if (m_gpu->drmDevice()->isI915()) {
                             qCCritical(KWIN_DRM, "Please report this at https://gitlab.freedesktop.org/drm/i915/kernel/-/issues");
                         }
                         qCCritical(KWIN_DRM, "With the output of 'sudo dmesg' and 'journalctl --user-unit plasma-kwin_wayland --boot 0'");
@@ -76,9 +76,10 @@ DrmCommitThread::DrmCommitThread(DrmGpu *gpu, const QString &name)
                 continue;
             }
             const auto now = std::chrono::steady_clock::now();
-            if (m_targetPageflipTime > now + m_safetyMargin) {
+            const auto wakeupTime = m_targetPageflipTime - m_safetyMargin;
+            if (wakeupTime > now) {
                 lock.unlock();
-                std::this_thread::sleep_until(m_targetPageflipTime - m_safetyMargin);
+                std::this_thread::sleep_until(wakeupTime);
                 lock.lock();
                 // the main thread might've modified the list
                 if (m_commits.empty()) {
@@ -151,7 +152,7 @@ void DrmCommitThread::submit()
 {
     DrmAtomicCommit *commit = m_commits.front().get();
     const auto vrr = commit->isVrr();
-    const bool success = commit->commit();
+    const auto success = commit->commit();
     if (success) {
         m_vrr = vrr.value_or(m_vrr);
         m_tearing = commit->isTearing();
@@ -196,9 +197,11 @@ void DrmCommitThread::submit()
             m_commitsToDelete.push_back(std::move(commit));
         }
         m_commits.clear();
-        qCWarning(KWIN_DRM) << "atomic commit failed:" << strerror(errno);
+        qCWarning(KWIN_DRM, "Atomic commit failed: %s", qPrintable(success.error().message));
     }
-    QMetaObject::invokeMethod(this, &DrmCommitThread::clearDroppedCommits, Qt::ConnectionType::QueuedConnection);
+    if (!m_commitsToDelete.empty()) {
+        QMetaObject::invokeMethod(this, &DrmCommitThread::clearDroppedCommits, Qt::ConnectionType::QueuedConnection);
+    }
 }
 
 void DrmCommitThread::optimizeCommits(TimePoint pageflipTarget)
@@ -361,7 +364,7 @@ void DrmCommitThread::clearDroppedCommits()
 // is actually applied. Waiting for the commit returning seems to work on Intel and AMD, but not with NVidia
 static const std::chrono::microseconds s_safetyMarginMinimum{environmentVariableIntValue("KWIN_DRM_OVERRIDE_SAFETY_MARGIN").value_or(1000)};
 
-void DrmCommitThread::setModeInfo(uint32_t maximum, std::chrono::nanoseconds vblankTime)
+std::chrono::nanoseconds DrmCommitThread::setModeInfo(uint32_t maximum, std::chrono::nanoseconds vblankTime)
 {
     std::unique_lock lock(m_mutex);
     m_minVblankInterval = std::chrono::nanoseconds(1'000'000'000'000ull / maximum);
@@ -369,9 +372,10 @@ void DrmCommitThread::setModeInfo(uint32_t maximum, std::chrono::nanoseconds vbl
     // the 1.5ms on top of that was chosen experimentally, for the time it takes to commit + scheduling inaccuracies
     m_baseSafetyMargin = vblankTime + s_safetyMarginMinimum;
     m_safetyMargin = m_baseSafetyMargin + m_additionalSafetyMargin;
+    return m_safetyMargin;
 }
 
-void DrmCommitThread::pageFlipped(std::chrono::nanoseconds timestamp)
+std::chrono::nanoseconds DrmCommitThread::pageFlipped(std::chrono::nanoseconds timestamp)
 {
     std::unique_lock lock(m_mutex);
     if (m_pageflipTimeoutDetected) {
@@ -384,6 +388,7 @@ void DrmCommitThread::pageFlipped(std::chrono::nanoseconds timestamp)
         m_targetPageflipTime = estimateNextVblank(std::chrono::steady_clock::now());
         m_commitPending.notify_all();
     }
+    return m_safetyMargin;
 }
 
 bool DrmCommitThread::pageflipsPending()
@@ -399,11 +404,6 @@ TimePoint DrmCommitThread::estimateNextVblank(TimePoint now) const
     return m_lastPageflip + m_minVblankInterval * (pageflipsSince + 1);
 }
 
-std::chrono::nanoseconds DrmCommitThread::safetyMargin() const
-{
-    return m_safetyMargin;
-}
-
 void DrmCommitThread::handlePing()
 {
     // this will process the pageflip and call pageFlipped if there is one
@@ -412,4 +412,5 @@ void DrmCommitThread::handlePing()
     m_ping = true;
     m_pong.notify_one();
 }
+
 }

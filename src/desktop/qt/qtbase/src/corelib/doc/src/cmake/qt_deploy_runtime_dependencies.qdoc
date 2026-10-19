@@ -6,7 +6,7 @@
 \ingroup cmake-commands-qtcore
 
 \title qt_deploy_runtime_dependencies
-\keyword qt6_deploy_runtime_dependencies
+\keyword qt_deploy_runtime_dependencies()
 
 \summary {Deploy Qt plugins, Qt and non-Qt libraries needed by an executable.}
 
@@ -70,7 +70,7 @@ which will only deploy libraries that are specific to Qt.
 
 This command only considers runtime dependencies for which linking
 relationships exist in the underlying binaries. It does not deploy QML modules,
-see \l{qt6_deploy_qml_imports}{qt_deploy_qml_imports()} for that.
+see \l qt_deploy_qml_imports() for that.
 
 \section1 Arguments
 
@@ -140,10 +140,11 @@ table, all of which are expected to be relative to the base install location.
     \li
 \endtable
 
-A \c{qt.conf} file is always written if \c{executable} is a macOS app bundle,
-regardless of whether or not \c{GENERATE_QT_CONF} is provided. The \c{..._DIR}
-options are also ignored in that case, since the directory layout of an app
-bundle is dictated by Apple's requirements.
+No \c{qt.conf} file is written if \c{executable} is a macOS app bundle, and
+both \c{GENERATE_QT_CONF} and the \c{..._DIR} options are ignored in that
+case. The directory layout of an app bundle is dictated by Apple's
+requirements, and Qt finds libraries, plugins and resources at those
+conventional locations without a \c{qt.conf}.
 
 More verbose output about the deployment steps can be enabled by providing the
 \c{VERBOSE} option. Alternatively, the \l{QT_ENABLE_VERBOSE_DEPLOYMENT}
@@ -161,7 +162,7 @@ libraries that comply with Apple's app store requirements are deployed. The
 
 On platforms other than macOS, Qt translations are automatically deployed. To
 inhibit this behavior, specify \c{NO_TRANSLATIONS}. Use
-\l{qt6_deploy_translations}{qt_deploy_translations()} to deploy translations
+\l qt_deploy_translations() to deploy translations
 in a customized way.
 
 For Windows desktop applications, the required runtime files for the compiler
@@ -170,6 +171,12 @@ are also installed by default. To prevent this, specify \c{NO_COMPILER_RUNTIME}.
 Since Qt 6.7, you can use \c{DEPLOY_TOOL_OPTIONS} to pass additional options to
 the underlying deployment tool. This only has an effect if the underlying
 deployment tool is either macdeployqt or windeployqt.
+
+\note When this command is called from the \c {CONTENT} of
+\l qt_generate_deploy_script(), the values of \c{DEPLOY_TOOL_OPTIONS} should
+be wrapped into a single quoted string so that whitespace is preserved in the
+generated deployment script. Additionally, each value that contains a space,
+like a code signing identity, should be wrapped in backslash escaped quotes.
 
 On Linux, deploying runtime dependencies is based on CMake's
 \c{file(GET_RUNTIME_DEPENDENCIES)} command. The options \c{PRE_INCLUDE_REGEXES},
@@ -185,9 +192,10 @@ automatic exclusion is not performed.
 The default value of \c{POST_EXCLUDE_REGEXES} is constructed from the value of
 \l{QT_DEPLOY_IGNORED_LIB_DIRS}.
 
-\sa {qt6_generate_deploy_app_script}{qt_generate_deploy_app_script()},
-    {qt6_deploy_qt_conf}{qt_deploy_qt_conf()},
-    {qt6_deploy_qml_imports}{qt_deploy_qml_imports()}
+\sa qt_generate_deploy_app_script(),
+    qt_deploy_qt_conf(),
+    qt_deploy_qml_imports(),
+    {QTP0007}
 
 \section1 Controlling deployment of Qt plugins
 

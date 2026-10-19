@@ -26,14 +26,11 @@ public:
         m_divClass{divclass}, m_style{style}
     {}
 
-    ~Section();
-
     void insert(Node *node);
     bool insertReimplementedMember(Node *node);
 
     void appendMember(Node *node) { m_members.append(node); }
 
-    void clear();
     void reduce();
     [[nodiscard]] bool isEmpty() const
     {
@@ -48,15 +45,16 @@ public:
     [[nodiscard]] const QString &plural() const { return m_plural; }
     [[nodiscard]] const NodeVector &members() const { return m_members; }
     [[nodiscard]] const NodeVector &reimplementedMembers() const { return m_reimplementedMembers; }
-    [[nodiscard]] const QList<std::pair<Aggregate *, int>> &inheritedMembers() const
+    [[nodiscard]] const QList<std::pair<const Aggregate *, int>> &inheritedMembers() const
     {
         return m_inheritedMembers;
     }
     ClassNodesList &classNodesList() { return m_classNodesList; }
+    [[nodiscard]] const ClassNodesList &classNodesList() const { return m_classNodesList; }
     [[nodiscard]] const NodeVector &obsoleteMembers() const { return m_obsoleteMembers; }
     void appendMembers(const NodeVector &nv) { m_members.append(nv); }
     [[nodiscard]] const Aggregate *aggregate() const { return m_aggregate; }
-    void setAggregate(Aggregate *t) { m_aggregate = t; }
+    void setAggregate(const Aggregate *t) { m_aggregate = t; }
 
 private:
     QString m_title {};
@@ -65,11 +63,11 @@ private:
     QString m_divClass {};
     Style m_style {};
 
-    Aggregate *m_aggregate { nullptr };
+    const Aggregate *m_aggregate { nullptr };
     NodeVector m_members {};
     NodeVector m_obsoleteMembers {};
     NodeVector m_reimplementedMembers {};
-    QList<std::pair<Aggregate *, int>> m_inheritedMembers {};
+    QList<std::pair<const Aggregate *, int>> m_inheritedMembers {};
     ClassNodesList m_classNodesList {};
 
     QMultiMap<QString, Node *> m_reimplementedMemberMap {};
@@ -80,6 +78,8 @@ typedef QList<const Section *> SectionPtrVector;
 
 class Sections
 {
+    Q_DISABLE_COPY_MOVE(Sections)
+
 public:
     enum VectorIndex {
         PublicTypes = 0,
@@ -125,63 +125,40 @@ public:
         ProtectedSlots = 9,
         SinceVariables = 10,
         ProtectedVariables = 10,
-        SinceQmlTypes = 11,
+        SinceConcepts = 11,
         StaticProtectedMembers = 11,
+        SinceQmlTypes = 12,
         PrivateTypes = 12,
-        SinceQmlEnumTypes = 12,
-        SinceQmlProperties = 13,
+        SinceQmlEnumTypes = 13,
+        SinceQmlProperties = 14,
         PrivateFunctions = 13,
-        SinceQmlSignals = 14,
+        SinceQmlSignals = 15,
         PrivateSlots = 14,
-        SinceQmlSignalHandlers = 15,
+        SinceQmlSignalHandlers = 16,
         PrivateVariables = 15,
         StaticPrivateMembers = 16,
-        SinceQmlMethods = 16,
+        SinceQmlMethods = 17,
         RelatedNonmembers = 17,
         Macros = 18
     };
 
-    explicit Sections(Aggregate *aggregate);
+    explicit Sections(const Aggregate *aggregate);
     explicit Sections(const NodeMultiMap &nsmap);
-    ~Sections();
 
-    void clear(SectionVector &v);
-    void reduce(SectionVector &v);
-    void buildStdRefPageSections();
-    void buildStdCppClassRefPageSections();
-    void buildStdQmlTypeRefPageSections();
+    [[nodiscard]] bool hasObsoleteMembers(SectionPtrVector *summary_spv,
+                                          SectionPtrVector *details_spv) const;
 
-    bool hasObsoleteMembers(SectionPtrVector *summary_spv, SectionPtrVector *details_spv) const;
+    SectionVector &summarySections() { return m_summarySections; }
+    SectionVector &detailsSections() { return m_detailsSections; }
+    Section &allMembersSection() { return m_allMembers; }
+    SectionVector &sinceSections() { return m_sinceSections; }
 
-    static Section &allMembersSection() { return s_allMembers[0]; }
-    SectionVector &sinceSections() { return s_sinceSections; }
-    SectionVector &stdSummarySections() { return s_stdSummarySections; }
-    SectionVector &stdDetailsSections() { return s_stdDetailsSections; }
-    SectionVector &stdCppClassSummarySections() { return s_stdCppClassSummarySections; }
-    SectionVector &stdCppClassDetailsSections() { return s_stdCppClassDetailsSections; }
-    SectionVector &stdQmlTypeSummarySections() { return s_stdQmlTypeSummarySections; }
-    SectionVector &stdQmlTypeDetailsSections() { return s_stdQmlTypeDetailsSections; }
+    [[nodiscard]] const SectionVector &summarySections() const { return m_summarySections; }
+    [[nodiscard]] const SectionVector &detailsSections() const { return m_detailsSections; }
+    [[nodiscard]] const Section &allMembersSection() const { return m_allMembers; }
+    [[nodiscard]] const SectionVector &sinceSections() const { return m_sinceSections; }
 
-    [[nodiscard]] const SectionVector &stdSummarySections() const { return s_stdSummarySections; }
-    [[nodiscard]] const SectionVector &stdDetailsSections() const { return s_stdDetailsSections; }
-    [[nodiscard]] const SectionVector &stdCppClassSummarySections() const
-    {
-        return s_stdCppClassSummarySections;
-    }
-    [[nodiscard]] const SectionVector &stdCppClassDetailsSections() const
-    {
-        return s_stdCppClassDetailsSections;
-    }
-    [[nodiscard]] const SectionVector &stdQmlTypeSummarySections() const
-    {
-        return s_stdQmlTypeSummarySections;
-    }
-    [[nodiscard]] const SectionVector &stdQmlTypeDetailsSections() const
-    {
-        return s_stdQmlTypeDetailsSections;
-    }
-
-    [[nodiscard]] Aggregate *aggregate() const { return m_aggregate; }
+    [[nodiscard]] const Aggregate *aggregate() const { return m_aggregate; }
 
 private:
     void stdRefPageSwitch(SectionVector &v, Node *n);
@@ -189,19 +166,18 @@ private:
     void distributeNodeInDetailsVector(SectionVector &dv, Node *n);
     void distributeQmlNodeInDetailsVector(SectionVector &dv, Node *n);
     void distributeQmlNodeInSummaryVector(SectionVector &sv, Node *n, bool sharing = false);
-    void initAggregate(SectionVector &v, Aggregate *aggregate);
+    void initAggregate(SectionVector &v, const Aggregate *aggregate);
+    void buildStdRefPageSections();
+    void buildStdCppClassRefPageSections();
+    void buildStdQmlTypeRefPageSections();
+    void reduce(SectionVector &v);
 
 private:
-    Aggregate *m_aggregate { nullptr };
-
-    static SectionVector s_stdSummarySections;
-    static SectionVector s_stdDetailsSections;
-    static SectionVector s_stdCppClassSummarySections;
-    static SectionVector s_stdCppClassDetailsSections;
-    static SectionVector s_stdQmlTypeSummarySections;
-    static SectionVector s_stdQmlTypeDetailsSections;
-    static SectionVector s_sinceSections;
-    static SectionVector s_allMembers;
+    const Aggregate *m_aggregate { nullptr };
+    SectionVector m_summarySections;
+    SectionVector m_detailsSections;
+    Section m_allMembers { {}, "member", "members", {}, Section::AllMembers };
+    SectionVector m_sinceSections;
 };
 
 QT_END_NAMESPACE

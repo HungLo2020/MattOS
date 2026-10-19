@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-17 02:42+0000\n"
-"PO-Revision-Date: 2025-11-08 07:25+0100\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
+"PO-Revision-Date: 2026-09-17 05:11+0200\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -81,72 +81,90 @@ msgctxt "Format: month year"
 msgid "%1 %2"
 msgstr "%1 %2"
 
-#: calendar/qml/MonthViewHeader.qml:131
+#: calendar/qml/MonthViewHeader.qml:145
 #, kde-format
 msgid "Days"
 msgstr "დღე"
 
-#: calendar/qml/MonthViewHeader.qml:139
+#: calendar/qml/MonthViewHeader.qml:153
 #, kde-format
 msgid "Months"
 msgstr "თვე"
 
-#: calendar/qml/MonthViewHeader.qml:147
+#: calendar/qml/MonthViewHeader.qml:162
 #, kde-format
 msgid "Years"
 msgstr "წელი"
 
-#: calendar/qml/MonthViewHeader.qml:184
+#: calendar/qml/MonthViewHeader.qml:206
 #, kde-format
 msgid "Previous Month"
 msgstr "წინა თვე"
 
-#: calendar/qml/MonthViewHeader.qml:186
+#: calendar/qml/MonthViewHeader.qml:208
 #, kde-format
 msgid "Previous Year"
 msgstr "წინა წელი"
 
-#: calendar/qml/MonthViewHeader.qml:188
+#: calendar/qml/MonthViewHeader.qml:210
 #, kde-format
 msgid "Previous Decade"
 msgstr "წინა ათწლეული"
 
-#: calendar/qml/MonthViewHeader.qml:206
+#: calendar/qml/MonthViewHeader.qml:229
 #, kde-format
 msgctxt "Reset calendar to today"
 msgid "Today"
 msgstr "დღეს"
 
-#: calendar/qml/MonthViewHeader.qml:207
+#: calendar/qml/MonthViewHeader.qml:230
 #, kde-format
 msgid "Reset calendar to today"
 msgstr "კალენდრის დღევანდელ დღეზე გადართვა"
 
-#: calendar/qml/MonthViewHeader.qml:220
+#: calendar/qml/MonthViewHeader.qml:243
 #, kde-format
 msgid "Next Month"
 msgstr "ბოლო თვე"
 
-#: calendar/qml/MonthViewHeader.qml:222
+#: calendar/qml/MonthViewHeader.qml:245
 #, kde-format
 msgid "Next Year"
 msgstr "გაისად"
 
-#: calendar/qml/MonthViewHeader.qml:224
+#: calendar/qml/MonthViewHeader.qml:247
 #, kde-format
 msgid "Next Decade"
 msgstr "შემდეგ ათწლეულში"
 
-#: calendar/qml/MonthViewHeader.qml:283
+#: calendar/qml/MonthViewHeader.qml:306
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Keep Open"
 msgstr "ღიად დატოვება"
 
-#: containmentlayoutmanager/qml/BasicAppletContainer.qml:286
+#: containmentlayoutmanager/qml/BasicAppletContainer.qml:287
 #, kde-format
 msgid "Configure…"
 msgstr "მორგება…"
+
+#: loginlockscreen/Footer.qml:50
+#, kde-format
+msgctxt "@action:button"
+msgid "Hide On-Screen Keyboard"
+msgstr "ეკრანის კლავიატურის დამალვა"
+
+#: loginlockscreen/Footer.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Show On-Screen Keyboard"
+msgstr "ეკრანის კლავიატურის ჩვენება"
+
+#: loginlockscreen/Footer.qml:76
+#, kde-format
+msgctxt "Button to change keyboard layout"
+msgid "Switch layout"
+msgstr "განლაგების გადართვა"
 
 #. i18n: ectx: label, entry, group (Daemon)
 #: sessionsprivate/kscreenlockersettings.kcfg:10
@@ -159,18 +177,6 @@ msgstr "ეკრანის ჩაკეტვა ჩართულია"
 #, kde-format
 msgid "Sets whether the screen will be locked after the specified time."
 msgstr "დროის მითითება, რამდენ ხანში ჩაიკეტება ეკრანი."
-
-#. i18n: ectx: label, entry, group (Daemon)
-#: sessionsprivate/kscreenlockersettings.kcfg:16
-#, kde-format
-msgid "Screen saver timeout"
-msgstr "ეკრანის დაცვის ვადა"
-
-#. i18n: ectx: whatsthis, entry, group (Daemon)
-#: sessionsprivate/kscreenlockersettings.kcfg:17
-#, kde-format
-msgid "Sets the minutes after which the screen is locked."
-msgstr "ეკრანის ჩაკეტვის ვადის დაყენება."
 
 #: sessionsprivate/sessionsmodel.cpp:255 sessionsprivate/sessionsmodel.cpp:259
 #, kde-format
@@ -185,7 +191,7 @@ msgstr "ფილტრები"
 #: shellprivate/plasmaappletitemmodel.cpp:199
 #, kde-format
 msgid ""
-"This Widget was written for an unknown older version of Plasma and is not "
+"This widget was written for an unknown older version of Plasma and is not "
 "compatible with Plasma %1. Please contact the widget's author for an updated "
 "version."
 msgstr ""
@@ -195,7 +201,7 @@ msgstr ""
 #: shellprivate/plasmaappletitemmodel.cpp:203
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please contact the widget's author for an updated version."
 msgstr ""
 "ვიჯეტი დაწერილია Plasma %1-სთვს და Plasma %2-სთან თავსებადი არაა. ვიჯეტის "
@@ -204,7 +210,7 @@ msgstr ""
 #: shellprivate/plasmaappletitemmodel.cpp:207
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please update Plasma in order to use the widget."
 msgstr ""
 "ვიჯეტი დაწერილია Plasma %1-სთვის და Plasma %2-თან თავსებადი არაა. იმისთვის "
@@ -213,11 +219,13 @@ msgstr ""
 #: shellprivate/plasmaappletitemmodel.cpp:212
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with the latest "
-"version of Plasma. Please update Plasma in order to use the widget."
+"This widget was written for Plasma %1 and is not compatible with the older "
+"version of Plasma installed on this system. Please update Plasma in order to "
+"use the widget."
 msgstr ""
-"ვიჯეტი დაწერილია Plasma %1-სთვის და Plasma-ის უკანასკნელ ვერსიასთან "
-"თავსებადი არაა. იმისთვის რომ ვიჯეტი გამოიყენოთ, განაახლეთ Plasma."
+"ვიჯეტი დაწერილია Plasma %1-სთვის და ამ სისტემაზე დაყენებული Plasma-ის "
+"მოძველებულ ვერსიასთან თავსებადი არაა. იმისთვის რომ ვიჯეტი გამოიყენოთ, "
+"განაახლეთ Plasma."
 
 #: shellprivate/widgetexplorer.cpp:110
 msgctxt "applet category"
@@ -398,7 +406,7 @@ msgstr "პაკეტის %1 დაყენება ჩავარდა:
 msgid "Installation Failure"
 msgstr "დაყენების შეცდომა"
 
-#: timezoneselector/TimezoneSelector.qml:104
+#: timezoneselector/TimezoneSelector.qml:107
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -407,45 +415,58 @@ msgid ""
 msgstr ""
 "ამჟამად არჩეული დროის სარტყელი ამ რუკაზე ვიზუალიზაციისთვის ხელმისაწვდომი არაა"
 
-#: timezoneselector/TimezoneSelector.qml:194
-#, kde-format
-msgctxt "@action:button"
-msgid "Zoom in"
-msgstr "გადიდება"
-
-#: timezoneselector/TimezoneSelector.qml:210
-#, kde-format
-msgctxt "@action:button"
-msgid "Zoom out"
-msgstr "დაპატარავება"
-
-#: timezoneselector/TimezoneSelector.qml:239
-#, kde-format
-msgctxt "@label:listbox In the context of time zone selection"
-msgid "Region:"
-msgstr "რეგიონი:"
-
-#: timezoneselector/TimezoneSelector.qml:246
+#: timezoneselector/TimezoneSelector.qml:122
+#: timezoneselector/TimezoneSelector.qml:347
 #, kde-format
 msgctxt "Placeholder for empty time zone combobox selector"
 msgid "Choose…"
 msgstr "არჩევა…"
 
-#: timezoneselector/TimezoneSelector.qml:250
+#: timezoneselector/TimezoneSelector.qml:124
+#: timezoneselector/TimezoneSelector.qml:339
 #, kde-format
-msgid "Timezone region selector"
-msgstr "დროის სარტყლის რეგიონის არჩევა"
+msgctxt "@label:listbox In the context of time zone selection"
+msgid "Region:"
+msgstr "რეგიონი:"
 
-#: timezoneselector/TimezoneSelector.qml:271
+#: timezoneselector/TimezoneSelector.qml:151
+#: timezoneselector/TimezoneSelector.qml:376
 #, kde-format
 msgctxt "@label:listbox In the context of time zone selection"
 msgid "Time zone:"
 msgstr "დროის სარტყელი:"
 
-#: timezoneselector/TimezoneSelector.qml:281
+#: timezoneselector/TimezoneSelector.qml:294
+#, kde-format
+msgctxt "@action:button"
+msgid "Zoom in"
+msgstr "გადიდება"
+
+#: timezoneselector/TimezoneSelector.qml:310
+#, kde-format
+msgctxt "@action:button"
+msgid "Zoom out"
+msgstr "დაპატარავება"
+
+#: timezoneselector/TimezoneSelector.qml:351
+#, kde-format
+msgid "Timezone region selector"
+msgstr "დროის სარტყლის რეგიონის არჩევა"
+
+#: timezoneselector/TimezoneSelector.qml:387
 #, kde-format
 msgid "Timezone location selector"
 msgstr "დროის სარტყლის მდებარეობის ამრჩევი"
+
+#~ msgctxt "Button to show/hide virtual keyboard"
+#~ msgid "Virtual Keyboard"
+#~ msgstr "ვირტუალური კლავიატურა"
+
+#~ msgid "Screen saver timeout"
+#~ msgstr "ეკრანის დაცვის ვადა"
+
+#~ msgid "Sets the minutes after which the screen is locked."
+#~ msgstr "ეკრანის ჩაკეტვის ვადის დაყენება."
 
 #~ msgctxt ""
 #~ "Full context is: '<region> region, <zone> time zone.' in the context of "

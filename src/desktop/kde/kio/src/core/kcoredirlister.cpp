@@ -24,6 +24,7 @@
 #include <QFileInfo>
 #include <QMimeDatabase>
 #include <QRegularExpression>
+#include <QSet>
 #include <QTextStream>
 #include <QThreadStorage>
 
@@ -41,12 +42,31 @@ Q_LOGGING_CATEGORY(KIO_CORE_DIRLISTER, "kf.kio.core.dirlister", QtWarningMsg)
 
 QThreadStorage<KCoreDirListerCache> s_kDirListerCache;
 
+// A directory that no lister holds any more is kept for a while, so that going back to it is listed
+// from memory. Three of them cover the way back, and one that has not been wanted for this long is
+// dropped, so that the items of a listing left behind are not held for the life of the application.
+static constexpr int s_maxCachedDirectories = 3;
+static constexpr std::chrono::minutes s_cachedDirectoryLifetime{3};
+
+// Keep the last few directories' ".hidden" files around, so revisiting one does not re-read it.
+static constexpr int s_maxCachedDotHiddenFiles = 10;
+
+// Keys are file names or their urls
+static QString seenKey(const KIO::UDSEntry &entry, const QString &name)
+{
+    const QString ownUrl = entry.stringValue(KIO::UDSEntry::UDS_URL);
+    return ownUrl.isEmpty() ? name : ownUrl;
+}
+
 KCoreDirListerCache::KCoreDirListerCache()
-    : itemsCached(10)
-    , // keep the last 10 directories around
-    m_cacheHiddenFiles(10) // keep the last 10 ".hidden" files around
+    : itemsCached(s_maxCachedDirectories)
+    , m_cacheHiddenFiles(s_maxCachedDotHiddenFiles)
 {
     qCDebug(KIO_CORE_DIRLISTER);
+
+    cachedDirectoryLifetime = s_cachedDirectoryLifetime;
+    cachePruneTimer.setInterval(cachedDirectoryLifetime);
+    connect(&cachePruneTimer, &QTimer::timeout, this, &KCoreDirListerCache::pruneCachedDirectories);
 
     connect(&pendingUpdateTimer, &QTimer::timeout, this, &KCoreDirListerCache::processPendingUpdates);
     pendingUpdateTimer.setSingleShot(true);
@@ -532,7 +552,15 @@ void KCoreDirListerCache::forgetDirs(KCoreDirLister *lister, const QUrl &_url, b
     // Inserting into QCache must be done last, since it might delete the item
     if (item && insertIntoCache) {
         qCDebug(KIO_CORE_DIRLISTER) << lister << "item moved into cache:" << url;
+        item->lastWanted = std::chrono::steady_clock::now();
         itemsCached.insert(url, item);
+#ifdef BUILD_TESTING
+        // A test cannot wait minutes for a directory to be dropped, so it says how long to keep one.
+        const int ms = qEnvironmentVariableIntValue("KIO_DIRLISTER_CACHE_LIFETIME_MS");
+        cachedDirectoryLifetime = ms > 0 ? std::chrono::milliseconds(ms) : std::chrono::milliseconds(s_cachedDirectoryLifetime);
+        cachePruneTimer.setInterval(cachedDirectoryLifetime);
+#endif
+        cachePruneTimer.start();
     }
 }
 
@@ -666,8 +694,28 @@ KCoreDirListerCache::DirItem *KCoreDirListerCache::dirItemForUrl(const QUrl &dir
     DirItem *item = itemsInUse.value(url);
     if (!item) {
         item = itemsCached[url];
+        if (item) {
+            item->lastWanted = std::chrono::steady_clock::now();
+        }
     }
     return item;
+}
+
+void KCoreDirListerCache::pruneCachedDirectories()
+{
+    const auto now = std::chrono::steady_clock::now();
+    const QList<QUrl> cached = itemsCached.keys();
+    for (const QUrl &url : cached) {
+        const DirItem *item = itemsCached.object(url);
+        if (item && now - item->lastWanted >= cachedDirectoryLifetime) {
+            qCDebug(KIO_CORE_DIRLISTER) << "dropping" << url << "from the cache";
+            itemsCached.remove(url);
+        }
+    }
+
+    if (itemsCached.isEmpty()) {
+        cachePruneTimer.stop();
+    }
 }
 
 QList<KFileItem> *KCoreDirListerCache::itemsForDir(const QUrl &dir) const
@@ -790,6 +838,19 @@ void KCoreDirListerCache::slotFilesRemoved(const QList<QUrl> &fileList)
             }
         }
 
+        // A search result holds items that live outside the listing, so the lookup above misses
+        // them. Drop the file from those listings too.
+        for (DirItem *searchDirItem : std::as_const(itemsInUse)) {
+            if (!searchDirItem->hasForeignUrlItems) {
+                continue;
+            }
+            const auto it = std::lower_bound(searchDirItem->lstItems.begin(), searchDirItem->lstItems.end(), url);
+            if (it != searchDirItem->lstItems.end() && it->url() == url) {
+                removedItemsByDir[searchDirItem->url].append(*it);
+                searchDirItem->lstItems.erase(it);
+            }
+        }
+
         // Add only parentDirs of dirs that have not been deleted to the pendingUpdates list
         if (!deletedSubdirs.contains(url)) {
             for (const auto &dir : parentDirUrls) {
@@ -847,6 +908,50 @@ void KCoreDirListerCache::slotFilesChanged(const QStringList &fileList) // from 
     processPendingUpdates();
 }
 
+bool KCoreDirListerCache::renameItemInForeignUrlListings(const QUrl &oldUrl, const QUrl &dst, const QString &dstPath)
+{
+    bool found = false;
+    std::set<KCoreDirLister *> listers;
+    for (DirItem *dirItem : std::as_const(itemsInUse)) {
+        if (!dirItem->hasForeignUrlItems) {
+            continue;
+        }
+        const auto it = std::lower_bound(dirItem->lstItems.begin(), dirItem->lstItems.end(), oldUrl);
+        if (it == dirItem->lstItems.end() || it->url() != oldUrl) {
+            continue;
+        }
+
+        const KFileItem oldItem = *it;
+        KFileItem newItem = oldItem;
+        newItem.setUrl(dst);
+        if (!dstPath.isEmpty()) {
+            newItem.setLocalPath(dstPath);
+        }
+        // A rename leaves the content alone, so the mime type only changes with the name, and
+        // dropping the cached one lets whoever needs it determine it again.
+        if (oldUrl.fileName() != dst.fileName()) {
+            newItem.refreshMimeType();
+        }
+
+        dirItem->lstItems.erase(it);
+        dirItem->insert(newItem);
+        found = true;
+
+        const auto ddit = directoryData.find(dirItem->url);
+        if (ddit != directoryData.end()) {
+            for (KCoreDirLister *lister : (*ddit).allListers()) {
+                lister->d->addRefreshItem(dirItem->url, oldItem, newItem);
+                listers.insert(lister);
+            }
+        }
+    }
+
+    for (KCoreDirLister *lister : listers) {
+        lister->d->emitItems();
+    }
+    return found;
+}
+
 void KCoreDirListerCache::slotFileRenamed(const QString &_src, const QString &_dst, const QString &dstPath) // from KDirNotify signals
 {
     QUrl src(_src);
@@ -859,7 +964,10 @@ void KCoreDirListerCache::slotFileRenamed(const QString &_src, const QString &_d
     QUrl oldurl = cleanUpTrailingSlash(src);
     KFileItem fileitem = findByUrl(nullptr, oldurl);
     if (fileitem.isNull()) {
-        qCDebug(KIO_CORE_DIRLISTER) << "Item not found:" << oldurl;
+        // findByUrl() looks in the parent directory alone, which a search result is not.
+        if (!renameItemInForeignUrlListings(oldurl, dst, dstPath)) {
+            qCDebug(KIO_CORE_DIRLISTER) << "Item not found:" << oldurl;
+        }
         return;
     }
 
@@ -1129,6 +1237,7 @@ void KCoreDirListerCache::slotEntries(KIO::Job *job, const KIO::UDSEntryList &en
     CacheHiddenFile *cachedHidden = nullptr;
     bool dotHiddenChecked = false;
     KFileItemList newItems;
+    QSet<QString> newItemKeys;
     for (const auto &entry : entries) {
         const QString name = entry.stringValue(KIO::UDSEntry::UDS_NAME);
 
@@ -1157,6 +1266,18 @@ void KCoreDirListerCache::slotEntries(KIO::Job *job, const KIO::UDSEntryList &en
             }
         } else if (name != QLatin1String("..")) {
             KFileItem item(entry, url, delayedMimeTypes, true);
+
+            // A directory that is modified while it is being listed may produce
+            // the same entry more than once: POSIX allows readdir() to return an
+            // entry twice if the directory changed between reads, and a later
+            // batch of the same job can repeat an entry from an earlier batch.
+            // Adopting the duplicate would permanently corrupt the cache.
+            const QString key = seenKey(entry, name);
+            if (newItemKeys.contains(key) || std::binary_search(dir->lstItems.cbegin(), dir->lstItems.cend(), item)) {
+                qCDebug(KIO_CORE_DIRLISTER) << "Skipping duplicated entry" << item.url();
+                continue;
+            }
+            newItemKeys.insert(key);
 
             // get the names of the files listed in ".hidden", if it exists and is a local file
             if (!dotHiddenChecked) {
@@ -1476,7 +1597,7 @@ void KCoreDirListerCache::slotRedirection(KIO::Job *j, const QUrl &url)
 }
 
 struct KCoreDirListerCache::ItemInUseChange {
-    ItemInUseChange(const QUrl &old, const QUrl &newU, DirItem *di)
+    ItemInUseChange(const QUrl &old, const QUrl &newU, DirItem *di) noexcept
         : oldUrl(old)
         , newUrl(newU)
         , dirItem(di)
@@ -1700,6 +1821,7 @@ void KCoreDirListerCache::slotUpdateResult(KJob *j)
     bool dotHiddenChecked = false;
     const KIO::UDSEntryList &buf = runningListJobs.value(job);
     KFileItemList newItems;
+    QSet<QString> seenKeys;
     for (const auto &entry : buf) {
         // Form the complete url
         KFileItem item(entry, jobUrl, delayedMimeTypes, true);
@@ -1712,6 +1834,15 @@ void KCoreDirListerCache::slotUpdateResult(KJob *j)
         if (name.isEmpty() || name == QLatin1String("..")) {
             continue;
         }
+
+        // A changing directory may repeat an entry within one listing (see
+        // slotEntries()); the second occurrence would no longer find its name
+        // in fileItems and would wrongly be adopted as a new file.
+        const QString key = seenKey(entry, name);
+        if (seenKeys.contains(key)) {
+            continue;
+        }
+        seenKeys.insert(key);
 
         if (name == QLatin1Char('.')) {
             // if the update was started before finishing the original listing

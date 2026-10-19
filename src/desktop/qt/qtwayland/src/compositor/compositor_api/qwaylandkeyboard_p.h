@@ -91,6 +91,7 @@ private:
     Resource *focusResource = nullptr;
     QWaylandDestroyListener focusDestroyListener;
 
+public:
     QList<uint32_t> keys;
     uint32_t modsDepressed = 0;
     uint32_t modsLatched = 0;
@@ -100,7 +101,9 @@ private:
     uint32_t shiftIndex = 0;
     uint32_t controlIndex = 0;
     uint32_t altIndex = 0;
+    uint32_t mod5Index = 0;  // AltGr (ISO_Level3_Shift) - maps to Qt::GroupSwitchModifier
 
+private:
     Qt::KeyboardModifiers currentModifierState;
 
     bool pendingKeymap = false;

@@ -1,27 +1,27 @@
 # Translation for kcm_kwindecoration.po to Euskara/Basque (eu).
-# Copyright (C) 2003-2025 This file is copyright:
+# Copyright (C) 2003-2026 This file is copyright:
 # This file is distributed under the same license as the kwin package.
-# SPDX-FileCopyrightText: 2024, 2025, 2026 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
+# SPDX-FileCopyrightText: 2024-2026 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
 #
 # Translators:
 # Marcos  <marcos@euskalgnu.org>, 2003, 2005, 2006, 2007.
 # Juan Irigoien <juanirigoien@irakasle.net>, 2004.
 # Asier Urio Larrea <asieriko@gmail.com>, 2008.
-# Iñigo Salvador Azurmendi <xalba@ni.eus>, 2011, 2014, 2018, 2019, 2021, 2023, 2024, 2025.
+# Iñigo Salvador Azurmendi <xalba@ni.eus>, 2011, 2014, 2018, 2019, 2021, 2023, 2024, 2025, 2026.
 # Hizkuntza Politikarako Sailburuordetza <hizpol@ej-gv.es>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-02-19 21:52+0100\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-07-21 17:21+0200\n"
 "Last-Translator: Iñigo Salvador Azurmendi <xalba@ni.eus>\n"
 "Language-Team: Basque <kde-i18n-eu@kde.org>\n"
 "Language: eu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.12.2\n"
+"X-Generator: Lokalize 26.04.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: declarative-plugin/buttonsmodel.cpp:56
@@ -71,21 +71,21 @@ msgstr "Eutsi beste leihoen gainean"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr "Ezkutatu pantaila-grabaziotik"
+msgid "Hide from screenshots and screen recordings"
+msgstr "Pantaila-argazkietan eta -grabazioetan ezkutatu"
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
 msgstr "Bereizlea"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Gaiaren lehenespena (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -96,7 +96,7 @@ msgstr ""
 "dezakezu, nahi gabe, erabilgarri ez dagoen edo konfiguratuta dagoen bat "
 "finkatu gabe."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -107,14 +107,14 @@ msgstr ""
 "bat pasatuta, direktorio horretan gai bat bilatzen saiatutako da, eta "
 "ondoren hura aplikatu baten bat ondorioztatu badaiteke."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr ""
 "Erakutsi sisteman erabilgarri dauden gai guztiak (eta uneko gaia zein den)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -123,7 +123,7 @@ msgstr ""
 "%1 KWin Aurorae «%2» gaira ebatzi da, eta saiatuko da hura zure uneko gai "
 "gisa ezartzen."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -133,19 +133,20 @@ msgstr ""
 "batera eraman, eta bertan behera utzi beharko dugu, ezartzeko gaia falta "
 "delako"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr ""
 "Eskatutako «%1» gaia dagoeneko leihoak apaintzeko gai gisa ezarria dago."
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
-msgstr "%1 kurtsore-gaia ondo aplikatu zaio zure uneko Plasma saioari"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
+msgstr "%1 erakusle-gaia ondo aplikatu zaio zure uneko Plasma saioari"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -154,7 +155,7 @@ msgstr ""
 "Zure gai-ezarpenak ezartzea huts egin du - arrazoia ezezaguna da, baina "
 "errore berreskuraezina da. Gerta liteke berriz saiatuta ondo ibiltzea."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -163,7 +164,7 @@ msgstr ""
 "Ezin izan du «%1» gaia aurkitu. Gaia ondoko aukeretako bat izan beharko "
 "litzateke: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "Zure sisteman ondoko KWin leiho-apainketa gaiak dituzu:"
@@ -209,28 +210,29 @@ msgstr "Erakutsi titulu-barrako botoien argibideak"
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
-msgstr "Erakutsi beti \"Ezkutatu pantaila-grabaziotik\" botoia"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
+msgstr ""
+"Erakutsi beti \"Ezkutatu pantaila-argazkietan eta grabazioetan\" botoia"
 
 #: ui/ConfigureTitlebar.qml:85
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
-"Marka kenduta dagoenean, botoia, leihoa pantaila-grabaziotik ezkutatuta "
-"dagoena bakarri agertzen da"
+"Marka kenduta dagoenean, botoia, leihoa pantaila-argazkitan eta -grabaziotan "
+"ezkutatuta dagoena bakarrik agertzen da"
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
-"Aukera hau gaitzeko, aurrena, gehitu \"Ezkutatu pantaila-grabaziotik\" "
-"botoia titulu-barran"
+"Aukera hau gaitzeko, aurrena, gehitu \"Ezkutatu pantaila-argazkietan eta -"
+"grabaziotan\" botoia titulu-barran"
 
 #: ui/main.qml:29
 #, kde-format
@@ -255,50 +257,53 @@ msgstr "Eskuratu … berria"
 msgid "Edit %1 Theme…"
 msgstr "Editatu %1 gaia…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Leiho-ertzik gabe"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Alboko leiho-ertzik gabe"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Leiho-ertz ñimiñoak"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Leiho-ertz arruntak"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Leiho-ertz handiak"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Leiho-ertz oso handiak"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Leiho-ertz itzelak"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Leiho-ertz oso itzelak"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Neurriz kanpoko leiho-ertzak"
+
+#~ msgid "Hide from screencast"
+#~ msgstr "Ezkutatu pantaila-grabaziotik"
 
 #~ msgid "More actions for this window"
 #~ msgstr "Leiho honetarako ekintza gehiago"

@@ -1753,7 +1753,7 @@ void KateIconBorder::dropEvent(QDropEvent *event)
 
 void KateIconBorder::paintEvent(QPaintEvent *e)
 {
-    paintBorder(e->rect().x(), e->rect().y(), e->rect().width(), e->rect().height());
+    paintBorder(e->rect().top(), e->rect().bottom());
 }
 
 static void paintTriangle(QPainter &painter, QColor c, int xOffset, int yOffset, int width, int height, bool open)
@@ -2015,11 +2015,12 @@ void KateAnnotationGroupPositionState::nextLine(KTextEditor::StyleOptionAnnotati
     m_isSameAnnotationGroupsSinceLast = isSameAnnotationGroupsSinceThis;
 }
 
-void KateIconBorder::paintBorder(int /*x*/, int y, int /*width*/, int height)
+void KateIconBorder::paintBorder(uint firstY, uint lastY)
 {
     const uint h = m_view->renderer()->lineHeight();
-    const uint startz = (y / h);
-    const uint endz = qMin(startz + 1 + (height / h), static_cast<uint>(m_viewInternal->cache()->viewCacheLineCount()));
+    const uint startz = firstY / h;
+    const uint endz = lastY / h + 1;
+    const uint cacheLineCount = static_cast<uint>(m_viewInternal->cache()->viewCacheLineCount());
     const uint currentLine = m_view->cursorPosition().line();
 
     // center the folding boxes
@@ -2038,7 +2039,6 @@ void KateIconBorder::paintBorder(int /*x*/, int y, int /*width*/, int height)
     }
 
     QPainter p(this);
-    p.setRenderHints(QPainter::TextAntialiasing);
     p.setFont(m_view->renderer()->currentFont()); // for line numbers
 
     KTextEditor::AnnotationModel *model = m_view->annotationModel() ? m_view->annotationModel() : m_doc->annotationModel();
@@ -2051,8 +2051,9 @@ void KateIconBorder::paintBorder(int /*x*/, int y, int /*width*/, int height)
     const QColor backgroundColor = m_view->rendererConfig()->backgroundColor(); // Of the edit area
     const QColor currentLineHighlight = m_view->rendererConfig()->highlightedLineColor(); // Of the edit area
 
+    const auto drawendz = qMin(endz, cacheLineCount);
     // Paint the border in chunks line by line
-    for (uint z = startz; z < endz; z++) {
+    for (uint z = startz; z < drawendz; z++) {
         // Painting coordinates, lineHeight * lineNumber
         const uint y = h * z;
 
@@ -2266,6 +2267,18 @@ void KateIconBorder::paintBorder(int /*x*/, int y, int /*width*/, int height)
             // we still keep painting to not have strange flicker
             QTimer::singleShot(0, this, &KateIconBorder::delayedUpdateOfSizeWithRepaint);
         }
+    }
+
+    // Fill in the blank area at the end since the view resizes are delayed
+    // and the new lines at the bottom might not be there yet.
+    if (cacheLineCount < endz) {
+        const uint y = cacheLineCount * h;
+        p.fillRect(0, y, w, lastY - y + 1, iconBarColor);
+        p.fillRect(w - 2 * m_separatorWidth, y, w, lastY - y + 1, backgroundColor);
+
+        p.setPen(m_view->rendererConfig()->separatorColor());
+        p.setBrush(m_view->rendererConfig()->separatorColor());
+        p.drawLine(w - 2 * m_separatorWidth, y, w - 2 * m_separatorWidth, lastY + 1);
     }
 }
 
@@ -3166,32 +3179,28 @@ void KateViewSchemaAction::updateMenu(KTextEditor::ViewPrivate *view)
 
 void KateViewSchemaAction::slotAboutToShow()
 {
-    KTextEditor::ViewPrivate *view = m_view;
-
-    const auto themes = KateHlManager::self()->sortedThemes();
-
     if (!m_group) {
         m_group = new QActionGroup(menu());
         m_group->setExclusive(true);
     }
 
-    for (int z = 0; z < themes.count(); z++) {
-        QString hlName = themes[z].translatedName();
-
+    const auto themes = KateHlManager::self()->sortedThemes();
+    for (const auto &theme : themes) {
+        const QString hlName = theme.translatedName();
         if (!names.contains(hlName)) {
             names << hlName;
-            QAction *a = menu()->addAction(hlName, this, &KateViewSchemaAction::setSchema);
-            a->setData(themes[z].name());
+            QAction *a = menu()->addAction(theme.previewIcon(), hlName, this, &KateViewSchemaAction::setSchema);
+            a->setData(theme.name());
             a->setCheckable(true);
             a->setActionGroup(m_group);
         }
     }
 
-    if (!view) {
+    if (!m_view) {
         return;
     }
 
-    QString id = view->rendererConfig()->schema();
+    const QString id = m_view->rendererConfig()->schema();
     const auto menuActions = menu()->actions();
     for (QAction *a : menuActions) {
         a->setChecked(a->data().toString() == id);
@@ -3201,16 +3210,13 @@ void KateViewSchemaAction::slotAboutToShow()
 void KateViewSchemaAction::setSchema()
 {
     QAction *action = qobject_cast<QAction *>(sender());
-
     if (!action) {
         return;
     }
-    QString mode = action->data().toString();
 
-    KTextEditor::ViewPrivate *view = m_view;
-
-    if (view) {
-        view->rendererConfig()->setSchema(mode);
+    if (m_view) {
+        const QString mode = action->data().toString();
+        m_view->rendererConfig()->setSchema(mode);
     }
 }
 // END SCHEMA ACTION

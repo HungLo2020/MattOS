@@ -59,6 +59,11 @@ public:
 
     void setStoreSecretsSystemWide(bool system);
 
+    // Expose internal layout for parent to integrate
+    QLayout *securityLayout() const;
+
+    QWidget *focusUsernameField();
+
 public Q_SLOTS:
     void onSsidChanged(const QString &ssid);
 

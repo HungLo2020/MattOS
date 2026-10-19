@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "widgetfactory_p.h"
 #include "widgetdatabase_p.h"
@@ -15,6 +16,7 @@
 #include "qdesigner_dockwidget_p.h"
 #include "qdesigner_utils_p.h"
 #include "formwindowbase_p.h"
+#include "objectutils_p.h"
 
 // shared
 #include "layoutinfo_p.h"
@@ -386,28 +388,13 @@ QWidget *WidgetFactory::createWidget(const QString &widgetName, QWidget *parentW
             break;
 
         // 3) table
-        const QByteArray widgetNameBA = widgetName.toUtf8();
-        const char *widgetNameC = widgetNameBA.constData();
-
-        if (w) { // symmetry for macro
+        QWidget *newWidget = createWidgetInstance(widgetName, parentWidget);
+        if (newWidget) {
+            Q_ASSERT(w == nullptr);
+            w = newWidget;
+            break;
         }
 
-#define DECLARE_LAYOUT(L, C)
-#define DECLARE_COMPAT_WIDGET(W, C) /*DECLARE_WIDGET(W, C)*/
-#define DECLARE_WIDGET(W, C) else if (!qstrcmp(widgetNameC, #W)) { Q_ASSERT(w == 0); w = new W(parentWidget); }
-#define DECLARE_WIDGET_1(W, C) else if (!qstrcmp(widgetNameC, #W)) { Q_ASSERT(w == 0); w = new W(0, parentWidget); }
-
-// AXIVION DISABLE Style Qt-Generic-NoIrregularInclude Required functionality
-#include <widgets.table>
-// AXIVION ENABLE Style Qt-Generic-NoIrregularInclude
-
-#undef DECLARE_COMPAT_WIDGET
-#undef DECLARE_LAYOUT
-#undef DECLARE_WIDGET
-#undef DECLARE_WIDGET_1
-
-        if (w)
-            break;
         // 4) fallBack
         const QString fallBackBaseClass = "QWidget"_L1;
         QDesignerWidgetDataBaseInterface *db = core()->widgetDataBase();
@@ -423,7 +410,7 @@ QWidget *WidgetFactory::createWidget(const QString &widgetName, QWidget *parentW
         QString baseClass = item->extends();
         if (baseClass.isEmpty()) {
             // Currently happens in the case of Q3-Support widgets
-            baseClass =fallBackBaseClass;
+            baseClass = fallBackBaseClass;
         }
         if (QWidget *promotedWidget = createWidget(baseClass, parentWidget)) {
             promoteWidget(core(), promotedWidget, widgetName);

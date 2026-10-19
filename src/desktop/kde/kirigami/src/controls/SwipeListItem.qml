@@ -18,6 +18,10 @@ import "private"
   \qmltype SwipeListItem
   \inqmlmodule org.kde.kirigami
 
+  \deprecated Don't use items of type SwipeListItem, it will be removed in the future.
+  Use instead simpler ItemDelegate instances, with contents from org.kde.kirigami.delegates
+  when needed.
+
   An item delegate intended to support extra actions obtainable
   by uncovering them by dragging away the item with the handle.
 
@@ -194,8 +198,11 @@ QQC2.SwipeDelegate {
 
     hoverEnabled: true
     implicitHeight: Math.max(actionsLayout.implicitHeight, implicitContentHeight) + topPadding + bottomPadding
-    implicitWidth: Math.max(actionsLayout.implicitWidth, implicitContentWidth) + leftPadding + rightPadding
+    implicitWidth: actionsLayout.implicitWidth + implicitContentWidth + padding * 2
     width: parent ? parent.width : implicitWidth
+    rightPadding: mirrored ? undefined : overlayLoader.width + padding + Platform.Units.largeSpacing
+    leftPadding: mirrored ? overlayLoader.width + padding + Platform.Units.largeSpacing : undefined
+
 
     Keys.onTabPressed: (event) => {
         if (actionsLayout.hasVisibleActions) {
@@ -279,12 +286,14 @@ QQC2.SwipeDelegate {
             name: "reanchored"
             AnchorChanges {
                 target: overlayLoader
-                anchors.right: listItem.mirrored ? undefined : listItem.contentItem.right
-                anchors.left: listItem.mirrored ? listItem.contentItem.left : undefined
+                anchors.left: listItem.mirrored ? undefined : listItem.contentItem.right
+                anchors.right: listItem.mirrored ? listItem.contentItem.left : undefined
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
             }
             PropertyChanges {
+                overlayLoader.anchors.leftMargin: Platform.Units.largeSpacing
+                overlayLoader.anchors.rightMargin: Platform.Units.largeSpacing
                 overlayLoader.anchors.topMargin: listItem.topPadding
                 overlayLoader.anchors.bottomMargin: listItem.bottomPadding
             }
@@ -443,7 +452,7 @@ QQC2.SwipeDelegate {
                 clip: true
                 color: parent.pressed ? Qt.darker(Platform.Theme.backgroundColor, 1.1) : Qt.darker(Platform.Theme.backgroundColor, 1.05)
                 x: listItem.mirrored ? listItem.background.x - width : (listItem.background.x + listItem.background.width)
-                width: listItem.mirrored ? parent.width - (parent.width - x) : parent.width - x
+                width: Math.abs(listItem.background.x)
 
                 TapHandler {
                     onTapped: listItem.swipe.close()
@@ -460,6 +469,7 @@ QQC2.SwipeDelegate {
                 EdgeShadow {
                     edge: listItem.mirrored ? Qt.RightEdge : Qt.LeftEdge
 
+                    x: listItem.mirrored ? parent.width - width : 0
                     visible: background.x != 0
                     anchors {
                         top: parent.top

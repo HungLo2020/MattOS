@@ -7,12 +7,17 @@
 #include "connectioneditortabwidget.h"
 #include "ui_connectioneditortabwidget.h"
 
-ConnectionEditorTabWidget::ConnectionEditorTabWidget(const NetworkManager::ConnectionSettings::Ptr &connection, QWidget *parent, Qt::WindowFlags f)
+#include <QTimer>
+
+ConnectionEditorTabWidget::ConnectionEditorTabWidget(const NetworkManager::ConnectionSettings::Ptr &connection,
+                                                     bool focusWifiSecurityUsername,
+                                                     QWidget *parent,
+                                                     Qt::WindowFlags f)
     : ConnectionEditorBase(connection, parent, f)
     , m_ui(new Ui::ConnectionEditorTabWidget)
+    , m_focusWifiSecurityUsername(focusWifiSecurityUsername)
 {
     m_ui->setupUi(this);
-    m_ui->tabWidget->setUsesScrollButtons(false);
 
     connect(m_ui->connectionName, &QLineEdit::textChanged, this, &ConnectionEditorTabWidget::settingChanged);
 
@@ -32,7 +37,10 @@ void ConnectionEditorTabWidget::setConnection(const NetworkManager::ConnectionSe
     initializeTabWidget(connection);
 }
 
-ConnectionEditorTabWidget::~ConnectionEditorTabWidget() = default;
+ConnectionEditorTabWidget::~ConnectionEditorTabWidget()
+{
+    delete m_ui;
+}
 
 void ConnectionEditorTabWidget::addWidget(QWidget *widget, const QString &text)
 {
@@ -52,8 +60,13 @@ void ConnectionEditorTabWidget::initializeTabWidget(const NetworkManager::Connec
         m_ui->connectionName->setText(connection->id());
     }
 
-    // Set current tab to "Status"
-    m_ui->tabWidget->setCurrentIndex(0);
+    if (m_focusWifiSecurityUsername && wifiTabIndex() >= 0) {
+        m_ui->tabWidget->setCurrentIndex(wifiTabIndex());
+        QTimer::singleShot(0, this, &ConnectionEditorBase::focusWifiSecurityUsername);
+    } else {
+        // Set current tab to "Status"
+        m_ui->tabWidget->setCurrentIndex(0);
+    }
 }
 
 #include "moc_connectioneditortabwidget.cpp"

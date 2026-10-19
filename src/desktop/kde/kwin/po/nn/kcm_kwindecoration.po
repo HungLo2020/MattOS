@@ -1,21 +1,22 @@
 # Translation of kcm_kwindecoration to Norwegian Nynorsk
 #
 # Gaute Hvoslef Kvalnes <gaute@verdsveven.com>, 1999, 2000, 2001, 2002, 2004, 2005.
+# Karl Ove Hufthammer <karl@huftis.org>, 2004, 2007, 2008, 2010, 2012, 2015, 2016, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2026.
 # Eirik U. Birkeland <eirbir@gmail.com>, 2008, 2010.
 # Øystein Steffensen-Alværvik <oysteins.omsetting@protonmail.com>, 2018, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-03-01 11:39+0100\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-06-27 11:38+0200\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 26.03.70\n"
+"X-Generator: Lokalize 26.07.70\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
@@ -68,21 +69,21 @@ msgstr "Hald over andre vindauge"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr ""
+msgid "Hide from screenshots and screen recordings"
+msgstr "Gøym frå skjermbilde og skjermopptak"
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
 msgstr "Mellomrom"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Standard frå temaet (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -92,7 +93,7 @@ msgstr ""
 "Dette verktøyet lèt deg velja tema for vindaugspynt for den gjeldande økta "
 "og hindrar deg i å velja eit tema som ikkje finst eller som alt er valt."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -103,14 +104,14 @@ msgstr ""
 "ei fullstendig mappe­adresse, så vert det prøvd å finna eit tema i mappa og "
 "ta det i bruk."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr ""
 "Vis alle temaa som finst på systemet (og marker kva som er gjeldande tema)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -118,7 +119,7 @@ msgid ""
 msgstr ""
 "Tolka %1 som KWin Aurorae-temaet «%2». Prøver å velja dette som nytt tema."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -127,18 +128,19 @@ msgstr ""
 "Du prøvde å oppgje ei filadresse, men adressa viste ikkje noko tema. Avbryt "
 "sidan ikkje noko tema kunne takast i bruk."
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr "Det valde temaet «%1» er alt i bruk som tema for vindaugspynt."
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr "Peikartemaet %1 er no teke i bruk i gjeldande Plasma-økt."
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -147,14 +149,14 @@ msgstr ""
 "Klarte ikkje lagra temainnstillingane. Grunnen er ukjend, men dette er ein "
 "kritisk feil. Det kan likevel vera det vil verka dersom du prøver på nytt."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 msgstr "Fann ikkje temaet «%1». Temaet må vera eitt av følgjande: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "Du har desse tema for KWin-vindaugspynt tilgjengeleg:"
@@ -180,20 +182,16 @@ msgid "Titlebar Buttons"
 msgstr "Knappar på tittellinja"
 
 #: ui/ConfigureTitlebar.qml:35
-#, fuzzy, kde-format
-#| msgctxt "checkbox label"
-#| msgid "Close windows by double clicking the menu button"
+#, kde-format
 msgctxt "checkbox label"
 msgid "Close windows by double clicking the window menu button"
-msgstr "Lukk vindauga ved å dobbeltklikka på menyknappen"
+msgstr "Lukk vindauga ved å dobbeltklikka på vindaugsmenyknappen"
 
 #: ui/ConfigureTitlebar.qml:52
-#, fuzzy, kde-format
-#| msgctxt "popup tip"
-#| msgid "Click and hold on the menu button to show the menu."
+#, kde-format
 msgctxt "popup tip"
 msgid "Click and hold on the window menu button to show the menu."
-msgstr "Trykk på og hald inne meny­knappen for å visa menyen."
+msgstr "Trykk på og hald inne vindaugsmeny­knappen for å visa menyen."
 
 #: ui/ConfigureTitlebar.qml:59
 #, kde-format
@@ -204,24 +202,28 @@ msgstr "Vis hjelpebobler til knappar på tittellinja"
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
-msgstr ""
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
+msgstr "Vis alltid «Gøym frå skjermbilde og skjermopptak»-knapp"
 
 #: ui/ConfigureTitlebar.qml:85
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
+"Når det ikkje er kryssa av her, vert knappen berre vist viss vindauget er "
+"gøymd frå skjermbilete og skjermopptak."
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
+"For å kunna slå på dette valet, legg først knappen «Gøym frå skjermbilde og "
+"skjermopptak» til tittellinja."
 
 #: ui/main.qml:29
 #, kde-format
@@ -246,47 +248,47 @@ msgstr "Hent nye …"
 msgid "Edit %1 Theme…"
 msgstr "Rediger temaet %1 …"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Ingen vindaugsrammer"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Ingen vindaugsrammer på sidene"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Små vindaugsrammer"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Vanlege vindaugsrammer"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Store vindaugsrammer"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Veldig store vindaugsrammer"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Enorme vindaugsrammer"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Gigantiske vindaugsrammer"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Altfor store vindaugsrammer"

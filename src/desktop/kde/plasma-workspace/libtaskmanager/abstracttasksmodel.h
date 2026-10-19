@@ -37,7 +37,7 @@ class TASKMANAGER_EXPORT AbstractTasksModel : public QAbstractListModel, public 
     QML_UNCREATABLE("")
 public:
     enum AdditionalRoles {
-        AppId = Qt::UserRole + 1, /**< KService storage id (.desktop name sans extension). */
+        AppId = Qt::UserRole + 1, /**< KService desktopEntryName (.desktop name sans extension). */
         AppName, /**< Application name. */
         GenericName, /**< Generic application name. */
         LauncherUrl, /**< URL that can be used to launch this application (.desktop or executable). */
@@ -64,8 +64,6 @@ public:
         IsKeepBelow, /**< Task (i.e. window) is keep-below. */
         IsFullScreenable, /**< requestToggleFullScreen (see below) available. */
         IsFullScreen, /**< Task (i.e. window) is fullscreen. */
-        IsShadeable, /**< requestToggleShade (see below) available. */
-        IsShaded, /**< Task (i.e. window) is shaded. */
         IsVirtualDesktopsChangeable, /**< requestVirtualDesktop (see below) available. */
         VirtualDesktops, /**< Virtual desktops for the task (i.e. window). */
         IsOnAllVirtualDesktops, /**< Task is on all virtual desktops. */
@@ -96,6 +94,8 @@ public:
         HasNoBorder, /**< Whether the task's window has the no border state set. @since 6.4 */
         CanSetNoBorder, /**< Whether the task can set no border state. @since 6.4 */
         IsExcludedFromCapture, /**< Whether the task's window has been hidden from screencasts. @since 6.6 */
+        StorageId, /** The KService storageId for the underlying service. @since 6.8  */
+        IsMapped, /**< Whether the window is mapped, @since 6.8 */
     };
     Q_ENUM(AdditionalRoles)
 
@@ -231,18 +231,6 @@ public:
      * @param index An index in this tasks model.
      **/
     void requestToggleFullScreen(const QModelIndex &index) override;
-
-    /**
-     * Request toggling the shaded state of the task at the given index.
-     *
-     * This is meant for tasks that have an associated window, and may be
-     * a no-op when there is no window.
-     *
-     * This base implementation does nothing.
-     *
-     * @param index An index in this tasks model.
-     **/
-    void requestToggleShaded(const QModelIndex &index) override;
 
     /**
      * Request toggling the no border state of the task at given index.

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021, 2022, 2024, 2025 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2022, 2024, 2025, 2026 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
 # Safa Alfulaij <safa1996alfulaij@gmail.com>, 2014, 2017, 2018.
 # Zayed Al-Saidi <zayed.alsaidi@gmail.com>, 2024.
 msgid ""
@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-28 15:38+0300\n"
-"PO-Revision-Date: 2025-10-08 21:41+0400\n"
+"PO-Revision-Date: 2026-09-14 19:03+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -15,50 +15,50 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.12.3\n"
 "X-Qt-Contexts: true\n"
 
-#: lib/io/kfilesystemtype.cpp:275
+#: lib/io/kfilesystemtype.cpp:306
 msgctxt "KFileSystemType|"
 msgid "NFS"
 msgstr "نظام ملفات الشبكة"
 
-#: lib/io/kfilesystemtype.cpp:277
+#: lib/io/kfilesystemtype.cpp:308
 msgctxt "KFileSystemType|"
 msgid "SMB"
 msgstr "سامبا"
 
-#: lib/io/kfilesystemtype.cpp:279
+#: lib/io/kfilesystemtype.cpp:310
 msgctxt "KFileSystemType|"
 msgid "FAT"
 msgstr "فات"
 
-#: lib/io/kfilesystemtype.cpp:281
+#: lib/io/kfilesystemtype.cpp:312
 msgctxt "KFileSystemType|"
 msgid "RAMFS"
 msgstr "RAMFS"
 
-#: lib/io/kfilesystemtype.cpp:283
+#: lib/io/kfilesystemtype.cpp:314
 msgctxt "KFileSystemType|"
 msgid "Other"
 msgstr "أخرى"
 
-#: lib/io/kfilesystemtype.cpp:285
+#: lib/io/kfilesystemtype.cpp:316
 msgctxt "KFileSystemType|"
 msgid "NTFS"
 msgstr "إن تي إف إس"
 
-#: lib/io/kfilesystemtype.cpp:287
+#: lib/io/kfilesystemtype.cpp:318
 msgctxt "KFileSystemType|"
 msgid "ExFAT"
 msgstr "إكس فات"
 
-#: lib/io/kfilesystemtype.cpp:289
+#: lib/io/kfilesystemtype.cpp:321
 msgctxt "KFileSystemType|"
 msgid "FUSE"
 msgstr "فيوز"
 
-#: lib/io/kfilesystemtype.cpp:291
+#: lib/io/kfilesystemtype.cpp:323
 msgctxt "KFileSystemType|"
 msgid "Unknown"
 msgstr "مجهول"
@@ -264,54 +264,54 @@ msgid ""
 "internationalization visit <a href=\"https://l10n.kde.org\">https://l10n.kde."
 "org</a></p>"
 msgstr ""
-"<p>يُعرب المتطوعون سطح مكتب بلازما وبرامج كيدي حتى يتمكن الناطقون بالعربية من "
+"<p>يُعرّبُ المتطوعون سطح مكتب بلازما وبرامج كيدي حتى يتمكن الناطقون بالعربية من "
 "الاستفادة والتفاعل مع مجتمع كيدي العالمي.</p>\n"
 "<p>بدأت عملية التعريب مع بداية الألفية بواسطة <a href=\"https://www.arabeyes."
-"org\">فريق عربآيز</a>وهو فريق من متطوّعين من كافة الدول العربية وغيرها . فلهم "
-"جزيل الشكر والعرفان</p>\n"
-"<p>تُدار عملية التعريب حاليا على موقع كيدي الرسمي .</p><p>لمزيد من المعلومات "
+"org\">فريق عربآيز</a> وهو فريق من متطوّعين من كافة الدول العربية وغيرها . "
+"فلهم جزيل الشكر والعرفان</p>\n"
+"<p>تُدار عملية التعريب حاليًا على موقع كيدي الرسمي .</p><p>لمزيد من المعلومات "
 "زُر <a  href=\"https://l10n.kde.org/team-infos.php?teamcode=ar\">https://l10n."
 "kde.org/team-infos.php?teamcode=ar</a>.</p><p>رجاءً أبلغ عن أخطاء الترجمة على "
 "<a href=\"https://mail.kde.org/cgi-bin/mailman/listinfo/kde-l10n-ar"
 "\">القائمة البريدية العربية</a></p>"
 
-#: lib/kaboutdata.cpp:1317
+#: lib/kaboutdata.cpp:1328
 msgctxt "KAboutData CLI|"
 msgid "Show author information."
 msgstr "اعرض معلومات المؤلف."
 
-#: lib/kaboutdata.cpp:1318
+#: lib/kaboutdata.cpp:1329
 msgctxt "KAboutData CLI|"
 msgid "Show license information."
 msgstr "اعرض معلومات الرخصة."
 
-#: lib/kaboutdata.cpp:1320
+#: lib/kaboutdata.cpp:1331
 msgctxt "KAboutData CLI|"
 msgid "The base file name of the desktop entry for this application."
 msgstr "اسم ملف الأساس لمدخلة سطح المكتب لهذا التطبيق."
 
-#: lib/kaboutdata.cpp:1321
+#: lib/kaboutdata.cpp:1332
 msgctxt "KAboutData CLI|"
 msgid "file name"
 msgstr "اسم الملف"
 
-#: lib/kaboutdata.cpp:1331
+#: lib/kaboutdata.cpp:1342
 msgctxt "KAboutData CLI|"
 msgid "This application was written by somebody who wants to remain anonymous."
 msgstr "كتب أحد الأشخاص هذا التطبيق، وهو يفضّل أن يبقى مجهولًا."
 
-#: lib/kaboutdata.cpp:1333
+#: lib/kaboutdata.cpp:1350
 #, qt-format
 msgctxt "KAboutData CLI|"
 msgid "%1 was written by:"
 msgstr "كتب %1:"
 
-#: lib/kaboutdata.cpp:1344
+#: lib/kaboutdata.cpp:1361
 msgctxt "KAboutData CLI|"
 msgid "Please use https://bugs.kde.org to report bugs."
 msgstr "رجاءً استخدم https://bugs.kde.org للإبلاغ عن العلل."
 
-#: lib/kaboutdata.cpp:1346
+#: lib/kaboutdata.cpp:1363
 #, qt-format
 msgctxt "KAboutData CLI|"
 msgid "Please report bugs to %1."
@@ -795,7 +795,7 @@ msgstr "%1سا%2دق%3ث"
 #. %1 is a formatted time (from QLocale.toString), %2 is a localized timezone abbreviation (from QTimeZone::displayName(QTimeZone::ShortName)).
 #: lib/util/kformatprivate.cpp:432 lib/util/kformatprivate.cpp:441
 #: lib/util/kformatprivate.cpp:446 lib/util/kformatprivate.cpp:454
-#: lib/util/kformatprivate.cpp:680
+#: lib/util/kformatprivate.cpp:682
 #, qt-format
 msgctxt "KFormat|"
 msgid "%1 %2"
@@ -1050,25 +1050,25 @@ msgctxt "KFormat|"
 msgid "%1 at %2"
 msgstr "%1 عند %2"
 
-#: lib/util/kformatprivate.cpp:696
+#: lib/util/kformatprivate.cpp:698
 #, qt-format
 msgctxt "KFormat|distance in feet"
 msgid "%1 ft"
 msgstr "%1 ق"
 
-#: lib/util/kformatprivate.cpp:700 lib/util/kformatprivate.cpp:702
+#: lib/util/kformatprivate.cpp:702 lib/util/kformatprivate.cpp:704
 #, qt-format
 msgctxt "KFormat|distance in miles"
 msgid "%1 mi"
 msgstr "%1 ميل"
 
-#: lib/util/kformatprivate.cpp:708
+#: lib/util/kformatprivate.cpp:710
 #, qt-format
 msgctxt "KFormat|distance in meter"
 msgid "%1 m"
 msgstr "%1 م"
 
-#: lib/util/kformatprivate.cpp:711 lib/util/kformatprivate.cpp:713
+#: lib/util/kformatprivate.cpp:713 lib/util/kformatprivate.cpp:715
 #, qt-format
 msgctxt "KFormat|distance in kilometer"
 msgid "%1 km"

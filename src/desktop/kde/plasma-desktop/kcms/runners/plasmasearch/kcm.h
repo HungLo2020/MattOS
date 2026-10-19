@@ -14,9 +14,6 @@
 #include <KQuickManagedConfigModule>
 #include <KSharedConfig>
 
-class KPluginWidget;
-class KCMultiDialog;
-
 class SearchConfigModule : public KQuickManagedConfigModule
 {
     Q_OBJECT
@@ -53,7 +50,7 @@ public Q_SLOTS:
     void movePlugin(const KPluginMetaData &data, qsizetype destIndex);
 
 private:
-    void setDefaultIndicatorVisible(QWidget *widget, bool visible);
+    void loadPlugins(const QStringList &currentFavoriteIds);
     QStringList getFavPluginIds() const
     {
         QStringList favIds;
@@ -69,7 +66,6 @@ private:
     KPluginModel *m_model;
     KSharedConfigPtr m_config;
     QString m_pluginID;
-    KCMultiDialog *m_krunnerSettingsDialog = nullptr;
     const QString m_favoriteCategory = i18n("Favorite Plugins");
     const QString m_normalCategory = i18n("Available Plugins");
     QList<KPluginMetaData> m_favoriteMetaDataList;

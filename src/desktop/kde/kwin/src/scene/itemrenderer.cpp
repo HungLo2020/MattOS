@@ -9,17 +9,13 @@
 namespace KWin
 {
 
-ItemRenderer::ItemRenderer()
+ItemRenderer::ItemRenderer(RenderDevice *device)
+    : m_renderDevice(device)
 {
 }
 
 ItemRenderer::~ItemRenderer()
 {
-}
-
-QPainter *ItemRenderer::painter() const
-{
-    return nullptr;
 }
 
 void ItemRenderer::beginFrame(const RenderTarget &renderTarget, const RenderViewport &viewport)
@@ -28,6 +24,15 @@ void ItemRenderer::beginFrame(const RenderTarget &renderTarget, const RenderView
 
 void ItemRenderer::endFrame()
 {
+}
+
+void ItemRenderer::setLayerDebugging(bool enable)
+{
+}
+
+RenderDevice *ItemRenderer::renderDevice() const
+{
+    return m_renderDevice;
 }
 
 } // namespace KWin

@@ -45,7 +45,7 @@ SinglePixelClientBuffer::SinglePixelClientBuffer(uint32_t r, uint32_t g, uint32_
     , m_argb8888(qRgba(r >> 24, g >> 24, b >> 24, a >> 24))
     , m_resource(wl_resource_create(client, &wl_buffer_interface, 1, id))
 {
-    connect(this, &GraphicsBuffer::released, [this]() {
+    connect(this, &GraphicsBuffer::released, this, [this]() {
         wl_buffer_send_release(m_resource);
     });
     wl_resource_set_implementation(m_resource, &implementation, this, buffer_destroy_resource);
@@ -80,6 +80,21 @@ const SinglePixelAttributes *SinglePixelClientBuffer::singlePixelAttributes() co
     return &m_attributes;
 }
 
+uint32_t SinglePixelClientBuffer::format() const
+{
+    return DRM_FORMAT_ARGB16161616;
+}
+
+uint64_t SinglePixelClientBuffer::modifier() const
+{
+    return DRM_FORMAT_MOD_LINEAR;
+}
+
+uint32_t SinglePixelClientBuffer::pitch() const
+{
+    return 8;
+}
+
 void SinglePixelClientBuffer::buffer_destroy_resource(wl_resource *resource)
 {
     const auto buffer = get(resource);
@@ -100,4 +115,5 @@ SinglePixelClientBuffer *SinglePixelClientBuffer::get(wl_resource *resource)
         return nullptr;
     }
 }
+
 }

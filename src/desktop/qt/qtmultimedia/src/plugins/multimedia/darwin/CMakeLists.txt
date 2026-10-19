@@ -16,11 +16,6 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         qdarwinformatsinfo.mm qdarwinformatsinfo_p.h
         qdarwinintegration.mm qdarwinintegration_p.h
         darwin_pch.h
-    INCLUDE_DIRECTORIES
-        audio
-        camera
-        common
-        mediaplayer
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
@@ -28,13 +23,14 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         Qt::MultimediaPrivate
         Qt::CorePrivate
         Qt::Concurrent
-        ${FWAudioToolbox}
         ${FWAVFoundation}
+        ${FWAudioToolbox}
         ${FWCoreMedia}
         ${FWCoreVideo}
         ${FWFoundation}
         ${FWMetal}
         ${FWQuartzCore}
+        ${FWVideoToolbox}
     COMPILE_OPTIONS
         -Wno-c++20-extensions
     PRECOMPILED_HEADER
@@ -56,13 +52,4 @@ qt_internal_extend_target(QDarwinMediaPlugin CONDITION NOT TVOS AND NOT VISIONOS
 qt_internal_extend_target(QDarwinMediaPlugin CONDITION MACOS
     LIBRARIES
         ${FWAppKit}
-        ${FWAudioUnit}
-        ${FWVideoToolbox}
-        ${FWApplicationServices}
-)
-
-qt_internal_extend_target(QDarwinMediaPlugin CONDITION IOS OR VISIONOS
-    LIBRARIES
-        ${FWCoreGraphics}
-        ${FWCoreVideo}
 )

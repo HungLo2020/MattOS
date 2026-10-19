@@ -7,16 +7,13 @@
 #pragma once
 
 #include <QObject>
+#include <QQmlEngine>
 #include <QString>
 #include <QUrl>
 
 #include <KConfigGroup>
+#include <KConfigWatcher>
 #include <KSharedConfig>
-
-namespace PlasmaQuick
-{
-class SharedQmlEngine;
-}
 
 class QTimer;
 class ShellCorona;
@@ -47,13 +44,11 @@ public Q_SLOTS:
     void powerManagementInhibitedChanged(bool inhibited);
     void powerProfileChanged(const QString &profile);
     void showText(const QString &icon, const QString &text);
+    void hide();
 
 Q_SIGNALS:
     void osdProgress(const QString &icon, const int percent, const int maximumPercent, const QString &additionalText);
     void osdText(const QString &icon, const QString &text);
-
-private Q_SLOTS:
-    void hideOsd();
 
 private:
     bool init();
@@ -62,11 +57,13 @@ private:
     void showOsd();
 
     ShellCorona *const m_corona;
-    PlasmaQuick::SharedQmlEngine *m_osdObject = nullptr;
+    std::shared_ptr<QQmlEngine> m_engine;
+    std::unique_ptr<QObject> m_osdObject = nullptr;
     QTimer *m_osdTimer = nullptr;
     int m_timeout = 0;
 
     KConfigGroup m_osdConfigGroup;
+    KConfigWatcher::Ptr m_configWatcher;
 
     struct ScreenBrightnessInfo {
         QString id;

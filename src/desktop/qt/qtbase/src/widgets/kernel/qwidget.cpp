@@ -71,12 +71,6 @@
 
 #include "private/qgesturemanager_p.h"
 
-#ifdef QT_KEYPAD_NAVIGATION
-#if QT_CONFIG(tabwidget)
-#include "qtabwidget.h" // Needed in inTabWidget()
-#endif
-#endif // QT_KEYPAD_NAVIGATION
-
 #include "qwindowcontainer_p.h"
 
 #include <sstream>
@@ -234,67 +228,6 @@ void QWidgetPrivate::updateWidgetTransform(QEvent *event)
         QGuiApplication::inputMethod()->update(Qt::ImInputItemClipRectangle);
     }
 }
-
-#ifdef QT_KEYPAD_NAVIGATION
-QPointer<QWidget> QWidgetPrivate::editingWidget;
-
-/*!
-    Returns \c true if this widget currently has edit focus; otherwise false.
-
-    This feature is only available in Qt for Embedded Linux.
-
-    \sa setEditFocus(), QApplication::navigationMode()
-*/
-bool QWidget::hasEditFocus() const
-{
-    const QWidget* w = this;
-    while (w->d_func()->extra && w->d_func()->extra->focus_proxy)
-        w = w->d_func()->extra->focus_proxy;
-    return QWidgetPrivate::editingWidget == w;
-}
-
-/*!
-    \fn void QWidget::setEditFocus(bool enable)
-
-    If \a enable is true, make this widget have edit focus, in which
-    case Qt::Key_Up and Qt::Key_Down will be delivered to the widget
-    normally; otherwise, Qt::Key_Up and Qt::Key_Down are used to
-    change focus.
-
-    This feature is only available in Qt for Embedded Linux.
-
-    \sa hasEditFocus(), QApplication::navigationMode()
-*/
-void QWidget::setEditFocus(bool on)
-{
-    QWidget *f = this;
-    while (f->d_func()->extra && f->d_func()->extra->focus_proxy)
-        f = f->d_func()->extra->focus_proxy;
-
-    if (QWidgetPrivate::editingWidget && QWidgetPrivate::editingWidget != f)
-        QWidgetPrivate::editingWidget->setEditFocus(false);
-
-    if (on && !f->hasFocus())
-        f->setFocus();
-
-    if ((!on && !QWidgetPrivate::editingWidget)
-        || (on && QWidgetPrivate::editingWidget == f)) {
-        return;
-    }
-
-    if (!on && QWidgetPrivate::editingWidget == f) {
-        QWidgetPrivate::editingWidget = 0;
-        QEvent event(QEvent::LeaveEditFocus);
-        QCoreApplication::sendEvent(f, &event);
-        QCoreApplication::sendEvent(f->style(), &event);
-    } else if (on) {
-        QWidgetPrivate::editingWidget = f;
-        QEvent event(QEvent::EnterEditFocus);
-        QCoreApplication::sendEvent(f, &event);
-        QCoreApplication::sendEvent(f->style(), &event);
-    }
-}
-#endif
 
 /*!
     \property QWidget::autoFillBackground
@@ -1348,7 +1281,35 @@ void QWidgetPrivate::create()
     if (QWidget *nativeParent = q->nativeParentWidget()) {
         if (nativeParent->windowHandle()) {
             if (flags & Qt::Window) {
-                win->setTransientParent(nativeParent->window()->windowHandle());
+                // When setting the transient parent for a top-level window, skip
+                // past any popup-based windows (Popup, Tool, ToolTip, SplashScreen)
+                // in the native parent chain. These window types are typically short-
+                // lived and dismissed as a side-effect of showing other top-level
+                // windows. On some platforms (e.g., Wayland), closing a parent window
+                // sends close events to all registered transient children; if a stable
+                // dialog retained a popup-based parent, it could be unexpectedly closed
+                // when that parent is dismissed.
+                //
+                // Popup-based windows that are themselves children of popup-based
+                // parents intentionally retain the popup parent relationship so they
+                // stay visually stacked and are dismissed together.
+                const auto winType = Qt::WindowType((flags & Qt::WindowType_Mask).toInt());
+                auto isPopupBased = [](Qt::WindowType type) {
+                    return type == Qt::Popup || type == Qt::Tool || type == Qt::ToolTip
+                            || type == Qt::SplashScreen;
+                };
+
+                QWindow *transientParent = nativeParent->window()->windowHandle();
+                if (!isPopupBased(winType)) {
+                    // Walk up past popup-based ancestors to find a stable parent.
+                    while (transientParent) {
+                        const Qt::WindowType tp = transientParent->type();
+                        if (!isPopupBased(tp))
+                            break;
+                        transientParent = transientParent->transientParent();
+                    }
+                }
+                win->setTransientParent(transientParent);
                 win->setParent(nullptr);
             } else {
                 win->setTransientParent(nullptr);
@@ -2576,12 +2537,12 @@ void QWidget::setScreen(QScreen *screen)
     The style sheet contains a textual description of customizations to the
     widget's style, as described in the \l{Qt Style Sheets} document.
 
-    Since Qt 4.5, Qt style sheets fully supports \macos.
+    Setting a style sheet on a widget makes the widget and its children use a
+    style sheet style that wraps the current \l{style()}{style}. For when to
+    use style sheets, see \l{Styling Approaches for Qt Widgets}.
 
-    \warning Qt style sheets are currently not supported for custom QStyle
-    subclasses. We plan to address this in some future release.
-
-    \sa setStyle(), QApplication::styleSheet, {Qt Style Sheets}
+    \sa setStyle(), QApplication::styleSheet, {Qt Style Sheets},
+        {Styling Approaches for Qt Widgets}
 */
 QString QWidget::styleSheet() const
 {
@@ -2659,9 +2620,6 @@ QStyle *QWidget::style() const
     purposes, where you want to show Qt's styling capabilities. Real
     applications should avoid it and use one consistent GUI style
     instead.
-
-    \warning Qt style sheets are currently not supported for custom QStyle
-    subclasses. We plan to address this in some future release.
 
     \sa style(), QStyle, QApplication::style(), QApplication::setStyle()
 */
@@ -3620,6 +3578,9 @@ QPoint QWidget::pos() const
     \property QWidget::geometry
     \brief the geometry of the widget relative to its parent and
     excluding the window frame
+
+    If the widget is a top-level widget (a window) its geometry is
+    given in global screen coordinates.
 
     When changing the geometry, the widget, if visible, receives a
     move event (moveEvent()) and/or a resize event (resizeEvent())
@@ -6342,7 +6303,7 @@ void QWidget::setWindowFilePath(const QString &filePath)
 void QWidgetPrivate::setWindowFilePath_helper(const QString &filePath)
 {
     if (extra->topextra && extra->topextra->caption.isEmpty()) {
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
         setWindowTitle_helper(QFileInfo(filePath).fileName());
 #else
         Q_Q(QWidget);
@@ -6350,7 +6311,7 @@ void QWidgetPrivate::setWindowFilePath_helper(const QString &filePath)
         setWindowTitle_helper(q->windowTitle());
 #endif
     }
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     setWindowFilePath_sys(filePath);
 #endif
 }
@@ -9060,30 +9021,6 @@ bool QWidget::event(QEvent *event)
                 break;
         }
         keyPressEvent(k);
-#ifdef QT_KEYPAD_NAVIGATION
-        if (!k->isAccepted() && QApplication::keypadNavigationEnabled()
-            && !(k->modifiers() & (Qt::ControlModifier | Qt::AltModifier | Qt::ShiftModifier))) {
-            if (QApplication::navigationMode() == Qt::NavigationModeKeypadTabOrder) {
-                if (k->key() == Qt::Key_Up)
-                    res = focusNextPrevChild(false);
-                else if (k->key() == Qt::Key_Down)
-                    res = focusNextPrevChild(true);
-            } else if (QApplication::navigationMode() == Qt::NavigationModeKeypadDirectional) {
-                if (k->key() == Qt::Key_Up)
-                    res = QWidgetPrivate::navigateToDirection(QWidgetPrivate::DirectionNorth);
-                else if (k->key() == Qt::Key_Right)
-                    res = QWidgetPrivate::navigateToDirection(QWidgetPrivate::DirectionEast);
-                else if (k->key() == Qt::Key_Down)
-                    res = QWidgetPrivate::navigateToDirection(QWidgetPrivate::DirectionSouth);
-                else if (k->key() == Qt::Key_Left)
-                    res = QWidgetPrivate::navigateToDirection(QWidgetPrivate::DirectionWest);
-            }
-            if (res) {
-                k->accept();
-                break;
-            }
-        }
-#endif
 #if QT_CONFIG(whatsthis)
         if (!k->isAccepted()
             && k->modifiers() & Qt::ShiftModifier && k->key() == Qt::Key_F1
@@ -9527,7 +9464,7 @@ void QWidget::changeEvent(QEvent * event)
         }
         break;
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     case QEvent::MacSizeChange:
         updateGeometry();
         break;
@@ -11405,7 +11342,7 @@ static void setAttribute_internal(Qt::WidgetAttribute attribute, bool on, QWidge
     }
 }
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 void QWidgetPrivate::macUpdateSizeAttribute()
 {
     Q_Q(QWidget);
@@ -11496,7 +11433,7 @@ void QWidget::setAttribute(Qt::WidgetAttribute attribute, bool on)
     case Qt::WA_MacNormalSize:
     case Qt::WA_MacSmallSize:
     case Qt::WA_MacMiniSize:
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
         {
             // We can only have one of these set at a time
             const Qt::WidgetAttribute MacSizes[] = { Qt::WA_MacNormalSize, Qt::WA_MacSmallSize,
@@ -12265,7 +12202,7 @@ void QWidgetPrivate::stackUnder_sys(QWidget*)
     \note This function is available with widgets that derive from user
     interface descriptions created using \l{uic}.
 
-    \sa {Using a Designer UI File in Your Application}
+    \sa {Using a Qt Widgets Designer UI File in Your Application}
 */
 
 QRect QWidgetPrivate::frameStrut() const
@@ -12300,145 +12237,6 @@ void QWidgetPrivate::updateFrameStrut()
         }
     }
 }
-
-#ifdef QT_KEYPAD_NAVIGATION
-/*!
-    \internal
-
-    Changes the focus  from the current focusWidget to a widget in
-    the \a direction.
-
-    Returns \c true, if there was a widget in that direction
-*/
-bool QWidgetPrivate::navigateToDirection(Direction direction)
-{
-    QWidget *targetWidget = widgetInNavigationDirection(direction);
-    if (targetWidget)
-        targetWidget->setFocus();
-    return (targetWidget != 0);
-}
-
-/*!
-    \internal
-
-    Searches for a widget that is positioned in the \a direction, starting
-    from the current focusWidget.
-
-    Returns the pointer to a found widget or \nullptr, if there was no widget
-    in that direction.
-*/
-QWidget *QWidgetPrivate::widgetInNavigationDirection(Direction direction)
-{
-    const QWidget *sourceWidget = QApplication::focusWidget();
-    if (!sourceWidget)
-        return nullptr;
-    const QRect sourceRect = sourceWidget->rect().translated(sourceWidget->mapToGlobal(QPoint()));
-    const int sourceX =
-            (direction == DirectionNorth || direction == DirectionSouth) ?
-                (sourceRect.left() + (sourceRect.right() - sourceRect.left()) / 2)
-                :(direction == DirectionEast ? sourceRect.right() : sourceRect.left());
-    const int sourceY =
-            (direction == DirectionEast || direction == DirectionWest) ?
-                (sourceRect.top() + (sourceRect.bottom() - sourceRect.top()) / 2)
-                :(direction == DirectionSouth ? sourceRect.bottom() : sourceRect.top());
-    const QPoint sourcePoint(sourceX, sourceY);
-    const QPoint sourceCenter = sourceRect.center();
-    const QWidget *sourceWindow = sourceWidget->window();
-
-    QWidget *targetWidget = nullptr;
-    int shortestDistance = INT_MAX;
-
-    const auto targetCandidates = QApplication::allWidgets();
-    for (QWidget *targetCandidate : targetCandidates) {
-
-        const QRect targetCandidateRect = targetCandidate->rect().translated(targetCandidate->mapToGlobal(QPoint()));
-
-        // For focus proxies, the child widget handling the focus can have keypad navigation focus,
-        // but the owner of the proxy cannot.
-        // Additionally, empty widgets should be ignored.
-        if (targetCandidate->focusProxy() || targetCandidateRect.isEmpty())
-            continue;
-
-        // Only navigate to a target widget that...
-        if (       targetCandidate != sourceWidget
-                   // ...takes the focus,
-                && targetCandidate->focusPolicy() & Qt::TabFocus
-                   // ...is above if DirectionNorth,
-                && !(direction == DirectionNorth && targetCandidateRect.bottom() > sourceRect.top())
-                   // ...is on the right if DirectionEast,
-                && !(direction == DirectionEast  && targetCandidateRect.left()   < sourceRect.right())
-                   // ...is below if DirectionSouth,
-                && !(direction == DirectionSouth && targetCandidateRect.top()    < sourceRect.bottom())
-                   // ...is on the left if DirectionWest,
-                && !(direction == DirectionWest  && targetCandidateRect.right()  > sourceRect.left())
-                   // ...is enabled,
-                && targetCandidate->isEnabled()
-                   // ...is visible,
-                && targetCandidate->isVisible()
-                   // ...is in the same window,
-                && targetCandidate->window() == sourceWindow) {
-            const int targetCandidateDistance = [](const QPoint &sourcePoint,
-                                                   const QRect &targetCandidateRect) {
-                int dx = 0;
-                int dy = 0;
-                if (p.x() < r.left())
-                    dx = r.left() - p.x();
-                else if (p.x() > r.right())
-                    dx = p.x() - r.right();
-                if (p.y() < r.top())
-                    dy = r.top() - p.y();
-                else if (p.y() > r.bottom())
-                    dy = p.y() - r.bottom();
-                return dx + dy;
-            }();
-            if (targetCandidateDistance < shortestDistance) {
-                shortestDistance = targetCandidateDistance;
-                targetWidget = targetCandidate;
-            }
-        }
-    }
-    return targetWidget;
-}
-
-/*!
-    \internal
-
-    Tells us if it there is currently a reachable widget by keypad navigation in
-    a certain \a orientation.
-    If no navigation is possible, occurring key events in that \a orientation may
-    be used to interact with the value in the focused widget, even though it
-    currently has not the editFocus.
-
-    \sa QWidgetPrivate::widgetInNavigationDirection(), QWidget::hasEditFocus()
-*/
-bool QWidgetPrivate::canKeypadNavigate(Qt::Orientation orientation)
-{
-    return orientation == Qt::Horizontal?
-            (QWidgetPrivate::widgetInNavigationDirection(QWidgetPrivate::DirectionEast)
-                    || QWidgetPrivate::widgetInNavigationDirection(QWidgetPrivate::DirectionWest))
-            :(QWidgetPrivate::widgetInNavigationDirection(QWidgetPrivate::DirectionNorth)
-                    || QWidgetPrivate::widgetInNavigationDirection(QWidgetPrivate::DirectionSouth));
-}
-/*!
-    \internal
-
-    Checks, if the \a widget is inside a QTabWidget. If is is inside
-    one, left/right key events will be used to switch between tabs in keypad
-    navigation. If there is no QTabWidget, the horizontal key events can be used
-to
-    interact with the value in the focused widget, even though it currently has
-    not the editFocus.
-
-    \sa QWidget::hasEditFocus()
-*/
-bool QWidgetPrivate::inTabWidget(QWidget *widget)
-{
-    for (QWidget *tabWidget = widget; tabWidget; tabWidget = tabWidget->parentWidget())
-        if (qobject_cast<const QTabWidget*>(tabWidget))
-            return true;
-    return false;
-}
-#endif
 
 /*!
     \since 5.0

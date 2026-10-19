@@ -193,6 +193,9 @@ static_assert(int(QCborStreamReader::Invalid) == CborInvalidType);
    \class QCborStreamReader::StringResult
    \inmodule QtCore
 
+   StringResult\<Container\> is a template class where \a Container specifies
+   the type used to hold the string data (such as QString or QByteArray).
+
    This class is returned by readString() and readByteArray(), with either the
    contents of the string that was read or an indication that the parsing is
    done or found an error.

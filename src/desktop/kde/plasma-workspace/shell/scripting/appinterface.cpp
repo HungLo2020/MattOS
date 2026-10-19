@@ -5,7 +5,6 @@
 */
 
 #include "appinterface.h"
-#include <config-X11.h>
 
 #include <QEventLoop>
 #include <QTimer>
@@ -17,15 +16,6 @@
 #include <Plasma/Corona>
 #include <Plasma/PluginLoader>
 #include <Plasma/Theme>
-
-#ifdef Q_OS_WIN
-#include <windows.h>
-#endif
-
-#if HAVE_X11
-#include <X11/Xlib.h>
-#include <fixx11h.h>
-#endif
 
 #include "debug.h"
 #include "scriptengine.h"

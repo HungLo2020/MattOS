@@ -118,7 +118,7 @@ KWin::AbstractScript::~AbstractScript()
 
 KConfigGroup KWin::AbstractScript::config() const
 {
-    return kwinApp()->config()->group(QLatin1String("Script-") + m_pluginName);
+    return kwinApp()->config()->group(QLatin1StringView("Script-") + m_pluginName);
 }
 
 void KWin::AbstractScript::stop()
@@ -678,45 +678,9 @@ KWin::Scripting::Scripting(QObject *parent)
 
     m_qmlEngine->setProperty("_kirigamiTheme", QStringLiteral("KirigamiPlasmaStyle"));
     m_qmlEngine->rootContext()->setContextObject(new KLocalizedQmlContext(m_qmlEngine));
-    init();
     QDBusConnection::sessionBus().registerObject(QStringLiteral("/Scripting"), this, QDBusConnection::ExportScriptableContents | QDBusConnection::ExportScriptableInvokables);
     connect(Workspace::self(), &Workspace::configChanged, this, &Scripting::start);
     connect(Workspace::self(), &Workspace::workspaceInitialized, this, &Scripting::start);
-}
-
-void KWin::Scripting::init()
-{
-    qRegisterMetaType<QList<KWin::LogicalOutput *>>();
-    qRegisterMetaType<QList<KWin::Window *>>();
-    qRegisterMetaType<QList<KWin::VirtualDesktop *>>();
-
-    qmlRegisterType<DesktopBackgroundItem>("org.kde.kwin", 3, 0, "DesktopBackground");
-    qmlRegisterType<WindowThumbnailItem>("org.kde.kwin", 3, 0, "WindowThumbnail");
-    qmlRegisterType<DBusCall>("org.kde.kwin", 3, 0, "DBusCall");
-    qmlRegisterType<ScreenEdgeHandler>("org.kde.kwin", 3, 0, "ScreenEdgeHandler");
-    qmlRegisterType<ShortcutHandler>("org.kde.kwin", 3, 0, "ShortcutHandler");
-    qmlRegisterType<SwipeGestureHandler>("org.kde.kwin", 3, 0, "SwipeGestureHandler");
-    qmlRegisterType<PinchGestureHandler>("org.kde.kwin", 3, 0, "PinchGestureHandler");
-    qmlRegisterType<WindowModel>("org.kde.kwin", 3, 0, "WindowModel");
-    qmlRegisterType<WindowFilterModel>("org.kde.kwin", 3, 0, "WindowFilterModel");
-    qmlRegisterType<VirtualDesktopModel>("org.kde.kwin", 3, 0, "VirtualDesktopModel");
-    qmlRegisterUncreatableType<KWin::QuickSceneView>("org.kde.kwin", 3, 0, "SceneView", QStringLiteral("Can't instantiate an object of type SceneView"));
-    qmlRegisterType<ScriptedQuickSceneEffect>("org.kde.kwin", 3, 0, "SceneEffect");
-
-    qmlRegisterSingletonType<DeclarativeScriptWorkspaceWrapper>("org.kde.kwin", 3, 0, "Workspace", [](QQmlEngine *qmlEngine, QJSEngine *jsEngine) {
-        return new DeclarativeScriptWorkspaceWrapper();
-    });
-    qmlRegisterSingletonInstance("org.kde.kwin", 3, 0, "Options", options);
-
-    qmlRegisterAnonymousType<KConfigPropertyMap>("org.kde.kwin", 3);
-    qmlRegisterAnonymousType<KWin::LogicalOutput>("org.kde.kwin", 3);
-    qmlRegisterAnonymousType<KWin::Window>("org.kde.kwin", 3);
-    qmlRegisterAnonymousType<KWin::VirtualDesktop>("org.kde.kwin", 3);
-    qmlRegisterAnonymousType<QAbstractItemModel>("org.kde.kwin", 3);
-    qmlRegisterAnonymousType<KWin::TileManager>("org.kde.kwin", 3);
-    // TODO: call the qml types as the C++ types?
-    qmlRegisterUncreatableType<KWin::CustomTile>("org.kde.kwin", 3, 0, "CustomTile", QStringLiteral("Cannot create objects of type Tile"));
-    qmlRegisterUncreatableType<KWin::Tile>("org.kde.kwin", 3, 0, "Tile", QStringLiteral("Cannot create objects of type AbstractTile"));
 }
 
 void KWin::Scripting::start()
@@ -754,40 +718,34 @@ LoadScriptList KWin::Scripting::queryScriptsToLoad()
     }
     QMap<QString, QString> pluginStates = KConfigGroup(_config, QStringLiteral("Plugins")).entryMap();
 
-    const QStringList scriptFolders{
-        QStringLiteral("kwin-wayland/scripts/"),
-        QStringLiteral("kwin/scripts/"),
-    };
-
     LoadScriptList scriptsToLoad;
-    for (const QString &scriptFolder : scriptFolders) {
-        const auto offers = KPackage::PackageLoader::self()->listPackages(QStringLiteral("KWin/Script"), scriptFolder);
-        for (const KPluginMetaData &service : offers) {
-            const QString value = pluginStates.value(service.pluginId() + QLatin1String("Enabled"), QString());
-            const bool enabled = value.isNull() ? service.isEnabledByDefault() : QVariant(value).toBool();
-            const bool javaScript = service.value(QStringLiteral("X-Plasma-API")) == QLatin1String("javascript");
-            const bool declarativeScript = service.value(QStringLiteral("X-Plasma-API")) == QLatin1String("declarativescript");
-            if (!javaScript && !declarativeScript) {
-                continue;
-            }
 
-            if (!enabled) {
-                if (isScriptLoaded(service.pluginId())) {
-                    // unload the script
-                    unloadScript(service.pluginId());
-                }
-                continue;
-            }
-            const QString pluginName = service.pluginId();
-            // The file we want to load depends on the specified API. We could check if one or the other file exists, but that is more error prone and causes IO overhead
-            const QString relScriptPath = scriptFolder + pluginName + QLatin1String("/contents/") + (javaScript ? QLatin1String("code/main.js") : QLatin1String("ui/main.qml"));
-            const QString file = QStandardPaths::locate(QStandardPaths::GenericDataLocation, relScriptPath);
-            if (file.isEmpty()) {
-                qCDebug(KWIN_SCRIPTING) << "Could not find script file for " << pluginName;
-                continue;
-            }
-            scriptsToLoad << qMakePair(javaScript, qMakePair(file, pluginName));
+    const auto offers = KPackage::PackageLoader::self()->listPackages(QStringLiteral("KWin/Script"), QStringLiteral("kwin/scripts/"));
+    for (const KPluginMetaData &service : offers) {
+        const QString value = pluginStates.value(service.pluginId() + QLatin1StringView("Enabled"), QString());
+        const bool enabled = value.isNull() ? service.isEnabledByDefault() : QVariant(value).toBool();
+        const bool javaScript = service.value(QStringLiteral("X-Plasma-API")) == QLatin1StringView("javascript");
+        const bool declarativeScript = service.value(QStringLiteral("X-Plasma-API")) == QLatin1StringView("declarativescript");
+        if (!javaScript && !declarativeScript) {
+            continue;
         }
+
+        if (!enabled) {
+            if (isScriptLoaded(service.pluginId())) {
+                // unload the script
+                unloadScript(service.pluginId());
+            }
+            continue;
+        }
+        const QString pluginName = service.pluginId();
+        // The file we want to load depends on the specified API. We could check if one or the other file exists, but that is more error prone and causes IO overhead
+        const QString relScriptPath = QLatin1StringView("kwin/scripts/") + pluginName + QLatin1StringView("/contents/") + (javaScript ? QLatin1StringView("code/main.js") : QLatin1StringView("ui/main.qml"));
+        const QString file = QStandardPaths::locate(QStandardPaths::GenericDataLocation, relScriptPath);
+        if (file.isEmpty()) {
+            qCDebug(KWIN_SCRIPTING) << "Could not find script file for " << pluginName;
+            continue;
+        }
+        scriptsToLoad << qMakePair(javaScript, qMakePair(file, pluginName));
     }
 
     return scriptsToLoad;

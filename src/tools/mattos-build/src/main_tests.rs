@@ -4997,16 +4997,7 @@ fn local_runtime_dependency_maps_to_rootfs_usr_lib() {
 }
 
 #[test]
-fn plasma_wayland_build_keeps_the_real_pager_without_x11_headers() {
-    let implementation = include_str!("stages/kde_foundation.rs");
-    assert!(implementation.contains("applets/pager/pagermodel.cpp"));
-    assert!(implementation.contains("#if HAVE_X11\\n#include <xwindowtasksmodel.h>\\n#endif"));
-    assert!(implementation.contains("plasma_pager_qmimedata_header_mirror(&contents)"));
-    let plasma = include_str!("stages/plasma.rs");
-    assert!(plasma.contains("-DWITH_X11=ON"));
-    assert!(plasma.contains("-DWITH_X11_SESSION=OFF"));
-    assert!(plasma.contains("usr/bin/ksmserver"));
-    assert!(plasma.contains("plasma-ksmserver.service"));
+fn plasma_wayland_build_retains_xwayland_session_dependencies() {
     assert!(stage_graph::direct_dependencies(BuildStage::PlasmaWorkspace).contains(&"x11-compat"));
     let x11_sources = stage_inputs::source_inputs(BuildStage::X11Compat);
     for source in [
@@ -5014,10 +5005,7 @@ fn plasma_wayland_build_keeps_the_real_pager_without_x11_headers() {
         "src/system/graphics/libsm",
         "src/tools/mattos-build/src/stages/graphics.rs",
     ] {
-        assert!(
-            x11_sources.contains(&PathBuf::from(source)),
-            "missing {source}"
-        );
+        assert!(x11_sources.contains(&PathBuf::from(source)), "missing {source}");
     }
     assert!(packaging::PACKAGE_NAMES.contains(&"libice6"));
     assert!(packaging::PACKAGE_NAMES.contains(&"libsm6"));

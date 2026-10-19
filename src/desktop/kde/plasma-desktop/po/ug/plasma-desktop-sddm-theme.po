@@ -1,0 +1,99 @@
+# Uyghur translation for plasma-desktop-sddm-theme.
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the plasma-desktop package.
+# Abduqadir Abliz <sahranbay@gmail.com>, 2026., YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-desktop\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
+"PO-Revision-Date: 2026-07-22 17:25-0400\n"
+"Last-Translator: Abduqadir Abliz <sahranbay@gmail.com>\n"
+"Language-Team: Uyghur <kde-i18n-doc@kde.org>\n"
+"Language: ug\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.9\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: KeyboardButton.qml:19
+msgctxt "@action:button opens layout chooser %1 is current"
+msgid "Keyboard Layout: %1"
+msgstr "ھەرپتاختا جايلاشتۇرۇلۇشى: %1"
+
+#: Login.qml:86
+msgctxt "@info:placeholder in textfield"
+msgid "Username"
+msgstr "ئىشلەتكۈچى ئاتى"
+
+#: Login.qml:103
+msgctxt "@info:placeholder in textfield"
+msgid "Password"
+msgstr "ئىم"
+
+#: Login.qml:145
+msgctxt "@action:button Accessible name"
+msgid "Log in"
+msgstr "تىزىمغا كىر"
+
+#: Login.qml:151
+msgctxt "@action:button"
+msgid "Log In"
+msgstr "تىزىمغا كىر"
+
+#: Main.qml:202
+msgctxt "@info:status"
+msgid "Caps Lock is on"
+msgstr "Caps Lock ئوچوق"
+
+#: Main.qml:214
+msgctxt "Suspend to disk"
+msgid "Hibernate"
+msgstr "ئۈچەك"
+
+#: Main.qml:220 Main.qml:348
+msgctxt "@action:button Suspend to RAM"
+msgid "Sleep"
+msgstr "ئۇخلات"
+
+#: Main.qml:226 Main.qml:354
+msgctxt "@action:button"
+msgid "Restart"
+msgstr "قايتا قوزغات"
+
+#: Main.qml:232 Main.qml:360
+msgctxt "@action:button"
+msgid "Shut Down"
+msgstr "تاقا"
+
+#: Main.qml:238
+msgctxt "@action:button For switching to a username and password prompt"
+msgid "Other…"
+msgstr "باشقا…"
+
+#: Main.qml:334
+msgctxt "@info:usagetip"
+msgid "Type in Username and Password"
+msgstr "ئىشلەتكۈچى ئاتى ۋە ئىم كىرگۈزۈلىدۇ"
+
+#: Main.qml:366
+msgctxt "@action:button"
+msgid "List Users"
+msgstr "ئىشلەتكۈچى تىزىمى"
+
+#: Main.qml:440
+msgctxt "Button to show/hide virtual keyboard"
+msgid "Virtual Keyboard"
+msgstr "مەۋھۇم ھەرپتاختا"
+
+#: Main.qml:510
+msgctxt "@info:status"
+msgid "Login Failed"
+msgstr "تىزىمغا كىرەلمىدى"
+
+#: SessionButton.qml:18
+msgctxt "@action:button opens sessions menu %1 is current"
+msgid "Desktop Session: %1"
+msgstr "ئۈستەلئۈستى جەريانچاق: %1"

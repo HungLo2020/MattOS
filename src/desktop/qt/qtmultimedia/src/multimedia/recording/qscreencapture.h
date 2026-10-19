@@ -11,6 +11,8 @@
 #include <QtGui/qwindowdefs.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
 class QMediaCaptureSession;
@@ -24,6 +26,8 @@ class Q_MULTIMEDIA_EXPORT QScreenCapture : public QObject
     Q_PROPERTY(QScreen *screen READ screen WRITE setScreen NOTIFY screenChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
+    Q_PROPERTY(std::optional<qreal> maximumFrameRate READ maximumFrameRate WRITE setMaximumFrameRate
+                       NOTIFY maximumFrameRateChanged REVISION(6, 12))
 
 public:
     enum Error {
@@ -48,6 +52,9 @@ public:
     Error error() const;
     QString errorString() const;
 
+    void setMaximumFrameRate(std::optional<qreal> frameRate);
+    std::optional<qreal> maximumFrameRate() const;
+
 public Q_SLOTS:
     void setActive(bool active);
     void start() { setActive(true); }
@@ -58,6 +65,7 @@ Q_SIGNALS:
     void errorChanged();
     void screenChanged(QScreen *);
     void errorOccurred(QScreenCapture::Error error, const QString &errorString);
+    Q_REVISION(6, 12) void maximumFrameRateChanged();
 
 private:
     void setCaptureSession(QMediaCaptureSession *captureSession);

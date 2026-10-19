@@ -3,14 +3,14 @@
 
 #include "avfaudiodecoder_p.h"
 
+#include <QtMultimedia/private/qapple_utils_p.h>
+#include <QtMultimedia/private/qcoreaudioutils_p.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qmimedatabase.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qthread.h>
 #include <QtCore/private/qcore_mac_p.h>
-
-#include "private/qcoreaudioutils_p.h"
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -168,15 +168,15 @@ NSDictionary *av_audio_settings_for_format(const QAudioFormat &format)
     int sampleSize = format.bytesPerSample() * 8;
     BOOL isFloat = format.sampleFormat() == QAudioFormat::Float;
 
-    NSDictionary *audioSettings = [NSDictionary dictionaryWithObjectsAndKeys:
-        [NSNumber numberWithInt:kAudioFormatLinearPCM], AVFormatIDKey,
-        [NSNumber numberWithFloat:sampleRate], AVSampleRateKey,
-        [NSNumber numberWithInt:nChannels], AVNumberOfChannelsKey,
-        [NSNumber numberWithInt:sampleSize], AVLinearPCMBitDepthKey,
-        [NSNumber numberWithBool:isFloat], AVLinearPCMIsFloatKey,
-        [NSNumber numberWithBool:NO], AVLinearPCMIsNonInterleaved,
-        [NSNumber numberWithBool:NO], AVLinearPCMIsBigEndianKey,
-        nil];
+    NSDictionary *audioSettings = @{
+        AVFormatIDKey : @(kAudioFormatLinearPCM),
+        AVSampleRateKey : @(sampleRate),
+        AVNumberOfChannelsKey : @(nChannels),
+        AVLinearPCMBitDepthKey : @(sampleSize),
+        AVLinearPCMIsFloatKey : @(isFloat),
+        AVLinearPCMIsNonInterleaved : @NO,
+        AVLinearPCMIsBigEndianKey : @NO,
+    };
 
     return audioSettings;
 }
@@ -300,7 +300,7 @@ void AVFAudioDecoder::start()
         return;
     }
 
-    positionChanged(-1);
+    positionChanged(kInvalidPosition);
 
     if (m_device && (!m_device->isOpen() || !m_device->isReadable())) {
         processInvalidMedia(QAudioDecoder::ResourceError, tr("Unable to read from specified device"));
@@ -322,7 +322,7 @@ void AVFAudioDecoder::start()
                 processInvalidMedia(QAudioDecoder::FormatError,
                                     tr("Could not load media source's tracks"));
         } else if (status != AVKeyValueStatusLoaded) {
-            qWarning() << "Unexpected AVKeyValueStatus:" << status;
+            qWarning() << "Unexpected AVKeyValueStatus:" << QtMultimediaPrivate::QOSStatus(status);
             stop();
         }
         else {
@@ -357,8 +357,8 @@ void AVFAudioDecoder::stop()
     m_cachedBuffers.clear();
 
     bufferAvailableChanged(false);
-    positionChanged(-1);
-    durationChanged(-1);
+    positionChanged(kInvalidPosition);
+    durationChanged(kInvalidDuration);
 
     onFinished();
 }
@@ -385,7 +385,9 @@ QAudioBuffer AVFAudioDecoder::read()
     QAudioBuffer buffer = m_cachedBuffers.dequeue();
     decBuffersCounter(1);
 
-    positionChanged(buffer.startTime() / 1000);
+    // buffer.startTime() is in microseconds; convert to milliseconds for platform API
+    using namespace std::chrono;
+    positionChanged(round<milliseconds>(microseconds{ buffer.startTime() }));
     bufferAvailableChanged(!m_cachedBuffers.empty());
     return buffer;
 }
@@ -430,7 +432,9 @@ void AVFAudioDecoder::initAssetReaderImpl(AVAssetTrack *track, NSError *error)
         return;
     }
 
-    durationChanged(CMTimeGetSeconds(track.timeRange.duration) * 1000);
+    const auto duration =
+            std::chrono::milliseconds(int64_t(CMTimeGetSeconds(track.timeRange.duration) * 1000));
+    durationChanged(duration);
 
     NSDictionary *audioSettings = av_audio_settings_for_format(format);
 
@@ -469,21 +473,16 @@ void AVFAudioDecoder::initAssetReader()
     Q_ASSERT(m_asset);
     Q_ASSERT(QThread::currentThread() == thread());
 
-#if defined(Q_OS_VISIONOS)
-    [m_asset loadTracksWithMediaType:AVMediaTypeAudio completionHandler:[=](NSArray<AVAssetTrack *> *tracks, NSError *error) {
-                       if (tracks && tracks.count > 0) {
-                           if (AVAssetTrack *track = [tracks objectAtIndex:0])
-                               QMetaObject::invokeMethod(this, &AVFAudioDecoder::initAssetReaderImpl, Qt::QueuedConnection, track, error);
-                       }
+    [m_asset loadTracksWithMediaType:AVMediaTypeAudio
+                   completionHandler:[this](NSArray<AVAssetTrack *> *tracks, NSError *error) {
+        if (tracks && tracks.count > 0) {
+            if (AVAssetTrack *track = [tracks objectAtIndex:0])
+                QMetaObject::invokeMethod(this, &AVFAudioDecoder::initAssetReaderImpl,
+                                          Qt::QueuedConnection, track, error);
+        } else {
+            processInvalidMedia(QAudioDecoder::FormatError, tr("Media has no audio tracks"));
+        }
     }];
-#else
-    NSArray<AVAssetTrack *> *tracks = [m_asset tracksWithMediaType:AVMediaTypeAudio];
-    if (tracks && tracks.count > 0) {
-        if (AVAssetTrack *track = [tracks objectAtIndex:0])
-            initAssetReaderImpl(track, nullptr /*error*/);
-    }
-#endif
-
 }
 
 void AVFAudioDecoder::startReading(QAudioFormat format)

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KDE Frameworks 5 Applications\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-27 02:42+0000\n"
-"PO-Revision-Date: 2025-01-10 01:17+0200\n"
+"POT-Creation-Date: 2026-09-06 00:47+0000\n"
+"PO-Revision-Date: 2026-04-25 23:29+0300\n"
 "Last-Translator: Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com>\n"
 "Language-Team: Lithuanian <kde-i18n-lt@kde.org>\n"
 "Language: lt\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n%10>=2 && (n%100<10 || n"
 "%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.8\n"
 
 #: actionlist.cpp:93
 #, kde-format
@@ -45,7 +45,7 @@ msgstr "Prisegti prie užduočių tvarkytuvės"
 msgid "Add to Panel (Widget)"
 msgstr "Pridėti į skydelį (valdiklį)"
 
-#: actionlist.cpp:316 rootmodel.cpp:538
+#: actionlist.cpp:316 rootmodel.cpp:590
 #, kde-format
 msgid "Recent Files"
 msgstr "Paskiausiai naudoti failai"
@@ -66,35 +66,35 @@ msgctxt "@action opens a software center with the application"
 msgid "Uninstall or Manage Add-Ons…"
 msgstr "Šalinti ar tvarkyti papildinius…"
 
-#: appentry.cpp:361
+#: appentry.cpp:410
 #, kde-format
 msgid "Hide Application"
 msgstr "Slėpti programą"
 
-#: appentry.cpp:423
+#: appentry.cpp:472
 #, kde-format
 msgctxt "App name (Comment or Generic name)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: appentry.cpp:425
+#: appentry.cpp:474
 #, kde-format
 msgctxt "Generic name (App name)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: appsmodel.cpp:38 appsmodel.cpp:74 computermodel.cpp:93 computermodel.cpp:219
-#: recentusagemodel.cpp:156 recentusagemodel.cpp:225
+#: appsmodel.cpp:38 appsmodel.cpp:74 computermodel.cpp:93 computermodel.cpp:220
+#: recentusagemodel.cpp:158 recentusagemodel.cpp:229
 #, kde-format
 msgid "Applications"
 msgstr "Programos"
 
-#: appsmodel.cpp:171
+#: appsmodel.cpp:173
 #, kde-format
 msgid "Unhide Applications in this Submenu"
 msgstr "Nebeslėpti programų šiame submeniu"
 
-#: appsmodel.cpp:180
+#: appsmodel.cpp:182
 #, kde-format
 msgid "Unhide Applications in '%1'"
 msgstr "Nebeslėpti „%1“ kategorijos programų"
@@ -115,52 +115,67 @@ msgid "Computer"
 msgstr "Kompiuteris"
 
 #. i18n.
-#: kastatsfavoritesmodel.cpp:548 rootmodel.cpp:531 simplefavoritesmodel.cpp:33
+#: kastatsfavoritesmodel.cpp:537 rootmodel.cpp:574 simplefavoritesmodel.cpp:33
 #, kde-format
 msgid "Favorites"
 msgstr "Žymelės"
 
-#: recentusagemodel.cpp:154
+#: recentusagemodel.cpp:156
 #, kde-format
 msgid "Recently Used"
 msgstr "Paskiausiai naudoti"
 
-#: recentusagemodel.cpp:159 recentusagemodel.cpp:320
+#: recentusagemodel.cpp:160
+#, kde-format
+msgid "Places"
+msgstr "Vietos"
+
+#: recentusagemodel.cpp:163 recentusagemodel.cpp:330
 #, kde-format
 msgid "Files"
 msgstr "Failai"
 
-#: recentusagemodel.cpp:253
+#: recentusagemodel.cpp:263
 #, kde-format
 msgid "Forget Application"
 msgstr "Pamiršti programą"
 
-#: recentusagemodel.cpp:318
+#: recentusagemodel.cpp:328
 #, kde-format
 msgid "Folders"
 msgstr "Aplankai"
 
-#: recentusagemodel.cpp:359
+#: recentusagemodel.cpp:375
 #, kde-format
 msgid "Open Containing Folder"
 msgstr "Atverti vidinį aplanką"
 
-#: recentusagemodel.cpp:362
+#: recentusagemodel.cpp:380
+#, kde-format
+msgid "Forget Folder"
+msgstr "Pamiršti aplanką"
+
+#: recentusagemodel.cpp:380
 #, kde-format
 msgid "Forget File"
 msgstr "Pamiršti failą"
 
-#: recentusagemodel.cpp:506
+#: recentusagemodel.cpp:526
 #, kde-format
 msgid "Forget All"
 msgstr "Viską pamiršti"
 
-#: recentusagemodel.cpp:508
+#: recentusagemodel.cpp:528
 #, kde-format
 msgid "Forget All Applications"
 msgstr "Pamiršti visas programas"
 
-#: recentusagemodel.cpp:511
+#: recentusagemodel.cpp:530
+#, kde-format
+msgid "Forget All Folders"
+msgstr "Pamiršti visus aplankus"
+
+#: recentusagemodel.cpp:533
 #, kde-format
 msgid "Forget All Files"
 msgstr "Pamiršti visus failus"
@@ -170,37 +185,47 @@ msgstr "Pamiršti visus failus"
 msgid "All Applications"
 msgstr "Visos programos"
 
-#: rootmodel.cpp:131
+#: rootmodel.cpp:134
 #, kde-format
 msgid "Hide %1"
 msgstr "Slėpti %1"
 
-#: rootmodel.cpp:525
+#: rootmodel.cpp:568
 #, kde-format
 msgid "This shouldn't be visible! Use KICKER_FAVORITES_MODEL"
 msgstr "Tai neturėtų būti matoma! Naudokite KICKER_FAVORITES_MODEL"
 
-#: rootmodel.cpp:538
+#: rootmodel.cpp:581
+#, kde-format
+msgid "Recent Places"
+msgstr "Paskiausios vietos"
+
+#: rootmodel.cpp:581
+#, kde-format
+msgid "Often Used Places"
+msgstr "Dažnai naudojamos vietos"
+
+#: rootmodel.cpp:590
 #, kde-format
 msgid "Often Used Files"
 msgstr "Dažnai naudojami failai"
 
-#: rootmodel.cpp:547
+#: rootmodel.cpp:599
 #, kde-format
 msgid "Recent Applications"
 msgstr "Paskiausios programos"
 
-#: rootmodel.cpp:547
+#: rootmodel.cpp:599
 #, kde-format
 msgid "Often Used Applications"
 msgstr "Dažniausios programos"
 
-#: rootmodel.cpp:562
+#: rootmodel.cpp:614
 #, kde-format
 msgid "Power / Session"
 msgstr "Maitinimas / seansas"
 
-#: runnermodel.cpp:226
+#: runnermodel.cpp:303
 #, kde-format
 msgid "Search results"
 msgstr "Paieškos rezultatai"
@@ -291,7 +316,7 @@ msgstr "Paleisti kompiuterį iš naujo"
 msgid "Turn off computer"
 msgstr "Išjungti kompiuterį"
 
-#: systemmodel.cpp:31
+#: systemmodel.cpp:30
 #, kde-format
 msgid "System actions"
 msgstr "Sistemos veiksmai"

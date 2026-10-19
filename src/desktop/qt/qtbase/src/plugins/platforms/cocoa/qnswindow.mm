@@ -18,22 +18,6 @@
 
 Q_STATIC_LOGGING_CATEGORY(lcQpaEvents, "qt.qpa.events");
 
-static bool isMouseEvent(NSEvent *ev)
-{
-    switch ([ev type]) {
-    case NSEventTypeLeftMouseDown:
-    case NSEventTypeLeftMouseUp:
-    case NSEventTypeRightMouseDown:
-    case NSEventTypeRightMouseUp:
-    case NSEventTypeMouseMoved:
-    case NSEventTypeLeftMouseDragged:
-    case NSEventTypeRightMouseDragged:
-        return true;
-    default:
-        return false;
-    }
-}
-
 @implementation NSWindow (FullScreenProperty)
 
 + (void)load
@@ -244,6 +228,17 @@ QT_END_NAMESPACE
     m_platformWindow->setVisible(window->isVisible());
 }
 
+- (void)setStyleMask:(NSWindowStyleMask)styleMask
+{
+    // Setting the style mask might move the content view between
+    // a NSThemeFrame and a NSNextStepFrame, which results in also
+    // losing the view.window temporarily. We don't want that to
+    // result in dropping our window controller.
+    [[self.windowController retain] autorelease];
+
+    [super setStyleMask:styleMask];
+}
+
 - (NSString *)description
 {
     NSMutableString *description = [NSMutableString stringWithString:[super description]];
@@ -342,7 +337,7 @@ QT_END_NAMESPACE
     }
 
     const bool mouseEventInFrameStrut = [theEvent, self]{
-        if (isMouseEvent(theEvent)) {
+        if (qt_mac_isMouseEvent(theEvent)) {
             const NSPoint loc = theEvent.locationInWindow;
             const NSRect windowFrame = [self convertRectFromScreen:self.frame];
             const NSRect contentFrame = self.contentView.frame;
@@ -366,7 +361,7 @@ QT_END_NAMESPACE
     // not Qt). However, an active popup is expected to grab any mouse event within the
     // application, so we need to handle those explicitly and trust Qt's isWindowBlocked
     // implementation to eat events that shouldn't be delivered anyway.
-    if (isMouseEvent(theEvent) && QGuiApplicationPrivate::instance()->activePopupWindow()
+    if (qt_mac_isMouseEvent(theEvent) && QGuiApplicationPrivate::instance()->activePopupWindow()
         && QGuiApplicationPrivate::instance()->isWindowBlocked(m_platformWindow->window(), nullptr)) {
         qCDebug(lcQpaWindow) << "Mouse event over modally blocked window" << m_platformWindow->window()
                              << "while popup is open - redirecting";

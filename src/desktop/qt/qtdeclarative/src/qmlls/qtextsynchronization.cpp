@@ -44,12 +44,13 @@ void TextSynchronization::didDidChangeTextDocument(const DidChangeTextDocumentPa
     {
         QMutexLocker l(document->mutex());
         for (const auto &change : changes) {
-            if (!change.range) {
-                document->setPlainText(QString::fromUtf8(change.text));
+            if (auto plainText = std::get_if<TextDocumentContentChangeEventVariant2>(&change)) {
+                document->setPlainText(QString::fromUtf8(plainText->text));
                 continue;
             }
 
-            const auto &range = *change.range;
+            const auto &withRange = std::get<TextDocumentContentChangeEventVariant1>(change);
+            const auto &range = withRange.range;
             const auto &rangeStart = range.start;
             const int start =
                     document->findBlockByNumber(rangeStart.line).position() + rangeStart.character;
@@ -57,8 +58,8 @@ void TextSynchronization::didDidChangeTextDocument(const DidChangeTextDocumentPa
             const int end =
                     document->findBlockByNumber(rangeEnd.line).position() + rangeEnd.character;
 
-            document->setPlainText(document->toPlainText().replace(start, end - start,
-                                                                   QString::fromUtf8(change.text)));
+            document->setPlainText(document->toPlainText().replace(
+                    start, end - start, QString::fromUtf8(withRange.text)));
         }
         document->setVersion(params.textDocument.version);
         qCDebug(lspServerLog).noquote()
@@ -82,18 +83,12 @@ void TextSynchronization::registerHandlers(QLanguageServer *server, QLanguageSer
                      &TextSynchronization::didCloseTextDocument);
 }
 
-QString TextSynchronization::name() const
-{
-    return u"TextSynchonization"_s;
-}
-
-void TextSynchronization::setupCapabilities(const QLspSpecification::InitializeParams &,
-                                            QLspSpecification::InitializeResult &serverInfo)
+void TextSynchronization::setupCapabilities(QLspSpecification::ServerCapabilities &caps)
 {
     TextDocumentSyncOptions syncOptions;
     syncOptions.openClose = true;
     syncOptions.change = TextDocumentSyncKind::Incremental;
-    serverInfo.capabilities.textDocumentSync = syncOptions;
+    caps.textDocumentSync = syncOptions;
 }
 
 QT_END_NAMESPACE

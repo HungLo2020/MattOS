@@ -6,7 +6,8 @@
 
 #include "nsHebrewProber.h"
 #include "nsSBCharSetProber.h"
-#include <stdio.h>
+
+#include <format>
 
 // windows-1255 / ISO-8859-8 code points of interest
 #define FINAL_KAF ('\xea')
@@ -57,8 +58,8 @@ bool isNonFinal(char c)
 namespace kencodingprober
 {
 nsHebrewProber::nsHebrewProber()
-    : mLogicalProb(new nsSingleByteCharSetProber<false>(&Win1255Model))
-    , mVisualProb(new nsSingleByteCharSetProber<true>(&Win1255Model))
+    : mLogicalProb(new nsSingleByteCharSetProber<false>(Win1255Model))
+    , mVisualProb(new nsSingleByteCharSetProber<true>(Win1255Model))
 {
 }
 /** HandleData
@@ -96,11 +97,10 @@ nsProbingState nsHebrewProber::HandleData(const char *aBuf, unsigned int aLen)
         return eNotMe;
     }
 
-    const char *curPtr;
     const char *endPtr = aBuf + aLen;
 
-    for (curPtr = aBuf; curPtr < endPtr; ++curPtr) {
-        char cur = *curPtr;
+    for (const char *curPtr = aBuf; curPtr < endPtr; ++curPtr) {
+        const char cur = *curPtr;
         if (cur == ' ') { // We stand on a space - a word just ended
             if (mBeforePrev != ' ') { // *(curPtr-2) was not a space so prev is not a 1 letter word
                 if (isFinal(mPrev)) { // case (1) [-2:not space][-1:final letter][cur:space]
@@ -125,7 +125,7 @@ nsProbingState nsHebrewProber::HandleData(const char *aBuf, unsigned int aLen)
 float nsHebrewProber::GetConfidence()
 {
     if (GetState() == eNotMe) {
-        return 0.01f;
+        return 0.0f;
     }
 
     int finalsub = mFinalCharLogicalScore - mFinalCharVisualScore;
@@ -180,12 +180,14 @@ nsProbingState nsHebrewProber::GetState(void)
     return eDetecting;
 }
 
-#ifdef DEBUG_PROBE
-void nsHebrewProber::DumpStatus()
+std::string nsHebrewProber::StatusOutput(uint8_t indent)
 {
-    printf("  HEB: [%.3f] %d - %d [Logical-Visual score]:\r\n", GetConfidence(), mFinalCharLogicalScore, mFinalCharVisualScore);
-    mLogicalProb->DumpStatus();
-    mVisualProb->DumpStatus();
+    indent += 2;
+    auto output = std::format("{:1.3f} [HEB] {} -- {}", GetConfidence(), mFinalCharLogicalScore, mFinalCharVisualScore);
+    output += '\n' + std::string(indent, ' ') + "  Log: ";
+    output += mLogicalProb->StatusOutput(indent);
+    output += '\n' + std::string(indent, ' ') + "  Vis: ";
+    output += mVisualProb->StatusOutput(indent);
+    return output;
 }
-#endif
 }

@@ -1,15 +1,3 @@
-find_package(X11)
-set_package_properties(X11 PROPERTIES DESCRIPTION "Required for updating the Cursor theme on X11"
-                        URL "https://www.x.org"
-                        TYPE REQUIRED
-                        )
-set(HAVE_X11 ${X11_FOUND})
-if(HAVE_X11)
-
-  find_package(XCB COMPONENTS XCB)
-  set_package_properties(XCB PROPERTIES TYPE REQUIRED)
-endif()
-
 configure_file(config-platformtheme.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-platformtheme.h )
 
 set(platformtheme_SRCS
@@ -18,11 +6,10 @@ set(platformtheme_SRCS
     khintssettings.cpp khintssettings.h
     kdeplatformfiledialoghelper.cpp kdeplatformfiledialoghelper.h
     kdeplatformfiledialogbase.cpp
+    kdeplatformmessagedialoghelper.cpp kdeplatformmessagedialoghelper.h
+    kdeplatformcolordialoghelper.cpp kdeplatformcolordialoghelper.h
     kdeplatformsystemtrayicon.cpp kdeplatformsystemtrayicon.h
-    kfiletreeview.cpp
-    kdirselectdialog.cpp
     kwaylandintegration.cpp kwaylandintegration.h
-    x11integration.cpp x11integration.h
     main.cpp
     qxdgdesktopportalfiledialog.cpp
     qtquickrenderersettings.cpp
@@ -32,6 +19,12 @@ set(platformtheme_SRCS
     kioopenwithxdp.cpp
 )
 
+if(WITH_X11)
+    list(APPEND platformtheme_SRCS
+        x11integration.cpp x11integration.h
+    )
+endif()
+
 qt6_add_dbus_interface(platformtheme_SRCS org.kde.StatusNotifierWatcher.xml statusnotifierwatcher_interface)
 kconfig_add_kcfg_files(platformtheme_SRCS renderersettings.kcfgc)
 add_library(KDEPlasmaPlatformTheme6 MODULE)
@@ -39,21 +32,11 @@ add_library(KDEPlasmaPlatformTheme6 MODULE)
 # TODO KF6 Port D-Bus menu support
 target_compile_definitions(KDEPlasmaPlatformTheme6 PRIVATE -DKF6_TODO_DBUS_MENUBAR)
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL "6.8.0")
-    set(private_code_option  "PRIVATE_CODE")
-endif()
 qt6_generate_wayland_protocol_client_sources(KDEPlasmaPlatformTheme6
-    ${private_code_option}
+    PRIVATE_CODE
     FILES
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/server-decoration-palette.xml
 )
-if (Qt6_VERSION VERSION_LESS "6.9.0")
-    qt6_generate_wayland_protocol_client_sources(KDEPlasmaPlatformTheme6
-        ${private_code_option}
-        FILES
-            ${PLASMA_WAYLAND_PROTOCOLS_DIR}/appmenu.xml
-    )
-endif()
 
 target_sources(KDEPlasmaPlatformTheme6 PRIVATE ${platformtheme_SRCS})
 
@@ -71,21 +54,18 @@ target_link_libraries(KDEPlasmaPlatformTheme6
         KF6::KIOWidgets
         KF6::KIOGui
         KF6::StatusNotifierItem
-        KF6::XmlGui
         KF6::I18n
         KF6::Notifications
         KF6::WindowSystem
         KF6::GuiAddons
-        XCB::XCB
         Qt6::WaylandClient
-        Qt6::GuiPrivate
         Wayland::Client
 )
 
 target_link_libraries(KDEPlasmaPlatformTheme6 PRIVATE KF6::ColorScheme)
 
-if(HAVE_X11)
-  target_link_libraries(KDEPlasmaPlatformTheme6 PRIVATE ${X11_Xcursor_LIB} ${XCB_XCB_LIBRARY})
+if(WITH_X11)
+    target_link_libraries(KDEPlasmaPlatformTheme6 PRIVATE X11::Xcursor XCB::XCB)
 endif()
 
 set_target_properties(KDEPlasmaPlatformTheme6 PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/platformthemes/")

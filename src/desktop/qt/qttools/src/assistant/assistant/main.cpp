@@ -6,7 +6,6 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QLibraryInfo>
 #include <QtCore/QLocale>
-#include <QtCore/QScopedPointer>
 #include <QtCore/QStringList>
 #include <QtCore/QTranslator>
 #include <QtCore/QUrl>
@@ -28,6 +27,8 @@
 #include "helpenginewrapper.h"
 #include "mainwindow.h"
 #include "cmdlineparser.h"
+
+#include <memory>
 
 // #define TRACING_REQUESTED
 
@@ -223,11 +224,13 @@ void setupTranslation(const QString &fileName, const QString &dir)
 void setupTranslations()
 {
     TRACE_OBJ
-    const QString &resourceDir
-        = QLibraryInfo::path(QLibraryInfo::TranslationsPath);
-    setupTranslation("assistant"_L1, resourceDir);
-    setupTranslation("qt"_L1, resourceDir);
-    setupTranslation("qt_help"_L1, resourceDir);
+    const QStringList resourceDirs
+            = QLibraryInfo::paths(QLibraryInfo::TranslationsPath);
+    for (const QString &resourceDir : resourceDirs) {
+        setupTranslation("assistant"_L1, resourceDir);
+        setupTranslation("qt"_L1, resourceDir);
+        setupTranslation("qt_help"_L1, resourceDir);
+    }
 }
 
 } // Anonymous namespace.
@@ -247,7 +250,7 @@ static ExitStatus preliminarySetup(CmdLineParser *cmd)
      */
     const QString collectionFile = cmd->collectionFile();
     const bool collectionFileGiven = !collectionFile.isEmpty();
-    QScopedPointer<QHelpEngineCore> collection;
+    std::unique_ptr<QHelpEngineCore> collection;
     if (collectionFileGiven) {
         collection.reset(new QHelpEngineCore(collectionFile));
         if (!collection->setupData()) {
@@ -337,7 +340,7 @@ static ExitStatus preliminarySetup(CmdLineParser *cmd)
 int main(int argc, char *argv[])
 {
     TRACE_OBJ
-    QScopedPointer<QCoreApplication> a(createApplication(argc, argv));
+    std::unique_ptr<QCoreApplication> a(createApplication(argc, argv));
 #if QT_CONFIG(library)
     a->addLibraryPath(a->applicationDirPath() + "/plugins"_L1);
 #endif

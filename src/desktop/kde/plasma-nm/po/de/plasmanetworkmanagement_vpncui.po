@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2013-2016, 2021 Burkhard Lück <lueck@hube-lueck.de>
 # SPDX-FileCopyrightText: 2014, 2016, 2023 Frederik Schwarzer <schwarzer@kde.org>
 # SPDX-FileCopyrightText: 2023 Jannick Kuhr <kde-dev@kuhr.org>
-# SPDX-FileCopyrightText: 2025 Philipp Kiemle <l10n.daphipz@fastmail.de>
+# SPDX-FileCopyrightText: 2025-2026 Philipp Kiemle <l10n.daphipz@fastmail.de>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasmanetworkmanagement_vpncui\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-11-29 17:39+0100\n"
+"POT-Creation-Date: 2026-02-01 00:45+0000\n"
+"PO-Revision-Date: 2026-09-28 18:28+0200\n"
 "Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
@@ -15,25 +15,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 
-#: vpnc.cpp:73
-#, kde-format
-msgid "Error decrypting the obfuscated password"
-msgstr "Fehler bei der Entschlüsselung des verschleierten Passworts"
-
-#: vpnc.cpp:73
-#, kde-format
-msgid "Error"
-msgstr "Fehler"
-
-#: vpnc.cpp:118
+#: vpnc.cpp:70
 #, kde-format
 msgid "NetworkManager is missing support for Cisco Compatible VPN"
 msgstr ""
 "NetworkManager fehlt die Unterstützung für Cisco-compatible VPN-Verbindungen"
 
-#: vpnc.cpp:146
+#: vpnc.cpp:98
 #, kde-format
 msgid "%1: file could not be created"
 msgstr "%1: Datei kann nicht erstellt werden"
@@ -108,7 +98,7 @@ msgstr "Gruppenpasswort:"
 msgid ""
 "Enable hybrid authentication, i.e. use certificate in addition to password."
 msgstr ""
-"Hybride Authentifizierung aktivieren, d. h. Zertifikat zusätzlich zum "
+"Hybride Authentifizierung aktivieren, d. h. Zertifikat zusätzlich zum "
 "Passwort verwenden."
 
 #. i18n: ectx: property (text), widget (QCheckBox, useHybridAuth)
@@ -211,7 +201,7 @@ msgstr "Name der IKE-DH-Gruppe."
 #: vpncadvanced.ui:151
 #, kde-format
 msgid "Perfect Forward Secrecy:"
-msgstr "Folgenlosigkeit:"
+msgstr "Perfect Forward Secrecy:"
 
 #. i18n: ectx: property (toolTip), widget (QComboBox, pfs)
 #: vpncadvanced.ui:167
@@ -395,6 +385,12 @@ msgstr "Benutzername:"
 #, kde-format
 msgid "Group name."
 msgstr "Gruppenname"
+
+#~ msgid "Error decrypting the obfuscated password"
+#~ msgstr "Fehler bei der Entschlüsselung des verschleierten Passworts"
+
+#~ msgid "Error"
+#~ msgstr "Fehler"
 
 #~ msgid "*.pem *.crt *.cer"
 #~ msgstr "*.pem *.crt *.cer"

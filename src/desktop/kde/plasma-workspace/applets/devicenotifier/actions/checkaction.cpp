@@ -10,20 +10,19 @@
 
 #include <KLocalizedString>
 
-#include "devicestatemonitor_p.h"
+#include "stateinfo.h"
 
-CheckAction::CheckAction(const QString &udi, QObject *parent)
-    : ActionInterface(udi, parent)
-    , m_stateMonitor(DevicesStateMonitor::instance())
+CheckAction::CheckAction(const std::shared_ptr<StorageInfo> &storageInfo, const std::shared_ptr<StateInfo> &stateInfo, QObject *parent)
+    : ActionInterface(storageInfo, stateInfo, parent)
 {
-    Solid::Device device(udi);
+    const Solid::Device &device = m_storageInfo->device();
 
     // It's possible for there to be no StorageAccess (e.g. MTP devices don't have one)
     if (device.is<Solid::StorageAccess>()) {
         auto *access = device.as<Solid::StorageAccess>();
         if (access) {
             qCDebug(APPLETS::DEVICENOTIFIER) << "Check action: have storage access";
-            connect(m_stateMonitor.get(), &DevicesStateMonitor::stateChanged, this, &CheckAction::updateIsValid);
+            connect(m_stateInfo.get(), &StateInfo::stateChanged, this, &CheckAction::updateIsValid);
         }
     }
 }
@@ -34,7 +33,7 @@ void CheckAction::triggered()
 {
     qCDebug(APPLETS::DEVICENOTIFIER) << "Check Action: Triggered! Begin checking";
 
-    Solid::Device device(m_udi);
+    Solid::Device device = m_storageInfo->device();
 
     if (device.is<Solid::StorageAccess>()) {
         auto *access = device.as<Solid::StorageAccess>();
@@ -46,11 +45,11 @@ void CheckAction::triggered()
 
 bool CheckAction::isValid() const
 {
-    Solid::Device device(m_udi);
+    const Solid::Device &device = m_storageInfo->device();
 
     if (device.is<Solid::StorageAccess>()) {
-        auto *access = device.as<Solid::StorageAccess>();
-        if (access && access->canCheck() && !access->isAccessible() && !m_stateMonitor->isChecked(m_udi)) {
+        auto access = device.as<Solid::StorageAccess>();
+        if (access && access->canCheck() && !access->isAccessible() && !m_stateInfo->isChecked()) {
             return true;
         }
     }
@@ -74,7 +73,7 @@ QString CheckAction::text() const
 
 void CheckAction::updateIsValid(const QString &udi)
 {
-    if (udi == m_udi) {
-        Q_EMIT isValidChanged(name(), isValid());
-    }
+    Q_UNUSED(udi);
+
+    Q_EMIT isValidChanged(name(), isValid());
 }

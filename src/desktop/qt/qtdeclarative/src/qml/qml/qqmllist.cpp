@@ -4,7 +4,10 @@
 
 #include "qqmllist.h"
 #include "qqmllist_p.h"
-#include <QtQml/private/qqmlproperty_p.h>
+
+#include <private/qqmlcontextdata_p.h>
+#include <private/qqmlproperty_p.h>
+#include <private/qqmlpropertycache_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -468,8 +471,9 @@ declarative will look like this:
 Q_PROPERTY(QQmlListProperty<Fruit> fruit READ fruit)
 \endcode
 
-QML list properties are type-safe - in this case \c {Fruit} is a QObject type that
-\c {Apple}, \c {Orange} and \c {Banana} all derive from.
+QML list properties are type-safe. The template parameter \a T specifies the
+QObject-derived type that can be stored in the list. In this case \c {Fruit}
+is a QObject type that \c {Apple}, \c {Orange} and \c {Banana} all derive from.
 
 You can use \l{QQmlListReference} to manipulate a QQmlListProperty from C++ using
 a slightly more ergonomic API, at the cost of some overhead.
@@ -596,7 +600,7 @@ you should explicitly provide these methods.
         RemoveLastFunction removeLast)
 
 Construct a QQmlListProperty from a set of operation functions \a append,
-\a count, \a at, \a clear, \a replace, and \removeLast. An opaque \a data handle
+\a count, \a at, \a clear, \a replace, and \a removeLast. An opaque \a data handle
 may be passed which can be accessed from within the operation functions. The
 list property remains valid while the \a object owning the list property
 exists.

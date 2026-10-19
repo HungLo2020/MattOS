@@ -3,13 +3,13 @@
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# SPDX-FileCopyrightText: 2020, 2021, 2023, 2024, 2025 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2020-2021, 2023-2025 Josep M. Ferrer <txemaq@gmail.com>
 # SPDX-FileCopyrightText: 2019 Empar Montoro Martín <montoro_mde@gva.es>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-21 02:43+0000\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
 "PO-Revision-Date: 2025-11-22 07:50+0100\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
@@ -72,7 +72,7 @@ msgstr "Error en comunicar amb el servei de dreceres globals"
 msgid "Failed to communicate with global shortcuts daemon"
 msgstr "Ha fallat en comunicar amb el domini de dreceres globals"
 
-#: kcm_keys.cpp:373
+#: kcm_keys.cpp:380
 #, kde-kuit-format
 msgctxt ""
 "@info %2 is the name of a category inside the 'Common Actions' section"
@@ -83,7 +83,7 @@ msgstr ""
 "La drecera <shortcut>%1</shortcut> ja està assignada a l'acció %2 comuna "
 "<interface>%3</interface>.<nl/><nl/>La voleu reassignar a %4?"
 
-#: kcm_keys.cpp:379
+#: kcm_keys.cpp:386
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -95,13 +95,13 @@ msgstr ""
 "%2</interface> de <application>%3</application>.<nl/><nl/>La reassigno a "
 "l'acció <interface>%4</interface> de <application>%5</application>?"
 
-#: kcm_keys.cpp:388
+#: kcm_keys.cpp:396
 #, kde-format
 msgctxt "@title:window"
 msgid "Resolve Shortcut Conflict"
 msgstr "Resolució de conflicte de dreceres"
 
-#: kcm_keys.cpp:398
+#: kcm_keys.cpp:406
 #, kde-format
 msgctxt "@action:button"
 msgid "Reassign"
@@ -256,153 +256,153 @@ msgctxt "@action:button %1 is the name of a custom command"
 msgid "Edit command for %1"
 msgstr "Edita l'ordre per a %1"
 
-#: ui/main.qml:266
+#: ui/main.qml:268
 #, kde-format
 msgctxt "@action:button %1 is the name of a shortcut category"
 msgid "Remove all shortcuts for %1"
 msgstr "Elimina totes les dreceres per a %1"
 
-#: ui/main.qml:288
+#: ui/main.qml:290
 #, kde-format
 msgctxt "@action:button"
 msgid "Undo deletion"
 msgstr "Desfés la supressió"
 
-#: ui/main.qml:355
+#: ui/main.qml:357
 #, kde-format
 msgctxt "@info:status placeholdermessage"
 msgid "No items matched the search terms"
 msgstr "No hi ha cap element que coincideixi amb els termes de la cerca"
 
-#: ui/main.qml:372
+#: ui/main.qml:374
 #, kde-format
 msgctxt "@info"
 msgid "These shortcuts will be deleted when changes are applied."
 msgstr "Aquestes dreceres se suprimiran quan s'apliquin els canvis."
 
-#: ui/main.qml:376
+#: ui/main.qml:378
 #, kde-format
 msgctxt "@action:button"
 msgid "Undo"
 msgstr "Desfés"
 
-#: ui/main.qml:377
+#: ui/main.qml:379
 #, kde-format
 msgctxt "@action:button"
 msgid "Undo deleting shortcuts"
 msgstr "Desfà la supressió de dreceres"
 
-#: ui/main.qml:413
+#: ui/main.qml:422
 #, kde-format
 msgctxt "@info:usagetip placeholdermessage"
 msgid "Select an item from the list to view its shortcuts here"
 msgstr ""
 "Seleccioneu un element de la llista per a veure aquí les seves dreceres"
 
-#: ui/main.qml:426
+#: ui/main.qml:435
 #, kde-format
 msgctxt "@title:window dialog"
 msgid "Export Shortcut Scheme"
 msgstr "Exporta un esquema de dreceres"
 
-#: ui/main.qml:426 ui/main.qml:558
+#: ui/main.qml:435 ui/main.qml:567
 #, kde-format
 msgctxt "@title:window dialog"
 msgid "Import Shortcut Scheme"
 msgstr "Importa un esquema de dreceres"
 
-#: ui/main.qml:428
+#: ui/main.qml:437
 #, kde-format
 msgctxt "Template for file dialog"
 msgid "Shortcut Scheme (*.kksrc)"
 msgstr "Esquema de dreceres (*.kksrc)"
 
-#: ui/main.qml:455
+#: ui/main.qml:464
 #, kde-format
 msgctxt "@title:window dialog"
 msgid "Edit Command"
 msgstr "Edita una ordre"
 
-#: ui/main.qml:455
+#: ui/main.qml:464
 #, kde-format
 msgctxt "@title:window dialog"
 msgid "Add Command"
 msgstr "Afegeix una ordre"
 
-#: ui/main.qml:472
+#: ui/main.qml:481
 #, kde-format
 msgctxt "@action:button in dialog, save changes to custom command"
 msgid "Save"
 msgstr "Desa"
 
-#: ui/main.qml:472
+#: ui/main.qml:481
 #, kde-format
 msgctxt "@action:button in dialog, add entry as new custom command"
 msgid "Add"
 msgstr "Afegeix"
 
-#: ui/main.qml:474
+#: ui/main.qml:483
 #, kde-format
 msgctxt "@action:button accessible"
 msgid "Save command"
 msgstr "Ordre de desar"
 
-#: ui/main.qml:475
+#: ui/main.qml:484
 #, kde-format
 msgctxt "@action:button accessible"
 msgid "Add command"
 msgstr "Ordre d'afegir"
 
-#: ui/main.qml:497
+#: ui/main.qml:506
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "Enter a command or choose a script file:"
 msgstr "Introduïu una ordre o trieu un fitxer de script:"
 
-#: ui/main.qml:506
+#: ui/main.qml:515
 #, kde-format
 msgctxt "@label:textbox A shell command"
 msgid "Command:"
 msgstr "Ordre:"
 
-#: ui/main.qml:512
+#: ui/main.qml:521
 #, kde-format
 msgctxt "@label:textbox accessible"
 msgid "Command"
 msgstr "Ordre"
 
-#: ui/main.qml:519
+#: ui/main.qml:528
 #, kde-format
 msgctxt "@action:button"
 msgid "Choose…"
 msgstr "Trieu…"
 
-#: ui/main.qml:520
+#: ui/main.qml:529
 #, kde-format
 msgctxt "@action:button accessible"
 msgid "Choose script file"
 msgstr "Trieu un fitxer de script"
 
-#: ui/main.qml:528
+#: ui/main.qml:537
 #, kde-format
 msgctxt "@label:textfield Human-readable name given to a shell command"
 msgid "Name:"
 msgstr "Nom:"
 
-#: ui/main.qml:529
+#: ui/main.qml:538
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "Enter name here"
 msgstr "Introduïu aquí el nom"
 
-#: ui/main.qml:541
+#: ui/main.qml:550
 #, kde-format
 msgctxt "@title:window"
 msgid "Choose Script File"
 msgstr "Tria d'un fitxer de script"
 
 # skip-rule: rst-asterisk1
-#: ui/main.qml:543
+#: ui/main.qml:552
 #, kde-format
 msgctxt ""
 "Filename filters for file dialog. Do not translate any of the filename "
@@ -410,37 +410,37 @@ msgctxt ""
 msgid "Script files (.sh, .bash, .zsh, etc.) (*.*sh)"
 msgstr "Fitxers de script (.sh, .bash, .zsh, etc.) (*.*sh)"
 
-#: ui/main.qml:566
+#: ui/main.qml:575
 #, kde-format
 msgctxt "@label:listbox regarding 'shortcut schemes'"
 msgid "Select the scheme to import:"
 msgstr "Seleccioneu l'esquema a importar:"
 
-#: ui/main.qml:585
+#: ui/main.qml:594
 #, kde-format
 msgctxt "@item:inlistbox regarding 'shortcut schemes'"
 msgid "Custom Scheme"
 msgstr "Esquema personalitzat"
 
-#: ui/main.qml:593
+#: ui/main.qml:602
 #, kde-format
 msgctxt "@action:button"
 msgid "Select File…"
 msgstr "Selecciona un fitxer…"
 
-#: ui/main.qml:593
+#: ui/main.qml:602
 #, kde-format
 msgctxt "@action:button import shortcut scheme"
 msgid "Import"
 msgstr "Importa"
 
-#: ui/main.qml:595
+#: ui/main.qml:604
 #, kde-format
 msgctxt "@action:button accessible"
 msgid "Select shortcut scheme file"
 msgstr "Selecciona un fitxer d'esquema de dreceres"
 
-#: ui/main.qml:596
+#: ui/main.qml:605
 #, kde-format
 msgctxt "@action:button accessible"
 msgid "Add shortcut scheme"
@@ -478,7 +478,7 @@ msgctxt "@info:status"
 msgid "No active shortcuts"
 msgstr "Cap drecera activa"
 
-#: ui/ShortcutActionDelegate.qml:135
+#: ui/ShortcutActionDelegate.qml:136
 #, kde-format
 msgctxt "@title:column %1 decides if singular or plural will be used"
 msgid "Default shortcut"
@@ -486,50 +486,90 @@ msgid_plural "Default shortcuts"
 msgstr[0] "Drecera predeterminada"
 msgstr[1] "Dreceres predeterminades"
 
-#: ui/ShortcutActionDelegate.qml:137
+#: ui/ShortcutActionDelegate.qml:138
 #, kde-format
 msgctxt "@label for shortcut with no default bindings"
 msgid "No default shortcuts"
 msgstr "Sense dreceres predeterminades"
 
-#: ui/ShortcutActionDelegate.qml:146
-#, kde-format
-msgctxt "@info:whatsthis accessible name"
-msgid "Default shortcut %1 is enabled."
-msgstr "La drecera predeterminada %1 està activada."
-
-#: ui/ShortcutActionDelegate.qml:146
-#, kde-format
-msgctxt "@info:whatsthis accessible name"
-msgid "Default shortcut %1 is disabled."
-msgstr "La drecera predeterminada %1 està desactivada."
-
-#: ui/ShortcutActionDelegate.qml:169
+#: ui/ShortcutActionDelegate.qml:147
 #, kde-format
 msgctxt "@title:column"
 msgid "Custom shortcuts"
 msgstr "Dreceres personalitzades"
 
-#: ui/ShortcutActionDelegate.qml:196
+#: ui/ShortcutActionDelegate.qml:172
+#, kde-format
+msgctxt "@info:whatsthis accessible name"
+msgid "Default shortcut %1 is enabled."
+msgstr "La drecera predeterminada %1 està activada."
+
+#: ui/ShortcutActionDelegate.qml:172
+#, kde-format
+msgctxt "@info:whatsthis accessible name"
+msgid "Default shortcut %1 is disabled."
+msgstr "La drecera predeterminada %1 està desactivada."
+
+#: ui/ShortcutActionDelegate.qml:223
 #, kde-format
 msgctxt "@action:button accessible"
 msgid "Delete shortcut"
 msgstr "Suprimeix la drecera"
 
-#: ui/ShortcutActionDelegate.qml:207
+#: ui/ShortcutActionDelegate.qml:234
 #, kde-format
 msgctxt "@action:button Add custom shortcut"
 msgid "Add…"
 msgstr "Afegeix…"
 
-#: ui/ShortcutActionDelegate.qml:208
+#: ui/ShortcutActionDelegate.qml:235
 #, kde-format
 msgctxt "@action:button accessible"
 msgid "Add custom shortcut"
 msgstr "Afegeix una drecera personalitzada"
 
-#: ui/ShortcutActionDelegate.qml:244
+#: ui/ShortcutActionDelegate.qml:271
 #, kde-format
 msgctxt "@action:button accessible"
 msgid "Cancel capturing shortcut"
 msgstr "Cancel·la la captura de la drecera"
+
+#~ msgctxt "@info:tooltip %1 is the text of a custom command"
+#~ msgid "Edit command for %1"
+#~ msgstr "Edita l'ordre per a %1"
+
+#~ msgctxt "@info:tooltip %1 is the text of a shortcut category"
+#~ msgid "Remove all shortcuts for %1"
+#~ msgstr "Elimina totes les dreceres per a %1"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Undo deletion"
+#~ msgstr "Desfà la supressió"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Delete this shortcut"
+#~ msgstr "Suprimeix aquesta drecera"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Cancel capturing of new shortcut"
+#~ msgstr "Cancel·la la captura d'una drecera nova"
+
+# skip-rule: rst-asterisk1
+#~ msgctxt "Template for file dialog"
+#~ msgid "Script file (*.*sh)"
+#~ msgstr "Fitxer de script (*.*sh)"
+
+#~ msgctxt "@action:button Save shortcut scheme"
+#~ msgid "Save Scheme"
+#~ msgstr "Desa l'esquema"
+
+#~ msgid ""
+#~ "Shortcut %1 is already assigned to action '%2' of %3.\n"
+#~ "Do you want to reassign it?"
+#~ msgstr ""
+#~ "La drecera %1 ja està assignada a l'acció «%2 de %3»\n"
+#~ "La voleu reassignar?"
+
+#~ msgctxt "@title:window"
+#~ msgid "Found conflict"
+#~ msgstr "S'ha trobat un conflicte"

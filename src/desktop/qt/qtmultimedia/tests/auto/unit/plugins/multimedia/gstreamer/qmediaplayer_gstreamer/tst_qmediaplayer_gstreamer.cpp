@@ -5,21 +5,20 @@
 
 #include <QtTest/qtest.h>
 #include <QtMultimedia/private/qmediaplayer_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
-#include <private/qscopedenvironmentvariable_p.h>
-
+#include <QtMultimediaTestLib/private/qscopedenvironmentvariable_p.h>
 
 using namespace Qt::Literals;
 
-QGStreamerPlatformSpecificInterface *tst_QMediaPlayerGStreamer::gstInterface()
+QGStreamerInterface *tst_QMediaPlayerGStreamer::gstInterface()
 {
-    return dynamic_cast<QGStreamerPlatformSpecificInterface *>(
-            QPlatformMediaIntegration::instance()->platformSpecificInterface());
+    return QPlatformMediaIntegration::instance()->gstreamerInterface();
 }
 
 GstPipeline *tst_QMediaPlayerGStreamer::getGstPipeline()
 {
-    QGStreamerPlatformSpecificInterface *iface = gstInterface();
+    QGStreamerInterface *iface = gstInterface();
     return iface ? iface->gstPipeline(player.get()) : nullptr;
 }
 

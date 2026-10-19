@@ -1,0 +1,73 @@
+[Desktop Entry]
+Charset=
+Hidden=false
+Keys=zdf
+Name=ZDF Mediathek
+Name[ar]=ZDF Mediathek
+Name[az]=ZDF Mediathek
+Name[bg]=ZDF Mediathek
+Name[ca]=ZDF Mediathek
+Name[ca@valencia]=ZDF Mediathek
+Name[cs]=ZDF Mediathek
+Name[de]=ZDF Mediathek
+Name[es]=ZDF Mediathek
+Name[eu]=ZDF Mediathek
+Name[fr]=Médiathèque ZDF
+Name[he]=ZDF Mediathek
+Name[hr]=ZDF Mediathek
+Name[hu]=ZDF Mediathek
+Name[ia]=ZDF Mediathek
+Name[is]=ZDF Mediathek
+Name[it]=ZDF Mediathek
+Name[ka]=ZDF Mediathek
+Name[ko]=ZDF Mediathek
+Name[lt]=ZDF Mediathek
+Name[nan_TW]=ZDF Mediathek
+Name[nan_TW@latin]=ZDF Mediathek
+Name[nl]=ZDF Mediatiek
+Name[nn]=ZDF Mediathek
+Name[pl]=Mediateka ZDF
+Name[pt_BR]=ZDF Mediathek
+Name[ru]=ZDF Mediathek
+Name[sk]=ZDF Mediathek
+Name[sl]=ZDF Mediathek
+Name[sv]=ZDF Mediathek
+Name[tr]=ZDF Mediathek
+Name[uk]=ZDF Mediathek
+Name[zh_CN]=ZDF Mediathek
+Name[zh_TW]=ZDF Mediathek
+Query=https://www.zdf.de/suche?q=\\{@}
+Query[ar]=https://www.zdf.de/suche?q=\\{@}
+Query[az]=https://www.zdf.de/suche?q=\\{@}
+Query[bg]=https://www.zdf.de/suche?q=\\{@}
+Query[ca]=https://www.zdf.de/suche?q=\\{@}
+Query[ca@valencia]=https://www.zdf.de/suche?q=\\{@}
+Query[cs]=https://www.zdf.de/suche?q=\\{@}
+Query[de]=https://www.zdf.de/suche?q=\\{@}
+Query[es]=https://www.zdf.de/suche?q=\\{@}
+Query[eu]=https://www.zdf.de/suche?q=\\{@}
+Query[fr]=https://www.zdf.de/suche?q=\\{@}
+Query[he]=https://www.zdf.de/suche?q=\\{@}
+Query[hr]=https://www.zdf.de/suche?q=\\{@}
+Query[hu]=https://www.zdf.de/suche?q=\\{@}
+Query[ia]=https://www.zdf.de/suche?q=\\{@}
+Query[is]=https://www.zdf.de/suche?q=\\{@}
+Query[it]=https://www.zdf.de/suche?q=\\{@}
+Query[ka]=https://www.zdf.de/suche?q=\\{@}
+Query[ko]=https://www.zdf.de/suche?q=\\{@}
+Query[lt]=https://www.zdf.de/suche?q=\\{@}
+Query[nan_TW]=https://www.zdf.de/suche?q=\\{@}
+Query[nan_TW@latin]=https://www.zdf.de/suche?q=\\{@}
+Query[nl]=https://www.zdf.de/suche?q=\\{@}
+Query[nn]=https://www.zdf.de/suche?q=\\{@}
+Query[pl]=https://www.zdf.de/suche?q=\\{@}
+Query[pt_BR]=https://www.zdf.de/suche?q=\\{@}
+Query[ru]=https://www.zdf.de/suche?q=\\{@}
+Query[sk]=https://www.zdf.de/suche?q=\\{@}
+Query[sl]=https://www.zdf.de/suche?q=\\{@}
+Query[sv]=https://www.zdf.de/suche?q=\\{@}
+Query[tr]=https://www.zdf.de/suche?q=\\{@}
+Query[uk]=https://www.zdf.de/suche?q=\\{@}
+Query[zh_CN]=https://www.zdf.de/suche?q=\\{@}
+Query[zh_TW]=https://www.zdf.de/suche?q=\\{@}
+Type=Service

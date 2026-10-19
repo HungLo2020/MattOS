@@ -5,6 +5,9 @@ instructions:
   - !include "{{qt/qtbase}}/prepare_source_sbom_check.yaml"
   - type: Group
     instructions:
+      # Build a custom cmake if the feature is set.
+      - !include "{{qt/qtbase}}/coin_build_custom_cmake_checked.yaml"
+
       - !include "{{qt/qtbase}}/cmake_qtbase_build_instructions.yaml"
       - !include "{{qt/qtbase}}/cmake_build_and_upload_test_artifacts_host.yaml"
     enable_if:
@@ -15,7 +18,7 @@ instructions:
           equals_property: target.os
         - condition: property
           property: target.osVersion
-          not_in_values: [QEMU, IMX8, WebAssembly, INTEGRITY, VxWorks]
+          not_in_values: [HarmonyOS_ANY, QEMU, IMX8, WebAssembly, INTEGRITY, VxWorks]
         - condition: property
           property: features
           not_contains_value: "TargetBuildOnly"
@@ -24,6 +27,9 @@ instructions:
           not_contains_value: "DebianPackaging"
   - type: Group
     instructions:
+      # Fetch a custom built cmake if the feature is set.
+      - !include "{{qt/qtbase}}/coin_fetch_custom_cmake_checked.yaml"
+
       - type: Group
         instructions:
           - !include "{{qt/qtbase}}/cmake_cross_compilation_qtbase_build_instructions.yaml"
@@ -43,7 +49,7 @@ instructions:
       conditions:
         - condition: property
           property: target.osVersion
-          in_values: [Android_ANY, QEMU, IMX8, IOS_ANY, QNX_710, QNX_800, WebAssembly, INTEGRITY, VxWorks]
+          in_values: [HarmonyOS_ANY, Android_ANY, QEMU, IMX8, IOS_ANY, QNX_710, QNX_800, WebAssembly, INTEGRITY, VxWorks]
         - condition: and
           conditions:
             - condition: property

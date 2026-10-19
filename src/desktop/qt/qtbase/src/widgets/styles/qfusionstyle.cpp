@@ -57,6 +57,10 @@
 #include <private/qapplication_p.h>
 #include <private/qwidget_p.h>
 
+#include <QtGui/qstylehints.h>
+
+#include <QtCore/qoperatingsystemversion.h>
+
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
@@ -3211,7 +3215,9 @@ int QFusionStyle::styleHint(StyleHint hint, const QStyleOption *option, const QW
         return Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse;
 #if QT_CONFIG(wizard)
     case SH_WizardStyle:
-        return QWizard::ClassicStyle;
+        return QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Windows
+                        && QGuiApplication::styleHints()->colorScheme() != Qt::ColorScheme::Dark
+                ? QWizard::AeroStyle : QWizard::ClassicStyle;
 #endif
     case SH_Menu_SubMenuPopupDelay:
         return 225; // default from GtkMenu

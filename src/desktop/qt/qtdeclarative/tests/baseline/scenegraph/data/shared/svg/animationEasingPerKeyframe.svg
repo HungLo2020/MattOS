@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="350" height="150">
+  <style>
+  @keyframes translate {
+    0% {transform: translate(0, 0);}
+    100% {transform: translate(250px, 0);}
+  }
+  @keyframes translate2 {
+    0% {transform: translate(0, 0); animation-timing-function: linear;}
+    100% {transform: translate(250px, 0);}
+  }
+  #perAnimation {
+  animation-duration: 500ms;
+  animation-name: translate;
+  animation-iteration-count: infinite;
+  }
+  #perKeyframe {
+  animation-duration: 500ms;
+  animation-name: translate2;
+  animation-iteration-count: infinite;
+  }
+  </style>
+  <circle id="perAnimation" cx="50" cy="20" r="15" fill="orange" stroke="grey" stroke-width="3"/>
+  <circle id="perKeyframe" cx="50" cy="100" r="15" fill="orange" stroke="grey" stroke-width="3"/>
+</svg>

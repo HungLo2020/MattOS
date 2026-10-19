@@ -79,7 +79,7 @@ KCM.ScrollViewKCM {
 
             contentItem: StackLayout {
                 Kirigami.TitleSubtitleWithActions {
-                    title: renameLayout.visible ? "" : model ? model.display : ""
+                    title: renameLayout.visible ? "" : model ? xi18nc("@label/rich", "%1", model.display) : ""
                     elide: Text.ElideRight
                     displayHint: QQC2.Button.IconOnly
                     actions: [
@@ -219,6 +219,20 @@ KCM.ScrollViewKCM {
                 }
             }
 
+            QQC2.CheckBox {
+                id: perOutputVirtualDesktops
+
+                text: i18n("Switch desktops independently for each screen")
+                enabled: !kcm.virtualDesktopsSettings.isImmutable("perOutputVirtualDesktops")
+                checked: kcm.virtualDesktopsSettings.perOutputVirtualDesktops
+                onToggled: kcm.virtualDesktopsSettings.perOutputVirtualDesktops = checked
+
+                KCM.SettingStateBinding {
+                    configObject: kcm.virtualDesktopsSettings
+                    settingName: "perOutputVirtualDesktops"
+                }
+            }
+
             RowLayout {
                 Layout.fillWidth: true
 
@@ -255,7 +269,7 @@ KCM.ScrollViewKCM {
 
                     icon.name: "configure"
 
-                    onClicked: kcm.configureAnimation()
+                    onClicked: kcm.configureAnimation(this)
                 }
 
                 QQC2.Button {
@@ -263,7 +277,7 @@ KCM.ScrollViewKCM {
 
                     icon.name: "dialog-information"
 
-                    onClicked: kcm.showAboutAnimation()
+                    onClicked: kcm.showAboutAnimation(this)
                 }
 
                 Item {

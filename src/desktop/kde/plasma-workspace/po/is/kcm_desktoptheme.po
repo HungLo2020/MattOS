@@ -2,16 +2,16 @@
 # Copyright (C) 2008 This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# Sveinn í Felli <sveinki@nett.is>, 2008, 2009, 2011, 2016, 2022.
+# SPDX-FileCopyrightText: 2008, 2009, 2011, 2016, 2022, 2026 Sveinn í Felli <sveinki@nett.is>
 # SPDX-FileCopyrightText: 2022, 2023, 2024 Guðmundur Erlingsson <gudmundure@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_desktopthemedetails\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-12-13 21:14+0000\n"
-"Last-Translator: Gummi <gudmundure@gmail.com>\n"
-"Language-Team: Icelandic <kde-i18n-doc@kde.org>\n"
+"POT-Creation-Date: 2026-03-27 00:47+0000\n"
+"PO-Revision-Date: 2026-03-10 14:32+0000\n"
+"Last-Translator: Sveinn í Felli <sv1@fellsnet.is>\n"
+"Language-Team: Icelandic\n"
 "Language: is\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -131,51 +131,68 @@ msgctxt "@item:inlistbox filters displayed themes"
 msgid "Color scheme compatible"
 msgstr "Samhæfð við litastef"
 
-#: ui/main.qml:130
+#: ui/main.qml:114
 #, kde-format
 msgid "Install from File…"
 msgstr "Setja upp úr skrá…"
 
-#: ui/main.qml:135
+#: ui/main.qml:119
 #, kde-format
 msgid "Get New…"
 msgstr "Sækja nýtt..."
 
-#: ui/main.qml:148
+#: ui/main.qml:132
 #, kde-format
 msgid "Follows color scheme"
 msgstr "Fylgir litastefi"
 
-#: ui/main.qml:166
+#: ui/main.qml:150
 #, kde-format
 msgid "Edit Theme…"
 msgstr "Breyta þema…"
 
-#: ui/main.qml:173
+#: ui/main.qml:158
 #, kde-format
-msgid "Remove Theme"
-msgstr "Fjarlægja þema"
+msgctxt "@info:tooltip"
+msgid "Remove Plasma style"
+msgstr "Fjarlægja Plasma-stíl"
 
-#: ui/main.qml:180
+#: ui/main.qml:160
 #, kde-format
-msgid "Restore Theme"
-msgstr "Endurheimta þema"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active Plasma style"
+msgstr "Get ekki eytt virkum stíl Plasma"
 
-#: ui/main.qml:199
+#: ui/main.qml:162
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed Plasma styles"
+msgstr "Get ekki eytt Plasma-stílum settum inn af kerfinu"
+
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this Plasma style"
+msgstr "Get ekki eytt þessum stíl Plasma"
+
+#: ui/main.qml:189
 #, kde-format
 msgid "Open Theme"
 msgstr "Opna þema"
 
-#: ui/main.qml:201
+#: ui/main.qml:191
 #, kde-format
 msgid "Theme Files (*.zip *.tar.gz *.tar.bz2)"
 msgstr "Þemuskrár (*.zip *.tar.gz *.tar.bz2)"
 
+#~ msgid "Remove Theme"
+#~ msgstr "Fjarlægja þema"
+
+#~ msgid "Restore Theme"
+#~ msgstr "Endurheimta þema"
+
 #~ msgid "Get New Plasma Styles…"
 #~ msgstr "Sækja nýja Plasma-stíla..."
-
-#~ msgid "This module lets you choose the Plasma style."
-#~ msgstr "Þessi eining gerir þér kleift að velja stíl Plasma."
 
 #~ msgctxt "NAME OF TRANSLATORS"
 #~ msgid "Your names"
@@ -184,11 +201,6 @@ msgstr "Þemuskrár (*.zip *.tar.gz *.tar.bz2)"
 #~ msgctxt "EMAIL OF TRANSLATORS"
 #~ msgid "Your emails"
 #~ msgstr "sv1@fellsnet.is"
-
-#, fuzzy
-#~| msgid "Get New Themes..."
-#~ msgid "Plasma Style"
-#~ msgstr "Sækja nýjar þemur..."
 
 #, fuzzy
 #~| msgid "Get New Themes..."

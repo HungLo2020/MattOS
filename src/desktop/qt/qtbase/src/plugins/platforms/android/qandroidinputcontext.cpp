@@ -391,10 +391,18 @@ static JNINativeMethod methods[] = {
     {"fullscreenMode", "()Z", (void *)fullscreenMode}
 };
 
+static QPlatformWindow *focusWindowHandle()
+{
+    QWindow *window = qGuiApp->focusWindow();
+    return window ? window->handle() : nullptr;
+}
+
 static QRect screenInputItemRectangle()
 {
-    QRect windowRect = QPlatformInputContext::inputItemRectangle().toRect();
-    QPlatformWindow *window = qGuiApp->focusWindow()->handle();
+    QPlatformWindow *window = focusWindowHandle();
+    if (!window)
+        return QRect();
+    const QRect windowRect = QPlatformInputContext::inputItemRectangle().toRect();
     return QRect(window->mapToGlobal(windowRect.topLeft()), windowRect.size());
 }
 
@@ -594,6 +602,14 @@ void QAndroidInputContext::updateCursorPosition()
     }
 }
 
+bool QAndroidInputContext::isImhNoEditMenuSet()
+{
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (query.isNull())
+        return false;
+    return query->value(Qt::ImHints).toUInt() & Qt::ImhNoEditMenu;
+}
+
 bool QAndroidInputContext::isImhNoTextHandlesSet()
 {
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
@@ -612,6 +628,10 @@ void QAndroidInputContext::updateSelectionHandles()
     if (noHandles || !m_focusObject)
         return;
 
+    QPlatformWindow *qPlatformWindow = focusWindowHandle();
+    if (!qPlatformWindow)
+        return;
+
     if (isImhNoTextHandlesSet()) {
         QtAndroidInput::updateHandles(Hidden);
         return;
@@ -628,7 +648,6 @@ void QAndroidInputContext::updateSelectionHandles()
     int anchor = query.value(Qt::ImAnchorPosition).toInt();
     const QVariant readOnlyVariant = query.value(Qt::ImReadOnly);
     bool readOnly = readOnlyVariant.toBool();
-    QPlatformWindow *qPlatformWindow = qGuiApp->focusWindow()->handle();
 
     if (!readOnly && ((m_handleMode & 0xff) == Hidden)) {
         QtAndroidInput::updateHandles(Hidden);
@@ -656,9 +675,13 @@ void QAndroidInputContext::updateSelectionHandles()
         QPoint editMenuPoint(x, y);
         m_handleMode &= ShowEditPopup;
         m_handleMode |= ShowCursor;
-        uint32_t buttons = readOnly ? 0 : EditContext::PasteButton;
-        if (!query.value(Qt::ImSurroundingText).toString().isEmpty())
-            buttons |= EditContext::SelectAllButton;
+        uint32_t buttons = 0;
+        const bool withEditMenu = !isImhNoEditMenuSet();
+        if (withEditMenu) {
+            buttons = readOnly ? 0 : EditContext::PasteButton;
+            if (!query.value(Qt::ImSurroundingText).toString().isEmpty())
+                buttons |= EditContext::SelectAllButton;
+        }
         QtAndroidInput::updateHandles(m_handleMode, editMenuPoint, buttons, cursorPointGlobal);
         m_hideCursorHandleTimer.start();
 
@@ -691,8 +714,12 @@ void QAndroidInputContext::updateSelectionHandles()
         rightPoint = qPlatformWindow->mapFromGlobal(rightPoint);
 
         QPoint editPoint(leftRect.united(rightRect).topLeft().toPoint());
-        uint32_t buttons = readOnly ? EditContext::CopyButton | EditContext::SelectAllButton
-                                    : EditContext::AllButtons;
+        uint32_t buttons = 0;
+        const bool withEditMenu = !isImhNoEditMenuSet();
+        if (withEditMenu) {
+            buttons = readOnly ? EditContext::CopyButton | EditContext::SelectAllButton
+                               : EditContext::AllButtons;
+        }
 
         QtAndroidInput::updateHandles(m_handleMode, editPoint, buttons, leftPoint, rightPoint,
                                       query.value(Qt::ImCurrentSelection).toString().isRightToLeft());
@@ -822,7 +849,8 @@ void QAndroidInputContext::handleLocationChanged(int handleId, int x, int y)
 
 void QAndroidInputContext::touchDown(int x, int y)
 {
-    if (m_focusObject && screenInputItemRectangle().contains(x, y)) {
+    QPlatformWindow *window = focusWindowHandle();
+    if (window && m_focusObject && screenInputItemRectangle().contains(x, y)) {
         // If the user touch the input rectangle, we can show the cursor handle
         m_handleMode = ShowCursor;
         // The VK will appear in a moment, stop the timer
@@ -838,7 +866,6 @@ void QAndroidInputContext::touchDown(int x, int y)
         }
 
         // Check if cursor is visible in focused window before updating handles
-        QPlatformWindow *window = qGuiApp->focusWindow()->handle();
         const QRectF curRect = cursorRectangle();
         const QPoint cursorGlobalPoint = window->mapToGlobal(QPoint(curRect.x(), curRect.y()));
         const QRect windowRect = QPlatformInputContext::inputItemClipRectangle().toRect();
@@ -874,7 +901,7 @@ void QAndroidInputContext::longPress(int x, int y)
             ++anchor;
         }
 
-        for (auto itch = before.rbegin(); itch != after.rend(); ++itch) {
+        for (auto itch = before.rbegin(); itch != before.rend(); ++itch) {
             if (!itch->isLetterOrNumber())
                 break;
             --cursor;
@@ -971,7 +998,7 @@ void QAndroidInputContext::showInputPanel()
     if (query.isNull())
         return;
 
-    if (!qGuiApp->focusWindow()->handle())
+    if (!focusWindowHandle())
         return; // not a real window, probably VR/XR
 
     disconnect(m_updateCursorPosConnection);

@@ -9,6 +9,9 @@
 
     \ingroup thread
 
+    QFuture is a template class where the template parameter \a T specifies
+    the type of results that the asynchronous computation produces.
+
     QFuture allows threads to be synchronized against one or more results
     which will be ready at a later point in time. The result can be of any type
     that has default, copy and possibly move constructors. If
@@ -759,6 +762,9 @@
     \brief The QFutureIterator class provides a Java-style const iterator for
     QFuture.
 
+    QFutureIterator\<T\> is a template class where \a T specifies the result
+    type of the QFuture being iterated over.
+
     QFuture has both \l{Java-style iterators} and \l{STL-style iterators}. The
     Java-style iterators are more high-level and easier to use than the
     STL-style iterators; on the other hand, they are slightly less efficient.
@@ -787,7 +793,8 @@
     between the second and third result, and returns the second result; and
     so on.
 
-    \image javaiterators1.png
+    \image javaiterators1.svg {Iterator positions between four items A, B,
+           C, D with arrows pointing to valid positions}
 
     Here's how to iterate over the elements in reverse order:
 
@@ -957,6 +964,9 @@
     \ingroup thread
     \brief QtFuture::WhenAnyResult is used to represent the result of QtFuture::whenAny().
     \since 6.3
+
+    WhenAnyResult\<T\> is a template struct where \a T specifies the result
+    type of the futures.
 
     The \c {QtFuture::WhenAnyResult<T>} struct is used for packaging the copy and
     the index of the first completed \c QFuture<T> in the sequence of futures

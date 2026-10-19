@@ -10,6 +10,7 @@
 #endif
 #include <qapplication.h>
 #include <private/qguiapplication_p.h>
+#include <QtGui/qstylehints.h>
 #include <qpa/qplatformtheme.h>
 #if QT_CONFIG(dockwidget)
 #include <qdockwidget.h>
@@ -77,6 +78,8 @@
 
 #include <private/qtextengine_p.h>
 #include <private/qstylehelper_p.h>
+
+#include <QtCore/q26numeric.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -1002,7 +1005,7 @@ QSize QCommonStylePrivate::viewItemSize(const QStyleOptionViewItem *option, int 
 void QCommonStylePrivate::viewItemDrawText(QPainter *p, const QStyleOptionViewItem *option, const QRect &rect) const
 {
     const QWidget *widget = option->widget;
-    const int textMargin = proxyStyle->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, widget) + 1;
+    const int textMargin = proxyStyle->pixelMetric(QStyle::PM_FocusFrameHMargin, option, widget) + 1;
 
     QRect textRect = rect.adjusted(textMargin, 0, -textMargin, 0); // remove width padding
     const bool wrapText = option->features & QStyleOptionViewItem::WrapText;
@@ -4797,7 +4800,7 @@ int QCommonStyle::pixelMetric(PixelMetric m, const QStyleOption *opt, const QWid
         ret = int(QStyleHelper::dpiScaled(13, opt));
         break;
     case PM_MessageBoxIconSize:
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
         if (QGuiApplication::desktopSettingsAware()) {
             ret = 64; // No DPI scaling, it's handled elsewhere.
         } else
@@ -5346,7 +5349,7 @@ int QCommonStyle::styleHint(StyleHint sh, const QStyleOption *opt, const QWidget
         break;
 #if QT_CONFIG(tooltip)
     case SH_ToolTip_WakeUpDelay:
-        ret = 700;
+        ret = q26::saturating_cast<int>(qGuiApp->styleHints()->toolTipWakeUpDelay().count());
         break;
     case SH_ToolTip_FallAsleepDelay:
         ret = 2000;

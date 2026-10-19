@@ -1,13 +1,13 @@
 # Copyright (C) 2025 This file is copyright:
 # This file is distributed under the same license as the plasma-login-manager package.
-# SPDX-FileCopyrightText: 2025, 2026 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-login-manager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-28 02:46+0000\n"
-"PO-Revision-Date: 2025-10-25 08:46+0200\n"
+"POT-Creation-Date: 2026-08-11 00:47+0000\n"
+"PO-Revision-Date: 2026-08-08 12:06+0200\n"
 "Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
 "Language-Team: pl\n"
 "Language: pl\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 25.08.2\n"
+"X-Generator: Lokalize 26.08.0\n"
 
 #: kcm.cpp:78
 msgid ""
@@ -36,7 +36,7 @@ msgstr ""
 "Nie można zsynchronizować ustawień Plazmy, bo użytkownik 'plasmalogin' nie "
 "istnieje. Upewnij się, że masz poprawnie wgrane Plasma Login."
 
-#: kcm.cpp:265
+#: kcm.cpp:269
 msgid ""
 "Unable to reset Plasma settings because the 'plasmalogin' user does not "
 "exist. Please check your Plasma Login install."
@@ -96,24 +96,26 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
-"<para><list><item>Color scheme</item><item>Cursor theme and size</"
-"item><item>Font and font rendering</item><item>NumLock preference</"
-"item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
-"configuration</item></list></para>"
+"<para><list><item>Language and locale settings</item><item>Keyboard layouts</"
+"item><item>Screen arrangement, scale, and orientation settings</"
+"item><item>NumLock preference</item><item>Font and font rendering settings</"
+"item><item>Color scheme</item><item>Cursor theme and size</item><item>Plasma "
+"theme</item></list></para>"
 msgstr ""
-"<para><list><item>Zestaw kolorów</item><item>Zestaw wskaźników</"
-"item><item>Czcionka</item><item>Wyświetlanie czcionki</item><item>Ustawienie "
-"klawisza NumLock</item><item>Wygląd Plazmy</item><item>Skalowanie DPI</"
-"item></list></para>"
+"<para><list><item>Ustawienia językowe i regionalne</item><item>Układy "
+"klawiatury</item><item>Układy, skala i kierunek obrotu wyświetlacza</"
+"item><item>Zachowane klawisza NumLock</item><item>Ustawienia czcionki i jej "
+"wyświetlania</item><item>Zestaw barw</item><item>Zestaw wskaźników i ich "
+"rozmiar</item><item>Wygląd Plazmy</item></list></para>"
 
 #: ui/main.qml:67
 #, kde-format
 msgid ""
-"Please note that theme files must be installed globally to be reflected on "
-"the Plasma login screen."
+"Please note that theme and font files must be installed globally to be "
+"reflected on the Plasma login screen."
 msgstr ""
-"Pamiętaj, że pliki wyglądu muszą być wgrane globalnie, aby mogły być "
-"zastosowane na ekranie logowania Plazmy."
+"Pamiętaj, że pliki wyglądu i czcionki muszą być wgrane globalnie, aby mogły "
+"być zastosowane na ekranie logowania Plazmy."
 
 #: ui/main.qml:71
 #, kde-format
@@ -139,7 +141,7 @@ msgctxt "@option:check"
 msgid "Automatically log in:"
 msgstr "Zaloguj się sam na:"
 
-#: ui/main.qml:99
+#: ui/main.qml:100
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the user to log in "
@@ -147,7 +149,7 @@ msgctxt ""
 msgid "as user:"
 msgstr "jako użytkownik:"
 
-#: ui/main.qml:154
+#: ui/main.qml:150
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the session that is started "
@@ -155,7 +157,7 @@ msgctxt ""
 msgid "with session:"
 msgstr "na rodzaju pulpitu:"
 
-#: ui/main.qml:187
+#: ui/main.qml:180
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -170,42 +172,42 @@ msgstr ""
 "Wiedz, że jest to niebezpieczne i powinno być robione tylko w zaufanych "
 "środowiskach."
 
-#: ui/main.qml:192
+#: ui/main.qml:185
 #, kde-format
 msgid "Open KDE Wallet Settings"
 msgstr "Otwórz ustawienia Portfela KDE"
 
-#: ui/main.qml:199
+#: ui/main.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Log in again immediately after logging off"
 msgstr "Natychmiast zaloguj się ponownie po wylogowaniu"
 
-#: ui/main.qml:210
+#: ui/main.qml:203
 #, kde-format
 msgctxt "@title:group"
 msgid "Defaults"
 msgstr "Domyślne"
 
-#: ui/main.qml:215
+#: ui/main.qml:208
 #, kde-format
 msgctxt "@label"
 msgid "Default user:"
 msgstr "Domyślny użytkownik:"
 
-#: ui/main.qml:221
+#: ui/main.qml:214
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in user"
 msgstr "Ostatnio zalogowany użytkownik"
 
-#: ui/main.qml:293
+#: ui/main.qml:281
 #, kde-format
 msgctxt "@label"
 msgid "Default session:"
 msgstr "Domyślny rodzaj pulpitu:"
 
-#: ui/main.qml:299
+#: ui/main.qml:287
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in session"

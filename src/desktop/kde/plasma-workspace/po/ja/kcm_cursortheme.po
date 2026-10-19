@@ -8,75 +8,79 @@
 # Yukiko Bando <ybando@k6.dion.ne.jp>, 2006, 2008.
 # 百武 朋大 <tomhioo@outlook.jp>, 2019.
 # Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2005, 2007, 2011, 2019.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: kcminput\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-01-09 16:09+0900\n"
-"Last-Translator: Ryuichi Yamada <ryuichi_ya220@outlook.jp>\n"
-"Language-Team: Japanese <kde-jp@kde.org>\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-05-10 13:06+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
+"Language-Team: Japanese <kde-i18n-doc@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 23.08.4\n"
+"X-Generator: Lokalize 26.04.1\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
 
 #. i18n: ectx: label, entry (cursorTheme), group (Mouse)
 #: cursorthemesettings.kcfg:9
-#, kde-format
-msgid "Name of the current cursor theme"
+#, fuzzy, kde-format
+#| msgid "Name of the current cursor theme"
+msgid "Name of the current pointer theme"
 msgstr "現在のマウスカーソルテーマの名前"
 
 #. i18n: ectx: label, entry (cursorSize), group (Mouse)
 #: cursorthemesettings.kcfg:13
-#, kde-format
-msgid "Current cursor size"
+#, fuzzy, kde-format
+#| msgid "Current cursor size"
+msgid "Current pointer size"
 msgstr "現在のカーソルサイズ"
 
-#: kcmcursortheme.cpp:312
-#, kde-format
-msgid ""
-"You have to restart the Plasma session for these changes to take effect."
-msgstr "変更を反映するには、Plasma セッションを再起動する必要があります。"
-
-#: kcmcursortheme.cpp:386
+#: kcmcursortheme.cpp:375
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "一時ファイルを作成できません。"
 
-#: kcmcursortheme.cpp:397
+#: kcmcursortheme.cpp:386
 #, kde-format
 msgid "Unable to download the icon theme archive: %1"
 msgstr "アイコンテーマのアーカイブ ‘%1’ をダウンロードできません。"
 
-#: kcmcursortheme.cpp:428
+#: kcmcursortheme.cpp:400
+#, fuzzy, kde-format
+#| msgid "Unable to download the icon theme archive: %1"
+msgctxt "@info"
+msgid "Unable to open the icon theme archive."
+msgstr "アイコンテーマのアーカイブ ‘%1’ をダウンロードできません。"
+
+#: kcmcursortheme.cpp:420
 #, kde-format
 msgid "The file is not a valid icon theme archive."
 msgstr "このファイルは有効なアイコンテーマのアーカイブではありません。"
 
-#: kcmcursortheme.cpp:435
+#: kcmcursortheme.cpp:427
 #, kde-format
 msgid "Failed to create 'icons' folder."
 msgstr "'icons' フォルダーの作成に失敗しました。"
 
-#: kcmcursortheme.cpp:444
+#: kcmcursortheme.cpp:436
 #, kde-format
 msgid ""
 "A theme named %1 already exists in your icon theme folder. Do you want "
 "replace it with this one?"
 msgstr "“%1” というテーマは既に存在します。置き換えますか？"
 
-#: kcmcursortheme.cpp:448
+#: kcmcursortheme.cpp:440
 #, kde-format
 msgid "Overwrite Theme?"
 msgstr "テーマを上書きしますか？"
 
-#: kcmcursortheme.cpp:472
+#: kcmcursortheme.cpp:464
 #, kde-format
 msgid "Theme installed successfully."
 msgstr "テーマのインストールに成功しました。"
@@ -88,85 +92,98 @@ msgstr "テーマのインストールに成功しました。"
 msgid "Timeout in seconds"
 msgstr "タイムアウト (秒)"
 
-#: plasma-apply-cursortheme.cpp:44
-#, kde-format
-msgid "The requested size '%1' is not available, using %2 instead."
-msgstr "要求されたサイズ '%1' は利用できません。代わりに '%2' を使用します。"
-
-#: plasma-apply-cursortheme.cpp:65
+#: plasma-apply-cursortheme.cpp:38
 #, kde-format
 msgid ""
-"This tool allows you to set the mouse cursor theme for the current Plasma "
+"This tool allows you to set the mouse pointer theme for the current Plasma "
 "session, without accidentally setting it to one that is either not "
 "available, or which is already set."
 msgstr ""
 
-#: plasma-apply-cursortheme.cpp:69
+#: plasma-apply-cursortheme.cpp:42
 #, kde-format
 msgid ""
-"The name of the cursor theme you wish to set for your current Plasma session "
-"(passing a full path will only use the last part of the path)"
+"The name of the pointer theme you wish to set for your current Plasma "
+"session (passing a full path will only use the last part of the path)"
 msgstr ""
 
-#: plasma-apply-cursortheme.cpp:70
+#: plasma-apply-cursortheme.cpp:43
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr ""
 
-#: plasma-apply-cursortheme.cpp:71
+#: plasma-apply-cursortheme.cpp:44
 #, kde-format
 msgid "Use a specific size, rather than the theme default size"
 msgstr ""
 
-#: plasma-apply-cursortheme.cpp:92
+#: plasma-apply-cursortheme.cpp:65
 #, kde-format
 msgid ""
-"The requested theme \"%1\" is already set as the theme for the current "
-"Plasma session."
+"The requested theme “%1” is already set as the theme for the current Plasma "
+"session."
 msgstr ""
 
-#: plasma-apply-cursortheme.cpp:103
+#: plasma-apply-cursortheme.cpp:77
 #, kde-format
 msgid ""
-"Successfully applied the mouse cursor theme %1 to your current Plasma session"
+"Successfully applied the mouse pointer theme %1 to your current Plasma "
+"session"
 msgstr ""
 
-#: plasma-apply-cursortheme.cpp:105
-#, kde-format
+#: plasma-apply-cursortheme.cpp:79
+#, fuzzy, kde-format
+#| msgid ""
+#| "You have to restart the Plasma session for your newly applied mouse "
+#| "cursor theme to display correctly."
 msgid ""
-"You have to restart the Plasma session for your newly applied mouse cursor "
+"You have to restart the Plasma session for your newly applied mouse pointer "
 "theme to display correctly."
 msgstr ""
 "新しく適用されたカーソルテーマを正しく表示するには、Plasma セッションを再起動"
 "する必要があります。"
 
-#: plasma-apply-cursortheme.cpp:115
+#: plasma-apply-cursortheme.cpp:89
 #, kde-format
 msgid ""
-"Could not find theme \"%1\". The theme should be one of the following "
-"options: %2"
+"Could not find theme “%1”. The theme should be one of the following options: "
+"%2"
 msgstr ""
 
-#: plasma-apply-cursortheme.cpp:123
+#: plasma-apply-cursortheme.cpp:97
 #, kde-format
-msgid "You have the following mouse cursor themes on your system:"
+msgid "You have the following mouse pointer themes on your system:"
 msgstr ""
 
-#: plasma-apply-cursortheme.cpp:128
+#: plasma-apply-cursortheme.cpp:102
 #, kde-format
 msgid "(Current theme for this Plasma session)"
 msgstr "(この Plasma セッションの現在のテーマ)"
 
-#: ui/Delegate.qml:43
+#: ui/Delegate.qml:48
 #, kde-format
-msgid "Remove Theme"
-msgstr "テーマを削除"
+msgctxt "@info:tooltip"
+msgid "Remove pointer theme"
+msgstr "ポインタテーマを削除"
 
 #: ui/Delegate.qml:50
 #, kde-format
-msgid "Restore Cursor Theme"
-msgstr "カーソルテーマを復元"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active pointer theme"
+msgstr "現在使用中のポインタテーマは削除できません"
+
+#: ui/Delegate.qml:52
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed pointer themes"
+msgstr "システムがインストールしたポインタテーマは削除できません"
+
+#: ui/Delegate.qml:60
+#, fuzzy, kde-format
+#| msgid "Name of the current cursor theme"
+msgid "Don’t delete this pointer theme"
+msgstr "現在のマウスカーソルテーマの名前"
 
 #: ui/LaunchFeedbackDialog.qml:16
 #, kde-format
@@ -183,12 +200,12 @@ msgstr "アプリケーション起動時に再生されるアニメーション
 #: ui/LaunchFeedbackDialog.qml:49
 #, kde-format
 msgctxt "@label"
-msgid "Cursor feedback:"
-msgstr "カーソルフィードバック:"
+msgid "Pointer feedback:"
+msgstr "ポインタフィードバック:"
 
 #: ui/LaunchFeedbackDialog.qml:50
 #, kde-format
-msgctxt "@option:radio No cursor feedback when launching apps"
+msgctxt "@option:radio No pointer feedback when launching apps"
 msgid "None"
 msgstr "なし"
 
@@ -234,41 +251,49 @@ msgid "%1 second"
 msgid_plural "%1 seconds"
 msgstr[0] "%1 秒後"
 
-#: ui/main.qml:91 ui/main.qml:129
+#: ui/main.qml:106 ui/main.qml:144
 #, kde-format
 msgid "Size: %1"
 msgstr "サイズ: %1"
 
-#: ui/main.qml:144
+#: ui/main.qml:153
 #, kde-format
 msgctxt "@action:button"
 msgid "&Configure Launch Feedback…"
 msgstr "起動フィードバックを設定(&C)..."
 
-#: ui/main.qml:159
+#: ui/main.qml:168
 #, kde-format
 msgid "&Install from File…"
 msgstr "ファイルからインストール(&I)..."
 
-#: ui/main.qml:165
+#: ui/main.qml:174
 #, kde-format
 msgid "&Get New…"
 msgstr "新規入手(&G)..."
 
-#: ui/main.qml:179
+#: ui/main.qml:188
 #, kde-format
 msgid "Open Theme"
 msgstr "テーマを開く"
 
-#: ui/main.qml:181
+#: ui/main.qml:190
 #, kde-format
-msgid "Cursor Theme Files (*.tar.gz *.tar.bz2)"
-msgstr "カーソルテーマファイル (*.tar.gz *.tar.bz2)"
+msgid "Pointer Theme Files (*.tar.gz *.tar.bz2)"
+msgstr "ポインタテーマファイル (*.tar.gz *.tar.bz2)"
 
-#: xcursor/xcursortheme.cpp:59
+#: xcursor/xcursortheme.cpp:56
 #, kde-format
 msgctxt ""
 "@info The argument is the list of available sizes (in pixel). Example: "
 "'Available sizes: 24' or 'Available sizes: 24, 36, 48'"
 msgid "(Available sizes: %1)"
 msgstr "(利用可能なサイズ: %1)"
+
+#~ msgid ""
+#~ "You have to restart the Plasma session for these changes to take effect."
+#~ msgstr "変更を反映するには、Plasma セッションを再起動する必要があります。"
+
+#~ msgid "The requested size '%1' is not available, using %2 instead."
+#~ msgstr ""
+#~ "要求されたサイズ '%1' は利用できません。代わりに '%2' を使用します。"

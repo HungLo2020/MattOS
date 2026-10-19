@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 // Qt-Security score:significant
 
+#include "ftw/qhashedstring_p.h"
 #include "qqmlmetatype_p.h"
 
 #include <private/qqmlextensionplugin_p.h>
@@ -328,7 +329,7 @@ void QQmlMetaType::clearTypeRegistrations()
     data->idToType.clear();
     data->nameToType.clear();
     data->urlToType.clear();
-    data->typePropertyCaches.clear();
+    data->speculativeInlineComponentTypes.clear();
     data->metaObjectToType.clear();
     data->undeletableTypes.clear();
     data->propertyCaches.clear();
@@ -349,7 +350,7 @@ void QQmlMetaType::clearTypeRegistrations()
 void QQmlMetaType::registerTypeAlias(int typeIndex, const QString &name)
 {
     QQmlMetaTypeDataPtr data;
-    const QQmlType type = data->types.value(typeIndex);
+    const QQmlType type = data->types.value(typeIndex).type;
     const QQmlTypePrivate *priv = type.priv();
     data->nameToType.insert(name, priv);
 }
@@ -384,8 +385,6 @@ QQmlType QQmlMetaType::registerInterface(const QQmlPrivate::RegisterInterface &t
 
     data->idToType.insert(priv->typeId.id(), priv);
     data->idToType.insert(priv->listId.id(), priv);
-
-    data->interfaces.insert(type.typeId.id());
 
     return QQmlType(priv);
 }
@@ -750,7 +749,7 @@ static QQmlType doRegisterInlineComponentType(QQmlMetaTypeData *data, const QUrl
     return QQmlType(priv);
 }
 
-QQmlType QQmlMetaType::findInlineComponentType(
+QQmlType QQmlMetaType::findOrCreateFactualInlineComponentType(
         const QUrl &url, const QQmlRefPointer<QV4::CompiledData::CompilationUnit> &compilationUnit)
 {
     QQmlMetaTypeDataPtr data;
@@ -758,15 +757,22 @@ QQmlType QQmlMetaType::findInlineComponentType(
     // If there is an "unclaimed" inline component type, we can "claim" it now. Otherwise
     // we have to create a new one.
     const auto it = data->urlToType.constFind(url);
-    if (it != data->urlToType.constEnd()) {
-        const auto [begin, end]
-                = std::as_const(data->compositeTypes).equal_range((*it)->typeId.iface());
-        if (begin == end)
-            return QQmlType(*it);
-        for (auto jt = begin; jt != end; ++jt) {
-            if (*jt == compilationUnit)
-                return QQmlType(*it);
-        }
+    if (it == data->urlToType.constEnd())
+        return doRegisterInlineComponentType(data, url);
+
+    const auto [begin, end]
+            = std::as_const(data->compositeTypes).equal_range((*it)->typeId.iface());
+    if (begin == end) {
+        data->speculativeInlineComponentTypes.remove(url);
+        return QQmlType(*it);
+    }
+
+    for (auto jt = begin; jt != end; ++jt) {
+        if (*jt != compilationUnit)
+            continue;
+
+        data->speculativeInlineComponentTypes.remove(url);
+        return QQmlType(*it);
     }
 
     return doRegisterInlineComponentType(data, url);
@@ -929,7 +935,8 @@ static bool namespaceContainsRegistrations(const QQmlMetaTypeData *data, const Q
 {
     // Has any type previously been installed to this namespace?
     QHashedString nameSpace(uri);
-    for (const QQmlType &type : data->types) {
+    for (const auto &typeAndCaches : std::as_const(data->types)) {
+        const QQmlType &type = typeAndCaches.type;
         if (type.module() == nameSpace && type.version().majorVersion() == version.majorVersion())
             return true;
     }
@@ -1230,10 +1237,10 @@ QMetaMethod QQmlMetaType::defaultMethod(QObject *obj)
 /*!
     See qmlRegisterInterface() for information about when this will return true.
 */
-bool QQmlMetaType::isInterface(QMetaType type)
+bool QQmlMetaType::isInterface(QMetaType metaType)
 {
     const QQmlMetaTypeDataPtr data;
-    return data->interfaces.contains(type.id());
+    return QQmlType(data->idToType.value(metaType.id())).isInterface();
 }
 
 const char *QQmlMetaType::interfaceIId(QMetaType metaType)
@@ -1282,7 +1289,7 @@ QQmlType QQmlMetaType::qmlType(const QHashedStringRef &name, const QHashedString
 
     const QHashedString key(QString::fromRawData(name.constData(), name.length()), name.hash());
     QQmlMetaTypeData::Names::ConstIterator it = data->nameToType.constFind(key);
-    while (it != data->nameToType.cend() && it.key() == name) {
+    while (it != data->nameToType.cend() && QHashedStringRef(it.key()) == name) {
         QQmlType t(*it);
         if (module.isEmpty() || t.availableInVersion(module, version))
             return t;
@@ -1329,10 +1336,39 @@ QQmlType QQmlMetaType::qmlType(const QMetaObject *metaObject, const QHashedStrin
 QQmlType QQmlMetaType::qmlTypeById(int qmlTypeId)
 {
     const QQmlMetaTypeDataPtr data;
-    QQmlType type = data->types.value(qmlTypeId);
-    if (type.isValid())
-        return type;
-    return QQmlType();
+    return data->types.value(qmlTypeId).type;
+}
+
+/*!
+    \internal
+    Returns the first QQmlType whose attachedPropertiesType equals \a attachmentMetaObject
+    Note that a single attachment type can be provided by multiple types, though that is rare
+    in practice.
+    Also, in case of self-attachment, we always return the type with the self-attachment, even
+    if another type would come first in the list. This is an optimization for the common case.
+    Returns \c nullptr if no match is fonud
+ */
+QQmlType QQmlMetaType::firstQmlTypeForAttachmentMetaObject(const QMetaObject *attachmentMetaObject)
+{
+    const QQmlMetaTypeDataPtr data;
+    if (auto qmlTypePriv = data->metaObjectToType.value(attachmentMetaObject)) {
+        // quick check to handle the case where we deal with self attachment
+        if (qmlTypePriv->regType == QQmlType::CppType &&
+            qmlTypePriv->extraData.cppTypeData->attachedPropertiesType == attachmentMetaObject)
+            return QQmlType(qmlTypePriv);
+    }
+    auto getAttachmentMetaObject = [](const QQmlTypePrivate *priv) -> const QMetaObject * {
+        if (priv->regType != QQmlType::CppType)
+            return nullptr;
+        return priv->extraData.cppTypeData->attachedPropertiesType;
+    };
+    auto it = std::find_if(data->metaObjectToType.constBegin(),
+                 data->metaObjectToType.constEnd(),
+                 [&](const QQmlTypePrivate *type) { return attachmentMetaObject == getAttachmentMetaObject(type);  }
+    );
+    if (it == data->metaObjectToType.constEnd())
+        return QQmlType();
+    return QQmlType(*it);
 }
 
 /*!
@@ -1372,14 +1408,49 @@ QQmlType QQmlMetaType::qmlType(const QUrl &unNormalizedUrl)
         return QQmlType();
 }
 
-QQmlType QQmlMetaType::fetchOrCreateInlineComponentTypeForUrl(const QUrl &url)
+QQmlType QQmlMetaType::findOrCreateSpeculativeInlineComponentType(const QUrl &url)
 {
     QQmlMetaTypeDataPtr data;
     const auto it = data->urlToType.constFind(url);
     if (it != data->urlToType.constEnd())
         return QQmlType(*it);
 
-    return doRegisterInlineComponentType(data, url);
+    // Check if the base type is already registered. If so, validate that the IC exists.
+
+    QUrl baseUrl = url;
+    baseUrl.setFragment(QString());
+
+    // Skip validation for anonymous/empty URLs. Those can only be registered with direct setData()
+    // and are otherwise inaddressable anyway.
+    if (baseUrl.isEmpty())
+        return doRegisterInlineComponentType(data, url);
+
+    // Don't validate if the type for the base URL doesn't exist.
+    // We'll prune invalid ICs for those when the type shows up, eventually.
+    const auto baseIt = data->urlToType.constFind(baseUrl);
+    if (baseIt == data->urlToType.constEnd()) {
+        data->speculativeInlineComponentTypes.insert(url);
+        return doRegisterInlineComponentType(data, url);
+    }
+
+    // Check if the base type has a registered compilation unit.
+    // Otherwise also defer validation.
+    const auto cu = data->compositeTypes.value((*baseIt)->typeId.iface());
+    if (!cu) {
+        data->speculativeInlineComponentTypes.insert(url);
+        return doRegisterInlineComponentType(data, url);
+    }
+
+    // CU is registered. It can't have the IC since otherwise that one would should up
+    // in data->urlToType.
+    Q_ASSERT(std::none_of(
+            cu->inlineComponentData.constBegin(), cu->inlineComponentData.constEnd(),
+            [&](const QV4::CompiledData::InlineComponentData &icData) {
+        return icData.qmlType.elementName() == url.fragment();
+    }));
+
+    // IC doesn't exist in the registered CU - don't create a speculative type
+    return QQmlType();
 }
 
 /*!
@@ -1595,23 +1666,25 @@ bool QQmlMetaType::canConvert(const QQmlPropertyCache::ConstPtr &from, QMetaType
 void QQmlMetaType::unregisterType(int typeIndex)
 {
     QQmlMetaTypeDataPtr data;
-    const QQmlType type = data->types.value(typeIndex);
+    const QQmlType type = data->types.value(typeIndex).type;
     if (const QQmlTypePrivate *d = type.priv()) {
-        if (d->regType == QQmlType::CompositeType || d->regType == QQmlType::CompositeSingletonType)
+        if (d->regType == QQmlType::CompositeType || d->regType == QQmlType::CompositeSingletonType) {
             removeFromInlineComponents(data->urlToType, d);
+            removeFromInlineComponents(data->speculativeInlineComponentTypes, d);
+        }
         removeQQmlTypePrivate(data->idToType, d);
         removeQQmlTypePrivate(data->nameToType, d);
         removeQQmlTypePrivate(data->urlToType, d);
         removeQQmlTypePrivate(data->metaObjectToType, d);
+        data->speculativeInlineComponentTypes.remove(d->sourceUrl());
         for (auto & module : data->uriToModule)
             module->remove(d);
-        data->clearPropertyCachesForVersion(typeIndex);
-        data->types[typeIndex] = QQmlType();
+        data->types[typeIndex] = QQmlMetaTypeData::Type();
         data->undeletableTypes.remove(type);
     }
 }
 
-void QQmlMetaType::registerMetaObjectForType(const QMetaObject *metaobject, QQmlTypePrivate *type)
+void QQmlMetaType::registerMetaObjectForType(const QMetaObject *metaobject, const QQmlTypePrivate *type)
 {
     Q_ASSERT(type);
 
@@ -1683,26 +1756,27 @@ void QQmlMetaType::freeUnusedTypesAndCaches()
     bool deletedAtLeastOneType;
     do {
         deletedAtLeastOneType = false;
-        QList<QQmlType>::Iterator it = data->types.begin();
+        auto it = data->types.begin();
         while (it != data->types.end()) {
-            const QQmlTypePrivate *d = (*it).priv();
+            const QQmlTypePrivate *d = it->type.priv();
             if (d && d->count() == 1 && !hasActiveInlineComponents(data, d)) {
                 deletedAtLeastOneType = true;
 
                 if (d->regType == QQmlType::CompositeType
                         || d->regType == QQmlType::CompositeSingletonType) {
                     removeFromInlineComponents(data->urlToType, d);
+                    removeFromInlineComponents(data->speculativeInlineComponentTypes, d);
                 }
                 removeQQmlTypePrivate(data->idToType, d);
                 removeQQmlTypePrivate(data->nameToType, d);
                 removeQQmlTypePrivate(data->urlToType, d);
                 removeQQmlTypePrivate(data->metaObjectToType, d);
+                data->speculativeInlineComponentTypes.remove(d->sourceUrl());
 
                 for (auto &module : data->uriToModule)
                     module->remove(d);
 
-                data->clearPropertyCachesForVersion(d->index);
-                *it = QQmlType();
+                *it = QQmlMetaTypeData::Type();
             } else {
                 ++it;
             }
@@ -1763,7 +1837,12 @@ QList<QQmlType> QQmlMetaType::qmlTypes()
 QList<QQmlType> QQmlMetaType::qmlAllTypes()
 {
     const QQmlMetaTypeDataPtr data;
-    return data->types;
+    QList<QQmlType> types;
+    types.reserve(data->types.size());
+    std::transform(
+            data->types.constBegin(), data->types.constEnd(),
+            std::back_inserter(types), [](const auto &type) { return type.type; });
+    return types;
 }
 
 /*!
@@ -1825,6 +1904,8 @@ const QQmlPrivate::CachedQmlUnit *QQmlMetaType::findCachedCompilationUnit(
             return unit;
         }
     }
+
+    qCDebug(DBG_DISK_CACHE) << "No pre-compiled unit found for" << uri;
 
     if (status)
         *status = CachedUnitLookupError::NoUnitFound;
@@ -1896,7 +1977,7 @@ QList<QQmlProxyMetaObject::ProxyData> QQmlMetaType::proxyData(const QMetaObject 
     if (!mo)
         return metaObjects;
 
-    auto createProxyMetaObject = [&](QQmlTypePrivate *This,
+    auto createProxyMetaObject = [&](const QQmlTypePrivate *This,
                                      const QMetaObject *superdataBaseMetaObject,
                                      const QMetaObject *extMetaObject,
                                      QObject *(*extFunc)(QObject *)) {
@@ -1924,7 +2005,7 @@ QList<QQmlProxyMetaObject::ProxyData> QQmlMetaType::proxyData(const QMetaObject 
         //       loaded before. Just adding all possible extensions would also be pretty random.
         //       The right way to do this would be to take the relations between the QML modules
         //       into account. For this we would need proper module dependency information.
-        if (QQmlTypePrivate *t = data->metaObjectToType.value(mo)) {
+        if (const QQmlTypePrivate *t = data->metaObjectToType.value(mo)) {
             if (t->regType == QQmlType::CppType) {
                 createProxyMetaObject(
                         t, t->baseMetaObject, t->extraData.cppTypeData->extMetaObject,
@@ -2061,6 +2142,41 @@ void QQmlMetaType::registerInternalCompositeType(
     doInsert(compilationUnit->metaType().iface());
     for (const auto &inlineData : std::as_const(compilationUnit->inlineComponentData))
         doInsert(inlineData.qmlType.typeId().iface());
+
+    // Prune any speculative inline component types that were created before this CU
+    // registered but don't actually exist. This handles the cyclic reference case where
+    // the IC type was created speculatively when the base type wasn't registered yet.
+    // Skip pruning for anonymous/empty URLs.
+    const QUrl baseUrl = compilationUnit->finalUrl();
+    if (baseUrl.isEmpty())
+        return;
+
+    for (auto it = data->speculativeInlineComponentTypes.begin();
+         it != data->speculativeInlineComponentTypes.end();) {
+        const QUrl &url = *it;
+        if (!equalBaseUrls(url, baseUrl)) {
+            ++it;
+            continue;
+        }
+
+        const QString icName = url.fragment();
+        if (compilationUnit->inlineComponentData.contains(icName)) {
+            // IC exists - no longer speculative, just remove from tracking
+            it = data->speculativeInlineComponentTypes.erase(it);
+            continue;
+        }
+
+        // Speculative IC type that doesn't exist - remove it from type registry
+        const auto typeIt = data->urlToType.constFind(url);
+        Q_ASSERT(typeIt != data->urlToType.constEnd());
+
+        const QQmlTypePrivate *d = *typeIt;
+        data->urlToType.erase(typeIt);
+        data->idToType.remove(d->typeId.id());
+        data->idToType.remove(d->listId.id());
+        data->types[d->index] = {};
+        it = data->speculativeInlineComponentTypes.erase(it);
+    }
 }
 
 void QQmlMetaType::unregisterInternalCompositeType(
@@ -2085,6 +2201,28 @@ void QQmlMetaType::unregisterInternalCompositeType(
     doRemove(compilationUnit->metaType().iface());
     for (const auto &inlineData : std::as_const(compilationUnit->inlineComponentData))
         doRemove(inlineData.qmlType.typeId().iface());
+
+    const QUrl baseUrl = compilationUnit->finalUrl();
+    if (baseUrl.isEmpty())
+        return;
+
+    // Clean up any speculative IC types for this base URL
+    for (auto it = data->speculativeInlineComponentTypes.begin();
+                it != data->speculativeInlineComponentTypes.end();) {
+        if (equalBaseUrls(*it, baseUrl))
+            it = data->speculativeInlineComponentTypes.erase(it);
+        else
+            ++it;
+    }
+}
+
+void QQmlMetaType::deepClearCompositeType(
+        const QQmlRefPointer<QV4::CompiledData::CompilationUnit> &oldUnit)
+{
+    unregisterInternalCompositeType(oldUnit);
+    unregisterType(oldUnit->qmlType.index());
+    for (const auto &icData : std::as_const(oldUnit->inlineComponentData))
+        unregisterType(icData.qmlType.index());
 }
 
 int QQmlMetaType::countInternalCompositeTypeSelfReferences(

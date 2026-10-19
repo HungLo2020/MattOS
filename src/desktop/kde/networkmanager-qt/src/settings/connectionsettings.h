@@ -32,7 +32,6 @@ class ConnectionSettingsPrivate;
  */
 class NETWORKMANAGERQT_EXPORT ConnectionSettings
 {
-    Q_ENUMS(ConnectionType)
 public:
     /*!
      * \typedef NetworkManager::ConnectionSettings::Ptr

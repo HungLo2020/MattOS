@@ -11,11 +11,11 @@
 #include "nativeenum.h"
 #include "node.h"
 #include "qdocdatabase.h"
+#include "qdoclogging.h"
 #include "qmlpropertyarguments.h"
 #include "qmlpropertynode.h"
 #include "sharedcommentnode.h"
 #include "tokenizer.h"
-#include "utilities.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qfileinfo.h>
@@ -122,7 +122,7 @@ Node *QmlDocVisitor::applyDocumentation(QQmlJS::SourceLocation location, Node *n
         if (!node) {
             node = new QmlTypeNode(m_current, m_name, NodeType::QmlType);
             if (m_singletonPragmaFound)
-                static_cast<QmlTypeNode*>(node)->setSingleton(true);
+                static_cast<QmlTypeNode *>(node)->setSingleton();
         }
         comment_loc.setLineNo(location.startLine);
         node->setLocation(comment_loc);
@@ -146,7 +146,7 @@ Node *QmlDocVisitor::applyDocumentation(QQmlJS::SourceLocation location, Node *n
             node->setLocation(comment_loc);
         }
         if (m_singletonPragmaFound && node->isQmlNode())
-            static_cast<QmlTypeNode*>(node)->setSingleton(true);
+            static_cast<QmlTypeNode *>(node)->setSingleton();
     }
 
     auto *parent{node->parent()};
@@ -163,7 +163,10 @@ Node *QmlDocVisitor::applyDocumentation(QQmlJS::SourceLocation location, Node *n
                         qmlProperty->setDataType(qpa->m_type);
                     } else {
                         bool isAttached = topic.contains(QLatin1String("attached"));
-                        QmlPropertyNode *n = parent->hasQmlProperty(qpa->m_name, isAttached);
+                        Aggregate::PropertySearchType searchType = isAttached
+                                                      ? Aggregate::AttachedProperties
+                                                      : Aggregate::UnattachedProperties;
+                        QmlPropertyNode *n = parent->hasQmlProperty(qpa->m_name, searchType);
                         if (n == nullptr)
                             n = new QmlPropertyNode(parent, qpa->m_name, qpa->m_type, isAttached);
                         n->setIsList(qpa->m_isList);
@@ -220,7 +223,7 @@ Node *QmlDocVisitor::applyDocumentation(QQmlJS::SourceLocation location, Node *n
     // the topic nodes - which need to be written to index before the related
     // SCN.
     if (isPropertyGroup) {
-        // The first node in `nodes` is the group property;
+        // The first node in `nodes` is the grouped property;
         // create SCN with the same name
         QString group{nodes.takeFirst()->name()};
         auto *scn = new SharedCommentNode(static_cast<QmlTypeNode*>(parent),
@@ -460,11 +463,11 @@ void QmlDocVisitor::applyMetacommands(QQmlJS::SourceLocation, Node *node, Doc &d
                 for (const auto &argument : args)
                     QDocDatabase::qdocDB()->addToGroup(argument.first, node);
             } else if (command == COMMAND_INTERNAL) {
-                node->setStatus(Node::Internal);
+                node->setStatus(Status::Internal);
             } else if (command == COMMAND_OBSOLETE) {
-                node->setStatus(Node::Deprecated);
+                node->setStatus(Status::Deprecated);
             } else if (command == COMMAND_PRELIMINARY) {
-                node->setStatus(Node::Preliminary);
+                node->setStatus(Status::Preliminary);
             } else if (command == COMMAND_SINCE) {
                 QString arg = args[0].first; //.join(' ');
                 node->setSince(arg);
@@ -608,7 +611,7 @@ bool QmlDocVisitor::visit(QQmlJS::AST::UiPublicMember *member)
         if (m_current->isQmlType()) {
             auto *qmlType = static_cast<QmlTypeNode *>(m_current);
             if (qmlType) {
-                FunctionNode::Metaness metaness = FunctionNode::QmlSignal;
+                Metaness metaness = Metaness::QmlSignal;
                 QString name = member->name.toString();
                 auto *newSignal = new FunctionNode(metaness, m_current, name);
                 Parameters &parameters = newSignal->parameters();
@@ -669,7 +672,7 @@ bool QmlDocVisitor::visit(QQmlJS::AST::IdentifierPropertyName *)
 bool QmlDocVisitor::visit(QQmlJS::AST::FunctionDeclaration *fd)
 {
     if (m_nestingLevel <= 1) {
-        FunctionNode::Metaness metaness = FunctionNode::QmlMethod;
+        Metaness metaness = Metaness::QmlMethod;
         if (!m_current->isQmlType())
             return true;
         QString name = fd->name.toString();

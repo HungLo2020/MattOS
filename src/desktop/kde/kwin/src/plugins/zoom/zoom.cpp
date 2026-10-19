@@ -16,8 +16,6 @@
 #include "effect/effecthandler.h"
 #include "focustracker.h"
 #include "opengl/glutils.h"
-#include "scene/cursoritem.h"
-#include "scene/workspacescene.h"
 #include "textcarettracker.h"
 #include "utils/keys.h"
 #include "zoomconfig.h"
@@ -51,18 +49,21 @@ ZoomEffect::ZoomEffect()
     connect(m_configurationTimer.get(), &QTimer::timeout, this, &ZoomEffect::saveInitialZoom);
 
     ZoomConfig::instance(effects->config());
+
     QAction *a = nullptr;
+
     a = KStandardActions::zoomIn(this, &ZoomEffect::zoomIn, this);
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Plus) << (Qt::META | Qt::Key_Equal));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Plus) << (Qt::META | Qt::Key_Equal));
+    KGlobalAccel::setGlobalShortcut(a, QList<QKeySequence>{{Qt::META | Qt::Key_Plus}, {Qt::META | Qt::Key_Equal}});
+    QAction *zoomInAction = a;
 
     a = KStandardActions::zoomOut(this, &ZoomEffect::zoomOut, this);
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Minus));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_Minus));
+    KGlobalAccel::setGlobalShortcut(a, QKeySequence(Qt::META | Qt::Key_Minus));
+    QAction *zoomOutAction = a;
+
+    KGlobalAccel::setInverseShortcutActions(zoomInAction, zoomOutAction);
 
     a = KStandardActions::actualSize(this, &ZoomEffect::actualSize, this);
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_0));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_0));
+    KGlobalAccel::setGlobalShortcut(a, QKeySequence(Qt::META | Qt::Key_0));
 
     m_touchpadAction = std::make_unique<QAction>();
     connect(m_touchpadAction.get(), &QAction::triggered, this, [this]() {
@@ -86,45 +87,34 @@ ZoomEffect::ZoomEffect()
     a = new QAction(this);
     a->setObjectName(QStringLiteral("MoveZoomLeft"));
     a->setText(i18n("Move Zoomed Area to Left"));
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>());
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>());
+    KGlobalAccel::setGlobalShortcut(a, QList<QKeySequence>());
     connect(a, &QAction::triggered, this, &ZoomEffect::moveZoomLeft);
+    QAction *moveZoomLeftAction = a;
 
     a = new QAction(this);
     a->setObjectName(QStringLiteral("MoveZoomRight"));
     a->setText(i18n("Move Zoomed Area to Right"));
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>());
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>());
+    KGlobalAccel::setGlobalShortcut(a, QList<QKeySequence>());
     connect(a, &QAction::triggered, this, &ZoomEffect::moveZoomRight);
+    QAction *moveZoomRightAction = a;
+
+    KGlobalAccel::setInverseShortcutActions(moveZoomLeftAction, moveZoomRightAction);
 
     a = new QAction(this);
     a->setObjectName(QStringLiteral("MoveZoomUp"));
     a->setText(i18n("Move Zoomed Area Upwards"));
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>());
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>());
+    KGlobalAccel::setGlobalShortcut(a, QList<QKeySequence>());
     connect(a, &QAction::triggered, this, &ZoomEffect::moveZoomUp);
+    QAction *moveZoomUpAction = a;
 
     a = new QAction(this);
     a->setObjectName(QStringLiteral("MoveZoomDown"));
     a->setText(i18n("Move Zoomed Area Downwards"));
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>());
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>());
+    KGlobalAccel::setGlobalShortcut(a, QList<QKeySequence>());
     connect(a, &QAction::triggered, this, &ZoomEffect::moveZoomDown);
+    QAction *moveZoomDownAction = a;
 
-    // TODO: these two actions don't belong into the effect. They need to be moved into KWin core
-    a = new QAction(this);
-    a->setObjectName(QStringLiteral("MoveMouseToFocus"));
-    a->setText(i18n("Move Mouse to Focus"));
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_F5));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_F5));
-    connect(a, &QAction::triggered, this, &ZoomEffect::moveMouseToFocus);
-
-    a = new QAction(this);
-    a->setObjectName(QStringLiteral("MoveMouseToCenter"));
-    a->setText(i18n("Move Mouse to Center"));
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_F6));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::Key_F6));
-    connect(a, &QAction::triggered, this, &ZoomEffect::moveMouseToCenter);
+    KGlobalAccel::setInverseShortcutActions(moveZoomUpAction, moveZoomDownAction);
 
     m_timeline.setDuration(350);
     m_timeline.setFrameRange(0, 100);
@@ -147,43 +137,8 @@ ZoomEffect::ZoomEffect()
 
 ZoomEffect::~ZoomEffect()
 {
-    // switch off and free resources
-    showCursor();
     // Save the zoom value.
     saveInitialZoom();
-}
-
-QPointF ZoomEffect::calculateCursorItemPosition() const
-{
-    return Cursors::self()->mouse()->pos() * m_zoom + QPoint(m_xTranslation, m_yTranslation);
-}
-
-void ZoomEffect::showCursor()
-{
-    if (m_cursorHidden) {
-        m_cursorItem.reset();
-        m_cursorHidden = false;
-        effects->showCursor();
-    }
-}
-
-void ZoomEffect::hideCursor()
-{
-    if (m_mouseTracking == MouseTrackingProportional && m_mousePointer == MousePointerKeep) {
-        return; // don't replace the actual cursor by a static image for no reason.
-    }
-    if (!m_cursorHidden) {
-        effects->hideCursor();
-        m_cursorHidden = true;
-
-        if (m_mousePointer == MousePointerKeep || m_mousePointer == MousePointerScale) {
-            m_cursorItem = std::make_unique<CursorItem>(effects->scene()->overlayItem());
-            m_cursorItem->setPosition(calculateCursorItemPosition());
-            connect(Cursors::self()->mouse(), &Cursor::posChanged, m_cursorItem.get(), [this]() {
-                m_cursorItem->setPosition(calculateCursorItemPosition());
-            });
-        }
-    }
 }
 
 void ZoomEffect::reconfigure(ReconfigureFlags)
@@ -193,8 +148,6 @@ void ZoomEffect::reconfigure(ReconfigureFlags)
     // On zoom-in and zoom-out change the zoom by the defined zoom-factor.
     m_zoomFactor = std::max(0.1, ZoomConfig::zoomFactor());
     m_pixelGridZoom = ZoomConfig::pixelGridZoom();
-    // Visibility of the mouse-pointer.
-    m_mousePointer = MousePointerType(ZoomConfig::mousePointer());
     // Track moving of the mouse.
     m_mouseTracking = MouseTrackingType(ZoomConfig::mouseTracking());
 
@@ -241,35 +194,30 @@ void ZoomEffect::reconfigure(ReconfigureFlags)
             effects->registerAxisShortcut(pointerAxisModifiers, PointerAxisDown, m_zoomOutAxisAction.get());
         }
     }
+
+    bool usePatternUpscaler = ZoomConfig::usePatternUpscaler();
+    if (usePatternUpscaler != m_usePatternUpscaler) {
+        m_usePatternUpscaler = usePatternUpscaler;
+        effects->addRepaintFull();
+    }
 }
 
-void ZoomEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void ZoomEffect::prePaintScreen(ScreenPrePaintData &data)
 {
     data.mask |= PAINT_SCREEN_TRANSFORMED;
     if (m_zoom != m_targetZoom) {
-        int time = 0;
-        if (m_lastPresentTime.count()) {
-            time = (presentTime - m_lastPresentTime).count();
-        }
-        m_lastPresentTime = presentTime;
+        const int time = m_clock.tick(data.view).count();
 
         const float zoomDist = std::abs(m_targetZoom - m_sourceZoom);
         if (m_targetZoom > m_zoom) {
-            m_zoom = std::min(m_zoom + ((zoomDist * time) / animationTime(std::chrono::milliseconds(int(150 * m_zoomFactor)))), m_targetZoom);
+            m_zoom = std::min(m_zoom + ((zoomDist * time) / animationTime(std::chrono::milliseconds(int(150 * m_zoomFactor))).count()), m_targetZoom);
         } else {
-            m_zoom = std::max(m_zoom - ((zoomDist * time) / animationTime(std::chrono::milliseconds(int(150 * m_zoomFactor)))), m_targetZoom);
+            m_zoom = std::max(m_zoom - ((zoomDist * time) / animationTime(std::chrono::milliseconds(int(150 * m_zoomFactor))).count()), m_targetZoom);
         }
     }
 
     if (m_zoom == 1.0) {
         m_focusPoint.reset();
-
-        showCursor();
-    } else {
-        hideCursor();
-        if (m_cursorItem && m_mousePointer == MousePointerScale) {
-            m_cursorItem->setTransform(QTransform::fromScale(m_zoom, m_zoom));
-        }
     }
 
     const QSize screenSize = effects->virtualScreenSize();
@@ -358,12 +306,7 @@ void ZoomEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseco
     }
     }
 
-    if (m_cursorItem) {
-        // x and y translation are changed, update the cursor position
-        m_cursorItem->setPosition(calculateCursorItemPosition());
-    }
-
-    effects->prePaintScreen(data, presentTime);
+    effects->prePaintScreen(data);
 }
 
 ZoomEffect::OffscreenData *ZoomEffect::ensureOffscreenData(const RenderTarget &renderTarget, const RenderViewport &viewport, LogicalOutput *screen)
@@ -391,28 +334,45 @@ ZoomEffect::OffscreenData *ZoomEffect::ensureOffscreenData(const RenderTarget &r
 
 GLShader *ZoomEffect::shaderForZoom(double zoom)
 {
-    if (zoom < m_pixelGridZoom) {
-        return ShaderManager::instance()->shader(ShaderTrait::MapTexture | ShaderTrait::TransformColorspace);
-    } else {
+    if (zoom >= m_pixelGridZoom) {
         if (!m_pixelGridShader) {
             m_pixelGridShader = ShaderManager::instance()->generateShaderFromFile(ShaderTrait::MapTexture, QString(), QStringLiteral(":/effects/zoom/shaders/pixelgrid.frag"));
         }
-        return m_pixelGridShader.get();
+        if (m_pixelGridShader) {
+            return m_pixelGridShader.get();
+        }
     }
+
+    if (m_usePatternUpscaler) {
+        if (!m_upscalerShader) {
+            m_upscalerShader = ShaderManager::instance()->generateShaderFromFile(ShaderTrait::MapTexture, QString(), QStringLiteral(":/effects/zoom/shaders/upscaler.frag"));
+        }
+        if (m_upscalerShader) {
+            return m_upscalerShader.get();
+        }
+
+        // if the shader doesn't load, disable the setting so we don't keep trying each repaint.
+        m_usePatternUpscaler = false;
+    }
+
+    return ShaderManager::instance()->shader(ShaderTrait::MapTexture | ShaderTrait::TransformColorspace);
 }
 
-void ZoomEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
+bool ZoomEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
 {
     OffscreenData *offscreenData = ensureOffscreenData(renderTarget, viewport, screen);
     if (!offscreenData) {
-        return;
+        EglContext::currentContext()->setFailed();
+        return false;
     }
 
     // Render the scene in an offscreen texture and then upscale it.
     RenderTarget offscreenRenderTarget(offscreenData->framebuffer.get(), renderTarget.colorDescription());
     RenderViewport offscreenViewport(viewport.renderRect(), viewport.scale(), offscreenRenderTarget, QPoint());
     GLFramebuffer::pushFramebuffer(offscreenData->framebuffer.get());
-    effects->paintScreen(offscreenRenderTarget, offscreenViewport, mask, deviceRegion, screen);
+    if (!effects->paintScreen(offscreenRenderTarget, offscreenViewport, mask, deviceRegion, screen)) {
+        return false;
+    }
     GLFramebuffer::popFramebuffer();
 
     const auto scale = viewport.scale();
@@ -423,6 +383,7 @@ void ZoomEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewp
 
     GLShader *shader = shaderForZoom(m_zoom);
     ShaderManager::instance()->pushShader(shader);
+    shader->setUniform("zoomLevel", this->m_zoom);
     for (auto &[screen, offscreen] : m_offscreenData) {
         QMatrix4x4 matrix;
         matrix.translate(m_xTranslation * scale, m_yTranslation * scale);
@@ -437,12 +398,13 @@ void ZoomEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewp
         offscreen.texture->render(offscreen.viewport.size() * scale);
     }
     ShaderManager::instance()->popShader();
+    return true;
 }
 
 void ZoomEffect::postPaintScreen()
 {
     if (m_zoom == m_targetZoom) {
-        m_lastPresentTime = std::chrono::milliseconds::zero();
+        m_clock.reset();
     }
 
     if (m_zoom == 1.0 || m_zoom != m_targetZoom) {
@@ -545,29 +507,13 @@ void ZoomEffect::moveZoomDown()
     moveZoom(0, 1);
 }
 
-void ZoomEffect::moveMouseToFocus()
-{
-    const auto window = effects->activeWindow();
-    if (!window) {
-        return;
-    }
-    const auto center = window->frameGeometry().center();
-    QCursor::setPos(center.x(), center.y());
-}
-
-void ZoomEffect::moveMouseToCenter()
-{
-    const QRect r = effects->activeScreen()->geometry();
-    QCursor::setPos(r.x() + r.width() / 2, r.y() + r.height() / 2);
-}
-
 void ZoomEffect::slotMouseChanged(const QPointF &pos, const QPointF &old)
 {
     if (m_zoom == 1.0) {
         return;
     }
-    m_cursorPoint = pos.toPoint();
     if (pos != old) {
+        m_cursorPoint = pos.toPoint();
         m_lastMouseEvent = QTime::currentTime();
         effects->addRepaintFull();
     }
@@ -616,11 +562,6 @@ int ZoomEffect::requestedEffectChainPosition() const
 qreal ZoomEffect::configuredZoomFactor() const
 {
     return m_zoomFactor;
-}
-
-int ZoomEffect::configuredMousePointer() const
-{
-    return m_mousePointer;
 }
 
 int ZoomEffect::configuredMouseTracking() const
@@ -693,9 +634,6 @@ void ZoomEffect::realtimeZoom(double delta)
     setTargetZoom(m_targetZoom + delta);
     // skip the animation, we want this to be real time
     m_zoom = m_targetZoom;
-    if (m_zoom == 1.0) {
-        showCursor();
-    }
 }
 
 void ZoomEffect::trackTextCaret()

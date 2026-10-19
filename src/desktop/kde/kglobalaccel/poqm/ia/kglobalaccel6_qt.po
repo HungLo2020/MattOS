@@ -18,20 +18,20 @@ msgstr ""
 "X-Generator: Lokalize 21.12.3\n"
 "X-Qt-Contexts: true\n"
 
-#: kglobalaccel.cpp:552
+#: kglobalaccel.cpp:558
 #, qt-format
 msgctxt "KGlobalAccel|"
 msgid "The '%1' key combination is registered by application %2 for action %3."
 msgstr ""
 "Le combination de clave '%1' es registrate per application %2 pro action %3."
 
-#: kglobalaccel.cpp:556
+#: kglobalaccel.cpp:562
 #, qt-format
 msgctxt "KGlobalAccel|"
 msgid "In context '%1' for action '%2'\n"
 msgstr "In contexto '%1' per action '%2'\n"
 
-#: kglobalaccel.cpp:558
+#: kglobalaccel.cpp:564
 #, qt-format
 msgctxt "KGlobalAccel|"
 msgid ""
@@ -41,12 +41,12 @@ msgstr ""
 "Le combination de clave '%1' es registrate per application %2.\n"
 "%3"
 
-#: kglobalaccel.cpp:561
+#: kglobalaccel.cpp:567
 msgctxt "KGlobalAccel|"
 msgid "Conflict With Registered Global Shortcut"
 msgstr "Conflicto con Via Breve Global Registrate"
 
-#: kglobalaccel.cpp:566
+#: kglobalaccel.cpp:572
 msgctxt "KGlobalAccel|"
 msgid "Reassign"
 msgstr "Reassigna"
@@ -968,7 +968,7 @@ msgstr "Reassigna"
 #~ msgstr "Patronos"
 
 #~ msgid "Wallpapers"
-#~ msgstr "Tapetes de papiro"
+#~ msgstr "Fundos de schermo"
 
 #~ msgid "XDG Application menu (.desktop files)"
 #~ msgstr "XDG Menu de applicationes (files .desktop)"
@@ -8614,7 +8614,7 @@ msgstr "Reassigna"
 
 #~ msgid "Too many requests to server. Please try again in a few minutes."
 #~ msgstr ""
-#~ "Troppo requestas a le servitor. Pro favor prova de nove inter pauc "
+#~ "Troppo requestas a le servitor. Pro favor prova de nove inter pauco "
 #~ "minutas."
 
 #~ msgid "Unknown Open Collaboration Service API error. (%1)"

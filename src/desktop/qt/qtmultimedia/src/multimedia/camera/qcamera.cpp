@@ -30,37 +30,22 @@ QT_BEGIN_NAMESPACE
 
     You can use QCameraDevice to list available cameras and choose which one to use.
 
-    \snippet multimedia-snippets/camera.cpp Camera selection
+    \snippet multimedia-snippets/camerasnippets.cpp Camera selection
 
-    On hardware that supports it, \l QCamera lets you adjust the focus
-    and zoom. The \l minimumZoomFactor and \l maximumZoomFactor
-    properties provide the range of supported zoom factors. The
-    \l zoomFactor property allows changing the zoom factor.
+    \include qcamera-common.qdocinc {zoom} {Q}
 
-    \snippet multimedia-snippets/camera.cpp Camera zoom
+    \snippet multimedia-snippets/camerasnippets.cpp Camera zoom
 
-    After capturing the raw data for a camera frame, the camera hardware and
-    software performs various image processing tasks to produce the final
-    image.  This includes compensating for ambient light color, reducing
-    noise, as well as making some other adjustments to the image.
+    \include qcamera-common.qdocinc {image-processing} {Q}
 
-    You can control many of these processing steps through the Camera properties.
-    For example, you can set the white balance (or color temperature) used
-    for processing images:
-
-    \snippet multimedia-snippets/camera.cpp Camera image whitebalance
+    \snippet multimedia-snippets/camerasnippets.cpp Camera image whitebalance
 
     For more information on image processing of camera frames, see
     \l {camera_image_processing}{Camera Image Processing}.
 
-    Most platforms require that the end-user grants permissions before a
-    camera can be activated. It is therefore strongly recommended that
-    application developers utilize the \l QCameraPermission class when
-    working with cameras. The following is a short example that requests
-    permissions from the end-user when the application starts, and then
-    activates the camera if permissions are granted.
+    \include qcamera-common.qdocinc {permission} {Q} {class}
 
-    \snippet multimedia-snippets/camera.cpp Camera permission
+    \snippet multimedia-snippets/camerasnippets.cpp Camera permission
 
     See the \l{Camera Overview}{camera overview} for more information.
 
@@ -82,66 +67,22 @@ QT_BEGIN_NAMESPACE
 
     You can use \l MediaDevices to list available cameras and choose which one to use.
 
-    \qml
-    MediaDevices {
-        id: mediaDevices
-    }
-    CaptureSession {
-        camera: Camera {
-            cameraDevice: mediaDevices.defaultVideoInput
-        }
-    }
-    \endqml
+    \snippet multimedia-snippets/camerasnippets.qml Camera selection
 
-    On hardware that supports it, \l Camera lets you adjust the focus
-    and zoom. The \l minimumZoomFactor and \l maximumZoomFactor
-    properties provide the range of supported zoom factors. The
-    \l zoomFactor property allows changing the zoom factor.
+    \include qcamera-common.qdocinc {zoom} {}
 
-    \qml
-    Camera {
-        zoomFactor: maximumZoomFactor // zoom in as much as possible
-    }
-    \endqml
+    \snippet multimedia-snippets/camerasnippets.qml Camera zoom
 
-    After capturing the raw data for a camera frame, the camera hardware and
-    software performs various image processing tasks to produce the final
-    image.  This includes compensating for ambient light color, reducing
-    noise, as well as making some other adjustments to the image.
+    \include qcamera-common.qdocinc {image-processing} {}
 
-    You can control many of these processing steps through the Camera properties.
-    For example, you can set the white balance (or color temperature) used
-    for processing images:
-
-    \qml
-    Camera {
-        whiteBalanceMode: Camera.WhiteBalanceManual
-        colorTemperature: 5600
-    }
-    \endqml
+    \snippet multimedia-snippets/camerasnippets.qml Camera image whitebalance
 
     For more information on image processing of camera frames, see
     \l {camera_image_processing}{Camera Image Processing}.
 
-    Most platforms require that the end-user grants permissions before a
-    camera can be activated. It is therefore strongly recommended that
-    application developers utilize the \l CameraPermission
-    component when working with cameras. The following is a short
-    example that requests permissions from the end-user when the
-    application starts, and then activates the camera if permissions are
-    granted.
+    \include qcamera-common.qdocinc {permission} {} {component}
 
-    \qml
-    CameraPermission {
-        id: cameraPermission
-    }
-
-    Camera {
-        active: cameraPermission.status === Qt.PermissionStatus.Granted
-    }
-
-    Component.onCompleted: cameraPermission.request()
-    \endqml
+    \snippet multimedia-snippets/camerasnippets.qml Camera permission
 
     See the \l{Camera Overview}{camera overview} for more information.
 */

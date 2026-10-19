@@ -2,6 +2,7 @@
 Type=Service
 Name=Technorati Tags
 Name[af]=Technorati Tags
+Name[am]=Technorati Tags
 Name[ar]=وسوم Technorati
 Name[as]=Technorati Tags
 Name[az]=Technorati Yarlıqları
@@ -59,6 +60,8 @@ Name[mk]=Technorati Tags
 Name[ml]=ടെക്നോരാറ്റി ടാഗുകള്‍
 Name[mr]=टेक्नोराती टैग्स
 Name[my]=တက့်ချ်နိုရာတီ တပ်ဂ်များ
+Name[nan_TW]=Technorati 標籤
+Name[nan_TW@latin]=Technorati Piau-tshiam
 Name[nb]=Technorati-tagger
 Name[nds]=Technorati-Slötelwöör
 Name[ne]=टेक्नोरती ट्याग
@@ -95,6 +98,7 @@ Name[zh_CN]=Technorati 标签
 Name[zh_TW]=Technorati Tags
 Keys=tags,tag,technoratitags
 Query=https://technorati.com/tag/\\{@}?sourceid=kde-search
+Query[am]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[ar]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[az]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[be]=https://technorati.com/tag/\\{@}?sourceid=kde-search
@@ -134,6 +138,8 @@ Query[lg]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[lt]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[lv]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[my]=https://technorati.com/tag/\\{@}?sourceid=kde-search
+Query[nan_TW]=https://technorati.com/tag/\\{@}?sourceid=kde-search
+Query[nan_TW@latin]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[nb]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[nl]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[nn]=https://technorati.com/tag/\\{@}?sourceid=kde-search
@@ -152,7 +158,6 @@ Query[tg]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[th]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[tok]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[tr]=https://technorati.com/tag/\\{@}?sourceid=kde-search
-Query[ug]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[uk]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[vi]=https://technorati.com/tag/\\{@}?sourceid=kde-search
 Query[zh_CN]=https://technorati.com/tag/\\{@}?sourceid=kde-search

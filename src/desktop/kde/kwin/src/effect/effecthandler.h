@@ -20,7 +20,6 @@
 #include <QEasingCurve>
 #include <QIcon>
 #include <QPair>
-#include <QRect>
 #include <QSet>
 
 #include <QHash>
@@ -53,7 +52,9 @@ Q_DECLARE_LOGGING_CATEGORY(KWINEFFECTS)
 
 namespace KDecoration3
 {
+
 class Decoration;
+
 }
 
 namespace KWin
@@ -81,6 +82,9 @@ class WindowPropertyNotifyX11Filter;
 class WorkspaceScene;
 class VirtualDesktop;
 class EglContext;
+struct PointerAxisEvent;
+struct PointerMotionEvent;
+struct PointerButtonEvent;
 class InputDevice;
 class InputDeviceTabletTool;
 
@@ -147,7 +151,7 @@ class KWIN_EXPORT EffectsHandler : public QObject
     Q_PROPERTY(CompositingType compositingType READ compositingType CONSTANT)
     Q_PROPERTY(QPointF cursorPos READ cursorPos)
     Q_PROPERTY(QSize virtualScreenSize READ virtualScreenSize NOTIFY virtualScreenSizeChanged)
-    Q_PROPERTY(QRect virtualScreenGeometry READ virtualScreenGeometry NOTIFY virtualScreenGeometryChanged)
+    Q_PROPERTY(KWin::Rect virtualScreenGeometry READ virtualScreenGeometry NOTIFY virtualScreenGeometryChanged)
     Q_PROPERTY(bool hasActiveFullScreenEffect READ hasActiveFullScreenEffect NOTIFY hasActiveFullScreenEffectChanged)
     Q_PROPERTY(bool colorPickerActive READ isColorPickerActive NOTIFY colorPickerActiveChanged)
 
@@ -171,13 +175,12 @@ public:
     void startPaint();
 
     // for use by effects
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime);
-    void paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen);
+    void prePaintScreen(ScreenPrePaintData &data);
+    [[nodiscard]] bool paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen);
     void postPaintScreen();
-    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime);
-    void paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
-    void drawWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
-    void renderWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
+    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data);
+    [[nodiscard]] bool paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
+    [[nodiscard]] bool drawWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
     QVariant kwinOption(KWinOption kwopt);
     /**
      * Sets the cursor while the mouse is intercepted.
@@ -210,9 +213,6 @@ public:
      */
     void stopMouseInterception(Effect *effect);
     bool isMouseInterception() const;
-
-    bool checkInputWindowEvent(QMouseEvent *e);
-    bool checkInputWindowEvent(QWheelEvent *e);
 
     void grabbedKeyboardEvent(QKeyEvent *e);
     bool hasKeyboardGrab() const;
@@ -320,17 +320,19 @@ public:
     QString currentActivity() const;
     // Desktops
     /**
-     * @returns The current desktop.
+     * @param output The output to return the current desktop for (default = active screen).
+     * @returns The current desktop on screen @a output.
      */
-    VirtualDesktop *currentDesktop() const;
+    VirtualDesktop *currentDesktop(KWin::LogicalOutput *output = nullptr) const;
     /**
      * @returns Total number of desktops currently in existence.
      */
     QList<VirtualDesktop *> desktops() const;
     /**
-     * Set the current desktop to @a desktop.
+     * @param output The output to set the current desktop for (default = active screen).
+     * Set the current desktop to @a desktop on screen @a output.
      */
-    void setCurrentDesktop(KWin::VirtualDesktop *desktop);
+    void setCurrentDesktop(KWin::VirtualDesktop *desktop, KWin::LogicalOutput *output = nullptr);
     /**
      * @returns The size of desktop layout in grid units.
      */
@@ -388,9 +390,9 @@ public:
     bool optionRollOverDesktops() const;
 
     LogicalOutput *activeScreen() const; // Xinerama
-    QRectF clientArea(clientAreaOption, const LogicalOutput *screen, const VirtualDesktop *desktop) const;
-    QRectF clientArea(clientAreaOption, const EffectWindow *c) const;
-    QRectF clientArea(clientAreaOption, const QPoint &p, const VirtualDesktop *desktop) const;
+    RectF clientArea(clientAreaOption, const LogicalOutput *screen) const;
+    RectF clientArea(clientAreaOption, const EffectWindow *c) const;
+    RectF clientArea(clientAreaOption, const QPoint &p) const;
 
     /**
      * The bounding size of all screens combined. Overlapping areas
@@ -409,7 +411,7 @@ public:
      * @see virtualScreenGeometryChanged()
      * @since 5.0
      */
-    QRect virtualScreenGeometry() const;
+    Rect virtualScreenGeometry() const;
     /**
      * Factor by which animation speed in the effect should be modified (multiplied).
      * If configurable in the effect itself, the option should have also 'default'
@@ -459,8 +461,6 @@ public:
      */
     Q_SCRIPTABLE void addRepaintFull();
     // TODO Plasma 7: rename these to "addLogicalRepaint"
-    Q_SCRIPTABLE void addRepaint(const QRectF &logicalRegion);
-    Q_SCRIPTABLE void addRepaint(const QRect &logicalRegion);
     Q_SCRIPTABLE void addRepaint(const RectF &logicalRegion);
     Q_SCRIPTABLE void addRepaint(const Rect &logicalRegion);
     Q_SCRIPTABLE void addRepaint(const Region &logicalRegion);
@@ -474,18 +474,7 @@ public:
      */
     bool isOpenGLCompositing() const;
     EglContext *openglContext() const;
-    /**
-     * @brief Provides access to the QPainter which is rendering to the back buffer.
-     *
-     * Only relevant for CompositingType QPainterCompositing. For all other compositing types
-     * @c null is returned.
-     *
-     * @return QPainter* The Scene's QPainter or @c null.
-     */
-    QPainter *scenePainter();
     void reconfigure();
-
-    QByteArray readRootProperty(long atom, long type, int format) const;
 
 #if KWIN_BUILD_X11
     /**
@@ -676,7 +665,7 @@ public:
          * The on-screen-message should skip the close window animation.
          * @see EffectWindow::skipsCloseAnimation
          */
-        SkipsCloseAnimation = 1
+        SkipsCloseAnimation = 1,
     };
     Q_DECLARE_FLAGS(OnScreenMessageHideFlags, OnScreenMessageHideFlag)
     /**
@@ -710,13 +699,6 @@ public:
     bool isColorPickerActive() const;
 
     /**
-     * Render the supplied OffscreenQuickView onto the scene
-     * It can be called at any point during the scene rendering
-     * @since 5.18
-     */
-    void renderOffscreenQuickView(const RenderTarget &renderTarget, const RenderViewport &viewport, OffscreenQuickView *effectQuickView) const;
-
-    /**
      * The status of the session i.e if the user is logging out
      * @since 5.18
      */
@@ -744,6 +726,10 @@ public:
     {
         return m_scene;
     }
+
+    bool pointerMotion(PointerMotionEvent *event);
+    bool pointerButton(PointerButtonEvent *event);
+    bool pointerAxis(PointerAxisEvent *event);
 
     bool touchDown(qint32 id, const QPointF &pos, std::chrono::microseconds time);
     bool touchMotion(qint32 id, const QPointF &pos, std::chrono::microseconds time);
@@ -782,9 +768,10 @@ Q_SIGNALS:
      * @param oldDesktop The previously current desktop
      * @param newDesktop The new current desktop
      * @param with The window which is taken over to the new desktop, can be NULL
+     * @param output The screen where the desktop was changed.
      * @since 4.9
      */
-    void desktopChanged(KWin::VirtualDesktop *oldDesktop, KWin::VirtualDesktop *newDesktop, KWin::EffectWindow *with);
+    void desktopChanged(KWin::VirtualDesktop *oldDesktop, KWin::VirtualDesktop *newDesktop, KWin::EffectWindow *with, KWin::LogicalOutput *output);
 
     /**
      * Signal emitted while desktop is changing for animation.
@@ -792,8 +779,13 @@ Q_SIGNALS:
      * @param offset The current desktop offset.
      * offset.x() = .6 means 60% of the way to the desktop to the right.
      * Positive Values means Up and Right.
+     * @param output The affected screen. If it affects multiple screens, then a separate signal is emitted for each one.
      */
-    void desktopChanging(KWin::VirtualDesktop *currentDesktop, QPointF offset, KWin::EffectWindow *with);
+    void desktopChanging(KWin::VirtualDesktop *currentDesktop, QPointF offset, KWin::EffectWindow *with, KWin::LogicalOutput *output);
+
+    /**
+     * Signal emitted when realtime desktop switching animation is cancelled. It applies to all screens.
+     */
     void desktopChangingCancelled();
     void desktopAdded(KWin::VirtualDesktop *desktop);
     void desktopRemoved(KWin::VirtualDesktop *desktop);
@@ -986,7 +978,7 @@ Q_SIGNALS:
      * @param geometry The geometry of the edge which is being approached
      * @since 4.11
      */
-    void screenEdgeApproaching(ElectricBorder border, qreal factor, const QRect &geometry);
+    void screenEdgeApproaching(ElectricBorder border, qreal factor, const KWin::Rect &geometry);
     /**
      * Emitted whenever the virtualScreenSize changes.
      * @see virtualScreenSize()

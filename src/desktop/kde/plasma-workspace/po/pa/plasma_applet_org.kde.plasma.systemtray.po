@@ -2,79 +2,83 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Aman Alam <aalam@users.sf.net>, 2013, 2014, 2015, 2016.
-# SPDX-FileCopyrightText: 2020, 2021, 2023, 2024, 2025 A S Alam <aalam.yellow@gmail.com>
+# SPDX-FileCopyrightText: 2020, 2021, 2023, 2024, 2025, 2026 A S Alam <aalam.yellow@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-19 02:48+0000\n"
-"PO-Revision-Date: 2025-09-15 09:52-0500\n"
-"Last-Translator: A S Alam <aalam@punlinux.org>\n"
-"Language-Team: Punjabi <kde-i18n-doc@kde.org>\n"
+"POT-Creation-Date: 2026-08-28 00:48+0000\n"
+"PO-Revision-Date: 2026-02-11 17:48-0600\n"
+"Last-Translator: A S Alam <aman@punlinux.org>\n"
+"Language-Team: pa\n"
 "Language: pa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.08.0\n"
+"X-Generator: Lokalize 25.12.2\n"
+
+#: qml/BackgroundAppItem.qml:76
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Quit %1"
+msgstr ""
 
 #: qml/config.qml:13
 #, kde-format
 msgid "General"
 msgstr "ਆਮ"
 
-#: qml/ConfigGeneral.qml:43
-#, fuzzy, kde-format
-#| msgid "Shown when relevant"
+#: qml/ConfigGeneral.qml:45
+#, kde-format
 msgctxt "@item:inlistbox Show this System Tray item when relevant"
 msgid "Show when relevant"
-msgstr "ਜਦੋਂ ਢੁੱਕਵਾਂ ਹੋਵੇ ਉਦੋਂ ਵਿਖਾਇਆ ਜਾਂਦਾ ਹੈ"
+msgstr "ਜਦੋਂ ਢੁੱਕਵਾਂ ਹੋਵੇ ਉਦੋਂ ਵੇਖਾਓ"
 
-#: qml/ConfigGeneral.qml:47
-#, fuzzy, kde-format
-#| msgid "Always shown"
+#: qml/ConfigGeneral.qml:49
+#, kde-format
 msgctxt "@item:inlistbox Always show this System Tray item"
 msgid "Always show"
-msgstr "ਹਮੇਸ਼ਾਂ ਵੇਖਾਇਆ ਜਾਂਦਾ ਹੈ"
+msgstr "ਹਮੇਸ਼ਾਂ ਵੇਖਾਓ"
 
-#: qml/ConfigGeneral.qml:51
+#: qml/ConfigGeneral.qml:53
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item only in the expanded popup"
 msgid "Show only in popup"
-msgstr ""
+msgstr "ਸਿਰਫ਼ ਪੌਪ-ਅੱਪ ਵਿੱਚ ਹੀ ਵੇਖਾਓ"
 
-#: qml/ConfigGeneral.qml:55
+#: qml/ConfigGeneral.qml:57
 #, kde-format
 msgctxt "@item:inlistbox Never show this System Tray item; disable it"
 msgid "Never show (disabled)"
-msgstr ""
+msgstr "ਕਦੇ ਨਾ ਵੇਖਾਓ (ਅਸਮਰੱਥ ਹੈ)"
 
-#: qml/ConfigGeneral.qml:126
+#: qml/ConfigGeneral.qml:128
 #, kde-format
 msgid "Application Status"
 msgstr "ਐਪਲੀਕੇਸ਼ਨ ਸਥਿਤੀ"
 
-#: qml/ConfigGeneral.qml:128
+#: qml/ConfigGeneral.qml:130
 #, kde-format
 msgid "Communications"
 msgstr "ਸੰਚਾਰ"
 
-#: qml/ConfigGeneral.qml:130
+#: qml/ConfigGeneral.qml:132
 #, kde-format
 msgid "System Services"
 msgstr "ਸਿਸਟਮ ਸਰਵਿਸਾਂ"
 
-#: qml/ConfigGeneral.qml:132
+#: qml/ConfigGeneral.qml:134
 #, kde-format
 msgid "Hardware Control"
 msgstr "ਹਾਰਡਵੇਅਰ ਕੰਟਰੋਲ"
 
-#: qml/ConfigGeneral.qml:135
+#: qml/ConfigGeneral.qml:137
 #, kde-format
 msgid "Miscellaneous"
 msgstr "ਫੁਟਕਲ"
 
-#: qml/ConfigGeneral.qml:172
+#: qml/ConfigGeneral.qml:174
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -85,13 +89,13 @@ msgid ""
 "the app’s author."
 msgstr ""
 
-#: qml/ConfigGeneral.qml:175
+#: qml/ConfigGeneral.qml:177
 #, kde-format
 msgctxt "@action:button"
 msgid "I understand the risks"
 msgstr "ਮੈਂ ਖ਼ਤਰੇ ਨੂੰ ਸਮਝ ਲਿਆ ਹੈ"
 
-#: qml/ConfigGeneral.qml:187
+#: qml/ConfigGeneral.qml:189
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -103,7 +107,7 @@ msgid ""
 "at a time."
 msgstr ""
 
-#: qml/ConfigGeneral.qml:196
+#: qml/ConfigGeneral.qml:198
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -113,76 +117,105 @@ msgid ""
 "using a 3rd-party notification manager to handle notifications."
 msgstr ""
 
-#: qml/ConfigGeneral.qml:208
-#, fuzzy, kde-format
-#| msgid "Scale with Panel height"
+#: qml/ConfigGeneral.qml:210
+#, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel height"
 msgstr "ਪੈਨਲ ਦੀ ਉਚਾਈ ਨਾਲ ਸਕੇਲ ਕਰੋ"
 
-#: qml/ConfigGeneral.qml:209
-#, fuzzy, kde-format
-#| msgid "Scale with Panel width"
+#: qml/ConfigGeneral.qml:211
+#, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel width"
 msgstr "ਪੈਨਲ ਦੀ ਚੌੜਾਈ ਨਾਲ ਸਕੇਲ ਕਰੋ"
 
-#: qml/ConfigGeneral.qml:211
+#: qml/ConfigGeneral.qml:213
 #, fuzzy, kde-format
-#| msgctxt "The arrangement of system tray icons in the Panel"
+#| msgctxt "@label:listbox The spacing between system tray icons in the Panel"
 #| msgid "Panel icon size:"
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgctxt ""
+"@label:listbox Whether the system tray icons in the Panel always stay small "
+"or scale with the Panel's size"
 msgid "Panel icon size:"
 msgstr "ਪੈਨਲ ਆਈਕਾਨ ਆਕਾਰ:"
 
-#: qml/ConfigGeneral.qml:215 qml/ConfigGeneral.qml:256
+#: qml/ConfigGeneral.qml:217
+#, fuzzy, kde-format
+#| msgid "Small"
+msgctxt "@item:inlistbox Icon size"
+msgid "Small"
+msgstr "ਛੋਟਾ"
+
+#: qml/ConfigGeneral.qml:237
+#, kde-format
+msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgid "Spacing:"
+msgstr ""
+
+#: qml/ConfigGeneral.qml:241
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Small"
 msgstr "ਛੋਟਾ"
 
-#: qml/ConfigGeneral.qml:244
-#, kde-format
-msgid "Automatically enabled when in Touch Mode"
-msgstr "ਜਦੋਂ ਟੱਚ ਮੋਡ ਹੋਵੇ ਤਾਂ ਆਪਣੇ-ਆਪ ਸਮਰੱਥ ਕਰੋ"
-
-#: qml/ConfigGeneral.qml:252
-#, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
-msgid "Panel icon spacing:"
-msgstr "ਪੈਨਲ ਆਈਕਾਨ ਫਾਸਲਾ:"
-
-#: qml/ConfigGeneral.qml:260
+#: qml/ConfigGeneral.qml:245
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Normal"
 msgstr "ਸਧਾਰਨ"
 
-#: qml/ConfigGeneral.qml:264
+#: qml/ConfigGeneral.qml:249
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Large"
 msgstr "ਵੱਡਾ"
 
-#: qml/ConfigGeneral.qml:289
+#: qml/ConfigGeneral.qml:269
+#, fuzzy, kde-format
+#| msgid "More actions"
+msgctxt ""
+"@label:listbox Which direction system tray icons in the Panel emerge from "
+"the expander arrow"
+msgid "Direction:"
+msgstr "ਹੋਰ ਕਾਰਵਾਈਆਂ"
+
+#: qml/ConfigGeneral.qml:283
+#, kde-format
+msgid "Bottom-to-top"
+msgstr ""
+
+#: qml/ConfigGeneral.qml:284
+#, kde-format
+msgid "Top-to-bottom"
+msgstr ""
+
+#: qml/ConfigGeneral.qml:289 qml/ConfigGeneral.qml:296
+#, kde-format
+msgid "Left-to-right"
+msgstr ""
+
+#: qml/ConfigGeneral.qml:290 qml/ConfigGeneral.qml:295
+#, kde-format
+msgid "Right-to-left"
+msgstr ""
+
+#: qml/ConfigGeneral.qml:307
 #, kde-format
 msgctxt "@info:usagetip under a combobox when Touch Mode is on"
 msgid "Automatically set to Large when in Touch Mode"
 msgstr "ਜਦੋਂ ਟੱਚ ਮੋਡ ਹੋਵੇ ਤਾਂ ਆਪਣੇ-ਆਪ ਵੱਡੇ ਵਜੋਂ ਸੈੱਟ ਕਰੋ"
 
-#: qml/ConfigGeneral.qml:315
-#, fuzzy, kde-format
-#| msgid "Entries"
+#: qml/ConfigGeneral.qml:332
+#, kde-format
 msgctxt "@title:column"
 msgid "Entries"
 msgstr "ਐਂਟਰੀਆਂ"
 
-#: qml/ConfigGeneral.qml:319
-#, fuzzy, kde-format
-#| msgid "Always shown"
+#: qml/ConfigGeneral.qml:336
+#, kde-format
 msgctxt "@option:check, This is referring to system tray entries"
 msgid "Always show all"
-msgstr "ਹਮੇਸ਼ਾਂ ਵੇਖਾਇਆ ਜਾਂਦਾ ਹੈ"
+msgstr "ਹਮੇਸ਼ਾਂ ਸਭ ਨੂੰ ਵੇਖਾਓ"
 
 #: qml/ExpandedRepresentation.qml:60
 #, kde-format
@@ -190,17 +223,17 @@ msgctxt "@action:button"
 msgid "Go Back"
 msgstr "ਪਿੱਛੇ ਜਾਓ"
 
-#: qml/ExpandedRepresentation.qml:72
+#: qml/ExpandedRepresentation.qml:76
 #, kde-format
 msgid "Status and Notifications"
 msgstr "ਹਾਲਤ ਅਤੇ ਸੂਚਨਾਵਾਂ"
 
-#: qml/ExpandedRepresentation.qml:169
+#: qml/ExpandedRepresentation.qml:175
 #, kde-format
 msgid "More actions"
 msgstr "ਹੋਰ ਕਾਰਵਾਈਆਂ"
 
-#: qml/ExpandedRepresentation.qml:255
+#: qml/ExpandedRepresentation.qml:260
 #, kde-format
 msgid "Keep Open"
 msgstr "ਖੁੱਲਾ ਰੱਖੋ"
@@ -230,16 +263,20 @@ msgstr "%1 ਚੀਜ਼ਾਂ ਨੂੰ %2 ਕਾਲਮਾਂ ਵਿੱਚ ਗਰ�
 #, kde-format
 msgctxt "Some letters with tall characters, ascenders, descenders, etc"
 msgid "AILlmyjgGJP"
-msgstr ""
+msgstr "AILlmyjgGJP"
+
+#~ msgid "Automatically enabled when in Touch Mode"
+#~ msgstr "ਜਦੋਂ ਟੱਚ ਮੋਡ ਹੋਵੇ ਤਾਂ ਆਪਣੇ-ਆਪ ਸਮਰੱਥ ਕਰੋ"
+
+#~ msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+#~ msgid "Panel icon spacing:"
+#~ msgstr "ਪੈਨਲ ਆਈਕਾਨ ਫਾਸਲਾ:"
 
 #~ msgid "Always hidden"
 #~ msgstr "ਹਮੇਸ਼ਾਂ ਓਹਲੇ"
 
 #~ msgid "Disabled"
 #~ msgstr "ਬੰਦ ਹੈ"
-
-#~ msgid "Small"
-#~ msgstr "ਛੋਟਾ"
 
 #~ msgctxt "Name of the system tray entry"
 #~ msgid "Entry"

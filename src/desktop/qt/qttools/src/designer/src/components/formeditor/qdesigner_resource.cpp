@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "qdesigner_resource.h"
 #include "formwindow.h"
@@ -103,6 +104,7 @@ static constexpr auto clipboardObjectName = "__qt_fake_top_level"_L1;
 
 namespace qdesigner_internal {
 
+// PYSIDE-2492 (since 6.7): Write fully qualified enums for Python
 static bool supportsQualifiedEnums(const QVersionNumber &qtVersion)
 {
     if (qtVersion >= QVersionNumber{6, 6, 2})
@@ -128,6 +130,12 @@ static bool supportsQualifiedEnums(const QVersionNumber &qtVersion)
         break;
     }
     return false;
+}
+
+// Separate horizontal/vertical size constraints since Qt 7 (QTBUG-17730).
+static bool supportsSeparateSizeConstraints(const QVersionNumber &qtVersion)
+{
+    return qtVersion >= QVersionNumber{7, 0, 0};
 }
 
 // -------------------- QDesignerResourceBuilder: A resource builder that works on the property sheet icon types.
@@ -496,9 +504,8 @@ void QDesignerResource::save(QIODevice *dev, QWidget *widget)
     // Do not write fully qualified enumerations for spacer/line orientations
     // and other enum/flag properties for older Qt versions since that breaks
     // older uic.
-    const auto qtVersion = m_formWindow->core()->integration()->qtVersion();
-    d->m_fullyQualifiedEnums = supportsQualifiedEnums(qtVersion);
-    d->m_separateSizeConstraints = qtVersion >= QVersionNumber(7, 0, 0);
+    d->m_saveVersion = m_formWindow->core()->integration()->qtVersion();
+    d->m_fullyQualifiedEnums = supportsQualifiedEnums(d->m_saveVersion);
     QAbstractFormBuilder::save(dev, widget);
 }
 
@@ -1605,8 +1612,10 @@ bool QDesignerResource::checkProperty(QObject *obj, const QString &prop) const
     if (prop == "objectName"_L1 || prop == "spacerName"_L1)  // ### don't store the property objectName
         return false;
 
-    if (!d->m_separateSizeConstraints && prop == "verticalSizeConstraint"_L1) // 7.0
+    if (!supportsSeparateSizeConstraints(d->m_saveVersion)
+        && prop == "verticalSizeConstraint"_L1) { // 7.0
         return false;
+    }
 
     QWidget *check_widget = nullptr;
     if (obj->isWidgetType())
@@ -2052,7 +2061,8 @@ DomProperty *QDesignerResource::createProperty(QObject *object, const QString &p
         if (!hasSetter(core(), object, propertyName))
             p->setAttributeStdset(0);
         // Map "horizontalSizeConstraint" to "sizeConstraint" for Qt 6
-        if (!d->m_separateSizeConstraints && propertyName == "horizontalSizeConstraint"_L1
+        if (!supportsSeparateSizeConstraints(d->m_saveVersion)
+            && propertyName == "horizontalSizeConstraint"_L1
             && object->inherits("QLayout")) {
             p->setAttributeName("sizeConstraint"_L1);
         } else {

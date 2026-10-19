@@ -7,6 +7,7 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 #include "focuschain.h"
+#include "virtualdesktops.h"
 #include "window.h"
 #include "workspace.h"
 
@@ -30,9 +31,6 @@ void FocusChain::addDesktop(VirtualDesktop *desktop)
 
 void FocusChain::removeDesktop(VirtualDesktop *desktop)
 {
-    if (m_currentDesktop == desktop) {
-        m_currentDesktop = nullptr;
-    }
     m_desktopFocusChains.remove(desktop);
 }
 
@@ -68,13 +66,14 @@ void FocusChain::update(Window *window, FocusChain::Change change)
     }
 
     if (window->isOnAllDesktops()) {
+        const VirtualDesktop *currentDesktop = VirtualDesktopManager::self()->currentDesktop(window->output());
         // Now on all desktops, add it to focus chains it is not already in
         for (auto it = m_desktopFocusChains.begin();
              it != m_desktopFocusChains.end();
              ++it) {
             auto &chain = it.value();
             // Making first/last works only on current desktop, don't affect all desktops
-            if (it.key() == m_currentDesktop
+            if (it.key() == currentDesktop
                 && (change == MakeFirst || change == MakeLast)) {
                 if (change == MakeFirst) {
                     makeFirstInChain(window, chain);

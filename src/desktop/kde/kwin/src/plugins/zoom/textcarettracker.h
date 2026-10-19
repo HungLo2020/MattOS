@@ -8,10 +8,11 @@
 
 #include "config-kwin.h"
 
+#include "core/rect.h"
+
 #include <QObject>
 #include <QPointF>
 #include <QPointer>
-#include <QRectF>
 
 #if KWIN_BUILD_QACCESSIBILITYCLIENT
 #include <qaccessibilityclient/registry.h>
@@ -45,7 +46,7 @@ private:
 #if KWIN_BUILD_QACCESSIBILITYCLIENT
     QAccessibleClient::Registry *m_registry = nullptr;
 #endif
-    std::optional<QRectF> m_cursorRectangle;
+    std::optional<RectF> m_cursorRectangle;
 };
 
 } // namespace KWin

@@ -70,7 +70,7 @@ if (DEFINED FFMPEG_DIR)
     set(ffmpeg_required REQUIRED)
 endif()
 
-qt_find_package(FFmpeg OPTIONAL_COMPONENTS AVCODEC AVFORMAT AVUTIL SWRESAMPLE SWSCALE PROVIDED_TARGETS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swresample FFmpeg::swscale MODULE_NAME multimedia QMAKE_LIB ffmpeg ${ffmpeg_required})
+qt_find_package(FFmpeg PROVIDED_TARGETS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swresample FFmpeg::swscale MODULE_NAME multimedia QMAKE_LIB ffmpeg ${ffmpeg_required})
 qt_find_package_extend_sbom(
     TARGETS
         FFmpeg::avcodec
@@ -121,6 +121,22 @@ int main(int, char **)
 }
 ")
 
+qt_config_compile_test(qnx_version_800
+    LABEL "QNX __QNX__ >= 800"
+    CODE
+"// __QNX__ is defined by qcc; its value is the API release version with the
+// decimal points removed (e.g. 801 == 8.0.1). It supersedes the deprecated
+// _NTO_VERSION from <sys/neutrino.h>.
+#if !defined(__QNX__) || __QNX__ < 800
+#  error __QNX__ is less than 800
+#endif
+
+int main(int, char **)
+{
+    return 0;
+}
+")
+
 #### Features
 
 qt_feature("pipewire" PRIVATE
@@ -131,6 +147,10 @@ qt_feature("pipewire" PRIVATE
 qt_feature("pipewire_screencapture" PRIVATE
     LABEL "PipeWire screen capture"
     CONDITION QT_FEATURE_dbus AND QT_FEATURE_pipewire
+)
+qt_feature("pipewire_symbolloader" PRIVATE
+    LABEL "PipeWire: load pipewire at run-time"
+    CONDITION QT_FEATURE_pipewire
 )
 qt_feature("alsa" PUBLIC PRIVATE
     LABEL "ALSA (experimental)"
@@ -180,9 +200,14 @@ qt_feature("gpu_vivante" PRIVATE
     LABEL "Vivante GPU"
     CONDITION QT_FEATURE_gui AND QT_FEATURE_opengles2 AND TEST_gpu_vivante
 )
+qt_feature("gstreamer_qt_api" PUBLIC PRIVATE
+    LABEL "GStreamer-specific Qt API"
+    AUTODETECT false
+    CONDITION QT_FEATURE_gstreamer
+)
 qt_feature("linux_v4l" PRIVATE
     LABEL "Video for Linux"
-    CONDITION (UNIX AND NOT ANDROID) AND TEST_linux_v4l
+    CONDITION (UNIX AND NOT ANDROID AND NOT OHOS) AND TEST_linux_v4l
 )
 qt_feature("linux_dmabuf" PRIVATE
     LABEL "Linux DMA buffer support"
@@ -197,6 +222,16 @@ qt_feature("mmrenderer" PUBLIC PRIVATE
     CONDITION MMRenderer_FOUND AND MMRendererCore_FOUND
     EMIT_IF QNX
 )
+qt_feature("qnx_io_audio" PRIVATE
+    LABEL "QNX io-audio (<qnx-8.0)"
+    CONDITION QNX AND NOT TEST_qnx_version_800
+    EMIT_IF QNX
+)
+qt_feature("qnx_io_snd" PRIVATE
+    LABEL "QNX io-snd (>=qnx-8.0)"
+    CONDITION QNX AND TEST_qnx_version_800
+    EMIT_IF QNX
+)
 qt_feature("native_android_backend" PUBLIC PRIVATE
     LABEL "Native Android backend (deprecated)"
     AUTODETECT true # It is still found and built by default
@@ -207,6 +242,16 @@ qt_feature("native_windows_backend" PUBLIC PRIVATE
     AUTODETECT true # It is still found and built by default
     CONDITION WIN32
 )
+qt_feature("native_darwin_backend" PUBLIC PRIVATE
+    LABEL "Native Darwin (AVFoundation) backend"
+    AUTODETECT true # It is still found and built by default
+    CONDITION APPLE
+)
+qt_feature("native_ohos_backend" PUBLIC PRIVATE
+    LABEL "Native HarmonyOS backend"
+    AUTODETECT true
+    CONDITION OHOS
+)
 qt_feature("pulseaudio" PUBLIC PRIVATE
     LABEL "PulseAudio"
     DISABLE INPUT_pulseaudio STREQUAL 'no'
@@ -215,6 +260,10 @@ qt_feature("pulseaudio" PUBLIC PRIVATE
 qt_feature("aaudio" PRIVATE
     LABEL "AAudio (Android)"
     CONDITION ANDROID
+)
+qt_feature("ohaudio" PRIVATE
+    LABEL "OHAudio (HarmonyOS)"
+    CONDITION OHOS
 )
 qt_feature("wasm" PRIVATE
     LABEL "Web Assembly"
@@ -225,12 +274,16 @@ qt_feature("wasapi" PRIVATE
     CONDITION WIN32
 )
 
+qt_feature("multimedia-quick" PRIVATE
+    LABEL "Quick/QML support"
+    CONDITION TARGET Qt::Quick
+)
 qt_feature("spatialaudio" PRIVATE
     LABEL "Spatial Audio"
 )
 qt_feature("spatialaudio_quick3d" PRIVATE
     LABEL "Spatial Audio (Quick3D)"
-    CONDITION TARGET Qt::Quick3D AND QT_FEATURE_spatialaudio
+    CONDITION TARGET Qt::Quick3D AND QT_FEATURE_multimedia_quick AND QT_FEATURE_spatialaudio
 )
 qt_feature("ffmpeg" PRIVATE
     LABEL "FFmpeg"
@@ -249,20 +302,26 @@ qt_feature("ffmpeg_stubs" PRIVATE
 )
 
 qt_configure_add_summary_section(NAME "Qt Multimedia")
+qt_configure_add_summary_entry(ARGS "multimedia-quick")
 qt_configure_add_summary_entry(ARGS "spatialaudio")
 qt_configure_add_summary_entry(ARGS "spatialaudio_quick3d")
 qt_configure_add_summary_section(NAME "Low level Audio Backend")
 qt_configure_add_summary_entry(ARGS "alsa")
 qt_configure_add_summary_entry(ARGS "pulseaudio")
 qt_configure_add_summary_entry(ARGS "pipewire")
-qt_configure_add_summary_entry(ARGS "mmrenderer")
+qt_configure_add_summary_entry(ARGS "qnx_io_audio")
+qt_configure_add_summary_entry(ARGS "qnx_io_snd")
 qt_configure_add_summary_entry(ARGS "coreaudio")
 qt_configure_add_summary_entry(ARGS "aaudio")
+qt_configure_add_summary_entry(ARGS "ohaudio")
 qt_configure_add_summary_entry(ARGS "wasm")
 qt_configure_add_summary_entry(ARGS "wasapi")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Plugin")
 qt_configure_add_summary_entry(ARGS "gstreamer")
+qt_configure_add_summary_section(NAME "GStreamer plugin features")
+qt_configure_add_summary_entry(ARGS "gstreamer_qt_api")
+qt_configure_end_summary_section()
 qt_configure_add_summary_entry(ARGS "ffmpeg")
 qt_configure_add_summary_section(NAME "FFmpeg plugin features")
 qt_configure_add_summary_entry(ARGS "pipewire_screencapture")
@@ -271,6 +330,8 @@ qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")
 qt_configure_add_summary_entry(ARGS "native_android_backend")
 qt_configure_add_summary_entry(ARGS "native_windows_backend")
+qt_configure_add_summary_entry(ARGS "native_darwin_backend")
+qt_configure_add_summary_entry(ARGS "native_ohos_backend")
 qt_configure_add_summary_entry(ARGS "wasm")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Hardware acceleration and features")
@@ -286,24 +347,31 @@ qt_configure_add_report_entry(
     MESSAGE "No backend for low level audio found."
     CONDITION NOT QT_FEATURE_alsa AND NOT QT_FEATURE_pulseaudio AND NOT QT_FEATURE_mmrenderer AND NOT QT_FEATURE_coreaudio
               AND NOT WIN32 AND NOT ANDROID AND NOT WASM AND NOT QT_FEATURE_pipewire
+              AND NOT QT_FEATURE_ohaudio AND NOT QT_FEATURE_qnx_io_snd
 )
 
 qt_configure_add_report_entry(
     TYPE WARNING
     MESSAGE "No media backend found"
-    CONDITION LINUX AND NOT (QT_FEATURE_gstreamer OR QT_FEATURE_ffmpeg)
+    CONDITION ((LINUX AND NOT (QT_FEATURE_gstreamer OR QT_FEATURE_ffmpeg)) OR
+               (ANDROID AND NOT (QT_FEATURE_native_android_backend OR QT_FEATURE_ffmpeg)) OR
+               (WIN32 AND NOT (QT_FEATURE_native_windows_backend OR QT_FEATURE_ffmpeg)) OR
+               (APPLE AND NOT (QT_FEATURE_native_darwin_backend OR QT_FEATURE_ffmpeg)) OR
+               (OHOS AND NOT (QT_FEATURE_native_ohos_backend OR QT_FEATURE_ffmpeg))
+              )
 )
 
 qt_configure_add_report_entry(
-    TYPE WARNING
-    MESSAGE "No media backend found"
-    CONDITION ANDROID AND NOT (QT_FEATURE_native_android_backend OR QT_FEATURE_ffmpeg)
-)
-
-qt_configure_add_report_entry(
-    TYPE WARNING
-    MESSAGE "No media backend found"
-    CONDITION WIN32 AND NOT (QT_FEATURE_native_windows_backend OR QT_FEATURE_ffmpeg)
+    TYPE ERROR
+    MESSAGE "QT_DEFAULT_MEDIA_BACKEND is not available on the platform or the corresponding feature is disabled."
+    CONDITION
+        (DEFINED QT_DEFAULT_MEDIA_BACKEND AND
+         ((QT_DEFAULT_MEDIA_BACKEND STREQUAL "ffmpeg" AND NOT QT_FEATURE_ffmpeg) OR
+          (QT_DEFAULT_MEDIA_BACKEND STREQUAL "gstreamer" AND NOT QT_FEATURE_gstreamer) OR
+          (QT_DEFAULT_MEDIA_BACKEND STREQUAL "windows" AND NOT QT_FEATURE_native_windows_backend) OR
+          (QT_DEFAULT_MEDIA_BACKEND STREQUAL "darwin" AND NOT QT_FEATURE_native_darwin_backend) OR
+          (QT_DEFAULT_MEDIA_BACKEND STREQUAL "android" AND NOT QT_FEATURE_native_android_backend)
+        ))
 )
 
 qt_configure_add_report_entry(

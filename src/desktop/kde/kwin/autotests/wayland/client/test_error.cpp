@@ -46,13 +46,11 @@ private:
     KWayland::Client::PlasmaShell *m_plasmaShell = nullptr;
 };
 
-static const QString s_socketName = QStringLiteral("kwayland-test-error-0");
-
 void ErrorTest::init()
 {
     delete m_display;
     m_display = new KWin::Display(this);
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
     m_display->createShm();
@@ -62,7 +60,7 @@ void ErrorTest::init()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);

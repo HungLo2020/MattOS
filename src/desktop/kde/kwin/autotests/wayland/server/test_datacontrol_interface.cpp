@@ -42,6 +42,7 @@ class DataControlDeviceManager : public QObject, public QtWayland::ext_data_cont
 class DataControlOffer : public QObject, public QtWayland::ext_data_control_offer_v1
 {
     Q_OBJECT
+
 public:
     ~DataControlOffer()
     {
@@ -65,6 +66,7 @@ private:
 class DataControlDevice : public QObject, public QtWayland::ext_data_control_device_v1
 {
     Q_OBJECT
+
 public:
     ~DataControlDevice()
     {
@@ -97,6 +99,7 @@ protected:
 class DataControlSource : public QObject, public QtWayland::ext_data_control_source_v1
 {
     Q_OBJECT
+
 public:
     ~DataControlSource()
     {
@@ -109,6 +112,7 @@ public:
 class TestDataSource : public AbstractDataSource
 {
     Q_OBJECT
+
 public:
     TestDataSource()
         : AbstractDataSource(nullptr)
@@ -121,7 +125,9 @@ public:
     void requestData(const QString &mimeType, FileDescriptor fd) override
     {
     }
-    void cancel() override{};
+    void cancel() override
+    {
+    }
     QStringList mimeTypes() const override
     {
         return {"text/test1", "text/test2"};
@@ -162,8 +168,6 @@ private:
     QList<SurfaceInterface *> m_surfaces;
 };
 
-static const QString s_socketName = QStringLiteral("kwin-wayland-datacontrol-test-0");
-
 void DataControlInterfaceTest::initTestCase()
 {
     qRegisterMetaType<::ext_data_control_offer_v1 *>();
@@ -172,7 +176,7 @@ void DataControlInterfaceTest::initTestCase()
 void DataControlInterfaceTest::init()
 {
     m_display = new KWin::Display();
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
 
@@ -183,7 +187,7 @@ void DataControlInterfaceTest::init()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);

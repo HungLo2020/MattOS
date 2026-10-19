@@ -1,5 +1,6 @@
 // Copyright (C) 2016 Klaralvdalens Datakonsult AB (KDAB)
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QSGNODE_P_H
 #define QSGNODE_P_H
@@ -21,11 +22,14 @@
 
 QT_BEGIN_NAMESPACE
 
-class QSGNodePrivate
+class Q_AUTOTEST_EXPORT QSGNodePrivate
 {
 public:
-    QSGNodePrivate() {}
+    QSGNodePrivate() : m_mutabilityGroup(0) {}
     virtual ~QSGNodePrivate() {}
+
+    static quint8 mutabilityGroup(const QSGNode *node);
+    static void setMutabilityGroupOfSubtree(QSGNode *node, quint8 mutabilityGroup);
 
 #ifdef QSG_RUNTIME_DESCRIPTION
     static void setDescription(QSGNode *node, const QString &description) {
@@ -36,8 +40,11 @@ public:
     }
     QString descr;
 #endif
-};
 
+    quint8 m_mutabilityGroup : 4;
+
+    // Reserved: 4 bits
+};
 
 class QSGBasicGeometryNodePrivate : public QSGNodePrivate
 {

@@ -6,18 +6,21 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}/../
 )
 
+add_subdirectory(worker)
+
 set(kscreenlocker_authenticator_SRCS
     pamauthenticators.cpp
     pamauthenticators.h
     pamauthenticator.cpp
     pamauthenticator.h
+    pamauthenticatormodel.cpp
+    pamauthenticatordescriptor.cpp
 )
 
 ecm_qt_declare_logging_category(kscreenlocker_authenticator_SRCS
     HEADER kscreenlocker_greet_logging.h
     IDENTIFIER KSCREENLOCKER_GREET
     CATEGORY_NAME kscreenlocker_greet
-    DEFAULT_SEVERITY Info
     DESCRIPTION "KScreenLocker (greeter)"
     EXPORT KSCREENLOCKER
 )
@@ -25,29 +28,44 @@ ecm_qt_declare_logging_category(kscreenlocker_authenticator_SRCS
 set(kscreenlocker_greet_SRCS
    greeterapp.cpp
    main.cpp
-   powermanagement.cpp
    noaccessnetworkaccessmanagerfactory.cpp
+   ../logind.cpp
    greeterapp.h
-   powermanagement.h
    noaccessnetworkaccessmanagerfactory.h
+   ../logind.h
 )
+
+ecm_qt_declare_logging_category(kscreenlocker_greet_SRCS
+    HEADER kscreenlocker_logging.h
+    IDENTIFIER KSCREENLOCKER
+    CATEGORY_NAME kscreenlocker
+    DESCRIPTION "KScreenLocker"
+    EXPORT KSCREENLOCKER
+)
+
+set_source_files_properties(worker/org.kde.plasma.screenlocker.worker.xml PROPERTIES INCLUDE "result.h")
+qt_add_dbus_interface(kscreenlocker_authenticator_SRCS worker/org.kde.plasma.screenlocker.worker.xml org.kde.plasma.screenlocker.worker)
+qt_add_dbus_adaptor(kscreenlocker_authenticator_SRCS worker/org.kde.plasma.screenlocker.xml pamauthenticator.h PamAuthenticator)
 
 add_library(kscreenlocker_authenticator OBJECT ${kscreenlocker_authenticator_SRCS})
 target_link_libraries(kscreenlocker_authenticator
+    WorkerInterface
     Qt::Core
+    Qt::Qml
+    Qt::DBus
     ${PAM_LIBRARIES}
+    KF6::CoreAddons
+    KF6::ConfigCore
+    KF6::I18n
 )
 
 qt_add_resources(kscreenlocker_greet_SRCS fallbacktheme.qrc)
 
-ecm_add_wayland_client_protocol(kscreenlocker_greet_SRCS
-    PROTOCOL ../protocols/ksld.xml
-    BASENAME ksld
-)
-
 add_executable(kscreenlocker_greet ${kscreenlocker_greet_SRCS})
 
-target_link_libraries(kscreenlocker_greet
+ecm_add_qml_module(kscreenlocker_greet URI org.kde.kscreenlocker VERSION 1.0)
+
+target_link_libraries(kscreenlocker_greet PRIVATE
     settings
     kscreenlocker_authenticator
     KF6::Package
@@ -58,39 +76,24 @@ target_link_libraries(kscreenlocker_greet
     KF6::WindowSystem
     KF6::I18nQml
     Plasma::PlasmaQuick
+    Qt::DBus
     Qt::Quick
     Qt::Qml
-    X11::X11
-    Wayland::Client
     LayerShellQt::Interface
     KF6::ScreenDpms
 )
 
-# KSCREENLOCKER_PAM_SERVICE, if defined, will already have been
-# enclosed in double quotes by the define_pam_service macro.
-if (NOT DEFINED KSCREENLOCKER_PAM_PASSWORD_SERVICE)
-  set(KSCREENLOCKER_PAM_PASSWORD_SERVICE "\"kde\"")
-endif()
+qt_generate_foreign_qml_types(kscreenlocker_authenticator kscreenlocker_greet)
 
-if (NOT DEFINED KSCREENLOCKER_PAM_FINGERPRINT_SERVICE)
-  set(KSCREENLOCKER_PAM_FINGERPRINT_SERVICE "\"kde-fingerprint\"")
-endif()
-
-if (NOT DEFINED KSCREENLOCKER_PAM_SMARTCARD_SERVICE)
-  set(KSCREENLOCKER_PAM_SMARTCARD_SERVICE "\"kde-smartcard\"")
-endif()
-
-target_compile_definitions(kscreenlocker_greet PRIVATE
-    KCHECKPASS_BIN="kcheckpass"
-    KSCREENLOCKER_PAM_SERVICE=${KSCREENLOCKER_PAM_SERVICE}
-    KSCREENLOCKER_PAM_FINGERPRINT_SERVICE=${KSCREENLOCKER_PAM_FINGERPRINT_SERVICE}
-    KSCREENLOCKER_PAM_SMARTCARD_SERVICE=${KSCREENLOCKER_PAM_SMARTCARD_SERVICE}
+# manually install type info since it's not installed by default for executables but we want it
+# for the kscreenlocker UI in shellpackage
+qt6_query_qml_module(kscreenlocker_greet
+        TARGET_PATH qml_module_target_path
+        QMLDIR qml_module_qmldir
+        TYPEINFO qml_module_typeinfo
 )
 
+install(FILES "${qml_module_qmldir}"   DESTINATION ${KDE_INSTALL_QMLDIR}/${qml_module_target_path})
+install(FILES "${qml_module_typeinfo}" DESTINATION ${KDE_INSTALL_QMLDIR}/${qml_module_target_path})
+
 install(TARGETS kscreenlocker_greet DESTINATION ${KDE_INSTALL_LIBEXECDIR})
-
-install(DIRECTORY themes/org.kde.passworddialog DESTINATION ${KDE_INSTALL_DATADIR}/ksmserver/screenlocker)
-
-if(BUILD_TESTING)
-    add_subdirectory(autotests)
-endif()

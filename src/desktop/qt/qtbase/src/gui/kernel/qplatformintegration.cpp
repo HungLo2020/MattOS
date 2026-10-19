@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qplatformintegration.h"
 
@@ -239,6 +240,10 @@ QPlatformServices *QPlatformIntegration::services() const
     without falling back to an implementation utilizing an invisible QWindow. A platform
     without this capability requires QOffscreenSurface::create to be called from the GUI
     thread.
+
+    \value MouseCursorPositioning The platform supports programmatic cursor positioning via
+    QCursor::setPos(). Platforms such as Wayland that enforce pointer confinement will
+    return \c false. The default implementation returns \c false.
  */
 
 /*!

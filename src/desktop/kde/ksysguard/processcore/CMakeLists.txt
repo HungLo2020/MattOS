@@ -16,6 +16,7 @@ set(ksysguard_LIB_SRCS
    process_data_model.cpp
    process_data_provider.cpp
    process_foreign_types.h
+   gpu_utils.cpp gpu_utils.h
    enums.h
 )
 ecm_qt_declare_logging_category(ksysguard_LIB_SRCS HEADER processcore_debug.h IDENTIFIER LIBKSYSGUARD_PROCESSCORE CATEGORY_NAME org.kde.libksysguard.processcore
@@ -30,13 +31,18 @@ target_link_libraries(processcore
    PUBLIC
     Qt::Core
     KSysGuard::Formatter
+    KF6::Service
    PRIVATE
     KF6::I18n
     KF6::AuthCore
     KF6::CoreAddons
-    KF6::Service
     ZLIB::ZLIB
 )
+
+if (UDev_FOUND)
+    target_link_libraries(processcore PRIVATE UDev::UDev)
+    target_compile_definitions(processcore PRIVATE HAVE_UDEV)
+endif()
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "NetBSD" )
   message(STATUS "Adding kvm library on NetBSD")
@@ -64,6 +70,7 @@ ecm_finalize_qml_module(processcore)
 install(TARGETS processcore EXPORT libksysguardLibraryTargets ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 
 add_subdirectory(plugins)
+add_subdirectory(identifytool)
 
 ########### install files ###############
 
@@ -76,6 +83,7 @@ install( FILES
     process_data_model.h
     process_attribute_model.h
     formatter.h
+    gpu_utils.h
     unit.h
     enums.h
     ${CMAKE_CURRENT_BINARY_DIR}/processcore_export.h

@@ -27,15 +27,17 @@ void WorkerBase::dispatchLoop()
     d->bridge.dispatchLoop();
 }
 
+#if KIOCORE_BUILD_DEPRECATED_SINCE(6, 29)
 void WorkerBase::connectWorker(const QString &address)
 {
-    d->bridge.connectSlave(address);
+    d->bridge.setConnectionBackend(WorkerBasePrivate::makeConnectionBackend(QFile::encodeName(address)));
 }
 
 void WorkerBase::disconnectWorker()
 {
-    d->bridge.disconnectSlave();
+    d->bridge.setConnectionBackend({});
 }
+#endif
 
 void WorkerBase::setMetaData(const QString &key, const QString &value)
 {

@@ -9,9 +9,10 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
+import QtQuick.Window
 import org.kde.kirigami.platform as Platform
 import org.kde.kirigami.primitives as Primitives
-import org.kde.kirigami.layouts as KL
+import org.kde.kirigami.forms as KF
 import org.kde.kirigami.controls as KC
 
 //TODO: Kf6: move somewhere else which can depend from KAboutData?
@@ -87,9 +88,9 @@ Item {
 
     /*!
        \qmlproperty bool wideMode
-       \sa FormLayout::wideMode
+       Deprecated: this property has no effect
      */
-    property alias wideMode: form.wideMode
+    property bool wideMode: false
 
     default property alias _content: form.data
 
@@ -117,7 +118,7 @@ Item {
     Component {
         id: personDelegate
 
-        RowLayout {
+        KF.FormEntry {
             id: delegate
 
             // type: KAboutPerson | { name?, task?, emailAddress?, webAddress?, avatarUrl? }
@@ -125,260 +126,215 @@ Item {
 
             property bool hasAvatar: aboutItem.__hasAvatar(modelData)
 
-            Layout.fillWidth: true
 
-            spacing: Platform.Units.smallSpacing * 2
-
-            Primitives.Icon {
-                id: avatarIcon
-
+            leadingItems: Item {
                 implicitWidth: Platform.Units.iconSizes.medium
                 implicitHeight: implicitWidth
 
-                fallback: "user"
-                source: {
-                    if (delegate.hasAvatar && aboutItem.loadAvatars) {
-                        // Appending to the params of the url does not work, thus the search is set
-                        const url = new URL(delegate.modelData.avatarUrl);
-                        const params = new URLSearchParams(url.search);
-                        params.append("s", width);
-                        url.search = params.toString();
-                        return url;
-                    } else {
-                        return "user"
+                Primitives.Icon {
+                    id: avatarIcon
+
+                    anchors.fill: parent
+
+                    fallback: "user"
+                    source: {
+                        if (delegate.hasAvatar && aboutItem.loadAvatars) {
+                            // Appending to the params of the url does not work, thus the search is set
+                            const url = new URL(delegate.modelData.avatarUrl);
+                            const params = new URLSearchParams(url.search);
+                            params.append("s", width);
+                            url.search = params.toString();
+                            return url;
+                        } else {
+                            return "user"
+                        }
                     }
+                    visible: status !== Primitives.Icon.Loading
                 }
-                visible: status !== Primitives.Icon.Loading
+
+                // So it's clear that something is happening while avatar images are loaded
+                QQC2.BusyIndicator {
+                    anchors.centerIn: parent
+                    implicitWidth: Platform.Units.iconSizes.medium
+                    implicitHeight: implicitWidth
+
+                    visible: avatarIcon.status === Primitives.Icon.Loading
+                    running: visible
+                }
             }
 
-            // So it's clear that something is happening while avatar images are loaded
-            QQC2.BusyIndicator {
-                implicitWidth: Platform.Units.iconSizes.medium
-                implicitHeight: implicitWidth
-
-                visible: avatarIcon.status === Primitives.Icon.Loading
-                running: visible
-            }
-
-            QQC2.Label {
-                Layout.fillWidth: true
+            contentItem: QQC2.Label {
                 readonly property bool withTask: typeof(delegate.modelData.task) !== "undefined" && delegate.modelData.task.length > 0
-                text: withTask ? qsTr("%1 (%2)").arg(delegate.modelData.name).arg(delegate.modelData.task) : delegate.modelData.name
+                text: delegate.modelData.name
                 wrapMode: Text.WordWrap
             }
 
-            QQC2.ToolButton {
-                enabled: typeof(delegate.modelData.webAddress) !== "undefined" && delegate.modelData.webAddress.length > 0
-                opacity: enabled ? 1 : 0
-                icon.name: "globe"
-                QQC2.ToolTip.delay: Platform.Units.toolTipDelay
-                QQC2.ToolTip.visible: hovered
-                QQC2.ToolTip.text: (typeof(delegate.modelData.webAddress) === "undefined" && delegate.modelData.webAddress.length > 0) ? "" : delegate.modelData.webAddress
-                onClicked: Qt.openUrlExternally(delegate.modelData.webAddress)
-            }
+            subtitle: delegate.modelData.task
 
-            QQC2.ToolButton {
-                enabled: typeof(delegate.modelData.emailAddress) !== "undefined" && delegate.modelData.emailAddress.length > 0
-                opacity: enabled ? 1 : 0
-                icon.name: "mail-sent"
-                QQC2.ToolTip.delay: Platform.Units.toolTipDelay
-                QQC2.ToolTip.visible: hovered
-                QQC2.ToolTip.text: qsTr("Send an email to %1").arg(delegate.modelData.emailAddress)
-                onClicked: Qt.openUrlExternally("mailto:%1".arg(delegate.modelData.emailAddress))
-            }
+            trailingItems: [
+                QQC2.ToolButton {
+                    visible: typeof(delegate.modelData.ocsUsername) !== "undefined" && delegate.modelData.ocsUsername.length > 0
+                    icon.name: "get-hot-new-stuff-symbolic"
+                    QQC2.ToolTip.delay: Platform.Units.toolTipDelay
+                    QQC2.ToolTip.visible: hovered
+                    QQC2.ToolTip.text: qsTr("Visit %1's KDE Store page").arg(delegate.modelData.name)
+                    onClicked: Qt.openUrlExternally("https://store.kde.org/u/%1".arg(delegate.modelData.ocsUsername))
+                },
+                QQC2.ToolButton {
+                    visible: typeof(delegate.modelData.webAddress) !== "undefined" && delegate.modelData.webAddress.length > 0
+                    icon.name: "globe"
+                    QQC2.ToolTip.delay: Platform.Units.toolTipDelay
+                    QQC2.ToolTip.visible: hovered
+                    QQC2.ToolTip.text: (typeof(delegate.modelData.webAddress) === "undefined" && delegate.modelData.webAddress.length > 0) ? "" : delegate.modelData.webAddress
+                    onClicked: Qt.openUrlExternally(delegate.modelData.webAddress)
+                },
+                QQC2.ToolButton {
+                    visible: typeof(delegate.modelData.emailAddress) !== "undefined" && delegate.modelData.emailAddress.length > 0
+                    icon.name: "mail-sent"
+                    QQC2.ToolTip.delay: Platform.Units.toolTipDelay
+                    QQC2.ToolTip.visible: hovered
+                    QQC2.ToolTip.text: qsTr("Send an email to %1").arg(delegate.modelData.emailAddress)
+                    onClicked: Qt.openUrlExternally("mailto:%1".arg(delegate.modelData.emailAddress))
+                }
+            ]
         }
     }
 
-    KL.FormLayout {
+    KF.Form {
         id: form
 
         anchors.fill: parent
 
-        GridLayout {
-            columns: 2
-            Layout.fillWidth: true
-
-            Primitives.Icon {
-                Layout.rowSpan: 3
-                Layout.preferredHeight: Platform.Units.iconSizes.huge
-                Layout.preferredWidth: height
-                Layout.maximumWidth: aboutItem.width / 3;
-                Layout.rightMargin: Platform.Units.largeSpacing
-                source: aboutItem.aboutData.programLogo || Platform.Settings.applicationWindowIcon || aboutItem.aboutData.componentName
-            }
-
-            KC.Heading {
-                Layout.fillWidth: true
-                text: aboutItem.aboutData.displayName + " " + aboutItem.aboutData.version
-                wrapMode: Text.WordWrap
-            }
-
-            KC.Heading {
-                Layout.fillWidth: true
-                level: 3
-                type: KC.Heading.Type.Secondary
-                wrapMode: Text.WordWrap
-                text: aboutItem.aboutData.shortDescription
-            }
-
-            RowLayout {
-                spacing: Platform.Units.largeSpacing * 2
-
-                UrlButton {
-                    text: qsTr("Get Involved")
-                    url: aboutItem.getInvolvedUrl
-                    visible: url.toString().length > 0
+        KF.FormGroup {
+            KF.FormEntry {
+                contentItem: ColumnLayout {
+                    KC.Heading {
+                        Layout.fillWidth: true
+                        text: aboutItem.aboutData.displayName + " " + aboutItem.aboutData.version
+                    }
+                    KC.Heading {
+                        Layout.fillWidth: true
+                        level: 3
+                        type: KC.Heading.Type.Secondary
+                        wrapMode: Text.WordWrap
+                        text: aboutItem.aboutData.shortDescription
+                    }
                 }
+                leadingItems: Primitives.Icon {
+                    Layout.preferredHeight: Platform.Units.iconSizes.huge
+                    Layout.preferredWidth: height
+                    Layout.maximumWidth: aboutItem.width / 3;
+                    Layout.rightMargin: Platform.Units.largeSpacing
+                    source: aboutItem.aboutData.programLogo || Platform.Settings.applicationWindowIcon || aboutItem.aboutData.componentName
+                }
+            }
+            KF.FormSeparator {}
+            KF.FormEntry {
+                contentItem: QQC2.Label {
+                    text: qsTr("Copyright")
+                }
+                // FIXME
+                subtitle: aboutItem.aboutData.copyrightStatement
+                visible: subtitle.length > 0
+            }
+        }
 
-                UrlButton {
+        KF.FormGroup {
+            title: qsTr("License")
+            Repeater {
+                model: aboutItem.aboutData.licenses
+                delegate: KF.FormAction {
+                    id: licenseLinkButton
+                    required property var modelData
+                    action: KC.Action {
+                        text: licenseLinkButton.modelData.name
+                        onTriggered: {
+                            licenseSheet.text = licenseLinkButton.modelData.text
+                            licenseSheet.title = licenseLinkButton.modelData.name
+                            licenseSheet.open()
+                        }
+                    }
+                }
+            }
+        }
+
+        KF.FormGroup {
+            KF.FormAction {
+                action: KC.Action {
+                    icon.name: "globe-symbolic"
+                    text: qsTr("Homepage")
+                    onTriggered: {
+                        Qt.openUrlExternally(aboutItem.aboutData.homepage)
+                    }
+                }
+                triggerIcon.name: "open-link-symbolic"
+                visible: aboutItem.aboutData.homepage.toString().length > 0
+            }
+            KF.FormSeparator {
+                visible: aboutItem.aboutData.homepage.toString().length > 0
+            }
+            KF.FormAction {
+                action: KC.Action {
+                    icon.name: "donate-symbolic"
                     text: qsTr("Donate")
-                    url: aboutItem.donateUrl
-                    visible: url.toString().length > 0
+                    onTriggered: {
+                        Qt.openUrlExternally(aboutItem.donateUrl + "?app=" + aboutItem.aboutData.componentName)
+                    }
                 }
-
-                UrlButton {
-                    readonly property string theUrl: {
+                triggerIcon.name: "open-link-symbolic"
+                visible: aboutItem.donateUrl.toString().length > 0
+            }
+            KF.FormSeparator {
+                visible: aboutItem.donateUrl.toString().length > 0
+            }
+            KF.FormAction {
+                action: KC.Action {
+                    icon.name: "applications-development-symbolic"
+                    text: qsTr("Get Involved")
+                    onTriggered: {
+                        Qt.openUrlExternally(aboutItem.getInvolvedUrl)
+                    }
+                }
+                triggerIcon.name: "open-link-symbolic"
+                visible: aboutItem.getInvolvedUrl.toString().length > 0
+            }
+            KF.FormSeparator {
+                visible: aboutItem.getInvolvedUrl.toString().length > 0
+            }
+            KF.FormAction {
+                action: KC.Action {
+                    icon.name: "tools-report-bug-symbolic"
+                    text: qsTr("Report a bug")
+                    onTriggered: {
                         if (aboutItem.aboutData.bugAddress !== "submit@bugs.kde.org") {
-                            return aboutItem.aboutData.bugAddress
+                            Qt.openUrlExternally(aboutItem.aboutData.bugAddress)
                         }
                         const elements = aboutItem.aboutData.productName.split('/');
                         let url = `https://bugs.kde.org/enter_bug.cgi?format=guided&product=${elements[0]}&version=${aboutItem.aboutData.version}`;
                         if (elements.length === 2) {
                             url += "&component=" + elements[1];
                         }
-                        return url;
+                        Qt.openUrlExternally(url)
                     }
-                    text: qsTr("Report a Bug")
-                    url: theUrl
-                    visible: theUrl.toString().length > 0
                 }
+                triggerIcon.name: "open-link-symbolic"
             }
         }
 
-        Primitives.Separator {
-            Layout.fillWidth: true
-        }
-
-        KC.Heading {
-            KL.FormData.isSection: true
-            text: qsTr("Copyright")
-        }
-
-        QQC2.Label {
-            Layout.leftMargin: Platform.Units.gridUnit
-            text: aboutItem.aboutData.otherText
-            visible: text.length > 0
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-        }
-
-        QQC2.Label {
-            Layout.leftMargin: Platform.Units.gridUnit
-            text: aboutItem.aboutData.copyrightStatement
-            visible: text.length > 0
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-        }
-
-        UrlButton {
-            Layout.leftMargin: Platform.Units.gridUnit
-            url: aboutItem.aboutData.homepage
-            visible: url.length > 0
-            wrapMode: Text.Wrap
-            Layout.fillWidth: true
-            Layout.maximumWidth: aboutItem.width
-        }
-
-        OverlaySheet {
-            id: licenseSheet
-            property alias text: bodyLabel.text
-
-            SelectableLabel {
-                id: bodyLabel
-                text: licenseSheet.text
-                wrapMode: Text.Wrap
-            }
-        }
-
-        Component {
-            id: licenseLinkButton
-
-            RowLayout {
-                id: licenseLinkLayout
-
-                required property var modelData
-
-                Layout.leftMargin: Platform.Units.smallSpacing
-
-                QQC2.Label { text: qsTr("License:") }
-
-                LinkButton {
-                    Layout.fillWidth: true
-                    wrapMode: Text.WordWrap
-                    text: licenseLinkLayout.modelData.name
-                    onClicked: mouse => {
-                        licenseSheet.text = licenseLinkLayout.modelData.text
-                        licenseSheet.title = licenseLinkLayout.modelData.name
-                        licenseSheet.open()
+        KF.FormGroup {
+            title: qsTr("Libraries in use")
+            Repeater {
+                model: Platform.Settings.information
+                delegate: KF.FormEntry {
+                    id: delegate
+                    required property string modelData
+                    contentItem:  QQC2.Label {
+                        wrapMode: Text.WordWrap
+                        id: libraries
+                        text: delegate.modelData
                     }
                 }
             }
-        }
-
-        Component {
-            id: licenseTextItem
-
-            QQC2.Label {
-                required property var modelData
-                Layout.leftMargin: Platform.Units.smallSpacing
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                text: qsTr("License: %1").arg(modelData.name)
-            }
-        }
-
-        Repeater {
-            model: aboutItem.aboutData.licenses
-            delegate: aboutItem._usePageStack ? licenseLinkButton : licenseTextItem
-        }
-
-        KC.Heading {
-            KL.FormData.isSection: visible
-            text: qsTr("Libraries in use")
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            visible: Platform.Settings.information
-        }
-
-        Repeater {
-            model: Platform.Settings.information
-            delegate: QQC2.Label {
-                required property string modelData
-                Layout.leftMargin: Platform.Units.gridUnit
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                id: libraries
-                text: modelData
-            }
-        }
-
-        Repeater {
-            model: aboutItem.aboutData.components
-            delegate: QQC2.Label {
-                required property var modelData
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                Layout.leftMargin: Platform.Units.gridUnit
-                text: modelData.name + (modelData.version.length === 0 ? "" : " %1".arg(modelData.version))
-            }
-        }
-
-        KC.Heading {
-            Layout.fillWidth: true
-            KL.FormData.isSection: visible
-            text: qsTr("Authors")
-            wrapMode: Text.WordWrap
-            visible: aboutItem.aboutData.authors.length > 0
         }
 
         QQC2.CheckBox {
@@ -388,35 +344,47 @@ Item {
             onToggled: aboutItem.loadAvatars = checked
             text: qsTr("Show author photos")
         }
-
-        Repeater {
-            id: authorsRepeater
-            model: aboutItem.aboutData.authors
-            delegate: personDelegate
+        KF.FormGroup {
+            title: qsTr("Authors")
+            visible: repAuthors.count > 0
+            Repeater {
+                id: repAuthors
+                model: aboutItem.aboutData.authors
+                delegate: personDelegate
+            }
         }
 
-        KC.Heading {
-            KL.FormData.isSection: visible
-            text: qsTr("Credits")
+        KF.FormGroup {
+            title: qsTr("Credits")
             visible: repCredits.count > 0
+            Repeater {
+                id: repCredits
+                model: aboutItem.aboutData.credits
+                delegate: personDelegate
+            }
         }
 
-        Repeater {
-            id: repCredits
-            model: aboutItem.aboutData.credits
-            delegate: personDelegate
-        }
-
-        KC.Heading {
-            KL.FormData.isSection: visible
-            text: qsTr("Translators")
+        KF.FormGroup {
+            title: qsTr("Translators")
             visible: repTranslators.count > 0
+            Repeater {
+                id: repTranslators
+                model: aboutItem.aboutData.translators
+                delegate: personDelegate
+            }
         }
 
-        Repeater {
-            id: repTranslators
-            model: aboutItem.aboutData.translators
-            delegate: personDelegate
+        OverlaySheet {
+            id: licenseSheet
+            width: Math.min(aboutItem.width - Platform.Units.gridUnit * 2, bodyLabel.implicitWidth)
+            height: parent.Window.window.height - Platform.Units.gridUnit * 8
+            property alias text: bodyLabel.text
+
+            SelectableLabel {
+                id: bodyLabel
+                text: licenseSheet.text
+                wrapMode: Text.Wrap
+            }
         }
     }
 }

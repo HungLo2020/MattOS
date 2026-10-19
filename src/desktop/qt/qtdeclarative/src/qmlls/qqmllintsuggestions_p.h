@@ -16,8 +16,8 @@
 // We mean it.
 //
 
-#include "qlanguageserver_p.h"
-#include "qqmlcodemodelmanager_p.h"
+#include <private/qlanguageserver_p.h>
+#include <private/qqmlcodemodelmanager_p.h>
 
 #include <chrono>
 #include <optional>
@@ -30,18 +30,14 @@ struct LastLintUpdate
     std::optional<std::chrono::steady_clock::time_point> invalidUpdatesSince;
 };
 
-class QmlLintSuggestions : public QLanguageServerModule
+class QmlLintSuggestions : public QObject
 {
     Q_OBJECT
 public:
     QmlLintSuggestions(QLanguageServer *server, QmlLsp::QQmlCodeModelManager *codeModelManager);
 
-    QString name() const override { return QLatin1StringView("QmlLint Suggestions"); }
 public Q_SLOTS:
     void diagnose(const QByteArray &uri, UpdatePolicy policy);
-    void registerHandlers(QLanguageServer *server, QLanguageServerProtocol *protocol) override;
-    void setupCapabilities(const QLspSpecification::InitializeParams &clientInfo,
-                           QLspSpecification::InitializeResult &) override;
 
 private:
     struct VersionedDocument

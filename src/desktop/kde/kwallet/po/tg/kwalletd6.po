@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwalletd\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-18 00:41+0000\n"
+"POT-Creation-Date: 2026-09-19 00:41+0000\n"
 "PO-Revision-Date: 2019-08-19 23:03+0500\n"
 "Last-Translator: Victor Ibragimov <victor.ibragimov@gmail.com>\n"
 "Language-Team: Tajik <kde-i18n-doc@kde.org>\n"
@@ -27,31 +27,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "victor.ibragimov@gmail.com"
 
-#. i18n: ectx: property (text), widget (QPushButton, _allowOnce)
-#: ksecretd/kbetterthankdialogbase.ui:50
-#, kde-format
-msgid "Allow &Once"
-msgstr "&Як маротиба иҷозат додан"
-
-#. i18n: ectx: property (text), widget (QPushButton, _allowAlways)
-#: ksecretd/kbetterthankdialogbase.ui:60
-#, kde-format
-msgid "Allow &Always"
-msgstr "&Ҳамеша иҷозат додан"
-
-#. i18n: ectx: property (text), widget (QPushButton, _deny)
-#: ksecretd/kbetterthankdialogbase.ui:67
-#, kde-format
-msgid "&Deny"
-msgstr "&Рад кардан"
-
-#. i18n: ectx: property (text), widget (QPushButton, _denyForever)
-#: ksecretd/kbetterthankdialogbase.ui:74
-#, kde-format
-msgid "Deny &Forever"
-msgstr "&Ҳамеша рад кардан"
-
-#: ksecretd/knewwalletdialog.cpp:50
+#: ksecretd/knewwalletdialog.cpp:49
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. This is used "
@@ -63,20 +39,7 @@ msgstr ""
 "Лутфан, навъи ҳамёни наверо дар зер интихоб намоед ё ин ки барои рад кардани "
 "дархости барнома тугмаи бекоркуниро зер кунед.</qt>"
 
-#: ksecretd/knewwalletdialog.cpp:55
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. This is used to store sensitive data in a secure fashion. "
-"Please choose the new wallet's type below or click cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt><qt>Барномаи '<b>%1</b>' эҷодкунии ҳамёни наверо бо номи '<b>%2</b>' "
-"дархост кард. Ин амал барои нигоҳ доштани иттилооти муҳим ба таври бехатар "
-"истифода мешавад. Лутфан, навъи ҳамёни наверо дар зер интихоб намоед ё ин ки "
-"барои рад кардани дархости барнома тугмаи бекоркуниро зер кунед.</qt>"
-
-#: ksecretd/knewwalletdialog.cpp:125 ksecretd/knewwalletdialog.cpp:132
+#: ksecretd/knewwalletdialog.cpp:117 ksecretd/knewwalletdialog.cpp:124
 #: ksecretd/kwalletwizard.cpp:151 ksecretd/kwalletwizard.cpp:157
 #, kde-format
 msgid ""
@@ -86,7 +49,7 @@ msgstr ""
 "Китобхонаи GpgME ҳангоми омодасозӣ барои протоколи OpenPGP қатъ шуд. Лутфан, "
 "танзимоти низоми худро санҷед ва баъд аз нав кӯшиш кунед."
 
-#: ksecretd/knewwalletdialog.cpp:153
+#: ksecretd/knewwalletdialog.cpp:145
 #, kde-format
 msgid ""
 "Seems that your system has no keys suitable for encryption. Please set-up at "
@@ -171,7 +134,7 @@ msgstr "Файли рамзгузоришуда бо тарзи классики
 msgid "Use GPG encryption, for better protection"
 msgstr "Барои муҳофизати беҳтар аз рамзгузории GPG истифода баред"
 
-#: ksecretd/ksecretd.cpp:616
+#: ksecretd/ksecretd.cpp:334
 #, kde-format
 msgid ""
 "<qt>KDE has requested to open the wallet '<b>%1</b>'. Please enter the "
@@ -180,31 +143,21 @@ msgstr ""
 "<qt>KDE кушодани ҳамёни '<b>%1</b>'-ро дархост кард. Лутфан, барои ҳамёни "
 "зерин ниҳонвожаеро ворид намоед.</qt>"
 
-#: ksecretd/ksecretd.cpp:620
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
-"b>'. Please enter the password for this wallet below.</qt>"
-msgstr ""
-"<qt>Барномаи '<b>%1</b>' кушодани ҳамёни '<b>%2</b>'-ро дархост кард. "
-"Лутфан, барои ҳамёни зерин ниҳонвожаеро ворид намоед.</qt>"
-
 #. i18n( "&Open" ), "wallet-open"));
-#: ksecretd/ksecretd.cpp:631 ksecretd/ksecretd.cpp:740
-#: ksecretd/ksecretd.cpp:844 ksecretd/ksecretd.cpp:957
-#: ksecretd/ksecretd.cpp:980 ksecretd/ksecretd.cpp:991
-#: ksecretd/ksecretd.cpp:996 ksecretd/ksecretd.cpp:1586 ksecretd/main.cpp:160
-#: ksecretd/main.cpp:162
+#: ksecretd/ksecretd.cpp:342 ksecretd/ksecretd.cpp:429
+#: ksecretd/ksecretd.cpp:573 ksecretd/ksecretd.cpp:596
+#: ksecretd/ksecretd.cpp:607 ksecretd/ksecretd.cpp:612
+#: ksecretd/ksecretd.cpp:899 ksecretd/main.cpp:159 ksecretd/main.cpp:161
 #, kde-format
 msgid "KDE Wallet Service"
 msgstr "Хидмати ҳамёнҳои KDE"
 
-#: ksecretd/ksecretd.cpp:646
+#: ksecretd/ksecretd.cpp:356
 #, kde-format
 msgid "An application has requested to open a wallet (%1)."
 msgstr "Барнома кушодани ҳамёнро дархост кард (%1)."
 
-#: ksecretd/ksecretd.cpp:647
+#: ksecretd/ksecretd.cpp:357
 #, kde-format
 msgctxt ""
 "Text of a button for switching to the (unnamed) application requesting a "
@@ -212,19 +165,7 @@ msgctxt ""
 msgid "Switch there"
 msgstr "Ба барнома гузаред"
 
-#: ksecretd/ksecretd.cpp:649
-#, kde-format
-msgid "<b>%1</b> has requested to open a wallet (%2)."
-msgstr "<b>%1</b> кушодани ҳамёнро дархост кард (%2)."
-
-#: ksecretd/ksecretd.cpp:651
-#, kde-format
-msgctxt ""
-"Text of a button for switching to the application requesting a password"
-msgid "Switch to %1"
-msgstr "Ба %1 гузаред"
-
-#: ksecretd/ksecretd.cpp:668 ksecretd/ksecretd.cpp:750
+#: ksecretd/ksecretd.cpp:373 ksecretd/ksecretd.cpp:439
 #, kde-format
 msgid ""
 "<qt>Error opening the wallet '<b>%1</b>'. Please try again.<br />(Error code "
@@ -233,7 +174,7 @@ msgstr ""
 "<qt>Ҳангоми кушодани ҳамёни '<b>%1</b>' хато ба вуҷуд омад. Лутфан, аз нав "
 "кӯшиш кунед.<br />(Рамзи хато %2: %3)</qt>"
 
-#: ksecretd/ksecretd.cpp:716
+#: ksecretd/ksecretd.cpp:420
 #, kde-format
 msgid ""
 "KDE has requested to open the wallet. This is used to store sensitive data "
@@ -245,20 +186,7 @@ msgstr ""
 "интихоб намоед ё ин ки барои рад кардани дархости барнома тугмаи бекоркуниро "
 "зер кунед."
 
-#: ksecretd/ksecretd.cpp:721
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the KDE wallet. This "
-"is used to store sensitive data in a secure fashion. Please enter a password "
-"to use with this wallet or click cancel to deny the application's request.</"
-"qt>"
-msgstr ""
-"<qt>Барномаи '<b>%1</b>' кушодани ҳамёнро дархост кард. Ин амал барои нигоҳ "
-"доштани иттилооти муҳим ба таври бехатар истифода мешавад. Лутфан, навъи "
-"ҳамёни наверо дар зер интихоб намоед ё ин ки барои рад кардани дархости "
-"барнома тугмаи бекоркуниро зер кунед.</qt>"
-
-#: ksecretd/ksecretd.cpp:729
+#: ksecretd/ksecretd.cpp:425
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. Please "
@@ -269,34 +197,7 @@ msgstr ""
 "Лутфан, ниҳонвожаеро барои ин ҳамён интихоб намоед ё ин ки барои рад кардани "
 "дархости барнома тугмаи бекоркуниро зер кунед</qt>"
 
-#: ksecretd/ksecretd.cpp:734
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. Please choose a password for this wallet, or cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>Брномаи '<b>%1</b>' эҷодкунии ҳамёни наверо бо номи '<b>%2</b>' дархост "
-"кард. Лутфан, ниҳонвожаеро барои ин ҳамён интихоб намоед ё ин ки барои рад "
-"кардани дархости барнома тугмаи бекоркуниро зер кунед</qt>"
-
-#: ksecretd/ksecretd.cpp:846
-#, kde-format
-msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
-msgstr ""
-"<qt>Муҳити KDE барои кушодани ҳамёни '<b>%1</b>' дастрасиро дархост кард.</"
-"qt>"
-
-#: ksecretd/ksecretd.cpp:848
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested access to the open wallet '<b>"
-"%2</b>'.</qt>"
-msgstr ""
-"<qt>Барномаи '<b>%1</b>' барои кушодани ҳамёни '<b>%2</b>' дастрасиро "
-"дархост кард.</qt>"
-
-#: ksecretd/ksecretd.cpp:956
+#: ksecretd/ksecretd.cpp:572
 #, kde-format
 msgid ""
 "Unable to open wallet. The wallet must be opened in order to change the "
@@ -304,7 +205,7 @@ msgid ""
 msgstr ""
 "Ҳамён кушода намешавад. Барои иваз кардани ниҳонвожа ҳамён бояд кушода бошад."
 
-#: ksecretd/ksecretd.cpp:972
+#: ksecretd/ksecretd.cpp:588
 #, kde-format
 msgid ""
 "<qt>The <b>%1</b> wallet is encrypted using GPG key <b>%2</b>. Please use "
@@ -315,27 +216,27 @@ msgstr ""
 "Лутфан, барои иваз кардани гузарвожаи марбут ба ин калид, аз абзорҳои "
 "<b>GPG</b> (монанди <b>kleopatra</b>) истифода баред.</qt>"
 
-#: ksecretd/ksecretd.cpp:979
+#: ksecretd/ksecretd.cpp:595
 #, kde-format
 msgid "<qt>Please choose a new password for the wallet '<b>%1</b>'.</qt>"
 msgstr ""
 "<qt>Лутфан, барои ҳамёни '<b>%1</b>' ниҳонвожаи наверо интихоб кунед.</qt>"
 
-#: ksecretd/ksecretd.cpp:991
+#: ksecretd/ksecretd.cpp:607
 #, kde-format
 msgid "Error re-encrypting the wallet. Password was not changed."
 msgstr ""
 "Ҳангови аз нав рамзгузорӣ кардани ҳамён хато ба вуҷуд омад. Ниҳонвожа тағйир "
 "наёфт."
 
-#: ksecretd/ksecretd.cpp:996
+#: ksecretd/ksecretd.cpp:612
 #, kde-format
 msgid "Error reopening the wallet. Data may be lost."
 msgstr ""
 "Ҳангоми аз нав кушодани ҳамён хато ба вуҷуд омад. Эҳтимол аст, ки иттилоот "
 "гум шуд."
 
-#: ksecretd/ksecretd.cpp:1585
+#: ksecretd/ksecretd.cpp:898
 #, kde-format
 msgid ""
 "There have been repeated failed attempts to gain access to a wallet. An "
@@ -574,49 +475,49 @@ msgstr ""
 msgid "What kind of encryption do you wish?"
 msgstr "Ба шумо кадом шакли рамзгузорӣ лозим аст?"
 
-#: ksecretd/main.cpp:164
+#: ksecretd/main.cpp:163
 #, fuzzy, kde-format
 #| msgid "(C) 2002-2013, The KDE Developers"
 msgid "(C) 2002-2025, The KDE Developers"
 msgstr "(c) 2002-2013, Барномасозони KDE"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Valentin Rusu"
 msgstr "Валентин Русу (Valentin Rusu)"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, fuzzy, kde-format
 #| msgid "Maintainer, GPG backend support"
 msgid "Former Maintainer, GPG backend support"
 msgstr "Барномасоз, дастгирии низоми дохилии GPG"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Michael Leupold"
 msgstr "Мишел Леополд (Michael Leupold)"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Former Maintainer"
 msgstr "Барномасози собиқ"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "George Staikos"
 msgstr "Ҷорҷ Стайкос (George Staikos)"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "Former maintainer"
 msgstr "Барномасози собиқ"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "Thiago Maceira"
 msgstr "Файго Масейра (Thiago Maceira)"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "D-Bus Interface"
 msgstr "Воситаи намоиши D-Bus"
@@ -719,54 +620,54 @@ msgstr ""
 "калиди рақами мушаххаси GPG <b>%2</b> рамзгузорӣ карда шуд , вале ин калид "
 "дар ниҳоми шумо ёфт нашуд.</qt>"
 
-#: kwalletbackend/kwalletbackend.cc:272
+#: kwalletbackend/kwalletbackend.cc:286
 #, kde-format
 msgid "Already open."
 msgstr "Аллакай кушода аст."
 
-#: kwalletbackend/kwalletbackend.cc:274
+#: kwalletbackend/kwalletbackend.cc:288
 #, kde-format
 msgid "Error opening file."
 msgstr "Файлро кушода натавонист."
 
-#: kwalletbackend/kwalletbackend.cc:276
+#: kwalletbackend/kwalletbackend.cc:290
 #, kde-format
 msgid "Not a wallet file."
 msgstr "Файли ҳамён намебошад."
 
-#: kwalletbackend/kwalletbackend.cc:278
+#: kwalletbackend/kwalletbackend.cc:292
 #, kde-format
 msgid "Unsupported file format revision."
 msgstr "Тафтиши шакли файл дастгирӣ намешавад."
 
-#: kwalletbackend/kwalletbackend.cc:282
+#: kwalletbackend/kwalletbackend.cc:296
 #, kde-format
 msgid "Unknown encryption scheme."
 msgstr "Нақшаи рамзгузории номаълум."
 
-#: kwalletbackend/kwalletbackend.cc:284
+#: kwalletbackend/kwalletbackend.cc:298
 #, kde-format
 msgid "Corrupt file?"
 msgstr "Файл вайрон аст?"
 
-#: kwalletbackend/kwalletbackend.cc:286
+#: kwalletbackend/kwalletbackend.cc:300
 #, kde-format
 msgid "Error validating wallet integrity. Possibly corrupted."
 msgstr ""
 "Ҳангоми санҷиши яклyxтии ҳамён хато ба вуҷуд омад. Эҳтимол аст, ки он вайрон "
 "аст."
 
-#: kwalletbackend/kwalletbackend.cc:290
+#: kwalletbackend/kwalletbackend.cc:304
 #, kde-format
 msgid "Read error - possibly incorrect password."
 msgstr "Хатои хониш - эҳтимол аст, ки ниҳонвода нодуруст аст."
 
-#: kwalletbackend/kwalletbackend.cc:292
+#: kwalletbackend/kwalletbackend.cc:306
 #, kde-format
 msgid "Decryption error."
 msgstr "Хатои рамзкушоӣ."
 
-#: kwalletbackend/kwalletbackend.cc:472
+#: kwalletbackend/kwalletbackend.cc:486
 #, kde-format
 msgid ""
 "Failed to sync wallet <b>%1</b> to disk. Error codes are:\n"
@@ -778,92 +679,163 @@ msgstr ""
 "SF <b>%3</b>. Лутфан, бо истифодаи иттилооти мазкур гузориши хаторо ба bugs."
 "kde.org пешниҳод кунед"
 
-#: kwalletd/kwalletd.cpp:119
+#: kwalletd/kwalletd.cpp:103
 #, kde-format
 msgid "Migrating the wallet \"%1\". Please provide the password to unlock."
 msgstr ""
 
-#: kwalletd/main.cpp:32
+#: kwalletd/main.cpp:31
 #, kde-format
 msgid "kwalletd"
 msgstr "kwalletd"
 
-#: kwalletd/main.cpp:34
+#: kwalletd/main.cpp:33
 #, kde-format
 msgid "A KWallet compatibility service, wrapping upon Secret Service"
 msgstr ""
 
-#: kwalletd/main.cpp:36
+#: kwalletd/main.cpp:35
 #, fuzzy, kde-format
 #| msgid "(C) 2002-2013, The KDE Developers"
 msgid "(C) 2025, The KDE Developers"
 msgstr "(c) 2002-2013, Барномасозони KDE"
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Marco Martin"
 msgstr ""
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Author"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:241
+#: kwalletd/secretserviceclient.cpp:262
 #, kde-format
 msgid "Item not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:261
+#: kwalletd/secretserviceclient.cpp:282
 #, kde-format
 msgid "Could not connect to Secret Service"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:423
+#: kwalletd/secretserviceclient.cpp:482
 #, kde-format
 msgid "Unable to unlock collectionName %1"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:515
+#: kwalletd/secretserviceclient.cpp:575
 #, kde-format
 msgid "No collections"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:552 kwalletd/secretserviceclient.cpp:599
-#: kwalletd/secretserviceclient.cpp:702
+#: kwalletd/secretserviceclient.cpp:612 kwalletd/secretserviceclient.cpp:659
+#: kwalletd/secretserviceclient.cpp:762
 #, kde-format
 msgid "No entries"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:617
+#: kwalletd/secretserviceclient.cpp:677
 #, kde-format
 msgid "Entry not found, key: %1, folder: %2"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:726
+#: kwalletd/secretserviceclient.cpp:786
 #, kde-format
 msgid "Unable to unlock item"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:769 kwalletd/secretserviceclient.cpp:887
+#: kwalletd/secretserviceclient.cpp:829 kwalletd/secretserviceclient.cpp:947
 #, kde-format
 msgid "Entry to rename not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:776
+#: kwalletd/secretserviceclient.cpp:836
 #, kde-format
 msgid "Entry named %1 in folder %2 and wallet %3 already exists."
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:791 kwalletd/secretserviceclient.cpp:806
+#: kwalletd/secretserviceclient.cpp:851 kwalletd/secretserviceclient.cpp:866
 #, kde-format
 msgid "Entry to rename incomplete"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:851
+#: kwalletd/secretserviceclient.cpp:911
 #, kde-format
 msgid "Failed to create SecretValue"
 msgstr ""
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. This is used to store sensitive data in a secure "
+#~ "fashion. Please choose the new wallet's type below or click cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt><qt>Барномаи '<b>%1</b>' эҷодкунии ҳамёни наверо бо номи '<b>%2</b>' "
+#~ "дархост кард. Ин амал барои нигоҳ доштани иттилооти муҳим ба таври "
+#~ "бехатар истифода мешавад. Лутфан, навъи ҳамёни наверо дар зер интихоб "
+#~ "намоед ё ин ки барои рад кардани дархости барнома тугмаи бекоркуниро зер "
+#~ "кунед.</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
+#~ "b>'. Please enter the password for this wallet below.</qt>"
+#~ msgstr ""
+#~ "<qt>Барномаи '<b>%1</b>' кушодани ҳамёни '<b>%2</b>'-ро дархост кард. "
+#~ "Лутфан, барои ҳамёни зерин ниҳонвожаеро ворид намоед.</qt>"
+
+#~ msgid "<b>%1</b> has requested to open a wallet (%2)."
+#~ msgstr "<b>%1</b> кушодани ҳамёнро дархост кард (%2)."
+
+#~ msgctxt ""
+#~ "Text of a button for switching to the application requesting a password"
+#~ msgid "Switch to %1"
+#~ msgstr "Ба %1 гузаред"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the KDE wallet. "
+#~ "This is used to store sensitive data in a secure fashion. Please enter a "
+#~ "password to use with this wallet or click cancel to deny the "
+#~ "application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Барномаи '<b>%1</b>' кушодани ҳамёнро дархост кард. Ин амал барои "
+#~ "нигоҳ доштани иттилооти муҳим ба таври бехатар истифода мешавад. Лутфан, "
+#~ "навъи ҳамёни наверо дар зер интихоб намоед ё ин ки барои рад кардани "
+#~ "дархости барнома тугмаи бекоркуниро зер кунед.</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. Please choose a password for this wallet, or cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Брномаи '<b>%1</b>' эҷодкунии ҳамёни наверо бо номи '<b>%2</b>' "
+#~ "дархост кард. Лутфан, ниҳонвожаеро барои ин ҳамён интихоб намоед ё ин ки "
+#~ "барои рад кардани дархости барнома тугмаи бекоркуниро зер кунед</qt>"
+
+#~ msgid "Allow &Once"
+#~ msgstr "&Як маротиба иҷозат додан"
+
+#~ msgid "Allow &Always"
+#~ msgstr "&Ҳамеша иҷозат додан"
+
+#~ msgid "&Deny"
+#~ msgstr "&Рад кардан"
+
+#~ msgid "Deny &Forever"
+#~ msgstr "&Ҳамеша рад кардан"
+
+#~ msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>Муҳити KDE барои кушодани ҳамёни '<b>%1</b>' дастрасиро дархост кард."
+#~ "</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested access to the open wallet "
+#~ "'<b>%2</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>Барномаи '<b>%1</b>' барои кушодани ҳамёни '<b>%2</b>' дастрасиро "
+#~ "дархост кард.</qt>"
 
 #, fuzzy
 #~| msgid "KDE Wallet Service"

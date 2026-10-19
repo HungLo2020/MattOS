@@ -27,6 +27,11 @@ ENDFOREACH()
 # get all icons as dependencies for the generation
 file(GLOB_RECURSE icon_svgs ${CMAKE_CURRENT_SOURCE_DIR}/*.svg)
 
+set(icon_generation_depends commonthemeinfo.theme.in breeze.theme.in breeze-dark.theme.in)
+if(NOT CMAKE_GENERATOR STREQUAL "Xcode")
+    list(APPEND icon_generation_depends ${icon_svgs})
+endif()
+
 # generate the two theme indices
 file(COPY_FILE breeze.theme.in ${ICON_GEN_DIR}/index.theme)
 file(READ commonthemeinfo.theme.in COMMON_THEME_INFO)
@@ -45,7 +50,7 @@ if(WITH_ICON_GENERATION)
         COMMAND $<TARGET_FILE:qrcAlias> -o ${RESOURCE_FILE} ${CMAKE_SOURCE_DIR}/icons ${ICON_GEN_DIR} # used for the resource
         COMMAND $<TARGET_FILE:qrcAlias> -o ${RESOURCE_FILE}.dark.dummy ${CMAKE_SOURCE_DIR}/icons ${ICON_GEN_DIR} ${ICON_DARK_GEN_DIR} # used for checking only
         COMMAND Qt6::rcc --binary -o ${RESOURCE_FILE_BINARY} ${RESOURCE_FILE} # FIXME: remove after e.g. Kexi is ported
-        DEPENDS ${icon_svgs} commonthemeinfo.theme.in breeze.theme.in breeze-dark.theme.in
+        DEPENDS ${icon_generation_depends}
         USES_TERMINAL
     )
 else()
@@ -56,7 +61,7 @@ else()
         COMMAND $<TARGET_FILE:qrcAlias> -o ${RESOURCE_FILE} ${CMAKE_SOURCE_DIR}/icons ${ICON_GEN_DIR} # used for the resource
         COMMAND $<TARGET_FILE:qrcAlias> -o ${RESOURCE_FILE}.dark.dummy ${CMAKE_SOURCE_DIR}/icons ${ICON_GEN_DIR} ${ICON_DARK_GEN_DIR} # used for checking only
         COMMAND Qt6::rcc --binary -o ${RESOURCE_FILE_BINARY} ${RESOURCE_FILE} # FIXME: remove after e.g. Kexi is ported
-        DEPENDS ${icon_svgs} commonthemeinfo.theme.in breeze.theme.in breeze-dark.theme.in
+        DEPENDS ${icon_generation_depends}
         USES_TERMINAL
     )
 endif()
@@ -113,7 +118,12 @@ if (WITH_ICONS_LIBRARY)
             EXPORT_NAME BreezeIcons
     )
 
-    generate_export_header(KF6BreezeIcons BASE_NAME BreezeIcons)
+    ecm_generate_export_header(KF6BreezeIcons
+        BASE_NAME BreezeIcons
+        GROUP_BASE_NAME KF
+        VERSION ${KF_VERSION}
+        USE_VERSION_HEADER
+    )
 
     target_include_directories(KF6BreezeIcons
         INTERFACE
@@ -148,4 +158,16 @@ if (WITH_ICONS_LIBRARY)
         COMPONENT Devel
     )
 
+    ecm_add_installed_library_check(KF6BreezeIcons
+        PACKAGE_NAME "KF6BreezeIcons"
+        PACKAGE_TARGET_NAMESPACE "KF6::"
+    )
+
+    ecm_installed_library_check_include_strings(KF6BreezeIcons
+        HEADERS ${KF6BreezeIcons_CamelCase_HEADERS}
+    )
+
+    ecm_installed_library_check_version_preprocessor_macros(KF6BreezeIcons
+        PREFIX BREEZEICONS
+    )
 endif()

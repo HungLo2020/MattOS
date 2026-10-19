@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+[package]
+name = "cxx-rust-cssparser-impl"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+cxx = "1.0"
+cssparser = "0.37"
+cssparser-color = "0.5"
+selectors = "0.40.0"
+precomputed-hash = "0.1.1"
+nom = "8.0.0"
+
+[build-dependencies]
+cxx-build = "1.0"
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+path = "src/lib.rs"

@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QDebug>
+#include <QMap>
 
 QT_BEGIN_NAMESPACE
 
@@ -536,10 +537,12 @@ void QShaderBaker::setGlslOptions(GlslOptions options)
 }
 
 #ifndef Q_OS_INTEGRITY // QTBUG-145990
+#ifndef QSHADERVERSION_IS_HASHABLE
 inline size_t qHash(const QShaderBaker::GeneratedShader &k, size_t seed = 0)
 {
     return qHash(k.first, seed) ^ k.second.version();
 }
+#endif
 #endif
 
 std::pair<QByteArray, QByteArray> QShaderBakerPrivate::compile()
@@ -627,8 +630,12 @@ QShader QShaderBaker::bake()
     // Normally one entry, for QShader::SpirvShader only. However, in
     // compile-per-target mode there is a separate SPIR-V binary generated for
     // each target (so for each GLSL/HLSL/MSL version requested).
-    QHash<GeneratedShader, QByteArray> spirv;
-    QHash<GeneratedShader, QByteArray> batchableSpirv;
+    // These are ordered maps, not hash tables, on purpose: the reflection info
+    // is generated from whichever binary comes first, and that must not depend
+    // on the (per-process randomized) QHash seed, otherwise the resulting
+    // QShader would not be reproducible from one run to another.
+    QMap<GeneratedShader, QByteArray> spirv;
+    QMap<GeneratedShader, QByteArray> batchableSpirv;
     const auto compileSpirvAndBatchable = [this, &spirv, &batchableSpirv](const GeneratedShader &key) {
         const std::pair<QByteArray, QByteArray> bin = d->compile();
         if (bin.first.isEmpty())

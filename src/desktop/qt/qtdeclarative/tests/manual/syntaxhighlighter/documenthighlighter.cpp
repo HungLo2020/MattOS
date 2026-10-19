@@ -24,9 +24,34 @@ void Highlighter::highlightBlock(const QString &text)
     case 2:
         fmt.setFontUnderline(true);
         fmt.setUnderlineColor(QColor("red"));
-        // fmt.setUnderlineStyle(QTextCharFormat::WaveUnderline); // not supported yet: QTBUG-39617
+        fmt.setUnderlineStyle(QTextCharFormat::WaveUnderline);
         break;
     case 3:
+        fmt.setFontUnderline(true);
+        fmt.setUnderlineColor(QColor("blue"));
+        fmt.setUnderlineStyle(QTextCharFormat::DashUnderline);
+        break;
+    case 4:
+        fmt.setFontUnderline(true);
+        fmt.setUnderlineColor(QColor("green"));
+        fmt.setUnderlineStyle(QTextCharFormat::DotLine);
+        break;
+    case 5:
+        fmt.setFontUnderline(true);
+        fmt.setUnderlineColor(QColor("magenta"));
+        fmt.setUnderlineStyle(QTextCharFormat::DashDotLine);
+        break;
+    case 6:
+        fmt.setFontUnderline(true);
+        fmt.setUnderlineColor(QColor("orange"));
+        fmt.setUnderlineStyle(QTextCharFormat::DashDotDotLine);
+        break;
+    case 7:
+        fmt.setFontUnderline(true);
+        fmt.setUnderlineColor(QColor("red"));
+        fmt.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
+        break;
+    case 8:
         fmt.setFontOverline(true);
         fmt.setFontUnderline(true);
         fmt.setUnderlineColor(QColor("green"));
@@ -37,7 +62,7 @@ void Highlighter::highlightBlock(const QString &text)
         fmt.setFontPointSize(14);
         fmt.setFontStyleHint(QFont::Decorative); // seems ignored in practice
         break;
-    case 4:
+    case 9:
         fmt.setFontStrikeOut(true);
         fmt.setUnderlineColor(QColor("orange"));
         fmt.setFontCapitalization(QFont::Capitalization::SmallCaps);

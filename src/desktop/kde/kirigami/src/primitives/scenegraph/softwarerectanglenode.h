@@ -14,7 +14,7 @@
 
 class ShaderMaterial;
 
-/*!
+/*
  * A scene graph node that implements rendering a rectangle with a color and
  * texture for the software renderer.
  */

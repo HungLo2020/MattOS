@@ -15,24 +15,6 @@
 
 #include <kwallet_export.h>
 
-/**
- * NOTE: KSecretsService folder semantics
- * The KWallet API uses folders for organising items. KSecretsService does not
- * have this notion. But it uses attributes that can be applied arbitrarily on
- * all the items. The KWallet code that maps to KSecretsService applies an special
- * attribute KSS_ATTR_ENTRYFOLDER to all items with the currentFolder() value.
- * The KWallet folder API's calls will always succeed and they'll only change the
- * current folder value. The folderList() call will scan all the collection
- * items and collect the KSS_ATTR_ENTRYFOLDER attributes into a list.
- */
-
-/**
- * NOTE: KWalet API distinguish KSecretsService collection items by attaching
- * them some specific attributes, defined below
- */
-#define KSS_ATTR_ENTRYFOLDER "kwallet.folderName"
-#define KSS_ATTR_WALLETTYPE "kwallet.type"
-
 /*!
  * \namespace KWallet
  * \inmodule KWallet
@@ -241,22 +223,36 @@ public:
      */
     static void changePassword(const QString &name, WId w);
 
+#if KWALLET_BUILD_DEPRECATED_SINCE(6, 30)
     /*!
      * This syncs the wallet file on disk with what is in memory.
      * You don't normally need to use this.  It happens
      * automatically on close.
      *
      * Returns 0 on success, non-zero on error.
+     *
+     * \deprecated[6.30]
+     *
+     * Not implemented.
      */
+    KWALLET_DEPRECATED_VERSION(6, 30, "Not implemented")
     virtual int sync();
+#endif
 
+#if KWALLET_BUILD_DEPRECATED_SINCE(6, 30)
     /*!
      * This closes and locks the current wallet.  It will
      * disconnect all applications using the wallet.
      *
      * Returns 0 on success, non-zero on error.
+     *
+     * \deprecated[6.30]
+     *
+     * Use closeWallet()
      */
+    KWALLET_DEPRECATED_VERSION(6, 30, "Use closeWallet")
     virtual int lockWallet();
+#endif
 
     /*!
      * Returns the name of the current wallet.
@@ -271,6 +267,7 @@ public:
      */
     virtual bool isOpen() const;
 
+#if KWALLET_BUILD_DEPRECATED_SINCE(6, 30)
     /*!
      * Request to the wallet service to change the password of
      * the current wallet.
@@ -278,8 +275,14 @@ public:
      * \a w The window id to associate any dialogs with. You can pass
      *           0 if you don't have a window the password dialog should
      *           associate with.
+     *
+     * \deprecated[6.30]
+     *
+     * Use changePassword
      */
+    KWALLET_DEPRECATED_VERSION(6, 30, "Use changePassword")
     virtual void requestChangePassword(WId w);
+#endif
 
     /*!
      * Obtain the list of all folders contained in the wallet.
@@ -628,17 +631,6 @@ private Q_SLOTS:
      * Emits wallet opening success.
      */
     KWALLET_NO_EXPORT void emitWalletOpened();
-
-    /*!
-     * \internal
-     * Receives status changed notifications from KSecretsService infrastructure
-     */
-    KWALLET_NO_EXPORT void slotCollectionStatusChanged(int);
-    /*!
-     * \internal
-     * Received delete notification from KSecretsService infrastructure
-     */
-    KWALLET_NO_EXPORT void slotCollectionDeleted();
 
 private:
     class WalletPrivate;

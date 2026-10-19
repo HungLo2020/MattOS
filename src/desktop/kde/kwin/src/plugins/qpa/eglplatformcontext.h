@@ -24,6 +24,7 @@ class GLTexture;
 class GraphicsBuffer;
 class EglDisplay;
 class EglContext;
+class SwapchainSlot;
 
 namespace QPA
 {
@@ -46,7 +47,7 @@ class EGLPlatformContext : public QObject, public QPlatformOpenGLContext, public
     Q_OBJECT
 
 public:
-    EGLPlatformContext(QOpenGLContext *context, EglDisplay *display);
+    EGLPlatformContext(QOpenGLContext *context, const std::shared_ptr<EglContext> &kwinContext);
     ~EGLPlatformContext() override;
 
     bool makeCurrent(QPlatformSurface *surface) override;
@@ -63,7 +64,6 @@ public:
     void invalidateContext() override;
 
 private:
-    void create(const QSurfaceFormat &format, ::EGLContext shareContext);
     void updateFormatFromContext();
 
     EglDisplay *const m_eglDisplay;
@@ -73,6 +73,7 @@ private:
     std::unordered_map<GraphicsBuffer *, std::shared_ptr<EGLRenderTarget>> m_renderTargets;
     std::vector<std::shared_ptr<EGLRenderTarget>> m_zombieRenderTargets;
     std::shared_ptr<EGLRenderTarget> m_current;
+    std::shared_ptr<SwapchainSlot> m_currentSlot;
     bool m_markedInvalid = false;
 };
 

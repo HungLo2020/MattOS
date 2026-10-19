@@ -87,9 +87,12 @@ void QWaylandXdgDecorationManagerV1::initialize()
 }
 
 /*!
-    \qmlproperty string XdgDecorationManagerV1::preferredMode
+    \qmlproperty enumeration XdgDecorationManagerV1::preferredMode
 
-    This property holds the decoration mode the compositor prefers.
+    This property holds the decoration mode the compositor prefers. Possible values are:
+
+    \value XdgToplevel.ClientSideDecoration The client should draw window decorations (default).
+    \value XdgToplevel.ServerSideDecoration The compositor should draw window decorations.
 
     This is the mode used for clients that don't indicate a preference for server-side or
     client-side decorations.

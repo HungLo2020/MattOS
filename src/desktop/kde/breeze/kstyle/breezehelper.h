@@ -9,8 +9,6 @@
 #include "breeze.h"
 #include "breezeanimationdata.h"
 #include "breezemetrics.h"
-#include "breezesettings.h"
-#include "config-breeze.h"
 
 #include <KConfigWatcher>
 #include <KSharedConfig>
@@ -18,6 +16,7 @@
 
 #include <QIcon>
 #include <QPainterPath>
+#include <QStyleOptionViewItem>
 #include <QToolBar>
 #include <QWidget>
 #include <qpainter.h>
@@ -49,9 +48,6 @@ public:
     //* pointer to shared config
     KSharedConfig::Ptr config() const;
 
-    //* pointer to kdecoration config
-    QSharedPointer<InternalSettings> decorationConfig() const;
-
     //* install event filter for palette change event
     void installEventFilter(QApplication *app) const;
 
@@ -74,18 +70,6 @@ public:
     QColor focusColor(const QPalette &palette) const
     {
         return _viewFocusBrush.brush(palette).color();
-    }
-
-    //* mouse over color for buttons
-    QColor buttonHoverColor(const QPalette &palette) const
-    {
-        return _buttonHoverBrush.brush(palette).color();
-    }
-
-    //* focus color for buttons
-    QColor buttonFocusColor(const QPalette &palette) const
-    {
-        return _buttonFocusBrush.brush(palette).color();
     }
 
     //* negative text color (used for close button)
@@ -135,12 +119,6 @@ public:
 
     //* hover outline color, using animations
     QColor hoverOutlineColor(const QPalette &) const;
-
-    //* focus outline color, using animations
-    QColor buttonFocusOutlineColor(const QPalette &) const;
-
-    //* hover outline color, using animations
-    QColor buttonHoverOutlineColor(const QPalette &) const;
 
     //* side panel outline color, using animations
     QColor sidePanelOutlineColor(const QPalette &, bool hasFocus = false, qreal opacity = AnimationData::OpacityInvalid, AnimationMode = AnimationNone) const;
@@ -193,7 +171,7 @@ public:
     void renderDebugFrame(QPainter *, const QRectF &) const;
 
     //* focus rect
-    void renderFocusRect(QPainter *, const QRectF &, const QColor &, const QColor &outline = QColor(), Sides = {}) const;
+    void renderFocusRect(QPainter *, const QRectF &, const QBrush &, const QColor &outline = QColor(), Sides = {}) const;
 
     //* focus line
     void renderFocusLine(QPainter *, const QRectF &, const QColor &) const;
@@ -230,9 +208,6 @@ public:
 
     //* tab widget frame
     void renderTabWidgetFrame(QPainter *, const QRectF &, const QColor &color, const QColor &outline, Corners) const;
-
-    //* selection frame
-    void renderSelection(QPainter *, const QRectF &, const QColor &) const;
 
     //* separator
     void renderSeparator(QPainter *, const QRectF &, const QColor &, bool vertical = false) const;
@@ -337,6 +312,13 @@ public:
     //* generic shadow for ellipses
     void renderEllipseShadow(QPainter *, const QRectF &, const QColor &) const;
 
+    void renderViewItemPosition(QPainter *painter,
+                                const QStyleOptionViewItem::ViewItemPosition &pos,
+                                const Qt::LayoutDirection direction,
+                                const QRectF &rect,
+                                const QBrush &bg,
+                                const QColor &outline) const;
+
     //@}
 
     //*@name compositing utilities
@@ -380,6 +362,8 @@ public:
         return rect.adjusted(shadowSize, shadowSize, -shadowSize, -shadowSize);
     }
 
+    QMargins itemViewItemMargins(const QStyleOptionViewItem *option) const;
+
     QPixmap coloredIcon(const QIcon &icon,
                         const QPalette &palette,
                         const QSize &size,
@@ -400,9 +384,6 @@ private:
     //* KWin configuration
     KSharedConfig::Ptr _kwinConfig;
 
-    //* decoration configuration
-    QSharedPointer<InternalSettings> _decorationConfig;
-
     //* event filter
     PaletteChangedEventFilter *_eventFilter;
 
@@ -410,8 +391,6 @@ private:
     //@{
     KStatefulBrush _viewFocusBrush;
     KStatefulBrush _viewHoverBrush;
-    KStatefulBrush _buttonFocusBrush;
-    KStatefulBrush _buttonHoverBrush;
     KStatefulBrush _viewNegativeTextBrush;
     KStatefulBrush _viewNeutralTextBrush;
     //@}

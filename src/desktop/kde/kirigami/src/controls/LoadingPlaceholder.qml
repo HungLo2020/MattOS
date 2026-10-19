@@ -8,8 +8,9 @@ import org.kde.kirigami.platform as Platform
 import org.kde.kirigami.controls as KC
 
 /*!
-  \qmltype PlaceholderMessage
+  \qmltype LoadingPlaceholder
   \inqmlmodule org.kde.kirigami
+  \inherits PlaceholderMessage
 
   \brief A placeholder for loading pages.
 

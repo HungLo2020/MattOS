@@ -359,24 +359,19 @@ void DataControlSource::ext_data_control_source_v1_send(const QString &mime_type
         // if we get a request on the fallback mime, send the data from the original mime type
         send_mime_type = QStringLiteral("text/plain");
     }
+    if (mime_type == applicationQtXImageLiteral()) {
+        send_mime_type = QStringLiteral("image/png");
+    }
 
+    const auto formats = m_mimeData->formats();
     QByteArray ba;
-
-    // adapted from QInternalMimeData::renderDataHelper
-    if (mime_type == applicationQtXImageLiteral() || mime_type.startsWith(QLatin1String("image/"))) {
-        if (m_mimeData->hasImage()) {
-            const QImage image = qvariant_cast<QImage>(m_mimeData->imageData());
-            QBuffer buf(&ba);
-            buf.open(QBuffer::WriteOnly);
-            if (mime_type == applicationQtXImageLiteral()) {
-                // would there not be PNG ??
-                image.save(&buf, "PNG");
-            } else {
-                image.save(&buf, mime_type.mid(mime_type.indexOf(QLatin1Char('/')) + 1).toLatin1().toUpper().data());
-            }
-        }
-    } else { // end adapted
+    if (formats.contains(send_mime_type)) {
         ba = m_mimeData->data(send_mime_type);
+    } else if (m_mimeData->hasImage() && send_mime_type.startsWith(QLatin1String("image/"))) {
+        const QImage image = qvariant_cast<QImage>(m_mimeData->imageData());
+        QBuffer buf(&ba);
+        buf.open(QBuffer::WriteOnly);
+        image.save(&buf, send_mime_type.mid(send_mime_type.indexOf(QLatin1Char('/')) + 1).toLatin1().toUpper().data());
     }
 
     auto rc = WaylandPipeWriterHelper::safeWriteWithTimeout(fd, ba.constData(), ba.size(), PIPE_BUF, 5s);
@@ -552,7 +547,7 @@ public:
     void run() override
     {
         while (!isInterruptionRequested()) {
-            while (wl_display_prepare_read_queue(m_display, m_queue) != 0) {
+            while (!isInterruptionRequested() && wl_display_prepare_read_queue(m_display, m_queue) != 0) {
                 QMutexLocker lock(&s_clipboardLock);
                 wl_display_dispatch_queue_pending(m_display, m_queue);
             }
@@ -617,9 +612,10 @@ WaylandClipboard::WaylandClipboard(QObject *parent)
             m_thread->start();
 
         } else {
-            m_device.reset();
             m_thread->requestInterruption();
             m_thread->wait();
+            m_device.reset();
+            m_manager->destroy();
             m_thread.reset();
         }
     });
@@ -728,6 +724,16 @@ const QMimeData *WaylandClipboard::mimeData(QClipboard::Mode mode) const
         return m_device->receivedPrimarySelection();
     }
     return nullptr;
+}
+
+bool WaylandClipboard::ownsSelection() const
+{
+    return m_device && m_device->primarySelection();
+}
+
+bool WaylandClipboard::ownsClipboard() const
+{
+    return m_device && m_device->selection();
 }
 
 #include "moc_waylandclipboard_p.cpp"

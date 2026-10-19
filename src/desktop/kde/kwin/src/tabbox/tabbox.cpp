@@ -9,8 +9,8 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 
-//#define QT_CLEAN_NAMESPACE
-// own
+// #define QT_CLEAN_NAMESPACE
+//  own
 #include "tabbox.h"
 // tabbox
 #include "tabbox/tabbox_logging.h"
@@ -19,6 +19,7 @@
 #include "effect/effecthandler.h"
 #include "focuschain.h"
 #include "input.h"
+#include "input_event.h"
 #include "keyboard_input.h"
 #include "pointer_input.h"
 #include "screenedge.h"
@@ -60,7 +61,7 @@ QString TabBoxHandlerImpl::desktopName(Window *client) const
     if (!client->isOnAllDesktops()) {
         return client->desktops().last()->name();
     }
-    return VirtualDesktopManager::self()->currentDesktop()->name();
+    return VirtualDesktopManager::self()->currentDesktop(client->output())->name();
 }
 
 Window *TabBoxHandlerImpl::nextClientFocusChain(Window *client) const
@@ -260,6 +261,7 @@ TabBox::TabBox()
     m_defaultConfig.setShowDesktopMode(TabBoxConfig::DoNotShowDesktopClient);
     m_defaultConfig.setClientMultiScreenMode(TabBoxConfig::IgnoreMultiScreen);
     m_defaultConfig.setClientSwitchingMode(TabBoxConfig::FocusChainSwitching);
+    m_defaultConfig.setShowScreenMode(TabBoxConfig::ShowOnActiveScreen);
 
     m_alternativeConfig = TabBoxConfig();
     m_alternativeConfig.setClientDesktopMode(TabBoxConfig::AllDesktopsClients);
@@ -270,6 +272,7 @@ TabBox::TabBox()
     m_alternativeConfig.setShowDesktopMode(TabBoxConfig::DoNotShowDesktopClient);
     m_alternativeConfig.setClientMultiScreenMode(TabBoxConfig::IgnoreMultiScreen);
     m_alternativeConfig.setClientSwitchingMode(TabBoxConfig::FocusChainSwitching);
+    m_alternativeConfig.setShowScreenMode(TabBoxConfig::ShowOnActiveScreen);
 
     m_defaultCurrentApplicationConfig = m_defaultConfig;
     m_defaultCurrentApplicationConfig.setClientApplicationsMode(TabBoxConfig::AllWindowsCurrentApplication);
@@ -283,6 +286,11 @@ TabBox::TabBox()
     m_tabBoxMode = TabBoxWindowsMode; // init variables
     connect(&m_delayedShowTimer, &QTimer::timeout, this, &TabBox::show);
     connect(Workspace::self(), &Workspace::configChanged, this, &TabBox::reconfigure);
+    connect(Workspace::self(), &Workspace::windowAdded, this, &TabBox::handleWindowAdded);
+    connect(Workspace::self(), &Workspace::windowRemoved, this, &TabBox::handleWindowRemoved);
+    Workspace::self()->forEachWindow([this](Window *window) {
+        watchWindow(window);
+    });
 }
 
 TabBox::~TabBox() = default;
@@ -295,7 +303,7 @@ void TabBox::handlerReady()
 }
 
 template<typename Slot>
-void TabBox::key(const KLazyLocalizedString &actionName, Slot slot, const QList<QKeySequence> &shortcuts)
+QAction *TabBox::key(const KLazyLocalizedString &actionName, Slot slot, const QList<QKeySequence> &shortcuts)
 {
     QAction *a = new QAction(this);
     a->setProperty("componentName", QStringLiteral("kwin"));
@@ -305,6 +313,7 @@ void TabBox::key(const KLazyLocalizedString &actionName, Slot slot, const QList<
     connect(a, &QAction::triggered, this, slot);
     auto cuts = KGlobalAccel::self()->shortcut(a);
     globalShortcutChanged(a, cuts);
+    return a;
 }
 
 static constexpr const auto s_windows = kli18n("Walk Through Windows");
@@ -318,14 +327,21 @@ static constexpr const auto s_appAltRev = kli18n("Walk Through Windows of Curren
 
 void TabBox::initShortcuts()
 {
-    key(s_windows, &TabBox::slotWalkThroughWindows, {Qt::MetaModifier | Qt::Key_Tab, Qt::AltModifier | Qt::Key_Tab});
-    key(s_windowsRev, &TabBox::slotWalkBackThroughWindows, {Qt::MetaModifier | Qt::ShiftModifier | Qt::Key_Tab, Qt::AltModifier | Qt::ShiftModifier | Qt::Key_Tab});
-    key(s_app, &TabBox::slotWalkThroughCurrentAppWindows, {Qt::MetaModifier | Qt::Key_QuoteLeft, Qt::AltModifier | Qt::Key_QuoteLeft});
-    key(s_appRev, &TabBox::slotWalkBackThroughCurrentAppWindows, {Qt::MetaModifier | Qt::Key_AsciiTilde, Qt::AltModifier | Qt::Key_AsciiTilde});
-    key(s_windowsAlt, &TabBox::slotWalkThroughWindowsAlternative);
-    key(s_windowsAltRev, &TabBox::slotWalkBackThroughWindowsAlternative);
-    key(s_appAlt, &TabBox::slotWalkThroughCurrentAppWindowsAlternative);
-    key(s_appAltRev, &TabBox::slotWalkBackThroughCurrentAppWindowsAlternative);
+    QAction *windowsAction = key(s_windows, &TabBox::slotWalkThroughWindows, {Qt::MetaModifier | Qt::Key_Tab, Qt::AltModifier | Qt::Key_Tab});
+    QAction *windowsRevAction = key(s_windowsRev, &TabBox::slotWalkBackThroughWindows, {Qt::MetaModifier | Qt::ShiftModifier | Qt::Key_Tab, Qt::AltModifier | Qt::ShiftModifier | Qt::Key_Tab});
+    KGlobalAccel::setInverseShortcutActions(windowsAction, windowsRevAction);
+
+    QAction *appAction = key(s_app, &TabBox::slotWalkThroughCurrentAppWindows, {Qt::MetaModifier | Qt::Key_QuoteLeft, Qt::AltModifier | Qt::Key_QuoteLeft});
+    QAction *appRevAction = key(s_appRev, &TabBox::slotWalkBackThroughCurrentAppWindows, {Qt::MetaModifier | Qt::Key_AsciiTilde, Qt::AltModifier | Qt::Key_AsciiTilde});
+    KGlobalAccel::setInverseShortcutActions(appAction, appRevAction);
+
+    QAction *windowsAltAction = key(s_windowsAlt, &TabBox::slotWalkThroughWindowsAlternative);
+    QAction *windowsAltRevAction = key(s_windowsAltRev, &TabBox::slotWalkBackThroughWindowsAlternative);
+    KGlobalAccel::setInverseShortcutActions(windowsAltAction, windowsAltRevAction);
+
+    QAction *appAltAction = key(s_appAlt, &TabBox::slotWalkThroughCurrentAppWindowsAlternative);
+    QAction *appAltRevAction = key(s_appAltRev, &TabBox::slotWalkBackThroughCurrentAppWindowsAlternative);
+    KGlobalAccel::setInverseShortcutActions(appAltAction, appAltRevAction);
 
     connect(KGlobalAccel::self(), &KGlobalAccel::globalShortcutChanged, this, [this](QAction *action) {
         globalShortcutChanged(action, KGlobalAccel::self()->shortcut(action));
@@ -391,6 +407,34 @@ void TabBox::reset(bool partial_reset)
     Q_EMIT tabBoxUpdated();
 }
 
+void TabBox::watchWindow(Window *window)
+{
+    connect(window, &Window::closed, this, [this, window]() {
+        handleWindowClosed(window);
+    });
+}
+
+void TabBox::handleWindowAdded(Window *window)
+{
+    if (window->skipSwitcher()) {
+        return;
+    }
+    watchWindow(window);
+    reset(true);
+}
+
+void TabBox::handleWindowRemoved(Window *)
+{
+    reset(true);
+}
+
+void TabBox::handleWindowClosed(Window *window)
+{
+    if (isDisplayed() && currentClient() == window) {
+        nextPrev(true);
+    }
+}
+
 void TabBox::nextPrev(bool next)
 {
     setCurrentIndex(m_tabBox->nextPrev(next), false);
@@ -437,6 +481,7 @@ bool TabBox::haveActiveClient()
 
 void TabBox::show()
 {
+    m_scrollAccumulator.reset();
     Q_EMIT tabBoxAdded(m_tabBoxMode);
     if (isDisplayed()) {
         m_isShown = false;
@@ -542,6 +587,8 @@ void TabBox::loadConfig(const KConfigGroup &config, TabBoxConfig &tabBoxConfig)
         config.readEntry<int>("MultiScreenMode", TabBoxConfig::defaultMultiScreenMode())));
     tabBoxConfig.setClientSwitchingMode(TabBoxConfig::ClientSwitchingMode(
         config.readEntry<int>("SwitchingMode", TabBoxConfig::defaultSwitchingMode())));
+    tabBoxConfig.setShowScreenMode(TabBoxConfig::ShowScreenMode(
+        config.readEntry<int>("ShowScreenMode", TabBoxConfig::defaultShowScreenMode())));
 
     tabBoxConfig.setShowTabBox(config.readEntry<bool>("ShowTabBox",
                                                       TabBoxConfig::defaultShowTabBox()));
@@ -567,51 +614,64 @@ void TabBox::delayedShow()
     m_delayedShowTimer.start(m_delayShowTime);
 }
 
-bool TabBox::handleMouseEvent(QMouseEvent *event)
+bool TabBox::pointerMotion(PointerMotionEvent *event)
 {
     if (!m_isShown && isDisplayed()) {
         // tabbox has been replaced, check effects
-        if (effects && effects->checkInputWindowEvent(event)) {
+        if (effects && effects->pointerMotion(event)) {
             return true;
         }
     }
-    switch (event->type()) {
-    case QEvent::MouseMove:
-        if (!m_tabBox->containsPos(event->globalPosition().toPoint())) {
-            // filter out all events which are not on the TabBox window.
-            // We don't want windows to react on the mouse events
-            return true;
-        }
-        return false;
-    case QEvent::MouseButtonPress:
-        if ((!m_isShown && isDisplayed()) || !m_tabBox->containsPos(event->globalPosition().toPoint())) {
-            close(); // click outside closes tab
-            return true;
-        }
-        // fall through
-    case QEvent::MouseButtonRelease:
-    default:
-        // we do not filter it out, the internal filter takes care
-        return false;
+
+    if (!m_tabBox->containsPos(event->position.toPoint())) {
+        // filter out all events which are not on the TabBox window.
+        // We don't want windows to react on the mouse events
+        return true;
     }
     return false;
 }
 
-bool TabBox::handleWheelEvent(QWheelEvent *event)
+bool TabBox::pointerButton(PointerButtonEvent *event)
 {
     if (!m_isShown && isDisplayed()) {
         // tabbox has been replaced, check effects
-        if (effects && effects->checkInputWindowEvent(event)) {
+        if (effects && effects->pointerButton(event)) {
             return true;
         }
     }
-    if (event->angleDelta().y() == 0) {
-        return false;
+
+    if (event->state == PointerButtonState::Pressed && !m_tabBox->containsPos(event->position.toPoint())) {
+        close(); // click outside closes tab
+        return true;
     }
-    const QModelIndex index = m_tabBox->nextPrev(event->angleDelta().y() > 0);
-    if (index.isValid()) {
-        setCurrentIndex(index);
+
+    // we do not filter it out, the internal filter takes care
+    return false;
+}
+
+bool TabBox::pointerAxis(PointerAxisEvent *event)
+{
+    if (!m_isShown && isDisplayed()) {
+        // tabbox has been replaced, check effects
+        if (effects && effects->pointerAxis(event)) {
+            return true;
+        }
     }
+
+    if (event->delta || event->deltaV120) {
+        const qreal scrollSteps = m_scrollAccumulator.accumulate(event);
+        if (scrollSteps != 0) {
+            const bool forward = ((event->inverted ? -1 : 1) * scrollSteps) > 0;
+            const int steps = qAbs(static_cast<int>(scrollSteps));
+            for (int i = 0; i < steps; ++i) {
+                const QModelIndex index = m_tabBox->nextPrev(forward);
+                if (index.isValid()) {
+                    setCurrentIndex(index);
+                }
+            }
+        }
+    }
+
     return true;
 }
 
@@ -828,7 +888,7 @@ void TabBox::CDEWalkThroughWindows(bool forward)
             Workspace::self()->activateWindow(nc);
         } else {
             if (!nc->isOnCurrentDesktop()) {
-                VirtualDesktopManager::self()->setCurrent(nc->desktops().constLast());
+                VirtualDesktopManager::self()->setCurrent(nc->desktops().constLast(), nc->output());
             }
             Workspace::self()->raiseWindow(nc);
         }
@@ -897,7 +957,7 @@ TabBox::Direction TabBox::matchShortcuts(const KeyboardKeyEvent &keyEvent, const
     }
 
     return Steady;
-};
+}
 
 void TabBox::keyPress(const KeyboardKeyEvent &keyEvent)
 {
@@ -990,12 +1050,30 @@ void TabBox::accept(bool closeTabBox)
     }
 }
 
+QList<QKeySequence> TabBox::activationShortcut(TabBoxMode mode) const
+{
+    switch (mode) {
+    case TabBoxWindowsMode:
+        return m_cutWalkThroughWindows;
+    case TabBoxWindowsAlternativeMode:
+        return m_cutWalkThroughWindowsAlternative;
+    case TabBoxCurrentAppWindowsMode:
+        return m_cutWalkThroughCurrentAppWindows;
+    case TabBoxCurrentAppWindowsAlternativeMode:
+        return m_cutWalkThroughCurrentAppWindowsAlternative;
+    }
+    return {};
+}
+
 void TabBox::modifiersReleased()
 {
     if (m_noModifierGrab) {
         return;
     }
-    if (m_tabGrab) {
+    // Close the switcher as soon as the modifier keys that activated it are no
+    // longer held, even if a non-modifier key (e.g. Tab) is still pressed or
+    // the keys are released out of order.
+    if (m_tabGrab && !areModKeysDepressed(activationShortcut(mode()))) {
         accept();
     }
 }
@@ -1070,6 +1148,7 @@ void TabBox::removeTabBoxGrab()
 {
     m_forcedGlobalMouseGrab = false;
 }
+
 } // namespace TabBox
 } // namespace
 

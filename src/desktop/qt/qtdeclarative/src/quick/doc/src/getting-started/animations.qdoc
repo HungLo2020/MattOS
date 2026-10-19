@@ -5,7 +5,7 @@
 \meta {keywords} {qmltopic}
 \title Animations
 \keyword Use case - Animations In QML
-\brief Example of how to include animations in QML applications
+\brief Example of how to include animations in QML applications.
 
 \l {Qt Quick} provides the ability to animate properties. Animating properties
 allows property values to move through intermediate values instead of
@@ -54,6 +54,7 @@ inside the animation. Here are some examples of different ways to do this:
 \snippet qmlapp/usecases/animations.qml constant
 \snippet qmlapp/usecases/animations.qml scripted
 \image qmlapp/qml-uses-animation.png
+       {Red, green, blue, and yellow squares in staggered positions}
 
 More information about animations can be found on the
 \l{Important Concepts in Qt Quick - States, Transitions and Animations} page.

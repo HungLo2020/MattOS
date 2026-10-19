@@ -16,6 +16,7 @@
 
 namespace KWin
 {
+
 class SubCompositorInterfacePrivate : public QtWaylandServer::wl_subcompositor
 {
 public:
@@ -36,7 +37,7 @@ public:
     SubSurfaceInterfacePrivate(SubSurfaceInterface *q, SurfaceInterface *surface, SurfaceInterface *parent, ::wl_resource *resource);
 
     SubSurfaceInterface *q;
-    QPoint position = QPoint(0, 0);
+    QPointF position = QPointF(0, 0);
     SubSurfaceInterface::Mode mode = SubSurfaceInterface::Mode::Synchronized;
     QPointer<SurfaceInterface> surface;
     QPointer<SurfaceInterface> parent;

@@ -17,8 +17,8 @@
 #include <QObject>
 #include <QProcess>
 #include <QSocketNotifier>
-#include <QTemporaryFile>
 #include <memory>
+#include <optional>
 
 #include <kwin_export.h>
 
@@ -26,6 +26,7 @@ class QTimer;
 
 namespace KWin
 {
+
 class XwaylandSocket;
 
 namespace Xwl
@@ -34,8 +35,9 @@ namespace Xwl
 class KWIN_EXPORT XwaylandLauncher : public QObject
 {
     Q_OBJECT
+
 public:
-    explicit XwaylandLauncher(QObject *parent);
+    explicit XwaylandLauncher();
     ~XwaylandLauncher();
 
     /**
@@ -44,7 +46,7 @@ public:
      * That external process is responsible for setting up the DISPLAY env with a valid value.
      * Ownership of the file descriptor is not transferrred.
      */
-    void setListenFDs(const QList<int> &listenFds);
+    void setListenFds(const QList<int> &listenFds);
 
     /**
      * Sets the display name used by XWayland (i.e ':0')
@@ -52,6 +54,8 @@ public:
      * created externally
      */
     void setDisplayName(const QString &displayName);
+    void setInitFd(int initFd);
+    void setInitDisplayName(const QString &displayName);
 
     /**
      * Sets the xauthority file to be used by XWayland
@@ -72,10 +76,13 @@ public:
     QString xauthority() const;
     FileDescriptor takeXcbConnectionFd();
 
+    QString initDisplayName() const;
+
     /**
      * @internal
      */
     QProcess *process() const;
+
 Q_SIGNALS:
     /**
      * This signal is emitted when the Xwayland server is ready to accept connections.
@@ -100,13 +107,19 @@ private Q_SLOTS:
     void handleXwaylandError(QProcess::ProcessError error);
 
 private:
-    QProcess *m_xwaylandProcess = nullptr;
+    std::unique_ptr<QProcess> m_xwaylandProcess;
     std::unique_ptr<QSocketNotifier> m_readyNotifier;
-    QTimer *m_resetCrashCountTimer = nullptr;
+    std::unique_ptr<QTimer> m_resetCrashCountTimer;
     // this is only used when kwin is run without kwin_wayland_wrapper
     std::unique_ptr<XwaylandSocket> m_socket;
+
+    std::unique_ptr<XwaylandSocket> m_initFdSocket;
+
     QList<int> m_listenFds;
+    std::vector<std::unique_ptr<QSocketNotifier>> m_socketNotifiers;
     QString m_displayName;
+    std::optional<int> m_initFd;
+    QString m_initDisplayName;
     QString m_xAuthority;
     QMap<QString, QString> m_extraEnvironment;
     std::vector<FileDescriptor> m_fdsToPreserve;

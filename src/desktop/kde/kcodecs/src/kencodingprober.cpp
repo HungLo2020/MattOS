@@ -7,12 +7,8 @@
 */
 
 #include "kencodingprober.h"
-#include "kencodingprober_p.h"
 
-#include "probers/UnicodeGroupProber.h"
 #include "probers/nsCharSetProber.h"
-#include "probers/nsMBCSGroupProber.h"
-#include "probers/nsSBCSGroupProber.h"
 #include "probers/nsUniversalDetector.h"
 
 #include <span>
@@ -20,16 +16,53 @@
 
 namespace
 {
-using Prober = kencodingprober::nsMBCSGroupProber::Prober;
-static const std::array ChineseMSBCProbers{
-    Prober::Unicode,
+using Prober = kencodingprober::nsCharSetProber::Prober;
+static const std::array ChineseProbers{
+    Prober::Utf8,
     Prober::GB18030,
     Prober::Big5,
+    Prober::Utf16LE,
+    Prober::Utf16BE,
 };
-static const std::array JapaneseMSBCProbers{
-    Prober::Unicode,
+static const std::array JapaneseProbers{
+    Prober::Utf8,
     Prober::SJIS,
     Prober::EUCJP,
+    Prober::ISO2022_JP,
+    Prober::Utf16LE,
+    Prober::Utf16BE,
+};
+static const std::array KoreanProbers{
+    Prober::Utf8,
+    Prober::SJIS,
+    Prober::EUCJP,
+    Prober::ISO2022_JP,
+    Prober::GB18030,
+    Prober::Big5,
+    Prober::Utf16LE,
+    Prober::Utf16BE,
+};
+static const std::array UnicodeProbers{
+    Prober::Utf8,
+    Prober::Utf16LE,
+    Prober::Utf16BE,
+};
+static const std::array SBCSProbers{
+    Prober::Windows1251,
+    Prober::KOI8_R,
+    Prober::ISO8859_5,
+    Prober::MAC_Cyrillic,
+    Prober::IBM866,
+    Prober::IBM855,
+    Prober::Latin7_Greek,
+    Prober::Windows1253_Greek,
+    Prober::ISO8859_5_Bulgarian,
+    Prober::Windows1251_Bulgarian,
+    Prober::ISO8859_8_HebrewVisual,
+    Prober::Windows1252_Latin1,
+    Prober::Utf8,
+    Prober::Utf16LE,
+    Prober::Utf16BE,
 };
 constexpr const char *checkBom(std::span<const char, 4> buf)
 {
@@ -111,20 +144,20 @@ public:
         case KEncodingProber::Thai:
         case KEncodingProber::Turkish:
         case KEncodingProber::WesternEuropean:
-            mProber = new kencodingprober::nsSBCSGroupProber();
+            mProber = new kencodingprober::nsUniversalDetector(SBCSProbers);
             break;
         case KEncodingProber::ChineseSimplified:
         case KEncodingProber::ChineseTraditional:
-            mProber = new kencodingprober::nsMBCSGroupProber(ChineseMSBCProbers);
+            mProber = new kencodingprober::nsUniversalDetector(ChineseProbers);
             break;
         case KEncodingProber::Japanese:
-            mProber = new kencodingprober::nsMBCSGroupProber(JapaneseMSBCProbers);
+            mProber = new kencodingprober::nsUniversalDetector(JapaneseProbers);
             break;
         case KEncodingProber::Korean:
-            mProber = new kencodingprober::nsMBCSGroupProber();
+            mProber = new kencodingprober::nsUniversalDetector(KoreanProbers);
             break;
         case KEncodingProber::Unicode:
-            mProber = new kencodingprober::UnicodeGroupProber();
+            mProber = new kencodingprober::nsUniversalDetector(UnicodeProbers);
             break;
         case KEncodingProber::Universal:
             mProber = new kencodingprober::nsUniversalDetector();
@@ -182,9 +215,7 @@ KEncodingProber::ProberState KEncodingProber::feed(QByteArrayView data)
             break;
         }
     }
-#ifdef DEBUG_PROBE
     d->mProber->DumpStatus();
-#endif
     return d->mProberState;
 }
 

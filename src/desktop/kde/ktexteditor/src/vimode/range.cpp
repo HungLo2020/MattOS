@@ -8,7 +8,8 @@
 #include <ktexteditor/range.h>
 #include <vimode/range.h>
 
-using namespace KateVi;
+namespace KateVi
+{
 
 Range::Range()
     : Range(-1, -1, -1, -1, InclusiveMotion)
@@ -71,6 +72,16 @@ KTextEditor::Range Range::toEditorRange() const
     return KTextEditor::Range(startLine, startColumn, endLine, endColumn);
 }
 
+KTextEditor::Cursor Range::start() const
+{
+    return KTextEditor::Cursor(startLine, startColumn);
+}
+
+KTextEditor::Cursor Range::end() const
+{
+    return KTextEditor::Cursor(endLine, endColumn);
+}
+
 Range Range::invalid()
 {
     Range r;
@@ -88,3 +99,5 @@ QDebug operator<<(QDebug s, const Range &range)
       << " (" << (range.motionType == InclusiveMotion ? "Inclusive" : "Exclusive") << ") (jump: " << (range.jump ? "true" : "false") << ")";
     return s;
 }
+
+} // namespace KateVi

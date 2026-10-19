@@ -1,13 +1,13 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
-# SPDX-FileCopyrightText: 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
+# SPDX-FileCopyrightText: 2015-2026 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-12-19 00:45+0000\n"
-"PO-Revision-Date: 2025-12-06 14:58+0100\n"
+"POT-Creation-Date: 2026-08-20 00:47+0000\n"
+"PO-Revision-Date: 2026-05-16 12:16+0200\n"
 "Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
 "Language-Team: pl\n"
 "Language: pl\n"
@@ -16,180 +16,186 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 25.08.2\n"
+"X-Generator: Lokalize 26.04.0\n"
 
-#: ListItemBase.qml:72
+#: ListItemBase.qml:73
 #, kde-format
 msgid "Currently not recording"
 msgstr "Obecnie nic nie jest nagrywane"
 
-#: ListItemBase.qml:73
+#: ListItemBase.qml:74
 #, kde-format
 msgid "Currently not playing"
 msgstr "Obecnie nic nie jest odtwarzane"
 
-#: ListItemBase.qml:204
+#: ListItemBase.qml:205
 #, kde-format
 msgctxt "@action:button"
 msgid "Additional Options"
 msgstr "Dodatkowe ustawienia"
 
-#: ListItemBase.qml:206
+#: ListItemBase.qml:207
 #, kde-format
 msgid "Show additional options for %1"
 msgstr "Pokaż dodatkowe ustawienia dla %1"
 
-#: ListItemBase.qml:228
+#: ListItemBase.qml:229
 #, kde-format
 msgctxt "@action:button"
 msgid "Unmute"
 msgstr "Wyłącz wyciszenie"
 
-#: ListItemBase.qml:228
+#: ListItemBase.qml:229
 #, kde-format
 msgctxt "@action:button"
 msgid "Mute"
 msgstr "Wycisz"
 
-#: ListItemBase.qml:230
+#: ListItemBase.qml:231
 #, kde-format
 msgid "Unmute %1"
 msgstr "Usuń wyciszenie %1"
 
-#: ListItemBase.qml:230
+#: ListItemBase.qml:231
 #, kde-format
 msgid "Mute %1"
 msgstr "Wycisz %1"
 
-#: ListItemBase.qml:253
+#: ListItemBase.qml:254
 #, kde-format
 msgctxt "Accessibility data on volume slider"
 msgid "Adjust volume for %1"
 msgstr "Dostosuj głośność dla %1"
 
-#: ListItemBase.qml:317
+#: ListItemBase.qml:318 MicrophoneTestView.qml:215
 #, kde-format
 msgctxt "volume percentage"
 msgid "%1%"
 msgstr "%1%"
 
-#: ListItemBase.qml:338
+#: ListItemBase.qml:339 MicrophoneTestView.qml:228
 #, kde-format
 msgctxt "only used for sizing, should be widest possible string"
 msgid "100%"
 msgstr "100%"
+
+#: ListItemBase.qml:344
+#, kde-format
+msgctxt "Perform an audio test of the device"
+msgid "Test…"
+msgstr "Próba…"
 
 #: main.qml:36
 #, kde-format
 msgid "Audio Volume"
 msgstr "Głośność dźwięku"
 
-#: main.qml:53 main.qml:55
+#: main.qml:60 main.qml:62
 #, kde-format
 msgctxt "@label"
 msgid "Connection to the Sound Service Lost"
 msgstr "Utracono połączenie do usługi dźwiękowej"
 
-#: main.qml:57
+#: main.qml:64
 #, kde-format
 msgid "No output or input devices found"
 msgstr "Nie znaleziono żadnych urządzeń wejściowych, ani wyjściowych"
 
-#: main.qml:61
+#: main.qml:68
 #, kde-format
 msgctxt "@info reconnecting to pulseaudio"
 msgid "Trying to reconnect…"
 msgstr "Próba ponownego połączenia się…"
 
-#: main.qml:79
+#: main.qml:94
 #, kde-format
 msgid "Audio Muted"
 msgstr "Dźwięk wyciszony"
 
-#: main.qml:81
+#: main.qml:96
 #, kde-format
 msgid "Volume at %1%"
 msgstr "Głośność na %1%"
 
-#: main.qml:92
+#: main.qml:107
 #, kde-format
 msgid "Middle-click to unmute"
 msgstr "Kliknij środkowym, aby przywrócić głośność"
 
-#: main.qml:93
+#: main.qml:108
 #, kde-format
 msgid "Middle-click to mute all audio"
 msgstr "Kliknij środkowym, aby wyciszyć dźwięk"
 
-#: main.qml:94
+#: main.qml:109
 #, kde-format
 msgid "Scroll to adjust volume"
 msgstr "Przewiń myszą, aby dostosować głośność"
 
-#: main.qml:110
+#: main.qml:125
 #, kde-format
 msgid "Device name not found"
 msgstr "Nie znaleziono nazwy urządzenia"
 
-#: main.qml:338
+#: main.qml:361
 #, kde-format
 msgid "Devices"
 msgstr "Urządzenia"
 
-#: main.qml:345
+#: main.qml:368
 #, kde-format
 msgid "Applications"
 msgstr "Programy"
 
-#: main.qml:369
+#: main.qml:392
 #, kde-format
 msgctxt "@action:button"
 msgid "More actions"
 msgstr "Więcej działań"
 
-#: main.qml:411
+#: main.qml:434
 #, kde-format
 msgctxt ""
 "@action:button keep this widget's pop-up open until explicitly dismissed"
 msgid "Keep open"
 msgstr "Pozostaw otwartym"
 
-#: main.qml:443
+#: main.qml:471
 #, kde-format
 msgctxt "@action retry connecting to pulseaudio"
 msgid "Retry"
 msgstr "Ponów"
 
-#: main.qml:470
+#: main.qml:505
 #, kde-format
 msgid "No applications playing or recording audio"
 msgstr "Żadna aplikacja nie odtwarza, ani nie nagrywa teraz dźwięku"
 
-#: main.qml:555
+#: main.qml:601
 #, kde-format
 msgctxt "@title:group listview section header"
 msgid "Output Devices"
 msgstr "Urządzenia wyjściowe"
 
-#: main.qml:557
+#: main.qml:603
 #, kde-format
 msgctxt "@title:group listview section header"
 msgid "Output Streams"
 msgstr "Strumienie wyjściowe"
 
-#: main.qml:615
+#: main.qml:661
 #, kde-format
 msgctxt "@title:group listview section header"
 msgid "Input Devices"
 msgstr "Urządzenie wejściowe"
 
-#: main.qml:617
+#: main.qml:663
 #, kde-format
 msgctxt "@title:group listview section header"
 msgid "Input Streams"
 msgstr "Strumienie wejściowe"
 
-#: main.qml:681
+#: main.qml:728
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -199,30 +205,84 @@ msgstr ""
 "Dłuższe korzystanie z tej funkcji uszkodzi głośniki urządzenia. Używaj tego "
 "tylko tymczasowo, aby móc usłyszeć ciche dźwięki."
 
-#: main.qml:697
+#: main.qml:744
 #, kde-format
 msgid "Raise maximum volume"
 msgstr "Zwiększ graniczną głośność"
 
-#: main.qml:711
+#: main.qml:762
 #, kde-format
 msgid "Force mute all playback devices"
 msgstr "Wycisz wszystkie urządzenia odtwarzające"
 
-#: main.qml:720
+#: main.qml:771
 #, kde-format
 msgid "Force mute all input devices"
 msgstr "Wymuś wyciszenie na wszystkich urządzeniach wejściowych"
 
-#: main.qml:729
+#: main.qml:780
 #, kde-format
 msgid "Show virtual devices"
 msgstr "Pokaż urządzenia wirtualne"
 
-#: main.qml:739
+#: main.qml:790
 #, kde-format
 msgid "&Configure Audio Devices…"
 msgstr "&Ustawienia urządzeń dźwiękowych..."
+
+#: MicrophoneTestView.qml:104
+#, kde-format
+msgctxt "Button to stop microphone recording in test mode"
+msgid "Stop"
+msgstr "Zatrzymaj"
+
+#: MicrophoneTestView.qml:104
+#, kde-format
+msgctxt "Button to start microphone recording in test mode"
+msgid "Record"
+msgstr "Nagraj"
+
+#: MicrophoneTestView.qml:118
+#, kde-format
+msgctxt "Button to stop microphone playing in test mode"
+msgid "Stop"
+msgstr "Zatrzymaj"
+
+#: MicrophoneTestView.qml:118
+#, kde-format
+msgctxt "Button to start microphone playing in test mode"
+msgid "Play"
+msgstr "Odtwórz"
+
+#: MicrophoneTestView.qml:137
+#, kde-format
+msgctxt "Label above the microphone volume meter in test overlay"
+msgid "Volume level"
+msgstr "Poziom głośności"
+
+#: MicrophoneTestView.qml:166
+#, kde-format
+msgctxt "Label showing current microphone input level percentage in test mode"
+msgid "%1 %"
+msgstr "%1 %"
+
+#: MicrophoneTestView.qml:181
+#, kde-format
+msgctxt "Label above the microphone sensitivity slider in test overlay"
+msgid "Sensitivity"
+msgstr "Czułość"
+
+#: MicrophoneTestView.qml:237
+#, kde-format
+msgctxt "Button in microphone test view to return to the device list"
+msgid "Back"
+msgstr "Wstecz"
+
+#: MicrophoneTestView.qml:250
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Microphone test error:<nl/><nl/>%1"
+msgstr "Błąd próby mikrofonu:<nl/><nl/>%1"
 
 #: StreamListItem.qml:36
 #, kde-format
@@ -266,9 +326,6 @@ msgstr "Nie znaleziono nazwy strumienia"
 #~ msgid "General"
 #~ msgstr "Ogólne"
 
-#~ msgid "Volume step:"
-#~ msgstr "Krok głośności:"
-
 #~ msgid "Play audio feedback for changes to:"
 #~ msgstr "Odgrywaj dźwięk zwrotny dla zmian w:"
 
@@ -277,9 +334,6 @@ msgstr "Nie znaleziono nazwy strumienia"
 
 #~ msgid "Show visual feedback for changes to:"
 #~ msgstr "Pokazuj informację zwrotną dla zmian w:"
-
-#~ msgid "Microphone sensitivity"
-#~ msgstr "Czułość mikrofonu"
 
 #~ msgid "Mute state"
 #~ msgstr "Stan wyciszenia"
@@ -381,11 +435,6 @@ msgstr "Nie znaleziono nazwy strumienia"
 #~| msgid "Devices"
 #~ msgid "Device Profiles"
 #~ msgstr "Urządzenia"
-
-#, fuzzy
-#~| msgid "Playback Streams"
-#~ msgid "Playback"
-#~ msgstr "Odtwarzane strumienie"
 
 #, fuzzy
 #~| msgid "No applications playing or recording audio"

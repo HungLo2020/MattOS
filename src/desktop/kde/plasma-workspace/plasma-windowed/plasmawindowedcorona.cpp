@@ -44,7 +44,7 @@ void PlasmaWindowedCorona::loadApplet(const QString &applet, const QVariantList 
             return;
         }
     }
-    m_view = new PlasmaWindowedView();
+    m_view = std::make_unique<PlasmaWindowedView>();
     m_view->setHasStatusNotifier(m_hasStatusNotifier);
     m_view->show();
 
@@ -55,10 +55,11 @@ void PlasmaWindowedCorona::loadApplet(const QString &applet, const QVariantList 
         plugin = cg.readEntry("plugin", QString());
 
         if (plugin == applet) {
-            Plasma::Applet *a = Plasma::PluginLoader::self()->loadApplet(applet, group.toInt(), arguments);
+            auto a = Plasma::PluginLoader::self()->loadApplet(applet, group.toInt(), arguments);
+            auto appletPtr = a.get();
             if (!a) {
                 qWarning() << "Unable to load applet" << applet << "with arguments" << arguments;
-                delete std::exchange(m_view, nullptr);
+                m_view.reset();
                 return;
             }
             // Some applets call corona() in their restore function,
@@ -70,17 +71,18 @@ void PlasmaWindowedCorona::loadApplet(const QString &applet, const QVariantList 
             // will cause applets to be saved in palsmawindowedrc
             // so applets will only be created on demand
             KConfigGroup cg2 = a->config();
-            cont->addApplet(a);
+            cont->addApplet(std::move(a));
 
-            m_view->setApplet(a);
+            m_view->setApplet(appletPtr);
             return;
         }
     }
 
-    Plasma::Applet *a = Plasma::PluginLoader::self()->loadApplet(applet, 0, arguments);
+    auto a = Plasma::PluginLoader::self()->loadApplet(applet, 0, arguments);
+    auto appletPtr = a.get();
     if (!a) {
         qWarning() << "Unable to load applet" << applet << "with arguments" << arguments;
-        delete std::exchange(m_view, nullptr);
+        m_view.reset();
         return;
     }
 
@@ -88,9 +90,9 @@ void PlasmaWindowedCorona::loadApplet(const QString &applet, const QVariantList 
     // will cause applets to be saved in palsmawindowedrc
     // so applets will only be created on demand
     KConfigGroup cg2 = a->config();
-    cont->addApplet(a);
+    cont->addApplet(std::move(a));
 
-    m_view->setApplet(a);
+    m_view->setApplet(appletPtr);
 }
 
 void PlasmaWindowedCorona::activateRequested(const QStringList &arguments, const QString &workingDirectory)
@@ -132,7 +134,7 @@ void PlasmaWindowedCorona::activateRequested(const QStringList &arguments, const
     loadApplet(positionalArguments.first(), args);
 }
 
-QRect PlasmaWindowedCorona::screenGeometry(int id) const
+QRect PlasmaWindowedCorona::screenGeometry(uint id) const
 {
     Q_UNUSED(id);
     // TODO?
@@ -174,6 +176,11 @@ void PlasmaWindowedCorona::load()
 void PlasmaWindowedCorona::setHasStatusNotifier(bool stay)
 {
     m_hasStatusNotifier = stay;
+}
+
+bool PlasmaWindowedCorona::hasAppletError() const
+{
+    return m_view ? m_view->hasAppletError() : false;
 }
 
 #include "moc_plasmawindowedcorona.cpp"

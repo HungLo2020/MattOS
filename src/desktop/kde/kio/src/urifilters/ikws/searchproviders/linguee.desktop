@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=Linguee
+Name[am]=Linguee
 Name[ar]=Linguee
 Name[ast]=Linguee
 Name[az]=Linguee
@@ -40,6 +41,8 @@ Name[lg]=Linguee
 Name[lt]=Linguee
 Name[lv]=Linguee
 Name[my]=လင်ဂွီ
+Name[nan_TW]=Linguee
+Name[nan_TW@latin]=Linguee
 Name[nb]=Linguee
 Name[nl]=Linguee
 Name[nn]=Linguee
@@ -56,7 +59,6 @@ Name[sq]=Linguee
 Name[sv]=Linguee
 Name[th]=Linguee
 Name[tr]=Linguee
-Name[ug]=Linguee
 Name[uk]=Linguee
 Name[vi]=Linguee
 Name[zh_CN]=Linguee
@@ -64,6 +66,7 @@ Name[zh_TW]=Linguee
 Type=Service
 Keys=linguee
 Query=https://www.linguee.com/search?source=auto&query=\\{@}
+Query[am]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[ar]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[ast]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[az]=https://www.linguee.com/search?source=auto&query=\\{@}
@@ -104,6 +107,8 @@ Query[lg]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[lt]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[lv]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[my]=https://www.linguee.com/search?source=auto&query=\\{@}
+Query[nan_TW]=https://www.linguee.com/search?source=auto&query=\\{@}
+Query[nan_TW@latin]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[nb]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[nl]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[nn]=https://www.linguee.com/search?source=auto&query=\\{@}
@@ -120,7 +125,6 @@ Query[sq]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[sv]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[th]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[tr]=https://www.linguee.com/search?source=auto&query=\\{@}
-Query[ug]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[uk]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[vi]=https://www.linguee.com/search?source=auto&query=\\{@}
 Query[zh_CN]=https://www.linguee.com/search?source=auto&query=\\{@}

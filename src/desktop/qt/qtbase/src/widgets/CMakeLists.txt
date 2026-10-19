@@ -377,6 +377,11 @@ qt_internal_extend_target(Widgets CONDITION MACOS
         z
 )
 
+qt_internal_extend_target(Widgets CONDITION OHOS
+    SOURCES
+        kernel/qohosgesturerecognizer.cpp kernel/qohosgesturerecognizer_p.h
+)
+
 qt_internal_extend_target(Widgets CONDITION WIN32
     LIBRARIES
         dwmapi

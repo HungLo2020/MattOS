@@ -16,7 +16,7 @@
 #include <Sonnet/ConfigView>
 #include <Sonnet/Settings>
 
-K_PLUGIN_FACTORY_WITH_JSON(SpellFactory, "kcmspellchecking.json", registerPlugin<SonnetSpellCheckingModule>(); registerPlugin<SpellCheckingData>();)
+K_PLUGIN_FACTORY_WITH_JSON(SpellFactory, "kcm_spellchecking.json", registerPlugin<SonnetSpellCheckingModule>(); registerPlugin<SpellCheckingData>();)
 
 SonnetSpellCheckingModule::SonnetSpellCheckingModule(QObject *parent, const KPluginMetaData &data)
     : KCModule(parent, data)
@@ -66,8 +66,10 @@ void SonnetSpellCheckingModule::stateChanged()
     unmanagedChangeState |= currentPreferredLanguagesList != refPreferredLanguagesList;
     unmanagedDefaultState &= currentPreferredLanguagesList == defaultPreferredLanguagesList;
 
-    unmanagedChangeState |= skeleton()->defaultLanguage() != m_configWidget->language();
-    unmanagedDefaultState &= m_configWidget->language() == Sonnet::Settings::defaultDefaultLanguage();
+    if (!skeleton()->clients().isEmpty() && !m_configWidget->language().isEmpty()) {
+        unmanagedChangeState |= skeleton()->defaultLanguage() != m_configWidget->language();
+        unmanagedDefaultState &= m_configWidget->language() == Sonnet::Settings::defaultDefaultLanguage();
+    }
 
     unmanagedWidgetDefaultState(unmanagedDefaultState);
     unmanagedWidgetChangeState(unmanagedChangeState);

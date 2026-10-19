@@ -125,6 +125,13 @@ pub(crate) enum BuildStage {
     Icu,
     LmSensors,
     Highway,
+    CxxRustCssparser,
+    Union,
+    QtKeychain,
+    Leptonica,
+    Tesseract,
+    TessdataFast,
+
     PlasmaWorkspace,
     PlasmaDesktop,
     PlasmaLoginManager,
@@ -460,6 +467,13 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Icu => "icu",
         BuildStage::LmSensors => "lm-sensors",
         BuildStage::Highway => "highway",
+        BuildStage::CxxRustCssparser => "cxx-rust-cssparser",
+        BuildStage::Union => "union",
+        BuildStage::QtKeychain => "qtkeychain",
+        BuildStage::Leptonica => "leptonica",
+        BuildStage::Tesseract => "tesseract",
+        BuildStage::TessdataFast => "tessdata-fast",
+
         BuildStage::PlasmaWorkspace => "plasma-workspace",
         BuildStage::PlasmaDesktop => "plasma-desktop",
         BuildStage::PlasmaLoginManager => "plasma-login-manager",
@@ -714,6 +728,9 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         // both owned Wayland ABI outputs are direct QtBase inputs.
         BuildStage::QtBase => &[
             "formal-sysroot",
+            "glib",
+            "pcre2",
+            "libffi",
             "libglvnd",
             "mesa",
             "wayland",
@@ -886,6 +903,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "xkbcommon",
         ],
         BuildStage::KGuiAddons => &[
+            "wayland-protocols",
             "formal-sysroot",
             "qtbase",
             "xkbcommon",
@@ -1371,6 +1389,19 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "kdecoration",
         ],
         BuildStage::PlasmaKWin => &[
+            "pipewire",
+            "kirigami",
+            "plasma-framework",
+            "plasma-activities",
+            "milou",
+            "kio",
+            "kjobwidgets",
+            "kitemmodels",
+            "libcap",
+            "vulkan-headers",
+            "vulkan-loader",
+            "krunner",
+            "kglobalacceld",
             "formal-sysroot",
             "aurorae",
             "qtbase",
@@ -1427,6 +1458,10 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "xwayland",
         ],
         BuildStage::PlasmaFramework => &[
+            "qtwayland",
+            "qt5compat",
+            "wayland",
+            "wayland-protocols",
             "formal-sysroot",
             "qtbase",
             "qtdeclarative",
@@ -1583,6 +1618,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "x11-compat",
         ],
         BuildStage::LayerShellQt => &[
+            "wayland-protocols",
             "formal-sysroot",
             "qtbase",
             "qtwayland",
@@ -1670,6 +1706,13 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Icu => &["formal-sysroot"],
         BuildStage::LmSensors => &["formal-sysroot"],
         BuildStage::Highway => &["formal-sysroot"],
+        BuildStage::CxxRustCssparser => &["formal-sysroot", "rust"],
+        BuildStage::Union => &["formal-sysroot", "qtbase", "qtdeclarative", "qtshadertools", "kcoreaddons", "kguiaddons", "kconfig", "kiconthemes", "kcolorscheme", "kirigami", "cxx-rust-cssparser"],
+        BuildStage::QtKeychain => &["formal-sysroot", "qtbase"],
+        BuildStage::Leptonica => &["formal-sysroot", "zlib", "libpng", "libjpeg-turbo"],
+        BuildStage::Tesseract => &["formal-sysroot", "leptonica", "zlib", "libpng", "libjpeg-turbo"],
+        BuildStage::TessdataFast => &[],
+
         // KDE's official login manager builds against the Qt/KF/Plasma
         // runtime it launches and uses PAM + systemd-logind for authenticated
         // sessions. Keep every target dependency explicit; ECM/CMake/Ninja
@@ -1721,6 +1764,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "x11-compat",
         ],
         BuildStage::PlasmaWorkspace => &[
+            "networkmanager-qt",
             "formal-sysroot",
             "qtbase",
             "qtdeclarative",
@@ -1795,8 +1839,16 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "pipewire",
             "x11-compat",
             "kscreenlocker",
+            "union",
         ],
         BuildStage::PlasmaDesktop => &[
+            "polkit-qt-1",
+            "polkit",
+            "glib",
+            "dbus",
+            "libffi",
+            "wayland",
+            "wayland-protocols",
             "formal-sysroot",
             "qtbase",
             "qtdeclarative",
@@ -2020,6 +2072,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libdrm",
         ],
         BuildStage::PlasmaSystemMonitor => &[
+            "kquickcharts",
             "formal-sysroot",
             "qtbase",
             "qtdeclarative",
@@ -2229,6 +2282,9 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libva",
         ],
         BuildStage::Spectacle => &[
+            "zlib",
+            "libpng",
+            "libjpeg-turbo",
             "formal-sysroot",
             "qtbase",
             "qtdeclarative",
@@ -2285,6 +2341,9 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "wayland",
             "xkbcommon",
             "libffi",
+            "tesseract",
+            "tessdata-fast",
+            "leptonica",
         ],
         BuildStage::PulseAudioQt => &["formal-sysroot", "qtbase", "glib", "pulseaudio"],
         BuildStage::PlasmaPa => &[
@@ -2316,6 +2375,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libcanberra",
         ],
         BuildStage::PlasmaNm => &[
+            "kirigami-addons",
             "formal-sysroot",
             "qtbase",
             "qtdeclarative",
@@ -2366,6 +2426,8 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "zlib",
             "systemd",
             "libnl",
+            "qtkeychain",
+            "openssl",
         ],
         BuildStage::PowerDevil => &[
             "formal-sysroot",
@@ -2420,6 +2482,11 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "x11-compat",
         ],
         BuildStage::XdgDesktopPortalKde => &[
+            "kpipewire",
+            "libepoxy",
+            "libdrm",
+            "mesa",
+            "libva",
             "formal-sysroot",
             "qtbase",
             "qtsvg",
@@ -3608,6 +3675,13 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Icu,
         BuildStage::LmSensors,
         BuildStage::Highway,
+        BuildStage::CxxRustCssparser,
+        BuildStage::Union,
+        BuildStage::QtKeychain,
+        BuildStage::Leptonica,
+        BuildStage::Tesseract,
+        BuildStage::TessdataFast,
+
         BuildStage::PlasmaWorkspace,
         BuildStage::PlasmaDesktop,
         BuildStage::PlasmaLoginManager,
@@ -3903,6 +3977,20 @@ fn actual_rebuilds(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn enabled_kde_wayland_consumers_use_the_authoritative_protocol_stage() {
+        for consumer in [BuildStage::KGuiAddons, BuildStage::KWayland,
+            BuildStage::KWindowSystem, BuildStage::LayerShellQt,
+            BuildStage::PlasmaFramework, BuildStage::PlasmaDesktop,
+            BuildStage::PlasmaKWin, BuildStage::XdgDesktopPortalKde] {
+            assert!(direct_dependencies(consumer).contains(&"wayland-protocols"),
+                "{} can discover stale private protocol metadata", stage_id(consumer));
+        }
+        for module in ["qtwayland", "qt5compat"] {
+            assert!(direct_dependencies(BuildStage::PlasmaFramework).contains(&module));
+        }
+    }
 
     #[test]
     fn graph_references_only_known_stages() {
@@ -4249,22 +4337,22 @@ mod tests {
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
             // Fontconfig and the Plasma closure are first-class consumers of
             // glibc through their source-owned runtime dependencies.
-            ("glibc source", &["glibc"], 320, &["linux"]),
+            ("glibc source", &["glibc"], 325, &["linux"]),
             ("Linux x86_64 config", &["linux"], 16, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                321,
+                326,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                318,
+                323,
                 &["linux", "glibc", "linux-headers"],
             ),
             // zlib reaches Cargo-built userland through the MattOS rustc.
-            ("zlib shared library", &["zlib"], 231, &["attr", "linux"]),
+            ("zlib shared library", &["zlib"], 236, &["attr", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

@@ -16,12 +16,14 @@
 #include <kprotocolinfo.h>
 
 #include <KConfigGroup>
+#include <KCoreDirLister>
 #include <kfileitem.h>
 #include <kio/chmodjob.h>
 #include <kio/copyjob.h>
 #include <kio/deletejob.h>
 #include <kio/directorysizejob.h>
 #include <kio/listjob.h>
+#include <kio/restorejob.h>
 #include <kio/statjob.h>
 
 #include <KJobUiDelegate>
@@ -32,6 +34,7 @@
 #include <QFileInfo>
 #include <QList>
 #include <QScopedPointer>
+#include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTemporaryFile>
 #include <QUrl>
@@ -175,6 +178,7 @@ void TestTrash::initTestCase()
     for (auto it = writableTopDirs.constBegin(); it != writableTopDirs.constEnd(); ++it) {
         const QString topdir = topDirs[*it];
         const QString trashdir = trashDirs[*it];
+        // TODO: Fails on local installs for unknown reasons
         QVERIFY(!topdir.isEmpty());
         QVERIFY(!trashDirs.isEmpty());
         if (topdir != QLatin1String("/tmp/") || // we'd prefer not to use /tmp here, to separate the tests
@@ -315,6 +319,17 @@ static void createTestFile(const QString &path)
     f.write("Hello world\n", 12);
     f.close();
     QVERIFY(QFile::exists(path));
+}
+
+[[maybe_unused]] static bool dirListerContainsDisplayName(const KCoreDirLister &lister, const QString &displayName)
+{
+    const KFileItemList items = lister.items();
+    for (const KFileItem &item : items) {
+        if (item.text() == displayName) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void TestTrash::trashFile(const QString &origFilePath, const QString &fileId)
@@ -921,6 +936,14 @@ void TestTrash::statFileInDirectory()
     QCOMPARE(item.text(), QStringLiteral("testfile"));
 }
 
+void TestTrash::statInvalid()
+{
+    QUrl url(QStringLiteral("trash:/foo-bar"));
+    KIO::UDSEntry entry;
+    bool ok = MyNetAccess_stat(url, entry);
+    QVERIFY(!ok);
+}
+
 void TestTrash::statBrokenSymlinkInSubdir()
 {
     QUrl url(QStringLiteral("trash:/0-subDirBrokenSymlink/link"));
@@ -1375,6 +1398,61 @@ void TestTrash::listSubDir()
     QCOMPARE(m_listResult.count(QStringLiteral("subdir")), 1);
     QCOMPARE(m_displayNameListResult.count(QStringLiteral("testfile")), 1);
     QCOMPARE(m_displayNameListResult.count(QStringLiteral("subdir")), 1);
+}
+
+void TestTrash::dirListerUpdatesWithoutDBus()
+{
+#ifdef WITH_QTDBUS
+    QSKIP("This checks the explicit KCoreDirLister refresh path used when KIO is built without QtDBus.");
+#else
+    const QString fileName = QStringLiteral("dirListerUpdatesWithoutDBus");
+    const QString filePath = homeTmpDir() + fileName;
+    const QString restoredPath = otherTmpDir() + fileName;
+    const QUrl trashUrl = TrashImpl::makeURL(0, fileName, QString());
+
+    QVERIFY(!QFile::exists(filePath) || QFile::remove(filePath));
+    QVERIFY(!QFile::exists(restoredPath) || QFile::remove(restoredPath));
+    QFile::remove(m_trashDir + QStringLiteral("/info/") + fileName + QStringLiteral(".trashinfo"));
+    QFile::remove(m_trashDir + QStringLiteral("/files/") + fileName);
+
+    KCoreDirLister lister;
+    QSignalSpy completedSpy(&lister, qOverload<>(&KCoreDirLister::completed));
+    QVERIFY(completedSpy.isValid());
+    QVERIFY(lister.openUrl(QUrl(QStringLiteral("trash:/")), KCoreDirLister::NoFlags));
+    QTRY_VERIFY(lister.isFinished());
+    QVERIFY(!dirListerContainsDisplayName(lister, fileName));
+
+    createTestFile(filePath);
+    KIO::Job *trashJob = KIO::move(QUrl::fromLocalFile(filePath), QUrl(QStringLiteral("trash:/")), KIO::HideProgressInfo);
+    QVERIFY2(trashJob->exec(), qPrintable(trashJob->errorString()));
+    QTRY_VERIFY(dirListerContainsDisplayName(lister, fileName));
+
+    KIO::Job *deleteJob = KIO::del(trashUrl, KIO::HideProgressInfo);
+    QVERIFY2(deleteJob->exec(), qPrintable(deleteJob->errorString()));
+    QTRY_VERIFY(!dirListerContainsDisplayName(lister, fileName));
+
+    createTestFile(filePath);
+    trashJob = KIO::move(QUrl::fromLocalFile(filePath), QUrl(QStringLiteral("trash:/")), KIO::HideProgressInfo);
+    QVERIFY2(trashJob->exec(), qPrintable(trashJob->errorString()));
+    QTRY_VERIFY(dirListerContainsDisplayName(lister, fileName));
+
+    KIO::Job *moveJob = KIO::moveAs(trashUrl, QUrl::fromLocalFile(restoredPath), KIO::HideProgressInfo);
+    QVERIFY2(moveJob->exec(), qPrintable(moveJob->errorString()));
+    QTRY_VERIFY(!dirListerContainsDisplayName(lister, fileName));
+    QVERIFY(QFile::exists(restoredPath));
+    QVERIFY(QFile::remove(restoredPath));
+
+    createTestFile(filePath);
+    trashJob = KIO::move(QUrl::fromLocalFile(filePath), QUrl(QStringLiteral("trash:/")), KIO::HideProgressInfo);
+    QVERIFY2(trashJob->exec(), qPrintable(trashJob->errorString()));
+    QTRY_VERIFY(dirListerContainsDisplayName(lister, fileName));
+
+    KIO::Job *restoreJob = KIO::restoreFromTrash({trashUrl}, KIO::HideProgressInfo);
+    QVERIFY2(restoreJob->exec(), qPrintable(restoreJob->errorString()));
+    QTRY_VERIFY(!dirListerContainsDisplayName(lister, fileName));
+    QVERIFY(QFile::exists(filePath));
+    QVERIFY(QFile::remove(filePath));
+#endif
 }
 
 void TestTrash::slotEntries(KIO::Job *, const KIO::UDSEntryList &lst)

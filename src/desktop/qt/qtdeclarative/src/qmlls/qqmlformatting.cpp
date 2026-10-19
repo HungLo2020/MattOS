@@ -20,22 +20,15 @@ QQmlDocumentFormatting::QQmlDocumentFormatting(QmlLsp::QQmlCodeModelManager *cod
 {
 }
 
-QString QQmlDocumentFormatting::name() const
-{
-    return u"QQmlDocumentFormatting"_s;
-}
-
 void QQmlDocumentFormatting::registerHandlers(QLanguageServer *, QLanguageServerProtocol *protocol)
 {
     protocol->registerDocumentFormattingRequestHandler(getRequestHandler());
 }
 
-void QQmlDocumentFormatting::setupCapabilities(
-        const QLspSpecification::InitializeParams &,
-        QLspSpecification::InitializeResult &serverCapabilities)
+void QQmlDocumentFormatting::setupCapabilities(QLspSpecification::ServerCapabilities &caps)
 {
     // TODO: Allow customized formatting in future
-    serverCapabilities.capabilities.documentFormattingProvider = true;
+    caps.documentFormattingProvider = true;
 }
 
 void QQmlDocumentFormatting::process(RequestPointerArgument request)
@@ -91,8 +84,9 @@ void QQmlDocumentFormatting::process(RequestPointerArgument request)
     const auto [endLine, endColumn] = QQmlLSUtils::textRowAndColumnFrom(code, code.length());
 
     Q_UNUSED(endColumn);
-    formattedText.range = QLspSpecification::Range{ QLspSpecification::Position{ 0, 0 },
-                                                    QLspSpecification::Position{ endLine + 1, 0 } };
+    formattedText.range =
+            QLspSpecification::Range{ QLspSpecification::Position{ 0u, 0u },
+                                      QLspSpecification::Position{ endLine + 1u, 0u } };
 
     result.append(formattedText);
 }

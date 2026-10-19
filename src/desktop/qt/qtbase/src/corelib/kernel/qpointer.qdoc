@@ -17,8 +17,9 @@
     A guarded pointer, QPointer<T>, behaves like a normal C++
     pointer \c{T *}, except that it is automatically cleared when the
     referenced object is destroyed (unlike normal C++ pointers, which
-    become "dangling pointers" in such cases). \c T must be a
-    subclass of QObject.
+    become "dangling pointers" in such cases). The template parameter
+    \a T specifies the QObject-derived type being pointed to; \a T must
+    be a subclass of QObject.
 
     Guarded pointers are useful whenever you need to store a pointer
     to a QObject that is owned by someone else, and therefore might be

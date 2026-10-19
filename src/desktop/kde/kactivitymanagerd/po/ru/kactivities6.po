@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"POT-Creation-Date: 2026-01-24 00:44+0000\n"
 "PO-Revision-Date: 2021-08-04 11:08+0300\n"
 "Last-Translator: Alexander Yavorsky <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
@@ -54,7 +54,7 @@ msgctxt "KRunner keyword"
 msgid "activity"
 msgstr "комната"
 
-#: service/plugins/krunner/ActivityRunner.cpp:67
+#: service/plugins/krunner/ActivityRunner.cpp:87
 #, kde-format
 msgid "Switch to \"%1\""
 msgstr "Переключиться на «%1»"

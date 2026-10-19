@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kconfigwidgets\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-25 00:42+0000\n"
+"POT-Creation-Date: 2026-09-17 00:40+0000\n"
 "PO-Revision-Date: 2025-05-27 20:26+0100\n"
 "Last-Translator: Kizito Birabwa <kbirabwa@yahoo.co.uk>\n"
 "Language-Team: Luganda\n"
@@ -113,14 +113,7 @@ msgctxt "home page"
 msgid "&Home"
 msgstr "Dda &Awatandikirwa"
 
-#: kstandardaction.cpp:230
-#, kde-format
-msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
-msgstr ""
-"Olubaawo lwa &Menyu Lulabike</p>Kino kikomyawo olubaawo lwa menyu nga "
-"lubadde lukisidwa</p>"
-
-#: kstandardaction.cpp:251
+#: kstandardaction.cpp:248
 #, kde-format
 msgid ""
 "Show Statusbar<p>Shows the statusbar, which is the bar at the bottom of the "
@@ -526,7 +519,12 @@ msgstr "Bikkula &Menyu"
 msgid "Application Style"
 msgstr "Olulyo Lw'endabika ya Puloguramu"
 
-#: kstylemanager.cpp:78
+#: kstylemanager.cpp:84
 #, kde-format
 msgid "Default"
 msgstr "Ebya bulijjo"
+
+#~ msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
+#~ msgstr ""
+#~ "Olubaawo lwa &Menyu Lulabike</p>Kino kikomyawo olubaawo lwa menyu nga "
+#~ "lubadde lukisidwa</p>"

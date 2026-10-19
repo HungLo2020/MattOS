@@ -199,6 +199,7 @@ public:
     bool m_showPlacesSelector = false;
     bool m_showFullPath = false;
     bool m_backgroundEnabled = true;
+    bool m_contextMenuOpen = false;
 
     int m_padding = 5;
 
@@ -271,9 +272,6 @@ KUrlNavigatorPrivate::KUrlNavigatorPrivate(const QUrl &url, KUrlNavigator *qq, K
     m_pathBox = new KUrlComboBox(KUrlComboBox::Directories, true, q);
     m_pathBox->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
     m_pathBox->installEventFilter(q);
-    m_pathBox->setAutoFillBackground(false);
-    m_pathBox->setBackgroundRole(QPalette::Base);
-    m_pathBox->setFrame(false);
 
     KUrlCompletion *kurlCompletion = new KUrlCompletion(KUrlCompletion::DirCompletion);
     m_pathBox->setCompletionObject(kurlCompletion);
@@ -291,7 +289,14 @@ KUrlNavigatorPrivate::KUrlNavigatorPrivate(const QUrl &url, KUrlNavigator *qq, K
     m_badgeWidgetContainer = new QWidget(q);
     m_badgeWidgetContainer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     auto badgeLayout = new QHBoxLayout(m_badgeWidgetContainer);
-    badgeLayout->setContentsMargins(0, 0, 0, 0);
+    // Set margins so the mode toggle button and badges stay within the PE_FrameLineEdit boundary
+    const int paddingLeft = q->style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
+    const int paddingRight = q->style()->pixelMetric(QStyle::PM_LayoutRightMargin);
+    if (q->layoutDirection() == Qt::LeftToRight) {
+        badgeLayout->setContentsMargins(paddingLeft, 0, 0, 0);
+    } else {
+        badgeLayout->setContentsMargins(0, 0, paddingLeft, 0);
+    }
 
     // create toggle button which allows to switch between
     // the breadcrumb and traditional view
@@ -317,18 +322,24 @@ KUrlNavigatorPrivate::KUrlNavigatorPrivate(const QUrl &url, KUrlNavigator *qq, K
         openContextMenu(pos);
     });
 
-    // Make sure pathBox does not portrude outside of the above frameLineEdit background
-    const int paddingLeft = q->style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
-    const int paddingRight = q->style()->pixelMetric(QStyle::PM_LayoutRightMargin);
-    q->rect().adjust(0, -1, 0, 1);
-    q->setContentsMargins(paddingLeft, 1, paddingRight, 1);
-    m_pathBox->setContentsMargins(paddingLeft, 0, paddingRight, 0);
+    // m_pathBox fills the full width, only leave room for the toggle button on the correct side
+    if (q->layoutDirection() == Qt::LeftToRight) {
+        m_layout->addSpacing(paddingRight);
+    } else {
+        m_layout->addSpacing(paddingLeft);
+    }
+    // Set fixed height once so switching modes never causes window layout shifts
+    q->setFixedHeight(qMax(m_pathBox->sizeHint().height(), m_badgeWidgetContainer->sizeHint().height()));
+
+    // Needed for the hover effect to work on the entire navigation bar
+    q->setAttribute(Qt::WA_Hover);
 }
 
 void KUrlNavigatorPrivate::appendWidget(QWidget *widget, int stretch)
 {
-    // insert to the left of: m_badgeWidgetContainer, m_toggleEditableMode
-    m_layout->insertWidget(m_layout->count() - 2, widget, stretch);
+    // insert to the left of m_badgeWidgetContainer
+    const int index = m_layout->indexOf(m_badgeWidgetContainer);
+    m_layout->insertWidget(index - 1, widget, stretch);
 }
 
 void KUrlNavigatorPrivate::slotApplyUrl(QUrl url)
@@ -404,7 +415,7 @@ void KUrlNavigatorPrivate::applyUncommittedUrl(ApplyUrlMethod method)
 
     // Treat absolute paths as absolute paths.
     // Relative paths get appended to the current path, if protocol supports it.
-    if (text.startsWith(QLatin1Char('/'))) {
+    if (text.startsWith(QLatin1Char('/')) || !QUrl(text).isRelative()) {
         url.setPath(text);
     } else {
         url.setPath(Utils::concatPaths(url.path(), text));
@@ -559,12 +570,6 @@ void KUrlNavigatorPrivate::switchView()
     m_toggleEditableMode->setChecked(m_editable);
     updateContent();
     if (q->isUrlEditable()) {
-        // this "6" is a kind of "magic" value that has been experimentally set
-        // to make enough space for focus indicator at the top of the KUrlNavigator
-        // (see methods KUrlNavigator::paintEvent and KUrlNavigator::setHighlightFocusIndicator)
-        // this value has no direct 1-to-1 relation to what is used in paintEvent
-        // so we can keep it simple as a value here
-        m_pathBox->setFixedHeight(m_badgeWidgetContainer->height() - (q->m_showFocusIndicator ? 6 : 0));
         m_pathBox->setFocus();
     }
 
@@ -601,9 +606,9 @@ void KUrlNavigatorPrivate::openContextMenu(const QPoint &p)
 
     QPointer<QMenu> popup = new QMenu(q);
 
-    // provide 'Copy' action, which copies the current URL of
+    // provide 'Copy Location' action, which copies the current URL of
     // the URL navigator into the clipboard
-    QAction *copyAction = popup->addAction(QIcon::fromTheme(QStringLiteral("edit-copy")), i18n("Copy"));
+    QAction *copyAction = popup->addAction(QIcon::fromTheme(QStringLiteral("edit-copy-path")), i18n("Copy Location"));
 
     // provide 'Paste' action, which copies the current clipboard text
     // into the URL navigator
@@ -619,7 +624,7 @@ void KUrlNavigatorPrivate::openContextMenu(const QPoint &p)
     const bool isWindowSignal = q->isSignalConnected(QMetaMethod::fromSignal(&KUrlNavigator::newWindowRequested));
     if (isTabSignal || isWindowSignal) {
         auto it = std::find_if(m_navButtons.cbegin(), m_navButtons.cend(), [&p](const KUrlNavigatorButton *button) {
-            return button->geometry().contains(p);
+            return button->isVisible() && button->geometry().contains(p);
         });
         if (it != m_navButtons.cend()) {
             const auto *button = *it;
@@ -666,7 +671,16 @@ void KUrlNavigatorPrivate::openContextMenu(const QPoint &p)
     showFullPathAction->setCheckable(true);
     showFullPathAction->setChecked(q->showFullPath());
 
+    // We need this property and its update below so that the line edit's
+    // focus effect persists (like in KUrlComboBox) when a context menu is open
+    m_contextMenuOpen = true;
+    q->update();
+
     QAction *activatedAction = popup->exec(QCursor::pos());
+
+    m_contextMenuOpen = false;
+    q->update();
+
     if (activatedAction == copyAction) {
         QMimeData *mimeData = new QMimeData();
         mimeData->setText(q->locationUrl().toDisplayString(QUrl::PreferLocalFile));
@@ -1433,37 +1447,20 @@ void KUrlNavigator::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     QStyleOptionFrame option;
     option.initFrom(this);
-    option.state = QStyle::State_None;
+    option.lineWidth = style()->pixelMetric(QStyle::PM_DefaultFrameWidth, &option, this);
+    option.midLineWidth = 0;
+    option.frameShape = QFrame::StyledPanel;
 
-    if (hasFocus()) {
-        option.palette.setColor(QPalette::Window, palette().color(QPalette::Highlight));
-    }
-
-    if (d->m_backgroundEnabled) {
-        // Draw primitive always, but change color if not editable
-        if (!d->m_editable) {
-            option.palette.setColor(QPalette::Base, palette().alternateBase().color());
+    if (d->m_backgroundEnabled && !d->m_editable) {
+        option.palette.setColor(QPalette::Base, palette().alternateBase().color());
+        option.state |= QStyle::State_Enabled;
+        if ((m_showFocusIndicator && d->m_active) || d->m_contextMenuOpen) {
+            option.state |= QStyle::State_HasFocus;
+        }
+        if (underMouse()) {
+            option.state |= QStyle::State_MouseOver;
         }
         style()->drawPrimitive(QStyle::PE_FrameLineEdit, &option, &painter, this);
-    }
-
-    if (m_showFocusIndicator) {
-        // here we have some "magic" values (9, 5, 4)
-        // the goal is to have focus indicator similar/indentical to tab focus indicator (from Qt)
-        // so these "magic" values have been experimentally set, but
-        // there is no direct 1-to-1 relation between them
-        const int lineWidth = 9;
-        QColor activeColor = option.palette.color(QPalette::Active, QPalette::Accent);
-        QColor inactiveColor = option.palette.color(QPalette::Inactive, QPalette::Accent);
-
-        QBrush brush(d->m_active ? activeColor : inactiveColor);
-        painter.setPen(QPen(brush, lineWidth, Qt::PenStyle::SolidLine, Qt::PenCapStyle::RoundCap));
-        const int x = 5;
-        const int y = lineWidth - 4;
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.setClipRegion(QRegion(0, 0, width(), 4));
-
-        painter.drawLine(x, y, width() - x, y);
     }
 }
 

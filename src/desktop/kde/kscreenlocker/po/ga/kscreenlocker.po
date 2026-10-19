@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kscreenlocker\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"POT-Creation-Date: 2026-10-01 20:15+0000\n"
 "PO-Revision-Date: 2012-11-29 14:59-0500\n"
 "Last-Translator: Kevin Scannell <kscanne@gmail.com>\n"
 "Language-Team: Irish <gaeilge-gnulinux@lists.sourceforge.net>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n < 11 ? "
 "3 : 4\n"
 
-#: abstractlocker.cpp:43
+#: emergencywindow.cpp:54
 #, kde-format
 msgid ""
 "The screen locker is broken and unlocking is not possible anymore.\n"
@@ -25,7 +25,7 @@ msgid ""
 "of which could be found on your system."
 msgstr ""
 
-#: abstractlocker.cpp:47
+#: emergencywindow.cpp:58
 #, kde-format
 msgctxt "%1 = other terminal"
 msgid ""
@@ -37,7 +37,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: abstractlocker.cpp:52
+#: emergencywindow.cpp:63
 #, kde-format
 msgctxt "%1 = other terminal, %2 = session ID, %3 = this terminal"
 msgid ""
@@ -54,34 +54,34 @@ msgid ""
 "\n"
 msgstr ""
 
-#: ksldapp.cpp:183
+#: ksldapp.cpp:117
 #, kde-format
 msgctxt ""
 "Name of a category in System Settings' Shortcuts KCM; match it exactly"
 msgid "Session Management"
 msgstr ""
 
-#: ksldapp.cpp:185
+#: ksldapp.cpp:119
 #, kde-format
 msgid "Lock Session"
 msgstr "Cuir an Seisiún faoi ghlas"
 
-#: ksldapp.cpp:451
+#: ksldapp.cpp:335
 #, kde-format
 msgid "Screen locked"
 msgstr ""
 
-#: ksldapp.cpp:619
+#: ksldapp.cpp:363
 #, kde-format
 msgid "Screen unlocked"
 msgstr ""
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Screen Locker"
 msgstr ""
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Ensuring that the screen gets locked before going to sleep"
 msgstr ""

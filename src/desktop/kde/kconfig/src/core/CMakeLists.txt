@@ -1,7 +1,12 @@
 add_library(KF6ConfigCore)
 add_library(KF6::ConfigCore ALIAS KF6ConfigCore)
 
-qt_extract_metatypes(KF6ConfigCore)
+qt_extract_metatypes(KF6ConfigCore OUTPUT_FILES METATYPES_FILE)
+
+# see https://qt-project.atlassian.net/browse/QTBUG-123052
+# might be replaced with proper Qt API once that exists
+get_filename_component(METATYPES_FILE_NAME ${METATYPES_FILE} NAME)
+target_sources(KF6ConfigCore INTERFACE $<INSTALL_INTERFACE:${KDE_INSTALL_QTMETATYPESDIR}/${METATYPES_FILE_NAME}>)
 
 set_target_properties(KF6ConfigCore PROPERTIES
     VERSION     ${KCONFIG_VERSION}
@@ -69,7 +74,7 @@ endif()
 
 ecm_generate_qdoc(KF6ConfigCore kconfigcore.qdocconf)
 
-ecm_generate_headers(KConfigCore_HEADERS
+ecm_generate_headers(KConfigCore_CamelCase_HEADERS
   HEADER_NAMES
   KAuthorized
   KConfig
@@ -94,5 +99,21 @@ install(TARGETS KF6ConfigCore EXPORT KF6ConfigTargets ${KF_INSTALL_TARGETS_DEFAU
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/kconfigcore_export.h
   ${KConfigCore_HEADERS}
+  ${KConfigCore_CamelCase_HEADERS}
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KConfigCore COMPONENT Devel
+)
+
+install(FILES ${METATYPES_FILE} DESTINATION ${KDE_INSTALL_QTMETATYPESDIR})
+
+ecm_add_installed_library_check(KF6ConfigCore
+    PACKAGE_NAME "KF6Config"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6ConfigCore
+    HEADERS ${KConfigCore_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6ConfigCore
+    PREFIX KCONFIG
 )

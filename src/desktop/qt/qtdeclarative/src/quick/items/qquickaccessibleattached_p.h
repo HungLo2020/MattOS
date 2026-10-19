@@ -71,6 +71,8 @@ public:
     STATE_PROPERTY(checkable)
     STATE_PROPERTY(checked)
     STATE_PROPERTY(editable)
+    STATE_PROPERTY(expandable)
+    STATE_PROPERTY(expanded)
     STATE_PROPERTY(focusable)
     STATE_PROPERTY(focused)
     STATE_PROPERTY(multiLine)
@@ -267,6 +269,7 @@ Q_SIGNALS:
     void toggleAction();
     void increaseAction();
     void decreaseAction();
+    void showOnScreenAction();
     void scrollUpAction();
     void scrollDownAction();
     void scrollLeftAction();
@@ -292,6 +295,7 @@ private:
     static QMetaMethod sigToggle;
     static QMetaMethod sigIncrease;
     static QMetaMethod sigDecrease;
+    static QMetaMethod sigShowOnScreen;
     static QMetaMethod sigScrollUp;
     static QMetaMethod sigScrollDown;
     static QMetaMethod sigScrollLeft;

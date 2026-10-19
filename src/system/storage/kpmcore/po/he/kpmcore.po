@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the kpmcore package.
 #
-# SPDX-FileCopyrightText: 2024, 2025 Yaron Shahrabani <sh.yaron@gmail.com>
+# SPDX-FileCopyrightText: 2024-2026 Yaron Shahrabani <sh.yaron@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kpmcore\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
-"PO-Revision-Date: 2025-03-12 07:41+0200\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
+"PO-Revision-Date: 2026-06-30 09:03+0300\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
 "Language: he\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Lokalize 24.12.2\n"
+"X-Generator: Lokalize 26.04.1\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -1848,13 +1848,13 @@ msgstr "נעילה"
 msgid "Enter passphrase for %1:"
 msgstr "נא למלא מילת צופן עבור %1:"
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
 msgstr "שינוי גודל הצפנת LUKS במחיצה <filename>%1</filename>."
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1911,7 +1911,7 @@ msgstr ""
 "מתבצע עדכון למקטע הטעינה (boot sector) למערכת קבצים מסוג NTFS במחיצה "
 "<filename>%1</filename>."
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1921,7 +1921,7 @@ msgstr ""
 "לא ניתן לכתוב מקטע התחלה חדש למחיצה <filename>%1</filename> כחלק מניסיון "
 "לעדכן את מקטע הטעינה (boot sector) של ה־NTFS."
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2703,6 +2703,32 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr "גריטת מערכת הקבצים שעל <filename>%1</filename>"
 
+#: jobs/takeownershipjob.cpp:28
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr "מערכת הקבצים על <filename>%1</filename> לא תומכת בבעלות."
+
+#: jobs/takeownershipjob.cpp:36
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr "סירוב לשינוי בעלות של נקודת עגינה משמעותית <filename>%1</filename>."
+
+#: jobs/takeownershipjob.cpp:60
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "העברת בעלות על <filename>%1</filename> והתוכן שלו למשתמש %2"
+
+#: jobs/takeownershipjob.cpp:62
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "העברת בעלות על <filename>%1</filename> למשתמש %2"
+
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
 msgctxt "@info:status"
@@ -3103,6 +3129,18 @@ msgstr "הגדרת דגלונים למחיצה <filename>%1</filename> לדגל�
 msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
 msgstr "הגדרת תווית למחיצת <filename>%1</filename> עם השם „%2”"
+
+#: ops/takeownershipoperation.cpp:73
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "העברת בעלות על <filename>%1</filename> והתוכן שלו למשתמש %2"
+
+#: ops/takeownershipoperation.cpp:75
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
+msgstr "העברת בעלות על <filename>%1</filename> למשתמש %2"
 
 #: plugins/geom/geompartitiontable.cpp:91
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:65

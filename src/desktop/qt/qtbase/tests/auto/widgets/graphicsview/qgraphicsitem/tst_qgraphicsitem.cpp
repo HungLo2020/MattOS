@@ -61,7 +61,7 @@ Q_DECLARE_METATYPE(QTransform)
 #define Q_CHECK_PAINTEVENTS
 #endif
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MACOS)
 // On mac (cocoa) we always get full update.
 // So check that the expected region is contained inside the actual
 #define COMPARE_REGIONS(ACTUAL, EXPECTED) QVERIFY((EXPECTED).subtracted(ACTUAL).isEmpty())
@@ -6232,7 +6232,7 @@ void tst_QGraphicsItem::untransformable()
 
 // Painting with the DiagCrossPattern is really slow on Mac
 // when zoomed out. (The test times out). Task to fix is 155567.
-#if !defined(Q_OS_MAC) || 1
+#if !defined(Q_OS_MACOS) || 1
     view.setBackgroundBrush(QBrush(Qt::black, Qt::DiagCrossPattern));
 #endif
 
@@ -7326,9 +7326,6 @@ void tst_QGraphicsItem::tabChangesFocus()
 
 void tst_QGraphicsItem::cacheMode()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QGraphicsScene scene(0, 0, 100, 100);
     QGraphicsView view(&scene);
     view.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
@@ -7510,9 +7507,6 @@ void tst_QGraphicsItem::cacheMode()
 
 void tst_QGraphicsItem::cacheMode2()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QGraphicsScene scene(0, 0, 100, 100);
     QGraphicsView view(&scene);
     view.setWindowTitle(QLatin1String(QTest::currentTestFunction()));
@@ -8216,6 +8210,10 @@ void tst_QGraphicsItem::sorting_data()
     QTest::newRow("BspTreeIndex") << QGraphicsScene::BspTreeIndex;
 }
 
+QT_WARNING_PUSH
+// checked stack use and deemed it acceptable
+QT_WARNING_DISABLE_LARGE_STACK_FRAME
+
 void tst_QGraphicsItem::sorting()
 {
     if (qGuiApp->styleHints()->showIsFullScreen())
@@ -8251,6 +8249,8 @@ void tst_QGraphicsItem::sorting()
     view.setWindowFlags(view.windowFlags() | Qt::Tool);
     view.setResizeAnchor(QGraphicsView::NoAnchor);
     view.setTransformationAnchor(QGraphicsView::NoAnchor);
+    view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view.resize(120, 100);
     view.setFrameStyle(0);
     view.show();
@@ -8264,14 +8264,17 @@ void tst_QGraphicsItem::sorting()
     _paintedItems.clear();
 
     view.viewport()->update();
-    const GraphicsItems expected{grid[0][0], grid[0][1], grid[0][2], grid[0][3],
-                                 grid[1][0], grid[1][1], grid[1][2], grid[1][3],
-                                 grid[2][0], grid[2][1], grid[2][2], grid[2][3],
-                                 grid[3][0], grid[3][1], grid[3][2], grid[3][3],
-                                 grid[4][0], grid[4][1], grid[4][2], grid[4][3],
+    const GraphicsItems expected{grid[0][0], grid[0][1], grid[0][2], grid[0][3], grid[0][4],
+                                 grid[1][0], grid[1][1], grid[1][2], grid[1][3], grid[1][4],
+                                 grid[2][0], grid[2][1], grid[2][2], grid[2][3], grid[2][4],
+                                 grid[3][0], grid[3][1], grid[3][2], grid[3][3], grid[3][4],
+                                 grid[4][0], grid[4][1], grid[4][2], grid[4][3], grid[4][4],
+                                 grid[5][0], grid[5][1], grid[5][2], grid[5][3], grid[5][4],
                                  item1, item2};
     QTRY_COMPARE(_paintedItems, expected);
 }
+
+QT_WARNING_POP // -Wframe-larger-than
 
 void tst_QGraphicsItem::itemHasNoContents()
 {

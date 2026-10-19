@@ -341,6 +341,7 @@ public:
     bool m_acceptableInput = true;
     bool acceptedEscKeyPress = false;
     bool receivedEscKeyPress = false;
+    bool highlightOnHover = true;
 
     struct ExtraData {
         bool editable = false;
@@ -445,7 +446,8 @@ void QQuickComboBoxPrivate::itemHovered()
 
     int index = delegateModel->indexOf(button, nullptr);
     if (index != -1) {
-        setHighlightedIndex(index, Highlight);
+        if (highlightOnHover)
+            setHighlightedIndex(index, Highlight);
 
 #if QT_CONFIG(quick_itemview)
         if (QQuickItemView *itemView = popup->findChild<QQuickItemView *>())
@@ -1490,6 +1492,9 @@ void QQuickComboBox::setPopup(QQuickPopup *popup)
 #if QT_CONFIG(wayland)
         QQuickPopupPrivate::get(popup)->extendedWindowType = QNativeInterface::Private::QWaylandWindow::ComboBox;
 #endif
+#if QT_CONFIG(xcb)
+        QQuickPopupPrivate::get(popup)->wmWindowType = QNativeInterface::Private::QXcbWindow::Combo;
+#endif
         QQuickPopupPrivate::get(popup)->allowVerticalFlip = true;
         popup->setClosePolicy(QQuickPopup::CloseOnEscape | QQuickPopup::CloseOnPressOutsideParent);
         QObjectPrivate::connect(popup, &QQuickPopup::visibleChanged, d, &QQuickComboBoxPrivate::popupVisibleChanged);
@@ -1978,6 +1983,31 @@ void QQuickComboBox::setImplicitContentWidthPolicy(QQuickComboBox::ImplicitConte
     d->implicitContentWidthPolicy = policy;
     d->maybeUpdateImplicitContentWidth();
     emit implicitContentWidthPolicyChanged();
+}
+
+/*!
+    \since QtQuick.Controls 6.12 (Qt 6.12)
+    \qmlproperty bool QtQuick.Controls::ComboBox::highlightOnHover
+
+    This property holds whether hovering over items should highlight
+    them.
+
+    The default value is \c true.
+*/
+bool QQuickComboBox::highlightOnHover() const
+{
+    Q_D(const QQuickComboBox);
+    return d->highlightOnHover;
+}
+
+void QQuickComboBox::setHighlightOnHover(bool value)
+{
+    Q_D(QQuickComboBox);
+    if (value == highlightOnHover())
+        return;
+
+    d->highlightOnHover = value;
+    emit highlightOnHoverChanged();
 }
 /*!
     \qmlmethod string QtQuick.Controls::ComboBox::textAt(int index)

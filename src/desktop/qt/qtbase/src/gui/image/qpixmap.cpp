@@ -1,5 +1,6 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <qglobal.h>
 
@@ -198,7 +199,7 @@ QPixmap::QPixmap(const QPixmap &pixmap)
 /*! \fn QPixmap::QPixmap(QPixmap &&other)
     Move-constructs a QPixmap instance from \a other.
 
-    \sa swap() operator=(QPixmap&&)
+    \sa swap(), operator=(QPixmap&&)
 */
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QPlatformPixmap)

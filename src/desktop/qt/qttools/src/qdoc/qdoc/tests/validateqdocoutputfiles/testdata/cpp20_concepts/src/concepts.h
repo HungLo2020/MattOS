@@ -59,6 +59,8 @@ public:
     \class ConstrainedContainer
     \inmodule Cpp20Concepts
     \brief A container template with a requires clause on the class itself.
+
+    \a T must be an integral type.
 */
 template<typename T> requires detail::is_integral<T>::value
 class ConstrainedContainer
@@ -151,5 +153,138 @@ public:
     template<typename T>
         requires requires(T t) { t.size(); }
     int getSize(const T& container);
+};
+
+// Real C++20 concept declaration — the source that ConceptSpecializationExpr
+// sub-expressions in the constrained items below resolve to.
+template <typename T>
+concept Integral = detail::is_integral<T>::value;
+
+/*!
+    \concept Integral
+    \inmodule Cpp20Concepts
+    \brief A type that satisfies integral arithmetic.
+
+    The Integral concept is satisfied by any type modelling the built-in
+    integer types: \c {char}, \c {short}, \c {int}, \c {long}, and their
+    \c {unsigned} counterparts.
+
+    \section1 Definition
+
+    \code
+    template <typename T>
+    concept Integral = detail::is_integral<T>::value;
+    \endcode
+*/
+
+/*!
+    \class IntegralBox
+    \inmodule Cpp20Concepts
+    \brief A box holding any Integral type.
+
+    IntegralBox demonstrates the direct concept-on-template-parameter
+    form: the template parameter \a T is constrained by the Integral
+    concept without an explicit \c {requires} clause.
+*/
+template <Integral T>
+class IntegralBox
+{
+public:
+    IntegralBox(T value) : m_value(value) {}
+    T value() const { return m_value; }
+private:
+    T m_value;
+};
+
+/*!
+    \relates Cpp20Concepts
+
+    Sums two values constrained by the Integral concept.
+
+    \a a and \a b must both satisfy the Integral concept; the function
+    uses the template-head requires form to express this.
+*/
+template <typename T> requires Integral<T>
+T sum(T a, T b);
+
+/*!
+    \relates Cpp20Concepts
+
+    Doubles \a value, which must satisfy the Integral concept.
+
+    Uses the constrained-auto syntax (\c {Integral auto}) — the function
+    takes any single-argument type that models Integral.
+*/
+void doubleValue(Integral auto value);
+
+// Namespaced concept — exercises fully-qualified concept resolution in
+// synopsis autolinking. The constraint user below references it through
+// its requires clause, so the rendered signature must link the
+// qualified name back to the concept's reference page.
+namespace traits {
+template <typename T>
+concept Sortable = detail::is_integral<T>::value;
+}
+
+/*!
+    \concept traits::Sortable
+    \inmodule Cpp20Concepts
+    \brief A namespaced concept satisfied by sortable types.
+    \since 1.0
+
+    Sortable lives inside the \c traits namespace, so QDoc records and
+    renders its fully-qualified name.
+
+    \section1 Definition
+
+    \code
+    namespace traits {
+    template <typename T>
+    concept Sortable = detail::is_integral<T>::value;
+    }
+    \endcode
+*/
+
+/*!
+    \relates Cpp20Concepts
+
+    Picks the larger of \a a and \a b.
+
+    The template head constrains \a T through the namespaced
+    \c {traits::Sortable} concept, exercising qualified-name resolution
+    in the rendered synopsis.
+*/
+template <typename T> requires traits::Sortable<T>
+T pick(T a, T b);
+
+/*!
+    \relates Cpp20Concepts
+
+    Doubles \a value using a trailing requires clause that names the
+    Integral concept directly. Exercises the trailing-requires autolink
+    on the documented concept rather than on a compound trait
+    expression.
+*/
+template <typename T>
+T processConcept(T value) requires Integral<T>;
+
+/*!
+    \class SortableBox
+    \inmodule Cpp20Concepts
+    \brief A box holding any Sortable type.
+
+    SortableBox demonstrates the direct concept-on-template-parameter form
+    with a namespaced concept: the parameter \a T is constrained by
+    \c {traits::Sortable}, so the rendered class subtitle must resolve the
+    fully-qualified concept name rather than the bare \c Sortable token.
+*/
+template <traits::Sortable T>
+class SortableBox
+{
+public:
+    SortableBox(T value) : m_value(value) {}
+    T value() const { return m_value; }
+private:
+    T m_value;
 };
 

@@ -1,6 +1,6 @@
+# SPDX-FileCopyrightText: 2013-2017, 2019-2021 Burkhard Lück <lueck@hube-lueck.de>
+# SPDX-FileCopyrightText: 2014, 2016, 2022-2023 Frederik Schwarzer <schwarzer@kde.org>
 # SPDX-FileCopyrightText: 2024 Johannes Obermayr <johannesobermayr@gmx.de>
-# SPDX-FileCopyrightText: 2013, 2014, 2015, 2016, 2017, 2019, 2020, 2021 Burkhard Lück <lueck@hube-lueck.de>
-# SPDX-FileCopyrightText: 2014, 2016, 2022, 2023 Frederik Schwarzer <schwarzer@kde.org>
 msgid ""
 msgstr ""
 "Project-Id-Version: libkpackage6\n"
@@ -193,7 +193,7 @@ msgid ""
 "only one."
 msgstr ""
 "Die Option „packageroot“ und die globalen Optionen stehen in Konflikt "
-"zueinander. Bitte benutzen Sie nur eine von beiden."
+"zueinander. Bitte verwenden Sie nur eine von beiden."
 
 #: kpackagetool/kpackagetool.cpp:457
 #, kde-format
@@ -288,7 +288,7 @@ msgid ""
 "plugin, e.g. KPackage/Generic, Plasma/Theme, Plasma/Wallpaper, Plasma/"
 "Applet, etc."
 msgstr ""
-"Der Typ des Pakets, entspricht dem Servicetyp des Paket-Moduls, z. B.  "
+"Der Typ des Pakets, entspricht dem Servicetyp des Paket-Moduls, z. B.  "
 "KPackage/Generic, Plasma/Theme, Plasma/Wallpaper, Plasma/Applet, usw."
 
 #: kpackagetool/options.h:36

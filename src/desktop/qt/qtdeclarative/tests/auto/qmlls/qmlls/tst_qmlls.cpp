@@ -23,7 +23,7 @@ public:
         m_received.append(PublishDiagnosticsParams(params));
     }
 
-    bool contains(const QString &uri, int line1, int column1, int line2, int column2) const
+    bool contains(const QString &uri, unsigned line1, unsigned column1, unsigned line2, unsigned column2) const
     {
         for (const auto &params : m_received) {
             if (params.uri != uri)
@@ -82,7 +82,6 @@ private:
     QLanguageServerProtocol m_protocol;
     DiagnosticsHandler m_diagnosticsHandler;
     QString m_qmllsPath;
-    QList<RegistrationParams> m_registrations;
 };
 
 tst_Qmlls::tst_Qmlls()
@@ -134,16 +133,10 @@ void tst_Qmlls::initTestCase()
     tDoc.publishDiagnostics = pDiag;
     pDiag.versionSupport = true;
     clientInfo.capabilities.textDocument = tDoc;
-    QJsonObject workspace({ { u"didChangeWatchedFiles"_s,
-                              QJsonObject({ { u"dynamicRegistration"_s, true } }) } });
-    clientInfo.capabilities.workspace = workspace;
+    clientInfo.capabilities.workspace.emplace()
+            .didChangeWatchedFiles.emplace()
+            .dynamicRegistration = true;
     bool didInit = false;
-    m_protocol.registerRegistrationRequestHandler([this](const QByteArray &,
-                                                         const RegistrationParams &params,
-                                                         LSPResponse<std::nullptr_t> &&response) {
-        m_registrations.append(params);
-        response.sendResponse();
-    });
     m_protocol.requestInitialize(clientInfo, [this, &didInit](const InitializeResult &serverInfo) {
         Q_UNUSED(serverInfo);
         m_protocol.notifyInitialized(InitializedParams());
@@ -166,7 +159,7 @@ void tst_Qmlls::didOpenTextDocument()
     m_protocol.notifyDidOpenTextDocument(oParams);
 
     QTRY_VERIFY_WITH_TIMEOUT(m_diagnosticsHandler.numDiagnostics(uri) != 0, 10000);
-    QTRY_VERIFY_WITH_TIMEOUT(m_diagnosticsHandler.contains(uri, 3, 4, 3, 10), 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(m_diagnosticsHandler.contains(uri, 3u, 4u, 3u, 10u), 10000);
 
     auto diagnostics = m_diagnosticsHandler.diagnostics(uri);
 
@@ -175,18 +168,14 @@ void tst_Qmlls::didOpenTextDocument()
     codeActionParams.context.diagnostics = diagnostics;
     codeActionParams.range.start = Position { 0, 0 };
     codeActionParams.range.end =
-            Position { static_cast<int>(textDocument.text.split(u'\n').size()), 0 };
+            Position { static_cast<unsigned>(textDocument.text.split(u'\n').size()), 0 };
 
     bool success = false;
     m_protocol.requestCodeAction(
             codeActionParams,
-            [&](const std::variant<QList<std::variant<Command, CodeAction>>, std::nullptr_t>
-                        &response) {
-                using ListType = QList<std::variant<Command, CodeAction>>;
-
-                QVERIFY(std::holds_alternative<ListType>(response));
-
-                auto list = std::get<ListType>(response);
+            [&](const Responses::CodeActionResultType &response) {
+                QVERIFY(!std::holds_alternative<std::nullptr_t>(response));
+                auto list = std::get<1>(response);
 
                 struct ReplacementData
                 {
@@ -214,7 +203,7 @@ void tst_Qmlls::didOpenTextDocument()
 
                     QString title = QString::fromUtf8(action.title);
                     QVERIFY(action.kind.has_value());
-                    QCOMPARE(QString::fromUtf8(action.kind.value()), QLatin1StringView("quickfix"));
+                    QCOMPARE(*action.kind, CodeActionKind::QuickFix);
                     QVERIFY(action.edit.has_value());
                     WorkspaceEdit edit = action.edit.value();
 
@@ -226,7 +215,8 @@ void tst_Qmlls::didOpenTextDocument()
                     TextDocumentEdit textDocEdit
                             = std::get<TextDocumentEdit>(documentChanges.first());
                     QCOMPARE(textDocEdit.textDocument.uri, textDocument.uri);
-                    QVERIFY(std::holds_alternative<int>(textDocEdit.textDocument.version));
+                    QVERIFY(!std::holds_alternative<std::nullptr_t>(
+                            textDocEdit.textDocument.version));
 
                     QCOMPARE(textDocEdit.edits.size(), 1);
                     auto editVariant = textDocEdit.edits.first();
@@ -259,7 +249,7 @@ void tst_Qmlls::didOpenTextDocument()
     DidChangeTextDocumentParams cParams;
     cParams.textDocument.uri = uri;
     cParams.textDocument.version = 2;
-    TextDocumentContentChangeEvent change;
+    TextDocumentContentChangeEventVariant2 change;
     change.text = file.readAll().replace("wildth", "wid");
     cParams.contentChanges.append(change);
     m_protocol.notifyDidChangeTextDocument(cParams);
@@ -274,14 +264,7 @@ void tst_Qmlls::didOpenTextDocument()
 
 void tst_Qmlls::testWorkspace()
 {
-    QTRY_VERIFY_WITH_TIMEOUT(!m_registrations.isEmpty(), 10000);
     QByteArray uri = testFileUrl("default/Zzz.qml").toString().toUtf8();
-    DidChangeWatchedFilesParams fChanges;
-    FileEvent fEvent;
-    fEvent.uri = uri;
-    fEvent.type = int(FileChangeType::Changed);
-    fChanges.changes.append(fEvent);
-    m_protocol.notifyDidChangeWatchedFiles(fChanges);
     DidChangeWorkspaceFoldersParams dChanges;
     WorkspaceFolder dir;
     dir.name = "default";

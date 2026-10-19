@@ -14,18 +14,21 @@
 // We mean it.
 //
 
-#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtMultimedia/private/qdmabuftextureimporter_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtextureconverter_p.h>
 
-#if QT_CONFIG(vaapi)
-
-#include <qshareddata.h>
+static_assert(QT_CONFIG(vaapi));
 
 QT_BEGIN_NAMESPACE
 
 class QRhi;
-class QOpenGLContext;
 
 namespace QFFmpeg {
+
+using QtMultimediaPrivate::DmaBufEglContext;
+using QtMultimediaPrivate::DmaBufPlane;
+using QtMultimediaPrivate::FailureSeverity;
+using QtMultimediaPrivate::importDmaBufTextures;
 
 class VAAPITextureConverter : public TextureConverterBackend
 {
@@ -36,14 +39,10 @@ public:
     QVideoFrameTexturesHandlesUPtr
     createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
 
-    Qt::HANDLE eglDisplay = nullptr;
-    QOpenGLContext *glContext = nullptr;
-    QFunctionPointer eglImageTargetTexture2D = nullptr;
+    DmaBufEglContext eglContext;
 };
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE
-
-#endif
 
 #endif

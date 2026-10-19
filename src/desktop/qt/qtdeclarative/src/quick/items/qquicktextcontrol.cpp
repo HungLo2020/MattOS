@@ -1327,6 +1327,11 @@ void QQuickTextControlPrivate::inputMethodEvent(QInputMethodEvent *e)
     bool forceSelectionChanged = false;
     int oldCursorPos = cursor.position();
 
+    // Input method commits (e.g. accented characters such as é, ç, à) edit the document
+    // without going through keyPressEvent. Mark it edited here too, so that
+    // QQuickTextEdit::q_textChanged emits textEdited() for committed input-method text.
+    QScopedValueRollback<bool> rollbackBeingEdited(beingEdited, isGettingInput && textEditable);
+
     cursor.beginEditBlock();
     if (isGettingInput && textEditable) {
         cursor.removeSelectedText();
@@ -1508,7 +1513,10 @@ void QQuickTextControlPrivate::focusEvent(QFocusEvent *e)
             && e->reason() != Qt::PopupFocusReason
             && cursor.hasSelection()) {
             cursor.clearSelection();
-            emit q->selectionChanged();
+            // Use the private overload so lastSelectionStart/End are updated too;
+            // a bare emit would leave that cache stale and suppress a later
+            // programmatic select() to the same range (QTBUG-83224).
+            selectionChanged();
         }
     }
 }

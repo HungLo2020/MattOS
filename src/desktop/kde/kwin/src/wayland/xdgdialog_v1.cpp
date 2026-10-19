@@ -85,7 +85,8 @@ void XdgDialogWmV1InterfacePrivate::xdg_wm_dialog_v1_get_xdg_dialog(Resource *re
 }
 
 XdgDialogWmV1Interface::XdgDialogWmV1Interface(Display *display, QObject *parent)
-    : d(std::make_unique<XdgDialogWmV1InterfacePrivate>(display, this))
+    : QObject(parent)
+    , d(std::make_unique<XdgDialogWmV1InterfacePrivate>(display, this))
 {
 }
 
@@ -149,4 +150,5 @@ XdgToplevelInterface *XdgDialogV1Interface::toplevel() const
 {
     return d->m_toplevel;
 }
+
 }

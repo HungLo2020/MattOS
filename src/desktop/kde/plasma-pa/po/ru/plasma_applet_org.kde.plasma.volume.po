@@ -1,7 +1,7 @@
 # Copyright (C) 2015 This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Alexander Yavorsky <kekcuha@gmail.com>
+# SPDX-FileCopyrightText: 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Alexander Yavorsky <kekcuha@gmail.com>
 # VictorR2007 <victorr2007@yandex.ru>, 2015.
 # Alexander Potashev <aspotashev@gmail.com>, 2015, 2016, 2017, 2018.
 # Alexander Yavorskiy <kekcuha@gmail.com>, 2025.
@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-12-19 00:45+0000\n"
-"PO-Revision-Date: 2025-12-11 18:34+0300\n"
-"Last-Translator: Alexander Yavorsky <kekcuha@gmail.com>\n"
+"POT-Creation-Date: 2026-08-20 00:47+0000\n"
+"PO-Revision-Date: 2026-04-03 21:58+0200\n"
+"Last-Translator: Alexander Yavorskiy <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -19,180 +19,186 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.11.90\n"
+"X-Generator: Lokalize 25.12.3\n"
 
-#: ListItemBase.qml:72
+#: ListItemBase.qml:73
 #, kde-format
 msgid "Currently not recording"
 msgstr "Запись не выполняется"
 
-#: ListItemBase.qml:73
+#: ListItemBase.qml:74
 #, kde-format
 msgid "Currently not playing"
 msgstr "Воспроизведение не выполняется"
 
-#: ListItemBase.qml:204
+#: ListItemBase.qml:205
 #, kde-format
 msgctxt "@action:button"
 msgid "Additional Options"
 msgstr "Дополнительные параметры"
 
-#: ListItemBase.qml:206
+#: ListItemBase.qml:207
 #, kde-format
 msgid "Show additional options for %1"
 msgstr "Открыть дополнительные параметры %1"
 
-#: ListItemBase.qml:228
+#: ListItemBase.qml:229
 #, kde-format
 msgctxt "@action:button"
 msgid "Unmute"
 msgstr "Включить звук"
 
-#: ListItemBase.qml:228
+#: ListItemBase.qml:229
 #, kde-format
 msgctxt "@action:button"
 msgid "Mute"
 msgstr "Выключить звук"
 
-#: ListItemBase.qml:230
+#: ListItemBase.qml:231
 #, kde-format
 msgid "Unmute %1"
 msgstr "Включить звук на %1"
 
-#: ListItemBase.qml:230
+#: ListItemBase.qml:231
 #, kde-format
 msgid "Mute %1"
 msgstr "Выключить звук на %1"
 
-#: ListItemBase.qml:253
+#: ListItemBase.qml:254
 #, kde-format
 msgctxt "Accessibility data on volume slider"
 msgid "Adjust volume for %1"
 msgstr "Настройка громкости %1"
 
-#: ListItemBase.qml:317
+#: ListItemBase.qml:318 MicrophoneTestView.qml:215
 #, kde-format
 msgctxt "volume percentage"
 msgid "%1%"
 msgstr "%1%"
 
-#: ListItemBase.qml:338
+#: ListItemBase.qml:339 MicrophoneTestView.qml:228
 #, kde-format
 msgctxt "only used for sizing, should be widest possible string"
 msgid "100%"
 msgstr "100%"
+
+#: ListItemBase.qml:344
+#, kde-format
+msgctxt "Perform an audio test of the device"
+msgid "Test…"
+msgstr "Проверить…"
 
 #: main.qml:36
 #, kde-format
 msgid "Audio Volume"
 msgstr "Громкость"
 
-#: main.qml:53 main.qml:55
+#: main.qml:60 main.qml:62
 #, kde-format
 msgctxt "@label"
 msgid "Connection to the Sound Service Lost"
 msgstr "Потеряно подключение к службе записи и воспроизведения звука"
 
-#: main.qml:57
+#: main.qml:64
 #, kde-format
 msgid "No output or input devices found"
 msgstr "Не найдено устройств ввода или вывода звука"
 
-#: main.qml:61
+#: main.qml:68
 #, kde-format
 msgctxt "@info reconnecting to pulseaudio"
 msgid "Trying to reconnect…"
 msgstr "Выполняется попытка подключения…"
 
-#: main.qml:79
+#: main.qml:94
 #, kde-format
 msgid "Audio Muted"
 msgstr "Звук выключен"
 
-#: main.qml:81
+#: main.qml:96
 #, kde-format
 msgid "Volume at %1%"
 msgstr "Громкость: %1%"
 
-#: main.qml:92
+#: main.qml:107
 #, kde-format
 msgid "Middle-click to unmute"
 msgstr "Включить звук: щелчок средней кнопкой"
 
-#: main.qml:93
+#: main.qml:108
 #, kde-format
 msgid "Middle-click to mute all audio"
 msgstr "Отключить звук: щелчок средней кнопкой"
 
-#: main.qml:94
+#: main.qml:109
 #, kde-format
 msgid "Scroll to adjust volume"
 msgstr "Изменить громкость: прокручивание колёсика мыши"
 
-#: main.qml:110
+#: main.qml:125
 #, kde-format
 msgid "Device name not found"
 msgstr "Имя устройства не найдено"
 
-#: main.qml:338
+#: main.qml:361
 #, kde-format
 msgid "Devices"
 msgstr "Устройства"
 
-#: main.qml:345
+#: main.qml:368
 #, kde-format
 msgid "Applications"
 msgstr "Программы"
 
-#: main.qml:369
+#: main.qml:392
 #, kde-format
 msgctxt "@action:button"
 msgid "More actions"
 msgstr "Дополнительные действия"
 
-#: main.qml:411
+#: main.qml:434
 #, kde-format
 msgctxt ""
 "@action:button keep this widget's pop-up open until explicitly dismissed"
 msgid "Keep open"
 msgstr "Держать открытым"
 
-#: main.qml:443
+#: main.qml:471
 #, kde-format
 msgctxt "@action retry connecting to pulseaudio"
 msgid "Retry"
 msgstr "Повторить"
 
-#: main.qml:470
+#: main.qml:505
 #, kde-format
 msgid "No applications playing or recording audio"
 msgstr "Ни одно приложение не воспроизводит и не записывает звук."
 
-#: main.qml:555
+#: main.qml:601
 #, kde-format
 msgctxt "@title:group listview section header"
 msgid "Output Devices"
 msgstr "Устройства вывода звука"
 
-#: main.qml:557
+#: main.qml:603
 #, kde-format
 msgctxt "@title:group listview section header"
 msgid "Output Streams"
 msgstr "Исходящие потоки звука"
 
-#: main.qml:615
+#: main.qml:661
 #, kde-format
 msgctxt "@title:group listview section header"
 msgid "Input Devices"
 msgstr "Устройства захвата звука"
 
-#: main.qml:617
+#: main.qml:663
 #, kde-format
 msgctxt "@title:group listview section header"
 msgid "Input Streams"
 msgstr "Входящие потоки звука"
 
-#: main.qml:681
+#: main.qml:728
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -203,30 +209,84 @@ msgstr ""
 "устройства. Используйте её только временно для прослушивания слишком тихих "
 "медиафайлов."
 
-#: main.qml:697
+#: main.qml:744
 #, kde-format
 msgid "Raise maximum volume"
 msgstr "Увеличить максимальную громкость"
 
-#: main.qml:711
+#: main.qml:762
 #, kde-format
 msgid "Force mute all playback devices"
 msgstr "Принудительно выключить звук всех устройств воспроизведения"
 
-#: main.qml:720
+#: main.qml:771
 #, kde-format
 msgid "Force mute all input devices"
 msgstr "Принудительно выключить звук всех устройств захвата звука"
 
-#: main.qml:729
+#: main.qml:780
 #, kde-format
 msgid "Show virtual devices"
 msgstr "Показывать виртуальные устройства"
 
-#: main.qml:739
+#: main.qml:790
 #, kde-format
 msgid "&Configure Audio Devices…"
 msgstr "&Настроить звуковые устройства..."
+
+#: MicrophoneTestView.qml:104
+#, kde-format
+msgctxt "Button to stop microphone recording in test mode"
+msgid "Stop"
+msgstr "Остановить"
+
+#: MicrophoneTestView.qml:104
+#, kde-format
+msgctxt "Button to start microphone recording in test mode"
+msgid "Record"
+msgstr "Запись"
+
+#: MicrophoneTestView.qml:118
+#, kde-format
+msgctxt "Button to stop microphone playing in test mode"
+msgid "Stop"
+msgstr "Остановить"
+
+#: MicrophoneTestView.qml:118
+#, kde-format
+msgctxt "Button to start microphone playing in test mode"
+msgid "Play"
+msgstr "Воспроизвести"
+
+#: MicrophoneTestView.qml:137
+#, kde-format
+msgctxt "Label above the microphone volume meter in test overlay"
+msgid "Volume level"
+msgstr "Уровень громкости"
+
+#: MicrophoneTestView.qml:166
+#, kde-format
+msgctxt "Label showing current microphone input level percentage in test mode"
+msgid "%1 %"
+msgstr "%1 %"
+
+#: MicrophoneTestView.qml:181
+#, kde-format
+msgctxt "Label above the microphone sensitivity slider in test overlay"
+msgid "Sensitivity"
+msgstr "Чувствительность"
+
+#: MicrophoneTestView.qml:237
+#, kde-format
+msgctxt "Button in microphone test view to return to the device list"
+msgid "Back"
+msgstr "Назад"
+
+#: MicrophoneTestView.qml:250
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Microphone test error:<nl/><nl/>%1"
+msgstr "Ошибка проверки микрофона:<nl/><nl/>%1"
 
 #: StreamListItem.qml:36
 #, kde-format
@@ -270,9 +330,6 @@ msgstr "Имя потока не найдено"
 #~ msgid "General"
 #~ msgstr "Основное"
 
-#~ msgid "Volume step:"
-#~ msgstr "Шаг изменения громкости:"
-
 #~ msgid "Play audio feedback for changes to:"
 #~ msgstr "Воспроизводить звук при регулировке устройств:"
 
@@ -281,9 +338,6 @@ msgstr "Имя потока не найдено"
 
 #~ msgid "Show visual feedback for changes to:"
 #~ msgstr "Показывать уведомления при регулировке устройств:"
-
-#~ msgid "Microphone sensitivity"
-#~ msgstr "Чувствительность микрофона"
 
 #~ msgid "Mute state"
 #~ msgstr "Включение или отключение звука с устройства"
@@ -436,9 +490,6 @@ msgstr "Имя потока не найдено"
 
 #~ msgid "Rear Right"
 #~ msgstr "Правый тыловой"
-
-#~ msgid "Playback"
-#~ msgstr "Воспроизведение"
 
 #~ msgctxt "@label"
 #~ msgid "No Applications Playing Audio"

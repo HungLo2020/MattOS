@@ -1960,12 +1960,14 @@ QSGNode *QQuickTextInput::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData 
 
     if (!d->textLayoutDirty && oldNode != nullptr) {
         if (showCursor)
-            node->setCursor(cursorRectangle(), d->color);
+            node->setCursor(cursorRectangle(), d->color, nullptr);
         else
             node->clearCursor();
     } else {
         node->setRenderType(QSGTextNode::RenderType(d->renderType));
-        node->clear();
+
+        QSGInternalTextNode::RecycleBin recycleBin;
+        node->recycle(&recycleBin);
         node->setMatrix(QMatrix4x4());
         node->setTextStyle(QSGInternalTextNode::Normal);
         node->setColor(d->color);
@@ -1979,27 +1981,24 @@ QSGNode *QQuickTextInput::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData 
             node->setViewport(QRectF{});
 
         QPointF offset(leftPadding(), topPadding());
-        if (d->autoScroll && d->m_textLayout.lineCount() > 0) {
-            QFontMetricsF fm(d->font);
-            // the y offset is there to keep the baseline constant in case we have script changes in the text.
-            offset += -QPointF(d->hscroll, d->vscroll + d->m_textLayout.lineAt(0).ascent() - fm.ascent());
-        } else {
-            offset += -QPointF(d->hscroll, d->vscroll);
-        }
+        offset -= QPointF(d->hscroll, d->vscroll);
 
         if (!d->m_textLayout.text().isEmpty()
 #if QT_CONFIG(im)
                 || !d->m_textLayout.preeditAreaText().isEmpty()
 #endif
                 ) {
-            node->addTextLayout(offset, &d->m_textLayout,
+            node->addTextLayout(offset,
+                                &d->m_textLayout,
+                                &recycleBin,
                                 d->selectionStart(),
                                 d->selectionEnd() - 1); // selectionEnd() returns first char after
                                                         // selection
         }
 
         if (showCursor)
-            node->setCursor(cursorRectangle(), d->color);
+            node->setCursor(cursorRectangle(), d->color, &recycleBin);
+        node->discardUnusedNodes(&recycleBin);
 
         d->textLayoutDirty = false;
     }
@@ -3280,7 +3279,14 @@ void QQuickTextInputPrivate::updateBaselineOffset()
         else if (vAlign == QQuickTextInput::AlignVCenter)
             yoff = surplusHeight/2;
     }
-    q->setBaselineOffset(fm.ascent() + yoff + q->topPadding());
+    qreal ascent;
+    if (m_textLayout.lineCount() > 0) {
+        QTextLine line = m_textLayout.lineAt(0);
+        ascent = line.y() + line.ascent();
+    } else {
+        ascent = fm.ascent();
+    }
+    q->setBaselineOffset(ascent + yoff + q->topPadding());
 }
 
 #if QT_CONFIG(clipboard)

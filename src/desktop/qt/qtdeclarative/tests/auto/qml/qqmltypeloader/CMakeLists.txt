@@ -48,6 +48,9 @@ qt_internal_extend_target(tst_qqmltypeloader CONDITION NOT ANDROID AND NOT IOS
         QT_QMLTEST_DATADIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
 )
 
+set_source_files_properties("${CMAKE_CURRENT_BINARY_DIR}/lazyresource.rcc"
+    PROPERTIES QT_RESOURCE_ALIAS "lazyresource.rcc")
+
 qt_add_resources(tst_qqmltypeloader "typeloader"
     PREFIX
         "/"
@@ -55,15 +58,18 @@ qt_add_resources(tst_qqmltypeloader "typeloader"
         "declarative/import/for/typeloader/test/qmldir"
         "declarative/import/for/typeloader/test/Singleton.qml"
         "data/compilercompatibility/signalHandlers.qml"
+        "${CMAKE_CURRENT_BINARY_DIR}/lazyresource.rcc"
 )
 
 set_target_properties(tst_qqmltypeloader PROPERTIES
     QT_QML_MODULE_VERSION 3.2
     QT_QML_MODULE_URI declarative.import.for.typeloader.test
+    QT_QML_MODULE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 _qt_internal_qml_type_registration(tst_qqmltypeloader)
 add_subdirectory(SlowImport)
+add_dependencies(tst_qqmltypeloader Slow)
 
 # A resource compiled to a standalone .rcc that the test registers at run time, to exercise
 # the directory cache being invalidated when a resource appears after it was first probed.

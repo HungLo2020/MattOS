@@ -22,6 +22,7 @@ from appium import webdriver
 from appium.options.common.base import AppiumOptions
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.common.exceptions import (NoSuchElementException, WebDriverException)
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.action_builder import ActionBuilder
 from selenium.webdriver.common.actions.interaction import POINTER_MOUSE
@@ -67,7 +68,6 @@ class TestApplication(Gtk.Application):
             "environ",
             {
                 "LC_ALL": "en_US.UTF-8",
-                "QT_FATAL_WARNINGS": "0",  # DataControlOffer: timeout reading from pipe
                 "QT_LOGGING_RULES": "qt.accessibility.atspi.warning=false;org.kde.klipper.debug=true;qt.qml.propertyCache.append.warning=false",
             })
         options.set_capability("timeouts", {'implicit': 5000})
@@ -221,19 +221,6 @@ class ClipboardTest(unittest.TestCase):
 
         app.driver.find_element(AppiumBy.NAME, "QR Code")
         app.driver.find_element(AppiumBy.NAME, "Return to Clipboard")
-        app.driver.find_element(AppiumBy.NAME, "Change the QR code type")
-
-        # Opens the barcode type menu and changes the current barcode type
-        app.driver.find_element(AppiumBy.NAME, "Change the QR code type").click()
-        menu_item = app.driver.find_element(AppiumBy.NAME, "Aztec")
-        # Switch to Aztec
-        actions = ActionChains(app.driver)
-        for _ in range(3):
-            actions.send_keys(Keys.DOWN).perform()
-            time.sleep(1)
-        actions.send_keys(Keys.SPACE).perform()
-        WebDriverWait(app.driver, 5).until_not(lambda _: menu_item.is_displayed())
-        app.driver.find_element(AppiumBy.NAME, "Aztec")  # This is from barcodeItem
 
         # Go back to the list from the barcode page
         button_item = app.driver.find_element(AppiumBy.NAME, "Return to Clipboard")
@@ -243,7 +230,7 @@ class ClipboardTest(unittest.TestCase):
         self.assertFalse(button_item.is_displayed())
 
         # In edit mode, the text area should be focused by default.
-        ActionChains(app.driver).send_keys(Keys.DOWN).send_keys(Keys.DOWN).perform()
+        ActionChains(app.driver).send_keys(Keys.DOWN).send_keys(Keys.UP).perform()
         app.driver.find_element(AppiumBy.NAME, "Edit contents").click()
         app.driver.find_element(AppiumBy.NAME, "Text edit area")
         time.sleep(1)
@@ -259,14 +246,14 @@ class ClipboardTest(unittest.TestCase):
         # BUG 494145: update uuid after editing so the item can be removed
         delete_button = app.driver.find_element(AppiumBy.NAME, "Remove from history")
         delete_button.click()
-        WebDriverWait(app.driver, 5).until_not(lambda _: delete_button.is_displayed())
+        WebDriverWait(app.driver, 5).until(EC.invisibility_of_element(delete_button))
         # The first item becomes the current clipboard item
         self.assertEqual(app.gtk_get_clipboard_mime_data()["text/plain;charset=utf-8"].get_data().decode("utf-8"), "clipboard")
 
         item = app.driver.find_element(AppiumBy.NAME, "clipboard")
         app.driver.find_element(AppiumBy.NAME, "Clear History").click()
         app.driver.find_element(AppiumBy.NAME, "Delete").click()
-        WebDriverWait(app.driver, 5).until_not(lambda _: item.is_displayed())
+        WebDriverWait(app.driver, 5).until(EC.invisibility_of_element(item))
 
         # Star/Pin feature
         app.klipper_proxy.clearClipboardHistory()
@@ -285,7 +272,7 @@ class ClipboardTest(unittest.TestCase):
         ActionChains(app.driver).send_keys(Keys.DOWN).perform()
         app.driver.find_element(AppiumBy.NAME, "Remove Star").click()
         app.driver.find_element(AppiumBy.NAME, "normal 1")
-        WebDriverWait(app.driver, 5).until_not(lambda _: tabbar_element.is_displayed())
+        WebDriverWait(app.driver, 5).until(EC.invisibility_of_element(tabbar_element))
 
     def update_config(self, group: str | list[str], key: str | list[str], new_value: str | list[str]) -> None:
         if isinstance(group, str):
@@ -427,7 +414,7 @@ class ClipboardTest(unittest.TestCase):
         # @see https://bugs.kde.org/show_bug.cgi?id=487843
         # @see https://bugs.kde.org/show_bug.cgi?id=466414
         # Enable "Text selection - Always save in history" to test the two bugs
-        self.update_config(["General"] * 2, ["IgnoreSelection", "SyncClipboards"], ["false", "true"])
+        self.update_config(["General"] * 2, ["SaveSelection", "SyncClipboards"], ["true", "true"])
 
         content_text = Gdk.ContentProvider.new_for_bytes("text/plain", GLib.Bytes.new(bytes("", "utf-8")))
         # Clip data from Firefox have additional mime types, which cause the crash
@@ -440,11 +427,11 @@ class ClipboardTest(unittest.TestCase):
         # self.assertEqual(app.gtk_get_clipboard_mime_data()["text/plain;charset=utf-8"].get_data().decode("utf-8"), new_text) Broken in CI
         app.driver.find_element(AppiumBy.NAME, new_text)  # Still alive
 
-        # When `IgnoreImages` is set to false, the clipboard should save images.
+        # When `SaveImages` is set to true, the clipboard should save images.
         try:
             from PySide6.QtCore import QObject
             # Enable "Only when explicitly copied" to test the two bugs
-            self.update_config(["General"] * 3, ["IgnoreImages", "IgnoreSelection", "SyncClipboards"], ["false", "true", "false"])
+            self.update_config(["General"] * 3, ["SaveImages", "SaveSelection", "SyncClipboards"], ["true", "false", "false"])
 
             app.klipper_proxy.clearClipboardHistory()
             self.assertEqual(0, len(app.klipper_proxy.getClipboardHistoryMenu()))

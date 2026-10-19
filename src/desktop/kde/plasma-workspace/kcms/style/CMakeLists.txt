@@ -21,6 +21,8 @@ target_sources(kcm_style PRIVATE
     gtkpage.h
     previewitem.h
     styledata.h
+    unionstylesmodel.cpp
+    unionstylesmodel.h
 )
 kcmutils_generate_module_data(kcm_style
     MODULE_DATA_HEADER styledata.h
@@ -49,13 +51,8 @@ target_link_libraries(kcm_style PRIVATE
     KF6::NewStuffCore
     KF6::XmlGui
     KF6::ColorScheme
-    krdb
+    Union::Union
 )
 
 install(FILES stylesettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})
 install(FILES gtk_themes.knsrc DESTINATION ${KDE_INSTALL_KNSRCDIR})
-
-add_custom_command(TARGET kcm_style POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E create_symlink ../kcms/systemsettings/kcm_style.so kcm_style_init.so)
-
-install( FILES ${CMAKE_CURRENT_BINARY_DIR}/kcm_style_init.so DESTINATION ${KDE_INSTALL_PLUGINDIR}/plasma/kcminit)

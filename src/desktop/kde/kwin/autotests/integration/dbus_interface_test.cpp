@@ -32,9 +32,9 @@
 #include <xcb/xcb_icccm.h>
 #endif
 
-using namespace KWin;
+#include <unistd.h>
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_dbus_interface-0");
+using namespace KWin;
 
 const QString s_destination{QStringLiteral("org.kde.KWin")};
 const QString s_path{QStringLiteral("/KWin")};
@@ -57,7 +57,7 @@ void TestDbusInterface::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),
@@ -78,12 +78,14 @@ void TestDbusInterface::cleanup()
 
 namespace
 {
+
 QDBusPendingCall getWindowInfo(const QUuid &uuid)
 {
     auto msg = QDBusMessage::createMethodCall(s_destination, s_path, s_interface, QStringLiteral("getWindowInfo"));
     msg.setArguments({uuid.toString()});
     return QDBusConnection::sessionBus().asyncCall(msg);
 }
+
 }
 
 void TestDbusInterface::testGetWindowInfoInvalidUuid()
@@ -129,6 +131,7 @@ void TestDbusInterface::testGetWindowInfoXdgShellClient()
         {QStringLiteral("maximizeHorizontal"), false},
         {QStringLiteral("maximizeVertical"), false},
         {QStringLiteral("noBorder"), false},
+        {QStringLiteral("decorationPolicy"), int(DecorationPolicy::ClientPreference)},
         {QStringLiteral("clientMachine"), QString()},
         {QStringLiteral("localhost"), true},
         {QStringLiteral("role"), QString()},
@@ -140,6 +143,9 @@ void TestDbusInterface::testGetWindowInfoXdgShellClient()
         {QStringLiteral("activities"), QStringList()},
 #endif
         {QStringLiteral("layer"), NormalLayer},
+        {QStringLiteral("excludeFromCapture"), false},
+        {QStringLiteral("hasTransientParent"), false},
+        {QStringLiteral("pid"), getpid()},
     };
 
     // let's get the window info
@@ -186,6 +192,11 @@ void TestDbusInterface::testGetWindowInfoXdgShellClient()
     window->setSkipSwitcher(true);
     QVERIFY(window->skipSwitcher());
     QCOMPARE(verifyProperty(QStringLiteral("skipSwitcher")), true);
+
+    QVERIFY(!window->excludeFromCapture());
+    window->setExcludeFromCapture(true);
+    QVERIFY(window->excludeFromCapture());
+    QCOMPARE(verifyProperty(QStringLiteral("excludeFromCapture")), true);
 
     // not testing fullscreen, maximizeHorizontal, maximizeVertical and noBorder as those require window geometry changes
 
@@ -266,6 +277,7 @@ void TestDbusInterface::testGetWindowInfoX11Client()
         {QStringLiteral("maximizeHorizontal"), false},
         {QStringLiteral("maximizeVertical"), false},
         {QStringLiteral("noBorder"), false},
+        {QStringLiteral("decorationPolicy"), int(DecorationPolicy::ClientPreference)},
         {QStringLiteral("role"), QString()},
         {QStringLiteral("resourceName"), QStringLiteral("foo")},
         {QStringLiteral("resourceClass"), QStringLiteral("bar")},
@@ -275,6 +287,9 @@ void TestDbusInterface::testGetWindowInfoX11Client()
         {QStringLiteral("activities"), QStringList()},
 #endif
         {QStringLiteral("layer"), NormalLayer},
+        {QStringLiteral("excludeFromCapture"), false},
+        {QStringLiteral("hasTransientParent"), false},
+        {QStringLiteral("pid"), getpid()},
     };
 
     // let's get the window info
@@ -324,6 +339,11 @@ void TestDbusInterface::testGetWindowInfoX11Client()
     window->setSkipSwitcher(true);
     QVERIFY(window->skipSwitcher());
     QCOMPARE(verifyProperty(QStringLiteral("skipSwitcher")), true);
+
+    QVERIFY(!window->excludeFromCapture());
+    window->setExcludeFromCapture(true);
+    QVERIFY(window->excludeFromCapture());
+    QCOMPARE(verifyProperty(QStringLiteral("excludeFromCapture")), true);
 
     QVERIFY(!window->noBorder());
     window->setNoBorder(true);

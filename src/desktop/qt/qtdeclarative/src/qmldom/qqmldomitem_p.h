@@ -50,6 +50,8 @@
 
 QT_BEGIN_NAMESPACE
 
+QT_ENABLE_P0846_SEMANTICS_FOR(get_if)
+
 QT_DECLARE_EXPORTED_QT_LOGGING_CATEGORY(writeOutLog, QMLDOM_EXPORT);
 
 namespace QQmlJS {
@@ -836,7 +838,7 @@ public:
     static FileToLoad fromFileSystem(const std::weak_ptr<DomEnvironment> &environment,
                                      const QString &canonicalPath);
 
-    std::weak_ptr<DomEnvironment> environment() const { return m_environment; }
+    std::shared_ptr<DomEnvironment> environment() const { return m_environment.lock(); }
     QString canonicalPath() const { return m_canonicalPath; }
     QString logicalPath() const { return m_logicalPath; }
     void setCanonicalPath(const QString &canonicalPath) { m_canonicalPath = canonicalPath; }
@@ -853,7 +855,7 @@ private:
 class QMLDOM_EXPORT DomItem {
     Q_DECLARE_TR_FUNCTIONS(DomItem);
 public:
-    using Callback = function<void(const Path &, const DomItem &, const DomItem &)>;
+    using Callback = std::function<void(const Path &, const DomItem &, const DomItem &)>;
 
     using InternalKind = DomType;
     using Visitor = function_ref<bool(const Path &, const DomItem &)>;
@@ -1199,6 +1201,14 @@ public:
     }
 
 private:
+    template <typename T>
+    std::shared_ptr<T> ownerAs_impl() const
+    {
+        if (auto p = get_if<std::shared_ptr<T>>(&m_owner))
+            return *p;
+        return nullptr;
+    }
+
     enum class WriteOutCheckResult { Success, Failed };
     WriteOutCheckResult performWriteOutChecks(const DomItem &, OutWriter &, WriteOutChecks) const;
     const DomBase *base() const;
@@ -1452,30 +1462,16 @@ private:
 template<typename T>
 std::shared_ptr<T> DomItem::ownerAs() const
 {
-    if constexpr (domTypeIsOwningItem(T::kindValue)) {
-        if (!std::holds_alternative<std::monostate>(m_owner)) {
-            if constexpr (T::kindValue == DomType::FileLocationsNode) {
-                if (std::holds_alternative<std::shared_ptr<FileLocations::Node>>(m_owner))
-                    return std::static_pointer_cast<T>(
-                            std::get<std::shared_ptr<FileLocations::Node>>(m_owner));
-            } else if constexpr (T::kindValue == DomType::ExternalItemInfo) {
-                if (std::holds_alternative<std::shared_ptr<ExternalItemInfoBase>>(m_owner))
-                    return std::static_pointer_cast<T>(
-                            std::get<std::shared_ptr<ExternalItemInfoBase>>(m_owner));
-            } else if constexpr (T::kindValue == DomType::ExternalItemPair) {
-                if (std::holds_alternative<std::shared_ptr<ExternalItemPairBase>>(m_owner))
-                    return std::static_pointer_cast<T>(
-                            std::get<std::shared_ptr<ExternalItemPairBase>>(m_owner));
-            } else {
-                if (std::holds_alternative<std::shared_ptr<T>>(m_owner)) {
-                    return std::get<std::shared_ptr<T>>(m_owner);
-                }
-            }
-        }
-    } else {
-        Q_ASSERT_X(false, "DomItem::ownerAs", "unexpected non owning value in ownerAs");
-    }
-    return std::shared_ptr<T> {};
+    static_assert(domTypeIsOwningItem(T::kindValue),
+                  "unexpected non owning value in ownerAs");
+    if constexpr (T::kindValue == DomType::FileLocationsNode)
+        return std::static_pointer_cast<T>(ownerAs_impl<FileLocations::Node>());
+    else if constexpr (T::kindValue == DomType::ExternalItemInfo)
+        return std::static_pointer_cast<T>(ownerAs_impl<ExternalItemInfoBase>());
+    else if constexpr (T::kindValue == DomType::ExternalItemPair)
+        return std::static_pointer_cast<T>(ownerAs_impl<ExternalItemPairBase>());
+    else
+        return ownerAs_impl<T>();
 }
 
 template<int I>

@@ -49,7 +49,21 @@ PlasmoidItem {
                 listView.setQueryString(text)
             }
             onClose: mainWidget.expanded = false
-            Keys.forwardTo: listView.count > 0 ? listView : null
+
+            Keys.forwardTo: listView.count > 0 ? [queryField, listView] : queryField
+            Component.onCompleted: {
+                queryField.Keys.onUpPressed.connect(event => {
+                    listView.currentIndex = mainWidget.isBottomEdge ? 1 : listView.count - 1
+                    event.accepted = listView.count === 0 // pass to KeyNavigation if we have results
+                })
+                queryField.KeyNavigation.up = listView
+
+                queryField.Keys.onDownPressed.connect(event => {
+                    listView.currentIndex = mainWidget.isBottomEdge ? listView.count - 1 : 1
+                    event.accepted = listView.count === 0 // pass to KeyNavigation if we have results
+                })
+                queryField.KeyNavigation.down = listView
+            }
         }
 
         LayoutItemProxy {
@@ -64,6 +78,7 @@ PlasmoidItem {
             // in case is expanded
             clip: true
             activeFocusOnTab: count > 0
+            keyNavigationWraps: false
 
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -88,33 +103,21 @@ PlasmoidItem {
         }
     }
 
-    Timer {
-        id: theFocusDoesNotAlwaysWorkTimer
-        interval: 100
-        repeat: false
-
-        onTriggered: {
-            mainWidget.setTextFieldFocus();
-        }
-    }
-
-    function setTextFieldFocus() {
+    function resetFocusAndCurrentItem() {
         mainWidget.fullRepresentationItem.searchField.setFocus();
         mainWidget.fullRepresentationItem.searchField.selectAll();
+        mainWidget.fullRepresentationItem.listView.currentIndex = 0;
     }
 
     function loadSettings() {
         mainWidget.fullRepresentationItem.listView.loadSettings();
     }
 
-    onExpandedChanged: {
-        setTextFieldFocus();
-        //
-        // The focus is not always set correctly. The hunch is that this
-        // function is called before the popup is actually visible and
-        // therfore the setFocus call does not do anything. So, we are using
-        // a small timer and calling the setTextFieldFocus function again.
-        //
-        theFocusDoesNotAlwaysWorkTimer.start()
+    onExpandedChanged: expanded => {
+        if (expanded) {
+            // callLater as the window is not visible yet. We can't use the usual trick
+            // of doing it on !expanded, as the text selection doesn't persist
+            Qt.callLater(resetFocusAndCurrentItem);
+        }
     }
 }

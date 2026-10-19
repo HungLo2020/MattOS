@@ -32,32 +32,28 @@ BaseStyle {
 
     readonly property real indicatorSize: 24
 
-    applicationWindow {
-        background.color: __baseWhite
-    }
-
     control {
         spacing: 5
         padding: 5
 
         background {
             radius: 2
-            implicitWidth: 100
-            implicitHeight: 40
+            width: 100
+            height: 40
             border.width: 1
             color: __backgroundDefault
             border.color: __strokeStrong
         }
 
         indicator {
-            implicitWidth: style.indicatorSize
-            implicitHeight: style.indicatorSize
+            width: style.indicatorSize
+            height: style.indicatorSize
             border.width: 1
             color: __baseWhite
             border.color: __strokeStrong
             foreground {
-                implicitWidth: Style.Stretch
-                implicitHeight: Style.Stretch
+                fillWidth: false
+                fillHeight: false
                 margins: 1
                 color: palette.accent
                 image.color: palette.accent
@@ -72,8 +68,8 @@ BaseStyle {
         }
 
         handle {
-            implicitWidth: style.indicatorSize
-            implicitHeight: style.indicatorSize
+            width: style.indicatorSize
+            height: style.indicatorSize
             radius: style.indicatorSize / 2
             border.width: 1
             color: __backgroundDefault
@@ -85,7 +81,6 @@ BaseStyle {
         }
 
         hovered {
-            background.color: __backgroundMuted
             handle.color: __backgroundMuted
         }
 
@@ -95,10 +90,38 @@ BaseStyle {
         }
     }
 
+    abstractButton {
+        hovered.background.color: __backgroundMuted
+    }
+
+    applicationWindow {
+        background.color: __baseWhite
+    }
+
+    busyIndicator {
+        background {
+            visible: false
+            width: 48
+            height: 48
+        }
+        indicator {
+            fillWidth: true
+            fillHeight: true
+            color: __transparent
+            border.width: 0
+            foreground {
+                radius: 255
+                delegate: BusyIndicatorDelegate { }
+            }
+        }
+    }
+
     checkBox {
         background.visible: false
         indicator {
             foreground {
+                fillWidth: true
+                fillHeight: true
                 color: __transparent
                 visible: false
                 image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/check.png"
@@ -112,15 +135,41 @@ BaseStyle {
         }
     }
 
+    checkDelegate {
+        text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        background {
+            radius: 0
+            color: __baseWhite
+            border.width: 0
+        }
+        indicator {
+            alignment: Qt.AlignRight | Qt.AlignVCenter
+            foreground {
+                fillWidth: true
+                fillHeight: true
+                visible: false
+                alignment: Qt.AlignCenter
+                color: __transparent
+                image.fillMode: Image.PreserveAspectFit
+                image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/check.png"
+            }
+        }
+        hovered.background.color: __backgroundDefault
+        checked {
+            indicator.foreground.visible: true
+        }
+    }
+
     comboBox {
-        text.alignment: Qt.AlignVCenter
-        background.implicitWidth: 150
+        text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        background.width: 150
         indicator {
             color: __transparent
             border.width: 0
+            alignment: Qt.AlignRight | Qt.AlignVCenter
             foreground {
-                implicitWidth: 10
-                implicitHeight: 10
+                width: 10
+                height: 10
                 alignment: Qt.AlignCenter
                 color: __transparent
                 image.color: __textDefault
@@ -130,9 +179,69 @@ BaseStyle {
         }
     }
 
+    delayButton {
+        padding: 0
+        indicator {
+            fillWidth: true
+            fillHeight: true
+            color: __transparent
+            border.width: 0
+            foreground {
+                fillWidth: true
+                fillHeight: true
+                delegate: ProgressDelegate {}
+            }
+        }
+    }
+
+    dial {
+        spacing: 0
+        handle.width: 15
+        handle.height: 15
+        background.visible: false
+        indicator {
+            width: 60
+            height: 60
+            radius: 255
+            foreground {
+                fillWidth: true
+                fillHeight: true
+                width: 6
+                height: 6
+                delegate: DialDelegate {}
+            }
+        }
+    }
+
+    dialog {
+        text {
+            padding: 12
+            alignment: Qt.AlignVCenter | Qt.AlignLeft
+        }
+        background.color: __baseWhite
+    }
+
+    dialogButtonBox {
+        background {
+            height: 40
+            radius: 0
+            color: __transparent
+            border.width: 0
+        }
+    }
+
     flatButton {
         background.visible: false
         hovered.background.visible: true
+    }
+
+    pane {
+        padding: 12
+        background {
+            width: 200
+            height: 200
+            color: __baseWhite
+        }
     }
 
     frame {
@@ -140,9 +249,8 @@ BaseStyle {
     }
 
     groupBox {
-        text.padding: 12
-        padding: 12
-        background.implicitHeight: 20
+        background.topMargin: 20
+        background.height: 20
     }
 
     itemDelegate {
@@ -161,29 +269,138 @@ BaseStyle {
         background.visible: false
     }
 
+    menu {
+        background {
+            width: 200
+            height: 40
+        }
+    }
+
+    menuBar {
+        background {
+            radius: 0
+            border.width: 0
+            color: __backgroundDefault
+        }
+    }
+
+    menuBarItem {
+        text.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        background {
+            width: 40
+            height: 40
+            radius: 0
+            color: __transparent
+            border.width: 0
+        }
+        hovered.background.color: __backgroundSubtle
+    }
+
+    menuItem {
+        text.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        background {
+            width: 200
+            radius: 0
+            border.width: 0
+        }
+        indicator {
+            color: __transparent
+            border.width: 0
+            foreground {
+                color: __transparent
+                image.color: __textDefault
+                image.fillMode: Image.PreserveAspectFit
+                alignment: Qt.AlignCenter
+            }
+            first {
+                alignment: Qt.AlignLeft
+                foreground {
+                    width: 20
+                    height: 20
+                    image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/check.png"
+                }
+            }
+            second {
+                alignment: Qt.AlignRight
+                foreground {
+                    width: 10
+                    height: 10
+                    image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/arrow-indicator.png"
+                }
+            }
+        }
+        hovered.background.color: __backgroundSubtle
+    }
+
+    menuSeparator {
+        padding: 2
+        background.visible: false
+        indicator {
+            width: 188
+            height: 1
+            border.width: 0
+            color: __strokeMuted
+            foreground.visible: false
+        }
+    }
+
     page {
         background.border.width: 0
     }
 
-    pane {
-        background {
-            implicitWidth: 200
-            implicitHeight: 200
-            color: __baseWhite
+    pageIndicator {
+        background.visible: false
+        indicator {
+            width: 5
+            height: 5
+            radius: 255
+            border.width: 0
+            color: __baseBlack
+            opacity: 0.45
+            foreground.visible: false
+        }
+
+        hovered.indicator {
+            width: 6
+            height: 6
+            opacity: 0.7
+        }
+
+        pressed.indicator {
+            width: 4
+            height: 4
+        }
+
+        checked.indicator {
+            width: 7
+            height: 7
+        }
+
+        checked.hovered.indicator {
+            width: 8
+            height: 8
+            opacity: 0.7
         }
     }
 
     popup {
         background {
-            implicitWidth: 200
-            implicitHeight: 200
+            width: 200
+            height: 200
             border.width: 1
         }
     }
 
     progressBar {
         background.visible: false
-        indicator.implicitWidth: 150
+        indicator {
+            width: 150
+            foreground {
+                fillWidth: true
+                fillHeight: true
+                delegate: ProgressDelegate {}
+            }
+        }
     }
 
     radioButton {
@@ -191,6 +408,8 @@ BaseStyle {
         indicator {
             radius: 255
             foreground {
+                fillWidth: true
+                fillHeight: true
                 margins: 4
                 visible: false
                 radius: 255
@@ -200,21 +419,51 @@ BaseStyle {
         checked.indicator.foreground.visible: true
     }
 
+    radioDelegate {
+        text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        background {
+            radius: 0
+            color: __baseWhite
+            border.width: 0
+        }
+        indicator {
+            alignment: Qt.AlignRight | Qt.AlignVCenter
+            radius: 255
+            foreground {
+                fillWidth: true
+                fillHeight: true
+                margins: 4
+                visible: false
+                radius: 255
+            }
+        }
+        hovered.background.color: __backgroundDefault
+        checked.indicator.foreground.visible: true
+    }
+
+    roundButton {
+        background.radius: 255
+        text.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+    }
+
     scrollBar {
         padding: 0
         background {
-            implicitHeight: 10
-            visible: false
+            height: 10
         }
         indicator {
-            implicitHeight: 10
+            height: 10
             radius: 255
-            foreground.radius: 255
-            foreground.color: __backgroundDefault
+            foreground {
+                fillWidth: true
+                fillHeight: true
+                radius: 255
+                color: __backgroundDefault
+            }
         }
         vertical {
-            background.implicitWidth: 10
-            indicator.implicitWidth: 10
+            background.width: 10
+            indicator.width: 10
         }
         hovered {
             indicator.foreground.color: __backgroundMuted
@@ -223,36 +472,76 @@ BaseStyle {
 
     scrollIndicator {
         background {
-            implicitHeight: 6
+            height: 6
             visible: false
         }
         indicator {
             border.width: 0
-            implicitHeight: 6
+            height: 6
             radius: 255
             foreground {
+                fillWidth: true
+                fillHeight: true
                 margins: 0
                 radius: 255
                 color: __backgroundDefault
             }
         }
         vertical {
-            background.implicitWidth: 6
-            indicator.implicitWidth: 6
+            background.width: 6
+            indicator.width: 6
+        }
+    }
+
+    searchField {
+        text.padding: 5
+        text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        text.color: __baseBlack
+        background.width: 200
+
+        indicator {
+            fillHeight: true
+            border.width: 0
+            margins: 0
+            color: __transparent
+            foreground {
+                width: 10
+                height: 10
+                alignment: Qt.AlignCenter
+                color: __transparent
+            }
+
+            //search button
+            first {
+                alignment: Qt.AlignLeft
+                image.color: __textDefault
+                image.fillMode: Image.PreserveAspectFit
+                image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/search-magnifier.png"
+            }
+
+            //clear button
+            second {
+                alignment: Qt.AlignRight
+                image.color: __textDefault
+                image.fillMode: Image.PreserveAspectFit
+                image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/close_circle.png"
+            }
         }
     }
 
     slider {
         background {
             visible: false
-            implicitWidth: 150
+            width: 150
         }
         indicator {
-            implicitWidth: Style.Stretch
-            implicitHeight: 8
+            fillWidth: true
+            height: 8
             radius: 8
             foreground {
                 radius: 7
+                fillWidth: true
+                fillHeight: true
             }
         }
     }
@@ -260,7 +549,7 @@ BaseStyle {
     spinBox {
         text.alignment: Qt.AlignHCenter | Qt.AlignVCenter
         indicator {
-            implicitHeight: Style.Stretch
+            fillHeight: true
             border.width: 0
             margins: 0
             color: __transparent
@@ -270,37 +559,79 @@ BaseStyle {
                 image.fillMode: Image.PreserveAspectFit
                 image.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/arrow-indicator.png"
 
-                // Note: by setting a rotation, we cannot at the same time set the implicit size to
-                // Stretch, since Stretch will be based on the unrotated geometry of the indicator.
-                // So if the height of the indicator is different from the width, things will look wrong.
-                implicitWidth: 10
-                implicitHeight: 10
+                // Note: since we set a rotation here, don't set fillWidth or fillHeight to true, since
+                // the rotation is applied after the layout has been done based on the unrotated geometry
+                // of the indicator. So we use a fixed implicit size instead, and let the layout stretch the
+                // indicator by setting the alignment to AlignCenter. This way, the indicator will be
+                // stretched in both dimensions, but still maintain its aspect ratio due to the image's fillMode
+                // being PreserveAspectFit.
+                width: 10
+                height: 10
                 alignment: Qt.AlignCenter
             }
-            down {
-                alignment: Qt.AlignLeft
-                foreground.rotation: 90
-            }
-            up {
+            // up button
+            first {
                 alignment: Qt.AlignRight
                 foreground.rotation: -90
             }
+            // down button
+            second {
+                alignment: Qt.AlignLeft
+                foreground.rotation: 90
+            }
         }
+    }
+
+    swipeDelegate {
+        text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        background {
+            radius: 0
+            color: __baseWhite
+            border.width: 0
+        }
+        hovered.background.color: __backgroundDefault
     }
 
     switchControl {
         background.visible: false
         text.alignment: Qt.AlignVCenter
         indicator {
-            implicitWidth: style.indicatorSize * 2
-            implicitHeight: style.indicatorSize
+            width: style.indicatorSize * 2
+            height: style.indicatorSize
             alignment: Qt.AlignLeft | Qt.AlignVCenter
             radius: style.indicatorSize / 2
             foreground {
+                fillWidth: true
+                fillHeight: true
                 radius: style.indicatorSize / 2
                 color: __transparent
             }
         }
+        checked {
+            indicator.foreground.color: palette.accent
+        }
+    }
+
+    switchDelegate {
+        text.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        background {
+            radius: 0
+            color: __baseWhite
+            border.width: 0
+        }
+        indicator {
+            width: style.indicatorSize * 2
+            height: style.indicatorSize
+            alignment: Qt.AlignRight | Qt.AlignVCenter
+            radius: style.indicatorSize / 2
+            foreground {
+                fillWidth: true
+                fillHeight: true
+                radius: style.indicatorSize / 2
+                color: __transparent
+            }
+        }
+        hovered.background.color: __backgroundDefault
         checked {
             indicator.foreground.color: palette.accent
         }
@@ -322,7 +653,7 @@ BaseStyle {
     textField {
         text.alignment: Qt.AlignVCenter
         background {
-            implicitWidth: 150
+            width: 150
             gradient: null
         }
     }
@@ -330,8 +661,8 @@ BaseStyle {
     textInput {
         padding: 5
         background {
-            implicitWidth: 150
-            implicitHeight: 40
+            width: 150
+            height: 40
             border.width: 1
             color: __baseWhite
         }
@@ -341,15 +672,15 @@ BaseStyle {
     }
 
     toolBar {
-        background.implicitHeight: 40
+        background.height: 40
     }
 
     toolSeparator {
         padding: 2
         background.visible: false
         indicator {
-            implicitWidth: 30
-            implicitHeight: 1
+            width: 30
+            height: 1
             border.width: 0
             color: __strokeMuted
             foreground.visible: false

@@ -20,16 +20,34 @@ import org.kde.private.kcm_cursortheme
 KCM.GridViewKCM {
     id: root
 
+    readonly property int previewCursorsPerRow: 4
+    readonly property int previewCursorRows: 2
+    readonly property int previewPadding: kcm.cursorThemeSettings.cursorSize / 2
+    // Especially at smaller sizes, the theme might not provide cursors that small,
+    // enforce a minimum spacing so they don't overlap.
+    readonly property int previewSpacing: Math.max(16, kcm.cursorThemeSettings.cursorSize / 2)
+
     property LaunchFeedbackDialog launchFeedbackDialog: null as LaunchFeedbackDialog
 
     view.model: kcm.cursorsModel
-    view.delegate: Delegate {}
+    view.delegate: Delegate {
+        previewPadding: root.previewPadding
+        previewSpacing: root.previewSpacing
+        maximumPreviewCount: root.previewCursorRows * root.previewCursorsPerRow
+    }
     view.currentIndex: kcm.cursorThemeIndex(kcm.cursorThemeSettings.cursorTheme);
 
     view.onCurrentIndexChanged: {
         kcm.cursorThemeSettings.cursorTheme = kcm.cursorThemeFromIndex(view.currentIndex)
         view.positionViewAtIndex(view.currentIndex, view.GridView.Beginning);
     }
+
+    view.implicitCellWidth: kcm.cursorThemeSettings.cursorSize * root.previewCursorsPerRow
+                            + root.previewSpacing * (root.previewCursorsPerRow - 1)
+                            + 2 * root.previewPadding + Kirigami.Units.gridUnit
+    view.implicitCellHeight: kcm.cursorThemeSettings.cursorSize * root.previewCursorRows
+                             + root.previewSpacing * (root.previewCursorRows - 1)
+                             + 2 * root.previewPadding + 4 * Kirigami.Units.gridUnit
 
     Component.onCompleted: {
         view.positionViewAtIndex(view.currentIndex, GridView.Beginning);
@@ -70,21 +88,18 @@ KCM.GridViewKCM {
 
     DropArea {
         anchors.fill: parent
-        onEntered: {
+        onEntered: drag => {
             if (!drag.hasUrls) {
                 drag.accepted = false;
             }
         }
-        onDropped: kcm.installThemeFromFile(drop.urls[0])
+        onDropped: drop => kcm.installThemeFromFile(drop.urls[0])
     }
 
     actions: [
         Kirigami.Action {
             displayComponent: QtControls.ComboBox {
                 id: sizeCombo
-
-                property int maxContentWidth: implicitContentWidth
-                popup.width: Math.max(availableWidth, maxContentWidth)
 
                 model: kcm.sizesModel
                 textRole: "display"
@@ -105,20 +120,20 @@ KCM.GridViewKCM {
                 delegate: QtControls.ItemDelegate {
                     id: sizeComboDelegate
 
+                    required property var model
+                    required property var index
                     readonly property int size: parseInt(model.display)
 
-                    width: parent.width
+                    width: ListView.view?.width
                     highlighted: ListView.isCurrentItem
 
                     contentItem: RowLayout {
                         Kirigami.Icon {
-                            source: model.decoration
+                            source: sizeComboDelegate.model.decoration
                             smooth: true
-                            // On wayland the cursor size is logical pixels, and on X11 it's physical pixels.
-                            property real devicePixelRatio: KWindowSystem.isPlatformWayland ? 1 : Screen.devicePixelRatio
-                            property size iconSize: kcm.iconSizeFromIndex(index)
-                            Layout.preferredWidth: iconSize.width / devicePixelRatio
-                            Layout.preferredHeight: iconSize.height / devicePixelRatio
+                            property size iconSize: kcm.iconSizeFromIndex(sizeComboDelegate.index)
+                            Layout.preferredWidth: iconSize.width
+                            Layout.preferredHeight: iconSize.height
                             visible: valid && sizeComboDelegate.size > 0
                             roundToIconSize: false
                         }
@@ -126,16 +141,10 @@ KCM.GridViewKCM {
                         QtControls.Label {
                             Layout.alignment: Qt.AlignRight
                             color: sizeComboDelegate.highlighted ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
-                            text: i18n("Size: %1", model[sizeCombo.textRole])
+                            text: i18n("Size: %1", sizeComboDelegate.size)
                             textFormat: Text.PlainText
                             elide: Text.ElideRight
                         }
-                    }
-                    Binding {
-                        target: sizeCombo
-                        property: "maxContentWidth"
-                        value: implicitWidth
-                        when: index == sizeCombo.count - 1
                     }
                 }
             }
@@ -178,7 +187,7 @@ KCM.GridViewKCM {
         sourceComponent: QtDialogs.FileDialog {
             title: i18n("Open Theme")
             currentFolder: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
-            nameFilters: [ i18n("Cursor Theme Files (*.tar.gz *.tar.bz2)") ]
+            nameFilters: [ i18n("Pointer Theme Files (*.tar.gz *.tar.bz2)") ]
             Component.onCompleted: open()
             onAccepted: {
                 kcm.installThemeFromFile(selectedFile)

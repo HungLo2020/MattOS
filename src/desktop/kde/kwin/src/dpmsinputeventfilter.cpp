@@ -124,11 +124,13 @@ bool DpmsInputEventFilter::touchUp(TouchUpEvent *event)
         m_touchPoints.removeAll(event->id);
         if (m_touchPoints.isEmpty() && m_doubleTapTimer.isValid() && m_secondTap) {
             // if device in pocket, do not wake device up
-            if (m_doubleTapTimer.elapsed() < qApp->doubleClickInterval() && !m_proximityClose) {
-                notify();
-            }
+            const bool wakeUp = m_doubleTapTimer.elapsed() < qApp->doubleClickInterval() && !m_proximityClose;
+            // notify() destroys this filter, so reset our state before calling it
             m_doubleTapTimer.invalidate();
             m_secondTap = false;
+            if (wakeUp) {
+                notify();
+            }
         }
     }
     return true;
@@ -191,6 +193,14 @@ bool DpmsInputEventFilter::tabletPadDialEvent(TabletPadDialEvent *event)
 {
     notify();
     return true;
+}
+
+bool DpmsInputEventFilter::switchEvent(SwitchEvent *event)
+{
+    if (event->device->isLidSwitch() && event->state == SwitchState::Off) {
+        notify();
+    }
+    return false;
 }
 
 void DpmsInputEventFilter::notify()

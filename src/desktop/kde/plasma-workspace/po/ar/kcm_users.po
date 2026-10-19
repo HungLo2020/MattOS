@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-desktop package.
-# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025, 2026 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-20 03:19+0000\n"
-"PO-Revision-Date: 2025-12-03 16:40+0400\n"
+"POT-Creation-Date: 2026-08-04 00:47+0000\n"
+"PO-Revision-Date: 2026-08-10 12:46+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #: src/fingerprintmodel.cpp:144 src/fingerprintmodel.cpp:228
 #, kde-format
@@ -85,7 +85,7 @@ msgstr "كلمة السر"
 msgid "Confirm password"
 msgstr "أكد كلمة السر"
 
-#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:73
+#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:114
 #, kde-format
 msgid "Passwords must match"
 msgstr "يجب أن تتطابق كلمتي السر"
@@ -139,48 +139,68 @@ msgstr "اتركه دون تعديل"
 msgid "Create User"
 msgstr "أنشئ مستخدِم"
 
-#: src/ui/CreateUser.qml:38 src/ui/UserDetailsPage.qml:165
+#: src/ui/CreateUser.qml:40 src/ui/UserDetailsPage.qml:165
 #, kde-format
 msgid "Name:"
 msgstr "الاسم:"
 
-#: src/ui/CreateUser.qml:42 src/ui/UserDetailsPage.qml:171
+#: src/ui/CreateUser.qml:44 src/ui/UserDetailsPage.qml:171
 #, kde-format
 msgid "Username:"
 msgstr "اسم المستخدم:"
 
-#: src/ui/CreateUser.qml:52 src/ui/UserDetailsPage.qml:203
+#: src/ui/CreateUser.qml:82
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Only lowercase letters, digits, dashes, and underscores are allowed. Invalid "
+"characters were removed."
+msgstr ""
+"لا يُسمح إلا بالأحرف الصغيرة والأرقام والشرطات والشرطات السفلية. وقد حُذفت "
+"الأحرف غير الصالحة."
+
+#: src/ui/CreateUser.qml:84
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Usernames must be lowercase. Uppercase characters were converted to "
+"lowercase."
+msgstr ""
+"يجب أن تكون أسماء المستخدمين بأحرف صغيرة. وقد حُوّلت الأحرف الكبيرة إلى أحرف "
+"صغيرة."
+
+#: src/ui/CreateUser.qml:93 src/ui/UserDetailsPage.qml:203
 #, kde-format
 msgid "Standard"
 msgstr "عادي"
 
-#: src/ui/CreateUser.qml:53 src/ui/UserDetailsPage.qml:204
+#: src/ui/CreateUser.qml:94 src/ui/UserDetailsPage.qml:204
 #, kde-format
 msgid "Administrator"
 msgstr "إداري"
 
-#: src/ui/CreateUser.qml:56 src/ui/UserDetailsPage.qml:193
+#: src/ui/CreateUser.qml:97 src/ui/UserDetailsPage.qml:193
 #, kde-format
 msgid "Account type:"
 msgstr "نوع الحساب:"
 
-#: src/ui/CreateUser.qml:61
+#: src/ui/CreateUser.qml:102
 #, kde-format
 msgid "Password:"
 msgstr "كلمة السر:"
 
-#: src/ui/CreateUser.qml:66
+#: src/ui/CreateUser.qml:107
 #, kde-format
 msgid "Confirm password:"
 msgstr "أكد كلمة السر:"
 
-#: src/ui/CreateUser.qml:88
+#: src/ui/CreateUser.qml:129
 #, kde-format
 msgctxt "@action:button Create a new user"
 msgid "Create"
 msgstr "أنشئ"
 
-#: src/ui/CreateUser.qml:111
+#: src/ui/CreateUser.qml:152
 #, kde-format
 msgctxt "@action:button Cancel creating new user"
 msgid "Cancel"
@@ -324,27 +344,22 @@ msgstr "اضبط البصمات"
 msgid "Add"
 msgstr "أضف"
 
-#: src/ui/FingerprintDialog.qml:51
-#, kde-format
-msgid "Cancel"
-msgstr "ألغِ"
-
-#: src/ui/FingerprintDialog.qml:59
+#: src/ui/FingerprintDialog.qml:52
 #, kde-format
 msgid "Done"
 msgstr "تمّ"
 
-#: src/ui/FingerprintList.qml:46
+#: src/ui/FingerprintList.qml:47
 #, kde-format
 msgid "Re-enroll finger"
 msgstr "أعد تسجيل الإصبع"
 
-#: src/ui/FingerprintList.qml:58
+#: src/ui/FingerprintList.qml:59
 #, kde-format
 msgid "Delete fingerprint"
 msgstr "احذف بصمة"
 
-#: src/ui/FingerprintList.qml:74
+#: src/ui/FingerprintList.qml:75
 #, kde-format
 msgid "No fingerprints added"
 msgstr "لم يضف أي بصمة"
@@ -598,7 +613,7 @@ msgid ""
 "out first."
 msgstr ""
 "لا يمكن تغيير اسم المستخدم لمستخدم ولج في النظام؛ انتظر حتى يقوم هذا "
-"المستخدم بالخروج أولاً."
+"المستخدم بالخروج أولًا."
 
 #: src/ui/UserDetailsPage.qml:214
 #, kde-format
@@ -653,7 +668,7 @@ msgid ""
 "programs that request them.<nl/><nl/>Logging into the system with your "
 "fingerprint is not yet supported."
 msgstr ""
-"يمكن استخدام بصمات الأصابع بدلاً من كلمة السر عند إلغاء قفل الشاشة وتوفير "
+"يمكن استخدام بصمات الأصابع بدلًا من كلمة السر عند إلغاء قفل الشاشة وتوفير "
 "أذونات المسؤول للتطبيقات وبرامج سطر الأوامر التي تطلبها. <nl/><nl/> الولوج "
 "إلى النظام باستخدام البصمة غير مدعوم لحد الآن."
 
@@ -692,6 +707,9 @@ msgstr "حسابك"
 #, kde-format
 msgid "Other Accounts"
 msgstr "حسابات أخرى"
+
+#~ msgid "Cancel"
+#~ msgstr "ألغِ"
 
 #~ msgid "Enrolling Fingerprint"
 #~ msgstr "تسجيل البصمة"

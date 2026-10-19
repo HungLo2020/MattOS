@@ -86,7 +86,7 @@ QT_NAMESPACE_ALIAS_OBJC_CLASS(QNSViewMouseMoveHelper);
 @interface QNSView (ServicesMenu) <NSServicesMenuRequestor>
 @end
 
-#if QT_MACOS_PLATFORM_SDK_EQUAL_OR_ABOVE(150000)
+#if QT_APPLE_SDK_EQUAL_OR_ABOVE(MACOS(15))
 @interface QNSView (ContentSelectionInfo) <NSViewContentSelectionInfo>
 @end
 #endif
@@ -169,6 +169,19 @@ QT_NAMESPACE_ALIAS_OBJC_CLASS(QNSViewMenuHelper);
 {
     qCDebug(lcQpaWindow) << "Deallocating" << self;
 
+    if (m_platformWindow && m_platformWindow->window()->handle()) {
+        // If the view is deallocated while the platform window is still alive,
+        // and the corresponding QWindow still knows about the platform window,
+        // it means that someone took ownership of the QNSView and are now
+        // disposing of it, which we want to reflect to the Qt side.
+        qCDebug(lcQpaWindow) << "Platform window is still alive. Assuming"
+            << "external view ownership. Tearing down platform window in response.";
+        // Releasing of the view in ~QCocoaWindow is a noop while being,
+        // deallocated (see objc4/test/bigrc.m), so we avoid clearing the
+        // view here so that destruction still knows about the view
+        m_platformWindow->window()->destroy();
+    }
+
     self.menuHelper = nil;
 
     [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -215,7 +228,8 @@ QT_NAMESPACE_ALIAS_OBJC_CLASS(QNSViewMenuHelper);
 
 - (void)viewDidMoveToSuperview
 {
-    auto cleanup = qScopeGuard([&] { self.previousSuperview = nil; });
+    // We reset previousSuperview in didMoveToWindow below, as that's
+    // when we also have a fully formed picture of what the window is.
 
     if (self.superview == self.previousSuperview) {
         qCDebug(lcQpaWindow) << "Done re-ordering" << self << "new index:"
@@ -223,22 +237,8 @@ QT_NAMESPACE_ALIAS_OBJC_CLASS(QNSViewMenuHelper);
         return;
     }
 
-    qCDebug(lcQpaWindow) << "Done re-parenting" << self << "into" << self.superview;
-
     // Note: at this point the view's window property hasn't been updated to match the window
     // of the new superview. We have to wait for viewDidMoveToWindow for that to be reflected.
-
-    if (!m_platformWindow)
-        return;
-
-    if (!m_platformWindow->isEmbedded())
-        return;
-
-    if ([self superview]) {
-        QWindowSystemInterface::handleGeometryChange(m_platformWindow->window(), m_platformWindow->geometry());
-        [self setNeedsDisplay:YES];
-        QWindowSystemInterface::flushWindowSystemEvents();
-    }
 }
 
 - (void)viewWillMoveToWindow:(NSWindow *)newWindow
@@ -248,33 +248,30 @@ QT_NAMESPACE_ALIAS_OBJC_CLASS(QNSViewMenuHelper);
 
     // This callback is documented to be called also when a view is just moved between
     // subviews in the same NSWindow, so we're not necessarily moving between NSWindows.
-    if (newWindow == self.window)
-        return;
-
-    qCDebug(lcQpaWindow) << "Moving" << self << "from" << self.window << "to" << newWindow;
-
-    // Note: at this point the superview has already been updated, so we know which view inside
-    // the new window the view will be a child of.
+    if (newWindow != self.window)
+        qCDebug(lcQpaWindow) << "Moving" << self << "from" << self.window << "to" << newWindow;
 }
 
 - (void)viewDidMoveToWindow
 {
-    auto cleanup = qScopeGuard([&] { self.previousWindow = nil; });
+    // Reset up front, in case the callbacks below trigger another reparent
+    auto previousSuperview = self.previousSuperview;
+    self.previousSuperview = nil;
+    auto previousWindow = self.previousWindow;
+    self.previousWindow = nil;
 
-    // This callback is documented to be called also when a view is just moved between
-    // subviews in the same NSWindow, so we're not necessarily moving between NSWindows.
-    if (self.window == self.previousWindow)
+    if (!m_platformWindow)
         return;
 
-    qCDebug(lcQpaWindow) << "Done moving" << self << "to" << self.window;
+    // This callback is documented to be called also when a view is just
+    // moved between subviews in the same NSWindow. And now we also know
+    // what the new window will be, and it's reflected though view.window.
 
-    // Moving to a new window might result in a new screen. This is normally
-    // handled for top level windows via windowDidChangeScreen, but for child
-    // windows we need to handle it manually.
-    auto *previousScreen = self.previousWindow ? QCocoaScreen::get(self.previousWindow.screen) : nullptr;
-    auto *currentScreen = self.window ? QCocoaScreen::get(self.window.screen) : nullptr;
-    if (currentScreen && currentScreen != previousScreen)
-        m_platformWindow->windowDidChangeScreen();
+    if (self.superview != previousSuperview)
+        m_platformWindow->viewDidMoveToSuperview(previousSuperview);
+
+    if (self.window != previousWindow)
+        m_platformWindow->viewDidMoveToWindow(previousWindow);
 }
 
 // QWindow::setParent() promises that the child window will be clipped
@@ -321,6 +318,9 @@ QT_NAMESPACE_ALIAS_OBJC_CLASS(QNSViewMenuHelper);
 - (void)viewDidHide
 {
     qCDebug(lcQpaWindow) << "Did hide" << self;
+
+    if (!m_platformWindow)
+        return;
 
     if (!m_platformWindow->isExposed())
         return;

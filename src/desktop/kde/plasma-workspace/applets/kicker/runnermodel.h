@@ -8,6 +8,7 @@
 #pragma once
 
 #include "abstractmodel.h"
+#include "runnermatchesmodel.h"
 
 #include <KConfigWatcher>
 #include <KRunner/QueryMatch>
@@ -17,7 +18,6 @@
 #include <qqmlregistration.h>
 
 class AbstractModel;
-class RunnerMatchesModel;
 
 class RunnerModel : public QAbstractListModel
 {
@@ -31,6 +31,7 @@ class RunnerModel : public QAbstractListModel
     Q_PROPERTY(QString query READ query WRITE setQuery NOTIFY queryChanged)
     Q_PROPERTY(bool mergeResults READ mergeResults WRITE setMergeResults NOTIFY mergeResultsChanged)
     Q_PROPERTY(bool querying READ querying NOTIFY queryingChanged)
+    Q_PROPERTY(bool resultsPresent READ resultsPresent NOTIFY resultsPresentChanged)
 
 public:
     explicit RunnerModel(QObject *parent = nullptr);
@@ -61,6 +62,8 @@ public:
     bool mergeResults() const;
     void setMergeResults(bool merge);
 
+    bool resultsPresent() const;
+
     Q_INVOKABLE void clear();
 
 Q_SIGNALS:
@@ -72,6 +75,7 @@ Q_SIGNALS:
     void queryFinished();
     void queryingChanged();
     void mergeResultsChanged() const;
+    void resultsPresentChanged();
     void requestUpdateQuery(const QString &query);
     void anyRunnerFinished();
 
@@ -81,14 +85,19 @@ private Q_SLOTS:
 private:
     // Initializes the models when the first query is run or mergeResults changed
     void initializeModels();
+    void setEnabledRunners(const QStringList &runners);
+    void updateEnabledRunners();
+    void checkResultsPresent();
 
     AbstractModel *m_favoritesModel = nullptr;
     QObject *m_appletInterface = nullptr;
     QStringList m_runners;
+    QStringList m_enabledRunners;
     QList<RunnerMatchesModel *> m_models;
     QString m_query;
     QTimer m_queryTimer;
     bool m_mergeResults;
+    bool m_resultsPresent;
     int m_queryingModels = 0;
     KSharedConfigPtr m_krunnerConfig;
     KConfigWatcher::Ptr m_configWatcher;

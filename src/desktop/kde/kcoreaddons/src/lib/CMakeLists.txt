@@ -29,7 +29,13 @@ configure_file(util/config-util.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-util.
 
 add_library(KF6CoreAddons)
 add_library(KF6::CoreAddons ALIAS KF6CoreAddons)
-qt_extract_metatypes(KF6CoreAddons)
+
+qt_extract_metatypes(KF6CoreAddons OUTPUT_FILES METATYPES_FILE)
+
+# see https://qt-project.atlassian.net/browse/QTBUG-123052
+# might be replaced with proper Qt API once that exists
+get_filename_component(METATYPES_FILE_NAME ${METATYPES_FILE} NAME)
+target_sources(KF6CoreAddons INTERFACE $<INSTALL_INTERFACE:${KDE_INSTALL_QTMETATYPESDIR}/${METATYPES_FILE_NAME}>)
 
 set_target_properties(KF6CoreAddons PROPERTIES
     VERSION     ${KCOREADDONS_VERSION}
@@ -75,6 +81,10 @@ if (WIN32)
         util/kuser_win.cpp
     )
 endif ()
+
+if(UNIX)
+    target_sources(KF6CoreAddons PRIVATE util/ksafestringerror.cpp)
+endif()
 
 if (UNIX AND NOT IOS)
     target_sources(KF6CoreAddons PRIVATE
@@ -220,7 +230,6 @@ ecm_qt_export_logging_category(
     IDENTIFIER KDIRWATCH
     CATEGORY_NAME kf.coreaddons.kdirwatch
     OLD_CATEGORY_NAMES kf5.kcoreaddons.kdirwatch
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "KDirWatch (KCoreAddons)"
     EXPORT KCOREADDONS
 )
@@ -295,18 +304,18 @@ target_include_directories(KF6CoreAddons INTERFACE "$<INSTALL_INTERFACE:${KDE_IN
 
 target_compile_definitions(KF6CoreAddons INTERFACE "$<INSTALL_INTERFACE:KCOREADDONS_LIB>")
 
-ecm_generate_headers(KCoreAddons_HEADERS
+ecm_generate_headers(KCoreAddons_CamelCase_HEADERS
     HEADER_NAMES
         KAboutData,KAboutPerson,KAboutLicense,KAboutComponent
         KCoreAddons
     REQUIRED_HEADERS KCoreAddons_HEADERS
 )
-ecm_generate_headers(KCoreAddons_HEADERS
+ecm_generate_headers(KCoreAddons_CamelCase_HEADERS
     HEADER_NAMES KSharedDataCache
     RELATIVE caching
     REQUIRED_HEADERS KCoreAddons_HEADERS
 )
-ecm_generate_headers(KCoreAddons_HEADERS
+ecm_generate_headers(KCoreAddons_CamelCase_HEADERS
     HEADER_NAMES
         KAutoSaveFile
         KDirWatch
@@ -319,7 +328,7 @@ ecm_generate_headers(KCoreAddons_HEADERS
     RELATIVE io
     REQUIRED_HEADERS KCoreAddons_HEADERS
 )
-ecm_generate_headers(KCoreAddons_HEADERS
+ecm_generate_headers(KCoreAddons_CamelCase_HEADERS
     HEADER_NAMES
         KCompositeJob
         KJob
@@ -328,20 +337,20 @@ ecm_generate_headers(KCoreAddons_HEADERS
     RELATIVE jobs
     REQUIRED_HEADERS KCoreAddons_HEADERS
 )
-ecm_generate_headers(KCoreAddons_HEADERS
+ecm_generate_headers(KCoreAddons_CamelCase_HEADERS
     HEADER_NAMES
         KPluginFactory
         KPluginMetaData
     RELATIVE plugin
     REQUIRED_HEADERS KCoreAddons_HEADERS
 )
-ecm_generate_headers(KCoreAddons_HEADERS
+ecm_generate_headers(KCoreAddons_CamelCase_HEADERS
     HEADER_NAMES
         KRandom
     RELATIVE randomness
     REQUIRED_HEADERS KCoreAddons_HEADERS
 )
-ecm_generate_headers(KCoreAddons_HEADERS
+ecm_generate_headers(KCoreAddons_CamelCase_HEADERS
     HEADER_NAMES
         KJsonUtils
         KFuzzyMatcher
@@ -351,7 +360,7 @@ ecm_generate_headers(KCoreAddons_HEADERS
     RELATIVE text
     REQUIRED_HEADERS KCoreAddons_HEADERS
 )
-ecm_generate_headers(KCoreAddons_HEADERS
+ecm_generate_headers(KCoreAddons_CamelCase_HEADERS
     HEADER_NAMES
         KFormat
         KOSRelease
@@ -368,14 +377,38 @@ ecm_generate_headers(KCoreAddons_HEADERS
     RELATIVE util
     REQUIRED_HEADERS KCoreAddons_HEADERS
 )
+if(UNIX)
+    ecm_generate_headers(KCoreAddons_CamelCase_HEADERS
+        HEADER_NAMES
+            KSafeStringError
+        RELATIVE util
+        REQUIRED_HEADERS KCoreAddons_HEADERS
+    )
+endif()
 
 install(TARGETS KF6CoreAddons EXPORT KF6CoreAddonsTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
 
 install(FILES
     ${KCoreAddons_HEADERS}
+    ${KCoreAddons_CamelCase_HEADERS}
     ${CMAKE_CURRENT_BINARY_DIR}/kcoreaddons_export.h
     DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KCoreAddons COMPONENT Devel
 )
 install(FILES plugin/kpluginmetadata.schema.json DESTINATION ${KDE_INSTALL_DATADIR}/kf6/jsonschema COMPONENT Devel)
 
+install(FILES ${METATYPES_FILE} DESTINATION ${KDE_INSTALL_QTMETATYPESDIR})
+
 ecm_generate_qdoc(KF6CoreAddons kcoreaddons.qdocconf)
+
+ecm_add_installed_library_check(KF6CoreAddons
+    PACKAGE_NAME "KF6CoreAddons"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6CoreAddons
+    HEADERS ${KCoreAddons_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6CoreAddons
+    PREFIX KCOREADDONS
+)

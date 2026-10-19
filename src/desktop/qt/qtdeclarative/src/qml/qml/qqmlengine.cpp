@@ -5,10 +5,7 @@
 #include "qqmlengine_p.h"
 #include "qqmlengine.h"
 
-#include <private/qqmlabstractbinding_p.h>
-#include <private/qqmlboundsignal_p.h>
 #include <private/qqmlcontext_p.h>
-#include <private/qqmlnotifier_p.h>
 #include <private/qqmlpluginimporter_p.h>
 #include <private/qqmlprofiler_p.h>
 #include <private/qqmlscriptdata_p.h>
@@ -17,9 +14,6 @@
 #include <private/qqmltypedata_p.h>
 #include <private/qqmlvmemetaobject_p.h>
 #include <private/qqmlcomponent_p.h>
-
-#include <private/qobject_p.h>
-#include <private/qthread_p.h>
 
 #include <QtQml/qqml.h>
 #include <QtQml/qqmlcomponent.h>
@@ -244,189 +238,6 @@ void QQmlPrivate::qdeclarativeelement_destructor(QObject *o)
         QQmlData::markAsDeleted(o);
     }
 }
-
-QQmlData::QQmlData(Ownership ownership)
-    : ownMemory(ownership == OwnsMemory), indestructible(true), explicitIndestructibleSet(false),
-      hasTaintedV4Object(false), isQueuedForDeletion(false), rootObjectInCreation(false),
-      hasInterceptorMetaObject(false), hasVMEMetaObject(false), hasConstWrapper(false), dummy(0),
-      bindingBitsArraySize(InlineBindingArraySize)
-{
-    memset(bindingBitsValue, 0, sizeof(bindingBitsValue));
-    init();
-}
-
-QQmlData::~QQmlData()
-{
-}
-
-void QQmlData::destroyed(QAbstractDeclarativeData *d, QObject *o)
-{
-    QQmlData *ddata = static_cast<QQmlData *>(d);
-    ddata->destroyed(o);
-}
-
-
-class QQmlThreadNotifierProxyObject : public QObject
-{
-public:
-    QPointer<QObject> target;
-
-    int qt_metacall(QMetaObject::Call, int methodIndex, void **a) override {
-        if (!target)
-            return -1;
-
-        QMetaMethod method = target->metaObject()->method(methodIndex);
-        Q_ASSERT(method.methodType() == QMetaMethod::Signal);
-        int signalIndex = QMetaObjectPrivate::signalIndex(method);
-        QQmlData *ddata = QQmlData::get(target, false);
-        QQmlNotifierEndpoint *ep = ddata->notify(signalIndex);
-        if (ep) QQmlNotifier::emitNotify(ep, a);
-
-        delete this;
-
-        return -1;
-    }
-};
-
-void QQmlData::signalEmitted(QAbstractDeclarativeData *, QObject *object, int index, void **a)
-{
-    QQmlData *ddata = QQmlData::get(object, false);
-    if (!ddata) return; // Probably being deleted
-
-    // In general, QML only supports QObject's that live on the same thread as the QQmlEngine
-    // that they're exposed to.  However, to make writing "worker objects" that calculate data
-    // in a separate thread easier, QML allows a QObject that lives in the same thread as the
-    // QQmlEngine to emit signals from a different thread.  These signals are then automatically
-    // marshalled back onto the QObject's thread and handled by QML from there.  This is tested
-    // by the qqmlecmascript::threadSignal() autotest.
-
-    // Relaxed semantics here. If we're on a different thread we might schedule a useless event,
-    // but that should be rare.
-    if (!ddata->notifyList.loadRelaxed())
-        return;
-
-    auto objectThreadData = QObjectPrivate::get(object)->threadData.loadRelaxed();
-    if (QThread::currentThreadId() != objectThreadData->threadId.loadRelaxed()) {
-        if (!objectThreadData->thread.loadAcquire())
-            return;
-
-        QMetaMethod m = QMetaObjectPrivate::signal(object->metaObject(), index);
-        QList<QByteArray> parameterTypes = m.parameterTypes();
-
-        QVarLengthArray<const QtPrivate::QMetaTypeInterface *, 16> argTypes;
-        argTypes.reserve(1 + parameterTypes.size());
-        argTypes.emplace_back(nullptr); // return type
-        for (const QByteArray &typeName: parameterTypes) {
-            QMetaType type;
-            if (typeName.endsWith('*'))
-                type = QMetaType(QMetaType::VoidStar);
-            else
-                type = QMetaType::fromName(typeName);
-
-            if (!type.isValid()) {
-                qWarning("QObject::connect: Cannot queue arguments of type '%s'\n"
-                         "(Make sure '%s' is registered using qRegisterMetaType().)",
-                         typeName.constData(), typeName.constData());
-                return;
-            }
-
-            argTypes.emplace_back(type.iface());
-        }
-
-        auto ev = std::make_unique<QQueuedMetaCallEvent>(m.methodIndex(), 0, nullptr, object, index,
-                                                         argTypes.size(), argTypes.data(), a);
-
-        QQmlThreadNotifierProxyObject *mpo = new QQmlThreadNotifierProxyObject;
-        mpo->target = object;
-        mpo->moveToThread(objectThreadData->thread.loadAcquire());
-        QCoreApplication::postEvent(mpo, ev.release());
-
-    } else {
-        QQmlNotifierEndpoint *ep = ddata->notify(index);
-        if (ep) QQmlNotifier::emitNotify(ep, a);
-    }
-}
-
-int QQmlData::receivers(QAbstractDeclarativeData *d, const QObject *, int index)
-{
-    QQmlData *ddata = static_cast<QQmlData *>(d);
-    return ddata->endpointCount(index);
-}
-
-bool QQmlData::isSignalConnected(QAbstractDeclarativeData *d, const QObject *, int index)
-{
-    QQmlData *ddata = static_cast<QQmlData *>(d);
-    return ddata->signalHasEndpoint(index);
-}
-
-int QQmlData::endpointCount(int index)
-{
-    int count = 0;
-    QQmlNotifierEndpoint *ep = notify(index);
-    if (!ep)
-        return count;
-    ++count;
-    while (ep->next) {
-        ++count;
-        ep = ep->next;
-    }
-    return count;
-}
-
-void QQmlData::markAsDeleted(QObject *o)
-{
-    QVarLengthArray<QObject *> workStack;
-    workStack.push_back(o);
-    while (!workStack.isEmpty()) {
-        auto currentObject = workStack.last();
-        workStack.pop_back();
-        QQmlData::setQueuedForDeletion(currentObject);
-        auto currentObjectPriv = QObjectPrivate::get(currentObject);
-        for (QObject *child: std::as_const(currentObjectPriv->children))
-            workStack.push_back(child);
-    }
-}
-
-void QQmlData::setQueuedForDeletion(QObject *object)
-{
-    if (object) {
-        if (QQmlData *ddata = QQmlData::get(object)) {
-            if (ddata->ownContext) {
-                Q_ASSERT(ddata->ownContext.data() == ddata->context);
-                ddata->ownContext->deepClearContextObject(object);
-                ddata->ownContext.reset();
-                ddata->context = nullptr;
-            }
-            ddata->isQueuedForDeletion = true;
-
-            // Disconnect the notifiers now - during object destruction this would be too late,
-            // since the disconnect call wouldn't be able to call disconnectNotify(), as it isn't
-            // possible to get the metaobject anymore.
-            // Also, there is no point in evaluating bindings in order to set properties on
-            // half-deleted objects.
-            ddata->disconnectNotifiers(DeleteNotifyList::No);
-        }
-    }
-}
-
-void QQmlData::flushPendingBinding(int coreIndex)
-{
-    clearPendingBindingBit(coreIndex);
-
-    // Find the binding
-    QQmlAbstractBinding *b = bindings;
-    while (b && (b->targetPropertyIndex().coreIndex() != coreIndex ||
-                 b->targetPropertyIndex().hasValueTypeIndex()))
-        b = b->nextBinding();
-
-    if (b && b->targetPropertyIndex().coreIndex() == coreIndex &&
-            !b->targetPropertyIndex().hasValueTypeIndex())
-        b->setEnabled(true, QQmlPropertyData::BypassInterceptor |
-                            QQmlPropertyData::DontRemoveBinding);
-}
-
-QQmlData::DeferredData::DeferredData() = default;
-QQmlData::DeferredData::~DeferredData() = default;
 
 template<>
 int qmlRegisterType<void>(const char *uri, int versionMajor, int versionMinor, const char *qmlName)
@@ -975,6 +786,106 @@ void QQmlEngine::markCurrentFunctionAsTranslationBinding()
 }
 
 /*!
+  \since 6.12
+  Set the singleton instance to use for the given type on the QML engine.
+
+  This function allows you to manually set a QObject-derived instance to use as
+  the singleton in QML for this engine. This allows you to control the creation
+  of the instance. This can be useful in several scenarios, including for
+  cases where your singleton needs to communicate with backend components.
+
+  This function takes the \a moduleName and \a typeName to indicate the
+  singleton type you are trying to set, and the \a instance to set. The type
+  has to be already registered as a QML singleton type, ideally by using
+  \l QML_ELEMENT and \l QML_SINGLETON. If the module has not already been
+  loaded, it will be now.
+
+  The function returns true on success or false on failure. If a
+  failure occurs, a warning is emitted detailing the failure.
+
+  As an example, the singleton might need a backend service to work,
+  and could then be declared as follows:
+  \snippet code/src_qml_qqmlengine.cpp 6
+
+  Upon initialization of the application, you can then do:
+  \snippet code/src_qml_qqmlengine.cpp 7
+
+  Note instead of providing a default constructor or a static create
+  function, the \l QML_UNCREATABLE() macro was used to indicate this
+  item cannot be created by the qml engine.
+
+  Singleton instances can only be set once per type and engine, and must
+  be set before any use. Once a singleton instance is created or set,
+  it is no longer possible to set it using this function, so you should set
+  the instances before they are first used from QML.
+
+  The engine will \e{not} take ownership of the instance you pass, unless
+  you explicitly instruct the engine to do so by using
+  \l QJSEngine::setObjectOwnership().
+
+  \warning Make sure the \a instance outlives the lifetime of the engine.
+*/
+bool QQmlEngine::setExternalSingletonInstance(QAnyStringView moduleName, QAnyStringView typeName, QObject *instance)
+{
+    Q_D(QQmlEngine);
+
+    const auto loadHelper = QQml::makeRefPointer<LoadHelper>(
+            QQmlTypeLoader::get(this), moduleName, typeName, QQmlTypeLoader::Synchronous);
+    const QQmlType type = loadHelper->type();
+
+    if (!type.isValid()) {
+        qWarning().noquote() << "Error setting singleton instance: type" << typeName << "in module" << moduleName << "is not valid";
+        return false;
+    }
+
+    if (!instance) {
+        qWarning() << "Error setting singleton instance: the instance cannot be a nullptr";
+        return false;
+    }
+    if (!type.isSingleton()) {
+        qWarning() << "Error setting singleton instance: the type" << type.elementName() << "is not declared as a singleton type";
+        return false;
+    }
+    const QQmlType::SingletonInstanceInfo::ConstPtr siinfo = type.singletonInstanceInfo();
+    Q_ASSERT(siinfo != nullptr);
+    QJSValue value = d->singletonInstances.value(siinfo);
+    if (!value.isUndefined()) {
+        qWarning() << "Error setting singleton instance: there already is an instance for this singleton";
+        return false;
+    }
+
+    const auto baseMetaObject = type.baseMetaObject();
+    if (!(baseMetaObject && instance->metaObject()->inherits(baseMetaObject))) {
+        qWarning() << "Error setting singleton instance: the meta type of the instance" << instance->metaObject()->className()
+        << "does not match the type of the registered singleton"
+        << (baseMetaObject ? baseMetaObject->className() : "(unknown)"); //be careful to assume baseMetaObject is valid
+        return false;
+    }
+
+    QQmlData *data = QQmlData::get(instance, true);
+    if (!data->explicitIndestructibleSet) {
+        // Unless already explicitly set, set it up so that the engine won't delete
+        // the object.
+        data->explicitIndestructibleSet = true;
+        data->indestructible = true;
+    }
+    // even though the object is defined in C++, qmlContext(obj) and qmlEngine(obj)
+    // should behave identically to QML singleton types. You can, however, manually
+    // assign a context; and clearSingletons() retains the contexts, in which case
+    // we don't want to see warnings about the object already having a context.
+    if (!data->context) {
+        auto contextData = QQmlContextData::get(new QQmlContext(rootContext(), this));
+        data->context = contextData.data();
+        contextData->addOwnedObject(data);
+    }
+
+    value = newQObject(instance);
+    d->singletonInstances.convertAndInsert(d->v4Engine.get(), siinfo, &value);
+
+    return true;
+}
+
+/*!
   \internal
 
   Capture the given property as part of a binding.
@@ -1040,8 +951,15 @@ QJSValue QQmlEngine::singletonInstance<QJSValue>(int qmlTypeId)
     Q_D(QQmlEngine);
     QQmlType type = QQmlMetaType::qmlTypeById(qmlTypeId);
 
-    if (!type.isValid() || !type.isSingleton())
-        return QJSValue();
+    if (!type.isValid()) {
+        qWarning().noquote() << "Singleton instance: type with id" << qmlTypeId << "is not valid";
+        return {};
+    }
+
+    if (!type.isSingleton()) {
+        qWarning() << "Singleton instance: type" << type.elementName() << "with id" << qmlTypeId << "is not declared as a singleton type";
+        return {};
+    }
 
     return d->singletonInstance<QJSValue>(type);
 }
@@ -1078,8 +996,15 @@ QJSValue QQmlEngine::singletonInstance<QJSValue>(QAnyStringView uri, QAnyStringV
             QQmlTypeLoader::get(this), uri, typeName, QQmlTypeLoader::Synchronous);
     const QQmlType type = loadHelper->type();
 
-    if (!type.isSingleton())
+    if (!type.isValid()) {
+        qWarning().noquote() << "Singleton instance: type" << typeName << "in module" << uri << "is not valid";
         return {};
+    }
+
+    if (!type.isSingleton()) {
+        qWarning() << "Singleton instance: type" << type.elementName() << "is not declared as a singleton type";
+        return {};
+    }
 
     return d->singletonInstance<QJSValue>(type);
 }
@@ -1156,318 +1081,6 @@ bool QQmlEngine::event(QEvent *e)
     }
 
     return QJSEngine::event(e);
-}
-
-class QQmlDataExtended {
-public:
-    QQmlDataExtended();
-    ~QQmlDataExtended();
-
-    QHash<QQmlAttachedPropertiesFunc, QObject *> attachedProperties;
-};
-
-QQmlDataExtended::QQmlDataExtended()
-{
-}
-
-QQmlDataExtended::~QQmlDataExtended()
-{
-}
-
-void QQmlData::NotifyList::layout(QQmlNotifierEndpoint *endpoint)
-{
-    // Add a temporary sentinel at beginning of list. This will be overwritten
-    // when the end point is inserted into the notifies further down.
-    endpoint->prev = nullptr;
-
-    while (endpoint->next) {
-        Q_ASSERT(reinterpret_cast<QQmlNotifierEndpoint *>(endpoint->next->prev) == endpoint);
-        endpoint = endpoint->next;
-    }
-
-    while (endpoint) {
-        QQmlNotifierEndpoint *ep = (QQmlNotifierEndpoint *) endpoint->prev;
-
-        int index = endpoint->sourceSignal;
-        index = qMin(index, 0xFFFF - 1);
-
-        endpoint->next = notifies[index];
-        if (endpoint->next) endpoint->next->prev = &endpoint->next;
-        endpoint->prev = &notifies[index];
-        notifies[index] = endpoint;
-
-        endpoint = ep;
-    }
-}
-
-void QQmlData::NotifyList::layout()
-{
-    Q_ASSERT(maximumTodoIndex >= notifiesSize);
-
-    if (todo) {
-        QQmlNotifierEndpoint **old = notifies;
-        const int reallocSize = (maximumTodoIndex + 1) * sizeof(QQmlNotifierEndpoint*);
-        notifies = (QQmlNotifierEndpoint**)realloc(notifies, reallocSize);
-        const int memsetSize = (maximumTodoIndex - notifiesSize + 1) *
-                               sizeof(QQmlNotifierEndpoint*);
-        memset(notifies + notifiesSize, 0, memsetSize);
-
-        if (notifies != old) {
-            for (int ii = 0; ii < notifiesSize; ++ii)
-                if (notifies[ii])
-                    notifies[ii]->prev = &notifies[ii];
-        }
-
-        notifiesSize = maximumTodoIndex + 1;
-
-        layout(todo);
-    }
-
-    maximumTodoIndex = 0;
-    todo = nullptr;
-}
-
-void QQmlData::deferData(
-        int objectIndex, const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit,
-        const QQmlRefPointer<QQmlContextData> &context, const QString &inlineComponentName)
-{
-    QQmlData::DeferredData *deferData = new QQmlData::DeferredData;
-    deferData->deferredIdx = objectIndex;
-    deferData->compilationUnit = compilationUnit;
-    deferData->context = context;
-    deferData->inlineComponentName = inlineComponentName;
-
-    const QV4::CompiledData::Object *compiledObject = compilationUnit->objectAt(objectIndex);
-    const QV4::CompiledData::BindingPropertyData *propertyData
-            = compilationUnit->bindingPropertyDataPerObjectAt(objectIndex);
-
-    const QV4::CompiledData::Binding *binding = compiledObject->bindingTable();
-    for (quint32 i = 0; i < compiledObject->nBindings; ++i, ++binding) {
-        const QQmlPropertyData *property = propertyData->at(i);
-        if (binding->hasFlag(QV4::CompiledData::Binding::IsDeferredBinding))
-            deferData->bindings.insert(property ? property->coreIndex() : -1, binding);
-    }
-
-    deferredData.append(deferData);
-}
-
-void QQmlData::releaseDeferredData()
-{
-    auto it = deferredData.begin();
-    while (it != deferredData.end()) {
-        DeferredData *deferData = *it;
-        if (deferData->bindings.isEmpty()) {
-            delete deferData;
-            it = deferredData.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
-void QQmlData::addNotify(int index, QQmlNotifierEndpoint *endpoint)
-{
-    // Can only happen on "home" thread. We apply relaxed semantics when loading the atomics.
-
-    NotifyList *list = notifyList.loadRelaxed();
-
-    if (!list) {
-        list = new NotifyList;
-        // We don't really care when this change takes effect on other threads. The notifyList can
-        // only become non-null once in the life time of a QQmlData. It becomes null again when the
-        // underlying QObject is deleted. At that point any interaction with the QQmlData is UB
-        // anyway. So, for all intents and purposese, the list becomes non-null once and then stays
-        // non-null "forever". We can apply relaxed semantics.
-        notifyList.storeRelaxed(list);
-    }
-
-    Q_ASSERT(!endpoint->isConnected());
-
-    index = qMin(index, 0xFFFF - 1);
-
-    // Likewise, we don't really care _when_ the change in the connectionMask is propagated to other
-    // threads. Cross-thread event ordering is inherently nondeterministic. Therefore, when querying
-    // the conenctionMask in the presence of concurrent modification, any result is correct.
-    list->connectionMask.storeRelaxed(
-            list->connectionMask.loadRelaxed() | (1ULL << quint64(index % 64)));
-
-    if (index < list->notifiesSize) {
-        endpoint->next = list->notifies[index];
-        if (endpoint->next) endpoint->next->prev = &endpoint->next;
-        endpoint->prev = &list->notifies[index];
-        list->notifies[index] = endpoint;
-    } else {
-        list->maximumTodoIndex = qMax(int(list->maximumTodoIndex), index);
-
-        endpoint->next = list->todo;
-        if (endpoint->next) endpoint->next->prev = &endpoint->next;
-        endpoint->prev = &list->todo;
-        list->todo = endpoint;
-    }
-}
-
-void QQmlData::disconnectNotifiers(QQmlData::DeleteNotifyList doDelete)
-{
-    // Can only happen on "home" thread. We apply relaxed semantics when loading  the atomics.
-    if (NotifyList *list = notifyList.loadRelaxed()) {
-        while (QQmlNotifierEndpoint *todo = list->todo)
-            todo->disconnect();
-        for (int ii = 0; ii < list->notifiesSize; ++ii) {
-            while (QQmlNotifierEndpoint *ep = list->notifies[ii])
-                ep->disconnect();
-        }
-        free(list->notifies);
-
-        if (doDelete == DeleteNotifyList::Yes) {
-            // We can only get here from QQmlData::destroyed(), and that can only come from the
-            // the QObject dtor. If you're still sending signals at that point you have UB already
-            // without any threads. Therefore, it's enough to apply relaxed semantics.
-            notifyList.storeRelaxed(nullptr);
-            delete list;
-        } else {
-            // We can use relaxed semantics here. The worst thing that can happen is that some
-            // signal is falsely reported as connected. Signal connectedness across threads
-            // is not quite deterministic anyway.
-            list->connectionMask.storeRelaxed(0);
-            list->maximumTodoIndex = 0;
-            list->notifiesSize = 0;
-            list->notifies = nullptr;
-
-        }
-    }
-}
-
-QHash<QQmlAttachedPropertiesFunc, QObject *> *QQmlData::attachedProperties() const
-{
-    if (!extendedData) extendedData = new QQmlDataExtended;
-    return &extendedData->attachedProperties;
-}
-
-void QQmlData::destroyed(QObject *object)
-{
-    if (nextContextObject)
-        nextContextObject->prevContextObject = prevContextObject;
-    if (prevContextObject)
-        *prevContextObject = nextContextObject;
-    else if (outerContext && outerContext->ownedObjects() == this)
-        outerContext->setOwnedObjects(nextContextObject);
-
-    QQmlAbstractBinding *binding = bindings;
-    while (binding) {
-        binding->setAddedToObject(false);
-        binding = binding->nextBinding();
-    }
-    if (bindings && !bindings->ref.deref())
-        delete bindings;
-
-    compilationUnit.reset();
-
-    qDeleteAll(deferredData);
-    deferredData.clear();
-
-    QQmlBoundSignal *signalHandler = signalHandlers;
-    while (signalHandler) {
-        if (signalHandler->isNotifying()) {
-            // The object is being deleted during signal handler evaluation.
-            // This will cause a crash due to invalid memory access when the
-            // evaluation has completed.
-            // Abort with a friendly message instead.
-            QString locationString;
-            QQmlBoundSignalExpression *expr = signalHandler->expression();
-            if (expr) {
-                QQmlSourceLocation location = expr->sourceLocation();
-                if (location.sourceFile.isEmpty())
-                    location.sourceFile = QStringLiteral("<Unknown File>");
-                locationString.append(location.sourceFile);
-                locationString.append(QStringLiteral(":%0: ").arg(location.line));
-                QString source = expr->expression();
-                if (source.size() > 100) {
-                    source.truncate(96);
-                    source.append(QLatin1String(" ..."));
-                }
-                locationString.append(source);
-            } else {
-                locationString = QStringLiteral("<Unknown Location>");
-            }
-            qFatal("Object %p destroyed while one of its QML signal handlers is in progress.\n"
-                   "Most likely the object was deleted synchronously (use QObject::deleteLater() "
-                   "instead), or the application is running a nested event loop.\n"
-                   "This behavior is NOT supported!\n"
-                   "%s", object, qPrintable(locationString));
-        }
-
-        QQmlBoundSignal *next = signalHandler->m_nextSignal;
-        signalHandler->m_prevSignal = nullptr;
-        signalHandler->m_nextSignal = nullptr;
-        delete signalHandler;
-        signalHandler = next;
-    }
-
-    if (bindingBitsArraySize > InlineBindingArraySize)
-        free(bindingBits);
-
-    if (propertyCache)
-        propertyCache.reset();
-
-    ownContext.reset();
-
-    while (guards) {
-        auto *guard = guards;
-        guard->setObject(nullptr);
-        if (guard->objectDestroyed)
-            guard->objectDestroyed(guard);
-    }
-
-    disconnectNotifiers(DeleteNotifyList::Yes);
-
-    if (extendedData)
-        delete extendedData;
-
-    // Dispose the handle.
-    jsWrapper.clear();
-
-    if (ownMemory)
-        delete this;
-    else
-        this->~QQmlData();
-}
-
-QQmlData::BindingBitsType *QQmlData::growBits(QObject *obj, int bit)
-{
-    BindingBitsType *bits = (bindingBitsArraySize == InlineBindingArraySize) ? bindingBitsValue : bindingBits;
-    int props = QQmlMetaObject(obj).propertyCount();
-    Q_ASSERT(bit < 2 * props);
-    Q_UNUSED(bit); // .. for Q_NO_DEBUG mode when the assert above expands to empty
-
-    uint arraySize = (2 * static_cast<uint>(props) + BitsPerType - 1) / BitsPerType;
-    Q_ASSERT(arraySize > 1);
-    Q_ASSERT(arraySize <= 0xffff); // max for bindingBitsArraySize
-
-    BindingBitsType *newBits = static_cast<BindingBitsType *>(malloc(arraySize*sizeof(BindingBitsType)));
-    memcpy(newBits, bits, bindingBitsArraySize * sizeof(BindingBitsType));
-    memset(newBits + bindingBitsArraySize, 0, sizeof(BindingBitsType) * (arraySize - bindingBitsArraySize));
-
-    if (bindingBitsArraySize > InlineBindingArraySize)
-        free(bits);
-    bindingBits = newBits;
-    bits = newBits;
-    bindingBitsArraySize = arraySize;
-    return bits;
-}
-
-QQmlData *QQmlData::createQQmlData(QObjectPrivate *priv)
-{
-    Q_ASSERT(priv);
-    Q_ASSERT(!priv->isDeletingChildren);
-    priv->declarativeData = new QQmlData(OwnsMemory);
-    return static_cast<QQmlData *>(priv->declarativeData);
-}
-
-QQmlPropertyCache::ConstPtr QQmlData::createPropertyCache(QObject *object)
-{
-    QQmlData *ddata = QQmlData::get(object, /*create*/true);
-    ddata->propertyCache = QQmlMetaType::propertyCache(object, QTypeRevision {});
-    return ddata->propertyCache;
 }
 
 void QQmlEnginePrivate::sendQuit()
@@ -1604,6 +1217,7 @@ void QQmlEnginePrivate::cleanupScarceResources()
 /*!
   Adds \a path as a directory where the engine searches for
   installed modules in a URL-based directory structure.
+  Qt assumes that all files and folders under \a path come from a trusted source.
 
   The \a path may be a local filesystem directory, a
   \l {The Qt Resource System}{Qt Resource} path (\c {:/imports}), a
@@ -1619,7 +1233,7 @@ void QQmlEnginePrivate::cleanupScarceResources()
 */
 void QQmlEngine::addImportPath(const QString& path)
 {
-    QQmlTypeLoader::get(this)->addImportPath(path);
+    QQmlTypeLoader::get(this)->addImportPath(path, QQmlTypeLoader::PrependPath);
 }
 
 /*!
@@ -1645,6 +1259,8 @@ QStringList QQmlEngine::importPathList() const
 /*!
   Sets \a paths as the list of directories where the engine searches for
   installed modules in a URL-based directory structure.
+  Qt assumes that all files and folders under \a paths come from a
+  trusted source.
 
   By default, this list contains the paths mentioned in
   \l {QML Import Path}.
@@ -1659,10 +1275,11 @@ void QQmlEngine::setImportPathList(const QStringList &paths)
     QQmlTypeLoader::get(this)->setImportPathList(paths);
 }
 
-
 /*!
   Adds \a path as a directory where the engine searches for
   native plugins for imported modules (referenced in the \c qmldir file).
+  Qt assumes that all files and folders under \a path come from a
+  trusted source.
 
   By default, the list contains only \c .,  i.e. the engine searches
   in the directory of the \c qmldir file itself.
@@ -1673,7 +1290,7 @@ void QQmlEngine::setImportPathList(const QStringList &paths)
 */
 void QQmlEngine::addPluginPath(const QString& path)
 {
-    QQmlTypeLoader::get(this)->addPluginPath(path);
+    QQmlTypeLoader::get(this)->addPluginPath(path, QQmlTypeLoader::PrependPath);
 }
 
 /*!
@@ -1694,6 +1311,8 @@ QStringList QQmlEngine::pluginPathList() const
   Sets the list of directories where the engine searches for
   native plugins for imported modules (referenced in the \c qmldir file)
   to \a paths.
+  Qt assumes that all files and folders under \a paths come from a
+  trusted source.
 
   By default, the list contains only \c .,  i.e. the engine searches
   in the directory of the \c qmldir file itself.
@@ -1992,32 +1611,29 @@ QV4::ExecutableCompilationUnit *QQmlEnginePrivate::compilationUnitFromUrl(const 
     return executable.data();
 }
 
-QQmlRefPointer<QQmlContextData>
-QQmlEnginePrivate::createInternalContext(const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit,
-                                         const QQmlRefPointer<QQmlContextData> &parentContext,
-                                         int subComponentIndex, bool isComponentRoot)
+QQmlRefPointer<QQmlContextData> QQmlEnginePrivate::createComponentRootContext(
+        const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit,
+        const QQmlRefPointer<QQmlContextData> &parentContext, int subComponentIndex)
 {
     Q_ASSERT(unit);
 
-    QQmlRefPointer<QQmlContextData> context;
-    context = QQmlContextData::createRefCounted(parentContext);
-    context->setInternal(true);
-    context->setImports(unit->typeNameCache());
-    context->initFromTypeCompilationUnit(unit, subComponentIndex);
+    QQmlRefPointer<QQmlContextData> context =
+            createBareContext(unit, parentContext, subComponentIndex);
 
     const auto *dependentScripts = unit->dependentScriptsPtr();
     const qsizetype dependentScriptsSize = dependentScripts->size();
-    if (isComponentRoot && dependentScriptsSize) {
-        QV4::ExecutionEngine *v4 = v4Engine.get();
-        Q_ASSERT(v4);
-        QV4::Scope scope(v4);
+    if (!dependentScriptsSize)
+        return context;
 
-        QV4::ScopedObject scripts(scope, v4->newArrayObject(dependentScriptsSize));
-        context->setImportedScripts(v4, scripts);
-        QV4::ScopedValue v(scope);
-        for (qsizetype i = 0; i < dependentScriptsSize; ++i)
-            scripts->put(i, (v = dependentScripts->at(i)->scriptValueForContext(context)));
-    }
+    QV4::ExecutionEngine *v4 = v4Engine.get();
+    Q_ASSERT(v4);
+
+    QV4::Scope scope(v4);
+    QV4::ScopedObject scripts(scope, v4->newArrayObject(dependentScriptsSize));
+    context->setImportedScripts(v4, scripts);
+    QV4::ScopedValue v(scope);
+    for (qsizetype i = 0; i < dependentScriptsSize; ++i)
+        scripts->put(i, (v = dependentScripts->at(i)->scriptValueForContext(context)));
 
     return context;
 }

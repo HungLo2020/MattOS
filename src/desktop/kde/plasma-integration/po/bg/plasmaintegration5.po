@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-integration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-27 00:45+0000\n"
+"POT-Creation-Date: 2026-06-16 00:47+0000\n"
 "PO-Revision-Date: 2024-06-26 20:25+0200\n"
 "Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
 "Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
@@ -17,144 +17,71 @@ msgstr ""
 "X-Generator: Lokalize 24.05.1\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: platformtheme/kdeplatformfiledialoghelper.cpp:260
-#, kde-format
-msgctxt "@title:window"
-msgid "Open File"
-msgstr "Отваряне на файл"
-
-#: platformtheme/kdeplatformfiledialoghelper.cpp:261
+#: platformtheme/kdeplatformfiledialoghelper.cpp:242
 #, kde-format
 msgctxt "@title:window"
 msgid "Save File"
 msgstr "Запазване на файл"
 
-#: platformtheme/kdeplatformtheme.cpp:278
-#, kde-format
-msgctxt "@action:button"
-msgid "Save All"
-msgstr "Запазване на всичко"
-
-#: platformtheme/kdeplatformtheme.cpp:282
-#, kde-format
-msgctxt "@action:button"
-msgid "&Yes"
-msgstr "&Да"
-
-#: platformtheme/kdeplatformtheme.cpp:284
-#, kde-format
-msgctxt "@action:button"
-msgid "Yes to All"
-msgstr "Да за всички"
-
-#: platformtheme/kdeplatformtheme.cpp:286
-#, kde-format
-msgctxt "@action:button"
-msgid "&No"
-msgstr "&Не"
-
-#: platformtheme/kdeplatformtheme.cpp:288
-#, kde-format
-msgctxt "@action:button"
-msgid "No to All"
-msgstr "Не за всички"
-
-#: platformtheme/kdeplatformtheme.cpp:291
-#, kde-format
-msgctxt "@action:button"
-msgid "Abort"
-msgstr "Прекъсване"
-
-#: platformtheme/kdeplatformtheme.cpp:293
-#, kde-format
-msgctxt "@action:button"
-msgid "Retry"
-msgstr "Повторен опит"
-
-#: platformtheme/kdeplatformtheme.cpp:295
-#, kde-format
-msgctxt "@action:button"
-msgid "Ignore"
-msgstr "Игнориране"
-
-#: platformtheme/kdirselectdialog.cpp:133
-#, kde-format
-msgctxt "folder name"
-msgid "New Folder"
-msgstr "Нова папка"
-
-#: platformtheme/kdirselectdialog.cpp:139
-#, kde-format
-msgctxt "@title:window"
-msgid "New Folder"
-msgstr "Нова папка"
-
-#: platformtheme/kdirselectdialog.cpp:140
-#, kde-format
-msgctxt "@label:textbox"
-msgid ""
-"Create new folder in:\n"
-"%1"
-msgstr ""
-"Създаване на нова папка в: \n"
-"%1"
-
-#: platformtheme/kdirselectdialog.cpp:171
-#, kde-format
-msgid "A file or folder named %1 already exists."
-msgstr "Вече съществува файл или папка с име %1."
-
-#: platformtheme/kdirselectdialog.cpp:180
-#, kde-format
-msgid "You do not have permission to create that folder."
-msgstr "Нямате разрешение да създадете тази папка."
-
-#: platformtheme/kdirselectdialog.cpp:282
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
 #, kde-format
 msgctxt "@title:window"
 msgid "Select Folder"
 msgstr "Избиране на папка"
 
-#: platformtheme/kdirselectdialog.cpp:290
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
+#, kde-format
+msgctxt "@title:window"
+msgid "Open File"
+msgstr "Отваряне на файл"
+
+#: platformtheme/kdeplatformtheme.cpp:290
 #, kde-format
 msgctxt "@action:button"
-msgid "New Folder..."
-msgstr "Нова папка..."
+msgid "Save All"
+msgstr "Запазване на всичко"
 
-#: platformtheme/kdirselectdialog.cpp:348
+#: platformtheme/kdeplatformtheme.cpp:294
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "New Folder..."
-msgstr "Нова папка..."
+msgctxt "@action:button"
+msgid "&Yes"
+msgstr "&Да"
 
-#: platformtheme/kdirselectdialog.cpp:357
+#: platformtheme/kdeplatformtheme.cpp:296
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Move to Trash"
-msgstr "Преместване в кошчето"
+msgctxt "@action:button"
+msgid "Yes to All"
+msgstr "Да за всички"
 
-#: platformtheme/kdirselectdialog.cpp:366
+#: platformtheme/kdeplatformtheme.cpp:298
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Delete"
-msgstr "Изтриване"
+msgctxt "@action:button"
+msgid "&No"
+msgstr "&Не"
 
-#: platformtheme/kdirselectdialog.cpp:377
+#: platformtheme/kdeplatformtheme.cpp:300
 #, kde-format
-msgctxt "@option:check"
-msgid "Show Hidden Folders"
-msgstr "Показване на скритите папки"
+msgctxt "@action:button"
+msgid "No to All"
+msgstr "Не за всички"
 
-#: platformtheme/kdirselectdialog.cpp:384
+#: platformtheme/kdeplatformtheme.cpp:303
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Properties"
-msgstr "Свойства"
+msgctxt "@action:button"
+msgid "Abort"
+msgstr "Прекъсване"
 
-#: platformtheme/kfiletreeview.cpp:185
+#: platformtheme/kdeplatformtheme.cpp:305
 #, kde-format
-msgid "Show Hidden Folders"
-msgstr "Показване на скритите папки"
+msgctxt "@action:button"
+msgid "Retry"
+msgstr "Повторен опит"
+
+#: platformtheme/kdeplatformtheme.cpp:307
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "Игнориране"
 
 #: platformtheme/kioopenwith.cpp:125
 #, kde-format

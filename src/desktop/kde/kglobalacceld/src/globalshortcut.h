@@ -26,7 +26,7 @@ class GlobalShortcutsRegistry;
 class GlobalShortcut
 {
 public:
-    GlobalShortcut(const QString &uniqueName, const QString &friendlyName, GlobalShortcutContext *context, GlobalShortcutsRegistry *registry);
+    GlobalShortcut(const QString &uniqueName, const QString &friendlyName, uint64_t serial, GlobalShortcutContext *context, GlobalShortcutsRegistry *registry);
 
     ~GlobalShortcut();
 
@@ -35,12 +35,15 @@ public:
     GlobalShortcutContext const *context() const;
 
     //! Returns the default keys for this shortcut.
-    QList<QKeySequence> defaultKeys() const;
+    QSet<QKeySequence> defaultKeys() const;
 
     //! Return the friendly display name for this shortcut.
     QString friendlyName() const;
 
-    //! Check if the shortcut is active. It's keys are grabbed
+    //! Returns the unique name of the associated inverse action, or empty if not paired.
+    QString inverseActionUniqueName() const;
+
+    //! Check if the shortcut is active. Its keys are grabbed
     bool isActive() const;
 
     //! Check if the shortcut is fresh/new. Is an internal state
@@ -53,16 +56,19 @@ public:
     bool isSessionShortcut() const;
 
     //! Returns a list of keys associated with this shortcut.
-    QList<QKeySequence> keys() const;
+    QSet<QKeySequence> keys() const;
 
     //! Activates the shortcut. The keys are grabbed.
     void setActive();
 
     //! Sets the default keys for this shortcut.
-    void setDefaultKeys(const QList<QKeySequence> &);
+    void setDefaultKeys(const QSet<QKeySequence> &);
 
     //! Sets the friendly name for the shortcut. For display.
     void setFriendlyName(const QString &);
+
+    //! Sets the inverse action for this shortcut.
+    void setInverseActionUniqueName(const QString &uniqueName);
 
     //! Sets the shortcut inactive. No longer grabs the keys.
     void setInactive();
@@ -71,7 +77,7 @@ public:
     void setIsFresh(bool);
 
     //! Sets the keys activated with this shortcut. The old keys are freed.
-    void setKeys(const QList<QKeySequence> &);
+    void setKeys(const QSet<QKeySequence> &);
 
     //! Returns the unique name aka id for the shortcuts.
     QString uniqueName() const;
@@ -80,6 +86,9 @@ public:
 
     //! Remove this shortcut and it's siblings
     void unRegister();
+
+    //! The serial indicates the time when the shortcut has been registered.
+    uint64_t serial() const;
 
 private:
     //! means the associated application is present.
@@ -99,8 +108,11 @@ private:
     QString _uniqueName;
     QString _friendlyName; // usually localized
 
-    QList<QKeySequence> _keys;
-    QList<QKeySequence> _defaultKeys;
+    QSet<QKeySequence> _keys;
+    QSet<QKeySequence> _defaultKeys;
+    uint64_t _serial;
+
+    QString _inverseActionUniqueName;
 };
 
 #endif /* #ifndef GLOBALSHORTCUT_H */

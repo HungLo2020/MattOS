@@ -6,11 +6,10 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QMimeData>
 #include <QQmlParserStatus>
 #include <memory>
 #include <qqmlregistration.h>
-
-class QMimeData;
 
 class PagerModel : public QAbstractListModel, public QQmlParserStatus
 {
@@ -25,6 +24,7 @@ class PagerModel : public QAbstractListModel, public QQmlParserStatus
     Q_PROPERTY(bool shouldShowPager READ shouldShowPager NOTIFY shouldShowPagerChanged)
     Q_PROPERTY(bool showDesktop READ showDesktop WRITE setShowDesktop NOTIFY showDesktopChanged)
     Q_PROPERTY(bool showOnlyCurrentScreen READ showOnlyCurrentScreen WRITE setShowOnlyCurrentScreen NOTIFY showOnlyCurrentScreenChanged)
+    Q_PROPERTY(QString screenName READ screenName WRITE setScreenName NOTIFY screenNameChanged)
     Q_PROPERTY(QRect screenGeometry READ screenGeometry WRITE setScreenGeometry NOTIFY screenGeometryChanged)
     Q_PROPERTY(int currentPage READ currentPage NOTIFY currentPageChanged)
     Q_PROPERTY(int layoutRows READ layoutRows NOTIFY layoutRowsChanged)
@@ -68,6 +68,9 @@ public:
     QRect screenGeometry() const;
     void setScreenGeometry(const QRect &geometry);
 
+    QString screenName() const;
+    void setScreenName(const QString &screenName);
+
     int currentPage() const;
 
     int layoutRows() const;
@@ -100,12 +103,14 @@ Q_SIGNALS:
     void showDesktopChanged() const;
     void showOnlyCurrentScreenChanged() const;
     void screenGeometryChanged() const;
+    void screenNameChanged() const;
     void currentPageChanged() const;
     void layoutRowsChanged() const;
     void pagerItemSizeChanged() const;
 
 private Q_SLOTS:
     void computePagerItemSize();
+    void slotCurrentDesktopForScreenChanged(const QString &screenName);
 
 private:
     class Private;

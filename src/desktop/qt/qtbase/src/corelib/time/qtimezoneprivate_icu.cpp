@@ -24,9 +24,20 @@ QT_BEGIN_NAMESPACE
 
 // ICU utilities
 
+#ifdef Q_OS_HARMONY
+#include <BasicServicesKit/time_service.h>
+#endif
+
 // Qt wrapper around ucal_getDefaultTimeZone()
 static QByteArray ucalDefaultTimeZoneId()
 {
+#ifdef Q_OS_HARMONY
+    char tzBuffer[32] = { 0 };
+    TimeService_ErrCode err = OH_TimeService_GetTimeZone(tzBuffer, sizeof(tzBuffer));
+
+    if (err == TIMESERVICE_ERR_OK)
+        return QByteArray(tzBuffer);
+#endif
     int32_t size = 30;
     QString result(size, Qt::Uninitialized);
     UErrorCode status = U_ZERO_ERROR;
@@ -156,7 +167,7 @@ static QTimeZonePrivate::Data ucalTimeZoneTransition(UCalendar *m_ucal,
 }
 #endif // U_ICU_VERSION_SHORT
 
-// Convert a uenum to a QList<QByteArray>
+// Convert a uenum (listing zone names) to a QList<QByteArray>
 static QList<QByteArray> uenumToIdList(UEnumeration *uenum)
 {
     QList<QByteArray> list;
@@ -166,9 +177,16 @@ static QList<QByteArray> uenumToIdList(UEnumeration *uenum)
     QByteArray result = uenum_next(uenum, &size, &status);
     while (U_SUCCESS(status) && !result.isEmpty()) {
         list << result;
+        // Include the CLDR-canonical name, as well
+        const QByteArrayView zone = QTimeZonePrivate::aliasToIana(result);
+        if (!zone.isEmpty()) {
+            list << zone.toByteArray();
+            Q_ASSERT(QTimeZonePrivate::aliasToIana(zone).isEmpty());
+        }
         status = U_ZERO_ERROR;
         result = uenum_next(uenum, &size, &status);
     }
+
     std::sort(list.begin(), list.end());
     list.erase(std::unique(list.begin(), list.end()), list.end());
     return list;
@@ -387,7 +405,7 @@ QByteArray QIcuTimeZonePrivate::systemTimeZoneId() const
     return ucalDefaultTimeZoneId();
 }
 
-bool QIcuTimeZonePrivate::isTimeZoneIdAvailable(const QByteArray &ianaId) const
+bool QIcuTimeZonePrivate::isTimeZoneIdAvailable(QByteArrayView ianaId) const
 {
     return QtTimeZoneLocale::ucalKnownTimeZoneId(QString::fromUtf8(ianaId));
 }

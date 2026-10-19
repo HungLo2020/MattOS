@@ -284,7 +284,9 @@ QT_BEGIN_NAMESPACE
     \brief The QLEInteger class provides platform-independent little-endian integers.
     \since 5.10
 
-    The template parameter \c T must be a C++ integer type:
+    QLEInteger\<T\> stores an integer value in little-endian byte order, where
+    \a T specifies the underlying C++ integer type. The template parameter \a T
+    must be a C++ integer type:
     \list
        \li 8-bit: char, signed char, unsigned char, qint8, quint8
        \li 16-bit: short, unsigned short, qint16, quint16, char16_t
@@ -443,7 +445,9 @@ QT_BEGIN_NAMESPACE
     \brief The QBEInteger class provides platform-independent big-endian integers.
     \since 5.10
 
-    The template parameter \c T must be a C++ integer type:
+    QBEInteger\<T\> stores an integer value in big-endian byte order, where
+    \a T specifies the underlying C++ integer type. The template parameter \a T
+    must be a C++ integer type:
     \list
        \li 8-bit: char, signed char, unsigned char, qint8, quint8
        \li 16-bit: short, unsigned short, qint16, quint16, char16_t

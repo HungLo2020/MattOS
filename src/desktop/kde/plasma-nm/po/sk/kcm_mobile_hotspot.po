@@ -1,21 +1,20 @@
 # translation of kcm_mobile_hotspot.po to Slovak
 # Roman Paholík <wizzardsk@gmail.com>, 2020.
 # Ferdinand Galko <galko.ferdinand@gmail.com>, 2023.
-# SPDX-FileCopyrightText: 2026 Lucia Mrenica <lucia.mrenica@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_mobile_hotspot\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-29 03:06+0000\n"
-"PO-Revision-Date: 2026-01-14 18:46+0100\n"
-"Last-Translator: Lucia Mrenica <lucia.mrenica@gmail.com>\n"
-"Language-Team: Slovak <kde-i18n-doc@kde.org>\n"
+"POT-Creation-Date: 2026-01-29 00:46+0000\n"
+"PO-Revision-Date: 2023-07-22 14:59+0200\n"
+"Last-Translator: Ferdinand Galko <galko.ferdinand@gmail.com>\n"
+"Language-Team: Slovak <opensuse-translation@opensuse.org>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.12.1\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 21.12.3\n"
 
 #: ui/main.qml:33
 #, kde-format
@@ -61,7 +60,7 @@ msgstr "Heslo prístupového bodu"
 #: ui/main.qml:119
 #, kde-format
 msgid "Configure"
-msgstr "Nastaviť"
+msgstr "Nastaviť pravidlo"
 
 #~ msgid "Whether the wireless hotspot is enabled."
 #~ msgstr "Či je bezdrôtový prístupový bod povolený."

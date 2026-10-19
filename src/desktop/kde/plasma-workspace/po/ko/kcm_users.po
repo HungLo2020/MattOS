@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-20 03:19+0000\n"
-"PO-Revision-Date: 2026-02-03 23:27+0100\n"
+"POT-Creation-Date: 2026-08-04 00:47+0000\n"
+"PO-Revision-Date: 2026-09-28 23:20+0200\n"
 "Last-Translator: Shinjo Park <kde@peremen.name>\n"
 "Language-Team: Korean <kde-kr@kde.org>\n"
 "Language: ko\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Lokalize 25.08.1\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #: src/fingerprintmodel.cpp:144 src/fingerprintmodel.cpp:228
 #, kde-format
@@ -85,7 +85,7 @@ msgstr "암호"
 msgid "Confirm password"
 msgstr "암호 확인"
 
-#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:73
+#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:114
 #, kde-format
 msgid "Passwords must match"
 msgstr "암호가 일치해야 함"
@@ -138,48 +138,66 @@ msgstr "변경하지 않고 그대로 유지"
 msgid "Create User"
 msgstr "사용자 만들기"
 
-#: src/ui/CreateUser.qml:38 src/ui/UserDetailsPage.qml:165
+#: src/ui/CreateUser.qml:40 src/ui/UserDetailsPage.qml:165
 #, kde-format
 msgid "Name:"
 msgstr "이름:"
 
-#: src/ui/CreateUser.qml:42 src/ui/UserDetailsPage.qml:171
+#: src/ui/CreateUser.qml:44 src/ui/UserDetailsPage.qml:171
 #, kde-format
 msgid "Username:"
 msgstr "사용자 이름:"
 
-#: src/ui/CreateUser.qml:52 src/ui/UserDetailsPage.qml:203
+#: src/ui/CreateUser.qml:82
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Only lowercase letters, digits, dashes, and underscores are allowed. Invalid "
+"characters were removed."
+msgstr ""
+"소문자, 숫자, 대시(-), 밑줄(_)만 사용할 수 있습니다. 올바르지 않은 글자가 삭"
+"제되었습니다."
+
+#: src/ui/CreateUser.qml:84
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Usernames must be lowercase. Uppercase characters were converted to "
+"lowercase."
+msgstr "사용자 이름은 소문자여야 합니다. 대문자가 소문자로 변경되었습니다."
+
+#: src/ui/CreateUser.qml:93 src/ui/UserDetailsPage.qml:203
 #, kde-format
 msgid "Standard"
 msgstr "표준"
 
-#: src/ui/CreateUser.qml:53 src/ui/UserDetailsPage.qml:204
+#: src/ui/CreateUser.qml:94 src/ui/UserDetailsPage.qml:204
 #, kde-format
 msgid "Administrator"
 msgstr "관리자"
 
-#: src/ui/CreateUser.qml:56 src/ui/UserDetailsPage.qml:193
+#: src/ui/CreateUser.qml:97 src/ui/UserDetailsPage.qml:193
 #, kde-format
 msgid "Account type:"
 msgstr "계정 종류:"
 
-#: src/ui/CreateUser.qml:61
+#: src/ui/CreateUser.qml:102
 #, kde-format
 msgid "Password:"
 msgstr "암호:"
 
-#: src/ui/CreateUser.qml:66
+#: src/ui/CreateUser.qml:107
 #, kde-format
 msgid "Confirm password:"
 msgstr "암호 확인:"
 
-#: src/ui/CreateUser.qml:88
+#: src/ui/CreateUser.qml:129
 #, kde-format
 msgctxt "@action:button Create a new user"
 msgid "Create"
 msgstr "만들기"
 
-#: src/ui/CreateUser.qml:111
+#: src/ui/CreateUser.qml:152
 #, kde-format
 msgctxt "@action:button Cancel creating new user"
 msgid "Cancel"
@@ -323,27 +341,22 @@ msgstr "지문 설정"
 msgid "Add"
 msgstr "추가"
 
-#: src/ui/FingerprintDialog.qml:51
-#, kde-format
-msgid "Cancel"
-msgstr "취소"
-
-#: src/ui/FingerprintDialog.qml:59
+#: src/ui/FingerprintDialog.qml:52
 #, kde-format
 msgid "Done"
 msgstr "완료"
 
-#: src/ui/FingerprintList.qml:46
+#: src/ui/FingerprintList.qml:47
 #, kde-format
 msgid "Re-enroll finger"
 msgstr "손가락 다시 등록"
 
-#: src/ui/FingerprintList.qml:58
+#: src/ui/FingerprintList.qml:59
 #, kde-format
 msgid "Delete fingerprint"
 msgstr "지문 지우기"
 
-#: src/ui/FingerprintList.qml:74
+#: src/ui/FingerprintList.qml:75
 #, kde-format
 msgid "No fingerprints added"
 msgstr "추가한 지문 없음"
@@ -693,6 +706,9 @@ msgstr "내 계정"
 #, kde-format
 msgid "Other Accounts"
 msgstr "다른 계정"
+
+#~ msgid "Cancel"
+#~ msgstr "취소"
 
 #~ msgid "Enrolling Fingerprint"
 #~ msgstr "지문 등록"

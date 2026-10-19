@@ -935,7 +935,7 @@ QByteArray QJniObject::className() const
     \since 6.4
 
     Calls the object's method \a methodName with \a signature specifying the types of any
-    subsequent arguments \a args, and returns the value (unless \c Ret is \c void). If \c Ret
+    subsequent arguments \a args, and returns the value (unless Ret is \c void). If Ret
     is a jobject type, then the returned value will be a QJniObject.
 
     \code
@@ -949,7 +949,7 @@ QByteArray QJniObject::className() const
     \since 6.4
 
     Calls the method \a methodName with arguments \a args and returns the value
-    (unless \c Ret is \c void). If \c Ret is a jobject type, then the returned value
+    (unless Ret is \c void). If Ret is a jobject type, then the returned value
     will be a QJniObject.
 
     \code
@@ -957,8 +957,8 @@ QByteArray QJniObject::className() const
     jint size = myJavaString.callMethod<jint>("length");
     \endcode
 
-    The method signature is deduced at compile time from \c Ret and the types
-    of \a args. \c Ret can be a \c{std::expected}-compatible type that returns
+    The method signature is deduced at compile time from Ret and the types
+    of \a args. Ret can be a \c{std::expected}-compatible type that returns
     a value, or \l{Handling Java Exceptions}{any Java exception thrown} by the
     called method.
 */
@@ -969,7 +969,7 @@ QByteArray QJniObject::className() const
 
     Calls the static method \a methodName from class \a className with \a signature
     specifying the types of any subsequent arguments \a args. Returns the result of
-    the method (unless \c Ret is \c void). If \c Ret is a jobject type, then the
+    the method (unless Ret is \c void). If Ret is a jobject type, then the
     returned value will be a QJniObject.
 
     \code
@@ -984,15 +984,15 @@ QByteArray QJniObject::className() const
     \since 6.4
 
     Calls the static method \a methodName on class \a className with arguments \a args,
-    and returns the value of type \c Ret (unless \c Ret is \c void). If \c Ret
+    and returns the value of type Ret (unless Ret is \c void). If Ret
     is a jobject type, then the returned value will be a QJniObject.
 
     \code
     jint value = QJniObject::callStaticMethod<jint>("MyClass", "staticMethod");
     \endcode
 
-    The method signature is deduced at compile time from \c Ret and the types
-    of \a args. \c Ret can be a \c{std::expected}-compatible type that returns
+    The method signature is deduced at compile time from Ret and the types
+    of \a args. Ret can be a \c{std::expected}-compatible type that returns
     a value, or \l{Handling Java Exceptions}{any Java exception thrown} by the
     called method.
 */
@@ -1002,7 +1002,7 @@ QByteArray QJniObject::className() const
 
     Calls the static method \a methodName from \a clazz with \a signature
     specifying the types of any subsequent arguments. Returns the result of
-    the method (unless \c Ret is \c void). If \c Ret is a jobject type, then the
+    the method (unless Ret is \c void). If Ret is a jobject type, then the
     returned value will be a QJniObject.
 
     \code
@@ -1019,8 +1019,8 @@ QByteArray QJniObject::className() const
     \since 6.4
 
     Calls the static method identified by \a methodId from the class \a clazz
-    with any subsequent arguments, and returns the value of type \c Ret (unless
-    \c Ret is \c void). If \c Ret is a jobject type, then the returned value will
+    with any subsequent arguments, and returns the value of type Ret (unless
+    Ret is \c void). If Ret is a jobject type, then the returned value will
     be a QJniObject.
 
     Useful when \a clazz and \a methodId are already cached from previous operations.
@@ -1041,8 +1041,8 @@ QByteArray QJniObject::className() const
     \fn template <typename Ret, typename ...Args> auto QJniObject::callStaticMethod(jclass clazz, const char *methodName, Args &&...args)
     \since 6.4
 
-    Calls the static method \a methodName on \a clazz and returns the value of type \c Ret
-    (unless \c Ret is \c void).  If \c Ret is a jobject type, then the returned value will
+    Calls the static method \a methodName on \a clazz and returns the value of type Ret
+    (unless Ret is \c void).  If Ret is a jobject type, then the returned value will
     be a QJniObject.
 
     \code
@@ -1051,8 +1051,8 @@ QByteArray QJniObject::className() const
     jdouble randNr = QJniObject::callStaticMethod<jdouble>(javaMathClass, "random");
     \endcode
 
-    The method signature is deduced at compile time from \c Ret and the types
-    of \a args. \c Ret can be a \c{std::expected}-compatible type that returns
+    The method signature is deduced at compile time from Ret and the types
+    of \a args. Ret can be a \c{std::expected}-compatible type that returns
     a value, or \l{Handling Java Exceptions}{any Java exception thrown} by the
     called method.
 */
@@ -1062,12 +1062,12 @@ QByteArray QJniObject::className() const
     \since 6.7
 
     Calls the static method \a methodName on the class \c Klass and returns the value of type
-    \c Ret (unless \c Ret is \c void).  If \c Ret is a jobject type, then the returned value will
+    Ret (unless Ret is \c void).  If Ret is a jobject type, then the returned value will
     be a QJniObject.
 
-    The method signature is deduced at compile time from \c Ret and the types
+    The method signature is deduced at compile time from Ret and the types
     of \a args. \c Klass needs to be a C++ type with a registered type mapping
-    to a Java type. \c Ret can be a \c{std::expected}-compatible type that
+    to a Java type. Ret can be a \c{std::expected}-compatible type that
     returns a value, or \l{Handling Java Exceptions}{any Java exception thrown}
     by the called method.
 
@@ -1199,8 +1199,8 @@ QJniObject QJniObject::callStaticObjectMethod(jclass clazz, jmethodID methodId, 
     QJniObject myJavaString2 = myJavaString1.callObjectMethod<jstring>("toString");
     \endcode
 
-    The method signature is deduced at compile time from \c Ret and the types
-    of \a args. \c Ret can be a \c{std::expected}-compatible type that returns
+    The method signature is deduced at compile time from Ret and the types
+    of \a args. Ret can be a \c{std::expected}-compatible type that returns
     a value, or \l{Handling Java Exceptions}{any Java exception thrown} by the
     called method.
 */
@@ -1216,8 +1216,8 @@ QJniObject QJniObject::callStaticObjectMethod(jclass clazz, jmethodID methodId, 
     QJniObject string = QJniObject::callStaticObjectMethod<jstring>("CustomClass", "getClassName");
     \endcode
 
-    The method signature is deduced at compile time from \c Ret and the types
-    of \a args. \c Ret can be a \c{std::expected}-compatible type that returns
+    The method signature is deduced at compile time from Ret and the types
+    of \a args. Ret can be a \c{std::expected}-compatible type that returns
     a value, or \l{Handling Java Exceptions}{any Java exception thrown} by the
     called method.
 */
@@ -1595,6 +1595,9 @@ jobject QJniObject::javaObject() const
     \brief The JObject template in the QtJniTypes namespace is the base of declared Java types.
     \since Qt 6.8
 
+    JObject\<Type\> is a template class where \a Type specifies the Java type
+    being represented.
+
     This template gets specialized when using the Q_DECLARE_JNI_CLASS macro. The
     specialization produces a unique type in the QtJniTypes namespace. This
     allows the type system to deduce the correct signature in JNI calls when an
@@ -1699,7 +1702,7 @@ jobject QJniObject::javaObject() const
     \fn template <typename Type> template <typename Ret, typename ...Args> auto QtJniTypes::JObject<Type>::callStaticMethod(const char *methodName, Args &&...args)
 
     Calls the static method \a methodName with arguments \a args, and returns
-    the result of type \c Ret (unless \c Ret is \c void). If \c Ret is a
+    the result of type Ret (unless Ret is \c void). If Ret is a
     jobject type, then the returned value will be a QJniObject.
 
     \sa QJniObject::callStaticMethod()
@@ -1734,7 +1737,7 @@ jobject QJniObject::javaObject() const
     \fn template <typename Type> template <typename Ret, typename ...Args> auto QtJniTypes::JObject<Type>::callMethod(const char *method, Args &&...args) const
 
     Calls the instance method \a method with arguments \a args, and returns
-    the result of type \c Ret (unless \c Ret is \c void). If \c Ret is a
+    the result of type Ret (unless Ret is \c void). If Ret is a
     jobject type, then the returned value will be a QJniObject.
 
     \sa QJniObject::callMethod()

@@ -69,13 +69,11 @@ QSvgStructureNode::QSvgStructureNode(QSvgNode *parent)
 QSvgStructureNode::~QSvgStructureNode()
     = default;
 
-void QSvgStructureNode::addChild(std::unique_ptr<QSvgNode> child, const QString &id)
+void QSvgStructureNode::addChild(QSvgDocument *doc, std::unique_ptr<QSvgNode> child,
+                                 const QString &id)
 {
-    if (!id.isEmpty()) {
-        QSvgDocument *doc = document();
-        if (doc)
-            doc->addNamedNode(id, child.get());
-    }
+    if (!id.isEmpty())
+        doc->addNamedNode(id, child.get());
 
     m_renderers.push_back(std::move(child));
 }
@@ -236,17 +234,17 @@ QSvgMarker::QSvgMarker(QSvgNode *parent, QRectF bounds, QRectF viewBox, QPointF 
     , m_markerUnits(markerUnits)
 {
     // apply the svg standard style
-    QSvgFillStyle *fillProp = new QSvgFillStyle();
+    QSvgFillStylePtr fillProp = std::make_unique<QSvgFillStyle>();
     fillProp->setBrush(Qt::black);
-    appendStyleProperty(fillProp, QStringLiteral(""));
+    appendStyleProperty(std::move(fillProp));
 
-    QSvgStrokeStyle *strokeProp = new QSvgStrokeStyle();
+    QSvgStrokeStylePtr strokeProp = std::make_unique<QSvgStrokeStyle>();
     strokeProp->setMiterLimit(4);
     strokeProp->setWidth(1);
     strokeProp->setLineCap(Qt::FlatCap);
     strokeProp->setLineJoin(Qt::SvgMiterJoin);
     strokeProp->setStroke(Qt::NoBrush);
-    appendStyleProperty(strokeProp, QStringLiteral(""));
+    appendStyleProperty(std::move(strokeProp));
 }
 
 QSvgMarker::~QSvgMarker()
@@ -443,7 +441,7 @@ void QSvgMarker::drawHelper(const QSvgNode *node, QPainter *p,
     const bool isPainting = (boundingRect == nullptr);
     const auto markers = markersForNode(node);
     for (auto &i : markers) {
-        QSvgNode *referencedNode = node->document()->namedNode(i.markerId);
+        QSvgNode *referencedNode = states.doc()->namedNode(i.markerId);
         if (!referencedNode || referencedNode->type() != QSvgNode::Marker)
             continue;
         QSvgMarker *markNode = static_cast<QSvgMarker *>(referencedNode);
@@ -801,7 +799,7 @@ QImage QSvgMask::createMask(QPainter *p, QSvgExtraStates &states, const QRectF &
 
     // Chrome seems to return the mask of the mask if a mask is set on the mask
     if (this->hasMask()) {
-        QSvgNode *referencedNode = document()->namedNode(this->maskId());
+        QSvgNode *referencedNode = states.doc()->namedNode(this->maskId());
         if (referencedNode && referencedNode->type() == QSvgNode::Mask) {
             QSvgMask *maskNode = static_cast<QSvgMask *>(referencedNode);
             QRectF boundsRect;
@@ -819,7 +817,9 @@ QImage QSvgMask::createMask(QPainter *p, QSvgExtraStates &states, const QRectF &
     QPainter painter(&mask);
     initPainter(&painter);
 
-    QSvgExtraStates maskNodeStates;
+    QSvgExtraStates maskNodeStates(states.doc());
+    maskNodeStates.trustedSource = states.trustedSource;
+    maskNodeStates.remainingNestedNodes = states.remainingNestedNodes;
     applyStyleRecursive(&painter, maskNodeStates);
 
     // The transformation of the mask node is not relevant. What matters are the contentUnits
@@ -946,10 +946,10 @@ QImage QSvgPattern::patternImage(QPainter *p, QSvgExtraStates &states, const QSv
         return QImage(); // Avoid division by zero in calculateAppliedTransform()
 
     calculateAppliedTransform(t, peBoundingBox, imageSize);
-    if (document()->isCalculatingImplicitViewBox())
+    if (states.doc()->isCalculatingImplicitViewBox())
         return QImage(imageSize, QImage::Format_ARGB32); // dummy image to avoid endless recursion
     else
-        return renderPattern(imageSize, contentScaleFactorX, contentScaleFactorY);
+        return renderPattern(imageSize, std::make_pair(contentScaleFactorX, contentScaleFactorY), states);
 }
 
 QSvgNode::Type QSvgPattern::type() const
@@ -957,9 +957,9 @@ QSvgNode::Type QSvgPattern::type() const
     return Pattern;
 }
 
-QImage QSvgPattern::renderPattern(QSize size, qreal contentScaleX, qreal contentScaleY)
+QImage QSvgPattern::renderPattern(QSize size, std::pair<qreal, qreal> scale, const QSvgExtraStates &states)
 {
-    if (size.isEmpty() || !qIsFinite(contentScaleX) || !qIsFinite(contentScaleY))
+    if (size.isEmpty() || !qIsFinite(scale.first) || !qIsFinite(scale.second))
         return defaultPattern();
 
     // Allocate a QImage to draw the pattern in with the calculated size.
@@ -979,7 +979,9 @@ QImage QSvgPattern::renderPattern(QSize size, qreal contentScaleX, qreal content
 
     // Draw the pattern using our QPainter.
     QPainter patternPainter(&pattern);
-    QSvgExtraStates patternStates;
+    QSvgExtraStates patternStates(states.doc());
+    patternStates.trustedSource = states.trustedSource;
+    patternStates.remainingNestedNodes = states.remainingNestedNodes;
     initPainter(&patternPainter);
     applyStyleRecursive(&patternPainter, patternStates);
     patternPainter.resetTransform();
@@ -987,12 +989,11 @@ QImage QSvgPattern::renderPattern(QSize size, qreal contentScaleX, qreal content
     // According to the <pattern> definition, if viewBox exists then patternContentUnits
     // is ignored
     if (m_viewBox.isNull())
-        patternPainter.scale(contentScaleX, contentScaleY);
+        patternPainter.scale(scale.first, scale.second);
     else
         patternPainter.setWindow(m_viewBox.toRect());
 
     // Draw all this Pattern children nodes with our QPainter,
-    // no need to use any Extra States
     for (const auto &node : renderers())
         node->draw(&patternPainter, patternStates);
 

@@ -30,12 +30,13 @@ class QAndroidAudioSource;
 class QAndroidAudioSourceStream final : public QtMultimediaPrivate::QPlatformAudioSourceStream
 {
     using QPlatformAudiosourceStream = QtMultimediaPrivate::QPlatformAudioSourceStream;
+    using NativePeriodFrames = QtMultimediaPrivate::NativePeriodFrames;
 
 public:
     explicit QAndroidAudioSourceStream(QAudioDevice device, const QAudioFormat &format,
                                        std::optional<int> ringbufferSize,
                                        QAndroidAudioSource *parent, float volume,
-                                       std::optional<int32_t> hardwareBufferFrames);
+                                       std::optional<NativePeriodFrames> nativePeriodFrames);
     Q_DISABLE_COPY_MOVE(QAndroidAudioSourceStream)
     ~QAndroidAudioSourceStream();
 
@@ -59,11 +60,11 @@ private:
     // QPlatformAudioSourceStream overrides
     void updateStreamIdle(bool idle) override;
 
-    QSpan<const std::byte> getHostSpan(void *audioData, int numFrames) const noexcept QT_MM_NONBLOCKING;
+    QSpan<const std::byte> getHostSpan(void *audioData, int numFrames) const noexcept Q_DECL_NONBLOCKING_FUNCTION;
     aaudio_data_callback_result_t processRingbuffer(QSpan<const std::byte> audioSpan,
-                                                    int numFrames) noexcept QT_MM_NONBLOCKING;
+                                                    int numFrames) noexcept Q_DECL_NONBLOCKING_FUNCTION;
     aaudio_data_callback_result_t
-    processCallback(QSpan<const std::byte> audioSpan) noexcept QT_MM_NONBLOCKING;
+    processCallback(QSpan<const std::byte> audioSpan) noexcept Q_DECL_NONBLOCKING_FUNCTION;
     void handleError(aaudio_result_t error);
 
     QAndroidAudioSource *m_parent;

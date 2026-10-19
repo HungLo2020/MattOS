@@ -84,11 +84,6 @@ QQmlRefPointer<QV4::CompiledData::CompilationUnit> QQmlTypeCompiler::compile()
     }
 
     {
-        QQmlDefaultPropertyMerger merger(this);
-        merger.mergeDefaultProperties();
-    }
-
-    {
         SignalHandlerResolver converter(this);
         if (!converter.resolveSignalHandlerExpressions())
             return nullptr;
@@ -184,6 +179,26 @@ QString QQmlTypeCompiler::stringAt(int idx) const
 int QQmlTypeCompiler::registerString(const QString &str)
 {
     return document->jsGenerator.registerString(str);
+}
+
+int QQmlTypeCompiler::resolvedIndex(int index) const
+{
+    if (index < objectCount())
+        return index;
+    const auto *p = m_propertyCaches.at(index)->defaultProperty();
+    Q_ASSERT(p && p->isComponentWrapper());
+    return p->wrappedObjectIndex();
+}
+
+int QQmlTypeCompiler::implicitComponentForObject(int childIndex) const
+{
+    for (int i = objectCount(), end = m_propertyCaches.count(); i < end; ++i) {
+        const auto *p = m_propertyCaches.at(i)->defaultProperty();
+        Q_ASSERT(p && p->isComponentWrapper());
+        if (p->wrappedObjectIndex() == childIndex)
+            return i;
+    }
+    return -1;
 }
 
 int QQmlTypeCompiler::registerConstant(QV4::ReturnedValue v)
@@ -390,11 +405,14 @@ bool SignalHandlerResolver::resolveSignalHandlerExpressions(
                 const QQmlType type = typeRef ? typeRef->type() : QQmlType();
                 if (type.isValid()) {
                     COMPILE_EXCEPTION(binding, tr("\"%1.%2\" is not available in %3 %4.%5.")
-                                      .arg(typeName).arg(originalPropertyName).arg(type.module())
+                                      .arg(typeName, originalPropertyName, type.module())
                                       .arg(type.version().majorVersion())
                                       .arg(type.version().minorVersion()));
                 } else {
-                    COMPILE_EXCEPTION(binding, tr("\"%1.%2\" is not available due to component versioning.").arg(typeName).arg(originalPropertyName));
+                    COMPILE_EXCEPTION(
+                            binding,
+                            tr("\"%1.%2\" is not available due to component versioning.")
+                                    .arg(typeName, originalPropertyName));
                 }
             }
 
@@ -756,60 +774,6 @@ void QQmlComponentAndAliasResolver<QQmlTypeCompiler>::setObjectId(int index) con
 }
 
 template<>
-bool QQmlComponentAndAliasResolver<QQmlTypeCompiler>::wrapImplicitComponent(QmlIR::Binding *binding)
-{
-    QQmlJS::MemoryPool *pool = m_compiler->memoryPool();
-    QList<QmlIR::Object *> *qmlObjects = m_compiler->qmlObjects();
-
-    // emulate "import QML 1.0" and then wrap the component in "QML.Component {}"
-    QQmlType componentType = QQmlMetaType::qmlType(
-                &QQmlComponent::staticMetaObject, QStringLiteral("QML"),
-                QTypeRevision::fromVersion(1, 0));
-    Q_ASSERT(componentType.isValid());
-    const QString qualifier = QStringLiteral("QML");
-
-    m_compiler->addImport(componentType.module(), qualifier, componentType.version());
-
-    QmlIR::Object *syntheticComponent = pool->New<QmlIR::Object>();
-    syntheticComponent->init(
-                pool,
-                m_compiler->registerString(
-                    qualifier + QLatin1Char('.') + componentType.elementName()),
-                m_compiler->registerString(QString()), binding->valueLocation);
-    syntheticComponent->flags |= QV4::CompiledData::Object::IsComponent;
-
-    if (!m_compiler->resolvedTypes->contains(syntheticComponent->inheritedTypeNameIndex)) {
-        auto typeRef = new QV4::ResolvedTypeReference;
-        typeRef->setType(componentType);
-        typeRef->setVersion(componentType.version());
-        m_compiler->resolvedTypes->insert(syntheticComponent->inheritedTypeNameIndex, typeRef);
-    }
-
-    qmlObjects->append(syntheticComponent);
-    const int componentIndex = qmlObjects->size() - 1;
-    // Keep property caches symmetric
-    QQmlPropertyCache::ConstPtr componentCache
-            = QQmlMetaType::propertyCache(&QQmlComponent::staticMetaObject);
-    m_propertyCaches->append(componentCache);
-
-    QmlIR::Binding *syntheticBinding = pool->New<QmlIR::Binding>();
-    *syntheticBinding = *binding;
-
-    // The synthetic binding inside Component has no name. It's just "Component { Foo {} }".
-    syntheticBinding->propertyNameIndex = 0;
-
-    syntheticBinding->setType(QV4::CompiledData::Binding::Type_Object);
-    QString error = syntheticComponent->appendBinding(syntheticBinding, /*isListBinding*/false);
-    Q_ASSERT(error.isEmpty());
-    Q_UNUSED(error);
-
-    binding->value.objectIndex = componentIndex;
-
-    m_componentRoots.append(componentIndex);
-    return true;
-}
-
-template<>
 void QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveGeneralizedGroupProperty(
         const CompiledObject &component, CompiledBinding *binding)
 {
@@ -818,106 +782,6 @@ void QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveGeneralizedGroupPro
     const int targetObjectIndex = m_idToObjectIndex.value(binding->propertyNameIndex, -1);
     if (targetObjectIndex != -1)
         m_propertyCaches->set(binding->value.objectIndex, m_propertyCaches->at(targetObjectIndex));
-}
-
-/*!
-    \internal
-
-    Reorders the alias data within the linked list of \a obj so that
-    aliases targeting other aliases on the same object come after their
-    targets. This ensures that dependencies are resolved and appended to
-    the property cache first, which is necessary because the runtime
-    assumes that the property cache position matches the alias table index.
-
-    Only considers same-object dependencies (where the alias's target id
-    resolves to \a objectIndex). Cross-object dependencies are handled by
-    the multi-pass resolution in resolveAliases().
-*/
-static bool sortAliasDependencies(
-        QQmlTypeCompiler *compiler, QmlIR::Object *obj, int objectIndex,
-        const QMap<int, int> &idToObjectIndex, QQmlError *error)
-{
-    using AliasArray = QVarLengthArray<QmlIR::Alias *, 8>;
-
-    AliasArray ordered;
-    ordered.reserve(obj->aliasCount());
-
-    // if the default property is an alias, we need to later update the default property index
-    QmlIR::Alias *defaultPropertyAlias = nullptr;
-    qsizetype aliasCounter = 0;
-
-
-    // Collect aliases as nodes in a graph. Non-local ones are already ordered.
-    AliasArray nodes;
-    for (QmlIR::Alias *a = obj->firstAlias(); a; ++aliasCounter, a = a->next) {
-        if (obj->defaultPropertyIsAlias && aliasCounter == obj->indexOfDefaultPropertyOrAlias) {
-            defaultPropertyAlias = a;
-        }
-        const int targetObjIdx = idToObjectIndex.value(a->idIndex(), -1);
-        if (targetObjIdx == objectIndex)
-            nodes.append(a);
-        else
-            ordered.append(a);
-    }
-
-    // Nothing to sort here.
-    if (nodes.isEmpty())
-        return true;
-
-    // Collect dependencies as edges between nodes
-    QVarLengthArray<qsizetype, 8> edges(nodes.size(), -1);
-    for (qsizetype i = 0, end = nodes.size(); i < end; ++i) {
-        const QStringView propValue = compiler->stringAt(nodes[i]->propertyNameIndex);
-        const int dotIdx = propValue.indexOf(QLatin1Char('.'));
-        const QStringView targetName = dotIdx != -1 ? propValue.left(dotIdx) : propValue;
-        if (targetName.isEmpty())
-            continue;
-
-        for (qsizetype j = 0; j < end; ++j) {
-            if (j != i && compiler->stringAt(nodes[j]->nameIndex()) == targetName) {
-                edges[i] = j;
-                break;
-            }
-        }
-    }
-
-    // Simple DFS-based topological sort
-    for (qsizetype i = 0, end = nodes.size(); i < end; ++i) {
-        // Skip already inserted nodes
-        if (nodes[i] == nullptr)
-            continue;
-
-        // Follow the dependency chain to find the root.
-        QVarLengthArray<qsizetype, 8> chain;
-        for (qsizetype j = edges[i]; j != -1 && nodes[j]; j = edges[j]) {
-            if (!chain.contains(j)) {
-                chain.append(j);
-                continue;
-            }
-
-            *error = qQmlCompileError(
-                    nodes[j]->location,
-                    QQmlComponentAndAliasResolverBase::tr("Cyclic alias"));
-            return false;
-        }
-
-        // Emit in reverse (dependency first)
-        for (qsizetype k = chain.size() - 1; k >= 0; --k)
-            ordered.append(std::exchange(nodes[chain[k]], nullptr));
-        ordered.append(std::exchange(nodes[i], nullptr));
-    }
-
-    // Apply the ordering in the IR
-    obj->setFirstAlias(ordered[0]);
-    for (qsizetype i = 0, end = ordered.size() - 1; i < end; ++i)
-        ordered[i]->next = ordered[i + 1];
-    ordered.last()->next = nullptr;
-    if (defaultPropertyAlias) {
-        auto it = std::find(ordered.constBegin(), ordered.constEnd(), defaultPropertyAlias);
-        obj->indexOfDefaultPropertyOrAlias = std::distance(ordered.constBegin(), it);
-    }
-
-    return true;
 }
 
 /*!
@@ -937,11 +801,10 @@ static bool sortAliasDependencies(
 */
 static bool resolveDeepAlias(
         QQmlTypeCompiler *compiler, const QmlIR::Object *targetObject,
-        const QmlIR::Object &component, QStringView property, QStringView subProperty,
+        QStringView property, QStringView subProperty,
         QQmlPropertyIndex &propIdx, QMetaType targetPropertyType,
         const QQmlPropertyCacheVector *propertyCaches,
-        const QMap<int, int> &idToObjectIndex,
-        const QSet<const QV4::CompiledData::Alias *> &resolvedAliases)
+        const QMap<int, int> &idToObjectIndex)
 {
     for (auto it = targetObject->bindingsBegin(), end = targetObject->bindingsEnd();
             it != end; ++it) {
@@ -964,13 +827,7 @@ static bool resolveDeepAlias(
         auto innerAlias = *it;
         if (compiler->stringAt(innerAlias.nameIndex()) != property)
             continue;
-        // After resolution, idIndex() contains the runtime object id
-        // (set by setTargetObjectId), not the string table index.
-        int innerObjectIndex;
-        if (resolvedAliases.contains(&(*it)))
-            innerObjectIndex = objectForId(compiler, component, innerAlias.targetObjectId());
-        else
-            innerObjectIndex = idToObjectIndex.value(innerAlias.idIndex(), -1);
+        const int innerObjectIndex = idToObjectIndex.value(innerAlias.idIndex(), -1);
         if (innerObjectIndex == -1)
             continue;
         const auto &cache = propertyCaches->at(innerObjectIndex);
@@ -1004,28 +861,17 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
         const CompiledObject &component, int objectIndex,
         QQmlPropertyCacheAliasCreator<QQmlTypeCompiler> *aliasCacheCreator, QQmlError *error)
 {
-    // TODO: This method should not modify the aliases themselves. Rather, all information
-    //       needed for handling them later should be stored in the property cache.
-    //       Some of the information calculated here could be calculated already at compile time.
-    //       See QTBUG-136572.
-
     Q_UNUSED(component);
 
-    QmlIR::Object *obj = m_compiler->objectAt(objectIndex);
+    const QmlIR::Object *obj = m_compiler->objectAt(objectIndex);
     if (!obj->aliasCount())
         return AllAliasesResolved;
-
-    // Reorder aliases so that same-object dependencies come before their
-    // dependents. This ensures the property cache ordering matches the
-    // alias table, which the runtime relies on.
-    if (!sortAliasDependencies(m_compiler, obj, objectIndex, m_idToObjectIndex, error))
-        return NoAliasResolved;
 
     int aliasIndex = 0;
     int numSkippedAliases = 0;
     bool hasUnresolvedLocalAliases = false;
 
-    for (QmlIR::Alias *alias = obj->firstAlias(); alias; alias = alias->next, ++aliasIndex) {
+    for (const QmlIR::Alias *alias = obj->firstAlias(); alias; alias = alias->next, ++aliasIndex) {
         if (resolvedAliases.contains(alias)) {
             ++numSkippedAliases;
             continue;
@@ -1036,17 +882,18 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
         const int targetObjectIndex = m_idToObjectIndex.value(idIndex, -1);
         if (targetObjectIndex == -1) {
             *error = qQmlCompileError(
-                    alias->referenceLocation,
-                    QQmlComponentAndAliasResolverBase::tr("Invalid alias reference. Unable to find id \"%1\"").arg(stringAt(idIndex)));
+                    alias->referenceLocation(),
+                    QQmlComponentAndAliasResolverBase::tr(
+                            "Invalid alias reference. Unable to find id \"%1\"")
+                            .arg(stringAt(idIndex)));
             break;
         }
 
         const QmlIR::Object *targetObject = m_compiler->objectAt(targetObjectIndex);
         Q_ASSERT(targetObject->id >= 0);
-        alias->setTargetObjectId(targetObject->id);
-        alias->setIsAliasToLocalAlias(false);
+        const int resolvedTargetObjectId = targetObject->id;
 
-        const QString aliasPropertyValue = stringAt(alias->propertyNameIndex);
+        const QString aliasPropertyValue = stringAt(alias->propertyNameIndex());
 
         QStringView property;
         QStringView subProperty;
@@ -1061,13 +908,14 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
         QQmlPropertyIndex propIdx;
 
         if (property.isEmpty()) {
-            alias->setFlag(QV4::CompiledData::Alias::AliasPointsToPointerObject);
+            // Alias points to object. No need to resolve properties.
         } else {
             QQmlPropertyCache::ConstPtr targetCache = m_propertyCaches->at(targetObjectIndex);
             if (!targetCache) {
                 *error = qQmlCompileError(
-                        alias->referenceLocation,
-                        QQmlComponentAndAliasResolverBase::tr("Invalid alias target location: %1").arg(property.toString()));
+                        alias->referenceLocation(),
+                        QQmlComponentAndAliasResolverBase::tr("Invalid alias target location: %1")
+                                .arg(property.toString()));
                 break;
             }
 
@@ -1079,10 +927,9 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
             // If it's an alias that we haven't resolved yet, try again later.
             if (!targetProperty) {
                 bool aliasPointsToOtherAlias = false;
-                int localAliasIndex = 0;
                 auto targetAlias = targetObject->aliasesBegin();
                 for (const auto end = targetObject->aliasesEnd(); targetAlias != end;
-                        ++targetAlias, ++localAliasIndex) {
+                        ++targetAlias) {
                     if (stringAt(targetAlias->nameIndex()) == property) {
                         aliasPointsToOtherAlias = true;
                         break;
@@ -1091,7 +938,6 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
                 if (aliasPointsToOtherAlias) {
                     if (targetObjectIndex != objectIndex) {
                         // Don't continue, yet. We need to respect the order of objects.
-                        alias->setIdIndex(idIndex);
                         return aliasIndex == numSkippedAliases
                                 ? NoAliasResolved
                                 : SomeAliasesResolved;
@@ -1099,11 +945,9 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
 
                     if (resolvedAliases.contains(targetAlias)) {
                         // Target already resolved. We can set the alias right away.
-                        alias->localAliasIndex = localAliasIndex;
-                        alias->setIsAliasToLocalAlias(true);
                         if (!appendAliasToPropertyCache(
                                     &component, alias, objectIndex, aliasIndex, -1,
-                                    aliasCacheCreator, error)) {
+                                    resolvedTargetObjectId, aliasCacheCreator, error)) {
                             break;
                         }
                         continue;
@@ -1111,7 +955,6 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
 
                     // Target isn't resolved yet, but it's in the same object.
                     // Continue with the other aliases.
-                    alias->setIdIndex(idIndex);
                     // Try again later and resolve the target alias first.
                     ++numSkippedAliases;
                     hasUnresolvedLocalAliases = true;
@@ -1121,8 +964,9 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
 
             if (!targetProperty || targetProperty->coreIndex() > 0x0000FFFF) {
                 *error = qQmlCompileError(
-                        alias->referenceLocation,
-                        QQmlComponentAndAliasResolverBase::tr("Invalid alias target location: %1").arg(property.toString()));
+                        alias->referenceLocation(),
+                        QQmlComponentAndAliasResolverBase::tr("Invalid alias target location: %1")
+                                .arg(property.toString()));
                 break;
             }
 
@@ -1135,15 +979,15 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
                     bool isDeepAlias = subProperty.at(0).isLower();
                     if (isDeepAlias) {
                         isDeepAlias = resolveDeepAlias(
-                                m_compiler, targetObject, component,
-                                property, subProperty, propIdx,
-                                targetProperty->propType(), m_propertyCaches, m_idToObjectIndex,
-                                resolvedAliases);
+                                m_compiler, targetObject, property, subProperty, propIdx,
+                                targetProperty->propType(), m_propertyCaches, m_idToObjectIndex);
                     }
                     if (!isDeepAlias) {
                         *error = qQmlCompileError(
-                                alias->referenceLocation,
-                                QQmlComponentAndAliasResolverBase::tr("Invalid alias target location: %1").arg(subProperty.toString()));
+                                alias->referenceLocation(),
+                                QQmlComponentAndAliasResolverBase::tr(
+                                        "Invalid alias target location: %1")
+                                        .arg(subProperty.toString()));
                         break;
                     }
                 } else {
@@ -1152,23 +996,22 @@ QQmlComponentAndAliasResolver<QQmlTypeCompiler>::resolveAliasesInObject(
                             valueTypeMetaObject->indexOfProperty(subProperty.toString().toUtf8().constData());
                     if (valueTypeIndex == -1) {
                         *error = qQmlCompileError(
-                                alias->referenceLocation,
-                                QQmlComponentAndAliasResolverBase::tr("Invalid alias target location: %1").arg(subProperty.toString()));
+                                alias->referenceLocation(),
+                                QQmlComponentAndAliasResolverBase::tr(
+                                        "Invalid alias target location: %1")
+                                        .arg(subProperty.toString()));
                         break;
                     }
                     Q_ASSERT(valueTypeIndex <= 0x0000FFFF);
 
                     propIdx = QQmlPropertyIndex(propIdx.coreIndex(), valueTypeIndex);
                 }
-            } else {
-                if (targetProperty->isQObject())
-                    alias->setFlag(QV4::CompiledData::Alias::AliasPointsToPointerObject);
             }
         }
 
         if (!appendAliasToPropertyCache(
                     &component, alias, objectIndex, aliasIndex, propIdx.toEncoded(),
-                    aliasCacheCreator, error)) {
+                    resolvedTargetObjectId, aliasCacheCreator, error)) {
             break;
         }
     }
@@ -1321,11 +1164,16 @@ bool QQmlDeferredAndCustomParserBindingScanner::scanObject(
             isExternal = !isOwnProperty && binding->isGroupProperty();
             if (isOwnProperty || isExternal) {
                 qSwap(_seenObjectWithId, seenSubObjectWithId);
-                const bool subObjectValid = scanObject(
-                            binding->value.objectIndex,
-                            (isExternal || scopeDeferred == ScopeDeferred::True)
-                                ? ScopeDeferred::True
-                                : ScopeDeferred::False);
+
+                // Implicit component wrappers are scope boundaries.
+                const bool isImplicitComponent
+                        = compiler->implicitComponentForObject(binding->value.objectIndex) != -1;
+
+                const ScopeDeferred objectScope =
+                        !isImplicitComponent && (isExternal || scopeDeferred == ScopeDeferred::True)
+                            ? ScopeDeferred::True
+                            : ScopeDeferred::False;
+                const bool subObjectValid = scanObject(binding->value.objectIndex, objectScope);
                 qSwap(_seenObjectWithId, seenSubObjectWithId);
                 if (!subObjectValid)
                     return false;
@@ -1362,62 +1210,6 @@ bool QQmlDeferredAndCustomParserBindingScanner::scanObject(
     }
 
     return true;
-}
-
-QQmlDefaultPropertyMerger::QQmlDefaultPropertyMerger(QQmlTypeCompiler *typeCompiler)
-    : QQmlCompilePass(typeCompiler)
-    , qmlObjects(*typeCompiler->qmlObjects())
-    , propertyCaches(typeCompiler->propertyCaches())
-{
-
-}
-
-void QQmlDefaultPropertyMerger::mergeDefaultProperties()
-{
-    for (int i = 0; i < qmlObjects.size(); ++i)
-        mergeDefaultProperties(i);
-}
-
-void QQmlDefaultPropertyMerger::mergeDefaultProperties(int objectIndex)
-{
-    QQmlPropertyCache::ConstPtr propertyCache = propertyCaches->at(objectIndex);
-    if (!propertyCache)
-        return;
-
-    QmlIR::Object *object = qmlObjects.at(objectIndex);
-
-    QString defaultProperty = object->indexOfDefaultPropertyOrAlias != -1 ? propertyCache->parent()->defaultPropertyName() : propertyCache->defaultPropertyName();
-    QmlIR::Binding *bindingsToReinsert = nullptr;
-    QmlIR::Binding *tail = nullptr;
-
-    QmlIR::Binding *previousBinding = nullptr;
-    QmlIR::Binding *binding = object->firstBinding();
-    while (binding) {
-        if (binding->propertyNameIndex == quint32(0) || stringAt(binding->propertyNameIndex) != defaultProperty) {
-            previousBinding = binding;
-            binding = binding->next;
-            continue;
-        }
-
-        QmlIR::Binding *toReinsert = binding;
-        binding = object->unlinkBinding(previousBinding, binding);
-
-        if (!tail) {
-            bindingsToReinsert = toReinsert;
-            tail = toReinsert;
-        } else {
-            tail->next = toReinsert;
-            tail = tail->next;
-        }
-        tail->next = nullptr;
-    }
-
-    binding = bindingsToReinsert;
-    while (binding) {
-        QmlIR::Binding *toReinsert = binding;
-        binding = binding->next;
-        object->insertSorted(toReinsert);
-    }
 }
 
 QT_END_NAMESPACE

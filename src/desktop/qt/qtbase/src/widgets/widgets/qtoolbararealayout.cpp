@@ -10,7 +10,6 @@
 
 #include "qtoolbararealayout_p.h"
 #include "qmainwindowlayout_p.h"
-#include "qwidgetanimator_p.h"
 #include "qtoolbarlayout_p.h"
 #include "qtoolbar_p.h"
 
@@ -22,6 +21,7 @@ QT_BEGIN_NAMESPACE
 
 // qmainwindow.cpp
 extern QMainWindowLayout *qt_mainwindow_layout(const QMainWindow *mainWindow);
+using StateMarkers = QMainWindowLayoutState::StateMarkers;
 
 QSize QToolBarAreaLayoutItem::minimumSize() const
 {
@@ -754,39 +754,31 @@ void QToolBarAreaLayout::deleteAllLayoutItems()
     }
 }
 
-QInternal::DockPosition QToolBarAreaLayout::findToolBar(const QToolBar *toolBar) const
+std::optional<QInternal::DockPosition> QToolBarAreaLayout::findToolBar(const QToolBar *toolBar) const
 {
-    for (int i = 0; i < QInternal::DockCount; ++i) {
+    for (std::size_t i = 0; i < docks.size(); ++i) {
         const QToolBarAreaLayoutInfo &dock = docks[i];
-
-        for (int j = 0; j < dock.lines.size(); ++j) {
-            const QToolBarAreaLayoutLine &line = dock.lines.at(j);
-
-            for (int k = 0; k < line.toolBarItems.size(); ++k) {
-                if (line.toolBarItems.at(k).widgetItem->widget() == toolBar)
+        for (const auto &line : dock.lines) {
+            for (const auto &item : line.toolBarItems) {
+                if (item.widgetItem->widget() == toolBar)
                     return static_cast<QInternal::DockPosition>(i);
             }
         }
     }
-
-    return QInternal::DockCount;
+    return {};
 }
 
 QLayoutItem *QToolBarAreaLayout::insertToolBar(QToolBar *before, QToolBar *toolBar)
 {
-    QInternal::DockPosition pos = findToolBar(before);
-    if (pos == QInternal::DockCount)
-        return nullptr;
-
-    return docks[pos].insertToolBar(before, toolBar);
+    if (auto pos = findToolBar(before))
+        return docks[*pos].insertToolBar(before, toolBar);
+    return nullptr;
 }
 
 void QToolBarAreaLayout::removeToolBar(QToolBar *toolBar)
 {
-    QInternal::DockPosition pos = findToolBar(toolBar);
-    if (pos == QInternal::DockCount)
-        return;
-    docks[pos].removeToolBar(toolBar);
+    if (auto pos = findToolBar(toolBar))
+        docks[*pos].removeToolBar(toolBar);
 }
 
 QLayoutItem *QToolBarAreaLayout::addToolBar(QInternal::DockPosition pos, QToolBar *toolBar)
@@ -796,18 +788,14 @@ QLayoutItem *QToolBarAreaLayout::addToolBar(QInternal::DockPosition pos, QToolBa
 
 void QToolBarAreaLayout::insertToolBarBreak(QToolBar *before)
 {
-    QInternal::DockPosition pos = findToolBar(before);
-    if (pos == QInternal::DockCount)
-        return;
-    docks[pos].insertToolBarBreak(before);
+    if (auto pos = findToolBar(before))
+        docks[*pos].insertToolBarBreak(before);
 }
 
 void QToolBarAreaLayout::removeToolBarBreak(QToolBar *before)
 {
-    QInternal::DockPosition pos = findToolBar(before);
-    if (pos == QInternal::DockCount)
-        return;
-    docks[pos].removeToolBarBreak(before);
+    if (auto pos = findToolBar(before))
+        docks[*pos].removeToolBarBreak(before);
 }
 
 void QToolBarAreaLayout::addToolBarBreak(QInternal::DockPosition pos)
@@ -817,10 +805,8 @@ void QToolBarAreaLayout::addToolBarBreak(QInternal::DockPosition pos)
 
 void QToolBarAreaLayout::moveToolBar(QToolBar *toolbar, int p)
 {
-    QInternal::DockPosition pos = findToolBar(toolbar);
-    if (pos == QInternal::DockCount)
-        return;
-    docks[pos].moveToolBar(toolbar, p);
+    if (auto pos = findToolBar(toolbar))
+        docks[*pos].moveToolBar(toolbar, p);
 }
 
 
@@ -833,14 +819,11 @@ void QToolBarAreaLayout::insertItem(QInternal::DockPosition pos, QLayoutItem *it
 
 void QToolBarAreaLayout::insertItem(QToolBar *before, QLayoutItem *item)
 {
-    QInternal::DockPosition pos = findToolBar(before);
-    if (pos == QInternal::DockCount)
-        return;
-
-    docks[pos].insertItem(before, item);
+    if (auto pos = findToolBar(before))
+        docks[*pos].insertItem(before, item);
 }
 
-void QToolBarAreaLayout::apply(bool animate)
+void QToolBarAreaLayout::apply(QWidgetAnimator::AnimationRule rule)
 {
     QMainWindowLayout *layout = qt_mainwindow_layout(mainWindow);
     Q_ASSERT(layout != nullptr);
@@ -897,7 +880,7 @@ void QToolBarAreaLayout::apply(bool animate)
                 if (visible && dock.o == Qt::Horizontal)
                     geo = QStyle::visualRect(dir, line.rect, geo);
 
-                layout->widgetAnimator.animate(widget, geo, animate);
+                layout->widgetAnimator.animate(widget, geo, rule);
             }
         }
     }
@@ -1218,7 +1201,7 @@ static void packRect(uint *geom0, uint *geom1, const QRect &rect, bool floating)
 void QToolBarAreaLayout::saveState(QDataStream &stream) const
 {
     // save toolbar state
-    stream << (uchar) ToolBarStateMarkerEx;
+    stream << static_cast<uchar>(StateMarkers::ToolBarEx);
 
     int lineCount = 0;
     for (int i = 0; i < QInternal::DockCount; ++i)
@@ -1274,6 +1257,7 @@ static inline int getInt(QDataStream &stream)
 
 bool QToolBarAreaLayout::restoreState(QDataStream &stream, const QList<QToolBar*> &_toolBars, uchar tmarker, QInternal::CallMode callMode)
 {
+    const auto marker = static_cast<StateMarkers>(tmarker);
     const bool testing = callMode == QInternal::Testing;
     QList<QToolBar*> toolBars = _toolBars;
     int lines;
@@ -1313,7 +1297,7 @@ bool QToolBarAreaLayout::restoreState(QDataStream &stream, const QList<QToolBar*
             bool floating = false;
             uint geom0, geom1;
             geom0 = getInt(stream);
-            if (tmarker == ToolBarStateMarkerEx) {
+            if (marker == StateMarkers::ToolBarEx) {
                 geom1 = getInt(stream);
                 rect = unpackRect(geom0, geom1, &floating);
             }

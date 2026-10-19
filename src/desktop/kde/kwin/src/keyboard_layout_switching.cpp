@@ -58,7 +58,7 @@ std::unique_ptr<Policy> Policy::create(Xkb *xkb, KeyboardLayout *layout, const K
 const char Policy::defaultLayoutEntryKeyPrefix[] = "LayoutDefault";
 const QString Policy::defaultLayoutEntryKey() const
 {
-    return QLatin1String(defaultLayoutEntryKeyPrefix) % name() % QLatin1Char('_');
+    return QLatin1StringView(defaultLayoutEntryKeyPrefix) % name() % QLatin1Char('_');
 }
 
 void Policy::clearLayouts()
@@ -71,7 +71,7 @@ void Policy::clearLayouts()
 
 const QString GlobalPolicy::defaultLayoutEntryKey() const
 {
-    return QLatin1String(defaultLayoutEntryKeyPrefix) % name();
+    return QLatin1StringView(defaultLayoutEntryKeyPrefix) % name();
 }
 
 GlobalPolicy::GlobalPolicy(Xkb *xkb, KeyboardLayout *_layout, const KConfigGroup &config)
@@ -98,6 +98,7 @@ VirtualDesktopPolicy::VirtualDesktopPolicy(Xkb *xkb, KeyboardLayout *layout, con
 {
     connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged,
             this, &VirtualDesktopPolicy::desktopChanged);
+    connect(workspace(), &Workspace::activeOutputChanged, this, &VirtualDesktopPolicy::desktopChanged);
 
     connect(workspace()->sessionManager(), &SessionManager::prepareSessionSaveRequested, this, [this](const QString &name) {
         clearLayouts();
@@ -135,6 +136,7 @@ void VirtualDesktopPolicy::clearCache()
 
 namespace
 {
+
 template<typename T, typename U>
 quint32 getLayout(const T &layouts, const U &reference)
 {
@@ -145,6 +147,7 @@ quint32 getLayout(const T &layouts, const U &reference)
         return it.value();
     }
 }
+
 }
 
 void VirtualDesktopPolicy::desktopChanged()

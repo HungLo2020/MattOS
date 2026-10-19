@@ -14,10 +14,8 @@
 #include <QDBusConnection>
 #include <QRegularExpression>
 
-#include <KConfigGroup>
-#include <KSharedConfig>
-
 #include "kwallet_interface.h"
+#include "kwalletsettings.h"
 
 typedef QMap<QString, QByteArray> StringByteArrayMap;
 Q_DECLARE_METATYPE(StringByteArrayMap)
@@ -34,7 +32,6 @@ public:
     org::kde::KWallet &getInterface();
 
     org::kde::KWallet *m_wallet_deamon;
-    KConfigGroup m_cgroup;
     bool m_walletEnabled;
 };
 
@@ -56,31 +53,32 @@ static void registerTypes()
 
 const QString Wallet::LocalWallet()
 {
-    KConfigGroup cfg(KSharedConfig::openConfig(QStringLiteral("kwalletrc"))->group(QStringLiteral("Wallet")));
-    if (!cfg.readEntry("Use One Wallet", true)) {
-        QString tmp = cfg.readEntry("Local Wallet", "localwallet");
-        if (tmp.isEmpty()) {
-            return QStringLiteral("localwallet");
+    if (walletLauncher()->m_walletEnabled) {
+        QDBusReply<QString> r = walletLauncher()->getInterface().localWallet();
+        if (!r.isValid()) {
+            qCDebug(KWALLET_API_LOG) << "Invalid DBus reply: " << r.error();
+            return QString();
+        } else {
+            return r;
         }
-        return tmp;
+    } else {
+        return QString();
     }
-
-    QString tmp = cfg.readEntry("Default Wallet", "kdewallet");
-    if (tmp.isEmpty()) {
-        return QStringLiteral("kdewallet");
-    }
-    return tmp;
 }
 
 const QString Wallet::NetworkWallet()
 {
-    KConfigGroup cfg(KSharedConfig::openConfig(QStringLiteral("kwalletrc"))->group(QStringLiteral("Wallet")));
-
-    QString tmp = cfg.readEntry("Default Wallet", "kdewallet");
-    if (tmp.isEmpty()) {
-        return QStringLiteral("kdewallet");
+    if (walletLauncher()->m_walletEnabled) {
+        QDBusReply<QString> r = walletLauncher()->getInterface().networkWallet();
+        if (!r.isValid()) {
+            qCDebug(KWALLET_API_LOG) << "Invalid DBus reply: " << r.error();
+            return QString();
+        } else {
+            return r;
+        }
+    } else {
+        return QString();
     }
-    return tmp;
 }
 
 const QString Wallet::PasswordFolder()
@@ -264,8 +262,6 @@ Wallet *Wallet::openWallet(const QString &name, WId w, OpenType ot)
         // will not match. We'll get that handle from the reply - see below
     } else if (ot == Asynchronous) {
         r = interface.openAsync(name, (qlonglong)w, appid(), true);
-    } else if (ot == Path) {
-        r = interface.openPathAsync(name, (qlonglong)w, appid(), true);
     } else {
         delete wallet;
         return nullptr;
@@ -294,18 +290,6 @@ Wallet *Wallet::openWallet(const QString &name, WId w, OpenType ot)
     }
 
     return wallet;
-}
-
-void Wallet::slotCollectionStatusChanged(int status)
-{
-    Q_UNUSED(status)
-}
-
-void Wallet::slotCollectionDeleted()
-{
-    d->folder.clear();
-    d->name.clear();
-    Q_EMIT walletClosed();
 }
 
 bool Wallet::disconnectApplication(const QString &wallet, const QString &app)
@@ -339,6 +323,7 @@ QStringList Wallet::users(const QString &name)
     }
 }
 
+#if KWALLET_BUILD_DEPRECATED_SINCE(6, 30)
 int Wallet::sync()
 {
     if (d->handle == -1) {
@@ -348,7 +333,9 @@ int Wallet::sync()
     walletLauncher()->getInterface().sync(d->handle, appid());
     return 0;
 }
+#endif
 
+#if KWALLET_BUILD_DEPRECATED_SINCE(6, 30)
 int Wallet::lockWallet()
 {
     if (d->handle == -1) {
@@ -366,6 +353,7 @@ int Wallet::lockWallet()
         return -1;
     }
 }
+#endif
 
 const QString &Wallet::walletName() const
 {
@@ -377,6 +365,7 @@ bool Wallet::isOpen() const
     return d->handle != -1;
 }
 
+#if KWALLET_BUILD_DEPRECATED_SINCE(6, 30)
 void Wallet::requestChangePassword(WId w)
 {
     if (w == 0) {
@@ -389,6 +378,7 @@ void Wallet::requestChangePassword(WId w)
 
     walletLauncher()->getInterface().changePassword(d->name, (qlonglong)w, appid());
 }
+#endif
 
 void Wallet::slotWalletClosed(int handle)
 {
@@ -881,10 +871,11 @@ void Wallet::virtual_hook(int, void *)
 
 KWalletDLauncher::KWalletDLauncher()
     : m_wallet_deamon(nullptr)
-    , m_cgroup(KSharedConfig::openConfig(QStringLiteral("kwalletrc"), KConfig::NoGlobals)->group(QStringLiteral("Wallet")))
     , m_walletEnabled(false)
 {
-    m_walletEnabled = m_cgroup.readEntry("Enabled", true);
+    KWalletSettings settings;
+
+    m_walletEnabled = settings.kWalletDEnabled();
     if (!m_walletEnabled) {
         qCDebug(KWALLET_API_LOG) << "The wallet service was disabled by the user";
         return;

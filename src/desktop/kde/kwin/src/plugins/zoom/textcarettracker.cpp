@@ -45,7 +45,7 @@ void TextCaretTracker::tryUpdate()
     } else {
         unsubscribeLegacyTextCaretMoved();
 
-        const QRectF cursorRectangle = kwinApp()->inputMethod()->cursorRectangle();
+        const RectF cursorRectangle = kwinApp()->inputMethod()->cursorRectangle();
         if (cursorRectangle.isEmpty()) {
             m_cursorRectangle.reset();
             return;

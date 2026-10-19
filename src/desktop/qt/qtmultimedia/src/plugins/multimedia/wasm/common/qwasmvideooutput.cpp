@@ -10,6 +10,15 @@
 #include <QFile>
 #include <QBuffer>
 #include <QMimeDatabase>
+#include <QPointer>
+#include <QGuiApplication>
+#include <QOpenGLContext>
+
+#include <QtGui/rhi/qrhi_platform.h>
+#include <qpa/qplatformwindow_p.h>
+
+#include <GLES2/gl2.h>
+
 #include "qwasmvideooutput_p.h"
 
 #include <qvideosink.h>
@@ -21,9 +30,22 @@
 #include <QTimer>
 
 #include <emscripten/bind.h>
-#include <emscripten/html5.h>
 #include <emscripten/val.h>
 
+// Upload the current video frame to the already-bound TEXTURE_2D.
+// The canvas is passed as an EM_VAL handle; Emval.toValue() here refers to
+// Emscripten's internal Emval object, not Module.Emval — no EXPORTED_RUNTIME_METHODS entry needed.
+EM_JS(void, em_texImage2DFromVideo, (const char *videoId, int *pW, int *pH), {
+    var gl = GL.currentContext.GLctx;
+    var video = document.getElementById(UTF8ToString(videoId));
+    if (!video) { return; }
+    var frame;
+    try { frame = new VideoFrame(video); } catch(e) { return; }
+    HEAP32[pW >> 2] = frame.displayWidth;
+    HEAP32[pH >> 2] = frame.displayHeight;
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frame);
+    frame.close();
+});
 
 QT_BEGIN_NAMESPACE
 
@@ -33,19 +55,75 @@ using namespace Qt::Literals;
 
 Q_LOGGING_CATEGORY(qWasmMediaVideoOutput, "qt.multimedia.wasm.videooutput")
 
-
 static bool checkForVideoFrame()
 {
     emscripten::val videoFrame = emscripten::val::global("VideoFrame");
     return (!videoFrame.isNull() && !videoFrame.isUndefined());
 }
 
+bool QWasmVideoOutput::isPlatformiOs()
+{
+    emscripten::val platformObject = emscripten::val::global("navigator")["platform"];
+    if (platformObject.call<bool>("includes", emscripten::val("iPhone"))
+        || platformObject.call<bool>("includes", emscripten::val("iPad")))
+        return true;
+    return false;
+}
+
 QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
 {
     m_hasVideoFrame = checkForVideoFrame();
+
+    if (m_hasVideoFrame) {
+        if (isPlatformiOs()) {
+            // iOS has [broken] camera driver
+            connect(this, &QWasmVideoOutput::orientationChanged, this,
+                    [&](int orientationIndex) {
+
+                if (orientationIndex & EMSCRIPTEN_ORIENTATION_PORTRAIT_PRIMARY) {// 1
+                    m_rotateBy = QtVideo::Rotation::Clockwise90;
+                } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_LANDSCAPE_PRIMARY) {// 4
+                    if (m_cameraMode == QWasmVideoOutput::Front) {
+                        m_rotateBy = QtVideo::Rotation::Clockwise180;
+                    } else {
+                        m_rotateBy = QtVideo::Rotation::None;
+                    }
+                } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_PORTRAIT_SECONDARY) {// 2
+                    m_rotateBy = QtVideo::Rotation::Clockwise270;
+                } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_LANDSCAPE_SECONDARY) {// 8
+                    if (m_cameraMode == QWasmVideoOutput::Front) {
+                        m_rotateBy = QtVideo::Rotation::None;
+                    } else {
+                        m_rotateBy = QtVideo::Rotation::Clockwise180;
+                    }
+                }
+            });
+
+            emscripten_set_orientationchange_callback(this,false, &QWasmVideoOutput::orientationchangeCallback);
+        }
+    }
 }
 
-QWasmVideoOutput::~QWasmVideoOutput() = default;
+QWasmVideoOutput::~QWasmVideoOutput()
+{
+    if (m_mediaInputStream) {
+        if (m_streamStarted) {
+            m_streamStarted = false;
+            m_mediaInputStream->unregisterConsumer();
+        }
+        JsMediaInputStream::releaseInstance(m_cameraId);
+    }
+}
+
+int QWasmVideoOutput::getCurrentOrientationIndex()
+{
+    //get current status
+    EmscriptenOrientationChangeEvent status;
+    EMSCRIPTEN_RESULT result = emscripten_get_orientation_status(&status);
+    if (result == EMSCRIPTEN_RESULT_SUCCESS)
+        return status.orientationIndex;
+    return 0;
+}
 
 void QWasmVideoOutput::setVideoSize(const QSize &newSize)
 {
@@ -56,9 +134,88 @@ void QWasmVideoOutput::setVideoSize(const QSize &newSize)
     updateVideoElementGeometry(QRect(0, 0, m_pendingVideoSize.width(), m_pendingVideoSize.height()));
 }
 
+bool QWasmVideoOutput::orientationchangeCallback(int eventType,
+                                                 const EmscriptenOrientationChangeEvent *event,
+                                                 void *userData)
+{
+    Q_UNUSED(eventType)
+
+    QWasmVideoOutput *videoOutput = static_cast<QWasmVideoOutput *>(userData);
+    emit videoOutput->orientationChanged(event->orientationIndex);
+
+    return true;
+}
+
 void QWasmVideoOutput::setVideoMode(QWasmVideoOutput::WasmVideoMode mode)
 {
     m_currentVideoMode = mode;
+}
+
+// Calls play() on the video element and handles the returned promise.
+//
+// A play() that is interrupted by a new load request (e.g. a fresh srcObject or
+// a load() call) rejects with AbortError. That rejection is benign, but if the
+// promise is left unhandled the browser reports it as an uncaught rejection.
+//
+// A play() that is refused outright is not benign, the element stays unplayable
+// and fires no further media events, so nothing else would take the player out
+// of the state it is in. Report those instead of swallowing them.
+void QWasmVideoOutput::playVideoElement()
+{
+    emscripten::val promise = m_video.call<emscripten::val>("play");
+    // Older browsers return undefined from play() instead of a Promise. Only
+    // attach handlers when we actually got a Promise back.
+    if (promise.isUndefined() || promise.isNull() || promise["then"].isUndefined())
+        return;
+
+    QPointer<QWasmVideoOutput> videoOutput(this);
+    qstdweb::Promise::adoptPromise(promise, {
+        .catchFunc = [videoOutput](emscripten::val error) {
+            if (!videoOutput || videoOutput->m_isStopped)
+                return;
+
+            // The rejection value is not guaranteed to be a DOMException, so do
+            // not assume either property is there.
+            const auto stringProperty = [&error](const char *key) {
+                return error[key].isUndefined() || error[key].isNull()
+                        ? QString()
+                        : QString::fromStdString(error[key].as<std::string>());
+            };
+            const QString errorName = stringProperty("name");
+            const QString errorMessage = stringProperty("message");
+            // The browsers word this differently and some do not mention play()
+            // at all, so keep the origin in the string the application sees.
+            const QString errorString =
+                    "video.play(): "_L1 + (errorMessage.isEmpty() ? errorName : errorMessage);
+
+            // Not being allowed to play is a policy refusal, not an interruption.
+            // The element is not sitting at a resume point, it is unplayable
+            // until the user acts, so report it regardless of what the paused
+            // attribute happens to say.
+            if (errorName == "NotAllowedError"_L1) {
+                qCWarning(qWasmMediaVideoOutput) << "video.play() not allowed:" << errorMessage;
+                emit videoOutput->readyChanged(false);
+                emit videoOutput->stateChanged(QWasmMediaPlayer::Stopped);
+                emit videoOutput->errorOccured(QMediaPlayer::AccessDeniedError, errorString);
+                return;
+            }
+
+            // Anything else is delivered a microtask late, and an AbortError from
+            // a new load request is routinely followed by a fresh play() that has
+            // already succeeded by now. Trust the element over the rejection.
+            if (!videoOutput->m_video["paused"].as<bool>()) {
+                qCDebug(qWasmMediaVideoOutput) << "video.play() rejected with" << errorName
+                                               << "but playback resumed, ignoring";
+                return;
+            }
+
+            qCWarning(qWasmMediaVideoOutput) << "video.play() rejected:" << errorName
+                                             << errorMessage;
+            emit videoOutput->readyChanged(false);
+            emit videoOutput->stateChanged(QWasmMediaPlayer::Stopped);
+            emit videoOutput->errorOccured(QMediaPlayer::ResourceError, errorString);
+        }
+    });
 }
 
 void QWasmVideoOutput::start()
@@ -69,6 +226,7 @@ void QWasmVideoOutput::start()
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
+
     switch (m_currentVideoMode) {
     case QWasmVideoOutput::VideoDisplay: {
         emscripten::val sourceObj = m_video["src"];
@@ -78,8 +236,16 @@ void QWasmVideoOutput::start()
         if (!isReady())
             m_video.call<void>("load");
     } break;
-    case QWasmVideoOutput::SurfaceCapture:
+    case QWasmVideoOutput::SurfaceCapture: {
+        playVideoElement();
+        emit readyChanged(true);
+    } break;
     case QWasmVideoOutput::Camera: {
+        {
+            emscripten::val document = emscripten::val::global("document");
+            if (m_video["parentNode"].isNull() || m_video["parentNode"].isUndefined())
+                document["body"].call<void>("appendChild", m_video);
+        }
         if (!m_cameraIsReady) {
             m_shouldBeStarted = true;
         }
@@ -87,7 +253,16 @@ void QWasmVideoOutput::start()
        if (!m_connection)
             m_connection = connect(m_mediaInputStream, &JsMediaInputStream::mediaVideoStreamReady, this,
                 [=]( ) {
-                    m_video.set("srcObject", m_mediaInputStream->getMediaStream());
+                    emscripten::val newStream = m_mediaInputStream->getMediaStream();
+                    // mediaVideoStreamReady may fire again for an already-attached
+                    // stream (e.g. a restart on a still-active camera). Re-setting
+                    // srcObject would interrupt the in-flight play() and reject its
+                    // promise with AbortError, so skip it when nothing changed.
+                    if (m_video["srcObject"].equals(newStream)) {
+                        emit readyChanged(true);
+                        return;
+                    }
+                    m_video.set("srcObject", newStream);
 
                     emscripten::val stream = m_video["srcObject"];
                     if (stream.isNull() || stream.isUndefined()) { // camera  device
@@ -109,58 +284,71 @@ void QWasmVideoOutput::start()
                             return;
                         }
                         emscripten::val videoSettings = videoTracks[0].call<emscripten::val>("getSettings");
-                        if (!videoSettings.isNull() || !videoSettings.isUndefined()) {
+                        if (!videoSettings.isNull() && !videoSettings.isUndefined()) {
                             const int width = videoSettings["width"].as<int>();
                             const int height = videoSettings["height"].as<int>();
                             updateVideoElementGeometry(QRect(0, 0, width, height));
+                            if (!videoSettings["frameRate"].isUndefined())
+                                m_streamFrameRate = videoSettings["frameRate"].as<double>();
                         }
                     }
 
-                    m_video.call<void>("play");
+                    playVideoElement();
 
-                    if (m_currentVideoMode == QWasmVideoOutput::Camera
-                        || m_currentVideoMode == QWasmVideoOutput::SurfaceCapture) {
-                            emit readyChanged(true);
-                            if (m_hasVideoFrame)
-                                videoFrameTimerCallback();
-                    }
+                    emit readyChanged(true);
 
                 });
         m_mediaInputStream->setUseAudio(false);
         m_shouldBeStarted = true;
+        m_mediaInputStream->setVideoConstraints(m_videoResolution, m_minFrameRate, m_maxFrameRate);
+        if (!m_streamStarted) {
+            m_streamStarted = true;
+            m_mediaInputStream->registerConsumer();
+        }
         m_mediaInputStream->setStreamDevice(m_cameraId);
 
     } break;
     };
 
-    m_shouldStop = false;
-    m_toBePaused = false;
+    m_isStopped = false;
 
     if (m_currentVideoMode != QWasmVideoOutput::Camera
         && m_currentVideoMode != QWasmVideoOutput::SurfaceCapture) {
-        m_video.call<void>("play");
+        playVideoElement();
     }
 }
 
 void QWasmVideoOutput::stop()
 {
-    qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO;
-
+    if (m_isStopped)
+        return;
+    qCWarning(qWasmMediaVideoOutput) << Q_FUNC_INFO << "mode=" << m_currentVideoMode;
     if (m_video.isUndefined() || m_video.isNull()) {
-        // error
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
         return;
     }
-    m_shouldStop = true;
+    m_isStopped = true;
     if (!m_toBePaused) {
-        // we are stopped , need to reset
-        m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
+        if (m_currentVideoMode == QWasmVideoOutput::SurfaceCapture) {
+            emscripten::val stream = m_video["srcObject"];
+            if (!stream.isNull() && !stream.isUndefined()) {
+                emscripten::val tracks = stream.call<emscripten::val>("getTracks");
+                const int count = tracks["length"].as<int>();
+                for (int i = 0; i < count; ++i)
+                    tracks[i].call<void>("stop");
+            }
+        } else if (m_mediaInputStream && m_streamStarted) {
+            // Only stop the shared MediaStream once the last consumer of this
+            // camera goes away; other displays of the same camera keep running.
+            m_streamStarted = false;
+            m_mediaInputStream->unregisterConsumer();
+        }
 
-         m_video.set("srcObject", emscripten::val::null());
+
+        m_video.set("srcObject", emscripten::val::null());
         disconnect(m_connection);
-
+        m_connection = {};
         m_video.call<void>("remove");
-
     } else {
         m_video.call<void>("pause");
     }
@@ -175,7 +363,7 @@ void QWasmVideoOutput::pause()
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
-    m_shouldStop = false;
+    m_isStopped = false;
     m_toBePaused = true;
     m_video.call<void>("pause");
 }
@@ -186,7 +374,7 @@ void QWasmVideoOutput::reset()
     if (m_wasmSink)
         m_wasmSink->platformVideoSink()->setVideoFrame(QVideoFrame());
 
-    m_source = QStringLiteral("")   ;
+    m_source.clear();
     m_video.set("currentTime", emscripten::val(0));
     m_video.call<void>("load");
 }
@@ -232,8 +420,7 @@ void QWasmVideoOutput::setSource(const QUrl &url)
     if (url.isLocalFile()) {
         QFile localFile(url.toLocalFile());
         if (localFile.open(QIODevice::ReadOnly)) {
-            QDataStream buffer(&localFile); // we will serialize the data into the file
-            setSource(buffer.device());
+            setSource(&localFile);
         } else {
             qWarning() << "Failed to open file";
         }
@@ -252,7 +439,9 @@ void QWasmVideoOutput::updateVideoElementSource(const QString &src)
 void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
 {
     m_cameraIsReady = false;
-    m_mediaInputStream = JsMediaInputStream::instance();
+    if (m_mediaInputStream)
+        JsMediaInputStream::releaseInstance(m_cameraId);
+    m_mediaInputStream = JsMediaInputStream::instance(id);
 
     m_mediaInputStream->setUseAudio(m_hasAudio);
     m_mediaInputStream->setUseVideo(true);
@@ -269,6 +458,13 @@ void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
         });
 
     m_cameraId = id;
+}
+
+void QWasmVideoOutput::setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate)
+{
+    m_videoResolution = resolution;
+    m_minFrameRate = minFrameRate;
+    m_maxFrameRate = maxFrameRate;
 }
 
 void QWasmVideoOutput::setSource(QIODevice *stream)
@@ -375,11 +571,9 @@ void QWasmVideoOutput::createVideoElement(const std::string &id)
     emscripten::val document = emscripten::val::global("document");
     emscripten::val body = document["body"];
 
-    emscripten::val oldVideo = document.call<emscripten::val>("getElementById", id);
-
-    // need to remove stale element
-    if (!oldVideo.isUndefined() && !oldVideo.isNull())
-        oldVideo.call<void>("remove");
+    // remove any previously created video element for this output
+    if (!m_video.isUndefined() && !m_video.isNull())
+        m_video.call<void>("remove");
 
     m_videoSurfaceId = id;
     m_video = document.call<emscripten::val>("createElement", std::string("video"));
@@ -470,8 +664,6 @@ void QWasmVideoOutput::doElementCallbacks()
     // event callbacks
     // timupdate
     auto timeUpdateCallback = [=](emscripten::val event) {
-        qCDebug(qWasmMediaVideoOutput) << "timeupdate";
-
         // qt progress is ms
         emit progressChanged(event["target"]["currentTime"].as<double>() * 1000);
     };
@@ -492,8 +684,6 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "ended";
         m_currentMediaStatus = MediaStatus::EndOfMedia;
         emit statusChanged(m_currentMediaStatus);
-        m_shouldStop = true;
-        stop();
     };
     m_endedEvent.reset(new QWasmEventHandler(m_video, "ended", endedCallback));
 
@@ -559,7 +749,7 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "load started";
         m_currentMediaStatus = MediaStatus::LoadingMedia;
         emit statusChanged(m_currentMediaStatus);
-        m_shouldStop = false;
+        m_isStopped = false;
     };
     m_loadStartChangeEvent.reset(new QWasmEventHandler(m_video, "loadstart", loadStartCallback));
 
@@ -571,7 +761,7 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "can play"
                                        << "m_requestedPosition" << m_requestedPosition;
 
-        if (!m_shouldStop)
+        if (!m_isStopped)
             emit readyChanged(true); // sets video available
     };
     m_canPlayChangeEvent.reset(new QWasmEventHandler(m_video, "canplay", canPlayCallback));
@@ -580,15 +770,16 @@ void QWasmVideoOutput::doElementCallbacks()
     auto canPlayThroughCallback = [=](emscripten::val event) {
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "can play through"
-                                       << "m_shouldStop" << m_shouldStop;
+                                       << "m_isStopped" << m_isStopped;
 
         if (m_currentMediaStatus == MediaStatus::EndOfMedia)
             return;
-        if (m_isSeekable != isVideoSeekable()) {
-            m_isSeekable = isVideoSeekable();
+        bool seekable = isVideoSeekable();
+        if (m_isSeekable != seekable) {
+            m_isSeekable = seekable;
             emit seekableChanged(m_isSeekable);
         }
-        if (!m_isSeeking && !m_shouldStop) {
+        if (!m_isSeeking && !m_isStopped) {
             emscripten::val timeRanges = m_video["buffered"];
             if ((!timeRanges.isNull() || !timeRanges.isUndefined())
                     && timeRanges["length"].as<int>() == 1) {
@@ -600,14 +791,14 @@ void QWasmVideoOutput::doElementCallbacks()
                     emit bufferingChanged(m_currentBufferedValue);
                 }
             }
-            constexpr int hasCurrentData = 2;
-            if (m_video["readyState"].as<int>() >= hasCurrentData) {
+            constexpr int hasEnoughData = 4;
+            if (m_video["readyState"].as<int>() == hasEnoughData) {
                 m_currentMediaStatus = MediaStatus::LoadedMedia;
                 emit statusChanged(m_currentMediaStatus);
                 videoFrameTimerCallback();
             }
         } else {
-            m_shouldStop = false;
+            m_isStopped = false;
         }
     };
     m_canPlayThroughChangeEvent.reset(
@@ -668,9 +859,9 @@ void QWasmVideoOutput::doElementCallbacks()
         if (m_isSeeking)
             return;
         emit stateChanged(QWasmMediaPlayer::Started);
-        if (m_toBePaused || !m_shouldStop) { // paused
+        if (m_toBePaused) { // paused
             m_toBePaused = false;
-            QMetaObject::invokeMethod(this, &QWasmVideoOutput::videoFrameTimerCallback, Qt::QueuedConnection);
+            videoFrameTimerCallback();
         }
     };
     m_playingChangeEvent.reset(new QWasmEventHandler(m_video, "playing", playingCallback));
@@ -712,10 +903,10 @@ void QWasmVideoOutput::doElementCallbacks()
     auto pauseCallback = [=](emscripten::val event) {
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "pause";
-
+        m_toBePaused = true;
         const double currentTime = m_video["currentTime"].as<double>(); // in seconds
         const double duration = m_video["duration"].as<double>(); // in seconds
-        if ((currentTime > 0 && currentTime < duration) && (!m_shouldStop && m_toBePaused)) {
+        if ((currentTime > 0 && currentTime < duration) && (!m_isStopped)) {
             emit stateChanged(QWasmMediaPlayer::Paused);
         } else {
             // stop this crazy thing!
@@ -811,21 +1002,18 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
     }
     emscripten::val document = emscripten::val::global("document");
 
-    emscripten::val videoElement =
-            document.call<emscripten::val>("getElementById", std::string(m_videoSurfaceId));
-
-    if (videoElement.isUndefined() || videoElement.isNull()) {
+    if (m_video.isUndefined() || m_video.isNull()) {
         qCDebug(qWasmMediaVideoOutput) << "video element could not be found";
         return;
     }
 
-    const int videoWidth = videoElement["videoWidth"].as<int>();
-    const int videoHeight = videoElement["videoHeight"].as<int>();
+    const int videoWidth = m_video["videoWidth"].as<int>();
+    const int videoHeight = m_video["videoHeight"].as<int>();
 
     if (videoWidth == 0 || videoHeight == 0)
         return;
 
-    m_offscreenContext.call<void>("drawImage", videoElement, 0, 0, videoWidth, videoHeight);
+    m_offscreenContext.call<void>("drawImage", m_video, 0, 0, videoWidth, videoHeight);
 
     emscripten::val frame = // one frame, Uint8ClampedArray
             m_offscreenContext.call<emscripten::val>("getImageData", 0, 0, videoWidth, videoHeight);
@@ -838,6 +1026,13 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
     QVideoFrameFormat frameFormat =
             QVideoFrameFormat(frameBytesAllocationSize, QVideoFrameFormat::Format_RGBA8888);
 
+    QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
+
+    if (m_useCameraRotation)
+        frameFormat.setRotation(wasmVideoOutput->m_rotateBy);
+    if (m_streamFrameRate > 0)
+        frameFormat.setStreamFrameRate(m_streamFrameRate);
+
     auto *textureDescription = QVideoTextureHelper::textureDescription(frameFormat.pixelFormat());
 
     QVideoFrame vFrame = QVideoFramePrivate::createFrame(
@@ -845,7 +1040,6 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
                     std::move(frameBytes),
                     textureDescription->strideForWidth(frameFormat.frameWidth())), // width of line with padding
             frameFormat);
-    QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
 
     if (!wasmVideoOutput->m_wasmSink) {
         qWarning() << "ERROR ALERT!! video sink not set";
@@ -853,11 +1047,11 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
     wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
 }
 
-
+// non webgl context with VideoFrame
 void QWasmVideoOutput::videoFrameCallback(void *context)
 {
     QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-    if (!videoOutput || !videoOutput->isReady())
+    if (!videoOutput)
         return;
     emscripten::val videoElement = videoOutput->currentVideoElement();
 
@@ -882,8 +1076,11 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
     emscripten::val options = emscripten::val::object();
     emscripten::val rectOptions = emscripten::val::object();
 
-    rectOptions.set("width",oneVideoFrame["displayWidth"].as<int>());
-    rectOptions.set("height", oneVideoFrame["displayHeight"].as<int>());
+    int displayWidth = oneVideoFrame["displayWidth"].as<int>();
+    int displayHeight = oneVideoFrame["displayHeight"].as<int>();
+
+    rectOptions.set("width", displayWidth);
+    rectOptions.set("height", displayHeight);
     options.set("rect", rectOptions);
 
     emscripten::val frameBytesAllocationSize = oneVideoFrame.call<emscripten::val>("allocationSize", options);
@@ -893,7 +1090,8 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
             reinterpret_cast<QWasmVideoOutput*>(videoElement["data-qvideocontext"].as<quintptr>());
 
     qstdweb::PromiseCallbacks copyToCallback;
-    copyToCallback.thenFunc = [wasmVideoOutput, oneVideoFrame, frameBuffer, videoElement]
+    copyToCallback.thenFunc = [this, wasmVideoOutput, oneVideoFrame, frameBuffer,
+                                displayWidth, displayHeight]
             (emscripten::val frameLayout)
     {
         if (frameLayout.isNull() || frameLayout.isUndefined()) {
@@ -902,21 +1100,21 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
         }
 
         // frameBuffer now has a new frame, send to Qt
-        const QSize frameSize(oneVideoFrame["displayWidth"].as<int>(),
-                              oneVideoFrame["displayHeight"].as<int>());
+        const QSize frameSize(displayWidth,
+                              displayHeight);
 
         QByteArray frameBytes = QByteArray::fromEcmaUint8Array(frameBuffer);
 
-        QVideoFrameFormat::PixelFormat pixelFormat = fromJsPixelFormat(oneVideoFrame["format"].as<std::string>());
-        if (pixelFormat == QVideoFrameFormat::Format_Invalid) {
-            qWarning() << "Invalid pixel format";
-            return;
-        }
+        constexpr auto pixelFormat = QVideoFrameFormat::Format_RGBA8888;
         QVideoFrameFormat frameFormat = QVideoFrameFormat(frameSize, pixelFormat);
 
+        if (m_useCameraRotation)
+            frameFormat.setRotation(wasmVideoOutput->m_rotateBy);
+        if (m_streamFrameRate > 0)
+            frameFormat.setStreamFrameRate(m_streamFrameRate);
         auto buffer = std::make_unique<QMemoryVideoBuffer>(
                 std::move(frameBytes),
-                oneVideoFrame["codedWidth"].as<int>());
+                frameLayout[0]["stride"].as<int>());
 
         QVideoFrame vFrame =
                 QVideoFramePrivate::createFrame(std::move(buffer), std::move(frameFormat));
@@ -933,54 +1131,191 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
         wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
         oneVideoFrame.call<emscripten::val>("close");
     };
-    copyToCallback.catchFunc = [&, wasmVideoOutput, oneVideoFrame, videoElement](emscripten::val error)
+    copyToCallback.catchFunc = [oneVideoFrame](emscripten::val error)
     {
-        qCDebug(qWasmMediaVideoOutput) << "Error"
+        qCDebug(qWasmMediaVideoOutput) << "copyTo error"
                                << QString::fromStdString(error["name"].as<std::string>())
-                               << QString::fromStdString(error["message"].as<std::string>()) ;
-
+                               << QString::fromStdString(error["message"].as<std::string>());
         oneVideoFrame.call<emscripten::val>("close");
-        wasmVideoOutput->stop();
-        return;
     };
 
-    qstdweb::Promise::make(oneVideoFrame, u"copyTo"_s, std::move(copyToCallback), frameBuffer);
+    qstdweb::Promise::make(oneVideoFrame, u"copyTo"_s, std::move(copyToCallback), frameBuffer, options);
 }
 
+EM_JS(EMSCRIPTEN_WEBGL_CONTEXT_HANDLE, qwasm_find_webgl_context_for_canvas, (EM_VAL canvasHandle), {
+    var canvas = Emval.toValue(canvasHandle);
+    for (var id in GL.contexts) {
+        var entry = GL.contexts[id];
+        if (entry && entry.GLctx && entry.GLctx.canvas === canvas)
+            return parseInt(id);
+    }
+    return 0;
+});
+
+void QWasmVideoOutput::getWebGLContext()
+{
+    m_glContextHandle = 0;
+    m_hasWebGLContext = false;
+
+    QRhi *rhi = m_wasmSink ? m_wasmSink->rhi() : nullptr;
+    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
+        return;
+
+    const auto *nh = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+    if (!nh || !nh->context)
+        return;
+
+    QOpenGLContext *ctx = nh->context;
+
+    auto tryGetHandleFromSurface = [&]() -> bool {
+        QSurface *surface = ctx->surface();
+        if (!surface || surface->surfaceClass() != QSurface::Window)
+            return false;
+        QWindow *window = static_cast<QWindow *>(surface);
+        if (!window->handle())
+            return false;
+        auto *wasmIface = window->nativeInterface<QNativeInterface::Private::QWasmWindow>();
+        if (!wasmIface)
+            return false;
+        emscripten::val canvas = wasmIface->canvas();
+        emscripten::val glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl2"));
+        if (glCtx.isNull() || glCtx.isUndefined())
+            glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl"));
+        if (glCtx.isNull() || glCtx.isUndefined())
+            return false;
+        m_glContextHandle = qwasm_find_webgl_context_for_canvas(canvas.as_handle());
+        m_hasWebGLContext = (m_glContextHandle > 0);
+        return m_hasWebGLContext;
+    };
+
+    if (!tryGetHandleFromSurface())
+        qWarning() << Q_FUNC_INFO << "could not locate WebGL canvas for the current RHI context";
+}
+
+// framemaker for webgl context
+void QWasmVideoOutput::webglVideoFrameCallback(void *context)
+{
+    QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
+    if (!wasmVideoOutput)
+        return;
+
+    emscripten_webgl_make_context_current(wasmVideoOutput->m_glContextHandle);
+
+    GLuint rawTexId = 0;
+    glGenTextures(1, &rawTexId);
+    QGlTextureHandle texHandle{ rawTexId };
+
+    glBindTexture(GL_TEXTURE_2D, texHandle.get());
+
+    int w = 0, h = 0;
+    em_texImage2DFromVideo(wasmVideoOutput->m_videoSurfaceId.c_str(), &w, &h);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    if (!texHandle || w == 0 || h == 0) {
+        qCWarning(qWasmMediaVideoOutput) << "VideoFrame upload failed";
+        return;
+    }
+
+    std::unique_ptr<QHwVideoBuffer> hwBuffer =
+            std::make_unique<QWasmGLTextureVideoBuffer>(
+                    std::move(texHandle), QSize(w, h),
+                    wasmVideoOutput->m_glContextHandle,
+                    wasmVideoOutput->m_wasmSink ? wasmVideoOutput->m_wasmSink->rhi() : nullptr);
+
+    QVideoFrameFormat frameFormat(QSize(w, h), QVideoFrameFormat::Format_RGBA8888);
+    if (wasmVideoOutput->m_streamFrameRate > 0)
+        frameFormat.setStreamFrameRate(wasmVideoOutput->m_streamFrameRate);
+    QVideoFrame vFrame =
+            QVideoFramePrivate::createFrame(std::move(hwBuffer), std::move(frameFormat));
+
+    wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
+}
+
+// default fallback for non VideoFrame
 void QWasmVideoOutput::videoFrameTimerCallback()
 {
-    static auto frame = [](double frameTime, void *context) -> EM_BOOL {
+    if (m_hasVideoFrame && !m_hasWebGLContext && !m_webGLContextChecked) {
+        m_webGLContextChecked = true;
+        getWebGLContext();
+    }
+
+    if (isPlatformiOs()) {
+        m_useCameraRotation = true;
+        emscripten::val stream = m_video["srcObject"];
+        emscripten::val vTraks = stream.call<emscripten::val>("getVideoTracks");
+
+        if (!vTraks.isUndefined() && vTraks["length"].as<int>() > 0) {
+            emscripten::val trak = vTraks[0];
+            emscripten::val settings = trak.call<emscripten::val>("getSettings");
+
+            if (settings["facingMode"].as<std::string>() == "user")
+                m_cameraMode = QWasmVideoOutput::Front;
+            else
+                m_cameraMode = QWasmVideoOutput::Back;
+            // now we know camera, set m_rotateBy
+            orientationChanged(getCurrentOrientationIndex());
+        }
+    }
+
+    // Single-shot callback: re-registers each frame so multiple QWasmVideoOutput
+    // instances can coexist. emscripten_request_animation_frame_loop allows only one
+    // active loop globally and would cancel another instance.
+    static EM_BOOL (*frame)(double, void *) = [](double frameTime, void *context) -> EM_BOOL {
+
         Q_UNUSED(frameTime);
 
         QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-        if (!videoOutput || videoOutput->m_currentMediaStatus != MediaStatus::LoadedMedia)
+        if (!videoOutput || videoOutput->m_isStopped) {
+            qCWarning(qWasmMediaVideoOutput) << "frame loop exit: isStopped=" << (videoOutput ? videoOutput->m_isStopped : true)
+                                             << "mode=" << (videoOutput ? videoOutput->m_currentVideoMode : -1);
             return false;
-        if (videoOutput->m_shouldStop)
-            return false;
-        emscripten::val videoElement = videoOutput->currentVideoElement();
-
-        if (videoElement.isNull() || videoElement.isUndefined()) {
-            qWarning() << "no video element";
         }
 
-        if (videoElement["paused"].as<bool>() || videoElement["ended"].as<bool>())
-            return false;
+        if (videoOutput->m_currentVideoMode == QWasmVideoOutput::VideoDisplay
+            && videoOutput->m_currentMediaStatus != MediaStatus::LoadedMedia) {
+            emscripten_request_animation_frame(frame, context);
+            return true;
+        }
 
-        if (checkForVideoFrame()) {
-            videoOutput->videoFrameCallback(context);
+        emscripten::val videoElement = videoOutput->currentVideoElement();
+        if (videoElement.isNull() || videoElement.isUndefined()) {
+            qCWarning(qWasmMediaVideoOutput) << "frame loop exit: video element null, mode=" << videoOutput->m_currentVideoMode;
+            return false;
+        }
+
+        if (videoElement["paused"].as<bool>() || videoElement["ended"].as<bool>()
+            || videoElement["readyState"].as<int>() < 2) {
+            qCDebug(qWasmMediaVideoOutput) << "frame loop waiting: mode=" << videoOutput->m_currentVideoMode
+                                           << "paused=" << videoElement["paused"].as<bool>()
+                                           << "ended=" << videoElement["ended"].as<bool>()
+                                           << "readyState=" << videoElement["readyState"].as<int>();
+            emscripten_request_animation_frame(frame, context);
+            return true;
+        }
+
+        if (videoOutput->m_hasVideoFrame) {
+            if (videoOutput->m_glContextHandle)
+                videoOutput->webglVideoFrameCallback(context);
+            else
+                videoOutput->videoFrameCallback(context);
         } else {
             videoOutput->videoComputeFrame(context);
         }
+
+        emscripten_request_animation_frame(frame, context);
         return true;
     };
-
-    if ((!m_shouldStop && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
+    if ((!m_isStopped  && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
+        || (!m_isStopped  && m_currentVideoMode == QWasmVideoOutput::SurfaceCapture)
         || isReady())
-        emscripten_request_animation_frame_loop(frame, this);
-    // about 60 fps
+        emscripten_request_animation_frame(frame, this);
 }
 
-QVideoFrameFormat::PixelFormat QWasmVideoOutput::fromJsPixelFormat(std::string videoFormat)
+QVideoFrameFormat::PixelFormat QWasmVideoOutput::fromJsPixelFormat(std::string_view videoFormat)
 {
     if (videoFormat == "I420")
         return QVideoFrameFormat::Format_YUV420P;

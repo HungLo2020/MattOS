@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2025-09-23 03:58+0200\n"
+"POT-Creation-Date: 2026-04-14 00:45+0000\n"
+"PO-Revision-Date: 2026-04-14 04:49+0200\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.7\n"
+"X-Generator: Poedit 3.9\n"
 
 #: layoutpreview.cpp:28
 #, kde-format
@@ -257,14 +257,8 @@ msgstr "მიმდინარე აპლიკაცია"
 msgid "Visualization"
 msgstr "ვიზუალიზაცია"
 
-#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
-#: main.ui:645
-#, kde-format
-msgid "The effect to replace the list window when desktop effects are active."
-msgstr "სამუშაო მაგიდის ეფექტების ჩართვის დროს სიის ფანჯრის შეცვლა."
-
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:678
+#: main.ui:624
 #, kde-format
 msgid ""
 "The currently selected window will be highlighted by fading out all other "
@@ -273,11 +267,71 @@ msgstr ""
 "ამჟამად მონიშნული ფანჯრები გამოიკვეთება სხვა ფანჯრების მინავლების გზით. ამ "
 "პარამეტრს სამუშაო მაგიდის ეფექტების ჩართვა სჭირდება."
 
-#. i18n: ectx: property (text), widget (QCheckBox, kcfg_HighlightWindows)
-#: main.ui:681
+#. i18n: ectx: property (text), widget (QLabel, label_HighlightWindows)
+#: main.ui:634
 #, kde-format
 msgid "Show selected window"
 msgstr "მონიშნული ფანჯრის ჩვენება"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_ShowTabBox)
+#: main.ui:644
+#, kde-format
+msgid "Enable the window list effect"
+msgstr "ფანჯრის სიის ეფექტის ჩართვა"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, effectCombo)
+#: main.ui:678
+#, kde-format
+msgid "The effect to replace the list window when desktop effects are active."
+msgstr "სამუშაო მაგიდის ეფექტების ჩართვის დროს სიის ფანჯრის შეცვლა."
+
+#. i18n: ectx: property (whatsThis), widget (QLabel, label_DelayTime)
+#: main.ui:701
+#, kde-format
+msgid "The time in milliseconds to wait before showing the task switcher."
+msgstr "დრო მილიწამებში, რომლის შემდეგაც გამოჩნდება ამოცანების გადამრთველი."
+
+#. i18n: ectx: property (text), widget (QLabel, label_DelayTime)
+#: main.ui:704
+#, kde-format
+msgid "Delay:"
+msgstr "დაყოვნება:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:720
+#, kde-format
+msgid " ms"
+msgstr " მწმ"
+
+#. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_DelayTime)
+#: main.ui:735
+#, kde-format
+msgid "Delay before the window list appears"
+msgstr "დაყოვნება, სანამ ფანჯრების სია გამოჩნდება"
+
+#. i18n: ectx: property (text), widget (QLabel, label_showScreen)
+#: main.ui:742
+#, kde-format
+msgid "Show on screen:"
+msgstr "ჩვენება ეკრანზე:"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, showScreenCombo)
+#: main.ui:758
+#, kde-format
+msgid "Select which screen the task switcher should be displayed on."
+msgstr "აირჩიეთ, რომელ ეკრანზე გამოჩნდება ამოცანების გადამრთველი."
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:762
+#, kde-format
+msgid "Active screen"
+msgstr "აქტიური ეკრანი"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, showScreenCombo)
+#: main.ui:767
+#, kde-format
+msgid "Primary screen"
+msgstr "ძირითადი ეკრანი"
 
 #: shortcutsettings.cpp:131
 #, kde-format
@@ -318,9 +372,3 @@ msgstr "მიმდინარე აპლიკაციის ფანჯ�
 #, kde-format
 msgid "Walk Through Windows of Current Application Alternative (Reverse)"
 msgstr "მიმდინარე აპლიკაციის ფანჯრებში ალტერნატიული გავლა (პირიქით)"
-
-#~ msgid "Show Desktop"
-#~ msgstr "სამუშაო მაგიდის ჩვენება"
-
-#~ msgid "KWin"
-#~ msgstr "KWin"

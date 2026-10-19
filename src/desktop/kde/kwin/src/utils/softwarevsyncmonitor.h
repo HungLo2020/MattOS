@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "utils/precisetimer.h"
 #include "utils/vsyncmonitor.h"
 
-#include <QTimer>
 #include <memory>
 
 namespace KWin
@@ -34,12 +34,13 @@ public:
 
 public Q_SLOTS:
     void arm() override;
+    void disarm();
 
 private:
     explicit SoftwareVsyncMonitor();
     void handleSyntheticVsync();
 
-    QTimer m_softwareClock;
+    PreciseTimer m_softwareClock;
     int m_refreshRate = 60000;
     std::chrono::nanoseconds m_vblankTimestamp = std::chrono::nanoseconds::zero();
 };

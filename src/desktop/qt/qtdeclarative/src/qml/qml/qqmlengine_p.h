@@ -23,10 +23,11 @@
 #include <private/qjsengine_p.h>
 #include <private/qjsvalue_p.h>
 #include <private/qpodvector_p.h>
+#include <private/qqmlcontextdata_p.h>
 #include <private/qqmldirparser_p.h>
 #include <private/qqmlimport_p.h>
 #include <private/qqmlmetatype_p.h>
-#include <private/qqmlnotifier_p.h>
+#include <private/qqmlnotifierendpoint_p.h>
 #include <private/qqmlproperty_p.h>
 #include <private/qqmltypeloader_p.h>
 #include <private/qqmlvaluetype_p.h>
@@ -209,10 +210,25 @@ public:
                                 QObject *thisObject, int argc = 0, void **args = nullptr,
                                 QMetaType *types = nullptr);
     QV4::ExecutableCompilationUnit *compilationUnitFromUrl(const QUrl &url);
+
     QQmlRefPointer<QQmlContextData>
-    createInternalContext(const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit,
-                          const QQmlRefPointer<QQmlContextData> &parentContext,
-                          int subComponentIndex, bool isComponentRoot);
+    createBareContext(const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit,
+                      const QQmlRefPointer<QQmlContextData> &parentContext, int subComponentIndex)
+    {
+        Q_ASSERT(unit);
+
+        QQmlRefPointer<QQmlContextData> context = QQmlContextData::createRefCounted(parentContext);
+        context->setInternal(true);
+        context->setImports(unit->typeNameCache());
+        context->initFromTypeCompilationUnit(unit, subComponentIndex);
+        return context;
+    }
+
+    QQmlRefPointer<QQmlContextData>
+    createComponentRootContext(const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit,
+                               const QQmlRefPointer<QQmlContextData> &parentContex,
+                               int subComponentIndex);
+
     static void setInternalContext(QObject *This, const QQmlRefPointer<QQmlContextData> &context,
                                    QQmlContextData::QmlObjectKind kind)
     {

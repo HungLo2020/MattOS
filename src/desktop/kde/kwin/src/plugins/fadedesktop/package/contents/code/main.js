@@ -65,7 +65,7 @@ var fadeDesktopEffect = {
             to: 0.0
         });
     },
-    slotDesktopChanged: function (oldDesktop, newDesktop, movingWindow) {
+    slotDesktopChanged: function (oldDesktop, newDesktop, movingWindow, screen) {
         if (effects.hasActiveFullScreenEffect && !effect.isActiveFullScreenEffect) {
             return;
         }
@@ -77,6 +77,10 @@ var fadeDesktopEffect = {
             // Don't animate windows that have been moved to the current
             // desktop, i.e. newDesktop.
             if (w == movingWindow) {
+                continue;
+            }
+
+            if (w.screen !== screen) {
                 continue;
             }
 

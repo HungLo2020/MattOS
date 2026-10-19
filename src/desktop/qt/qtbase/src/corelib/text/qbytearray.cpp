@@ -325,15 +325,16 @@ int qstricmp(const char *str1, const char *str2)
 }
 
 /*! \relates QByteArray
+    \fn int qstrnicmp(const char *s1, const char *s2, size_t len)
 
     A safe \c strnicmp() function.
 
-    Compares at most \a len bytes of \a str1 and \a str2, ignoring differences
+    Compares at most \a len bytes of \a s1 and \a s2, ignoring differences
     in the case of any ASCII characters.
 
-    Returns a negative value if \a str1 is less than \a str2, 0 if \a str1
-    is equal to \a str2 or a positive value if \a str1 is greater than \a
-    str2.
+    Returns a negative value if \a s1 is less than \a s2, 0 if \a s1
+    is equal to \a s2 or a positive value if \a s1 is greater than \a
+    s2.
 
     If both strings are \nullptr, they are deemed equal; otherwise, if either is
     \nullptr, it is treated as less than the other (even if the other is an
@@ -343,71 +344,15 @@ int qstricmp(const char *str1, const char *str2)
     QByteArray::compare()
 */
 
-int qstrnicmp(const char *str1, const char *str2, size_t len)
-{
-    const uchar *s1 = reinterpret_cast<const uchar *>(str1);
-    const uchar *s2 = reinterpret_cast<const uchar *>(str2);
-    if (!s1 || !s2)
-        return s1 ? 1 : (s2 ? -1 : 0);
-    for (; len--; ++s1, ++s2) {
-        const uchar c = *s1;
-        if (int res = QtMiscUtils::caseCompareAscii(c, *s2))
-            return res;
-        if (!c)                                // strings are equal
-            break;
-    }
-    return 0;
-}
-
 /*!
     \internal
+    \fn int qstrnicmp(const char *s1, qsizetype len1, const char *s2, qsizetype len2)
     \since 5.12
 
-    A helper for QByteArray::compare. Compares \a len1 bytes from \a str1 to \a
-    len2 bytes from \a str2. If \a len2 is -1, then \a str2 is expected to be
+    A helper for QByteArray::compare. Compares \a len1 bytes from \a s1 to \a
+    len2 bytes from \a s2. If \a len2 is -1, then \a s2 is expected to be
     '\\0'-terminated.
  */
-int qstrnicmp(const char *str1, qsizetype len1, const char *str2, qsizetype len2)
-{
-    Q_ASSERT(len1 >= 0);
-    Q_ASSERT(len2 >= -1);
-    const uchar *s1 = reinterpret_cast<const uchar *>(str1);
-    const uchar *s2 = reinterpret_cast<const uchar *>(str2);
-    if (!s1 || !len1) {
-        if (len2 == 0)
-            return 0;
-        if (len2 == -1)
-            return (!s2 || !*s2) ? 0 : -1;
-        Q_ASSERT(s2);
-        return -1;
-    }
-    if (!s2)
-        return len1 == 0 ? 0 : 1;
-
-    if (len2 == -1) {
-        // null-terminated str2
-        qsizetype i;
-        for (i = 0; i < len1; ++i) {
-            const uchar c = s2[i];
-            if (!c)
-                return 1;
-
-            if (int res = QtMiscUtils::caseCompareAscii(s1[i], c))
-                return res;
-        }
-        return s2[i] ? -1 : 0;
-    } else {
-        // not null-terminated
-        const qsizetype len = qMin(len1, len2);
-        for (qsizetype i = 0; i < len; ++i) {
-            if (int res = QtMiscUtils::caseCompareAscii(s1[i], s2[i]))
-                return res;
-        }
-        if (len1 == len2)
-            return 0;
-        return len1 < len2 ? -1 : 1;
-    }
-}
 
 /*!
     \internal
@@ -680,9 +625,6 @@ static QByteArray xxflate(ZLibOp op, QArrayDataPointer<char> out, QByteArrayView
         return tooMuchData(op);
 
     case Z_BUF_ERROR:
-        Q_UNREACHABLE(); // cannot happen - we supply a buffer that can hold the result,
-                         // or else error out early
-
     case Z_DATA_ERROR:   // can only happen on decompression
         Q_ASSERT(op == ZLibOp::Decompression);
         return invalidCompressedData();
@@ -4732,10 +4674,10 @@ static qsizetype q_fromPercentEncoding(QByteArrayView src, char percent, QSpan<c
     while (i < len) {
         char c = inputPtr[i];
         if (c == percent && i + 2 < len) {
-            if (int a = QtMiscUtils::fromHex(uchar(inputPtr[++i])); a != -1)
-                *data = a << 4;
-            if (int b = QtMiscUtils::fromHex(uchar(inputPtr[++i])); b != -1)
-                *data |= b;
+            int a = QtMiscUtils::fromHex(uchar(inputPtr[++i]));
+            int b = QtMiscUtils::fromHex(uchar(inputPtr[++i]));
+            // don't check for validity; GIGO applies
+            *data = uchar(a << 4) | uchar(b);
         } else {
             *data = c;
         }
@@ -5173,6 +5115,7 @@ emscripten::val QByteArray::toEcmaUint8Array()
 
 /*!
     \fn const QByteArray &QByteArray::FromBase64Result::operator*() const &
+    \fn const QByteArray &&QByteArray::FromBase64Result::operator*() const &&
     \fn QByteArray &QByteArray::FromBase64Result::operator*() &
     \fn QByteArray &&QByteArray::FromBase64Result::operator*() &&
 

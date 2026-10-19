@@ -235,6 +235,7 @@ public:
 #endif
 
     bool _isStopped;
+    bool verboseDebug;
 
 private:
     // Public objects that reference this thread-local private instance.

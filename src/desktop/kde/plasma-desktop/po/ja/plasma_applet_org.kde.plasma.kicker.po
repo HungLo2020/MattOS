@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022, 2023, 2024 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
+# SPDX-FileCopyrightText: 2022-2024, 2026 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # Fuminobu TAKEYAMA <ftake@geeko.jp>, 2015.
 # Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2015, 2017.
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2019.
@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_kicker\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-05 02:42+0000\n"
-"PO-Revision-Date: 2024-02-10 23:00+0900\n"
+"POT-Creation-Date: 2026-09-20 02:45+0000\n"
+"PO-Revision-Date: 2026-07-24 14:05+0900\n"
 "Last-Translator: Ryuichi Yamada <ryuichi_ya220@outlook.jp>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 23.08.4\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: code/tools.js:53
 #, kde-format
@@ -45,236 +45,253 @@ msgid "Show in Favorites"
 msgstr "お気に入りに表示"
 
 #: config.qml:13
-#, fuzzy, kde-format
-#| msgid "General"
+#, kde-format
 msgctxt "@title:group for configuration dialog page"
 msgid "General"
 msgstr "全般"
 
-#: ConfigGeneral.qml:48
-#, fuzzy, kde-format
-#| msgid "Icon:"
+#: ConfigGeneral.qml:50
+#, kde-format
 msgctxt "@label prefix for icon-only button"
 msgid "Icon:"
 msgstr "アイコン:"
 
-#: ConfigGeneral.qml:133
+#: ConfigGeneral.qml:135
 #, kde-format
 msgctxt "@item:inmenu Open icon chooser dialog"
 msgid "Choose…"
 msgstr "選択..."
 
-#: ConfigGeneral.qml:138
+#: ConfigGeneral.qml:140
 #, kde-format
 msgctxt "@item:inmenu Reset icon to default"
-msgid "Clear Icon"
-msgstr "アイコンをクリア"
+msgid "Reset to default icon"
+msgstr "標準のアイコンに戻す"
 
-#: ConfigGeneral.qml:159
-#, fuzzy, kde-format
-#| msgid "Show applications as:"
+#: ConfigGeneral.qml:161
+#, kde-format
 msgctxt "@label:listbox"
 msgid "Show applications as:"
 msgstr "アプリケーションの表示方法:"
 
-#: ConfigGeneral.qml:161
-#, fuzzy, kde-format
-#| msgid "Name only"
+#: ConfigGeneral.qml:163
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Name only"
 msgstr "名前のみ"
 
-#: ConfigGeneral.qml:161
-#, fuzzy, kde-format
-#| msgid "Description only"
+#: ConfigGeneral.qml:163
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Description only"
 msgstr "説明のみ"
 
-#: ConfigGeneral.qml:162
-#, fuzzy, kde-format
-#| msgid "Name (Description)"
+#: ConfigGeneral.qml:164
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Name (Description)"
 msgstr "名前 (説明)"
 
-#: ConfigGeneral.qml:162
-#, fuzzy, kde-format
-#| msgid "Description (Name)"
+#: ConfigGeneral.qml:164
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Description (Name)"
 msgstr "説明 (名前)"
 
-#: ConfigGeneral.qml:172
-#, fuzzy, kde-format
-#| msgid "Behavior:"
+#: ConfigGeneral.qml:174
+#, kde-format
 msgctxt "@title:group prefix for checkbox group"
 msgid "Behavior:"
 msgstr "挙動:"
 
-#: ConfigGeneral.qml:174
-#, fuzzy, kde-format
-#| msgid "Sort applications alphabetically"
+#: ConfigGeneral.qml:176
+#, kde-format
 msgctxt "@option:check"
 msgid "Sort applications alphabetically"
 msgstr "アプリケーションをアルファベット順にソート"
 
-#: ConfigGeneral.qml:182
-#, fuzzy, kde-format
-#| msgid "Flatten sub-menus to a single level"
+#: ConfigGeneral.qml:184
+#, kde-format
 msgctxt "@option:check"
 msgid "Flatten sub-menus to a single level"
 msgstr "サブメニューを単一階層にフラット化"
 
-#: ConfigGeneral.qml:190
-#, fuzzy, kde-format
-#| msgid "Show icons on the root level of the menu"
+#: ConfigGeneral.qml:192
+#, kde-format
 msgctxt "@option:check"
 msgid "Show icons on the root level of the menu"
 msgstr "メニューの第一階層でアイコンを表示"
 
-#: ConfigGeneral.qml:200
-#, fuzzy, kde-format
-#| msgid "Show categories:"
+#: ConfigGeneral.qml:198
+#, kde-format
+msgctxt "@option:check"
+msgid "Highlight newly-installed applications"
+msgstr "新しくインストールしたアプリケーションを強調"
+
+#: ConfigGeneral.qml:208
+#, kde-format
 msgctxt "@title:group prefix for checkbox group"
 msgid "Show categories:"
 msgstr "表示するカテゴリ:"
 
-#: ConfigGeneral.qml:203
-#, fuzzy, kde-format
-#| msgid "Recent applications"
+#: ConfigGeneral.qml:211
+#, kde-format
 msgctxt "@option:check"
 msgid "Recent applications"
 msgstr "最近のアプリケーション"
 
-#: ConfigGeneral.qml:204
-#, fuzzy, kde-format
-#| msgid "Often used applications"
+#: ConfigGeneral.qml:212
+#, kde-format
 msgctxt "@option:check"
 msgid "Often used applications"
 msgstr "よく使用するアプリケーション"
 
-#: ConfigGeneral.qml:211
-#, fuzzy, kde-format
-#| msgid "Recent files"
+#: ConfigGeneral.qml:219
+#, kde-format
 msgctxt "@option:check"
 msgid "Recent files"
 msgstr "最近のファイル"
 
-#: ConfigGeneral.qml:212
-#, fuzzy, kde-format
-#| msgid "Often used files"
+#: ConfigGeneral.qml:220
+#, kde-format
 msgctxt "@option:check"
 msgid "Often used files"
 msgstr "よく使用するファイル"
 
-#: ConfigGeneral.qml:218
-#, fuzzy, kde-format
-#| msgid "Sort items in categories by:"
+#: ConfigGeneral.qml:227
+#, kde-format
+msgctxt "@option:check"
+msgid "Recent places"
+msgstr "最近使用した場所"
+
+#: ConfigGeneral.qml:228
+#, kde-format
+msgctxt "@option:check"
+msgid "Often used places"
+msgstr "よく使用する場所"
+
+#: ConfigGeneral.qml:234
+#, kde-format
 msgctxt "@label:listbox"
 msgid "Sort items in categories by:"
 msgstr "カテゴリ内のアイテムのソート方法:"
 
-#: ConfigGeneral.qml:219
+#: ConfigGeneral.qml:235
 #, kde-format
 msgctxt ""
 "@item:inlistbox Sort items in categories by [Recently used | Often used]"
 msgid "Recently used"
 msgstr "最近使用したアイテム"
 
-#: ConfigGeneral.qml:219
-#, fuzzy, kde-format
-#| msgctxt ""
-#| "@item:inlistbox Sort items in categories by [Recently used | Ofetn used]"
-#| msgid "Often used"
+#: ConfigGeneral.qml:235
+#, kde-format
 msgctxt ""
 "@item:inlistbox Sort items in categories by [Recently used | Often used]"
 msgid "Often used"
 msgstr "よく使用するアイテム"
 
-#: ConfigGeneral.qml:229
-#, fuzzy, kde-format
-#| msgid "Search:"
+#: ConfigGeneral.qml:245
+#, kde-format
 msgctxt "@title:group prefix for checkbox group"
 msgid "Search:"
 msgstr "検索:"
 
-#: ConfigGeneral.qml:231
-#, fuzzy, kde-format
-#| msgid "Expand search to bookmarks, files and emails"
+#: ConfigGeneral.qml:247
+#, kde-format
 msgctxt "@option:check"
 msgid "Expand search to bookmarks, files and emails"
 msgstr "検索対象をブックマークとファイル、メールに拡大する"
 
-#: ConfigGeneral.qml:239
-#, fuzzy, kde-format
-#| msgid "Align search results to bottom"
+#: ConfigGeneral.qml:255
+#, kde-format
 msgctxt "@option:check"
 msgid "Align search results to bottom"
 msgstr "検索結果を下部に配置する"
 
-#: ConfigGeneral.qml:244
+#: ConfigGeneral.qml:260
 #, kde-format
 msgctxt "@label prefix for a checkbox toggling Dark Mode"
 msgid "Appearance:"
-msgstr ""
+msgstr "外観:"
 
-#: ConfigGeneral.qml:249
+#: ConfigGeneral.qml:265
 #, kde-format
 msgctxt "@option:check"
 msgid "Prefer Dark Mode when available"
-msgstr ""
+msgstr "利用可能なときはダークモードを使用"
 
-#: ConfigGeneral.qml:253
+#: ConfigGeneral.qml:269
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
 "This feature uses the complementary colors from your colorscheme, which "
 "usually feature a dark background."
 msgstr ""
+"この機能はカラースキームから補色を選んで適用します。多くの場合、暗い背景が設"
+"定されます。"
 
-#: DashboardRepresentation.qml:373
-#, fuzzy, kde-format
-#| msgid "Favorites"
+#: DashboardRepresentation.qml:425
+#, kde-format
 msgctxt "@title:group for column with app and system action grids"
 msgid "Favorites"
 msgstr "お気に入り"
 
-#: ItemListDelegate.qml:31
+#: DashboardRepresentation.qml:951 ItemListDelegate.qml:97
+#, kde-format
+msgctxt "Newly-installed app, badge, keep short"
+msgid "New!"
+msgstr "New!"
+
+#: DashboardRepresentation.qml:952 ItemListDelegate.qml:98
+#, kde-format
+msgctxt "@info:whatsthis Accessible description for badge"
+msgid "There is a newly-installed application in this category"
+msgstr "このカテゴリに新しくインストールしたアプリケーションがあります"
+
+#: ItemGridDelegate.qml:81
+#, kde-format
+msgctxt "@label Newly-installed app, badge, keep short"
+msgid "New!"
+msgstr "New!"
+
+#: ItemGridDelegate.qml:83
+#, kde-format
+msgctxt "@label Accessible name for badge"
+msgid "Newly-installed application"
+msgstr "新しくインストールしたアプリケーション"
+
+#: ItemListDelegate.qml:40
 #, kde-format
 msgctxt "@action:inmenu accessible description for opening submenu"
 msgid "Open category"
-msgstr ""
+msgstr "カテゴリを開く"
 
-#: ItemListDelegate.qml:32
+#: ItemListDelegate.qml:41
 #, kde-format
 msgctxt "@action:inmenu accessible description for opening app or file"
 msgid "Launch"
-msgstr ""
+msgstr "起動"
 
-#: main.qml:211
-#, fuzzy, kde-format
-#| msgid "Edit Applications…"
+#: ItemListDelegate.qml:99
+#, kde-format
+msgctxt "@info:whatsthis Accessible description for badge"
+msgid "Newly-installed application"
+msgstr "新しくインストールしたアプリケーション"
+
+#: main.qml:189
+#, kde-format
 msgctxt "@action:inmenu launches kmenuedit"
 msgid "Edit Applications…"
 msgstr "アプリケーションを編集..."
 
-#: MenuRepresentation.qml:177
-#, fuzzy, kde-format
-#| msgid "Favorites"
+#: MenuRepresentation.qml:197
+#, kde-format
 msgctxt "@title:group accessible name for favorite group in sidebar"
 msgid "Favorites"
 msgstr "お気に入り"
 
-#: MenuRepresentation.qml:353
+#: MenuRepresentation.qml:373
 #, kde-format
 msgctxt "@info:status"
 msgid "No matches"
-msgstr ""
-
-#~ msgid "Searching for '%1'"
-#~ msgstr "'%1' で検索中"
-
-#~ msgctxt "@info:placeholder as in, 'start typing to initiate a search'"
-#~ msgid "Type to search…"
-#~ msgstr "タイプして検索..."
+msgstr "一致なし"

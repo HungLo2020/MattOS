@@ -7,6 +7,7 @@ import org.kde.discover as Discover
 import org.kde.kcmutils as KCMUtils
 import org.kde.kirigami as Kirigami
 import org.kde.kirigami.delegates as KD
+import org.kde.kitemmodels as KItemModels
 
 DiscoverPage {
     id: page
@@ -54,7 +55,12 @@ DiscoverPage {
 
     ListView {
         id: sourcesView
-        model: Discover.SourcesModel
+        model: KItemModels.KSortFilterProxyModel {
+            sourceModel: Discover.SourcesModel
+            filterString: page.search
+            filterCaseSensitivity: Qt.CaseInsensitive
+        }
+
         Component.onCompleted: Qt.callLater(Discover.SourcesModel.showingNow)
         currentIndex: -1
         pixelAligned: true
@@ -237,8 +243,6 @@ DiscoverPage {
             enabled: model.display.length > 0 && model.enabled
             highlighted: ListView.isCurrentItem
             supportsMouseEvents: false
-            visible: model.display.indexOf(page.search) >= 0
-            height: visible ? implicitHeight : 0
 
             Keys.onReturnPressed: enabledBox.clicked()
             Keys.onSpacePressed: enabledBox.clicked()
@@ -246,24 +250,24 @@ DiscoverPage {
                 Kirigami.Action {
                     icon.name: "go-up"
                     tooltip: i18n("Increase priority")
-                    enabled: delegate.model.sourcesBackend.firstSourceId !== delegate.model.sourceId
+                    enabled: delegate.model.sourcesBackend.firstDisambiguatedSourceId !== delegate.model.disambiguatedSourceId
                     visible: delegate.model.sourcesBackend.canMoveSources
                     onTriggered: {
-                        const ret = delegate.model.sourcesBackend.moveSource(delegate.model.sourceId, -1)
+                        const ret = delegate.model.sourcesBackend.moveSource(delegate.model.disambiguatedSourceId, -1)
                         if (!ret) {
-                            window.showPassiveNotification(i18n("Failed to increase '%1' preference", delegate.model.display))
+                            window.showPassiveNotification(i18n("Failed to increase “%1” preference", delegate.model.display))
                         }
                     }
                 },
                 Kirigami.Action {
                     icon.name: "go-down"
                     tooltip: i18n("Decrease priority")
-                    enabled: delegate.model.sourcesBackend.lastSourceId !== delegate.model.sourceId
+                    enabled: delegate.model.sourcesBackend.lastDisambiguatedSourceId !== delegate.model.disambiguatedSourceId
                     visible: delegate.model.sourcesBackend.canMoveSources
                     onTriggered: {
-                        const ret = delegate.model.sourcesBackend.moveSource(delegate.model.sourceId, +1)
+                        const ret = delegate.model.sourcesBackend.moveSource(delegate.model.disambiguatedSourceId, +1)
                         if (!ret) {
-                            window.showPassiveNotification(i18n("Failed to decrease '%1' preference", delegate.model.display))
+                            window.showPassiveNotification(i18n("Failed to decrease “%1” preference", delegate.model.display))
                         }
                     }
                 },
@@ -273,7 +277,7 @@ DiscoverPage {
                     visible: delegate.model.sourcesBackend.supportsAdding
                     onTriggered: {
                         const backend = delegate.model.sourcesBackend
-                        if (!backend.removeSource(delegate.model.sourceId)) {
+                        if (!backend.removeSource(delegate.model.disambiguatedSourceId)) {
                             console.warn("Failed to remove the source", delegate.model.display)
                         }
                     }
@@ -283,7 +287,7 @@ DiscoverPage {
                     tooltip: i18n("Show contents")
                     visible: delegate.model.sourcesBackend.canFilterSources
                     onTriggered: {
-                        Navigation.openApplicationListSource(delegate.model.sourceId)
+                        Navigation.openApplicationListSource(delegate.model.disambiguatedSourceId, delegate.model.display)
                     }
                 }
             ]
@@ -294,14 +298,17 @@ DiscoverPage {
                 QQC2.CheckBox {
                     id: enabledBox
 
-                    readonly property var idx: sourcesView.model.index(index, 0)
+                    readonly property var idx: index !== -1 ? sourcesView.model.index(index, 0) : null
                     readonly property /*Qt::CheckState*/int modelChecked: delegate.model.checkState
                     checked: modelChecked !== Qt.Unchecked
-                    enabled: sourcesView.model.flags(idx) & Qt.ItemIsUserCheckable
-                    onClicked: {
+                    enabled: idx && sourcesView.model.flags(idx) & Qt.ItemIsUserCheckable
+                    onClicked: if (idx) {
                         sourcesView.model.setData(idx, checkState, Qt.CheckStateRole)
                         checked = Qt.binding(() => (modelChecked !== Qt.Unchecked))
                     }
+                    QQC2.ToolTip.text: i18nc("@info:tooltip", "Enable this source")
+                    QQC2.ToolTip.visible: hovered
+                    QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                 }
                 QQC2.Label {
                     text: delegate.model.display + (delegate.model.toolTip ? " - <i>" + delegate.model.toolTip + "</i>" : "")

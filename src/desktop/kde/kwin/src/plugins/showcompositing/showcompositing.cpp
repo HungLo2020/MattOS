@@ -11,31 +11,20 @@
 #include "core/output.h"
 #include "core/renderviewport.h"
 #include "effect/effecthandler.h"
+#include "scene/workspacescene.h"
 
 namespace KWin
 {
 
 ShowCompositingEffect::ShowCompositingEffect()
 {
+    // TODO add a direct toggle in the debug console instead
+    effects->scene()->setLayerDebugging(true);
 }
 
-ShowCompositingEffect::~ShowCompositingEffect() = default;
-
-void ShowCompositingEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+ShowCompositingEffect::~ShowCompositingEffect()
 {
-    effects->prePaintScreen(data, presentTime);
-    if (!m_scene) {
-        m_scene = std::make_unique<OffscreenQuickScene>();
-        m_scene->loadFromModule(QStringLiteral("org.kde.kwin.showcompositing"), QStringLiteral("Main"), {});
-    }
-}
-
-void ShowCompositingEffect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
-{
-    effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
-    const auto rect = viewport.renderRect();
-    m_scene->setGeometry(QRect(rect.x() + rect.width() - 300, rect.y(), 300, 150));
-    effects->renderOffscreenQuickView(renderTarget, viewport, m_scene.get());
+    effects->scene()->setLayerDebugging(false);
 }
 
 bool ShowCompositingEffect::supported()
@@ -45,8 +34,6 @@ bool ShowCompositingEffect::supported()
 
 bool ShowCompositingEffect::blocksDirectScanout() const
 {
-    // this is intentionally wrong, as we want direct scanout to change the image
-    // with this effect
     return false;
 }
 

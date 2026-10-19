@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QQUICKSTARSHAPE_P_H
 #define QQUICKSTARSHAPE_P_H
@@ -45,7 +46,8 @@ public:
     Q_PROPERTY(QList<qreal> dashPattern READ dashPattern WRITE setDashPattern NOTIFY
                        dashPatternChanged FINAL)
     Q_PROPERTY(QQuickShapeGradient *fillGradient READ fillGradient WRITE setFillGradient NOTIFY
-                       gradientChanged RESET resetFillGradient FINAL)
+                       fillGradientChanged RESET resetFillGradient FINAL)
+    Q_PROPERTY(QQuickItem *fillItem READ fillItem WRITE setFillItem NOTIFY fillItemChanged REVISION(6, 12))
 
     QML_NAMED_ELEMENT(StarShape)
     QML_ADDED_IN_VERSION(6, 11)
@@ -91,6 +93,9 @@ public:
     void setFillGradient(QQuickShapeGradient *fillGradient);
     void resetFillGradient();
 
+    QQuickItem *fillItem() const;
+    void setFillItem(QQuickItem *newFillItem);
+
 Q_SIGNALS:
     void cornerRadiusChanged();
     void ratioChanged();
@@ -103,7 +108,8 @@ Q_SIGNALS:
     void strokeStyleChanged();
     void dashOffsetChanged();
     void dashPatternChanged();
-    void gradientChanged();
+    Q_REVISION(6, 12) void fillGradientChanged();
+    Q_REVISION(6, 12) void fillItemChanged();
 
 protected:
     void itemChange(ItemChange change, const ItemChangeData &value) override;

@@ -2,19 +2,36 @@
 Type=Service
 Name=Startpage
 Name[ar]=Startpage
+Name[az]=Startpage
+Name[bg]=Startpage
 Name[ca]=Startpage
 Name[ca@valencia]=Startpage
+Name[cs]=Startpage
+Name[de]=Startpage
 Name[es]=Startpage
+Name[eu]=Startpage
 Name[fr]=Page de démarrage
+Name[ga]=Startpage
 Name[he]=Startpage
+Name[hr]=Početna stranica
+Name[hu]=Startpage
 Name[ia]=Pagina de initio
 Name[is]=Startpage
+Name[it]=Startpage
+Name[ja]=Startpage
 Name[ka]=Startpage
+Name[ko]=Startpage
 Name[lt]=Startpage
+Name[nan_TW]=Startpage
+Name[nan_TW@latin]=Startpage
 Name[nl]=Startpagina
+Name[nn]=Startpage
+Name[pl]=Strona początkowa
 Name[pt_BR]=Startpage
+Name[ru]=Startpage
 Name[sk]=Úvodná stránka
 Name[sl]=Startpage
+Name[sv]=Startpage
 Name[tr]=Startpage
 Name[uk]=Startpage
 Name[zh_CN]=Startpage
@@ -22,19 +39,36 @@ Name[zh_TW]=Startpage
 Keys=sp,startpage
 Query=https://www.startpage.com/sp/search?query=\\{@}
 Query[ar]=https://www.startpage.com/sp/search?query=\\{@}
+Query[az]=https://www.startpage.com/sp/search?query=\\{@}
+Query[bg]=https://www.startpage.com/sp/search?query=\\{@}
 Query[ca]=https://www.startpage.com/sp/search?query=\\{@}
 Query[ca@valencia]=https://www.startpage.com/sp/search?query=\\{@}
+Query[cs]=https://www.startpage.com/sp/search?query=\\{@}
+Query[de]=https://www.startpage.com/sp/search?query=\\{@}
 Query[es]=https://www.startpage.com/sp/search?query=\\{@}
+Query[eu]=https://www.startpage.com/sp/search?query=\\{@}
 Query[fr]=https://www.startpage.com/sp/search?query=\\{@}
+Query[ga]=https://www.startpage.com/sp/search?query=\\{@}
 Query[he]=https://www.startpage.com/sp/search?query=\\{@}
+Query[hr]=https://www.startpage.com/sp/search?query=\\{@}
+Query[hu]=https://www.startpage.com/sp/search?query=\\{@}
 Query[ia]=https://www.startpage.com/sp/search?query=\\{@}
 Query[is]=https://www.startpage.com/sp/search?query=\\{@}
+Query[it]=https://www.startpage.com/sp/search?query=\\{@}
+Query[ja]=https://www.startpage.com/sp/search?query=\\{@}
 Query[ka]=https://www.startpage.com/sp/search?query=\\{@}
+Query[ko]=https://www.startpage.com/sp/search?query=\\{@}
 Query[lt]=https://www.startpage.com/sp/search?query=\\{@}
+Query[nan_TW]=https://www.startpage.com/sp/search?query=\\{@}
+Query[nan_TW@latin]=https://www.startpage.com/sp/search?query=\\{@}
 Query[nl]=https://www.startpage.com/sp/search?query=\\{@}
+Query[nn]=https://www.startpage.com/sp/search?query=\\{@}
+Query[pl]=https://www.startpage.com/sp/search?query=\\{@}
 Query[pt_BR]=https://www.startpage.com/sp/search?query=\\{@}
+Query[ru]=https://www.startpage.com/sp/search?query=\\{@}
 Query[sk]=https://www.startpage.com/sp/search?query=\\{@}
 Query[sl]=https://www.startpage.com/sp/search?query=\\{@}
+Query[sv]=https://www.startpage.com/sp/search?query=\\{@}
 Query[tr]=https://www.startpage.com/sp/search?query=\\{@}
 Query[uk]=https://www.startpage.com/sp/search?query=\\{@}
 Query[zh_CN]=https://www.startpage.com/sp/search?query=\\{@}

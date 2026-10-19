@@ -35,7 +35,7 @@ public:
     static QString protect(const QString &string);
 
 protected:
-    void generateExampleFilePage(const Node *en, ResolvedFile resolved_file, CodeMarker *marker) override;
+    void generateExampleFilePage(const PageNode *en, ResolvedFile resolved_file, CodeMarker *marker) override;
     qsizetype generateAtom(const Atom *atom, const Node *relative, CodeMarker *marker) override;
     void generateCppReferencePage(Aggregate *aggregate, CodeMarker *marker) override;
     void generateProxyPage(Aggregate *aggregate, CodeMarker *marker) override;
@@ -52,7 +52,7 @@ private:
     void generateNavigationBar(const QString &title, const Node *node, CodeMarker *marker,
                                const QString &buildversion, bool tableItems = false);
     void generateHeader(const QString &title, const Node *node = nullptr,
-                        CodeMarker *marker = nullptr);
+                        CodeMarker *marker = nullptr, const QString &keywords = {});
     void generateTitle(const Text &title, const Text &subTitle, SubTitleSize subTitleSize,
                        const Node *relative, CodeMarker *marker);
     void generateTitle(const QString &title, const Text &subTitle, SubTitleSize subTitleSize,
@@ -66,7 +66,7 @@ private:
     void generateBrief(const Node *node, CodeMarker *marker, const Node *relative = nullptr,
                        bool addLink = true);
     void generateTableOfContents(const Node *node, CodeMarker *marker,
-                                 QList<Section> *sections = nullptr);
+                                 const SectionVector *sections = nullptr);
     void generateSidebar();
     QString generateAllMembersFile(const Section &section, CodeMarker *marker);
     QString generateAllQmlMembersFile(const Sections &sections, CodeMarker *marker);
@@ -77,6 +77,10 @@ private:
                                 const NodeMultiMap &nodeMap);
     void generateAnnotatedList(const Node *relative, CodeMarker *marker, const NodeList &nodes,
                                Qt::SortOrder sortOrder = Qt::AscendingOrder);
+    void generateAnnotatedList(const Node *relative, CodeMarker *marker, const NodeMultiMap &nodeMap,
+                               Qt::SortOrder sortOrder = Qt::AscendingOrder);
+    [[nodiscard]] NodeMultiMap includedAnnotatedMembers(const Node *relative,
+                                                        const NodeList &nodes) const;
     void generateCompactList(ListType listType, const Node *relative, const NodeMultiMap &classMap,
                              bool includeAlphabet, const QString &commonPrefix);
     void generateFunctionIndex(const Node *relative);

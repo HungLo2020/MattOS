@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KDE 4.2\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-18 00:41+0000\n"
+"POT-Creation-Date: 2026-09-19 00:41+0000\n"
 "PO-Revision-Date: 2025-04-26 22:22+0200\n"
 "Last-Translator: Kristof Kiszel <ulysses@fsf.hu>\n"
 "Language-Team: Hungarian <kde-l10n-hu@kde.org>\n"
@@ -30,31 +30,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "ulysses@fsf.hu"
 
-#. i18n: ectx: property (text), widget (QPushButton, _allowOnce)
-#: ksecretd/kbetterthankdialogbase.ui:50
-#, kde-format
-msgid "Allow &Once"
-msgstr "Engedélyezés &csak most"
-
-#. i18n: ectx: property (text), widget (QPushButton, _allowAlways)
-#: ksecretd/kbetterthankdialogbase.ui:60
-#, kde-format
-msgid "Allow &Always"
-msgstr "Enge&délyezés mindig"
-
-#. i18n: ectx: property (text), widget (QPushButton, _deny)
-#: ksecretd/kbetterthankdialogbase.ui:67
-#, kde-format
-msgid "&Deny"
-msgstr "&Elutasítás csak most"
-
-#. i18n: ectx: property (text), widget (QPushButton, _denyForever)
-#: ksecretd/kbetterthankdialogbase.ui:74
-#, kde-format
-msgid "Deny &Forever"
-msgstr "El&utasítás mindig"
-
-#: ksecretd/knewwalletdialog.cpp:50
+#: ksecretd/knewwalletdialog.cpp:49
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. This is used "
@@ -66,20 +42,7 @@ msgstr ""
 "válassza ki lent az új jelszótároló típusát, vagy kattintson a mégse gombra "
 "az alkalmazás kérésének megtagadásához.</qt>"
 
-#: ksecretd/knewwalletdialog.cpp:55
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. This is used to store sensitive data in a secure fashion. "
-"Please choose the new wallet's type below or click cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>A(z) „<b>%1</b>” alkalmazás egy új „<b>%2</b>” nevű jelszótároló "
-"létrehozását kérte. Ez érzékeny adatok biztonságos módon történő tárolására "
-"használható. Kérjük válassza ki lent az új jelszótároló típusát, vagy "
-"kattintson a mégse gombra az alkalmazás kérésének megtagadásához.</qt>"
-
-#: ksecretd/knewwalletdialog.cpp:125 ksecretd/knewwalletdialog.cpp:132
+#: ksecretd/knewwalletdialog.cpp:117 ksecretd/knewwalletdialog.cpp:124
 #: ksecretd/kwalletwizard.cpp:151 ksecretd/kwalletwizard.cpp:157
 #, kde-format
 msgid ""
@@ -89,7 +52,7 @@ msgstr ""
 "A GpgME könyvtárat nem sikerült előkészíteni az OpenPGP protokollhoz. Kérjük "
 "ellenőrizze a rendszerbeállítását, majd próbálja újra."
 
-#: ksecretd/knewwalletdialog.cpp:153
+#: ksecretd/knewwalletdialog.cpp:145
 #, kde-format
 msgid ""
 "Seems that your system has no keys suitable for encryption. Please set-up at "
@@ -170,7 +133,7 @@ msgstr "Klasszikus, blowfish titkosított fájl"
 msgid "Use GPG encryption, for better protection"
 msgstr "GPG titkosítás használata a jobb védelemért"
 
-#: ksecretd/ksecretd.cpp:616
+#: ksecretd/ksecretd.cpp:334
 #, kde-format
 msgid ""
 "<qt>KDE has requested to open the wallet '<b>%1</b>'. Please enter the "
@@ -179,31 +142,21 @@ msgstr ""
 "<qt>A KDE a következő jelszótároló megnyitását kérte: „<b>%1</b>”. Kérjük "
 "adja meg tároló jelszavát.</qt>"
 
-#: ksecretd/ksecretd.cpp:620
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
-"b>'. Please enter the password for this wallet below.</qt>"
-msgstr ""
-"<qt>Egy alkalmazás („<b>%1</b>”) a következő jelszótároló megnyitását kérte: "
-"„<b>%2</b>”. Kérjük adja meg a tároló jelszavát.</qt>"
-
 #. i18n( "&Open" ), "wallet-open"));
-#: ksecretd/ksecretd.cpp:631 ksecretd/ksecretd.cpp:740
-#: ksecretd/ksecretd.cpp:844 ksecretd/ksecretd.cpp:957
-#: ksecretd/ksecretd.cpp:980 ksecretd/ksecretd.cpp:991
-#: ksecretd/ksecretd.cpp:996 ksecretd/ksecretd.cpp:1586 ksecretd/main.cpp:160
-#: ksecretd/main.cpp:162
+#: ksecretd/ksecretd.cpp:342 ksecretd/ksecretd.cpp:429
+#: ksecretd/ksecretd.cpp:573 ksecretd/ksecretd.cpp:596
+#: ksecretd/ksecretd.cpp:607 ksecretd/ksecretd.cpp:612
+#: ksecretd/ksecretd.cpp:899 ksecretd/main.cpp:159 ksecretd/main.cpp:161
 #, kde-format
 msgid "KDE Wallet Service"
 msgstr "KDE jelszókezelő szolgáltatás"
 
-#: ksecretd/ksecretd.cpp:646
+#: ksecretd/ksecretd.cpp:356
 #, kde-format
 msgid "An application has requested to open a wallet (%1)."
 msgstr "Egy alkalmazás szeretné megnyitni egy jelszótárolót (%1)."
 
-#: ksecretd/ksecretd.cpp:647
+#: ksecretd/ksecretd.cpp:357
 #, kde-format
 msgctxt ""
 "Text of a button for switching to the (unnamed) application requesting a "
@@ -211,19 +164,7 @@ msgctxt ""
 msgid "Switch there"
 msgstr "Váltás erre"
 
-#: ksecretd/ksecretd.cpp:649
-#, kde-format
-msgid "<b>%1</b> has requested to open a wallet (%2)."
-msgstr "A(z) <b>%1</b> meg szeretne nyitni egy jelszótárolót (%2)."
-
-#: ksecretd/ksecretd.cpp:651
-#, kde-format
-msgctxt ""
-"Text of a button for switching to the application requesting a password"
-msgid "Switch to %1"
-msgstr "Váltás erre: %1"
-
-#: ksecretd/ksecretd.cpp:668 ksecretd/ksecretd.cpp:750
+#: ksecretd/ksecretd.cpp:373 ksecretd/ksecretd.cpp:439
 #, kde-format
 msgid ""
 "<qt>Error opening the wallet '<b>%1</b>'. Please try again.<br />(Error code "
@@ -232,7 +173,7 @@ msgstr ""
 "<qt>Nem sikerült megnyitni a következő jelszótárolót: „<b>%1</b>”, esetleg "
 "próbálja meg újra.<br />(Hibakód %2: %3)</qt>"
 
-#: ksecretd/ksecretd.cpp:716
+#: ksecretd/ksecretd.cpp:420
 #, kde-format
 msgid ""
 "KDE has requested to open the wallet. This is used to store sensitive data "
@@ -243,20 +184,7 @@ msgstr ""
 "hasonló, védett adatok biztonságos tárolására szolgál). Kérjük írja be a "
 "tárolót védő jelszót vagy a Mégsem gombbal utasítsa el a hozzáférést)."
 
-#: ksecretd/ksecretd.cpp:721
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the KDE wallet. This "
-"is used to store sensitive data in a secure fashion. Please enter a password "
-"to use with this wallet or click cancel to deny the application's request.</"
-"qt>"
-msgstr ""
-"<qt>Egy alkalmazás („<b>%1</b>”) hozzáférést kér egy jelszótárolóhoz (a "
-"jelszótároló jelszavak és más hasonló, védett adatok biztonságos tárolására "
-"szolgál). Kérjük írja be a tárolót védő jelszót vagy a Mégsem gombbal "
-"utasítsa el a hozzáférést).</qt>"
-
-#: ksecretd/ksecretd.cpp:729
+#: ksecretd/ksecretd.cpp:425
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. Please "
@@ -267,33 +195,7 @@ msgstr ""
 "meg egy, a tárolóhoz való hozzáférést védő jelszót, vagy a Mégsem gombbal "
 "utasítsa el a kérést.</qt>"
 
-#: ksecretd/ksecretd.cpp:734
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. Please choose a password for this wallet, or cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>Egy alkalmazás („<b>%1</b>”) egy új, „<b>%2</b>” nevű jelszótárolót "
-"szeretne létrehozni. Adjon meg egy, a tárolóhoz való hozzáférést védő "
-"jelszót, vagy a Mégsem gombbal utasítsa el a kérést.</qt>"
-
-#: ksecretd/ksecretd.cpp:846
-#, kde-format
-msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
-msgstr ""
-"<qt>A KDE meg szeretné nyitni a következő jelszótárolót: „<b>%1</b>”.</qt>"
-
-#: ksecretd/ksecretd.cpp:848
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested access to the open wallet '<b>"
-"%2</b>'.</qt>"
-msgstr ""
-"<qt>Egy alkalmazás („<b>%1</b>”) meg szeretné nyitni a következő "
-"jelszótárolót: „<b>%2</b>”.</qt>"
-
-#: ksecretd/ksecretd.cpp:956
+#: ksecretd/ksecretd.cpp:572
 #, kde-format
 msgid ""
 "Unable to open wallet. The wallet must be opened in order to change the "
@@ -302,7 +204,7 @@ msgstr ""
 "Nem sikerült megnyitni a jelszótárolót. Egy tárolt jelszó megváltoztatásához "
 "meg kell nyitni a tárolót."
 
-#: ksecretd/ksecretd.cpp:972
+#: ksecretd/ksecretd.cpp:588
 #, kde-format
 msgid ""
 "<qt>The <b>%1</b> wallet is encrypted using GPG key <b>%2</b>. Please use "
@@ -313,28 +215,28 @@ msgstr ""
 "Kérjük használja a <b>GPG</b> eszközöket (mint <b>kleopatra</b>) a kulcshoz "
 "rendelt jelmondat megváltoztatásához.</qt>"
 
-#: ksecretd/ksecretd.cpp:979
+#: ksecretd/ksecretd.cpp:595
 #, kde-format
 msgid "<qt>Please choose a new password for the wallet '<b>%1</b>'.</qt>"
 msgstr ""
 "<qt>Adjon meg egy új jelszót a következő jelszótároló védéséhez: „<b>%1</b>”."
 "</qt>"
 
-#: ksecretd/ksecretd.cpp:991
+#: ksecretd/ksecretd.cpp:607
 #, kde-format
 msgid "Error re-encrypting the wallet. Password was not changed."
 msgstr ""
 "Nem sikerült újratitkosítani a jelszótárolót, ezért a jelszó nem változott "
 "meg."
 
-#: ksecretd/ksecretd.cpp:996
+#: ksecretd/ksecretd.cpp:612
 #, kde-format
 msgid "Error reopening the wallet. Data may be lost."
 msgstr ""
 "Nem sikerült újra megnyitni a jelszótárolót, lehet, hogy egyes adatok "
 "elvesztek."
 
-#: ksecretd/ksecretd.cpp:1585
+#: ksecretd/ksecretd.cpp:898
 #, kde-format
 msgid ""
 "There have been repeated failed attempts to gain access to a wallet. An "
@@ -557,47 +459,47 @@ msgstr ""
 msgid "What kind of encryption do you wish?"
 msgstr "Milyen típusú titkosítást szeretne?"
 
-#: ksecretd/main.cpp:164
+#: ksecretd/main.cpp:163
 #, kde-format
 msgid "(C) 2002-2025, The KDE Developers"
 msgstr "© A KDE fejlesztői, 2002-2025."
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Valentin Rusu"
 msgstr "Valentin Rusu"
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Former Maintainer, GPG backend support"
 msgstr "Korábbi karbantartó, GPG háttérprogram támogatás"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Michael Leupold"
 msgstr "Michael Leupold"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Former Maintainer"
 msgstr "Korábbi karbantartó"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "George Staikos"
 msgstr "George Staikos"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "Former maintainer"
 msgstr "Korábbi karbantartó"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "Thiago Maceira"
 msgstr "Thiago Maceira"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "D-Bus Interface"
 msgstr "D-Bus-csatoló"
@@ -701,52 +603,52 @@ msgstr ""
 "A jelszótároló a(z) <b>%2</b> azonosítójú GPG kulccsal lett titkosítva, de "
 "ez a kulcs nem található a rendszerén.</qt>"
 
-#: kwalletbackend/kwalletbackend.cc:272
+#: kwalletbackend/kwalletbackend.cc:286
 #, kde-format
 msgid "Already open."
 msgstr "Már meg van nyitva."
 
-#: kwalletbackend/kwalletbackend.cc:274
+#: kwalletbackend/kwalletbackend.cc:288
 #, kde-format
 msgid "Error opening file."
 msgstr "Nem sikerült megnyitni egy fájlt."
 
-#: kwalletbackend/kwalletbackend.cc:276
+#: kwalletbackend/kwalletbackend.cc:290
 #, kde-format
 msgid "Not a wallet file."
 msgstr "A fájl nem jelszótároló."
 
-#: kwalletbackend/kwalletbackend.cc:278
+#: kwalletbackend/kwalletbackend.cc:292
 #, kde-format
 msgid "Unsupported file format revision."
 msgstr "Nem támogatott verziójú a jelszótároló."
 
-#: kwalletbackend/kwalletbackend.cc:282
+#: kwalletbackend/kwalletbackend.cc:296
 #, kde-format
 msgid "Unknown encryption scheme."
 msgstr "Ismeretlen titkosítási mód."
 
-#: kwalletbackend/kwalletbackend.cc:284
+#: kwalletbackend/kwalletbackend.cc:298
 #, kde-format
 msgid "Corrupt file?"
 msgstr "Lehet, hogy a fájl megsérült"
 
-#: kwalletbackend/kwalletbackend.cc:286
+#: kwalletbackend/kwalletbackend.cc:300
 #, kde-format
 msgid "Error validating wallet integrity. Possibly corrupted."
 msgstr "A jelszótároló integritása sérült, valószínűleg megsérült a fájl."
 
-#: kwalletbackend/kwalletbackend.cc:290
+#: kwalletbackend/kwalletbackend.cc:304
 #, kde-format
 msgid "Read error - possibly incorrect password."
 msgstr "Olvasási hiba történt, valószínűleg hibás a megadott jelszó."
 
-#: kwalletbackend/kwalletbackend.cc:292
+#: kwalletbackend/kwalletbackend.cc:306
 #, kde-format
 msgid "Decryption error."
 msgstr "Dekódolási hiba történt."
 
-#: kwalletbackend/kwalletbackend.cc:472
+#: kwalletbackend/kwalletbackend.cc:486
 #, kde-format
 msgid ""
 "Failed to sync wallet <b>%1</b> to disk. Error codes are:\n"
@@ -759,94 +661,164 @@ msgstr ""
 "SF <b>%3</b>. Kérjük töltsön ki egy hibajelentést ezen információk "
 "használatával a bugs.kde.org oldalon."
 
-#: kwalletd/kwalletd.cpp:119
+#: kwalletd/kwalletd.cpp:103
 #, kde-format
 msgid "Migrating the wallet \"%1\". Please provide the password to unlock."
 msgstr ""
 
-#: kwalletd/main.cpp:32
+#: kwalletd/main.cpp:31
 #, kde-format
 msgid "kwalletd"
 msgstr "kwalletd"
 
-#: kwalletd/main.cpp:34
+#: kwalletd/main.cpp:33
 #, kde-format
 msgid "A KWallet compatibility service, wrapping upon Secret Service"
 msgstr ""
 
-#: kwalletd/main.cpp:36
+#: kwalletd/main.cpp:35
 #, fuzzy, kde-format
 #| msgid "(C) 2002-2025, The KDE Developers"
 msgid "(C) 2025, The KDE Developers"
 msgstr "© A KDE fejlesztői, 2002-2025."
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Marco Martin"
 msgstr ""
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Author"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:241
+#: kwalletd/secretserviceclient.cpp:262
 #, kde-format
 msgid "Item not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:261
+#: kwalletd/secretserviceclient.cpp:282
 #, kde-format
 msgid "Could not connect to Secret Service"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:423
+#: kwalletd/secretserviceclient.cpp:482
 #, kde-format
 msgid "Unable to unlock collectionName %1"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:515
+#: kwalletd/secretserviceclient.cpp:575
 #, kde-format
 msgid "No collections"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:552 kwalletd/secretserviceclient.cpp:599
-#: kwalletd/secretserviceclient.cpp:702
+#: kwalletd/secretserviceclient.cpp:612 kwalletd/secretserviceclient.cpp:659
+#: kwalletd/secretserviceclient.cpp:762
 #, kde-format
 msgid "No entries"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:617
+#: kwalletd/secretserviceclient.cpp:677
 #, kde-format
 msgid "Entry not found, key: %1, folder: %2"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:726
+#: kwalletd/secretserviceclient.cpp:786
 #, kde-format
 msgid "Unable to unlock item"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:769 kwalletd/secretserviceclient.cpp:887
+#: kwalletd/secretserviceclient.cpp:829 kwalletd/secretserviceclient.cpp:947
 #, kde-format
 msgid "Entry to rename not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:776
+#: kwalletd/secretserviceclient.cpp:836
 #, fuzzy, kde-format
 #| msgid "* SKIPPING entry %1 in folder %2 as it seems already migrated"
 msgid "Entry named %1 in folder %2 and wallet %3 already exists."
 msgstr ""
 "* A(z) %1 bejegyzés kihagyása a(z) %2 mappában, úgy tűnik már migrálva lett"
 
-#: kwalletd/secretserviceclient.cpp:791 kwalletd/secretserviceclient.cpp:806
+#: kwalletd/secretserviceclient.cpp:851 kwalletd/secretserviceclient.cpp:866
 #, kde-format
 msgid "Entry to rename incomplete"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:851
+#: kwalletd/secretserviceclient.cpp:911
 #, kde-format
 msgid "Failed to create SecretValue"
 msgstr ""
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. This is used to store sensitive data in a secure "
+#~ "fashion. Please choose the new wallet's type below or click cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>A(z) „<b>%1</b>” alkalmazás egy új „<b>%2</b>” nevű jelszótároló "
+#~ "létrehozását kérte. Ez érzékeny adatok biztonságos módon történő "
+#~ "tárolására használható. Kérjük válassza ki lent az új jelszótároló "
+#~ "típusát, vagy kattintson a mégse gombra az alkalmazás kérésének "
+#~ "megtagadásához.</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
+#~ "b>'. Please enter the password for this wallet below.</qt>"
+#~ msgstr ""
+#~ "<qt>Egy alkalmazás („<b>%1</b>”) a következő jelszótároló megnyitását "
+#~ "kérte: „<b>%2</b>”. Kérjük adja meg a tároló jelszavát.</qt>"
+
+#~ msgid "<b>%1</b> has requested to open a wallet (%2)."
+#~ msgstr "A(z) <b>%1</b> meg szeretne nyitni egy jelszótárolót (%2)."
+
+#~ msgctxt ""
+#~ "Text of a button for switching to the application requesting a password"
+#~ msgid "Switch to %1"
+#~ msgstr "Váltás erre: %1"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the KDE wallet. "
+#~ "This is used to store sensitive data in a secure fashion. Please enter a "
+#~ "password to use with this wallet or click cancel to deny the "
+#~ "application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Egy alkalmazás („<b>%1</b>”) hozzáférést kér egy jelszótárolóhoz (a "
+#~ "jelszótároló jelszavak és más hasonló, védett adatok biztonságos "
+#~ "tárolására szolgál). Kérjük írja be a tárolót védő jelszót vagy a Mégsem "
+#~ "gombbal utasítsa el a hozzáférést).</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. Please choose a password for this wallet, or cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Egy alkalmazás („<b>%1</b>”) egy új, „<b>%2</b>” nevű jelszótárolót "
+#~ "szeretne létrehozni. Adjon meg egy, a tárolóhoz való hozzáférést védő "
+#~ "jelszót, vagy a Mégsem gombbal utasítsa el a kérést.</qt>"
+
+#~ msgid "Allow &Once"
+#~ msgstr "Engedélyezés &csak most"
+
+#~ msgid "Allow &Always"
+#~ msgstr "Enge&délyezés mindig"
+
+#~ msgid "&Deny"
+#~ msgstr "&Elutasítás csak most"
+
+#~ msgid "Deny &Forever"
+#~ msgstr "El&utasítás mindig"
+
+#~ msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>A KDE meg szeretné nyitni a következő jelszótárolót: „<b>%1</b>”.</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested access to the open wallet "
+#~ "'<b>%2</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>Egy alkalmazás („<b>%1</b>”) meg szeretné nyitni a következő "
+#~ "jelszótárolót: „<b>%2</b>”.</qt>"
 
 #~ msgid "Cannot read old wallet list. Aborting."
 #~ msgstr "Nem lehet olvasni a régi jelszólistát. Megszakítás."

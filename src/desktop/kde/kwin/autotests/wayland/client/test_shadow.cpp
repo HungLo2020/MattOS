@@ -15,6 +15,7 @@
 #include "KWayland/Client/shm_pool.h"
 #include "KWayland/Client/surface.h"
 // server
+#include "core/gpumanager.h"
 #include "core/graphicsbufferview.h"
 #include "wayland/compositor.h"
 #include "wayland/display.h"
@@ -46,13 +47,12 @@ private:
     KWayland::Client::ShadowManager *m_shadow = nullptr;
 };
 
-static const QString s_socketName = QStringLiteral("kwayland-test-shadow-0");
-
 void ShadowTest::init()
 {
+    GpuManager::s_self = std::make_unique<GpuManager>();
     delete m_display;
     m_display = new KWin::Display(this);
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
     m_display->createShm();
@@ -62,7 +62,7 @@ void ShadowTest::init()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);
@@ -120,6 +120,7 @@ void ShadowTest::cleanup()
     // these are the children of the display
     m_compositorInterface = nullptr;
     m_shadowInterface = nullptr;
+    KWin::GpuManager::s_self.reset();
 }
 
 void ShadowTest::testCreateShadow()

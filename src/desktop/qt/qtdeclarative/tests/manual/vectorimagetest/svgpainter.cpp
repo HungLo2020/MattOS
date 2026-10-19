@@ -67,10 +67,14 @@ void SvgPainter::paintEvent(QPaintEvent *event)
     Q_UNUSED(event)
     if (m_renderer.isValid()) {
         QPainter p(this);
-        p.fillRect(rect(), Qt::white);
+
+        QBrush textureBrush;
+        textureBrush.setTextureImage(QImage(":/qt/qml/VectorImageTest/background.png"));
+        p.fillRect(rect(), textureBrush);
 
         m_renderer.setAspectRatioMode(Qt::KeepAspectRatio);
         m_renderer.render(&p);
+        m_renderer.setAnimationEnabled(m_playing);
         m_size = m_renderer.defaultSize();
         setFixedSize(m_size * m_scale / 10.0);
 

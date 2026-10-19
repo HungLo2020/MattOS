@@ -5,15 +5,12 @@
 
 #include "inode.h"
 #include "location.h"
+#include "textutils.h"
 
-#include <QtCore/qcryptographichash.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qprocess.h>
 
 QT_BEGIN_NAMESPACE
-
-Q_LOGGING_CATEGORY(lcQdoc, "qt.qdoc")
-Q_LOGGING_CATEGORY(lcQdocClang, "qt.qdoc.clang")
 
 /*!
     \namespace Utilities
@@ -81,146 +78,7 @@ QString uniqueIdentifier(const Location &loc, const QString &prefix)
     Q_ASSERT(!loc.filePath().isEmpty());
     QFileInfo fi{loc.filePath()};
     const auto id = QLatin1String("%1_%2_%3").arg(prefix, fi.fileName(), QString::number(loc.lineNo()));
-    return asAsciiPrintable(id);
-}
-
-
-/*!
-    \internal
-    Convenience method that's used to get the correct punctuation character for
-    the words at \a wordPosition in a list of \a numberOfWords length.
-    For the last position in the list, returns "." (full stop). For any other
-    word, this method calls comma().
-
-    \sa comma()
- */
-QString separator(qsizetype wordPosition, qsizetype numberOfWords)
-{
-    static QString terminator = QStringLiteral(".");
-    if (wordPosition == numberOfWords - 1)
-        return terminator;
-    else
-        return comma(wordPosition, numberOfWords);
-}
-
-/*!
-    \internal
-    Convenience method that's used to get the correct punctuation character for
-    the words at \a wordPosition in a list of \a numberOfWords length.
-
-    For a list of length one, returns an empty QString. For a list of length
-    two, returns the string " and ". For any length beyond two, returns the
-    string ", " until the last element, which returns ", and ".
-
-    \sa comma()
- */
-QString comma(qsizetype wordPosition, qsizetype numberOfWords)
-{
-    if (wordPosition == numberOfWords - 1)
-        return QString();
-    if (numberOfWords == 2)
-        return QStringLiteral(" and ");
-    if (wordPosition == 0 || wordPosition < numberOfWords - 2)
-        return QStringLiteral(", ");
-    return QStringLiteral(", and ");
-}
-
-/*!
-    \brief Returns an ascii-printable representation of \a str.
-
-    Replace non-ascii-printable characters in \a str from a subset of such
-    characters. The subset includes alphanumeric (alnum) characters
-    ([a-zA-Z0-9]), space, punctuation characters, and common symbols. Non-alnum
-    characters in this subset are replaced by a single hyphen. Leading,
-    trailing, and consecutive hyphens are removed, such that the resulting
-    string does not start or end with a hyphen. All characters are converted to
-    lowercase.
-
-    If any character in \a str is non-latin, or latin and not found in the
-    aforementioned subset (e.g. 'ß', 'å', or 'ö'), a hash of \a str is appended
-    to the final string.
-
-    Returns a string that is normalized for use where ascii-printable strings
-    are required, such as file names or fragment identifiers in URLs.
-
-    The implementation is equivalent to:
-
-    \code
-      name.replace(QRegularExpression("[^A-Za-z0-9]+"), " ");
-      name = name.simplified();
-      name.replace(QLatin1Char(' '), QLatin1Char('-'));
-      name = name.toLower();
-    \endcode
-
-    However, it has been measured to be approximately four times faster.
-*/
-QString asAsciiPrintable(const QString &str)
-{
-    auto legal_ascii = [](const uint value) {
-        const uint start_ascii_subset{ 32 };
-        const uint end_ascii_subset{ 126 };
-
-        return value >= start_ascii_subset && value <= end_ascii_subset;
-    };
-
-    QString result;
-    bool begun = false;
-    bool has_non_alnum_content{ false };
-
-    for (const auto &c : str) {
-        char16_t u = c.unicode();
-        if (!legal_ascii(u))
-            has_non_alnum_content = true;
-        if (u >= 'A' && u <= 'Z')
-            u += 'a' - 'A';
-        if ((u >= 'a' && u <= 'z') || (u >= '0' && u <= '9')) {
-            result += QLatin1Char(u);
-            begun = true;
-        } else if (begun) {
-            result += QLatin1Char('-');
-            begun = false;
-        }
-    }
-    if (result.endsWith(QLatin1Char('-')))
-        result.chop(1);
-
-    if (has_non_alnum_content) {
-        auto title_hash = QString::fromLocal8Bit(
-                QCryptographicHash::hash(str.toUtf8(), QCryptographicHash::Md5).toHex());
-        title_hash.truncate(8);
-        if (!result.isEmpty())
-            result.append(QLatin1Char('-'));
-        result.append(title_hash);
-    }
-
-    return result;
-}
-
-QString protect(const QString &str)
-{
-    qsizetype n = str.size();
-    QString marked;
-    marked.reserve(n * 2 + 30);
-    const QChar *data = str.constData();
-    for (int i = 0; i != n; ++i) {
-        switch (data[i].unicode()) {
-        case '&':
-            marked += samp;
-            break;
-        case '<':
-            marked += slt;
-            break;
-        case '>':
-            marked += sgt;
-            break;
-        case '"':
-            marked += squot;
-            break;
-        default:
-            marked += data[i];
-        }
-    }
-    return marked;
+    return TextUtils::asAsciiPrintable(id);
 }
 
 /*!
@@ -327,6 +185,100 @@ bool isGeneratedFile(const QString &path)
     return fileName.startsWith("moc_") ||
            fileName.startsWith("qrc_") ||
            fileName.startsWith("ui_");
+}
+
+/*!
+    Returns a string list containing the path and fragment components of the
+    given \a linkText. Fragments begin with a "#" character, following HTML
+    conventions.
+
+    Links with only a path or only a fragment will result in lists of one
+    element. A link with both path and fragment will result in a list of two
+    elements. Additional fragments are discarded.
+
+    Escaped "#" characters ("\\#") are interpreted differently to regular "#"
+    characters. These can be used to represent "#" characters in titles, but
+    not in fragments.
+*/
+QStringList pathAndFragment(const QString &linkText)
+{
+    QStringList pieces = linkText.split("\\#"_L1);
+    QStringList result;
+    QString next;
+
+    for (auto &piece : pieces) {
+        QStringList fragmentPieces = piece.split('#');
+        next += fragmentPieces.takeFirst();
+        if (!fragmentPieces.isEmpty()) {
+            result.append(next);
+            next = fragmentPieces.first();
+        }
+        if (result.count() == 2)
+            break;
+    }
+    if (!next.isEmpty() && result.count() < 2)
+        result.append(next);
+
+    return result;
+}
+
+/*!
+    Constructs an href link from an example file name.
+
+    The \a path is the path to the example file. The \a project is the
+    module name (used as prefix). The \a fileExt is the file extension
+    for the generated link.
+ */
+QString linkForExampleFile(const QString &path, const QString &project, const QString &fileExt)
+{
+    QString link = project.toLower() + QLatin1Char('-') + path;
+    return TextUtils::asAsciiPrintable(link) + QLatin1Char('.') + fileExt;
+}
+
+/*!
+    Constructs a title for a file or image page in an example.
+
+    Returns the base name of \a fileName with the appropriate suffix
+    based on \a kind: " Example File" for ExampleFileKind::File,
+    " Image File" for ExampleFileKind::Image.
+
+    Use this overload when you already know whether the file is an
+    example file or image (e.g., when iterating separate file/image lists).
+ */
+QString exampleFileTitle(const QString &fileName, ExampleFileKind kind)
+{
+    const QString suffix = [kind]() {
+        switch (kind) {
+        case ExampleFileKind::File:
+            return " Example File"_L1;
+        case ExampleFileKind::Image:
+            return " Image File"_L1;
+        }
+        Q_UNREACHABLE();
+    }();
+    return QFileInfo(fileName).fileName() + suffix;
+}
+
+/*!
+    Constructs a title for a file or image page in an example.
+
+    If \a fileName is found in \a files, returns the base name with
+    " Example File" suffix. If found in \a images, returns the base
+    name with " Image File" suffix. If not found in either list,
+    returns an empty string.
+
+    Matching uses exact string equality, not basename comparison.
+
+    \note This overload performs O(n) membership checks. When iterating
+    known file or image lists, prefer the overload taking ExampleFileKind.
+ */
+QString exampleFileTitle(const QStringList &files, const QStringList &images, const QString &fileName)
+{
+    if (files.contains(fileName))
+        return exampleFileTitle(fileName, ExampleFileKind::File);
+    if (images.contains(fileName))
+        return exampleFileTitle(fileName, ExampleFileKind::Image);
+    return {};
 }
 
 } // namespace Utilities

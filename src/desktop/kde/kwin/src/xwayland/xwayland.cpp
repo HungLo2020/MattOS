@@ -18,6 +18,7 @@
 #include "xwaylandlauncher.h"
 #include "xwldrophandler.h"
 
+#include "atoms.h"
 #include "core/backendoutput.h"
 #include "keyboard_input.h"
 #include "main_wayland.h"
@@ -31,7 +32,6 @@
 #include "xkb.h"
 #include "xwayland_logging.h"
 
-#include <KSelectionOwner>
 #include <wayland/keyboard.h>
 #include <wayland/pointer.h>
 #include <wayland/seat.h>
@@ -350,11 +350,11 @@ public:
 
 Xwayland::Xwayland(Application *app)
     : m_app(app)
-    , m_launcher(new XwaylandLauncher(this))
+    , m_launcher(std::make_unique<XwaylandLauncher>())
 {
-    connect(m_launcher, &XwaylandLauncher::ready, this, &Xwayland::handleXwaylandReady);
-    connect(m_launcher, &XwaylandLauncher::finished, this, &Xwayland::handleXwaylandFinished);
-    connect(m_launcher, &XwaylandLauncher::errorOccurred, this, &Xwayland::errorOccurred);
+    connect(m_launcher.get(), &XwaylandLauncher::ready, this, &Xwayland::handleXwaylandReady);
+    connect(m_launcher.get(), &XwaylandLauncher::finished, this, &Xwayland::handleXwaylandFinished);
+    connect(m_launcher.get(), &XwaylandLauncher::errorOccurred, this, &Xwayland::errorOccurred);
 }
 
 Xwayland::~Xwayland()
@@ -376,7 +376,7 @@ void Xwayland::init()
 
 XwaylandLauncher *Xwayland::xwaylandLauncher() const
 {
-    return m_launcher;
+    return m_launcher.get();
 }
 
 void Xwayland::dispatchEvents(DispatchEventsMode mode)
@@ -397,10 +397,9 @@ void Xwayland::dispatchEvents(DispatchEventsMode mode)
     auto pollEventFunc = mode == DispatchEventsMode::Poll ? xcb_poll_for_event : xcb_poll_for_queued_event;
 
     while (xcb_generic_event_t *event = pollEventFunc(connection)) {
-        qintptr result = 0;
-
-        QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
-        dispatcher->filterNativeEvent(QByteArrayLiteral("xcb_generic_event_t"), event, &result);
+        if (!m_dataBridge->dispatchEvent(event)) {
+            kwinApp()->dispatchEvent(event);
+        }
         free(event);
     }
 
@@ -411,8 +410,8 @@ void Xwayland::installSocketNotifier()
 {
     const int fileDescriptor = xcb_get_file_descriptor(kwinApp()->x11Connection());
 
-    m_socketNotifier = new QSocketNotifier(fileDescriptor, QSocketNotifier::Read, this);
-    connect(m_socketNotifier, &QSocketNotifier::activated, this, [this]() {
+    m_socketNotifier = std::make_unique<QSocketNotifier>(fileDescriptor, QSocketNotifier::Read);
+    connect(m_socketNotifier.get(), &QSocketNotifier::activated, this, [this]() {
         dispatchEvents(DispatchEventsMode::Poll);
     });
 
@@ -430,24 +429,20 @@ void Xwayland::uninstallSocketNotifier()
     QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
     disconnect(dispatcher, nullptr, this, nullptr);
 
-    delete m_socketNotifier;
-    m_socketNotifier = nullptr;
+    m_socketNotifier.reset();
 }
 
 void Xwayland::handleXwaylandFinished()
 {
     disconnect(workspace(), &Workspace::outputOrderChanged, this, &Xwayland::updatePrimary);
 
-    delete m_xrandrEventsFilter;
-    m_xrandrEventsFilter = nullptr;
+    m_xrandrEventsFilter.reset();
 
     // If Xwayland has crashed, we must deactivate the socket notifier and ensure that no X11
     // events will be dispatched before blocking; otherwise we will simply hang...
     uninstallSocketNotifier();
 
     m_dataBridge.reset();
-    m_compositingManagerSelectionOwner.reset();
-    m_windowManagerSelectionOwner.reset();
 
     m_inputFilter.reset();
     disconnect(options, &Options::xwaylandEavesdropsChanged, this, &Xwayland::refreshEavesdropping);
@@ -465,24 +460,12 @@ void Xwayland::handleXwaylandReady()
 
     qCInfo(KWIN_XWL) << "Xwayland server started on display" << m_launcher->displayName();
 
-    m_compositingManagerSelectionOwner = std::make_unique<KSelectionOwner>("_NET_WM_CM_S0", kwinApp()->x11Connection(), kwinApp()->x11RootWindow());
-    m_compositingManagerSelectionOwner->claim(true);
-
-    xcb_composite_redirect_subwindows(kwinApp()->x11Connection(),
-                                      kwinApp()->x11RootWindow(),
-                                      XCB_COMPOSITE_REDIRECT_MANUAL);
-
-    // create selection owner for WM_S0 - magic X display number expected by XWayland
-    m_windowManagerSelectionOwner = std::make_unique<KSelectionOwner>("WM_S0", kwinApp()->x11Connection(), kwinApp()->x11RootWindow());
-    m_windowManagerSelectionOwner->claim(true);
-
     m_dataBridge = std::make_unique<DataBridge>();
 
     connect(workspace(), &Workspace::outputOrderChanged, this, &Xwayland::updatePrimary);
     updatePrimary();
 
-    delete m_xrandrEventsFilter;
-    m_xrandrEventsFilter = new XrandrEventFilter(this);
+    m_xrandrEventsFilter = std::make_unique<XrandrEventFilter>(this);
 
     refreshEavesdropping();
     connect(options, &Options::xwaylandEavesdropsChanged, this, &Xwayland::refreshEavesdropping);
@@ -491,6 +474,21 @@ void Xwayland::handleXwaylandReady()
     runXWaylandStartupScripts();
 
     Q_EMIT started();
+}
+
+void Xwayland::registerReady()
+{
+    // Helper window to claim _NET_WM_CM_S0 and WM_S0 selections. It will be destroyed together with our connection.
+    const xcb_window_t selectionOwner = xcb_generate_id(kwinApp()->x11Connection());
+    xcb_create_window(kwinApp()->x11Connection(), XCB_COPY_FROM_PARENT, selectionOwner, kwinApp()->x11RootWindow(), 0, 0, 1, 1, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT, 0, nullptr);
+
+    xcb_set_selection_owner(kwinApp()->x11Connection(), selectionOwner, atoms->net_wm_cm_s0, XCB_CURRENT_TIME);
+    xcb_composite_redirect_subwindows(kwinApp()->x11Connection(),
+                                      kwinApp()->x11RootWindow(),
+                                      XCB_COMPOSITE_REDIRECT_MANUAL);
+
+    // create selection owner for WM_S0 - magic X display number expected by XWayland
+    xcb_set_selection_owner(kwinApp()->x11Connection(), selectionOwner, atoms->wm_s0, XCB_CURRENT_TIME);
 }
 
 void Xwayland::refreshEavesdropping()
@@ -557,7 +555,6 @@ bool Xwayland::createX11Connection()
     m_app->setX11RootWindow(screen->root);
 
     m_app->createAtoms();
-    m_app->installNativeX11EventFilter();
 
     installSocketNotifier();
 
@@ -577,7 +574,6 @@ void Xwayland::destroyX11Connection()
     Q_EMIT m_app->x11ConnectionAboutToBeDestroyed();
 
     m_app->destroyAtoms();
-    m_app->removeNativeX11EventFilter();
 
     xcb_disconnect(m_app->x11Connection());
 
@@ -589,18 +585,35 @@ void Xwayland::destroyX11Connection()
 
 void Xwayland::runXWaylandStartupScripts()
 {
-    QDir scriptDir(XWAYLAND_SESSION_SCRIPTS);
-    const QStringList scripts = scriptDir.entryList(QStringList(), QDir::Files, QDir::Name);
+    QProcessEnvironment setupEnv = kwinApp()->processStartupEnvironment();
+    setupEnv.insert("DISPLAY", m_launcher->initDisplayName());
 
-    for (const QString &script : scripts) {
+    std::shared_ptr<QObject> readyGuard(new QObject());
+    // captured by every process, then out of scope when finished
+    connect(readyGuard.get(), &QObject::destroyed, this, [this]() {
+        registerReady();
+    });
+
+    QDir scriptDir(XWAYLAND_SESSION_SCRIPTS);
+    QStringList scripts = scriptDir.entryList(QStringList(), QDir::Files, QDir::Name);
+    scripts << QString(LIBEXEC_DIR) + QStringLiteral("/plasma-setup-xwayland");
+
+    for (const QString &script : std::as_const(scripts)) {
         const QString path = scriptDir.filePath(script);
         qCDebug(KWIN_XWL) << "Running Xwayland startup script" << path;
-        QProcessEnvironment environment = kwinApp()->processStartupEnvironment();
 
         auto *process = new QProcess;
-        process->setProcessEnvironment(environment);
+        process->setProcessEnvironment(setupEnv);
+        connect(process, &QProcess::finished, process, [process, path, readyGuard]() {
+            qCDebug(KWIN_XWL) << "Finished Xwayland startup script" << path;
+            process->deleteLater();
+        });
+        // if the script fails to start entirely (bad intepreter, dead symlink, etc), don't block forever
+        connect(process, &QProcess::errorOccurred, process, [process, path, readyGuard]() {
+            qCWarning(KWIN_XWL) << "Failed to start Xwayland startup script" << path;
+            process->deleteLater();
+        });
         process->start(path);
-        connect(process, &QProcess::finished, process, &QProcess::deleteLater);
     }
 }
 

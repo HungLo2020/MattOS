@@ -13,7 +13,7 @@
 
 #include "uniformdatastream.h"
 
-/**
+/*
  * A material rendering a rectangle with a shadow.
  *
  * This material uses a distance field shader to render a rectangle with a

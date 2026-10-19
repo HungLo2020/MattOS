@@ -1,6 +1,7 @@
 [Desktop Entry]
 Type=Service
 Name=Freecode
+Name[am]=Freecode
 Name[ar]=فريكود
 Name[ast]=Freecode
 Name[az]=Freecode
@@ -45,6 +46,8 @@ Name[lt]=Freecode
 Name[lv]=Freecode
 Name[mr]=फ्रीकोड
 Name[my]=ဖရီးကုတ်
+Name[nan_TW]=Freecode
+Name[nan_TW@latin]=Freecode
 Name[nb]=Freecode
 Name[nds]=Freecode
 Name[nl]=Freecode
@@ -68,7 +71,6 @@ Name[tg]=Freecode
 Name[th]=Freecode
 Name[tok]=ilo Freecode
 Name[tr]=Freecode
-Name[ug]=Freecode
 Name[uk]=Freecode
 Name[vi]=Freecode
 Name[wa]=Freecode
@@ -76,6 +78,7 @@ Name[zh_CN]=Freecode
 Name[zh_TW]=Freecode
 Keys=fc,freecode
 Query=http://freecode.com/search?q=\\{@}
+Query[am]=http://freecode.com/search?q=\\{@}
 Query[ar]=http://freecode.com/search?q=\\{@}
 Query[az]=http://freecode.com/search?q=\\{@}
 Query[be]=http://freecode.com/search?q=\\{@}
@@ -119,6 +122,8 @@ Query[lt]=http://freecode.com/search?q=\\{@}
 Query[lv]=http://freecode.com/search?q=\\{@}
 Query[mr]=http://freecode.com/search?q=\\{@}
 Query[my]=http://freecode.com/search?q=\\{@}
+Query[nan_TW]=http://freecode.com/search?q=\\{@}
+Query[nan_TW@latin]=http://freecode.com/search?q=\\{@}
 Query[nb]=http://freecode.com/search?q=\\{@}
 Query[nds]=http://freecode.com/search?q=\\{@}
 Query[nl]=https://freecode.com/search?q=\\{@}
@@ -142,7 +147,6 @@ Query[tg]=http://freecode.com/search?q=\\{@}
 Query[th]=http://freecode.com/search?q=\\{@}
 Query[tok]=http://freecode.com/search?q=\\{@}
 Query[tr]=http://freecode.com/search?q=\\{@}
-Query[ug]=http://freecode.com/search?q=\\{@}
 Query[uk]=http://freecode.com/search?q=\\{@}
 Query[vi]=http://freecode.com/search?q=\\{@}
 Query[wa]=http://freecode.com/search?q=\\{@}

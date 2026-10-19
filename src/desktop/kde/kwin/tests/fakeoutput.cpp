@@ -13,24 +13,21 @@ FakeBackendOutput::FakeBackendOutput()
     setMode(QSize(1024, 720), 60000);
 }
 
-bool FakeBackendOutput::testPresentation(const std::shared_ptr<KWin::OutputFrame> &frame)
+std::expected<void, KWin::OutputError> FakeBackendOutput::testPresentation(const std::shared_ptr<KWin::OutputFrame> &frame)
 {
-    return false;
+    qFatal("The fake output should not be presented to");
+    return {};
 }
 
-bool FakeBackendOutput::present(const QList<KWin::OutputLayer *> &layersToUpdate, const std::shared_ptr<KWin::OutputFrame> &frame)
+std::expected<void, KWin::OutputError> FakeBackendOutput::present(const QList<KWin::OutputLayer *> &layersToUpdate, const std::shared_ptr<KWin::OutputFrame> &frame)
 {
-    return false;
-}
-
-KWin::RenderLoop *FakeBackendOutput::renderLoop() const
-{
-    return nullptr;
+    qFatal("The fake output should not be presented to");
+    return {};
 }
 
 void FakeBackendOutput::setMode(QSize size, uint32_t refreshRate)
 {
-    auto mode = std::make_shared<KWin::OutputMode>(size, refreshRate);
+    auto mode = std::make_shared<KWin::OutputMode>(KWin::OutputModeline(size, refreshRate));
 
     State state = m_state;
     state.modes = {mode};

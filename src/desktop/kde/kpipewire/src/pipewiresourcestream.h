@@ -127,12 +127,19 @@ public:
 
     Fraction framerate() const;
     void setMaxFramerate(const Fraction &framerate);
+    void setRequestedSize(const QSize &size);
+
     uint nodeId();
+    quint64 objectSerial();
     QString error() const;
 
     QSize size() const;
     pw_stream_state state() const;
-    bool createStream(uint nodeid, int fd);
+    /**
+     * @deprecrated use createStream(quint64 objectSerial, int fd) instead
+     */
+    KPIPEWIRE_DEPRECATED bool createStream(uint nodeid, int fd);
+    bool createStream(quint64 objectSerial, int fd);
     void setActive(bool active);
     void setDamageEnabled(bool withDamage);
 
@@ -168,4 +175,5 @@ private:
 
     void coreFailed(const QString &errorMessage);
     QScopedPointer<PipeWireSourceStreamPrivate> d;
+    friend struct PipeWireSourceStreamPrivate;
 };

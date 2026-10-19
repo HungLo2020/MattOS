@@ -63,6 +63,9 @@ QT_WARNING_DISABLE_GCC("-Wfree-nonheap-object") // false positive tracking
 #if QT_CONFIG(timezone) && QT_CONFIG(timezone_locale) && !QT_CONFIG(icu)
 #   include "private/qtimezonelocale_p.h"
 #endif
+#if QT_CONFIG(datestring)
+#   include "private/qttemporalpattern_p.h"
+#endif
 
 #include <q20iterator.h>
 
@@ -2342,11 +2345,7 @@ QString QLocale::toString(qulonglong number, int fieldWidth, char32_t fillChar) 
 }
 
 /*!
-    Returns a localized string representation of the given \a date in the
-    specified \a format.
-    If \a format is an empty string, an empty string is returned.
-
-    \sa QDate::toString()
+    \overload
 */
 
 QString QLocale::toString(QDate date, const QString &format) const
@@ -2355,11 +2354,13 @@ QString QLocale::toString(QDate date, const QString &format) const
 }
 
 /*!
+    \overload
     Returns a localized string representation of the given \a time according
-    to the specified \a format.
+    to the specified \a format (see QTime::toString()).
+
     If \a format is an empty string, an empty string is returned.
 
-    \sa QTime::toString()
+    \sa dateFormat(), QTime::toString()
 */
 
 QString QLocale::toString(QTime time, const QString &format) const
@@ -2370,22 +2371,20 @@ QString QLocale::toString(QTime time, const QString &format) const
 /*!
     \since 4.4
     \fn QString QLocale::toString(const QDateTime &dateTime, const QString &format) const
-
-    Returns a localized string representation of the given \a dateTime according
-    to the specified \a format.
-    If \a format is an empty string, an empty string is returned.
-
-    \sa QDateTime::toString(), QDate::toString(), QTime::toString()
+    \overload
 */
 
 /*!
     \since 5.14
+    \overload
 
     Returns a localized string representation of the given \a date in the
-    specified \a format, optionally for a specified calendar \a cal.
+    specified \a format (see QDate::toString()), optionally for a specified
+    calendar \a cal.
+
     If \a format is an empty string, an empty string is returned.
 
-    \sa QDate::toString()
+    \sa dateFormat(), QDate::toString()
 */
 QString QLocale::toString(QDate date, QStringView format, QCalendar cal) const
 {
@@ -2404,12 +2403,12 @@ QString QLocale::toString(QDate date, QStringView format) const
 /*!
     \since 5.14
 
-    Returns a localized string representation of the given \a date according
-    to the specified \a format (see dateFormat()), optionally for a specified
+    Returns a localized string representation of the given \a date according to
+    the specified \a format (see dateFormat()), optionally for a specified
     calendar \a cal.
 
     \note Some locales may use formats that limit the range of years they can
-    represent.
+    represent. Some locales' use of two-digit years may lead to ambiguity.
 */
 QString QLocale::toString(QDate date, FormatType format, QCalendar cal) const
 {
@@ -2474,12 +2473,7 @@ static bool timeFormatContainsAP(QStringView format)
 
 /*!
     \since 4.5
-
-    Returns a localized string representation of the given \a time according
-    to the specified \a format.
-    If \a format is an empty string, an empty string is returned.
-
-    \sa QTime::toString()
+    \overload
 */
 QString QLocale::toString(QTime time, QStringView format) const
 {
@@ -2490,7 +2484,9 @@ QString QLocale::toString(QTime time, QStringView format) const
     \since 5.14
 
     Returns a localized string representation of the given \a dateTime according
-    to the specified \a format, optionally for a specified calendar \a cal.
+    to the specified \a format (see QDateTime::toString()), optionally for a
+    specified calendar \a cal.
+
     If \a format is an empty string, an empty string is returned.
 
     \sa QDateTime::toString(), QDate::toString(), QTime::toString()
@@ -2517,7 +2513,7 @@ QString QLocale::toString(const QDateTime &dateTime, QStringView format) const
     specified calendar \a cal.
 
     \note Some locales may use formats that limit the range of years they can
-    represent.
+    represent. Some locales' use of two-digit years may lead to ambiguity.
 */
 QString QLocale::toString(const QDateTime &dateTime, FormatType format, QCalendar cal) const
 {
@@ -2790,17 +2786,16 @@ QDateTime QLocale::toDateTime(const QString &string, FormatType format, QCalenda
 */
 QTime QLocale::toTime(const QString &string, const QString &format) const
 {
-    QTime time;
 #if QT_CONFIG(datetimeparser)
-    QDateTimeParser dt(QMetaType::QTime, QDateTimeParser::FromString, QCalendar());
-    dt.setDefaultLocale(*this);
-    if (dt.parseFormat(format))
-        dt.fromString(string, nullptr, &time);
+    QTimePattern pattern = QTimePattern::fromQtFormat(format);
+    pattern.setLocale(*this);
+    if (auto match = pattern.parse(string, QTime(0, 0)); match.size == string.size())
+        return std::move(match.payload);
 #else
     Q_UNUSED(string);
     Q_UNUSED(format);
 #endif
-    return time;
+    return {};
 }
 
 /*!
@@ -2839,19 +2834,22 @@ QDate QLocale::toDate(const QString &string, const QString &format, int baseYear
 */
 QDate QLocale::toDate(const QString &string, const QString &format, QCalendar cal, int baseYear) const
 {
-    QDate date;
 #if QT_CONFIG(datetimeparser)
-    QDateTimeParser dt(QMetaType::QDate, QDateTimeParser::FromString, cal);
-    dt.setDefaultLocale(*this);
-    if (dt.parseFormat(format))
-        dt.fromString(string, &date, nullptr, baseYear);
+    QDatePattern pattern = QDatePattern::fromQtFormat(format);
+    pattern.setLocale(*this);
+    pattern.setCalendar(cal);
+    pattern.setBaseYear(baseYear);
+    if (auto match = pattern.parse(string, QDate(baseYear, 1, 1, cal));
+             match.size == string.size()) {
+        return std::move(match.payload);
+    }
 #else
     Q_UNUSED(string);
     Q_UNUSED(format);
-    Q_UNUSED(baseYear);
     Q_UNUSED(cal);
+    Q_UNUSED(baseYear);
 #endif
-    return date;
+    return {};
 }
 
 /*!
@@ -2870,8 +2868,9 @@ QDate QLocale::toDate(const QString &string, const QString &format, QCalendar ca
 
     If the string could not be parsed, returns an invalid QDateTime.  If the
     string can be parsed and represents an invalid date-time (e.g. in a gap
-    skipped by a time-zone transition), an invalid QDateTime is returned, whose
-    toMSecsSinceEpoch() represents a near-by date-time that is valid. Passing
+    skipped by a time-zone transition), the returned QDateTime represents a
+    near-by datetime that is valid (typically differing from it by the width of
+    the gap in valid datetimes, e.g. the hour skipped by a transition). Passing
     that to fromMSecsSinceEpoch() will produce a valid date-time that isn't
     faithfully represented by the string parsed.
 
@@ -2890,21 +2889,21 @@ QDateTime QLocale::toDateTime(const QString &string, const QString &format, QCal
                               int baseYear) const
 {
 #if QT_CONFIG(datetimeparser)
-    QDateTime datetime;
-
-    QDateTimeParser dt(QMetaType::QDateTime, QDateTimeParser::FromString, cal);
-    dt.setDefaultLocale(*this);
-    if (dt.parseFormat(format) && (dt.fromString(string, &datetime, baseYear)
-                                   || !datetime.isValid())) {
-        return datetime;
+    QDateTimePattern pattern = QDateTimePattern::fromQtFormat(format);
+    pattern.setLocale(*this);
+    pattern.setCalendar(cal);
+    pattern.setBaseYear(baseYear);
+    if (auto match = pattern.parse(string, QDate(baseYear, 1, 1, cal).startOfDay());
+             match.size == string.size()) {
+        return std::move(match.payload);
     }
 #else
     Q_UNUSED(string);
     Q_UNUSED(format);
-    Q_UNUSED(baseYear);
     Q_UNUSED(cal);
+    Q_UNUSED(baseYear);
 #endif
-    return QDateTime();
+    return {};
 }
 #endif // datestring
 
@@ -3775,19 +3774,21 @@ static QString offsetFromAbbreviation(QString &&text)
 }
 
 // For the benefit of QCalendar, below, when not provided by QTZL.
-#if QT_CONFIG(icu) || !(QT_CONFIG(timezone) && QT_CONFIG(timezone_locale))
+#if !QT_CONFIG(datestring)
+// No need for temporal data serialization and parsing code.
+#elif QT_CONFIG(icu) || !(QT_CONFIG(timezone) && QT_CONFIG(timezone_locale))
 namespace QtTimeZoneLocale {
 
 // TODO: is there a way to get this non-kludgily from ICU ?
 // If so, that version goes in QTZL.cpp's relevant #if-ery branch.
 QString zoneOffsetFormat([[maybe_unused]] const QLocale &locale,
                          qsizetype,
-                         [[maybe_unused]] QLocale::FormatType width,
+                         QtTemporalPattern::TemporalFieldFlags,
                          const QDateTime &when,
                          int offsetSeconds)
 {
-    // Only the non-ICU TZ-locale code uses the other two widths:
-    Q_ASSERT(width == QLocale::ShortFormat); //
+    // Only the non-ICU TZ-locale code uses the prefix forms, so this tacitly
+    // assumes flags: Numeric | Abbreviated | NeedNoUtcPrefix | ZeroPad.
     QString text =
 #if QT_CONFIG(timezone)
         locale != QLocale::system()
@@ -3806,7 +3807,6 @@ QString zoneOffsetFormat([[maybe_unused]] const QLocale &locale,
 #endif // ICU or no TZ L10n
 
 // Another intrusion from QCalendar, using some of the tools above:
-
 QString QCalendarBackend::dateTimeToString(QStringView format, const QDateTime &datetime,
                                            QDate dateOnly, QTime timeOnly,
                                            const QLocale &locale) const
@@ -3980,18 +3980,25 @@ QString QCalendarBackend::dateTimeToString(QStringView format, const QDateTime &
                 break;
 
             case 't': {
+#if QT_CONFIG(datestring)
+                // Feature check should really apply to the whole function, but
+                // this portion of it depends on internals entangled with the
+                // feature.
                 enum AbbrType { Long, Offset, Short };
                 const auto tzAbbr = [locale](const QDateTime &when, AbbrType type) {
                     QString text;
                     if (type == Offset) {
+                        using Flag = QtTemporalPattern::TemporalFieldFlag;
+                        constexpr auto noPrefixOffset = Flag::Numeric | Flag::Abbreviated
+                            | Flag::NeedNoUtcPrefix | Flag::ZeroPad;
                         text = QtTimeZoneLocale::zoneOffsetFormat(locale, locale.d->m_index,
-                                                                  QLocale::ShortFormat,
+                                                                  noPrefixOffset,
                                                                   when, when.offsetFromUtc());
                         // When using timezone_locale data, this should always succeed:
                         if (!text.isEmpty())
                             return text;
                     }
-#if QT_CONFIG(timezone)
+#   if QT_CONFIG(timezone)
                     if (type != Short || locale != QLocale::system()) {
                         QTimeZone::NameType mode =
                             type == Short ? QTimeZone::ShortName
@@ -4008,7 +4015,7 @@ QString QCalendarBackend::dateTimeToString(QStringView format, const QDateTime &
                             return text;
                     }
                     // else: prefer QDateTime's abbreviation, for backwards-compatibility.
-#endif // else, make do with non-localized abbreviation:
+#   endif // else, make do with non-localized abbreviation:
                     // Absent timezone_locale data, Offset might still reach here:
                     if (type == Offset) // Our prior failure might not have tried this:
                         text = when.toOffsetFromUtc(when.offsetFromUtc()).timeZoneAbbreviation();
@@ -4043,6 +4050,7 @@ QString QCalendarBackend::dateTimeToString(QStringView format, const QDateTime &
                 }
                 if (!text.isEmpty())
                     result.append(text);
+#endif // datestring
                 break;
             }
 
@@ -4057,7 +4065,6 @@ QString QCalendarBackend::dateTimeToString(QStringView format, const QDateTime &
 
     return result;
 }
-
 // End of QCalendar intrustions
 
 QString QLocaleData::doubleToString(double d, int precision, DoubleForm form,
@@ -4386,11 +4393,6 @@ QString QLocaleData::applyIntegerFormatting(QString &&numStr, bool negative, int
     return result;
 }
 
-// Most users of this class are in this file, but tests in developer builds also
-// instantiate it. So it needs to be out-of-line for those builds:
-#ifndef QT_BUILD_INTERNAL
-inline
-#endif // ... but can otherwise be inline.
 QLocaleData::NumericData::NumericData(const QLocaleData *data, QLocaleData::NumberMode mode)
     : grouping(data->groupSizes()), isC(data == c())
       // Note: actually test pointer equality to c(), not language == C, as
@@ -4613,6 +4615,229 @@ char NumericTokenizer::nextToken()
     return 0;
 }
 } // namespace with no name
+
+/*!
+    \internal
+    \since 6.12
+    \class QLocaleData::DigitSequence
+    \brief Descriptor for a digit sequence within a text.
+
+    Packages the ASCII equivalent (optional sign and) digit sequence, along with
+    a description of which parts come from where in the original text.
+
+    Supports construction or assignment by moving or copying. Modifying its
+    members, other than by assigning a newly constructed value or a result of
+    taking a subsequence, may lead to undefined behaviour.
+
+    \sa sliced(), first(), last()
+*/
+// Exists for the benefit of date-time parsing, but could be used for anything
+// else that doesn't do fractional parts, exponents or digit-grouping.
+
+/*!
+    \fn qsizetype QLocaleData::DigitSequence::size()
+
+    Returns the number of ASCII characters describing the digit sequence.
+
+    This is the number of digits plus, if present, one for the sign. It is the
+    number of characters \l transcribeTo() will transcribe. For the number of
+    digits found, use \c {digits.size()}. Note that this may be less than the
+    length of the text parsed, for example when the digits are surrogate pairs
+    or the sign includes special Unicode markers, such as those for text
+    direction.
+
+    \sa isEmpty()
+*/
+
+/*!
+    \fn void QLocaleData::DigitSequence::transcribeTo(CharBuff *buff)
+
+    Transcribes the ASCII form of this digit sequence to \a buff.
+
+    \sa size()
+*/
+
+/*!
+    \since 6.12
+    \enum QLocaleData::DigitSequence::Option
+
+    Options to modify how digit sequences are parsed.
+
+    \value Default The null option value.
+    \value AllowSign A leading sign character may be present.
+
+    In the numeric fields of a date, only a year field ever has a sign, all
+    others use ungrouped digits. Zero-padding on the left of day and month
+    fields is common (and it may also appear in year fields). The hour field of
+    a zone-offset may also have a sign. Otherwise all numeric time fields are
+    similar to numeric month and day fields.
+
+    In numeric fields of a time, the least-significant given (be it hour, minute
+    or second) may have a fractional part in some formats. The handling of this
+    is left for the caller to take care of. Likewise, the caller is expected to
+    deal with leading and trailing space appropriately.
+*/
+
+/*!
+    \fn bool QLocaleData::DigitSequence::isEmpty() const
+
+    Returns true precisely if this digit sequence represents nothing.
+
+    This arises when the constructor found no digits and (when allowed) not even
+    a sign. It may also result from extracting an empty subsequence of a digit
+    sequence that was originally parsed. It is equivalent to \l
+    {QLocaleData::DigitSequence::}{size()} == 0. To test whether any digits were
+    found, use \c {digits.isEmpty()}, which may be true even though \c
+    {isEmpty()} is false. That arises when only a sign was found (making
+    \c{size() == 1}).
+
+    \sa size()
+*/
+
+/*!
+    \fn bool QLocaleData::DigitSequence::hasSign() const
+
+    Returns true precisely if the digit sequence parsed includes a leading sign.
+    It is equivalent to \c{sign != '\0'}.
+*/
+
+/*!
+    \fn QStringView QLocaleData::DigitSequence::used(QStringView text, qsizetype from) const
+    \fn QStringView QLocaleData::DigitSequence::used(QStringView text) const
+
+    Returns the slice of \a text described by this digit sequence.
+
+    The given \a text should be the one passed to the constructor either of this
+    digit sequence or of one from which it was obtained by some combination of
+    \l first(), \l sliced() and \l last(). In the directly-constructed case, or
+    in the case of (optionally repeatedly) applying only \l first(), \a from may
+    be passed: it should be the like-named offset passed to the original
+    constructor, or 0 if no offset was passed. In that case, the whole text
+    parsed for this digit sequence (alibeit possibly a prefix of the text
+    originally parsed) is returned.  Otherwise, \a from should be omitted and
+    this function returns the text described by just the digits of this
+    sequence, omitting (even when relevant) the sign.
+
+    \sa {QLocaleData::DigitSequence::}{DigitSequence()}
+*/
+
+/*!
+    \fn QLocaleData::DigitSequence QLocaleData::DigitSequence::first(qsizetype count) const
+
+    Returns a DigitSequence describing a prefix of this.
+
+    The result describes the first \a count ASCII characters to which the
+    sequence corresponds and their positions within the parsed text. The value
+    of \a count must not be negative or exceed \c size().
+*/
+
+/*!
+    \fn QLocaleData::DigitSequence QLocaleData::DigitSequence::last(qsizetype count) const
+
+    Returns a DigitSequence describing a tail of this.
+
+    The result describes the last \a count ASCII characters to which the
+    sequence corresponds. The value of \a count must not be negative or exceed
+    \c size(). The result is equivalent to \c{sliced(size() - count)}.
+*/
+
+/*!
+    \fn QLocaleData::DigitSequence QLocaleData::DigitSequence::sliced(qsizetype from) const
+
+    Returns a DigitSequence describing a tail of this.
+
+    This skips over the text to which the first \a from ASCII characters of the
+    sequence correspond, to describe the remainder and their positions within
+    the parsed text. The value of \a from must not be negative or exceed \c
+    size().
+*/
+
+/*!
+    \overload
+    \fn QLocaleData::DigitSequence QLocaleData::DigitSequence::sliced(qsizetype from, qsizetype count) const
+
+    Returns a DigitSequence describing a subsequence of this.
+
+    This skips over the portion of the text to which first \a from ASCII
+    characters correspond and describes the portion described by the next \a
+    count ASCII characters. The value of \a from must not be negative or exceed
+    \c size(). The value of \a count must not be negative or exceed \c{size() -
+    from}. The result is equivalent to \c{sliced(from).first(count)}.
+*/
+
+/*!
+    Scan \a text for an initial sequence of digits.
+
+    The given \a numeric provides data relevant to number-parsing, including
+    what constitute digits. Options in \a flags control whether a leading sign
+    may be included. If \a from is passed, the scan starts at this index in \a
+    text, otherwise from the start.
+
+    The resulting \l {QLocaleData::}{DigitSequence} contains the parsed digit
+    sequence, \c digits, describes the positions of digits within \a text, by \c
+    digitBounds, and (where allowed) reports any sign. Differences between
+    entries in digitBounds are the UTF-16 lengths of the successive digits in
+    the source text. These may be any mixture of locale-appropriate digits and
+    the C locale's ASCII digits.
+
+    The end of the text parsed is always \c {digitBounds.back()}. When \c digits
+    is empty, this is \c digitBounds[0]: this is either where the sign ended,
+    when \c hasSign(), or the value of \c from passed to the
+    constructor. Otherwise, each \c{digits[i]} represents
+    \c{text.first(digitBounds[i+1]).sliced(digitBounds[i])} and the whole text
+    parsed is \c{text.first(digitBounds.back()).sliced(from)}. Either way, if \c
+    hasSign(), its \c sign represents
+    \c{text.first(digitBounds.front()).sliced(from)}.
+
+    \sa {QLocaleData::DigitSequence::}{used()}
+*/
+QLocaleData::DigitSequence::DigitSequence(QStringView text, NumericData &&numeric,
+                                          Options flags, qsizetype from)
+    : digitBounds({ from })
+{
+    NumericTokenizer tokens(text, std::move(numeric), IntegerMode, from);
+    if (tokens.done())
+        return;
+    char currentToken = tokens.nextToken();
+    if (!currentToken)
+        return;
+
+    // Handle any leading sign:
+    if (currentToken == '+' || currentToken == '-') {
+        if (!flags.testFlag(Option::AllowSign))
+            return;
+        digitBounds[0] = tokens.index();
+        sign = currentToken;
+        currentToken = '\0';
+    }
+
+    // Iterate what remains:
+    while (currentToken || !tokens.done()) {
+        if (!currentToken)
+            currentToken = tokens.nextToken();
+        if (!currentToken)
+            return;
+
+        if (currentToken < '0' || currentToken > '9')
+            return; // What we got was not a digit in our locale.
+
+        // We have a digit.
+        digits.push_back(currentToken);
+        digitBounds.push_back(tokens.index());
+        currentToken = '\0';
+    }
+    Q_ASSERT(digitBounds.size() == digits.size() + 1); // Class invariant.
+}
+
+/*!
+    \internal
+    QLocaleData::DigitSequence QLocaleData::digitSequence(QStringView text, QLocaleData::DigitSequence::Options, qsizetype from)
+    \brief Returns a DigitSequence describing some portion of \a text starting at \a from.
+
+    As for the \l{QLocaleData::}{DigitSequence} constructor, supplying the
+    \l{QLocaleData::}{NumericData} for this QLocaleData instance and the
+    IntegerMode as the relevant argument to it.
+*/
 
 /*
     Converts a number in locale representation to the C locale equivalent.

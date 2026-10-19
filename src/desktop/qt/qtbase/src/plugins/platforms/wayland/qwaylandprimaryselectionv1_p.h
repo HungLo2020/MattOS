@@ -23,6 +23,8 @@
 
 #include <QtCore/QObject>
 
+#include <memory>
+
 QT_REQUIRE_CONFIG(wayland_client_primary_selection);
 
 QT_BEGIN_NAMESPACE
@@ -43,6 +45,8 @@ public:
     QWaylandDisplay *display() const { return m_display; }
 
 private:
+    Q_DISABLE_COPY(QWaylandPrimarySelectionDeviceManagerV1)
+
     QWaylandDisplay *m_display = nullptr;
 };
 
@@ -52,14 +56,16 @@ public:
     explicit QWaylandPrimarySelectionOfferV1(QWaylandDisplay *display, ::zwp_primary_selection_offer_v1 *offer);
     ~QWaylandPrimarySelectionOfferV1() override { destroy(); }
     void startReceiving(const QString &mimeType, int fd) override;
-    QMimeData *mimeData() override { return m_mimeData.data(); }
+    QMimeData *mimeData() override { return m_mimeData.get(); }
 
 protected:
     void zwp_primary_selection_offer_v1_offer(const QString &mime_type) override;
 
 private:
+    Q_DISABLE_COPY(QWaylandPrimarySelectionOfferV1)
+
     QWaylandDisplay *m_display = nullptr;
-    QScopedPointer<QWaylandMimeData> m_mimeData;
+    std::unique_ptr<QWaylandMimeData> m_mimeData;
 };
 
 class Q_WAYLANDCLIENT_EXPORT QWaylandPrimarySelectionSourceV1 : public QObject, public QtWayland::zwp_primary_selection_source_v1
@@ -79,6 +85,8 @@ protected:
     void zwp_primary_selection_source_v1_cancelled() override { emit cancelled(); }
 
 private:
+    Q_DISABLE_COPY(QWaylandPrimarySelectionSourceV1)
+
     QMimeData *m_mimeData = nullptr;
 };
 
@@ -89,9 +97,9 @@ class QWaylandPrimarySelectionDeviceV1 : public QObject, public QtWayland::zwp_p
 
 public:
     ~QWaylandPrimarySelectionDeviceV1() override;
-    QWaylandPrimarySelectionOfferV1 *selectionOffer() const { return m_selectionOffer.data(); }
+    QWaylandPrimarySelectionOfferV1 *selectionOffer() const { return m_selectionOffer.get(); }
     void invalidateSelectionOffer();
-    QWaylandPrimarySelectionSourceV1 *selectionSource() const { return m_selectionSource.data(); }
+    QWaylandPrimarySelectionSourceV1 *selectionSource() const { return m_selectionSource.get(); }
     void setSelectionSource(QWaylandPrimarySelectionSourceV1 *source);
 
 protected:
@@ -99,10 +107,12 @@ protected:
     void zwp_primary_selection_device_v1_selection(struct ::zwp_primary_selection_offer_v1 *id) override;
 
 private:
+    Q_DISABLE_COPY(QWaylandPrimarySelectionDeviceV1)
+
     QWaylandDisplay *m_display = nullptr;
     QWaylandInputDevice *m_seat = nullptr;
-    QScopedPointer<QWaylandPrimarySelectionOfferV1> m_selectionOffer;
-    QScopedPointer<QWaylandPrimarySelectionSourceV1> m_selectionSource;
+    std::unique_ptr<QWaylandPrimarySelectionOfferV1> m_selectionOffer;
+    std::unique_ptr<QWaylandPrimarySelectionSourceV1> m_selectionSource;
     friend class QWaylandPrimarySelectionDeviceManagerV1;
 };
 

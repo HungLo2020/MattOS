@@ -4,6 +4,8 @@
 # Generated from debugger.pro.
 
 add_subdirectory(qqmldebugjsserver)
+add_subdirectory(qmlpreviewtesthelper)
+add_subdirectory(qmlpreviewtesthelpermodule)
 add_subdirectory(qqmldebugtranslationservice)
 add_subdirectory(qpacketprotocol)
 add_subdirectory(qqmlnativeconnector)
@@ -20,10 +22,12 @@ if(NOT (CMAKE_CROSSCOMPILING OR (MACOS AND TEST_architecture_arch STREQUAL "x86_
     add_subdirectory(qqmldebuggingenabler)
     add_subdirectory(qqmldebugprocess)
     add_subdirectory(qqmlpreview)
+    add_subdirectory(qmlpreviewtool)
     add_subdirectory(qquickeventreplay)
 endif()
 
 if(QT_FEATURE_private_tests)
+    add_subdirectory(qqmlpreviewdiff)
     add_subdirectory(qqmldebugclient)
     add_subdirectory(qqmldebuglocal)
     add_subdirectory(qv4debugger)

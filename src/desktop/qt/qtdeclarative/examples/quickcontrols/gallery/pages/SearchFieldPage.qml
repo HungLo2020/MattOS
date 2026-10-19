@@ -31,7 +31,7 @@ ScrollablePage {
 
         SortFilterProxyModel {
             id: colorFilter
-            model: colorModel
+            sourceModel: colorModel
             sorters: [
                 RoleSorter {
                     roleName: "color"
@@ -39,11 +39,10 @@ ScrollablePage {
             ]
             filters: [
                 FunctionFilter {
-                    component CustomData: QtObject { property string color }
                     property var regExp: new RegExp(colorSearch.text, "i")
                     onRegExpChanged: invalidate()
-                    function filter(data: CustomData): bool {
-                       return regExp.test(data.color);
+                    function filter(color: string): bool {
+                       return regExp.test(color);
                     }
                 }
             ]

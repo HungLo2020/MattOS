@@ -5,6 +5,7 @@
 #define TYPES_H
 
 #include <kaboutdata.h>
+#include <kjob.h>
 #include <ktexttohtml.h>
 
 #include <qqmlregistration.h>
@@ -22,4 +23,18 @@ struct KAboutReleaseForeign {
     QML_FOREIGN(KAboutRelease)
 };
 
+namespace KAboutDataForeign
+{
+Q_NAMESPACE
+QML_NAMED_ELEMENT(AboutUrlType)
+QML_FOREIGN_NAMESPACE(KAboutData)
+}
+
+class KJobForeign : public QObject
+{
+    Q_OBJECT
+    QML_NAMED_ELEMENT(KJob)
+    QML_FOREIGN(KJob)
+    QML_UNCREATABLE("KJob cannot be created from QML")
+};
 #endif

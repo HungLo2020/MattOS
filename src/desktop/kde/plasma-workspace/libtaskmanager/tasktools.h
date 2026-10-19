@@ -33,9 +33,6 @@ enum UrlComparisonMode {
 /**
  * Fills in and returns an AppData struct based on the given URL.
  *
- * If the URL contains iconData in its query string, it is decoded and
- * set as AppData.icon, taking precedence over normal icon discovery.
- *
  * If the URL is using the preferred:// scheme, the URL it resolves to
  * is set as AppData.url.
  *
@@ -59,19 +56,9 @@ TASKMANAGER_EXPORT AppData appDataFromUrl(const QUrl &url, const QIcon &fallback
  * Wayland, or the window class part of the WM_CLASS window property
  * on X Windows.
  *
- * TODO: The supplied config object can contain various mapping and
- * mangling rules that affect the behavior of this function, allowing
- * to map bits of metadata to different values and other things. This
- * config file format still needs to be documented fully; in the
- * meantime the bundled default rules in taskmanagerrulesrc (the
- * config file opened by various models in this library) can be used
- * for reference.
- *
  * @param appId A string uniquely identifying the application owning
  * the window, ideally matching a .desktop file name.
  * @param pid The process id for the process owning the window.
- * @param config A KConfig object parameterizing the matching
- * behavior.
  * @param xWindowsWMClassName The instance name part of X Windows'
  * WM_CLASS window property.
  * @returns A .desktop file or executable path for the application
@@ -89,6 +76,30 @@ TASKMANAGER_EXPORT QUrl windowUrlFromMetadata(const QString &appId, quint32 pid 
  * @returns A list of KService instances.
  */
 TASKMANAGER_EXPORT KService::List servicesFromPid(quint32 pid);
+
+/**
+ * Takes several bits of window metadata as input and tries to find
+ * the .desktop file for the application owning this window, or,
+ * failing that, the path to its executable.
+ *
+ * The source for the metadata is generally the window's appId on
+ * Wayland, or the window class part of the WM_CLASS window property
+ * on X Windows.
+ *
+ * @param appId A string uniquely identifying the application owning
+ * the window, ideally matching a .desktop file name.
+ * @param pid The process id for the process owning the window.
+ * @param xWindowsWMClassName The instance name part of X Windows'
+ * WM_CLASS window property.
+ * @returns A KService object matching the window
+ */
+KService::Ptr serviceFromMetadata(const QString &appId, quint32 pid, const QString &xWindowsWMClassName);
+
+/**
+* Tries to map a given application to a desktop file
+* by looking into its process environment.
+*/
+KService::List servicesFromEnvironment(quint32 pid);
 
 /**
  * Returns a list of (usually application) KService instances for the

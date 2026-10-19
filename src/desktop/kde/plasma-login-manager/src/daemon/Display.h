@@ -25,6 +25,7 @@
 
 #include "Auth.h"
 #include "Session.h"
+#include "VirtualTerminal.h"
 
 class QLocalSocket;
 
@@ -53,6 +54,7 @@ public:
     }
 
     Seat *seat() const;
+    void setAutoLogin(const QString &user, const QString &session);
 
 public slots:
     bool start();
@@ -63,7 +65,6 @@ public slots:
 
 signals:
     void stopped();
-    void displayServerFailed();
 
     void loginFailed(QLocalSocket *socket);
     void loginSucceeded(QLocalSocket *socket);
@@ -76,14 +77,15 @@ private:
 
     bool m_started{false};
 
-    int m_terminalId = -1;
-    int m_sessionTerminalId = 0;
+    VirtualTerminal::Terminal m_terminalId;
+    VirtualTerminal::Terminal m_sessionTerminalId;
 
     QString m_passPhrase;
     QString m_sessionName;
     QString m_reuseSessionId;
 
     Session m_autologinSession;
+    QString m_autologinUser;
 
     Auth *m_auth{nullptr};
     Seat *m_seat{nullptr};

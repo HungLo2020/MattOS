@@ -1,6 +1,7 @@
 [Desktop Entry]
 Keys=archpkg,apkg
 Name=Arch Linux Package Search
+Name[am]=Arch Linux Package Search
 Name[ar]=بحث حزم أرك لينكس
 Name[az]=Arch Linux Packet Axtarışı
 Name[be]=Пакеты Arch Linux
@@ -41,6 +42,8 @@ Name[lg]=Noonya Miganda gya ku Arch Linux
 Name[lt]=Arch Linux paketų paieška
 Name[lv]=„Arch Linux“ pakotņu meklēšana
 Name[my]=Archလင်းနပ်စ်ပတ်ကေ့ရှာဖွေမှု
+Name[nan_TW]=Arch Linux 套件搜揣
+Name[nan_TW@latin]=Arch Linux Thò-kiānn Tshiau-tshuē
 Name[nb]=Søk etter Arch Linux-pakker
 Name[nl]=Arch Linux Package Search
 Name[nn]=Søk etter Arch Linux-pakkar
@@ -69,6 +72,7 @@ Name[vi]=Tìm kiếm gói Arch Linux
 Name[zh_CN]=Arch Linux 软件包搜索
 Name[zh_TW]=Arch Linux 軟體包搜尋
 Query=https://www.archlinux.org/packages/?q=\\{@}
+Query[am]=https://www.archlinux.org/packages/?q=\\{@}
 Query[ar]=https://www.archlinux.org/packages/?q=\\{@}
 Query[ast]=https://www.archlinux.org/packages/?q=\\{@}
 Query[az]=https://www.archlinux.org/packages/?q=\\{@}
@@ -109,6 +113,8 @@ Query[lg]=https://www.archlinux.org/packages/?q=\\{@}
 Query[lt]=https://www.archlinux.org/packages/?q=\\{@}
 Query[lv]=https://www.archlinux.org/packages/?q=\\{@}
 Query[my]=https://www.archlinux.org/packages/?q=\\{@}
+Query[nan_TW]=https://www.archlinux.org/packages/?q=\\{@}
+Query[nan_TW@latin]=https://www.archlinux.org/packages/?q=\\{@}
 Query[nb]=https://www.archlinux.org/packages/?q=\\{@}
 Query[nl]=https://www.archlinux.org/packages/?q=\\{@}
 Query[nn]=https://www.archlinux.org/packages/?q=\\{@}
@@ -127,7 +133,6 @@ Query[tg]=https://www.archlinux.org/packages/?q=\\{@}
 Query[th]=https://www.archlinux.org/packages/?q=\\{@}
 Query[tok]=https://www.archlinux.org/packages/?q=\\{@}
 Query[tr]=https://www.archlinux.org/packages/?q=\\{@}
-Query[ug]=https://www.archlinux.org/packages/?q=\\{@}
 Query[uk]=https://www.archlinux.org/packages/?q=\\{@}
 Query[vi]=https://www.archlinux.org/packages/?q=\\{@}
 Query[zh_CN]=https://www.archlinux.org/packages/?q=\\{@}

@@ -33,6 +33,7 @@ qt_internal_add_plugin(QWaylandEglStreamClientBufferIntegrationPlugin
 )
 
 qt6_generate_wayland_protocol_server_sources(QWaylandEglStreamClientBufferIntegrationPlugin
+    PRIVATE_CODE
     FILES
         ${protocols_dir}/wl-eglstream/wl-eglstream-controller.xml
 )

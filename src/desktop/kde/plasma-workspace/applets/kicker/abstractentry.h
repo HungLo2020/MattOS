@@ -37,7 +37,25 @@ public:
     virtual QString group() const;
     virtual QString description() const;
 
+    /*!
+     * Returns the id of the entry, in the same form as expected by the
+     * activities databaase. For things that can be favorited or tracked,
+     * this is an url-style string, with "applications:" or "preferred:"
+     * schemes for applications, and the appropriate scheme for files.
+     *
+     * May be empty or not in url form for internal entries like AppGroups
+     * or system actions.
+     */
     virtual QString id() const;
+
+    /*!
+     * Returns the url of the entry's associated file, suitable for e.g.
+     * drag&drop elsewhere. For files this is the same as its id, for
+     * applications the url of its desktop file.
+     *
+     * May be empty if the entry does not have an associated file, (e.g.
+     * for app groups).
+     */
     virtual QUrl url() const;
 
     virtual QDate firstSeen() const;

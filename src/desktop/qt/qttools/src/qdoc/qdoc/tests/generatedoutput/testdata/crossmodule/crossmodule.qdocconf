@@ -1,10 +1,13 @@
+# Copyright (C) 2020 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
 project = CrossModule
-includepaths += -I.
+includepaths += -I./src
 
 depends = testcpp
 
-headers = testtype.h
-sources = testtype.cpp
+headers = src/testtype.h
+sources = src/testtype.cpp
 
 HTML.nosubdirs    = true
 HTML.outputsubdir = crossmodule
@@ -14,15 +17,12 @@ defines += test_crossmodule
 sources.fileextensions = "*.qml *.cpp *.qdoc"
 headers.fileextensions = "*.h"
 
-# images
-imagedirs = ../images
+# Images
+imagedirs = images
 
-# zero warning policy
-warninglimit = 0
+# Allow a single warning for self-referencing \sa documentation
+warninglimit = 1
 warninglimit.enabled = true
 
-# don't write host system-specific paths to index files
+# Don't write host system-specific paths to index files
 locationinfo = false
-
-# allow a single warning for self-referencing \sa documentation
-warninglimit += 1

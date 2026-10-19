@@ -164,8 +164,6 @@ public:
      */
     void setDimmingRatio(const QString &dimmingId, double ratio);
 
-    KScreen::OutputPtr tryMatchKScreenOutput(const QString &displayId) const;
-
     // legacy API without displayId parameter, kept for backward compatibility
     QStringList legacyDisplayIds() const;
     int knownSafeMinBrightness() const;
@@ -217,23 +215,13 @@ private:
     struct DetectorInfo {
         DisplayBrightnessDetector *detector = nullptr;
         const char *debugName = nullptr;
-        const char *displayIdPrefix = nullptr;
     };
     QList<DetectorInfo> m_detectors;
     int m_finishedDetectingCount = 0;
     std::unique_ptr<ExternalBrightnessController> m_externalBrightnessController;
 
-    struct RememberedDisplayState {
-        int brightness;
-        int minBrightness = 0;
-        std::optional<double> latestActiveDimmingRatio;
-    };
-    std::map<DisplayMatch, RememberedDisplayState> m_rememberedDisplayState;
-
     struct DimmingLimit {
         double ratio = 1.0;
     };
     std::unordered_map<QString, DimmingLimit> m_dimmingLimits;
-
-    KScreen::ConfigPtr m_kscreenConfig = nullptr;
 };

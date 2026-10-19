@@ -7,7 +7,6 @@
 
 #include "plasmoiditem.h"
 #include "appletcontext_p.h"
-#include "sharedqmlengine.h"
 
 #include <QAction>
 #include <QActionGroup>
@@ -34,10 +33,10 @@ PlasmoidItem::PlasmoidItem(QQuickItem *parent)
     : AppletQuickItem(parent)
     , m_toolTipTextFormat(0)
     , m_toolTipItem(nullptr)
-    , m_hideOnDeactivate(true)
     , m_oldKeyboardShortcut(0)
     , m_positionBeforeRemoval(QPointF(-1, -1))
 {
+    setHideOnWindowDeactivate(true); // Default value
 }
 
 PlasmoidItem::~PlasmoidItem()
@@ -71,7 +70,7 @@ void PlasmoidItem::init()
         connect(applet->containment()->corona(), &Plasma::Corona::availableScreenRectChanged, this, &ContainmentItem::availableScreenRectChanged);
     }
 
-    connect(this, &PlasmoidItem::expandedChanged, [=, this](bool expanded) {
+    connect(this, &PlasmoidItem::expandedChanged, this, [this](bool expanded) {
         // if both compactRepresentationItem and fullRepresentationItem exist,
         // the applet is in a popup
         if (expanded) {
@@ -235,20 +234,6 @@ int PlasmoidItem::screen() const
 
     return -1;
 }
-
-void PlasmoidItem::setHideOnWindowDeactivate(bool hide)
-{
-    if (m_hideOnDeactivate != hide) {
-        m_hideOnDeactivate = hide;
-        Q_EMIT hideOnWindowDeactivateChanged();
-    }
-}
-
-bool PlasmoidItem::hideOnWindowDeactivate() const
-{
-    return m_hideOnDeactivate;
-}
-
 QRect PlasmoidItem::screenGeometry() const
 {
     if (!applet() || !applet()->containment()) {
@@ -295,8 +280,8 @@ QRect PlasmoidItem::availableScreenRect() const
     int screenId = screen();
 
     // If corona returned an invalid screenId, try to use lastScreen value if it is valid
-    if (screenId == -1 && applet()->containment()->lastScreen() > -1) {
-        screenId = applet()->containment()->lastScreen();
+    if (screenId == -1 && applet()->containment()->screen() > -1) {
+        screenId = applet()->containment()->screen();
         // Is this a screen not actually valid?
         if (screenId >= applet()->containment()->corona()->numScreens()) {
             screenId = -1;

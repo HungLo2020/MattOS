@@ -17,10 +17,13 @@
 #include <QElapsedTimer>
 #include <QObject>
 
+#include <memory>
+
 namespace KIO
 {
 
 class WorkerThread;
+class ThreadConnectionBackend;
 class WorkerManager;
 class SimpleJob;
 class SchedulerPrivate;
@@ -47,6 +50,11 @@ public:
      * \a arr byte array containing data
      */
     virtual void send(int cmd, const QByteArray &arr = QByteArray());
+    /*!
+     * Sends what the command carries. The worker is handed the object as it is when it runs in a
+     * thread of this process, and the bytes it is written to otherwise.
+     */
+    virtual void send(int cmd, const TaskPayload &payload);
 
     /*!
      * Returns Host this worker is (was?) connected to
@@ -183,6 +191,19 @@ private:
 
     void setWorkerThread(WorkerThread *thread);
 
+    /*!
+     * Sets up the application side of an in-process worker over a socket-less
+     * ThreadConnectionBackend pair and returns the (owned) worker-side backend, which the
+     * caller must move to the worker thread before starting it.
+     */
+    static std::unique_ptr<ThreadConnectionBackend> wireThreadConnection(Worker *worker);
+
+    /*!
+     * Sets up the local socket an out-of-process worker connects back to and returns its address
+     * (empty on failure). Not used by in-process workers, which never create a socket.
+     */
+    QUrl createConnectionServer();
+
 public Q_SLOTS: // TODO KF6: make all three slots private
     void accept();
     void gotInput();
@@ -196,7 +217,6 @@ private:
     QString m_host;
     QString m_user;
     QString m_passwd;
-    KIO::ConnectionServer *m_workerConnServer;
     KIO::SimpleJob *m_job = nullptr;
     qint64 m_pid = 0; // only set for out-of-process workers
     quint16 m_port = 0;

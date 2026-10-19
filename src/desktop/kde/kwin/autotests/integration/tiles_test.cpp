@@ -29,8 +29,6 @@ Q_DECLARE_METATYPE(KWin::MaximizeMode)
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_transient_placement-0");
-
 #if KWIN_BUILD_X11
 static X11Window *createWindow(xcb_connection_t *connection, const Rect &geometry, std::function<void(xcb_window_t)> setup = {})
 {
@@ -79,6 +77,7 @@ private Q_SLOTS:
     void sendToOutputX11();
     void tileAndMaximize();
     void evacuateFromRemovedDesktop();
+    void splitFromSingleTileBelowRoot();
 
 private:
     void createSimpleLayout();
@@ -92,7 +91,7 @@ private:
 void TilesTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -889,6 +888,33 @@ void TilesTest::evacuateFromRemovedDesktop()
         QCOMPARE(window->frameGeometry(), RectF(0, 0, 100, 100));
     }
 }
+
+void TilesTest::splitFromSingleTileBelowRoot()
+{
+    // This test verifies that split works correctly when starting from a single tile below root
+    // and splitting first in different direction than root and then in the same direction.
+
+    while (m_rootTile->childCount() > 0) {
+        static_cast<CustomTile *>(m_rootTile->childTile(0))->remove();
+    }
+
+    m_rootTile->setLayoutDirection(Tile::LayoutDirection::Horizontal);
+    auto topLevelTile = m_rootTile->createChildAt(m_rootTile->relativeGeometry(), m_rootTile->layoutDirection(), 0);
+    auto topLevelTiles = topLevelTile->split(Tile::LayoutDirection::Vertical);
+    QCOMPARE(topLevelTiles.count(), 2);
+    QCOMPARE(m_rootTile->childCount(), 2);
+    QVERIFY(topLevelTiles.contains(topLevelTile));
+    // The root tile has to have a correct layout, otherwise it won't be saved properly.
+    // Horizontal layout saves width, which is 1 for both tiles = incorrect layout.
+    QCOMPARE(m_rootTile->layoutDirection(), Tile::LayoutDirection::Vertical);
+
+    // Split the top-half tile. It should be the parent instead of the root tile due to different direction.
+    auto leafTiles = topLevelTiles[0]->split(Tile::LayoutDirection::Horizontal);
+    QCOMPARE(leafTiles.count(), 2);
+    QCOMPARE(m_rootTile->childCount(), 2);
+    QCOMPARE(topLevelTiles[0]->childCount(), 2);
+}
+
 }
 
 WAYLANDTEST_MAIN(KWin::TilesTest)

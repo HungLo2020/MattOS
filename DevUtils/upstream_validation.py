@@ -228,11 +228,185 @@ print('PASS GnuPG key generation, signing, gpgv verification and tamper rejectio
 '''
 
 
+KDE_STACK = r'''
+import math
+import os
+import shlex
+import struct
+import wave
+import subprocess
+import tempfile
+from pathlib import Path
+source = r"""
+#include <QGuiApplication>
+#include <QAbstractEventDispatcher>
+#include <PulseAudioQt/Context>
+#include <QAudioDecoder>
+#include <QAudioBuffer>
+#include <QUrl>
+#include <QImage>
+#include <QPainter>
+#include <QFont>
+#include <QEventLoop>
+#include <QTimer>
+#include <QtGlobal>
+#include <qt6keychain/keychain.h>
+#include <CssParser.h>
+#include <Union/StyleRegistry.h>
+#include <Union/Style.h>
+#include <tesseract/capi.h>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
+void require(bool ok, const char *message) {
+    if (!ok) throw std::runtime_error(message);
+}
+void runJob(QKeychain::Job &job, QKeychain::Error expected = QKeychain::NoError) {
+    job.setAutoDelete(false);
+    bool done = false;
+    QEventLoop loop;
+    QObject::connect(&job, &QKeychain::Job::finished, &loop, [&] { done = true; loop.quit(); });
+    QTimer::singleShot(0, &job, [&] { job.start(); });
+    QTimer::singleShot(15000, &loop, &QEventLoop::quit);
+    loop.exec();
+    require(done, "QtKeychain job timed out");
+    if (job.error() != expected) throw std::runtime_error(job.errorString().toStdString());
+}
+int main(int argc, char **argv) {
+    QGuiApplication app(argc, argv);
+    try {
+        require(std::string(qVersion()) == QT_VERSION_STR, "Qt runtime differs from its installed SDK");
+        require(QByteArray(QAbstractEventDispatcher::instance()->metaObject()->className()).contains("Glib"),
+                "Qt has no GLib dispatcher; Plasma audio controls cannot connect");
+        auto *pulse = PulseAudioQt::Context::instance();
+        QEventLoop pulseLoop;
+        QTimer pulsePoll;
+        QObject::connect(&pulsePoll, &QTimer::timeout, &pulseLoop, [&] {
+            if (pulse->state() == PulseAudioQt::Context::State::Ready && !pulse->sinks().isEmpty()) pulseLoop.quit();
+        });
+        pulsePoll.start(25);
+        QTimer::singleShot(15000, &pulseLoop, &QEventLoop::quit);
+        pulseLoop.exec();
+        require(pulse->state() == PulseAudioQt::Context::State::Ready && !pulse->sinks().isEmpty(),
+                "PulseAudioQt did not connect to PipeWire and enumerate an output sink");
+        std::cout << "PASS Qt GLib dispatcher and PulseAudioQt audio sink enumeration" << std::endl;
+        cssparser::StyleSheet sheet{"validation.css"};
+        sheet.parseString(R"css(@property mattos-probe-color { syntax: "<color>"; inherits: false; initial-value: black; }
+            button { mattos-probe-color: #123456; })css");
+        for (const auto &error : sheet.errors()) std::cerr << error.message << std::endl;
+        require(sheet.errors().empty() && sheet.rules().size() == 1, "CSS Rust/C++ bridge could not parse a rule");
+        auto registry = Union::StyleRegistry::instance();
+        registry->load();
+        auto style = registry->style(QStringLiteral("breeze"));
+        require(bool(style) && !style->hasErrors() && !style->rules().empty(), "Union could not load its installed Breeze CSS plugin/data");
+        std::cout << "PASS Qt " << qVersion() << ", CSS parser and Union style loading" << std::endl;
+
+        QImage image(1000, 180, QImage::Format_Grayscale8);
+        image.fill(Qt::white);
+        QPainter painter(&image);
+        painter.setPen(Qt::black);
+        painter.setFont(QFont(QStringLiteral("Open Sans"), 54));
+        painter.drawText(40, 115, QStringLiteral("HELLO WORLD"));
+        painter.end();
+        TessBaseAPI *api = TessBaseAPICreate();
+        require(api != nullptr, "Tesseract allocation failed");
+        if (TessBaseAPIInit3(api, nullptr, "eng") != 0) {
+            TessBaseAPIDelete(api);
+            throw std::runtime_error("offline English OCR model did not initialize");
+        }
+        TessBaseAPISetPageSegMode(api, tesseract::PSM_SINGLE_LINE);
+        TessBaseAPISetImage(api, image.constBits(), image.width(), image.height(), 1, image.bytesPerLine());
+        TessBaseAPISetSourceResolution(api, 96);
+        char *text = TessBaseAPIGetUTF8Text(api);
+        std::string recognized = text ? text : "";
+        TessDeleteText(text);
+        TessBaseAPIDelete(api);
+        std::cout << "OCR: " << recognized << std::endl;
+        require(recognized.find("HELLO WORLD") != std::string::npos,
+                "Qt-rendered screenshot text did not round-trip through OCR");
+        std::cout << "PASS Qt font rendering, Leptonica/Tesseract and offline English OCR" << std::endl;
+
+        QAudioDecoder decoder;
+        QEventLoop audioLoop;
+        bool audioFinished = false;
+        int audioFrames = 0;
+        QString audioError;
+        QObject::connect(&decoder, &QAudioDecoder::bufferReady, &audioLoop, [&] {
+            const QAudioBuffer buffer = decoder.read();
+            if (!buffer.isValid() || buffer.format().sampleRate() != 16000 || buffer.format().channelCount() != 1) {
+                audioError = QStringLiteral("unexpected decoded WAV format");
+                audioLoop.quit();
+                return;
+            }
+            audioFrames += buffer.frameCount();
+        });
+        QObject::connect(&decoder, &QAudioDecoder::finished, &audioLoop, [&] {
+            audioFinished = true;
+            audioLoop.quit();
+        });
+        QObject::connect(&decoder, qOverload<QAudioDecoder::Error>(&QAudioDecoder::error), &audioLoop, [&](QAudioDecoder::Error) {
+            audioError = decoder.errorString();
+            audioLoop.quit();
+        });
+        QTimer::singleShot(15000, &audioLoop, &QEventLoop::quit);
+        decoder.setSource(QUrl::fromLocalFile(QString::fromUtf8(argv[2])));
+        decoder.start();
+        audioLoop.exec();
+        if (!audioError.isEmpty()) throw std::runtime_error(audioError.toStdString());
+        require(audioFinished && audioFrames == 4000, "Qt Multimedia did not decode the complete WAV fixture");
+        std::cout << "PASS Qt Multimedia installed backend decoded 4000 audio frames" << std::endl;
+
+        const QString service = QString::fromUtf8(argv[1]);
+        QKeychain::WritePasswordJob write(service);
+        write.setKey(QStringLiteral("disposable"));
+        write.setTextData(QStringLiteral("MattOS QtKeychain roundtrip"));
+        runJob(write);
+        QKeychain::ReadPasswordJob read(service);
+        read.setKey(QStringLiteral("disposable"));
+        runJob(read);
+        const bool matched = read.textData() == QStringLiteral("MattOS QtKeychain roundtrip");
+        QKeychain::DeletePasswordJob remove(service);
+        remove.setKey(QStringLiteral("disposable"));
+        runJob(remove);
+        QKeychain::ReadPasswordJob absent(service);
+        absent.setKey(QStringLiteral("disposable"));
+        runJob(absent, QKeychain::EntryNotFound);
+        require(matched, "QtKeychain changed the stored secret");
+        std::cout << "PASS QtKeychain secure KWallet write/read/delete" << std::endl;
+    } catch (const std::exception &error) {
+        std::cerr << error.what() << std::endl;
+        return 1;
+    }
+}
+"""
+with tempfile.TemporaryDirectory(prefix='mattos-kde-') as tmp:
+    cpp, binary = Path(tmp) / 'probe.cpp', Path(tmp) / 'probe'
+    cpp.write_text(source)
+    wav = Path(tmp) / 'tone.wav'
+    with wave.open(str(wav), 'wb') as output:
+        output.setnchannels(1)
+        output.setsampwidth(2)
+        output.setframerate(16000)
+        output.writeframes(b''.join(struct.pack('<h', int(2048 * math.sin(2 * math.pi * 440 * sample / 16000))) for sample in range(4000)))
+    flags = shlex.split(subprocess.check_output(['pkg-config', '--cflags', '--libs', 'Qt6Gui', 'Qt6Multimedia', 'tesseract', 'KF6PulseAudioQt'], text=True))
+    subprocess.run(['g++', '-std=c++20', '-fPIC', str(cpp), '-o', str(binary),
+                    '-I/usr/include/cxx-rust-cssparser', '-I/usr/include/union',
+                    '-I/usr/include/union/Union',
+                    '-lcxx-rust-cssparser', '-lUnion', '-lqt6keychain', *flags], check=True, timeout=90)
+    env = dict(os.environ, QT_QPA_PLATFORM='offscreen')
+    env.setdefault('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}')
+    env.setdefault('DBUS_SESSION_BUS_ADDRESS', 'unix:path=' + env['XDG_RUNTIME_DIR'] + '/bus')
+    subprocess.run([str(binary), 'mattos-validation-' + Path(tmp).name, str(wav)], env=env, check=True, timeout=90)
+'''
+
+
 def installed_upstream_probes() -> tuple[tuple[str, str], ...]:
     probes = []
     for name, script in (("glib-gio", GLIB), ("pixbuf-formats", PIXBUF),
                          ("xkb-keymaps", XKB), ("archive-formats", ARCHIVE),
-                         ("gstreamer-pipeline", GSTREAMER), ("gnupg-signatures", GNUPG)):
+                         ("gstreamer-pipeline", GSTREAMER), ("gnupg-signatures", GNUPG),
+                         ("kde-stack-runtime", KDE_STACK)):
         encoded = base64.b64encode(zlib.compress(textwrap.dedent(script).encode())).decode()
         # QEMU's UART can lose a long paste before the guest shell receives it.
         # Upload bounded chunks in separate, acknowledged serial transactions.
@@ -244,5 +418,8 @@ def installed_upstream_probes() -> tuple[tuple[str, str], ...]:
             probes.append((f"{name}-transfer-{index + 1}", f"python3 -c {shlex.quote(code)}"))
         code = (f"import base64,zlib; from pathlib import Path; p=Path({path!r}); "
                 "data=p.read_bytes(); p.unlink(); exec(zlib.decompress(base64.b64decode(data)))")
-        probes.append((name, f"timeout 180 python3 -c {shlex.quote(code)}"))
+        # Union discovers plugins through the desktop's Qt environment. The
+        # serial login does not inherit the user manager's environment.d files.
+        runner = "systemd-run --user --wait --pipe --collect " if name == "kde-stack-runtime" else ""
+        probes.append((name, f"timeout 180 {runner}python3 -c {shlex.quote(code)}"))
     return tuple(probes)

@@ -15,15 +15,15 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qpipewire_screencapture_p.h>
-#include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qpipewire_screencapture_p.h>
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
+#include <QtMultimedia/private/qpipewire_support_p.h>
+#include <QtDBus/qdbusextratypes.h>
 
 #include <pipewire/pipewire.h>
-#include <spa/debug/types.h>
+#include <spa/param/video/format.h>
 #include <spa/utils/dict.h>
-#include <spa/param/video/format-utils.h>
-#include <spa/param/video/type-info.h>
 
 #include <memory>
 
@@ -31,77 +31,68 @@ QT_BEGIN_NAMESPACE
 
 class QDBusArgument;
 class QDBusInterface;
+class QDBusUnixFileDescriptor;
 
 namespace QtPipeWire {
 
+inline constexpr qreal DefaultCaptureFrameRate = 25.f;
+
 class QPipeWireInstance;
 
-class QPipeWireCaptureHelper : public QObject
+class QPipeWireCaptureHelper : public QSurfaceCaptureGrabber
 {
     Q_OBJECT
 public:
-    explicit QPipeWireCaptureHelper(QPipeWireCapture &capture);
+    explicit QPipeWireCaptureHelper(QPipeWireCapture &, std::shared_ptr<QPipeWireInstance>);
     ~QPipeWireCaptureHelper() override;
 
-    bool open(int fd);
-
-    static bool isSupported();
+    bool open(QDBusUnixFileDescriptor);
 
     QVideoFrameFormat frameFormat() const;
 
-    bool setActiveInternal(bool active);
-
 protected:
-    void updateError(QPlatformSurfaceCapture::Error error, const QString &description = {});
+    QVideoFrame grabFrame() override;
+    void initializeGrabbingContext() override;
+    void finalizeGrabbingContext() override;
 
 private:
     void destroy();
 
-    void onCoreEventDone(uint32_t id, int seq);
-    void onRegistryEventGlobal(uint32_t id, uint32_t permissions, const char *type, uint32_t version, const spa_dict *props);
     void onStateChanged(pw_stream_state old, pw_stream_state state, const char *error);
     void onProcess();
     void onParamChanged(uint32_t id, const struct spa_pod *param);
 
-    void updateCoreInitSeq();
-
     void recreateStream();
-    void destroyStream(bool forceDrain);
+    void destroyStream(bool waitForStreamEnd);
 
     void signalLoop(bool onProcessDone, bool err);
 
-    static QVideoFrameFormat::PixelFormat toQtPixelFormat(spa_video_format spaVideoFormat);
-    static spa_video_format toSpaVideoFormat(QVideoFrameFormat::PixelFormat pixelFormat);
-
-    QString getRequestToken();
-    int generateRequestToken();
+    QString allocateToken();
+    bool subscribeToRequestResponse(const QString &handleToken);
+    void unsubscribeFromRequestResponse();
     void createInterface();
     void createSession();
-    void selectSources(const QString &sessionHandle);
+    void selectSources(const QDBusObjectPath &sessionHandle);
     void startStream();
     void updateStreams(const QDBusArgument &streamsInfo);
     void openPipeWireRemote();
+    void closeSession();
 
 private Q_SLOTS:
     void gotRequestResponse(uint result, const QVariantMap &map);
+    void sessionClosed();
 
 private:
-    std::shared_ptr<QPipeWireInstance> m_instance;
-    QPipeWireCapture &m_capture;
+    const std::shared_ptr<QPipeWireInstance> m_pwInstance;
 
     QVideoFrame m_currentFrame;
     QVideoFrameFormat m_videoFrameFormat;
     QVideoFrameFormat::PixelFormat m_pixelFormat{};
     QSize m_size;
 
-    PwThreadLoopHandle m_threadLoop;
-    PwContextHandle m_context;
-
     PwCoreConnectionHandle m_core;
-    spa_hook m_coreListener = {};
 
     PwRegistryHandle m_registry = nullptr;
-    spa_hook m_registryListener = {};
 
     PwStreamHandle m_stream = nullptr;
     spa_hook m_streamListener = {};
@@ -109,18 +100,15 @@ private:
     spa_video_info m_format{};
 
     bool m_err = false;
-    bool m_hasSource = false;
-    bool m_initDone = false;
     bool m_ignoreStateChange = false;
-    bool m_streamPaused = false;
-    bool m_silence = false;
+    pw_stream_state m_streamState{}; // guarded by pw event loop lock
     bool m_processed = false;
 
-    int m_coreInitSeq = 0;
-
-    int m_requestToken = -1;
-    QString m_requestTokenPrefix;
-    QString m_sessionHandle;
+    const QString m_requestTokenPrefix;
+    quint64 m_tokenCounter = 0;
+    QString m_pendingRequestPath;
+    QDBusObjectPath m_sessionHandle;
+    std::unique_ptr<QDBusInterface> m_sessionInterface;
 
     struct StreamInfo
     {
@@ -129,8 +117,6 @@ private:
         QRect rect;
     };
     QVector<StreamInfo> m_streams;
-
-    int m_pipewireFd = -1;
 
     std::unique_ptr<QDBusInterface> m_screenCastInterface;
 

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-13 02:40+0000\n"
-"PO-Revision-Date: 2026-02-16 12:48+0000\n"
+"POT-Creation-Date: 2026-10-09 03:00+0000\n"
+"PO-Revision-Date: 2026-06-01 16:39+0000\n"
 "Last-Translator: Sveinn í Felli <sv1@fellsnet.is>\n"
 "Language-Team: Icelandic\n"
 "Language: is\n"
@@ -44,11 +44,12 @@ msgstr ""
 "Sýna líka\n"
 "í þessari athöfn"
 
-#: contents/activitymanager/ActivityItem.qml:335
-#, kde-format
-msgctxt "@action:button tooltip only, opens kcm"
-msgid "Configure"
-msgstr "Grunnstilla"
+#: contents/activitymanager/ActivityItem.qml:333
+#, fuzzy, kde-format
+#| msgid "Configure activity"
+msgctxt "@action:button tooltip only, opens kcm showing the indicated activity"
+msgid "Configure Activity “%1”"
+msgstr "Grunnstilla athöfn"
 
 #: contents/activitymanager/ActivityManager.qml:118
 #, kde-format
@@ -61,6 +62,27 @@ msgstr "Búa til athöfn..."
 msgctxt "@title:window"
 msgid "Activities"
 msgstr "Athafnir"
+
+#: contents/activitymanager/Heading.qml:86
+#, kde-format
+msgctxt "@action:button tooltip only"
+msgid "Search"
+msgstr ""
+
+#: contents/activitymanager/Heading.qml:103
+#, fuzzy, kde-format
+#| msgid "Configure activity"
+msgctxt "@action:button tooltip only, opens kcm"
+msgid "Configure Activities"
+msgstr "Grunnstilla athöfn"
+
+#: contents/activitymanager/Heading.qml:122
+#, fuzzy, kde-format
+#| msgctxt "@action:button Close the panel configuration window"
+#| msgid "Close"
+msgctxt "@action:button tooltip only, close panel"
+msgid "Close"
+msgstr "Loka"
 
 #: contents/applet/AppletError.qml:165
 #, kde-format
@@ -80,73 +102,73 @@ msgctxt "@info:whatsthis Accessible description for panel widget %1"
 msgid "Open %1"
 msgstr "Opna %1"
 
-#: contents/configuration/AboutPlugin.qml:21
+#: contents/configuration/AboutPlugin.qml:22
 #, kde-format
 msgctxt "@title:window About this widget"
 msgid "About"
 msgstr "Um hugbúnaðinn"
 
-#: contents/configuration/AboutPlugin.qml:51
+#: contents/configuration/AboutPlugin.qml:52
 #, kde-format
 msgctxt "plasma_shell_org.kde.plasma.desktop"
 msgid "Send an email to %1"
 msgstr "Senda tölvupóst til %1"
 
-#: contents/configuration/AboutPlugin.qml:65
+#: contents/configuration/AboutPlugin.qml:66
 #, kde-format
 msgctxt "@action:button icononly for tooltip & accessible %1 is url"
 msgid "Open website %1"
 msgstr "Opna vefsvæði %1"
 
-#: contents/configuration/AboutPlugin.qml:146
+#: contents/configuration/AboutPlugin.qml:159
 #, kde-format
 msgctxt "@title:group"
 msgid "Website"
 msgstr "Vefsvæði"
 
-#: contents/configuration/AboutPlugin.qml:157
+#: contents/configuration/AboutPlugin.qml:170
 #, kde-format
 msgctxt "@title:group"
 msgid "Get Help"
 msgstr "Fá hjálp"
 
-#: contents/configuration/AboutPlugin.qml:165
+#: contents/configuration/AboutPlugin.qml:178
 #, kde-format
 msgctxt "@action:button urlbutton"
 msgid "Report an issue"
 msgstr "Tilkynna um vandamál"
 
-#: contents/configuration/AboutPlugin.qml:172
+#: contents/configuration/AboutPlugin.qml:185
 #, kde-format
 msgctxt "@title license information"
 msgid "Copyright"
 msgstr "Höfundarréttur"
 
-#: contents/configuration/AboutPlugin.qml:191
+#: contents/configuration/AboutPlugin.qml:204
 #, kde-format
 msgctxt "@label %1 is the short SPDX text for the license"
 msgid "License: %1"
 msgstr "Notkunarleyfi: %1"
 
-#: contents/configuration/AboutPlugin.qml:197
+#: contents/configuration/AboutPlugin.qml:210
 #, kde-format
 msgctxt "@action:button"
 msgid "Read License"
 msgstr "Lesa notkunarleyfi"
 
-#: contents/configuration/AboutPlugin.qml:211
+#: contents/configuration/AboutPlugin.qml:224
 #, kde-format
 msgctxt "@title:group"
 msgid "Authors"
 msgstr "Höfundar"
 
-#: contents/configuration/AboutPlugin.qml:223
+#: contents/configuration/AboutPlugin.qml:236
 #, kde-format
 msgctxt "@title:group"
 msgid "Credits"
 msgstr "Þátttakendur"
 
-#: contents/configuration/AboutPlugin.qml:236
+#: contents/configuration/AboutPlugin.qml:249
 #, kde-format
 msgctxt "@title:group"
 msgid "Translators"
@@ -378,149 +400,155 @@ msgstr "Bil"
 
 #: contents/configuration/PanelConfiguration.qml:133
 #, kde-format
+msgctxt "@action:menu add a margins separator"
+msgid "Margins Separator"
+msgstr "Aðgreinir milli spássía"
+
+#: contents/configuration/PanelConfiguration.qml:140
+#, kde-format
 msgctxt "@action:menu add a widget"
 msgid "Widgets…"
 msgstr "Græjur…"
 
-#: contents/configuration/PanelConfiguration.qml:162
+#: contents/configuration/PanelConfiguration.qml:169
 #, kde-format
 msgctxt "@title:group"
 msgid "Position"
 msgstr "Staðsetning"
 
-#: contents/configuration/PanelConfiguration.qml:167
+#: contents/configuration/PanelConfiguration.qml:174
 #, kde-format
 msgctxt "@label panel screen edge"
 msgid "Top"
 msgstr "Efst"
 
-#: contents/configuration/PanelConfiguration.qml:168
+#: contents/configuration/PanelConfiguration.qml:175
 #, kde-format
 msgctxt "@label panel screen edge"
 msgid "Right"
 msgstr "Hægra megin"
 
-#: contents/configuration/PanelConfiguration.qml:169
+#: contents/configuration/PanelConfiguration.qml:176
 #, kde-format
 msgctxt "@label panel screen edge"
 msgid "Left"
 msgstr "Vinstra megin"
 
-#: contents/configuration/PanelConfiguration.qml:170
+#: contents/configuration/PanelConfiguration.qml:177
 #, kde-format
 msgctxt "@label panel screen edge"
 msgid "Bottom"
 msgstr "Neðst"
 
-#: contents/configuration/PanelConfiguration.qml:190
+#: contents/configuration/PanelConfiguration.qml:197
 #, kde-format
 msgctxt "action:button"
 msgid "Set Position…"
 msgstr "Stilla staðsetningu…"
 
-#: contents/configuration/PanelConfiguration.qml:217
+#: contents/configuration/PanelConfiguration.qml:224
 #, kde-format
 msgctxt "@title:group"
 msgid "Alignment"
 msgstr "Jöfnun"
 
-#: contents/configuration/PanelConfiguration.qml:282
+#: contents/configuration/PanelConfiguration.qml:289
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Top"
 msgstr "Efst"
 
-#: contents/configuration/PanelConfiguration.qml:282
+#: contents/configuration/PanelConfiguration.qml:289
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Left"
 msgstr "Vinstra megin"
 
-#: contents/configuration/PanelConfiguration.qml:283
+#: contents/configuration/PanelConfiguration.qml:290
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Center"
 msgstr "Miðjuð"
 
-#: contents/configuration/PanelConfiguration.qml:284
+#: contents/configuration/PanelConfiguration.qml:291
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Bottom"
 msgstr "Neðst"
 
-#: contents/configuration/PanelConfiguration.qml:284
+#: contents/configuration/PanelConfiguration.qml:291
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Right"
 msgstr "Hægra megin"
 
-#: contents/configuration/PanelConfiguration.qml:314
+#: contents/configuration/PanelConfiguration.qml:321
 #, kde-format
 msgctxt "@title:group panel height"
 msgid "Height"
 msgstr "Hæð"
 
-#: contents/configuration/PanelConfiguration.qml:315
+#: contents/configuration/PanelConfiguration.qml:322
 #, kde-format
 msgctxt "@title:group panel width"
 msgid "Width"
 msgstr "Breidd"
 
-#: contents/configuration/PanelConfiguration.qml:334
+#: contents/configuration/PanelConfiguration.qml:341
 #, kde-format
 msgctxt "@item:inlistbox panel fills the full height of the display"
 msgid "Fill height"
 msgstr "Fylla hæð"
 
-#: contents/configuration/PanelConfiguration.qml:334
+#: contents/configuration/PanelConfiguration.qml:341
 #, kde-format
 msgctxt "@item:inlistbox panel fills the full width of the display"
 msgid "Fill width"
 msgstr "Fylla breidd"
 
-#: contents/configuration/PanelConfiguration.qml:335
+#: contents/configuration/PanelConfiguration.qml:342
 #, kde-format
 msgctxt "@item:inlistbox panel is just big enough to fit its content"
 msgid "Fit content"
 msgstr "Aðlaga að innihaldi"
 
-#: contents/configuration/PanelConfiguration.qml:336
+#: contents/configuration/PanelConfiguration.qml:343
 #, kde-format
 msgctxt "@item:inlistbox panel size"
 msgid "Custom"
 msgstr "Sérsniðið"
 
-#: contents/configuration/PanelConfiguration.qml:369
+#: contents/configuration/PanelConfiguration.qml:376
 #, kde-format
 msgctxt "@title:group"
 msgid "Visibility"
 msgstr "Sýnileiki"
 
-#: contents/configuration/PanelConfiguration.qml:386
+#: contents/configuration/PanelConfiguration.qml:393
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always visible"
 msgstr "Alltaf sýnileg"
 
-#: contents/configuration/PanelConfiguration.qml:387
+#: contents/configuration/PanelConfiguration.qml:394
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Auto hide"
 msgstr "Fela sjálfkrafa"
 
-#: contents/configuration/PanelConfiguration.qml:388
+#: contents/configuration/PanelConfiguration.qml:395
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Dodge windows"
 msgstr "Víkja fyrir gluggum"
 
-#: contents/configuration/PanelConfiguration.qml:389
+#: contents/configuration/PanelConfiguration.qml:396
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Windows go below"
 msgstr "Gluggar fara undir"
 
-#: contents/configuration/PanelConfiguration.qml:449
+#: contents/configuration/PanelConfiguration.qml:459
 #, kde-format
 msgctxt "@title:group"
 msgid "Opacity"
@@ -528,164 +556,163 @@ msgstr "Ógegnsæi"
 
 #: contents/configuration/PanelConfiguration.qml:465
 #, kde-format
+msgctxt "@info:tooltip"
+msgid "The current Plasma style does not support opacity options."
+msgstr "Núverandi stíll Plasma styður ekki valkosti ógegnsæis."
+
+#: contents/configuration/PanelConfiguration.qml:487
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Adaptive"
 msgstr "Aðlaganlegt"
 
-#: contents/configuration/PanelConfiguration.qml:466
+#: contents/configuration/PanelConfiguration.qml:488
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Opaque"
 msgstr "Ógegnsæ"
 
-#: contents/configuration/PanelConfiguration.qml:467
+#: contents/configuration/PanelConfiguration.qml:489
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Translucent"
 msgstr "Gegnsæ"
 
-#: contents/configuration/PanelConfiguration.qml:499
+#: contents/configuration/PanelConfiguration.qml:521
 #, kde-format
 msgctxt "@title:group Degree of floatingness of panel and applets"
 msgid "Floating"
 msgstr "Fljótandi"
 
-#: contents/configuration/PanelConfiguration.qml:515
+#: contents/configuration/PanelConfiguration.qml:537
 #, kde-format
 msgctxt "@item:inlistbox Option to disable floating panels or applets"
 msgid "Disabled"
 msgstr "Óvirkt"
 
-#: contents/configuration/PanelConfiguration.qml:516
+#: contents/configuration/PanelConfiguration.qml:538
 #, kde-format
 msgctxt "@item:inlistbox Option to make only panel applets always float"
 msgid "Applets only"
 msgstr "Einungis græjur"
 
-#: contents/configuration/PanelConfiguration.qml:517
+#: contents/configuration/PanelConfiguration.qml:539
 #, kde-format
 msgctxt "@item:inlistbox Option to make panel and applets floating"
 msgid "Panel and applets"
 msgstr "Skjáborðsstika og græjur"
 
-#: contents/configuration/PanelConfiguration.qml:560
-#, kde-format
-msgctxt ""
-"@action:button Revert an unsupported configuration back to the defaults"
-msgid "Fix it"
-msgstr "Lagfæra"
-
-#: contents/configuration/PanelConfiguration.qml:646
+#: contents/configuration/PanelConfiguration.qml:636
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Panel Width:"
 msgstr "Breidd skjáborðsstiku:"
 
-#: contents/configuration/PanelConfiguration.qml:647
+#: contents/configuration/PanelConfiguration.qml:637
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Panel Height:"
 msgstr "Hæð skjáborðsstiku:"
 
-#: contents/configuration/PanelConfiguration.qml:670
+#: contents/configuration/PanelConfiguration.qml:660
 #, kde-format
 msgctxt "@title:group shortcut that moves focus to the panel"
 msgid "Focus shortcut:"
 msgstr "Flýtilykill fyrir fókus:"
 
-#: contents/configuration/PanelConfiguration.qml:680
+#: contents/configuration/PanelConfiguration.qml:670
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Press this keyboard shortcut to move focus to the Panel"
 msgstr "Settu inn þennan flýtilykil til að gefa skjáborðsstikunni fókus"
 
-#: contents/configuration/PanelConfiguration.qml:687
+#: contents/configuration/PanelConfiguration.qml:677
 #, kde-format
 msgctxt "@action:button accessible name"
 msgid "Focus Shortcut Setter"
 msgstr "Setja flýtilykil fyrir fókus"
 
-#: contents/configuration/PanelConfiguration.qml:688
+#: contents/configuration/PanelConfiguration.qml:678
 #, kde-format
 msgctxt "@info:whatsthis Accessible description for button"
 msgid "Button to set the shortcut for the panel to gain focus"
 msgstr "Hnappur til að stilla flýtilykil sem setur fókus á skjástikuna"
 
-#: contents/configuration/PanelConfiguration.qml:714
+#: contents/configuration/PanelConfiguration.qml:705
 #, kde-format
 msgctxt "@action:button Delete the panel"
 msgid "Delete Panel"
 msgstr "Eyða skjáborðsstiku"
 
-#: contents/configuration/PanelConfiguration.qml:717
+#: contents/configuration/PanelConfiguration.qml:708
 #, kde-format
 msgctxt "@info:tooltip for button"
 msgid "Remove this panel; this action can be undone"
 msgstr "Eyða þessari skjáborðsstiku. Ekki er hægt að afturkalla aðgerðina"
 
-#: contents/configuration/PanelConfiguration.qml:726
+#: contents/configuration/PanelConfiguration.qml:717
 #, kde-format
 msgctxt "@action:button Clone the panel"
 msgid "Clone Panel"
 msgstr "Klóna skjáborðsstiku"
 
-#: contents/configuration/PanelConfiguration.qml:730
+#: contents/configuration/PanelConfiguration.qml:721
 #, kde-format
 msgctxt "@info:tooltip for button"
 msgid "Create a new panel with the same settings and applets"
 msgstr "Búa til nýja skjáborðsstiku með sömu stillingum og græjum"
 
-#: contents/configuration/PanelConfiguration.qml:739
+#: contents/configuration/PanelConfiguration.qml:730
 #, kde-format
 msgctxt "@action:button Close the panel configuration window"
 msgid "Close"
 msgstr "Loka"
 
-#: contents/configuration/PanelConfiguration.qml:739
+#: contents/configuration/PanelConfiguration.qml:730
 #, kde-format
 msgctxt ""
 "@action:button Close the panel configuration window and exit edit mode"
 msgid "Exit Edit Mode"
 msgstr "Hætta í breytisniði"
 
-#: contents/configuration/PanelConfiguration.qml:742
+#: contents/configuration/PanelConfiguration.qml:733
 #, kde-format
 msgctxt "@info:tooltip for button"
 msgid "Close Panel Settings window and exit Edit Mode"
 msgstr "Loka stillingaglugga skjáborðsstiku og hætta í breytingasniði"
 
-#: contents/configuration/panelconfiguration/Ruler.qml:25
+#: contents/configuration/panelconfiguration/Ruler.qml:24
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Drag to change maximum height."
 msgstr "Dragðu til að breyta hámarkshæð."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:26
+#: contents/configuration/panelconfiguration/Ruler.qml:25
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Drag to change maximum width."
 msgstr "Dragðu til að breyta hámarksbreidd."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:27
-#: contents/configuration/panelconfiguration/Ruler.qml:32
+#: contents/configuration/panelconfiguration/Ruler.qml:26
+#: contents/configuration/panelconfiguration/Ruler.qml:31
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Double-click to reset."
 msgstr "Tvísmelltu til að endurstilla."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:30
+#: contents/configuration/panelconfiguration/Ruler.qml:29
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Drag to change minimum height."
 msgstr "Dragðu til að breyta lágmarkshæð."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:31
+#: contents/configuration/panelconfiguration/Ruler.qml:30
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Drag to change minimum width."
 msgstr "Dragðu til að breyta lágmarksbreidd."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:80
+#: contents/configuration/panelconfiguration/Ruler.qml:79
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid ""
@@ -763,13 +790,13 @@ msgctxt "@info:tooltip"
 msgid "Unsupported Widget"
 msgstr "Óstuddar græjur"
 
-#: contents/explorer/AppletDelegate.qml:202
+#: contents/explorer/AppletDelegate.qml:196
 #, kde-format
-msgctxt "Text displayed on top of newly installed widgets"
+msgctxt "Text displayed on top of newly-installed widgets"
 msgid "New!"
 msgstr "Nýtt!"
 
-#: contents/explorer/AppletDelegate.qml:204
+#: contents/explorer/AppletDelegate.qml:198
 #, kde-format
 msgctxt "@info:other accessible for badge showing applet count"
 msgid "%1 widget active"
@@ -777,43 +804,43 @@ msgid_plural "%1 widgets active"
 msgstr[0] "%1 græja virk"
 msgstr[1] "%1 græjur virkar"
 
-#: contents/explorer/AppletDelegate.qml:205
+#: contents/explorer/AppletDelegate.qml:199
 #, kde-format
 msgctxt " @info:other accessible for badge indicating new widget"
 msgid "Recently installed"
 msgstr "Nýlega uppsett"
 
-#: contents/explorer/AppletDelegate.qml:217
+#: contents/explorer/AppletDelegate.qml:212
 #, kde-format
 msgctxt "@action:button tooltip and accessible cancel uninstall widget"
 msgid "Cancel Uninstallation"
 msgstr "Hætta við að fjarlægja"
 
-#: contents/explorer/AppletDelegate.qml:218
+#: contents/explorer/AppletDelegate.qml:213
 #, kde-format
 msgctxt "@action:button tooltip and accessible uninstall widget"
 msgid "Mark for Uninstallation"
 msgstr "Merkja til fjarlægingar"
 
-#: contents/explorer/AppletDelegate.qml:222
+#: contents/explorer/AppletDelegate.qml:217
 #, kde-format
 msgctxt "@action:button accessible only, %1 is widget name"
 msgid "Cancel pending uninstallation for widget %1"
 msgstr "Hætta við að fjarlægja græju %1"
 
-#: contents/explorer/AppletDelegate.qml:223
+#: contents/explorer/AppletDelegate.qml:218
 #, kde-format
 msgctxt "@action:button accessible only, %1 is widget name"
 msgid "Mark widget %1 for uninstallation. Requires confirmation"
 msgstr "Merkja græju %1 til fjarlægingar. Krefst staðfestingar"
 
-#: contents/explorer/AppletDelegate.qml:265
+#: contents/explorer/AppletDelegate.qml:260
 #, kde-format
 msgctxt "@action:button"
 msgid "Remove all instances"
 msgstr "Fjarlægja öll tilvik"
 
-#: contents/explorer/AppletDelegate.qml:269
+#: contents/explorer/AppletDelegate.qml:264
 #, kde-format
 msgctxt ""
 "@action:button accessible description, %1 number of instances %2 is widget "
@@ -823,50 +850,50 @@ msgid_plural "Remove all %1 running instances of widget %2"
 msgstr[0] "Fjarlægja tilvik í keyrslu af græju %2"
 msgstr[1] "Fjarlæga öll %1 tilvik í keyrslu af græju %2"
 
-#: contents/explorer/WidgetExplorer.qml:140
-#: contents/explorer/WidgetExplorer.qml:223
+#: contents/explorer/WidgetExplorer.qml:146
+#: contents/explorer/WidgetExplorer.qml:229
 #, kde-format
 msgctxt "@action:button like listbox, switches category to all widgets"
 msgid "All Widgets"
 msgstr "Allar græjur"
 
-#: contents/explorer/WidgetExplorer.qml:169
+#: contents/explorer/WidgetExplorer.qml:175
 #, kde-format
 msgctxt "@title:group for widget grid"
 msgid "Widgets"
 msgstr "Græjur"
 
-#: contents/explorer/WidgetExplorer.qml:178
+#: contents/explorer/WidgetExplorer.qml:184
 #, kde-format
 msgctxt "@action:button The word 'new' refers to widgets"
 msgid "Get New…"
 msgstr "Sækja nýtt..."
 
-#: contents/explorer/WidgetExplorer.qml:179
+#: contents/explorer/WidgetExplorer.qml:185
 #, kde-format
 msgctxt "@action:button"
 msgid "Get New Widgets…"
 msgstr "Sækja nýjar græjur…"
 
-#: contents/explorer/WidgetExplorer.qml:192
+#: contents/explorer/WidgetExplorer.qml:198
 #, kde-format
 msgctxt "@action:button accessible for close button"
 msgid "Close Widget Explorer"
 msgstr "Loka græjuskoðara"
 
-#: contents/explorer/WidgetExplorer.qml:208
+#: contents/explorer/WidgetExplorer.qml:214
 #, kde-format
 msgctxt "@label:textbox accessible"
 msgid "Search through widgets"
 msgstr "Leita í græjum"
 
-#: contents/explorer/WidgetExplorer.qml:237
+#: contents/explorer/WidgetExplorer.qml:243
 #, kde-format
 msgctxt "@action:button tooltip only"
 msgid "Categories"
 msgstr "Flokkar"
 
-#: contents/explorer/WidgetExplorer.qml:259
+#: contents/explorer/WidgetExplorer.qml:265
 #, kde-format
 msgctxt "@action:button uninstall widgets in widget explorer"
 msgid "Uninstall (%1 Widget)"
@@ -874,13 +901,13 @@ msgid_plural "Uninstall (%1 Widgets)"
 msgstr[0] "Fjarlægja (%1 græju)"
 msgstr[1] "Fjarlægja (%1 græjur)"
 
-#: contents/explorer/WidgetExplorer.qml:389
+#: contents/explorer/WidgetExplorer.qml:395
 #, kde-format
 msgctxt "@info placeholdermessage"
 msgid "No widgets matched the search terms"
 msgstr "Engar græjur passa við leitarorðin"
 
-#: contents/explorer/WidgetExplorer.qml:389
+#: contents/explorer/WidgetExplorer.qml:395
 #, kde-format
 msgctxt "@info placeholdermessage"
 msgid "No widgets available"
@@ -940,67 +967,81 @@ msgctxt "@option:check"
 msgid "Show under unlocking prompt"
 msgstr "Sýna undir aflæsingarkvaðningu"
 
-#: contents/lockscreen/LockScreenUi.qml:48
+#: contents/lockscreen/LockScreenUi.qml:62
 #, kde-format
 msgctxt "@info:status"
 msgid "Unlocking failed"
 msgstr "Aflæsing tókst ekki"
 
-#: contents/lockscreen/LockScreenUi.qml:285
+#: contents/lockscreen/LockScreenUi.qml:352
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"This authentication method is not functioning correctly. Please try another "
+"method, and check your system configuration."
+msgstr ""
+
+#: contents/lockscreen/LockScreenUi.qml:384
 #, kde-format
 msgctxt "@info:status"
 msgid "Caps Lock is on"
 msgstr "Kveikt á hástafalás (CapsLock)"
 
-#: contents/lockscreen/LockScreenUi.qml:299
+#: contents/lockscreen/LockScreenUi.qml:387
+#, kde-format
+msgctxt "@info:status"
+msgid "Slow Keys are enabled"
+msgstr "Kveikt er á hægum lyklum"
+
+#: contents/lockscreen/LockScreenUi.qml:407
 #, kde-format
 msgctxt "@action:button"
 msgid "Slee&p"
 msgstr "Svæ&fa"
 
-#: contents/lockscreen/LockScreenUi.qml:305
+#: contents/lockscreen/LockScreenUi.qml:414
 #, kde-format
 msgctxt "@action:button"
 msgid "&Hibernate"
 msgstr "&Leggja í dvala"
 
-#: contents/lockscreen/LockScreenUi.qml:311
+#: contents/lockscreen/LockScreenUi.qml:421
 #, kde-format
 msgctxt "@action:button"
 msgid "Switch &User"
 msgstr "Skipta um &notanda"
 
-#: contents/lockscreen/LockScreenUi.qml:372
+#: contents/lockscreen/LockScreenUi.qml:471
 #, kde-format
 msgctxt "Button to show/hide virtual keyboard"
 msgid "Virtual Keyboard"
 msgstr "Sýndarlyklaborð"
 
-#: contents/lockscreen/LockScreenUi.qml:396
+#: contents/lockscreen/LockScreenUi.qml:497
 #, kde-format
 msgctxt "Button to change keyboard layout"
 msgid "Switch layout"
 msgstr "Skipta um lyklaborðsskipan"
 
-#: contents/lockscreen/MainBlock.qml:65
+#: contents/lockscreen/MainBlock.qml:67
 #, kde-format
 msgctxt "@info:placeholder in text field"
 msgid "Password"
 msgstr "Lykilorð"
 
-#: contents/lockscreen/MainBlock.qml:114
+#: contents/lockscreen/MainBlock.qml:115
 #, kde-format
 msgctxt "@action:button accessible only"
 msgid "Unlock"
 msgstr "Aflæsa"
 
-#: contents/lockscreen/MainBlock.qml:163
+#: contents/lockscreen/MainBlock.qml:164
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "(or scan your fingerprint on the reader)"
 msgstr "(eða skanna fingrafarið þitt á lesaranum)"
 
-#: contents/lockscreen/MainBlock.qml:167
+#: contents/lockscreen/MainBlock.qml:168
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "(or scan your smartcard)"
@@ -1042,26 +1083,182 @@ msgctxt "@action:button no-password unlock"
 msgid "Unlock"
 msgstr "Aflæsa"
 
-#: contents/views/DesktopEditMode.qml:122
+#: contents/logout/LogoutControls.qml:97
+#, kde-format
+msgid "Installing software updates and restarting in 1 second"
+msgid_plural "Installing software updates and restarting in %1 seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/logout/LogoutControls.qml:98
+#, kde-format
+msgid "Restarting in 1 second"
+msgid_plural "Restarting in %1 seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/logout/LogoutControls.qml:100
+#, kde-format
+msgid "Logging out in 1 second"
+msgid_plural "Logging out in %1 seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/logout/LogoutControls.qml:103
+#, kde-format
+msgid "Installing software updates and shutting down in 1 second"
+msgid_plural "Installing software updates and shutting down in %1 seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/logout/LogoutControls.qml:104
+#, kde-format
+msgid "Shutting down in 1 second"
+msgid_plural "Shutting down in %1 seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/logout/LogoutControls.qml:119
+#, kde-format
+msgid ""
+"One other user is currently logged in. If the computer is shut down or "
+"restarted, that user may lose work."
+msgid_plural ""
+"%1 other users are currently logged in. If the computer is shut down or "
+"restarted, those users may lose work."
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/logout/LogoutControls.qml:136
+#, kde-format
+msgid "When restarted, the computer will enter UEFI firmware settings."
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:138
+#, kde-format
+msgid "When restarted, the computer will enter the firmware setup screen."
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:153
+#, kde-format
+msgid "When restarted, the computer will enter the boot loader menu."
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:166
+#, kde-format
+msgctxt "%1 is a boot loader entry"
+msgid "When restarted, the computer will switch to %1."
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:189
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Slee&p"
+msgctxt "Suspend to RAM"
+msgid "Slee&p"
+msgstr "Svæ&fa"
+
+#: contents/logout/LogoutControls.qml:190
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Slee&p"
+msgctxt "Suspend to RAM"
+msgid "Slee&p Now"
+msgstr "Svæ&fa"
+
+#: contents/logout/LogoutControls.qml:200
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "&Hibernate"
+msgid "&Hibernate"
+msgstr "&Leggja í dvala"
+
+#: contents/logout/LogoutControls.qml:201
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "&Hibernate"
+msgid "&Hibernate Now"
+msgstr "&Leggja í dvala"
+
+#: contents/logout/LogoutControls.qml:213
+#, kde-format
+msgctxt "@action:button Keep short"
+msgid "Install Updates and Restart"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:215
+#: contents/logout/LogoutControls.qml:235
+#, kde-format
+msgid "&Restart"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:216
+#: contents/logout/LogoutControls.qml:236
+#, kde-format
+msgid "&Restart Now"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:250
+#, kde-format
+msgctxt "@action:button Keep short"
+msgid "Install Updates and Shut Down"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:252
+#: contents/logout/LogoutControls.qml:272
+#, kde-format
+msgid "&Shut Down"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:253
+#: contents/logout/LogoutControls.qml:273
+#, kde-format
+msgid "&Shut Down Now"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:286
+#, kde-format
+msgid "&Log Out"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:287
+#, kde-format
+msgid "&Log Out Now"
+msgstr ""
+
+#: contents/logout/LogoutControls.qml:298
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Cancel"
+msgid "&Cancel"
+msgstr "Hætta við"
+
+#: contents/views/DesktopEditMode.qml:135
 #, kde-format
 msgctxt "@action:button"
 msgid "More"
 msgstr "Meira"
 
-#: contents/views/DesktopEditMode.qml:131
+#: contents/views/DesktopEditMode.qml:144
 #, kde-format
 msgctxt "@action:button"
 msgid "Exit Edit Mode"
 msgstr "Loka breytingasniði"
 
-#: contents/views/Panel.qml:326
+#: contents/views/Panel.qml:322
 #, kde-format
 msgctxt "@info:whatsthis Accessible name"
 msgid "Panel Focus Indicator"
 msgstr "Fókusvísir skjáborðsstiku"
 
-#~ msgid "Configure activity"
-#~ msgstr "Grunnstilla athöfn"
+#~ msgctxt "@action:button tooltip only, opens kcm"
+#~ msgid "Configure"
+#~ msgstr "Grunnstilla"
+
+#~ msgctxt ""
+#~ "@action:button Revert an unsupported configuration back to the defaults"
+#~ msgid "Fix it"
+#~ msgstr "Lagfæra"
 
 #~ msgid "Delete"
 #~ msgstr "Eyða"

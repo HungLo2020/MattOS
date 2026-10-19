@@ -16,6 +16,37 @@
 namespace KWin
 {
 
+class RenderView;
+
+/**
+ * The AnimationClock type provides a convenient to compute animation delta times.
+ */
+class KWIN_EXPORT AnimationClock
+{
+public:
+    AnimationClock();
+
+    /**
+     * Resets the clock to the initial state.
+     */
+    void reset();
+
+    /**
+     * Advances the clock to the specified @a timestamp.
+     *
+     * The @a refreshRate specifies the expected refresh rate, in milli-Hertz. It can be used to
+     * limit the delta time between consecutive frames to minimize stuttering if a frame has missed
+     * its target vblank. If the specified refresh rate is @c 0, the delta time is not limited.
+     *
+     * Returns the number of milliseconds elapsed between this and the last tick().
+     */
+    std::chrono::milliseconds tick(std::chrono::nanoseconds timestamp, uint refreshRate = 0);
+    std::chrono::milliseconds tick(const RenderView *view);
+
+private:
+    std::optional<std::chrono::nanoseconds> m_lastTimestamp;
+};
+
 /**
  * The TimeLine class is a helper for controlling animations.
  */
@@ -33,7 +64,7 @@ public:
      */
     enum Direction {
         Forward,
-        Backward
+        Backward,
     };
 
     /**
@@ -57,8 +88,13 @@ public:
 
     /**
      * Advances the timeline to the specified @a timestamp.
+     *
+     * The @a refreshRate specifies the expected refresh rate, in milli-Hertz. It can be used to
+     * limit the delta time between consecutive frames to minimize stuttering if a frame has missed
+     * its target vblank. If the specified refresh rate is @c 0, the delta time is not limited.
      */
-    void advance(std::chrono::milliseconds timestamp);
+    void advance(std::chrono::nanoseconds timestamp, uint refreshRate = 0);
+    void advance(const RenderView *view);
 
     /**
      * Returns the number of elapsed milliseconds.
@@ -196,7 +232,7 @@ public:
 
     enum class RedirectMode {
         Strict,
-        Relaxed
+        Relaxed,
     };
 
     /**

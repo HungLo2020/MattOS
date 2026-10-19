@@ -21,6 +21,9 @@ PlasmaComponents3.ItemDelegate {
 
     visible: keyboardColorControl.supported
 
+    Accessible.onPressAction: syncAccentSwitch.click()
+    Keys.onSpacePressed: syncAccentSwitch.click()
+
     KeyboardColorControl {
         id: keyboardColorControl
     }
@@ -57,8 +60,8 @@ PlasmaComponents3.ItemDelegate {
                 Rectangle {
                     id: colorIndicator
 
-                    width: Math.round(Kirigami.Units.gridUnit * 1.25)
-                    height: Math.round(Kirigami.Units.gridUnit * 1.25)
+                    implicitWidth: Math.round(Kirigami.Units.gridUnit * 1.25)
+                    implicitHeight: Math.round(Kirigami.Units.gridUnit * 1.25)
                     radius: 180
 
                     color: keyboardColorControl.enabled ? Kirigami.Theme.highlightColor : "transparent"
@@ -74,17 +77,10 @@ PlasmaComponents3.ItemDelegate {
 
                     Layout.fillWidth: true
 
-                    KeyNavigation.up: root.KeyNavigation.up
-                    KeyNavigation.tab: root.KeyNavigation.tab
-                    KeyNavigation.right: root.KeyNavigation.right
-                    KeyNavigation.backtab: root.KeyNavigation.backtab
+                    activeFocusOnTab: false
+                    focusPolicy: Qt.NoFocus
 
-                    Keys.onPressed: (event) => {
-                        if (event.key == Qt.Key_Space || event.key == Qt.Key_Return || event.key == Qt.Key_Enter) {
-                            toggle();
-                        }
-                    }
-                    onToggled: {
+                    onClicked: {
                         keyboardColorControl.enabled = checked;
                     }
                 }

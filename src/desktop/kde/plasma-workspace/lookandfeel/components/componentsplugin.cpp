@@ -1,6 +1,8 @@
 #include <QQmlEngine>
 #include <QQmlExtensionPlugin>
 
+#include <Plasma/Plasma>
+
 class ComponentsPlugin : public QQmlExtensionPlugin
 {
     Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)

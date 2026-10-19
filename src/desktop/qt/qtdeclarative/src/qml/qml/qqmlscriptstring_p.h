@@ -22,7 +22,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_AUTOTEST_EXPORT QQmlScriptStringPrivate : public QSharedData
+class Q_QML_EXPORT QQmlScriptStringPrivate : public QSharedData
 {
 public:
     QQmlScriptStringPrivate() : context(nullptr), scope(nullptr), bindingId(-1), lineNumber(0), columnNumber(0),
@@ -30,6 +30,8 @@ public:
 
     //for testing
     static const QQmlScriptStringPrivate* get(const QQmlScriptString &script);
+
+    static QQmlScriptString create(const QString &script, QQmlContext *context, QObject *scope);
 
     QQmlContext *context;
     QObject *scope;

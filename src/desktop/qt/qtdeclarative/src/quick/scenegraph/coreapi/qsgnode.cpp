@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgnode.h"
 #include "qsgnode_p.h"
@@ -356,6 +357,33 @@ void QSGNode::destroy()
     Q_ASSERT(m_firstChild == nullptr && m_lastChild == nullptr);
 }
 
+quint8 QSGNodePrivate::mutabilityGroup(const QSGNode *node)
+{
+    return !node->d_ptr.isNull()
+               ? node->d_ptr->m_mutabilityGroup
+               : 0;
+}
+
+/*!
+   \internal
+
+   Sets the mutability group of this node. Recurses to children.
+ */
+void QSGNodePrivate::setMutabilityGroupOfSubtree(QSGNode *node, quint8 group)
+{
+    Q_ASSERT((group & 0xf) == group);
+
+    const quint8 currentMutabilityGroup = mutabilityGroup(node);
+    if (currentMutabilityGroup != group) {
+        if (node->d_ptr.isNull())
+            node->d_ptr.reset(new QSGNodePrivate());
+        node->d_ptr->m_mutabilityGroup = group;
+        node->markDirty(QSGNode::DirtyGeometry);
+    }
+
+    for (int i = 0; i < node->childCount(); ++i)
+        QSGNodePrivate::setMutabilityGroupOfSubtree(node->childAtIndex(i), group);
+}
 
 /*!
     Prepends \a node to this node's the list of children.

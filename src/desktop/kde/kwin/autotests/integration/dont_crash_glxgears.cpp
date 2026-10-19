@@ -20,8 +20,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_dont_crash_glxgears-0");
-
 class DontCrashGlxgearsTest : public QObject
 {
     Q_OBJECT
@@ -33,7 +31,7 @@ private Q_SLOTS:
 void DontCrashGlxgearsTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),

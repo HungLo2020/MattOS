@@ -12,8 +12,6 @@
 #include "klookandfeelmanager.h"
 #include "../kcms/colors/colorsapplicator.h"
 #include "../kcms/kcms-common_p.h"
-#include "config-klookandfeel.h"
-#include "krdb.h"
 #include <KIO/CommandLauncherJob>
 #include <KIconLoader>
 #include <KPackage/PackageLoader>
@@ -23,26 +21,10 @@
 #include <QDBusPendingCall>
 #include <QDBusPendingReply>
 #include <QGuiApplication>
+#include <QProcess>
 #include <QStyle>
 #include <QStyleFactory>
 #include <algorithm>
-
-#include "config-X11.h"
-#if HAVE_X11
-#include <X11/Xlib.h>
-#include <private/qtx11extras_p.h>
-
-#ifdef HAVE_XCURSOR
-#include "../kcms/cursortheme/xcursor/xcursortheme.h"
-#include <X11/Xcursor/Xcursor.h>
-#endif
-
-#ifdef HAVE_XFIXES
-#include <X11/extensions/Xfixes.h>
-#endif
-
-#include <fixx11h.h>
-#endif
 
 using namespace Qt::StringLiterals;
 
@@ -78,41 +60,8 @@ bool configProvides(KSharedConfigPtr config, const QString &groupPath, const QSt
 
 KLookAndFeelManager::KLookAndFeelManager(QObject *parent)
     : QObject(parent)
-    , m_plasmashellChanged(false)
     , m_fontsChanged(false)
-    , m_plasmaLocked(false)
 {
-    m_applyLatteLayout = (KService::serviceByDesktopName(u"org.kde.latte-dock"_s) != nullptr);
-
-    QDBusMessage message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.plasmashell"),
-                                                          QStringLiteral("/PlasmaShell"),
-                                                          QStringLiteral("org.kde.PlasmaShell"),
-                                                          QStringLiteral("immutable"));
-    QDBusPendingCall async = QDBusConnection::sessionBus().asyncCall(message);
-
-    // Create watcher for the pending call
-    auto *watcher = new QDBusPendingCallWatcher(async, this);
-
-    // Connect watcher finished signal to our slot
-    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this](QDBusPendingCallWatcher *call) {
-        QDBusPendingReply<bool> reply = *call;
-
-        if (reply.isError()) {
-            qWarning() << "Error:" << reply.error().message();
-        } else {
-            const bool locked = reply.value();
-            if (locked != m_plasmaLocked) {
-                m_plasmaLocked = locked;
-                Q_EMIT plasmaLockedChanged(locked);
-            }
-        }
-        call->deleteLater();
-    });
-}
-
-bool KLookAndFeelManager::isPlasmaLocked() const
-{
-    return m_plasmaLocked;
 }
 
 KLookAndFeelManager::Contents KLookAndFeelManager::packageContents(const KPackage::Package &pkg) const
@@ -122,10 +71,6 @@ KLookAndFeelManager::Contents KLookAndFeelManager::packageContents(const KPackag
     contents.setFlag(SplashScreen, !pkg.filePath("splashmainscript").isEmpty());
 
     contents.setFlag(DesktopLayout, !pkg.filePath("layouts").isEmpty());
-
-    // TODO: Those seem unused... are deprecated?
-    contents.setFlag(RunCommand, !pkg.filePath("runcommandmainscript").isEmpty());
-    contents.setFlag(LogOutScript, !pkg.filePath("logoutmainscript").isEmpty());
 
     if (!pkg.filePath("layoutdefaults").isEmpty()) {
         KSharedConfigPtr conf = KSharedConfig::openConfig(pkg.filePath("layoutdefaults"));
@@ -152,7 +97,6 @@ KLookAndFeelManager::Contents KLookAndFeelManager::packageContents(const KPackag
                              || configProvides(conf, u"kdeglobals/General"_s, u"activeFont"_s));
 
         contents.setFlag(WindowPlacement, configProvides(conf, u"kwinrc/Windows"_s, u"Placement"_s));
-        contents.setFlag(ShellPackage, configProvides(conf, u"plasmashellrc/Shell"_s, u"ShellPackage"_s));
 
         // TODO: Currently managed together within the "DesktopLayout" content
     }
@@ -192,16 +136,6 @@ void KLookAndFeelManager::setWindowPlacement(const QString &value)
     }
 
     writeNewDefaults(QStringLiteral("kwinrc"), QStringLiteral("Windows"), QStringLiteral("Placement"), value);
-}
-
-void KLookAndFeelManager::setShellPackage(const QString &value)
-{
-    if (value.isEmpty()) {
-        return;
-    }
-
-    writeNewDefaults(QStringLiteral("plasmashellrc"), QStringLiteral("Shell"), QStringLiteral("ShellPackage"), value);
-    m_plasmashellChanged = true;
 }
 
 void KLookAndFeelManager::setWindowDecoration(const QString &library, const QString &theme, bool noPlugin)
@@ -309,28 +243,6 @@ void KLookAndFeelManager::setIcons(const QString &theme)
     }
 
     Q_EMIT iconsChanged();
-}
-
-void KLookAndFeelManager::setLatteLayout(const QString &filepath, const QString &name)
-{
-    if (filepath.isEmpty()) {
-        // there is no latte layout
-        KIO::CommandLauncherJob latteapp(QStringLiteral("latte-dock"), {QStringLiteral("--disable-autostart")});
-        latteapp.setDesktopName(u"org.kde.latte-dock"_s);
-        latteapp.start();
-
-        QDBusMessage quitmessage = QDBusMessage::createMethodCall(QStringLiteral("org.kde.lattedock"),
-                                                                  QStringLiteral("/MainApplication"),
-                                                                  QStringLiteral("org.qtproject.Qt.QCoreApplication"),
-                                                                  QStringLiteral("quit"));
-        QDBusConnection::sessionBus().call(quitmessage, QDBus::NoBlock);
-    } else {
-        KIO::CommandLauncherJob latteapp(
-            QStringLiteral("latte-dock"),
-            {QStringLiteral("--enable-autostart"), QStringLiteral("--import-layout"), filepath, QStringLiteral("--suggested-layout-name"), name});
-        latteapp.setDesktopName(u"org.kde.latte-dock"_s);
-        latteapp.start();
-    }
 }
 
 void KLookAndFeelManager::setPlasmaTheme(const QString &theme)
@@ -484,6 +396,17 @@ void KLookAndFeelManager::save(const KPackage::Package &package, Contents applyM
     const QString packageId = package.metadata().pluginId();
     const Contents itemsToApply = packageContents(package) & applyMask;
 
+    if (itemsToApply.testFlag(Colors) && applyMask.testFlag(BlendChanges) && m_mode == Mode::Apply) {
+        auto msg = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"),
+                                                  QStringLiteral("/org/kde/KWin/BlendChanges"),
+                                                  QStringLiteral("org.kde.KWin.BlendChanges"),
+                                                  QStringLiteral("start"));
+        msg << 800;
+        // This is deliberately blocking so that we ensure Kwin has processed the
+        // animation start event before we potentially trigger client side changes
+        QDBusConnection::sessionBus().call(msg);
+    }
+
     if (itemsToApply.testFlag(DesktopLayout) && m_mode == Mode::Apply) {
         QDBusMessage message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.plasmashell"),
                                                               QStringLiteral("/PlasmaShell"),
@@ -495,11 +418,6 @@ void KLookAndFeelManager::save(const KPackage::Package &package, Contents applyM
         message.setArguments(args);
 
         QDBusConnection::sessionBus().call(message, QDBus::NoBlock);
-
-        if (m_applyLatteLayout) {
-            //! latte exists in system and user has chosen to update desktop layout
-            setLatteLayout(package.filePath("layouts", u"looknfeel.layout.latte"_s), package.metadata().name());
-        }
     }
 
     if (!package.filePath("layoutdefaults").isEmpty()) {
@@ -580,25 +498,13 @@ void KLookAndFeelManager::save(const KPackage::Package &package, Contents applyM
             setWindowPlacement(group.readEntry("Placement", QStringLiteral("Centered")));
         }
 
-        if (itemsToApply.testFlag(ShellPackage)) {
-            group = KConfigGroup(conf, u"plasmashellrc"_s);
-            group = KConfigGroup(&group, u"Shell"_s);
-            setShellPackage(group.readEntry("ShellPackage", QString()));
-        }
-
         if (itemsToApply.testFlag(WindowDecoration)) {
             group = KConfigGroup(conf, u"kwinrc"_s);
             group = KConfigGroup(&group, u"org.kde.kdecoration2"_s);
 
-#ifdef HAVE_BREEZE_DECO
-            setWindowDecoration(group.readEntry("library", QStringLiteral(BREEZE_KDECORATION_PLUGIN_ID)),
+            setWindowDecoration(group.readEntry("library", QStringLiteral("org.kde.breeze")),
                                 group.readEntry("theme", QStringLiteral("Breeze")),
                                 group.readEntry("NoPlugin", false));
-#else
-            setWindowDecoration(group.readEntry("library", QStringLiteral("org.kde.kwin.aurorae")),
-                                group.readEntry("theme", QStringLiteral("kwin4_decoration_qml_plastik")),
-                                group.readEntry("NoPlugin", false));
-#endif
         }
 
         if (itemsToApply.testFlag(Fonts)) {
@@ -646,14 +552,6 @@ void KLookAndFeelManager::save(const KPackage::Package &package, Contents applyM
         if (m_mode == Mode::Defaults) {
             return;
         }
-
-        if (m_plasmashellChanged) {
-            QDBusMessage message =
-                QDBusMessage::createSignal(QStringLiteral("/PlasmaShell"), QStringLiteral("org.kde.PlasmaShell"), QStringLiteral("refreshCurrentShell"));
-            QDBusConnection::sessionBus().send(message);
-        }
-
-        runRdb(KRdbExportQtColors | KRdbExportGtkTheme | KRdbExportColors | KRdbExportQtSettings | KRdbExportXftSettings);
     }
     // Reload KWin if something changed, but only once.
     if (itemsToApply & KWinSettings) {
@@ -747,125 +645,6 @@ bool KLookAndFeelManager::remove(const KPackage::Package &package, KLookAndFeelM
     return packageRootDir.removeRecursively();
 }
 
-#ifdef HAVE_XCURSOR
-static QDir cursorThemeDir(const QString &theme, const QStringList cursorSearchPaths, const int depth = 0)
-{
-    // Prevent infinite recursion
-    if (depth > 10) {
-        return QDir();
-    }
-
-    // Search each icon theme directory for 'theme'
-    for (const QString &baseDir : cursorSearchPaths) {
-        QDir dir(baseDir);
-        if (!dir.exists() || !dir.cd(theme)) {
-            continue;
-        }
-
-        // If there's a cursors subdir, we'll assume this is a cursor theme
-        if (dir.exists(QStringLiteral("cursors"))) {
-            return dir;
-        }
-
-        // If the theme doesn't have an index.theme file, it can't inherit any themes.
-        if (!dir.exists(QStringLiteral("index.theme"))) {
-            continue;
-        }
-
-        // Open the index.theme file, so we can get the list of inherited themes
-        KConfig config(dir.path() + QStringLiteral("/index.theme"), KConfig::NoGlobals);
-        KConfigGroup cg(&config, u"Icon Theme"_s);
-
-        // Recurse through the list of inherited themes, to check if one of them
-        // is a cursor theme.
-        const QStringList inherits = cg.readEntry("Inherits", QStringList());
-        for (const QString &inherit : inherits) {
-            // Avoid possible DoS
-            if (inherit == theme) {
-                continue;
-            }
-
-            if (cursorThemeDir(inherit, cursorSearchPaths, depth + 1).exists()) {
-                return dir;
-            }
-        }
-    }
-
-    return QDir();
-}
-
-static QStringList cursorSearchPaths()
-{
-#if XCURSOR_LIB_MAJOR == 1 && XCURSOR_LIB_MINOR < 1
-    // These are the default paths Xcursor will scan for cursor themes
-    QString path("~/.icons:/usr/share/icons:/usr/share/pixmaps:/usr/X11R6/lib/X11/icons");
-
-    // If XCURSOR_PATH is set, use that instead of the default path
-    char *xcursorPath = std::getenv("XCURSOR_PATH");
-    if (xcursorPath)
-        path = xcursorPath;
-#else
-    // Get the search path from Xcursor
-    QString path = QString::fromLocal8Bit(XcursorLibraryPath());
-#endif
-
-    // Separate the paths
-    QStringList searchPaths = path.split(QLatin1Char(':'), Qt::SkipEmptyParts);
-
-    // Remove duplicates
-    QMutableStringListIterator i(searchPaths);
-    while (i.hasNext()) {
-        const QString path = i.next();
-        QMutableStringListIterator j(i);
-        while (j.hasNext())
-            if (j.next() == path)
-                j.remove();
-    }
-
-    // Expand all occurrences of ~/ to the home dir
-    searchPaths.replaceInStrings(QRegularExpression(QStringLiteral("^~\\/")), QString(QDir::home().path() + QDir::separator()));
-    return searchPaths;
-}
-
-static void applyCursorThemeX11(const QString &themeName)
-{
-    KSharedConfigPtr config = KSharedConfig::openConfig(QStringLiteral("kcminputrc"));
-    KConfigGroup cg(config, QStringLiteral("Mouse"));
-    const int cursorSize = cg.readEntry("cursorSize", 24);
-
-    QDir themeDir = cursorThemeDir(themeName, cursorSearchPaths(), 0);
-    if (!themeDir.exists()) {
-        return;
-    }
-
-    // Update the Xcursor X resources
-    runRdb(0);
-
-    // Reload the standard cursors
-    QStringList names;
-
-    // Qt cursors
-    names << QStringLiteral("left_ptr") << QStringLiteral("up_arrow") << QStringLiteral("cross") << QStringLiteral("wait") << QStringLiteral("left_ptr_watch")
-          << QStringLiteral("ibeam") << QStringLiteral("size_ver") << QStringLiteral("size_hor") << QStringLiteral("size_bdiag") << QStringLiteral("size_fdiag")
-          << QStringLiteral("size_all") << QStringLiteral("split_v") << QStringLiteral("split_h") << QStringLiteral("pointing_hand")
-          << QStringLiteral("openhand") << QStringLiteral("closedhand") << QStringLiteral("forbidden") << QStringLiteral("whats_this") << QStringLiteral("copy")
-          << QStringLiteral("move") << QStringLiteral("link");
-
-    // X core cursors
-    names << QStringLiteral("X_cursor") << QStringLiteral("right_ptr") << QStringLiteral("hand1") << QStringLiteral("hand2") << QStringLiteral("watch")
-          << QStringLiteral("xterm") << QStringLiteral("crosshair") << QStringLiteral("left_ptr_watch") << QStringLiteral("center_ptr")
-          << QStringLiteral("sb_h_double_arrow") << QStringLiteral("sb_v_double_arrow") << QStringLiteral("fleur") << QStringLiteral("top_left_corner")
-          << QStringLiteral("top_side") << QStringLiteral("top_right_corner") << QStringLiteral("right_side") << QStringLiteral("bottom_right_corner")
-          << QStringLiteral("bottom_side") << QStringLiteral("bottom_left_corner") << QStringLiteral("left_side") << QStringLiteral("question_arrow")
-          << QStringLiteral("pirate");
-
-    XCursorTheme theme(themeDir);
-    for (const QString &name : std::as_const(names)) {
-        XFixesChangeCursorByName(QX11Info::display(), theme.loadCursor(name, cursorSize), QFile::encodeName(name).constData());
-    }
-}
-#endif
-
 void KLookAndFeelManager::setCursorTheme(const QString themeName)
 {
     // TODO: use pieces of cursor kcm when moved to plasma-desktop
@@ -875,12 +654,7 @@ void KLookAndFeelManager::setCursorTheme(const QString themeName)
 
     writeNewDefaults(QStringLiteral("kcminputrc"), QStringLiteral("Mouse"), QStringLiteral("cursorTheme"), themeName, KConfig::Notify);
     if (m_mode == Mode::Apply) {
-#ifdef HAVE_XCURSOR
-        if (CursorTheme::haveXfixes()) {
-            applyCursorThemeX11(themeName);
-        }
-#endif
-
+        QProcess::startDetached(QStringLiteral(CMAKE_INSTALL_FULL_LIBEXECDIR "/plasma-setup-xwayland"));
         // Notify all applications that the cursor theme has changed
         notifyKcmChange(GlobalChangeType::CursorChanged);
     }

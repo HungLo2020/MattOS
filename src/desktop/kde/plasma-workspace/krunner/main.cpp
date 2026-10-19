@@ -21,7 +21,7 @@
 #include <KDBusService>
 #include <KRunner/RunnerManager>
 
-#include <PlasmaQuick/SharedQmlEngine>
+#include <Plasma/Plasma>
 
 #include <QQmlEngine>
 #include <iostream>
@@ -97,12 +97,7 @@ int main(int argc, char **argv)
 
     KDBusService service(KDBusService::Unique | KDBusService::StartupOption(parser.isSet(replaceOption) ? KDBusService::Replace : 0));
 
-    PlasmaQuick::SharedQmlEngine sharedEngine;
-    // It is important this to be done before the view is created, as it creates internally a framesvgitem for the background
-    // that needs to use the current plasma theme
-    sharedEngine.engine()->setProperty("_kirigamiTheme", u"KirigamiPlasmaStyle"_s);
-    sharedEngine.setInitializationDelayed(true);
-    View view(&sharedEngine);
+    View view;
 
     auto updateVisibility = [&]() {
         const QString query = parser.positionalArguments().value(0);

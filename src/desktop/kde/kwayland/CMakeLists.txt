@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 project(kwayland VERSION ${PROJECT_VERSION})
 
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,12 +45,10 @@ find_package(Qt6Gui ${QT_MIN_VERSION} REQUIRED NO_MODULE COMPONENTS Private)
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED Concurrent)
 find_package(Qt6WaylandClient ${QT_MIN_VERSION} CONFIG REQUIRED NO_MODULE COMPONENTS Private)
 
-if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-    find_package(Qt6WaylandClientPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
+find_package(Qt6GuiPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
+find_package(Qt6WaylandClientPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
 
-find_package(Wayland 1.15 COMPONENTS Client)
+find_package(Wayland 1.26 COMPONENTS Client)
 set_package_properties(Wayland PROPERTIES
                        TYPE REQUIRED
                       )
@@ -63,14 +61,14 @@ set_package_properties(WaylandProtocols PROPERTIES TYPE REQUIRED)
 find_package(EGL)
 set_package_properties(EGL PROPERTIES TYPE REQUIRED)
 
-find_package(PlasmaWaylandProtocols 1.19.0 CONFIG)
+find_package(PlasmaWaylandProtocols 1.22.0 CONFIG)
 set_package_properties(PlasmaWaylandProtocols PROPERTIES TYPE REQUIRED)
 
 # adjusting CMAKE_C_FLAGS to get wayland protocols to compile
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu90")
 
 ecm_set_disabled_deprecation_versions(
-    QT 6.8.1
+    QT 6.11.0
 )
 
 check_cxx_source_compiles("

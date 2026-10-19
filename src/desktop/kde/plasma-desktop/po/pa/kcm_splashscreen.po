@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-06-07 00:47+0000\n"
 "PO-Revision-Date: 2023-12-22 21:46-0600\n"
 "Last-Translator: A S Alam <aalam@punlinux.org>\n"
 "Language-Team: Punjabi <kde-i18n-doc@kde.org>\n"
@@ -17,17 +17,17 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 23.08.4\n"
 
-#: kcm.cpp:162
+#: kcm.cpp:164
 #, kde-format
 msgid "None"
 msgstr "ਕੋਈ ਨਹੀਂ"
 
-#: kcm.cpp:165
+#: kcm.cpp:167
 #, kde-format
 msgid "No splash screen will be shown"
 msgstr "ਕੋਈ ਸਵਾਗਤੀ ਸਕਰੀਨ ਦਿਖਾਈ ਨਹੀਂ ਜਾਵੇਗੀ"
 
-#: kcm.cpp:183
+#: kcm.cpp:185
 #, kde-format
 msgid "You cannot delete the currently selected splash screen"
 msgstr "ਤੁਸੀਂ ਇਸ ਵੇਲੇ ਚੁਣੀ ਹੋਈ ਸਵਾਗਤੀ ਸਕਰੀਨ ਨੂੰ ਹਟਾ ਨਹੀਂ ਸਕਦੇ ਹੋ"
@@ -61,16 +61,36 @@ msgstr "ਸਵਾਗਤੀ ਸਕਰੀਨ ਦੀ ਝਲਕ ਵਿਖਾਉਣ �
 #: ui/main.qml:81
 #, fuzzy, kde-format
 #| msgid "Preview Splash Screen"
-msgctxt "@action:button"
-msgid "Preview Splash Screen"
+msgctxt "@info:tooltip"
+msgid "Preview splash screen"
 msgstr "ਸਵਾਗਤੀ ਸਕਰੀਨ ਦੀ ਝਲਕ ਵੇਖੋ"
 
-#: ui/main.qml:86
+#: ui/main.qml:88
 #, fuzzy, kde-format
-#| msgid "Uninstall"
-msgctxt "@action:button"
-msgid "Uninstall"
-msgstr "ਅਣ-ਇੰਸਟਾਲ ਕਰੋ"
+#| msgid "Preview Splash Screen"
+msgctxt "@info:tooltip"
+msgid "Remove splash screen"
+msgstr "ਸਵਾਗਤੀ ਸਕਰੀਨ ਦੀ ਝਲਕ ਵੇਖੋ"
+
+#: ui/main.qml:90
+#, fuzzy, kde-format
+#| msgid "You cannot delete the currently selected splash screen"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active splash screen"
+msgstr "ਤੁਸੀਂ ਇਸ ਵੇਲੇ ਚੁਣੀ ਹੋਈ ਸਵਾਗਤੀ ਸਕਰੀਨ ਨੂੰ ਹਟਾ ਨਹੀਂ ਸਕਦੇ ਹੋ"
+
+#: ui/main.qml:92
+#, fuzzy, kde-format
+#| msgid "You cannot delete the currently selected splash screen"
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed splash screens"
+msgstr "ਤੁਸੀਂ ਇਸ ਵੇਲੇ ਚੁਣੀ ਹੋਈ ਸਵਾਗਤੀ ਸਕਰੀਨ ਨੂੰ ਹਟਾ ਨਹੀਂ ਸਕਦੇ ਹੋ"
+
+#, fuzzy
+#~| msgid "Uninstall"
+#~ msgctxt "@action:button"
+#~ msgid "Uninstall"
+#~ msgstr "ਅਣ-ਇੰਸਟਾਲ ਕਰੋ"
 
 #~ msgid "This module lets you choose the splash screen theme."
 #~ msgstr "ਇਹ ਮੋਡੀਊਲ ਤੁਹਾਨੂੰ ਸਵਾਗਤੀ ਸਕਰੀਨ ਚੁਣਨ ਲਈ ਮਦਦ ਕਰਦਾ ਹੈ।"

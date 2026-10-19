@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-mobile package.
 #
-# SPDX-FileCopyrightText: 2024, 2025 Toms Trasuns <toms.trasuns@posteo.net>
+# SPDX-FileCopyrightText: 2024-2026 Toms Trasuns <toms.trasuns@posteo.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-mobile\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-29 03:06+0000\n"
-"PO-Revision-Date: 2025-08-22 15:11+0300\n"
+"POT-Creation-Date: 2026-08-06 00:46+0000\n"
+"PO-Revision-Date: 2026-08-15 23:47+0300\n"
 "Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
 "Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
 "Language: lv\n"
@@ -16,35 +16,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
-"X-Generator: Lokalize 25.08.0\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: ui/ConnectDialog.qml:58
 #, kde-format
 msgid "Invalid input."
 msgstr "Nederīga ievade."
 
-#: ui/ConnectionInfo.qml:15
+#: ui/ConnectionInfo.qml:16
 #, kde-format
 msgctxt "kcm page title"
 msgid "Connection Info for \"%1\""
 msgstr "„%1“ savienojuma informācija"
 
-#: ui/ConnectionInfo.qml:22
+#: ui/ConnectionInfo.qml:55
 #, kde-format
 msgctxt "@title:group"
 msgid "Transfer Rates"
 msgstr "Pārsūtīšanas ātrumi"
 
-#: ui/ConnectionInfo.qml:38
+#: ui/ConnectionInfo.qml:71
 #, kde-format
 msgid "Connected, ↓ %1/s, ↑ %2/s"
 msgstr "Savienots, ↓ %1/s, ↑ %2/s"
 
-#: ui/ConnectionInfo.qml:46
+#: ui/ConnectionInfo.qml:79
 #, kde-format
 msgctxt "@title:group"
 msgid "Connection Details"
 msgstr "Savienojuma informācija"
+
+#: ui/ConnectionInfo.qml:100
+#, kde-format
+msgctxt "@title:group"
+msgid "Share"
+msgstr "Kopīgot"
+
+#: ui/ConnectionInfo.qml:107
+#, kde-format
+msgid "Share Wi-Fi via QR Code"
+msgstr "Dalīties ar „Wi-Fi“, lietojot kvadrātkodu"
+
+#: ui/ConnectionInfo.qml:114
+#, kde-format
+msgid "Wi-Fi QR Code"
+msgstr "„Wi-Fi“ kvadrātkods"
 
 #: ui/main.qml:26
 #, kde-format
@@ -58,19 +74,34 @@ msgstr "Wi-Fi"
 
 #: ui/main.qml:98
 #, kde-format
+msgid "Settings"
+msgstr "Iestatījumi"
+
+#: ui/main.qml:107
+#, kde-format
 msgctxt "@title:group"
 msgid "Saved Networks"
 msgstr "Saglabātie tīkli"
 
-#: ui/main.qml:135
+#: ui/main.qml:144
 #, kde-format
 msgid "Available Networks"
 msgstr "Pieejamie tīkli"
 
-#: ui/main.qml:169
+#: ui/main.qml:178
 #, kde-format
 msgid "Add Custom Connection"
 msgstr "Pievienot pielāgotu savienojumu"
+
+#: ui/MorePage.qml:14
+#, kde-format
+msgid "Wi-Fi Settings"
+msgstr "„Wi-Fi“ iestatījumi"
+
+#: ui/MorePage.qml:21
+#, kde-format
+msgid "Notifications for connection changes"
+msgstr "Paziņojumi par savienojuma izmaiņām"
 
 #: ui/NetworkSettings.qml:15
 #, kde-format
@@ -224,6 +255,9 @@ msgstr "DNS"
 #, kde-format
 msgid "Password…"
 msgstr "Parole…"
+
+#~ msgid "More"
+#~ msgstr "Vairāk"
 
 #~ msgid "Connect"
 #~ msgstr "Savienoties"

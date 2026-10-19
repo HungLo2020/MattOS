@@ -207,7 +207,7 @@ tst_QLocale::tst_QLocale()
 
 void tst_QLocale::initTestCase()
 {
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
     // We can't start a QProcess on Android, and we anyway skip the test
     // that uses m_sysapp. So no need to initialize it properly.
     return;
@@ -665,7 +665,7 @@ void tst_QLocale::systemLocale_data()
 #if !QT_CONFIG(process)
     QSKIP("No qprocess support");
 #endif
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
     QSKIP("Can't start QProcess to run a custom user binary on Android");
 #endif
 #if defined(__QNX__) && __QNX__ >= 800
@@ -2567,6 +2567,13 @@ void tst_QLocale::toDateTime_data()
     QTest::newRow("longFormat")
         << "en_US" << QDateTime(QDate(2009, 1, 5), QTime(11, 48, 32))
         << "dddd, MMMM d, yyyy h:mm:ss AP " << "Monday, January 5, 2009 11:48:32 AM " << true;
+#if QT_CONFIG(timezone)
+    QTest::newRow("en-long")
+        << u"en"_s << QDateTime(QDate(2023, 12, 23), QTime(1, 23, 45), QTimeZone("Europe/Paris"))
+        << u"dddd, MMMM d, yyyy h:mm:ss Ap tttt"_s
+        << u"Saturday, December 23, 2023 1:23:45 AM CET"_s
+        << false;
+#endif
 
     // Parsing am/pm indicators case-insensitively:
     QTest::newRow("am-cs_CZ")
@@ -2638,8 +2645,6 @@ void tst_QLocale::toDateTime()
     QFETCH(bool, clean);
 
     QLocale l(localeName);
-    QEXPECT_FAIL("ccp:short", "QTBUG-87111: Handling of code points outside BMP is broken", Abort);
-    QEXPECT_FAIL("ccp:long", "QTBUG-87111: Handling of code points outside BMP is broken", Abort);
     QCOMPARE(l.toDateTime(string, format), result);
     if (clean) {
         QCOMPARE(l.toDateTime(string.toLower(), format), result);
@@ -2814,6 +2819,22 @@ void tst_QLocale::toDate_data()
         << C << date << u8"🇬🇧d MMM yyyy🇬🇧"
         << u8"🇬🇧25 Feb 2017🇬🇧" << true;
 
+    // QDateTime can handle the end but not the start of May 16th:
+    const QDate early(int(QDateTime::YearRange::First), 5, 17);
+    // ... and likewise the start but not the end of Aug 17th:
+    const QDate late(int(QDateTime::YearRange::Last), 8, 17);
+    // (Albeit QDate can, of course, handle a much wider range.)
+    QTest::newRow("C:early:long")
+        << C << early << u"dddd, d MMMM yyyy"_s
+        << C.toString(early, u"dddd, d MMMM yyyy"_s) << true;
+    QTest::newRow("C:late:long")
+        << C << late << u"dddd, d MMMM yyyy"_s
+        << C.toString(late, u"dddd, d MMMM yyyy"_s) << true;
+    QTest::newRow("C:early:short")
+        << C << early << u"d MM yyyy"_s << C.toString(early, u"d MM yyyy"_s) << true;
+    QTest::newRow("C:late:short")
+        << C << late << u"d MM yyyy"_s << C.toString(late, u"d MM yyyy"_s) << true;
+
     const QLocale fr{QLocale::French};
     QTest::newRow("fr:long")
         << fr << date << "dddd d MMMM yyyy" << u"Samedi 25 février 2017"_s << true;
@@ -2858,8 +2879,6 @@ void tst_QLocale::toDate()
     QFETCH(const QString, string);
     QFETCH(const bool, clean);
 
-    QEXPECT_FAIL("ccp:short", "QTBUG-87111: Handling of code points outside BMP is broken", Abort);
-    QEXPECT_FAIL("ccp:long", "QTBUG-87111: Handling of code points outside BMP is broken", Abort);
     QCOMPARE(locale.toDate(string, format), result);
     if (clean) {
         QCOMPARE(locale.toDate(string.toLower(), format), result);
@@ -2950,6 +2969,12 @@ void tst_QLocale::toTime_data()
     // the user can't see the difference from a space (QTBUG-114909):
     QTest::newRow("shortFormat-AM-mixspace")
         << usa << QTime(4, 43) << u"h:mm\u202F" "AP "_s << u"4:43 AM "_s << true;
+    QTest::newRow("shortFormat-AM-space-short")
+        << usa << QTime() << u"h:mm  AP "_s << u"4:43 AM "_s << true;
+    QTest::newRow("shortFormat-AM-space-long")
+        << usa << QTime() << u"h:mm AP "_s << u"4:43  AM "_s << true;
+    QTest::newRow("shortFormat-AM-space-tab")
+        << usa << QTime() << u"h:mm AP "_s << u"4:43\tAM "_s << true;
 
     // Parsing am/pm indicators case-insensitively:
     const QLocale czech{QLocale::Czech, QLocale::Czechia};
@@ -3003,8 +3028,6 @@ void tst_QLocale::toTime()
     QFETCH(const QString, string);
     QFETCH(const bool, clean);
 
-    QEXPECT_FAIL("ccp:short", "QTBUG-87111: Handling of code points outside BMP is broken", Abort);
-    QEXPECT_FAIL("ccp:long", "QTBUG-87111: Handling of code points outside BMP is broken", Abort);
     QCOMPARE(locale.toTime(string, format), result);
     if (clean) {
         QCOMPARE(locale.toTime(string.toLower(), format), result);
@@ -4586,9 +4609,9 @@ void tst_QLocale::systemLocaleDayAndMonthNames()
     const TransientLocale tested(LC_ALL, locale.constData());
 
     QLocale sys = QLocale::system();
-#if !QT_CONFIG(icu)
-    // setlocale() does not really change locale on Windows and macOS, we
-    // need to actually set the locale manually to run the test
+#if !QT_CONFIG(icu) || defined(Q_OS_HARMONY)
+    // setlocale() does not really change locale on Windows, macOS and
+    // HarmonyOS, we need to actually set the locale manually to run the test
     if (!locale.startsWith(sys.name().toUtf8()))
         QSKIP(("Set locale to " + locale + " manually to run this test.").constData());
 #endif

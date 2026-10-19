@@ -5,8 +5,8 @@
 
 #include <QtSpatialAudio/qtspatialaudioglobal.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QUrl>
-#include <QtCore/QObject>
+#include <QtCore/qurl.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -59,6 +59,7 @@ public Q_SLOTS:
 
 private:
     Q_DECLARE_PRIVATE(QAmbientSound)
+    friend class QSpatialAudioSoundPrivate;
 
     // ### Qt7: remove unused member
     QT6_ONLY(Q_DECL_UNUSED_MEMBER void *unused = nullptr;) // for ABI compatibility

@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:49+0000\n"
-"PO-Revision-Date: 2026-04-15 13:32-0400\n"
+"POT-Creation-Date: 2026-05-07 00:40+0000\n"
+"PO-Revision-Date: 2026-09-23 06:56+0900\n"
 "Last-Translator: Abduqadir Abliz <sahranbay@gmail.com>\n"
-"Language-Team: Uyghur Computer Science Association <UKIJ@yahoogroups.com>\n"
+"Language-Team: Uyghur <kde-i18n-doc@kde.org>\n"
 "Language: ug\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,52 +18,50 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.9\n"
 
-#: qmlcontrols/kquickcontrols/ColorButton.qml:61
+#: qmlcontrols/kquickcontrols/ColorButton.qml:67
 #, kde-format
 msgctxt "@info:whatsthis for a button"
 msgid "Color button"
 msgstr "رەڭ توپچىسى"
 
-#: qmlcontrols/kquickcontrols/ColorButton.qml:63
+#: qmlcontrols/kquickcontrols/ColorButton.qml:69
 #, kde-format
 msgctxt "@info:whatsthis for a button of current color code %1"
 msgid "Current color is %1. This button will open a color chooser dialog."
-msgstr "نۆۋەتتىكى رەڭ %1. بۇ توپچە رەڭ تاللىغۇچ سۆزلەشكۈدە ئېچىلىدۇ."
+msgstr "نۆۋەتتىكى رەڭ: %1. This button will open a color chooser dialog."
 
-#: qmlcontrols/kquickcontrols/ColorButton.qml:64
+#: qmlcontrols/kquickcontrols/ColorButton.qml:70
 #, kde-format
 msgctxt "@info:whatsthis for a button of current color code %1"
 msgid "Current color is %1."
 msgstr "نۆۋەتتىكى رەڭ: %1."
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:183
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:184
 #, kde-format
 msgctxt "What the user inputs now will be taken as the new shortcut"
 msgid "Input"
 msgstr "كىرگۈز"
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:184
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:185
 #, kde-format
 msgctxt "No shortcut defined"
 msgid "None"
 msgstr "يوق"
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:195
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:196
 #, kde-format
 msgid ""
 "Click on the button, then enter the shortcut like you would in the program.\n"
 "Example for Ctrl+A: hold the Ctrl key and press A."
 msgstr ""
-"توپچىنى چېكىپ، ئاندىن بۇ پىروگراممىغا تېزلەتمە كىرگۈزۈلىدۇ.\n"
-"مەسىلەن، Ctrl+A يەنى Ctrl كۇنۇپكىسىنى بېسىپ تۇرۇپ ئاندىن A كۇنۇپكا بېسىلىدۇ."
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:238
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:239
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Clear Key Sequence"
 msgstr "كۇنۇپكا بېسىلىشىنى تازىلايدۇ"
 
-#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:254
+#: qmlcontrols/kquickcontrols/KeySequenceItem.qml:256
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Cancel Key Sequence Recording"
@@ -81,9 +79,6 @@ msgid ""
 "shortcut.\n"
 "Please choose another one."
 msgstr ""
-"F12 بولسا Windows دا بەلگىلىنىپ بولغان، شۇڭا ئومۇمىيەت تېزلەتمىدە ئىشلەتكىلى "
-"بولمايدۇ\n"
-"باشقا كۇنۇپكا تاللاڭ."
 
 #: qmlcontrols/kquickcontrols/private/keysequencevalidator.cpp:145
 #, kde-format
@@ -118,8 +113,8 @@ msgid ""
 "Shortcut '%1' is already assigned to action '%2' of %3.\n"
 "Do you want to reassign it?"
 msgstr ""
-"«%1» تېزلەتمە %3 دىكى «%2» مەشغۇلاتقا تەقسىملەنگەن.\n"
-"بۇ تېزلەتمىنى قايتا تەقسىملەمسىز؟"
+"Shortcut '%1' is already assigned to action '%2' of %3.\n"
+"ئۇنى قايتا تەقسىملەمسىز؟"
 
 #: qmlcontrols/kquickcontrols/private/keysequencevalidator.cpp:175
 #, kde-format
@@ -148,9 +143,6 @@ msgid ""
 "some applications use.\n"
 "Do you really want to use it as a global shortcut as well?"
 msgstr ""
-"«%1» بىرىكمە كۇنۇپكا بەزى پىروگراممىدا «%2» ئۆلچەملىك مەشغۇلات ئۈچۈن "
-"بېكىتىلگەن.\n"
-"بۇنى راستتىنلا ئومۇمىيەت تېزلەتمە سۈپىتىدە ئىشلىتەمسىز؟"
 
 #~ msgid "Reassign"
 #~ msgstr "قايتا تەقسىملە"

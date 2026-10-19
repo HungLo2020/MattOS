@@ -22,15 +22,12 @@ public:
         : QSharedData()
         , subject(nullptr)
     {}
-    Data(const Data& other)
-        : QSharedData(other)
-        , subject(other.subject)
-    {
-        g_object_ref(subject);
-    }
+    Data(const Data& other) = delete;
     ~Data()
     {
-        g_object_unref(subject);
+        if (subject) {
+            g_object_unref(subject);
+        }
     }
 
     PolkitSubject *subject;
@@ -98,9 +95,14 @@ Subject Subject::fromString(const QString &string)
     subject.d->subject = polkit_subject_from_string(string.toUtf8().data(), &error);
     if (error != nullptr) {
         qWarning() << QString("Cannot create Subject from string: %1").arg(error->message);
-        return nullptr;
+        return {};
     }
     return subject;
+}
+
+Subject Subject::fromSubject(PolkitSubject *subject)
+{
+    return Subject{subject};
 }
 
 UnixProcessSubject::UnixProcessSubject(qint64 pid)

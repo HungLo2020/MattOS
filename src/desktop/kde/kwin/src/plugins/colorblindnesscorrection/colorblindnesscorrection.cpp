@@ -90,7 +90,7 @@ void ColorBlindnessCorrectionEffect::loadData()
 
     m_shader = ShaderManager::instance()->generateShaderFromFile(ShaderTrait::MapTexture, QString(), fragPath);
 
-    if (!m_shader->isValid()) {
+    if (!m_shader) {
         qCCritical(KWIN_COLORBLINDNESS_CORRECTION) << "Failed to load the shader!";
         return;
     }
@@ -103,7 +103,7 @@ void ColorBlindnessCorrectionEffect::loadData()
         m_shader->setUniform("defectMatrix", defectMatrix);
     }
 
-    for (const auto windows = effects->stackingOrder(); EffectWindow * w : windows) {
+    for (const auto windows = effects->stackingOrder(); EffectWindow *w : windows) {
         correctColor(w);
     }
     effects->addRepaintFull();
@@ -112,7 +112,7 @@ void ColorBlindnessCorrectionEffect::loadData()
     connect(effects, &EffectsHandler::windowAdded, this, &ColorBlindnessCorrectionEffect::correctColor);
 }
 
-void ColorBlindnessCorrectionEffect::drawWindow(const RenderTarget &renderTarget,
+bool ColorBlindnessCorrectionEffect::drawWindow(const RenderTarget &renderTarget,
                                                 const RenderViewport &viewport,
                                                 EffectWindow *w,
                                                 int mask,
@@ -124,7 +124,7 @@ void ColorBlindnessCorrectionEffect::drawWindow(const RenderTarget &renderTarget
         data.setSaturation(1.0f - m_intensity);
     }
 
-    OffscreenEffect::drawWindow(renderTarget, viewport, w, mask, logicalRegion, data);
+    return OffscreenEffect::drawWindow(renderTarget, viewport, w, mask, logicalRegion, data);
 }
 
 void ColorBlindnessCorrectionEffect::correctColor(KWin::EffectWindow *w)

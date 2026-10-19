@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdeorg\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-04 02:42+0000\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
 "PO-Revision-Date: 2024-04-22 15:58\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
@@ -14,9 +14,9 @@ msgstr ""
 "X-Crowdin-Project: kdeorg\n"
 "X-Crowdin-Project-ID: 269464\n"
 "X-Crowdin-Language: zh-CN\n"
-"X-Crowdin-File: /kf6-stable/messages/plasma-workspace/plasma_applet_org.kde."
+"X-Crowdin-File: /kf6-trunk/messages/plasma-workspace/plasma_applet_org.kde."
 "plasma.notifications.pot\n"
-"X-Crowdin-File-ID: 52370\n"
+"X-Crowdin-File-ID: 43761\n"
 
 #: components/ActionContainer.qml:96
 #, kde-format
@@ -103,54 +103,54 @@ msgctxt "Row description, e.g. Source"
 msgid "%1:"
 msgstr "%1："
 
-#: components/JobDetails.qml:116
+#: components/JobDetails.qml:118
 #, kde-format
 msgctxt "How many bytes have been copied"
 msgid "%2 of %1"
 msgstr "%1 中的 %2"
 
-#: components/JobDetails.qml:120
+#: components/JobDetails.qml:122
 #, kde-format
 msgctxt "How many files have been copied"
-msgid "%2 of %1 file"
-msgid_plural "%2 of %1 files"
-msgstr[0] "%1 个文件中的 %2 个文件"
+msgid "%3 of %2 file"
+msgid_plural "%3 of %2 files"
+msgstr[0] "%3 个文件，共 %2 个文件"
 
-#: components/JobDetails.qml:123
+#: components/JobDetails.qml:125
 #, kde-format
 msgctxt "How many dirs have been copied"
-msgid "%2 of %1 folder"
-msgid_plural "%2 of %1 folders"
-msgstr[0] "%1 个文件夹中的 %2 个文件夹"
+msgid "%3 of %2 folder"
+msgid_plural "%3 of %2 folders"
+msgstr[0] "%3 个文件夹，共 %2 个文件夹"
 
-#: components/JobDetails.qml:126
+#: components/JobDetails.qml:128
 #, kde-format
 msgctxt "How many items (that includes files and dirs) have been copied"
-msgid "%2 of %1 item"
-msgid_plural "%2 of %1 items"
-msgstr[0] "%1 项中的 %2 项"
+msgid "%3 of %2 item"
+msgid_plural "%3 of %2 items"
+msgstr[0] "%3 个项目，共 %2 个项目"
 
-#: components/JobDetails.qml:135
+#: components/JobDetails.qml:137
 #, kde-format
 msgid "%1 file"
 msgid_plural "%1 files"
 msgstr[0] "%1 个文件"
 
-#: components/JobDetails.qml:137
+#: components/JobDetails.qml:139
 #, kde-format
 msgid "%1 folder"
 msgid_plural "%1 folders"
 msgstr[0] "%1 个文件夹"
 
-#: components/JobDetails.qml:139
+#: components/JobDetails.qml:141
 #, kde-format
 msgid "%1 item"
 msgid_plural "%1 items"
 msgstr[0] "%1 项"
 
-#: components/JobDetails.qml:156 components/SpeedChart.qml:72
-#: components/SpeedChart.qml:98 components/SpeedChart.qml:193
-#: components/SpeedChart.qml:204
+#: components/JobDetails.qml:158 components/SpeedChart.qml:75
+#: components/SpeedChart.qml:103 components/SpeedChart.qml:204
+#: components/SpeedChart.qml:217
 #, kde-format
 msgctxt "Bytes per second"
 msgid "%1/s"
@@ -180,7 +180,7 @@ msgctxt "Cancel running job"
 msgid "Cancel"
 msgstr "取消"
 
-#: components/JobItem.qml:125 components/ThumbnailStrip.qml:159
+#: components/JobItem.qml:125 components/ThumbnailStrip.qml:154
 #, kde-format
 msgid "More Options…"
 msgstr "更多选项…"
@@ -207,17 +207,17 @@ msgctxt "@action:button"
 msgid "Send"
 msgstr "发送"
 
-#: components/SpeedChart.qml:145
+#: components/SpeedChart.qml:155
 #, kde-format
 msgid "Speed"
 msgstr "速度"
 
-#: components/SpeedChart.qml:200
+#: components/SpeedChart.qml:212
 #, kde-format
 msgid "Average Speed"
 msgstr "平均速度"
 
-#: components/SpeedChart.qml:258
+#: components/SpeedChart.qml:272
 #, kde-format
 msgctxt "Percentage of a job"
 msgid "%1%"
@@ -251,12 +251,12 @@ msgstr "%1 (已完成)"
 msgid "Job Finished"
 msgstr "任务已完成"
 
-#: fileinfo.cpp:170
+#: fileinfo.cpp:186
 #, kde-format
 msgid "Open with %1"
 msgstr "用 %1 打开"
 
-#: fileinfo.cpp:174
+#: fileinfo.cpp:190
 #, kde-format
 msgid "Open with…"
 msgstr "打开方式…"
@@ -380,22 +380,34 @@ msgctxt "Vendor and product name"
 msgid "Notifications are currently provided by '%1 %2'"
 msgstr "通知目前由“%1 %2”提供"
 
-#: globalshortcuts.cpp:23
+#: globalshortcuts.cpp:24
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "切换勿扰模式"
 
-#: globalshortcuts.cpp:42
+#: globalshortcuts.cpp:33
+#, kde-format
+msgctxt "@action"
+msgid "Clear Notification History"
+msgstr "清除通知历史记录"
+
+#: globalshortcuts.cpp:52
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications Off"
 msgstr "通知关闭"
 
-#: globalshortcuts.cpp:43
+#: globalshortcuts.cpp:53
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications On"
 msgstr "通知开启"
+
+#: globalshortcuts.cpp:68
+#, kde-format
+msgctxt "@label OSD popup, keep short"
+msgid "Notification history cleared"
+msgstr "通知历史记录已清除"
 
 #: main.qml:61
 #, kde-format
@@ -442,12 +454,12 @@ msgstr "勿扰模式已激活；中键单击以退出"
 msgid "Middle-click to enter do not disturb mode"
 msgstr "中键单击以进入勿扰模式"
 
-#: main.qml:238
+#: main.qml:245
 #, kde-format
 msgid "Clear All Notifications"
 msgstr "清除所有通知"
 
-#: main.qml:257
+#: main.qml:264
 #, kde-format
 msgid "&Configure Event Notifications and Actions…"
 msgstr "配置事件通知和操作(&C)…"

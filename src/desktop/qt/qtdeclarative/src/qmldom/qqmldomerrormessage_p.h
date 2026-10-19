@@ -39,7 +39,6 @@ QMLDOM_EXPORT ErrorLevel errorLevelFromQtMsgType(QtMsgType msgType);
 
 class ErrorGroups;
 class DomItem;
-using std::function;
 
 #define NewErrorGroup(name) QQmlJS::Dom::ErrorGroup(QT_TRANSLATE_NOOP("ErrorGroup", name))
 

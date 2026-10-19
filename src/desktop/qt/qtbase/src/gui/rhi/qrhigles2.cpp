@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qrhigles2_p.h"
 #include <QOffscreenSurface>
@@ -12,6 +13,8 @@
 #include <kernel/qplatformintegration.h>
 #include <qpa/qplatformopenglcontext.h>
 #include <qmath.h>
+
+#include <limits>
 
 QT_BEGIN_NAMESPACE
 
@@ -52,7 +55,7 @@ QT_BEGIN_NAMESPACE
     \endcode
 
     By default QRhi creates a QOpenGLContext on its own. This approach works
-    well in most cases, included threaded scenarios, where there is a dedicated
+    well in most cases, including threaded scenarios, where there is a dedicated
     QRhi for each rendering thread. As there will be a QOpenGLContext for each
     QRhi, the OpenGL context requirements (a context can only be current on one
     thread) are satisfied. The implicitly created context is destroyed
@@ -61,7 +64,7 @@ QT_BEGIN_NAMESPACE
     The QSurfaceFormat for the context is specified in \c format. The
     constructor sets this to QSurfaceFormat::defaultFormat() so applications
     that call QSurfaceFormat::setDefaultFormat() with the appropriate settings
-    before the constructor runs will not need to change value of \c format.
+    before the constructor runs will not need to change the value of \c format.
 
     \note Remember to set the depth and stencil buffer sizes to 24 and 8 when
     the renderer relies on depth or stencil testing, either in the global
@@ -135,7 +138,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \variable QRhiGles2InitParams::shareContext
 
-    Optional, the QOpenGLContext to share resource with. QRhi creates its own
+    Optional, the QOpenGLContext to share resources with. QRhi creates its own
     context, and setting this member to a valid QOpenGLContext leads to calling
     \l{QOpenGLContext::setShareContext()}{setShareContext()} with it.
 */
@@ -371,6 +374,10 @@ QT_BEGIN_NAMESPACE
 #define GL_SHADER_STORAGE_BARRIER_BIT      0x00002000
 #endif
 
+#ifndef GL_COMMAND_BARRIER_BIT
+#define GL_COMMAND_BARRIER_BIT             0x00000040
+#endif
+
 #ifndef GL_TEXTURE_FETCH_BARRIER_BIT
 #define GL_TEXTURE_FETCH_BARRIER_BIT       0x00000008
 #endif
@@ -591,6 +598,10 @@ QT_BEGIN_NAMESPACE
 #define GL_DEPTH_CLAMP                    0x864F
 #endif
 
+#ifndef GL_DRAW_INDIRECT_BUFFER
+#define GL_DRAW_INDIRECT_BUFFER           0x8F3F
+#endif
+
 /*!
     Constructs a new QRhiGles2InitParams.
 
@@ -662,6 +673,11 @@ QRhiGles2::QRhiGles2(QRhiGles2InitParams *params, QRhiGles2NativeHandles *import
 
 static inline QSurface *currentSurfaceForCurrentContext(QOpenGLContext *ctx)
 {
+    static const bool doNotTrustCurrentContext =
+        qEnvironmentVariableIntValue("QT_GL_BROKEN_CONTEXT_TRACKING") != 0;
+    if (doNotTrustCurrentContext)
+        return nullptr; // -> makeCurrent all the time -> may have perf. implications
+
     if (QOpenGLContext::currentContext() != ctx)
         return nullptr;
 
@@ -691,8 +707,15 @@ bool QRhiGles2::ensureContext(QSurface *surface) const
 {
     if (!surface) {
         // null means any surface is good because not going to render
+
+        // Bail out if the makeCurrent is not necessary - important, given the
+        // frequency this is called at, and the varying implications of ending
+        // up in the EGL/GLX/etc. makeCurrent repeatedly (e.g., leading to,
+        // depending on the platform, unnecessary command stream flushes,
+        // ultimately degrading performance)
         if (currentSurfaceForCurrentContext(ctx))
             return true;
+
         // if the context is not already current with a valid surface, use our
         // fallback surface, but platform specific quirks may apply
         surface = evaluateFallbackSurface();
@@ -700,7 +723,7 @@ bool QRhiGles2::ensureContext(QSurface *surface) const
         // the window is not usable anymore (no native window underneath), behave as if offscreen
         surface = evaluateFallbackSurface();
     } else if (!needsMakeCurrentDueToSwap && currentSurfaceForCurrentContext(ctx) == surface) {
-        // bail out if the makeCurrent is not necessary
+        // bail out if the makeCurrent is not necessary; same perf. reason as above
         return true;
     }
     needsMakeCurrentDueToSwap = false;
@@ -986,13 +1009,18 @@ bool QRhiGles2::create(QRhi::Flags flags)
 
     caps.coreProfile = actualFormat.profile() == QSurfaceFormat::CoreProfile;
 
+    // Core profile has no usable default vertex array object. On OpenGL ES
+    // object 0 works for ordinary draws, but the indirect draw commands are
+    // specified to fail with INVALID_OPERATION unless a non-zero one is bound.
+    caps.vertexArrayObject = caps.coreProfile || (caps.gles && caps.ctxMajor >= 3); // ES 3.0
+
     if (caps.gles)
         caps.uniformBuffers = caps.ctxMajor >= 3; // ES 3.0
     else
         caps.uniformBuffers = caps.ctxMajor > 3 || (caps.ctxMajor == 3 && caps.ctxMinor >= 1); // 3.1
 
     caps.elementIndexUint = f->hasOpenGLExtension(QOpenGLExtensions::ElementIndexUint);
-    caps.depth24 = f->hasOpenGLExtension(QOpenGLExtensions::Depth24);
+    caps.depth24 = !caps.gles || f->hasOpenGLExtension(QOpenGLExtensions::Depth24);
     caps.rgba8Format = f->hasOpenGLExtension(QOpenGLExtensions::Sized8Formats);
 
     if (caps.gles)
@@ -1206,6 +1234,51 @@ bool QRhiGles2::create(QRhi::Flags flags)
     } else {
         caps.sampleVariables = caps.ctxMajor >= 4;
     }
+
+    if (caps.gles)
+        caps.drawIndirect = caps.ctxMajor > 3 || (caps.ctxMajor == 3 && caps.ctxMinor >= 1);
+    else
+        caps.drawIndirect = caps.ctxMajor >= 4;
+    if (ctx->hasExtension(QByteArrayLiteral("GL_ARB_draw_indirect")))
+        caps.drawIndirect = true;
+
+    if (caps.gles)
+        caps.drawIndirectMulti = false;
+    else
+        caps.drawIndirectMulti = caps.ctxMajor > 4 || (caps.ctxMajor == 4 && caps.ctxMinor >= 3);
+    if (ctx->hasExtension(QByteArrayLiteral("GL_ARB_multi_draw_indirect")) ||
+        ctx->hasExtension(QByteArrayLiteral("GL_EXT_multi_draw_indirect")))
+        caps.drawIndirectMulti = true;
+
+    if (caps.drawIndirectMulti) {
+        glMultiDrawArraysIndirect = reinterpret_cast<decltype(glMultiDrawArraysIndirect)>(
+                    ctx->getProcAddress(QByteArrayLiteral("glMultiDrawArraysIndirect")));
+        if (!glMultiDrawArraysIndirect)
+            glMultiDrawArraysIndirect = reinterpret_cast<decltype(glMultiDrawArraysIndirect)>(
+                        ctx->getProcAddress(QByteArrayLiteral("glMultiDrawArraysIndirectARB")));
+        if (!glMultiDrawArraysIndirect)
+            glMultiDrawArraysIndirect = reinterpret_cast<decltype(glMultiDrawArraysIndirect)>(
+                        ctx->getProcAddress(QByteArrayLiteral("glMultiDrawArraysIndirectEXT")));
+        glMultiDrawElementsIndirect = reinterpret_cast<decltype(glMultiDrawElementsIndirect)>(
+                    ctx->getProcAddress(QByteArrayLiteral("glMultiDrawElementsIndirect")));
+        if (!glMultiDrawElementsIndirect)
+            glMultiDrawElementsIndirect = reinterpret_cast<decltype(glMultiDrawElementsIndirect)>(
+                        ctx->getProcAddress(QByteArrayLiteral("glMultiDrawElementsIndirectARB")));
+        if (!glMultiDrawElementsIndirect)
+            glMultiDrawElementsIndirect = reinterpret_cast<decltype(glMultiDrawElementsIndirect)>(
+                        ctx->getProcAddress(QByteArrayLiteral("glMultiDrawElementsIndirectEXT")));
+        if (!glMultiDrawArraysIndirect || !glMultiDrawElementsIndirect) {
+            qWarning("Failed to resolve glMultiDrawArraysIndirect or glMultiDrawElementsIndirect.");
+            caps.drawIndirectMulti = false;
+        }
+    }
+
+    if (caps.gles)
+        caps.shaderDrawParameters = false;
+    else
+        caps.shaderDrawParameters = caps.ctxMajor > 4 || (caps.ctxMajor == 4 && caps.ctxMinor >= 6);
+    if (ctx->hasExtension(QByteArrayLiteral("GL_ARB_shader_draw_parameters")))
+        caps.shaderDrawParameters = true;
 
     nativeHandlesStruct.context = ctx;
 
@@ -1663,6 +1736,12 @@ bool QRhiGles2::isFeatureSupported(QRhi::Feature feature) const
         return false; // because BaseInstance is always false
     case QRhi::DepthClamp:
         return caps.depthClamp;
+    case QRhi::DrawIndirect:
+        return caps.drawIndirect;
+    case QRhi::DrawIndirectMulti:
+        return caps.drawIndirectMulti;
+    case QRhi::ShaderDrawParameters:
+        return caps.shaderDrawParameters;
     default:
         Q_UNREACHABLE_RETURN(false);
     }
@@ -1855,33 +1934,24 @@ void QRhiGles2::setPipelineCacheData(const QByteArray &data)
         return;
     }
 
-    if (data.size() < qsizetype(dataOffset + header.dataSize)) {
+    if (quint64(data.size()) < quint64(dataOffset) + header.dataSize) {
         qCDebug(QRHI_LOG_INFO, "setPipelineCacheData: Invalid blob size (data incomplete)");
         return;
     }
 
     m_pipelineCache.clear();
 
-    const char *p = data.constData() + dataOffset;
+    QRhiPipelineCacheDataReader reader(data.constData() + dataOffset, header.dataSize);
     for (quint32 i = 0; i < header.programBinaryCount; ++i) {
-        quint32 len = 0;
-        memcpy(&len, p, 4);
-        p += 4;
-        QByteArray key(len, Qt::Uninitialized);
-        memcpy(key.data(), p, len);
-        p += len;
-
-        memcpy(&len, p, 4);
-        p += 4;
-        QByteArray data(len, Qt::Uninitialized);
-        memcpy(data.data(), p, len);
-        p += len;
-
-        quint32 format;
-        memcpy(&format, p, 4);
-        p += 4;
-
-        m_pipelineCache.insert(key, { format, data });
+        QByteArray key;
+        QByteArray binary;
+        quint32 format = 0;
+        if (!reader.readByteArray(&key) || !reader.readByteArray(&binary) || !reader.readUInt32(&format)) {
+            qCDebug(QRHI_LOG_INFO, "setPipelineCacheData: Invalid blob (truncated or corrupt program binary data)");
+            m_pipelineCache.clear();
+            return;
+        }
+        m_pipelineCache.insert(std::move(key), { format, std::move(binary) }); // ### C++20: emplace
     }
 
     qCDebug(QRHI_LOG_INFO, "Seeded pipeline cache with %d program binaries", int(m_pipelineCache.size()));
@@ -2232,6 +2302,60 @@ void QRhiGles2::drawIndexed(QRhiCommandBuffer *cb, quint32 indexCount,
     cmd.args.drawIndexed.baseVertex = vertexOffset;
 }
 
+void QRhiGles2::drawIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                             quint32 indirectBufferOffset, quint32 drawCount, quint32 stride)
+{
+    if (!caps.drawIndirect)
+        return;
+
+    QGles2CommandBuffer *cbD = QRHI_RES(QGles2CommandBuffer, cb);
+    Q_ASSERT(cbD->recordingPass == QGles2CommandBuffer::RenderPass);
+
+    QGles2Buffer *indirectBufD = QRHI_RES(QGles2Buffer, indirectBuffer);
+
+    if (cbD->passNeedsResourceTracking) {
+        QRhiPassResourceTracker &passResTracker(cbD->passResTrackers[cbD->currentPassResTrackerIndex]);
+        trackedRegisterBuffer(&passResTracker, indirectBufD,
+                              QRhiPassResourceTracker::BufIndirectDraw,
+                              QRhiPassResourceTracker::BufIndirectDrawStage);
+    }
+
+    QGles2CommandBuffer::Command &cmd(cbD->commands.get());
+    cmd.cmd = QGles2CommandBuffer::Command::DrawIndirect;
+    cmd.args.drawIndirect.ps = cbD->currentGraphicsPipeline;
+    cmd.args.drawIndirect.buffer = indirectBufD->buffer;
+    cmd.args.drawIndirect.offset = indirectBufferOffset;
+    cmd.args.drawIndirect.drawCount = drawCount;
+    cmd.args.drawIndirect.stride = stride;
+}
+
+void QRhiGles2::drawIndexedIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                                    quint32 indirectBufferOffset, quint32 drawCount, quint32 stride)
+{
+    if (!caps.drawIndirect)
+        return;
+
+    QGles2CommandBuffer *cbD = QRHI_RES(QGles2CommandBuffer, cb);
+    Q_ASSERT(cbD->recordingPass == QGles2CommandBuffer::RenderPass);
+
+    QGles2Buffer *indirectBufD = QRHI_RES(QGles2Buffer, indirectBuffer);
+
+    if (cbD->passNeedsResourceTracking) {
+        QRhiPassResourceTracker &passResTracker(cbD->passResTrackers[cbD->currentPassResTrackerIndex]);
+        trackedRegisterBuffer(&passResTracker, indirectBufD,
+                              QRhiPassResourceTracker::BufIndirectDraw,
+                              QRhiPassResourceTracker::BufIndirectDrawStage);
+    }
+
+    QGles2CommandBuffer::Command &cmd(cbD->commands.get());
+    cmd.cmd = QGles2CommandBuffer::Command::DrawIndexedIndirect;
+    cmd.args.drawIndexedIndirect.ps = cbD->currentGraphicsPipeline;
+    cmd.args.drawIndexedIndirect.buffer = indirectBufD->buffer;
+    cmd.args.drawIndexedIndirect.offset = indirectBufferOffset;
+    cmd.args.drawIndexedIndirect.drawCount = drawCount;
+    cmd.args.drawIndexedIndirect.stride = stride;
+}
+
 void QRhiGles2::debugMarkBegin(QRhiCommandBuffer *cb, const QByteArray &name)
 {
     if (!debugMarkers)
@@ -2300,14 +2424,14 @@ void QRhiGles2::beginExternal(QRhiCommandBuffer *cb)
 
     cbD->resetCommands();
 
-    if (vao) {
+    // ARRAY_BUFFER and SHADER_STORAGE_BUFFER are context state, not vertex
+    // array object state, so going back to object 0 does not clear them.
+    if (vao)
         f->glBindVertexArray(0);
-    } else {
-        f->glBindBuffer(GL_ARRAY_BUFFER, 0);
-        f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        if (caps.compute)
-            f->glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-    }
+    f->glBindBuffer(GL_ARRAY_BUFFER, 0);
+    f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    if (caps.compute)
+        f->glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 void QRhiGles2::endExternal(QRhiCommandBuffer *cb)
@@ -2502,7 +2626,8 @@ static inline GLbitfield barriersForBuffer()
         | GL_ELEMENT_ARRAY_BARRIER_BIT
         | GL_UNIFORM_BARRIER_BIT
         | GL_BUFFER_UPDATE_BARRIER_BIT
-        | GL_SHADER_STORAGE_BARRIER_BIT;
+        | GL_SHADER_STORAGE_BARRIER_BIT
+        | GL_COMMAND_BARRIER_BIT;
 }
 
 static inline GLbitfield barriersForTexture()
@@ -2631,13 +2756,19 @@ void QRhiGles2::enqueueSubresUpload(QGles2Texture *texD, QGles2CommandBuffer *cb
             // upload for a compressed texture must cover the entire image, but
             // that is clearly not ideal when building a texture atlas, or when
             // having a 3D texture with per-slice data.
-            quint32 byteSize = 0;
-            compressedFormatInfo(texD->m_format, texD->m_pixelSize, nullptr, &byteSize, nullptr);
+            quint32 levelByteSize = 0;
+            compressedFormatInfo(texD->m_format, texD->m_pixelSize, nullptr, &levelByteSize, nullptr);
+            quint64 byteSize = levelByteSize;
             if (is3D)
-                byteSize *= depth;
+                byteSize *= quint64(depth);
             if (isArray)
-                byteSize *= arraySize;
-            QByteArray zeroBuf(byteSize, 0);
+                byteSize *= quint64(arraySize);
+            if (byteSize > quint64(std::numeric_limits<int>::max())) {
+                qWarning("Compressed texture zero-initialization would need %llu bytes "
+                         "which is too large; skipping", byteSize);
+                return;
+            }
+            QByteArray zeroBuf(qsizetype(byteSize), 0);
             QGles2CommandBuffer::Command &cmd(cbD->commands.get());
             cmd.cmd = QGles2CommandBuffer::Command::CompressedImage;
             cmd.args.compressedImage.target = texD->target;
@@ -2648,7 +2779,7 @@ void QRhiGles2::enqueueSubresUpload(QGles2Texture *texD, QGles2CommandBuffer *cb
             cmd.args.compressedImage.w = texD->m_pixelSize.width();
             cmd.args.compressedImage.h = is1D && isArray ? arraySize : texD->m_pixelSize.height();
             cmd.args.compressedImage.depth = is3D ? depth : (isArray ? arraySize : 0);
-            cmd.args.compressedImage.size = byteSize;
+            cmd.args.compressedImage.size = int(byteSize);
             cmd.args.compressedImage.data = cbD->retainData(zeroBuf);
             texD->zeroInitialized = true;
         }
@@ -2685,8 +2816,15 @@ void QRhiGles2::enqueueSubresUpload(QGles2Texture *texD, QGles2CommandBuffer *cb
             cmd.args.compressedImage.data = cbD->retainData(rawData);
         }
     } else if (!rawData.isEmpty()) {
-        const QSize size = subresDesc.sourceSize().isEmpty() ? q->sizeForMipLevel(level, texD->m_pixelSize)
-                                                             : subresDesc.sourceSize();
+        QSize size = subresDesc.sourceSize().isEmpty() ? q->sizeForMipLevel(level, texD->m_pixelSize)
+                                                       : subresDesc.sourceSize();
+        size = clampedSubResourceUploadSize(size, dp, level, texD->m_pixelSize);
+        quint32 bytesPerPixel = 0;
+        textureFormatInfo(texD->m_format, size, nullptr, nullptr, &bytesPerPixel);
+        size = clampedSubResourceUploadSizeForSourceData(size, subresDesc.dataStride(),
+                                                        bytesPerPixel, rawData.size());
+        if (size.isEmpty())
+            return;
 
         setCmdByNotCompressedData(cbD->retainData(rawData), size, subresDesc.dataStride());
     } else {
@@ -3121,6 +3259,8 @@ static inline QGles2Buffer::Access toGlAccess(QRhiPassResourceTracker::BufferAcc
         return QGles2Buffer::AccessStorageWrite;
     case QRhiPassResourceTracker::BufStorageLoadStore:
         return QGles2Buffer::AccessStorageReadWrite;
+    case QRhiPassResourceTracker::BufIndirectDraw:
+        return QGles2Buffer::AccessIndirectDraw;
     default:
         Q_UNREACHABLE();
         break;
@@ -3145,6 +3285,7 @@ static inline QGles2Texture::Access toGlAccess(QRhiPassResourceTracker::TextureA
     case QRhiPassResourceTracker::TexColorOutput:
         return QGles2Texture::AccessFramebuffer;
     case QRhiPassResourceTracker::TexDepthOutput:
+    case QRhiPassResourceTracker::TexDepthResolveOutput:
         return QGles2Texture::AccessFramebuffer;
     case QRhiPassResourceTracker::TexStorageLoad:
         return QGles2Texture::AccessStorageRead;
@@ -3233,7 +3374,7 @@ void QRhiGles2::executeCommandBuffer(QRhiCommandBuffer *cb)
         case QGles2CommandBuffer::Command::BeginFrame:
             if (cmd.args.beginFrame.timestampQuery)
                 glQueryCounter(cmd.args.beginFrame.timestampQuery, GL_TIMESTAMP);
-            if (caps.coreProfile) {
+            if (caps.vertexArrayObject) {
                 if (!vao)
                     f->glGenVertexArrays(1, &vao);
                 f->glBindVertexArray(vao);
@@ -3249,16 +3390,16 @@ void QRhiGles2::executeCommandBuffer(QRhiCommandBuffer *cb)
                     f->glVertexAttribDivisor(GLuint(i), 0);
                 state.instancedAttributesUsed = false;
             }
-            if (!vao) {
-                for (int i = 0; i < CommandBufferExecTrackedState::TRACKED_ATTRIB_COUNT; ++i) {
-                    if (state.enabledAttribArrays[i]) {
-                        f->glDisableVertexAttribArray(GLuint(i));
-                        state.enabledAttribArrays[i] = false;
-                    }
+            // The enables are vertex array object state, so without this they
+            // would persist across frames, pointing into deleted buffers.
+            for (int i = 0; i < CommandBufferExecTrackedState::TRACKED_ATTRIB_COUNT; ++i) {
+                if (state.enabledAttribArrays[i]) {
+                    f->glDisableVertexAttribArray(GLuint(i));
+                    state.enabledAttribArrays[i] = false;
                 }
-            } else {
-                f->glBindVertexArray(0);
             }
+            if (vao)
+                f->glBindVertexArray(0);
             if (cmd.args.endFrame.timestampQuery)
                 glQueryCounter(cmd.args.endFrame.timestampQuery, GL_TIMESTAMP);
             break;
@@ -3545,6 +3686,62 @@ void QRhiGles2::executeCommandBuffer(QRhiCommandBuffer *cb)
                 }
             } else {
                 qWarning("No graphics pipeline active for drawIndexed; ignored");
+            }
+        }
+            break;
+        case QGles2CommandBuffer::Command::DrawIndirect:
+        {
+            QGles2GraphicsPipeline *psD = QRHI_RES(QGles2GraphicsPipeline, cmd.args.drawIndirect.ps);
+            if (psD) {
+                f->glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cmd.args.drawIndirect.buffer);
+                if (glMultiDrawArraysIndirect) {
+                    const GLvoid *ofs = reinterpret_cast<const GLvoid *>(
+                                quintptr(cmd.args.drawIndirect.offset));
+                    glMultiDrawArraysIndirect(psD->drawMode,
+                                              ofs,
+                                              cmd.args.drawIndirect.drawCount,
+                                              cmd.args.drawIndirect.stride);
+                } else { // Fallback to issuing multiple single indirect draws
+                    for (quint32 i = 0; i < cmd.args.drawIndirect.drawCount; ++i) {
+                        const quintptr indirectOffset = quintptr(cmd.args.drawIndirect.offset)
+                                + quintptr(i) * cmd.args.drawIndirect.stride;
+                        const GLvoid *ofs = reinterpret_cast<const GLvoid *>(indirectOffset);
+                        f->glDrawArraysIndirect(psD->drawMode,
+                                                ofs);
+                    }
+                }
+                f->glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+            } else {
+                qWarning("No graphics pipeline active for drawIndirect; ignored");
+            }
+        }
+            break;
+        case QGles2CommandBuffer::Command::DrawIndexedIndirect:
+        {
+            QGles2GraphicsPipeline *psD = QRHI_RES(QGles2GraphicsPipeline, cmd.args.drawIndexedIndirect.ps);
+            if (psD) {
+                f->glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cmd.args.drawIndexedIndirect.buffer);
+                if (glMultiDrawElementsIndirect) {
+                    const GLvoid *ofs = reinterpret_cast<const GLvoid *>(
+                                quintptr(cmd.args.drawIndexedIndirect.offset));
+                    glMultiDrawElementsIndirect(psD->drawMode,
+                                                state.indexType,
+                                                ofs,
+                                                cmd.args.drawIndexedIndirect.drawCount,
+                                                cmd.args.drawIndexedIndirect.stride);
+                } else { // Fallback to issuing multiple single indirect draws
+                    for (quint32 i = 0; i < cmd.args.drawIndexedIndirect.drawCount; ++i) {
+                        const quintptr indirectOffset = quintptr(cmd.args.drawIndexedIndirect.offset)
+                                + quintptr(i) * cmd.args.drawIndexedIndirect.stride;
+                        const GLvoid *ofs = reinterpret_cast<const GLvoid *>(indirectOffset);
+                        f->glDrawElementsIndirect(psD->drawMode,
+                                                  state.indexType,
+                                                  ofs);
+                    }
+                }
+                f->glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+            } else {
+                qWarning("No graphics pipeline active for drawIndexedIndirect; ignored");
             }
         }
             break;
@@ -3870,6 +4067,11 @@ void QRhiGles2::executeCommandBuffer(QRhiCommandBuffer *cb)
                                             cmd.args.blitFromRenderbuffer.dstTexture, cmd.args.blitFromRenderbuffer.dstLevel);
                 }
             }
+            if (ds && !caps.gles) {
+                f->glReadBuffer(GL_NONE);
+                const GLenum noBuf = GL_NONE;
+                f->glDrawBuffers(1, &noBuf);
+            }
             f->glBlitFramebuffer(0, 0, cmd.args.blitFromRenderbuffer.w, cmd.args.blitFromRenderbuffer.h,
                                  0, 0, cmd.args.blitFromRenderbuffer.w, cmd.args.blitFromRenderbuffer.h,
                                  ds ? GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT : GL_COLOR_BUFFER_BIT,
@@ -3942,6 +4144,11 @@ void QRhiGles2::executeCommandBuffer(QRhiCommandBuffer *cb)
                     f->glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cmd.args.blitFromTexture.dstTarget,
                                               cmd.args.blitFromTexture.dstTexture, cmd.args.blitFromTexture.dstLevel);
                 }
+            }
+            if (ds && !caps.gles) {
+                f->glReadBuffer(GL_NONE);
+                const GLenum noBuf = GL_NONE;
+                f->glDrawBuffers(1, &noBuf);
             }
             f->glBlitFramebuffer(0, 0, cmd.args.blitFromTexture.w, cmd.args.blitFromTexture.h,
                                  0, 0, cmd.args.blitFromTexture.w, cmd.args.blitFromTexture.h,
@@ -4239,6 +4446,61 @@ static inline void qrhi_std140_to_packed(T *dst, int vecSize, int elemCount, con
     }
 }
 
+static inline qint64 qrhi_std140_read_size(QShaderDescription::VariableType type, int arrayDim)
+{
+    qint64 elemSize;
+    qint64 stride = 16;
+
+    switch (type) {
+    case QShaderDescription::Float:
+    case QShaderDescription::Int:
+        elemSize = 4;
+        break;
+    case QShaderDescription::Vec2:
+    case QShaderDescription::Int2:
+        elemSize = 8;
+        break;
+    case QShaderDescription::Vec3:
+    case QShaderDescription::Int3:
+        elemSize = 12;
+        break;
+    case QShaderDescription::Vec4:
+    case QShaderDescription::Int4:
+        elemSize = 16;
+        break;
+    case QShaderDescription::Mat2:
+        // two columns with a 16 byte stride
+        elemSize = 24;
+        stride = 32;
+        break;
+    case QShaderDescription::Mat3:
+        // three columns with a 16 byte stride
+        elemSize = 44;
+        stride = 48;
+        break;
+    case QShaderDescription::Mat4:
+        elemSize = 64;
+        stride = 64;
+        break;
+    case QShaderDescription::Uint:
+    case QShaderDescription::Bool:
+        return 4;
+    case QShaderDescription::Uint2:
+    case QShaderDescription::Bool2:
+        return 8;
+    case QShaderDescription::Uint3:
+    case QShaderDescription::Bool3:
+        return 12;
+    case QShaderDescription::Uint4:
+    case QShaderDescription::Bool4:
+        return 16;
+    default:
+        return 0;
+    }
+
+    return arrayDim < 1 ? elemSize : (arrayDim - 1) * stride + elemSize;
+}
+
 void QRhiGles2::bindCombinedSampler(QGles2CommandBuffer *cbD, QGles2Texture *texD, QGles2Sampler *samplerD,
                                     void *ps, uint psGeneration, int glslLocation,
                                     int *texUnit, bool *activeTexUnitAltered)
@@ -4324,6 +4586,17 @@ void QRhiGles2::bindShaderResources(QGles2CommandBuffer *cbD,
             const char *bufView = bufD->data.constData() + viewOffset;
             for (const QGles2UniformDescription &uniform : std::as_const(uniforms)) {
                 if (uniform.binding == b->binding) {
+                    const qint64 readOffset = qint64(viewOffset) + uniform.offset;
+                    const qint64 readSize = qrhi_std140_read_size(uniform.type, uniform.arrayDim);
+                    if (readOffset < 0 || readOffset + readSize > bufD->data.size()) {
+                        qWarning("Uniform with buffer binding %d, buffer offset %u, type %d, array "
+                                 "dimension %d would read outside of the uniform buffer of size %lld. "
+                                 "Skipping.",
+                                 uniform.binding, uniform.offset, uniform.type, uniform.arrayDim,
+                                 qint64(bufD->data.size()));
+                        continue;
+                    }
+
                     // in a uniform buffer everything is at least 4 byte aligned
                     // so this should not cause unaligned reads
                     const void *src = bufView + uniform.offset;
@@ -4338,12 +4611,13 @@ void QRhiGles2::bindShaderResources(QGles2CommandBuffer *cbD,
                             && uniform.type != QShaderDescription::Int2
                             && uniform.type != QShaderDescription::Int3
                             && uniform.type != QShaderDescription::Int4
+                            && uniform.type != QShaderDescription::Mat2
                             && uniform.type != QShaderDescription::Mat3
                             && uniform.type != QShaderDescription::Mat4)
                     {
                         qWarning("Uniform with buffer binding %d, buffer offset %d, type %d is an array, "
                                  "but arrays are only supported for float, vec2, vec3, vec4, int, "
-                                 "ivec2, ivec3, ivec4, mat3 and mat4. "
+                                 "ivec2, ivec3, ivec4, mat2, mat3 and mat4. "
                                  "Only the first element will be set.",
                                  uniform.binding, uniform.offset, uniform.type);
                     }
@@ -4462,7 +4736,21 @@ void QRhiGles2::bindShaderResources(QGles2CommandBuffer *cbD,
                     }
                         break;
                     case QShaderDescription::Mat2:
-                        f->glUniformMatrix2fv(uniform.glslLocation, 1, GL_FALSE, reinterpret_cast<const float *>(src));
+                    {
+                        const int elemCount = uniform.arrayDim;
+                        if (elemCount < 1) {
+                            // 4 floats per column (or row, if row-major)
+                            float mat[4];
+                            const float *srcMat = reinterpret_cast<const float *>(src);
+                            memcpy(mat, srcMat, 2 * sizeof(float));
+                            memcpy(mat + 2, srcMat + 4, 2 * sizeof(float));
+                            f->glUniformMatrix2fv(uniform.glslLocation, 1, GL_FALSE, mat);
+                        } else {
+                            m_scratch.packedArray.resize(elemCount * 4);
+                            qrhi_std140_to_packed(&m_scratch.packedArray.data()->f, 2, elemCount * 2, src);
+                            f->glUniformMatrix2fv(uniform.glslLocation, elemCount, GL_FALSE, &m_scratch.packedArray.constData()->f);
+                        }
+                    }
                         break;
                     case QShaderDescription::Mat3:
                     {
@@ -5117,11 +5405,19 @@ static inline GLenum toGlShaderType(QRhiShaderStage::Type type)
     }
 }
 
-QByteArray QRhiGles2::shaderSource(const QRhiShaderStage &shaderStage, QShaderVersion *shaderVersion)
+static inline bool isGraphicsStage(const QRhiShaderStage &shaderStage)
 {
-    const QShader bakedShader = shaderStage.shader();
+    const QRhiShaderStage::Type t = shaderStage.type();
+    return t == QRhiShaderStage::Vertex
+            || t == QRhiShaderStage::TessellationControl
+            || t == QRhiShaderStage::TessellationEvaluation
+            || t == QRhiShaderStage::Geometry
+            || t == QRhiShaderStage::Fragment;
+}
+
+QList<QShaderVersion> QRhiGles2::glslVersionsToTry() const
+{
     QList<int> versionsToTry;
-    QByteArray source;
     if (caps.gles) {
         if (caps.ctxMajor > 3 || (caps.ctxMajor == 3 && caps.ctxMinor >= 2)) {
             versionsToTry << 320 << 310 << 300 << 100;
@@ -5131,15 +5427,6 @@ QByteArray QRhiGles2::shaderSource(const QRhiShaderStage &shaderStage, QShaderVe
             versionsToTry << 300 << 100;
         } else {
             versionsToTry << 100;
-        }
-        for (int v : std::as_const(versionsToTry)) {
-            QShaderVersion ver(v, QShaderVersion::GlslEs);
-            source = bakedShader.shader({ QShader::GlslShader, ver, shaderStage.shaderVariant() }).shader();
-            if (!source.isEmpty()) {
-                if (shaderVersion)
-                    *shaderVersion = ver;
-                break;
-            }
         }
     } else {
         if (caps.ctxMajor > 4 || (caps.ctxMajor == 4 && caps.ctxMinor >= 6)) {
@@ -5167,13 +5454,60 @@ QByteArray QRhiGles2::shaderSource(const QRhiShaderStage &shaderStage, QShaderVe
         }
         if (!caps.coreProfile)
             versionsToTry << 120;
-        for (int v : std::as_const(versionsToTry)) {
-            source = bakedShader.shader({ QShader::GlslShader, v, shaderStage.shaderVariant() }).shader();
-            if (!source.isEmpty()) {
-                if (shaderVersion)
-                    *shaderVersion = v;
+    }
+
+    const QShaderVersion::Flags flags = caps.gles ? QShaderVersion::GlslEs : QShaderVersion::Flags();
+    QList<QShaderVersion> versions;
+    versions.reserve(versionsToTry.size());
+    for (int v : std::as_const(versionsToTry))
+        versions.append(QShaderVersion(v, flags));
+    return versions;
+}
+
+/*
+    Returns the highest GLSL ES version all graphics stages in stages have code
+    for, or nothing when they share none. GLSL ES cannot link shaders of
+    different versions; non-es GLSL can, hence the caps.gles check.
+*/
+std::optional<QShaderVersion> QRhiGles2::commonGlslEsVersion(const QRhiShaderStage *stages,
+                                                             int stageCount) const
+{
+    if (!caps.gles)
+        return std::nullopt;
+
+    for (const QShaderVersion &ver : glslVersionsToTry()) {
+        bool allStagesHaveIt = true;
+        for (int i = 0; i < stageCount; ++i) {
+            const QRhiShaderStage &stage(stages[i]);
+            if (!isGraphicsStage(stage))
+                continue;
+            const QShaderKey key(QShader::GlslShader, ver, stage.shaderVariant());
+            if (stage.shader().shader(key).shader().isEmpty()) {
+                allStagesHaveIt = false;
                 break;
             }
+        }
+        if (allStagesHaveIt)
+            return ver;
+    }
+    return std::nullopt;
+}
+
+QByteArray QRhiGles2::shaderSource(const QRhiShaderStage &shaderStage, QShaderVersion *shaderVersion,
+                                   std::optional<QShaderVersion> commonVersion)
+{
+    const QShader bakedShader = shaderStage.shader();
+    const QList<QShaderVersion> versionsToTry = commonVersion
+            ? QList<QShaderVersion>{ *commonVersion }
+            : glslVersionsToTry();
+
+    QByteArray source;
+    for (const QShaderVersion &ver : versionsToTry) {
+        source = bakedShader.shader({ QShader::GlslShader, ver, shaderStage.shaderVariant() }).shader();
+        if (!source.isEmpty()) {
+            if (shaderVersion)
+                *shaderVersion = ver;
+            break;
         }
     }
     if (source.isEmpty()) {
@@ -5183,14 +5517,19 @@ QByteArray QRhiGles2::shaderSource(const QRhiShaderStage &shaderStage, QShaderVe
     return source;
 }
 
-bool QRhiGles2::compileShader(GLuint program, const QRhiShaderStage &shaderStage, QShaderVersion *shaderVersion)
+bool QRhiGles2::compileShader(GLuint program, const QRhiShaderStage &shaderStage, QShaderVersion *shaderVersion,
+                              std::optional<QShaderVersion> commonVersion)
 {
-    const QByteArray source = shaderSource(shaderStage, shaderVersion);
+    QShaderVersion actualVersion;
+    const QByteArray source = shaderSource(shaderStage, &actualVersion, commonVersion);
     if (source.isEmpty())
         return false;
+    if (shaderVersion)
+        *shaderVersion = actualVersion;
 
     GLuint shader;
-    auto cacheIt = m_shaderCache.constFind(shaderStage);
+    const auto cacheKey = std::make_pair(shaderStage, actualVersion);
+    auto cacheIt = m_shaderCache.constFind(cacheKey);
     if (cacheIt != m_shaderCache.constEnd()) {
         shader = *cacheIt;
     } else {
@@ -5219,7 +5558,7 @@ bool QRhiGles2::compileShader(GLuint program, const QRhiShaderStage &shaderStage
                 f->glDeleteShader(shader); // does not actually get released yet when attached to a not-yet-released program
             m_shaderCache.clear();
         }
-        m_shaderCache.insert(shaderStage, shader);
+        m_shaderCache.insert(cacheKey, shader);
     }
 
     f->glAttachShader(program, shader);
@@ -5305,6 +5644,11 @@ void QRhiGles2::gatherUniforms(GLuint program,
                              blockMember.name.constData());
                 }
                 const int dim = blockMember.arrayDims.first();
+                if (dim < 1) {
+                    qWarning("Array of struct '%s' has an invalid first dimension (%d). Ignored.",
+                             blockMember.name.constData(), dim);
+                    continue;
+                }
                 const int elemSize = blockMember.size / dim;
                 int elemOffset = baseOffset;
                 for (int di = 0; di < dim; ++di) {
@@ -5405,7 +5749,8 @@ QRhiGles2::ProgramCacheResult QRhiGles2::tryLoadFromDiskOrPipelineCache(const QR
                                                                         int stageCount,
                                                                         GLuint program,
                                                                         const QVector<QShaderDescription::InOutVariable> &inputVars,
-                                                                        QByteArray *cacheKey)
+                                                                        QByteArray *cacheKey,
+                                                                        std::optional<QShaderVersion> commonVersion)
 {
     Q_ASSERT(cacheKey);
 
@@ -5420,7 +5765,9 @@ QRhiGles2::ProgramCacheResult QRhiGles2::tryLoadFromDiskOrPipelineCache(const QR
         QOpenGLProgramBinaryCache::ProgramDesc binaryProgram;
         for (int i = 0; i < stageCount; ++i) {
             const QRhiShaderStage &stage(stages[i]);
-            QByteArray source = shaderSource(stage, nullptr);
+            // commonVersion covers the graphics stages only.
+            QByteArray source = shaderSource(stage, nullptr,
+                                             isGraphicsStage(stage) ? commonVersion : std::nullopt);
             if (source.isEmpty())
                 return QRhiGles2::ProgramCacheError;
 
@@ -5575,6 +5922,8 @@ bool QGles2Buffer::create()
         targetForDataOps = GL_ELEMENT_ARRAY_BUFFER;
     else if (m_usage.testFlag(QRhiBuffer::StorageBuffer))
         targetForDataOps = GL_SHADER_STORAGE_BUFFER;
+    else if (m_usage.testFlag(QRhiBuffer::IndirectBuffer))
+        targetForDataOps = GL_DRAW_INDIRECT_BUFFER;
 
     rhiD->f->glGenBuffers(1, &buffer);
     rhiD->f->glBindBuffer(targetForDataOps, buffer);
@@ -5925,6 +6274,9 @@ bool QGles2Texture::prepareCreate(QSize *adjustedSize)
     samplerState = QGles2SamplerData();
 
     usageState.access = AccessNone;
+
+    if (!rhiD->textureFormatInfo(m_format, size, nullptr, nullptr, nullptr))
+        return false;
 
     if (adjustedSize)
         *adjustedSize = size;
@@ -6365,6 +6717,13 @@ bool QGles2TextureRenderTarget::create()
                         rhiD->glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, depthResolveTexD->target,
                                                                    depthResolveTexD->texture, 0, depthTexD->samples);
                     }
+                } else if (rhiD->caps.ctxMajor >= 3 && depthTexD->flags().testFlag(QRhiTexture::TextureArray) && m_desc.depthLayer() >= 0) {
+                    rhiD->f->glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexD->texture,
+                                                       /*level*/0, m_desc.depthLayer());
+                    if (rhiD->isStencilSupportingFormat(depthTexD->format())) {
+                        rhiD->f->glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, depthTexD->texture,
+                                                           /*level*/0, m_desc.depthLayer());
+                    }
                 } else {
                     rhiD->f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexD->target,
                                                     depthTexD->texture, 0);
@@ -6573,16 +6932,6 @@ void QGles2GraphicsPipeline::destroy()
     }
 }
 
-static inline bool isGraphicsStage(const QRhiShaderStage &shaderStage)
-{
-    const QRhiShaderStage::Type t = shaderStage.type();
-    return t == QRhiShaderStage::Vertex
-            || t == QRhiShaderStage::TessellationControl
-            || t == QRhiShaderStage::TessellationEvaluation
-            || t == QRhiShaderStage::Geometry
-            || t == QRhiShaderStage::Fragment;
-}
-
 bool QGles2GraphicsPipeline::create()
 {
     QRHI_RES_RHI(QRhiGles2);
@@ -6626,6 +6975,9 @@ bool QGles2GraphicsPipeline::create()
         }
         Q_UNREACHABLE_RETURN(VtxIdx);
     };
+    const std::optional<QShaderVersion> commonVersion =
+            rhiD->commonGlslEsVersion(m_shaderStages.constData(), m_shaderStages.size());
+
     QShaderDescription desc[LastIdx];
     QShader::SeparateToCombinedImageSamplerMappingList samplerMappingList[LastIdx];
     bool vertexFragmentOnly = true;
@@ -6637,7 +6989,7 @@ bool QGles2GraphicsPipeline::create()
             QShader shader = shaderStage.shader();
             QShaderVersion shaderVersion;
             desc[idx] = shader.description();
-            if (!rhiD->shaderSource(shaderStage, &shaderVersion).isEmpty()) {
+            if (!rhiD->shaderSource(shaderStage, &shaderVersion, commonVersion).isEmpty()) {
                 samplerMappingList[idx] = shader.separateToCombinedImageSamplerMappingList(
                             { QShader::GlslShader, shaderVersion, shaderStage.shaderVariant() });
             }
@@ -6649,14 +7001,19 @@ bool QGles2GraphicsPipeline::create()
                                                                                      m_shaderStages.size(),
                                                                                      program,
                                                                                      desc[VtxIdx].inputVariables(),
-                                                                                     &cacheKey);
+                                                                                     &cacheKey,
+                                                                                     commonVersion);
     if (cacheResult == QRhiGles2::ProgramCacheError)
         return false;
 
     if (cacheResult == QRhiGles2::ProgramCacheMiss) {
+        if (rhiD->caps.gles && !commonVersion) {
+            qWarning("The shader stages of this pipeline have no GLSL ES version in common; "
+                     "linking the program will fail");
+        }
         for (const QRhiShaderStage &shaderStage : std::as_const(m_shaderStages)) {
             if (isGraphicsStage(shaderStage)) {
-                if (!rhiD->compileShader(program, shaderStage, nullptr))
+                if (!rhiD->compileShader(program, shaderStage, nullptr, commonVersion))
                     return false;
             }
         }

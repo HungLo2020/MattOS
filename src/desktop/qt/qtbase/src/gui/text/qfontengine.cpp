@@ -27,9 +27,14 @@
 #include <algorithm>
 #include <limits.h>
 
+#if !defined(QT_MAX_CACHED_GLYPH_SIZE)
+#  define QT_MAX_CACHED_GLYPH_SIZE 64
+#endif
+
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(lcColrv1, "qt.text.font.colrv1")
+Q_LOGGING_CATEGORY(lcTextFontCmap, "qt.text.font.cmap")
 
 using namespace Qt::StringLiterals;
 
@@ -603,7 +608,7 @@ qreal QFontEngine::minRightBearing() const
 
         if (m_minLeftBearing == kBearingNotInitialized || m_minRightBearing == kBearingNotInitialized)
             qWarning() << "Failed to compute left/right minimum bearings for"
-                       << fontDef.families.first();
+                       << fontDef.family();
     }
 
     return m_minRightBearing;
@@ -619,24 +624,43 @@ glyph_metrics_t QFontEngine::boundingBox(const QGlyphLayout &glyphs)
     return glyph_metrics_t(leftBearing, -(ascent()), w - leftBearing - rightBearing, ascent() + descent(), w, 0);
 }
 
-glyph_metrics_t QFontEngine::tightBoundingBox(const QGlyphLayout &glyphs)
+glyph_metrics_t QFontEngine::tightBoundingBox(const QGlyphLayout &glyphs, QTextItem::RenderFlags flags)
 {
     glyph_metrics_t overall;
+
+    const bool isRtl = flags & QTextItem::RightToLeft;
+    if (isRtl) {
+        for (int i = 0; i < glyphs.numGlyphs; i++) {
+            // If shaping has found this should be ignored, ignore it.
+            if (glyphs.attributes[i].dontPrint)
+                continue;
+
+            overall.xoff += glyphs.effectiveAdvance(i);
+        }
+    }
 
     QFixed ymax = 0;
     QFixed xmax = 0;
     for (int i = 0; i < glyphs.numGlyphs; i++) {
         // If shaping has found this should be ignored, ignore it.
-        if (!glyphs.advances[i] || glyphs.attributes[i].dontPrint)
+        if (glyphs.attributes[i].dontPrint)
             continue;
+
         glyph_metrics_t bb = boundingBox(glyphs.glyphs[i]);
+
+        if (isRtl)
+            overall.xoff -= glyphs.effectiveAdvance(i);
+
         QFixed x = overall.xoff + glyphs.offsets[i].x + bb.x;
         QFixed y = overall.yoff + glyphs.offsets[i].y + bb.y;
+
         overall.x = qMin(overall.x, x);
         overall.y = qMin(overall.y, y);
         xmax = qMax(xmax, x.ceil() + bb.width);
         ymax = qMax(ymax, y.ceil() + bb.height);
-        overall.xoff += glyphs.effectiveAdvance(i);
+
+        if (!isRtl)
+            overall.xoff += glyphs.effectiveAdvance(i);
         overall.yoff += bb.yoff;
     }
     overall.height = qMax(overall.height, ymax - overall.y);
@@ -827,6 +851,9 @@ QImage QFontEngine::alphaMapForGlyph(glyph_t glyph, const QFixedPoint &/*subPixe
 
 QImage QFontEngine::alphaMapForGlyph(glyph_t glyph, const QTransform &t)
 {
+    if (t.type() > QTransform::TxTranslate && glyphTransformExceedsLimit(glyph, t))
+        return QImage();
+
     QImage i = alphaMapForGlyph(glyph);
     if (t.type() > QTransform::TxTranslate)
         i = i.transformed(t).convertToFormat(QImage::Format_Alpha8);
@@ -839,6 +866,9 @@ QImage QFontEngine::alphaMapForGlyph(glyph_t glyph, const QFixedPoint &subPixelP
 {
     if (!supportsHorizontalSubPixelPositions() && !supportsVerticalSubPixelPositions())
         return alphaMapForGlyph(glyph, t);
+
+    if (t.type() > QTransform::TxTranslate && glyphTransformExceedsLimit(glyph, t))
+        return QImage();
 
     QImage i = alphaMapForGlyph(glyph, subPixelPosition);
     if (t.type() > QTransform::TxTranslate)
@@ -986,6 +1016,73 @@ glyph_t QFontEngine::findGlyph(QLatin1StringView name) const
     return result;
 }
 
+// Maximum glyph size (in pixels per side) we are willing to rasterize. Defaults
+// to 4096; overridable via QT_MAX_GLYPH_SIZE, where a value <= 0 disables the check.
+static int maxGlyphSize()
+{
+    static const int size = []() {
+        bool ok = false;
+        const int value = qEnvironmentVariableIntValue("QT_MAX_GLYPH_SIZE", &ok);
+        return ok ? value : 4096;
+    }();
+    return size;
+}
+
+qreal QFontEngine::effectivePixelSizeSquared(const QTransform &transform) const
+{
+    return fontDef.pixelSize * fontDef.pixelSize * qAbs(transform.determinant());
+}
+
+bool QFontEngine::glyphBoundingBoxExceedsLimit(qreal glyphWidth,
+                                               qreal glyphHeight,
+                                               qreal effectivePixelSizeSquared)
+{
+    const int limit = maxGlyphSize();
+    if (limit <= 0) // the check is disabled
+        return false;
+
+    const qreal limitSquared = qreal(limit) * limit;
+
+    // The font size itself is beyond what we are willing to rasterize.
+    bool hasExceeded = (effectivePixelSizeSquared > limitSquared);
+
+    if (!hasExceeded) {
+        // Otherwise a glyph may extend up to 16x the effective pixel size. We never reject sizes less
+        // than 256 pixels on this basis (to leave room for oversized glyphs at small sizes). This
+        // leaves space for glyphs that stretch outside the em square while still protecting against
+        // dramatically malformed glyphs.
+        constexpr qreal glyphSizeFactorSquared = 16 * 16;
+        constexpr qreal glyphSizeFloorSquared = 256 * 256;
+        const qreal maxDimensionSquared =
+                qMin(limitSquared,
+                     qMax(glyphSizeFloorSquared, glyphSizeFactorSquared * effectivePixelSizeSquared));
+
+        hasExceeded = glyphWidth * glyphWidth > maxDimensionSquared
+                    || glyphHeight * glyphHeight > maxDimensionSquared;
+    }
+
+    if (hasExceeded) {
+        static bool warned = false;
+        if (!warned) {
+            warned = true;
+            qCWarning(lcFontMatch,
+                      "Glyph with bounding box (%.0fx%.0f pixels) and requested effective pixel "
+                      "size of %.0f is too large for rasterizer. Set QT_MAX_GLYPH_SIZE=0 to "
+                      "disable the limit.",
+                      glyphWidth, glyphHeight, sqrt(effectivePixelSizeSquared));
+        }
+    }
+
+    return hasExceeded;
+}
+
+bool QFontEngine::glyphTransformExceedsLimit(glyph_t glyph, const QTransform &transform)
+{
+    const glyph_metrics_t gm = boundingBox(glyph, transform);
+    return glyphBoundingBoxExceedsLimit(gm.width.toReal(), gm.height.toReal(),
+                                        effectivePixelSizeSquared(transform));
+}
+
 QImage QFontEngine::renderedPathForGlyph(glyph_t glyph, const QColor &color)
 {
     glyph_metrics_t gm = boundingBox(glyph);
@@ -994,8 +1091,14 @@ QImage QFontEngine::renderedPathForGlyph(glyph_t glyph, const QColor &color)
     int glyph_width = qCeil((gm.x + gm.width).toReal()) -  glyph_x;
     int glyph_height = qCeil((gm.y + gm.height).toReal()) - glyph_y;
 
-    if (glyph_width <= 0 || glyph_height <= 0)
+    if (glyph_width <= 0
+        || glyph_height <= 0
+        || glyphBoundingBoxExceedsLimit(glyph_width,
+                                        glyph_height,
+                                        fontDef.pixelSize * fontDef.pixelSize)) {
         return QImage();
+    }
+
     QFixedPoint pt;
     pt.x = -glyph_x;
     pt.y = -glyph_y; // the baseline
@@ -1037,7 +1140,7 @@ QFontEngine::Properties QFontEngine::properties() const
 {
     Properties p;
     p.postscriptName =
-            QFontEngine::convertToPostscriptFontFamilyName(fontDef.families.first().toUtf8()) + '-'
+            QFontEngine::convertToPostscriptFontFamilyName(fontDef.family().toUtf8()) + '-'
             + QByteArray::number(fontDef.style) + '-' + QByteArray::number(fontDef.weight);
     p.ascent = ascent();
     p.descent = descent();
@@ -1264,6 +1367,30 @@ end:
 //        qDebug() << 'i' << i << "left_right" << Qt::hex << kerning_pairs.at(i).left_right;
 }
 
+bool QFontEngine::hasHinting() const
+{
+    if (m_hasHinting < 0) {
+        m_hasHinting = false;
+
+        const QByteArray maxpTable = getSfntTable(QFont::Tag("maxp").value());
+        if (maxpTable.size() >= 28) {
+            const uchar *start = reinterpret_cast<const uchar *>(maxpTable.constData());
+            const quint32 version = qFromBigEndian<quint32>(start);
+
+            if (version == 0x00010000) {
+                const quint16 maxSizeOfInstructions = qFromBigEndian<quint16>(start + 26);
+                m_hasHinting = maxSizeOfInstructions > 0;
+            } else {
+                // If unrecognized maxp table, assume we might have hinting
+                qDebug("maxp table of format %d not implemented. Assuming hinting exists.",
+                       version);
+                m_hasHinting = true;
+            }
+        }
+    }
+
+    return m_hasHinting;
+}
 
 int QFontEngine::glyphCount() const
 {
@@ -1659,6 +1786,17 @@ bool QFontEngine::disableEmojiSegmenter()
 #endif
 }
 
+int QFontEngine::maxCachedGlyphSize()
+{
+    static const int maxCachedSize = []{
+        if (int env = qEnvironmentVariableIntValue("QT_MAX_CACHED_GLYPH_SIZE"))
+            return env;
+        return QT_MAX_CACHED_GLYPH_SIZE;
+    }();
+
+    return maxCachedSize;
+}
+
 // ------------------------------------------------------------------
 // The box font engine
 // ------------------------------------------------------------------
@@ -1875,7 +2013,7 @@ void QFontEngineMulti::ensureFallbackFamiliesQueried()
     if (styleHint == QFont::AnyStyle && fontDef.fixedPitch)
         styleHint = QFont::TypeWriter;
 
-    setFallbackFamiliesList(qt_fallbacksForFamily(fontDef.families.constFirst(),
+    setFallbackFamiliesList(qt_fallbacksForFamily(fontDef.family(),
                                                   QFont::Style(fontDef.style), styleHint,
                                                   QFontDatabasePrivate::ExtendedScript(m_script)));
 }
@@ -1891,7 +2029,7 @@ void QFontEngineMulti::setFallbackFamiliesList(const QStringList &fallbackFamili
         QFontEngine *engine = m_engines.at(0);
         engine->ref.ref();
         m_engines[1] = engine;
-        m_fallbackFamilies << fontDef.families.constFirst();
+        m_fallbackFamilies << fontDef.family();
     } else {
         m_engines.resize(m_fallbackFamilies.size() + 1);
     }
@@ -1986,8 +2124,18 @@ int QFontEngineMulti::stringToCMap(const QChar *str, int len,
                                    QGlyphLayout *glyphs, int *nglyphs,
                                    QFontEngine::ShaperFlags flags) const
 {
+    qCDebug(lcTextFontCmap) << "Mapping characters in"
+                            << QString(str, len)
+                            << "; Shaper flags:" << flags;
+
     const int originalNumGlyphs = glyphs->numGlyphs;
     int mappedGlyphCount = engine(0)->stringToCMap(str, len, glyphs, nglyphs, flags);
+    qCDebug(lcTextFontCmap) << "    Main font mapped"
+                            << mappedGlyphCount
+                            << "of"
+                            << (nglyphs != nullptr ? *nglyphs : 0)
+                            << "characters";
+
     if (mappedGlyphCount < 0)
         return -1;
 
@@ -1995,6 +2143,8 @@ int QFontEngineMulti::stringToCMap(const QChar *str, int len,
     // fallbacks on the full string until we find the best match.
     bool contextFontMerging = mappedGlyphCount < *nglyphs && (fontDef.styleStrategy & QFont::ContextFontMerging);
     if (contextFontMerging) {
+        qCDebug(lcTextFontCmap) << "    Context font merging, first pass";
+
         QVarLengthGlyphLayoutArray tempLayout(len);
         if (!m_fallbackFamiliesQueried)
             const_cast<QFontEngineMulti *>(this)->ensureFallbackFamiliesQueried();
@@ -2005,15 +2155,19 @@ int QFontEngineMulti::stringToCMap(const QChar *str, int len,
             int numGlyphs = len;
             const_cast<QFontEngineMulti *>(this)->ensureEngineAt(x);
             maxGlyphCount = engine(x)->stringToCMap(str, len, &tempLayout, &numGlyphs, flags);
+            qCDebug(lcTextFontCmap) << "    Fallback" << x << "mapped" << maxGlyphCount;
 
             // If we found a better match, we copy data into the main QGlyphLayout
             if (maxGlyphCount > mappedGlyphCount) {
+                qCDebug(lcTextFontCmap) << "        Better match!";
                 *nglyphs = numGlyphs;
                 glyphs->numGlyphs = originalNumGlyphs;
                 glyphs->copy(&tempLayout);
                 engineIndex = x;
                 if (maxGlyphCount == numGlyphs)
                     break;
+            } else {
+                qCDebug(lcTextFontCmap) << "        No improvement";
             }
         }
 
@@ -2048,6 +2202,10 @@ int QFontEngineMulti::stringToCMap(const QChar *str, int len,
             QFontEngine *engine = m_engines.at(lastFallback);
             glyph_t glyph = engine->glyphIndex(ucs4);
             if (glyph != 0) {
+                qCDebug(lcTextFontCmap) << "    Applying ZWJ/ZWNJ special case for"
+                                        << QString::number(ucs4, 16)
+                                        << ", lastFallback:" << lastFallback;
+
                 glyphs->glyphs[glyph_pos] = glyph;
                 if (!(flags & GlyphIndicesOnly)) {
                     QGlyphLayout g = glyphs->mid(glyph_pos, 1);
@@ -2064,13 +2222,18 @@ int QFontEngineMulti::stringToCMap(const QChar *str, int len,
         }
 
         if (glyphs->glyphs[glyph_pos] == 0 && !isIgnorableChar(ucs4)) {
+            qCDebug(lcTextFontCmap) << "    Unmapped character"
+                                    << QString::number(ucs4, 16);
+
             if (!m_fallbackFamiliesQueried)
                 const_cast<QFontEngineMulti *>(this)->ensureFallbackFamiliesQueried();
             for (int x = contextFontMerging ? 0 : 1, n = qMin(m_engines.size(), 256); x < n; ++x) {
                 QFontEngine *engine = m_engines.at(x);
                 if (!engine) {
-                    if (!shouldLoadFontEngineForCharacter(x, ucs4))
+                    if (!shouldLoadFontEngineForCharacter(x, ucs4)) {
+                        qCDebug(lcTextFontCmap) << "        Skipping fallback #" << x;
                         continue;
+                    }
                     const_cast<QFontEngineMulti *>(this)->ensureEngineAt(x);
                     engine = m_engines.at(x);
                     if (!engine)
@@ -2081,6 +2244,12 @@ int QFontEngineMulti::stringToCMap(const QChar *str, int len,
                     continue;
 
                 glyph_t glyph = engine->glyphIndex(ucs4);
+                qCDebug(lcTextFontCmap) << "        Fallback #" << x
+                                        << ", family:" << engine->fontDef.families
+                                        << ", styleName:" << engine->fontDef.styleName
+                                        << ", style:" << engine->fontDef.style
+                                        << ", weight:" << engine->fontDef.weight
+                                        << ", glyph mapping:" << glyph;
                 if (glyph != 0) {
                     glyphs->glyphs[glyph_pos] = glyph;
                     if (!(flags & GlyphIndicesOnly)) {

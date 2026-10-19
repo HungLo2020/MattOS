@@ -28,11 +28,15 @@ class QWheelEvent;
 namespace KWin
 {
 
+struct PointerAxisEvent;
+struct PointerButtonEvent;
+struct PointerMotionEvent;
 class Workspace;
 class Window;
 
 namespace TabBox
 {
+
 class TabBoxConfig;
 class TabBox;
 
@@ -71,6 +75,7 @@ private:
 class KWIN_EXPORT TabBox : public QObject
 {
     Q_OBJECT
+
 public:
     explicit TabBox();
     ~TabBox();
@@ -175,7 +180,10 @@ public:
         return m_isShown;
     }
 
-    bool handleMouseEvent(QMouseEvent *event);
+    bool pointerMotion(PointerMotionEvent *event);
+    bool pointerButton(PointerButtonEvent *event);
+    bool pointerAxis(PointerAxisEvent *event);
+
     bool handleWheelEvent(QWheelEvent *event);
     void grabbedKeyEvent(QKeyEvent *event);
 
@@ -239,16 +247,21 @@ private:
 private:
     explicit TabBox(QObject *parent);
     void loadConfig(const KConfigGroup &config, TabBoxConfig &tabBoxConfig);
+    void watchWindow(Window *window);
+    void handleWindowAdded(Window *window);
+    void handleWindowRemoved(Window *window);
+    void handleWindowClosed(Window *window);
 
     bool startKDEWalkThroughWindows(bool forward, TabBoxMode mode); // TabBoxWindowsMode | TabBoxWindowsAlternativeMode
     void navigatingThroughWindows(bool forward, const QList<QKeySequence> &shortcut, TabBoxMode mode); // TabBoxWindowsMode | TabBoxWindowsAlternativeMode
     void KDEWalkThroughWindows(bool forward);
     void CDEWalkThroughWindows(bool forward);
     void KDEOneStepThroughWindows(bool forward, TabBoxMode mode); // TabBoxWindowsMode | TabBoxWindowsAlternativeMode
+    QList<QKeySequence> activationShortcut(TabBoxMode mode) const; // forward shortcut that activates the given mode
     bool establishTabBoxGrab();
     void removeTabBoxGrab();
     template<typename Slot>
-    void key(const KLazyLocalizedString &actionName, Slot slot, const QList<QKeySequence> &shortcuts = QList<QKeySequence>());
+    QAction *key(const KLazyLocalizedString &actionName, Slot slot, const QList<QKeySequence> &shortcuts = QList<QKeySequence>());
 
     Direction matchShortcuts(const KeyboardKeyEvent &keyEvent, const QList<QKeySequence> &forward, const QList<QKeySequence> &backward) const;
 
@@ -285,6 +298,7 @@ private:
     QList<ElectricBorder> m_borderActivate, m_borderAlternativeActivate;
     QHash<ElectricBorder, QAction *> m_touchActivate;
     QHash<ElectricBorder, QAction *> m_touchAlternativeActivate;
+    MouseWheelAccumulator m_scrollAccumulator;
 };
 
 } // namespace TabBox

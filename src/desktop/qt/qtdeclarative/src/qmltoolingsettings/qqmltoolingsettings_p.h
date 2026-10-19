@@ -72,6 +72,7 @@ public:
     SearchResult search(const QString &path, const SearchOptions &options = {});
     bool writeDefaults() const;
 
+    void setValue(const QString &name, QVariant value);
     QVariant value(const QString &name) const;
     QStringList valueAsStringList(const QString &name) const;
 
@@ -81,6 +82,8 @@ public:
     bool isSet(const QString &name) const;
 
     bool reportConfigForFiles(const QStringList &files);
+
+    QString currentSettingsPath() const { return m_currentSettingsPath; }
 
 protected:
     QString m_currentSettingsPath;

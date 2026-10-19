@@ -7,35 +7,22 @@
 */
 
 import QtQuick
-import org.kde.plasma.plasmoid
 
 import org.kde.ksvg as KSvg
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.kirigami as Kirigami
 
-KSvg.FrameSvgItem {
-    id: upButton
+DropArea {
+    id: backButton
 
-    width: gridView.cellWidth
-    height: visible ? gridView.cellHeight : 0
-
-    visible: history.length !== 0
-
-    property bool ignoreClick: false
-    property bool containsDrag: false
+    property int iconSize
     property alias active: hoverActivateTimer.running
+    property alias containsMouse: mouseArea.containsMouse
 
-    imagePath: "widgets/viewitem"
+    signal backRequested()
 
-    function handleDragMove() {
-        containsDrag = true;
-        hoverActivateTimer.restart();
-    }
-
-    function endDragMove() {
-        containsDrag = false;
-        hoverActivateTimer.stop();
-    }
+    onEntered: hoverActivateTimer.restart();
+    onExited: hoverActivateTimer.stop();
 
     MouseArea {
         id: mouseArea
@@ -45,27 +32,25 @@ KSvg.FrameSvgItem {
         acceptedButtons: Qt.LeftButton | Qt.BackButton
         hoverEnabled: true
 
-        onContainsMouseChanged: {
-            gridView.hoveredItem = null;
-        }
-
         onPressed: mouse => {
             if (mouse.buttons & Qt.BackButton) {
-                if (root.isPopup && dir.resolvedUrl !== dir.resolve(Plasmoid.configuration.url)) {
-                    doBack();
-                    upButton.ignoreClick = true;
-                }
+                backButton.backRequested();
             }
         }
 
         onClicked: mouse => {
-            if (upButton.ignoreClick) {
-                upButton.ignoreClick = false;
+            if (mouse.button == Qt.BackButton) {
                 return;
             }
 
-            doBack();
+            backButton.backRequested();
         }
+    }
+
+    KSvg.FrameSvgItem {
+        id: background
+        anchors.fill: parent
+        imagePath: "widgets/viewitem"
     }
 
     Kirigami.Icon {
@@ -77,8 +62,8 @@ KSvg.FrameSvgItem {
             verticalCenter: parent.verticalCenter
         }
 
-        width: gridView.iconSize
-        height: gridView.iconSize
+        width: backButton.iconSize
+        height: backButton.iconSize
 
         source: "arrow-left"
     }
@@ -98,7 +83,7 @@ KSvg.FrameSvgItem {
 
         textFormat: Text.PlainText
 
-        maximumLineCount: root.isPopup ? 1 : Plasmoid.configuration.textLines
+        maximumLineCount: 1
         wrapMode: Text.Wrap
         elide: Text.ElideRight
 
@@ -110,16 +95,16 @@ KSvg.FrameSvgItem {
 
         interval: root.hoverActivateDelay
 
-        onTriggered: doBack()
+        onTriggered: backButton.backRequested()
     }
 
     states: [
         State {
             name: "hover"
-            when: mouseArea.containsMouse || upButton.containsDrag
+            when: mouseArea.containsMouse || backButton.containsDrag
 
             PropertyChanges {
-                upButton.prefix: "hover"
+                background.prefix: "hover"
             }
         }
     ]

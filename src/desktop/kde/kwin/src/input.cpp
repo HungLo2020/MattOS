@@ -303,7 +303,9 @@ public:
             return false;
         }
 
-        ScreenLocker::KSldApp::self()->userActivity();
+        if (!event->warp) {
+            ScreenLocker::KSldApp::self()->userActivity();
+        }
 
         auto window = input()->findToplevel(event->position);
         if (window && window->isClient() && window->isLockScreen()) {
@@ -324,7 +326,9 @@ public:
             return false;
         }
 
-        ScreenLocker::KSldApp::self()->userActivity();
+        if (event->state == PointerButtonState::Pressed) {
+            ScreenLocker::KSldApp::self()->userActivity();
+        }
 
         auto window = input()->findToplevel(event->position);
         if (window && window->isClient() && window->isLockScreen()) {
@@ -378,7 +382,9 @@ public:
             return false;
         }
 
-        ScreenLocker::KSldApp::self()->userActivity();
+        if (event->state == KeyboardKeyState::Pressed) {
+            ScreenLocker::KSldApp::self()->userActivity();
+        }
 
         // send event to KSldApp for global accel
         // if event is set to accepted it means a whitelisted shortcut was triggered
@@ -541,46 +547,21 @@ public:
         if (!effects) {
             return false;
         }
-        QMouseEvent mouseEvent(QEvent::MouseMove,
-                               event->position,
-                               event->position,
-                               Qt::NoButton,
-                               event->buttons,
-                               event->modifiers);
-        mouseEvent.setTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(event->timestamp).count());
-        mouseEvent.setAccepted(false);
-        return effects->checkInputWindowEvent(&mouseEvent);
+        return effects->pointerMotion(event);
     }
     bool pointerButton(PointerButtonEvent *event) override
     {
         if (!effects) {
             return false;
         }
-        QMouseEvent mouseEvent(event->state == PointerButtonState::Pressed ? QEvent::MouseButtonPress : QEvent::MouseButtonRelease,
-                               event->position,
-                               event->position,
-                               event->button,
-                               event->buttons,
-                               event->modifiers);
-        mouseEvent.setTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(event->timestamp).count());
-        mouseEvent.setAccepted(false);
-        return effects->checkInputWindowEvent(&mouseEvent);
+        return effects->pointerButton(event);
     }
     bool pointerAxis(PointerAxisEvent *event) override
     {
         if (!effects) {
             return false;
         }
-        QWheelEvent wheelEvent(event->position,
-                               event->position,
-                               QPoint(),
-                               (event->orientation == Qt::Horizontal) ? QPoint(event->delta, 0) : QPoint(0, event->delta),
-                               event->buttons,
-                               event->modifiers,
-                               Qt::NoScrollPhase,
-                               event->inverted);
-        wheelEvent.setAccepted(false);
-        return effects->checkInputWindowEvent(&wheelEvent);
+        return effects->pointerAxis(event);
     }
     bool keyboardKey(KeyboardKeyEvent *event) override
     {
@@ -1010,28 +991,26 @@ private:
     QMap<quint32, QPointF> m_touchPoints;
 };
 
-class MouseWheelAccumulator
+qreal MouseWheelAccumulator::accumulate(PointerAxisEvent *event)
 {
-public:
-    qreal accumulate(PointerAxisEvent *event)
-    {
-        const qreal delta = event->deltaV120 != 0 ? event->deltaV120 / 120.0 : event->delta / 15.0;
-        if (std::signbit(m_scrollDistance) != std::signbit(delta)) {
-            m_scrollDistance = 0;
-        }
-        m_scrollDistance += delta;
-        if (std::abs(m_scrollDistance) >= 1.0) {
-            const qreal ret = m_scrollDistance;
-            m_scrollDistance = std::fmod(m_scrollDistance, 1.0f);
-            return ret - m_scrollDistance;
-        } else {
-            return 0;
-        }
+    const qreal delta = event->deltaV120 != 0 ? event->deltaV120 / 120.0 : event->delta / 15.0;
+    if (std::signbit(m_scrollDistance) != std::signbit(delta)) {
+        m_scrollDistance = 0;
     }
+    m_scrollDistance += delta;
+    if (std::abs(m_scrollDistance) >= 1.0) {
+        const qreal ret = m_scrollDistance;
+        m_scrollDistance = std::fmod(m_scrollDistance, 1.0f);
+        return ret - m_scrollDistance;
+    } else {
+        return 0;
+    }
+}
 
-private:
-    qreal m_scrollDistance = 0;
-};
+void MouseWheelAccumulator::reset()
+{
+    m_scrollDistance = 0;
+}
 
 #if KWIN_BUILD_GLOBALSHORTCUTS
 class GlobalShortcutFilter : public InputEventFilter
@@ -1387,7 +1366,7 @@ std::optional<Options::MouseCommand> globalWindowWheelAction(PointerAxisEvent *e
     if (input()->pointer()->isConstrained() || workspace()->globalShortcutsDisabled()) {
         return std::nullopt;
     }
-    const auto ret = options->operationWindowMouseWheel(-event->delta);
+    const auto ret = options->operationWindowMouseWheel((event->inverted ? -1 : 1) * event->delta);
     if (ret == Options::MouseCommand::MouseNothing) {
         return std::nullopt;
     } else {
@@ -1405,6 +1384,7 @@ std::optional<Options::MouseCommand> windowWheelCommand(PointerAxisEvent *event,
         return std::nullopt;
     }
 }
+
 }
 
 class InternalWindowEventFilter : public InputEventFilter
@@ -1413,12 +1393,12 @@ public:
     InternalWindowEventFilter()
         : InputEventFilter(InputFilterOrder::InternalWindow)
     {
-        m_touchDevice = std::make_unique<QPointingDevice>(QLatin1String("some touchscreen"), 0, QInputDevice::DeviceType::TouchScreen,
+        m_touchDevice = std::make_unique<QPointingDevice>(QLatin1StringView("some touchscreen"), 0, QInputDevice::DeviceType::TouchScreen,
                                                           QPointingDevice::PointerType::Finger, QInputDevice::Capability::Position,
                                                           10, 0, kwinApp()->session()->seat(), QPointingDeviceUniqueId());
         QWindowSystemInterface::registerInputDevice(m_touchDevice.get());
 
-        m_tabletDevice = std::make_unique<QPointingDevice>(QLatin1String("some tablet"), 0, QInputDevice::DeviceType::Stylus,
+        m_tabletDevice = std::make_unique<QPointingDevice>(QLatin1StringView("some tablet"), 0, QInputDevice::DeviceType::Stylus,
                                                            QPointingDevice::PointerType::Pen, QInputDevice::Capability::Position | QInputDevice::Capability::ZPosition | QInputDevice::Capability::Pressure,
                                                            10, 0, kwinApp()->session()->seat(), QPointingDeviceUniqueId());
         QWindowSystemInterface::registerInputDevice(m_tabletDevice.get());
@@ -1477,7 +1457,8 @@ public:
                                                  event->position - internal->position(),
                                                  event->position,
                                                  QPoint(),
-                                                 ((event->orientation == Qt::Horizontal) ? QPoint(event->delta, 0) : QPoint(0, event->delta)) * -1,
+                                                 // Qt expects angleDelta 120 to be a "click" whereas libinput uses 15, hence multiply by 8.
+                                                 ((event->orientation == Qt::Horizontal) ? QPoint(event->delta, 0) : QPoint(0, event->delta)) * -8,
                                                  event->modifiers,
                                                  Qt::NoScrollPhase,
                                                  Qt::MouseEventNotSynthesized,
@@ -1648,7 +1629,7 @@ public:
         const QPointF p = event->position - window->pos();
 
         if (event->state == PointerButtonState::Pressed) {
-            if (const auto command = windowActionForPointerButtonPress(event, window)) {
+            if (const auto command = globalWindowAction(event->button, event->modifiersRelevantForShortcuts)) {
                 if (window->performMousePressCommand(*command, event->position)) {
                     return true;
                 }
@@ -1659,13 +1640,6 @@ public:
         e.setTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(event->timestamp).count());
         e.setAccepted(false);
         QCoreApplication::sendEvent(decoration->decoration(), &e);
-        if (e.isAccepted()) {
-            // if a non-active window is closed through the decoration, it should be allowed to activate itself
-            // TODO use the event serial instead, once that's plumbed through
-            const uint32_t serial = waylandServer()->display()->nextSerial();
-            const QString token = waylandServer()->xdgActivationIntegration()->requestPrivilegedToken(nullptr, serial, waylandServer()->seat(), window->desktopFileName());
-            workspace()->setActivationToken(token, serial, window->desktopFileName());
-        }
         if (!e.isAccepted() && event->state == PointerButtonState::Pressed) {
             window->processDecorationButtonPress(p, globalPos, event->button);
         }
@@ -1703,7 +1677,7 @@ public:
         }
         if ((event->orientation == Qt::Vertical) && decoration->window()->titlebarPositionUnderMouse()) {
             if (float delta = m_accumulator.accumulate(event)) {
-                decoration->window()->performMousePressCommand(options->operationTitlebarMouseWheel(delta * -1),
+                decoration->window()->performMousePressCommand(options->operationTitlebarMouseWheel((event->inverted ? -1 : 1) * delta),
                                                                event->position);
             }
         }
@@ -1877,30 +1851,14 @@ public:
         if (!workspace()->tabbox() || !workspace()->tabbox()->isGrabbed()) {
             return false;
         }
-        QMouseEvent mouseEvent(QEvent::MouseMove,
-                               event->position,
-                               event->position,
-                               Qt::NoButton,
-                               event->buttons,
-                               event->modifiers);
-        mouseEvent.setTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(event->timestamp).count());
-        mouseEvent.setAccepted(false);
-        return workspace()->tabbox()->handleMouseEvent(&mouseEvent);
+        return workspace()->tabbox()->pointerMotion(event);
     }
     bool pointerButton(PointerButtonEvent *event) override
     {
         if (!workspace()->tabbox() || !workspace()->tabbox()->isGrabbed()) {
             return false;
         }
-        QMouseEvent mouseEvent(event->state == PointerButtonState::Pressed ? QEvent::MouseButtonPress : QEvent::MouseButtonRelease,
-                               event->position,
-                               event->position,
-                               event->button,
-                               event->buttons,
-                               event->modifiers);
-        mouseEvent.setTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(event->timestamp).count());
-        mouseEvent.setAccepted(false);
-        return workspace()->tabbox()->handleMouseEvent(&mouseEvent);
+        return workspace()->tabbox()->pointerButton(event);
     }
     bool keyboardKey(KeyboardKeyEvent *event) override
     {
@@ -1910,9 +1868,14 @@ public:
 
         if (event->state == KeyboardKeyState::Repeated || event->state == KeyboardKeyState::Pressed) {
             workspace()->tabbox()->keyPress(*event);
-        } else if (event->modifiersRelevantForGlobalShortcuts == Qt::NoModifier) {
+        } else if (event->state == KeyboardKeyState::Released) {
+            // Re-evaluate on every key release so the switcher can close once
+            // the activation modifiers are no longer held, regardless of the
+            // release order.
             workspace()->tabbox()->modifiersReleased();
-            return false;
+            // If the release closed the switcher, let the event propagate to
+            // the rest of the system instead of swallowing it.
+            return workspace()->tabbox()->isGrabbed();
         }
         return true;
     }
@@ -1921,16 +1884,7 @@ public:
         if (!workspace()->tabbox() || !workspace()->tabbox()->isGrabbed()) {
             return false;
         }
-        QWheelEvent wheelEvent(event->position,
-                               event->position,
-                               QPoint(),
-                               (event->orientation == Qt::Horizontal) ? QPoint(event->delta, 0) : QPoint(0, event->delta),
-                               event->buttons,
-                               event->modifiers,
-                               Qt::NoScrollPhase,
-                               event->inverted);
-        wheelEvent.setAccepted(false);
-        return workspace()->tabbox()->handleWheelEvent(&wheelEvent);
+        return workspace()->tabbox()->pointerAxis(event);
     }
 };
 #endif
@@ -2154,13 +2108,14 @@ public:
     {
         auto seat = waylandServer()->seat();
         seat->setTimestamp(event->timestamp);
-        seat->notifyPointerMotion(event->position);
-        // absolute motion events confuse games and Wayland doesn't have a warp event yet
-        // -> send a relative motion event with a zero delta to signal the warp instead
+
         if (event->warp) {
-            seat->relativePointerMotion(QPointF(0, 0), QPointF(0, 0), event->timestamp);
-        } else if (!event->delta.isNull()) {
-            seat->relativePointerMotion(event->delta, event->deltaUnaccelerated, event->timestamp);
+            seat->notifyPointerWarp(event->position);
+        } else {
+            seat->notifyPointerMotion(event->position);
+            if (!event->delta.isNull()) {
+                seat->relativePointerMotion(event->delta, event->deltaUnaccelerated, event->timestamp);
+            }
         }
         return true;
     }
@@ -2619,6 +2574,7 @@ static AbstractDropHandler *dropHandler(Window *window)
 class DragAndDropInputFilter : public QObject, public InputEventFilter
 {
     Q_OBJECT
+
 public:
     DragAndDropInputFilter()
         : InputEventFilter(InputFilterOrder::DragAndDrop)
@@ -3022,6 +2978,8 @@ void InputRedirection::init()
     m_inputConfigWatcher = KConfigWatcher::create(kwinApp()->inputConfig());
     connect(m_inputConfigWatcher.data(), &KConfigWatcher::configChanged,
             this, &InputRedirection::handleInputConfigChanged);
+    const KConfigGroup tabletGroup(kwinApp()->inputConfig(), QStringLiteral("Tablet"));
+    m_syncTabletWithMouse = tabletGroup.readEntry(QStringLiteral("SyncWithMouse"), false);
 #if KWIN_BUILD_GLOBALSHORTCUTS
     m_shortcuts->init();
 #endif
@@ -3186,6 +3144,12 @@ public:
     {
         notifyActivity();
     }
+    void switchEvent(SwitchEvent *event) override
+    {
+        if (event->device->isLidSwitch() && event->state == SwitchState::Off) {
+            notifyActivity();
+        }
+    }
 
 private:
     void notifyActivity()
@@ -3261,8 +3225,11 @@ void InputRedirection::setupInputFilters()
 
 void InputRedirection::handleInputConfigChanged(const KConfigGroup &group)
 {
-    if (group.name() == QLatin1String("Keyboard")) {
+    if (group.name() == QLatin1StringView("Keyboard")) {
         m_keyboard->reconfigure();
+    } else if (group.name() == QLatin1String("Tablet")) {
+        const KConfigGroup tabletGroup(kwinApp()->inputConfig(), QStringLiteral("Tablet"));
+        m_syncTabletWithMouse = tabletGroup.readEntry(QStringLiteral("SyncWithMouse"), false);
     }
 }
 
@@ -3409,6 +3376,11 @@ void InputRedirection::addInputBackend(std::unique_ptr<InputBackend> &&inputBack
     inputBackend->initialize();
 
     m_inputBackends.push_back(std::move(inputBackend));
+}
+
+bool InputRedirection::syncTabletWithMouse() const
+{
+    return m_syncTabletWithMouse;
 }
 
 void InputRedirection::setupInputBackends()

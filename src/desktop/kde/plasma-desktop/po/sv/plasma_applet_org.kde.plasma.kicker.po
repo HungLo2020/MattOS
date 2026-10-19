@@ -1,13 +1,13 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2014, 2015, 2016, 2017, 2019, 2020, 2021, 2024, 2025, 2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
+# SPDX-FileCopyrightText: 2014-2017, 2019-2021, 2024-2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-05 02:42+0000\n"
-"PO-Revision-Date: 2026-01-18 15:43+0100\n"
+"POT-Creation-Date: 2026-09-20 02:45+0000\n"
+"PO-Revision-Date: 2026-07-08 11:03+0200\n"
 "Last-Translator: Stefan Asserhäll <stefan.asserhall@gmail.com>\n"
 "Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
 "Language: sv\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: code/tools.js:53
 #, kde-format
@@ -48,159 +48,177 @@ msgctxt "@title:group for configuration dialog page"
 msgid "General"
 msgstr "Allmänt"
 
-#: ConfigGeneral.qml:48
+#: ConfigGeneral.qml:50
 #, kde-format
 msgctxt "@label prefix for icon-only button"
 msgid "Icon:"
 msgstr "Ikon:"
 
-#: ConfigGeneral.qml:133
+#: ConfigGeneral.qml:135
 #, kde-format
 msgctxt "@item:inmenu Open icon chooser dialog"
 msgid "Choose…"
 msgstr "Välj…"
 
-#: ConfigGeneral.qml:138
+#: ConfigGeneral.qml:140
 #, kde-format
 msgctxt "@item:inmenu Reset icon to default"
-msgid "Clear Icon"
-msgstr "Rensa ikon"
+msgid "Reset to default icon"
+msgstr "Återställ till standardikon"
 
-#: ConfigGeneral.qml:159
+#: ConfigGeneral.qml:161
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Show applications as:"
-msgstr "Visa program som:"
+msgstr "Visa program med:"
 
-#: ConfigGeneral.qml:161
+#: ConfigGeneral.qml:163
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Name only"
 msgstr "Bara namn"
 
-#: ConfigGeneral.qml:161
+#: ConfigGeneral.qml:163
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Description only"
 msgstr "Bara beskrivning"
 
-#: ConfigGeneral.qml:162
+#: ConfigGeneral.qml:164
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Name (Description)"
 msgstr "Namn (Beskrivning)"
 
-#: ConfigGeneral.qml:162
+#: ConfigGeneral.qml:164
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Description (Name)"
 msgstr "Beskrivning (Namn)"
 
-#: ConfigGeneral.qml:172
+#: ConfigGeneral.qml:174
 #, kde-format
 msgctxt "@title:group prefix for checkbox group"
 msgid "Behavior:"
 msgstr "Beteende:"
 
-#: ConfigGeneral.qml:174
+#: ConfigGeneral.qml:176
 #, kde-format
 msgctxt "@option:check"
 msgid "Sort applications alphabetically"
 msgstr "Sortera program alfabetiskt"
 
-#: ConfigGeneral.qml:182
+#: ConfigGeneral.qml:184
 #, kde-format
 msgctxt "@option:check"
 msgid "Flatten sub-menus to a single level"
-msgstr "Platta ut undermenyer till en enda nivå"
+msgstr "Platta ut undermenyn till en enda nivå"
 
-#: ConfigGeneral.qml:190
+#: ConfigGeneral.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Show icons on the root level of the menu"
-msgstr "Visa ikoner på menyns toppnivå"
+msgstr "Visa ikoner på menyns rotnivå"
 
-#: ConfigGeneral.qml:200
+#: ConfigGeneral.qml:198
+#, kde-format
+msgctxt "@option:check"
+msgid "Highlight newly-installed applications"
+msgstr "Markera nyinstallerade program"
+
+#: ConfigGeneral.qml:208
 #, kde-format
 msgctxt "@title:group prefix for checkbox group"
 msgid "Show categories:"
 msgstr "Visa kategorier:"
 
-#: ConfigGeneral.qml:203
+#: ConfigGeneral.qml:211
 #, kde-format
 msgctxt "@option:check"
 msgid "Recent applications"
 msgstr "Senaste program"
 
-#: ConfigGeneral.qml:204
+#: ConfigGeneral.qml:212
 #, kde-format
 msgctxt "@option:check"
 msgid "Often used applications"
 msgstr "Ofta använda program"
 
-#: ConfigGeneral.qml:211
+#: ConfigGeneral.qml:219
 #, kde-format
 msgctxt "@option:check"
 msgid "Recent files"
 msgstr "Senaste filer"
 
-#: ConfigGeneral.qml:212
+#: ConfigGeneral.qml:220
 #, kde-format
 msgctxt "@option:check"
 msgid "Often used files"
 msgstr "Ofta använda filer"
 
-#: ConfigGeneral.qml:218
+#: ConfigGeneral.qml:227
+#, kde-format
+msgctxt "@option:check"
+msgid "Recent places"
+msgstr "Senaste platser"
+
+#: ConfigGeneral.qml:228
+#, kde-format
+msgctxt "@option:check"
+msgid "Often used places"
+msgstr "Ofta använda platser"
+
+#: ConfigGeneral.qml:234
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Sort items in categories by:"
 msgstr "Sortera objekt i kategorier enligt:"
 
-#: ConfigGeneral.qml:219
+#: ConfigGeneral.qml:235
 #, kde-format
 msgctxt ""
 "@item:inlistbox Sort items in categories by [Recently used | Often used]"
 msgid "Recently used"
 msgstr "Senast använda"
 
-#: ConfigGeneral.qml:219
+#: ConfigGeneral.qml:235
 #, kde-format
 msgctxt ""
 "@item:inlistbox Sort items in categories by [Recently used | Often used]"
 msgid "Often used"
 msgstr "Ofta använda"
 
-#: ConfigGeneral.qml:229
+#: ConfigGeneral.qml:245
 #, kde-format
 msgctxt "@title:group prefix for checkbox group"
 msgid "Search:"
 msgstr "Sök:"
 
-#: ConfigGeneral.qml:231
+#: ConfigGeneral.qml:247
 #, kde-format
 msgctxt "@option:check"
 msgid "Expand search to bookmarks, files and emails"
 msgstr "Expandera sökning till bokmärken, filer och e-post"
 
-#: ConfigGeneral.qml:239
+#: ConfigGeneral.qml:255
 #, kde-format
 msgctxt "@option:check"
 msgid "Align search results to bottom"
 msgstr "Justera sökresultat längst ner"
 
-#: ConfigGeneral.qml:244
+#: ConfigGeneral.qml:260
 #, kde-format
 msgctxt "@label prefix for a checkbox toggling Dark Mode"
 msgid "Appearance:"
 msgstr "Utseende:"
 
-#: ConfigGeneral.qml:249
+#: ConfigGeneral.qml:265
 #, kde-format
 msgctxt "@option:check"
 msgid "Prefer Dark Mode when available"
 msgstr "Föredra mörkt läge när tillgängligt"
 
-#: ConfigGeneral.qml:253
+#: ConfigGeneral.qml:269
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -210,41 +228,75 @@ msgstr ""
 "Funktionen använder komplementfärgerna från färgschemat, som vanligtvis har "
 "en mörk bakgrund."
 
-#: DashboardRepresentation.qml:373
+#: DashboardRepresentation.qml:425
 #, kde-format
 msgctxt "@title:group for column with app and system action grids"
 msgid "Favorites"
 msgstr "Favoriter"
 
-#: ItemListDelegate.qml:31
+#: DashboardRepresentation.qml:951 ItemListDelegate.qml:97
+#, kde-format
+msgctxt "Newly-installed app, badge, keep short"
+msgid "New!"
+msgstr "Ny!"
+
+#: DashboardRepresentation.qml:952 ItemListDelegate.qml:98
+#, kde-format
+msgctxt "@info:whatsthis Accessible description for badge"
+msgid "There is a newly-installed application in this category"
+msgstr "Det finns ett nyinstallerat program i kategorin"
+
+#: ItemGridDelegate.qml:81
+#, kde-format
+msgctxt "@label Newly-installed app, badge, keep short"
+msgid "New!"
+msgstr "Ny!"
+
+#: ItemGridDelegate.qml:83
+#, kde-format
+msgctxt "@label Accessible name for badge"
+msgid "Newly-installed application"
+msgstr "Nyinstallerat program"
+
+#: ItemListDelegate.qml:40
 #, kde-format
 msgctxt "@action:inmenu accessible description for opening submenu"
 msgid "Open category"
 msgstr "Öppna kategori"
 
-#: ItemListDelegate.qml:32
+#: ItemListDelegate.qml:41
 #, kde-format
 msgctxt "@action:inmenu accessible description for opening app or file"
 msgid "Launch"
 msgstr "Starta"
 
-#: main.qml:211
+#: ItemListDelegate.qml:99
+#, kde-format
+msgctxt "@info:whatsthis Accessible description for badge"
+msgid "Newly-installed application"
+msgstr "Nyinstallerat program"
+
+#: main.qml:189
 #, kde-format
 msgctxt "@action:inmenu launches kmenuedit"
 msgid "Edit Applications…"
 msgstr "Redigera program…"
 
-#: MenuRepresentation.qml:177
+#: MenuRepresentation.qml:197
 #, kde-format
 msgctxt "@title:group accessible name for favorite group in sidebar"
 msgid "Favorites"
 msgstr "Favoriter"
 
-#: MenuRepresentation.qml:353
+#: MenuRepresentation.qml:373
 #, kde-format
 msgctxt "@info:status"
 msgid "No matches"
 msgstr "Inga träffar"
+
+#~ msgctxt "@item:inmenu Reset icon to default"
+#~ msgid "Clear Icon"
+#~ msgstr "Rensa ikon"
 
 #~ msgid "Searching for '%1'"
 #~ msgstr "Söker efter \"%1\""

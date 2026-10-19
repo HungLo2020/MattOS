@@ -1,10 +1,3 @@
-find_program(ARCANIST arc)
-if(NOT ARCANIST)
-    message(WARNING "The phabricator plugin depends on having the 'arc' script available in the PATH")
-else()
-    message(STATUS "The 'arc' script was found as ${ARCANIST}")
-endif()
-
 add_definitions(-DTRANSLATION_DOMAIN=\"purpose6_phabricator\")
 
 add_subdirectory(icons)
@@ -15,7 +8,6 @@ ecm_qt_declare_logging_category(PhabricatorHelper_SRCS
     IDENTIFIER PLUGIN_PHABRICATOR
     CATEGORY_NAME kf.purpose.plugins.phabricator
     OLD_CATEGORY_NAMES kdevplatform.plugins.phabricator
-    DEFAULT_SEVERITY Debug
     DESCRIPTION "purpose (phabricator plugin)"
     EXPORT PURPOSE
 )

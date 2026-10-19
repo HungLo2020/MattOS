@@ -4,13 +4,13 @@
 # Diego Iastrubni <elcuco@kde.org>, 2013.
 # elkana bardugo <ttv200@gmail.com>, 2016.
 # Elkana Bardugo <ttv200@gmail.com>, 2017. #zanata
-# SPDX-FileCopyrightText: 2023, 2024, 2025 Yaron Shahrabani <sh.yaron@gmail.com>
+# SPDX-FileCopyrightText: 2023, 2024, 2025, 2026 Yaron Shahrabani <sh.yaron@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_org.kde.plasma.notifications\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-04 02:42+0000\n"
-"PO-Revision-Date: 2025-04-24 20:49+0300\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
+"PO-Revision-Date: 2026-03-31 09:58+0300\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
 "Language: he\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Lokalize 24.12.3\n"
+"X-Generator: Poedit 3.8\n"
 
 #: components/ActionContainer.qml:96
 #, kde-format
@@ -118,43 +118,43 @@ msgctxt "Row description, e.g. Source"
 msgid "%1:"
 msgstr "%1:"
 
-#: components/JobDetails.qml:116
+#: components/JobDetails.qml:118
 #, kde-format
 msgctxt "How many bytes have been copied"
 msgid "%2 of %1"
 msgstr "%1 מתוך %2"
 
-#: components/JobDetails.qml:120
+#: components/JobDetails.qml:122
 #, kde-format
 msgctxt "How many files have been copied"
-msgid "%2 of %1 file"
-msgid_plural "%2 of %1 files"
-msgstr[0] "%2 מתוך קובץ אחד"
-msgstr[1] "%2 מתוך שני קבצים"
-msgstr[2] "%2 מתוך %1 קבצים"
-msgstr[3] "%2 מתוך %1 קבצים"
+msgid "%3 of %2 file"
+msgid_plural "%3 of %2 files"
+msgstr[0] "%3 מתוך קובץ אחד (%2)"
+msgstr[1] "%3 מתוך שני (%2) קבצים"
+msgstr[2] "%3 מתוך %2 קבצים"
+msgstr[3] "%3 מתוך %2 קבצים"
 
-#: components/JobDetails.qml:123
+#: components/JobDetails.qml:125
 #, kde-format
 msgctxt "How many dirs have been copied"
-msgid "%2 of %1 folder"
-msgid_plural "%2 of %1 folders"
-msgstr[0] "%2 מתוך תיקייה"
-msgstr[1] "%2 מתוך שתי תיקיות"
-msgstr[2] "%2 מתוך %1 תיקיות"
-msgstr[3] "%2 מתוך %1 תיקיות"
+msgid "%3 of %2 folder"
+msgid_plural "%3 of %2 folders"
+msgstr[0] "%3 מתוך תיקייה (%2)"
+msgstr[1] "%3 מתוך שתי (%2) תיקיות"
+msgstr[2] "%3 מתוך %2 תיקיות"
+msgstr[3] "%3 מתוך %2 תיקיות"
 
-#: components/JobDetails.qml:126
+#: components/JobDetails.qml:128
 #, kde-format
 msgctxt "How many items (that includes files and dirs) have been copied"
-msgid "%2 of %1 item"
-msgid_plural "%2 of %1 items"
-msgstr[0] "%2 מתוך פריט"
-msgstr[1] "%2 מתוך שני פריטים"
-msgstr[2] "%2 מתוך %1 פריטים"
-msgstr[3] "%2 מתוך %1 פריטים"
+msgid "%3 of %2 item"
+msgid_plural "%3 of %2 items"
+msgstr[0] "%3 מתוך פריט (%2)"
+msgstr[1] "%3 מתוך שני (%2) פריטים"
+msgstr[2] "%3 מתוך %2 פריטים"
+msgstr[3] "%3 מתוך %2 פריטים"
 
-#: components/JobDetails.qml:135
+#: components/JobDetails.qml:137
 #, kde-format
 msgid "%1 file"
 msgid_plural "%1 files"
@@ -163,7 +163,7 @@ msgstr[1] "שני קבצים"
 msgstr[2] "%1 קבצים"
 msgstr[3] "%1 קבצים"
 
-#: components/JobDetails.qml:137
+#: components/JobDetails.qml:139
 #, kde-format
 msgid "%1 folder"
 msgid_plural "%1 folders"
@@ -172,7 +172,7 @@ msgstr[1] "שתי תיקיות"
 msgstr[2] "%1 תיקיות"
 msgstr[3] "%1 תיקיות"
 
-#: components/JobDetails.qml:139
+#: components/JobDetails.qml:141
 #, kde-format
 msgid "%1 item"
 msgid_plural "%1 items"
@@ -181,9 +181,9 @@ msgstr[1] "שני פריטים"
 msgstr[2] "%1 פריטים"
 msgstr[3] "%1 פריטים"
 
-#: components/JobDetails.qml:156 components/SpeedChart.qml:72
-#: components/SpeedChart.qml:98 components/SpeedChart.qml:193
-#: components/SpeedChart.qml:204
+#: components/JobDetails.qml:158 components/SpeedChart.qml:75
+#: components/SpeedChart.qml:103 components/SpeedChart.qml:204
+#: components/SpeedChart.qml:217
 #, kde-format
 msgctxt "Bytes per second"
 msgid "%1/s"
@@ -213,7 +213,7 @@ msgctxt "Cancel running job"
 msgid "Cancel"
 msgstr "ביטול"
 
-#: components/JobItem.qml:125 components/ThumbnailStrip.qml:159
+#: components/JobItem.qml:125 components/ThumbnailStrip.qml:154
 #, kde-format
 msgid "More Options…"
 msgstr "אפשרויות נוספות…"
@@ -240,17 +240,17 @@ msgctxt "@action:button"
 msgid "Send"
 msgstr "שליחה"
 
-#: components/SpeedChart.qml:145
+#: components/SpeedChart.qml:155
 #, kde-format
 msgid "Speed"
 msgstr "מהירות"
 
-#: components/SpeedChart.qml:200
+#: components/SpeedChart.qml:212
 #, kde-format
 msgid "Average Speed"
 msgstr "מהירות ממוצעת"
 
-#: components/SpeedChart.qml:258
+#: components/SpeedChart.qml:272
 #, kde-format
 msgctxt "Percentage of a job"
 msgid "%1%"
@@ -284,12 +284,12 @@ msgstr "%1 (הסתיימה)"
 msgid "Job Finished"
 msgstr "המשימה הסתיימה"
 
-#: fileinfo.cpp:170
+#: fileinfo.cpp:186
 #, kde-format
 msgid "Open with %1"
 msgstr "פתיחה עם %1"
 
-#: fileinfo.cpp:174
+#: fileinfo.cpp:190
 #, kde-format
 msgid "Open with…"
 msgstr "פתיחה עם…"
@@ -413,22 +413,34 @@ msgctxt "Vendor and product name"
 msgid "Notifications are currently provided by '%1 %2'"
 msgstr "התראות מסופקות על ידי ‚%1 %2’"
 
-#: globalshortcuts.cpp:23
+#: globalshortcuts.cpp:24
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "הפעלת מצב ‚לא להפריע’"
 
-#: globalshortcuts.cpp:42
+#: globalshortcuts.cpp:33
+#, kde-format
+msgctxt "@action"
+msgid "Clear Notification History"
+msgstr "פינוי היסטוריית ההתראות"
+
+#: globalshortcuts.cpp:52
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications Off"
 msgstr "התראות כבויות"
 
-#: globalshortcuts.cpp:43
+#: globalshortcuts.cpp:53
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications On"
 msgstr "התראות פעילות"
+
+#: globalshortcuts.cpp:68
+#, kde-format
+msgctxt "@label OSD popup, keep short"
+msgid "Notification history cleared"
+msgstr "היסטוריית ההתראות נמחקה"
 
 #: main.qml:61
 #, kde-format
@@ -487,12 +499,12 @@ msgstr "מצב ‚לא להפריע’ פעיל, לחיצה אמצעית כדי 
 msgid "Middle-click to enter do not disturb mode"
 msgstr "לחיצה אמצעית כדי להיכנס למצב ‚לא להפריע’"
 
-#: main.qml:238
+#: main.qml:245
 #, kde-format
 msgid "Clear All Notifications"
 msgstr "פינוי כל ההתראות"
 
-#: main.qml:257
+#: main.qml:264
 #, kde-format
 msgid "&Configure Event Notifications and Actions…"
 msgstr "ה&גדרת התראות ופעולות אירועים…"

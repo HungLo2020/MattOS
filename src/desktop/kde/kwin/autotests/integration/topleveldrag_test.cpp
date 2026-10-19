@@ -1,5 +1,5 @@
 /*
-    SPDX-FileCopyrightText: 2025 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2025 David Redondo <kde@david-redondo.de>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
@@ -20,8 +20,6 @@
 #include <linux/input-event-codes.h>
 
 using namespace KWin;
-
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_toplevel_drag-0");
 
 class TestToplevelDrag : public QObject
 {
@@ -48,7 +46,7 @@ void TestToplevelDrag::cleanup()
 
 void TestToplevelDrag::initTestCase()
 {
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({Rect(0, 0, 1280, 1024)});
 }

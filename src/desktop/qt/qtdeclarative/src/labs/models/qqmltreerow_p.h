@@ -42,6 +42,7 @@ public:
 
     const QQmlTreeRow *getRow(int i) const { return m_children[i].get(); }
     void addChild(QQmlTreeRow *child);
+    void insertChild(int index, std::unique_ptr<QQmlTreeRow> child);
     size_t rowCount() const { return m_children.size(); }
     int subTreeSize() const;
 
@@ -50,6 +51,7 @@ public:
     const std::vector<std::unique_ptr<QQmlTreeRow>>& children() const { return m_children; }
     void removeChild(std::vector<std::unique_ptr<QQmlTreeRow>>::const_iterator &child);
     void removeChildAt(int i);
+    std::unique_ptr<QQmlTreeRow> takeChild(int i);
     void setData(const QVariant &data);
     void setData(const QVariantMap &data);
     void setField(const QString &key, const QVariant &value);

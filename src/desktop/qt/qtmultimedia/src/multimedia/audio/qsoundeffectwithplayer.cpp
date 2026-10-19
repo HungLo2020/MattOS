@@ -112,7 +112,7 @@ QSoundEffectVoice::QSoundEffectVoice(VoiceId voiceId, std::shared_ptr<const QSam
 
 QSoundEffectVoice::~QSoundEffectVoice() = default;
 
-VoicePlayResult QSoundEffectVoice::play(QSpan<float> outputBuffer) noexcept QT_MM_NONBLOCKING
+VoicePlayResult QSoundEffectVoice::play(QSpan<float> outputBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     qsizetype playedFrames = playVoice(outputBuffer);
     m_currentFrame += playedFrames;
@@ -137,7 +137,7 @@ VoicePlayResult QSoundEffectVoice::play(QSpan<float> outputBuffer) noexcept QT_M
     return VoicePlayResult::Playing;
 }
 
-qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept QT_MM_NONBLOCKING
+qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     const QAudioFormat &format = m_sample->format();
     const int totalSamples = m_totalFrames * format.channelCount();
@@ -154,7 +154,6 @@ qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept QT_MM
     const qsizetype outputSamples = outputBuffer.size();
     const qsizetype maxFrames = std::min(sampleSamples / sampleCh, outputSamples / engineCh);
     const qsizetype framesToPlay = maxFrames;
-    const qsizetype outputSamplesPlayed = framesToPlay * engineCh;
 
     enum ConversionType : uint8_t { SameChannels, MonoToStereo, StereoToMono };
     const ConversionType conversion = [&] {
@@ -167,10 +166,8 @@ qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept QT_MM
         Q_UNREACHABLE_RETURN(SameChannels);
     }();
 
-    if (m_muted || m_volume == 0.f) {
-        std::fill_n(outputBuffer.begin(), outputSamplesPlayed, 0.f);
+    if (m_muted || m_volume == 0.f)
         return framesToPlay;
-    }
 
     // later: (auto)vectorize?
     switch (conversion) {
@@ -206,7 +203,7 @@ qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept QT_MM
     return framesToPlay;
 }
 
-bool QSoundEffectVoice::isActive() noexcept QT_MM_NONBLOCKING
+bool QSoundEffectVoice::isActive() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     if (m_currentFrame != m_totalFrames)
         return true;
@@ -294,10 +291,6 @@ void QSoundEffectPrivateWithPlayer::setResolvedAudioDevice(QAudioDevice device)
             play(voice->clone(m_player->audioSink().format()));
 
         setStatus(QSoundEffect::Ready);
-
-        for (const auto &voice : voices)
-            // we re-allocate a new voice ID and play on the new player
-            play(voice->clone());
     } else {
         setStatus(m_sampleLoadFuture ? QSoundEffect::Loading : QSoundEffect::Null);
     }
@@ -315,7 +308,7 @@ QAudioDevice QSoundEffectPrivateWithPlayer::audioDevice() const
     return m_audioDevice;
 }
 
-bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sampleCache)
+void QSoundEffectPrivateWithPlayer::setSource(QUrl url, QSampleCache &sampleCache)
 {
     if (m_sampleLoadFuture) {
         m_sampleLoadFuture->cancelChain();
@@ -331,23 +324,22 @@ bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sam
         m_playerReleaseTimer.start();
     }
 
-    m_url = url;
     m_sample = {};
 
     if (url.isEmpty()) {
         setStatus(QSoundEffect::Null);
-        return false;
+        return;
     }
 
     if (!url.isValid()) {
         setStatus(QSoundEffect::Error);
-        return false;
+        return;
     }
 
     setStatus(QSoundEffect::Loading);
 
     m_sampleLoadFuture =
-            sampleCache.requestSampleFuture(url).then(this, [this](SharedSamplePtr result) {
+            sampleCache.requestSampleFuture(url).then(this, [this, url](SharedSamplePtr result) {
         if (result) {
             if (!formatIsSupported(result->format())) {
                 qWarning("QSoundEffect: QSoundEffect only supports mono or stereo files");
@@ -369,17 +361,10 @@ bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sam
                 play();
             }
         } else {
-            qWarning("QSoundEffect: Error decoding source %ls", qUtf16Printable(m_url.toString()));
+            qWarning("QSoundEffect: Error decoding source %ls", qUtf16Printable(url.toString()));
             setStatus(QSoundEffect::Error);
         }
     });
-
-    return true;
-}
-
-QUrl QSoundEffectPrivateWithPlayer::url() const
-{
-    return m_url;
 }
 
 void QSoundEffectPrivateWithPlayer::setStatus(QSoundEffect::Status status)

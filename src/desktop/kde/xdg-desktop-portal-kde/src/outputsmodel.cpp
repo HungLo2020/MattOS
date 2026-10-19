@@ -6,23 +6,85 @@
 
 #include "outputsmodel.h"
 #include <KLocalizedString>
+#include <QDBusConnection>
+#include <QDBusMessage>
+#include <QDBusPendingCallWatcher>
+#include <QDBusReply>
+#include <QDir>
 #include <QGuiApplication>
 #include <QIcon>
+#include <QStandardPaths>
+#include <QTemporaryFile>
+#include <QWaylandClientExtensionTemplate>
 
 #include <algorithm>
+#include <ranges>
+
+#include "debug.h"
+#include "qwayland-kde-output-order-v1.h"
 
 using namespace Qt::StringLiterals;
 
-OutputsModel::OutputsModel(Options o, QObject *parent)
-    : QAbstractListModel(parent)
+namespace
 {
+template<typename Output, typename Input>
+Output narrow(Input i)
+{
+    Output o = i;
+    if (i != Input(o)) {
+        std::abort();
+    }
+    if (const auto sameSignedness = (std::is_signed_v<Input> && std::is_signed_v<Output>); !sameSignedness && ((i < Input{}) != (o < Output{}))) {
+        std::abort();
+    }
+    return o;
+}
+} // namespace
 
-    if (o & VirtualIncluded) {
-        m_outputs << Output{Output::Virtual, nullptr, i18n("Share virtual screen"), QStringLiteral("Virtual"), {}};
+class OutputOrder : public QWaylandClientExtensionTemplate<OutputOrder, &QtWayland::kde_output_order_v1::destroy>, public QtWayland::kde_output_order_v1
+{
+    Q_OBJECT
+public:
+    using QWaylandClientExtensionTemplate::QWaylandClientExtensionTemplate;
+
+    bool m_streaming = false;
+    std::optional<QList<QString>> m_outputs;
+
+Q_SIGNALS:
+    void outputsChanged();
+
+protected:
+    void kde_output_order_v1_output(const QString &output_name) override
+    {
+        if (!m_streaming) {
+            m_outputs = QList<QString>(); // (re)set
+            m_streaming = true;
+        }
+        m_outputs->append(output_name);
     }
 
+    void kde_output_order_v1_done() override
+    {
+        Q_ASSERT(m_streaming);
+        m_streaming = false;
+        Q_EMIT outputsChanged();
+    }
+};
+
+OutputsModel::OutputsModel(Options o, QObject *parent)
+    : QAbstractListModel(parent)
+    , m_outputOrder(std::make_unique<OutputOrder>(/* version= */ 1))
+{
+    // Be mindful that all output changes trigger the slot. Otherwise we may end up with unsorted outputs!
+    // Specifically should we ever need to listen to QGuiApplication::screenAdded.
+    connect(m_outputOrder.get(), &OutputOrder::outputsChanged, this, &OutputsModel::onOutputsChanged);
+
     if (o & RegionIncluded) {
-        m_outputs << Output{Output::Region, nullptr, i18n("Share region"), u"Region"_s, {}};
+        m_outputs << Output{Output::Region, nullptr, i18n("Share region"), u"Region"_s, {}, nullptr};
+    }
+
+    if (o & VirtualIncluded) {
+        m_outputs << Output{Output::Virtual, nullptr, i18n("Share virtual screen"), QStringLiteral("Virtual"), {}, nullptr};
     }
 
     if (o & OutputsExcluded) {
@@ -33,7 +95,7 @@ OutputsModel::OutputsModel(Options o, QObject *parent)
 
     // Only show the full workspace if there's several outputs
     if (screens.count() > 1 && (o & WorkspaceIncluded)) {
-        m_outputs.prepend(Output{Output::Workspace, nullptr, i18n("Share full Workspace"), u"Workspace"_s, {}});
+        m_outputs.prepend(Output{Output::Workspace, nullptr, i18n("Share full Workspace"), u"Workspace"_s, {}, nullptr});
     }
 
     connect(qGuiApp, &QGuiApplication::screenRemoved, this, [this](QScreen *screen) {
@@ -46,7 +108,7 @@ OutputsModel::OutputsModel(Options o, QObject *parent)
         }
     });
 
-    for (const auto screen : screens) {
+    for (const auto &screen : screens) {
         Output::OutputType type = Output::Unknown;
 
         static const auto embedded = {
@@ -56,19 +118,14 @@ OutputsModel::OutputsModel(Options o, QObject *parent)
             QLatin1String("LCD"),
         };
 
-        for (const auto &prefix : embedded) {
-            if (screen->name().startsWith(prefix, Qt::CaseInsensitive)) {
-                type = Output::OutputType::Laptop;
-                break;
-            }
-        }
-
-        if (type == Output::OutputType::Unknown) {
-            if (screen->name().contains(QLatin1String("TV"))) {
-                type = Output::OutputType::Television;
-            } else {
-                type = Output::OutputType::Monitor;
-            }
+        if (std::ranges::any_of(embedded, [screen](const QString &prefix) {
+                return screen->name().startsWith(prefix, Qt::CaseInsensitive);
+            })) {
+            type = Output::OutputType::Laptop;
+        } else if (screen->name().contains(QLatin1String("TV"))) {
+            type = Output::OutputType::Television;
+        } else {
+            type = Output::OutputType::Monitor;
         }
 
         QString displayText;
@@ -98,7 +155,46 @@ OutputsModel::OutputsModel(Options o, QObject *parent)
         }
 
         const QPoint pos = screen->geometry().topLeft();
-        m_outputs << Output(type, screen, displayText, QStringLiteral("%1x%2").arg(pos.x()).arg(pos.y()), screen->name());
+        const QString uniqueId = QStringLiteral("%1x%2").arg(pos.x()).arg(pos.y());
+
+        // set up an async wallpaper grab
+        QString dirPath = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation) + u"/xdg-desktop-portal-kde/screen-grabs";
+        QDir().mkpath(dirPath);
+        QString path = dirPath + u"/%1.XXXXXX.webp"_s.arg(uniqueId);
+        auto temporaryFile = std::make_shared<QTemporaryFile>(path);
+        if (!temporaryFile->open()) {
+            qCWarning(XdgDesktopPortalKde) << "Failed to create temporary file for screen grab of output" << uniqueId << ":" << temporaryFile->errorString();
+            continue;
+        }
+
+        auto msg = QDBusMessage::createMethodCall(u"org.kde.plasmashell"_s, u"/PlasmaShell"_s, u"org.kde.PlasmaShell"_s, u"grabContainmentImage"_s);
+        msg << screen->name() << /* width= */ 0 << /* height= */ 0 << temporaryFile->fileName();
+        auto watcher = new QDBusPendingCallWatcher(QDBusConnection::sessionBus().asyncCall(msg), this);
+        connect(
+            watcher,
+            &QDBusPendingCallWatcher::finished,
+            this,
+            [this, uniqueId, watcher, temporaryFile]() {
+                watcher->deleteLater();
+                const QDBusReply<bool> reply = watcher->reply();
+                if (!reply.isValid()) {
+                    qWarning() << "Failed to get desktop containment image for output" << uniqueId << ":" << reply.error();
+                    return;
+                }
+
+                // freebsd doesn't have std::views::enumerate. It'd be vastly more convenient :( - 2026-03-24
+                for (const auto &[outputIndex, output] : std::views::zip(std::views::iota(0), m_outputs)) {
+                    if (output.uniqueId() == uniqueId) {
+                        output.setImage(QUrl::fromLocalFile(temporaryFile->fileName()));
+                        const auto idx = index(narrow<int>(outputIndex), 0);
+                        Q_EMIT dataChanged(idx, idx, {ImageUrlRole});
+                        break;
+                    }
+                }
+            },
+            Qt::SingleShotConnection);
+
+        m_outputs << Output(type, screen, displayText, uniqueId, screen->name(), temporaryFile);
     }
 
     // Partition so that real outputs come first. This is the order in which we want to visualize them in the UI.
@@ -125,6 +221,8 @@ QHash<int, QByteArray> OutputsModel::roleNames() const
         {IsSyntheticRole, "isSynthetic"},
         {DescriptionRole, "description"},
         {GeometryRole, "geometry"},
+        {ImageUrlRole, "imageUrl"},
+        {IdRole, "uniqueId"},
     };
 }
 
@@ -146,12 +244,16 @@ QVariant OutputsModel::data(const QModelIndex &index, int role) const
         return output.description();
     case GeometryRole:
         return output.screen() ? output.screen()->geometry() : QRect();
+    case ImageUrlRole:
+        return output.imageUrl();
     case Qt::DecorationRole:
         return QIcon::fromTheme(output.iconName());
     case Qt::DisplayRole:
         return output.display();
     case Qt::CheckStateRole:
         return m_selectedRows.contains(index.row()) ? Qt::Checked : Qt::Unchecked;
+    case IdRole:
+        return output.uniqueId();
     }
     return {};
 }
@@ -197,6 +299,26 @@ void OutputsModel::clearSelection()
         }
     }
     Q_EMIT hasSelectionChanged();
+}
+
+void OutputsModel::onOutputsChanged()
+{
+    const auto order = m_outputOrder->m_outputs;
+    if (!order) { // We don't have an order yet, we'll run again when there is one.
+        return;
+    }
+
+    // Order doesn't change nearly enough to justify a more surgical approach, reset the entire model.
+    beginResetModel();
+    std::ranges::stable_sort(m_outputs, [&order](const Output &a, const Output &b) {
+        const auto indexA = std::ranges::find(*order, a.name());
+        const auto indexB = std::ranges::find(*order, b.name());
+        if (indexA == order->end() || indexB == order->end()) {
+            return false;
+        }
+        return std::distance(order->begin(), indexA) < std::distance(order->begin(), indexB);
+    });
+    endResetModel();
 }
 
 QList<Output> OutputsModel::selectedOutputs() const
@@ -249,7 +371,7 @@ QString Output::description() const
     case Workspace:
         return i18nc("@info", "Share the entire workspace across all screens");
     case Virtual:
-        return i18nc("@info", "Creates a screen inside a window, then share");
+        return i18nc("@info", "Create a virtual screen, then share");
     case Region:
         return i18nc("@info", "Crops a specific area of your screens");
     case Laptop:
@@ -279,3 +401,4 @@ bool Output::isSynthetic() const
 }
 
 #include "moc_outputsmodel.cpp"
+#include "outputsmodel.moc"

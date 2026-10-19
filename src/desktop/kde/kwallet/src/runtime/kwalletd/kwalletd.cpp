@@ -9,27 +9,17 @@
 #include <QDBusConnection>
 #include <QDebug>
 
-#include <KConfig>
-#include <KConfigGroup>
 #include <KLocalizedString>
 #include <KPasswordDialog>
 
 #include "kwalletadaptor.h"
+#include "kwalletsettings.h"
 #include "secretserviceclient.h"
 
 #include "../kwalletbackend/kwalletbackend.h"
 #include "../kwalletbackend/kwalletentry.h"
 
 unsigned int KWalletD::s_lastTransaction = 0;
-
-static void startManagerForKwalletd()
-{
-    if (!QStandardPaths::findExecutable(QStringLiteral("kstart")).isEmpty()) {
-        QProcess::startDetached(QStringLiteral("kstart"), {QStringLiteral("--application"), QStringLiteral("kwalletmanager5-kwalletd")});
-    } else {
-        QProcess::startDetached(QStringLiteral("kwalletmanager5"), QStringList{QStringLiteral("--kwalletd")});
-    }
-}
 
 KWalletD::KWalletD(QObject *parent)
     : QObject(parent)
@@ -88,21 +78,15 @@ KWalletD::KWalletD(QObject *parent)
     connect(m_backend, &SecretServiceClient::collectionCreated, this, &KWalletD::walletCreated);
     connect(m_backend, &SecretServiceClient::collectionDeleted, this, &KWalletD::walletDeleted);
     connect(m_backend, &SecretServiceClient::collectionListDirty, this, &KWalletD::walletListDirty);
-
-    reconfigure();
-
-    m_configWatcher = KConfigWatcher::create(KSharedConfig::openConfig(QStringLiteral("kwalletrc")));
-    connect(m_configWatcher.data(), &KConfigWatcher::configChanged, this, [this]() {
-        bool ok = false;
-        KConfig cfg(QStringLiteral("kwalletrc"));
-        KConfigGroup walletGroup(&cfg, QStringLiteral("Wallet"));
-        const QString defaultCollection = m_backend->defaultCollection(&ok);
-        const QString newDefaultWallet = walletGroup.readEntry(QStringLiteral("Default Wallet"), defaultCollection);
-
-        if (newDefaultWallet != defaultCollection) {
-            m_backend->setDefaultCollection(newDefaultWallet, &ok);
+    connect(m_backend, &SecretServiceClient::collectionLockedChanged, this, [this](const QString &collection, bool locked) {
+        if (isOpen(collection) && locked) {
+            close(collection, true);
+        } else if (!isOpen(collection) && !locked) {
+            Q_EMIT walletOpened(collection);
         }
     });
+
+    reconfigure();
 }
 
 KWalletD::~KWalletD()
@@ -112,7 +96,7 @@ KWalletD::~KWalletD()
 bool KWalletD::migrateWallet(const QString &sourceWallet, const QString &destWallet)
 {
     qCWarning(KWALLETD_LOG) << "Migrating" << sourceWallet;
-    KWallet::Backend backend(sourceWallet, sourceWallet.endsWith(QStringLiteral(".kwl")));
+    KWallet::Backend backend(sourceWallet);
     backend.open(QByteArray());
     while (!backend.isOpen()) {
         KPasswordDialog dlg;
@@ -182,15 +166,14 @@ void KWalletD::migrateData()
     if (!m_backend->isAvailable() || m_backend->useKSecretBackend()) {
         return;
     }
-    KConfig cfg(QStringLiteral("kwalletrc"));
-    KConfigGroup walletGroup(&cfg, QStringLiteral("Wallet"));
-    KConfigGroup migrationGroup(&cfg, QStringLiteral("Migration"));
 
-    if (!migrationGroup.readEntry(QStringLiteral("MigrateTo3rdParty"), false)) {
+    KWalletSettings settings;
+
+    if (!settings.migrateTo3rdParty()) {
         return;
     }
 
-    QStringList walletsMigrated = migrationGroup.readEntry(QStringLiteral("WalletsMigratedToSecretService"), QStringList());
+    QStringList walletsMigrated = settings.walletsMigratedToSecretService();
 
     // Get the list of all known kwallets
     const QString path = KWallet::Backend::getSaveLocation();
@@ -211,7 +194,7 @@ void KWalletD::migrateData()
     }
 
     bool ok = false;
-    const QString oldDefaultWallet = walletGroup.readEntry(QStringLiteral("Default Wallet"), QStringLiteral("kdewallet"));
+    const QString oldDefaultWallet = settings.defaultWallet();
     for (const QString &sourceWallet : std::as_const(wallets)) {
         QString destWallet = sourceWallet;
         // Use the SecretService default collection as the new default wallet
@@ -226,22 +209,12 @@ void KWalletD::migrateData()
         }
     }
 
-    // The default wallet will always be the one Secret Service says
-    walletGroup.writeEntry(QStringLiteral("Default Wallet"), m_backend->defaultCollection(&ok));
-
-    migrationGroup.writeEntry(QStringLiteral("WalletsMigratedToSecretService"), walletsMigrated);
-    cfg.sync();
+    settings.setWalletsMigratedToSecretService(walletsMigrated);
+    settings.save();
 }
 
 QString KWalletD::walletForHandle(int handle, const QString &appId)
 {
-    // This is called by all accessing functions, so reset the idle timer here
-    if (m_closeIdle) {
-        const QPair<int, QString> key(handle, appId);
-        killTimer(m_idleTimers[key]);
-        m_idleTimers[key] = startTimer(m_idleTime);
-    }
-
     const QString walletName = m_openWallets.value(QPair<int, QString>(handle, appId));
 
     return walletName;
@@ -312,19 +285,6 @@ void KWalletD::removeItem(const QString &key, const QString &folder, const QStri
     m_backend->deleteEntry(key, folder, wallet, ok);
 }
 
-void KWalletD::timerEvent(QTimerEvent *ev)
-{
-    const int timer = ev->timerId();
-
-    for (auto it = m_idleTimers.constBegin(); it != m_idleTimers.end(); it++) {
-        if (it.value() == timer) {
-            close(it.key().first, true, it.key().second);
-            break;
-        }
-    }
-    killTimer(timer);
-}
-
 // KWallet API
 
 bool KWalletD::isEnabled() const
@@ -363,10 +323,6 @@ int KWalletD::openInternal(const QString &wallet, qlonglong wId, const QString &
 
     m_openWallets[QPair<int, QString>(rnd, appId)] = wallet;
 
-    if (m_closeIdle) {
-        m_idleTimers[QPair<int, QString>(rnd, appId)] = startTimer(m_idleTime);
-    }
-
     return rnd;
 }
 
@@ -379,15 +335,6 @@ int KWalletD::open(const QString &wallet, qlonglong wId, const QString &appId)
 
     Q_EMIT walletOpened(wallet);
     return rnd;
-}
-
-int KWalletD::openPath(const QString &path, qlonglong wId, const QString &appId)
-{
-    // This is intended to just be a stub, so it will always fail
-    Q_UNUSED(path);
-    Q_UNUSED(wId);
-    Q_UNUSED(appId);
-    return -1;
 }
 
 int KWalletD::openAsync(const QString &wallet, qlonglong wId, const QString &appId, bool handleSession)
@@ -409,16 +356,6 @@ int KWalletD::openAsync(const QString &wallet, qlonglong wId, const QString &app
     });
 
     return tid;
-}
-
-int KWalletD::openPathAsync(const QString &path, qlonglong wId, const QString &appId, bool handleSession)
-{
-    // This is intended to just be a stub, so it will always fail
-    Q_UNUSED(path);
-    Q_UNUSED(wId);
-    Q_UNUSED(appId);
-    Q_UNUSED(handleSession);
-    return -1;
 }
 
 int KWalletD::close(const QString &wallet, bool force)
@@ -550,16 +487,16 @@ void KWalletD::changePassword(const QString &wallet, qlonglong wId, const QStrin
         return;
     }
 
-    QDBusInterface legacyKWalletInterface(QStringLiteral("org.kde.ksecretd"),
+    QDBusInterface kwalletCompatInterface(QStringLiteral("org.kde.ksecretd"),
                                           QStringLiteral("/ksecretd"),
-                                          QStringLiteral("org.kde.KWallet"),
+                                          QStringLiteral("org.kde.kwalletcompat"),
                                           QDBusConnection::sessionBus());
 
-    if (!legacyKWalletInterface.isValid()) {
+    if (!kwalletCompatInterface.isValid()) {
         return;
     }
 
-    legacyKWalletInterface.asyncCall(QStringLiteral("changePassword"), wallet, wId, appId);
+    kwalletCompatInterface.asyncCall(QStringLiteral("changePassword"), wallet, wId, appId);
 }
 
 QStringList KWalletD::wallets() const
@@ -1012,16 +949,10 @@ bool KWalletD::disconnectApplication(const QString &wallet, const QString &appli
 
 void KWalletD::reconfigure()
 {
-    KConfig cfg(QStringLiteral("kwalletrc"));
-    KConfigGroup walletGroup(&cfg, QStringLiteral("Wallet"));
+    KWalletSettings settings;
+
     const bool wasEnabled = m_enabled;
-    m_enabled = walletGroup.readEntry("Enabled", true);
-    m_launchManager = walletGroup.readEntry("Launch Manager", false);
-    const bool closeIdle = m_closeIdle;
-    m_closeIdle = walletGroup.readEntry("Close When Idle", false);
-    const int idleTime = m_idleTime;
-    // in minutes!
-    m_idleTime = walletGroup.readEntry("Idle Timeout", 10) * 60 * 1000;
+    m_enabled = settings.kWalletDEnabled();
 
     if (wasEnabled != m_enabled) {
         if (isEnabled()) {
@@ -1029,28 +960,6 @@ void KWalletD::reconfigure()
         } else {
             closeAllWallets();
         }
-    }
-
-    if (closeIdle != m_closeIdle) {
-        if (m_closeIdle) {
-            for (auto it = m_openWallets.constBegin(); it != m_openWallets.constEnd(); it++) {
-                m_idleTimers[it.key()] = startTimer(m_idleTime);
-            }
-        } else {
-            for (auto it = m_idleTimers.constBegin(); it != m_idleTimers.constEnd(); it++) {
-                killTimer(it.value());
-            }
-            m_idleTimers.clear();
-        }
-    } else if (idleTime != m_idleTime) {
-        for (auto it = m_idleTimers.begin(); it != m_idleTimers.constEnd(); it++) {
-            killTimer(it.value());
-            *it = (startTimer(m_idleTime));
-        }
-    }
-
-    if (m_launchManager) {
-        startManagerForKwalletd();
     }
 }
 
@@ -1103,33 +1012,29 @@ QString KWalletD::networkWallet()
     bool ok;
     const QString defaultWallet = m_backend->defaultCollection(&ok);
 
-    KConfig cfg(QStringLiteral("kwalletrc"));
-    KConfigGroup walletGroup(&cfg, QStringLiteral("Wallet"));
-    return walletGroup.readEntry(QStringLiteral("Default Wallet"), defaultWallet);
+    if (!ok) {
+        sendErrorReply(QDBusError::Failed, QStringLiteral("Failed to query default collection"));
+        return {};
+    }
+    return defaultWallet;
 }
 
 QString KWalletD::localWallet()
 {
-    KConfig cfg(QStringLiteral("kwalletrc"));
-    KConfigGroup walletGroup(&cfg, QStringLiteral("Wallet"));
-    return walletGroup.readEntry(QStringLiteral("Local Wallet"), networkWallet());
-}
+    KWalletSettings settings;
 
-int KWalletD::pamOpen(const QString &wallet, const QByteArray &passwordHash, int sessionTimeout)
-{
-    if (!m_backend->useKSecretBackend()) {
-        return -1;
+    if (settings.kSecretDEnabled()) {
+        return KWallet::Backend::localWallet();
+    } else {
+        bool ok;
+        const QString defaultWallet = m_backend->defaultCollection(&ok);
+
+        if (!ok) {
+            sendErrorReply(QDBusError::Failed, QStringLiteral("Failed to query default collection"));
+            return {};
+        }
+        return defaultWallet;
     }
-
-    QDBusInterface secretdInterface(QStringLiteral("org.kde.ksecretd"),
-                                    QStringLiteral("/ksecretd"),
-                                    QStringLiteral("org.kde.KWallet"),
-                                    QDBusConnection::sessionBus());
-
-    secretdInterface.call(QStringLiteral("pamOpen"), wallet, passwordHash, sessionTimeout);
-
-    // Return value is not much important as is not exposed on dbus
-    return 0;
 }
 
 #include "moc_kwalletd.cpp"

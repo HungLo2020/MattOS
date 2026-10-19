@@ -80,50 +80,47 @@ void DimInactiveEffect::reconfigure(ReconfigureFlags flags)
         ? m_activeWindow->group()
         : nullptr;
 
-    m_fullScreenTransition.timeLine.setDuration(
-        std::chrono::milliseconds(static_cast<int>(animationTime(250ms))));
+    m_fullScreenTransition.timeLine.setDuration(animationTime(250ms));
 
     effects->addRepaintFull();
 }
 
-void DimInactiveEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void DimInactiveEffect::prePaintScreen(ScreenPrePaintData &data)
 {
     if (m_fullScreenTransition.active) {
-        m_fullScreenTransition.timeLine.advance(presentTime);
+        m_fullScreenTransition.timeLine.advance(data.view);
     }
 
     auto transitionIt = m_transitions.begin();
     while (transitionIt != m_transitions.end()) {
-        (*transitionIt).advance(presentTime);
+        (*transitionIt).advance(data.view);
         ++transitionIt;
     }
 
-    effects->prePaintScreen(data, presentTime);
+    effects->prePaintScreen(data);
 }
 
-void DimInactiveEffect::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
+bool DimInactiveEffect::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
 {
     auto transitionIt = m_transitions.constFind(w);
     if (transitionIt != m_transitions.constEnd()) {
         const qreal transitionProgress = (*transitionIt).value();
         dimWindow(data, m_dimStrength * transitionProgress);
-        effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
-        return;
+        return effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
     }
 
     auto forceIt = m_forceDim.constFind(w);
     if (forceIt != m_forceDim.constEnd()) {
         const qreal forcedStrength = *forceIt;
         dimWindow(data, forcedStrength);
-        effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
-        return;
+        return effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
     }
 
     if (canDimWindow(w)) {
         dimWindow(data, m_dimStrength);
     }
 
-    effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
+    return effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
 }
 
 void DimInactiveEffect::postPaintScreen()
@@ -208,8 +205,7 @@ bool DimInactiveEffect::canDimWindow(const EffectWindow *w) const
 void DimInactiveEffect::scheduleInTransition(EffectWindow *w)
 {
     TimeLine &timeLine = m_transitions[w];
-    timeLine.setDuration(
-        std::chrono::milliseconds(static_cast<int>(animationTime(160ms))));
+    timeLine.setDuration(animationTime(160ms));
     if (timeLine.done()) {
         // If the Out animation is still active, then we're truncating
         // duration of the timeline(from 250ms to 160ms). If the timeline
@@ -243,8 +239,7 @@ void DimInactiveEffect::scheduleGroupInTransition(EffectWindow *w)
 void DimInactiveEffect::scheduleOutTransition(EffectWindow *w)
 {
     TimeLine &timeLine = m_transitions[w];
-    timeLine.setDuration(
-        std::chrono::milliseconds(static_cast<int>(animationTime(250ms))));
+    timeLine.setDuration(animationTime(250ms));
     if (timeLine.done()) {
         timeLine.reset();
     }

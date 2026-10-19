@@ -45,8 +45,9 @@ AppletsLayout::AppletsLayout(QQuickItem *parent)
         }
         // We can't save the layout during boot-up, for performance reasons and to avoid race conditions as much as possible, so if we
         // need to save and still starting up, don't actually save now, but we will when Corona::startupCompleted is emitted
+        // or if something explicitly saves and at least the affected containment is ready.
 
-        if (!m_configKey.isEmpty() && m_containment && m_containment->corona()->isStartupCompleted()) {
+        if (!m_configKey.isEmpty() && m_containment && m_containment->isUiReady()) {
             const QString serializedConfig = m_layoutManager->serializeLayout();
             m_containment->config().writeEntry(m_configKey, serializedConfig);
             m_containment->config().writeEntry(m_fallbackConfigKey, serializedConfig);
@@ -434,7 +435,12 @@ void AppletsLayout::showPlaceHolderForItem(ItemContainer *item)
     m_placeHolder->setPosition(item->position());
     m_placeHolder->setSize(item->size());
 
+    // Make the placeholder respect the minimum size defined by the applet
+    m_placeHolder->m_layoutAttached = item->layoutAttached();
+
     m_layoutManager->positionItem(m_placeHolder);
+
+    m_placeHolder->m_layoutAttached = nullptr;
 
     m_placeHolder->setProperty("opacity", 1);
 }
@@ -494,8 +500,8 @@ void AppletsLayout::geometryChange(const QRectF &newGeometry, const QRectF &oldG
         return;
     }
 
-    // Don't care for anything happening before startup completion
-    if (!m_containment || !m_containment->corona() || !m_containment->corona()->isStartupCompleted()) {
+    // Don't care for anything happening before the containment is ready
+    if (!m_containment || !m_containment->corona() || !m_containment->isUiReady()) {
         QQuickItem::geometryChange(newGeometry, oldGeometry);
         return;
     }
@@ -556,7 +562,7 @@ void AppletsLayout::componentComplete()
 
     if (m_containment && m_containment->corona()) {
         // We inhibit save during startup, so actually save now that startup is completed
-        connect(m_containment->corona(), &Plasma::Corona::startupCompleted, this, [this]() {
+        connect(m_containment, &Plasma::Containment::uiReadyChanged, this, [this]() {
             save();
         });
         // When the screen geometry changes, we need to know the geometry just before it did, so we can apply out heuristic of keeping the distance with borders
@@ -613,7 +619,8 @@ void AppletsLayout::mousePressEvent(QMouseEvent *event)
 
 void AppletsLayout::mouseReleaseEvent(QMouseEvent *event)
 {
-    handleReleaseEvent(event->scenePosition());
+    Q_UNUSED(event)
+    handleReleaseEvent();
 }
 
 void AppletsLayout::touchEvent(QTouchEvent *event)
@@ -626,7 +633,7 @@ void AppletsLayout::touchEvent(QTouchEvent *event)
     }
 
     if (event->type() == QEvent::TouchCancel) {
-        handleReleaseEvent(point.scenePosition());
+        handleReleaseEvent();
         return;
     }
 
@@ -658,7 +665,7 @@ void AppletsLayout::touchEvent(QTouchEvent *event)
     }
 
     case QEventPoint::State::Released: {
-        handleReleaseEvent(point.scenePosition());
+        handleReleaseEvent();
         break;
     }
 
@@ -792,13 +799,8 @@ AppletContainer *AppletsLayout::createContainerForApplet(PlasmaQuick::AppletQuic
     return container;
 }
 
-void AppletsLayout::handleReleaseEvent(const QPointF &scenePosition)
+void AppletsLayout::handleReleaseEvent()
 {
-    if (m_editMode && m_touchDownWasEditMode
-        && QPointF(scenePosition - m_touchDownPosition).manhattanLength() < QGuiApplication::styleHints()->startDragDistance()) {
-        setEditMode(false);
-    }
-
     m_pressAndHoldTimer->stop();
 
     if (m_editMode) {

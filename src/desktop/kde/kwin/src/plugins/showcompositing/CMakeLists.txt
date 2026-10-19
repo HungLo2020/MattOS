@@ -10,15 +10,6 @@ set(showcompositing_SOURCES
 
 kwin_add_builtin_effect(showcompositing ${showcompositing_SOURCES})
 
-ecm_add_qml_module(showcompositing
-    URI org.kde.kwin.showcompositing
-    QML_FILES
-          qml/Main.qml
-    QT_NO_PLUGIN
-)
-
 target_link_libraries(showcompositing PRIVATE
     kwin
-    KF6::I18n
-    Qt::Quick
 )

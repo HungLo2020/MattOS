@@ -127,6 +127,7 @@ Kirigami.GlobalDrawer {
             visible: enabled && drawer.wideScreen
         },
         ActionListItem {
+            id: updateItem
             objectName: "updateButton"
             action: updateAction
             visible: enabled && drawer.wideScreen
@@ -142,42 +143,28 @@ Kirigami.GlobalDrawer {
                     source: "view-refresh"
                     implicitWidth: Kirigami.Units.iconSizes.sizeForLabels
                     implicitHeight: Kirigami.Units.iconSizes.sizeForLabels
+                    selected: updateItem.highlighted || updateItem.pressed
                 }
             }
 
             Component {
                 id: updatesCountLabel
 
-                Rectangle {
-                    anchors.centerIn: parent
-                    implicitWidth: Math.max(Kirigami.Units.gridUnit * 1.5, badgeLabel.implicitWidth + Kirigami.Units.smallSpacing * 1.5)
-                    implicitHeight: badgeLabel.implicitHeight
+                Kirigami.Badge {
                     visible: Discover.ResourcesModel.updatesCount > 0
 
-                    color: Kirigami.Theme.neutralTextColor
+                    type: Discover.ResourcesModel.hasSecurityUpdates
+                        ? Kirigami.Badge.Type.Warning
+                        : Kirigami.Badge.Type.Information
 
-                    radius: height / 4
-                    border.width: 1
-                    border.color: Kirigami.Theme.backgroundColor
-
-                    HoverHandler { id: hoverHandler }
+                    text: Discover.ResourcesModel.updatesCount
 
                     QQC2.ToolTip.text: Discover.ResourcesModel.hasSecurityUpdates
                         ? i18n("Security updates available")
                         : i18n("Updates available")
+                    QQC2.ToolTip.visible: activeFocus || hovered
+                    QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
 
-                    QQC2.ToolTip.visible: hoverHandler.hovered
-
-                    QQC2.Label {
-                        id: badgeLabel
-                        anchors.fill: parent
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-
-                        text: Discover.ResourcesModel.updatesCount
-                        color: "black"
-                        font: Kirigami.Theme.defaultFont
-                    }
                 }
             }
         },
@@ -243,7 +230,7 @@ Kirigami.GlobalDrawer {
             icon.name: category?.icon + "-symbolic" ?? ""
             checked: itsMe
             enabled: (currentSearchText.length === 0
-                      || (category?.contains(window?.leftPage?.model?.subcategories) ?? false))
+                      || (category?.contains(window?.leftPage?.model?.subcategories ?? []) ?? false))
 
             visible: category?.visible
             onTriggered: {

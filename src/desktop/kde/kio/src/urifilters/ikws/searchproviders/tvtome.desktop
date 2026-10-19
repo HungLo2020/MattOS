@@ -3,6 +3,7 @@ Charset=utf8
 Keys=tvtome
 Name=TV Tome
 Name[af]=TV Tome
+Name[am]=TV Tome
 Name[ar]=TV Tome
 Name[as]=TV Tome
 Name[az]=TV Tome
@@ -61,6 +62,8 @@ Name[ml]=ടി.വി ടോം
 Name[mr]=टीवी टोम
 Name[ms]=TV Tome
 Name[my]=တီဗီကျမ်းစာအုပ်
+Name[nan_TW]=TV Tome
+Name[nan_TW@latin]=TV Tome
 Name[nb]=TV Tome
 Name[nds]=TV Tome
 Name[ne]=टीभी टोम
@@ -89,7 +92,6 @@ Name[tg]=Телевизиони хонагӣ
 Name[th]=TV Tome
 Name[tok]=lipu TV Tome
 Name[tr]=TV Kanalları
-Name[ug]=TV Tome
 Name[uk]=TV Tome
 Name[uz]=TV Tome
 Name[uz@cyrillic]=TV Tome
@@ -98,6 +100,7 @@ Name[wa]=TV Tome
 Name[zh_CN]=TV Tome
 Name[zh_TW]=TV Tome
 Query=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
+Query[am]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[ar]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[az]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[be]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
@@ -137,6 +140,8 @@ Query[lg]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[lt]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[lv]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[my]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
+Query[nan_TW]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
+Query[nan_TW@latin]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[nb]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[nl]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[nn]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
@@ -155,7 +160,6 @@ Query[tg]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[th]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[tok]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[tr]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
-Query[ug]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[uk]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[vi]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0
 Query[zh_CN]=https://www.tv.com/search.php?type=11&stype=all&qs=\\{@}&x=0&y=0

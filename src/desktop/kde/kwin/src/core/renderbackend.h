@@ -6,13 +6,16 @@
 
 #pragma once
 
+#include "core/drm_formats.h"
 #include "core/rendertarget.h"
 #include "effect/globals.h"
 #include "utils/filedescriptor.h"
 
+#include <QFlags>
 #include <QObject>
 #include <QPointer>
 #include <memory>
+#include <sys/types.h>
 
 namespace KWin
 {
@@ -22,8 +25,14 @@ class LogicalOutput;
 class OutputLayer;
 class PresentationFeedback;
 class RenderLoop;
-class DrmDevice;
 class SyncTimeline;
+class RenderDevice;
+class OutputFrame;
+
+enum class PresentationFeedbackFlag {
+    ZeroCopy = 0x1,
+};
+Q_DECLARE_FLAGS(PresentationFeedbackFlags, PresentationFeedbackFlag)
 
 class PresentationFeedback
 {
@@ -33,10 +42,11 @@ public:
     PresentationFeedback(PresentationFeedback &&move) = default;
     virtual ~PresentationFeedback() = default;
 
-    virtual void presented(std::chrono::nanoseconds refreshCycleDuration, std::chrono::nanoseconds timestamp, PresentationMode mode) = 0;
+    virtual void presented(OutputFrame *frame, std::chrono::nanoseconds timestamp,
+                           PresentationMode mode, PresentationFeedbackFlags flags) = 0;
 };
 
-struct RenderTimeSpan
+struct KWIN_EXPORT RenderTimeSpan
 {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::time_point{std::chrono::nanoseconds::zero()};
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::time_point{std::chrono::nanoseconds::zero()};
@@ -76,7 +86,7 @@ public:
 
     void presented(std::chrono::nanoseconds timestamp, PresentationMode mode);
 
-    void addFeedback(std::shared_ptr<PresentationFeedback> &&feedback);
+    void addFeedback(std::shared_ptr<PresentationFeedback> &&feedback, PresentationFeedbackFlags flags);
 
     void setContentType(ContentType type);
     std::optional<ContentType> contentType() const;
@@ -99,14 +109,20 @@ public:
     std::optional<double> artificialHdrHeadroom() const;
     void setArtificialHdrHeadroom(double edr);
 
-private:
     std::optional<RenderTimeSpan> queryRenderTime() const;
+    std::optional<RenderTimeSpan> queryCpuRenderTime() const;
 
+private:
     const QPointer<RenderLoop> m_loop;
     const std::chrono::nanoseconds m_refreshDuration;
     const std::chrono::steady_clock::time_point m_targetPageflipTime;
     const std::chrono::nanoseconds m_predictedRenderTime;
-    std::vector<std::shared_ptr<PresentationFeedback>> m_feedbacks;
+    struct Feedback
+    {
+        std::shared_ptr<PresentationFeedback> feedback;
+        PresentationFeedbackFlags flags;
+    };
+    std::vector<Feedback> m_feedbacks;
     std::optional<ContentType> m_contentType;
     PresentationMode m_presentationMode = PresentationMode::VSync;
     std::vector<std::unique_ptr<RenderTimeQuery>> m_renderTimeQueries;
@@ -130,10 +146,12 @@ public:
 
     virtual QList<OutputLayer *> compatibleOutputLayers(BackendOutput *output) = 0;
 
-    virtual DrmDevice *drmDevice() const;
+    virtual RenderDevice *renderDevice() const;
 
-    virtual bool testImportBuffer(GraphicsBuffer *buffer);
-    virtual QHash<uint32_t, QList<uint64_t>> supportedFormats() const;
+    virtual bool testImportBuffer(GraphicsBuffer *buffer, dev_t targetDevice);
+    virtual FormatModifierMap supportedFormats() const;
 };
 
 } // namespace KWin
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(KWin::PresentationFeedbackFlags)

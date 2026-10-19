@@ -1,5 +1,5 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
@@ -13,8 +13,9 @@
 #include "input.h"
 #include "input_event.h"
 #include "input_event_spy.h"
-#include "pointer_input.h"
+#include "keyboard_input.h"
 #include "workspace.h"
+#include "xkb.h"
 
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -74,7 +75,7 @@ static eis_device *createAbsoluteDevice(eis_seat *seat)
     const auto outputs = workspace()->outputs();
     for (const auto output : outputs) {
         auto region = eis_device_new_region(eisDevice);
-        const QRect outputGeometry = output->geometry();
+        const Rect outputGeometry = output->geometry();
         eis_region_set_offset(region, outputGeometry.x(), outputGeometry.y());
         eis_region_set_size(region, outputGeometry.width(), outputGeometry.height());
         eis_region_set_physical_scale(region, output->scale());
@@ -163,22 +164,25 @@ eis_device *EisInputCapture::absoluteDevice() const
     return m_absoluteDevice;
 }
 
-void EisInputCapture::activate(const QPointF &position)
+void EisInputCapture::activate(uint id, const QPointF &position)
 {
-    Q_EMIT activated(++m_activationId, position);
+    Q_EMIT activated(++m_activationId, id, position);
     if (m_pointer) {
         eis_device_start_emulating(m_pointer, m_activationId);
     }
     if (m_keyboard) {
         eis_device_start_emulating(m_keyboard, m_activationId);
+        const auto modifierState = input()->keyboard()->xkb()->modifierState();
+        eis_device_keyboard_send_xkb_modifiers(m_keyboard, modifierState.depressed, modifierState.latched, modifierState.locked, input()->keyboard()->xkb()->currentLayout());
     }
     if (m_absoluteDevice) {
         eis_device_start_emulating(m_absoluteDevice, m_activationId);
     }
 }
 
-void EisInputCapture::deactivate()
+void EisInputCapture::deactivate(const std::optional<QPointF> &releasePosition)
 {
+    m_manager->deactivate(releasePosition);
     Q_EMIT deactivated(m_activationId);
     if (m_pointer) {
         eis_device_stop_emulating(m_pointer);
@@ -191,15 +195,15 @@ void EisInputCapture::deactivate()
     }
 }
 
-void EisInputCapture::enable(const QList<QPair<QPoint, QPoint>> &barriers)
+void EisInputCapture::enable(const QList<std::tuple<uint, QPoint, QPoint>> &barriers)
 {
     m_barriers.clear();
     m_barriers.reserve(barriers.size());
-    for (const auto &[p1, p2] : barriers) {
+    for (const auto &[id, p1, p2] : barriers) {
         if (p1.x() == p2.x()) {
-            m_barriers.push_back({.orientation = Qt::Vertical, .position = p1.x(), .start = p1.y(), .end = p2.y()});
+            m_barriers.push_back({.id = id, .orientation = Qt::Vertical, .position = p1.x(), .start = p1.y(), .end = p2.y()});
         } else if (p1.y() == p2.y()) {
-            m_barriers.push_back({.orientation = Qt::Horizontal, .position = p1.y(), .start = p1.x(), .end = p2.x()});
+            m_barriers.push_back({.id = id, .orientation = Qt::Horizontal, .position = p1.y(), .start = p1.x(), .end = p2.x()});
         }
     }
 }
@@ -207,7 +211,7 @@ void EisInputCapture::enable(const QList<QPair<QPoint, QPoint>> &barriers)
 void EisInputCapture::disable()
 {
     if (m_manager->activeCapture() == this) {
-        deactivate();
+        deactivate(std::nullopt);
     }
     m_barriers.clear();
     Q_EMIT disabled();
@@ -218,10 +222,7 @@ void EisInputCapture::release(const QPointF &cursorPosition, bool applyPosition)
     if (m_manager->activeCapture() != this) {
         return;
     }
-    if (applyPosition) {
-        input()->pointer()->warp(cursorPosition);
-    }
-    deactivate();
+    deactivate(applyPosition ? cursorPosition : std::optional<QPointF>{});
 }
 
 QDBusUnixFileDescriptor EisInputCapture::connectToEIS()
@@ -268,6 +269,7 @@ void EisInputCapture::handleEvents()
                 break;
             }
             qCDebug(KWIN_INPUTCAPTURE) << "Client disconnected" << eis_client_get_name(client);
+            eis_event_unref(event);
             eis_seat_unref(std::exchange(m_seat, nullptr));
             eis_client_unref(std::exchange(m_client, nullptr));
             m_manager->removeInputCapture(QDBusObjectPath(m_dbusPath));

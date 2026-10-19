@@ -948,7 +948,7 @@ void tst_QAccessibility::actionTest()
     QTestAccessibility::clearEvents();
 
     {
-    QCOMPARE(QAccessibleActionInterface::showMenuAction(), QString(QStringLiteral("ShowMenu")));
+    QCOMPARE(QAccessibleActionInterface::showMenuAction(), QString(QStringLiteral("Show Menu")));
 
     auto widgetHolder = std::make_unique<QWidget>();
     auto widget = widgetHolder.get();
@@ -1605,7 +1605,7 @@ void tst_QAccessibility::menuTest()
     QCOMPARE(iSeparator->role(), QAccessible::Separator);
     QCOMPARE(iHelp->role(), QAccessible::MenuItem);
     QCOMPARE(iAction->role(), QAccessible::MenuItem);
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
     QCOMPARE(mw.mapFromGlobal(interface->rect().topLeft()), mw.menuBar()->geometry().topLeft());
     QCOMPARE(interface->rect().size(), mw.menuBar()->size());
 
@@ -1623,7 +1623,7 @@ void tst_QAccessibility::menuTest()
     QCOMPARE(iAction->text(QAccessible::Name), QString("Action!"));
 
 // TODO: Currently not working, task to fix is #100019.
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
     QCOMPARE(iFile->text(QAccessible::Accelerator), tr("Alt+F"));
     QCOMPARE(iEdit->text(QAccessible::Accelerator), tr("Alt+E"));
     QCOMPARE(iSeparator->text(QAccessible::Accelerator), QString());
@@ -2043,6 +2043,10 @@ void tst_QAccessibility::textBrowserTest()
     QTextBrowser textBrowser;
     QString text = QLatin1String("Hello world\nhow are you today?\n");
     textBrowser.setText(text);
+#ifdef Q_OS_HARMONY
+    constexpr int widthWarrantingNoExtraLineBreaks = 500;
+    textBrowser.resize(widthWarrantingNoExtraLineBreaks, textBrowser.height());
+#endif
     textBrowser.show();
 
     QAccessibleInterface *iface = QAccessible::queryAccessibleInterface(&textBrowser);
@@ -2178,7 +2182,7 @@ void tst_QAccessibility::mdiSubWindowTest()
     const QRect widgetGeometry = testWindow->contentsRect();
     const QPoint globalWidgetPos = QPoint(globalPos.x() + widgetGeometry.x(),
                                           globalPos.y() + widgetGeometry.y());
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QSKIP("QTBUG-22812");
 #endif
     QCOMPARE(childRect(interface), QRect(globalWidgetPos, widgetGeometry.size()));
@@ -3293,11 +3297,22 @@ void tst_QAccessibility::treeTest()
     QVERIFY(!(cell2->state().expanded));
     QCOMPARE(table2->columnDescription(1), QString("Work"));
 
+#ifdef Q_OS_ANDROID
+    // The Java side may have turned accessibility off while we processed
+    // events above. Turn it back on, as expandAll() only sends the model
+    // reset that drops the tree's cached cells if accessibility is active.
+    initAccessibility();
+#endif
+
     treeView->expandAll();
 
     // Need this for indexOfchild to work.
     QCoreApplication::processEvents();
     QTest::qWait(100);
+
+    // Query again, as table updates might invalidate and delete interfaces
+    iface = QAccessible::queryAccessibleInterface(treeView.get());
+    table2 = iface->tableInterface();
 
     QCOMPARE(table2->columnCount(), 2);
     QCOMPARE(table2->rowCount(), 5);
@@ -3905,7 +3920,7 @@ void tst_QAccessibility::dockWidgetTest()
     QCOMPARE(dock1Widget->role(), QAccessible::Button);
     QCOMPARE(dock1Widget->text(QAccessible::Name), pb1->text());
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QEXPECT_FAIL("", "Dock Widget geometry on Mac seems broken.", Continue);
 #endif
     QVERIFY(accDock1->rect().contains(dock1Widget->rect()));
@@ -3934,7 +3949,7 @@ void tst_QAccessibility::dockWidgetTest()
     QAccessibleInterface *dock2Widget = accDock2->child(0);
     QCOMPARE(dock2Widget->role(), QAccessible::Button);
     QCOMPARE(dock2Widget->text(QAccessible::Name), pb1->text());
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QEXPECT_FAIL("", "Dock Widget geometry on Mac seems broken.", Continue);
 #endif
     QVERIFY(accDock2->rect().contains(dock2Widget->rect()));

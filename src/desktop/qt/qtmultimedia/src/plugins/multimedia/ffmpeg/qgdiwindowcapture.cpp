@@ -4,7 +4,7 @@
 #include "qgdiwindowcapture_p.h"
 
 #include "qvideoframe.h"
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 #include "private/qcapturablewindow_p.h"
 #include "private/qmemoryvideobuffer_p.h"
 #include "private/qvideoframe_p.h"
@@ -16,14 +16,14 @@ Q_STATIC_LOGGING_CATEGORY(qLcGdiWindowCapture, "qt.multimedia.ffmpeg.gdiwindowca
 
 QT_BEGIN_NAMESPACE
 
-class QGdiWindowCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
+class QGdiWindowCapture::Grabber : public QSurfaceCaptureGrabber
 {
 public:
     static std::unique_ptr<Grabber> create(QGdiWindowCapture &capture, HWND hWnd)
     {
         auto hdcWindow = GetDC(hWnd);
         if (!hdcWindow) {
-            capture.updateError(QPlatformSurfaceCapture::CaptureFailed,
+            capture.updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                                 QLatin1String("Cannot create a window drawing context"));
             return nullptr;
         }
@@ -31,7 +31,7 @@ public:
         auto hdcMem = CreateCompatibleDC(hdcWindow);
 
         if (!hdcMem) {
-            capture.updateError(QPlatformSurfaceCapture::CaptureFailed,
+            capture.updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                                 QLatin1String("Cannot create a compatible drawing context"));
             return nullptr;
         }
@@ -62,20 +62,26 @@ public:
 
 private:
     Grabber(QGdiWindowCapture &capture, HWND hWnd, HDC hdcWindow, HDC hdcMem)
-        : m_hwnd(hWnd), m_hdcWindow(hdcWindow), m_hdcMem(hdcMem)
+        : QSurfaceCaptureGrabber(),
+          m_hwnd(hWnd),
+          m_hdcWindow(hdcWindow),
+          m_hdcMem(hdcMem)
     {
-        if (auto rate = GetDeviceCaps(hdcWindow, VREFRESH); rate > 0)
-            setFrameRate(rate);
-
-        addFrameCallback(capture, &QGdiWindowCapture::newVideoFrame);
+        addFrameCallback(&capture, &QGdiWindowCapture::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &capture, &QGdiWindowCapture::updateError);
+
+        const auto vrefresh = GetDeviceCaps(hdcWindow, VREFRESH);
+        const auto defaultRate = vrefresh > 0
+                ? qMin(static_cast<qreal>(vrefresh), DefaultScreenCaptureFrameRate)
+                : DefaultScreenCaptureFrameRate;
+        setFrameRate(capture.frameRate().value_or(defaultRate));
     }
 
     bool update()
     {
         RECT windowRect{};
         if (!GetWindowRect(m_hwnd, &windowRect)) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Cannot get window size"));
             return false;
         }
@@ -90,7 +96,7 @@ private:
 
         if (size.isEmpty()) {
             m_format = {};
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Invalid window size"));
             return false;
         }
@@ -99,7 +105,7 @@ private:
 
         if (!m_hBitmap) {
             m_format = {};
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Cannot create a compatible bitmap"));
             return false;
         }
@@ -121,7 +127,7 @@ private:
         const auto size = m_format.frameSize();
 
         if (!BitBlt(m_hdcMem, 0, 0, size.width(), size.height(), m_hdcWindow, 0, 0, SRCCOPY)) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Cannot copy image to the compatible DC"));
             return {};
         }
@@ -151,7 +157,7 @@ private:
 
         if (header.biWidth != size.width() || header.biHeight != -size.height()
             || header.biPlanes != 1 || header.biBitCount != 32 || header.biCompression != BI_RGB) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Output bitmap info is unexpected"));
             return {};
         }

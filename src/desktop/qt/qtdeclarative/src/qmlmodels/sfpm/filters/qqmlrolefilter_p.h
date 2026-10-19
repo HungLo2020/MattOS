@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QQMLROLEFILTER_P_H
 #define QQMLROLEFILTER_P_H
@@ -37,6 +38,7 @@ public:
 
     const QString& roleName() const;
     void setRoleName(const QString& roleName);
+    virtual void update(const QQmlSortFilterProxyModel *) override;
 
 Q_SIGNALS:
     void roleNameChanged();
@@ -54,6 +56,7 @@ class QQmlRoleFilterPrivate : public QQmlFilterBasePrivate
 
 public:
     QString m_roleName = QString::fromUtf8("display");
+    mutable bool m_roleNameValidated = false;
 };
 
 QT_END_NAMESPACE

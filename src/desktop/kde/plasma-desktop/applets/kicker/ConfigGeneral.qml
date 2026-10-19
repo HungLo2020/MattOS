@@ -33,7 +33,9 @@ KCMUtils.SimpleKCM {
     property alias cfg_recentOrdering: recentOrdering.currentIndex
     property alias cfg_showRecentApps: showRecentApps.checked
     property alias cfg_showRecentDocs: showRecentDocs.checked
+    property alias cfg_showRecentFolders: showRecentFolders.checked
 
+    property alias cfg_highlightNewlyInstalledApps: highlightNewlyInstalledAppsCheckbox.checked
     property alias cfg_useExtraRunners: useExtraRunners.checked
     property alias cfg_alignResultsToBottom: alignResultsToBottom.checked
     property alias cfg_forceDarkMode: forceDarkMode.checked
@@ -135,7 +137,7 @@ KCMUtils.SimpleKCM {
                     onClicked: iconDialog.open()
                 }
                 QQC2.MenuItem {
-                    text: i18nc("@item:inmenu Reset icon to default", "Clear Icon")
+                    text: i18nc("@item:inmenu Reset icon to default", "Reset to default icon")
                     icon.name: "edit-clear"
                     onClicked: {
                         configGeneral.cfg_icon = "start-here-kde-symbolic"
@@ -190,6 +192,12 @@ KCMUtils.SimpleKCM {
             text: i18nc("@option:check", "Show icons on the root level of the menu")
         }
 
+        QQC2.CheckBox {
+            id: highlightNewlyInstalledAppsCheckbox
+
+            text: i18nc("@option:check", "Highlight newly-installed applications")
+        }
+
         Item {
             Kirigami.FormData.isSection: true
         }
@@ -210,6 +218,14 @@ KCMUtils.SimpleKCM {
             text: recentOrdering.currentIndex == 0
                     ? i18nc("@option:check", "Recent files")
                     : i18nc("@option:check", "Often used files")
+        }
+
+        QQC2.CheckBox {
+            id: showRecentFolders
+
+            text: recentOrdering.currentIndex == 0
+                    ? i18nc("@option:check", "Recent places")
+                    : i18nc("@option:check", "Often used places")
         }
 
         QQC2.ComboBox {

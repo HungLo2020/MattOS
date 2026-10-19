@@ -11,7 +11,7 @@ msgstr ""
 "POT-Creation-Date: 2014-02-28 03:44+0000\n"
 "PO-Revision-Date: 2023-03-11 23:31+0100\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,20 +23,20 @@ msgstr ""
 "X-Text-Markup: qtrich\n"
 "X-Qt-Contexts: true\n"
 
-#: kglobalaccel.cpp:552
+#: kglobalaccel.cpp:558
 #, qt-format
 msgctxt "KGlobalAccel|"
 msgid "The '%1' key combination is registered by application %2 for action %3."
 msgstr ""
 "Tastekombinasjonen «%1» er alt i bruk av programmet %2 til handlinga %3."
 
-#: kglobalaccel.cpp:556
+#: kglobalaccel.cpp:562
 #, qt-format
 msgctxt "KGlobalAccel|"
 msgid "In context '%1' for action '%2'\n"
 msgstr "I samanhengen «%1» for handlinga «%2»\n"
 
-#: kglobalaccel.cpp:558
+#: kglobalaccel.cpp:564
 #, qt-format
 msgctxt "KGlobalAccel|"
 msgid ""
@@ -46,12 +46,12 @@ msgstr ""
 "Tastekombinasjonen «%1» er registrert av programmet %2.\n"
 "%3"
 
-#: kglobalaccel.cpp:561
+#: kglobalaccel.cpp:567
 msgctxt "KGlobalAccel|"
 msgid "Conflict With Registered Global Shortcut"
 msgstr "Konflikt med registrert global snarveg"
 
-#: kglobalaccel.cpp:566
+#: kglobalaccel.cpp:572
 msgctxt "KGlobalAccel|"
 msgid "Reassign"
 msgstr "Tilordna på nytt"

@@ -1,0 +1,14 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -149,10 +149,8 @@
+ 
+ file(GLOB qtkeychain_TR_SOURCES qtkeychain/*.cpp qtkeychain/*.h qtkeychain/*.ui)
+ if ( BUILD_TRANSLATIONS )
+-    qt_create_translation(qtkeychain_MESSAGES ${qtkeychain_TR_SOURCES} ${qtkeychain_TR_FILES})
+     qt_add_translation(qtkeychain_QM_FILES ${qtkeychain_TR_FILES})
+-    add_custom_target(messages DEPENDS ${qtkeychain_MESSAGES})
+-    add_custom_target(translations DEPENDS ${qtkeychain_QM_FILES} messages)
++    add_custom_target(translations DEPENDS ${qtkeychain_QM_FILES})
+     # https://github.com/frankosterfeld/qtkeychain/issues/185
+     add_dependencies(${QTKEYCHAIN_TARGET_NAME} translations)
+ 

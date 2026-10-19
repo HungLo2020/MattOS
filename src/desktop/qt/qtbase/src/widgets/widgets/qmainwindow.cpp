@@ -232,6 +232,23 @@ void QMainWindowPrivate::init()
     is the position and size (relative to the size of the main window)
     of the toolbars and dock widgets that are stored.
 
+    \section1 Security Considerations
+
+    The restoreState() function deserializes a versioned binary blob that
+    describes the toolbar and dock widget layout, including a recursively
+    nested tree structure for split and tabbed dock areas. The format's magic
+    marker and version are validated, but individual fields - such as dock area
+    indices and the depth of the nested layout tree - are not bounds-checked
+    against the main window's actual configuration once the outer structure is
+    accepted.
+
+    Only pass restoreState() a QByteArray that was previously produced by
+    saveState() and persisted by the same, or a compatible, version of your
+    application, typically through QSettings. Do not call restoreState()
+    with data of unknown or untrusted origin, such as a file downloaded from
+    the network, a synced or shared configuration file, or data supplied by
+    another, potentially compromised, application.
+
     \sa QMenuBar, QToolBar, QStatusBar, QDockWidget, {Menus Example}
 */
 
@@ -975,7 +992,7 @@ void QMainWindow::setTabPosition(Qt::DockWidgetAreas areas, QTabWidget::TabPosit
 #endif // QT_CONFIG(tabwidget)
 
 /*!
-    Adds the given \a dockwidget to the specified \a area.
+    Adds the given \a dockwidget to the specified \a area in the main window.
 */
 void QMainWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *dockwidget)
 {
@@ -1057,9 +1074,12 @@ void QMainWindow::splitDockWidget(QDockWidget *after, QDockWidget *dockwidget,
     \fn void QMainWindow::tabifyDockWidget(QDockWidget *first, QDockWidget *second)
 
     Moves \a second dock widget on top of \a first dock widget, creating a tabbed
-    docked area in the main window.
+    dock area at the current location of \a first.
 
-    \sa tabifiedDockWidgets()
+    Both dock widgets must have been added to the main window with
+    addDockWidget() before calling this function, and neither can already be tabbed.
+
+    \sa tabifiedDockWidgets(), addDockWidget()
 */
 void QMainWindow::tabifyDockWidget(QDockWidget *first, QDockWidget *second)
 {
@@ -1299,10 +1319,16 @@ void QMainWindow::setUnifiedTitleAndToolBarOnMac(bool enabled)
     setAttribute(Qt::WA_NativeWindow);
     setAttribute(Qt::WA_TranslucentBackground, enabled);
 
-    d->create(); // Create first, before querying the platform window
-    using namespace QNativeInterface::Private;
-    if (auto *platformWindow = dynamic_cast<QCocoaWindow*>(window()->windowHandle()->handle()))
-        platformWindow->setContentBorderEnabled(enabled);
+    d->create(); // Create first, so we can update the window flag without hiding the window
+
+    auto *windowHandle = window()->windowHandle();
+    windowHandle->setFlag(Qt::NoTitleBarBackgroundHint, enabled);
+    // Expand client area if we need to manage a titlebar visual effects view ourselves
+    if (QOperatingSystemVersion::current() < QOperatingSystemVersion::MacOSTahoe)
+        windowHandle->setFlag(Qt::ExpandedClientAreaHint, enabled);
+    overrideWindowFlags(windowHandle->flags());
+
+    d->layout->updateUnifiedToolBarArea();
 
     update();
 #else

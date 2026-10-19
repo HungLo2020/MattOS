@@ -15,13 +15,13 @@
 # Diego Iastrubni <elcuco@kde.org>, 2005, 2006, 2007, 2008, 2012, 2014.
 # Meni Livne <livne@kde.org>, 2007.
 # Elkana Bardugo <ttv200@gmail.com>, 2017. #zanata
-# SPDX-FileCopyrightText: 2023, 2024, 2025, 2026 Yaron Shahrabani <sh.yaron@gmail.com>
+# SPDX-FileCopyrightText: 2023-2026 Yaron Shahrabani <sh.yaron@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: ktexteditor6\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-22 00:39+0000\n"
-"PO-Revision-Date: 2026-04-21 14:10+0300\n"
+"POT-Creation-Date: 2026-09-13 00:41+0000\n"
+"PO-Revision-Date: 2026-08-26 08:36+0300\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
 "Language: he\n"
@@ -30,7 +30,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: completion/katecompletionmodel.cpp:147
 #, kde-format
@@ -110,56 +110,56 @@ msgid "&View"
 msgstr "&תצוגה"
 
 #. i18n: ectx: Menu (view_menu_word_wrap)
-#: data/katepart5ui.rc:78
+#: data/katepart5ui.rc:79
 #, kde-format
 msgid "Word Wrap"
 msgstr "גלישת שורות"
 
 #. i18n: ectx: Menu (view_menu_borders)
-#: data/katepart5ui.rc:84 dialogs/katedialogs.cpp:744
+#: data/katepart5ui.rc:85 dialogs/katedialogs.cpp:747
 #, kde-format
 msgid "Borders"
 msgstr "גבולות"
 
 #. i18n: ectx: Menu (codefolding)
-#: data/katepart5ui.rc:92
+#: data/katepart5ui.rc:93
 #, kde-format
 msgid "&Code Folding"
 msgstr "&קיפול קוד"
 
 #. i18n: ectx: Menu (go)
-#: data/katepart5ui.rc:109
+#: data/katepart5ui.rc:110
 #, kde-format
 msgid "&Go"
 msgstr "מ&עבר"
 
 #. i18n: ectx: Menu (tools)
-#: data/katepart5ui.rc:124
+#: data/katepart5ui.rc:125
 #, kde-format
 msgid "&Tools"
 msgstr "&כלים"
 
 #. i18n: ectx: Menu (wordcompletion)
-#: data/katepart5ui.rc:138
+#: data/katepart5ui.rc:139
 #, kde-format
 msgid "Word Completion"
 msgstr "השלמת מילים אוטומטית"
 
 #. i18n: ectx: Menu (spelling)
-#: data/katepart5ui.rc:144 spellcheck/spellingmenu.cpp:71
+#: data/katepart5ui.rc:145 spellcheck/spellingmenu.cpp:71
 #: spellcheck/spellingmenu.cpp:195
 #, kde-format
 msgid "Spelling"
 msgstr "איות"
 
 #. i18n: ectx: Menu (speech)
-#: data/katepart5ui.rc:153 data/katepart5ui.rc:184
+#: data/katepart5ui.rc:154 data/katepart5ui.rc:184
 #, kde-format
 msgid "Text to Speech"
 msgstr "הקראה"
 
 #. i18n: ectx: Menu (settings)
-#: data/katepart5ui.rc:161
+#: data/katepart5ui.rc:162
 #, kde-format
 msgid "&Settings"
 msgstr "ה&גדרות"
@@ -317,7 +317,7 @@ msgid "Scro&llbars visibility:"
 msgstr "חשיפת פסי &גלילה:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbShowScrollbars)
-#: dialogs/bordersappearanceconfigwidget.ui:183 dialogs/katedialogs.cpp:752
+#: dialogs/bordersappearanceconfigwidget.ui:183 dialogs/katedialogs.cpp:755
 #, kde-format
 msgid "Always On"
 msgstr "תמיד פעילה"
@@ -420,8 +420,8 @@ msgstr "אין רשומות בהיסטוריית לוח הגזירים"
 
 #. i18n: ectx: property (title), widget (QGroupBox, gbGeneral)
 #. i18n: ectx: property (title), widget (QGroupBox, gbViInputMode)
-#: dialogs/completionconfigtab.ui:29 dialogs/katedialogs.cpp:608
-#: dialogs/katedialogs.cpp:740 dialogs/katedialogs.cpp:1021
+#: dialogs/completionconfigtab.ui:29 dialogs/katedialogs.cpp:609
+#: dialogs/katedialogs.cpp:743 dialogs/katedialogs.cpp:1026
 #: vimode/config/configwidget.ui:29
 #, kde-format
 msgid "General"
@@ -704,7 +704,7 @@ msgid "Delete the current file type."
 msgstr "מחיקת סוג הקובץ הנוכחי."
 
 #. i18n: ectx: property (text), widget (QPushButton, btnDelete)
-#: dialogs/filetypeconfigwidget.ui:44 syntax/katethemeconfig.cpp:1131
+#: dialogs/filetypeconfigwidget.ui:44 syntax/katethemeconfig.cpp:1132
 #, kde-format
 msgid "&Delete"
 msgstr "מ&חיקה"
@@ -1051,7 +1051,7 @@ msgstr ""
 msgid "Increase indentation level if in l&eading blank space"
 msgstr "הגדלת כניסת ההזחה אם השורה מתחילה ב&רווח"
 
-#: dialogs/katedialogs.cpp:184 dialogs/katedialogs.cpp:186
+#: dialogs/katedialogs.cpp:185 dialogs/katedialogs.cpp:187
 #, kde-format
 msgid "%v character"
 msgid_plural "%v characters"
@@ -1060,72 +1060,72 @@ msgstr[1] "שני תווים"
 msgstr[2] "v% תווים"
 msgstr[3] "%v תווים"
 
-#: dialogs/katedialogs.cpp:210
+#: dialogs/katedialogs.cpp:211
 #, kde-format
 msgid "Indentation"
 msgstr "הזחה"
 
-#: dialogs/katedialogs.cpp:294
+#: dialogs/katedialogs.cpp:295
 #, kde-format
 msgid "Auto Completion"
 msgstr "השלמת מילים אוטומטית"
 
-#: dialogs/katedialogs.cpp:361
+#: dialogs/katedialogs.cpp:362
 #, kde-format
 msgid "Spellcheck"
 msgstr "בדיקת איות"
 
-#: dialogs/katedialogs.cpp:409 dialogs/katedialogs.cpp:416
+#: dialogs/katedialogs.cpp:410 dialogs/katedialogs.cpp:417
 #, kde-format
 msgid "Alt"
 msgstr "Alt"
 
-#: dialogs/katedialogs.cpp:410 dialogs/katedialogs.cpp:418
+#: dialogs/katedialogs.cpp:411 dialogs/katedialogs.cpp:419
 #, kde-format
 msgid "Ctrl"
 msgstr "Ctrl"
 
-#: dialogs/katedialogs.cpp:411
+#: dialogs/katedialogs.cpp:412
 #, kde-format
 msgid "Meta"
 msgstr "מטא"
 
-#: dialogs/katedialogs.cpp:412 dialogs/katedialogs.cpp:420
+#: dialogs/katedialogs.cpp:413 dialogs/katedialogs.cpp:421
 #, kde-format
 msgid "Ctrl + Alt"
 msgstr "Ctrl + Alt"
 
-#: dialogs/katedialogs.cpp:413
+#: dialogs/katedialogs.cpp:414
 #, kde-format
 msgid "Meta + Alt"
 msgstr "מטא + Alt"
 
-#: dialogs/katedialogs.cpp:414
+#: dialogs/katedialogs.cpp:415
 #, kde-format
 msgid "Ctrl + Meta"
 msgstr "Ctrl + מטא"
 
-#: dialogs/katedialogs.cpp:417
+#: dialogs/katedialogs.cpp:418
 #, kde-format
 msgid "Cmd"
 msgstr "Cmd"
 
-#: dialogs/katedialogs.cpp:419
+#: dialogs/katedialogs.cpp:420
 #, kde-format
 msgid "Cmd + Alt"
 msgstr "Cmd + Alt"
 
-#: dialogs/katedialogs.cpp:421
+#: dialogs/katedialogs.cpp:422
 #, kde-format
 msgid "Cmd + Ctrl"
 msgstr "Cmd + Ctrl"
 
-#: dialogs/katedialogs.cpp:479
+#: dialogs/katedialogs.cpp:480
 #, kde-format
 msgid "Text Navigation"
 msgstr "ניווט טקסט"
 
-#: dialogs/katedialogs.cpp:581
+#: dialogs/katedialogs.cpp:582
 #, kde-format
 msgctxt "Wrap words at (value is at 20 or larger)"
 msgid "%v character"
@@ -1135,62 +1135,62 @@ msgstr[1] "שני תווים"
 msgstr[2] "%v תווים"
 msgstr[3] "%v תווים"
 
-#: dialogs/katedialogs.cpp:586
+#: dialogs/katedialogs.cpp:587
 #, kde-format
 msgid "Feature is not active"
 msgstr "היכולת לא פעילה"
 
-#: dialogs/katedialogs.cpp:588
+#: dialogs/katedialogs.cpp:589
 #, kde-format
 msgid "Disable Feature"
 msgstr "השבתת יכולת"
 
-#: dialogs/katedialogs.cpp:590
+#: dialogs/katedialogs.cpp:591
 #, kde-format
 msgid "May be handy with Markdown"
 msgstr "יכול להיות שימושי עם Markdown"
 
-#: dialogs/katedialogs.cpp:592
+#: dialogs/katedialogs.cpp:593
 #, kde-format
 msgid "Mirror characters, similar but not exactly like auto brackets"
 msgstr "שיקוף תווים, דומה אך לא בדיוק כמו סוגריים אוטומטיים"
 
-#: dialogs/katedialogs.cpp:594
+#: dialogs/katedialogs.cpp:595
 #, kde-format
 msgid "Non letter character"
 msgstr "תו שאינו אות"
 
-#: dialogs/katedialogs.cpp:710
+#: dialogs/katedialogs.cpp:712
 #, kde-format
 msgid "Editing"
 msgstr "עריכה"
 
-#: dialogs/katedialogs.cpp:715
+#: dialogs/katedialogs.cpp:717
 #, kde-format
 msgid "Editing Options"
 msgstr "אפשרויות עריכה"
 
-#: dialogs/katedialogs.cpp:748
+#: dialogs/katedialogs.cpp:751
 #, kde-format
 msgid "Statusbar"
 msgstr "שורת מצב"
 
-#: dialogs/katedialogs.cpp:750
+#: dialogs/katedialogs.cpp:753
 #, kde-format
 msgid "Off"
 msgstr "כבוי"
 
-#: dialogs/katedialogs.cpp:751
+#: dialogs/katedialogs.cpp:754
 #, kde-format
 msgid "Follow Line Numbers"
 msgstr "מעקב אחר מספרי שורות"
 
-#: dialogs/katedialogs.cpp:942 dialogs/katedialogs.cpp:947
+#: dialogs/katedialogs.cpp:945 dialogs/katedialogs.cpp:950
 #, kde-format
 msgid "Appearance"
 msgstr "מראה"
 
-#: dialogs/katedialogs.cpp:982
+#: dialogs/katedialogs.cpp:986
 #, kde-format
 msgid ""
 "%1 backs up unsaved files to \"swap files.\" Swap files allow %1 to recover "
@@ -1201,64 +1201,64 @@ msgstr ""
 "העבודה שלך במקרה של קריסת המערכת. השבתת קובצי ההחלפה יכולה לגרום לאובדן "
 "נתונים במקרה של קריסת מערכת."
 
-#: dialogs/katedialogs.cpp:1022
+#: dialogs/katedialogs.cpp:1027
 #, kde-format
 msgid "Advanced"
 msgstr "מתקדם"
 
-#: dialogs/katedialogs.cpp:1087
+#: dialogs/katedialogs.cpp:1092
 #, kde-format
 msgid ""
 "You did not provide a backup suffix or prefix. Using default suffix: '~'"
 msgstr ""
 "לא ציינת קידומת או סיומת לקובצי גיבוי. ייעשה שימוש בסיומת ברירת המחדל: ‚~’"
 
-#: dialogs/katedialogs.cpp:1087
+#: dialogs/katedialogs.cpp:1092
 #, kde-format
 msgid "No Backup Suffix or Prefix"
 msgstr "אין קידומת או סיומת לגיבויים"
 
-#: dialogs/katedialogs.cpp:1220
+#: dialogs/katedialogs.cpp:1227
 #, kde-format
 msgid "Open/Save"
 msgstr "פתיחה/שמירה"
 
-#: dialogs/katedialogs.cpp:1225
+#: dialogs/katedialogs.cpp:1232
 #, kde-format
 msgid "File Opening & Saving"
 msgstr "פתיחה ושמירה של קבצים"
 
-#: dialogs/katedialogs.cpp:1248
+#: dialogs/katedialogs.cpp:1255
 #, kde-format
 msgid "&Line:"
 msgstr "&שורה:"
 
-#: dialogs/katedialogs.cpp:1249
+#: dialogs/katedialogs.cpp:1256
 #, kde-format
 msgid "Go to line number from clipboard"
 msgstr "מעבר למספר השורה מלוח הגזירים"
 
-#: dialogs/katedialogs.cpp:1260
+#: dialogs/katedialogs.cpp:1267
 #, kde-format
 msgid "Go to"
 msgstr "מעבר אל"
 
-#: dialogs/katedialogs.cpp:1340
+#: dialogs/katedialogs.cpp:1347
 #, kde-format
 msgid "No valid line number found in clipboard"
 msgstr "לא נמצא מספר שורה תקף בלוח הגזירים"
 
-#: dialogs/katedialogs.cpp:1404
+#: dialogs/katedialogs.cpp:1411
 #, kde-format
 msgid "Dictionary:"
 msgstr "מילון:"
 
-#: dialogs/katedialogs.cpp:1456
+#: dialogs/katedialogs.cpp:1463
 #, kde-format
 msgid "Enable Auto Reload"
 msgstr "הפעלת ריענון אוטומטי"
 
-#: dialogs/katedialogs.cpp:1459
+#: dialogs/katedialogs.cpp:1466
 #, kde-format
 msgid ""
 "Reloads and will automatically reload without warning about disk changes "
@@ -1267,78 +1267,78 @@ msgstr ""
 "טוען מחדש וטוען אוטומטית בלי אזהרה על שינויים בכונן מעתה ועד סגירת הלשונית "
 "או החלון."
 
-#: dialogs/katedialogs.cpp:1464
+#: dialogs/katedialogs.cpp:1471
 #, kde-format
 msgid "View &Difference"
 msgstr "הצגת ה&בדלים"
 
-#: dialogs/katedialogs.cpp:1466
+#: dialogs/katedialogs.cpp:1473
 #, kde-format
 msgid "Shows a diff of the changes."
 msgstr "הצגת הבדל של השינויים."
 
-#: dialogs/katedialogs.cpp:1471
+#: dialogs/katedialogs.cpp:1478
 #, kde-format
 msgid "&Reload"
 msgstr "&ריענון"
 
-#: dialogs/katedialogs.cpp:1473
+#: dialogs/katedialogs.cpp:1480
 #, kde-format
 msgid "Reloads the file from disk. Unsaved changes will be lost."
 msgstr "מרענן את הקובץ מהכונן. שינויים שלא נשמרו יאבדו."
 
-#: dialogs/katedialogs.cpp:1477
+#: dialogs/katedialogs.cpp:1484
 #, kde-format
 msgctxt "@action:button closes the opened file"
 msgid "&Close File"
 msgstr "&סגירת קובץ"
 
-#: dialogs/katedialogs.cpp:1479
+#: dialogs/katedialogs.cpp:1486
 #, kde-format
 msgid "Closes the file, discarding its content."
 msgstr "סגירת הקובץ תוך התעלמות מתוכנו."
 
-#: dialogs/katedialogs.cpp:1483
+#: dialogs/katedialogs.cpp:1490
 #, kde-format
 msgctxt "@action"
 msgid "&Save As…"
 msgstr "&שמירה בשם…"
 
-#: dialogs/katedialogs.cpp:1485
+#: dialogs/katedialogs.cpp:1492
 #, kde-format
 msgid "Lets you select a location and save the file again."
 msgstr "מאפשר לך לבחור מקום ולשמור את הקובץ בשנית."
 
 #. i18n: ectx: property (text), widget (QPushButton, m_skipBtn)
-#: dialogs/katedialogs.cpp:1490 spellcheck/spellcheckbar.ui:143
+#: dialogs/katedialogs.cpp:1497 spellcheck/spellcheckbar.ui:143
 #, kde-format
 msgid "&Ignore"
 msgstr "ה&תעלמות"
 
-#: dialogs/katedialogs.cpp:1491
+#: dialogs/katedialogs.cpp:1498
 #, kde-format
 msgid "Ignores the changes on disk without any action."
 msgstr "התעלמות מהשינויים בכונן בלי אף פעולה בנדון."
 
-#: dialogs/katedialogs.cpp:1560 swapfile/kateswapdiffcreator.cpp:131
+#: dialogs/katedialogs.cpp:1567 swapfile/kateswapdiffcreator.cpp:131
 #, kde-format
 msgid ""
 "The diff command failed. Please make sure that diff(1) is installed and in "
 "your PATH."
 msgstr "הפקודה diff נכשלה. נא לוודא ש־diff(1)‎ מותקנת ונמצאת בנתיב (PATH) שלך."
 
-#: dialogs/katedialogs.cpp:1562 swapfile/kateswapdiffcreator.cpp:89
+#: dialogs/katedialogs.cpp:1569 swapfile/kateswapdiffcreator.cpp:89
 #: swapfile/kateswapdiffcreator.cpp:99 swapfile/kateswapdiffcreator.cpp:133
 #, kde-format
 msgid "Error Creating Diff"
 msgstr "שגיאה ביצירת דוח ההבדלים"
 
-#: dialogs/katedialogs.cpp:1569 swapfile/kateswapdiffcreator.cpp:140
+#: dialogs/katedialogs.cpp:1576 swapfile/kateswapdiffcreator.cpp:140
 #, kde-format
 msgid "The files are identical."
 msgstr "הקבצים זהים."
 
-#: dialogs/katedialogs.cpp:1569 swapfile/kateswapdiffcreator.cpp:140
+#: dialogs/katedialogs.cpp:1576 swapfile/kateswapdiffcreator.cpp:140
 #, kde-format
 msgid "Diff Output"
 msgstr "פלט הבדלים"
@@ -1385,15 +1385,18 @@ msgstr "PageUp/PageDown מ&זיזים את הסמן"
 #. i18n: ectx: property (whatsThis), widget (QCheckBox, chkCamelCursor)
 #: dialogs/navigationconfigwidget.ui:55
 #, kde-format
-msgid "Selects whether cursor jumps full words or breaks at camel case humps."
-msgstr ""
-"בחירה האם סמן יקפוץ מילים שלמות או ייקטע בדבשות של הגדלת אותיות פותחות."
+msgid ""
+"Selects whether cursor stops at camel case humps and underscores within a "
+"word."
+msgstr "בחירה האם הסמן יעצור על אותיות גדולות וקווים תחתיים בתוך מילה."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkCamelCursor)
 #: dialogs/navigationconfigwidget.ui:58
 #, kde-format
-msgid "Enable camel case cursor movement"
-msgstr "הפעלת תזוזת סמן לפי אותיות רישיות פותחות"
+msgid ""
+"Stop at 'camelCase' and 'snake_case' subwords when moving the cursor by word"
+msgstr ""
+"לעצור על תת־מילות ‚camelCase’ ו־‚snake_case’ כשעוברים עם הסמן על פי מילה"
 
 #. i18n: ectx: property (text), widget (QLabel, lblAutoCenterCursor)
 #: dialogs/navigationconfigwidget.ui:79
@@ -1607,6 +1610,12 @@ msgstr "המחרוזת הזאת נמצאת ב־katedialogs.cpp בבנאי של K
 #, kde-format
 msgid "Honor settings in .editorconfig file"
 msgstr "לכבד את ההגדרות בקובץ ‎.editorconfig"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkUseFirstLineAsDocName)
+#: dialogs/opensaveconfigadvwidget.ui:229
+#, kde-format
+msgid "Use first line of untitled documents for document name"
+msgstr "להשתמש בשורה הראשונה של המסמכים ללא שם בתור שם המסמך"
 
 #. i18n: ectx: property (title), widget (QGroupBox, gbFileFormat)
 #: dialogs/opensaveconfigwidget.ui:29
@@ -2159,12 +2168,12 @@ msgctxt "translators: you can also translate 'Try Again' with 'Reload'"
 msgid "Try Again"
 msgstr "לנסות שוב"
 
-#: document/katedocument.cpp:2316 document/katedocument.cpp:6532
+#: document/katedocument.cpp:2316 document/katedocument.cpp:6540
 #, kde-format
 msgid "&Close"
 msgstr "ל&סגור"
 
-#: document/katedocument.cpp:2317 document/katedocument.cpp:6533
+#: document/katedocument.cpp:2317 document/katedocument.cpp:6541
 #, kde-format
 msgctxt "Close the message being displayed"
 msgid "Close message"
@@ -2235,8 +2244,8 @@ msgstr ""
 "עלולים ללכת לאיבוד."
 
 #: document/katedocument.cpp:2517 document/katedocument.cpp:2533
-#: document/katedocument.cpp:2853 syntax/katethemeconfig.cpp:1215
-#: syntax/katethemeconfig.cpp:1371
+#: document/katedocument.cpp:2854 syntax/katethemeconfig.cpp:1218
+#: syntax/katethemeconfig.cpp:1376
 #, kde-format
 msgid "Possible Data Loss"
 msgstr "אובדן נתונים אפשרי"
@@ -2264,7 +2273,7 @@ msgstr ""
 "הקובץ המקורי כנראה אבד או נפגם. לא לצאת מהיישום עד שכתיבת הקובץ הושלמה "
 "בהצלחה."
 
-#: document/katedocument.cpp:2722
+#: document/katedocument.cpp:2723
 #, kde-format
 msgid ""
 "For file %1 no backup copy could be created before saving. If an error "
@@ -2276,54 +2285,54 @@ msgstr ""
 "המידע של הקובץ הזה עלול ללכת לאיבוד. הסיבה לכך יכולה להיות שהמדיה המיועדת "
 "לשמירה עליה מלאה או שהתיקייה של הקובץ נמצאת במצב לקריאה בלבד."
 
-#: document/katedocument.cpp:2726
+#: document/katedocument.cpp:2727
 #, kde-format
 msgid "Failed to create backup copy."
 msgstr "יצירת עותק גיבוי נכשלה."
 
-#: document/katedocument.cpp:2727
+#: document/katedocument.cpp:2728
 #, kde-format
 msgid "Try to Save Nevertheless"
 msgstr "לנסות לשמור בכל זאת"
 
-#: document/katedocument.cpp:2852
+#: document/katedocument.cpp:2853
 #, kde-format
 msgid "Do you really want to continue to close this file? Data loss may occur."
 msgstr "להמשיך ולסגור קובץ זה? עלול להוביל לאובדן של נתונים."
 
-#: document/katedocument.cpp:2854
+#: document/katedocument.cpp:2855
 #, kde-format
 msgid "Close Nevertheless"
 msgstr "לסגור בכל זאת"
 
-#: document/katedocument.cpp:4641
+#: document/katedocument.cpp:4642
 #, kde-format
 msgid "Untitled (%1)"
 msgstr "ללא שם (%1)"
 
-#: document/katedocument.cpp:4643
+#: document/katedocument.cpp:4644
 #, kde-format
 msgid "Untitled"
 msgstr "ללא שם"
 
-#: document/katedocument.cpp:4820 document/katedocument.cpp:5051
-#: document/katedocument.cpp:5061 document/katedocument.cpp:5860
-#: document/katedocument.cpp:6047
+#: document/katedocument.cpp:4821 document/katedocument.cpp:5057
+#: document/katedocument.cpp:5067 document/katedocument.cpp:5868
+#: document/katedocument.cpp:6055
 #, kde-format
 msgid "Save File"
 msgstr "שמירת קובץ"
 
-#: document/katedocument.cpp:4823
+#: document/katedocument.cpp:4824
 #, kde-format
 msgid "Save failed"
 msgstr "השמירה נכשלה"
 
-#: document/katedocument.cpp:5072
+#: document/katedocument.cpp:5078
 #, kde-format
 msgid "Save Copy of File"
 msgstr "שמירת עותק של קובץ"
 
-#: document/katedocument.cpp:5084
+#: document/katedocument.cpp:5090
 #, kde-format
 msgid ""
 "The document could not be saved, as it was not possible to write to %1.\n"
@@ -2335,7 +2344,7 @@ msgstr ""
 "\n"
 "נא לבדוק שיש לך הרשאת כתיבה לקובץ זה ושיש מספיק מקום פנוי בכונן."
 
-#: document/katedocument.cpp:5374
+#: document/katedocument.cpp:5382
 #, kde-format
 msgid ""
 "Using deprecated modeline 'remove-trailing-space'. Please replace with "
@@ -2348,7 +2357,7 @@ msgstr ""
 "application=katepart&branch=stable5&path=config-variables.html#variable-"
 "remove-trailing-spaces"
 
-#: document/katedocument.cpp:5380
+#: document/katedocument.cpp:5388
 #, kde-format
 msgid ""
 "Using deprecated modeline 'replace-trailing-space-save'. Please replace with "
@@ -2361,17 +2370,17 @@ msgstr ""
 "application=katepart&branch=stable5&path=config-variables.html#variable-"
 "remove-trailing-spaces"
 
-#: document/katedocument.cpp:5694
+#: document/katedocument.cpp:5702
 #, kde-format
 msgid "The file '%1' was modified on disk."
 msgstr "הקובץ ‚%1’ נערך בכונן."
 
-#: document/katedocument.cpp:5696
+#: document/katedocument.cpp:5704
 #, kde-format
 msgid "The file '%1' was deleted or moved on disk."
 msgstr "הקובץ ‚%1’ נמחק מהכונן או הועבר."
 
-#: document/katedocument.cpp:6032
+#: document/katedocument.cpp:6040
 #, kde-format
 msgid ""
 "The document \"%1\" has been modified.\n"
@@ -2380,17 +2389,17 @@ msgstr ""
 "המסמך „%1” נערך.\n"
 "לשמור את השינויים או להתעלם מהם?"
 
-#: document/katedocument.cpp:6035
+#: document/katedocument.cpp:6043
 #, kde-format
 msgid "Close Document"
 msgstr "סגירת מסמך"
 
-#: document/katedocument.cpp:6146
+#: document/katedocument.cpp:6154
 #, kde-format
 msgid "The file <a href=\"%1\">%2</a> is still loading."
 msgstr "הקובץ <a href=\"%1\">%2</a> עדיין נטען."
 
-#: document/katedocument.cpp:6151
+#: document/katedocument.cpp:6159
 #, kde-format
 msgid "&Abort Loading"
 msgstr "&ביטול טעינה"
@@ -2410,48 +2419,50 @@ msgstr "כתיבה"
 msgid "Normal Mode"
 msgstr "מצב רגיל"
 
-#: inputmode/kateviinputmode.cpp:31
+#: inputmode/kateviinputmode.cpp:33
 #, kde-format
-msgid "VI: INSERT MODE"
-msgstr "‏VI: מצב הוספה"
+msgctxt "The INSERT mode of VI"
+msgid "VI: INSERT"
+msgstr "‏VI: הוספה"
 
-#: inputmode/kateviinputmode.cpp:34
+#: inputmode/kateviinputmode.cpp:36
 #, kde-format
-msgid "VI: NORMAL MODE"
-msgstr "‏‎VI: מצב רגיל"
+msgctxt "The NORMAL mode of VI"
+msgid "VI: NORMAL"
+msgstr "‏‎VI: רגיל"
 
-#: inputmode/kateviinputmode.cpp:37
+#: inputmode/kateviinputmode.cpp:39
 #, kde-format
 msgid "VI: VISUAL"
 msgstr "VI: מצב חזותי"
 
-#: inputmode/kateviinputmode.cpp:40
+#: inputmode/kateviinputmode.cpp:42
 #, kde-format
 msgid "VI: VISUAL BLOCK"
 msgstr "VI: מקטע חזותי"
 
-#: inputmode/kateviinputmode.cpp:43
+#: inputmode/kateviinputmode.cpp:45
 #, kde-format
 msgid "VI: VISUAL LINE"
 msgstr "VI: שורה חזותית"
 
-#: inputmode/kateviinputmode.cpp:46
+#: inputmode/kateviinputmode.cpp:48
 #, kde-format
 msgid "VI: REPLACE"
 msgstr "VI: החלפה"
 
-#: inputmode/kateviinputmode.cpp:146
+#: inputmode/kateviinputmode.cpp:150
 #, kde-format
 msgid "vi-mode"
 msgstr "מצב vi"
 
-#: inputmode/kateviinputmode.cpp:159
+#: inputmode/kateviinputmode.cpp:163
 #, kde-format
 msgid "recording"
 msgstr "מקליט"
 
 #: inputmode/kateviinputmodefactory.cpp:38 utils/kateglobal.cpp:88
-#: vimode/config/configtab.cpp:233
+#: vimode/config/configtab.cpp:237
 #, kde-format
 msgid "Vi Input Mode"
 msgstr "מצב קלט של VI"
@@ -2491,7 +2502,7 @@ msgstr ""
 msgid "Select Mime Types"
 msgstr "בחירת סוגי תוכן"
 
-#: mode/katemodeconfigpage.cpp:306
+#: mode/katemodeconfigpage.cpp:312
 #, kde-format
 msgid "Modes && Filetypes"
 msgstr "מצבים וסוגי קבצים"
@@ -4864,130 +4875,130 @@ msgstr ""
 "לעריכה מהתפריט הקופץ.</p><p>אפשר לאפס את צבעי הרקע והרקע הנבחר מתפריט ההקשר "
 "כשיש בזה טעם.</p>"
 
-#: syntax/katethemeconfig.cpp:1026
+#: syntax/katethemeconfig.cpp:1027
 #, kde-format
 msgid "Default Theme"
 msgstr "ערכת עיצוב כברירת מחדל"
 
-#: syntax/katethemeconfig.cpp:1027
+#: syntax/katethemeconfig.cpp:1028
 #, kde-format
 msgid "Theme Editor"
 msgstr "עורך ערכות עיצוב"
 
-#: syntax/katethemeconfig.cpp:1045
+#: syntax/katethemeconfig.cpp:1046
 #, kde-format
 msgid "Select theme:"
 msgstr "בחירת ערכת עיצוב:"
 
-#: syntax/katethemeconfig.cpp:1118
+#: syntax/katethemeconfig.cpp:1119
 #, kde-format
 msgid "&Theme:"
 msgstr "&ערכת עיצוב:"
 
-#: syntax/katethemeconfig.cpp:1127
+#: syntax/katethemeconfig.cpp:1128
 #, kde-format
 msgctxt "@action:button"
 msgid "&Copy…"
 msgstr "ה&עתקה…"
 
-#: syntax/katethemeconfig.cpp:1135
+#: syntax/katethemeconfig.cpp:1136
 #, kde-format
 msgctxt "@action:button"
 msgid "Export…"
 msgstr "ייצוא…"
 
-#: syntax/katethemeconfig.cpp:1139
+#: syntax/katethemeconfig.cpp:1140
 #, kde-format
 msgctxt "@action:button"
 msgid "Import…"
 msgstr "ייבוא…"
 
-#: syntax/katethemeconfig.cpp:1146
+#: syntax/katethemeconfig.cpp:1147
 #, kde-format
 msgid "Bundled read-only theme. To modify the theme, please copy it."
 msgstr ""
 "ערכת עיצוב מאוגדת לקריאה בלבד. כי לשנות את ערכת העיצוב, נא להעתיק אותה."
 
-#: syntax/katethemeconfig.cpp:1157
+#: syntax/katethemeconfig.cpp:1160
 #, kde-format
 msgid "Colors"
 msgstr "צבעים"
 
-#: syntax/katethemeconfig.cpp:1161
+#: syntax/katethemeconfig.cpp:1164
 #, kde-format
 msgid "Default Text Styles"
 msgstr "סגנונות טקסט רגילים"
 
-#: syntax/katethemeconfig.cpp:1165
+#: syntax/katethemeconfig.cpp:1168
 #, kde-format
 msgid "Highlighting Text Styles"
 msgstr "סגנונות טקסט מודגשים"
 
-#: syntax/katethemeconfig.cpp:1177
+#: syntax/katethemeconfig.cpp:1180
 #, kde-format
 msgid "Exporting color theme: %1"
 msgstr "ערכת הצבעים מיוצאת: %1"
 
-#: syntax/katethemeconfig.cpp:1179 syntax/katethemeconfig.cpp:1200
+#: syntax/katethemeconfig.cpp:1182 syntax/katethemeconfig.cpp:1203
 #, kde-format
 msgid "Color theme"
 msgstr "ערכת צבעים"
 
-#: syntax/katethemeconfig.cpp:1200
+#: syntax/katethemeconfig.cpp:1203
 #, kde-format
 msgid "Importing Color Theme"
 msgstr "ערכת עיצוב מיובאת"
 
-#: syntax/katethemeconfig.cpp:1214
+#: syntax/katethemeconfig.cpp:1217
 #, kde-format
 msgid ""
 "Importing will overwrite the existing theme file \"%1\". This can not be "
 "undone."
 msgstr "ייבוא יחליף את קובץ הערכה הקיים „%1”. זאת פעולה בלתי הפיכה."
 
-#: syntax/katethemeconfig.cpp:1216
+#: syntax/katethemeconfig.cpp:1219
 #, kde-format
 msgid "Import Nevertheless"
 msgstr "לייבא בכל זאת"
 
-#: syntax/katethemeconfig.cpp:1304
+#: syntax/katethemeconfig.cpp:1308
 #, kde-format
 msgid "Follow System Color Scheme"
 msgstr "כמו ערכת הצבע של המערכת"
 
-#: syntax/katethemeconfig.cpp:1370
+#: syntax/katethemeconfig.cpp:1375
 #, kde-format
 msgid "Do you really want to delete the theme \"%1\"? This can not be undone."
 msgstr "למחוק את ערכת העיצוב „%1”? זאת פעולה בלתי הפיכה."
 
-#: syntax/katethemeconfig.cpp:1372
+#: syntax/katethemeconfig.cpp:1377
 #, kde-format
 msgid "Delete Nevertheless"
 msgstr "למחוק בכל זאת"
 
-#: syntax/katethemeconfig.cpp:1414
+#: syntax/katethemeconfig.cpp:1419
 #, kde-format
 msgid "Copy theme"
 msgstr "העתקת ערכת עיצוב"
 
-#: syntax/katethemeconfig.cpp:1415
+#: syntax/katethemeconfig.cpp:1420
 #, kde-format
 msgid "Name for copy of color theme \"%1\":"
 msgstr "שם עותק ערכת העיצוב „%1”:"
 
-#: syntax/katethemeconfig.cpp:1427
+#: syntax/katethemeconfig.cpp:1432
 #, kde-format
 msgid ""
 "<p>The theme \"%1\" already exists.</p><p>Please choose a different theme "
 "name.</p>"
 msgstr "<p>ערכת העיצוב „%1” כבר קיימת.</p><p>נא לבחור שם אחר לערכת העיצוב.</p>"
 
-#: syntax/katethemeconfig.cpp:1428
+#: syntax/katethemeconfig.cpp:1433
 #, kde-format
 msgid "Copy Theme"
 msgstr "העתקת ערכת עיצוב"
 
-#: syntax/katethemeconfig.cpp:1481 syntax/katethemeconfig.cpp:1486
+#: syntax/katethemeconfig.cpp:1486 syntax/katethemeconfig.cpp:1491
 #, kde-format
 msgid "Color Themes"
 msgstr "ערכות צבע"
@@ -6372,12 +6383,12 @@ msgstr "מחוון מצב כתיבה ומצב קלט VI. לחיצה משנה א�
 msgid "Change dictionary"
 msgstr "החלפת מילון"
 
-#: view/katestatusbar.cpp:161 view/katestatusbar.cpp:488
+#: view/katestatusbar.cpp:161 view/katestatusbar.cpp:489
 #, kde-format
 msgid "Tab Width"
 msgstr "רוחב טאב"
 
-#: view/katestatusbar.cpp:169 view/katestatusbar.cpp:503
+#: view/katestatusbar.cpp:169 view/katestatusbar.cpp:504
 #, kde-format
 msgid "Indentation Width"
 msgstr "רוחב הזחה"
@@ -6436,58 +6447,58 @@ msgstr "הדגשת תחביר"
 msgid "Line/Column compact mode"
 msgstr "מצב מצומצם של שורה/עמודה"
 
-#: view/katestatusbar.cpp:307
+#: view/katestatusbar.cpp:308
 #, kde-format
 msgid "[BLOCK] %1"
 msgstr "[מקטע] %1"
 
-#: view/katestatusbar.cpp:323
+#: view/katestatusbar.cpp:324
 #, kde-format
 msgid "%1/%2:%3"
 msgstr "%1/%2:%3"
 
-#: view/katestatusbar.cpp:325
+#: view/katestatusbar.cpp:326
 #, kde-format
 msgid "%1:%2"
 msgstr "%1:%2"
 
-#: view/katestatusbar.cpp:329
+#: view/katestatusbar.cpp:330
 #, kde-format
 msgid "Line %1 of %2, Column %3"
 msgstr "שורה %1 מתוך %2, עמודה %3"
 
-#: view/katestatusbar.cpp:331
+#: view/katestatusbar.cpp:332
 #, kde-format
 msgid "Line %1, Column %2"
 msgstr "שורה %1, עמודה %2"
 
-#: view/katestatusbar.cpp:405
+#: view/katestatusbar.cpp:406
 #, kde-format
 msgid "Soft Tabs: %1"
 msgstr "טאבים רכים: %1"
 
-#: view/katestatusbar.cpp:406
+#: view/katestatusbar.cpp:407
 #, kde-format
 msgid "Soft Tabs: %1 (%2)"
 msgstr "טאבים רכים: %1 (%2)"
 
-#: view/katestatusbar.cpp:407
+#: view/katestatusbar.cpp:408
 #, kde-format
 msgid "Tab Size: %1"
 msgstr "גודל טאב: %1"
 
-#: view/katestatusbar.cpp:408
+#: view/katestatusbar.cpp:409
 #, kde-format
 msgid "Indent/Tab: %1/%2"
 msgstr "הזחה/טאב: %1/%2"
 
-#: view/katestatusbar.cpp:448 view/katestatusbar.cpp:474
+#: view/katestatusbar.cpp:449 view/katestatusbar.cpp:475
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Other…"
 msgstr "אחר…"
 
-#: view/katestatusbar.cpp:476
+#: view/katestatusbar.cpp:477
 #, kde-format
 msgid "Other (%1)"
 msgid_plural "Other (%1)"
@@ -6496,17 +6507,17 @@ msgstr[1] "אחרים (%1)"
 msgstr[2] "אחרים (%1)"
 msgstr[3] "אחרים (%1)"
 
-#: view/katestatusbar.cpp:488
+#: view/katestatusbar.cpp:489
 #, kde-format
 msgid "Please specify the wanted tab width:"
 msgstr "נא לציין את רוחב הטאב הרצוי:"
 
-#: view/katestatusbar.cpp:504
+#: view/katestatusbar.cpp:505
 #, kde-format
 msgid "Please specify the wanted indentation width:"
 msgstr "נא לציין את רוחב ההזחה הרצוי:"
 
-#: view/katestatusbar.cpp:567
+#: view/katestatusbar.cpp:568
 #, kde-format
 msgctxt ""
 "%1 and %3 are the selected words/chars count, %2 and %4 are the total words/"
@@ -6514,13 +6525,13 @@ msgctxt ""
 msgid "Words %1/%2, Chars %3/%4"
 msgstr "מילים %1/%2, תווים %3/%4"
 
-#: view/katestatusbar.cpp:573
+#: view/katestatusbar.cpp:574
 #, kde-format
 msgctxt "%1 and %2 are the total words/chars count."
 msgid "Words %1, Chars %2"
 msgstr "מילים %1, תווים %2"
 
-#: view/katestatusbar.cpp:588
+#: view/katestatusbar.cpp:589
 #, kde-format
 msgid "Zoom: %1%"
 msgstr "תקריב: %1%"
@@ -7784,22 +7795,22 @@ msgstr "תנועת סמן לפי רישיות פותחות פעילה"
 msgid "Search wrapped"
 msgstr "החיפוש גלש"
 
-#: view/kateview.cpp:3043
+#: view/kateview.cpp:3052
 #, kde-format
 msgid "Open File"
 msgstr "פתיחת קובץ"
 
-#: view/kateview.cpp:3954
+#: view/kateview.cpp:3995
 #, kde-format
 msgid "Align On"
 msgstr "יישור פעיל"
 
-#: view/kateview.cpp:3954
+#: view/kateview.cpp:3995
 #, kde-format
 msgid "Alignment pattern:"
 msgstr "תבנית יישור:"
 
-#: view/kateview.cpp:5038
+#: view/kateview.cpp:5079
 #, kde-format
 msgid "Export File as HTML"
 msgstr "ייצוא קובץ בתור HTML"
@@ -7846,40 +7857,40 @@ msgstr ""
 "<p>זוהי <b>שורת הפקודות</b> של רכיב Kate.<br />תחביר: <code><b>command "
 "[ arguments ]‎</b></code> כאשר command הוא הפקודה ו־arguments הארגומנטים.<br /"
 ">כדי לקבל רשימה של כל הפקודות הזמינות, נא להקליד <code><b>help list</b></"
-"code><br />כדי לקבל עזרה לגבי פקודה מסויימת, נא להקליד <code><b>help &lt;"
+"code><br />כדי לקבל עזרה לגבי פקודה מסוימת, נא להקליד <code><b>help &lt;"
 "command&gt;</b></code></p>"
 
-#: view/kateviewhelpers.cpp:1317 vimode/emulatedcommandbar/commandmode.cpp:211
+#: view/kateviewhelpers.cpp:1317 vimode/emulatedcommandbar/commandmode.cpp:212
 #, kde-format
 msgid "No such command: \"%1\""
 msgstr "אין פקודה כזאת: „%1”"
 
-#: view/kateviewhelpers.cpp:1320 vimode/emulatedcommandbar/commandmode.cpp:193
+#: view/kateviewhelpers.cpp:1320 vimode/emulatedcommandbar/commandmode.cpp:194
 #, kde-format
 msgid "Error: No range allowed for command \"%1\"."
 msgstr "שגיאה: אסור טווח לפקודה „%1”."
 
-#: view/kateviewhelpers.cpp:1330 vimode/emulatedcommandbar/commandmode.cpp:197
+#: view/kateviewhelpers.cpp:1330 vimode/emulatedcommandbar/commandmode.cpp:198
 #, kde-format
 msgid "Success: "
 msgstr "הצלחה: "
 
-#: view/kateviewhelpers.cpp:1344 vimode/emulatedcommandbar/commandmode.cpp:206
+#: view/kateviewhelpers.cpp:1344 vimode/emulatedcommandbar/commandmode.cpp:207
 #, kde-format
 msgid "Command \"%1\" failed."
 msgstr "הפקודה „%1” נכשלה."
 
-#: view/kateviewhelpers.cpp:2632 view/kateviewhelpers.cpp:2633
+#: view/kateviewhelpers.cpp:2645 view/kateviewhelpers.cpp:2646
 #, kde-format
 msgid "Mark Type %1"
 msgstr "סוג סימון %1"
 
-#: view/kateviewhelpers.cpp:2656
+#: view/kateviewhelpers.cpp:2669
 #, kde-format
 msgid "Set Default Mark Type"
 msgstr "הגדרת סוג סימון כברירת המחדל"
 
-#: view/kateviewhelpers.cpp:2801
+#: view/kateviewhelpers.cpp:2814
 #, kde-format
 msgid "Disable Annotation Bar"
 msgstr "השבתת סרגל הסברים"
@@ -7942,17 +7953,22 @@ msgstr "שמירת צילום המסך נכשלה"
 msgid "Screenshot saving failed: %1"
 msgstr "שמירת צילום המסך נכשלה: %1"
 
-#: vimode/appcommands.cpp:67
+#: vimode/appcommands.cpp:72
 #, kde-format
 msgid "All documents written to disk"
 msgstr "כל המסמכים נכתבו לכונן"
 
-#: vimode/appcommands.cpp:70
+#: vimode/appcommands.cpp:74
+#, kde-format
+msgid "Only some documents were written to disk"
+msgstr "רק חלק מהמסמכים נכתבו לכונן"
+
+#: vimode/appcommands.cpp:79
 #, kde-format
 msgid "Document written to disk"
 msgstr "המסמך נכתב לכונן"
 
-#: vimode/appcommands.cpp:202
+#: vimode/appcommands.cpp:212
 #, kde-format
 msgid ""
 "<p><b>w/wa &mdash; write document(s) to disk</b></p><p>Usage: <tt><b>w[a]</"
@@ -7967,7 +7983,7 @@ msgstr ""
 "לכתוב את כל המסמכים לכונן.</p><p>אם לא משויך למסמך שם קובץ, תיפתח חלונית "
 "קבצים.</p>"
 
-#: vimode/appcommands.cpp:213
+#: vimode/appcommands.cpp:223
 #, kde-format
 msgid ""
 "<p><b>q/qa/wq/wqa &mdash; [write and] quit</b></p><p>Usage: <tt><b>[w]q[a]</"
@@ -7990,7 +8006,7 @@ msgstr ""
 "ולצאת לאחר מכן.</p><p>בכל המקרים, אם התצוגה שנסגרת היא האחרונה, היישום "
 "ייסגר. אם לא נבחר שם קובץ למסמך ויש לכתוב אותו לכונן, תופיע חלונית קבצים.</p>"
 
-#: vimode/appcommands.cpp:228
+#: vimode/appcommands.cpp:238
 #, kde-format
 msgid ""
 "<p><b>x/xa &mdash; write and quit</b></p><p>Usage: <tt><b>x[a]</b></tt></"
@@ -8010,7 +8026,7 @@ msgstr ""
 "שם לקובץ ועליו להיכתב לכונן, תופיע חלונית. </p><p>שלא כמו בפקודות ‚w’, "
 "הפקודה הזאת כותבת את המסמך רק אם הוא השתנה.</p>"
 
-#: vimode/appcommands.cpp:242
+#: vimode/appcommands.cpp:252
 #, kde-format
 msgid ""
 "<p><b>sp,split&mdash; Split horizontally the current view into two</b></"
@@ -8020,7 +8036,7 @@ msgstr ""
 "<p><b>sp,split&mdash; פיצול אופקי של התצוגה הנוכחית לשתיים</b></p><p>שימוש: "
 "<tt><b>sp[lit]</b></tt></p><p>תוצגנה שתי תצוגות של אותו המסמך.</p>"
 
-#: vimode/appcommands.cpp:248
+#: vimode/appcommands.cpp:258
 #, kde-format
 msgid ""
 "<p><b>vs,vsplit&mdash; Split vertically the current view into two</b></"
@@ -8030,7 +8046,7 @@ msgstr ""
 "<p><b>vs,vsplit&mdash; פיצול אנכי של התצוגה הנוכחית לשתיים</b></p><p>שימוש: "
 "<tt><b>vs[plit]</b></tt></p><p>תוצגנה שתי תצוגות של אותו המסמך.</p>"
 
-#: vimode/appcommands.cpp:254
+#: vimode/appcommands.cpp:264
 #, kde-format
 msgid ""
 "<p><b>clo[se]&mdash; Close the current view</b></p><p>Usage: <tt><b>clo[se]</"
@@ -8039,7 +8055,7 @@ msgstr ""
 "<p><b>clo[se]&mdash; סגירת התצוגה הנוכחית</b></p><p>שימוש: <tt><b>clo[se]</"
 "b></tt></p><p>לאחר הפעלת הפקודה, התצוגה הנוכחית תיסגר.</p>"
 
-#: vimode/appcommands.cpp:260
+#: vimode/appcommands.cpp:270
 #, kde-format
 msgid ""
 "<p><b>[v]new &mdash; split view and create new document</b></p><p>Usage: "
@@ -8055,7 +8071,7 @@ msgstr ""
 "התצוגה אופקית ופתיחת מסמך חדשה.<br /> <tt>vnew</tt> &mdash; פיצול התצוגה "
 "אנכית ופתיחת מסמך חדש.<br /></p>"
 
-#: vimode/appcommands.cpp:270
+#: vimode/appcommands.cpp:280
 #, kde-format
 msgid ""
 "<p><b>e[dit] &mdash; reload current document</b></p><p>Usage: <tt><b>e[dit]</"
@@ -8066,7 +8082,7 @@ msgstr ""
 "<tt><b>e[dit]</b></tt></p><p>התחלת עריכת (<b>e</b>diting) המסמך הנוכחי שוב. "
 "שימושי לעריכת הקובץ הנוכחי מחדש, כשהוא משתנה בכונן.</p>"
 
-#: vimode/appcommands.cpp:518
+#: vimode/appcommands.cpp:528
 #, kde-format
 msgid ""
 "<p><b>b,buffer &mdash; Edit document N from the document list</b></"
@@ -8075,7 +8091,7 @@ msgstr ""
 "<p><b>b,buffer &mdash; עריכת המסמך N מרשימת המסמכים</b></p><p>שימוש: "
 "<tt><b>b[uffer] [N]</b></tt></p>"
 
-#: vimode/appcommands.cpp:523
+#: vimode/appcommands.cpp:533
 #, kde-format
 msgid ""
 "<p><b>bp,bprev &mdash; previous buffer</b></p><p>Usage: <tt><b>bp[revious] "
@@ -8088,7 +8104,7 @@ msgstr ""
 "</p><p> ברירת המחדל של <b>[N]</b> היא אחד. </p><p>חוזר חזרה לתחילת רשימת "
 "המסמכים.</p>"
 
-#: vimode/appcommands.cpp:531
+#: vimode/appcommands.cpp:541
 #, kde-format
 msgid ""
 "<p><b>bn,bnext &mdash; switch to next document</b></p><p>Usage: "
@@ -8101,7 +8117,7 @@ msgstr ""
 "ברשימת המסמכים.<b>[N]</b> מתורגם לאחד אוטומטית. </p><p>גולש מעבר לסוף רשימת "
 "המסמכים.</p>"
 
-#: vimode/appcommands.cpp:539
+#: vimode/appcommands.cpp:549
 #, kde-format
 msgid ""
 "<p><b>bf,bfirst &mdash; first document</b></p><p>Usage: <tt><b>bf[irst]</b></"
@@ -8112,7 +8128,7 @@ msgstr ""
 "b></tt></p><p>עובר למסמך הראשון (<b>f</b>irst) „חוצץ” (<b>b</b>uffer) ברשימת "
 "המסמכים.</p>"
 
-#: vimode/appcommands.cpp:545
+#: vimode/appcommands.cpp:555
 #, kde-format
 msgid ""
 "<p><b>bl,blast &mdash; last document</b></p><p>Usage: <tt><b>bl[ast]</b></"
@@ -8123,7 +8139,7 @@ msgstr ""
 "b></tt></p><p>עובר למסמך <b>l</b> (last) האחרון („<b>b</b> (buffer) חוצץ”) "
 "ברשימת המסמכים.</p>"
 
-#: vimode/appcommands.cpp:551
+#: vimode/appcommands.cpp:561
 #, kde-format
 msgid "<p><b>ls</b></p><p>list current buffers<p>"
 msgstr "<p><b>ls</b></p><p>הצגת החוצצים הנוכחיים<p>"
@@ -8153,12 +8169,12 @@ msgstr "חסרים ארגומנטים. אופן שימוש: ‎%1 <מתוך> ‎
 msgid "Wrong arguments"
 msgstr "ארגומנטים שגויים"
 
-#: vimode/config/configtab.cpp:201
+#: vimode/config/configtab.cpp:205
 #, kde-format
 msgid "Unable to open the config file for reading."
 msgstr "אי אפשר לפתוח את קובץ התצורה לקריאה."
 
-#: vimode/config/configtab.cpp:201
+#: vimode/config/configtab.cpp:205
 #, kde-format
 msgid "Unable to open file"
 msgstr "אי אפשר לפתוח את הקובץ"
@@ -8293,18 +8309,18 @@ msgstr "קריאת קובץ vimrc ולנסות לייבא מיפויים שצו�
 msgid "Import from vimrc file"
 msgstr "ייבוא מקובץ vimrc"
 
-#: vimode/marks.cpp:117
+#: vimode/marks.cpp:112
 #, kde-format
 msgid "Mark set: %1"
 msgstr "הוגדר סימון: %1"
 
-#: vimode/marks.cpp:163
+#: vimode/marks.cpp:158
 #, kde-format
 msgid "There are no more chars for the next bookmark."
 msgstr "אין תווים נוספים לסימנייה הבאה."
 
-#: vimode/modes/insertvimode.cpp:260 vimode/modes/modebase.cpp:794
-#: vimode/modes/normalvimode.cpp:3565
+#: vimode/modes/insertvimode.cpp:261 vimode/modes/modebase.cpp:795
+#: vimode/modes/normalvimode.cpp:3604
 #, kde-format
 msgid "Nothing in register %1"
 msgstr "אין כלום באוגר %1"
@@ -8314,10 +8330,13 @@ msgstr "אין כלום באוגר %1"
 msgid "'%1' %2,  Hex %3,  Octal %4"
 msgstr "‚%1’ %2,  הקס %3,  אוקטאלי %4"
 
-#: vimode/modes/normalvimode.cpp:2532
+#: vimode/modes/normalvimode.cpp:2571
 #, kde-format
 msgid "Mark not set: %1"
 msgstr "הסימון לא נקבע: %1"
+
+#~ msgid "Enable camel case cursor movement"
+#~ msgstr "הפעלת תזוזת סמן לפי אותיות רישיות פותחות"
 
 #~ msgid "The file '%1' was created on disk."
 #~ msgstr "הקובץ ‚%1’ נוצר בכונן."

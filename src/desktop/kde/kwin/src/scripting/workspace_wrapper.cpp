@@ -44,6 +44,7 @@ WorkspaceWrapper::WorkspaceWrapper(QObject *parent)
     connect(vds, &VirtualDesktopManager::desktopMoved, this, &WorkspaceWrapper::desktopsChanged);
     connect(vds, &VirtualDesktopManager::layoutChanged, this, &WorkspaceWrapper::desktopLayoutChanged);
     connect(vds, &VirtualDesktopManager::currentChanged, this, &WorkspaceWrapper::currentDesktopChanged);
+    connect(vds, &VirtualDesktopManager::navigationWrappingAroundChanged, this, &WorkspaceWrapper::virtualDesktopNavigationWrapsAroundChanged);
 #if KWIN_BUILD_ACTIVITIES
     if (KWin::Activities *activities = ws->activities()) {
         connect(activities, &Activities::currentChanged, this, &WorkspaceWrapper::currentActivityChanged);
@@ -79,6 +80,33 @@ void WorkspaceWrapper::setCurrentDesktop(VirtualDesktop *desktop)
     VirtualDesktopManager::self()->setCurrent(desktop);
 }
 
+bool WorkspaceWrapper::virtualDesktopNavigationWrapsAround() const
+{
+    return VirtualDesktopManager::self()->isNavigationWrappingAround();
+}
+
+KWin::VirtualDesktop *WorkspaceWrapper::currentDesktopForScreen(KWin::LogicalOutput *output) const
+{
+    if (!output) {
+        qCWarning(KWIN_SCRIPTING) << "Invalid output passed to currentDesktopForScreen";
+        return nullptr;
+    }
+    return VirtualDesktopManager::self()->currentDesktop(output);
+}
+
+void WorkspaceWrapper::setCurrentDesktopForScreen(KWin::VirtualDesktop *desktop, KWin::LogicalOutput *output)
+{
+    if (!desktop) {
+        qCWarning(KWIN_SCRIPTING) << "Invalid desktop passed to setCurrentDesktopForScreen";
+        return;
+    }
+    if (!output) {
+        qCWarning(KWIN_SCRIPTING) << "Invalid output passed to setCurrentDesktopForScreen";
+        return;
+    }
+    VirtualDesktopManager::self()->setCurrent(desktop, output);
+}
+
 Window *WorkspaceWrapper::activeWindow() const
 {
     return workspace()->activeWindow();
@@ -100,7 +128,7 @@ void WorkspaceWrapper::setCurrentActivity(const QString &activity)
 {
 #if KWIN_BUILD_ACTIVITIES
     if (Workspace::self()->activities()) {
-        Workspace::self()->activities()->setCurrent(activity, nullptr);
+        Workspace::self()->activities()->setCurrent(activity, nullptr, nullptr);
     }
 #endif
 }
@@ -239,29 +267,29 @@ QSize WorkspaceWrapper::workspaceSize() const
     return QSize(workspaceWidth(), workspaceHeight());
 }
 
-QRectF WorkspaceWrapper::clientArea(ClientAreaOption option, const KWin::Window *c) const
+RectF WorkspaceWrapper::clientArea(ClientAreaOption option, const KWin::Window *c) const
 {
     if (!c) {
-        return QRectF();
+        return RectF();
     }
     return Workspace::self()->clientArea(static_cast<clientAreaOption>(option), c);
 }
 
-QRectF WorkspaceWrapper::clientArea(ClientAreaOption option, KWin::Window *c) const
+RectF WorkspaceWrapper::clientArea(ClientAreaOption option, KWin::Window *c) const
 {
     if (!c) {
-        return QRectF();
+        return RectF();
     }
     return Workspace::self()->clientArea(static_cast<clientAreaOption>(option), c);
 }
 
-QRectF WorkspaceWrapper::clientArea(ClientAreaOption option, LogicalOutput *output, VirtualDesktop *desktop) const
+RectF WorkspaceWrapper::clientArea(ClientAreaOption option, LogicalOutput *output, VirtualDesktop *desktop) const
 {
-    if (!output || !desktop) {
-        qCWarning(KWIN_SCRIPTING) << "clientArea needs valid output:" << output << "and desktop:" << desktop << "arguments";
+    if (!output) {
+        qCWarning(KWIN_SCRIPTING) << "clientArea needs a valid output:" << output << "argument";
         return QRect();
     }
-    return workspace()->clientArea(static_cast<clientAreaOption>(option), output, desktop);
+    return workspace()->clientArea(static_cast<clientAreaOption>(option), output);
 }
 
 void WorkspaceWrapper::createDesktop(int position, const QString &name) const

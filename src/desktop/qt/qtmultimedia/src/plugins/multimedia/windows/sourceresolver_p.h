@@ -15,22 +15,21 @@
 // We mean it.
 //
 
-#include "mfstream_p.h"
-#include <QUrl>
+#include <mfstream_p.h>
+
+#include <QtCore/qurl.h>
+#include <QtCore/private/qcomobject_p.h>
+#include <QtCore/private/qcomptr_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class SourceResolver: public QObject, public IMFAsyncCallback
+class SourceResolver : public QObject,
+                       public QComObjectWithDeleteLater<SourceResolver, IMFAsyncCallback>
 {
     Q_OBJECT
 public:
     SourceResolver();
-
     ~SourceResolver();
-
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-    STDMETHODIMP_(ULONG) AddRef(void) override;
-    STDMETHODIMP_(ULONG) Release(void) override;
 
     HRESULT STDMETHODCALLTYPE Invoke(IMFAsyncResult *pAsyncResult) override;
 
@@ -42,40 +41,32 @@ public:
 
     void shutdown();
 
-    IMFMediaSource* mediaSource() const;
+    ComPtr<IMFMediaSource> mediaSource() const;
 
 Q_SIGNALS:
     void error(long hr);
     void mediaSourceReady();
 
 private:
-    class State : public IUnknown
+    class State : public QComObject<IUnknown>
     {
     public:
-        State(IMFSourceResolver *sourceResolver, bool fromStream);
+        State(ComPtr<IMFSourceResolver> sourceResolver, bool fromStream);
         virtual ~State();
 
-        STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-
-        STDMETHODIMP_(ULONG) AddRef(void) override;
-
-        STDMETHODIMP_(ULONG) Release(void) override;
-
-        IMFSourceResolver* sourceResolver() const;
+        ComPtr<IMFSourceResolver> sourceResolver() const;
         bool fromStream() const;
 
     private:
-        long m_cRef;
-        IMFSourceResolver *m_sourceResolver;
+        ComPtr<IMFSourceResolver> m_sourceResolver;
         bool m_fromStream;
     };
 
-    long              m_cRef;
-    IUnknown          *m_cancelCookie;
-    IMFSourceResolver *m_sourceResolver;
-    IMFMediaSource    *m_mediaSource;
-    MFStream          *m_stream;
-    QMutex            m_mutex;
+    ComPtr<IUnknown> m_cancelCookie;
+    ComPtr<IMFSourceResolver> m_sourceResolver;
+    ComPtr<IMFMediaSource> m_mediaSource;
+    ComPtr<MFStream> m_stream;
+    mutable QMutex m_mutex;
 };
 
 QT_END_NAMESPACE

@@ -1497,3 +1497,87 @@ function(qt_internal_set_up_config_optimizations_like_in_qmake)
                                                            "${target_link_types}")
     endif()
 endfunction()
+
+# Adds optimized flags to targets created in the calling directory scope.
+# This is the only way to add release flags in a debug build, which would build successfully.
+# The approach of just appending -O3, and thus overriding any previous -O0 works on GCC / Clang
+# but not MSVC, because MSVC has other debug flags which are not compatible when -Ox optimizations
+# are turned on.
+function(qt_internal_add_optimized_flags_for_debug_config_in_current_scope)
+    qt_internal_remove_known_optimization_flags(CONFIGS DEBUG)
+
+    # Remove incompatible Windows debug flags with release flags.
+    if(MSVC)
+        set(default_debug_flags_to_remove "/RTC1")
+
+        qt_internal_get_enabled_languages_for_flag_manipulation(enabled_languages)
+        foreach(lang ${enabled_languages})
+            set(flag_var_name "CMAKE_${lang}_FLAGS_DEBUG")
+            qt_internal_remove_flags_impl(${flag_var_name} "${default_debug_flags_to_remove}" "")
+        endforeach()
+    endif()
+
+    qt_internal_get_optimize_full_flags(optimize_full_flags)
+    qt_internal_add_compiler_flags(FLAGS "${optimize_full_flags}" CONFIGS DEBUG)
+
+    # Set the flags in the parent scope. This will apply the flags to all targets within
+    # that directory scope.
+    qt_internal_set_optimized_flags_for_debug_config_in_parent_scope()
+endfunction()
+
+# Conditionally adds optimized flags to the calling directory scope, depending on whether
+# the QT_FEATURE_optimized_tools is ON, and whether a target or project specific override was not
+# set.
+# Overrides can be set via:
+# -DQT_FORCE_NO_OPTIMIZE_<target>=ON
+# -DQT_FORCE_NO_OPTIMIZE_<project_name>=ON
+# e.g -DQT_FORCE_NO_OPTIMIZE_moc=ON -DQT_FORCE_NO_OPTIMIZE_qtdeclarative=ON
+function(qt_internal_add_target_optimized_flags_for_debug_config_in_current_scope target)
+    set(opt_args "")
+    set(single_args
+        OUT_VAR_DID_ADD
+    )
+    set(multi_args "")
+
+    cmake_parse_arguments(PARSE_ARGV 1 arg "${opt_args}" "${single_args}" "${multi_args}")
+    _qt_internal_validate_all_args_are_parsed(arg)
+
+    string(TOLOWER "${PROJECT_NAME}" project_name_lower)
+
+    if(QT_FEATURE_optimized_tools
+            AND NOT QT_FORCE_NO_OPTIMIZE_${target}
+            AND NOT QT_FORCE_NO_OPTIMIZE_${project_name_lower}
+        )
+        qt_internal_add_optimized_flags_for_debug_config_in_current_scope()
+        qt_internal_set_optimized_flags_for_debug_config_in_parent_scope()
+        set(did_add TRUE)
+    else()
+        set(did_add FALSE)
+    endif()
+
+    if(arg_OUT_VAR_DID_ADD)
+        set(${arg_OUT_VAR_DID_ADD} "${did_add}" PARENT_SCOPE)
+    endif()
+endfunction()
+
+# Helper to propagate the optimized flags for the debug config to the parent scope.
+macro(qt_internal_set_optimized_flags_for_debug_config_in_parent_scope)
+    qt_internal_get_enabled_languages_for_flag_manipulation(__qt_internal_debug_enabled_languages)
+    foreach(__qt_internal_debug_lang IN LISTS __qt_internal_debug_enabled_languages)
+        set(flag_var_name "CMAKE_${__qt_internal_debug_lang}_FLAGS_DEBUG")
+        set(${flag_var_name} "${${flag_var_name}}" PARENT_SCOPE)
+    endforeach()
+    unset(__qt_internal_debug_lang)
+    unset(__qt_internal_debug_enabled_languages)
+endmacro()
+
+# Same as qt_internal_add_target_optimized_flags_for_debug_config_in_current_scope, but also
+# propagates the optimized flags to the parent scope.
+macro(qt_internal_add_target_optimized_flags_for_debug_config_in_parent_scope target)
+    qt_internal_add_target_optimized_flags_for_debug_config_in_current_scope("${target}"
+        OUT_VAR_DID_ADD __qt_internal_did_add_optimized_flag_in_current_scope)
+    if(__qt_internal_did_add_optimized_flag_in_current_scope)
+        qt_internal_set_optimized_flags_for_debug_config_in_parent_scope()
+    endif()
+    unset(__qt_internal_did_add_optimized_flag_in_current_scope)
+endmacro()

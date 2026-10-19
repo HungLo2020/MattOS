@@ -752,6 +752,7 @@ Q_DECL_UNUSED static constexpr quint64 MaximumPreallocatedElementCount =
  */
 
 using namespace QtCbor;
+static QCborValue::Type setToExtendedDateTimeType(QCborContainerPrivate *d, QStringView dtString);
 
 static QCborContainerPrivate *assignContainer(QCborContainerPrivate *&d, QCborContainerPrivate *x)
 {
@@ -791,31 +792,17 @@ static QCborValue::Type convertToExtendedType(QCborContainerPrivate *d)
             qint64 msecs;
             bool ok = false;
             if (e.type == QCborValue::Integer) {
-#if QT_POINTER_SIZE == 8
-                // we don't have a fast 64-bit qMulOverflow implementation on
-                // 32-bit architectures.
-                ok = !qMulOverflow(e.value, qint64(1000), &msecs);
-#else
-                static const qint64 Limit = std::numeric_limits<qint64>::max() / 1000;
-                ok = (e.value > -Limit && e.value < Limit);
-                if (ok)
-                    msecs = e.value * 1000;
-#endif
+                ok = !qMulOverflow<1000>(e.value, &msecs);
             } else if (e.type == QCborValue::Double) {
                 ok = convertDoubleTo(round(e.fpvalue() * 1000), &msecs);
             }
             if (ok)
                 dt = QDateTime::fromMSecsSinceEpoch(msecs, QTimeZone::UTC);
+            else
+                break;
         }
-        if (dt.isValid()) {
-            QByteArray text = dt.toString(Qt::ISODateWithMs).toLatin1();
-            if (!text.isEmpty()) {
-                replaceByteData(text, text.size(), Element::StringIsAscii);
-                e.type = QCborValue::String;
-                d->elements[0].value = qint64(QCborKnownTags::DateTimeString);
-                return QCborValue::DateTime;
-            }
-        }
+        if (QString dtString = dt.toString(Qt::ISODateWithMs); !dtString.isEmpty())
+            return setToExtendedDateTimeType(d, dtString);
         break;
     }
 #endif
@@ -917,10 +904,61 @@ static inline int typeOrder(QCborValue::Type e1, QCborValue::Type  e2)
 
 QCborContainerPrivate::~QCborContainerPrivate()
 {
-    // delete our elements
-    for (Element &e : elements) {
-        if (e.flags & Element::IsContainer)
-            e.container->deref();
+    // Do the depth-first search of all containers, and delete them
+    // bottom-to-top, so that the d-tor never recurses.
+    // We cannot use an approach with storing the elements to be removed in
+    // a container, because the container itself may throw on reallocation, and
+    // we do not want it in the d-tor.
+    // So, use the nextToDelete member of QCborContainerPrivate to first create
+    // a linked list of containers to be checked, and then build another linked
+    // list of the elements to be removed.
+    QCborContainerPrivate *pendingContainers = nullptr;
+    QCborContainerPrivate *toBeDeleted = nullptr;
+
+    auto appendNestedContainers = [&pendingContainers](QCborContainerPrivate *priv) {
+        for (const Element &e : std::as_const(priv->elements)) {
+            // only append if it actually has to be deleted
+            if ((e.flags & Element::IsContainer) == 0)
+                continue; // not a container
+            if (e.container->ref.deref())
+                continue; // still referenced
+            if (e.container->elements.isEmpty()) {
+                // empty container - delete immediately
+                delete e.container;
+            } else {
+                e.container->nextToDelete = pendingContainers;
+                pendingContainers = e.container;
+            }
+        }
+    };
+
+    // first, add our nested containers
+    appendNestedContainers(this);
+
+    // then try do descend deeper into the tree
+    while (pendingContainers) {
+        QCborContainerPrivate *priv = pendingContainers;
+        pendingContainers = priv->nextToDelete;
+
+        // Move priv into the list of containers that can now be deleted.
+        priv->nextToDelete = toBeDeleted;
+        toBeDeleted = priv;
+
+        // collect priv's children
+        appendNestedContainers(priv);
+    }
+
+    // Now actually delete everything
+    while (toBeDeleted) {
+        QCborContainerPrivate *priv = toBeDeleted;
+        toBeDeleted = priv->nextToDelete;
+
+        // Clear the elements, so that we do not recurse again.
+        // We cannot use QList::clear(), because it might allocate.
+        // Use move-assignment instead.
+        priv->elements = QList<Element>();
+
+        delete priv;
     }
 }
 
@@ -2044,6 +2082,18 @@ QCborValue::QCborValue(const QCborValue &other) noexcept
 }
 
 #if QT_CONFIG(datestring)
+static QCborValue::Type setToExtendedDateTimeType(QCborContainerPrivate *d, QStringView text)
+{
+    // when called from convertToExtendedType(), *d isn't pristine
+    d->data.resize(0);
+    d->elements.resize(0);
+    d->elements.reserve(2);
+
+    d->append(QCborTag(QCborKnownTags::DateTimeString));
+    d->appendAsciiString(text);
+    return text.isEmpty() ? QCborValue::Tag : QCborValue::DateTime;
+}
+
 /*!
     Creates a QCborValue object of the date/time extended type and containing
     the value represented by \a dt. The value can later be retrieved using
@@ -2058,11 +2108,10 @@ QCborValue::QCborValue(const QCborValue &other) noexcept
     \sa toDateTime(), isDateTime(), taggedValue()
  */
 QCborValue::QCborValue(const QDateTime &dt)
-    : QCborValue(QCborKnownTags::DateTimeString, dt.toString(Qt::ISODateWithMs).toLatin1())
+    : n(-1), container(new QCborContainerPrivate),
+      t(setToExtendedDateTimeType(container, dt.toString(Qt::ISODateWithMs)))
 {
-    // change types
-    t = DateTime;
-    container->elements[1].type = String;
+    container->ref.storeRelaxed(1);
 }
 #endif
 

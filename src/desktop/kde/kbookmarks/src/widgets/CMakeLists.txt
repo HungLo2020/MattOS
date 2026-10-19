@@ -42,14 +42,17 @@ ecm_generate_export_header(KF6BookmarksWidgets
 
 target_include_directories(KF6BookmarksWidgets INTERFACE "$<INSTALL_INTERFACE:${KDE_INSTALL_INCLUDEDIR_KF}/KBookmarksWidgets>")
 
-target_link_libraries(KF6BookmarksWidgets PUBLIC Qt6::Widgets KF6::WidgetsAddons)
-target_link_libraries(KF6BookmarksWidgets PRIVATE
-    KF6::Bookmarks
-    KF6::ConfigCore # for KAuthorized
-    KF6::ConfigGui # for KStandardAction
+target_link_libraries(KF6BookmarksWidgets
+    PUBLIC
+        Qt6::Widgets
+        KF6::WidgetsAddons
+        KF6::Bookmarks
+    PRIVATE
+        KF6::ConfigCore # for KAuthorized
+        KF6::ConfigGui # for KStandardAction
 )
 
-ecm_generate_headers(KBookmarksWidgets_HEADERS
+ecm_generate_headers(KBookmarksWidgets_CamelCase_HEADERS
   HEADER_NAMES
   KBookmarkActionMenu
   KBookmarkContextMenu
@@ -66,6 +69,7 @@ install(TARGETS KF6BookmarksWidgets EXPORT KF6BookmarksTargets ${KF_INSTALL_TARG
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/kbookmarkswidgets_export.h
   ${KBookmarksWidgets_HEADERS}
+  ${KBookmarksWidgets_CamelCase_HEADERS}
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KBookmarksWidgets COMPONENT Devel
 )
 
@@ -73,4 +77,17 @@ ecm_qt_install_logging_categories(
     EXPORT KBOOKMARKSWIDGETS
     FILE kbookmarkswidgets.categories
     DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR}
+)
+
+ecm_add_installed_library_check(KF6BookmarksWidgets
+    PACKAGE_NAME "KF6Bookmarks"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6BookmarksWidgets
+    HEADERS ${KBookmarksWidgets_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6BookmarksWidgets
+    PREFIX KBOOKMARKS
 )

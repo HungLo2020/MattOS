@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-09-27 02:41+0000\n"
 "PO-Revision-Date: 2024-04-08 11:58+0200\n"
 "Last-Translator: giovanni <g.sora@tiscali.it>\n"
 "Language-Team: Interlingua <kde-i18n-doc@kde.org>\n"
@@ -593,19 +593,19 @@ msgstr ""
 msgid "<h3>Error</h3>"
 msgstr "<h3>Error</h3>"
 
-#: kcmfontinst/JobRunner.cpp:692
+#: kcmfontinst/JobRunner.cpp:693
 #, kde-format
 msgid "Failed to download <i>%1</i>"
 msgstr "Il falleva a discargar <i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:694
+#: kcmfontinst/JobRunner.cpp:695
 #, kde-format
 msgid "System backend died. Please try again.<br><i>%1</i>"
 msgstr ""
 "Retro-administration de systema moriva. Pro favor tu prova de nove.<br><i>"
 "%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:696
+#: kcmfontinst/JobRunner.cpp:697
 #, kde-format
 msgid ""
 "<i>%1</i> is a bitmap font, and these have been disabled on your system."
@@ -613,7 +613,7 @@ msgstr ""
 "<i>%1</i> es un font de bitmap, e istos ha essite dishabilitate sur tu "
 "systema."
 
-#: kcmfontinst/JobRunner.cpp:698
+#: kcmfontinst/JobRunner.cpp:699
 #, kde-format
 msgid ""
 "<i>%1</i> contains the font <b>%2</b>, which is already installed on your "
@@ -621,47 +621,47 @@ msgid ""
 msgstr ""
 "<i>%1</i> contine le font <b>%2</b> que ja il es installate sur tu systema."
 
-#: kcmfontinst/JobRunner.cpp:700
+#: kcmfontinst/JobRunner.cpp:701
 #, kde-format
 msgid "<i>%1</i> is not a font."
 msgstr "<i>%1</i>non  es un font."
 
-#: kcmfontinst/JobRunner.cpp:702
+#: kcmfontinst/JobRunner.cpp:703
 #, kde-format
 msgid "Could not remove all files associated with <i>%1</i>"
 msgstr "Il non pote remover omne files associate con <i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:704
+#: kcmfontinst/JobRunner.cpp:705
 #, kde-format
 msgid "Failed to start the system daemon.<br><i>%1</i>"
 msgstr "Il falleva a initiar le daemon de systema.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:707 kio/KioFonts.cpp:719
+#: kcmfontinst/JobRunner.cpp:708 kio/KioFonts.cpp:719
 #, kde-format
 msgid "<i>%1</i> already exists."
 msgstr "<i>%1</i>jam existe."
 
-#: kcmfontinst/JobRunner.cpp:710
+#: kcmfontinst/JobRunner.cpp:711
 #, kde-format
 msgid "<i>%1</i> does not exist."
 msgstr "<i>%1</i>non existe."
 
-#: kcmfontinst/JobRunner.cpp:712
+#: kcmfontinst/JobRunner.cpp:713
 #, kde-format
 msgid "Permission denied.<br><i>%1</i>"
 msgstr "Permission negate.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:714
+#: kcmfontinst/JobRunner.cpp:715
 #, kde-format
 msgid "Unsupported action.<br><i>%1</i>"
 msgstr "Action non supportate.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:716
+#: kcmfontinst/JobRunner.cpp:717
 #, kde-format
 msgid "Authentication failed.<br><i>%1</i>"
 msgstr "Il falleva authentication.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:718
+#: kcmfontinst/JobRunner.cpp:719
 #, kde-format
 msgid "Unexpected error while processing: <i>%1</i>"
 msgstr ""
@@ -1542,17 +1542,17 @@ msgstr "Categoria"
 msgid "UCS-4"
 msgstr "UCS-4"
 
-#: viewpart/CharTip.cpp:157
+#: viewpart/CharTip.cpp:158
 #, kde-format
 msgid "UTF-16"
 msgstr "UTF-16"
 
-#: viewpart/CharTip.cpp:168
+#: viewpart/CharTip.cpp:169
 #, kde-format
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: viewpart/CharTip.cpp:185
+#: viewpart/CharTip.cpp:186
 #, kde-format
 msgid "XML Decimal Entity"
 msgstr "Entitate decimal XML"
@@ -1577,12 +1577,12 @@ msgstr "Cambia Texto..."
 msgid "Could not read font."
 msgstr "Il non pote leger font."
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Preview String"
 msgstr "Catena de vista preliminar"
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Please enter new string:"
 msgstr "Pro favor, tu inserta nove catena:"

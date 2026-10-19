@@ -11,16 +11,12 @@
 #include <QtCore/qmutex.h>
 
 #include <screen/screen.h>
-#include <QtCore/QLoggingCategory>
 
 #if QT_CONFIG(opengl)
 #include <EGL/egl.h>
 #endif
 
 QT_BEGIN_NAMESPACE
-
-Q_DECLARE_LOGGING_CATEGORY(lcQpaQnx);
-Q_DECLARE_LOGGING_CATEGORY(lcQpaGLContext);
 
 class QQnxScreenEventThread;
 class QQnxFileDialogHelper;
@@ -75,6 +71,10 @@ public:
     QPlatformOpenGLContext *createPlatformOpenGLContext(QOpenGLContext *context) const override;
 #endif
 
+#if QT_CONFIG(vulkan)
+    QPlatformVulkanInstance *createPlatformVulkanInstance(QVulkanInstance *instance) const override;
+#endif
+
     QPlatformInputContext *inputContext() const override;
 
     void moveToScreen(QWindow *window, int screen);
@@ -94,6 +94,9 @@ public:
     QPlatformDrag *drag() const override;
 #endif
     QVariant styleHint(StyleHint hint) const override;
+
+    QStringList themeNames() const override;
+    QPlatformTheme *createPlatformTheme(const QString &name) const override;
 
     QPlatformServices *services() const override;
 

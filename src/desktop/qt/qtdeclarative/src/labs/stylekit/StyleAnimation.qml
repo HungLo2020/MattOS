@@ -34,9 +34,9 @@ ParallelAnimation {
     property bool animateIndicatorScaleAndRotation: false
 
     readonly property string __geometryProps:
-        "$.implicitWidth, $.implicitHeight, "
+        "$.width, $.height, "
         + "$.margins, $.leftMargin, $.rightMargin, $.topMargin, $.bottomMargin, "
-        + "$.minimumWidth, "
+        + "$.minimumWidth, $.minimumHeight, "
     readonly property string __colorProps:
         "$.color, $.border.color, $.image.color, $.shadow.color, "
     readonly property string __radiiProps:
@@ -52,10 +52,10 @@ ParallelAnimation {
             return
         anim.properties += props.replace(/\$/g, "indicator")
         anim.properties += props.replace(/\$/g, "indicator.foreground")
-        anim.properties += props.replace(/\$/g, "indicator.up")
-        anim.properties += props.replace(/\$/g, "indicator.up.foreground")
-        anim.properties += props.replace(/\$/g, "indicator.down")
-        anim.properties += props.replace(/\$/g, "indicator.down.foreground")
+        anim.properties += props.replace(/\$/g, "indicator.first")
+        anim.properties += props.replace(/\$/g, "indicator.first.foreground")
+        anim.properties += props.replace(/\$/g, "indicator.second")
+        anim.properties += props.replace(/\$/g, "indicator.second.foreground")
     }
 
     function __animateHandles(doAnimate, anim, props) {

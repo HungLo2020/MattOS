@@ -21,18 +21,6 @@ function(qt_configure_file)
     endif()
 endfunction()
 
-# A version of cmake_parse_arguments that makes sure all arguments are processed and errors out
-# with a message about ${type} having received unknown arguments.
-#
-# TODO: Remove when all usage of qt_parse_all_arguments were replaced by
-# cmake_parse_all_arguments(PARSEARGV) instances
-macro(qt_parse_all_arguments result type flags options multiopts)
-    cmake_parse_arguments(${result} "${flags}" "${options}" "${multiopts}" ${ARGN})
-    if(DEFINED ${result}_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "Unknown arguments were passed to ${type} (${${result}_UNPARSED_ARGUMENTS}).")
-    endif()
-endmacro()
-
 # Print all variables defined in the current scope.
 macro(qt_debug_print_variables)
     cmake_parse_arguments(__arg "DEDUP" "" "MATCH;IGNORE" ${ARGN})
@@ -133,6 +121,14 @@ endfunction()
 #   example: Qt6Gui
 # out_path should be the build path where the write the file.
 function(qt_internal_write_qt_package_version_file package_name out_path)
+    set(opt_args
+        ALLOW_OVERRIDE_FILES
+    )
+    set(single_args "")
+    set(multi_args "")
+    cmake_parse_arguments(PARSE_ARGV 2 arg "${opt_args}" "${single_args}" "${multi_args}")
+    _qt_internal_validate_all_args_are_parsed(arg)
+
     set(extra_code "")
 
     # Need to check for FEATURE_developer_build as well, because QT_FEATURE_developer_build is not
@@ -142,6 +138,29 @@ function(qt_internal_write_qt_package_version_file package_name out_path)
 # Disabling version check because Qt was configured with -developer-build.
 set(__qt_disable_package_version_check TRUE)
 set(__qt_disable_package_version_check_due_to_developer_build TRUE)")
+    endif()
+
+    set(QT_PACKAGE_NAME "${package_name}")
+
+    set(QT_VERSION_OVERRIDE_CODE "")
+    if(arg_ALLOW_OVERRIDE_FILES AND NOT QT_NO_INJECT_CONFIG_VERSION_OVERRIDE_FILES)
+        # Read the contents of the file into a variable, which will be appended to the template.
+        file(STRINGS "${QT_CMAKE_DIR}/QtCMakePackageVersionFileOverride.cmake.in"
+            QT_VERSION_OVERRIDE_CODE)
+
+        # Skip license
+        while(QT_VERSION_OVERRIDE_CODE)
+            list(POP_FRONT QT_VERSION_OVERRIDE_CODE line)
+            if (line MATCHES "^# SPDX")
+                list(POP_FRONT QT_VERSION_OVERRIDE_CODE line)
+                break()
+            endif()
+        endwhile()
+
+        string(REPLACE ";" "\n" QT_VERSION_OVERRIDE_CODE "${QT_VERSION_OVERRIDE_CODE}")
+
+        # Need to replace template expansion variables.
+        string(CONFIGURE "${QT_VERSION_OVERRIDE_CODE}" QT_VERSION_OVERRIDE_CODE @ONLY)
     endif()
 
     configure_file("${QT_CMAKE_DIR}/QtCMakePackageVersionFile.cmake.in" "${out_path}" @ONLY)

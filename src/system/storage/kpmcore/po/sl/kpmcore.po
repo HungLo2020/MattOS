@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kpmcore\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
-"PO-Revision-Date: 2025-03-12 07:48+0100\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
+"PO-Revision-Date: 2026-06-26 06:40+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
 "Translator: Andrej Mernik <andrejm@ubuntu.si>\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.9\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -1906,7 +1906,7 @@ msgstr "Zakleni"
 msgid "Enter passphrase for %1:"
 msgstr "Vnesite šifrirno frazo za %1:"
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
@@ -1914,7 +1914,7 @@ msgstr ""
 "Spreminjanje velikosti šifriranega vsebnika LUKS razdelka <filename>%1</"
 "filename>."
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1974,7 +1974,7 @@ msgstr ""
 "Posodabljanje zagonskega sektorja za datotečni sistem NTFS na razdelku "
 "<filename>%1</filename>."
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1984,7 +1984,7 @@ msgstr ""
 "Med poskusom posodobitve zagonskega sektorja NTFS ni bilo mogoče zapisati "
 "novega začetnega sektorja na razdelku <filename>%1</filename>."
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2818,6 +2818,36 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr "Popolnoma prepiši datotečni sistem na <filename>%1</filename>"
 
+#: jobs/takeownershipjob.cpp:28
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr "Datotečni sistem na <filename>%1</filename> ne podpira lastništva."
+
+#: jobs/takeownershipjob.cpp:36
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr ""
+"Zavračanje spremembe lastništva kritične točke priklopa <filename>%1</"
+"filename>."
+
+#: jobs/takeownershipjob.cpp:60
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ""
+"Prevzem lastništva nad datoteko <filename>%1</filename> in njeno vsebino za "
+"uporabnika %2."
+
+#: jobs/takeownershipjob.cpp:62
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "Prevzem lastništva <filename>%1</filename> za uporabnika %2"
+
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
 msgctxt "@info:status"
@@ -3245,6 +3275,20 @@ msgstr "Nastavi zastavice za razdelek <filename>%1</filename> na »%2«"
 msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
 msgstr "Nastavi oznako za razdelek GPT <filename>%1</filename> na \"%2\""
+
+#: ops/takeownershipoperation.cpp:73
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ""
+"Prevzemi lastništvo nad <filename>%1</filename> in njeno vsebino za "
+"uporabnika %2"
+
+#: ops/takeownershipoperation.cpp:75
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
+msgstr "Prevzem lastništva nad <filename>%1</filename> za uporabnika %2"
 
 #: plugins/geom/geompartitiontable.cpp:91
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:65

@@ -46,6 +46,8 @@ private slots:
     void simpleKeyboard();
     void keyboardKeymaps();
     void keyboardLayoutSwitching();
+    void keyboardAltGrModifier();
+    void keyboardNumLockPreserved();
 #endif
     void keyboardGrab();
     void seatCreation();
@@ -294,6 +296,96 @@ void tst_WaylandCompositor::keyboardLayoutSwitching()
     seat->sendKeyEvent(Qt::Key_Y, false);
     compositor.flushClients();
     QTRY_COMPARE(mockKeyboard->m_lastKeyCode, 44u);
+}
+
+void tst_WaylandCompositor::keyboardAltGrModifier()
+{
+    TestCompositor compositor;
+    compositor.create();
+    QWaylandSeat *seat = compositor.defaultSeat();
+    seat->keymap()->setLayout("us");
+
+    MockClient client;
+    QTRY_COMPARE(client.m_seats.size(), 1);
+    MockKeyboard *mockKeyboard = client.m_seats.at(0)->keyboard();
+    client.createSurface();
+    QTRY_COMPARE(compositor.surfaces.size(), 1);
+    seat->setKeyboardFocus(compositor.surfaces.at(0));
+    compositor.flushClients();
+    QTRY_COMPARE(mockKeyboard->m_enteredSurface != nullptr, true);
+
+    // Get the mod5 index for AltGr from the keymap
+    auto keyboardPrivate = QWaylandKeyboardPrivate::get(seat->keyboard());
+    keyboardPrivate->maybeUpdateXkbScanCodeTable();
+    const uint32_t mod5Index = keyboardPrivate->mod5Index;
+
+    // Sending a key event with GroupSwitchModifier should instruct the client
+    // to activate Mod5 (AltGr / ISO_Level3_Shift)
+    // Key_A with GroupSwitchModifier: AltGr+A
+    QKeyEvent ke(QEvent::KeyPress, Qt::Key_A, Qt::GroupSwitchModifier, 30, 0, 0);
+    seat->sendFullKeyEvent(&ke);
+    compositor.flushClients();
+
+    // The modifier repair should have sent a modifiers event with Mod5 set
+    QTRY_VERIFY(mod5Index < 32);
+    const uint32_t expectedMods = 1u << mod5Index;
+    QTRY_COMPARE(mockKeyboard->m_modsDepressed, expectedMods);
+
+    QKeyEvent ke1(QEvent::KeyRelease, Qt::Key_A, Qt::GroupSwitchModifier, 30, 0, 0);
+    seat->sendFullKeyEvent(&ke1);
+    compositor.flushClients();
+    QTRY_COMPARE(mockKeyboard->m_modsDepressed, expectedMods);
+}
+
+void tst_WaylandCompositor::keyboardNumLockPreserved()
+{
+    TestCompositor compositor;
+    compositor.create();
+    QWaylandSeat *seat = compositor.defaultSeat();
+    seat->keymap()->setLayout("us");
+
+    MockClient client;
+    QTRY_COMPARE(client.m_seats.size(), 1);
+    MockKeyboard *mockKeyboard = client.m_seats.at(0)->keyboard();
+    client.createSurface();
+    QTRY_COMPARE(compositor.surfaces.size(), 1);
+    seat->setKeyboardFocus(compositor.surfaces.at(0));
+    compositor.flushClients();
+    QTRY_COMPARE(mockKeyboard->m_enteredSurface != nullptr, true);
+
+    // Simulate NumLock being active: press and release NumLock to toggle the lock state.
+    // NumLock XKB keycode = 77 (evdev KEY_NUMLOCK=69, +8 offset)
+    const uint numLockCode = 77;
+    auto keyboardPrivate = QWaylandKeyboardPrivate::get(seat->keyboard());
+    keyboardPrivate->keyEvent(numLockCode, WL_KEYBOARD_KEY_STATE_PRESSED);
+    keyboardPrivate->updateModifierState(numLockCode, WL_KEYBOARD_KEY_STATE_PRESSED);
+    keyboardPrivate->keyEvent(numLockCode, WL_KEYBOARD_KEY_STATE_RELEASED);
+    keyboardPrivate->updateModifierState(numLockCode, WL_KEYBOARD_KEY_STATE_RELEASED);
+    compositor.flushClients();
+
+    // modsLocked should now have NumLock bit set
+    const uint32_t numLockLockedMask = keyboardPrivate->modsLocked;
+    QTRY_COMPARE_NE(numLockLockedMask, 0); // NumLock should be in locked state
+
+    // Now send a key event that triggers checkAndRepairModifierState.
+    QKeyEvent ke(QEvent::KeyPress, Qt::Key_A, Qt::NoModifier, 30, 0, 0);
+    seat->sendFullKeyEvent(&ke);
+    compositor.flushClients();
+
+    // The repair must preserve modsLocked (NumLock), not pass 0
+    QTRY_COMPARE(mockKeyboard->m_modsLocked, numLockLockedMask);
+
+    QKeyEvent ke1(QEvent::KeyRelease, Qt::Key_A, Qt::NoModifier, 30, 0, 0);
+    seat->sendFullKeyEvent(&ke1);
+    compositor.flushClients();
+
+    keyboardPrivate->keyEvent(numLockCode, WL_KEYBOARD_KEY_STATE_PRESSED);
+    keyboardPrivate->updateModifierState(numLockCode, WL_KEYBOARD_KEY_STATE_PRESSED);
+    keyboardPrivate->keyEvent(numLockCode, WL_KEYBOARD_KEY_STATE_RELEASED);
+    keyboardPrivate->updateModifierState(numLockCode, WL_KEYBOARD_KEY_STATE_RELEASED);
+    compositor.flushClients();
+
+    QTRY_COMPARE(keyboardPrivate->modsLocked, 0); // NumLock should be in unlocked state
 }
 
 #endif // QT_CONFIG(xkbcommon)

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-12 02:38+0000\n"
-"PO-Revision-Date: 2025-08-30 03:34+0200\n"
+"POT-Creation-Date: 2026-10-08 02:59+0000\n"
+"PO-Revision-Date: 2026-09-27 07:48+0200\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -16,14 +16,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.7\n"
+"X-Generator: Poedit 3.9\n"
 
-#: configdialog.cpp:84
+#: configdialog.cpp:83
 #, kde-format
 msgid "Clipboard history:"
 msgstr "ბაფერის ისტორია:"
 
-#: configdialog.cpp:90
+#: configdialog.cpp:89
 #, kde-format
 msgctxt "Number of entries"
 msgid "%v entry"
@@ -31,12 +31,12 @@ msgid_plural "%v entries"
 msgstr[0] "%v ჩანაწერი"
 msgstr[1] "%v ჩანაწერი"
 
-#: configdialog.cpp:99
+#: configdialog.cpp:98
 #, kde-format
 msgid "Selection and Clipboard:"
 msgstr "მონიშნული და ბაფერი:"
 
-#: configdialog.cpp:106
+#: configdialog.cpp:105
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -45,68 +45,86 @@ msgid ""
 "the middle mouse button.<nl/><nl/>If the selection is explicitly copied "
 "using a <interface>Copy</interface> or <interface>Cut</interface> action, it "
 "is saved to the <emphasis>clipboard</emphasis>. It can be pasted using a "
-"<interface>Paste</interface> action. <nl/><nl/>When turned on this option "
-"keeps the selection and the clipboard the same, so that any selection is "
+"<interface>Paste</interface> action.<nl/><nl/>When turned on, this option "
+"keeps the selection and the clipboard the same,  so that any selection is "
 "immediately available to paste by any means. If it is turned off, the "
-"selection may still be saved in the clipboard history (subject to the "
-"options below), but it can only be pasted using the middle mouse button."
+"selection may still be saved in the clipboard history (subject to the option "
+"below), but it can only be pasted using the middle mouse button."
 msgstr ""
-"როდესაც ტექსტი ან ეკრანის ფართობი ხაზგასმულია მაუსის ან კლავიატურით, ეს არის "
-"<emphasis>შერჩევა</emphasis>. მისი ჩასმა შესაძლებელია მაუსის შუა ღილაკის "
-"გამოყენებით.<nl/><nl/> თუ შერჩევა აშკარად კოპირებულია <interface>ასლის</"
-"interface> ან <interface>დაჭრილი</interface> მოქმედების გამოყენებით, იგი "
-"ინახება <emphasis>ბუფერში</emphasis>. მისი ჩასმა შესაძლებელია "
-"<interface>პასტის</interface> მოქმედების გამოყენებით. <nl/><nl/> როდესაც "
-"ჩართულია ამ ვარიანტზე, ინარჩუნებს შერჩევას და ბუფერს იგივე, ისე, რომ "
-"ნებისმიერი შერჩევა დაუყოვნებლივ ხელმისაწვდომი იყოს ნებისმიერი საშუალებით. თუ "
-"ის გამორთულია, შერჩევა შეიძლება კვლავ შეინახოთ ბუფერის ისტორიაში (ქვემოთ "
-"მოცემული ვარიანტების გათვალისწინებით), მაგრამ მისი ჩასმა შესაძლებელია მხოლოდ "
-"მაუსის შუა ღილაკის გამოყენებით."
+"როცა ტექსტი, ან ეკრანის არე გამოკვეთილია თაგუნათი, ან კლავიატურით, ამას "
+"<emphasis>მონიშვნა</emphasis> ეწოდება. მისი ჩასმა თაგუნას შუა ღილაკით "
+"შეგიძლიათ.<nl/><nl/>თუ მონიშნულის კოპირება აშკარად, <interface>კოპირების</"
+"interface>, ან <interface>ამოჭრის</interface> ქმედებით ხდება, მისი შენახვა "
+"<emphasis>ბუფერში</emphasis> ხდება. მისი ჩასმა <interface>ჩასმის</interface> "
+"ქმედებით შეგიძლიათ.<nl/><nl/>როცა ჩართულია, ეს პარამეტრი მონიშნულს და ბუფერს "
+"ერთ მნიშვნელობაზე ინახავს, რომ მონიშნული მყისვე იყოს ჩასასმელად "
+"ხელმისაწვდომი ნებისმიერი გზით. თუ ის გამორთულია, მონიშნული ჯერ კიდევ "
+"შეიძლება, ბუფერის ისტორიაში იყოს შენახული (ეხება პარამეტრს ქვემოთ), მაგრამ "
+"მისი ჩასმა, მხოლოდ, თაგუნას შუა ღილაკით შეგიძლიათ."
 
-#: configdialog.cpp:135 configdialog.cpp:173
+#: configdialog.cpp:124
 #, kde-format
-msgid "Always save in history"
-msgstr "ყოველთვის შეინახეთ ისტორიაში"
+msgctxt "@option:check Part of the setting 'Include in history:'"
+msgid "Text selected with the pointer or keyboard"
+msgstr "კურსორით, ან კლავიატურით მონიშნული ტექსტი"
 
-#: configdialog.cpp:139
+#: configdialog.cpp:126
 #, kde-format
-msgid "Text selection:"
-msgstr "ტექტის მონიშვნა:"
+msgctxt "Followed e.g. by 'Text selected with the pointer or keyboard'"
+msgid "Include in history:"
+msgstr "ისტორიაში ჩასმა:"
 
-#: configdialog.cpp:141 configdialog.cpp:179
-#, kde-format
-msgid "Only when explicitly copied"
-msgstr "მხოლოდ, როცა აშკარად კოპირდება"
-
-#: configdialog.cpp:146
-#, kde-format
-msgid "Whether text selections are saved in the clipboard history."
-msgstr "შეინახება თუ მონიშნული ტექსტი ბუფერის ისტორიაში."
-
-#: configdialog.cpp:177
-#, kde-format
-msgid "Non-text selection:"
-msgstr "არა-ტექსტური მონიშვნა:"
-
-#: configdialog.cpp:184
-#, kde-format
-msgid "Never save in history"
-msgstr "არასდროს შეინახო ისტორიაში"
-
-#: configdialog.cpp:189
+#: configdialog.cpp:128
 #, kde-format
 msgid ""
-"Whether non-text selections (such as images) are saved in the clipboard "
-"history."
+"Text copied explicitly is always saved unless it is marked as a password."
 msgstr ""
-"შეინახება თუ არა არა-ტექსტური მონაცემები (მაგ: სურათები) ბუფერის ისტორიაში."
+"აშკარად დაკოპირებული ტექსტის შენახვა ყოველთვის მოხდება იმ შემთხვევის გარდა, "
+"თუ ის პაროლია."
 
-#: configdialog.cpp:263
+#: configdialog.cpp:133
+#, kde-format
+msgctxt "@option:check Part of the setting 'Include in history:'"
+msgid "Image data copied explicitly"
+msgstr "აშკარად კოპირებული გამოსახულების მონაცემები"
+
+#: configdialog.cpp:137
+#, kde-format
+msgid ""
+"For example, layers and selections copied in image editors like Krita or "
+"GIMP.<br/><a href=\"1\">More about images in the clipboard.</a>"
+msgstr ""
+"მაგალითად, ფენები და მონიშნული, დაკოპირებული ისეთ გამოსახულების "
+"რედაქტორებში, როგორიცაა Krita, ან GIMP.<b/><a href=\"1\">გაიგეთ მეტი ბუფერში "
+"გამოსახულების შესახებ.</a>"
+
+#: configdialog.cpp:146
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Clipboard will always allow copying image files as filenames and will show "
+"their thumbnails.  This setting covers cases where images are stored "
+"directly as data.  Some applications support both cases, but some only "
+"accept images as data.<nl/><nl/>Also note that the Spectacle screenshot tool "
+"will ignore this setting when configured to save screenshots to the "
+"clipboard. Any application that sends both text and image will also ignore "
+"it."
+msgstr ""
+"ბუფერი ყოველთვის დაუშვებს გამოსახულებების კოპირებას ფაილის სახელის სახით და "
+"გაჩვენებთ მათ მინიატურებს.  ეს პარამეტრი მოიცავს შემთხვევებს, როცა "
+"გამოსახულებების შენახვა პირდაპირ, მონაცემების სახით ხდება.  ზოგ აპლიკაციებს "
+"ორივე შემთხვევის მხარდაჭერა აქვს, მაგრამ ზოგიერთი გამოსახულებებს, მხოლოდ, "
+"მონაცემების სახით იღებს.<nl/><nl/>ასევე გაითვალისწინეთ, რომ ეკრანის "
+"ანაბეჭდების პროგრამა Spectacle დააიგნორებს ამ პარამეტრს, როცა მითითებული "
+"აქვს, რომ ეკრანის ანაბეჭდი ბუფერში შეინახოს. ამას ასევე დააიგნორებს ყველა "
+"აპლიკაცია, რომელის ორივეს, ტექსტსაც, და გამოსახულებებსაც აგზავნის."
+
+#: configdialog.cpp:171
 #, kde-format
 msgid "Show action popup menu:"
 msgstr "ქმედების მხტუნარა მენიუში ჩვენება:"
 
-#: configdialog.cpp:273
+#: configdialog.cpp:181
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -122,7 +140,7 @@ msgstr ""
 "ფანჯრისთვის ის ნაჩვენები არ იქნება. თუ მაინც გნებავთ, ნახოთ, გამოიყენეთ "
 "კლავიატურის მალსახმობი <shortcut>%1</shortcut>."
 
-#: configdialog.cpp:285
+#: configdialog.cpp:193
 #, kde-format
 msgctxt "Unit of time"
 msgid "%v second"
@@ -130,57 +148,45 @@ msgid_plural "%v seconds"
 msgstr[0] "%v წამი"
 msgstr[1] "%v წამი"
 
-#: configdialog.cpp:286
+#: configdialog.cpp:194
 #, kde-format
 msgctxt "No timeout"
 msgid "None"
 msgstr "არაფერი"
 
-#: configdialog.cpp:295
+#: configdialog.cpp:203
 #, kde-format
 msgid "Options:"
 msgstr "პარამეტრები:"
 
-#: configdialog.cpp:320
-#, kde-kuit-format
-msgctxt "@info"
-msgid ""
-"When a <interface>match pattern</interface> matches the clipboard contents, "
-"its <interface>commands</interface> appear in the Klipper popup menu and can "
-"be executed."
-msgstr ""
-"როცა <interface>დამთხვევის ნიმუში</interface> ბუფერის შემცველობას ემთხვევა, "
-"მისი <interface>ბრძნებები</interface> Klipper-ის მხტუნარა მენიუში გამოჩნდება "
-"და შეგეძლებათ, გაუშვათ ისინი."
-
-#: configdialog.cpp:329
+#: configdialog.cpp:228
 #, kde-format
 msgctxt "@title:column"
 msgid "Match pattern and commands"
 msgstr "შაბლონებისა და ბრძანებების დამთხვევა"
 
-#: configdialog.cpp:329
+#: configdialog.cpp:228
 #, kde-format
 msgctxt "@title:column"
 msgid "Description"
 msgstr "აღწერა"
 
-#: configdialog.cpp:335
+#: configdialog.cpp:234
 #, kde-format
 msgid "Add Action..."
 msgstr "ქმედების დამატება..."
 
-#: configdialog.cpp:339
+#: configdialog.cpp:238
 #, kde-format
 msgid "Edit Action..."
 msgstr "ქმედების ჩასწორება..."
 
-#: configdialog.cpp:344
+#: configdialog.cpp:243
 #, kde-format
 msgid "Delete Action"
 msgstr "ქმედების წაშლა"
 
-#: configdialog.cpp:351
+#: configdialog.cpp:250
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -190,7 +196,7 @@ msgstr ""
 "ეს ქმედებები გამოჩნდებიან მხტუნარა მენიუში, რომლის მორგებაც "
 "<interface>ქმედების მენიუს</interface> გვერდზე შეგიძლიათ."
 
-#: configdialog.cpp:546
+#: configdialog.cpp:445
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -200,159 +206,144 @@ msgstr ""
 "წავშალო მონიშნული ქმედება <resource>%1</resource><nl/> და ყველა მისი "
 "ბრძანება?"
 
-#: configdialog.cpp:547
+#: configdialog.cpp:446
 #, kde-format
 msgid "Confirm Delete Action"
 msgstr "წაშლის ქმედებსი დადასტურება"
 
-#: configdialog.cpp:600
+#: configdialog.cpp:499
 #, kde-format
 msgctxt "General Config"
 msgid "General"
 msgstr "ზოგადი"
 
-#: configdialog.cpp:600
+#: configdialog.cpp:499
 #, kde-format
 msgid "General Configuration"
 msgstr "ზოგადი კონფიგურაცია"
 
-#: configdialog.cpp:601
+#: configdialog.cpp:500
 #, kde-format
 msgctxt "Popup Menu Config"
 msgid "Action Menu"
 msgstr "ქმედებების მენიუ"
 
-#: configdialog.cpp:601
+#: configdialog.cpp:500
 #, kde-format
 msgid "Action Menu"
 msgstr "ქმედებების მენიუ"
 
-#: configdialog.cpp:602
+#: configdialog.cpp:501
 #, kde-format
 msgctxt "Actions Config"
 msgid "Actions Configuration"
 msgstr "ქმედებების მორგება"
 
-#: configdialog.cpp:602
+#: configdialog.cpp:501
 #, kde-format
 msgid "Actions Configuration"
 msgstr "ქმედებების მორგება"
 
-#: configdialog.cpp:605
+#: configdialog.cpp:508
 #, kde-format
 msgctxt "Shortcuts Config"
 msgid "Shortcuts"
 msgstr "მალსახმობები"
 
-#: configdialog.cpp:605
+#: configdialog.cpp:508
 #, kde-format
 msgid "Shortcuts Configuration"
 msgstr "მალსახმობების მორგება"
 
-#: declarative/qml/BarcodePage.qml:32
-#, kde-format
-msgid "QR Code"
-msgstr "QR კოდი"
-
-#: declarative/qml/BarcodePage.qml:33
-#, kde-format
-msgid "Data Matrix"
-msgstr "მონაცემების მატრიცა"
-
-#: declarative/qml/BarcodePage.qml:34
-#, kde-format
-msgctxt "Aztec barcode"
-msgid "Aztec"
-msgstr "აცტეკური"
-
-#: declarative/qml/BarcodePage.qml:35
-#, kde-format
-msgid "Code 39"
-msgstr "კოდი 39"
-
-#: declarative/qml/BarcodePage.qml:36
-#, kde-format
-msgid "Code 93"
-msgstr "კოდი 93"
-
-#: declarative/qml/BarcodePage.qml:37
-#, kde-format
-msgid "Code 128"
-msgstr "კოდი 128"
-
-#: declarative/qml/BarcodePage.qml:53
+#: declarative/qml/BarcodePage.qml:48
 #, kde-format
 msgid "Return to Clipboard"
 msgstr "ბუფერზე დაბრუნება"
 
-#: declarative/qml/BarcodePage.qml:89
+#: declarative/qml/BarcodePage.qml:72
 #, kde-format
 msgctxt "@action:button Copy to clipboard"
 msgid "Copy"
 msgstr "კოპირება"
 
-#: declarative/qml/BarcodePage.qml:95
+#: declarative/qml/BarcodePage.qml:78
 #, kde-format
 msgctxt "@info:status"
 msgid "An image of the QR code has been copied to clipboard"
 msgstr "QR კოდის გამოსახულება დაკოპირდა ბუფერში"
 
-#: declarative/qml/BarcodePage.qml:101
+#: declarative/qml/BarcodePage.qml:81
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Copy QR code image to clipboard"
 msgstr "QR კოდის გამოსახულების კოპირება ბუფერში"
 
-#: declarative/qml/BarcodePage.qml:112
+#: declarative/qml/BarcodePage.qml:116
 #, kde-format
-msgid "Change the QR code type"
-msgstr "QR კოდის ტიპის შეცვლა"
+msgid "QR Code"
+msgstr "QR კოდი"
 
-#: declarative/qml/BarcodePage.qml:197
+#: declarative/qml/BarcodePage.qml:166
 #, kde-format
 msgid ""
 "There is not enough space to display the QR code. Try resizing this applet."
 msgstr ""
 "QR კოდის საჩვენებლად საკმარისი ადგილი არაა. სცადეთ, აპლეტის ზომა შეცვალოთ."
 
-#: declarative/qml/BarcodePage.qml:197
+#: declarative/qml/BarcodePage.qml:166
 #, kde-format
 msgid "Creating QR code failed"
 msgstr "QR კოდის შექმნის შეცდომა"
 
-#: declarative/qml/ClipboardItemDelegate.qml:202
+#: declarative/qml/ClipboardItemDelegate.qml:204
 #, kde-format
 msgctxt "@action:button"
 msgid "Collapse"
 msgstr "ჩამოშლა"
 
-#: declarative/qml/ClipboardItemDelegate.qml:202
+#: declarative/qml/ClipboardItemDelegate.qml:204
 #, kde-format
 msgctxt "@action:button"
 msgid "Expand"
 msgstr "ამოკეცვა"
 
-#: declarative/qml/ClipboardMenu.qml:275
+#: declarative/qml/ClipboardMenu.qml:301
 #, kde-format
 msgid "Clear History"
 msgstr "ისტორიის გასუფთავება"
 
-#: declarative/qml/ClipboardMenu.qml:329
+#: declarative/qml/ClipboardMenu.qml:358
 #, kde-format
 msgid "All History"
 msgstr "სრული ისტორია"
 
-#: declarative/qml/ClipboardMenu.qml:334
+#: declarative/qml/ClipboardMenu.qml:363
 #, kde-format
 msgid "Starred Only"
 msgstr "მხოლოდ ვარსკვლავიანები"
 
-#: declarative/qml/ClipboardMenu.qml:441
+#: declarative/qml/ClipboardMenu.qml:368
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The clipboard currently holds a sensitive piece of data that will not be "
+"stored in the history."
+msgstr ""
+"ბუფერი ამჟამად შეიცავს მგრძნობიარე მონაცემებს, რომლის შენახვაც ისტორიაში არ "
+"მოხდება."
+
+#: declarative/qml/ClipboardMenu.qml:377
+#, kde-format
+msgctxt "@action:button"
+msgid "Clear Secret Data"
+msgstr "საიდუმლო მონაცემების გასუფთავება"
+
+#: declarative/qml/ClipboardMenu.qml:509
 #, kde-format
 msgid "No matches"
 msgstr "დამთხვევა არ არსებობს"
 
-#: declarative/qml/ClipboardMenu.qml:441
+#: declarative/qml/ClipboardMenu.qml:509
 #, kde-format
 msgid "Clipboard is empty"
 msgstr "ბუფერი ცარიელია"
@@ -559,14 +550,13 @@ msgstr "ბრძანება:"
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
-"A <placeholder>&#37;s</placeholder> in the command will be replaced by the "
-"complete clipboard contents. <placeholder>&#37;0</placeholder> through "
-"<placeholder>&#37;9</placeholder> will be replaced by the corresponding "
-"captured texts from the match pattern."
+"A <b>&#37;s</b> in the command will be replaced by the complete clipboard "
+"contents. <b>&#37;0</b> through <b>&#37;9</b> will be replaced by the "
+"corresponding captured texts from the match pattern."
 msgstr ""
-"<placeholder>ბრძანებაში %s</placeholder> შეიცვლება სრული ბუფერული შინაარსით. "
-"<placeholder>% 0</placeholder><placeholder>% 9-ის</placeholder> მეშვეობით "
-"შეიცვლება შესაბამისი დატყვევებული ტექსტები მატჩის ნიმუშიდან."
+"<b>&#37;s</b> ბრძანებაში შეიცვლება სრული ბუფერის შემცველობით. <b>&#37;0</b>-"
+"დან <b>&#37;9</b>-მდე ჩანაცვლდება შესაბამისი ჩაჭერილი ტექსტით დამთხვევის "
+"ნიმუშიდან."
 
 #: editcommanddialog.cpp:83
 #, kde-format
@@ -603,72 +593,65 @@ msgstr "ბრძანების ნაგულისხმევ ხატ�
 msgid "Icon:"
 msgstr "ხატულა:"
 
-#: historymodel.cpp:283
-#, kde-format
-msgid "The clipboard history contains starred items. Clear them too?"
-msgstr "ბუფერი ვარსკვლავიან ელემენტებს შეიცავს. ისინიც გავასუფთავო?"
-
-#: historymodel.cpp:284 historymodel.cpp:304
-#, kde-format
-msgid "Clear Clipboard History"
-msgstr "ბუფერის ისტორიის გასუფთავება"
-
-#: historymodel.cpp:285
-#, kde-format
-msgid "Clear Everything"
-msgstr "ყველაფრის გასუფთავება"
-
-#: historymodel.cpp:286
-#, kde-format
-msgid "Keep Starred Items"
-msgstr "ვარსკვლავიანი ელემენტების შენარჩუნება"
-
-#: historymodel.cpp:303
+#: historymodel.cpp:317
 #, kde-format
 msgid "Do you really want to clear and delete the entire clipboard history?"
 msgstr "მართლა გნებავთ ბუფერის ისტორიის სრულად გასუფთავება და წაშლა?"
 
-#: historymodel.cpp:387
+#: historymodel.cpp:319
+#, kde-format
+msgid "Clear Clipboard History"
+msgstr "ბუფერის ისტორიის გასუფთავება"
+
+#: historymodel.cpp:321 historymodel.cpp:588
+#, kde-format
+msgctxt "@option:check"
+msgid "Do not ask again"
+msgstr "აღარ მკითხო"
+
+#: historymodel.cpp:403
 #, kde-format
 msgctxt "@info:tooltip width x height"
 msgid "%1x%2"
 msgstr "%1x%2"
 
-#: historymodel.cpp:567
+#: historymodel.cpp:584
 #, kde-format
 msgid "This item is starred. Do you really want to remove it from history?"
 msgstr "ამ ელემენტს ვარსკვლავი აქვთ. მართლა გნებავთ მისი წაშლა ისტორიიდან?"
 
-#: historymodel.cpp:568
+#: historymodel.cpp:586
 #, kde-format
 msgid "Remove Starred Item"
 msgstr "ვარსკვლავიანი ელემენტის წაშლა"
 
-#: klipper.cpp:78
-#, kde-format
+#: klipper.cpp:73
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu Toggle automatic action"
+#| msgid "Automatic Action Popup Menu"
 msgctxt "@action:inmenu Toggle automatic action"
-msgid "Automatic Action Popup Menu"
+msgid "Toggle Automatic Popping Up of Action Menu"
 msgstr "ავტომატური ქმედების მხტუნარა მენიუ"
 
-#: klipper.cpp:96
+#: klipper.cpp:92
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "C&lear Clipboard History"
 msgstr "&ბუფერის ისტორიის გასუფთავება"
 
-#: klipper.cpp:101
+#: klipper.cpp:97
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Manually Invoke Action on Current Clipboard"
 msgstr "მიმდინარე ბუფერზე ქმედების ხელით გაშვება"
 
-#: klipper.cpp:109
+#: klipper.cpp:105
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Edit Contents…"
 msgstr "შემცველობის &ჩასწორება…"
 
-#: klipper.cpp:115
+#: klipper.cpp:113
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "&Show Barcode…"
@@ -692,22 +675,22 @@ msgctxt "@action:inmenu"
 msgid "Show Clipboard Items at Mouse Position"
 msgstr "თაგუნას მდგომარეობაზე მყოფი ბუფერის ელემენტების ჩვენება"
 
-#: klipper.cpp:402 klipper.cpp:411
+#: klipper.cpp:396 klipper.cpp:405
 #, kde-format
 msgid "Clipboard history"
 msgstr "ბაფერის ისტორია"
 
-#: klipper.cpp:428
+#: klipper.cpp:422
 #, kde-format
 msgid "up"
 msgstr "მაღლა"
 
-#: klipper.cpp:435
+#: klipper.cpp:429
 #, kde-format
 msgid "current"
 msgstr "მიმდინარე"
 
-#: klipper.cpp:442
+#: klipper.cpp:436
 #, kde-format
 msgid "down"
 msgstr "დაბლა"
@@ -757,77 +740,50 @@ msgstr "მონიშნული და ბუფერი ერთი დ�
 #: klipper.kcfg:29
 #, kde-format
 msgid ""
-"Content selected with the cursor is automatically copied to the clipboard so "
-"that it can be pasted with either a Paste action or a middle-click.<br/><a "
-"href=\"1\">More about the selection and clipboard</a>."
+"Content selected with the pointer is automatically copied to the clipboard "
+"so that it can be pasted with either a <i>Paste</i> action or a middle-click."
+"<br/><a href=\"1\">More about the selection and clipboard</a>."
 msgstr ""
-"კურსორით მონიშნული შემცველობა ავტომატურად დაკოპირდება ბუფერში, ასე რომ, "
-"სადაც გნებავთ, იქ ჩასვამთ, ან 'ჩასმის ქმედებით, ან თაგუნას შუა-წკაპით.<br/"
-"><a href=\"1\">გაიგეთ მეტი მონიშვნაზე და ბუფერზე</a>."
+"მაჩვენებლით მონიშნული ტექსტი ავტომატურად დაკოპირდება ბუფერში და მისი ჩასმა "
+"<i>ჩასმის</i> ქმედებით, ან თაგუნას შუა წკაპით შეგიძლიათ.<br/><a href="
+"\"1\">გაიგეთ მეტი მონიშვნისა და ბუფერის შესახებ</a>."
 
-#. i18n: ectx: label, entry (IgnoreSelection), group (General)
+#. i18n: ectx: label, entry (SaveSelection), group (General)
 #: klipper.kcfg:32
 #, kde-format
-msgid "Ignore the selection"
-msgstr "მონიშნულის იგნორირება"
+msgid "Save the selection"
+msgstr "მონიშნულის შენახვა"
 
-#. i18n: ectx: whatsthis, entry (IgnoreSelection), group (General)
+#. i18n: ectx: whatsthis, entry (SaveSelection), group (General)
 #: klipper.kcfg:34
 #, kde-format
 msgid ""
-"Content selected with the cursor but not explicitly copied to the clipboard "
-"is not automatically stored in the clipboard history, and can only be pasted "
-"using a middle-click."
+"Content selected with the pointer but not explicitly copied to the clipboard "
+"is automatically stored in the clipboard history."
 msgstr ""
-"შემცველობა მონიშნულია კურსორით, მაგრამ ბუფერში არ დაკოპირებულა, ამიტომ ის "
-"ბუფერის ისტორიაში შენახული არ იქნება, მაგრამ მისი ჩასმა თაგუნას შუა ღილაკით "
-"შეგიძლიათ."
+"შემცველობა, რომელიც მონიშნულია კურსორით, მაგრამ აშკარად არ დაკოპირებულა, "
+"ავტომატურად შეინახება ბუფერის ისტორიაში."
 
-#. i18n: ectx: label, entry (SelectionTextOnly), group (General)
+#. i18n: ectx: label, entry (SaveImages), group (General)
 #: klipper.kcfg:37
 #, kde-format
-msgid "Text selection only"
-msgstr "მხოლოდ ტექსტური მონიშვნა"
+msgid "Save images"
+msgstr "გამოსახულებების შენახვა"
 
-#. i18n: ectx: whatsthis, entry (SelectionTextOnly), group (General)
+#. i18n: ectx: whatsthis, entry (SaveImages), group (General)
 #: klipper.kcfg:39
 #, kde-format
-msgid ""
-"Only store text selections in the clipboard history, not images or any other "
-"type of data."
-msgstr ""
-"ბუფერის მეხსიერებაში მხოლოდ ტექსტი იქნება დამახსოვრებული. არა გამოსახულებები "
-"ან რამე სხვა ტიპის მონაცემები."
-
-#. i18n: ectx: label, entry (IgnoreImages), group (General)
-#: klipper.kcfg:42
-#, kde-format
-msgid "Always ignore images"
-msgstr "გამოსახულებები ყოველთვის დაიგნორდება"
-
-#. i18n: ectx: whatsthis, entry (IgnoreImages), group (General)
-#: klipper.kcfg:44
-#, kde-format
-msgid ""
-"Do not store images in the clipboard history, even if explicitly copied."
-msgstr ""
-"გამოსახულებები ბუფერის ისტორიაში შენახული არ იქნება მაშინაც კი, თუ პირდაპირ "
-"დააკოპირებთ."
-
-#. i18n: ectx: label, entry (UseGUIRegExpEditor), group (General)
-#: klipper.kcfg:47
-#, kde-format
-msgid "Use graphical regexp editor"
-msgstr "რეგგამოს-ის გრაფიკული რედაქტორი"
+msgid "Store images in the clipboard history."
+msgstr "გამოსახულებების შენახვა ბუფერის ისტორიაში."
 
 #. i18n: ectx: label, entry (URLGrabberEnabled), group (General)
-#: klipper.kcfg:51
+#: klipper.kcfg:42
 #, kde-format
 msgid "Immediately on selection"
 msgstr "მონიშვნისას, დაუყოვნებლივ"
 
 #. i18n: ectx: tooltip, entry (URLGrabberEnabled), group (General)
-#: klipper.kcfg:52
+#: klipper.kcfg:43
 #, kde-format
 msgid ""
 "Show the popup menu of applicable actions as soon as a selection is made."
@@ -836,62 +792,59 @@ msgstr ""
 "შემოგთავაზებთ."
 
 #. i18n: ectx: label, entry (TimeoutForActionPopups), group (General)
-#: klipper.kcfg:56
+#: klipper.kcfg:47
 #, kde-format
 msgid "Automatic action menu time:"
 msgstr "ავტომატური ქმედების მენიუს დრო:"
 
 #. i18n: ectx: tooltip, entry (TimeoutForActionPopups), group (General)
-#: klipper.kcfg:60
+#: klipper.kcfg:51
 #, kde-format
 msgid "Display the automatic action popup menu for this time."
 msgstr "ამჯერად ავტომატური ქმედების მხტუნარა მენიუს ჩვენება."
 
 #. i18n: ectx: label, entry (MaxClipItems), group (General)
-#: klipper.kcfg:63
+#: klipper.kcfg:54
 #, kde-format
 msgid "History size:"
 msgstr "ისტორიის ზომა:"
 
 #. i18n: ectx: tooltip, entry (MaxClipItems), group (General)
-#: klipper.kcfg:67
+#: klipper.kcfg:58
 #, kde-format
 msgid "The clipboard history will store up to this many items."
 msgstr "ბუფერის ისტორიაში მითითებული რაოდენობის ჩანაწერი შეინახება."
 
 #. i18n: ectx: label, entry (ActionList), group (General)
-#: klipper.kcfg:70
+#: klipper.kcfg:61
 #, kde-format
 msgid "Dummy entry for indicating changes in an action's tree widget"
 msgstr "ცარიელი ჩანაწერი, რომელიც ქმედების ხის ვიჯეტში ცვლილებებს აღნიშნავს"
 
 #. i18n: ectx: label, entry (StripWhiteSpace), group (Actions)
-#: klipper.kcfg:80
+#: klipper.kcfg:71
 #, kde-format
-msgid "Trim whitespace from selection"
-msgstr "მონიშნულიდან ცარიელი ადგილების წაკვეთა"
+msgid "Trim whitespace"
+msgstr "თეთრი ჰარეების წაკვეთა"
 
 #. i18n: ectx: whatsthis, entry (StripWhiteSpace), group (Actions)
-#: klipper.kcfg:82
+#: klipper.kcfg:73
 #, kde-format
 msgid ""
-"Remove any whitespace from the start and end of selected text, before "
-"performing an action. For example, this ensures that a URL pasted in a "
-"browser is interpreted as expected. The text saved on the clipboard is not "
-"affected."
+"Remove any whitespace from the start and end of the text passed to an "
+"action. The text saved in history is not affected."
 msgstr ""
-"ქმედების გაშვებამდე მონიშნული ტექსტის თავში და ბოლოში ცარიელი ადგილების "
-"გამოტოვება. მაგალითად, ეს უზრუნველყოფს, რომ ბრაუზერში დაკოპირებული მისამართი "
-"სწორად ითარგმნება. ბუფერში შენახულ ტექსტი არ იცვლება."
+"ქმედებისთვის გადაცემული ტექსტის თავში და ბოლოში თეთრი ჰარეების წაშლა. "
+"ისტორიაში შენახული ტექსტი არ იცვლება."
 
 #. i18n: ectx: label, entry (ReplayActionInHistory), group (Actions)
-#: klipper.kcfg:85
+#: klipper.kcfg:76
 #, kde-format
 msgid "For an item chosen from history"
 msgstr "ისტორიიდან არჩეული ჩანაწერისთვის"
 
 #. i18n: ectx: tooltip, entry (ReplayActionInHistory), group (Actions)
-#: klipper.kcfg:87
+#: klipper.kcfg:78
 #, kde-format
 msgid ""
 "Show the popup menu of applicable actions if an entry is chosen from the "
@@ -901,30 +854,121 @@ msgstr ""
 "ჩანაწერის არჩევის შემთხვევაში."
 
 #. i18n: ectx: label, entry (EnableMagicMimeActions), group (Actions)
-#: klipper.kcfg:90
+#: klipper.kcfg:81
 #, kde-format
-msgid "Include MIME actions"
-msgstr "MIME ქმედებების ჩათვლა"
+msgid "Offer applications for copied links and files"
+msgstr "აპლიკაციების შეთავაზება დაკოპირებული ბმულებისა და ფაილებისთვის"
 
 #. i18n: ectx: whatsthis, entry (EnableMagicMimeActions), group (Actions)
-#: klipper.kcfg:92
+#: klipper.kcfg:83
 #, kde-format
 msgid ""
-"If a file name or URL is selected, include applications that can accept its "
-"MIME type in the popup menu."
+"For a link starting with <i>http://</i> or <i>https://</i> or for files, "
+"applications that can open them will be offered alongside your matching "
+"actions, if any."
 msgstr ""
-"თუ არჩეულია ფაილის სახელი ან URL, მხტუნარა მენიუ მისი MIME ტიპის შესაბამის "
-"აპლიკაციებსაც შეიცავს."
+"ბმულისთვის, რომელიც იწყება <i>http://</i>-თ, ან <i>https://</i>-ით, ან "
+"ფაილებისთვის, არსებობის შემთხვევაში შემოთავაზებული იქნება აპლიკაციები, "
+"რომლებსაც მათი გახსნა შეუძლიათ."
 
-#: klipperpopup.cpp:37
+#: klipperpopup.cpp:38
 #, kde-format
 msgid "Clipboard Popup"
 msgstr "ბუფერის მხტუნარა"
 
-#: urlgrabber.cpp:197
+#: urlgrabber.cpp:195
 #, kde-format
 msgid "&Cancel"
 msgstr "&შეწყვეტა"
+
+#~ msgid "Text selection:"
+#~ msgstr "ტექტის მონიშვნა:"
+
+#~ msgid "Only when explicitly copied"
+#~ msgstr "მხოლოდ, როცა აშკარად კოპირდება"
+
+#~ msgid "Non-text selection:"
+#~ msgstr "არა-ტექსტური მონიშვნა:"
+
+#~ msgid "Never save in history"
+#~ msgstr "არასდროს შეინახო ისტორიაში"
+
+#~ msgid ""
+#~ "Whether non-text selections (such as images) are saved in the clipboard "
+#~ "history."
+#~ msgstr ""
+#~ "შეინახება თუ არა არა-ტექსტური მონაცემები (მაგ: სურათები) ბუფერის "
+#~ "ისტორიაში."
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "When a <interface>match pattern</interface> matches the clipboard "
+#~ "contents, its <interface>commands</interface> appear in the Klipper popup "
+#~ "menu and can be executed."
+#~ msgstr ""
+#~ "როცა <interface>დამთხვევის ნიმუში</interface> ბუფერის შემცველობას "
+#~ "ემთხვევა, მისი <interface>ბრძნებები</interface> Klipper-ის მხტუნარა "
+#~ "მენიუში გამოჩნდება და შეგეძლებათ, გაუშვათ ისინი."
+
+#~ msgid "Text selection only"
+#~ msgstr "მხოლოდ ტექსტური მონიშვნა"
+
+#~ msgid ""
+#~ "Only store text selections in the clipboard history, not images or any "
+#~ "other type of data."
+#~ msgstr ""
+#~ "ბუფერის მეხსიერებაში მხოლოდ ტექსტი იქნება დამახსოვრებული. არა "
+#~ "გამოსახულებები ან რამე სხვა ტიპის მონაცემები."
+
+#~ msgid "Always ignore images"
+#~ msgstr "გამოსახულებები ყოველთვის დაიგნორდება"
+
+#~ msgid ""
+#~ "Do not store images in the clipboard history, even if explicitly copied."
+#~ msgstr ""
+#~ "გამოსახულებები ბუფერის ისტორიაში შენახული არ იქნება მაშინაც კი, თუ "
+#~ "პირდაპირ დააკოპირებთ."
+
+#~ msgid "Include MIME actions"
+#~ msgstr "MIME ქმედებების ჩათვლა"
+
+#~ msgid ""
+#~ "If a file name or URL is selected, include applications that can accept "
+#~ "its MIME type in the popup menu."
+#~ msgstr ""
+#~ "თუ არჩეულია ფაილის სახელი ან URL, მხტუნარა მენიუ მისი MIME ტიპის "
+#~ "შესაბამის აპლიკაციებსაც შეიცავს."
+
+#~ msgid "The clipboard history contains starred items. Clear them too?"
+#~ msgstr "ბუფერი ვარსკვლავიან ელემენტებს შეიცავს. ისინიც გავასუფთავო?"
+
+#~ msgid "Clear Everything"
+#~ msgstr "ყველაფრის გასუფთავება"
+
+#~ msgid "Keep Starred Items"
+#~ msgstr "ვარსკვლავიანი ელემენტების შენარჩუნება"
+
+#~ msgid "Use graphical regexp editor"
+#~ msgstr "რეგგამოს-ის გრაფიკული რედაქტორი"
+
+#~ msgid "Data Matrix"
+#~ msgstr "მონაცემების მატრიცა"
+
+#~ msgctxt "Aztec barcode"
+#~ msgid "Aztec"
+#~ msgstr "აცტეკური"
+
+#~ msgid "Code 39"
+#~ msgstr "კოდი 39"
+
+#~ msgid "Code 93"
+#~ msgstr "კოდი 93"
+
+#~ msgid "Code 128"
+#~ msgstr "კოდი 128"
+
+#~ msgid "Change the QR code type"
+#~ msgstr "QR კოდის ტიპის შეცვლა"
 
 #~ msgctxt "NAME OF TRANSLATORS"
 #~ msgid "Your names"

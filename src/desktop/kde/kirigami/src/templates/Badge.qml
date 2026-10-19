@@ -6,13 +6,13 @@
 
 import QtQuick
 import QtQuick.Templates as T
-import org.kde.kirigami as Kirigami
+import org.kde.kirigami.platform as Platform
 import org.kde.kirigami.primitives as Primitives
 
 /*!
   \qmltype Badge
   \inqmlmodule org.kde.kirigami
-  \inherits QQC2.Control
+  \inherits Control
 
   \brief A badge with a colored background.
 
@@ -22,44 +22,39 @@ import org.kde.kirigami.primitives as Primitives
   If the badge has no text or has single-line text, it will have a highly
   rounded, pill-shaped appearance. Otherwise it will be a rounded rectangle.
 
-  Typical implementation:
+  \image BadgeExample.png
+
   \qml
+  import QtQuick
   import org.kde.kirigami as Kirigami
 
-  Kirigami.Badge {
-      text: i18nc("@info badge text", "New!")
-      type: Kirigami.Badge.Type.Positive
-  }
-  \endqml
+  Row {
+      spacing: Kirigami.Units.smallSpacing
 
-  Implemented as a number badge:
-  \qml
-  import org.kde.kirigami as Kirigami
+      // Typical usage:
+      Kirigami.Badge {
+          text: i18nc("@info badge text", "New!")
+          type: Kirigami.Badge.Type.Positive
+      }
 
-  Kirigami.Badge {
-      text: 25
-  }
-  \endqml
+      // Using as a number badge:
+      Kirigami.Badge {
+          text: "25"
+      }
 
-  Implemented as a warning with a re-colored icon:
-  \qml
-  import org.kde.kirigami as Kirigami
+      // Using as a warning with a re-colored icon:
+      Kirigami.Badge {
+          icon.name: "edit-bomb-symbolic"
+          text: i18nc("@info badge text", "The computer is about to explode")
+          type: Kirigami.Badge.Type.Warning
+      }
 
-  Kirigami.Badge {
-      icon.name: "edit-bomb-symbolic"
-      text: i18nc("@info badge text", "The computer is about to explode")
-      type: Kirigami.Badge.Type.Negative
-  }
-  \endqml
-
-  Implemented with a custom color and non-recolored icon:
-  \qml
-  import org.kde.kirigami as Kirigami
-
-  Kirigami.Badge {
-      icon.name: "applications-science"
-      text: i18nc("@info badge text", "Science")
-      customColor: Kirigami.Theme.visitedLinkColor
+      // Using with a custom color and non-recolored icon:
+      Kirigami.Badge {
+          icon.name: "applications-science"
+          text: i18nc("@info badge text", "Science")
+          customColor: Kirigami.Theme.visitedLinkColor
+      }
   }
   \endqml
 
@@ -95,8 +90,8 @@ T.Control {
      \include iconpropertiesgroup.qdocinc grouped-properties
      */
     property Primitives.IconPropertiesGroup icon: Primitives.IconPropertiesGroup {
-        width: Kirigami.Units.iconSizes.sizeForLabels
-        height: Kirigami.Units.iconSizes.sizeForLabels
+        width: Platform.Units.iconSizes.sizeForLabels
+        height: Platform.Units.iconSizes.sizeForLabels
         color: "transparent"
     }
 
@@ -131,7 +126,7 @@ T.Control {
      should use to produce a soft blue background with the Breeze color
      scheme.
      */
-    property int type: Kirigami.Badge.Type.Information
+    property int type: Badge.Type.Information
 
     /*!
      \qmlproperty color customColor

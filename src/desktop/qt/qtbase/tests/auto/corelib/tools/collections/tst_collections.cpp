@@ -198,18 +198,22 @@ struct NoCmpRecursiveSet : public QSet<NoCmpRecursiveSet>
 struct NoCmpRecursiveMapV : public QMap<Dummy, NoCmpRecursiveMapV>
 {
     bool operator==(const NoCmpRecursiveMapV &) const = delete;
+    bool operator<(const NoCmpRecursiveMapV &) const = delete;
 };
 struct NoCmpRecursiveMapK : public QMap<NoCmpRecursiveMapK, Dummy>
 {
     bool operator==(const NoCmpRecursiveMapK &) const = delete;
+    bool operator<(const NoCmpRecursiveMapK &) const = delete;
 };
 struct NoCmpRecursiveMultiMapV : public QMultiMap<Dummy, NoCmpRecursiveMultiMapV>
 {
     bool operator==(const NoCmpRecursiveMultiMapV &) const = delete;
+    bool operator<(const NoCmpRecursiveMultiMapV &) const = delete;
 };
 struct NoCmpRecursiveMultiMapK : public QMultiMap<NoCmpRecursiveMultiMapK, Dummy>
 {
     bool operator==(const NoCmpRecursiveMultiMapK &) const = delete;
+    bool operator<(const NoCmpRecursiveMultiMapK &) const = delete;
 };
 struct NoCmpRecursiveHashV : public QHash<Dummy, NoCmpRecursiveHashV>
 {
@@ -268,17 +272,25 @@ static_assert(QTypeTraits::has_operator_equal_v<RecursiveList>);
 static_assert(QTypeTraits::has_operator_less_than_v<RecursiveList>);
 static_assert(QTypeTraits::has_operator_equal_v<RecursiveSet>);
 static_assert(QTypeTraits::has_operator_equal_v<RecursiveMapV>);
+static_assert(QTypeTraits::has_operator_less_than_v<RecursiveMapV>);
 static_assert(QTypeTraits::has_operator_equal_v<RecursiveMapK>);
+static_assert(QTypeTraits::has_operator_less_than_v<RecursiveMapK>);
 static_assert(QTypeTraits::has_operator_equal_v<RecursiveMultiMapV>);
+static_assert(QTypeTraits::has_operator_less_than_v<RecursiveMultiMapV>);
 static_assert(QTypeTraits::has_operator_equal_v<RecursiveMultiMapK>);
+static_assert(QTypeTraits::has_operator_less_than_v<RecursiveMultiMapK>);
 static_assert(QTypeTraits::has_operator_equal_v<RecursiveHashV>);
 static_assert(QTypeTraits::has_operator_equal_v<RecursiveHashK>);
 static_assert(QTypeTraits::has_operator_equal_v<RecursiveMultiHashV>);
 static_assert(QTypeTraits::has_operator_equal_v<RecursiveMultiHashK>);
 
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpParamRecursiveMapV>);
+static_assert(!QTypeTraits::has_operator_less_than_v<NoCmpParamRecursiveMapV>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpParamRecursiveMapK>);
+static_assert(!QTypeTraits::has_operator_less_than_v<NoCmpParamRecursiveMapK>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpParamRecursiveMultiMapV>);
+static_assert(!QTypeTraits::has_operator_equal_v<NoCmpParamRecursiveMultiMapV>);
+static_assert(!QTypeTraits::has_operator_equal_v<NoCmpParamRecursiveMultiMapK>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpParamRecursiveMultiMapK>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpParamRecursiveHashV>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpParamRecursiveHashK>);
@@ -289,9 +301,13 @@ static_assert(!QTypeTraits::has_operator_equal_v<NoCmpRecursiveList>);
 static_assert(!QTypeTraits::has_operator_less_than_v<NoCmpRecursiveList>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpRecursiveSet>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpRecursiveMapV>);
+static_assert(!QTypeTraits::has_operator_less_than_v<NoCmpRecursiveMapV>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpRecursiveMapK>);
+static_assert(!QTypeTraits::has_operator_less_than_v<NoCmpRecursiveMapK>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpRecursiveMultiMapV>);
+static_assert(!QTypeTraits::has_operator_less_than_v<NoCmpRecursiveMultiMapV>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpRecursiveMultiMapK>);
+static_assert(!QTypeTraits::has_operator_less_than_v<NoCmpRecursiveMultiMapK>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpRecursiveHashV>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpRecursiveHashK>);
 static_assert(!QTypeTraits::has_operator_equal_v<NoCmpRecursiveMultiHashV>);
@@ -2844,19 +2860,18 @@ void instantiateContainer()
     typename ContainerType::const_iterator constIt;
     constIt = constContainer.begin();
     constIt = container.cbegin();
-    container.constBegin();
+    constIt = container.constBegin();
 
     constIt = constContainer.end();
     constIt = constContainer.cend();
-    container.constEnd();
+    constIt = container.constEnd();
     Q_UNUSED(constIt);
 
     container.clear();
     container.contains(value);
-    container.size();
+    (void)container.size();
     Q_UNUSED(container.empty());
     Q_UNUSED(container.isEmpty());
-    container.size();
 
     Q_UNUSED((container != constContainer));
     Q_UNUSED((container == constContainer));
@@ -3628,6 +3643,19 @@ void tst_Collections::detachAssociativeContainerImpl()
         thread->wait();
     }
 }
+
+// Compile-time check for q_points_into_range
+#if (!defined(Q_CC_GNU_ONLY) || Q_CC_GNU_ONLY >= 1200)
+static_assert([]() {
+    int a[4] = {1, 2, 3, 4};
+    int *p1 = a + 1;
+    bool b1 = QtPrivate::q_points_into_range(p1, a, a + 4);
+    int c = 42;
+    int *p2 = &c;
+    bool b2 = QtPrivate::q_points_into_range(p2, a, a + 4);
+    return b1 && !b2;
+}());
+#endif
 
 QTEST_APPLESS_MAIN(tst_Collections)
 #include "tst_collections.moc"

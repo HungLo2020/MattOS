@@ -1,6 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // Copyright (C) 2020 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com, author Giuseppe D'Angelo <giuseppe.dangelo@kdab.com>
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qvectornd.h"
 #include <QtCore/qdatastream.h>
@@ -286,6 +287,12 @@ QT_BEGIN_NAMESPACE
 
     Returns \c true if \a v1 is not equal to \a v2; otherwise returns \c false.
     This operator uses an exact floating-point comparison.
+*/
+
+/*!
+    \since 6.12
+    \fn size_t QVector2D::qHash(QVector2D key, size_t seed)
+    \qhash{QVector2D}
 */
 
 /*! //! friend
@@ -893,6 +900,12 @@ QVector3D QVector3D::unproject(const QMatrix4x4 &modelView, const QMatrix4x4 &pr
     This operator uses an exact floating-point comparison.
 */
 
+/*!
+    \since 6.12
+    \fn size_t QVector3D::qHash(QVector3D key, size_t seed)
+    \qhash{QVector3D}
+*/
+
 /*! //! friend
     \fn const QVector3D QVector3D::operator+(QVector3D v1, QVector3D v2)
 
@@ -1413,6 +1426,12 @@ QDataStream &operator>>(QDataStream &stream, QVector3D &vector)
 
     Returns \c true if \a v1 is not equal to \a v2; otherwise returns \c false.
     This operator uses an exact floating-point comparison.
+*/
+
+/*!
+    \since 6.12
+    \fn size_t QVector4D::qHash(QVector4D key, size_t seed)
+    \qhash{QVector4D}
 */
 
 /*! //! friend

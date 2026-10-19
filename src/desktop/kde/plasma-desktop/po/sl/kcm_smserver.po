@@ -1,7 +1,7 @@
 # translation of kcmsmserver.po to Slovenian
 # Translation of kcmsmserver.po to Slovenian
 # KDEBASE translation to Slovenian language.
-# $Id: kcm_smserver.po 1726930 2026-01-09 01:26:02Z scripty $
+# $Id: kcm_smserver.po 1730159 2026-02-18 01:31:00Z scripty $
 # $Source$
 #
 # Copyright (C) 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmsmserver\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-08 10:57+0100\n"
+"POT-Creation-Date: 2026-02-17 00:47+0000\n"
+"PO-Revision-Date: 2026-02-17 05:49+0100\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -62,10 +62,10 @@ msgstr ""
 #, kde-format
 msgctxt "@info:status inlinemessage"
 msgid ""
-"Next time the computer is restarted, it will enter the UEFI setup screen."
+"Next time the computer is restarted, it will enter UEFI firmware settings."
 msgstr ""
-"Ko se računalnik naslednjič znova zažene, se bo prikazal zaslon za "
-"nastavitev UEFI."
+"Ob ponovnem zagonu bo računalnik vnesel nastavitve vdelane programske opreme "
+"UEFI."
 
 #: ui/main.qml:32
 #, kde-format
@@ -188,14 +188,25 @@ msgstr "Po naslednjem zagonu:"
 #: ui/main.qml:145
 #, kde-format
 msgctxt "@option:check"
-msgid "Enter UEFI setup screen"
-msgstr "Vstopi v nastavitveni zaslon UEFI"
+msgid "Enter UEFI firmware settings"
+msgstr "Vnesite nastavitve vdelane programske opreme UEFI"
 
 #: ui/main.qml:146
 #, kde-format
 msgctxt "@option:check"
 msgid "Enter firmware setup screen"
 msgstr "Vstopi v nastavitev strojne programske opreme"
+
+#~ msgctxt "@info:status inlinemessage"
+#~ msgid ""
+#~ "Next time the computer is restarted, it will enter the UEFI setup screen."
+#~ msgstr ""
+#~ "Ko se računalnik naslednjič znova zažene, se bo prikazal zaslon za "
+#~ "nastavitev UEFI."
+
+#~ msgctxt "@option:check"
+#~ msgid "Enter UEFI setup screen"
+#~ msgstr "Vstopi v nastavitveni zaslon UEFI"
 
 #~ msgid ""
 #~ "The system must be restarted before manual session saving becomes active."

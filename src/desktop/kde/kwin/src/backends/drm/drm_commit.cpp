@@ -18,6 +18,7 @@
 
 #include <QCoreApplication>
 #include <QThread>
+#include <mutex>
 #include <set>
 
 using namespace std::chrono_literals;
@@ -25,14 +26,46 @@ using namespace std::chrono_literals;
 namespace KWin
 {
 
+// IDs must not be reused when a DrmGpu is recreated on the same DRM file
+// descriptor: the kernel can still deliver events from the previous GPU.
+static uintptr_t s_nextCommitId = 1;
+static std::mutex s_commitsMutex;
+static QHash<uintptr_t, DrmCommit *> s_commits;
+
 DrmCommit::DrmCommit(DrmGpu *gpu)
     : m_gpu(gpu)
 {
 }
 
+DrmCommit::DrmCommit(const DrmCommit &other)
+    : DrmCommit(other.m_gpu)
+{
+    m_defunct = other.m_defunct;
+}
+
 DrmCommit::~DrmCommit()
 {
     Q_ASSERT(QThread::currentThread() == QCoreApplication::instance()->thread());
+    if (m_id) {
+        std::lock_guard lock(s_commitsMutex);
+        s_commits.remove(*m_id);
+    }
+}
+
+uintptr_t DrmCommit::registerPageflip()
+{
+    // Register before the ioctl: the pageflip event can arrive before it returns.
+    std::lock_guard lock(s_commitsMutex);
+    Q_ASSERT(!m_id);
+    m_id = s_nextCommitId++;
+    s_commits.emplace(*m_id, this);
+    return *m_id;
+}
+
+DrmCommit *DrmCommit::take(uintptr_t id)
+{
+    std::lock_guard lock(s_commitsMutex);
+    return s_commits.take(id);
 }
 
 DrmGpu *DrmCommit::gpu() const
@@ -45,13 +78,29 @@ void DrmCommit::setDefunct()
     m_defunct = true;
 }
 
-DrmAtomicCommit::DrmAtomicCommit(DrmGpu *gpu)
-    : DrmCommit(gpu)
+std::expected<void, OutputError> DrmCommit::errnoToError()
 {
+    switch (errno) {
+    case EBUSY:
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::InvalidApiUsage,
+            .message = QStringLiteral("EBUSY"),
+        });
+    case EACCES:
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::NoPermission,
+            .message = QStringLiteral("EACCESS"),
+        });
+    default:
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::Other,
+            .message = QString::fromLatin1(strerror(errno)),
+        });
+    }
 }
 
-DrmAtomicCommit::DrmAtomicCommit(const QList<DrmPipeline *> &pipelines)
-    : DrmCommit(pipelines.front()->gpu())
+DrmAtomicCommit::DrmAtomicCommit(DrmGpu *gpu, const QList<DrmPipeline *> &pipelines)
+    : DrmCommit(gpu)
     , m_pipelines(pipelines)
 {
 }
@@ -77,8 +126,7 @@ void DrmAtomicCommit::addBuffer(DrmPlane *plane, const std::shared_ptr<DrmFrameb
     addProperty(plane->fbId, buffer ? buffer->framebufferId() : 0);
     m_buffers[plane] = buffer;
     m_frames[plane] = frame;
-    // atomic commits with IN_FENCE_FD fail with NVidia and (as of kernel 6.9) with tearing
-    if (plane->inFenceFd.isValid() && !plane->gpu()->isNVidia() && !isTearing()) {
+    if (plane->inFenceFd.isValid()) {
         addProperty(plane->inFenceFd, buffer ? buffer->syncFd().get() : -1);
     }
     m_planes.emplace(plane);
@@ -102,7 +150,7 @@ void DrmAtomicCommit::setPresentationMode(PresentationMode mode)
     m_mode = mode;
 }
 
-bool DrmAtomicCommit::test()
+std::expected<void, OutputError> DrmAtomicCommit::test()
 {
     uint32_t flags = DRM_MODE_ATOMIC_TEST_ONLY | DRM_MODE_ATOMIC_NONBLOCK;
     if (isTearing()) {
@@ -111,27 +159,30 @@ bool DrmAtomicCommit::test()
     return doCommit(flags);
 }
 
-bool DrmAtomicCommit::testAllowModeset()
+std::expected<void, OutputError> DrmAtomicCommit::testAllowModeset()
 {
     return doCommit(DRM_MODE_ATOMIC_TEST_ONLY | DRM_MODE_ATOMIC_ALLOW_MODESET);
 }
 
-bool DrmAtomicCommit::commit()
+std::expected<void, OutputError> DrmAtomicCommit::commit()
 {
-    uint32_t flags = DRM_MODE_ATOMIC_NONBLOCK | DRM_MODE_PAGE_FLIP_EVENT;
+    uint32_t flags = DRM_MODE_ATOMIC_NONBLOCK;
+    if (m_crtc) {
+        flags |= DRM_MODE_PAGE_FLIP_EVENT;
+    }
     if (isTearing()) {
         flags |= DRM_MODE_PAGE_FLIP_ASYNC;
     }
     return doCommit(flags);
 }
 
-bool DrmAtomicCommit::commitModeset()
+std::expected<void, OutputError> DrmAtomicCommit::commitModeset()
 {
     m_modeset = true;
     return doCommit(DRM_MODE_ATOMIC_ALLOW_MODESET);
 }
 
-bool DrmAtomicCommit::doCommit(uint32_t flags)
+std::expected<void, OutputError> DrmAtomicCommit::doCommit(uint32_t flags)
 {
     std::vector<uint32_t> objects;
     std::vector<uint32_t> propertyCounts;
@@ -161,9 +212,13 @@ bool DrmAtomicCommit::doCommit(uint32_t flags)
         .props_ptr = reinterpret_cast<uint64_t>(propertyIds.data()),
         .prop_values_ptr = reinterpret_cast<uint64_t>(values.data()),
         .reserved = 0,
-        .user_data = reinterpret_cast<uint64_t>(this),
+        .user_data = flags & DRM_MODE_PAGE_FLIP_EVENT ? registerPageflip() : 0,
     };
-    return drmIoctl(m_gpu->fd(), DRM_IOCTL_MODE_ATOMIC, &commitData) == 0;
+    const bool success = drmIoctl(m_gpu->fd(), DRM_IOCTL_MODE_ATOMIC, &commitData) == 0;
+    if (!success) {
+        return errnoToError();
+    }
+    return {};
 }
 
 void DrmAtomicCommit::pageFlipped(std::chrono::nanoseconds timestamp)
@@ -187,7 +242,10 @@ void DrmAtomicCommit::pageFlipped(std::chrono::nanoseconds timestamp)
         frame->presented(timestamp, m_mode);
     }
     m_frames.clear();
-    for (const auto pipeline : std::as_const(m_pipelines)) {
+    // Iterate a copy: pageFlipped() can reset DrmCommitThread::m_committed, which
+    // destroys this commit - and with it m_pipelines - mid-loop.
+    const auto pipelines = m_pipelines;
+    for (const auto pipeline : pipelines) {
         pipeline->pageFlipped(timestamp);
     }
 }
@@ -248,6 +306,9 @@ void DrmAtomicCommit::merge(DrmAtomicCommit *onTop)
     } else {
         m_allowedVrrDelay.reset();
     }
+    if (onTop->m_crtc) {
+        m_crtc = onTop->m_crtc;
+    }
 }
 
 void DrmAtomicCommit::setAllowedVrrDelay(std::optional<std::chrono::nanoseconds> allowedDelay)
@@ -274,6 +335,11 @@ bool DrmAtomicCommit::isReadyFor(std::chrono::steady_clock::time_point pageflipT
 bool DrmAtomicCommit::isTearing() const
 {
     return m_mode == PresentationMode::Async || m_mode == PresentationMode::AdaptiveAsync;
+}
+
+void DrmAtomicCommit::requestPageflipEvent(uint32_t crtcId)
+{
+    m_crtc = crtcId;
 }
 
 DrmLegacyCommit::DrmLegacyCommit(DrmPipeline *pipeline, const std::shared_ptr<DrmFramebuffer> &buffer, const std::shared_ptr<OutputFrame> &frame)
@@ -303,7 +369,7 @@ bool DrmLegacyCommit::doPageflip(PresentationMode mode)
     if (mode == PresentationMode::Async || mode == PresentationMode::AdaptiveAsync) {
         flags |= DRM_MODE_PAGE_FLIP_ASYNC;
     }
-    return drmModePageFlip(gpu()->fd(), m_crtc->id(), m_buffer->framebufferId(), flags, this) == 0;
+    return drmModePageFlip(gpu()->fd(), m_crtc->id(), m_buffer->framebufferId(), flags, reinterpret_cast<void *>(registerPageflip())) == 0;
 }
 
 void DrmLegacyCommit::pageFlipped(std::chrono::nanoseconds timestamp)
@@ -319,4 +385,5 @@ void DrmLegacyCommit::pageFlipped(std::chrono::nanoseconds timestamp)
     }
     m_pipeline->pageFlipped(timestamp);
 }
+
 }

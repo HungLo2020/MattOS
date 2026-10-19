@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-04 02:42+0000\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
 "PO-Revision-Date: 2024-12-20 21:54+0530\n"
 "Last-Translator: kali <skkalwar999@gmail.com>\n"
 "Language-Team: Sanskrit <kde-i18n-doc@kde.org>\n"
@@ -108,60 +108,69 @@ msgctxt "Row description, e.g. Source"
 msgid "%1:"
 msgstr "%1:"
 
-#: components/JobDetails.qml:116
+#: components/JobDetails.qml:118
 #, kde-format
 msgctxt "How many bytes have been copied"
 msgid "%2 of %1"
 msgstr "%1 इत्यस्य %2"
 
-#: components/JobDetails.qml:120
-#, kde-format
+#: components/JobDetails.qml:122
+#, fuzzy, kde-format
+#| msgctxt "How many files have been copied"
+#| msgid "%2 of %1 file"
+#| msgid_plural "%2 of %1 files"
 msgctxt "How many files have been copied"
-msgid "%2 of %1 file"
-msgid_plural "%2 of %1 files"
+msgid "%3 of %2 file"
+msgid_plural "%3 of %2 files"
 msgstr[0] "%1 सञ्चिकायाः %2"
 msgstr[1] "%1 सञ्चिकानां %2"
 
-#: components/JobDetails.qml:123
-#, kde-format
+#: components/JobDetails.qml:125
+#, fuzzy, kde-format
+#| msgctxt "How many dirs have been copied"
+#| msgid "%2 of %1 folder"
+#| msgid_plural "%2 of %1 folders"
 msgctxt "How many dirs have been copied"
-msgid "%2 of %1 folder"
-msgid_plural "%2 of %1 folders"
+msgid "%3 of %2 folder"
+msgid_plural "%3 of %2 folders"
 msgstr[0] "%1 पुटस्य %2"
 msgstr[1] "%1 पुटस्य %2"
 
-#: components/JobDetails.qml:126
-#, kde-format
+#: components/JobDetails.qml:128
+#, fuzzy, kde-format
+#| msgctxt "How many items (that includes files and dirs) have been copied"
+#| msgid "%2 of %1 item"
+#| msgid_plural "%2 of %1 items"
 msgctxt "How many items (that includes files and dirs) have been copied"
-msgid "%2 of %1 item"
-msgid_plural "%2 of %1 items"
+msgid "%3 of %2 item"
+msgid_plural "%3 of %2 items"
 msgstr[0] "%1 द्रव्यस्य %2"
 msgstr[1] "%1 द्रव्येषु %2"
 
-#: components/JobDetails.qml:135
+#: components/JobDetails.qml:137
 #, kde-format
 msgid "%1 file"
 msgid_plural "%1 files"
 msgstr[0] "%1 सञ्चिका"
 msgstr[1] "%1 सञ्चिकाः"
 
-#: components/JobDetails.qml:137
+#: components/JobDetails.qml:139
 #, kde-format
 msgid "%1 folder"
 msgid_plural "%1 folders"
 msgstr[0] "%1 पुटम्"
 msgstr[1] "%1 पुटम्"
 
-#: components/JobDetails.qml:139
+#: components/JobDetails.qml:141
 #, kde-format
 msgid "%1 item"
 msgid_plural "%1 items"
 msgstr[0] "%1 द्रव्यम्"
 msgstr[1] "%1 द्रव्यम्"
 
-#: components/JobDetails.qml:156 components/SpeedChart.qml:72
-#: components/SpeedChart.qml:98 components/SpeedChart.qml:193
-#: components/SpeedChart.qml:204
+#: components/JobDetails.qml:158 components/SpeedChart.qml:75
+#: components/SpeedChart.qml:103 components/SpeedChart.qml:204
+#: components/SpeedChart.qml:217
 #, kde-format
 msgctxt "Bytes per second"
 msgid "%1/s"
@@ -191,7 +200,7 @@ msgctxt "Cancel running job"
 msgid "Cancel"
 msgstr "निरसयतु"
 
-#: components/JobItem.qml:125 components/ThumbnailStrip.qml:159
+#: components/JobItem.qml:125 components/ThumbnailStrip.qml:154
 #, kde-format
 msgid "More Options…"
 msgstr "अधिकविकल्पाः..."
@@ -218,17 +227,17 @@ msgctxt "@action:button"
 msgid "Send"
 msgstr "प्रेषयतु"
 
-#: components/SpeedChart.qml:145
+#: components/SpeedChart.qml:155
 #, kde-format
 msgid "Speed"
 msgstr ""
 
-#: components/SpeedChart.qml:200
+#: components/SpeedChart.qml:212
 #, kde-format
 msgid "Average Speed"
 msgstr ""
 
-#: components/SpeedChart.qml:258
+#: components/SpeedChart.qml:272
 #, kde-format
 msgctxt "Percentage of a job"
 msgid "%1%"
@@ -262,12 +271,12 @@ msgstr "%1 (समाप्तम्)"
 msgid "Job Finished"
 msgstr "Job Finished इति"
 
-#: fileinfo.cpp:170
+#: fileinfo.cpp:186
 #, kde-format
 msgid "Open with %1"
 msgstr "%1 इत्यनेन उद्घाटयन्तु"
 
-#: fileinfo.cpp:174
+#: fileinfo.cpp:190
 #, kde-format
 msgid "Open with…"
 msgstr "इत्यनेन सह उद्घाटितम्..."
@@ -391,21 +400,36 @@ msgctxt "Vendor and product name"
 msgid "Notifications are currently provided by '%1 %2'"
 msgstr "सूचनाः सम्प्रति '%1 %2' द्वारा प्रदत्ताः सन्ति ।"
 
-#: globalshortcuts.cpp:23
+#: globalshortcuts.cpp:24
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "टॉगलं न बाधयन्तु"
 
-#: globalshortcuts.cpp:42
+#: globalshortcuts.cpp:33
+#, fuzzy, kde-format
+#| msgid "Clear All Notifications"
+msgctxt "@action"
+msgid "Clear Notification History"
+msgstr "सर्वाणि सूचनानि स्वच्छं कुर्वन्तु"
+
+#: globalshortcuts.cpp:52
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications Off"
 msgstr "सूचनाः Off"
 
-#: globalshortcuts.cpp:43
+#: globalshortcuts.cpp:53
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications On"
+msgstr "अधिसूचना On"
+
+#: globalshortcuts.cpp:68
+#, fuzzy, kde-format
+#| msgctxt "OSD popup, keep short"
+#| msgid "Notifications On"
+msgctxt "@label OSD popup, keep short"
+msgid "Notification history cleared"
 msgstr "अधिसूचना On"
 
 #: main.qml:61
@@ -459,12 +483,12 @@ msgstr "मोड सक्रियं मा बाधतु; निर्ग�
 msgid "Middle-click to enter do not disturb mode"
 msgstr "do not disturb mode इति प्रविष्टुं मध्य-क्लिक् कुर्वन्तु"
 
-#: main.qml:238
+#: main.qml:245
 #, kde-format
 msgid "Clear All Notifications"
 msgstr "सर्वाणि सूचनानि स्वच्छं कुर्वन्तु"
 
-#: main.qml:257
+#: main.qml:264
 #, kde-format
 msgid "&Configure Event Notifications and Actions…"
 msgstr "&इवेण्ट् सूचनाः क्रियाः च विन्यस्तं कुर्वन्तु..."

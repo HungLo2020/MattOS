@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_kwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-01-28 16:17+0200\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-05-14 08:45+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -70,21 +70,21 @@ msgstr "Утримувати над іншими вікнами"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr "Приховати на записі з екрана"
+msgid "Hide from screenshots and screen recordings"
+msgstr "Приховати на знімках екрана та записах з екрана"
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
 msgstr "Розпірка"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Типовий для теми (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -95,7 +95,7 @@ msgstr ""
 "поточного активного сеансу без випадкового встановлення теми, яка або є "
 "недоступною, або вже встановленою."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -106,14 +106,14 @@ msgstr ""
 "повного шляху призведе до спроби знайти тему у відповідному каталозі, а "
 "потім застосувати її, якщо вдасться визначити тему."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr ""
 "Вивести список усіх тем, які доступні у системі (і те, яка з тем є поточною)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -122,7 +122,7 @@ msgstr ""
 "Визначено %1 як тему KWin Aurorae «%2». Спробуємо встановити її як вашу "
 "поточну тему."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -131,18 +131,19 @@ msgstr ""
 "Ви спробували передати шлях до файла, але файл не вдалося визначити як тему. "
 "Маємо перервати обробку, оскільки не встановлено жодної теми."
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr "Бажану тему, «%1», вже встановлено як тему обрамлення вікон."
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr "Тему вказівника %1 вже застосовано до вашого поточного сеансу Плазми"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -152,14 +153,14 @@ msgstr ""
 "не можна виправити. Можливо, для того, щоб усе знову запрацювало, достатньо "
 "просто спробувати ще раз."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 msgstr "Не вдалося знайти тему «%1». Тему слід вибрати з таких варіантів: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "У вашій системі виявлено такі теми обрамлення вікон KWin:"
@@ -205,28 +206,29 @@ msgstr "Показувати підказки кнопок заголовків 
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
-msgstr "Завжди показувати кнопку «Приховати на записі з екрана»"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
+msgstr ""
+"Завжди показувати кнопку «Приховати на знімках екрана та записах з екрана»"
 
 #: ui/ConfigureTitlebar.qml:85
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
-"Якщо не позначено, кнопку буде показано, лише якщо вікно приховано на записі "
-"з екрана"
+"Якщо не позначено, кнопку буде показано, лише якщо вікно приховано на "
+"знімках з екрана та записах з екрана"
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
 "Якщо позначити цей пункт, на смужку заголовка спочатку буде додано кнопку "
-"«Приховати на записі з екрана»"
+"«Приховати на знімках з екрана та записах з екрана»"
 
 #: ui/main.qml:29
 #, kde-format
@@ -251,50 +253,53 @@ msgstr "Отримати ще…"
 msgid "Edit %1 Theme…"
 msgstr "Редагувати тему %1…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Немає обрамлення вікон"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Немає бічного обрамлення вікон"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Малі рамки вікон"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Звичайні рамки вікон"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Великі рамки вікон"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Дуже великі рамки вікон"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Величезні рамки вікон"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Гігантські рамки вікон"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Надмірні рамки вікон"
+
+#~ msgid "Hide from screencast"
+#~ msgstr "Приховати на записі з екрана"
 
 #~ msgid "More actions for this window"
 #~ msgstr "Додаткові дії для цього вікна"

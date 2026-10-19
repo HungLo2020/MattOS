@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_smserver\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-12 20:15+0100\n"
+"POT-Creation-Date: 2026-02-17 00:47+0000\n"
+"PO-Revision-Date: 2026-05-21 21:10+0200\n"
 "Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.12.2\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #. i18n: ectx: label, entry (confirmLogout), group (General)
 #: smserversettings.kcfg:9
@@ -59,10 +59,10 @@ msgstr ""
 #, kde-format
 msgctxt "@info:status inlinemessage"
 msgid ""
-"Next time the computer is restarted, it will enter the UEFI setup screen."
+"Next time the computer is restarted, it will enter UEFI firmware settings."
 msgstr ""
-"Beim nächsten Neustart des Rechners wird der UEFI-Einrichtungsdialog "
-"angezeigt."
+"Beim nächsten Neustart des Rechners werden die UEFI-Firmware-Einstellungen "
+"aufgerufen."
 
 #: ui/main.qml:32
 #, kde-format
@@ -99,7 +99,7 @@ msgctxt ""
 "@option:check end of the logical sentence 'Ask for confirmation on shutdown, "
 "restart, and logout.'"
 msgid "On shutdown, restart, and logout"
-msgstr "Beim Herunterfahren, Neustart und Ausloggen"
+msgstr "Beim Herunterfahren, neu Starten und Abmelden"
 
 #: ui/main.qml:63
 #, kde-format
@@ -164,8 +164,8 @@ msgid ""
 "or 'xterm,org.kde.konsole.desktop') to prevent them from autostarting along "
 "with other session-restored apps."
 msgstr ""
-"Schreiben Sie hier desktop-Dateikennungen oder, unter X11, die Namen der "
-"ausführbaren Anwendungen (getrennt durch Kommas oder Doppelpunkte, z. B. "
+"Schreiben Sie hier desktop-Dateikennungen (unter X11 die Namen) der "
+"ausführbaren Anwendungen (getrennt durch Kommas oder Doppelpunkte, z. B. "
 "'xterm:org.kde.konsole.desktop' oder 'xterm,org.kde.konsole.desktop'), um zu "
 "verhindern, dass sie zusammen mit anderen aus der letzten Sitzung "
 "wiederhergestellten Anwendungen automatisch gestartet werden."
@@ -187,14 +187,25 @@ msgstr "Nach dem nächsten Neustart:"
 #: ui/main.qml:145
 #, kde-format
 msgctxt "@option:check"
-msgid "Enter UEFI setup screen"
-msgstr "UEFI-Einrichtungsdialog öffnen"
+msgid "Enter UEFI firmware settings"
+msgstr "UEFI-Firmware-Einstellungen aufrufen"
 
 #: ui/main.qml:146
 #, kde-format
 msgctxt "@option:check"
 msgid "Enter firmware setup screen"
 msgstr "Firmware-Einrichtungsdialog anzeigen"
+
+#~ msgctxt "@info:status inlinemessage"
+#~ msgid ""
+#~ "Next time the computer is restarted, it will enter the UEFI setup screen."
+#~ msgstr ""
+#~ "Beim nächsten Neustart des Rechners wird der UEFI-Einrichtungsdialog "
+#~ "angezeigt."
+
+#~ msgctxt "@option:check"
+#~ msgid "Enter UEFI setup screen"
+#~ msgstr "UEFI-Einrichtungsdialog öffnen"
 
 #~ msgid ""
 #~ "The system must be restarted before manual session saving becomes active."

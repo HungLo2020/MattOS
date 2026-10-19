@@ -31,6 +31,7 @@ Q_DECLARE_METATYPE(ClientWindowVoidSetter)
 class TestWindowManagement : public QObject
 {
     Q_OBJECT
+
 public:
     explicit TestWindowManagement(QObject *parent = nullptr);
 private Q_SLOTS:
@@ -78,8 +79,6 @@ private:
     KWayland::Client::Registry *m_registry;
 };
 
-static const QString s_socketName = QStringLiteral("kwayland-test-wayland-windowmanagement-0");
-
 TestWindowManagement::TestWindowManagement(QObject *parent)
     : QObject(parent)
     , m_display(nullptr)
@@ -97,14 +96,14 @@ void TestWindowManagement::init()
     qRegisterMetaType<KWin::PlasmaWindowManagementInterface::ShowingDesktopState>("ShowingDesktopState");
     delete m_display;
     m_display = new KWin::Display(this);
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
 
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);

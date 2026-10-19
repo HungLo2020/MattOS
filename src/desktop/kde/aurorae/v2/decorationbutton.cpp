@@ -5,6 +5,7 @@
 */
 
 #include "decorationbutton.h"
+#include "util.h"
 
 #include <KDecoration3/DecoratedWindow>
 
@@ -25,7 +26,9 @@ DecorationButton::States DecorationButton::states() const
     if (isHovered() || isParentHovered()) {
         states |= State::Hovered;
     }
-    if (isPressed()) {
+    // The maximize button uses a different svg for the maximized state. In hindsight, we need
+    // a "checked" prefix to represent toggled buttons such as "on all desktops", etc.
+    if (isPressed() || (isChecked() && type() != KDecoration3::DecorationButtonType::Maximize)) {
         states |= State::Pressed;
     }
     if (!isEnabled()) {
@@ -242,19 +245,20 @@ SvgDecorationButton::SvgDecorationButton(KDecoration3::DecorationButtonType type
     : DecorationButton(type, decoration, parent)
 {
     connect(decoration->window(), &KDecoration3::DecoratedWindow::scaleChanged, this, [this, decoration]() {
-        m_svgs.setDevicePixelRatio(decoration->window()->scale());
+        m_svgs.setDevicePixelRatio(frameSvgScale(decoration->window()->scale()));
     });
 
     connect(decoration->window(), &KDecoration3::DecoratedWindow::activeChanged, this, &SvgDecorationButton::updateFrame);
     connect(this, &KDecoration3::DecorationButton::pressedChanged, this, &SvgDecorationButton::updateFrame);
     connect(this, &KDecoration3::DecorationButton::hoveredChanged, this, &SvgDecorationButton::updateFrame);
     connect(this, &KDecoration3::DecorationButton::enabledChanged, this, &SvgDecorationButton::updateFrame);
+    connect(this, &KDecoration3::DecorationButton::checkedChanged, this, &SvgDecorationButton::updateFrame);
     connect(this, &DecorationButton::parentHoveredChanged, this, &SvgDecorationButton::updateFrame);
 }
 
 void SvgDecorationButton::setImagePath(const QString &path, const QSizeF &implicitSize)
 {
-    m_svgs = SvgFrameSet::from(path, implicitSize, decoration()->window()->scale());
+    m_svgs = SvgFrameSet::from(path, implicitSize, frameSvgScale(decoration()->window()->scale()));
 
     updateFrame();
     setGeometry(QRectF(QPointF(0, 0), implicitSize));
@@ -313,7 +317,7 @@ MaximizeDecorationButton::MaximizeDecorationButton(KDecoration3::Decoration *dec
     : DecorationButton(KDecoration3::DecorationButtonType::Maximize, decoration, parent)
 {
     connect(decoration->window(), &KDecoration3::DecoratedWindow::scaleChanged, this, [this, decoration]() {
-        const qreal devicePixelRatio = decoration->window()->scale();
+        const qreal devicePixelRatio = frameSvgScale(decoration->window()->scale());
 
         m_maximize.setDevicePixelRatio(devicePixelRatio);
         if (m_restore) {
@@ -336,7 +340,7 @@ MaximizeDecorationButton::MaximizeDecorationButton(KDecoration3::Decoration *dec
 
 void MaximizeDecorationButton::setImagePath(const QString &maximizeImagePath, const QString &restoreImagePath, const QSizeF &implicitSize)
 {
-    const qreal devicePixelRatio = decoration()->window()->scale();
+    const qreal devicePixelRatio = frameSvgScale(decoration()->window()->scale());
 
     m_maximize = SvgFrameSet::from(maximizeImagePath, implicitSize, devicePixelRatio);
     if (!restoreImagePath.isEmpty()) {

@@ -231,7 +231,6 @@ template <> struct QConcatenable<ProKey>
     }
 };
 
-
 size_t qHash(const ProString &str, size_t seed = 0);
 
 inline QString &operator+=(QString &that, const ProString &other)

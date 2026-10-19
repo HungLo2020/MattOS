@@ -16,6 +16,11 @@
 
 #include <KConfigWatcher>
 
+#include <qqmlregistration.h>
+
+class QQmlEngine;
+class QJSEngine;
+
 namespace KWin
 {
 
@@ -25,7 +30,7 @@ enum XwaylandEavesdropsMode {
     None,
     NonCharacterKeys,
     AllKeysWithModifier,
-    All
+    All,
 };
 
 /**
@@ -68,6 +73,9 @@ class Settings;
 class KWIN_EXPORT Options : public QObject
 {
     Q_OBJECT
+    QML_ELEMENT
+    QML_SINGLETON
+
     Q_ENUM(XwaylandCrashPolicy)
     Q_ENUM(PlacementPolicy)
     Q_PROPERTY(FocusPolicy focusPolicy READ focusPolicy WRITE setFocusPolicy NOTIFY focusPolicyChanged)
@@ -127,6 +135,10 @@ class KWIN_EXPORT Options : public QObject
      */
     Q_PROPERTY(bool rollOverDesktops READ isRollOverDesktops WRITE setRollOverDesktops NOTIFY rollOverDesktopsChanged)
     /**
+     * Whether virtual desktops are switched independently for each screen.
+     */
+    Q_PROPERTY(bool perOutputVirtualDesktops READ isPerOutputVirtualDesktops WRITE setPerOutputVirtualDesktops NOTIFY perOutputVirtualDesktopsChanged)
+    /**
      * 0 - 4 , see Workspace::allowWindowActivation()
      */
     Q_PROPERTY(KWin::FocusStealingPreventionLevel focusStealingPreventionLevel READ focusStealingPreventionLevel WRITE setFocusStealingPreventionLevel NOTIFY focusStealingPreventionLevelChanged)
@@ -185,9 +197,12 @@ class KWIN_EXPORT Options : public QObject
     Q_PROPERTY(Qt::Corner pictureInPictureHomeCorner READ pictureInPictureHomeCorner WRITE setPictureInPictureHomeCorner NOTIFY pictureInPictureHomeCornerChanged)
     Q_PROPERTY(int pictureInPictureMargin READ pictureInPictureMargin WRITE setPictureInPictureMargin NOTIFY pictureInPictureMarginChanged)
     Q_PROPERTY(bool overlayVirtualKeyboardOnWindows READ overlayVirtualKeyboardOnWindows WRITE setOverlayVirtualKeyboardOnWindows NOTIFY overlayVirtualKeyboardOnWindowsChanged)
+
 public:
-    explicit Options(QObject *parent = nullptr);
+    explicit Options(QObject *parent);
     ~Options() override;
+
+    static Options *create(QQmlEngine *, QJSEngine *);
 
     void updateSettings();
 
@@ -224,7 +239,7 @@ public:
          * the mouse points onto the desktop, the desktop has focus. The same holds
          * for windows on the dock.
          */
-        FocusStrictlyUnderMouse
+        FocusStrictlyUnderMouse,
     };
     Q_ENUM(FocusPolicy)
 
@@ -256,6 +271,10 @@ public:
     bool xwaylandEisNoPrompt() const
     {
         return m_xwaylandEisNoPrompt;
+    }
+    QStringList xwaylandEisNoPromptApps() const
+    {
+        return m_xwaylandEisNoPromptApps;
     }
 
     /**
@@ -378,6 +397,14 @@ public:
     }
 
     /**
+     * Whether virtual desktops are switched independently for each screen.
+     */
+    bool isPerOutputVirtualDesktops() const
+    {
+        return m_perOutputVirtualDesktops;
+    }
+
+    /**
      * Returns the focus stealing prevention level.
      *
      * @see allowWindowActivation
@@ -389,7 +416,7 @@ public:
 
     enum WindowOperation {
         MaximizeOp = 5000,
-        RestoreOp,
+        UntileOrRestoreOp,
         MinimizeOp,
         MoveOp,
         UnrestrictedMoveOp,
@@ -452,6 +479,8 @@ public:
         MouseActivateRaiseAndUnrestrictedMove,
         MouseResize,
         MouseUnrestrictedResize,
+        MouseActivateRaiseAndResize,
+        MouseActivateRaiseAndUnrestrictedResize,
         MouseMaximize,
         MouseRestore,
         MouseMinimize,
@@ -473,7 +502,7 @@ public:
         MouseWheelAboveBelow,
         MouseWheelPreviousNextDesktop,
         MouseWheelChangeOpacity,
-        MouseWheelNothing
+        MouseWheelNothing,
     };
     Q_ENUM(MouseWheelCommand)
 
@@ -643,6 +672,7 @@ public:
     void setXwaylandEavesdrops(XwaylandEavesdropsMode mode);
     void setXwaylandEavesdropsMouse(bool eavesdropsMouse);
     void setXWaylandEisNoPrompt(bool doNotPrompt);
+    void setXWaylandEisNoPromptApps(const QStringList &apps);
     void setNextFocusPrefersMouse(bool nextFocusPrefersMouse);
     void setClickRaise(bool clickRaise);
     void setAutoRaise(bool autoRaise);
@@ -658,6 +688,7 @@ public:
     void setEdgeBarrier(int edgeBarrier);
     void setCornerBarrier(bool cornerBarrier);
     void setRollOverDesktops(bool rollOverDesktops);
+    void setPerOutputVirtualDesktops(bool perOutputVirtualDesktops);
     void setFocusStealingPreventionLevel(FocusStealingPreventionLevel focusStealingPreventionLevel);
     void setOperationTitlebarDblClick(WindowOperation operationTitlebarDblClick);
     void setOperationMaxButtonLeftClick(WindowOperation op);
@@ -795,6 +826,10 @@ public:
     {
         return false;
     }
+    static QStringList defaultXwaylandEisNotPromptApps()
+    {
+        return QStringList();
+    }
     static ActivationDesktopPolicy defaultActivationDesktopPolicy()
     {
         return ActivationDesktopPolicy::SwitchToOtherDesktop;
@@ -815,6 +850,7 @@ Q_SIGNALS:
     void xwaylandEavesdropsChanged();
     void xwaylandEavesdropsMouseChanged();
     void xwaylandEisNoPromptChanged();
+    void xwaylandEisNoPromptAppsChanged();
     void nextFocusPrefersMouseChanged();
     void clickRaiseChanged();
     void autoRaiseChanged();
@@ -830,6 +866,7 @@ Q_SIGNALS:
     void edgeBarrierChanged();
     void cornerBarrierChanged();
     void rollOverDesktopsChanged(bool enabled);
+    void perOutputVirtualDesktopsChanged(bool enabled);
     void focusStealingPreventionLevelChanged();
     void operationTitlebarDblClickChanged();
     void operationMaxButtonLeftClickChanged();
@@ -888,6 +925,7 @@ private:
     int m_edgeBarrier;
     bool m_cornerBarrier;
     bool m_rollOverDesktops;
+    bool m_perOutputVirtualDesktops;
     FocusStealingPreventionLevel m_focusStealingPreventionLevel;
     int m_killPingTimeout;
     XwaylandCrashPolicy m_xwaylandCrashPolicy;
@@ -895,6 +933,7 @@ private:
     XwaylandEavesdropsMode m_xwaylandEavesdrops;
     bool m_xwaylandEavesdropsMouse;
     bool m_xwaylandEisNoPrompt;
+    QStringList m_xwaylandEisNoPromptApps;
 
     CompositingType m_compositingMode;
     WindowOperation OpTitlebarDblClick;

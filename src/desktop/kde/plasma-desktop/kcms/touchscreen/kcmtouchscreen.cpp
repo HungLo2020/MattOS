@@ -11,6 +11,8 @@
 #include "inputdevice.h"
 #include "touchscreenmoduledata.h"
 
+#include <qqml.h>
+
 #include <KConfigGroup>
 #include <KLocalizedString>
 #include <KPluginFactory>
@@ -43,10 +45,10 @@ public:
     {
         clear();
 
-        auto screens = qGuiApp->screens();
         auto it = new QStandardItem(i18n("Automatic"));
         appendRow(it);
 
+        const auto screens = qGuiApp->screens();
         for (auto screen : screens) {
             auto geo = screen->geometry();
             auto it = new QStandardItem(i18nc("model - (x,y widthxheight)",
@@ -79,13 +81,13 @@ public:
 
 Touchscreen::Touchscreen(QObject *parent, const KPluginMetaData &metaData)
     : KQuickManagedConfigModule(parent, metaData)
-    , m_touchscreensModel(new DevicesModel("touch", this))
+    , m_touchscreensModel(new KWinDevices::DevicesModel(KWinDevices::DevicesModel::Kind::Touch, {}, this))
 {
     const char *uri = "org.kde.plasma.touchscreen.kcm";
     qmlRegisterType<OutputsModel>(uri, 1, 0, "OutputsModel");
-    qmlRegisterUncreatableType<InputDevice>(uri, 1, 0, "InputDevice", u"Should be fetched from kcm.touchscreensModel"_s);
+    qmlRegisterUncreatableType<KWinDevices::InputDevice>(uri, 1, 0, "InputDevice", u"Should be fetched from kcm.touchscreensModel"_s);
 
-    connect(m_touchscreensModel, &DevicesModel::needsSaveChanged, this, &Touchscreen::refreshNeedsSave);
+    connect(m_touchscreensModel, &KWinDevices::DevicesModel::needsSaveChanged, this, &Touchscreen::refreshNeedsSave);
 }
 
 Touchscreen::~Touchscreen() = default;
@@ -120,7 +122,7 @@ void Touchscreen::defaults()
     m_touchscreensModel->defaults();
 }
 
-DevicesModel *Touchscreen::touchscreensModel() const
+KWinDevices::DevicesModel *Touchscreen::touchscreensModel() const
 {
     return m_touchscreensModel;
 }

@@ -8,6 +8,7 @@
 #include "qquickcontrol_p_p.h"
 #include "qquickscrollview_p.h"
 #include "qquickdeferredexecute_p_p.h"
+#include "qquicktooltip_p_p.h"
 
 #include <QtQml/qqmlinfo.h>
 #include <QtQuick/private/qquickitem_p.h>
@@ -408,6 +409,10 @@ qreal QQuickTextAreaPrivate::getImplicitHeight() const
 
 void QQuickTextAreaPrivate::implicitWidthChanged()
 {
+    if (!initialized) {
+        QQuickTextEditPrivate::implicitWidthChanged();
+        return;
+    }
     Q_Q(QQuickTextArea);
     QQuickItemPrivate::implicitWidthChanged();
     emit q->implicitWidthChanged3();
@@ -415,6 +420,10 @@ void QQuickTextAreaPrivate::implicitWidthChanged()
 
 void QQuickTextAreaPrivate::implicitHeightChanged()
 {
+    if (!initialized) {
+        QQuickTextEditPrivate::implicitHeightChanged();
+        return;
+    }
     Q_Q(QQuickTextArea);
     QQuickItemPrivate::implicitHeightChanged();
     emit q->implicitHeightChanged3();
@@ -492,6 +501,7 @@ QQuickTextArea::QQuickTextArea(QQuickItem *parent)
     : QQuickTextEdit(*(new QQuickTextAreaPrivate), parent)
 {
     Q_D(QQuickTextArea);
+    d->initialized = true;
     setActiveFocusOnTab(true);
     setAcceptedMouseButtons(Qt::AllButtons);
     d->setImplicitResizeEnabled(false);
@@ -720,6 +730,7 @@ void QQuickTextArea::setHovered(bool hovered)
 
     d->hovered = hovered;
     emit hoveredChanged();
+    QQuickToolTipAttachedPrivate::maybeSetVisibleImplicitly(this, hovered);
 #else
     Q_UNUSED(hovered);
 #endif

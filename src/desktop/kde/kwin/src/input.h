@@ -31,6 +31,7 @@ class QWheelEvent;
 
 namespace KWin
 {
+
 class IdleDetector;
 class Window;
 class GlobalShortcutsManager;
@@ -71,9 +72,21 @@ struct TouchDownEvent;
 struct TouchMotionEvent;
 struct TouchUpEvent;
 
+class MouseWheelAccumulator
+{
+public:
+    qreal accumulate(PointerAxisEvent *event);
+    void reset();
+
+private:
+    qreal m_scrollDistance = 0;
+};
+
 namespace Decoration
 {
+
 class DecoratedWindowImpl;
+
 }
 
 class InputBackend;
@@ -90,6 +103,7 @@ class InputDevice;
 class KWIN_EXPORT InputRedirection : public QObject
 {
     Q_OBJECT
+
 public:
     ~InputRedirection() override;
     void init();
@@ -149,7 +163,13 @@ public:
      */
     void processFilters(auto method, const auto &...args)
     {
-        for (const auto filter : std::as_const(m_filters)) {
+        // A filter may uninstall and delete *itself* while handling the event -
+        // DpmsInputEventFilter does whenever it wakes the outputs up. Iterate over
+        // a copy so the loop stays valid when the list shrinks underneath it. The
+        // filter's own pointer is never touched again after the call, so this is
+        // safe as long as no handler deletes a filter other than itself.
+        const auto filters = m_filters;
+        for (const auto filter : filters) {
             if ((filter->*method)(args...)) {
                 return;
             }
@@ -162,7 +182,9 @@ public:
      */
     void processSpies(auto method, const auto &...args)
     {
-        for (const auto spy : std::as_const(m_spies)) {
+        // Spies can delete themselves during dispatch too, see processFilters().
+        const auto spies = m_spies;
+        for (const auto spy : spies) {
             (spy->*method)(args...);
         }
     }
@@ -207,6 +229,24 @@ public:
     void addInputDevice(InputDevice *device);
     void removeInputDevice(InputDevice *device);
     void addInputBackend(std::unique_ptr<InputBackend> &&inputBackend);
+
+    bool syncTabletWithMouse() const;
+
+    /**
+     * Takes the last position (if set) which needs to be synced to the input handler that's currently processing.
+     * For example, a tablet device can push it's last cursor position which a pointer device can use.
+     */
+    std::optional<QPointF> takeLastPosition()
+    {
+        const auto lastPosition = m_lastPosition;
+        m_lastPosition.reset();
+        return lastPosition;
+    }
+
+    void setLastPosition(const QPointF &position)
+    {
+        m_lastPosition = position;
+    }
 
 Q_SIGNALS:
     void deviceAdded(InputDevice *device);
@@ -310,6 +350,8 @@ private:
     bool m_hasPointer = false;
     bool m_hasTouch = false;
     bool m_hasTabletModeSwitch = false;
+    bool m_syncTabletWithMouse = false;
+    std::optional<QPointF> m_lastPosition;
 
     KWIN_SINGLETON(InputRedirection)
     friend InputRedirection *input();
@@ -320,6 +362,7 @@ private:
 
 namespace InputFilterOrder
 {
+
 enum Order {
     PlaceholderOutput,
     Dpms,
@@ -328,6 +371,7 @@ enum Order {
     BounceKeys,
     StickyKeys,
     MouseKeys,
+    DwellClicker,
     EisInput,
 
     VirtualTerminal,
@@ -347,6 +391,7 @@ enum Order {
     InputMethod,
     Forward,
 };
+
 }
 
 /**
@@ -446,6 +491,7 @@ private:
 class KWIN_EXPORT InputDeviceHandler : public QObject
 {
     Q_OBJECT
+
 public:
     ~InputDeviceHandler() override;
     virtual void init();

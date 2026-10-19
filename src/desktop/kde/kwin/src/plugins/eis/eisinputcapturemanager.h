@@ -1,5 +1,5 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
@@ -12,6 +12,7 @@
 #include <QDBusObjectPath>
 #include <QDBusUnixFileDescriptor>
 #include <QObject>
+#include <QPointF>
 
 #include <memory>
 
@@ -20,12 +21,14 @@ class QDBusServiceWatcher;
 
 namespace KWin
 {
+
 class BarrierSpy;
 class EisInputCapture;
 class EisInputCaptureFilter;
 
 struct EisInputCaptureBarrier
 {
+    const uint id;
     const Qt::Orientation orientation;
     const int position;
     const int start;
@@ -36,6 +39,7 @@ struct EisInputCaptureBarrier
 class EisInputCaptureManager : public QObject, public QDBusContext
 {
     Q_OBJECT
+
 public:
     EisInputCaptureManager();
     ~EisInputCaptureManager();
@@ -45,9 +49,9 @@ public:
 
     const RamFile &keyMap() const;
 
-    void barrierHit(EisInputCapture *capture, const QPointF &position);
+    void barrierHit(EisInputCapture *capture, uint barrier, const QPointF &position);
     EisInputCapture *activeCapture();
-    void deactivate();
+    void deactivate(const std::optional<QPointF> &releasePosition = std::nullopt);
 
 private:
     RamFile m_keymapFile;
@@ -59,4 +63,5 @@ private:
     QAction *m_disableCaptureAction;
     friend class BarrierSpy;
 };
+
 }

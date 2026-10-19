@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "previewconfigurationwidget_p.h"
 #include "ui_previewconfigurationwidget.h"
@@ -17,11 +18,13 @@
 #include <QtWidgets/qstylefactory.h>
 #include <QtWidgets/qfiledialog.h>
 #include <QtWidgets/qmessagebox.h>
-#include <QtCore/qpair.h>
+
 #include <QtCore/qlist.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qshareddata.h>
+
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 

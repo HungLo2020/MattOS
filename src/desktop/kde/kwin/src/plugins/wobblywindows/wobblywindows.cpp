@@ -13,12 +13,12 @@
 
 #include <cmath>
 
-//#define COMPUTE_STATS
+// #define COMPUTE_STATS
 
 // if you enable it and run kwin in a terminal from the session it manages,
 // be sure to redirect the output of kwin in a file or
 // you'll probably get deadlocks.
-//#define VERBOSE_MODE
+// #define VERBOSE_MODE
 
 #if defined COMPUTE_STATS && !defined VERBOSE_MODE
 #ifdef __GNUC__
@@ -228,22 +228,18 @@ void WobblyWindowsEffect::setDrag(qreal drag)
     m_drag = drag;
 }
 
-void WobblyWindowsEffect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
-{
-    effects->prePaintScreen(data, presentTime);
-}
-
 static const std::chrono::milliseconds integrationStep(10);
 
-void WobblyWindowsEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime)
+void WobblyWindowsEffect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data)
 {
     auto infoIt = windows.find(w);
     if (infoIt != windows.end()) {
-        while ((presentTime - infoIt->clock).count() > 0) {
-            const auto delta = std::min(presentTime - infoIt->clock, integrationStep);
-            infoIt->clock += delta;
+        std::chrono::milliseconds delta = infoIt->clock.tick(view);
+        while (delta.count() > 0) {
+            const auto dt = std::min(delta, integrationStep);
+            delta -= dt;
 
-            if (!updateWindowWobblyDatas(w, delta.count())) {
+            if (!updateWindowWobblyDatas(w, dt.count())) {
                 break;
             }
         }
@@ -253,7 +249,7 @@ void WobblyWindowsEffect::prePaintWindow(RenderView *view, EffectWindow *w, Wind
         }
     }
 
-    effects->prePaintWindow(view, w, data, presentTime);
+    effects->prePaintWindow(view, w, data);
 }
 
 void WobblyWindowsEffect::apply(EffectWindow *w, int mask, WindowPaintData &data, WindowQuadList &quads)
@@ -286,7 +282,7 @@ void WobblyWindowsEffect::apply(EffectWindow *w, int mask, WindowPaintData &data
             right = std::max(right, quads[i].right());
             bottom = std::max(bottom, quads[i].bottom());
         }
-        QRectF dirtyRect(
+        RectF dirtyRect(
             left * data.xScale() + w->x() + data.xTranslation(),
             top * data.yScale() + w->y() + data.yTranslation(),
             (right - left + 1.0) * data.xScale(),
@@ -313,7 +309,6 @@ void WobblyWindowsEffect::slotWindowAdded(EffectWindow *w)
     connect(w, &EffectWindow::windowStartUserMovedResized, this, &WobblyWindowsEffect::slotWindowStartUserMovedResized);
     connect(w, &EffectWindow::windowStepUserMovedResized, this, &WobblyWindowsEffect::slotWindowStepUserMovedResized);
     connect(w, &EffectWindow::windowFinishUserMovedResized, this, &WobblyWindowsEffect::slotWindowFinishUserMovedResized);
-    connect(w, &EffectWindow::windowMaximizedStateChanged, this, &WobblyWindowsEffect::slotWindowMaximizeStateChanged);
 }
 
 void WobblyWindowsEffect::slotWindowStartUserMovedResized(EffectWindow *w)
@@ -327,11 +322,11 @@ void WobblyWindowsEffect::slotWindowStartUserMovedResized(EffectWindow *w)
     }
 }
 
-void WobblyWindowsEffect::slotWindowStepUserMovedResized(EffectWindow *w, const QRectF &geometry)
+void WobblyWindowsEffect::slotWindowStepUserMovedResized(EffectWindow *w, const RectF &geometry)
 {
     if (windows.contains(w)) {
         WindowWobblyInfos &wwi = windows[w];
-        const QRectF rect = w->frameGeometry();
+        const RectF rect = w->frameGeometry();
         if (rect.y() != wwi.resize_original_rect.y()) {
             wwi.can_wobble_top = true;
         }
@@ -353,35 +348,7 @@ void WobblyWindowsEffect::slotWindowFinishUserMovedResized(EffectWindow *w)
     if (windows.contains(w)) {
         WindowWobblyInfos &wwi = windows[w];
         wwi.status = Free;
-        const QRectF rect = w->frameGeometry();
-        if (rect.y() != wwi.resize_original_rect.y()) {
-            wwi.can_wobble_top = true;
-        }
-        if (rect.x() != wwi.resize_original_rect.x()) {
-            wwi.can_wobble_left = true;
-        }
-        if (rect.right() != wwi.resize_original_rect.right()) {
-            wwi.can_wobble_right = true;
-        }
-        if (rect.bottom() != wwi.resize_original_rect.bottom()) {
-            wwi.can_wobble_bottom = true;
-        }
-    }
-}
-
-void WobblyWindowsEffect::slotWindowMaximizeStateChanged(EffectWindow *w, bool horizontal, bool vertical)
-{
-    if (w->isUserMove() || w->isSpecialWindow()) {
-        return;
-    }
-
-    if (m_moveWobble && m_resizeWobble) {
-        stepMovedResized(w);
-    }
-
-    if (windows.contains(w)) {
-        WindowWobblyInfos &wwi = windows[w];
-        const QRectF rect = w->frameGeometry();
+        const RectF rect = w->frameGeometry();
         if (rect.y() != wwi.resize_original_rect.y()) {
             wwi.can_wobble_top = true;
         }
@@ -408,7 +375,7 @@ void WobblyWindowsEffect::startMovedResized(EffectWindow *w)
 
     WindowWobblyInfos &wwi = windows[w];
     wwi.status = Moving;
-    const QRectF &rect = w->frameGeometry();
+    const RectF &rect = w->frameGeometry();
 
     qreal x_increment = rect.width() / (wwi.width - 1.0);
     qreal y_increment = rect.height() / (wwi.height - 1.0);
@@ -439,37 +406,7 @@ void WobblyWindowsEffect::startMovedResized(EffectWindow *w)
     }
 }
 
-void WobblyWindowsEffect::stepMovedResized(EffectWindow *w)
-{
-    QRectF new_geometry = w->frameGeometry();
-    if (!windows.contains(w)) {
-        WindowWobblyInfos new_wwi;
-        initWobblyInfo(new_wwi, new_geometry);
-        windows[w] = new_wwi;
-    }
-
-    WindowWobblyInfos &wwi = windows[w];
-    wwi.status = Free;
-
-    QRectF maximized_area = effects->clientArea(MaximizeArea, w);
-    bool throb_direction_out = (new_geometry.top() == maximized_area.top() && new_geometry.bottom() == maximized_area.bottom()) || (new_geometry.left() == maximized_area.left() && new_geometry.right() == maximized_area.right());
-    qreal magnitude = throb_direction_out ? 10 : -30; // a small throb out when maximized, a larger throb inwards when restored
-    for (unsigned int j = 0; j < wwi.height; ++j) {
-        for (unsigned int i = 0; i < wwi.width; ++i) {
-            Pair v = {magnitude * (i / qreal(wwi.width - 1) - 0.5), magnitude * (j / qreal(wwi.height - 1) - 0.5)};
-            wwi.velocity[j * wwi.width + i] = v;
-        }
-    }
-
-    // constrain the middle of the window, so that any asymmetry won't cause it to drift off-center
-    for (unsigned int j = 1; j < wwi.height - 1; ++j) {
-        for (unsigned int i = 1; i < wwi.width - 1; ++i) {
-            wwi.constraint[j * wwi.width + i] = true;
-        }
-    }
-}
-
-void WobblyWindowsEffect::initWobblyInfo(WindowWobblyInfos &wwi, QRectF geometry) const
+void WobblyWindowsEffect::initWobblyInfo(WindowWobblyInfos &wwi, RectF geometry) const
 {
     wwi.count = 4 * 4;
     wwi.width = 4;
@@ -489,8 +426,6 @@ void WobblyWindowsEffect::initWobblyInfo(WindowWobblyInfos &wwi, QRectF geometry
     wwi.bezierSurface.resize(wwi.bezierCount);
 
     wwi.status = Moving;
-    wwi.clock = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch());
 
     qreal x = geometry.x(), y = geometry.y();
     qreal width = geometry.width(), height = geometry.height();
@@ -604,7 +539,7 @@ static inline void computeVectorBounds(WobblyWindowsEffect::Pair &vec, WobblyWin
 
 bool WobblyWindowsEffect::updateWindowWobblyDatas(EffectWindow *w, qreal time)
 {
-    QRectF rect = w->frameGeometry();
+    RectF rect = w->frameGeometry();
     WindowWobblyInfos &wwi = windows[w];
 
     qreal x_length = rect.width() / (wwi.width - 1.0);

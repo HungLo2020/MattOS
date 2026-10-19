@@ -9,7 +9,6 @@
 #include "colorssettings.h"
 
 #include "../kcms-common_p.h"
-#include "../krdb/krdb.h"
 
 #include <KColorScheme>
 #include <KConfig>
@@ -67,7 +66,7 @@ int main(int argc, char **argv)
         constexpr QLatin1Char dirSplit{'/'};
         if (requestedScheme.contains(dirSplit)) {
             QStringList splitScheme = requestedScheme.split(dirSplit, Qt::SkipEmptyParts);
-            requestedScheme = splitScheme.last();
+            requestedScheme = splitScheme.constLast();
             if (requestedScheme.endsWith(u".colors")) {
                 requestedScheme = requestedScheme.left(requestedScheme.lastIndexOf(QStringLiteral(".")));
             } else {

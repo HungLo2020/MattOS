@@ -18,25 +18,38 @@ extern "C" {
 }
 
 QT_BEGIN_NAMESPACE
-namespace ranges = QtMultimediaPrivate::ranges;
 
 Q_STATIC_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
 namespace QFFmpeg {
 
-bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format)
+namespace {
+bool isAVFormatSupported(const Codec &codec, AVPixelFormat format)
 {
     if (codec.type() == AVMEDIA_TYPE_VIDEO) {
-        auto checkFormat = [format](AVPixelFormat f) { return f == format; };
+        auto checkFormat = [format](AVPixelFormat f) {
+            return f == format;
+        };
         return findAVPixelFormat(codec, checkFormat).has_value();
     }
+    return false;
+}
 
+bool isAVFormatSupported(const Codec &codec, AVSampleFormat format)
+{
     if (codec.type() == AVMEDIA_TYPE_AUDIO) {
         const auto sampleFormats = codec.sampleFormats();
-        return hasValue(sampleFormats, AVSampleFormat(format));
+        return ranges::contains(sampleFormats, format);
     }
-
     return false;
+}
+} // namespace
+
+bool isAVFormatSupported(const Codec &codec, const PixelOrSampleFormat &format)
+{
+    return std::visit([&](auto fmt) {
+        return isAVFormatSupported(codec, fmt);
+    }, format);
 }
 
 bool isHwPixelFormat(AVPixelFormat format)
@@ -81,10 +94,8 @@ AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
         return AV_PIX_FMT_DXVA2_VLD;
     case AV_HWDEVICE_TYPE_DRM:
         return AV_PIX_FMT_DRM_PRIME;
-#if QT_FFMPEG_HAS_VULKAN
     case AV_HWDEVICE_TYPE_VULKAN:
         return AV_PIX_FMT_VULKAN;
-#endif
     default:
         return AV_PIX_FMT_NONE;
     }
@@ -387,6 +398,76 @@ QDebug operator<<(QDebug dbg, QFFmpeg::AVError error)
     return dbg;
 }
 
+QDebug operator<<(QDebug dbg, AVPixelFormat fmt)
+{
+    const char *str = av_get_pix_fmt_name(fmt);
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown pixel format>";
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, AVHWDeviceType type)
+{
+    const char *str = av_hwdevice_get_type_name(type);
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown hw device type>";
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, AVMediaType type)
+{
+    const char *str = av_get_media_type_string(type);
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown hw media type>";
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, AVCodecID id)
+{
+    const char *str = avcodec_get_name(id);
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown codec id>";
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const AVOutputFormat *fmt)
+{
+    if (fmt == nullptr) {
+        dbg << "<null>";
+        return dbg;
+    }
+
+    const char *str = fmt->name;
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown output format>";
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const AVInputFormat *fmt)
+{
+    if (fmt == nullptr) {
+        dbg << "<null>";
+        return dbg;
+    }
+
+    const char *str = fmt->name;
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown input format>";
+    return dbg;
+}
+
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug dbg, const AVChannelLayout &layout)
 {
@@ -438,5 +519,102 @@ QDebug operator<<(QDebug dbg, const AVCodecConfig value)
     return dbg;
 }
 #endif
+
+namespace {
+
+struct FlagName {
+    int value;
+    const char *name;
+};
+
+QString flagsToString(int flags, const QSpan<const FlagName> &flagNames)
+{
+    QString result;
+    int leftover = flags;
+    for (const auto &flagAndName : flagNames)
+        if ((flags & flagAndName.value) != 0) {
+            leftover &= ~flagAndName.value;
+            if (!result.isEmpty())
+                result += u", ";
+            result += QLatin1StringView(flagAndName.name);
+        }
+
+    if (leftover) {
+        if (!result.isEmpty())
+            result += u", ";
+        result += QString::number(leftover, 16);
+    }
+    return result;
+}
+
+} // namespace
+
+QString QFFmpeg::toString(AVCodecCapabilities capabilities)
+{
+    static constexpr std::array<FlagName, 21> flagNames = {{
+        { AV_CODEC_CAP_DRAW_HORIZ_BAND, "DRAW_HORIZ_BAND" },
+        { AV_CODEC_CAP_DR1, "DR1" },
+        { AV_CODEC_CAP_DELAY, "DELAY" },
+        { AV_CODEC_CAP_SMALL_LAST_FRAME, "SMALL_LAST_FRAME" },
+#ifdef AV_CODEC_CAP_SUBFRAMES
+        { AV_CODEC_CAP_SUBFRAMES, "SUBFRAMES" },
+#endif
+        { AV_CODEC_CAP_EXPERIMENTAL, "EXPERIMENTAL" },
+        { AV_CODEC_CAP_CHANNEL_CONF, "CHANNEL_CONF" },
+        { AV_CODEC_CAP_FRAME_THREADS, "FRAME_THREADS" },
+        { AV_CODEC_CAP_SLICE_THREADS, "SLICE_THREADS" },
+        { AV_CODEC_CAP_PARAM_CHANGE, "PARAM_CHANGE" },
+        { AV_CODEC_CAP_OTHER_THREADS, "OTHER_THREADS" },
+        { AV_CODEC_CAP_VARIABLE_FRAME_SIZE, "VARIABLE_FRAME_SIZE" },
+        { AV_CODEC_CAP_AVOID_PROBING, "AVOID_PROBING" },
+        { AV_CODEC_CAP_HARDWARE, "HARDWARE" },
+        { AV_CODEC_CAP_HYBRID, "HYBRID" },
+        { AV_CODEC_CAP_ENCODER_REORDERED_OPAQUE, "ENCODER_REORDERED_OPAQUE" },
+        { AV_CODEC_CAP_ENCODER_FLUSH, "ENCODER_FLUSH" },
+    }};
+    return flagsToString(qToUnderlying(capabilities), QSpan(flagNames));
+}
+
+QString QFFmpeg::toString(AVPixelFormatFlags flags)
+{
+    static constexpr std::array<FlagName, 9> flagNames = {{
+        { AV_PIX_FMT_FLAG_BE, "BE" },
+        { AV_PIX_FMT_FLAG_PAL, "PAL" },
+        { AV_PIX_FMT_FLAG_BITSTREAM, "BITSTREAM" },
+        { AV_PIX_FMT_FLAG_HWACCEL, "HWACCEL" },
+        { AV_PIX_FMT_FLAG_PLANAR, "PLANAR" },
+        { AV_PIX_FMT_FLAG_RGB, "RGB" },
+        { AV_PIX_FMT_FLAG_ALPHA, "ALPHA" },
+        { AV_PIX_FMT_FLAG_BAYER, "BAYER" },
+        { AV_PIX_FMT_FLAG_FLOAT, "FLOAT" },
+    }};
+    return flagsToString(qToUnderlying(flags), QSpan(flagNames));
+}
+
+QString QFFmpeg::toString(AVHwConfigMethods methods)
+{
+    static constexpr std::array<FlagName, 4> flagNames = {{
+        { AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX, "HW_DEVICE_CTX" },
+        { AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX, "HW_FRAMES_CTX" },
+        { AV_CODEC_HW_CONFIG_METHOD_INTERNAL, "INTERNAL" },
+        { AV_CODEC_HW_CONFIG_METHOD_AD_HOC, "AD_HOC" }
+    }};
+    return flagsToString(qToUnderlying(methods), QSpan(flagNames));
+}
+
+QDebug operator<<(QDebug dbg, QFFmpeg::AVCodecCapabilities caps)
+{
+    return dbg << QFFmpeg::toString(caps);
+}
+
+QDebug operator<<(QDebug dbg, QFFmpeg::AVPixelFormatFlags flags)
+{
+    return dbg << QFFmpeg::toString(flags);
+}
+
+QDebug operator<<(QDebug dbg, QFFmpeg::AVHwConfigMethods methods)
+{
+    return dbg << QFFmpeg::toString(methods);
+}
 
 QT_END_NAMESPACE

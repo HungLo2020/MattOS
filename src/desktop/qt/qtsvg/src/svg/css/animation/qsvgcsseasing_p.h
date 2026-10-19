@@ -43,7 +43,7 @@ public:
     explicit QSvgCssCubicBezierEasing(QSvgCssValues::EasingFunction easingFunction, QPointF c1, QPointF c2);
     ~QSvgCssCubicBezierEasing() override;
 
-    virtual qreal progress(qreal t) override;
+    virtual qreal progress(qreal t) const override;
     QPointF c1() const;
     QPointF c2() const;
 
@@ -58,9 +58,9 @@ public:
     explicit QSvgCssStepsEasing(quint32 stops, QSvgCssValues::StepPosition position);
     ~QSvgCssStepsEasing() override;
 
-    virtual qreal progress(qreal t) override;
+    virtual qreal progress(qreal t) const override;
     quint32 stops() const;
-    QSvgCssValues::StepPosition stepPosition();
+    QSvgCssValues::StepPosition stepPosition() const;
 
 private:
     quint32 m_stops;

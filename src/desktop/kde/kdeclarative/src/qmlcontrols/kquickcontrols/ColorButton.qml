@@ -7,6 +7,7 @@
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Dialogs as QtDialogs
+import org.kde.ki18n
 
 /*!
    \qmltype ColorButton
@@ -29,6 +30,11 @@ import QtQuick.Dialogs as QtDialogs
  */
 QQC2.Button {
     id: root
+
+    KI18nContext {
+        id: _tr
+        translationDomain: "kdeclarative6"
+    }
 
     /*!
        \qmlproperty color ColorButton::color
@@ -58,10 +64,10 @@ QQC2.Button {
 
     implicitWidth: 40 + _buttonMarigns * 2 // to perfectly clone kcolorbutton from kwidgetaddons
 
-    Accessible.name: i18nc("@info:whatsthis for a button", "Color button")
+    Accessible.name: _tr.i18nc("@info:whatsthis for a button", "Color button")
     Accessible.description: enabled
-      ? i18nc("@info:whatsthis for a button of current color code %1", "Current color is %1. This button will open a color chooser dialog.", color)
-      : i18nc("@info:whatsthis for a button of current color code %1", "Current color is %1.", color)
+      ? _tr.i18nc("@info:whatsthis for a button of current color code %1", "Current color is %1. This button will open a color chooser dialog.", color)
+      : _tr.i18nc("@info:whatsthis for a button of current color code %1", "Current color is %1.", color)
 
     // create a checkerboard background for alpha to be adjusted
     Canvas {
@@ -90,8 +96,8 @@ QQC2.Button {
         id: colorBlock
 
         anchors.centerIn: parent
-        height: parent.height - _buttonMarigns * 2
-        width: parent.width - _buttonMarigns * 2
+        height: parent.height - root._buttonMarigns * 2
+        width: parent.width - root._buttonMarigns * 2
 
         color: enabled ? colorDialog.selectedColor : disabledPalette.button
 
@@ -103,7 +109,7 @@ QQC2.Button {
 
     QtDialogs.ColorDialog {
         id: colorDialog
-        onAccepted: root.accepted(color)
+        onAccepted: root.accepted(selectedColor)
         parentWindow: root.Window.window
         options: root.showAlphaChannel ? QtDialogs.ColorDialog.ShowAlphaChannel : undefined
     }

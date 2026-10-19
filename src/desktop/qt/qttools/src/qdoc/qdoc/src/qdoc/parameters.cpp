@@ -4,47 +4,11 @@
 #include "parameters.h"
 
 #include "codechunk.h"
-#include "generator.h"
 #include "tokenizer.h"
 
 QT_BEGIN_NAMESPACE
 
 QRegularExpression Parameters::s_varComment(R"(^/\*\s*([a-zA-Z_0-9]+)\s*\*/$)");
-
-/*!
-  \class Parameter
-  \brief The Parameter class describes one function parameter.
-
-  A parameter can be a function parameter or a macro parameter.
-  It has a name, a data type, and an optional default value.
-  These are all stored as strings so they can be compared with
-  a parameter in a function signature to find a match.
- */
-
-/*!
-  \fn Parameter::Parameter(const QString &type, const QString &name, const QString &defaultValue)
-
-  Constructs the parameter from the \a type, the optional \a name,
-  and the optional \a defaultValue.
- */
-
-/*!
-  Reconstructs the text signature for the parameter and returns
-  it. If \a includeValue is true and there is a default value,
-  the default value is appended with '='.
- */
-QString Parameter::signature(bool includeValue) const
-{
-    QString p = m_type;
-    if (!p.isEmpty() && !p.endsWith(QChar('*')) && !p.endsWith(QChar('&')) &&
-        !p.endsWith(QChar(' ')) && !m_name.isEmpty()) {
-        p += QLatin1Char(' ');
-    }
-    p += m_name;
-    if (includeValue && !m_defaultValue.isEmpty())
-        p += " = " + m_defaultValue;
-    return p;
-}
 
 /*!
   \class Parameters

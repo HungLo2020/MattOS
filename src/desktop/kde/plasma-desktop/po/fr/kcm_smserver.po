@@ -17,8 +17,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmsmserver\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-09 13:40+0100\n"
+"POT-Creation-Date: 2026-02-17 00:47+0000\n"
+"PO-Revision-Date: 2026-02-20 17:45+0100\n"
 "Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -65,10 +65,10 @@ msgstr "Impossible de demander un redémarrage pour configurer le firmware : %1
 #, kde-format
 msgctxt "@info:status inlinemessage"
 msgid ""
-"Next time the computer is restarted, it will enter the UEFI setup screen."
+"Next time the computer is restarted, it will enter UEFI firmware settings."
 msgstr ""
-"Au prochain redémarrage, l'ordinateur rentrera dans l'écran de configuration "
-"« UEFI »."
+"Au prochain redémarrage de l'ordinateur, celui-ci rentrera dans l'écran de "
+"configuration du micro-programme."
 
 #: ui/main.qml:32
 #, kde-format
@@ -193,14 +193,25 @@ msgstr "Après le prochain re-démarrage :"
 #: ui/main.qml:145
 #, kde-format
 msgctxt "@option:check"
-msgid "Enter UEFI setup screen"
-msgstr "Activer l'écran de configuration « UEFI »"
+msgid "Enter UEFI firmware settings"
+msgstr "Rentrer dans l'écran de configuration du micro-programme UEFI"
 
 #: ui/main.qml:146
 #, kde-format
 msgctxt "@option:check"
 msgid "Enter firmware setup screen"
 msgstr "Lancer l'écran de configuration du micro-programme"
+
+#~ msgctxt "@info:status inlinemessage"
+#~ msgid ""
+#~ "Next time the computer is restarted, it will enter the UEFI setup screen."
+#~ msgstr ""
+#~ "Au prochain redémarrage, l'ordinateur rentrera dans l'écran de "
+#~ "configuration « UEFI »."
+
+#~ msgctxt "@option:check"
+#~ msgid "Enter UEFI setup screen"
+#~ msgstr "Activer l'écran de configuration « UEFI »"
 
 #~ msgid ""
 #~ "The system must be restarted before manual session saving becomes active."

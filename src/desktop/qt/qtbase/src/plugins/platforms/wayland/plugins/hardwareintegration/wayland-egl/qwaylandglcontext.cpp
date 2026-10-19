@@ -119,9 +119,12 @@ public:
                                                                     }");
         m_blitProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, "varying highp vec2 outTexCoords;\n\
                                                                         uniform sampler2D texture;\n\
+                                                                        uniform lowp float forceOpaque;\n\
                                                                         void main()\n\
                                                                         {\n\
-                                                                            gl_FragColor = texture2D(texture, outTexCoords);\n\
+                                                                            lowp vec4 c = texture2D(texture, outTexCoords);\n\
+                                                                            c.a = mix(c.a, 1.0, forceOpaque);\n\
+                                                                            gl_FragColor = c;\n\
                                                                         }");
 
         m_blitProgram->bindAttributeLocation("position", 0);
@@ -135,6 +138,9 @@ public:
         m_blitProgram->bind();
         m_blitProgram->enableAttributeArray(0);
         m_blitProgram->enableAttributeArray(1);
+
+        // Default: keep sampled alpha.
+        m_blitProgram->setUniformValue("forceOpaque", 0.0f);
 
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
@@ -192,6 +198,7 @@ public:
 
         //Draw Decoration
         if (auto *decoration = window->decoration()) {
+            m_blitProgram->setUniformValue("forceOpaque", 0.0f);
             m_blitProgram->setAttributeBuffer(0, GL_FLOAT, m_inverseSquareVerticesOffset, 2);
             QImage decorationImage = decoration->contentImage();
             cache->bindTexture(m_context->context(), decorationImage);
@@ -207,6 +214,9 @@ public:
         glBindTexture(GL_TEXTURE_2D, window->contentTexture());
         QRect r = window->contentsRect();
         glViewport(r.x() * scale, r.y() * scale, r.width() * scale, r.height() * scale);
+
+        const bool opaqueWindow = window->window() && !window->window()->requestedFormat().hasAlpha();
+        m_blitProgram->setUniformValue("forceOpaque", opaqueWindow ? 1.0f : 0.0f);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 
@@ -217,6 +227,9 @@ public:
     int m_inverseSquareVerticesOffset;
     int m_textureVerticesOffset;
     int m_textureWrap;
+
+private:
+    Q_DISABLE_COPY(DecorationsBlitter)
 };
 
 QWaylandGLContext::QWaylandGLContext()
@@ -418,22 +431,16 @@ bool QWaylandGLContext::makeCurrent(QPlatformSurface *surface)
 
     m_currentWindow = static_cast<QWaylandEglWindow *>(surface);
 
-    QMutexLocker lock(m_currentWindow->eglSurfaceLock());
-    EGLSurface eglSurface = m_currentWindow->eglSurface();
-
     if (!checkGraphicsReset())
         return false;
 
-    if (!m_currentWindow->needToUpdateContentFBO() && (eglSurface != EGL_NO_SURFACE)) {
-        if (!eglMakeCurrent(eglDisplay(), eglSurface, eglSurface, eglContext())) {
-            qWarning("QWaylandGLContext::makeCurrent: eglError: %#x, this: %p \n", eglGetError(), this);
-            return false;
-        }
-        return true;
-    }
+    QMutexLocker lock(m_currentWindow->eglSurfaceLock());
+
+    EGLSurface eglSurface = m_currentWindow->eglSurface();
+    QSize size = m_currentWindow->bufferSize();
 
     if (eglSurface == EGL_NO_SURFACE) {
-        m_currentWindow->updateSurface(true);
+        m_currentWindow->createSurface(size);
         eglSurface = m_currentWindow->eglSurface();
     }
 
@@ -441,11 +448,16 @@ bool QWaylandGLContext::makeCurrent(QPlatformSurface *surface)
         qWarning("QWaylandGLContext::makeCurrent: eglError: %#x, this: %p \n", eglGetError(), this);
         return false;
     }
+    // Nvidia requires that the surface is current and on the render thread at the time of doing the actual resizing
+    m_currentWindow->updateSurfaceSize(size);
 
-    //### setCurrentContext will be called in QOpenGLContext::makeCurrent after this function
-    // returns, but that's too late, as we need a current context in order to bind the content FBO.
-    QOpenGLContextPrivate::setCurrentContext(context());
-    m_currentWindow->bindContentFBO();
+    if (m_currentWindow->needToUpdateContentFBO()) {
+        // ### setCurrentContext will be called in QOpenGLContext::makeCurrent after this function
+        //  returns, but that's too late, as we need a current context in order to bind the content
+        //  FBO.
+        QOpenGLContextPrivate::setCurrentContext(context());
+        m_currentWindow->bindContentFBO();
+    }
 
     return true;
 }

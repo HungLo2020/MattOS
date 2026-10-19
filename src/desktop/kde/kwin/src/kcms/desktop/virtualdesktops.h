@@ -11,10 +11,13 @@
 #include <KSharedConfig>
 #include <QAbstractItemModel>
 
+class QQuickItem;
+
 class VirtualDesktopsSettings;
 
 namespace KWin
 {
+
 class VirtualDesktopsData;
 class AnimationsModel;
 class DesktopsModel;
@@ -45,8 +48,8 @@ public Q_SLOTS:
     void save() override;
     void defaults() override;
 
-    void configureAnimation();
-    void showAboutAnimation();
+    void configureAnimation(QQuickItem *context);
+    void showAboutAnimation(QQuickItem *context);
 
 private:
     VirtualDesktopsData *m_data;

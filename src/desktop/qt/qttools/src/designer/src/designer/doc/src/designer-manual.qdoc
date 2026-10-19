@@ -55,8 +55,8 @@
         \li  \l{Creating Main Windows in Qt Widgets Designer}
         \li  \l{Editing Resources with Qt Widgets Designer}
         \li  \l{Using Stylesheets with Qt Widgets Designer}
-        \li  \l{Using a Designer UI File in Your C++ Application}
-        \li  \l{Using a Designer UI File in Your Qt for Python Application}
+        \li  \l{Using a Qt Widgets Designer UI File in Your C++ Application}
+        \li  \l{Using a Qt Widgets Designer UI File in Your Qt for Python Application}
     \li Advanced Use
     \list
         \li  \l{Customizing Qt Widgets Designer Forms}
@@ -65,6 +65,7 @@
         \li  \l{Creating Custom Widget Extensions}
         \li  \l{Qt Widgets Designer's UI File Format}
     \endlist
+    \li \l{Qt Widgets Designer Security Considerations}
     \endlist
 */
 
@@ -1784,7 +1785,7 @@ pixmap property in the property editor.
 /*!
     \page designer-stylesheet.html
     \previouspage Editing Resources with Qt Widgets Designer
-    \nextpage Using a Designer UI File in Your C++ Application
+    \nextpage Using a Qt Widgets Designer UI File in Your C++ Application
 
     \title Using Stylesheets with Qt Widgets Designer
 
@@ -1814,10 +1815,10 @@ pixmap property in the property editor.
 /*!
     \page designer-using-a-ui-file.html
     \previouspage Using Stylesheets with Qt Widgets Designer
-    \nextpage Using a Designer UI File in Your Qt for Python Application
+    \nextpage Using a Qt Widgets Designer UI File in Your Qt for Python Application
 
-    \keyword Using a Designer UI File in Your Application
-    \title Using a Designer UI File in Your C++ Application
+    \keyword Using a Qt Widgets Designer UI File in Your Application
+    \title Using a Qt Widgets Designer UI File in Your C++ Application
 
     Qt Widgets Designer UI files represent the widget tree of the form in XML format. The
     forms can be processed:
@@ -1957,7 +1958,7 @@ pixmap property in the property editor.
     \snippet calculatorform/CMakeLists.txt 1
 
     In specific cases, such as the example below where the include directive
-    uses a relative path, \l{qt6_add_ui}{qt_add_ui} can be used to generate the
+    uses a relative path, \l qt_add_ui() can be used to generate the
     \c{ui_calculatorform.h} file instead of relying on
     \l{CMake AUTOUIC Documentation}{AUTOUIC}.
 
@@ -2241,24 +2242,24 @@ pixmap property in the property editor.
 
 /*!
     \page designer-using-a-ui-file-python.html
-    \previouspage Using a Designer UI File in Your C++ Application
+    \previouspage Using a Qt Widgets Designer UI File in Your C++ Application
     \nextpage Using Custom Widgets with Qt Widgets Designer
 
-    \title Using a Designer UI File in Your Qt for Python Application
+    \title Using a Qt Widgets Designer UI File in Your Qt for Python Application
 
     \section1 Converting the Form to Python Code
 
     To demonstrate, we use the Qt Widgets animation easing example.
 
-    The application consists of one source file, \c easing.py, a UI
-    file \c form.ui, a resource file \c  easing.qrc and the project
-    file, \c{easing.pyproject} file in the YAML format:
+    The application consists of one source file, \c easing.py, a UI file
+    \c form.ui and the project file, \c{pyproject.toml}, in the TOML format:
 
     \code
-    {
-        "files": ["easing.qrc", "ui_form.py", "easing.py", "easing_rc.py",
-                  "form.ui"]
-    }
+    [project]
+    name = "Easing Example"
+
+    [tool.pyside6-project]
+    files = ["easing.py", "form.ui"]
     \endcode
 
     The UI file is converted to Python code building the form using the
@@ -2306,23 +2307,23 @@ pixmap property in the property editor.
     It is demonstrated by the uiloader example:
 
     \code
-    from PySide2.QtUiTools import QUiLoader
+    from PySide6.QtUiTools import QUiLoader
 
     if __name__ == '__main__':
         # Some code to obtain the form file name, ui_file_name
         app = QApplication(sys.argv)
         ui_file = QFile(ui_file_name)
-        if not ui_file.open(QIODevice.ReadOnly):
-            print("Cannot open {}: {}".format(ui_file_name, ui_file.errorString()))
+        if not ui_file.open(QIODevice.OpenModeFlag.ReadOnly):
+            print(f"Cannot open {ui_file_name}: {ui_file.errorString()}")
             sys.exit(-1)
         loader = QUiLoader()
         widget = loader.load(ui_file, None)
         ui_file.close()
-        if not widget:
+        if widget is None:
             print(loader.errorString())
             sys.exit(-1)
         widget.show()
-        sys.exit(app.exec_())
+        sys.exit(app.exec())
     \endcode
 
     \section1 Resource imports
@@ -2387,12 +2388,12 @@ pixmap property in the property editor.
     by matching the form file path against the path components.
 
     If \c {--python-paths} is not given, the environment variable
-    \c PYTHONPATH is by default checked.
+    \c PYTHONPATH is checked by default.
 */
 
 /*!
     \page designer-customizing-forms.html
-    \previouspage Using a Designer UI File in Your Qt for Python Application
+    \previouspage Using a Qt Widgets Designer UI File in Your Qt for Python Application
     \nextpage Using Custom Widgets with Qt Widgets Designer
 
     \title Customizing Qt Widgets Designer Forms
@@ -2406,7 +2407,7 @@ pixmap property in the property editor.
     default layout, are stored along with the form's components. These settings
     are used when the \l uic generates the form's C++ code. For more
     information on how to use forms in your application, see the
-    \l{Using a Designer UI File in Your C++ Application} section.
+    \l{Using a Qt Widgets Designer UI File in Your C++ Application} section.
 
 
     \section1 Modifying the Form Settings

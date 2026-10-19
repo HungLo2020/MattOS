@@ -13,7 +13,6 @@
 #include "effect/effecthandler.h"
 #include "plugins/trackmouse/trackmouseconfig.h"
 #include "scene/imageitem.h"
-#include "scene/itemrenderer.h"
 #include "scene/workspacescene.h"
 
 #include <KGlobalAccel>
@@ -28,20 +27,20 @@ namespace KWin
 RotatingArcsItem::RotatingArcsItem(Item *parentItem)
     : Item(parentItem)
 {
-    const QString f[2] = {QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("kwin-wayland/tm_outer.png")),
-                          QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("kwin-wayland/tm_inner.png"))};
+    const QString f[2] = {QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("kwin/tm_outer.png")),
+                          QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("kwin/tm_inner.png"))};
     if (f[0].isEmpty() || f[1].isEmpty()) {
         return;
     }
 
     const QImage outerImage(f[0]);
-    m_outerArcItem = scene()->renderer()->createImageItem(this);
+    m_outerArcItem = std::make_unique<ImageItem>(this);
     m_outerArcItem->setImage(outerImage);
     m_outerArcItem->setSize(outerImage.size());
     m_outerArcItem->setPosition(QPointF(-outerImage.width() / 2, -outerImage.height() / 2));
 
     const QImage innerImage(f[1]);
-    m_innerArcItem = scene()->renderer()->createImageItem(this);
+    m_innerArcItem = std::make_unique<ImageItem>(this);
     m_innerArcItem->setImage(innerImage);
     m_innerArcItem->setSize(innerImage.size());
     m_innerArcItem->setPosition(QPointF(-innerImage.width() / 2, -innerImage.height() / 2));
@@ -69,8 +68,7 @@ TrackMouseEffect::TrackMouseEffect()
     QAction *action = new QAction(this);
     action->setObjectName(QStringLiteral("TrackMouse"));
     action->setText(i18n("Track mouse"));
-    KGlobalAccel::self()->setDefaultShortcut(action, QList<QKeySequence>());
-    KGlobalAccel::self()->setShortcut(action, QList<QKeySequence>());
+    KGlobalAccel::self()->setGlobalShortcut(action, QList<QKeySequence>());
     connect(action, &QAction::triggered, this, &TrackMouseEffect::toggle);
 
     reconfigure(ReconfigureAll);

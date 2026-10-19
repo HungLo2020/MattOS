@@ -43,19 +43,16 @@ ecm_qt_declare_logging_category(debug_STATIC
    HEADER DebugActivities.h
    IDENTIFIER KAMD_LOG_ACTIVITIES
    CATEGORY_NAME org.kde.kactivities.activities
-   DEFAULT_SEVERITY Warning
    DESCRIPTION "KActivities Activities" EXPORT KACTIVITYMANAGERD)
 ecm_qt_declare_logging_category(debug_STATIC
    HEADER DebugResources.h
    IDENTIFIER KAMD_LOG_RESOURCES
    CATEGORY_NAME org.kde.kactivities.resources
-   DEFAULT_SEVERITY Warning
    DESCRIPTION "KActivities Resources" EXPORT KACTIVITYMANAGERD)
 ecm_qt_declare_logging_category(debug_STATIC
    HEADER DebugApplication.h
    IDENTIFIER KAMD_LOG_APPLICATION
    CATEGORY_NAME org.kde.kactivities.application
-   DEFAULT_SEVERITY Warning
    DESCRIPTION "KActivities Application" EXPORT KACTIVITYMANAGERD)
 
 add_subdirectory (service)

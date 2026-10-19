@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=kdeuserbase,userbase,ub
 Name=KDE UserBase
+Name[am]=KDE UserBase
 Name[ar]=قاعدة مستخدمي KDE
 Name[az]=KDE İstifadəçi Baza
 Name[be]=База карыстальніка KDE
@@ -51,6 +52,8 @@ Name[mai]=केडीई प्रयोक्ता बेस
 Name[ml]=കെഡിഇ യൂസര്‍ബേസ്
 Name[mr]=केडीई युजरबेस
 Name[my]=ကေဒီအီး အသုံးပြုသူများ
+Name[nan_TW]=KDE UserBase
+Name[nan_TW@latin]=KDE UserBase
 Name[nb]=KDE UserBase
 Name[nds]=KDE-UserBase
 Name[nl]=KDE UserBase
@@ -82,6 +85,7 @@ Name[wa]=KDE UserBase (Uzeus)
 Name[zh_CN]=KDE 用户百科网站
 Name[zh_TW]=KDE UserBase
 Query=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
+Query[am]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[ar]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[az]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[be]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
@@ -121,6 +125,8 @@ Query[lg]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[lt]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[lv]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[my]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
+Query[nan_TW]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
+Query[nan_TW@latin]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[nb]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[nl]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[nn]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
@@ -139,7 +145,6 @@ Query[tg]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[th]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[tok]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[tr]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
-Query[ug]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[uk]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[vi]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search
 Query[zh_CN]=https://userbase.kde.org/Special:Search?search=\\{@}&fulltext=Search

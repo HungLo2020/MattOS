@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libksysguard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-22 02:43+0000\n"
-"PO-Revision-Date: 2026-01-28 19:35+0200\n"
+"POT-Creation-Date: 2026-04-22 00:47+0000\n"
+"PO-Revision-Date: 2026-10-04 10:09+0200\n"
 "Last-Translator: Alexander Yavorskiy <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
@@ -64,12 +64,12 @@ msgstr "Показать заголовок"
 #: ConfigAppearance.qml:167
 #, kde-format
 msgid "Display Style:"
-msgstr "Способ отображения:"
+msgstr "Способ показа:"
 
 #: ConfigAppearance.qml:187
 #, kde-format
 msgid "Get New Display Styles..."
-msgstr "Загрузить способы отображения..."
+msgstr "Загрузить новые способы показа…"
 
 #: ConfigAppearance.qml:197
 #, kde-format
@@ -217,7 +217,7 @@ msgstr "Автоматически"
 #, kde-format
 msgctxt "@label:listbox items are sensor face names"
 msgid "Display style:"
-msgstr "Способ отображения:"
+msgstr "Способ показа:"
 
 #: facepackages/linechart/contents/ui/Config.qml:42
 #, kde-format

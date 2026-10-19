@@ -39,7 +39,7 @@ QPipewireAudioStream::QPipewireAudioStream(const QAudioFormat &format) : m_forma
 QPipewireAudioStream::~QPipewireAudioStream() = default;
 
 void QPipewireAudioStream::createStream(QSpan<spa_dict_item> extraProperties,
-                                        std::optional<int32_t> hardwareBufferFrames,
+                                        std::optional<NativePeriodFrames> nativePeriodFrames,
                                         const char *streamName, StreamType type)
 {
     stream_events.version = PW_VERSION_STREAM_EVENTS;
@@ -70,8 +70,8 @@ void QPipewireAudioStream::createStream(QSpan<spa_dict_item> extraProperties,
     properties.insert(properties.end(), extraProperties.begin(), extraProperties.end());
 
     std::string quantumStr;
-    if (hardwareBufferFrames) {
-        quantumStr = std::to_string(*hardwareBufferFrames);
+    if (nativePeriodFrames) {
+        quantumStr = std::to_string(qToUnderlying(*nativePeriodFrames));
         properties.push_back({
             PW_KEY_NODE_FORCE_QUANTUM,
             quantumStr.data(),
@@ -200,7 +200,7 @@ void QPipewireAudioStream::unregisterDeviceObserver()
     m_deviceRemovalObserver = {};
 }
 
-void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) noexcept QT_MM_NONBLOCKING
+void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     // XRun detection does not work well with pause/resume.
     // disabling for now, since we don't have any public API for notifying the application about

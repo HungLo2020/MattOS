@@ -3,8 +3,8 @@
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# SPDX-FileCopyrightText: 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2024 Josep M. Ferrer <txemaq@gmail.com>
-# SPDX-FileCopyrightText: 2014, 2015 Antoni Bella Pérez <antonibella5@yahoo.com>
+# SPDX-FileCopyrightText: 2014-2021, 2024 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2014-2015 Antoni Bella Pérez <antonibella5@yahoo.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kscreenlocker\n"
@@ -256,3 +256,34 @@ msgstr[1] "%1 segons"
 #, kde-format
 msgid "Keyboard shortcut:"
 msgstr "Drecera del teclat:"
+
+#~ msgctxt "@action:button"
+#~ msgid "Confirm"
+#~ msgstr "Confirma"
+
+#~ msgctxt "@action:button"
+#~ msgid "Cancel"
+#~ msgstr "Cancel·la"
+
+#~ msgid "Appearance:"
+#~ msgstr "Aparença:"
+
+#~ msgctxt "@action:button"
+#~ msgid "Configure..."
+#~ msgstr "Configura..."
+
+#~ msgctxt "First part of sentence \"Automatically after X minutes\""
+#~ msgid "After"
+#~ msgstr "Després de"
+
+#~ msgctxt "@label:spinbox"
+#~ msgid "Allow unlocking without password for:"
+#~ msgstr "Permet el desbloqueig sense contrasenya durant:"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Josep M. Ferrer"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "txemaq@gmail.com"

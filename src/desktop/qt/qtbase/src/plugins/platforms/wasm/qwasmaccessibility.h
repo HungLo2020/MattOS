@@ -78,6 +78,7 @@ private:
     void setHtmlElementDisabled(QAccessibleInterface *iface);
     void setHtmlElementOrientation(emscripten::val element, QAccessibleInterface *iface);
 
+    void handleListItemUpdate(QAccessibleEvent *event);
     void handleStaticTextUpdate(QAccessibleEvent *event);
     void handleButtonUpdate(QAccessibleEvent *event);
     void handleCheckBoxUpdate(QAccessibleEvent *event);
@@ -88,6 +89,7 @@ private:
     void handleToolUpdate(QAccessibleEvent *event);
     void handleLineEditUpdate(QAccessibleEvent *event);
     void handleRadioButtonUpdate(QAccessibleEvent *event);
+    void handleDialUpdate(QAccessibleEvent *event);
     void handleSpinBoxUpdate(QAccessibleEvent *event);
     void handlePageTabUpdate(QAccessibleEvent *event);
     void handleSliderUpdate(QAccessibleEvent *event);
@@ -95,6 +97,9 @@ private:
     void handlePageTabListUpdate(QAccessibleEvent *event);
     void handleIdentifierUpdate(QAccessibleInterface *iface);
     void handleDescriptionChanged(QAccessibleInterface *iface);
+    void handleAnnouncement(QAccessibleInterface *iface,
+                            QAccessibleAnnouncementEvent *announcementEvent);
+    void handleProgressBarUpdate(QAccessibleEvent *event);
 
     void handleEventFromHtmlElement(const emscripten::val event);
 

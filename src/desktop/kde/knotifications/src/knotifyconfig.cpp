@@ -139,3 +139,21 @@ QString KNotifyConfig::readPathEntry(const QString &key) const
     const QString group = QLatin1String("Event/") + d->eventId;
     return d->readEntry(group, key, true);
 }
+
+KNotifyConfig::Actions KNotifyConfig::actions() const
+{
+    const QString notifyActions = readEntry(QStringLiteral("Action"));
+    const auto actionsList = QStringView(notifyActions).split(QLatin1Char('|'));
+
+    Actions ret;
+
+    if (actionsList.contains(u"Popup")) {
+        ret.setFlag(Popup);
+    }
+
+    if (actionsList.contains(u"Sound")) {
+        ret.setFlag(Sound);
+    }
+
+    return ret;
+}

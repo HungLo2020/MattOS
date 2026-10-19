@@ -20,6 +20,9 @@ public:
     uint m_lastKeyCode = 0;
     uint m_lastKeyState = 0;
     uint m_group = 0;
+    uint m_modsDepressed = 0;
+    uint m_modsLatched = 0;
+    uint m_modsLocked = 0;
 };
 
 #endif // MOCKKEYBOARD_H

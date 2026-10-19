@@ -3,6 +3,7 @@ Type=Service
 Hidden=false
 Keys=gitlab,gt
 Name=GitLab
+Name[am]=GitLab
 Name[ar]=جت هب
 Name[ast]=GitLab
 Name[az]=GitLab
@@ -44,6 +45,8 @@ Name[lt]=GitLab
 Name[lv]=GitLab
 Name[ml]=ഗിറ്റ്ലാബ്
 Name[my]=ဂစ်လပ်ဘ်
+Name[nan_TW]=GitLab
+Name[nan_TW@latin]=GitLab
 Name[nb]=GitLab
 Name[nl]=GitLab
 Name[nn]=GitLab
@@ -62,12 +65,12 @@ Name[tg]=GitLab
 Name[th]=GitLab
 Name[tok]=ilo GitLab
 Name[tr]=GitLab
-Name[ug]=GitLab
 Name[uk]=GitLab
 Name[vi]=GitLab
 Name[zh_CN]=GitLab
 Name[zh_TW]=GitLab
 Query=https://gitlab.com/search?search=\\{@}
+Query[am]=https://gitlab.com/search?search=\\{@}
 Query[ar]=https://gitlab.com/search?search=\\{@}
 Query[ast]=https://gitlab.com/search?search=\\{@}
 Query[az]=https://gitlab.com/search?search=\\{@}
@@ -108,6 +111,8 @@ Query[lg]=https://gitlab.com/search?search=\\{@}
 Query[lt]=https://gitlab.com/search?search=\\{@}
 Query[lv]=https://gitlab.com/search?search=\\{@}
 Query[my]=https://gitlab.com/search?search=\\{@}
+Query[nan_TW]=https://gitlab.com/search?search=\\{@}
+Query[nan_TW@latin]=https://gitlab.com/search?search=\\{@}
 Query[nb]=https://gitlab.com/search?search=\\{@}
 Query[nl]=https://gitlab.com/search?search=\\{@}
 Query[nn]=https://gitlab.com/search?search=\\{@}
@@ -126,7 +131,6 @@ Query[tg]=https://gitlab.com/search?search=\\{@}
 Query[th]=https://gitlab.com/search?search=\\{@}
 Query[tok]=https://gitlab.com/search?search=\\{@}
 Query[tr]=https://gitlab.com/search?search=\\{@}
-Query[ug]=https://gitlab.com/search?search=\\{@}
 Query[uk]=https://gitlab.com/search?search=\\{@}
 Query[vi]=https://gitlab.com/search?search=\\{@}
 Query[zh_CN]=https://gitlab.com/search?search=\\{@}

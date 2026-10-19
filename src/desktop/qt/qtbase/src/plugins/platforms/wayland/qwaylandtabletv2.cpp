@@ -31,7 +31,7 @@ int QWaylandTabletToolV2::idealCursorScale() const
         return 1;
     }
 
-    if (auto *s = mCursor.surface.data()) {
+    if (auto *s = mCursor.surface.get()) {
         if (s->outputScale() > 0)
             return s->outputScale();
     }
@@ -178,8 +178,9 @@ QWaylandTabletManagerV2::~QWaylandTabletManagerV2()
     destroy();
 }
 
-QWaylandTabletSeatV2::QWaylandTabletSeatV2(QWaylandTabletManagerV2 *manager, QWaylandInputDevice *seat)
-    : QtWayland::zwp_tablet_seat_v2(manager->get_tablet_seat(seat->wl_seat()))
+QWaylandTabletSeatV2::QWaylandTabletSeatV2(QWaylandTabletManagerV2 *manager, QWaylandInputDevice *seat, QObject *parent)
+    : QObject(parent)
+    , QtWayland::zwp_tablet_seat_v2(manager->get_tablet_seat(seat->wl_seat()))
     , m_seat(seat)
 {
     qCDebug(lcQpaInputDevices) << "new tablet seat" << seat->seatname() << "id" << seat->id();
@@ -237,10 +238,12 @@ void QWaylandTabletSeatV2::zwp_tablet_seat_v2_pad_added(zwp_tablet_pad_v2 *id)
     connect(pad, &QWaylandTabletPadV2::destroyed, this, [this, pad] { m_pads.removeOne(pad); });
 }
 
-QWaylandTabletV2::QWaylandTabletV2(::zwp_tablet_v2 *tablet, const QString &seatName)
+QWaylandTabletV2::QWaylandTabletV2(::zwp_tablet_v2 *tablet, const QString &seatName, QObject *parent)
     : QPointingDevice(u"unknown"_s, -1, DeviceType::Stylus, PointerType::Pen,
                       Capability::Position | Capability::Hover,
-                      1, 1, seatName)
+                      1, 1, seatName,
+                      QPointingDeviceUniqueId{},
+                      parent)
     , QtWayland::zwp_tablet_v2(tablet)
 {
     qCDebug(lcQpaInputDevices) << "new tablet on seat" << seatName;
@@ -294,10 +297,12 @@ void QWaylandTabletV2::zwp_tablet_v2_removed()
     deleteLater();
 }
 
-QWaylandTabletToolV2::QWaylandTabletToolV2(QWaylandTabletSeatV2 *tabletSeat, ::zwp_tablet_tool_v2 *tool)
+QWaylandTabletToolV2::QWaylandTabletToolV2(QWaylandTabletSeatV2 *tabletSeat, ::zwp_tablet_tool_v2 *tool, QObject *parent)
     : QPointingDevice(u"tool"_s, -1, DeviceType::Stylus, PointerType::Pen,
                       Capability::Position | Capability::Hover,
-                      1, 1, tabletSeat->seat()->seatname())
+                      1, 1, tabletSeat->seat()->seatname(),
+                      QPointingDeviceUniqueId{},
+                      parent)
     , QtWayland::zwp_tablet_tool_v2(tool)
     , m_tabletSeat(tabletSeat)
 {
@@ -447,7 +452,7 @@ void QWaylandTabletToolV2::zwp_tablet_tool_v2_down(uint32_t serial)
     m_tabletSeat->seat()->mSerial = serial;
 
     if (m_pending.proximitySurface) {
-        if (QWaylandWindow *window = m_pending.proximitySurface->waylandWindow()) {
+        if (QWaylandSurface *window = m_pending.proximitySurface) {
             QWaylandInputDevice *seat = m_tabletSeat->seat();
             seat->display()->setLastInputDevice(seat, serial, window);
         }
@@ -536,40 +541,43 @@ void QWaylandTabletToolV2::zwp_tablet_tool_v2_frame(uint32_t time)
 
     QWaylandWindow *waylandWindow = QWaylandWindow::fromWlSurface(m_pending.proximitySurface->object());
     QWindow *window = waylandWindow->window();
+    const bool needsTabletEvent = !(m_pending == m_applied);
 
-    if (!m_applied.proximitySurface) {
-        // TODO get position etc. as below
-        QWindowSystemInterface::handleTabletEnterLeaveProximityEvent(window, this, true);
-        m_applied.proximitySurface = m_pending.proximitySurface;
-    }
-
-    if (!(m_pending == m_applied)) {
+    if (!m_applied.proximitySurface || needsTabletEvent) {
         ulong timestamp = time;
         const QPointF localPosition = waylandWindow->mapFromWlSurface(m_pending.surfacePosition);
-
         const QPointF globalPosition = waylandWindow->mapToGlobalF(localPosition);
+        const Qt::MouseButtons buttons = m_pending.buttons |
+                (m_pending.down ? Qt::MouseButton::LeftButton : Qt::MouseButton::NoButton);
+        const qreal pressure = m_pending.pressure;
+        const qreal xTilt = m_pending.xTilt;
+        const qreal yTilt = m_pending.yTilt;
+        const qreal tangentialPressure = m_pending.slider;
+        const qreal rotation = m_pending.rotation;
+        const int z = int(m_pending.distance);
 
-        Qt::MouseButtons buttons = m_pending.down ? Qt::MouseButton::LeftButton : Qt::MouseButton::NoButton;
-        buttons |= m_pending.buttons;
-        qreal pressure = m_pending.pressure;
-        qreal xTilt = m_pending.xTilt;
-        qreal yTilt = m_pending.yTilt;
-        qreal tangentialPressure = m_pending.slider;
-        qreal rotation = m_pending.rotation;
-        int z = int(m_pending.distance);
+        if (!m_applied.proximitySurface) {
+            QWindowSystemInterface::handleTabletEnterLeaveProximityEvent(window, this, true, localPosition, globalPosition,
+                                                                         buttons, xTilt, yTilt, tangentialPressure, rotation, z,
+                                                                         m_tabletSeat->seat()->modifiers());
+            m_applied.proximitySurface = m_pending.proximitySurface;
+        }
 
-        // do not use localPosition here since that is in Qt window coordinates
-        // but we need surface coordinates to include the decoration
-        bool decorationHandledEvent = waylandWindow->handleTabletEventDecoration(
-                m_tabletSeat->seat(), m_pending.surfacePosition,
-                window->mapToGlobal(m_pending.surfacePosition), buttons,
-                m_tabletSeat->seat()->modifiers());
+        if (needsTabletEvent) {
+            // do not use localPosition here since that is in Qt window coordinates
+            // but we need surface coordinates to include the decoration
+            bool decorationHandledEvent = waylandWindow->handleTabletEventDecoration(
+                    m_tabletSeat->seat(), m_pending.surfacePosition,
+                    window->mapToGlobal(m_pending.surfacePosition), buttons,
+                    m_tabletSeat->seat()->modifiers());
 
-        if (!decorationHandledEvent) {
-            QWindowSystemInterface::handleTabletEvent(window, timestamp, this, localPosition, globalPosition,
-                                                      buttons, pressure,
-                                                      xTilt, yTilt, tangentialPressure, rotation, z,
-                                                      m_tabletSeat->seat()->modifiers());
+            if (!decorationHandledEvent) {
+                QWindowSystemInterface::handleTabletEvent(window, timestamp, this, localPosition, globalPosition,
+                                                          buttons, pressure,
+                                                          xTilt, yTilt, tangentialPressure, rotation, z,
+                                                          m_tabletSeat->seat()->modifiers());
+                m_tabletSeat->seat()->display()->waylandCursor()->setPosFromEnterEvent(globalPosition.toPoint());
+            }
         }
     }
 
@@ -592,10 +600,12 @@ bool QWaylandTabletToolV2::State::operator==(const QWaylandTabletToolV2::State &
             buttons == o.buttons;
 }
 
-QWaylandTabletPadV2::QWaylandTabletPadV2(::zwp_tablet_pad_v2 *pad)
+QWaylandTabletPadV2::QWaylandTabletPadV2(::zwp_tablet_pad_v2 *pad, QObject *parent)
     : QPointingDevice(u"tablet touchpad"_s, -1, DeviceType::TouchPad, PointerType::Finger,
                       Capability::Position,
-                      1, 1)
+                      1, 1, QString{},
+                      QPointingDeviceUniqueId{},
+                      parent)
     , QtWayland::zwp_tablet_pad_v2(pad)
 {
 }

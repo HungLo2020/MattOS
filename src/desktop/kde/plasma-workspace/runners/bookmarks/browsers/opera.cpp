@@ -14,9 +14,9 @@
 
 using namespace Qt::StringLiterals;
 
-Opera::Opera(QObject *parent)
-    : QObject(parent)
-    , m_favicon(new FallbackFavicon(this))
+Opera::Opera()
+    : QObject()
+    , m_favicon(new FallbackFavicon)
 {
 }
 
@@ -31,7 +31,7 @@ QList<BookmarkMatch> Opera::match(const QString &term, bool addEverything)
     // search
     for (const QString &entry : std::as_const(m_operaBookmarkEntries)) {
         QStringList entryLines = entry.split(QStringLiteral("\n"));
-        if (!entryLines.first().startsWith(QLatin1String("#URL"))) {
+        if (!entryLines.constFirst().startsWith(QLatin1String("#URL"))) {
             continue; // skip folder entries
         }
         entryLines.pop_front();
@@ -50,8 +50,11 @@ QList<BookmarkMatch> Opera::match(const QString &term, bool addEverything)
             }
         }
 
-        BookmarkMatch bookmarkMatch(m_favicon->iconFor(url), term, name, url, description);
-        bookmarkMatch.addTo(matches, addEverything);
+        BookmarkMatch bookmarkMatch(term, name, url, description);
+        if (addEverything || bookmarkMatch.matches()) {
+            bookmarkMatch.setIcon(m_favicon->iconFor(url));
+            matches << bookmarkMatch;
+        }
     }
     return matches;
 }

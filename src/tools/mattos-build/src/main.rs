@@ -1703,6 +1703,7 @@ include!("stages/helpers/meson.rs");
 include!("stages/graphics.rs");
 include!("stages/qt.rs");
 include!("stages/kde_foundation.rs");
+include!("stages/kde_stack.rs");
 include!("stages/calamares.rs");
 include!("stages/plasma.rs");
 include!("stages/plasma_apps.rs");

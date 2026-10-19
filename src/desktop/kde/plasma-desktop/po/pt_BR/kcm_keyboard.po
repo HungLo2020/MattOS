@@ -10,21 +10,21 @@
 # Aracele Torres <aracele@kde.org>, 2017.
 # Thiago Masato Costa Sueto <herzenschein@gmail.com>, 2021.
 # SPDX-FileCopyrightText: 2024 Geraldo Simiao <geraldosimiao@fedoraproject.org>
-# SPDX-FileCopyrightText: 2025 Guilherme Marçal Silva <guimarcalsilva@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Guilherme Marçal Silva <guimarcalsilva@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
-"PO-Revision-Date: 2026-01-08 07:54-0300\n"
-"Last-Translator: Marcus Gama <marcus.gama@gmail.com>\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-06-26 03:25-0300\n"
+"Last-Translator: Guilherme Marçal Silva <guimarcalsilva@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -106,8 +106,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Configurar atalhos de teclado…"
+msgid "Key Bindings"
+msgstr "Combinação de teclas"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -145,13 +145,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Adicionar layout"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Nome curto do layout"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -161,13 +161,13 @@ msgstr ""
 "O nome abreviado do layout selecionado, o qual será exibido na bandeja do "
 "sistema. Você mesmo pode mudar esta configuração."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Atalho:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -499,7 +499,7 @@ msgstr "Somente janela atual"
 #, kde-format
 msgctxt "@label:checkbox"
 msgid "Show OSD popup on layout change"
-msgstr "Exibir retorno visual OSD ao alternar o layout"
+msgstr "Exibir indicador na tela ao alternar o layout"
 
 #: ui/Switching.qml:86
 #, kde-format
@@ -555,22 +555,22 @@ msgstr ""
 "Teclas modificadoras podem ser usadas para escrever caracteres adicionais "
 "símbolos e marcas diacríticas."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
 msgstr[0] "%1 atalho"
 msgstr[1] "%1 atalhos"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Nenhum"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Combinação de teclas"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Configurar atalhos de teclado…"
 
 #~ msgctxt "@option:radio"
 #~ msgid "Turn Off"

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kunitconversion\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-26 00:40+0000\n"
-"PO-Revision-Date: 2026-03-27 05:09+0100\n"
+"POT-Creation-Date: 2026-09-07 00:40+0000\n"
+"PO-Revision-Date: 2026-09-07 04:53+0200\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -789,7 +789,7 @@ msgstr "square micrometers"
 #: area.cpp:184
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "square micrometer;square micrometers;µm²;um²;µm/-2;µm^2;µm2"
+msgid "square micrometer;square micrometers;µm²;um²;µm/-2;µm^2;um^2;µm2;um2"
 msgstr ""
 "კვადრატული მიკრომეტრი;კვადრატული მიკრომეტრი;µმმ²;uმმ²;µმმ/-2;µმმ^2;µმმ2"
 
@@ -1046,8 +1046,11 @@ msgstr "კვადრატული ფუტი"
 #: area.cpp:264
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "square foot;square feet;ft²;square ft;sq foot;sq ft;sq feet;feet²"
-msgstr "კვადრატული ფუტი;კვადრატული ფუტი;ფტ²;კვ ფტ;კვ ფტ;კვ ფტ;კვ ფტ;ფტ²"
+msgid ""
+"square foot;square feet;ft²;ft2;ft^2;square ft;sq foot;sq ft;sq feet;feet²;"
+"feet2;feet^2"
+msgstr ""
+"კვადრატული ფუტი;კვადრატული ფუტი;ფტ²;კვ ფტ;კვ ფტ;კვ ფტ;კვ ფტ;ფტ²'ფტ2;ფტ^2"
 
 #: area.cpp:266
 #, kde-format
@@ -1079,11 +1082,11 @@ msgstr "კვადრატული დუიმი"
 #, kde-format
 msgctxt "unit synonyms for matching user input"
 msgid ""
-"square inch;square inches;in²;square inch;square in;sq inches;sq inch;sq in;"
-"inch²"
+"square inch;square inches;in²;in2;in^2;square inch;square in;sq inches;sq "
+"inch;sq in;inch²;inch2;inch^2"
 msgstr ""
 "კვადრატული დიუიმი;კვადრატული დიუიმი;დმ²;კვადრატული დიუიმი;კვადრატული დიუიმი;"
-"კვ დმ;კვ დმ;კვ დმ;დიუიმი²"
+"კვ დმ;კვ დმ;კვ დმ;დიუიმი²;დუიმი^2"
 
 #: area.cpp:276
 #, kde-format
@@ -1114,9 +1117,12 @@ msgstr "კვადრატული მილი"
 #: area.cpp:284
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "square mile;square miles;mi²;square mi;sq miles;sq mile;sq mi;mile²"
+msgid ""
+"square mile;square miles;mi²;mi2;mi^2;square mi;sq miles;sq mile;sq mi;mile²;"
+"mile2;mile^2"
 msgstr ""
-"კვადრატული მილი;კვადრატული მილი;მი²;კვ მი;კვ მილი;კვ მილი;კვ მილი;მილი²"
+"კვადრატული მილი;კვადრატული მილი;მი²;კვ მი;კვ მილი;კვ მილი;კვ მილი;მილი²;"
+"მილი2;მილი^2"
 
 #: area.cpp:286
 #, kde-format
@@ -3658,8 +3664,8 @@ msgstr "კილოგრამი კუბურ მეტრში"
 #: density.cpp:26
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "kilogram per cubic meter;kilograms per cubic meter;kg/m³"
-msgstr "კილოგრამი კუბურ მეტრში;კილოგრამი კუბურ მეტრში;კგ/მ³"
+msgid "kilogram per cubic meter;kilograms per cubic meter;kg/m³;kg/m3;kg/m^3"
+msgstr "კილოგრამი კუბურ მეტრში;კილოგრამი კუბურ მეტრში;კგ/მ³;კგ/მ3;კგ/მ^3"
 
 #: density.cpp:28
 #, kde-format
@@ -3786,8 +3792,8 @@ msgstr "უნცია კუბურ ინჩში"
 #: density.cpp:68
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "ounce per cubic inch;ounces per cubic inch;oz/in³"
-msgstr "უნცია კუბურ დიუიმში;უნცია კუბურ დიუიმში;უნც/დმ³"
+msgid "ounce per cubic inch;ounces per cubic inch;oz/in³;oz/in3;oz/in^3"
+msgstr "უნცია კუბურ დიუიმში;უნცია კუბურ დიუიმში;უნც/დმ³;უნც/დმ3;უნც/დმ^3"
 
 #: density.cpp:70
 #, kde-format
@@ -3818,8 +3824,8 @@ msgstr "უნცია კუბურ ფუტში"
 #: density.cpp:78
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "ounce per cubic foot;ounces per cubic foot;oz/ft³"
-msgstr "უნცია კუბურ ფუტში;უნცია კუბურ ფუტში;უნც/ფტ³"
+msgid "ounce per cubic foot;ounces per cubic foot;oz/ft³;oz/ft3;oz/ft^3"
+msgstr "უნცია კუბურ ფუტში;უნცია კუბურ ფუტში;უნც/ფტ³;უნც/ფტ3;უნც/ფტ^3"
 
 #: density.cpp:80
 #, kde-format
@@ -3850,8 +3856,9 @@ msgstr "ფუნტი კუბურ ინჩში"
 #: density.cpp:88
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "pound per cubic inch;pounds per cubic inch;lb/in³"
-msgstr "ფუნტი კუბურ დიუიმში;ფუნტი კუბურ დიუიმში;გირვ/დუიმი³"
+msgid "pound per cubic inch;pounds per cubic inch;lb/in³;lb/in3;lb/in^3"
+msgstr ""
+"ფუნტი კუბურ დიუიმში;ფუნტი კუბურ დიუიმში;ფუნტი/დუიმი³;ფუნტი/დმ3;ფუნტი/დმ^3"
 
 #: density.cpp:90
 #, kde-format
@@ -3882,8 +3889,8 @@ msgstr "ფუნტი კუბურ ფუტში"
 #: density.cpp:98
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "pound per cubic foot;pounds per cubic foot;lb/ft³"
-msgstr "ფუნტი კუბურ ფუტში;ფუნტი კუბურ ფუტში;ფნტ/ფტ³"
+msgid "pound per cubic foot;pounds per cubic foot;lb/ft³;lb/ft3;lb/ft^3"
+msgstr "ფუნტი კუბურ ფუტში;ფუნტი კუბურ ფუტში;ფნტ/ფტ³;ფუნტი/ფუტში3;ფუნტი/ფუტში^3"
 
 #: density.cpp:100
 #, kde-format
@@ -3914,8 +3921,8 @@ msgstr "ფუნტი კუბურ იარდში"
 #: density.cpp:108
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "pound per cubic yard;pounds per cubic yard;lb/yd³"
-msgstr "ფუნტი კუბურ იარდში;ფუნტი კუბურ იარდში;ფტ/ი³"
+msgid "pound per cubic yard;pounds per cubic yard;lb/yd³;lb/yd3;lb/yd^3"
+msgstr "ფუნტი კუბურ იარდში;ფუნტი კუბურ იარდში;ფტ/ი³;ფუნტი/იარდი3;ფუნტი/იარდი^3"
 
 #: density.cpp:110
 #, kde-format
@@ -6270,6 +6277,166 @@ msgid "%1 nanometer"
 msgid_plural "%1 nanometers"
 msgstr[0] "%1 ნანომეტრი"
 msgstr[1] "%1 ნანომეტრი"
+
+#: energy.cpp:352
+#, kde-format
+msgctxt "energy unit symbol"
+msgid "TW⋅h"
+msgstr "ტვტ⋅სთ"
+
+#: energy.cpp:353
+#, kde-format
+msgctxt "unit description in lists"
+msgid "terawatt-hours"
+msgstr "ტერავატ-საათი"
+
+#: energy.cpp:354
+#, kde-format
+msgctxt "unit synonyms for matching user input"
+msgid "terawattHours;terawatt Hours;TWh;Twh;TW⋅h"
+msgstr "ტერავატსაათი;ტერავატი საათში;ტვტსთ;ტვტ/სთ;ტვტ-სთ"
+
+#: energy.cpp:356
+#, kde-format
+msgctxt "amount in units (real)"
+msgid "%1 terawatt-hours"
+msgstr "%1 ტერავატ-საათი"
+
+#: energy.cpp:357
+#, kde-format
+msgctxt "amount in units (integer)"
+msgid "%1 terawatt-hour"
+msgid_plural "%1 terawatt-hours"
+msgstr[0] "%1 ტერავატ-საათი"
+msgstr[1] "%1 ტერავატ-საათი"
+
+#: energy.cpp:362
+#, kde-format
+msgctxt "energy unit symbol"
+msgid "GW⋅h"
+msgstr "გვტ⋅სთ"
+
+#: energy.cpp:363
+#, kde-format
+msgctxt "unit description in lists"
+msgid "gigawatt-hours"
+msgstr "გიგავატ-საათი"
+
+#: energy.cpp:364
+#, kde-format
+msgctxt "unit synonyms for matching user input"
+msgid "gigawattHours;gigawatt Hours;GWh;Gwh;GW⋅h"
+msgstr "გიგავატსაათი;გიგავატი საათში;გვტსთ;გვტ/სთ;გვტ-სთ"
+
+#: energy.cpp:366
+#, kde-format
+msgctxt "amount in units (real)"
+msgid "%1 gigawatt-hours"
+msgstr "%1 გიგავატ-საათი"
+
+#: energy.cpp:367
+#, kde-format
+msgctxt "amount in units (integer)"
+msgid "%1 gigawatt-hour"
+msgid_plural "%1 gigawatt-hours"
+msgstr[0] "%1 გიგავატ-საათი"
+msgstr[1] "%1 გიგავატ-საათი"
+
+#: energy.cpp:372
+#, kde-format
+msgctxt "energy unit symbol"
+msgid "MW⋅h"
+msgstr "მვტ⋅სთ"
+
+#: energy.cpp:373
+#, kde-format
+msgctxt "unit description in lists"
+msgid "megawatt-hours"
+msgstr "მეგავატ-საათი"
+
+#: energy.cpp:374
+#, kde-format
+msgctxt "unit synonyms for matching user input"
+msgid "megawattHours;megawatt Hours;MWh;Mwh;MW⋅h"
+msgstr "მეგავატსაათი;მეგავატი საათში;მგვტსთ;მგვტ/სთ;მგვტ-სთ"
+
+#: energy.cpp:376
+#, kde-format
+msgctxt "amount in units (real)"
+msgid "%1 megawatt-hours"
+msgstr "%1 მეგავატ-საათი"
+
+#: energy.cpp:377
+#, kde-format
+msgctxt "amount in units (integer)"
+msgid "%1 megawatt-hour"
+msgid_plural "%1 megawatt-hours"
+msgstr[0] "%1 მეგავატ-საათი"
+msgstr[1] "%1 მეგავატ-საათი"
+
+#: energy.cpp:382
+#, kde-format
+msgctxt "energy unit symbol"
+msgid "kW⋅h"
+msgstr "კვტ⋅სთ"
+
+#: energy.cpp:383
+#, kde-format
+msgctxt "unit description in lists"
+msgid "kilowatt-hours"
+msgstr "კილოვატ-საათი"
+
+#: energy.cpp:384
+#, kde-format
+msgctxt "unit synonyms for matching user input"
+msgid "kilowattHours;kilowatt Hours;kWh;kwh;kW⋅h"
+msgstr "კილოვატსაათი;კილოვატი საათში;კვტსთ;კვტ/სთ;კვტ-სთ"
+
+#: energy.cpp:386
+#, kde-format
+msgctxt "amount in units (real)"
+msgid "%1 kilowatt-hours"
+msgstr "%1 კილოვატ-საათი"
+
+#: energy.cpp:387
+#, kde-format
+msgctxt "amount in units (integer)"
+msgid "%1 kilowatt-hour"
+msgid_plural "%1 kilowatt-hours"
+msgstr[0] "%1 კილოვატ-საათი"
+msgstr[1] "%1 კილოვატ-საათი"
+
+#: energy.cpp:392
+#, kde-format
+msgctxt "energy unit symbol"
+msgid "W⋅h"
+msgstr "ვტ⋅სთ"
+
+#: energy.cpp:393
+#, kde-format
+msgctxt "unit description in lists"
+msgid "watt-hours"
+msgstr "ვატ-საათი"
+
+#: energy.cpp:394
+#, kde-format
+msgctxt "unit synonyms for matching user input"
+msgid "wattHours;watt Hours;Wh;wh;W⋅h"
+msgstr "ვატსაათი;ვატი საათში;ვტ/სთ;ვტსთ;ვტ-სთ"
+
+#: energy.cpp:396
+#, kde-format
+msgctxt "amount in units (real)"
+msgid "%1 watt-hours"
+msgstr "%1 ვატ-საათი"
+
+#: energy.cpp:397
+#, kde-format
+msgctxt "amount in units (integer)"
+msgid "%1 watt-hour"
+msgid_plural "%1 watt-hours"
+msgstr[0] "%1 ვატ-საათი"
+msgstr[1] "%1 ვატ-საათი"
 
 #: force.cpp:17
 #, kde-format
@@ -10117,8 +10284,9 @@ msgstr "კვადრატულიმიკრომეტრი"
 #: permeability.cpp:45
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "Permeability;Pµm²;PSquare µm;squaremicrometers;Pµm^2"
-msgstr "შეღწევადობა;;შµმ²;შეღწკვ µმ;კვადრატულიმიკრომეტრი;შµმ^2"
+msgid "Permeability;Pµm²;Pµm^2;Pµm2;PSquare µm;squaremicrometers"
+msgstr ""
+"შეღწევადობა;;შµმ²;შეღწკვ µმ;კვადრატულიმიკრომეტრი;შµმ^2;კვადრატულიმიკრომეტრი"
 
 #: permeability.cpp:47
 #, kde-format
@@ -12358,8 +12526,8 @@ msgstr "ვატი კვადრატულ მეტრზე"
 #: thermal_flux.cpp:27
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "watt per square meter;W/m2;W/m^2"
-msgstr "ვატი კვადრატულ მეტრზე;ვ/მ2;ვ/მ^2"
+msgid "watt per square meter;W/m²;W/m2;W/m^2"
+msgstr "ვატი კვადრატულ მეტრზე;ვ/მ2;ვ/მ2;ვ/მ^2"
 
 #: thermal_flux.cpp:29
 #, kde-format
@@ -12391,9 +12559,10 @@ msgstr "ბსე საათ-კვადრატულ ფუტში"
 #, kde-format
 msgctxt "unit synonyms for matching user input"
 msgid ""
-"btu per hour per square foot;Btu/hr/ft2;Btu/hr/ft^2;Btu/ft^2/hr;Btu/ft2/hr"
+"btu per hour per square foot;Btu/hr/ft²;Btu/hr/ft2;Btu/hr/ft^2;Btu/ft²/hr;"
+"Btu/ft^2/hr;Btu/ft2/hr"
 msgstr ""
-"ბტუ საათში კვადრატულ ფუტზე;ბტუ/სთ/ფტ2;ბტუ/სთ/ფტ^2;ბტუ/ფტ^2/სთ;ბტუ/ფტ2/სთ"
+"ბტუ საათში კვადრატულ ფუტზე;ბტუ/სთ/ფტ²;ბტუ/სთ/ფტ^2;ბტუ/ფტ²/სთ;ბტუ/ფტ2/სთ"
 
 #: thermal_flux.cpp:39
 #, kde-format
@@ -12435,8 +12604,8 @@ msgstr "ვატი კუბურ მეტრში"
 #: thermal_generation.cpp:26
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "watt per cubic meter;W/m3;W/m^3"
-msgstr "ვატი კუბურ მეტრზე;ვ/მ3;ვ/მ^3"
+msgid "watt per cubic meter;W/m³;W/m3;W/m^3"
+msgstr "ვატი კუბურ მეტრზე;ვ/მ³;ვ/მ3;ვ/მ^3"
 
 #: thermal_generation.cpp:28
 #, kde-format
@@ -12468,8 +12637,9 @@ msgstr "ბსე სთ-კუბურ ფუტში"
 #, kde-format
 msgctxt "unit synonyms for matching user input"
 msgid ""
-"btu per hour per cubic foot;Btu/hr/ft3;Btu/hr/ft^3;Btu/ft^3/hr;Btu/ft3/hr"
-msgstr "ბტუ საათში კუბურ ფუტზე;ბტუ/სთ/ფუტი3;ბტუ/სთ/ფტ^3;ბტუ/ფტ^3/სთ;ბტუ/ფტ3/სთ"
+"btu per hour per cubic foot;Btu/hr/ft³;Btu/hr/ft3;Btu/hr/ft^3;Btu/ft³/hr;Btu/"
+"ft^3/hr;Btu/ft3/hr"
+msgstr "ბტუ საათში კუბურ ფუტზე;ბტუ/სთ/ფუტი³;ბტუ/სთ/ფტ^3;ბტუ/ფტ³/სთ;ბტუ/ფტ3/სთ"
 
 #: thermal_generation.cpp:38
 #, kde-format
@@ -14880,8 +15050,8 @@ msgstr "კუბური მიკრომეტრი"
 #: volume.cpp:167
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "cubic micrometer;cubic micrometers;µm³;um³;µm/-3;µm^3;µm3"
-msgstr "კუბური მიკრომეტრი;კუბური მიკრომეტრი;µმ³;uმ³;µმ/-3;µმ^3;µმ3"
+msgid "cubic micrometer;cubic micrometers;µm³;um³;µm/-3;µm^3;um^3;µm3;um3"
+msgstr "კუბური მიკრომეტრი;კუბური მიკრომეტრი;µმ³;uმ³;µმ/-3;µმ^3;µმ3;um3"
 
 #: volume.cpp:169
 #, kde-format
@@ -15776,8 +15946,12 @@ msgstr "კუბური ფუტი"
 #: volume.cpp:447
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "cubic foot;cubic feet;ft³;cubic ft;cu foot;cu ft;cu feet;feet³"
-msgstr "კუბუტი ფუტი;კუბუტი ფუტი;ფტ³;კუბუტი ფუტი;კუბ ფუტ;კუბ ფუტ;კუბ ფუტი;ფუტი³"
+msgid ""
+"cubic foot;cubic feet;ft³;ft3;ft^3;cubic ft;cu foot;cu ft;cu feet;feet³;"
+"feet3;feet^3"
+msgstr ""
+"კუბუტი ფუტი;კუბუტი ფუტი;ფტ³;კუბუტი ფუტი;კუბ ფუტ;კუბ ფუტ;კუბ ფუტი;ფუტი³;ფუტი3;"
+"ფუტი^3"
 
 #: volume.cpp:449
 #, kde-format
@@ -15809,9 +15983,11 @@ msgstr "კუბური დიუიმი"
 #, kde-format
 msgctxt "unit synonyms for matching user input"
 msgid ""
-"cubic inch;cubic inches;in³;cubic inch;cubic in;cu inches;cu inch;cu in;inch³"
+"cubic inch;cubic inches;in³;in3;in^3;cubic inch;cubic in;cu inches;cu inch;"
+"cu in;inch³;inch3;inch^3"
 msgstr ""
-"კუბური დიუიმი;კუბური დიუიმი;დიუიმ³;კუბური დიუიმი;კუბური დმ;კუ დმ;კუ დ;დმ³"
+"კუბური დიუიმი;კუბური დიუიმი;დიუიმ³;კუბური დიუიმი;კუბური დმ;კუ დმ;კუ დ;დმ³;"
+"დმ3;დმ^3"
 
 #: volume.cpp:459
 #, kde-format
@@ -15843,8 +16019,10 @@ msgstr "კუბური მილი"
 #, kde-format
 msgctxt "unit synonyms for matching user input"
 msgid ""
-"cubic mile;cubic miles;mi³;cubic mile;cubic mi;cu miles;cu mile;cu mi;mile³"
-msgstr "კუბური მილი;კუბური მილი;მილ³;კუბური მი;კუბ მილი;კუ მილი;მილი³"
+"cubic mile;cubic miles;mi³;mi3;mi^3;cubic mile;cubic mi;cu miles;cu mile;cu "
+"mi;mile³;mile3;mile^3"
+msgstr ""
+"კუბური მილი;კუბური მილი;მილ³;კუბური მი;კუბ მილი;კუ მილი;მილი³;მილი3;მილი^3"
 
 #: volume.cpp:469
 #, kde-format
@@ -16062,8 +16240,8 @@ msgstr[1] "%1 გალონი (იმპერიული)"
 #: volume.cpp:536
 #, kde-format
 msgctxt "volume unit symbol"
-msgid "pt"
-msgstr "წრტ"
+msgid "imperial pt"
+msgstr "იმპერიული პინტი"
 
 #: volume.cpp:537
 #, kde-format
@@ -16074,7 +16252,9 @@ msgstr "პინტა (იმპერიული)"
 #: volume.cpp:538
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "pint (imperial);pints (imperial);pt;pint;pints;p"
+msgid ""
+"pint (imperial);pints (imperial);imperial pt;imperial pint;imperial pints;"
+"imperial p"
 msgstr "პინტა (იმპერიული);პინტა (იმპერიული);პტ;პინტა;პინტა;პ"
 
 #: volume.cpp:540
@@ -16094,8 +16274,8 @@ msgstr[1] "%1 პინტა (იმპერიული)"
 #: volume.cpp:546
 #, kde-format
 msgctxt "volume unit symbol"
-msgid "US pt"
-msgstr "აშშ პტ"
+msgid "pt"
+msgstr "წრტ"
 
 #: volume.cpp:547
 #, kde-format
@@ -16106,7 +16286,7 @@ msgstr "პინტა (აშშ სითხე)"
 #: volume.cpp:548
 #, kde-format
 msgctxt "unit synonyms for matching user input"
-msgid "pint (U.S. liquid);pints (U.S. liquid);US pt;US pint;US pints;US p"
+msgid "pint (U.S. liquid);pints (U.S. liquid);pt;pint;pints;p"
 msgstr "პინტა (აშშ სითხე);პინტა (აშშ სითხე);აშშ პინტ;აშშ პინტ;აშშ პინტ;აშშ პ"
 
 #: volume.cpp:550
@@ -16182,8 +16362,11 @@ msgstr "გრამი კვადრატულ მეტრზე"
 #, kde-format
 msgctxt "unit synonyms for matching user input"
 msgid ""
-"gsm;g/m;g/m2;gm2;grams per meter;grams per square meter;grams per meter²"
-msgstr "გსმ;გ/მ;გ/მ2;გმ2;გრამი მეტრზე;გრამი კვადრატულ მეტრზე; გრამი მეტრზე²"
+"gsm;g/m;g/m²;g/m2;g/m^2;gm2;grams per meter;grams per square meter;grams per "
+"meter²;grams per meter^2"
+msgstr ""
+"გსმ;გ/მ;გ/მ²;გმ2;გრამი მეტრზე;გრამი კვადრატულ მეტრზე; გრამი მეტრზე²;გრამ "
+"მეტრზე^2"
 
 #: weight_per_area.cpp:30
 #, kde-format
@@ -16215,11 +16398,11 @@ msgstr "უნცია კვადრატულ იარდში"
 #, kde-format
 msgctxt "unit synonyms for matching user input"
 msgid ""
-"ozyd;ozyd2;oz/yd;oz/yd2;ounces per yard;ounces per square yard;ounces per "
-"yard²"
+"ozyd;ozyd2;oz/yd;oz/yd²;oz/yd2;oz/yd^2;ounces per yard;ounces per square "
+"yard;ounces per yard²;ounces per yard^2"
 msgstr ""
 "უნციარ;უნციარდ2;უნც/იარდ;უნც/იარდ2;უნცია უიარდზე;უნცია კვადრატულ იარდზე;"
-"უნცია იარდზე²"
+"უნცია იარდზე²;უნციაიარდზე^2"
 
 #: weight_per_area.cpp:41
 #, kde-format
@@ -16266,3 +16449,7 @@ msgid "%1 momme"
 msgid_plural "%1 momme"
 msgstr[0] "%1 მომე"
 msgstr[1] "%1 მომე"
+
+#~ msgctxt "volume unit symbol"
+#~ msgid "US pt"
+#~ msgstr "აშშ პტ"

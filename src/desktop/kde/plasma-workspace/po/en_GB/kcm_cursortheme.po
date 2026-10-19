@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
 "PO-Revision-Date: 2024-05-17 19:28+0100\n"
 "Last-Translator: Steve Allewell <steve.allewell@gmail.com>\n"
 "Language-Team: British English\n"
@@ -19,44 +19,46 @@ msgstr ""
 
 #. i18n: ectx: label, entry (cursorTheme), group (Mouse)
 #: cursorthemesettings.kcfg:9
-#, kde-format
-msgid "Name of the current cursor theme"
+#, fuzzy, kde-format
+#| msgid "Name of the current cursor theme"
+msgid "Name of the current pointer theme"
 msgstr "Name of the current cursor theme"
 
 #. i18n: ectx: label, entry (cursorSize), group (Mouse)
 #: cursorthemesettings.kcfg:13
-#, kde-format
-msgid "Current cursor size"
+#, fuzzy, kde-format
+#| msgid "Current cursor size"
+msgid "Current pointer size"
 msgstr "Current cursor size"
 
-#: kcmcursortheme.cpp:312
-#, kde-format
-msgid ""
-"You have to restart the Plasma session for these changes to take effect."
-msgstr ""
-"You have to restart the Plasma session for these changes to take effect."
-
-#: kcmcursortheme.cpp:386
+#: kcmcursortheme.cpp:375
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "Unable to create a temporary file."
 
-#: kcmcursortheme.cpp:397
+#: kcmcursortheme.cpp:386
 #, kde-format
 msgid "Unable to download the icon theme archive: %1"
 msgstr "Unable to download the icon theme archive: %1"
 
-#: kcmcursortheme.cpp:428
+#: kcmcursortheme.cpp:400
+#, fuzzy, kde-format
+#| msgid "Unable to download the icon theme archive: %1"
+msgctxt "@info"
+msgid "Unable to open the icon theme archive."
+msgstr "Unable to download the icon theme archive: %1"
+
+#: kcmcursortheme.cpp:420
 #, kde-format
 msgid "The file is not a valid icon theme archive."
 msgstr "The file is not a valid icon theme archive."
 
-#: kcmcursortheme.cpp:435
+#: kcmcursortheme.cpp:427
 #, kde-format
 msgid "Failed to create 'icons' folder."
 msgstr "Failed to create 'icons' folder."
 
-#: kcmcursortheme.cpp:444
+#: kcmcursortheme.cpp:436
 #, kde-format
 msgid ""
 "A theme named %1 already exists in your icon theme folder. Do you want "
@@ -65,12 +67,12 @@ msgstr ""
 "A theme named %1 already exists in your icon theme folder. Do you want "
 "replace it with this one?"
 
-#: kcmcursortheme.cpp:448
+#: kcmcursortheme.cpp:440
 #, kde-format
 msgid "Overwrite Theme?"
 msgstr "Overwrite Theme?"
 
-#: kcmcursortheme.cpp:472
+#: kcmcursortheme.cpp:464
 #, kde-format
 msgid "Theme installed successfully."
 msgstr "Theme installed successfully."
@@ -82,96 +84,129 @@ msgstr "Theme installed successfully."
 msgid "Timeout in seconds"
 msgstr "Timeout in seconds"
 
+#: plasma-apply-cursortheme.cpp:38
+#, fuzzy, kde-format
+#| msgid ""
+#| "This tool allows you to set the mouse cursor theme for the current Plasma "
+#| "session, without accidentally setting it to one that is either not "
+#| "available, or which is already set."
+msgid ""
+"This tool allows you to set the mouse pointer theme for the current Plasma "
+"session, without accidentally setting it to one that is either not "
+"available, or which is already set."
+msgstr ""
+"This tool allows you to set the mouse cursor theme for the current Plasma "
+"session, without accidentally setting it to one that is either not "
+"available, or which is already set."
+
+#: plasma-apply-cursortheme.cpp:42
+#, fuzzy, kde-format
+#| msgid ""
+#| "The name of the cursor theme you wish to set for your current Plasma "
+#| "session (passing a full path will only use the last part of the path)"
+msgid ""
+"The name of the pointer theme you wish to set for your current Plasma "
+"session (passing a full path will only use the last part of the path)"
+msgstr ""
+"The name of the cursor theme you wish to set for your current Plasma session "
+"(passing a full path will only use the last part of the path)"
+
+#: plasma-apply-cursortheme.cpp:43
+#, kde-format
+msgid ""
+"Show all the themes available on the system (and which is the current theme)"
+msgstr ""
+"Show all the themes available on the system (and which is the current theme)"
+
 #: plasma-apply-cursortheme.cpp:44
-#, kde-format
-msgid "The requested size '%1' is not available, using %2 instead."
-msgstr "The requested size '%1' is not available, using %2 instead."
-
-#: plasma-apply-cursortheme.cpp:65
-#, kde-format
-msgid ""
-"This tool allows you to set the mouse cursor theme for the current Plasma "
-"session, without accidentally setting it to one that is either not "
-"available, or which is already set."
-msgstr ""
-"This tool allows you to set the mouse cursor theme for the current Plasma "
-"session, without accidentally setting it to one that is either not "
-"available, or which is already set."
-
-#: plasma-apply-cursortheme.cpp:69
-#, kde-format
-msgid ""
-"The name of the cursor theme you wish to set for your current Plasma session "
-"(passing a full path will only use the last part of the path)"
-msgstr ""
-"The name of the cursor theme you wish to set for your current Plasma session "
-"(passing a full path will only use the last part of the path)"
-
-#: plasma-apply-cursortheme.cpp:70
-#, kde-format
-msgid ""
-"Show all the themes available on the system (and which is the current theme)"
-msgstr ""
-"Show all the themes available on the system (and which is the current theme)"
-
-#: plasma-apply-cursortheme.cpp:71
 #, kde-format
 msgid "Use a specific size, rather than the theme default size"
 msgstr "Use a specific size, rather than the theme default size"
 
-#: plasma-apply-cursortheme.cpp:92
-#, kde-format
+#: plasma-apply-cursortheme.cpp:65
+#, fuzzy, kde-format
+#| msgid ""
+#| "The requested theme \"%1\" is already set as the theme for the current "
+#| "Plasma session."
 msgid ""
-"The requested theme \"%1\" is already set as the theme for the current "
-"Plasma session."
+"The requested theme “%1” is already set as the theme for the current Plasma "
+"session."
 msgstr ""
 "The requested theme \"%1\" is already set as the theme for the current "
 "Plasma session."
 
-#: plasma-apply-cursortheme.cpp:103
-#, kde-format
+#: plasma-apply-cursortheme.cpp:77
+#, fuzzy, kde-format
+#| msgid ""
+#| "Successfully applied the mouse cursor theme %1 to your current Plasma "
+#| "session"
 msgid ""
-"Successfully applied the mouse cursor theme %1 to your current Plasma session"
+"Successfully applied the mouse pointer theme %1 to your current Plasma "
+"session"
 msgstr ""
 "Successfully applied the mouse cursor theme %1 to your current Plasma session"
 
-#: plasma-apply-cursortheme.cpp:105
-#, kde-format
+#: plasma-apply-cursortheme.cpp:79
+#, fuzzy, kde-format
+#| msgid ""
+#| "You have to restart the Plasma session for your newly applied mouse "
+#| "cursor theme to display correctly."
 msgid ""
-"You have to restart the Plasma session for your newly applied mouse cursor "
+"You have to restart the Plasma session for your newly applied mouse pointer "
 "theme to display correctly."
 msgstr ""
 "You have to restart the Plasma session for your newly applied mouse cursor "
 "theme to display correctly."
 
-#: plasma-apply-cursortheme.cpp:115
-#, kde-format
+#: plasma-apply-cursortheme.cpp:89
+#, fuzzy, kde-format
+#| msgid ""
+#| "Could not find theme \"%1\". The theme should be one of the following "
+#| "options: %2"
 msgid ""
-"Could not find theme \"%1\". The theme should be one of the following "
-"options: %2"
+"Could not find theme “%1”. The theme should be one of the following options: "
+"%2"
 msgstr ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 
-#: plasma-apply-cursortheme.cpp:123
-#, kde-format
-msgid "You have the following mouse cursor themes on your system:"
+#: plasma-apply-cursortheme.cpp:97
+#, fuzzy, kde-format
+#| msgid "You have the following mouse cursor themes on your system:"
+msgid "You have the following mouse pointer themes on your system:"
 msgstr "You have the following mouse cursor themes on your system:"
 
-#: plasma-apply-cursortheme.cpp:128
+#: plasma-apply-cursortheme.cpp:102
 #, kde-format
 msgid "(Current theme for this Plasma session)"
 msgstr "(Current theme for this Plasma session)"
 
-#: ui/Delegate.qml:43
-#, kde-format
-msgid "Remove Theme"
-msgstr "Remove Theme"
+#: ui/Delegate.qml:48
+#, fuzzy, kde-format
+#| msgid "Restore Cursor Theme"
+msgctxt "@info:tooltip"
+msgid "Remove pointer theme"
+msgstr "Restore Cursor Theme"
 
 #: ui/Delegate.qml:50
-#, kde-format
-msgid "Restore Cursor Theme"
-msgstr "Restore Cursor Theme"
+#, fuzzy, kde-format
+#| msgid "Name of the current cursor theme"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active pointer theme"
+msgstr "Name of the current cursor theme"
+
+#: ui/Delegate.qml:52
+#, fuzzy, kde-format
+#| msgid "Name of the current cursor theme"
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed pointer themes"
+msgstr "Name of the current cursor theme"
+
+#: ui/Delegate.qml:60
+#, fuzzy, kde-format
+#| msgid "Name of the current cursor theme"
+msgid "Don’t delete this pointer theme"
+msgstr "Name of the current cursor theme"
 
 #: ui/LaunchFeedbackDialog.qml:16
 #, kde-format
@@ -186,14 +221,18 @@ msgid "Configure the animations played while an application is launching."
 msgstr "Configure the animations played while an application is launching."
 
 #: ui/LaunchFeedbackDialog.qml:49
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@label"
+#| msgid "Cursor feedback:"
 msgctxt "@label"
-msgid "Cursor feedback:"
+msgid "Pointer feedback:"
 msgstr "Cursor feedback:"
 
 #: ui/LaunchFeedbackDialog.qml:50
-#, kde-format
-msgctxt "@option:radio No cursor feedback when launching apps"
+#, fuzzy, kde-format
+#| msgctxt "@option:radio No cursor feedback when launching apps"
+#| msgid "None"
+msgctxt "@option:radio No pointer feedback when launching apps"
 msgid "None"
 msgstr "None"
 
@@ -240,44 +279,56 @@ msgid_plural "%1 seconds"
 msgstr[0] "%1 second"
 msgstr[1] "%1 seconds"
 
-#: ui/main.qml:91 ui/main.qml:129
+#: ui/main.qml:106 ui/main.qml:144
 #, kde-format
 msgid "Size: %1"
 msgstr "Size: %1"
 
-#: ui/main.qml:144
+#: ui/main.qml:153
 #, kde-format
 msgctxt "@action:button"
 msgid "&Configure Launch Feedback…"
 msgstr "&Configure Launch Feedback…"
 
-#: ui/main.qml:159
+#: ui/main.qml:168
 #, kde-format
 msgid "&Install from File…"
 msgstr "&Install from File…"
 
-#: ui/main.qml:165
+#: ui/main.qml:174
 #, kde-format
 msgid "&Get New…"
 msgstr "&Get New…"
 
-#: ui/main.qml:179
+#: ui/main.qml:188
 #, kde-format
 msgid "Open Theme"
 msgstr "Open Theme"
 
-#: ui/main.qml:181
-#, kde-format
-msgid "Cursor Theme Files (*.tar.gz *.tar.bz2)"
+#: ui/main.qml:190
+#, fuzzy, kde-format
+#| msgid "Cursor Theme Files (*.tar.gz *.tar.bz2)"
+msgid "Pointer Theme Files (*.tar.gz *.tar.bz2)"
 msgstr "Cursor Theme Files (*.tar.gz *.tar.bz2)"
 
-#: xcursor/xcursortheme.cpp:59
+#: xcursor/xcursortheme.cpp:56
 #, kde-format
 msgctxt ""
 "@info The argument is the list of available sizes (in pixel). Example: "
 "'Available sizes: 24' or 'Available sizes: 24, 36, 48'"
 msgid "(Available sizes: %1)"
 msgstr "(Available sizes: %1)"
+
+#~ msgid ""
+#~ "You have to restart the Plasma session for these changes to take effect."
+#~ msgstr ""
+#~ "You have to restart the Plasma session for these changes to take effect."
+
+#~ msgid "The requested size '%1' is not available, using %2 instead."
+#~ msgstr "The requested size '%1' is not available, using %2 instead."
+
+#~ msgid "Remove Theme"
+#~ msgstr "Remove Theme"
 
 #~ msgid "This module lets you choose the mouse cursor theme."
 #~ msgstr "This module lets you choose the mouse cursor theme."

@@ -363,6 +363,9 @@ QTypeRevision QQmlPluginImporter::importDynamicPlugin(
                     importVersion = lockModule(uri, qmldir->typeNamespace(), importVersion, errors);
                     if (!importVersion.isValid())
                         return QTypeRevision();
+                    qCDebug(lcQmlImport) << "module" << uri
+                                         << "provided by linked library" << qmldir->linkTarget()
+                                         << "; optional plugin not loaded";
                     // instance and loader intentionally left at nullptr
                     plugins->insert(std::make_pair(pluginId, QmlPlugin()));
                     // Not calling initializeEngine with null instance
@@ -393,6 +396,9 @@ QTypeRevision QQmlPluginImporter::importDynamicPlugin(
                     }
                     return QTypeRevision();
                 }
+
+                qCDebug(lcQmlImport) << "module" << uri
+                                     << "provided by plugin" << fileInfo.absoluteFilePath();
 
                 instance = plugin.loader()->instance();
                 plugins->insert(std::make_pair(pluginId, std::move(plugin)));
@@ -536,9 +542,9 @@ QString QQmlPluginImporter::resolvePlugin(const QString &qmldirPluginPath, const
 
         QString resolvedPath = resolvedBasePath + prefix + baseName;
         for (const QString &suffix : suffixes) {
-            QString absolutePath = typeLoader->absoluteFilePath(resolvedPath + suffix);
-            if (!absolutePath.isEmpty())
-                return absolutePath;
+            QString cleanPath = typeLoader->cleanFilePath(resolvedPath + suffix);
+            if (!cleanPath.isEmpty())
+                return cleanPath;
         }
 
 #if defined(Q_OS_ANDROID)
@@ -550,7 +556,7 @@ QString QQmlPluginImporter::resolvePlugin(const QString &qmldirPluginPath, const
             pluginName.replace(QLatin1Char('/'), QLatin1Char('_'));
             QString bundledPath = resolvedBasePath + QLatin1String("lib") + pluginName;
             for (const QString &suffix : suffixes) {
-                const QString absolutePath = typeLoader->absoluteFilePath(bundledPath + suffix);
+                const QString absolutePath = typeLoader->cleanFilePath(bundledPath + suffix);
                 if (!absolutePath.isEmpty()) {
                     qWarning("The implicit resolving of Qml plugin locations using the URI "
                              "embedded in the filename has been deprecated. Please use the "

@@ -90,7 +90,7 @@ EmptyPage {
         // There are lots of ways to try to center the content of a GridView
         // and many of them have bad visual flaws. This way works pretty well.
         // Not center aligning when there might be a scrollbar to keep click target positions consistent.
-        anchors.horizontalCenter: kickoff.mayHaveGridWithScrollBar ? undefined : parent.horizontalCenter
+        anchors.horizontalCenter: undefined
         anchors.horizontalCenterOffset: if (kickoff.mayHaveGridWithScrollBar) {
             if (root.mirrored) {
                 return verticalScrollBar.implicitWidth/2
@@ -101,6 +101,17 @@ EmptyPage {
             return 0
         }
         width: Math.min(parent.width, Math.floor((parent.width - leftMargin - rightMargin - (kickoff.mayHaveGridWithScrollBar ? verticalScrollBar.implicitWidth : 0)) / cellWidth) * cellWidth + leftMargin + rightMargin)
+
+        states: [
+            State {
+                name: "centered"
+                when: !kickoff.mayHaveGridWithScrollBar
+                AnchorChanges {
+                    target: view
+                    anchors.horizontalCenter : parent.horizontalCenter
+                }
+            }
+        ]
 
         Accessible.description: i18nc("@info:whatsthis Accessible description", "Grid with %1 rows, %2 columns", rows, columns) // can't use i18np here
 
@@ -124,28 +135,14 @@ EmptyPage {
         focus: true
         interactive: height < contentHeight
         pixelAligned: true
-        reuseItems: true
+        reuseItems: false // explicitly disabled because it doesn't work correctly with switching models like we do
         boundsBehavior: Flickable.StopAtBounds
         // default keyboard navigation doesn't allow focus reasons to be used
         // and eats up/down key events when at the beginning or end of the list.
         keyNavigationEnabled: false
         keyNavigationWraps: false
 
-        highlightMoveDuration: 0
-        highlight: PlasmaExtras.Highlight {
-            // The default Z value for delegates is 1. The default Z value for the section delegate is 2.
-            // The highlight gets a value of 3 while the drag is active and then goes back to the default value of 0.
-            z: (root.currentItem?.Drag.active ?? false) ? 3 : 0
-
-            pressed: (view.currentItem as T.AbstractButton)?.down ?? false
-
-            active: view.activeFocus
-                || (kickoff.contentArea === root
-                    && kickoff.searchField.activeFocus)
-
-            width: view.cellWidth
-            height: view.cellHeight
-        }
+        highlightFollowsCurrentItem: false
 
         delegate: KickoffGridDelegate {
             id: itemDelegate
@@ -215,6 +212,7 @@ EmptyPage {
 
         function focusCurrentItem(event, focusReason) {
             currentItem.forceActiveFocus(focusReason)
+            positionViewAtIndex(currentIndex, GridView.Contain)
             event.accepted = true
         }
 

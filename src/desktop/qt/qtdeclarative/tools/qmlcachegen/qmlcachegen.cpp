@@ -106,6 +106,9 @@ int main(int argc, char **argv)
     QCommandLineOption moduleIdOption("module-id"_L1, QCoreApplication::translate("main", "Identifies the module of the qml file being compiled for aot stats"), QCoreApplication::translate("main", "id"));
     parser.addOption(moduleIdOption);
 
+    QCommandLineOption noAotValidationOption("no-aot-validation"_L1, QCoreApplication::translate("main", "Skips generation of validation code for ahead-of-time generated code"));
+    parser.addOption(noAotValidationOption);
+
     QCommandLineOption outputFileOption("o"_L1, QCoreApplication::translate("main", "Output file name"), QCoreApplication::translate("main", "file name"));
     parser.addOption(outputFileOption);
 
@@ -229,18 +232,22 @@ int main(int argc, char **argv)
 
     if (target == GenerateCpp) {
         inputFileUrl = "qrc://"_L1 + inputResourcePath;
-        saveFunction = [inputResourcePath, outputFileName](
+        bool noAotValidation = parser.isSet(noAotValidationOption);
+        saveFunction = [inputResourcePath, outputFileName, noAotValidation](
                                const QV4::CompiledData::SaveableUnitPointer &unit,
                                const QQmlJSAotFunctionMap &aotFunctions,
-                               QString *errorString) {
-            return qSaveQmlJSUnitAsCpp(inputResourcePath, outputFileName, unit, aotFunctions, errorString);
+                               const LookupSignatures &lookupSignatures, QString *errorString) {
+            return qSaveQmlJSUnitAsCpp(inputResourcePath, outputFileName, unit, aotFunctions,
+                                       lookupSignatures, noAotValidation, errorString);
         };
 
     } else {
         saveFunction = [outputFileName](const QV4::CompiledData::SaveableUnitPointer &unit,
                                         const QQmlJSAotFunctionMap &aotFunctions,
+                                        const LookupSignatures &lookupSignatures,
                                         QString *errorString) {
             Q_UNUSED(aotFunctions);
+            Q_UNUSED(lookupSignatures);
             return unit.saveToDisk<char>(
                     [&outputFileName, errorString](const char *data, quint32 size) {
                         return QV4::CompiledData::SaveableUnitPointer::writeDataToFile(
@@ -274,7 +281,7 @@ int main(int argc, char **argv)
                 importPaths.append(parser.values(importPathOption));
 
             if (!parser.isSet(bareOption))
-                importPaths.append(QLibraryInfo::path(QLibraryInfo::QmlImportsPath));
+                importPaths.append(QLibraryInfo::paths(QLibraryInfo::QmlImportsPath));
 
             QQmlJSImporter importer(
                         importPaths, parser.isSet(resourceOption) ? &fileMapper : nullptr);
@@ -282,9 +289,7 @@ int main(int argc, char **argv)
             logger.setFilePath(inputFile);
 
             // Always trigger the qFatal() on "pragma Strict" violations.
-            logger.setCategoryLevel(qmlCompiler, QtWarningMsg);
-            logger.setCategoryIgnored(qmlCompiler, false);
-            logger.setCategoryFatal(qmlCompiler, true);
+            logger.setCategorySeverity(qmlCompiler, QQmlJS::WarningSeverity::Error);
 
             if (!parser.isSet(verboseOption) && !parser.isSet(warningsAreErrorsOption))
                 logger.setSilent(true);
@@ -301,6 +306,8 @@ int main(int argc, char **argv)
 
             if (parser.isSet(validateBasicBlocksOption))
                 cppCodeGen.m_flags.setFlag(QQmlJSAotCompiler::ValidateBasicBlocks);
+            if (parser.isSet(noAotValidationOption))
+                cppCodeGen.m_flags.setFlag(QQmlJSAotCompiler::NoAOTValidation);
 
             if (!qCompileQmlFile(inputFile, saveFunction, &cppCodeGen, &error,
                                  /* storeSourceLocation */ true)) {

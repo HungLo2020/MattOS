@@ -8,11 +8,13 @@
 
     \ingroup tools
     \ingroup shared
+    \ingroup containers
 
     \reentrant
 
-    QStack\<T\> is one of Qt's generic \l{container classes}. It implements
-    a stack data structure for items of a same type.
+    QStack\<T\> is one of Qt's generic \l{container classes}, where
+    \a T specifies the element type. It implements a stack data structure
+    for items of the same type.
 
     A stack is a last in, first out (LIFO) structure. Items are added
     to the top of the stack using push() and retrieved from the top

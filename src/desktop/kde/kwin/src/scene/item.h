@@ -30,6 +30,9 @@ class DrmDevice;
 class Item;
 class LogicalOutput;
 class OutputFrame;
+class SceneView;
+class ItemRenderer;
+class RenderDevice;
 
 class KWIN_EXPORT ItemEffect
 {
@@ -83,8 +86,8 @@ public:
      */
     RectF boundingRect() const;
 
-    virtual QList<RectF> shape() const;
-    virtual Region opaque() const;
+    virtual RegionF shape() const;
+    virtual RegionF opaque() const;
 
     /**
      * Returns the visual parent of the item. Note that the visual parent differs from
@@ -104,6 +107,11 @@ public:
      */
     Region mapToView(const Region &region, const RenderView *view) const;
     /**
+     * Maps the given @a region from the item's coordinate system to the view's coordinate
+     * system, snapping positions to the view's coordinate grid to match the renderer
+     */
+    RegionF mapToView(const RegionF &region, const RenderView *view) const;
+    /**
      * Maps the given @a rect from the item's coordinate system to the view's coordinate
      * system, snapping positions to the view's coordinate grid to match the renderer
      */
@@ -114,6 +122,11 @@ public:
      * system.
      */
     Region mapToScene(const Region &region) const;
+    /**
+     * Maps the given @a region from the item's coordinate system to the scene's coordinate
+     * system.
+     */
+    RegionF mapToScene(const RegionF &region) const;
     /**
      * Maps the given @a rect from the item's coordinate system to the scene's coordinate
      * system.
@@ -142,20 +155,20 @@ public:
     void setBorderRadius(const BorderRadius &radius);
 
     Rect paintedDeviceArea(RenderView *delegate, const RectF &logicalRect) const;
-    Region paintedDeviceArea(RenderView *delegate, const Region &logicalRegion) const;
+    Region paintedDeviceArea(RenderView *delegate, const RegionF &logicalRegion) const;
 
     void scheduleRepaint(const RectF &region);
     void scheduleSceneRepaint(const RectF &region);
-    void scheduleRepaint(const Region &region);
-    void scheduleSceneRepaint(const Region &region);
-    void scheduleRepaint(RenderView *delegate, const Region &region);
-    void scheduleFrame();
+    void scheduleRepaint(const RegionF &region);
+    void scheduleSceneRepaint(const RegionF &region);
+    void scheduleRepaint(RenderView *delegate, const RegionF &region);
+    void scheduleFrame(std::optional<std::chrono::steady_clock::time_point> targetTime = std::nullopt);
     bool hasRepaints(RenderView *view) const;
     Region takeDeviceRepaints(RenderView *delegate);
     void resetRepaints(RenderView *delegate);
 
-    WindowQuadList quads() const;
-    virtual void preprocess();
+    WindowQuadList quads(ItemRenderer *renderer) const;
+    virtual void preprocess(ItemRenderer *renderer);
     const std::shared_ptr<ColorDescription> &colorDescription() const;
     RenderingIntent renderingIntent() const;
     PresentationModeHint presentationHint() const;
@@ -164,7 +177,9 @@ public:
     void addEffect();
     void removeEffect();
 
-    void framePainted(RenderView *view, LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp);
+    void collectItems(QList<QPointer<Item>> &list, LogicalOutput *filter, SceneView *viewFilter);
+    void prepareFrame(SceneView *view, LogicalOutput *output, std::chrono::nanoseconds timestamp);
+    void framePainted(SceneView *view, LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp);
 
     bool isAncestorOf(const Item *item) const;
     /**
@@ -192,8 +207,10 @@ Q_SIGNALS:
     void boundingRectChanged();
 
 protected:
-    virtual WindowQuadList buildQuads() const;
-    virtual void handleFramePainted(LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp);
+    virtual WindowQuadList buildQuads(ItemRenderer *renderer) const;
+    virtual void handlePrepareFrame(std::chrono::nanoseconds timestamp);
+    virtual void handleFramePainted(RenderView *view, LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp);
+    virtual void releaseResources(RenderDevice *device);
     void discardQuads();
     void setColorDescription(const std::shared_ptr<ColorDescription> &description);
     void setRenderingIntent(RenderingIntent intent);
@@ -205,9 +222,9 @@ private:
     void removeChild(Item *item);
     void updateBoundingRect();
     void updateItemToSceneTransform();
-    void scheduleRepaintInternal(const Region &region);
-    void scheduleRepaintInternal(RenderView *delegate, const Region &region);
-    void scheduleSceneRepaintInternal(const Region &region);
+    void scheduleRepaintInternal(const RegionF &region);
+    void scheduleRepaintInternal(RenderView *delegate, const RegionF &region);
+    void scheduleSceneRepaintInternal(const RegionF &region);
     void markSortedChildItemsDirty();
 
     bool computeEffectiveVisibility() const;
@@ -237,6 +254,8 @@ private:
     RenderingIntent m_renderingIntent = RenderingIntent::Perceptual;
     PresentationModeHint m_presentationHint = PresentationModeHint::VSync;
     int m_effectCount = 0;
+
+    friend class Scene;
 };
 
 } // namespace KWin

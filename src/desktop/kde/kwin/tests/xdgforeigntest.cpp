@@ -23,6 +23,7 @@ using namespace KWayland::Client;
 class XdgForeignTest : public QObject
 {
     Q_OBJECT
+
 public:
     explicit XdgForeignTest(QObject *parent = nullptr);
     virtual ~XdgForeignTest();
@@ -66,18 +67,13 @@ XdgForeignTest::~XdgForeignTest()
 
 void XdgForeignTest::init()
 {
-    connect(
-        m_connectionThreadObject,
-        &ConnectionThread::connected,
-        this,
-        [this] {
-            m_eventQueue = new EventQueue(this);
-            m_eventQueue->setup(m_connectionThreadObject);
+    connect(m_connectionThreadObject, &ConnectionThread::connected, this, [this] {
+        m_eventQueue = new EventQueue(this);
+        m_eventQueue->setup(m_connectionThreadObject);
 
-            Registry *registry = new Registry(this);
-            setupRegistry(registry);
-        },
-        Qt::QueuedConnection);
+        Registry *registry = new Registry(this);
+        setupRegistry(registry);
+    }, Qt::QueuedConnection);
     m_connectionThreadObject->moveToThread(m_connectionThread);
     m_connectionThread->start();
 

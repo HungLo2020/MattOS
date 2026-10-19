@@ -19,7 +19,6 @@
 #include <QApplication>
 #include <QColorDialog>
 #include <QFontDialog>
-#include <QtQml>
 #include <utility>
 
 using namespace Qt::StringLiterals;
@@ -405,6 +404,7 @@ void SpectacleWindow::showColorDialog(int option)
 
 void SpectacleWindow::mousePressEvent(QMouseEvent *event)
 {
+    m_pressedButtons = event->buttons();
     // QMenus need to be closed by hand when used from QML, see plasma-workspace/shellcorona.cpp
     if (auto popup = QApplication::activePopupWidget()) {
         popup->close();
@@ -412,6 +412,12 @@ void SpectacleWindow::mousePressEvent(QMouseEvent *event)
     } else {
         QQuickView::mousePressEvent(event);
     }
+}
+
+void SpectacleWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    m_pressedButtons = {};
+    QQuickView::mouseReleaseEvent(event);
 }
 
 void SpectacleWindow::keyPressEvent(QKeyEvent *event)

@@ -1,13 +1,13 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2014, 2016, 2017, 2019, 2020, 2021, 2022, 2023, 2024 G.Sora <g.sora@tiscali.it>
+# SPDX-FileCopyrightText: 2014, 2016, 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2026 G.Sora <g.sora@tiscali.it>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-05 02:41+0000\n"
-"PO-Revision-Date: 2024-09-02 15:54+0200\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
+"PO-Revision-Date: 2026-09-28 11:06+0200\n"
 "Last-Translator: giovanni <g.sora@tiscali.it>\n"
 "Language-Team: Interlingua <kde-i18n-doc@kde.org>\n"
 "Language: ia\n"
@@ -15,12 +15,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.04.0\n"
 
 #: declarativeimports/plasmaextracomponents/qml/BasicPlasmoidHeading.qml:82
 #, kde-format
 msgid "More actions"
 msgstr "Altere actiones"
+
+#: declarativeimports/plasmaextracomponents/qml/ContextualHelpButton.qml:58
+#, kde-format
+msgctxt "@action:button"
+msgid "Show Contextual Help"
+msgstr "Monstra adjuta contextual"
 
 #: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
 #, kde-format
@@ -39,6 +45,22 @@ msgstr "Expande"
 msgid "Password"
 msgstr "Contrasigno"
 
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:57
+#, kde-format
+msgctxt ""
+"@action:button in text field, tooltip/accessible only, displays placeholders "
+"for characters"
+msgid "Hide Password"
+msgstr "Cela Contrasigno"
+
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:58
+#, kde-format
+msgctxt ""
+"@action:button in text field, tooltip/accessible only, reveals password "
+"chracters"
+msgid "Show Password"
+msgstr "Monstra Contrasigno"
+
 #: declarativeimports/plasmaextracomponents/qml/SearchField.qml:62
 #, kde-format
 msgid "Search…"
@@ -54,44 +76,44 @@ msgstr "Cerca"
 msgid "Clear search"
 msgstr "Netta cerca"
 
-#: plasma/applet.cpp:318
+#: plasma/applet.cpp:296
 #, kde-format
 msgid "Unknown"
 msgstr "Incognite"
 
-#: plasma/applet.cpp:764
+#: plasma/applet.cpp:742
 #, kde-format
 msgid "Activate %1 Widget"
 msgstr "Activa %1 Widget"
 
-#: plasma/containment.cpp:100 plasma/private/applet_p.cpp:101
+#: plasma/containment.cpp:102 plasma/private/applet_p.cpp:98
 #, kde-format
 msgctxt "%1 is the name of the applet"
 msgid "Remove %1"
 msgstr "Remove %1"
 
-#: plasma/containment.cpp:106 plasma/corona.cpp:365 plasma/corona.cpp:486
+#: plasma/containment.cpp:108 plasma/corona.cpp:314 plasma/corona.cpp:435
 #, kde-format
 msgid "Enter Edit Mode"
 msgstr "Entra modo de modificar"
 
-#: plasma/containment.cpp:109 plasma/private/applet_p.cpp:106
+#: plasma/containment.cpp:111 plasma/private/applet_p.cpp:103
 #, kde-format
 msgctxt "%1 is the name of the applet"
 msgid "Configure %1..."
 msgstr "Configura %1..."
 
-#: plasma/corona.cpp:314 plasma/corona.cpp:471
+#: plasma/corona.cpp:263 plasma/corona.cpp:420
 #, kde-format
 msgid "Lock Widgets"
 msgstr "Bloca Widgets"
 
-#: plasma/corona.cpp:314
+#: plasma/corona.cpp:263
 #, kde-format
 msgid "Unlock Widgets"
 msgstr "Disbloca Widgets"
 
-#: plasma/corona.cpp:363
+#: plasma/corona.cpp:312
 #, kde-format
 msgid "Exit Edit Mode"
 msgstr "Exi modo de modificar"
@@ -101,194 +123,204 @@ msgstr "Exi modo de modificar"
 msgid "Could not find requested component: %1"
 msgstr "Il non pote trovar componente requirite:%1"
 
-#: plasma/private/applet_p.cpp:119
+#: plasma/private/applet_p.cpp:116
 #, kde-format
 msgid "Show Alternatives..."
 msgstr "Monstra Alternativas..."
 
-#: plasma/private/applet_p.cpp:237
+#: plasma/private/applet_p.cpp:234
 #, kde-format
 msgid "Widget Removed"
 msgstr "Widget Removite"
 
-#: plasma/private/applet_p.cpp:238
+#: plasma/private/applet_p.cpp:235
 #, kde-format
 msgid "The widget \"%1\" has been removed."
 msgstr "Le widget \"%1\" ha essite removite."
 
-#: plasma/private/applet_p.cpp:242
+#: plasma/private/applet_p.cpp:239
 #, kde-format
 msgid "Panel Removed"
 msgstr "Pannello removite"
 
-#: plasma/private/applet_p.cpp:243
+#: plasma/private/applet_p.cpp:240
 #, kde-format
 msgid "A panel has been removed."
 msgstr "Un pannello ha essit eremovite."
 
-#: plasma/private/applet_p.cpp:246
+#: plasma/private/applet_p.cpp:243
 #, kde-format
 msgid "Desktop Removed"
 msgstr "Scriptorio removite"
 
-#: plasma/private/applet_p.cpp:247
+#: plasma/private/applet_p.cpp:244
 #, kde-format
 msgid "A desktop has been removed."
 msgstr "Un scriptorio ha essite removite."
 
-#: plasma/private/applet_p.cpp:250
+#: plasma/private/applet_p.cpp:247
 #, kde-format
 msgid "Undo"
 msgstr "Annulla"
 
-#: plasma/private/applet_p.cpp:341
+#: plasma/private/applet_p.cpp:317
 #, kde-format
 msgid "Widget Settings"
 msgstr "Preferentias de widget"
 
-#: plasma/private/applet_p.cpp:347
+#: plasma/private/applet_p.cpp:323
 #, kde-format
 msgid "Remove this Widget"
 msgstr "Remove iste widget"
 
-#: plasma/private/containment_p.cpp:51
+#: plasma/private/containment_p.cpp:54
 #, kde-format
 msgid "Remove this Panel"
 msgstr "Remove iste pannello"
 
-#: plasma/private/containment_p.cpp:53
+#: plasma/private/containment_p.cpp:56
 #, kde-format
 msgid "Remove this Activity"
 msgstr "Remove iste activitate"
 
-#: plasma/private/containment_p.cpp:58
+#: plasma/private/containment_p.cpp:61
 #, kde-format
 msgid "Activity Settings"
 msgstr "Preferentias de activitate"
 
-#: plasma/private/containment_p.cpp:70
+#: plasma/private/containment_p.cpp:73
 #, kde-format
 msgid "Add or Manage Widgets…"
 msgstr "Adde o Gere Widgets…"
 
-#: plasmaquick/appletquickitem.cpp:540
+#: plasmaquick/appletquickitem.cpp:548
 #, kde-format
 msgid "The root item of %1 must be of type ContainmentItem"
 msgstr "Le elemento radice de %1 debe esser de typo ContaimentItem"
 
-#: plasmaquick/appletquickitem.cpp:545
+#: plasmaquick/appletquickitem.cpp:553
 #, kde-format
 msgid "The root item of %1 must be of type PlasmoidItem"
 msgstr "Le elemento radice de %1 debe esser de typo PlasmoidItem"
 
-#: plasmaquick/appletquickitem.cpp:553
+#: plasmaquick/appletquickitem.cpp:561
 #, kde-format
 msgid "Unknown Applet"
 msgstr "Applet Incognite"
 
-#: plasmaquick/appletquickitem.cpp:567
+#: plasmaquick/appletquickitem.cpp:575
 #, kde-format
 msgid ""
-"This Widget was written for an unknown older version of Plasma and is not "
+"This widget was written for an unknown older version of Plasma and is not "
 "compatible with Plasma %1. Please contact the widget's author for an updated "
 "version."
 msgstr ""
-"Iste Widget esseva scribite per unversion vetule incognoscite de Plasma  e "
+"Iste widget esseva scribite per un version vetule incognoscite de Plasma  e "
 "non es compatibile con Plasma %1. Per favor tu continge le autor del widget "
 "per un version actualisate."
 
-#: plasmaquick/appletquickitem.cpp:570 plasmaquick/appletquickitem.cpp:577
-#: plasmaquick/appletquickitem.cpp:583
+#: plasmaquick/appletquickitem.cpp:578 plasmaquick/appletquickitem.cpp:585
+#: plasmaquick/appletquickitem.cpp:591
 #, kde-format
 msgid "%1 is not compatible with Plasma %2"
 msgstr "%1 non es compatibile con Plasma %2"
 
-#: plasmaquick/appletquickitem.cpp:574
+#: plasmaquick/appletquickitem.cpp:582
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please contact the widget's author for an updated version."
 msgstr ""
-"Iste Widget esseva scribite per Plasma %1 e non es compatibile con Plasma "
+"Iste widget esseva scribite per Plasma %1 e non es compatibile con Plasma "
 "%2. Per favor tu continge le autor del widget per un version actualisate."
 
-#: plasmaquick/appletquickitem.cpp:580
+#: plasmaquick/appletquickitem.cpp:588
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please update Plasma in order to use the widget."
 msgstr ""
-"Iste Widget esseva scribite per Plasma %1 e non es compatibile con Plasma "
+"Iste widget esseva scribite per Plasma %1 e non es compatibile con Plasma "
 "%2. Per favor tu actualisa Plasma per usar le widget."
 
-#: plasmaquick/appletquickitem.cpp:589 plasmaquick/appletquickitem.cpp:611
+#: plasmaquick/appletquickitem.cpp:597 plasmaquick/appletquickitem.cpp:620
 #, kde-format
 msgid "Sorry! There was an error loading %1."
 msgstr "Desolate! Il habeva un error a cargar %1"
 
-#: plasmaquick/appletquickitem.cpp:606
+#: plasmaquick/appletquickitem.cpp:614
 #, kde-format
 msgid "Error loading QML file: %1 %2"
 msgstr "Error quando on carga file QML: %1 %2"
 
-#: plasmaquick/appletquickitem.cpp:609
+#: plasmaquick/appletquickitem.cpp:618
 #, kde-format
 msgid "Error loading Applet: package %1 does not exist."
 msgstr "Error quando on carga Applet: pacchetto %1 non existe. "
 
-#: plasmaquick/configview.cpp:189
+#: plasmaquick/appletquickitem.cpp:623
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Error loading Applet: package format is invalid (does not contain any "
+"metadata)."
+msgstr ""
+"Error de cargamento del applet: le formato del pacchetto es invalide  (non "
+"contine alcun metadatos)."
+
+#: plasmaquick/configview.cpp:194
 #, kde-format
 msgid "%1 — %2 Settings"
 msgstr "%1 — %2 Preferentias"
 
-#: plasmaquick/configview.cpp:190
+#: plasmaquick/configview.cpp:195
 #, kde-format
 msgid "%1 Settings"
 msgstr "%1 Preferentias"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:569
+#: plasmaquick/plasmoid/containmentitem.cpp:574
 #, kde-format
 msgid "Plasma Package"
 msgstr "Pacchetto de Plasma"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:573
+#: plasmaquick/plasmoid/containmentitem.cpp:578
 #, kde-format
 msgid "Install"
 msgstr "Installa"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:584
+#: plasmaquick/plasmoid/containmentitem.cpp:589
 #, kde-format
 msgid "Package Installation Failed"
 msgstr "Initialization de pacchetto falleva"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:600
+#: plasmaquick/plasmoid/containmentitem.cpp:605
 #, kde-format
 msgid "The package you just dropped is invalid."
 msgstr "le pacchetto que tu lassava cader es invalide."
 
-#: plasmaquick/plasmoid/containmentitem.cpp:609
+#: plasmaquick/plasmoid/containmentitem.cpp:614
 #, kde-format
 msgid "Widgets"
 msgstr "Widgets"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:614
+#: plasmaquick/plasmoid/containmentitem.cpp:619
 #, kde-format
 msgctxt "Add widget"
 msgid "Add %1"
 msgstr "Adde %1"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:628
+#: plasmaquick/plasmoid/containmentitem.cpp:633
 #, kde-format
 msgctxt "Add icon widget"
 msgid "Add Icon"
 msgstr "Adde Icone"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:640
+#: plasmaquick/plasmoid/containmentitem.cpp:645
 #, kde-format
 msgid "Wallpaper"
-msgstr "Tapete de papiro"
+msgstr "Fundo de schermo"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:650
+#: plasmaquick/plasmoid/containmentitem.cpp:655
 #, kde-format
 msgctxt "Set wallpaper"
 msgid "Set %1"
@@ -391,7 +423,7 @@ msgstr "Contento lassate cader"
 #~ msgstr "Thema pro le dialogo de clausura de session"
 
 #~ msgid "Wallpaper packages"
-#~ msgstr "Pacchettos de tapete de papiro"
+#~ msgstr "Pacchettos de fundo de schermo"
 
 #~ msgid "Images for widgets"
 #~ msgstr "Imagines per widgets"
@@ -741,7 +773,7 @@ msgstr "Contento lassate cader"
 #~ "The type of package, e.g. theme, wallpaper, plasmoid, dataengine, runner, "
 #~ "layout-template, etc."
 #~ msgstr ""
-#~ "Le typo de pacchetto, pro ex. thema, tapete de papiro, plasmoid, "
+#~ "Le typo de pacchetto, pro ex. thema, fundo de schermo, plasmoid, "
 #~ "dataengine, runner, patrono de disposition, etc."
 
 #~ msgctxt "Do not translate <path>"
@@ -782,7 +814,7 @@ msgstr "Contento lassate cader"
 
 #~ msgctxt "package type"
 #~ msgid "wallpaper"
-#~ msgstr "Tapete de papiro"
+#~ msgstr "Fundo de schermo"
 
 #~ msgctxt "package type"
 #~ msgid "plasmoid"
@@ -922,10 +954,10 @@ msgstr "Contento lassate cader"
 #~ msgstr "Thema"
 
 #~ msgid "Wallpaper Images"
-#~ msgstr "Images de tapete de papiro"
+#~ msgstr "Images de fundo de schermo"
 
 #~ msgid "Animated Wallpaper"
-#~ msgstr "Tapete de papiro animate"
+#~ msgstr "Fundo de schermo animate"
 
 #~ msgid "KWin Effect"
 #~ msgstr "Effecto de KWin"

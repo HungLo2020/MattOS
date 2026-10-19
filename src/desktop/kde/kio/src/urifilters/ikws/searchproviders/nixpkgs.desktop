@@ -1,11 +1,13 @@
 [Desktop Entry]
 Type=Service
 Name=Nix Packages
+Name[am]=Nix Packages
 Name[ar]=حزم Nix
 Name[az]=Nix paketləri
 Name[bg]=Nix Packages
 Name[ca]=Paquets Nix
 Name[ca@valencia]=Paquets Nix
+Name[cs]=Balíčky NIX
 Name[de]=NixOS-Pakete
 Name[eo]=Nix-Pakoj
 Name[es]=Paquetes de Nix
@@ -28,8 +30,11 @@ Name[lg]=Emiganda gya mu Nix
 Name[lt]=Nix paketai
 Name[lv]=„Nix“ pakotnes
 Name[my]=Nix Packages
+Name[nan_TW]=Nix 套件
+Name[nan_TW@latin]=Nix Thò-kiānn
 Name[nb]=Nix-pakker
 Name[nl]=Nix-pakketten
+Name[nn]=Nix-pakkar
 Name[pl]=Pakiety Nix
 Name[pt]=Pesquisa de Pacotes do NixOS
 Name[pt_BR]=Pacotes nix
@@ -46,11 +51,13 @@ Name[zh_CN]=Nix 软件包
 Name[zh_TW]=Nix 軟體包
 Keys=nixpkg,nixpkgs
 Query=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
+Query[am]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[ar]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[az]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[bg]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[ca]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[ca@valencia]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
+Query[cs]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[de]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[eo]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[es]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
@@ -73,8 +80,11 @@ Query[lg]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\
 Query[lt]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[lv]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[my]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
+Query[nan_TW]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
+Query[nan_TW@latin]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[nb]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[nl]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
+Query[nn]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[pl]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[pt]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[pt_BR]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
@@ -85,7 +95,6 @@ Query[sl]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\
 Query[sv]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[th]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[tr]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
-Query[ug]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[uk]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[zh_CN]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}
 Query[zh_TW]=https://search.nixos.org/packages?sort=relevance&type=packages&query=\\{@}

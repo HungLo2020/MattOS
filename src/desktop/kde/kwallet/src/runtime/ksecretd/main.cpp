@@ -8,8 +8,6 @@
 
 #include "ksecretd_debug.h"
 #include <KAboutData>
-#include <KConfig>
-#include <KConfigGroup>
 #include <KCrash>
 #include <KDBusService>
 #include <KLocalizedString>
@@ -24,6 +22,7 @@
 #include "../kwalletbackend/kwalletbackend.h" //For the hash size
 #include "ksecretd.h"
 #include "ksecretd_version.h"
+#include "kwalletbackend.h"
 #include "kwalletfreedesktopservice.h"
 
 #ifndef Q_OS_WIN
@@ -174,9 +173,7 @@ int main(int argc, char **argv)
     // BUG 509680: When launched by PAM (hash != nullptr), use Replace so that
     // if a premature D-Bus-activated instance grabbed the bus name, the PAM
     // instance takes over (it has the password hash for auto-unlock).
-    KDBusService dbusUniqueInstance(hash
-        ? (KDBusService::Unique | KDBusService::Replace)
-        : KDBusService::Unique);
+    KDBusService dbusUniqueInstance(hash ? (KDBusService::Unique | KDBusService::Replace) : KDBusService::Unique);
 
     // NOTE: the command should be parsed only after KDBusService instantiation
     QCommandLineParser cmdParser;
@@ -200,7 +197,7 @@ int main(int argc, char **argv)
 
     if (hash) {
         QByteArray passHash(hash, PBKDF2_SHA512_KEYSIZE);
-        int wallet = secretd.pamOpen(KWallet::Wallet::LocalWallet(), passHash, 0);
+        int wallet = secretd.pamOpen(KWallet::Backend::localWallet(), passHash);
         if (wallet < 0) {
             qCWarning(KSECRETD_LOG) << "Wallet failed to get opened by PAM, error code is" << wallet;
         } else {

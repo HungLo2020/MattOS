@@ -19,11 +19,38 @@ import org.kde.taskmanager as TaskManager
 PlasmoidItem {
     id: root
 
+    property string lastActiveTaskName: ""
+    property /*QIcon*/ var lastActiveTaskIcon: ""
+
     Plasmoid.constraintHints: Plasmoid.CanFillArea
     compactRepresentation: windowListButton
     fullRepresentation: windowList
     switchWidth: Kirigami.Units.gridUnit * 8
     switchHeight: Kirigami.Units.gridUnit * 6
+
+    readonly property bool inPanel: [
+        PlasmaCore.Types.TopEdge,
+        PlasmaCore.Types.RightEdge,
+        PlasmaCore.Types.BottomEdge,
+        PlasmaCore.Types.LeftEdge,
+    ].includes(Plasmoid.location)
+
+    TextMetrics {
+        id: placeholderMetrics
+        font: Kirigami.Theme.defaultFont 
+        text: i18nc("@info:placeholder", "No open windows")
+    }
+
+    property ListModel noWindowModel: ListModel {
+        ListElement {
+            display: ""
+            decoration: "edit-none"
+        }
+
+        Component.onCompleted: {
+            noWindowModel.setProperty(0, "display", placeholderMetrics.text)
+        }
+    }
 
     TaskManager.VirtualDesktopInfo {
         id: virtualDesktopInfo
@@ -37,35 +64,129 @@ PlasmoidItem {
     TaskManager.TasksModel {
         id: tasksModel
 
-        virtualDesktop: virtualDesktopInfo.currentDesktop
         screenGeometry: Plasmoid.containment.screenGeometry
         activity: activityInfo.currentActivity
 
-        sortMode: TaskManager.TasksModel.SortVirtualDesktop
+        sortMode: Plasmoid.configuration.sortingStrategy
         groupMode: TaskManager.TasksModel.GroupDisabled
 
-        filterByVirtualDesktop: Plasmoid.configuration.showOnlyCurrentDesktop
+        filterByCurrentVirtualDesktop: Plasmoid.configuration.showOnlyCurrentDesktop
         filterByScreen: Plasmoid.configuration.showOnlyCurrentScreen
         filterByActivity: Plasmoid.configuration.showOnlyCurrentActivity
         filterNotMinimized: Plasmoid.configuration.showOnlyMinimized
     }
 
+    property string longestWindowCaption: ""
+
+    TextMetrics {
+        id: longestTextMetrics
+        elide: Text.ElideRight
+    }
+
+    property int fullRepresentationDynamicWidth: 0
+
+    function updateLongestWindowTitle() {
+        if (!tasksModel || !tasksModel.count) {
+            longestWindowCaption = "";
+
+            fullRepresentationDynamicWidth = Math.ceil(placeholderMetrics.width)
+                                           + Kirigami.Units.iconSizes.sizeForLabels * 2 + Kirigami.Units.smallSpacing * 2;
+            return;
+        }
+
+        let maxWidth = 0;
+        let longest = "";
+        for (let i = 0; i < tasksModel.count; ++i) {
+            let idx = tasksModel.makeModelIndex(i);
+            longestTextMetrics.text = tasksModel.data(idx, 0) || tasksModel.data(idx, TaskManager.AbstractTasksModel.AppName) || "";
+            
+            if (longestTextMetrics.width > maxWidth) {
+                maxWidth = longestTextMetrics.width;
+                longest = longestTextMetrics.text;
+            }
+        }
+
+        root.longestWindowCaption = longest;
+        fullRepresentationDynamicWidth = Math.ceil(maxWidth) + Kirigami.Units.iconSizes.sizeForLabels * 2 + Kirigami.Units.smallSpacing * 2;
+    }
+
+    Connections {
+        target: tasksModel
+        function onModelReset() { root.updateLongestWindowTitle(); }
+    }
+
     Component {
         id: windowList
 
-        ListView {
+        ListView {  
             id: windowListView
-
+            property int maxDelegateWidth: 0
+            
             clip: true
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-            Layout.preferredHeight: Kirigami.Units.gridUnit * 12
-            model: tasksModel
 
+
+            // Set preferred size when on desktop containment. 
+            // Size set arbitrarily to fit approximately 12-14 items.
+            Binding {
+                target: windowListView
+                property: "Layout.preferredWidth"
+                when: !root.inPanel
+                value: Kirigami.Units.gridUnit * 28
+            }
+
+            Binding {
+                target: windowListView
+                property: "Layout.preferredHeight"
+                when: !root.inPanel
+                value: Kirigami.Units.gridUnit * 24
+            }
+
+            Binding {
+                target: windowListView
+                property: "Layout.maximumHeight"
+                when: root.inPanel
+                value: windowListView.contentHeight
+            }
+            Binding {
+                target: windowListView
+                property: "Layout.minimumHeight"
+                when: root.inPanel
+                value: windowListView.contentHeight
+            }
+            Binding {
+                target: windowListView
+                property: "Layout.maximumWidth"
+                when: root.inPanel
+                value: root.fullRepresentationDynamicWidth
+            }
+            Binding {
+                target: windowListView
+                property: "Layout.minimumWidth"
+                when: root.inPanel
+                value: root.fullRepresentationDynamicWidth
+            }
+
+            model: root.inPanel && tasksModel.count === 0 ? root.noWindowModel : tasksModel
+        
             Connections {
                 target: root
-                function onExpandedChanged(expanded) {
-                    if (expanded) {
+                function onExpandedChanged() {
+                    if (root.expanded) {
                         windowListView.currentIndex = -1
+
+                        // Needed for when for expanded with Global Shortcut
+                        if (tasksModel.activeTask.valid) {
+                            root.lastActiveTaskName = tasksModel.data(tasksModel.activeTask, TaskManager.AbstractTasksModel.AppName) ||
+                            tasksModel.data(tasksModel.activeTask, 0 /* display name, window title if app name not present */)
+                            root.lastActiveTaskIcon = tasksModel.data(tasksModel.activeTask, 1 /* decorationrole */)
+                        }
+                        root.updateLongestWindowTitle();
+                    }  else {
+                        Qt.callLater( () => { // give the previous window a chance to gain focus
+                            root.lastActiveTaskName = ""
+                            root.lastActiveTaskIcon = ""
+                            root.updateLongestWindowTitle();
+                        })
                     }
                 }
             }
@@ -83,18 +204,6 @@ PlasmoidItem {
             highlightMoveDuration: 0
             highlightResizeDuration: 0
 
-            Keys.onEnterPressed: {
-                if (currentIndex >= 0 && currentIndex < windowListView.count) {
-                    tasksModel.requestActivate(tasksModel.makeModelIndex(currentIndex));
-                }
-            }
-
-            Keys.onReturnPressed: {
-                if (currentIndex >= 0 && currentIndex < windowListView.count) {
-                    tasksModel.requestActivate(tasksModel.makeModelIndex(currentIndex));
-                }
-            }
-
             Keys.onTabPressed: {
                 incrementCurrentIndex();
             }
@@ -103,15 +212,50 @@ PlasmoidItem {
                 decrementCurrentIndex();
             }
 
+            section {
+                property: switch (Plasmoid.configuration.sortingStrategy) {
+                    case TaskManager.TasksModel.SortVirtualDesktop:
+                        return "VirtualDesktops"; // AbstractTasksModel::AdditionalRoles::VirtualDesktops
+                    case TaskManager.TasksModel.SortActivity:
+                        return "Activities";  // AbstractTasksModel::AdditionalRoles::Activities
+                    default:
+                        return "";
+                }
+                delegate: Kirigami.ListSectionHeader {
+                    required property var section
+                    width: windowListView.width
+                    text: {
+                        switch (Plasmoid.configuration.sortingStrategy) {
+                        case TaskManager.TasksModel.SortVirtualDesktop:
+                            // Section contains the virtual desktop id. In case the application is on multiple desktops, it is empty.
+                            return section ? virtualDesktopInfo.desktopNames[virtualDesktopInfo.desktopIds.indexOf(section)] : "";
+                        case TaskManager.TasksModel.SortActivity:
+                            // Section contains the activity id. In case the application is on multiple activities, it is empty.
+                            return section ? activityInfo.activityName(section) : "";
+                        }
+                        return "";
+                    }
+                }
+            }
+
+            // Helps with performance otherwise scrolling is very laggy and stuttery
+            // with low fps
+            reuseItems: true
+
             delegate: PlasmaComponents.ItemDelegate {
                 id: delegate
 
                 required property var model
                 required property var decoration
 
-
-                width: ListView.view.width
-
+                width: {
+                    if (root.inPanel) {
+                        return root.fullRepresentationDynamicWidth 
+                    } else {
+                        return ListView.view.width;
+                    }
+                }
+                
                 highlighted: ListView.isCurrentItem
 
                 contentItem: RowLayout {
@@ -151,17 +295,27 @@ PlasmoidItem {
                 onClicked: {
                     windowListView.currentIndex = model.index
                     tasksModel.requestActivate(tasksModel.makeModelIndex(model.index))
+                    focus = false // or it persists invisibly after closing
                 }
 
+                Keys.onReturnPressed: animateClick()
+                Keys.onEnterPressed: animateClick()
+
+                TapHandler {
+                    acceptedButtons: Qt.RightButton
+                    onTapped: { /* Empty to disable right click menu provided by applet on the delegate */ }
+                }
             }
 
             Kirigami.PlaceholderMessage {
                 anchors.centerIn: parent
                 width: parent.width - (Kirigami.Units.largeSpacing * 2)
-                visible: windowListView.count === 0
+                visible: !root.inPanel && windowListView.count === 0
                 icon.source: "edit-none"
-                text: i18nc("@info:placeholder", "No open windows")
+                text: placeholderMetrics.text
             }
+
+
         }
     }
 
@@ -179,55 +333,27 @@ PlasmoidItem {
             Layout.fillHeight: Plasmoid.formFactor === PlasmaCore.Types.Horizontal
             Layout.fillWidth: Plasmoid.formFactor === PlasmaCore.Types.Vertical
 
-            onClicked: tasksMenu.openRelative()
-            down: pressed || tasksMenu.status === PlasmaExtras.Menu.Open
+            onClicked: root.expanded = !root.expanded
+            down: pressed || root.expanded
 
             Accessible.name: Plasmoid.title
             Accessible.description: root.toolTipSubText
 
-            text: if (tasksModel.activeTask.valid) {
+            text: if (root.lastActiveTaskName !== "") {
+                return root.lastActiveTaskName
+            } else if (tasksModel.activeTask.valid) {
                 return tasksModel.data(tasksModel.activeTask, TaskManager.AbstractTasksModel.AppName) ||
                        tasksModel.data(tasksModel.activeTask, 0 /* display name, window title if app name not present */)
             } else {
                 return i18nc("@title:window title shown e.g. for desktop and expanded widgets", "Plasma Desktop")
             }
 
-            iconSource: if (tasksModel.activeTask.valid) {
+            iconSource: if (root.lastActiveTaskIcon) {
+                return root.lastActiveTaskIcon
+            } else if (tasksModel.activeTask.valid) {
                 return tasksModel.data(tasksModel.activeTask, 1 /* decorationrole */)
             } else {
                 return "start-here-kde-symbolic"
-            }
-
-            PlasmaExtras.ModelContextMenu {
-                id: tasksMenu
-                visualParent: menuButton
-
-                placement: {
-                   if (Plasmoid.location === PlasmaCore.Types.LeftEdge) {
-                       return PlasmaExtras.Menu.RightPosedTopAlignedPopup
-                   } else if (Plasmoid.location === PlasmaCore.Types.TopEdge) {
-                       return PlasmaExtras.Menu.BottomPosedLeftAlignedPopup
-                   } else if (Plasmoid.location === PlasmaCore.Types.RightEdge) {
-                       return PlasmaExtras.Menu.LeftPosedTopAlignedPopup
-                   } else {
-                       return PlasmaExtras.Menu.TopPosedLeftAlignedPopup
-                   }
-                }
-
-                property ListModel noWindowModel: ListModel {
-                    ListElement {
-                        display: "" // filled by Component.onCompleted
-                        decoration: "edit-none"
-                    }
-                    Component.onCompleted: tasksMenu.noWindowModel.setProperty(0, "display", i18nc("@info:placeholder", "No open windows"))
-                }
-
-                model: tasksModel.count === 0 ? noWindowModel : tasksModel
-                onClicked: (model) => {
-                    if (tasksModel.count > 0) {
-                        tasksModel.requestActivate(tasksModel.makeModelIndex(model.index));
-                    }
-                }
             }
 
             Timer {
@@ -235,15 +361,15 @@ PlasmoidItem {
                 interval: Plasmoid?.configuration?.hoverOpenDelay ?? 300
                 repeat: false
                 onTriggered: {
-                    if (tasksMenu?.status === PlasmaExtras.Menu.Closed) {
-                        tasksMenu.openRelative()
-                    }
+                    root.expanded = true
                 }
             }
 
             onHoveredChanged: {
-                if (hovered && Plasmoid.configuration.openOnHover) {
-                    hoverOpenTimer.start()
+                if (hovered) {
+                    if (Plasmoid.configuration.openOnHover) {
+                        hoverOpenTimer.start()
+                    }
                 } else {
                     hoverOpenTimer.stop()
                 }

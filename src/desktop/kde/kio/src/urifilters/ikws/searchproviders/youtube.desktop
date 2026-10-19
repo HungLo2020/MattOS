@@ -2,6 +2,7 @@
 Keys=yt,youtube
 Icon=im-youtube
 Name=YouTube
+Name[am]=YouTube
 Name[ar]=يوتيوب
 Name[ast]=YouTube
 Name[az]=YouTube
@@ -51,6 +52,8 @@ Name[mai]=YouTube
 Name[ml]=യുട്യൂബ്
 Name[mr]=यूट्यूब
 Name[my]=ယူကျုဘ်
+Name[nan_TW]=YouTube
+Name[nan_TW@latin]=YouTube
 Name[nb]=YouTube
 Name[nds]=YouTube
 Name[nl]=YouTube
@@ -76,13 +79,13 @@ Name[tg]=YouTube
 Name[th]=บริการวีดิโอผ่าน YouTube
 Name[tok]=ilo YouTube
 Name[tr]=YouTube
-Name[ug]=YouTube
 Name[uk]=YouTube
 Name[vi]=YouTube
 Name[wa]=YouTube
 Name[zh_CN]=YouTube
 Name[zh_TW]=YouTube
 Query=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
+Query[am]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[ar]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[ast]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[az]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
@@ -118,7 +121,7 @@ Query[id]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[ie]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[is]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[it]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
-Query[ja]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
+Query[ja]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f&gl=JP&hl=ja
 Query[ka]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[kk]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[ko]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
@@ -127,6 +130,8 @@ Query[lt]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[lv]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[mr]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[my]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
+Query[nan_TW]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
+Query[nan_TW@latin]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[nb]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[nds]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[nl]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
@@ -150,7 +155,6 @@ Query[tg]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[th]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[tok]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[tr]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
-Query[ug]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[uk]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[vi]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f
 Query[wa]=https://www.youtube.com/results?search_query=\\{@}&search_type=&aq=f

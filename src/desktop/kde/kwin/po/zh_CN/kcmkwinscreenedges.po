@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdeorg\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
 "PO-Revision-Date: 2024-04-22 15:58\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
@@ -14,75 +14,75 @@ msgstr ""
 "X-Crowdin-Project: kdeorg\n"
 "X-Crowdin-Project-ID: 269464\n"
 "X-Crowdin-Language: zh-CN\n"
-"X-Crowdin-File: /kf6-stable/messages/kwin/kcmkwinscreenedges.pot\n"
-"X-Crowdin-File-ID: 50516\n"
+"X-Crowdin-File: /kf6-trunk/messages/kwin/kcmkwinscreenedges.pot\n"
+"X-Crowdin-File-ID: 42991\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "无操作"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "暂时显示桌面"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "锁定屏幕"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "显示 KRunner"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "活动管理器"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "应用程序启动器"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "窗口平铺展示"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 - 全部桌面"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 - 当前桌面"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 - 当前程序"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "桌面概览"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "网格"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "触发窗口切换"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "触发备选窗口切换"
@@ -91,9 +91,9 @@ msgstr "触发备选窗口切换"
 #: main.ui:23
 #, kde-format
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
-msgstr "您可以将鼠标光标推到屏幕边缘或者四角来触发指定操作。"
+msgstr "您可以将指针推到屏幕边缘或者四角来触发指定操作。"
 
 #. i18n: ectx: property (text), widget (QLabel, quickMaximizeLabel)
 #: main.ui:67
@@ -159,8 +159,9 @@ msgstr "屏幕高度后触发"
 #: main.ui:174
 #, kde-format
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
-msgstr "鼠标光标推到屏幕边缘时切换虚拟桌面"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
+msgstr "指针推到屏幕边缘时切换虚拟桌面"
 
 #. i18n: ectx: property (text), widget (QLabel, desktopSwitchLabel)
 #: main.ui:177
@@ -191,9 +192,9 @@ msgstr "总是启用"
 #: main.ui:206
 #, kde-format
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
-msgstr "鼠标光标推到屏幕边缘后触发操作前的等待时间"
+msgstr "指针推到屏幕边缘后触发操作前的等待时间"
 
 #. i18n: ectx: property (text), widget (QLabel, activationDelayLabel)
 #: main.ui:209
@@ -233,12 +234,12 @@ msgstr "角落围栏(&C)："
 #, kde-format
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
 msgstr ""
-"您可以在此启用或者禁用多个屏幕之间的虚拟角落围栏。角落围栏可以阻止光标在接触"
+"您可以在此启用或者禁用多个屏幕之间的虚拟角落围栏。角落围栏可以阻止指针在接触"
 "到屏幕的角落之后继续穿越到其他屏幕。在多屏幕场景中，此功能有助于用户触发某些"
 "界面元素，例如在窗口最大化时点击窗口的关闭按钮等。"
 
@@ -246,8 +247,8 @@ msgstr ""
 #: main.ui:283
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
-msgstr "阻止光标在屏幕四角穿越到其他屏幕。"
+msgid "Prevents the pointer from crossing at screen corners."
+msgstr "阻止指针在屏幕四角穿越到其他屏幕。"
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
 #: main.ui:290
@@ -273,8 +274,8 @@ msgstr ""
 #: main.ui:303
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
-msgstr "光标在穿越屏幕边缘之前需要额外移动的距离。"
+msgid "Additional distance the pointer needs to travel to cross screen edges."
+msgstr "指针在穿越屏幕边缘之前需要额外移动的距离。"
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:306

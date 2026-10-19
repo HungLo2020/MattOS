@@ -88,6 +88,7 @@ QString ButtonToButtonName(SDL_GameControllerButton button)
 SDL_hid_device_info getJoystickHidInfo(short vendor, short product, std::string path)
 {
     SDL_hid_device_info *info = SDL_hid_enumerate(vendor, product);
+
     SDL_hid_device_info *current = info;
 
     qCDebug(KCM_GAMECONTROLLER) << "Checking for hidapi with vendor: " << vendor << " and product: " << product;
@@ -152,6 +153,10 @@ bool Device::open()
     }
 
     m_joystick = SDL_JoystickOpen(m_deviceIndex);
+    if (!m_joystick) {
+        qCWarning(KCM_GAMECONTROLLER) << "Failed to load joystick at: " << m_deviceIndex;
+        return false;
+    }
 
     short vendor = SDL_JoystickGetVendor(m_joystick);
     short product = SDL_JoystickGetProduct(m_joystick);

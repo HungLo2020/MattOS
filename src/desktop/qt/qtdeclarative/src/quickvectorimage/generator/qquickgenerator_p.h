@@ -42,6 +42,8 @@ struct StructureNodeInfo;
 struct AnimateColorNodeInfo;
 struct MaskNodeInfo;
 struct FilterNodeInfo;
+struct MarkerNodeInfo;
+struct PatternNodeInfo;
 }
 
 using namespace QQuickVectorImageGenerator;
@@ -58,8 +60,9 @@ public:
     bool generate();
     QQuickVectorImageGenerator::ErrorState errorState() const { return m_errorState; }
 
-    virtual QString generateNodeBase(const NodeInfo &info) = 0;
-    virtual bool generateDefsNode(const NodeInfo &info) = 0;
+    virtual QString generateNodeBase(const NodeInfo &info, const QString &idSuffix = QString{}) = 0;
+    virtual bool generateDefsNode(const StructureNodeInfo &info) = 0;
+    virtual void generateDefsInstantiationNode(const StructureNodeInfo &info) = 0;
     virtual void generateImageNode(const ImageNodeInfo &info) = 0;
     virtual void generatePath(const PathNodeInfo &info, const QRectF &overrideBoundingRect = QRectF{}) = 0;
     virtual void generateNode(const NodeInfo &info) = 0;
@@ -69,9 +72,16 @@ public:
     virtual bool generateStructureNode(const StructureNodeInfo &info) = 0;
     virtual bool generateRootNode(const StructureNodeInfo &info) = 0;
     virtual bool generateMaskNode(const MaskNodeInfo &info) = 0;
+    virtual bool generateMarkerNode(const MarkerNodeInfo &info) = 0;
+    virtual bool generatePatternNode(const PatternNodeInfo &info) = 0;
     virtual void outputShapePath(const PathNodeInfo &info, const QPainterPath *path, const QQuadPath *quadPath, QQuickVectorImageGenerator::PathSelector pathSelector, const QRectF &boundingRect) = 0;
     void optimizePaths(const PathNodeInfo &info, const QRectF &overrideBoundingRect);
     bool isNodeVisible(const NodeInfo &info);
+
+    QString fileName() const
+    {
+        return m_fileName;
+    }
 
 protected:
     void checkSanityLimit_helper(quint64 limit, QLatin1StringView limitObject);

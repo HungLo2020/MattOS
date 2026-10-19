@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qqmldocumentsymbolsupport_p.h"
-#include "documentSymbolSupport/documentsymbolutils_p.h"
+#include "private/documentsymbolutils_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -12,16 +12,9 @@ QQmlDocumentSymbolSupport::QQmlDocumentSymbolSupport(QmlLsp::QQmlCodeModelManage
 {
 }
 
-QString QQmlDocumentSymbolSupport::name() const
+void QQmlDocumentSymbolSupport::setupCapabilities(QLspSpecification::ServerCapabilities &caps)
 {
-    return u"QQmlDocumentSymbolSupport"_s;
-}
-
-void QQmlDocumentSymbolSupport::setupCapabilities(
-        const QLspSpecification::InitializeParams &,
-        QLspSpecification::InitializeResult &serverCapabilities)
-{
-    serverCapabilities.capabilities.documentSymbolProvider = true;
+    caps.documentSymbolProvider = true;
 }
 
 void QQmlDocumentSymbolSupport::registerHandlers(QLanguageServer *,

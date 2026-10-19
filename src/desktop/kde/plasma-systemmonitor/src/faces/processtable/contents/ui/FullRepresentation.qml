@@ -223,15 +223,10 @@ Faces.SensorFace {
                 } else if (event.key == Qt.Key_F8) {
                     processHelper.reniceSelection();
                     event.accepted = true;
+                } else if (Qt.platform.os === "linux" && event.key == Qt.Key_F9) {
+                    processHelper.openSetAffinityDialog();
+                    event.accepted = true;
                 }
-            }
-        }
-
-        Kirigami.Separator {
-            anchors {
-                left: parent.left
-                right: parent.right
-                bottom: parent.bottom
             }
         }
     }
@@ -247,6 +242,13 @@ Faces.SensorFace {
             text: i18nc("@action:inmenu", "Set priority…")
             icon.name: "process-working-symbolic"
             onTriggered: processHelper.reniceSelection()
+        }
+
+        MenuItem {
+            text: i18nc("@action:inmenu", "Set affinity…")
+            icon.name: "cpu-symbolic"
+            visible: Qt.platform.os === "linux" // only implemented for linux
+            onTriggered: processHelper.openSetAffinityDialog()
         }
 
         Menu {
@@ -372,6 +374,15 @@ Faces.SensorFace {
         }
     }
 
+    Table.AffinityDialog {
+        id: affinityDialog
+
+        onAccepted: {
+            let pids = table.selectedProcesses.map(i => i.pid)
+            processHelper.setAffinity(pids, affinity)
+        }
+    }
+
     Process.ProcessController {
         id: processHelper
 
@@ -402,12 +413,18 @@ Faces.SensorFace {
 
             reniceDialog.open()
         }
+
+        function openSetAffinityDialog() {
+            let pids = table.selectedProcesses.map(i => i.pid)
+
+            affinityDialog.affinity = processHelper.affinity(pids)
+            affinityDialog.open()
+        }
     }
 
     Table.ColumnConfigurationDialog {
         id: columnDialog
 
-        parent: root.Window.window?.overlay
 
         sourceModel: table.processModel.attributesModel
 

@@ -11,124 +11,130 @@ import QtQuick.Templates as T
 import org.kde.kirigami.platform as Platform
 
 /*!
- *  \qmltype LinkButton
- *  \inqmlmodule org.kde.kirigami
- *  \brief A button that looks like a link.
- *
- *  It uses the color scheme's link color, and triggers an action when clicked.
- *
- *  This component should not be used directly; prefer an actual button to
- *  navigate within the app or trigger actions, and prefer a \l UrlButton to
- *  display a link to a web site or other remote resource. See also
- *  \l https://develop.kde.org/hig/getting_input/#signaling-interactivity
- *
- *  \since 5.52
+   \qmltype LinkButton
+   \inqmlmodule org.kde.kirigami
+   \brief A button that looks like a link.
+
+   It uses the color scheme's link color, and triggers an action when clicked.
+
+   This component should not be used directly; prefer an actual button to
+   navigate within the app or trigger actions, and prefer a \l UrlButton to
+   display a link to a web site or other remote resource. See also
+   \l https://develop.kde.org/hig/getting_input/#signaling-interactivity
+
+   \since 5.52
  */
 QQC2.Label {
-	id: control
+    id: control
 
-	/*!
-	 *      \qmlproperty Action action
-	 *      An action that will be triggered when the button is clicked
-	 *
-	 *      default: \c null; set an action to make it work.
-	 */
-	property T.Action action
+    /*!
+      \qmlproperty Action action
+      An action that will be triggered when the button is clicked
 
-	/*!
-	 *      \qmlproperty Qt::MouseButtons LinkButton::acceptedButtons
-	 *      \brief This property holds the mouse buttons that the mouse area reacts to.
-	 *      \sa MouseArea::acceptedButtons
-	 *
-	 *      default: \c Qt.LeftButton
-	 */
-	property alias acceptedButtons: area.acceptedButtons
+      default: \c null; set an action to make it work.
+    */
+    property T.Action action
 
-	/*!
-	 *      \qmlproperty MouseArea LinkButton::mouseArea
-	 *      \brief This property holds the mouse area element covering the button.
-	 */
-	property alias mouseArea: area
+    /*!
+      \qmlproperty Qt::MouseButtons LinkButton::acceptedButtons
+      \brief This property holds the mouse buttons that the mouse area reacts to.
+      \sa MouseArea::acceptedButtons
 
-	/*!
-	 *      This property holds the normal color of the link when not pressed
-	 *      or disabled.
-	 *
-	 *      default: \c Kirigami.Theme.linkColor
-	 */
-	property color normalColor: Platform.Theme.linkColor
+      default: \c Qt.LeftButton
+    */
+    property alias acceptedButtons: area.acceptedButtons
 
-	/*!
-	 *      This property holds the color of the link while pressed.
-	 *
-	 *      default: Whatever the normal color is set to, but 200% darker.
-	 */
-	property color pressedColor: Qt.darker(normalColor)
+    /*!
+      \qmlproperty MouseArea LinkButton::mouseArea
+      \brief This property holds the mouse area element covering the button.
+    */
+    property alias mouseArea: area
 
-	/*!
-	 *      This property holds the color of the link when disabled.
-	 *
-	 *      default: \c Kirigami.Theme.textColor
-	 */
-	property color disabledColor: Platform.Theme.textColor
+    /*!
+      This property holds the normal color of the link when not pressed
+      or disabled.
 
-	activeFocusOnTab: true
-	Accessible.role: Accessible.Button
-	Accessible.name: text
-	Accessible.onPressAction: clicked({ button: Qt.LeftButton })
+      default: \c Kirigami.Theme.linkColor
+    */
+    property color normalColor: Platform.Theme.linkColor
 
-	text: action?.text ?? ""
-	enabled: action?.enabled ?? true
+    /*!
+      This property holds the color of the link while pressed.
 
-	onClicked: action?.trigger()
+      default: Whatever the normal color is set to, but 200% darker.
+    */
+    property color pressedColor: Qt.darker(normalColor)
 
-	color: if (!enabled) {
-		return control.disabledColor;
-	} else if (area.containsPress) {
-		return control.pressedColor;
-	} else {
-		return control.normalColor;
-	}
+    /*!
+      This property holds the color of the link when disabled.
 
-	signal pressed(var mouse)
-	signal clicked(var mouse)
+      default: \c Kirigami.Theme.textColor
+    */
+    property color disabledColor: Platform.Theme.textColor
 
-	Keys.onPressed: event => {
-		switch (event.key) {
-			case Qt.Key_Space:
-			case Qt.Key_Enter:
-			case Qt.Key_Return:
-			case Qt.Key_Select:
-				control.clicked({ button: Qt.LeftButton });
-				event.accepted = true;
-				break;
-			case Qt.Key_Menu:
-				control.pressed({ button: Qt.RightButton });
-				event.accepted = true;
-				break;
-		}
-	}
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: text
+    Accessible.onPressAction: clicked({
+        button: Qt.LeftButton
+    })
 
-	MouseArea {
-		id: area
-		width: control.contentWidth + control.leftPadding + control.rightPadding
-		height: control.implicitHeight
-		x: {
-			switch (control.effectiveHorizontalAlignment) {
-				case Text.AlignLeft:
-				case Text.AlignJustify:
-					return 0;
-				case Text.AlignRight:
-					return control.width - width;
-				case Text.AlignHCenter:
-					return (control.width - width) / 2;
-			}
-		}
+    text: action?.text ?? ""
+    enabled: action?.enabled ?? true
 
-		hoverEnabled: true
-		cursorShape: Qt.PointingHandCursor
+    onClicked: action?.trigger()
 
-		onClicked: mouse => control.clicked(mouse)
-		onPressed: mouse => control.pressed(mouse)
-	}
+    color: if (!enabled) {
+        return control.disabledColor;
+    } else if (area.containsPress) {
+        return control.pressedColor;
+    } else {
+        return control.normalColor;
+    }
+
+    signal pressed(var mouse)
+    signal clicked(var mouse)
+
+    Keys.onPressed: event => {
+        switch (event.key) {
+        case Qt.Key_Space:
+        case Qt.Key_Enter:
+        case Qt.Key_Return:
+        case Qt.Key_Select:
+            control.clicked({
+                button: Qt.LeftButton
+            });
+            event.accepted = true;
+            break;
+        case Qt.Key_Menu:
+            control.pressed({
+                button: Qt.RightButton
+            });
+            event.accepted = true;
+            break;
+        }
+    }
+
+    MouseArea {
+        id: area
+        width: control.contentWidth + control.leftPadding + control.rightPadding
+        height: control.implicitHeight
+        x: {
+            switch (control.effectiveHorizontalAlignment) {
+            case Text.AlignLeft:
+            case Text.AlignJustify:
+                return 0;
+            case Text.AlignRight:
+                return control.width - width;
+            case Text.AlignHCenter:
+                return (control.width - width) / 2;
+            }
+        }
+
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+
+        onClicked: mouse => control.clicked(mouse)
+        onPressed: mouse => control.pressed(mouse)
+    }
 }

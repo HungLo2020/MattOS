@@ -1,17 +1,21 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <system_error>
+#include "mfdecodersourcereader_p.h"
+
+#include <decoder/mfdecodersourcereadercallback_p.h>
+
+#include <QtCore/qdebug.h>
+#include <QtCore/qlogging.h>
+
 #include <mfapi.h>
 #include <mferror.h>
-#include <qlogging.h>
-#include <qdebug.h>
-#include "mfdecodersourcereader_p.h"
-#include "mfdecodersourcereadercallback_p.h"
+
+#include <system_error>
 
 QT_BEGIN_NAMESPACE
 
-ComPtr<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, QAudioFormat::SampleFormat sampleFormat)
+ComPtr<IMFMediaType> MFDecoderSourceReader::setSource(const ComPtr<IMFMediaSource> &source, QAudioFormat::SampleFormat sampleFormat)
 {
     ComPtr<IMFMediaType> mediaType;
     m_sourceReader.Reset();
@@ -39,7 +43,7 @@ ComPtr<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, QA
     if (FAILED(attr->SetUINT32(MF_SOURCE_READER_DISCONNECT_MEDIASOURCE_ON_SHUTDOWN, TRUE)))
         return mediaType;
 
-    HRESULT hr = MFCreateSourceReaderFromMediaSource(source, attr.Get(), m_sourceReader.GetAddressOf());
+    HRESULT hr = MFCreateSourceReaderFromMediaSource(source.Get(), attr.Get(), m_sourceReader.GetAddressOf());
     if (FAILED(hr)) {
         qWarning() << "MFDecoderSourceReader: failed to set up source reader: "
                    << std::system_category().message(hr).c_str();

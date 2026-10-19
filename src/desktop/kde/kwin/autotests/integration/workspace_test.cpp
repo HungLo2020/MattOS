@@ -16,8 +16,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_workspace-0");
-
 class WorkspaceTest : public QObject
 {
     Q_OBJECT
@@ -42,7 +40,7 @@ private Q_SLOTS:
 
 void WorkspaceTest::initTestCase()
 {
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
 }
 
@@ -82,7 +80,7 @@ void WorkspaceTest::evacuateMappedWindowFromRemovedOutput()
     {
         OutputConfiguration config;
         config.changeSet(firstOutput->backendOutput())->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
     QCOMPARE(outputChangedSpy.count(), 1);
     QCOMPARE(window->output(), secondOutput);
@@ -112,7 +110,7 @@ void WorkspaceTest::evacuateUnmappedWindowFromRemovedOutput()
     {
         OutputConfiguration config;
         config.changeSet(firstOutput->backendOutput())->enabled = false;
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
     QCOMPARE(outputChangedSpy.count(), 1);
     QCOMPARE(window->output(), secondOutput);
@@ -278,7 +276,7 @@ void WorkspaceTest::disableActiveOutput()
         auto changeSet = config.changeSet(workspace()->activeOutput()->backendOutput());
         changeSet->enabled = false;
     }
-    workspace()->applyOutputConfiguration(config);
+    QVERIFY(workspace()->applyOutputConfiguration(config));
     QCOMPARE(workspace()->activeOutput(), secondOutput);
 }
 
@@ -300,7 +298,7 @@ void WorkspaceTest::activeOutputAfterActivateNextWindowOnOutputAdded()
             auto changeSet = config.changeSet(secondOutput);
             changeSet->enabled = false;
         }
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     std::unique_ptr<KWayland::Client::Surface> firstSurface(Test::createSurface());
@@ -322,7 +320,7 @@ void WorkspaceTest::activeOutputAfterActivateNextWindowOnOutputAdded()
             auto changeSet = config.changeSet(firstOutput);
             changeSet->enabled = true;
         }
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     QCOMPARE(workspace()->activeWindow(), firstWindow);
@@ -388,7 +386,7 @@ void WorkspaceTest::activeOutputAfterActivateNextWindowOnOutputRemoved()
             auto changeSet = config.changeSet(thirdOutput->backendOutput());
             changeSet->pos = QPoint(0, 0);
         }
-        workspace()->applyOutputConfiguration(config);
+        QVERIFY(workspace()->applyOutputConfiguration(config));
     }
 
     QCOMPARE(workspace()->activeWindow(), separateScreenFocus ? nullptr : secondWindow);

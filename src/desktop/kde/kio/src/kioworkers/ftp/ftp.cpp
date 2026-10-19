@@ -60,6 +60,11 @@ Q_LOGGING_CATEGORY(KIO_FTP, "kf.kio.workers.ftp", QtWarningMsg)
 #define charToLongLong(a) strtol(a, nullptr, 10)
 #endif
 
+// Fallback for operating systems where S_IFLNK is not defined
+#ifndef S_IFLNK
+#define S_IFLNK 0120000
+#endif
+
 static constexpr char s_ftpLogin[] = "anonymous";
 static constexpr char s_ftpPasswd[] = "anonymous@";
 
@@ -220,6 +225,7 @@ const char *FtpInternal::ftpResponse(int iOffset)
     const char *pTxt = m_lastControlLine.data();
 
     // read the next line ...
+    m_lastMultilineResponse.clear(); // clear for a new response
     if (iOffset < 0) {
         int iMore = 0;
         m_iRespCode = 0;
@@ -234,6 +240,7 @@ const char *FtpInternal::ftpResponse(int iOffset)
         do {
             while (!m_control->canReadLine() && m_control->waitForReadyRead((DEFAULT_READ_TIMEOUT * 1000))) { }
             m_lastControlLine = m_control->readLine();
+            m_lastMultilineResponse.append(QString::fromUtf8(m_lastControlLine).trimmed());
             pTxt = m_lastControlLine.data();
             int iCode = atoi(pTxt);
             if (iMore == 0) {
@@ -280,7 +287,7 @@ void FtpInternal::closeConnection()
     }
 
     if (m_bLoggedOn) { // send quit
-        if (!ftpSendCmd(QByteArrayLiteral("quit"), 0) || (m_iRespType != 2)) {
+        if (!ftpSendCmd(QByteArrayLiteral("QUIT"), 0) || (m_iRespType != 2)) {
             qCWarning(KIO_FTP) << "QUIT returned error: " << m_iRespCode;
         }
     }
@@ -682,6 +689,9 @@ Result FtpInternal::ftpLogin(bool *userChanged)
         qCWarning(KIO_FTP) << "SYST failed";
     }
 
+    // Query server features after successful login
+    ftpQueryFeatures();
+
     // Get the current working directory
     qCDebug(KIO_FTP) << "Searching for pwd";
     if (!ftpSendCmd(QByteArrayLiteral("PWD")) || (m_iRespType != 2)) {
@@ -702,6 +712,35 @@ Result FtpInternal::ftpLogin(bool *userChanged)
     }
 
     return Result::pass();
+}
+
+/*!
+ * ftpQueryFeatures - query and parse server features
+ */
+void FtpInternal::ftpQueryFeatures()
+{
+    m_mdtmSupported = false; // assume not supported until proven otherwise
+    m_mlsdSupported = false;
+
+    if (!ftpSendCmd(QByteArrayLiteral("FEAT"))) {
+        qCDebug(KIO_FTP) << "FEAT command failed, assuming no extended features.";
+        return;
+    }
+
+    if (m_iRespType != 2) {
+        qCDebug(KIO_FTP) << "FEAT command not supported or failed with response type" << m_iRespType;
+        return;
+    }
+
+    for (const QString &line : std::as_const(m_lastMultilineResponse)) {
+        if (line.trimmed().startsWith(QLatin1String("MDTM"), Qt::CaseInsensitive)) {
+            m_mdtmSupported = true;
+            qCDebug(KIO_FTP) << "Server supports MDTM.";
+        } else if (line.trimmed().startsWith(QLatin1String("MLST"), Qt::CaseInsensitive)) {
+            m_mlsdSupported = true;
+            qCDebug(KIO_FTP) << "Server supports MLSD/MLST.";
+        }
+    }
 }
 
 /*!
@@ -1017,7 +1056,7 @@ Result FtpInternal::ftpOpenCommand(const char *_command, const QString &_path, c
     if (_offset > 0) {
         // send rest command if offset > 0, this applies to retr and stor commands
         char buf[100];
-        sprintf(buf, "rest %lld", _offset);
+        sprintf(buf, "REST %lld", _offset);
         if (!ftpSendCmd(buf)) {
             return Result::fail();
         }
@@ -1034,10 +1073,10 @@ Result FtpInternal::ftpOpenCommand(const char *_command, const QString &_path, c
     }
 
     if (!ftpSendCmd(tmp) || (m_iRespType != 1)) {
-        if (_offset > 0 && qstrcmp(_command, "retr") == 0 && (m_iRespType == 4)) {
+        if (_offset > 0 && qstrcmp(_command, "RETR") == 0 && (m_iRespType == 4)) {
             errorcode = ERR_CANNOT_RESUME;
         }
-        if (qstrcmp(_command, "stor") == 0 && m_iRespCode == 550) {
+        if (qstrcmp(_command, "STOR") == 0 && m_iRespCode == 550) {
             errorcode = ERR_WRITE_ACCESS_DENIED;
             errormessage = _path;
         } else {
@@ -1048,7 +1087,7 @@ Result FtpInternal::ftpOpenCommand(const char *_command, const QString &_path, c
 
     else {
         // Only now we know for sure that we can resume
-        if (_offset > 0 && qstrcmp(_command, "retr") == 0) {
+        if (_offset > 0 && qstrcmp(_command, "RETR") == 0) {
             q->canResume();
         }
 
@@ -1105,7 +1144,7 @@ Result FtpInternal::mkdir(const QUrl &url, int permissions)
     const QByteArray encodedPath(q->remoteEncoding()->encode(url));
     const QString path = QString::fromLatin1(encodedPath.constData(), encodedPath.size());
 
-    if (!ftpSendCmd((QByteArrayLiteral("mkd ") + encodedPath)) || (m_iRespType != 2)) {
+    if (!ftpSendCmd((QByteArrayLiteral("MKD ") + encodedPath)) || (m_iRespType != 2)) {
         QString currentPath(m_currentPath);
 
         // Check whether or not mkdir failed because
@@ -1243,7 +1282,8 @@ void FtpInternal::ftpCreateUDSEntry(const QString &filename, const FtpEntry &ftp
 {
     Q_ASSERT(entry.count() == 0); // by contract :-)
 
-    entry.reserve(10);
+    entry.reserveStrings(5);
+    entry.reserveNumbers(5);
     entry.fastInsert(KIO::UDSEntry::UDS_NAME, filename);
     entry.fastInsert(KIO::UDSEntry::UDS_SIZE, ftpEnt.size);
     entry.fastInsert(KIO::UDSEntry::UDS_MODIFICATION_TIME, ftpEnt.date.toSecsSinceEpoch());
@@ -1279,7 +1319,8 @@ void FtpInternal::ftpShortStatAnswer(const QString &filename, bool isDir)
 {
     UDSEntry entry;
 
-    entry.reserve(4);
+    entry.reserveStrings(isDir ? 2 : 1);
+    entry.reserveNumbers(2);
     entry.fastInsert(KIO::UDSEntry::UDS_NAME, filename);
     entry.fastInsert(KIO::UDSEntry::UDS_FILE_TYPE, isDir ? S_IFDIR : S_IFREG);
     entry.fastInsert(KIO::UDSEntry::UDS_ACCESS, S_IRUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
@@ -1327,14 +1368,16 @@ Result FtpInternal::stat(const QUrl &url)
     // We can't stat root, but we know it's a dir.
     if (path.isEmpty() || path == QLatin1String("/")) {
         UDSEntry entry;
-        entry.reserve(6);
-        // entry.insert( KIO::UDSEntry::UDS_NAME, UDSField( QString() ) );
-        entry.fastInsert(KIO::UDSEntry::UDS_NAME, QStringLiteral("."));
-        entry.fastInsert(KIO::UDSEntry::UDS_FILE_TYPE, S_IFDIR);
-        entry.fastInsert(KIO::UDSEntry::UDS_MIME_TYPE, QStringLiteral("inode/directory"));
-        entry.fastInsert(KIO::UDSEntry::UDS_ACCESS, S_IRUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-        entry.fastInsert(KIO::UDSEntry::UDS_USER, QStringLiteral("root"));
-        entry.fastInsert(KIO::UDSEntry::UDS_GROUP, QStringLiteral("root"));
+        entry.insert({
+            {KIO::UDSEntry::UDS_NAME, QStringLiteral(".")},
+            {KIO::UDSEntry::UDS_MIME_TYPE, QStringLiteral("inode/directory")},
+            {KIO::UDSEntry::UDS_USER, QStringLiteral("root")},
+            {KIO::UDSEntry::UDS_GROUP, QStringLiteral("root")},
+        });
+        entry.insert({
+            {KIO::UDSEntry::UDS_FILE_TYPE, S_IFDIR},
+            {KIO::UDSEntry::UDS_ACCESS, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH},
+        });
         // no size
 
         q->statEntry(entry);
@@ -1389,7 +1432,7 @@ Result FtpInternal::stat(const QUrl &url)
         return Result::fail(ERR_CANNOT_ENTER_DIRECTORY, parentDir);
     }
 
-    result = ftpOpenCommand("list", listarg, 'I', ERR_DOES_NOT_EXIST);
+    result = ftpOpenCommand("LIST", listarg, 'I', ERR_DOES_NOT_EXIST);
     if (!result.success()) {
         qCritical() << "COULD NOT LIST";
         return result;
@@ -1445,6 +1488,12 @@ Result FtpInternal::stat(const QUrl &url)
 bool FtpInternal::maybeEmitStatEntry(FtpEntry &ftpEnt, const QString &filename, bool isDir)
 {
     if (filename == ftpEnt.name && !filename.isEmpty()) {
+        if (m_mdtmSupported && !isDir) { // try MDTM only for files if the server advertises support for it
+            const QDateTime precise = ftpMdtm(filename);
+            if (precise.isValid()) {
+                ftpEnt.date = precise;
+            }
+        }
         UDSEntry entry;
         ftpCreateUDSEntry(filename, ftpEnt, entry, isDir);
         q->statEntry(entry);
@@ -1497,6 +1546,9 @@ Result FtpInternal::listDir(const QUrl &url)
     UDSEntry entry;
     FtpEntry ftpEnt;
     QList<FtpEntry> ftpValidateEntList;
+
+    bool hasDot = false;
+
     while (ftpReadDir(ftpEnt)) {
         qCDebug(KIO_FTP) << ftpEnt.name;
         // Q_ASSERT( !ftpEnt.name.isEmpty() );
@@ -1504,6 +1556,11 @@ Result FtpInternal::listDir(const QUrl &url)
             if (ftpEnt.name.at(0).isSpace()) {
                 ftpValidateEntList.append(ftpEnt);
                 continue;
+            }
+
+            // track presence of "."
+            if (ftpEnt.name == QLatin1String(".")) {
+                hasDot = true;
             }
 
             // if ( S_ISDIR( (mode_t)ftpEnt.type ) )
@@ -1514,6 +1571,16 @@ Result FtpInternal::listDir(const QUrl &url)
             q->listEntry(entry);
             entry.clear();
         }
+    }
+
+    // inject dot entry if it is missing
+    if (!hasDot) {
+        entry.fastInsert(KIO::UDSEntry::UDS_NAME, QStringLiteral("."));
+        entry.fastInsert(KIO::UDSEntry::UDS_FILE_TYPE, S_IFDIR);
+        entry.fastInsert(KIO::UDSEntry::UDS_ACCESS, 0755);
+        entry.fastInsert(KIO::UDSEntry::UDS_USER, m_user.isEmpty() ? QStringLiteral("anonymous") : m_user);
+        q->listEntry(entry);
+        entry.clear();
     }
 
     for (int i = 0, count = ftpValidateEntList.count(); i < count; ++i) {
@@ -1541,6 +1608,12 @@ Result FtpInternal::ftpOpenDir(const QString &path)
         return Result::fail();
     }
 
+    auto result = Result::fail();
+
+    if (m_mlsdSupported) {
+        result = ftpOpenCommand("MLSD", QString(), 'I', KJob::NoError);
+    }
+
     // Don't use the path in the list command:
     // We changed into this directory anyway - so it's enough just to send "list".
     // We use '-a' because the application MAY be interested in dot files.
@@ -1549,14 +1622,12 @@ Result FtpInternal::ftpOpenDir(const QString &path)
     // In fact we have to use -la otherwise -a removes the default -l (e.g. ftp.trolltech.com)
     // Pass KJob::NoError first because we don't want to emit error before we
     // have tried all commands.
-    auto result = ftpOpenCommand("list -la", QString(), 'I', KJob::NoError);
     if (!result.success()) {
-        result = ftpOpenCommand("list", QString(), 'I', KJob::NoError);
+        result = ftpOpenCommand("LIST -la", QString(), 'I', KJob::NoError);
     }
+
     if (!result.success()) {
-        // Servers running with Turkish locale having problems converting 'i' letter to upper case.
-        // So we send correct upper case command as last resort.
-        result = ftpOpenCommand("LIST -la", QString(), 'I', ERR_CANNOT_ENTER_DIRECTORY);
+        result = ftpOpenCommand("LIST", QString(), 'I', ERR_CANNOT_ENTER_DIRECTORY);
     }
 
     if (!result.success()) {
@@ -1582,6 +1653,69 @@ bool FtpInternal::ftpReadDir(FtpEntry &de)
 
         const char *buffer = data.data();
         qCDebug(KIO_FTP) << "dir > " << buffer;
+
+        if (m_mlsdSupported) {
+            // MLSD format: fact=value;fact=value; filename
+            // Example: Type=file;Size=123;Modify=20260826123000; my file.txt
+            QString line = QString::fromUtf8(data).trimmed();
+            int spaceIdx = line.indexOf(QLatin1Char(' '));
+            if (spaceIdx == -1)
+                continue;
+
+            QString factsPart = line.left(spaceIdx);
+            de.name = line.mid(spaceIdx + 1);
+            if (de.name == QLatin1String(".") || de.name == QLatin1String(".."))
+                continue;
+
+            de.type = S_IFREG;
+            de.size = 0;
+            de.access = S_IRUSR | S_IRGRP | S_IROTH; // Default readable
+
+            int start = 0;
+            while (start < factsPart.length()) {
+                int end = factsPart.indexOf(QLatin1Char(';'), start);
+                if (end == -1)
+                    end = factsPart.length();
+
+                int eqIdx = factsPart.indexOf(QLatin1Char('='), start);
+                if (eqIdx != -1 && eqIdx < end) {
+                    QString name = factsPart.mid(start, eqIdx - start).toLower();
+                    QString value = factsPart.mid(eqIdx + 1, end - eqIdx - 1);
+
+                    if (name == QLatin1String("type")) {
+                        if (value.startsWith(QLatin1String("dir"), Qt::CaseInsensitive)) {
+                            de.type = S_IFDIR;
+                        } else if (value.startsWith(QLatin1String("OS.unix=slink"), Qt::CaseInsensitive)) {
+                            de.type = S_IFLNK;
+
+                            // Check for target attached after colon (e.g., "OS.unix=slink:/usr/local/...")
+                            int colonPos = value.indexOf(QLatin1Char(':'));
+                            if (colonPos != -1 && colonPos + 1 < value.length()) {
+                                de.link = value.mid(colonPos + 1);
+                            }
+                        }
+                    } else if (name == QLatin1String("size")) {
+                        de.size = value.toLongLong();
+                    } else if (name == QLatin1String("modify")) {
+                        // Format: YYYYMMDDHHMMSS[.sss]
+                        de.date = QDateTime::fromString(value.left(14), QStringLiteral("yyyyMMddHHmmss"));
+                        de.date.setTimeZone(QTimeZone("UTC"));
+                    } else if (name == QLatin1String("unix.mode")) {
+                        bool ok;
+                        uint mode = value.toUInt(&ok, 8);
+                        if (ok)
+                            de.access = mode;
+                    } else if (name == QLatin1String("unix.owner")) {
+                        de.owner = value;
+                    } else if (name == QLatin1String("unix.group")) {
+                        de.group = value;
+                    }
+                }
+
+                start = end + 1;
+            }
+            return true;
+        }
 
         // Normally the listing looks like
         // -rw-r--r--   1 dfaure   dfaure        102 Nov  9 12:30 log
@@ -1846,7 +1980,7 @@ Result FtpInternal::ftpGet(int iCopyFile, const QString &sCopyFile, const QUrl &
         qCDebug(KIO_FTP) << "got offset from metadata : " << llOffset;
     }
 
-    result = ftpOpenCommand("retr", url.path(), '?', ERR_CANNOT_OPEN_FOR_READING, llOffset);
+    result = ftpOpenCommand("RETR", url.path(), '?', ERR_CANNOT_OPEN_FOR_READING, llOffset);
     if (!result.success()) {
         qCWarning(KIO_FTP) << "Can't open for reading";
         return result;
@@ -2036,7 +2170,7 @@ Result FtpInternal::ftpPut(int iCopyFile, const QUrl &dest_url, int permissions,
         }
     }
 
-    const auto storResult = ftpOpenCommand("stor", dest, '?', ERR_CANNOT_WRITE, offset);
+    const auto storResult = ftpOpenCommand("STOR", dest, '?', ERR_CANNOT_WRITE, offset);
     if (!storResult.success()) {
         return storResult;
     }
@@ -2144,6 +2278,25 @@ bool FtpInternal::ftpSize(const QString &path, char mode)
     return true;
 }
 
+QDateTime FtpInternal::ftpMdtm(const QString &path)
+{
+    const QByteArray buf = "MDTM " + q->remoteEncoding()->encode(path);
+    if (!ftpSendCmd(buf) || (m_iRespType != 2)) {
+        return QDateTime();
+    }
+
+    const char *psz = ftpResponse(4);
+    if (!psz || !*psz) {
+        return QDateTime();
+    }
+
+    QDateTime dt = QDateTime::fromString(QString::fromLatin1(psz).trimmed().left(14), QStringLiteral("yyyyMMddHHmmss"));
+    if (dt.isValid()) {
+        dt.setTimeZone(QTimeZone("UTC"));
+    }
+    return dt;
+}
+
 bool FtpInternal::ftpFileExists(const QString &path)
 {
     const QByteArray buf = "SIZE " + q->remoteEncoding()->encode(path);
@@ -2199,7 +2352,7 @@ bool FtpInternal::ftpFolder(const QString &path)
         return true;
     }
 
-    const QByteArray tmp = "cwd " + q->remoteEncoding()->encode(newPath);
+    const QByteArray tmp = "CWD " + q->remoteEncoding()->encode(newPath);
     if (!ftpSendCmd(tmp)) {
         return false; // connection failure
     }

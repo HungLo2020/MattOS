@@ -4,12 +4,12 @@
 # version 3 or later versions approved by the membership of KDE e.V.
 #
 # SPDX-FileCopyrightText: 2014 Antoni Bella Pérez <antonibella5@yahoo.com>
-# SPDX-FileCopyrightText: 2015, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2015, 2019-2025 Josep M. Ferrer <txemaq@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-10 02:38+0000\n"
+"POT-Creation-Date: 2026-03-03 00:49+0000\n"
 "PO-Revision-Date: 2025-11-28 14:15+0100\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 msgid "General"
 msgstr "General"
 
-#: ConfigGeneral.qml:119
+#: ConfigGeneral.qml:120
 #, kde-format
 msgid "Unavailable"
 msgstr "No disponible"

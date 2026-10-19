@@ -173,7 +173,7 @@ void tst_HoverHandler::mouseAreaAndUnderlyingHoverHandler()
 
     // Ensure that we don't get extra hover events delivered on the
     // side, since it can affect the number of hover move events we receive below.
-    QQuickWindowPrivate::get(window)->deliveryAgentPrivate()->frameSynchronousHoverEnabled = false;
+    QQuickWindowPrivate::get(window)->deliveryAgentPrivate()->frameSynchronousHoverInterval = -1;
     // And flush out any mouse events that might be queued up
     // in QPA, since QTest::mouseMove() calls processEvents.
     qGuiApp->processEvents();
@@ -385,6 +385,7 @@ void tst_HoverHandler::movingItemWithHoverHandler()
     QScopedPointer<QQuickView> windowPtr;
     createView(windowPtr, "lesHoverables.qml");
     QQuickView * window = windowPtr.data();
+    auto daPrivate = QQuickWindowPrivate::get(window)->deliveryAgentPrivate();
     QQuickItem * paddle = window->rootObject()->findChild<QQuickItem *>("paddle");
     QVERIFY(paddle);
     QQuickHoverHandler *paddleHH = paddle->findChild<QQuickHoverHandler *>("paddleHH");
@@ -428,6 +429,9 @@ void tst_HoverHandler::movingItemWithHoverHandler()
     QCOMPARE_LE(deliveryTargets.size(), targetsCount);
 
     paddle->setX(p.x() - paddle->width() / 2);
+    QVERIFY(QTest::qWaitFor([daPrivate, window, paddleHH]() {
+        daPrivate->flushFrameSynchronousEvents(window);
+        return paddleHH->isHovered(); }));
     QTRY_COMPARE(paddleHH->isHovered(), true);
     QCOMPARE_LE(deliveryTargets.size(), targetsCount);
 
@@ -536,7 +540,7 @@ void tst_HoverHandler::deviceCursor()
     QQuickView window;
     QVERIFY(QQuickTest::showView(window, testFileUrl("hoverDeviceCursors.qml")));
     // Ensure that we don't get extra hover events delivered on the side
-    QQuickWindowPrivate::get(&window)->deliveryAgentPrivate()->frameSynchronousHoverEnabled = false;
+    QQuickWindowPrivate::get(&window)->deliveryAgentPrivate()->frameSynchronousHoverInterval = -1;
     // And flush out any mouse events that might be queued up in QPA, since QTest::mouseMove() calls processEvents.
     qGuiApp->processEvents();
     const QQuickItem *root = window.rootObject();
@@ -767,6 +771,10 @@ void tst_HoverHandler::touchDrag()
     QVERIFY(handler);
 
     // polishAndSync() calls flushFrameSynchronousEvents() before emitting afterAnimating()
+    // Set frame-sync hover interval to 0 so hover is delivered every frame.
+    // This avoids any delayed setting of the hover state due to the default
+    // 100ms interval.
+    QQuickWindowPrivate::get(&window)->deliveryAgentPrivate()->frameSynchronousHoverInterval = 0;
     QSignalSpy frameSyncSpy(&window, &QQuickWindow::afterAnimating);
 
     const QPoint out(root->width() - 1, root->height() / 2);
@@ -793,7 +801,7 @@ void tst_HoverHandler::touchDrag()
     QTest::touchEvent(&window, touchscreen.get()).move(0, out, &window);
     QQuickTouchUtils::flush(&window);
     QTRY_COMPARE_GE(frameSyncSpy.size(), 2);
-    QCOMPARE(handler->isHovered(), false);
+    QTRY_COMPARE(handler->isHovered(), false);
 
     QTest::touchEvent(&window, touchscreen.get()).release(0, out, &window);
 }
@@ -876,7 +884,7 @@ void tst_HoverHandler::effectivelyClips_data()
                                      << true << true << false   << false << true << false << Qt::UpArrowCursor;
 }
 
-void tst_HoverHandler::effectivelyClips() // QTBUG-140340
+void tst_HoverHandler::effectivelyClips() // QTBUG-140340 and QTBUG-136976
 {
     QFETCH(QPoint, cursorPos);
     QFETCH(QPoint, goatPos);
@@ -902,6 +910,7 @@ void tst_HoverHandler::effectivelyClips() // QTBUG-140340
     QQuickView window;
     QVERIFY(QQuickTest::showView(window, testFileUrl("goat.qml")));
     QSignalSpy renderSpy(&window, &QQuickWindow::afterRendering);
+    auto daPrivate = QQuickWindowPrivate::get(&window)->deliveryAgentPrivate();
     QQuickItem *root = window.rootObject();
     QQuickItemPrivate *rootPrivate = QQuickItemPrivate::get(root);
     QQuickHoverHandler *shadowHandler = root->findChild<QQuickHoverHandler *>("shadow");
@@ -915,6 +924,13 @@ void tst_HoverHandler::effectivelyClips() // QTBUG-140340
     QVERIFY(goatHandler);
     QQuickHoverHandler *pupilHandler = root->findChild<QQuickHoverHandler *>("pupil");
     QVERIFY(pupilHandler);
+
+    // check the default hover interval
+    QCOMPARE(daPrivate->frameSynchronousHoverInterval, 100);
+    // We will simulate a periodic animation rather than letting a QML animation run,
+    // and we will check the hover and cursor results after _each_ step,
+    // so we don't want to wait for frameSynchronousHoverTimer.
+    daPrivate->frameSynchronousHoverInterval = 0; // zero-wait hover delivery
 
     // nothing poking out, so far
     QVERIFY(rootPrivate->effectivelyClipsEventHandlingChildren());
@@ -957,11 +973,13 @@ void tst_HoverHandler::effectivelyClips() // QTBUG-140340
 
     // fake an animation by changing properties back and forth, watch hover and cursor changes
     for (int i = 0; i < 10; ++i) {
-        int renderCount = renderSpy.size();
+        const int renderCount = renderSpy.size();
+        auto frameSyncCount = daPrivate->frameSynchronousHover_counter;
         if (i % 2) {
             goat->setPosition({});
             goat->setScale(1);
             goat->setRotation(0);
+            QTRY_COMPARE_GT(daPrivate->frameSynchronousHover_counter, frameSyncCount);
             QTRY_COMPARE_GT(renderSpy.size(), renderCount);
             if (cursorSet)
                 checkPupilHovered();
@@ -975,6 +993,7 @@ void tst_HoverHandler::effectivelyClips() // QTBUG-140340
             goat->setPosition(goatPos);
             goat->setScale(scale);
             goat->setRotation(rotation);
+            QTRY_COMPARE_GT(daPrivate->frameSynchronousHover_counter, frameSyncCount);
             QTRY_COMPARE_GT(renderSpy.size(), renderCount);
             QCOMPARE(shadowPrivate->effectivelyClipsEventHandlingChildren(), expectShadowContainsChildren);
             qCDebug(lcPointerTests) << "step" << i << ": item contains children:"
@@ -997,14 +1016,14 @@ void tst_HoverHandler::effectivelyClips() // QTBUG-140340
         << QQuickItemPrivate::windowToItemTransform_counter
         << QQuickItemPrivate::effectiveClippingSkips_counter;
     // Example counts:
-    // 6 231 127 27 10
-    // 6 157 55 9 10
-    // 6 237 135 29 10
+    // 6 321 135 27 18
+    // 6 257 65 9 20
+    // 6 337 145 29 20
 
     // Check that we didn't call the transform functions exceessively often
     // (these numbers can be adjusted if we do something that causes a moderate increase,
     // but try to avoid really pessimizing it again)
-    QCOMPARE_LT(QQuickItemPrivate::itemToParentTransform_counter, 280ull);
+    QCOMPARE_LT(QQuickItemPrivate::itemToParentTransform_counter, 360ull);
     QCOMPARE_LT(QQuickItemPrivate::itemToWindowTransform_counter, 160ull);
     QCOMPARE_LT(QQuickItemPrivate::windowToItemTransform_counter, 36ull);
     // Check that we were able to skip hover delivery to some items because

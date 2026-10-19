@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(ECM @KF_DEP_VERSION@)
+
+include("${CMAKE_CURRENT_LIST_DIR}/cxx-rust-cssparserTargets.cmake")
+
+@PACKAGE_INCLUDE_QCHTARGETS@

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-12-25 00:45+0000\n"
+"POT-Creation-Date: 2026-07-08 00:46+0000\n"
 "PO-Revision-Date: 2026-04-26 20:54+0200\n"
 "Last-Translator: Shinjo Park <kde@peremen.name>\n"
 "Language-Team: Korean <kde-kr@kde.org>\n"
@@ -17,20 +17,15 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Lokalize 25.08.1\n"
 
-#: openvpn.cpp:182
+#: openvpn.cpp:61 openvpn.cpp:106
 #, kde-format
 msgid "NetworkManager is missing support for OpenVPN"
 msgstr "NetworkManager에서 OpenVPN을 지원하지 않음"
 
-#: openvpn.cpp:207
+#: openvpn.cpp:99
 #, kde-format
-msgid "Error saving file %1: %2"
-msgstr "파일 %1 저장 오류: %2"
-
-#: openvpn.cpp:235
-#, kde-format
-msgid "Error copying certificate to %1: %2"
-msgstr "인증서를 %1(으)로 복사 중 오류: %2"
+msgid "An unexpected error has occurred"
+msgstr "예상하지 못한 오류가 발생했습니다"
 
 #. i18n: ectx: property (text), widget (QLabel, textLabel3)
 #: openvpn.ui:19
@@ -162,7 +157,7 @@ msgstr "정적 키 암호화 모드에서 사용하는 사전 공유 파일입�
 
 #. i18n: ectx: property (text), widget (QLabel, label_16)
 #. i18n: ectx: property (text), widget (QLabel, textLabel1)
-#: openvpn.ui:242 openvpnadvanced.ui:925
+#: openvpn.ui:242 openvpnadvanced.ui:1152
 #, kde-format
 msgid "Key Direction:"
 msgstr "키 방향:"
@@ -298,7 +293,7 @@ msgstr "사용자 정의 게이트웨이 포트 사용:"
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, sbCustomPort)
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, sbMtu)
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, sbCustomFragmentSize)
-#: openvpnadvanced.ui:52 openvpnadvanced.ui:243 openvpnadvanced.ui:279
+#: openvpnadvanced.ui:52 openvpnadvanced.ui:263 openvpnadvanced.ui:299
 #, kde-format
 msgctxt "like in use Automatic configuration"
 msgid "Automatic"
@@ -319,94 +314,101 @@ msgstr "사용자 정의 재협상 간격 사용:"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkUseCompression)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cmbUseCompression)
-#: openvpnadvanced.ui:96 openvpnadvanced.ui:109
+#: openvpnadvanced.ui:102 openvpnadvanced.ui:115
 #, kde-format
 msgid "Use compression."
 msgstr "압축을 사용합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkUseCompression)
-#: openvpnadvanced.ui:99
+#: openvpnadvanced.ui:105
 #, kde-format
 msgid "Use compression"
 msgstr "압축 사용"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbUseCompression)
-#: openvpnadvanced.ui:113
+#. i18n: ectx: property (text), item, widget (QComboBox, cmbMtuDisc)
+#: openvpnadvanced.ui:119 openvpnadvanced.ui:340
 #, kde-format
 msgid "No"
 msgstr "아니요"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbUseCompression)
-#: openvpnadvanced.ui:118
+#: openvpnadvanced.ui:124
 #, kde-format
 msgid "LZO"
 msgstr "LZO"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbUseCompression)
-#: openvpnadvanced.ui:123
+#: openvpnadvanced.ui:129
 #, kde-format
 msgid "LZ4"
 msgstr "LZ4"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbUseCompression)
-#: openvpnadvanced.ui:128
+#: openvpnadvanced.ui:134
 #, kde-format
 msgid "LZ4 v2"
 msgstr "LZ4 v2"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbUseCompression)
-#: openvpnadvanced.ui:133
+#: openvpnadvanced.ui:139
 #, kde-format
 msgid "Adaptive"
 msgstr "적응형"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbUseCompression)
 #. i18n: ectx: property (placeholderText), widget (QLineEdit, leVirtualDeviceName)
-#: openvpnadvanced.ui:138 openvpnadvanced.ui:216
+#: openvpnadvanced.ui:144 openvpnadvanced.ui:236
 #, kde-format
 msgid "Automatic"
 msgstr "자동"
 
+#. i18n: ectx: property (text), widget (QCheckBox, chkUseAsymCompression)
+#: openvpnadvanced.ui:159
+#, kde-format
+msgid "Use asymetric compression"
+msgstr "비대칭 압축 사용"
+
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkUseTCP)
-#: openvpnadvanced.ui:148
+#: openvpnadvanced.ui:168
 #, kde-format
 msgid "Use TCP for communicating with remote host."
 msgstr "원격 호스트와 통신할 때 TCP를 사용합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkUseTCP)
-#: openvpnadvanced.ui:151
+#: openvpnadvanced.ui:171
 #, kde-format
 msgid "Use a TCP connection"
 msgstr "TCP 연결 사용"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkUseVirtualDeviceType)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cmbDeviceType)
-#: openvpnadvanced.ui:160 openvpnadvanced.ui:173
+#: openvpnadvanced.ui:180 openvpnadvanced.ui:193
 #, kde-format
 msgid "Explicitly set virtual device type (TUN/TAP)."
 msgstr "가상 장치 종류를 명시적으로 설정합니다(TUN/TAP)."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkUseVirtualDeviceType)
-#: openvpnadvanced.ui:163
+#: openvpnadvanced.ui:183
 #, kde-format
 msgid "Set virtual device type:"
 msgstr "가상 장치 종류 설정:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbDeviceType)
-#: openvpnadvanced.ui:177
+#: openvpnadvanced.ui:197
 #, kde-format
 msgid "TUN"
 msgstr "TUN"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbDeviceType)
-#: openvpnadvanced.ui:182
+#: openvpnadvanced.ui:202
 #, kde-format
 msgid "TAP"
 msgstr "TAP"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkUseVirtualDeviceName)
 #. i18n: ectx: property (toolTip), widget (QLineEdit, leVirtualDeviceName)
-#: openvpnadvanced.ui:194 openvpnadvanced.ui:213
+#: openvpnadvanced.ui:214 openvpnadvanced.ui:233
 #, kde-format
 msgid ""
 "Use custom name for TUN/TAP virtual device (instead of default \"tun\" or "
@@ -416,14 +418,14 @@ msgstr ""
 "용)"
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkUseVirtualDeviceName)
-#: openvpnadvanced.ui:197
+#: openvpnadvanced.ui:217
 #, kde-format
 msgid "Set virtual device name:"
 msgstr "가상 장치 이름 설정:"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkMtu)
 #. i18n: ectx: property (toolTip), widget (QSpinBox, sbMtu)
-#: openvpnadvanced.ui:227 openvpnadvanced.ui:240
+#: openvpnadvanced.ui:247 openvpnadvanced.ui:260
 #, kde-format
 msgid ""
 "Take the TUN device MTU to be specified value and derive the link MTU from "
@@ -431,38 +433,62 @@ msgid ""
 msgstr "TUN 장치의 MTU를 지정한 값으로 설정하고 링크 MTU 값을 계산합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkMtu)
-#: openvpnadvanced.ui:230
+#: openvpnadvanced.ui:250
 #, kde-format
 msgid "Use custom tunnel Maximum Transmission Unit (MTU):"
 msgstr "사용자 정의 터널 최대 전송 단위(MTU) 사용:"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkCustomFragmentSize)
 #. i18n: ectx: property (toolTip), widget (QSpinBox, sbCustomFragmentSize)
-#: openvpnadvanced.ui:263 openvpnadvanced.ui:276
+#: openvpnadvanced.ui:283 openvpnadvanced.ui:296
 #, kde-format
 msgid "Enable internal datagram fragmentation with this maximum size."
 msgstr "내부에서 사용할 데이터그램 조각 최대 크기를 설정합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkCustomFragmentSize)
-#: openvpnadvanced.ui:266
+#: openvpnadvanced.ui:286
 #, kde-format
 msgid "Use custom UDP fragment size:"
 msgstr "사용자 정의 UDP 프래그먼트 크기:"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkMssRestrict)
-#: openvpnadvanced.ui:294
+#: openvpnadvanced.ui:314
 #, kde-format
 msgid "Restrict tunnel TCP maximum segment size."
 msgstr "터널 내 TCP 최대 세그먼트 크기(MSS)를 제한합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkMssRestrict)
-#: openvpnadvanced.ui:297
+#: openvpnadvanced.ui:317
 #, kde-format
 msgid "Restrict TCP maximum segment size (MSS)"
 msgstr "TCP 최대 세그먼트 크기 제한(MSS)"
 
+#. i18n: ectx: property (toolTip), widget (QCheckBox, chkMtuDisc)
+#: openvpnadvanced.ui:326
+#, kde-format
+msgid "Control Path MTU discovery behavior."
+msgstr "경로 MTU 발견 행동을 지정합니다."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkMtuDisc)
+#: openvpnadvanced.ui:329
+#, kde-format
+msgid "Specify Path MTU discovery:"
+msgstr "경로 MTU 발견 지정:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, cmbMtuDisc)
+#: openvpnadvanced.ui:345
+#, kde-format
+msgid "Maybe"
+msgstr "아마도"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, cmbMtuDisc)
+#: openvpnadvanced.ui:350
+#, kde-format
+msgid "Yes"
+msgstr "예"
+
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkRandRemHosts)
-#: openvpnadvanced.ui:305
+#: openvpnadvanced.ui:361
 #, kde-format
 msgid ""
 "Randomize the order of gateways list (remote) as a kind of basic load-\n"
@@ -472,26 +498,83 @@ msgstr ""
 "사용합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkRandRemHosts)
-#: openvpnadvanced.ui:308
+#: openvpnadvanced.ui:364
 #, kde-format
 msgid "Randomize remote hosts"
 msgstr "원격 호스트 난독화"
 
+#. i18n: ectx: property (text), widget (QCheckBox, chkRandRemHostname)
+#: openvpnadvanced.ui:371
+#, kde-format
+msgid "Prefix remote DNS name with random string"
+msgstr "원격 DNS 이름 앞에 무작위 문자열 덧붙이기"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, lblConnectTimeout)
+#. i18n: ectx: property (toolTip), widget (QSpinBox, sbConnectTimeout)
+#: openvpnadvanced.ui:380 openvpnadvanced.ui:396
+#, kde-format
+msgid "Time in seconds to wait for the initial connection before failing."
+msgstr "초기 연결이 실패한 것으로 간주할 때까지 기다릴 초 단위 시간입니다."
+
+#. i18n: ectx: property (text), widget (QLabel, lblConnectTimeout)
+#: openvpnadvanced.ui:383
+#, kde-format
+msgid "Connect timeout:"
+msgstr "연결 시간 제한:"
+
+#. i18n: ectx: property (specialValueText), widget (QSpinBox, sbConnectTimeout)
+#. i18n: ectx: property (text), item, widget (QComboBox, cboTLSMode)
+#: openvpnadvanced.ui:399 openvpnadvanced.ui:1075
+#, kde-format
+msgid "None"
+msgstr "없음"
+
+#. i18n: short for seconds
+#. i18n: ectx: property (suffix), widget (QSpinBox, sbConnectTimeout)
+#: openvpnadvanced.ui:402
+#, kde-format
+msgid "s"
+msgstr "초"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, chkAllowPullFqdn)
+#: openvpnadvanced.ui:420
+#, kde-format
+msgid "Allow pulling of peer DNS names (FQDN) sent by the server."
+msgstr "서버에서 전송한 피어 DNS 이름(FQDN) 풀을 허용합니다."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkAllowPullFqdn)
+#: openvpnadvanced.ui:423
+#, kde-format
+msgid "Allow pull of peer DNS names (FQDN)"
+msgstr "피어 DNS 이름(FQDN) 풀 허용"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, chkPushPeerInfo)
+#: openvpnadvanced.ui:430
+#, kde-format
+msgid "Push client information to the server for diagnostics."
+msgstr "진단을 위해서 클라이언트 정보를 서버로 푸시합니다."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkPushPeerInfo)
+#: openvpnadvanced.ui:433
+#, kde-format
+msgid "push peer info"
+msgstr "피어 정보 푸시"
+
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkIpv6TunLink)
-#: openvpnadvanced.ui:315
+#: openvpnadvanced.ui:440
 #, kde-format
 msgid "Build a tun link capable of forwarding IPv6 traffic."
 msgstr "IPv6 트래픽을 전달할 수 있는 TUN 링크를 만듭니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkIpv6TunLink)
-#: openvpnadvanced.ui:318
+#: openvpnadvanced.ui:443
 #, kde-format
 msgid "IPv6 tun link"
 msgstr "IPv6 TUN 링크"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkPingInterval)
 #. i18n: ectx: property (toolTip), widget (QSpinBox, sbPingInterval)
-#: openvpnadvanced.ui:327 openvpnadvanced.ui:340
+#: openvpnadvanced.ui:452 openvpnadvanced.ui:465
 #, kde-format
 msgid ""
 "Ping remote over the TCP/UDP control channel if no packets have been sent "
@@ -500,7 +583,7 @@ msgstr ""
 "최소한 n초 동안 전송된 패킷이 없을 때 원격 TCP/UDP 채널로 핑을 보냅니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkPingInterval)
-#: openvpnadvanced.ui:330
+#: openvpnadvanced.ui:455
 #, kde-format
 msgid "Specify ping interval:"
 msgstr "핑 간격 지정:"
@@ -508,7 +591,7 @@ msgstr "핑 간격 지정:"
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkSpecifyExitRestartPing)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cbSpecifyExitRestartPing)
 #. i18n: ectx: property (toolTip), widget (QSpinBox, sbSpecifyExitRestartPing)
-#: openvpnadvanced.ui:360 openvpnadvanced.ui:373 openvpnadvanced.ui:393
+#: openvpnadvanced.ui:485 openvpnadvanced.ui:498 openvpnadvanced.ui:518
 #, kde-format
 msgid ""
 "Exit or restart after n seconds pass without reception of a ping or other "
@@ -518,25 +601,25 @@ msgstr ""
 "합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkSpecifyExitRestartPing)
-#: openvpnadvanced.ui:363
+#: openvpnadvanced.ui:488
 #, kde-format
 msgid "Specify exit or restart ping:"
 msgstr "종료 및 재시작 핑 지정:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbSpecifyExitRestartPing)
-#: openvpnadvanced.ui:377
+#: openvpnadvanced.ui:502
 #, kde-format
 msgid "ping-exit"
 msgstr "ping-exit"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbSpecifyExitRestartPing)
-#: openvpnadvanced.ui:382
+#: openvpnadvanced.ui:507
 #, kde-format
 msgid "ping-restart"
 msgstr "ping-restart"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkAcceptAuthenticatedPackets)
-#: openvpnadvanced.ui:420
+#: openvpnadvanced.ui:545
 #, kde-format
 msgid ""
 "Allow remote peer to change its IP address and/or port number such as due "
@@ -570,33 +653,33 @@ msgstr ""
 "임의 주소에서 오는 인증된 패킷을 허용하도록 설정합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkAcceptAuthenticatedPackets)
-#: openvpnadvanced.ui:423
+#: openvpnadvanced.ui:548
 #, kde-format
 msgid "Accept authenticated packets from any address (Float)"
 msgstr "임의의 주소에서 오는 인증된 패킷 허용(Float)"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkMaxRoutes)
 #. i18n: ectx: property (toolTip), widget (QSpinBox, sbMaxRoutes)
-#: openvpnadvanced.ui:432 openvpnadvanced.ui:445
+#: openvpnadvanced.ui:557 openvpnadvanced.ui:570
 #, kde-format
 msgid "Specify the maximum number of routes the server is allowed to specify."
 msgstr "서버에서 지정할 수 있는 최대 경로 개수를 지정합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkMaxRoutes)
-#: openvpnadvanced.ui:435
+#: openvpnadvanced.ui:560
 #, kde-format
 msgid "Specify max routes:"
 msgstr "최대 경로 수 지정:"
 
 #. i18n: ectx: attribute (title), widget (QWidget, securityTab)
-#: openvpnadvanced.ui:474
+#: openvpnadvanced.ui:599
 #, kde-format
 msgid "Security"
 msgstr "보안"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, label_3)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cboCipher)
-#: openvpnadvanced.ui:483 openvpnadvanced.ui:509
+#: openvpnadvanced.ui:608 openvpnadvanced.ui:634
 #, kde-format
 msgid ""
 "Encrypt packets with cipher algorithm. The default is BF-CBC (Blowfish in "
@@ -605,20 +688,59 @@ msgid ""
 msgstr "패킷을 암호화합니다. 기본 암호화 알고리즘은 BF-CBC입니다."
 
 #. i18n: ectx: property (text), widget (QLabel, label_3)
-#: openvpnadvanced.ui:486
+#: openvpnadvanced.ui:611
 #, kde-format
 msgid "Cipher:"
 msgstr "암호화:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboCipher)
-#: openvpnadvanced.ui:513
+#. i18n: ectx: property (text), item, widget (QComboBox, cboDataCiphers)
+#. i18n: ectx: property (text), item, widget (QComboBox, cboDataCiphersFallback)
+#: openvpnadvanced.ui:638 openvpnadvanced.ui:670 openvpnadvanced.ui:702
 #, kde-format
 msgid "Obtaining available ciphers…"
 msgstr "사용 가능한 암호화 방식 가져오는 중…"
 
+#. i18n: ectx: property (toolTip), widget (QLabel, labelDataCiphers)
+#: openvpnadvanced.ui:650
+#, kde-format
+msgid "Data channel cipher list to negotiate (OpenVPN 2.5+)."
+msgstr "협상에 사용할 데이터 채널 암호화입니다(OpenVPN 2.5 이상)."
+
+#. i18n: ectx: property (text), widget (QLabel, labelDataCiphers)
+#: openvpnadvanced.ui:653
+#, kde-format
+msgid "Data Ciphers:"
+msgstr "데이터 암호화:"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, labelDataCiphersFallback)
+#: openvpnadvanced.ui:682
+#, kde-format
+msgid "Fallback data cipher if negotiation fails (OpenVPN 2.5+)."
+msgstr "협상에 실패했을 때 사용할 폴백 데이터 암호화입니다(OpenVPN 2.5 이상)."
+
+#. i18n: ectx: property (text), widget (QLabel, labelDataCiphersFallback)
+#: openvpnadvanced.ui:685
+#, kde-format
+msgid "Data Ciphers Fallback:"
+msgstr "데이터 암호화 폴백:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, chkDisableCipherNegotiation)
+#: openvpnadvanced.ui:712
+#, kde-format
+msgid "Disable OpenVPN NCP (cipher negotiation). Requires OpenVPN 2.4+."
+msgstr ""
+"OpenVPN NCP(암호화 협상)를 비활성화합니다. OpenVPN 2.4 이상이 필요합니다."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkDisableCipherNegotiation)
+#: openvpnadvanced.ui:715
+#, kde-format
+msgid "Disable cipher negotiation"
+msgstr "암호화 협상 비활성화"
+
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkUseCustomCipherKey)
 #. i18n: ectx: property (toolTip), widget (QSpinBox, sbCustomCipherKey)
-#: openvpnadvanced.ui:525 openvpnadvanced.ui:541
+#: openvpnadvanced.ui:724 openvpnadvanced.ui:740
 #, kde-format
 msgid ""
 "Set cipher key size to a custom value. If unspecified, it defaults to cipher-"
@@ -628,14 +750,14 @@ msgstr ""
 "용합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkUseCustomCipherKey)
-#: openvpnadvanced.ui:531
+#: openvpnadvanced.ui:730
 #, kde-format
 msgid "Use custom size of cipher key:"
 msgstr "사용자 정의 암호화 키 크기 사용:"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, label_4)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:561 openvpnadvanced.ui:583
+#: openvpnadvanced.ui:760 openvpnadvanced.ui:782
 #, kde-format
 msgid ""
 "Authenticate packets with HMAC using message digest algorithm. The default "
@@ -645,13 +767,13 @@ msgstr ""
 "SHA1입니다."
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
-#: openvpnadvanced.ui:564
+#: openvpnadvanced.ui:763
 #, kde-format
 msgid "HMAC Authentication:"
 msgstr "HMAC 인증:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:587
+#: openvpnadvanced.ui:786
 #, kde-format
 msgctxt "like in use Default configuration"
 msgid "Default"
@@ -659,69 +781,69 @@ msgstr "기본값"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
 #. i18n: ectx: property (text), item, widget (QComboBox, cboDirection)
-#: openvpnadvanced.ui:592 openvpnadvanced.ui:945
+#: openvpnadvanced.ui:791 openvpnadvanced.ui:1172
 #, kde-format
 msgctxt "like in None setting selected"
 msgid "None"
 msgstr "없음"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:597
+#: openvpnadvanced.ui:796
 #, kde-format
 msgid "MD-4"
 msgstr "MD-4"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:602
+#: openvpnadvanced.ui:801
 #, kde-format
 msgid "MD-5"
 msgstr "MD-5"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:607
+#: openvpnadvanced.ui:806
 #, kde-format
 msgid "SHA-1"
 msgstr "SHA-1"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:612
+#: openvpnadvanced.ui:811
 #, kde-format
 msgid "SHA-224"
 msgstr "SHA-224"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:617
+#: openvpnadvanced.ui:816
 #, kde-format
 msgid "SHA-256"
 msgstr "SHA-256"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:622
+#: openvpnadvanced.ui:821
 #, kde-format
 msgid "SHA-384"
 msgstr "SHA-384"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:627
+#: openvpnadvanced.ui:826
 #, kde-format
 msgid "SHA-512"
 msgstr "SHA-512"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboHmac)
-#: openvpnadvanced.ui:632
+#: openvpnadvanced.ui:831
 #, kde-format
 msgid "RIPEMD-160"
 msgstr "RIPEMD-160"
 
 #. i18n: ectx: attribute (title), widget (QWidget, tlsTab)
-#: openvpnadvanced.ui:656
+#: openvpnadvanced.ui:855
 #, kde-format
 msgid "TLS Settings"
 msgstr "TLS 설정"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, lblCertCheck)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cbCertCheck)
-#: openvpnadvanced.ui:670 openvpnadvanced.ui:686
+#: openvpnadvanced.ui:869 openvpnadvanced.ui:885
 #, kde-format
 msgid ""
 "Verify server certificate identification.\n"
@@ -741,44 +863,44 @@ msgstr ""
 "공용 이름(CN 필드)만 일치할 때 허용할 수 있습니다.\n"
 
 #. i18n: ectx: property (text), widget (QLabel, lblCertCheck)
-#: openvpnadvanced.ui:673
+#: openvpnadvanced.ui:872
 #, kde-format
 msgid "Server Certificate Check:"
 msgstr "서버 인증서 확인:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbCertCheck)
-#: openvpnadvanced.ui:690
+#: openvpnadvanced.ui:889
 #, kde-format
 msgid "Don't verify certificate identification"
 msgstr "인증서 식별자를 확인하지 않음"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbCertCheck)
-#: openvpnadvanced.ui:695
+#: openvpnadvanced.ui:894
 #, kde-format
 msgid "Verify whole subject exactly"
 msgstr "전체 인증서 속성 정확히 확인"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbCertCheck)
-#: openvpnadvanced.ui:700
+#: openvpnadvanced.ui:899
 #, kde-format
 msgid "Verify name exactly"
 msgstr "이름 정확히 확인"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbCertCheck)
-#: openvpnadvanced.ui:705
+#: openvpnadvanced.ui:904
 #, kde-format
 msgid "Verify name by prefix"
 msgstr "접두사로 이름 확인"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cbCertCheck)
-#: openvpnadvanced.ui:710
+#: openvpnadvanced.ui:909
 #, kde-format
 msgid "Verify subject partially (legacy mode, strongly discouraged)"
 msgstr "이름 부분적으로 확인(레거시 모드, 권장하지 않음)"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, lbSubjectMatch)
 #. i18n: ectx: property (toolTip), widget (QLineEdit, subjectMatch)
-#: openvpnadvanced.ui:725 openvpnadvanced.ui:741
+#: openvpnadvanced.ui:924 openvpnadvanced.ui:940
 #, kde-format
 msgid ""
 "Subject or Common Name to verify server certificate information against."
@@ -787,13 +909,13 @@ msgstr ""
 "니다."
 
 #. i18n: ectx: property (text), widget (QLabel, lbSubjectMatch)
-#: openvpnadvanced.ui:728
+#: openvpnadvanced.ui:927
 #, kde-format
 msgid "Subject Match:"
 msgstr "인증서 일치:"
 
 #. i18n: ectx: property (whatsThis), widget (QLineEdit, subjectMatch)
-#: openvpnadvanced.ui:744
+#: openvpnadvanced.ui:943
 #, kde-format
 msgid ""
 "Connect only to servers whose certificate matches the given subject. "
@@ -805,7 +927,7 @@ msgstr ""
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkRemoteCertTls)
 #. i18n: ectx: property (toolTip), widget (QLabel, labelRemoteCertTls)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cmbRemoteCertTls)
-#: openvpnadvanced.ui:757 openvpnadvanced.ui:773 openvpnadvanced.ui:787
+#: openvpnadvanced.ui:956 openvpnadvanced.ui:972 openvpnadvanced.ui:986
 #, kde-format
 msgid ""
 "Require that peer certificate was signed with an explicit key usage and "
@@ -817,27 +939,27 @@ msgstr ""
 "서명된 경우에만 허용합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkRemoteCertTls)
-#: openvpnadvanced.ui:760
+#: openvpnadvanced.ui:959
 #, kde-format
 msgid "Verify peer (server) certificate usage signature"
 msgstr "피어(서버) 인증서 서명 사용 검사"
 
 #. i18n: ectx: property (text), widget (QLabel, labelRemoteCertTls)
-#: openvpnadvanced.ui:776
+#: openvpnadvanced.ui:975
 #, kde-format
 msgid "Remote peer certificate TLS type:"
 msgstr "원격 피어 인증서 TLS 종류:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbRemoteCertTls)
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbNsCertType)
-#: openvpnadvanced.ui:791 openvpnadvanced.ui:838
+#: openvpnadvanced.ui:990 openvpnadvanced.ui:1037
 #, kde-format
 msgid "Server"
 msgstr "서버"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbRemoteCertTls)
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbNsCertType)
-#: openvpnadvanced.ui:796 openvpnadvanced.ui:843
+#: openvpnadvanced.ui:995 openvpnadvanced.ui:1042
 #, kde-format
 msgid "Client"
 msgstr "클라이언트"
@@ -845,7 +967,7 @@ msgstr "클라이언트"
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkNsCertType)
 #. i18n: ectx: property (toolTip), widget (QLabel, lblNsCertType)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cmbNsCertType)
-#: openvpnadvanced.ui:806 openvpnadvanced.ui:821 openvpnadvanced.ui:834
+#: openvpnadvanced.ui:1005 openvpnadvanced.ui:1020 openvpnadvanced.ui:1033
 #, kde-format
 msgid ""
 "Require that peer certificate was signed with an explicit nsCertType "
@@ -853,50 +975,50 @@ msgid ""
 msgstr "피어 인증서가 명시적인 nsCertType으로 서명된 경우에만 허용합니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkNsCertType)
-#: openvpnadvanced.ui:809
+#: openvpnadvanced.ui:1008
 #, kde-format
 msgid "Verify peer (server) certificate nsCertType designation"
 msgstr "피어(서버) 인증서 nsCertType 서명 검사"
 
 #. i18n: ectx: property (text), widget (QLabel, lblNsCertType)
-#: openvpnadvanced.ui:824
+#: openvpnadvanced.ui:1023
 #, kde-format
 msgid "Remote peer certificate nsCert designation:"
 msgstr "원격 피어 인증서 nsCert 지정:"
 
 #. i18n: ectx: property (toolTip), widget (QGroupBox, useExtraTlsAuth)
-#: openvpnadvanced.ui:853
+#: openvpnadvanced.ui:1052
 #, kde-format
 msgid "Add an additional layer of HMAC authentication."
 msgstr "추가 HMAC 인증을 사용합니다."
 
 #. i18n: ectx: property (text), widget (QLabel, label)
-#: openvpnadvanced.ui:868
+#: openvpnadvanced.ui:1067
 #, kde-format
 msgid "Mode:"
 msgstr "모드:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboTLSMode)
-#: openvpnadvanced.ui:876
-#, kde-format
-msgid "None"
-msgstr "없음"
-
-#. i18n: ectx: property (text), item, widget (QComboBox, cboTLSMode)
-#: openvpnadvanced.ui:881
+#: openvpnadvanced.ui:1080
 #, kde-format
 msgid "TLS-Auth"
 msgstr "TLS 인증"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboTLSMode)
-#: openvpnadvanced.ui:886
+#: openvpnadvanced.ui:1085
 #, kde-format
 msgid "TLS-Crypt"
 msgstr "TLS 암호화"
 
+#. i18n: ectx: property (text), item, widget (QComboBox, cboTLSMode)
+#: openvpnadvanced.ui:1090
+#, kde-format
+msgid "TLS-Crypt v2"
+msgstr "TLS 암호화 v2"
+
 #. i18n: ectx: property (toolTip), widget (QLabel, textLabel4_3)
 #. i18n: ectx: property (toolTip), widget (KUrlRequester, kurlTlsAuthKey)
-#: openvpnadvanced.ui:895 openvpnadvanced.ui:915
+#: openvpnadvanced.ui:1099 openvpnadvanced.ui:1119
 #, kde-format
 msgid ""
 "Add an additional layer of HMAC authentication on top of the TLS control "
@@ -907,69 +1029,163 @@ msgstr ""
 "보호합니다."
 
 #. i18n: ectx: property (text), widget (QLabel, textLabel4_3)
-#: openvpnadvanced.ui:898
+#: openvpnadvanced.ui:1102
 #, kde-format
 msgid "Key File:"
 msgstr "키 파일:"
 
+#. i18n: ectx: property (toolTip), widget (QLabel, label_extraCerts)
+#. i18n: ectx: property (toolTip), widget (KUrlRequester, kurlExtraCerts)
+#: openvpnadvanced.ui:1126 openvpnadvanced.ui:1139
+#, kde-format
+msgid ""
+"Additional local certificate file to help verify the peer certificate chain."
+msgstr ""
+"피어 인증서 체인을 검증하는 것을 돕기 위한 추가 로컬 인증서 파일입니다."
+
+#. i18n: ectx: property (text), widget (QLabel, label_extraCerts)
+#: openvpnadvanced.ui:1129
+#, kde-format
+msgid "Extra certificates file:"
+msgstr "추가 인증서 파일:"
+
 #. i18n: ectx: property (toolTip), widget (QLabel, textLabel1)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cboDirection)
-#: openvpnadvanced.ui:922 openvpnadvanced.ui:941
+#: openvpnadvanced.ui:1149 openvpnadvanced.ui:1168
 #, kde-format
 msgid "Direction parameter for static key mode."
 msgstr "정적 키 암호화 모드에서 사용하는 방향입니다."
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboDirection)
-#: openvpnadvanced.ui:950
+#: openvpnadvanced.ui:1177
 #, kde-format
 msgid "Server (0)"
 msgstr "서버(0)"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cboDirection)
-#: openvpnadvanced.ui:955
+#: openvpnadvanced.ui:1182
 #, kde-format
 msgid "Client (1)"
 msgstr "클라이언트(1)"
 
+#. i18n: ectx: property (toolTip), widget (QLabel, lblTlsVersionMin)
+#: openvpnadvanced.ui:1190
+#, kde-format
+msgid "Minimum TLS version (e.g. 1.2). Optional."
+msgstr "최소 TLS 버전(예: 1.2)입니다. 선택 사항입니다."
+
+#. i18n: ectx: property (text), widget (QLabel, lblTlsVersionMin)
+#: openvpnadvanced.ui:1193
+#, kde-format
+msgid "TLS version minimum:"
+msgstr "최소 TLS 버전:"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, leTlsVersionMin)
+#: openvpnadvanced.ui:1205
+#, kde-format
+msgid "Minimum TLS version (e.g. 1.2). Leave empty for default."
+msgstr "최소 TLS 버전(예: 1.2)입니다. 비워 두면 기본값을 사용합니다."
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, chkTlsVersionMinOrHighest)
+#: openvpnadvanced.ui:1215
+#, kde-format
+msgid "Allow negotiating higher TLS version than the minimum."
+msgstr "최소 버전보다 높은 TLS 버전 협상을 허용합니다."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkTlsVersionMinOrHighest)
+#: openvpnadvanced.ui:1218
+#, kde-format
+msgid "or highest"
+msgstr "또는 최대"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, lblTlsVersionMax)
+#: openvpnadvanced.ui:1227
+#, kde-format
+msgid "Maximum TLS version (e.g. 1.3). Optional."
+msgstr "최대 TLS 버전(예: 1.3)입니다. 선택 사항입니다."
+
+#. i18n: ectx: property (text), widget (QLabel, lblTlsVersionMax)
+#: openvpnadvanced.ui:1230
+#, kde-format
+msgid "TLS version maximum:"
+msgstr "최대 TLS 버전:"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, leTlsVersionMax)
+#: openvpnadvanced.ui:1240
+#, kde-format
+msgid "Maximum TLS version (e.g. 1.3). Leave empty for default."
+msgstr "최대 TLS 버전(예: 1.3)입니다. 비워 두면 기본값을 사용합니다."
+
+#. i18n: ectx: property (toolTip), widget (QLabel, lblCrlVerifyFile)
+#. i18n: ectx: property (toolTip), widget (KUrlRequester, kurlCrlVerifyFile)
+#: openvpnadvanced.ui:1268 openvpnadvanced.ui:1281
+#, kde-format
+msgid ""
+"Path to a local Certificate Revocation List (CRL) file to verify peer "
+"certificates."
+msgstr ""
+"피어 인증서를 검증하는 것을 돕기 위한 추가 로컬 인증서 철회 목록(CRL) 파일입"
+"니다."
+
+#. i18n: ectx: property (text), widget (QLabel, lblCrlVerifyFile)
+#: openvpnadvanced.ui:1271
+#, kde-format
+msgid "CRL verify file:"
+msgstr "CRL 검증 파일:"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, lblCrlVerifyDir)
+#. i18n: ectx: property (toolTip), widget (KUrlRequester, kurlCrlVerifyDir)
+#: openvpnadvanced.ui:1295 openvpnadvanced.ui:1308
+#, kde-format
+msgid ""
+"Path to a local directory containing Certificate Revocation List (CRL) files."
+msgstr "인증서 철회 목록(CRL) 파일이 포함된 로컬 디렉터리 경로입니다."
+
+#. i18n: ectx: property (text), widget (QLabel, lblCrlVerifyDir)
+#: openvpnadvanced.ui:1298
+#, kde-format
+msgid "CRL verify directory:"
+msgstr "CRL 검증 디렉터리:"
+
 #. i18n: ectx: attribute (title), widget (QWidget, proxyTab)
-#: openvpnadvanced.ui:980
+#: openvpnadvanced.ui:1321
 #, kde-format
 msgid "Proxies"
 msgstr "프록시"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, label_11)
 #. i18n: ectx: property (toolTip), widget (QComboBox, cmbProxyType)
-#: openvpnadvanced.ui:992 openvpnadvanced.ui:1017
+#: openvpnadvanced.ui:1333 openvpnadvanced.ui:1358
 #, kde-format
 msgid "Proxy type: HTTP or SOCKS"
 msgstr "프록시 종류: HTTP 또는 SOCKS"
 
 #. i18n: ectx: property (text), widget (QLabel, label_11)
-#: openvpnadvanced.ui:995
+#: openvpnadvanced.ui:1336
 #, kde-format
 msgid "Proxy Type:"
 msgstr "프록시 종류:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbProxyType)
-#: openvpnadvanced.ui:1021
+#: openvpnadvanced.ui:1362
 #, kde-format
 msgid "Not Required"
 msgstr "필요하지 않음"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbProxyType)
-#: openvpnadvanced.ui:1026
+#: openvpnadvanced.ui:1367
 #, kde-format
 msgid "HTTP"
 msgstr "HTTP"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbProxyType)
-#: openvpnadvanced.ui:1031
+#: openvpnadvanced.ui:1372
 #, kde-format
 msgid "SOCKS"
 msgstr "SOCKS"
 
 #. i18n: ectx: property (text), widget (QLabel, lbProxyType)
-#: openvpnadvanced.ui:1050
+#: openvpnadvanced.ui:1391
 #, kde-format
 msgid ""
 "Select this option if your organization requires the use of a proxy server "
@@ -980,88 +1196,90 @@ msgstr ""
 
 #. i18n: ectx: property (toolTip), widget (QLabel, label_12)
 #. i18n: ectx: property (toolTip), widget (QLineEdit, proxyServerAddress)
-#: openvpnadvanced.ui:1060 openvpnadvanced.ui:1073
+#: openvpnadvanced.ui:1401 openvpnadvanced.ui:1414
 #, kde-format
 msgid "Connect to remote host through a proxy with this address."
 msgstr "원격 호스트에 연결할 때 이 프록시를 통하여 연결합니다."
 
 #. i18n: ectx: property (text), widget (QLabel, label_12)
-#: openvpnadvanced.ui:1063
+#: openvpnadvanced.ui:1404
 #, kde-format
 msgid "Server Address:"
 msgstr "서버 주소:"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, label_13)
 #. i18n: ectx: property (toolTip), widget (QSpinBox, sbProxyPort)
-#: openvpnadvanced.ui:1083 openvpnadvanced.ui:1102
+#: openvpnadvanced.ui:1424 openvpnadvanced.ui:1443
 #, kde-format
 msgid "Connect to remote host through a proxy with this port."
 msgstr "원격 호스트에 연결할 때 이 프록시 포트를 통하여 연결합니다."
 
 #. i18n: ectx: property (text), widget (QLabel, label_13)
-#: openvpnadvanced.ui:1086
+#: openvpnadvanced.ui:1427
 #, kde-format
 msgid "Port:"
 msgstr "포트:"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, label_14)
 #. i18n: ectx: property (toolTip), widget (PasswordField, proxyUsername)
-#: openvpnadvanced.ui:1112 openvpnadvanced.ui:1125
+#: openvpnadvanced.ui:1453 openvpnadvanced.ui:1466
 #, kde-format
 msgid "HTTP/SOCKS proxy username passed to OpenVPN when prompted for it."
 msgstr "OpenVPN에서 HTTP/SOCKS 프록시 사용자 이름을 물어볼 때 사용할 값입니다."
 
 #. i18n: ectx: property (text), widget (QLabel, label_14)
-#: openvpnadvanced.ui:1115
+#: openvpnadvanced.ui:1456
 #, kde-format
 msgid "Proxy Username:"
 msgstr "프록시 사용자 이름:"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, label_15)
 #. i18n: ectx: property (toolTip), widget (PasswordField, proxyPassword)
-#: openvpnadvanced.ui:1135 openvpnadvanced.ui:1150
+#: openvpnadvanced.ui:1476 openvpnadvanced.ui:1491
 #, kde-format
 msgid "HTTP/SOCKS proxy password passed to OpenVPN when prompted for it."
 msgstr "OpenVPN에서 HTTP/SOCKS 프록시 사용자 암호를 물어볼 때 사용할 값입니다."
 
 #. i18n: ectx: property (text), widget (QLabel, label_15)
-#: openvpnadvanced.ui:1138 openvpnauth.cpp:84 openvpnauth.cpp:121
+#: openvpnadvanced.ui:1479 openvpnauth.cpp:84 openvpnauth.cpp:121
 #, kde-format
 msgid "Proxy Password:"
 msgstr "프록시 암호:"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkProxyRetry)
-#: openvpnadvanced.ui:1162
+#: openvpnadvanced.ui:1503
 #, kde-format
 msgid "Retry indefinitely on proxy errors. It simulates a SIGUSR1 reset."
 msgstr ""
 "프록시 오류가 발생했을 때 계속 다시 시도합니다. SIGUSR1 초기화를 흉내냅니다."
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkProxyRetry)
-#: openvpnadvanced.ui:1165
+#: openvpnadvanced.ui:1506
 #, kde-format
 msgid "Retry indefinitely when errors occur"
 msgstr "오류가 발생할 때 계속 재시도"
 
-#: openvpnadvancedwidget.cpp:82
+#: openvpnadvancedwidget.cpp:83
 #, kde-format
 msgctxt "@title: window advanced openvpn properties"
 msgid "Advanced OpenVPN properties"
 msgstr "고급 OpenVPN 속성"
 
-#: openvpnadvancedwidget.cpp:154 openvpnadvancedwidget.cpp:183
+#: openvpnadvancedwidget.cpp:163 openvpnadvancedwidget.cpp:165
+#: openvpnadvancedwidget.cpp:167 openvpnadvancedwidget.cpp:208
 #, kde-format
 msgctxt "@item:inlistbox Item added when OpenVPN cipher lookup failed"
 msgid "OpenVPN cipher lookup failed"
 msgstr "OpenVPN 암호화 방식 목록을 찾을 수 없음"
 
-#: openvpnadvancedwidget.cpp:161
+#: openvpnadvancedwidget.cpp:176 openvpnadvancedwidget.cpp:177
+#: openvpnadvancedwidget.cpp:178
 #, kde-format
 msgctxt "@item::inlist Default openvpn cipher item"
 msgid "Default"
 msgstr "기본값"
 
-#: openvpnadvancedwidget.cpp:180
+#: openvpnadvancedwidget.cpp:202
 #, kde-format
 msgctxt "@item:inlistbox Item added when OpenVPN cipher lookup failed"
 msgid "No OpenVPN ciphers found"
@@ -1097,6 +1315,12 @@ msgstr "토큰"
 msgid "one-time password"
 msgstr "일회용 암호"
 
+#~ msgid "Error saving file %1: %2"
+#~ msgstr "파일 %1 저장 오류: %2"
+
+#~ msgid "Error copying certificate to %1: %2"
+#~ msgstr "인증서를 %1(으)로 복사 중 오류: %2"
+
 #~ msgid "*.pem *.crt *.key *.cer *.p12"
 #~ msgstr "*.pem *.crt *.key *.cer *.p12"
 
@@ -1111,9 +1335,6 @@ msgstr "일회용 암호"
 
 #~ msgid "Do you want to copy your certificates to %1?"
 #~ msgstr "인증서를 %1(으)로 복사하시겠습니까?"
-
-#~ msgid "Copy certificates"
-#~ msgstr "인증서 복사"
 
 #~ msgid "Unknown option: %1"
 #~ msgstr "알 수 없는 옵션: %1"
@@ -1145,12 +1366,6 @@ msgstr "일회용 암호"
 
 #~ msgid "Could not open file for writing"
 #~ msgstr "파일에 쓰려고 열 수 없습니다."
-
-#~ msgid "Use fast LZO compression."
-#~ msgstr "빠른 LZO 압축을 사용합니다."
-
-#~ msgid "Yes"
-#~ msgstr "예"
 
 #~ msgid "Invalid size (should be between 0 and 604800) in option: %1"
 #~ msgstr "옵션의 크기가 잘못됨(0-604800 예상함): %1"

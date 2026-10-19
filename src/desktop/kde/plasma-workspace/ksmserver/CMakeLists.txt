@@ -10,7 +10,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 set(ksmserver_SRCS
     main.cpp
     server.cpp
-    legacy.cpp
     logout.cpp
     client.cpp client.h
 )
@@ -20,11 +19,7 @@ ecm_qt_declare_logging_category(ksmserver_SRCS HEADER ksmserver_debug.h IDENTIFI
 )
 
 qt_add_dbus_adaptor( ksmserver_SRCS org.kde.KSMServerInterface.xml server.h KSMServer )
-qt_add_dbus_interface( ksmserver_SRCS org.kde.LogoutPrompt.xml logoutprompt_interface)
 qt_add_dbus_interface( ksmserver_SRCS org.kde.KWin.Session.xml kwinsession_interface)
-
-qt_add_dbus_interface( ksmserver_SRCS ../startkde/plasma-session/org.kde.Startup.xml startup_interface )
-qt_add_dbus_interface( ksmserver_SRCS ../startkde/plasma-shutdown/org.kde.Shutdown.xml shutdown_interface )
 
 add_executable(ksmserver ${ksmserver_SRCS})
 
@@ -36,7 +31,6 @@ configure_package_config_file(KSMServerDBusInterfaceConfig.cmake.in
     INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 target_link_libraries(ksmserver
-    PW::KScreenLocker
     PW::KWorkspace
     KF6::XmlGui
     KF6::I18n

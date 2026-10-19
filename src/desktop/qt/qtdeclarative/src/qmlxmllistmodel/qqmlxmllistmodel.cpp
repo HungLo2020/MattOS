@@ -25,10 +25,10 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlmodule QtQml.XmlListModel
-    \title Qt XmlListModel QML Types
-    \keyword Qt XmlListModel QML Types
+    \title Qt Qml XmlListModel QML Types
+    \keyword Qt Qml XmlListModel QML Types
     \ingroup qmlmodules
-    \brief Provides QML types for creating models from XML data
+    \brief Provides QML types for creating models from XML data.
 
     This QML module contains types for creating models from XML data.
 

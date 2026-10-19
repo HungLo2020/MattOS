@@ -16,7 +16,7 @@ Q_LOGGING_CATEGORY(lcPermissions, "qt.permissions", QtWarningMsg);
 /*!
     \page permissions.html
     \title Application Permissions
-    \brief Managing application permissions
+    \brief Managing application permissions.
 
     Many features of today's devices and operating systems can have
     significant privacy, security, and performance implications if
@@ -74,7 +74,7 @@ Q_LOGGING_CATEGORY(lcPermissions, "qt.permissions", QtWarningMsg);
     why we can not record voice memos at this time (if the permission was denied),
     or proceed to using the microphone (if permission was granted).
 
-    \note On \macOS and iOS permissions can currently only be requested for
+    \note On \macos and iOS permissions can currently only be requested for
     GUI applications.
 
     \section2 Declaring Permissions
@@ -129,7 +129,7 @@ Q_LOGGING_CATEGORY(lcPermissions, "qt.permissions", QtWarningMsg);
     the AndroidManifest.xml. For further information on the use of this tag,
     see \l {Qt Permissions and Features}
 
-    \sa {Qt Creator: Editing Manifest Files}.
+    \sa {Qt Creator: Editing Manifest Files}
 
     \section1 Available Permissions
 
@@ -621,8 +621,10 @@ QContactsPermission::AccessMode QContactsPermission::accessMode() const
       \row
         \li Android
         \li \l{android-uses-permission}{\c{uses-permission}}
-        \li \c android.permission.READ_CALENDAR. \c android.permission.WRITE_CALENDAR if
-            QCalendarPermission::accessMode() is set to AccessMode::ReadWrite.
+        \li \c android.permission.READ_CALENDAR if QCalendarPermission::accessMode() is set
+            to AccessMode::ReadOnly or AccessMode::ReadWrite.
+            \c android.permission.WRITE_CALENDAR if QCalendarPermission::accessMode() is set
+            to AccessMode::WriteOnly or AccessMode::ReadWrite.
     \include permissions.qdocinc end-usage-declarations
 
     \include permissions.qdocinc permission-metadata
@@ -635,6 +637,7 @@ QContactsPermission::AccessMode QContactsPermission::accessMode() const
 
     \value ReadOnly Read-only access to the calendar data (the default).
     \value ReadWrite Read and write access to the calendar data.
+    \value [since 6.12] WriteOnly Write-only access to the calendar data.
 
     \sa setAccessMode, accessMode
 */
@@ -644,8 +647,7 @@ QT_PERMISSION_IMPL_COMMON(QCalendarPermission)
 {}
 
 /*!
-    Sets whether the request is for read-write (\a mode == AccessMode::ReadWrite) or
-    read-only (\a mode == AccessMode::ReadOnly) access to the calendar.
+    Sets the access mode to \a mode.
 */
 void QCalendarPermission::setAccessMode(AccessMode mode)
 {
@@ -653,8 +655,7 @@ void QCalendarPermission::setAccessMode(AccessMode mode)
 }
 
 /*!
-    Returns AccessMode::ReadWrite when the request is for read-write and
-    AccessMode::ReadOnly when it is for read-only access to the calendar.
+    Returns the requested access mode.
 */
 QCalendarPermission::AccessMode QCalendarPermission::accessMode() const
 {
@@ -684,7 +685,7 @@ QDebug operator<<(QDebug debug, const QPermission &permission)
 
 #undef QT_PERMISSION_IMPL_COMMON
 
-#if !defined(Q_OS_DARWIN) && !defined(Q_OS_ANDROID) && !defined(Q_OS_WASM)
+#if !defined(Q_OS_DARWIN) && !defined(Q_OS_ANDROID) && !defined(Q_OS_WASM) && !defined(Q_OS_HARMONY)
 // Default backend for platforms without a permission implementation.
 // Always returns Granted, to match behavior when not using permission APIs
 // https://bugreports.qt.io/browse/QTBUG-90498?focusedCommentId=725085#comment-725085

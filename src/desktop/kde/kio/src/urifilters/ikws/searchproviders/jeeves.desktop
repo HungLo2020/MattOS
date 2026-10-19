@@ -2,6 +2,7 @@
 Type=Service
 Name=Ask Jeeves
 Name[af]=Vra Jeeves
+Name[am]=Ask Jeeves
 Name[ar]=Ask Jeeves
 Name[as]=Ask Jeeves
 Name[az]=Ask Jeeves
@@ -60,6 +61,8 @@ Name[ml]=ആസ്ക് ജീവ്സ്
 Name[mr]=आस्क जीव्स
 Name[ms]=Ask Jeeves
 Name[my]=ဂျီစ်ကိုမေးရန်
+Name[nan_TW]=Ask Jeeves
+Name[nan_TW@latin]=Ask Jeeves
 Name[nb]=Ask Jeeves
 Name[nds]=Fraag Jeeves
 Name[ne]=आस्क जीभेज
@@ -98,6 +101,7 @@ Name[zh_CN]=Ask Jeeves
 Name[zh_TW]=Ask Jeeves
 Keys=ask,jeeves
 Query=https://www.ask.com/web?q=\\{@}
+Query[am]=https://www.ask.com/web?q=\\{@}
 Query[ar]=https://www.ask.com/web?q=\\{@}
 Query[ast]=https://www.ask.com/web?q=\\{@}
 Query[az]=https://www.ask.com/web?q=\\{@}
@@ -131,6 +135,8 @@ Query[lg]=https://www.ask.com/web?q=\\{@}
 Query[lt]=https://www.ask.com/web?q=\\{@}
 Query[lv]=https://www.ask.com/web?q=\\{@}
 Query[my]=https://www.ask.com/web?q=\\{@}
+Query[nan_TW]=https://www.ask.com/web?q=\\{@}
+Query[nan_TW@latin]=https://www.ask.com/web?q=\\{@}
 Query[nb]=https://www.ask.com/web?q=\\{@}
 Query[nl]=https://www.ask.com/web?q=\\{@}
 Query[nn]=https://www.ask.com/web?q=\\{@}
@@ -147,7 +153,6 @@ Query[sq]=https://www.ask.com/web?q=\\{@}
 Query[sv]=https://www.ask.com/web?q=\\{@}
 Query[th]=https://www.ask.com/web?q=\\{@}
 Query[tr]=https://www.ask.com/web?q=\\{@}
-Query[ug]=https://www.ask.com/web?q=\\{@}
 Query[uk]=https://www.ask.com/web?q=\\{@}
 Query[vi]=https://www.ask.com/web?q=\\{@}
 Query[zh_CN]=https://www.ask.com/web?q=\\{@}

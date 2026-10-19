@@ -4,20 +4,20 @@
 #
 # Viesturs Zarins <viesturs.zarins@mii.lu.lv>, 2008.
 # Maris Nartiss <maris.kde@gmail.com>, 2020.
-# SPDX-FileCopyrightText: 2024, 2025 Toms Trasuns <toms.trasuns@posteo.net>
+# SPDX-FileCopyrightText: 2024, 2025, 2026 Toms Trasuns <toms.trasuns@posteo.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_networkmanager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-25 02:45+0000\n"
-"PO-Revision-Date: 2025-08-22 15:18+0300\n"
+"POT-Creation-Date: 2026-09-10 00:48+0000\n"
+"PO-Revision-Date: 2026-03-03 18:34+0200\n"
 "Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
 "Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
 "Language: lv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.08.0\n"
+"X-Generator: Lokalize 25.12.2\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
 
@@ -62,7 +62,7 @@ msgstr ""
 "Pašreizējais lejupielādes ātrums ir %1 kibibaiti sekundē. Pašreizējais "
 "augšupielādes ātrums ir %2 kibibaiti sekundē"
 
-#: ConnectionItem.qml:302
+#: ConnectionItem.qml:309
 #, kde-format
 msgctxt "Download and upload rates in some unit per second"
 msgid "↓ %1/s, ↑ %2/s"
@@ -143,49 +143,49 @@ msgstr "Lai meklētu tīklus, ieslēdziet mobilos datus"
 msgid "Copy"
 msgstr "Kopēt"
 
-#: main.qml:32
+#: main.qml:39
 #, kde-format
 msgid "Networks"
 msgstr "Tīkli"
 
-#: main.qml:41
+#: main.qml:48
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Middle-click to turn off Airplane Mode"
 msgstr "Lidmašīnas režīmu varat izslēgt ar peles vidējo pogu"
 
-#: main.qml:43
+#: main.qml:50
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Middle-click to turn on Airplane Mode"
 msgstr "Lidmašīnas režīmu varat ieslēgt ar peles vidējo pogu"
 
-#: main.qml:71 Toolbar.qml:74
+#: main.qml:78 Toolbar.qml:74
 #, kde-format
 msgid "Enable Wi-Fi"
 msgstr "Ieslēgt „Wi-Fi“"
 
-#: main.qml:82
+#: main.qml:89
 #, kde-format
 msgid "Enable Mobile Data"
 msgstr "Ieslēgt mobilos datus"
 
-#: main.qml:94
+#: main.qml:101
 #, kde-format
 msgid "Enable Airplane Mode"
 msgstr "Ieslēgt lidmašīnas režīmu"
 
-#: main.qml:106
+#: main.qml:113
 #, kde-format
 msgid "Open Network Login Page…"
 msgstr "Atvērt ierakstīšanās tīklā lapu..."
 
-#: main.qml:116
+#: main.qml:123
 #, kde-format
 msgid "&Configure Network Connections…"
 msgstr "&Konfigurēt tīklu savienojumus..."
 
-#: PopupDialog.qml:51
+#: PopupDialog.qml:58
 #, kde-format
 msgctxt "@action:button"
 msgid "Return to Network Connections"
@@ -258,25 +258,23 @@ msgstr "Izveidot tīklāju"
 #, kde-format
 msgctxt "@action:button"
 msgid "Scan Wi-Fi QR Code"
-msgstr ""
+msgstr "Skenēt „Wi-Fi“ kvadrātkodu"
 
 #: Toolbar.qml:232
-#, fuzzy, kde-format
-#| msgid ""
-#| "Scan this QR code with another device to connect to the \"%1\" network."
+#, kde-format
 msgctxt "@info:tooltip"
 msgid "Scan QR Code to connect to a Wi-Fi network"
-msgstr "Skenējiet šo kvadrātkodu citā ierīcē, lai savienotos ar „%1“ tīklu."
+msgstr "Skenēt kvadrātkodu, lai savienotos ar „Wi-Fi“ tīklu."
 
 #: Toolbar.qml:234
-#, fuzzy, kde-format
-#| msgid ""
-#| "Scan this QR code with another device to connect to the \"%1\" network."
+#, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
 "network"
-msgstr "Skenējiet šo kvadrātkodu citā ierīcē, lai savienotos ar „%1“ tīklu."
+msgstr ""
+"Lai skenētu kvadrātkodu un savienotos ar „Wi-Fi“ tīklu, instalējiet QRCA "
+"svītrkodu skeneri"
 
 #: Toolbar.qml:253
 #, kde-format

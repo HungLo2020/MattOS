@@ -75,6 +75,7 @@ ecm_add_qml_module(plasmashell
 ecm_add_qml_module(plasmashell_osd
     URI "org.kde.plasma.workspace.osd"
     GENERATE_PLUGIN_SOURCE
+    DEPENDENCIES QtQuick
 )
 ecm_target_qml_sources(plasmashell_osd SOURCES
     qml/Osd.qml
@@ -92,11 +93,8 @@ target_link_libraries(plasmashell_osd PRIVATE
     Wayland::Client
 )
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL "6.8.0")
-    set(private_code_option  "PRIVATE_CODE")
-endif()
 qt6_generate_wayland_protocol_client_sources(plasmashell
-    ${private_code_option}
+    PRIVATE_CODE
     FILES
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/kde-screen-edge-v1.xml
 )
@@ -118,6 +116,7 @@ target_link_libraries(plasmashell PRIVATE
  KF6::GlobalAccel
  KF6::GuiAddons
  KF6::I18n
+ KF6::I18nQml
  KF6::KIOCore
  KF6::Package
  KF6::Notifications
@@ -149,10 +148,6 @@ endif()
 target_include_directories(plasmashell PRIVATE "${CMAKE_BINARY_DIR}")
 target_compile_definitions(plasmashell PRIVATE -DPROJECT_VERSION="${PROJECT_VERSION}")
 
-if(HAVE_X11)
-  target_link_libraries(plasmashell PRIVATE XCB::XCB XCB::RANDR)
-endif()
-
 if(PROJECT_VERSION_PATCH GREATER_EQUAL 80 OR PROJECT_VERSION_MINOR GREATER_EQUAL 80)
     target_link_libraries(plasmashell PRIVATE KF6::KIOGui)
 endif()
@@ -165,6 +160,17 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.kde.plasmashell.desktop DESTINATIO
 install( FILES dbus/org.kde.PlasmaShell.xml DESTINATION ${KDE_INSTALL_DBUSINTERFACEDIR} )
 
 ecm_install_configured_files(INPUT plasma-plasmashell.service.in @ONLY DESTINATION  ${KDE_INSTALL_SYSTEMDUSERUNITDIR})
+
+# manually install typeinfo for plasmashell module since it's not installed automatically for modules backed by executables
+# we want the type info to be accessible from other repos though
+qt6_query_qml_module(plasmashell
+        TARGET_PATH plasmashell_module_target_path
+        QMLDIR plasmashell_module_qmldir
+        TYPEINFO plasmashell_module_typeinfo
+)
+
+install(FILES "${plasmashell_module_qmldir}"   DESTINATION ${KDE_INSTALL_QMLDIR}/${plasmashell_module_target_path})
+install(FILES "${plasmashell_module_typeinfo}" DESTINATION ${KDE_INSTALL_QMLDIR}/${plasmashell_module_target_path})
 
 add_subdirectory(packageplugins)
 if(BUILD_TESTING)

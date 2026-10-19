@@ -15,6 +15,7 @@ import QtCore
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.workspace.timezoneselector as Workspace
 import org.kde.kirigamiaddons.components as Components
+import org.kde.kirigamiaddons.formcard as FormCard
 
 /**
  * @brief An element that shows all available timezones through a map and comboboxes, and allows you to select one.
@@ -22,6 +23,8 @@ import org.kde.kirigamiaddons.components as Components
  */
 Item {
     id: root
+
+    implicitHeight: Kirigami.Settings.isMobile ? mobileFormCard.implicitHeight : 0
 
 //BEGIN properties
     /**
@@ -102,14 +105,70 @@ Item {
             right: parent.right
         }
         text: i18ndc("plasmashellprivateplugin", "@info", "The currently selected time zone is not available for visualization on this map")
-        visible: !root.availableMapTimeZones.includes(root.selectedTimeZone) && root.selectedTimeZone
+        visible: !Kirigami.Settings.isMobile && !root.availableMapTimeZones.includes(root.selectedTimeZone) && root.selectedTimeZone
         Kirigami.OverlayZStacking.layer: Kirigami.OverlayZStacking.FullScreen
         z: Kirigami.OverlayZStacking.z
+    }
+
+    // On mobile, show stacked FormCard comboboxes without the map.
+    FormCard.FormCard {
+        id: mobileFormCard
+        visible: Kirigami.Settings.isMobile
+        width: parent.width
+
+        FormCard.FormComboBoxDelegate {
+            id: mobileRegionComboBox
+
+            property string chooseText: i18ndc("plasmashellprivateplugin", "Placeholder for empty time zone combobox selector", "Choose…")
+
+            text: i18ndc("plasmashellprivateplugin", "@label:listbox In the context of time zone selection", "Region:")
+            model: [chooseText, ...regionsModel]
+
+            Connections {
+                target: root
+                function onSelectedTimeZoneChanged() {
+                    mobileRegionComboBox.currentIndex = Math.max(mobileRegionComboBox.model.indexOf(root.split(root.selectedTimeZone)[0]), 0)
+                }
+            }
+
+            onActivated: {
+                if (mobileRegionComboBox.currentText === chooseText) return;
+                if (mobileRegionComboBox.currentText !== root.split(root.selectedTimeZone)[0]) {
+                    let locations = root.areasByRegion[mobileRegionComboBox.currentText]
+                    if (locations.length > 0) {
+                        const technicalRegion = root.technical(mobileRegionComboBox.currentText)
+                        const technicalLocation = root.technical(locations[0])
+                        root.selectedTimeZone = technicalRegion + '/' + technicalLocation
+                    }
+                }
+            }
+        }
+
+        FormCard.FormComboBoxDelegate {
+            id: mobileLocationComboBox
+
+            visible: mobileRegionComboBox.currentText !== mobileRegionComboBox.chooseText
+            text: i18ndc("plasmashellprivateplugin", "@label:listbox In the context of time zone selection", "Time zone:")
+
+            Connections {
+                target: root
+                function onSelectedTimeZoneChanged() {
+                    let [prefix, suffix] = root.split(root.selectedTimeZone)
+                    mobileLocationComboBox.model = root.areasByRegion[prefix]
+                    mobileLocationComboBox.currentIndex = mobileLocationComboBox.model.indexOf(suffix)
+                }
+            }
+
+            onActivated: {
+                root.selectedTimeZone = root.technical(mobileRegionComboBox.currentText) + '/' + root.technical(mobileLocationComboBox.currentText)
+            }
+        }
     }
 
     MapView {
         id: view
 
+        visible: !Kirigami.Settings.isMobile
         anchors.fill: parent
 
         // HACK: to work around the Qt bug QTBUG-136711,
@@ -138,9 +197,27 @@ Item {
             easing.type: Easing.InOutCubic
             running: false
         }
+
         function animateCenterTo(coordinate) {
             coordAnimation.to = coordinate
             coordAnimation.running = true
+        }
+
+        function suggestedZoomOf(rect) {
+            const deltaLat = Math.abs(rect.topLeft.latitude - rect.bottomRight.latitude);
+            const deltaLon = Math.abs(rect.topLeft.longitude - rect.bottomRight.longitude);
+            const delta = Math.max(deltaLat, deltaLon);
+            let zoom = Math.round(Math.log2(360 / delta)) * 0.7;
+            zoom = Math.min(Math.max(zoom, 1), view.map.maximumZoomLevel);
+            if (Math.abs(zoom - view.map.zoomLevel) < 1) {
+                return view.map.zoomLevel
+            }
+            return zoom
+        }
+
+        function animateZoomLevel(target: var): void {
+            zoomLevelAnimation.to = target
+            zoomLevelAnimation.running = true
         }
 
         map {
@@ -171,12 +248,35 @@ Item {
             onCopyrightLinkActivated: (link) => { Qt.openUrlExternally(link); }
         }
 
+        // HACK: Workaround QTBUG-150559. When the map is resized from small to
+        // large the first time the map item sized are not updated. This fixes it.
+        onWidthChanged: {
+            map.pan(1, 1);
+            map.pan(-1, -1);
+        }
+
         property variant referenceSurface: QtLocation.ReferenceSurface.Map
 
         MapItemView {
             parent: view.map
             model: geoDatabase.model
-            delegate: GeoJsonDelegate {}
+            delegate: GeoJsonDelegate {
+                selectedTimeZone: root.selectedTimeZone
+                hoveredTimeZone: root.hoveredTimeZone
+
+                onTimeZoneselected: (timeZoneId, centroid, bounds) => {
+                    root.selectedTimeZone = timeZoneId
+                    view.animateCenterTo(centroid)
+                    view.animateZoomLevel(view.suggestedZoomOf(bounds))
+                }
+                onTimeZoneHovered: (timeZoneId, hovered) => {
+                    if (hovered) {
+                        root.hoveredTimeZone = timeZoneId;
+                    } else if (root.hoveredTimeZone === timeZoneId) {
+                        root.hoveredTimeZone = "";
+                    }
+                }
+            }
         }
 
         RowLayout {
@@ -237,6 +337,7 @@ Item {
 
                 QQC2.Label {
                     text: i18ndc("plasmashellprivateplugin", "@label:listbox In the context of time zone selection", "Region:")
+                    textFormat: Text.PlainText
                 }
 
                 QQC2.ComboBox {
@@ -261,7 +362,11 @@ Item {
                         if (regionComboBox.currentText !== root.split(root.selectedTimeZone)[0]) {
                             let locations = root.areasByRegion[regionComboBox.currentText]
                             locationComboBox.forceActiveFocus();
-                            locationComboBox.model = locations
+                            if (locations.length > 0) {
+                                const technicalRegion = root.technical(regionComboBox.currentText)
+                                const technicalLocation = root.technical(locations[0])
+                                root.selectedTimeZone = technicalRegion + '/' + technicalLocation
+                            }
                             locationComboBox.popup.visible = true
                         }
                     }
@@ -270,6 +375,7 @@ Item {
                 QQC2.Label {
                     text: i18ndc("plasmashellprivateplugin", "@label:listbox In the context of time zone selection", "Time zone:")
                     visible: locationComboBox.visible
+                    textFormat: Text.PlainText
                 }
 
                 QQC2.ComboBox {

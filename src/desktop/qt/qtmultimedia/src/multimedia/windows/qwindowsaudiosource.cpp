@@ -69,12 +69,12 @@ QWASAPIAudioSourceStream::QWASAPIAudioSourceStream(QAudioDevice device, const QA
                                                    std::optional<qsizetype> ringbufferSize,
                                                    QWindowsAudioSource *parent,
                                                    float volume,
-                                                   std::optional<int32_t> hardwareBufferFrames):
+                                                   std::optional<NativePeriodFrames> nativePeriodFrames):
     QPlatformAudioSourceStream{
         std::move(device),
         format,
         ringbufferSize,
-        hardwareBufferFrames,
+        nativePeriodFrames,
         volume,
     },
     m_wasapiHandle {
@@ -183,7 +183,7 @@ bool QWASAPIAudioSourceStream::openAudioClient(ComPtr<IMMDevice> device)
     using namespace QWindowsAudioUtils;
 
     std::optional<AudioClientCreationResult> clientData =
-            createAudioClient(device, m_hostFormat, m_hardwareBufferFrames, m_wasapiHandle);
+            createAudioClient(device, m_hostFormat, m_nativePeriodFrames, m_wasapiHandle);
 
     if (!clientData)
         return false;
@@ -303,7 +303,7 @@ bool QWASAPIAudioSourceStream::visitAudioClientBuffer(Functor &&f)
     }
 }
 
-bool QWASAPIAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+bool QWASAPIAudioSourceStream::processRingbuffer() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     return visitAudioClientBuffer(
             [&](QSpan<const std::byte> hostBuffer, uint32_t hostBufferFrames) {
@@ -313,7 +313,7 @@ bool QWASAPIAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
     });
 }
 
-bool QWASAPIAudioSourceStream::processCallback() noexcept QT_MM_NONBLOCKING
+bool QWASAPIAudioSourceStream::processCallback() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     return visitAudioClientBuffer([&](QSpan<const std::byte> hostBuffer, uint32_t) {
         runAudioCallback(*m_audioCallback, as_bytes(hostBuffer), m_format, volume());

@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=jamendo,jmd
 Name=Jamendo
+Name[am]=Jamendo
 Name[ar]=Jamendo
 Name[ast]=Jamendo
 Name[az]=Jamendo
@@ -52,6 +53,8 @@ Name[mai]=जामिनडो
 Name[ml]=ജാമെണ്ടോ
 Name[mr]=जामेंदो
 Name[my]=ဂျမန်ဒို
+Name[nan_TW]=Jamendo
+Name[nan_TW@latin]=Jamendo
 Name[nb]=Jamendo
 Name[nds]=Jamendo
 Name[nl]=Jamendo
@@ -77,13 +80,13 @@ Name[tg]=Jamendo
 Name[th]=Jamendo
 Name[tok]=ilo pi kalama musi Jamendo
 Name[tr]=Jamendo
-Name[ug]=Jamendo
 Name[uk]=Jamendo
 Name[vi]=Jamendo
 Name[wa]=Jamendo
 Name[zh_CN]=Jamendo
 Name[zh_TW]=Jamendo
 Query=https://www.jamendo.com/en/search?qs=q=\\{@}
+Query[am]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[ar]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[ast]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[az]=https://www.jamendo.com/en/search?qs=q=\\{@}
@@ -124,6 +127,8 @@ Query[lg]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[lt]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[lv]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[my]=https://www.jamendo.com/en/search?qs=q=\\{@}
+Query[nan_TW]=https://www.jamendo.com/en/search?qs=q=\\{@}
+Query[nan_TW@latin]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[nb]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[nl]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[nn]=https://www.jamendo.com/en/search?qs=q=\\{@}
@@ -142,7 +147,6 @@ Query[tg]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[th]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[tok]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[tr]=https://www.jamendo.com/en/search?qs=q=\\{@}
-Query[ug]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[uk]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[vi]=https://www.jamendo.com/en/search?qs=q=\\{@}
 Query[zh_CN]=https://www.jamendo.com/en/search?qs=q=\\{@}

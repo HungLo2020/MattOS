@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QSGDISTANCEFIELDGLYPHNODE_P_H
 #define QSGDISTANCEFIELDGLYPHNODE_P_H
@@ -50,12 +51,15 @@ public:
 
     void updateGeometry();
 
+    void recycle() override;
+
 private:
     enum DistanceFieldGlyphNodeType {
         RootGlyphNode,
         SubGlyphNode
     };
 
+    void cleanup();
     void setGlyphNodeType(DistanceFieldGlyphNodeType type) { m_glyphNodeType = type; }
     void updateMaterial();
 

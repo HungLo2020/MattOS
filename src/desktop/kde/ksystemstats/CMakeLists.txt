@@ -3,17 +3,18 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 project(ksystemstats VERSION ${PROJECT_VERSION})
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH}  ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+include(CMakeDependentOption)
 include(CheckIncludeFiles)
 include(KDEInstallDirs)
 include(KDECMakeSettings)
@@ -32,11 +33,11 @@ find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS Core Test)
 find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS CoreAddons Solid KIO Crash)
 find_package(KSysGuard ${PROJECT_DEP_VERSION} REQUIRED)
 
-find_package(KF6NetworkManagerQt ${KF6_MIN_VERSION})
-set_package_properties(KF6NetworkManagerQt PROPERTIES
-    TYPE RECOMMENDED
-    PURPOSE "Provides an improved backend for Network statistics"
-)
+# there's no NetworkManager on FreeBSD'
+cmake_dependent_option(WITH_NM "Provide improved backend for network statistics" TRUE "LINUX" FALSE)
+if (WITH_NM)
+    find_package(KF6NetworkManagerQt ${KF6_MIN_VERSION} CONFIG REQUIRED)
+endif()
 
 add_definitions(-DQT_NO_URL_CAST_FROM_STRING)
 add_definitions(-DQT_USE_QSTRINGBUILDER)
@@ -46,7 +47,7 @@ ecm_setup_version(PROJECT VARIABLE_PREFIX KSYSTEMSTATS
                   )
 
 ecm_set_disabled_deprecation_versions(QT 5.15.2
-    KF 6.12.0
+    KF 6.27.0
 )
 
 

@@ -13,6 +13,7 @@
 
 #include "mock_drm.h"
 
+#include "core/gpumanager.h"
 #include "core/outputlayer.h"
 #include "core/session.h"
 #include "drm_backend.h"
@@ -24,30 +25,24 @@
 #include "drm_pipeline.h"
 #include "drm_plane.h"
 #include "drm_pointer.h"
-#include "qpainter/qpainterbackend.h"
+#include "wayland/clientconnection.h"
+#include "wayland/display.h"
+#include "wayland/drmlease_v1.h"
+#include "wayland/drmlease_v1_p.h"
 
 #include <drm_fourcc.h>
 #include <fcntl.h>
+#include <sys/socket.h>
 #include <sys/utsname.h>
 
 using namespace KWin;
 
+Q_LOGGING_CATEGORY(KWIN_CORE, "kwin_core", QtWarningMsg)
+Q_LOGGING_CATEGORY(KWIN_OPENGL, "kwin_scene_opengl", QtWarningMsg)
+Q_LOGGING_CATEGORY(KWIN_VIRTUALKEYBOARD, "kwin_virtualkeyboard", QtWarningMsg)
+
 static std::unique_ptr<MockGpu> findPrimaryDevice(int crtcCount)
 {
-#if !HAVE_LIBDRM_FAUX
-#if defined(Q_OS_LINUX)
-    // Workaround for libdrm being unaware of faux bus.
-    if (qEnvironmentVariableIsSet("CI")) {
-        int fd = open("/dev/dri/card1", O_RDWR | O_CLOEXEC);
-        if (fd == -1) {
-            return nullptr;
-        } else {
-            return std::make_unique<MockGpu>(fd, "/dev/dri/card1", crtcCount);
-        }
-    }
-#endif
-#endif
-
     const int deviceCount = drmGetDevices2(0, nullptr, 0);
     if (deviceCount <= 0) {
         return nullptr;
@@ -77,6 +72,9 @@ class DrmTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void init();
+    void cleanup();
+
     void testAmsDetection();
     void testOutputDetection_data();
     void testOutputDetection();
@@ -87,6 +85,8 @@ private Q_SLOTS:
     void testModeset_data();
     void testModeset();
     void testVrrChange();
+    void testLeaseDisconnectReconnect();
+    void testLeaseAvailableWhenClientExitsBeforeQueuedReoffer();
 };
 
 static void verifyCleanup(MockGpu *mockGpu)
@@ -100,6 +100,17 @@ static void verifyCleanup(MockGpu *mockGpu)
     QVERIFY(mockGpu->drmProps.isEmpty());
     QVERIFY(mockGpu->drmObjectProperties.isEmpty());
     QVERIFY(mockGpu->drmPropertyBlobs.isEmpty());
+}
+
+void DrmTest::init()
+{
+    // as this is not an integration test, we need to initialize it manually
+    GpuManager::s_self = std::make_unique<GpuManager>();
+}
+
+void DrmTest::cleanup()
+{
+    GpuManager::s_self.reset();
 }
 
 void DrmTest::testAmsDetection()
@@ -157,9 +168,9 @@ void DrmTest::testOutputDetection()
 
     const auto session = Session::create(Session::Type::Noop);
     const auto backend = std::make_unique<DrmBackend>(session.get());
-    const auto renderBackend = backend->createQPainterBackend();
     auto gpu = std::make_unique<DrmGpu>(backend.get(), mockGpu->fd, DrmDevice::open(mockGpu->devNode));
     QVERIFY(gpu->updateOutputs());
+    const auto renderBackend = backend->createOpenGLBackend(gpu->renderDevice());
 
     // 3 outputs should be detected, one of them non-desktop
     const auto outputs = gpu->drmOutputs();
@@ -204,8 +215,8 @@ void DrmTest::testZeroModesHandling()
 
     const auto session = Session::create(Session::Type::Noop);
     const auto backend = std::make_unique<DrmBackend>(session.get());
-    const auto renderBackend = backend->createQPainterBackend();
     auto gpu = std::make_unique<DrmGpu>(backend.get(), mockGpu->fd, DrmDevice::open(mockGpu->devNode));
+    const auto renderBackend = backend->createOpenGLBackend(gpu->renderDevice());
 
     // connector with zero modes should be ignored
     conn->modes.clear();
@@ -352,12 +363,13 @@ void DrmTest::testModeGeneration()
     const auto mockGpu = findPrimaryDevice(5);
 
     const auto conn = std::make_shared<MockConnector>(mockGpu.get());
+    conn->type = DRM_MODE_CONNECTOR_eDP;
     mockGpu->connectors.push_back(conn);
 
     const auto session = Session::create(Session::Type::Noop);
     const auto backend = std::make_unique<DrmBackend>(session.get());
-    const auto renderBackend = backend->createQPainterBackend();
     auto gpu = std::make_unique<DrmGpu>(backend.get(), mockGpu->fd, DrmDevice::open(mockGpu->devNode));
+    const auto renderBackend = backend->createOpenGLBackend(gpu->renderDevice());
 
     QFETCH(Mode, nativeMode);
     QFETCH(QList<Mode>, expectedModes);
@@ -405,8 +417,8 @@ void DrmTest::testConnectorLifetime()
 
     const auto session = Session::create(Session::Type::Noop);
     const auto backend = std::make_unique<DrmBackend>(session.get());
-    const auto renderBackend = backend->createQPainterBackend();
     auto gpu = std::make_unique<DrmGpu>(backend.get(), mockGpu->fd, DrmDevice::open(mockGpu->devNode));
+    const auto renderBackend = backend->createOpenGLBackend(gpu->renderDevice());
 
     QVERIFY(gpu->updateOutputs());
     QCOMPARE(gpu->drmOutputs().size(), 1);
@@ -444,16 +456,16 @@ void DrmTest::testModeset()
 
     const auto session = Session::create(Session::Type::Noop);
     const auto backend = std::make_unique<DrmBackend>(session.get());
-    const auto renderBackend = backend->createQPainterBackend();
     auto gpu = std::make_unique<DrmGpu>(backend.get(), mockGpu->fd, DrmDevice::open(mockGpu->devNode));
+    const auto renderBackend = backend->createOpenGLBackend(gpu->renderDevice());
 
     QVERIFY(gpu->updateOutputs());
     QCOMPARE(gpu->drmOutputs().size(), 1);
     const auto output = gpu->drmOutputs().front();
     const auto layer = renderBackend->compatibleOutputLayers(output).front();
-    layer->beginFrame();
     output->renderLoop()->prepareNewFrame();
     const auto frame = std::make_shared<OutputFrame>(output->renderLoop(), std::chrono::nanoseconds(1'000'000'000'000 / output->refreshRate()));
+    layer->beginFrame(frame.get());
     layer->endFrame(Region::infinite(), Region::infinite(), frame.get());
     QVERIFY(output->present({layer}, frame));
 
@@ -472,8 +484,8 @@ void DrmTest::testVrrChange()
 
     const auto session = Session::create(Session::Type::Noop);
     const auto backend = std::make_unique<DrmBackend>(session.get());
-    const auto renderBackend = backend->createQPainterBackend();
     auto gpu = std::make_unique<DrmGpu>(backend.get(), mockGpu->fd, DrmDevice::open(mockGpu->devNode));
+    const auto renderBackend = backend->createOpenGLBackend(gpu->renderDevice());
 
     QVERIFY(gpu->updateOutputs());
     const auto output = gpu->drmOutputs().front();
@@ -486,6 +498,154 @@ void DrmTest::testVrrChange()
     QCOMPARE(gpu->drmOutputs().front(), output);
     QCOMPARE(capsChanged.count(), 1);
     QVERIFY(output->capabilities() & BackendOutput::Capability::Vrr);
+}
+
+void DrmTest::testLeaseDisconnectReconnect()
+{
+    const auto mockGpu = findPrimaryDevice(1);
+    const auto nonDesktop = std::make_shared<MockConnector>(mockGpu.get(), true);
+    mockGpu->connectors.push_back(nonDesktop);
+
+    const auto session = Session::create(Session::Type::Noop);
+    const auto backend = std::make_unique<DrmBackend>(session.get());
+    auto gpu = std::make_unique<DrmGpu>(backend.get(), mockGpu->fd, DrmDevice::open(mockGpu->devNode));
+    const auto renderBackend = backend->createOpenGLBackend(gpu->renderDevice());
+
+    QVERIFY(gpu->updateOutputs());
+    const auto outputs = gpu->drmOutputs();
+    QCOMPARE(outputs.size(), 1);
+    DrmOutput *nonDesktopOutput = outputs.front();
+    QVERIFY(nonDesktopOutput->isNonDesktop());
+
+    KWin::Display display;
+    const QString socketName = QStringLiteral("kwin-test-mockdrm-lease-%1").arg(QCoreApplication::applicationPid());
+    QVERIFY(display.addSocketName(socketName));
+    QVERIFY(display.start());
+    auto leaseManager = std::make_unique<DrmLeaseManagerV1>(backend.get(), &display);
+    Q_EMIT backend->gpuAdded(gpu.get());
+    auto *leaseDevice = leaseManager->leaseDeviceForGpu(gpu.get());
+    QVERIFY(leaseDevice);
+
+    int sv[2];
+    QVERIFY(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv) == 0);
+    ClientConnection *client = display.createClient(sv[0]);
+    QVERIFY(client);
+    close(sv[1]);
+
+    QVERIFY(leaseDevice->add(client->client(), 2, 1));
+    auto *connector = leaseDevice->connectorForOutput(nonDesktopOutput);
+    QVERIFY(connector);
+    const int advertisedBeforeLease = connector->resourceMap().size();
+    QVERIFY(advertisedBeforeLease >= 1);
+
+    auto drmLease = std::make_unique<DrmLease>(gpu.get(), FileDescriptor{dup(gpu->fd())}, 4242, QList<DrmOutput *>{nonDesktopOutput});
+    wl_resource *leaseResource = wl_resource_create(client->client(), &wp_drm_lease_v1_interface, 1, 3);
+    QVERIFY(leaseResource);
+    auto *lease = new DrmLeaseV1Interface(leaseDevice, QList<DrmLeaseConnectorV1Interface *>{connector}, leaseResource);
+    leaseDevice->addLease(lease);
+
+    // Simulate an active lease: the connector must become withdrawn.
+    lease->grant(std::move(drmLease));
+    QVERIFY(connector->withdrawn());
+
+    // Hot-unplug while leased: revoke must not immediately re-advertise.
+    nonDesktop->connection = DRM_MODE_DISCONNECTED;
+    QVERIFY(nonDesktopOutput->connector()->updateProperties());
+    const int advertisedBeforeRevoke = connector->resourceMap().size();
+    lease->revoke();
+    QCOMPARE(connector->resourceMap().size(), advertisedBeforeRevoke);
+    QVERIFY(connector->withdrawn());
+
+    // After reconnect, outputsQueried should re-offer available connectors.
+    nonDesktop->connection = DRM_MODE_CONNECTED;
+    QVERIFY(nonDesktopOutput->connector()->updateProperties());
+    Q_EMIT backend->outputsQueried();
+    QCOMPARE(connector->resourceMap().size(), advertisedBeforeRevoke + 1);
+    QVERIFY(!connector->withdrawn());
+
+    // Explicitly destroy the lease resource so the lease object is removed
+    // before backend teardown. This avoids a second revoke during cleanup.
+    wl_resource_destroy(leaseResource);
+    leaseManager.reset();
+
+    gpu.reset();
+    verifyCleanup(mockGpu.get());
+}
+
+void DrmTest::testLeaseAvailableWhenClientExitsBeforeQueuedReoffer()
+{
+    const auto mockGpu = findPrimaryDevice(1);
+    const auto nonDesktop = std::make_shared<MockConnector>(mockGpu.get(), true);
+    mockGpu->connectors.push_back(nonDesktop);
+
+    const auto session = Session::create(Session::Type::Noop);
+    const auto backend = std::make_unique<DrmBackend>(session.get());
+    auto gpu = std::make_unique<DrmGpu>(backend.get(), mockGpu->fd, DrmDevice::open(mockGpu->devNode));
+    const auto renderBackend = backend->createOpenGLBackend(gpu->renderDevice());
+
+    QVERIFY(gpu->updateOutputs());
+    const auto outputs = gpu->drmOutputs();
+    QCOMPARE(outputs.size(), 1);
+    DrmOutput *nonDesktopOutput = outputs.front();
+    QVERIFY(nonDesktopOutput->isNonDesktop());
+
+    KWin::Display display;
+    const QString socketName = QStringLiteral("kwin-test-mockdrm-lease-client-exit-%1").arg(QCoreApplication::applicationPid());
+    QVERIFY(display.addSocketName(socketName));
+    QVERIFY(display.start());
+    auto leaseManager = std::make_unique<DrmLeaseManagerV1>(backend.get(), &display);
+    Q_EMIT backend->gpuAdded(gpu.get());
+    auto *leaseDevice = leaseManager->leaseDeviceForGpu(gpu.get());
+    QVERIFY(leaseDevice);
+
+    int sv[2];
+    QVERIFY(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv) == 0);
+    ClientConnection *client = display.createClient(sv[0]);
+    QVERIFY(client);
+    close(sv[1]);
+
+    auto *deviceResource = leaseDevice->add(client->client(), 2, 1);
+    QVERIFY(deviceResource);
+
+    auto *connector = leaseDevice->connectorForOutput(nonDesktopOutput);
+    QVERIFY(connector);
+    QVERIFY(!connector->resourceMap().empty());
+
+    wl_resource *leaseResource = wl_resource_create(client->client(), &wp_drm_lease_v1_interface, 1, 3);
+    QVERIFY(leaseResource);
+    auto *lease = new DrmLeaseV1Interface(leaseDevice, QList<DrmLeaseConnectorV1Interface *>{connector}, leaseResource);
+    leaseDevice->addLease(lease);
+    auto drmLease = std::make_unique<DrmLease>(gpu.get(), FileDescriptor{dup(gpu->fd())}, 4242, QList<DrmOutput *>{nonDesktopOutput});
+
+    lease->grant(std::move(drmLease));
+    QVERIFY(connector->withdrawn());
+
+    // Disconnect the client before processing events.
+    // Lease resource destruction triggers DrmLeaseV1Interface teardown,
+    // which revokes the lease. Connectors stay withdrawn until re-offered.
+    client->destroy();
+    QCoreApplication::processEvents();
+    QVERIFY(connector->resourceMap().empty());
+
+    // Trigger outputsQueried -> handleOutputsQueried() which calls
+    // offerAvailableConnectors() to re-offer withdrawn connected connectors.
+    Q_EMIT backend->outputsQueried();
+    QVERIFY(!connector->withdrawn());
+
+    // A newly connecting client should receive the connector again.
+    int sv2[2];
+    QVERIFY(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv2) == 0);
+    ClientConnection *client2 = display.createClient(sv2[0]);
+    QVERIFY(client2);
+    close(sv2[1]);
+    auto *deviceResource2 = leaseDevice->add(client2->client(), 2, 5);
+    QVERIFY(deviceResource2);
+    QVERIFY(!connector->resourceMap().empty());
+    QVERIFY(!connector->withdrawn());
+
+    leaseManager.reset();
+    gpu.reset();
+    verifyCleanup(mockGpu.get());
 }
 
 QTEST_GUILESS_MAIN(DrmTest)

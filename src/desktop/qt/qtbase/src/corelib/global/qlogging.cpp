@@ -38,6 +38,10 @@
 #include <android/log.h>
 #endif
 
+#ifdef Q_OS_HARMONY
+#include <QtCore/private/qohoslogger_p.h>
+#endif
+
 #ifdef Q_OS_DARWIN
 #include <QtCore/private/qcore_mac_p.h>
 #endif
@@ -262,6 +266,10 @@ static bool qt_append_thread_name_to(QString &message)
 */
 static bool systemHasStderr()
 {
+#if defined(Q_OS_HARMONY)
+    return false; // OHOS has no stderr
+#endif
+
     return true;
 }
 
@@ -1328,7 +1336,7 @@ void QMessagePattern::setPattern(const QString &pattern)
                     if (depth <= 0)
                         error += "QT_MESSAGE_PATTERN: %{backtrace} depth must be a number greater than 0\n"_L1;
                     else
-                        backtraceDepth = depth;
+                        backtraceDepth = std::min(depth, QInternalMessageLogContext::MaxBacktraceDepth);
                 }
                 m = separatorRx.matchView(lexeme);
                 if (m.hasMatch())
@@ -1370,7 +1378,7 @@ void QMessagePattern::setPattern(const QString &pattern)
         } else {
             Q_ASSERT(literalLexemeIndex < literalLexemeCount);
             using UP = std::unique_ptr<char[]>;
-            newLiterals[literalLexemeIndex] = UP(qstrdup(lexeme.toLatin1().constData()));
+            newLiterals[literalLexemeIndex] = UP(qstrdup(lexeme.toUtf8().constData()));
             newTokens[i] = newLiterals[literalLexemeIndex].get();
             ++literalLexemeIndex;
         }
@@ -1712,7 +1720,7 @@ static QString formatLogMessage(QtMsgType type, const QMessageLogContext &contex
         } else if (token == messageTokenC) {
             message.append(str);
         } else if (token == categoryTokenC) {
-            message.append(QLatin1StringView(context.category));
+            message.append(QUtf8StringView(context.category));
         } else if (token == typeTokenC) {
             switch (type) {
             case QtDebugMsg:   message.append("debug"_L1); break;
@@ -1723,7 +1731,7 @@ static QString formatLogMessage(QtMsgType type, const QMessageLogContext &contex
             }
         } else if (token == fileTokenC) {
             if (context.file)
-                message.append(QLatin1StringView(context.file));
+                message.append(QUtf8StringView(context.file));
             else
                 message.append("unknown"_L1);
         } else if (token == lineTokenC) {
@@ -1745,7 +1753,7 @@ static QString formatLogMessage(QtMsgType type, const QMessageLogContext &contex
                 message.append(QString::number(qt_gettid())); // fallback to the TID
         } else if (token == qthreadptrTokenC) {
             message.append("0x"_L1);
-            message.append(QString::number(qlonglong(QThread::currentThread()->currentThread()), 16));
+            message.append(QString::number(qlonglong(QThread::currentThread()), 16));
 #ifdef QLOGGING_HAVE_BACKTRACE
         } else if (token == backtraceTokenC) {
             if (fullBacktrace.isEmpty())
@@ -1791,7 +1799,7 @@ static QString formatLogMessage(QtMsgType type, const QMessageLogContext &contex
         HANDLE_IF_TOKEN(Fatal)
 #undef HANDLE_IF_TOKEN
         } else {
-            message.append(QLatin1StringView(token));
+            message.append(QUtf8StringView(token));
         }
     }
     return message;
@@ -1996,6 +2004,28 @@ static bool android_default_message_handler(QtMsgType type,
 }
 #endif //Q_OS_ANDROID
 
+#if defined(Q_OS_HARMONY)
+static bool ohos_default_message_handler(QtMsgType type,
+                                  const QMessageLogContext &context,
+                                  const QString &message)
+{
+    QString formattedMessage = qFormatLogMessage(type, context, message);
+
+    LogLevel priority = LOG_DEBUG;
+    switch (type) {
+    case QtDebugMsg: priority = LOG_DEBUG; break;
+    case QtInfoMsg: priority = LOG_INFO; break;
+    case QtWarningMsg: priority = LOG_WARN; break;
+    case QtCriticalMsg: priority = LOG_ERROR; break;
+    case QtFatalMsg: priority = LOG_FATAL; break;
+    };
+
+    qOhosLogMessage(priority, qPrintable(QCoreApplication::applicationName()), qPrintable(formattedMessage));
+
+    return true; // Prevent further output to stderr
+}
+#endif //Q_OS_HARMONY
+
 #ifdef Q_OS_WIN
 static void win_outputDebugString_helper(const QString &message)
 {
@@ -2099,6 +2129,8 @@ static constexpr SystemMessageSink systemMessageSink = {
         syslog_default_message_handler
 #elif defined(Q_OS_ANDROID)
         android_default_message_handler
+# elif defined(Q_OS_HARMONY)
+        ohos_default_message_handler
 #elif defined(QT_USE_APPLE_UNIFIED_LOGGING)
         AppleUnifiedLogger::messageHandler, true
 #elif defined Q_OS_WASM
@@ -2362,7 +2394,8 @@ void qErrnoWarning(int code, const char *msg, ...)
         not specified, the format of Qt::ISODate is used.
     \row \li \c{%{backtrace [depth=N] [separator="..."]}} \li A backtrace with the number of frames
         specified by the optional \c depth parameter (defaults to 5), and separated by the optional
-        \c separator parameter (defaults to "|").
+        \c separator parameter (defaults to "|"). Starting from Qt 6.12, the maximum \c depth is
+        limited to 16384 frames.
 
         This expansion is available only on some platforms:
 

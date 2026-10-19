@@ -16,13 +16,13 @@
 // We mean it.
 //
 
-#include <QtQml/private/qtqmlglobal_p.h>
-#include <QtQml/private/qqmlcontext_p.h>
-#include <QtQml/private/qqmlguard_p.h>
-#include <QtQml/private/qqmltypenamecache_p.h>
-#include <QtQml/private/qqmlnotifier_p.h>
-#include <QtQml/private/qv4identifierhash_p.h>
-#include <QtQml/private/qv4executablecompilationunit_p.h>
+#include <private/qqmlcontext_p.h>
+#include <private/qqmlguard_p.h>
+#include <private/qqmlnotifier_p.h>
+#include <private/qqmltypenamecache_p.h>
+#include <private/qtqmlglobal_p.h>
+#include <private/qv4executablecompilationunit_p.h>
+#include <private/qv4identifierhash_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -58,6 +58,8 @@ public:
     {
         return m_typeCompilationUnit;
     }
+    void setTypeCompilationUnit(const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit);
+
     void initFromTypeCompilationUnit(const QQmlRefPointer<QV4::ExecutableCompilationUnit> &unit,
                                      int subComponentIndex);
 
@@ -66,8 +68,13 @@ public:
     }
 
     void emitDestruction();
-    void clearContext();
+    void clearExpressions();
     void clearContextRecursively();
+    void clearChildrenAndSiblings();
+    void clearImportedScripts();
+    void clearOwnedObjects();
+    void clearContextGuards();
+    void clearIdValues();
     void invalidate();
 
     bool isValid() const
@@ -173,7 +180,7 @@ public:
         return m_propertyNameCache.value(name);
     }
 
-    int propertyIndex(QV4::String *name) const
+    int propertyIndex(QV4::Heap::String *name) const
     {
         ensurePropertyNames();
         return m_propertyNameCache.value(name);
@@ -182,16 +189,17 @@ public:
     QString propertyName(int index) const
     {
         ensurePropertyNames();
-        return m_propertyNameCache.findId(index);
+        return m_propertyNameCache.key<QString>(index);
     }
 
     void addPropertyNameAndIndex(const QString &name, int index)
     {
-        Q_ASSERT(!m_propertyNameCache.isEmpty());
+        Q_ASSERT(m_propertyNameCache.isValid());
         m_propertyNameCache.add(name, index);
     }
 
     void setExpressions(QQmlJavaScriptExpression *expressions) { m_expressions = expressions; }
+    QQmlJavaScriptExpression *expressions() const { return m_expressions; }
     QQmlJavaScriptExpression *takeExpressions()
     {
         QQmlJavaScriptExpression *expressions = m_expressions;
@@ -391,9 +399,9 @@ private:
 
     void ensurePropertyNames() const
     {
-        if (m_propertyNameCache.isEmpty())
+        if (!m_propertyNameCache.isValid())
             initPropertyNames();
-        Q_ASSERT(!m_propertyNameCache.isEmpty());
+        Q_ASSERT(m_propertyNameCache.isValid());
     }
 
     // My parent context and engine

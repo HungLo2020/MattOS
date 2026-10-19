@@ -8,14 +8,14 @@
 
 #include <devicenotifier_debug.h>
 
-#include "devicecontrol.h"
-#include "devicestatemonitor_p.h"
-
 #include <QDBusConnection>
 #include <QDBusMessage>
 
 #include <Solid/Device>
 #include <Solid/OpticalDrive>
+
+#include "devicecontrol.h"
+#include "spaceupdatemonitor_p.h"
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -24,10 +24,11 @@ DeviceFilterControl::DeviceFilterControl(QObject *parent)
     , m_filterType(Removable)
     , m_isVisible(false)
     , m_modelReset(false)
-    , m_spaceMonitor(SpaceMonitor::instance())
+    , m_deviceControl(DeviceControl::instance())
+    , m_spaceUpdateMonitor(SpaceUpdateMonitor::instance())
 {
     qCDebug(APPLETS::DEVICENOTIFIER) << "Begin initializing Device Filter Control";
-    setSourceModel(new DeviceControl(this));
+    setSourceModel(m_deviceControl.get());
     setDynamicSortFilter(false);
 
     onModelReset();
@@ -48,7 +49,7 @@ void DeviceFilterControl::unmountAllRemovables()
         auto index = DeviceFilterControl::index(position, 0);
         auto actionData = data(index, DeviceControl::Actions);
         if (!actionData.isNull()) {
-            auto actions = qvariant_cast<ActionsControl *>(actionData);
+            auto actions = qvariant_cast<ActionsInfo *>(actionData);
             if (actions->isUnmountable()) {
                 actions->unmount();
             }
@@ -175,7 +176,7 @@ bool DeviceFilterControl::isVisible() const
 void DeviceFilterControl::setIsVisible(bool status)
 {
     m_isVisible = status;
-    m_spaceMonitor->setIsVisible(status);
+    m_spaceUpdateMonitor->setIsVisible(status);
 }
 
 void DeviceFilterControl::onDeviceAdded(const QModelIndex &parent, int first, int last)
@@ -190,7 +191,6 @@ void DeviceFilterControl::onDeviceAdded(const QModelIndex &parent, int first, in
 
     m_deviceCount = rowCount(parent);
 
-    m_lastDeviceAdded = true;
     QModelIndex index = DeviceFilterControl::index(first, 0, parent);
 
     handleDeviceAdded(index);
@@ -318,6 +318,9 @@ void DeviceFilterControl::handleDeviceAdded(const QModelIndex &index)
 
     qCDebug(APPLETS::DEVICENOTIFIER) << "Device Filter Control: Set new last Device " << data(index, DeviceControl::Udi).toString();
 
+    const bool isRemote = data(index, DeviceControl::IsRemote).toBool();
+    // Don't pop up for remote devices, they can come and go randomly.
+    m_lastDeviceAdded = !isRemote;
     m_lastIcon = data(index, DeviceControl::Icon).toString();
     m_lastDescription = data(index, DeviceControl::Description).toString();
     m_lastUdi = data(index, DeviceControl::Udi).toString();
@@ -326,8 +329,8 @@ void DeviceFilterControl::handleDeviceAdded(const QModelIndex &index)
         qCDebug(APPLETS::DEVICENOTIFIER) << "Device Filter Control: filter type is not Unremovable. updating unmountAll Action";
         auto actionData = data(index, DeviceControl::Actions);
         if (!actionData.isNull()) {
-            auto actions = qvariant_cast<ActionsControl *>(actionData);
-            connect(actions, &ActionsControl::unmountActionIsValidChanged, this, &DeviceFilterControl::onDeviceActionUnmountableChanged);
+            auto actions = qvariant_cast<ActionsInfo *>(actionData);
+            connect(actions, &ActionsInfo::unmountActionIsValidChanged, this, &DeviceFilterControl::onDeviceActionUnmountableChanged);
             if (actions->isUnmountable()) {
                 qCDebug(APPLETS::DEVICENOTIFIER) << "Device Filter Control: add device " << data(index, DeviceControl::Udi).toString()
                                                  << " to unmountable devices";

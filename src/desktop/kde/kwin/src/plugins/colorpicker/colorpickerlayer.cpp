@@ -14,17 +14,12 @@ ColorPickerLayer::ColorPickerLayer(BackendOutput *output, GLFramebuffer *buffer)
 {
 }
 
-DrmDevice *ColorPickerLayer::scanoutDevice() const
-{
-    return nullptr;
-}
-
-QHash<uint32_t, QList<uint64_t>> ColorPickerLayer::supportedDrmFormats() const
+FormatModifierMap ColorPickerLayer::supportedDrmFormats() const
 {
     return {};
 }
 
-std::optional<OutputLayerBeginFrameInfo> ColorPickerLayer::doBeginFrame()
+std::optional<OutputLayerBeginFrameInfo> ColorPickerLayer::beginFrame(OutputFrame *frame)
 {
     return OutputLayerBeginFrameInfo{
         .renderTarget = RenderTarget(m_buffer),
@@ -32,7 +27,7 @@ std::optional<OutputLayerBeginFrameInfo> ColorPickerLayer::doBeginFrame()
     };
 }
 
-bool ColorPickerLayer::doEndFrame(const Region &renderedRegion, const Region &damagedRegion, OutputFrame *frame)
+bool ColorPickerLayer::endFrame(const Region &renderedRegion, const Region &damagedRegion, OutputFrame *frame)
 {
     return true;
 }
@@ -40,4 +35,5 @@ bool ColorPickerLayer::doEndFrame(const Region &renderedRegion, const Region &da
 void ColorPickerLayer::releaseBuffers()
 {
 }
+
 }

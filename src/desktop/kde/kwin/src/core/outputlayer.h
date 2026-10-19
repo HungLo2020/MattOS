@@ -1,4 +1,3 @@
-
 /*
     SPDX-FileCopyrightText: 2022 Vlad Zahorodnii <vlad.zahorodnii@kde.org>
 
@@ -9,9 +8,9 @@
 
 #include "core/backendoutput.h"
 #include "core/colorpipeline.h"
+#include "core/drm_formats.h"
 #include "core/rendertarget.h"
 #include "kwin_export.h"
-#include "utils/drm_format_helper.h"
 
 #include <QObject>
 #include <QPointer>
@@ -59,6 +58,7 @@ enum class OutputLayerType {
 class KWIN_EXPORT OutputLayer : public QObject
 {
     Q_OBJECT
+
 public:
     explicit OutputLayer(BackendOutput *output, OutputLayerType type);
     explicit OutputLayer(BackendOutput *output, OutputLayerType type, int zpos, int minZpos, int maxZpos);
@@ -79,7 +79,7 @@ public:
 
     Region deviceRepaints() const;
     void resetRepaints();
-    void scheduleRepaint(Item *item);
+    void scheduleRepaint(Item *item, std::optional<std::chrono::steady_clock::time_point> targetTime = std::nullopt);
     void addDeviceRepaint(const Region &region);
     bool needsRepaint() const;
 
@@ -95,21 +95,28 @@ public:
      */
     virtual bool preparePresentationTest();
 
-    std::optional<OutputLayerBeginFrameInfo> beginFrame();
-    bool endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame);
+    virtual std::optional<OutputLayerBeginFrameInfo> beginFrame(OutputFrame *frame = nullptr) = 0;
+    virtual bool endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) = 0;
 
     /**
-     * Tries to import the newest buffer of the surface for direct scanout and does some early checks
-     * for whether or not direct scanout *could* be successful
-     * A presentation request on the output must however be used afterwards to find out if it's actually successful!
+     * Do checks if the current configuration of the layer could possibly work.
+     * This can include checking things like color operations or offload transforms
+     */
+    virtual bool earlyScanoutChecks();
+    /**
+     * Attempts to import the buffer for direct scanout
      */
     virtual bool importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_ptr<OutputFrame> &frame);
+    /**
+     * Returns the item whose buffer is presented directly by display hardware.
+     */
+    virtual SurfaceItem *presentedDirectScanoutItem() const;
 
     void setScanoutCandidate(SurfaceItem *item);
 
-    virtual DrmDevice *scanoutDevice() const = 0;
-    virtual QHash<uint32_t, QList<uint64_t>> supportedDrmFormats() const = 0;
-    virtual QHash<uint32_t, QList<uint64_t>> supportedAsyncDrmFormats() const;
+    DrmDevice *scanoutDevice() const;
+    virtual FormatModifierMap supportedDrmFormats() const = 0;
+    virtual FormatModifierMap supportedAsyncDrmFormats() const;
 
     /**
      * Returns the source rect this output layer should sample from, in buffer local coordinates
@@ -147,7 +154,7 @@ public:
     int minZpos() const;
     int maxZpos() const;
 
-    static QList<FormatInfo> filterAndSortFormats(const QHash<uint32_t, QList<uint64_t>> &formats, uint32_t requiredAlphaBits, BackendOutput::ColorPowerTradeoff tradeoff);
+    static QList<FormatInfo> filterAndSortFormats(const FormatModifierMap &formats, uint32_t requiredAlphaBits, BackendOutput::ColorPowerTradeoff tradeoff);
 
     virtual void releaseBuffers() = 0;
 
@@ -155,9 +162,6 @@ Q_SIGNALS:
     void repaintScheduled();
 
 protected:
-    virtual std::optional<OutputLayerBeginFrameInfo> doBeginFrame() = 0;
-    virtual bool doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) = 0;
-
     const OutputLayerType m_type;
     Region m_repaints;
     QPointF m_hotspot;

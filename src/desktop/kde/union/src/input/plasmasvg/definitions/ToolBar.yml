@@ -1,0 +1,126 @@
+# SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+# SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+# SPDX-FileCopyrightText: 2024 Noah Davis <noahadvs@gmail.com>
+
+toolbar:
+    selectors:
+    -   type: ToolBar
+
+    path: widgets/toolbar
+
+    layout:
+        width:
+            property: sum
+            function: element-width
+            elements:
+            -   hint-left-margin
+            -   center
+            -   hint-right-margin
+        height:
+            property: sum
+            function: element-height
+            elements:
+            -   hint-top-margin
+            -   center
+            -   hint-bottom-margin
+
+        padding:
+            left:
+                property: element-width
+                element: hint-left-margin
+            right:
+                property: element-width
+                element: hint-right-margin
+            top:
+                property: element-height
+                element: hint-top-margin
+            bottom:
+                property: element-height
+                element: hint-bottom-margin
+
+    background:
+        image:
+            property: element-image
+            element: center
+
+        border:
+            left:
+                element: left
+                size:
+                    property: element-width
+                image:
+                    property: element-image
+            right:
+                element: right
+                size:
+                    property: element-width
+                image:
+                    property: element-image
+            top:
+                element: top
+                size:
+                    property: element-height
+                image:
+                    property: element-image
+            bottom:
+                element: bottom
+                size:
+                    property: element-height
+                image:
+                    property: element-image
+
+        corners:
+            top-left:
+                element: topleft
+                size:
+                    property: element-size
+                image:
+                    property: element-image
+            top-right:
+                element: topright
+                size:
+                    property: element-size
+                image:
+                    property: element-image
+            bottom-left:
+                element: bottomleft
+                size:
+                    property: element-size
+                image:
+                    property: element-image
+            bottom-right:
+                element: bottomright
+                size:
+                    property: element-size
+                image:
+                    property: element-image
+
+toolbar-applicationheader:
+    selectors:
+    -   type: ToolBar
+        id: application-header
+
+    path: widgets/toolbar
+    colorSet: Header
+
+    background:
+        image:
+            property: element-image
+            element: center
+
+        border:
+            left: empty
+            right: empty
+            top: empty
+
+            bottom:
+                path: widgets/line
+                prefix: ""
+                size:
+                    property: element-height
+                    element: horizontal-line
+                image:
+                    property: element-image
+                    element: horizontal-line
+
+        corners: empty

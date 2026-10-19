@@ -49,14 +49,13 @@ void keyboardKey(void *keyboard, struct wl_keyboard *wl_keyboard, uint32_t seria
 
 void keyboardModifiers(void *keyboard, struct wl_keyboard *wl_keyboard, uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched, uint32_t mods_locked, uint32_t group)
 {
-    Q_UNUSED(keyboard);
     Q_UNUSED(wl_keyboard);
     Q_UNUSED(serial);
-    Q_UNUSED(mods_depressed);
-    Q_UNUSED(mods_latched);
-    Q_UNUSED(mods_locked);
     auto kb = static_cast<MockKeyboard *>(keyboard);
     kb->m_group = group;
+    kb->m_modsDepressed = mods_depressed;
+    kb->m_modsLatched = mods_latched;
+    kb->m_modsLocked = mods_locked;
 }
 
 static const struct wl_keyboard_listener keyboardListener = {

@@ -57,6 +57,7 @@ KWinTabBoxConfigForm::KWinTabBoxConfigForm(TabboxType type, TabBoxSettings *conf
     connect(ui->showDesktop, &QAbstractButton::clicked, this, &KWinTabBoxConfigForm::onShowDesktopMode);
 
     connect(ui->switchingModeCombo, &QComboBox::activated, this, &KWinTabBoxConfigForm::onSwitchingMode);
+    connect(ui->showScreenCombo, &QComboBox::activated, this, &KWinTabBoxConfigForm::onShowScreenMode);
     connect(ui->effectCombo, &QComboBox::activated, this, &KWinTabBoxConfigForm::onEffectCombo);
 
     auto initShortcutWidget = [this](KKeySequenceWidget *primary, KKeySequenceWidget *alternate, const QString &name) {
@@ -170,6 +171,11 @@ int KWinTabBoxConfigForm::switchingMode() const
     return ui->switchingModeCombo->currentIndex();
 }
 
+int KWinTabBoxConfigForm::showScreenMode() const
+{
+    return ui->showScreenCombo->currentIndex();
+}
+
 QString KWinTabBoxConfigForm::layoutName() const
 {
     return ui->effectCombo->currentData().toString();
@@ -221,6 +227,11 @@ void KWinTabBoxConfigForm::setShowDesktopMode(TabBox::TabBoxConfig::ShowDesktopM
 void KWinTabBoxConfigForm::setSwitchingModeChanged(TabBox::TabBoxConfig::ClientSwitchingMode mode)
 {
     ui->switchingModeCombo->setCurrentIndex(mode);
+}
+
+void KWinTabBoxConfigForm::setShowScreenMode(TabBox::TabBoxConfig::ShowScreenMode mode)
+{
+    ui->showScreenCombo->setCurrentIndex(mode);
 }
 
 void KWinTabBoxConfigForm::setLayoutName(const QString &layoutName)
@@ -292,6 +303,12 @@ void KWinTabBoxConfigForm::onSwitchingMode()
     Q_EMIT configChanged();
 }
 
+void KWinTabBoxConfigForm::onShowScreenMode()
+{
+    m_config->setShowScreenMode(showScreenMode());
+    Q_EMIT configChanged();
+}
+
 void KWinTabBoxConfigForm::onEffectCombo()
 {
     if (!ui->kcfg_ShowTabBox->isChecked()) {
@@ -312,6 +329,7 @@ void KWinTabBoxConfigForm::updateUiFromConfig()
     setOrderMinimizedMode(static_cast<TabBoxConfig::OrderMinimizedMode>(m_config->orderMinimizedMode()));
     setShowDesktopMode(static_cast<TabBoxConfig::ShowDesktopMode>(m_config->showDesktopMode()));
     setSwitchingModeChanged(static_cast<TabBoxConfig::ClientSwitchingMode>(m_config->switchingMode()));
+    setShowScreenMode(static_cast<TabBoxConfig::ShowScreenMode>(m_config->showScreenMode()));
     setLayoutName(m_config->layoutName());
 
     for (const auto &widget : {ui->scAll, ui->scAllReverse, ui->scCurrent, ui->scCurrentReverse}) {
@@ -350,6 +368,7 @@ void KWinTabBoxConfigForm::setEnabledUi()
     ui->orderMinimized->setEnabled(!m_config->isOrderMinimizedModeImmutable());
     ui->showDesktop->setEnabled(!m_config->isShowDesktopModeImmutable());
     ui->switchingModeCombo->setEnabled(!m_config->isSwitchingModeImmutable());
+    ui->showScreenCombo->setEnabled(!m_config->isShowScreenModeImmutable());
     ui->effectCombo->setEnabled(!m_config->isLayoutNameImmutable());
 }
 
@@ -373,6 +392,7 @@ void KWinTabBoxConfigForm::updateDefaultIndicators()
     applyDefaultIndicator({ui->orderMinimized}, m_config->orderMinimizedMode() == m_config->defaultOrderMinimizedModeValue());
     applyDefaultIndicator({ui->showDesktop}, m_config->showDesktopMode() == m_config->defaultShowDesktopModeValue());
     applyDefaultIndicator({ui->switchingModeCombo}, m_config->switchingMode() == m_config->defaultSwitchingModeValue());
+    applyDefaultIndicator({ui->showScreenCombo}, m_config->showScreenMode() == m_config->defaultShowScreenModeValue());
     applyDefaultIndicator({ui->effectCombo}, m_config->layoutName() == m_config->defaultLayoutNameValue());
 
     for (const auto &widget : {ui->scAll, ui->scAllAlternate, ui->scAllReverse, ui->scAllReverseAlternate, ui->scCurrent, ui->scCurrentAlternate, ui->scCurrentReverse, ui->scCurrentReverseAlternate}) {

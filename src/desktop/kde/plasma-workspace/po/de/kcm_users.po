@@ -5,22 +5,22 @@
 # SPDX-FileCopyrightText: 2023 Jannick Kuhr <opensource@kuhr.org>
 # SPDX-FileCopyrightText: 2023 Johannes Obermayr <johannesobermayr@gmx.de>
 # SPDX-FileCopyrightText: 2024 Flori G <Renner03@protonmail.com>
-# SPDX-FileCopyrightText: 2025 Alois Spitzbart <spitz234@hotmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Alois Spitzbart <spitz234@hotmail.com>
 # SPDX-FileCopyrightText: 2025-2026 Philipp Kiemle <l10n.daphipz@fastmail.de>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_users\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-20 03:19+0000\n"
-"PO-Revision-Date: 2026-01-12 20:01+0100\n"
-"Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
+"POT-Creation-Date: 2026-08-04 00:47+0000\n"
+"PO-Revision-Date: 2026-08-29 14:04+0200\n"
+"Last-Translator: Alois Spitzbart <spitz234@hotmail.com>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 26.11.70\n"
 
 #: src/fingerprintmodel.cpp:144 src/fingerprintmodel.cpp:228
 #, kde-format
@@ -91,7 +91,7 @@ msgstr "Passwort"
 msgid "Confirm password"
 msgstr "Passwort bestätigen"
 
-#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:73
+#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:114
 #, kde-format
 msgid "Passwords must match"
 msgstr "Die Passwörter müssen übereinstimmen"
@@ -147,48 +147,68 @@ msgstr "Unverändert lassen"
 msgid "Create User"
 msgstr "Benutzer erstellen"
 
-#: src/ui/CreateUser.qml:38 src/ui/UserDetailsPage.qml:165
+#: src/ui/CreateUser.qml:40 src/ui/UserDetailsPage.qml:165
 #, kde-format
 msgid "Name:"
 msgstr "Name:"
 
-#: src/ui/CreateUser.qml:42 src/ui/UserDetailsPage.qml:171
+#: src/ui/CreateUser.qml:44 src/ui/UserDetailsPage.qml:171
 #, kde-format
 msgid "Username:"
 msgstr "Benutzername:"
 
-#: src/ui/CreateUser.qml:52 src/ui/UserDetailsPage.qml:203
+#: src/ui/CreateUser.qml:82
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Only lowercase letters, digits, dashes, and underscores are allowed. Invalid "
+"characters were removed."
+msgstr ""
+"Es sind nur Kleinbuchstaben, Ziffern, Bindestriche und Unterstriche "
+"zulässig. Ungültige Zeichen wurden entfernt."
+
+#: src/ui/CreateUser.qml:84
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Usernames must be lowercase. Uppercase characters were converted to "
+"lowercase."
+msgstr ""
+"Benutzernamen müssen in Kleinbuchstaben geschrieben sein. Großbuchstaben "
+"wurden in Kleinbuchstaben umgewandelt."
+
+#: src/ui/CreateUser.qml:93 src/ui/UserDetailsPage.qml:203
 #, kde-format
 msgid "Standard"
 msgstr "Standard"
 
-#: src/ui/CreateUser.qml:53 src/ui/UserDetailsPage.qml:204
+#: src/ui/CreateUser.qml:94 src/ui/UserDetailsPage.qml:204
 #, kde-format
 msgid "Administrator"
 msgstr "Systemverwalter"
 
-#: src/ui/CreateUser.qml:56 src/ui/UserDetailsPage.qml:193
+#: src/ui/CreateUser.qml:97 src/ui/UserDetailsPage.qml:193
 #, kde-format
 msgid "Account type:"
 msgstr "Art des Kontos:"
 
-#: src/ui/CreateUser.qml:61
+#: src/ui/CreateUser.qml:102
 #, kde-format
 msgid "Password:"
 msgstr "Passwort:"
 
-#: src/ui/CreateUser.qml:66
+#: src/ui/CreateUser.qml:107
 #, kde-format
 msgid "Confirm password:"
 msgstr "Passwort bestätigen:"
 
-#: src/ui/CreateUser.qml:88
+#: src/ui/CreateUser.qml:129
 #, kde-format
 msgctxt "@action:button Create a new user"
 msgid "Create"
 msgstr "Erstellen"
 
-#: src/ui/CreateUser.qml:111
+#: src/ui/CreateUser.qml:152
 #, kde-format
 msgctxt "@action:button Cancel creating new user"
 msgid "Cancel"
@@ -357,27 +377,22 @@ msgstr "Fingerabdrücke einrichten"
 msgid "Add"
 msgstr "Hinzufügen"
 
-#: src/ui/FingerprintDialog.qml:51
-#, kde-format
-msgid "Cancel"
-msgstr "Abbrechen"
-
-#: src/ui/FingerprintDialog.qml:59
+#: src/ui/FingerprintDialog.qml:52
 #, kde-format
 msgid "Done"
 msgstr "Fertig"
 
-#: src/ui/FingerprintList.qml:46
+#: src/ui/FingerprintList.qml:47
 #, kde-format
 msgid "Re-enroll finger"
 msgstr "Finger erneut registrieren"
 
-#: src/ui/FingerprintList.qml:58
+#: src/ui/FingerprintList.qml:59
 #, kde-format
 msgid "Delete fingerprint"
 msgstr "Fingerabdruck löschen"
 
-#: src/ui/FingerprintList.qml:74
+#: src/ui/FingerprintList.qml:75
 #, kde-format
 msgid "No fingerprints added"
 msgstr "Keine Fingerabdrücke hinzugefügt"
@@ -737,6 +752,9 @@ msgstr "Ihr Konto"
 #, kde-format
 msgid "Other Accounts"
 msgstr "Andere Konten"
+
+#~ msgid "Cancel"
+#~ msgstr "Abbrechen"
 
 #~ msgid "Enrolling Fingerprint"
 #~ msgstr "Fingerabdruck registrieren"

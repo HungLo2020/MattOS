@@ -122,10 +122,11 @@ function(qt_internal_add_executable name)
 
     qt_internal_add_repo_local_defines(${name})
 
-    if(ANDROID)
+    if(ANDROID OR OHOS)
         # The above call to qt_set_common_target_properties() sets the symbol
-        # visibility to hidden, but for Android, we need main() to not be hidden
-        # because it has to be loadable at runtime using dlopen().
+        # visibility to hidden, but for Android or HarmonyOS, we need main()
+        # to not be hidden because it has to be loadable at runtime using
+        # dlopen().
         set_property(TARGET ${name} PROPERTY C_VISIBILITY_PRESET default)
         set_property(TARGET ${name} PROPERTY CXX_VISIBILITY_PRESET default)
     endif()
@@ -165,6 +166,7 @@ function(qt_internal_add_executable name)
         NO_PCH_SOURCES ${arg_NO_PCH_SOURCES}
         NO_UNITY_BUILD_SOURCES ${arg_NO_UNITY_BUILD_SOURCES}
         INCLUDE_DIRECTORIES ${private_includes}
+        SYSTEM_INCLUDE_DIRECTORIES ${arg_SYSTEM_INCLUDE_DIRECTORIES}
         DEFINES ${arg_DEFINES}
         LIBRARIES
             ${arg_LIBRARIES}

@@ -1,16 +1,16 @@
 # SPDX-FileCopyrightText: 2008 Thomas Reitelbach <tr@erdfunkstelle.de>
-# SPDX-FileCopyrightText: 2008, 2009, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021 Burkhard Lück <lueck@hube-lueck.de>
-# SPDX-FileCopyrightText: 2009 Volker Lanz <vl@fidra.de>
+# SPDX-FileCopyrightText: 2008-2009, 2011-2019, 2021 Burkhard Lück <lueck@hube-lueck.de>
 # SPDX-FileCopyrightText: 2009 Johannes Obermayr <johannesobermayr@gmx.de>
-# SPDX-FileCopyrightText: 2010 Panagiotis Papadopoulos <pano_90@gmx.net>
-# SPDX-FileCopyrightText: 2010, 2011, 2012, 2013, 2016, 2023 Frederik Schwarzer <schwarzer@kde.org>
+# SPDX-FileCopyrightText: 2009 Volker Lanz <vl@fidra.de>
 # SPDX-FileCopyrightText: 2010 Jonathan Raphael Joachim Kolberg <bulldog98@freenet.de>
+# SPDX-FileCopyrightText: 2010 Panagiotis Papadopoulos <pano_90@gmx.net>
+# SPDX-FileCopyrightText: 2010-2013, 2016, 2023 Frederik Schwarzer <schwarzer@kde.org>
 # SPDX-FileCopyrightText: 2013 Benjamin Weis <benjamin.weis@gmx.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kpmcore\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
 "PO-Revision-Date: 2023-08-14 21:58+0200\n"
 "Last-Translator: Frederik Schwarzer <schwarzer@kde.org>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
@@ -1945,7 +1945,7 @@ msgstr "Sperren"
 msgid "Enter passphrase for %1:"
 msgstr "Geben Sie eine Passphrase für %1 ein:"
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
@@ -1953,7 +1953,7 @@ msgstr ""
 "Die Größe des verschlüsselten LUKS-Containers auf der Partition <filename>"
 "%1</filename> wird geändert."
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2014,7 +2014,7 @@ msgstr ""
 "Der Bootsektor für das NTFS-Dateisystem auf der Partition <filename>%1</"
 "filename> wird aktualisiert."
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2024,7 +2024,7 @@ msgstr ""
 "Beim Aktualisieren des NTFS-Bootsektors war es nicht möglich, einen neuen "
 "Startsektor in die Partition <filename>%1</filename> zu schreiben."
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2901,6 +2901,46 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr "Dateisystem auf <filename>%1</filename> schreddern"
 
+#: jobs/takeownershipjob.cpp:28
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:progress"
+#| msgid ""
+#| "File system on partition <filename>%1</filename> does not support setting "
+#| "labels. Job ignored."
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr ""
+"Das Dateisystem <filename>%1</filename> unterstützt kein Setzen von "
+"Bezeichnungen. Operation ignoriert."
+
+#: jobs/takeownershipjob.cpp:36
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:progress"
+#| msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr ""
+"Die Größe des verschlüsselten LUKS-Containers auf der Partition <filename>"
+"%1</filename> wird geändert."
+
+#: jobs/takeownershipjob.cpp:60
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:status"
+#| msgid "Set label for partition <filename>%1</filename> to \"%2\""
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "Bezeichnung der Partition <filename>%1</filename> auf „%2“ einstellen"
+
+#: jobs/takeownershipjob.cpp:62
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:status"
+#| msgid "Set label for partition <filename>%1</filename> to \"%2\""
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "Bezeichnung der Partition <filename>%1</filename> auf „%2“ einstellen"
+
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
 msgctxt "@info:status"
@@ -3347,6 +3387,22 @@ msgstr ""
 #| msgid "Set label for partition <filename>%1</filename> to \"%2\""
 msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
+msgstr "Bezeichnung der Partition <filename>%1</filename> auf „%2“ einstellen"
+
+#: ops/takeownershipoperation.cpp:73
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:status"
+#| msgid "Set label for partition <filename>%1</filename> to \"%2\""
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr "Bezeichnung der Partition <filename>%1</filename> auf „%2“ einstellen"
+
+#: ops/takeownershipoperation.cpp:75
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info:status"
+#| msgid "Set label for partition <filename>%1</filename> to \"%2\""
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
 msgstr "Bezeichnung der Partition <filename>%1</filename> auf „%2“ einstellen"
 
 #: plugins/geom/geompartitiontable.cpp:91

@@ -2,13 +2,13 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VERSION "6.6.5")
-set(PROJECT_DEP_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
+set(PROJECT_DEP_VERSION "6.8.0")
 
 project (KActivityManagerd VERSION ${PROJECT_VERSION})
 
-set (QT_MIN_VERSION "6.10.0")
-set (KF6_MIN_VERSION "6.22.0")
+set (QT_MIN_VERSION "6.11.0")
+set (KF6_MIN_VERSION "6.30.0")
 set (KDE_COMPILERSETTINGS_LEVEL "5.82")
 set (Boost_MINIMUM_VERSION "1.58")
 
@@ -32,7 +32,7 @@ set_package_properties(ECM PROPERTIES
 )
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+set (CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
 include (KDEInstallDirs)
 include (KDECMakeSettings)
@@ -80,8 +80,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
    set (CMAKE_VISIBILITY_INLINES_HIDDEN 0)
 endif ()
 
-ecm_set_disabled_deprecation_versions(QT 6.9.0
-    KF 6.16.0
+ecm_set_disabled_deprecation_versions(QT 6.11.0
+    KF 6.29.0
 )
 
 ecm_setup_version(PROJECT VARIABLE_PREFIX KACTIVITYMANAGERD

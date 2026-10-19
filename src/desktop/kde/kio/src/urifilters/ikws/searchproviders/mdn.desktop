@@ -1,11 +1,13 @@
 [Desktop Entry]
 Type=Service
 Name=Mozilla Developer Network (MDN)
+Name[am]=Mozilla Developer Network (MDN)
 Name[ar]=شبكة مطوري موزيلا (MDN)
 Name[az]=Mozilla Developer Network (MDN)
 Name[bg]=Mozilla Developer Network (MDN)
 Name[ca]=Xarxa de desenvolupador de Mozilla (MDN)
 Name[ca@valencia]=Xarxa de desenvolupador de Mozilla (MDN)
+Name[cs]=Mozilla Developer Network (MDN)
 Name[de]=Mozilla-Entwicklernetzwerk (MDN)
 Name[eo]=Mozilla Developer Network (MDN)
 Name[es]=Red del desarrollador de Mozilla (MDN)
@@ -28,8 +30,11 @@ Name[lg]=Kifo Ky'abawandisi ba Puloguramu Ekya Mozilla (MDN)
 Name[lt]=Mozilla Developer Network (MDN)
 Name[lv]=„Mozilla“ izstrādātāju tīkls (MDN)
 Name[my]=Mozilla Developer Network (MDN)
+Name[nan_TW]=Mozilla 開發者網路 (MDN)
+Name[nan_TW@latin]=Mozilla Khai-huat-tsiá Bāng-lōo (MDN)
 Name[nb]=Mozilla Developer Network (MDN)
 Name[nl]=Mozilla Developer Network (MDN)
+Name[nn]=Mozilla Developer Network (MDN)
 Name[pl]=Mozilla Developer Network (MDN)
 Name[pt]=Rede de Desenvolvedores Mozilla (MDN)
 Name[pt_BR]=Rede de desenvolvedores Mozilla (MDN)
@@ -46,11 +51,13 @@ Name[zh_CN]=Mozilla 开发者网络 (MDN)
 Name[zh_TW]=Mozilla 開發者文件 (MDN)
 Keys=mdn
 Query=https://developer.mozilla.org/en-US/search?q=\\{@}
+Query[am]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[ar]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[az]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[bg]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[ca]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[ca@valencia]=https://developer.mozilla.org/en-US/search?q=\\{@}
+Query[cs]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[de]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[eo]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[es]=https://developer.mozilla.org/en-US/search?q=\\{@}
@@ -66,15 +73,18 @@ Query[hu]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[ia]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[is]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[it]=https://developer.mozilla.org/en-US/search?q=\\{@}
-Query[ja]=https://developer.mozilla.org/en-US/search?q=\\{@}
+Query[ja]=https://developer.mozilla.org/ja/search?q=\\{@}
 Query[ka]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[ko]=https://developer.mozilla.org/ko/search?q=\\{@}
 Query[lg]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[lt]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[lv]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[my]=https://developer.mozilla.org/en-US/search?q=\\{@}
+Query[nan_TW]=https://developer.mozilla.org/en-US/search?q=\\{@}
+Query[nan_TW@latin]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[nb]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[nl]=https://developer.mozilla.org/en-US/search?q=\\{@}
+Query[nn]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[pl]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[pt]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[pt_BR]=https://developer.mozilla.org/en-US/search?q=\\{@}
@@ -85,7 +95,6 @@ Query[sl]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[sv]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[th]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[tr]=https://developer.mozilla.org/en-US/search?q=\\{@}
-Query[ug]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[uk]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[zh_CN]=https://developer.mozilla.org/en-US/search?q=\\{@}
 Query[zh_TW]=https://developer.mozilla.org/zh-TW/search?q=\\{@}

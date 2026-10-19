@@ -16,8 +16,8 @@
 // We mean it.
 //
 
-#include "qlanguageserver_p.h"
-#include "qqmlbasemodule_p.h"
+#include <private/qlanguageserver_p.h>
+#include <private/qqmlbasemodule_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -33,10 +33,8 @@ class QmlGoToTypeDefinitionSupport : public QQmlBaseModule<TypeDefinitionRequest
 public:
     QmlGoToTypeDefinitionSupport(QmlLsp::QQmlCodeModelManager *codeModel);
 
-    QString name() const override;
     void registerHandlers(QLanguageServer *server, QLanguageServerProtocol *protocol) override;
-    void setupCapabilities(const QLspSpecification::InitializeParams &clientInfo,
-                           QLspSpecification::InitializeResult &) override;
+    void setupCapabilities(QLspSpecification::ServerCapabilities &caps) override;
 
     void process(RequestPointerArgument request) override;
 

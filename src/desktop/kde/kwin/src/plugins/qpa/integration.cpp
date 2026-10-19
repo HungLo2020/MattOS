@@ -11,18 +11,20 @@
 #include "integration.h"
 #include "backingstore.h"
 #include "clipboard.h"
+#include "compositor.h"
+#include "core/output.h"
+#include "core/renderbackend.h"
+#include "core/renderdevice.h"
 #include "eglplatformcontext.h"
 #include "inputmethod.h"
 #include "internalinputmethodcontext.h"
 #include "logging.h"
+#include "main.h"
 #include "offscreensurface.h"
+#include "opengl/eglbackend.h"
 #include "screen.h"
 #include "wayland_server.h"
 #include "window.h"
-
-#include "core/output.h"
-#include "core/outputbackend.h"
-#include "main.h"
 #include "workspace.h"
 
 #include <QCoreApplication>
@@ -87,13 +89,10 @@ bool Integration::hasCapability(Capability cap) const
     case OpenGL:
     case MultipleWindows:
     case NonFullScreenWindows:
-#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 2)
     case OffscreenSurface:
-#endif
         return true;
     case ThreadedOpenGL:
     case BufferQueueingOpenGL:
-    case RasterGLSurface:
         return false;
     default:
         return QPlatformIntegration::hasCapability(cap);
@@ -153,24 +152,21 @@ QStringList Integration::themeNames() const
     if (qEnvironmentVariableIsSet("KDE_FULL_SESSION")) {
         return QStringList({QStringLiteral("kde")});
     }
-    return QStringList({QLatin1String(QGenericUnixTheme::name)});
+    return QStringList({QLatin1StringView(QGenericUnixTheme::name)});
 }
 
 QPlatformOpenGLContext *Integration::createPlatformOpenGLContext(QOpenGLContext *context) const
 {
-    if (!kwinApp()->outputBackend()) {
+    if (!m_eglContext || m_eglContext->isFailed()) {
+        updateEglContext();
+    }
+    if (!m_eglContext) {
         return nullptr;
     }
-    if (kwinApp()->outputBackend()->sceneEglGlobalShareContext() == EGL_NO_CONTEXT) {
-        qCWarning(KWIN_QPA) << "Attempting to create a QOpenGLContext before the scene is initialized";
-        return nullptr;
-    }
-    const auto eglDisplay = kwinApp()->outputBackend()->sceneEglDisplayObject();
-    if (eglDisplay) {
-        EGLPlatformContext *platformContext = new EGLPlatformContext(context, eglDisplay);
-        return platformContext;
-    }
-    return nullptr;
+    const auto ret = new EGLPlatformContext(context, m_eglContext);
+    connect(Compositor::self(), &Compositor::primaryGpuChanged, ret, &EGLPlatformContext::invalidateContext);
+    connect(Compositor::self(), &Compositor::aboutToDestroy, ret, &EGLPlatformContext::invalidateContext);
+    return ret;
 }
 
 QPlatformAccessibility *Integration::accessibility() const
@@ -196,6 +192,18 @@ void Integration::handleWorkspaceCreated()
     }
 
     m_clipboard->initialize();
+
+    updateEglContext();
+    connect(Compositor::self(), &Compositor::primaryGpuChanged, this, &Integration::updateEglContext);
+    connect(Compositor::self(), &Compositor::aboutToDestroy, this, [this]() {
+        m_eglContext.reset();
+    });
+}
+
+void Integration::updateEglContext() const
+{
+    RenderDevice *device = Compositor::self()->primaryDevice();
+    m_eglContext = EglContext::create(device->eglDisplay(), EGL_NO_CONFIG_KHR, device->eglShareContext());
 }
 
 void Integration::handleOutputEnabled(LogicalOutput *output)

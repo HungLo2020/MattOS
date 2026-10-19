@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcminput\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-12 23:40+0200\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-09-05 12:24+0300\n"
 "Last-Translator: Moo <<>>\n"
 "Language-Team: lt <kde-i18n-lt@kde.org>\n"
 "Language: lt\n"
@@ -19,26 +19,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n%10>=2 && (n%100<10 || n"
 "%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr ""
-"Įvesties įrenginių užklausimas patyrė nesėkmę. Atverkite šį nuostatų modulį "
-"iš naujo."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr "Kritinė klaida skaitant svarbiausią %1 įrenginio informaciją."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "Nepavyksta pasirinkti tinkamos vidinės pusės"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -47,12 +35,12 @@ msgstr ""
 "Klaida įkeliant reikšmes. Išsamesnei informacijai, žiūrėkite žurnalus. "
 "Paleiskite šį konfigūracijos modulį iš naujo."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "Nerasta jokio rodomojo įrenginio. Prijunkite jį dabar."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -62,7 +50,7 @@ msgstr ""
 "žurnalus. Paleiskite šį konfigūracijos modulį iš naujo ir bandykite dar "
 "kartą."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -71,7 +59,7 @@ msgstr ""
 "Klaida įkeliant numatytąsias reikšmes. Nepavyko nustatyti kai kurių "
 "parinkčių į jų numatytąsias reikšmes."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -80,12 +68,12 @@ msgstr ""
 "Klaida pridedant naujai prijungtą įrenginį. Prijunkite jį iš naujo ir "
 "paleiskite šį konfigūracijos modulį iš naujo."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr "Rodomasis įrenginys atsijungė. Užvėrė savo nuostatos dialogą."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr "Rodomasis įrenginys atsijungė. Jokių kitų įrenginių nerasta."
@@ -144,31 +132,31 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "Įrenginys:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, kde-format
 msgctxt "@title:group"
 msgid "General:"
 msgstr "Bendri:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr "Įjungti įrenginį"
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, kde-format
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "Kairysis ir dešinysis mygtukas:"
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, kde-format
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "Apkeisti (kairės rankos veiksena)"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
@@ -176,7 +164,7 @@ msgstr ""
 "Paspausti abu vienu metu, kad būtų inicijuotas viduriniojo mygtuko "
 "spustelėjimas"
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -187,19 +175,19 @@ msgstr ""
 "papildoma delsa yra reikalinga, kad būtų teisingai aptinkami vienalaikiai "
 "kairiojo ir dešiniojo mygtuko spustelėjimai."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "Rodyklės greitis:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "Įjungti rodyklės pagreitį"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -208,44 +196,49 @@ msgstr ""
 "Kai įjungta, kuo greičiau judinama pelė, tuo labiau padidėja rodyklės "
 "nukeliautas atstumas."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "Slinkimo greitis:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "Lėtesnis"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "Greitesnis"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "Slinkimas:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "Atvirkštinė slinkimo kryptis"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr ""
-"Laikyti nuspaustą vidurinįjį mygtuką ir judinti pelę, kad būtų slenkama"
+msgid "Scroll when moving the pointer"
+msgstr "Slinkti judinant pelės rodyklę"
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr "laikant paspaustą vidurinįjį pelės mygtuką"
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -258,6 +251,38 @@ msgstr ""
 "tokiose kaip tam tikri paveikslų redaktoriai, dokumentų žiūryklės ar video "
 "žaidimai. Tai gali būti naudojama bet kuriame įrenginyje, bet, visų pirma, "
 "skirta kaip slinkimo ratuko pakaitalas įrenginiuose, kuriuose jo nėra."
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr "spustelėjus vidurinįjį pelės mygtuką"
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+"Tai iš esmės trukdys viduriniojo pelės mygtuko spustelėjimams; spustelėkite "
+"vidurinįjį pelės mygtuką du kartus, kai norite, kad programą gautų vieną "
+"spustelėjimą viduriniuoju mygtuku. Į tai įeina ir tempimas viduriniuoju "
+"pelės mygtuko spustelėjimu."
+
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr ""
+#~ "Laikyti nuspaustą vidurinįjį mygtuką ir judinti pelę, kad būtų slenkama"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "Nepavyksta pasirinkti tinkamos vidinės pusės"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr ""
+#~ "Įvesties įrenginių užklausimas patyrė nesėkmę. Atverkite šį nuostatų "
+#~ "modulį iš naujo."
 
 #~ msgid "Device enabled"
 #~ msgstr "Įrenginys įjungtas"

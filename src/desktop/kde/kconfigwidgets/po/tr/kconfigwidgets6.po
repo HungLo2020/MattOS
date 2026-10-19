@@ -17,13 +17,13 @@
 # Serdar SOYTETİR <tulliana@gmail.com>, 2010, 2012.
 # Volkan Gezer <volkangezer@gmail.com>, 2013, 2014, 2017.
 # Kaan Ozdincer <kaanozdincer@gmail.com>, 2014.
-# SPDX-FileCopyrightText: 2022, 2023, 2024 Emir SARI <emir_sari@icloud.com>
+# SPDX-FileCopyrightText: 2022, 2023, 2024, 2026 Emir SARI <emir_sari@icloud.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-25 00:42+0000\n"
-"PO-Revision-Date: 2024-08-18 21:00+0300\n"
+"POT-Creation-Date: 2026-09-17 00:40+0000\n"
+"PO-Revision-Date: 2026-05-02 19:56+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
@@ -31,13 +31,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 24.11.70\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
 msgstr ""
-"Serdar Soytetir, Görkem Çetin, H. İbrahim Güngör, Volkan Gezer, Emir SARI"
+"Serdar SOYTETİR, Görkem ÇETİN, H. İbrahim GÜNGÖR, Volkan GEZER, Emir SARI"
 
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
@@ -132,13 +132,7 @@ msgctxt "home page"
 msgid "&Home"
 msgstr "&Başlangıç"
 
-#: kstandardaction.cpp:230
-#, kde-format
-msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
-msgstr ""
-"Menü Çubuğunu Göster <p> Gizli duran menü çubuğunu yeniden gösterir</p>"
-
-#: kstandardaction.cpp:251
+#: kstandardaction.cpp:248
 #, kde-format
 msgid ""
 "Show Statusbar<p>Shows the statusbar, which is the bar at the bottom of the "
@@ -539,10 +533,14 @@ msgstr "Me&nüyü Aç"
 msgid "Application Style"
 msgstr "Uygulama Biçemi"
 
-#: kstylemanager.cpp:78
+#: kstylemanager.cpp:84
 #, kde-format
 msgid "Default"
 msgstr "Öntanımlı"
+
+#~ msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
+#~ msgstr ""
+#~ "Menü Çubuğunu Göster <p> Gizli duran menü çubuğunu yeniden gösterir</p>"
 
 #~ msgid "Tip of the &Day"
 #~ msgstr "&Günün İpucu"

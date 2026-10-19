@@ -12,7 +12,6 @@
 #include "plugins/shakecursor/shakecursorconfig.h"
 #include "pointer_input.h"
 #include "scene/imageitem.h"
-#include "scene/itemrenderer.h"
 #include "scene/workspacescene.h"
 
 namespace KWin
@@ -32,7 +31,7 @@ ShakeCursorItem::ShakeCursorItem(const CursorTheme &theme, Item *parent)
 void ShakeCursorItem::refresh()
 {
     if (!m_imageItem) {
-        m_imageItem = scene()->renderer()->createImageItem(this);
+        m_imageItem = std::make_unique<ImageItem>(this);
     }
     m_imageItem->setImage(m_source->image());
     m_imageItem->setPosition(-m_source->hotspot());
@@ -140,11 +139,14 @@ void ShakeCursorEffect::magnify(qreal magnification)
 
         if (!m_cursorItem) {
             effects->hideCursor();
+        }
 
-            const qreal maxScale = ShakeCursorConfig::magnification() + 8 * ShakeCursorConfig::overMagnification();
+        const qreal prefetchDevicePixelRatio = ShakeCursorConfig::magnification() + 8 * ShakeCursorConfig::overMagnification();
+        const qreal devicePixelRatio = std::ceil(magnification / prefetchDevicePixelRatio) * prefetchDevicePixelRatio;
+        if (!m_cursorItem || m_cursorTheme.devicePixelRatio() != devicePixelRatio) {
             const CursorTheme originalTheme = input()->pointer()->cursorTheme();
-            if (m_cursorTheme.name() != originalTheme.name() || m_cursorTheme.size() != originalTheme.size() || m_cursorTheme.devicePixelRatio() != maxScale) {
-                m_cursorTheme = CursorTheme(originalTheme.name(), originalTheme.size(), maxScale);
+            if (m_cursorTheme.name() != originalTheme.name() || m_cursorTheme.size() != originalTheme.size() || m_cursorTheme.devicePixelRatio() != devicePixelRatio) {
+                m_cursorTheme = CursorTheme(originalTheme.name(), originalTheme.size(), devicePixelRatio);
             }
 
             m_cursorItem = std::make_unique<ShakeCursorItem>(m_cursorTheme, effects->scene()->overlayItem());

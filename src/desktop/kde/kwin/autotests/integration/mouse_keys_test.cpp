@@ -14,15 +14,10 @@
 #include "window.h"
 #include "workspace.h"
 
-#include <KWayland/Client/pointer.h>
-#include <KWayland/Client/seat.h>
-
 #include <linux/input.h>
 
 namespace KWin
 {
-
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_mouse_keys-0");
 
 class MouseKeysTest : public QObject
 {
@@ -42,7 +37,7 @@ void MouseKeysTest::initTestCase()
     kaccessConfig.sync();
 
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     qputenv("XKB_DEFAULT_RULES", "evdev");
 
@@ -70,7 +65,7 @@ void MouseKeysTest::cleanup()
 
 void MouseKeysTest::testMove()
 {
-    std::unique_ptr<KWayland::Client::Pointer> pointer(Test::waylandSeat()->createPointer());
+    std::unique_ptr<Test::WlPointer> pointer(Test::kwinSeat()->getPointer());
 
     std::unique_ptr<KWayland::Client::Surface> surface(Test::createSurface());
     QVERIFY(surface != nullptr);
@@ -79,7 +74,7 @@ void MouseKeysTest::testMove()
     Window *waylandWindow = Test::renderAndWaitForShown(surface.get(), QSize(1000, 1000), Qt::blue);
     QVERIFY(waylandWindow);
 
-    QSignalSpy pointerSpy(pointer.get(), &KWayland::Client::Pointer::motion);
+    QSignalSpy pointerSpy(pointer.get(), &Test::WlPointer::motion);
 
     quint32 timestamp = 0;
 
@@ -142,7 +137,7 @@ void MouseKeysTest::testMove()
 
 void MouseKeysTest::testClick()
 {
-    std::unique_ptr<KWayland::Client::Pointer> pointer(Test::waylandSeat()->createPointer());
+    std::unique_ptr<Test::WlPointer> pointer(Test::kwinSeat()->getPointer());
 
     std::unique_ptr<KWayland::Client::Surface> surface(Test::createSurface());
     QVERIFY(surface != nullptr);
@@ -151,7 +146,7 @@ void MouseKeysTest::testClick()
     Window *waylandWindow = Test::renderAndWaitForShown(surface.get(), QSize(1000, 1000), Qt::blue);
     QVERIFY(waylandWindow);
 
-    QSignalSpy pointerSpy(pointer.get(), &KWayland::Client::Pointer::buttonStateChanged);
+    QSignalSpy pointerSpy(pointer.get(), &Test::WlPointer::buttonStateChanged);
 
     quint32 timestamp = 0;
 
@@ -159,13 +154,13 @@ void MouseKeysTest::testClick()
     Test::keyboardKeyPressed(KEY_KP5, ++timestamp);
     QVERIFY(pointerSpy.wait());
     QCOMPARE(pointerSpy.first()[2], BTN_LEFT);
-    QCOMPARE(pointerSpy.first()[3], (int)KWayland::Client::Pointer::ButtonState::Pressed);
+    QCOMPARE(pointerSpy.first()[3].toUInt(), Test::WlPointer::button_state_pressed);
     pointerSpy.clear();
 
     Test::keyboardKeyReleased(KEY_KP5, ++timestamp);
     QVERIFY(pointerSpy.wait());
     QCOMPARE(pointerSpy.first()[2], BTN_LEFT);
-    QCOMPARE(pointerSpy.first()[3], (int)KWayland::Client::Pointer::ButtonState::Released);
+    QCOMPARE(pointerSpy.first()[3].toUInt(), Test::WlPointer::button_state_released);
     pointerSpy.clear();
 
     // switch to middle
@@ -175,13 +170,13 @@ void MouseKeysTest::testClick()
     Test::keyboardKeyPressed(KEY_KP5, ++timestamp);
     QVERIFY(pointerSpy.wait());
     QCOMPARE(pointerSpy.first()[2], BTN_MIDDLE);
-    QCOMPARE(pointerSpy.first()[3], (int)KWayland::Client::Pointer::ButtonState::Pressed);
+    QCOMPARE(pointerSpy.first()[3].toUInt(), Test::WlPointer::button_state_pressed);
     pointerSpy.clear();
 
     Test::keyboardKeyReleased(KEY_KP5, ++timestamp);
     QVERIFY(pointerSpy.wait());
     QCOMPARE(pointerSpy.first()[2], BTN_MIDDLE);
-    QCOMPARE(pointerSpy.first()[3], (int)KWayland::Client::Pointer::ButtonState::Released);
+    QCOMPARE(pointerSpy.first()[3].toUInt(), Test::WlPointer::button_state_released);
     pointerSpy.clear();
 
     // switch to right
@@ -191,13 +186,13 @@ void MouseKeysTest::testClick()
     Test::keyboardKeyPressed(KEY_KP5, ++timestamp);
     QVERIFY(pointerSpy.wait());
     QCOMPARE(pointerSpy.first()[2], BTN_RIGHT);
-    QCOMPARE(pointerSpy.first()[3], (int)KWayland::Client::Pointer::ButtonState::Pressed);
+    QCOMPARE(pointerSpy.first()[3].toUInt(), Test::WlPointer::button_state_pressed);
     pointerSpy.clear();
 
     Test::keyboardKeyReleased(KEY_KP5, ++timestamp);
     QVERIFY(pointerSpy.wait());
     QCOMPARE(pointerSpy.first()[2], BTN_RIGHT);
-    QCOMPARE(pointerSpy.first()[3], (int)KWayland::Client::Pointer::ButtonState::Released);
+    QCOMPARE(pointerSpy.first()[3].toUInt(), Test::WlPointer::button_state_released);
     pointerSpy.clear();
 
     // and back to left
@@ -207,15 +202,16 @@ void MouseKeysTest::testClick()
     Test::keyboardKeyPressed(KEY_KP5, ++timestamp);
     QVERIFY(pointerSpy.wait());
     QCOMPARE(pointerSpy.first()[2], BTN_LEFT);
-    QCOMPARE(pointerSpy.first()[3], (int)KWayland::Client::Pointer::ButtonState::Pressed);
+    QCOMPARE(pointerSpy.first()[3].toUInt(), Test::WlPointer::button_state_pressed);
     pointerSpy.clear();
 
     Test::keyboardKeyReleased(KEY_KP5, ++timestamp);
     QVERIFY(pointerSpy.wait());
     QCOMPARE(pointerSpy.first()[2], BTN_LEFT);
-    QCOMPARE(pointerSpy.first()[3], (int)KWayland::Client::Pointer::ButtonState::Released);
+    QCOMPARE(pointerSpy.first()[3].toUInt(), Test::WlPointer::button_state_released);
     pointerSpy.clear();
 }
+
 }
 
 WAYLANDTEST_MAIN(KWin::MouseKeysTest)

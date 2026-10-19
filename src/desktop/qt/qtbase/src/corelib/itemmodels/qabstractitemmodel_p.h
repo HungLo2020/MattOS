@@ -85,6 +85,7 @@ public:
     void itemsAboutToBeMoved(const QModelIndex &srcParent, int srcFirst, int srcLast, const QModelIndex &destinationParent, int destinationChild, Qt::Orientation);
     void itemsMoved(const QModelIndex &srcParent, int srcFirst, int srcLast, const QModelIndex &destinationParent, int destinationChild, Qt::Orientation orientation);
     bool allowMove(const QModelIndex &srcParent, int srcFirst, int srcLast, const QModelIndex &destinationParent, int destinationChild, Qt::Orientation orientation);
+    bool dropOnItem(const QModelIndex &index, QDataStream &stream);
 
     // ugly hack for QTreeModel, see QTBUG-94546
     virtual void executePendingOperations() const;
@@ -141,8 +142,6 @@ public:
     bool resetting = false;
 
     static const QHash<int,QByteArray> &defaultRoleNames();
-    static bool isVariantLessThan(const QVariant &left, const QVariant &right,
-                                  Qt::CaseSensitivity cs = Qt::CaseSensitive, bool isLocaleAware = false);
 };
 Q_DECLARE_TYPEINFO(QAbstractItemModelPrivate::Change, Q_RELOCATABLE_TYPE);
 

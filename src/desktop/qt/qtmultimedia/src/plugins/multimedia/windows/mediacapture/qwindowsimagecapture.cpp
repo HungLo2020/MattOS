@@ -3,14 +3,16 @@
 
 #include "qwindowsimagecapture_p.h"
 
-#include "qwindowsmediadevicesession_p.h"
-#include "qwindowsmediacapture_p.h"
-#include <private/qmediastoragelocation_p.h>
+#include <mediacapture/qwindowsmediacapture_p.h>
+#include <mediacapture/qwindowsmediadevicesession_p.h>
 
-#include <QtConcurrent/qtconcurrentrun.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
 #include <QtGui/qimagewriter.h>
+#include <QtConcurrent/qtconcurrentrun.h>
 
 QT_BEGIN_NAMESPACE
+
+using namespace Qt::StringLiterals;
 
 QWindowsImageCapture::QWindowsImageCapture(QImageCapture *parent)
     : QPlatformImageCapture(parent)
@@ -145,8 +147,9 @@ void QWindowsImageCapture::saveImage(int captureId, const QString &fileName,
 
     imageWriter.write(image);
 
-    QMetaObject::invokeMethod(this, "imageSaved", Qt::QueuedConnection,
-                              Q_ARG(int, captureId), Q_ARG(QString, fileName));
+    QMetaObject::invokeMethod(this, [this, captureId, fileName] {
+        emit imageSaved(captureId, fileName);
+    }, Qt::QueuedConnection);
 }
 
 QString QWindowsImageCapture::writerFormat(QImageCapture::FileFormat reqFormat)
@@ -155,19 +158,19 @@ QString QWindowsImageCapture::writerFormat(QImageCapture::FileFormat reqFormat)
 
     switch (reqFormat) {
     case QImageCapture::FileFormat::JPEG:
-        format = QLatin1String("jpg");
+        format = u"jpg"_s;
         break;
     case QImageCapture::FileFormat::PNG:
-        format = QLatin1String("png");
+        format = u"png"_s;
         break;
     case QImageCapture::FileFormat::WebP:
-        format = QLatin1String("webp");
+        format = u"webp"_s;
         break;
     case QImageCapture::FileFormat::Tiff:
-        format = QLatin1String("tiff");
+        format = u"tiff"_s;
         break;
     default:
-        format = QLatin1String("jpg");
+        format = u"jpg"_s;
     }
 
     auto supported = QImageWriter::supportedImageFormats();
@@ -175,14 +178,14 @@ QString QWindowsImageCapture::writerFormat(QImageCapture::FileFormat reqFormat)
         if (format.compare(QString::fromUtf8(f), Qt::CaseInsensitive) == 0)
             return format;
 
-    return QLatin1String("jpg");
+    return u"jpg"_s;
 }
 
 int QWindowsImageCapture::writerQuality(const QString &writerFormat,
                                               QImageCapture::Quality quality)
 {
-    if (writerFormat.compare(QLatin1String("jpg"), Qt::CaseInsensitive) == 0 ||
-            writerFormat.compare(QLatin1String("jpeg"), Qt::CaseInsensitive) == 0) {
+    if (writerFormat.compare(u"jpg", Qt::CaseInsensitive) == 0 ||
+            writerFormat.compare(u"jpeg", Qt::CaseInsensitive) == 0) {
 
         switch (quality) {
         case QImageCapture::Quality::VeryLowQuality:

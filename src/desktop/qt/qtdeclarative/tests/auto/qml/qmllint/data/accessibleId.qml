@@ -7,7 +7,7 @@ QtObject {
             id: a
             property QtObject o: QtObject {
                 property int a: 5
-                objectName: a.objectName
+                objectName: a.objectName // qmllint disable id-shadows-member
             }
         }
     }

@@ -1028,7 +1028,7 @@ bool KTextEditor::DocumentPrivate::editEnd()
     }
 
     if (m_buffer->editChanged()) {
-        if (m_buffer->editTagStart() == 0 && url().isEmpty()) {
+        if (m_useFirstLineAsDocName && m_buffer->editTagStart() == 0 && url().isEmpty()) {
             updateDocName();
         }
         setModified(true);
@@ -2601,7 +2601,8 @@ bool KTextEditor::DocumentPrivate::saveFile()
                            i18n("The document could not be saved, as it was not possible to write to %1.\nCheck that you have write access to this file or "
                                 "that enough disk space is available.\nThe original file may be lost or damaged. "
                                 "Don't quit the application until the file is successfully written.",
-                                this->url().toDisplayString(QUrl::PreferLocalFile)));
+                                this->url().toDisplayString(QUrl::PreferLocalFile))
+                               .toHtmlEscaped());
         return false;
     }
 
@@ -4890,16 +4891,21 @@ void KTextEditor::DocumentPrivate::delayAutoReload()
 
 void KTextEditor::DocumentPrivate::onModOnHdAutoReload()
 {
+    bool toggledAutoReload = false;
     if (m_modOnHdHandler) {
         delete m_modOnHdHandler;
         autoReloadToggled(true);
+
+        // ensure we do some initial reload if we just enabled it in the prompt
+        // see bug 524241
+        toggledAutoReload = true;
     }
 
     if (!isAutoReload()) {
         return;
     }
 
-    if (m_modOnHd && !m_reloading && !m_autoReloadThrottle.isActive()) {
+    if (m_modOnHd && !m_reloading && (toggledAutoReload || !m_autoReloadThrottle.isActive())) {
         m_modOnHd = false;
         m_prevModOnHdReason = OnDiskUnmodified;
         Q_EMIT modifiedOnDisk(this, false, OnDiskUnmodified);
@@ -5176,6 +5182,8 @@ void KTextEditor::DocumentPrivate::updateConfig()
             }
         }
     }
+
+    m_useFirstLineAsDocName = config()->value(KateDocumentConfig::UseFirstLineAsDocName).toBool();
 
     Q_EMIT configChanged(this);
 }

@@ -27,8 +27,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_dont_crash_useractions_menu-0");
-
 class TestDontCrashUseractionsMenu : public QObject
 {
     Q_OBJECT
@@ -43,7 +41,7 @@ private Q_SLOTS:
 void TestDontCrashUseractionsMenu::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     // force style to breeze as that's the one which triggered the crash
     QVERIFY(kwinApp()->setStyle(QStringLiteral("breeze")));

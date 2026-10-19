@@ -1,15 +1,15 @@
 cmake_minimum_required (VERSION 3.16 FATAL_ERROR)
 # Managed by release script
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 set(SPECTACLE_VERSION ${PROJECT_VERSION})
 
 # Spectacle project
 project(Spectacle VERSION ${SPECTACLE_VERSION})
 
 # minimum requirements
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
@@ -36,6 +36,8 @@ include(KDEGitCommitHooks)
 include(ECMDeprecationSettings)
 include(ECMFindQmlModule)
 
+option(WITH_X11 "Enable X11 support" ON)
+
 # find dependencies
 
 find_package(
@@ -53,17 +55,9 @@ find_package(
         WaylandClient
         Multimedia
 )
+find_package(Qt6GuiPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
+
 qt_policy(SET QTP0001 NEW)
-
-if(Qt6_VERSION VERSION_EQUAL 6.8.0)
-    # https://bugreports.qt.io/browse/QTBUG-129797
-    message(NOTICE "Qt6_VERSION: ${Qt6_VERSION} detected. Enabling CAST_FROM_ASCII")
-    remove_definitions(-DQT_NO_CAST_FROM_ASCII)
-endif()
-
-if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
 
 find_package(
     KF6 ${KF6_MIN_VERSION} REQUIRED
@@ -83,12 +77,15 @@ find_package(
         Prison
         Crash
 )
+if (NOT TARGET KF6::PrisonScanner ) 
+    message(SEND_ERROR "Prison built without required PrisonScanner component")
+endif()
 
 find_package(Wayland REQUIRED COMPONENTS Client)
 find_package(PlasmaWaylandProtocols REQUIRED)
 find_package(LayerShellQt REQUIRED)
 find_package(KPipeWire)
-find_package(OpenCV 4.7 REQUIRED core imgproc)
+find_package(PkgConfig REQUIRED)
 
 set_package_properties(KPipeWire PROPERTIES DESCRIPTION
     "Used to record pipewire streams into a file"
@@ -96,13 +93,15 @@ set_package_properties(KPipeWire PROPERTIES DESCRIPTION
 )
 
 ecm_find_qmlmodule(org.kde.kquickimageeditor)
-find_package(KQuickImageEditor COMPONENTS)
+find_package(KQuickImageEditor 0.7 REQUIRED COMPONENTS)
 set_package_properties(KQuickImageEditor PROPERTIES
     TYPE REQUIRED
     DESCRIPTION "Simple image editor for QtQuick applications"
     URL "https://invent.kde.org/libraries/kquickimageeditor/"
     PURPOSE "Add image editing capability to the screenshots"
 )
+
+pkg_check_modules(TESSERACT REQUIRED IMPORTED_TARGET tesseract)
 
 # optional components
 find_package(KF6DocTools ${KF6_MIN_VERSION})
@@ -115,34 +114,13 @@ if (KF6Purpose_FOUND)
     set(PURPOSE_FOUND 1)
 endif()
 
-find_package(XCB COMPONENTS XFIXES IMAGE UTIL CURSOR RANDR)
-set(XCB_COMPONENTS_ERRORS FALSE)
-set(XCB_COMPONENTS_FOUND TRUE)
-if(NOT XCB_XFIXES_FOUND)
-	set(XCB_COMPONENTS_ERRORS "${XCB_COMPONENTS_ERRORS} XCB-XFIXES ")
-	set(XCB_COMPONENTS_FOUND FALSE)
-endif()
-if(NOT XCB_IMAGE_FOUND)
-	set(XCB_COMPONENTS_ERRORS "${XCB_COMPONENTS_ERRORS} XCB-IMAGE ")
-	set(XCB_COMPONENTS_FOUND FALSE)
-endif()
-if(NOT XCB_UTIL_FOUND)
-	set(XCB_COMPONENTS_ERRORS "${XCB_COMPONENTS_ERRORS} XCB-UTIL ")
-	set(XCB_COMPONENTS_FOUND FALSE)
-endif()
-if(NOT XCB_CURSOR_FOUND)
-	set(XCB_COMPONENTS_ERRORS "${XCB_COMPONENTS_ERRORS} XCB-CURSOR ")
-	set(XCB_COMPONENTS_FOUND FALSE)
-endif()
-
-# fail build if none of the platform backends can be found
-if (NOT XCB_FOUND OR NOT XCB_COMPONENTS_FOUND)
-    message(FATAL_ERROR "No suitable backend platform was found. Currently supported platforms are: XCB Components Required: ${XCB_COMPONENTS_ERRORS}")
+if(WITH_X11)
+    find_package(XCB REQUIRED COMPONENTS XFIXES IMAGE UTIL CURSOR RANDR)
 endif()
 
 # setup handling of deprecated Qt & KF API
 
-ecm_set_disabled_deprecation_versions(QT 6.7  KF 6.5.0)
+ecm_set_disabled_deprecation_versions(QT 6.11.0  KF 6.27.0)
 
 # hand off to subdirectories
 

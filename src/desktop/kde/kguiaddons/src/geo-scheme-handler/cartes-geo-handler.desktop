@@ -1,0 +1,34 @@
+[Desktop Entry]
+Type=Application
+Exec=kde-geo-uri-handler --coordinate-template "https://cartes.app/?geo=<URI>" --query-template "https://cartes.app/?geo=<URI>" --fallback "https://cartes.app" %u
+Name=Cartes
+Name[ar]=كارتيس
+Name[bg]=Cartes
+Name[ca]=Cartes
+Name[ca@valencia]=Cartes
+Name[cs]=Mapy
+Name[es]=Cartes
+Name[eu]=Cartes
+Name[fr]=Cartes
+Name[he]=Cartes
+Name[ia]=Cartas
+Name[it]=Cartes
+Name[ka]=Cartes
+Name[ko]=Cartes
+Name[lt]=Cartes
+Name[nl]=Cartes
+Name[nn]=Cartes
+Name[pt_BR]=Cartes
+Name[ru]=Cartes
+Name[sk]=Cartes
+Name[sl]=Cartes
+Name[sv]=Cartes
+Name[tr]=Cartes
+Name[uk]=Cartes
+Name[zh_CN]=Cartes
+Name[zh_TW]=Cartes
+Icon=map-globe
+MimeType=x-scheme-handler/geo;
+Terminal=false
+NoDisplay=true
+StartupNotify=true

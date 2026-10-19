@@ -22,7 +22,6 @@ namespace KWin
 class ClientConnection;
 class DisplayPrivate;
 class OutputInterface;
-class OutputDeviceV2Interface;
 class SeatInterface;
 class GraphicsBuffer;
 
@@ -35,6 +34,7 @@ class KWIN_EXPORT Display : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool running READ isRunning NOTIFY runningChanged)
+
 public:
     explicit Display(QObject *parent = nullptr);
     virtual ~Display();
@@ -99,7 +99,6 @@ public:
      * @returns All SeatInterface currently managed on the Display.
      */
     QList<SeatInterface *> seats() const;
-    QList<OutputDeviceV2Interface *> outputDevices() const;
     QList<OutputInterface *> outputs() const;
     QList<OutputInterface *> outputsIntersecting(const Rect &rect) const;
     OutputInterface *largestIntersectingOutput(const Rect &rect) const;

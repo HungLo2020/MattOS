@@ -46,6 +46,10 @@ QIOSTheme::QIOSTheme()
         qCDebug(lcQpaFonts) << "Contents size category changed to" << UIApplication.sharedApplication.preferredContentSizeCategory;
         QPlatformFontDatabase::repopulateFontDatabase();
     });
+    m_motionPreferenceObserver = QMacNotificationObserver(nil,
+        UIAccessibilityReduceMotionStatusDidChangeNotification, [] {
+        QWindowSystemInterface::handleThemeChange<QWindowSystemInterface::SynchronousDelivery>();
+    });
 }
 
 QIOSTheme::~QIOSTheme()
@@ -85,8 +89,7 @@ void QIOSTheme::initializeSystemPalette()
     s_systemPalette.setBrush(QPalette::ToolTipText, qt_mac_toQBrush(UIColor.labelColor.CGColor));
     s_systemPalette.setBrush(QPalette::Disabled, QPalette::ToolTipText, disabledText);
 
-    if (@available(ios 15.0, *))
-        s_systemPalette.setBrush(QPalette::Accent, qt_mac_toQBrush(UIColor.tintColor.CGColor));
+    s_systemPalette.setBrush(QPalette::Accent, qt_mac_toQBrush(UIColor.tintColor.CGColor));
 }
 
 const QPalette *QIOSTheme::palette(QPlatformTheme::Palette type) const
@@ -207,6 +210,10 @@ Qt::ContrastPreference QIOSTheme::contrastPreference() const
     return UIAccessibilityDarkerSystemColorsEnabled() ? Qt::ContrastPreference::HighContrast : Qt::ContrastPreference::NoPreference;
 }
 
+Qt::MotionPreference QIOSTheme::motionPreference() const
+{
+    return UIAccessibilityIsReduceMotionEnabled() ? Qt::MotionPreference::ReducedMotion : Qt::MotionPreference::NoPreference;
+}
 
 void QIOSTheme::applyTheme(UIWindow *window)
 {

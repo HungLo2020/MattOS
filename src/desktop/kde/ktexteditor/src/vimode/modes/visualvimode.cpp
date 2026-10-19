@@ -38,9 +38,7 @@ void VisualViMode::selectInclusive(const KTextEditor::Cursor c1, const KTextEdit
 
 void VisualViMode::selectBlockInclusive(const KTextEditor::Cursor c1, const KTextEditor::Cursor c2)
 {
-    m_view->setBlockSelection(true);
-
-    if (c1.column() >= c2.column()) {
+    if (doc()->toVirtualColumn(c1) >= doc()->toVirtualColumn(c2)) {
         m_view->setSelection(KTextEditor::Range(c1.line(), c1.column() + 1, c2.line(), c2.column()));
     } else {
         m_view->setSelection(KTextEditor::Range(c1.line(), c1.column(), c2.line(), c2.column() + 1));
@@ -87,27 +85,24 @@ void VisualViMode::goToPos(const Range &r)
     // Setting range for a command
     m_commandRange = Range(m_start, c, m_commandRange.motionType);
 
-    // If visual mode is blockwise
+    updateViewSelection();
+}
+
+void VisualViMode::updateViewSelection()
+{
+    KTextEditor::Cursor c = m_view->cursorPosition();
+
     if (isVisualBlock()) {
         selectBlockInclusive(m_start, c);
-
         // Need to correct command range to make it inclusive.
-        if ((c.line() < m_start.line() && c.column() > m_start.column()) || (c.line() > m_start.line() && c.column() < m_start.column())) {
-            qSwap(m_commandRange.endColumn, m_commandRange.startColumn);
+        if ((c.line() < m_start.line()) != (doc()->toVirtualColumn(c) < doc()->toVirtualColumn(m_start))) {
+            m_commandRange = swapRangeColumns(m_commandRange);
         }
-        return;
-    } else {
-        m_view->setBlockSelection(false);
-    }
-
-    // If visual mode is linewise
-    if (isVisualLine()) {
+    } else if (isVisualLine()) {
         selectLines(KTextEditor::Range(m_start, c));
-        return;
+    } else { // If visual mode is charwise
+        selectInclusive(m_start, c);
     }
-
-    // If visual mode is charwise
-    selectInclusive(m_start, c);
 }
 
 void VisualViMode::reset()
@@ -176,6 +171,7 @@ void VisualViMode::init()
     }
 
     m_commandRange = Range(m_start, m_start, m_commandRange.motionType);
+    updateViewSelection();
 }
 
 void VisualViMode::setVisualModeType(ViMode mode)
@@ -190,6 +186,15 @@ void VisualViMode::switchStartEnd()
     m_start = m_view->cursorPosition();
 
     updateCursor(c);
+
+    m_stickyColumn = -1;
+}
+
+void VisualViMode::switchStartEndColumn()
+{
+    Range r = swapRangeColumns(Range(m_start, m_view->cursorPosition(), InclusiveMotion));
+    m_start = KTextEditor::Cursor(r.start());
+    updateCursor(r.end());
 
     m_stickyColumn = -1;
 }
@@ -209,9 +214,6 @@ void VisualViMode::updateSelection()
         return;
     }
 
-    // If we are there it's already not VisualBlock mode.
-    m_view->setBlockSelection(false);
-
     // If not valid going back to normal mode
     KTextEditor::Range r = m_view->selectionRange();
     if (!r.isValid()) {
@@ -221,16 +223,19 @@ void VisualViMode::updateSelection()
         return;
     }
 
-    // If already not in visual mode, it's time to go there.
-    if (m_viInputModeManager->getCurrentViMode() != ViMode::VisualMode) {
+    // If already not in any visual mode, it's time to go there.
+    if (!m_viInputModeManager->isAnyVisualMode()) {
         commandEnterVisualMode();
     }
 
+    // We get here when the mouse selection changes, but before the cursor
+    // position has been updated. Compare with the last selection range
+    // to correctly assess the direction of the selection (BUG #454417)
+    m_start = (m_view->cursorPosition() == m_lastMouseSelection.start()) ? r.end() : r.start();
+    m_lastMouseSelection = r;
+
     // Set range for commands
-    m_start = (m_view->cursorPosition() == r.start()) ? r.end() : r.start();
     m_commandRange = Range(r.start(), r.end(), m_commandRange.motionType);
-    // The end of the range seems to be one space forward of where it should be.
-    m_commandRange.endColumn--;
 }
 
 #define ADDCMD(STR, FUNC, FLGS) Command(QStringLiteral(STR), &NormalViMode::FUNC, FLGS)
@@ -271,11 +276,17 @@ const std::vector<Command> &VisualViMode::commands()
         ADDCMD("ga", commandPrintCharacterCode, SHOULD_NOT_RESET),
         ADDCMD("v", commandEnterVisualMode, SHOULD_NOT_RESET),
         ADDCMD("V", commandEnterVisualLineMode, SHOULD_NOT_RESET),
+        ADDCMD("<c-v>", commandEnterVisualBlockMode, SHOULD_NOT_RESET),
         ADDCMD("o", commandToOtherEnd, SHOULD_NOT_RESET | CAN_LAND_INSIDE_FOLDING_RANGE),
+        ADDCMD("O", commandToOtherEndColumn, SHOULD_NOT_RESET | CAN_LAND_INSIDE_FOLDING_RANGE),
         ADDCMD("=", commandAlignLines, SHOULD_NOT_RESET),
         ADDCMD("~", commandChangeCase, IS_CHANGE),
         ADDCMD("I", commandPrependToBlock, IS_CHANGE),
         ADDCMD("A", commandAppendToBlock, IS_CHANGE),
+        ADDCMD("<c-a>", commandAddToNumber, IS_CHANGE),
+        ADDCMD("<c-x>", commandSubtractFromNumber, IS_CHANGE),
+        ADDCMD("g<c-a>", commandAddToNumberCumulative, IS_CHANGE),
+        ADDCMD("g<c-x>", commandSubtractFromNumberCumulative, IS_CHANGE),
         ADDCMD("gq", commandFormatLines, IS_CHANGE),
         ADDCMD("q.", commandStartRecordingMacro, REGEX_PATTERN | SHOULD_NOT_RESET),
         ADDCMD("@.", commandReplayMacro, REGEX_PATTERN | SHOULD_NOT_RESET),
@@ -296,7 +307,7 @@ const std::vector<Motion> &VisualViMode::motions()
         // regular motions
         ADDMOTION("h", motionLeft, 0),
         ADDMOTION("<left>", motionLeft, 0),
-        ADDMOTION("<backspace>", motionLeft, 0),
+        ADDMOTION("<backspace>", motionBackspace, 0),
         ADDMOTION("j", motionDown, 0),
         ADDMOTION("<down>", motionDown, 0),
         ADDMOTION("k", motionUp, 0),

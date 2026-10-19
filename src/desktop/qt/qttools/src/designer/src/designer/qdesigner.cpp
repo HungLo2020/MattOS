@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 // designer
 #include "qdesigner.h"
@@ -19,6 +20,7 @@
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
+#include <QtCore/qlibraryinfo.h>
 #include <QtCore/qlocale.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qtimer.h>
@@ -113,11 +115,6 @@ QDesignerWorkbench *QDesigner::workbench() const
     return m_workbench;
 }
 
-QDesignerServer *QDesigner::server() const
-{
-    return m_server;
-}
-
 static void showHelp(QCommandLineParser &parser, const QString &errorMessage = QString())
 {
     QString text;
@@ -140,13 +137,15 @@ static inline QDesigner::ParseArgumentsResult
     parser.setApplicationDescription(u"Qt Widgets Designer " QT_VERSION_STR "\n\nUI designer for QWidget-based applications."_s);
     const QCommandLineOption helpOption = parser.addHelpOption();
     parser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
-    const QCommandLineOption serverOption(u"server"_s,
-                                          u"Server mode"_s);
-    parser.addOption(serverOption);
-    const QCommandLineOption clientOption(u"client"_s,
-                                          u"Client mode"_s,
-                                          u"port"_s);
-    parser.addOption(clientOption);
+    const QCommandLineOption localSocketClientOption(u"local-client"_s,
+                                                     u"Local socket client mode"_s,
+                                                     u"server_name"_s);
+    parser.addOption(localSocketClientOption);
+    const QCommandLineOption tcpServerOption(u"server"_s, u"TCP Server mode (deprecated)"_s);
+    parser.addOption(tcpServerOption);
+    const QCommandLineOption tcpClientOption(u"client"_s, u"TCP Client mode (deprecated)"_s,
+                                             u"port"_s);
+    parser.addOption(tcpClientOption);
     const QCommandLineOption webHelpOption(u"web-help"_s, u"Use the Web documentation"_s);
     parser.addOption(webHelpOption);
     const QCommandLineOption pythonHelpOption(u"python-help"_s, u"Use the Python documentation"_s);
@@ -182,10 +181,12 @@ static inline QDesigner::ParseArgumentsResult
     // so, call process() to display it.
     if (parser.isSet(u"help-all"_s))
         parser.process(QCoreApplication::arguments()); // exits
-    options->server = parser.isSet(serverOption);
-    if (parser.isSet(clientOption)) {
+    options->server = parser.isSet(tcpServerOption);
+    if (parser.isSet(localSocketClientOption)) {
+        options->localSocketServerName = parser.value(localSocketClientOption);
+    } else if (parser.isSet(tcpClientOption)) {
         bool ok = false;
-        options->clientPort = parser.value(clientOption).toUShort(&ok);
+        options->tcpClientPort = parser.value(tcpClientOption).toUShort(&ok);
         if (!ok) {
             *errorMessage = u"Non-numeric argument specified for -client"_s;
             return QDesigner::ParseArgumentsError;
@@ -209,6 +210,18 @@ static inline QDesigner::ParseArgumentsResult
     return QDesigner::ParseArgumentsSuccess;
 }
 
+#if QT_CONFIG(translation)
+static bool loadTranslation(const QStringList &trPaths, std::unique_ptr<QTranslator> &tr,
+                            const QString &catalog)
+{
+    for (const QString &trPath : trPaths) {
+        if (tr->load(QLocale(), catalog, u"_"_s, trPath))
+            return true;
+    }
+    return false;
+}
+#endif // QT_CONFIG(translation)
+
 QDesigner::ParseArgumentsResult QDesigner::parseCommandLineArguments()
 {
     QString errorMessage;
@@ -220,23 +233,31 @@ QDesigner::ParseArgumentsResult QDesigner::parseCommandLineArguments()
         return result;
     }
     // initialize the sub components
-    if (options.clientPort)
-        m_client = new QDesignerClient(options.clientPort, this);
+    if (!options.localSocketServerName.isEmpty())
+        m_client = new QDesignerLocalSocketClient(options.localSocketServerName, this);
+    else if (options.tcpClientPort != 0)
+        m_client = new QDesignerTcpClient(options.tcpClientPort, this);
     if (options.server) {
-        m_server = new QDesignerServer();
-        printf("%d\n", m_server->serverPort());
+        auto *server = new QDesignerTcpServer();
+        m_server = server;
+        printf("%d\n", server->serverPort());
         fflush(stdout);
     }
     if (options.enableInternalDynamicProperties)
         QDesignerPropertySheet::setInternalDynamicPropertiesEnabled(true);
 
-    std::unique_ptr<QTranslator> designerTranslator(new QTranslator(this));
-    if (designerTranslator->load(QLocale(), u"designer"_s, u"_"_s, options.resourceDir)) {
+#if QT_CONFIG(translation)
+    const QStringList &trPaths = options.resourceDir.isEmpty()
+            ? QLibraryInfo::paths(QLibraryInfo::TranslationsPath)
+            : QStringList{ options.resourceDir };
+    auto designerTranslator = std::make_unique<QTranslator>(this);
+    auto qtTranslator = std::make_unique<QTranslator>(this);
+    if (loadTranslation(trPaths, designerTranslator, u"designer"_s)
+        && loadTranslation(trPaths, qtTranslator, u"qtbase"_s)) {
         installTranslator(designerTranslator.release());
-        std::unique_ptr<QTranslator> qtTranslator(new QTranslator(this));
-        if (qtTranslator->load(QLocale(), u"qt"_s, u"_"_s, options.resourceDir))
-            installTranslator(qtTranslator.release());
+        installTranslator(qtTranslator.release());
     }
+#endif // QT_CONFIG(translation)
 
     m_workbench = new QDesignerWorkbench(options);
 

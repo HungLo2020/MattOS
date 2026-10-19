@@ -9,14 +9,18 @@
 */
 #include "opengl/eglbackend.h"
 #include "compositor.h"
+#include "core/drm_formats.h"
 #include "core/drmdevice.h"
+#include "core/gpumanager.h"
+#include "core/graphicsbuffer.h"
 #include "core/outputbackend.h"
+#include "core/renderdevice.h"
 #include "main.h"
 #include "opengl/eglimagetexture.h"
 #include "opengl/eglutils_p.h"
 #include "utils/common.h"
-#include "utils/drm_format_helper.h"
-#include "wayland/drmclientbuffer.h"
+#include "utils/envvar.h"
+#include "vulkan/vulkan_device.h"
 #include "wayland/linux_drm_syncobj_v1.h"
 #include "wayland_server.h"
 
@@ -29,11 +33,11 @@
 namespace KWin
 {
 
-static std::unique_ptr<EglContext> s_globalShareContext;
-
-EglBackend::EglBackend()
+EglBackend::EglBackend(RenderDevice *device)
+    : m_renderDevice(device)
 {
-    connect(Compositor::self(), &Compositor::aboutToDestroy, this, &EglBackend::teardown);
+    connect(GpuManager::s_self.get(), &GpuManager::renderDeviceAdded, this, &EglBackend::updateDmabufTranches);
+    connect(GpuManager::s_self.get(), &GpuManager::renderDeviceRemoved, this, &EglBackend::updateDmabufTranches);
 }
 
 CompositingType EglBackend::compositingType() const
@@ -41,15 +45,17 @@ CompositingType EglBackend::compositingType() const
     return OpenGLCompositing;
 }
 
-void EglBackend::setFailed(const QString &reason)
-{
-    qCWarning(KWIN_OPENGL) << "Creating the OpenGL rendering failed: " << reason;
-    m_failed = true;
-}
-
 bool EglBackend::checkGraphicsReset()
 {
     const auto context = openglContext();
+    if (context != EglContext::currentContext()) {
+        const bool success = context->makeCurrent();
+        if (!success) {
+            // not necessarily a graphics reset, but we can't really know
+            // and need to re-create everything either way
+            return true;
+        }
+    }
     const GLenum status = context->checkGraphicsResetStatus();
     if (Q_LIKELY(status == GL_NO_ERROR)) {
         return false;
@@ -83,159 +89,114 @@ bool EglBackend::checkGraphicsReset()
     return true;
 }
 
-bool EglBackend::ensureGlobalShareContext(EGLConfig config)
-{
-    if (!s_globalShareContext) {
-        s_globalShareContext = EglContext::create(m_display, config, EGL_NO_CONTEXT);
-    }
-    if (s_globalShareContext) {
-        kwinApp()->outputBackend()->setSceneEglGlobalShareContext(s_globalShareContext->handle());
-        return true;
-    } else {
-        return false;
-    }
-}
-
-void EglBackend::destroyGlobalShareContext()
-{
-    EglDisplay *const eglDisplay = kwinApp()->outputBackend()->sceneEglDisplayObject();
-    if (!eglDisplay || !s_globalShareContext) {
-        return;
-    }
-    s_globalShareContext.reset();
-    kwinApp()->outputBackend()->setSceneEglGlobalShareContext(EGL_NO_CONTEXT);
-}
-
-void EglBackend::teardown()
-{
-    destroyGlobalShareContext();
-}
-
 void EglBackend::cleanup()
 {
-    for (const EGLImageKHR &image : m_importedBuffers) {
-        m_display->destroyImage(image);
-    }
-
-    cleanupSurfaces();
     m_context.reset();
-}
-
-void EglBackend::cleanupSurfaces()
-{
-}
-
-void EglBackend::setEglDisplay(EglDisplay *display)
-{
-    m_display = display;
-    m_extensions = m_display->extensions();
 }
 
 void EglBackend::initWayland()
 {
-    if (!WaylandServer::self()) {
-        return;
-    }
-
-    if (DrmDevice *scanoutDevice = drmDevice()) {
-        QString renderNode = m_display->renderNode();
-        if (renderNode.isEmpty()) {
-            ::drmDevice *device = nullptr;
-            if (drmGetDeviceFromDevId(scanoutDevice->deviceId(), 0, &device) != 0) {
-                qCWarning(KWIN_OPENGL) << "drmGetDeviceFromDevId() failed:" << strerror(errno);
-            } else {
-                if (device->available_nodes & (1 << DRM_NODE_RENDER)) {
-                    renderNode = QString::fromLocal8Bit(device->nodes[DRM_NODE_RENDER]);
-                } else if (device->available_nodes & (1 << DRM_NODE_PRIMARY)) {
-                    qCWarning(KWIN_OPENGL) << "No render nodes have been found, falling back to primary node";
-                    renderNode = QString::fromLocal8Bit(device->nodes[DRM_NODE_PRIMARY]);
-                }
-                drmFreeDevice(&device);
-            }
-        }
-
-        if (!renderNode.isEmpty()) {
-            if (waylandServer()->drm()) {
-                waylandServer()->drm()->setDevice(renderNode);
-            }
-        } else {
-            qCWarning(KWIN_OPENGL) << "No render node have been found, not initializing wl-drm";
-        }
-
-        const auto formats = m_display->allSupportedDrmFormats();
-        auto filterFormats = [this, &formats](std::optional<uint32_t> bpc, bool withExternalOnlyYUV) {
-            QHash<uint32_t, QList<uint64_t>> set;
-            for (auto it = formats.constBegin(); it != formats.constEnd(); it++) {
-                const auto info = FormatInfo::get(it.key());
-                if (bpc && (!info || bpc != info->bitsPerColor)) {
-                    continue;
-                }
-
-                const bool externalOnlySupported = withExternalOnlyYUV && info && info->yuvConversion();
-                QList<uint64_t> modifiers = externalOnlySupported ? it->allModifiers : it->nonExternalOnlyModifiers;
-
-                if (externalOnlySupported && !modifiers.isEmpty()) {
-                    if (auto yuv = info->yuvConversion()) {
-                        for (auto plane : std::as_const(yuv->plane)) {
-                            const auto planeModifiers = formats.value(plane.format).allModifiers;
-                            modifiers.erase(std::remove_if(modifiers.begin(), modifiers.end(), [&planeModifiers](uint64_t mod) {
-                                return !planeModifiers.contains(mod);
-                            }),
-                                            modifiers.end());
-                        }
-                    }
-                }
-                for (const auto &tranche : std::as_const(m_tranches)) {
-                    if (modifiers.isEmpty()) {
-                        break;
-                    }
-                    const auto trancheModifiers = tranche.formatTable.value(it.key());
-                    for (auto trancheModifier : trancheModifiers) {
-                        modifiers.removeAll(trancheModifier);
-                    }
-                }
-                if (modifiers.isEmpty()) {
-                    continue;
-                }
-                set.insert(it.key(), modifiers);
-            }
-            return set;
-        };
-
-        auto includeShaderConversions = [](QHash<uint32_t, QList<uint64_t>> &&formats) -> QHash<uint32_t, QList<uint64_t>> {
-            for (auto format : s_drmConversions.keys()) {
-                auto &modifiers = formats[format];
-                if (modifiers.isEmpty()) {
-                    modifiers = {DRM_FORMAT_MOD_LINEAR};
-                }
-            }
-            return formats;
-        };
-
-        m_tranches.append({
-            .device = m_display->renderDevNode().value_or(scanoutDevice->deviceId()),
-            .flags = {},
-            .formatTable = filterFormats(10, false),
-        });
-        m_tranches.append({
-            .device = m_display->renderDevNode().value_or(scanoutDevice->deviceId()),
-            .flags = {},
-            .formatTable = filterFormats(8, false),
-        });
-        m_tranches.append({
-            .device = m_display->renderDevNode().value_or(scanoutDevice->deviceId()),
-            .flags = {},
-            .formatTable = includeShaderConversions(filterFormats({}, true)),
-        });
-
-        LinuxDmaBufV1ClientBufferIntegration *dmabuf = waylandServer()->linuxDmabuf();
-        dmabuf->setRenderBackend(this);
-        dmabuf->setSupportedFormatsWithModifiers(m_tranches);
-    }
-    waylandServer()->setRenderBackend(this);
+    updateDmabufTranches();
 }
 
-void EglBackend::initClientExtensions()
+static const auto s_dmabufV6Env = environmentVariableBoolValue("KWIN_ALLOW_DMABUF_V6");
+
+void EglBackend::updateDmabufTranches()
+{
+    auto filterFormats = [this](RenderDevice *device, VulkanDevice *vkDevice, std::optional<uint32_t> bpc) {
+        FormatModifierMap set;
+        auto allFormats = device->eglDisplay()->allSupportedDrmFormats();
+        auto nonExternalOnly = device->eglDisplay()->nonExternalOnlySupportedDrmFormats();
+        if (vkDevice && !vkDevice->isSoftwareRenderer()) {
+            allFormats = allFormats.intersected(vkDevice->transferFormats());
+            nonExternalOnly = nonExternalOnly.intersected(vkDevice->transferFormats());
+        }
+        for (auto it = allFormats.constBegin(); it != allFormats.constEnd(); it++) {
+            const auto info = FormatInfo::get(it.key());
+            if (bpc && (!info || bpc != info->bitsPerColor)) {
+                continue;
+            }
+
+            ModifierList modifiers = *it;
+            // Work around Xwayland breaking with the Nvidia driver
+            // if linear is advertised by the compositor, since it uses
+            // all advertised modifiers (for 8 bpc rgb formats) for rendering
+            if (!nonExternalOnly[it.key()].contains(DRM_FORMAT_MOD_LINEAR)) {
+                modifiers.removeOne(DRM_FORMAT_MOD_LINEAR);
+            }
+
+            for (const auto &tranche : std::as_const(m_tranches)) {
+                if (modifiers.empty()) {
+                    break;
+                }
+                if (tranche.device != device->deviceId()) {
+                    continue;
+                }
+                const auto trancheModifiers = tranche.formatTable.value(it.key());
+                for (auto trancheModifier : trancheModifiers) {
+                    modifiers.erase(trancheModifier);
+                }
+            }
+            if (modifiers.empty()) {
+                continue;
+            }
+            set.insert(it.key(), modifiers);
+        }
+        return set;
+    };
+
+    m_tranches.clear();
+
+    // put the "main" device first, with EGL format+modifiers
+    m_tranches.append({
+        .device = m_renderDevice->deviceId(),
+        .flags = LinuxDmaBufV1Feedback::TrancheFlag::Sampling,
+        .formatTable = filterFormats(m_renderDevice, nullptr, 10),
+    });
+    m_tranches.append({
+        .device = m_renderDevice->deviceId(),
+        .flags = LinuxDmaBufV1Feedback::TrancheFlag::Sampling,
+        .formatTable = filterFormats(m_renderDevice, nullptr, 8),
+    });
+    m_tranches.append({
+        .device = m_renderDevice->deviceId(),
+        .flags = LinuxDmaBufV1Feedback::TrancheFlag::Sampling,
+        .formatTable = filterFormats(m_renderDevice, nullptr, std::nullopt),
+    });
+
+    // Other GPUs come afterwards, in no particular order.
+    // Until the copy code can handle them, YUV formats are excluded from this
+    const auto &devices = GpuManager::s_self->renderDevices();
+    for (const auto &device : devices) {
+        if (device.get() == m_renderDevice) {
+            continue;
+        }
+        if (!s_dmabufV6Env.value_or(true)) {
+            continue;
+        }
+        m_tranches.append({
+            .device = device->deviceId(),
+            .flags = LinuxDmaBufV1Feedback::TrancheFlag::Sampling,
+            .formatTable = filterFormats(device.get(), device->vulkanDevice(), 10),
+        });
+        m_tranches.append({
+            .device = device->deviceId(),
+            .flags = LinuxDmaBufV1Feedback::TrancheFlag::Sampling,
+            .formatTable = filterFormats(device.get(), device->vulkanDevice(), 8),
+        });
+        m_tranches.push_back({
+            .device = device->deviceId(),
+            .flags = LinuxDmaBufV1Feedback::TrancheFlag::Sampling,
+            .formatTable = filterFormats(device.get(), device->vulkanDevice(), std::nullopt),
+        });
+    }
+
+    LinuxDmaBufV1ClientBufferIntegration *dmabuf = waylandServer()->linuxDmabuf();
+    dmabuf->setRenderBackend(this);
+    dmabuf->setSupportedFormatsWithModifiers(m_tranches);
+}
+
+bool EglBackend::initClientExtensions()
 {
     // Get the list of client extensions
     const char *clientExtensionsCString = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
@@ -250,6 +211,14 @@ void EglBackend::initClientExtensions()
     }
 
     m_clientExtensions = clientExtensionsString.split(' ');
+
+    for (const QByteArray &extension : {QByteArrayLiteral("EGL_EXT_platform_base"), QByteArrayLiteral("EGL_KHR_platform_gbm")}) {
+        if (!hasClientExtension(extension)) {
+            qCWarning(KWIN_OPENGL, "Required client extension %s is not supported", qPrintable(extension));
+            return false;
+        }
+    }
+    return true;
 }
 
 bool EglBackend::hasClientExtension(const QByteArray &ext) const
@@ -257,17 +226,9 @@ bool EglBackend::hasClientExtension(const QByteArray &ext) const
     return m_clientExtensions.contains(ext);
 }
 
-bool EglBackend::isOpenGLES() const
+bool EglBackend::createContext()
 {
-    return EglDisplay::shouldUseOpenGLES();
-}
-
-bool EglBackend::createContext(EGLConfig config)
-{
-    if (!ensureGlobalShareContext(config)) {
-        return false;
-    }
-    m_context = EglContext::create(m_display, config, s_globalShareContext ? s_globalShareContext->handle() : EGL_NO_CONTEXT);
+    m_context = m_renderDevice->eglContext();
     return m_context != nullptr;
 }
 
@@ -276,96 +237,34 @@ QList<LinuxDmaBufV1Feedback::Tranche> EglBackend::tranches() const
     return m_tranches;
 }
 
-EGLImageKHR EglBackend::importBufferAsImage(GraphicsBuffer *buffer, int plane, int format, const QSize &size)
+bool EglBackend::testImportBuffer(GraphicsBuffer *buffer, dev_t targetDevice)
 {
-    std::pair key(buffer, plane);
-    auto it = m_importedBuffers.constFind(key);
-    if (Q_LIKELY(it != m_importedBuffers.constEnd())) {
-        return *it;
-    }
-
-    Q_ASSERT(buffer->dmabufAttributes());
-    EGLImageKHR image = importDmaBufAsImage(*buffer->dmabufAttributes(), plane, format, size);
-    if (image != EGL_NO_IMAGE_KHR) {
-        m_importedBuffers[key] = image;
-        connect(buffer, &QObject::destroyed, this, [this, key]() {
-            m_display->destroyImage(m_importedBuffers.take(key));
-        });
-    } else {
-        qCWarning(KWIN_OPENGL) << "failed to import dmabuf" << buffer;
-    }
-
-    return image;
-}
-
-EGLImageKHR EglBackend::importBufferAsImage(GraphicsBuffer *buffer)
-{
-    auto key = std::pair(buffer, 0);
-    auto it = m_importedBuffers.constFind(key);
-    if (Q_LIKELY(it != m_importedBuffers.constEnd())) {
-        return *it;
-    }
-
-    Q_ASSERT(buffer->dmabufAttributes());
-    EGLImageKHR image = importDmaBufAsImage(*buffer->dmabufAttributes());
-    if (image != EGL_NO_IMAGE_KHR) {
-        m_importedBuffers[key] = image;
-        connect(buffer, &QObject::destroyed, this, [this, key]() {
-            m_display->destroyImage(m_importedBuffers.take(key));
-        });
-    } else {
-        qCWarning(KWIN_OPENGL) << "failed to import dmabuf" << buffer;
-    }
-
-    return image;
-}
-
-EGLImageKHR EglBackend::importDmaBufAsImage(const DmaBufAttributes &dmabuf) const
-{
-    return m_display->importDmaBufAsImage(dmabuf);
-}
-
-EGLImageKHR EglBackend::importDmaBufAsImage(const DmaBufAttributes &dmabuf, int plane, int format, const QSize &size) const
-{
-    return m_display->importDmaBufAsImage(dmabuf, plane, format, size);
-}
-
-std::shared_ptr<GLTexture> EglBackend::importDmaBufAsTexture(const DmaBufAttributes &attributes) const
-{
-    return m_context->importDmaBufAsTexture(attributes);
-}
-
-bool EglBackend::testImportBuffer(GraphicsBuffer *buffer)
-{
-    const auto nonExternalOnly = m_display->nonExternalOnlySupportedDrmFormats();
-    if (auto it = nonExternalOnly.find(buffer->dmabufAttributes()->format); it != nonExternalOnly.end() && it->contains(buffer->dmabufAttributes()->modifier)) {
-        return importBufferAsImage(buffer) != EGL_NO_IMAGE_KHR;
-    }
-    // external_only buffers aren't used as a single EGLImage, import them separately
-    const auto info = FormatInfo::get(buffer->dmabufAttributes()->format);
-    if (!info || !info->yuvConversion()) {
+    RenderDevice *device = GpuManager::self()->compatibleRenderDevice(targetDevice);
+    if (!device) {
         return false;
     }
-    const auto planes = info->yuvConversion()->plane;
-    if (buffer->dmabufAttributes()->planeCount != planes.size()) {
-        return false;
-    }
-    for (int i = 0; i < planes.size(); i++) {
-        if (!importBufferAsImage(buffer, i, planes[i].format, QSize(buffer->size().width() / planes[i].widthDivisor, buffer->size().height() / planes[i].heightDivisor))) {
-            return false;
+
+    if (device != m_renderDevice && device->vulkanDevice() && device->vulkanDevice()->transferFormats().containsFormat(buffer->dmabufAttributes()->format, buffer->dmabufAttributes()->modifier)) {
+        if (device->vulkanDevice()->importBuffer(buffer, VK_IMAGE_USAGE_TRANSFER_SRC_BIT)) {
+            return true;
         }
+        // allow falling back to EGL
     }
-    return true;
+
+    // NOTE for YUV buffers this uses whatever default values
+    // the OpenGL driver chooses, since we don't know yet which
+    // parameters the client will use with the buffer later on
+    return device->eglDisplay()->importBufferAsImage(buffer) != EGL_NO_IMAGE_KHR;
 }
 
-QHash<uint32_t, QList<uint64_t>> EglBackend::supportedFormats() const
+FormatModifierMap EglBackend::supportedFormats() const
 {
-    return m_display->nonExternalOnlySupportedDrmFormats();
+    return m_renderDevice->eglDisplay()->nonExternalOnlySupportedDrmFormats();
 }
 
 EglDisplay *EglBackend::eglDisplayObject() const
 {
-    return m_display;
+    return m_renderDevice->eglDisplay();
 }
 
 EglContext *EglBackend::openglContext() const
@@ -376,6 +275,11 @@ EglContext *EglBackend::openglContext() const
 std::shared_ptr<EglContext> EglBackend::openglContextRef() const
 {
     return m_context;
+}
+
+RenderDevice *EglBackend::renderDevice() const
+{
+    return m_renderDevice;
 }
 
 } // namespace KWin

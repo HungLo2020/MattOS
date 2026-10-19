@@ -32,8 +32,6 @@
 #include <Plasma/PluginLoader>
 #include <QStandardPaths>
 
-#include <defaultservice.h>
-
 #include "../screenpool.h"
 #include "appinterface.h"
 #include "configgroup.h"
@@ -208,7 +206,7 @@ QJSValue ScriptEngine::V1::screenForConnector(const QJSValue &param) const
     const QString connector = param.toString();
     auto *sc = qobject_cast<ShellCorona *>(m_engine->m_corona);
     if (sc) {
-        return m_engine->toScriptValue<int>(sc->screenPool()->idForName(connector));
+        return m_engine->toScriptValue<int>(sc->screenPool()->idForName(connector).value_or(-1));
     }
     return m_engine->toScriptValue<int>(-1);
 }
@@ -515,7 +513,7 @@ bool ScriptEngine::V1::loadTemplate(const QString &layout)
     }
 
     KPackage::Package package = KPackage::PackageLoader::self()->loadPackage(QStringLiteral("Plasma/LayoutTemplate"));
-    KPluginMetaData pluginData(offers.first());
+    KPluginMetaData pluginData(offers.constFirst());
 
     QString path;
     {
@@ -616,49 +614,26 @@ QJSValue ScriptEngine::V1::defaultApplication(const QString &application, bool s
     // see
     // kdebase-runtime/kcontrol/componentchooser/ for all the gory details ;)
     if (matches(application, QLatin1String("mailer"))) {
-        // KEMailSettings settings;
-
-        // in KToolInvocation, the default is kmail; but let's be friendlier :)
-        // QString command = settings.getSetting(KEMailSettings::ClientProgram);
-        QString command;
-        if (command.isEmpty()) {
-            if (KService::Ptr kontact = KService::serviceByStorageId(QStringLiteral("kontact"))) {
-                return storageId ? kontact->storageId() : onlyExec(kontact->exec());
-            } else if (KService::Ptr kmail = KService::serviceByStorageId(QStringLiteral("kmail"))) {
-                return storageId ? kmail->storageId() : onlyExec(kmail->exec());
-            }
-        }
-
-        if (!command.isEmpty()) {
-            if (false) {
-                KConfigGroup confGroup(KSharedConfig::openConfig(), u"General"_s);
-                const QString preferredTerminal = confGroup.readPathEntry("TerminalApplication", QStringLiteral("konsole"));
-                command = preferredTerminal + QLatin1String(" -e ") + command;
-            }
-
-            return command;
-        }
-
-    } else if (matches(application, QLatin1String("browser"))) {
-        auto service = DefaultService::browser();
+        KService::Ptr service = KApplicationTrader::preferredService(QStringLiteral("x-scheme-handler/mailto"));
         if (service) {
-            return onlyExec(storageId ? service->storageId() : service->exec());
+            return storageId ? service->storageId() : onlyExec(service->exec());
         }
-        return onlyExec(DefaultService::legacyBrowserExec());
+    } else if (matches(application, QLatin1String("browser"))) {
+        const auto service = KApplicationTrader::preferredService(QStringLiteral("x-scheme-handler/http"));
+        if (service) {
+            return storageId ? service->storageId() : onlyExec(service->exec());
+        }
     } else if (matches(application, QLatin1String("terminal"))) {
         KConfigGroup confGroup(KSharedConfig::openConfig(), u"General"_s);
-        return onlyExec(confGroup.readPathEntry("TerminalApplication", QStringLiteral("konsole")));
-
+        const auto service = KService::serviceByStorageId(confGroup.readEntry("TerminalService", QStringLiteral("org.kde.konsole.desktop")));
+        if (service) {
+            return storageId ? service->storageId() : onlyExec(service->exec());
+        }
     } else if (matches(application, QLatin1String("filemanager"))) {
         KService::Ptr service = KApplicationTrader::preferredService(QStringLiteral("inode/directory"));
         if (service) {
             return storageId ? service->storageId() : onlyExec(service->exec());
         }
-
-    } else if (matches(application, QLatin1String("windowmanager"))) {
-        KConfig cfg(QStringLiteral("ksmserverrc"), KConfig::NoGlobals);
-        KConfigGroup confGroup(&cfg, u"General"_s);
-        return onlyExec(confGroup.readEntry("windowManager", QStringLiteral("kwin")));
 
     } else if (KService::Ptr service = KApplicationTrader::preferredService(application)) {
         return storageId ? service->storageId() : onlyExec(service->exec());

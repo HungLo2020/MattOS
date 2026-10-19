@@ -161,19 +161,27 @@ FunctionNode *Aggregate::findFunctionChild(const QString &name, const Parameters
     if (parameters.isEmpty()) {
         FunctionNode *fallback = nullptr;
         FunctionNode *lastResort = nullptr;
+        FunctionNode *deletedFallback = nullptr;
 
         for (auto *fn : *map_it) {
             // Primary overload takes highest priority - return immediately
             if (fn->isPrimaryOverload() && !fn->isInternal())
                 return fn;
 
-            // Remember first non-deprecated, non-internal as fallback
-            if (!fallback && !fn->isInternal() && !fn->isDeprecated())
+            // Remember first non-deprecated, non-internal, non-deleted as fallback.
+            // Deleted functions shouldn't be primary link targets - users linking
+            // to ClassName() want a usable constructor, not a deleted copy ctor.
+            if (!fallback && !fn->isInternal() && !fn->isDeprecated()
+                    && !fn->isDeletedAsWritten())
                 fallback = fn;
 
-            // Remember first non-internal as last resort
-            if (!lastResort && !fn->isInternal())
+            // Remember first non-internal, non-deleted as last resort
+            if (!lastResort && !fn->isInternal() && !fn->isDeletedAsWritten())
                 lastResort = fn;
+
+            // Deleted functions are valid link targets when no other option exists
+            if (!deletedFallback && !fn->isInternal())
+                deletedFallback = fn;
         }
 
         if (fallback)
@@ -182,7 +190,8 @@ FunctionNode *Aggregate::findFunctionChild(const QString &name, const Parameters
         if (lastResort)
             return lastResort;
 
-        return nullptr;
+        // Fall back to deleted functions when they're the only option
+        return deletedFallback;
     }
 
     // Try exact parameter match
@@ -225,50 +234,65 @@ FunctionNode *Aggregate::findFunctionChild(const FunctionNode *clone)
 
 /*!
     \internal
-    Warn about documented, non-private children under undocumented parents - unless
-    the \a child is explicitly set \internal, or their parent() does not match \a
-    aggregate, indicating that \a child is a related non-member. The latter
-    condition avoids duplicate warnings as the node appears under multiple
-    aggregates.
+    Warn about documented, non-private children under undocumented parents, unless:
 
-    The warning is skipped for children of proxy nodes and namespace nodes. Proxies
-    have no documentation as they're automatically generated. For namespaces, this
-    check is done separately after merging potentially multiple namespace nodes
-    referring to the same namespace; see
-    NamespaceNode::reportDocumentedChildrenInUndocumentedNamespace().
+    \list
+    \li The \a child's parent() doesn't match \a aggregate (indicating a related
+        non-member), to avoid duplicate warnings as the node appears under multiple
+        aggregates.
+    \li The child is private (private members don't generate output).
+    \li The child has \c Internal or \c InternalAuto status (we check the child's
+        own status, not inherited internal status from the parent).
+    \li The parent is a proxy node (automatically generated, no documentation).
+    \li The parent is a namespace node (handled separately by
+        NamespaceNode::reportDocumentedChildrenInUndocumentedNamespace()).
+    \li The parent is marked with the \c{\\dontdocument} command.
+    \li The child is marked with the \c{\\dontdocument} command.
+    \li The child has auto-generated documentation. These docs are created by QDoc,
+        not written by a human, so warning about them would be confusing.
+    \li The \c{-showinternal} command-line option is set (internal nodes generate
+        output, so the warning is not needed).
+    \li The \c{-no-linkerrors} command-line option is set (avoids false positives
+        when the aggregate is documented outside the current project).
+    \li The file path of the child declaration matches \e internalfilepatterns.
+    \endlist
 
-    Likewise, the warning is skipped for children of aggregates marked with the
-    \\dontdocument command.
+    \note We check \c{child->status()} directly rather than \c{child->isInternal()}
+    because \c{isInternal()} also considers the parent's status. Since the parent
+    is undocumented (and thus marked InternalAuto), \c{isInternal()} would incorrectly
+    return true for all children, suppressing the warning entirely.
 
-    If either \c {-no-linkerrors} or \c {-showinternal} command-line option is set,
-    these warnings are not generated. \c {-no-linkerrors} avoids false positives
-    in cases where the aggregate is documented outside the current project and was
-    not loaded from index. With \c {-showinternal} set, the warning is not required as
-    internal nodes generate output.
-
-    The warning is also skipped if the file path of the \a child declaration matches with
-    \e internalfilepatterns configuration variable. In this case, the child node is not
-    considered part of the public API.
+    \sa NamespaceNode::reportDocumentedChildrenInUndocumentedNamespace()
 */
 static void warnAboutDocumentedChildInUndocumentedParent(const Node *aggregate, const Node *child)
 {
     Q_ASSERT(child);
     const auto *parent{child->parent()};
-    if (parent && parent == aggregate && !child->isPrivate() && child->status() != Node::Internal
+    if (parent && parent == aggregate && !child->isPrivate()
+            && child->status() != Status::Internal && child->status() != Status::InternalAuto
             && !parent->isProxyNode() && !parent->isNamespace() && !parent->isDontDocument()
             && !parent->hasDoc()) {
-        auto &config{Config::instance()};
-        if (config.get(CONFIG_NOLINKERRORS).asBool())
+
+        if (child->isDontDocument())
             return;
+
+        if (child->doc().isAutoGenerated())
+            return;
+
+        auto &config = Config::instance();
 
         if (InclusionFilter::processInternalDocs(config.createInclusionPolicy()))
             return;
 
-        if (child->genus() == Genus::CPP && !child->declLocation().isEmpty())
+        if (config.get(CONFIG_NOLINKERRORS).asBool())
+            return;
+
+        if (child->genus() == Genus::CPP && !child->declLocation().isEmpty()) {
             if (Config::matchesInternalFilePattern(
                     child->declLocation().filePath(),
                     config.getInternalFilePatternsCompiled()))
             return;
+        }
 
         child->doc().location().warning(
                 "No output generated for %1 '%2' because '%3' is undocumented"_L1
@@ -294,7 +318,7 @@ void Aggregate::markUndocumentedChildrenInternal()
                     if (static_cast<TypedefNode *>(child)->hasAssociatedEnum())
                         continue;
                 }
-                child->setStatus(Node::Internal);
+                child->setStatus(Status::InternalAuto);
             }
         } else {
             warnAboutDocumentedChildInUndocumentedParent(this, child);
@@ -318,15 +342,26 @@ void Aggregate::resolveRelates()
 {
     auto *database = QDocDatabase::qdocDB();
 
-    for (auto *node : m_children) {
-        if (node->isRelatedNonmember())
-            continue;
+    // An unresolved \relates target makes this loop create a ProxyNode parented
+    // to this aggregate. Node's constructor adds it to \c{m_children}, mutating
+    // the very list being iterated. Iterate over a \c{const} copy instead, as
+    // the new ProxyNode doesn't need relates resolution itself.
+    const NodeList children = m_children;
+    for (auto *node : children) {
         if (node->genus() != Genus::CPP)
             continue;
 
         if (!node->isAggregate()) {
             const auto &relates_args = node->doc().metaCommandArgs("relates"_L1);
             if (relates_args.isEmpty())
+                continue;
+            // Hidden friends are marked as related non-members during
+            // initial parsing (they belong to their enclosing class).
+            // An explicit \relates directive should still relocate them
+            // when the function participates in a different class's
+            // protocol (e.g. qHashEquals as a QHash customization point).
+            // Skip only if already adopted by a different \relates target.
+            if (node->isRelatedNonmember() && node->parent() != this)
                 continue;
 
             auto *aggregate = database->findRelatesNode(relates_args[0].first.split("::"_L1));
@@ -404,9 +439,12 @@ void Aggregate::normalizeOverloads()
             });
             // Set overload numbers only if the functions are documented.
             // They are not visible if undocumented.
+            // Only set overload numbers within the context of the parent, to
+            // avoid renumbering from occurring if the function has been
+            // adopted by multiple parents.
             signed short n{0};
             for (auto *fn : map_it) {
-                if (fn->hasDoc())
+                if (fn->hasDoc() && fn->parent() == this)
                     fn->setOverloadNumber(n++);
             }
         }
@@ -539,32 +577,20 @@ void Aggregate::adoptChild(Node *child)
 }
 
 /*!
-  If this node has a child that is a QML property named \a n, return a
-  pointer to that child. Otherwise, return \nullptr.
- */
-QmlPropertyNode *Aggregate::hasQmlProperty(const QString &n) const
-{
-    NodeType goal = NodeType::QmlProperty;
-    for (auto *child : std::as_const(m_children)) {
-        if (child->nodeType() == goal) {
-            if (child->name() == n)
-                return static_cast<QmlPropertyNode *>(child);
-        }
-    }
-    return nullptr;
-}
-
-/*!
   If this node has a child that is a QML property named \a n and that
   also matches \a attached, return a pointer to that child.
  */
-QmlPropertyNode *Aggregate::hasQmlProperty(const QString &n, bool attached) const
+QmlPropertyNode *Aggregate::hasQmlProperty(const QString &n, PropertySearchType attached) const
 {
     NodeType goal = NodeType::QmlProperty;
     for (auto *child : std::as_const(m_children)) {
         if (child->nodeType() == goal) {
-            if (child->name() == n && child->isAttached() == attached)
-                return static_cast<QmlPropertyNode *>(child);
+            if (child->name() == n) {
+                if (attached == AnyProperties
+                    || (child->isAttached() && attached == AttachedProperties)
+                    || (!child->isAttached() && attached == UnattachedProperties))
+                    return static_cast<QmlPropertyNode *>(child);
+            }
         }
     }
     return nullptr;
@@ -779,6 +805,9 @@ void Aggregate::findAllSince()
             } else if (node->isQmlProperty()) {
                 // Insert QML properties into the since map.
                 nsmap.insert(node->name(), node);
+            } else if (node->isConcept()) {
+                // Insert concepts with a qualified name
+                nsmap.insert(node->qualifyWithParentName(), node);
             } else {
                 // Insert external documents into the general since map.
                 QString name = node->qualifyWithParentName();

@@ -121,6 +121,13 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(const QString& back
         return new QEglfsScreenCapture;
 #endif
 
+#if QT_CONFIG(pipewire_screencapture)
+    if (backend == u"pipewire") {
+        if (auto capture = QtPipeWire::QPipeWireCapture::create())
+            return capture.release();
+    }
+#endif
+
 #if QT_CONFIG(xlib)
     if (backend == u"x11")
         return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
@@ -129,7 +136,7 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(const QString& back
         return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS)
     if (backend == u"avf")
-        return QFFmpeg::makeQAvfScreenCapture().release();
+        return QFFmpeg::makeQSckScreenCapture().release();
 #endif
     return nullptr;
 }
@@ -151,7 +158,7 @@ static QPlatformSurfaceCapture *createWindowCaptureByBackend(const QString& back
 #endif
 #elif defined(Q_OS_MACOS)
     if (backend == u"cg")
-        return QFFmpeg::makeQCgWindowCapture().release();
+        return QFFmpeg::makeQSckWindowCapture().release();
 #endif
     return nullptr;
 }
@@ -166,11 +173,11 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 
     qCDebug(qLcFFmpeg) << "Available HW decoding frameworks:";
     for (auto type : QFFmpeg::HWAccel::decodingDeviceTypes())
-        qCDebug(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
+        qCDebug(qLcFFmpeg) << "    " << type;
 
     qCDebug(qLcFFmpeg) << "Available HW encoding frameworks:";
     for (auto type : QFFmpeg::HWAccel::encodingDeviceTypes())
-        qCDebug(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
+        qCDebug(qLcFFmpeg) << "    " << type;
 }
 
 q23::expected<QPlatformAudioDecoder *, QString>
@@ -243,8 +250,8 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 #endif
 
 #if QT_CONFIG(pipewire_screencapture)
-    if (QtPipeWire::QPipeWireCapture::isSupported())
-        return new QtPipeWire::QPipeWireCapture(QPlatformSurfaceCapture::ScreenSource{});
+    if (auto capture = QtPipeWire::QPipeWireCapture::create())
+        return capture.release();
 #endif
 
 #if QT_CONFIG(eglfs)
@@ -255,7 +262,7 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 #if defined(Q_OS_WINDOWS)
     return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
-    return QFFmpeg::makeQAvfScreenCapture().release();
+    return QFFmpeg::makeQSckScreenCapture().release();
 #elif defined(Q_OS_ANDROID)
     return new QAndroidScreenCapture;
 #else
@@ -287,8 +294,8 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createWindowCapture(QWindowCap
 #  endif
 
     return new QGdiWindowCapture;
-#elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
-    return QFFmpeg::makeQCgWindowCapture().release();
+#elif defined(Q_OS_MACOS)
+    return QFFmpeg::makeQSckWindowCapture().release();
 #else
     return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
 #endif
@@ -359,7 +366,7 @@ QPlatformCapturableWindows *QFFmpegMediaIntegration::createCapturableWindows()
     if (QX11SurfaceCapture::isSupported())
         return new QX11CapturableWindows;
 #elif defined Q_OS_MACOS
-    return QFFmpeg::makeQCgCapturableWindows().release();
+    return QFFmpeg::makeQSckCapturableWindows().release();
 #elif defined(Q_OS_WINDOWS)
     return new QWinCapturableWindows;
 #endif

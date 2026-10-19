@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QRHIGLES2_P_H
 #define QRHIGLES2_P_H
@@ -52,7 +53,8 @@ struct QGles2Buffer : public QRhiBuffer
         AccessStorageRead,
         AccessStorageWrite,
         AccessStorageReadWrite,
-        AccessUpdate
+        AccessUpdate,
+        AccessIndirectDraw
     };
     struct UsageState {
         Access access;
@@ -325,6 +327,8 @@ struct QGles2CommandBuffer : public QRhiCommandBuffer
             BindIndexBuffer,
             Draw,
             DrawIndexed,
+            DrawIndirect,
+            DrawIndexedIndirect,
             BindGraphicsPipeline,
             BindShaderResources,
             BindFramebuffer,
@@ -396,6 +400,20 @@ struct QGles2CommandBuffer : public QRhiCommandBuffer
                 quint32 baseInstance;
                 qint32 baseVertex;
             } drawIndexed;
+            struct {
+                QRhiGraphicsPipeline *ps;
+                GLuint buffer;
+                quint32 offset;
+                quint32 drawCount;
+                quint32 stride;
+            } drawIndirect;
+            struct {
+                QRhiGraphicsPipeline *ps;
+                GLuint buffer;
+                quint32 offset;
+                quint32 drawCount;
+                quint32 stride;
+            } drawIndexedIndirect;
             struct {
                 QRhiGraphicsPipeline *ps;
             } bindGraphicsPipeline;
@@ -845,6 +863,12 @@ public:
                      quint32 instanceCount, quint32 firstIndex,
                      qint32 vertexOffset, quint32 firstInstance) override;
 
+    void drawIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                      quint32 indirectBufferOffset, quint32 drawCount, quint32 stride) override;
+
+    void drawIndexedIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                             quint32 indirectBufferOffset, quint32 drawCount, quint32 stride) override;
+
     void debugMarkBegin(QRhiCommandBuffer *cb, const QByteArray &name) override;
     void debugMarkEnd(QRhiCommandBuffer *cb) override;
     void debugMarkMsg(QRhiCommandBuffer *cb, const QByteArray &msg) override;
@@ -910,8 +934,12 @@ public:
     QGles2RenderTargetData *enqueueBindFramebuffer(QRhiRenderTarget *rt, QGles2CommandBuffer *cbD,
                                                    bool *wantsColorClear = nullptr, bool *wantsDsClear = nullptr);
     void enqueueBarriersForPass(QGles2CommandBuffer *cbD);
-    QByteArray shaderSource(const QRhiShaderStage &shaderStage, QShaderVersion *shaderVersion);
-    bool compileShader(GLuint program, const QRhiShaderStage &shaderStage, QShaderVersion *shaderVersion);
+    QList<QShaderVersion> glslVersionsToTry() const;
+    std::optional<QShaderVersion> commonGlslEsVersion(const QRhiShaderStage *stages, int stageCount) const;
+    QByteArray shaderSource(const QRhiShaderStage &shaderStage, QShaderVersion *shaderVersion,
+                            std::optional<QShaderVersion> commonVersion = std::nullopt);
+    bool compileShader(GLuint program, const QRhiShaderStage &shaderStage, QShaderVersion *shaderVersion,
+                       std::optional<QShaderVersion> commonVersion = std::nullopt);
     bool linkProgram(GLuint program);
     using ActiveUniformLocationTracker = QDuplicateTracker<int, 32>;
     void registerUniformIfActive(const QShaderDescription::BlockVariable &var,
@@ -938,7 +966,8 @@ public:
                                                       int stageCount,
                                                       GLuint program,
                                                       const QVector<QShaderDescription::InOutVariable> &inputVars,
-                                                      QByteArray *cacheKey);
+                                                      QByteArray *cacheKey,
+                                                      std::optional<QShaderVersion> commonVersion = std::nullopt);
     void trySaveToDiskCache(GLuint program, const QByteArray &cacheKey);
     void trySaveToPipelineCache(GLuint program, const QByteArray &cacheKey, bool force = false);
 
@@ -973,6 +1002,8 @@ public:
     void (QOPENGLF_APIENTRYP glFramebufferTexture2DMultisampleEXT)(GLenum, GLenum, GLenum, GLuint, GLint, GLsizei) = nullptr;
     void (QOPENGLF_APIENTRYP glFramebufferTextureMultisampleMultiviewOVR)(GLenum, GLenum, GLuint, GLint, GLsizei, GLint, GLsizei) = nullptr;
     void (QOPENGLF_APIENTRYP glRenderbufferStorageMultisampleEXT)(GLenum, GLsizei, GLenum, GLsizei, GLsizei) = nullptr;
+    void (QOPENGLF_APIENTRYP glMultiDrawArraysIndirect)(GLenum, const void *, GLsizei, GLsizei) = nullptr;
+    void (QOPENGLF_APIENTRYP glMultiDrawElementsIndirect)(GLenum, GLenum, const void *, GLsizei, GLsizei) = nullptr;
     uint vao = 0;
     struct Caps {
         Caps()
@@ -1007,6 +1038,7 @@ public:
               needsDepthStencilCombinedAttach(false),
               srgbWriteControl(false),
               coreProfile(false),
+              vertexArrayObject(false),
               uniformBuffers(false),
               elementIndexUint(false),
               depth24(false),
@@ -1069,6 +1101,7 @@ public:
         uint needsDepthStencilCombinedAttach : 1;
         uint srgbWriteControl : 1;
         uint coreProfile : 1;
+        uint vertexArrayObject : 1;
         uint uniformBuffers : 1;
         uint elementIndexUint : 1;
         uint depth24 : 1;
@@ -1098,6 +1131,9 @@ public:
         uint unpackRowLength : 1;
         uint perRenderTargetBlending : 1;
         uint sampleVariables : 1;
+        uint drawIndirect : 1;
+        uint drawIndirectMulti : 1;
+        uint shaderDrawParameters : 1;
         uint imageLoadStore : 1;
     } caps;
     QGles2SwapChain *currentSwapChain = nullptr;
@@ -1146,7 +1182,8 @@ public:
         GLuint tsQueries[2] = {};
     } ofr;
 
-    QHash<QRhiShaderStage, uint> m_shaderCache;
+    // Keyed by version too: it depends on the other stages of the program.
+    QHash<std::pair<QRhiShaderStage, QShaderVersion>, uint> m_shaderCache;
 
     struct PipelineCacheData {
         quint32 format;

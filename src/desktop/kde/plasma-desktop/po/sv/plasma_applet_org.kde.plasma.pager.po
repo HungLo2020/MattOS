@@ -2,20 +2,20 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2007, 2008, 2009, 2013, 2014, 2016, 2018, 2019, 2021, 2022, 2024, 2025, 2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
+# SPDX-FileCopyrightText: 2007-2009, 2013-2014, 2016, 2018-2019, 2021-2022, 2024-2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_pager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-18 15:44+0100\n"
+"POT-Creation-Date: 2026-04-15 00:48+0000\n"
+"PO-Revision-Date: 2026-07-08 09:33+0200\n"
 "Last-Translator: Stefan Asserhäll <stefan.asserhall@gmail.com>\n"
 "Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.04.3\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
 #: qml/config.qml:13
@@ -46,7 +46,7 @@ msgstr "Visa programikoner på fönsterkonturer"
 #, kde-format
 msgctxt "@option:check"
 msgid "Show only current screen"
-msgstr "Visa bara aktuell skärm"
+msgstr "Visa bara nuvarande skärm"
 
 #: qml/configGeneral.qml:57
 #, kde-format
@@ -154,7 +154,7 @@ msgid_plural "…and %1 other windows"
 msgstr[0] "… och %1 annat fönster"
 msgstr[1] "… och %1 andra fönster"
 
-#: qml/main.qml:351
+#: qml/main.qml:352
 #, kde-format
 msgctxt "@info:tooltip start of list"
 msgid "%1 Window:"
@@ -162,7 +162,7 @@ msgid_plural "%1 Windows:"
 msgstr[0] "%1 fönster:"
 msgstr[1] "%1 fönster:"
 
-#: qml/main.qml:363
+#: qml/main.qml:364
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "%1 Minimized Window:"
@@ -170,43 +170,43 @@ msgid_plural "%1 Minimized Windows:"
 msgstr[0] "%1 minimerat fönster:"
 msgstr[1] "%1 minimerade fönster:"
 
-#: qml/main.qml:439
+#: qml/main.qml:440
 #, kde-format
 msgctxt "@info:whatsthis Accessible name for pager section"
 msgid "Desktop %1"
 msgstr "Skrivbord %1"
 
-#: qml/main.qml:440
+#: qml/main.qml:441
 #, kde-format
 msgctxt "@info:tooltip %1 is the name of a virtual desktop or an activity"
 msgid "Switch to %1"
 msgstr "Byt till %1"
 
-#: qml/main.qml:592
+#: qml/main.qml:593
 #, kde-format
 msgctxt "@action:inmenu widget context menu"
 msgid "Show Activity Manager"
 msgstr "Visa aktivitetshanterare"
 
-#: qml/main.qml:598
+#: qml/main.qml:599
 #, kde-format
 msgctxt "@action:inmenu widget context menu"
 msgid "Add Virtual Desktop"
 msgstr "Lägg till virtuellt skrivbord"
 
-#: qml/main.qml:604
+#: qml/main.qml:605
 #, kde-format
 msgctxt "@action:inmenu widget context menu"
 msgid "Remove Virtual Desktop"
 msgstr "Ta bort virtuellt skrivbord"
 
-#: qml/main.qml:611
+#: qml/main.qml:612
 #, kde-format
 msgctxt "@action:inmenu widget context menu"
 msgid "&Configure Activities…"
 msgstr "A&npassa aktiviteter…"
 
-#: qml/main.qml:616
+#: qml/main.qml:617
 #, kde-format
 msgctxt "@action:inmenu widget context menu"
 msgid "Configure Virtual Desktops…"

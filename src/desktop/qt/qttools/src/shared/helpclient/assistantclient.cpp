@@ -68,16 +68,15 @@ bool AssistantClient::isRunning() const
 
 QString AssistantClient::binary()
 {
-    QString app = QLibraryInfo::path(QLibraryInfo::BinariesPath) + QDir::separator();
-#if !defined(Q_OS_MACOS)
+    QString app = QLibraryInfo::paths(QLibraryInfo::BinariesPath).value(0) + QDir::separator();
+#if defined(Q_OS_WIN)
+    app += "assistant.exe"_L1;
+#elif !defined(Q_OS_MACOS)
     app += "assistant"_L1;
 #else
     app += "Assistant.app/Contents/MacOS/Assistant"_L1;
 #endif
 
-#if defined(Q_OS_WIN)
-    app += ".exe"_L1;
-#endif
 
     return app;
 }
@@ -121,9 +120,7 @@ bool AssistantClient::ensureRunning(QString *errorMessage)
     // run
     QStringList args{u"-enableRemoteControl"_s};
 
-    // AXIVION DISABLE Style Qt-Security-QProcessStart: False positive, path is absolute
     m_process->start(app, args);
-    // AXIVION ENABLE Style Qt-Security-QProcessStart
 
     if (!m_process->waitForStarted()) {
         *errorMessage = QCoreApplication::translate("AssistantClient", "Unable to launch assistant (%1).").arg(app);

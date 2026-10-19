@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-04 02:42+0000\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
 "PO-Revision-Date: 2025-09-15 09:53-0500\n"
 "Last-Translator: A S Alam <aalam@punlinux.org>\n"
 "Language-Team: Punjabi <kde-i18n-doc@kde.org>\n"
@@ -106,60 +106,69 @@ msgctxt "Row description, e.g. Source"
 msgid "%1:"
 msgstr "%1:"
 
-#: components/JobDetails.qml:116
+#: components/JobDetails.qml:118
 #, kde-format
 msgctxt "How many bytes have been copied"
 msgid "%2 of %1"
 msgstr "%1 ਵਿੱਚੋਂ %2"
 
-#: components/JobDetails.qml:120
-#, kde-format
+#: components/JobDetails.qml:122
+#, fuzzy, kde-format
+#| msgctxt "How many files have been copied"
+#| msgid "%2 of %1 file"
+#| msgid_plural "%2 of %1 files"
 msgctxt "How many files have been copied"
-msgid "%2 of %1 file"
-msgid_plural "%2 of %1 files"
+msgid "%3 of %2 file"
+msgid_plural "%3 of %2 files"
 msgstr[0] "%1 ਫਾਇਲ  ਵਿੱਚੋਂ %2"
 msgstr[1] "%1 ਫਾਇਲਾਂ ਵਿੱਚੋਂ %2"
 
-#: components/JobDetails.qml:123
-#, kde-format
+#: components/JobDetails.qml:125
+#, fuzzy, kde-format
+#| msgctxt "How many dirs have been copied"
+#| msgid "%2 of %1 folder"
+#| msgid_plural "%2 of %1 folders"
 msgctxt "How many dirs have been copied"
-msgid "%2 of %1 folder"
-msgid_plural "%2 of %1 folders"
+msgid "%3 of %2 folder"
+msgid_plural "%3 of %2 folders"
 msgstr[0] "%1 ਫੋਲਡਰ ਵਿੱਚੋਂ %2"
 msgstr[1] "%1 ਫੋਲਡਰਾਂ ਵਿੱਚੋਂ %2"
 
-#: components/JobDetails.qml:126
-#, kde-format
+#: components/JobDetails.qml:128
+#, fuzzy, kde-format
+#| msgctxt "How many items (that includes files and dirs) have been copied"
+#| msgid "%2 of %1 item"
+#| msgid_plural "%2 of %1 items"
 msgctxt "How many items (that includes files and dirs) have been copied"
-msgid "%2 of %1 item"
-msgid_plural "%2 of %1 items"
+msgid "%3 of %2 item"
+msgid_plural "%3 of %2 items"
 msgstr[0] "%1 ਆਈਟਮ ਵਿੱਚੋਂ %2"
 msgstr[1] "%1 ਆਈਟਮਾਂ ਵਿੱਚੋਂ %2"
 
-#: components/JobDetails.qml:135
+#: components/JobDetails.qml:137
 #, kde-format
 msgid "%1 file"
 msgid_plural "%1 files"
 msgstr[0] "%1 ਫਾਇਲ"
 msgstr[1] "%1 ਫਾਇਲਾਂ"
 
-#: components/JobDetails.qml:137
+#: components/JobDetails.qml:139
 #, kde-format
 msgid "%1 folder"
 msgid_plural "%1 folders"
 msgstr[0] "%1 ਫੋਲਡਰ"
 msgstr[1] "%1 ਫੋਲਡਰ"
 
-#: components/JobDetails.qml:139
+#: components/JobDetails.qml:141
 #, kde-format
 msgid "%1 item"
 msgid_plural "%1 items"
 msgstr[0] "%1 ਆਈਟਮ"
 msgstr[1] "%1 ਆਈਟਮਾਂ"
 
-#: components/JobDetails.qml:156 components/SpeedChart.qml:72
-#: components/SpeedChart.qml:98 components/SpeedChart.qml:193
-#: components/SpeedChart.qml:204
+#: components/JobDetails.qml:158 components/SpeedChart.qml:75
+#: components/SpeedChart.qml:103 components/SpeedChart.qml:204
+#: components/SpeedChart.qml:217
 #, kde-format
 msgctxt "Bytes per second"
 msgid "%1/s"
@@ -189,7 +198,7 @@ msgctxt "Cancel running job"
 msgid "Cancel"
 msgstr "ਰੱਦ ਕਰੋ"
 
-#: components/JobItem.qml:125 components/ThumbnailStrip.qml:159
+#: components/JobItem.qml:125 components/ThumbnailStrip.qml:154
 #, kde-format
 msgid "More Options…"
 msgstr "…ਹੋਰ ਚੋਣਾਂ"
@@ -216,17 +225,17 @@ msgctxt "@action:button"
 msgid "Send"
 msgstr "ਭੇਜੋ"
 
-#: components/SpeedChart.qml:145
+#: components/SpeedChart.qml:155
 #, kde-format
 msgid "Speed"
 msgstr "ਸਪੀਡ"
 
-#: components/SpeedChart.qml:200
+#: components/SpeedChart.qml:212
 #, kde-format
 msgid "Average Speed"
 msgstr "ਔਸਤ ਸਪੀਡ"
 
-#: components/SpeedChart.qml:258
+#: components/SpeedChart.qml:272
 #, kde-format
 msgctxt "Percentage of a job"
 msgid "%1%"
@@ -260,12 +269,12 @@ msgstr "%1 (ਮੁਕੰਮਲ)"
 msgid "Job Finished"
 msgstr "ਜਾਬ ਪੂਰੀ ਹੋਈ"
 
-#: fileinfo.cpp:170
+#: fileinfo.cpp:186
 #, kde-format
 msgid "Open with %1"
 msgstr "%1 ਨਾਲ ਖੋਲ੍ਹੋ"
 
-#: fileinfo.cpp:174
+#: fileinfo.cpp:190
 #, kde-format
 msgid "Open with…"
 msgstr "…ਨਾਲ ਖੋਲ੍ਹੋ"
@@ -389,21 +398,36 @@ msgctxt "Vendor and product name"
 msgid "Notifications are currently provided by '%1 %2'"
 msgstr "ਨੋਟੀਫਿਕੇਸ਼ਨ ਇਸ ਵੇਲੇ '%1 %2' ਵਲੋਂ ਦਿੱਤੇ ਜਾ ਰਹੇ ਹਨ"
 
-#: globalshortcuts.cpp:23
+#: globalshortcuts.cpp:24
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "ਤੰਗ ਨਾ ਕਰੋ ਨੂੰ ਬਦਲੋ"
 
-#: globalshortcuts.cpp:42
+#: globalshortcuts.cpp:33
+#, fuzzy, kde-format
+#| msgid "Clear All Notifications"
+msgctxt "@action"
+msgid "Clear Notification History"
+msgstr "ਸਾਰੇ ਨੋਟੀਫਿਕੇਸ਼ਨ ਮਿਟਾਓ"
+
+#: globalshortcuts.cpp:52
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications Off"
 msgstr "ਨੋਟੀਫਿਕੇਸ਼ਨ ਬੰਦ ਕਰੋ"
 
-#: globalshortcuts.cpp:43
+#: globalshortcuts.cpp:53
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications On"
+msgstr "ਨੋਟੀਫਿਕੇਸ਼ਨ ਚਾਲੂ ਕਰੋ"
+
+#: globalshortcuts.cpp:68
+#, fuzzy, kde-format
+#| msgctxt "OSD popup, keep short"
+#| msgid "Notifications On"
+msgctxt "@label OSD popup, keep short"
+msgid "Notification history cleared"
 msgstr "ਨੋਟੀਫਿਕੇਸ਼ਨ ਚਾਲੂ ਕਰੋ"
 
 #: main.qml:61
@@ -455,12 +479,12 @@ msgstr "ਤੰਗ ਨਾ ਕਰੋ ਮੋਡ ਸਰਗਰਮ ਹੈ; ਬੰਦ �
 msgid "Middle-click to enter do not disturb mode"
 msgstr "ਤੰਗ ਨਾ ਕਰੋ ਮੋਡ ਵਿੱਚ ਜਾਣ ਲਈ ਮਿਡਲ-ਕਲਿੱਕ ਕਰੋ"
 
-#: main.qml:238
+#: main.qml:245
 #, kde-format
 msgid "Clear All Notifications"
 msgstr "ਸਾਰੇ ਨੋਟੀਫਿਕੇਸ਼ਨ ਮਿਟਾਓ"
 
-#: main.qml:257
+#: main.qml:264
 #, kde-format
 msgid "&Configure Event Notifications and Actions…"
 msgstr "…ਈਵੈਂਟ ਸੂਚਨਾਵਾਂ ਤੇ ਕਾਰਵਾਈ ਸੰਰਚਨਾ(&C)"

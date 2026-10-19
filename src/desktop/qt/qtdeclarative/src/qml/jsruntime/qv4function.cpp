@@ -58,13 +58,14 @@ static ReturnedValue doCall(
 ReturnedValue Function::call(
         const Value *thisObject, const Value *argv, int argc, ExecutionContext *context) {
     switch (kind) {
-    case AotCompiled:
+    case AotCompiled: {
+        const auto &types = aotCompiledFunction.types;
         return QV4::convertAndCall(
-                    context->engine(), &aotCompiledFunction, thisObject, argv, argc,
-                    [this, context](
-                        QObject *thisObject, void **a, const QMetaType *types, int argc) {
-            call(thisObject, a, types, argc, context);
+                    context->engine(), types.data(), types.length(), argv, argc,
+                    [this, context, thisObject](void **a, const QMetaType *types, int argc) {
+            call(QV4::cppThisObject(thisObject), a, types, argc, context);
         });
+    }
     case JsTyped:
         return QV4::coerceAndCall(
                     context->engine(), &jsTypedFunction, compiledFunction, argv, argc,
@@ -211,8 +212,11 @@ Function::Function(ExecutionEngine *engine, ExecutableCompilationUnit *unit,
                            const quint16 *parameter = nullptr) {
         const quint32 type = param.typeNameIndexOrCommonType();
         if (param.indexIsCommonType()) {
-            return QQmlMetaType::qmlType(QQmlPropertyCacheCreatorBase::metaTypeForPropertyType(
-                QV4::CompiledData::CommonType(type)));
+            std::optional<QMetaType>  metaType =
+                    QQmlPropertyCacheCreatorBase::metaTypeForPropertyType(QV4::CompiledData::CommonType(type));
+            if (!metaType.has_value())
+                metaType = QMetaType::fromType<QVariant>();
+            return QQmlMetaType::qmlType(*metaType);
         }
 
         if (type == 0 || !typeLoader)

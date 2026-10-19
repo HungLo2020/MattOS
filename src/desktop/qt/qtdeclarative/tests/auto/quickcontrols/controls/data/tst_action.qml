@@ -199,4 +199,44 @@ TestCase {
         }
         keyClick(Qt.Key_Delete, Qt.NoModifier)
     }
+
+
+    Component {
+        id: hiddenPopupComponent
+
+        Item {
+            property alias popup: popup
+
+            Popup {
+                id: popup
+
+                property alias button: button
+
+                Button {
+                    id: button
+                    objectName: popup.objectName + "Button"
+                    text: "Pressing R once should close this popup"
+                    action: Action {
+                        objectName: popup.objectName + "Action"
+                        shortcut: "r"
+                    }
+                    onClicked: popup.close()
+                }
+            }
+        }
+    }
+
+    function test_actionInHiddenPopupShouldNotTrigger() {
+        let container = createTemporaryObject(hiddenPopupComponent, testCase)
+        verify(container)
+
+        // An Action in a Button that's not visible shouldn't grab shortcuts.
+        let hiddenPopup = container.popup
+        let hiddenButtonClickedSpy = createTemporaryObject(signalSpy, testCase,
+            { target: hiddenPopup.button, signalName: "clicked" })
+        keyClick(Qt.Key_R)
+        verify(hiddenButtonClickedSpy.valid)
+        expectFail("", "### Qt 7: don't allow Actions in hidden items to be triggered: QTBUG-145384")
+        compare(hiddenButtonClickedSpy.count, 0)
+    }
 }

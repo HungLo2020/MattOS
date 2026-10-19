@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-13 08:43+0000\n"
+"POT-Creation-Date: 2026-06-06 00:45+0000\n"
 "PO-Revision-Date: 2026-04-13 08:11+0300\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
@@ -18,12 +18,12 @@ msgstr ""
 "n % 10 == 0) ? 2 : 3));\n"
 "X-Generator: Lokalize 25.12.3\n"
 
-#: kcm.cpp:62
+#: kcm.cpp:64
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "החלפת מצב ‚לא להפריע’"
 
-#: sourcesmodel.cpp:406
+#: sourcesmodel.cpp:404
 #, kde-format
 msgid "Other Applications"
 msgstr "יישומים אחרים"
@@ -276,22 +276,22 @@ msgctxt ""
 msgid "Application Notifications"
 msgstr "התראות יישומים"
 
-#: ui/SourcesPage.qml:104
+#: ui/SourcesPage.qml:108
 #, kde-format
 msgid "Applications"
 msgstr "יישומים"
 
-#: ui/SourcesPage.qml:105
+#: ui/SourcesPage.qml:109
 #, kde-format
 msgid "System Services"
 msgstr "שירותי מערכת"
 
-#: ui/SourcesPage.qml:153
+#: ui/SourcesPage.qml:157
 #, kde-format
 msgid "No application or event matches your search term"
 msgstr "אין יישומים או אירועים שעונים על תנאי החיפוש שלך"
 
-#: ui/SourcesPage.qml:177
+#: ui/SourcesPage.qml:181
 #, kde-format
 msgid ""
 "Select an application from the list to configure its notification settings "

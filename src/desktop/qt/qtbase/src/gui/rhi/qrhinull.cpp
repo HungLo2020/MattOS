@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qrhinull_p.h"
 #include <qmath.h>
@@ -329,6 +330,26 @@ void QRhiNull::drawIndexed(QRhiCommandBuffer *cb, quint32 indexCount,
     Q_UNUSED(firstInstance);
 }
 
+void QRhiNull::drawIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                            quint32 indirectBufferOffset, quint32 drawCount, quint32 stride)
+{
+    Q_UNUSED(cb);
+    Q_UNUSED(indirectBuffer);
+    Q_UNUSED(indirectBufferOffset);
+    Q_UNUSED(drawCount);
+    Q_UNUSED(stride);
+}
+
+void QRhiNull::drawIndexedIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                                   quint32 indirectBufferOffset, quint32 drawCount, quint32 stride)
+{
+    Q_UNUSED(cb);
+    Q_UNUSED(indirectBuffer);
+    Q_UNUSED(indirectBufferOffset);
+    Q_UNUSED(drawCount);
+    Q_UNUSED(stride);
+}
+
 void QRhiNull::debugMarkBegin(QRhiCommandBuffer *cb, const QByteArray &name)
 {
     Q_UNUSED(cb);
@@ -440,12 +461,20 @@ void QRhiNull::simulateTextureUpload(const QRhiResourceUpdateBatchPrivate::Textu
                     }
                     // sourceTopLeft is not supported on this path as per QRhi docs
                     const QByteArray srcData = subresDesc.data();
+                    const QPoint dstOffset = subresDesc.destinationTopLeft();
+                    QSize size = clampedSubResourceUploadSize(QSize(w, h), dstOffset, level,
+                                                              texD->pixelSize());
+                    size = clampedSubResourceUploadSizeForSourceData(size, subresDesc.dataStride(),
+                                                                     4, srcData.size());
+                    if (size.isEmpty())
+                        continue;
+                    w = size.width();
+                    h = size.height();
                     const char *src = srcData.constData();
                     const int srcBpl = w * 4;
                     int srcStride = srcBpl;
                     if (subresDesc.dataStride())
                         srcStride = subresDesc.dataStride();
-                    const QPoint dstOffset = subresDesc.destinationTopLeft();
                     uchar *dst = texD->image[layer][level].bits();
                     const int dstBpl = texD->image[layer][level].bytesPerLine();
                     for (int y = 0; y < h; ++y) {
@@ -714,6 +743,11 @@ bool QNullTexture::create()
                                 : (isCube ? 6
                                           : (isArray ? qMax(0, m_arraySize)
                                                      : 1));
+
+    if (!rhiD->textureFormatInfo(m_format, size, nullptr, nullptr, nullptr)) {
+        valid = false;
+        return false;
+    }
 
     if (m_format == RGBA8) {
         image.resize(layerCount);

@@ -1,26 +1,32 @@
 # Copyright (C) 2023 This file is copyright:
 # This file is distributed under the same license as the plasma-framework package.
 #
-# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024 Kishore G <kishore96@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2026 Kishore G <kishore96@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-framework\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-05 02:41+0000\n"
-"PO-Revision-Date: 2024-09-07 21:00+0200\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
+"PO-Revision-Date: 2026-04-12 17:17+0530\n"
 "Last-Translator: Kishore G <kishore96@gmail.com>\n"
-"Language-Team: Tamil <kde-i18n-doc@kde.org>\n"
+"Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
 "Language: ta\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 24.08.0\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #: declarativeimports/plasmaextracomponents/qml/BasicPlasmoidHeading.qml:82
 #, kde-format
 msgid "More actions"
 msgstr "மேலும் செயல்கள்"
+
+#: declarativeimports/plasmaextracomponents/qml/ContextualHelpButton.qml:58
+#, kde-format
+msgctxt "@action:button"
+msgid "Show Contextual Help"
+msgstr "சூழல்சார் உதவியைக் காட்டு"
 
 #: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
 #, kde-format
@@ -39,6 +45,24 @@ msgstr "விரி"
 msgid "Password"
 msgstr "கடவுச்சொல்"
 
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:57
+#, fuzzy, kde-format
+#| msgid "Password"
+msgctxt ""
+"@action:button in text field, tooltip/accessible only, displays placeholders "
+"for characters"
+msgid "Hide Password"
+msgstr "கடவுச்சொல்"
+
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:58
+#, fuzzy, kde-format
+#| msgid "Password"
+msgctxt ""
+"@action:button in text field, tooltip/accessible only, reveals password "
+"chracters"
+msgid "Show Password"
+msgstr "கடவுச்சொல்"
+
 #: declarativeimports/plasmaextracomponents/qml/SearchField.qml:62
 #, kde-format
 msgid "Search…"
@@ -54,44 +78,44 @@ msgstr "தேடு"
 msgid "Clear search"
 msgstr "தேடலை காலியாக்கு"
 
-#: plasma/applet.cpp:318
+#: plasma/applet.cpp:296
 #, kde-format
 msgid "Unknown"
 msgstr "தெரியாதது"
 
-#: plasma/applet.cpp:764
+#: plasma/applet.cpp:742
 #, kde-format
 msgid "Activate %1 Widget"
 msgstr "%1 பிளாஸ்மாய்டை செயல்படுத்து"
 
-#: plasma/containment.cpp:100 plasma/private/applet_p.cpp:101
+#: plasma/containment.cpp:102 plasma/private/applet_p.cpp:98
 #, kde-format
 msgctxt "%1 is the name of the applet"
 msgid "Remove %1"
 msgstr "%1 தனை நீக்கு"
 
-#: plasma/containment.cpp:106 plasma/corona.cpp:365 plasma/corona.cpp:486
+#: plasma/containment.cpp:108 plasma/corona.cpp:314 plasma/corona.cpp:435
 #, kde-format
 msgid "Enter Edit Mode"
 msgstr "திருத்தும் பயன்முறையில் நுழை"
 
-#: plasma/containment.cpp:109 plasma/private/applet_p.cpp:106
+#: plasma/containment.cpp:111 plasma/private/applet_p.cpp:103
 #, kde-format
 msgctxt "%1 is the name of the applet"
 msgid "Configure %1..."
 msgstr "%1 தனை அமை..."
 
-#: plasma/corona.cpp:314 plasma/corona.cpp:471
+#: plasma/corona.cpp:263 plasma/corona.cpp:420
 #, kde-format
 msgid "Lock Widgets"
 msgstr "பிளாஸ்மாய்டுகளை பூட்டு"
 
-#: plasma/corona.cpp:314
+#: plasma/corona.cpp:263
 #, kde-format
 msgid "Unlock Widgets"
 msgstr "பிளாஸ்மாய்டுகளை திருத்தவிடு"
 
-#: plasma/corona.cpp:363
+#: plasma/corona.cpp:312
 #, kde-format
 msgid "Exit Edit Mode"
 msgstr "திருத்தும் பயன்முறையிலிருந்து வெளியேறு"
@@ -101,193 +125,202 @@ msgstr "திருத்தும் பயன்முறையிலிர�
 msgid "Could not find requested component: %1"
 msgstr "கோரிய கூறை கண்டுபிடிக்க முடியவில்லை: %1"
 
-#: plasma/private/applet_p.cpp:119
+#: plasma/private/applet_p.cpp:116
 #, kde-format
 msgid "Show Alternatives..."
 msgstr "மாற்றுகள் காட்டு..."
 
-#: plasma/private/applet_p.cpp:237
+#: plasma/private/applet_p.cpp:234
 #, kde-format
 msgid "Widget Removed"
 msgstr "பிளாஸ்மாய்ட் நீக்கப்பட்டது"
 
-#: plasma/private/applet_p.cpp:238
+#: plasma/private/applet_p.cpp:235
 #, kde-format
 msgid "The widget \"%1\" has been removed."
 msgstr "\"%1\" என்ற பிளாஸ்மாய்ட் நீக்கப்பட்டது."
 
-#: plasma/private/applet_p.cpp:242
+#: plasma/private/applet_p.cpp:239
 #, kde-format
 msgid "Panel Removed"
 msgstr "பலகை நீக்கப்பட்டது"
 
-#: plasma/private/applet_p.cpp:243
+#: plasma/private/applet_p.cpp:240
 #, kde-format
 msgid "A panel has been removed."
 msgstr "ஒரு பலகை நீக்கப்பட்டது."
 
-#: plasma/private/applet_p.cpp:246
+#: plasma/private/applet_p.cpp:243
 #, kde-format
 msgid "Desktop Removed"
 msgstr "பணிமேடை நீக்கப்பட்டது"
 
-#: plasma/private/applet_p.cpp:247
+#: plasma/private/applet_p.cpp:244
 #, kde-format
 msgid "A desktop has been removed."
 msgstr "ஒரு பணிமேடை நீக்கப்பட்டது."
 
-#: plasma/private/applet_p.cpp:250
+#: plasma/private/applet_p.cpp:247
 #, kde-format
 msgid "Undo"
 msgstr "செயல்நீக்கு"
 
-#: plasma/private/applet_p.cpp:341
+#: plasma/private/applet_p.cpp:317
 #, kde-format
 msgid "Widget Settings"
 msgstr "பிளாஸ்மாய்ட் அமைப்புகள்"
 
-#: plasma/private/applet_p.cpp:347
+#: plasma/private/applet_p.cpp:323
 #, kde-format
 msgid "Remove this Widget"
 msgstr "இந்த பிளாஸ்மாய்டை நீக்கு"
 
-#: plasma/private/containment_p.cpp:51
+#: plasma/private/containment_p.cpp:54
 #, kde-format
 msgid "Remove this Panel"
 msgstr "இந்த பலகையை நீக்கு"
 
-#: plasma/private/containment_p.cpp:53
+#: plasma/private/containment_p.cpp:56
 #, kde-format
 msgid "Remove this Activity"
 msgstr "இந்த செயல்பாட்டை நீக்கு"
 
-#: plasma/private/containment_p.cpp:58
+#: plasma/private/containment_p.cpp:61
 #, kde-format
 msgid "Activity Settings"
 msgstr "செயல்பாடு அமைப்புகள்"
 
-#: plasma/private/containment_p.cpp:70
+#: plasma/private/containment_p.cpp:73
 #, kde-format
 msgid "Add or Manage Widgets…"
 msgstr "பிளாஸ்மாய்டுகளை சேர் அல்லது நிர்வகி…"
 
-#: plasmaquick/appletquickitem.cpp:540
+#: plasmaquick/appletquickitem.cpp:548
 #, kde-format
 msgid "The root item of %1 must be of type ContainmentItem"
 msgstr "%1 தனின் தாய் உருப்படி ContainmentItem வகையாக இருக்க வேண்டும்"
 
-#: plasmaquick/appletquickitem.cpp:545
+#: plasmaquick/appletquickitem.cpp:553
 #, kde-format
 msgid "The root item of %1 must be of type PlasmoidItem"
 msgstr "%1 தனின் தாய் உருப்படி PlasmoidItem வகையாக இருக்க வேண்டும்"
 
-#: plasmaquick/appletquickitem.cpp:553
+#: plasmaquick/appletquickitem.cpp:561
 #, kde-format
 msgid "Unknown Applet"
 msgstr "தெரியாத பிளாஸ்மாய்ட்"
 
-#: plasmaquick/appletquickitem.cpp:567
+#: plasmaquick/appletquickitem.cpp:575
 #, kde-format
 msgid ""
-"This Widget was written for an unknown older version of Plasma and is not "
+"This widget was written for an unknown older version of Plasma and is not "
 "compatible with Plasma %1. Please contact the widget's author for an updated "
 "version."
 msgstr ""
 "பிளாஸ்மாவின் கண்டறிய முடியாத பழைய பதிப்பிற்கு இந்த பிளாஸ்மாய்ட் எழுதப்பட்டுள்ளதால் %1 "
 "பதிப்பில் இயங்காது. புதுப்பிக்கப்பட்ட பதிப்பை இதை இயற்றியவரிடம் கோரவும்."
 
-#: plasmaquick/appletquickitem.cpp:570 plasmaquick/appletquickitem.cpp:577
-#: plasmaquick/appletquickitem.cpp:583
+#: plasmaquick/appletquickitem.cpp:578 plasmaquick/appletquickitem.cpp:585
+#: plasmaquick/appletquickitem.cpp:591
 #, kde-format
 msgid "%1 is not compatible with Plasma %2"
 msgstr "%1, பிளாஸ்மா %2-க்கு ஏற்புடையதல்ல"
 
-#: plasmaquick/appletquickitem.cpp:574
+#: plasmaquick/appletquickitem.cpp:582
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please contact the widget's author for an updated version."
 msgstr ""
 "பிளாஸ்மாவின் %1 பதிப்பிற்கு இந்த பிளாஸ்மாய்ட் எழுதப்பட்டுள்ளதால் தற்போதைய %2 பதிப்பில் "
 "இயங்காது. புதுப்பிக்கப்பட்ட பதிப்பை இதை இயற்றியவரிடம் கோரவும்."
 
-#: plasmaquick/appletquickitem.cpp:580
+#: plasmaquick/appletquickitem.cpp:588
 #, kde-format
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please update Plasma in order to use the widget."
 msgstr ""
 "பிளாஸ்மாவின் %1 பதிப்பிற்கு இந்த பிளாஸ்மாய்ட் எழுதப்பட்டுள்ளதால் தற்போதைய %2 பதிப்பில் "
 "இயங்காது. இதைப் பயன்படுத்த பிளாஸ்மாவைப் புதுப்பிக்கவும்."
 
-#: plasmaquick/appletquickitem.cpp:589 plasmaquick/appletquickitem.cpp:611
+#: plasmaquick/appletquickitem.cpp:597 plasmaquick/appletquickitem.cpp:620
 #, kde-format
 msgid "Sorry! There was an error loading %1."
 msgstr "மன்னிக்கவும்! %1 என்பதை ஏற்றுவதில் சிக்கல் ஏற்பட்டது."
 
-#: plasmaquick/appletquickitem.cpp:606
+#: plasmaquick/appletquickitem.cpp:614
 #, kde-format
 msgid "Error loading QML file: %1 %2"
 msgstr "QML கோப்பை ஏற்றுவதில் சிக்கல்: %1 %2"
 
-#: plasmaquick/appletquickitem.cpp:609
+#: plasmaquick/appletquickitem.cpp:618
 #, kde-format
 msgid "Error loading Applet: package %1 does not exist."
 msgstr "பிளாஸ்மாய்டை ஏற்றுவதில் சிக்கல்:  %1 எனும் தொகுப்பு (package) இல்லை."
 
-#: plasmaquick/configview.cpp:189
+#: plasmaquick/appletquickitem.cpp:623
+#, fuzzy, kde-format
+#| msgid "Error loading Applet: package %1 does not exist."
+msgctxt "@info"
+msgid ""
+"Error loading Applet: package format is invalid (does not contain any "
+"metadata)."
+msgstr "பிளாஸ்மாய்டை ஏற்றுவதில் சிக்கல்:  %1 எனும் தொகுப்பு (package) இல்லை."
+
+#: plasmaquick/configview.cpp:194
 #, kde-format
 msgid "%1 — %2 Settings"
 msgstr "%1 — %2 அமைப்புகள்"
 
-#: plasmaquick/configview.cpp:190
+#: plasmaquick/configview.cpp:195
 #, kde-format
 msgid "%1 Settings"
 msgstr "%1 அமைப்புகள்"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:569
+#: plasmaquick/plasmoid/containmentitem.cpp:574
 #, kde-format
 msgid "Plasma Package"
 msgstr "பிளாஸ்மா தொகுப்பு"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:573
+#: plasmaquick/plasmoid/containmentitem.cpp:578
 #, kde-format
 msgid "Install"
 msgstr "நிறுவு"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:584
+#: plasmaquick/plasmoid/containmentitem.cpp:589
 #, kde-format
 msgid "Package Installation Failed"
 msgstr "தொகுப்பை நிறுவல் தோல்வியடைந்தது"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:600
+#: plasmaquick/plasmoid/containmentitem.cpp:605
 #, kde-format
 msgid "The package you just dropped is invalid."
 msgstr "நீங்கள் இட்ட தொகுப்பு செல்லுபடியாகாதது"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:609
+#: plasmaquick/plasmoid/containmentitem.cpp:614
 #, kde-format
 msgid "Widgets"
 msgstr "பிளாஸ்மாய்டுகள்"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:614
+#: plasmaquick/plasmoid/containmentitem.cpp:619
 #, kde-format
 msgctxt "Add widget"
 msgid "Add %1"
 msgstr "%1 தனை சேர்"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:628
+#: plasmaquick/plasmoid/containmentitem.cpp:633
 #, kde-format
 msgctxt "Add icon widget"
 msgid "Add Icon"
 msgstr "சின்னத்தை சேர்"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:640
+#: plasmaquick/plasmoid/containmentitem.cpp:645
 #, kde-format
 msgid "Wallpaper"
 msgstr "பின்னணிப் படம்"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:650
+#: plasmaquick/plasmoid/containmentitem.cpp:655
 #, kde-format
 msgctxt "Set wallpaper"
 msgid "Set %1"

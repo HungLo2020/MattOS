@@ -16,6 +16,7 @@ extern "C" {
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
 #include <libavutil/pixfmt.h>
+#include <libavutil/opt.h>
 }
 
 #include "logging_record.h"
@@ -61,8 +62,8 @@ bool LibX264Encoder::initialize(const QSize &size)
     // ensure we don't get errors, we need to ensure the size we set here is
     // even. We also insert a pad filter into the filter chain above to ensure
     // we don't end up padding with garbage.
-    m_avCodecContext->width = std::ceil(size.width() / 2) * 2;
-    m_avCodecContext->height = std::ceil(size.height() / 2) * 2;
+    m_avCodecContext->width = std::ceil(size.width() / 2.0) * 2;
+    m_avCodecContext->height = std::ceil(size.height() / 2.0) * 2;
     m_avCodecContext->max_b_frames = 0;
     m_avCodecContext->gop_size = 100;
     m_avCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -80,6 +81,7 @@ bool LibX264Encoder::initialize(const QSize &size)
         break;
     }
 
+    setQuality(m_quality);
     AVDictionary *options = buildEncodingOptions();
     maybeLogOptions(options);
 
@@ -91,24 +93,42 @@ bool LibX264Encoder::initialize(const QSize &size)
     return true;
 }
 
-int LibX264Encoder::percentageToAbsoluteQuality(const std::optional<quint8> &quality)
+void LibX264Encoder::setQuality(std::optional<quint8> quality)
 {
-    if (!quality) {
-        return -1;
+    SoftwareEncoder::setQuality(quality);
+    if (!m_avCodecContext) {
+        return;
     }
-
-    constexpr int MinQuality = 51 + 6 * 6;
-    return std::max(1, int(MinQuality - (m_quality.value() / 100.0) * MinQuality));
+    // libx264 ignores the AVCodecContext global_quality / qscale fields and
+    // requires CRF to be passed as a private option for constant-quality mode.
+    // Recommended values range is 17 - 28.
+    const qreal crf = m_quality ? std::lerp(28, 17, quality.value() / 100.0) : 23;
+    // libx264 crf takes a float
+    av_opt_set_double(m_avCodecContext, "crf", crf, AV_OPT_SEARCH_CHILDREN);
 }
 
 AVDictionary *LibX264Encoder::buildEncodingOptions()
 {
     AVDictionary *options = SoftwareEncoder::buildEncodingOptions();
 
-    // libx264 ignores the AVCodecContext global_quality / qscale fields and
-    // requires CRF to be passed as a private option for constant-quality mode.
-    const int crf = m_quality ? percentageToAbsoluteQuality(m_quality) : 35;
-    av_dict_set_int(&options, "crf", crf, 0);
+    switch (m_encodingPreference) {
+    case PipeWireBaseEncodedStream::EncodingPreference::NoPreference:
+        av_dict_set(&options, "preset", "veryfast", 0);
+        break;
+    case PipeWireBaseEncodedStream::EncodingPreference::Quality:
+        av_dict_set(&options, "preset", "medium", 0);
+        break;
+    case PipeWireBaseEncodedStream::EncodingPreference::Speed:
+        av_dict_set(&options, "preset", "ultrafast", 0);
+        av_dict_set(&options, "tune", "zerolatency", 0);
+        break;
+    case PipeWireBaseEncodedStream::EncodingPreference::Size:
+        av_dict_set(&options, "preset", "slow", 0);
+        break;
+    default: //  Same as NoPreference
+        av_dict_set(&options, "preset", "veryfast", 0);
+        break;
+    }
 
     // Disable motion estimation, not great while dragging windows but speeds up encoding by an order of magnitude
     av_dict_set(&options, "flags", "+mv4", 0);

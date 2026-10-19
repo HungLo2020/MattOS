@@ -32,9 +32,9 @@ public:
     quint32 drmFormat() const override;
 
     void setRenderCursor(bool enable) override;
+    void setNextPresentationTimestamp(std::chrono::nanoseconds timestamp, uint32_t refreshRate) override;
     Region render(GLFramebuffer *target, const Region &bufferRepair) override;
     Region render(QImage *target, const Region &bufferRepair) override;
-    std::chrono::nanoseconds clock() const override;
 
     void resume() override;
     void pause() override;
@@ -43,6 +43,8 @@ public:
 
     QPointF mapFromGlobal(const QPointF &point) const override;
     RectF mapFromGlobal(const RectF &rect) const override;
+    bool followsStreamSize() override;
+    void resize(const QSize &size) override;
 
 private:
     QPointer<LogicalOutput> m_output;

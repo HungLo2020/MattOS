@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: desktop_kdebase\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-18 00:41+0000\n"
+"POT-Creation-Date: 2026-09-19 00:41+0000\n"
 "PO-Revision-Date: 2008-11-22 23:39+0100\n"
 "Last-Translator: Eduard Werner <edi.werner@gmx.de>\n"
 "Language-Team: en_US <kde-i18n-doc@lists.kde.org>\n"
@@ -27,31 +27,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr ""
 
-#. i18n: ectx: property (text), widget (QPushButton, _allowOnce)
-#: ksecretd/kbetterthankdialogbase.ui:50
-#, kde-format
-msgid "Allow &Once"
-msgstr "&Jónu dowolić"
-
-#. i18n: ectx: property (text), widget (QPushButton, _allowAlways)
-#: ksecretd/kbetterthankdialogbase.ui:60
-#, kde-format
-msgid "Allow &Always"
-msgstr "&Přeco dowolić"
-
-#. i18n: ectx: property (text), widget (QPushButton, _deny)
-#: ksecretd/kbetterthankdialogbase.ui:67
-#, kde-format
-msgid "&Deny"
-msgstr "&Wotpokazać"
-
-#. i18n: ectx: property (text), widget (QPushButton, _denyForever)
-#: ksecretd/kbetterthankdialogbase.ui:74
-#, kde-format
-msgid "Deny &Forever"
-msgstr "&Na wšě časy wotpokazać"
-
-#: ksecretd/knewwalletdialog.cpp:50
+#: ksecretd/knewwalletdialog.cpp:49
 #, fuzzy, kde-format
 #| msgid ""
 #| "KDE has requested to open the wallet. This is used to store sensitive "
@@ -66,24 +42,7 @@ msgstr ""
 "zapodajće hesło za tutu móšnju abo klikńće \"přetorhnyć\", hdyž chceće "
 "próstwu wotpokazać."
 
-#: ksecretd/knewwalletdialog.cpp:55
-#, fuzzy, kde-format
-#| msgid ""
-#| "<qt>The application '<b>%1</b>' has requested to open the KDE wallet. "
-#| "This is used to store sensitive data in a secure fashion. Please enter a "
-#| "password to use with this wallet or click cancel to deny the "
-#| "application's request.</qt>"
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. This is used to store sensitive data in a secure fashion. "
-"Please choose the new wallet's type below or click cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>Program '<b>%1</b>' chce KDE-móšnju wočinić. Móšnja so wužiwa za "
-"zawěsćenje wažnych datow. Prošu zapodajće hesło za tutu móšnju abo klikńće "
-"\"přetorhnyć\", hdyž chceće próstwu wotpokazać.</qt>"
-
-#: ksecretd/knewwalletdialog.cpp:125 ksecretd/knewwalletdialog.cpp:132
+#: ksecretd/knewwalletdialog.cpp:117 ksecretd/knewwalletdialog.cpp:124
 #: ksecretd/kwalletwizard.cpp:151 ksecretd/kwalletwizard.cpp:157
 #, kde-format
 msgid ""
@@ -91,7 +50,7 @@ msgid ""
 "check your system's configuration then try again."
 msgstr ""
 
-#: ksecretd/knewwalletdialog.cpp:153
+#: ksecretd/knewwalletdialog.cpp:145
 #, kde-format
 msgid ""
 "Seems that your system has no keys suitable for encryption. Please set-up at "
@@ -171,7 +130,7 @@ msgstr ""
 msgid "Use GPG encryption, for better protection"
 msgstr ""
 
-#: ksecretd/ksecretd.cpp:616
+#: ksecretd/ksecretd.cpp:334
 #, kde-format
 msgid ""
 "<qt>KDE has requested to open the wallet '<b>%1</b>'. Please enter the "
@@ -180,32 +139,22 @@ msgstr ""
 "<qt>KDE chce móšnjowu dataju '<b>%1</b>' wočinić. Prošu zapodajće wotpowědne "
 "hesło.</qt>"
 
-#: ksecretd/ksecretd.cpp:620
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
-"b>'. Please enter the password for this wallet below.</qt>"
-msgstr ""
-"<qt>Aplikacija '<b>%1</b>' chce móšnjowu dataju '<b>%2</b>' wočinić. Prošu "
-"zapodajće wotpowědne hesło.</qt>"
-
 #. i18n( "&Open" ), "wallet-open"));
-#: ksecretd/ksecretd.cpp:631 ksecretd/ksecretd.cpp:740
-#: ksecretd/ksecretd.cpp:844 ksecretd/ksecretd.cpp:957
-#: ksecretd/ksecretd.cpp:980 ksecretd/ksecretd.cpp:991
-#: ksecretd/ksecretd.cpp:996 ksecretd/ksecretd.cpp:1586 ksecretd/main.cpp:160
-#: ksecretd/main.cpp:162
+#: ksecretd/ksecretd.cpp:342 ksecretd/ksecretd.cpp:429
+#: ksecretd/ksecretd.cpp:573 ksecretd/ksecretd.cpp:596
+#: ksecretd/ksecretd.cpp:607 ksecretd/ksecretd.cpp:612
+#: ksecretd/ksecretd.cpp:899 ksecretd/main.cpp:159 ksecretd/main.cpp:161
 #, kde-format
 msgid "KDE Wallet Service"
 msgstr "KDE móšnjowa słužba"
 
-#: ksecretd/ksecretd.cpp:646
+#: ksecretd/ksecretd.cpp:356
 #, fuzzy, kde-format
 #| msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
 msgid "An application has requested to open a wallet (%1)."
 msgstr "<qt>KDE chce móšnjowu dataju '<b>%1</b>' wočinić.</qt>"
 
-#: ksecretd/ksecretd.cpp:647
+#: ksecretd/ksecretd.cpp:357
 #, fuzzy, kde-format
 #| msgid "Switch version"
 msgctxt ""
@@ -214,24 +163,7 @@ msgctxt ""
 msgid "Switch there"
 msgstr "Hinašu wersiju wužiwać"
 
-#: ksecretd/ksecretd.cpp:649
-#, fuzzy, kde-format
-#| msgid ""
-#| "<qt>The application '<b>%1</b>' has requested access to the open wallet "
-#| "'<b>%2</b>'.</qt>"
-msgid "<b>%1</b> has requested to open a wallet (%2)."
-msgstr ""
-"<qt>Aplikacija '<b>%1</b>' chce móšnjowu dataju '<b>%2</b>' wočinić.</qt>"
-
-#: ksecretd/ksecretd.cpp:651
-#, fuzzy, kde-format
-#| msgid "Show %1"
-msgctxt ""
-"Text of a button for switching to the application requesting a password"
-msgid "Switch to %1"
-msgstr "Pokaž %1"
-
-#: ksecretd/ksecretd.cpp:668 ksecretd/ksecretd.cpp:750
+#: ksecretd/ksecretd.cpp:373 ksecretd/ksecretd.cpp:439
 #, kde-format
 msgid ""
 "<qt>Error opening the wallet '<b>%1</b>'. Please try again.<br />(Error code "
@@ -240,7 +172,7 @@ msgstr ""
 "<qt>Zmylk při wočinjenju móšnjoweje dataje '<b>%1</b>'. Prošu spytajće hišće "
 "raz.<br /> (Zmylkowy kod %2: %3)</qt>"
 
-#: ksecretd/ksecretd.cpp:716
+#: ksecretd/ksecretd.cpp:420
 #, kde-format
 msgid ""
 "KDE has requested to open the wallet. This is used to store sensitive data "
@@ -251,19 +183,7 @@ msgstr ""
 "zapodajće hesło za tutu móšnju abo klikńće \"přetorhnyć\", hdyž chceće "
 "próstwu wotpokazać."
 
-#: ksecretd/ksecretd.cpp:721
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to open the KDE wallet. This "
-"is used to store sensitive data in a secure fashion. Please enter a password "
-"to use with this wallet or click cancel to deny the application's request.</"
-"qt>"
-msgstr ""
-"<qt>Program '<b>%1</b>' chce KDE-móšnju wočinić. Móšnja so wužiwa za "
-"zawěsćenje wažnych datow. Prošu zapodajće hesło za tutu móšnju abo klikńće "
-"\"přetorhnyć\", hdyž chceće próstwu wotpokazać.</qt>"
-
-#: ksecretd/ksecretd.cpp:729
+#: ksecretd/ksecretd.cpp:425
 #, kde-format
 msgid ""
 "<qt>KDE has requested to create a new wallet named '<b>%1</b>'. Please "
@@ -274,31 +194,7 @@ msgstr ""
 "za tutu móšnju abo klikńće \"přetorhnyć\", hdyž chceće próstwu wotpokazać.</"
 "qt>"
 
-#: ksecretd/ksecretd.cpp:734
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
-"'<b>%2</b>'. Please choose a password for this wallet, or cancel to deny the "
-"application's request.</qt>"
-msgstr ""
-"<qt>Aplikacija '<b>%1</b>' chce nowu móšnju z mjenom '<b>%2</b>' stworić. "
-"Prošu wubjerće hesło za tutu móšnju abo klikńće \"přetorhnyć\", hdyž chceće "
-"próstwu wotpokazać.</qt>"
-
-#: ksecretd/ksecretd.cpp:846
-#, kde-format
-msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
-msgstr "<qt>KDE chce móšnjowu dataju '<b>%1</b>' wočinić.</qt>"
-
-#: ksecretd/ksecretd.cpp:848
-#, kde-format
-msgid ""
-"<qt>The application '<b>%1</b>' has requested access to the open wallet '<b>"
-"%2</b>'.</qt>"
-msgstr ""
-"<qt>Aplikacija '<b>%1</b>' chce móšnjowu dataju '<b>%2</b>' wočinić.</qt>"
-
-#: ksecretd/ksecretd.cpp:956
+#: ksecretd/ksecretd.cpp:572
 #, kde-format
 msgid ""
 "Unable to open wallet. The wallet must be opened in order to change the "
@@ -306,7 +202,7 @@ msgid ""
 msgstr ""
 "Njemóžu móšnju wočinić. Móšnja dyrbi so wočinić, hdyž chceće hesło změnić."
 
-#: ksecretd/ksecretd.cpp:972
+#: ksecretd/ksecretd.cpp:588
 #, kde-format
 msgid ""
 "<qt>The <b>%1</b> wallet is encrypted using GPG key <b>%2</b>. Please use "
@@ -314,22 +210,22 @@ msgid ""
 "associated to that key.</qt>"
 msgstr ""
 
-#: ksecretd/ksecretd.cpp:979
+#: ksecretd/ksecretd.cpp:595
 #, kde-format
 msgid "<qt>Please choose a new password for the wallet '<b>%1</b>'.</qt>"
 msgstr "<qt>Prošu zapodajće nowe hesło za móšnjowu dataju '<b>%1</b>'.</qt>"
 
-#: ksecretd/ksecretd.cpp:991
+#: ksecretd/ksecretd.cpp:607
 #, kde-format
 msgid "Error re-encrypting the wallet. Password was not changed."
 msgstr "Zmylk při nowym šifrowanjom móšnje. Hesło njebu změnjene."
 
-#: ksecretd/ksecretd.cpp:996
+#: ksecretd/ksecretd.cpp:612
 #, kde-format
 msgid "Error reopening the wallet. Data may be lost."
 msgstr "Zmylk při znowawočinjenju móšnje. Snano su so daty zhubili."
 
-#: ksecretd/ksecretd.cpp:1585
+#: ksecretd/ksecretd.cpp:898
 #, kde-format
 msgid ""
 "There have been repeated failed attempts to gain access to a wallet. An "
@@ -520,49 +416,49 @@ msgstr ""
 msgid "What kind of encryption do you wish?"
 msgstr ""
 
-#: ksecretd/main.cpp:164
+#: ksecretd/main.cpp:163
 #, kde-format
 msgid "(C) 2002-2025, The KDE Developers"
 msgstr ""
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, kde-format
 msgid "Valentin Rusu"
 msgstr ""
 
-#: ksecretd/main.cpp:165
+#: ksecretd/main.cpp:164
 #, fuzzy, kde-format
 #| msgid "Former maintainer"
 msgid "Former Maintainer, GPG backend support"
 msgstr "Prjedawši zastaraćel"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, kde-format
 msgid "Michael Leupold"
 msgstr "Michael Leupold"
 
-#: ksecretd/main.cpp:166
+#: ksecretd/main.cpp:165
 #, fuzzy, kde-format
 #| msgid "Former maintainer"
 msgid "Former Maintainer"
 msgstr "Prjedawši zastaraćel"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "George Staikos"
 msgstr "George Staikos"
 
-#: ksecretd/main.cpp:167
+#: ksecretd/main.cpp:166
 #, kde-format
 msgid "Former maintainer"
 msgstr "Prjedawši zastaraćel"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, kde-format
 msgid "Thiago Maceira"
 msgstr "Thiago Maceira"
 
-#: ksecretd/main.cpp:168
+#: ksecretd/main.cpp:167
 #, fuzzy, kde-format
 #| msgid "DBus Interface"
 msgid "D-Bus Interface"
@@ -640,52 +536,52 @@ msgid ""
 "system.</qt>"
 msgstr ""
 
-#: kwalletbackend/kwalletbackend.cc:272
+#: kwalletbackend/kwalletbackend.cc:286
 #, fuzzy, kde-format
 msgid "Already open."
 msgstr "Dataja wočinjena."
 
-#: kwalletbackend/kwalletbackend.cc:274
+#: kwalletbackend/kwalletbackend.cc:288
 #, fuzzy, kde-format
 msgid "Error opening file."
 msgstr "Zmylk při wuběranju GSM-dataje: "
 
-#: kwalletbackend/kwalletbackend.cc:276
+#: kwalletbackend/kwalletbackend.cc:290
 #, kde-format
 msgid "Not a wallet file."
 msgstr ""
 
-#: kwalletbackend/kwalletbackend.cc:278
+#: kwalletbackend/kwalletbackend.cc:292
 #, kde-format
 msgid "Unsupported file format revision."
 msgstr ""
 
-#: kwalletbackend/kwalletbackend.cc:282
+#: kwalletbackend/kwalletbackend.cc:296
 #, fuzzy, kde-format
 msgid "Unknown encryption scheme."
 msgstr "Njeznata opcija '%1'."
 
-#: kwalletbackend/kwalletbackend.cc:284
+#: kwalletbackend/kwalletbackend.cc:298
 #, fuzzy, kde-format
 msgid "Corrupt file?"
 msgstr "Dataja za &output:"
 
-#: kwalletbackend/kwalletbackend.cc:286
+#: kwalletbackend/kwalletbackend.cc:300
 #, kde-format
 msgid "Error validating wallet integrity. Possibly corrupted."
 msgstr ""
 
-#: kwalletbackend/kwalletbackend.cc:290
+#: kwalletbackend/kwalletbackend.cc:304
 #, kde-format
 msgid "Read error - possibly incorrect password."
 msgstr ""
 
-#: kwalletbackend/kwalletbackend.cc:292
+#: kwalletbackend/kwalletbackend.cc:306
 #, fuzzy, kde-format
 msgid "Decryption error."
 msgstr "Wopisanje:"
 
-#: kwalletbackend/kwalletbackend.cc:472
+#: kwalletbackend/kwalletbackend.cc:486
 #, kde-format
 msgid ""
 "Failed to sync wallet <b>%1</b> to disk. Error codes are:\n"
@@ -693,91 +589,169 @@ msgid ""
 "SF <b>%3</b>. Please file a BUG report using this information to bugs.kde.org"
 msgstr ""
 
-#: kwalletd/kwalletd.cpp:119
+#: kwalletd/kwalletd.cpp:103
 #, kde-format
 msgid "Migrating the wallet \"%1\". Please provide the password to unlock."
 msgstr ""
 
-#: kwalletd/main.cpp:32
+#: kwalletd/main.cpp:31
 #, kde-format
 msgid "kwalletd"
 msgstr ""
 
-#: kwalletd/main.cpp:34
+#: kwalletd/main.cpp:33
 #, kde-format
 msgid "A KWallet compatibility service, wrapping upon Secret Service"
 msgstr ""
 
-#: kwalletd/main.cpp:36
+#: kwalletd/main.cpp:35
 #, kde-format
 msgid "(C) 2025, The KDE Developers"
 msgstr ""
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Marco Martin"
 msgstr ""
 
-#: kwalletd/main.cpp:38
+#: kwalletd/main.cpp:37
 #, kde-format
 msgid "Author"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:241
+#: kwalletd/secretserviceclient.cpp:262
 #, kde-format
 msgid "Item not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:261
+#: kwalletd/secretserviceclient.cpp:282
 #, kde-format
 msgid "Could not connect to Secret Service"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:423
+#: kwalletd/secretserviceclient.cpp:482
 #, kde-format
 msgid "Unable to unlock collectionName %1"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:515
+#: kwalletd/secretserviceclient.cpp:575
 #, kde-format
 msgid "No collections"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:552 kwalletd/secretserviceclient.cpp:599
-#: kwalletd/secretserviceclient.cpp:702
+#: kwalletd/secretserviceclient.cpp:612 kwalletd/secretserviceclient.cpp:659
+#: kwalletd/secretserviceclient.cpp:762
 #, kde-format
 msgid "No entries"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:617
+#: kwalletd/secretserviceclient.cpp:677
 #, kde-format
 msgid "Entry not found, key: %1, folder: %2"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:726
+#: kwalletd/secretserviceclient.cpp:786
 #, kde-format
 msgid "Unable to unlock item"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:769 kwalletd/secretserviceclient.cpp:887
+#: kwalletd/secretserviceclient.cpp:829 kwalletd/secretserviceclient.cpp:947
 #, kde-format
 msgid "Entry to rename not found"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:776
+#: kwalletd/secretserviceclient.cpp:836
 #, kde-format
 msgid "Entry named %1 in folder %2 and wallet %3 already exists."
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:791 kwalletd/secretserviceclient.cpp:806
+#: kwalletd/secretserviceclient.cpp:851 kwalletd/secretserviceclient.cpp:866
 #, kde-format
 msgid "Entry to rename incomplete"
 msgstr ""
 
-#: kwalletd/secretserviceclient.cpp:851
+#: kwalletd/secretserviceclient.cpp:911
 #, kde-format
 msgid "Failed to create SecretValue"
 msgstr ""
+
+#, fuzzy
+#~| msgid ""
+#~| "<qt>The application '<b>%1</b>' has requested to open the KDE wallet. "
+#~| "This is used to store sensitive data in a secure fashion. Please enter a "
+#~| "password to use with this wallet or click cancel to deny the "
+#~| "application's request.</qt>"
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. This is used to store sensitive data in a secure "
+#~ "fashion. Please choose the new wallet's type below or click cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Program '<b>%1</b>' chce KDE-móšnju wočinić. Móšnja so wužiwa za "
+#~ "zawěsćenje wažnych datow. Prošu zapodajće hesło za tutu móšnju abo "
+#~ "klikńće \"přetorhnyć\", hdyž chceće próstwu wotpokazać.</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
+#~ "b>'. Please enter the password for this wallet below.</qt>"
+#~ msgstr ""
+#~ "<qt>Aplikacija '<b>%1</b>' chce móšnjowu dataju '<b>%2</b>' wočinić. "
+#~ "Prošu zapodajće wotpowědne hesło.</qt>"
+
+#, fuzzy
+#~| msgid ""
+#~| "<qt>The application '<b>%1</b>' has requested access to the open wallet "
+#~| "'<b>%2</b>'.</qt>"
+#~ msgid "<b>%1</b> has requested to open a wallet (%2)."
+#~ msgstr ""
+#~ "<qt>Aplikacija '<b>%1</b>' chce móšnjowu dataju '<b>%2</b>' wočinić.</qt>"
+
+#, fuzzy
+#~| msgid "Show %1"
+#~ msgctxt ""
+#~ "Text of a button for switching to the application requesting a password"
+#~ msgid "Switch to %1"
+#~ msgstr "Pokaž %1"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to open the KDE wallet. "
+#~ "This is used to store sensitive data in a secure fashion. Please enter a "
+#~ "password to use with this wallet or click cancel to deny the "
+#~ "application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Program '<b>%1</b>' chce KDE-móšnju wočinić. Móšnja so wužiwa za "
+#~ "zawěsćenje wažnych datow. Prošu zapodajće hesło za tutu móšnju abo "
+#~ "klikńće \"přetorhnyć\", hdyž chceće próstwu wotpokazać.</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested to create a new wallet "
+#~ "named '<b>%2</b>'. Please choose a password for this wallet, or cancel to "
+#~ "deny the application's request.</qt>"
+#~ msgstr ""
+#~ "<qt>Aplikacija '<b>%1</b>' chce nowu móšnju z mjenom '<b>%2</b>' stworić. "
+#~ "Prošu wubjerće hesło za tutu móšnju abo klikńće \"přetorhnyć\", hdyž "
+#~ "chceće próstwu wotpokazać.</qt>"
+
+#~ msgid "Allow &Once"
+#~ msgstr "&Jónu dowolić"
+
+#~ msgid "Allow &Always"
+#~ msgstr "&Přeco dowolić"
+
+#~ msgid "&Deny"
+#~ msgstr "&Wotpokazać"
+
+#~ msgid "Deny &Forever"
+#~ msgstr "&Na wšě časy wotpokazać"
+
+#~ msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
+#~ msgstr "<qt>KDE chce móšnjowu dataju '<b>%1</b>' wočinić.</qt>"
+
+#~ msgid ""
+#~ "<qt>The application '<b>%1</b>' has requested access to the open wallet "
+#~ "'<b>%2</b>'.</qt>"
+#~ msgstr ""
+#~ "<qt>Aplikacija '<b>%1</b>' chce móšnjowu dataju '<b>%2</b>' wočinić.</qt>"
 
 #, fuzzy
 #~| msgid "KDE Wallet Service"

@@ -7,11 +7,16 @@
 #include <QQmlExpression>
 #include <QtQml/qqmlcomponent.h>
 #include <QtQuickTestUtils/private/qmlutils_p.h>
+#include <QtQmlModels/private/qqmllistmodel_p.h>
 #include <QtQmlModels/private/qqmlsortfilterproxymodel_p.h>
 #include <QtQmlModels/private/qqmlvaluefilter_p.h>
 #include <QtQmlModels/private/qqmlfunctionfilter_p.h>
+#include <QtQmlModels/private/qqmlanyoffilter_p.h>
+#include <QtQmlModels/private/qqmlalloffilter_p.h>
 #include <QtQmlModels/private/qqmlstringsorter_p.h>
 #include <QtQmlModels/private/qqmlfunctionsorter_p.h>
+#include <QtQmlModels/private/qqmlregexpfilter_p.h>
+#include <QtQmlModels/private/qqmlrangefilter_p.h>
 
 class tst_QQmlSortFilterProxyModel : public QQmlDataTest
 {
@@ -33,6 +38,7 @@ private slots:
     void validateValueFilterProperties();
     void validateFunctionFilterProperties();
     void verifyDynamicSortFilterProperty();
+    void functionFilterSuperClassMethod();
 
     void validateSorters_data();
     void validateSorters();
@@ -46,9 +52,41 @@ private slots:
     void validateStringSorterProperties();
     void validateFunctionSorterProperties_data();
     void validateFunctionSorterProperties();
+    void functionSorterSuperClassMethod();
 
     void primarySorter_data();
     void primarySorter();
+
+    void anyOfFilter();
+    void allOfFilter();
+    void anyOfFilterInverted();
+    void anyOfFilterEnabled();
+    void nestedCompositeFilters();
+    void invalidateParentWhenChildFilterEnabledOrDisabled();
+    void invalidateChildWhenParentFilterEnabledOrDisabled();
+    void compositeFiltersInQml();
+
+    void validateRegExpFilterProperties();
+    void regExpFilterInverted();
+    void regExpFilterEnabled();
+    void regExpFilterRegularExpression();
+    void regExpFilterEmptyPattern();
+    void regExpFilterInvalidPattern();
+    void regExpFilterUnicode();
+    void regExpFilterQmlPatterns();
+
+    void validateRangeFilterProperties();
+    void rangeFilterMinimumOnly();
+    void rangeFilterMaximumOnly();
+    void rangeFilterBothBounds();
+    void rangeFilterExclusiveBounds();
+    void rangeFilterDate();
+    void rangeFilterDateTime();
+    void rangeFilterString();
+    void rangeFilterQmlBounds();
+
+    void crashUntypedCompare_data();
+    void crashUntypedCompare();
 };
 
 class CustomTableModel : public QAbstractTableModel
@@ -139,9 +177,8 @@ void tst_QQmlSortFilterProxyModel::checkProxyModel()
     std::unique_ptr<QStandardItemModel> standardModel(new QStandardItemModel(2, 2, this));
     std::unique_ptr<QQmlSortFilterProxyModel> proxyModel(new QQmlSortFilterProxyModel(this));
 
-    QVariant sourceModel = QVariant::fromValue(standardModel.get());
     // Set the standard model as the source model to the proxy
-    proxyModel->setModel(sourceModel);
+    proxyModel->setSourceModel(standardModel.get());
 
     // Test proxy model to ensure that it abides by the rules of item models
     // QAbstractItemModelTester verifies it internally when its created
@@ -158,9 +195,8 @@ void tst_QQmlSortFilterProxyModel::checkProxyModel()
         }
     }
 
-    QVariant modelVar = QVariant::fromValue(standardModel.get());
     // Reset the model to the standard model
-    proxyModel->setModel(modelVar);
+    proxyModel->setSourceModel(standardModel.get());
     QCOMPARE(proxyModel->rowCount(), standardModel->rowCount());
     QCOMPARE(proxyModel->columnCount(), standardModel->columnCount());
     for (int row = 0; row < proxyModel->rowCount(); ++row) {
@@ -219,14 +255,13 @@ void tst_QQmlSortFilterProxyModel::validateFilters()
     QVERIFY(!object.isNull());
 
     CustomTableModel tableModel;
-    QVariant sourceModel = QVariant::fromValue(&tableModel);
     QCOMPARE(tableModel.rowCount(), CustomTableModel::s_rowCount);
     QCOMPARE(tableModel.columnCount(), CustomTableModel::s_columnCount);
 
     // Set the value filter in Qml SFPM
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&tableModel);
     auto filters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
 
     auto resetFilters = [sfpmModel, &filters] {
@@ -254,7 +289,7 @@ void tst_QQmlSortFilterProxyModel::validateFilters()
         resetFilters();
         auto *functionFilter = object->property("functionFilter1").value<QQmlFunctionFilter *>();
         QVERIFY(functionFilter);
-        functionFilter->setProperty("expression", "data.column1 === \"Data01\"");
+        functionFilter->setProperty("expression", "Data01");
 
         sfpmModel->filters().append(&filters, functionFilter);
         QCOMPARE(sfpmModel->rowCount(), 1);
@@ -273,17 +308,16 @@ void tst_QQmlSortFilterProxyModel::multipleFilters()
     QVERIFY(!object.isNull());
 
     CustomTableModel tableModel;
-    QVariant sourceModel = QVariant::fromValue(&tableModel);
     QCOMPARE(tableModel.rowCount(), CustomTableModel::s_rowCount);
     QCOMPARE(tableModel.columnCount(), CustomTableModel::s_columnCount);
 
     // Set the value filter in Qml SFPM
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&tableModel);
     auto *functionFilter = object->property("functionFilter0").value<QQmlFunctionFilter *>();
     QVERIFY(functionFilter);
-    functionFilter->setProperty("expression", "true");
+    functionFilter->setProperty("expression", "Data00");
 
     auto *valueFilter = object->property("valueFilter").value<QQmlValueFilter *>();
     QVERIFY(valueFilter);
@@ -310,19 +344,19 @@ void tst_QQmlSortFilterProxyModel::filterAbility()
     QVERIFY(!object.isNull());
 
     CustomTableModel tableModel;
-    QVariant sourceModel = QVariant::fromValue(&tableModel);
     QCOMPARE(tableModel.rowCount(), CustomTableModel::s_rowCount);
     QCOMPARE(tableModel.columnCount(), CustomTableModel::s_columnCount);
 
     // Set the value filter in Qml SFPM
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&tableModel);
 
     auto *functionFilter = object->property("functionFilter0").value<QQmlFunctionFilter *>();
     QVERIFY(functionFilter);
     // Filter first two rows of data through regex
-    functionFilter->setProperty("expression", "/Data[0-1]{2}/.exec(data.column0) !== null");
+    functionFilter->setProperty("useRegularExpression", true);
+    functionFilter->setProperty("expression", "Data[0-1]{2}");
 
     auto *valueFilter = object->property("valueFilter").value<QQmlValueFilter *>();
     QVERIFY(valueFilter);
@@ -356,14 +390,13 @@ void tst_QQmlSortFilterProxyModel::filterInverted()
     QVERIFY(!object.isNull());
 
     CustomTableModel tableModel;
-    QVariant sourceModel = QVariant::fromValue(&tableModel);
     QCOMPARE(tableModel.rowCount(), CustomTableModel::s_rowCount);
     QCOMPARE(tableModel.columnCount(), CustomTableModel::s_columnCount);
 
     // Set the value filter in Qml SFPM
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&tableModel);
     auto *valueFilter = object->property("valueFilter").value<QQmlValueFilter *>();
     QVERIFY(valueFilter);
     valueFilter->setValue(tableModel.data(tableModel.index(0, 0, QModelIndex()), Qt::UserRole));
@@ -387,14 +420,13 @@ void tst_QQmlSortFilterProxyModel::validateValueFilterProperties()
     QVERIFY(!object.isNull());
 
     CustomTableModel tableModel;
-    QVariant sourceModel = QVariant::fromValue(&tableModel);
     QCOMPARE(tableModel.rowCount(), CustomTableModel::s_rowCount);
     QCOMPARE(tableModel.columnCount(), CustomTableModel::s_columnCount);
 
     // Set the value filter in Qml SFPM
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&tableModel);
     auto filters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
     auto *valueFilter = object->property("valueFilter").value<QQmlValueFilter *>();
     QVERIFY(valueFilter);
@@ -448,25 +480,25 @@ void tst_QQmlSortFilterProxyModel::validateFunctionFilterProperties()
     QVERIFY(!object.isNull());
 
     CustomTableModel tableModel;
-    QVariant sourceModel = QVariant::fromValue(&tableModel);
     QCOMPARE(tableModel.rowCount(), CustomTableModel::s_rowCount);
     QCOMPARE(tableModel.columnCount(), CustomTableModel::s_columnCount);
 
     // Set the value filter in Qml SFPM
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&tableModel);
     auto filters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
 
     auto *functionFilter = object->property("functionFilter1").value<QQmlFunctionFilter *>();
     QVERIFY(functionFilter);
-    functionFilter->setProperty("expression", "true");
+    functionFilter->setProperty("useRegularExpression", true);
+    functionFilter->setProperty("expression", ".*");
 
     filters.append(&filters, functionFilter);
     QCOMPARE(sfpmModel->rowCount(), CustomTableModel::s_rowCount);
     QCOMPARE(sfpmModel->columnCount(), CustomTableModel::s_columnCount);
 
-    functionFilter->setProperty("expression", "data.column1 === \"Data01\"");
+    functionFilter->setProperty("expression", "Data01");
     // Need to reset here because the model does not see the change in the filter's expression.
     filters.clear(&filters);
     filters.append(&filters, functionFilter);
@@ -484,14 +516,13 @@ void tst_QQmlSortFilterProxyModel::verifyDynamicSortFilterProperty()
     QVERIFY(!object.isNull());
 
     CustomTableModel tableModel;
-    QVariant sourceModel = QVariant::fromValue(&tableModel);
     QCOMPARE(tableModel.rowCount(), CustomTableModel::s_rowCount);
     QCOMPARE(tableModel.columnCount(), CustomTableModel::s_columnCount);
 
     // Set the value filter in Qml SFPM
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&tableModel);
     QCOMPARE(sfpmModel->rowCount(), CustomTableModel::s_rowCount);
     QCOMPARE(sfpmModel->columnCount(), CustomTableModel::s_columnCount);
 
@@ -499,7 +530,7 @@ void tst_QQmlSortFilterProxyModel::verifyDynamicSortFilterProperty()
     QCOMPARE(filters.count(&filters), 0);
 
     auto *functionFilter = object->property("functionFilter1").value<QQmlFunctionFilter *>();
-    functionFilter->setProperty("expression", "data.column1 === \"Data01\"");
+    functionFilter->setProperty("expression", "Data01");
     QVERIFY(functionFilter);
     filters.append(&filters, functionFilter);
     QCOMPARE(filters.count(&filters), 1);
@@ -610,8 +641,7 @@ void tst_QQmlSortFilterProxyModel::validateSorters()
 
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    QVariant sourceModel = QVariant::fromValue(&standardModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&standardModel);
     auto sorters = sfpmModel->property("sorters").value<QQmlListProperty<QQmlSorterBase>>();
     auto *sorter = object->property(sorterType.toLatin1()).value<QQmlSorterBase *>();
     QVERIFY(sorter);
@@ -681,8 +711,7 @@ void tst_QQmlSortFilterProxyModel::multipleSorters()
 
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    QVariant sourceModel = QVariant::fromValue(&standardModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&standardModel);
     auto sorters = sfpmModel->property("sorters").value<QQmlListProperty<QQmlSorterBase>>();
     sorters.append(&sorters, sorter2); // String sorter (for column 0)
     sorters.append(&sorters, sorter1); // Role sorter (for column 1)
@@ -734,8 +763,7 @@ void tst_QQmlSortFilterProxyModel::sorterAbility()
 
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    QVariant sourceModel = QVariant::fromValue(&standardModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&standardModel);
 
     auto sorters = sfpmModel->property("sorters").value<QQmlListProperty<QQmlSorterBase>>();
     auto *sorter1 = object->property(sortersList.at(0).toLatin1()).value<QQmlSorterBase *>();
@@ -816,10 +844,8 @@ void tst_QQmlSortFilterProxyModel::validateRoleSorterProperties()
 
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    QVariant sourceModel = QVariant::fromValue(&standardModel);
-    sfpmModel->setModel(sourceModel);
-
     auto sorters = sfpmModel->property("sorters").value<QQmlListProperty<QQmlSorterBase>>();
+    sfpmModel->setSourceModel(&standardModel);
     sorters.append(&sorters, sorter);
 
     column = -1;
@@ -894,8 +920,7 @@ void tst_QQmlSortFilterProxyModel::validateStringSorterProperties()
 
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    QVariant sourceModel = QVariant::fromValue(&standardModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&standardModel);
 
     auto *sorter = object->property(sorterType.toLatin1()).value<QQmlStringSorter *>();
     QVERIFY(sorter);
@@ -937,6 +962,95 @@ void tst_QQmlSortFilterProxyModel::validateFunctionSorterProperties_data()
             << QVariantList({"X", "IX", "V", "IV", "III"});
 }
 
+void tst_QQmlSortFilterProxyModel::functionSorterSuperClassMethod()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmSuperClassFilterSorter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    const QStringList initial = {"cherry", "apple", "banana"};
+    QStandardItemModel standardModel;
+    for (const auto &data : initial)
+        standardModel.appendRow(new QStandardItem(data));
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    sfpmModel->setSourceModel(&standardModel);
+
+    auto *sorter = object->property("derivedSorter").value<QQmlSorterBase *>();
+    QVERIFY(sorter);
+
+    auto sorters = sfpmModel->property("sorters").value<QQmlListProperty<QQmlSorterBase>>();
+    sorters.append(&sorters, sorter);
+    QCOMPARE(sorters.count(&sorters), 1);
+
+    const QStringList expectedAscending = {"apple", "banana", "cherry"};
+    int row = 0;
+    for (const auto &data : expectedAscending)
+        QCOMPARE(sfpmModel->data(sfpmModel->index(row++, 0, QModelIndex()), Qt::DisplayRole), data);
+
+    auto *sfpmOverrideModel = object->property("sfpmOverrideProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmOverrideModel);
+    sfpmOverrideModel->setSourceModel(&standardModel);
+
+    auto *overrideSorter = object->property("overrideSorter").value<QQmlSorterBase *>();
+    QVERIFY(overrideSorter);
+
+    auto overrideSorters = sfpmOverrideModel->property("sorters").value<QQmlListProperty<QQmlSorterBase>>();
+    overrideSorters.append(&overrideSorters, overrideSorter);
+    QCOMPARE(overrideSorters.count(&overrideSorters), 1);
+
+    const QStringList expectedDescending = {"cherry", "banana", "apple"};
+    row = 0;
+    for (const auto &data : expectedDescending)
+        QCOMPARE(sfpmOverrideModel->data(sfpmOverrideModel->index(row++, 0, QModelIndex()), Qt::DisplayRole), data);
+}
+
+void tst_QQmlSortFilterProxyModel::functionFilterSuperClassMethod()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmSuperClassFilterSorter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    const QStringList initial = {"cherry", "apple", "banana"};
+    QStandardItemModel standardModel;
+    for (const auto &data : initial)
+        standardModel.appendRow(new QStandardItem(data));
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    sfpmModel->setSourceModel(&standardModel);
+
+    auto *filter = object->property("derivedFilter").value<QQmlFilterBase *>();
+    QVERIFY(filter);
+
+    auto filters = sfpmModel->filters();
+    filters.append(&filters, filter);
+    QCOMPARE(filters.count(&filters), 1);
+
+    QCOMPARE(sfpmModel->rowCount(), 1);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0, QModelIndex()), Qt::DisplayRole), QStringLiteral("cherry"));
+
+    auto *sfpmOverrideModel = object->property("sfpmOverrideProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmOverrideModel);
+    sfpmOverrideModel->setSourceModel(&standardModel);
+
+    auto *overrideFilter = object->property("overrideFilter").value<QQmlFilterBase *>();
+    QVERIFY(overrideFilter);
+
+    auto overrideFilters = sfpmOverrideModel->filters();
+    overrideFilters.append(&overrideFilters, overrideFilter);
+    QCOMPARE(overrideFilters.count(&overrideFilters), 1);
+
+    QCOMPARE(sfpmOverrideModel->rowCount(), 2);
+    QCOMPARE(sfpmOverrideModel->data(sfpmOverrideModel->index(0, 0, QModelIndex()), Qt::DisplayRole), QStringLiteral("apple"));
+    QCOMPARE(sfpmOverrideModel->data(sfpmOverrideModel->index(1, 0, QModelIndex()), Qt::DisplayRole), QStringLiteral("banana"));
+}
+
 void tst_QQmlSortFilterProxyModel::validateFunctionSorterProperties()
 {
     QFETCH(QString, sorterType);
@@ -957,8 +1071,7 @@ void tst_QQmlSortFilterProxyModel::validateFunctionSorterProperties()
 
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    QVariant sourceModel = QVariant::fromValue(&standardModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&standardModel);
 
     auto *sorter = object->property(sorterType.toLatin1()).value<QQmlFunctionSorter *>();
     QVERIFY(sorter);
@@ -1029,8 +1142,7 @@ void tst_QQmlSortFilterProxyModel::primarySorter()
 
     auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
     QVERIFY(sfpmModel);
-    QVariant sourceModel = QVariant::fromValue(&standardModel);
-    sfpmModel->setModel(sourceModel);
+    sfpmModel->setSourceModel(&standardModel);
     auto sorters = sfpmModel->property("sorters").value<QQmlListProperty<QQmlSorterBase>>();
     sorters.append(&sorters, sorter1);
     sorters.append(&sorters, primarySorter1);
@@ -1042,6 +1154,1074 @@ void tst_QQmlSortFilterProxyModel::primarySorter()
         int row = 0; ++column;
         for (const auto &data: columnData)
             QCOMPARE(sfpmModel->data(sfpmModel->index(row++, column, QModelIndex()), Qt::DisplayRole), data);
+    }
+}
+
+void tst_QQmlSortFilterProxyModel::anyOfFilter()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmCompositeFilters.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+
+    CustomTableModel tableModel;
+    sfpmModel->setSourceModel(&tableModel);
+
+    auto *childFilter1 = object->property("anyOfChild1").value<QQmlValueFilter *>();
+    QVERIFY(childFilter1);
+    auto *childFilter2 = object->property("anyOfChild2").value<QQmlValueFilter *>();
+    QVERIFY(childFilter2);
+    auto *anyOfFilter  = object->property("anyOfFilter").value<QQmlAnyOfFilter *>();
+    QVERIFY(anyOfFilter);
+
+    // child1 matches row 0, child2 matches row 1
+    childFilter1->setRoleName("column0");
+    childFilter1->setValue(tableModel.data(tableModel.index(0, 0), Qt::UserRole)); // "Data00"
+    childFilter2->setRoleName("column0");
+    childFilter2->setValue(tableModel.data(tableModel.index(1, 0), Qt::UserRole)); // "Data10"
+
+    auto childFilters = anyOfFilter->filtersListProperty();
+    anyOfFilter->filtersListProperty().append(&childFilters, childFilter1);
+    anyOfFilter->filtersListProperty().append(&childFilters, childFilter2);
+
+    auto sfpmFilters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
+    sfpmModel->filters().append(&sfpmFilters, anyOfFilter);
+
+    // OR logic, 2 rows should be visible
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->columnCount(), CustomTableModel::s_columnCount);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0, QModelIndex()), Qt::UserRole),
+             tableModel.data(tableModel.index(0, 0, QModelIndex()), Qt::UserRole));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0, QModelIndex()), Qt::UserRole),
+             tableModel.data(tableModel.index(1, 0, QModelIndex()), Qt::UserRole));
+}
+
+void tst_QQmlSortFilterProxyModel::allOfFilter()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmCompositeFilters.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+
+    CustomTableModel tableModel;
+    sfpmModel->setSourceModel(&tableModel);
+
+    auto *childFilter1 = object->property("allOfChild1").value<QQmlValueFilter *>();
+    QVERIFY(childFilter1);
+    auto *childFilter2 = object->property("allOfChild2").value<QQmlValueFilter *>();
+    QVERIFY(childFilter2);
+    auto *allOfFilter  = object->property("allOfFilter").value<QQmlAllOfFilter *>();
+    QVERIFY(allOfFilter);
+
+    // child1 matches row 0 via column0, child2 matches row 0 via column1
+    // Only row 0 satisfies both conditions
+    childFilter1->setRoleName("column0");
+    childFilter1->setValue(tableModel.data(tableModel.index(0, 0), Qt::UserRole)); // "Data00"
+    childFilter2->setRoleName("column1");
+    childFilter2->setValue(tableModel.data(tableModel.index(0, 1), Qt::UserRole + 1)); // "Data01"
+
+    auto childFilters = allOfFilter->filtersListProperty();
+    allOfFilter->filtersListProperty().append(&childFilters, childFilter1);
+    allOfFilter->filtersListProperty().append(&childFilters, childFilter2);
+
+    auto sfpmFilters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
+    sfpmModel->filters().append(&sfpmFilters, allOfFilter);
+
+    QCOMPARE(sfpmModel->rowCount(), 1);
+    QCOMPARE(sfpmModel->columnCount(), CustomTableModel::s_columnCount);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0, QModelIndex()), Qt::UserRole),
+             tableModel.data(tableModel.index(0, 0), Qt::UserRole));
+}
+
+void tst_QQmlSortFilterProxyModel::anyOfFilterInverted()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmCompositeFilters.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+
+    CustomTableModel tableModel;
+    sfpmModel->setSourceModel(&tableModel);
+
+    auto *childFilter1 = object->property("anyOfChild1").value<QQmlValueFilter *>();
+    QVERIFY(childFilter1);
+    auto *childFilter2 = object->property("anyOfChild2").value<QQmlValueFilter *>();
+    QVERIFY(childFilter2);
+    auto *anyOfFilter = object->property("anyOfFilter").value<QQmlAnyOfFilter *>();
+    QVERIFY(anyOfFilter);
+
+    childFilter1->setRoleName("column0");
+    childFilter1->setValue(tableModel.data(tableModel.index(0, 0), Qt::UserRole)); // "Data00"
+    childFilter2->setRoleName("column0");
+    childFilter2->setValue(tableModel.data(tableModel.index(1, 0), Qt::UserRole)); // "Data10"
+
+    auto childFilters = anyOfFilter->filtersListProperty();
+    anyOfFilter->filtersListProperty().append(&childFilters, childFilter1);
+    anyOfFilter->filtersListProperty().append(&childFilters, childFilter2);
+    anyOfFilter->setInverted(true);
+
+    auto sfpmFilters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
+    sfpmModel->filters().append(&sfpmFilters, anyOfFilter);
+
+    QCOMPARE(sfpmModel->rowCount(), 3);
+}
+
+void tst_QQmlSortFilterProxyModel::anyOfFilterEnabled()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmCompositeFilters.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+
+    CustomTableModel tableModel;
+    sfpmModel->setSourceModel(&tableModel);
+
+    auto *childFilter1 = object->property("anyOfChild1").value<QQmlValueFilter *>();
+    QVERIFY(childFilter1);
+    auto *childFilter2 = object->property("anyOfChild2").value<QQmlValueFilter *>();
+    QVERIFY(childFilter2);
+    auto *anyOfFilter  = object->property("anyOfFilter").value<QQmlAnyOfFilter *>();
+    QVERIFY(anyOfFilter);
+
+    childFilter1->setRoleName("column0");
+    childFilter1->setValue(tableModel.data(tableModel.index(0, 0), Qt::UserRole));
+    childFilter2->setRoleName("column0");
+    childFilter2->setValue(tableModel.data(tableModel.index(1, 0), Qt::UserRole));
+
+    auto childFilters = anyOfFilter->filtersListProperty();
+    anyOfFilter->filtersListProperty().append(&childFilters, childFilter1);
+    anyOfFilter->filtersListProperty().append(&childFilters, childFilter2);
+
+    auto sfpmFilters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
+    sfpmModel->filters().append(&sfpmFilters, anyOfFilter);
+
+    QCOMPARE(sfpmModel->rowCount(), 2);
+
+    // Disabling the composite skips the entire group — all rows visible
+    anyOfFilter->setEnabled(false);
+    QCOMPARE(sfpmModel->rowCount(), CustomTableModel::s_rowCount);
+
+    // Re-enabling restores the filter
+    anyOfFilter->setEnabled(true);
+    QCOMPARE(sfpmModel->rowCount(), 2);
+}
+
+void tst_QQmlSortFilterProxyModel::nestedCompositeFilters()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmCompositeFilters.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+
+    CustomTableModel tableModel;
+    sfpmModel->setSourceModel(&tableModel);
+
+    auto *anyChildFilter1  = object->property("nestedAnyOfChild1").value<QQmlValueFilter *>();
+    QVERIFY(anyChildFilter1);
+    auto *anyChildFilter2  = object->property("nestedAnyOfChild2").value<QQmlValueFilter *>();
+    QVERIFY(anyChildFilter2);
+    auto *allChildFilter   = object->property("nestedAllOfChild").value<QQmlValueFilter *>();
+    QVERIFY(allChildFilter);
+    auto *nestedAnyOfFilter = object->property("nestedAnyOf").value<QQmlAnyOfFilter *>();
+    QVERIFY(nestedAnyOfFilter);
+    auto *nestedAllOfFilter = object->property("nestedAllOf").value<QQmlAllOfFilter *>();
+    QVERIFY(nestedAllOfFilter);
+
+    // AnyOf matches rows 0 and 1
+    anyChildFilter1->setRoleName("column0");
+    anyChildFilter1->setValue(tableModel.data(tableModel.index(0, 0), Qt::UserRole)); // "Data00"
+    anyChildFilter2->setRoleName("column0");
+    anyChildFilter2->setValue(tableModel.data(tableModel.index(1, 0), Qt::UserRole)); // "Data10"
+
+    // AllOf's own ValueFilter matches only row 0 (column1 = "Data01")
+    allChildFilter->setRoleName("column1");
+    allChildFilter->setValue(tableModel.data(tableModel.index(0, 1), Qt::UserRole + 1)); // "Data01"
+
+    auto anyChildFilters = nestedAnyOfFilter->filtersListProperty();
+    nestedAnyOfFilter->filtersListProperty().append(&anyChildFilters, anyChildFilter1);
+    nestedAnyOfFilter->filtersListProperty().append(&anyChildFilters, anyChildFilter2);
+
+    // AllOf contains: AnyOf (rows 0|1) AND ValueFilter (row 0 only) → row 0
+    auto allChildFilters = nestedAllOfFilter->filtersListProperty();
+    nestedAllOfFilter->filtersListProperty().append(&allChildFilters, nestedAnyOfFilter);
+    nestedAllOfFilter->filtersListProperty().append(&allChildFilters, allChildFilter);
+
+    auto sfpmFilters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
+    sfpmModel->filters().append(&sfpmFilters, nestedAllOfFilter);
+
+    // AllOf { AnyOf { row0, row1 }, ValueFilter { row0 } } → only row 0
+    QCOMPARE(sfpmModel->rowCount(), 1);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0, QModelIndex()), Qt::UserRole),
+             tableModel.data(tableModel.index(0, 0), Qt::UserRole));
+}
+
+void tst_QQmlSortFilterProxyModel::invalidateParentWhenChildFilterEnabledOrDisabled()
+{
+    // Filter configuration: AllOf { AnyOf { VF1{}, VF2{} } }
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmCompositeFilters.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    CustomTableModel tableModel;
+    sfpmModel->setSourceModel(&tableModel);
+
+    auto *valueFilter1 = object->property("nestedAnyOfChild1").value<QQmlValueFilter *>();
+    QVERIFY(valueFilter1);
+    auto *valueFilter2 = object->property("nestedAnyOfChild2").value<QQmlValueFilter *>();
+    QVERIFY(valueFilter2);
+    auto *innerAnyOfFilter = object->property("nestedAnyOf").value<QQmlAnyOfFilter *>();
+    QVERIFY(innerAnyOfFilter);
+    auto *outerAllOfFiltler = object->property("nestedAllOf").value<QQmlAllOfFilter *>();
+    QVERIFY(outerAllOfFiltler);
+
+    valueFilter1->setRoleName("column0");
+    valueFilter1->setValue(tableModel.data(tableModel.index(0, 0), Qt::UserRole));   // "Data00" → row 0
+    valueFilter2->setRoleName("column0");
+    valueFilter2->setValue(tableModel.data(tableModel.index(1, 0), Qt::UserRole));   // "Data10" → row 1
+
+    auto anyFilters = innerAnyOfFilter->filtersListProperty();
+    innerAnyOfFilter->filtersListProperty().append(&anyFilters, valueFilter1);
+    innerAnyOfFilter->filtersListProperty().append(&anyFilters, valueFilter2);
+
+    auto allFilters = outerAllOfFiltler->filtersListProperty();
+    outerAllOfFiltler->filtersListProperty().append(&allFilters, innerAnyOfFilter);
+
+    auto sfpmFilters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
+    sfpmModel->filters().append(&sfpmFilters, outerAllOfFiltler);
+
+    QCOMPARE(sfpmModel->rowCount(), 2);
+
+    // Disable one of the value filter and check for the filtered data
+    // "Data00" should be filtered out
+    valueFilter1->setEnabled(false);
+    QCOMPARE(sfpmModel->rowCount(), 1);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0, QModelIndex()), Qt::UserRole),
+             tableModel.data(tableModel.index(1, 0), Qt::UserRole)); // row 1 ("Data10")
+
+    // Reenable the same value filter and check for the filtered data
+    valueFilter1->setEnabled(true);
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0, QModelIndex()), Qt::UserRole),
+             tableModel.data(tableModel.index(0, 0), Qt::UserRole)); // row 1 ("Dat00")
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0, QModelIndex()), Qt::UserRole),
+             tableModel.data(tableModel.index(1, 0), Qt::UserRole)); // row 2 ("Data10")
+}
+
+
+void tst_QQmlSortFilterProxyModel::invalidateChildWhenParentFilterEnabledOrDisabled()
+{
+    // Filter configuration: AllOf { AnyOf { VF1{}, VF2{} } }
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmCompositeFilters.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    CustomTableModel tableModel;
+    sfpmModel->setSourceModel(&tableModel);
+
+    auto *valueFilter1 = object->property("nestedAnyOfChild1").value<QQmlValueFilter *>();
+    QVERIFY(valueFilter1);
+    auto *valueFilter2 = object->property("nestedAnyOfChild2").value<QQmlValueFilter *>();
+    QVERIFY(valueFilter2);
+    auto *innerAnyOfFilter = object->property("nestedAnyOf").value<QQmlAnyOfFilter *>();
+    QVERIFY(innerAnyOfFilter);
+    auto *outerAllOfFiltler = object->property("nestedAllOf").value<QQmlAllOfFilter *>();
+    QVERIFY(outerAllOfFiltler);
+
+    valueFilter1->setRoleName("column0");
+    valueFilter1->setValue(tableModel.data(tableModel.index(0, 0), Qt::UserRole));   // "Data00" → row 0
+    valueFilter2->setRoleName("column0");
+    valueFilter2->setValue(tableModel.data(tableModel.index(1, 0), Qt::UserRole));   // "Data10" → row 1
+
+    auto anyFilters = innerAnyOfFilter->filtersListProperty();
+    innerAnyOfFilter->filtersListProperty().append(&anyFilters, valueFilter1);
+    innerAnyOfFilter->filtersListProperty().append(&anyFilters, valueFilter2);
+
+    auto allFilters = outerAllOfFiltler->filtersListProperty();
+    outerAllOfFiltler->filtersListProperty().append(&allFilters, innerAnyOfFilter);
+
+    auto sfpmFilters = sfpmModel->property("filters").value<QQmlListProperty<QQmlFilterBase>>();
+    sfpmModel->filters().append(&sfpmFilters, outerAllOfFiltler);
+    QCOMPARE(sfpmModel->rowCount(), 2);
+
+    // Disabling the outer filter make the complete subtree to be disabled
+    outerAllOfFiltler->setEnabled(false);
+    QCOMPARE(sfpmModel->rowCount(), tableModel.rowCount());
+
+    outerAllOfFiltler->setEnabled(true);
+    QCOMPARE(sfpmModel->rowCount(), 2);
+}
+
+void tst_QQmlSortFilterProxyModel::compositeFiltersInQml()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmCompositeFilters.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *colorListModel = object->property("colorList").value<QQmlListModel *>();
+    QVERIFY(colorListModel);
+    const int nameRole = colorListModel->roleNames().key("name", -1);
+    QVERIFY(nameRole >= 0);
+
+    auto getNames = [&](QQmlSortFilterProxyModel *model) -> QStringList {
+        QStringList names;
+        for (int i = 0; i < model->rowCount(); ++i)
+            names << model->data(model->index(i, 0, QModelIndex()), nameRole).toString();
+        return names;
+    };
+
+    // AnyOfFilter: color = "red" OR "blue"
+    auto *redOrBlueModel = object->property("redOrBlueModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(redOrBlueModel);
+    QCOMPARE(getNames(redOrBlueModel), QStringList({"red1", "red2", "blue1", "blue2"}));
+
+    // AllOfFilter: color = "red" AND active = true (1 row)
+    auto *activeRedModel = object->property("activeRedModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(activeRedModel);
+    QCOMPARE(getNames(activeRedModel), QStringList({"red1"}));
+
+    // AllOf { AnyOf { red, blue }, active = true } (3 rows)
+    auto *activeRedOrBlueModel = object->property("activeRedOrBlueModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(activeRedOrBlueModel);
+    QCOMPARE(getNames(activeRedOrBlueModel), QStringList({"red1", "blue1"}));
+
+    // AllOf { AnyOf (disabled) { red, blue }, active = true } (3 rows)
+    auto *activeDisabledRedOrBlueModel = object->property("activeDisabledRedOrBlueModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(activeDisabledRedOrBlueModel);
+    QCOMPARE(getNames(activeDisabledRedOrBlueModel), QStringList({"red1", "blue1", "green1"}));
+
+    // AllOf { AllOf (inverted) { red, active = true }, active = false } (3 rows)
+    auto *invertedAllOfRedAndBlueModel = object->property("invertedAllOfRedAndBlueModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(invertedAllOfRedAndBlueModel);
+    QCOMPARE(getNames(invertedAllOfRedAndBlueModel), QStringList({"red2", "blue2", "green2"}));
+
+    // AllOf (inverted) { AnyOf (inverted) { red, blue }, active = false } (5 rows)
+    auto *invertedAnyOfAllOfRedOrBlueModel = object->property("invertedAnyOfAllOfRedOrBlueModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(invertedAnyOfAllOfRedOrBlueModel);
+    QCOMPARE(getNames(invertedAnyOfAllOfRedOrBlueModel), QStringList({"red1", "red2", "blue1", "blue2", "green1"}));
+
+    // AnyOf { AnyOf { }, active = true } (3 rows)
+    auto *nestedEmptyAnyOf = object->property("nestedEmptyAnyOf").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(nestedEmptyAnyOf);
+    QCOMPARE(getNames(nestedEmptyAnyOf), QStringList({"red1", "blue1", "green1"}));
+}
+
+void tst_QQmlSortFilterProxyModel::validateRegExpFilterProperties()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRegExpFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("regExpFilter").value<QQmlRegExpFilter *>();
+    QVERIFY(filter);
+
+    // Verify defaults
+    QVERIFY(filter->regExp().pattern().isEmpty());
+    QCOMPARE(sfpmModel->rowCount(), 6);
+
+    QSignalSpy regExpSpy(filter, &QQmlRegExpFilter::regExpChanged);
+    QVERIFY(regExpSpy.isValid());
+
+    // Set regular expression via JS expression — emits regExpChanged
+    QQmlContext *ctx = QQmlEngine::contextForObject(filter);
+    QQmlExpression expr = QQmlExpression(ctx, filter, QStringLiteral("regExp = /test/"));
+    expr.evaluate();
+    QCOMPARE(regExpSpy.count(), 1);
+    QCOMPARE(filter->regExp().pattern(), QStringLiteral("test"));
+}
+
+void tst_QQmlSortFilterProxyModel::regExpFilterInverted()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRegExpFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("regExpFilter").value<QQmlRegExpFilter *>();
+    QVERIFY(filter);
+
+    const int labelRole = sfpmModel->roleNames().key("label", -1);
+    QVERIFY(labelRole != -1);
+
+    QQmlContext *ctx = QQmlEngine::contextForObject(filter);
+    QQmlExpression expr = QQmlExpression(ctx, filter, QStringLiteral("regExp = /berry/i"));
+    expr.evaluate();
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), labelRole).toString(), QStringLiteral("blueberry"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), labelRole).toString(), QStringLiteral("cranberry"));
+
+    filter->setInverted(true);
+    QCOMPARE(sfpmModel->rowCount(), 4);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), labelRole).toString(), QStringLiteral("apple"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), labelRole).toString(), QStringLiteral("Apricot"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(2, 0), labelRole).toString(), QStringLiteral("banana"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(3, 0), labelRole).toString(), QStringLiteral("Cherry"));
+
+    filter->setInverted(false);
+    QCOMPARE(sfpmModel->rowCount(), 2);
+}
+
+void tst_QQmlSortFilterProxyModel::regExpFilterEnabled()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRegExpFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("regExpFilter").value<QQmlRegExpFilter *>();
+    QVERIFY(filter);
+
+    const int labelRole = sfpmModel->roleNames().key("label", -1);
+    QVERIFY(labelRole != -1);
+
+    QQmlContext *ctx = QQmlEngine::contextForObject(filter);
+    QQmlExpression expr = QQmlExpression(ctx, filter, QStringLiteral("regExp = /^b/"));
+    expr.evaluate();
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), labelRole).toString(), QStringLiteral("banana"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), labelRole).toString(), QStringLiteral("blueberry"));
+
+    filter->setEnabled(false);
+    QVERIFY(!filter->enabled());
+    QCOMPARE(sfpmModel->rowCount(), 6);
+
+    filter->setEnabled(true);
+    QVERIFY(filter->enabled());
+    QCOMPARE(sfpmModel->rowCount(), 2);
+}
+
+void tst_QQmlSortFilterProxyModel::regExpFilterRegularExpression()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRegExpFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("regExpFilter").value<QQmlRegExpFilter *>();
+    QVERIFY(filter);
+
+    const int labelRole = sfpmModel->roleNames().key("label", -1);
+    QVERIFY(labelRole != -1);
+
+    QQmlContext *ctx = QQmlEngine::contextForObject(filter);
+    QQmlExpression expr1 =QQmlExpression(ctx, filter, QStringLiteral("regExp = /apple|banana/"));
+    expr1.evaluate();
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), labelRole).toString(), QStringLiteral("apple"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), labelRole).toString(), QStringLiteral("banana"));
+
+    QQmlExpression expr2 = QQmlExpression(ctx, filter, QStringLiteral("regExp = /^[ab]/i"));
+    expr2.evaluate();
+    QCOMPARE(sfpmModel->rowCount(), 4);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), labelRole).toString(), QStringLiteral("apple"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), labelRole).toString(), QStringLiteral("Apricot"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(2, 0), labelRole).toString(), QStringLiteral("banana"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(3, 0), labelRole).toString(), QStringLiteral("blueberry"));
+
+    QQmlExpression expr3 = QQmlExpression(ctx, filter, QStringLiteral("regExp = /^[a-z]+$/"));
+    expr3.evaluate();
+    QCOMPARE(sfpmModel->rowCount(), 4);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), labelRole).toString(), QStringLiteral("apple"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), labelRole).toString(), QStringLiteral("banana"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(2, 0), labelRole).toString(), QStringLiteral("blueberry"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(3, 0), labelRole).toString(), QStringLiteral("cranberry"));
+}
+
+void tst_QQmlSortFilterProxyModel::regExpFilterEmptyPattern()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRegExpFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("regExpFilter").value<QQmlRegExpFilter *>();
+    QVERIFY(filter);
+
+    QVERIFY(filter->regExp().pattern().isEmpty());
+    QCOMPARE(sfpmModel->rowCount(), 6);
+
+    QQmlContext *ctx = QQmlEngine::contextForObject(filter);
+    QQmlExpression expr1 = QQmlExpression(ctx, filter, QStringLiteral("regExp = /berry/i"));
+    expr1.evaluate();
+    QCOMPARE(sfpmModel->rowCount(), 2);
+
+    QQmlExpression expr2 = QQmlExpression(ctx, filter, QStringLiteral("regExp = new RegExp()"));
+    expr2.evaluate();
+    QVERIFY(filter->regExp().pattern().isEmpty());
+    QCOMPARE(sfpmModel->rowCount(), 6);
+}
+
+void tst_QQmlSortFilterProxyModel::regExpFilterInvalidPattern()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRegExpFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("regExpFilter").value<QQmlRegExpFilter *>();
+    QVERIFY(filter);
+
+    QQmlContext *ctx = QQmlEngine::contextForObject(filter);
+    QQmlExpression expr1 = QQmlExpression(ctx, filter, QStringLiteral("regExp = /apple/"));
+    expr1.evaluate();
+    QVERIFY(filter->regExp().isValid());
+    QCOMPARE(sfpmModel->rowCount(), 1);
+
+    filter->setRegExp(QRegularExpression(QStringLiteral("[invalid")));
+    QVERIFY(!filter->regExp().isValid());
+    QCOMPARE(sfpmModel->rowCount(), 6);
+
+    QQmlExpression expr2 = QQmlExpression(ctx, filter, QStringLiteral("regExp = /apple/"));
+    expr2.evaluate();
+    QVERIFY(filter->regExp().isValid());
+    QCOMPARE(sfpmModel->rowCount(), 1);
+}
+
+void tst_QQmlSortFilterProxyModel::regExpFilterUnicode()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRegExpFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *exactModel = object->property("unicodeExactModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(exactModel);
+    const int labelRole = exactModel->roleNames().key("label", -1);
+    QVERIFY(labelRole != -1);
+
+    QCOMPARE(exactModel->rowCount(), 1);
+    QCOMPARE(exactModel->data(exactModel->index(0, 0), labelRole).toString(),
+             QString::fromUtf8(u8"blåbær"));
+
+    auto *endsWithModel = object->property("unicodeEndsWithModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(endsWithModel);
+    QCOMPARE(endsWithModel->rowCount(), 3);
+    QCOMPARE(endsWithModel->data(endsWithModel->index(0, 0), labelRole).toString(),
+             QString::fromUtf8(u8"blåbær"));
+    QCOMPARE(endsWithModel->data(endsWithModel->index(1, 0), labelRole).toString(),
+             QString::fromUtf8(u8"Bringebær"));
+    QCOMPARE(endsWithModel->data(endsWithModel->index(2, 0), labelRole).toString(),
+             QString::fromUtf8(u8"jordbær"));
+
+    auto *containsModel = object->property("unicodeContainsModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(containsModel);
+    QCOMPARE(containsModel->rowCount(), 1);
+    QCOMPARE(containsModel->data(containsModel->index(0, 0), labelRole).toString(),
+             QString::fromUtf8(u8"blåbær"));
+
+    auto *sfpmModel = object->property("sfpmUnicodeProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("regExpFilter").value<QQmlRegExpFilter *>();
+    QVERIFY(filter);
+
+    QQmlContext *ctx = QQmlEngine::contextForObject(filter);
+    QQmlExpression expr = QQmlExpression(ctx, filter, QStringLiteral("regExp = /^[A-Z]/"));
+    expr.evaluate();
+    QCOMPARE(sfpmModel->rowCount(), 3);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), labelRole).toString(), QStringLiteral("Apricot"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), labelRole).toString(),
+             QString::fromUtf8(u8"Bringebær"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(2, 0), labelRole).toString(), QStringLiteral("Cherry"));
+}
+
+void tst_QQmlSortFilterProxyModel::regExpFilterQmlPatterns()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRegExpFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *berryModel = object->property("berryModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(berryModel);
+    const int labelRole = berryModel->roleNames().key("label", -1);
+    QVERIFY(labelRole != -1);
+
+    QCOMPARE(berryModel->rowCount(), 2);
+    QCOMPARE(berryModel->data(berryModel->index(0, 0), labelRole).toString(), QStringLiteral("blueberry"));
+    QCOMPARE(berryModel->data(berryModel->index(1, 0), labelRole).toString(), QStringLiteral("cranberry"));
+
+    auto *startsWithBModel = object->property("startsWithBModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(startsWithBModel);
+    QCOMPARE(startsWithBModel->rowCount(), 2);
+    QCOMPARE(startsWithBModel->data(startsWithBModel->index(0, 0), labelRole).toString(),
+             QStringLiteral("banana"));
+    QCOMPARE(startsWithBModel->data(startsWithBModel->index(1, 0), labelRole).toString(),
+             QStringLiteral("blueberry"));
+
+    auto *regExpWithOrModel = object->property("regExpWithOrModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(regExpWithOrModel);
+    QCOMPARE(regExpWithOrModel->rowCount(), 2);
+    QCOMPARE(regExpWithOrModel->data(regExpWithOrModel->index(0, 0), labelRole).toString(),
+             QStringLiteral("apple"));
+    QCOMPARE(regExpWithOrModel->data(regExpWithOrModel->index(1, 0), labelRole).toString(),
+             QStringLiteral("banana"));
+}
+
+void tst_QQmlSortFilterProxyModel::validateRangeFilterProperties()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRangeFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("rangeFilter").value<QQmlRangeFilter *>();
+    QVERIFY(filter);
+
+    // Defaults
+    QVERIFY(!filter->minimum().isValid());
+    QVERIFY(!filter->maximum().isValid());
+    QCOMPARE(sfpmModel->rowCount(), 5);
+
+    QSignalSpy minSpy(filter, &QQmlRangeFilter::minimumChanged);
+    QSignalSpy maxSpy(filter, &QQmlRangeFilter::maximumChanged);
+    QVERIFY(minSpy.isValid());
+    QVERIFY(maxSpy.isValid());
+
+    filter->setMinimum(QVariant(20));
+    QCOMPARE(minSpy.count(), 1);
+    QCOMPARE(filter->minimum().toInt(), 20);
+
+    filter->setMaximum(QVariant(40));
+    QCOMPARE(maxSpy.count(), 1);
+    QCOMPARE(filter->maximum().toInt(), 40);
+
+    // Make maximum exclusive: emits maximumChanged
+    filter->setMaximum(QQmlRangeFilter::exclusive(QVariant(40)));
+    QCOMPARE(maxSpy.count(), 2);
+
+    // Check enabled property: [20, 40] inclusive: (20, 30, 40)
+    filter->setMaximum(QVariant(40));
+    QCOMPARE(sfpmModel->rowCount(), 3);
+    filter->setEnabled(false);
+    QCOMPARE(sfpmModel->rowCount(), 5);
+    filter->setEnabled(true);
+    QCOMPARE(sfpmModel->rowCount(), 3);
+
+    // Check inverted property
+    filter->setInverted(true);
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    const int priceRole = sfpmModel->roleNames().key("price", -1);
+    QVERIFY(priceRole != -1);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 10);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), priceRole).toInt(), 50);
+}
+
+void tst_QQmlSortFilterProxyModel::rangeFilterMinimumOnly()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRangeFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("rangeFilter").value<QQmlRangeFilter *>();
+    QVERIFY(filter);
+
+    const int priceRole = sfpmModel->roleNames().key("price", -1);
+    QVERIFY(priceRole != -1);
+
+    // min=30 inclusive (30, 40, 50)
+    filter->setMinimum(QVariant(30));
+    QCOMPARE(sfpmModel->rowCount(), 3);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 30);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), priceRole).toInt(), 40);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(2, 0), priceRole).toInt(), 50);
+
+    // min=30 exclusive (40, 50)
+    filter->setMinimum(QQmlRangeFilter::exclusive(QVariant(30)));
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 40);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), priceRole).toInt(), 50);
+
+    // Reset minimum — all rows pass
+    filter->resetMinimum();
+    QCOMPARE(sfpmModel->rowCount(), 5);
+}
+
+void tst_QQmlSortFilterProxyModel::rangeFilterMaximumOnly()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRangeFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("rangeFilter").value<QQmlRangeFilter *>();
+    QVERIFY(filter);
+
+    const int priceRole = sfpmModel->roleNames().key("price", -1);
+    QVERIFY(priceRole != -1);
+
+    // max=30 inclusive (10, 20, 30)
+    filter->setMaximum(QVariant(30));
+    QCOMPARE(sfpmModel->rowCount(), 3);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 10);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), priceRole).toInt(), 20);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(2, 0), priceRole).toInt(), 30);
+
+    // max=30 exclusive (10, 20)
+    filter->setMaximum(QQmlRangeFilter::exclusive(QVariant(30)));
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 10);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), priceRole).toInt(), 20);
+
+    // Reset maximum — all rows pass
+    filter->resetMaximum();
+    QCOMPARE(sfpmModel->rowCount(), 5);
+}
+
+void tst_QQmlSortFilterProxyModel::rangeFilterBothBounds()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRangeFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("rangeFilter").value<QQmlRangeFilter *>();
+    QVERIFY(filter);
+
+    const int priceRole = sfpmModel->roleNames().key("price", -1);
+    QVERIFY(priceRole != -1);
+
+    // Both inclusive by default (20, 30, 40)
+    filter->setMinimum(QVariant(20));
+    filter->setMaximum(QVariant(40));
+    QCOMPARE(sfpmModel->rowCount(), 3);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 20);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), priceRole).toInt(), 30);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(2, 0), priceRole).toInt(), 40);
+
+    // Narrow maximum to 30 (20, 30)
+    filter->setMaximum(QVariant(30));
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 20);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), priceRole).toInt(), 30);
+
+    // Reset maximum — rows from minimum upward (20, 30, 40, 50)
+    filter->resetMaximum();
+    QCOMPARE(sfpmModel->rowCount(), 4);
+}
+
+void tst_QQmlSortFilterProxyModel::rangeFilterExclusiveBounds()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRangeFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("rangeFilter").value<QQmlRangeFilter *>();
+    QVERIFY(filter);
+
+    const int priceRole = sfpmModel->roleNames().key("price", -1);
+    QVERIFY(priceRole != -1);
+
+    filter->setMinimum(QVariant(20));
+    filter->setMaximum(QVariant(40));
+
+    // Both inclusive (20, 30, 40)
+    QCOMPARE(sfpmModel->rowCount(), 3);
+
+    // Minimum exclusive (30, 40)
+    filter->setMinimum(QQmlRangeFilter::exclusive(QVariant(20)));
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 30);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), priceRole).toInt(), 40);
+
+    // Maximum exclusive too (30 only)
+    filter->setMaximum(QQmlRangeFilter::exclusive(QVariant(40)));
+    QCOMPARE(sfpmModel->rowCount(), 1);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 30);
+
+    // Restore minimum inclusive (20, 30)
+    filter->setMinimum(QVariant(20));
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), priceRole).toInt(), 20);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), priceRole).toInt(), 30);
+}
+
+void tst_QQmlSortFilterProxyModel::rangeFilterDate()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRangeFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("rangeFilter").value<QQmlRangeFilter *>();
+    QVERIFY(filter);
+
+    // QML ListModel has no native date type — use QStandardItemModel
+    // so that roles carry actual QDate values for type-aware comparison.
+    QStandardItemModel dateModel(5, 1);
+    const QList<QDate> dates = {
+        QDate(2024,  1, 15),   // January
+        QDate(2024,  3, 20),   // March
+        QDate(2024,  6,  1),   // June
+        QDate(2024,  9, 10),   // September
+        QDate(2024, 12, 25)    // December
+    };
+    for (int i = 0; i < dates.size(); ++i)
+        dateModel.setData(dateModel.index(i, 0), dates[i], Qt::DisplayRole);
+
+    sfpmModel->setSourceModel(&dateModel);
+    filter->setRoleName(QString::fromLatin1("display"));
+    QCOMPARE(sfpmModel->rowCount(), 5); // no bounds — all rows pass
+
+    // Minimum >= 2024-03-01 (March, June, September, December)
+    filter->setMinimum(QVariant(QDate(2024, 3, 1)));
+    QCOMPARE(sfpmModel->rowCount(), 4);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), Qt::DisplayRole).toDate(), QDate(2024,  3, 20));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(3, 0), Qt::DisplayRole).toDate(), QDate(2024, 12, 25));
+
+    // Add maximum: [2024-03-01, 2024-09-30] (March, June, September)
+    filter->setMaximum(QVariant(QDate(2024, 9, 30)));
+    QCOMPARE(sfpmModel->rowCount(), 3);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), Qt::DisplayRole).toDate(), QDate(2024, 3, 20));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), Qt::DisplayRole).toDate(), QDate(2024, 6,  1));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(2, 0), Qt::DisplayRole).toDate(), QDate(2024, 9, 10));
+
+    // Exclusive minimum [2024-03-20, 2024-09-30] (June, September)
+    filter->setMinimum(QQmlRangeFilter::exclusive(QVariant(QDate(2024, 3, 20))));
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), Qt::DisplayRole).toDate(), QDate(2024, 6,  1));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), Qt::DisplayRole).toDate(), QDate(2024, 9, 10));
+
+    // Exclusive maximum (2024-03-20, 2024-09-10) (June)
+    filter->setMaximum(QQmlRangeFilter::exclusive(QVariant(QDate(2024, 9, 10))));
+    QCOMPARE(sfpmModel->rowCount(), 1);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), Qt::DisplayRole).toDate(), QDate(2024, 6, 1));
+}
+
+void tst_QQmlSortFilterProxyModel::rangeFilterDateTime()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRangeFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("rangeFilter").value<QQmlRangeFilter *>();
+    QVERIFY(filter);
+
+    QStandardItemModel dateTimeModel(5, 1);
+    const QDate day(2024, 6, 1);
+    const QList<QDateTime> dateTimes = {
+        QDateTime(day, QTime( 8,  0)),
+        QDateTime(day, QTime(10, 30)),
+        QDateTime(day, QTime(12,  0)),
+        QDateTime(day, QTime(14, 30)),
+        QDateTime(day, QTime(16,  0))
+    };
+    for (int i = 0; i < dateTimes.size(); ++i)
+        dateTimeModel.setData(dateTimeModel.index(i, 0), dateTimes[i], Qt::DisplayRole);
+
+    sfpmModel->setSourceModel(&dateTimeModel);
+    filter->setRoleName(QString::fromLatin1("display"));
+    QCOMPARE(sfpmModel->rowCount(), 5);
+
+    // Minimum >= 10:00 (10:30, 12:00, 14:30, 16:00)
+    filter->setMinimum(QVariant(QDateTime(day, QTime(10, 0))));
+    QCOMPARE(sfpmModel->rowCount(), 4);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), Qt::DisplayRole).toDateTime(),
+             QDateTime(day, QTime(10, 30)));
+
+    // Add maximum: [10:00, 14:00] (10:30, 12:00)
+    filter->setMaximum(QVariant(QDateTime(day, QTime(14, 0))));
+    QCOMPARE(sfpmModel->rowCount(), 2);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), Qt::DisplayRole).toDateTime(),
+             QDateTime(day, QTime(10, 30)));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), Qt::DisplayRole).toDateTime(),
+             QDateTime(day, QTime(12,  0)));
+
+    // Exact boundary inclusive: min == max == 12:00 (12:00)
+    filter->setMinimum(QVariant(QDateTime(day, QTime(12, 0))));
+    filter->setMaximum(QVariant(QDateTime(day, QTime(12, 0))));
+    QCOMPARE(sfpmModel->rowCount(), 1);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), Qt::DisplayRole).toDateTime(),
+             QDateTime(day, QTime(12, 0)));
+
+    // Exact boundary exclusive minimum: [12:00, 12:00]
+    filter->setMinimum(QQmlRangeFilter::exclusive(QVariant(QDateTime(day, QTime(12, 0)))));
+    QCOMPARE(sfpmModel->rowCount(), 0);
+}
+
+void tst_QQmlSortFilterProxyModel::rangeFilterString()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRangeFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *sfpmModel = object->property("sfpmProxyModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sfpmModel);
+    auto *filter = object->property("rangeFilter").value<QQmlRangeFilter *>();
+    QVERIFY(filter);
+
+    const int nameRole = sfpmModel->roleNames().key("name", -1);
+    QVERIFY(nameRole != -1);
+
+    filter->setRoleName(QString::fromLatin1("name"));
+
+    // ["L", "T"] inclusive (Luxury, Premium, Standard)
+    filter->setMinimum(QString::fromLatin1("L"));
+    filter->setMaximum(QString::fromLatin1("T"));
+    QCOMPARE(sfpmModel->rowCount(), 3);
+    QCOMPARE(sfpmModel->data(sfpmModel->index(0, 0), nameRole).toString(),
+             QString::fromLatin1("Standard"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(1, 0), nameRole).toString(),
+             QString::fromLatin1("Premium"));
+    QCOMPARE(sfpmModel->data(sfpmModel->index(2, 0), nameRole).toString(),
+             QString::fromLatin1("Luxury"));
+}
+
+void tst_QQmlSortFilterProxyModel::rangeFilterQmlBounds()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine, testFileUrl("sfpmRangeFilter.qml"));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    auto *minimumInclusiveModel = object->property("minimumInclusiveModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(minimumInclusiveModel);
+    const int priceRole = minimumInclusiveModel->roleNames().key("price", -1);
+    QVERIFY(priceRole != -1);
+
+    // minimum=20 inclusive (20, 30, 40, 50)
+    QCOMPARE(minimumInclusiveModel->rowCount(), 4);
+    QCOMPARE(minimumInclusiveModel->data(minimumInclusiveModel->index(0, 0), priceRole).toInt(), 20);
+    QCOMPARE(minimumInclusiveModel->data(minimumInclusiveModel->index(3, 0), priceRole).toInt(), 50);
+
+    // maximum=30 inclusive (10, 20, 30)
+    auto *maximumInclusiveModel = object->property("maximumInclusiveModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(maximumInclusiveModel);
+    QCOMPARE(maximumInclusiveModel->rowCount(), 3);
+    QCOMPARE(maximumInclusiveModel->data(maximumInclusiveModel->index(0, 0), priceRole).toInt(), 10);
+    QCOMPARE(maximumInclusiveModel->data(maximumInclusiveModel->index(2, 0), priceRole).toInt(), 30);
+
+    // minimum=20, maximum=40, both inclusive (20, 30, 40)
+    auto *bothInclusiveModel = object->property("bothInclusiveModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(bothInclusiveModel);
+    QCOMPARE(bothInclusiveModel->rowCount(), 3);
+    QCOMPARE(bothInclusiveModel->data(bothInclusiveModel->index(0, 0), priceRole).toInt(), 20);
+    QCOMPARE(bothInclusiveModel->data(bothInclusiveModel->index(1, 0), priceRole).toInt(), 30);
+    QCOMPARE(bothInclusiveModel->data(bothInclusiveModel->index(2, 0), priceRole).toInt(), 40);
+
+    // minimum=exclusive(20), maximum=40 (30, 40)
+    auto *exclusiveMinimumModel = object->property("exclusiveMinimumModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(exclusiveMinimumModel);
+    QCOMPARE(exclusiveMinimumModel->rowCount(), 2);
+    QCOMPARE(exclusiveMinimumModel->data(exclusiveMinimumModel->index(0, 0), priceRole).toInt(), 30);
+    QCOMPARE(exclusiveMinimumModel->data(exclusiveMinimumModel->index(1, 0), priceRole).toInt(), 40);
+
+    // minimum=20, maximum=exclusive(40) (20, 30)
+    auto *exclusiveMaximumModel = object->property("exclusiveMaximumModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(exclusiveMaximumModel);
+    QCOMPARE(exclusiveMaximumModel->rowCount(), 2);
+    QCOMPARE(exclusiveMaximumModel->data(exclusiveMaximumModel->index(0, 0), priceRole).toInt(), 20);
+    QCOMPARE(exclusiveMaximumModel->data(exclusiveMaximumModel->index(1, 0), priceRole).toInt(), 30);
+
+    // minimum=exclusive(20), maximum=exclusive(40) — only 30
+    auto *bothExclusiveModel = object->property("bothExclusiveModel").value<QQmlSortFilterProxyModel *>();
+    QVERIFY(bothExclusiveModel);
+    QCOMPARE(bothExclusiveModel->rowCount(), 1);
+    QCOMPARE(bothExclusiveModel->data(bothExclusiveModel->index(0, 0), priceRole).toInt(), 30);
+}
+
+void tst_QQmlSortFilterProxyModel::crashUntypedCompare_data()
+{
+    QTest::addColumn<QString>("qmlFile");
+    QTest::addColumn<QString>("errorMessage");
+    QTest::newRow("qtbug-149043_valid") << "qtbug-149043_valid.qml" << QString();
+    QTest::newRow("qtbug-149043_reject1") << "qtbug-149043_rejectNonTypeReturn.qml"
+                                          << QStringLiteral("must return int data type");
+    QTest::newRow("qtbug-149043_reject2") << "qtbug-149043_rejectNonTypeParameter.qml"
+                                          << QStringLiteral("parameters must be type annotated");
+}
+
+void tst_QQmlSortFilterProxyModel::crashUntypedCompare()
+{
+    QFETCH(QString, qmlFile);
+    QFETCH(QString, errorMessage);
+    QQmlEngine engine;
+    QList<QQmlError> warnings;
+    QObject::connect(&engine, &QQmlEngine::warnings, this, [&warnings](auto w) { warnings = w; });
+
+    QQmlComponent component(&engine, testFileUrl(qmlFile));
+    QVERIFY2(component.errorString().isEmpty(), component.errorString().toUtf8());
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(!object.isNull());
+
+    if (!errorMessage.isEmpty()) {
+        QVERIFY(warnings.first().description().contains(errorMessage));
     }
 }
 

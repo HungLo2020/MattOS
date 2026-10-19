@@ -8,21 +8,23 @@
 
 #include "core/graphicsbufferallocator.h"
 
-struct gbm_device;
+#include <sys/types.h>
 
 namespace KWin
 {
 
+class DrmDevice;
+
 class KWIN_EXPORT GbmGraphicsBufferAllocator : public GraphicsBufferAllocator
 {
 public:
-    explicit GbmGraphicsBufferAllocator(gbm_device *device);
+    explicit GbmGraphicsBufferAllocator(DrmDevice *device);
     ~GbmGraphicsBufferAllocator() override;
 
     GraphicsBuffer *allocate(const GraphicsBufferOptions &options) override;
 
 private:
-    gbm_device *m_gbmDevice;
+    DrmDevice *const m_device;
 };
 
 } // namespace KWin

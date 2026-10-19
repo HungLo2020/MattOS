@@ -1,17 +1,20 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
+    SPDX-FileCopyrightText: 2026 David Edmundson <davidedmundson@kde.org>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
 
 #include "eiscontext.h"
+
 #include "config-eis.h"
+
+#include "main.h"
+#include "inputmethod.h"
+
 #include "eisbackend.h"
 #include "eisdevice.h"
 #include "libeis_logging.h"
-#include "main.h"
-
-#include <unistd.h>
 
 namespace KWin
 {
@@ -54,6 +57,9 @@ public:
     std::unique_ptr<EisDevice> absoluteDevice;
     std::unique_ptr<EisDevice> pointer;
     std::unique_ptr<EisDevice> keyboard;
+#if EIS_HAVE_16
+    std::unique_ptr<EisDevice> text;
+#endif
 };
 
 DbusEisContext::DbusEisContext(KWin::EisBackend *backend, QFlags<eis_device_capability> allowedCapabilities, int cookie, const QString &dbusService)
@@ -69,25 +75,6 @@ int DbusEisContext::addClient()
     return eis_backend_fd_add_client(m_eisContext);
 }
 
-XWaylandEisContext::XWaylandEisContext(KWin::EisBackend *backend)
-    : EisContext(backend, {EIS_DEVICE_CAP_POINTER | EIS_DEVICE_CAP_POINTER_ABSOLUTE | EIS_DEVICE_CAP_KEYBOARD | EIS_DEVICE_CAP_TOUCH | EIS_DEVICE_CAP_SCROLL | EIS_DEVICE_CAP_BUTTON})
-    , socketName(qgetenv("XDG_RUNTIME_DIR") + QByteArrayLiteral("/kwin-xwayland-eis-socket.") + QByteArray::number(getpid()))
-{
-    eis_setup_backend_socket(m_eisContext, socketName.constData());
-}
-
-bool XWaylandEisContext::allowConnection(eis_client *client) const
-{
-#if EIS_HAVE_GET_CLIENT_PID
-    const auto pid = eis_backend_socket_get_client_pid(client);
-    if (kwinApp()->xwaylandPid() != pid) {
-        qCWarning(KWIN_EIS) << "Non-xwayland process" << pid << "trying to connect to Xwayland socket - disconnecting";
-        return false;
-    }
-#endif
-    return true;
-}
-
 EisContext::EisContext(KWin::EisBackend *backend, QFlags<eis_device_capability> allowedCapabilities)
     : m_eisContext(eis_new(this))
     , m_backend(backend)
@@ -96,7 +83,7 @@ EisContext::EisContext(KWin::EisBackend *backend, QFlags<eis_device_capability> 
 {
     eis_log_set_priority(m_eisContext, EIS_LOG_PRIORITY_DEBUG);
     eis_log_set_handler(m_eisContext, eis_log_handler);
-    QObject::connect(&m_socketNotifier, &QSocketNotifier::activated, [this] {
+    QObject::connect(&m_socketNotifier, &QSocketNotifier::activated, &m_socketNotifier, [this] {
         handleEvents();
     });
 }
@@ -113,7 +100,14 @@ EisContext::~EisContext()
         if (client->keyboard) {
             Q_EMIT m_backend->deviceRemoved(client->keyboard.get());
         }
+#if EIS_HAVE_16
+        if (client->text) {
+            Q_EMIT m_backend->deviceRemoved(client->text.get());
+        }
+#endif
     }
+
+    eis_unref(m_eisContext);
 }
 
 void EisContext::updateScreens()
@@ -125,6 +119,11 @@ void EisContext::updateScreens()
     }
 }
 
+static std::chrono::microseconds currentTime()
+{
+    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch());
+}
+
 void EisContext::updateKeymap()
 {
     for (const auto &client : m_clients) {
@@ -134,9 +133,40 @@ void EisContext::updateKeymap()
     }
 }
 
-static std::chrono::microseconds currentTime()
+void EisContext::forwardModifiers(uint32_t depressed, uint32_t latched, uint32_t locked, uint32_t group)
 {
-    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch());
+    for (const auto &client : m_clients) {
+        if (client->keyboard) {
+            eis_device_keyboard_send_xkb_modifiers(client->keyboard->handle(), depressed, latched, locked, group);
+        }
+    }
+}
+
+void EisContext::connectClient(eis_client *client)
+{
+    const char *clientName = eis_client_get_name(client);
+    eis_client_connect(client);
+    auto seat = eis_client_new_seat(client, QByteArrayLiteral(" seat").prepend(clientName));
+    constexpr std::array allCapabilities{
+        EIS_DEVICE_CAP_POINTER,
+        EIS_DEVICE_CAP_POINTER_ABSOLUTE,
+        EIS_DEVICE_CAP_KEYBOARD,
+        EIS_DEVICE_CAP_TOUCH,
+        EIS_DEVICE_CAP_SCROLL,
+        EIS_DEVICE_CAP_BUTTON,
+#if EIS_HAVE_16
+        EIS_DEVICE_CAP_TEXT,
+#endif
+    };
+    for (auto capability : allCapabilities) {
+        if (m_allowedCapabilities & capability) {
+            eis_seat_configure_capability(seat, capability);
+        }
+    }
+
+    eis_seat_add(seat);
+    m_clients.emplace_back(std::make_unique<EisClient>(client, seat));
+    qCDebug(KWIN_EIS) << "New eis client" << clientName;
 }
 
 void EisContext::handleEvents()
@@ -162,24 +192,7 @@ void EisContext::handleEvents()
                 eis_client_disconnect(client);
                 break;
             }
-            if (!allowConnection(client)) {
-                eis_client_disconnect(client);
-                break;
-            }
-
-            eis_client_connect(client);
-
-            auto seat = eis_client_new_seat(client, QByteArrayLiteral(" seat").prepend(clientName));
-            constexpr std::array allCapabilities{EIS_DEVICE_CAP_POINTER, EIS_DEVICE_CAP_POINTER_ABSOLUTE, EIS_DEVICE_CAP_KEYBOARD, EIS_DEVICE_CAP_TOUCH, EIS_DEVICE_CAP_SCROLL, EIS_DEVICE_CAP_BUTTON};
-            for (auto capability : allCapabilities) {
-                if (m_allowedCapabilities & capability) {
-                    eis_seat_configure_capability(seat, capability);
-                }
-            }
-
-            eis_seat_add(seat);
-            m_clients.emplace_back(std::make_unique<EisClient>(client, seat));
-            qCDebug(KWIN_EIS) << "New eis client" << clientName;
+            connectionRequested(client);
             break;
         }
         case EIS_EVENT_CLIENT_DISCONNECT: {
@@ -209,6 +222,10 @@ void EisContext::handleEvents()
             updateDevice(clientSeat->absoluteDevice, &EisBackend::createAbsoluteDevice, eis_event_seat_has_capability(event, EIS_DEVICE_CAP_POINTER_ABSOLUTE) || eis_event_seat_has_capability(event, EIS_DEVICE_CAP_TOUCH));
             updateDevice(clientSeat->pointer, &EisBackend::createPointer, eis_event_seat_has_capability(event, EIS_DEVICE_CAP_POINTER));
             updateDevice(clientSeat->keyboard, &EisBackend::createKeyboard, eis_event_seat_has_capability(event, EIS_DEVICE_CAP_KEYBOARD));
+#if EIS_HAVE_16
+            updateDevice(clientSeat->text, &EisBackend::createText, eis_event_seat_has_capability(event, EIS_DEVICE_CAP_TEXT));
+#endif
+
             break;
         }
         case EIS_EVENT_DEVICE_CLOSED: {
@@ -221,6 +238,10 @@ void EisContext::handleEvents()
                 seat->keyboard.reset();
             } else if (device == seat->pointer.get()) {
                 seat->pointer.reset();
+#if EIS_HAVE_16
+            } else if (device == seat->text.get()) {
+                seat->text.reset();
+#endif
             }
             break;
         }
@@ -236,10 +257,12 @@ void EisContext::handleEvents()
         }
         case EIS_EVENT_DEVICE_START_EMULATING: {
             qCDebug(KWIN_EIS) << "Device" << device->name() << "starts emulating";
+            device->setEmulating(true);
             break;
         }
         case EIS_EVENT_DEVICE_STOP_EMULATING: {
             qCDebug(KWIN_EIS) << "Device" << device->name() << "stops emulating";
+            device->setEmulating(false);
             break;
         }
         case EIS_EVENT_POINTER_MOTION: {
@@ -279,10 +302,10 @@ void EisContext::handleEvents()
             const auto y = eis_event_scroll_get_dy(event);
             qCDebug(KWIN_EIS) << device->name() << "scroll" << x << y;
             if (x != 0) {
-                Q_EMIT device->pointerAxisChanged(PointerAxis::Horizontal, x, 0, PointerAxisSource::Unknown, false, currentTime(), device);
+                Q_EMIT device->pointerAxisChanged(PointerAxis::Horizontal, x, 0, PointerAxisSource::Unknown, false, false, currentTime(), device);
             }
             if (y != 0) {
-                Q_EMIT device->pointerAxisChanged(PointerAxis::Vertical, y, 0, PointerAxisSource::Unknown, false, currentTime(), device);
+                Q_EMIT device->pointerAxisChanged(PointerAxis::Vertical, y, 0, PointerAxisSource::Unknown, false, false, currentTime(), device);
             }
             break;
         }
@@ -290,11 +313,11 @@ void EisContext::handleEvents()
         case EIS_EVENT_SCROLL_CANCEL: {
             if (eis_event_scroll_get_stop_x(event)) {
                 qCDebug(KWIN_EIS) << device->name() << "scroll x" << (eis_event_get_type(event) == EIS_EVENT_SCROLL_STOP ? "stop" : "cancel");
-                Q_EMIT device->pointerAxisChanged(PointerAxis::Horizontal, 0, 0, PointerAxisSource::Unknown, false, currentTime(), device);
+                Q_EMIT device->pointerAxisChanged(PointerAxis::Horizontal, 0, 0, PointerAxisSource::Unknown, false, false, currentTime(), device);
             }
             if (eis_event_scroll_get_stop_y(event)) {
                 qCDebug(KWIN_EIS) << device->name() << "scroll y" << (eis_event_get_type(event) == EIS_EVENT_SCROLL_STOP ? "stop" : "cancel");
-                Q_EMIT device->pointerAxisChanged(PointerAxis::Vertical, 0, 0, PointerAxisSource::Unknown, false, currentTime(), device);
+                Q_EMIT device->pointerAxisChanged(PointerAxis::Vertical, 0, 0, PointerAxisSource::Unknown, false, false, currentTime(), device);
             }
             break;
         }
@@ -305,28 +328,17 @@ void EisContext::handleEvents()
             // otherwise no scroll event
             constexpr auto anglePer120Step = 15 / 120.0;
             if (x != 0) {
-                Q_EMIT device->pointerAxisChanged(PointerAxis::Horizontal, x * anglePer120Step, x, PointerAxisSource::Unknown, false, currentTime(), device);
+                Q_EMIT device->pointerAxisChanged(PointerAxis::Horizontal, x * anglePer120Step, x, PointerAxisSource::Unknown, false, false, currentTime(), device);
             }
             if (y != 0) {
-                Q_EMIT device->pointerAxisChanged(PointerAxis::Vertical, y * anglePer120Step, y, PointerAxisSource::Unknown, false, currentTime(), device);
+                Q_EMIT device->pointerAxisChanged(PointerAxis::Vertical, y * anglePer120Step, y, PointerAxisSource::Unknown, false, false, currentTime(), device);
             }
             break;
         }
         case EIS_EVENT_KEYBOARD_KEY: {
             const quint32 key = eis_event_keyboard_get_key(event);
             const bool press = eis_event_keyboard_get_key_is_press(event);
-            qCDebug(KWIN_EIS) << device->name() << "key" << key << press;
-            if (press) {
-                if (device->pressedKeys.contains(key)) {
-                    continue;
-                }
-                device->pressedKeys.insert(key);
-            } else {
-                if (!device->pressedKeys.remove(key)) {
-                    continue;
-                }
-            }
-            Q_EMIT device->keyChanged(key, press ? KeyboardKeyState::Pressed : KeyboardKeyState::Released, currentTime(), device);
+            device->sendKey(key, press ? KeyboardKeyState::Pressed : KeyboardKeyState::Released);
             break;
         }
         case EIS_EVENT_TOUCH_DOWN: {
@@ -357,11 +369,29 @@ void EisContext::handleEvents()
             Q_EMIT device->touchMotion(id, {x, y}, currentTime(), device);
             break;
         }
+#if EIS_HAVE_16
+        case EIS_EVENT_TEXT_KEYSYM: {
+            const auto keySym = eis_event_text_get_keysym(event);
+            const bool isPress = eis_event_text_get_keysym_is_press(event);
+            device->sendKeySym(keySym, isPress ? KeyboardKeyState::Pressed : KeyboardKeyState::Released);
+            break;
+        }
+        case EIS_EVENT_TEXT_UTF8: {
+            const auto text = QString::fromUtf8(eis_event_text_get_utf8(event));
+            kwinApp()->inputMethod()->sendText(text);
+            break;
+        }
+#endif
         case EIS_EVENT_PONG:
         case EIS_EVENT_SYNC:
+#if EIS_HAVE_16
+        case EIS_EVENT_DEVICE_READY:
+        case EIS_EVENT_SEAT_DEVICE_REQUESTED:
+#endif
             break;
         }
         eis_event_unref(event);
     }
 }
+
 }

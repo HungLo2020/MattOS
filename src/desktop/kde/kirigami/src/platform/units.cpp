@@ -271,7 +271,7 @@ Units *Units::create(QQmlEngine *qmlEngine, [[maybe_unused]] QJSEngine *jsEngine
 
 bool Units::eventFilter([[maybe_unused]] QObject *watched, QEvent *event)
 {
-    if (event->type() == QEvent::ApplicationFontChange) {
+    if ((event->type() == QEvent::ApplicationFontChange) && (watched == qGuiApp)) {
         d->fontMetrics = QFontMetricsF(qGuiApp->font());
 
         if (d->customUnitsSet) {

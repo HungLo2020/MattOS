@@ -13,15 +13,17 @@ extern "C" {
 #include <libxcvt/libxcvt.h>
 }
 #include <math.h>
+#include <unistd.h>
 
 #include <memory>
 
-#include <QMap>
 #include <QDebug>
+#include <QMap>
 
 // Mock impls
 
-static QMap<int, MockGpu*> s_gpus;
+static QMap<int, MockGpu *> s_gpus;
+static uint32_t s_nextLeaseId = 1;
 
 static MockGpu *getGpu(int fd)
 {
@@ -60,19 +62,25 @@ MockPropertyBlob *MockGpu::getBlob(uint32_t id) const
 
 MockConnector *MockGpu::findConnector(uint32_t id) const
 {
-    auto it = std::find_if(connectors.constBegin(), connectors.constEnd(), [id](const auto &c){return c->id == id;});
+    auto it = std::find_if(connectors.constBegin(), connectors.constEnd(), [id](const auto &c) {
+        return c->id == id;
+    });
     return it == connectors.constEnd() ? nullptr : (*it).get();
 }
 
 MockCrtc *MockGpu::findCrtc(uint32_t id) const
 {
-    auto it = std::find_if(crtcs.constBegin(), crtcs.constEnd(), [id](const auto &c){return c->id == id;});
+    auto it = std::find_if(crtcs.constBegin(), crtcs.constEnd(), [id](const auto &c) {
+        return c->id == id;
+    });
     return it == crtcs.constEnd() ? nullptr : (*it).get();
 }
 
 MockPlane *MockGpu::findPlane(uint32_t id) const
 {
-    auto it = std::find_if(planes.constBegin(), planes.constEnd(), [id](const auto &p){return p->id == id;});
+    auto it = std::find_if(planes.constBegin(), planes.constEnd(), [id](const auto &p) {
+        return p->id == id;
+    });
     return it == planes.constEnd() ? nullptr : (*it).get();
 }
 
@@ -234,7 +242,6 @@ MockCrtc::MockCrtc(MockGpu *gpu, const std::shared_ptr<MockPlane> &legacyPlane, 
     addProp("GAMMA_LUT_SIZE", gamma_size, DRM_MODE_PROP_ATOMIC);
 }
 
-
 //
 
 MockPlane::MockPlane(MockGpu *gpu, PlaneType type, int crtcIndex)
@@ -258,12 +265,11 @@ MockPlane::MockPlane(MockGpu *gpu, PlaneType type, int crtcIndex)
 
 //
 
-MockEncoder::MockEncoder(MockGpu* gpu, uint32_t possible_crtcs)
+MockEncoder::MockEncoder(MockGpu *gpu, uint32_t possible_crtcs)
     : MockObject(gpu)
     , possible_crtcs(possible_crtcs)
 {
 }
-
 
 //
 
@@ -456,7 +462,9 @@ int drmModeAddFB2WithModifiers(int fd, uint32_t width, uint32_t height,
 int drmModeRmFB(int fd, uint32_t bufferId)
 {
     GPU(fd, EINVAL)
-    auto it = std::find_if(gpu->fbs.begin(), gpu->fbs.end(), [bufferId](const auto &fb){return fb->id == bufferId;});
+    auto it = std::find_if(gpu->fbs.begin(), gpu->fbs.end(), [bufferId](const auto &fb) {
+        return fb->id == bufferId;
+    });
     if (it == gpu->fbs.end()) {
         qWarning("invalid bufferId %u passed to drmModeRmFB", bufferId);
         return EINVAL;
@@ -600,7 +608,9 @@ int drmModeMoveCursor(int fd, uint32_t crtcId, int x, int y)
 drmModeEncoderPtr drmModeGetEncoder(int fd, uint32_t encoder_id)
 {
     GPU(fd, nullptr);
-    auto it = std::find_if(gpu->encoders.constBegin(), gpu->encoders.constEnd(), [encoder_id](const auto &e){return e->id == encoder_id;});
+    auto it = std::find_if(gpu->encoders.constBegin(), gpu->encoders.constEnd(), [encoder_id](const auto &e) {
+        return e->id == encoder_id;
+    });
     if (it == gpu->encoders.constEnd()) {
         qWarning("invalid encoder_id %u passed to drmModeGetEncoder", encoder_id);
         errno = EINVAL;
@@ -692,7 +702,6 @@ int drmModePageFlip(int fd, uint32_t crtc_id, uint32_t fb_id, uint32_t flags, vo
     drmModeAtomicFree(req);
     return result;
 }
-
 
 drmModePlaneResPtr drmModeGetPlaneResources(int fd)
 {
@@ -792,8 +801,6 @@ void drmModeFreeProperty(drmModePropertyPtr ptr)
     }
 }
 
-
-
 drmModePropertyBlobPtr drmModeGetPropertyBlob(int fd, uint32_t blob_id)
 {
     GPU(fd, nullptr);
@@ -838,11 +845,11 @@ int drmModeConnectorSetProperty(int fd, uint32_t connector_id, uint32_t property
 
 static uint32_t getType(MockObject *obj)
 {
-    if (dynamic_cast<MockConnector*>(obj)) {
+    if (dynamic_cast<MockConnector *>(obj)) {
         return DRM_MODE_OBJECT_CONNECTOR;
-    } else if (dynamic_cast<MockCrtc*>(obj)) {
+    } else if (dynamic_cast<MockCrtc *>(obj)) {
         return DRM_MODE_OBJECT_CRTC;
-    } else if (dynamic_cast<MockPlane*>(obj)) {
+    } else if (dynamic_cast<MockPlane *>(obj)) {
         return DRM_MODE_OBJECT_PLANE;
     } else {
         return DRM_MODE_OBJECT_ANY;
@@ -852,7 +859,9 @@ static uint32_t getType(MockObject *obj)
 drmModeObjectPropertiesPtr drmModeObjectGetProperties(int fd, uint32_t object_id, uint32_t object_type)
 {
     GPU(fd, nullptr);
-    auto it = std::find_if(gpu->objects.constBegin(), gpu->objects.constEnd(), [object_id](const auto &obj){return obj->id == object_id;});
+    auto it = std::find_if(gpu->objects.constBegin(), gpu->objects.constEnd(), [object_id](const auto &obj) {
+        return obj->id == object_id;
+    });
     if (it == gpu->objects.constEnd()) {
         qWarning("invalid object_id %u passed to drmModeObjectGetProperties", object_id);
         errno = EINVAL;
@@ -901,7 +910,9 @@ void drmModeFreeObjectProperties(drmModeObjectPropertiesPtr ptr)
 int drmModeObjectSetProperty(int fd, uint32_t object_id, uint32_t object_type, uint32_t property_id, uint64_t value)
 {
     GPU(fd, -EINVAL);
-    auto it = std::find_if(gpu->objects.constBegin(), gpu->objects.constEnd(), [object_id](const auto &obj){return obj->id == object_id;});
+    auto it = std::find_if(gpu->objects.constBegin(), gpu->objects.constEnd(), [object_id](const auto &obj) {
+        return obj->id == object_id;
+    });
     if (it == gpu->objects.constEnd()) {
         qWarning("invalid object_id %u passed to drmModeObjectSetProperty", object_id);
         return -(errno = EINVAL);
@@ -950,18 +961,18 @@ int drmModeAtomicAddProperty(drmModeAtomicReqPtr req, uint32_t object_id, uint32
 
 static bool checkIfEqual(const drmModeModeInfo &one, const drmModeModeInfo &two)
 {
-    return one.clock       == two.clock
-        && one.hdisplay    == two.hdisplay
+    return one.clock == two.clock
+        && one.hdisplay == two.hdisplay
         && one.hsync_start == two.hsync_start
-        && one.hsync_end   == two.hsync_end
-        && one.htotal      == two.htotal
-        && one.hskew       == two.hskew
-        && one.vdisplay    == two.vdisplay
+        && one.hsync_end == two.hsync_end
+        && one.htotal == two.htotal
+        && one.hskew == two.hskew
+        && one.vdisplay == two.vdisplay
         && one.vsync_start == two.vsync_start
-        && one.vsync_end   == two.vsync_end
-        && one.vtotal      == two.vtotal
-        && one.vscan       == two.vscan
-        && one.vrefresh    == two.vrefresh;
+        && one.vsync_end == two.vsync_end
+        && one.vtotal == two.vtotal
+        && one.vscan == two.vscan
+        && one.vrefresh == two.vrefresh;
 }
 
 int drmModeAtomicCommit(int fd, drmModeAtomicReqPtr req, uint32_t flags, void *user_data)
@@ -1011,14 +1022,18 @@ int drmModeAtomicCommit(int fd, drmModeAtomicReqPtr req, uint32_t flags, void *u
     // apply changes to the copies
     for (int i = 0; i < req->props.count(); i++) {
         auto p = req->props[i];
-        auto it = std::find_if(objects.constBegin(), objects.constEnd(), [p](const auto &obj){return obj->id == p.obj;});
+        auto it = std::find_if(objects.constBegin(), objects.constEnd(), [p](const auto &obj) {
+            return obj->id == p.obj;
+        });
         if (it == objects.constEnd()) {
             qWarning("Object %u in atomic request not found!", p.obj);
             return -(errno = EINVAL);
         }
         auto &obj = *it;
         if (obj->id == p.obj) {
-            auto prop = std::find_if(obj->props.begin(), obj->props.end(), [p](const auto &prop){return prop.id == p.prop;});
+            auto prop = std::find_if(obj->props.begin(), obj->props.end(), [p](const auto &prop) {
+                return prop.id == p.prop;
+            });
             if (prop == obj->props.end()) {
                 qWarning("Property %u in atomic request for object %u not found!", p.prop, p.obj);
                 return -(errno = EINVAL);
@@ -1041,7 +1056,8 @@ int drmModeAtomicCommit(int fd, drmModeAtomicReqPtr req, uint32_t flags, void *u
     }
 
     // check if the desired changes are allowed
-    struct Pipeline {
+    struct Pipeline
+    {
         MockCrtc *crtc;
         QList<MockConnector *> conns;
         MockPlane *primaryPlane = nullptr;
@@ -1105,7 +1121,9 @@ int drmModeAtomicCommit(int fd, drmModeAtomicReqPtr req, uint32_t flags, void *u
                 qWarning("FB_ID of active plane %u is 0", planeCopies[i].id);
                 return -(errno = EINVAL);
             }
-            auto it = std::find_if(gpu->fbs.constBegin(), gpu->fbs.constEnd(), [fbId](auto fb){return fb->id == fbId;});
+            auto it = std::find_if(gpu->fbs.constBegin(), gpu->fbs.constEnd(), [fbId](auto fb) {
+                return fb->id == fbId;
+            });
             if (it == gpu->fbs.constEnd()) {
                 qWarning("FB_ID %lu of active plane %u is invalid", fbId, planeCopies[i].id);
                 return -(errno = EINVAL);
@@ -1123,9 +1141,9 @@ int drmModeAtomicCommit(int fd, drmModeAtomicReqPtr req, uint32_t flags, void *u
             qWarning("Active crtc %u has no assigned primary plane", p.crtc->id);
             return -(errno = EINVAL);
         } else {
-            drmModeModeInfo mode = *static_cast<drmModeModeInfo*>(gpu->getBlob(p.crtc->getProp(QStringLiteral("MODE_ID")))->data);
+            drmModeModeInfo mode = *static_cast<drmModeModeInfo *>(gpu->getBlob(p.crtc->getProp(QStringLiteral("MODE_ID")))->data);
             for (const auto &conn : p.conns) {
-                bool modeFound = std::find_if(conn->modes.constBegin(), conn->modes.constEnd(), [mode](const auto &m){
+                bool modeFound = std::find_if(conn->modes.constBegin(), conn->modes.constEnd(), [mode](const auto &m) {
                     return checkIfEqual(mode, m);
                 }) != conn->modes.constEnd();
                 if (!modeFound) {
@@ -1140,7 +1158,9 @@ int drmModeAtomicCommit(int fd, drmModeAtomicReqPtr req, uint32_t flags, void *u
 
     if (!(flags & DRM_MODE_ATOMIC_TEST_ONLY)) {
         for (auto &conn : std::as_const(gpu->connectors)) {
-            auto it = std::find_if(connCopies.constBegin(), connCopies.constEnd(), [conn](auto c){return c.id == conn->id;});
+            auto it = std::find_if(connCopies.constBegin(), connCopies.constEnd(), [conn](auto c) {
+                return c.id == conn->id;
+            });
             if (it == connCopies.constEnd()) {
                 qCritical("implementation error: can't find connector %u", conn->id);
                 return -(errno = EINVAL);
@@ -1148,7 +1168,9 @@ int drmModeAtomicCommit(int fd, drmModeAtomicReqPtr req, uint32_t flags, void *u
             *conn = *it;
         }
         for (auto &crtc : std::as_const(gpu->crtcs)) {
-            auto it = std::find_if(crtcCopies.constBegin(), crtcCopies.constEnd(), [crtc](auto c){return c.id == crtc->id;});
+            auto it = std::find_if(crtcCopies.constBegin(), crtcCopies.constEnd(), [crtc](auto c) {
+                return c.id == crtc->id;
+            });
             if (it == crtcCopies.constEnd()) {
                 qCritical("implementation error: can't find crtc %u", crtc->id);
                 return -(errno = EINVAL);
@@ -1156,7 +1178,9 @@ int drmModeAtomicCommit(int fd, drmModeAtomicReqPtr req, uint32_t flags, void *u
             *crtc = *it;
         }
         for (auto &plane : std::as_const(gpu->planes)) {
-            auto it = std::find_if(planeCopies.constBegin(), planeCopies.constEnd(), [plane](auto c){return c.id == plane->id;});
+            auto it = std::find_if(planeCopies.constBegin(), planeCopies.constEnd(), [plane](auto c) {
+                return c.id == plane->id;
+            });
             if (it == planeCopies.constEnd()) {
                 qCritical("implementation error: can't find plane %u", plane->id);
                 return -(errno = EINVAL);
@@ -1171,7 +1195,6 @@ int drmModeAtomicCommit(int fd, drmModeAtomicReqPtr req, uint32_t flags, void *u
 
     return 0;
 }
-
 
 int drmModeCreatePropertyBlob(int fd, const void *data, size_t size, uint32_t *id)
 {
@@ -1201,12 +1224,61 @@ int drmModeDestroyPropertyBlob(int fd, uint32_t id)
 
 int drmModeCreateLease(int fd, const uint32_t *objects, int num_objects, int flags, uint32_t *lessee_id)
 {
-    return -(errno = ENOTSUP);
+    GPU(fd, -EINVAL);
+    if (!objects || num_objects <= 0 || !lessee_id || flags != 0) {
+        return -(errno = EINVAL);
+    }
+
+    MockLease lease;
+    lease.id = s_nextLeaseId++;
+    for (int i = 0; i < num_objects; ++i) {
+        lease.objects.push_back(objects[i]);
+    }
+    gpu->leases.push_back(lease);
+    *lessee_id = lease.id;
+
+    const int leaseFd = dup(fd);
+    if (leaseFd < 0) {
+        gpu->leases.removeLast();
+        return -errno;
+    }
+    return leaseFd;
 }
 
 drmModeLesseeListPtr drmModeListLessees(int fd)
 {
-    return nullptr;
+    GPU(fd, nullptr);
+    auto isLeaseActive = [gpu](const MockLease &lease) {
+        for (uint32_t obj : lease.objects) {
+            if (const MockConnector *connector = gpu->findConnector(obj)) {
+                if (connector->connection != DRM_MODE_CONNECTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+
+    QList<uint32_t> activeLeases;
+    for (auto it = gpu->leases.begin(); it != gpu->leases.end();) {
+        if (isLeaseActive(*it)) {
+            activeLeases.push_back(it->id);
+            ++it;
+        } else {
+            it = gpu->leases.erase(it);
+        }
+    }
+
+    drmModeLesseeListRes *ret = static_cast<drmModeLesseeListRes *>(calloc(1, sizeof(drmModeLesseeListRes) + activeLeases.count() * sizeof(uint32_t)));
+    if (!ret) {
+        errno = ENOMEM;
+        return nullptr;
+    }
+    ret->count = activeLeases.count();
+    for (int i = 0; i < activeLeases.count(); ++i) {
+        ret->lessees[i] = activeLeases[i];
+    }
+    return ret;
 }
 
 drmModeObjectListPtr drmModeGetLease(int fd)
@@ -1216,7 +1288,15 @@ drmModeObjectListPtr drmModeGetLease(int fd)
 
 int drmModeRevokeLease(int fd, uint32_t lessee_id)
 {
-    return -(errno = ENOTSUP);
+    GPU(fd, -EINVAL);
+    const auto it = std::find_if(gpu->leases.begin(), gpu->leases.end(), [lessee_id](const MockLease &lease) {
+        return lease.id == lessee_id;
+    });
+    if (it == gpu->leases.end()) {
+        return -(errno = EINVAL);
+    }
+    gpu->leases.erase(it);
+    return 0;
 }
 
 void drmModeFreeResources(drmModeResPtr ptr)

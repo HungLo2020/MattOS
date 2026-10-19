@@ -9,7 +9,6 @@ import QtQuick.Controls as Controls
 
 import org.kde.plasma.networkmanagement as PlasmaNM
 import org.kde.kirigami as Kirigami
-import org.kde.ksvg as KSvg
 import org.kde.kirigamiaddons.formcard 1 as FormCard
 
 FormCard.AbstractFormDelegate {
@@ -141,6 +140,7 @@ FormCard.AbstractFormDelegate {
             } else {
                 kcm.push("ConnectionInfo.qml", {details: model.ConnectionDetails,
                                                 connectionName: ItemUniqueName,
+                                                connectionPath: ConnectionPath,
                                                 delegate: root})
 
             }

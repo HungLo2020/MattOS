@@ -78,9 +78,6 @@ Q_DECLARE_LOGGING_CATEGORY(KDIRWATCH)
 // logging category for this framework, default: log stuff >= warning
 Q_LOGGING_CATEGORY(KDIRWATCH, "kf.coreaddons.kdirwatch", QtWarningMsg)
 
-// set this to true for much more verbose debug output
-static bool s_verboseDebug = false;
-
 static QThreadStorage<KDirWatchPrivate *> dwp_self;
 static KDirWatchPrivate *createPrivate()
 {
@@ -106,8 +103,10 @@ static KDirWatch::Method methodFromString(const QByteArray &method)
 #if HAVE_SYS_INOTIFY_H
         // inotify supports delete+recreate+modify, which QFSWatch doesn't support
         return KDirWatch::INotify;
-#else
+#elif HAVE_QFILESYSTEMWATCHER
         return KDirWatch::QFSWatch;
+#else
+        return KDirWatch::Stat;
 #endif
     }
 }
@@ -130,6 +129,7 @@ static const char s_envNfsPoll[] = "KDIRWATCH_NFSPOLLINTERVAL";
 static const char s_envPoll[] = "KDIRWATCH_POLLINTERVAL";
 static const char s_envMethod[] = "KDIRWATCH_METHOD";
 static const char s_envNfsMethod[] = "KDIRWATCH_NFSMETHOD";
+static const char s_envVerboseDebug[] = "KDIRWATCH_VERBOSE";
 
 //
 // Class KDirWatchPrivate (singleton)
@@ -174,17 +174,15 @@ KDirWatchPrivate::KDirWatchPrivate()
 #endif
     _isStopped(false)
 {
-    // Debug unittest on CI
-    if (qAppName() == QLatin1String("kservicetest") || qAppName() == QLatin1String("filetypestest")) {
-        s_verboseDebug = true;
-    }
+    verboseDebug = qEnvironmentVariableIsSet(s_envVerboseDebug);
+
     m_statRescanTimer.setObjectName(QStringLiteral("KDirWatchPrivate::timer"));
     connect(&m_statRescanTimer, &QTimer::timeout, this, &KDirWatchPrivate::slotRescan);
 
     m_nfsPollInterval = qEnvironmentVariableIsSet(s_envNfsPoll) ? qEnvironmentVariableIntValue(s_envNfsPoll) : 5000;
     m_PollInterval = qEnvironmentVariableIsSet(s_envPoll) ? qEnvironmentVariableIntValue(s_envPoll) : 500;
 
-    m_preferredMethod = methodFromString(qEnvironmentVariableIsSet(s_envMethod) ? qgetenv(s_envMethod) : "inotify");
+    m_preferredMethod = methodFromString(qEnvironmentVariableIsSet(s_envMethod) ? qgetenv(s_envMethod) : "default");
     // The nfs method defaults to the normal (local) method
     m_nfsPreferredMethod = methodFromString(qEnvironmentVariableIsSet(s_envNfsMethod) ? qgetenv(s_envNfsMethod) : "Stat");
 
@@ -601,7 +599,7 @@ QDebug operator<<(QDebug debug, const KDirWatchPrivate &dwp)
                 debug << "    dependent entries:";
                 for (KDirWatchPrivate::Entry *d : e.m_entries) {
                     debug << "      " << d << d->path << (d->m_status == KDirWatchPrivate::NonExistent ? "NonExistent" : "EXISTS this is an ERROR!");
-                    if (s_verboseDebug) {
+                    if (dwp.verboseDebug) {
                         Q_ASSERT(d->m_status == KDirWatchPrivate::NonExistent); // it doesn't belong here otherwise
                     }
                 }
@@ -698,7 +696,7 @@ bool KDirWatchPrivate::useINotify(Entry *e)
 
     if ((e->wd = inotify_add_watch(m_inotify_fd, QFile::encodeName(e->path).data(), mask)) != -1) {
         m_inotify_wd_to_entry.insert(e->wd, e);
-        if (s_verboseDebug) {
+        if (verboseDebug) {
             qCDebug(KDIRWATCH) << "inotify successfully used for monitoring" << e->path << "wd=" << e->wd;
         }
         return true;
@@ -801,12 +799,12 @@ void KDirWatchPrivate::addEntry(KDirWatch *instance, const QString &_path, Entry
         Entry &entry = it.value();
         if (sub_entry) {
             entry.m_entries.append(sub_entry);
-            if (s_verboseDebug) {
+            if (verboseDebug) {
                 qCDebug(KDIRWATCH) << "Added already watched Entry" << path << "(for" << sub_entry->path << ")";
             }
         } else {
             entry.addClient(instance, watchModes);
-            if (s_verboseDebug) {
+            if (verboseDebug) {
                 qCDebug(KDIRWATCH) << "Added already watched Entry" << path << "(now" << entry.clientCount() << "clients)"
                                    << QStringLiteral("[%1]").arg(instance->objectName());
             }
@@ -874,7 +872,7 @@ void KDirWatchPrivate::addEntry(KDirWatch *instance, const QString &_path, Entry
         e->addClient(instance, watchModes);
     }
 
-    if (s_verboseDebug) {
+    if (verboseDebug) {
         qCDebug(KDIRWATCH).nospace() << "Added " << (e->isDir ? "Dir " : "File ") << path << (e->m_status == NonExistent ? " NotExisting" : "") << " for "
                                      << (sub_entry ? sub_entry->path : QString()) << " [" << (instance ? instance->objectName() : QString()) << "]";
     }
@@ -996,14 +994,14 @@ void KDirWatchPrivate::removeWatch(Entry *e)
     if (e->m_mode == INotifyMode) {
         m_inotify_wd_to_entry.remove(e->wd);
         (void)inotify_rm_watch(m_inotify_fd, e->wd);
-        if (s_verboseDebug) {
+        if (verboseDebug) {
             qCDebug(KDIRWATCH).nospace() << "Cancelled INotify (fd " << m_inotify_fd << ", " << e->wd << ") for " << e->path;
         }
     }
 #endif
 #if HAVE_QFILESYSTEMWATCHER
     if (e->m_mode == QFSWatchMode && fsWatcher) {
-        if (s_verboseDebug) {
+        if (verboseDebug) {
             qCDebug(KDIRWATCH) << "fsWatcher->removePath" << e->path;
         }
         fsWatcher->removePath(e->path);
@@ -1056,7 +1054,7 @@ void KDirWatchPrivate::removeEntry(KDirWatch *instance, Entry *e, Entry *sub_ent
         }
     }
 
-    if (s_verboseDebug) {
+    if (verboseDebug) {
         qCDebug(KDIRWATCH).nospace() << "Removed " << (e->isDir ? "Dir " : "File ") << e->path << " for " << (sub_entry ? sub_entry->path : QString()) << " ["
                                      << (instance ? instance->objectName() : QString()) << "]";
     }
@@ -1160,7 +1158,7 @@ bool KDirWatchPrivate::restartEntryScan(KDirWatch *instance, Entry *e, bool noti
                 // we get the latest change of any kind, on any platform.
                 e->m_ctime = qMax(stat_buf.st_ctime, stat_buf.st_mtime);
                 e->m_status = Normal;
-                if (s_verboseDebug) {
+                if (verboseDebug) {
                     qCDebug(KDIRWATCH) << "Setting status to Normal for" << e << e->path;
                 }
                 e->m_nlink = stat_buf.st_nlink;
@@ -1172,7 +1170,7 @@ bool KDirWatchPrivate::restartEntryScan(KDirWatch *instance, Entry *e, bool noti
                 e->m_ctime = invalid_ctime;
                 e->m_status = NonExistent;
                 e->m_nlink = 0;
-                if (s_verboseDebug) {
+                if (verboseDebug) {
                     qCDebug(KDIRWATCH) << "Setting status to NonExistent for" << e << e->path;
                 }
             }
@@ -1258,7 +1256,7 @@ int KDirWatchPrivate::scanEntry(Entry *e)
             e->m_ctime = qMax(stat_buf.st_ctime, stat_buf.st_mtime);
             e->m_status = Normal;
             e->m_ino = stat_buf.st_ino;
-            if (s_verboseDebug) {
+            if (verboseDebug) {
                 qCDebug(KDIRWATCH) << "Setting status to Normal for just created" << e << e->path;
             }
             // We need to make sure the entry isn't listed in its parent's subentries... (#222974, testMoveTo)
@@ -1268,7 +1266,7 @@ int KDirWatchPrivate::scanEntry(Entry *e)
         }
 
 #if 1 // for debugging the if() below
-        if (s_verboseDebug) {
+        if (verboseDebug) {
             struct tm *tmp = localtime(&e->m_ctime);
             char outstr[200];
             strftime(outstr, sizeof(outstr), "%H:%M:%S", tmp);
@@ -1338,7 +1336,7 @@ void KDirWatchPrivate::emitEvent(Entry *e, int event, const QString &fileName)
         }
     }
 
-    if (s_verboseDebug) {
+    if (verboseDebug) {
         qCDebug(KDIRWATCH) << event << path << e->m_clients.size() << "clients";
     }
 
@@ -1410,7 +1408,7 @@ void KDirWatchPrivate::slotRemoveDelayed()
  */
 void KDirWatchPrivate::slotRescan()
 {
-    if (s_verboseDebug) {
+    if (verboseDebug) {
         qCDebug(KDIRWATCH);
     }
 
@@ -1460,7 +1458,7 @@ void KDirWatchPrivate::slotRescan()
         }
 
         const int ev = scanEntry(entry);
-        if (s_verboseDebug) {
+        if (verboseDebug) {
             qCDebug(KDIRWATCH) << "scanEntry for" << entry->path << "says" << ev;
         }
 
@@ -1468,7 +1466,7 @@ void KDirWatchPrivate::slotRescan()
 #if HAVE_SYS_INOTIFY_H
         case INotifyMode:
             if (ev == Deleted) {
-                if (s_verboseDebug) {
+                if (verboseDebug) {
                     qCDebug(KDIRWATCH) << "scanEntry says" << entry->path << "was deleted";
                 }
 
@@ -1477,7 +1475,7 @@ void KDirWatchPrivate::slotRescan()
                     addEntry(nullptr, entry->parentDirectory(), entry, true);
                 }
             } else if (ev == Created) {
-                if (s_verboseDebug) {
+                if (verboseDebug) {
                     qCDebug(KDIRWATCH) << "scanEntry says" << entry->path << "was created. wd=" << entry->wd;
                 }
                 if (entry->wd < 0) {
@@ -1506,7 +1504,7 @@ void KDirWatchPrivate::slotRescan()
             QStringList pendingFileChanges = entry->m_pendingFileChanges;
             pendingFileChanges.removeDuplicates();
             for (const QString &changedFilename : std::as_const(pendingFileChanges)) {
-                if (s_verboseDebug) {
+                if (verboseDebug) {
                     qCDebug(KDIRWATCH) << "processing pending file change for" << changedFilename;
                 }
                 emitEvent(entry, Changed, changedFilename);
@@ -1571,38 +1569,53 @@ void KDirWatchPrivate::unref(KDirWatch *watch)
 #if HAVE_SYS_INOTIFY_H
 QString KDirWatchPrivate::inotifyEventName(const inotify_event *event) const
 {
-    if (event->mask & IN_OPEN)
+    // FIXME: mind that this code is wrong when multiple bits are set in the same mask
+    if (event->mask & IN_OPEN) {
         return QStringLiteral("OPEN");
-    else if (event->mask & IN_CLOSE_NOWRITE)
+    }
+    if (event->mask & IN_CLOSE_NOWRITE) {
         return QStringLiteral("CLOSE_NOWRITE");
-    else if (event->mask & IN_CLOSE_WRITE)
+    }
+    if (event->mask & IN_CLOSE_WRITE) {
         return QStringLiteral("CLOSE_WRITE");
-    else if (event->mask & IN_MOVED_TO)
+    }
+    if (event->mask & IN_MOVED_TO) {
         return QStringLiteral("MOVED_TO");
-    else if (event->mask & IN_MOVED_FROM)
+    }
+    if (event->mask & IN_MOVED_FROM) {
         return QStringLiteral("MOVED_FROM");
-    else if (event->mask & IN_MOVE)
+    }
+    if (event->mask & IN_MOVE) {
         return QStringLiteral("MOVE");
-    else if (event->mask & IN_CREATE)
+    }
+    if (event->mask & IN_CREATE) {
         return QStringLiteral("CREATE");
-    else if (event->mask & IN_DELETE)
+    }
+    if (event->mask & IN_DELETE) {
         return QStringLiteral("DELETE");
-    else if (event->mask & IN_DELETE_SELF)
+    }
+    if (event->mask & IN_DELETE_SELF) {
         return QStringLiteral("DELETE_SELF");
-    else if (event->mask & IN_MOVE_SELF)
+    }
+    if (event->mask & IN_MOVE_SELF) {
         return QStringLiteral("MOVE_SELF");
-    else if (event->mask & IN_ATTRIB)
+    }
+    if (event->mask & IN_ATTRIB) {
         return QStringLiteral("ATTRIB");
-    else if (event->mask & IN_MODIFY)
+    }
+    if (event->mask & IN_MODIFY) {
         return QStringLiteral("MODIFY");
-    if (event->mask & IN_ACCESS)
+    }
+    if (event->mask & IN_ACCESS) {
         return QStringLiteral("ACCESS");
-    if (event->mask & IN_IGNORED)
+    }
+    if (event->mask & IN_IGNORED) {
         return QStringLiteral("IGNORED");
-    if (event->mask & IN_UNMOUNT)
+    }
+    if (event->mask & IN_UNMOUNT) {
         return QStringLiteral("IN_UNMOUNT");
-    else
-        return QStringLiteral("UNKWOWN");
+    }
+    return QStringLiteral("UNKNOWN");
 }
 #endif
 
@@ -1610,7 +1623,7 @@ QString KDirWatchPrivate::inotifyEventName(const inotify_event *event) const
 // Slot for QFileSystemWatcher
 void KDirWatchPrivate::fswEventReceived(const QString &path)
 {
-    if (s_verboseDebug) {
+    if (verboseDebug) {
         qCDebug(KDIRWATCH) << path;
     }
 
@@ -1619,7 +1632,7 @@ void KDirWatchPrivate::fswEventReceived(const QString &path)
         Entry *entry = &it.value();
         entry->dirty = true;
         const int ev = scanEntry(entry);
-        if (s_verboseDebug) {
+        if (verboseDebug) {
             qCDebug(KDIRWATCH) << "scanEntry for" << entry->path << "says" << ev;
         }
         if (ev != NoChange) {
@@ -1884,5 +1897,3 @@ bool KDirWatch::event(QEvent *event)
 
 #include "moc_kdirwatch.cpp"
 #include "moc_kdirwatch_p.cpp"
-
-// sven

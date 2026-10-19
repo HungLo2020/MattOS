@@ -18,19 +18,12 @@ QQmlFindUsagesSupport::QQmlFindUsagesSupport(QmlLsp::QQmlCodeModelManager *codeM
 {
 }
 
-QString QQmlFindUsagesSupport::name() const
+void QQmlFindUsagesSupport::setupCapabilities(QLspSpecification::ServerCapabilities &caps)
 {
-    return u"QmlFindUsagesSupport"_s;
-}
-
-void QQmlFindUsagesSupport::setupCapabilities(
-        const QLspSpecification::InitializeParams &,
-        QLspSpecification::InitializeResult &serverCapabilities)
-{
-    // just assume serverCapabilities.capabilities.typeDefinitionProvider is a bool for now
+    // just assume caps.typeDefinitionProvider is a bool for now
     // handle the ReferenceOptions later if needed (it adds the possibility to communicate the
     // current progress).
-    serverCapabilities.capabilities.referencesProvider = true;
+    caps.referencesProvider = true;
 }
 
 void QQmlFindUsagesSupport::registerHandlers(QLanguageServer *, QLanguageServerProtocol *protocol)
@@ -44,11 +37,12 @@ void QQmlFindUsagesSupport::process(QQmlFindUsagesSupport::RequestPointerArgumen
     ResponseScopeGuard guard(results, request->m_response);
 
     auto itemsFound = itemsForRequest(request);
-    if (guard.setErrorFrom(itemsFound))
+    if (!itemsFound.has_value()) {
+        guard.setError(itemsFound.error());
         return;
+    }
 
-    QQmlLSUtils::ItemLocation &front =
-            std::get<QList<QQmlLSUtils::ItemLocation>>(itemsFound).front();
+    QQmlLSUtils::ItemLocation &front = itemsFound.value().front();
 
     auto usages = QQmlLSUtils::findUsagesOf(front.domItem);
 

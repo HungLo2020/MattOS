@@ -17,7 +17,6 @@
 #include <KSharedConfig>
 #include <memory>
 // Qt
-#include <QAbstractNativeEventFilter>
 #include <QApplication>
 #include <QProcessEnvironment>
 
@@ -31,6 +30,7 @@ class QCommandLineParser;
 namespace KWin
 {
 
+class A11yManager;
 class OutputBackend;
 class Session;
 class X11EventFilter;
@@ -44,12 +44,8 @@ class Outline;
 class OutlineVisual;
 class Compositor;
 class Window;
-
-class XcbEventFilter : public QAbstractNativeEventFilter
-{
-public:
-    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
-};
+class WorkspaceScene;
+class GpuManager;
 
 class X11EventFilterContainer : public QObject
 {
@@ -73,10 +69,9 @@ class KWIN_EXPORT Application : public QApplication
 #endif
     Q_PROPERTY(KSharedConfigPtr config READ config WRITE setConfig)
     Q_PROPERTY(KSharedConfigPtr kxkbConfig READ kxkbConfig WRITE setKxkbConfig)
+
 public:
     ~Application() override;
-
-    void setConfigLock(bool lock);
 
     KSharedConfigPtr config() const
     {
@@ -114,10 +109,6 @@ public:
 
     void setupCommandLine(QCommandLineParser *parser);
     void processCommandLine(QCommandLineParser *parser);
-
-    static void setCrashCount(int count);
-    static bool wasCrash();
-    void resetCrashesCount();
 
     /**
      * Creates the KAboutData object for the KWin instance and registers it as
@@ -165,7 +156,7 @@ public:
 
     void registerEventFilter(X11EventFilter *filter);
     void unregisterEventFilter(X11EventFilter *filter);
-    bool dispatchEvent(xcb_generic_event_t *event);
+    void dispatchEvent(xcb_generic_event_t *event);
 
     virtual pid_t xwaylandPid() const
     {
@@ -229,11 +220,10 @@ public:
     bool supportsGlobalShortcuts() const;
     void setSupportsGlobalShortcuts(bool set);
 
-    void installNativeX11EventFilter();
-    void removeNativeX11EventFilter();
-
     void createAtoms();
     void destroyAtoms();
+
+    void createGpuManager();
 
     static void setupMalloc();
     static void setupLocalizedString();
@@ -242,6 +232,8 @@ public:
     InputMethod *inputMethod() const;
     virtual XwaylandInterface *xwayland() const;
     TabletModeManager *tabletModeManager() const;
+    WorkspaceScene *scene() const;
+    A11yManager *a11yManager() const;
 
     /**
      * Starts an interactive window selection process.
@@ -305,12 +297,15 @@ protected:
     void createPlugins();
     void createInputMethod();
     void createTabletModeManager();
+    void createScene();
+    void createA11yManager();
     void destroyInput();
     void destroyWorkspace();
     void destroyCompositor();
     void destroyPlugins();
     void destroyInputMethod();
     void destroyPlatform();
+    void destroyScene();
     void applyXwaylandScale();
 
     void setTerminating()
@@ -318,17 +313,13 @@ protected:
         m_terminating = true;
     }
 
-protected:
-    static int crashes;
-
 private:
 #if KWIN_BUILD_X11
     QList<QPointer<X11EventFilterContainer>> m_eventFilters;
     QList<QPointer<X11EventFilterContainer>> m_genericEventFilters;
-    std::unique_ptr<XcbEventFilter> m_eventFilter;
 #endif
+    std::unique_ptr<WorkspaceScene> m_scene;
     bool m_followLocale1 = false;
-    bool m_configLock;
     bool m_initiallyLocked = false;
     bool m_supportsLockScreen = true;
     bool m_supportsGlobalShortcuts = true;
@@ -351,6 +342,8 @@ private:
     std::unique_ptr<PluginManager> m_pluginManager;
     std::unique_ptr<InputMethod> m_inputMethod;
     std::unique_ptr<TabletModeManager> m_tabletModeManager;
+    std::unique_ptr<GpuManager> m_gpuManager;
+    std::unique_ptr<A11yManager> m_a11yManager;
 };
 
 inline bool Application::initiallyLocked() const

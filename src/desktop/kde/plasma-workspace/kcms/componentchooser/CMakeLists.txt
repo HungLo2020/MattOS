@@ -8,6 +8,7 @@ target_sources(kcm_componentchooser PRIVATE
     componentchooser.cpp
     applicationmodel.cpp
     components/componentchooserbrowser.cpp
+    components/componentchoosercalendar.cpp
     components/componentchooseremail.cpp
     components/componentchooserterminal.cpp
     components/componentchooserfilemanager.cpp
@@ -34,3 +35,4 @@ target_link_libraries(kcm_componentchooser PRIVATE
     KF6::KCMUtils
 )
 
+install(FILES terminal_settings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})

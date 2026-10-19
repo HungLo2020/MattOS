@@ -152,7 +152,7 @@ private:
     QQmlSA::Method::Methods *q_ptr = nullptr;
 };
 
-class PropertyPrivate
+class Q_QMLCOMPILER_EXPORT PropertyPrivate
 {
     friend class QT_PREPEND_NAMESPACE(QQmlJSMetaProperty);
     Q_DECLARE_PUBLIC(QQmlSA::Property)
@@ -248,37 +248,62 @@ class FixSuggestionPrivate
 
 public:
     explicit FixSuggestionPrivate(FixSuggestion *);
-    FixSuggestionPrivate(FixSuggestion *, const QString &fixDescription,
-                         const QQmlSA::SourceLocation &location, const QString &replacement);
+    FixSuggestionPrivate(
+            FixSuggestion *, const QString &description, const SourceLocation &location,
+            const QList<DocumentEdit> &documentEdits = {});
     FixSuggestionPrivate(FixSuggestion *, const FixSuggestionPrivate &);
     FixSuggestionPrivate(FixSuggestion *, FixSuggestionPrivate &&);
     ~FixSuggestionPrivate() = default;
 
-    QString fixDescription() const;
-    QQmlSA::SourceLocation location() const;
-    QString replacement() const;
+    SourceLocation location() const;
+    QString description() const;
+
+    void addDocumentEdit(const DocumentEdit &);
+    QList<DocumentEdit> documentEdits() const;
 
     void setFileName(const QString &);
     QString fileName() const;
-
-    void setHint(const QString &);
-    QString hint() const;
 
     void setAutoApplicable(bool autoApplicable = true);
     bool isAutoApplicable() const;
 
     static QQmlJSFixSuggestion &fixSuggestion(QQmlSA::FixSuggestion &);
     static const QQmlJSFixSuggestion &fixSuggestion(const QQmlSA::FixSuggestion &);
+    static FixSuggestion createQQmlSAFixSuggestion(const QQmlJSFixSuggestion &);
 
 private:
     QQmlJSFixSuggestion m_fixSuggestion;
     QQmlSA::FixSuggestion *q_ptr = nullptr;
 };
 
+class DocumentEditPrivate
+{
+    Q_DECLARE_PUBLIC(DocumentEdit)
+
+public:
+    DocumentEditPrivate(DocumentEdit *, const QString &filename,
+                          const SourceLocation &location, const QString &replacement);
+    DocumentEditPrivate(DocumentEdit *, const DocumentEditPrivate &);
+    DocumentEditPrivate(DocumentEdit *, DocumentEditPrivate &&);
+    ~DocumentEditPrivate() = default;
+
+    QString filename() const;
+    SourceLocation location() const;
+    QString replacement() const;
+
+    static QQmlJSDocumentEdit documentEdit(const DocumentEdit &edit);
+    static QList<QQmlJSDocumentEdit> documentEdits(const QList<DocumentEdit> &edits);
+    static DocumentEdit createQQmlSADocumentEdit(const QQmlJSDocumentEdit &edit);
+
+private:
+    QQmlJSDocumentEdit m_documentEdit;
+    QQmlSA::DocumentEdit *q_ptr = nullptr;
+};
+
 Q_QMLCOMPILER_EXPORT void emitWarningWithOptionalFix(GenericPass &pass, QAnyStringView diagnostic,
                                                      const LoggerWarningId &id,
                                                      const QQmlSA::SourceLocation &srcLocation,
-                                                     const std::optional<QQmlJSFixSuggestion> &fix);
+                                                     const std::optional<QQmlJSFixSuggestion> &fixSuggestion);
 
 struct GenericPropertyPass : public PropertyPass
 {

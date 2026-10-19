@@ -1,7 +1,7 @@
 # Finnish messages for bluedevil.
 # Copyright © 2011 This_file_is_part_of_KDE
 # This file is distributed under the same license as the extragear-base package.
-# SPDX-FileCopyrightText: 2011, 2015, 2017, 2018, 2020, 2021, 2022, 2023, 2024, 2025 Tommi Nieminen <translator@legisign.org>
+# SPDX-FileCopyrightText: 2011, 2015, 2017, 2018, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Tommi Nieminen <translator@legisign.org>
 # Jorma Karvonen <karvonen.jorma@gmail.com>, 2011.
 # Lasse Liehu <lasse.liehu@gmail.com>, 2011, 2012, 2013, 2014, 2015, 2016.
 #
@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bluedevil\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2025-09-04 10:10+0300\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
+"PO-Revision-Date: 2026-08-26 12:13+0300\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -33,59 +33,27 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "translator@legisign.org,karvonen.jorma@gmail.com"
 
-#: applet/devicesproxymodel.cpp:51
+#: components/ForgetDeviceDialog.qml:37
 #, kde-format
-msgctxt "@title:column Blocked Bluetooth devices"
-msgid "Blocked"
-msgstr "Estetty"
+msgid "Forget this Device?"
+msgstr "Unohdetaanko tämä laite?"
 
-#: applet/devicesproxymodel.cpp:54
+#: components/ForgetDeviceDialog.qml:38
 #, kde-format
-msgctxt "@title:column Connected Bluetooth devices"
-msgid "Connected"
-msgstr "Yhdistetty"
+msgid "Are you sure you want to forget \"%1\"?"
+msgstr "Haluatko varmasti unohtaa laitteen ”%1”?"
 
-#: applet/devicesproxymodel.cpp:56
+#: components/ForgetDeviceDialog.qml:50
 #, kde-format
-msgctxt "@title:column Available but not connected Bluetooth devices"
-msgid "Available"
-msgstr "Käytettävissä"
+msgctxt "@action:button"
+msgid "Forget Device"
+msgstr "Unohda laite"
 
-#: applet/devicesstateproxymodel.cpp:273
+#: components/ForgetDeviceDialog.qml:58
 #, kde-format
-msgctxt "@label %1 is the name of a Bluetooth device"
-msgid "Could not connect to device “%1”"
-msgstr ""
-
-#: applet/devicesstateproxymodel.cpp:288
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed:HostIsDown"
-msgid "The device is unreachable"
-msgstr "Laitetta ei tavoiteta"
-
-#: applet/devicesstateproxymodel.cpp:289
-#, kde-format
-msgctxt "Notification when the connection failed due to Failed"
-msgid "Connection to the device failed"
-msgstr "Laitteeseen yhdistäminen epäonnistui"
-
-#: applet/devicesstateproxymodel.cpp:292
-#, kde-format
-msgctxt "Notification when the connection failed due to NotReady"
-msgid "The device is not ready"
-msgstr "Laite ei ole valmis"
-
-#: kcm/bluetooth.cpp:135
-#, kde-format
-msgctxt "DeviceName Network (Service)"
-msgid "%1 Network (%2)"
-msgstr "%1-verkko (%2)"
-
-#: kcm/bluetoothmoduledata.cpp:20
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Enable Bluetooth"
-msgstr "Ota Bluetooth käyttöön"
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "Peru"
 
 #: kded/bluedevildaemon.cpp:68 kded/bluedevildaemon.cpp:70
 #, kde-format
@@ -112,7 +80,7 @@ msgstr "Aiempi ylläpitäjä"
 #, kde-format
 msgctxt "@label %1 is the name of a Bluetooth device"
 msgid "Access request from device “%1”"
-msgstr ""
+msgstr "Laite ”%1” pyytää käyttölupaa"
 
 #: kded/helpers/requestauthorization.cpp:29
 #, kde-format
@@ -144,7 +112,7 @@ msgstr "Torju"
 #, kde-format
 msgctxt "@label %1 is the name of a Bluetooth device"
 msgid "Verify PIN for device “%1”"
-msgstr ""
+msgstr "Tarkista laitteen ”%1” PIN"
 
 #: kded/helpers/requestconfirmation.cpp:28
 #, kde-format
@@ -166,13 +134,13 @@ msgctxt "Notification button to say that the PIN is wrong"
 msgid "PIN incorrect"
 msgstr "PIN ei ole oikea"
 
-#: kded/helpers/requestpin.cpp:32
+#: kded/helpers/requestpin.cpp:30
 #, kde-format
 msgctxt "@label %1 is the name of a Bluetooth device"
 msgid "PIN for device “%1”"
-msgstr ""
+msgstr "Laitteen ”%1” PIN"
 
-#: kded/helpers/requestpin.cpp:36
+#: kded/helpers/requestpin.cpp:34
 #, kde-format
 msgctxt ""
 "Shown in a notification to announce that a PIN is needed to accomplish a "
@@ -180,7 +148,7 @@ msgctxt ""
 msgid "PIN needed to pair with %1"
 msgstr "PIN tarvitaan parin muodostamiseksi laitteeseen %1"
 
-#: kded/helpers/requestpin.cpp:39
+#: kded/helpers/requestpin.cpp:37
 #, kde-format
 msgctxt ""
 "Notification button which once clicked, a dialog to introduce the PIN will "
@@ -188,13 +156,13 @@ msgctxt ""
 msgid "Introduce PIN"
 msgstr "Anna PIN"
 
-#: kded/helpers/requestpin.cpp:59
+#: kded/helpers/requestpin.cpp:57
 #, kde-format
 msgctxt "Shown in the caption of a dialog where the user introduce the PIN"
 msgid "Introduce PIN"
 msgstr "Anna PIN"
 
-#: kded/helpers/requestpin.cpp:66
+#: kded/helpers/requestpin.cpp:64
 #, kde-format
 msgctxt ""
 "Shown in a dialog which asks to introduce a PIN that will be used to pair a "
@@ -222,7 +190,7 @@ msgstr "1234"
 #, kde-format
 msgctxt "%1 is the name of a Bluetooth device"
 msgid "Incoming file from device “%1”"
-msgstr ""
+msgstr "Saapuva tiedosto laitteelta ”%1”"
 
 #: kded/receivefilejob.cpp:133
 #, kde-format
@@ -340,12 +308,12 @@ msgstr "Puhelimen muisti"
 msgid "External memory"
 msgstr "Ulkoinen muisti"
 
-#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:378
+#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:382
 #, kde-format
 msgid "Bluetooth is disabled."
 msgstr "Bluetooth ei ole käytössä."
 
-#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:379
+#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:383
 #, kde-format
 msgctxt "Action to enable Bluetooth adapter"
 msgid "Enable"
@@ -490,18 +458,18 @@ msgstr "Lisää Bluetooth-laite"
 msgid "Select a device"
 msgstr "Valitse laite"
 
-#: wizard/pages/discover.cpp:371
+#: wizard/pages/discover.cpp:375
 #, kde-format
 msgctxt "Action to fix a problem"
 msgid "Fix it"
 msgstr "Korjaa"
 
-#: wizard/pages/discover.cpp:381
+#: wizard/pages/discover.cpp:385
 #, kde-format
 msgid "Your Bluetooth adapter is not pairable."
 msgstr "Bluetooth-sovitintasi ei voi kytkeä pariksi."
 
-#: wizard/pages/discover.cpp:382
+#: wizard/pages/discover.cpp:386
 #, kde-format
 msgctxt "Action to make Bluetooth adapter pairable"
 msgid "Make Pairable"
@@ -608,6 +576,42 @@ msgstr "Laite on asetettu ja valmis käyttöön."
 msgctxt "Placeholder is device name"
 msgid "The device '%1' has been set up and can now be used."
 msgstr "Laite ”%1” on asetettu ja valmis käyttöön."
+
+#~ msgctxt "@title:column Blocked Bluetooth devices"
+#~ msgid "Blocked"
+#~ msgstr "Estetty"
+
+#~ msgctxt "@title:column Connected Bluetooth devices"
+#~ msgid "Connected"
+#~ msgstr "Yhdistetty"
+
+#~ msgctxt "@title:column Available but not connected Bluetooth devices"
+#~ msgid "Available"
+#~ msgstr "Käytettävissä"
+
+#~ msgctxt "@label %1 is the name of a Bluetooth device"
+#~ msgid "Could not connect to device “%1”"
+#~ msgstr "Ei voitu yhdistää laitteeseen ”%1”"
+
+#~ msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+#~ msgid "The device is unreachable"
+#~ msgstr "Laitetta ei tavoiteta"
+
+#~ msgctxt "Notification when the connection failed due to Failed"
+#~ msgid "Connection to the device failed"
+#~ msgstr "Laitteeseen yhdistäminen epäonnistui"
+
+#~ msgctxt "Notification when the connection failed due to NotReady"
+#~ msgid "The device is not ready"
+#~ msgstr "Laite ei ole valmis"
+
+#~ msgctxt "DeviceName Network (Service)"
+#~ msgid "%1 Network (%2)"
+#~ msgstr "%1-verkko (%2)"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Enable Bluetooth"
+#~ msgstr "Ota Bluetooth käyttöön"
 
 #~ msgctxt ""
 #~ "@label %1 is human-readable device name, %2 is low-level device address"
@@ -1008,9 +1012,6 @@ msgstr "Laite ”%1” on asetettu ja valmis käyttöön."
 
 #~ msgid "Turn Bluetooth On"
 #~ msgstr "Ota Bluetooth käyttöön"
-
-#~ msgid "Known Devices"
-#~ msgstr "Tunnetut laitteet"
 
 #~ msgid "Configure Bluetooth"
 #~ msgstr "Bluetooth-asetukset"

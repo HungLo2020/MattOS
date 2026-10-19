@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qappleiconengine_p.h"
 
@@ -430,6 +431,9 @@ QPixmap QAppleIconEngine::scaledPixmap(const QSize &size, QIcon::Mode mode, QIco
 void QAppleIconEngine::paint(QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state)
 {
     Q_UNUSED(state);
+
+    if (isNull())
+        return;
 
     QColor color;
     const QPalette palette;

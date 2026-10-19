@@ -266,6 +266,20 @@ bool QCocoaIntegration::hasCapability(QPlatformIntegration::Capability cap) cons
     case BackingStoreStaticContents:
     case OffscreenSurface:
         return true;
+    case ScreenWindowGrabbing: {
+#if defined(Q_PROCESSOR_X86_64)
+        // ScreenCaptureKit brings down WindowServer on macOS 14 x86_64 VMs in CI
+        if (QOperatingSystemVersion::current() <= QOperatingSystemVersion::MacOSSonoma
+            && qEnvironmentVariable("QTEST_ENVIRONMENT") == "ci") {
+                return false;
+        }
+#endif
+        return true;
+    }
+    case MouseCursorPositioning:
+        return AXIsProcessTrustedWithOptions(CFDictionaryRef(@{
+            id(kAXTrustedCheckOptionPrompt): @NO
+        }));
     default:
         return QPlatformIntegration::hasCapability(cap);
     }
@@ -321,6 +335,8 @@ QOpenGLContext *QCocoaIntegration::createOpenGLContext(NSOpenGLContext *nativeCo
 
 QPlatformBackingStore *QCocoaIntegration::createPlatformBackingStore(QWindow *window) const
 {
+    QMacAutoReleasePool pool;
+
     QCocoaWindow *platformWindow = static_cast<QCocoaWindow*>(window->handle());
     if (!platformWindow) {
         qWarning() << window << "must be created before being used with a backingstore";

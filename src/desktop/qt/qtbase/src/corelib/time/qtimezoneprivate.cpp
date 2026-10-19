@@ -10,11 +10,13 @@
 #endif
 #include "qtimezoneprivate_data_p.h"
 
+#include <QtCore/qbitarray.h>
 #include <qdatastream.h>
 #include <qdebug.h>
 #include <qstring.h>
 
 #include <private/qcalendarmath_p.h>
+#include <private/qduplicatetracker_p.h>
 #include <private/qnumeric_p.h>
 #if QT_CONFIG(icu) || !QT_CONFIG(timezone_locale)
 #  include <private/qstringiterator_p.h>
@@ -22,6 +24,10 @@
 #include <private/qtools_p.h>
 
 #include <algorithm>
+
+#ifdef Q_OS_WASM
+#include <emscripten/val.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -73,7 +79,7 @@ constexpr bool zoneAtLowerWindowsKey(ZoneData entry, qint16 winIdKey) noexcept
 }
 
 // Static table-lookup helpers
-static quint16 toWindowsIdKey(const QByteArray &winId)
+static quint16 toWindowsIdKey(QByteArrayView winId)
 {
     // Key and winId are monotonic, table is sorted on them.
     const auto data = std::lower_bound(std::begin(windowsDataTable), std::end(windowsDataTable),
@@ -83,7 +89,7 @@ static quint16 toWindowsIdKey(const QByteArray &winId)
     return 0;
 }
 
-static QByteArray toWindowsIdLiteral(quint16 windowsIdKey)
+static QByteArrayView toWindowsIdLiteral(quint16 windowsIdKey)
 {
     // Caller should be passing a valid (in range) key; and table is sorted in
     // increasing order, with no gaps in numbering, starting with key = 1 at
@@ -91,15 +97,15 @@ static QByteArray toWindowsIdLiteral(quint16 windowsIdKey)
     if (Q_LIKELY(windowsIdKey > 0 && windowsIdKey <= std::size(windowsDataTable))) {
         const auto &data = windowsDataTable[windowsIdKey - 1];
         if (Q_LIKELY(data.windowsIdKey == windowsIdKey))
-            return data.windowsId().toByteArray();
+            return data.windowsId();
     }
     // Fall back on binary chop - key and winId are monotonic, table is sorted on them:
     const auto data = std::lower_bound(std::begin(windowsDataTable), std::end(windowsDataTable),
                                        windowsIdKey, atLowerWindowsKey);
     if (data != std::end(windowsDataTable) && data->windowsIdKey == windowsIdKey)
-        return data->windowsId().toByteArray();
+        return data->windowsId();
 
-    return QByteArray();
+    return {};
 }
 
 static auto zoneStartForWindowsId(quint16 windowsIdKey) noexcept
@@ -197,12 +203,12 @@ QString QTimeZonePrivate::displayName(QTimeZone::TimeType timeType,
 {
     const Data tran = data(timeType);
     if (tran.atMSecsSinceEpoch != invalidMSecs()) {
+#if QT_CONFIG(timezone_locale) // Takes care of offsetformat:
+        return localeName(tran.atMSecsSinceEpoch, tran.offsetFromUtc, timeType, nameType, locale);
+#else // All this base can help with is offset names:
         if (nameType == QTimeZone::OffsetName && isAnglicLocale(locale))
             return isoOffsetFormat(tran.offsetFromUtc);
-
-#if QT_CONFIG(timezone_locale)
-        return localeName(tran.atMSecsSinceEpoch, tran.offsetFromUtc, timeType, nameType, locale);
-#endif
+#endif // Hopefully derived classes can do better.
     }
     return QString();
 }
@@ -308,6 +314,7 @@ QTimeZonePrivate::Data QTimeZonePrivate::data(qint64 forMSecsSinceEpoch) const
 QDateTimePrivate::ZoneState QTimeZonePrivate::stateAtZoneTime(
     qint64 forLocalMSecs, QDateTimePrivate::TransitionOptions resolve) const
 {
+    Q_ASSERT(isValid());
     auto dataToState = [](const Data &d) {
         return QDateTimePrivate::ZoneState(d.atMSecsSinceEpoch + d.offsetFromUtc * 1000,
                                            d.offsetFromUtc,
@@ -335,8 +342,9 @@ QDateTimePrivate::ZoneState QTimeZonePrivate::stateAtZoneTime(
     const qint64 imminent =
         qAddOverflow(forLocalMSecs, seventeenHoursInMSecs, &millis)
         ? maxMSecs() : millis; // Necessarily >= forLocalMSecs
-    // At most one of those was clipped to its boundary value:
-    Q_ASSERT(recent < imminent && seventeenHoursInMSecs < imminent - recent + 1);
+    // At most one of those was clipped to its boundary value, but recent may be millis + 1:
+    Q_ASSERT(recent < imminent && seventeenHoursInMSecs - 1 <= imminent - recent);
+    // (We only actually need imminent - recent > abs(zone offset), so the stray 2 ms won't hurt.)
 
     const Data past = data(recent), future = data(imminent);
     if (future.atMSecsSinceEpoch == invalidMSecs()
@@ -399,7 +407,7 @@ QDateTimePrivate::ZoneState QTimeZonePrivate::stateAtZoneTime(
         Data tran = past; // Data after last transition before our window.
         Q_ASSERT(forLocalMSecs < 0 || // Pre-epoch TZ info may be unavailable
                  forLocalMSecs - tran.offsetFromUtc * 1000 >= tran.atMSecsSinceEpoch);
-        // If offset actually exceeds 17 hours, that assert may trigger.
+        // An offset of 17 hours or more could trigger that assert.
         Data nextTran = nextTransition(tran.atMSecsSinceEpoch);
         /*
           Now walk those forward until they bracket forLocalMSecs with transitions.
@@ -589,7 +597,7 @@ QTimeZonePrivate::DataList QTimeZonePrivate::transitions(qint64 fromMSecsSinceEp
     DataList list;
     if (toMSecsSinceEpoch >= fromMSecsSinceEpoch) {
         // fromMSecsSinceEpoch is inclusive but nextTransitionTime() is exclusive so go back 1 msec
-        Data next = nextTransition(fromMSecsSinceEpoch - 1);
+        Data next = nextTransition(qMax(fromMSecsSinceEpoch, minMSecs()) - 1);
         while (next.atMSecsSinceEpoch != invalidMSecs()
                && next.atMSecsSinceEpoch <= toMSecsSinceEpoch) {
             list.append(next);
@@ -604,7 +612,39 @@ QByteArray QTimeZonePrivate::systemTimeZoneId() const
     return QByteArray();
 }
 
-bool QTimeZonePrivate::isTimeZoneIdAvailable(const QByteArray &ianaId) const
+template <typename Pred>
+static QByteArrayView aliasMatching(QByteArrayView name, Pred test)
+{
+    if (test(name))
+        return name;
+    {
+        // First, if it's an alias, map name to its CLDR form:
+        const auto data = std::lower_bound(std::begin(aliasMappingTable),
+                                           std::end(aliasMappingTable),
+                                           name, earlierAliasId);
+        if (data != std::end(aliasMappingTable) && data->aliasId() == name) {
+            name = data->ianaId();
+            if (test(name))
+                return name;
+        }
+        // Now name is the canonical CLDR name, even if it was previously an alias.
+    }
+    // Failing that, traverse the whole alias mapping table in search of an
+    // alias for name that satisfies test():
+    for (const auto &data : aliasMappingTable) {
+        QByteArrayView alias = data.aliasId();
+        if (data.ianaId() == name && test(alias))
+            return alias;
+    }
+    return {};
+}
+
+QByteArrayView QTimeZonePrivate::availableAlias(QByteArrayView ianaId) const
+{
+    return aliasMatching(ianaId, [this](QByteArrayView id) { return isTimeZoneIdAvailable(id); });
+}
+
+bool QTimeZonePrivate::isTimeZoneIdAvailable(QByteArrayView ianaId) const
 {
     // Fall-back implementation, can be made faster in subclasses.
     // Backends that don't cache the available list SHOULD override this.
@@ -677,6 +717,36 @@ QList<QByteArray> QTimeZonePrivate::availableTimeZoneIds(int offsetFromUtc) cons
     return selectAvailable(matchingTimeZoneIds(offsetFromUtc), availableTimeZoneIds());
 }
 
+QList<QByteArray> QTimeZonePrivate::uniqueSortedAliasPadded(QList<QByteArray> &&zoneIds)
+{
+    // Inputs are not expected to be sorted. (Use padSortedWithAliases() when they are.)
+    const QList<QByteArray> source = zoneIds;
+    // If we include a zone, include also its CLDR-standard name:
+    for (const auto &name : source) {
+        const auto zone = aliasToIana(name);
+        if (!zone.isEmpty()) {
+            zoneIds << zone.toByteArray();
+            Q_ASSERT(aliasToIana(zone).isEmpty());
+        }
+    }
+    std::sort(zoneIds.begin(), zoneIds.end());
+    zoneIds.erase(std::unique(zoneIds.begin(), zoneIds.end()), zoneIds.end());
+    return zoneIds;
+}
+
+QList<QByteArray> QTimeZonePrivate::padSortedWithAliases(QList<QByteArray> &&zoneIds)
+{
+    // Input is assumed sorted; this is preserved, as is uniqueness if it was unique.
+    const QList<QByteArray> source = zoneIds;
+    for (const auto &name : source) {
+        const auto zone = aliasToIana(name);
+        const auto pos = std::lower_bound(zoneIds.begin(), zoneIds.end(), zone);
+        if (pos != zoneIds.end() && *pos != zone)
+            zoneIds.insert(pos, zone.toByteArray());
+    }
+    return zoneIds;
+}
+
 #ifndef QT_NO_DATASTREAM
 void QTimeZonePrivate::serialize(QDataStream &ds) const
 {
@@ -704,7 +774,7 @@ QTimeZone::OffsetData QTimeZonePrivate::toOffsetData(const QTimeZonePrivate::Dat
 }
 
 // Is the format of the ID valid ?
-bool QTimeZonePrivate::isValidId(const QByteArray &ianaId)
+bool QTimeZonePrivate::isValidId(QByteArrayView ianaId)
 {
     /*
       Main rules for defining TZ/IANA names, as per
@@ -801,6 +871,33 @@ QString QTimeZonePrivate::isoOffsetFormat(int offsetFromUtc, QTimeZone::NameType
     return result;
 }
 
+QList<QByteArray> QTimeZonePrivate::getCanonicalZonesThenAliases()
+{
+    static const QList<QByteArray> canonicalZonesThenAliases = []() {
+        QList<QByteArray> avail = QTimeZone::availableTimeZoneIds();
+        const auto isCanonical = [](const QByteArray &name) {
+            // Canonical <=> not an alias
+            return QTimeZonePrivate::aliasToIana(name).isEmpty();
+        };
+        [[maybe_unused]] const QList<QByteArray>::const_iterator
+                     firstAlias = std::partition(avail.begin(), avail.end(), isCanonical);
+        // Everything before firstAlias is canonical; everything after is an alias.
+        // Some available IDs may be aliases for IANA IDs not in the list.
+        Q_ASSERT(std::all_of(firstAlias, avail.constEnd(), // Every alias ...
+                             [from = avail.constBegin(), to = firstAlias,
+                              avail](const QByteArray &alias) {
+                                 // ... maps to a canonical name:
+                                 QByteArrayView iana = QTimeZonePrivate::aliasToIana(alias);
+                                 return std::find_if(from, to, [iana](const QByteArray &zone) {
+                                     return zone == iana;
+                                 }) != to || !avail.contains(iana);
+                                 // ... which might not be available.
+                             }));
+        return avail;
+    }();
+    return canonicalZonesThenAliases;
+}
+
 #if QT_CONFIG(icu) || !QT_CONFIG(timezone_locale)
 static QTimeZonePrivate::NamePrefixMatch
 findUtcOffsetPrefix(QStringView text, const QLocale &locale)
@@ -839,7 +936,7 @@ findUtcOffsetPrefix(QStringView text, const QLocale &locale)
     qsizetype hourEnd = 0, hmMid = 0, minEnd = 0;
     int digits = 0;
     char32_t ch = 0;
-    while (iter.hasNext()) {
+    while (digits < 4 && iter.hasNext()) {
         ch = iter.next();
         if (!QChar::isDigit(ch))
             break;
@@ -849,11 +946,13 @@ findUtcOffsetPrefix(QStringView text, const QLocale &locale)
         // we have that many; use hmMid to hold the last-but-one.
         hourEnd = std::exchange(hmMid, std::exchange(minEnd, iter.index()));
     }
-    if (digits < 1 || digits > 4) // No offset or something other than an offset.
+    if (!digits) // No offset.
         return {};
 
     QStringView hourStr, minStr;
-    if (digits < 3 && iter.hasNext() && QChar::isPunct(ch)) {
+    if (digits == 4) {
+        minStr = offset.first(minEnd).sliced(hourEnd);
+    } else if (digits < 3 && iter.hasNext() && QChar::isPunct(ch)) {
         hourEnd = minEnd; // Use all digits seen thus far for hour.
         hmMid = iter.index(); // Reuse as minStart, in effect.
         int mindig = 0;
@@ -865,8 +964,8 @@ findUtcOffsetPrefix(QStringView text, const QLocale &locale)
             minStr = offset.first(minEnd).sliced(hmMid);
         else
             minEnd = hourEnd; // Ignore punctuator and beyond
-    } else {
-        minStr = offset.first(minEnd).sliced(hourEnd);
+    } else { // Not enough digits for a minute field.
+        minEnd = hourEnd;
     }
     hourStr = offset.first(hourEnd);
 
@@ -912,6 +1011,26 @@ QTimeZonePrivate::findLongNamePrefix(QStringView text, const QLocale &locale,
                                      std::optional<qint64> atEpochMillis)
 {
     // Search all known zones for one that matches a prefix of text in our locale.
+    // We allow an offset form, as those are used as long names for QUtcTZP:
+    QTimeZonePrivate::NamePrefixMatch best = findUtcOffsetPrefix(text, locale);
+
+    const auto matchLength = [text](QStringView name) -> qsizetype {
+        qsizetype length = 0; // "Does not match" by default.
+        if (name.size() > 0 && text.startsWith(name, Qt::CaseInsensitive)) {
+            length = name.size();
+            // But a case-insensitive match might have different length:
+            while (!text.first(length).startsWith(name, Qt::CaseInsensitive)) {
+                ++length;
+                Q_ASSERT(length <= text.size());
+            }
+            // If we didn't need to grow, check whether we can shrink:
+            if (length == name.size()) {
+                while (length > 0 && text.first(length - 1).startsWith(name, Qt::CaseInsensitive))
+                    --length;
+            }
+        }
+        return length;
+    };
     const auto when = atEpochMillis
         ? QDateTime::fromMSecsSinceEpoch(*atEpochMillis, QTimeZone::UTC)
         : QDateTime();
@@ -921,36 +1040,62 @@ QTimeZonePrivate::findLongNamePrefix(QStringView text, const QLocale &locale,
         // Assume standard time name applies equally as generic:
         return QTimeZone::GenericTime;
     };
-    QTimeZonePrivate::NamePrefixMatch best = findUtcOffsetPrefix(text, locale);
-    constexpr QTimeZone::TimeType types[]
-        = { QTimeZone::GenericTime, QTimeZone::StandardTime, QTimeZone::DaylightTime };
-    const auto improves = [text, &best](const QString &name) {
-        return text.startsWith(name, Qt::CaseInsensitive) && name.size() > best.nameLength;
-    };
-    const QList<QByteArray> allZones = QTimeZone::availableTimeZoneIds();
-    for (const QByteArray &iana : allZones) {
+    const auto tryZone = [&](const QByteArray &iana) {
+        bool matched = false;
+        constexpr QTimeZone::TimeType types[]
+            = { QTimeZone::GenericTime, QTimeZone::StandardTime, QTimeZone::DaylightTime };
         QTimeZone zone(iana);
         if (!zone.isValid())
-            continue;
+            return matched;
         if (when.isValid()) {
-            QString name = zone.displayName(when, QTimeZone::LongName, locale);
-            if (improves(name))
-                best = { iana, name.size(), typeFor(zone) };
+            const QString name = zone.displayName(when, QTimeZone::LongName, locale);
+            if (qsizetype match = matchLength(name); match > best.nameLength) {
+                best = { iana, match, typeFor(zone) };
+                matched = true;
+            }
         } else {
+            const bool neverDst = !zone.hasDaylightTime();
             for (const QTimeZone::TimeType type : types) {
-                QString name = zone.displayName(type, QTimeZone::LongName, locale);
-                if (improves(name))
-                    best = { iana, name.size(), type };
+                if (neverDst && type == QTimeZone::DaylightTime)
+                    continue;
+                const QString name = zone.displayName(type, QTimeZone::LongName, locale);
+                if (qsizetype match = matchLength(name); match > best.nameLength) {
+                    best = { iana, match, type };
+                    matched = true;
+                }
             }
         }
+        return matched;
+    };
+
+    const QList<QByteArray> allZones = getCanonicalZonesThenAliases();
+    for (const QByteArray &iana : allZones) {
         // If we have a match for all of text, we can't get any better:
-        if (best.nameLength >= text.size())
+        if (tryZone(iana) && best.nameLength >= text.size())
             break;
     }
     // This has the problem of selecting the first IANA ID of a zone with a
     // match; where several IANA IDs share a long name, this may not be the
     // natural one to pick. Hopefully a backend that does its own name L10n will
     // at least produce one with the same offsets as the most natural choice.
+    // The initialization of allZones should at least mean we prefer canonical.
+
+    // However, some zones may have aliases that are supported and get different
+    // display names, e.g. because the ID appears as part of the name.
+    if (!best) {
+        // Search the alias table for names we've not tried that might be
+        // supported but not "available". Non-canonical aliases of available
+        // names won't have been added to allZones.
+        QDuplicateTracker<QByteArray, std::size(aliasMappingTable)> triedAlready;
+        for (const QByteArray &iana : allZones)
+            (void) triedAlready.hasSeen(iana);
+        for (const auto &data : aliasMappingTable) {
+            const QByteArray alias = data.aliasId().toByteArray();
+            if (!triedAlready.hasSeen(alias) && tryZone(alias) && best.nameLength >= text.size())
+                break;
+        }
+    }
+
     return best;
 }
 
@@ -964,22 +1109,731 @@ QTimeZonePrivate::findNarrowOffsetPrefix(QStringView, const QLocale &)
 // Implemented in qtimezonelocale.cpp
 #endif // icu || !timezone_locale
 
+#if QT_CONFIG(timezone_locale) && !QT_CONFIG(icu)
+// The timezone_locale-without-ICU backend's data suffices to do better than
+// this brute force solution:
+#  define BACKEND_PROVIDES_OFFSET_PREFIX
+#endif
+// Hopefully we can do similar for some other backends.
+
+#ifdef BACKEND_PROVIDES_OFFSET_PREFIX
+#  undef BACKEND_PROVIDES_OFFSET_PREFIX
+#else // Need the brute force implementation of findOffsetPrefix():
+namespace {
+
+struct NumericPattern
+{
+    NumericPattern(QStringView text, const QLocale &locale);
+
+    // +ve entries are counts of consecutive signs-and-digits,
+    // -ve entries are counts of everything else, separating those blocks.
+    QList<qsizetype> pattern;
+    bool hasDigits;
+    bool digitsAreLocale;
+    unsigned char sign; // '\0': no sign; '+' or '-': one seen; '+'|'-' = '/': both seen.
+
+private:
+    // Used during construction:
+    class Scanner
+    {
+    public:
+        using Sign = unsigned char; // as for NumericPattern::sign
+    private:
+        bool scanForToken(QStringView sought)
+        {
+            // Side-effect: sets bits in mask for positions in pattern occupied by sought.
+            // Returns true if any matches found.
+            if (sought.isEmpty()) // Despite empty techically matching everywhere, reject.
+                return false;
+            qsizetype tokensMatched = 0;
+            const qsizetype n = sought.size();
+            qsizetype idx = -n; // To cancel the first iteration's +n:
+            while ((idx = given.indexOf(sought, idx + n)) >= 0) {
+                for (qsizetype i = 0; i < n; ++i)
+                    mask.setBit(idx + i);
+                ++tokensMatched;
+            }
+            return tokensMatched > 0;
+        }
+
+        Sign scanForSignsImpl(const QLocale &locale, Sign signs)
+        {
+            // Side-effect: sets bits in mask for positions in pattern occupied by signs.
+            // Returns the bit-wise-| of '+' and '-' for signs seen.
+            if (scanForToken(locale.positiveSign()))
+                signs |= '+';
+            if (scanForToken(locale.negativeSign()))
+                signs |= '-';
+            return signs;
+        }
+
+        QStringView given; // Text to be scanned
+    public:
+        QBitArray mask; // Bits are set for digits and signs, unset otherwise.
+
+        Scanner(QStringView text) : given(text), mask(text.size()) {}
+
+        bool scanForDigits(const QLocale &locale)
+        {
+            // Side-effect: sets bits in mask for positions in pattern occopied by digits.
+            // Returns true if it finds any digits.
+            bool matched = false;
+            for (int i = 0; i < 10; ++i) {
+                if (scanForToken(locale.toString(i)))
+                    matched = true;
+            }
+            return matched;
+        }
+
+        Sign scanForSigns(const QLocale &locale)
+        {
+            // Side-effect: sets bits in maks for positions occupied by signs.
+            // Returns the bit-wise-| of '+' and '-' for signs seen.
+            Sign signs = scanForSignsImpl(locale, '\0');
+            signs = scanForSignsImpl(QLocale::c(), signs);
+            if (scanForToken(u"\u2212")) // Canonical minus sign
+                signs |= '-';
+            return signs;
+        }
+
+        QList<qsizetype> asPattern() const
+        {
+            // Re-encode mask as a sequence of counts of consecutive equal bits,
+            // negated for runs of false bits, positive for runs of true bits.
+            QList<qsizetype> res;
+            qsizetype cur = 0;
+            for (qsizetype i = 0, n = mask.size(); i < n; ++i) {
+                if (mask.testBit(i)) {
+                    if (cur < 0) {
+                        res.push_back(cur);
+                        cur = 0;
+                    }
+                    ++cur;
+                } else {
+                    if (cur > 0) {
+                        res.push_back(cur);
+                        cur = 0;
+                    }
+                    --cur;
+                }
+            }
+            if (cur)
+                res.push_back(cur);
+            return res;
+        }
+    };
+};
+
+NumericPattern::NumericPattern(QStringView text, const QLocale &locale)
+{
+    // Decompose text into sequences of sign-and-digits and of literals; the
+    // former are presumed to convey the numeric part of an offset, the latter
+    // are literals that must match verbatim.
+    Scanner scanner(text);
+    digitsAreLocale = hasDigits = scanner.scanForDigits(locale);
+    if (!hasDigits)
+        hasDigits = scanner.scanForDigits(QLocale::c());
+
+    sign = scanner.scanForSigns(locale);
+    // Finally, convert scanner's QBitArray to our list of signed block-sizes:
+    pattern = scanner.asPattern();
+}
+
+class PatternAligner
+{
+    QStringView txt;
+    const QList<qsizetype> &txtPat;
+    const QtTemporalPattern::TemporalFieldFlags options;
+    qsizetype txtPos = 0, txtInd = 0;
+    static constexpr uint Hour = 1, Minute = 2, Second = 4; // pseudo-flag-enum
+    uint seenFields = 0;
+    using Digits = QLocaleData::DigitSequence;
+
+    bool textMatch(QStringView str, qsizetype strPos, qsizetype slen, qsizetype tlen) const
+    {
+        if (slen != tlen) // Cheap pre-check:
+            return false;
+        if (txt.sliced(txtPos, tlen).compare(str.sliced(strPos, slen), Qt::CaseInsensitive) == 0)
+            return true;
+        // Special case: allow a leading "UTC" to match "GMT":
+        if (txtInd == 0 && slen == 3 && txt.first(3) == u"GMT" && str.first(3) == u"UTC") {
+            Q_ASSERT(txtPos == 0);
+            Q_ASSERT(strPos == 0);
+            return true;
+        }
+        return false;
+    }
+
+    bool allowField(uint fieldBit) const;
+    bool allowSkipField(Digits &&fmt) const;
+    auto readField(QByteArrayView field, uint fieldBit, int *value);
+    bool scanExtraFields(QStringView sep, const QLocaleData *locData,
+                         qsizetype &txtLen, int &second);
+    qsizetype scanMatchedFields(const Digits &fmt, const Digits &src, bool allowExtraFields,
+                                int &hour, int &minute, int &second, int &sign);
+    void reset()
+    {
+        txtPos = 0;
+        txtInd = 0;
+        seenFields = 0;
+    }
+
+public:
+    PatternAligner(QStringView text, const QList<qsizetype> &textPattern,
+                   QtTemporalPattern::TemporalFieldFlags flags)
+        : txt(text), txtPat(textPattern), options(flags) {}
+
+    // The arbitrary offset used, 10:37:25, is chosen to have no repeat digits
+    // and no leading zeros (when presented in two-digit fields). This makes
+    // recognising its representation in an offset text straightforward.
+    static constexpr qint32 OffsetMagnitude = 38245; // 10h 37m 25s in seconds.
+    static constexpr QByteArrayView hourAscii{"10"}, minuteAscii{"37"}, secondAscii{"25"};
+
+    auto match(QStringView str, const QList<qsizetype> &strPat,
+               const QLocaleData *locData, char signChar);
+};
+
+bool PatternAligner::allowField(uint fieldBit) const
+{
+    if (!fieldBit || (seenFields & fieldBit))
+        return false;
+
+    // TODO: Standalone | Short is ASCII-only; must be settled further up the call-stack
+    using namespace QtTemporalPattern::FieldGroup;
+    if (!options.testAnyFlags(WidthMask))
+        return true;
+
+    switch (fieldBit) {
+        using namespace QtTemporalPattern;
+        using F = TemporalFieldFlag;
+    case Hour: // Allowed by every format
+        return true;
+    case Minute: // Only excluded by Narrow (and we can infer some other width is set if it isn't):
+        return matchesFlagsWithin(options, WidthMask & ~F::Narrow, WidthMask);
+    case Second:
+        return matchesFlagsWithin(options, F::Wide | F::Short, WidthMask);
+    }
+    Q_UNREACHABLE_RETURN(false);
+}
+
+bool PatternAligner::allowSkipField(Digits &&fmt) const
+{
+    // Only ever called when fields are separated.
+    uint fieldBit = 0;
+    if (fmt.digits.startsWith(minuteAscii))
+        fieldBit = Minute;
+    else if (fmt.digits.startsWith(secondAscii))
+        fieldBit = Second;
+    else // Unrecognized field or hour can't be skipped.
+        return false;
+    // Should never arise, but if we've already seen the field we can skip it:
+    if (Q_UNLIKELY(seenFields & fieldBit))
+        return true;
+    // Should never arise, but we can't skip minute if we've read second:
+    if (Q_UNLIKELY(seenFields & Second) && fieldBit == Minute)
+        return false;
+
+    // If no widths are set, all are allowed.
+    if (options.testAnyFlags(QtTemporalPattern::FieldGroup::WidthMask)) {
+        using F = QtTemporalPattern::TemporalFieldFlag;
+        // If the width prohibits this field, we can skip it.
+        // ZeroPad also allows skipping.
+        switch (fieldBit) {
+        case Minute:
+            return options.testAnyFlags(F::ZeroPad | F::Narrow);
+        case Second:
+            return options.testAnyFlags(F::ZeroPad | F::Narrow | F::Abbreviated);
+        }
+    }
+    return true;
+}
+
+auto PatternAligner::readField(QByteArrayView field, uint fieldBit, int *value)
+{
+    // Greedy, subject to limits on field value:
+    constexpr int MaxHourOffset
+        = qMax(QTimeZone::MaxUtcOffsetSecs, -QTimeZone::MinUtcOffsetSecs) / 3600;
+    static_assert(MaxHourOffset > 9); // So single-digit value is always in range.
+    struct R {
+        QByteArrayView used;
+        bool ok;
+    } res = { field, false };
+    // Only hour field is allowed to be single-digit:
+    if ((fieldBit != Hour && res.used.size() < 2) || !allowField(fieldBit) || !value)
+        return res;
+    Q_ASSERT(*value == 0); // Shouldn't be filling in a field that's already filled in.
+    seenFields |= fieldBit;
+    if (res.used.size() > 2)
+        res.used = res.used.first(2);
+    *value = res.used.toInt(&res.ok);
+    if (fieldBit == Hour && (!res.ok || *value > MaxHourOffset)) {
+        res.used.chop(1);
+        *value = res.used.toInt(&res.ok);
+    }
+    return res;
+}
+
+// For when txt has fields absent from fmt:
+bool PatternAligner::scanExtraFields(QStringView sep, const QLocaleData *locData,
+                                     qsizetype &txtLen, int &second)
+{
+    Q_ASSERT(locData); // Non-empty sep => have digits.
+    // Matching sep doesn't count unless there's a number after it:
+    while (txtInd + 1 < txtPat.size() && txt.sliced(txtPos, -txtLen) == sep) {
+        txtPos -= txtLen;
+        txtLen = txtPat.at(++txtInd);
+        // To have a separator, we must have seen two fields:
+        Q_ASSERT((seenFields & Hour) && (seenFields & Minute));
+        if (seenFields & Second) // Too many extra fields
+            return false;
+        Q_ASSERT(second == 0);
+        const Digits asciiParse
+            = locData->digitSequence(txt.sliced(txtPos, txtLen));
+        QByteArrayView found = asciiParse.digits;
+        bool ok = false;
+        second = found.toInt(&ok);
+        if (!ok || second >= 60)
+            return false;
+        seenFields |= Second;
+        txtPos += txtLen;
+        txtLen = ++txtInd < txtPat.size() ? txtPat.at(txtInd) : 0;
+    }
+
+    return true;
+}
+
+// For when we can use the content of fmt fields to indicate which field they are:
+qsizetype PatternAligner::scanMatchedFields(const Digits &fmt, const Digits &src,
+                                            bool allowExtraFields,
+                                            int &hour, int &minute, int &second, int &sign)
+{
+    if (fmt.sign) {
+        if (!fmt.digits.startsWith(hourAscii))
+            return -1; // Sign must be applied to hour, no other field
+        if (sign || !src.sign)
+            return -1; // Only one sign, txt must have sign where str does
+        sign = fmt.sign == src.sign ? +1 : -1;
+    } else if (src.sign) {
+        return -1; // If str lacks sign, so must txt.
+    }
+
+    QByteArrayView chosen{fmt.digits}, found{src.digits};
+    while (chosen.size() && found.size()) {
+        const uint priorFields = seenFields;
+        auto read = chosen.startsWith(hourAscii) ? readField(found, Hour, &hour)
+            : chosen.startsWith(minuteAscii) ? readField(found, Minute, &minute)
+            : chosen.startsWith(secondAscii) ? readField(found, Second, &second)
+            : readField(found, 0u, nullptr);
+        if (!read.ok) // Always catches the last case of the precedeing.
+            return -1;
+
+        if (read.used.size() < 2) {
+            const uint newField = (seenFields ^ priorFields);
+            // Only hour can be shorter than two digits, and even then only when
+            // it's all there is.
+            if (newField == Hour) {
+                // We can't ignore it as dangling cruft, as hour is always required.
+                if (priorFields) // It wasn't the only field.
+                    return -1;
+                // Anything after this is dangling cruft. We must assume elided
+                // zeros for minutes and seconds.
+                chosen = {};
+                found = found.sliced(read.used.size());
+                allowExtraFields = false;
+                break;
+            }
+            // If this isn't the first field and we've seen an hour field ...
+            if (chosen.size() < fmt.digits.size() && (priorFields & Hour)) {
+                // ... treat current field as start of dangling cruft.
+                // Forget we've seen it:
+                seenFields = priorFields;
+                Q_ASSERT(newField == Minute || newField == Second);
+                if (newField == Minute)
+                    minute = 0;
+                else
+                    second = 0;
+                // Assume elided zeros for remaining fields.
+                chosen = {};
+                allowExtraFields = false;
+                break;
+            }
+            return -1;
+        }
+
+        Q_ASSERT(chosen.size() >= 2); // It starts with a known two-digit string.
+        chosen = chosen.sliced(2);
+        found = found.sliced(read.used.size());
+    }
+    if (chosen.size()) {
+        Q_ASSERT(found.isEmpty());
+        // May have elided trailing zero (mins and) seconds.
+        return (seenFields & Hour) ? 0 : -1;
+    }
+
+    if (found.size() && (seenFields & Hour)) {
+        // If there's no later numeric field we might just have surplus precision.
+        // Or we might just have dangling cruft.
+        if (allowExtraFields) {
+            if (!Q_LIKELY(seenFields & Minute)) {
+                const uint priorFields = seenFields;
+                auto read = readField(found, Minute, &minute);
+                if (!read.ok || read.used.size() < 2) {
+                    minute = 0;
+                    seenFields = priorFields;
+                    return found.size();
+                }
+                found = found.sliced(read.used.size());
+            }
+            if (!(seenFields & Second)) {
+                const uint priorFields = seenFields;
+                auto read = readField(found, Second, &second);
+                if (!read.ok || read.used.size() < 2) {
+                    second = 0;
+                    seenFields = priorFields;
+                    return found.size();
+                }
+                found = found.sliced(read.used.size());
+            }
+        }
+        // Otherwise, interpret remaining digits as dangling cruft.
+        return found.size();
+    }
+    // Can't write off any residue as dangling cruft because Hour isn't set:
+    return found.size() ? -1 : 0;
+}
+
+auto PatternAligner::match(QStringView str, const QList<qsizetype> &strPat,
+                           const QLocaleData *locData, char signChar)
+{
+    Q_ASSERT(!str.isEmpty() && !strPat.isEmpty());
+    // Caller shall reverse sign for the negative-format call, so the sign of
+    // the offset returned here is + if txt agrees with str, - if they're
+    // opposite. This fails if a sign is unexpectedly present or expected and
+    // missing.
+    constexpr auto AllowSign = Digits::Option::AllowSign;
+    struct R {
+        int offset = 0;
+        qsizetype length = 0;
+        operator bool() const { return length > 0; }
+    };
+    if ((strPat.at(0) < 0) != (txtPat.at(0) < 0))
+        return R{};
+    reset();
+
+    int hour = 0, minute = 0, second = 0;
+    int sign = !signChar; // Sign of txt *relative to* str.
+    // Defaults to +1 if there's no overt sign in the pattern; otherwise, require overt sign.
+    QStringView sep; // Separator, if any, between numeric fields.
+
+    qsizetype skip = 0, strPos = 0, txtSkipped = 0;
+    // Entries alternate between +ve for numeric fields, -ve for verbatim texts:
+    for (qsizetype len : strPat) {
+        if (skip > 0) {
+            Q_ASSERT(len > 0);
+            Q_ASSERT(locData); // We only allow skipping if we have digits => locale data
+            if (!allowSkipField(locData->digitSequence(str.sliced(strPos, len))))
+                return R{};
+            strPos += len;
+            ++txtSkipped;
+            --skip;
+            continue;
+        }
+
+        if (len < 0) {
+            qsizetype txtLen = txtInd < txtPat.size() ? txtPat.at(txtInd) : 0;
+            const bool maybeSep = txtInd > 0 && txtInd + 1 < strPat.size();
+            // If we've seen a separator and str has something else, skip over
+            // any extra separator-numeric pairs in txt:
+            if (!sep.isEmpty() && str.sliced(strPos, -len) != sep) {
+                if (!scanExtraFields(sep, locData, txtLen, second))
+                    return  R{};
+            }
+            if (maybeSep && sep.isEmpty())
+                sep = str.sliced(strPos, -len);
+
+            if (!textMatch(str, strPos, -len, -txtLen)) {
+                // Conversely, if str is sep (and txt isn't), skip unmatched
+                // fields, unless ZeroPad was set:
+                if (locData && !sep.isEmpty() && str.sliced(strPos, -len) == sep) {
+                    strPos -= len;
+                    skip = 1;
+                    ++txtSkipped;
+                    continue;
+                }
+                // If this is the last field, txt's version merely needs to start with str's:
+                if (txtInd + 1 < strPat.size() - txtSkipped || len <= txtLen
+                    || !textMatch(str, strPos, -len, -len)) {
+                    // txt doesn't match str, so fail
+                    return R{};
+                }
+                txtLen = len;
+            }
+            // Found match.
+            txtPos -= txtLen;
+            ++txtInd;
+            strPos -= len;
+            continue;
+        }
+        Q_ASSERT(len > 0); // len is never zero.
+
+        if (txtPos >= txt.size()) {
+            Q_ASSERT(txtInd >= txtPat.size());
+            // Numeric field in str not matched in txt.
+            if (!sep.isEmpty() && txtPat.back() == sep.size() && txt.endsWith(sep)
+                && strPat.back() == -sep.size() && str.endsWith(sep)) {
+                // If the offset format ends in a terminator that's the same as
+                // its separator, we can ignore a surplus field of str. Back up
+                // txt by one step, so we do verify we're skipping nothing but
+                // field-and-separator pairs:
+                txtInd = txtPat.size() - 1;
+                txtPos -= sep.size();
+                continue;
+            }
+            // Otherwise the missing field is a failure to match.
+            return R{};
+        }
+        if (!locData) // len > 0 is a numeric field, so only succeed if we have digits.
+            return R{};
+
+        // Numeric field:
+        QStringView field = str.sliced(strPos, len);
+        QStringView toParse = txt.sliced(txtPos, txtPat.at(txtInd));
+        // It may comprise several fields of our offset, with empty separator.
+
+        const Digits asciiField = locData->digitSequence(field, AllowSign);
+        if (asciiField.endIndex() != field.size())
+            return R{};
+        const Digits asciiParse = locData->digitSequence(toParse, AllowSign);
+        if (asciiParse.endIndex() != toParse.size())
+            return R{};
+        const uint priorFields = seenFields;
+        // Allow extra fields if there's no sep or later numeric field:
+        const qsizetype spare
+            = scanMatchedFields(asciiField, asciiParse,
+                                !txtSkipped && txtInd + 2 >= strPat.size() && sep.isEmpty(),
+                                hour, minute, second, sign);
+        if (spare < 0) // Did not match
+            return R{};
+        if (spare) {
+            // If the pattern has a required end marker, we can't write off the
+            // spare as dangling cruft unless that end marker is a field
+            // separator, and we've seen one of those already, after an hour
+            // field, in which case we can treat the whole present field as
+            // dangling cruft.
+            if (spare == 1 && (seenFields & Hour)) {
+                // Too short for non-Hour field, can treat as dangling cruft.
+            } else if (strPat.back() < 0) {
+                if (sep.isEmpty() || !(priorFields & Hour)
+                    || strPat.back() != -sep.size() || !str.endsWith(sep)) {
+                    return R{};
+                }
+                int offset = hour * 60;
+                if (priorFields & Minute)
+                    offset += minute;
+                offset *= 60;
+                if (priorFields & Second)
+                    offset += second;
+                return R{ sign * offset, txtPos };
+            }
+
+            // Consume what we matched; ignore the rest as dangling cruft.
+            txtPos += asciiParse.digitBounds[asciiParse.digits.size() - spare];
+            break;
+        }
+
+        strPos += asciiField.endIndex();
+        txtPos += asciiParse.endIndex();
+        ++txtInd;
+    }
+    if (skip) // The unmatched separator was actually a terminator.
+        return R{};
+    return R{ sign * (second + 60 * (minute + 60 * hour)), txtPos };
+}
+
+QTimeZonePrivate::NamePrefixMatch
+findOffsetPrefixImpl(QStringView text, const QLocale &locale,
+                     QtTemporalPattern::TemporalFieldFlags flags)
+{
+    QTimeZonePrivate::NamePrefixMatch best;
+    if (text.isEmpty())
+        return best;
+
+    // Note: this is brute force applied to our ignorance of the formats used
+    // for offsets by locale, effectively inferring them from some sample
+    // display names of particular offsets. Any backend with access to the raw
+    // formats in use should prefer to implement this a lot more efficiently and
+    // #if-out this version when it's available.
+
+    const QUtcTimeZonePrivate greenwich(0); // UTC
+    // Deliberately messy so we see whether minutes (and even seconds) get displayed:
+    const QUtcTimeZonePrivate positive(+PatternAligner::OffsetMagnitude);
+    const QUtcTimeZonePrivate negative(-PatternAligner::OffsetMagnitude);
+
+    constexpr QTimeZone::NameType formats[] = {
+        QTimeZone::OffsetName, QTimeZone::LongName, QTimeZone::ShortName
+    };
+    constexpr QTimeZone::TimeType seasons[] = {
+        QTimeZone::GenericTime, QTimeZone::StandardTime, QTimeZone::DaylightTime
+    };
+
+    const auto acceptFormat = [flags](QTimeZone::NameType format) {
+        using namespace QtTemporalPattern;
+        // If no relevant flags are set, all widths and forms are allowed.
+        if (!flags.testAnyFlags(FieldGroup::WidthMask | FieldGroup::FormMask))
+            return true;
+        using Flag = TemporalFieldFlag;
+        constexpr TemporalFieldFlags Textual = Flag::Verbal | Flag::Standalone;
+        constexpr TemporalFieldFlags Long = Flag::Abbreviated | Flag::Short | Flag::Wide;
+        switch (format) {
+        case QTimeZone::OffsetName:
+            return matchesFlagWithin(flags, Flag::Numeric, FieldGroup::FormMask);
+        case QTimeZone::DefaultName:
+        case QTimeZone::LongName:
+            return matchesFlagsWithin(flags, Textual, FieldGroup::FormMask)
+                && matchesFlagsWithin(flags, Long, FieldGroup::WidthMask);
+        case QTimeZone::ShortName:
+            return matchesFlagsWithin(flags, Textual, FieldGroup::FormMask)
+                && matchesFlagWithin(flags, Flag::Narrow, FieldGroup::WidthMask);
+        }
+        Q_UNREACHABLE_RETURN(false);
+    };
+    const auto acceptSeason = [flags](QTimeZone::TimeType season) {
+        using namespace QtTemporalPattern;
+        // If no season flags are given, all time types are accepted:
+        if (!flags.testAnyFlags(FieldGroup::SeasonMask))
+            return true;
+        using Flag = TemporalFieldFlag;
+        switch (season) {
+        case QTimeZone::GenericTime:
+            return flags.testFlag(Flag::GenericTime);
+        case QTimeZone::StandardTime:
+            return flags.testFlag(Flag::StandardTime);
+        case QTimeZone::DaylightTime:
+            return flags.testFlag(Flag::DaylightSavingTime);
+        }
+        Q_UNREACHABLE_RETURN(false);
+    };
+
+    /* Scan with locale-appropriate digits first, then with ASCII (C-locale)
+       digits, if different. Note that both scan's use the locale-appropriate
+       *format* for offsets, so the rescan with C-locale's digits and the
+       locale's format may produce different results to the second call of this
+       function for the C locale, which uses its own format as well as digits.
+     */
+    QLocale digitLocale = locale;
+    for (int i = 0; i < 2; ++i) {
+        // Decompose text into sequences of sign-and-digits and of literals; the
+        // former are presumed to convey the numeric part of an offset, the latter
+        // are literals that must match verbatim. If !textPattern.hasDigits then
+        // only a plain UTC/GMT zone-indicator can be hoped for.
+        const NumericPattern textPattern(text, digitLocale);
+        Q_ASSERT(!textPattern.pattern.isEmpty());
+        PatternAligner aligner(text, textPattern.pattern, flags);
+
+        // Updates best if it finds a better match.
+        // Returns true if candidate uses digitLocale's digits.
+        const auto consider = [&best, &aligner, txtSign = textPattern.sign, digitLocale]
+            (QStringView candidate, char sign, QTimeZone::TimeType season) {
+            const auto idForOffset = [sign](int offsetSeconds) -> QByteArray {
+                if (!offsetSeconds)
+                    return "UTC";
+                if (sign == '-')
+                    offsetSeconds = -offsetSeconds;
+                return QTimeZonePrivate::isoOffsetFormat(offsetSeconds,
+                                                         QTimeZone::OffsetName).toLatin1();
+            };
+            const auto localeDataFor = [loc = digitLocale] (const NumericPattern &pat) {
+                if (pat.hasDigits) {
+                    if (pat.digitsAreLocale)
+                        return QLocalePrivate::get(loc)->m_data;
+                    return QLocaleData::c();
+                }
+                return static_cast<const QLocaleData *>(nullptr);
+            };
+            if (const NumericPattern pat(candidate, digitLocale);
+                // Try to match if text has the expected sign, or if candidate doesn't:
+                (pat.sign & sign) != sign || (txtSign & sign) == sign) {
+                const auto parsed = aligner.match(
+                    candidate, pat.pattern, localeDataFor(pat), pat.sign);
+                if (parsed && parsed.length > best.nameLength)
+                    best = { idForOffset(parsed.offset), parsed.length, season };
+                return pat.digitsAreLocale;
+            }
+            return false;
+        };
+
+        bool nativeSeen = false;
+        for (auto season : seasons) {
+            if (!acceptSeason(season))
+                continue;
+            for (auto format : formats) {
+                if (!acceptFormat(format))
+                    continue;
+                if (const QString pos = positive.displayName(season, format, locale);
+                    pos.size() > best.nameLength) {
+                    if (consider(pos, '+', season))
+                        nativeSeen = true;
+                }
+                if (const QString neg = negative.displayName(season, format, locale);
+                    neg.size() > best.nameLength) {
+                    if (consider(neg, '-', season))
+                        nativeSeen = true;
+                }
+                if (const QString nul = greenwich.displayName(season, format, locale);
+                    nul.size() > best.nameLength) {
+                    if (text.startsWith(nul))
+                        best = { "UTC"_ba, nul.size() };
+                }
+                if (best.nameLength == text.size()) // Shortcut when fully matched.
+                    return best;
+            }
+        }
+
+        // A locale might use (or our backend might, for it, use) localized text
+        // combined with ASCII digits for its offset format.
+        if (i == 0 && (digitLocale.zeroDigit() == u'0' || !nativeSeen))
+            break;
+        digitLocale = QLocale::c();
+    }
+    return best;
+}
+
+} // unnamed namespace
+
+QTimeZonePrivate::NamePrefixMatch
+QTimeZonePrivate::findOffsetPrefix(QStringView text, const QLocale &locale,
+                                   QtTemporalPattern::TemporalFieldFlags flags)
+{
+    NamePrefixMatch best;
+    if (auto match = findOffsetPrefixImpl(text, locale, flags))
+        best = std::move(match);
+    if (auto match = findOffsetPrefixImpl(text, QLocale::c(), flags);
+        match.nameLength > best.nameLength) {
+        best = std::move(match);
+    }
+    return best;
+}
+
+#endif // BACKEND_PROVIDES_OFFSET_PREFIX
+
 QTimeZonePrivate::NamePrefixMatch
 QTimeZonePrivate::findLongUtcPrefix(QStringView text)
 {
     if (text.startsWith(u"UTC")) {
         if (text.size() > 4 && (text[3] == u'+' || text[3] == u'-')) {
             // Compare QUtcTimeZonePrivate::offsetFromUtcString()
-            using QtMiscUtils::isAsciiDigit;
+            const auto digitAt = [text](qsizetype index) {
+                using QtMiscUtils::isAsciiDigit;
+                return index < text.size() && isAsciiDigit(text[index].unicode());
+            };
             qsizetype length = 3;
             int groups = 0; // Number of groups of digits seen (allow up to three).
             do {
                 // text[length] is sign or the colon after last digit-group.
                 Q_ASSERT(length < text.size());
-                if (length + 1 >= text.size() || !isAsciiDigit(text[length + 1].unicode()))
+                if (!digitAt(length + 1) || (groups && !digitAt(length + 2)))
                     break;
-                length +=
-                    (length + 2 < text.size() && isAsciiDigit(text[length + 2].unicode())) ? 3 : 2;
+                length += digitAt(length + 2) ? 3 : 2;
             } while (++groups < 3 && length < text.size() && text[length] == u':');
             if (length > 4)
                 return { text.first(length).toLatin1(), length, QTimeZone::GenericTime };
@@ -990,19 +1844,19 @@ QTimeZonePrivate::findLongUtcPrefix(QStringView text)
     return {};
 }
 
-QByteArray QTimeZonePrivate::aliasToIana(QByteArrayView alias)
+QByteArrayView QTimeZonePrivate::aliasToIana(QByteArrayView alias)
 {
     const auto data = std::lower_bound(std::begin(aliasMappingTable), std::end(aliasMappingTable),
                                        alias, earlierAliasId);
     if (data != std::end(aliasMappingTable) && data->aliasId() == alias)
-        return data->ianaId().toByteArray();
+        return data->ianaId();
     // Note: empty return means not an alias, which is true of an ID that others
-    // are aliases to, as the table omits self-alias entries. Let caller sort
-    // that out, rather than allocating to return alias.toByteArray().
+    // are aliases to, as the table omits self-alias entries. We could return
+    // alias, but we only want to return non-empty if it *was* an alias.
     return {};
 }
 
-QByteArray QTimeZonePrivate::ianaIdToWindowsId(const QByteArray &id)
+QByteArrayView QTimeZonePrivate::ianaIdToWindowsId(QByteArrayView id)
 {
     const auto idUtf8 = QUtf8StringView(id);
 
@@ -1014,29 +1868,44 @@ QByteArray QTimeZonePrivate::ianaIdToWindowsId(const QByteArray &id)
     }
     // If the IANA ID is the default for any Windows ID, it has already shown up
     // as an ID for it in some territory; no need to search windowsDataTable[].
-    return QByteArray();
+    return {};
 }
 
-QByteArray QTimeZonePrivate::windowsIdToDefaultIanaId(const QByteArray &windowsId)
+QByteArrayView QTimeZonePrivate::windowsIdToDefaultIanaId(QByteArrayView windowsId)
 {
     const auto data = std::lower_bound(std::begin(windowsDataTable), std::end(windowsDataTable),
                                        windowsId, earlierWindowsId);
     if (data != std::end(windowsDataTable) && data->windowsId() == windowsId) {
         QByteArrayView id = data->ianaId();
         Q_ASSERT(id.indexOf(' ') == -1);
-        return id.toByteArray();
+        return id;
     }
-    return QByteArray();
+    return {};
 }
 
-QByteArray QTimeZonePrivate::windowsIdToDefaultIanaId(const QByteArray &windowsId,
-                                                      QLocale::Territory territory)
+QByteArrayView QTimeZonePrivate::windowsIdToDefaultIanaId(QByteArrayView windowsId,
+                                                          QLocale::Territory territory)
 {
-    const QList<QByteArray> list = windowsIdToIanaIds(windowsId, territory);
-    return list.size() > 0 ? list.first() : QByteArray();
+    // Must match windowsIdToIanaIds(), but returning its first entry (or empty)
+    if (territory == QLocale::World) {
+        // World data are in windowsDataTable, not zoneDataTable.
+        return windowsIdToDefaultIanaId(windowsId);
+    }
+
+    const quint16 windowsIdKey = toWindowsIdKey(windowsId);
+    const qint16 land = static_cast<quint16>(territory);
+    for (auto data = zoneStartForWindowsId(windowsIdKey);
+         data != std::end(zoneDataTable) && data->windowsIdKey == windowsIdKey;
+         ++data) {
+        // Return the first (preferred) region match:
+        if (data->territory == land)
+            return *data->ids().begin();
+    }
+
+    return {};
 }
 
-QList<QByteArray> QTimeZonePrivate::windowsIdToIanaIds(const QByteArray &windowsId)
+QList<QByteArray> QTimeZonePrivate::windowsIdToIanaIds(QByteArrayView windowsId)
 {
     const quint16 windowsIdKey = toWindowsIdKey(windowsId);
     QList<QByteArray> list;
@@ -1056,13 +1925,14 @@ QList<QByteArray> QTimeZonePrivate::windowsIdToIanaIds(const QByteArray &windows
     return list;
 }
 
-QList<QByteArray> QTimeZonePrivate::windowsIdToIanaIds(const QByteArray &windowsId,
+QList<QByteArray> QTimeZonePrivate::windowsIdToIanaIds(QByteArrayView windowsId,
                                                        QLocale::Territory territory)
 {
+    // Must match windowsIdToDefaultIanaId(), but collecting all candidates.
     QList<QByteArray> list;
     if (territory == QLocale::World) {
         // World data are in windowsDataTable, not zoneDataTable.
-        list << windowsIdToDefaultIanaId(windowsId);
+        list << windowsIdToDefaultIanaId(windowsId).toByteArray();
     } else {
         const quint16 windowsIdKey = toWindowsIdKey(windowsId);
         const qint16 land = static_cast<quint16>(territory);
@@ -1118,6 +1988,8 @@ QUtcTimeZonePrivate::QUtcTimeZonePrivate(const QByteArray &id)
             break;
         }
     }
+    // Don't accept other matches; QTZ's constructor falls back to its own check
+    // using offsetFromUtcString() if all else fails.
 }
 
 qint64 QUtcTimeZonePrivate::offsetFromUtcString(QByteArrayView id)
@@ -1135,6 +2007,8 @@ qint64 QUtcTimeZonePrivate::offsetFromUtcString(QByteArrayView id)
     qint32 seconds = 0;
     int prior = 0; // Number of fields parsed thus far
     for (auto offset : QLatin1StringView(id.mid(4)).tokenize(':'_L1)) {
+        if (offset.size() > 2 || (prior && offset.size() < 2))
+            return invalidSeconds(); // Field too long or too short
         bool ok = false;
         unsigned short field = offset.toUShort(&ok);
         // Bound hour above at 24, minutes and seconds at 60:
@@ -1267,7 +2141,16 @@ QString QUtcTimeZonePrivate::displayName(QTimeZone::TimeType timeType,
                                          const QLocale &locale) const
 {
 #if QT_CONFIG(timezone_locale)
-    QString name = QTimeZonePrivate::displayName(timeType, nameType, locale);
+    QString name =
+#  if QT_CONFIG(icu)
+        // ICU doesn't recognize m_name in "UTC±HH:mm" form as an ID - so that
+        // localeName() only does the offset format, making it useless here (and
+        // it's always expensive). It does, however, cope with plain UTC, so
+        // skip except in that case:
+        m_offsetFromUtc != 0 ? QString() :
+#  endif
+        QTimeZonePrivate::displayName(timeType, nameType, locale);
+
     // That may fall back to standard offset format, in which case we'd sooner
     // use m_name if it's non-empty (for the benefit of custom zones).
     // However, a localized fallback is better than ignoring the locale, so only
@@ -1340,11 +2223,22 @@ qint32 QUtcTimeZonePrivate::daylightTimeOffset(qint64 atMSecsSinceEpoch) const
 
 QByteArray QUtcTimeZonePrivate::systemTimeZoneId() const
 {
+#ifdef Q_OS_WASM
+    const emscripten::val date = emscripten::val::global("Date").new_();
+    if (date.isUndefined())
+        return utcQByteArray();
+    // JavaScript's getTimezoneOffset() returns minutes west of UTC.
+    // Qt expects seconds east of UTC, so we negate and convert to seconds.
+    const int offsetSeconds = -date.call<int>("getTimezoneOffset") * 60;
+    if (offsetSeconds == 0)
+        return utcQByteArray();
+    return isoOffsetFormat(offsetSeconds).toUtf8();
+#else
     return utcQByteArray();
+#endif
 }
 
-// TODO: port to QByteArrayView
-bool QUtcTimeZonePrivate::isTimeZoneIdAvailable(const QByteArray &ianaId) const
+bool QUtcTimeZonePrivate::isTimeZoneIdAvailable(QByteArrayView ianaId) const
 {
     // Only the zone IDs supplied by CLDR and recognized by constructor.
     for (const UtcData &data : utcDataTable) {

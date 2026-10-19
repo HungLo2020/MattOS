@@ -35,7 +35,7 @@ Q_DECLARE_LOGGING_CATEGORY(lcQmltcCompiler)
 
 namespace QQmltc {
 
-using QmltcLoggingCategoryOverride = std::pair<QQmlJS::LoggerWarningId, std::optional<QtMsgType>>;
+using QmltcLoggingCategoryOverride = std::pair<QQmlJS::LoggerWarningId, std::optional<QQmlJS::WarningSeverity>>;
 QSpan<const QmltcLoggingCategoryOverride> categoryOverrides();
 
 class Visitor : public QQmlJSImportVisitor

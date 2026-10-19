@@ -4,6 +4,8 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -13,122 +15,126 @@ import org.kde.plasma.landingpage.kcm
 
 Column {
     id: root
-    Accessible.role: Accessible.RadioButton
-    Accessible.name: text
-    Accessible.onPressAction: radioButton.toggle();
-    Accessible.onToggleAction: radioButton.toggle();
 
     required property ButtonGroup group
-    required property string packageId
-    required property Component availablePackages
+    property string packageId
+    property int variant
 
-    property alias checked: radioButton.checked
+    property alias checked: button.checked
+    property alias popupEnabled: indicator.visible
+    property alias preview: button.contentItem
+    property string text: metaData.name
 
-    readonly property alias preview: previewImage
-    readonly property string text: metaData.name
+    readonly property alias previewImage: previewImage
     readonly property int implicitButtonHeight: Kirigami.Units.gridUnit * 5
     readonly property int implicitButtonWidth: implicitButtonHeight * 1.6
+    readonly property alias hovered: button.hovered
 
     signal toggled()
     signal accepted(id: string)
 
     spacing: Kirigami.Units.smallSpacing
 
-    Kirigami.ShadowedRectangle {
-        id: delegate
+    AbstractButton {
+        id: button
+
+        text: root.text
+
+        implicitWidth: root.implicitButtonWidth + implicitIndicatorWidth
+        implicitHeight: root.implicitButtonHeight
+
+        ButtonGroup.group: root.group
+        checkable: true
+
         Kirigami.Theme.inherit: false
         Kirigami.Theme.colorSet: Kirigami.Theme.View
-        implicitWidth: root.implicitButtonWidth + toolButton.implicitWidth
-        implicitHeight: root.implicitButtonHeight
-        color: Kirigami.Theme.backgroundColor
-        radius: Kirigami.Units.cornerRadius
-        shadow.xOffset: 0
-        shadow.yOffset: 2
-        shadow.size: 10
-        shadow.color: Qt.rgba(0, 0, 0, 0.3)
 
-        Row {
-            anchors.fill: parent
+        padding: Kirigami.Units.smallSpacing
+        rightPadding: Kirigami.Units.smallSpacing + implicitIndicatorWidth
 
-            RadioButton {
-                id: radioButton
-                ButtonGroup.group: root.group
-                implicitWidth: root.implicitButtonWidth
-                implicitHeight: root.implicitButtonHeight
+        onToggled: root.toggled()
 
-                background: Item {}
-                indicator: Item {}
+        contentItem: Image {
+            id: previewImage
+            sourceSize: Qt.size(width * Screen.devicePixelRatio, height * Screen.devicePixelRatio)
+            source: metaData.preview
+            layer.enabled: true
+        }
 
-                contentItem: Item {
-                    Rectangle {
-                        anchors.fill: parent
-                        topLeftRadius: Kirigami.Units.cornerRadius
-                        bottomLeftRadius: Kirigami.Units.cornerRadius
-                        topRightRadius: 0
-                        bottomRightRadius: 0
-                        color: {
-                            if (radioButton.checked) {
-                                return Kirigami.Theme.highlightColor;
-                            } else if (radioButton.hovered) {
-                                return Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.5);
-                            } else {
-                                return Kirigami.Theme.backgroundColor;
-                            }
-                        }
-                    }
-
-                    Image {
-                        id: previewImage
-                        anchors.fill: parent
-                        anchors.margins: Kirigami.Units.smallSpacing
-                        asynchronous: true
-                        layer.enabled: true
-                        sourceSize: Qt.size(width * Screen.devicePixelRatio, height * Screen.devicePixelRatio)
-                        source: metaData.preview
+        background: Kirigami.ShadowedRectangle {
+            Rectangle {
+                width: root.implicitButtonWidth
+                height: root.implicitButtonHeight
+                topLeftRadius: parent.radius
+                bottomLeftRadius: parent.radius
+                topRightRadius: indicator.visible ? 0 : parent.radius;
+                bottomRightRadius: indicator.visible ? 0 : parent.radius
+                color: {
+                    if (button.checked) {
+                        return Kirigami.Theme.highlightColor;
+                    } else if (button.hovered) {
+                        return  Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.5);
+                    } else {
+                        return Kirigami.Theme.backgroundColor;
                     }
                 }
-
-                onToggled: root.toggled()
             }
 
-            AbstractButton {
-                id: toolButton
-                implicitWidth: Kirigami.Units.iconSizes.small + leftPadding + rightPadding
-                implicitHeight: root.implicitButtonHeight
-                leftPadding: Kirigami.Units.smallSpacing
-                rightPadding: Kirigami.Units.smallSpacing
+            color: Kirigami.Theme.backgroundColor
+            radius: Kirigami.Units.cornerRadius
 
-                text: i18nc("@action:button", "Change global theme")
-                display: AbstractButton.IconOnly
+            shadow {
+                xOffset: 0
+                yOffset: 2
+                size: 10
+                color: Qt.rgba(0, 0, 0, 0.3)
+            }
+        }
 
-                Accessible.role: Accessible.ButtonMenu
+        indicator: AbstractButton {
+            id: indicator
 
-                contentItem: Kirigami.Icon {
-                    source: "arrow-down"
-                }
+            anchors.right: parent.right
 
-                background: Rectangle {
-                    color: {
-                        if (toolButton.pressed || popup.visible) {
-                            return Kirigami.Theme.highlightColor;
-                        } else if (toolButton.hovered || toolButton.visualFocus) {
-                            return Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.5);
-                        } else {
-                            return Kirigami.Theme.backgroundColor;
-                        }
-                    }
-                    topLeftRadius: 0
-                    bottomLeftRadius: 0
-                    topRightRadius: Kirigami.Units.cornerRadius
-                    bottomRightRadius: Kirigami.Units.cornerRadius
-                }
+            implicitWidth: visible ? Kirigami.Units.iconSizes.small + leftPadding + rightPadding : 0
+            implicitHeight: root.implicitButtonHeight
 
-                onClicked: {
-                    if (popup.visible) {
-                        popup.close();
+            padding: Kirigami.Units.smallSpacing
+
+            visible: root.popupEnabled
+
+            text: i18nc("@action:button", "Change global theme")
+            display: AbstractButton.IconOnly
+
+            Accessible.role: Accessible.ButtonMenu
+
+            property Popup popup
+
+            contentItem: Kirigami.Icon {
+                source: "arrow-down"
+            }
+
+            background: Rectangle {
+                color: {
+                    if (indicator.pressed || indicator.popup?.visible) {
+                        return Kirigami.Theme.highlightColor;
+                    } else if (indicator.hovered || indicator.visualFocus) {
+                        return Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.5);
                     } else {
-                        popup.open();
+                        return Kirigami.Theme.backgroundColor;
                     }
+                }
+
+                topRightRadius: Kirigami.Units.cornerRadius
+                bottomRightRadius: Kirigami.Units.cornerRadius
+            }
+
+            onClicked: {
+                if (popup) {
+                    popup.close();
+                } else {
+                    popup = popupComponent.createObject(root)
+                    popup.open();
                 }
             }
         }
@@ -136,7 +142,7 @@ Column {
 
     Label {
         id: label
-        width: delegate.implicitWidth
+        width: button.implicitWidth
         text: root.text
         textFormat: Text.PlainText
         horizontalAlignment: Text.AlignHCenter
@@ -148,81 +154,113 @@ Column {
             width: parent.paintedWidth
             height: 1
             color: Kirigami.Theme.highlightColor
-            opacity: radioButton.visualFocus ? 1 : 0
+            opacity: button.visualFocus ? 1 : 0
         }
     }
 
-    Popup {
-        id: popup
-        y: delegate.height
-        x: delegate.width - width
-        implicitHeight: Math.min(contentItem.implicitHeight + topPadding + bottomPadding, Kirigami.Units.gridUnit * 40)
-        focus: true
-        popupType: Popup.Native
-        padding: 1
-        contentItem: ScrollView {
-            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-            contentWidth: listView.implicitWidth
-            contentHeight: listView.implicitHeight
+    Component {
+        id: popupComponent
+
+        Popup {
+            id: popup
+            y: button.height
+            implicitHeight: Math.min(contentItem.implicitHeight + topPadding + bottomPadding, Kirigami.Units.gridUnit * 40, root.Window.height - Kirigami.Units.gridUnit * 10)
+
             focus: true
+            popupType: Popup.Item
+            padding: 1
+            clip: false
+            modal: true
 
-            background: Rectangle {
-                Kirigami.Theme.inherit: false
-                Kirigami.Theme.colorSet: Kirigami.Theme.View
-                color: Kirigami.Theme.backgroundColor
-            }
-
-            ListView {
-                id: listView
-                Accessible.role: Accessible.List // TODO: remove once Qt sets this automatically
-                Accessible.name: i18nc("@label accessible", "Global theme")
+            contentItem: ScrollView {
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                contentWidth: listView.implicitWidth
+                contentHeight: listView.implicitHeight
                 focus: true
-                implicitWidth: radioButton.width
-                implicitHeight: contentHeight
-                delegate: ItemDelegate {
-                    id: delegate
+                clip: true
 
-                    readonly property string pluginId: model.packageId
-                    readonly property string previewUrl: model.preview
+                bottomPadding: leftPadding > 0 ? leftPadding : Kirigami.Units.mediumSpacing
 
-                    text: model.name
+                ListView {
+                    id: listView
+                    Accessible.role: Accessible.List // TODO: remove once Qt sets this automatically
+                    Accessible.name: i18nc("@label accessible", "Global theme")
+                    focus: true
+                    implicitWidth: button.width
+                    implicitHeight: contentHeight
 
-                    width: ListView.view.width
-                    contentItem: Column {
-                        spacing: Kirigami.Units.smallSpacing
-
-                        Image {
-                            width: parent.width
-                            height: width / 1.6
-                            source: delegate.previewUrl
-                        }
-
-                        Label {
-                            width: parent.width
-                            horizontalAlignment: Text.AlignHCenter
-                            text: delegate.text
-                            textFormat: Text.PlainText
-                            elide: Text.ElideRight
-                        }
+                    // Note: Make sure this model is not part of the direct instantiation of the main
+                    // page, to avoid doing a lot of potentially unnecessary lookup of LookAndFeel
+                    // data from disk. In this case, this popup is dynamically created so we only
+                    // load data when the popup is visible.
+                    model: LookAndFeelModel {
+                        variant: root.variant
                     }
 
-                    onClicked: {
-                        root.accepted(delegate.pluginId);
-                        popup.close();
+                    delegate: ItemDelegate {
+                        id: delegate
+
+                        required property string packageId
+                        required property string preview
+                        required property string name
+
+                        text: name
+
+                        width: ListView.view.width
+
+                        contentItem: Column {
+                            spacing: Kirigami.Units.smallSpacing
+
+                            Image {
+                                width: parent.width
+                                height: width / 1.6
+                                source: delegate.preview
+                            }
+
+                            Label {
+                                width: parent.width
+                                horizontalAlignment: Text.AlignHCenter
+                                text: delegate.text
+                                textFormat: Text.PlainText
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        onClicked: {
+                            root.accepted(delegate.packageId);
+                            popup.close();
+                        }
                     }
                 }
             }
-        }
 
-        onAboutToShow: {
-            listView.model = root.availablePackages.createObject(listView);
-            listView.currentIndex = listView.model.indexOf(root.packageId);
-        }
+            background: Kirigami.ShadowedRectangle {
+                Kirigami.Theme.inherit: false
+                Kirigami.Theme.colorSet: Kirigami.Theme.View
 
-        onClosed: {
-            if (listView.model) {
-                listView.model.destroy();
-                listView.model = null;
+                color: Kirigami.Theme.backgroundColor
+
+                radius: Kirigami.Units.cornerRadius
+
+                border.width: 1
+                border.color: Kirigami.ColorUtils.linearInterpolation(Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, Kirigami.Theme.frameContrast)
+
+                shadow {
+                    size: 10
+                    yOffset: 2
+                    color: Qt.rgba(0, 0, 0, 0.2)
+                }
+            }
+
+            onAboutToShow: {
+                listView.currentIndex = listView.model.indexOf(root.packageId);
+            }
+
+            onClosed: {
+                if (indicator.popup) {
+                    indicator.popup.destroy()
+                    indicator.popup = null
+                }
             }
         }
     }

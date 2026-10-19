@@ -10,9 +10,6 @@
 #include <QPointer>
 #include <QPropertyAnimation>
 #include <QTimer>
-#ifdef HAVE_X11
-#include <QWindow> // For WId
-#endif
 
 #include <KSvg/FrameSvg>
 #include <kwindoweffects.h>
@@ -33,6 +30,9 @@ class PanelView : public PlasmaQuick::ContainmentView
 
 {
     Q_OBJECT
+    QML_NAMED_ELEMENT(Panel)
+    QML_UNCREATABLE("")
+
     /**
      * Alignment of the panel: when not fullsize it can be aligned at left,
      * right or center of the screen (left and right work as top/bottom
@@ -85,7 +85,7 @@ class PanelView : public PlasmaQuick::ContainmentView
     /**
      * information about the screen in which the panel is in
      */
-    Q_PROPERTY(QScreen *screenToFollow READ screenToFollow WRITE setScreenToFollow NOTIFY screenToFollowChanged)
+    Q_PROPERTY(QScreen *screenToFollow READ screenToFollow NOTIFY screenToFollowChanged)
 
     /**
      *  how the panel behaves, visible, autohide etc.
@@ -135,16 +135,6 @@ class PanelView : public PlasmaQuick::ContainmentView
     Q_PROPERTY(bool userConfiguring READ isUserConfiguring NOTIFY userConfiguringChanged)
 
     /**
-     * Quirk for X11 session on NVIDIA GPU.
-     */
-    Q_PROPERTY(bool unsupportedConfiguration READ isUnsupportedConfiguration NOTIFY unsupportedConfigurationChanged)
-
-    /**
-     * Quirk for X11 session on NVIDIA GPU.
-     */
-    Q_PROPERTY(QString unsupportedConfigurationDescription READ unsupportedConfigurationDescription NOTIFY unsupportedConfigurationChanged)
-
-    /**
      * When this property is set to true, the panel will always prefer the
      * floating style for applets.
      * @since 6.4
@@ -180,11 +170,10 @@ public:
     explicit PanelView(ShellCorona *corona, QScreen *targetScreen = nullptr, QWindow *parent = nullptr);
     ~PanelView() override;
 
-    KConfigGroup config() const override;
+    bool hasConfig();
+    KConfigGroup resolutionIndependentConfig();
+    KConfigGroup resolutionDependentConfig();
     KConfigGroup configDefaults() const;
-
-    Q_INVOKABLE QString fileFromPackage(const QString &key, const QString &fileName);
-    Q_INVOKABLE void maximize();
 
     Qt::Alignment alignment() const;
     void setAlignment(Qt::Alignment alignment);
@@ -215,10 +204,6 @@ public:
 
     QRect relativeConfigRect() const;
 
-    bool isUnsupportedConfiguration() const;
-
-    QString unsupportedConfigurationDescription() const;
-
     Plasma::Types::BackgroundHints backgroundHints() const;
     void setBackgroundHints(Plasma::Types::BackgroundHints hint);
 
@@ -244,8 +229,6 @@ public:
      */
     Q_INVOKABLE QRect dogdeGeometryByDistance(int distance) const;
 
-    Q_INVOKABLE void fixUnsupportedConfiguration();
-
     Q_INVOKABLE void clonePanelTo(Plasma::Types::Location location, QScreen *screen);
 
     /* Both Shared with script/panel.cpp */
@@ -259,6 +242,12 @@ public:
       change this property, unlike QWindow::screen()*/
     void setScreenToFollow(QScreen *screen);
     QScreen *screenToFollow() const;
+
+    /*
+     * This is intended to be used by the panel configuration QML for the user
+     * to move the panel to another screen
+     */
+    Q_INVOKABLE void moveToScreen(QScreen *screen);
 
     bool isUserConfiguring() const;
     void restore();
@@ -285,7 +274,6 @@ Q_SIGNALS:
     void floatingChanged();
     void floatingAppletsChanged();
     void minThicknessChanged();
-    void unsupportedConfigurationChanged();
 
     void geometryChanged();
     void relativeConfigRectChanged();
@@ -322,7 +310,6 @@ private Q_SLOTS:
     void updateTouchingWindow();
 
 private:
-    bool isUnsupportedEnvironment() const;
     bool defaultFloating() const;
     OpacityMode defaultOpacityMode() const;
     int readConfigValueWithFallBack(const QString &key, int defaultValue);
@@ -335,7 +322,6 @@ private:
     bool containmentContainsPosition(const QPointF &point) const;
     QPointF positionAdjustedForContainment(const QPointF &point) const;
     bool edgeActivated() const;
-    bool canSetStrut() const;
     void positionConfigView();
 
     int m_offset;

@@ -16,7 +16,7 @@
 // We mean it.
 //
 
-#include "qlanguageserver_p.h"
+#include <private/qlanguageserver_p.h>
 #include <QtLanguageServer/private/qlanguageserverprotocol_p.h>
 #include <QtCore/QMutex>
 #include <QtCore/QHash>
@@ -46,13 +46,11 @@ public:
 
     mutable QMutex mutex;
     // mutex gated, monotonically increasing
-    QLanguageServer::RunStatus runStatus = QLanguageServer::RunStatus::NotSetup;
+    QLanguageServer::RunStatus runStatus = QLanguageServer::RunStatus::NotInitialized;
     QHash<QJsonValue, QRequestInProgress> requestsInProgress; // mutex gated
-    bool clientInitialized = false; // mutex gated
-    QLspSpecification::InitializeParams clientInfo; // immutable after runStatus > DidInitialize
-    QLspSpecification::InitializeResult serverInfo; // immutable after runStatus > DidInitialize
+    QLspSpecification::InitializeParams clientInfo; // immutable after runStatus > Initialized
+    QLspSpecification::InitializeResult serverInfo; // immutable after runStatus > Initialized
     QLspSpecification::Responses::ShutdownResponseType shutdownResponse;
-    QHash<QString, QLanguageServerModule *> modules;
     QLspNotifySignals notifySignals;
 };
 

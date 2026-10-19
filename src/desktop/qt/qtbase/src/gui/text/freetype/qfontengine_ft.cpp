@@ -52,10 +52,6 @@
 #include FT_ERRORS_H
 #endif
 
-#if !defined(QT_MAX_CACHED_GLYPH_SIZE)
-#  define QT_MAX_CACHED_GLYPH_SIZE 64
-#endif
-
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
@@ -596,11 +592,14 @@ void QFreetypeFace::computeSize(const QFontDef &fontDef, int *xsize, int *ysize,
         }
     } else {
 #if defined FT_HAS_COLOR
-        if (FT_HAS_COLOR(face))
+        if (FT_HAS_COLOR(face)) {
             *outline_drawing = false;
-        else
+        } else
 #endif
-            *outline_drawing = (*xsize > (QT_MAX_CACHED_GLYPH_SIZE<<6) || *ysize > (QT_MAX_CACHED_GLYPH_SIZE<<6));
+        {
+            int maxCachedGlyphSize = QFontEngine::maxCachedGlyphSize();
+            *outline_drawing = (*xsize > (maxCachedGlyphSize << 6) || *ysize > (maxCachedGlyphSize << 6));
+        }
     }
 }
 
@@ -840,6 +839,23 @@ QFontEngineFT *QFontEngineFT::create(const QFontDef &fontDef, FaceId faceId, con
     return engine.release();
 }
 
+static FT_UShort calculateActualWeight(QFreetypeFace *freetypeFace, FT_Face face, QFontEngine::FaceId faceId)
+{
+    FT_MM_Var *var = freetypeFace->mm_var;
+    if (var != nullptr && faceId.instanceIndex >= 0 && FT_UInt(faceId.instanceIndex) < var->num_namedstyles) {
+        for (FT_UInt axis = 0; axis < var->num_axis; ++axis) {
+            if (var->axis[axis].tag == QFont::Tag("wght").value()) {
+                return var->namedstyle[faceId.instanceIndex].coords[axis] >> 16;
+            }
+        }
+    }
+    if (const TT_OS2 *os2 = reinterpret_cast<const TT_OS2 *>(FT_Get_Sfnt_Table(face, ft_sfnt_os2))) {
+        return os2->usWeightClass;
+    }
+
+    return 700;
+}
+
 namespace {
     class QFontEngineFTRawData: public QFontEngineFT
     {
@@ -857,15 +873,20 @@ namespace {
 
             if (freetype->face->style_flags & FT_STYLE_FLAG_BOLD)
                 fontDef.weight = QFont::Bold;
+            else
+                fontDef.weight = calculateActualWeight(freetype, freetype->face, faceId());
         }
 
-        bool initFromData(const QByteArray &fontData, const QMap<QFont::Tag, float> &variableAxisValues)
+        bool initFromData(const QByteArray &fontData,
+                          const QMap<QFont::Tag, float> &variableAxisValues,
+                          int instanceIndex)
         {
             FaceId faceId;
             faceId.filename = "";
             faceId.index = 0;
             faceId.uuid = QUuid::createUuid().toByteArray();
             faceId.variableAxes = variableAxisValues;
+            faceId.instanceIndex = instanceIndex;
 
             return init(faceId, true, Format_None, fontData);
         }
@@ -875,7 +896,8 @@ namespace {
 QFontEngineFT *QFontEngineFT::create(const QByteArray &fontData,
                                      qreal pixelSize,
                                      QFont::HintingPreference hintingPreference,
-                                     const QMap<QFont::Tag, float> &variableAxisValues)
+                                     const QMap<QFont::Tag, float> &variableAxisValues,
+                                     int instanceIndex)
 {
     QFontDef fontDef;
     fontDef.pixelSize = pixelSize;
@@ -884,7 +906,7 @@ QFontEngineFT *QFontEngineFT::create(const QByteArray &fontData,
     fontDef.variableAxisValues = variableAxisValues;
 
     QFontEngineFTRawData *fe = new QFontEngineFTRawData(fontDef);
-    if (!fe->initFromData(fontData, variableAxisValues)) {
+    if (!fe->initFromData(fontData, variableAxisValues, instanceIndex)) {
         delete fe;
         return nullptr;
     }
@@ -936,23 +958,6 @@ bool QFontEngineFT::init(FaceId faceId, bool antialias, GlyphFormat format,
 }
 
 static void dont_delete(void*) {}
-
-static FT_UShort calculateActualWeight(QFreetypeFace *freetypeFace, FT_Face face, QFontEngine::FaceId faceId)
-{
-    FT_MM_Var *var = freetypeFace->mm_var;
-    if (var != nullptr && faceId.instanceIndex >= 0 && FT_UInt(faceId.instanceIndex) < var->num_namedstyles) {
-        for (FT_UInt axis = 0; axis < var->num_axis; ++axis) {
-            if (var->axis[axis].tag == QFont::Tag("wght").value()) {
-                return var->namedstyle[faceId.instanceIndex].coords[axis] >> 16;
-            }
-        }
-    }
-    if (const TT_OS2 *os2 = reinterpret_cast<const TT_OS2 *>(FT_Get_Sfnt_Table(face, ft_sfnt_os2))) {
-        return os2->usWeightClass;
-    }
-
-    return 700;
-}
 
 static bool calculateActualItalic(QFreetypeFace *freetypeFace, FT_Face face, QFontEngine::FaceId faceId)
 {
@@ -1829,6 +1834,12 @@ QFontEngineFT::Glyph *QFontEngineFT::loadGlyph(QGlyphSet *set, uint glyph,
     if (transform || obliquen || (format != Format_Mono && !isScalableBitmap()))
         load_flags |= FT_LOAD_NO_BITMAP;
 
+#if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 20701
+    // Only the advance/metrics are needed here, not the rendered bitmap
+    if (fetchMetricsOnly)
+        load_flags |= FT_LOAD_BITMAP_METRICS_ONLY;
+#endif
+
 #if defined(QFONTENGINE_FT_SUPPORT_COLRV1)
     if (FT_IS_SCALABLE(freetype->face)
         && FT_HAS_COLOR(freetype->face)
@@ -1928,6 +1939,20 @@ QFontEngineFT::Glyph *QFontEngineFT::loadGlyph(QGlyphSet *set, uint glyph,
             set->setGlyph(glyph, subPixelPosition, g);
 
         return g;
+    }
+
+    if (slot->format == FT_GLYPH_FORMAT_OUTLINE) {
+        const QTransform xform(matrix.xx / 65536.0, matrix.xy / 65536.0,
+                               matrix.yx / 65536.0, matrix.yy / 65536.0, 0, 0);
+        FT_BBox cbox;
+        FT_Outline_Get_CBox(&slot->outline, &cbox);
+        const qreal glyphWidth = qreal((cbox.xMax - cbox.xMin) >> 6);
+        const qreal glyphHeight = qreal((cbox.yMax - cbox.yMin) >> 6);
+        if (glyphBoundingBoxExceedsLimit(glyphWidth, glyphHeight, effectivePixelSizeSquared(xform))) {
+            if (set)
+                set->setGlyphMissing(glyph);
+            return &emptyGlyph;
+        }
     }
 
     int glyph_buffer_size = 0;
@@ -2093,7 +2118,7 @@ QFontEngine::Properties QFontEngineFT::properties() const
 {
     Properties p = freetype->properties();
     if (p.postscriptName.isEmpty()) {
-        p.postscriptName = QFontEngine::convertToPostscriptFontFamilyName(fontDef.families.constFirst().toUtf8());
+        p.postscriptName = QFontEngine::convertToPostscriptFontFamilyName(fontDef.family().toUtf8());
     }
 
     return freetype->properties();
@@ -2257,10 +2282,12 @@ QFontEngineFT::QGlyphSet *QFontEngineFT::TransformedGlyphSets::findSet(const QTr
     if (!sets[0])
         sets[0] = new QGlyphSet;
     QGlyphSet *gs = sets[0];
+    Q_ASSERT(gs != nullptr);
+
     gs->clear();
     gs->transformationMatrix = m;
-    gs->outline_drawing = fontDef.pixelSize * fontDef.pixelSize * qAbs(matrix.determinant()) > QT_MAX_CACHED_GLYPH_SIZE * QT_MAX_CACHED_GLYPH_SIZE;
-    Q_ASSERT(gs != nullptr);
+    const int maxCachedSize = maxCachedGlyphSize();
+    gs->outline_drawing = fontDef.pixelSize * fontDef.pixelSize * qAbs(matrix.determinant()) > maxCachedSize * maxCachedSize;
 
     return gs;
 }

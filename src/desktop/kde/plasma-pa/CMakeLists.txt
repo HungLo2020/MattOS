@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 
 project(plasma-volume-control)
 
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 set(PROJECT_VERSION_MAJOR 6)
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -88,8 +88,8 @@ set_package_properties(KF6Kirigami PROPERTIES
     TYPE RUNTIME
 )
 
-find_package(KirigamiAddons CONFIG)
-set_package_properties(KirigamiAddons PROPERTIES
+find_package(KF6KirigamiAddons CONFIG)
+set_package_properties(KF6KirigamiAddons PROPERTIES
     DESCRIPTION "Extra controls for Kirigami applications"
     PURPOSE "Required at runtime for the KCM"
     TYPE RUNTIME
@@ -110,8 +110,8 @@ if (BUILD_DOC)
     )
 endif()
 
-ecm_set_disabled_deprecation_versions(QT 6.9.0
-    KF 6.16.0
+ecm_set_disabled_deprecation_versions(QT 6.11.0
+    KF 6.26.0
 )
 
 add_subdirectory(autotests)

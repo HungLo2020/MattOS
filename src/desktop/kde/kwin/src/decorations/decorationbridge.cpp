@@ -43,12 +43,12 @@ static const QString s_fallbackPlugin = QStringLiteral("org.kde.kwin.aurorae");
 static void migrateAuroraeTheme()
 {
     const QString themeName = kwinApp()->config()->group(s_configKeyName).readEntry("theme");
-    if (!themeName.startsWith(QLatin1String("__aurorae__svg__"))) {
+    if (!themeName.startsWith(QLatin1StringView("__aurorae__svg__"))) {
         return;
     }
 
     const QString pluginName = kwinApp()->config()->group(s_configKeyName).readEntry("library");
-    if (pluginName != QLatin1String("org.kde.kwin.aurorae")) {
+    if (pluginName != QLatin1StringView("org.kde.kwin.aurorae")) {
         return;
     }
 
@@ -92,6 +92,15 @@ bool DecorationBridge::hasPlugin()
         return false;
     }
     return !bridge->m_noPlugin && bridge->m_factory;
+}
+
+QSet<KDecoration3::Style> DecorationBridge::supportedStyles()
+{
+    const DecorationBridge *bridge = workspace()->decorationBridge();
+    if (!bridge) {
+        return {};
+    }
+    return bridge->m_supportedStyles;
 }
 
 void DecorationBridge::init()
@@ -186,6 +195,7 @@ void DecorationBridge::loadMetaData(const QJsonObject &object)
     m_recommendedBorderSize = QString();
     m_theme = QString();
     m_defaultTheme = QString();
+    m_supportedStyles = {KDecoration3::Style::Titled};
 
     // load the settings
     const QJsonValue decoSettings = object.value(s_pluginName);
@@ -194,9 +204,18 @@ void DecorationBridge::loadMetaData(const QJsonObject &object)
         return;
     }
     const QVariantMap decoSettingsMap = decoSettings.toObject().toVariantMap();
-    auto recBorderSizeIt = decoSettingsMap.find(QStringLiteral("recommendedBorderSize"));
-    if (recBorderSizeIt != decoSettingsMap.end()) {
-        m_recommendedBorderSize = recBorderSizeIt.value().toString();
+    if (auto it = decoSettingsMap.find(QStringLiteral("recommendedBorderSize")); it != decoSettingsMap.end()) {
+        m_recommendedBorderSize = it.value().toString();
+    }
+    if (auto it = decoSettingsMap.find(QStringLiteral("styles")); it != decoSettingsMap.end()) {
+        const QStringList styles = it->toStringList();
+        for (const QString &style : styles) {
+            if (style == QLatin1StringView("titled")) {
+                m_supportedStyles.insert(KDecoration3::Style::Titled);
+            } else if (style == QLatin1StringView("shadow")) {
+                m_supportedStyles.insert(KDecoration3::Style::Shadow);
+            }
+        }
     }
     findTheme(decoSettingsMap);
 
@@ -227,7 +246,7 @@ std::unique_ptr<KDecoration3::DecorationSettingsPrivate> DecorationBridge::setti
     return std::unique_ptr<SettingsImpl>(new SettingsImpl(parent));
 }
 
-KDecoration3::Decoration *DecorationBridge::createDecoration(Window *window)
+KDecoration3::Decoration *DecorationBridge::createDecoration(Window *window, KDecoration3::Style style)
 {
     if (m_noPlugin) {
         return nullptr;
@@ -235,7 +254,10 @@ KDecoration3::Decoration *DecorationBridge::createDecoration(Window *window)
     if (!m_factory) {
         return nullptr;
     }
-    QVariantMap args({{QStringLiteral("bridge"), QVariant::fromValue(this)}});
+    QVariantMap args({
+        {QStringLiteral("bridge"), QVariant::fromValue(this)},
+        {QStringLiteral("style"), QVariant::fromValue(style)},
+    });
 
     if (!m_theme.isEmpty()) {
         args.insert(QStringLiteral("theme"), m_theme);
@@ -243,15 +265,19 @@ KDecoration3::Decoration *DecorationBridge::createDecoration(Window *window)
     auto deco = m_factory->create<KDecoration3::Decoration>(window, QVariantList{args});
     deco->setSettings(m_settings);
     deco->create();
-    deco->init();
+    if (!deco->init()) {
+        qCWarning(KWIN_DECORATIONS) << "Failed to initialize decoration theme" << m_theme;
+        delete deco;
+        return nullptr;
+    }
     return deco;
 }
 
 static QString settingsProperty(const QVariant &variant)
 {
-    if (QLatin1String(variant.typeName()) == QLatin1String("KDecoration3::BorderSize")) {
+    if (QLatin1StringView(variant.typeName()) == QLatin1StringView("KDecoration3::BorderSize")) {
         return QString::number(variant.toInt());
-    } else if (QLatin1String(variant.typeName()) == QLatin1String("QList<KDecoration3::DecorationButtonType>")) {
+    } else if (QLatin1StringView(variant.typeName()) == QLatin1StringView("QList<KDecoration3::DecorationButtonType>")) {
         const auto &b = variant.value<QList<KDecoration3::DecorationButtonType>>();
         QString buffer;
         for (auto it = b.begin(); it != b.end(); ++it) {
@@ -277,7 +303,7 @@ QString DecorationBridge::supportInformation() const
         const QMetaObject *metaOptions = m_settings->metaObject();
         for (int i = 0; i < metaOptions->propertyCount(); ++i) {
             const QMetaProperty property = metaOptions->property(i);
-            if (QLatin1String(property.name()) == QLatin1String("objectName")) {
+            if (QLatin1StringView(property.name()) == QLatin1StringView("objectName")) {
                 continue;
             }
             b.append(QStringLiteral("%1: %2\n").arg(property.name(), settingsProperty(m_settings->property(property.name()))));

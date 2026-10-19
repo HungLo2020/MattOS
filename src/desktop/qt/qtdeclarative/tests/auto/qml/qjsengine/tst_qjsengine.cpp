@@ -267,6 +267,7 @@ private slots:
     void importModuleRelative();
     void importModuleWithLexicallyScopedVars();
     void importExportErrors();
+    void importModuleRuntimeError();
 
     void registerModule();
     void registerModuleQObject();
@@ -285,6 +286,7 @@ private slots:
     void sortSparseArray();
     void compileBrokenRegexp();
     void deeplyNestedRegexpDoesNotCrash();
+    void regexpAfterMoveToThread();
     void sortNonStringArray();
     void iterateInvalidProxy();
     void applyOnHugeArray();
@@ -5281,6 +5283,28 @@ void tst_QJSEngine::importExportErrors()
     }
 }
 
+// QTBUG-146158: importModule must return an error QJSValue when the module
+// throws at runtime (explicit throw or implicit ReferenceError), matching the
+// documented contract that the return value has isError() == true on failure.
+void tst_QJSEngine::importModuleRuntimeError()
+{
+    // Explicit throw inside a module
+    {
+        QJSEngine engine;
+        QJSValue result = engine.importModule(QStringLiteral(":/modulethrowerror.mjs"));
+        QVERIFY2(result.isError(), "importModule should return an error when the module throws");
+        QCOMPARE(result.property("message").toString(), QLatin1String("Module error"));
+    }
+    // Implicit ReferenceError from accessing an undefined variable
+    {
+        QJSEngine engine;
+        QJSValue result = engine.importModule(QStringLiteral(":/modulereferenceerror.mjs"));
+        QVERIFY2(result.isError(),
+                 "importModule should return an error when the module has a ReferenceError");
+        QCOMPARE(result.property("name").toString(), QLatin1String("ReferenceError"));
+    }
+}
+
 void tst_QJSEngine::registerModule()
 {
     QJSEngine engine;
@@ -5589,6 +5613,26 @@ void tst_QJSEngine::deeplyNestedRegexpDoesNotCrash()
 
     QVERIFY(!isError);
     QCOMPARE(result, QLatin1String("SyntaxError"));
+}
+
+void tst_QJSEngine::regexpAfterMoveToThread()
+{
+    // Check that we use the correct stack limit after a thread move
+    QJSEngine *engine = new QJSEngine();
+    QThread worker;
+    engine->moveToThread(&worker);
+
+    QString result;
+    QObject::connect(&worker, &QThread::started, engine, [&]() {
+        result = engine->evaluate("\"abc\".replace(/b/, \"_\")").toString();
+        engine->deleteLater();
+        worker.quit();
+    });
+
+    worker.start();
+    QVERIFY(worker.wait());
+
+    QCOMPARE(result, u"a_c"_s);
 }
 
 void tst_QJSEngine::tostringRecursionCheck()

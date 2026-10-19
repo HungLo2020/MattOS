@@ -59,9 +59,12 @@ OutputFrame::~OutputFrame()
     }
 }
 
-void OutputFrame::addFeedback(std::shared_ptr<PresentationFeedback> &&feedback)
+void OutputFrame::addFeedback(std::shared_ptr<PresentationFeedback> &&feedback, PresentationFeedbackFlags flags)
 {
-    m_feedbacks.push_back(std::move(feedback));
+    m_feedbacks.push_back(Feedback{
+        .feedback = std::move(feedback),
+        .flags = flags,
+    });
 }
 
 std::optional<RenderTimeSpan> OutputFrame::queryRenderTime() const
@@ -84,6 +87,29 @@ std::optional<RenderTimeSpan> OutputFrame::queryRenderTime() const
     return ret;
 }
 
+std::optional<RenderTimeSpan> OutputFrame::queryCpuRenderTime() const
+{
+    auto cpuOnly = m_renderTimeQueries | std::views::filter([](const auto &query) {
+        return dynamic_cast<CpuRenderTimeQuery *>(query.get());
+    });
+    if (cpuOnly.empty()) {
+        return RenderTimeSpan{};
+    }
+    const auto first = cpuOnly.front()->query();
+    if (!first) {
+        return std::nullopt;
+    }
+    RenderTimeSpan ret = *first;
+    for (const auto &query : cpuOnly | std::views::drop(1)) {
+        const auto opt = query->query();
+        if (!opt) {
+            return std::nullopt;
+        }
+        ret = ret | *opt;
+    }
+    return ret;
+}
+
 void OutputFrame::presented(std::chrono::nanoseconds timestamp, PresentationMode mode)
 {
     Q_ASSERT(!m_presented);
@@ -93,8 +119,8 @@ void OutputFrame::presented(std::chrono::nanoseconds timestamp, PresentationMode
     if (m_loop) {
         RenderLoopPrivate::get(m_loop)->notifyFrameCompleted(timestamp, renderTime, mode, this);
     }
-    for (const auto &feedback : m_feedbacks) {
-        feedback->presented(m_refreshDuration, timestamp, mode);
+    for (const auto &[feedback, flags] : m_feedbacks) {
+        feedback->presented(this, timestamp, mode, flags);
     }
 }
 
@@ -173,19 +199,19 @@ bool RenderBackend::checkGraphicsReset()
     return false;
 }
 
-DrmDevice *RenderBackend::drmDevice() const
+RenderDevice *RenderBackend::renderDevice() const
 {
     return nullptr;
 }
 
-bool RenderBackend::testImportBuffer(GraphicsBuffer *buffer)
+bool RenderBackend::testImportBuffer(GraphicsBuffer *buffer, dev_t targetDevice)
 {
     return false;
 }
 
-QHash<uint32_t, QList<uint64_t>> RenderBackend::supportedFormats() const
+FormatModifierMap RenderBackend::supportedFormats() const
 {
-    return QHash<uint32_t, QList<uint64_t>>{{DRM_FORMAT_XRGB8888, QList<uint64_t>{DRM_FORMAT_MOD_LINEAR}}};
+    return FormatModifierMap{{DRM_FORMAT_XRGB8888, ModifierList{DRM_FORMAT_MOD_LINEAR}}};
 }
 
 } // namespace KWin

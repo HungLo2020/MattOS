@@ -5,6 +5,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
 
@@ -14,13 +15,13 @@ Kirigami.CardsLayout {
     required property ScreenChooserDialogTemplate dialog
     required property var model
 
-    readonly property alias view: view
+    readonly property alias view: repeater
 
     uniformCellWidths: true
     visible: view.count > 0
 
     Repeater {
-        id: view
+        id: repeater
 
         model: root.model
 
@@ -32,7 +33,7 @@ Kirigami.CardsLayout {
 
             function selectAndAccept(): void {
                 root.dialog.clearSelection()
-                view.model.setData(view.model.index(model.row, 0), Qt.Checked, Qt.CheckStateRole)
+                repeater.model.setData(repeater.model.index(model.row, 0), Qt.Checked, Qt.CheckStateRole)
                 root.dialog.dialogButtonBox.accepted()
             }
 
@@ -44,17 +45,26 @@ Kirigami.CardsLayout {
             exclusive: false
             autoExclusive: exclusive
             checked: model.checked === Qt.Checked
-            nodeId: waylandItem.nodeId
+            showResolutionPicker: model.uniqueId === "Virtual"
+            objectSerial: waylandItem.objectSerial
             syntheticCount: {
-                let model = view.model.sourceModel
+                let model = repeater.model.sourceModel
                 if (model instanceof OutputsModel) {
                     return (model as OutputsModel).syntheticCount
                 }
                 return 0
             }
+            isOutput: repeater.model.sourceModel instanceof OutputsModel
+            geometry: model.geometry ?? Qt.rect(0, 0, 0, 0)
+            backgroundImage: model.imageUrl ?? ""
 
             activeFocusOnTab: true
             highlighted: activeFocus
+
+            Binding {
+                when: delegate.showResolutionPicker
+                root.dialog.virtualScreenResolution: delegate.pickedResolution
+            }
 
             Accessible.role: root.dialog.multiple ? Accessible.CheckBox : Accessible.Button
 
@@ -67,7 +77,7 @@ Kirigami.CardsLayout {
             // Only active if this is a multi-select dialog
             onToggled: {
                 const to = model.checked !== Qt.Checked ? Qt.Checked : Qt.Unchecked;
-                view.model.setData(view.model.index(model.row, 0), to, Qt.CheckStateRole)
+                repeater.model.setData(repeater.model.index(model.row, 0), to, Qt.CheckStateRole)
             }
 
             // If this is isn't a multi-select dialog, accept on click
@@ -84,6 +94,22 @@ Kirigami.CardsLayout {
                 if (root.dialog.multiple) {
                     selectAndAccept()
                 }
+            }
+
+            Layout.columnSpan: {
+                const defaultSpan = 1
+
+                if (index !== 0) {
+                    return defaultSpan
+                }
+
+                let model = repeater.model.sourceModel as OutputsModel
+                if (!model) { // not an output
+                    return defaultSpan
+                }
+
+                let evenOutputs = model.outputCount % 2 === 0
+                return !evenOutputs ? 2 : defaultSpan
             }
         }
     }

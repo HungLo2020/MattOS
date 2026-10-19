@@ -9,7 +9,10 @@
 #include <QAbstractListModel>
 #include <QScreen>
 #include <QSet>
+#include <QUrl>
 #include <QtQmlIntegration/qqmlintegration.h>
+
+class QTemporaryFile;
 
 class Output
 {
@@ -24,12 +27,18 @@ public:
         Region,
     };
 
-    Output(OutputType outputType, QScreen *screen, const QString &display, const QString &uniqueId, const QString &name)
+    Output(OutputType outputType,
+           QScreen *screen,
+           const QString &display,
+           const QString &uniqueId,
+           const QString &name,
+           const std::shared_ptr<QTemporaryFile> &temporaryFile)
         : m_outputType(outputType)
         , m_screen(screen)
         , m_display(display)
         , m_uniqueId(uniqueId)
         , m_name(name)
+        , m_temporaryFile(temporaryFile)
     {
     }
 
@@ -62,12 +71,26 @@ public:
         return m_outputType;
     }
 
+    /*! Returns the image associated with the output (may be isNull() if it is unknown)*/
+    [[nodiscard]] QUrl imageUrl() const
+    {
+        return m_image;
+    }
+
+    /*! Sets a new image. Don't forget to update the model! */
+    void setImage(const QUrl &image)
+    {
+        m_image = image;
+    }
+
 private:
     OutputType m_outputType;
     QScreen *m_screen = nullptr;
     QString m_display;
     QString m_uniqueId;
     QString m_name;
+    QUrl m_image;
+    std::shared_ptr<QTemporaryFile> m_temporaryFile;
 };
 
 class OutputsModel : public QAbstractListModel
@@ -76,6 +99,7 @@ class OutputsModel : public QAbstractListModel
     QML_ELEMENT
     QML_UNCREATABLE("OutputsModel is passed in through the root properties")
     Q_PROPERTY(bool hasSelection READ hasSelection NOTIFY hasSelectionChanged)
+    Q_PROPERTY(qsizetype outputCount READ outputCount CONSTANT)
     Q_PROPERTY(qsizetype syntheticCount READ syntheticCount CONSTANT)
 public:
     enum Option {
@@ -94,6 +118,8 @@ public:
         IsSyntheticRole,
         DescriptionRole,
         GeometryRole,
+        ImageUrlRole,
+        IdRole,
     };
     Q_ENUM(Roles)
 
@@ -132,6 +158,13 @@ public:
         return data(index, GeometryRole).toRect() == geometry;
     }
 
+    [[nodiscard]] qsizetype outputCount() const
+    {
+        return std::ranges::count_if(m_outputs, [](const auto &output) {
+            return !output.isSynthetic();
+        });
+    }
+
     [[nodiscard]] qsizetype syntheticCount() const
     {
         return std::ranges::count_if(m_outputs, [](const Output &output) {
@@ -145,9 +178,13 @@ public Q_SLOTS:
 Q_SIGNALS:
     void hasSelectionChanged();
 
+private Q_SLOTS:
+    void onOutputsChanged();
+
 private:
     QList<Output> m_outputs;
     QSet<quint32> m_selectedRows;
+    std::unique_ptr<class OutputOrder> m_outputOrder;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(OutputsModel::Options)

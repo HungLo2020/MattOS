@@ -24,35 +24,29 @@
 #include <QDir>
 #include <QFile>
 #include <QMimeDatabase>
-#include <QStandardPaths>
-#include <QThread>
+#include <QScopeGuard>
 #include <qplatformdefs.h>
 
-#include <KConfigGroup>
 #include <KFileSystemType>
 #include <KLocalizedString>
+#include <KNetworkMounts>
 #include <QDebug>
 #include <kmountpoint.h>
 
-#include <array>
 #include <cerrno>
+#include <fcntl.h>
 #include <stdint.h>
-#include <utime.h>
 
 #ifdef Q_OS_LINUX
 
-#include <linux/fs.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
+#include <dirent.h>
 
 #endif // Q_OS_LINUX
 
-#if HAVE_COPY_FILE_RANGE
 // sys/types.h must be included before unistd.h,
 // and it needs to be included explicitly for FreeBSD
 #include <sys/types.h>
 #include <unistd.h>
-#endif
 
 #if HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
@@ -64,9 +58,6 @@
 #endif
 
 using namespace KIO;
-
-/* 512 kB */
-static constexpr int s_maxIPCSize = 1024 * 512;
 
 static bool same_inode(const QT_STATBUF &src, const QT_STATBUF &dest)
 {
@@ -84,21 +75,25 @@ bool FileProtocol::isExtendedACL(acl_t acl)
 }
 #endif
 
-static bool isOnCifsMount(const QString &filePath)
+static QMimeDatabase::MatchMode mimeMatchModeFor(const StatStruct &buf, const QString &fallbackPath)
 {
-    const auto mount = KMountPoint::currentMountPoints().findByPath(filePath);
-    if (!mount) {
-        return false;
+    if (KNetworkMounts::self()->isSlowPath(fallbackPath)) {
+        return QMimeDatabase::MatchExtension;
     }
-    return mount->mountType() == QStringLiteral("cifs") || mount->mountType() == QStringLiteral("smb3");
-}
 
-#if HAVE_STATX
-// statx syscall is available
-using StatStruct = struct statx;
+#if HAVE_STATX_MNT_ID_UNIQUE
+    if (buf.stx_mask & STATX_MNT_ID_UNIQUE) {
+        const KMountPoint::Ptr mount = KMountPoint::currentMountPointForUniqueId(stat_mnt_id(buf));
+        return mount && mount->probablySlow() ? QMimeDatabase::MatchExtension : QMimeDatabase::MatchDefault;
+    }
 #else
-using StatStruct = QT_STATBUF;
+    Q_UNUSED(buf);
 #endif
+
+    const KFileSystemType::Type fsType = KFileSystemType::fileSystemType(fallbackPath);
+    const bool isSlowFs = fsType == KFileSystemType::Nfs || fsType == KFileSystemType::Smb;
+    return isSlowFs ? QMimeDatabase::MatchExtension : QMimeDatabase::MatchDefault;
+}
 
 static QByteArray readlinkToBuffer(const StatStruct &buf, const QByteArray &path)
 {
@@ -134,47 +129,51 @@ static QByteArray readlinkToBuffer(const StatStruct &buf, const QByteArray &path
 
 static bool createUDSEntry(const QString &filename, const QByteArray &path, UDSEntry &entry, KIO::StatDetails details, const QString &fullPath)
 {
-    assert(entry.count() == 0); // by contract :-)
-    int entries = 0;
+    assert(entry.count() == 0); // by contract :-)    assert(entry.count() == 0); // by contract :-)
+    int numberEntries = 0;
+    int stringEntries = 0;
     if (details & KIO::StatBasic) {
-        // filename, access, type, size, linkdest
-        entries += 5;
+        // access, type, size, and the filename. The link destination is only there for a
+        // symlink, which is not known yet, so the rare entry that carries one grows for it
+        // rather than every entry keeping room it never uses.
+        numberEntries += 3;
+        stringEntries += 1;
     }
     if (details & KIO::StatUser) {
         // uid, gid
-        entries += 2;
+        numberEntries += 2;
     }
     if (details & KIO::StatTime) {
         // atime, mtime, btime
-        entries += 3;
+        numberEntries += 3;
         if ((details & KIO::StatTimeNsOffset) == KIO::StatTimeNsOffset) {
             // atime, mtime, btime ns offsets
-            entries += 3;
+            numberEntries += 3;
         }
     }
-    if (details & KIO::StatAcl) {
-        // acl data
-        entries += 3;
-    }
+    // The acl fields are only filled in for a file that carries one, so they are not
+    // reserved here either.
+
     if (details & KIO::StatInode) {
         // dev, inode
-        entries += 2;
+        numberEntries += 2;
     }
     if (details & KIO::StatMimeType) {
         // mimetype
-        entries += 1;
+        stringEntries += 1;
     }
 #if HAVE_STATX_SUBVOL
     if (details & KIO::StatSubVolId) {
-        entries += 1;
+        numberEntries += 1;
     }
 #endif
 #if HAVE_STATX_MNT_ID_UNIQUE
     if (details & KIO::StatMountId) {
-        entries += 1;
+        numberEntries += 1;
     }
 #endif
-    entry.reserve(entries);
+    entry.reserveNumbers(numberEntries);
+    entry.reserveStrings(stringEntries);
 
     if (details & KIO::StatBasic) {
         entry.fastInsert(KIO::UDSEntry::UDS_NAME, filename);
@@ -249,6 +248,10 @@ static bool createUDSEntry(const QString &filename, const QByteArray &path, UDSE
 #endif
     }
 
+    if ((details & KIO::StatSizeOnDisk) && (isBrokenSymLink || stat_has_size_on_disk(buff))) {
+        entry.fastInsert(KIO::UDSEntry::UDS_SIZE_ON_DISK, isBrokenSymLink ? 0LL : static_cast<long long>(stat_size_on_disk(buff)));
+    }
+
     if (details & KIO::StatUser) {
         const auto uid = stat_uid(buff);
         const auto gid = stat_gid(buff);
@@ -309,7 +312,7 @@ static bool createUDSEntry(const QString &filename, const QByteArray &path, UDSE
     if (details & KIO::StatMimeType) {
         if (type == 0 || type != S_IFDIR) {
             QMimeDatabase db;
-            entry.fastInsert(KIO::UDSEntry::UDS_MIME_TYPE, db.mimeTypeForFile(fullPath).name());
+            entry.fastInsert(KIO::UDSEntry::UDS_MIME_TYPE, db.mimeTypeForFile(fullPath, mimeMatchModeFor(buff, fullPath)).name());
         } else {
             // fast path for directories
             entry.fastInsert(KIO::UDSEntry::UDS_MIME_TYPE, QStringLiteral("inode/directory"));
@@ -329,438 +332,6 @@ static bool createUDSEntry(const QString &filename, const QByteArray &path, UDSE
 #endif
 
     return true;
-}
-
-#if HAVE_SYS_XATTR_H || HAVE_SYS_EXTATTR_H
-bool FileProtocol::copyXattrs(const int src_fd, const int dest_fd)
-{
-    // Get the list of keys
-    ssize_t listlen = 0;
-    QByteArray keylist;
-    while (true) {
-        keylist.resize(listlen);
-#if HAVE_SYS_XATTR_H && !defined(__stub_getxattr) && !defined(Q_OS_MAC)
-        listlen = flistxattr(src_fd, keylist.data(), listlen);
-#elif defined(Q_OS_MAC)
-        listlen = flistxattr(src_fd, keylist.data(), listlen, 0);
-#elif HAVE_SYS_EXTATTR_H
-        listlen = extattr_list_fd(src_fd, EXTATTR_NAMESPACE_USER, listlen == 0 ? nullptr : keylist.data(), listlen);
-#endif
-        if (listlen > 0 && keylist.size() == 0) {
-            continue;
-        }
-        if (listlen > 0 && keylist.size() > 0) {
-            break;
-        }
-        if (listlen == -1 && errno == ERANGE) {
-            listlen = 0;
-            continue;
-        }
-        if (listlen == 0) {
-            // qCDebug(KIO_FILE) << "the file doesn't have any xattr";
-            return true;
-        }
-        Q_ASSERT_X(listlen == -1, "copyXattrs", "unexpected return value from listxattr");
-        if (listlen == -1 && errno == ENOTSUP) {
-            qCDebug(KIO_FILE) << "source filesystem does not support xattrs";
-        }
-        return false;
-    }
-
-    keylist.resize(listlen);
-
-    // Linux and MacOS return a list of null terminated strings, each string = [data,'\0']
-    // BSDs return a list of items, each item consisting of the size byte
-    // prepended to the key = [size, data]
-    auto keyPtr = keylist.cbegin();
-    size_t keyLen;
-    QByteArray value;
-
-    // For each key
-    while (keyPtr != keylist.cend()) {
-        // Get size of the key
-#if HAVE_SYS_XATTR_H
-        keyLen = strlen(keyPtr);
-        auto next_key = [&]() {
-            keyPtr += keyLen + 1;
-        };
-#elif HAVE_SYS_EXTATTR_H
-        keyLen = static_cast<unsigned char>(*keyPtr);
-        keyPtr++;
-        auto next_key = [&]() {
-            keyPtr += keyLen;
-        };
-#endif
-        QByteArray key(keyPtr, keyLen);
-
-        // Get the value for key
-        ssize_t valuelen = 0;
-        do {
-            value.resize(valuelen);
-#if HAVE_SYS_XATTR_H && !defined(__stub_getxattr) && !defined(Q_OS_MAC)
-            valuelen = fgetxattr(src_fd, key.constData(), value.data(), valuelen);
-#elif defined(Q_OS_MAC)
-            valuelen = fgetxattr(src_fd, key.constData(), value.data(), valuelen, 0, 0);
-#elif HAVE_SYS_EXTATTR_H
-            valuelen = extattr_get_fd(src_fd, EXTATTR_NAMESPACE_USER, key.constData(), valuelen == 0 ? nullptr : value.data(), valuelen);
-#endif
-            if (valuelen > 0 && value.size() == 0) {
-                continue;
-            }
-            if (valuelen > 0 && value.size() > 0) {
-                break;
-            }
-            if (valuelen == -1 && errno == ERANGE) {
-                valuelen = 0;
-                continue;
-            }
-            // happens when attr value is an empty string
-            if (valuelen == 0) {
-                break;
-            }
-            Q_ASSERT_X(valuelen == -1, "copyXattrs", "unexpected return value from getxattr");
-            // Some other error, skip to the next attribute, most notably
-            // - ENOTSUP: invalid (inaccassible) attribute namespace, e.g. with SELINUX
-            break;
-        } while (true);
-
-        if (valuelen < 0) {
-            // Skip to next attribute.
-            next_key();
-            continue;
-        }
-
-        // Write key:value pair on destination
-#if HAVE_SYS_XATTR_H && !defined(__stub_getxattr) && !defined(Q_OS_MAC)
-        ssize_t destlen = fsetxattr(dest_fd, key.constData(), value.constData(), valuelen, 0);
-#elif defined(Q_OS_MAC)
-        ssize_t destlen = fsetxattr(dest_fd, key.constData(), value.constData(), valuelen, 0, 0);
-#elif HAVE_SYS_EXTATTR_H
-        ssize_t destlen = extattr_set_fd(dest_fd, EXTATTR_NAMESPACE_USER, key.constData(), value.constData(), valuelen);
-#endif
-        if (destlen == -1 && errno == ENOTSUP) {
-            qCDebug(KIO_FILE) << "Destination filesystem does not support xattrs";
-            return false;
-        }
-        if (destlen == -1 && (errno == ENOSPC || errno == EDQUOT)) {
-            return false;
-        }
-
-        next_key();
-    }
-    return true;
-}
-#endif // HAVE_SYS_XATTR_H || HAVE_SYS_EXTATTR_H
-
-WorkerResult FileProtocol::copy(const QUrl &srcUrl, const QUrl &destUrl, int _mode, JobFlags _flags)
-{
-    qCDebug(KIO_FILE) << "copy()" << srcUrl << "to" << destUrl << "mode=" << _mode;
-
-    const QString src = srcUrl.toLocalFile();
-    QString dest = destUrl.toLocalFile();
-    QByteArray _src(QFile::encodeName(src));
-    QByteArray _dest(QFile::encodeName(dest));
-    QByteArray _destBackup;
-
-    QT_STATBUF buffSrc;
-    if (QT_STAT(_src.data(), &buffSrc) == -1) {
-        if (errno == EACCES) {
-            return WorkerResult::fail(KIO::ERR_ACCESS_DENIED, src);
-        } else {
-            return WorkerResult::fail(KIO::ERR_DOES_NOT_EXIST, src);
-        }
-    }
-
-    if (S_ISDIR(buffSrc.st_mode)) {
-        return WorkerResult::fail(KIO::ERR_IS_DIRECTORY, src);
-    }
-    if (S_ISFIFO(buffSrc.st_mode) || S_ISSOCK(buffSrc.st_mode)) {
-        return WorkerResult::fail(KIO::ERR_CANNOT_OPEN_FOR_READING, src);
-    }
-
-    QT_STATBUF buffDest;
-    bool dest_exists = (QT_LSTAT(_dest.data(), &buffDest) != -1);
-    if (dest_exists) {
-        if (same_inode(buffDest, buffSrc)) {
-            return WorkerResult::fail(KIO::ERR_IDENTICAL_FILES, dest);
-        }
-
-        if (S_ISDIR(buffDest.st_mode)) {
-            return WorkerResult::fail(KIO::ERR_DIR_ALREADY_EXIST, dest);
-        }
-
-        if (_flags & KIO::Overwrite) {
-            // If the destination is a symlink and overwrite is TRUE,
-            // remove the symlink first to prevent the scenario where
-            // the symlink actually points to current source!
-            if (S_ISLNK(buffDest.st_mode)) {
-                // qDebug() << "copy(): LINK DESTINATION";
-                if (!QFile::remove(dest)) {
-                    return WorkerResult::fail(KIO::ERR_CANNOT_DELETE_ORIGINAL, dest);
-                }
-            } else if (S_ISREG(buffDest.st_mode) && !isOnCifsMount(dest)) {
-                _destBackup = _dest;
-                dest.append(QStringLiteral(".part"));
-                _dest = QFile::encodeName(dest);
-            }
-        } else {
-            return WorkerResult::fail(KIO::ERR_FILE_ALREADY_EXIST, dest);
-        }
-    }
-
-    QFile srcFile(src);
-    if (!srcFile.open(QIODevice::ReadOnly)) {
-        return WorkerResult::fail(KIO::ERR_CANNOT_OPEN_FOR_READING, src);
-    }
-
-#if HAVE_FADVISE
-    posix_fadvise(srcFile.handle(), 0, 0, POSIX_FADV_SEQUENTIAL);
-#endif
-
-    QFile destFile(dest);
-    if (!destFile.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
-        if (errno == EACCES) {
-            return WorkerResult::fail(KIO::ERR_WRITE_ACCESS_DENIED, dest);
-        } else {
-            return WorkerResult::fail(KIO::ERR_CANNOT_OPEN_FOR_WRITING, dest);
-        }
-    }
-
-    // _mode == -1 means don't touch dest permissions, leave it with the system default ones
-    if (_mode != -1) {
-        if (::chmod(_dest.constData(), _mode) == -1) {
-            qCWarning(KIO_FILE) << "Could not change permissions for" << dest;
-        }
-    }
-
-#if HAVE_FADVISE
-    posix_fadvise(destFile.handle(), 0, 0, POSIX_FADV_SEQUENTIAL);
-#endif
-
-    const auto srcSize = buffSrc.st_size;
-    totalSize(srcSize);
-
-    off_t sizeProcessed = 0;
-
-    const bool slowTestMode = testMode && destFile.fileName().contains(QLatin1String("slow"));
-
-#ifdef FICLONE
-    if (!slowTestMode) {
-        // Share data blocks ("reflink") on supporting filesystems, like brfs and XFS
-        int ret = ::ioctl(destFile.handle(), FICLONE, srcFile.handle());
-        if (ret != -1) {
-            sizeProcessed = srcSize;
-            processedSize(srcSize);
-        }
-    }
-    // if fs does not support reflinking, files are on different devices...
-#endif
-
-    bool existingDestDeleteAttempted = false;
-
-    processedSize(sizeProcessed);
-
-#if HAVE_COPY_FILE_RANGE
-    while (!wasKilled() && sizeProcessed < srcSize) {
-        if (slowTestMode) {
-            QThread::msleep(50);
-        }
-
-        const ssize_t copiedBytes = ::copy_file_range(srcFile.handle(), nullptr, destFile.handle(), nullptr, s_maxIPCSize, 0);
-
-        if (copiedBytes == -1) {
-            // ENOENT is returned on cifs in some cases, probably a kernel bug
-            // (s.a. https://git.savannah.gnu.org/cgit/coreutils.git/commit/?id=7fc84d1c0f6b35231b0b4577b70aaa26bf548a7c)
-            if (errno == EINVAL || errno == EXDEV || errno == ENOENT) {
-                break; // will continue with next copy mechanism
-            }
-
-            if (errno == EINTR) { // Interrupted
-                continue;
-            }
-
-            if (errno == ENOSPC) { // disk full
-                // attempt to free disk space occupied by file being overwritten
-                if (!_destBackup.isEmpty() && !existingDestDeleteAttempted) {
-                    ::unlink(_destBackup.constData());
-                    existingDestDeleteAttempted = true;
-                    continue;
-                }
-
-                if (!QFile::remove(dest)) { // don't keep partly copied file
-                    qCWarning(KIO_FILE) << "Could not delete partially copied file" << dest;
-                }
-
-                return WorkerResult::fail(KIO::ERR_DISK_FULL, dest);
-            }
-
-            if (!QFile::remove(dest)) { // don't keep partly copied file
-                qCWarning(KIO_FILE) << "Could not delete partially copied file" << dest;
-            }
-
-            return WorkerResult::fail(KIO::ERR_WORKER_DEFINED, i18n("Cannot copy file from %1 to %2. (Errno: %3)", src, dest, errno));
-        }
-
-        sizeProcessed += copiedBytes;
-        processedSize(sizeProcessed);
-    }
-#endif
-
-    /* standard read/write fallback */
-    if (sizeProcessed < srcSize) {
-        std::array<char, s_maxIPCSize> buffer;
-        while (!wasKilled() && sizeProcessed < srcSize) {
-            if (testMode && destFile.fileName().contains(QLatin1String("slow"))) {
-                QThread::msleep(50);
-            }
-
-            const ssize_t readBytes = ::read(srcFile.handle(), &buffer, s_maxIPCSize);
-
-            if (readBytes == -1) {
-                if (errno == EINTR) { // Interrupted
-                    continue;
-                } else {
-                    qCWarning(KIO_FILE) << "Couldn't read[2]. Error:" << srcFile.errorString();
-                }
-
-                if (!QFile::remove(dest)) { // don't keep partly copied file
-                    qCWarning(KIO_FILE) << "Could not delete partially copied file" << dest;
-                }
-                return WorkerResult::fail(KIO::ERR_CANNOT_READ, src);
-            }
-
-            if (destFile.write(buffer.data(), readBytes) != readBytes) {
-                int error = KIO::ERR_CANNOT_WRITE;
-                if (destFile.error() == QFileDevice::ResourceError) { // disk full
-                    // attempt to free disk space occupied by file being overwritten
-                    if (!_destBackup.isEmpty() && !existingDestDeleteAttempted) {
-                        ::unlink(_destBackup.constData());
-                        existingDestDeleteAttempted = true;
-                        if (destFile.write(buffer.data(), readBytes) == readBytes) { // retry
-                            continue;
-                        }
-                    }
-                    error = KIO::ERR_DISK_FULL;
-                } else {
-                    qCWarning(KIO_FILE) << "Couldn't write[2]. Error:" << destFile.errorString();
-                }
-
-                if (!QFile::remove(dest)) { // don't keep partly copied file
-                    qCWarning(KIO_FILE) << "Could not delete partially copied file" << dest;
-                }
-                return WorkerResult::fail(error, dest);
-            }
-            sizeProcessed += readBytes;
-            processedSize(sizeProcessed);
-        }
-    }
-
-    // Copy Extended attributes
-#if HAVE_SYS_XATTR_H || HAVE_SYS_EXTATTR_H
-    if (!copyXattrs(srcFile.handle(), destFile.handle())) {
-        qCDebug(KIO_FILE) << "can't copy Extended attributes";
-    }
-#endif
-
-    srcFile.close();
-
-    destFile.flush(); // so the write() happens before futimes()
-
-    // copy access and modification time
-    if (!wasKilled()) {
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined(Q_OS_HAIKU)
-        // with nano secs precision
-        struct timespec ut[2];
-        ut[0] = buffSrc.st_atim;
-        ut[1] = buffSrc.st_mtim;
-        // need to do this with the dest file still opened, or this fails
-        if (::futimens(destFile.handle(), ut) != 0) {
-#else
-        struct timeval ut[2];
-        ut[0].tv_sec = buffSrc.st_atime;
-        ut[0].tv_usec = 0;
-        ut[1].tv_sec = buffSrc.st_mtime;
-        ut[1].tv_usec = 0;
-        if (::futimes(destFile.handle(), ut) != 0) {
-#endif
-            qCWarning(KIO_FILE) << "Couldn't preserve access and modification time for" << dest;
-        }
-    }
-
-    destFile.close();
-
-    if (wasKilled()) {
-        qCDebug(KIO_FILE) << "Clean dest file after KIO worker was killed:" << dest;
-        if (!QFile::remove(dest)) { // don't keep partly copied file
-            qCWarning(KIO_FILE) << "Could not delete partially copied file" << dest;
-        }
-        return WorkerResult::fail(KIO::ERR_USER_CANCELED, dest);
-    }
-
-    if (destFile.error() != QFile::NoError) {
-        qCWarning(KIO_FILE) << "Error when closing file descriptor[2]:" << destFile.errorString();
-
-        if (!QFile::remove(dest)) { // don't keep partly copied file
-            qCWarning(KIO_FILE) << "Could not delete partially copied file" << dest;
-        }
-
-        return WorkerResult::fail(KIO::ERR_CANNOT_WRITE, dest);
-    }
-
-#if HAVE_POSIX_ACL
-    // If no special mode is given, preserve the ACL attributes from the source file
-    if (_mode == -1) {
-        acl_t acl = acl_get_fd(srcFile.handle());
-        if (acl && acl_set_file(_dest.data(), ACL_TYPE_ACCESS, acl) != 0) {
-            qCWarning(KIO_FILE) << "Could not set ACL permissions for" << dest;
-        }
-    }
-#endif
-
-    // preserve ownership
-    if (_mode != -1) {
-        if (::chown(_dest.data(), -1 /*keep user*/, buffSrc.st_gid) == 0) {
-            // as we are the owner of the new file, we can always change the group, but
-            // we might not be allowed to change the owner
-            if (::chown(_dest.data(), buffSrc.st_uid, -1 /*keep group*/) < 0) {
-                qCWarning(KIO_FILE) << "Couldn't chown destFile" << _dest << "(" << strerror(errno) << ")";
-            }
-        } else {
-            qCWarning(KIO_FILE) << "Couldn't preserve group for" << dest;
-        }
-    }
-
-    if (!_destBackup.isEmpty()) { // Overwrite final dest file with new file
-        if (::unlink(_destBackup.constData()) == -1) {
-            qCWarning(KIO_FILE) << "Couldn't remove original dest" << _destBackup << "(" << strerror(errno) << ")";
-        }
-
-        if (::rename(_dest.constData(), _destBackup.constData()) == -1) {
-            qCWarning(KIO_FILE) << "Couldn't rename" << _dest << "to" << _destBackup << "(" << strerror(errno) << ")";
-        }
-    }
-
-    processedSize(srcSize);
-    return WorkerResult::pass();
-}
-
-static bool isLocalFileSameHost(const QUrl &url)
-{
-    if (!url.isLocalFile()) {
-        return false;
-    }
-
-    if (url.host().isEmpty() || (url.host() == QLatin1String("localhost"))) {
-        return true;
-    }
-
-    char hostname[256];
-    hostname[0] = '\0';
-    if (!gethostname(hostname, 255)) {
-        hostname[sizeof(hostname) - 1] = '\0';
-    }
-
-    return (QString::compare(url.host(), QLatin1String(hostname), Qt::CaseInsensitive) == 0);
 }
 
 #if HAVE_SYS_XATTR_H
@@ -801,6 +372,14 @@ WorkerResult FileProtocol::listDir(const QUrl &url)
         // qDebug() << "redirecting to " << redir;
         return WorkerResult::pass();
     }
+    if (!url.host().isEmpty()) {
+        // Canonicalize file://localhost/path (or file://<thishost>/path) to
+        // file:///path via a redirection, so the dir lister and the KFileItems
+        // it builds don't keep the host. Otherwise QUrl::toLocalFile() yields a
+        // bogus UNC path //host/path and files appear read-only. See BUG 483297.
+        redirection(url.adjusted(QUrl::RemoveAuthority));
+        return WorkerResult::pass();
+    }
     const QString path(url.toLocalFile());
     const QByteArray _path(QFile::encodeName(path));
     DIR *dp = opendir(_path.data());
@@ -831,6 +410,11 @@ WorkerResult FileProtocol::listDir(const QUrl &url)
 #endif
     QT_DIRENT *ep;
     while ((ep = QT_READDIR(dp)) != nullptr) {
+        if (wasKilled()) {
+            closedir(dp);
+            return WorkerResult::pass();
+        }
+
         entry.clear();
 
         const QString filename = QFile::decodeName(ep->d_name);
@@ -877,7 +461,7 @@ WorkerResult FileProtocol::listDir(const QUrl &url)
                     // Bug 392913: NTFS root volume is always "hidden", ignore this
                     if (ep->d_type == DT_DIR || ep->d_type == DT_UNKNOWN || ep->d_type == DT_LNK) {
                         const QString fullFilePath = QDir(filename).canonicalPath();
-                        auto mountPoint = KMountPoint::currentMountPoints().findByPath(fullFilePath);
+                        auto mountPoint = KMountPoint::currentMountPointForPath(fullFilePath);
                         if (mountPoint && mountPoint->mountPoint() == fullFilePath) {
                             ntfsHidden = false;
                         }
@@ -898,10 +482,12 @@ WorkerResult FileProtocol::listDir(const QUrl &url)
     return WorkerResult::pass();
 }
 
-WorkerResult FileProtocol::rename(const QUrl &srcUrl, const QUrl &destUrl, KIO::JobFlags _flags)
+WorkerResult FileProtocol::rename(const QUrl &_srcUrl, const QUrl &_destUrl, KIO::JobFlags _flags)
 {
     char off_t_should_be_64_bits[sizeof(off_t) >= 8 ? 1 : -1];
     (void)off_t_should_be_64_bits;
+    const QUrl srcUrl = localFileWithoutHostname(_srcUrl);
+    const QUrl destUrl = localFileWithoutHostname(_destUrl);
     const QString src = srcUrl.toLocalFile();
     const QString dest = destUrl.toLocalFile();
     const QByteArray _src(QFile::encodeName(src));
@@ -964,9 +550,10 @@ WorkerResult FileProtocol::rename(const QUrl &srcUrl, const QUrl &destUrl, KIO::
     return WorkerResult::pass();
 }
 
-WorkerResult FileProtocol::symlink(const QString &target, const QUrl &destUrl, KIO::JobFlags flags)
+WorkerResult FileProtocol::symlink(const QString &target, const QUrl &_destUrl, KIO::JobFlags flags)
 {
     // Assume dest is local too (wouldn't be here otherwise)
+    const QUrl destUrl = localFileWithoutHostname(_destUrl);
     const QString dest = destUrl.toLocalFile();
     const QByteArray dest_c = QFile::encodeName(dest);
 
@@ -1017,8 +604,86 @@ WorkerResult FileProtocol::symlink(const QString &target, const QUrl &destUrl, K
     return WorkerResult::fail(KIO::ERR_CANNOT_SYMLINK, dest);
 }
 
-WorkerResult FileProtocol::del(const QUrl &url, bool isfile)
+WorkerResult FileProtocol::deleteUnder(int dfd, KIO::filesize_t &removed)
 {
+    // fdopendir takes the descriptor over, so closedir is what closes it.
+    DIR *dir = fdopendir(dfd);
+    if (!dir) {
+        ::close(dfd);
+        return WorkerResult::fail(KIO::ERR_CANNOT_ENTER_DIRECTORY, QString());
+    }
+    const auto closeDir = qScopeGuard([dir] {
+        closedir(dir);
+    });
+
+    while (struct dirent *entry = readdir(dir)) {
+        if (wasKilled()) {
+            return WorkerResult::pass();
+        }
+        const QByteArrayView name(entry->d_name);
+        if (name == "." || name == "..") {
+            continue;
+        }
+
+        // Reading the directory says what kind of entry it is, so only the size is asked for, and it is
+        // asked of the name in this very directory rather than of a path resolved from the root again.
+        unsigned char type = entry->d_type;
+        KIO::filesize_t size = 0;
+        if (type != DT_DIR) {
+            QT_STATBUF buf;
+            if (FSTATAT(dirfd(dir), entry->d_name, &buf, AT_SYMLINK_NOFOLLOW) == 0) {
+                if (type == DT_UNKNOWN) {
+                    type = S_ISDIR(buf.st_mode) ? DT_DIR : (S_ISLNK(buf.st_mode) ? DT_LNK : DT_REG);
+                }
+                if (type != DT_LNK && type != DT_DIR) {
+                    size = KIO::filesize_t(buf.st_size);
+                }
+            }
+        }
+
+        if (type == DT_DIR) {
+            const int sub = ::openat(dirfd(dir), entry->d_name, O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+            if (sub < 0) {
+                return WorkerResult::fail(KIO::ERR_CANNOT_ENTER_DIRECTORY, QFile::decodeName(entry->d_name));
+            }
+            auto result = deleteUnder(sub, removed);
+            if (!result.success()) {
+                return result;
+            }
+            if (wasKilled()) {
+                return WorkerResult::pass();
+            }
+            if (::unlinkat(dirfd(dir), entry->d_name, AT_REMOVEDIR) != 0) {
+                return WorkerResult::fail(KIO::ERR_CANNOT_DELETE, QFile::decodeName(entry->d_name));
+            }
+            continue;
+        }
+
+        if (::unlinkat(dirfd(dir), entry->d_name, 0) != 0) {
+            return WorkerResult::fail(KIO::ERR_CANNOT_DELETE, QFile::decodeName(entry->d_name));
+        }
+        if (size > 0) {
+            // SlaveBase says this at most ten times a second, holding back the rest.
+            removed += size;
+            processedSize(removed);
+        }
+    }
+    return WorkerResult::pass();
+}
+
+WorkerResult FileProtocol::deleteRecursive(const QString &path)
+{
+    const int dfd = ::open(QFile::encodeName(path).constData(), O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+    if (dfd < 0) {
+        return WorkerResult::fail(KIO::ERR_CANNOT_ENTER_DIRECTORY, path);
+    }
+    KIO::filesize_t removed = 0;
+    return deleteUnder(dfd, removed);
+}
+
+WorkerResult FileProtocol::del(const QUrl &_url, bool isfile)
+{
+    const QUrl url = localFileWithoutHostname(_url);
     const QString path = url.toLocalFile();
     const QByteArray _path(QFile::encodeName(path));
     /*!***
@@ -1049,6 +714,9 @@ WorkerResult FileProtocol::del(const QUrl &url, bool isfile)
                 return result;
             }
         }
+        if (wasKilled()) {
+            return WorkerResult::pass();
+        }
         if (QT_RMDIR(_path.data()) == -1) {
             if ((errno == EACCES) || (errno == EPERM)) {
                 return WorkerResult::fail(KIO::ERR_ACCESS_DENIED, path);
@@ -1061,8 +729,9 @@ WorkerResult FileProtocol::del(const QUrl &url, bool isfile)
     return WorkerResult::pass();
 }
 
-WorkerResult FileProtocol::chown(const QUrl &url, const QString &owner, const QString &group)
+WorkerResult FileProtocol::chown(const QUrl &_url, const QString &owner, const QString &group)
 {
+    const QUrl url = localFileWithoutHostname(_url);
     const QString path = url.toLocalFile();
     const QByteArray _path(QFile::encodeName(path));
     uid_t uid;
@@ -1111,6 +780,14 @@ WorkerResult FileProtocol::stat(const QUrl &url)
 {
     if (!isLocalFileSameHost(url)) {
         return redirect(url);
+    }
+
+    if (!url.host().isEmpty()) {
+        // Canonicalize file://localhost/path (or file://<thishost>/path) to
+        // file:///path via a redirection, so callers don't keep the host and
+        // mis-resolve it as a bogus UNC path //host/path. See BUG 483297.
+        redirection(url.adjusted(QUrl::RemoveAuthority));
+        return WorkerResult::pass();
     }
 
     /* directories may not have a slash at the end if

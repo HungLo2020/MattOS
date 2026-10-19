@@ -195,9 +195,9 @@ public:
     QQmlRefPointer<QQmlScriptBlob> getScript(const QUrl &unNormalizedUrl, const QUrl &relativeUrl);
     QQmlRefPointer<QQmlQmldirData> getQmldir(const QUrl &);
 
-    QString absoluteFilePath(const QString &path);
+    QString cleanFilePath(const QString &path) const;
 
-    bool fileExists(const QString &filePath)
+    bool fileExists(const QString &filePath) const
     {
         Q_ASSERT(!filePath.endsWith(QLatin1Char('/')));
         const qsizetype pastLastSlash = filePath.lastIndexOf(QLatin1Char('/')) + 1;
@@ -206,7 +206,7 @@ public:
                 filePath.mid(pastLastSlash, filePath.size() - pastLastSlash));
     }
 
-    bool fileExists(const QString &dirPath, const QString &file);
+    bool fileExists(const QString &dirPath, const QString &file) const;
     bool directoryExists(const QString &path);
 
     const QQmlTypeLoaderQmldirContent qmldirContent(const QString &filePath);
@@ -214,6 +214,7 @@ public:
 
     void clearCache();
     void trimCache();
+    bool removeFromCache(const QUrl &url);
 
     bool isTypeLoaded(const QUrl &url) const;
     bool isScriptLoaded(const QUrl &url) const;
@@ -245,13 +246,15 @@ public:
     void setProfiler(QQmlProfiler *profiler);
 #endif // QT_CONFIG(qml_debug)
 
+    enum AddPathMode { PrependPath, AppendPath };
+
     QStringList importPathList() const
     {
         QQmlTypeLoaderConfiguredDataConstPtr data(&m_data);
         return data->importPaths;
     }
     void setImportPathList(const QStringList &paths);
-    void addImportPath(const QString& dir);
+    void addImportPath(const QString& dir, AddPathMode mode);
 
     QStringList pluginPathList() const
     {
@@ -259,7 +262,7 @@ public:
         return data->pluginPaths;
     }
     void setPluginPathList(const QStringList &paths);
-    void addPluginPath(const QString& path);
+    void addPluginPath(const QString& path, AddPathMode mode);
 
     void setPluginInitialized(const QString &plugin)
     {
@@ -292,6 +295,10 @@ public:
     bool writeCacheFile();
     bool readCacheFile();
     bool isDebugging();
+
+    QStringList urlsForModule(const QString &module) const;
+
+    static bool isResource(const QString &path);
 
 private:
     friend struct PlainLoader;
@@ -337,7 +344,7 @@ private:
 
     enum class DataOrigin { Device, Static };
     void setData(const QQmlDataBlob::Ptr &, const QByteArray &, DataOrigin);
-    void setData(const QQmlDataBlob::Ptr &, const QString &fileName);
+    void setData(const QQmlDataBlob::Ptr &, const QString &fileName, bool exists);
     void setData(const QQmlDataBlob::Ptr &, const QQmlDataBlob::SourceCodeData &);
     void setCachedUnit(const QQmlDataBlob::Ptr &blob, const QQmlPrivate::CachedQmlUnit *unit);
 

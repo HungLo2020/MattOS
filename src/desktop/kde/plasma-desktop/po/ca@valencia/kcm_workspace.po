@@ -1,17 +1,17 @@
 # Translation of kcm_workspace.po to Catalan (Valencian)
-# Copyright (C) 2014-2025 This_file_is_part_of_KDE
+# Copyright (C) 2014-2026 This_file_is_part_of_KDE
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
 # SPDX-FileCopyrightText: 2020, 2023 Antoni Bella Pérez <antonibella5@yahoo.com>
 # SPDX-FileCopyrightText: 2019 Empar Montoro Martín <montoro_mde@gva.es>
-# SPDX-FileCopyrightText: 2014, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2014, 2017-2026 Josep M. Ferrer <txemaq@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2025-05-01 10:36+0200\n"
+"POT-Creation-Date: 2026-08-04 00:46+0000\n"
+"PO-Revision-Date: 2026-04-23 09:18+0200\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
 "Language: ca@valencia\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Accelerator-Marker: &\n"
-"X-Generator: Lokalize 22.12.3\n"
+"X-Generator: Lokalize 25.04.0\n"
 
 #: ui/main.qml:25
 #, kde-format
@@ -38,25 +38,25 @@ msgctxt "@action:button"
 msgid "Restart"
 msgstr "Reinicia"
 
-#: ui/main.qml:47
+#: ui/main.qml:46
 #, kde-format
 msgctxt "@title:group"
 msgid "Plasma"
 msgstr "Plasma"
 
-#: ui/main.qml:52
+#: ui/main.qml:49
 #, kde-format
 msgctxt "Part of the sentence 'Allow Plasma to show panel and widget tooltips'"
 msgid "Allow Plasma to show:"
 msgstr "Permet que Plasma mostre:"
 
-#: ui/main.qml:59
+#: ui/main.qml:52
 #, kde-format
 msgctxt "Part of the sentence 'Allow Plasma to show panel and widget tooltips'"
 msgid "Panel and widget tooltips"
 msgstr "Un quadro i els consells d'eina dels ginys"
 
-#: ui/main.qml:69
+#: ui/main.qml:63
 #, kde-format
 msgctxt "@info:whatsthis contextualhelpbutton tooltip"
 msgid ""
@@ -71,14 +71,14 @@ msgstr ""
 "mostren en passar per damunt dels botons individuals i altres elements de la "
 "interfície d'usuari."
 
-#: ui/main.qml:77
+#: ui/main.qml:70
 #, kde-format
 msgctxt ""
 "Part of the sentence 'Allow Plasma to show OSD popups for status changes'"
 msgid "OSD popups for status changes"
 msgstr "Finestres emergents OSD de canvis d'estat"
 
-#: ui/main.qml:87
+#: ui/main.qml:81
 #, kde-format
 msgctxt "@info:whatsthis contextualhelpbutton tooltip"
 msgid ""
@@ -89,47 +89,47 @@ msgstr ""
 "de canvis com el volum i el nivell de brillantor o el canvi de dispositius "
 "d'àudio."
 
-#: ui/main.qml:94
+#: ui/main.qml:88
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling"
 msgstr "Desplaçament"
 
-#: ui/main.qml:100
+#: ui/main.qml:92
 #, kde-format
 msgctxt "@title:group prefix radiobutton group"
 msgid "Clicking in scrollbar track:"
 msgstr "Quan es clique damunt de la via de la barra de desplaçament:"
 
-#: ui/main.qml:101
+#: ui/main.qml:93
 #, kde-format
 msgctxt ""
-"@option:radio part of a complete sentence: 'Clicking in scrollbar track "
-"scrolls to the clicked location'"
+"@radio part of a complete sentence: 'Clicking in scrollbar track scrolls to "
+"the clicked location'"
 msgid "Scrolls to the clicked location"
 msgstr "Desplaça cap a la ubicació clicada"
 
-#: ui/main.qml:119
+#: ui/main.qml:111
 #, kde-format
 msgctxt ""
-"@option:radio part of a complete sentence: 'Clicking in scrollbar track "
-"scrolls one page up or down'"
+"@radio part of a complete sentence: 'Clicking in scrollbar track scrolls one "
+"page up or down'"
 msgid "Scrolls one page up or down"
 msgstr "Desplaça una pàgina cap amunt o avall"
 
-#: ui/main.qml:137
+#: ui/main.qml:112
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "Middle-click to scroll to clicked location"
 msgstr "Clic del mig per a desplaçar cap a la ubicació clicada"
 
-#: ui/main.qml:152
+#: ui/main.qml:129
 #, kde-format
 msgctxt "@option:check"
 msgid "Prefer smooth scrolling"
 msgstr "Preferix un desplaçament suau"
 
-#: ui/main.qml:162
+#: ui/main.qml:140
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -143,44 +143,44 @@ msgstr ""
 "no complir este paràmetre perquè o bé no admeten el desplaçament suau, o bé "
 "tenen el seu propi paràmetre per a activar-lo i desactivar-lo."
 
-#: ui/main.qml:169
+#: ui/main.qml:146
 #, kde-format
 msgctxt "@title:group"
 msgid "Clicking"
 msgstr "Quan es clique"
 
-#: ui/main.qml:175
+#: ui/main.qml:149
 #, kde-format
 msgctxt ""
 "part of a sentence: 'Clicking files or folders [opens them/selects them]'"
 msgid "Clicking files or folders:"
 msgstr "Quan es clique damunt de fitxers o carpetes:"
 
-#: ui/main.qml:182
+#: ui/main.qml:153
 #, kde-format
 msgctxt "part of a sentence: 'Clicking files or folders selects them'"
 msgid "Selects them"
 msgstr "Se seleccionen"
 
-#: ui/main.qml:201
+#: ui/main.qml:154
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "Open by double-clicking instead"
 msgstr "Obri fent doble clic"
 
-#: ui/main.qml:214
+#: ui/main.qml:171
 #, kde-format
 msgctxt "part of a sentence: 'Clicking files or folders opens them'"
 msgid "Opens them"
 msgstr "S'obrin"
 
-#: ui/main.qml:232
+#: ui/main.qml:172
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "Select by clicking on item's selection marker"
 msgstr "Tria quan es clique damunt del marcador de selecció de l'element"
 
-#: ui/main.qml:246
+#: ui/main.qml:190
 #, kde-format
 msgctxt ""
 "@label for checkbox, part of a complete sentence: 'Middle-click pastes "
@@ -188,7 +188,7 @@ msgctxt ""
 msgid "Middle-click:"
 msgstr "Clic del mig:"
 
-#: ui/main.qml:248
+#: ui/main.qml:194
 #, kde-format
 msgctxt ""
 "@option:check part of a complete sentence: 'Middle click pastes selected "
@@ -196,13 +196,13 @@ msgctxt ""
 msgid "Pastes selected text"
 msgstr "Apega el text seleccionat"
 
-#: ui/main.qml:268
+#: ui/main.qml:212
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Double-click interval:"
 msgstr "Interval del doble clic:"
 
-#: ui/main.qml:283
+#: ui/main.qml:232
 #, kde-format
 msgctxt "short for millisecond(s)"
 msgid "%1 ms"
@@ -210,13 +210,13 @@ msgid_plural "%1 ms"
 msgstr[0] "%1 ms"
 msgstr[1] "%1 ms"
 
-#: ui/main.qml:287
+#: ui/main.qml:236
 #, kde-format
 msgctxt "short for millisecond(s)"
 msgid "ms"
 msgstr "ms"
 
-#: ui/main.qml:301
+#: ui/main.qml:251
 #, kde-format
 msgctxt "@info:whatsthis contextualhelpbutton tooltip"
 msgid ""
@@ -226,7 +226,7 @@ msgstr ""
 "Dos clics dins d'esta duració es consideren un doble clic. És possible que "
 "algunes aplicacions no complisquen este paràmetre."
 
-#: ui/main.qml:312
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Test double-click speed"
 msgid ""
@@ -236,25 +236,25 @@ msgstr ""
 "Feu doble clic damunt de la carpeta per a provar-ho. Si no canvia la seua "
 "aparença, augmenteu l'interval del doble clic."
 
-#: ui/main.qml:354
+#: ui/main.qml:306
 #, kde-format
 msgctxt "@title:group prefix radiobutton group"
 msgid "Drag and Drop"
 msgstr "Arrossegar i deixar anar"
 
-#: ui/main.qml:361
+#: ui/main.qml:309
 #, kde-format
 msgctxt "@title:group prefix radiobutton group"
 msgid "When dragging files or folders:"
 msgstr "En arrossegar fitxers o carpetes:"
 
-#: ui/main.qml:362
+#: ui/main.qml:313
 #, kde-format
 msgctxt "@option:radio When dragging..."
 msgid "Always ask what to do"
 msgstr "Demana sempre què fer"
 
-#: ui/main.qml:378
+#: ui/main.qml:314
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -266,13 +266,13 @@ msgstr ""
 "shortcut> per a copiar, i <shortcut>Majúscules+Ctrl</shortcut> per a crear "
 "un enllaç simbòlic. En cas contrari mostra un diàleg."
 
-#: ui/main.qml:386
+#: ui/main.qml:332
 #, kde-format
 msgctxt "@option:radio When dragging…"
 msgid "Move if on the same device"
 msgstr "Mou si estan en el mateix dispositiu"
 
-#: ui/main.qml:402
+#: ui/main.qml:333
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Hold <shortcut>Shift</shortcut> when dropping to show other options."
@@ -280,63 +280,59 @@ msgstr ""
 "Premeu <shortcut>Majúscules</shortcut> en deixar anar per a mostrar altres "
 "opcions."
 
-#: ui/main.qml:410
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@title:group"
 msgid "Touch"
 msgstr "Tàctil"
 
-#: ui/main.qml:416
+#: ui/main.qml:351
 #, kde-format
 msgctxt "@title:group prefix radiobutton group"
-msgid "Enable Touch Mode:"
-msgstr "Activa el mode tàctil:"
+msgid "Enable Tablet Mode:"
+msgstr "Activa el mode tauleta:"
 
-#: ui/main.qml:418
+#: ui/main.qml:354
 #, kde-format
-msgctxt "@option:radio As in: 'Touch Mode is automatically enabled as needed'"
+msgctxt "As in: 'Tablet Mode is automatically enabled as needed'"
 msgid "Automatically enable as needed"
 msgstr "Activa automàticament quan calga"
 
-#: ui/main.qml:418
+#: ui/main.qml:354
 #, kde-format
-msgctxt "option:radio As in: 'Touch Mode is never enabled'"
+msgctxt "As in: 'Tablet Mode is never enabled'"
 msgid "Never enabled"
 msgstr "Mai activat"
 
-#: ui/main.qml:435
+#: ui/main.qml:373
 #, kde-format
 msgctxt "@info:whatsthis contextualhelpbutton tooltip"
 msgid ""
-"Touch Mode will be automatically activated whenever the system detects a "
+"Tablet Mode will be automatically enabled whenever the system detects a "
 "touchscreen but no mouse or touchpad. For example: when a transformable "
 "laptop's keyboard is flipped around or detached."
 msgstr ""
-"El mode tàctil s'activarà automàticament quan el sistema detecte una "
+"El mode tauleta s'activarà automàticament quan el sistema detecte una "
 "pantalla tàctil però sense ratolí ni ratolí tàctil. Per exemple: quan el "
 "teclat d'un ordinador portàtil transformable es gire o se separe."
 
-#: ui/main.qml:440
+#: ui/main.qml:379
 #, kde-format
-msgctxt "As in: 'Touch Mode is always enabled'"
-msgid "Always active"
-msgstr "Sempre actiu"
+msgctxt "As in: 'Tablet Mode is always enabled'"
+msgid "Always enabled"
+msgstr "Sempre activat"
 
-#: ui/main.qml:463
+#: ui/main.qml:401
 #, kde-format
-msgctxt "As in: 'Touch Mode is never enabled'"
+msgctxt "As in: 'Tablet Mode is never enabled'"
 msgid "Disabled"
 msgstr "Desactivat"
 
-#: ui/main.qml:486
+#: ui/main.qml:402
 #, kde-format
 msgctxt "@info:usagetip"
-msgid ""
-"In Touch Mode, many elements of the user interface will become larger to "
-"more easily accommodate touch interaction."
-msgstr ""
-"En el mode tàctil, molts elements de la interfície d'usuari es faran més "
-"grans per a adaptar-se amb més facilitat a la interacció tàctil."
+msgid "In Tablet Mode, the virtual keyboard will appear when needed."
+msgstr "En el mode tauleta, el teclat virtual apareixerà quan calga."
 
 #. i18n: ectx: label, entry (singleClick), group (KDE)
 #: workspaceoptions_kdeglobalssettings.kcfg:9

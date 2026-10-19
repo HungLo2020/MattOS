@@ -1,15 +1,15 @@
 # SPDX-FileCopyrightText: KDE Contributors
 # SPDX-License-Identifier: BSD-2-Clause
 
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
-set(KF_DEP_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
+set(KF_DEP_VERSION "6.31.0") # handled by release scripts
 project(KRunner VERSION ${KF_VERSION})
 
 # ECM setup
 include(FeatureSummary)
-find_package(ECM 6.26.0  NO_MODULE)
+find_package(ECM 6.31.0  NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -25,10 +25,10 @@ include(ECMGenerateHeaders)
 include(CMakePackageConfigHelpers)
 include(KDEPackageAppTemplates)
 include(ECMQtDeclareLoggingCategory)
-include(ECMSetupQtPluginMacroNames)
 include(ECMDeprecationSettings)
 include(KDEGitCommitHooks)
 include(ECMGenerateQDoc)
+include(ECMInstalledLibraryCheck)
 
 set(EXCLUDE_DEPRECATED_BEFORE_AND_AT 0 CACHE STRING "Control the range of deprecated API excluded from the build [default=0].")
 
@@ -41,13 +41,13 @@ ecm_setup_version(PROJECT
 )
 
 # Dependencies
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 
 find_package(Qt6 ${REQUIRED_QT_VERSION} NO_MODULE REQUIRED Gui)
 
 ecm_set_disabled_deprecation_versions(
     QT 6.11.0
-    KF 6.23.0
+    KF 6.27.0
 )
 
 find_package(KF6Config ${KF_DEP_VERSION} REQUIRED)

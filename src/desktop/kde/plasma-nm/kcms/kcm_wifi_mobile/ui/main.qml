@@ -91,6 +91,15 @@ SimpleKCM {
                     checked = Qt.binding(() => enabledConnections.wirelessEnabled);
                 }
             }
+
+            FormCard.FormDelegateSeparator {}
+
+            FormCard.FormButtonDelegate {
+                text: i18n("Settings")
+                onClicked: {
+                    kcm.push("MorePage.qml");
+                }
+            }
         }
 
         FormCard.FormHeader {

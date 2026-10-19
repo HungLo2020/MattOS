@@ -33,6 +33,7 @@ class EventCallback;
 struct KeyEvent;
 struct PointerEvent;
 struct WheelEvent;
+class QWasmInputContext;
 
 Q_DECLARE_LOGGING_CATEGORY(qLcQpaWasmInputContext)
 
@@ -106,6 +107,7 @@ public:
     // QNativeInterface::Private::QWasmWindow
     emscripten::val document() const override { return m_document; }
     emscripten::val clientArea() const override { return m_decoratedWindow; }
+    emscripten::val canvas() const override { return m_canvas; }
 
     // QWasmWindowTreeNode:
     emscripten::val containerElement() final;
@@ -139,8 +141,6 @@ private:
 
     void handleKeyEvent(const KeyEvent &event);
     bool processKey(const KeyEvent &event);
-    void handleKeyForInputContextEvent(const KeyEvent &event);
-    bool processKeyForInputContext(const KeyEvent &event);
     void handleInputEvent(emscripten::val event);
     void handleCompositionStartEvent(emscripten::val event);
     void handleCompositionUpdateEvent(emscripten::val event);
@@ -157,6 +157,7 @@ private:
     Qt::WindowFlags fixTopLevelWindowFlags(Qt::WindowFlags) const;
     bool shouldBeAboveTransientParentFlags(Qt::WindowFlags flags) const;
     QWasmWindowStack<>::PositionPreference positionPreferenceFromWindowFlags(Qt::WindowFlags) const;
+    QWasmInputContext *activeWasmInputContext() const;
 
     QWasmCompositor *m_compositor = nullptr;
     QWasmBackingStore *m_backingStore = nullptr;

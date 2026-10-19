@@ -13,7 +13,7 @@
 #include <QtCore/qprocess.h>
 #include <QtCore/qlibraryinfo.h>
 #include <QtCore/qstringlist.h>
-
+#include <QtCore/qmap.h>
 #include <QtTest/qtest.h>
 #include <QtQmlLS/private/qlspcustomtypes_p.h>
 
@@ -75,6 +75,7 @@ private slots:
     void qmldirImports_data();
     void qmldirImports();
     void quickFixes_data();
+    // TODO QTBUG-145439
     void quickFixes();
     void automaticSemicolonInsertionForCompletions_data();
     void automaticSemicolonInsertionForCompletions();

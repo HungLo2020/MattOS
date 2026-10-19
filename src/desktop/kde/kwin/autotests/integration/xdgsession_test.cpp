@@ -18,8 +18,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_xdgsession-0");
-
 class TestXdgSession : public QObject
 {
     Q_OBJECT
@@ -66,9 +64,7 @@ void TestXdgSession::initTestCase()
     qRegisterMetaType<KWin::Window *>();
     qRegisterMetaType<KWayland::Client::Output *>();
 
-    qputenv("KWIN_WAYLAND_SUPPORT_XX_SESSION_MANAGER", "1");
-
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -374,7 +370,7 @@ void TestXdgSession::restoreOffscreenPosition()
             auto changeSet = configuration.changeSet(outputs[1]->backendOutput());
             changeSet->enabled = false;
         }
-        workspace()->applyOutputConfiguration(configuration);
+        QVERIFY(workspace()->applyOutputConfiguration(configuration));
     },
         .restore = [outputs](Window *window) {
         QCOMPARE(window->pos(), QPointF(0, 0));

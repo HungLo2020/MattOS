@@ -19,6 +19,7 @@
 
 #include "QtCore/qxmlstream.h"
 #include "QtCore/qstack.h"
+#include "QtCore/qstringview.h"
 #include <QtCore/QLoggingCategory>
 #include "qsvgstyle_p.h"
 #if QT_CONFIG(cssparser)
@@ -27,9 +28,13 @@
 #include <QtSvg/private/qsvgcssvalues_p.h>
 #endif
 #include "qsvggraphics_p.h"
+#include "qsvgfont_p.h"
 #include "qtsvgglobal_p.h"
-#include "qsvgutils_p.h"
 #include "qtsvgglobal.h"
+#include <QtSvg/private/qsvgpaintserver_p.h>
+#include <QtGui/private/qguisvg_p.h>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
@@ -37,6 +42,9 @@ class QSvgNode;
 class QSvgDocument;
 class QSvgHandler;
 class QColor;
+
+Q_AUTOTEST_EXPORT QList<qreal> parseNumbersList(QStringView *str);
+Q_AUTOTEST_EXPORT bool resolveColor(QStringView colorStr, QColor &color, QSvgHandler *handler);
 
 class Q_SVG_EXPORT QSvgHandler
 {
@@ -51,6 +59,8 @@ public:
 
     QIODevice *device() const;
     QSvgDocument *document() const;
+    // resets the stored document: afterwards document() == nullptr and ok() == false
+    [[nodiscard]] std::unique_ptr<QSvgDocument> takeDocument();
 
     inline bool ok() const {
         return document() != 0 && !xml->hasError();
@@ -59,8 +69,8 @@ public:
     inline QString errorString() const { return xml->errorString(); }
     inline int lineNumber() const { return xml->lineNumber(); }
 
-    void setDefaultCoordinateSystem(QSvgUtils::LengthType type);
-    QSvgUtils::LengthType defaultCoordinateSystem() const;
+    void setDefaultCoordinateSystem(QGuiSvg::LengthType type);
+    QGuiSvg::LengthType defaultCoordinateSystem() const;
 
     void pushColor(const QColor &color);
     void pushColorCopy();
@@ -68,6 +78,8 @@ public:
     QColor currentColor() const;
 
     void pushUnresolvedStyle(QSvgStyleProperty *prop);
+
+    void setCurrentSvgFontFamily(QStringView family);
 
 #ifndef QT_NO_CSSPARSER
     void setInStyle(bool b);
@@ -95,7 +107,7 @@ public:
 private:
     void init();
 
-    QSvgDocument *m_doc;
+    std::unique_ptr<QSvgDocument> m_doc;
     QStack<QSvgNode *> m_nodes;
     // TODO: This is only needed during parsing, so it unnecessarily takes up space after that.
     // Temporary container for :
@@ -119,9 +131,27 @@ private:
      */
     QStack<QSvgText::WhitespaceMode> m_whitespaceMode;
 
-    QSvgRefCounter<QSvgStyleProperty> m_style;
+    struct SvgFontData
+    {
+        QSvgFontPtr font;
+        QString fontFamily;
 
-    QSvgUtils::LengthType m_defaultCoords;
+        bool isEmpty() const
+        {
+            return !font || fontFamily.isEmpty();
+        }
+
+        void reset()
+        {
+            font = nullptr;
+            fontFamily.clear();
+        }
+    };
+
+    SvgFontData m_currentSvgFontData;
+    QSvgPaintServerSharedPtr m_paintServer;
+
+    QGuiSvg::LengthType m_defaultCoords;
 
     QStack<QColor> m_colorStack;
     QStack<int>    m_colorTagCount;
@@ -147,6 +177,10 @@ private:
     const QtSvg::Options m_options;
     const QtSvg::AnimatorType m_animatorType;
 };
+
+Q_AUTOTEST_EXPORT QSvgNode *createAnimateTransformNode(QSvgNode *parent,
+                                                       const QXmlStreamAttributes &attributes,
+                                                       QSvgHandler *handler);
 
 Q_DECLARE_LOGGING_CATEGORY(lcSvgHandler)
 

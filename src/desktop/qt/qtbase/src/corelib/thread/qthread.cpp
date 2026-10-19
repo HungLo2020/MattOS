@@ -518,8 +518,8 @@ bool QThread::isRunning() const
 }
 
 /*!
-    Sets the stack size for the thread to \a stackSize. If \a stackSize is
-    zero, the operating system or runtime will choose a default value.
+    Sets the stack size for the thread to \a stackSize bytes. If \a stackSize
+    is zero, the operating system or runtime will choose a default value.
     Otherwise, the thread's stack size will be the value provided (which may be
     rounded up or down).
 
@@ -547,7 +547,7 @@ void QThread::setStackSize(uint stackSize)
 }
 
 /*!
-    Returns the maximum stack size for the thread (if set with
+    Returns the maximum stack size for the thread in bytes (if set with
     setStackSize()); otherwise returns zero.
 
     \sa setStackSize()
@@ -1334,7 +1334,7 @@ void QThread::requestInterruption()
     \note This can only be called within the thread itself, i.e. when
     it is the current thread.
 
-    \sa currentThread() requestInterruption()
+    \sa currentThread(), requestInterruption()
 */
 bool QThread::isInterruptionRequested() const
 {

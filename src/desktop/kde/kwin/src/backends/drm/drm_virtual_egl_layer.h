@@ -33,13 +33,13 @@ public:
     VirtualEglGbmLayer(EglGbmBackend *eglBackend, DrmVirtualOutput *output);
     ~VirtualEglGbmLayer() override;
 
-    std::optional<OutputLayerBeginFrameInfo> doBeginFrame() override;
-    bool doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
+    std::optional<OutputLayerBeginFrameInfo> beginFrame(OutputFrame *frame) override;
+    bool endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
     void releaseBuffers() override;
-    DrmDevice *scanoutDevice() const override;
-    QHash<uint32_t, QList<uint64_t>> supportedDrmFormats() const override;
+    FormatModifierMap supportedDrmFormats() const override;
 
 private:
+    bool earlyScanoutChecks() override;
     bool importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_ptr<OutputFrame> &frame) override;
     std::shared_ptr<EglSwapchain> createGbmSwapchain() const;
     bool doesGbmSwapchainFit(EglSwapchain *swapchain) const;

@@ -9,8 +9,10 @@
 #include "generator.h"
 #include "genustypes.h"
 #include "qdocindexfiles.h"
+#include "qdoclogging.h"
 #include "qmltypenode.h"
 #include "tree.h"
+#include "utilities.h"
 
 #include <QtCore/qregularexpression.h>
 #include <stack>
@@ -348,9 +350,9 @@ NodeMultiMapMap QDocDatabase::s_newSinceMaps;
   write documentation for nodes marked \c internal.
 
   \a singleExec_ is false when qdoc is being used in the standard
-  way of running qdoc twices for each module, first with -prepare
-  and then with -generate. First the -prepare phase is run for
-  each module, then the -generate phase is run for each module.
+  way of running qdoc twices for each module, first with --prepare
+  and then with --generate. First the --prepare phase is run for
+  each module, then the --generate phase is run for each module.
 
   When \a singleExec_ is true, qdoc is run only once. During the
   single execution, qdoc processes the qdocconf files for all the
@@ -863,6 +865,15 @@ void QDocDatabase::findAllLegaleseTexts(Aggregate *node)
  */
 
 /*!
+  \fn const CollectionNode *QDocDatabase::findConceptNode(const QString &name)
+
+  Non-creating, cross-tree lookup. findConcept()/findCollection() fabricate a
+  placeholder on a miss, which would shadow a dependency-module concept with an
+  empty primary-tree node and emit a dangling local href. getCollectionNode()
+  searches the same forest order without that side effect.
+ */
+
+/*!
   Find the \a key in the map of new class maps, and return a
   reference to the value, which is a NodeMap. If \a key is not
   found, return a reference to an empty NodeMap.
@@ -921,6 +932,7 @@ void QDocDatabase::resolveStuff()
         primaryTree()->resolveTargets(primaryTreeRoot());
         primaryTree()->resolveCppToQmlLinks();
         primaryTree()->resolveSince(*primaryTreeRoot());
+        resolveConceptUsers();
     }
     if (config.singleExec() && config.generating()) {
         primaryTree()->resolveBaseClasses(primaryTreeRoot());
@@ -928,6 +940,7 @@ void QDocDatabase::resolveStuff()
         primaryTreeRoot()->resolveQmlInheritance();
         primaryTree()->resolveCppToQmlLinks();
         primaryTree()->resolveSince(*primaryTreeRoot());
+        resolveConceptUsers();
     }
     if (!config.preparing()) {
         resolveNamespaces();
@@ -948,6 +961,85 @@ void QDocDatabase::resolveBaseClasses()
             t->root()->resolveQmlInheritance();
         t = m_forest.nextTree();
     }
+}
+
+/*!
+  Gathers the fully-qualified concept names referenced by \a node.
+  Template-head and direct-concept references live on the optional
+  RelaxedTemplateDeclaration carried by the node; trailing-requires
+  and constrained-auto references are accumulated on the FunctionNode.
+ */
+static void collectConceptReferences(const Node *node, QStringList &refs)
+{
+    if (const auto &td = node->templateDecl(); td.has_value()) {
+        for (const auto &name : td->referenced_concepts)
+            refs.append(QString::fromStdString(name));
+    }
+    if (node->isFunction()) {
+        const auto *fn = static_cast<const FunctionNode *>(node);
+        refs += fn->referencedConcepts();
+    }
+}
+
+/*!
+  Walks every documented node under \a parent and registers each constrained
+  item as a member of the concept's CollectionNode for each concept it
+  references.
+
+  Recurses into aggregates so the entire primary tree is covered.
+ */
+static void registerConceptUsersUnder(Aggregate *parent, QDocDatabase &db)
+{
+    for (auto *child : std::as_const(parent->childNodes())) {
+        // A skipped node is not registered as a concept user, but its
+        // documented descendants still are: a documented class nested in an
+        // internal namespace, for example, should still appear in its concept's
+        // "Used by" list. Visibility filtering and recursion are therefore
+        // independent.
+        const bool registerChild =
+                !child->isPrivate() && !child->isInternal() && !child->isDontDocument();
+
+        if (registerChild) {
+            QStringList refs;
+            collectConceptReferences(child, refs);
+            refs.sort();
+            refs.removeDuplicates();
+
+            for (const QString &conceptName : std::as_const(refs)) {
+                // Cross-tree lookup. The forest search order covers the primary
+                // tree plus every dependency-module index tree. A concept
+                // declared in module B and referenced from module A can be
+                // found through the same cross-tree lookup machinery.
+                // Concepts without a \\concept block anywhere in the corpus
+                // return \c{nullptr} and are silently skipped; references to
+                // undocumented concepts (such as std::integral) are common and
+                // not actionable.
+                //
+                // addMember() deduplicates membership centrally, so re-running
+                // this pass is safe and produces a stable "Used by" listing
+                // without per-call guard logic.
+                if (auto *cn = db.findMutableCollectionNode(conceptName, NodeType::Concept))
+                    cn->addMember(child);
+            }
+        }
+
+        if (child->isAggregate())
+            registerConceptUsersUnder(static_cast<Aggregate *>(child), db);
+    }
+}
+
+/*!
+  Builds the concept-to-users reverse index after parsing finishes
+  and before any generator runs. The forward direction — which
+  concepts a constrained declaration references — is captured
+  during the libclang AST pass; this pass turns those isolated
+  references into bidirectional collection membership so concept
+  reference pages can render a \e {Used by} section through the
+  same scaffolding group and module collection pages already use.
+ */
+void QDocDatabase::resolveConceptUsers()
+{
+    registerConceptUsersUnder(primaryTreeRoot(), *this);
 }
 
 /*!
@@ -1010,7 +1102,7 @@ void QDocDatabase::resolveNamespaces()
             } else if (!indexNamespace) {
                 // Warn about documented children in undocumented namespaces.
                 // As the namespace can be documented outside this project,
-                // skip the warning if -no-link-errors is set
+                // skip the warning if --no-link-errors is set
                 if (linkErrors) {
                     for (auto *node : namespaces) {
                         if (!node->isIndexNode())
@@ -1204,6 +1296,103 @@ const Node *QDocDatabase::findNodeForTarget(const QString &target, const Node *r
     return node;
 }
 
+/*!
+    Finds the node for \a target with genus and module scoping.
+
+    When \a moduleName is non-empty, the search is scoped to that
+    module's tree. Function signatures (targets ending with \c{()})
+    are parsed and dispatched to function-specific lookup. QML
+    dot-path targets are resolved via import-aware type lookup when
+    the \a genus is QML.
+
+    This overload extracts the dispatch logic from findNodeForAtom()
+    into a method that takes plain parameters instead of an Atom
+    pointer, enabling callers without Atom access (such as
+    LinkResolver) to use the same scoped lookup.
+*/
+const Node *QDocDatabase::findNodeForTarget(const QString &target, const Node *relative,
+                                            Genus genus, const QString &moduleName,
+                                            QString *ref)
+{
+    if (target.isEmpty())
+        return relative;
+
+    Tree *domain = moduleName.isEmpty() ? nullptr : findTree(moduleName);
+
+    if (domain) {
+        const Node *node = nullptr;
+        if (target.endsWith(".html"_L1)) {
+            node = domain->findNodeByNameAndType(QStringList(target), &Node::isPageNode);
+        } else if (target.endsWith(')'_L1)) {
+            QString function = target;
+            QString signature;
+            if (function.endsWith("()"_L1))
+                function.chop(2);
+            if (function.endsWith(')'_L1)) {
+                qsizetype position = function.lastIndexOf('('_L1);
+                signature = function.mid(position + 1, function.size() - position - 2);
+                function = function.left(position);
+            }
+            QStringList path = function.split("::"_L1);
+            node = domain->findFunctionNode(path, Parameters(signature), nullptr, genus);
+        }
+        if (node)
+            return node;
+
+        if (genus == Genus::QML && target.contains('.'_L1) && !target.contains("::"_L1)) {
+            int typeFlags = SearchBaseClasses | SearchEnumValues | TypesOnly;
+            QStringList path = target.split('.'_L1);
+            node = domain->findNode(path, relative, typeFlags, genus);
+            if (node)
+                return node;
+            if (path.size() > 1) {
+                node = domain->findNode(QStringList{path.last()}, relative, typeFlags, genus);
+                if (node && node->isQmlType())
+                    return node;
+            }
+        }
+
+        int flags = SearchBaseClasses | SearchEnumValues;
+        QStringList nodePath = target.split("::"_L1);
+        if (relative && relative->tree()->physicalModuleName() != domain->physicalModuleName())
+            relative = nullptr;
+        QString localRef;
+        const Node *result =
+                domain->findNodeForTarget(nodePath, {}, relative, flags, genus, localRef);
+        if (result && ref)
+            *ref = localRef;
+        return result;
+    }
+
+    // Forest-wide search: function signatures, QML dot-paths, then general.
+    if (target.endsWith(".html"_L1))
+        return findNodeByNameAndType(QStringList(target), &Node::isPageNode);
+
+    if (target.endsWith(')'_L1)) {
+        const Node *node = findFunctionNode(target, relative, genus);
+        if (node)
+            return node;
+    }
+
+    if (genus == Genus::QML && target.contains('.'_L1) && !target.contains("::"_L1)) {
+        const Node *node = findTypeNode(target, relative, genus);
+        if (node)
+            return node;
+    }
+
+    QStringList targetPath = Utilities::pathAndFragment(target);
+    int flags = SearchBaseClasses | SearchEnumValues;
+    QString localRef;
+    const Node *node = findNodeForTarget(targetPath, relative, genus, localRef, flags);
+    if (node) {
+        if (ref)
+            *ref = localRef;
+        return node;
+    }
+
+    return findPageNodeByTitle(target);
+}
+
 QStringList QDocDatabase::groupNamesForNode(Node *node)
 {
     QStringList result;
@@ -1236,15 +1425,31 @@ void QDocDatabase::readIndexes(const QStringList &indexFiles)
 }
 
 /*!
-  Generates a qdoc index file and write it to \a fileName. The
-  index file is generated with the parameters \a url and \a title,
-  using the generator \a g.
+  Generates a qdoc index file and writes it to \a fileName. The
+  index file is generated with the parameters \a url, \a title,
+  and \a hrefGenerator.
+
+  The \a hrefGenerator is used to compute document locations (hrefs)
+  for nodes. For index files, this should be the HTML generator
+  to ensure correct .html file extensions in the generated hrefs.
+  If null, defaults to the HTML generator.
  */
-void QDocDatabase::generateIndex(const QString &fileName, const QString &url, const QString &title)
+void QDocDatabase::generateIndex(const QString &fileName, const QString &url, const QString &title,
+                                 const Generator *hrefGenerator)
 {
+    // Resolve generator before modifying any state
+    const Generator *generator = hrefGenerator;
+    if (!generator)
+        generator = Generator::generatorForFormat(u"HTML"_s);
+    if (!generator) {
+        qCWarning(lcQdoc) << "Cannot generate index file: no href generator available"
+                             " (HTML generator missing)";
+        return;
+    }
+
     QString t = fileName.mid(fileName.lastIndexOf(QChar('/')) + 1);
     primaryTree()->setIndexFileName(t);
-    QDocIndexFiles::qdocIndexFiles()->generateIndex(fileName, url, title);
+    QDocIndexFiles::qdocIndexFiles()->generateIndex(fileName, url, title, generator);
     QDocIndexFiles::destroyQDocIndexFiles();
 }
 
@@ -1456,6 +1661,7 @@ void QDocDatabase::mergeCollections(CollectionNode *c)
                 c->markSeen();
                 c->setTitle(cn->title());
                 c->setUrl(cn->url());
+                c->setResolvedPhysicalModuleName(cn->tree()->physicalModuleName());
             }
         }
     }
@@ -1478,14 +1684,16 @@ const Node *QDocDatabase::findNodeForAtom(const Atom *a, const Node *relative, Q
     const Node *node = nullptr;
 
     Atom *atom = const_cast<Atom *>(a);
-    QStringList targetPath = atom->string().split(QLatin1Char('#'));
+    QStringList targetPath = Utilities::pathAndFragment(atom->string());
     QString first = targetPath.first().trimmed();
 
     Tree *domain = nullptr;
 
     if (atom->isLinkAtom()) {
-        domain = atom->domain();
-        genus = atom->genus();
+        if (auto *atomDomain = atom->domain())
+            domain = atomDomain;
+        if (atom->genus() != Genus::DontCare)
+            genus = atom->genus();
     }
 
     if (first.isEmpty())

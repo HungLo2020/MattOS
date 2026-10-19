@@ -11,6 +11,7 @@
 
 // Include with base class for effects.
 #include "effect/effect.h"
+#include "effect/timeline.h"
 #include "plugins/slideback/motionmanager.h"
 
 namespace KWin
@@ -20,13 +21,14 @@ class SlideBackEffect
     : public Effect
 {
     Q_OBJECT
+
 public:
     SlideBackEffect();
 
-    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data) override;
+    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data) override;
+    bool paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data) override;
 
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime) override;
+    void prePaintScreen(ScreenPrePaintData &data) override;
     void postPaintScreen() override;
     bool isActive() const override;
 
@@ -53,7 +55,7 @@ private:
     QHash<EffectWindow *, QRect> destinationList;
     int m_tabboxActive;
     QList<Region> clippedRegions;
-    std::chrono::milliseconds m_lastPresentTime = std::chrono::milliseconds::zero();
+    AnimationClock clock;
 
     QRect getSlideDestination(const QRect &windowUnderGeometry, const QRect &windowOverGeometry);
     bool isWindowUsable(EffectWindow *w);

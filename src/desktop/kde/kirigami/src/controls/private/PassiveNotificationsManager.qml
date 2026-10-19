@@ -11,10 +11,9 @@ import QtQuick.Templates as T
 import QtQuick.Layouts
 import org.kde.kirigami.platform as Platform
 import org.kde.kirigami.primitives as Primitives
-import org.kde.kirigami.private.polyfill
 
 /*!
-  \brief PassiveNotificatiomodelnManager is meant to display small, passive and inline notifications in the app.
+  \brief PassiveNotificationsManager is meant to display small, passive and inline notifications in the app.
 
   It is used to show messages of limited importance that make sense only when
   the user is using the application and wouldn't be suited as a global
@@ -185,7 +184,7 @@ Item {
             required property int closeInterval
             required property string text
             required property string actionButtonText
-            required property QtObject callBackWrapper
+            required property CallBackWrapper callBackWrapper
 
             hoverEnabled: true
             // We force the delegate to be not visible when
@@ -273,11 +272,12 @@ Item {
             }
         }
     }
+    component CallBackWrapper: QtObject {
+        property var callBack
+    }
     Component {
         id: callBackWrapper
-        QtObject {
-            property var callBack
-        }
+        CallBackWrapper { }
     }
 }
 

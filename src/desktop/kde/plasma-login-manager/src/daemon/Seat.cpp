@@ -17,13 +17,20 @@
 
 #include "Seat.h"
 
-#include "Configuration.h"
 #include "DaemonApp.h"
+#include "MainConfigLoader.h"
 #include "VirtualTerminal.h"
 
 #include <QDebug>
 #include <QFile>
 #include <QTimer>
+
+#include "Constants.h"
+#include "config.h"
+#include <KConfig>
+#include <KSharedConfig>
+#include <QDir>
+#include <QFileInfo>
 
 #include <Login1Manager.h>
 #include <Login1Seat.h>
@@ -46,10 +53,93 @@ const QString &Seat::name() const
     return m_name;
 }
 
+bool Seat::isTtyInUse(const QString &tty) const
+{
+    if (!Logind::isAvailable()) {
+        return false;
+    }
+
+    OrgFreedesktopLogin1ManagerInterface manager(Logind::serviceName(), Logind::managerPath(), QDBusConnection::systemBus());
+    auto reply = manager.ListSessions();
+    reply.waitForFinished();
+
+    const auto info = reply.value();
+    for (const SessionInfo &sessionInfo : info) {
+        OrgFreedesktopLogin1SessionInterface session(Logind::serviceName(), sessionInfo.sessionPath.path(), QDBusConnection::systemBus());
+        if (tty == session.tTY() && session.state() != QLatin1String("closing")) {
+            qDebug() << "tty" << tty << "already in use by" << session.user().path.path() << session.state() << session.display() << session.desktop()
+                     << session.vTNr();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+VirtualTerminal::Terminal Seat::availableVt() const
+{
+    if (!isTtyInUse(QStringLiteral("tty%1").arg(PLASMALOGIN_INITIAL_VT))) {
+        return VirtualTerminal::openVt(PLASMALOGIN_INITIAL_VT);
+    }
+
+    const auto vt = VirtualTerminal::currentVt();
+    if (vt > 0 && !isTtyInUse(QStringLiteral("tty%1").arg(vt))) {
+        return VirtualTerminal::openVt(vt);
+    }
+
+    return VirtualTerminal::setUpNewVt();
+}
+
+QString Seat::reusableSessionId(const QString &user) const
+{
+    OrgFreedesktopLogin1ManagerInterface manager(Logind::serviceName(), Logind::managerPath(), QDBusConnection::systemBus());
+    auto reply = manager.ListSessions();
+    reply.waitForFinished();
+
+    for (const SessionInfo &sessionInfo : reply.value()) {
+        if (sessionInfo.userName != user) {
+            continue;
+        }
+
+        OrgFreedesktopLogin1SessionInterface session(Logind::serviceName(), sessionInfo.sessionPath.path(), QDBusConnection::systemBus());
+        if (session.service() == QLatin1String("plasmalogin") && session.state() == QLatin1String("online")) {
+            return sessionInfo.sessionId;
+        }
+    }
+
+    return {};
+}
+
+void Seat::activateSession(const QString &sessionId) const
+{
+    if (sessionId.isEmpty()) {
+        return;
+    }
+
+    OrgFreedesktopLogin1ManagerInterface manager(Logind::serviceName(), Logind::managerPath(), QDBusConnection::systemBus());
+    manager.UnlockSession(sessionId);
+    manager.ActivateSession(sessionId);
+}
+
+std::optional<int> Seat::vtForSession(const QString &sessionId) const
+{
+    if (sessionId.isEmpty()) {
+        return std::nullopt;
+    }
+
+    OrgFreedesktopLogin1ManagerInterface manager(Logind::serviceName(), Logind::managerPath(), QDBusConnection::systemBus());
+    if (!manager.isValid()) {
+        return std::nullopt;
+    }
+
+    auto sessionPath = manager.GetSession(sessionId);
+    OrgFreedesktopLogin1SessionInterface session(Logind::serviceName(), sessionPath.value().path(), QDBusConnection::systemBus());
+    return QStringView(session.tTY()).mid(3).toInt(); // we need to convert ttyN to N
+}
+
 void Seat::createDisplay()
 {
-    // reload config if needed
-    mainConfig.load();
+    PlasmaLogin::config()->load();
 
     // create a new display
     qDebug() << "Adding new display...";
@@ -57,70 +147,50 @@ void Seat::createDisplay()
 
     // restart display on stop
     connect(display, &Display::stopped, this, &Seat::displayStopped);
-    connect(display, &Display::displayServerFailed, this, [this, display] {
-        removeDisplay(display);
-        qWarning() << "Failed to launch a display server";
-        QCoreApplication::instance()->exit(12);
-    });
 
     // add display to the list
     m_displays << display;
 
+    // Per-seat autologin overrides the global [Autologin] keys for a dedicated seat.
+    // Resolve it here, after the configuration has been reloaded, rather than caching it
+    // in Display's constructor.
+    QString autologinUser;
+    QString autologinSession;
+    const bool firstLogin = tryLockFirstLogin();
+    const KConfigGroup autologinGroup = PlasmaLogin::config()->config()->group(QStringLiteral("Autologin"));
+    if (autologinGroup.hasGroup(m_name)) {
+        const KConfigGroup seatGroup = autologinGroup.group(m_name);
+        if (seatGroup.readEntry("Relogin", PlasmaLogin::config()->autologinRelogin()) || firstLogin) {
+            autologinUser = seatGroup.readEntry("User", QString());
+            autologinSession = seatGroup.readEntry("Session", QString());
+            if (autologinUser.isEmpty()) {
+                qWarning() << "Per-seat autologin: seat" << m_name << "is configured to autologin but names no User; it will be greeted.";
+            } else {
+                qInfo() << "Per-seat autologin: seat" << m_name << "configured for user" << autologinUser << "session" << autologinSession;
+            }
+        } else {
+            qDebug() << "Per-seat autologin: seat" << m_name << "has a config subgroup but Relogin is off and this is not the first login; it will be greeted.";
+        }
+    } else if (PlasmaLogin::config()->autologinRelogin() || firstLogin) {
+        autologinUser = PlasmaLogin::config()->autologinUser();
+        autologinSession = PlasmaLogin::config()->autologinSession();
+    }
+    display->setAutoLogin(autologinUser, autologinSession);
+
     // start the display
-    startDisplay(display);
-}
-
-void Seat::startDisplay(Display *display, int tryNr)
-{
-    if (display->start()) {
-        return;
-    }
-
-    // It's possible that the system isn't ready yet (driver not loaded,
-    // device not enumerated, ...). It's not possible to tell when that changes,
-    // so try a few times with a delay in between.
-    qWarning() << "Attempt" << tryNr << "starting the Display server on vt" << display->terminalId() << "failed";
-
-    if (tryNr >= 3) {
-        qCritical() << "Could not start Display server on vt" << display->terminalId();
-        return;
-    }
-
-    QTimer::singleShot(2000, display, [this, display, tryNr] {
-        startDisplay(display, tryNr + 1);
-    });
-}
-
-void Seat::removeDisplay(Display *display)
-{
-    qDebug() << "Removing display" << display << "...";
-
-    // remove display from list
-    m_displays.removeAll(display);
-
-    // stop the display
-    display->blockSignals(true);
-    display->stop();
-    display->blockSignals(false);
-
-    // delete display
-    display->deleteLater();
+    display->start();
 }
 
 void Seat::displayStopped()
 {
     Display *display = qobject_cast<Display *>(sender());
-    OrgFreedesktopLogin1ManagerInterface manager(Logind::serviceName(), Logind::managerPath(), QDBusConnection::systemBus());
     std::optional<int> nextVt;
-    auto reusing = display->reuseSessionId();
-    if (manager.isValid() && !reusing.isEmpty()) {
-        auto sessionPath = manager.GetSession(reusing);
-        OrgFreedesktopLogin1SessionInterface sessionIface(Logind::serviceName(), sessionPath.value().path(), QDBusConnection::systemBus());
-        nextVt = QStringView(sessionIface.tTY()).mid(3).toInt(); // we need to convert ttyN to N
-    }
+    nextVt = vtForSession(display->reuseSessionId());
 
-    // remove display
-    removeDisplay(display);
+    // remove display from list
+    m_displays.removeAll(display);
+    // delete display
+    display->deleteLater();
 
     // restart otherwise
     if (m_displays.isEmpty()) {
@@ -154,6 +224,18 @@ bool Seat::canTTY()
     }
 
     return m_name.compare(QStringLiteral("seat0"), Qt::CaseInsensitive) == 0 && access(VirtualTerminal::defaultVtPath, F_OK) == 0;
+}
+
+bool Seat::tryLockFirstLogin()
+{
+    // One first-login token per seat, so each seat independently gets its
+    // first-boot login; the machine-global soft-reboot check stays on the
+    // daemon (isFirstBoot).
+    if (m_firstLoginLock) {
+        return false;
+    }
+    m_firstLoginLock = true;
+    return daemonApp->isFirstBoot();
 }
 }
 

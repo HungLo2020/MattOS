@@ -57,6 +57,7 @@ Notes:
     <comment xml:lang="ie">RELAX NG</comment>
     <comment xml:lang="is">RELAX NG</comment>
     <comment xml:lang="it">RELAX NG</comment>
+    <comment xml:lang="ja">RELAX NG</comment>
     <comment xml:lang="ka">RELAX NG</comment>
     <comment xml:lang="ko">RELAX NG</comment>
     <comment xml:lang="lg">RELAX NG</comment>
@@ -64,6 +65,8 @@ Notes:
     <comment xml:lang="lv">RELAX NG</comment>
     <comment xml:lang="ml">RELAX NG</comment>
     <comment xml:lang="my">RELAX NG</comment>
+    <comment xml:lang="nan_TW">RELAX NG</comment>
+    <comment xml:lang="nan_TW@latin">RELAX NG</comment>
     <comment xml:lang="nb">RELAX NG</comment>
     <comment xml:lang="nl">RELAX NG</comment>
     <comment xml:lang="nn">RELAX NG</comment>
@@ -80,7 +83,6 @@ Notes:
     <comment xml:lang="th">RELAX NG</comment>
     <comment xml:lang="tok">poki pi ilo RELAX NG</comment>
     <comment xml:lang="tr">RELAX NG</comment>
-    <comment xml:lang="ug">RELAX NG</comment>
     <comment xml:lang="uk">RELAX NG</comment>
     <comment xml:lang="vi">RELAX NG</comment>
     <comment xml:lang="zh_CN">RELAX NG</comment>
@@ -122,6 +124,7 @@ Notes:
     <comment xml:lang="ie">Audio CD</comment>
     <comment xml:lang="is">CD hljóð</comment>
     <comment xml:lang="it">Audio CD</comment>
+    <comment xml:lang="ja">CD オーディオ</comment>
     <comment xml:lang="ka">CD აუდიო</comment>
     <comment xml:lang="ko">CD 오디오</comment>
     <comment xml:lang="lg">CD ey'ebiwulirizibwa</comment>
@@ -129,6 +132,8 @@ Notes:
     <comment xml:lang="lv">CD audio</comment>
     <comment xml:lang="ml">സിഡി ശബ്ദം</comment>
     <comment xml:lang="my">စီဒီအသံဖိုင်လ်</comment>
+    <comment xml:lang="nan_TW">CD 音訊</comment>
+    <comment xml:lang="nan_TW@latin">CD im-sìn</comment>
     <comment xml:lang="nb">CD-lyd</comment>
     <comment xml:lang="nl">CD-audio</comment>
     <comment xml:lang="nn">CD-lyd</comment>
@@ -189,6 +194,7 @@ Notes:
     <comment xml:lang="ie">fonde bitmap SNF</comment>
     <comment xml:lang="is">SNF bitamyndaletur</comment>
     <comment xml:lang="it">Carattere bitmap SNF</comment>
+    <comment xml:lang="ja">SNF ビットマップフォント</comment>
     <comment xml:lang="ka">SNF ბიტური რუკის ფონტი</comment>
     <comment xml:lang="ko">SNF 비트맵 글꼴</comment>
     <comment xml:lang="lg">Nnukuta za lulyo lw'enkula SNF oluzikongojjera mu mapu za pikiseli</comment>
@@ -196,6 +202,8 @@ Notes:
     <comment xml:lang="lv">SNF bitkartes fonts</comment>
     <comment xml:lang="ml">SNF ബിറ്റ്മാപ്പ് ഫോണ്ട്</comment>
     <comment xml:lang="my">အက်စ်အန်အက်ဖ် ဘစ်မတ်ပ် ဖောင့်</comment>
+    <comment xml:lang="nan_TW">SNF bitmap 字型</comment>
+    <comment xml:lang="nan_TW@latin">SNF bitmap jī-hîng</comment>
     <comment xml:lang="nb">SNF-punktskrift</comment>
     <comment xml:lang="nl">SNF-bitmap-lettertype</comment>
     <comment xml:lang="nn">SNF-punktskrift</comment>
@@ -257,6 +265,7 @@ Notes:
     <comment xml:lang="ie">applette Java</comment>
     <comment xml:lang="is">Java forritlingur</comment>
     <comment xml:lang="it">Applet Java</comment>
+    <comment xml:lang="ja">Java アプレット</comment>
     <comment xml:lang="ka">Java აპლეტი</comment>
     <comment xml:lang="ko">자바 애플릿</comment>
     <comment xml:lang="lg">Bupuloguramu bwa mu Java</comment>
@@ -264,6 +273,8 @@ Notes:
     <comment xml:lang="lv">„Java“ sīklietotne</comment>
     <comment xml:lang="ml">ജാവ ആപ്പ്ലെറ്റ്</comment>
     <comment xml:lang="my">ဂျာဗားအပ်ပလက်ပ်</comment>
+    <comment xml:lang="nan_TW">Java 小程式</comment>
+    <comment xml:lang="nan_TW@latin">Java sió-tîng-sik</comment>
     <comment xml:lang="nb">Java-applett</comment>
     <comment xml:lang="nl">Java-applet</comment>
     <comment xml:lang="nn">Java-applett</comment>
@@ -322,6 +333,7 @@ Notes:
     <comment xml:lang="ie">schema de colores de KDE</comment>
     <comment xml:lang="is">KDE litastef</comment>
     <comment xml:lang="it">Schema di colori di KDE</comment>
+    <comment xml:lang="ja">KDE カラースキーム</comment>
     <comment xml:lang="ka">KDE -ის ფერის სქემა</comment>
     <comment xml:lang="ko">KDE 색 구성표</comment>
     <comment xml:lang="lg">Lulyo lwa langi KDE z'ekozesa</comment>
@@ -329,6 +341,8 @@ Notes:
     <comment xml:lang="lv">KDE krāsu shēma</comment>
     <comment xml:lang="ml">കെഡിഇ നിറക്കൂട്ട്</comment>
     <comment xml:lang="my">ကေဒီအီအရောင် အစီအစဥ်ပုံ</comment>
+    <comment xml:lang="nan_TW">KDE 配色方案</comment>
+    <comment xml:lang="nan_TW@latin">KDE phuè-sik hong-àn</comment>
     <comment xml:lang="nb">KDE-fargetema</comment>
     <comment xml:lang="nl">KDE-kleurenschema</comment>
     <comment xml:lang="nn">KDE-fargetema</comment>
@@ -392,6 +406,7 @@ Notes:
     <comment xml:lang="ie">paccage de KNewStuff</comment>
     <comment xml:lang="is">KNewStuff pakki</comment>
     <comment xml:lang="it">Pacchetto di KNewStuff</comment>
+    <comment xml:lang="ja">KNewStuff パッケージ</comment>
     <comment xml:lang="ka">KNewStuff -ის პაკეტი</comment>
     <comment xml:lang="ko">KNewStuff 패키지</comment>
     <comment xml:lang="lg">Ekiwanulibwa KNewStuff</comment>
@@ -399,6 +414,8 @@ Notes:
     <comment xml:lang="lv">„KNewStuff“ pakotne</comment>
     <comment xml:lang="ml">KNewStuff പാക്കേജ്</comment>
     <comment xml:lang="my">ကေနယူးစတပ်ဖ် ပတ်ကေ့</comment>
+    <comment xml:lang="nan_TW">KNewStuff 套件</comment>
+    <comment xml:lang="nan_TW@latin">KNewStuff thò-kiānn</comment>
     <comment xml:lang="nb">KNewStuff-pakke</comment>
     <comment xml:lang="nl">KNewStuff-pakket</comment>
     <comment xml:lang="nn">KNewStuff-pakke</comment>
@@ -459,6 +476,7 @@ Notes:
     <comment xml:lang="ie">porta-papere de KWallet</comment>
     <comment xml:lang="is">KWallet veski</comment>
     <comment xml:lang="it">Portafogli KWallet</comment>
+    <comment xml:lang="ja">KWallet ウォレット</comment>
     <comment xml:lang="ka">KWallet -ის საფულე</comment>
     <comment xml:lang="ko">KWallet 지갑</comment>
     <comment xml:lang="lg">Seefu eya mu KWallet</comment>
@@ -466,6 +484,8 @@ Notes:
     <comment xml:lang="lv">„KWallet“ maks</comment>
     <comment xml:lang="ml">കെവാലറ്റ് മടിശ്ശീല</comment>
     <comment xml:lang="my">ကေပိုက်ဆံအိတ် ပိုက်ဆံအိတ်</comment>
+    <comment xml:lang="nan_TW">KWallet 錢包</comment>
+    <comment xml:lang="nan_TW@latin">KWallet tsînn-pau</comment>
     <comment xml:lang="nb">KWallet-lommebok</comment>
     <comment xml:lang="nl">KWallet-portefeuille</comment>
     <comment xml:lang="nn">KWallet-lommebok</comment>
@@ -529,6 +549,7 @@ Notes:
     <comment xml:lang="ie">plasmoid</comment>
     <comment xml:lang="is">plasmíð</comment>
     <comment xml:lang="it">plasmoide</comment>
+    <comment xml:lang="ja">plasmoid</comment>
     <comment xml:lang="ka">პლაზმოიდი</comment>
     <comment xml:lang="ko">plasmoid</comment>
     <comment xml:lang="lg">pulazimoidi</comment>
@@ -536,6 +557,8 @@ Notes:
     <comment xml:lang="lv">plazmoīds</comment>
     <comment xml:lang="ml">പ്ലാസ്മോയിഡ്</comment>
     <comment xml:lang="my">ပလက်စမွိုက်</comment>
+    <comment xml:lang="nan_TW">plasmoid</comment>
+    <comment xml:lang="nan_TW@latin">plasmoid</comment>
     <comment xml:lang="nb">plasmoide</comment>
     <comment xml:lang="nl">plasmoid</comment>
     <comment xml:lang="nn">plasmoide</comment>
@@ -553,7 +576,6 @@ Notes:
     <comment xml:lang="th">plasmoid</comment>
     <comment xml:lang="tok">ilo lili</comment>
     <comment xml:lang="tr">plasmoid</comment>
-    <comment xml:lang="ug">plasmoid</comment>
     <comment xml:lang="uk">плазмоїд</comment>
     <comment xml:lang="vi">plasmoid</comment>
     <comment xml:lang="zh_CN">Plasma 小程序</comment>
@@ -596,6 +618,7 @@ Notes:
     <comment xml:lang="ie">tema de SuperKaramba</comment>
     <comment xml:lang="is">SuperKaramba þema</comment>
     <comment xml:lang="it">Tema di SuperKaramba</comment>
+    <comment xml:lang="ja">SuperKaramba テーマ</comment>
     <comment xml:lang="ka">SuperKaramba -ის თემა</comment>
     <comment xml:lang="ko">SuperKaramba 테마</comment>
     <comment xml:lang="lg">Lulyo lw'endabika olukoledwa SuperKaramba</comment>
@@ -603,6 +626,8 @@ Notes:
     <comment xml:lang="lv">„SuperKaramba“ motīvs</comment>
     <comment xml:lang="ml">സൂപ്പര്‍കരാംബ പ്രമേയം</comment>
     <comment xml:lang="my">ဆူပါကရမ်းဘ အခင်းအကျင်း</comment>
+    <comment xml:lang="nan_TW">SuperKaramba 主題</comment>
+    <comment xml:lang="nan_TW@latin">SuperKaramba tsú-tê</comment>
     <comment xml:lang="nb">SuperKaramba-tema</comment>
     <comment xml:lang="nl">SuperKaramba-thema</comment>
     <comment xml:lang="nn">SuperKaramba-tema</comment>
@@ -662,6 +687,7 @@ Notes:
     <comment xml:lang="ie">document de gerentie de projectes de Calligra Plan</comment>
     <comment xml:lang="is">Calligra Plan verkstjórnunarskjal</comment>
     <comment xml:lang="it">Documento di gestione dei progetti di Calligra Plan</comment>
+    <comment xml:lang="ja">Calligra Plan プロジェクト管理文書</comment>
     <comment xml:lang="ka">Calligra Plan პროექტის მართვის დოკუმენტი</comment>
     <comment xml:lang="ko">Caligra Plan 프로젝트 관리 문서</comment>
     <comment xml:lang="lg">Kiwandiko kya ntambula ya pulojekiti ekya mu Calligra Plan</comment>
@@ -669,6 +695,8 @@ Notes:
     <comment xml:lang="lv">„Calligra Plan“ projektu pārvaldības dokuments</comment>
     <comment xml:lang="ml">കാലിഗ്ര രൂപരേഖ പദ്ധതി നടത്തിയിപ്പ് രേഖ</comment>
     <comment xml:lang="my">ကေားလီဂရာပလန် စီမံကိိန်းစီမံမှု မှတ်တမ်းစာအုပ်</comment>
+    <comment xml:lang="nan_TW">Calligra Plan 專案管理文件</comment>
+    <comment xml:lang="nan_TW@latin">Calligra Plan tsuan-àn kuán-lí bûn-kiānn</comment>
     <comment xml:lang="nb">Prosjektbehandlingsdokument for Calligra Plan</comment>
     <comment xml:lang="nl">Calligra-plan projectbeheer-document</comment>
     <comment xml:lang="nn">Prosjekthandsamings­dokument for Calligra Plan</comment>
@@ -728,6 +756,7 @@ Notes:
     <comment xml:lang="ie">document de labor de Calligra Plan</comment>
     <comment xml:lang="is">Calligra Plan verkpakkaskjal</comment>
     <comment xml:lang="it">Documento dei pacchetti di lavoro di Calligra Plan</comment>
+    <comment xml:lang="ja">Calligra Plan プロジェクト管理文書</comment>
     <comment xml:lang="ka">Calligra Plan სამუშაოს პაკეტის დოკუმენტი</comment>
     <comment xml:lang="ko">Caligra Plan 작업 패키지 문서</comment>
     <comment xml:lang="lg">Kiwandiko kya mulimu ekya mu Calligra Plan</comment>
@@ -735,6 +764,8 @@ Notes:
     <comment xml:lang="lv">„Calligra Plan“ darba pakotnes dokuments</comment>
     <comment xml:lang="ml">കാലിഗ്ര രൂപരേഖ പാക്കേജ് രേഖ</comment>
     <comment xml:lang="my">ကေားလီဂရာပလန် အလုပ်ပတ်ကေ့ မှတ်တမ်းစာအုပ်</comment>
+    <comment xml:lang="nan_TW">Calligra Plan 工作套件文件</comment>
+    <comment xml:lang="nan_TW@latin">Calligra Plan kang-tsok thò-kiānn bûn-kiānn</comment>
     <comment xml:lang="nb">Arbeidspakkedokument for Calligra Plan</comment>
     <comment xml:lang="nl">Calligra-plan werkpakket document</comment>
     <comment xml:lang="nn">Arbeidspakke­dokument for Calligra Plan</comment>
@@ -794,6 +825,7 @@ Notes:
     <comment xml:lang="ie">paccage de gerentie de projectes de KPlato</comment>
     <comment xml:lang="is">KPlato verkstjórnunarskjal</comment>
     <comment xml:lang="it">Documento di gestione dei progetti di KPlato</comment>
+    <comment xml:lang="ja">KPlato プロジェクト管理文書</comment>
     <comment xml:lang="ka">KPlato პროექტის მართვის დოკუმენტი</comment>
     <comment xml:lang="ko">KPlato 프로젝트 관리 문서</comment>
     <comment xml:lang="lg">Kiwandiko kya ntambula y'a pulojekiti ekya mu KPlato</comment>
@@ -801,6 +833,8 @@ Notes:
     <comment xml:lang="lv">„KPlato“ projektu pārvaldības dokuments</comment>
     <comment xml:lang="ml">കെപ്ലേറ്റോ പദ്ധതി നടത്തിയിപ്പ് രേഖ</comment>
     <comment xml:lang="my">ကေပလေးတိုး စီမံကိိန်းစီမံမှု မှတ်တမ်းစာအုပ်</comment>
+    <comment xml:lang="nan_TW">KPlato 專案管理文件</comment>
+    <comment xml:lang="nan_TW@latin">KPlato tsuan-àn kuán-lí bûn-kiānn</comment>
     <comment xml:lang="nb">KPlato-prosjektbehandlingsdokument</comment>
     <comment xml:lang="nl">KPlato projectbeheer-document</comment>
     <comment xml:lang="nn">KPlato-prosjekthandsamings­dokument</comment>
@@ -860,6 +894,7 @@ Notes:
     <comment xml:lang="ie">paccage de labor de gerentie de projectes de KPlato</comment>
     <comment xml:lang="is">KPlato vinnupakki verkstjórnunar</comment>
     <comment xml:lang="it">Pacchetto di lavoro di gestione dei progetti di KPlato</comment>
+    <comment xml:lang="ja">KPlato プロジェクト管理作業パッケージ</comment>
     <comment xml:lang="ka">KPlato პროექტის მართვის სამუშაოს პაკეტი</comment>
     <comment xml:lang="ko">KPlato 프로젝트 관리 작업 패키지</comment>
     <comment xml:lang="lg">Kiwandiko kya mulimu ekya mu KPlato</comment>
@@ -867,6 +902,8 @@ Notes:
     <comment xml:lang="lv">„KPlato“ projektu pārvaldības darba pakotne</comment>
     <comment xml:lang="ml">കെപ്ലേറ്റോ പദ്ധതി നടത്തിയിപ്പ് ജോലി രേഖ</comment>
     <comment xml:lang="my">ကေပလေးတိုး စီမံကိိန်းစီမံမှု အလုပ်ပတ်ကေ့</comment>
+    <comment xml:lang="nan_TW">KPlato 專案管理工作套件</comment>
+    <comment xml:lang="nan_TW@latin">KPlato tsuan-àn kuán-lí kang-tsok thò-kiānn</comment>
     <comment xml:lang="nb">KPlato-prosjektbehandlingsarbeidspakke</comment>
     <comment xml:lang="nl">KPlato projectbeheer-werkpakket</comment>
     <comment xml:lang="nn">KPlato-prosjekthandsamings­arbeidspakke</comment>
@@ -926,6 +963,7 @@ Notes:
     <comment xml:lang="ie">Archive de Kugar</comment>
     <comment xml:lang="is">Kugar safnskrá</comment>
     <comment xml:lang="it">Archivio di Kugar</comment>
+    <comment xml:lang="ja">Kugar アーカイブ</comment>
     <comment xml:lang="ka">Kugar -ის არქივი</comment>
     <comment xml:lang="ko">Kugar 압축 파일</comment>
     <comment xml:lang="lg">Fayiro eya mu Kugar empakire</comment>
@@ -933,6 +971,8 @@ Notes:
     <comment xml:lang="lv">„Kugar“ arhīvs</comment>
     <comment xml:lang="ml">കുഗര്‍ ശേഖരം</comment>
     <comment xml:lang="my">ကူဂါ အဟောင်းသိမ်းတိုက်</comment>
+    <comment xml:lang="nan_TW">Kugar 封存</comment>
+    <comment xml:lang="nan_TW@latin">Kugar hong-tsûn</comment>
     <comment xml:lang="nb">Kugar-arkiv</comment>
     <comment xml:lang="nl">Kugar-archief</comment>
     <comment xml:lang="nn">Kugar-arkiv</comment>
@@ -993,6 +1033,7 @@ Notes:
     <comment xml:lang="ie">Archive de web</comment>
     <comment xml:lang="is">vefsafnskrá</comment>
     <comment xml:lang="it">Archivio web</comment>
+    <comment xml:lang="ja">ウェブアーカイブ</comment>
     <comment xml:lang="ka">ვებ-არქივი</comment>
     <comment xml:lang="ko">웹 압축 파일</comment>
     <comment xml:lang="lg">kkuŋaanizo ly'ebivudde ku mutimbagano</comment>
@@ -1000,6 +1041,8 @@ Notes:
     <comment xml:lang="lv">tīmekļa arhīvs</comment>
     <comment xml:lang="ml">വെബ് ശേഖരണം</comment>
     <comment xml:lang="my">ဝက်ဘ်ထိမ်းသိမ်းတိုက်</comment>
+    <comment xml:lang="nan_TW">網路封存</comment>
+    <comment xml:lang="nan_TW@latin">bāng-lōo hong-tsûn</comment>
     <comment xml:lang="nb">nettarkiv</comment>
     <comment xml:lang="nl">webarchief</comment>
     <comment xml:lang="nn">vevarkiv</comment>
@@ -1061,6 +1104,7 @@ Notes:
     <comment xml:lang="ie">Schema XML W3C</comment>
     <comment xml:lang="is">W3C XML skema</comment>
     <comment xml:lang="it">Schema XML W3C</comment>
+    <comment xml:lang="ja">W3C XML スキーマ</comment>
     <comment xml:lang="ka">W3C XML სქემა</comment>
     <comment xml:lang="ko">W3C XML 스키마</comment>
     <comment xml:lang="lg">Amateeka aga W3C agafuga ebiteekebwa mu bitundu by'ekiwandiko kya mu XML n'enteekateeka y'ebika bya byo</comment>
@@ -1068,6 +1112,8 @@ Notes:
     <comment xml:lang="lv">W3C XML shēma</comment>
     <comment xml:lang="ml">ഡബ്ള്യു 3 സി എക്സ് എം എല്‍ രേഖ</comment>
     <comment xml:lang="my">ဒဗလျူ၃စီ အိပ်စ်အမ်အယ်လ် စခီးမား</comment>
+    <comment xml:lang="nan_TW">W3C XML schema</comment>
+    <comment xml:lang="nan_TW@latin">W3C XML schema</comment>
     <comment xml:lang="nb">W3C XML-skjema</comment>
     <comment xml:lang="nl">W3C XML-schema</comment>
     <comment xml:lang="nn">W3C XML-skjema</comment>
@@ -1127,6 +1173,7 @@ Notes:
     <comment xml:lang="ie">importation de KPhotoAlbum</comment>
     <comment xml:lang="is">KPhotoAlbum innflutningur</comment>
     <comment xml:lang="it">Importazione di KPhotoAlbum</comment>
+    <comment xml:lang="ja">KPhotoAlbum インポート</comment>
     <comment xml:lang="ka">KPhotoAlbum -ში შეტანა</comment>
     <comment xml:lang="ko">KPhotoAlbum 가져오기</comment>
     <comment xml:lang="lg">Ekinone ekya KPhotoAlbum</comment>
@@ -1134,6 +1181,8 @@ Notes:
     <comment xml:lang="lv">„KPhotoAlbum“ imports</comment>
     <comment xml:lang="ml">KPhotoAlbum ഇറക്കുമതി</comment>
     <comment xml:lang="my">ကေဖိုတိုအယ်ဘမ် တင်သွင်း</comment>
+    <comment xml:lang="nan_TW">KPhotoAlbum 匯入</comment>
+    <comment xml:lang="nan_TW@latin">KPhotoAlbum huē-ji̍p</comment>
     <comment xml:lang="nb">KPhotoAlbum-import</comment>
     <comment xml:lang="nl">KPhotoAlbum-import</comment>
     <comment xml:lang="nn">KPhotoAlbum-import</comment>
@@ -1193,6 +1242,7 @@ Notes:
     <comment xml:lang="ie">Image HDR</comment>
     <comment xml:lang="is">HDR-mynd</comment>
     <comment xml:lang="it">Immagine HDR</comment>
+    <comment xml:lang="ja">HDR イメージ</comment>
     <comment xml:lang="ka">HDR გამოსახულება</comment>
     <comment xml:lang="ko">HDR 그림</comment>
     <comment xml:lang="lg">Kifaananyi kya kika kya HDR</comment>
@@ -1200,6 +1250,8 @@ Notes:
     <comment xml:lang="lv">HDR attēls</comment>
     <comment xml:lang="ml">എച്ച് ഡി ആര്‍ ചിത്രം</comment>
     <comment xml:lang="my">အိပ်ချ်ဒီအာ ပုံရိပ်</comment>
+    <comment xml:lang="nan_TW">HDR 影像</comment>
+    <comment xml:lang="nan_TW@latin">HDR iánn-siōng</comment>
     <comment xml:lang="nb">HDR-bilde</comment>
     <comment xml:lang="nl">HDR-image</comment>
     <comment xml:lang="nn">HDR-bilete</comment>
@@ -1264,6 +1316,7 @@ Notes:
     <comment xml:lang="ie">formates de images RAW de KDE</comment>
     <comment xml:lang="is">KDE RAW myndskráasnið</comment>
     <comment xml:lang="it">Formati di immagine raw di KDE</comment>
+    <comment xml:lang="ja">KDE raw イメージ形式</comment>
     <comment xml:lang="ka">KDE -ის გამოსახულების დაუმუშავებელი ფორმატები</comment>
     <comment xml:lang="ko">KDE RAW 그림 형식</comment>
     <comment xml:lang="lg">Ebika bya fayiro eza mu KDE ez'ebifaananyi ezitali enfuulemu</comment>
@@ -1271,6 +1324,8 @@ Notes:
     <comment xml:lang="lv">„KDE raw“ attēlu formāti</comment>
     <comment xml:lang="ml">കെഡിഇ പച്ച ചിത്ര ഘടനകൾ</comment>
     <comment xml:lang="my">ကေဒီအီး အစိမ်းပုံရိပ် စီစဉ်ဖွဲ့စည်းမှုပုံစံ</comment>
+    <comment xml:lang="nan_TW">KDE raw 影像格式</comment>
+    <comment xml:lang="nan_TW@latin">KDE raw iánn-siōng keh-sik</comment>
     <comment xml:lang="nb">KDE-råbilde</comment>
     <comment xml:lang="nl">KDE-rawimage-formats</comment>
     <comment xml:lang="nn">KDE-råbilete</comment>
@@ -1340,6 +1395,7 @@ Notes:
     <comment xml:lang="ie">file hexadecimal de objecte de Intel®</comment>
     <comment xml:lang="is">Intel® hexadesimal hlutaskrá</comment>
     <comment xml:lang="it">File oggetto esadecimale Intel®</comment>
+    <comment xml:lang="ja">Intel® 十六進オブジェクトファイル</comment>
     <comment xml:lang="ka">Intel® თექვსმეტობითი ობიექტის ფაილი</comment>
     <comment xml:lang="ko">Intel® 16진수 개체 파일</comment>
     <comment xml:lang="lg">Fayiro ey'enkozesa ya hekisadeka eya Intel®</comment>
@@ -1347,6 +1403,8 @@ Notes:
     <comment xml:lang="lv">„Intel®“ hexadecimālā objekta datne</comment>
     <comment xml:lang="ml">ഇന്റെല്‍® ഹെക്സാഡെസിമല്‍ ഒബ്ജക്റ്റ് ഫയല്‍</comment>
     <comment xml:lang="my">အင်တယ်® ဆယ့်ခြောက်စုဂဏန်း အရာဝတ္တုဖိုင်လ်</comment>
+    <comment xml:lang="nan_TW">Intel® 十六進位物件檔案</comment>
+    <comment xml:lang="nan_TW@latin">Intel® tsa̍p-la̍k-tsìn-uī mi̍h-kiānn tóng-àn</comment>
     <comment xml:lang="nb">Intel®-heksobjektfil</comment>
     <comment xml:lang="nl">Intel® hexadecimaal objectbestand</comment>
     <comment xml:lang="nn">Intel®-heksobjektfil</comment>
@@ -1383,6 +1441,7 @@ Notes:
     <comment xml:lang="bs">Kate lista fajlova za učitavanje liste dodataka</comment>
     <comment xml:lang="ca">Llista de connector carregador de la llista de fitxers del Kate</comment>
     <comment xml:lang="ca@valencia">Llista de connector carregador de la llista de fitxers de Kate</comment>
+    <comment xml:lang="cs">Seznam souborů pro načítání seznamů modulů Kate</comment>
     <comment xml:lang="cy">Rhestr mewnbillgyn llwythwr rhestr ffeil Kate</comment>
     <comment xml:lang="da">Liste over plugins til fillisteindlæsning i Kate</comment>
     <comment xml:lang="de">Kate-Dateilisten-Modul</comment>
@@ -1406,6 +1465,7 @@ Notes:
     <comment xml:lang="ie">liste de cargatores de liste de files de Kate</comment>
     <comment xml:lang="is">Kate skráahleðsluíforritalisti</comment>
     <comment xml:lang="it">Elenco delle estensioni del caricatore di elenchi di file di Kate</comment>
+    <comment xml:lang="ja">Kate ファイルリストローダプラグインリスト</comment>
     <comment xml:lang="ka">Kate -ის ფაილების სიის ჩამტვირთავი დამატებების სია</comment>
     <comment xml:lang="ko">Kate 파일 목록 로더 플러그인 목록</comment>
     <comment xml:lang="lg">Lukalala lwa fayiro olutegeerebwa ekyongerwako ekikozi ky'enkalala ekya mu Kate</comment>
@@ -1413,6 +1473,8 @@ Notes:
     <comment xml:lang="lv">„Kate“ datņu saraksta ielādētāja spraudņu saraksts</comment>
     <comment xml:lang="ml">കേറ്റ് ഫയല്‍ പട്ടിക ലഭ്യമാക്കുന്നതിന്റെ സംയോജകങ്ങളുടെ പട്ടിക</comment>
     <comment xml:lang="my">ကိတ်ပ်ဖိုင်လ်စာရင်းတင်သွင်းမှုပလပ်ဂင်စာရင်း</comment>
+    <comment xml:lang="nan_TW">Kate 檔案單載入器外掛程式 ê 單</comment>
+    <comment xml:lang="nan_TW@latin">Kate tóng-àn-tuann tsài-ji̍p-khì guā-kuà-tîng-sik ê lia̍t-tuann</comment>
     <comment xml:lang="nb">Programtilleggliste for filliste-laster i Kate</comment>
     <comment xml:lang="nl">Kate bestandenlijstlader voor pluginlijst</comment>
     <comment xml:lang="nn">Programtillegg­liste for filliste-lastar i Kate</comment>
@@ -1473,6 +1535,7 @@ Notes:
     <comment xml:lang="ie">file de musical notation abc</comment>
     <comment xml:lang="is">abc nótnaskriftarskrá</comment>
     <comment xml:lang="it">File di notazione musicale abc</comment>
+    <comment xml:lang="ja">abc ミュージカルノーテーションファイル</comment>
     <comment xml:lang="ka">abc მუსიკალურ ნოტაციების ფაილი</comment>
     <comment xml:lang="ko">abc 악보 파일</comment>
     <comment xml:lang="lg">fayiro eyimbisibwa eya mu mpandika ya abc</comment>
@@ -1480,6 +1543,8 @@ Notes:
     <comment xml:lang="lv">„abc“ mūzikas notācijas datne</comment>
     <comment xml:lang="ml">എബിസി സംഗീത ചിഹ്ന ഫയല്‍</comment>
     <comment xml:lang="my">အေဘီစီ ဂီတဆိုင်ရာမှတ်သားချက်များ ဖိုင်လ်</comment>
+    <comment xml:lang="nan_TW">abc 音譜檔案</comment>
+    <comment xml:lang="nan_TW@latin">ABC im-phóo tóng-àn</comment>
     <comment xml:lang="nb">abc-musikknotasjonsfil</comment>
     <comment xml:lang="nl">abc-muzieknotatiebestand</comment>
     <comment xml:lang="nn">abc-musikknotasjonsfil</comment>
@@ -1545,6 +1610,7 @@ Notes:
     <comment xml:lang="ie">paccage de fondes</comment>
     <comment xml:lang="is">leturpakki</comment>
     <comment xml:lang="it">Pacchetto di caratteri</comment>
+    <comment xml:lang="ja">フォントパッケージ</comment>
     <comment xml:lang="ka">ფონტების პაკეტი</comment>
     <comment xml:lang="ko">글꼴 패키지</comment>
     <comment xml:lang="lg">kitereke kya ndyo za nkula y'ennukuta</comment>
@@ -1552,6 +1618,8 @@ Notes:
     <comment xml:lang="lv">fontu pakotne</comment>
     <comment xml:lang="ml">അക്ഷരസഞ്ചയ പാക്കേജ്</comment>
     <comment xml:lang="my">ဖောင့် ပတ်ကေ့များ</comment>
+    <comment xml:lang="nan_TW">字型套件</comment>
+    <comment xml:lang="nan_TW@latin">jī-hîng thò-kiānn</comment>
     <comment xml:lang="nb">skriftpakke</comment>
     <comment xml:lang="nl">lettertypenpakket</comment>
     <comment xml:lang="nn">skriftpakke</comment>
@@ -1614,6 +1682,7 @@ Notes:
     <comment xml:lang="ie">servitore de Windows</comment>
     <comment xml:lang="is">Windows miðlari</comment>
     <comment xml:lang="it">Server Windows</comment>
+    <comment xml:lang="ja">Windows サーバ</comment>
     <comment xml:lang="ka">Windows სერვერი</comment>
     <comment xml:lang="ko">Windows 서버</comment>
     <comment xml:lang="lg">Kompyuta ewereza ekolera ku Windows</comment>
@@ -1621,6 +1690,8 @@ Notes:
     <comment xml:lang="lv">„Windows“ serveris</comment>
     <comment xml:lang="ml">വിന്‍ഡോസ് സെർവർ</comment>
     <comment xml:lang="my">ဝင်းဒိုးစ် ဆာဗာ</comment>
+    <comment xml:lang="nan_TW">Windows 伺服器</comment>
+    <comment xml:lang="nan_TW@latin">Windows Sù-ho̍k-khì</comment>
     <comment xml:lang="nb">Windows-tjener</comment>
     <comment xml:lang="nl">Windows-server</comment>
     <comment xml:lang="nn">Windows-tenar</comment>
@@ -1681,6 +1752,7 @@ Notes:
     <comment xml:lang="ie">labor-gruppe de Windows</comment>
     <comment xml:lang="is">Windows vinnuhópur</comment>
     <comment xml:lang="it">Gruppo di lavoro di Windows</comment>
+    <comment xml:lang="ja">Windows ワークグループ</comment>
     <comment xml:lang="ka">Windows -ის სამუშაო ჯგუფი</comment>
     <comment xml:lang="ko">Windows 작업 그룹</comment>
     <comment xml:lang="lg">Kikungo kya mu Windows</comment>
@@ -1688,6 +1760,8 @@ Notes:
     <comment xml:lang="lv">„Windows“ darbgrupa</comment>
     <comment xml:lang="ml">വിന്‍ഡോസ് പണി-കൂട്ടം</comment>
     <comment xml:lang="my">ဝင်းဒိုးစ် အလုပ်အုပ်စု</comment>
+    <comment xml:lang="nan_TW">Windows 工作組</comment>
+    <comment xml:lang="nan_TW@latin">Windows Kang-tsok-tsoo</comment>
     <comment xml:lang="nb">Windows-arbeidsgruppe</comment>
     <comment xml:lang="nl">Windows-werkgroep</comment>
     <comment xml:lang="nn">Windows-arbeidsgruppe</comment>
@@ -1748,6 +1822,7 @@ Notes:
     <comment xml:lang="ie">monitor del sistema de KDE</comment>
     <comment xml:lang="is">KDE kerfiseftirlit</comment>
     <comment xml:lang="it">Monitor di sistema di KDE</comment>
+    <comment xml:lang="ja">KDE システムモニタ</comment>
     <comment xml:lang="ka">KDE -ის სისტემური მონიტორი</comment>
     <comment xml:lang="ko">KDE 시스템 모니터</comment>
     <comment xml:lang="lg">Kirabirizasisitemu kya mu KDE</comment>
@@ -1755,6 +1830,8 @@ Notes:
     <comment xml:lang="lv">KDE sistēmas pārraugs</comment>
     <comment xml:lang="ml">കെഡിഇ സിസ്റ്റം നിരിക്ഷകന്‍</comment>
     <comment xml:lang="my">ကေဒီအီး စစ်စတမ် စောင့်ကြည့်သူ</comment>
+    <comment xml:lang="nan_TW">KDE 系統監視器</comment>
+    <comment xml:lang="nan_TW@latin">KDE hē-thóng kàm-sī-khì</comment>
     <comment xml:lang="nb">KDE-systemovervåking</comment>
     <comment xml:lang="nl">KDE systeembewaking</comment>
     <comment xml:lang="nn">KDE-systemovervaking</comment>
@@ -1816,6 +1893,7 @@ Notes:
     <comment xml:lang="ie">Tema de KDE</comment>
     <comment xml:lang="is">KDE þema</comment>
     <comment xml:lang="it">Tema di KDE</comment>
+    <comment xml:lang="ja">KDE テーマ</comment>
     <comment xml:lang="ka">KDE -ის თემა</comment>
     <comment xml:lang="ko">KDE 테마</comment>
     <comment xml:lang="lg">Lulyo lwa ndabika ya KDE</comment>
@@ -1823,6 +1901,8 @@ Notes:
     <comment xml:lang="lv">KDE motīvs</comment>
     <comment xml:lang="ml">കെഡിഇ പ്രമേയം</comment>
     <comment xml:lang="my">ကေဒီအီး အခင်းအကျင်း</comment>
+    <comment xml:lang="nan_TW">KDE 主題</comment>
+    <comment xml:lang="nan_TW@latin">KDE tsú-tê</comment>
     <comment xml:lang="nb">KDE-tema</comment>
     <comment xml:lang="nl">KDE-thema</comment>
     <comment xml:lang="nn">KDE-tema</comment>
@@ -1885,6 +1965,7 @@ Notes:
     <comment xml:lang="ie">Projecte de Quanta</comment>
     <comment xml:lang="is">Quanta verkefni</comment>
     <comment xml:lang="it">Progetto Quanta</comment>
+    <comment xml:lang="ja">Quanta プロジェクト</comment>
     <comment xml:lang="ka">Quanta -ის პროექტი</comment>
     <comment xml:lang="ko">Quanta 프로젝트</comment>
     <comment xml:lang="lg">Pulojekiti ya mu Quanta</comment>
@@ -1892,6 +1973,8 @@ Notes:
     <comment xml:lang="lv">„Quanta“ projekts</comment>
     <comment xml:lang="ml">ക്വാണ്ട പദ്ധതി</comment>
     <comment xml:lang="my">ကွမ်တ စီမံကိန်း</comment>
+    <comment xml:lang="nan_TW">Quanta 專案</comment>
+    <comment xml:lang="nan_TW@latin">Quanta tsuan-àn</comment>
     <comment xml:lang="nb">Quanta-prosjekt</comment>
     <comment xml:lang="nl">Quanta-project</comment>
     <comment xml:lang="nn">Quanta-prosjekt</comment>
@@ -1952,6 +2035,7 @@ Notes:
     <comment xml:lang="ie">File de Kommander</comment>
     <comment xml:lang="is">Kommander skrá</comment>
     <comment xml:lang="it">File di Kommander</comment>
+    <comment xml:lang="ja">Kommander ファイル</comment>
     <comment xml:lang="ka">Kommander -ის ფაილი</comment>
     <comment xml:lang="ko">Kommander 파일</comment>
     <comment xml:lang="lg">Fayiro eya mu Kommander</comment>
@@ -1959,6 +2043,8 @@ Notes:
     <comment xml:lang="lv">„Kommander“ datne</comment>
     <comment xml:lang="ml">കോമാന്‍ഡെര്‍ ഫയല്‍</comment>
     <comment xml:lang="my">ကွန်မန်ဒါ ဖိုင်လ်</comment>
+    <comment xml:lang="nan_TW">Kommander 檔案</comment>
+    <comment xml:lang="nan_TW@latin">Kommander tóng-àn</comment>
     <comment xml:lang="nb">Kommander-fil</comment>
     <comment xml:lang="nl">Kommander-bestand</comment>
     <comment xml:lang="nn">Kommander-fil</comment>
@@ -2020,6 +2106,7 @@ Notes:
     <comment xml:lang="ie">potato</comment>
     <comment xml:lang="is">kartafla (potato)</comment>
     <comment xml:lang="it">patata</comment>
+    <comment xml:lang="ja">potato</comment>
     <comment xml:lang="ka">კარტოფილი</comment>
     <comment xml:lang="ko">potato</comment>
     <comment xml:lang="lg">potato</comment>
@@ -2027,6 +2114,8 @@ Notes:
     <comment xml:lang="lv">kartupelis</comment>
     <comment xml:lang="ml">ഉരുളകിഴങ്ങ്</comment>
     <comment xml:lang="my">အာလူး</comment>
+    <comment xml:lang="nan_TW">potato</comment>
+    <comment xml:lang="nan_TW@latin">potato</comment>
     <comment xml:lang="nb">potato</comment>
     <comment xml:lang="nl">aardappel</comment>
     <comment xml:lang="nn">potato</comment>
@@ -2086,6 +2175,7 @@ Notes:
     <comment xml:lang="ie">partie gardat de Kolf</comment>
     <comment xml:lang="is">Vistaður Kolf-leikur</comment>
     <comment xml:lang="it">Partita salvata di Kolf</comment>
+    <comment xml:lang="ja">Kolf 保存されたゲーム</comment>
     <comment xml:lang="ka">Kolf -ის შენახული თამაში</comment>
     <comment xml:lang="ko">Kolf 저장된 게임</comment>
     <comment xml:lang="lg">Luzannya lwa Kolf oluterekedwa</comment>
@@ -2093,6 +2183,8 @@ Notes:
     <comment xml:lang="lv">„Kolf“ saglabāta spēle</comment>
     <comment xml:lang="ml">കോള്‍ഫ് ശേഖരിച്ച കളി</comment>
     <comment xml:lang="my">ဂေါ့ဖ် မှတ်ထားသည့်ဂိမ်း</comment>
+    <comment xml:lang="nan_TW">Kolf 遊戲儲存檔</comment>
+    <comment xml:lang="nan_TW@latin">Kolf iû-hì tû-tsûn-tóng</comment>
     <comment xml:lang="nb">Kolf-runde</comment>
     <comment xml:lang="nl">Opgeslagen Kolf-spel</comment>
     <comment xml:lang="nn">Kolf-runde</comment>
@@ -2156,6 +2248,7 @@ Notes:
     <comment xml:lang="ie">curse de Kolf</comment>
     <comment xml:lang="is">Kolf-braut</comment>
     <comment xml:lang="it">Campo di Kolf</comment>
+    <comment xml:lang="ja">Kolf コース</comment>
     <comment xml:lang="ka">Kolf -ის კურსი</comment>
     <comment xml:lang="ko">Kolf 코스</comment>
     <comment xml:lang="lg">Kizanyiro kya Kolf</comment>
@@ -2163,6 +2256,8 @@ Notes:
     <comment xml:lang="lv">„Kolf“ kurss</comment>
     <comment xml:lang="ml">കോള്‍ഫ് കോഴ്സ്</comment>
     <comment xml:lang="my">ဂေါ့ဖ် သင်တန်း</comment>
+    <comment xml:lang="nan_TW">Kolf 球場</comment>
+    <comment xml:lang="nan_TW@latin">Kolf kiû-tiûnn</comment>
     <comment xml:lang="nb">Kolf-bane</comment>
     <comment xml:lang="nl">Kolf-baan</comment>
     <comment xml:lang="nn">Kolf-bane</comment>
@@ -2228,6 +2323,7 @@ Notes:
     <comment xml:lang="ie">archive de document de Okular</comment>
     <comment xml:lang="is">Okular skjalasafnskrá</comment>
     <comment xml:lang="it">Archivio di documenti di Okular</comment>
+    <comment xml:lang="ja">Okular 文書アーカイブ</comment>
     <comment xml:lang="ka">Okular -ის დოკუმენტების არქივი</comment>
     <comment xml:lang="ko">Okular 문서 압축 파일</comment>
     <comment xml:lang="lg">Kipakire kya biwandiko bya mu Okular</comment>
@@ -2235,6 +2331,8 @@ Notes:
     <comment xml:lang="lv">„Okular“ dokumenta arhīvs</comment>
     <comment xml:lang="ml">ഓക്കുലാര്‍ രേഖകളുടെ ശേഖരം</comment>
     <comment xml:lang="my">ဥက္ကလာ မှတ်တမ်းစာအုပ်ဟောင်းသိမ်းတိုက်</comment>
+    <comment xml:lang="nan_TW">Okular 文件封存</comment>
+    <comment xml:lang="nan_TW@latin">Okular bûn-kiānn hong-tsûn</comment>
     <comment xml:lang="nb">Okular-dokumentarkiv</comment>
     <comment xml:lang="nl">Okular-documentarchief</comment>
     <comment xml:lang="nn">Okular-dokumentarkiv</comment>
@@ -2296,6 +2394,7 @@ Notes:
     <comment xml:lang="ie">figura de Cabri</comment>
     <comment xml:lang="is">Cabri teikning</comment>
     <comment xml:lang="it">Figura di Cabri</comment>
+    <comment xml:lang="ja">Cabri figure</comment>
     <comment xml:lang="ka">Cabri -ის ფიგურა</comment>
     <comment xml:lang="ko">Cabri 그림</comment>
     <comment xml:lang="lg">Kifaananyi kya mu Cabri</comment>
@@ -2303,6 +2402,8 @@ Notes:
     <comment xml:lang="lv">„Cabri“ attēls</comment>
     <comment xml:lang="ml">കാബ്രി ചിത്രം</comment>
     <comment xml:lang="my">ကက်ဘ်ဘရီရုပ်ပုံ</comment>
+    <comment xml:lang="nan_TW">Cabri 圖形</comment>
+    <comment xml:lang="nan_TW@latin">Cabri tôo-hîng</comment>
     <comment xml:lang="nb">Cabri-figur</comment>
     <comment xml:lang="nl">Cabri-figuur</comment>
     <comment xml:lang="nn">Cabri-figur</comment>
@@ -2367,6 +2468,7 @@ Notes:
     <comment xml:lang="ie">figura de Dr. Geo figure</comment>
     <comment xml:lang="is">Dr. Geo teikning</comment>
     <comment xml:lang="it">Figura di Dr. Geo</comment>
+    <comment xml:lang="ja">Dr. Geo figure</comment>
     <comment xml:lang="ka">Dr. Geo -ის ფიგურა</comment>
     <comment xml:lang="ko">Dr. Geo 그림</comment>
     <comment xml:lang="lg">Kifaananyi kya mu Dr. Geo</comment>
@@ -2374,6 +2476,8 @@ Notes:
     <comment xml:lang="lv">„Dr. Geo“ attēls</comment>
     <comment xml:lang="ml">ഡോ. ജിയോ ചിത്രം</comment>
     <comment xml:lang="my">ဒေါက်တာဂျီယို ရုပ်ပုံ</comment>
+    <comment xml:lang="nan_TW">Dr. Geo 圖形</comment>
+    <comment xml:lang="nan_TW@latin">Dr. Geo tôo-hîng</comment>
     <comment xml:lang="nb">Dr. Geo-figur</comment>
     <comment xml:lang="nl">Dr. Geo-figuur</comment>
     <comment xml:lang="nn">Dr. Geo-figur</comment>
@@ -2437,6 +2541,7 @@ Notes:
     <comment xml:lang="ie">figura KGeo</comment>
     <comment xml:lang="is">KGeo teikning</comment>
     <comment xml:lang="it">Figura di KGeo</comment>
+    <comment xml:lang="ja">KGeo figure</comment>
     <comment xml:lang="ka">KGeo -ის ფიგურა</comment>
     <comment xml:lang="ko">KGeo 그림</comment>
     <comment xml:lang="lg">Kifaananyi kya mu KGeo</comment>
@@ -2444,6 +2549,8 @@ Notes:
     <comment xml:lang="lv">„KGeo“ attēls</comment>
     <comment xml:lang="ml">കെജിയോ ചിത്രം</comment>
     <comment xml:lang="my">ကေဂျီယို ရုပ်ပုံ</comment>
+    <comment xml:lang="nan_TW">KGeo 圖形</comment>
+    <comment xml:lang="nan_TW@latin">KGeo tôo-hîng</comment>
     <comment xml:lang="nb">KGeo-figur</comment>
     <comment xml:lang="nl">KGeo-figuur</comment>
     <comment xml:lang="nn">KGeo-figur</comment>
@@ -2504,6 +2611,7 @@ Notes:
     <comment xml:lang="ie">figura de Kig</comment>
     <comment xml:lang="is">Kig teikning</comment>
     <comment xml:lang="it">Figura di Kig</comment>
+    <comment xml:lang="ja">Kig figure</comment>
     <comment xml:lang="ka">Kig -ის ფიგურა</comment>
     <comment xml:lang="ko">Kig 그림</comment>
     <comment xml:lang="lg">Kifaananyi kya mu Kig</comment>
@@ -2511,6 +2619,8 @@ Notes:
     <comment xml:lang="lv">„Kig“ attēls</comment>
     <comment xml:lang="ml">കിഗ് ചിത്രം</comment>
     <comment xml:lang="my">ကေအိုင်ဂျီ ရုပ်ပုံ</comment>
+    <comment xml:lang="nan_TW">Kig 圖形</comment>
+    <comment xml:lang="nan_TW@latin">Kig tôo-hîng</comment>
     <comment xml:lang="nb">Kig-figur</comment>
     <comment xml:lang="nl">Kig-figuur</comment>
     <comment xml:lang="nn">Kig-figur</comment>
@@ -2572,6 +2682,7 @@ Notes:
     <comment xml:lang="ie">document de KSeg</comment>
     <comment xml:lang="is">KSeg skjal</comment>
     <comment xml:lang="it">Documento di KSeg</comment>
+    <comment xml:lang="ja">KSeg 文書</comment>
     <comment xml:lang="ka">KSeg -ის დოკუმენტი</comment>
     <comment xml:lang="ko">KSeg 문서</comment>
     <comment xml:lang="lg">Kiwandiko kya mu KSeg</comment>
@@ -2579,6 +2690,8 @@ Notes:
     <comment xml:lang="lv">„KSeg“ dokuments</comment>
     <comment xml:lang="ml">കെസെഗ് രേഖ</comment>
     <comment xml:lang="my">ကေဆက်ဂ် မှတ်တမ်းစာအုပ်</comment>
+    <comment xml:lang="nan_TW">KSeg 文件</comment>
+    <comment xml:lang="nan_TW@latin">KSeg bûn-kiānn</comment>
     <comment xml:lang="nb">KSeg-dokument</comment>
     <comment xml:lang="nl">KSeg-document</comment>
     <comment xml:lang="nn">KSeg-dokument</comment>
@@ -2640,6 +2753,7 @@ Notes:
     <comment xml:lang="ie">documente de exercitie de vocabularium</comment>
     <comment xml:lang="is">orðaforðaþjálfunarskjal</comment>
     <comment xml:lang="it">Documento di allenamento a vocabolario</comment>
+    <comment xml:lang="ja">ボキャブラリトレーナー文書</comment>
     <comment xml:lang="ka">ლექსიკონის სწავლის დოკუმენტი</comment>
     <comment xml:lang="ko">단어장</comment>
     <comment xml:lang="lg">kiwandiko kya mu puloguramu ey'okugaziya obumanyirivu mu lulimi</comment>
@@ -2647,6 +2761,8 @@ Notes:
     <comment xml:lang="lv">vārdnīcas trenētāja dokuments</comment>
     <comment xml:lang="ml">പദാവലി പരിശീലന രേഖ</comment>
     <comment xml:lang="my">ဝေါဟာရလေ့ကျင့်ရန်မှတ်တမ်းစာအုပ်</comment>
+    <comment xml:lang="nan_TW">詞彙練習文件</comment>
+    <comment xml:lang="nan_TW@latin">sû-luī liān-si̍p bûn-kiānn</comment>
     <comment xml:lang="nb">Ordtreningsdokument</comment>
     <comment xml:lang="nl">document voor woordenschattrainer</comment>
     <comment xml:lang="nn">ordtreningsdokument</comment>
@@ -2706,6 +2822,7 @@ Notes:
     <comment xml:lang="ie">file de KmPlot</comment>
     <comment xml:lang="is">KmPlot skrá</comment>
     <comment xml:lang="it">File di KmPlot</comment>
+    <comment xml:lang="ja">KmPlot ファイル</comment>
     <comment xml:lang="ka">KmPlot -ის ფაილი</comment>
     <comment xml:lang="ko">KmPlot 파일</comment>
     <comment xml:lang="lg">Fayiro ya mu KmPlot</comment>
@@ -2713,6 +2830,8 @@ Notes:
     <comment xml:lang="lv">„KmPlot“ datne</comment>
     <comment xml:lang="ml">കെഎം പ്ലോട്ട് ഫയല്‍</comment>
     <comment xml:lang="my">ကေအမ်ပလော့ ဖိုင်လ်</comment>
+    <comment xml:lang="nan_TW">KmPlot 檔案</comment>
+    <comment xml:lang="nan_TW@latin">KmPlot tóng-àn</comment>
     <comment xml:lang="nb">KmPlot-fil</comment>
     <comment xml:lang="nl">KmPlot-bestand</comment>
     <comment xml:lang="nn">KmPlot-fil</comment>
@@ -2773,6 +2892,7 @@ Notes:
     <comment xml:lang="ie">vocabularium de KWordQuiz</comment>
     <comment xml:lang="is">KWordQuiz orðaforði</comment>
     <comment xml:lang="it">Vocabolario di KWordQuiz</comment>
+    <comment xml:lang="ja">KWordQuiz ボキャブラリ</comment>
     <comment xml:lang="ka">KWordQuiz -ის ლექსიკონი</comment>
     <comment xml:lang="ko">KWordQuiz 단어장</comment>
     <comment xml:lang="lg">Lukalala lw'ebigambo olwa mu KWordQuiz</comment>
@@ -2780,6 +2900,8 @@ Notes:
     <comment xml:lang="lv">„KWordQuiz“ vārdnīca</comment>
     <comment xml:lang="ml">കെവേര്‍ഡ്ക്വിസ്സ് പദാവലി</comment>
     <comment xml:lang="my">ကေစကားလုံးဉာဏ်စမ်း ဝေါဟာရ</comment>
+    <comment xml:lang="nan_TW">KWordQuiz 詞彙</comment>
+    <comment xml:lang="nan_TW@latin">KWordQuiz sû-luī</comment>
     <comment xml:lang="nb">KWordQuiz-vokabular</comment>
     <comment xml:lang="nl">KWordQuiz-woordenschat</comment>
     <comment xml:lang="nn">KWordQuiz-vokabular</comment>
@@ -2840,6 +2962,7 @@ Notes:
     <comment xml:lang="ie">dump de profil de Cachegrind/Callgrind</comment>
     <comment xml:lang="is">Cachegrind/Callgrind sniðdump</comment>
     <comment xml:lang="it">Dump di profilatura di Cachegrind/Callgrind</comment>
+    <comment xml:lang="ja">Cachegrind/Callgrind プロファイルダンプ</comment>
     <comment xml:lang="ka">Cachegrind/Callgrind პროფილის დამპი</comment>
     <comment xml:lang="ko">Cachegrind/Callgrind 프로필 덤프</comment>
     <comment xml:lang="lg">Fayiro ey'ebizuulidwa Cachegrind oba Callgrind</comment>
@@ -2847,6 +2970,8 @@ Notes:
     <comment xml:lang="lv">“Cachegrind“/„Callgrind“ profilēšanas dati</comment>
     <comment xml:lang="ml">കാഷ്ഗ്രിന്റ്/കാള്‍ഗ്രിന്റ് പ്രൊഫൈല്‍ ഡമ്പ്</comment>
     <comment xml:lang="my">ကေ့ချ်ဂရင်း/ကေားဂရင်း ပရိုဖိုင်လ် ဒေတာအကြမ်း</comment>
+    <comment xml:lang="nan_TW">Cachegrind/Callgrind 效能分析倒出</comment>
+    <comment xml:lang="nan_TW@latin">Cachegrind/Callgrind hāu-lîng hun-sik tó-tshut</comment>
     <comment xml:lang="nb">Cachegrind/Callgrind-profildump</comment>
     <comment xml:lang="nl">Cachegrind/Callgrind profieldump</comment>
     <comment xml:lang="nn">Cachegrind/Callgrind-profildump</comment>
@@ -2906,6 +3031,7 @@ Notes:
     <comment xml:lang="ie">file de Umbrello UML Modeller</comment>
     <comment xml:lang="is">Umbrello UML Modeller skrá</comment>
     <comment xml:lang="it">File del modellatore UML Umbrello</comment>
+    <comment xml:lang="ja">Umbrello UML モデラーファイル</comment>
     <comment xml:lang="ka">Umbrello UML მოდელერის ფაილი</comment>
     <comment xml:lang="ko">Umbrello UML 모델러 파일</comment>
     <comment xml:lang="lg">Fayiro eya mu Umbrello puloguramu eyeyambisa UML okutegeka enkwatagana y'ebitundu by'ebiwandike</comment>
@@ -2913,6 +3039,8 @@ Notes:
     <comment xml:lang="lv">„Umbrello UML Modeller“ datne</comment>
     <comment xml:lang="ml">Umbrello UML Modeller file</comment>
     <comment xml:lang="my">အမ်ဘရီလို ယူအမ်အယ်လ် ပုံစံရေးဆွဲဖိုင်လ်</comment>
+    <comment xml:lang="nan_TW">Umbrello UML Modeller 檔案</comment>
+    <comment xml:lang="nan_TW@latin">Umbrello UML Modeller tóng-àn</comment>
     <comment xml:lang="nb">Umbrello UML Modeller-fil</comment>
     <comment xml:lang="nl">Umbrello UML Modeller-bestand</comment>
     <comment xml:lang="nn">Umbrello UML Modeller-fil</comment>
@@ -2975,6 +3103,7 @@ Notes:
     <comment xml:lang="ie">ligament de Windows</comment>
     <comment xml:lang="is">Windows tengill</comment>
     <comment xml:lang="it">Collegamento di Windows</comment>
+    <comment xml:lang="ja">Windows リンク</comment>
     <comment xml:lang="ka">Windows -ის ბმული</comment>
     <comment xml:lang="ko">Windows 링크</comment>
     <comment xml:lang="lg">Nyunzi ya mu Windows</comment>
@@ -2982,6 +3111,8 @@ Notes:
     <comment xml:lang="lv">„Windows“ saite</comment>
     <comment xml:lang="ml">വിന്‍ഡോസ് കണ്ണി</comment>
     <comment xml:lang="my">ဝင်းဒိုးစ် လင့်ခ်</comment>
+    <comment xml:lang="nan_TW">Windows 連結</comment>
+    <comment xml:lang="nan_TW@latin">Windows liân-kiat</comment>
     <comment xml:lang="nb">Windows-lenke</comment>
     <comment xml:lang="nl">Windows-koppeling</comment>
     <comment xml:lang="nn">Windows-lenkje</comment>
@@ -3045,6 +3176,7 @@ Notes:
     <comment xml:lang="ie">liste de descargas de KGet</comment>
     <comment xml:lang="is">KGet niðurhalslisti</comment>
     <comment xml:lang="it">Elenco di scaricamenti di KGet</comment>
+    <comment xml:lang="ja">KGet ダウンロードリスト</comment>
     <comment xml:lang="ka">KGet გადმოწერების სია</comment>
     <comment xml:lang="ko">KGet 다운로드 목록</comment>
     <comment xml:lang="lg">Lukalala lwa bya kuwanulibwa lwa mu KGet</comment>
@@ -3052,6 +3184,8 @@ Notes:
     <comment xml:lang="lv">„KGet“ lejupielāžu saraksts</comment>
     <comment xml:lang="ml">കെഗെറ്റ് ഡൌണ്‍ലോഡ് പട്ടിക</comment>
     <comment xml:lang="my">ကေဂတ် ဒေါင်းလုတ်စာရင်း</comment>
+    <comment xml:lang="nan_TW">KGet 下載單</comment>
+    <comment xml:lang="nan_TW@latin">KGet hā-tsài lia̍t-tuann</comment>
     <comment xml:lang="nb">KGet-nedlastingsliste</comment>
     <comment xml:lang="nl">KGet-downloadlijst</comment>
     <comment xml:lang="nn">KGet-nedlastingsliste</comment>
@@ -3112,6 +3246,7 @@ Notes:
     <comment xml:lang="ie">archive de emoticones de Kopete</comment>
     <comment xml:lang="is">Kopete lyndistáknasafn</comment>
     <comment xml:lang="it">Archivio di faccine di Kopete</comment>
+    <comment xml:lang="ja">Kopete 感情アイコンアーカイブ</comment>
     <comment xml:lang="ka">Kopete -ის ემოციების არქივი</comment>
     <comment xml:lang="ko">Kopete 이모티콘 압축 파일</comment>
     <comment xml:lang="lg">Kipakire ekirimu emotikoni eza mu Kopete</comment>
@@ -3119,6 +3254,8 @@ Notes:
     <comment xml:lang="lv">„Kopete“ emocijzīmju arhīvs</comment>
     <comment xml:lang="ml">കോപ്പിറ്റേ വികാരചിഹ്നങ്ങളുടെ ശേഖരം</comment>
     <comment xml:lang="my">ကေအိုးပိ ခံစားချက်ပြရုပ်ပုံများ ထိမ်းသိမ်းတိုက်</comment>
+    <comment xml:lang="nan_TW">Kopete 表情符號封存</comment>
+    <comment xml:lang="nan_TW@latin">Kopete piáu-tsîng-hû-hō hong-tsûn</comment>
     <comment xml:lang="nb">Uttrykksarkiv for Kopete</comment>
     <comment xml:lang="nl">Kopete emoticon-archief</comment>
     <comment xml:lang="nn">Fjesingtema for Kopete</comment>
@@ -3178,6 +3315,7 @@ Notes:
     <comment xml:lang="ie">contacte ICQ</comment>
     <comment xml:lang="is">ICQ tengiliður</comment>
     <comment xml:lang="it">Contatto ICQ</comment>
+    <comment xml:lang="ja">ICQ コンタクト</comment>
     <comment xml:lang="ka">ICQ -ის კონტაქტი</comment>
     <comment xml:lang="ko">ICQ 대화 상대</comment>
     <comment xml:lang="lg">Kontakiti ya mu ICQ</comment>
@@ -3185,6 +3323,8 @@ Notes:
     <comment xml:lang="lv">ICQ kontakts</comment>
     <comment xml:lang="ml">ഐ സി ക്യൂ സമ്പര്‍ക്കം</comment>
     <comment xml:lang="my">အိုင်စီကျူ အဆက်အသွယ်</comment>
+    <comment xml:lang="nan_TW">ICQ 聯絡人</comment>
+    <comment xml:lang="nan_TW@latin">ICQ liân-lo̍k-jîn</comment>
     <comment xml:lang="nb">ICQ-kontakt</comment>
     <comment xml:lang="nl">ICQ-contact</comment>
     <comment xml:lang="nn">ICQ-kontakt</comment>
@@ -3247,6 +3387,7 @@ Notes:
     <comment xml:lang="ie">formate Microsoft Media</comment>
     <comment xml:lang="is">Microsoft Media Format</comment>
     <comment xml:lang="it">Formato multimediale di Microsoft</comment>
+    <comment xml:lang="ja">Microsoft メディアフォーマット</comment>
     <comment xml:lang="ka">Microsoft Media ფორმატი</comment>
     <comment xml:lang="ko">Microsoft 미디어 포맷</comment>
     <comment xml:lang="lg">Entegeka ya mediya engattike eya Microsoft</comment>
@@ -3254,6 +3395,8 @@ Notes:
     <comment xml:lang="lv">„Microsoft Media“ formāts</comment>
     <comment xml:lang="ml">മൈക്രോസോഫ്റ്റ് മിഡിയ ഫോർമാറ്റ്</comment>
     <comment xml:lang="my">မိုက်ခရိုဆော့ဖ်လ် မီဒီယာ စီစဉ်ဖွဲ့စည်းမှုပုံစံ</comment>
+    <comment xml:lang="nan_TW">Microsoft 媒體格式</comment>
+    <comment xml:lang="nan_TW@latin">Microsoft Muî-thé Keh-sik</comment>
     <comment xml:lang="nb">Microsoft Media-format</comment>
     <comment xml:lang="nl">Microsoft mediaformaat</comment>
     <comment xml:lang="nn">Microsoft Media-format</comment>
@@ -3320,6 +3463,7 @@ Notes:
     <comment xml:lang="ie">documente RDF de Turtle</comment>
     <comment xml:lang="is">Turtle RDF skjal</comment>
     <comment xml:lang="it">Documento Turtle RDF</comment>
+    <comment xml:lang="ja">Turtle RDF 文書</comment>
     <comment xml:lang="ka">Turtle RDF დოკუმენტი</comment>
     <comment xml:lang="ko">Turtle RDF 문서</comment>
     <comment xml:lang="lg">Kiwandiko eky'enkwatagana z'ebifunibwa ekya mu mpandika ya Turtle</comment>
@@ -3327,6 +3471,8 @@ Notes:
     <comment xml:lang="lv">„Turtle“ RDF dokuments</comment>
     <comment xml:lang="ml">ടര്‍ട്ടില്‍ ആര്‍ ഡി എഫ് രേഖ</comment>
     <comment xml:lang="my">လိပ် အာဒီအက်ဖ် မှတ်တမ်းစာအုပ်</comment>
+    <comment xml:lang="nan_TW">Turtle RDF 文件</comment>
+    <comment xml:lang="nan_TW@latin">Turtle RDF bûn-kiānn</comment>
     <comment xml:lang="nb">Turtle RDF-dokument</comment>
     <comment xml:lang="nl">Turtle RDF-document</comment>
     <comment xml:lang="nn">Turtle RDF-dokument</comment>
@@ -3386,6 +3532,7 @@ Notes:
     <comment xml:lang="ie">image PIC de Softimage</comment>
     <comment xml:lang="is">Softimage PIC mynd</comment>
     <comment xml:lang="it">Immagine Softimage PIC</comment>
+    <comment xml:lang="ja">Softimage PIC 画像</comment>
     <comment xml:lang="ka">Softimage PIC გამოსახულება</comment>
     <comment xml:lang="ko">Softimage PIC 그림</comment>
     <comment xml:lang="lg">Kifaananyi kya mu Softimage eky'ekika kya PIC</comment>
@@ -3393,6 +3540,8 @@ Notes:
     <comment xml:lang="lv">„Softimage PIC“ attēls</comment>
     <comment xml:lang="ml">സോഫ്റ്റ്‌ഇമേജ് പിക്ക് ചിത്രം</comment>
     <comment xml:lang="my">ဆော့ဖ်အင်းမိတ်ဂျ် ပီအိုင်စီ ပုံရိပ်</comment>
+    <comment xml:lang="nan_TW">Softimage PIC 影像</comment>
+    <comment xml:lang="nan_TW@latin">Softimage PIC iánn-siōng</comment>
     <comment xml:lang="nb">Softimage PIC-bilde</comment>
     <comment xml:lang="nl">Softimage PIC-image</comment>
     <comment xml:lang="nn">Softimage PIC-bilete</comment>
@@ -3462,6 +3611,8 @@ Notes:
     <comment xml:lang="lv">„KConfigXT“ konfigurācijas opcijas</comment>
     <comment xml:lang="ml">KConfigXT ക്രമീകരണ ഓപ്ഷനുകൾ</comment>
     <comment xml:lang="my">ကေကွန်ဖစ်အိပ်စ်တီ ပြင်ဆင်ရေး ရွေးချယ်မှုများ</comment>
+    <comment xml:lang="nan_TW">KConfigXT 設定選項</comment>
+    <comment xml:lang="nan_TW@latin">KConfigXT Siat-tīng Suán-hāng</comment>
     <comment xml:lang="nb">KConfigXT-oppsett</comment>
     <comment xml:lang="nl">Configuratie-opties van KConfigXT</comment>
     <comment xml:lang="nn">KConfigXT-oppsett</comment>
@@ -3534,6 +3685,8 @@ Notes:
     <comment xml:lang="lv">„KConfigXT“ kodu ģenerēšanas opcijas</comment>
     <comment xml:lang="ml">KConfigXT കോഡ് ജനറേഷൻ ഓപ്ഷനുകൾ</comment>
     <comment xml:lang="my">ကေကွန်ဖစ်အိပ်စ်တီ ကုတ်ထုတ်လုပ်ရေး ရွေးချယ်မှုများ</comment>
+    <comment xml:lang="nan_TW">KConfigXT 程式碼產生選項</comment>
+    <comment xml:lang="nan_TW@latin">KConfigXT Tîng-sik-bé Sán-sing Suán-hāng</comment>
     <comment xml:lang="nb">KConfigXT-kodegeneringsvalg</comment>
     <comment xml:lang="nl">Codegeneratie-opties van KConfigXT</comment>
     <comment xml:lang="nn">KConfigXT-kodegeneringsval</comment>
@@ -3602,6 +3755,8 @@ Notes:
     <comment xml:lang="lv">KXMLGUI UI deklarācija</comment>
     <comment xml:lang="ml">KXMLGUI UI പ്രഖ്യാപനം</comment>
     <comment xml:lang="my">ကေအိပ်စ်အမ်အယ်လ်ဂျီယူအိုင် ယူအိုင် ကြေညာချက်</comment>
+    <comment xml:lang="nan_TW">KXMLGUI 介面宣告</comment>
+    <comment xml:lang="nan_TW@latin">KXMLGUI Kài-bīn Suan-kò</comment>
     <comment xml:lang="nb">KXMLGUI UI-deklarasjon</comment>
     <comment xml:lang="nl">Declaratie van KXMLGUI UI</comment>
     <comment xml:lang="nn">KXMLGUI UI-deklarasjon</comment>
@@ -3644,6 +3799,7 @@ Notes:
     <comment xml:lang="bs">KNotification Deklaracija</comment>
     <comment xml:lang="ca">Declaració del KNotification</comment>
     <comment xml:lang="ca@valencia">Declaració del KNotification</comment>
+    <comment xml:lang="cs">Deklarace KNotification</comment>
     <comment xml:lang="cy">Datganiad KNotification</comment>
     <comment xml:lang="da">KNotification-erklæring</comment>
     <comment xml:lang="de">KNotification-Deklaration</comment>
@@ -3674,6 +3830,8 @@ Notes:
     <comment xml:lang="lv">„KNotification“ deklarācija</comment>
     <comment xml:lang="ml">KNotification പ്രഖ്യാപനം</comment>
     <comment xml:lang="my">ကေအကြောင်းကြားချက် ကြေညာချက်</comment>
+    <comment xml:lang="nan_TW">KNotification 宣告</comment>
+    <comment xml:lang="nan_TW@latin">KNotification Suan-kò</comment>
     <comment xml:lang="nb">KNotification-deklarasjon</comment>
     <comment xml:lang="nl">Declaratie van KNotification</comment>
     <comment xml:lang="nn">KNotification-deklarasjon</comment>
@@ -3742,6 +3900,8 @@ Notes:
     <comment xml:lang="lv">„KCrash“ ziņojums</comment>
     <comment xml:lang="ml">കെക്രാഷ് റിപ്പോർട്ട്</comment>
     <comment xml:lang="my">ကေခရက်ရှ်စ် အစီရင်ခံစာ</comment>
+    <comment xml:lang="nan_TW">KCrash 報告</comment>
+    <comment xml:lang="nan_TW@latin">KCrash Pò-kò</comment>
     <comment xml:lang="nb">KCrash-rapport</comment>
     <comment xml:lang="nl">Rapport van KCrash</comment>
     <comment xml:lang="nn">KCrash-rapport</comment>

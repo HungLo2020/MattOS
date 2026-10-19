@@ -11,6 +11,7 @@
 #include "logging.h"
 #include "pipewirecore_p.h"
 #include "pwhelpers.h"
+#include "rendernodecontext_p.h"
 #include "vaapiutils_p.h"
 
 #include <libdrm/drm_fourcc.h>
@@ -19,12 +20,10 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include <QGuiApplication>
 #include <QOpenGLTexture>
 #include <QSocketNotifier>
 #include <QThread>
 #include <QVersionNumber>
-#include <qpa/qplatformnativeinterface.h>
 
 #include <KLocalizedString>
 
@@ -42,15 +41,16 @@ struct PipeWireSourceStreamPrivate
 {
     QSharedPointer<PipeWireCore> pwCore;
     pw_stream *pwStream = nullptr;
-    spa_hook streamListener;
+    spa_hook streamListener{};
 
     uint32_t pwNodeId = 0;
+    uint64_t pwObjectSerial = uint64_t(-1);
     std::optional<std::chrono::nanoseconds> m_currentPresentationTimestamp;
 
     QAtomicInt m_stopped = false;
     pw_stream_state m_state = PW_STREAM_STATE_UNCONNECTED;
 
-    spa_video_info_raw videoFormat;
+    spa_video_info_raw videoFormat{};
     QString m_error;
     bool m_allowDmaBuf = true;
     bool m_usingDmaBuf = false;
@@ -60,8 +60,10 @@ struct PipeWireSourceStreamPrivate
 
     bool m_withDamage = false;
     Fraction maxFramerate;
+    QSize requestedSize;
 
     PipeWireSourceStream::UsageHint usageHint = PipeWireSourceStream::UsageHint::Render;
+    bool createStream(uint nodeId, uint64_t objectSerial, int fd, PipeWireSourceStream *q);
 };
 
 static const QVersionNumber pwClientVersion = QVersionNumber::fromString(QString::fromUtf8(pw_get_library_version()));
@@ -263,18 +265,26 @@ void PipeWireSourceStream::renegotiateModifierFailed(spa_video_format format, qu
     pw_loop_signal_event(d->pwCore->loop(), d->m_renegotiateEvent);
 }
 
-static spa_pod *
-buildFormat(spa_pod_builder *builder, spa_video_format format, const QList<uint64_t> &modifiers, bool withDontFixate, const Fraction &requestedMaxFramerate)
+static spa_pod *buildFormat(spa_pod_builder *builder,
+                            spa_video_format format,
+                            const QList<uint64_t> &modifiers,
+                            bool withDontFixate,
+                            const Fraction &requestedMaxFramerate,
+                            const QSize &defaultSize)
 {
     spa_pod_frame f[2];
     const spa_rectangle pw_min_screen_bounds{1, 1};
     const spa_rectangle pw_max_screen_bounds{UINT32_MAX, UINT32_MAX};
+    const spa_rectangle pw_stream_size{static_cast<uint32_t>(defaultSize.width()), static_cast<uint32_t>(defaultSize.height())};
 
     spa_pod_builder_push_object(builder, &f[0], SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
     spa_pod_builder_add(builder, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video), 0);
     spa_pod_builder_add(builder, SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw), 0);
     spa_pod_builder_add(builder, SPA_FORMAT_VIDEO_format, SPA_POD_Id(format), 0);
-    spa_pod_builder_add(builder, SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&pw_min_screen_bounds, &pw_min_screen_bounds, &pw_max_screen_bounds), 0);
+    if (defaultSize.isValid()) {
+        spa_pod_builder_add(builder, SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&pw_stream_size, &pw_min_screen_bounds, &pw_max_screen_bounds), 0);
+    } // else let the server be in complete control and choose a default
+
     if (requestedMaxFramerate) {
         auto defFramerate = SPA_FRACTION(0, 1);
         auto minFramerate = SPA_FRACTION(1, 1);
@@ -454,6 +464,17 @@ void PipeWireSourceStream::setMaxFramerate(const Fraction &framerate)
     }
 }
 
+void PipeWireSourceStream::setRequestedSize(const QSize &size)
+{
+    if (d->requestedSize == size) {
+        return;
+    }
+    d->requestedSize = size;
+    if (d->pwStream) {
+        pw_loop_signal_event(d->pwCore->loop(), d->m_renegotiateEvent);
+    }
+}
+
 uint PipeWireSourceStream::nodeId()
 {
     return d->pwNodeId;
@@ -485,7 +506,11 @@ QList<const spa_pod *> PipeWireSourceStream::createFormatsParams(spa_pod_builder
     };
     QList<const spa_pod *> params;
     params.reserve(formats.size() * 2);
-    const EGLDisplay display = static_cast<EGLDisplay>(QGuiApplication::platformNativeInterface()->nativeResourceForIntegration("egldisplay"));
+    const EGLDisplay display = RenderNodeResolver::resolveForCurrentSession().eglDisplay;
+
+    if (display == EGL_NO_DISPLAY) {
+        d->m_allowDmaBuf = false;
+    }
 
     d->m_allowDmaBuf = d->m_allowDmaBuf && (pwServerVersion.isNull() || (pwClientVersion >= kDmaBufMinVersion && pwServerVersion >= kDmaBufMinVersion));
     const bool withDontFixate = d->m_allowDmaBuf && (pwServerVersion.isNull() || (pwClientVersion >= kDmaBufModifierMinVersion && pwServerVersion >= kDmaBufModifierMinVersion));
@@ -495,16 +520,25 @@ QList<const spa_pod *> PipeWireSourceStream::createFormatsParams(spa_pod_builder
     }
 
     if (d->m_availableModifiers.isEmpty()) {
-        static const auto availableModifiers = queryDmaBufModifiers(display, formats, d->usageHint);
+        static QHash<spa_video_format, QList<uint64_t>> availableModifiers;
+        if (availableModifiers.isEmpty()) {
+            if (display != EGL_NO_DISPLAY) {
+                availableModifiers = queryDmaBufModifiers(display, formats, d->usageHint);
+            } else {
+                for (spa_video_format format : formats) {
+                    availableModifiers[format] = {};
+                }
+            }
+        }
         d->m_availableModifiers = availableModifiers;
     }
 
     for (auto it = d->m_availableModifiers.constBegin(), itEnd = d->m_availableModifiers.constEnd(); it != itEnd; ++it) {
         if (d->m_allowDmaBuf && !it->isEmpty()) {
-            params += buildFormat(&podBuilder, it.key(), it.value(), withDontFixate, d->maxFramerate);
+            params += buildFormat(&podBuilder, it.key(), it.value(), withDontFixate, d->maxFramerate, d->requestedSize);
         }
 
-        params += buildFormat(&podBuilder, it.key(), {}, withDontFixate, d->maxFramerate);
+        params += buildFormat(&podBuilder, it.key(), {}, withDontFixate, d->maxFramerate, d->requestedSize);
     }
 
     // BUG 492400: Workaround for pipewire < 0.3.49 https://github.com/PipeWire/pipewire/commit/8646117374df6fa3b73f63f9b35cda78a6aaa2f4
@@ -512,41 +546,62 @@ QList<const spa_pod *> PipeWireSourceStream::createFormatsParams(spa_pod_builder
     return params;
 }
 
-bool PipeWireSourceStream::createStream(uint nodeid, int fd)
+bool PipeWireSourceStreamPrivate::createStream(uint nodeId, uint64_t objectSerial, int fd, PipeWireSourceStream *q)
 {
-    d->m_availableModifiers.clear();
-    d->pwCore = PipeWireCore::fetch(fd);
-    if (!d->pwCore->error().isEmpty()) {
-        qCDebug(PIPEWIRE_LOGGING) << "received error while creating the stream" << d->pwCore->error();
-        d->m_error = d->pwCore->error();
+    m_availableModifiers.clear();
+    pwCore = PipeWireCore::fetch(fd);
+    if (!pwCore->error().isEmpty()) {
+        qCDebug(PIPEWIRE_LOGGING) << "received error while creating the stream" << pwCore->error();
+        m_error = pwCore->error();
         return false;
     }
 
-    connect(d->pwCore.data(), &PipeWireCore::pipewireFailed, this, &PipeWireSourceStream::coreFailed);
+    QObject::connect(pwCore.data(), &PipeWireCore::pipewireFailed, q, &PipeWireSourceStream::coreFailed);
 
-    if (objectName().isEmpty()) {
-        setObjectName(QStringLiteral("plasma-screencast-%1").arg(nodeid));
+    if (q->objectName().isEmpty() && objectSerial != uint64_t(-1)) {
+        q->setObjectName(QStringLiteral("plasma-screencast-serial-%1").arg(objectSerial));
+    }
+    if (q->objectName().isEmpty()) {
+        q->setObjectName(QStringLiteral("plasma-screencast-node-%1").arg(nodeId));
     }
 
-    const auto pwServerVersion = d->pwCore->serverVersion();
-    d->pwStream = pw_stream_new(**d->pwCore, objectName().toUtf8().constData(), nullptr);
-    d->pwNodeId = nodeid;
-    pw_stream_add_listener(d->pwStream, &d->streamListener, &pwStreamEvents, this);
+    const auto pwServerVersion = pwCore->serverVersion();
+    pw_properties *properties = nullptr;
+    if (objectSerial != uint64_t(-1)) {
+        properties = pw_properties_new(nullptr, nullptr);
+        pw_properties_setf(properties, PW_KEY_TARGET_OBJECT, "%" PRIu64, objectSerial);
+    }
 
-    d->m_renegotiateEvent = pw_loop_add_event(d->pwCore->loop(), onRenegotiate, this);
+    pwStream = pw_stream_new(**pwCore, q->objectName().toUtf8().constData(), properties);
+    pwNodeId = nodeId;
+    pwObjectSerial = objectSerial;
+
+    pw_stream_add_listener(pwStream, &streamListener, &pwStreamEvents, q);
+
+    m_renegotiateEvent = pw_loop_add_event(pwCore->loop(), q->onRenegotiate, q);
 
     uint8_t buffer[4096];
     spa_pod_builder podBuilder = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
-    auto params = createFormatsParams(podBuilder);
+    auto params = q->createFormatsParams(podBuilder);
     pw_stream_flags s = (pw_stream_flags)(PW_STREAM_FLAG_DONT_RECONNECT | PW_STREAM_FLAG_AUTOCONNECT);
-    if (pw_stream_connect(d->pwStream, PW_DIRECTION_INPUT, d->pwNodeId, s, params.data(), params.size()) != 0) {
+    if (pw_stream_connect(pwStream, PW_DIRECTION_INPUT, objectSerial != uint64_t(-1) ? PW_ID_ANY : pwNodeId, s, params.data(), params.size()) != 0) {
         qCWarning(PIPEWIRE_LOGGING) << "Could not connect to stream";
-        pw_stream_destroy(d->pwStream);
-        d->pwStream = nullptr;
+        pw_stream_destroy(pwStream);
+        pwStream = nullptr;
         return false;
     }
-    qCDebug(PIPEWIRE_LOGGING) << "created successfully" << nodeid;
+    qCDebug(PIPEWIRE_LOGGING) << "created successfully" << nodeId << objectSerial;
     return true;
+}
+
+bool PipeWireSourceStream::createStream(uint nodeid, int fd)
+{
+    return d->createStream(nodeid, uint64_t(-1), fd, this);
+}
+
+bool PipeWireSourceStream::createStream(quint64 objectSerial, int fd)
+{
+    return d->createStream(PW_ID_ANY, objectSerial, fd, this);
 }
 
 void PipeWireSourceStream::handleFrame(struct pw_buffer *buffer)

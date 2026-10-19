@@ -16,21 +16,23 @@
 // We mean it.
 //
 
-#include "documentSymbolSupport/qqmldocumentsymbolsupport_p.h"
-#include "qlanguageserver_p.h"
-#include "qqmlcodemodelmanager_p.h"
-#include "qqmlfindusagessupport_p.h"
-#include "qtextsynchronization_p.h"
-#include "qqmllintsuggestions_p.h"
-#include "qworkspace_p.h"
-#include "qqmlcompletionsupport_p.h"
-#include "qqmlgototypedefinitionsupport_p.h"
-#include "qqmlformatting_p.h"
-#include "qqmlrangeformatting_p.h"
-#include "qqmlgotodefinitionsupport_p.h"
-#include "qqmlrenamesymbolsupport_p.h"
-#include "qqmlhover_p.h"
-#include "qqmlhighlightsupport_p.h"
+#include <private/qqmldocumentsymbolsupport_p.h>
+#include <private/qlanguageserver_p.h>
+#include <private/qqmlcodemodelmanager_p.h>
+#include <private/qqmlfindusagessupport_p.h>
+#include <private/qtextsynchronization_p.h>
+#include <private/qqmllintsuggestions_p.h>
+#include <private/qworkspace_p.h>
+#include <private/qqmlcompletionsupport_p.h>
+#include <private/qqmlgototypedefinitionsupport_p.h>
+#include <private/qqmlformatting_p.h>
+#include <private/qqmlrangeformatting_p.h>
+#include <private/qqmlgotodefinitionsupport_p.h>
+#include <private/qqmlrenamesymbolsupport_p.h>
+#include <private/qqmlhover_p.h>
+#include <private/qqmlhighlightsupport_p.h>
+#include <private/qqmlprogresssupport_p.h>
+#include <private/qqmllscodeaction_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -38,7 +40,7 @@ class QQmlToolingSettings;
 
 namespace QmlLsp {
 
-class QQmlLanguageServer : public QLanguageServerModule
+class QQmlLanguageServer : public QLanguageServer
 {
     Q_OBJECT
 public:
@@ -46,18 +48,9 @@ public:
                        QQmlToolingSharedSettings *settings = nullptr);
     ~QQmlLanguageServer();
 
-    QString name() const final;
-    void registerHandlers(QLanguageServer *server, QLanguageServerProtocol *protocol) final;
-    void setupCapabilities(const QLspSpecification::InitializeParams &clientInfo,
-                           QLspSpecification::InitializeResult &serverInfo) final;
-
     int returnValue() const;
 
     QQmlCodeModelManager *codeModelManager();
-    QLanguageServer *server();
-    TextSynchronization *textSynchronization();
-    QmlLintSuggestions *lint();
-    WorkspaceHandlers *worspace();
 
 public Q_SLOTS:
     void exit();
@@ -65,7 +58,6 @@ public Q_SLOTS:
 
 private:
     QQmlCodeModelManager m_codeModelManager;
-    QLanguageServer m_server;
 
     TextSynchronization m_textSynchronization;
     WorkspaceHandlers m_workspace;
@@ -82,12 +74,14 @@ private:
     QQmlRenameSymbolSupport m_renameSupport;
     QQmlRangeFormatting m_rangeFormatting;
     QQmlHover m_hover;
+    QQmlCodeActionSupport m_codeActionSupport;
 
     // ==== Highlighting ====
     QQmlHighlightSupport m_highlightSupport;
 
     // ==== modules that are not triggered by the user ====
     QQmlDocumentSymbolSupport m_documentSymbolSupport;
+    QQmlProgressSupport m_progressSupport;
 
     // ==== Linting should happen at the end as it potentially can take a longer time ====
     QmlLintSuggestions m_lint;

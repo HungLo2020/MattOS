@@ -11,6 +11,7 @@
 #include "config-kwin.h"
 
 #include "core/gbmgraphicsbufferallocator.h"
+#include "core/gpumanager.h"
 #include "core/session.h"
 #include "drm_backend.h"
 #include "drm_buffer.h"
@@ -94,20 +95,12 @@ DrmGpu::DrmGpu(DrmBackend *backend, int fd, std::unique_ptr<DrmDevice> &&device)
     }
 
     // find out what driver this kms device is using
-    DrmUniquePtr<drmVersion> version(drmGetVersion(fd));
-    m_isI915 = strstr(version->name, "i915");
-    m_isNVidia = strstr(version->name, "nvidia-drm");
-    m_isAmdgpu = strstr(version->name, "amdgpu");
-    m_isVmwgfx = strstr(version->name, "vmwgfx");
-    m_isVirtualMachine = strstr(version->name, "virtio") || strstr(version->name, "qxl")
-        || strstr(version->name, "vmwgfx") || strstr(version->name, "vboxvideo");
-    if (m_isNVidia) {
+    if (m_drmDevice->isNvidia()) {
         QFile moduleVersion("/sys/module/nvidia_drm/version");
         if (moduleVersion.open(QIODeviceBase::OpenModeFlag::ReadOnly)) {
             m_nvidiaDriverVersion = Version::parseString(moduleVersion.readLine(100));
         }
     }
-    m_driverName = version->name;
 
     m_socketNotifier = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Read);
     connect(m_socketNotifier.get(), &QSocketNotifier::activated, this, &DrmGpu::dispatchEvents);
@@ -120,14 +113,29 @@ DrmGpu::DrmGpu(DrmBackend *backend, int fd, std::unique_ptr<DrmDevice> &&device)
         m_asyncPageflipSupported = drmGetCap(fd, DRM_CAP_ATOMIC_ASYNC_PAGE_FLIP, &capability) == 0 && capability == 1;
     }
 
-    m_colorPipelineSupported = s_colorPipelineEnv.value_or(!m_isAmdgpu) && drmSetClientCap(fd, DRM_CLIENT_CAP_PLANE_COLOR_PIPELINE, 1) == 0;
-
     m_delayedModesetTimer.setInterval(0);
     m_delayedModesetTimer.setSingleShot(true);
     connect(&m_delayedModesetTimer, &QTimer::timeout, this, &DrmGpu::doModeset);
     m_sharpnessSupported = std::ranges::all_of(m_crtcs, [](const std::unique_ptr<DrmCrtc> &crtc) {
         return crtc->sharpnessStrength.isValid();
     });
+
+    // Make sure the render device list is up to date, otherwise we may first
+    // select software rendering and only later switch to the render node
+    GpuManager::self()->scanForRenderDevices();
+    if (!GpuManager::self()->softwareDevice()) {
+        // fallback for software rendering
+        auto fallbackDevice = RenderDevice::open(m_drmDevice->path(), m_fd);
+        m_kmsRenderDevice = fallbackDevice.get();
+        if (!fallbackDevice) {
+            qCWarning(KWIN_DRM, "Opening render device for %s failed", qPrintable(m_drmDevice->path()));
+        } else {
+            GpuManager::self()->addDevice(std::move(fallbackDevice));
+        }
+    }
+    updateRenderDevice();
+    connect(GpuManager::self(), &GpuManager::renderDeviceAdded, this, &DrmGpu::updateRenderDevice);
+    connect(GpuManager::self(), &GpuManager::renderDeviceRemoved, this, &DrmGpu::updateRenderDevice);
 }
 
 DrmGpu::~DrmGpu()
@@ -142,8 +150,11 @@ DrmGpu::~DrmGpu()
     m_connectors.clear();
     m_planes.clear();
     m_socketNotifier.reset();
-    m_eglDisplay.reset();
-    m_platform->session()->closeRestricted(m_fd);
+    if (m_kmsRenderDevice) {
+        disconnect(GpuManager::self(), &GpuManager::renderDeviceRemoved, this, &DrmGpu::updateRenderDevice);
+        GpuManager::self()->removeDevice(m_kmsRenderDevice);
+        m_kmsRenderDevice = nullptr;
+    }
 }
 
 FileDescriptor DrmGpu::createNonMasterFd() const
@@ -180,7 +191,7 @@ void DrmGpu::initDrmResources()
     if (noAMS) {
         qCWarning(KWIN_DRM) << "Atomic Mode Setting requested off via environment variable. Using legacy mode on GPU" << this;
     } else if (atomicSuccessful) {
-        if (m_isVirtualMachine) {
+        if (m_drmDevice->isVirtualMachine()) {
             // ATOMIC must be set before attempting CURSOR_PLANE_HOTSPOT
             if (drmSetClientCap(m_fd, DRM_CLIENT_CAP_CURSOR_PLANE_HOTSPOT, 1) != 0) {
                 qCWarning(KWIN_DRM, "Atomic Mode Setting disabled on GPU %s because of cursor offset issues in virtual machines", qPrintable(m_drmDevice->path()));
@@ -188,6 +199,13 @@ void DrmGpu::initDrmResources()
                 noAMS = true;
             }
         }
+        // Set the plane color pipeline cap now, after ATOMIC and before enumerating planes and
+        // CRTCs: the kernel only exposes the per-plane COLOR_PIPELINE property once this cap is
+        // set, and DrmCrtc::updateProperties() reads colorPipelineSupported() while building its
+        // (cached) post-blend pipeline. Setting it after initDrmResources() would leave it false
+        // during that setup, so the legacy CRTC CTM would wrongly stay active on capable hardware.
+        m_colorPipelineSupported = s_colorPipelineEnv.value_or(true) && drmSetClientCap(m_fd, DRM_CLIENT_CAP_PLANE_COLOR_PIPELINE, 1) == 0;
+
         DrmUniquePtr<drmModePlaneRes> planeResources(drmModeGetPlaneResources(m_fd));
         if (planeResources && !noAMS) {
             qCDebug(KWIN_DRM) << "Using Atomic Mode Setting on gpu" << this;
@@ -249,9 +267,6 @@ void DrmGpu::initDrmResources()
 
 bool DrmGpu::updateOutputs()
 {
-    if (!m_isActive) {
-        return false;
-    }
     DrmUniquePtr<drmModeRes> resources(drmModeGetResources(m_fd));
     if (!resources) {
         qCWarning(KWIN_DRM) << "drmModeGetResources failed:" << strerror(errno);
@@ -352,10 +367,13 @@ void DrmGpu::removeOutputs()
     }
 }
 
-DrmPipeline::Error DrmGpu::checkCrtcAssignment(QList<DrmConnector *> connectors, const QList<DrmCrtc *> &crtcs, std::chrono::steady_clock::time_point deadline)
+std::expected<void, OutputError> DrmGpu::checkCrtcAssignment(QList<DrmConnector *> connectors, const QList<DrmCrtc *> &crtcs, std::chrono::steady_clock::time_point deadline)
 {
     if (std::chrono::steady_clock::now() > deadline) {
-        return DrmPipeline::Error::Timeout;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::Timeout,
+            .message = QStringLiteral("Checking CRTC assignments timed out"),
+        });
     }
     if (connectors.isEmpty()) {
         const auto result = testPipelines();
@@ -374,10 +392,13 @@ DrmPipeline::Error DrmGpu::checkCrtcAssignment(QList<DrmConnector *> connectors,
         return checkCrtcAssignment(connectors, crtcs, deadline);
     }
     if (crtcs.isEmpty()) {
-        // we have no crtc left to drive this connector
-        return DrmPipeline::Error::NotEnoughCrtcs;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::NotEnoughCrtcs,
+            .message = QStringLiteral("More outputs are enabled than there are CRTCs"),
+        });
     }
     DrmCrtc *currentCrtc = nullptr;
+    std::expected<void, OutputError> ret;
     if (m_atomicModeSetting) {
         // try the crtc that this connector is already connected to first
         const uint32_t id = connector->crtcId.value();
@@ -389,9 +410,12 @@ DrmPipeline::Error DrmGpu::checkCrtcAssignment(QList<DrmConnector *> connectors,
             auto crtcsLeft = crtcs;
             crtcsLeft.removeOne(currentCrtc);
             pipeline->setCrtc(currentCrtc);
-            DrmPipeline::Error err = checkCrtcAssignment(connectors, crtcsLeft, deadline);
-            if (err == DrmPipeline::Error::None || err == DrmPipeline::Error::NoPermission || err == DrmPipeline::Error::FramePending || err == DrmPipeline::Error::Timeout) {
-                return err;
+            ret = checkCrtcAssignment(connectors, crtcsLeft, deadline);
+            if (ret
+                || ret.error().code == OutputErrorCode::NoPermission
+                || ret.error().code == OutputErrorCode::InvalidApiUsage
+                || ret.error().code == OutputErrorCode::Timeout) {
+                return ret;
             }
         }
     }
@@ -400,20 +424,23 @@ DrmPipeline::Error DrmGpu::checkCrtcAssignment(QList<DrmConnector *> connectors,
             auto crtcsLeft = crtcs;
             crtcsLeft.removeOne(crtc);
             pipeline->setCrtc(crtc);
-            DrmPipeline::Error err = checkCrtcAssignment(connectors, crtcsLeft, deadline);
-            if (err == DrmPipeline::Error::None || err == DrmPipeline::Error::NoPermission || err == DrmPipeline::Error::FramePending || err == DrmPipeline::Error::Timeout) {
-                return err;
+            ret = checkCrtcAssignment(connectors, crtcsLeft, deadline);
+            if (ret
+                || ret.error().code == OutputErrorCode::NoPermission
+                || ret.error().code == OutputErrorCode::InvalidApiUsage
+                || ret.error().code == OutputErrorCode::Timeout) {
+                return ret;
             }
         }
     }
-    return DrmPipeline::Error::InvalidArguments;
+    return ret;
 }
 
 static const std::chrono::milliseconds s_checkCrtcTimeout = environmentVariableIntValue("KWIN_DRM_PENDING_CONFIG_TIMEOUT").transform([](int value) {
     return std::chrono::milliseconds(value);
 }).value_or(3s);
 
-DrmPipeline::Error DrmGpu::testPendingConfiguration()
+std::expected<void, OutputError> DrmGpu::testPendingConfiguration()
 {
     QList<DrmConnector *> connectors;
     QList<DrmCrtc *> crtcs;
@@ -441,9 +468,11 @@ DrmPipeline::Error DrmGpu::testPendingConfiguration()
         });
     }
     m_forceLowBandwidthMode = false;
-    auto err = checkCrtcAssignment(connectors, crtcs, std::chrono::steady_clock::now() + s_checkCrtcTimeout);
-    if (err == DrmPipeline::Error::None || err == DrmPipeline::Error::NoPermission || err == DrmPipeline::Error::FramePending) {
-        return err;
+    auto ret = checkCrtcAssignment(connectors, crtcs, std::chrono::steady_clock::now() + s_checkCrtcTimeout);
+    if (ret
+        || ret.error().code == OutputErrorCode::NoPermission
+        || ret.error().code == OutputErrorCode::InvalidApiUsage) {
+        return ret;
     }
     const bool hasPreferAccuracy = std::ranges::any_of(m_drmOutputs, [](const auto &output) {
         return output->colorPowerTradeoff() == BackendOutput::ColorPowerTradeoff::PreferAccuracy;
@@ -452,9 +481,9 @@ DrmPipeline::Error DrmGpu::testPendingConfiguration()
         // We currently don't have any information about why the output config
         // got rejected; one possibility is missing memory bandwidth.
         m_forceLowBandwidthMode = true;
-        err = checkCrtcAssignment(connectors, crtcs, std::chrono::steady_clock::now() + s_checkCrtcTimeout);
+        ret = checkCrtcAssignment(connectors, crtcs, std::chrono::steady_clock::now() + s_checkCrtcTimeout);
     }
-    return err;
+    return ret;
 }
 
 void DrmGpu::releaseUnusedBuffers()
@@ -481,11 +510,11 @@ void DrmGpu::releaseUnusedBuffers()
     }
 }
 
-DrmPipeline::Error DrmGpu::testPipelines()
+std::expected<void, OutputError> DrmGpu::testPipelines()
 {
     if (m_pipelines.empty()) {
         // nothing to do
-        return DrmPipeline::Error::None;
+        return {};
     }
     assignOutputLayers();
     for (DrmPipeline *pipeline : m_pipelines) {
@@ -502,14 +531,17 @@ DrmPipeline::Error DrmGpu::testPipelines()
                 layer->setEnabled(true);
                 // ensure we have suitable buffers for the test
                 if (!layer->preparePresentationTest()) {
-                    return DrmPipeline::Error::InvalidArguments;
+                    return std::unexpected(OutputError{
+                        .code = OutputErrorCode::Other,
+                        .message = QStringLiteral("Preparing test buffer failed"),
+                    });
                 }
             } else {
                 layer->setEnabled(false);
             }
         }
     }
-    return DrmPipeline::commitPipelines(m_pipelines, DrmPipeline::CommitMode::TestAllowModeset, unusedModesetObjects());
+    return DrmPipeline::commitPipelines(m_pipelines, this, DrmPipeline::CommitMode::TestAllowModeset, unusedModesetObjects());
 }
 
 DrmOutput *DrmGpu::findOutput(quint32 connector)
@@ -554,7 +586,12 @@ static std::chrono::nanoseconds convertTimestamp(clockid_t sourceClock, clockid_
 
 void DrmGpu::pageFlipHandler(int fd, unsigned int sequence, unsigned int sec, unsigned int usec, unsigned int crtc_id, void *user_data)
 {
-    const auto commit = static_cast<DrmCommit *>(user_data);
+    const auto commit = DrmCommit::take(reinterpret_cast<uintptr_t>(user_data));
+    if (!commit) {
+        // The commit may have been destroyed while the device was paused, or
+        // this may be a duplicate event. Neither may complete a newer commit.
+        return;
+    }
     const auto gpu = commit->gpu();
     const bool defunct = std::erase_if(gpu->m_defunctCommits, [commit](const auto &defunct) {
         return defunct.get() == commit;
@@ -596,6 +633,7 @@ void DrmGpu::dispatchEvents()
 
 void DrmGpu::addDefunctCommit(std::unique_ptr<DrmCommit> &&commit)
 {
+    Q_ASSERT(QThread::currentThread() == QCoreApplication::instance()->thread());
     m_defunctCommits.push_back(std::move(commit));
 }
 
@@ -610,6 +648,10 @@ void DrmGpu::removeOutput(DrmOutput *output)
     output->unref();
     // force a modeset to make sure unused objects are cleaned up
     m_forceModeset = true;
+    if (m_pipelines.isEmpty()) {
+        // with no pipelines left, no presentation will trigger the modeset
+        maybeModeset(nullptr, nullptr);
+    }
 }
 
 DrmBackend *DrmGpu::platform() const
@@ -636,7 +678,9 @@ std::unique_ptr<DrmLease> DrmGpu::leaseOutputs(const QList<DrmOutput *> &outputs
         output->pipeline()->setEnable(true);
         output->pipeline()->setActive(false);
     }
-    if (testPendingConfiguration() != DrmPipeline::Error::None) {
+    const auto ret = testPendingConfiguration();
+    if (!ret) {
+        qCWarning(KWIN_DRM, "Output configuration for a drm lease failed: %s", qPrintable(ret.error().message));
         return nullptr;
     }
 
@@ -685,16 +729,6 @@ bool DrmGpu::atomicModeSetting() const
     return m_atomicModeSetting;
 }
 
-EglDisplay *DrmGpu::eglDisplay() const
-{
-    return m_eglDisplay.get();
-}
-
-void DrmGpu::setEglDisplay(std::unique_ptr<EglDisplay> &&display)
-{
-    m_eglDisplay = std::move(display);
-}
-
 bool DrmGpu::addFB2ModifiersSupported() const
 {
     return m_addFB2ModifiersSupported;
@@ -720,31 +754,6 @@ bool DrmGpu::colorPipelineSupported() const
     return m_colorPipelineSupported;
 }
 
-bool DrmGpu::isI915() const
-{
-    return m_isI915;
-}
-
-bool DrmGpu::isNVidia() const
-{
-    return m_isNVidia;
-}
-
-bool DrmGpu::isAmdgpu() const
-{
-    return m_isAmdgpu;
-}
-
-bool DrmGpu::isVmwgfx() const
-{
-    return m_isVmwgfx;
-}
-
-bool DrmGpu::isVirtualMachine() const
-{
-    return m_isVirtualMachine;
-}
-
 std::optional<Version> DrmGpu::nvidiaDriverVersion() const
 {
     return m_nvidiaDriverVersion;
@@ -758,34 +767,6 @@ bool DrmGpu::isRemoved() const
 void DrmGpu::setRemoved()
 {
     m_isRemoved = true;
-}
-
-void DrmGpu::setActive(bool active)
-{
-    if (m_isActive != active) {
-        m_isActive = active;
-        if (active) {
-            for (const DrmOutput *output : std::as_const(m_drmOutputs)) {
-                output->renderLoop()->uninhibit();
-            }
-            for (const DrmOutput *output : std::as_const(m_drmOutputs)) {
-                // force a modeset with legacy, we can't reliably know if one is needed
-                if (!atomicModeSetting()) {
-                    output->pipeline()->forceLegacyModeset();
-                }
-            }
-        } else {
-            for (const DrmOutput *output : std::as_const(m_drmOutputs)) {
-                output->renderLoop()->inhibit();
-            }
-        }
-        Q_EMIT activeChanged(active);
-    }
-}
-
-bool DrmGpu::isActive() const
-{
-    return m_isActive;
 }
 
 bool DrmGpu::needsModeset() const
@@ -838,27 +819,35 @@ void DrmGpu::doModeset()
     }
     if (pipelines.empty()) {
         m_pendingModesetFrames.clear();
+        if (m_forceModeset) {
+            // when the last output is removed, there's no pipeline commit left
+            // to disable the now unused objects with. Disable them explicitly,
+            // otherwise the kernel keeps scanning out to a disconnected connector
+            const auto ret = DrmPipeline::commitPipelines(pipelines, this, DrmPipeline::CommitMode::CommitModeset, unusedModesetObjects());
+            if (!ret) {
+                qCWarning(KWIN_DRM, "Failed to disable unused drm resources: %s", qPrintable(ret.error().message));
+            }
+        }
         m_forceModeset = false;
         return;
     }
     m_inModeset = true;
-    const DrmPipeline::Error err = DrmPipeline::commitPipelines(pipelines, DrmPipeline::CommitMode::CommitModeset, unusedModesetObjects());
+    const auto ret = DrmPipeline::commitPipelines(pipelines, this, DrmPipeline::CommitMode::CommitModeset, unusedModesetObjects());
     for (DrmPipeline *pipeline : std::as_const(pipelines)) {
         if (pipeline->modesetPresentPending()) {
             pipeline->resetModesetPresentPending();
         }
     }
     m_forceModeset = false;
-    if (err == DrmPipeline::Error::None) {
+    if (ret) {
         for (const auto &[pipeline, frame] : m_pendingModesetFrames) {
             frame->presented(std::chrono::steady_clock::now().time_since_epoch(), PresentationMode::VSync);
         }
     } else {
-        if (err != DrmPipeline::Error::FramePending) {
-            QTimer::singleShot(0, m_platform, [backend = m_platform]() {
-                backend->updateOutputs();
-            });
-        }
+        qCCritical(KWIN_DRM, "Modeset failed: %s", qPrintable(ret.error().message));
+        QTimer::singleShot(0, m_platform, [backend = m_platform]() {
+            backend->updateOutputs();
+        });
     }
     m_pendingModesetFrames.clear();
     m_inModeset = false;
@@ -996,7 +985,7 @@ std::shared_ptr<DrmFramebuffer> DrmGpu::importBuffer(GraphicsBuffer *buffer, Fil
     });
     for (int i = 0; i < attributes->planeCount; ++i) {
         if (drmPrimeFDToHandle(m_fd, attributes->fd[i].get(), &handles[i]) != 0) {
-            qCWarning(KWIN_DRM) << "drmPrimeFDToHandle() failed";
+            qCWarning(KWIN_DRM, "drmPrimeFDToHandle failed: %s", strerror(errno));
             return nullptr;
         }
     }
@@ -1028,7 +1017,7 @@ std::shared_ptr<DrmFramebuffer> DrmGpu::importBuffer(GraphicsBuffer *buffer, Fil
                             attributes->offset.data(),
                             &framebufferId,
                             0);
-        if (ret == EOPNOTSUPP && attributes->planeCount == 1) {
+        if (ret == -EOPNOTSUPP && attributes->planeCount == 1) {
             ret = drmModeAddFB(m_fd,
                                attributes->width,
                                attributes->height,
@@ -1060,11 +1049,6 @@ void DrmGpu::forgetBufferObject(QObject *buf)
     m_fbCache.remove(static_cast<GraphicsBuffer *>(buf));
 }
 
-QString DrmGpu::driverName() const
-{
-    return m_driverName;
-}
-
 QList<OutputLayer *> DrmGpu::compatibleOutputLayers(BackendOutput *output) const
 {
     if (auto virt = qobject_cast<DrmVirtualOutput *>(output)) {
@@ -1073,6 +1057,30 @@ QList<OutputLayer *> DrmGpu::compatibleOutputLayers(BackendOutput *output) const
     // TODO once dynamic ownership of layers is defined somehow,
     // additionally return planes that aren't currently in use
     return static_cast<DrmOutput *>(output)->pipeline()->layers() | std::ranges::to<QList<OutputLayer *>>();
+}
+
+RenderDevice *DrmGpu::renderDevice() const
+{
+    return m_renderDevice;
+}
+
+void DrmGpu::setRenderDevice(RenderDevice *device)
+{
+    if (m_renderDevice == device) {
+        return;
+    }
+    m_renderDevice = device;
+    Q_EMIT renderDeviceChanged();
+}
+
+void DrmGpu::updateRenderDevice()
+{
+    if (RenderDevice *renderDev = GpuManager::self()->compatibleRenderDevice(m_drmDevice.get())) {
+        setRenderDevice(renderDev);
+    } else {
+        qCWarning(KWIN_DRM, "Couldn't find any render device for %s", qPrintable(m_drmDevice->path()));
+        setRenderDevice(nullptr);
+    }
 }
 
 DrmLease::DrmLease(DrmGpu *gpu, FileDescriptor &&fd, uint32_t lesseeId, const QList<DrmOutput *> &outputs)
@@ -1105,6 +1113,7 @@ uint32_t DrmLease::lesseeId() const
 {
     return m_lesseeId;
 }
+
 }
 
 QDebug &operator<<(QDebug &s, const KWin::DrmGpu *gpu)

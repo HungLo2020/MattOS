@@ -20,11 +20,9 @@
 #include <KLocalizedString>
 #include <KNotification>
 #include <KToggleAction>
-#include <KWayland/Client/connection_thread.h>
-#include <KWayland/Client/plasmashell.h>
-#include <KWayland/Client/registry.h>
-#include <KWayland/Client/surface.h>
 #include <KWindowSystem>
+
+#include <PlasmaQuick/PlasmaShellWaylandIntegration>
 
 #include "configdialog.h"
 #include "historycycler.h"
@@ -57,8 +55,6 @@ Klipper::Klipper(QObject *parent)
     : QObject(parent)
     , m_clip(SystemClipboard::self())
     , m_historyCycler(new HistoryCycler(this))
-    , m_quitAction(nullptr)
-    , m_plasmashell(nullptr)
 {
     QDBusConnection::sessionBus().registerService(QStringLiteral("org.kde.klipper"));
     QDBusConnection::sessionBus().registerObject(QStringLiteral("/klipper"),
@@ -66,7 +62,6 @@ Klipper::Klipper(QObject *parent)
                                                  QDBusConnection::ExportScriptableSlots | QDBusConnection::ExportScriptableSignals);
 
     m_historyModel = HistoryModel::self();
-    m_popup = std::make_unique<KlipperPopup>();
     connect(m_historyModel.get(), &HistoryModel::changed, this, &Klipper::slotHistoryChanged);
     connect(m_historyModel.get(), &HistoryModel::changed, this, &Klipper::clipboardHistoryUpdated);
 
@@ -75,8 +70,9 @@ Klipper::Klipper(QObject *parent)
 
     m_toggleURLGrabAction = new KToggleAction(this);
     m_collection->addAction(QStringLiteral("clipboard_action"), m_toggleURLGrabAction);
-    m_toggleURLGrabAction->setText(i18nc("@action:inmenu Toggle automatic action", "Automatic Action Popup Menu"));
-    KGlobalAccel::setGlobalShortcut(m_toggleURLGrabAction, QKeySequence(Qt::META | Qt::CTRL | Qt::Key_X));
+    m_toggleURLGrabAction->setText(i18nc("@action:inmenu Toggle automatic action", "Toggle Automatic Popping Up of Action Menu"));
+    m_toggleURLGrabAction->setIcon(QIcon::fromTheme(QStringLiteral("show-menu")));
+    KGlobalAccel::setGlobalShortcut(m_toggleURLGrabAction, QKeySequence());
     connect(m_toggleURLGrabAction, &QAction::toggled, this, &Klipper::setURLGrabberEnabled);
 
     /*
@@ -108,14 +104,18 @@ Klipper::Klipper(QObject *parent)
     m_editAction->setIcon(QIcon::fromTheme(QStringLiteral("document-properties")));
     m_editAction->setText(i18nc("@action:inmenu", "&Edit Contents…"));
     KGlobalAccel::setGlobalShortcut(m_editAction, QKeySequence());
-    connect(m_editAction, &QAction::triggered, m_popup.get(), &KlipperPopup::editCurrentClipboard);
+    connect(m_editAction, &QAction::triggered, this, [this] {
+        popup()->editCurrentClipboard();
+    });
 
     // add barcode for mobile phones
     m_showBarcodeAction = m_collection->addAction(QStringLiteral("show-barcode"));
     m_showBarcodeAction->setText(i18nc("@action:inmenu", "&Show Barcode…"));
     m_showBarcodeAction->setIcon(QIcon::fromTheme(QStringLiteral("view-barcode-qr")));
     KGlobalAccel::setGlobalShortcut(m_showBarcodeAction, QKeySequence());
-    connect(m_showBarcodeAction, &QAction::triggered, m_popup.get(), &KlipperPopup::showCurrentBarcode);
+    connect(m_showBarcodeAction, &QAction::triggered, this, [this] {
+        popup()->showCurrentBarcode();
+    });
 
     // Cycle through history
     m_cycleNextAction = m_collection->addAction(QStringLiteral("cycleNextAction"));
@@ -133,6 +133,7 @@ Klipper::Klipper(QObject *parent)
     m_showOnMousePos = m_collection->addAction(QStringLiteral("show-on-mouse-pos"));
     m_showOnMousePos->setText(i18nc("@action:inmenu", "Show Clipboard Items at Mouse Position"));
     m_showOnMousePos->setIcon(QIcon::fromTheme(QStringLiteral("view-list-text")));
+    m_showOnMousePos->setAutoRepeat(false);
     KGlobalAccel::setGlobalShortcut(m_showOnMousePos, QKeySequence(Qt::META | Qt::Key_V));
     connect(m_showOnMousePos, &QAction::triggered, this, &Klipper::slotPopupMenu);
 
@@ -146,22 +147,6 @@ Klipper::Klipper(QObject *parent)
             m_notification->setHint(QStringLiteral("desktop-entry"), QStringLiteral("org.kde.klipper"));
         }
     });
-
-    if (KWindowSystem::isPlatformWayland()) {
-        auto registry = new KWayland::Client::Registry(this);
-        auto connection = KWayland::Client::ConnectionThread::fromApplication(qGuiApp);
-        connect(registry, &KWayland::Client::Registry::plasmaShellAnnounced, this, [registry, this](quint32 name, quint32 version) {
-            if (!m_plasmashell) {
-                m_plasmashell = registry->createPlasmaShell(name, version);
-                m_popup->setPlasmaShell(m_plasmashell);
-            }
-        });
-        connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, registry, [registry] {
-            delete registry; // Avoid freeing resource when gui is deleted
-        });
-        registry->create(connection);
-        registry->setup();
-    }
 }
 
 Klipper::~Klipper()
@@ -177,7 +162,7 @@ QString Klipper::getClipboardContents()
 
 void Klipper::showKlipperPopupMenu()
 {
-    m_popup->show();
+    popup()->show();
 }
 
 void Klipper::showKlipperManuallyInvokeActionMenu()
@@ -234,8 +219,6 @@ void Klipper::slotStartShowTimer()
 void Klipper::loadSettings()
 {
     m_bReplayActionInHistory = KlipperSettings::replayActionInHistory();
-    // NOTE: not used atm - kregexpeditor is not ported to kde4
-    m_bUseGUIRegExpEditor = KlipperSettings::useGUIRegExpEditor();
 
     m_bURLGrabber = KlipperSettings::uRLGrabberEnabled();
     // this will cause it to loadSettings too
@@ -253,17 +236,22 @@ void Klipper::saveSettings() const
     // other settings should be saved automatically by KConfigDialog
 }
 
+KlipperPopup *Klipper::popup()
+{
+    if (!m_popup) {
+        m_popup = std::make_unique<KlipperPopup>();
+    }
+
+    return m_popup.get();
+}
+
 void Klipper::showPopupMenu(QMenu *menu)
 {
     Q_ASSERT(menu != nullptr);
-    if (m_plasmashell) {
-        menu->hide();
-    }
+    menu->hide();
     menu->popup(QCursor::pos());
     QWindow *menuWindow = menu->windowHandle();
-    if (m_plasmashell) {
-        menuWindow->installEventFilter(this);
-    }
+    menuWindow->installEventFilter(this);
     if (!menu->windowFlags().testFlag(Qt::Popup)) {
         connect(menuWindow, &QWindow::activeChanged, menu, [menu] {
             if (!menu->windowHandle()->isActive()) {
@@ -278,12 +266,10 @@ bool Klipper::eventFilter(QObject *filtered, QEvent *event)
     const bool ret = QObject::eventFilter(filtered, event);
     auto menuWindow = qobject_cast<QWindow *>(filtered);
     if (menuWindow && event->type() == QEvent::Expose && menuWindow->isVisible()) {
-        auto surface = KWayland::Client::Surface::fromWindow(menuWindow);
-        auto plasmaSurface = m_plasmashell->createSurface(surface, menuWindow);
-        plasmaSurface->openUnderCursor();
-        plasmaSurface->setSkipTaskbar(true);
-        plasmaSurface->setSkipSwitcher(true);
-        plasmaSurface->setRole(KWayland::Client::PlasmaShellSurface::Role::AppletPopup);
+        auto integration = PlasmaShellWaylandIntegration::get(menuWindow);
+        integration->openUnderCursor();
+        integration->setRole(QtWayland::org_kde_plasma_surface::role_appletpopup);
+
         menuWindow->removeEventFilter(this);
     }
     return ret;
@@ -303,7 +289,11 @@ void Klipper::slotConfigure()
     }
 
     auto *dlg = new ConfigDialog(nullptr, KlipperSettings::self(), this, m_collection);
-    QMetaObject::invokeMethod(dlg, "setHelp", Qt::DirectConnection, Q_ARG(QString, QString::fromLatin1("preferences")));
+    QMetaObject::invokeMethod(dlg,
+                              "setHelp",
+                              Qt::DirectConnection,
+                              Q_ARG(QString, QString::fromLatin1("preferences")),
+                              Q_ARG(QString, QString::fromLatin1("org.kde.klipper")));
     // This is necessary to ensure that the dialog is recreated
     // and therefore the controls are initialised from the current
     // Klipper settings every time that it is shown.
@@ -315,7 +305,11 @@ void Klipper::slotConfigure()
 
 void Klipper::slotPopupMenu()
 {
-    m_popup->show();
+    if (popup()->isVisible()) {
+        popup()->hide();
+    } else {
+        popup()->show();
+    }
 }
 
 void Klipper::slotRepeatAction()
@@ -348,7 +342,7 @@ void Klipper::slotHistoryChanged(bool isTop)
     }
 
     QString &lastURLGrabberText = m_clip->isLocked(QClipboard::Selection) ? m_lastURLGrabberTextSelection : m_lastURLGrabberTextClipboard;
-    if (auto item = m_historyModel->first(); m_bURLGrabber && item && item->type() == HistoryItemType::Text) {
+    if (auto item = m_historyModel->first(); m_bURLGrabber && item && item->allTypes().testFlag(HistoryItemType::Text)) {
         m_myURLGrabber->checkNewData(std::const_pointer_cast<const HistoryItem>(m_historyModel->first()));
 
         // Make sure URLGrabber doesn't repeat all the time if klipper reads the same

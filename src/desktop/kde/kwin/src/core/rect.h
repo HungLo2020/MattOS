@@ -18,7 +18,11 @@ namespace KWin
 class RectF;
 
 /*!
- * The Rect type represents a rectangle with integer coordinates.
+ * \class KWin::Rect
+ * \inmodule KWin
+ * \inheaderfile core/rect.h
+ *
+ * \brief The Rect type represents a rectangle with integer coordinates.
  *
  * \note Unlike the QRect, the right() and the bottom() edges of a Rect correspond to \c{x() + width()},
  * and \c{y() + height()}, respectively.
@@ -26,9 +30,33 @@ class RectF;
 class KWIN_EXPORT Rect
 {
     Q_GADGET
+
+    /*!
+     * \property KWin::Rect::x
+     *
+     * The x coordinate of the top left corner
+     */
     Q_PROPERTY(int x READ x WRITE setX)
+
+    /*!
+     * \property KWin::Rect::y
+     *
+     * The y coordinate of the top left corner
+     */
     Q_PROPERTY(int y READ y WRITE setY)
+
+    /*!
+     * \property KWin::Rect::width
+     *
+     * The width of the rectangle
+     */
     Q_PROPERTY(int width READ width WRITE setWidth)
+
+    /*!
+     * \property KWin::Rect::height
+     *
+     * The height of the rectangle
+     */
     Q_PROPERTY(int height READ height WRITE setHeight)
 
 public:
@@ -243,9 +271,23 @@ public:
     constexpr inline void setBottom(int bottom) noexcept;
 
     /*!
+     * Returns the x coordinate of the center of the rectangle.
+     *
+     * \sa center(), verticalCenter(), moveHorizontalCenter()
+     */
+    constexpr inline int horizontalCenter() const noexcept;
+
+    /*!
+     * Returns the y coordinate of the center of the rectangle.
+     *
+     * \sa center(), horizontalCenter(), moveVerticalCenter()
+     */
+    constexpr inline int verticalCenter() const noexcept;
+
+    /*!
      * Returns the center point of the rectangle.
      *
-     * \sa moveCenter()
+     * \sa moveCenter(), horizontalCenter(), verticalCenter()
      */
     constexpr inline QPoint center() const noexcept;
 
@@ -310,10 +352,28 @@ public:
     constexpr inline void setBottomLeft(const QPoint &point) noexcept;
 
     /*!
+     * Moves the rectangle so the x coordinate of its center point is at the specified position
+     * \a center. This does not change the width of the rectangle or the coordinates of the top and
+     * bottom edge.
+     *
+     * \sa horizontalCenter()
+     */
+    constexpr inline void moveHorizontalCenter(int center) noexcept;
+
+    /*!
+     * Moves the rectangle so the y coordinate of its center point is at the specified position
+     * \a center. This does not change the height of the rectangle or the coordinates of the left and
+     * right edge.
+     *
+     * \sa verticalCenter()
+     */
+    constexpr inline void moveVerticalCenter(int center) noexcept;
+
+    /*!
      * Moves the rectangle so its center point is at the specified position \a point. This does not
      * change the size of the rectangle.
      *
-     * \sa center()
+     * \sa center(), moveHorizontalCenter(), moveVerticalCenter()
      */
     constexpr inline void moveCenter(const QPoint &point) noexcept;
 
@@ -546,6 +606,21 @@ public:
     constexpr inline bool intersects(const Rect &other) const noexcept;
 
     /*!
+     * Returns a normalized rectangle, i.e. a rectangle that has no negative width or height.
+     *
+     * The rectangle will be normalized by swapping edges. If the width() is negative, the left()
+     * and right() edges will be swapped; if the height() is negative, the top() and bottom() edges
+     * will be swapped.
+     */
+    constexpr inline Rect normalized() const noexcept;
+
+    /*!
+     * Returns a rectangle that spans between two points \a point1 and \a point2. The specified
+     * points can indicate the coordinates of any two rectangle corners.
+     */
+    static constexpr inline Rect span(const QPoint &point1, const QPoint &point2) noexcept;
+
+    /*!
      * Returns \c true if this rectangle and the \a other rectangle are equal; otherwise returns \c false.
      */
     constexpr inline bool operator==(const Rect &other) const noexcept;
@@ -572,6 +647,20 @@ public:
      * \sa united(), operator|()
      */
     constexpr inline Rect &operator|=(const Rect &other) noexcept;
+
+    /*!
+     * Scales this rectangle by the given \a scale factor.
+     *
+     * \sa scaled(), operator/()
+     */
+    constexpr inline RectF operator*(qreal scale) const noexcept;
+
+    /*!
+     * Scales this rectangle by the given 1 / \a scale factor.
+     *
+     * \sa scaled(), operator*()
+     */
+    constexpr inline RectF operator/(qreal scale) const;
 
     /*!
      * Intersects this rectangle with the given \a other rectangle.
@@ -607,14 +696,42 @@ private:
 };
 
 /*!
- * The RectF type represents a rectangle with floating point coordinates.
+ * \class KWin::RectF
+ * \inmodule KWin
+ * \inheaderfile core/rect.h
+ *
+ * \brief The RectF type represents a rectangle with floating point coordinates.
  */
 class KWIN_EXPORT RectF
 {
     Q_GADGET
+
+    /*!
+     * \property KWin::RectF::x
+     *
+     * The x coordinate of the top left corner
+     */
     Q_PROPERTY(qreal x READ x WRITE setX)
+
+    /*!
+     * \property KWin::RectF::y
+     *
+     * The y coordinate of the top left corner
+     */
     Q_PROPERTY(qreal y READ y WRITE setY)
+
+    /*!
+     * \property KWin::RectF::width
+     *
+     * The width of the rectangle
+     */
     Q_PROPERTY(qreal width READ width WRITE setWidth)
+
+    /*!
+     * \property KWin::RectF::height
+     *
+     * The height of the rectangle
+     */
     Q_PROPERTY(qreal height READ height WRITE setHeight)
 
 public:
@@ -839,9 +956,23 @@ public:
     constexpr inline void setBottom(qreal bottom) noexcept;
 
     /*!
+     * Returns the x coordinate of the center of the rectangle.
+     *
+     * \sa center(), verticalCenter(), moveHorizontalCenter()
+     */
+    constexpr inline qreal horizontalCenter() const noexcept;
+
+    /*!
+     * Returns the y coordinate of the center of the rectangle.
+     *
+     * \sa center(), horizontalCenter(), moveVerticalCenter()
+     */
+    constexpr inline qreal verticalCenter() const noexcept;
+
+    /*!
      * Returns the center point of the rectangle.
      *
-     * \sa moveCenter()
+     * \sa moveCenter(), horizontalCenter(), verticalCenter()
      */
     constexpr inline QPointF center() const noexcept;
 
@@ -906,10 +1037,28 @@ public:
     constexpr inline void setBottomLeft(const QPointF &point) noexcept;
 
     /*!
+     * Moves the rectangle so the x coordinate of its center point is at the specified position
+     * \a center. This does not change the width of the rectangle or the coordinates of the top and
+     * bottom edge.
+     *
+     * \sa horizontalCenter()
+     */
+    constexpr inline void moveHorizontalCenter(qreal center) noexcept;
+
+    /*!
+     * Moves the rectangle so the y coordinate of its center point is at the specified position
+     * \a center. This does not change the height of the rectangle or the coordinates of the left and
+     * right edge.
+     *
+     * \sa verticalCenter()
+     */
+    constexpr inline void moveVerticalCenter(qreal center) noexcept;
+
+    /*!
      * Moves the rectangle so its center point is at the specified position \a point. This does not
      * change the size of the rectangle.
      *
-     * \sa center()
+     * \sa center(), moveHorizontalCenter(), moveVerticalCenter()
      */
     constexpr inline void moveCenter(const QPointF &point) noexcept;
 
@@ -1015,6 +1164,17 @@ public:
      * will be left unchanged.
      */
     constexpr inline RectF translated(const QPointF &offset) const noexcept;
+
+    /*!
+     * Scales this rectangle along both the x and y axis by the given \a scale factor.
+     */
+    constexpr inline void scale(qreal scale) noexcept;
+
+    /*!
+     * Scales this rectangle along the x and y axis by the given \a xScale and \a yScale factors,
+     * respectively.
+     */
+    constexpr inline void scale(qreal xScale, qreal yScale) noexcept;
 
     /*!
      * Returns a copy of this rectangle with its x and y coordinates scaled by the given \a scale factor.
@@ -1142,6 +1302,21 @@ public:
     constexpr inline bool intersects(const RectF &other) const noexcept;
 
     /*!
+     * Returns a normalized rectangle, i.e. a rectangle that has no negative width or height.
+     *
+     * The rectangle will be normalized by swapping edges. If the width() is negative, the left()
+     * and right() edges will be swapped; if the height() is negative, the top() and bottom() edges
+     * will be swapped.
+     */
+    constexpr inline RectF normalized() const noexcept;
+
+    /*!
+     * Returns a rectangle that spans between two points \a point1 and \a point2. The specified
+     * points can indicate the coordinates of any two rectangle corners.
+     */
+    static constexpr inline RectF span(const QPointF &point1, const QPointF &point2) noexcept;
+
+    /*!
      * Returns a copy of this rectangle with its left, top, right, and bottom edge coordinates rounded
      * to the nearest integers.
      *
@@ -1200,6 +1375,20 @@ public:
      * \sa intersected()
      */
     constexpr inline RectF operator&(const RectF &other) const noexcept;
+
+    /*!
+     * Scales this rectangle by the given \a scale factor.
+     *
+     * \sa scaled(), operator/()
+     */
+    constexpr inline RectF operator*(qreal scale) const noexcept;
+
+    /*!
+     * Scales this rectangle by the given 1 / \a scale factor.
+     *
+     * \sa scaled(), operator*()
+     */
+    constexpr inline RectF operator/(qreal scale) const;
 
     /*!
      * Unites this rectangle with the given \a other rectangle.
@@ -1406,9 +1595,19 @@ constexpr inline void Rect::setBottom(int bottom) noexcept
     m_bottom = bottom;
 }
 
+constexpr inline int Rect::horizontalCenter() const noexcept
+{
+    return m_left + (m_right - m_left) / 2;
+}
+
+constexpr inline int Rect::verticalCenter() const noexcept
+{
+    return m_top + (m_bottom - m_top) / 2;
+}
+
 constexpr inline QPoint Rect::center() const noexcept
 {
-    return QPoint(m_left + (m_right - m_left) / 2, m_top + (m_bottom - m_top) / 2);
+    return QPoint(horizontalCenter(), verticalCenter());
 }
 
 constexpr inline QPoint Rect::topLeft() const noexcept
@@ -1455,10 +1654,20 @@ constexpr inline void Rect::setBottomLeft(const QPoint &point) noexcept
     setBottom(point.y());
 }
 
+constexpr inline void Rect::moveHorizontalCenter(int center) noexcept
+{
+    moveLeft(center - width() / 2);
+}
+
+constexpr inline void Rect::moveVerticalCenter(int center) noexcept
+{
+    moveTop(center - height() / 2);
+}
+
 constexpr inline void Rect::moveCenter(const QPoint &point) noexcept
 {
-    moveLeft(point.x() - width() / 2);
-    moveTop(point.y() - height() / 2);
+    moveHorizontalCenter(point.x());
+    moveVerticalCenter(point.y());
 }
 
 constexpr inline void Rect::moveLeft(int left) noexcept
@@ -1671,6 +1880,17 @@ constexpr inline bool Rect::intersects(const Rect &other) const noexcept
         && top() < other.bottom() && other.top() < bottom();
 }
 
+constexpr inline Rect Rect::normalized() const noexcept
+{
+    return Rect(QPoint(std::min(left(), right()), std::min(top(), bottom())),
+                QPoint(std::max(left(), right()), std::max(top(), bottom())));
+}
+
+constexpr inline Rect Rect::span(const QPoint &point1, const QPoint &point2) noexcept
+{
+    return Rect(point1, point2).normalized();
+}
+
 constexpr inline bool Rect::operator==(const Rect &other) const noexcept
 {
     return m_left == other.m_left && m_top == other.m_top && m_right == other.m_right && m_bottom == other.m_bottom;
@@ -1684,6 +1904,16 @@ constexpr inline Rect Rect::operator|(const Rect &other) const noexcept
 constexpr inline Rect Rect::operator&(const Rect &other) const noexcept
 {
     return intersected(other);
+}
+
+constexpr inline RectF Rect::operator*(qreal scale) const noexcept
+{
+    return scaled(scale);
+}
+
+constexpr inline RectF Rect::operator/(qreal scale) const
+{
+    return scaled(1.0 / scale);
 }
 
 constexpr inline Rect &Rect::operator|=(const Rect &other) noexcept
@@ -1896,9 +2126,19 @@ constexpr inline void RectF::setBottom(qreal bottom) noexcept
     m_bottom = bottom;
 }
 
+constexpr inline qreal RectF::horizontalCenter() const noexcept
+{
+    return m_left + (m_right - m_left) / 2;
+}
+
+constexpr inline qreal RectF::verticalCenter() const noexcept
+{
+    return m_top + (m_bottom - m_top) / 2;
+}
+
 constexpr inline QPointF RectF::center() const noexcept
 {
-    return QPointF(m_left + (m_right - m_left) / 2, m_top + (m_bottom - m_top) / 2);
+    return QPointF(horizontalCenter(), verticalCenter());
 }
 
 constexpr inline QPointF RectF::topLeft() const noexcept
@@ -1945,10 +2185,20 @@ constexpr inline void RectF::setBottomLeft(const QPointF &point) noexcept
     setBottom(point.y());
 }
 
+constexpr inline void RectF::moveHorizontalCenter(qreal center) noexcept
+{
+    moveLeft(center - width() / 2);
+}
+
+constexpr inline void RectF::moveVerticalCenter(qreal center) noexcept
+{
+    moveTop(center - height() / 2);
+}
+
 constexpr inline void RectF::moveCenter(const QPointF &point) noexcept
 {
-    moveLeft(point.x() - width() * 0.5);
-    moveTop(point.y() - height() * 0.5);
+    moveHorizontalCenter(point.x());
+    moveVerticalCenter(point.y());
 }
 
 constexpr inline void RectF::moveLeft(qreal left) noexcept
@@ -2039,6 +2289,19 @@ constexpr inline RectF RectF::translated(qreal dx, qreal dy) const noexcept
 constexpr inline RectF RectF::translated(const QPointF &offset) const noexcept
 {
     return RectF(topLeft() + offset, bottomRight() + offset);
+}
+
+constexpr inline void RectF::scale(qreal factor) noexcept
+{
+    scale(factor, factor);
+}
+
+constexpr inline void RectF::scale(qreal xScale, qreal yScale) noexcept
+{
+    m_left *= xScale;
+    m_right *= xScale;
+    m_top *= yScale;
+    m_bottom *= yScale;
 }
 
 constexpr inline RectF RectF::scaled(qreal scale) const noexcept
@@ -2132,10 +2395,10 @@ constexpr inline RectF RectF::united(const RectF &other) const noexcept
 constexpr inline RectF RectF::intersected(const RectF &other) const noexcept
 {
     if (isEmpty()) {
-        return Rect();
+        return RectF();
     }
     if (other.isEmpty()) {
-        return Rect();
+        return RectF();
     }
 
     const qreal intersectionLeft = std::max(left(), other.left());
@@ -2160,6 +2423,17 @@ constexpr inline bool RectF::intersects(const RectF &other) const noexcept
     }
     return left() < other.right() && other.left() < right()
         && top() < other.bottom() && other.top() < bottom();
+}
+
+constexpr inline RectF RectF::normalized() const noexcept
+{
+    return RectF(QPointF(std::min(left(), right()), std::min(top(), bottom())),
+                 QPointF(std::max(left(), right()), std::max(top(), bottom())));
+}
+
+constexpr inline RectF RectF::span(const QPointF &point1, const QPointF &point2) noexcept
+{
+    return RectF(point1, point2).normalized();
 }
 
 constexpr inline Rect RectF::rounded() const noexcept
@@ -2203,6 +2477,16 @@ constexpr inline RectF RectF::operator|(const RectF &other) const noexcept
 constexpr inline RectF RectF::operator&(const RectF &other) const noexcept
 {
     return intersected(other);
+}
+
+constexpr inline RectF RectF::operator*(qreal scale) const noexcept
+{
+    return scaled(scale);
+}
+
+constexpr inline RectF RectF::operator/(qreal scale) const
+{
+    return scaled(1.0 / scale);
 }
 
 constexpr inline RectF &RectF::operator|=(const RectF &other) noexcept

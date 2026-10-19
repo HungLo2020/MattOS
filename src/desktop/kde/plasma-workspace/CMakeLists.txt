@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(plasma-workspace)
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 string(REPLACE "." ";" VERSION_LIST ${PROJECT_VERSION})
 list(GET VERSION_LIST 0 PROJECT_VERSION_MAJOR)
 list(GET VERSION_LIST 1 PROJECT_VERSION_MINOR)
 list(GET VERSION_LIST 2 PROJECT_VERSION_PATCH)
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 option(WITH_X11_SESSION "Build and install X11 session (deprecated)" ON)
 option(INSTALL_SDDM_WAYLAND_SESSION OFF)
 option(WITH_X11 "Build with X11 support. Building without is experimental" ON)
@@ -25,6 +25,7 @@ include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
 include(ECMMarkNonGuiExecutable)
 include(CMakePackageConfigHelpers)
+include(CMakeDependentOption)
 include(WriteBasicConfigVersionFile)
 include(CheckIncludeFiles)
 include(FeatureSummary)
@@ -38,11 +39,11 @@ include(ECMConfiguredInstall)
 include(ECMGenerateDBusServiceFile)
 include(ECMFindQmlModule)
 include(ECMGenerateExportHeader)
-include(ECMGenerateQmlTypes)
 include(ECMDeprecationSettings)
 include(ECMQmlModule)
 
 find_package(PkgConfig REQUIRED)
+pkg_check_modules(Flatpak IMPORTED_TARGET flatpak>=0.11.8)
 pkg_check_modules(PipeWire QUIET IMPORTED_TARGET libpipewire-0.3)
 add_feature_info(PipeWire PipeWire_FOUND "Required for camera indicator applet and Wayland screencasting testing")
 set(BUILD_CAMERAINDICATOR_DEFAULT OFF)
@@ -51,14 +52,18 @@ if(PipeWire_FOUND)
 endif()
 option(BUILD_CAMERAINDICATOR "Build the camera indicator Plasma applet" ${BUILD_CAMERAINDICATOR_DEFAULT})
 
+find_package(AccountsService "23.11.69")
+set_package_properties(AccountsService PROPERTIES
+    URL https://www.freedesktop.org/wiki/Software/AccountsService/
+    TYPE RUNTIME
+)
+
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
                     Concurrent DBus Location Network Positioning Quick QuickWidgets
                     ShaderTools Sql Svg Widgets)
 
-if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-    find_package(Qt6WaylandClientPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
+find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
+find_package(Qt6WaylandClientPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
 
 find_package(QCoro6 REQUIRED COMPONENTS Core)
 find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS
@@ -99,12 +104,11 @@ set_package_properties(KF6KirigamiAddons PROPERTIES
     TYPE RUNTIME
 )
 
-find_package(KF6NetworkManagerQt ${KF6_MIN_VERSION} CONFIG)
-set_package_properties(KF6NetworkManagerQt PROPERTIES
-    DESCRIPTION "Qt wrapper for NetworkManager API"
-    PURPOSE "Needed for location-based time zone changes."
-    TYPE OPTIONAL
-)
+# there's no NetworkManager on FreeBSD'
+cmake_dependent_option(BUILD_GEOTIMEZONED "Support location-based system time zone changes" TRUE "LINUX" FALSE)
+if (BUILD_GEOTIMEZONED)
+    find_package(KF6NetworkManagerQt ${KF6_MIN_VERSION} CONFIG REQUIRED)
+endif()
 
 find_package(KF6QuickCharts ${KF6_MIN_VERSION} CONFIG)
 set_package_properties(KF6QuickCharts PROPERTIES
@@ -137,11 +141,6 @@ set_package_properties(Canberra PROPERTIES
     PURPOSE "Needed to preview notification sounds"
     TYPE REQUIRED)
 
-find_package(Breeze ${PROJECT_DEP_VERSION} CONFIG)
-set_package_properties(Breeze PROPERTIES
-                       TYPE OPTIONAL
-                       PURPOSE "For setting the default window decoration plugin")
-
 find_package(ZLIB)
 set_package_properties(ZLIB PROPERTIES DESCRIPTION "Support for gzip compressed files and data streams"
                        URL "https://www.zlib.net"
@@ -171,10 +170,6 @@ option(PACKAGEKIT_OFFLINE_UPDATES "Integrate with PackageKit for offline updates
 add_feature_info(PACKAGEKIT_OFFLINE_UPDATES PackageKitQt6_FOUND "Integrate with PackageKit for offline updates")
 set(PACKAGEKIT_OFFLINE_UPDATES ${PackageKitQt6_FOUND})
 
-if(WITH_X11_SESSION)
-    set(WITH_X11 1)
-endif()
-
 if(WITH_X11)
     find_package(X11)
     set_package_properties(X11 PROPERTIES DESCRIPTION "X11 libraries"
@@ -202,8 +197,6 @@ if(WITH_X11)
 
     find_package(XCB MODULE REQUIRED COMPONENTS AUX XCB CURSOR RANDR IMAGE)
     set_package_properties(XCB PROPERTIES TYPE REQUIRED)
-
-    find_package(KScreenLocker ${PROJECT_DEP_VERSION} REQUIRED)
 else()
     set(HAVE_X11 0)
     set(HAVE_XCURSOR 0)
@@ -219,7 +212,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 find_package(Qt6WaylandClient COMPONENTS Private)
-find_package(PlasmaWaylandProtocols 1.6 REQUIRED)
+find_package(PlasmaWaylandProtocols 1.22.0 REQUIRED)
 find_package(Wayland REQUIRED COMPONENTS Client Server) # Server is used in autotests
 
 if(FONTCONFIG_FOUND)
@@ -366,6 +359,8 @@ set_package_properties(KIOFuse PROPERTIES DESCRIPTION "Provide KIO support to le
 
 find_package(KNightTime ${PROJECT_DEP_VERSION} CONFIG REQUIRED)
 
+find_package(Union ${PROJECT_DEP_VERSION} CONFIG REQUIRED)
+
 # Clipboard applet
 ecm_find_qmlmodule(org.kde.prison 1.0)
 
@@ -391,7 +386,7 @@ add_subdirectory(login-sessions)
 add_subdirectory(lookandfeel)
 
 if (INSTALL_SDDM_WAYLAND_SESSION)
-    install(FILES sddm-wayland-session/plasma-wayland.conf DESTINATION /etc/sddm.conf.d)
+    install(FILES sddm-wayland-session/plasma-wayland.conf DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/sddm/sddm.conf.d)
 else()
     message(STATUS "INSTALL_SDDM_WAYLAND_SESSION is disabled. As soon as it's installed, SDDM will default to use Wayland and KWin for its greeter session (BETA, do not deploy to final users yet).")
 endif()
@@ -411,7 +406,7 @@ add_subdirectory(libklookandfeel)
 add_subdirectory(libkworkspace)
 add_subdirectory(libdbusmenuqt)
 add_subdirectory(appmenu)
-add_subdirectory(oom-notifier)
+add_subdirectory(oom_notifier)
 
 add_subdirectory(libclock)
 add_subdirectory(libtaskmanager)

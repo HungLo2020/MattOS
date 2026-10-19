@@ -23,8 +23,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_placement-0");
-
 class TestPlacement : public QObject
 {
     Q_OBJECT
@@ -87,7 +85,7 @@ void TestPlacement::cleanup()
 void TestPlacement::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->setConfig(KSharedConfig::openConfig(QString(), KConfig::SimpleConfig));
 

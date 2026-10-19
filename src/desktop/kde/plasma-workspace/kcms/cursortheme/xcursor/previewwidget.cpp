@@ -14,7 +14,6 @@
 
 #include "previewwidget.h"
 
-#include "config-X11.h"
 #include "cursortheme.h"
 
 namespace
@@ -37,8 +36,6 @@ constexpr const char *const cursor_names[] = {
     "split_v",
 };
 
-const int numCursors = 9; // The number of cursors from the above list to be previewed
-constexpr int cursorSpacing = 14 * 2; // Spacing between preview cursors
 const qreal widgetMinWidth = 10; // The minimum width of the preview widget
 const qreal widgetMinHeight = 48; // The minimum height of the preview widget
 }
@@ -48,17 +45,19 @@ class PreviewCursor
 public:
     PreviewCursor(const CursorTheme *theme, const QString &name, int size);
 
-    const QPixmap &pixmap() const
-    {
-        return m_pixmap;
-    }
     int width() const
     {
-        return m_pixmap.width();
+        if (!m_images.empty()) {
+            return m_images.front().image.width();
+        }
+        return 0;
     }
     int height() const
     {
-        return m_pixmap.height();
+        if (!m_images.empty()) {
+            return m_images.front().image.height();
+        }
+        return 0;
     }
     int boundingSize() const
     {
@@ -77,10 +76,6 @@ public:
     {
         return m_pos;
     }
-    operator const QPixmap &() const
-    {
-        return pixmap();
-    }
     const std::vector<CursorTheme::CursorImage> &images() const
     {
         return m_images;
@@ -88,7 +83,6 @@ public:
 
 private:
     int m_boundingSize;
-    QPixmap m_pixmap;
     std::vector<CursorTheme::CursorImage> m_images;
     QPoint m_pos;
 };
@@ -97,15 +91,11 @@ PreviewCursor::PreviewCursor(const CursorTheme *theme, const QString &name, int 
     : m_boundingSize(size > 0 ? size : theme->defaultCursorSize())
     , m_images(theme->loadImages(name, size))
 {
-    if (m_images.empty())
-        return;
-
-    m_pixmap = QPixmap::fromImage(m_images.front().image);
 }
 
 QRectF PreviewCursor::rect() const
 {
-    return QRectF(m_pos, m_pixmap.size()).adjusted(-(cursorSpacing / 2), -(cursorSpacing / 2), cursorSpacing / 2, cursorSpacing / 2);
+    return QRectF(m_pos, QSizeF(width(), height()));
 }
 
 // ------------------------------------------------------------------------------
@@ -119,8 +109,9 @@ PreviewWidget::PreviewWidget(QQuickItem *parent)
     current = nullptr;
     connect(&m_animationTimer, &QTimer::timeout, this, [this] {
         Q_ASSERT(current);
-        setCursor(QCursor(QPixmap::fromImage(current->images().at(nextAnimationFrame).image)));
-        m_animationTimer.setInterval(current->images().at(nextAnimationFrame).delay);
+        const auto &frame = current->images().at(nextAnimationFrame);
+        setCursor(QCursor(QPixmap::fromImage(frame.image), frame.hotspot.x(), frame.hotspot.y()));
+        m_animationTimer.setInterval(frame.delay);
         nextAnimationFrame = (nextAnimationFrame + 1) % current->images().size();
     });
 }
@@ -129,6 +120,12 @@ PreviewWidget::~PreviewWidget()
 {
     qDeleteAll(list);
     list.clear();
+}
+
+void PreviewWidget::componentComplete()
+{
+    QQuickPaintedItem::componentComplete();
+    refresh();
 }
 
 void PreviewWidget::setThemeModel(SortProxyModel *themeModel)
@@ -153,13 +150,8 @@ void PreviewWidget::setCurrentIndex(int idx)
     }
 
     m_currentIndex = idx;
+    refresh();
     Q_EMIT currentIndexChanged();
-
-    if (!m_themeModel) {
-        return;
-    }
-    const CursorTheme *theme = m_themeModel->theme(m_themeModel->index(idx, 0));
-    setTheme(theme, m_currentSize);
 }
 
 int PreviewWidget::currentIndex() const
@@ -174,13 +166,8 @@ void PreviewWidget::setCurrentSize(int size)
     }
 
     m_currentSize = size;
+    refresh();
     Q_EMIT currentSizeChanged();
-
-    if (!m_themeModel) {
-        return;
-    }
-    const CursorTheme *theme = m_themeModel->theme(m_themeModel->index(m_currentIndex, 0));
-    setTheme(theme, size);
 }
 
 int PreviewWidget::currentSize() const
@@ -188,8 +175,60 @@ int PreviewWidget::currentSize() const
     return m_currentSize;
 }
 
+int PreviewWidget::maximumCount() const
+{
+    return m_maximumCount;
+}
+
+void PreviewWidget::setMaximumCount(int maximumCount)
+{
+    if (m_maximumCount == maximumCount) {
+        return;
+    }
+
+    m_maximumCount = maximumCount;
+    refresh();
+    Q_EMIT maximumCountChanged(maximumCount);
+}
+
+int PreviewWidget::padding() const
+{
+    return m_padding;
+}
+
+void PreviewWidget::setPadding(int padding)
+{
+    if (m_padding == padding) {
+        return;
+    }
+
+    m_padding = padding;
+    refresh(); // could just relayout?
+    Q_EMIT paddingChanged(padding);
+}
+
+int PreviewWidget::spacing() const
+{
+    return m_spacing;
+}
+
+void PreviewWidget::setSpacing(int spacing)
+{
+    if (m_spacing == spacing) {
+        return;
+    }
+
+    m_spacing = spacing;
+    refresh(); // could just relayout?
+    Q_EMIT spacingChanged(spacing);
+}
+
 void PreviewWidget::refresh()
 {
+    if (!isComponentComplete()) {
+        return;
+    }
+
     if (!m_themeModel) {
         return;
     }
@@ -208,7 +247,7 @@ void PreviewWidget::updateImplicitSize()
         maxHeight = qMax(c->height(), (int)maxHeight);
     }
 
-    totalWidth += (list.count() - 1) * cursorSpacing;
+    totalWidth += (list.count() - 1) * m_spacing;
     maxHeight = qMax(maxHeight, widgetMinHeight);
 
     setImplicitWidth(qMax(totalWidth, widgetMinWidth));
@@ -219,22 +258,17 @@ void PreviewWidget::layoutItems()
 {
     if (!list.isEmpty()) {
         double deviceCoordinateWidth = width();
-#if HAVE_X11
-        if (KWindowSystem::isPlatformX11()) {
-            deviceCoordinateWidth *= window()->devicePixelRatio();
-        }
-#endif
-        const int spacing = cursorSpacing / 2;
-        int nextX = spacing;
-        int nextY = spacing;
+
+        int nextX = m_padding;
+        int nextY = m_padding;
 
         for (auto *c : std::as_const(list)) {
             c->setPosition(nextX, nextY);
             const int boundingSize = c->boundingSize();
-            nextX += boundingSize + spacing;
-            if (nextX + boundingSize > deviceCoordinateWidth) {
-                nextX = spacing;
-                nextY += boundingSize + spacing;
+            nextX += boundingSize + m_spacing;
+            if (nextX + boundingSize > deviceCoordinateWidth - m_padding) {
+                nextX = m_padding;
+                nextY += boundingSize + m_spacing;
             }
         }
     }
@@ -248,8 +282,13 @@ void PreviewWidget::setTheme(const CursorTheme *theme, const int size)
     list.clear();
 
     if (theme) {
-        for (int i = 0; i < numCursors; i++)
+        int numCursors = m_maximumCount;
+        if (numCursors <= 0) {
+            numCursors = sizeof(cursor_names) / sizeof(cursor_names[0]);
+        }
+        for (int i = 0; i < numCursors; i++) {
             list << new PreviewCursor(theme, QString::fromLatin1(cursor_names[i]), size);
+        }
 
         needLayout = true;
         updateImplicitSize();
@@ -267,21 +306,13 @@ void PreviewWidget::paint(QPainter *painter)
 
     painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-    // for cursor themes we must ignore the native scaling,
-    // as they will be rendered by X11/KWin, ignoring whatever Qt
-    // scaling
-    double devicePixelRatio = 1;
-#if HAVE_X11
-    if (KWindowSystem::isPlatformX11()) {
-        devicePixelRatio = window()->devicePixelRatio();
-    }
-    painter->scale(1 / devicePixelRatio, 1 / devicePixelRatio);
-#endif
     for (const auto *c : std::as_const(list)) {
-        if (c->pixmap().isNull())
+        const QImage image = !c->images().empty() ? c->images().front().image : QImage();
+        if (image.isNull()) {
             continue;
+        }
 
-        painter->drawPixmap(c->position(), *c);
+        painter->drawImage(c->position(), image);
     }
 }
 
@@ -293,13 +324,12 @@ void PreviewWidget::hoverMoveEvent(QHoverEvent *e)
         layoutItems();
 
     double devicePixelRatio = 1.0;
-#if HAVE_X11
-    if (KWindowSystem::isPlatformX11()) {
-        devicePixelRatio = window()->devicePixelRatio();
-    }
-#endif
-    auto it = std::ranges::find_if(list, [e, devicePixelRatio](const PreviewCursor *c) {
-        return c->rect().contains(e->position() * devicePixelRatio);
+
+    auto it = std::ranges::find_if(list, [this, e, devicePixelRatio](const PreviewCursor *c) {
+        // Increase hit area.
+        const int padding = m_spacing / 2;
+        const auto adjustedRect = c->rect().adjusted(-padding, -padding, +padding, +padding);
+        return adjustedRect.contains(e->position() * devicePixelRatio);
     });
     const PreviewCursor *cursor = it != list.cend() ? *it : nullptr;
 
@@ -313,8 +343,15 @@ void PreviewWidget::hoverMoveEvent(QHoverEvent *e)
         return;
     }
 
-    if (current->images().size() <= 1) {
-        setCursor(QCursor(current->pixmap()));
+    const auto &images = current->images();
+    if (images.empty()) {
+        setCursor(Qt::ArrowCursor);
+        return;
+    }
+
+    if (images.size() == 1) {
+        const auto &image = images.front();
+        setCursor(QCursor(QPixmap::fromImage(image.image), image.hotspot.x(), image.hotspot.y()));
         return;
     }
 

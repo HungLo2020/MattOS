@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <QtQmlModels/private/qqmlvaluefilter_p.h>
 #include <QtQmlModels/private/qqmlsortfilterproxymodel_p.h>
@@ -27,7 +28,7 @@ QT_BEGIN_NAMESPACE
 
     \qml
     SortFilterProxyModel {
-        model: sourceModel
+        sourceModel: model
         filters: [
             ValueFilter {
                 roleName: "favorite"
@@ -82,20 +83,25 @@ bool QQmlValueFilter::filterAcceptsRowInternal(int row, const QModelIndex& sourc
     if (d->m_roleName.isEmpty())
         return true;
     int role = itemRole(proxyModel);
+    if (role < 0) {
+        if (!d->m_roleName.isEmpty() && !d->m_roleNameValidated) {
+            qWarning("Provided role name %s doesn't exist in the model", d->m_roleName.toUtf8().constData());
+            d->m_roleNameValidated = true;
+        }
+        return false;
+    }
     const bool isValidVal = (!d->m_value.isValid() || !d->m_value.isNull());
-    if (role > -1) {
-                if (column() > -1) {
-            const QModelIndex &index = proxyModel->sourceModel()->index(row, column(), sourceParent);
+    if (column() > -1) {
+        const QModelIndex &index = proxyModel->sourceModel()->index(row, column(), sourceParent);
+        const QVariant &value =  proxyModel->sourceModel()->data(index, role);
+        return (value.isValid() && (!isValidVal || d->m_value == value));
+    } else {
+        const int columnCount = proxyModel->sourceModel()->columnCount(sourceParent);
+        for (int column = 0; column < columnCount; column++) {
+            const QModelIndex &index = proxyModel->sourceModel()->index(row, column, sourceParent);
             const QVariant &value =  proxyModel->sourceModel()->data(index, role);
-            return (value.isValid() && (!isValidVal || d->m_value == value));
-        } else {
-            const int columnCount = proxyModel->sourceModel()->columnCount(sourceParent);
-            for (int column = 0; column < columnCount; column++) {
-                const QModelIndex &index = proxyModel->sourceModel()->index(row, column, sourceParent);
-                const QVariant &value =  proxyModel->sourceModel()->data(index, role);
-                if (value.isValid() && (!isValidVal || d->m_value == value))
-                    return true;
-            }
+            if (value.isValid() && (!isValidVal || d->m_value == value))
+                return true;
         }
     }
     return false;

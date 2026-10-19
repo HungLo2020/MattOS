@@ -23,6 +23,9 @@
 #include <QtMultimedia/qcamera.h>
 #include <QtMultimedia/qcameradevice.h>
 #include <QtMultimedia/qcapturablewindow.h>
+#if QT_CONFIG(gstreamer_qt_api)
+#  include <QtMultimedia/spi/qgstreamervideosource.h>
+#endif
 #include <QtMultimedia/qimagecapture.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/qmediadevices.h>
@@ -60,11 +63,27 @@ struct QImageCaptureForeign
     QML_FOREIGN(QImageCapture)
 };
 
+#if QT_CONFIG(gstreamer_qt_api)
+struct QGStreamerVideoSourceForeign
+{
+    Q_GADGET
+    QML_ANONYMOUS
+    QML_FOREIGN(QGStreamerVideoSource)
+};
+#endif
+
 struct QScreenCaptureForeign
 {
     Q_GADGET
     QML_ANONYMOUS
     QML_FOREIGN(QScreenCapture)
+};
+
+struct QWindowCaptureForeign
+{
+    Q_GADGET
+    QML_ANONYMOUS
+    QML_FOREIGN(QWindowCapture)
 };
 
 struct QMediaRecorderForeign
@@ -192,13 +211,6 @@ struct QCapturableWindowForeign
     QML_FOREIGN(QCapturableWindow)
     QML_VALUE_TYPE(capturableWindow)
     QML_CONSTRUCTIBLE_VALUE
-};
-
-struct QWindowCaptureForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QWindowCapture)
-    QML_NAMED_ELEMENT(WindowCapture)
 };
 
 class QPlaybackOptionsDerived : public QPlaybackOptions

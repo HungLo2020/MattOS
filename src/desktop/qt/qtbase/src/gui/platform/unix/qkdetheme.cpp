@@ -146,6 +146,10 @@ void QKdeThemePrivate::settingChangedHandler(QDBusListener::Provider provider,
         qCDebug(lcQpaThemeKde) << "KDE contrast setting changed to: "
                                << value.value<Qt::ContrastPreference>();
         break;
+    case QDBusListener::Setting::Motion:
+        qCDebug(lcQpaThemeKde) << "KDE motion setting changed to: "
+                               << value.value<Qt::MotionPreference>();
+        break;
     }
 
     refresh();
@@ -580,7 +584,7 @@ QFont *QKdeThemePrivate::kdeFont(const QVariant &fontValue)
         if (!fontDescription.isEmpty()) {
             QFont font(fontFamily);
             if (font.fromString(fontDescription))
-                return new QFont(font);
+                return new QFont(std::move(font));
         }
     }
     return nullptr;

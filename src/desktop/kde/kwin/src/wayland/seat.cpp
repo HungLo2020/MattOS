@@ -7,6 +7,7 @@
 */
 #include "seat.h"
 #include "abstract_data_source.h"
+#include "clientconnection.h"
 #include "datacontroldevice_v1.h"
 #include "datacontrolsource_v1.h"
 #include "datadevice.h"
@@ -27,7 +28,6 @@
 #include "relativepointer_v1_p.h"
 #include "seat_p.h"
 #include "surface.h"
-#include "textinput_v1_p.h"
 #include "textinput_v2_p.h"
 #include "textinput_v3_p.h"
 #include "touch_p.h"
@@ -41,7 +41,8 @@
 
 namespace KWin
 {
-static const int s_version = 10;
+
+static const int s_version = 11;
 
 SeatInterfacePrivate *SeatInterfacePrivate::get(SeatInterface *seat)
 {
@@ -54,7 +55,6 @@ SeatInterfacePrivate::SeatInterfacePrivate(SeatInterface *q, Display *display, c
     , display(display)
     , name(name)
 {
-    textInputV1 = new TextInputV1Interface(q);
     textInputV2 = new TextInputV2Interface(q);
     textInputV3 = new TextInputV3Interface(q);
     pointer.reset(new PointerInterface(q));
@@ -164,6 +164,7 @@ void SeatInterfacePrivate::registerDataDevice(DataDeviceInterface *dataDevice)
     auto dataDeviceCleanup = [this, dataDevice] {
         dataDevices.removeOne(dataDevice);
         globalDataDevice.selections.removeOne(dataDevice);
+        drag.targets.removeOne(dataDevice);
     };
     QObject::connect(dataDevice, &QObject::destroyed, q, dataDeviceCleanup);
     QObject::connect(dataDevice, &DataDeviceInterface::selectionChanged, q, [this](DataSourceInterface *source, quint32 serial) {
@@ -196,14 +197,16 @@ void SeatInterface::endDrag()
 
     QObject::disconnect(d->drag.dragSourceDestroyConnection);
 
-    AbstractDropHandler *dragTargetDevice = d->drag.target.data();
+    const auto dragTargets = d->drag.targets;
     AbstractDataSource *dragSource = d->drag.source;
+    const bool hasTarget = !dragTargets.isEmpty();
 
     if (dragSource) {
-        // TODO: Also check the current drag-and-drop action.
-        if (dragTargetDevice && dragSource->isAccepted()) {
+        if (hasTarget && dragSource->isAccepted() && dragSource->selectedDndAction() != DnDAction::None) {
             Q_EMIT dragDropped();
-            dragTargetDevice->drop();
+            for (const auto &target : dragTargets) {
+                target->drop();
+            }
             dragSource->dropPerformed();
         } else {
             dragSource->dropPerformed();
@@ -211,8 +214,8 @@ void SeatInterface::endDrag()
         }
     }
 
-    if (dragTargetDevice) {
-        dragTargetDevice->updateDragTarget(nullptr, QPointF(), 0);
+    for (const auto &target : dragTargets) {
+        target->updateDragTarget(nullptr, QPointF(), 0);
     }
 
     d->drag = {};
@@ -229,9 +232,8 @@ void SeatInterface::cancelDrag()
     if (d->drag.source) {
         d->drag.source->dndCancelled();
     }
-    if (d->drag.target) {
-        d->drag.target->updateDragTarget(nullptr, QPointF(), 0);
-        d->drag.target = nullptr;
+    for (const auto &target : std::as_const(d->drag.targets)) {
+        target->updateDragTarget(nullptr, QPointF(), 0);
     }
     d->drag = {};
     Q_EMIT dragEnded();
@@ -247,28 +249,20 @@ void SeatInterfacePrivate::registerDataControlDevice(DataControlDeviceV1Interfac
     QObject::connect(dataDevice, &QObject::destroyed, q, dataDeviceCleanup);
 
     QObject::connect(dataDevice, &DataControlDeviceV1Interface::selectionChanged, q, [this, dataDevice] {
-        // Special klipper workaround to avoid a race
-        // If the mimetype x-kde-onlyReplaceEmpty is set, and we've had another update in the meantime, do nothing
-        // but resend selection to mimic normal event flow upon cancel and not confuse the client
-        // See https://github.com/swaywm/wlr-protocols/issues/92
-        const bool isKlipperEmptyReplacement = dataDevice->selection() && dataDevice->selection()->mimeTypes().contains(QLatin1String("application/x-kde-onlyReplaceEmpty"));
-        if (isKlipperEmptyReplacement && currentSelection && !currentSelection->mimeTypes().isEmpty()) {
+        // Only replace selection when owner is gone and not when it deliberately cleared it
+        const bool isKlipperEmptyReplacement = dataDevice->selection() && dataDevice->selection()->mimeTypes().contains(QLatin1StringView("application/x-kde-onlyReplaceEmpty"));
+        if (isKlipperEmptyReplacement && (currentSelection || lastSelectionOwner)) {
             dataDevice->selection()->cancel();
-            offerSelection(dataDevice);
             return;
         }
         q->setSelection(dataDevice->selection(), display->nextSerial());
     });
 
     QObject::connect(dataDevice, &DataControlDeviceV1Interface::primarySelectionChanged, q, [this, dataDevice] {
-        // Special klipper workaround to avoid a race
-        // If the mimetype x-kde-onlyReplaceEmpty is set, and we've had another update in the meantime, do nothing
-        // but resend selection to mimic normal event flow upon cancel and not confuse the client
-        // See https://github.com/swaywm/wlr-protocols/issues/92
-        const bool isKlipperEmptyReplacement = dataDevice->primarySelection() && dataDevice->primarySelection()->mimeTypes().contains(QLatin1String("application/x-kde-onlyReplaceEmpty"));
-        if (isKlipperEmptyReplacement && currentPrimarySelection && !currentPrimarySelection->mimeTypes().isEmpty()) {
+        // Only replace selection when owner is gone and not when it deliberately cleared it
+        const bool isKlipperEmptyReplacement = dataDevice->primarySelection() && dataDevice->primarySelection()->mimeTypes().contains(QLatin1StringView("application/x-kde-onlyReplaceEmpty"));
+        if (isKlipperEmptyReplacement && (currentPrimarySelection || lastPrimarySelectionOwner)) {
             dataDevice->primarySelection()->cancel();
-            offerPrimarySelection(dataDevice);
             return;
         }
         q->setPrimarySelection(dataDevice->primarySelection(), display->nextSerial());
@@ -422,38 +416,52 @@ QPointF SeatInterface::pointerPos() const
     return d->globalPointer.pos;
 }
 
-void SeatInterface::notifyPointerMotion(const QPointF &pos)
+std::optional<QPointF> SeatInterfacePrivate::updatePointerPosition(const QPointF &pos)
 {
-    if (!d->pointer) {
-        return;
+    if (!pointer) {
+        return std::nullopt;
     }
-    if (d->globalPointer.pos == pos) {
-        return;
+    if (globalPointer.pos == pos) {
+        return std::nullopt;
     }
-    d->globalPointer.pos = pos;
-    Q_EMIT pointerPosChanged(pos);
+    globalPointer.pos = pos;
+    Q_EMIT q->pointerPosChanged(pos);
 
-    SurfaceInterface *focusedSurface = focusedPointerSurface();
+    SurfaceInterface *focusedSurface = globalPointer.focus.surface;
     if (!focusedSurface) {
-        return;
+        return std::nullopt;
     }
-    if (d->dragInhibitsPointer(focusedSurface)) {
-        return;
+    if (dragInhibitsPointer(focusedSurface)) {
+        return std::nullopt;
     }
     if (focusedSurface->lockedPointer() && focusedSurface->lockedPointer()->isLocked()) {
-        return;
+        return std::nullopt;
     }
 
-    const auto [effectiveFocusedSurface, localPosition] = focusedSurface->mapToInputSurface(focusedPointerSurfaceTransformation().map(pos));
+    const auto [effectiveFocusedSurface, localPosition] = focusedSurface->mapToInputSurface(q->focusedPointerSurfaceTransformation().map(pos));
 
-    if (d->pointer->focusedSurface() != effectiveFocusedSurface) {
-        d->pointer->sendEnter(effectiveFocusedSurface, localPosition, display()->nextSerial());
-        if (d->keyboard) {
-            d->keyboard->setModifierFocusSurface(effectiveFocusedSurface);
+    if (pointer->focusedSurface() != effectiveFocusedSurface) {
+        pointer->sendEnter(effectiveFocusedSurface, localPosition, q->display()->nextSerial());
+        if (keyboard) {
+            keyboard->setModifierFocusSurface(effectiveFocusedSurface);
         }
     }
 
-    d->pointer->sendMotion(localPosition);
+    return localPosition;
+}
+
+void SeatInterface::notifyPointerMotion(const QPointF &pos)
+{
+    if (const auto localPosition = d->updatePointerPosition(pos)) {
+        d->pointer->sendMotion(*localPosition);
+    }
+}
+
+void SeatInterface::notifyPointerWarp(const QPointF &pos)
+{
+    if (const auto localPosition = d->updatePointerPosition(pos)) {
+        d->pointer->sendWarp(*localPosition);
+    }
 }
 
 std::chrono::milliseconds SeatInterface::timestamp() const
@@ -476,24 +484,30 @@ void SeatInterface::setDragTarget(AbstractDropHandler *dropTarget,
         return;
     }
     const quint32 serial = d->display->nextSerial();
-    if (d->drag.target) {
-        d->drag.target->updateDragTarget(nullptr, QPointF(), serial);
+    for (const auto &target : std::as_const(d->drag.targets)) {
+        target->updateDragTarget(nullptr, QPointF(), serial);
+    }
+    d->drag.targets.clear();
+
+    if (surface) {
+        const auto dataDevices = d->dataDevicesForSurface(surface);
+        for (auto device : dataDevices) {
+            d->drag.targets.append(device);
+        }
+        if (d->drag.targets.isEmpty() && dropTarget) {
+            d->drag.targets.append(dropTarget);
+        }
     }
 
-    // TODO: technically we can have multiple data devices
-    // and we should send the drag to all of them, but that seems overly complicated
-    // in practice so far the only case for multiple data devices is for clipboard overriding
-    d->drag.target = dropTarget;
-
-    if (d->drag.target) {
-        QMatrix4x4 surfaceInputTransformation = inputTransformation;
-        surfaceInputTransformation.scale(surface->scaleOverride());
+    if (!d->drag.targets.isEmpty()) {
         d->drag.surface = surface;
-        d->drag.transformation = surfaceInputTransformation;
+        d->drag.transformation = inputTransformation;
         if (d->dragInhibitsPointer(d->globalPointer.focus.surface)) {
             notifyPointerLeave();
         }
-        d->drag.target->updateDragTarget(surface, globalPosition, serial);
+        for (const auto &target : std::as_const(d->drag.targets)) {
+            target->updateDragTarget(surface, globalPosition, serial);
+        }
     } else {
         d->drag.surface = nullptr;
     }
@@ -507,8 +521,8 @@ QPointF SeatInterface::dragPosition() const
 void SeatInterface::notifyDragMotion(const QPointF &position)
 {
     d->drag.position = position;
-    if (d->drag.target) {
-        d->drag.target->motion(position);
+    for (const auto &target : std::as_const(d->drag.targets)) {
+        target->motion(position);
     }
     Q_EMIT dragMoved(position);
 }
@@ -1115,7 +1129,6 @@ void SeatInterface::setFocusedTextInputSurface(SurfaceInterface *surface)
 
     if (d->focusedTextInputSurface) {
         disconnect(d->focusedSurfaceDestroyConnection);
-        d->textInputV1->d->sendLeave(d->focusedTextInputSurface);
         d->textInputV2->d->sendLeave(serial, d->focusedTextInputSurface);
         d->textInputV3->d->sendLeave(d->focusedTextInputSurface);
     }
@@ -1125,7 +1138,6 @@ void SeatInterface::setFocusedTextInputSurface(SurfaceInterface *surface)
         d->focusedSurfaceDestroyConnection = connect(surface, &SurfaceInterface::aboutToBeDestroyed, this, [this] {
             setFocusedTextInputSurface(nullptr);
         });
-        d->textInputV1->d->sendEnter(surface);
         d->textInputV2->d->sendEnter(surface, serial);
         d->textInputV3->d->sendEnter(surface);
     }
@@ -1136,11 +1148,6 @@ void SeatInterface::setFocusedTextInputSurface(SurfaceInterface *surface)
 SurfaceInterface *SeatInterface::focusedTextInputSurface() const
 {
     return d->focusedTextInputSurface;
-}
-
-TextInputV1Interface *SeatInterface::textInputV1() const
-{
-    return d->textInputV1;
 }
 
 TextInputV2Interface *SeatInterface::textInputV2() const
@@ -1172,6 +1179,8 @@ void SeatInterface::setSelection(AbstractDataSource *selection, UInt32Serial ser
     }
 
     if (selection) {
+        // A selection coming from Xwayland has no Wayland client to watch
+        d->lastSelectionOwner = selection->client() ? ClientConnection::get(selection->client()) : nullptr;
         auto cleanup = [this, serial]() {
             setSelection(nullptr, serial);
         };
@@ -1211,6 +1220,8 @@ void SeatInterface::setPrimarySelection(AbstractDataSource *selection, UInt32Ser
     }
 
     if (selection) {
+        // A selection coming from Xwayland has no Wayland client to watch
+        d->lastPrimarySelectionOwner = selection->client() ? ClientConnection::get(selection->client()) : nullptr;
         auto cleanup = [this, serial]() {
             setPrimarySelection(nullptr, serial);
         };
@@ -1306,14 +1317,18 @@ bool SeatInterfacePrivate::startDrag(Drag::Mode mode, AbstractDataSource *dragSo
     }
     drag.dragIcon = dragIcon;
 
-    if (!dataDevicesForSurface(originSurface).isEmpty()) {
-        drag.target = dataDevicesForSurface(originSurface)[0];
+    const auto devices = dataDevicesForSurface(originSurface);
+    for (auto device : devices) {
+        drag.targets.append(device);
     }
-    if (drag.target) {
+    if (!drag.targets.isEmpty()) {
         if (dragInhibitsPointer(originSurface)) {
             q->notifyPointerLeave();
         }
-        drag.target->updateDragTarget(originSurface, drag.position, display->nextSerial());
+        const quint32 serial = display->nextSerial();
+        for (const auto &target : std::as_const(drag.targets)) {
+            target->updateDragTarget(originSurface, drag.position, serial);
+        }
     }
     Q_EMIT q->dragStarted();
     return true;
@@ -1338,6 +1353,7 @@ DragAndDropIcon *SeatInterface::dragIcon() const
 {
     return d->drag.dragIcon;
 }
+
 }
 
 #include "moc_seat.cpp"

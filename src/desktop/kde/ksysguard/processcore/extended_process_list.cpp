@@ -61,6 +61,20 @@ public:
         return QVariant::fromValue(m_extractFunc(process));
     }
 
+    QVariant formattedData(KSysGuard::Process *process) const override
+    {
+        if (m_extractFormattedFunc) {
+            return QVariant::fromValue(m_extractFormattedFunc(process));
+        }
+
+        return KSysGuard::ProcessAttribute::formattedData(process);
+    }
+
+    void setFormattedDataExtractFunc(const std::function<QString(KSysGuard::Process *)> &func)
+    {
+        m_extractFormattedFunc = func;
+    }
+
     QVariant cgroupData(KSysGuard::CGroup *cgroup, const QList<KSysGuard::Process *> &groupProcesses) const override
     {
         switch (m_groupPolicy) {
@@ -76,6 +90,7 @@ public:
 
 private:
     std::function<T(KSysGuard::Process *)> m_extractFunc;
+    std::function<QString(KSysGuard::Process *)> m_extractFormattedFunc;
     KSysGuard::Process::Change m_changeFlag;
     GroupPolicy m_groupPolicy = Accumulate;
 };
@@ -427,7 +442,8 @@ ExtendedProcesses::ExtendedProcesses(QObject *parent)
     d->m_coreAttributes << commandSensor;
 
     auto statusSensor =
-        new ProcessSensor<QString>(this, QStringLiteral("status"), i18n("Status"), &KSysGuard::Process::translatedStatus, KSysGuard::Process::Status);
+        new ProcessSensor<Process::ProcessStatus>(this, QStringLiteral("status"), i18n("Status"), &KSysGuard::Process::status, KSysGuard::Process::Status);
+    statusSensor->setFormattedDataExtractFunc(&KSysGuard::Process::translatedStatus);
     d->m_coreAttributes << statusSensor;
 
     auto ioCharactersReadSensor = new ProcessSensor<qlonglong>(this,

@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsurfaceformat.h"
 
@@ -183,7 +184,7 @@ public:
 
 /*!
     \enum QSurfaceFormat::ColorSpace
-    \deprecated [6.0] Use setColorSpace(QColorSpace) instead
+    \deprecated [6.0] Use setColorSpace(QColorSpace) instead.
 
     This enum is used to specify the preferred color space, controlling if the
     window's associated default framebuffer is able to do updates and blending

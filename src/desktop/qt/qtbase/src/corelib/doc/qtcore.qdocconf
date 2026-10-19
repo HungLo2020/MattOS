@@ -49,6 +49,8 @@ headerdirs  += ..
 sourcedirs  += .. \
                 ../../tools/androiddeployqt \
                 ../../tools/androidtestrunner \
+                ../../tools/harmonydeployqt \
+                ../../tools/harmonyostestrunner \
                 ../../android/templates \
                 src/includes
 
@@ -84,4 +86,5 @@ manifestmeta.highlighted.names = \
     "QtCore/Serialization Converter" \
     "QtCore/QXmlStream Bookmarks Example"
 
+reportmissingalttextforimages = true
 warninglimit = 0

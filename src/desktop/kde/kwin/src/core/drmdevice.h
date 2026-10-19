@@ -35,18 +35,51 @@ public:
     bool supportsSyncObjTimelines() const;
     std::optional<drmPciDeviceInfo> pciDeviceInfo() const;
 
+    /**
+     * @returns whether or not this and other are the same underlying hardware,
+     *          even if they reference different nodes (KMS vs. render)
+     */
+    bool equals(DrmDevice *other) const;
+    drmDevice *libdrmDevice() const;
+
+    std::optional<int> busType() const;
+    QByteArray driverName() const;
+
+    bool isNvidia() const;
+    bool isNouveau() const;
+    bool isI915() const;
+    bool isIntelXE() const;
+    bool isAmdgpu() const;
+    bool isRadeon() const;
+    bool isVmwgfx() const;
+    bool isVirtualMachine() const;
+    bool isKMS() const;
+
     static std::unique_ptr<DrmDevice> open(const QString &path);
     static std::unique_ptr<DrmDevice> openWithAuthentication(const QString &path, int authenticatedFd);
 
 private:
     explicit DrmDevice(const QString &path, dev_t id, FileDescriptor &&fd, gbm_device *gbmDevice);
 
+    bool fetchLibdrmDevice();
+
     const QString m_path;
     const dev_t m_id;
     const FileDescriptor m_fd;
     gbm_device *const m_gbmDevice;
-    const std::unique_ptr<GraphicsBufferAllocator> m_allocator;
+    drmDevice *m_libdrmDevice = nullptr;
     bool m_supportsSyncObjTimelines;
+    const QByteArray m_driverName;
+    const bool m_isNvidia;
+    const bool m_isNouveau;
+    const bool m_isI915;
+    const bool m_isIntelXE;
+    const bool m_isAmdgpu;
+    const bool m_isRadeon;
+    const bool m_isVmwgfx;
+    const bool m_isVirtualMachine;
+    const bool m_isKMS;
+    const std::unique_ptr<GraphicsBufferAllocator> m_allocator;
 };
 
 }

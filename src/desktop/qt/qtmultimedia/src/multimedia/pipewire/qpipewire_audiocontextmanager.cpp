@@ -5,10 +5,8 @@
 
 #include <QtMultimedia/private/qpipewire_audiostream_p.h>
 #include <QtMultimedia/private/qpipewire_instance_p.h>
-#include <QtMultimedia/private/qpipewire_propertydict_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtCore/qapplicationstatic.h>
-#include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qsemaphore.h>
 
@@ -37,26 +35,23 @@ Q_APPLICATION_STATIC(QAudioContextManager, s_audioContextInstance)
 Q_STATIC_LOGGING_CATEGORY(lcPipewireRegistry, "qt.multimedia.pipewire.registry")
 
 QAudioContextManager::QAudioContextManager():
-    m_libraryInstance{
+    m_pwInstance{
         QPipeWireInstance::instance(),
     },
     m_deviceMonitor {
         std::make_unique<QAudioDeviceMonitor>(),
     }
 {
-    prepareEventLoop();
-    prepareContext();
-    if (!m_context) {
-        // pipewire server not available
-        return;
-    }
-
-    connectToPipewireInstance();
-    if (!isConnected())
-        return;
-
-    startDeviceMonitor();
-    startEventLoop();
+    m_pwInstance->runWithEventLoopLock([&] {
+        auto connection = m_pwInstance->connectToDaemon();
+        if (!connection) {
+            qCWarning(lcPipewireRegistry)
+                    << "Failed to connect to pipewire instance" << connection.error().message();
+            return;
+        }
+        m_coreConnection = std::move(*connection);
+        startDeviceMonitor();
+    });
 }
 
 QAudioContextManager::~QAudioContextManager()
@@ -64,15 +59,14 @@ QAudioContextManager::~QAudioContextManager()
     if (isConnected()) {
         stopListenDefaultMetadataObject();
         stopDeviceMonitor();
-        stopEventLoop();
         stopActiveStreams();
     }
 
-    m_deviceMonitor.reset();
-    m_registry.reset();
-    m_coreConnection.reset();
-    m_context.reset();
-    m_eventLoop.reset();
+    m_pwInstance->runWithEventLoopLock([&] {
+        m_deviceMonitor.reset();
+        m_registry.reset();
+        m_coreConnection.reset();
+    });
 }
 
 bool QAudioContextManager::minimumRequirementMet()
@@ -97,12 +91,12 @@ QAudioDeviceMonitor &QAudioContextManager::deviceMonitor()
 
 bool QAudioContextManager::isInPwThreadLoop()
 {
-    return pw_thread_loop_in_thread(instance()->m_eventLoop.get());
+    return instance()->m_pwInstance->isInPwThreadLoop();
 }
 
 pw_loop *QAudioContextManager::getEventLoop()
 {
-    return pw_thread_loop_get_loop(instance()->m_eventLoop.get());
+    return instance()->m_pwInstance->eventLoop();
 }
 
 PwNodeHandle QAudioContextManager::bindNode(ObjectId id)
@@ -155,55 +149,6 @@ void QAudioContextManager::unregisterStreamReference(
 const PwCoreConnectionHandle &QAudioContextManager::coreConnection() const
 {
     return m_coreConnection;
-}
-
-void QAudioContextManager::prepareEventLoop()
-{
-    m_eventLoop = PwThreadLoopHandle{
-        pw_thread_loop_new("QAudioContext", /*props=*/nullptr),
-    };
-    if (!m_eventLoop) {
-        qFatal() << "Failed to create pipewire main loop" << make_error_code().message();
-        return;
-    }
-}
-
-void QAudioContextManager::startEventLoop()
-{
-    int status = pw_thread_loop_start(m_eventLoop.get());
-    if (status < 0)
-        qFatal() << "Failed to start event loop" << make_error_code(-status).message();
-}
-
-void QAudioContextManager::stopEventLoop()
-{
-    pw_thread_loop_stop(m_eventLoop.get());
-}
-
-void QAudioContextManager::prepareContext()
-{
-    auto applicaionName = qApp->applicationName().toUtf8();
-    PwPropertiesHandle props = makeProperties({
-            { PW_KEY_APP_NAME, applicaionName.data() },
-    });
-
-    Q_ASSERT(m_eventLoop);
-    m_context = PwContextHandle{
-        pw_context_new(pw_thread_loop_get_loop(m_eventLoop.get()), props.release(),
-                       /*user_data_size=*/0),
-    };
-}
-
-void QAudioContextManager::connectToPipewireInstance()
-{
-    Q_ASSERT(m_eventLoop && m_context);
-    m_coreConnection = PwCoreConnectionHandle{
-        pw_context_connect(m_context.get(), /*props=*/nullptr,
-                           /*user_data_size=*/0),
-    };
-
-    if (!m_coreConnection)
-        qInfo() << "Failed to connect to pipewire instance" << make_error_code().message();
 }
 
 void QAudioContextManager::objectAddedCb(void *data, uint32_t id, uint32_t permissions,
@@ -314,7 +259,7 @@ void QAudioContextManager::stopListenDefaultMetadataObject()
     if (!m_defaultMetadataObject)
         return;
 
-    runWithEventLoopLock([&] {
+    m_pwInstance->runWithEventLoopLock([&] {
         spa_hook_remove(&m_defaultMetadataObjectListener);
         m_defaultMetadataObject.reset();
     });
@@ -456,7 +401,7 @@ void QAudioContextManager::stopDeviceMonitor()
     if (!m_registry)
         return;
 
-    runWithEventLoopLock([&] {
+    m_pwInstance->runWithEventLoopLock([&] {
         m_deviceMonitor->clearAllObservers();
 
         spa_hook_remove(&m_registryListener);

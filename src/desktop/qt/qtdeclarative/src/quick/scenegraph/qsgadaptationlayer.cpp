@@ -1,5 +1,6 @@
 // Copyright (C) 2018 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgadaptationlayer_p.h"
 
@@ -430,6 +431,16 @@ QSGShaderEffectNode::~QSGShaderEffectNode()
 
 QSGGlyphNode::~QSGGlyphNode()
     = default;
+
+void QSGGlyphNode::recycle()
+{
+    m_bounding_rect = QRectF{};
+
+    setRenderOrder(0);
+    setInheritedOpacity(1);
+    setRendererMatrix(nullptr);
+    setRendererClipList(nullptr);
+}
 
 QSGDistanceFieldGlyphConsumer::~QSGDistanceFieldGlyphConsumer()
     = default;

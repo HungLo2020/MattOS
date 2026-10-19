@@ -322,9 +322,9 @@ public:
     }
 
     QQuickPixmapData(const QUrl &u, const QRect &r, const QSize &s, const QQuickImageProviderOptions &po,
-                     QQuickImageProviderOptions::AutoTransform aTransform, int frame=0, int frameCount=1)
+                     QQuickImageProviderOptions::AutoTransform aTransform, int frame=0, int frameCount=1, qreal dpr = 1)
     : refCount(1), frameCount(frameCount), frame(frame), inCache(false), fromSpecialDevice(false), pixmapStatus(QQuickPixmap::Loading),
-      url(u), requestRegion(r), requestSize(s),
+      url(u), requestRegion(r), requestSize(s), devicePixelRatio(dpr),
       providerOptions(po), appliedTransform(aTransform),
       textureFactory(nullptr), reply(nullptr), prevUnreferenced(nullptr), prevUnreferencedPtr(nullptr),
       nextUnreferenced(nullptr)
@@ -336,9 +336,9 @@ public:
 
     QQuickPixmapData(const QUrl &u, QQuickTextureFactory *texture,
                      const QSize &s, const QRect &r, const QSize &rs, const QQuickImageProviderOptions &po,
-                     QQuickImageProviderOptions::AutoTransform aTransform, int frame=0, int frameCount=1)
+                     QQuickImageProviderOptions::AutoTransform aTransform, int frame=0, int frameCount=1, qreal dpr = 1)
     : refCount(1), frameCount(frameCount), frame(frame), inCache(false), fromSpecialDevice(false), pixmapStatus(QQuickPixmap::Ready),
-      url(u), implicitSize(s), requestRegion(r), requestSize(rs),
+          url(u), implicitSize(s), requestRegion(r), requestSize(rs), devicePixelRatio(dpr),
       providerOptions(po), appliedTransform(aTransform),
       textureFactory(texture), reply(nullptr), prevUnreferenced(nullptr),
       prevUnreferencedPtr(nullptr), nextUnreferenced(nullptr)
@@ -385,6 +385,7 @@ public:
     QSize implicitSize;
     QRect requestRegion;
     QSize requestSize;
+    qreal devicePixelRatio = 1;
     QQuickImageProviderOptions providerOptions;
     QQuickImageProviderOptions::AutoTransform appliedTransform;
     QColorSpace targetColorSpace;
@@ -716,8 +717,9 @@ void QQuickPixmapReader::networkRequestDone(QNetworkReply *reply)
             } else {
                 int frameCount;
                 int const frame = job->data ? job->data->frame : 0;
+                const qreal dpr = job->data ? job->data->devicePixelRatio : 1;
                 if (!readImage(reply->url(), &buff, &image, &errorString, &readSize, &frameCount,
-                               job->requestRegion, job->requestSize, job->providerOptions, nullptr, frame))
+                               job->requestRegion, job->requestSize, job->providerOptions, nullptr, frame, dpr))
                     error = QQuickPixmapReply::Decoding;
                 else if (job->data)
                     job->data->frameCount = frameCount;
@@ -1051,7 +1053,8 @@ void QQuickPixmapReader::processJob(QQuickPixmapReply *runningJob, const QUrl &u
                 }
                 if (!readImage(url, specialDevice.data(), &image, &errorStr, &readSize, &frameCount,
                                runningJob->requestRegion, runningJob->requestSize,
-                               runningJob->providerOptions, nullptr, runningJob->data->frame)) {
+                               runningJob->providerOptions, nullptr, runningJob->data->frame,
+                               runningJob->data->devicePixelRatio)) {
                     errorCode = QQuickPixmapReply::Loading;
                 } else if (runningJob->data) {
                     runningJob->data->frameCount = frameCount;
@@ -1077,9 +1080,10 @@ void QQuickPixmapReader::processJob(QQuickPixmapReply *runningJob, const QUrl &u
                     } else {
                         int frameCount;
                         int const frame = runningJob->data ? runningJob->data->frame : 0;
+                        const qreal dpr = runningJob->data ? runningJob->data->devicePixelRatio : 1;
                         if (!readImage(url, &f, &image, &errorStr, &readSize, &frameCount,
                                        runningJob->requestRegion, runningJob->requestSize,
-                                       runningJob->providerOptions, nullptr, frame)) {
+                                       runningJob->providerOptions, nullptr, frame, dpr)) {
                             errorCode = QQuickPixmapReply::Loading;
                             if (f.fileName() != localFile)
                                 errorStr += QString::fromLatin1(" (%1)").arg(f.fileName());
@@ -1601,7 +1605,8 @@ static QQuickPixmapData* createPixmapDataSync(QQmlEngine *engine, const QUrl &ur
                     *ok = true;
                     return new QQuickPixmapData(url, QQuickTextureFactory::textureFactoryForImage(image),
                                                 readSize, requestRegion, requestSize, providerOptions,
-                                                QQuickImageProviderOptions::UsePluginDefaultTransform, frame);
+                                                QQuickImageProviderOptions::UsePluginDefaultTransform,
+                                                frame, 1, devicePixelRatio);
                 }
                 break;
             }
@@ -1613,7 +1618,8 @@ static QQuickPixmapData* createPixmapDataSync(QQmlEngine *engine, const QUrl &ur
                     *ok = true;
                     return new QQuickPixmapData(url, QQuickTextureFactory::textureFactoryForImage(pixmap.toImage()),
                                                 readSize, requestRegion, requestSize, providerOptions,
-                                                QQuickImageProviderOptions::UsePluginDefaultTransform, frame);
+                                                QQuickImageProviderOptions::UsePluginDefaultTransform,
+                                                frame, 1, devicePixelRatio);
                 }
                 break;
             }
@@ -1956,7 +1962,8 @@ void QQuickPixmap::load(QQmlEngine *engine, const QUrl &url, const QRect &reques
         }
 
         d = new QQuickPixmapData(url, requestRegion, requestSize, providerOptions,
-                                 QQuickImageProviderOptions::UsePluginDefaultTransform, frame, frameCount);
+                                 QQuickImageProviderOptions::UsePluginDefaultTransform, frame,
+                                 frameCount, devicePixelRatio);
         if (options & QQuickPixmap::Cache)
             d->addToCache();
 #ifdef Q_OS_WEBOS

@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qlinuxfbscreen.h"
 #include <QtFbSupport/private/qfbcursor_p.h>
@@ -341,6 +342,12 @@ bool QLinuxFbScreen::initialize()
     QRect geometry = determineGeometry(vinfo, userGeometry);
     mGeometry = QRect(QPoint(0, 0), geometry.size());
     mFormat = determineFormat(vinfo, mDepth);
+    if (mFormat == QImage::Format_Invalid) {
+        qWarning("Unsupported framebuffer format: depth %d, RGB offset/length %u/%u %u/%u %u/%u",
+                 mDepth, vinfo.red.offset, vinfo.red.length, vinfo.green.offset, vinfo.green.length,
+                 vinfo.blue.offset, vinfo.blue.length);
+        return false;
+    }
     mPhysicalSize = determinePhysicalSize(vinfo, userMmSize, geometry.size());
 
     // mmap the framebuffer

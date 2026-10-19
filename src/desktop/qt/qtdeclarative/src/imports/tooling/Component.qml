@@ -27,6 +27,7 @@ QtObject {
     property bool isStructured: false
     property bool isComposite: false
     property bool isJavaScriptBuiltin: false
+    property bool isSelfExtension: false
     property bool hasCustomParser: false
     property bool extensionIsJavaScript: false
     property bool extensionIsNamespace: false
@@ -34,4 +35,5 @@ QtObject {
     property string accessSemantics: "reference"
     property string defaultProperty
     property string parentProperty
+    property bool isTypeOpaque: false // implicitly registered by tooling because it's referenced in a property
 }

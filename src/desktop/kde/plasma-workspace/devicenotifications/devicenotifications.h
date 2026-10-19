@@ -12,14 +12,13 @@
 #include <QSocketNotifier>
 #include <QString>
 #include <QTimer>
+#include <QWaylandClientExtensionTemplate>
 
 #include <KDEDModule>
 #include <KNotification>
 
 #include "qwayland-kde-output-device-v2.h"
 #include <libudev.h>
-
-struct wl_registry;
 
 class UdevDevice
 {
@@ -76,16 +75,17 @@ private:
     QSocketNotifier *m_notifier = nullptr;
 };
 
-class Output : public QObject, public QtWayland::kde_output_device_v2
+class OutputDevice : public QObject, public QtWayland::kde_output_device_v2
 {
     Q_OBJECT
-public:
-    Output(uint32_t id);
-    ~Output();
 
-    uint32_t id() const
+public:
+    explicit OutputDevice(::kde_output_device_v2 *outputDevice);
+    ~OutputDevice() override;
+
+    bool isInitialized() const
     {
-        return m_id;
+        return m_isInitialized;
     }
 
     QString uuid() const
@@ -93,15 +93,23 @@ public:
         return m_uuid;
     }
 
+    bool isInternal() const;
+
 Q_SIGNALS:
-    void uuidAdded();
+    void done();
+    void removed();
+
+protected:
+    void kde_output_device_v2_uuid(const QString &uuid) override;
+    void kde_output_device_v2_name(const QString &name) override;
+    void kde_output_device_v2_mode(struct ::kde_output_device_mode_v2 *mode) override;
+    void kde_output_device_v2_done() override;
+    void kde_output_device_v2_removed() override;
 
 private:
-    void kde_output_device_v2_uuid(const QString &uuid) override;
-    void kde_output_device_v2_mode(struct ::kde_output_device_mode_v2 *mode) override;
-
-    uint32_t m_id;
     QString m_uuid;
+    QString m_name;
+    bool m_isInitialized = false;
 };
 
 class OutputDeviceMode : public QtWayland::kde_output_device_mode_v2
@@ -112,6 +120,28 @@ public:
 
 protected:
     void kde_output_device_mode_v2_removed() override;
+};
+
+class OutputDeviceRegistry : public QWaylandClientExtensionTemplate<OutputDeviceRegistry>, public QtWayland::kde_output_device_registry_v2
+{
+    Q_OBJECT
+
+public:
+    OutputDeviceRegistry();
+    ~OutputDeviceRegistry() override;
+
+    int count() const;
+
+Q_SIGNALS:
+    void outputAdded(OutputDevice *output);
+    void outputRemoved(OutputDevice *output);
+
+protected:
+    void kde_output_device_registry_v2_finished() override;
+    void kde_output_device_registry_v2_output(struct ::kde_output_device_v2 *output) override;
+
+private:
+    std::vector<std::unique_ptr<OutputDevice>> m_outputDevices;
 };
 
 class KdedDeviceNotifications : public KDEDModule
@@ -137,10 +167,10 @@ private:
     QHash<QString, QString> m_displayNames;
     QList<QString> m_removableDevices;
 
-    wl_registry *m_registry = nullptr;
-    std::vector<std::unique_ptr<Output>> m_outputs;
+    OutputDeviceRegistry *m_outputRegistry = nullptr;
     QList<QString> m_recentlyRemovedOutputs;
     bool m_initialOutputsReceived = false;
+    int m_lastOutputCount = 0;
 
     QTimer m_deviceAddedTimer;
     QTimer m_deviceRemovedTimer;

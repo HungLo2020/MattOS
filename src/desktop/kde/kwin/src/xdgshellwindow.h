@@ -21,7 +21,9 @@
 
 namespace KDecoration3
 {
+
 class DecorationState;
+
 }
 
 namespace KWin
@@ -44,15 +46,9 @@ public:
     {
     }
 
-    enum ConfigureFlag {
-        ConfigurePosition = 0x1,
-    };
-    Q_DECLARE_FLAGS(ConfigureFlags, ConfigureFlag)
-
     RectF bounds;
     Gravity gravity;
     qreal serial;
-    ConfigureFlags flags;
     double scale;
 };
 
@@ -68,42 +64,34 @@ public:
     RectF frameRectToBufferRect(const RectF &rect) const override;
     void destroyWindow() override;
 
-    void installPlasmaShellSurface(PlasmaShellSurfaceInterface *shellSurface);
-
 protected:
     void moveResizeInternal(const RectF &rect, MoveResizeMode mode) override;
 
     virtual XdgSurfaceConfigure *sendRoleConfigure() = 0;
     virtual void handleRoleCommit();
-    virtual void handleRolePrecommit();
     virtual void handleRoleDestroyed();
 
     XdgSurfaceConfigure *lastAcknowledgedConfigure() const;
     void scheduleConfigure();
     void sendConfigure();
 
-    QPointer<PlasmaShellSurfaceInterface> m_plasmaShellSurface;
-
-    WindowType m_windowType = WindowType::Normal;
-    Gravity m_nextGravity = Gravity::None;
-
-private:
     void handleConfigureAcknowledged(quint32 serial);
     void handleCommit();
-    void handleNextWindowGeometry();
-    bool haveNextWindowGeometry() const;
-    void setHaveNextWindowGeometry();
-    void resetHaveNextWindowGeometry();
-    void maybeUpdateMoveResizeGeometry(const RectF &rect);
+
+    WindowType m_windowType = WindowType::Normal;
+
+    // The gravity that's applied when the client resizes the surface on its own.
+    Gravity m_spontaneousGravity = Gravity::BottomRight;
+
+    // The gravity that's applied when the geometry changes due to a configure event.
+    Gravity m_configureGravity = Gravity::BottomRight;
 
     XdgSurfaceInterface *m_shellSurface;
     QTimer *m_configureTimer;
-    XdgSurfaceConfigure::ConfigureFlags m_configureFlags;
     QQueue<XdgSurfaceConfigure *> m_configureEvents;
     std::unique_ptr<XdgSurfaceConfigure> m_lastAcknowledgedConfigure;
     std::optional<quint32> m_lastAcknowledgedConfigureSerial;
     RectF m_windowGeometry;
-    bool m_haveNextWindowGeometry = false;
 };
 
 class XdgToplevelConfigure final : public XdgSurfaceConfigure
@@ -136,6 +124,7 @@ public:
     std::optional<QStringList> desktops;
     std::optional<QStringList> activities;
     std::optional<QString> shortcut;
+    std::optional<bool> excludeFromCapture;
 };
 
 class XdgToplevelWindow final : public XdgSurfaceWindow
@@ -186,11 +175,11 @@ public:
     void installPalette(ServerSideDecorationPaletteInterface *palette);
     void installXdgDecoration(XdgToplevelDecorationV1Interface *decoration);
     void installXdgDialogV1(XdgDialogV1Interface *dialog);
+    void installPlasmaShellSurface(PlasmaShellSurfaceInterface *shellSurface);
 
 protected:
     XdgSurfaceConfigure *sendRoleConfigure() override;
     void handleRoleCommit() override;
-    void handleRolePrecommit() override;
     void handleRoleDestroyed() override;
     void doMinimize() override;
     void doSetActive() override;
@@ -208,8 +197,7 @@ protected:
 private:
     void handleWindowTitleChanged();
     void handleAppIdChanged();
-    void handleWindowMenuRequested(SeatInterface *seat,
-                                   const QPoint &surfacePos, quint32 serial);
+    void handleWindowMenuRequested(SeatInterface *seat, const QPointF &surfacePos, quint32 serial);
     void handleMoveRequested(SeatInterface *seat, quint32 serial);
     void handleResizeRequested(SeatInterface *seat, Gravity anchor, quint32 serial);
     void handleStatesAcknowledged(const XdgToplevelInterface::States &states);
@@ -243,6 +231,9 @@ private:
     QVector<VirtualDesktop *> initialDesktops(const std::optional<XdgToplevelSessionData> &session) const;
     QString initialShortcut(const std::optional<XdgToplevelSessionData> &session) const;
     QStringList initialActivities(const std::optional<XdgToplevelSessionData> &session) const;
+    bool initialExcludeFromCapture(const std::optional<XdgToplevelSessionData> &session) const;
+    Gravity preferredConfigureGravity() const;
+    Gravity preferredSpontaneousGravity() const;
     DecorationMode preferredDecorationMode() const;
     void configureDecoration();
     void configureXdgDecoration(DecorationMode decorationMode);
@@ -257,6 +248,7 @@ private:
     QPointer<ServerSideDecorationInterface> m_serverDecoration;
     QPointer<XdgToplevelDecorationV1Interface> m_xdgDecoration;
     QPointer<XdgDialogV1Interface> m_xdgDialog;
+    QPointer<PlasmaShellSurfaceInterface> m_plasmaShellSurface;
     XdgToplevelInterface *m_shellSurface;
     XdgToplevelInterface::States m_nextStates;
     XdgToplevelInterface::States m_acknowledgedStates;
@@ -267,11 +259,12 @@ private:
     MaximizeMode m_requestedMaximizeMode = MaximizeRestore;
     QSizeF m_minimumSize = QSizeF(0, 0);
     QSizeF m_maximumSize = QSizeF(0, 0);
-    DecorationPolicy m_decorationPolicy = DecorationPolicy::PreferredByClient;
+    DecorationPolicy m_decorationPolicy = DecorationPolicy::ClientPreference;
     bool m_isFullScreen = false;
     bool m_isRequestedFullScreen = false;
     bool m_isInitialized = false;
     bool m_isTransient = false;
+    bool m_isUnrestricted = false;
     QPointer<LogicalOutput> m_fullScreenRequestedOutput;
     std::shared_ptr<KDecoration3::Decoration> m_nextDecoration;
     std::shared_ptr<KDecoration3::DecorationState> m_nextDecorationState;
@@ -301,6 +294,7 @@ public:
 protected:
     bool acceptsFocus() const override;
     XdgSurfaceConfigure *sendRoleConfigure() override;
+    void handleRoleCommit() override;
     void handleRoleDestroyed() override;
     void doSetNextTargetScale() override;
     void doSetPreferredBufferTransform() override;
@@ -322,5 +316,3 @@ private:
 };
 
 } // namespace KWin
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(KWin::XdgSurfaceConfigure::ConfigureFlags)

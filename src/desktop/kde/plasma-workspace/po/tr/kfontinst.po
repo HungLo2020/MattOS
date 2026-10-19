@@ -2,7 +2,7 @@
 # translation of kfontinst.po to
 # Copyright (C) 2003, 2007, 2008 Free Software Foundation, Inc.
 #
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025, 2026 Emir SARI <emir_sari@icloud.com>
+# SPDX-FileCopyrightText: 2022-2026 Emir SARI <emir_sari@icloud.com>
 # Görkem Çetin <gorkem@kde.org>, 2003.
 # Serdar Soytetir <tulliana@gmail.com>, 2007.
 # Serdar Soytetir <tulliana@gmail.com>, 2007, 2008, 2009, 2011, 2012.
@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kfontinst\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-03-09 21:08+0300\n"
+"POT-Creation-Date: 2026-09-27 02:41+0000\n"
+"PO-Revision-Date: 2026-06-11 21:23+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
@@ -23,12 +23,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.2\n"
+"X-Generator: Lokalize 26.04.0\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Serdar Soytetir, Onur Küçük, H. İbrahim Güngör, Volkan Gezer"
+msgstr "Serdar SOYTETİR, Onur Küçük, H. İbrahim GÜNGÖR, Volkan GEZER"
 
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
@@ -482,7 +482,7 @@ msgstr ""
 #: kcmfontinst/GroupList.cpp:702
 #, kde-format
 msgid "<qt>A group named <b>'%1'</b> already exists.</qt>"
-msgstr "<qt>“<b>%1</b>” adlı bir grup halihazırda var.</qt>"
+msgstr "<qt>“<b>%1</b>” adlı bir grup hâlihazırda var.</qt>"
 
 #: kcmfontinst/GroupList.cpp:793
 #, kde-format
@@ -599,73 +599,73 @@ msgstr "Arka uç öldü; ancak yeniden başlatıldı. Lütfen yeniden deneyin."
 msgid "<h3>Error</h3>"
 msgstr "<h3>Hata</h3>"
 
-#: kcmfontinst/JobRunner.cpp:692
+#: kcmfontinst/JobRunner.cpp:693
 #, kde-format
 msgid "Failed to download <i>%1</i>"
 msgstr "<i>%1</i> indirilemedi"
 
-#: kcmfontinst/JobRunner.cpp:694
+#: kcmfontinst/JobRunner.cpp:695
 #, kde-format
 msgid "System backend died. Please try again.<br><i>%1</i>"
 msgstr "Arka uç öldü. Lütfen yeniden deneyin.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:696
+#: kcmfontinst/JobRunner.cpp:697
 #, kde-format
 msgid ""
 "<i>%1</i> is a bitmap font, and these have been disabled on your system."
 msgstr ""
 "<i>%1</i> bir bitmap yazıtipi ve bu yazıtipleri sisteminizde devre dışı."
 
-#: kcmfontinst/JobRunner.cpp:698
+#: kcmfontinst/JobRunner.cpp:699
 #, kde-format
 msgid ""
 "<i>%1</i> contains the font <b>%2</b>, which is already installed on your "
 "system."
 msgstr ""
-"<i>%1</i>, sisteminizde halihazırda kurulu olan <b>%2</b> yazıtipini "
+"<i>%1</i>, sisteminizde hâlihazırda kurulu olan <b>%2</b> yazıtipini "
 "içeriyor."
 
-#: kcmfontinst/JobRunner.cpp:700
+#: kcmfontinst/JobRunner.cpp:701
 #, kde-format
 msgid "<i>%1</i> is not a font."
 msgstr "<i>%1</i> bir yazıtipi değil."
 
-#: kcmfontinst/JobRunner.cpp:702
+#: kcmfontinst/JobRunner.cpp:703
 #, kde-format
 msgid "Could not remove all files associated with <i>%1</i>"
 msgstr "<i>%1</i> ile ilgili ek dosyalar kaldırılamadı"
 
-#: kcmfontinst/JobRunner.cpp:704
+#: kcmfontinst/JobRunner.cpp:705
 #, kde-format
 msgid "Failed to start the system daemon.<br><i>%1</i>"
 msgstr "Sistem ardalan süreci başlatılamadı.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:707 kio/KioFonts.cpp:719
+#: kcmfontinst/JobRunner.cpp:708 kio/KioFonts.cpp:719
 #, kde-format
 msgid "<i>%1</i> already exists."
 msgstr "<i>%1</i> zaten var."
 
-#: kcmfontinst/JobRunner.cpp:710
+#: kcmfontinst/JobRunner.cpp:711
 #, kde-format
 msgid "<i>%1</i> does not exist."
 msgstr "<i>%1</i> yok."
 
-#: kcmfontinst/JobRunner.cpp:712
+#: kcmfontinst/JobRunner.cpp:713
 #, kde-format
 msgid "Permission denied.<br><i>%1</i>"
 msgstr "İzin verilmedi.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:714
+#: kcmfontinst/JobRunner.cpp:715
 #, kde-format
 msgid "Unsupported action.<br><i>%1</i>"
 msgstr "Desteklenmeyen eylem.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:716
+#: kcmfontinst/JobRunner.cpp:717
 #, kde-format
 msgid "Authentication failed.<br><i>%1</i>"
 msgstr "Kimlik doğrulama işlemi başarısız oldu.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:718
+#: kcmfontinst/JobRunner.cpp:719
 #, kde-format
 msgid "Unexpected error while processing: <i>%1</i>"
 msgstr "İşlem yapılırken beklenmeyen bir hata oluştu: <i>%1</i>"
@@ -1195,7 +1195,7 @@ msgstr "%1 bir bitmap yazıtipi ve bu yazıtipleri sisteminizde devre dışı."
 msgid ""
 "%1 contains the font <b>%2</b>, which is already installed on your system."
 msgstr ""
-"%1, sisteminizde halihazırda kurulu olan <b>%2</b> yazıtipini içeriyor."
+"%1, sisteminizde hâlihazırda kurulu olan <b>%2</b> yazıtipini içeriyor."
 
 #: kio/KioFonts.cpp:714
 #, kde-format
@@ -1554,17 +1554,17 @@ msgstr "Kategori"
 msgid "UCS-4"
 msgstr "UCS-4"
 
-#: viewpart/CharTip.cpp:157
+#: viewpart/CharTip.cpp:158
 #, kde-format
 msgid "UTF-16"
 msgstr "UTF-16"
 
-#: viewpart/CharTip.cpp:168
+#: viewpart/CharTip.cpp:169
 #, kde-format
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: viewpart/CharTip.cpp:185
+#: viewpart/CharTip.cpp:186
 #, kde-format
 msgid "XML Decimal Entity"
 msgstr "XML Ondalık Varlığı"
@@ -1589,12 +1589,12 @@ msgstr "Metni Değiştir…"
 msgid "Could not read font."
 msgstr "Yazıtipi okunamadı."
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Preview String"
 msgstr "Diziyi Önizle"
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Please enter new string:"
 msgstr "Lütfen yeni ifade girin:"
@@ -1660,7 +1660,7 @@ msgstr "Birleştirici İki Eğilimli İmler"
 
 #: viewpart/UnicodeBlocks.h:24
 msgid "Greek and Coptic"
-msgstr "Yunanca ve Kıpti"
+msgstr "Yunanca ve Kıptîce"
 
 #: viewpart/UnicodeBlocks.h:25 viewpart/UnicodeScripts.h:29
 msgid "Cyrillic"
@@ -1676,7 +1676,7 @@ msgstr "Ermenice"
 
 #: viewpart/UnicodeBlocks.h:28 viewpart/UnicodeScripts.h:42
 msgid "Hebrew"
-msgstr "İbranice"
+msgstr "İbrânîce"
 
 #: viewpart/UnicodeBlocks.h:29 viewpart/UnicodeScripts.h:15
 msgid "Arabic"
@@ -1952,7 +1952,7 @@ msgstr "Çeşitli Semboller ve Oklar"
 
 #: viewpart/UnicodeBlocks.h:97 viewpart/UnicodeScripts.h:34
 msgid "Glagolitic"
-msgstr "Glagolitic"
+msgstr "Glagol"
 
 #: viewpart/UnicodeBlocks.h:98
 msgid "Latin Extended-C"
@@ -1960,7 +1960,7 @@ msgstr "Genişletilmiş Latin-C"
 
 #: viewpart/UnicodeBlocks.h:99 viewpart/UnicodeScripts.h:26
 msgid "Coptic"
-msgstr "Coptic"
+msgstr "Kıptîce"
 
 #: viewpart/UnicodeBlocks.h:100
 msgid "Georgian Supplement"

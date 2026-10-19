@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_keyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
-"PO-Revision-Date: 2026-01-10 21:37+0100\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-05-21 16:07+0200\n"
 "Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 25.12.3\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -98,8 +98,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Tastenzuordnungen einrichten …"
+msgid "Key Bindings"
+msgstr "Tastenzuordnungen"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -137,13 +137,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Belegung hinzufügen"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Kurzbezeichnung der Belegung"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -154,13 +154,13 @@ msgstr ""
 "der Kontrollleiste angezeigt wird. Sie können diese Einstellung selbst "
 "ändern."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Kurzbefehl:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -232,13 +232,13 @@ msgstr "Zahlenblock beim Plasma-Start:"
 #, kde-format
 msgctxt "@item:inlistbox Turn on \"NumLock\" on startup"
 msgid "Turn on"
-msgstr "Einschalten"
+msgstr "Aktivieren"
 
 #: ui/main.qml:116
 #, kde-format
 msgctxt "@item:inlistbox Turn off \"NumLock\" on startup"
 msgid "Turn off"
-msgstr "Ausschalten"
+msgstr "Deaktivieren"
 
 #: ui/main.qml:120
 #, kde-format
@@ -561,22 +561,22 @@ msgstr ""
 "Mit Modifizertasten können Sie zusätzliche Zeichen, Symbole und diakritische "
 "Zeichen eingeben."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
 msgstr[0] "%1 Kurzbefehl"
 msgstr[1] "%1 Kurzbefehle"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Keine"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Tastenzuordnungen"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Tastenzuordnungen einrichten …"
 
 #, fuzzy
 #~| msgid "&Turn off"

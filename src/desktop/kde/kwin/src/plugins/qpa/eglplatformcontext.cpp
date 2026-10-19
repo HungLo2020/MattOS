@@ -9,18 +9,19 @@
 */
 
 #include "eglplatformcontext.h"
+#include "compositor.h"
 #include "core/outputbackend.h"
-#include "eglhelpers.h"
+#include "core/syncobjtimeline.h"
 #include "internalwindow.h"
+#include "logging.h"
 #include "offscreensurface.h"
 #include "opengl/eglcontext.h"
 #include "opengl/egldisplay.h"
+#include "opengl/eglnativefence.h"
 #include "opengl/eglutils_p.h"
 #include "opengl/glutils.h"
 #include "swapchain.h"
 #include "window.h"
-
-#include "logging.h"
 
 namespace KWin
 {
@@ -40,10 +41,11 @@ EGLRenderTarget::~EGLRenderTarget()
     texture.reset();
 }
 
-EGLPlatformContext::EGLPlatformContext(QOpenGLContext *context, EglDisplay *display)
-    : m_eglDisplay(display)
+EGLPlatformContext::EGLPlatformContext(QOpenGLContext *context, const std::shared_ptr<EglContext> &kwinContext)
+    : m_eglDisplay(kwinContext->displayObject())
+    , m_eglContext(kwinContext)
 {
-    create(context->format(), kwinApp()->outputBackend()->sceneEglGlobalShareContext());
+    updateFormatFromContext();
 }
 
 EGLPlatformContext::~EGLPlatformContext()
@@ -52,7 +54,7 @@ EGLPlatformContext::~EGLPlatformContext()
         return;
     }
     if (!m_renderTargets.empty() || !m_zombieRenderTargets.empty()) {
-        m_eglContext->makeCurrent();
+        (void)m_eglContext->makeCurrent();
         m_renderTargets.clear();
         m_zombieRenderTargets.clear();
     }
@@ -60,7 +62,7 @@ EGLPlatformContext::~EGLPlatformContext()
 
 bool EGLPlatformContext::makeCurrent(QPlatformSurface *surface)
 {
-    if (!m_eglContext) {
+    if (!isValid()) {
         return false;
     }
     const bool ok = m_eglContext->makeCurrent();
@@ -84,10 +86,11 @@ bool EGLPlatformContext::makeCurrent(QPlatformSurface *surface)
             return false;
         }
 
-        GraphicsBuffer *buffer = swapchain->acquire();
-        if (!buffer) {
+        m_currentSlot = swapchain->acquire();
+        if (!m_currentSlot) {
             return false;
         }
+        GraphicsBuffer *buffer = m_currentSlot->buffer();
 
         auto it = m_renderTargets.find(buffer);
         if (it != m_renderTargets.end()) {
@@ -153,18 +156,20 @@ void EGLPlatformContext::swapBuffers(QPlatformSurface *surface)
     if (surface->surface()->surfaceClass() == QSurface::Window) {
         Window *window = static_cast<Window *>(surface);
         InternalWindow *internalWindow = window->internalWindow();
-        if (!internalWindow) {
+        if (!internalWindow || !m_currentSlot) {
             return;
         }
 
-        glFlush(); // We need to flush pending rendering commands manually
-
+        EGLNativeFence fence(EglContext::currentContext()->displayObject());
         internalWindow->present(InternalWindowFrame{
             .buffer = m_current->buffer,
+            .syncFd = fence.takeFileDescriptor(),
             .bufferDamage = Rect(QPoint(0, 0), m_current->buffer->size()),
             .bufferTransform = OutputTransform::FlipY,
         });
 
+        m_currentSlot->releasePoint()->addReleaseFence(fence.takeFileDescriptor());
+        m_currentSlot.reset();
         m_current.reset();
     }
 }
@@ -181,31 +186,13 @@ GLuint EGLPlatformContext::defaultFramebufferObject(QPlatformSurface *surface) c
     return 0;
 }
 
-void EGLPlatformContext::create(const QSurfaceFormat &format, ::EGLContext shareContext)
-{
-    if (!eglBindAPI(isOpenGLES() ? EGL_OPENGL_ES_API : EGL_OPENGL_API)) {
-        qCWarning(KWIN_QPA) << "eglBindAPI failed:" << getEglErrorString();
-        return;
-    }
-
-    m_config = configFromFormat(m_eglDisplay, format);
-    if (m_config == EGL_NO_CONFIG_KHR) {
-        qCWarning(KWIN_QPA) << "Could not find suitable EGLConfig for" << format;
-        return;
-    }
-
-    m_format = formatFromConfig(m_eglDisplay, m_config);
-    m_eglContext = EglContext::create(m_eglDisplay, m_config, shareContext);
-    if (!m_eglContext) {
-        qCWarning(KWIN_QPA) << "Failed to create EGL context";
-        return;
-    }
-    updateFormatFromContext();
-}
-
 void EGLPlatformContext::updateFormatFromContext()
 {
-    m_eglContext->makeCurrent();
+    if (!m_eglContext->makeCurrent()) {
+        return;
+    }
+
+    m_format.setRenderableType(QSurfaceFormat::OpenGLES);
 
     const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
     int major, minor;
@@ -247,7 +234,7 @@ void EGLPlatformContext::updateFormatFromContext()
 EGLContext EGLPlatformContext::nativeContext() const
 {
     return m_eglContext->handle();
-};
+}
 
 EGLConfig EGLPlatformContext::config() const
 {
@@ -262,6 +249,13 @@ EGLDisplay EGLPlatformContext::display() const
 void EGLPlatformContext::invalidateContext()
 {
     m_markedInvalid = true;
+    if (m_eglContext) {
+        (void)m_eglContext->makeCurrent();
+        m_renderTargets.clear();
+        m_zombieRenderTargets.clear();
+        m_eglContext.reset();
+    }
+    m_currentSlot.reset();
 }
 
 } // namespace QPA

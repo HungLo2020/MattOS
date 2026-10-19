@@ -9,12 +9,14 @@
 #include <QGuiApplication>
 #include <QObject>
 #include <QQmlContext>
+#include <QQuickView>
 #include <QScreen>
+#include <QSurfaceFormat>
 
+#include <KLocalizedQmlContext>
 #include <KLocalizedString>
-#include <KWindowSystem>
 #include <LayerShellQt/Window>
-#include <PlasmaQuick/QuickViewSharedEngine>
+#include <PlasmaQuick/PlasmaQuick>
 #include <kworkspace6/sessionmanagement.h>
 
 #include "backend/GreeterProxy.h"
@@ -33,7 +35,10 @@ class LoginGreeter : public QObject
 public:
     explicit LoginGreeter(QObject *parent = nullptr)
         : QObject(parent)
+        , m_engine(PlasmaQuick::globalEngine())
     {
+        KLocalization::setupLocalizedContext(m_engine.get());
+
         connect(qApp, &QGuiApplication::screenAdded, this, [this](QScreen *screen) {
             createWindowForScreen(screen);
         });
@@ -47,7 +52,7 @@ public:
 private:
     void createWindowForScreen(QScreen *screen)
     {
-        auto *window = new PlasmaQuick::QuickViewSharedEngine();
+        auto *window = new QQuickView(m_engine.get(), nullptr);
         window->QObject::setParent(this);
         window->setScreen(screen);
         window->setColor(s_testMode ? Qt::darkGray : Qt::transparent);
@@ -60,36 +65,22 @@ private:
 
         window->setGeometry(screen->geometry());
 
-        if (KWindowSystem::isPlatformWayland()) {
-            if (auto layerShellWindow = LayerShellQt::Window::get(window)) {
-                layerShellWindow->setScope(QStringLiteral("plasma-login-wallpaper"));
-                layerShellWindow->setLayer(LayerShellQt::Window::LayerTop);
-                layerShellWindow->setExclusiveZone(-1);
-                layerShellWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityExclusive);
-                layerShellWindow->setScreen(screen);
-            }
+        if (auto layerShellWindow = LayerShellQt::Window::get(window)) {
+            layerShellWindow->setScope(QStringLiteral("plasma-login-greeter"));
+            layerShellWindow->setLayer(LayerShellQt::Window::LayerTop);
+            layerShellWindow->setExclusiveZone(-1);
+            layerShellWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityExclusive);
+            layerShellWindow->setScreen(screen);
         }
 
-        window->setResizeMode(PlasmaQuick::QuickViewSharedEngine::SizeRootObjectToView);
-
-        if (KWindowSystem::isPlatformX11()) {
-            // X11 specific hint only on X11
-            window->setFlags(Qt::BypassWindowManagerHint);
-        } else if (!KWindowSystem::isPlatformWayland()) {
-            // on other platforms go fullscreen
-            // on Wayland we cannot go fullscreen due to QTBUG 54883
-            window->setWindowState(Qt::WindowFullScreen);
-        }
-
-        auto *greeterEventFilter = new GreeterEventFilter(this);
-        window->installEventFilter(greeterEventFilter);
-        window->rootContext()->setContextProperty(QStringLiteral("greeterEventFilter"), greeterEventFilter);
+        window->setResizeMode(QQuickView::SizeRootObjectToView);
 
         window->setSource(QUrl("qrc:/qt/qml/org/kde/plasma/login/Main.qml"));
         window->show();
     }
 
     static bool s_testMode;
+    std::shared_ptr<QQmlEngine> m_engine;
 };
 
 bool LoginGreeter::s_testMode = false;
@@ -113,8 +104,15 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
 
     QGuiApplication app(argc, argv);
+
+    app.setQuitOnLastWindowClosed(false);
+
     parser.process(app);
     LoginGreeter::setTestModeEnabled(parser.isSet(QStringLiteral("test")));
+
+    auto format = QSurfaceFormat::defaultFormat();
+    format.setOption(QSurfaceFormat::ResetNotification);
+    QSurfaceFormat::setDefaultFormat(format);
 
     QQuickWindow::setDefaultAlphaBuffer(true);
     if (LoginGreeter::testModeEnabled()) {
@@ -128,6 +126,7 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonInstance("org.kde.plasma.login", 0, 1, "Settings", &PlasmaLoginSettings::getInstance());
     qmlRegisterSingletonInstance("org.kde.plasma.login", 0, 1, "StateConfig", StateConfig::self());
     qmlRegisterSingletonInstance("org.kde.plasma.login", 0, 1, "BlurScreenBridge", new BlurScreenBridge);
+    qmlRegisterType<GreeterEventFilter>("org.kde.plasma.login", 0, 1, "GreeterEventFilter");
 
     LoginGreeter greeter;
     return app.exec();

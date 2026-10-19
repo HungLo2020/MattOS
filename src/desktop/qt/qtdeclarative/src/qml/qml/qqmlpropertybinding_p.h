@@ -17,6 +17,7 @@
 //
 
 #include <private/qqmljavascriptexpression_p.h>
+#include <private/qqmlpropertybindingbase_p.h>
 #include <private/qqmlpropertydata_p.h>
 #include <private/qv4alloca_p.h>
 #include <private/qqmltranslation_p.h>
@@ -55,7 +56,7 @@ public:
     QV4::PersistentValue m_boundFunction;
 };
 
-class Q_QML_EXPORT QQmlPropertyBinding : public QPropertyBindingPrivate
+class Q_QML_EXPORT QQmlPropertyBinding : public QQmlPropertyBindingBase
 
 {
     friend class QQmlPropertyBindingJS;
@@ -112,9 +113,9 @@ public:
 
     static bool isUndefined(const QPropertyBindingPrivate *binding)
     {
-        if (!(binding && binding->hasCustomVTable()))
+        if (!binding || !binding->isQmlBinding())
             return false;
-        return static_cast<const QQmlPropertyBinding *>(binding)->isUndefined();
+        return static_cast<const QQmlPropertyBindingBase *>(binding)->isUndefined();
     }
 
     template<QMetaType::Type type>
@@ -125,7 +126,7 @@ public:
         return reinterpret_cast<QQmlPropertyBinding *>(address)->evaluate<type>(metaType, dataPtr);
     }
 
-    bool hasDependencies()
+    bool hasDependencies() const
     {
         return (dependencyObserverCount > 0) || !jsExpression()->activeGuards.isEmpty();
     }
@@ -138,44 +139,11 @@ private:
 
     QString createBindingLoopErrorDescription();
 
-    struct TargetData {
-        enum BoundFunction : bool {
-            WithoutBoundFunction = false,
-            HasBoundFunction = true,
-        };
-        TargetData(QObject *target, QQmlPropertyIndex index, BoundFunction state)
-            : target(target), targetIndex(index), hasBoundFunction(state)
-        {}
-        QObject *target;
-        QQmlPropertyIndex targetIndex;
-        bool hasBoundFunction;
-        bool isUndefined = false;
-    };
-    QQmlPropertyBinding(QMetaType metaType, QObject *target, QQmlPropertyIndex targetIndex, TargetData::BoundFunction hasBoundFunction);
+    QQmlPropertyBinding(QMetaType metaType, QObject *target, QQmlPropertyIndex targetIndex, HasBoundFunction hasBoundFunction);
 
-    QObject *target()
+    static QUntypedPropertyBinding makeUntyped(QQmlPropertyBinding *binding)
     {
-        return std::launder(reinterpret_cast<TargetData *>(&declarativeExtraData))->target;
-    }
-
-    QQmlPropertyIndex targetIndex()
-    {
-        return std::launder(reinterpret_cast<TargetData *>(&declarativeExtraData))->targetIndex;
-    }
-
-    bool hasBoundFunction()
-    {
-        return std::launder(reinterpret_cast<TargetData *>(&declarativeExtraData))->hasBoundFunction;
-    }
-
-    bool isUndefined() const
-    {
-        return std::launder(reinterpret_cast<TargetData const *>(&declarativeExtraData))->isUndefined;
-    }
-
-    void setIsUndefined(bool isUndefined)
-    {
-        std::launder(reinterpret_cast<TargetData *>(&declarativeExtraData))->isUndefined = isUndefined;
+        return QPropertyBindingPrivate::makeUntyped(binding);
     }
 
     static void bindingErrorCallback(QPropertyBindingPrivate *);
@@ -218,16 +186,101 @@ inline const QtPrivate::BindingFunctionVTable *bindingFunctionVTableForQQmlPrope
 #undef FOR_TYPE
 }
 
+struct QQmlTranslationPropertyBindingFunctorBase
+{
+public:
+    const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit() const
+    {
+        return m_compilationUnit;
+    }
+
+protected:
+    QQmlTranslationPropertyBindingFunctorBase(
+            const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit)
+        : m_compilationUnit(compilationUnit)
+    {
+    }
+
+    template <typename TranslateWithUnit>
+    bool translate(QMetaType metaType, void *dataPtr, TranslateWithUnit &&translateWithUnit) const
+    {
+        // Create a dependency to the translationLanguage
+        QQmlEnginePrivate::get(m_compilationUnit->engine)->translationLanguage.value();
+
+        QVariant resultVariant(translateWithUnit());
+        if (metaType != QMetaType::fromType<QString>())
+            resultVariant.convert(metaType);
+
+        const bool hasChanged = !metaType.equals(resultVariant.constData(), dataPtr);
+        metaType.destruct(dataPtr);
+        metaType.construct(dataPtr, resultVariant.constData());
+        return hasChanged;
+    }
+
+private:
+    QQmlRefPointer<QV4::ExecutableCompilationUnit> m_compilationUnit;
+};
+
+struct QQmlTranslationPropertyBindingFunctor : public QQmlTranslationPropertyBindingFunctorBase
+{
+public:
+    QQmlTranslationPropertyBindingFunctor(
+            const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit,
+            const QV4::CompiledData::Binding *binding)
+        : QQmlTranslationPropertyBindingFunctorBase(compilationUnit), binding(binding)
+    {
+    }
+
+    bool operator()(QMetaType metaType, void *dataPtr)
+    {
+        return translate(metaType, dataPtr,
+                         [this]() { return compilationUnit()->bindingValueAsString(binding); });
+    }
+
+private:
+    const QV4::CompiledData::Binding *binding = nullptr;
+};
+
+struct QQmlTranslationPropertyTranslationDataFunctor
+    : public QQmlTranslationPropertyBindingFunctorBase
+{
+public:
+    QQmlTranslationPropertyTranslationDataFunctor(
+            const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit,
+            const QQmlTranslation &translationData)
+        : QQmlTranslationPropertyBindingFunctorBase(compilationUnit),
+          translationData(translationData)
+    {
+    }
+
+    bool operator()(QMetaType metaType, void *dataPtr)
+    {
+        return translate(metaType, dataPtr, [this]() { return translationData.translate(); });
+    }
+
+private:
+    const QQmlTranslation translationData;
+};
+
 class QQmlTranslationPropertyBinding
 {
 public:
-    static QUntypedPropertyBinding Q_QML_EXPORT create(const QQmlPropertyData *pd,
-                                          const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit,
-                                          const QV4::CompiledData::Binding *binding);
+    // These must not be inlined: the bindingFunctionVTable<Functor> template variable has internal
+    // linkage under Qt's hidden visibility, so each binary gets its own copy at a distinct address.
+    // Creating a binding and later recovering its compilation unit both compare against that vtable
+    // pointer, so both operations must resolve it in the same shared object (QtQml).
     static QUntypedPropertyBinding Q_QML_EXPORT
-    create(const QMetaType &pd,
+    create(const QQmlPropertyData *pd,
+           const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit,
+           const QV4::CompiledData::Binding *binding);
+
+    static QUntypedPropertyBinding Q_QML_EXPORT
+    create(const QMetaType &propertyType,
            const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit,
            const QQmlTranslation &translationData);
+
+    static QQmlRefPointer<QV4::ExecutableCompilationUnit> Q_QML_EXPORT
+    compilationUnit(const QPropertyBindingPrivate *priv);
 };
 
 inline const QQmlPropertyBinding *QQmlPropertyBindingJS::asBinding() const
@@ -278,7 +331,7 @@ bool QQmlPropertyBinding::evaluate(QMetaType metaType, void *dataPtr)
             // if property has been changed due to reset, reset is responsible for
             // notifying observers
             return false;
-        } else if (isUndefined()) {
+        } else if (QQmlPropertyBindingBase::isUndefined()) {
             setIsUndefined(false);
         }
 

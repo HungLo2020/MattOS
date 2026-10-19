@@ -132,6 +132,10 @@ private slots:
     void loadMenuAsynchronously();
     void visibleTrue();
     void resetContentItem();
+    void collapsibleSeparators();
+    void collapsibleSeparatorsUserHidden();
+    void collapsibleSeparatorsWithBinding();
+    void destroyWindowWithOpenPopupWindow();
 
 private:
     bool nativeMenuSupported = false;
@@ -284,8 +288,7 @@ void tst_QQuickMenu::mouse()
     QCOMPARE(menu->contentItem()->property("currentIndex"), QVariant(-1));
 
     menu->open();
-    if (auto *popupWindow = menuPrivate->popupWindow)
-        QVERIFY(QTest::qWaitForWindowExposed(popupWindow));
+    TRY_VERIFY_POPUP_OPENED(menu);
 
     QCOMPARE(visibleSpy.size(), 2);
     QVERIFY(menu->isVisible());
@@ -305,8 +308,7 @@ void tst_QQuickMenu::mouse()
         QVERIFY(!parentItem->childItems().contains(menu->contentItem()->parentItem()));
 
     menu->open();
-    if (auto *popupWindow = menuPrivate->popupWindow)
-        QVERIFY(QTest::qWaitForWindowExposed(popupWindow));
+    TRY_VERIFY_POPUP_OPENED(menu);
     QTRY_COMPARE(visibleSpy.size(), 4);
     QVERIFY(menu->isVisible());
     QVERIFY(parentItem->childItems().contains(menu->contentItem()->parentItem()));
@@ -3621,6 +3623,306 @@ void tst_QQuickMenu::resetContentItem()
     QMetaObject::invokeMethod(window, "restoreContentItem");
     QCOMPARE(spy.count(), 2);
     menu->close();
+}
+
+void tst_QQuickMenu::collapsibleSeparators()
+{
+    QQuickControlsApplicationHelper helper(this, QLatin1String("collapsibleSeparators.qml"));
+    QVERIFY2(helper.ready, helper.failureMessage());
+    QQuickWindow *window = helper.window;
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window));
+
+    QQuickMenu *menu = window->property("menu").value<QQuickMenu*>();
+    QVERIFY(menu);
+
+    auto *menuItem1 = window->property("menuItem1").value<QQuickMenuItem*>();
+    auto *menuItem2 = window->property("menuItem2").value<QQuickMenuItem*>();
+    auto *menuItem3 = window->property("menuItem3").value<QQuickMenuItem*>();
+    auto *menuItem4 = window->property("menuItem4").value<QQuickMenuItem*>();
+    auto *menuItem5 = window->property("menuItem5").value<QQuickMenuItem*>();
+    auto *separator1 = window->property("separator1").value<QQuickMenuSeparator*>();
+    auto *separator2 = window->property("separator2").value<QQuickMenuSeparator*>();
+    auto *separator3 = window->property("separator3").value<QQuickMenuSeparator*>();
+    QVERIFY(menuItem1 && menuItem2 && menuItem3 && menuItem4 && menuItem5);
+    QVERIFY(separator1 && separator2 && separator3);
+
+    // Verify default property value is true
+    QVERIFY(menu->separatorsCollapsible());
+
+    // Test 1: With collapsing enabled, trailing separator should be hidden
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(separator2->isVisible());
+    QVERIFY(!separator3->isVisible()); // trailing separator
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Test 2: Disable — all separators visible
+    menu->setSeparatorsCollapsible(false);
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(separator2->isVisible());
+    QVERIFY(separator3->isVisible());
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Re-enable for remaining tests
+    menu->setSeparatorsCollapsible(true);
+
+    // Test 3: Hide all items in the middle group — separator between groups
+    // should collapse (two consecutive separators become one)
+    menuItem3->setVisible(false);
+    menuItem4->setVisible(false);
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(!separator2->isVisible()); // collapsed: consecutive separator
+    QVERIFY(!separator3->isVisible()); // trailing separator
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Test 4: Hide all items after separator1 — it becomes trailing
+    menuItem5->setVisible(false);
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(!separator1->isVisible()); // now trailing — no visible items after
+    QVERIFY(!separator2->isVisible());
+    QVERIFY(!separator3->isVisible());
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Test 5: Hide all items before separator1 — it becomes leading
+    menuItem1->setVisible(false);
+    menuItem2->setVisible(false);
+    menuItem3->setVisible(true);
+    menuItem4->setVisible(true);
+    menuItem5->setVisible(true);
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(!separator1->isVisible()); // leading separator — no visible items before
+    QVERIFY(separator2->isVisible());  // valid separator between groups
+    QVERIFY(!separator3->isVisible()); // trailing separator
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Test 6: Restore all items — separators should reappear
+    menuItem1->setVisible(true);
+    menuItem2->setVisible(true);
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(separator2->isVisible());
+    QVERIFY(!separator3->isVisible()); // still trailing
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Test 7: Disable collapsible separators — all should be visible again
+    menu->setSeparatorsCollapsible(false);
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(separator2->isVisible());
+    QVERIFY(separator3->isVisible()); // no longer collapsed
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Test 8: Verify separatorsCollapsibleChanged signal
+    QSignalSpy spy(menu, &QQuickMenu::separatorsCollapsibleChanged);
+    QVERIFY(spy.isValid());
+    menu->setSeparatorsCollapsible(true);
+    QCOMPARE(spy.count(), 1);
+    menu->setSeparatorsCollapsible(true); // same value — no signal
+    QCOMPARE(spy.count(), 1);
+    menu->setSeparatorsCollapsible(false);
+    QCOMPARE(spy.count(), 2);
+
+    // Test 9: Dynamic removal — remove Item5, separators after it become trailing
+    menu->setSeparatorsCollapsible(true);
+    QQuickItem *item5AtIndex = menu->itemAt(6); // Item5 is at index 6
+    QVERIFY(item5AtIndex);
+    menu->removeItem(item5AtIndex);
+
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(!separator2->isVisible()); // trailing — no visible items after
+    QVERIFY(!separator3->isVisible()); // trailing
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Test 10: Dynamic addition — add item at end, separator2 reappears
+    auto *newItem = new QQuickMenuItem();
+    newItem->setText(QStringLiteral("New Item"));
+    menu->addItem(newItem);
+
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(separator2->isVisible()); // now has visible item after it
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Test 11: Remove the new item — separator2 becomes trailing again
+    menu->removeItem(newItem);
+
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(!separator2->isVisible()); // trailing again
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Test 12: Insert a leading separator — should be hidden
+    auto *leadingSep = new QQuickMenuSeparator();
+    menu->insertItem(0, leadingSep);
+
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(!leadingSep->isVisible()); // leading separator
+    QVERIFY(separator1->isVisible());
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    menu->removeItem(leadingSep);
+}
+
+void tst_QQuickMenu::collapsibleSeparatorsUserHidden()
+{
+    // Verify that disabling separatorsCollapsible does not restore
+    // separators that were explicitly hidden by the user.
+    QQuickControlsApplicationHelper helper(this, QLatin1String("collapsibleSeparators.qml"));
+    QVERIFY2(helper.ready, helper.failureMessage());
+    QQuickWindow *window = helper.window;
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window));
+
+    QQuickMenu *menu = window->property("menu").value<QQuickMenu*>();
+    QVERIFY(menu);
+
+    auto *separator1 = window->property("separator1").value<QQuickMenuSeparator*>();
+    auto *separator2 = window->property("separator2").value<QQuickMenuSeparator*>();
+    QVERIFY(separator1 && separator2);
+
+    menu->setSeparatorsCollapsible(true);
+
+    // Simulate user explicitly hiding separator2
+    separator2->setVisible(false);
+
+    // Disable collapsible separators — separator2 should remain hidden
+    // because it was hidden by the user, not by the collapsing logic.
+    menu->setSeparatorsCollapsible(false);
+
+    // Open the menu to check effective visibility
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(!separator2->isVisible()); // must stay hidden — user hid it
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Re-enable and verify separator2 is still not touched
+    menu->setSeparatorsCollapsible(true);
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(separator1->isVisible());
+    QVERIFY(!separator2->isVisible());
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+}
+
+void tst_QQuickMenu::collapsibleSeparatorsWithBinding()
+{
+    // Verify that separators with a QML binding on visible are not touched
+    // by the collapsing logic.
+    QQuickControlsApplicationHelper helper(this, QLatin1String("collapsibleSeparators.qml"));
+    QVERIFY2(helper.ready, helper.failureMessage());
+    QQuickWindow *window = helper.window;
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window));
+
+    QQuickMenu *menu = window->property("menu").value<QQuickMenu*>();
+    QVERIFY(menu);
+    QVERIFY(menu->separatorsCollapsible());
+
+    // boundSeparator has visible: showBoundSeparator (a binding).
+    // It is trailing (no visible items after it), but should NOT be hidden.
+    auto *boundSeparator = window->property("boundSeparator").value<QQuickMenuSeparator*>();
+    QVERIFY(boundSeparator);
+
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(boundSeparator->isVisible()); // has binding — not collapsed
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Toggle the binding source to false — separator hides via binding
+    window->setProperty("showBoundSeparator", false);
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(!boundSeparator->isVisible()); // hidden by user binding
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // Toggle back — separator shows via binding
+    window->setProperty("showBoundSeparator", true);
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(boundSeparator->isVisible()); // shown by user binding
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+
+    // A separator without binding consecutive to a bound one is still collapsed
+    auto *separator3 = window->property("separator3").value<QQuickMenuSeparator*>();
+    QVERIFY(separator3);
+
+    menu->open();
+    QTRY_VERIFY(menu->isOpened());
+    QVERIFY(boundSeparator->isVisible()); // bound — not touched
+    QVERIFY(!separator3->isVisible());    // consecutive after bound — collapsed
+    menu->close();
+    QTRY_VERIFY(!menu->isVisible());
+}
+
+void tst_QQuickMenu::destroyWindowWithOpenPopupWindow()
+{
+    if (!arePopupWindowsSupported())
+        QSKIP("The platform doesn't support popup windows. Skipping test.");
+
+    SKIP_IF_NO_WINDOW_ACTIVATION;
+
+    QQuickControlsApplicationHelper helper(this, QLatin1String("applicationwindow.qml"));
+    QVERIFY2(helper.ready, helper.failureMessage());
+
+    QQuickApplicationWindow *window = helper.appWindow;
+    window->show();
+    window->requestActivate();
+    QVERIFY(QTest::qWaitForWindowActive(window));
+
+    QQuickMenu *menu = window->property("menu").value<QQuickMenu *>();
+    QVERIFY(menu);
+    menu->setPopupType(QQuickPopup::Window);
+    menu->open();
+    TRY_VERIFY_POPUP_OPENED(menu);
+
+    auto *menuPrivate = QQuickMenuPrivate::get(menu);
+    QQuickPopupWindow *popupWindow = menuPrivate->popupWindow;
+    QVERIFY(popupWindow);
+    QVERIFY(popupWindow->isVisible());
+    QSignalSpy popupWindowVisibleSpy(popupWindow, &QWindow::visibleChanged);
+    QVERIFY(popupWindowVisibleSpy.isValid());
+
+    // Destroy the ApplicationWindow while the menu is still open. The popup
+    // window must be properly hidden, not just dropped: QQuickPopupWindow used
+    // to skip QWindowPrivate::setVisible() when the transient parent was going
+    // away, which meant no hide event was sent, and so the render loop kept
+    // believing the window was still exposed. QTBUG-149041.
+    helper.cleanup.reset();
+
+    QCOMPARE(popupWindowVisibleSpy.size(), 1);
+    QCOMPARE(popupWindowVisibleSpy.constLast().constFirst().toBool(), false);
 }
 
 QTEST_QUICKCONTROLS_MAIN(tst_QQuickMenu)

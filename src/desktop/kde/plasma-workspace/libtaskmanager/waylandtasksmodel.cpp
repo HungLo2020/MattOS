@@ -9,7 +9,6 @@
 #include "tasktools.h"
 #include "virtualdesktopinfo.h"
 
-#include <KDirWatch>
 #include <KSharedConfig>
 #include <KSycoca>
 #include <KWindowSystem>
@@ -70,8 +69,10 @@ public:
     QString resourceName;
     QPointer<PlasmaWindow> parentWindow;
     bool wasUnmapped = false;
+    bool wasMapped = false;
 
 Q_SIGNALS:
+    void mapped();
     void unmapped();
     void titleChanged();
     void appIdChanged();
@@ -89,8 +90,6 @@ Q_SIGNALS:
     void maximizeableChanged();
     void fullscreenableChanged();
     void skiptaskbarChanged();
-    void shadeableChanged();
-    void shadedChanged();
     void canSetNoBorderChanged();
     void hasNoBorderChanged();
     void excludeFromCaptureChanged();
@@ -108,6 +107,11 @@ Q_SIGNALS:
     void initialStateDone();
 
 protected:
+    void org_kde_plasma_window_mapped() override
+    {
+        wasMapped = true;
+        Q_EMIT mapped();
+    }
     void org_kde_plasma_window_unmapped() override
     {
         wasUnmapped = true;
@@ -233,14 +237,6 @@ protected:
         if (diff & state::state_skiptaskbar) {
             windowState.setFlag(state::state_skiptaskbar, flags & state::state_skiptaskbar);
             Q_EMIT skipTaskbarChanged();
-        }
-        if (diff & state::state_shadeable) {
-            windowState.setFlag(state::state_shadeable, flags & state::state_shadeable);
-            Q_EMIT shadeableChanged();
-        }
-        if (diff & state::state_shaded) {
-            windowState.setFlag(state::state_shaded, flags & state::state_shaded);
-            Q_EMIT shadedChanged();
         }
         if (diff & state::state_movable) {
             windowState.setFlag(state::state_movable, flags & state::state_movable);
@@ -384,7 +380,7 @@ class PlasmaWindowManagement : public QWaylandClientExtensionTemplate<PlasmaWind
 {
     Q_OBJECT
 public:
-    static constexpr int s_version = 20;
+    static constexpr int s_version = 21;
     PlasmaWindowManagement()
         : QWaylandClientExtensionTemplate(s_version)
     {
@@ -724,10 +720,6 @@ void WaylandTasksModel::Private::addWindow(PlasmaWindow *window)
         this->dataChanged(window, IsKeepBelow);
     });
 
-    QObject::connect(window, &PlasmaWindow::shadeableChanged, q, [window, this] {
-        this->dataChanged(window, IsShadeable);
-    });
-
     QObject::connect(window, &PlasmaWindow::canSetNoBorderChanged, q, [window, this] {
         this->dataChanged(window, CanSetNoBorder);
     });
@@ -738,6 +730,10 @@ void WaylandTasksModel::Private::addWindow(PlasmaWindow *window)
 
     QObject::connect(window, &PlasmaWindow::excludeFromCaptureChanged, q, [window, this] {
         this->dataChanged(window, IsExcludedFromCapture);
+    });
+
+    QObject::connect(window, &PlasmaWindow::mapped, q, [window, this] {
+        this->dataChanged(window, IsMapped);
     });
 
     QObject::connect(window, &PlasmaWindow::virtualDesktopChangeableChanged, q, [window, this] {
@@ -895,98 +891,105 @@ QVariant WaylandTasksModel::data(const QModelIndex &index, int role) const
 
     PlasmaWindow *window = d->windows.at(index.row()).get();
 
-    if (role == Qt::DisplayRole) {
+    switch (role) {
+    case Qt::DisplayRole:
         return window->title;
-    } else if (role == Qt::DecorationRole) {
+    case Qt::DecorationRole:
         return d->icon(window);
-    } else if (role == AppId) {
-        const QString &id = d->appData(window).id;
-
-        if (id.isEmpty()) {
+    case AppId:
+        if (const QString &id = d->appData(window).id; id.isEmpty()) {
             return window->appId;
         } else {
             return id;
         }
-    } else if (role == AppName) {
+    case AppName:
         return d->appData(window).name;
-    } else if (role == GenericName) {
+    case GenericName:
         return d->appData(window).genericName;
-    } else if (role == LauncherUrl || role == LauncherUrlWithoutIcon) {
+    case LauncherUrl:
+    case LauncherUrlWithoutIcon:
         return d->appData(window).url;
-    } else if (role == WinIdList) {
+    case WinIdList:
         return QVariantList{window->uuid};
-    } else if (role == MimeType) {
+    case MimeType:
         return d->mimeType();
-    } else if (role == MimeData) {
+    case MimeData:
         return window->uuid;
-    } else if (role == IsWindow) {
+    case IsWindow:
         return true;
-    } else if (role == IsActive) {
+    case IsActive:
         return (window == d->activeWindow);
-    } else if (role == IsClosable) {
+    case IsClosable:
         return window->windowState.testFlag(PlasmaWindow::state::state_closeable);
-    } else if (role == IsMovable) {
+    case IsMovable:
         return window->windowState.testFlag(PlasmaWindow::state::state_movable);
-    } else if (role == IsResizable) {
+    case IsResizable:
         return window->windowState.testFlag(PlasmaWindow::state::state_resizable);
-    } else if (role == IsMaximizable) {
+    case IsMaximizable:
         return window->windowState.testFlag(PlasmaWindow::state::state_maximizable);
-    } else if (role == IsMaximized) {
+    case IsMaximized:
         return window->windowState.testFlag(PlasmaWindow::state::state_maximized);
-    } else if (role == IsMinimizable) {
+    case IsMinimizable:
         return window->windowState.testFlag(PlasmaWindow::state::state_minimizable);
-    } else if (role == IsMinimized || role == IsHidden) {
+    case IsMinimized:
+    case IsHidden:
         return window->windowState.testFlag(PlasmaWindow::state::state_minimized);
-    } else if (role == IsKeepAbove) {
+    case IsKeepAbove:
         return window->windowState.testFlag(PlasmaWindow::state::state_keep_above);
-    } else if (role == IsKeepBelow) {
+    case IsKeepBelow:
         return window->windowState.testFlag(PlasmaWindow::state::state_keep_below);
-    } else if (role == IsFullScreenable) {
+    case IsFullScreenable:
         return window->windowState.testFlag(PlasmaWindow::state::state_fullscreenable);
-    } else if (role == IsFullScreen) {
+    case IsFullScreen:
         return window->windowState.testFlag(PlasmaWindow::state::state_fullscreen);
-    } else if (role == IsShadeable) {
-        return window->windowState.testFlag(PlasmaWindow::state::state_shadeable);
-    } else if (role == IsShaded) {
-        return window->windowState.testFlag(PlasmaWindow::state::state_shaded);
-    } else if (role == CanSetNoBorder) {
+    case CanSetNoBorder:
         return window->windowState.testFlag(PlasmaWindow::state::state_can_set_no_border);
-    } else if (role == HasNoBorder) {
+    case HasNoBorder:
         return window->windowState.testFlag(PlasmaWindow::state::state_no_border);
-    } else if (role == IsExcludedFromCapture) {
+    case IsExcludedFromCapture:
         return window->windowState.testFlag(PlasmaWindow::state::state_exclude_from_capture);
-    } else if (role == IsVirtualDesktopsChangeable) {
+    case IsMapped:
+        return window->wasMapped;
+    case IsVirtualDesktopsChangeable:
         return window->windowState.testFlag(PlasmaWindow::state::state_virtual_desktop_changeable);
-    } else if (role == VirtualDesktops) {
+    case VirtualDesktops:
         return window->virtualDesktops;
-    } else if (role == IsOnAllVirtualDesktops) {
+    case IsOnAllVirtualDesktops:
         return window->virtualDesktops.isEmpty();
-    } else if (role == Geometry) {
+    case Geometry:
         return window->geometry;
-    } else if (role == ScreenGeometry) {
+    case ScreenGeometry:
         return screenGeometry(window->geometry.center());
-    } else if (role == Activities) {
+    case Activities:
         return window->activities;
-    } else if (role == IsDemandingAttention) {
+    case IsDemandingAttention:
         return window->windowState.testFlag(PlasmaWindow::state::state_demands_attention) || d->transientsDemandingAttention.contains(window);
-    } else if (role == SkipTaskbar) {
+    case SkipTaskbar:
         return window->windowState.testFlag(PlasmaWindow::state::state_skiptaskbar) || d->transients.contains(window);
-    } else if (role == SkipPager) {
-        // FIXME Implement.
-    } else if (role == AppPid) {
+    case SkipPager:
+        return false;
+    case AppPid:
         return window->pid;
-    } else if (role == StackingOrder) {
+    case StackingOrder:
         return d->stackingOrder.indexOf(window->uuid);
-    } else if (role == LastActivated) {
+    case LastActivated:
         if (d->lastActivated.contains(window)) {
             return d->lastActivated.value(window);
+        } else {
+            return QVariant();
         }
-    } else if (role == ApplicationMenuObjectPath) {
+    case ApplicationMenuObjectPath:
         return window->applicationMenuObjectPath;
-    } else if (role == ApplicationMenuServiceName) {
+    case ApplicationMenuServiceName:
         return window->applicationMenuService;
-    } else if (role == CanLaunchNewInstance) {
+    case CanLaunchNewInstance:
         return canLauchNewInstance(d->appData(window));
+    case StorageId:
+        if (const auto service = KService::serviceByDesktopName(d->appData(window).id)) {
+            return service->storageId();
+        } else {
+            return QString();
+        }
     }
 
     return AbstractTasksModel::data(index, role);
@@ -1151,21 +1154,6 @@ void WaylandTasksModel::requestToggleFullScreen(const QModelIndex &index)
     } else {
         window->set_state(PlasmaWindow::state::state_fullscreen, PlasmaWindow::state::state_fullscreen);
     }
-}
-
-void WaylandTasksModel::requestToggleShaded(const QModelIndex &index)
-{
-    if (!checkIndex(index, QAbstractItemModel::CheckIndexOption::IndexIsValid | QAbstractItemModel::CheckIndexOption::DoNotUseParent)) {
-        return;
-    }
-
-    auto &window = d->windows.at(index.row());
-
-    if (window->windowState & PlasmaWindow::state::state_shaded) {
-        window->set_state(PlasmaWindow::state::state_shaded, 0);
-    } else {
-        window->set_state(PlasmaWindow::state::state_shaded, PlasmaWindow::state::state_shaded);
-    };
 }
 
 void WaylandTasksModel::requestToggleNoBorder(const QModelIndex &index)

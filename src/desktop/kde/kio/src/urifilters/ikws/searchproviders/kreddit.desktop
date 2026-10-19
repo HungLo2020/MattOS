@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=KDE Reddit
+Name[am]=KDE Reddit
 Name[ar]=قناة كِيدِي على ردت
 Name[ast]=KDE Reddit
 Name[az]=KDE Reddit
@@ -40,6 +41,8 @@ Name[lg]=KDE ku Reddit
 Name[lt]=KDE Reddit
 Name[lv]=KDE Reddit
 Name[my]=ကေဒီအီး ရက်ဒစ်
+Name[nan_TW]=KDE Reddit
+Name[nan_TW@latin]=KDE Reddit
 Name[nb]=KDE Reddit
 Name[nl]=KDE-Reddit
 Name[nn]=KDE Reddit
@@ -56,7 +59,6 @@ Name[sq]=KDE Reddit
 Name[sv]=KDE Reddit
 Name[th]=KDE Reddit
 Name[tr]=KDE Reddit
-Name[ug]=KDE Reddit
 Name[uk]=KDE Reddit
 Name[vi]=Reddit KDE
 Name[zh_CN]=KDE Reddit 版块
@@ -64,6 +66,7 @@ Name[zh_TW]=KDE Reddit
 Type=Service
 Keys=kreddit
 Query=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
+Query[am]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[ar]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[az]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[be]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
@@ -103,6 +106,8 @@ Query[lg]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[lt]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[lv]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[my]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
+Query[nan_TW]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
+Query[nan_TW@latin]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[nb]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[nl]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[nn]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
@@ -119,7 +124,6 @@ Query[sq]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[sv]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[th]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[tr]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
-Query[ug]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[uk]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[vi]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1
 Query[zh_CN]=https://www.reddit.com/r/kde/search/?q=\\{@}&restrict_sr=1

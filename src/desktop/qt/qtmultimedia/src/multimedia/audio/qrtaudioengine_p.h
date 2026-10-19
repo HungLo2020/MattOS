@@ -15,11 +15,10 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/q_pmr_emulation_p.h>
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
+#include <QtMultimedia/private/qtmm_pmr_p.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qmutex.h>
@@ -63,8 +62,8 @@ public:
 
     // once play() returns finished or isActive is false, the QAudioPlaybackEngine will stop the
     // voice
-    [[nodiscard]] virtual VoicePlayResult play(QSpan<float>) noexcept QT_MM_NONBLOCKING = 0;
-    virtual bool isActive() noexcept QT_MM_NONBLOCKING = 0;
+    [[nodiscard]] virtual VoicePlayResult play(QSpan<float>) noexcept Q_DECL_NONBLOCKING_FUNCTION = 0;
+    virtual bool isActive() noexcept Q_DECL_NONBLOCKING_FUNCTION = 0;
 
     virtual const QAudioFormat &format() noexcept = 0;
 
@@ -185,7 +184,7 @@ public:
 public:
     QRtAudioEngine(const QAudioDevice &, const QAudioFormat &,
                    std::optional<AudioEndpointRole> = std::nullopt,
-                   std::optional<uint32_t> hardwareBufferFrames = std::nullopt);
+                   std::optional<NativePeriodFrames> nativePeriodFrames = std::nullopt);
     Q_DISABLE_COPY_MOVE(QRtAudioEngine)
     ~QRtAudioEngine() override;
 
@@ -240,14 +239,14 @@ Q_SIGNALS:
 private:
     void visitVoiceRt(VoiceId, RtVoiceVisitor, bool visitorIsTrivial);
 
-    void audioCallback(QSpan<float>) noexcept QT_MM_NONBLOCKING;
-    void cleanupRetiredVoices() noexcept QT_MM_NONBLOCKING;
+    void audioCallback(QSpan<float>) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    void cleanupRetiredVoices() noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
-    void runRtCommands() noexcept QT_MM_NONBLOCKING;
-    void runRtCommand(PlayCommand) noexcept QT_MM_NONBLOCKING;
-    void runRtCommand(StopCommand) noexcept QT_MM_NONBLOCKING;
-    void runRtCommand(VisitCommand) noexcept QT_MM_NONBLOCKING;
-    void runRtCommand(VisitCommandTrivial) noexcept QT_MM_NONBLOCKING;
+    void runRtCommands() noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    void runRtCommand(PlayCommand) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    void runRtCommand(StopCommand) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    void runRtCommand(VisitCommand) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    void runRtCommand(VisitCommandTrivial) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     void runNonRtNotifications();
     void runNonRtNotification(StopNotification);

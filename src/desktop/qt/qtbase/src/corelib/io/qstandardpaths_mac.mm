@@ -106,12 +106,6 @@ static QString baseWritableLocation(QStandardPaths::StandardLocation type,
         break;
     case QStandardPaths::ApplicationsLocation:
         break;
-    case QStandardPaths::PublicShareLocation:
-        path = pathForDirectory(NSDocumentDirectory, mask) + "/Public"_L1;
-        break;
-    case QStandardPaths::TemplatesLocation:
-        path = pathForDirectory(NSDocumentDirectory, mask) + "/Templates"_L1;
-        break;
 #endif
     case QStandardPaths::FontsLocation:
         path = pathForDirectory(NSLibraryDirectory, mask) + "/Fonts"_L1;
@@ -168,12 +162,14 @@ QStringList QStandardPaths::standardLocations(StandardLocation type)
 
 #if defined(QT_PLATFORM_UIKIT)
     if (type == PicturesLocation)
-        dirs << writableLocation(PicturesLocation) << "assets-library://"_L1;
+        dirs << "assets-library://"_L1;
 #endif
 
     if (type == GenericDataLocation || type == FontsLocation || type == ApplicationsLocation
             || type == AppDataLocation || type == AppLocalDataLocation
-            || type == GenericCacheLocation || type == CacheLocation) {
+            || type == GenericCacheLocation || type == CacheLocation
+            || type == ConfigLocation || type == GenericConfigLocation
+            || type == AppConfigLocation) {
         QList<NSSearchPathDomainMask> masks;
         masks << NSLocalDomainMask;
         if (type == FontsLocation || type == GenericCacheLocation)

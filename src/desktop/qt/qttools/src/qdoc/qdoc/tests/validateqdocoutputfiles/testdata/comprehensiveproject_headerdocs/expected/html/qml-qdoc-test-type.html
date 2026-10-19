@@ -4,6 +4,7 @@
   <meta charset="utf-8">
 <!-- type.qdoc -->
   <meta name="description" content="A QML type documented in a .cpp file.">
+  <meta name="keywords" content="qmltype">
   <title>Type QML Type | Qt 6.2.11</title>
 </head>
 <body>
@@ -34,6 +35,7 @@
 <tr><td class="memItemLeft rightAlign topAlign"> In C++:</td><td class="memItemRight bottomAlign"> <a href="testqdoc-test.html" translate="no">Test</a></td></tr>
 <tr><td class="memItemLeft rightAlign topAlign"> Status:</td><td class="memItemRight bottomAlign"> &lt;Work In Progress&gt;<span class="status work-in-progress"></span></td></tr>
 </table></div>
+<p><b>This thing is under development and is subject to change.</b></p>
 <ul>
 <li><a href="qml-qdoc-test-type-members.html">List of all members, including inherited members</a></li>
 <li><a href="qml-qdoc-test-type-obsolete.html">Deprecated members</a></li>
@@ -68,9 +70,9 @@
 <ul>
 <li class="fn" translate="no">void <b><a href="qml-qdoc-test-type.html#configureWithType-method" translate="no">configureWithType</a></b>(Type::SomeType <i>typeParam</i>)</li>
 <li class="fn" translate="no">Type <b><a href="qml-qdoc-test-type.html#copy-method" translate="no">copy</a></b>(<i>a</i>)</li>
-<li class="fn" translate="no"><b><a href="qml-qdoc-test-type.html#disable-method" translate="no">disable</a></b>()</li>
-<li class="fn" translate="no"><b><a href="qml-qdoc-test-type.html#enable-method" translate="no">enable</a></b>()</li>
-<li class="fn" translate="no"><b><a href="qml-qdoc-test-type.html#futureDeprecated-method" translate="no">futureDeprecated</a></b>() <code class="summary extra" translate="no">(until 6.3)</code></li>
+<li class="fn" translate="no">void <b><a href="qml-qdoc-test-type.html#disable-method" translate="no">disable</a></b>()</li>
+<li class="fn" translate="no">void <b><a href="qml-qdoc-test-type.html#enable-method" translate="no">enable</a></b>()</li>
+<li class="fn" translate="no">void <b><a href="qml-qdoc-test-type.html#futureDeprecated-method" translate="no">futureDeprecated</a></b>() <code class="summary extra" translate="no">(until 6.3)</code></li>
 <li class="fn" translate="no">void <b><a href="qml-qdoc-test-type.html#setType-method" translate="no">setType</a></b>(Type.SomeType <i>newType</i>)</li>
 </ul>
 <!-- $$$Type-description -->
@@ -103,7 +105,7 @@
 <!-- @@@name -->
 <h2>Attached Property Documentation</h2>
 <!-- $$$type -->
-<h3 class="fn qml-member qml-property" translate="no" id="type-attached-prop"><span class="name">Type.type</span> : <span class="type">enumeration</span> <code class="details extra" translate="no">[default: Type.NoType]</code></h3>
+<h3 class="fn qml-member qml-property" translate="no" id="type-attached-prop"><span class="name">Type.type</span> : <span class="type">enumeration</span> <code class="details extra" translate="no">[default: Type.NoType attached]</code></h3>
 <div class="table"><table class="valuelist"><tr valign="top" class="odd"><th class="tblConst">Constant</th><th class="tbldscr">Description</th></tr>
 <tr><td class="topAlign"><code translate="no">Type.NoType</code></td><td class="topAlign">Nothing</td></tr>
 <tr><td class="topAlign"><code translate="no">Type.SomeType</code></td><td class="topAlign">Something</td></tr>
@@ -122,7 +124,7 @@
 </div><!-- @@@group.created -->
 <h2>Attached Signal Documentation</h2>
 <!-- $$$configured[overload1]$$$configured -->
-<h3 class="fn qml-member qml-method" translate="no" id="configured-signal"><span class="name">configured</span>()</h3>
+<h3 class="fn qml-member qml-method" translate="no" id="configured-signal"><code class="details extra" translate="no">[attached]</code> <span class="name">configured</span>()</h3>
 <p>This attached signal is emitted when the type was configured.</p>
 <div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onConfigured</code>.</p>
 </div><!-- @@@configured -->
@@ -138,13 +140,13 @@
 <!-- @@@copy -->
 <!-- $$$ -->
 <div class="fngroup">
-<h3 class="fn qml-member qml-method fngroupitem" translate="no" id="enable-method"><span class="name">enable</span>()</h3>
-<h3 class="fn qml-member qml-method fngroupitem" translate="no" id="disable-method"><span class="name">disable</span>()</h3>
+<h3 class="fn qml-member qml-method fngroupitem" translate="no" id="enable-method"><span class="type">void</span> <span class="name">enable</span>()</h3>
+<h3 class="fn qml-member qml-method fngroupitem" translate="no" id="disable-method"><span class="type">void</span> <span class="name">disable</span>()</h3>
 </div>
 <p>Enables or disables this type.</p>
 <!-- @@@ -->
 <!-- $$$futureDeprecated[overload1]$$$futureDeprecated -->
-<h3 class="fn qml-member qml-method" translate="no" id="futureDeprecated-method"><code class="details extra" translate="no">[until 6.3]</code> <span class="name">futureDeprecated</span>()</h3>
+<h3 class="fn qml-member qml-method" translate="no" id="futureDeprecated-method"><code class="details extra" translate="no">[until 6.3]</code> <span class="type">void</span> <span class="name">futureDeprecated</span>()</h3>
 <p>This method is scheduled for deprecation in version 6.3.</p>
 <p>Use something else instead.</p>
 <p>This is a method that's marked for deprecation in a future version.</p>

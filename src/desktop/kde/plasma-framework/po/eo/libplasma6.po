@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-framework\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-05 02:41+0000\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
 "PO-Revision-Date: 2025-01-01 09:06+0100\n"
 "Last-Translator: Oliver Kellogg <olivermkellogg@gmail.com>\n"
 "Language-Team: esperanto <kde-i18n-eo@kde.org>\n"
@@ -22,6 +22,12 @@ msgstr ""
 #, kde-format
 msgid "More actions"
 msgstr "Pli da agoj"
+
+#: declarativeimports/plasmaextracomponents/qml/ContextualHelpButton.qml:58
+#, kde-format
+msgctxt "@action:button"
+msgid "Show Contextual Help"
+msgstr ""
 
 #: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
 #, kde-format
@@ -40,6 +46,24 @@ msgstr "Vastigi"
 msgid "Password"
 msgstr "Pasvorto"
 
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:57
+#, fuzzy, kde-format
+#| msgid "Password"
+msgctxt ""
+"@action:button in text field, tooltip/accessible only, displays placeholders "
+"for characters"
+msgid "Hide Password"
+msgstr "Pasvorto"
+
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:58
+#, fuzzy, kde-format
+#| msgid "Password"
+msgctxt ""
+"@action:button in text field, tooltip/accessible only, reveals password "
+"chracters"
+msgid "Show Password"
+msgstr "Pasvorto"
+
 #: declarativeimports/plasmaextracomponents/qml/SearchField.qml:62
 #, kde-format
 msgid "Search…"
@@ -55,44 +79,44 @@ msgstr "Serĉi"
 msgid "Clear search"
 msgstr "Malplenigi serĉon"
 
-#: plasma/applet.cpp:318
+#: plasma/applet.cpp:296
 #, kde-format
 msgid "Unknown"
 msgstr "Nekonata"
 
-#: plasma/applet.cpp:764
+#: plasma/applet.cpp:742
 #, kde-format
 msgid "Activate %1 Widget"
 msgstr "Aktivigi fenestraĵon %1"
 
-#: plasma/containment.cpp:100 plasma/private/applet_p.cpp:101
+#: plasma/containment.cpp:102 plasma/private/applet_p.cpp:98
 #, kde-format
 msgctxt "%1 is the name of the applet"
 msgid "Remove %1"
 msgstr "Forigi %1"
 
-#: plasma/containment.cpp:106 plasma/corona.cpp:365 plasma/corona.cpp:486
+#: plasma/containment.cpp:108 plasma/corona.cpp:314 plasma/corona.cpp:435
 #, kde-format
 msgid "Enter Edit Mode"
 msgstr "Eniri redaktan reĝimon"
 
-#: plasma/containment.cpp:109 plasma/private/applet_p.cpp:106
+#: plasma/containment.cpp:111 plasma/private/applet_p.cpp:103
 #, kde-format
 msgctxt "%1 is the name of the applet"
 msgid "Configure %1..."
 msgstr "Agordi %1..."
 
-#: plasma/corona.cpp:314 plasma/corona.cpp:471
+#: plasma/corona.cpp:263 plasma/corona.cpp:420
 #, kde-format
 msgid "Lock Widgets"
 msgstr "Ŝlosi fenestraĵojn"
 
-#: plasma/corona.cpp:314
+#: plasma/corona.cpp:263
 #, kde-format
 msgid "Unlock Widgets"
 msgstr "Malŝlosi fenestraĵojn"
 
-#: plasma/corona.cpp:363
+#: plasma/corona.cpp:312
 #, kde-format
 msgid "Exit Edit Mode"
 msgstr "Eliri redaktan reĝimon"
@@ -102,95 +126,99 @@ msgstr "Eliri redaktan reĝimon"
 msgid "Could not find requested component: %1"
 msgstr "Ne eblis trovi petitan komponanton: %1"
 
-#: plasma/private/applet_p.cpp:119
+#: plasma/private/applet_p.cpp:116
 #, kde-format
 msgid "Show Alternatives..."
 msgstr "Montri alternativojn..."
 
-#: plasma/private/applet_p.cpp:237
+#: plasma/private/applet_p.cpp:234
 #, kde-format
 msgid "Widget Removed"
 msgstr "Fenestraĵo forigita"
 
-#: plasma/private/applet_p.cpp:238
+#: plasma/private/applet_p.cpp:235
 #, kde-format
 msgid "The widget \"%1\" has been removed."
 msgstr "La fenestraĵo \"%1\" estis forigita."
 
-#: plasma/private/applet_p.cpp:242
+#: plasma/private/applet_p.cpp:239
 #, kde-format
 msgid "Panel Removed"
 msgstr "Panelo forigita"
 
-#: plasma/private/applet_p.cpp:243
+#: plasma/private/applet_p.cpp:240
 #, kde-format
 msgid "A panel has been removed."
 msgstr "Panelo estis forigita."
 
-#: plasma/private/applet_p.cpp:246
+#: plasma/private/applet_p.cpp:243
 #, kde-format
 msgid "Desktop Removed"
 msgstr "Labortablo forigita"
 
-#: plasma/private/applet_p.cpp:247
+#: plasma/private/applet_p.cpp:244
 #, kde-format
 msgid "A desktop has been removed."
 msgstr "Labortablo estis forigita."
 
-#: plasma/private/applet_p.cpp:250
+#: plasma/private/applet_p.cpp:247
 #, kde-format
 msgid "Undo"
 msgstr "Malfari"
 
-#: plasma/private/applet_p.cpp:341
+#: plasma/private/applet_p.cpp:317
 #, kde-format
 msgid "Widget Settings"
 msgstr "Agordoj de fenestraĵoj"
 
-#: plasma/private/applet_p.cpp:347
+#: plasma/private/applet_p.cpp:323
 #, kde-format
 msgid "Remove this Widget"
 msgstr "Forigi ĉi tiun fenestraĵon"
 
-#: plasma/private/containment_p.cpp:51
+#: plasma/private/containment_p.cpp:54
 #, kde-format
 msgid "Remove this Panel"
 msgstr "Forigi ĉi tiun panelon"
 
-#: plasma/private/containment_p.cpp:53
+#: plasma/private/containment_p.cpp:56
 #, kde-format
 msgid "Remove this Activity"
 msgstr "Forigi ĉi tiun agadon"
 
-#: plasma/private/containment_p.cpp:58
+#: plasma/private/containment_p.cpp:61
 #, kde-format
 msgid "Activity Settings"
 msgstr "Agado-Agordoj"
 
-#: plasma/private/containment_p.cpp:70
+#: plasma/private/containment_p.cpp:73
 #, kde-format
 msgid "Add or Manage Widgets…"
 msgstr "Aldoni aŭ Mastrumi Fenestraĵojn…"
 
-#: plasmaquick/appletquickitem.cpp:540
+#: plasmaquick/appletquickitem.cpp:548
 #, kde-format
 msgid "The root item of %1 must be of type ContainmentItem"
 msgstr "La radika objekto de %1 devas esti de tipo ContainmentItem"
 
-#: plasmaquick/appletquickitem.cpp:545
+#: plasmaquick/appletquickitem.cpp:553
 #, kde-format
 msgid "The root item of %1 must be of type PlasmoidItem"
 msgstr "La radika objekto de %1 devas esti de tipo PlasmoidItem"
 
-#: plasmaquick/appletquickitem.cpp:553
+#: plasmaquick/appletquickitem.cpp:561
 #, kde-format
 msgid "Unknown Applet"
 msgstr "Nekonata Apleto"
 
-#: plasmaquick/appletquickitem.cpp:567
-#, kde-format
+#: plasmaquick/appletquickitem.cpp:575
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for an unknown older version of Plasma and is not "
+#| "compatible with Plasma %1. Please contact the widget's author for an "
+#| "updated version."
 msgid ""
-"This Widget was written for an unknown older version of Plasma and is not "
+"This widget was written for an unknown older version of Plasma and is not "
 "compatible with Plasma %1. Please contact the widget's author for an updated "
 "version."
 msgstr ""
@@ -198,98 +226,113 @@ msgstr ""
 "ne estas kongrua kun Plasma %1. Bonvolu kontakti la aŭtoron de la fenestraĵo "
 "por ĝisdatigita versio."
 
-#: plasmaquick/appletquickitem.cpp:570 plasmaquick/appletquickitem.cpp:577
-#: plasmaquick/appletquickitem.cpp:583
+#: plasmaquick/appletquickitem.cpp:578 plasmaquick/appletquickitem.cpp:585
+#: plasmaquick/appletquickitem.cpp:591
 #, kde-format
 msgid "%1 is not compatible with Plasma %2"
 msgstr "%1 ne estas kongrua kun Plasma %2"
 
-#: plasmaquick/appletquickitem.cpp:574
-#, kde-format
+#: plasmaquick/appletquickitem.cpp:582
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for Plasma %1 and is not compatible with Plasma "
+#| "%2. Please contact the widget's author for an updated version."
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please contact the widget's author for an updated version."
 msgstr ""
 "Ĉi Fenestraĵo estis skribita por Plasma %1 kaj ne estas kongrua kun Plasma "
 "%2. Bonvolu kontakti la aŭtoron de la fenestraĵo por ĝisdatigita versio."
 
-#: plasmaquick/appletquickitem.cpp:580
-#, kde-format
+#: plasmaquick/appletquickitem.cpp:588
+#, fuzzy, kde-format
+#| msgid ""
+#| "This Widget was written for Plasma %1 and is not compatible with Plasma "
+#| "%2. Please update Plasma in order to use the widget."
 msgid ""
-"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"This widget was written for Plasma %1 and is not compatible with Plasma %2. "
 "Please update Plasma in order to use the widget."
 msgstr ""
 "Ĉi Fenestraĵo estis skribita por Plasma %1 kaj ne estas kongrua kun Plasma "
 "%2. Bonvolu ĝisdatigi Plasma por uzi la fenestraĵon."
 
-#: plasmaquick/appletquickitem.cpp:589 plasmaquick/appletquickitem.cpp:611
+#: plasmaquick/appletquickitem.cpp:597 plasmaquick/appletquickitem.cpp:620
 #, kde-format
 msgid "Sorry! There was an error loading %1."
 msgstr "Pardonon, estis eraro ŝargante %1."
 
-#: plasmaquick/appletquickitem.cpp:606
+#: plasmaquick/appletquickitem.cpp:614
 #, kde-format
 msgid "Error loading QML file: %1 %2"
 msgstr "Eraro dum ŝargo de QML-dosiero: %1 %2"
 
-#: plasmaquick/appletquickitem.cpp:609
+#: plasmaquick/appletquickitem.cpp:618
 #, kde-format
 msgid "Error loading Applet: package %1 does not exist."
 msgstr "Eraro dum ŝargo de Apleto: pako %1 ne ekzistas."
 
-#: plasmaquick/configview.cpp:189
+#: plasmaquick/appletquickitem.cpp:623
+#, fuzzy, kde-format
+#| msgid "Error loading Applet: package %1 does not exist."
+msgctxt "@info"
+msgid ""
+"Error loading Applet: package format is invalid (does not contain any "
+"metadata)."
+msgstr "Eraro dum ŝargo de Apleto: pako %1 ne ekzistas."
+
+#: plasmaquick/configview.cpp:194
 #, kde-format
 msgid "%1 — %2 Settings"
 msgstr "%1 — %2 Agordoj"
 
-#: plasmaquick/configview.cpp:190
+#: plasmaquick/configview.cpp:195
 #, kde-format
 msgid "%1 Settings"
 msgstr "%1 Agordoj"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:569
+#: plasmaquick/plasmoid/containmentitem.cpp:574
 #, kde-format
 msgid "Plasma Package"
 msgstr "Plasma Pako"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:573
+#: plasmaquick/plasmoid/containmentitem.cpp:578
 #, kde-format
 msgid "Install"
 msgstr "Instali"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:584
+#: plasmaquick/plasmoid/containmentitem.cpp:589
 #, kde-format
 msgid "Package Installation Failed"
 msgstr "Paka Instalado Malsukcesis"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:600
+#: plasmaquick/plasmoid/containmentitem.cpp:605
 #, kde-format
 msgid "The package you just dropped is invalid."
 msgstr "La pako, kiun vi ĵus faligis, estas nevalida."
 
-#: plasmaquick/plasmoid/containmentitem.cpp:609
+#: plasmaquick/plasmoid/containmentitem.cpp:614
 #, kde-format
 msgid "Widgets"
 msgstr "Fenestraĵoj"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:614
+#: plasmaquick/plasmoid/containmentitem.cpp:619
 #, kde-format
 msgctxt "Add widget"
 msgid "Add %1"
 msgstr "Aldoni %1"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:628
+#: plasmaquick/plasmoid/containmentitem.cpp:633
 #, kde-format
 msgctxt "Add icon widget"
 msgid "Add Icon"
 msgstr "Aldoni piktogramon"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:640
+#: plasmaquick/plasmoid/containmentitem.cpp:645
 #, kde-format
 msgid "Wallpaper"
 msgstr "Tapeto"
 
-#: plasmaquick/plasmoid/containmentitem.cpp:650
+#: plasmaquick/plasmoid/containmentitem.cpp:655
 #, kde-format
 msgctxt "Set wallpaper"
 msgid "Set %1"

@@ -6,9 +6,9 @@
 
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
+pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Layouts
 
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
@@ -43,7 +43,6 @@ MouseArea {
     hoverEnabled: true
 
     Accessible.name: Plasmoid.title
-    Accessible.description: `${toolTipMainText}; ${toolTipSubText}`
     Accessible.role: Accessible.Button
 
     property string activeProfileIconSrc: isInPowersaveProfile   ? "battery-profile-powersave-symbolic"
@@ -84,7 +83,9 @@ MouseArea {
             active: root.containsMouse
             hasBattery: root.hasCumulative
             percent: root.batteryPercent
+            isSomehowFullyCharged: root.isSomehowFullyCharged
             pluggedIn: root.batteryPluggedIn
+            preferSymbolic: true
             powerProfileIconName: root.isInDefaultPowerProfile ? ""
                                 : root.isInPowersaveProfile    ? "powersave"
                                 : root.isInBalancedProfile     ? "balanced"
@@ -93,13 +94,26 @@ MouseArea {
         }
 
         WorkspaceComponents.BadgeOverlay {
-            anchors.bottom: parent.bottom
-            anchors.right: parent.right
+            id: badge
 
-            visible: Plasmoid.configuration.showPercentage && !root.isSomehowFullyCharged
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+
+            visible: Plasmoid.configuration.showPercentage && root.batteryPercent >= 0 && !root.isSomehowFullyCharged
 
             text: i18nc("battery percentage below battery icon", "%1%", root.batteryPercent)
-            icon: overallBatteryIcon
+
+            // Non-default state to center if the badge is wider than the icon
+            states: [
+                State {
+                    when: badge.width >= overallBatteryInfo.width
+                    AnchorChanges {
+                        target: badge
+                        anchors.right: undefined
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            ]
         }
     }
 
@@ -126,6 +140,9 @@ MouseArea {
         delegate: Item {
             id: batteryContainer
 
+            required property var model // can't use individual required properties as the names are upper case
+            readonly property bool batteryPercentKnown: model.Percent >= 0
+
             width: view.cellWidth
             height: view.cellHeight
 
@@ -136,18 +153,18 @@ MouseArea {
                 anchors.fill: parent
 
                 active: root.containsMouse
-                hasBattery: PluggedIn
-                percent: Percent
-                pluggedIn: ChargeState === BatteryControlModel.Charging
+                hasBattery: batteryContainer.model.PluggedIn && batteryContainer.batteryPercentKnown
+                percent: Math.max(0, batteryContainer.model.Percent)
+                pluggedIn: batteryContainer.model.ChargeState === BatteryControlModel.Charging
             }
 
             WorkspaceComponents.BadgeOverlay {
                 anchors.bottom: parent.bottom
                 anchors.right: parent.right
 
-                visible: Plasmoid.configuration.showPercentage && !root.isSomehowFullyCharged
+                visible: Plasmoid.configuration.showPercentage && batteryContainer.batteryPercentKnown && !root.isSomehowFullyCharged
 
-                text: i18nc("battery percentage below battery icon", "%1%", Percent)
+                text: i18nc("battery percentage below battery icon", "%1%", batteryContainer.model.Percent)
                 icon: batteryIcon
             }
         }

@@ -80,6 +80,10 @@ public: // Of necessity, a few public functions remain.
     void addToDontDocumentMap(QString &arg);
     void markDontDocumentNodes();
     static QString refForAtom(const Atom *atom);
+    void resolveProperties();
+
+    void addPropertyFunction(PropertyNode *property, const QString &funcName,
+                             PropertyNode::FunctionRole funcRole);
 
 private: // The rest of the class is private.
     Aggregate *findAggregate(const QString &name);
@@ -114,11 +118,8 @@ private: // The rest of the class is private.
     const TargetRec *findUnambiguousTarget(const QString &target, Genus genus) const;
     [[nodiscard]] const PageNode *findPageNodeByTitle(const QString &title) const;
 
-    void addPropertyFunction(PropertyNode *property, const QString &funcName,
-                             PropertyNode::FunctionRole funcRole);
     void resolveBaseClasses(Aggregate *n);
     void resolvePropertyOverriddenFromPtrs(Aggregate *n);
-    void resolveProperties();
     void resolveCppToQmlLinks();
     void resolveSince(Aggregate &aggregate);
     void resolveEnumValueSince(EnumNode &en);
@@ -133,6 +134,7 @@ private: // The rest of the class is private.
     [[nodiscard]] const CNMap &groups() const { return m_groups; }
     [[nodiscard]] const CNMap &modules() const { return m_modules; }
     [[nodiscard]] const CNMap &qmlModules() const { return m_qmlModules; }
+    [[nodiscard]] const CNMap &concepts() const { return m_concepts; }
 
     CollectionNode *getCollection(const QString &name, NodeType type);
     CollectionNode *findCollection(const QString &name, NodeType type);
@@ -143,10 +145,15 @@ private: // The rest of the class is private.
     {
         return findCollection(name, NodeType::QmlModule);
     }
+    CollectionNode *findConcept(const QString &name)
+    {
+        return findCollection(name, NodeType::Concept);
+    }
 
     CollectionNode *addGroup(const QString &name) { return findGroup(name); }
     CollectionNode *addModule(const QString &name) { return findModule(name); }
     CollectionNode *addQmlModule(const QString &name) { return findQmlModule(name); }
+    CollectionNode *addConcept(const QString &name) { return findConcept(name); }
 
     CollectionNode *addToGroup(const QString &name, Node *node);
     CollectionNode *addToModule(const QString &name, Node *node);
@@ -177,6 +184,7 @@ private:
     CNMap m_groups {};
     CNMap m_modules {};
     CNMap m_qmlModules {};
+    CNMap m_concepts {};
     QmlTypeMap m_qmlTypeMap {};
     ExampleNodeMap m_exampleNodeMap {};
     NodeList m_proxies {};

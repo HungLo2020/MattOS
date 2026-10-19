@@ -66,11 +66,6 @@ QQuickItem *QQStyleKitDelegateContainer::delegateInstance() const
     return m_delegateInstance;
 }
 
-bool QQStyleKitDelegateContainer::usingDefaultDelegate() const
-{
-    return m_delegateComponent == s_defaultDelegateComponent;
-}
-
 void QQStyleKitDelegateContainer::updateImplicitSize()
 {
     if (m_inGeometryChange) {
@@ -95,8 +90,8 @@ void QQStyleKitDelegateContainer::updateImplicitSize()
         /* The delegate instance may not exist yet (e.g. because it is hidden),
          * but the container should still report the style's implicit size so
          * that it reserves the correct space in a layout. */
-        implicitWidth = qMax(m_delegateProperties->minimumWidth(), m_delegateProperties->implicitWidth());
-        implicitHeight = m_delegateProperties->implicitHeight();
+        implicitWidth = qMax(m_delegateProperties->minimumWidth(), m_delegateProperties->width());
+        implicitHeight = qMax(m_delegateProperties->minimumHeight(), m_delegateProperties->height());
     }
 
     setImplicitWidth(implicitWidth);
@@ -119,8 +114,6 @@ void QQStyleKitDelegateContainer::maybeCreateDelegate()
     disconnect(m_delegateProperties, &QQStyleKitDelegateProperties::visibleChanged,
                this, &QQStyleKitDelegateContainer::maybeCreateDelegate);
 
-    const bool wasUsingDefaultDelegate = usingDefaultDelegate();
-
     if (QQmlComponent *delegateComponent = m_delegateProperties->delegate()) {
         m_delegateComponent = delegateComponent;
     } else {
@@ -129,9 +122,9 @@ void QQStyleKitDelegateContainer::maybeCreateDelegate()
             QQmlEngine *engine = qmlEngine(this);
             s_defaultDelegateComponent = new QQmlComponent(engine);
             const QString qmlCode = QString::fromUtf8(R"(
-                import QtQuick
                 import Qt.labs.StyleKit
                 StyledItem {
+                    visible: delegateStyle.visible
                     width: parent.width
                     height: parent.height
                 }
@@ -156,8 +149,6 @@ void QQStyleKitDelegateContainer::maybeCreateDelegate()
     connect(m_delegateInstance, &QQuickItem::implicitWidthChanged, this, &QQStyleKitDelegateContainer::updateImplicitSize);
     connect(m_delegateInstance, &QQuickItem::implicitHeightChanged, this, &QQStyleKitDelegateContainer::updateImplicitSize);
 
-    if (usingDefaultDelegate() != wasUsingDefaultDelegate)
-        emit usingDefaultDelegateChanged();
 }
 
 void QQStyleKitDelegateContainer::maybeCreateShadow()
@@ -269,6 +260,24 @@ void QQStyleKitDelegateContainer::componentComplete()
             delete m_shadowInstance;
             maybeCreateShadow();
         }
+    });
+
+    /* rotation and scale are applied here rather than as QML bindings
+     * in each QML file that uses a container, simply to avoid repeating the same
+     * bindings in all container instances.  But note, the properties we set from
+     * c++ cannot then be bound to another value from QML since the c++ code would
+     * ignore and overwrite such bindings. For this reason, properties like 'visible'
+     * still needs to be set from QML since a container should sometimes be hidden
+     * based on the state of the control (e.g a menu arrow should only be visible
+     * when the menu has children etc). */
+    setRotation(m_delegateProperties->rotation());
+    setScale(m_delegateProperties->scale());
+
+    connect(m_delegateProperties, &QQStyleKitDelegateProperties::rotationChanged, this, [this]() {
+        setRotation(m_delegateProperties->rotation());
+    });
+    connect(m_delegateProperties, &QQStyleKitDelegateProperties::scaleChanged, this, [this]() {
+        setScale(m_delegateProperties->scale());
     });
 
     updateImplicitSize();

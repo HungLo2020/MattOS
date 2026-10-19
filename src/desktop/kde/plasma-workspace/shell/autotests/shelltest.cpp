@@ -6,6 +6,7 @@
 
 #include <QObject>
 
+#include <QDBusConnection>
 #include <QDir>
 #include <QScreen>
 #include <QSignalSpy>
@@ -44,11 +45,15 @@ void copyDirectory(const QString &srcDir, const QString &dstDir)
 class ShellTest : public QObject, DefaultCompositor
 {
     Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.kde.KWin")
 
     QScreen *insertScreen(const QRect &geometry, const QString &name);
     void setScreenOrder(const QStringList &order, bool expectOrderChanged);
     void resetScreen();
     Plasma::Containment *addTestPanel(const QString &plugin);
+
+public Q_SLOTS:
+    QString activeOutputName();
 
 private Q_SLOTS:
     void initTestCase();
@@ -58,19 +63,28 @@ private Q_SLOTS:
     void testScreenInsertion();
     void testPanelInsertion();
     void testSecondScreenInsertion();
-    void testRedundantScreenInsertion();
+    void testScreenRemovalBeforeAfterScreenOrderChanged();
     void testScreenRemovalRecyclingViews();
-    void testMoveOutOfRedundant();
     void testScreenRemoval();
     void testReorderScreens_data();
     void testReorderScreens();
     void testReorderContainments();
     void testPanelSizeModes();
+    void testOutputOrderChanged();
 
 private:
     ShellCorona *m_corona;
     QDir m_plasmaDir;
 };
+
+QString ShellTest::activeOutputName()
+{
+    if (outputOrder()->list().isEmpty()) {
+        return {};
+    }
+
+    return outputOrder()->list().first();
+}
 
 QScreen *ShellTest::insertScreen(const QRect &geometry, const QString &name)
 {
@@ -162,10 +176,11 @@ void ShellTest::resetScreen()
 Plasma::Containment *ShellTest::addTestPanel(const QString &plugin)
 {
     QSignalSpy uiReadySpy(m_corona, &ShellCorona::screenUiReadyChanged);
+
     auto panelCont = m_corona->addPanel(plugin);
-    if (!m_corona->isScreenUiReady(panelCont->screen())) {
-        QVERIFY(uiReadySpy.wait());
-    }
+
+    // Wait and make sure the desktop and the new panel are loaded
+    QTRY_VERIFY(m_corona->isScreenUiReady(panelCont->screen()));
 
     return panelCont;
 }
@@ -174,6 +189,10 @@ void ShellTest::initTestCase()
 {
     QStandardPaths::setTestModeEnabled(true);
     qRegisterMetaType<QScreen *>();
+    QVERIFY(QDBusConnection::sessionBus().registerService(QStringLiteral("org.kde.KWin")));
+    QVERIFY(QDBusConnection::sessionBus().registerObject(QStringLiteral("/KWin"), this, QDBusConnection::ExportAllSlots));
+    // Register KSplash so we dont start it accidentally which prevents ctest from exiting
+    QVERIFY(QDBusConnection::sessionBus().registerService(QStringLiteral("org.kde.KSplash")));
 
     m_plasmaDir = QDir(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + u'/' + u"plasma");
     m_plasmaDir.removeRecursively();
@@ -205,18 +224,25 @@ void ShellTest::cleanupTestCase()
     });
     QCOMPOSITOR_COMPARE(getAll<Output>().size(), 1); // Only the default output should be left
     QTRY_COMPARE(QGuiApplication::screens().size(), 1);
-    // m_corona->deleteLater();
-    m_corona->unload();
-    QCOMPARE(m_corona->m_desktopViewForScreen.count(), 0);
+    QTRY_VERIFY(m_corona->m_desktopViewForScreen[0]->containment()->isUiReady());
+
+    insertScreen(QRect(1920, 0, 1920, 1080), QStringLiteral("DP-1"));
+    setScreenOrder({u"WL-1"_s, u"DP-1"_s}, true);
+
+    auto *panelCont = addTestPanel(QStringLiteral("org.kde.plasma.testpanel"));
+    Q_ASSERT(m_corona->m_panelViews[panelCont]);
+    m_corona->m_panelViews[panelCont]->moveToScreen(m_corona->m_screenPool->screenOrder()[1]);
+    delete m_corona; // Implicitly tests 515234; if we regress, the test crashes!
 
     QTRY_VERIFY2(isClean(), qPrintable(dirtyMessage()));
 
     KConfigGroup cg(KSharedConfig::openConfig(), QStringLiteral("ScreenConnectors"));
     cg.deleteGroup();
     cg.sync();
-    delete m_corona;
 
     // m_plasmaDir.removeRecursively();
+    QDBusConnection::sessionBus().unregisterObject(QStringLiteral("/KWin"));
+    QDBusConnection::sessionBus().unregisterService(QStringLiteral("org.kde.KWin"));
 }
 
 void ShellTest::cleanup()
@@ -224,14 +250,16 @@ void ShellTest::cleanup()
     const int oldNumScreens = qApp->screens().size();
     const int oldCoronaNumScreens = m_corona->numScreens();
     QVERIFY(oldCoronaNumScreens <= oldNumScreens);
-    QSignalSpy coronaRemovedSpy(m_corona, SIGNAL(screenRemoved(int)));
+    QSignalSpy coronaRemovedSpy(m_corona, &ShellCorona::screenRemoved);
 
+    QSignalSpy coronaScreenOrderSpy(m_corona, &ShellCorona::screenOrderChanged);
     exec([=, this] {
         for (int i = oldNumScreens - 1; i >= 0; --i) {
             remove(output(i));
         }
     });
-    setScreenOrder({}, true);
+    coronaScreenOrderSpy.wait();
+    setScreenOrder({}, false);
 
     QTRY_COMPARE(coronaRemovedSpy.size(), oldCoronaNumScreens);
 
@@ -249,7 +277,6 @@ void ShellTest::cleanup()
     QCOMPARE(qApp->screens()[0]->name(), QString());
     insertScreen(QRect(0, 0, 1920, 1080), QStringLiteral("WL-1"));
     QCOMPARE(qApp->screens().size(), 1);
-    QSignalSpy coronaScreenOrderSpy(m_corona, &ShellCorona::screenOrderChanged);
     setScreenOrder({u"WL-1"_s}, true);
 }
 
@@ -299,52 +326,6 @@ void ShellTest::testSecondScreenInsertion()
     QCOMPARE(result2->name(), name2);
 }
 
-void ShellTest::testRedundantScreenInsertion()
-{
-    QCOMPARE(m_corona->m_desktopViewForScreen.size(), 1);
-    auto *view0 = m_corona->m_desktopViewForScreen[0];
-    QCOMPARE(view0->screen()->name(), QStringLiteral("WL-1"));
-
-    auto *cont0 = m_corona->m_desktopViewForScreen[0]->containment();
-    QCOMPARE(cont0->screen(), 0);
-    auto *oldScreen0 = view0->screen();
-
-    const auto geom = QRect(0, 0, 1920, 1080);
-    const auto name = QStringLiteral("DP-1");
-    auto result = insertScreen(geom, name);
-    // false as we do not expect to be notified for screenorderchanged
-    setScreenOrder({u"WL-1"_s, u"DP-1"_s}, false);
-    QCOMPARE(result->geometry(), geom);
-    QCOMPARE(qApp->screens().size(), 2);
-    // m_desktopViewForScreen did *not* get a view for the new screen
-    QCOMPARE(m_corona->m_desktopViewForScreen.size(), 1);
-    // associations of old things didn't change
-    QCOMPARE(view0->containment(), cont0);
-    QCOMPARE(cont0->screen(), 0);
-    QCOMPARE(view0->screen(), oldScreen0);
-}
-
-void ShellTest::testMoveOutOfRedundant()
-{
-    testRedundantScreenInsertion();
-
-    QSignalSpy coronaAddedSpy(m_corona, SIGNAL(screenAdded(int)));
-
-    exec([this] {
-        auto *out = output(1);
-        auto *xdgOut = xdgOutput(out);
-        out->m_data.mode.resolution = {1280, 2048};
-        xdgOut->sendLogicalSize(QSize(1280, 2048));
-        out->sendDone();
-        outputOrder()->setList({u"WL-1"_s, u"DP-1"_s});
-    });
-
-    coronaAddedSpy.wait();
-    QCOMPARE(coronaAddedSpy.size(), 1);
-    const int screen = coronaAddedSpy.takeFirst().at(0).value<int>();
-    QCOMPARE(screen, 1);
-}
-
 void ShellTest::testScreenRemoval()
 {
     // Create 2 new screens
@@ -362,12 +343,12 @@ void ShellTest::testScreenRemoval()
 
     QCOMPARE(m_corona->m_panelViews.size(), 0);
     auto panelCont = addTestPanel(QStringLiteral("org.kde.plasma.testpanel"));
-    m_corona->m_panelViews[panelCont]->setScreenToFollow(m_corona->m_screenPool->screenForId(2));
+    m_corona->m_panelViews[panelCont]->moveToScreen(m_corona->m_screenPool->screenForId(2));
     QCOMPARE(panelCont->screen(), 2);
     QCOMPARE(m_corona->m_panelViews[panelCont]->screen(), m_corona->m_screenPool->screenForId(2));
     QCOMPARE(m_corona->m_panelViews.size(), 1);
 
-    QSignalSpy removedSpy(m_corona, SIGNAL(screenRemoved(int)));
+    QSignalSpy removedSpy(m_corona, &ShellCorona::screenRemoved);
 
     // Remove outputs
     exec([this] {
@@ -377,7 +358,7 @@ void ShellTest::testScreenRemoval()
 
     QTRY_COMPARE(removedSpy.size(), 2);
 
-    setScreenOrder({u"WL-1"_s}, true);
+    setScreenOrder({u"WL-1"_s}, false);
 
     QCOMPARE(m_corona->numScreens(), 1);
     QCOMPARE(qApp->screens().size(), 1);
@@ -399,16 +380,58 @@ void ShellTest::testScreenRemoval()
     for (auto *cont : m_corona->containments()) {
         if (cont == cont1) {
             cont1Found = true;
-            QCOMPARE(cont->screen(), -1);
-            QCOMPARE(cont->lastScreen(), 1);
+            QCOMPARE(cont->screen(), 1);
         } else if (cont == cont2) {
             cont2Found = true;
-            QCOMPARE(cont->screen(), -1);
-            QCOMPARE(cont->lastScreen(), 2);
+            QCOMPARE(cont->screen(), 2);
         }
     }
     QVERIFY(cont1Found);
     QVERIFY(cont2Found);
+}
+
+void ShellTest::testScreenRemovalBeforeAfterScreenOrderChanged()
+{
+    testSecondScreenInsertion();
+
+    QPointer<DesktopView> view0 = m_corona->m_desktopViewForScreen[0];
+    QPointer<QScreen> screen0 = view0->screenToFollow();
+    QVERIFY(screen0);
+    QCOMPARE(screen0->name(), u"WL-1"_s);
+
+    QPointer<DesktopView> view1 = m_corona->m_desktopViewForScreen[1];
+    QPointer<QScreen> screen1 = view1->screenToFollow();
+    QVERIFY(screen1);
+    QCOMPARE(screen1->name(), u"DP-1"_s);
+
+    QPointer<DesktopView> view2 = m_corona->m_desktopViewForScreen[2];
+    auto *screen2 = view2->screenToFollow();
+    QVERIFY(screen2);
+    QCOMPARE(screen2->name(), u"DP-2"_s);
+
+    QSignalSpy removedSpy(m_corona, &ShellCorona::screenRemoved);
+    QSignalSpy screenOrderChangedSpy(m_corona, &ShellCorona::screenOrderChanged);
+    QSignalSpy screen1DeletedSpy(screen1, &QObject::destroyed);
+    QSignalSpy view2DeletedSpy(view2, &QObject::destroyed);
+
+    exec([this] {
+        remove(output(1));
+    });
+
+    QTRY_COMPARE(removedSpy.size(), 1);
+    QTRY_COMPARE(screen1DeletedSpy.size(), 1);
+
+    setScreenOrder({u"WL-1"_s, u"DP-2"_s}, false);
+
+    // When screenOrderChanged has finally arrived,
+    // there are 2 screens managed by view0 and view1 respectively,
+    // and view3 has been deleted
+    QTRY_COMPARE(screenOrderChangedSpy.size(), 1);
+    QTRY_COMPARE(view2DeletedSpy.size(), 1);
+
+    QCOMPARE(m_corona->m_desktopViewForScreen.size(), 2);
+    QCOMPARE(m_corona->m_desktopViewForScreen[0], view0);
+    QCOMPARE(m_corona->m_desktopViewForScreen[1], view1);
 }
 
 void ShellTest::testScreenRemovalRecyclingViews()
@@ -441,12 +464,12 @@ void ShellTest::testScreenRemovalRecyclingViews()
     auto panelCont = addTestPanel(QStringLiteral("org.kde.plasma.testpanel"));
     QCOMPARE(m_corona->m_panelViews.size(), 1);
     auto panelView = m_corona->m_panelViews[panelCont];
-    panelView->setScreenToFollow(m_corona->m_screenPool->screenForId(1));
+    panelView->moveToScreen(m_corona->m_screenPool->screenForId(1));
     QCOMPARE(panelCont->screen(), 1);
     QCOMPARE(panelView->screen(), m_corona->m_screenPool->screenForId(1));
     QCOMPARE(m_corona->m_panelViews.size(), 1);
 
-    QSignalSpy removedSpy(m_corona, SIGNAL(screenRemoved(int)));
+    QSignalSpy removedSpy(m_corona, &ShellCorona::screenRemoved);
 
     // Remove output
     exec([this] {
@@ -455,7 +478,7 @@ void ShellTest::testScreenRemovalRecyclingViews()
 
     QTRY_COMPARE(removedSpy.size(), 1);
 
-    setScreenOrder({u"WL-1"_s, u"DP-2"_s}, true);
+    setScreenOrder({u"WL-1"_s, u"DP-2"_s}, false);
 
     QTRY_COMPARE(view2DeletedSpy.count(), 1);
     QTRY_COMPARE(screen1DeletedSpy.count(), 1);
@@ -555,7 +578,7 @@ void ShellTest::testReorderScreens()
         // If the panel fails to load (on ci plasma-desktop isn't here) we want the "failed" containment to be of panel type anyways
         QVERIFY(m_corona->m_panelViews.contains(panelCont));
         QCOMPARE(panelCont->screen(), 0);
-        m_corona->m_panelViews[panelCont]->setScreenToFollow(s);
+        m_corona->m_panelViews[panelCont]->moveToScreen(s);
         QCOMPARE(panelCont->screen(), i);
         panelViews.append(m_corona->m_panelViews[panelCont]);
         panelContainments.append(panelCont);
@@ -603,7 +626,6 @@ void ShellTest::testReorderScreens()
         }
         for (PanelView *v : m_corona->m_panelViews) {
             Plasma::Containment *cont = v->containment();
-            QVERIFY(cont->screen() >= 0);
             QVERIFY(allScreenIds.contains(cont->screen()));
             panelViewsAfter[cont->screen()] = v;
             panelContainmentsAfter[cont->screen()] = cont;
@@ -753,6 +775,35 @@ void ShellTest::testPanelSizeModes()
     panel->containment()->setLocation(Plasma::Types::LeftEdge);
     panel->containment()->setFormFactor(Plasma::Types::Vertical);
     QTRY_COMPARE(panel->size(), QSize(thickness, 800));
+}
+
+void ShellTest::testOutputOrderChanged()
+{
+    exec([this] {
+        // Remove WL-1 screen
+        remove(output(0));
+
+        // Set screen order to non-existent DP-1
+        outputOrder()->setList({u"DP-1"_s});
+    });
+    // Wait for the shell to disappear
+    QTRY_VERIFY(m_corona->m_screenPool->screenOrder().empty());
+
+    exec([this] {
+        // Add WL-1 screen again
+        OutputData data;
+        data.mode.resolution = {1920, 1080};
+        data.position = {0, 0};
+        data.physicalSize = data.mode.physicalSizeForDpi(96);
+        data.connector = u"WL-1"_s;
+        add<Output>(data);
+
+        // Set screen order to WL-1
+        outputOrder()->setList({u"WL-1"_s});
+    });
+    // Wait for the shell to move to the WL-1 screen
+    QTRY_COMPARE(m_corona->m_screenPool->screenOrder().size(), 1);
+    QCOMPARE(m_corona->m_screenPool->screenForId(0)->name(), u"WL-1"_s);
 }
 
 QCOMPOSITOR_TEST_MAIN(ShellTest)

@@ -107,6 +107,17 @@ qt_add_android_permission(myapp
 )
 #! [qt_add_android_permission]
 
+#! [qt_add_harmonyos_permission]
+qt_add_harmonyos_permission(myapp
+    NAME ohos.permission.CAMERA
+    REASON "$string:camera_permission_reason"
+    USED_SCENE_WHEN inuse
+)
+qt_add_harmonyos_permission(myapp
+    NAME ohos.permission.INTERNET
+)
+#! [qt_add_harmonyos_permission]
+
 #! [qt_finalize_project_manual]
 cmake_minimum_required(VERSIONS 3.16)
 

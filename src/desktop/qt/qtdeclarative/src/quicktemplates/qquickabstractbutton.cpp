@@ -11,7 +11,10 @@
 #include "qquickshortcutcontext_p_p.h"
 #include "qquickdeferredexecute_p_p.h"
 #include "qquickicon_p_p.h"
+#include "qquicktooltip_p.h"
+#include "qquicktooltip_p_p.h"
 
+#include <QtCore/qloggingcategory.h>
 #include <QtGui/qstylehints.h>
 #include <QtGui/qguiapplication.h>
 #if QT_CONFIG(shortcut)
@@ -28,6 +31,8 @@
 #include <QtQml/qqmllist.h>
 
 QT_BEGIN_NAMESPACE
+
+Q_STATIC_LOGGING_CATEGORY(lcButtonAction, "qt.quick.controls.abstractbutton.action")
 
 /*!
     \qmltype AbstractButton
@@ -153,6 +158,11 @@ bool QQuickAbstractButtonPrivate::handlePress(const QPointF &point, ulong timest
         startPressAndHold();
     else
         stopPressAndHold();
+
+    // Tool tips on desktop should hide when their parent item is pressed.
+    if (touchId == -1)
+        QQuickToolTipAttachedPrivate::maybeSetVisibleImplicitly(q, false);
+
     return true;
 }
 
@@ -186,10 +196,16 @@ bool QQuickAbstractButtonPrivate::handleRelease(const QPointF &point, ulong time
         && QQuickDeliveryAgentPrivate::isWithinDoubleClickInterval(timestamp - lastTouchReleaseTimestamp)
         && isDoubleClickConnected();
 
-    if (!wasHeld && (keepPressed || q->contains(point)))
+    if (!wasHeld && wasPressed && (keepPressed || q->contains(point)))
         q->nextCheckState();
 
     if (wasPressed) {
+        if (wasHeld && pressTouchId != -1) {
+            // We were potentially showing a tool tip on long press; if we were, hide it now that
+            // we're no longer pressed.
+            QQuickToolTipAttachedPrivate::maybeSetVisibleImplicitly(q, false);
+        }
+
         emit q->released();
         if (!wasHeld && !wasDoubleClick)
             trigger(touchDoubleClick);
@@ -935,6 +951,7 @@ QQuickAction *QQuickAbstractButton::action() const
 void QQuickAbstractButton::setAction(QQuickAction *action)
 {
     Q_D(QQuickAbstractButton);
+    qCDebug(lcButtonAction) << this << "setAction called with" << action;
     if (d->action == action)
         return;
 
@@ -1033,6 +1050,12 @@ void QQuickAbstractButton::setAutoRepeatInterval(int interval)
 }
 
 #if QT_CONFIG(shortcut)
+/*!
+    \internal
+
+    This is the mnemonic shortcut that is derived from the text;
+    see \c QQuickAbstractButton::buttonChange().
+*/
 QKeySequence QQuickAbstractButton::shortcut() const
 {
     Q_D(const QQuickAbstractButton);
@@ -1316,6 +1339,7 @@ void QQuickAbstractButton::timerEvent(QTimerEvent *event)
         d->stopPressAndHold();
         d->wasHeld = true;
         emit pressAndHold();
+        QQuickToolTipAttachedPrivate::maybeSetVisibleImplicitly(this, true);
     } else if (event->timerId() == d->delayTimer) {
         d->startPressRepeat();
     } else if (event->timerId() == d->repeatTimer) {

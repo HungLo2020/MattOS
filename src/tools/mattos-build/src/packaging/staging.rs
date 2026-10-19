@@ -343,6 +343,12 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "lm-sensors",
             "src/system/libraries/lm-sensors/COPYING",
         )?,
+        "libcxx-rust-cssparser1" => stage_multimedia_sdk(repo_root, &staging, "cxx-rust-cssparser", "libcxx-rust-cssparser1", "src/system/libraries/cxx-rust-cssparser/LICENSES/LGPL-3.0-only.txt")?,
+        "union" => stage_multimedia_sdk(repo_root, &staging, "union", "union", "src/desktop/kde/union/LICENSES/LGPL-3.0-only.txt")?,
+        "libqt6keychain1" => stage_multimedia_sdk(repo_root, &staging, "qtkeychain", "libqt6keychain1", "src/system/libraries/qtkeychain/COPYING")?,
+        "libleptonica6" => stage_multimedia_sdk(repo_root, &staging, "leptonica", "libleptonica6", "src/system/libraries/leptonica/leptonica-license.txt")?,
+        "libtesseract5" => stage_multimedia_sdk(repo_root, &staging, "tesseract", "libtesseract5", "src/system/libraries/tesseract/LICENSE")?,
+        "tesseract-ocr-eng" => stage_multimedia_sdk(repo_root, &staging, "tessdata-fast", "tesseract-ocr-eng", "src/system/libraries/tessdata-fast/LICENSE")?,
         "libhwy1" => stage_multimedia_sdk(
             repo_root,
             &staging,
@@ -833,9 +839,11 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "plasma-activities-stats",
             "plasma-activities-stats",
         )?,
-        "libprocesscore10" => {
-            stage_kde_module(repo_root, &staging, "ksysguard", "libprocesscore10")?
+        "libprocesscore11" => {
+            stage_kde_module(repo_root, &staging, "ksysguard", "libprocesscore11")?
         }
+        "libprocesscore10" => stage_processcore_transition(repo_root, &staging)?,
+
         "kf6-kauth" => stage_kde_module(repo_root, &staging, "kauth", "kf6-kauth")?,
         "polkit-qt6-1" => stage_kde_module(repo_root, &staging, "polkit-qt-1", "polkit-qt6-1")?,
         "libyaml-cpp0.8" => stage_kde_module(repo_root, &staging, "yaml-cpp", "libyaml-cpp0.8")?,
@@ -2229,4 +2237,13 @@ mod audio_mixer_runtime_tests {
             assert_eq!(fs::read_to_string(staging.join(format!("usr/lib/x86_64-linux-gnu/{stem}.6"))).unwrap(), stem);
         }
     }
+}
+
+/// The old package keeps installed-system upgrades removal-free while file
+/// ownership moves to the actual processcore 11 provider.
+pub(crate) fn stage_processcore_transition(repo_root: &Path, staging: &Path) -> Result<()> {
+    let doc = staging.join("usr/share/doc/libprocesscore10");
+    fs::create_dir_all(&doc)?;
+    fs::write(doc.join("README.MattOS"), "Transitional package: the processcore runtime and SDK are now owned by libprocesscore11. No processcore 10 ABI is provided.\n")?;
+    copy_preserving(&repo_root.join("src/desktop/kde/ksysguard/LICENSES/LGPL-2.1-only.txt"), &doc.join("copyright"))
 }

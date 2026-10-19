@@ -6,6 +6,8 @@
     SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
 */
 
+#pragma once
+
 #include "encoder_p.h"
 
 /**
@@ -19,7 +21,7 @@ public:
     bool initialize(const QSize &size) override;
 
 protected:
-    int percentageToAbsoluteQuality(const std::optional<quint8> &quality) override;
+    int percentageToAbsoluteQuality(std::optional<quint8> quality) override;
     AVDictionary *buildEncodingOptions() override;
 
 private:

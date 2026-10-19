@@ -36,6 +36,7 @@ macro(qt_internal_get_internal_add_module_keywords option_args single_args multi
         QPA_HEADER_FILTERS
         RHI_HEADER_FILTERS
         SSG_HEADER_FILTERS
+        SPI_HEADER_FILTERS
         HEADER_SYNC_SOURCE_DIRECTORY
         ELF_LINKER_DYNAMIC_LIST
         ${__default_target_info_args}
@@ -70,6 +71,24 @@ function(qt_internal_append_include_directories_with_headers_check target list_t
             "$<${has_headers_check}:${directory}>")
     endforeach()
     set(${list_to_append} "${${list_to_append}}" PARENT_SCOPE)
+endfunction()
+
+# Returns in out_var the list of directories (relative to the top-level source directory) that the
+# configure script's qt_cmdline.cmake traversal visited. The list is read once from the manifest
+# written by QtProcessConfigureArgs.cmake and cached in a global property.
+function(qt_internal_get_configure_cmdline_visited_dirs out_var)
+    get_property(already_loaded GLOBAL PROPERTY _qt_configure_cmdline_visited_dirs SET)
+    if(NOT already_loaded)
+        set(manifest "${CMAKE_BINARY_DIR}/.qt/cmdline_visited_dirs")
+        if(EXISTS "${manifest}")
+            file(STRINGS "${manifest}" visited_dirs)
+        else()
+            set(visited_dirs "")
+        endif()
+        set_property(GLOBAL PROPERTY _qt_configure_cmdline_visited_dirs "${visited_dirs}")
+    endif()
+    get_property(visited_dirs GLOBAL PROPERTY _qt_configure_cmdline_visited_dirs)
+    set(${out_var} "${visited_dirs}" PARENT_SCOPE)
 endfunction()
 
 # This is the main entry function for creating a Qt module, that typically
@@ -128,6 +147,10 @@ endfunction()
 #
 #   SSG_HEADER_FILTERS
 #     The regular expressions that filter ssg header files out of target sources.
+#     The value must use the following format 'regex1|regex2|regex3'.
+#
+#   SPI_HEADER_FILTERS
+#     The regular expressions that filter spi header files out of target sources.
 #     The value must use the following format 'regex1|regex2|regex3'.
 #
 #   HEADER_SYNC_SOURCE_DIRECTORY
@@ -276,6 +299,8 @@ function(qt_internal_add_module target)
         SOURCES "${module_config_header}" "${module_config_private_header}"
         SKIP_AUTOGEN
     )
+    set_source_files_properties("${module_config_header}" "${module_config_private_header}"
+        PROPERTIES _qt_utility_header TRUE)
 
     # Module define needs to take into account the config module name.
     string(TOUPPER "${arg_CONFIG_MODULE_NAME}" module_define_infix)
@@ -331,13 +356,7 @@ function(qt_internal_add_module target)
         endif()
     endif()
 
-    if((FEATURE_ltcg OR CMAKE_INTERPROCEDURAL_OPTIMIZATION) AND GCC AND is_static_lib)
-        # CMake <= 3.19 appends -fno-fat-lto-objects for all library types if
-        # CMAKE_INTERPROCEDURAL_OPTIMIZATION is enabled. Static libraries need
-        # the opposite compiler option.
-        # (https://gitlab.kitware.com/cmake/cmake/-/issues/21696)
-        target_compile_options(${target} PRIVATE -ffat-lto-objects)
-    endif()
+    qt_internal_workaround_static_lib_gcc_lto_issue("${target}")
 
     qt_internal_add_target_aliases("${target}")
 
@@ -525,6 +544,13 @@ function(qt_internal_add_module target)
         set_target_properties(${target}
             PROPERTIES _qt_module_ssg_headers_filter_regex "${ssg_filter_regex}")
 
+        set(spi_filter_regex "")
+        if(arg_SPI_HEADER_FILTERS)
+            set(spi_filter_regex "${arg_SPI_HEADER_FILTERS}")
+        endif()
+        set_target_properties(${target}
+            PROPERTIES _qt_module_spi_headers_filter_regex "${spi_filter_regex}")
+
         set(private_filter_regex ".+_p(ch)?\\.h")
         if(arg_PRIVATE_HEADER_FILTERS)
             set(private_filter_regex "${private_filter_regex}|${arg_PRIVATE_HEADER_FILTERS}")
@@ -579,9 +605,10 @@ function(qt_internal_add_module target)
     #
     # Make sure to add non-framework "build_dir/include" as an include path for moc to find the
     # currently built module headers. qmake does this too.
-    # Framework-style include paths are found by moc when cmQtAutoMocUic.cxx detects frameworks by
-    # looking at an include path and detecting a "QtFoo.framework/Headers" path.
-    # Make sure to create such paths for both the the BUILD_INTERFACE and the INSTALL_INTERFACE.
+    #
+    # Framework-style include paths (-F) are passed on to moc by cmQtAutoMocUic.cxx if it detects
+    # include paths suffixed with ".framework/Headers". Moc itself also turns -I include paths
+    # in their "QtFoo.framework" form into framework includes (-F) for compatibility.
     #
     # Only add syncqt headers if they exist.
     # This handles cases like QmlDevToolsPrivate which do not have their own headers, but borrow
@@ -605,19 +632,14 @@ function(qt_internal_add_module target)
         set(fw_install_header_dir "${INSTALL_LIBDIR}/${fw_header_dir}")
         set(fw_output_header_dir "${QT_BUILD_DIR}/${fw_install_header_dir}")
         list(APPEND public_includes
-            # Add the framework Headers subdir, so that non-framework-style includes work. The
-            # BUILD_INTERFACE Headers symlink was previously claimed not to exist at the relevant
-            # time, and a fully specified Header path was used instead. This doesn't seem to be a
-            # problem anymore.
-            "$<BUILD_INTERFACE:${fw_output_header_dir}>"
-            "$<INSTALL_INTERFACE:${fw_install_header_dir}>"
+            # Expose the non-framework include/QtFoo dir, which holds forwarding
+            # headers, so that non-framework-style includes (<qfoo.h>) work.
+            "$<INSTALL_INTERFACE:${module_install_interface_include_dir}>"
 
-            # Add the lib/Foo.framework dir as an include path to let CMake generate
-            # the -F compiler flag for framework-style includes to work.
-            # Make sure it is added AFTER the lib/Foo.framework/Headers include path,
-            # to mitigate issues like QTBUG-101718 and QTBUG-101775 where an include like
-            # #include <QtCore> might cause moc to include the QtCore framework shared library
-            # instead of the actual header.
+            # Add the lib/Foo.framework dir as an include path, which moc
+            # then turns into -F internally. FIXME: Once we require
+            # CMake version 3.27 or above we can remove this, as CMake
+            # will automatically add lib/Foo.framework as an include path.
             "$<INSTALL_INTERFACE:${fw_install_dir}>"
         )
     endif()
@@ -670,7 +692,7 @@ function(qt_internal_add_module target)
             PRECOMPILED_HEADER
     )
 
-    # Put this behind a scoped var for now, to allow disabling it per repo.
+    # Allow disabling this check per repo if needed.
     if(NOT DEFINED QT_WARN_PUBLIC_MODULE_LINKS_PRIVATE_MODULES_PUBLICLY)
         set(QT_WARN_PUBLIC_MODULE_LINKS_PRIVATE_MODULES_PUBLICLY ON)
     endif()
@@ -681,7 +703,7 @@ function(qt_internal_add_module target)
         )
         foreach(public_lib IN LISTS arg_PUBLIC_LIBRARIES)
             if("${public_lib}" MATCHES "^(Qt|${QT_CMAKE_EXPORT_NAMESPACE})::(.*)Private$")
-                message(AUTHOR_WARNING
+                message(FATAL_ERROR
                     "${target} specifies ${public_lib} in its PUBLIC_LIBRARIES option. "
                     "Public modules should not link publicly to Private modules, because that "
                     "exposes private module headers to user projects without them opting into it. "
@@ -749,6 +771,27 @@ function(qt_internal_add_module target)
             PRIVATE_FILE "${module_config_private_header}"
         )
         include(${configureFile})
+
+        if(QT_INTERNAL_CALLED_FROM_CONFIGURE AND QT_FEATURE_developer_build
+            AND NOT QT_NO_CONFIGURE_CMDLINE_CHAIN_CHECK
+            AND (__QtFeature_public_features OR __QtFeature_private_features
+                OR __QtFeature_internal_features))
+            get_filename_component(configure_file_dir "${configureFile}" DIRECTORY)
+            file(RELATIVE_PATH configure_file_rel "${CMAKE_SOURCE_DIR}" "${configure_file_dir}")
+            if(NOT configure_file_rel)
+                set(configure_file_rel ".")
+            endif()
+            qt_internal_get_configure_cmdline_visited_dirs(cmdline_visited_dirs)
+            if(NOT configure_file_rel IN_LIST cmdline_visited_dirs)
+                message(FATAL_ERROR
+                    "${configureFile} defines qt_feature() calls but its directory was not "
+                    "visited during configure's qt_cmdline.cmake traversal.\n"
+                    "Add a qt_commandline_subconfig() entry pointing to "
+                    "'${configure_file_dir}', or set QT_NO_CONFIGURE_CMDLINE_CHAIN_CHECK=ON to "
+                    "suppress this check.")
+            endif()
+        endif()
+
         qt_feature_module_end("${target}")
 
         qt_internal_extend_target("${target}"
@@ -953,6 +996,7 @@ set(QT_ALLOW_MISSING_TOOLS_PACKAGES TRUE)")
         # qt_internal_android_dependencies without having to specify it again.
         set_target_properties(${target} PROPERTIES
             QT_ANDROID_MODULE_INSTALL_DIR ${INSTALL_LIBDIR})
+        qt_internal_android_add_target_export_properties(${target})
     endif()
 
     ### fixme: cmake is missing a built-in variable for this. We want to apply it only to modules and plugins
@@ -1257,6 +1301,43 @@ function(qt_internal_apply_apple_privacy_manifest target)
     endif()
 endfunction()
 
+# https://clang.llvm.org/docs/APINotes.html
+function(qt_internal_apply_swift_apinotes target)
+    get_target_property(apinotes ${target} _qt_swift_apinotes)
+    if(NOT apinotes)
+        return()
+    endif()
+
+    if(NOT QT_FEATURE_swift_interop)
+        return()
+    endif()
+
+    get_filename_component(apinotes "${apinotes}" ABSOLUTE)
+    qt_internal_module_info(module "${target}")
+
+    get_target_property(is_framework ${target} FRAMEWORK)
+    if(is_framework)
+        qt_internal_get_framework_info(fw ${target})
+        get_target_property(output_dir ${target} LIBRARY_OUTPUT_DIRECTORY)
+        set(apinotes_dir "${output_dir}/${fw_versioned_header_dir}")
+    else()
+        set(apinotes_dir "${module_build_interface_include_dir}")
+        qt_install(FILES "${apinotes_dir}/${module}.apinotes"
+            DESTINATION "${module_install_interface_include_dir}")
+    endif()
+
+    set(apinotes_output "${apinotes_dir}/${module}.apinotes")
+    add_custom_command(
+        OUTPUT "${apinotes_output}"
+        DEPENDS "${apinotes}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${apinotes_dir}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${apinotes}" "${apinotes_output}"
+        VERBATIM
+        COMMENT "Copying Swift API notes for ${target}"
+    )
+    target_sources(${target} PRIVATE "${apinotes_output}")
+endfunction()
+
 function(qt_finalize_module target)
     set(no_value_options
         INTERNAL_MODULE
@@ -1289,6 +1370,12 @@ function(qt_finalize_module target)
         endif()
     endif()
 
+    qt_internal_generate_module_map(${target})
+
+    get_target_property(module_depends_header ${target} _qt_module_depends_header)
+    list(APPEND module_headers_all ${module_depends_header})
+    list(APPEND module_headers_generated ${module_depends_header})
+
     # qt_internal_install_module_headers needs to be called before
     # qt_finalize_framework_headers_copy, because the last uses the QT_COPIED_FRAMEWORK_HEADERS
     # property which supposed to be updated inside every qt_internal_install_module_headers
@@ -1299,13 +1386,13 @@ function(qt_finalize_module target)
         "${module_headers_generated}"
         "${module_headers_exclude_from_docs}"
     )
-    get_target_property(module_depends_header ${target} _qt_module_depends_header)
     qt_internal_install_module_headers(${target}
         PUBLIC ${module_headers_public} "${module_depends_header}"
         PRIVATE ${module_headers_private}
         QPA ${module_headers_qpa}
         RHI ${module_headers_rhi}
         SSG ${module_headers_ssg}
+        SPI ${module_headers_spi}
     )
 
     qt_finalize_framework_headers_copy(${target})
@@ -1322,6 +1409,8 @@ function(qt_finalize_module target)
     endif()
 
     qt_internal_apply_apple_privacy_manifest(${target})
+    qt_internal_apply_swift_apinotes(${target})
+
     _qt_internal_finalize_sbom(${target})
 endfunction()
 
@@ -1351,6 +1440,7 @@ endfunction()
 #  * foo_qpa_include_dir with the value "QtCore/6.2.0/QtCore/qpa"
 #  * foo_rhi_include_dir with the value "QtCore/6.2.0/QtCore/rhi"
 #  * foo_ssg_include_dir with the value "QtQuick3D/6.2.0/QtQuick3D/ssg"
+#  * foo_spi_include_dir with the value "xxx/6.12.0/xxx/spi"
 #  * foo_interface_name the interface name of the module stored in _qt_module_interface_name
 #    property, e.g. Core.
 #
@@ -1379,6 +1469,9 @@ endfunction()
 #  * foo_<build|install>_ssg_include_dir with
 #    qtbase_build_dir/include/<module>/x.y.z/<module>/ssg for build interface and
 #    include/<module>/x.y.z/<module>/ssg for install interface.
+#  * foo_<build|install>_spi_include_dir with
+#    qtbase_build_dir/include/<module>/x.y.z/<module>/spi for build interface and
+#    include/<module>/x.y.z/<module>/spi for install interface.
 # The following values are set by the function and might be useful in caller's scope:
 #  * repo_install_interface_include_dir contains path to the top-level repository include directory,
 #    e.g. qtbase_build_dir/include
@@ -1417,6 +1510,8 @@ the different base name for the module info variables.")
         "${${result}_versioned_inner_include_dir}/rhi")
     set("${result}_ssg_include_dir"
         "${${result}_versioned_inner_include_dir}/ssg")
+    set("${result}_spi_include_dir"
+        "${${result}_versioned_inner_include_dir}/spi")
 
     # Module build interface directories
     set(repo_build_interface_include_dir "${QT_BUILD_DIR}/include")
@@ -1434,6 +1529,50 @@ the different base name for the module info variables.")
         "${repo_build_interface_include_dir}/${${result}_rhi_include_dir}")
     set("${result}_build_interface_ssg_include_dir"
         "${repo_build_interface_include_dir}/${${result}_ssg_include_dir}")
+    set("${result}_build_interface_spi_include_dir"
+        "${repo_build_interface_include_dir}/${${result}_spi_include_dir}")
+
+    if(QT_FEATURE_clang_module_maps)
+        # Intermediate module map file, shared across CMake units
+        get_target_property(module_binary_dir ${target} BINARY_DIR)
+        set("${result}_modulemap_intermediate_path"
+            "${module_binary_dir}/${module}.module.modulemap.in")
+
+        # Directory holding the module's Clang module map. For frameworks this
+        # is the bundle's 'Modules' directory; otherwise it's the module's
+        # include directory, where Clang looks up the module map alongside the
+        # headers.
+        #
+        # A versioned framework bundle keeps its 'Modules' directory under
+        # Versions, as a real directory at the top level makes codesign refuse
+        # the framework:
+        #
+        #   QtCore.framework: unsealed contents present in the root directory of
+        #   an embedded framework
+        #
+        # Clang only ever looks for the module map at the bundle root, reaching
+        # it through the symlink qt_copy_framework_headers() puts there, so
+        # anything we pass to a compiler needs that spelling instead. UIKit
+        # bundles are flat and have no Versions, so there the two are the same.
+        get_target_property(is_framework ${target} FRAMEWORK)
+        if(is_framework)
+            set(framework_dir "${QT_BUILD_DIR}/${INSTALL_LIBDIR}/${module}.framework")
+            set("${result}_clang_modules_lookup_dir" "${framework_dir}/Modules")
+            if(UIKIT)
+                set("${result}_clang_modules_dir"
+                    "${${result}_clang_modules_lookup_dir}")
+            else()
+                get_target_property(framework_version ${target} FRAMEWORK_VERSION)
+                set("${result}_clang_modules_dir"
+                    "${framework_dir}/Versions/${framework_version}/Modules")
+            endif()
+        else()
+            set("${result}_clang_modules_dir"
+                "${${result}_build_interface_include_dir}")
+            set("${result}_clang_modules_lookup_dir"
+                "${${result}_clang_modules_dir}")
+        endif()
+    endif()
 
     # Module install interface directories
     set(repo_install_interface_include_dir "${INSTALL_INCLUDEDIR}")
@@ -1451,6 +1590,8 @@ the different base name for the module info variables.")
         "${repo_install_interface_include_dir}/${${result}_rhi_include_dir}")
     set("${result}_install_interface_ssg_include_dir"
         "${repo_install_interface_include_dir}/${${result}_ssg_include_dir}")
+    set("${result}_install_interface_spi_include_dir"
+        "${repo_install_interface_include_dir}/${${result}_spi_include_dir}")
 
     set("${result}" "${module}" PARENT_SCOPE)
     set("${result}_versioned" "${module_versioned}" PARENT_SCOPE)
@@ -1466,6 +1607,7 @@ the different base name for the module info variables.")
     set("${result}_qpa_include_dir" "${${result}_qpa_include_dir}" PARENT_SCOPE)
     set("${result}_rhi_include_dir" "${${result}_rhi_include_dir}" PARENT_SCOPE)
     set("${result}_ssg_include_dir" "${${result}_ssg_include_dir}" PARENT_SCOPE)
+    set("${result}_spi_include_dir" "${${result}_spi_include_dir}" PARENT_SCOPE)
     set("${result}_interface_name" "${module_interface_name}" PARENT_SCOPE)
 
     # Setting module build interface directories in parent scope
@@ -1484,6 +1626,16 @@ the different base name for the module info variables.")
         "${${result}_build_interface_rhi_include_dir}" PARENT_SCOPE)
     set("${result}_build_interface_ssg_include_dir"
         "${${result}_build_interface_ssg_include_dir}" PARENT_SCOPE)
+    set("${result}_build_interface_spi_include_dir"
+        "${${result}_build_interface_spi_include_dir}" PARENT_SCOPE)
+    if(QT_FEATURE_clang_module_maps)
+        set("${result}_modulemap_intermediate_path"
+            "${${result}_modulemap_intermediate_path}" PARENT_SCOPE)
+        set("${result}_clang_modules_dir"
+            "${${result}_clang_modules_dir}" PARENT_SCOPE)
+        set("${result}_clang_modules_lookup_dir"
+            "${${result}_clang_modules_lookup_dir}" PARENT_SCOPE)
+    endif()
 
     # Setting module install interface directories in parent scope
     set(repo_install_interface_include_dir "${repo_install_interface_include_dir}" PARENT_SCOPE)
@@ -1501,6 +1653,8 @@ the different base name for the module info variables.")
         "${${result}_install_interface_rhi_include_dir}" PARENT_SCOPE)
     set("${result}_install_interface_ssg_include_dir"
         "${${result}_install_interface_ssg_include_dir}" PARENT_SCOPE)
+    set("${result}_install_interface_spi_include_dir"
+        "${${result}_install_interface_spi_include_dir}" PARENT_SCOPE)
 endfunction()
 
 function(qt_internal_list_to_json_array out_var list_var)
@@ -1685,13 +1839,15 @@ function(qt_internal_generate_cpp_global_exports target module_define_infix)
         CONFIGURE_GENERATED
     )
     # Make sure the file is installed when processed by `qt_internal_collect_module_headers`
-    set_source_files_properties("${generated_header_path}" PROPERTIES _qt_syncqt_force_include TRUE)
+    set_source_files_properties("${generated_header_path}" PROPERTIES
+        _qt_syncqt_force_include TRUE
+        _qt_utility_header TRUE)
 endfunction()
 
 function(qt_internal_install_module_headers target)
     set(options)
     set(one_value_args)
-    set(multi_value_args PUBLIC PRIVATE QPA RHI SSG)
+    set(multi_value_args PUBLIC PRIVATE QPA RHI SSG SPI)
     cmake_parse_arguments(arg "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
     qt_internal_module_info(module ${target})
@@ -1718,6 +1874,7 @@ function(qt_internal_install_module_headers target)
             QPA ${arg_QPA}
             RHI ${arg_RHI}
             SSG ${arg_SSG}
+            SPI ${arg_SPI}
         )
     else()
         if(arg_PUBLIC)
@@ -1737,6 +1894,10 @@ function(qt_internal_install_module_headers target)
         if(arg_SSG)
             qt_install(FILES ${arg_SSG} DESTINATION "${module_install_interface_ssg_include_dir}")
         endif()
+        if(arg_SPI)
+            qt_install(FILES ${arg_SPI}
+                 DESTINATION "${module_install_interface_spi_include_dir}")
+        endif()
     endif()
 endfunction()
 
@@ -1747,6 +1908,7 @@ function(qt_internal_collect_module_headers out_var target)
     set(${out_var}_qpa "")
     set(${out_var}_rhi "")
     set(${out_var}_ssg "")
+    set(${out_var}_spi "")
     set(${out_var}_all "")
 
     qt_internal_get_target_sources(sources ${target})
@@ -1769,7 +1931,7 @@ function(qt_internal_collect_module_headers out_var target)
     get_target_property(qpa_filter ${target} _qt_module_qpa_headers_filter_regex)
     get_target_property(rhi_filter ${target} _qt_module_rhi_headers_filter_regex)
     get_target_property(ssg_filter ${target} _qt_module_ssg_headers_filter_regex)
-
+    get_target_property(spi_filter ${target} _qt_module_spi_headers_filter_regex)
     set(condition_independent_headers_warning "")
     foreach(file_path IN LISTS sources)
         get_filename_component(file_name "${file_path}" NAME)
@@ -1827,6 +1989,8 @@ function(qt_internal_collect_module_headers out_var target)
             list(APPEND ${out_var}_rhi "${file_path}")
         elseif(ssg_filter AND file_name MATCHES "${ssg_filter}")
             list(APPEND ${out_var}_ssg "${file_path}")
+        elseif(spi_filter AND file_name MATCHES "${spi_filter}")
+            list(APPEND ${out_var}_spi "${file_path}")
         elseif(private_filter AND file_name MATCHES "${private_filter}")
             list(APPEND ${out_var}_private "${file_path}")
         elseif((NOT public_filter OR file_name MATCHES "${public_filter}")
@@ -1850,7 +2014,7 @@ function(qt_internal_collect_module_headers out_var target)
     endif()
 
 
-    set(header_types public private qpa rhi ssg)
+    set(header_types public private qpa rhi ssg spi)
     set(has_header_types_properties "")
     foreach(header_type IN LISTS header_types)
         get_target_property(current_propety_value ${target} _qt_module_has_${header_type}_headers)
@@ -1875,6 +2039,7 @@ function(qt_internal_collect_module_headers out_var target)
             _qt_module_has_qpa_headers
             _qt_module_has_rhi_headers
             _qt_module_has_ssg_headers
+            _qt_module_has_spi_headers
     )
 endfunction()
 

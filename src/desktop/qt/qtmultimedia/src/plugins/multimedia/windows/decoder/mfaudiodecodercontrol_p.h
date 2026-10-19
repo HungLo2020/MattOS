@@ -15,10 +15,11 @@
 // We mean it.
 //
 
-#include "mfdecodersourcereader_p.h"
-#include <private/qplatformaudiodecoder_p.h>
+#include <decoder/mfdecodersourcereader_p.h>
 #include <sourceresolver_p.h>
-#include <private/qwindowsresampler_p.h>
+
+#include <QtMultimedia/private/qplatformaudiodecoder_p.h>
+#include <QtMultimedia/private/qwindowsresampler_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -44,8 +45,7 @@ public:
     QAudioBuffer read() override;
     bool bufferAvailable() const override { return m_audioBuffer.sampleCount() > 0; }
 
-    qint64 position() const override { return m_position; }
-    qint64 duration() const override { return m_duration; }
+    bool canReadQrc() const override { return true; }
 
 private Q_SLOTS:
     void handleMediaSourceReady();
@@ -54,17 +54,15 @@ private Q_SLOTS:
     void handleSourceFinished();
 
 private:
-    void startReadingSource(IMFMediaSource *source);
+    void startReadingSource(const ComPtr<IMFMediaSource> &source);
 
     std::unique_ptr<MFDecoderSourceReader> m_decoderSourceReader;
-    SourceResolver         *m_sourceResolver;
+    ComPtr<SourceResolver>  m_sourceResolver;
     QWindowsResampler       m_resampler;
     QUrl                    m_source;
     QIODevice              *m_device = nullptr;
     QAudioFormat            m_outputFormat;
     QAudioBuffer            m_audioBuffer;
-    qint64                  m_duration = -1;
-    qint64                  m_position = -1;
     bool                    m_loadingSource = false;
     bool                    m_deferredStart = false;
 };

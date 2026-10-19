@@ -101,8 +101,8 @@ static QByteArray &removeTrailingSlashes(QByteArray &path)
 }
 
 enum {
-#ifdef Q_OS_ANDROID
-    // On Android, the link(2) system call has been observed to always fail
+#if defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
+    // On Android/OHOS, the link(2) system call has been observed to always fail
     // with EACCES, regardless of whether there are permission problems or not.
     SupportsHardlinking = false
 #else
@@ -736,9 +736,8 @@ QFileSystemEntry QFileSystemEngine::canonicalName(const QFileSystemEntry &entry,
     } else if (errno == ENOENT || errno == ENOTDIR) { // file doesn't exist
         data.knownFlagsMask |= QFileSystemMetaData::ExistsAttribute;
         data.entryFlags &= ~(QFileSystemMetaData::ExistsAttribute);
-        return QFileSystemEntry();
     }
-    return entry;
+    return QFileSystemEntry();
 }
 
 //static
@@ -1380,6 +1379,8 @@ bool QFileSystemEngine::moveFileToTrash(const QFileSystemEntry &, QFileSystemEnt
 }
 #elif defined(Q_OS_DARWIN)
 // see qfilesystemengine_mac.mm
+#elif defined(Q_OS_HARMONY)
+// see qfilesystemengine_ohos.cpp
 #else
 /*
     Implementing as per https://specifications.freedesktop.org/trash-spec/1.0/
@@ -1792,10 +1793,17 @@ bool QFileSystemEngine::renameFile(const QFileSystemEntry &source, const QFileSy
         error = QSystemError(savedErrno, QSystemError::StandardLibraryError);
         return false;
     } else if (!SupportsHardlinking) {
-        // man 2 link on Linux has:
-        // EPERM  The filesystem containing oldpath and newpath does not
-        //        support the creation of hard links.
-        errno = EPERM;
+        // Since hard linking is not supported, check for target existence
+        // manually, mimicking what link(2) would have reported via EEXIST.
+        // If the target does not exist, fall through to ::rename() below.
+        if (::access(tgtPath, F_OK) == 0) {
+            errno = EEXIST;
+        } else {
+            // man 2 link on Linux has:
+            // EPERM  The filesystem containing oldpath and newpath does not
+            // support the creation of hard links.
+            errno = EPERM;
+        }
     }
 
     switch (errno) {

@@ -9,6 +9,8 @@
 
 #include <QtWidgets/qwidget.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 class QHelpFilterEngine;
@@ -31,7 +33,7 @@ public:
     bool applySettings(QHelpFilterEngine *filterEngine) const;
 
 private:
-    QScopedPointer<class QHelpFilterSettingsWidgetPrivate> d_ptr;
+    std::unique_ptr<class QHelpFilterSettingsWidgetPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QHelpFilterSettingsWidget)
     Q_DISABLE_COPY_MOVE(QHelpFilterSettingsWidget)
 };

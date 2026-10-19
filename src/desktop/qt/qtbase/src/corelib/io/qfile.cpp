@@ -178,6 +178,38 @@ QAbstractFileEngine *QFilePrivate::engine() const
 
     \snippet file/file.cpp 3
 
+    \include android-content-uri-limitations.qdocinc
+
+    \section1 Security Considerations
+
+    \section2 Windows path normalization
+
+    Qt APIs that handle file and directory paths perform the normalization and
+    canonicalization differently from the native Windows APIs:
+
+    \list
+        \li The trailing dots and/or whitespaces are not stripped.
+        \li The \l{https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file#short-vs-long-names}
+            {8.3 short names} are not expanded.
+        \li The \c{\\?\} and \c{\\?\UNC\} prefixes are always discarded.
+    \endlist
+
+    These differences open a possibility for bypassing security checks based
+    on string comparison or pattern matching. For example, the code below will
+    yield \c{false} for both comparisons, but passing this path into QFile will
+    successfully open \c {myapp.exe} in \c{Program Files}.
+
+    \code
+    const QString path = u"C:\\PROGRA~1\\MyApp\\myapp.exe."_s; // note the trailing dot
+    QFileInfo fi(path);
+    qDebug() << fi.canonicalFilePath().contains("Program Files"_L1); // false
+    qDebug() << (fi.suffix() == "exe"_L1); // false
+    QFile f(path);
+    f.open(QIODevice::WriteOnly); // true
+    \endcode
+
+    \section2 File permissions
+
     File permissions are handled differently on Unix-like systems and
     Windows.  In a non \l{QIODevice::isWritable()}{writable}
     directory on Unix-like systems, files cannot be created. This is not always
@@ -191,8 +223,6 @@ QAbstractFileEngine *QFilePrivate::engine() const
     passed. Qt does not manipulate access control lists (ACLs), which makes this
     function mostly useless for NTFS volumes. It may still be of use for USB
     sticks that use VFAT file systems. POSIX ACLs are not manipulated, either.
-
-    \include android-content-uri-limitations.qdocinc
 
     \sa QTextStream, QDataStream, QFileInfo, QDir, {The Qt Resource System}
 */
@@ -677,7 +707,7 @@ QFile::rename(const QString &newName)
 
 #if QT_CONFIG(temporaryfile)
         // copy the file to the destination first
-        if (d->copy(newName)) {
+        if (d->copy(newName, permissions())) {
             // succeeded, remove the original
             if (!remove()) {
                 d->setError(QFile::RenameError, tr("Cannot remove source file: %1").arg(errorString()));
@@ -777,7 +807,7 @@ QFile::link(const QString &fileName, const QString &linkName)
 }
 
 #if QT_CONFIG(temporaryfile)    // dangerous without QTemporaryFile
-bool QFilePrivate::copy(const QString &newName)
+bool QFilePrivate::copy(const QString &newName, QFileDevice::Permissions permissions)
 {
     Q_Q(QFile);
     Q_ASSERT(error == QFile::NoError);
@@ -837,7 +867,7 @@ bool QFilePrivate::copy(const QString &newName)
     }
 
     // copy the permissions
-    out.setPermissions(q->permissions());
+    out.setPermissions(permissions);
     q->close();
 
     // final step: commit the copy
@@ -858,7 +888,7 @@ bool QFilePrivate::copy(const QString &newName)
 */
 
 bool
-QFile::copy(const QString &newName)
+QFile::copy(const QString &newName, std::optional<QFileDevice::Permissions> perm)
 {
     Q_D(QFile);
     if (fileName().isEmpty()) {
@@ -875,7 +905,7 @@ QFile::copy(const QString &newName)
     unsetError();
     close();
     if (error() == QFile::NoError)
-        return d->copy(newName);
+        return d->copy(newName, perm ? *perm : permissions());
     return false;
 }
 
@@ -890,9 +920,10 @@ QFile::copy(const QString &newName)
 */
 
 bool
-QFile::copy(const QString &fileName, const QString &newName)
+QFile::copy(const QString &fileName, const QString &newName,
+            std::optional<QFileDevice::Permissions> perm)
 {
-    return QFile(fileName).copy(newName);
+    return QFile(fileName).copy(newName, perm);
 }
 #endif // QT_CONFIG(temporaryfile)
 

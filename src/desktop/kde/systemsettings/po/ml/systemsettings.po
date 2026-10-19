@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: systemsettings\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-23 02:40+0000\n"
+"POT-Creation-Date: 2026-08-21 00:47+0000\n"
 "PO-Revision-Date: 2021-09-26 16:01+0000\n"
 "Last-Translator: Subin Siby <subins2000@gmail.com>\n"
 "Language-Team: Malayalam <https://kde.smc.org.in/projects/systemsettings/"
@@ -41,109 +41,109 @@ msgstr "%1 വീണ്ടും തുടങ്ങുക"
 msgid "Dialog"
 msgstr "ഡയലോഗ്"
 
-#: app/main.cpp:54 app/SettingsBase.cpp:53
+#: app/main.cpp:61 app/SettingsBase.cpp:54
 #, kde-format
 msgid "Info Center"
 msgstr "വിവര കേന്ദ്രം"
 
-#: app/main.cpp:56
+#: app/main.cpp:63
 #, kde-format
 msgid "Centralized and convenient overview of system information."
 msgstr "കേന്ദ്രീകൃതവും, സൗകര്യപ്രദവുമായ സിസ്റ്റം വിവരണത്തിന്റെ ആമുഖം."
 
-#: app/main.cpp:58 app/main.cpp:69
+#: app/main.cpp:65 app/main.cpp:76
 #, kde-format
 msgid "(c) 2009, Ben Cooksley"
 msgstr "(c) 2009, ബെന്‍ കുക്ക്സ്ലി"
 
-#: app/main.cpp:65 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:56
-#: runner/systemsettingsrunner.cpp:114
+#: app/main.cpp:72 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:57
+#: runner/systemsettingsrunner.cpp:124
 #, kde-format
 msgid "System Settings"
 msgstr "സിസ്റ്റത്തിലെ സജ്ജീകരണങ്ങള്‍"
 
-#: app/main.cpp:67
+#: app/main.cpp:74
 #, kde-format
 msgid "Central configuration center by KDE."
 msgstr "കെ‌ഡി‌ഇയുടെ കേന്ദ്ര ക്രമീകരണ കേന്ദ്രം."
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Ben Cooksley"
 msgstr "ബെന്‍ കുക്ക്സ്ലി"
 
-#: app/main.cpp:80
+#: app/main.cpp:87
 #, kde-format
 msgid "Maintainer"
 msgstr "പരിപാലകന്‍"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Marco Martin"
 msgstr "മാർക്കോ മാർട്ടിൻ"
 
-#: app/main.cpp:81
+#: app/main.cpp:88
 #, kde-format
 msgid "Author"
 msgstr "രചയിതാവു്"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Mathias Soeken"
 msgstr "മത്തിയാസ് സോക്കെന്‍"
 
-#: app/main.cpp:82
+#: app/main.cpp:89
 #, kde-format
 msgid "Developer"
 msgstr "രചയിതാവു്"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Will Stephenson"
 msgstr "വില്‍ സ്റ്റീഫന്‍സന്‍"
 
-#: app/main.cpp:83
+#: app/main.cpp:90
 #, kde-format
 msgid "Internal module representation, internal module model"
 msgstr "ആന്തരിക മൊഡ്യൂള്‍ പ്രതിനിധീകരണം, ആന്തരിക മൊഡ്യൂള്‍ മാതൃക"
 
-#: app/main.cpp:91
+#: app/main.cpp:98
 #, kde-format
 msgid "List all possible modules"
 msgstr "പറ്റാവുന്ന മൊഡ്യൂളുകൾ പട്ടികപ്പെടുത്തുക"
 
-#: app/main.cpp:92 app/main.cpp:153
+#: app/main.cpp:99 app/main.cpp:160
 #, kde-format
 msgid "Configuration module to open"
 msgstr "തുറക്കേണ്ട ക്രമീകരണ മൊഡ്യൂൾ"
 
-#: app/main.cpp:93 app/main.cpp:154
+#: app/main.cpp:100 app/main.cpp:161
 #, kde-format
 msgid "Arguments for the module"
 msgstr "മൊഡ്യൂളിനുള്ള ആർഗ്യുമെന്റുകൾ"
 
-#: app/main.cpp:101
+#: app/main.cpp:108
 #, kde-format
 msgid "The following modules are available:"
 msgstr "ഈ മൊഡ്യൂളുകൾ ലഭ്യമാണ്:"
 
-#: app/main.cpp:119
+#: app/main.cpp:126
 #, kde-format
 msgid "No description available"
 msgstr "വിവരണം ലഭ്യമല്ല"
 
-#: app/ModuleView.cpp:185
+#: app/ModuleView.cpp:186
 #, kde-format
 msgid "Reset all current changes to previous values"
 msgstr "ഇപ്പോള്‍ വരുത്തിയ എല്ലാ മാറ്റങ്ങളും മുമ്പുണ്ടായിരുന്ന വിലകളിലേയ്ക്കു് മാറ്റുക"
 
-#: app/ModuleView.cpp:278
+#: app/ModuleView.cpp:279
 #, kde-format
 msgctxt "@info:whatsthis"
 msgid "Scrollable area"
 msgstr ""
 
-#: app/ModuleView.cpp:368
+#: app/ModuleView.cpp:373
 #, fuzzy, kde-format
 #| msgid ""
 #| "The settings of the current module have changed.\n"
@@ -155,7 +155,7 @@ msgstr ""
 "ഇപ്പോള്‍ സജീവമായ മൊഡ്യൂളിന്റെ സജ്ജീകരണങ്ങള്‍ മാറിയിട്ടുണ്ടു്.\n"
 "മാറ്റങ്ങള്‍ നടപ്പിലാക്കണോ അതോ കളയണോ?"
 
-#: app/ModuleView.cpp:373
+#: app/ModuleView.cpp:378
 #, kde-format
 msgid "Apply Settings"
 msgstr "സജ്ജീകരണങ്ങള്‍ നടപ്പിലാക്കുക"
@@ -176,7 +176,15 @@ msgstr "മെനു കാണിക്കുക"
 msgid "Plasma"
 msgstr "പ്ലാസ്മ"
 
-#: app/SettingsBase.cpp:144
+#: app/qml/SubCategoryPage.qml:74
+#, fuzzy, kde-format
+#| msgid "Back"
+msgctxt "@action:button go back"
+msgid "Back"
+msgstr "തിരികെ"
+
+#. i18n: ectx: label, entry (HighlightNonDefaultSettings), group (systemsettings_sidebar_mode)
+#: app/SettingsBase.cpp:144 app/systemsettings-config.kcfg:8
 #, fuzzy, kde-format
 #| msgctxt ""
 #| "Action to show indicators for settings with custom data. Use as short a "
@@ -192,7 +200,7 @@ msgctxt ""
 msgid "Show Inapplicable Pages"
 msgstr ""
 
-#: app/SettingsBase.cpp:163
+#: app/SettingsBase.cpp:167
 #, kde-format
 msgid "Report a Bug in the Current Page…"
 msgstr ""
@@ -207,12 +215,12 @@ msgstr "സൈഡ്‌ബാർ"
 msgid "Most Used"
 msgstr "ഏറ്റവും കൂടുതൽ ഉപയോഗിച്ചത്"
 
-#: runner/systemsettingsrunner.cpp:32
+#: runner/systemsettingsrunner.cpp:33
 #, kde-format
 msgid "Finds system settings modules whose names or descriptions match :q:"
 msgstr "സജ്ജീകരണങ്ങളിൽ പേരോ വിവരണമോ :q: ഉമായി പൊരുത്തപെടുന്നവ കണ്ടുപിടിക്കും"
 
-#: runner/systemsettingsrunner.cpp:112
+#: runner/systemsettingsrunner.cpp:122
 #, kde-format
 msgid "System Information"
 msgstr "സിസ്റ്റത്തെ കുറിച്ച്"
@@ -326,9 +334,6 @@ msgstr "സിസ്റ്റത്തെ കുറിച്ച്"
 
 #~ msgid "About Active Module"
 #~ msgstr "സജീവമായ മൊഡ്യൂളിനെക്കുറിച്ചു്"
-
-#~ msgid "Back"
-#~ msgstr "തിരികെ"
 
 #~ msgid "Overview"
 #~ msgstr "അവലോകനം"

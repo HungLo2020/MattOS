@@ -2,21 +2,21 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2008, 2009, 2010, 2024, 2025 Stefan Asserhäll <stefan.asserhall@gmail.com>
+# SPDX-FileCopyrightText: 2008-2010, 2024-2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
 # Stefan Asserhall <stefan.asserhall@gmail.com>, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019, 2020, 2021, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: powerdevil\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-10 02:38+0000\n"
-"PO-Revision-Date: 2025-07-28 18:43+0200\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-07-07 08:40+0200\n"
 "Last-Translator: Stefan Asserhäll <stefan.asserhall@gmail.com>\n"
 "Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.04.2\n"
+"X-Generator: Lokalize 26.04.2\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
 #, kde-format
@@ -29,7 +29,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "stefan.asserhall@gmail.com"
 
-#: actions/bundled/dpms.cpp:73 actions/bundled/handlebuttonevents.cpp:46
+#: actions/bundled/dpms.cpp:60 actions/bundled/handlebuttonevents.cpp:46
 #: actions/bundled/keyboardbrightnesscontrol.cpp:47
 #: actions/bundled/powerprofile.cpp:67 powerdevilscreenbrightnessagent.cpp:138
 #, kde-format
@@ -37,7 +37,7 @@ msgctxt "Name for powerdevil shortcuts category"
 msgid "Power Management"
 msgstr "Effekthantering"
 
-#: actions/bundled/dpms.cpp:76
+#: actions/bundled/dpms.cpp:63
 #, kde-format
 msgctxt "@action:inmenu Global shortcut"
 msgid "Turn Off Screen"
@@ -151,79 +151,76 @@ msgstr "Tidigare underhåll"
 msgid "Replace an existing instance"
 msgstr "Ersätt en befintlig instans"
 
-#: powerdevilcore.cpp:403 powerdevilcore.cpp:414
+#: powerdevilcore.cpp:399 powerdevilcore.cpp:410
 #, kde-format
 msgid "Activity Manager"
 msgstr "Aktivitetshanterare"
 
-#: powerdevilcore.cpp:404
+#: powerdevilcore.cpp:400
 #, kde-format
 msgid "This activity's policies prevent the system from going to sleep"
 msgstr "Aktivitetens policy förhindrar att systemet går till viloläge"
 
-#: powerdevilcore.cpp:415
+#: powerdevilcore.cpp:411
 #, kde-format
 msgid "This activity's policies prevent screen power management"
 msgstr "Aktivitetens policy förhindrar att strömsparhantering av bildskärmen"
 
-#: powerdevilcore.cpp:480
+#: powerdevilcore.cpp:471
 #, kde-format
 msgid "Extra Battery Added"
 msgstr "Extrabatteri tillagt"
 
-#: powerdevilcore.cpp:481
+#: powerdevilcore.cpp:472
 #, kde-format
 msgid "The system will no longer go to sleep."
 msgstr "Systemet kommer inte längre gå till viloläge."
 
-#: powerdevilcore.cpp:545
+#: powerdevilcore.cpp:538
 #, kde-format
 msgctxt "%1 is vendor name, %2 is product name"
 msgid "%1 %2"
 msgstr "%1 %2"
 
-#: powerdevilcore.cpp:548
+#: powerdevilcore.cpp:541
 #, kde-format
 msgctxt "The battery in an external device"
 msgid "Device Battery Low (%1% Remaining)"
 msgstr "Dåligt enhetsbatteri (%1 % återstår)"
 
-#: powerdevilcore.cpp:550
+#: powerdevilcore.cpp:544
 #, kde-format
 msgctxt "Placeholder is device name"
-msgid ""
-"The battery in \"%1\" is running low, and the device may turn off at any "
-"time. Please recharge or replace the battery."
-msgstr ""
-"Batteriet i \"%1\" är dåligt, och enheten kan stängas av när som helst. "
-"Ladda eller ersätt batteriet så snart som möjligt."
+msgid "The battery in “%1” is running low. Please recharge the battery."
+msgstr "Batteriet i \"%1\" börjar bli svagt. Ladda batteriet."
 
-#: powerdevilcore.cpp:557
+#: powerdevilcore.cpp:546
+#, kde-format
+msgctxt "Placeholder is device name"
+msgid "The battery in “%1” is running low."
+msgstr "Batteriet i \"%1\" börjar bli svagt."
+
+#: powerdevilcore.cpp:552
 #, kde-format
 msgid "Mouse Battery Low (%1% Remaining)"
-msgstr "Dåligt musbatteri (%1 % återstår)"
+msgstr "Svagt musbatteri (%1 % återstår)"
 
-#: powerdevilcore.cpp:561
+#: powerdevilcore.cpp:556
 #, kde-format
 msgid "Keyboard Battery Low (%1% Remaining)"
-msgstr "Dåligt tangentbordsbatteri (%1 % återstår)"
+msgstr "Svagt tangentbordsbatteri (%1 % återstår)"
 
-#: powerdevilcore.cpp:571
+#: powerdevilcore.cpp:566
+#, kde-format
+msgid "Phone Battery Low (%1% Remaining)"
+msgstr "Svagt telefonbatteri (%1 % återstår)"
+
+#: powerdevilcore.cpp:570
 #, kde-format
 msgid "Bluetooth Device Battery Low (%1% Remaining)"
 msgstr "Dåligt batteri för Blåtandsenhet (%1 % återstår)"
 
-#: powerdevilcore.cpp:573
-#, kde-format
-msgctxt "Placeholder is device name"
-msgid ""
-"The battery in Bluetooth device \"%1\" is running low, and the device may "
-"turn off at any time. Please recharge or replace the battery."
-msgstr ""
-"Batteriet i Blåtandsenheten \"%1\" är dåligt, och enheten kan stängas av när "
-"som helst. Ladda eller ersätt batteriet så snart som möjligt."
-
-#: powerdevilcore.cpp:615
+#: powerdevilcore.cpp:610
 #, kde-format
 msgid ""
 "Ensure that the power cord is plugged in all the way and provides enough "
@@ -232,29 +229,29 @@ msgstr ""
 "Säkerställ att nätsladden är inkopplad hela vägen och ger tillräckligt med "
 "ström."
 
-#: powerdevilcore.cpp:617
+#: powerdevilcore.cpp:612
 #, kde-format
 msgid "Plug in the power cord."
 msgstr "Koppla in nätsladden."
 
-#: powerdevilcore.cpp:637
+#: powerdevilcore.cpp:632
 #, kde-format
 msgid "The system will shut down in 60 seconds."
 msgstr "Systemet kommer att stängas av om 60 sekunder."
 
-#: powerdevilcore.cpp:639
+#: powerdevilcore.cpp:634
 #, kde-format
 msgctxt ""
 "@action:button Shut down without waiting for the battery critical timer"
 msgid "Shut Down Now"
 msgstr "Stäng av nu"
 
-#: powerdevilcore.cpp:645
+#: powerdevilcore.cpp:640
 #, kde-format
 msgid "The system will hibernate in 60 seconds."
 msgstr "Systemet kommer att gå till dvala om 60 sekunder."
 
-#: powerdevilcore.cpp:647
+#: powerdevilcore.cpp:642
 #, kde-format
 msgctxt ""
 "@action:button Enter hibernation mode without waiting for the battery "
@@ -262,24 +259,24 @@ msgctxt ""
 msgid "Hibernate Now"
 msgstr "Dvala nu"
 
-#: powerdevilcore.cpp:653
+#: powerdevilcore.cpp:648
 #, kde-format
 msgid "The system will go to sleep in 60 seconds."
 msgstr "Systemet kommer att gå till viloläge om 60 sekunder."
 
-#: powerdevilcore.cpp:655
+#: powerdevilcore.cpp:650
 #, kde-format
 msgctxt ""
 "@action:button Suspend to ram without waiting for the battery critical timer"
 msgid "Sleep Now"
 msgstr "Viloläge nu"
 
-#: powerdevilcore.cpp:661
+#: powerdevilcore.cpp:656
 #, kde-format
 msgid "Please save your work."
 msgstr "Spara ditt arbete."
 
-#: powerdevilcore.cpp:667
+#: powerdevilcore.cpp:662
 #, kde-format
 msgctxt ""
 "Cancel timeout that will automatically put system to sleep because of low "
@@ -287,52 +284,52 @@ msgctxt ""
 msgid "Cancel"
 msgstr "Avbryt"
 
-#: powerdevilcore.cpp:682
+#: powerdevilcore.cpp:677
 #, kde-format
 msgid "Battery Low (%1% Remaining)"
 msgstr "Dåligt batteri (%1 % återstår)"
 
-#: powerdevilcore.cpp:686
+#: powerdevilcore.cpp:684
 #, kde-format
 msgid "Battery Critical (%1% Remaining)"
 msgstr "Kritiskt batteri (%1 % återstår)"
 
-#: powerdevilcore.cpp:720
+#: powerdevilcore.cpp:713
 #, kde-format
 msgid "Power Cord Plugged In"
 msgstr "Nätsladd inkopplad"
 
-#: powerdevilcore.cpp:721
+#: powerdevilcore.cpp:714
 #, kde-format
 msgid "The computer will no longer go to sleep."
 msgstr "Datorn kommer inte längre gå till viloläge."
 
-#: powerdevilcore.cpp:723
+#: powerdevilcore.cpp:716
 #, kde-format
 msgid "Running on AC Power"
 msgstr "Använder nätström"
 
-#: powerdevilcore.cpp:724
+#: powerdevilcore.cpp:717
 #, kde-format
 msgid "The power cord has been plugged in."
 msgstr "Nätsladden har kopplats in."
 
-#: powerdevilcore.cpp:736
+#: powerdevilcore.cpp:732
 #, kde-format
 msgid "Running on Battery Power"
 msgstr "Använder batteriström"
 
-#: powerdevilcore.cpp:737
+#: powerdevilcore.cpp:733
 #, kde-format
 msgid "The power cord has been unplugged."
 msgstr "Nätsladden har kopplats ur."
 
-#: powerdevilcore.cpp:800
+#: powerdevilcore.cpp:798
 #, kde-format
 msgid "Charging Complete"
 msgstr "Laddning klar"
 
-#: powerdevilcore.cpp:800
+#: powerdevilcore.cpp:798
 #, kde-format
 msgid "Battery now fully charged."
 msgstr "Batteriet är nu fulladdat."
@@ -360,6 +357,14 @@ msgstr "Minska bildskärmens ljusstyrka"
 msgctxt "@action:inmenu Global shortcut"
 msgid "Decrease Screen Brightness by 1%"
 msgstr "Minska bildskärmens ljusstyrka med 1 %"
+
+#~ msgctxt "Placeholder is device name"
+#~ msgid ""
+#~ "The battery in Bluetooth device \"%1\" is running low, and the device may "
+#~ "turn off at any time. Please recharge or replace the battery."
+#~ msgstr ""
+#~ "Batteriet i Blåtandsenheten \"%1\" är dåligt, och enheten kan stängas av "
+#~ "när som helst. Ladda eller ersätt batteriet så snart som möjligt."
 
 #~ msgid "Battery level critical. Your computer will shut down in 60 seconds."
 #~ msgstr "Batterinivå kritisk. Datorn kommer att stängas av om 60 sekunder."

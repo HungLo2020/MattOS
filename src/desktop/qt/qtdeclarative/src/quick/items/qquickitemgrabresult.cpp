@@ -245,9 +245,12 @@ bool QQuickItemGrabResult::event(QEvent *e)
             engine = d->qmlEngine;
         }
         if (engine) {
-            // JS callback
-            callback.call(QJSValueList() << engine->newQObject(this));
+            // We have a JS callback. Transfer ownership to JavaScript to follow the documentation.
+            // The user should be able to store the object in QML, but we also want to GC it
+            // eventually.
             QQmlEngine::setObjectOwnership(this, QQmlEngine::JavaScriptOwnership);
+            setParent(nullptr);
+            callback.call(QJSValueList() << engine->newQObject(this));
         } else {
             Q_EMIT ready();
         }
@@ -292,7 +295,9 @@ void QQuickItemGrabResult::render()
 
     d->texture->setRect(QRectF(0, d->itemSize.height(), d->itemSize.width(), -d->itemSize.height()));
     const QSize minSize = QQuickWindowPrivate::get(d->window.data())->context->sceneGraphContext()->minimumFBOSize();
-    const QSize effectiveTextureSize = d->textureSize * d->devicePixelRatio;
+    const QSize effectiveTextureSize = d->textureSize.isEmpty()
+            ? (d->itemSize * d->devicePixelRatio).toSize()
+            : d->textureSize * d->devicePixelRatio;
     d->texture->setSize(QSize(qMax(minSize.width(), effectiveTextureSize.width()),
                               qMax(minSize.height(), effectiveTextureSize.height())));
     d->texture->scheduleUpdate();
@@ -324,9 +329,7 @@ void QQuickItemGrabResult::render()
 
 QQuickItemGrabResult *QQuickItemGrabResultPrivate::create(QQuickItem *item, const QSize &targetSize)
 {
-    QSize size = targetSize;
-    if (size.isEmpty())
-        size = QSize(item->width(), item->height());
+    const QSize size = targetSize.isEmpty() ? QSize(item->width(), item->height()) : targetSize;
 
     if (size.width() < 1 || size.height() < 1) {
         qmlWarning(item) << "grabToImage: item's width and/or height are less than 1: " << size;
@@ -347,13 +350,15 @@ QQuickItemGrabResult *QQuickItemGrabResultPrivate::create(QQuickItem *item, cons
         return nullptr;
     }
 
-    QQuickItemGrabResult *result = new QQuickItemGrabResult();
+    // Initially parent to item so that we don't leak it if Event_Grab_Completed never arrives or
+    // the callback can't be called.
+    QQuickItemGrabResult *result = new QQuickItemGrabResult(item);
     QQuickItemGrabResultPrivate *d = result->d_func();
     // no need to lock here, since we didn't do the connection yet, so it cannot be
     // accessed from multiple threads
     d->item = item;
     d->window = item->window();
-    d->textureSize = size;
+    d->textureSize = targetSize;
 
     QQuickItemPrivate::get(item)->refFromEffectItem(false);
 
@@ -454,12 +459,10 @@ bool QQuickItem::grabToImage(const QJSValue &callback, const QSize &targetSize)
         return false;
     }
 
-    QSize size = targetSize;
-    if (size.isEmpty())
-        size = QSize(width(), height());
-
-    if (size.width() < 1 || size.height() < 1) {
-        qmlWarning(this) << "grabToImage: item's width and/or height are less than 1: " << size;
+    const QSize validationSize = targetSize.isEmpty() ? QSize(width(), height()) : targetSize;
+    if (validationSize.width() < 1 || validationSize.height() < 1) {
+        qmlWarning(this) << "grabToImage: item's width and/or height are less than 1: "
+                         << validationSize;
         return false;
     }
 
@@ -468,10 +471,12 @@ bool QQuickItem::grabToImage(const QJSValue &callback, const QSize &targetSize)
         return false;
     }
 
-    QQuickItemGrabResult *result = QQuickItemGrabResultPrivate::create(this, size);
+    QQuickItemGrabResult *result = QQuickItemGrabResultPrivate::create(this, targetSize);
     if (!result)
         return false;
 
+    // Do not transfer ownership to JavaScript here, yet. There is no reference to the object
+    // We don't want the GC to collect it while the grab is still in flight.
     QQuickItemGrabResultPrivate *d = result->d_func();
 
     QMutexLocker locker(&d->mutex);

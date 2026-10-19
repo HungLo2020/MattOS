@@ -1,6 +1,7 @@
 /*
     SPDX-FileCopyrightText: 2011 Marco Martin <mart@kde.org>
     SPDX-FileCopyrightText: 2020 Konrad Materka <materka@gmail.com>
+    SPDX-FileCopyrightText: 2026 Nathaniel Krebs <areyoufeelingitnowmrkrebs@gmail.com>
 
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
@@ -20,11 +21,12 @@ ContainmentItem {
     id: root
 
     readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
+    readonly property bool reverseLayout: Plasmoid.configuration.reverseIconOrder
 
     Layout.minimumWidth: vertical ? Kirigami.Units.iconSizes.small : mainLayout.implicitWidth + Kirigami.Units.smallSpacing
     Layout.minimumHeight: vertical ? mainLayout.implicitHeight + Kirigami.Units.smallSpacing : Kirigami.Units.iconSizes.small
 
-    LayoutMirroring.enabled: !vertical && Application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.enabled: !vertical && ((Application.layoutDirection === Qt.RightToLeft) !== reverseLayout)
     LayoutMirroring.childrenInherit: true
 
     readonly property alias systemTrayState: systemTrayState
@@ -54,6 +56,7 @@ ContainmentItem {
     KItemModels.KSortFilterProxyModel {
         id: activeModel
         filterRoleName: "effectiveStatus"
+        dynamicSortFilter: !systemTrayState.expanded
         filterRowCallback: (sourceRow, sourceParent) => {
             let value = sourceModel.data(sourceModel.index(sourceRow, 0, sourceParent), filterRole);
             return value === PlasmaCore.Types.ActiveStatus;
@@ -64,11 +67,24 @@ ContainmentItem {
     KItemModels.KSortFilterProxyModel {
         id: hiddenModel
         filterRoleName: "effectiveStatus"
+        dynamicSortFilter: !systemTrayState.expanded
         filterRowCallback: (sourceRow, sourceParent) => {
             let value = sourceModel.data(sourceModel.index(sourceRow, 0, sourceParent), filterRole);
             return value === PlasmaCore.Types.PassiveStatus
         }
         Component.onCompleted: sourceModel = Plasmoid.systemTrayModel // avoid unnecessary binding, it causes loops
+    }
+
+    // Re-evaluate filters when the popup closes to apply any status changes
+    // that accumulated while the popup was open
+    Connections {
+        target: systemTrayState
+        function onExpandedChanged() {
+            if (!systemTrayState.expanded) {
+                activeModel.invalidateFilter();
+                hiddenModel.invalidateFilter();
+            }
+        }
     }
 
     Instantiator {
@@ -176,24 +192,28 @@ ContainmentItem {
             GridView {
                 id: tasksGrid
 
+                Layout.row: root.vertical && root.reverseLayout ? 1 : 0 // Explicitly define grid coordinates
+                Layout.column: 0                                        // to prevent overlapping
+
                 Layout.alignment: Qt.AlignCenter
 
                 interactive: false //disable features we don't need
                 flow: root.vertical ? GridView.LeftToRight : GridView.TopToBottom
 
+                // Tell the grid to populate bottom-to-top when flipped on a vertical panel
+                verticalLayoutDirection: (root.vertical && root.reverseLayout) ? GridView.BottomToTop : GridView.TopToBottom
+
                 // The icon size to display when not using the auto-scaling setting
                 readonly property int smallIconSize: Kirigami.Units.iconSizes.smallMedium
 
-                // Automatically use autoSize setting when in tablet mode, if it's
-                // not already being used
-                readonly property bool autoSize: Plasmoid.configuration.scaleIconsToFit || Kirigami.Settings.tabletMode
+                readonly property bool autoSize: Plasmoid.configuration.scaleIconsToFit
 
                 readonly property int gridThickness: root.vertical ? root.width : root.height
                 // Should change to 2 rows/columns on a 56px panel (in standard DPI)
                 readonly property int rowsOrColumns: autoSize ? 1 : Math.max(1, Math.min(count, Math.floor(gridThickness / (smallIconSize + Kirigami.Units.smallSpacing))))
 
                 // Add margins only if the panel is larger than a small icon (to avoid large gaps between tiny icons)
-                readonly property int cellSpacing: Kirigami.Units.smallSpacing * (Kirigami.Settings.tabletMode ? 6 : Plasmoid.configuration.iconSpacing)
+                readonly property int cellSpacing: Kirigami.Units.smallSpacing * Plasmoid.configuration.iconSpacing
                 readonly property int smallSizeCellLength: gridThickness < smallIconSize ? smallIconSize : smallIconSize + cellSpacing
 
                 cellHeight: {
@@ -250,6 +270,10 @@ ContainmentItem {
 
             ExpanderArrow {
                 id: expander
+
+                Layout.row: root.vertical && !root.reverseLayout ? 1 : 0 // Explicitly define grid coordinates
+                Layout.column: root.vertical ? 0 : 1                     // to prevent overlapping
+
                 Layout.fillWidth: vertical
                 Layout.fillHeight: !vertical
                 Layout.alignment: vertical ? Qt.AlignVCenter : Qt.AlignHCenter

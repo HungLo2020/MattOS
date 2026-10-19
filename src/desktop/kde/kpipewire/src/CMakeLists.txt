@@ -11,44 +11,37 @@ ecm_qt_declare_logging_category(kpipewire_SRCS
                             HEADER logging.h
                             IDENTIFIER PIPEWIRE_LOGGING
                             CATEGORY_NAME kpipewire_logging
-                            DEFAULT_SEVERITY Warning
                             DESCRIPTION "PipeWire components for KDE"
                             EXPORT KPipeWire)
 ecm_qt_declare_logging_category(kpipewire_SRCS
                             HEADER logging_vaapi.h
                             IDENTIFIER PIPEWIREVAAPI_LOGGING
                             CATEGORY_NAME kpipewire_vaapi_logging
-                            DEFAULT_SEVERITY Warning
                             DESCRIPTION "PipeWire components for KDE - VAAPI related messages"
                             EXPORT KPipeWire)
 ecm_qt_declare_logging_category(kpipewiredmabuf_SRCS
                             HEADER logging_dmabuf.h
                             IDENTIFIER PIPEWIREDMABUF_LOGGING
                             CATEGORY_NAME kpipewire_dmabuf_logging
-                            DEFAULT_SEVERITY Warning
                             DESCRIPTION "PipeWire and DMABuf components for KDE"
                             EXPORT KPipeWireDmaBuf)
 ecm_qt_declare_logging_category(kpipewirerecord_SRCS
                             HEADER logging_record.h
                             IDENTIFIER PIPEWIRERECORD_LOGGING
                             CATEGORY_NAME kpipewire_record_logging
-                            DEFAULT_SEVERITY Warning
                             DESCRIPTION "PipeWire and FFmpeg components for KDE"
                             EXPORT KPipeWireRecord)
 ecm_qt_declare_logging_category(kpipewirerecord_SRCS
                             HEADER logging_frame_statistics.h
                             IDENTIFIER PIPEWIRERECORDFRAMESTATS_LOGGING
                             CATEGORY_NAME kpipewire_record_framestatistics
-                            DEFAULT_SEVERITY Warning
                             DESCRIPTION "PipeWire and FFmpeg components for KDE - Frame processing statistics"
                             EXPORT KPipeWireRecord)
 ecm_qt_declare_logging_category(kpipewirerecord_SRCS
                             HEADER logging_libav.h
                             IDENTIFIER PIPEWIRELIBAV_LOGGING
                             CATEGORY_NAME kpipewire_libav_logging
-                            DEFAULT_SEVERITY Warning
-                            DESCRIPTION "PipeWire components for KDE - libav log output"
-                            DEFAULT_SEVERITY Info)
+                            DESCRIPTION "PipeWire components for KDE - libav log output")
 
 ecm_qt_install_logging_categories(
     EXPORT KPipeWire
@@ -63,9 +56,11 @@ ecm_qt_install_logging_categories(
 )
 
 target_sources(KPipeWire PRIVATE
+    pipewireaudiosourcestream.cpp
     pipewirecore.cpp
     pipewiresourceitem.cpp
     pipewiresourcestream.cpp
+    rendernodecontext.cpp
     glhelpers.cpp
     pwhelpers.cpp
     vaapiutils.cpp
@@ -106,7 +101,7 @@ install(FILES
   DESTINATION ${KDE_INSTALL_INCLUDEDIR}/KPipeWire COMPONENT Devel
 )
 
-add_library(KPipeWireDmaBuf dmabufhandler.cpp ${kpipewiredmabuf_SRCS})
+add_library(KPipeWireDmaBuf dmabufhandler.cpp rendernodecontext.cpp ${kpipewiredmabuf_SRCS})
 target_link_libraries(KPipeWireDmaBuf PUBLIC KPipeWire
     PRIVATE Qt::Core Qt::Gui PkgConfig::GBM
     epoxy::epoxy Libdrm::Libdrm Qt::GuiPrivate
@@ -140,6 +135,9 @@ add_library(KPipeWireRecord ${kpipewirerecord_SRCS}
                             pipewirerecord.cpp
                             pipewireproduce.cpp
                             encoder.cpp
+                            audioencoder.cpp
+                            aacencoder.cpp
+                            libopusencoder.cpp
                             gifencoder.cpp
                             h264vaapiencoder.cpp
                             libx264encoder.cpp

@@ -19,7 +19,25 @@ qt_internal_add_test(tst_config
         ${CMAKE_CURRENT_LIST_DIR}/../../src/qdoc/location.cpp
         ${CMAKE_CURRENT_LIST_DIR}/../../src/qdoc/outputdirectory.cpp
         ${CMAKE_CURRENT_LIST_DIR}/../../src/qdoc/qdoccommandlineparser.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../src/qdoc/qdoclogging.cpp
         ${CMAKE_CURRENT_LIST_DIR}/../../src/qdoc/utilities.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../src/qdoc/textutils.cpp
     INCLUDE_DIRECTORIES
         ${CMAKE_CURRENT_LIST_DIR}/../../src/
 )
+
+# Default configuration file as a resource
+set_source_files_properties("${CMAKE_CURRENT_LIST_DIR}/../../src/qdoc/config/defaults.qdocconf"
+        PROPERTIES QT_RESOURCE_ALIAS "config/defaults.qdocconf"
+    )
+
+set(qdoc_config_files
+        "${CMAKE_CURRENT_LIST_DIR}/../../src/qdoc/config/defaults.qdocconf"
+    )
+
+qt_internal_add_resource(tst_config "qdoc_test_configs"
+    PREFIX
+        "/qdoc"
+    FILES
+        ${qdoc_config_files}
+    )

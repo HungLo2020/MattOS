@@ -322,12 +322,14 @@ qsizetype qFindByteArray(const char *haystack0, qsizetype l, qsizetype from,
     \ingroup tools
     \ingroup string-processing
 
-    This class is useful when you have a sequence of bytes that you
-    want to repeatedly match against some byte arrays (perhaps in a
-    loop), or when you want to search for the same sequence of bytes
-    multiple times in the same byte array. Using a matcher object and
-    indexIn() is faster than matching a plain QByteArray with
-    QByteArray::indexOf(), in particular if repeated matching takes place.
+    QStaticByteArrayMatcher\<N\> is a template class where \a N is the length
+    of the byte array pattern to search for (including the null terminator for
+    string literals). This class is useful when you have a sequence of bytes
+    that you want to repeatedly match against some byte arrays (perhaps in a
+    loop), or when you want to search for the same sequence of bytes multiple
+    times in the same byte array. Using a matcher object and indexIn() is
+    faster than matching a plain QByteArray with QByteArray::indexOf(), in
+    particular if repeated matching takes place.
 
     Unlike QByteArrayMatcher, this class calculates the internal
     representation at \e{compile-time}, so it can
@@ -399,7 +401,7 @@ qsizetype QStaticByteArrayMatcherBase::indexOfIn(const char *needle, size_t nlen
     \since 5.9
     \relates QStaticByteArrayMatcher
 
-    Return a QStaticByteArrayMatcher with the correct \c{N} determined
+    Return a QStaticByteArrayMatcher with the correct \a N determined
     automatically from the \a pattern passed.
 
     To take full advantage of this function, assign the result to an

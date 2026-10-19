@@ -2,16 +2,16 @@
 # Copyright (C) 2010 This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# Sveinn í Felli <sveinki@nett.is>, 2010, 2022.
+# SPDX-FileCopyrightText: 2010, 2022, 2026 Sveinn í Felli <sveinki@nett.is>
 # SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Guðmundur Erlingsson <gudmundure@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_notifications\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-04 02:42+0000\n"
-"PO-Revision-Date: 2025-09-17 13:01+0000\n"
-"Last-Translator: Gummi <gudmundure@gmail.com>\n"
-"Language-Team: Icelandic <kde-i18n-doc@kde.org>\n"
+"POT-Creation-Date: 2026-09-10 00:49+0000\n"
+"PO-Revision-Date: 2026-03-10 12:57+0000\n"
+"Last-Translator: Sveinn í Felli <sv1@fellsnet.is>\n"
+"Language-Team: Icelandic\n"
 "Language: is\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,7 +21,7 @@ msgstr ""
 "\n"
 "\n"
 "\n"
-"X-Generator: Lokalize 25.04.3\n"
+"X-Generator: Lokalize 23.08.5\n"
 
 #: components/ActionContainer.qml:96
 #, kde-format
@@ -112,60 +112,60 @@ msgctxt "Row description, e.g. Source"
 msgid "%1:"
 msgstr "%1:"
 
-#: components/JobDetails.qml:116
+#: components/JobDetails.qml:118
 #, kde-format
 msgctxt "How many bytes have been copied"
 msgid "%2 of %1"
 msgstr "%2 af %1"
 
-#: components/JobDetails.qml:120
+#: components/JobDetails.qml:122
 #, kde-format
 msgctxt "How many files have been copied"
-msgid "%2 of %1 file"
-msgid_plural "%2 of %1 files"
-msgstr[0] "%2 af %1 skrá"
-msgstr[1] " %2 af %1 skrám"
+msgid "%3 of %2 file"
+msgid_plural "%3 of %2 files"
+msgstr[0] "%3 af %2 skrá"
+msgstr[1] "%3 af %2 skrám"
 
-#: components/JobDetails.qml:123
+#: components/JobDetails.qml:125
 #, kde-format
 msgctxt "How many dirs have been copied"
-msgid "%2 of %1 folder"
-msgid_plural "%2 of %1 folders"
-msgstr[0] "%2 af 1 möppu"
-msgstr[1] "%2 af %1 möppum"
+msgid "%3 of %2 folder"
+msgid_plural "%3 of %2 folders"
+msgstr[0] "%3 af %2 möppu"
+msgstr[1] "%3 af %2 möppum"
 
-#: components/JobDetails.qml:126
+#: components/JobDetails.qml:128
 #, kde-format
 msgctxt "How many items (that includes files and dirs) have been copied"
-msgid "%2 of %1 item"
-msgid_plural "%2 of %1 items"
-msgstr[0] "%2 af %1 atriði"
-msgstr[1] "%2 af %1 atriðum"
+msgid "%3 of %2 item"
+msgid_plural "%3 of %2 items"
+msgstr[0] "%3 af %2 atriði"
+msgstr[1] "%3 af %2 atriðum"
 
-#: components/JobDetails.qml:135
+#: components/JobDetails.qml:137
 #, kde-format
 msgid "%1 file"
 msgid_plural "%1 files"
 msgstr[0] "%1 skrá"
 msgstr[1] "%1 skrár"
 
-#: components/JobDetails.qml:137
+#: components/JobDetails.qml:139
 #, kde-format
 msgid "%1 folder"
 msgid_plural "%1 folders"
 msgstr[0] "% mappa"
 msgstr[1] "%1 möppur"
 
-#: components/JobDetails.qml:139
+#: components/JobDetails.qml:141
 #, kde-format
 msgid "%1 item"
 msgid_plural "%1 items"
 msgstr[0] "%1 atriði"
 msgstr[1] "%1 atriði"
 
-#: components/JobDetails.qml:156 components/SpeedChart.qml:72
-#: components/SpeedChart.qml:98 components/SpeedChart.qml:193
-#: components/SpeedChart.qml:204
+#: components/JobDetails.qml:158 components/SpeedChart.qml:75
+#: components/SpeedChart.qml:103 components/SpeedChart.qml:204
+#: components/SpeedChart.qml:217
 #, kde-format
 msgctxt "Bytes per second"
 msgid "%1/s"
@@ -195,7 +195,7 @@ msgctxt "Cancel running job"
 msgid "Cancel"
 msgstr "Hætta við"
 
-#: components/JobItem.qml:125 components/ThumbnailStrip.qml:159
+#: components/JobItem.qml:125 components/ThumbnailStrip.qml:154
 #, kde-format
 msgid "More Options…"
 msgstr "Fleiri valkostir…"
@@ -222,17 +222,17 @@ msgctxt "@action:button"
 msgid "Send"
 msgstr "Senda"
 
-#: components/SpeedChart.qml:145
+#: components/SpeedChart.qml:155
 #, kde-format
 msgid "Speed"
 msgstr "Hraði"
 
-#: components/SpeedChart.qml:200
+#: components/SpeedChart.qml:212
 #, kde-format
 msgid "Average Speed"
 msgstr "Meðalhraði"
 
-#: components/SpeedChart.qml:258
+#: components/SpeedChart.qml:272
 #, kde-format
 msgctxt "Percentage of a job"
 msgid "%1%"
@@ -266,12 +266,12 @@ msgstr "%1 (lokið)"
 msgid "Job Finished"
 msgstr "Verki lokið"
 
-#: fileinfo.cpp:170
+#: fileinfo.cpp:186
 #, kde-format
 msgid "Open with %1"
 msgstr "Opna með %1"
 
-#: fileinfo.cpp:174
+#: fileinfo.cpp:190
 #, kde-format
 msgid "Open with…"
 msgstr "Opna með…"
@@ -395,22 +395,34 @@ msgctxt "Vendor and product name"
 msgid "Notifications are currently provided by '%1 %2'"
 msgstr "Tilkynningar eru núna meðhöndlaðar af '%1 %2'"
 
-#: globalshortcuts.cpp:23
+#: globalshortcuts.cpp:24
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "Kveikja/slökkva á 'Ekki ónáða'"
 
-#: globalshortcuts.cpp:42
+#: globalshortcuts.cpp:33
+#, kde-format
+msgctxt "@action"
+msgid "Clear Notification History"
+msgstr "Hreinsa tilkynningaferil"
+
+#: globalshortcuts.cpp:52
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications Off"
 msgstr "Slökkt á tilkynningum"
 
-#: globalshortcuts.cpp:43
+#: globalshortcuts.cpp:53
 #, kde-format
 msgctxt "OSD popup, keep short"
 msgid "Notifications On"
 msgstr "Kveikt á tilkynningum"
+
+#: globalshortcuts.cpp:68
+#, kde-format
+msgctxt "@label OSD popup, keep short"
+msgid "Notification history cleared"
+msgstr "Tilkynningaferill hreinsaður"
 
 #: main.qml:61
 #, kde-format
@@ -461,12 +473,12 @@ msgstr "Stillingin 'Ekki ónáða' er virk. Miðjusmelltu til að hætta"
 msgid "Middle-click to enter do not disturb mode"
 msgstr "Miðjusmelltu til að stilla á 'Ekki ónáða'"
 
-#: main.qml:238
+#: main.qml:245
 #, kde-format
 msgid "Clear All Notifications"
 msgstr "Hreinsa allar tilkynningar"
 
-#: main.qml:257
+#: main.qml:264
 #, kde-format
 msgid "&Configure Event Notifications and Actions…"
 msgstr "Stilla til&kynningar um viðburði og aðgerðir…"

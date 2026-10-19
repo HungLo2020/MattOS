@@ -1,0 +1,11 @@
+schema_version = 1
+component = "leptonica"
+upstream_commit = "13275a278eb55b5746e33f95fbf5a2c8f604b3ab"
+upstream_tree = "d11309d4b9cdc138efc97b7f1f9263a31c39889b"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/leptonica/0001-relocatable-native-sdk-metadata.patch"
+sha256 = "f84c07373ed001349446d1852655350c41526cc53decf4a29b071cbe7cf91a36"
+purpose = "Make CMake and pkg-config SDK metadata relocatable and multiarch-aware; keep configure probes on discovered target headers instead of host /usr/include."
+documentation = "docs/system/userland/kde-applications.md"

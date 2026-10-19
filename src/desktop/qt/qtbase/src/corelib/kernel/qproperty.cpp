@@ -483,8 +483,8 @@ QUntypedPropertyBinding &QUntypedPropertyBinding::operator=(QUntypedPropertyBind
 /*!
    \internal
 */
-QUntypedPropertyBinding::QUntypedPropertyBinding(QPropertyBindingPrivate *priv)
-    : d(priv)
+QUntypedPropertyBinding::QUntypedPropertyBinding(void *priv)
+    : d(static_cast<QPropertyBindingPrivate *>(priv))
 {
 }
 
@@ -557,10 +557,10 @@ QUntypedPropertyBinding QPropertyBindingData::setBinding(const QUntypedPropertyB
     auto &data = d_ref();
     if (auto *existingBinding = d.binding()) {
         if (existingBinding == newBinding.data())
-            return QUntypedPropertyBinding(static_cast<QPropertyBindingPrivate *>(oldBinding.data()));
+            return QUntypedPropertyBinding(oldBinding.data());
         if (existingBinding->isUpdating()) {
             existingBinding->setError({QPropertyBindingError::BindingLoop, QStringLiteral("Binding set during binding evaluation!")});
-            return QUntypedPropertyBinding(static_cast<QPropertyBindingPrivate *>(oldBinding.data()));
+            return QUntypedPropertyBinding(oldBinding.data());
         }
         oldBinding = QPropertyBindingPrivatePtr(existingBinding);
         observer = static_cast<QPropertyBindingPrivate *>(oldBinding.data())->takeObservers();
@@ -592,7 +592,7 @@ QUntypedPropertyBinding QPropertyBindingData::setBinding(const QUntypedPropertyB
     if (oldBinding)
         static_cast<QPropertyBindingPrivate *>(oldBinding.data())->detachFromProperty();
 
-    return QUntypedPropertyBinding(static_cast<QPropertyBindingPrivate *>(oldBinding.data()));
+    return QUntypedPropertyBinding(oldBinding.data());
 }
 
 QPropertyBindingData::QPropertyBindingData(QPropertyBindingData &&other) : d_ptr(std::exchange(other.d_ptr, 0))
@@ -1029,6 +1029,9 @@ QString QPropertyBindingError::description() const
 
   \ingroup tools
 
+  QPropertyData is a template class where the template parameter \a T specifies
+  the type of the property value being stored.
+
   QPropertyData\<T\> is a common base class for classes that can hold properties with automatic
   data bindings. It mainly wraps the stored data, and offers low level access to that data.
 
@@ -1221,6 +1224,9 @@ QString QPropertyBindingError::description() const
 
    \ingroup tools
 
+   QBindable is a template class where the template parameter \a T specifies
+   the type of the property value.
+
    QBindable\<T\> helps to integrate Qt's traditional Q_PROPERTY with
    \l {Qt Bindable Properties}{binding-enabled} properties.
    If a property is backed by a QProperty, QObjectBindableProperty or QObjectComputedProperty,
@@ -1344,6 +1350,9 @@ QString QPropertyBindingError::description() const
   \endcompareswith
 
   \ingroup tools
+
+  QProperty is a template class where the template parameter \a T specifies
+  the type of the property value.
 
   QProperty\<T\> is one of the classes implementing \l {Qt Bindable Properties}.
   It is a container that holds an instance of T. You can assign
@@ -1560,6 +1569,12 @@ QString QPropertyBindingError::description() const
 
   \ingroup tools
 
+  QObjectBindableProperty is a template class where the template parameter
+  \a Class specifies the owning QObject-derived class, \a T specifies the
+  property value type, \a Offset specifies the property's location within
+  the class, and \a Signal optionally specifies the notify signal to emit
+  when the property value changes.
+
   QObjectBindableProperty is a generic container that holds an
   instance of T and behaves mostly like \l QProperty.
   It is one of the classes implementing \l {Qt Bindable Properties}.
@@ -1732,6 +1747,12 @@ QString QPropertyBindingError::description() const
          properties to the bindable property system.
   \since 6.0
   \ingroup tools
+
+  QObjectComputedProperty is a template class where the template parameter
+  \a Class specifies the owning QObject-derived class, \a T specifies the
+  computed property value type, \a Offset specifies the property's location
+  within the class, and \a Getter specifies the member function that computes
+  the property value.
 
   QObjectComputedProperty is a read-only property which is recomputed on each read.
   It does not store the computed value.
@@ -2001,6 +2022,10 @@ QString QPropertyBindingError::description() const
   callback installed on a QProperty.
 
   \ingroup tools
+
+  QPropertyChangeHandler is a template class where the template parameter
+  \a Functor specifies the type of the callback function that is invoked
+  when the property value changes.
 
   QPropertyChangeHandler\<Functor\> is created when registering a callback on a
   QProperty to listen to changes to the property's value, using
@@ -2543,7 +2568,7 @@ void setter(QUntypedPropertyData *d, const void *value)
 QUntypedPropertyBinding getBinding(const QUntypedPropertyData *d)
 {
     auto adaptor = static_cast<const QtPrivate::QPropertyAdaptorSlotObject *>(d);
-    return QUntypedPropertyBinding(adaptor->bindingData().binding());
+    return QPropertyBindingPrivate::makeUntyped(adaptor->bindingData().binding());
 }
 
 bool bindingWrapper(QMetaType type, QUntypedPropertyData *d,

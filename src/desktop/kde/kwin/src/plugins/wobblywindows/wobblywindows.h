@@ -11,6 +11,7 @@
 
 // Include with base class for effects.
 #include "effect/offscreeneffect.h"
+#include "effect/timeline.h"
 
 namespace KWin
 {
@@ -36,13 +37,13 @@ class WobblyWindowsEffect : public OffscreenEffect
     Q_PROPERTY(qreal stopAcceleration READ stopAcceleration)
     Q_PROPERTY(bool moveWobble READ isMoveWobble)
     Q_PROPERTY(bool resizeWobble READ isResizeWobble)
+
 public:
     WobblyWindowsEffect();
     ~WobblyWindowsEffect() override;
 
     void reconfigure(ReconfigureFlags) override;
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime) override;
+    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data) override;
     void postPaintScreen() override;
     bool isActive() const override;
 
@@ -94,13 +95,11 @@ protected:
 public Q_SLOTS:
     void slotWindowAdded(KWin::EffectWindow *w);
     void slotWindowStartUserMovedResized(KWin::EffectWindow *w);
-    void slotWindowStepUserMovedResized(KWin::EffectWindow *w, const QRectF &geometry);
+    void slotWindowStepUserMovedResized(KWin::EffectWindow *w, const RectF &geometry);
     void slotWindowFinishUserMovedResized(KWin::EffectWindow *w);
-    void slotWindowMaximizeStateChanged(KWin::EffectWindow *w, bool horizontal, bool vertical);
 
 private:
     void startMovedResized(EffectWindow *w);
-    void stepMovedResized(EffectWindow *w);
     bool updateWindowWobblyDatas(EffectWindow *w, qreal time);
 
     struct WindowWobblyInfos
@@ -129,9 +128,9 @@ private:
 
         // for resizing. Only sides that have moved will wobble
         bool can_wobble_top, can_wobble_left, can_wobble_right, can_wobble_bottom;
-        QRectF resize_original_rect;
+        RectF resize_original_rect;
 
-        std::chrono::milliseconds clock;
+        AnimationClock clock;
     };
 
     QHash<const EffectWindow *, WindowWobblyInfos> windows;
@@ -158,7 +157,7 @@ private:
     bool m_moveWobble;
     bool m_resizeWobble;
 
-    void initWobblyInfo(WindowWobblyInfos &wwi, QRectF geometry) const;
+    void initWobblyInfo(WindowWobblyInfos &wwi, RectF geometry) const;
 
     WobblyWindowsEffect::Pair computeBezierPoint(const WindowWobblyInfos &wwi, Pair point) const;
 

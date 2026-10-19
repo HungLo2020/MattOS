@@ -2,6 +2,7 @@
 Type=Service
 Name=Voila
 Name[af]=Voila
+Name[am]=Voila
 Name[ar]=Voila
 Name[as]=Voila
 Name[ast]=Voila
@@ -61,6 +62,8 @@ Name[ml]=വോയിലാ
 Name[mr]=वॉइला
 Name[ms]=Voila
 Name[my]=ဗွိုင်လာ
+Name[nan_TW]=Voila
+Name[nan_TW@latin]=Voila
 Name[nb]=Voila
 Name[nds]=Voila
 Name[ne]=भोइला
@@ -90,7 +93,6 @@ Name[tg]=Voila
 Name[th]=Voila
 Name[tok]=ilo esun Voila
 Name[tr]=Voila
-Name[ug]=Voila
 Name[uk]=Voila
 Name[uz]=Voila
 Name[uz@cyrillic]=Voila
@@ -101,6 +103,7 @@ Name[zh_CN]=Voila
 Name[zh_TW]=Voila
 Keys=voila
 Query=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
+Query[am]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[ar]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[az]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[be]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
@@ -140,6 +143,8 @@ Query[lg]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[lt]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[lv]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[my]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
+Query[nan_TW]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
+Query[nan_TW@latin]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[nb]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[nl]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[nn]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
@@ -158,7 +163,6 @@ Query[tg]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[th]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[tok]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[tr]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
-Query[ug]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[uk]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[vi]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*
 Query[zh_CN]=https://www.voila.com/S/geek?an=1&kw=\\{@}&dt=*

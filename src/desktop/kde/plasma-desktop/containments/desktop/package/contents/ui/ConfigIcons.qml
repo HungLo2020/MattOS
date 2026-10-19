@@ -16,11 +16,14 @@ import org.kde.iconthemes as KIconThemes
 import org.kde.config // for KAuthorized
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
+import org.kde.private.desktopcontainment.folder as Folder
 
 KCM.SimpleKCM {
     id: configIcons
 
-    property bool isPopup: (Plasmoid.location !== PlasmaCore.Types.Floating)
+    property bool inPanel: (Plasmoid.location !== PlasmaCore.Types.Floating)
+
+    readonly property bool krunnerAvailable: Folder.KRunnerChecker.krunnerAvailable
 
     property string cfg_icon: Plasmoid.configuration.icon
     property alias cfg_useCustomIcon: useCustomIcon.checked
@@ -40,6 +43,7 @@ KCM.SimpleKCM {
     property alias cfg_iconSize: iconSize.value
     property alias cfg_labelWidth: labelWidth.currentIndex
     property alias cfg_textLines: textLines.value
+    property bool cfg_useTypeAhead: Plasmoid.configuration.useTypeAhead
 
     readonly property bool lockedByKiosk: !KAuthorized.authorize("editable_desktop_icons")
 
@@ -52,13 +56,13 @@ KCM.SimpleKCM {
         // Panel button
         RowLayout {
             spacing: Kirigami.Units.smallSpacing
-            visible: configIcons.isPopup
+            visible: configIcons.inPanel
 
             Kirigami.FormData.label: i18nc("@title:group prefix for checkbox + button", "Panel button:")
 
             CheckBox {
                 id: useCustomIcon
-                visible: configIcons.isPopup
+                visible: configIcons.inPanel
                 checked: configIcons.cfg_useCustomIcon
                 text: i18nc("@option:check", "Use a custom icon")
             }
@@ -107,7 +111,7 @@ KCM.SimpleKCM {
         }
 
         Item {
-            visible: configIcons.isPopup
+            visible: configIcons.inPanel
             Kirigami.FormData.isSection: true
         }
 
@@ -117,7 +121,7 @@ KCM.SimpleKCM {
         ComboBox {
             id: arrangement
             Layout.fillWidth: true
-            visible: !configIcons.isPopup || viewMode.currentIndex === 1 /* Icons mode */
+            visible: !configIcons.inPanel || viewMode.currentIndex === 1 /* Icons mode */
 
             Kirigami.FormData.label: i18nc("@label:listbox columns/rows", "Arrangement:")
 
@@ -130,7 +134,7 @@ KCM.SimpleKCM {
         ComboBox {
             id: alignment
             Layout.fillWidth: true
-            visible: !configIcons.isPopup || viewMode.currentIndex === 1 /* Icons mode */
+            visible: !configIcons.inPanel || viewMode.currentIndex === 1 /* Icons mode */
 
             Kirigami.FormData.label: i18nc("@label:listbox, LtR/RtL", "Sort Alignment:")
 
@@ -163,7 +167,7 @@ KCM.SimpleKCM {
 
         Item {
             Kirigami.FormData.isSection: true
-            visible: !configIcons.isPopup || viewMode.currentIndex === 1 /* Icons mode */
+            visible: !configIcons.inPanel || viewMode.currentIndex === 1 /* Icons mode */
         }
 
 
@@ -214,7 +218,7 @@ KCM.SimpleKCM {
         // View Mode section (only if we're a pop-up)
         ComboBox {
             id: viewMode
-            visible: configIcons.isPopup
+            visible: configIcons.inPanel
             Layout.fillWidth: true
 
             Kirigami.FormData.label: i18nc("whether to use icon or list view", "View mode:")
@@ -229,7 +233,7 @@ KCM.SimpleKCM {
             id: iconSize
 
             Layout.fillWidth: true
-            visible: !configIcons.isPopup || viewMode.currentIndex === 1 /* Icons mode */
+            visible: !configIcons.inPanel || viewMode.currentIndex === 1 /* Icons mode */
 
             Kirigami.FormData.label: i18nc("@label:slider", "Icon size:")
 
@@ -244,7 +248,7 @@ KCM.SimpleKCM {
 
             Label {
                 Layout.alignment: Qt.AlignLeft
-                visible: !configIcons.isPopup || viewMode.currentIndex === 1 /* Icons mode */
+                visible: !configIcons.inPanel || viewMode.currentIndex === 1 /* Icons mode */
 
                 text: i18nc("@item:inrange smallest icon size", "Small")
             }
@@ -253,7 +257,7 @@ KCM.SimpleKCM {
             }
             Label {
                 Layout.alignment: Qt.AlignRight
-                visible: !configIcons.isPopup || viewMode.currentIndex === 1 /* Icons mode */
+                visible: !configIcons.inPanel || viewMode.currentIndex === 1 /* Icons mode */
 
                 text: i18nc("@item:inrange largest icon size", "Large")
             }
@@ -261,7 +265,7 @@ KCM.SimpleKCM {
 
         ComboBox {
             id: labelWidth
-            visible: !configIcons.isPopup || viewMode.currentIndex === 1 /* Icons mode */
+            visible: !configIcons.inPanel || viewMode.currentIndex === 1 /* Icons mode */
             Layout.fillWidth: true
 
             Kirigami.FormData.label: i18nc("@label:listbox", "Label width:")
@@ -275,7 +279,7 @@ KCM.SimpleKCM {
 
         SpinBox {
             id: textLines
-            visible: !configIcons.isPopup || viewMode.currentIndex === 1 /* Icons mode */
+            visible: !configIcons.inPanel || viewMode.currentIndex === 1 /* Icons mode */
 
             Kirigami.FormData.label: i18nc("@label:spinbox", "Text lines:")
 
@@ -307,7 +311,7 @@ KCM.SimpleKCM {
 
         CheckBox {
             id: popups
-            visible: !configIcons.isPopup
+            visible: !configIcons.inPanel
 
             text: i18nc("@option:check When hovering over icons…", "Show folder preview popups")
         }
@@ -315,6 +319,36 @@ KCM.SimpleKCM {
         Item {
             Kirigami.FormData.isSection: true
         }
+
+
+        ColumnLayout {
+            // Only show if it's the desktop (not a popup) AND KRunner is present/running
+            visible: !configIcons.inPanel && configIcons.krunnerAvailable
+
+            Kirigami.FormData.label: i18nc("@title:group", "Typing on the desktop:")
+            Kirigami.FormData.buddyFor: typeAheadRadioButton
+            spacing: Kirigami.Units.smallSpacing
+
+            RadioButton {
+                id: typeAheadRadioButton
+                text: i18nc("@option:radio Typing on the desktop selects items", "Selects items")
+                checked: configIcons.cfg_useTypeAhead
+                onToggled: if (checked) configIcons.cfg_useTypeAhead = true
+            }
+
+            RadioButton {
+                text: i18nc("@option:radio Typing on the desktop activates KRunner", "Activates KRunner")
+                checked: !configIcons.cfg_useTypeAhead
+                onToggled: if (checked) configIcons.cfg_useTypeAhead = false
+            }
+        }
+
+        Item {
+            Kirigami.FormData.isSection: true
+            visible: !configIcons.inPanel && configIcons.krunnerAvailable
+            implicitHeight: Kirigami.Units.smallSpacing
+        }
+
 
         CheckBox {
             id: renameInline

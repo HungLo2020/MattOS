@@ -11,6 +11,7 @@
 
 #include <signal.h>
 
+#include <QBitArray>
 #include <QJSValue>
 #include <QObject>
 #include <QVariant>
@@ -122,6 +123,44 @@ public:
     Q_INVOKABLE QJSValue priority(const QList<long long> &pids);
 
     /**
+     * Set the affinity mask of a number of processes.
+     *
+     * This will set the affinity mask of all processes in \p pids to \p affinityMask.
+     *
+     * \param pids A vector of pids to set the priority of.
+     * \param affinityMask The affinity mask to set.
+     *
+     * \return A Result value that indicates whether the action succeeded. Note
+     *         that a non-Success result may indicate any of the processes in
+     *         \p pids encountered that result.
+     */
+    Q_INVOKABLE Result setAffinity(const QList<int> &pids, const QBitArray &affinityMask);
+    /**
+     * \overload Result setAffinity(const QList<int> &pids, const QVariantList &cpuIndices)
+     */
+    Q_INVOKABLE Result setAffinity(const QList<int> &pids, const QVariantList &cpuIndices);
+    /**
+     * \overload Result setAffinity(const QList<long long> &pids, const QVariantList &cpuIndices)
+     */
+    Q_INVOKABLE Result setAffinity(const QList<long long> &pids, const QVariantList &cpuIndices);
+    /**
+     * \overload Result setAffinity(const QVariantList &pids, const QVariantList &cpuIndices)
+     */
+    Q_INVOKABLE Result setAffinity(const QVariantList &pids, const QVariantList &cpuIndices);
+    /**
+     * Get the affinity mask of a process.
+     *
+     * If the retrieval fails, it still returns the default value.
+     *
+     * \param pid The pid to get the priority from.
+     *
+     * \return The affinity mask of the process.
+     */
+    Q_INVOKABLE QBitArray affinity(long long pid);
+
+    Q_INVOKABLE QVariantList affinity(const QList<long long> &pids);
+
+    /**
      * Set the CPU scheduling policy and priority of a number of processes.
      *
      * This will set the CPU scheduling policy and priority of all processes in
@@ -191,6 +230,26 @@ public:
      * \overload Result setIoScheduler(const QList<int> &pids, IoPriority priorityClass, int priority)
      */
     Q_INVOKABLE Result setIoScheduler(const QVariantList &pids, IoPriority priorityClass, int priority);
+
+    /**
+     * Apply niceness, CPU scheduler and IO scheduler to a number of processes in one go.
+     *
+     * This is equivalent to calling setPriority(), setCpuScheduler() and setIoScheduler() in
+     * sequence, except that when privilege escalation is required it is requested only once for all
+     * three changes instead of once per change. Use this when applying several scheduling changes
+     * at the same time (for example from a renice dialog) to avoid repeated authentication prompts.
+     *
+     * \param pids A vector of pids to change.
+     * \param niceValue The new niceness value. See setPriority().
+     * \param cpuScheduler The new CPU scheduler. See setCpuScheduler().
+     * \param cpuPriority The new CPU scheduler priority. See setCpuScheduler().
+     * \param ioPriorityClass The new IO scheduling class. See setIoScheduler().
+     * \param ioPriority The new IO scheduler priority. See setIoScheduler().
+     *
+     * \return A Result value that indicates whether the action succeeded.
+     */
+    Q_INVOKABLE Result
+    applyScheduling(const QVariantList &pids, int niceValue, Scheduler cpuScheduler, int cpuPriority, IoPriority ioPriorityClass, int ioPriority);
 
     /**
      * Get the IO priority of a process.

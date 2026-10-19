@@ -11,13 +11,13 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.kitemmodels as KItemModels
+import org.kde.ki18n
 
 ScreenChooserDialogTemplate {
     id: root
 
     required property var outputsModel
     required property var windowsModel
-    property bool multiple: false
     property alias allowRestore: allowRestoreItem.checked
 
     /* The geometries of the selected chips */
@@ -118,6 +118,7 @@ ScreenChooserDialogTemplate {
             Kirigami.SearchField {
                 id: searchField
                 Layout.alignment: Qt.AlignRight
+                placeholderText: KI18n.i18nc("placeholder text for searchfield", "Search…")
                 Component.onCompleted: Qt.callLater(forceActiveFocus) // focus by default for easy searching
                 Keys.onPressed: (event) => {
                     if (event.key !== Qt.Key_Return && event.key !== Qt.Key_Enter) {
@@ -163,7 +164,7 @@ ScreenChooserDialogTemplate {
 
             QQC2.Label {
                 font.bold: true
-                text: i18nc("@label separator line label between screen selection and window selection", "Windows")
+                text: KI18n.i18nc("@label separator line label between screen selection and window selection", "Windows")
                 wrapMode: Text.WordWrap
             }
 
@@ -182,16 +183,20 @@ ScreenChooserDialogTemplate {
         }
     }
 
+    title: KI18n.i18nc("@title:window", "Screen Sharing Requested")
+    // mainText and subtitle are set in C++ because we need to know some details
+    // that the QML side doesn't know about
+
     standardButtons: root.multiple ? QQC2.DialogButtonBox.Ok | QQC2.DialogButtonBox.Cancel : QQC2.DialogButtonBox.NoButton
     dialogButtonBoxLeftItem: QQC2.CheckBox {
         id: allowRestoreItem
         checked: true
-        text: i18n("Allow restoring on future sessions")
+        text: KI18n.i18nc("@option:check", "Allow the application to do this without asking next time")
     }
 
     Component.onCompleted: {
         if (root.multiple) {
-            dialogButtonBox.standardButton(QQC2.DialogButtonBox.Ok).text = i18n("Share")
+            dialogButtonBox.standardButton(QQC2.DialogButtonBox.Ok).text = KI18n.i18n("Share")
         }
 
         // If there's only one thing in the list, pre-select it to save the user a click

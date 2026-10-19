@@ -23,8 +23,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_dont_crash_aurorae_destroy_deco-0");
-
 class DontCrashAuroraeDestroyDecoTest : public QObject
 {
     Q_OBJECT
@@ -36,20 +34,14 @@ private Q_SLOTS:
 
 void DontCrashAuroraeDestroyDecoTest::initTestCase()
 {
-    if (!Test::renderNodeAvailable()) {
-        QSKIP("no render node available");
-        return;
-    }
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     KSharedConfig::Ptr config = KSharedConfig::openConfig(QString(), KConfig::SimpleConfig);
     config->group(QStringLiteral("org.kde.kdecoration2")).writeEntry("library", "org.kde.kwin.aurorae");
     config->sync();
     kwinApp()->setConfig(config);
 
-    // this test needs to enforce OpenGL compositing to get into the crashy condition
-    qputenv("KWIN_COMPOSE", QByteArrayLiteral("O2"));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),
@@ -106,10 +98,6 @@ void DontCrashAuroraeDestroyDecoTest::testBorderlessMaximizedWindows()
     QQuickItem *item = window->decoration()->property("item").value<QQuickItem *>()->findChild<QQuickItem *>("maximizeButton");
     QVERIFY(item);
     const QPointF scenePoint = item->mapToScene(QPoint(0, 0));
-
-    // mark the window as ready for painting, otherwise it doesn't get input events
-    QMetaObject::invokeMethod(window, "setReadyForPainting");
-    QVERIFY(window->readyForPainting());
 
     // simulate click on maximize button
     QSignalSpy maximizedStateChangedSpy(window, &Window::maximizedChanged);

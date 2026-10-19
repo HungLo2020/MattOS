@@ -13,13 +13,15 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 "X-Generator: Lokalize 21.08.0\n"
 
-#: controls/AboutItem.qml:166
-#, qt-format
+#: controls/AboutItem.qml:180
+#, fuzzy, qt-format
+#| msgctxt "AboutPage|"
+#| msgid "Visit %1's KDE Store page"
 msgctxt "AboutItem|"
-msgid "%1 (%2)"
-msgstr ""
+msgid "Visit %1's KDE Store page"
+msgstr "%1 के केडीई स्टोर पृष्ठ पर जाएँ"
 
-#: controls/AboutItem.qml:186
+#: controls/AboutItem.qml:196
 #, fuzzy, qt-format
 #| msgctxt "AboutPage|"
 #| msgid "Send an email to %1"
@@ -27,25 +29,7 @@ msgctxt "AboutItem|"
 msgid "Send an email to %1"
 msgstr "%1 को ईमेल भेजें"
 
-#: controls/AboutItem.qml:228
-#, fuzzy
-#| msgctxt "AboutPage|"
-#| msgid "Get Involved"
-msgctxt "AboutItem|"
-msgid "Get Involved"
-msgstr "सहभाग लें"
-
 #: controls/AboutItem.qml:234
-msgctxt "AboutItem|"
-msgid "Donate"
-msgstr ""
-
-#: controls/AboutItem.qml:251
-msgctxt "AboutItem|"
-msgid "Report a Bug"
-msgstr ""
-
-#: controls/AboutItem.qml:264
 #, fuzzy
 #| msgctxt "AboutPage|"
 #| msgid "Copyright"
@@ -53,23 +37,38 @@ msgctxt "AboutItem|"
 msgid "Copyright"
 msgstr "सर्वाधिकार"
 
-#: controls/AboutItem.qml:313
+#: controls/AboutItem.qml:243
 #, fuzzy
 #| msgctxt "AboutPage|"
 #| msgid "License:"
 msgctxt "AboutItem|"
-msgid "License:"
+msgid "License"
 msgstr "अनुज्ञापत्र :"
 
-#: controls/AboutItem.qml:336
-#, fuzzy, qt-format
-#| msgctxt "AboutPage|"
-#| msgid "License: %1"
+#: controls/AboutItem.qml:265
 msgctxt "AboutItem|"
-msgid "License: %1"
-msgstr "अनुज्ञापत्र : %1"
+msgid "Homepage"
+msgstr ""
 
-#: controls/AboutItem.qml:347
+#: controls/AboutItem.qml:279
+msgctxt "AboutItem|"
+msgid "Donate"
+msgstr ""
+
+#: controls/AboutItem.qml:293
+#, fuzzy
+#| msgctxt "AboutPage|"
+#| msgid "Get Involved"
+msgctxt "AboutItem|"
+msgid "Get Involved"
+msgstr "सहभाग लें"
+
+#: controls/AboutItem.qml:307
+msgctxt "AboutItem|"
+msgid "Report a bug"
+msgstr ""
+
+#: controls/AboutItem.qml:325
 #, fuzzy
 #| msgctxt "AboutPage|"
 #| msgid "Libraries in use"
@@ -77,15 +76,7 @@ msgctxt "AboutItem|"
 msgid "Libraries in use"
 msgstr "उपयोग किए गए संग्रह"
 
-#: controls/AboutItem.qml:379
-#, fuzzy
-#| msgctxt "AboutPage|"
-#| msgid "Authors"
-msgctxt "AboutItem|"
-msgid "Authors"
-msgstr "लेखक"
-
-#: controls/AboutItem.qml:389
+#: controls/AboutItem.qml:345
 #, fuzzy
 #| msgctxt "AboutPage|"
 #| msgid "Show author photos"
@@ -93,7 +84,15 @@ msgctxt "AboutItem|"
 msgid "Show author photos"
 msgstr "लेखक की फोटोओं को दिखाएँ"
 
-#: controls/AboutItem.qml:400
+#: controls/AboutItem.qml:348
+#, fuzzy
+#| msgctxt "AboutPage|"
+#| msgid "Authors"
+msgctxt "AboutItem|"
+msgid "Authors"
+msgstr "लेखक"
+
+#: controls/AboutItem.qml:358
 #, fuzzy
 #| msgctxt "AboutPage|"
 #| msgid "Credits"
@@ -101,7 +100,7 @@ msgctxt "AboutItem|"
 msgid "Credits"
 msgstr "आभार सूची"
 
-#: controls/AboutItem.qml:412
+#: controls/AboutItem.qml:368
 #, fuzzy
 #| msgctxt "AboutPage|"
 #| msgid "Translators"
@@ -109,7 +108,7 @@ msgctxt "AboutItem|"
 msgid "Translators"
 msgstr "अनुवादक"
 
-#: controls/AboutPage.qml:103
+#: controls/AboutPage.qml:102
 #, qt-format
 msgctxt "AboutPage|"
 msgid "About %1"
@@ -140,17 +139,17 @@ msgctxt "ContextualHelpButton|"
 msgid "Show Contextual Help"
 msgstr ""
 
-#: controls/GlobalDrawer.qml:366
+#: controls/GlobalDrawer.qml:372
 msgctxt "GlobalDrawer|"
 msgid "Back"
 msgstr "पीछे"
 
-#: controls/GlobalDrawer.qml:719
+#: controls/GlobalDrawer.qml:769
 msgctxt "GlobalDrawer|"
 msgid "Close Sidebar"
 msgstr "बाजूपट्टी बंद करें"
 
-#: controls/GlobalDrawer.qml:724
+#: controls/GlobalDrawer.qml:774
 #, fuzzy
 #| msgctxt "GlobalDrawer|"
 #| msgid "Close Sidebar"
@@ -158,17 +157,17 @@ msgctxt "GlobalDrawer|"
 msgid "Open Sidebar"
 msgstr "बाजूपट्टी बंद करें"
 
-#: controls/LoadingPlaceholder.qml:58
+#: controls/LoadingPlaceholder.qml:59
 msgctxt "LoadingPlaceholder|"
 msgid "Loading…"
 msgstr ""
 
-#: controls/PasswordField.qml:43
+#: controls/PasswordField.qml:44
 msgctxt "PasswordField|"
 msgid "Password"
 msgstr "कूटशब्द"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 #, fuzzy
 #| msgctxt "PasswordField|"
 #| msgid "Password"
@@ -176,7 +175,7 @@ msgctxt "PasswordField|"
 msgid "Hide Password"
 msgstr "कूटशब्द"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 #, fuzzy
 #| msgctxt "PasswordField|"
 #| msgid "Password"
@@ -216,30 +215,30 @@ msgctxt "NavigationButtons|"
 msgid "Navigate Forward"
 msgstr "आगे जाएँ"
 
-#: controls/private/PrivateActionToolButton.qml:118
+#: controls/private/PrivateActionToolButton.qml:119
 #, qt-format
 msgctxt "@info:tooltip %1 is a keyboard shorcut|"
 msgid "Trigger this action with %1"
 msgstr ""
 
-#: controls/private/PrivateActionToolButton.qml:125
+#: controls/private/PrivateActionToolButton.qml:126
 #, qt-format
 msgctxt ""
 "@info:tooltip %1 is the tooltip of an action, %2 is its keyboard shorcut|"
 msgid "%1 (%2)"
 msgstr ""
 
-#: controls/SearchField.qml:88
+#: controls/SearchField.qml:89
 msgctxt "SearchField|"
 msgid "Search…"
 msgstr "खोजें…"
 
-#: controls/SearchField.qml:90
+#: controls/SearchField.qml:91
 msgctxt "SearchField|"
 msgid "Search"
 msgstr "खोजें"
 
-#: controls/SearchField.qml:100
+#: controls/SearchField.qml:101
 msgctxt "SearchField|"
 msgid "Clear search"
 msgstr ""
@@ -257,13 +256,13 @@ msgctxt "SelectableLabel|"
 msgid "Select All"
 msgstr ""
 
-#: controls/UrlButton.qml:52
+#: controls/UrlButton.qml:53
 #, qt-format
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link %1"
 msgstr ""
 
-#: controls/UrlButton.qml:53
+#: controls/UrlButton.qml:54
 #, fuzzy
 #| msgctxt "OverlayDrawer|"
 #| msgid "Open"
@@ -271,12 +270,12 @@ msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link"
 msgstr "खोलें"
 
-#: controls/UrlButton.qml:101
+#: controls/UrlButton.qml:102
 msgctxt "UrlButton|"
 msgid "Copy Link to Clipboard"
 msgstr ""
 
-#: dialogs/DialogHeaderTopContent.qml:103
+#: dialogs/DialogHeaderTopContent.qml:104
 #, fuzzy
 #| msgctxt "OverlayDrawer|"
 #| msgid "Close"
@@ -308,27 +307,27 @@ msgctxt "Kirigami::Platform::Settings|"
 msgid "Qt %2 (built against %3)"
 msgstr "क्यूट %2 (%3 के प्रती निर्मित)"
 
-#: templates/InlineMessage.qml:350
+#: templates/InlineMessage.qml:352
 msgctxt "InlineMessage|"
 msgid "Success"
 msgstr ""
 
-#: templates/InlineMessage.qml:352
+#: templates/InlineMessage.qml:354
 msgctxt "InlineMessage|"
 msgid "Warning"
 msgstr ""
 
-#: templates/InlineMessage.qml:354
+#: templates/InlineMessage.qml:356
 msgctxt "InlineMessage|"
 msgid "Error"
 msgstr ""
 
-#: templates/InlineMessage.qml:356
+#: templates/InlineMessage.qml:358
 msgctxt "InlineMessage|"
 msgid "Note"
 msgstr ""
 
-#: templates/InlineMessage.qml:443
+#: templates/InlineMessage.qml:445
 #, fuzzy
 #| msgctxt "OverlayDrawer|"
 #| msgid "Close"
@@ -336,7 +335,7 @@ msgctxt "InlineMessage|"
 msgid "Close"
 msgstr "बंद करें"
 
-#: templates/OverlayDrawer.qml:147
+#: templates/OverlayDrawer.qml:149
 #, fuzzy
 #| msgctxt "GlobalDrawer|"
 #| msgid "Close Sidebar"
@@ -344,18 +343,25 @@ msgctxt "OverlayDrawer|"
 msgid "Close drawer"
 msgstr "बाजूपट्टी बंद करें"
 
-#: templates/OverlayDrawer.qml:153
+#: templates/OverlayDrawer.qml:155
 msgctxt "OverlayDrawer|"
 msgid "Open drawer"
 msgstr ""
 
-#: templates/OverlaySheet.qml:294
+#: templates/OverlaySheet.qml:309
 #, fuzzy
 #| msgctxt "OverlayDrawer|"
 #| msgid "Close"
 msgctxt "OverlaySheet|@action:button close dialog"
 msgid "Close"
 msgstr "बंद करें"
+
+#, fuzzy
+#~| msgctxt "AboutPage|"
+#~| msgid "License: %1"
+#~ msgctxt "AboutItem|"
+#~ msgid "License: %1"
+#~ msgstr "अनुज्ञापत्र : %1"
 
 #, fuzzy
 #~| msgctxt "OverlayDrawer|"
@@ -402,13 +408,6 @@ msgstr "बंद करें"
 #~ msgctxt "ToolBarApplicationHeader|"
 #~ msgid "More Actions"
 #~ msgstr "अधिक क्रियाएँ"
-
-#, fuzzy
-#~| msgctxt "AboutPage|"
-#~| msgid "Visit %1's KDE Store page"
-#~ msgctxt "AboutItem|"
-#~ msgid "Visit %1's KDE Store page"
-#~ msgstr "%1 के केडीई स्टोर पृष्ठ पर जाएँ"
 
 #~ msgctxt "UrlButton|"
 #~ msgid "Copy link address"

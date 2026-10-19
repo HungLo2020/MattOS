@@ -201,6 +201,75 @@
     The way QDoc renders this \\class depends on your \c {style.css}
     file.
 
+    \target concept-command
+    \section1 \\concept
+
+    The \\concept command creates a separate page for a C++20 concept
+    and aggregates the documented types and functions whose template
+    constraints reference it. The argument is the concept's
+    fully-qualified name, matching the name Clang reports for the
+    declaration. Concepts at file scope use their bare name; concepts
+    inside a namespace need the full qualified name, such as
+    \c {algorithms::Ordered}.
+
+    A type or function joins a concept's page automatically. When QDoc
+    parses a documented declaration, it inspects the declaration's
+    constraints and registers the declaration with the concepts they
+    reference. No \\ingroup or \\inmodule-style command is required on
+    the constrained item itself.
+
+    QDoc recognises the three syntactic forms of C++20 constraints:
+
+    \list
+        \li An explicit \c {requires} clause, whether it appears in the
+            template head (\c {template <typename T> requires Ordered<T>})
+            or trailing the function signature.
+        \li A constrained \c {auto} parameter
+            (\c {void sort(Ordered auto& range)}).
+        \li A concept written directly on a template parameter
+            (\c {template <Ordered T> class SortedSet}).
+    \endlist
+
+    The \\concept command is typically followed by an \l
+    {inmodule-command} {\\inmodule} command and a \l {brief-command}
+    {\\brief} description. The body of the comment is rendered as the
+    detailed description; \l {sectionOne-command} {\\section1} headings
+    work as they do on any other documentation page.
+
+    \badcode *
+    /\1!
+        \concept Ordered
+        \inmodule Algorithms
+
+        \brief A type that admits a total order.
+
+        The Ordered concept is satisfied by any type that supplies the
+        relational operators \c {<}, \c {<=}, \c {>}, and \c {>=}, and for
+        which those operators induce a strict total order.
+
+        \section1 Definition
+
+        Ordered evaluates to \c true when \c {T} is totally ordered
+        and to \c false otherwise.
+    \1/
+    \endcode
+
+    QDoc generates a reference page for the concept. For the example
+    above, the page is \c {ordered.html}, containing the brief, the
+    detailed description, and a \e {Used by} section listing the
+    documented types and functions included in the generated
+    documentation whose constraints reference \c {Ordered}. Each entry
+    is rendered as a link followed by the \\brief description from the
+    entry's own documentation, in the same shape as the listings on
+    \\group and \\module pages.
+
+    Concept references to undocumented concepts, such as concepts that
+    live in the standard library, are silently ignored. They don't
+    produce a page and don't emit a warning.
+
+    See also \l {group-command} {\\group}, \l {module-command}
+    {\\module}, and \l {inmodule-command} {\\inmodule}.
+
     \target enum-command
     \section1 \\enum
 
@@ -353,8 +422,8 @@
     and destructor, copy constructor and move-copy constructor,
     assignment operator, and move-assignment operator.
 
-    When documenting an hidden friend, it is required to prepend the
-    enclosing class name to the function name.
+    When documenting a hidden friend, you can use either the
+    class-qualified syntax or the unqualified free function syntax.
     For example, for:
 
     \code
@@ -365,12 +434,11 @@
     }
     \endcode
 
-    The command should be written as \c{"\fn Foo::operator==(const
-    Foo&, const Foo&)"} and not as the free function \c{"\fn
-    operator==(const Foo&, const Foo&)"}.
-
-    Failure to do so will have QDoc complaining about being unable to
-    resolve the function.
+    The command can be written as \c{"\fn Foo::operator==(const
+    Foo&, const Foo&)"} or as the free function \c{"\fn bool
+    operator==(const Foo&, const Foo&)"}. QDoc resolves hidden
+    friends by searching classes referenced in the function's
+    parameter types.
 
     \note The \\fn command is QDoc's default command: when no
     topic command can be found in a QDoc comment, QDoc tries to tie
@@ -630,6 +698,38 @@
     \1/
     \endcode
 
+    \target qmlattachedmethod-command
+    \section1 \\qmlattachedmethod
+
+    The \\qmlattachedmethod command is for documenting a method that is attached
+    to some QML type (\l{Attached Properties and Attached Signal Handlers}
+    {Attached Properties}). The \\qmlattachedmethod command is used just like
+    the \l{qmlmethod-command} {\\qmlmethod} command.
+
+    The argument is the rest of the line, and must be the complete method
+    signature, starting with the return type, followed by the QML type
+    name where the method is declared, the \c{::} qualifier, and finally
+    the method name with its parameter types and names enclosed in
+    parentheses. If a method takes no arguments, use \c{()}.
+
+    For example, to document an attached method named \c show() for the
+    \c ToolTip type:
+
+    \code [text] *
+    /\1!
+        \qmlattachedmethod void QtQuick.Controls::ToolTip::show(string text, int timeout = -1)
+
+        This attached method shows the shared tool tip with \a text for
+        \a timeout milliseconds. You can attach the method to any item.
+    \1/
+    \endcode
+
+    QDoc includes this documentation on the QML reference page for the
+    \l [QML] {ToolTip} type.
+
+    \note Like \l{qmlproperty-command}{\\qmlproperty}, \\qmlattachedmethod
+          accepts a QML module identifier as part of its argument.
+
     \target qmlattachedproperty-command
     \section1 \\qmlattachedproperty
 
@@ -769,8 +869,9 @@
     \section1 \\qmlmethod
 
     The \\qmlmethod command is for documenting a QML method. The
-    argument is the complete method signature, including return
-    type and parameter names and types.
+    argument is the complete method signature, and must include
+    a return type and parameter names and types enclosed in
+    parentheses. If a method takes no arguments, use \c{()}.
 
     \badcode *
     /\1!
@@ -787,9 +888,8 @@
     \1/
     \endcode
 
-    QDoc includes this documentation on the element reference page for the
-    \l{http://doc.qt.io/qt-5/qml-qtquick-textinput.html#select-method}
-    {TextInput} element.
+    QDoc includes this documentation on the type reference page for the
+    \l{QtQuick::TextInput::select()}{TextInput} type.
 
     \target qmltype-command
     \section1 \\qmltype
@@ -827,10 +927,11 @@
     the \\qmltype comment should include one or more \l{ingroup-command}
     {\\ingroup} commands.
 
-    \note QDoc automatically detects QML singleton types when the corresponding
-    C++ class uses the \c{QML_SINGLETON} macro. For such types, using
-    \qdoccmd {qmltype} is sufficient, as the singleton nature will be detected
-    and documented automatically.
+    \note QDoc automatically detects QML singleton types and uncreatable types
+    when the corresponding C++ class uses either the \c{QML_SINGLETON} or
+    \c{QML_UNCREATABLE} macro. For such types, using \qdoccmd {qmltype} is
+    sufficient, as the singleton/uncreatable nature will be detected and
+    documented automatically.
 
     \target qmlsingletontype-command
     \section1 \\qmlsingletontype
@@ -858,6 +959,37 @@
     For C++ classes that use the \c{QML_SINGLETON} macro, prefer using
     \qdoccmd {qmltype} instead, as QDoc will automatically detect the singleton
     nature from the C++ code.
+
+    See also \qdoccmd {qmluncreatabletype}.
+
+    \target qmluncreatabletype-command
+    \section1 \\qmluncreatabletype
+
+    The \\qmluncreatabletype command is for explicitly documenting a type that
+    is registered to the QML type system but cannot be instantiated directly in QML.
+
+    This command is functionally identical to \qdoccmd {qmltype}, but it
+    explicitly marks the type as uncreatable regardless of the C++ implementation.
+
+    The uncreatable designation is displayed in the generated documentation with
+    an "(Uncreatable)" indicator in the title and an explanatory note.
+
+    \code [text] *
+    /\1!
+        \qmluncreatabletype Dialog
+        \inqmlmodule QtQuick.Dialogs
+
+        \brief The base type of native dialogs.
+    \1/
+    \endcode
+
+    For C++ classes that use the \c{QML_UNCREATABLE} macro, prefer using
+    \qdoccmd {qmltype} instead, as QDoc will automatically detect the uncreatable
+    nature from the C++ code.
+
+    The \\qmluncreatabletype command was introduced to QDoc in Qt 6.12.
+
+    See also \qdoccmd {qmlsingletontype}.
 
     \target qmlproperty-command
     \section1 \\qmlproperty

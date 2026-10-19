@@ -18,47 +18,58 @@
 
 #include <cerrno>
 #include <cstring>
-#include <libxcvt/libxcvt.h>
 
 namespace KWin
 {
 
-static QSize resolutionForMode(const drmModeModeInfo *info)
-{
-    return QSize(info->hdisplay, info->vdisplay);
-}
-
-uint32_t DrmConnector::refreshRateForMode(_drmModeModeInfo *m)
-{
-    // Calculate higher precision (mHz) refresh rate
-    // logic based on Weston, see compositor-drm.c
-    uint64_t refreshRate = (m->clock * 1000000LL / m->htotal + m->vtotal / 2) / m->vtotal;
-    if (m->flags & DRM_MODE_FLAG_INTERLACE) {
-        refreshRate *= 2;
-    }
-    if (m->flags & DRM_MODE_FLAG_DBLSCAN) {
-        refreshRate /= 2;
-    }
-    if (m->vscan > 1) {
-        refreshRate /= m->vscan;
-    }
-    return refreshRate;
-}
-
-static OutputMode::Flags flagsForMode(const drmModeModeInfo *info, OutputMode::Flags additionalFlags)
-{
-    OutputMode::Flags flags = additionalFlags;
-    if (info->type & DRM_MODE_TYPE_PREFERRED) {
-        flags |= OutputMode::Flag::Preferred;
-    }
-    return flags;
-}
-
-DrmConnectorMode::DrmConnectorMode(DrmConnector *connector, drmModeModeInfo nativeMode, Flags additionalFlags)
-    : OutputMode(resolutionForMode(&nativeMode), DrmConnector::refreshRateForMode(&nativeMode), flagsForMode(&nativeMode, additionalFlags))
+DrmConnectorMode::DrmConnectorMode(DrmConnector *connector, drmModeModeInfo nativeMode)
+    : OutputMode(OutputModeline(CvtModeline{
+                                    .clock = nativeMode.clock,
+                                    .hdisplay = nativeMode.hdisplay,
+                                    .hsyncStart = nativeMode.hsync_start,
+                                    .hsyncEnd = nativeMode.hsync_end,
+                                    .htotal = nativeMode.htotal,
+                                    .hskew = nativeMode.hskew,
+                                    .vdisplay = nativeMode.vdisplay,
+                                    .vsyncStart = nativeMode.vsync_start,
+                                    .vsyncEnd = nativeMode.vsync_end,
+                                    .vtotal = nativeMode.vtotal,
+                                    .vscan = nativeMode.vscan,
+                                    .flags = nativeMode.flags,
+                                },
+                                nativeMode.type & DRM_MODE_TYPE_PREFERRED ? OutputModeline::Flag::Preferred : OutputModeline::Flags{}))
     , m_connector(connector)
     , m_nativeMode(nativeMode)
 {
+}
+
+DrmConnectorMode::DrmConnectorMode(DrmConnector *connector, const OutputModeline &modeline)
+    : OutputMode(modeline)
+    , m_connector(connector)
+{
+    auto cvt = modeline.cvt();
+    if (!cvt) {
+        cvt = CvtModeline::generate(modeline.size(), modeline.refreshRate());
+    }
+
+    m_nativeMode = {
+        .clock = cvt->clock,
+        .hdisplay = cvt->hdisplay,
+        .hsync_start = cvt->hsyncStart,
+        .hsync_end = cvt->hsyncEnd,
+        .htotal = cvt->htotal,
+        .vdisplay = cvt->vdisplay,
+        .vsync_start = cvt->vsyncStart,
+        .vsync_end = cvt->vsyncEnd,
+        .vtotal = cvt->vtotal,
+        .vscan = cvt->vscan,
+        .vrefresh = uint32_t(std::round(cvt->refreshRate() / 1000.0)),
+        .flags = cvt->flags,
+        .type = DRM_MODE_TYPE_USERDEF,
+    };
+
+    const auto size = cvt->size();
+    sprintf(m_nativeMode.name, "%dx%d@%d", size.width(), size.height(), m_nativeMode.vrefresh);
 }
 
 std::shared_ptr<DrmBlob> DrmConnectorMode::blob()
@@ -162,6 +173,14 @@ DrmConnector::DrmConnector(DrmGpu *gpu, uint32_t connectorId)
                                                             QByteArrayLiteral("BT2020_YCC"),
                                                         })
     , path(this, QByteArrayLiteral("PATH"))
+    , abmLevel(this, QByteArrayLiteral("adaptive backlight modulation"), {
+                                                                             QByteArrayLiteral("sysfs"),
+                                                                             QByteArrayLiteral("off"),
+                                                                             QByteArrayLiteral("min"),
+                                                                             QByteArrayLiteral("bias min"),
+                                                                             QByteArrayLiteral("bias max"),
+                                                                             QByteArrayLiteral("max"),
+                                                                         })
 {
 }
 
@@ -192,6 +211,9 @@ QString DrmConnector::connectorName() const
 
 QString DrmConnector::modelName() const
 {
+    if (m_edid.monitorName().isEmpty() && m_edid.serialNumber().isEmpty()) {
+        return connectorName(); // just use the connector name
+    }
     if (m_edid.serialNumber().isEmpty()) {
         return connectorName() + QLatin1Char('-') + m_edid.nameString();
     } else {
@@ -270,6 +292,7 @@ bool DrmConnector::updateProperties()
     scalingMode.update(props);
     colorspace.update(props);
     path.update(props);
+    abmLevel.update(props);
 
     if (gpu()->atomicModeSetting() && !crtcId.isValid()) {
         qCWarning(KWIN_DRM) << "Failed to update the basic connector properties (CRTC_ID)";
@@ -304,12 +327,25 @@ bool DrmConnector::updateProperties()
     if (!equal && m_conn->count_modes > 0) {
         // reload modes
         m_driverModes.clear();
-        for (int i = 0; i < m_conn->count_modes; i++) {
-            m_driverModes.append(std::make_shared<DrmConnectorMode>(this, m_conn->modes[i], OutputMode::Flags()));
+        const auto modes = std::span(m_conn->modes, m_conn->count_modes);
+        auto usableModes = modes | std::views::filter([](drmModeModeInfo mode) {
+            return mode.hdisplay >= 640 && mode.vdisplay >= 480;
+        });
+        if (usableModes.empty()) {
+            // allow unusable modes, we don't have much of a choice
+            for (const auto &mode : modes) {
+                m_driverModes.append(std::make_shared<DrmConnectorMode>(this, mode));
+            }
+        } else {
+            for (const auto &mode : usableModes) {
+                m_driverModes.append(std::make_shared<DrmConnectorMode>(this, mode));
+            }
         }
         m_modes.clear();
         m_modes.append(m_driverModes);
-        if (scalingMode.isValid() && scalingMode.hasEnum(ScalingMode::Full_Aspect)) {
+        // only generate common modes on internal panels, where we can be certain they will work.
+        // For external displays, users can manually add custom modes to get the same result.
+        if (scalingMode.isValid() && scalingMode.hasEnum(ScalingMode::Full_Aspect) && isInternal()) {
             m_modes.append(generateCommonModes());
         }
     }
@@ -397,7 +433,7 @@ QList<std::shared_ptr<DrmConnectorMode>> DrmConnector::generateCommonModes()
             if (size.width() > maxSize.width() || size.height() > maxSize.height() || bandwidthEstimation > maxBandwidthEstimation) {
                 continue;
             }
-            const auto generatedMode = generateMode(size, refreshRate / 1000.0, OutputMode::Flags{});
+            const auto generatedMode = generateMode(OutputModeline(CvtModeline::generate(size, refreshRate), OutputModeline::Flag::Generated));
             const bool alreadyExists = std::ranges::any_of(m_driverModes, [generatedMode](const auto &mode) {
                 return mode->size() == generatedMode->size()
                     && std::round(mode->refreshRate() / 1000.0) == std::round(generatedMode->refreshRate() / 1000.0);
@@ -411,37 +447,15 @@ QList<std::shared_ptr<DrmConnectorMode>> DrmConnector::generateCommonModes()
     return ret;
 }
 
-std::shared_ptr<DrmConnectorMode> DrmConnector::generateMode(const QSize &size, float refreshRate, OutputMode::Flags flags)
+std::shared_ptr<DrmConnectorMode> DrmConnector::generateMode(const OutputModeline &modeline)
 {
-    auto modeInfo = libxcvt_gen_mode_info(size.width(), size.height(), refreshRate, flags & OutputMode::Flag::ReducedBlanking, false);
-
-    drmModeModeInfo mode{
-        .clock = uint32_t(modeInfo->dot_clock),
-        .hdisplay = uint16_t(modeInfo->hdisplay),
-        .hsync_start = modeInfo->hsync_start,
-        .hsync_end = modeInfo->hsync_end,
-        .htotal = modeInfo->htotal,
-        .vdisplay = uint16_t(modeInfo->vdisplay),
-        .vsync_start = modeInfo->vsync_start,
-        .vsync_end = modeInfo->vsync_end,
-        .vtotal = modeInfo->vtotal,
-        .vscan = 1,
-        .vrefresh = uint32_t(modeInfo->vrefresh),
-        .flags = modeInfo->mode_flags,
-        .type = DRM_MODE_TYPE_USERDEF,
-    };
-
-    sprintf(mode.name, "%dx%d@%d", size.width(), size.height(), mode.vrefresh);
-
-    free(modeInfo);
-    return std::make_shared<DrmConnectorMode>(this, mode, flags | OutputMode::Flag::Generated);
+    return std::make_shared<DrmConnectorMode>(this, modeline);
 }
 
 QDebug &operator<<(QDebug &s, const KWin::DrmConnector *obj)
 {
     QDebugStateSaver saver(s);
     if (obj) {
-
         QString connState = QStringLiteral("Disconnected");
         if (!obj->m_conn || obj->m_conn->connection == DRM_MODE_UNKNOWNCONNECTION) {
             connState = QStringLiteral("Unknown Connection");
@@ -516,4 +530,5 @@ BackendOutput::RgbRange DrmConnector::broadcastRgbToRgbRange(BroadcastRgbOptions
         Q_UNREACHABLE();
     }
 }
+
 }

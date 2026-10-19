@@ -1,4 +1,5 @@
 # Translation of kdelibs4 into Japanese.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 # This file is distributed under the same license as the kdelibs package.
 # Taiki Komoda <kom@kde.gr.jp>, 2002, 2004, 2006, 2010.
 # Noboru Sinohara <shinobo@leo.bekkoame.ne.jp>, 2004.
@@ -15,9 +16,9 @@ msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: http://bugs.kde.org\n"
 "POT-Creation-Date: 2014-03-23 01:50+0000\n"
-"PO-Revision-Date: 2017-04-09 13:05-0700\n"
-"Last-Translator: Fumiaki Okushi <fumiaki.okushi@gmail.com>\n"
-"Language-Team: Japanese <kde-jp@kde.org>\n"
+"PO-Revision-Date: 2026-06-14 21:36+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
+"Language-Team: Japanese <kde-i18n-doc@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,7 +26,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: qtrich\n"
-"X-Generator: Lokalize 2.0\n"
+"X-Generator: Lokalize 26.04.2\n"
 "X-Qt-Contexts: true\n"
 
 #. Generic sans serif font presented in font choosers. When selected, the system will choose a real font, mandated by distro settings.
@@ -57,6 +58,16 @@ msgstr "%1"
 msgctxt "FontHelpers|@item Font name [foundry]"
 msgid "%1 [%2]"
 msgstr "%1 [%2]"
+
+#: kabstractcoloredit.cpp:70
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Copy Color"
+msgstr ""
+
+#: kabstractcoloredit.cpp:81
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Paste Color"
+msgstr ""
 
 #: kactionselector.cpp:98
 #, fuzzy
@@ -98,7 +109,7 @@ msgctxt "KAssistantDialog|@action:button Opposite to Back"
 msgid "Next"
 msgstr "次へ"
 
-#: kassistantdialog.cpp:114
+#: kassistantdialog.cpp:113
 #, fuzzy
 #| msgctxt "KAssistantDialog|"
 #| msgid "Finish"
@@ -106,7 +117,7 @@ msgctxt "KAssistantDialog|@action:button"
 msgid "Finish"
 msgstr "完了"
 
-#: kcharselect-translation.cpp:11 kcharselectdata.cpp:277
+#: kcharselect-translation.cpp:11 kcharselectdata.cpp:279
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "All"
 msgstr ""
@@ -171,7 +182,7 @@ msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Phonetic Symbols"
 msgstr "音声記号"
 
-#: kcharselect-translation.cpp:24 kcharselectdata.cpp:743
+#: kcharselect-translation.cpp:24 kcharselectdata.cpp:745
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Combining Diacritics"
 msgstr "合成可能なダイアクリティカルマーク"
@@ -1337,202 +1348,202 @@ msgctxt "KCharSelectItemModel|Character"
 msgid "In decimal"
 msgstr "十進コード"
 
-#: kcharselectdata.cpp:303
+#: kcharselectdata.cpp:305
 msgctxt "KCharSelectData|"
 msgid "<noncharacter>"
 msgstr "文字"
 
-#: kcharselectdata.cpp:324
+#: kcharselectdata.cpp:326
 msgctxt "KCharSelectData|"
 msgid "<Non Private Use High Surrogate>"
 msgstr "<私用ではない上位サロゲート>"
 
-#: kcharselectdata.cpp:326
+#: kcharselectdata.cpp:328
 msgctxt "KCharSelectData|"
 msgid "<Private Use High Surrogate>"
 msgstr "<私用の上位サロゲート>"
 
-#: kcharselectdata.cpp:328
+#: kcharselectdata.cpp:330
 msgctxt "KCharSelectData|"
 msgid "<Low Surrogate>"
 msgstr "<下位サロゲート>"
 
-#: kcharselectdata.cpp:330
+#: kcharselectdata.cpp:332
 msgctxt "KCharSelectData|"
 msgid "<Private Use>"
 msgstr "<私用>"
 
-#: kcharselectdata.cpp:362
+#: kcharselectdata.cpp:364
 msgctxt "KCharSelectData|"
 msgid "<not assigned>"
 msgstr "<未定義>"
 
-#: kcharselectdata.cpp:440
+#: kcharselectdata.cpp:442
 msgctxt "KCharSelectData|KCharselect unicode section name"
 msgid "All"
 msgstr ""
 
-#: kcharselectdata.cpp:752
+#: kcharselectdata.cpp:754
 msgctxt "KCharSelectData|"
 msgid "Non-printable"
 msgstr "制御文字"
 
-#: kcharselectdata.cpp:785
+#: kcharselectdata.cpp:787
 msgctxt "KCharSelectData|"
 msgid "Other, Control"
 msgstr "その他、制御機能用記号"
 
-#: kcharselectdata.cpp:787
+#: kcharselectdata.cpp:789
 msgctxt "KCharSelectData|"
 msgid "Other, Format"
 msgstr "その他、フォーマット文字"
 
-#: kcharselectdata.cpp:789
+#: kcharselectdata.cpp:791
 msgctxt "KCharSelectData|"
 msgid "Other, Not Assigned"
 msgstr "その他、未定義"
 
-#: kcharselectdata.cpp:791
+#: kcharselectdata.cpp:793
 msgctxt "KCharSelectData|"
 msgid "Other, Private Use"
 msgstr "その他、私用"
 
-#: kcharselectdata.cpp:793
+#: kcharselectdata.cpp:795
 msgctxt "KCharSelectData|"
 msgid "Other, Surrogate"
 msgstr "その他、サロゲート"
 
-#: kcharselectdata.cpp:795
+#: kcharselectdata.cpp:797
 msgctxt "KCharSelectData|"
 msgid "Letter, Lowercase"
 msgstr "文字、小文字"
 
-#: kcharselectdata.cpp:797
+#: kcharselectdata.cpp:799
 msgctxt "KCharSelectData|"
 msgid "Letter, Modifier"
 msgstr "文字、修飾文字"
 
-#: kcharselectdata.cpp:799
+#: kcharselectdata.cpp:801
 msgctxt "KCharSelectData|"
 msgid "Letter, Other"
 msgstr "文字、その他"
 
-#: kcharselectdata.cpp:801
+#: kcharselectdata.cpp:803
 msgctxt "KCharSelectData|"
 msgid "Letter, Titlecase"
 msgstr "文字、タイトル文字"
 
-#: kcharselectdata.cpp:803
+#: kcharselectdata.cpp:805
 msgctxt "KCharSelectData|"
 msgid "Letter, Uppercase"
 msgstr "文字、大文字"
 
-#: kcharselectdata.cpp:805
+#: kcharselectdata.cpp:807
 msgctxt "KCharSelectData|"
 msgid "Mark, Spacing Combining"
 msgstr "符号、前進を伴う合成"
 
-#: kcharselectdata.cpp:807
+#: kcharselectdata.cpp:809
 msgctxt "KCharSelectData|"
 msgid "Mark, Enclosing"
 msgstr "符号、囲み"
 
-#: kcharselectdata.cpp:809
+#: kcharselectdata.cpp:811
 msgctxt "KCharSelectData|"
 msgid "Mark, Non-Spacing"
 msgstr "符号、前進を伴わない"
 
-#: kcharselectdata.cpp:811
+#: kcharselectdata.cpp:813
 msgctxt "KCharSelectData|"
 msgid "Number, Decimal Digit"
 msgstr "数、十進数字"
 
-#: kcharselectdata.cpp:813
+#: kcharselectdata.cpp:815
 msgctxt "KCharSelectData|"
 msgid "Number, Letter"
 msgstr "数、文字"
 
-#: kcharselectdata.cpp:815
+#: kcharselectdata.cpp:817
 msgctxt "KCharSelectData|"
 msgid "Number, Other"
 msgstr "数、その他"
 
-#: kcharselectdata.cpp:817
+#: kcharselectdata.cpp:819
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Connector"
 msgstr "句読点、コネクタ"
 
-#: kcharselectdata.cpp:819
+#: kcharselectdata.cpp:821
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Dash"
 msgstr "句読点、ダッシュ"
 
-#: kcharselectdata.cpp:821
+#: kcharselectdata.cpp:823
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Close"
 msgstr "句読点、閉じる"
 
-#: kcharselectdata.cpp:823
+#: kcharselectdata.cpp:825
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Final Quote"
 msgstr "句読点、終了引用符"
 
-#: kcharselectdata.cpp:825
+#: kcharselectdata.cpp:827
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Initial Quote"
 msgstr "句読点、開始引用符"
 
-#: kcharselectdata.cpp:827
+#: kcharselectdata.cpp:829
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Other"
 msgstr "句読点、その他"
 
-#: kcharselectdata.cpp:829
+#: kcharselectdata.cpp:831
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Open"
 msgstr "句読点、開く"
 
-#: kcharselectdata.cpp:831
+#: kcharselectdata.cpp:833
 msgctxt "KCharSelectData|"
 msgid "Symbol, Currency"
 msgstr "記号、通貨"
 
-#: kcharselectdata.cpp:833
+#: kcharselectdata.cpp:835
 msgctxt "KCharSelectData|"
 msgid "Symbol, Modifier"
 msgstr "記号、修飾文字"
 
-#: kcharselectdata.cpp:835
+#: kcharselectdata.cpp:837
 msgctxt "KCharSelectData|"
 msgid "Symbol, Math"
 msgstr "記号、数学"
 
-#: kcharselectdata.cpp:837
+#: kcharselectdata.cpp:839
 msgctxt "KCharSelectData|"
 msgid "Symbol, Other"
 msgstr "記号、その他"
 
-#: kcharselectdata.cpp:839
+#: kcharselectdata.cpp:841
 msgctxt "KCharSelectData|"
 msgid "Separator, Line"
 msgstr "セパレータ、行"
 
-#: kcharselectdata.cpp:841
+#: kcharselectdata.cpp:843
 msgctxt "KCharSelectData|"
 msgid "Separator, Paragraph"
 msgstr "セパレータ、段落"
 
-#: kcharselectdata.cpp:843
+#: kcharselectdata.cpp:845
 msgctxt "KCharSelectData|"
 msgid "Separator, Space"
 msgstr "セパレータ、スペース"
 
-#: kcharselectdata.cpp:845
+#: kcharselectdata.cpp:847
 msgctxt "KCharSelectData|"
 msgid "Unknown"
 msgstr "未知"
 
-#: kcolorcombo.cpp:333
+#: kcolorcombo.cpp:389
 #, fuzzy
 #| msgctxt "KColorCombo|Custom color"
 #| msgid "Custom..."
@@ -1569,65 +1580,41 @@ msgid "Week %1"
 msgstr "第 %1 週"
 
 #: kdatepicker.cpp:306
-#, fuzzy
-#| msgctxt "KDatePicker|"
-#| msgid "Next year"
 msgctxt "KDatePicker|@info:tooltip"
 msgid "Next year"
 msgstr "次の年"
 
 #: kdatepicker.cpp:307
-#, fuzzy
-#| msgctxt "KDatePicker|"
-#| msgid "Previous year"
 msgctxt "KDatePicker|@info:tooltip"
 msgid "Previous year"
 msgstr "前の年"
 
 #: kdatepicker.cpp:308
-#, fuzzy
-#| msgctxt "KDatePicker|"
-#| msgid "Next month"
 msgctxt "KDatePicker|@info:tooltip"
 msgid "Next month"
 msgstr "次の月"
 
 #: kdatepicker.cpp:309
-#, fuzzy
-#| msgctxt "KDatePicker|"
-#| msgid "Previous month"
 msgctxt "KDatePicker|@info:tooltip"
 msgid "Previous month"
 msgstr "前の月"
 
 #: kdatepicker.cpp:310
-#, fuzzy
-#| msgctxt "KDatePicker|"
-#| msgid "Select a week"
 msgctxt "KDatePicker|@info:tooltip"
 msgid "Select a week"
 msgstr "週を選択"
 
 #: kdatepicker.cpp:311
-#, fuzzy
-#| msgctxt "KDatePicker|"
-#| msgid "Select a month"
 msgctxt "KDatePicker|@info:tooltip"
 msgid "Select a month"
 msgstr "月を選択"
 
 #: kdatepicker.cpp:312
-#, fuzzy
-#| msgctxt "KDatePicker|"
-#| msgid "Select a year"
 msgctxt "KDatePicker|@info:tooltip"
 msgid "Select a year"
 msgstr "年を選択"
 
 #: kdatepicker.cpp:313
-#, fuzzy
-#| msgctxt "KDatePicker|"
-#| msgid "Select the current day"
 msgctxt "KDatePicker|@info:tooltip"
 msgid "Select the current day"
 msgstr "現在の日を選択"
@@ -1823,17 +1810,14 @@ msgid "%1"
 msgstr "%1"
 
 #: kfontchooserdialog.cpp:25
-#, fuzzy
-#| msgctxt "KDatePicker|"
-#| msgid "Select a month"
 msgctxt "KFontChooserDialog|@title:window"
 msgid "Select Font"
-msgstr "月を選択"
+msgstr "フォントを選択"
 
 #: kfontchooserwidget.ui:21
 msgctxt "KFontChooserWidget|"
 msgid "Comma separated list of font features (e.g., liga, calt):"
-msgstr ""
+msgstr "コンマ区切りでフォント機能を指定 (例: liga, calt):"
 
 #: kfontchooserwidget.ui:31
 msgctxt "KFontChooserWidget|"
@@ -1857,52 +1841,34 @@ msgstr ""
 #: kfontchooserwidget.ui:51
 msgctxt "KFontChooserWidget|"
 msgid "Show only monospaced fonts"
-msgstr ""
+msgstr "等幅フォントのみ表示"
 
 #: kfontchooserwidget.ui:66
-#, fuzzy
-#| msgctxt "KFontChooser|@option:check"
-#| msgid "Font"
 msgctxt "KFontChooserWidget|"
 msgid "Font"
 msgstr "フォント"
 
 #: kfontchooserwidget.ui:73
-#, fuzzy
-#| msgctxt "KFontChooser|@label"
-#| msgid "Font:"
 msgctxt "KFontChooserWidget|"
 msgid "Font:"
 msgstr "フォント:"
 
 #: kfontchooserwidget.ui:91
-#, fuzzy
-#| msgctxt "KFontChooser|@option:check"
-#| msgid "Font style"
 msgctxt "KFontChooserWidget|"
 msgid "Font style"
 msgstr "フォントスタイル"
 
 #: kfontchooserwidget.ui:98
-#, fuzzy
-#| msgctxt "KFontChooser|"
-#| msgid "Font style:"
 msgctxt "KFontChooserWidget|"
 msgid "Font style:"
 msgstr "フォントスタイル:"
 
 #: kfontchooserwidget.ui:116
-#, fuzzy
-#| msgctxt "KFontChooser|@option:check"
-#| msgid "Size"
 msgctxt "KFontChooserWidget|"
 msgid "Size"
 msgstr "サイズ"
 
 #: kfontchooserwidget.ui:123
-#, fuzzy
-#| msgctxt "KFontChooser|@label:listbox Font size"
-#| msgid "Size:"
 msgctxt "KFontChooserWidget|"
 msgid "Size:"
 msgstr "サイズ:"
@@ -2032,7 +1998,7 @@ msgctxt "KMessageBox|"
 msgid "Do not show this message again"
 msgstr "次回からこのメッセージを表示しない"
 
-#: kmessagedialog.cpp:140
+#: kmessagedialog.cpp:137
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Details"
@@ -2040,7 +2006,7 @@ msgctxt "KMessageDialog|"
 msgid "Details"
 msgstr "詳細"
 
-#: kmessagedialog.cpp:226
+#: kmessagedialog.cpp:218
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Question"
@@ -2048,7 +2014,7 @@ msgctxt "KMessageDialog|"
 msgid "Question"
 msgstr "質問"
 
-#: kmessagedialog.cpp:231
+#: kmessagedialog.cpp:223
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Warning"
@@ -2056,7 +2022,7 @@ msgctxt "KMessageDialog|"
 msgid "Warning"
 msgstr "警告"
 
-#: kmessagedialog.cpp:234
+#: kmessagedialog.cpp:226
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Information"
@@ -2064,7 +2030,7 @@ msgctxt "KMessageDialog|"
 msgid "Information"
 msgstr "情報"
 
-#: kmessagedialog.cpp:237
+#: kmessagedialog.cpp:229
 #, fuzzy
 #| msgctxt "KMessageBox|"
 #| msgid "Error"
@@ -2123,33 +2089,24 @@ msgstr "エラー"
 #: kmimetypechooser.cpp:88
 msgctxt "KMimeTypeChooser|@info:placeholder"
 msgid "Search for file type or filename pattern…"
-msgstr ""
+msgstr "ファイル形式やファイル名パターンを検索…"
 
 #: kmimetypechooser.cpp:89
 msgctxt "KMimeTypeChooser|@label:textbox"
 msgid "&Filter:"
-msgstr ""
+msgstr "フィルター(&F) :"
 
 #: kmimetypechooser.cpp:103
-#, fuzzy
-#| msgctxt "KMimeTypeChooser|"
-#| msgid "Mime Type"
 msgctxt "KMimeTypeChooser|@title:column"
 msgid "MIME Type"
 msgstr "MIME タイプ"
 
 #: kmimetypechooser.cpp:106
-#, fuzzy
-#| msgctxt "KMimeTypeChooser|"
-#| msgid "Comment"
 msgctxt "KMimeTypeChooser|@title:column"
 msgid "Comment"
 msgstr "コメント"
 
 #: kmimetypechooser.cpp:110
-#, fuzzy
-#| msgctxt "KMimeTypeChooser|"
-#| msgid "Patterns"
 msgctxt "KMimeTypeChooser|@title:column"
 msgid "Patterns"
 msgstr "パターン"
@@ -2283,9 +2240,6 @@ msgid "Search…"
 msgstr ""
 
 #: kpassworddialog.cpp:52
-#, fuzzy
-#| msgctxt "KPasswordDialog|"
-#| msgid "Password"
 msgctxt "KPasswordDialog|@title:window"
 msgid "Password"
 msgstr "パスワード"
@@ -2365,20 +2319,14 @@ msgid "Change the visibility of the password"
 msgstr "パスワードの可視性を変更"
 
 #: kpasswordlineedit.cpp:87
-#, fuzzy
-#| msgctxt "KPasswordDialog|"
-#| msgid "Password"
 msgctxt "QObject|@action:inmenu"
 msgid "Show Password"
-msgstr "パスワード"
+msgstr "パスワードを表示"
 
 #: kpasswordlineedit.cpp:88
-#, fuzzy
-#| msgctxt "KPasswordDialog|"
-#| msgid "Password"
 msgctxt "QObject|@action:inmenu"
 msgid "Hide Password"
-msgstr "パスワード"
+msgstr "パスワードを非表示"
 
 #: kpixmapregionselectordialog.cpp:56
 #, fuzzy
@@ -2779,10 +2727,3 @@ msgstr "フルスクリーン"
 msgctxt "KToggleFullScreenAction|@info:tooltip"
 msgid "Display the window in full screen"
 msgstr "ウインドウをフルスクリーンで表示します"
-
-#, fuzzy
-#~| msgctxt "KCharSelect|"
-#~| msgid "&Find..."
-#~ msgctxt "KCharSelect|@action"
-#~ msgid "&Find..."
-#~ msgstr "検索(&F)..."

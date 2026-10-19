@@ -9,6 +9,8 @@
 */
 #pragma once
 
+#include "core/backendoutput.h"
+#include "core/region.h"
 #include "effect/globals.h"
 #include "kwin_export.h"
 
@@ -23,7 +25,6 @@ namespace KWin
 class ColorDescription;
 class GLTexture;
 class LogicalOutput;
-class BackendOutput;
 class RenderBackend;
 class OutputLayer;
 class RenderLoop;
@@ -34,10 +35,14 @@ class OutputFrame;
 class SceneView;
 class ItemView;
 class RenderLoopDrivenQAnimationDriver;
+class RenderView;
+class Item;
+class RenderDevice;
 
 class KWIN_EXPORT Compositor : public QObject
 {
     Q_OBJECT
+
 public:
     static Compositor *create(QObject *parent = nullptr);
 
@@ -45,7 +50,7 @@ public:
         On = 0,
         Off,
         Starting,
-        Stopping
+        Stopping,
     };
 
     ~Compositor() override;
@@ -66,14 +71,8 @@ public:
      */
     bool isActive();
 
-    WorkspaceScene *scene() const
-    {
-        return m_scene.get();
-    }
-    RenderBackend *backend() const
-    {
-        return m_backend.get();
-    }
+    RenderBackend *backend() const;
+    RenderDevice *primaryDevice() const;
 
     void createRenderer();
 
@@ -81,7 +80,8 @@ Q_SIGNALS:
     void compositingToggled(bool active);
     void aboutToDestroy();
     void aboutToToggleCompositing();
-    void sceneCreated();
+    void aboutToStop();
+    void primaryGpuChanged();
 
 protected:
     explicit Compositor(QObject *parent = nullptr);
@@ -97,24 +97,39 @@ private Q_SLOTS:
 protected:
     BackendOutput *findOutput(RenderLoop *loop) const;
 
-    void createScene();
     bool attemptOpenGLCompositing();
-    bool attemptQPainterCompositing();
     void handleOutputsChanged();
     void addOutput(LogicalOutput *logicalOutput, BackendOutput *backendOutput);
     void removeOutput(BackendOutput *output);
     void assignOutputLayers(LogicalOutput *logicalOutput, BackendOutput *backendOutput);
 
+    struct LayerData
+    {
+        RenderView *view;
+        bool directScanout = false;
+        bool directScanoutOnly = false;
+        bool highPriority = false;
+        Region surfaceDamage;
+        uint32_t requiredAlphaBits;
+    };
+    std::pair<QList<Compositor::LayerData>, std::expected<void, OutputError>> setupLayers(SceneView *primaryView,
+                                                                                          LogicalOutput *logicalOutput,
+                                                                                          BackendOutput *backendOutput,
+                                                                                          const QList<OutputLayer *> &outputLayers,
+                                                                                          const std::unordered_map<OutputLayer *, Item *> &assignments,
+                                                                                          const std::shared_ptr<OutputFrame> &frame,
+                                                                                          std::unordered_set<OutputLayer *> &toUpdate);
+
     CompositingType m_selectedCompositor = NoCompositing;
 
     State m_state = State::Off;
-    std::unique_ptr<WorkspaceScene> m_scene;
     std::unique_ptr<RenderBackend> m_backend;
     std::unordered_map<RenderLoop *, std::unique_ptr<SceneView>> m_primaryViews;
     std::unordered_map<RenderLoop *, std::unordered_map<OutputLayer *, std::unique_ptr<ItemView>>> m_overlayViews;
     std::unordered_set<RenderLoop *> m_brokenCursors;
     std::optional<bool> m_allowOverlaysEnv;
     RenderLoopDrivenQAnimationDriver *m_renderLoopDrivenAnimationDriver;
+    RenderDevice *m_primaryDevice = nullptr;
 };
 
 } // namespace KWin

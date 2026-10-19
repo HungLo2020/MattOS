@@ -11,8 +11,8 @@
 #include <qloggingcategory.h>
 #include <qset.h>
 
-#if (defined(Q_OS_LINUX) || defined(Q_OS_QNX)) && QT_CONFIG(inotify)
-#define USE_INOTIFY
+#if (defined(Q_OS_LINUX) || defined(Q_OS_QNX) || defined(Q_OS_FREEBSD)) && QT_CONFIG(inotify)
+#  define USE_INOTIFY
 #endif
 
 #include "qfilesystemwatcher_polling_p.h"

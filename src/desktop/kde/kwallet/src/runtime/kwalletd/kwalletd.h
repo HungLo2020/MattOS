@@ -9,8 +9,6 @@
 #include <QDBusContext>
 #include <QObject>
 
-#include <KConfigWatcher>
-
 #include "kwalletd_debug.h"
 
 struct Folder {
@@ -48,12 +46,8 @@ public Q_SLOTS:
     bool isEnabled() const;
     // Open and unlock the wallet
     int open(const QString &wallet, qlonglong wId, const QString &appId);
-    // STUB: Open and unlock the wallet with this path
-    int openPath(const QString &path, qlonglong wId, const QString &appId);
     // Open the wallet asynchronously
     int openAsync(const QString &wallet, qlonglong wId, const QString &appId, bool handleSession);
-    // STUB: Open and unlock the wallet with this path asynchronously
-    int openPathAsync(const QString &path, qlonglong wId, const QString &appId, bool handleSession);
 
     // Close and lock the wallet
     // If force = true, will close it for all users.  Behave.  This
@@ -146,11 +140,6 @@ public Q_SLOTS:
     QString networkWallet();
     QString localWallet();
 
-    // STUB: Open a wallet using a pre-hashed password. This is only useful in cooperation
-    // with the kwallet PAM module. It's also less secure than manually entering the
-    // password as the password hash is transmitted using D-Bus.
-    int pamOpen(const QString &wallet, const QByteArray &passwordHash, int sessionTimeout);
-
 protected:
     int openInternal(const QString &wallet, qlonglong wId, const QString &appId);
     // Migrate a single wallet, returns true on success
@@ -174,8 +163,6 @@ protected:
     void writeBinary(const QString &key, const QByteArray &value, const QString &folder, const QString &wallet, bool *ok);
     void writeRawJson(const QString &key, const QByteArray &value, const QString &folder, const QString &wallet, bool *ok);
     void removeItem(const QString &key, const QString &folder, const QString &wallet, bool *ok);
-
-    void timerEvent(QTimerEvent *) override;
 
 Q_SIGNALS:
     void walletAsyncOpened(int id, int handle); // used to notify KWallet::Wallet
@@ -202,14 +189,8 @@ private:
     // We need to store a structure here as well, because the api has createFolder that would make a folder without any keys
     QMultiHash<QString, QString> m_structure;
     QHash<QPair<int, QString>, QString> m_openWallets;
-    QHash<QPair<int, QString>, int> m_idleTimers;
 
     bool m_enabled = true;
-    bool m_launchManager = false;
-    bool m_closeIdle = false;
-    // in minutes
-    int m_idleTime = 10 * 60 * 1000;
-    KConfigWatcher::Ptr m_configWatcher;
 
     static unsigned int s_lastTransaction;
 };

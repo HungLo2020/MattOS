@@ -167,7 +167,7 @@ enum LogDomain {
     Dispatch,
 };
 Q_DECLARE_FLAGS(LogDomains, LogDomain)
-Q_FLAGS(LogDomain)
+Q_FLAG_NS(LogDomain)
 
 /*!
  *

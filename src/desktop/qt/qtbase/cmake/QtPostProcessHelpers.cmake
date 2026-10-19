@@ -166,16 +166,6 @@ function(qt_internal_create_module_depends_file target)
     set(target_deps_seen "")
     set(qt_module_dependencies "")
 
-    if(NOT is_interface_lib)
-        # TODO: deprecated code path. QT_EXTRA_PACKAGE_DEPENDENCIES shouldn't be used for the Qt
-        # packages.
-        get_target_property(extra_depends "${target}" QT_EXTRA_PACKAGE_DEPENDENCIES)
-    endif()
-
-    if(NOT extra_depends MATCHES "-NOTFOUND$")
-        list(APPEND target_deps "${extra_depends}")
-    endif()
-
     # Extra 3rd party targets who's packages should be considered dependencies.
     get_target_property(extra_third_party_deps "${target}" _qt_extra_third_party_dep_targets)
     if(NOT extra_third_party_deps)
@@ -599,7 +589,7 @@ function(qt_generate_build_internals_extra_cmake_code)
                      ${QT_CONFIG_BUILD_DIR}
                      ${INSTALL_CMAKE_NAMESPACE}BuildInternals/QtBuildInternalsExtra.cmake)
 
-        if(CMAKE_BUILD_TYPE)
+        if(CMAKE_BUILD_TYPE AND NOT QT_NO_STORE_CMAKE_BUILD_TYPE)
             string(APPEND QT_EXTRA_BUILD_INTERNALS_VARS
                 "
 # Used by qt_internal_set_cmake_build_type.
@@ -752,6 +742,12 @@ endif()\n")
             file(TO_CMAKE_PATH "${OPENSSL_ROOT_DIR}" openssl_root_cmake_path)
             string(APPEND QT_EXTRA_BUILD_INTERNALS_VARS
                    "set(OPENSSL_ROOT_DIR \"${openssl_root_cmake_path}\" CACHE STRING \"\")\n")
+        endif()
+
+        if(DEFINED FFMPEG_DIR)
+            file(TO_CMAKE_PATH "${FFMPEG_DIR}" ffmpeg_dir_cmake_path)
+            string(APPEND QT_EXTRA_BUILD_INTERNALS_VARS
+                   "set(FFMPEG_DIR \"${ffmpeg_dir_cmake_path}\" CACHE PATH \"\")\n")
         endif()
 
         qt_generate_install_prefixes(install_prefix_content)

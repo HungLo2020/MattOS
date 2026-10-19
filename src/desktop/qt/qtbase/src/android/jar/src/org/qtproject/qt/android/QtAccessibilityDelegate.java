@@ -223,7 +223,7 @@ class QtAccessibilityDelegate extends View.AccessibilityDelegate
     void notifyObjectFocus(int viewId)
     {
         QtNative.runAction(() -> {
-            if (m_view == null)
+            if (m_view == null || m_focusedVirtualViewId == viewId)
                 return;
             m_focusedVirtualViewId = viewId;
             m_view.invalidate();
@@ -427,6 +427,9 @@ class QtAccessibilityDelegate extends View.AccessibilityDelegate
         String description = QtNativeAccessibility.descriptionForAccessibleObject(virtualViewId);
         event.setContentDescription(addLocaleSpan(virtualViewId, description));
 
+        if (eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED)
+            QtNativeAccessibility.populateScrollEvent(virtualViewId, event);
+
         if (event.getText().isEmpty() && TextUtils.isEmpty(event.getContentDescription()))
             Log.w(TAG, "AccessibilityEvent with empty description");
 
@@ -546,6 +549,8 @@ class QtAccessibilityDelegate extends View.AccessibilityDelegate
         screenRect.offset(-parentScreenRect.left, -parentScreenRect.top);
         setBoundsInParent(node, screenRect);
 
+        node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN);
+
         // Manage internal accessibility focus state.
         if (m_focusedVirtualViewId == virtualViewId) {
             node.setAccessibilityFocused(true);
@@ -586,6 +591,10 @@ class QtAccessibilityDelegate extends View.AccessibilityDelegate
 
             boolean handled = false;
             //Log.i(TAG, "PERFORM ACTION: " + action + " on " + virtualViewId);
+            if (action == AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.getId()) {
+                handled = QtNativeAccessibility.showOnScreen(virtualViewId);
+                notifyScrolledEvent(virtualViewId);
+            }
             switch (action) {
                 case AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS:
                     if (m_focusedVirtualViewId == virtualViewId) {
@@ -598,7 +607,7 @@ class QtAccessibilityDelegate extends View.AccessibilityDelegate
                     m_view.invalidate();
                     sendEventForVirtualViewId(virtualViewId,
                             AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED);
-                    handled = true;
+                    handled |= true;
                     break;
                 default:
                     // Let the node provider handle focus for the view node.
@@ -628,18 +637,27 @@ class QtAccessibilityDelegate extends View.AccessibilityDelegate
             break;
         case AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS:
             if (m_focusedVirtualViewId != virtualViewId) {
-                success = QtNativeAccessibility.focusAction(virtualViewId);
-                if (!success) {
-                    notifyObjectFocus(virtualViewId);
-                    success = true;
-                }
+                QtNativeAccessibility.focusAction(virtualViewId);
+            } else {
+                // Focus is returning from another window (e.g. the TalkBack menu)
+                // without prior CLEAR_FOCUS. Reset to force notifyObjectFocus() to
+                // go through.
+                m_focusedVirtualViewId = INVALID_ID;
             }
+            notifyObjectFocus(virtualViewId);
+            success = true;
             break;
         case AccessibilityNodeInfo.ACTION_SCROLL_FORWARD:
             success = QtNativeAccessibility.scrollForward(virtualViewId);
             break;
         case AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD:
             success = QtNativeAccessibility.scrollBackward(virtualViewId);
+            break;
+        case AccessibilityNodeInfo.ACTION_EXPAND:
+            success = QtNativeAccessibility.expand(virtualViewId);
+            break;
+        case AccessibilityNodeInfo.ACTION_COLLAPSE:
+            success = QtNativeAccessibility.collapse(virtualViewId);
             break;
         }
         return success;

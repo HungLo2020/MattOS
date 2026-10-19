@@ -47,7 +47,7 @@ SessionManagementScreen {
     }
 
     function focusFirstVisibleFormControl() {
-        const nextControl = (userNameInput.visible
+        const nextControl = (userNameInput.visible && !userNameInput.text
             ? userNameInput
             : (passwordBox.visible
                 ? passwordBox
@@ -155,6 +155,10 @@ SessionManagementScreen {
         }
     }
 
+    SessionButton {
+        Layout.fillWidth: true
+    }
+
     // Synchronise state
     Item {
         id: sync
@@ -167,8 +171,9 @@ SessionManagementScreen {
                 root.userList.currentIndex = PlasmaLogin.GreeterState.userListIndex;
                 passwordBox.text = PlasmaLogin.GreeterState.userListPassword;
             } else {
-                userNameInput.text = PlasmaLogin.GreeterState.userPromptUsername;
+                userNameInput.text = PlasmaLogin.StateConfig.lastLoggedInUser;
                 passwordBox.text = PlasmaLogin.GreeterState.userPromptPassword;
+                focusFirstVisibleFormControl();
             }
 
             passwordBox.showPassword = PlasmaLogin.GreeterState.showPassword;

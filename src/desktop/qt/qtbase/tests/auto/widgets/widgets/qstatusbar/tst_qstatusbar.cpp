@@ -151,9 +151,6 @@ void tst_QStatusBar::removeWidget()
 
 void tst_QStatusBar::setSizeGripEnabled()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QMainWindow mainWindow;
     QPointer<QStatusBar> statusBar = mainWindow.statusBar();
     QVERIFY(statusBar);
@@ -184,7 +181,7 @@ void tst_QStatusBar::setSizeGripEnabled()
     QVERIFY(!sizeGrip);
 
     qApp->processEvents();
-#ifndef Q_OS_MAC // Work around Lion fullscreen issues on CI system - QTQAINFRA-506
+#ifndef Q_OS_MACOS // Work around Lion fullscreen issues on CI system - QTQAINFRA-506
     mainWindow.showFullScreen();
 #endif
     QVERIFY(QTest::qWaitForWindowExposed(&mainWindow));
@@ -205,7 +202,7 @@ void tst_QStatusBar::setSizeGripEnabled()
     QVERIFY(!sizeGrip->isVisible());
 
     qApp->processEvents();
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
     mainWindow.showNormal();
 #endif
     qApp->processEvents();
@@ -242,16 +239,13 @@ void tst_QStatusBar::task194017_hiddenWidget()
 
 void tst_QStatusBar::QTBUG4334_hiddenOnMaximizedWindow()
 {
-    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive))
-        QSKIP("Wayland: This fails. Figure out why.");
-
     QMainWindow main;
     QStatusBar statusbar;
     statusbar.setSizeGripEnabled(true);
     main.setStatusBar(&statusbar);
     main.showMaximized();
     QVERIFY(QTest::qWaitForWindowActive(&main));
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
     QTRY_VERIFY(!statusbar.findChild<QSizeGrip*>()->isVisible());
 #endif
     main.showNormal();

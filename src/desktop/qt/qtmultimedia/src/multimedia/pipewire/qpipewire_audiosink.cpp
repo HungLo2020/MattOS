@@ -32,7 +32,7 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
                                                    std::optional<qsizetype> ringbufferSize,
                                                    QPipewireAudioSink *parent,
                                                    float volume,
-                                                   std::optional<int32_t> hardwareBufferFrames,
+                                                   std::optional<NativePeriodFrames> nativePeriodFrames,
                                                    AudioEndpointRole role
                                                    ):
     QPipewireAudioStream {
@@ -42,7 +42,7 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
         std::move(device),
         format,
         ringbufferSize,
-        hardwareBufferFrames,
+        nativePeriodFrames,
         volume,
     },
     m_role {
@@ -61,6 +61,7 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
 
 QPipewireAudioSinkStream::~QPipewireAudioSinkStream()
 {
+    Q_ASSERT(!m_ringbufferDrained.thread() || m_ringbufferDrained.thread()->isCurrentThread());
     resetStream();
     Q_ASSERT(!m_deviceRemovalObserver);
 }
@@ -193,7 +194,7 @@ void QPipewireAudioSinkStream::createStream(StreamType streamType)
     if (applicationName.isNull())
         applicationName = u"QPipewireAudioSink"_s;
 
-    QPipewireAudioStream::createStream(extraProperties, m_hardwareBufferFrames,
+    QPipewireAudioStream::createStream(extraProperties, m_nativePeriodFrames,
                                        applicationName.toUtf8().constData(), streamType);
 }
 
@@ -255,7 +256,7 @@ static auto resolveHostBuffer(pw_buffer *b, const QAudioFormat &format)
     };
 }
 
-void QPipewireAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+void QPipewireAudioSinkStream::processRingbuffer() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
     if (!b) {
@@ -298,7 +299,7 @@ void QPipewireAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
     addFramesHandled(samplesWritten);
 }
 
-void QPipewireAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
+void QPipewireAudioSinkStream::processCallback() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     using namespace QtMultimediaPrivate;
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
@@ -323,8 +324,9 @@ void QPipewireAudioSinkStream::stateChanged(pw_stream_state oldState, pw_stream_
     case pw_stream_state::PW_STREAM_STATE_UNCONNECTED: {
         m_disconnectSemaphore.release();
         QAudioContextManager::instance()->unregisterStreamReference(m_self);
-        m_self.reset();
-        // CAVEAT: m_self may have been the last owner causing the object to be destroyed now.
+        invokeOnAppThread([self = std::move(m_self)] {
+            // drop refcount on app thread
+        });
         break;
 
     default:
@@ -347,7 +349,7 @@ void QPipewireAudioSinkStream::disconnectStream()
     QObject::disconnect(m_xrunNotification);
 }
 
-void QPipewireAudioSinkStream::queueBuffer(pw_buffer *b, uint64_t samplesWritten) noexcept QT_MM_NONBLOCKING
+void QPipewireAudioSinkStream::queueBuffer(pw_buffer *b, uint64_t samplesWritten) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     struct spa_buffer *buf = b->buffer;
     buf->datas[0].chunk->offset = 0;

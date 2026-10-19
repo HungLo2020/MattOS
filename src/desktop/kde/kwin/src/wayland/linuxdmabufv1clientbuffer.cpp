@@ -2,7 +2,7 @@
     SPDX-FileCopyrightText: 2018 Fredrik Höglund <fredrik@kde.org>
     SPDX-FileCopyrightText: 2019 Roman Gilg <subdiff@gmail.com>
     SPDX-FileCopyrightText: 2021 Vlad Zahorodnii <vlad.zahorodnii@kde.org>
-    SPDX-FileCopyrightText: 2021 Xaver Hugl <xaver.hugl@gmail.com>
+    SPDX-FileCopyrightText: 2021-2026 Xaver Hugl <xaver.hugl@kde.org>
 
     Based on the libweston implementation,
     SPDX-FileCopyrightText: 2014, 2015 Collabora, Ltd.
@@ -11,7 +11,9 @@
 */
 
 #include "linuxdmabufv1clientbuffer.h"
+#include "clientconnection.h"
 #include "core/drmdevice.h"
+#include "core/gpumanager.h"
 #include "core/renderbackend.h"
 #include "linuxdmabufv1clientbuffer_p.h"
 #include "surface_p.h"
@@ -25,7 +27,8 @@
 
 namespace KWin
 {
-static const int s_version = 5;
+
+static const int s_version = 6;
 
 LinuxDmaBufV1ClientBufferIntegrationPrivate::LinuxDmaBufV1ClientBufferIntegrationPrivate(LinuxDmaBufV1ClientBufferIntegration *q, Display *display)
     : QtWaylandServer::zwp_linux_dmabuf_v1(*display, s_version)
@@ -36,11 +39,20 @@ LinuxDmaBufV1ClientBufferIntegrationPrivate::LinuxDmaBufV1ClientBufferIntegratio
 
 void LinuxDmaBufV1ClientBufferIntegrationPrivate::zwp_linux_dmabuf_v1_bind_resource(Resource *resource)
 {
+    auto it = mainDevices.find(resource->client());
+    if (it == mainDevices.end()) {
+        it = mainDevices.emplace(resource->client(), currentMainDevice);
+        QObject::connect(ClientConnection::get(resource->client()), &ClientConnection::destroyed, q, [this, c = resource->client()]() {
+            mainDevices.remove(c);
+        });
+    }
+    const dev_t mainDevice = it.value();
     if (resource->version() < ZWP_LINUX_DMABUF_V1_GET_DEFAULT_FEEDBACK_SINCE_VERSION) {
-        for (auto it = supportedModifiers.constBegin(); it != supportedModifiers.constEnd(); ++it) {
+        const auto &formats = perDeviceFormats[mainDevice];
+        for (auto it = formats.begin(); it != formats.end(); ++it) {
             const uint32_t format = it.key();
             const auto &modifiers = it.value();
-            for (const uint64_t modifier : std::as_const(modifiers)) {
+            for (const uint64_t modifier : modifiers) {
                 if (resource->version() >= ZWP_LINUX_DMABUF_V1_MODIFIER_SINCE_VERSION) {
                     const uint32_t modifier_lo = modifier & 0xffffffff;
                     const uint32_t modifier_hi = modifier >> 32;
@@ -67,7 +79,7 @@ void LinuxDmaBufV1ClientBufferIntegrationPrivate::zwp_linux_dmabuf_v1_get_surfac
     }
     auto surfacePrivate = SurfaceInterfacePrivate::get(surface);
     if (!surfacePrivate->dmabufFeedbackV1) {
-        surfacePrivate->dmabufFeedbackV1.reset(new LinuxDmaBufV1Feedback(this));
+        surfacePrivate->dmabufFeedbackV1 = std::make_unique<LinuxDmaBufV1Feedback>(this, resource->client());
     }
     LinuxDmaBufV1FeedbackPrivate::get(surfacePrivate->dmabufFeedbackV1.get())->add(resource->client(), id, resource->version());
 }
@@ -91,6 +103,9 @@ LinuxDmaBufParamsV1::LinuxDmaBufParamsV1(LinuxDmaBufV1ClientBufferIntegration *i
     : QtWaylandServer::zwp_linux_buffer_params_v1(resource)
     , m_integration(integration)
 {
+    if (wl_resource_get_version(resource) < ZWP_LINUX_BUFFER_PARAMS_V1_SET_SAMPLING_DEVICE_SINCE_VERSION) {
+        m_targetDevice = integration->mainDevice(wl_resource_get_client(resource));
+    }
 }
 
 void LinuxDmaBufParamsV1::zwp_linux_buffer_params_v1_destroy_resource(Resource *resource)
@@ -163,7 +178,24 @@ void LinuxDmaBufParamsV1::zwp_linux_buffer_params_v1_create(Resource *resource, 
     m_attrs.format = format;
 
     auto clientBuffer = new LinuxDmaBufV1ClientBuffer(std::move(m_attrs));
-    if (!renderBackend->testImportBuffer(clientBuffer)) {
+    const dev_t target = m_targetDevice.value_or(m_integration->mainDevice(resource->client()).value());
+    const auto &devices = GpuManager::s_self->renderDevices();
+    bool success = renderBackend->testImportBuffer(clientBuffer, target);
+    if (success) {
+        clientBuffer->setDevice(target);
+    } else {
+        for (const auto &device : devices) {
+            if (device->deviceId() == target) {
+                continue;
+            }
+            success = renderBackend->testImportBuffer(clientBuffer, device->deviceId());
+            if (success) {
+                clientBuffer->setDevice(device->deviceId());
+                break;
+            }
+        }
+    }
+    if (!success) {
         send_failed(resource->handle);
         clientBuffer->drop();
         return;
@@ -214,7 +246,24 @@ void LinuxDmaBufParamsV1::zwp_linux_buffer_params_v1_create_immed(Resource *reso
     m_attrs.format = format;
 
     auto clientBuffer = new LinuxDmaBufV1ClientBuffer(std::move(m_attrs));
-    if (!renderBackend->testImportBuffer(clientBuffer)) {
+    const dev_t target = m_targetDevice.value_or(m_integration->mainDevice(resource->client()).value());
+    const auto &devices = GpuManager::s_self->renderDevices();
+    bool success = renderBackend->testImportBuffer(clientBuffer, target);
+    if (success) {
+        clientBuffer->setDevice(target);
+    } else {
+        for (const auto &device : devices) {
+            if (device->deviceId() == target) {
+                continue;
+            }
+            success = renderBackend->testImportBuffer(clientBuffer, device->deviceId());
+            if (success) {
+                clientBuffer->setDevice(device->deviceId());
+                break;
+            }
+        }
+    }
+    if (!success) {
         wl_resource_post_error(resource->handle, error_invalid_wl_buffer, "importing the supplied dmabufs failed");
         clientBuffer->drop();
         return;
@@ -228,6 +277,15 @@ void LinuxDmaBufParamsV1::zwp_linux_buffer_params_v1_create_immed(Resource *reso
     }
 
     clientBuffer->initialize(bufferResource);
+}
+
+void LinuxDmaBufParamsV1::zwp_linux_buffer_params_v1_set_sampling_device(Resource *resource, wl_array *device)
+{
+    if (device->size < sizeof(dev_t)) {
+        wl_resource_post_error(resource->handle, error_invalid_dev_t_size, "Incomplete dev_t sent!");
+        return;
+    }
+    m_targetDevice = *reinterpret_cast<dev_t *>(device->data);
 }
 
 bool LinuxDmaBufParamsV1::test(Resource *resource, uint32_t width, uint32_t height)
@@ -322,16 +380,36 @@ void LinuxDmaBufV1ClientBufferIntegration::setRenderBackend(RenderBackend *rende
 
 void LinuxDmaBufV1ClientBufferIntegration::setSupportedFormatsWithModifiers(const QList<LinuxDmaBufV1Feedback::Tranche> &tranches)
 {
-    if (LinuxDmaBufV1FeedbackPrivate::get(d->defaultFeedback.get())->m_tranches != tranches) {
-        QHash<uint32_t, QList<uint64_t>> set;
+    if (d->defaultTranches != tranches) {
+        d->perDeviceFormats.clear();
+        FormatModifierMap allFormats;
         for (const auto &tranche : tranches) {
-            set.insert(tranche.formatTable);
+            allFormats.merge(tranche.formatTable);
+            d->perDeviceFormats[tranche.device].insert(tranche.formatTable);
         }
-        d->supportedModifiers = set;
-        d->mainDevice = tranches.first().device;
-        d->table = std::make_unique<LinuxDmaBufV1FormatTable>(set);
-        d->defaultFeedback->setTranches(tranches);
+        d->currentMainDevice = tranches.first().device;
+        d->table = std::make_unique<LinuxDmaBufV1FormatTable>(allFormats);
+        d->defaultTranches = tranches;
+
+        // If a GPU was hotunplugged, we have no choice but to
+        // switch clients to a different device.
+        for (auto [client, device] : d->mainDevices.asKeyValueRange()) {
+            const bool deviceRemoved = std::ranges::none_of(tranches, [device](const auto &tranche) {
+                return tranche.device == device;
+            });
+            if (deviceRemoved) {
+                device = tranches[0].device;
+            }
+        }
+
+        d->defaultFeedback->sendTranches();
     }
+}
+
+std::optional<dev_t> LinuxDmaBufV1ClientBufferIntegration::mainDevice(wl_client *client) const
+{
+    const auto it = d->mainDevices.find(client);
+    return it == d->mainDevices.end() ? std::nullopt : std::optional(*it);
 }
 
 void LinuxDmaBufV1ClientBuffer::buffer_destroy_resource(wl_resource *resource)
@@ -362,7 +440,7 @@ void LinuxDmaBufV1ClientBuffer::initialize(wl_resource *resource)
     m_resource = resource;
     wl_resource_set_implementation(resource, &implementation, this, buffer_destroy_resource);
 
-    connect(this, &GraphicsBuffer::released, [this]() {
+    connect(this, &GraphicsBuffer::released, this, [this]() {
         wl_buffer_send_release(m_resource);
     });
 }
@@ -370,6 +448,26 @@ void LinuxDmaBufV1ClientBuffer::initialize(wl_resource *resource)
 const DmaBufAttributes *LinuxDmaBufV1ClientBuffer::dmabufAttributes() const
 {
     return &m_attrs;
+}
+
+uint32_t LinuxDmaBufV1ClientBuffer::format() const
+{
+    return m_attrs.format;
+}
+
+uint64_t LinuxDmaBufV1ClientBuffer::modifier() const
+{
+    return m_attrs.modifier;
+}
+
+uint32_t LinuxDmaBufV1ClientBuffer::pitch() const
+{
+    return m_attrs.pitch[0];
+}
+
+void LinuxDmaBufV1ClientBuffer::setDevice(dev_t deviceId)
+{
+    m_attrs.device = deviceId;
 }
 
 QSize LinuxDmaBufV1ClientBuffer::size() const
@@ -390,32 +488,44 @@ LinuxDmaBufV1ClientBuffer *LinuxDmaBufV1ClientBuffer::get(wl_resource *resource)
     return nullptr;
 }
 
-LinuxDmaBufV1Feedback::LinuxDmaBufV1Feedback(LinuxDmaBufV1ClientBufferIntegrationPrivate *integration)
-    : d(new LinuxDmaBufV1FeedbackPrivate(integration))
+LinuxDmaBufV1Feedback::LinuxDmaBufV1Feedback(LinuxDmaBufV1ClientBufferIntegrationPrivate *integration, wl_client *client)
+    : d(new LinuxDmaBufV1FeedbackPrivate(integration, client))
 {
 }
 
 LinuxDmaBufV1Feedback::~LinuxDmaBufV1Feedback() = default;
 
-void LinuxDmaBufV1Feedback::setScanoutTranches(DrmDevice *device, const QHash<uint32_t, QList<uint64_t>> &formats)
+void LinuxDmaBufV1Feedback::setScanoutTranches(DrmDevice *scanoutDevice, const FormatModifierMap &formats)
 {
-    setTranches(createScanoutTranches(d->m_bufferintegration->defaultFeedback->d->m_tranches, device, formats));
+    Q_ASSERT(d->m_client);
+    const dev_t mainDevice = d->m_bufferintegration->q->mainDevice(d->m_client).value();
+    setScanoutTranches(createScanoutTranches(d->m_bufferintegration->defaultTranches, mainDevice, scanoutDevice, formats));
 }
 
-void LinuxDmaBufV1Feedback::setTranches(const QList<Tranche> &tranches)
+void LinuxDmaBufV1Feedback::setScanoutTranches(const QList<Tranche> &tranches)
 {
-    if (d->m_tranches != tranches) {
-        d->m_tranches = tranches;
-        const auto map = d->resourceMap();
-        for (auto resource : map) {
-            d->send(resource);
-        }
+    if (d->m_scanoutTranches != tranches) {
+        d->m_scanoutTranches = tranches;
+        sendTranches();
     }
 }
 
-QList<LinuxDmaBufV1Feedback::Tranche> LinuxDmaBufV1Feedback::createScanoutTranches(const QList<Tranche> &tranches, DrmDevice *device, const QHash<uint32_t, QList<uint64_t>> &formats)
+void LinuxDmaBufV1Feedback::sendTranches()
+{
+    const auto map = d->resourceMap();
+    for (auto resource : map) {
+        d->send(resource);
+    }
+}
+
+QList<LinuxDmaBufV1Feedback::Tranche> LinuxDmaBufV1Feedback::createScanoutTranches(const QList<Tranche> &tranches,
+                                                                                   dev_t mainDevice, DrmDevice *scanoutDevice,
+                                                                                   const FormatModifierMap &formats)
 {
     QList<LinuxDmaBufV1Feedback::Tranche> ret;
+    if (!scanoutDevice) {
+        return ret;
+    }
     for (const auto &tranche : tranches) {
         LinuxDmaBufV1Feedback::Tranche scanoutTranche;
         for (auto it = tranche.formatTable.constBegin(); it != tranche.formatTable.constEnd(); it++) {
@@ -424,12 +534,12 @@ QList<LinuxDmaBufV1Feedback::Tranche> LinuxDmaBufV1Feedback::createScanoutTranch
             const auto drmModifiers = formats[format];
             for (const uint64_t mod : trancheModifiers) {
                 if (drmModifiers.contains(mod)) {
-                    scanoutTranche.formatTable[format] << mod;
+                    scanoutTranche.formatTable[format].insert(mod);
                 }
             }
         }
         if (!scanoutTranche.formatTable.isEmpty()) {
-            scanoutTranche.device = device->deviceId();
+            scanoutTranche.device = scanoutDevice->deviceId();
             scanoutTranche.flags = LinuxDmaBufV1Feedback::TrancheFlag::Scanout;
             ret.push_back(scanoutTranche);
         }
@@ -442,18 +552,29 @@ LinuxDmaBufV1FeedbackPrivate *LinuxDmaBufV1FeedbackPrivate::get(LinuxDmaBufV1Fee
     return q->d.get();
 }
 
-LinuxDmaBufV1FeedbackPrivate::LinuxDmaBufV1FeedbackPrivate(LinuxDmaBufV1ClientBufferIntegrationPrivate *bufferintegration)
+LinuxDmaBufV1FeedbackPrivate::LinuxDmaBufV1FeedbackPrivate(LinuxDmaBufV1ClientBufferIntegrationPrivate *bufferintegration, wl_client *client)
     : m_bufferintegration(bufferintegration)
+    , m_client(client)
 {
 }
 
 void LinuxDmaBufV1FeedbackPrivate::send(Resource *resource)
 {
+    const dev_t mainDevice = m_bufferintegration->q->mainDevice(resource->client()).value();
     send_format_table(resource->handle, m_bufferintegration->table->file.fd(), m_bufferintegration->table->file.size());
-    QByteArray bytes;
-    bytes.append(reinterpret_cast<const char *>(&m_bufferintegration->mainDevice), sizeof(dev_t));
-    send_main_device(resource->handle, bytes);
-    const auto sendTranche = [this, resource](const LinuxDmaBufV1Feedback::Tranche &tranche) {
+    if (resource->version() < ZWP_LINUX_BUFFER_PARAMS_V1_SET_SAMPLING_DEVICE_SINCE_VERSION) {
+        QByteArray bytes;
+        bytes.append(reinterpret_cast<const char *>(&mainDevice), sizeof(dev_t));
+        send_main_device(resource->handle, bytes);
+    }
+    const auto sendTranche = [this, resource, mainDevice](const LinuxDmaBufV1Feedback::Tranche &tranche) {
+        const bool supportsSamplingFlag = resource->version() >= ZWP_LINUX_DMABUF_FEEDBACK_V1_TRANCHE_FLAGS_SAMPLING_SINCE_VERSION;
+        if (!supportsSamplingFlag
+            && tranche.flags == LinuxDmaBufV1Feedback::TrancheFlag::Sampling
+            && tranche.device != mainDevice) {
+            // dmabuf v5 only supports the main device for sampling
+            return;
+        }
         QByteArray targetDevice;
         targetDevice.append(reinterpret_cast<const char *>(&tranche.device), sizeof(dev_t));
         QByteArray indices;
@@ -466,18 +587,22 @@ void LinuxDmaBufV1FeedbackPrivate::send(Resource *resource)
         }
         send_tranche_target_device(resource->handle, targetDevice);
         send_tranche_formats(resource->handle, indices);
-        send_tranche_flags(resource->handle, static_cast<uint32_t>(tranche.flags));
+        uint32_t flags = 0;
+        if (tranche.flags & LinuxDmaBufV1Feedback::TrancheFlag::Scanout) {
+            flags |= tranche_flags_scanout;
+        }
+        if (resource->version() >= ZWP_LINUX_BUFFER_PARAMS_V1_SET_SAMPLING_DEVICE_SINCE_VERSION
+            && (tranche.flags & LinuxDmaBufV1Feedback::TrancheFlag::Sampling)) {
+            flags |= tranche_flags_sampling;
+        }
+        send_tranche_flags(resource->handle, flags);
         send_tranche_done(resource->handle);
     };
-    for (const auto &tranche : std::as_const(m_tranches)) {
+    for (const auto &tranche : std::as_const(m_scanoutTranches)) {
         sendTranche(tranche);
     }
-    // send default hints as the last fallback tranche
-    const auto defaultFeedbackPrivate = get(m_bufferintegration->defaultFeedback.get());
-    if (this != defaultFeedbackPrivate) {
-        for (const auto &tranche : std::as_const(defaultFeedbackPrivate->m_tranches)) {
-            sendTranche(tranche);
-        }
+    for (const auto &tranche : std::as_const(m_bufferintegration->defaultTranches)) {
+        sendTranche(tranche);
     }
     send_done(resource->handle);
 }
@@ -499,7 +624,7 @@ struct linux_dmabuf_feedback_v1_table_entry
     uint64_t modifier;
 };
 
-LinuxDmaBufV1FormatTable::LinuxDmaBufV1FormatTable(const QHash<uint32_t, QList<uint64_t>> &supportedModifiers)
+LinuxDmaBufV1FormatTable::LinuxDmaBufV1FormatTable(const FormatModifierMap &supportedModifiers)
 {
     QList<linux_dmabuf_feedback_v1_table_entry> data;
     for (auto it = supportedModifiers.begin(); it != supportedModifiers.end(); it++) {

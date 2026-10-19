@@ -120,12 +120,17 @@ public:
     QUrl bugURL() override;
     QUrl donationURL() override;
     QUrl contributeURL() override;
+    QUrl faqURL() override;
+    QUrl translateURL() override;
+    QUrl contactURL() override;
+    QUrl vcsBrowserURL() override;
     FlatpakFileType flatpakFileType() const;
     QString flatpakName() const;
     QJsonArray licenses() override;
     QString longDescription() override;
     QString name() const override;
     QString origin() const override;
+    QString disambiguatedOrigin() const override;
     QString displayOrigin() const override;
     QString packageName() const override;
     PropertyState propertyState(PropertyKind kind) const;
@@ -262,7 +267,7 @@ private:
     static const QStringList s_topObjects;
     static const QStringList s_bottomObjects;
     QVector<QByteArray> m_toUpdate;
-    bool m_stockIcon;
+    bool m_remoteIconFetchInitiated = false;
     std::optional<QIcon> m_icon;
     QString m_newPermissions;
 };

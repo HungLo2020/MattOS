@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "config-X11.h"
 #include "plasma/corona.h"
 
 #include <QDBusArgument>
@@ -55,7 +54,7 @@ class ShellCorona : public Plasma::Corona, QDBusContext
 {
     Q_OBJECT
     Q_PROPERTY(QString shell READ shell NOTIFY shellChanged)
-    Q_PROPERTY(int numScreens READ numScreens)
+    Q_PROPERTY(uint numScreens READ numScreens)
     Q_PROPERTY(PanelView *panelBeingConfigured READ panelBeingConfigured NOTIFY panelBeingConfiguredChanged)
     Q_CLASSINFO("D-Bus Interface", "org.kde.PlasmaShell")
 
@@ -71,15 +70,15 @@ public:
      */
     KSharedConfig::Ptr applicationConfig();
 
-    int numScreens() const override;
-    Q_INVOKABLE QRect screenGeometry(int id) const override;
-    Q_INVOKABLE QRegion availableScreenRegion(int id) const override;
-    Q_INVOKABLE QRect availableScreenRect(int id) const override;
-    QRect strictAvailableScreenRect(int id) const;
+    uint numScreens() const override;
+    Q_INVOKABLE QRect screenGeometry(uint id) const override;
+    Q_INVOKABLE QRegion availableScreenRegion(uint id) const override;
+    Q_INVOKABLE QRect availableScreenRect(uint id) const override;
+    QRect strictAvailableScreenRect(uint id) const;
 
     // plasmashellCorona's value
-    QRegion _availableScreenRegion(int id) const;
-    QRect _availableScreenRect(int id) const;
+    QRegion _availableScreenRegion(uint id) const;
+    QRect _availableScreenRect(uint id) const;
 
     Q_INVOKABLE QStringList availableActivities() const;
 
@@ -94,18 +93,18 @@ public:
     // This one is a bit of an hack but are just for desktop scripting
     void insertActivity(const QString &id, const QString &plugin);
 
-    Plasma::Containment *setContainmentTypeForScreen(int screen, const QString &plugin);
+    Plasma::Containment *setContainmentTypeForScreen(uint screen, const QString &plugin);
 
     void removeDesktop(DesktopView *desktopView);
 
     /**
      * @returns a new containment associated with the specified @p activity and @p screen.
      */
-    Plasma::Containment *createContainmentForActivity(const QString &activity, int screenNum);
+    Plasma::Containment *createContainmentForActivity(const QString &activity, uint screenNum);
 
     ScreenPool *screenPool() const;
 
-    QList<int> screenIds() const;
+    QList<uint> screenIds() const;
 
     QString defaultContainmentPlugin() const;
 
@@ -113,11 +112,11 @@ public:
 
     // Set all Desktop containments (for all activities) associated to a given screen to this new screen.
     // swapping ones that had newScreen to oldScreen if existing. Panels are ignored
-    void swapDesktopScreens(int oldScreen, int newScreen);
+    void swapDesktopScreens(uint oldScreen, uint newScreen);
 
     // Set a single containment to a new screen.
     // If it is a Desktop contaiment, swap it with the other containment that was associated with same screen and activity if existent
-    void setScreenForContainment(Plasma::Containment *containment, int screen);
+    void setScreenForContainment(Plasma::Containment *containment, uint screen);
 
     // Grab a screenshot of the contaiment if it has a view in an async fashion
     // containmentPreviewReady will be emitted when done
@@ -140,7 +139,25 @@ public:
 
     Q_INVOKABLE bool enteredEditModeViaDesktop();
 
-    Q_INVOKABLE bool isScreenUiReady(int screen);
+    Q_INVOKABLE bool isScreenUiReady(uint screen);
+
+    /*!
+        \internal
+
+        Must be called from DBus!
+
+        Grabs an image of the desktop containment of the defined screen.
+        \a name is the name of the screen (as per QScreen::name()).
+        \a width and \a height define the resulting image size.
+        \a targetPath defines where the image should be saved.
+
+        Returns true if the image was saved successfully.
+
+        Note that this function is asynchronous and will send a delayed reply.
+
+        DO NOT WAIT BLOCKINGLY!
+    */
+    [[nodiscard]] bool grabContainmentImage(const QString &name, int width, int height, const QString &targetPath);
 
 Q_SIGNALS:
     void glInitializationFailed();
@@ -157,7 +174,7 @@ Q_SIGNALS:
     void shellAboutToChange(const QString &shell);
     // Emitted after the new shell has loaded
     void shellChanged(const QString &shell);
-    void screenUiReadyChanged(int screen, bool ready);
+    void screenUiReadyChanged(uint screen, bool ready);
 
 public Q_SLOTS:
     /**
@@ -219,8 +236,6 @@ public Q_SLOTS:
         return m_panelViews.count();
     }
 
-    void refreshCurrentShell();
-
 protected Q_SLOTS:
     /**
      * Loads the layout and performs the needed checks
@@ -241,8 +256,6 @@ protected Q_SLOTS:
      * Execute any update script
      */
     void processUpdateScripts();
-
-    int screenForContainment(const Plasma::Containment *containment) const override;
 
     void showAlternativesForApplet(Plasma::Applet *applet);
 
@@ -266,12 +279,10 @@ private Q_SLOTS:
     void handleScreenRemoved(QScreen *screen);
     void handleScreenOrderChanged(QList<QScreen *> screens);
 
-    void activateTaskManagerEntry(int index);
-
 private:
     void sanitizeScreenLayout(const QString &configFileName);
+    void destroyDesktopsAndPanels();
     void updateStruts();
-    void configurationChanged(const QString &path);
     DesktopView *desktopForScreen(QScreen *screen) const;
     void setupWaylandIntegration();
     void executeSetupPlasmoidScript(Plasma::Containment *containment, Plasma::Applet *applet);
@@ -286,7 +297,6 @@ private:
 #endif
 
     KSharedConfig::Ptr m_config;
-    QString m_configPath;
 
     // Accent color setting
     KConfigWatcher::Ptr m_kdeGlobalsConfigWatcher;
@@ -298,8 +308,7 @@ private:
     KActivities::Controller *m_activityController;
     QMap<const Plasma::Containment *, PanelView *> m_panelViews;
     // map from QScreen to desktop view
-    QHash<int, DesktopView *> m_desktopViewForScreen;
-    QHash<const Plasma::Containment *, int> m_pendingScreenChanges;
+    QHash<uint, DesktopView *> m_desktopViewForScreen;
     KConfigGroup m_desktopDefaultsConfig;
     KConfigGroup m_lnfDefaultsConfig;
     QList<QPointer<Plasma::Containment>> m_waitingPanels;
@@ -308,16 +317,11 @@ private:
     std::unique_ptr<QMenu> m_addPanelsMenu;
     KPackage::Package m_lookAndFeelPackage;
 
-#if HAVE_X11
-    WId m_previousWId = 0;
-#endif
     bool m_blockRestorePreviousWindow = false;
 
     QTimer m_waitingPanelsTimer;
     QTimer m_appConfigSyncTimer;
-#ifndef NDEBUG
-    QTimer m_invariantsTimer;
-#endif
+
     // For getting the active window on Wayland
     KWayland::Client::PlasmaWindowManagement *m_waylandWindowManagement = nullptr;
     QPointer<KWayland::Client::PlasmaWindow> m_previousPlasmaWindow;
@@ -329,7 +333,7 @@ private:
     StrutManager *m_strutManager;
     QPointer<ShellContainmentConfig> m_shellContainmentConfig;
     // The set of all the screens which have both the desktop and all panels (if any) fully loaded
-    QSet<int> m_screensWithUiReady;
+    QSet<uint> m_screensWithUiReady;
     friend class ShellTest;
 };
 

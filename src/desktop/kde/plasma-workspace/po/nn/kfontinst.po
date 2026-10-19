@@ -1,5 +1,6 @@
 # Translation of kfontinst to Norwegian Nynorsk
 #
+# Karl Ove Hufthammer <karl@huftis.org>, 2004, 2007, 2008, 2010, 2011, 2015, 2016, 2018, 2019, 2020, 2023, 2024, 2025, 2026.
 # Håvard Korsvoll <korsvoll@skulelinux.no>, 2004.
 # Gaute Hvoslef Kvalnes <gaute@verdsveven.com>, 2004, 2005.
 # Eirik U. Birkeland <eirbir@gmail.com>, 2008, 2009, 2010.
@@ -8,15 +9,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kfontinst\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2025-03-20 20:06+0100\n"
+"POT-Creation-Date: 2026-09-27 02:41+0000\n"
+"PO-Revision-Date: 2026-07-05 16:19+0200\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 24.12.3\n"
+"X-Generator: Lokalize 26.04.3\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
@@ -326,6 +327,7 @@ msgstr ""
 "Denne kolonnen viser statusen til skriftfamilien og dei individuelle "
 "skriftstilane."
 
+# skip-rule: bokmålsord
 #: kcmfontinst/FontList.cpp:671
 #, kde-format
 msgid ""
@@ -598,17 +600,17 @@ msgstr "Motoren vart avslutta, men er starta igjen. Prøv ein gong til."
 msgid "<h3>Error</h3>"
 msgstr "<h3>Feil</h3>"
 
-#: kcmfontinst/JobRunner.cpp:692
+#: kcmfontinst/JobRunner.cpp:693
 #, kde-format
 msgid "Failed to download <i>%1</i>"
 msgstr "Klarte ikkje lasta ned <i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:694
+#: kcmfontinst/JobRunner.cpp:695
 #, kde-format
 msgid "System backend died. Please try again.<br><i>%1</i>"
 msgstr "Systemmotoren vart avslutta. Prøv ein gong til.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:696
+#: kcmfontinst/JobRunner.cpp:697
 #, kde-format
 msgid ""
 "<i>%1</i> is a bitmap font, and these have been disabled on your system."
@@ -616,7 +618,7 @@ msgstr ""
 "<i>%1</i> er ei rasterskrift, men du kan ikkje installera rasterskrifter, då "
 "støtte for dette er slått av på systemet ditt."
 
-#: kcmfontinst/JobRunner.cpp:698
+#: kcmfontinst/JobRunner.cpp:699
 #, kde-format
 msgid ""
 "<i>%1</i> contains the font <b>%2</b>, which is already installed on your "
@@ -624,47 +626,47 @@ msgid ""
 msgstr ""
 "<i>%1</i> inneheld skrifta <b>%2</b>, som allereie er installert på systemet."
 
-#: kcmfontinst/JobRunner.cpp:700
+#: kcmfontinst/JobRunner.cpp:701
 #, kde-format
 msgid "<i>%1</i> is not a font."
 msgstr "<i>%1</i> er ikkje ei skrift."
 
-#: kcmfontinst/JobRunner.cpp:702
+#: kcmfontinst/JobRunner.cpp:703
 #, kde-format
 msgid "Could not remove all files associated with <i>%1</i>"
 msgstr "Klarte ikkje fjerna alle filene som er knytte til <i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:704
+#: kcmfontinst/JobRunner.cpp:705
 #, kde-format
 msgid "Failed to start the system daemon.<br><i>%1</i>"
 msgstr "Klarte ikkje starta systemtenesta.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:707 kio/KioFonts.cpp:719
+#: kcmfontinst/JobRunner.cpp:708 kio/KioFonts.cpp:719
 #, kde-format
 msgid "<i>%1</i> already exists."
 msgstr "<i>%1</i> finst allereie."
 
-#: kcmfontinst/JobRunner.cpp:710
+#: kcmfontinst/JobRunner.cpp:711
 #, kde-format
 msgid "<i>%1</i> does not exist."
 msgstr "<i>%1</i> finst ikkje."
 
-#: kcmfontinst/JobRunner.cpp:712
+#: kcmfontinst/JobRunner.cpp:713
 #, kde-format
 msgid "Permission denied.<br><i>%1</i>"
 msgstr "Tilgang nekta.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:714
+#: kcmfontinst/JobRunner.cpp:715
 #, kde-format
 msgid "Unsupported action.<br><i>%1</i>"
 msgstr "Handlinga er ikkje støtta.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:716
+#: kcmfontinst/JobRunner.cpp:717
 #, kde-format
 msgid "Authentication failed.<br><i>%1</i>"
 msgstr "Feil ved autentisering.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:718
+#: kcmfontinst/JobRunner.cpp:719
 #, kde-format
 msgid "Unexpected error while processing: <i>%1</i>"
 msgstr "Uventa feil under handsaming: <i>%1</i>"
@@ -1548,17 +1550,17 @@ msgstr "Kategori"
 msgid "UCS-4"
 msgstr "UCS-4"
 
-#: viewpart/CharTip.cpp:157
+#: viewpart/CharTip.cpp:158
 #, kde-format
 msgid "UTF-16"
 msgstr "UTF-16"
 
-#: viewpart/CharTip.cpp:168
+#: viewpart/CharTip.cpp:169
 #, kde-format
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: viewpart/CharTip.cpp:185
+#: viewpart/CharTip.cpp:186
 #, kde-format
 msgid "XML Decimal Entity"
 msgstr "Desimal entitetsreferanse for XML"
@@ -1583,12 +1585,12 @@ msgstr "Byt tekst …"
 msgid "Could not read font."
 msgstr "Klarte ikkje lesa skrifta."
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Preview String"
 msgstr "Tekst for førehandsvising"
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Please enter new string:"
 msgstr "Skriv ny tekst:"

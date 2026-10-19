@@ -28,15 +28,15 @@ Kicker.DashboardWindow {
     required property Kicker.RootModel rootModel
     required property Kicker.RunnerModel runnerModel
 
-    property bool smallScreen: ((Math.floor(width / Kirigami.Units.iconSizes.huge) <= 22) || (Math.floor(height / Kirigami.Units.iconSizes.huge) <= 14))
+    readonly property bool smallScreen: ((Math.floor(width / Kirigami.Units.iconSizes.huge) <= 22) || (Math.floor(height / Kirigami.Units.iconSizes.huge) <= 14))
 
-    property int iconSize: smallScreen ? Kirigami.Units.iconSizes.large : Kirigami.Units.iconSizes.huge
-    property int cellSize: iconSize + (2 * Kirigami.Units.iconSizes.sizeForLabels)
+    readonly property int iconSize: smallScreen ? Kirigami.Units.iconSizes.large : Kirigami.Units.iconSizes.huge
+    readonly property int cellSize: iconSize + (2 * Kirigami.Units.iconSizes.sizeForLabels)
         + (2 * Kirigami.Units.smallSpacing)
         + (2 * Math.max(highlightItemSvg.margins.top + highlightItemSvg.margins.bottom,
                         highlightItemSvg.margins.left + highlightItemSvg.margins.right))
-    property int columns: Math.floor(((smallScreen ? 85 : 80)/100) * Math.ceil(width / cellSize))
-    property bool searching: searchField.text !== ""
+    readonly property int columns: Math.floor(((smallScreen ? 85 : 80)/100) * Math.ceil(width / cellSize))
+    readonly property bool searching: searchField.text !== ""
 
     signal interactionConcluded()
 
@@ -188,6 +188,19 @@ Kicker.DashboardWindow {
             }
         }
 
+        DropArea {
+            anchors.fill: parent
+            keys: ["favoritedrag"]
+            onDropped: drop => {
+                let draggedItem = drag.source as ItemGridDelegate
+                if (draggedItem && draggedItem.favoritesModel.isFavorite(draggedItem.favoriteId)) {
+                    draggedItem.showUnfavoritePlaceholder = true
+                    draggedItem.favoritesModel.removeFavorite(draggedItem.favoriteId)
+                    drop.accept(Qt.MoveAction)
+                }
+            }
+        }
+
         Timer {
             id: preloadAllAppsTimer
 
@@ -219,12 +232,15 @@ Kicker.DashboardWindow {
             }
         }
 
-        Kicker.ContainmentInterface {
-            id: containmentInterface
-        }
-
         PlasmaExtras.SearchField {
             id: searchField
+
+            // actions should ostly apply to the runner grid, but there are a few ways to
+            // have focus on the search field and have something visually selected, so
+            // fall back to the other possible grids if they're showing
+            readonly property ItemGridView targetGrid: runnerGrid.visible  ? runnerGrid.firstGrid
+                                                     : allAppsGrid.visible ? allAppsGrid.firstGrid
+                                                                           : mainGrid
 
             anchors {
                 horizontalCenter: parent.horizontalCenter
@@ -315,15 +331,51 @@ Kicker.DashboardWindow {
                     }
             }
             Keys.onReturnPressed: event => {
-                // this mostly should apply to the runner grid, but there are a few ways to
-                // have focus on the search field and have something visually selected, so
-                // fall back to the other possible grids
-                let currentDelegate = runnerGrid.visible  ? runnerGrid.firstGrid?.currentItem :
-                                      allAppsGrid.visible ? allAppsGrid.firstGrid?.currentItem :
-                                                            mainGrid.currentItem
-                currentDelegate.Keys.returnPressed(event)
+                if (launchMatchTimer.running) {
+                    launchMatchTimer.stop()
+                    launchMatchTimer.triggered()
+                    return
+                }
+                let currentDelegate = searchField.targetGrid?.currentItem as ItemAbstractDelegate
+                if (!root.runnerModel.querying || currentDelegate?.text.toLowerCase().includes(root.runnerModel.query.toLowerCase())) {
+                    launchMatchTimer.triggered()
+                    return
+                }
+                launchMatchTimer.start()
             }
             Keys.onEnterPressed: event => Keys.returnPressed(event)
+
+            Timer {
+                id: launchMatchTimer
+                interval: 750
+                onTriggered: {
+                    let currentDelegate = searchField.targetGrid?.currentItem as ItemAbstractDelegate
+                    if (currentDelegate) {
+                        currentDelegate.action.trigger()
+                    }
+                }
+            }
+
+            Connections {
+                target: searchField.targetGrid
+                enabled: launchMatchTimer.running
+                function onCurrentItemChanged() : void {
+                    const targetItem = searchField.targetGrid.currentItem as ItemGridDelegate
+                    if (targetItem?.text.toLowerCase().includes(root.runnerModel.query.toLowerCase())) {
+                        launchMatchTimer.stop()
+                        launchMatchTimer.triggered()
+                    }
+                }
+            }
+
+            Connections {
+                target: root.runnerModel
+                enabled: launchMatchTimer.running
+                function onQueryFinished() : void {
+                    launchMatchTimer.stop()
+                    Qt.callLater(launchMatchTimer.triggered) // callLater to give bindings time to update
+                }
+            }
         }
 
         Row {
@@ -403,7 +455,7 @@ Kicker.DashboardWindow {
                         topMargin: Kirigami.Units.gridUnit
                     }
 
-                    property int rows: (Math.floor((parent.height - favoritesColumnLabel.height
+                    readonly property int rows: (Math.floor((parent.height - favoritesColumnLabel.height
                         - favoritesColumnLabelUnderline.height - Kirigami.Units.gridUnit) / root.cellSize)
                         - systemFavoritesGrid.rows)
 
@@ -456,7 +508,7 @@ Kicker.DashboardWindow {
                         top: globalFavoritesGrid.bottom
                     }
 
-                    property int rows: Math.ceil(count / Math.floor(width / root.cellSize))
+                    readonly property int rows: Math.ceil(count / Math.floor(width / root.cellSize))
 
                     width: parent.width
                     height: rows * root.cellSize
@@ -540,7 +592,7 @@ Kicker.DashboardWindow {
                 width: (columns * root.cellSize) + Kirigami.Units.gridUnit
                 height: Math.floor(parent.height / root.cellSize) * root.cellSize + mainGridContainer.headerHeight
 
-                property int columns: root.columns - favoritesColumn.columns - filterListColumn.columns
+                readonly property int columns: root.columns - favoritesColumn.columns - filterListColumn.columns
                 property Item visibleGrid: mainGrid
 
                 function tryActivate(row, col) {
@@ -557,7 +609,7 @@ Kicker.DashboardWindow {
 
                     visible: opacity !== 0.0
 
-                    property int headerHeight: mainColumnLabel.height + mainColumnLabelUnderline.height + Kirigami.Units.gridUnit
+                    readonly property int headerHeight: mainColumnLabel.height + mainColumnLabelUnderline.height + Kirigami.Units.gridUnit
 
                     opacity: {
                         if (root.searching) {
@@ -730,7 +782,6 @@ Kicker.DashboardWindow {
                     model: root.runnerModel
 
                     hoverEnabled: !hoverBlock.enabled
-                    grabFocus: false
 
                     opacity: root.searching ? 1.0 : 0.0
 
@@ -839,21 +890,21 @@ Kicker.DashboardWindow {
                         keyNavigationWraps: true
 
                         delegate: ItemAbstractDelegate {
-                            id: item
+                            id: filterDelegate
 
                             property var m: model
                             property int textWidth: label.contentWidth
 
-                            width: ListView.view.width
+                            width: filterList.width
                             height: implicitHeight
                             hoverEnabled: !hoverBlock.enabled
                             baseModel: filterList.model
                             favoritesModel: baseModel.favoritesModel
 
-                            onClicked: ListView.view.applyFilter()
+                            onClicked: filterList.applyFilter()
 
                             onHoveredChanged: {
-                                if (hovered && !isSeparator) {
+                                if (hovered && !isSeparator && !ActionMenu.opened) {
                                     filterList.currentIndex = index
                                     filterList.forceActiveFocus()
                                     switchFilterTimer.restart()
@@ -862,19 +913,45 @@ Kicker.DashboardWindow {
                                 }
                             }
 
-                            contentItem: Kirigami.Heading {
-                                id: label
+                            contentItem: Item {
+                                implicitHeight: Math.max(label.implicitHeight, badgeLoader.implicitHeight)
+                                implicitWidth: label.implicitWidth + badgeLoader.implicitWidth
 
-                                elide: Text.ElideRight
-                                wrapMode: Text.NoWrap
-                                opacity: 1.0
+                                Kirigami.Heading {
+                                    id: label
 
-                                color: Kirigami.Theme.textColor
+                                    anchors {
+                                        left: parent.left
+                                        right: badgeLoader.left
+                                    }
 
-                                level: 1
+                                    elide: Text.ElideRight
+                                    wrapMode: Text.NoWrap
+                                    opacity: 1.0
 
-                                text: item.model.display
-                                textFormat: Text.PlainText
+                                    color: Kirigami.Theme.textColor
+
+                                    level: 1
+
+                                    text: filterDelegate.model.display
+                                    textFormat: Text.PlainText
+                                }
+
+                                Loader {
+                                    id: badgeLoader
+
+                                    anchors.right: parent.right
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    visible: active
+                                    active: filterDelegate.isNewlyInstalled ?? false
+
+                                    sourceComponent: Kirigami.Badge {
+                                        text: ""
+                                        type: Kirigami.Badge.Type.Positive
+                                        Accessible.name: i18nc("Newly-installed app, badge, keep short", "New!")
+                                        Accessible.description: i18nc("@info:whatsthis Accessible description for badge", "There is a newly-installed application in this category")
+                                    }
+                                }
                             }
                         }
 
@@ -908,7 +985,7 @@ Kicker.DashboardWindow {
                                     preloadAllAppsTimer.stop();
                                 }
 
-                                var model = root.rootModel.modelForRow(currentIndex);
+                                const model = root.rootModel.modelForRow(currentIndex);
 
                                 if (model.description === "KICKER_ALL_MODEL") {
                                     allAppsGrid.model = model;
@@ -967,28 +1044,17 @@ Kicker.DashboardWindow {
             }
         }
 
-        MouseArea {
-            id: hoverBlock  // don't hover-activate until mouse is moved to not interfere with keyboard use
+        HoverBlocker {
+            id: hoverBlock
+
             anchors.fill: parent
-            hoverEnabled: true
-            propagateComposedEvents: true // clicking should still work if hovering is blocked
 
-            property bool mouseMoved: false
+            Connections {
+                target: root.runnerModel
 
-            function reset() {
-                mouseMoved = false
-                enabled = true
-            }
-
-            onPositionChanged: if (!mouseMoved) {
-                mouseMoved = true
-            } else {
-                enabled = false // this immediately triggers other hover events when bound to their hoverEnabled
-            }
-
-            onPressed: event => {
-                enabled = false
-                event.accepted = false
+                function onQueryChanged() : void {
+                    hoverBlock.reset()
+                }
             }
         }
     }

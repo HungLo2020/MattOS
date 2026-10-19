@@ -35,6 +35,7 @@ macro(FRAMEWORKINTEGRATION_TESTS _testname)
         Qt6::DBus
         Qt6::QuickControls2
         KF6::ConfigCore
+        KF6::ConfigGui
         KF6::IconThemes
         KF6::KIOFileWidgets
         KF6::I18n
@@ -43,11 +44,12 @@ macro(FRAMEWORKINTEGRATION_TESTS _testname)
         KF6::WindowSystem
         KF6::GuiAddons
         Qt6::WaylandClient
-        XCB::XCB
         Wayland::Client
-        KF6::XmlGui
         KF6::ColorScheme
     )
+    if(WITH_X11)
+        target_link_libraries(${_testname}6 X11::Xcursor XCB::XCB)
+    endif()
 endmacro()
 
 set(dbus_interface)
@@ -57,13 +59,10 @@ frameworkintegration_tests(
     kdeplatformtheme_unittest
 )
 set(wayland_interfaces)
-if (Qt6_VERSION VERSION_GREATER_EQUAL "6.8.0")
-    set(private_code_option  "PRIVATE_CODE")
-endif()
+
 qt6_generate_wayland_protocol_client_sources(kdeplatformtheme_unittest6
-    ${private_code_option}
+    PRIVATE_CODE
     FILES
-      ${PLASMA_WAYLAND_PROTOCOLS_DIR}/appmenu.xml
       ${PLASMA_WAYLAND_PROTOCOLS_DIR}/server-decoration-palette.xml
 )
 
@@ -72,12 +71,11 @@ target_sources(kdeplatformtheme_unittest6 PRIVATE
   ../src/platformtheme/kfontsettingsdata.cpp ../src/platformtheme/kfontsettingsdata.h
   ../src/platformtheme/khintssettings.cpp ../src/platformtheme/khintssettings.h
   ../src/platformtheme/kdeplatformfiledialoghelper.cpp ../src/platformtheme/kdeplatformfiledialoghelper.h
+  ../src/platformtheme/kdeplatformmessagedialoghelper.cpp ../src/platformtheme/kdeplatformmessagedialoghelper.h
+  ../src/platformtheme/kdeplatformcolordialoghelper.cpp ../src/platformtheme/kdeplatformcolordialoghelper.h
   ../src/platformtheme/kdeplatformfiledialogbase.cpp
   ../src/platformtheme/kdeplatformsystemtrayicon.cpp ../src/platformtheme/kdeplatformsystemtrayicon.h
-  ../src/platformtheme/kdirselectdialog.cpp
-  ../src/platformtheme/kfiletreeview.cpp
   ../src/platformtheme/kwaylandintegration.cpp ../src/platformtheme/kwaylandintegration.h
-  ../src/platformtheme/x11integration.cpp ../src/platformtheme/x11integration.h
   ../src/platformtheme/qxdgdesktopportalfiledialog.cpp
   ../src/platformtheme/qdbusmenubarwrapper.h
   ../src/platformtheme/kiodelegate.cpp
@@ -88,6 +86,12 @@ target_sources(kdeplatformtheme_unittest6 PRIVATE
 )
 # TODO KF6 Port D-Bus menu support
 target_compile_definitions(kdeplatformtheme_unittest6 PRIVATE -DKF6_TODO_DBUS_MENUBAR)
+
+if(WITH_X11)
+  target_sources(kdeplatformtheme_unittest6 PRIVATE
+    ../src/platformtheme/x11integration.cpp ../src/platformtheme/x11integration.h
+  )
+endif()
 
 frameworkintegration_tests(
   kfontsettingsdata_unittest
@@ -106,13 +110,6 @@ frameworkintegration_tests(
   kdeplatformsystemtrayicon_unittest
   ../src/platformtheme/kdeplatformsystemtrayicon.cpp ../src/platformtheme/kdeplatformsystemtrayicon.h
   ${dbus_interface}
-)
-
-frameworkintegration_tests(
-  kdirselectdialog_unittest
-  ../src/platformtheme/kdeplatformfiledialogbase.cpp
-  ../src/platformtheme/kdirselectdialog.cpp
-  ../src/platformtheme/kfiletreeview.cpp
 )
 
 frameworkintegration_tests(

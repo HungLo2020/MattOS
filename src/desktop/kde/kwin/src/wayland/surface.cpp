@@ -5,15 +5,14 @@
     SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
 */
 #include "surface.h"
-#include "blur.h"
 #include "clientconnection.h"
 #include "colormanagement_v1.h"
 #include "colorrepresentation_v1.h"
 #include "compositor.h"
-#include "contrast.h"
+#include "core/syncobjtimeline.h"
 #include "display.h"
 #include "fractionalscale_v1_p.h"
-#include "frog_colormanagement_v1.h"
+#include "fractionalscale_v2.h"
 #include "idleinhibit_v1_p.h"
 #include "linux_drm_syncobj_v1.h"
 #include "linuxdmabufv1clientbuffer.h"
@@ -180,78 +179,10 @@ void SurfaceInterfacePrivate::setShadow(const QPointer<ShadowInterface> &shadow)
     pending->committed |= SurfaceState::Field::Shadow;
 }
 
-void SurfaceInterfacePrivate::setBlur(const QPointer<BlurInterface> &blur)
-{
-    pending->blur = blur;
-    pending->committed |= SurfaceState::Field::Blur;
-}
-
 void SurfaceInterfacePrivate::setSlide(const QPointer<SlideInterface> &slide)
 {
     pending->slide = slide;
     pending->committed |= SurfaceState::Field::Slide;
-}
-
-void SurfaceInterfacePrivate::setContrast(const QPointer<ContrastInterface> &contrast)
-{
-    pending->contrast = contrast;
-    pending->committed |= SurfaceState::Field::Contrast;
-}
-
-void SurfaceInterfacePrivate::installPointerConstraint(LockedPointerV1Interface *lock)
-{
-    Q_ASSERT(!lockedPointer);
-    Q_ASSERT(!confinedPointer);
-
-    lockedPointer = lock;
-
-    auto cleanUp = [this]() {
-        lockedPointer = nullptr;
-        QObject::disconnect(constrainsOneShotConnection);
-        constrainsOneShotConnection = QMetaObject::Connection();
-        QObject::disconnect(constrainsUnboundConnection);
-        constrainsUnboundConnection = QMetaObject::Connection();
-        Q_EMIT q->pointerConstraintsChanged();
-    };
-
-    if (lock->lifeTime() == LockedPointerV1Interface::LifeTime::OneShot) {
-        constrainsOneShotConnection = QObject::connect(lock, &LockedPointerV1Interface::lockedChanged, q, [this, cleanUp] {
-            if (lockedPointer->isLocked()) {
-                return;
-            }
-            cleanUp();
-        });
-    }
-    constrainsUnboundConnection = QObject::connect(lock, &LockedPointerV1Interface::destroyed, q, cleanUp);
-    Q_EMIT q->pointerConstraintsChanged();
-}
-
-void SurfaceInterfacePrivate::installPointerConstraint(ConfinedPointerV1Interface *confinement)
-{
-    Q_ASSERT(!lockedPointer);
-    Q_ASSERT(!confinedPointer);
-
-    confinedPointer = confinement;
-
-    auto cleanUp = [this]() {
-        confinedPointer = nullptr;
-        QObject::disconnect(constrainsOneShotConnection);
-        constrainsOneShotConnection = QMetaObject::Connection();
-        QObject::disconnect(constrainsUnboundConnection);
-        constrainsUnboundConnection = QMetaObject::Connection();
-        Q_EMIT q->pointerConstraintsChanged();
-    };
-
-    if (confinement->lifeTime() == ConfinedPointerV1Interface::LifeTime::OneShot) {
-        constrainsOneShotConnection = QObject::connect(confinement, &ConfinedPointerV1Interface::confinedChanged, q, [this, cleanUp] {
-            if (confinedPointer->isConfined()) {
-                return;
-            }
-            cleanUp();
-        });
-    }
-    constrainsUnboundConnection = QObject::connect(confinement, &ConfinedPointerV1Interface::destroyed, q, cleanUp);
-    Q_EMIT q->pointerConstraintsChanged();
 }
 
 void SurfaceInterfacePrivate::recursivelyEmitIdleInhibitChanged()
@@ -298,7 +229,7 @@ void SurfaceInterfacePrivate::surface_attach(Resource *resource, struct ::wl_res
             return;
         }
     } else {
-        pending->offset = QPoint(x, y);
+        pending->offset = QPointF(x, y) / clientToCompositorScale;
     }
 
     pending->committed |= SurfaceState::Field::Buffer;
@@ -335,14 +266,14 @@ void SurfaceInterfacePrivate::surface_frame(Resource *resource, uint32_t callbac
 void SurfaceInterfacePrivate::surface_set_opaque_region(Resource *resource, struct ::wl_resource *region)
 {
     RegionInterface *r = RegionInterface::get(region);
-    pending->opaque = r ? r->region() : Region();
+    pending->opaque = r ? r->region().scaled(1.0 / clientToCompositorScale) : RegionF();
     pending->committed |= SurfaceState::Field::Opaque;
 }
 
 void SurfaceInterfacePrivate::surface_set_input_region(Resource *resource, struct ::wl_resource *region)
 {
     RegionInterface *r = RegionInterface::get(region);
-    pending->input = r ? r->region() : Region::infinite();
+    pending->input = r ? r->region().scaled(1.0 / clientToCompositorScale) : RegionF::infinite();
     pending->committed |= SurfaceState::Field::Input;
 }
 
@@ -358,13 +289,13 @@ void SurfaceInterfacePrivate::surface_commit(Resource *resource)
     }
 
     if ((pending->committed & SurfaceState::Field::Buffer) && !pending->buffer) {
-        pending->damage = Region();
+        pending->damage = RegionF();
         pending->bufferDamage = Region();
     }
 
     // unless a protocol overrides the properties, we need to assume some YUV->RGB conversion
     // matrix and color space to be attached to YUV formats
-    const bool hasColorManagementProtocol = colorSurface || frogColorManagement;
+    const bool hasColorManagementProtocol = colorSurface != nullptr;
     const bool hasColorRepresentation = colorRepresentation != nullptr;
     if (pending->buffer && pending->buffer->dmabufAttributes()) {
         switch (pending->buffer->dmabufAttributes()->format) {
@@ -475,7 +406,7 @@ void SurfaceInterfacePrivate::surface_damage_buffer(Resource *resource, int32_t 
 
 void SurfaceInterfacePrivate::surface_offset(Resource *resource, int32_t x, int32_t y)
 {
-    pending->offset = QPoint(x, y);
+    pending->offset = QPointF(x, y) / clientToCompositorScale;
 }
 
 SurfaceInterface::SurfaceInterface(CompositorInterface *compositor, wl_resource *resource)
@@ -486,18 +417,21 @@ SurfaceInterface::SurfaceInterface(CompositorInterface *compositor, wl_resource 
     d->init(resource);
     d->client = ClientConnection::get(d->resource()->client());
 
-    d->pendingScaleOverride = d->client->scaleOverride();
-    d->scaleOverride = d->pendingScaleOverride;
+    d->serverScale = d->client->scaleOverride();
     connect(d->client, &ClientConnection::scaleOverrideChanged, this, [this]() {
-        d->pendingScaleOverride = d->client->scaleOverride();
+        d->serverScale = d->client->scaleOverride();
     });
+
+    d->fallbackTimer.setSingleShot(true);
+    d->fallbackTimer.setTimerType(Qt::PreciseTimer);
+    connect(&d->fallbackTimer, &QTimer::timeout, this, &SurfaceInterface::handleCommitFallback);
 }
 
 SurfaceInterface::~SurfaceInterface()
 {
     d->m_tearingDown = true;
     if (d->firstTransaction) {
-        d->firstTransaction->tryApply();
+        d->firstTransaction->tryApply(std::chrono::steady_clock::now());
     }
 }
 
@@ -509,6 +443,7 @@ RawSurfaceAttachedState *SurfaceInterface::addExtension(RawSurfaceExtension *ext
 
 void SurfaceInterface::removeExtension(RawSurfaceExtension *extension)
 {
+    d->current->extensions.erase(extension);
     d->pending->extensions.erase(extension);
 
     if (d->subsurface.transaction) {
@@ -632,15 +567,13 @@ void SurfaceState::mergeInto(SurfaceState *target)
     wl_list_init(&frameCallbacks);
 
     target->damage |= damage;
-    damage = Region();
+    damage = RegionF();
     target->bufferDamage |= bufferDamage;
     bufferDamage = Region();
     target->viewport.sourceGeometry = viewport.sourceGeometry;
     target->viewport.destinationSize = viewport.destinationSize;
     target->subsurface = subsurface;
     target->shadow = shadow;
-    target->blur = blur;
-    target->contrast = contrast;
     target->slide = slide;
     target->input = input;
     target->opaque = opaque;
@@ -658,6 +591,17 @@ void SurfaceState::mergeInto(SurfaceState *target)
     target->yuvCoefficients = yuvCoefficients;
     target->range = range;
     target->presentationFeedback = std::move(presentationFeedback);
+    target->blurRegion = blurRegion;
+    if (committed & SurfaceState::Field::PointerConfinementRegion) {
+        target->pointerConfinementRegion = pointerConfinementRegion;
+        target->confinementLifetime = confinementLifetime;
+    }
+    if (committed & SurfaceState::Field::PointerLockRegion) {
+        target->pointerLockRegion = pointerLockRegion;
+        target->confinementLifetime = confinementLifetime;
+    }
+    target->pointerLockHint = pointerLockHint;
+    target->requestedTiming = std::exchange(requestedTiming, std::nullopt);
 
     auto previousExtensions = std::exchange(target->extensions, {});
     for (const auto &[extension, sourceState] : extensions) {
@@ -683,7 +627,6 @@ void SurfaceInterfacePrivate::applyState(SurfaceState *next)
     const bool transformChanged = (next->committed & SurfaceState::Field::BufferTransform) && (current->bufferTransform != next->bufferTransform);
     const bool shadowChanged = (next->committed & SurfaceState::Field::Shadow);
     const bool blurChanged = (next->committed & SurfaceState::Field::Blur);
-    const bool contrastChanged = (next->committed & SurfaceState::Field::Contrast);
     const bool slideChanged = (next->committed & SurfaceState::Field::Slide);
     const bool subsurfaceOrderChanged = (next->committed & SurfaceState::Field::SubsurfaceOrder);
     const bool visibilityChanged = (next->committed & SurfaceState::Field::Buffer) && bool(current->buffer) != bool(next->buffer);
@@ -693,21 +636,20 @@ void SurfaceInterfacePrivate::applyState(SurfaceState *next)
     const bool bufferReleasePointChanged = (next->committed & SurfaceState::Field::Buffer) && current->releasePoint != next->releasePoint;
     const bool alphaMultiplierChanged = (next->committed & SurfaceState::Field::AlphaMultiplier);
     const bool yuvCoefficientsChanged = (next->committed & SurfaceState::Field::YuvCoefficients) && (current->yuvCoefficients != next->yuvCoefficients);
+    const bool pointerLockRegionChanged = (next->committed & SurfaceState::Field::PointerLockRegion) && (current->pointerLockRegion != next->pointerLockRegion);
+    const bool pointerConfinementRegionChanged = (next->committed & SurfaceState::Field::PointerConfinementRegion) && (current->pointerConfinementRegion != next->pointerConfinementRegion);
 
     const QSizeF oldSurfaceSize = surfaceSize;
     const RectF oldBufferSourceBox = bufferSourceBox;
-    const Region oldInputRegion = inputRegion;
+    const RegionF oldInputRegion = inputRegion;
+    const std::optional<RegionF> oldEffectivePointerLock = effectivePointerLock;
+    const std::optional<RegionF> oldEffectivePointerConfinement = effectivePointerConfinement;
 
     next->mergeInto(current.get());
     bufferRef = current->buffer;
     if (bufferRef && current->releasePoint) {
         bufferRef->addReleasePoint(current->releasePoint);
     }
-    if (!bufferRef) {
-        // we can't present an unmapped surface
-        current->presentationFeedback.reset();
-    }
-    scaleOverride = pendingScaleOverride;
 
     if (current->buffer) {
         bufferSourceBox = computeBufferSourceBox();
@@ -719,50 +661,67 @@ void SurfaceInterfacePrivate::applyState(SurfaceState *next)
         } else {
             surfaceSize = current->bufferTransform.map(current->buffer->size() / current->bufferScale);
         }
+        surfaceSize /= serverScale;
 
-        const Rect surfaceRect = RectF(QPointF(0, 0), surfaceSize).toAlignedRect();
+        const RectF surfaceRect = RectF(QPointF(0, 0), surfaceSize);
         const Rect bufferRect = Rect(QPoint(0, 0), current->buffer->size());
 
-        inputRegion = current->input & surfaceRect;
+        inputRegion = current->input
+                          .scaled(1.0 / serverScale)
+                          .intersected(surfaceRect);
 
         if (!current->buffer->hasAlphaChannel()) {
             opaqueRegion = surfaceRect;
         } else {
-            opaqueRegion = current->opaque & surfaceRect;
+            opaqueRegion = current->opaque
+                               .scaled(1.0 / serverScale)
+                               .intersected(surfaceRect);
         }
 
         bufferDamage = current->bufferDamage
-                           .united(mapToBuffer(current->damage.intersected(surfaceRect)))
+                           .united(mapToBuffer(current->damage.scaled(1.0 / serverScale).intersected(surfaceRect)))
                            .intersected(bufferRect);
-        current->damage = Region();
+        current->damage = RegionF();
         current->bufferDamage = Region();
-
-        if (scaleOverride != 1.0) {
-            // Rounding out is not great with opaque regions. Ideally, we should only round, but
-            // it can make 1px wide or tall rects disappear with scale factors less than 100%.
-            opaqueRegion = opaqueRegion.scaledAndRoundedOut(1.0 / scaleOverride);
-            inputRegion = inputRegion.scaledAndRoundedOut(1.0 / scaleOverride);
-            surfaceSize = surfaceSize / scaleOverride;
-        }
     } else {
         surfaceSize = QSizeF(0, 0);
         bufferSourceBox = RectF();
         bufferDamage = Region();
-        inputRegion = Region();
-        opaqueRegion = Region();
+        inputRegion = RegionF();
+        opaqueRegion = RegionF();
+    }
+    if (visibilityChanged) {
+        updateEffectiveMapped();
+    }
+
+    const bool inputRegionChanged = oldInputRegion != inputRegion;
+    if (inputRegionChanged || pointerLockRegionChanged) {
+        effectivePointerLock = current->pointerLockRegion.transform([this](const RegionF &region) {
+            if (region.isEmpty()) {
+                return inputRegion;
+            } else {
+                return region & inputRegion;
+            }
+        });
+    }
+    if (inputRegionChanged || pointerConfinementRegionChanged) {
+        effectivePointerConfinement = current->pointerConfinementRegion.transform([this](const RegionF &region) {
+            if (region.isEmpty()) {
+                return inputRegion;
+            } else {
+                return region & inputRegion;
+            }
+        });
     }
 
     if (opaqueRegionChanged) {
         Q_EMIT q->opaqueChanged(opaqueRegion);
     }
-    if (oldInputRegion != inputRegion) {
+    if (inputRegionChanged) {
         Q_EMIT q->inputChanged(inputRegion);
     }
     if (transformChanged) {
         Q_EMIT q->bufferTransformChanged(current->bufferTransform);
-    }
-    if (visibilityChanged) {
-        updateEffectiveMapped();
     }
     if (bufferSourceBox != oldBufferSourceBox) {
         Q_EMIT q->bufferSourceBoxChanged();
@@ -778,9 +737,6 @@ void SurfaceInterfacePrivate::applyState(SurfaceState *next)
     }
     if (blurChanged) {
         Q_EMIT q->blurChanged();
-    }
-    if (contrastChanged) {
-        Q_EMIT q->contrastChanged();
     }
     if (slideChanged) {
         Q_EMIT q->slideOnShowHideChanged();
@@ -803,6 +759,12 @@ void SurfaceInterfacePrivate::applyState(SurfaceState *next)
     }
     if (!bufferDamage.isEmpty()) {
         Q_EMIT q->damaged(bufferDamage);
+    }
+    if (oldEffectivePointerLock != effectivePointerLock) {
+        Q_EMIT q->lockedPointerRegionChanged();
+    }
+    if (oldEffectivePointerConfinement != effectivePointerConfinement) {
+        Q_EMIT q->confinedPointerRegionChanged();
     }
 
     // The position of a sub-surface is applied when its parent is committed.
@@ -867,10 +829,10 @@ bool SurfaceInterfacePrivate::contains(const QPointF &position) const
 
 bool SurfaceInterfacePrivate::inputContains(const QPointF &position) const
 {
-    return contains(position) && inputRegion.contains(QPoint(std::floor(position.x()), std::floor(position.y())));
+    return contains(position) && inputRegion.contains(position);
 }
 
-Region SurfaceInterfacePrivate::mapToBuffer(const Region &region) const
+Region SurfaceInterfacePrivate::mapToBuffer(const RegionF &region) const
 {
     if (region.isEmpty()) {
         return Region();
@@ -881,7 +843,7 @@ Region SurfaceInterfacePrivate::mapToBuffer(const Region &region) const
     const qreal yScale = sourceBox.height() / surfaceSize.height();
 
     Region result;
-    for (const Rect &rect : region.rects()) {
+    for (const RectF &rect : region.rects()) {
         result += current->bufferTransform.map(rect.scaled(xScale, yScale), sourceBox.size()).translated(bufferSourceBox.topLeft()).roundedOut();
     }
     return result;
@@ -892,12 +854,12 @@ Region SurfaceInterface::bufferDamage() const
     return d->bufferDamage;
 }
 
-Region SurfaceInterface::opaque() const
+RegionF SurfaceInterface::opaque() const
 {
     return d->opaqueRegion;
 }
 
-Region SurfaceInterface::input() const
+RegionF SurfaceInterface::input() const
 {
     return d->inputRegion;
 }
@@ -914,12 +876,12 @@ OutputTransform SurfaceInterface::bufferTransform() const
 
 GraphicsBuffer *SurfaceInterface::buffer() const
 {
-    return d->bufferRef.buffer();
+    return d->bufferRef.get();
 }
 
-QPoint SurfaceInterface::offset() const
+QPointF SurfaceInterface::offset() const
 {
-    return d->current->offset / d->scaleOverride;
+    return QPointF(d->current->offset) / d->serverScale;
 }
 
 SurfaceInterface *SurfaceInterface::get(wl_resource *native)
@@ -985,14 +947,9 @@ ShadowInterface *SurfaceInterface::shadow() const
     return d->current->shadow;
 }
 
-BlurInterface *SurfaceInterface::blur() const
+RegionF SurfaceInterface::blurRegion() const
 {
-    return d->current->blur;
-}
-
-ContrastInterface *SurfaceInterface::contrast() const
-{
-    return d->current->contrast;
+    return d->current->blurRegion;
 }
 
 SlideInterface *SurfaceInterface::slideOnShowHide() const
@@ -1184,19 +1141,32 @@ QPointF SurfaceInterface::mapToChild(SurfaceInterface *child, const QPointF &poi
     return local;
 }
 
-qreal SurfaceInterface::scaleOverride() const
+qreal SurfaceInterface::serverScale() const
 {
-    return d->scaleOverride;
+    return d->serverScale;
 }
 
-QPoint SurfaceInterface::toSurfaceLocal(const QPoint &point) const
+qreal SurfaceInterface::clientToCompositorScale() const
 {
-    return QPoint(point.x() * d->scaleOverride, point.y() * d->scaleOverride);
+    return d->clientToCompositorScale;
+}
+
+qreal SurfaceInterface::compositorToClientScale() const
+{
+    return d->compositorToClientScale;
 }
 
 QPointF SurfaceInterface::toSurfaceLocal(const QPointF &point) const
 {
-    return QPointF(point.x() * d->scaleOverride, point.y() * d->scaleOverride);
+    return QPointF(point.x() * d->serverScale * d->compositorToClientScale,
+                   point.y() * d->serverScale * d->compositorToClientScale);
+}
+
+QSizeF SurfaceInterface::snappedSize(const QSizeF &size) const
+{
+    const qreal scale = d->serverScale * d->compositorToClientScale;
+    return QSizeF(std::round(size.width() * scale) / scale,
+                  std::round(size.height() * scale) / scale);
 }
 
 PresentationModeHint SurfaceInterface::presentationModeHint() const
@@ -1225,9 +1195,6 @@ void SurfaceInterface::setPreferredColorDescription(const std::shared_ptr<ColorD
         return;
     }
     d->preferredColorDescription = descr;
-    if (d->frogColorManagement) {
-        d->frogColorManagement->setPreferredColorDescription(descr);
-    }
     for (const auto feedbackSurface : std::as_const(d->colorFeedbackSurfaces)) {
         feedbackSurface->setPreferredColorDescription(descr);
     }
@@ -1246,8 +1213,11 @@ void SurfaceInterface::setPreferredBufferScale(qreal scale)
     }
     d->preferredBufferScale = scale;
 
-    if (d->fractionalScaleExtension) {
-        d->fractionalScaleExtension->setPreferredScale(scale);
+    if (d->fractionalScaleV1) {
+        d->fractionalScaleV1->setPreferredScale(scale);
+    }
+    if (d->fractionalScaleV2) {
+        d->fractionalScaleV2->setCompositorToClientScale(scale);
     }
     if (d->resource()->version() >= WL_SURFACE_PREFERRED_BUFFER_SCALE_SINCE_VERSION) {
         d->send_preferred_buffer_scale(std::ceil(scale));
@@ -1288,6 +1258,20 @@ Transaction *SurfaceInterface::firstTransaction() const
 void SurfaceInterface::setFirstTransaction(Transaction *transaction)
 {
     d->firstTransaction = transaction;
+
+    const auto timing = requestedTimingOfNextCommit();
+    if (!timing && !hasFifoBarrier()) {
+        d->fallbackTimer.stop();
+        return;
+    }
+    std::chrono::nanoseconds duration{0};
+    if (timing) {
+        duration = std::max(duration, *timing - std::chrono::steady_clock::now());
+    }
+    if (hasFifoBarrier()) {
+        duration = std::max(duration, d->fifoRefreshRate);
+    }
+    d->fallbackTimer.start(std::chrono::ceil<std::chrono::milliseconds>(duration));
 }
 
 Transaction *SurfaceInterface::lastTransaction() const
@@ -1322,19 +1306,89 @@ double SurfaceInterface::alphaMultiplier() const
     return d->current->alphaMultiplier;
 }
 
-void SurfaceInterface::clearFifoBarrier()
+void SurfaceInterface::clearFifoBarrier(std::optional<std::chrono::nanoseconds> refreshDuration)
 {
+    if (refreshDuration.has_value()) {
+        // some games don't work properly if the refresh rate goes too low with FIFO. 30Hz is assumed to be fine here.
+        // this must still be slower than the actual screen though, or fifo behavior would be broken!
+        d->fifoRefreshRate = std::max(*refreshDuration * 5 / 4, std::chrono::nanoseconds(1'000'000'000) / 30);
+    }
     if (d->current->fifoBarrier) {
         d->current->fifoBarrier = false;
         if (d->firstTransaction) {
-            d->firstTransaction->tryApply();
+            d->firstTransaction->tryApply(std::chrono::steady_clock::now());
         }
+    }
+}
+
+void SurfaceInterface::handleCommitFallback()
+{
+    d->fallbackTimer.stop();
+    d->current->fifoBarrier = false;
+    if (d->firstTransaction) {
+        d->firstTransaction->tryApply(std::chrono::steady_clock::now());
     }
 }
 
 bool SurfaceInterface::hasFifoBarrier() const
 {
     return d->current->fifoBarrier;
+}
+
+std::optional<RegionF> SurfaceInterface::confinedPointerRegion() const
+{
+    return d->effectivePointerConfinement;
+}
+
+std::optional<RegionF> SurfaceInterface::lockedPointerRegion() const
+{
+    return d->effectivePointerLock;
+}
+
+std::optional<QPointF> SurfaceInterface::lockedPointerHint() const
+{
+    return d->current->pointerLockHint;
+}
+
+void SurfaceInterface::setPointerConfined(bool confined)
+{
+    if (!confined && d->current->confinementLifetime == PointerConstraintLifetime::OneShot) {
+        // oneshot confinement has to be reset even if the confinement object is already deleted
+        d->current->pointerConfinementRegion.reset();
+        d->effectivePointerConfinement.reset();
+    }
+    if (d->confinedPointer) {
+        d->confinedPointer->setConfined(confined);
+    }
+}
+
+void SurfaceInterface::setPointerLocked(bool locked)
+{
+    if (!locked && d->current->confinementLifetime == PointerConstraintLifetime::OneShot) {
+        // oneshot confinement has to be reset even if the confinement object is already deleted
+        d->current->pointerLockRegion.reset();
+        d->effectivePointerLock.reset();
+    }
+    if (d->lockedPointer) {
+        d->lockedPointer->setLocked(locked);
+    }
+}
+
+void SurfaceInterface::tryApplyState(std::chrono::nanoseconds timestamp)
+{
+    if (d->firstTransaction) {
+        // TODO port the other timestamps to use an actual timestamp type as well
+        d->firstTransaction->tryApply(std::chrono::steady_clock::time_point(timestamp));
+    }
+}
+
+std::optional<std::chrono::steady_clock::time_point> SurfaceInterface::requestedTimingOfNextCommit() const
+{
+    if (d->firstTransaction) {
+        return d->firstTransaction->targetTimestamp();
+    } else {
+        return std::nullopt;
+    }
 }
 
 } // namespace KWin

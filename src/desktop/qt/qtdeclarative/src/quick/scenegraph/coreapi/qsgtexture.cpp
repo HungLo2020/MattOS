@@ -1,5 +1,6 @@
 // Copyright (C) 2019 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgtexture_p.h"
 #include "qsgtexture_platform.h"
@@ -15,7 +16,7 @@
 #define CAN_BACKTRACE_EXECINFO
 #endif
 
-#if defined(Q_OS_APPLE)
+#if defined(Q_OS_APPLE) || defined(Q_OS_OHOS) || defined(Q_OS_HARMONY)
 #define CAN_BACKTRACE_EXECINFO
 #endif
 

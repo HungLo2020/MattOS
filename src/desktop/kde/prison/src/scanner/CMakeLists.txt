@@ -52,7 +52,7 @@ target_link_libraries(KF6PrisonScanner
         ZXing::ZXing
 )
 
-install(TARGETS KF6PrisonScanner EXPORT KF6PrisonTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS KF6PrisonScanner EXPORT KF6PrisonScannerTargets ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
 
 ecm_generate_headers(PrisonScanner_CamelCase_HEADERS
     HEADER_NAMES
@@ -71,4 +71,18 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/prisonscanner_export.h
     DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/PrisonScanner/Prison
     COMPONENT Devel
+)
+
+ecm_add_installed_library_check(KF6PrisonScanner
+    PACKAGE_NAME "KF6PrisonScanner"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6PrisonScanner
+    HEADERS ${PrisonScanner_CamelCase_HEADERS}
+    PREFIX Prison
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6PrisonScanner
+    PREFIX PRISON
 )

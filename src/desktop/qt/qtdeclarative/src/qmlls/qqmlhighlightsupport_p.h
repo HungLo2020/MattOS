@@ -16,9 +16,9 @@
 // We mean it.
 //
 
-#include "qlanguageserver_p.h"
-#include "qqmlbasemodule_p.h"
-#include "qqmlsemantictokens_p.h"
+#include <private/qlanguageserver_p.h>
+#include <private/qqmlbasemodule_p.h>
+#include <private/qqmlsemantictokens_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -27,16 +27,8 @@ QT_BEGIN_NAMESPACE
 // and QLanguageServerModule abstractions are designed to handle a single module
 // which has a single request handlers. That is not the case for the semanticTokens
 // module which has a one server module but also has three different handlers.
-#define HIDE_UNUSED_OVERRIDES                                                      \
-  private:                                                                         \
-  QString name() const override                                                    \
-  {                                                                                \
-    return {};                                                                     \
-  }                                                                                \
-  void setupCapabilities(const QLspSpecification::InitializeParams &,              \
-                         QLspSpecification::InitializeResult &) override           \
-  {                                                                                \
-  }
+#define HIDE_UNUSED_OVERRIDES \
+    void setupCapabilities(QLspSpecification::ServerCapabilities &) override { }
 
 using SemanticTokensRequest = BaseRequest<QLspSpecification::SemanticTokensParams,
                                           QLspSpecification::Responses::SemanticTokensResponseType>;
@@ -56,8 +48,10 @@ public:
     void process(QQmlBaseModule<SemanticTokensRequest>::RequestPointerArgument req) override;
     void registerHandlers(QLanguageServer *, QLanguageServerProtocol *) override;
     void setHighlightingMode(QmlHighlighting::HighlightingMode mode) { m_mode = mode; }
-    QmlLsp::QQmlCodeModelManager *manager() const { return m_codeModelManager; }
     HIDE_UNUSED_OVERRIDES
+    QmlLsp::QQmlCodeModelManager *manager() const { return m_codeModelManager; }
+
+private:
     QmlHighlighting::HighlightingMode m_mode;
 };
 
@@ -69,6 +63,7 @@ public:
     void registerHandlers(QLanguageServer *, QLanguageServerProtocol *) override;
     void setHighlightingMode(QmlHighlighting::HighlightingMode mode) { m_mode = mode; }
     HIDE_UNUSED_OVERRIDES
+private:
     QmlHighlighting::HighlightingMode m_mode;
 };
 
@@ -80,6 +75,7 @@ public:
     void registerHandlers(QLanguageServer *, QLanguageServerProtocol *) override;
     void setHighlightingMode(QmlHighlighting::HighlightingMode mode) { m_mode = mode; }
     HIDE_UNUSED_OVERRIDES
+private:
     QmlHighlighting::HighlightingMode m_mode;;
 };
 
@@ -87,10 +83,11 @@ class QQmlHighlightSupport : public QLanguageServerModule
 {
 public:
     QQmlHighlightSupport(QmlLsp::QQmlCodeModelManager *codeModel);
-    QString name() const override;
     void registerHandlers(QLanguageServer *server, QLanguageServerProtocol *protocol) override;
-    void setupCapabilities(const QLspSpecification::InitializeParams &clientInfo,
-                           QLspSpecification::InitializeResult &) override;
+    void setupCapabilities(QLspSpecification::ServerCapabilities &caps) override;
+public Q_SLOTS:
+    void clientInitialized(QLanguageServer *);
+
 private:
     SemanticTokenFullHandler m_full;
     SemanticTokenDeltaHandler m_delta;

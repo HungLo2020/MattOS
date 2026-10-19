@@ -247,12 +247,19 @@ static bool parseInfoZipUnixNew(const char *buffer, int size, bool islocal,
 
 /**
  * parses the extra field
+ *
+ * the 64-bit values for uncompressed size, compressed size and local header offset
+ * are retrieved only if the 32-bit values are 0xFFFFFFFF
+ *
  * @param buffer start of buffer where the extra field is to be found
  * @param size size of the extra field
  * @param pfi ParseFileInfo object which to write the results into
+ * @param uncompressedSize32 quint32 32-bit value for uncompressed size
+ * @param compressedSize32 quint32 32-bit value for compressed size
+ * @param localHeaderOffset32 quint32 32-bit value for local header offset
  * @return true if parsing was successful
  */
-static bool parseExtraField(const char *buffer, int size, ParseFileInfo &pfi)
+static bool parseExtraField(const char *buffer, int size, ParseFileInfo &pfi, quint32 uncompressedSize32, quint32 compressedSize32, quint32 localHeaderOffset32)
 {
     while (size >= 4) { // as long as a potential extra field can be read
         int magic = parseUi16(buffer);
@@ -267,17 +274,23 @@ static bool parseExtraField(const char *buffer, int size, ParseFileInfo &pfi)
         }
 
         switch (magic) {
-        case 0x0001: // ZIP64 extended file information
-            if (size >= 8) {
-                pfi.uncompressedSize = parseUi64(buffer);
+        case 0x0001: {
+            // ZIP64 extended file information
+            int offset = 0;
+            if (uncompressedSize32 == 0xFFFFFFFF && offset + 8 <= fieldsize) {
+                pfi.uncompressedSize = parseUi64(buffer + offset);
+                offset += 8;
             }
-            if (size >= 16) {
-                pfi.compressedSize = parseUi64(buffer + 8);
+            if (compressedSize32 == 0xFFFFFFFF && offset + 8 <= fieldsize) {
+                pfi.compressedSize = parseUi64(buffer + offset);
+                offset += 8;
             }
-            if (size >= 24) {
-                pfi.localheaderoffset = parseUi64(buffer + 16);
+            if (localHeaderOffset32 == 0xFFFFFFFF && offset + 8 <= fieldsize) {
+                pfi.localheaderoffset = parseUi64(buffer + offset);
+                offset += 8;
             }
             break;
+        }
         case 0x5455: // extended timestamp
             if (!parseExtTimestamp(buffer, fieldsize, true, pfi)) {
                 return false;
@@ -516,8 +529,8 @@ bool KZip::openArchive(QIODevice::OpenMode mode)
             int compression_mode = parseUi16(buffer + 4);
             uint mtime = transformFromMsDos(buffer + 6);
 
-            const qint64 compr_size = parseUi32(buffer + 14);
-            const qint64 uncomp_size = parseUi32(buffer + 18);
+            qint64 compr_size = parseUi32(buffer + 14);
+            qint64 uncomp_size = parseUi32(buffer + 18);
             const int namelen = parseUi16(buffer + 22);
             const int extralen = parseUi16(buffer + 24);
 
@@ -546,7 +559,7 @@ bool KZip::openArchive(QIODevice::OpenMode mode)
 
             // read and parse the beginning of the extra field,
             // skip rest of extra field in case it is too long
-            unsigned int extraFieldEnd = dev->pos() + extralen;
+            quint64 extraFieldEnd = dev->pos() + extralen;
             int handledextralen = qMin(extralen, (int)sizeof buffer);
 
             // if (handledextralen)
@@ -554,9 +567,16 @@ bool KZip::openArchive(QIODevice::OpenMode mode)
 
             n = dev->read(buffer, handledextralen);
             // no error msg necessary as we deliberately truncate the extra field
-            if (!parseExtraField(buffer, n, pfi)) {
+            if (!parseExtraField(buffer, n, pfi, uncomp_size, compr_size, 0)) {
                 setErrorString(tr("Invalid ZIP File. Broken ExtraField."));
                 return false;
+            }
+
+            if (compr_size == 0xFFFFFFFF) {
+                compr_size = pfi.compressedSize;
+            }
+            if (uncomp_size == 0xFFFFFFFF) {
+                uncomp_size = pfi.uncompressedSize;
             }
 
             // jump to end of extra field
@@ -678,10 +698,26 @@ bool KZip::openArchive(QIODevice::OpenMode mode)
                 return false;
             }
 
+            // crc32 of the file
+            uint crc32 = parseUi32(buffer + 16);
+            // 32 bit uncompressed file size
+            quint32 ucsize32 = parseUi32(buffer + 24);
+            // 32 bit compressed file size
+            quint32 csize32 = parseUi32(buffer + 20);
+            // 32 bit offset of local header
+            quint32 localheaderoffset_32 = parseUi32(buffer + 42);
+
             ParseFileInfo extrafi;
             if (extralen) {
-                parseExtraField(varData.constData() + namelen, extralen, extrafi);
+                parseExtraField(varData.constData() + namelen, extralen, extrafi, ucsize32, csize32, localheaderoffset_32);
             }
+
+            // uncompressed file size
+            quint64 ucsize = (ucsize32 == 0xFFFFFFFF) ? extrafi.uncompressedSize : ucsize32;
+            // compressed file size
+            quint64 csize = (csize32 == 0xFFFFFFFF) ? extrafi.compressedSize : csize32;
+            // offset of local header
+            quint64 localheaderoffset = (localheaderoffset_32 == 0xFFFFFFFF) ? extrafi.localheaderoffset : localheaderoffset_32;
 
             QByteArray bufferName(varData.constData(), namelen);
 
@@ -690,30 +726,8 @@ bool KZip::openArchive(QIODevice::OpenMode mode)
             QString name(QFile::decodeName(bufferName));
 
             // qCDebug(KArchiveLog) << "name: " << name;
-
             // qCDebug(KArchiveLog) << "cmethod: " << cmethod;
             // qCDebug(KArchiveLog) << "extralen: " << extralen;
-
-            // crc32 of the file
-            uint crc32 = parseUi32(buffer + 16);
-
-            // uncompressed file size
-            quint64 ucsize = parseUi32(buffer + 24);
-            if (ucsize == 0xFFFFFFFF) {
-                ucsize = extrafi.uncompressedSize;
-            }
-            // compressed file size
-            quint64 csize = parseUi32(buffer + 20);
-            if (csize == 0xFFFFFFFF) {
-                csize = extrafi.compressedSize;
-            }
-
-            // offset of local header
-            quint64 localheaderoffset = parseUi32(buffer + 42);
-            if (localheaderoffset == 0xFFFFFFFF) {
-                localheaderoffset = extrafi.localheaderoffset;
-            }
-
             // qCDebug(KArchiveLog) << "localheader dataoffset: " << pfi.dataoffset;
 
             // offset, where the real data for uncompression starts
@@ -863,7 +877,6 @@ bool KZip::closeArchive()
     // write all central dir file entries
 
     // to be written at the end of the file...
-    char buffer[22]; // first used for 12, then for 22 at the end
     uLong crc = crc32(0L, nullptr, 0);
 
     qint64 centraldiroffset = device()->pos();
@@ -879,29 +892,61 @@ bool KZip::closeArchive()
         //    << entry->path()
         //    << "encoding:" << entry->encoding();
 
+        QByteArray path = QFile::encodeName(entry->path());
         uLong mycrc = entry->crc32();
-        buffer[0] = char(mycrc); // crc checksum, at headerStart+14
-        buffer[1] = char(mycrc >> 8);
-        buffer[2] = char(mycrc >> 16);
-        buffer[3] = char(mycrc >> 24);
+        qint64 compressedSize = entry->compressedSize();
+        qint64 size = entry->size();
 
-        int mysize1 = entry->compressedSize();
-        buffer[4] = char(mysize1); // compressed file size, at headerStart+18
-        buffer[5] = char(mysize1 >> 8);
-        buffer[6] = char(mysize1 >> 16);
-        buffer[7] = char(mysize1 >> 24);
+        bool compressedSizeNeeds64Bit = compressedSize >= 0xFFFFFFFF;
+        bool uncompressedSizeNeeds64Bit = size >= 0xFFFFFFFF;
+        bool isZip64File = (compressedSizeNeeds64Bit || uncompressedSizeNeeds64Bit);
 
-        int myusize = entry->size();
-        buffer[8] = char(myusize); // uncompressed file size, at headerStart+22
-        buffer[9] = char(myusize >> 8);
-        buffer[10] = char(myusize >> 16);
-        buffer[11] = char(myusize >> 24);
+        char buffer[12];
 
-        if (device()->write(buffer, 12) != 12) {
-            setErrorString(tr("Could not write file header: %1").arg(device()->errorString()));
-            return false;
+        // crc checksum
+        qToLittleEndian<quint32>(mycrc, buffer);
+
+        if (!isZip64File) {
+            qToLittleEndian<quint32>(compressedSize, buffer + 4);
+            qToLittleEndian<quint32>(size, buffer + 8);
+
+            if (device()->write(buffer, 12) != 12) {
+                setErrorString(tr("Could not write file header: %1").arg(device()->errorString()));
+                return false;
+            }
+        } else {
+            // compressed file size
+            qToLittleEndian<quint32>(0xFFFFFFFF, buffer + 4);
+            // uncompressed file size
+            qToLittleEndian<quint32>(0xFFFFFFFF, buffer + 8);
+
+            if (device()->write(buffer, 12) != 12) {
+                setErrorString(tr("Could not write file header: %1").arg(device()->errorString()));
+                return false;
+            }
+
+            // jump to the Local File Header Zip64 extra field to fill the 64-bit sizes
+            qint64 extraFieldOffset = entry->headerStart() + 30 + path.length();
+            if (d->m_extraField == ModificationTime) {
+                extraFieldOffset += 17;
+            }
+            // skip Zip64 extra field header id and field size
+            extraFieldOffset += 4;
+            if (!device()->seek(extraFieldOffset)) {
+                setErrorString(tr("Could not seek to Zip64 extra field: %1").arg(device()->errorString()));
+                return false;
+            }
+
+            char z64Buffer[16];
+            qToLittleEndian<quint64>(size, z64Buffer);
+            qToLittleEndian<quint64>(compressedSize, z64Buffer + 8);
+            if (device()->write(z64Buffer, 16) != 16) {
+                setErrorString(tr("Could not write Zip64 compressed size: %1").arg(device()->errorString()));
+                return false;
+            }
         }
     }
+
     device()->seek(atbackup);
 
     for (KZipFileEntry *entry : d->m_fileList) {
@@ -909,70 +954,99 @@ bool KZip::closeArchive()
         //              << "encoding:" << entry->encoding();
 
         QByteArray path = QFile::encodeName(entry->path());
+        qint64 compressedSize = entry->compressedSize();
+        qint64 size = entry->size();
+        qint64 myhst = entry->headerStart();
 
-        const int extra_field_len = (d->m_extraField == ModificationTime) ? 9 : 0;
+        bool compressedSizeNeeds64Bit = compressedSize >= 0xFFFFFFFF;
+        bool uncompressedSizeNeeds64Bit = size >= 0xFFFFFFFF;
+        bool offsetNeeds64Bit = myhst >= 0xFFFFFFFF;
+        bool entryNeedsZip64 = (compressedSizeNeeds64Bit || uncompressedSizeNeeds64Bit || offsetNeeds64Bit);
+
+        int extra_field_len = (d->m_extraField == ModificationTime) ? 9 : 0;
+        uint zip64FieldSize = 0;
+        if (entryNeedsZip64) {
+            // 2 header id + 2 field size +
+            // 8 uncompressed size + 8 compressed size + 8 offset
+            zip64FieldSize = 28;
+        }
+        extra_field_len += zip64FieldSize;
+
         const int bufferSize = extra_field_len + path.length() + 46;
         char *buffer = new char[bufferSize];
 
         memset(buffer, 0, 46); // zero is a nice default for most header fields
 
-        /* clang-format off */
-        const char head[] = {
-            'P', 'K', 1, 2, // central file header signature
-            0x14, 3, // version made by (3 == UNIX)
-            0x14, 0 // version needed to extract
-        };
-        /* clang-format on */
+        // Central header signature
+        buffer[0] = 'P';
+        buffer[1] = 'K';
+        buffer[2] = 1;
+        buffer[3] = 2;
 
-        // I do not know why memcpy is not working here
-        // memcpy(buffer, head, sizeof(head));
-        memmove(buffer, head, sizeof(head));
+        // Version made by (UNIX)
+        buffer[4] = 0x14;
+        buffer[5] = 3;
+        // Version needed to extract
+        buffer[6] = entryNeedsZip64 ? 45 : 0x14;
+        buffer[7] = 0;
 
-        buffer[10] = char(entry->encoding()); // compression method
-        buffer[11] = char(entry->encoding() >> 8);
+        // General purpose bit flag
+        // qToLittleEndian<quint16>(0, buffer + 8);
+
+        // compression method
+        qToLittleEndian<quint16>(char(entry->encoding()), buffer + 10);
 
         transformToMsDos(entry->date(), &buffer[12]);
 
         uLong mycrc = entry->crc32();
-        buffer[16] = char(mycrc); // crc checksum
-        buffer[17] = char(mycrc >> 8);
-        buffer[18] = char(mycrc >> 16);
-        buffer[19] = char(mycrc >> 24);
+        // crc checksum
+        qToLittleEndian<quint32>(mycrc, buffer + 16);
 
-        int mysize1 = entry->compressedSize();
-        buffer[20] = char(mysize1); // compressed file size
-        buffer[21] = char(mysize1 >> 8);
-        buffer[22] = char(mysize1 >> 16);
-        buffer[23] = char(mysize1 >> 24);
+        // compressed file size
+        if (entryNeedsZip64) {
+            qToLittleEndian<quint32>(0xFFFFFFFF, buffer + 20);
+        } else {
+            qToLittleEndian<quint32>(compressedSize, buffer + 20);
+        }
 
-        int mysize = entry->size();
-        buffer[24] = char(mysize); // uncompressed file size
-        buffer[25] = char(mysize >> 8);
-        buffer[26] = char(mysize >> 16);
-        buffer[27] = char(mysize >> 24);
+        // uncompressed file size
+        if (entryNeedsZip64) {
+            qToLittleEndian<quint32>(0xFFFFFFFF, buffer + 24);
+        } else {
+            qToLittleEndian<quint32>(size, buffer + 24);
+        }
 
-        buffer[28] = char(path.length()); // fileName length
-        buffer[29] = char(path.length() >> 8);
+        // fileName length
+        qToLittleEndian<quint16>(path.length(), buffer + 28);
 
-        buffer[30] = char(extra_field_len);
-        buffer[31] = char(extra_field_len >> 8);
+        // extra field length
+        qToLittleEndian<quint16>(extra_field_len, buffer + 30);
 
-        buffer[40] = char(entry->permissions());
-        buffer[41] = char(entry->permissions() >> 8);
+        // file comment length
+        // qToLittleEndian<quint16>(0, buffer + 32);
 
-        int myhst = entry->headerStart();
-        buffer[42] = char(myhst); // relative offset of local header
-        buffer[43] = char(myhst >> 8);
-        buffer[44] = char(myhst >> 16);
-        buffer[45] = char(myhst >> 24);
+        // disk number where file starts
+        // qToLittleEndian<quint16>(0, buffer + 34);
+
+        // internal file attributes
+        // none
+        // external file attributes
+        qToLittleEndian<quint32>(entry->permissions(), buffer + 40);
+
+        // relative offset of local header
+        if (entryNeedsZip64) {
+            qToLittleEndian<quint32>(0xFFFFFFFF, buffer + 42);
+        } else {
+            qToLittleEndian<quint32>(myhst, buffer + 42);
+        }
 
         // file name
         strncpy(buffer + 46, path.constData(), path.length());
         // qCDebug(KArchiveLog) << "closearchive length to write: " << bufferSize;
 
         // extra field
+        char *extfield = buffer + 46 + path.length();
         if (d->m_extraField == ModificationTime) {
-            char *extfield = buffer + 46 + path.length();
             // "Extended timestamp" header (0x5455)
             extfield[0] = 'U';
             extfield[1] = 'T';
@@ -982,10 +1056,29 @@ bool KZip::closeArchive()
             // (unless I misread the spec)
             // provide only modification time
             unsigned long time = (unsigned long)entry->date().toSecsSinceEpoch();
-            extfield[5] = char(time);
-            extfield[6] = char(time >> 8);
-            extfield[7] = char(time >> 16);
-            extfield[8] = char(time >> 24);
+            qToLittleEndian<quint32>(time, extfield + 5);
+            extfield += 9;
+        }
+
+        if (entryNeedsZip64) {
+            // zip64 header
+            extfield[0] = 0x01;
+            extfield[1] = 0x00;
+
+            // zip64 field size
+            qToLittleEndian<quint16>(24, extfield + 2);
+
+            // uncompressed file size
+            qToLittleEndian<quint64>(size, extfield + 4);
+
+            // compressed file size
+            qToLittleEndian<quint64>(compressedSize, extfield + 12);
+
+            // relative offset of local header
+            qToLittleEndian<quint64>(myhst, extfield + 20);
+
+            // number of the disk on which this file starts
+            // qToLittleEndian<quint32>(0, extfield + 28);
         }
 
         crc = crc32(crc, (Bytef *)buffer, bufferSize);
@@ -997,48 +1090,125 @@ bool KZip::closeArchive()
         }
     }
     qint64 centraldirendoffset = device()->pos();
+    qint64 cdsize = centraldirendoffset - centraldiroffset;
+    // total number of entries in central dir
+    qint64 count = d->m_fileList.count();
+
+    bool archiveNeedsZip64 = (count >= 0xFFFF || cdsize >= 0xFFFFFFFF || centraldiroffset >= 0xFFFFFFFF);
+
+    if (archiveNeedsZip64) {
+        // Write Zip64 End of Central Directory Record (PK\6\6)
+        char zip64Eocd[56];
+        zip64Eocd[0] = 'P';
+        zip64Eocd[1] = 'K';
+        zip64Eocd[2] = 6;
+        zip64Eocd[3] = 6;
+
+        // size of the EOCD64 minus 12
+        quint64 eocdSize = 56 - 12;
+        qToLittleEndian<quint64>(eocdSize, zip64Eocd + 4);
+
+        // Version made by
+        qToLittleEndian<quint16>(45, zip64Eocd + 12);
+        // Version needed to extract
+        qToLittleEndian<quint16>(45, zip64Eocd + 14);
+        // Number of this disk
+        qToLittleEndian<quint32>(0, zip64Eocd + 16);
+        // Disk where central directory starts
+        qToLittleEndian<quint32>(0, zip64Eocd + 20);
+        // Number of central directory records on this disk
+        qToLittleEndian<quint64>(count, zip64Eocd + 24);
+        // Total number of central directory records
+        qToLittleEndian<quint64>(count, zip64Eocd + 32);
+        // Size of central directory in bytes
+        qToLittleEndian<quint64>(cdsize, zip64Eocd + 40);
+        // Offset of start of central directory, relative to start of archive
+        qToLittleEndian<quint64>(centraldiroffset, zip64Eocd + 48);
+        // Comment (up to the size of EOCD64)
+        // no comment
+
+        if (device()->write(zip64Eocd, 56) != 56) {
+            setErrorString(tr("Could not write Zip64 EOCD record: %1").arg(device()->errorString()));
+            return false;
+        }
+
+        // Write Zip64 End of Central Directory Locator (PK\6\7)
+        char zip64EocdLocator[20];
+        zip64EocdLocator[0] = 'P';
+        zip64EocdLocator[1] = 'K';
+        zip64EocdLocator[2] = 6;
+        zip64EocdLocator[3] = 7;
+
+        // Disk where EOCD64 starts
+        qToLittleEndian<quint32>(0, zip64EocdLocator + 4);
+        // Offset to start of EOCD64, relative to start of archive
+        qToLittleEndian<quint64>(centraldirendoffset, zip64EocdLocator + 8);
+        // Total number of disks
+        qToLittleEndian<quint32>(1, zip64EocdLocator + 16);
+
+        if (device()->write(zip64EocdLocator, 20) != 20) {
+            setErrorString(tr("Could not write Zip64 EOCD locator: %1").arg(device()->errorString()));
+            return false;
+        }
+    }
+
     // qCDebug(KArchiveLog) << "closearchive: centraldirendoffset: " << centraldirendoffset;
     // qCDebug(KArchiveLog) << "closearchive: device()->pos(): " << device()->pos();
 
     // write end of central dir record.
-    buffer[0] = 'P'; // end of central dir signature
-    buffer[1] = 'K';
-    buffer[2] = 5;
-    buffer[3] = 6;
+    char eocd[22];
+    eocd[0] = 'P'; // end of central dir signature
+    eocd[1] = 'K';
+    eocd[2] = 5;
+    eocd[3] = 6;
 
-    buffer[4] = 0; // number of this disk
-    buffer[5] = 0;
-
-    buffer[6] = 0; // number of disk with start of central dir
-    buffer[7] = 0;
-
-    int count = d->m_fileList.count();
+    // Number of this disk (or FF FF for ZIP64)
+    if (archiveNeedsZip64) {
+        qToLittleEndian<quint16>(0xFFFF, eocd + 4);
+    } else {
+        qToLittleEndian<quint16>(0, eocd + 4);
+    }
+    // Disk where central directory starts (or FF FF for ZIP64)
+    if (archiveNeedsZip64) {
+        qToLittleEndian<quint16>(0xFFFF, eocd + 6);
+    } else {
+        qToLittleEndian<quint16>(0, eocd + 6);
+    }
+    // Number of central directory records on this disk (or FF FF for ZIP64)
+    if (archiveNeedsZip64) {
+        qToLittleEndian<quint16>(0xFFFF, eocd + 8);
+    } else {
+        qToLittleEndian<quint16>(count, eocd + 8);
+    }
+    // Total number of central directory records (or FF FF for ZIP64)
+    if (archiveNeedsZip64) {
+        qToLittleEndian<quint16>(0xFFFF, eocd + 10);
+    } else {
+        qToLittleEndian<quint16>(count, eocd + 10);
+    }
     // qCDebug(KArchiveLog) << "number of files (count): " << count;
 
-    buffer[8] = char(count); // total number of entries in central dir of
-    buffer[9] = char(count >> 8); // this disk
-
-    buffer[10] = buffer[8]; // total number of entries in the central dir
-    buffer[11] = buffer[9];
-
-    int cdsize = centraldirendoffset - centraldiroffset;
-    buffer[12] = char(cdsize); // size of the central dir
-    buffer[13] = char(cdsize >> 8);
-    buffer[14] = char(cdsize >> 16);
-    buffer[15] = char(cdsize >> 24);
-
-    // qCDebug(KArchiveLog) << "end : centraldiroffset: " << centraldiroffset;
+    // Size of central directory in bytes (or FF FF FF FF for ZIP64)
+    if (archiveNeedsZip64) {
+        qToLittleEndian<quint32>(0xFFFFFFFF, eocd + 12);
+    } else {
+        qToLittleEndian<quint32>(cdsize, eocd + 12);
+    }
     // qCDebug(KArchiveLog) << "end : centraldirsize: " << cdsize;
 
-    buffer[16] = char(centraldiroffset); // central dir offset
-    buffer[17] = char(centraldiroffset >> 8);
-    buffer[18] = char(centraldiroffset >> 16);
-    buffer[19] = char(centraldiroffset >> 24);
+    // Offset of start of central directory, relative to start of archive (or FF FF FF FF for ZIP64)
+    if (archiveNeedsZip64) {
+        qToLittleEndian<quint32>(0xFFFFFFFF, eocd + 16);
+    } else {
+        qToLittleEndian<quint32>(centraldiroffset, eocd + 16);
+    }
+    // qCDebug(KArchiveLog) << "end : centraldiroffset: " << centraldiroffset;
 
-    buffer[20] = 0; // zipfile comment length
-    buffer[21] = 0;
+    // Comment length
+    qToLittleEndian<quint16>(0, eocd + 20);
+    // Comment (none)
 
-    if (device()->write(buffer, 22) != 22) {
+    if (device()->write(eocd, 22) != 22) {
         setErrorString(tr("Could not write central dir record: %1").arg(device()->errorString()));
         return false;
     }
@@ -1067,7 +1237,7 @@ bool KZip::doWriteDir(const QString &name,
 bool KZip::doPrepareWriting(const QString &name,
                             const QString &user,
                             const QString &group,
-                            qint64 /*size*/,
+                            qint64 size,
                             mode_t perm,
                             const QDateTime &accessTime,
                             const QDateTime &modificationTime,
@@ -1132,6 +1302,21 @@ bool KZip::doPrepareWriting(const QString &name,
         }
     }
 
+    bool isZip64Archive = size >= 0xFFFFFFFF;
+
+    int extra_field_len = 0;
+    if (d->m_extraField == ModificationTime) {
+        extra_field_len = 17; // value also used in finishWriting()
+    }
+    // if isZip64Archive is true we write both sizes to the zip64 field
+    if (isZip64Archive) {
+        // 2 header id + 2 field size +
+        // 8 uncompressed size + 8 compressed size
+        extra_field_len += 20;
+    }
+
+    QByteArray encodedName = QFile::encodeName(name);
+
     // construct a KZipFileEntry and add it to list
     KZipFileEntry *e = new KZipFileEntry(this,
                                          fileName,
@@ -1141,7 +1326,7 @@ bool KZip::doPrepareWriting(const QString &name,
                                          group,
                                          QString(),
                                          name,
-                                         device()->pos() + 30 + name.length(), // start
+                                         device()->pos() + 30 + encodedName.length() + extra_field_len, // start
                                          0 /*size unknown yet*/,
                                          d->m_compression,
                                          0 /*csize unknown yet*/);
@@ -1154,13 +1339,7 @@ bool KZip::doPrepareWriting(const QString &name,
     d->m_currentFile = e;
     d->m_fileList.append(e);
 
-    int extra_field_len = 0;
-    if (d->m_extraField == ModificationTime) {
-        extra_field_len = 17; // value also used in finishWriting()
-    }
-
     // write out zip header
-    QByteArray encodedName = QFile::encodeName(name);
     int bufferSize = extra_field_len + encodedName.length() + 30;
     // qCDebug(KArchiveLog) << "bufferSize=" << bufferSize;
     char *buffer = new char[bufferSize];
@@ -1170,14 +1349,14 @@ bool KZip::doPrepareWriting(const QString &name,
     buffer[2] = 3;
     buffer[3] = 4;
 
-    buffer[4] = 0x14; // version needed to extract
-    buffer[5] = 0;
+    // version needed to extract
+    qToLittleEndian<quint16>(isZip64Archive ? 45 : 0x14, buffer + 4);
 
-    buffer[6] = 0; // general purpose bit flag
-    buffer[7] = 0;
+    // general purpose bit flag
+    qToLittleEndian<quint16>(0, buffer + 6);
 
-    buffer[8] = char(e->encoding()); // compression method
-    buffer[9] = char(e->encoding() >> 8);
+    // compression method
+    qToLittleEndian<quint16>(char(e->encoding()), buffer + 8);
 
     transformToMsDos(e->date(), &buffer[10]);
 
@@ -1196,18 +1375,18 @@ bool KZip::doPrepareWriting(const QString &name,
     buffer[24] = 'I';
     buffer[25] = 'Z';
 
-    buffer[26] = (uchar)(encodedName.length()); // fileName length
-    buffer[27] = (uchar)(encodedName.length() >> 8);
+    // fileName length
+    qToLittleEndian<quint16>(encodedName.length(), buffer + 26);
 
-    buffer[28] = (uchar)(extra_field_len); // extra field length
-    buffer[29] = (uchar)(extra_field_len >> 8);
+    // extra field length
+    qToLittleEndian<quint16>(extra_field_len, buffer + 28);
 
     // file name
     strncpy(buffer + 30, encodedName.constData(), encodedName.length());
 
     // extra field
+    char *extfield = buffer + 30 + encodedName.length();
     if (d->m_extraField == ModificationTime) {
-        char *extfield = buffer + 30 + encodedName.length();
         // "Extended timestamp" header (0x5455)
         extfield[0] = 'U';
         extfield[1] = 'T';
@@ -1215,20 +1394,22 @@ bool KZip::doPrepareWriting(const QString &name,
         extfield[3] = 0;
         extfield[4] = 1 | 2 | 4; // contains mtime, atime, ctime
 
-        extfield[5] = char(mtime);
-        extfield[6] = char(mtime >> 8);
-        extfield[7] = char(mtime >> 16);
-        extfield[8] = char(mtime >> 24);
+        qToLittleEndian<quint32>(mtime, extfield + 5);
+        qToLittleEndian<quint32>(atime, extfield + 9);
+        qToLittleEndian<quint32>(ctime, extfield + 13);
+        extfield += 17;
+    }
 
-        extfield[9] = char(atime);
-        extfield[10] = char(atime >> 8);
-        extfield[11] = char(atime >> 16);
-        extfield[12] = char(atime >> 24);
-
-        extfield[13] = char(ctime);
-        extfield[14] = char(ctime >> 8);
-        extfield[15] = char(ctime >> 16);
-        extfield[16] = char(ctime >> 24);
+    if (isZip64Archive) {
+        // zip64 header
+        extfield[0] = 0x01;
+        extfield[1] = 0x00;
+        // size of uncompressed and compressed fields
+        qToLittleEndian<quint16>(16, extfield + 2);
+        // uncompressed size
+        qToLittleEndian<quint64>(size, extfield + 4);
+        // compressed size
+        qToLittleEndian<quint64>(0, extfield + 12);
     }
 
     // Write header
@@ -1276,13 +1457,9 @@ bool KZip::doFinishWriting(qint64 size)
     // qCDebug(KArchiveLog) << "fileName: " << d->m_currentFile->path();
     // qCDebug(KArchiveLog) << "getpos (at): " << device()->pos();
     d->m_currentFile->setSize(size);
-    int extra_field_len = 0;
-    if (d->m_extraField == ModificationTime) {
-        extra_field_len = 17; // value also used in finishWriting()
-    }
 
     const QByteArray encodedName = QFile::encodeName(d->m_currentFile->path());
-    int csize = device()->pos() - d->m_currentFile->headerStart() - 30 - encodedName.length() - extra_field_len;
+    qint64 csize = device()->pos() - d->m_currentFile->position();
     d->m_currentFile->setCompressedSize(csize);
     // qCDebug(KArchiveLog) << "usize: " << d->m_currentFile->size();
     // qCDebug(KArchiveLog) << "csize: " << d->m_currentFile->compressedSize();
@@ -1349,11 +1526,28 @@ bool KZip::doWriteData(const char *data, qint64 size)
 
     // crc to be calculated over uncompressed stuff...
     // and they didn't mention it in their docs...
-    d->m_crc = crc32(d->m_crc, (const Bytef *)data, size);
+    quint32 crc = d->m_crc;
 
-    qint64 written = d->m_currentDev->write(data, size);
+    constexpr qint64 chunkSize = 2 * 1024 * 1024;
+    qint64 totalWritten = 0;
+    while (totalWritten < size) {
+        qint64 chunk = std::min(chunkSize, size - totalWritten);
+
+        crc = crc32(crc, reinterpret_cast<const Bytef *>(data + totalWritten), static_cast<quint32>(chunk));
+
+        qint64 currentWritten = d->m_currentDev->write(data + totalWritten, chunk);
+        if (currentWritten != chunk) {
+            setErrorString(tr("Error writing data chunk: %1").arg(d->m_currentDev->errorString()));
+            return false;
+        }
+
+        totalWritten += currentWritten;
+    }
+
+    d->m_crc = crc;
+
     // qCDebug(KArchiveLog) << "wrote" << size << "bytes.";
-    const bool ok = written == size;
+    const bool ok = totalWritten == size;
 
     if (!ok) {
         setErrorString(tr("Error writing data: %1").arg(d->m_currentDev->errorString()));

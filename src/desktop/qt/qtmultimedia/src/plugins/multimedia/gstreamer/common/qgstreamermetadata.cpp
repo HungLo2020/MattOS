@@ -10,6 +10,7 @@
 #include <QtCore/qlocale.h>
 #include <QtCore/qtimezone.h>
 #include <QtGui/qimage.h>
+#include <QtMultimedia/private/qmediametadata_p.h>
 
 #include <gst/gstversion.h>
 #include <common/qgst_handle_types_p.h>
@@ -17,7 +18,9 @@
 #include <qgstreamerformatinfo_p.h>
 
 QT_BEGIN_NAMESPACE
+
 namespace ranges = QtMultimediaPrivate::ranges;
+using namespace Qt::Literals;
 
 RotationResult parseRotationTag(std::string_view tag)
 {
@@ -50,6 +53,30 @@ RotationResult parseRotationTag(std::string_view tag)
 
     qCritical() << "cannot parse orientation: {}" << tag;
     return { QtVideo::Rotation::None, false };
+}
+
+QImage parseImage(const GValue &val)
+{
+    Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE);
+
+    GstSample *sample = (GstSample *)g_value_get_boxed(&val);
+    GstCaps *caps = gst_sample_get_caps(sample);
+    if (caps && !gst_caps_is_empty(caps)) {
+        GstStructure *structure = gst_caps_get_structure(caps, 0);
+        const gchar *name = gst_structure_get_name(structure);
+        if (QLatin1StringView(name).startsWith("image/"_L1)) {
+            GstBuffer *buffer = gst_sample_get_buffer(sample);
+            if (buffer) {
+                GstMapInfo info;
+                gst_buffer_map(buffer, &info, GST_MAP_READ);
+                QImage image = QImage::fromData(info.data, info.size, name);
+                gst_buffer_unmap(buffer, &info);
+                return image;
+            }
+        }
+    }
+
+    return {};
 }
 
 namespace {
@@ -96,7 +123,7 @@ constexpr auto compareByTag = [](const auto &lhs, const auto &rhs) {
 
 constexpr_lookup auto makeLookupTable()
 {
-    std::array<MetadataKeyValuePair, 22> lookupTable{ {
+    std::array<MetadataKeyValuePair, 21> lookupTable{ {
             { GST_TAG_TITLE, QMediaMetaData::Title },
             { GST_TAG_COMMENT, QMediaMetaData::Comment },
             { GST_TAG_DESCRIPTION, QMediaMetaData::Description },
@@ -122,7 +149,6 @@ constexpr_lookup auto makeLookupTable()
             { GST_TAG_ARTIST, QMediaMetaData::ContributingArtist },
             { GST_TAG_TRACK_NUMBER, QMediaMetaData::TrackNumber },
 
-            { GST_TAG_PREVIEW_IMAGE, QMediaMetaData::ThumbnailImage },
             { GST_TAG_IMAGE, QMediaMetaData::CoverArtImage },
 
             // Image/Video
@@ -157,8 +183,7 @@ QMediaMetaData::Key tagToKey(const char *tag)
         return QMediaMetaData::Key(-1);
 
     using namespace MetadataLookupImpl;
-    auto foundIterator = std::lower_bound(gstTagToMetaDataKey.begin(), gstTagToMetaDataKey.end(),
-                                          tag, compareByTag);
+    auto foundIterator = ranges::lower_bound(gstTagToMetaDataKey, tag, compareByTag);
     if (std::strcmp(foundIterator->tag, tag) == 0)
         return foundIterator->key;
 
@@ -168,8 +193,7 @@ QMediaMetaData::Key tagToKey(const char *tag)
 const char *keyToTag(QMediaMetaData::Key key)
 {
     using namespace MetadataLookupImpl;
-    auto foundIterator = std::lower_bound(metaDataKeyToGstTag.begin(), metaDataKeyToGstTag.end(),
-                                          key, compareByKey);
+    auto foundIterator = ranges::lower_bound(metaDataKeyToGstTag, key, compareByKey);
     if (foundIterator->key == key)
         return foundIterator->tag;
 
@@ -223,30 +247,6 @@ QDateTime parseDateTime(const GValue &val)
     Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME);
     const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
     return parseDateTime(dateTime);
-}
-
-QImage parseImage(const GValue &val)
-{
-    Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE);
-
-    GstSample *sample = (GstSample *)g_value_get_boxed(&val);
-    GstCaps *caps = gst_sample_get_caps(sample);
-    if (caps && !gst_caps_is_empty(caps)) {
-        GstStructure *structure = gst_caps_get_structure(caps, 0);
-        const gchar *name = gst_structure_get_name(structure);
-        if (QByteArray(name).startsWith("image/")) {
-            GstBuffer *buffer = gst_sample_get_buffer(sample);
-            if (buffer) {
-                GstMapInfo info;
-                gst_buffer_map(buffer, &info, GST_MAP_READ);
-                QImage image = QImage::fromData(info.data, info.size, name);
-                gst_buffer_unmap(buffer, &info);
-                return image;
-            }
-        }
-    }
-
-    return {};
 }
 
 std::optional<double> parseFractionAsDouble(const GValue &val)
@@ -367,8 +367,8 @@ void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
             metadata.insert(key, parseDateTime(val));
     } else if (type == GST_TYPE_SAMPLE) {
         QImage image = parseImage(val);
-        if (!image.isNull())
-            metadata.insert(key, image);
+        Q_ASSERT(key == QMediaMetaData::CoverArtImage);
+        QtMultimediaPrivate::setCoverArtImage(metadata, image);
     } else if (type == GST_TYPE_FRACTION) {
         std::optional<double> fraction = parseFractionAsDouble(val);
 

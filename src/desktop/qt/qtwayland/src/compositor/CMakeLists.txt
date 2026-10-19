@@ -91,6 +91,8 @@ qt_internal_add_module(WaylandCompositor
         ${protocols_dir}/xdg-output
         ${protocols_dir}/xdg-shell
         ${protocols_dir}/xdg-dialog
+    POLICIES
+        QTP0006
 )
 
 # all those macros define structs with Q_OBJECT macros, and should be picked up by moc

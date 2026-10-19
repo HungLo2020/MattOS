@@ -1,21 +1,21 @@
 # Copyright (C) 2023 This file is copyright:
 # This file is distributed under the same license as the powerdevil package.
 #
-# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Kishore G <kishore96@gmail.com>
+# SPDX-FileCopyrightText: 2021-2026 Kishore G <kishore96@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: powerdevil\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-10 02:38+0000\n"
-"PO-Revision-Date: 2025-07-19 18:40+0530\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-05-02 18:11+0530\n"
 "Last-Translator: Kishore G <kishore96@gmail.com>\n"
-"Language-Team: Tamil <kde-i18n-doc@kde.org>\n"
+"Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
 "Language: ta\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 25.04.3\n"
+"X-Generator: Lokalize 26.04.0\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -27,7 +27,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "Kde-l10n-ta@kde.org"
 
-#: actions/bundled/dpms.cpp:73 actions/bundled/handlebuttonevents.cpp:46
+#: actions/bundled/dpms.cpp:60 actions/bundled/handlebuttonevents.cpp:46
 #: actions/bundled/keyboardbrightnesscontrol.cpp:47
 #: actions/bundled/powerprofile.cpp:67 powerdevilscreenbrightnessagent.cpp:138
 #, kde-format
@@ -35,7 +35,7 @@ msgctxt "Name for powerdevil shortcuts category"
 msgid "Power Management"
 msgstr "ஆற்றல் மேலாண்மை"
 
-#: actions/bundled/dpms.cpp:76
+#: actions/bundled/dpms.cpp:63
 #, kde-format
 msgctxt "@action:inmenu Global shortcut"
 msgid "Turn Off Screen"
@@ -149,79 +149,76 @@ msgstr "முந்தைய பராமரிப்பாளர்"
 msgid "Replace an existing instance"
 msgstr "ஏற்கனவே உள்ளதற்கு பதிலாக இது இயங்கட்டும்"
 
-#: powerdevilcore.cpp:403 powerdevilcore.cpp:414
+#: powerdevilcore.cpp:399 powerdevilcore.cpp:410
 #, kde-format
 msgid "Activity Manager"
 msgstr "செயல்பாடு மேலாளி"
 
-#: powerdevilcore.cpp:404
+#: powerdevilcore.cpp:400
 #, kde-format
 msgid "This activity's policies prevent the system from going to sleep"
 msgstr "கணினி உறங்குவதை இந்த செயல்பாட்டின் அமைப்புகள் தடுக்கின்றன"
 
-#: powerdevilcore.cpp:415
+#: powerdevilcore.cpp:411
 #, kde-format
 msgid "This activity's policies prevent screen power management"
 msgstr "திரை ஆற்றல் மேலாண்மையை இந்த செயல்பாட்டின் அமைப்புகள் தடுக்கின்றன"
 
-#: powerdevilcore.cpp:480
+#: powerdevilcore.cpp:471
 #, kde-format
 msgid "Extra Battery Added"
 msgstr "கூடுதல் மின்கலம் சேர்க்கப்பட்டது"
 
-#: powerdevilcore.cpp:481
+#: powerdevilcore.cpp:472
 #, kde-format
 msgid "The system will no longer go to sleep."
 msgstr "கணினி இனிமேல் தூங்காது."
 
-#: powerdevilcore.cpp:545
+#: powerdevilcore.cpp:538
 #, kde-format
 msgctxt "%1 is vendor name, %2 is product name"
 msgid "%1 %2"
 msgstr "%1 %2"
 
-#: powerdevilcore.cpp:548
+#: powerdevilcore.cpp:541
 #, kde-format
 msgctxt "The battery in an external device"
 msgid "Device Battery Low (%1% Remaining)"
 msgstr "சாதனத்தின் மின்கலம் குறைவாயுள்ளது (மீதம் %1%)"
 
-#: powerdevilcore.cpp:550
+#: powerdevilcore.cpp:544
 #, kde-format
 msgctxt "Placeholder is device name"
-msgid ""
-"The battery in \"%1\" is running low, and the device may turn off at any "
-"time. Please recharge or replace the battery."
-msgstr ""
-"\"%1\" என்பதில் மின்கல ஆற்றல் குறைவாக உள்ளதால் அது எந்நேரமும் முடங்கலாம். ஆற்றலை "
-"ஏற்றுங்கள், அல்லது மின்கலத்தை மாற்றுங்கள்."
+msgid "The battery in “%1” is running low. Please recharge the battery."
+msgstr "\"%1\" தனில் மின்கல ஆற்றல் குறைவாக உள்ளது. ஆற்றலேறுமாறு செருகவும்."
 
-#: powerdevilcore.cpp:557
+#: powerdevilcore.cpp:546
+#, kde-format
+msgctxt "Placeholder is device name"
+msgid "The battery in “%1” is running low."
+msgstr "\"%1\" தனில் மின்கல ஆற்றல் குறைவாக உள்ளது."
+
+#: powerdevilcore.cpp:552
 #, kde-format
 msgid "Mouse Battery Low (%1% Remaining)"
 msgstr "சுட்டியின் மின்கலம் குறைவு (மீதம் %1%)"
 
-#: powerdevilcore.cpp:561
+#: powerdevilcore.cpp:556
 #, kde-format
 msgid "Keyboard Battery Low (%1% Remaining)"
 msgstr "விசைப்பலகையின் மின்கலம் குறைவு (மீதம் %1%)"
 
-#: powerdevilcore.cpp:571
+#: powerdevilcore.cpp:566
+#, kde-format
+msgid "Phone Battery Low (%1% Remaining)"
+msgstr "கைபேசி மின்கலம் குறைவு (மீதம் %1%)"
+
+#: powerdevilcore.cpp:570
 #, kde-format
 msgid "Bluetooth Device Battery Low (%1% Remaining)"
 msgstr "ஊடலை சாதனத்தின் மின்கலம் குறைவு (மீதம் %1%)"
 
-#: powerdevilcore.cpp:573
-#, kde-format
-msgctxt "Placeholder is device name"
-msgid ""
-"The battery in Bluetooth device \"%1\" is running low, and the device may "
-"turn off at any time. Please recharge or replace the battery."
-msgstr ""
-"\"%1\" என்ற ஊடலை (புளூடூத்) சாதனத்தின் மின்கல ஆற்றல் குறைவாக உள்ளதால் அது எந்நேரமும் "
-"முடங்கலாம். ஆற்றலை ஏற்றுங்கள், அல்லது மின்கலத்தை மாற்றுங்கள்."
-
-#: powerdevilcore.cpp:615
+#: powerdevilcore.cpp:610
 #, kde-format
 msgid ""
 "Ensure that the power cord is plugged in all the way and provides enough "
@@ -229,29 +226,29 @@ msgid ""
 msgstr ""
 "கணினியில் மின்னூற்றை செருகி அம்மின்னூற்று போதுமான ஆற்றலை வழுங்குவதை உறுதி செய்யவும்."
 
-#: powerdevilcore.cpp:617
+#: powerdevilcore.cpp:612
 #, kde-format
 msgid "Plug in the power cord."
 msgstr "கணினியை மின்னூற்றில் செருகவும்."
 
-#: powerdevilcore.cpp:637
+#: powerdevilcore.cpp:632
 #, kde-format
 msgid "The system will shut down in 60 seconds."
 msgstr " கணினி 60 நொடிகளில் நிற்கும்."
 
-#: powerdevilcore.cpp:639
+#: powerdevilcore.cpp:634
 #, kde-format
 msgctxt ""
 "@action:button Shut down without waiting for the battery critical timer"
 msgid "Shut Down Now"
 msgstr "இப்போதே கணினியை நிறுத்து"
 
-#: powerdevilcore.cpp:645
+#: powerdevilcore.cpp:640
 #, kde-format
 msgid "The system will hibernate in 60 seconds."
 msgstr "கணினி 60 நொடிகளில் ஆழுறங்கும்."
 
-#: powerdevilcore.cpp:647
+#: powerdevilcore.cpp:642
 #, kde-format
 msgctxt ""
 "@action:button Enter hibernation mode without waiting for the battery "
@@ -259,24 +256,24 @@ msgctxt ""
 msgid "Hibernate Now"
 msgstr "இப்போதே ஆழுறங்கு"
 
-#: powerdevilcore.cpp:653
+#: powerdevilcore.cpp:648
 #, kde-format
 msgid "The system will go to sleep in 60 seconds."
 msgstr "கணினி 60 நொடிகளில் உறங்கும்."
 
-#: powerdevilcore.cpp:655
+#: powerdevilcore.cpp:650
 #, kde-format
 msgctxt ""
 "@action:button Suspend to ram without waiting for the battery critical timer"
 msgid "Sleep Now"
 msgstr "இப்போதே தூங்கு"
 
-#: powerdevilcore.cpp:661
+#: powerdevilcore.cpp:656
 #, kde-format
 msgid "Please save your work."
 msgstr "தயவுசெய்து உங்கள் ஆவணங்களை சேமியுங்கள்."
 
-#: powerdevilcore.cpp:667
+#: powerdevilcore.cpp:662
 #, kde-format
 msgctxt ""
 "Cancel timeout that will automatically put system to sleep because of low "
@@ -284,52 +281,52 @@ msgctxt ""
 msgid "Cancel"
 msgstr "ரத்து செய்"
 
-#: powerdevilcore.cpp:682
+#: powerdevilcore.cpp:677
 #, kde-format
 msgid "Battery Low (%1% Remaining)"
 msgstr "மின்கலம் குறைவாயுள்ளது (மீதம் %1%)"
 
-#: powerdevilcore.cpp:686
+#: powerdevilcore.cpp:684
 #, kde-format
 msgid "Battery Critical (%1% Remaining)"
 msgstr "மின்கல நெருக்கடி (மீதம் %1%)"
 
-#: powerdevilcore.cpp:720
+#: powerdevilcore.cpp:713
 #, kde-format
 msgid "Power Cord Plugged In"
 msgstr "மின்னூற்று சொருகப்பட்டுள்ளது"
 
-#: powerdevilcore.cpp:721
+#: powerdevilcore.cpp:714
 #, kde-format
 msgid "The computer will no longer go to sleep."
 msgstr "கணினி இனிமேல் தூங்காது."
 
-#: powerdevilcore.cpp:723
+#: powerdevilcore.cpp:716
 #, kde-format
 msgid "Running on AC Power"
 msgstr "மின்னூற்றின் ஆற்றலில் இயங்குகிறது"
 
-#: powerdevilcore.cpp:724
+#: powerdevilcore.cpp:717
 #, kde-format
 msgid "The power cord has been plugged in."
 msgstr "கணினி மின்னூற்றில் சொருகப்பட்டுள்ளது."
 
-#: powerdevilcore.cpp:736
+#: powerdevilcore.cpp:732
 #, kde-format
 msgid "Running on Battery Power"
 msgstr "மின்கல ஆற்றலில் இயங்குகிறது"
 
-#: powerdevilcore.cpp:737
+#: powerdevilcore.cpp:733
 #, kde-format
 msgid "The power cord has been unplugged."
 msgstr "மின்னூற்று கழற்றப்பட்டுள்ளது."
 
-#: powerdevilcore.cpp:800
+#: powerdevilcore.cpp:798
 #, kde-format
 msgid "Charging Complete"
 msgstr "ஆற்றலேற்றம் முடிந்த‍து"
 
-#: powerdevilcore.cpp:800
+#: powerdevilcore.cpp:798
 #, kde-format
 msgid "Battery now fully charged."
 msgstr "மின்கலத்தில் ஆற்றல் முழுதாக ஏறியுள்ளது."
@@ -357,6 +354,14 @@ msgstr "திரையின் பிரகாசத்தை குறை"
 msgctxt "@action:inmenu Global shortcut"
 msgid "Decrease Screen Brightness by 1%"
 msgstr "திரையின் பிரகாசத்தை 1% குறை"
+
+#~ msgctxt "Placeholder is device name"
+#~ msgid ""
+#~ "The battery in Bluetooth device \"%1\" is running low, and the device may "
+#~ "turn off at any time. Please recharge or replace the battery."
+#~ msgstr ""
+#~ "\"%1\" என்ற ஊடலை (புளூடூத்) சாதனத்தின் மின்கல ஆற்றல் குறைவாக உள்ளதால் அது எந்நேரமும் "
+#~ "முடங்கலாம். ஆற்றலை ஏற்றுங்கள், அல்லது மின்கலத்தை மாற்றுங்கள்."
 
 #~ msgid ""
 #~ "Battery level critical. Your computer will enter hibernation mode in 60 "

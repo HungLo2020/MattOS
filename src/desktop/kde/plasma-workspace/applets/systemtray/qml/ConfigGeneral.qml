@@ -5,6 +5,7 @@
     SPDX-FileCopyrightText: 2022 ivan (@ratijas) tkachenko <me@ratijas.tk>
     SPDX-FileCopyrightText: 2025 Kristen McWilliam <kristen@kde.org>
     SPDX-FileCopyrightText: 2025 Nate Graham <nate@kde.org>
+    SPDX-FileCopyrightText: 2026 Nathaniel Krebs <areyoufeelingitnowmrkrebs@gmail.com>
 
     SPDX-License-Identifier: GPL-2.0-or-later
 */
@@ -30,6 +31,7 @@ KCMUtils.ScrollViewKCM {
 
     property bool cfg_scaleIconsToFit
     property int cfg_iconSpacing
+    property bool cfg_reverseIconOrder
     property bool cfg_showAllItems
     property list<string> cfg_shownItems: []
     property list<string> cfg_hiddenItems: []
@@ -40,19 +42,19 @@ KCMUtils.ScrollViewKCM {
     readonly property var comboBoxModel: {
         const autoElement = {
             "value": "auto",
-            "text": i18nc("@item:inlistbox Show this System Tray item when relevant", "Show when relevant") // qmllint disable unqualified
+            "text": i18nc("@item:inlistbox Show this System Tray item when relevant", "Show when relevant")
         };
         const shownElement = {
             "value": "shown",
-            "text": i18nc("@item:inlistbox Always show this System Tray item", "Always show") // qmllint disable unqualified
+            "text": i18nc("@item:inlistbox Always show this System Tray item", "Always show")
         };
         const hiddenElement = {
             "value": "hidden",
-            "text": i18nc("@item:inlistbox Show this System Tray item only in the expanded popup", "Show only in popup") // qmllint disable unqualified
+            "text": i18nc("@item:inlistbox Show this System Tray item only in the expanded popup", "Show only in popup")
         };
         const disabledElement = {
             "value": "disabled",
-            "text": i18nc("@item:inlistbox Never show this System Tray item; disable it", "Never show (disabled)") // qmllint disable unqualified
+            "text": i18nc("@item:inlistbox Never show this System Tray item; disable it", "Never show (disabled)")
         };
 
         return cfg_showAllItems ? [autoElement, disabledElement] : [autoElement, shownElement, hiddenElement, disabledElement];
@@ -123,16 +125,16 @@ KCMUtils.ScrollViewKCM {
     function categoryName(category) {
         switch (category) {
         case "ApplicationStatus":
-            return i18n("Application Status"); // qmllint disable unqualified
+            return i18n("Application Status");
         case "Communications":
-            return i18n("Communications"); // qmllint disable unqualified
+            return i18n("Communications");
         case "SystemServices":
-            return i18n("System Services"); // qmllint disable unqualified
+            return i18n("System Services");
         case "Hardware":
-            return i18n("Hardware Control"); // qmllint disable unqualified
+            return i18n("Hardware Control");
         case "UnknownCategory":
         default:
-            return i18n("Miscellaneous"); // qmllint disable unqualified
+            return i18n("Miscellaneous");
         }
     }
 
@@ -169,10 +171,10 @@ KCMUtils.ScrollViewKCM {
 
             Layout.fillWidth: true
             type: Kirigami.MessageType.Warning
-            text: xi18nc("@info:usagetip", "Look for a setting in <application>%1</application> to disable its tray icon before doing it here. Some apps’ tray icons were not designed to be disabled, and using this setting may cause them to behave unexpectedly.<nl/><nl/>Use this setting at your own risk, and do not report issues to KDE or the app’s author.", appName) // qmllint disable unqualified
+            text: xi18nc("@info:usagetip", "Look for a setting in <application>%1</application> to disable its tray icon before doing it here. Some apps’ tray icons were not designed to be disabled, and using this setting may cause them to behave unexpectedly.<nl/><nl/>Use this setting at your own risk, and do not report issues to KDE or the app’s author.", appName)
             actions: [
                 Kirigami.Action {
-                    text: i18nc("@action:button", "I understand the risks") // qmllint disable unqualified
+                    text: i18nc("@action:button", "I understand the risks")
                     onTriggered: disablingSniMessage.visible = false
                 }
             ]
@@ -184,7 +186,7 @@ KCMUtils.ScrollViewKCM {
             visible: iconsPage.changedVisibility.get("org.kde.plasma.clipboard") === "disabled"
             Layout.fillWidth: true
             type: Kirigami.MessageType.Warning
-            text: xi18nc("@info:usagetip", "Disabling the clipboard is not recommended, as it will cause copied data to be lost when the application it was copied from is closed.<nl/><nl/>Only do this if you’ve manually added a standalone Clipboard widget somewhere else, or are using a 3rd-party clipboard manager. Also, instead consider configuring the clipboard to not save history, or to only remember one item at a time.") // qmllint disable unqualified
+            text: xi18nc("@info:usagetip", "Disabling the clipboard is not recommended, as it will cause copied data to be lost when the application it was copied from is closed.<nl/><nl/>Only do this if you’ve manually added a standalone Clipboard widget somewhere else, or are using a 3rd-party clipboard manager. Also, instead consider configuring the clipboard to not save history, or to only remember one item at a time.")
         }
 
         Kirigami.InlineMessage {
@@ -193,13 +195,13 @@ KCMUtils.ScrollViewKCM {
             visible: iconsPage.changedVisibility.get("org.kde.plasma.notifications") === "disabled"
             Layout.fillWidth: true
             type: Kirigami.MessageType.Warning
-            text: xi18nc("@info:usagetip", "Disabling the Notifications widget is not recommended, as notifications sent by apps will no longer be shown.<nl/><nl/>Only do this if you’ve manually added a standalone Notifications widget somewhere else, or are intentionally using a 3rd-party notification manager to handle notifications.") // qmllint disable unqualified
+            text: xi18nc("@info:usagetip", "Disabling the Notifications widget is not recommended, as notifications sent by apps will no longer be shown.<nl/><nl/>Only do this if you’ve manually added a standalone Notifications widget somewhere else, or are intentionally using a 3rd-party notification manager to handle notifications.")
         }
 
         Kirigami.FormLayout {
             id: formLayout
 
-            readonly property int maxComboboxWidth: Math.max(sizeChooser.implicitWidth, spacingChooser.implicitWidth)
+            readonly property int maxComboboxWidth: Math.max(sizeChooser.implicitWidth, spacingChooser.implicitWidth, layoutChooser.implicitWidth)
 
             QQC2.ComboBox {
                 id: sizeChooser
@@ -208,11 +210,11 @@ KCMUtils.ScrollViewKCM {
                     ? i18nc("@item:inlistbox Icon size", "Scale with Panel height")
                     : i18nc("@item:inlistbox Icon size", "Scale with Panel width")
 
-                Kirigami.FormData.label: i18nc("@label:listbox The spacing between system tray icons in the Panel", "Panel icon size:")
+                Kirigami.FormData.label: i18nc("@label:listbox Whether the system tray icons in the Panel always stay small or scale with the Panel's size", "Panel icon size:")
                 Layout.preferredWidth: formLayout.maxComboboxWidth
                 model: [
                     {
-                        "label": i18nc("@item:inlistbox Icon spacing", "Small"),
+                        "label": i18nc("@item:inlistbox Icon size", "Small"),
                         "size": "small"
                     },
                     {
@@ -221,35 +223,18 @@ KCMUtils.ScrollViewKCM {
                     }
                 ]
                 textRole: "label"
-                enabled: !Kirigami.Settings.tabletMode
 
-                currentIndex: {
-                    if (Kirigami.Settings.tabletMode) {
-                        return 1; // scale to fit
-                    }
-
-                    if (iconsPage.cfg_scaleIconsToFit) {
-                        return 1 // scale to fit
-                    } else {
-                        return 0 // small
-                    }
-                }
+                currentIndex: iconsPage.cfg_scaleIconsToFit ? 1 : 0
 
                 onActivated: index => {
                     iconsPage.cfg_scaleIconsToFit = model[currentIndex]["size"] == "scale";
                 }
             }
-            QQC2.Label {
-                visible: Kirigami.Settings.tabletMode
-                text: i18n("Automatically enabled when in Touch Mode")
-                textFormat: Text.PlainText
-                font: Kirigami.Theme.smallFont
-            }
 
             QQC2.ComboBox {
                 id: spacingChooser
 
-                Kirigami.FormData.label: i18nc("@label:listbox The spacing between system tray icons in the Panel", "Panel icon spacing:")
+                Kirigami.FormData.label: i18nc("@label:listbox The spacing between system tray icons in the Panel", "Spacing:")
                 Layout.preferredWidth: formLayout.maxComboboxWidth
                 model: [
                     {
@@ -266,24 +251,57 @@ KCMUtils.ScrollViewKCM {
                     }
                 ]
                 textRole: "label"
-                enabled: !Kirigami.Settings.tabletMode
 
-                currentIndex: {
-                    if (Kirigami.Settings.tabletMode) {
-                        return 2; // Large
-                    }
-
-                    switch (iconsPage.cfg_iconSpacing) {
-                        case 1: return 0; // Small
-                        case 2: return 1; // Normal
-                        case 6: return 2; // Large
-                    }
+                currentIndex: switch (iconsPage.cfg_iconSpacing) {
+                    case 1: return 0; // Small
+                    case 2: return 1; // Normal
+                    case 6: return 2; // Large
                 }
 
                 onActivated: index => {
                     iconsPage.cfg_iconSpacing = model[currentIndex]["spacing"];
                 }
             }
+
+            QQC2.ComboBox {
+                id: layoutChooser
+
+                Kirigami.FormData.label: i18nc("@label:listbox Which direction system tray icons in the Panel emerge from the expander arrow", "Direction:")
+                Layout.preferredWidth: formLayout.maxComboboxWidth
+
+                textRole: "text"
+                valueRole: "value"
+
+                // Evaluate current system state for dynamic labels
+                readonly property bool isRtl: Qt.application.layoutDirection === Qt.RightToLeft
+                readonly property bool isVertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
+
+                model: {
+                    if (isVertical) {
+                        // Vertical default is arrow at bottom, expanding upwards
+                        return [
+                            { "text": i18n("Bottom-to-top"), "value": false },
+                            { "text": i18n("Top-to-bottom"), "value": true }
+                        ];
+                    } else if (isRtl) {
+                        // RTL default is arrow on left, expanding to the right
+                        return [
+                            { "text": i18n("Left-to-right"), "value": false },
+                            { "text": i18n("Right-to-left"), "value": true }
+                        ];
+                    } else {
+                        // Standard LTR default is arrow on right, expanding to the left
+                        return [
+                            { "text": i18n("Right-to-left"), "value": false },
+                            { "text": i18n("Left-to-right"), "value": true }
+                        ];
+                    }
+                }
+
+                currentIndex: iconsPage.cfg_reverseIconOrder ? 1 : 0
+                onActivated: iconsPage.cfg_reverseIconOrder = currentValue;
+            }
+
             QQC2.Label {
                 visible: Kirigami.Settings.tabletMode
                 text: i18nc("@info:usagetip under a combobox when Touch Mode is on", "Automatically set to Large when in Touch Mode")
@@ -296,7 +314,6 @@ KCMUtils.ScrollViewKCM {
     view: ListView {
         id: itemsList
 
-        property real visibilityColumnWidth: Kirigami.Units.gridUnit
         property real keySequenceColumnWidth: Kirigami.Units.gridUnit
         readonly property int iconSize: Kirigami.Units.iconSizes.smallMedium
 
@@ -316,7 +333,7 @@ KCMUtils.ScrollViewKCM {
             actions: [
                 Kirigami.Action {
                     id: showAllCheckBox
-                    text: i18nc("@option:check, This is referring to system tray entries", "Always show all") // qmllint disable unqualified
+                    text: i18nc("@option:check, This is referring to system tray entries", "Always show all")
                     onToggled: iconsPage.cfg_showAllItems = checked
                     checked: iconsPage.cfg_showAllItems
                     displayComponent: QQC2.CheckBox {
@@ -416,8 +433,6 @@ KCMUtils.ScrollViewKCM {
                 QQC2.ComboBox {
                     id: visibilityComboBox
 
-                    property real contentWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset, implicitContentWidth + leftPadding + rightPadding)
-
                     readonly property string currentVisibility: iconsPage.changedVisibility.has(listItem.itemId) ? iconsPage.changedVisibility.get(listItem.itemId).replace("-sni", "") : originalVisibility
                     readonly property string originalVisibility: {
                         if (iconsPage.cfg_showAllItems || iconsPage.cfg_shownItems.indexOf(listItem.itemId) !== -1) {
@@ -431,8 +446,7 @@ KCMUtils.ScrollViewKCM {
                         }
                     }
 
-                    implicitWidth: Math.max(contentWidth, itemsList.visibilityColumnWidth)
-                    Component.onCompleted: itemsList.visibilityColumnWidth = Math.max(implicitWidth, itemsList.visibilityColumnWidth)
+                    implicitContentWidthPolicy: QQC2.ComboBox.WidestText
 
                     enabled: !iconsPage.cfg_showAllItems && listItem.itemId
                     textRole: "text"
@@ -461,16 +475,32 @@ KCMUtils.ScrollViewKCM {
                         iconsPage.changedVisibilityChanged();
                     }
                 }
+
                 KQC.KeySequenceItem {
                     id: keySequenceItem
                     Layout.minimumWidth: itemsList.keySequenceColumnWidth
                     Layout.preferredWidth: itemsList.keySequenceColumnWidth
-                    Component.onCompleted: itemsList.keySequenceColumnWidth = Math.max(implicitWidth, itemsList.keySequenceColumnWidth)
+
+                    // We want to keep the column the same size for all items,
+                    // but only when not inputting a new shortcut, as the length
+                    // of the shortcut may vary quite a bit while inputting. So
+                    // rather than binding to widthChanged, we update the maximum
+                    // column width only at specific moments: When the item is
+                    // first added, or when we know the shortcut has changed and
+                    // no further input happens.
+                    function updateColumnWidth() {
+                        itemsList.keySequenceColumnWidth = Math.max(implicitWidth, itemsList.keySequenceColumnWidth);
+                    }
+
+                    // Delay this one tick to make sure the item has finished
+                    // any layout that still needs to be done.
+                    Component.onCompleted: Qt.callLater(updateColumnWidth)
 
                     visible: listItem.isPlasmoid
                     enabled: visibilityComboBox.currentValue !== "disabled"
                     readonly property string originalKeySequence: listItem.applet ? listItem.applet.plasmoid.globalShortcut : ""
                     keySequence: iconsPage.changedShortcuts.has(listItem.applet?.plasmoid) ? iconsPage.changedShortcuts.get(listItem.applet?.plasmoid) : originalKeySequence
+
                     onCaptureFinished: {
                         if (listItem.applet) {
                             if (keySequence !== listItem.applet.plasmoid.globalShortcut) {
@@ -478,9 +508,9 @@ KCMUtils.ScrollViewKCM {
                             } else {
                                 iconsPage.changedShortcuts.delete(listItem.applet.plasmoid);
                             }
-
-                            itemsList.keySequenceColumnWidth = Math.max(implicitWidth, itemsList.keySequenceColumnWidth);
                             iconsPage.changedShortcutsChanged();
+
+                            updateColumnWidth()
                         }
                     }
                 }

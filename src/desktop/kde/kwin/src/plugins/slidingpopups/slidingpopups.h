@@ -30,8 +30,8 @@ public:
     SlidingPopupsEffect();
     ~SlidingPopupsEffect() override;
 
-    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data) override;
+    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data) override;
+    bool paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data) override;
     void reconfigure(ReconfigureFlags flags) override;
     bool isActive() const override;
     void postPaintScreen() override;
@@ -75,7 +75,7 @@ private:
 
     enum class AnimationKind {
         In,
-        Out
+        Out,
     };
 
     struct Animation
@@ -92,7 +92,7 @@ private:
         Left,
         Top,
         Right,
-        Bottom
+        Bottom,
     };
 
     struct AnimationData
@@ -105,7 +105,7 @@ private:
     };
     QHash<const EffectWindow *, AnimationData> m_animationsData;
 
-    QRectF damagedLogicalArea(EffectWindow *w, const AnimationData animData);
+    RectF damagedLogicalArea(EffectWindow *w, const AnimationData animData);
 };
 
 inline int SlidingPopupsEffect::slideInDuration() const

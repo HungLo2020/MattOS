@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=duckduckgoshopping,dds,dukgoshop
 Name=Duck Duck Go Shopping
+Name[am]=Duck Duck Go ግብይት
 Name[ar]=تسوّق دك دك جو
 Name[az]=Duck Duck Go : Alış
 Name[be]=Куплі Duck Duck Go
@@ -51,6 +52,8 @@ Name[mai]=डक डक गो शापिंग
 Name[ml]=ഡക്ക് ഡക്ക് ഗോ ഷോപ്പിംഗ്
 Name[mr]=डक डक गो खरेदी
 Name[my]=ဒက်ဒက်ဂိုးစျေးဝယ်ထွက်မည်
+Name[nan_TW]=Duck Duck Go Shopping
+Name[nan_TW@latin]=Duck Duck Go Shopping
 Name[nb]=Duck Duck Go-handel
 Name[nds]=Duck Duck Go - Inköpen
 Name[nl]=Duck Duck Go Shopping
@@ -82,6 +85,7 @@ Name[wa]=Duck Duck Go Botikes
 Name[zh_CN]=Duck Duck Go 购物
 Name[zh_TW]=Duck Duck Go Shopping
 Query=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
+Query[am]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[ar]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[az]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[be]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
@@ -116,7 +120,7 @@ Query[id]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[ie]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[is]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[it]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
-Query[ja]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
+Query[ja]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde&kl=jp-jp
 Query[ka]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[kk]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[ko]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
@@ -125,6 +129,8 @@ Query[lt]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[lv]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[mr]=http://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[my]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
+Query[nan_TW]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
+Query[nan_TW@latin]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[nb]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[nds]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[nl]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
@@ -148,7 +154,6 @@ Query[tg]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[th]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[tok]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[tr]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
-Query[ug]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[uk]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[vi]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde
 Query[wa]=https://duckduckgo.com/?q=\\{@}&v=s&t=kde

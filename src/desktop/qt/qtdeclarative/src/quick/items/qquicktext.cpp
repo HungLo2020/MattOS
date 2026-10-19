@@ -221,8 +221,6 @@ void QQuickTextPrivate::updateLayout()
     updateOnComponentComplete = false;
     layoutTextElided = false;
 
-    if (extra.isAllocated())
-        extra->visibleImgTags.clear();
     needToUpdateLayout = false;
 
     // Setup instance of QTextLayout for all cases other than richtext
@@ -724,6 +722,35 @@ void QQuickTextPrivate::setupCustomLineGeometry(QTextLine &line, qreal &height, 
     height += textLine->height();
 }
 
+// Position an inline image using cursorToX at pos and pos+1 to get both
+// edges of the inline object, then take the left edge.  This handles
+// both LTR and RTL text directions correctly.  The HMargin is added to
+// the X coordinate so the image is inset from the object boundary
+// (the object width already includes 2*HMargin).
+static void positionInlineImage(QQuickStyledTextImgTag *image, int textPos, const QTextLine &line)
+{
+    if (!image->size.isValid())
+        return; // Size unknown yet (remote image still loading)
+
+    const qreal x0 = line.cursorToX(textPos);
+    const qreal x1 = line.cursorToX(textPos + 1);
+    image->pos.setX(qMin(x0, x1) + QQuickStyledTextImgTag::HMargin);
+
+    qreal imgY;
+    switch (image->align) {
+    case QQuickStyledTextImgTag::Top:
+        imgY = 0;
+        break;
+    case QQuickStyledTextImgTag::Middle:
+        imgY = (line.height() - image->size.height()) / 2.0;
+        break;
+    default: // Bottom
+        imgY = line.height() - image->size.height();
+        break;
+    }
+    image->pos.setY(line.y() + imgY);
+}
+
 void QQuickTextPrivate::elideFormats(
         const int start, const int length, int offset, QList<QTextLayout::FormatRange> *elidedFormats)
 {
@@ -740,28 +767,14 @@ void QQuickTextPrivate::elideFormats(
     }
 }
 
-QString QQuickTextPrivate::elidedText(qreal lineWidth, const QTextLine &line, const QTextLine *nextLine) const
+QString QQuickTextPrivate::elidedText(qreal lineWidth, const QTextLine &line) const
 {
-    if (nextLine) {
-        return layout.engine()->elidedText(
-                Qt::TextElideMode(elideMode),
-                QFixed::fromReal(lineWidth),
-                0,
-                line.textStart(),
-                line.textLength() + nextLine->textLength());
-    } else {
-        QString elideText = layout.text().mid(line.textStart(), line.textLength());
-        if (!styledText) {
-            // QFontMetrics won't help eliding styled text.
-            elideText[elideText.size() - 1] = elideChar;
-            // Appending the elide character may push the line over the maximum width
-            // in which case the elided text will need to be elided.
-            QFontMetricsF metrics(layout.font());
-            if (metrics.horizontalAdvance(elideChar) + line.naturalTextWidth() >= lineWidth)
-                elideText = metrics.elidedText(elideText, Qt::TextElideMode(elideMode), lineWidth);
-        }
-        return elideText;
-    }
+    return layout.engine()->elidedText(
+            Qt::TextElideMode(elideMode),
+            QFixed::fromReal(lineWidth),
+            0,
+            line.textStart(),
+            line.textLength());
 }
 
 void QQuickTextPrivate::clearFormats()
@@ -816,8 +829,6 @@ QRectF QQuickTextPrivate::setupTextLayout(qreal *const baseline)
     }
 
     bool shouldUseDesignMetrics = renderType != QQuickText::NativeRendering;
-    if (extra.isAllocated())
-        extra->visibleImgTags.clear();
     layout.setCacheEnabled(true);
     QTextOption textOption = layout.textOption();
     if (textOption.alignment() != q->effectiveHAlign()
@@ -934,11 +945,9 @@ QRectF QQuickTextPrivate::setupTextLayout(qreal *const baseline)
                 visibleCount -= 1;
 
                 const QTextLine previousLine = layout.lineAt(visibleCount - 1);
-                elideText = layoutText.at(line.textStart() - 1) != QChar::LineSeparator
-                        ? elidedText(line.width(), previousLine, &line)
-                        : elidedText(line.width(), previousLine);
+                elideText = elidedText(line.width(), previousLine);
                 elideStart = previousLine.textStart();
-                // elideEnd isn't required for right eliding.
+                elideEnd = line.textStart() + line.textLength();
 
                 height = previousHeight;
                 break;
@@ -984,19 +993,9 @@ QRectF QQuickTextPrivate::setupTextLayout(qreal *const baseline)
                         if (eos != -1)  // There's an abbreviated string available
                             break;
 
-                        QTextLine nextLine = layout.createLine();
-                        elideText = wrappedLine
-                                ? elidedText(line.width(), line, &nextLine)
-                                : elidedText(line.width(), line);
+                        elideText = elidedText(line.width(), line);
                         elideStart = line.textStart();
-                        // elideEnd isn't required for right eliding.
-
-                        // nextLine starts beyond maximumLineCount and is only
-                        // needed for the elide calculation above. Finalize it
-                        // at zero width so endLayout() won't give it QFIXED_MAX
-                        // width, which would inflate maximumWidth().
-                        if (nextLine.isValid())
-                            nextLine.setLineWidth(0);
+                        elideEnd = elideStart + line.textLength();
                     } else {
                         br = unelidedRect;
                         height = naturalHeight;
@@ -1276,6 +1275,17 @@ QRectF QQuickTextPrivate::setupTextLayout(qreal *const baseline)
         elideLayout.reset();
     }
 
+    // Position inline images on all visible lines.
+    // When eliding, the last visible line comes from the elide layout.
+    if (extra.isAllocated()) {
+        extra->visibleImgTags.clear();
+        const int mainLineCount = elide ? visibleCount - 1 : visibleCount;
+        for (int i = 0; i < mainLineCount; ++i)
+            positionInlineImages(layout.lineAt(i), layout.formats());
+        if (elideLayout)
+            positionInlineImages(elideLayout->lineAt(0), elideLayout->formats());
+    }
+
     QTextLine firstLine = visibleCount == 1 && elideLayout
             ? elideLayout->lineAt(0)
             : layout.lineAt(0);
@@ -1297,72 +1307,57 @@ QRectF QQuickTextPrivate::setupTextLayout(qreal *const baseline)
     return br;
 }
 
-void QQuickTextPrivate::setLineGeometry(QTextLine &line, qreal lineWidth, qreal &height)
+void QQuickTextPrivate::positionInlineImages(const QTextLine &line, const QList<QTextLayout::FormatRange> &formats)
 {
     Q_Q(QQuickText);
-    line.setLineWidth(lineWidth);
-
-    if (extra.isAllocated() && extra->imgTags.isEmpty()) {
-        line.setPosition(QPointF(line.position().x(), height));
-        height += (lineHeightMode() == QQuickText::FixedHeight) ? lineHeight() : line.height() * lineHeight();
+    if (!extra.isAllocated())
         return;
-    }
 
-    qreal textTop = 0;
-    qreal textHeight = line.height();
-    qreal totalLineHeight = textHeight;
+    const int lineStart = line.textStart();
+    const int lineEnd = lineStart + line.textLength();
 
-    QList<QQuickStyledTextImgTag *> imagesInLine;
+    for (const auto &range : formats) {
+        if (!range.format.isImageFormat())
+            continue;
+        if (range.start < lineStart || range.start >= lineEnd)
+            continue;
 
-    if (extra.isAllocated()) {
-        for (QQuickStyledTextImgTag *image : std::as_const(extra->imgTags)) {
-            if (image->position >= line.textStart() &&
-                image->position < line.textStart() + line.textLength()) {
+        const int imgIndex = range.format.objectIndex();
+        if (imgIndex < 0 || imgIndex >= extra->imgTags.size())
+            continue;
 
-                if (!image->pix) {
-                    const QQmlContext *context = qmlContext(q);
-                    const QUrl url = context->resolvedUrl(q->baseUrl()).resolved(image->url);
-                    image->pix.reset(new QQuickPixmap(context->engine(), url, QRect(), image->size * effectiveDevicePixelRatio()));
+        QQuickStyledTextImgTag *image = extra->imgTags.at(imgIndex);
 
-                    if (image->pix->isLoading()) {
-                        image->pix->connectFinished(q, SLOT(imageDownloadFinished()));
-                    } else if (image->pix->isReady()) {
-                        if (!image->size.isValid()) {
-                            image->size = image->pix->implicitSize();
-                            // if the size of the image was not explicitly set, we need to
-                            // call updateLayout() once again.
-                            needToUpdateLayout = true;
-                        }
-                    } else if (image->pix->isError()) {
-                        qmlWarning(q) << image->pix->error();
-                    }
+        if (!image->pix) {
+            const QQmlContext *context = qmlContext(q);
+            const QUrl url = context->resolvedUrl(q->baseUrl()).resolved(image->url);
+            image->pix.reset(new QQuickPixmap(context->engine(), url, QRect(), image->size * effectiveDevicePixelRatio()));
+
+            if (image->pix->isLoading()) {
+                image->pix->connectFinished(q, SLOT(imageDownloadFinished()));
+            } else if (image->pix->isReady()) {
+                if (!image->size.isValid()) {
+                    image->size = image->pix->implicitSize();
+                    // if the size of the image was not explicitly set, we need to
+                    // call updateLayout() once again.
+                    needToUpdateLayout = true;
                 }
-
-                qreal ih = qreal(image->size.height());
-                if (image->align == QQuickStyledTextImgTag::Top)
-                    image->pos.setY(0);
-                else if (image->align == QQuickStyledTextImgTag::Middle)
-                    image->pos.setY((textHeight / 2.0) - (ih / 2.0));
-                else
-                    image->pos.setY(textHeight - ih);
-                imagesInLine << image;
-                textTop = qMax(textTop, qAbs(image->pos.y()));
+            } else if (image->pix->isError()) {
+                qmlWarning(q) << image->pix->error();
             }
         }
-    }
 
-    for (QQuickStyledTextImgTag *image : std::as_const(imagesInLine)) {
-        totalLineHeight = qMax(totalLineHeight, textTop + image->pos.y() + image->size.height());
-        const int leadX = line.cursorToX(image->position);
-        const int trailX = line.cursorToX(image->position, QTextLine::Trailing);
-        const bool rtl = trailX < leadX;
-        image->pos.setX(leadX + (rtl ? (-image->offset - image->size.width()) : image->offset));
-        image->pos.setY(image->pos.y() + height + textTop);
+        positionInlineImage(image, range.start, line);
         extra->visibleImgTags << image;
     }
+}
 
-    line.setPosition(QPointF(line.position().x(), height + textTop));
-    height += (lineHeightMode() == QQuickText::FixedHeight) ? lineHeight() : totalLineHeight * lineHeight();
+void QQuickTextPrivate::setLineGeometry(QTextLine &line, qreal lineWidth, qreal &height)
+{
+    line.setLineWidth(lineWidth);
+    line.setPosition(QPointF(line.position().x(), height));
+    height += (lineHeightMode() == QQuickText::FixedHeight) ? lineHeight()
+                                                            : line.height() * lineHeight();
 }
 
 /*!
@@ -2362,7 +2357,8 @@ void QQuickText::setTextFormat(TextFormat format)
     Set this property to elide parts of the text fit to the Text item's width.
     The text will only elide if an explicit width has been set.
 
-    This property cannot be used with rich text.
+    This property works with \c Text.PlainText and \c Text.StyledText formats,
+    but cannot be used with \c Text.RichText or \c Text.MarkdownText formats.
 
     Eliding can be:
 
@@ -2633,7 +2629,9 @@ QSGNode *QQuickText::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     node->setTextStyle(QSGTextNode::TextStyle(d->style));
     node->setRenderType(QSGTextNode::RenderType(d->renderType));
     node->setRenderTypeQuality(d->renderTypeQuality());
-    node->clear();
+
+    QSGInternalTextNode::RecycleBin recycleBin;
+    node->recycle(&recycleBin);
     node->setMatrix(QMatrix4x4());
 
     node->setColor(QColor::fromRgba(d->color));
@@ -2646,7 +2644,7 @@ QSGNode *QQuickText::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
         node->setViewport(clipRect());
         const qreal dx = QQuickTextUtil::alignedX(d->layedOutTextRect.width(), d->availableWidth(), effectiveHAlign()) + leftPadding();
         d->ensureDoc();
-        node->addTextDocument(QPointF(dx, dy), d->extra->doc);
+        node->addTextDocument(QPointF(dx, dy), d->extra->doc, &recycleBin);
     } else if (d->layedOutTextRect.width() > 0) {
         if (flags().testFlag(ItemObservesViewport))
             node->setViewport(clipRect());
@@ -2657,15 +2655,21 @@ QSGNode *QQuickText::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
         if (d->elideLayout)
             unelidedLineCount -= 1;
         if (unelidedLineCount > 0)
-            node->addTextLayout(QPointF(dx, dy), &d->layout, -1, -1,0, unelidedLineCount);
+            node->addTextLayout(QPointF(dx, dy), &d->layout, &recycleBin, -1, -1,0, unelidedLineCount);
 
         if (d->elideLayout)
-            node->addTextLayout(QPointF(dx, dy), d->elideLayout.get());
+            node->addTextLayout(QPointF(dx, dy), d->elideLayout.get(), &recycleBin);
 
         if (d->extra.isAllocated()) {
             for (QQuickStyledTextImgTag *img : std::as_const(d->extra->visibleImgTags)) {
-                if (img->pix && img->pix->isReady())
-                    node->addImage(QRectF(img->pos.x() + dx, img->pos.y() + dy, img->size.width(), img->size.height()), img->pix->image());
+                if (img->pix && img->pix->isReady()) {
+                    node->addImage(QRectF(img->pos.x() + dx,
+                                          img->pos.y() + dy,
+                                          img->size.width(),
+                                          img->size.height()),
+                                   img->pix->image(),
+                                   &recycleBin);
+                }
             }
         }
     }
@@ -2675,6 +2679,8 @@ QSGNode *QQuickText::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     // The font caches have now been initialized on the render thread, so they have to be
     // invalidated before we can use them from the main thread again.
     invalidateFontCaches();
+
+    node->discardUnusedNodes(&recycleBin);
 
     return node;
 }

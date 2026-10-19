@@ -6,3 +6,8 @@ add_subdirectory(nativeenum)
 add_subdirectory(utilities)
 add_subdirectory(generatedoutput)
 add_subdirectory(validateqdocoutputfiles)
+
+if(QT_QDOC_ENABLE_TEMPLATE_GENERATOR)
+    add_subdirectory(validatetemplategeneratoroutput)
+    add_subdirectory(multimoduleconfigurations)
+endif()

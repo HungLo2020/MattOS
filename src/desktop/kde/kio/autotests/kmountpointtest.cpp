@@ -8,8 +8,16 @@
 
 #include "kmountpoint.h"
 #include <QDebug>
+#include <QFile>
+#include <QTemporaryDir>
 #include <QTest>
+#include <limits>
 #include <qplatformdefs.h>
+
+#ifdef Q_OS_LINUX
+#include <linux/fs.h>
+#include <sys/ioctl.h>
+#endif
 
 QTEST_MAIN(KMountPointTest)
 
@@ -185,6 +193,96 @@ void KMountPointTest::testPossibleMountPoints()
     QVERIFY(rootMountPoint->realDeviceName().startsWith(QLatin1String("/"))); // Usually /dev, but can be /host/ubuntu/disks/root.disk...
     QVERIFY(!rootMountPoint->mountOptions().contains(QLatin1String("noauto"))); // how would this work?
     QVERIFY(!rootMountPoint->probablySlow());
+#endif
+}
+
+void KMountPointTest::testCachedMountPointLookup()
+{
+#ifdef Q_OS_WIN
+    QSKIP("Skipping test on Windows, KMountPoint only has pseudo mounts for drive letters");
+#endif
+
+    const KMountPoint::List mountPoints = KMountPoint::currentMountPoints();
+    if (mountPoints.isEmpty()) { // can happen in chroot jails
+        QSKIP("mtab is empty");
+    }
+
+    const KMountPoint::Ptr root = mountPoints.findByPath(QStringLiteral("/"));
+    QVERIFY(root);
+
+    // The cached path lookup agrees with findByPath(), and a second call (served
+    // from the cache) gives the same answer.
+    const KMountPoint::Ptr byPath = KMountPoint::currentMountPointForPath(QStringLiteral("/"));
+    QVERIFY(byPath);
+    QCOMPARE(byPath->mountPoint(), QStringLiteral("/"));
+    const KMountPoint::Ptr byPathAgain = KMountPoint::currentMountPointForPath(QStringLiteral("/"));
+    QVERIFY(byPathAgain);
+    QCOMPARE(byPathAgain->mountPoint(), QStringLiteral("/"));
+
+    const quint64 rootId = root->mountId();
+    if (rootId == 0) {
+        // The kernel is older than STATX_MNT_ID_UNIQUE, so there is no unique id to
+        // look up or cache; the path lookup above still works via the fallback.
+        QSKIP("No unique mount id available on this kernel");
+    }
+
+    // Zero is never a valid id.
+    QVERIFY(!KMountPoint::currentMountPointForUniqueId(0));
+
+    // Looking up the root's unique id returns the root mount, and repeated lookups
+    // (cache hits) stay consistent.
+    for (int i = 0; i < 3; ++i) {
+        const KMountPoint::Ptr byId = KMountPoint::currentMountPointForUniqueId(rootId);
+        QVERIFY(byId);
+        QCOMPARE(byId->mountPoint(), QStringLiteral("/"));
+        QCOMPARE(byId->mountId(), rootId);
+    }
+
+    // The path and id accessors resolve to the same mount for "/".
+    const KMountPoint::Ptr byPathId = KMountPoint::currentMountPointForPath(QStringLiteral("/"));
+    QVERIFY(byPathId);
+    QCOMPARE(byPathId->mountId(), rootId);
+
+    // An id that does not belong to any current mount has no mount point.
+    QVERIFY(!KMountPoint::currentMountPointForUniqueId(std::numeric_limits<quint64>::max()));
+}
+
+// The list of filesystems that can share the blocks of a file with a copy of it is written out by
+// hand, so it is checked against the filesystem the test itself is running on: whatever the kernel
+// agrees to clone has to be a filesystem the list names.
+void KMountPointTest::testFileCloningFlagMatchesTheKernel()
+{
+#ifndef Q_OS_LINUX
+    QSKIP("Cloning a file is asked for with a Linux ioctl");
+#else
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+
+    QFile source(dir.filePath(QStringLiteral("source")));
+    QVERIFY(source.open(QIODevice::WriteOnly));
+    QCOMPARE(source.write(QByteArray(64 * 1024, 'a')), 64 * 1024);
+    source.close();
+    QVERIFY(source.open(QIODevice::ReadOnly));
+
+    QFile clone(dir.filePath(QStringLiteral("clone")));
+    QVERIFY(clone.open(QIODevice::WriteOnly));
+    const bool kernelClonedIt = ::ioctl(clone.handle(), FICLONE, source.handle()) == 0;
+
+    const KMountPoint::List mountPoints = KMountPoint::currentMountPoints();
+    if (mountPoints.isEmpty()) { // can happen in chroot jails
+        QSKIP("mtab is empty");
+    }
+    const KMountPoint::Ptr mountPoint = mountPoints.findByPath(dir.path());
+    QVERIFY(mountPoint);
+    const bool flag = mountPoint->testFileSystemFlag(KMountPoint::SupportsFileCloning);
+
+    qDebug() << "cloning a file on" << mountPoint->mountType() << (kernelClonedIt ? "worked" : "was refused") << ", the flag says"
+             << (flag ? "it is supported" : "it is not");
+    if (kernelClonedIt) {
+        QVERIFY2(flag, "the kernel cloned a file on a filesystem the flag does not name");
+    }
+    // The other way around says nothing: a filesystem of the right kind still refuses to clone
+    // when it was made without the feature, which is why the flag is documented as it is.
 #endif
 }
 

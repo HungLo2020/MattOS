@@ -22,7 +22,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
-import android.util.Range;
 
 import org.qtproject.qt.android.UsedFromNativeCode;
 
@@ -251,6 +250,8 @@ class QtAudioDeviceManager
                 return "TV tuner";
             case AudioDeviceInfo.TYPE_USB_ACCESSORY:
                 return "USB accessory";
+            case AudioDeviceInfo.TYPE_USB_DEVICE:
+                return "USB device";
             case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
                 return "Wired headphones";
             case AudioDeviceInfo.TYPE_WIRED_HEADSET:
@@ -267,9 +268,17 @@ class QtAudioDeviceManager
 
     }
 
+    private static boolean isDeviceTypeSupported(int type)
+    {
+        return audioDeviceTypeToString(type)
+                   != audioDeviceTypeToString(AudioDeviceInfo.TYPE_UNKNOWN);
+    }
+
     private static final HashMap<Integer, Integer> priorityMap = new HashMap<Integer, Integer>() {{
         put(AudioDeviceInfo.TYPE_WIRED_HEADSET, 1);
         put(AudioDeviceInfo.TYPE_WIRED_HEADPHONES, 1);
+        put(AudioDeviceInfo.TYPE_USB_DEVICE, 1);
+        // NOTE: Should TYPE_USB_ACCESSORY also have priority level 1?
         put(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, 2);
         put(AudioDeviceInfo.TYPE_BLUETOOTH_SCO, 2);
         put(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, 3);
@@ -302,12 +311,11 @@ class QtAudioDeviceManager
             sortAudioDevices(audioDevices);
 
             for (AudioDeviceInfo deviceInfo : audioDevices) {
-                String deviceType = audioDeviceTypeToString(deviceInfo.getType());
-
-                if (deviceType.equals(audioDeviceTypeToString(AudioDeviceInfo.TYPE_UNKNOWN))) {
-                    // Not supported device type
+                if (!isDeviceTypeSupported(deviceInfo.getType()))
                     continue;
-                } else if (deviceType.equals(audioDeviceTypeToString(AudioDeviceInfo.TYPE_BUILTIN_MIC))) {
+
+                String deviceType = audioDeviceTypeToString(deviceInfo.getType());
+                if (deviceType.equals(audioDeviceTypeToString(AudioDeviceInfo.TYPE_BUILTIN_MIC))) {
                     if (builtInMicAdded) {
                         // Built in mic already added. Second built in mic is CAMCORDER, but there
                         // is no reliable way of selecting it. AudioSource.MIC usually means the

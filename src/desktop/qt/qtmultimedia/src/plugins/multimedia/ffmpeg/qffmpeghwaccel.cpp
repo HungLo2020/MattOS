@@ -12,6 +12,7 @@
 #include "qffmpegcodecstorage_p.h"
 #include "qffmpegmediaintegration_p.h"
 #include "qffmpegvideobuffer_p.h"
+#include "qffmpeg_ranges_p.h"
 #include "qscopedvaluerollback.h"
 
 #include <QtCore/QElapsedTimer>
@@ -56,14 +57,14 @@ static const std::initializer_list<AVHWDeviceType> preferredHardwareAccelerators
 static AVBufferUPtr loadHWContext(AVHWDeviceType type)
 {
     AVBufferRef *hwContext = nullptr;
-    qCDebug(qLHWAccel) << "    Checking HW context:" << av_hwdevice_get_type_name(type);
+    qCDebug(qLHWAccel) << "    Checking HW context:" << type;
     int ret = av_hwdevice_ctx_create(&hwContext, type, nullptr, nullptr, 0);
 
     if (ret == 0) {
         qCDebug(qLHWAccel) << "    Using above hw context.";
         return AVBufferUPtr(hwContext);
     }
-    qCDebug(qLHWAccel) << "    Could not create hw context:" << ret << strerror(-ret);
+    qCDebug(qLHWAccel) << "    Could not create hw context:" << QFFmpeg::AVError(ret);
     return nullptr;
 }
 
@@ -109,14 +110,8 @@ static bool precheckDriver(AVHWDeviceType type)
 
 static bool checkHwType(AVHWDeviceType type)
 {
-    const auto deviceName = av_hwdevice_get_type_name(type);
-    if (!deviceName) {
-        qWarning() << "Internal FFmpeg error, unknow hw type:" << type;
-        return false;
-    }
-
     if (!precheckDriver(type)) {
-        qCDebug(qLHWAccel) << "Drivers for hw device" << deviceName << "is not installed";
+        qCDebug(qLHWAccel) << "Drivers for hw device" << type << "is not installed";
         return false;
     }
 
@@ -140,6 +135,8 @@ static bool checkHwType(AVHWDeviceType type)
     return loadHWContext(type) != nullptr;
 }
 
+using HWDeviceTypesRange = FFmpegValueIteratorRange<AVHWDeviceType, av_hwdevice_iterate_types>;
+
 static const std::vector<AVHWDeviceType> &deviceTypes()
 {
     static const auto types = []() {
@@ -149,7 +146,7 @@ static const std::vector<AVHWDeviceType> &deviceTypes()
 
         // gather hw pix formats
         std::unordered_set<AVPixelFormat> hwPixFormats;
-        for (const Codec codec : CodecEnumerator()) {
+        for (const Codec codec : allCodecs) {
             forEachAVPixelFormat(codec, [&](AVPixelFormat format) {
                 if (isHwPixelFormat(format))
                     hwPixFormats.insert(format);
@@ -158,8 +155,7 @@ static const std::vector<AVHWDeviceType> &deviceTypes()
 
         // create a device types list
         std::vector<AVHWDeviceType> result;
-        AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
-        while ((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
+        for (const AVHWDeviceType type : HWDeviceTypesRange())
             if (hwPixFormats.count(pixelFormatForHwDevice(type)) && checkHwType(type))
                 result.push_back(type);
         result.shrink_to_fit();
@@ -244,7 +240,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
     // First check HW accelerated codecs, the HW device context must be set
     if (codecContext->hw_device_ctx) {
         auto *device_ctx = (AVHWDeviceContext *)codecContext->hw_device_ctx->data;
-        ValueAndScore<AVPixelFormat> formatAndScore;
+        std::optional<ValueAndScore<AVPixelFormat>> formatAndScore;
 
         // to be rewritten via findBestAVFormat
         const Codec codec{ codecContext->codec };
@@ -263,7 +259,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
                 // AV_CODEC_CONFIG_PIX_FORMAT since n7.1); no reason to use findAVPixelFormat as
                 // we're already in the hw_config loop
                 const auto pixelFormats = codec.pixelFormats();
-                if (shouldCheckCodecFormats && !hasValue(pixelFormats, format))
+                if (shouldCheckCodecFormats && !ranges::contains(pixelFormats, format))
                     return NotSuitableAVScore;
 
                 if (!shouldCheckCodecFormats && config->pix_fmt != format)
@@ -280,16 +276,17 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
             };
 
             const auto found = findBestAVValueWithScore(suggestedFormats, scoresGettor);
-
-            if (found.score > formatAndScore.score)
-                formatAndScore = found;
+            if (found) {
+                if (!formatAndScore || found->score > formatAndScore->score)
+                    formatAndScore = found;
+            }
         }
 
-        const auto format = formatAndScore.value;
-        if (format) {
-            TextureConverter::applyDecoderPreset(*format, *codecContext);
-            qCDebug(qLHWAccel) << "Selected format" << *format << "for hw" << device_ctx->type;
-            return *format;
+        if (formatAndScore) {
+            AVPixelFormat format = formatAndScore->value;
+            TextureConverter::applyDecoderPreset(format, *codecContext);
+            qCDebug(qLHWAccel) << "Selected format" << format << "for hw" << device_ctx->type;
+            return format;
         }
     }
 
@@ -327,13 +324,13 @@ AVPixelFormat HWAccel::format(AVFrame *frame)
     return AVPixelFormat(hwFramesContext->sw_format);
 }
 
-const std::vector<AVHWDeviceType> &HWAccel::encodingDeviceTypes()
+QSpan<const AVHWDeviceType> HWAccel::encodingDeviceTypes()
 {
     static const auto &result = deviceTypes("QT_FFMPEG_ENCODING_HW_DEVICE_TYPES");
     return result;
 }
 
-const std::vector<AVHWDeviceType> &HWAccel::decodingDeviceTypes()
+QSpan<const AVHWDeviceType> HWAccel::decodingDeviceTypes()
 {
     static const auto &result = deviceTypes("QT_FFMPEG_DECODING_HW_DEVICE_TYPES");
     return result;

@@ -54,6 +54,8 @@ AudioShortcutsService::AudioShortcutsService(QObject *parent, const QList<QVaria
     }
 
     connect(PulseAudioQt::Context::instance()->server(), &PulseAudioQt::Server::defaultSinkChanged, this, &AudioShortcutsService::handleDefaultSinkChange);
+    connect(PulseAudioQt::Context::instance(), &PulseAudioQt::Context::stateChanged, this, &AudioShortcutsService::contextConnectedChanged);
+    connect(PulseAudioQt::Context::instance(), &PulseAudioQt::Context::autoConnectingChanged, this, &AudioShortcutsService::contextAutoConnectingChanged);
     connect(&m_preferredDevice, &PreferredDevice::sinkChanged, this, [this]() {
         auto sink = m_preferredDevice.sink();
         if (!sink) {
@@ -190,6 +192,15 @@ AudioShortcutsService::AudioShortcutsService(QObject *parent, const QList<QVaria
         }
     });
 
+    QAction *pushToTalkAction = new QAction(this);
+    actions.append(pushToTalkAction);
+    pushToTalkAction->setObjectName(u"push_to_talk"_s);
+    pushToTalkAction->setText(i18nc("Microphone unmuted only while holding the key", "Push to talk"));
+    connect(KGlobalAccel::self(), &KGlobalAccel::globalShortcutActiveChanged, this, [this, pushToTalkAction](QAction *action, bool active) {
+        if (action == pushToTalkAction) {
+            pushToTalk(active);
+        }
+    });
     for (const auto action : actions) {
         action->setProperty("componentName", u"kmix"_s);
         action->setProperty("componentDisplayName", i18n("Audio Volume"));
@@ -374,6 +385,19 @@ void AudioShortcutsService::showMicMute(int percent)
         return;
     }
     m_osdDBusInterface->microphoneVolumeChanged(percent);
+}
+
+void AudioShortcutsService::showPushToTalk(bool talk)
+{
+    if (!m_globalConfig->pushToTalkOsd()) {
+        return;
+    }
+
+    if (talk) {
+        m_osdDBusInterface->showText(u"irc-voice"_s, i18nc("Push to talk button depressed, microphone unmuted", "Speak…"));
+    } else {
+        m_osdDBusInterface->hide();
+    }
 }
 
 void AudioShortcutsService::applyGlobalSinkMute(const QModelIndex &index, const bool globalMute, QStringList &globalMuteMutedDevices)
@@ -564,6 +588,39 @@ void AudioShortcutsService::disableGlobalSourceMute()
     const auto source = m_preferredDevice.source();
     if (source)
         showMicMute(volumePercent(source->volume()));
+}
+
+void AudioShortcutsService::pushToTalk(bool talk)
+{
+    QStringList globalMicMuteMutedDevices = m_globalConfig->globalMuteSourcesMutedDevices();
+    for (int i = 0; i < m_sourceModel->rowCount(); ++i) {
+        applyGlobalSourceMute(m_sourceModel->index(i, 0), !talk, globalMicMuteMutedDevices);
+    }
+
+    m_globalConfig->setGlobalMuteSourcesMutedDevices(globalMicMuteMutedDevices);
+    m_globalConfig->setGlobalMuteSources(!talk);
+
+    // Talk is typically a short time, don't needlessly sync.
+    if (!talk) {
+        m_globalConfig->save();
+    }
+
+    showPushToTalk(talk);
+}
+
+bool AudioShortcutsService::contextConnected() const
+{
+    return PulseAudioQt::Context::instance()->state() == PulseAudioQt::Context::State::Ready;
+}
+
+void AudioShortcutsService::reconnectContext()
+{
+    PulseAudioQt::Context::instance()->reconnectDaemon();
+}
+
+bool AudioShortcutsService::contextAutoConnecting() const
+{
+    return PulseAudioQt::Context::instance()->isAutoConnecting();
 }
 
 #include "audioshortcutsservice.moc"

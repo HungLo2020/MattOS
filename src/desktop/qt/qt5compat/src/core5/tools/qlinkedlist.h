@@ -12,6 +12,7 @@
 #include <QtCore/qcontainertools_impl.h>
 #include <QtCore/qdatastream.h>
 #include <QtCore/qmetatype.h>
+#include <QtCore/qscopeguard.h>
 #include <QtCore/qtypeinfo.h>
 
 #include <algorithm>
@@ -557,17 +558,15 @@ bool QLinkedList<T>::removeOne(const T &_t)
 template<typename T>
 inline T QLinkedList<T>::takeFirst()
 {
-    T t = std::move(first());
-    removeFirst();
-    return t;
+    const auto remover = qScopeGuard([&] { removeFirst(); });
+    return std::move(first());
 }
 
 template<typename T>
 inline T QLinkedList<T>::takeLast()
 {
-    T t = std::move(last());
-    removeLast();
-    return t;
+    const auto remover = qScopeGuard([&] { removeLast(); });
+    return std::move(last());
 }
 
 template<typename T>
@@ -662,8 +661,8 @@ template<typename T>
 QLinkedList<T> &QLinkedList<T>::operator+=(const QLinkedList<T> &l)
 {
     detach();
+    const auto oldSize = d->size;
     int n = l.d->size;
-    d->size += n;
     Node *original = l.e->n;
     while (n--) {
         QT_TRY
@@ -674,11 +673,12 @@ QLinkedList<T> &QLinkedList<T>::operator+=(const QLinkedList<T> &l)
             copy->p = e->p;
             copy->p->n = copy;
             e->p = copy;
+            ++d->size;
         }
         QT_CATCH(...)
         {
             // restore the original list
-            while (n++ < d->size)
+            while (d->size != oldSize)
                 removeLast();
             QT_RETHROW;
         }

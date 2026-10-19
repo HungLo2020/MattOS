@@ -287,7 +287,7 @@ KdePlatformTheme::KdePlatformTheme()
         m_kwaylandIntegration.reset(new KWaylandIntegration(this));
     }
 
-#if HAVE_X11
+#if WITH_X11
     if (KWindowSystem::isPlatformX11()) {
         m_x11Integration.reset(new X11Integration(this));
         m_x11Integration->init();
@@ -673,10 +673,12 @@ void KdePlatformTheme::setMenuBarForWindow(QWindow *window, const QString &servi
     if (!window)
         return;
 
+#if WITH_X11
     if (m_x11Integration) {
         m_x11Integration->setWindowProperty(window, s_x11AppMenuServiceNamePropertyName, serviceName.toUtf8());
         m_x11Integration->setWindowProperty(window, s_x11AppMenuObjectPathPropertyName, objectPath.toUtf8());
     }
+#endif
 
     if (m_kwaylandIntegration) {
         m_kwaylandIntegration->setAppMenu(window, serviceName, objectPath);

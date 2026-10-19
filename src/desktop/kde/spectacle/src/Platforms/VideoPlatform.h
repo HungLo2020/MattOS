@@ -124,7 +124,11 @@ public:
     static Format formatForExtension(const QString &extension);
     Q_INVOKABLE static Format formatForPath(const QString &path);
 
+    /// Whether recordings in this format can contain audio.
+    Q_INVOKABLE static bool formatSupportsAudio(VideoPlatform::Format format);
+
     bool isRecording() const;
+    virtual bool isRecordingAudio() const = 0;
     qint64 recordedTime() const;
 
     RecordingState recordingState() const;

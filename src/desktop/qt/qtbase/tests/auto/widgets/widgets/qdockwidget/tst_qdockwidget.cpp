@@ -100,7 +100,7 @@ private:
                             QPointer<QDockWidget> &d1, QPointer<QDockWidget> &d2,
                             QList<int> &path1, QList<int> &path2) const;
 
-#if defined(Q_OS_DARWIN) || defined(Q_OS_ANDROID) || defined(Q_OS_QNX)
+#if defined(Q_OS_DARWIN) || defined(Q_OS_ANDROID) || defined(Q_OS_QNX) || defined(Q_OS_HARMONY)
 #define qCreateFloatingTabs(mainWindow, centralWidget, d1, d2, path1, path2)\
     mainWindow = nullptr;\
     Q_UNUSED(path1);\
@@ -862,6 +862,17 @@ void tst_QDockWidget::dockLocationChanged()
     QMainWindow mw;
     QDockWidget dw;
     dw.setObjectName("dock1");
+    QDockWidget dw2;
+    dw2.setObjectName("dock2");
+
+    {
+        // Ensure tabify is a no-op before QMainWindow::addDockWidget()
+        QSignalSpy noopSpy(&dw2, &QDockWidget::dockLocationChanged);
+        QTest::ignoreMessage(QtCriticalMsg, QRegularExpression("^Coding error: QDockWidget.*"));
+        mw.tabifyDockWidget(&dw, &dw2);
+        QCOMPARE(noopSpy.size(), 0);
+    }
+
     QSignalSpy spy(&dw, &QDockWidget::dockLocationChanged);
 
     mw.addDockWidget(Qt::LeftDockWidgetArea, &dw);
@@ -894,14 +905,11 @@ void tst_QDockWidget::dockLocationChanged()
         }
     }
 
+    // Dock area doesn't change => no signal emission
     spy.clear();
-    QDockWidget dw2;
-    dw2.setObjectName("dock2");
     mw.addDockWidget(Qt::TopDockWidgetArea, &dw2);
     mw.tabifyDockWidget(&dw2, &dw);
-    QCOMPARE(spy.size(), 1);
-    QCOMPARE(dockLocation(&spy), Qt::TopDockWidgetArea);
-    spy.clear();
+    QCOMPARE(spy.size(), 0);
 
     mw.splitDockWidget(&dw2, &dw, Qt::Horizontal);
     QCOMPARE(spy.size(), 1);
@@ -1454,7 +1462,7 @@ void tst_QDockWidget::unplugAndResize(QMainWindow* mainWindow, QDockWidget* dw, 
     QPoint pos1 = dw->mapToGlobal(dw->rect().center());
     pos1.rx() += mx;
     pos1.ry() += my;
-    moveDockWidget(dw, pos1, dw->mapToGlobal(dw->rect().center()), MoveDockWidgetRule::Drop);
+    moveDockWidget(dw, pos1, QPoint(), MoveDockWidgetRule::Drop);
     QTRY_VERIFY(dw->isFloating());
 
     // Unplugged object's size may differ max. by 2x frame size
@@ -1775,6 +1783,12 @@ void tst_QDockWidget::hoverWithoutDrop()
     QCOMPARE(d1->size(), sizeD1);
     QCOMPARE(d2->size(), sizeD2);
 
+    qCDebug(lcTestDockWidget) << "*** tabify d1 and d2 programmatically ***";
+    mainWindow->tabifyDockWidget(d1, d2);
+    QCOMPARE(mainWindow->tabifiedDockWidgets(d1), {d2});
+    QCOMPARE(mainWindow->tabifiedDockWidgets(d2), {d1});
+    groupWindow = mainWindow->findChild<QDockWidgetGroupWindow *>();
+    QVERIFY(groupWindow);
 
 #else
     QSKIP("test requires -developer-build option");

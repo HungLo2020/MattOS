@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QQMLFUNCTIONFILTER_P_H
 #define QQMLFUNCTIONFILTER_P_H
@@ -37,6 +38,8 @@ public:
 
     bool filterAcceptsRowInternal(int row, const QModelIndex& sourceIndex, const QQmlSortFilterProxyModel *) const override;
 
+    void update(const QQmlSortFilterProxyModel *proxyModel) override;
+
 private:
     void classBegin() override {};
     void componentComplete() override;
@@ -50,8 +53,17 @@ class QQmlFunctionFilterPrivate : public QQmlFilterBasePrivate
     Q_DECLARE_PUBLIC (QQmlFunctionFilter)
 
 public:
-    QMetaMethod m_method;
-    mutable QVariant m_parameterData;
+    QMetaMethod method;
+    struct ParameterInfo {
+        int roleId;
+        QVariant value;
+        QMetaType expectedType;
+    };
+    struct ParameterCache {
+        QVector<ParameterInfo> paramsInfo;
+        QVector<void *> dataArgs;
+    };
+    mutable std::optional<ParameterCache> parameterCache;
 };
 
 QT_END_NAMESPACE

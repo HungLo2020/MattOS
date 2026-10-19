@@ -5,19 +5,14 @@
 
 #include "qsvgstyle_p.h"
 
-#include "qsvgfont_p.h"
 #include "qsvgnode_p.h"
 #include "private/qsvganimate_p.h"
 #include "qsvgdocument_p.h"
 
 #include "qpainter.h"
 #include "qcolor.h"
-#include "qdebug.h"
 
 QT_BEGIN_NAMESPACE
-
-QSvgRefCounted::~QSvgRefCounted()
-    = default;
 
 QSvgExtraStates::QSvgExtraStates()
     : fillOpacity(1.0),
@@ -32,22 +27,14 @@ QSvgExtraStates::QSvgExtraStates()
 {
 }
 
+QSvgExtraStates::QSvgExtraStates(const QSvgDocument *doc) : QSvgExtraStates()
+{
+    Q_ASSERT(doc);
+    m_doc = doc;
+}
+
 QSvgStyleProperty::~QSvgStyleProperty()
     = default;
-
-QSvgPaintStyleProperty::~QSvgPaintStyleProperty()
-    = default;
-
-void QSvgPaintStyleProperty::apply(QPainter *, const QSvgNode *, QSvgExtraStates &)
-{
-    Q_ASSERT(!"This should not be called!");
-}
-
-void QSvgPaintStyleProperty::revert(QPainter *, QSvgExtraStates &)
-{
-    Q_ASSERT(!"This should not be called!");
-}
-
 
 QSvgQualityStyle::QSvgQualityStyle(int color)
     : m_imageRendering(QSvgQualityStyle::ImageRenderingAuto)
@@ -96,12 +83,7 @@ void QSvgQualityStyle::revert(QPainter *p, QSvgExtraStates &states)
 }
 
 QSvgFillStyle::QSvgFillStyle()
-    : m_style(0)
-    , m_fillRule(Qt::WindingFill)
-    , m_oldFillRule(Qt::WindingFill)
-    , m_fillOpacity(1.0)
-    , m_oldFillOpacity(0)
-    , m_fillRuleSet(0)
+    : m_fillRuleSet(0)
     , m_fillOpacitySet(0)
     , m_fillSet(0)
 {
@@ -122,16 +104,16 @@ void QSvgFillStyle::setFillOpacity(qreal opacity)
     m_fillOpacity = opacity;
 }
 
-void QSvgFillStyle::setFillStyle(QSvgPaintStyleProperty* style)
+void QSvgFillStyle::setPaintServer(QSvgPaintServerSharedPtr paintServer)
 {
-    m_style.reset(style);
+    m_paintServer = std::move(paintServer);
     m_fillSet = 1;
 }
 
 void QSvgFillStyle::setBrush(QBrush brush)
 {
     m_fill = std::move(brush);
-    m_style.reset();
+    m_paintServer.reset();
     m_fillSet = 1;
 }
 
@@ -144,8 +126,8 @@ void QSvgFillStyle::apply(QPainter *p, const QSvgNode *n, QSvgExtraStates &state
     if (m_fillRuleSet)
         states.fillRule = m_fillRule;
     if (m_fillSet) {
-        if (m_style)
-            p->setBrush(m_style->brush(p, n, states));
+        if (m_paintServer)
+            p->setBrush(m_paintServer->brush(p, n, states));
         else
             p->setBrush(m_fill);
     }
@@ -185,22 +167,8 @@ void QSvgViewportFillStyle::revert(QPainter *p, QSvgExtraStates &)
 const int QSvgFontStyle::LIGHTER;
 const int QSvgFontStyle::BOLDER;
 
-QSvgFontStyle::QSvgFontStyle(QSvgFont *font, QSvgDocument *doc)
-    : m_svgFont(font)
-    , m_doc(doc)
-    , m_familySet(0)
-    , m_sizeSet(0)
-    , m_styleSet(0)
-    , m_variantSet(0)
-    , m_weightSet(0)
-    , m_textAnchorSet(0)
-{
-}
-
 QSvgFontStyle::QSvgFontStyle()
-    : m_svgFont(0)
-    , m_doc(0)
-    , m_familySet(0)
+    : m_familySet(0)
     , m_sizeSet(0)
     , m_styleSet(0)
     , m_variantSet(0)
@@ -224,8 +192,8 @@ void QSvgFontStyle::apply(QPainter *p, const QSvgNode *, QSvgExtraStates &states
 
     QFont font = m_oldQFont;
     if (m_familySet) {
-        states.svgFont = m_svgFont;
         font.setFamilies(m_qfont.families());
+        states.svgFont = states.doc()->svgFont(m_qfont.family());
     }
 
     if (m_sizeSet)
@@ -262,12 +230,7 @@ void QSvgFontStyle::revert(QPainter *p, QSvgExtraStates &states)
 }
 
 QSvgStrokeStyle::QSvgStrokeStyle()
-    : m_strokeOpacity(1.0)
-    , m_oldStrokeOpacity(0.0)
-    , m_strokeDashOffset(0)
-    , m_oldStrokeDashOffset(0)
-    , m_style(0)
-    , m_vectorEffect(0)
+    : m_vectorEffect(0)
     , m_oldVectorEffect(0)
     , m_strokeSet(0)
     , m_strokeDashArraySet(0)
@@ -308,8 +271,8 @@ void QSvgStrokeStyle::apply(QPainter *p, const QSvgNode *n, QSvgExtraStates &sta
         states.vectorEffect = m_vectorEffect;
 
     if (m_strokeSet) {
-        if (m_style)
-            pen.setBrush(m_style->brush(p, n, states));
+        if (m_paintServer)
+            pen.setBrush(m_paintServer->brush(p, n, states));
         else
             pen.setBrush(m_stroke.brush());
     }
@@ -394,67 +357,6 @@ void QSvgStrokeStyle::setDashArray(const QList<qreal> &dashes)
     m_strokeDashArraySet = 1;
 }
 
-QSvgSolidColorStyle::QSvgSolidColorStyle(const QColor &color)
-    : m_solidColor(color)
-{
-}
-
-QSvgSolidColorStyle::~QSvgSolidColorStyle()
-    = default;
-
-QSvgGradientStyle::QSvgGradientStyle(QGradient *grad)
-    : m_gradient(grad)
-    , m_gradientStopsSet(false)
-{
-}
-
-QSvgGradientStyle::~QSvgGradientStyle()
-{
-    delete m_gradient;
-}
-
-QBrush QSvgGradientStyle::brush(QPainter *, const QSvgNode *, QSvgExtraStates &)
-{
-    if (!m_link.isEmpty()) {
-        resolveStops();
-    }
-
-    // If the gradient is marked as empty, insert transparent black
-    if (!m_gradientStopsSet) {
-        m_gradient->setStops(QGradientStops() << QGradientStop(0.0, QColor(0, 0, 0, 0)));
-        m_gradientStopsSet = true;
-    }
-
-    QBrush b(*m_gradient);
-
-    if (!m_transform.isIdentity())
-        b.setTransform(m_transform);
-
-    return b;
-}
-
-
-void QSvgGradientStyle::setTransform(const QTransform &transform)
-{
-    m_transform = transform;
-}
-
-QSvgPatternStyle::QSvgPatternStyle(QSvgPattern *pattern)
-    : m_pattern(pattern)
-{
-
-}
-
-QSvgPatternStyle::~QSvgPatternStyle()
-    = default;
-
-QBrush QSvgPatternStyle::brush(QPainter *p, const QSvgNode *node, QSvgExtraStates &states)
-{
-    QBrush b(m_pattern->patternImage(p, states, node));
-    b.setTransform(m_pattern->appliedTransform());
-    return b;
-}
-
 QSvgTransformStyle::QSvgTransformStyle(const QTransform &trans)
     : m_transform(trans)
 {
@@ -476,47 +378,32 @@ void QSvgTransformStyle::revert(QPainter *p, QSvgExtraStates &)
 
 QSvgStyleProperty::Type QSvgQualityStyle::type() const
 {
-    return QUALITY;
+    return Quality;
 }
 
 QSvgStyleProperty::Type QSvgFillStyle::type() const
 {
-    return FILL;
+    return Fill;
 }
 
 QSvgStyleProperty::Type QSvgViewportFillStyle::type() const
 {
-    return VIEWPORT_FILL;
+    return ViewportFill;
 }
 
 QSvgStyleProperty::Type QSvgFontStyle::type() const
 {
-    return FONT;
+    return Font;
 }
 
 QSvgStyleProperty::Type QSvgStrokeStyle::type() const
 {
-    return STROKE;
-}
-
-QSvgStyleProperty::Type QSvgSolidColorStyle::type() const
-{
-    return SOLID_COLOR;
-}
-
-QSvgStyleProperty::Type QSvgGradientStyle::type() const
-{
-    return GRADIENT;
-}
-
-QSvgStyleProperty::Type QSvgPatternStyle::type() const
-{
-    return PATTERN;
+    return Stroke;
 }
 
 QSvgStyleProperty::Type QSvgTransformStyle::type() const
 {
-    return TRANSFORM;
+    return Transform;
 }
 
 
@@ -542,7 +429,7 @@ void QSvgCompOpStyle::revert(QPainter *p, QSvgExtraStates &)
 
 QSvgStyleProperty::Type QSvgCompOpStyle::type() const
 {
-    return COMP_OP;
+    return CompOp;
 }
 
 QSvgOffsetStyle::~QSvgOffsetStyle()
@@ -558,7 +445,7 @@ void QSvgOffsetStyle::revert(QPainter *, QSvgExtraStates &)
 
 QSvgStyleProperty::Type QSvgOffsetStyle::type() const
 {
-    return OFFSET;
+    return Offset;
 }
 
 QSvgOpacityStyle::QSvgOpacityStyle(qreal opacity)
@@ -583,127 +470,27 @@ void QSvgOpacityStyle::revert(QPainter *p, QSvgExtraStates &)
 
 QSvgStyleProperty::Type QSvgOpacityStyle::type() const
 {
-    return OPACITY;
-}
-
-void QSvgGradientStyle::setStopLink(const QString &link, QSvgDocument *doc)
-{
-    m_link = link;
-    m_doc  = doc;
-}
-
-void QSvgGradientStyle::resolveStops()
-{
-    QStringList visited;
-    resolveStops_helper(&visited);
-}
-
-void QSvgGradientStyle::resolveStops_helper(QStringList *visited)
-{
-    if (!m_link.isEmpty() && m_doc) {
-        QSvgStyleProperty *prop = m_doc->styleProperty(m_link);
-        if (prop && !visited->contains(m_link)) {
-            visited->append(m_link);
-            if (prop->type() == QSvgStyleProperty::GRADIENT) {
-                QSvgGradientStyle *st =
-                    static_cast<QSvgGradientStyle*>(prop);
-                st->resolveStops_helper(visited);
-                m_gradient->setStops(st->qgradient()->stops());
-                m_gradientStopsSet = st->gradientStopsSet();
-            }
-        } else {
-            qWarning("Could not resolve property : %s", qPrintable(m_link));
-        }
-        m_link = QString();
-    }
+    return Opacity;
 }
 
 QSvgStaticStyle::QSvgStaticStyle()
-    : quality(0)
-    , fill(0)
-    , viewportFill(0)
-    , font(0)
-    , stroke(0)
-    , solidColor(0)
-    , gradient(0)
-    , pattern(0)
-    , transform(0)
-    , opacity(0)
-    , compop(0)
-{
-}
-
+    = default;
 QSvgStaticStyle::~QSvgStaticStyle()
-{
-}
+    = default;
 
 void QSvgStaticStyle::apply(QPainter *p, const QSvgNode *node, QSvgExtraStates &states)
 {
-    if (quality) {
-        quality->apply(p, node, states);
-    }
-
-    if (fill) {
-        fill->apply(p, node, states);
-    }
-
-    if (viewportFill) {
-        viewportFill->apply(p, node, states);
-    }
-
-    if (font) {
-        font->apply(p, node, states);
-    }
-
-    if (stroke) {
-        stroke->apply(p, node, states);
-    }
-
-    if (transform) {
-        transform->apply(p, node, states);
-    }
-
-    if (opacity) {
-        opacity->apply(p, node, states);
-    }
-
-    if (compop) {
-        compop->apply(p, node, states);
+    for (auto &prop : m_properties) {
+        if (prop)
+            prop->apply(p, node, states);
     }
 }
 
 void QSvgStaticStyle::revert(QPainter *p, QSvgExtraStates &states)
 {
-    if (quality) {
-        quality->revert(p, states);
-    }
-
-    if (fill) {
-        fill->revert(p, states);
-    }
-
-    if (viewportFill) {
-        viewportFill->revert(p, states);
-    }
-
-    if (font) {
-        font->revert(p, states);
-    }
-
-    if (stroke) {
-        stroke->revert(p, states);
-    }
-
-    if (transform) {
-        transform->revert(p, states);
-    }
-
-    if (opacity) {
-        opacity->revert(p, states);
-    }
-
-    if (compop) {
-        compop->revert(p, states);
+    for (auto &prop : m_properties) {
+        if (prop)
+            prop->revert(p, states);
     }
 }
 
@@ -743,7 +530,7 @@ QSvgAnimatedStyle::~QSvgAnimatedStyle()
 
 void QSvgAnimatedStyle::apply(QPainter *p, const QSvgNode *node, QSvgExtraStates &states)
 {
-    QSharedPointer<QSvgAbstractAnimator> animator = node->document()->animator();
+    QSharedPointer<QSvgAbstractAnimator> animator = states.doc()->animator();
     QList<QSvgAbstractAnimation *> nodeAnims = animator->animationsForNode(node);
 
     savePaintingState(p, node, states);
@@ -773,15 +560,15 @@ void QSvgAnimatedStyle::revert(QPainter *p, QSvgExtraStates &states)
 
 void QSvgAnimatedStyle::savePaintingState(const QPainter *p, const QSvgNode *node, QSvgExtraStates &states)
 {
-    QSvgStaticStyle style = node->style();
     m_worldTransform = p->worldTransform();
-    if (style.transform)
-        m_static.transform = style.transform->qtransform();
+    if (auto prop = node->style().property(QSvgStyleProperty::Transform))
+        m_static.transform = (static_cast<QSvgTransformStyle*>(prop))->qtransform();
 
-    if (style.offset) {
-        m_static.offsetPath = style.offset->path();
-        m_static.offsetRotateType = style.offset->rotateType();
-        m_static.offsetRotate = style.offset->rotateAngle();
+    if (auto prop = node->style().property(QSvgStyleProperty::Offset)) {
+        QSvgOffsetStyle *offset = static_cast<QSvgOffsetStyle*>(prop);
+        m_static.offsetPath = offset->path();
+        m_static.offsetRotateType = offset->rotateType();
+        m_static.offsetRotate = offset->rotateAngle();
     }
 
     m_static.fill = p->brush();

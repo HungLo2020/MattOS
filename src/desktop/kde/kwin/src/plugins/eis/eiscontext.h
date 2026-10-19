@@ -1,10 +1,12 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
 
 #pragma once
+
+#include "config-kwin.h"
 
 #include <QFlag>
 #include <QSocketNotifier>
@@ -29,19 +31,21 @@ public:
 
     void updateScreens();
     void updateKeymap();
+    void forwardModifiers(uint32_t depressed, uint32_t latched, uint32_t locked, uint32_t group);
 
-    virtual bool allowConnection(eis_client *client) const
+    virtual void connectionRequested(eis_client *client)
     {
-        return true;
+        connectClient(client);
     }
+    void connectClient(eis_client *client);
 
 protected:
     eis *m_eisContext;
+    EisBackend *m_backend;
 
 private:
     void handleEvents();
 
-    EisBackend *m_backend;
     QFlags<eis_device_capability> m_allowedCapabilities;
     QSocketNotifier m_socketNotifier;
     std::vector<std::unique_ptr<EisClient>> m_clients;
@@ -58,12 +62,15 @@ public:
     const QString dbusService;
 };
 
+#if KWIN_BUILD_X11
 class XWaylandEisContext : public EisContext
 {
 public:
     XWaylandEisContext(EisBackend *backend);
-    bool allowConnection(eis_client *client) const override;
+    void connectionRequested(eis_client *client) override;
 
     const QByteArray socketName;
 };
+#endif
+
 }

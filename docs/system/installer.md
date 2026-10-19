@@ -205,6 +205,20 @@ hardware playback are checked separately in the same installed session. The
 same probes run after a release upgrade. Probe payloads travel in short,
 acknowledged chunks so UART input limits cannot truncate a test command.
 
+The KDE stack probe runs in the graphical user's service environment,
+compiles against the installed Qt SDK, loads Union
+styles through the Rust/C++ CSS parser, recognizes Qt-rendered text with
+the offline English OCR model, decodes a complete WAV through Qt Multimedia,
+and performs a secure QtKeychain/KWallet write/read/delete round trip.
+It requires Qt's GLib event dispatcher and PulseAudioQt to enumerate a
+real PipeWire output sink. GUI probes discover the user manager's active
+Wayland display rather than assuming its socket index is zero.
+The desktop checks also verify KWin owns the global-shortcut D-Bus service
+and send Meta+E through QEMU input to open Dolphin.
+Pointer clicks scale captured pixels to QMP's documented `0..0x7fff` absolute
+range, independently of the emulated tablet's hardware range; see the
+[QEMU QMP input reference](https://www.qemu.org/docs/master/interop/qemu-qmp-ref.html#object-InputMoveEvent).
+
 The Plasma checks also exercise Discover's update path end to end. The host
 rebuilds one installed leaf package (KCalc) with a higher version
 (`+updatetest1`). As a publish would, it also rebuilds every package that pins

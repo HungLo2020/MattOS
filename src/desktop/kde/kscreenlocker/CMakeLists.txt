@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 
 project(kscreenlocker)
 set(CMAKE_C_STANDARD 99)
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 set(PROJECT_VERSION_MAJOR 6)
 
-set(PROJECT_DEP_VERSION "6.6.5")
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(PROJECT_DEP_VERSION "6.8.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,25 +28,9 @@ include(GenerateExportHeader)
 include(KDEClangFormat)
 include(KDEGitCommitHooks)
 include(ECMDeprecationSettings)
-
-include(CheckIncludeFile)
-include(CheckSymbolExists)
-check_include_file("sys/prctl.h" HAVE_SYS_PRCTL_H)
-check_symbol_exists(PR_SET_DUMPABLE "sys/prctl.h" HAVE_PR_SET_DUMPABLE)
-check_include_file("sys/procctl.h" HAVE_SYS_PROCCTL_H)
-check_symbol_exists(PROC_TRACE_CTL "sys/procctl.h" HAVE_PROC_TRACE_CTL)
-if (HAVE_PR_SET_DUMPABLE OR HAVE_PROC_TRACE_CTL)
-  set(CAN_DISABLE_PTRACE TRUE)
-endif ()
-add_feature_info("prctl/procctl tracing control"
-                 CAN_DISABLE_PTRACE
-                 "Required for disallowing ptrace on greeter and kcheckpass process")
+include(ECMQmlModule)
 
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS DBus Widgets Quick Test)
-
-if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
 
 find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS
     Crash
@@ -64,24 +48,8 @@ find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS
 
 find_package(PlasmaQuick ${PROJECT_DEP_VERSION} REQUIRED)
 
-find_package(X11)
-set_package_properties(X11 PROPERTIES DESCRIPTION "X11 libraries"
-                        URL "https://www.x.org"
-                        TYPE REQUIRED
-                        PURPOSE "Required for building the X11 based workspace")
-
-find_package(XCB MODULE REQUIRED COMPONENTS XCB KEYSYMS XTEST)
-set_package_properties(XCB PROPERTIES TYPE REQUIRED)
-add_feature_info("XInput" X11_Xinput_FOUND "Required for grabbing XInput2 devices in the screen locker")
-
-find_package(WaylandScanner)
-find_package(Wayland 1.3 COMPONENTS Client Server)
 find_package(LayerShellQt REQUIRED)
 find_package(KF6Screen REQUIRED)
-
-set_package_properties(Wayland PROPERTIES
-                       TYPE REQUIRED
-                       PURPOSE "Required for building screenlocker")
 
 find_package(loginctl)
 set_package_properties(loginctl PROPERTIES
@@ -134,9 +102,6 @@ if (HAVE_CONSOLEKIT)
     configure_file(ck-unlock-session.cmake ${CMAKE_CURRENT_BINARY_DIR}/ck-unlock-session)
 endif ()
 
-# adjusting CMAKE_C_FLAGS to get wayland protocols to compile
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu90")
-
 ecm_setup_version(${PROJECT_VERSION} VARIABLE_PREFIX KSCREENLOCKER
     VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/kscreenlocker_version.h"
     PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/KScreenLockerConfigVersion.cmake"
@@ -150,8 +115,8 @@ set(KSLD_INCLUDEDIR "${KDE_INSTALL_INCLUDEDIR}/KScreenLocker")
 
 include(ECMQtDeclareLoggingCategory)
 
-ecm_set_disabled_deprecation_versions(QT 6.9.0
-    KF 6.16.0
+ecm_set_disabled_deprecation_versions(QT 6.11.0
+    KF 6.27.0
 )
 
 add_subdirectory(greeter)
@@ -165,23 +130,17 @@ set(kscreensaver_dbusXML dbus/org.kde.screensaver.xml)
 set(powerdevilpolicyagent_xml dbus/kf6_org.kde.Solid.PowerManagement.PolicyAgent.xml)
 
 set(ksld_SRCS
-   abstractlocker.cpp
-   ksldapp.cpp
-   interface.cpp
+   emergencywindow.cpp
    globalaccel.cpp
-   x11locker.cpp
-   waylandlocker.cpp
+   interface.cpp
+   ksldapp.cpp
    logind.cpp
-   waylandserver.cpp
    powermanagement_inhibition.cpp
-   abstractlocker.h
-   ksldapp.h
-   interface.h
+   emergencywindow.h
    globalaccel.h
-   x11locker.h
-   waylandlocker.h
+   interface.h
+   ksldapp.h
    logind.h
-   waylandserver.h
    powermanagement_inhibition.h
 )
 
@@ -189,7 +148,6 @@ ecm_qt_declare_logging_category(ksld_SRCS
     HEADER kscreenlocker_logging.h
     IDENTIFIER KSCREENLOCKER
     CATEGORY_NAME kscreenlocker
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "KScreenLocker"
     EXPORT KSCREENLOCKER
 )
@@ -197,11 +155,6 @@ ecm_qt_declare_logging_category(ksld_SRCS
 qt_add_dbus_adaptor(ksld_SRCS ${screensaver_dbusXML} interface.h ScreenLocker::Interface)
 qt_add_dbus_adaptor(ksld_SRCS ${kscreensaver_dbusXML} interface.h ScreenLocker::Interface kscreensaveradaptor KScreenSaverAdaptor)
 qt_add_dbus_interface(ksld_SRCS ${powerdevilpolicyagent_xml} powerdevilpolicyagent)
-
-ecm_add_wayland_server_protocol(ksld_SRCS
-    PROTOCOL protocols/ksld.xml
-    BASENAME ksld
-)
 
 add_library(KScreenLocker SHARED ${ksld_SRCS})
 
@@ -219,10 +172,6 @@ PRIVATE
    KF6::ConfigGui
    KF6::Package
    KF6::WindowSystem
-   X11::X11
-   XCB::XCB
-   XCB::KEYSYMS
-   Wayland::Server
 )
 
 set(kscreenlocker_greet_bin_abs ${CMAKE_INSTALL_FULL_LIBEXECDIR}/kscreenlocker_greet)
@@ -232,10 +181,6 @@ target_compile_definitions(KScreenLocker PRIVATE
     KSCREENLOCKER_GREET_BIN_ABS="${kscreenlocker_greet_bin_abs}"
     KSCREENLOCKER_GREET_BIN_REL="${kscreenlocker_greet_bin_rel}"
 )
-
-if (X11_Xinput_FOUND)
-    target_link_libraries(KScreenLocker PRIVATE X11::Xi)
-endif()
 
 target_include_directories(KScreenLocker INTERFACE "$<INSTALL_INTERFACE:${KSLD_INCLUDEDIR}>")
 

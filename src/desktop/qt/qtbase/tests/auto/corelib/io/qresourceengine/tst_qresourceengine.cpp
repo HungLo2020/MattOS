@@ -7,6 +7,7 @@
 #include <QtPlugin>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QScopeGuard>
+#include <QtCore/QStandardPaths>
 #include <QtCore/private/qglobal_p.h>
 
 class tst_QResourceEngine: public QObject
@@ -15,7 +16,7 @@ class tst_QResourceEngine: public QObject
 
 public:
     tst_QResourceEngine()
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
         : m_runtimeResourceRcc(
             QFileInfo(QStandardPaths::writableLocation(QStandardPaths::CacheLocation)
                       + QStringLiteral("/runtime_resource.rcc")).absoluteFilePath())
@@ -52,7 +53,16 @@ private:
 
 void tst_QResourceEngine::initTestCase()
 {
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_HARMONY)
+    const QString dataPath(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
+    QVERIFY(QDir().mkpath(dataPath));
+    if (!QFileInfo::exists(m_runtimeResourceRcc)) {
+        const QString source = QStringLiteral(":/nestedrcc/runtime_resource.rcc");
+        QVERIFY(QFile::copy(source, m_runtimeResourceRcc));
+    }
+
+    QVERIFY(QDir::setCurrent(dataPath));
+#elif defined(Q_OS_ANDROID)
     QString sourcePath(QStringLiteral(":/android_testdata/"));
     QString dataPath(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
 
@@ -191,6 +201,10 @@ void tst_QResourceEngine::checkStructure_data()
                  << QLatin1String("empty")
                  << QLatin1String("nestedrcc")
                  << QLatin1String("otherdir")
+#ifdef Q_OS_HARMONY
+                 << QLatin1String("qpdf")
+                 << QLatin1String("qt-project.org")
+#endif
                  << QLatin1String("runtime_resource")
                  << QLatin1String("searchpath1")
                  << QLatin1String("searchpath2")
@@ -566,9 +580,11 @@ void tst_QResourceEngine::checkUnregisterResource_data()
     QTest::addColumn<QString>("file_check");
     QTest::addColumn<int>("size");
 
-    QTest::newRow("currentdir.txt") << QFINDTESTDATA("runtime_resource.rcc") << QString("/check_unregister/")
-                                    << QString(":/check_unregister/runtime_resource/test/abc/123/+++/currentdir.txt")
-                                    << (int)QFileInfo(QFINDTESTDATA("testqrc/currentdir.txt")).size();
+    QTest::newRow("currentdir.txt")
+        << QFINDTESTDATA("runtime_resource.rcc")
+        << QString("/check_unregister/")
+        << QString(":/check_unregister/runtime_resource/test/abc/123/+++/currentdir.txt")
+        << (int)QFileInfo(QFINDTESTDATA("testqrc/currentdir.txt")).size();
 }
 
 void tst_QResourceEngine::checkUnregisterResource()

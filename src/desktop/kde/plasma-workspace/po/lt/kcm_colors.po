@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmcolors\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-11-19 20:04+0200\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-03-08 23:53+0200\n"
 "Last-Translator: Moo <<>>\n"
 "Language-Team: Lithuanian <kde-i18n-lt@kde.org>\n"
 "Language: lt\n"
@@ -29,32 +29,32 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "dgvirtual@akl.lt, <>"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "Nepavyko sukurti laikinojo failo."
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "Nepavyko atsisiųsti spalvų rinkinio: %1"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "Šis failas nėra spalvų rinkinys."
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "Nepavyko sukurti 'color-scheme' duomenų aplanko."
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr "Nepavyko nukopijuoti spalvų rinkinio į 'color-scheme' duomenų aplanką."
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "Spalvų rinkinys sėkmingai įdiegtas."
@@ -685,15 +685,17 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "Neturite leidimo perrašyti to rinkinio"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr ""
+"Šis rinkinys yra tik skaitymui. Įrašykite modifikacijas kitu pavadinimu."
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "Klaida"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "Neaktyvus"
@@ -1147,7 +1149,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "fokusas"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1158,7 +1160,7 @@ msgstr ""
 "seansui ir padeda išvengti ir nenustatyti neprieinamo ar jau nustatyto "
 "spalvų rinkinio."
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
@@ -1167,7 +1169,7 @@ msgstr ""
 "Spalvų rinkinio, kurį norite nustatyti dabartiniam Plasma seansui, "
 "pavadinimas (perduodant pilną kelią, bus naudojama tik paskutinė kelio dalis)"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
@@ -1176,7 +1178,7 @@ msgstr ""
 "Rodyti visus sistemoje prieinamus spalvų rinkinius (ir kuris yra dabartinis "
 "spalvų rinkinys)"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1188,7 +1190,7 @@ msgstr ""
 "šešioliktainiai spalvos kodai. Jei yra apvalkalo išplėtimo tikimybė, "
 "paimkite šešioliktainį kodą į kabutes"
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
@@ -1197,13 +1199,13 @@ msgstr ""
 "Užklaustas apipavidalinimas „%1“ jau yra nustatytas kaip dabartinio Plasma "
 "seanso apipavidalinimas."
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr ""
 "Spalvų rinkinys %1 yra sėkmingai pritaikytas jūsų dabartiniam Plasma seansui"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -1212,7 +1214,7 @@ msgstr ""
 "Nepavyko rasti apipavidalinimo „%1“. Apipavidalinimas turėtų būti vienas iš "
 "šių variantų: %2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
@@ -1221,7 +1223,7 @@ msgstr ""
 "Jums pavyko perduoti tuščią spalvų rinkinio pavadinimą, o tai nėra palaikoma "
 "elgsena."
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
@@ -1230,22 +1232,22 @@ msgstr ""
 "Failo, kurį bandėte nustatyti kaip rinkinį, %1, nepavyko atpažinti kaip "
 "spalvų rinkinio."
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr "Sėkmingai pritaikyta %1 paryškinimo spalva"
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, kde-format
 msgid "Invalid accent color "
 msgstr "Neteisinga paryškinimo spalvą "
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "Savo sistemoje turite šiuos spalvų rinkinius:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr " * %1 (dabartinis spalvų rinkinys)"
@@ -1268,7 +1270,7 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "Tinkinta paryškinimo spalva"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
@@ -1276,100 +1278,119 @@ msgstr ""
 "Spalvų rinkinys \"%1\" nėra įdiegtas. Vietoj jo, pasirenkamas numatytasis "
 "apipavidalinimas."
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "Visi rinkiniai"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "Šviesūs rinkiniai"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "Tamsūs rinkiniai"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "Įdiegti iš failo…"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "Gauti naują…"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "Lango pavadinimas"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "Lango tekstas"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "Mygtukas"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "nuoroda"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "aplankyta"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "Normalus tekstas"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "Paryškintas tekstas"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "Išjungtas tekstas"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "Taisyti spalvų rinkinį…"
 
-#: ui/main.qml:323
+#: ui/main.qml:311
 #, kde-format
-msgid "Remove Color Scheme"
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
 msgstr "Šalinti spalvų rinkinį"
 
-#: ui/main.qml:330
+#: ui/main.qml:313
 #, kde-format
-msgid "Restore Color Scheme"
-msgstr "Atkurti spalvų rinkinį"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "Negalima ištrinti aktyvų spalvų rinkinį"
 
-#: ui/main.qml:374
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr "Negalima ištrinti sistemos įdiegtus spalvų rinkinius"
+
+#: ui/main.qml:323
+#, kde-format
+msgid "Don’t delete this color scheme"
+msgstr "Neištrinti šio spalvų rinkinio"
+
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "Atverti spalvų rinkinį"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "Spalvų rinkinio failai (*.colors)"
+
+#~ msgid "You do not have permission to overwrite that scheme"
+#~ msgstr "Neturite leidimo perrašyti to rinkinio"
+
+#~ msgid "Restore Color Scheme"
+#~ msgstr "Atkurti spalvų rinkinį"
 
 #~ msgid "Shading of frames and lighting (\"3D\") effects"
 #~ msgstr "Rėmelių šešėliai ir apšvietimo („trimačiai“) efektai"

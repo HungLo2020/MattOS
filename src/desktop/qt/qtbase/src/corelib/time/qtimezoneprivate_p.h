@@ -22,6 +22,7 @@
 #include "qtimezone.h"
 #include "private/qlocale_p.h"
 #include "private/qdatetime_p.h"
+#include "private/qttemporalpattern_p.h" // For its flags type
 
 #if QT_CONFIG(timezone_tzdb)
 #include <chrono>
@@ -128,7 +129,8 @@ public:
 
     virtual QByteArray systemTimeZoneId() const;
 
-    virtual bool isTimeZoneIdAvailable(const QByteArray &ianaId) const;
+    QByteArrayView availableAlias(QByteArrayView ianaId) const; // Empty if none.
+    virtual bool isTimeZoneIdAvailable(QByteArrayView ianaId) const;
     virtual QList<QByteArray> availableTimeZoneIds() const = 0;
     virtual QList<QByteArray> availableTimeZoneIds(QLocale::Territory territory) const;
     virtual QList<QByteArray> availableTimeZoneIds(int utcOffset) const;
@@ -146,17 +148,17 @@ public:
     { return (std::numeric_limits<int>::min)(); }
     static QTimeZone::OffsetData invalidOffsetData();
     static QTimeZone::OffsetData toOffsetData(const Data &data);
-    static bool isValidId(const QByteArray &ianaId);
+    static bool isValidId(QByteArrayView ianaId);
     static QString isoOffsetFormat(int offsetFromUtc,
                                    QTimeZone::NameType mode = QTimeZone::OffsetName);
 
-    static QByteArray aliasToIana(QByteArrayView alias);
-    static QByteArray ianaIdToWindowsId(const QByteArray &ianaId);
-    static QByteArray windowsIdToDefaultIanaId(const QByteArray &windowsId);
-    static QByteArray windowsIdToDefaultIanaId(const QByteArray &windowsId,
-                                               QLocale::Territory territory);
-    static QList<QByteArray> windowsIdToIanaIds(const QByteArray &windowsId);
-    static QList<QByteArray> windowsIdToIanaIds(const QByteArray &windowsId,
+    static QByteArrayView aliasToIana(QByteArrayView alias);
+    static QByteArrayView ianaIdToWindowsId(QByteArrayView ianaId);
+    static QByteArrayView windowsIdToDefaultIanaId(QByteArrayView windowsId);
+    static QByteArrayView windowsIdToDefaultIanaId(QByteArrayView windowsId,
+                                                   QLocale::Territory territory);
+    static QList<QByteArray> windowsIdToIanaIds(QByteArrayView windowsId);
+    static QList<QByteArray> windowsIdToIanaIds(QByteArrayView windowsId,
                                                 QLocale::Territory territory);
     struct NamePrefixMatch
     {
@@ -168,8 +170,13 @@ public:
     static NamePrefixMatch findLongNamePrefix(QStringView text, const QLocale &locale,
                                               std::optional<qint64> atEpochMillis = std::nullopt);
     static NamePrefixMatch findNarrowOffsetPrefix(QStringView text, const QLocale &locale);
+    // Implement in backends where possible, with #if-ery on base-class to
+    // suppress its expensive brute force when better is available.
+    static NamePrefixMatch findOffsetPrefix(QStringView text, const QLocale &locale,
+                                            QtTemporalPattern::TemporalFieldFlags flags = {});
     // Match the unlocalized long form of QUtcTimeZonePrivate:
     static NamePrefixMatch findLongUtcPrefix(QStringView text);
+    static QList<QByteArray> getCanonicalZonesThenAliases();
 
     // returns "UTC" QString and QByteArray
     [[nodiscard]] static inline QString utcQString()
@@ -196,6 +203,9 @@ protected:
     // Use to filter what the backend has available.
     QList<QByteArrayView> matchingTimeZoneIds(QLocale::Territory territory) const;
     QList<QByteArrayView> matchingTimeZoneIds(int utcOffset) const;
+    // Use to extend a list with what its entries alias, then sort and uniquify:
+    static QList<QByteArray> uniqueSortedAliasPadded(QList<QByteArray> &&zoneIds);
+    static QList<QByteArray> padSortedWithAliases(QList<QByteArray> &&zoneIds);
 
 #if QT_CONFIG(timezone_locale)
     // Defined in qtimezonelocale.cpp
@@ -251,7 +261,7 @@ public:
 
     QByteArray systemTimeZoneId() const override;
 
-    bool isTimeZoneIdAvailable(const QByteArray &ianaId) const override;
+    bool isTimeZoneIdAvailable(QByteArrayView ianaId) const override;
     QList<QByteArray> availableTimeZoneIds() const override;
     QList<QByteArray> availableTimeZoneIds(QLocale::Territory country) const override;
     QList<QByteArray> availableTimeZoneIds(int utcOffset) const override;
@@ -289,7 +299,7 @@ public:
     int standardTimeOffset(qint64 atMSecsSinceEpoch) const override;
     int daylightTimeOffset(qint64 atMSecsSinceEpoch) const override;
 
-    bool isTimeZoneIdAvailable(const QByteArray &ianaId) const override;
+    bool isTimeZoneIdAvailable(QByteArrayView ianaId) const override;
     QList<QByteArray> availableTimeZoneIds() const override;
     QList<QByteArray> availableTimeZoneIds(int utcOffset) const override;
 
@@ -341,7 +351,7 @@ public:
     Data previousTransition(qint64 beforeMSecsSinceEpoch) const override;
 
     QByteArray systemTimeZoneId() const override;
-    bool isTimeZoneIdAvailable(const QByteArray &ianaId) const override;
+    bool isTimeZoneIdAvailable(QByteArrayView ianaId) const override;
     QList<QByteArray> availableTimeZoneIds() const override;
 
     NSTimeZone *nsTimeZone() const;
@@ -360,7 +370,7 @@ public:
     // Create default time zone
     QAndroidTimeZonePrivate();
     // Create named time zone
-    QAndroidTimeZonePrivate(const QByteArray &ianaId);
+    QAndroidTimeZonePrivate(QByteArrayView ianaId);
     ~QAndroidTimeZonePrivate();
 
     QAndroidTimeZonePrivate *clone() const override;
@@ -381,15 +391,15 @@ public:
     Data data(qint64 forMSecsSinceEpoch) const override;
 
     QByteArray systemTimeZoneId() const override;
-    bool isTimeZoneIdAvailable(const QByteArray &ianaId) const override;
+    bool isTimeZoneIdAvailable(QByteArrayView ianaId) const override;
     QList<QByteArray> availableTimeZoneIds() const override;
 
 private:
-    void init(const QByteArray &zoneId);
+    void init(QByteArrayView zoneId);
 
     QJniObject androidTimeZone;
 };
-#elif defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS)
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS) && !defined(Q_OS_WASM) && !defined(Q_OS_HARMONY)
 struct QTzTransitionTime
 {
     qint64 atMSecsSinceEpoch;
@@ -459,7 +469,7 @@ public:
 
     QByteArray systemTimeZoneId() const override;
 
-    bool isTimeZoneIdAvailable(const QByteArray &ianaId) const override;
+    bool isTimeZoneIdAvailable(QByteArrayView ianaId) const override;
     QList<QByteArray> availableTimeZoneIds() const override;
     QList<QByteArray> availableTimeZoneIds(QLocale::Territory territory) const override;
 
@@ -506,7 +516,7 @@ public:
 
     QByteArray systemTimeZoneId() const override;
 
-    bool isTimeZoneIdAvailable(const QByteArray &ianaId) const override;
+    bool isTimeZoneIdAvailable(QByteArrayView ianaId) const override;
     QList<QByteArray> availableTimeZoneIds() const override;
     QList<QByteArray> availableTimeZoneIds(QLocale::Territory territory) const override;
     QList<QByteArray> availableTimeZoneIds(int offsetFromUtc) const override;

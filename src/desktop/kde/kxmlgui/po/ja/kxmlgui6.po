@@ -11,15 +11,16 @@
 # Fuminobu Takeyama <ftake@geeko.jp>, 2017.
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2019, 2020.
 # Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2006, 2007, 2008, 2010, 2011, 2019, 2020, 2022.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-28 00:41+0000\n"
-"PO-Revision-Date: 2025-02-23 13:34+0900\n"
-"Last-Translator: Ryuichi Yamada <ryuichi_ya220@outlook.jp>\n"
-"Language-Team: Japanese <kde-jp@kde.org>\n"
+"POT-Creation-Date: 2026-09-23 00:42+0000\n"
+"PO-Revision-Date: 2026-06-28 15:02+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
+"Language-Team: Japanese <kde-i18n-doc@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,7 +28,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 24.12.2\n"
+"X-Generator: Lokalize 26.04.2\n"
 
 #: kaboutapplicationdialog.cpp:60 kaboutplugindialog.cpp:65
 #, kde-format
@@ -73,11 +74,11 @@ msgid "About KDE"
 msgstr "KDE について"
 
 #: kaboutkdedialog_p.cpp:34
-#, fuzzy, kde-format
-#| msgid "<html><font size=\"5\">KDE - Be Free!</font></html>"
+#, kde-format
 msgid "<html><font size=\"5\">KDE</font><br />Be Free!</html>"
-msgstr "<html><font size=\"5\">KDE - Be Free!</font></html>"
+msgstr "<html><font size=\"5\">KDE</font><br />Be Free!</html>"
 
+# kirigami-addons/kirigami-addons6.po, kdeconnect-android/kdeconnect-android._static_.po, krita/krita.po に同じ内容の原文あり
 #: kaboutkdedialog_p.cpp:45
 #, kde-format
 msgid ""
@@ -94,15 +95,16 @@ msgid ""
 msgstr ""
 "<html><b>KDE</b> はソフトウェアエンジニア、アーティスト、作家、翻訳者などの"
 "<a href=\"%1\">フリーソフトウェア</a>の開発に協力する人々による世界的なコミュ"
-"ニティです。KDE は Plasma デスクトップ環境や、数百ものアプリケーション、それ"
-"らをサポートするたくさんのライブラリを作り出しています。<br /><br />KDE は協"
-"力事業です: 一つの企業が方向性や製品をコントロールすることはありません。代わ"
-"りに、私達は世界最高級のフリーソフトウェアを作成するという共通のゴールを達成"
-"するために共に働いています。あなたを含む誰もが KDE に<a href=\"%2\">参加して"
-"貢献</a>することが歓迎されています。<br /><br /><a href=\"%3\">%3</a> を訪れ"
-"て KDE Community と私達が作り出したソフトウェアの詳細情報をご覧ください。</"
-"html>"
+"ニティです。KDE は Plasma デスクトップ環境や多くのアプリケーション、そしてそ"
+"れを支えるたくさんのライブラリを作り出しています。\n"
+"<br /><br />KDE はみなさんによる共同プロジェクトです。単一の企業が方向性や製"
+"品をコントロールすることはありません。代わりに、KDE のコミュニティは世界最高"
+"級のフリーソフトウェアを作成するという共通のゴールを達成するために共に働いて"
+"います。あなたを含め誰でも、自由に KDE に<a href=\"%2\">参加･貢献</a>すること"
+"ができます。<br /><br />KDE コミュニティとそのソフトウェアについては、<a "
+"href=\"%3\">%3</a> をご覧ください。</html>"
 
+# kirigami-addons/kirigami-addons6.po, kdeconnect-android/kdeconnect-android._static_.po, krita/krita.po に同じ内容の原文あり
 #: kaboutkdedialog_p.cpp:66
 #, kde-format
 msgid ""
@@ -114,15 +116,15 @@ msgid ""
 "improvement then you are welcome to use the bug tracking system to register "
 "your wish. Make sure you use the severity called \"Wishlist\".</html>"
 msgstr ""
-"<html>ソフトウェアは常に進化しています。KDE チームも日々改良に努めています"
-"が、それにはユーザであるあなたの協力が必要です。何かがうまく動作しなかった"
-"り、改善できる個所に気が付かれたりしたときには、ぜひ私たちに教えてください。"
-"<br /><br />KDE にはバグ追跡システムがあります。ウェブサイト <a href=\"%1\">"
-"%1</a> または \"ヘルプ\" メニューの \"バグを報告...\" ダイアログを使って不具"
-"合を報告してください。<br /><br />改良のためのいいアイデアをお持ちの場合も、"
-"バグ追跡システムを使ってあなたの要望をどしどしお寄せください。この場合、重要"
-"度には \"Wishlist\" (要望) を指定してください。</html>"
+"<html>ソフトウェアの改善に終わりはありません。KDE チームも日々改良に努めてい"
+"ますが、それにはユーザーであるあなたの協力が必要です。不具合や改善点を見つけ"
+"た場合は、ぜひ教えてください。<br /><br />KDE にはバグ追跡システムがありま"
+"す。<a href=\"%1\">%1</a> または「ヘルプ」メニューの「バグを報告...」画面から"
+"不具合を報告してください。<br /><br />改良のためのいいアイデアをお持ちの場合"
+"も、バグ追跡システムを使ってご要望をどしどしお寄せください。このとき、重要度"
+"には \"Wishlist\" (要望) を指定してください。</html>"
 
+# kirigami-addons/kirigami-addons6.po, kdeconnect-android/kdeconnect-android._static_.po, krita/krita.po に同じ内容の原文あり
 #: kaboutkdedialog_p.cpp:85
 #, kde-format
 msgid ""
@@ -134,13 +136,14 @@ msgid ""
 "documentation, then a visit to <a href=\"%2\">%2</a> will provide you with "
 "what you need.</html>"
 msgstr ""
-"<html>KDE チームに加わるには、必ずしもソフトウェア開発者である必要はありませ"
-"ん。プログラムのインターフェースを翻訳する各言語の翻訳チームに参加したり、グ"
-"ラフィック、テーマ、サウンドあるいはドキュメントの改善で貢献していただくこと"
-"もできます。さあ、あとはあなた次第です!<br /><br /><a href=\"%1\">%1</a> で参"
-"加できそうなプロジェクトを見つけてください。<br /><br />さらに詳しい情報やド"
-"キュメントが必要な場合は <a href=\"%2\">%2</a> をご覧ください。</html>"
+"<html>KDE チームに加わる際に、ソフトウェア開発者である必要はありません。プロ"
+"グラムの UI を翻訳する各言語の翻訳チームに参加したり、グラフィック、テーマ、"
+"サウンドやドキュメントの改善で貢献していただくこともできます。さあ、あとはあ"
+"なた次第です！<br /><br /><a href=\"%1\">%1</a> から参加できそうなプロジェク"
+"トを探すことができます。<br /><br />さらに詳しい情報やドキュメントについては "
+"<a href=\"%2\">%2</a> をご覧ください。</html>"
 
+# kirigami-addons/kirigami-addons6.po, kdeconnect-android/kdeconnect-android._static_.po, krita/krita.po に同じ内容の原文あり
 #: kaboutkdedialog_p.cpp:108
 #, kde-format
 msgid ""
@@ -157,14 +160,16 @@ msgid ""
 "described at <a href=\"%2\">%2</a>.<br /><br />Thank you very much in "
 "advance for your support.</html>"
 msgstr ""
-"<html>KDE は無償で配布されていますが、開発には費用がかかります。<br /><br /"
-">KDE コミュニティはドイツの Tuebingen で法的に創設された KDE e.V. という非営"
-"利組織を形成しています。KDE e.V. は KDE プロジェクトの法的、経済的なことを"
-"扱っています。KDE e.V. については  <a href=\"%1\">%1</a> の情報をご覧くださ"
-"い。<br /><br />KDE チームは経済的な援助も必要としています。お金のほとんど"
-"は、メンバーその他の人々が KDE に貢献するために支払った費用の払い戻しに充てら"
-"れます。<a href=\"%2\">%2</a> に説明されている方法で KDE を経済的に援助してい"
-"ただくこともできます。<br /><br />将来のあなたのサポートに感謝します。</html>"
+"<html>KDE のソフトウェアは無償で配布されていますが、開発には費用がかかりま"
+"す。<br /><br />KDE コミュニティはドイツの Tuebingen で KDE e.V. という非営利"
+"組織を法的に設立しています。KDE e.V. は法的･財務的な仕事を、KDE プロジェクト"
+"を代表して担っています。KDE e.V. については <a href=\"%1\">%1</a> をご覧くだ"
+"さい。<br /><br />KDE チームは経済的な援助も必要としています。いただいた資金"
+"は、メンバーやその他の人々が KDE に貢献する際にかかった費用の払い戻しをはじ"
+"め、法的支援、カンファレンス、ミーティングの開催にも充てられます。KDE の活動"
+"を維持･発展させるため、ぜひ寄付による支援をご検討ください。寄付の方法について"
+"は <a href=\"%2\">%2</a> をご覧ください。<br /><br />皆さまのご協力を、よろし"
+"くお願いいたします。</html>"
 
 #: kaboutkdedialog_p.cpp:128
 #, kde-format
@@ -216,7 +221,7 @@ msgstr "KDE Frameworks"
 #, kde-format
 msgctxt "@info"
 msgid "Collection of libraries created by the KDE Community to extend Qt."
-msgstr "KDE Community によって作成された Qt を拡張するライブラリ集です。"
+msgstr "KDE コミュニティによって作成された Qt を拡張するライブラリ集です。"
 
 #: kabstractaboutdialog_p.cpp:128
 #, kde-format
@@ -238,25 +243,25 @@ msgstr "%1 を使用中 (%2 でビルド)"
 #, kde-format
 msgctxt "Linux packaging format"
 msgid "Flatpak"
-msgstr ""
+msgstr "Flatpak"
 
 #: kabstractaboutdialog_p.cpp:139
 #, kde-format
 msgctxt "Linux packaging format"
 msgid "Snap"
-msgstr ""
+msgstr "Snap"
 
 #: kabstractaboutdialog_p.cpp:142
 #, kde-format
 msgctxt "Linux packaging format"
 msgid "AppImage"
-msgstr ""
+msgstr "AppImage"
 
 #: kabstractaboutdialog_p.cpp:145
 #, kde-format
 msgctxt "@info"
 msgid "Distribution method."
-msgstr ""
+msgstr "アプリケーションの配布方法です。"
 
 #: kabstractaboutdialog_p.cpp:148
 #, kde-format
@@ -323,6 +328,8 @@ msgid ""
 "Please use %1 to report bugs.<br/>If you have questions or need help, please "
 "visit %2.<br/>"
 msgstr ""
+"バグ報告は %1 からお願いします。<br/>質問やヘルプが必要な場合は、%2 をご覧く"
+"ださい。<br/>"
 
 #: kabstractaboutdialog_p.cpp:324
 #, kde-format
@@ -348,18 +355,18 @@ msgctxt "@title:window"
 msgid "Ambiguous shortcut detected"
 msgstr "あいまいなショートカットを検出"
 
-#: kbugreport.cpp:67
+#: kbugreport.cpp:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Submit Bug Report"
 msgstr "バグレポートを送信"
 
-#: kbugreport.cpp:89
+#: kbugreport.cpp:90
 #, kde-format
 msgid "Submit Bug Report"
 msgstr "バグレポートを送信"
 
-#: kbugreport.cpp:101
+#: kbugreport.cpp:102
 #, kde-format
 msgid ""
 "The application for which you wish to submit a bug report - if incorrect, "
@@ -368,12 +375,12 @@ msgstr ""
 "バグレポートを送るアプリケーションです。違っている場合は、正しいアプリケー"
 "ションのメニューから「バグを報告」を選択してください。"
 
-#: kbugreport.cpp:102
+#: kbugreport.cpp:103
 #, kde-format
 msgid "Application: "
 msgstr "アプリケーション:"
 
-#: kbugreport.cpp:112
+#: kbugreport.cpp:113
 #, kde-format
 msgid ""
 "The version of this application - please make sure that no newer version is "
@@ -382,28 +389,28 @@ msgstr ""
 "このアプリケーションのバージョンです。バグレポートを送る前に、新しいバージョ"
 "ンが入手可能でないか確認してください。"
 
-#: kbugreport.cpp:113
+#: kbugreport.cpp:114
 #, kde-format
 msgid "Version:"
 msgstr "バージョン:"
 
-#: kbugreport.cpp:118
+#: kbugreport.cpp:119
 #, kde-format
 msgid "no version set (programmer error)"
 msgstr "バージョンが設定されていません (プログラマのミスです)"
 
-#: kbugreport.cpp:122
+#: kbugreport.cpp:123
 #, kde-format
 msgctxt "%1 is the program version, %2 is the kde framework version"
 msgid "%1 with KDE Frameworks %2"
 msgstr "%1 (KDE Frameworks %2)"
 
-#: kbugreport.cpp:130
+#: kbugreport.cpp:131
 #, kde-format
 msgid "OS:"
 msgstr "OS:"
 
-#: kbugreport.cpp:135
+#: kbugreport.cpp:136
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Windows 10', %2 is the CPU "
@@ -411,7 +418,7 @@ msgctxt ""
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: kbugreport.cpp:142
+#: kbugreport.cpp:143
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Fedora Linux', %2 is the operating "
@@ -419,7 +426,7 @@ msgctxt ""
 msgid "%1 %2 (%3)"
 msgstr "%1 %2 (%3)"
 
-#: kbugreport.cpp:148
+#: kbugreport.cpp:149
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Fedora Linux', %2 is the CPU "
@@ -427,7 +434,7 @@ msgctxt ""
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: kbugreport.cpp:162
+#: kbugreport.cpp:163
 #, kde-format
 msgid ""
 "<qt>To submit a bug report, click on the button below. This will open a web "
@@ -439,7 +446,7 @@ msgstr ""
 "のウィンドウに <a href=\"https://bugs.kde.org\">http://bugs.kde.org</a> が開"
 "かれ、報告用のフォームが表示されます。上の情報がサーバに送られます。</qt>"
 
-#: kbugreport.cpp:168
+#: kbugreport.cpp:169
 #, kde-format
 msgid ""
 "<qt>To submit a bug report, click on the button below. This will open a web "
@@ -448,13 +455,13 @@ msgstr ""
 "<qt>バグレポートを送るには、下のボタンをクリックしてください。ウェブブラウザ"
 "のウィンドウに <a href=\"%1\">%2</a> が開かれます。</qt>"
 
-#: kbugreport.cpp:185
+#: kbugreport.cpp:186
 #, kde-format
 msgctxt "@action:button"
 msgid "&Launch Bug Report Wizard"
 msgstr "バグ報告ウィザードを起動(&L)"
 
-#: kbugreport.cpp:187
+#: kbugreport.cpp:188
 #, kde-format
 msgctxt "@action:button"
 msgid "&Submit Bug Report"
@@ -497,30 +504,30 @@ msgstr "<h2>アクセラレータが削除されました</h2>"
 msgid "<h2>Accelerators added (just for your info)</h2>"
 msgstr "<h2>アクセラレータが追加されました</h2>"
 
-#: kedittoolbar.cpp:332
+#: kedittoolbar.cpp:353
 #, kde-format
 msgctxt "@title:window"
 msgid "Change Text"
 msgstr "テキストを変更"
 
-#: kedittoolbar.cpp:342
+#: kedittoolbar.cpp:363
 #, kde-format
 msgid "Icon te&xt:"
 msgstr "アイコンのテキスト(&X):"
 
-#: kedittoolbar.cpp:347
+#: kedittoolbar.cpp:368
 #, kde-format
 msgctxt "@option:check"
 msgid "&Hide text when toolbar shows text alongside icons"
 msgstr "ツールバーがアイコンと一緒にテキストを表示するときにテキストを隠す(&H)"
 
-#: kedittoolbar.cpp:596
+#: kedittoolbar.cpp:621
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Toolbars"
 msgstr "ツールバーを設定"
 
-#: kedittoolbar.cpp:659
+#: kedittoolbar.cpp:684
 #, kde-format
 msgid ""
 "Do you really want to reset all toolbars of this application to their "
@@ -529,17 +536,17 @@ msgstr ""
 "本当にこのアプリケーションのすべてのツールバーを標準設定にリセットしますか？"
 "変更は直ちに適用されます。"
 
-#: kedittoolbar.cpp:660
+#: kedittoolbar.cpp:685
 #, kde-format
 msgid "Reset Toolbars"
 msgstr "ツールバーをリセット"
 
-#: kedittoolbar.cpp:661
+#: kedittoolbar.cpp:686
 #, kde-format
 msgid "Reset"
 msgstr "リセット"
 
-#: kedittoolbar.cpp:980
+#: kedittoolbar.cpp:1007
 #, kde-format
 msgid "&Toolbar:"
 msgstr "ツールバー(&T):"
@@ -551,66 +558,66 @@ msgstr "ツールバー(&T):"
 #. del_toolbar->setPixmap(BarIcon("edit-delete", KIconLoader::SizeSmall));
 #. del_toolbar->setEnabled(false); // disabled until implemented
 #. our list of inactive actions
-#: kedittoolbar.cpp:996
+#: kedittoolbar.cpp:1023
 #, kde-format
 msgid "A&vailable actions:"
 msgstr "利用可能なアクション(&V):"
 
-#: kedittoolbar.cpp:1017 kedittoolbar.cpp:1042
+#: kedittoolbar.cpp:1044 kedittoolbar.cpp:1069
 #, kde-format
 msgid "Filter"
 msgstr "フィルタ"
 
-#: kedittoolbar.cpp:1020
+#: kedittoolbar.cpp:1047
 #, kde-format
 msgid "Curr&ent actions:"
 msgstr "現在のアクション(&E):"
 
-#: kedittoolbar.cpp:1045
+#: kedittoolbar.cpp:1072
 #, kde-format
 msgctxt "@action:button"
 msgid "Change &Icon…"
 msgstr "アイコンを変更(&I)..."
 
-#: kedittoolbar.cpp:1054
+#: kedittoolbar.cpp:1081
 #, kde-format
 msgctxt "@action:button"
 msgid "Change Te&xt…"
 msgstr "テキストを変更(&X)..."
 
-#: kedittoolbar.cpp:1196
+#: kedittoolbar.cpp:1223
 #, kde-format
 msgid "--- separator ---"
 msgstr "--- セパレータ ---"
 
-#: kedittoolbar.cpp:1197
+#: kedittoolbar.cpp:1224
 #, kde-format
 msgid "--- expanding spacer ---"
 msgstr "--- スペーサ ---"
 
-#: kedittoolbar.cpp:1219
+#: kedittoolbar.cpp:1246
 #, kde-format
 msgctxt "@item:intable Action name in toolbar editor"
 msgid "%1"
 msgstr "%1"
 
-#: kedittoolbar.cpp:1247
+#: kedittoolbar.cpp:1274
 #, kde-format
 msgid ""
 "This element will be replaced with all the elements of an embedded component."
 msgstr "この要素は、すべての埋め込みコンポーネントの要素で置き換えられます。"
 
-#: kedittoolbar.cpp:1249
+#: kedittoolbar.cpp:1276
 #, kde-format
 msgid "<Merge>"
 msgstr "<マージ>"
 
-#: kedittoolbar.cpp:1251
+#: kedittoolbar.cpp:1278
 #, kde-format
 msgid "<Merge %1>"
 msgstr "<マージ %1>"
 
-#: kedittoolbar.cpp:1261
+#: kedittoolbar.cpp:1288
 #, kde-format
 msgid ""
 "This is a dynamic list of actions. You can move it, but if you remove it you "
@@ -619,18 +626,18 @@ msgstr ""
 "これはアクションの動的なリストです。アクションは移動できますが、削除すると再"
 "び追加することはできません。"
 
-#: kedittoolbar.cpp:1262
+#: kedittoolbar.cpp:1289
 #, kde-format
 msgid "ActionList: %1"
 msgstr "アクションリスト: %1"
 
-#: kedittoolbar.cpp:1363 kedittoolbar.cpp:1388
+#: kedittoolbar.cpp:1390 kedittoolbar.cpp:1415
 #, kde-format
 msgctxt "@label Action tooltip in toolbar editor, below the action list"
 msgid "%1"
 msgstr "%1"
 
-#: kedittoolbar.cpp:1616
+#: kedittoolbar.cpp:1643
 #, kde-format
 msgid "Change Icon"
 msgstr "アイコンを変更"
@@ -641,7 +648,7 @@ msgstr "アイコンを変更"
 msgid "&Help"
 msgstr "ヘルプ(&H)"
 
-#: kkeysequencewidget.cpp:146
+#: kkeysequencewidget.cpp:147
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -652,25 +659,25 @@ msgstr ""
 "い。\n"
 "Ctrl+A の例: Ctrl キーを押しながら A を押す。"
 
-#: kkeysequencewidget.cpp:150
+#: kkeysequencewidget.cpp:151
 #, kde-format
 msgctxt "@action:button"
 msgid "Clear"
 msgstr ""
 
-#: kkeysequencewidget.cpp:169
+#: kkeysequencewidget.cpp:170
 #, kde-format
 msgctxt "%1 is the number of conflicts"
 msgid "Shortcut Conflict"
 msgid_plural "Shortcut Conflicts"
 msgstr[0] "ショートカット競合"
 
-#: kkeysequencewidget.cpp:173
+#: kkeysequencewidget.cpp:174
 #, kde-format
 msgid "Shortcut '%1' for action '%2'\n"
 msgstr "アクション '%2' のショートカット '%1'\n"
 
-#: kkeysequencewidget.cpp:178
+#: kkeysequencewidget.cpp:179
 #, kde-format
 msgctxt "%1 is the number of ambiguous shortcut clashes (hidden)"
 msgid ""
@@ -686,20 +693,20 @@ msgstr[0] ""
 "これらのアクションに空のショートカットを割り当てますか？\n"
 "%3"
 
-#: kkeysequencewidget.cpp:188 kkeysequencewidget.cpp:295
-#: kkeysequencewidget.cpp:357
+#: kkeysequencewidget.cpp:189 kkeysequencewidget.cpp:296
+#: kkeysequencewidget.cpp:358
 #, kde-format
 msgctxt "@action:button"
 msgid "Reassign"
 msgstr "割り当て直す"
 
-#: kkeysequencewidget.cpp:193
+#: kkeysequencewidget.cpp:194
 #, kde-format
 msgctxt "@title:window"
 msgid "Shortcut conflict"
 msgstr "ショートカット競合"
 
-#: kkeysequencewidget.cpp:195
+#: kkeysequencewidget.cpp:196
 #, kde-format
 msgid ""
 "<qt>The '%1' key combination is already used by the <b>%2</b> action."
@@ -708,12 +715,12 @@ msgstr ""
 "<qt>キーの組み合わせ '%1' はアクション <b>%2</b> に割り当てられています。<br>"
 "他の組み合わせを選択してください。</qt>"
 
-#: kkeysequencewidget.cpp:275
+#: kkeysequencewidget.cpp:276
 #, kde-format
 msgid "Shortcut '%1' in Application '%2' for action '%3'\n"
 msgstr "アプリケーション '%2' のアクション '%3' のショートカット '%1'\n"
 
-#: kkeysequencewidget.cpp:284
+#: kkeysequencewidget.cpp:285
 #, kde-format
 msgctxt ""
 "%1 is the number of conflicts (hidden), %2 is the key sequence of the "
@@ -723,19 +730,19 @@ msgid_plural ""
 "The shortcut '%2' conflicts with the following key combinations:\n"
 msgstr[0] "ショートカット %2 は以下のキーの組み合わせと競合します:\n"
 
-#: kkeysequencewidget.cpp:291
+#: kkeysequencewidget.cpp:292
 #, kde-format
 msgctxt "%1 is the number of shortcuts with which there is a conflict"
 msgid "Conflict with Registered Global Shortcut"
 msgid_plural "Conflict with Registered Global Shortcuts"
 msgstr[0] "登録済みのグローバルショートカットと競合します"
 
-#: kkeysequencewidget.cpp:304
+#: kkeysequencewidget.cpp:305
 #, kde-format
 msgid "Reserved Shortcut"
 msgstr "予約済みのショートカット"
 
-#: kkeysequencewidget.cpp:306
+#: kkeysequencewidget.cpp:307
 #, kde-format
 msgid ""
 "The F12 key is reserved on Windows, so cannot be used for a global "
@@ -746,13 +753,13 @@ msgstr ""
 "せん。\n"
 "他のキーを選択してください。"
 
-#: kkeysequencewidget.cpp:349
+#: kkeysequencewidget.cpp:350
 #, kde-format
 msgctxt "@title:window"
 msgid "Conflict with Standard Application Shortcut"
 msgstr "標準アプリケーションショートカットと競合します"
 
-#: kkeysequencewidget.cpp:351
+#: kkeysequencewidget.cpp:352
 #, kde-format
 msgid ""
 "The '%1' key combination is also used for the standard action \"%2\" that "
@@ -763,13 +770,13 @@ msgstr ""
 "'%2' に割り当てられています。\n"
 "本当にこれをグローバルショートカットとしても使いますか？"
 
-#: kkeysequencewidget.cpp:395
+#: kkeysequencewidget.cpp:396
 #, kde-format
 msgctxt "What the user inputs now will be taken as the new shortcut"
 msgid "Input"
 msgstr "入力"
 
-#: kkeysequencewidget.cpp:397 kshortcuteditwidget.cpp:51
+#: kkeysequencewidget.cpp:398 kshortcuteditwidget.cpp:54
 #, kde-format
 msgctxt "No shortcut defined"
 msgid "None"
@@ -787,7 +794,7 @@ msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
 msgstr ""
 "Taiki Komoda,Noboru Sinohara,Toyohiro Asukai,Kurose Shushi,Shinichi Tsunoda,"
-"Ryuichi Yamada"
+"Ryuichi Yamada,Mint"
 
 #: kmainwindow.cpp:258
 #, kde-format
@@ -795,7 +802,7 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr ""
 "kom@kde.gr.jp,shinobo@leo.bekkoame.ne.jp,toyohiro@ksmplus.com,md81@bird."
-"email.ne.jp,tsuno@ngy.1st.ne.jp,ryuichi_ya220@outlook.jp"
+"email.ne.jp,tsuno@ngy.1st.ne.jp,ryuichi_ya220@outlook.jp,5602mint@gmail.com"
 
 #: kmenumenuhandler_p.cpp:37
 #, kde-format
@@ -808,13 +815,13 @@ msgctxt "@action:inmenu"
 msgid "Configure Shortcut…"
 msgstr "ショートカットを設定..."
 
-#: kshortcuteditwidget.cpp:55
+#: kshortcuteditwidget.cpp:58
 #, kde-format
 msgctxt "@option:radio"
 msgid "Default:"
 msgstr "標準:"
 
-#: kshortcuteditwidget.cpp:62
+#: kshortcuteditwidget.cpp:65
 #, kde-format
 msgctxt "@option:radio"
 msgid "Custom:"
@@ -903,23 +910,23 @@ msgctxt "@title:window"
 msgid "Export Shortcuts"
 msgstr "ショートカットをエクスポート"
 
-#: kshortcutschemeseditor.cpp:187 kshortcutschemeseditor.cpp:198
+#: kshortcutschemeseditor.cpp:187 kshortcutschemeseditor.cpp:202
 #, kde-format
 msgid "Shortcuts (*.shortcuts)"
 msgstr "ショートカット (*.shortcuts)"
 
-#: kshortcutschemeseditor.cpp:198
+#: kshortcutschemeseditor.cpp:202
 #, kde-format
 msgctxt "@title:window"
 msgid "Import Shortcuts"
 msgstr "ショートカットをインポート"
 
-#: kshortcutschemeseditor.cpp:209
+#: kshortcutschemeseditor.cpp:213
 #, kde-format
 msgid "Shortcut scheme successfully saved."
 msgstr "ショートカットスキームの保存に成功しました。"
 
-#: kshortcutschemeseditor.cpp:212
+#: kshortcutschemeseditor.cpp:216
 #, kde-format
 msgid "Error saving the shortcut scheme."
 msgstr "ショートカットスキームの保存中にエラーが発生しました。"
@@ -938,7 +945,7 @@ msgstr ""
 msgid "Manage &Schemes"
 msgstr "スキームを管理(&S)"
 
-#: kshortcutsdialog.cpp:149
+#: kshortcutsdialog.cpp:151
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Keyboard Shortcuts"
@@ -1007,45 +1014,45 @@ msgstr "マウスボタンジェスチャー"
 msgid "Mouse Shape Gesture"
 msgstr "マウスシェイプジェスチャー"
 
-#: kshortcutseditor.cpp:521
+#: kshortcutseditor.cpp:526
 #, kde-format
 msgctxt "header for an applications shortcut list"
 msgid "Shortcuts for %1"
 msgstr "%1 のショートカット"
 
 #. i18n: ectx: property (text), widget (QLabel, priLabel)
-#: kshortcutseditor.cpp:541 kshortcutwidget.ui:22
+#: kshortcutseditor.cpp:546 kshortcutwidget.ui:22
 #, kde-format
 msgid "Main:"
 msgstr "メイン:"
 
 #. i18n: ectx: property (text), widget (QLabel, altLabel)
-#: kshortcutseditor.cpp:542 kshortcutwidget.ui:52
+#: kshortcutseditor.cpp:547 kshortcutwidget.ui:52
 #, kde-format
 msgid "Alternate:"
 msgstr "代替:"
 
-#: kshortcutseditor.cpp:543
+#: kshortcutseditor.cpp:548
 #, kde-format
 msgid "Global:"
 msgstr "グローバル:"
 
-#: kshortcutseditor.cpp:544
+#: kshortcutseditor.cpp:549
 #, kde-format
 msgid "Global alternate:"
 msgstr "グローバル代替:"
 
-#: kshortcutseditor.cpp:560
+#: kshortcutseditor.cpp:565
 #, kde-format
 msgid "Action Name"
 msgstr "アクション名"
 
-#: kshortcutseditor.cpp:564
+#: kshortcutseditor.cpp:569
 #, kde-format
 msgid "Shortcuts"
 msgstr "ショートカット"
 
-#: kshortcutseditor.cpp:568
+#: kshortcutseditor.cpp:573
 #, kde-format
 msgid "Description"
 msgstr "説明"
@@ -1056,24 +1063,24 @@ msgctxt "@item:intable Action name in shortcuts configuration"
 msgid "%1"
 msgstr "%1"
 
-#: kswitchlanguagedialog_p.cpp:137
+#: kswitchlanguagedialog_p.cpp:138
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Language"
 msgstr "言語を設定"
 
-#: kswitchlanguagedialog_p.cpp:141
+#: kswitchlanguagedialog_p.cpp:142
 #, kde-format
 msgid "Please choose the language which should be used for this application:"
 msgstr "このアプリケーションに使用する言語を選択してください:"
 
-#: kswitchlanguagedialog_p.cpp:168
+#: kswitchlanguagedialog_p.cpp:169
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Fallback Language"
 msgstr "フォールバック言語を追加"
 
-#: kswitchlanguagedialog_p.cpp:169
+#: kswitchlanguagedialog_p.cpp:170
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1081,7 +1088,7 @@ msgid ""
 "contain a proper translation."
 msgstr "他の言語に適切な翻訳がない場合に使用する言語をもう一つ追加します。"
 
-#: kswitchlanguagedialog_p.cpp:261 kswitchlanguagedialog_p.cpp:282
+#: kswitchlanguagedialog_p.cpp:262 kswitchlanguagedialog_p.cpp:283
 #, kde-format
 msgid ""
 "The language for this application has been changed. The change will take "
@@ -1090,34 +1097,34 @@ msgstr ""
 "このアプリケーションの言語が変更されました。変更はアプリケーションの次回起動"
 "時に有効になります。"
 
-#: kswitchlanguagedialog_p.cpp:262
+#: kswitchlanguagedialog_p.cpp:263
 #, kde-format
 msgctxt "@title:window"
 msgid "Application Language Changed"
 msgstr "アプリケーションの言語が変更されました"
 
-#: kswitchlanguagedialog_p.cpp:283
+#: kswitchlanguagedialog_p.cpp:284
 #, kde-format
 msgid "Application Language Changed"
 msgstr "アプリケーションの言語が変更されました"
 
-#: kswitchlanguagedialog_p.cpp:368
+#: kswitchlanguagedialog_p.cpp:369
 #, kde-format
 msgid "Primary language:"
 msgstr "プライマリ言語:"
 
-#: kswitchlanguagedialog_p.cpp:368
+#: kswitchlanguagedialog_p.cpp:369
 #, kde-format
 msgid "Fallback language:"
 msgstr "フォールバック言語:"
 
-#: kswitchlanguagedialog_p.cpp:383
+#: kswitchlanguagedialog_p.cpp:384
 #, kde-format
 msgctxt "@action:button"
 msgid "Remove"
 msgstr "削除"
 
-#: kswitchlanguagedialog_p.cpp:389
+#: kswitchlanguagedialog_p.cpp:390
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1125,7 +1132,7 @@ msgid ""
 "other languages."
 msgstr "他のどの言語よりも優先してアプリケーションに使用する言語です。"
 
-#: kswitchlanguagedialog_p.cpp:390
+#: kswitchlanguagedialog_p.cpp:391
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1133,109 +1140,109 @@ msgid ""
 "contain a proper translation."
 msgstr "前のどの言語にも適切な翻訳がない場合に使用する言語です。"
 
-#: ktoolbar.cpp:309 ktoolbar.cpp:316
+#: ktoolbar.cpp:311 ktoolbar.cpp:318
 #, kde-format
 msgctxt "@title:menu"
 msgid "Toolbar Settings"
 msgstr "ツールバーの設定"
 
-#: ktoolbar.cpp:311
+#: ktoolbar.cpp:313
 #, kde-format
 msgctxt "@title:menu"
 msgid "Show Text"
 msgstr "テキストを表示"
 
-#: ktoolbar.cpp:318
+#: ktoolbar.cpp:320
 #, kde-format
 msgctxt "Toolbar orientation"
 msgid "Orientation"
 msgstr "方向"
 
-#: ktoolbar.cpp:320
+#: ktoolbar.cpp:322
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Top"
 msgstr "上"
 
-#: ktoolbar.cpp:324
+#: ktoolbar.cpp:326
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Left"
 msgstr "左"
 
-#: ktoolbar.cpp:327
+#: ktoolbar.cpp:329
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Right"
 msgstr "右"
 
-#: ktoolbar.cpp:330
+#: ktoolbar.cpp:332
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Bottom"
 msgstr "下"
 
-#: ktoolbar.cpp:341
+#: ktoolbar.cpp:343
 #, kde-format
 msgid "Text Position"
 msgstr "テキストの位置"
 
-#: ktoolbar.cpp:343
+#: ktoolbar.cpp:345
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Icons Only"
 msgstr "アイコンのみ"
 
-#: ktoolbar.cpp:346
+#: ktoolbar.cpp:348
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Only"
 msgstr "文字のみ"
 
-#: ktoolbar.cpp:349
+#: ktoolbar.cpp:351
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Alongside Icons"
 msgstr "アイコンの横に文字"
 
-#: ktoolbar.cpp:352
+#: ktoolbar.cpp:354
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Under Icons"
 msgstr "アイコンの下に文字"
 
-#: ktoolbar.cpp:363
+#: ktoolbar.cpp:365
 #, kde-format
 msgid "Icon Size"
 msgstr "アイコンサイズ"
 
-#: ktoolbar.cpp:365
+#: ktoolbar.cpp:367
 #, kde-format
 msgctxt "@item:inmenu Icon size"
 msgid "Default"
 msgstr "標準"
 
-#: ktoolbar.cpp:385 ktoolbar.cpp:409
+#: ktoolbar.cpp:387 ktoolbar.cpp:411
 #, kde-format
 msgid "Small (%1x%2)"
 msgstr "小 (%1x%2)"
 
-#: ktoolbar.cpp:387 ktoolbar.cpp:411
+#: ktoolbar.cpp:389 ktoolbar.cpp:413
 #, kde-format
 msgid "Medium (%1x%2)"
 msgstr "中 (%1x%2)"
 
-#: ktoolbar.cpp:389 ktoolbar.cpp:413
+#: ktoolbar.cpp:391 ktoolbar.cpp:415
 #, kde-format
 msgid "Large (%1x%2)"
 msgstr "大 (%1x%2)"
 
-#: ktoolbar.cpp:391 ktoolbar.cpp:415
+#: ktoolbar.cpp:393 ktoolbar.cpp:417
 #, kde-format
 msgid "Huge (%1x%2)"
 msgstr "特大 (%1x%2)"
 
-#: ktoolbar.cpp:441
+#: ktoolbar.cpp:443
 #, kde-format
 msgid "Lock Toolbar Positions"
 msgstr "ツールバーの位置をロック"
@@ -1285,23 +1292,26 @@ msgstr "元に戻す"
 msgid "No text"
 msgstr "テキストなし"
 
-#: kxmlguiwindow.cpp:193
+#: kxmlguiwindow.cpp:203
 #, kde-format
 msgid "Find Action…"
 msgstr "アクションを見つける..."
 
-#: kxmlguiwindow.cpp:563
-#, kde-format
+#: kxmlguiwindow.cpp:572
+#, fuzzy, kde-format
+#| msgid ""
+#| "There are two actions (%1, %2) that want to use the same shortcut (%3). "
+#| "This is most probably a bug. Please report it in <a href='https://bugs."
+#| "kde.org'>bugs.kde.org</a>"
 msgid ""
 "There are two actions (%1, %2) that want to use the same shortcut (%3). This "
-"is most probably a bug. Please report it in <a href='https://bugs.kde."
-"org'>bugs.kde.org</a>"
+"is most probably a bug. Please report it in <a href=\"%4\">%4</a>"
 msgstr ""
 "同じショートカット (%3) を使用している2つのアクション (%1, %2) があります。こ"
 "れはおそらくバグです。<a href='https://bugs.kde.org'>bugs.kde.org</a>でバグの"
 "報告をお願いします。"
 
-#: kxmlguiwindow.cpp:568
+#: kxmlguiwindow.cpp:578
 #, kde-format
 msgid "Ambiguous Shortcuts"
 msgstr "あいまいなショートカット"
@@ -1366,7 +1376,3 @@ msgstr "設定(&S)"
 #, kde-format
 msgid "Main Toolbar"
 msgstr "メインツールバー"
-
-#~ msgctxt "Reference to website"
-#~ msgid "Please use %1 to report bugs.\n"
-#~ msgstr "バグは %1 を使って報告してください。\n"

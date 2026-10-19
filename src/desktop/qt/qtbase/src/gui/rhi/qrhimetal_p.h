@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QRHIMETAL_P_H
 #define QRHIMETAL_P_H
@@ -303,7 +304,12 @@ struct QMetalCommandBuffer : public QRhiCommandBuffer
     int currentFrontFaceWinding;
     std::pair<float, float> currentDepthBiasValues;
     bool hasCustomScissorSet;
+    QRhiScissor currentScissor;
     QRhiViewport currentViewport;
+    bool hasBlendConstantsSet;
+    QColor currentBlendConstants;
+    bool hasStencilRefSet;
+    quint32 currentStencilRef;
 
     const QRhiNativeHandles *nativeHandles();
     void resetState(double lastGpuTime = 0);
@@ -430,6 +436,12 @@ public:
                      quint32 instanceCount, quint32 firstIndex,
                      qint32 vertexOffset, quint32 firstInstance) override;
 
+    void drawIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                      quint32 indirectBufferOffset, quint32 drawCount, quint32 stride) override;
+
+    void drawIndexedIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                             quint32 indirectBufferOffset, quint32 drawCount, quint32 stride) override;
+
     void debugMarkBegin(QRhiCommandBuffer *cb, const QByteArray &name) override;
     void debugMarkEnd(QRhiCommandBuffer *cb) override;
     void debugMarkMsg(QRhiCommandBuffer *cb, const QByteArray &msg) override;
@@ -476,6 +488,8 @@ public:
     void enqueueResourceUpdates(QRhiCommandBuffer *cb, QRhiResourceUpdateBatch *resourceUpdates);
     void executeBufferHostWritesForSlot(QMetalBuffer *bufD, int slot);
     void executeBufferHostWritesForCurrentFrame(QMetalBuffer *bufD);
+    void finalizeDeferredStoreActions(QMetalCommandBuffer *cbD, bool passIsEnding);
+    void interruptRenderPass(QMetalCommandBuffer *cbD);
     static const int SUPPORTED_STAGES = 5;
     void enqueueShaderResourceBindings(QMetalShaderResourceBindings *srbD,
                                        QMetalCommandBuffer *cbD,
@@ -531,6 +545,7 @@ public:
         bool isAppleGPU = false;
         int maxThreadGroupSize = 512;
         bool multiView = false;
+        bool indirectCommandBuffers = false;
         bool shadingRateMap = false;
         bool depthClamp = true;
     } caps;

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdeorg\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-09-16 02:45+0000\n"
 "PO-Revision-Date: 2024-04-22 15:58\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
@@ -14,331 +14,794 @@ msgstr ""
 "X-Crowdin-Project: kdeorg\n"
 "X-Crowdin-Project-ID: 269464\n"
 "X-Crowdin-Language: zh-CN\n"
-"X-Crowdin-File: /kf6-stable/messages/plasma-nm/plasmanetworkmanagement-libs."
+"X-Crowdin-File: /kf6-trunk/messages/plasma-nm/plasmanetworkmanagement-libs."
 "pot\n"
-"X-Crowdin-File-ID: 50280\n"
+"X-Crowdin-File-ID: 42533\n"
 
-#: editor/connectiondetails.cpp:92
+#: cellular/cellularmodem.cpp:148
+#, kde-format
+msgid "Error resetting the modem: %1"
+msgstr "重置调制解调器时出错：%1"
+
+#: cellular/cellularmodem.cpp:405
+#, kde-format
+msgid ""
+"Could not apply the roaming preference. Activating the access point with its "
+"existing setting."
+msgstr "无法应用漫游首选项。使用现有设置激活访问点。"
+
+#: cellular/cellularmodem.cpp:412
+#, kde-format
+msgid "Error activating connection: %1"
+msgstr "激活连接时出错：%1"
+
+#: cellular/cellularmodem.cpp:431
+#, kde-format
+msgid "Cannot change roaming because no access point is available."
+msgstr "无法更改漫游，因为没有可用的访问点。"
+
+#: cellular/cellularmodem.cpp:438
+#, kde-format
+msgid "Error applying roaming preference to the selected access point."
+msgstr "应用漫游首选项到在选定的访问点时出错。"
+
+#: cellular/cellularmodem.cpp:482
+#, kde-format
+msgid "Error adding connection: %1"
+msgstr "添加连接时出错：%1"
+
+#: cellular/cellularmodem.cpp:502
+#, kde-format
+msgid "Error removing connection: %1"
+msgstr "移除连接时出错：%1"
+
+#: cellular/cellularmodem.cpp:539
+#, kde-format
+msgid "Error updating connection settings for %1: %2."
+msgstr "更新 %1 的连接设置时出错：%2。"
+
+#: cellular/cellularmodemdetails.cpp:111 cellular/cellularmodemdetails.cpp:213
+#: cellular/cellularmodemdetails.cpp:245 cellular/cellularmodemdetails.cpp:433
+#: cellular/cellularmodemdetails.cpp:465
+#, kde-format
+msgid "Unknown"
+msgstr "未知"
+
+#: cellular/cellularmodemdetails.cpp:114 cellular/cellularmodemdetails.cpp:468
+#, kde-format
+msgid "POTS"
+msgstr "POTS"
+
+#: cellular/cellularmodemdetails.cpp:117 editor/connectioneditorbase.cpp:283
+#, kde-format
+msgid "GSM"
+msgstr "GSM"
+
+#: cellular/cellularmodemdetails.cpp:120
+#, kde-format
+msgid "GSM Compact"
+msgstr "GSM Compact"
+
+#: cellular/cellularmodemdetails.cpp:123
+#, kde-format
+msgid "GPRS"
+msgstr "GPRS"
+
+#: cellular/cellularmodemdetails.cpp:126
+#, kde-format
+msgid "EDGE"
+msgstr "EDGE"
+
+#: cellular/cellularmodemdetails.cpp:129
+#, kde-format
+msgid "UMTS"
+msgstr "UMTS"
+
+#: cellular/cellularmodemdetails.cpp:132
+#, kde-format
+msgid "HSDPA"
+msgstr "HSDPA"
+
+#: cellular/cellularmodemdetails.cpp:135
+#, kde-format
+msgid "HSUPA"
+msgstr "HSUPA"
+
+#: cellular/cellularmodemdetails.cpp:138
+#, kde-format
+msgid "HSPA"
+msgstr "HSPA"
+
+#: cellular/cellularmodemdetails.cpp:141
+#, kde-format
+msgid "HSPA+"
+msgstr "HSPA+"
+
+#: cellular/cellularmodemdetails.cpp:144
+#, kde-format
+msgid "CDMA2000 1xRTT"
+msgstr "CDMA2000 1xRTT"
+
+#: cellular/cellularmodemdetails.cpp:147
+#, kde-format
+msgid "CDMA2000 EVDO-0"
+msgstr "CDMA2000 EVDO-0"
+
+#: cellular/cellularmodemdetails.cpp:150
+#, kde-format
+msgid "CDMA2000 EVDO-A"
+msgstr "CDMA2000 EVDO-A"
+
+#: cellular/cellularmodemdetails.cpp:153
+#, kde-format
+msgid "CDMA2000 EVDO-B"
+msgstr "CDMA2000 EVDO-B"
+
+#: cellular/cellularmodemdetails.cpp:156
+#, kde-format
+msgid "LTE"
+msgstr "LTE"
+
+#: cellular/cellularmodemdetails.cpp:159
+#, kde-format
+msgid "5GNR"
+msgstr "5GNR"
+
+#: cellular/cellularmodemdetails.cpp:215
+#, kde-format
+msgid "Off"
+msgstr "关闭"
+
+#: cellular/cellularmodemdetails.cpp:217
+#, kde-format
+msgid "Low-power mode"
+msgstr "低功率模式"
+
+#: cellular/cellularmodemdetails.cpp:219
+#, kde-format
+msgid "Full power mode"
+msgstr "全功率模式"
+
+#: cellular/cellularmodemdetails.cpp:243
+#, kde-format
+msgid "Failed"
+msgstr "失败"
+
+#: cellular/cellularmodemdetails.cpp:247
+#, kde-format
+msgid "Initializing"
+msgstr "正在初始化"
+
+#: cellular/cellularmodemdetails.cpp:249
+#, kde-format
+msgid "Locked"
+msgstr "已锁定"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: cellular/cellularmodemdetails.cpp:251 editor/settings/ui/ipv6.ui:261
+#, kde-format
+msgid "Disabled"
+msgstr "已禁用"
+
+#: cellular/cellularmodemdetails.cpp:253
+#, kde-format
+msgid "Disabling"
+msgstr "正在禁用"
+
+#: cellular/cellularmodemdetails.cpp:255
+#, kde-format
+msgid "Enabling"
+msgstr "正在启用"
+
+#: cellular/cellularmodemdetails.cpp:257
+#, kde-format
+msgid "Enabled"
+msgstr "已启用"
+
+#: cellular/cellularmodemdetails.cpp:259
+#, kde-format
+msgid "Searching for network provider"
+msgstr "正在搜索网络提供商"
+
+#: cellular/cellularmodemdetails.cpp:261
+#, kde-format
+msgid "Registered with network provider"
+msgstr "已注册到网络提供商"
+
+#: cellular/cellularmodemdetails.cpp:263
+#, kde-format
+msgid "Disconnecting"
+msgstr "正在断开连接"
+
+#: cellular/cellularmodemdetails.cpp:265
+#, kde-format
+msgid "Connecting"
+msgstr "正在连接"
+
+#: cellular/cellularmodemdetails.cpp:267
+#, kde-format
+msgid "Connected"
+msgstr "已连接"
+
+#: cellular/cellularmodemdetails.cpp:276
+#, kde-format
+msgid "No error."
+msgstr "无错误。"
+
+#: cellular/cellularmodemdetails.cpp:278
+#, kde-format
+msgid "Unknown error."
+msgstr "未知错误。"
+
+#: cellular/cellularmodemdetails.cpp:280
+#, kde-format
+msgid "SIM is required but missing."
+msgstr "SIM 卡是必需的，但缺失。"
+
+#: cellular/cellularmodemdetails.cpp:282
+#, kde-format
+msgid "SIM is available but unusable."
+msgstr "SIM 卡存在，但不可用。"
+
+#: cellular/cellularmodemdetails.cpp:284
+#, kde-format
+msgid "Unknown modem capabilities."
+msgstr "未知调制解调器功能。"
+
+#: cellular/cellularmodemdetails.cpp:286
+#, kde-format
+msgid "eSIM is not initialized."
+msgstr "eSIM 卡未初始化。"
+
+#: cellular/cellularmodemdetails.cpp:312
+#, kde-format
+msgid "Not registered, not searching for new operator to register."
+msgstr "未注册，未在搜索新的运营商进行注册。"
+
+#: cellular/cellularmodemdetails.cpp:314
+#, kde-format
+msgid "Registered on home network."
+msgstr "已注册到家庭网络。"
+
+#: cellular/cellularmodemdetails.cpp:316
+#, kde-format
+msgid "Not registered, searching for new operator to register with."
+msgstr "未注册，正在搜索新的运营商进行注册。"
+
+#: cellular/cellularmodemdetails.cpp:318
+#, kde-format
+msgid "Registration denied."
+msgstr "注册被拒绝。"
+
+#: cellular/cellularmodemdetails.cpp:320
+#, kde-format
+msgid "Unknown registration status."
+msgstr "未知注册状态。"
+
+#: cellular/cellularmodemdetails.cpp:322
+#, kde-format
+msgid "Registered on a roaming network."
+msgstr "已注册到漫游网络。"
+
+#: cellular/cellularmodemdetails.cpp:324
+#, kde-format
+msgid "Registered for \"SMS only\", on home network."
+msgstr "已作为“仅短信”模式注册到家庭网络。"
+
+#: cellular/cellularmodemdetails.cpp:326
+#, kde-format
+msgid "Registered for \"SMS only\", roaming network."
+msgstr "已作为“仅短信”模式注册到漫游网络。"
+
+#: cellular/cellularmodemdetails.cpp:328
+#, kde-format
+msgid "Emergency services only."
+msgstr "只提供紧急服务。"
+
+#: cellular/cellularmodemdetails.cpp:330
+#, kde-format
+msgid "Registered for \"CSFB not preferred\", home network."
+msgstr "已作为“CSFB 非首选”模式注册到家庭网络。"
+
+#: cellular/cellularmodemdetails.cpp:332
+#, kde-format
+msgid "Registered for \"CSFB not preferred\", roaming network."
+msgstr "已作为“CSFB 非首选”模式注册到漫游网络。"
+
+#: cellular/cellularmodemdetails.cpp:334
+#, kde-format
+msgid "Attached for access to Restricted Local Operator Services."
+msgstr "已附加以访问受限的本地运营商服务。"
+
+#: cellular/cellularmodemdetails.cpp:374
+#, kde-format
+msgid "Scanning networks failed: %1"
+msgstr "扫描网络失败：%1"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, metered)
+#: cellular/cellularmodemdetails.cpp:435
+#: editor/settings/ui/connectionwidget.ui:169
+#: editorqml/qml/generalSettings/GeneralSettings.qml:131
+#, kde-format
+msgid "Yes"
+msgstr "是"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, metered)
+#: cellular/cellularmodemdetails.cpp:437
+#: editor/settings/ui/connectionwidget.ui:174
+#: editorqml/qml/generalSettings/GeneralSettings.qml:131
+#, kde-format
+msgid "No"
+msgstr "否"
+
+#: cellular/cellularmodemdetails.cpp:439
+#, kde-format
+msgid "GuessYes"
+msgstr "估计是"
+
+#: cellular/cellularmodemdetails.cpp:441
+#, kde-format
+msgid "GuessNo"
+msgstr "估计否"
+
+#: cellular/cellularmodemdetails.cpp:474
+#, kde-format
+msgid "2G"
+msgstr "2G"
+
+#: cellular/cellularmodemdetails.cpp:485
+#, kde-format
+msgid "3G"
+msgstr "3G"
+
+#: cellular/cellularmodemdetails.cpp:490
+#, kde-format
+msgid "4G"
+msgstr "4G"
+
+#: cellular/cellularmodemdetails.cpp:493
+#, kde-format
+msgid "5G"
+msgstr "5G"
+
+#: cellular/cellularmodemdetails.cpp:496
+#, kde-format
+msgid "Any"
+msgstr "任意"
+
+#: cellular/cellularsim.cpp:83
+#, kde-format
+msgid "Lock reason unknown."
+msgstr "锁定原因未知。"
+
+#: cellular/cellularsim.cpp:85
+#, kde-format
+msgid "Modem is unlocked."
+msgstr "调制解调器已解锁。"
+
+#: cellular/cellularsim.cpp:87
+#, kde-format
+msgid "SIM requires the PIN code."
+msgstr "SIM 卡需要 PIN 码。"
+
+#: cellular/cellularsim.cpp:89
+#, kde-format
+msgid "SIM requires the PIN2 code."
+msgstr "SIM 卡需要 PIN2 码。"
+
+#: cellular/cellularsim.cpp:91
+#, kde-format
+msgid "SIM requires the PUK code."
+msgstr "SIM 卡要求 PUK 码。"
+
+#: cellular/cellularsim.cpp:93
+#, kde-format
+msgid "SIM requires the PUK2 code."
+msgstr "SIM 卡需要 PUK2 码。"
+
+#: cellular/cellularsim.cpp:95
+#, kde-format
+msgid "Modem requires the service provider PIN code."
+msgstr "调制解调器需要运营商 PIN 码。"
+
+#: cellular/cellularsim.cpp:97
+#, kde-format
+msgid "Modem requires the service provider PUK code."
+msgstr "调制解调器需要运营商 PUK 码。"
+
+#: cellular/cellularsim.cpp:99
+#, kde-format
+msgid "Modem requires the network PIN code."
+msgstr "调制解调器需要网络 PIN 码。"
+
+#: cellular/cellularsim.cpp:101
+#, kde-format
+msgid "Modem requires the network PUK code."
+msgstr "调制解调器需要网络 PUK 码。"
+
+#: cellular/cellularsim.cpp:103
+#, kde-format
+msgid "Modem requires the PIN code."
+msgstr "调制解调器需要 PIN 码。"
+
+#: cellular/cellularsim.cpp:105
+#, kde-format
+msgid "Modem requires the corporate PIN code."
+msgstr "调制解调器需要企业 PIN 码。"
+
+#: cellular/cellularsim.cpp:107
+#, kde-format
+msgid "Modem requires the corporate PUK code."
+msgstr "调制解调器需要企业 PUK 码。"
+
+#: cellular/cellularsim.cpp:109
+#, kde-format
+msgid "Modem requires the PH-FSIM PIN code."
+msgstr "调制解调器需要 PH-FSIM PIN 码。"
+
+#: cellular/cellularsim.cpp:111
+#, kde-format
+msgid "Modem requires the PH-FSIM PUK code."
+msgstr "调制解调器需要 PH-FSIM PUK 码。"
+
+#: cellular/cellularsim.cpp:113
+#, kde-format
+msgid "Modem requires the network subset PIN code."
+msgstr "调制解调器需要网络子集 PIN 码。"
+
+#: cellular/cellularsim.cpp:115
+#, kde-format
+msgid "Modem requires the network subset PUK code."
+msgstr "调制解调器需要网络子集 PUK 码。"
+
+#: cellular/cellularsim.cpp:158
+#, kde-format
+msgid "(empty)"
+msgstr "(空)"
+
+#: cellular/cellularsim.cpp:172
+#, kde-format
+msgid "Error toggling SIM lock: %1"
+msgstr "锁定/解锁 SIM 卡时出错：%1"
+
+#: cellular/cellularsim.cpp:181
+#, kde-format
+msgid "Error changing the PIN: %1"
+msgstr "更改 PIN 码时出错：%1"
+
+#: cellular/cellularsim.cpp:194
+#, kde-format
+msgid "Error sending the PIN: %1"
+msgstr "发送 PIN 码时出错：%1"
+
+#: cellular/cellularsim.cpp:207
+#, kde-format
+msgid "Error sending the PUK: %1"
+msgstr "发送 PUK 码时出错：%1"
+
+#: editor/connectiondetails.cpp:91
 #, kde-format
 msgid "Connection speed"
 msgstr "连接速度"
 
-#: editor/connectiondetails.cpp:94 editor/connectiondetails.cpp:169
-#: editor/connectiondetails.cpp:247 editor/connectiondetails.cpp:257
-#: editor/connectiondetails.cpp:267 editor/connectiondetails.cpp:277
-#: editor/connectiondetails.cpp:288 editor/connectiondetails.cpp:302
+#: editor/connectiondetails.cpp:93 editor/connectiondetails.cpp:168
+#: editor/connectiondetails.cpp:252 editor/connectiondetails.cpp:262
+#: editor/connectiondetails.cpp:272 editor/connectiondetails.cpp:282
+#: editor/connectiondetails.cpp:293 editor/connectiondetails.cpp:307
 #, kde-format
 msgid "MAC Address"
 msgstr "MAC 地址"
 
-#: editor/connectiondetails.cpp:97 editor/settings/bondwidget.cpp:36
+#: editor/connectiondetails.cpp:96 editor/settings/bondwidget.cpp:36
 #: editor/settings/bridgewidget.cpp:33 editor/settings/teamwidget.cpp:36
 #, kde-format
 msgid "Ethernet"
 msgstr "以太网"
 
-#: editor/connectiondetails.cpp:132
+#: editor/connectiondetails.cpp:131
 #, kde-format
 msgid "Access Point (SSID)"
 msgstr "接入点 (SSID)"
 
-#: editor/connectiondetails.cpp:136
+#: editor/connectiondetails.cpp:135
 #, kde-format
 msgid "Signal Strength"
 msgstr "信号强度"
 
-#: editor/connectiondetails.cpp:136
+#: editor/connectiondetails.cpp:135
 #, kde-format
 msgctxt "Wi-Fi signal strength percentage indicator"
 msgid "%1%"
 msgstr "%1%"
 
-#: editor/connectiondetails.cpp:141 editor/connectiondetails.cpp:151
+#: editor/connectiondetails.cpp:140 editor/connectiondetails.cpp:150
 #, kde-format
 msgid "Security Type"
 msgstr "安全性类型"
 
-#: editor/connectiondetails.cpp:156
+#: editor/connectiondetails.cpp:155
 #, kde-format
 msgid "Connection Speed"
 msgstr "连接速度"
 
-#: editor/connectiondetails.cpp:163 editor/connectiondetails.cpp:165
+#: editor/connectiondetails.cpp:162 editor/connectiondetails.cpp:164
 #, kde-format
 msgid "Frequency"
 msgstr "频段"
 
-#: editor/connectiondetails.cpp:163
+#: editor/connectiondetails.cpp:162
 #, kde-format
 msgctxt "Frequency (Channel)"
 msgid "%1 (Channel %2)"
 msgstr "%1 (频道 %2)"
 
-#: editor/connectiondetails.cpp:167
+#: editor/connectiondetails.cpp:166
 #, kde-format
 msgid "BSSID"
 msgstr "BSSID"
 
-#: editor/connectiondetails.cpp:172 editor/connectioneditorbase.cpp:222
+#: editor/connectiondetails.cpp:171 editor/connectioneditorbase.cpp:262
 #: editor/settings/bridgewidget.cpp:39 editor/settings/teamwidget.cpp:42
-#: editor/uiutils.cpp:226 models/creatableconnectionsmodel.cpp:173
+#: editor/uiutils.cpp:226 editorqml/qml/components/Wireless.qml:33
+#: models/creatableconnectionsmodel.cpp:173
 #, kde-format
 msgid "Wi-Fi"
 msgstr "Wi-Fi"
 
-#: editor/connectiondetails.cpp:187
+#: editor/connectiondetails.cpp:186
 #, kde-format
 msgid "Operator"
 msgstr "运营商"
 
-#: editor/connectiondetails.cpp:192
+#: editor/connectiondetails.cpp:191
 #, kde-format
 msgid "Network ID"
 msgstr "网络 ID"
 
-#: editor/connectiondetails.cpp:196
+#: editor/connectiondetails.cpp:195
 #, kde-format
 msgid "Signal Quality"
 msgstr "信号质量"
 
-#: editor/connectiondetails.cpp:197
+#: editor/connectiondetails.cpp:196
 #, kde-format
 msgid "Access Technology"
 msgstr "接入技术"
 
-#: editor/connectiondetails.cpp:203 models/creatableconnectionsmodel.cpp:149
+#: editor/connectiondetails.cpp:202 models/creatableconnectionsmodel.cpp:149
 #, kde-format
 msgid "Mobile Broadband"
 msgstr "移动宽带"
 
-#: editor/connectiondetails.cpp:214 editor/connectiondetails.cpp:235
+#: editor/connectiondetails.cpp:219 editor/connectiondetails.cpp:240
 #, kde-format
 msgid "VPN Plugin"
 msgstr "VPN 插件"
 
-#: editor/connectiondetails.cpp:225
+#: editor/connectiondetails.cpp:230
 #, kde-format
 msgid "Banner"
 msgstr "横幅"
 
-#: editor/connectiondetails.cpp:229 editor/connectiondetails.cpp:236
-#: editor/uiutils.cpp:218 networkstatus.cpp:190
+#: editor/connectiondetails.cpp:234 editor/connectiondetails.cpp:241
+#: editor/uiutils.cpp:218 editorqml/qml/components/Vpn.qml:32
+#: networkstatus.cpp:190
 #, kde-format
 msgid "VPN"
 msgstr "VPN"
 
-#: editor/connectiondetails.cpp:235 models/creatableconnectionsmodel.cpp:254
+#: editor/connectiondetails.cpp:240 models/creatableconnectionsmodel.cpp:254
 #: models/creatableconnectionsmodel.cpp:256 networkstatus.cpp:212
 #, kde-format
 msgid "WireGuard"
 msgstr "WireGuard"
 
-#: editor/connectiondetails.cpp:241
+#: editor/connectiondetails.cpp:246
 #, kde-format
 msgid "Name"
 msgstr "名称"
 
-#: editor/connectiondetails.cpp:243 editor/connectiondetails.cpp:245
+#: editor/connectiondetails.cpp:248 editor/connectiondetails.cpp:250
 #, kde-format
 msgid "Capabilities"
 msgstr "功能"
 
-#: editor/connectiondetails.cpp:250 editor/connectioneditorbase.cpp:242
+#: editor/connectiondetails.cpp:255 editor/connectioneditorbase.cpp:278
 #: editor/uiutils.cpp:194
 #, kde-format
 msgid "Bluetooth"
 msgstr "蓝牙"
 
-#: editor/connectiondetails.cpp:255 editor/connectiondetails.cpp:265
-#: editor/connectiondetails.cpp:275 editor/connectiondetails.cpp:285
-#: editor/connectiondetails.cpp:295 editor/connectiondetails.cpp:300
+#: editor/connectiondetails.cpp:260 editor/connectiondetails.cpp:270
+#: editor/connectiondetails.cpp:280 editor/connectiondetails.cpp:290
+#: editor/connectiondetails.cpp:300 editor/connectiondetails.cpp:305
 #, kde-format
 msgid "Type"
 msgstr "类型"
 
-#: editor/connectiondetails.cpp:255 editor/connectiondetails.cpp:260
-#: editor/connectioneditorbase.cpp:253 editor/settings/teamwidget.cpp:39
+#: editor/connectiondetails.cpp:260 editor/connectiondetails.cpp:265
+#: editor/connectioneditorbase.cpp:289 editor/settings/teamwidget.cpp:39
 #: editor/uiutils.cpp:209 models/creatableconnectionsmodel.cpp:142
 #, kde-format
 msgid "Infiniband"
 msgstr "Infiniband"
 
-#: editor/connectiondetails.cpp:265 editor/connectiondetails.cpp:270
-#: editor/connectioneditorbase.cpp:256 editor/uiutils.cpp:198
+#: editor/connectiondetails.cpp:270 editor/connectiondetails.cpp:275
+#: editor/connectioneditorbase.cpp:292 editor/uiutils.cpp:198
 #: models/creatableconnectionsmodel.cpp:190
 #, kde-format
 msgid "Bond"
 msgstr "多网卡绑定 (Bond)"
 
-#: editor/connectiondetails.cpp:275 editor/connectiondetails.cpp:280
-#: editor/connectioneditorbase.cpp:259 editor/uiutils.cpp:201
+#: editor/connectiondetails.cpp:280 editor/connectiondetails.cpp:285
+#: editor/connectioneditorbase.cpp:295 editor/uiutils.cpp:201
 #: models/creatableconnectionsmodel.cpp:200
 #, kde-format
 msgid "Bridge"
 msgstr "桥接 (Bridge)"
 
-#: editor/connectiondetails.cpp:285 editor/connectiondetails.cpp:291
-#: editor/connectioneditorbase.cpp:262 models/creatableconnectionsmodel.cpp:220
+#: editor/connectiondetails.cpp:290 editor/connectiondetails.cpp:296
+#: editor/connectioneditorbase.cpp:298 models/creatableconnectionsmodel.cpp:220
 #, kde-format
 msgid "Vlan"
 msgstr "虚拟局域网 (Vlan)"
 
-#: editor/connectiondetails.cpp:287
+#: editor/connectiondetails.cpp:292
 #, kde-format
 msgid "Vlan ID"
 msgstr "VLAN ID"
 
-#: editor/connectiondetails.cpp:295 editor/connectiondetails.cpp:296
+#: editor/connectiondetails.cpp:300 editor/connectiondetails.cpp:301
 #, kde-format
 msgid "Adsl"
 msgstr "ADSL"
 
-#: editor/connectiondetails.cpp:300 editor/connectiondetails.cpp:305
-#: editor/connectioneditorbase.cpp:265 editor/uiutils.cpp:230
+#: editor/connectiondetails.cpp:305 editor/connectiondetails.cpp:310
+#: editor/connectioneditorbase.cpp:301 editor/uiutils.cpp:230
 #: models/creatableconnectionsmodel.cpp:210
 #, kde-format
 msgid "Team"
 msgstr "网络组 (Team)"
 
-#: editor/connectiondetails.cpp:311 editor/connectiondetails.cpp:315
+#: editor/connectiondetails.cpp:316 editor/connectiondetails.cpp:320
 #, kde-format
 msgid "Device"
 msgstr "设备"
 
-#: editor/connectiondetails.cpp:316
+#: editor/connectiondetails.cpp:321 editorqml/qml/components/Vpn.qml:28
+#: editorqml/qml/components/Wired.qml:30
+#: editorqml/qml/components/Wireless.qml:30
+#: editorqml/qml/ConfigurationDialog.qml:34 editorqml/qml/vpn/ssh/Ssh.qml:30
+#: editorqml/qml/vpn/sstp/Sstp.qml:26
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:238
 #, kde-format
 msgid "General"
 msgstr "常规"
 
-#: editor/connectiondetails.cpp:325
+#: editor/connectiondetails.cpp:330
 #, kde-format
 msgid "IPv4 Address"
 msgstr "IPv4 地址"
 
-#: editor/connectiondetails.cpp:331
+#: editor/connectiondetails.cpp:336
 #, kde-format
 msgid "IPv4 Default Gateway"
 msgstr "IPv4 默认网关"
 
-#: editor/connectiondetails.cpp:338
+#: editor/connectiondetails.cpp:343
 #, kde-format
 msgid "IPv4 Primary Nameserver"
 msgstr "IPv4 主域名服务器"
 
-#: editor/connectiondetails.cpp:342
+#: editor/connectiondetails.cpp:347
 #, kde-format
 msgid "IPv4 Secondary Nameserver"
 msgstr "IPv4 副域名服务器"
 
-#: editor/connectiondetails.cpp:347 editor/connectioneditorbase.cpp:298
+#: editor/connectiondetails.cpp:352 editor/connectioneditorbase.cpp:334
+#: editorqml/qml/components/Vpn.qml:36 editorqml/qml/components/Wired.qml:39
+#: editorqml/qml/components/Wireless.qml:39
 #, kde-format
 msgid "IPv4"
 msgstr "IPv4"
 
-#: editor/connectiondetails.cpp:357
+#: editor/connectiondetails.cpp:362
 #, kde-format
 msgid "IPv6 Address"
 msgstr "IPv6 地址"
 
-#: editor/connectiondetails.cpp:359
+#: editor/connectiondetails.cpp:364
 #, kde-format
 msgid "IPv6 ULA Address"
 msgstr "IPv6 ULA 地址"
 
-#: editor/connectiondetails.cpp:365
+#: editor/connectiondetails.cpp:370
 #, kde-format
 msgid "IPv6 Default Gateway"
 msgstr "IPv6 默认网关"
 
-#: editor/connectiondetails.cpp:372
+#: editor/connectiondetails.cpp:377
 #, kde-format
 msgid "IPv6 Primary Nameserver"
 msgstr "IPv6 主域名服务器"
 
-#: editor/connectiondetails.cpp:376
+#: editor/connectiondetails.cpp:381
 #, kde-format
 msgid "IPv6 Secondary Nameserver"
 msgstr "IPv6 副域名服务器"
 
-#: editor/connectiondetails.cpp:381 editor/connectioneditorbase.cpp:316
+#: editor/connectiondetails.cpp:386 editor/connectioneditorbase.cpp:352
+#: editorqml/qml/components/Vpn.qml:43 editorqml/qml/components/Wired.qml:42
+#: editorqml/qml/components/Wireless.qml:42
 #, kde-format
 msgid "IPv6"
 msgstr "IPv6"
 
-#: editor/connectioneditorbase.cpp:203
+#: editor/connectioneditorbase.cpp:228
 #, kde-format
 msgctxt "@title:tab Connection status and details"
 msgid "Status"
 msgstr "状态"
 
-#: editor/connectioneditorbase.cpp:209
+#: editor/connectioneditorbase.cpp:234
 #, kde-format
 msgctxt "@title:tab General configuration"
 msgid "General"
 msgstr "常规"
 
-#: editor/connectioneditorbase.cpp:216 editor/connectioneditorbase.cpp:233
+#: editor/connectioneditorbase.cpp:241 editor/connectioneditorbase.cpp:269
+#: editorqml/qml/components/Wired.qml:33
 #, kde-format
 msgid "Wired"
 msgstr "有线连接"
 
-#: editor/connectioneditorbase.cpp:219
+#: editor/connectioneditorbase.cpp:244 editorqml/qml/components/Wired.qml:36
 #, kde-format
 msgid "802.1x Security"
 msgstr "802.1x 安全性"
 
-#: editor/connectioneditorbase.cpp:226
-#, kde-format
-msgid "Wi-Fi Security"
-msgstr "Wi-Fi 安全性"
-
-#: editor/connectioneditorbase.cpp:231 editor/uiutils.cpp:190
+#: editor/connectioneditorbase.cpp:267 editor/uiutils.cpp:190
 #: models/creatableconnectionsmodel.cpp:135
 #, kde-format
 msgid "DSL"
 msgstr "DSL"
 
-#: editor/connectioneditorbase.cpp:236 editor/connectioneditorbase.cpp:239
+#: editor/connectioneditorbase.cpp:272 editor/connectioneditorbase.cpp:275
 #, kde-format
 msgid "Mobile Broadband (%1)"
 msgstr "移动宽带 (%1)"
 
-#: editor/connectioneditorbase.cpp:247
-#, kde-format
-msgid "GSM"
-msgstr "GSM"
-
-#: editor/connectioneditorbase.cpp:249 editor/connectioneditorbase.cpp:292
+#: editor/connectioneditorbase.cpp:285 editor/connectioneditorbase.cpp:328
 #, kde-format
 msgid "PPP"
 msgstr "PPP"
 
-#: editor/connectioneditorbase.cpp:268
+#: editor/connectioneditorbase.cpp:304
 #, kde-format
 msgid "WireGuard Interface"
 msgstr "WireGuard 接口"
 
-#: editor/connectioneditorbase.cpp:281
+#: editor/connectioneditorbase.cpp:317
 #, kde-format
 msgid "VPN (%1)"
 msgstr "VPN (%1)"
 
-#: editor/connectioneditorbase.cpp:499
+#: editor/connectioneditorbase.cpp:541
 #, kde-format
 msgid "Failed to get secrets for %1"
 msgstr "获取 %1 的密码失败"
 
-#: editor/connectioneditordialog.cpp:33
+#: editor/connectioneditordialog.cpp:36
 #, kde-format
 msgid "New Connection (%1)"
 msgstr "新建连接 (%1)"
 
-#: editor/connectioneditordialog.cpp:35
+#: editor/connectioneditordialog.cpp:38
 #, kde-format
 msgid "Edit Connection '%1'"
 msgstr "编辑连接“%1”"
 
-#: editor/connectioneditortabwidget.cpp:50
+#: editor/connectioneditortabwidget.cpp:58
 #, kde-format
 msgid "New %1 connection"
 msgstr "新建 %1 连接"
@@ -437,6 +900,7 @@ msgid "PAN (personal area network)"
 msgstr "PAN (个人区域网络)"
 
 #: editor/settings/connectionstatuswidget.cpp:33
+#: editorqml/qml/wifistatus/ConnectionStatusForm.qml:15
 #, kde-format
 msgid "Disconnected"
 msgstr "已断开"
@@ -469,7 +933,7 @@ msgstr "地址"
 #, kde-format
 msgctxt "Header text for IPv4 netmask"
 msgid "Netmask"
-msgstr "子网掩码"
+msgstr "网络掩码"
 
 #: editor/settings/ipv4widget.cpp:60 editor/widgets/ipv4routeswidget.cpp:29
 #, kde-format
@@ -478,6 +942,8 @@ msgid "Gateway"
 msgstr "网关"
 
 #: editor/settings/ipv4widget.cpp:267 editor/settings/ipv6widget.cpp:258
+#: editorqml/settings/ipv4settings/ipv4settings.cpp:232
+#: editorqml/settings/ipv6settings/ipv6settings.cpp:229
 #, kde-format
 msgid "Other DNS Servers:"
 msgstr "其他 DNS 服务器："
@@ -486,6 +952,8 @@ msgstr "其他 DNS 服务器："
 #: editor/settings/ipv4widget.cpp:306 editor/settings/ipv4widget.cpp:319
 #: editor/settings/ipv6widget.cpp:271 editor/settings/ipv6widget.cpp:284
 #: editor/settings/ipv6widget.cpp:297 editor/settings/ipv6widget.cpp:310
+#: editorqml/settings/ipv4settings/ipv4settings.cpp:232
+#: editorqml/settings/ipv6settings/ipv6settings.cpp:229
 #, kde-format
 msgid "DNS Servers:"
 msgstr "DNS 服务器："
@@ -507,13 +975,13 @@ msgstr ""
 msgid "Send hostname:"
 msgstr "发送主机名："
 
-#: editor/settings/ipv4widget.cpp:436
+#: editor/settings/ipv4widget.cpp:436 editorqml/qml/ipv4/IPv4Advance.qml:53
 #, kde-format
 msgid "DHCP hostname:"
 msgstr "DHCP 主机名："
 
 #. i18n: ectx: property (text), item, widget (KComboBox, privacyCombo)
-#: editor/settings/ipv4widget.cpp:441 editor/settings/ui/ipv6.ui:194
+#: editor/settings/ipv4widget.cpp:441 editor/settings/ui/ipv6.ui:191
 #, kde-format
 msgid "Default"
 msgstr "默认"
@@ -524,7 +992,7 @@ msgctxt "Milliseconds"
 msgid " ms"
 msgstr " 毫秒"
 
-#: editor/settings/ipv4widget.cpp:445
+#: editor/settings/ipv4widget.cpp:445 editorqml/qml/ipv4/IPv4Advance.qml:63
 #, kde-format
 msgid "DAD timeout:"
 msgstr "DAD 超时："
@@ -557,12 +1025,12 @@ msgctxt "Header text for IPv6 gateway"
 msgid "Gateway"
 msgstr "网关"
 
-#: editor/settings/security802-1x.cpp:507
+#: editor/settings/security802-1x.cpp:542
 #, kde-format
 msgid "Alternative Subject Matches"
 msgstr "备用主体匹配"
 
-#: editor/settings/security802-1x.cpp:509
+#: editor/settings/security802-1x.cpp:544
 #, kde-format
 msgid ""
 "<qt>This entry must be one of:<ul><li>DNS: &lt;name or ip address&gt;</"
@@ -573,7 +1041,7 @@ msgstr ""
 "li><li>EMAIL：&lt;电子邮件地址&gt;</li><li>URI：&lt;URI，例如 https://www."
 "kde.org&gt;</li></ul></qt>"
 
-#: editor/settings/security802-1x.cpp:526
+#: editor/settings/security802-1x.cpp:561
 #, kde-format
 msgid "Connect to these servers only"
 msgstr "只连接到这些服务器："
@@ -585,51 +1053,68 @@ msgstr "选择要导入的文件"
 
 #. i18n: ectx: property (text), widget (QLabel, label)
 #. i18n: ectx: property (text), widget (QLabel, label_4)
-#: editor/settings/ui/802-1x.ui:18 editor/settings/ui/wifisecurity.ui:153
+#: editor/settings/ui/802-1x.ui:33 editor/settings/ui/wifisecurity.ui:174
+#: editorqml/qml/wifisecurity/authentication/enterprise/DynamicWep.qml:51
+#: editorqml/qml/wifisecurity/authentication/enterprise/Wpa3Enterprise192.qml:31
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:53
+#: editorqml/qml/wifisecurity/authentication/WepKey.qml:48
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:34
 #, kde-format
 msgid "Authentication:"
 msgstr "身份验证："
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
 #. i18n: ectx: property (text), item, widget (KComboBox, peapInnerAuth)
-#: editor/settings/ui/802-1x.ui:38 editor/settings/ui/802-1x.ui:687
+#: editor/settings/ui/802-1x.ui:53 editor/settings/ui/802-1x.ui:671
 #, kde-format
 msgid "MD5"
 msgstr "MD5"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:43
+#: editor/settings/ui/802-1x.ui:58
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "TLS"
 msgstr "TLS"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/802-1x.ui:48 editor/settings/ui/wifisecurity.ui:55
+#: editor/settings/ui/802-1x.ui:63 editor/settings/ui/wifisecurity.ui:70
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:26
 #, kde-format
 msgid "LEAP"
 msgstr "LEAP"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:53
+#: editor/settings/ui/802-1x.ui:68
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "PWD"
 msgstr "PWD"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:58
+#: editor/settings/ui/802-1x.ui:73
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "FAST"
 msgstr "FAST"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:63
+#: editor/settings/ui/802-1x.ui:78
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "Tunneled TLS (TTLS)"
 msgstr "隧道式 TLS (TTLS)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, auth)
-#: editor/settings/ui/802-1x.ui:68
+#: editor/settings/ui/802-1x.ui:83
+#: editorqml/qml/wifisecurity/authentication/enterprise/WpaEnterprise.qml:26
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:39
 #, kde-format
 msgid "Protected EAP (PEAP)"
 msgstr "受保护的 EAP (PEAP)"
@@ -641,11 +1126,20 @@ msgstr "受保护的 EAP (PEAP)"
 #. i18n: ectx: property (text), widget (QLabel, label_17)
 #. i18n: ectx: property (text), widget (QLabel, label_25)
 #. i18n: ectx: property (text), widget (QLabel, label_8)
-#: editor/settings/ui/802-1x.ui:83 editor/settings/ui/802-1x.ui:283
-#: editor/settings/ui/802-1x.ui:317 editor/settings/ui/802-1x.ui:448
-#: editor/settings/ui/802-1x.ui:554 editor/settings/ui/802-1x.ui:700
+#: editor/settings/ui/802-1x.ui:91 editor/settings/ui/802-1x.ui:283
+#: editor/settings/ui/802-1x.ui:313 editor/settings/ui/802-1x.ui:440
+#: editor/settings/ui/802-1x.ui:542 editor/settings/ui/802-1x.ui:684
 #: editor/settings/ui/cdma.ui:37 editor/settings/ui/gsm.ui:41
-#: editor/settings/ui/pppoe.ui:37 editor/settings/ui/wifisecurity.ui:183
+#: editor/settings/ui/pppoe.ui:37 editor/settings/ui/wifisecurity.ui:207
+#: editorqml/qml/vpn/sstp/Sstp.qml:43
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:265
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:173
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapLeap.qml:25
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapMd5.qml:22
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:152
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:94
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:141
+#: editorqml/qml/wifisecurity/authentication/Leap.qml:24
 #, kde-format
 msgid "Username:"
 msgstr "用户名："
@@ -657,18 +1151,19 @@ msgstr "用户名："
 #. i18n: ectx: property (text), widget (QLabel, label_18)
 #. i18n: ectx: property (text), widget (QLabel, label_21)
 #. i18n: ectx: property (text), widget (QLabel, label_9)
-#: editor/settings/ui/802-1x.ui:96 editor/settings/ui/802-1x.ui:296
-#: editor/settings/ui/802-1x.ui:330 editor/settings/ui/802-1x.ui:461
-#: editor/settings/ui/802-1x.ui:567 editor/settings/ui/802-1x.ui:713
+#: editor/settings/ui/802-1x.ui:104 editor/settings/ui/802-1x.ui:296
+#: editor/settings/ui/802-1x.ui:326 editor/settings/ui/802-1x.ui:453
+#: editor/settings/ui/802-1x.ui:555 editor/settings/ui/802-1x.ui:697
 #: editor/settings/ui/cdma.ui:50 editor/settings/ui/gsm.ui:54
-#: editor/settings/ui/pppoe.ui:50 editor/settings/ui/wifisecurity.ui:196
-#: editor/settings/ui/wifisecurity.ui:213
+#: editor/settings/ui/pppoe.ui:50 editor/settings/ui/wifisecurity.ui:223
+#: editor/settings/ui/wifisecurity.ui:243 editorqml/qml/PasswordField.qml:15
 #, kde-format
 msgid "Password:"
 msgstr "密码："
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
-#: editor/settings/ui/802-1x.ui:117
+#: editor/settings/ui/802-1x.ui:121
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:23
 #, kde-format
 msgid "Identity:"
 msgstr "身份："
@@ -676,14 +1171,18 @@ msgstr "身份："
 #. i18n: ectx: property (text), widget (QLabel, label_32)
 #. i18n: ectx: property (text), widget (QLabel, label_30)
 #. i18n: ectx: property (text), widget (QLabel, label_31)
-#: editor/settings/ui/802-1x.ui:130 editor/settings/ui/802-1x.ui:584
-#: editor/settings/ui/802-1x.ui:730
+#: editor/settings/ui/802-1x.ui:134 editor/settings/ui/802-1x.ui:572
+#: editor/settings/ui/802-1x.ui:714
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:101
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:30
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:102
 #, kde-format
 msgid "Domain:"
 msgstr "域："
 
 #. i18n: ectx: property (text), widget (QLabel, label_5)
-#: editor/settings/ui/802-1x.ui:140
+#: editor/settings/ui/802-1x.ui:144
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:49
 #, kde-format
 msgid "User certificate:"
 msgstr "用户证书："
@@ -691,47 +1190,72 @@ msgstr "用户证书："
 #. i18n: ectx: property (text), widget (QLabel, label_6)
 #. i18n: ectx: property (text), widget (QLabel, label_20)
 #. i18n: ectx: property (text), widget (QLabel, label_23)
-#: editor/settings/ui/802-1x.ui:159 editor/settings/ui/802-1x.ui:495
-#: editor/settings/ui/802-1x.ui:611
+#: editor/settings/ui/802-1x.ui:163 editor/settings/ui/802-1x.ui:483
+#: editor/settings/ui/802-1x.ui:595
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:110
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:68
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:111
 #, kde-format
 msgid "CA certificate:"
 msgstr "CA 证书："
 
 #. i18n: ectx: property (text), widget (QLabel, label_27)
-#: editor/settings/ui/802-1x.ui:178
+#: editor/settings/ui/802-1x.ui:182
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:26
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:26
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:24
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:75
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:26
 #, kde-format
 msgid "Subject match:"
 msgstr "主体匹配："
 
 #. i18n: ectx: property (text), widget (QLabel, label_28)
-#: editor/settings/ui/802-1x.ui:195
+#: editor/settings/ui/802-1x.ui:199
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:48
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:48
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:46
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:95
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:48
 #, kde-format
 msgid "Alternative subject matches:"
 msgstr "备用主体匹配："
 
 #. i18n: ectx: property (text), widget (QPushButton, btnTlsAltSubjectMatches)
 #. i18n: ectx: property (text), widget (QPushButton, btnTlsConnectToServers)
-#: editor/settings/ui/802-1x.ui:210 editor/settings/ui/802-1x.ui:234
+#: editor/settings/ui/802-1x.ui:214 editor/settings/ui/802-1x.ui:238
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:74
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:74
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:72
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:118
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:74
 #, kde-format
 msgid "…"
 msgstr "…"
 
 #. i18n: ectx: property (text), widget (QLabel, label_29)
-#: editor/settings/ui/802-1x.ui:219
+#: editor/settings/ui/802-1x.ui:223
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:63
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:63
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPwd.qml:61
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:108
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:63
 #, kde-format
 msgid "Connect to these servers:"
 msgstr "连接到这些服务器："
 
 #. i18n: ectx: property (text), widget (QLabel, label_7)
 #. i18n: ectx: property (text), widget (QLabel, privateKeyLabel)
-#: editor/settings/ui/802-1x.ui:243
+#: editor/settings/ui/802-1x.ui:247
 #: editor/settings/ui/wireguardinterfacewidget.ui:41
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:152
 #, kde-format
 msgid "Private key:"
 msgstr "私钥："
 
 #. i18n: ectx: property (text), widget (QLabel, label_8)
-#: editor/settings/ui/802-1x.ui:262
+#: editor/settings/ui/802-1x.ui:266
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:159
 #, kde-format
 msgid "Private key password:"
 msgstr "私钥密码："
@@ -739,38 +1263,41 @@ msgstr "私钥密码："
 #. i18n: ectx: property (text), widget (QLabel, label_11)
 #. i18n: ectx: property (text), widget (QLabel, label_19)
 #. i18n: ectx: property (text), widget (QLabel, label_24)
-#: editor/settings/ui/802-1x.ui:351 editor/settings/ui/802-1x.ui:482
-#: editor/settings/ui/802-1x.ui:598
+#: editor/settings/ui/802-1x.ui:343 editor/settings/ui/802-1x.ui:470
+#: editor/settings/ui/802-1x.ui:582
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:93
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:93
 #, kde-format
 msgid "Anonymous identity:"
 msgstr "匿名身份："
 
 #. i18n: ectx: property (text), widget (QCheckBox, fastAllowPacProvisioning)
-#: editor/settings/ui/802-1x.ui:364
+#: editor/settings/ui/802-1x.ui:356
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:105
 #, kde-format
 msgid "Automatic PAC provisioning"
 msgstr "自动 PAC 提供"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, pacMethod)
-#: editor/settings/ui/802-1x.ui:381
+#: editor/settings/ui/802-1x.ui:373
 #, kde-format
 msgid "Anonymous"
 msgstr "匿名"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, pacMethod)
-#: editor/settings/ui/802-1x.ui:386
+#: editor/settings/ui/802-1x.ui:378
 #, kde-format
 msgid "Authenticated"
 msgstr "已通过身份验证"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, pacMethod)
-#: editor/settings/ui/802-1x.ui:391
+#: editor/settings/ui/802-1x.ui:383
 #, kde-format
 msgid "Both"
 msgstr "两者皆有"
 
 #. i18n: ectx: property (text), widget (QLabel, label_12)
-#: editor/settings/ui/802-1x.ui:399
+#: editor/settings/ui/802-1x.ui:391
 #, kde-format
 msgid "PAC file:"
 msgstr "PAC 文件："
@@ -778,15 +1305,18 @@ msgstr "PAC 文件："
 #. i18n: ectx: property (text), widget (QLabel, label_13)
 #. i18n: ectx: property (text), widget (QLabel, label_16)
 #. i18n: ectx: property (text), widget (QLabel, label_22)
-#: editor/settings/ui/802-1x.ui:418 editor/settings/ui/802-1x.ui:514
-#: editor/settings/ui/802-1x.ui:665
+#: editor/settings/ui/802-1x.ui:410 editor/settings/ui/802-1x.ui:502
+#: editor/settings/ui/802-1x.ui:649
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:165
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:141
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:130
 #, kde-format
 msgid "Inner authentication:"
 msgstr "内部身份验证："
 
 #. i18n: ectx: property (text), item, widget (KComboBox, fastInnerAuth)
 #. i18n: ectx: property (text), item, widget (KComboBox, peapInnerAuth)
-#: editor/settings/ui/802-1x.ui:435 editor/settings/ui/802-1x.ui:692
+#: editor/settings/ui/802-1x.ui:427 editor/settings/ui/802-1x.ui:676
 #, kde-format
 msgid "GTC"
 msgstr "GTC"
@@ -795,54 +1325,61 @@ msgstr "GTC"
 #. i18n: ectx: property (text), item, widget (KComboBox, fastInnerAuth)
 #. i18n: ectx: property (text), item, widget (KComboBox, ttlsInnerAuth)
 #. i18n: ectx: property (text), item, widget (KComboBox, peapInnerAuth)
-#: editor/settings/ui/802-1x.ui:440 editor/settings/ui/802-1x.ui:541
-#: editor/settings/ui/802-1x.ui:682 editor/settings/ui/ppp.ui:68
+#: editor/settings/ui/802-1x.ui:432 editor/settings/ui/802-1x.ui:529
+#: editor/settings/ui/802-1x.ui:666 editor/settings/ui/ppp.ui:68
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:113
 #, kde-format
 msgid "MSCHAPv2"
 msgstr "MSCHAPv2"
 
 #. i18n: ectx: property (text), widget (QCheckBox, pap)
 #. i18n: ectx: property (text), item, widget (KComboBox, ttlsInnerAuth)
-#: editor/settings/ui/802-1x.ui:531 editor/settings/ui/ppp.ui:58
+#: editor/settings/ui/802-1x.ui:519 editor/settings/ui/ppp.ui:58
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:92
 #, kde-format
 msgid "PAP"
 msgstr "PAP"
 
 #. i18n: ectx: property (text), widget (QCheckBox, mschap)
 #. i18n: ectx: property (text), item, widget (KComboBox, ttlsInnerAuth)
-#: editor/settings/ui/802-1x.ui:536 editor/settings/ui/ppp.ui:48
+#: editor/settings/ui/802-1x.ui:524 editor/settings/ui/ppp.ui:48
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:106
 #, kde-format
 msgid "MSCHAP"
 msgstr "MSCHAP"
 
 #. i18n: ectx: property (text), widget (QCheckBox, chap)
 #. i18n: ectx: property (text), item, widget (KComboBox, ttlsInnerAuth)
-#: editor/settings/ui/802-1x.ui:546 editor/settings/ui/ppp.ui:78
+#: editor/settings/ui/802-1x.ui:534 editor/settings/ui/ppp.ui:78
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:99
 #, kde-format
 msgid "CHAP"
 msgstr "CHAP"
 
 #. i18n: ectx: property (text), widget (QLabel, label_26)
-#: editor/settings/ui/802-1x.ui:630
+#: editor/settings/ui/802-1x.ui:614
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:130
 #, kde-format
 msgid "PEAP version:"
 msgstr "PEAP 版本："
 
 #. i18n: ectx: property (text), item, widget (KComboBox, peapVersion)
-#: editor/settings/ui/802-1x.ui:647
+#: editor/settings/ui/802-1x.ui:631
 #, kde-format
 msgctxt "PEAP version"
 msgid "Automatic"
 msgstr "自动"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, peapVersion)
-#: editor/settings/ui/802-1x.ui:652
+#: editor/settings/ui/802-1x.ui:636
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:133
 #, kde-format
 msgid "Version 0"
 msgstr "版本 0"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, peapVersion)
-#: editor/settings/ui/802-1x.ui:657
+#: editor/settings/ui/802-1x.ui:641
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:133
 #, kde-format
 msgid "Version 1"
 msgstr "版本 1"
@@ -878,14 +1415,15 @@ msgstr "编辑…"
 
 #. i18n: ectx: property (text), widget (QPushButton, btnDelete)
 #: editor/settings/ui/bond.ui:85 editor/settings/ui/bridge.ui:82
-#: editor/settings/ui/team.ui:86
+#: editor/settings/ui/team.ui:86 qml/ConnectionItemDelegate.qml:120
 #, kde-format
 msgid "Delete"
 msgstr "删除"
 
 #. i18n: ectx: property (text), widget (QLabel, label_3)
 #. i18n: ectx: property (text), widget (QLabel, modeLabel)
-#: editor/settings/ui/bond.ui:110 editor/settings/ui/wificonnectionwidget.ui:43
+#: editor/settings/ui/bond.ui:110 editor/settings/ui/wificonnectionwidget.ui:68
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:70
 #, kde-format
 msgid "Mode:"
 msgstr "模式："
@@ -1008,38 +1546,38 @@ msgstr "号码："
 
 #. i18n: ectx: property (text), widget (QCheckBox, autoconnect)
 #: editor/settings/ui/connectionwidget.ui:17
+#: editorqml/qml/generalSettings/GeneralSettings.qml:24
 #, kde-format
 msgid "Connect automatically with priority"
 msgstr "自动连接，优先级为"
 
 #. i18n: ectx: property (toolTip), widget (QSpinBox, prioritySpin)
-#: editor/settings/ui/connectionwidget.ui:38
+#: editor/settings/ui/connectionwidget.ui:37
 #, kde-format
 msgid ""
 "If the connection is set to autoconnect, connections with higher priority "
 "will be preferred. Defaults to 0.\n"
 "The higher number means higher priority. A negative number can be used to "
-"indicate priority lower than the default.\n"
-"           "
+"indicate priority lower than the default."
 msgstr ""
 "设置为自动连接时，优先级较高的连接将优先使用。默认值为 0。\n"
-"数字越大，优先级越高。负值可以用于指定比默认值更低的优先级。\n"
-"           "
+"数字越大，优先级越高。负值可以用于指定比默认值更低的优先级。"
 
 #. i18n: ectx: property (text), widget (QCheckBox, allUsers)
-#: editor/settings/ui/connectionwidget.ui:48
+#: editor/settings/ui/connectionwidget.ui:47
+#: editorqml/qml/generalSettings/GeneralSettings.qml:60
 #, kde-format
 msgid "All users may connect to this network"
 msgstr "允许所有用户连接到此网络"
 
 #. i18n: ectx: property (toolTip), widget (QPushButton, pushButtonPermissions)
-#: editor/settings/ui/connectionwidget.ui:64
+#: editor/settings/ui/connectionwidget.ui:63
 #, kde-format
 msgid "Edit advanced permissions for this connection"
 msgstr "编辑此连接的高级权限"
 
 #. i18n: ectx: property (whatsThis), widget (QPushButton, pushButtonPermissions)
-#: editor/settings/ui/connectionwidget.ui:67
+#: editor/settings/ui/connectionwidget.ui:66
 #, kde-format
 msgid ""
 "Fine-grained permissions editor for this connection. It lets you choose "
@@ -1049,57 +1587,65 @@ msgstr ""
 
 #. i18n: ectx: property (text), widget (QPushButton, pushButtonPermissions)
 #. i18n: ectx: property (text), widget (QPushButton, btnAdvanced)
-#: editor/settings/ui/connectionwidget.ui:70 editor/settings/ui/ipv4.ui:354
+#: editor/settings/ui/connectionwidget.ui:69 editor/settings/ui/ipv4.ui:38
+#: editorqml/qml/generalSettings/GeneralSettings.qml:69
 #, kde-format
 msgid "Advanced…"
 msgstr "高级…"
 
 #. i18n: ectx: property (text), widget (QCheckBox, autoconnectVpn)
-#: editor/settings/ui/connectionwidget.ui:80
+#: editor/settings/ui/connectionwidget.ui:79
+#: editorqml/qml/generalSettings/GeneralSettings.qml:91
 #, kde-format
 msgid "Automatically connect to VPN"
 msgstr "自动连接到 VPN"
 
+#. i18n: ectx: property (toolTip), widget (KComboBox, vpnCombobox)
+#: editor/settings/ui/connectionwidget.ui:95
+#, kde-format
+msgid ""
+"Choose which VPN connection to automatically activate when this connection "
+"is established"
+msgstr "选择此连接建立时要自动激活的 VPN 连接"
+
 #. i18n: ectx: property (text), widget (QLabel, firewallZoneLabel)
-#: editor/settings/ui/connectionwidget.ui:100
+#: editor/settings/ui/connectionwidget.ui:102
+#: editorqml/qml/generalSettings/GeneralSettings.qml:114
 #, kde-format
 msgid "Firewall zone:"
 msgstr "防火墙区域："
 
+#. i18n: ectx: property (toolTip), widget (KComboBox, firewallZone)
+#: editor/settings/ui/connectionwidget.ui:127
+#, kde-format
+msgid ""
+"Assign this connection to a firewall zone to control network access and "
+"security rules"
+msgstr "分配此连接到一个防火墙区域以控制网络访问和安全规则"
+
 #. i18n: ectx: property (text), widget (QLabel, meteredLabel)
-#: editor/settings/ui/connectionwidget.ui:129
+#: editor/settings/ui/connectionwidget.ui:134
+#: editorqml/qml/generalSettings/GeneralSettings.qml:128
 #, kde-format
 msgid "Metered:"
 msgstr "按流量计费："
 
 #. i18n: ectx: property (toolTip), widget (KComboBox, metered)
-#: editor/settings/ui/connectionwidget.ui:149
+#: editor/settings/ui/connectionwidget.ui:154
 #, kde-format
 msgid ""
-"NetworkManager indicates to applications whether the connection is metered "
-"and therefore\n"
+"Indicates to applications whether the connection is metered and therefore\n"
 "data usage should be restricted."
 msgstr ""
-"NetworkManager 会告知应用程序此连接是否按流量计费，以便据此限制使用流量。"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, metered)
-#: editor/settings/ui/connectionwidget.ui:159
-#, kde-format
-msgctxt "Item in the Metered: list"
-msgid "Automatic"
-msgstr "自动"
+"向应用程序表示此连接是否按流量计费，\n"
+"以便据此限制使用流量。"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, metered)
 #: editor/settings/ui/connectionwidget.ui:164
 #, kde-format
-msgid "Yes"
-msgstr "是"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, metered)
-#: editor/settings/ui/connectionwidget.ui:169
-#, kde-format
-msgid "No"
-msgstr "否"
+msgctxt "Item in the Metered: list"
+msgid "Automatic"
+msgstr "自动"
 
 #. i18n: ectx: property (title), widget (QGroupBox, basicGroup)
 #: editor/settings/ui/gsm.ui:18
@@ -1108,7 +1654,9 @@ msgid "Basic"
 msgstr "基本"
 
 #. i18n: ectx: property (title), widget (QGroupBox, advGroup)
-#: editor/settings/ui/gsm.ui:84
+#. i18n: ectx: property (text), widget (QLabel, advancedSectionLabel)
+#: editor/settings/ui/gsm.ui:84 editor/settings/ui/wificonnectionwidget.ui:112
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:90
 #, kde-format
 msgid "Advanced"
 msgstr "高级"
@@ -1146,8 +1694,8 @@ msgstr "传输模式："
 #. i18n: ectx: property (text), widget (QLabel, label)
 #. i18n: ectx: property (text), widget (QLabel, label_2)
 #: editor/settings/ui/infiniband.ui:41
-#: editor/settings/ui/wificonnectionwidget.ui:186
 #: editor/settings/ui/wiredconnectionwidget.ui:23
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:21
 #, kde-format
 msgid "Restrict to device:"
 msgstr "仅限使用此设备："
@@ -1156,16 +1704,18 @@ msgstr "仅限使用此设备："
 #. i18n: ectx: property (text), widget (QLabel, mtuLabel)
 #. i18n: ectx: property (text), widget (QLabel, label_4)
 #: editor/settings/ui/infiniband.ui:61
-#: editor/settings/ui/wificonnectionwidget.ui:249
+#: editor/settings/ui/wificonnectionwidget.ui:301
 #: editor/settings/ui/wiredconnectionwidget.ui:89
 #: editor/settings/ui/wireguardinterfacewidget.ui:89
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:219
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:85
 #, kde-format
 msgid "MTU:"
 msgstr "MTU："
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, mtu)
 #: editor/settings/ui/infiniband.ui:80
-#: editor/settings/ui/wificonnectionwidget.ui:271
+#: editor/settings/ui/wificonnectionwidget.ui:323
 #: editor/settings/ui/wiredconnectionwidget.ui:112
 #, kde-format
 msgctxt "MTU:"
@@ -1174,7 +1724,7 @@ msgstr "自动"
 
 #. i18n: ectx: property (suffix), widget (QSpinBox, mtu)
 #: editor/settings/ui/infiniband.ui:83
-#: editor/settings/ui/wificonnectionwidget.ui:274
+#: editor/settings/ui/wificonnectionwidget.ui:326
 #: editor/settings/ui/wiredconnectionwidget.ui:115
 #, kde-format
 msgid " bytes"
@@ -1187,101 +1737,14 @@ msgstr " 字节"
 msgid "Advanced IP settings"
 msgstr "高级 IP 设置"
 
-#. i18n: ectx: property (text), widget (QLabel, label)
-#: editor/settings/ui/ipv4.ui:29 editor/settings/ui/ipv6.ui:49
+#. i18n: ectx: property (text), widget (QPushButton, btnRoutes)
+#: editor/settings/ui/ipv4.ui:63 editor/settings/ui/ipv6.ui:323
 #, kde-format
-msgid "Method:"
-msgstr "方式："
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:49 editor/settings/ui/ipv6.ui:224
-#, kde-format
-msgctxt "Method:"
-msgid "Automatic"
-msgstr "自动"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:54 editor/settings/ui/ipv6.ui:229
-#, kde-format
-msgid "Automatic (Only addresses)"
-msgstr "自动 (仅地址)"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:59 editor/settings/ui/ipv6.ui:239
-#, kde-format
-msgid "Link-Local"
-msgstr "本地链路"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:64 editor/settings/ui/ipv6.ui:244
-#, kde-format
-msgctxt "like in use Manual configuration"
-msgid "Manual"
-msgstr "手动"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:69
-#, kde-format
-msgid "Shared to other computers"
-msgstr "共享给其他计算机"
-
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv4.ui:74
-#, kde-format
-msgctxt "like in this setting is Disabled"
-msgid "Disabled"
-msgstr "已禁用"
-
-#. i18n: ectx: property (text), widget (QLabel, dnsLabel)
-#: editor/settings/ui/ipv4.ui:88 editor/settings/ui/ipv6.ui:167
-#, kde-format
-msgctxt "@info"
-msgid "DNS Servers:"
-msgstr "DNS 服务器："
-
-#. i18n: ectx: property (toolTip), widget (KLineEdit, dns)
-#: editor/settings/ui/ipv4.ui:118 editor/settings/ui/ipv6.ui:76
-#, kde-format
-msgid ""
-"Use this field to specify the IP address(es) of one or more DNS servers. Use "
-"',' to separate entries."
-msgstr "此字段用于指定 DNS 服务器的 IP 地址。使用半角逗号“,”来区分多个地址。"
-
-#. i18n: ectx: property (toolTip), widget (QPushButton, dnsMorePushButton)
-#: editor/settings/ui/ipv4.ui:125
-#, kde-format
-msgid "Edit DNS the list of servers"
-msgstr "编辑 DNS 服务器列表"
-
-#. i18n: ectx: property (text), widget (QLabel, dnsSearchLabel)
-#: editor/settings/ui/ipv4.ui:143 editor/settings/ui/ipv6.ui:350
-#, kde-format
-msgctxt "@info"
-msgid "Search Domains:"
-msgstr "搜索域："
-
-#. i18n: ectx: property (toolTip), widget (KLineEdit, dnsSearch)
-#: editor/settings/ui/ipv4.ui:164 editor/settings/ui/ipv6.ui:270
-#, kde-format
-msgid ""
-"Use this field to specify one or more DNS domains to search. Use ',' to "
-"separate entries."
-msgstr "此字段用于指定要搜索的 DNS 域。使用半角逗号“,”来区分多个域。"
-
-#. i18n: ectx: property (toolTip), widget (QPushButton, dnsSearchMorePushButton)
-#: editor/settings/ui/ipv4.ui:171 editor/settings/ui/ipv6.ui:277
-#, kde-format
-msgid "Edit the list of DNS domains being searched"
-msgstr "编辑 DNS 搜索域列表"
-
-#. i18n: ectx: property (text), widget (QLabel, labelDhcpClientId)
-#: editor/settings/ui/ipv4.ui:189
-#, kde-format
-msgid "DHCP Client ID:"
-msgstr "DHCP 客户端 ID："
+msgid "Routes…"
+msgstr "路由…"
 
 #. i18n: ectx: property (toolTip), widget (KLineEdit, dhcpClientId)
-#: editor/settings/ui/ipv4.ui:204
+#: editor/settings/ui/ipv4.ui:74
 #, kde-format
 msgid ""
 "Use this field to specify the DHCP client ID which is a string sent to the "
@@ -1293,14 +1756,48 @@ msgstr ""
 "此字段用于指定 DHCP 客户端 ID。这是一条发送给 DHCP 服务器的字符串，用于识别本"
 "地计算机。DHCP 服务器可能会在自定义 DHCP 租期和选项时使用它。"
 
-#. i18n: ectx: property (text), widget (QLabel, labelRouteMetric)
-#: editor/settings/ui/ipv4.ui:217 editor/settings/ui/ipv6.ui:369
+#. i18n: ectx: property (toolTip), widget (KLineEdit, dnsSearch)
+#: editor/settings/ui/ipv4.ui:89 editor/settings/ui/ipv6.ui:277
+#: editorqml/qml/ipv4/IPv4Settings.qml:96
+#: editorqml/qml/ipv6/IPv6Settings.qml:96
 #, kde-format
-msgid "Route Metric:"
-msgstr "路由跃点数："
+msgid ""
+"Use this field to specify one or more DNS domains to search. Use ',' to "
+"separate entries."
+msgstr "此字段用于指定要搜索的 DNS 域。使用半角逗号“,”来区分多个域。"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, dnsSearchMorePushButton)
+#: editor/settings/ui/ipv4.ui:96 editor/settings/ui/ipv6.ui:284
+#: editorqml/qml/ipv4/IPv4Settings.qml:110
+#: editorqml/qml/ipv6/IPv6Settings.qml:110
+#, kde-format
+msgid "Edit the list of DNS domains being searched"
+msgstr "编辑 DNS 搜索域列表"
+
+#. i18n: ectx: property (text), widget (QLabel, dnsLabel)
+#: editor/settings/ui/ipv4.ui:114 editor/settings/ui/ipv6.ui:164
+#, kde-format
+msgctxt "@info"
+msgid "DNS Servers:"
+msgstr "DNS 服务器："
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: editor/settings/ui/ipv4.ui:152 editor/settings/ui/ipv6.ui:49
+#: editorqml/qml/ipv4/IPv4Settings.qml:26
+#: editorqml/qml/ipv6/IPv6Settings.qml:26
+#, kde-format
+msgid "Method:"
+msgstr "方式："
+
+#. i18n: ectx: property (text), widget (QLabel, dnsSearchLabel)
+#: editor/settings/ui/ipv4.ui:171 editor/settings/ui/ipv6.ui:357
+#, kde-format
+msgctxt "@info"
+msgid "Search Domains:"
+msgstr "搜索域："
 
 #. i18n: ectx: property (toolTip), widget (QDoubleSpinBox, routeMetric)
-#: editor/settings/ui/ipv4.ui:252 editor/settings/ui/ipv6.ui:404
+#: editor/settings/ui/ipv4.ui:187 editor/settings/ui/ipv6.ui:392
 #, kde-format
 msgid ""
 "A score that helps choose the best path for data packets to reach their "
@@ -1315,32 +1812,99 @@ msgstr ""
 "\n"
 "默认值 -1 意味着由 NetworkManager 来选择并管理该路由的实际跃点数。"
 
-#. i18n: ectx: property (text), widget (QPushButton, btnRemove)
-#: editor/settings/ui/ipv4.ui:261 editor/settings/ui/ipv6.ui:97
+#. i18n: ectx: property (text), widget (QLabel, labelDhcpClientId)
+#: editor/settings/ui/ipv4.ui:215 editorqml/qml/ipv4/IPv4Settings.qml:115
 #, kde-format
-msgid "Remove"
-msgstr "移除"
+msgid "DHCP Client ID:"
+msgstr "DHCP 客户端 ID："
 
-#. i18n: ectx: property (text), widget (QPushButton, btnAdd)
-#: editor/settings/ui/ipv4.ui:271 editor/settings/ui/ipv6.ui:107
+#. i18n: ectx: property (text), widget (QLabel, labelRouteMetric)
+#: editor/settings/ui/ipv4.ui:234 editor/settings/ui/ipv6.ui:376
+#: editorqml/qml/ipv4/IPv4Settings.qml:129
+#: editorqml/qml/ipv6/IPv6Settings.qml:132
 #, kde-format
-msgid "Add"
-msgstr "添加"
+msgid "Route Metric:"
+msgstr "路由跃点数："
 
-#. i18n: ectx: property (toolTip), widget (QTableView, tableViewAddresses)
-#: editor/settings/ui/ipv4.ui:288 editor/settings/ui/ipv6.ui:124
-#: editor/widgets/ui/ipv4routes.ui:99 editor/widgets/ui/ipv6routes.ui:39
+#. i18n: ectx: property (toolTip), widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:259 editorqml/qml/ipv4/IPv4Settings.qml:37
 #, kde-format
 msgid ""
-"IP addresses identify your computer on the network. Click the \"Add\" button "
-"to add\n"
-"an IP address"
+"How to configure the IPv4 address:\n"
+"• Automatic: obtain address and DNS automatically via DHCP\n"
+"• Automatic (Only addresses): obtain address via DHCP but configure DNS "
+"manually\n"
+"• Link-Local: use automatic link-local addressing (169.254.x.x)\n"
+"• Manual: enter a static IP address\n"
+"• Shared: turn this computer into a router to share internet with other "
+"devices\n"
+"• Disabled: turn off IPv4"
 msgstr ""
-"IP 地址列表，用于在网络中标识这台计算机。\n"
-"点击“添加”按钮来添加一个 IP 地址"
+"如何配置 IPv4 地址：\n"
+"• 自动：通过 DHCP 自动获取 IP 地址和 DNS 地址\n"
+"• 自动 (仅地址)：通过 DHCP 自动获取 IP 地址，但手动配置 DNS 地址\n"
+"• 本地链路：使用自动本地链路地址获取 (169.254.x.x)\n"
+"• 手动：手动输入静态 IP 地址\n"
+"• 共享给其他计算机：将本机作为路由器并将自身的互联网连接与其他设备共享\n"
+"• 已禁用：关闭 IPv4"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:263 editor/settings/ui/ipv6.ui:231
+#, kde-format
+msgctxt "Method:"
+msgid "Automatic"
+msgstr "自动"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:268 editor/settings/ui/ipv6.ui:236
+#, kde-format
+msgid "Automatic (Only addresses)"
+msgstr "自动 (仅地址)"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:273 editor/settings/ui/ipv6.ui:246
+#, kde-format
+msgid "Link-Local"
+msgstr "本地链路"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:278 editor/settings/ui/ipv6.ui:251
+#, kde-format
+msgctxt "like in use Manual configuration"
+msgid "Manual"
+msgstr "手动"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:283
+#, kde-format
+msgid "Shared to other computers"
+msgstr "共享给其他计算机"
+
+#. i18n: ectx: property (text), item, widget (KComboBox, method)
+#: editor/settings/ui/ipv4.ui:288
+#, kde-format
+msgctxt "like in this setting is Disabled"
+msgid "Disabled"
+msgstr "已禁用"
+
+#. i18n: ectx: property (toolTip), widget (KLineEdit, dns)
+#: editor/settings/ui/ipv4.ui:310 editor/settings/ui/ipv6.ui:76
+#: editorqml/qml/ipv4/IPv4Settings.qml:59
+#: editorqml/qml/ipv6/IPv6Settings.qml:59
+#, kde-format
+msgid ""
+"Use this field to specify the IP address(es) of one or more DNS servers. Use "
+"',' to separate entries."
+msgstr "此字段用于指定 DNS 服务器的 IP 地址。使用半角逗号“,”来区分多个地址。"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, dnsMorePushButton)
+#: editor/settings/ui/ipv4.ui:317
+#, kde-format
+msgid "Edit DNS the list of servers"
+msgstr "编辑 DNS 服务器列表"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, ipv4RequiredCB)
-#: editor/settings/ui/ipv4.ui:326
+#: editor/settings/ui/ipv4.ui:330
 #, kde-format
 msgid ""
 "Allows the connection to complete if IPv4 configuration fails\n"
@@ -1350,16 +1914,44 @@ msgstr ""
 "仍然允许连接完成"
 
 #. i18n: ectx: property (text), widget (QCheckBox, ipv4RequiredCB)
-#: editor/settings/ui/ipv4.ui:329
+#: editor/settings/ui/ipv4.ui:333 editorqml/qml/ipv4/IPv4Settings.qml:302
 #, kde-format
 msgid "IPv4 is required for this connection"
 msgstr "此连接需要 IPv4"
 
-#. i18n: ectx: property (text), widget (QPushButton, btnRoutes)
-#: editor/settings/ui/ipv4.ui:379 editor/settings/ui/ipv6.ui:316
+#. i18n: ectx: property (text), widget (QPushButton, btnAdd)
+#: editor/settings/ui/ipv4.ui:345 editor/settings/ui/ipv6.ui:107
+#: editorqml/qml/ipv4/IPv4Settings.qml:281
+#: editorqml/qml/ipv4/SearchDomainList.qml:85
+#: editorqml/qml/ipv6/IPv6Settings.qml:293
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:91
+#: editorqml/qml/wifisecurity/DnsList.qml:91
 #, kde-format
-msgid "Routes…"
-msgstr "路由…"
+msgid "Add"
+msgstr "添加"
+
+#. i18n: ectx: property (text), widget (QPushButton, btnRemove)
+#: editor/settings/ui/ipv4.ui:355 editor/settings/ui/ipv6.ui:97
+#: editorqml/qml/ipv4/IPv4Settings.qml:289
+#: editorqml/qml/ipv4/SearchDomainList.qml:99
+#: editorqml/qml/ipv6/IPv6Settings.qml:301
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:105
+#: editorqml/qml/wifisecurity/DnsList.qml:105
+#, kde-format
+msgid "Remove"
+msgstr "移除"
+
+#. i18n: ectx: property (toolTip), widget (QTableView, tableViewAddresses)
+#: editor/settings/ui/ipv4.ui:385 editor/settings/ui/ipv6.ui:137
+#: editor/widgets/ui/ipv4routes.ui:99 editor/widgets/ui/ipv6routes.ui:39
+#, kde-format
+msgid ""
+"IP addresses identify your computer on the network. Click the \"Add\" button "
+"to add\n"
+"an IP address"
+msgstr ""
+"IP 地址列表，用于在网络中标识这台计算机。\n"
+"点击“添加”按钮来添加一个 IP 地址"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, ipv6RequiredCB)
 #: editor/settings/ui/ipv6.ui:30
@@ -1373,19 +1965,20 @@ msgstr ""
 "仍然允许连接完成"
 
 #. i18n: ectx: property (text), widget (QCheckBox, ipv6RequiredCB)
-#: editor/settings/ui/ipv6.ui:33
+#: editor/settings/ui/ipv6.ui:33 editorqml/qml/ipv6/IPv6Settings.qml:320
 #, kde-format
 msgid "IPv6 is required for this connection"
 msgstr "此连接需要 IPv6"
 
 #. i18n: ectx: property (toolTip), widget (QPushButton, dnsMorePushButton)
-#: editor/settings/ui/ipv6.ui:83
+#: editor/settings/ui/ipv6.ui:83 editorqml/qml/ipv4/IPv4Settings.qml:73
+#: editorqml/qml/ipv6/IPv6Settings.qml:73
 #, kde-format
 msgid "Edit the list of DNS servers"
 msgstr "编辑 DNS 服务器列表"
 
 #. i18n: ectx: property (toolTip), widget (KComboBox, privacyCombo)
-#: editor/settings/ui/ipv6.ui:190
+#: editor/settings/ui/ipv6.ui:187
 #, kde-format
 msgid ""
 "Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941. If "
@@ -1398,63 +1991,82 @@ msgstr ""
 "还会基于 EUI-64 的修改版本生成一个临时的 IPv6 地址。"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, privacyCombo)
-#: editor/settings/ui/ipv6.ui:199
+#: editor/settings/ui/ipv6.ui:196
 #, kde-format
 msgctxt "privacy disabled"
 msgid "Disabled"
 msgstr "已禁用"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, privacyCombo)
-#: editor/settings/ui/ipv6.ui:204
+#: editor/settings/ui/ipv6.ui:201
 #, kde-format
 msgid "Enabled (prefer public address)"
 msgstr "已启用 (公共地址优先)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, privacyCombo)
-#: editor/settings/ui/ipv6.ui:209
+#: editor/settings/ui/ipv6.ui:206
 #, kde-format
 msgid "Enabled (prefer temporary addresses)"
 msgstr "已启用 (临时地址优先)"
 
+#. i18n: ectx: property (toolTip), widget (KComboBox, method)
+#: editor/settings/ui/ipv6.ui:227 editorqml/qml/ipv6/IPv6Settings.qml:37
+#, kde-format
+msgid ""
+"How to configure the IPv6 address:\n"
+"• Automatic: obtain address and DNS automatically (via SLAAC and/or DHCPv6)\n"
+"• Automatic (Only addresses): obtain address automatically but configure DNS "
+"manually\n"
+"• Automatic (Only DHCP): obtain address and DNS via DHCPv6 only (ignore "
+"SLAAC)\n"
+"• Link-Local: use automatic link-local addressing (fe80::/10)\n"
+"• Manual: enter a static IP address\n"
+"• Ignored: skip IPv6 configuration but allow connection\n"
+"• Disabled: turn off IPv6 completely"
+msgstr ""
+"如何配置 IPv6 地址：\n"
+"• 自动：自动获取 IP 地址和 DNS 地址 (通过 SLAAC 和/或 DHCPv6)\n"
+"• 自动 (仅地址)：通过 DHCP 自动获取 IP 地址，但手动配置 DNS 地址\n"
+"• 自动 (仅 DHCP)：仅通过 DHCPv6 自动获取 IP 地址和 DNS 地址 (忽略 SLAAC)\n"
+"• 本地链路：使用自动本地链路地址获取 (fe80::/10)\n"
+"• 手动：手动输入静态 IP 地址\n"
+"• 忽略：跳过 IPv6 配置，但允许连接\n"
+"• 已禁用：关闭 IPv6"
+
 #. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv6.ui:234
+#: editor/settings/ui/ipv6.ui:241
 #, kde-format
 msgid "Automatic (Only DHCP)"
 msgstr "自动 (仅DHCP)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv6.ui:249
+#: editor/settings/ui/ipv6.ui:256
 #, kde-format
 msgctxt "like in this setting is Disabled"
 msgid "Ignored"
 msgstr "忽略"
 
-#. i18n: ectx: property (text), item, widget (KComboBox, method)
-#: editor/settings/ui/ipv6.ui:254
-#, kde-format
-msgid "Disabled"
-msgstr "已禁用"
-
 #. i18n: ectx: property (text), widget (QLabel, labelPrivacy)
-#: editor/settings/ui/ipv6.ui:331
+#: editor/settings/ui/ipv6.ui:338 editorqml/qml/ipv6/IPv6Settings.qml:115
 #, kde-format
 msgid "Privacy:"
 msgstr "私密性："
 
 #. i18n: ectx: property (title), widget (QGroupBox, authGroup)
-#: editor/settings/ui/ppp.ui:23
+#: editor/settings/ui/ppp.ui:23 editorqml/qml/vpn/ssh/Ssh.qml:136
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:81
 #, kde-format
 msgid "Authentication"
 msgstr "身份验证"
 
 #. i18n: ectx: property (text), widget (QCheckBox, eap)
-#: editor/settings/ui/ppp.ui:38
+#: editor/settings/ui/ppp.ui:38 editorqml/qml/vpn/sstp/SstpAdvanced.qml:120
 #, kde-format
 msgid "EAP"
 msgstr "EAP"
 
 #. i18n: ectx: property (title), widget (QGroupBox, compressionGroup)
-#: editor/settings/ui/ppp.ui:91
+#: editor/settings/ui/ppp.ui:91 editorqml/qml/vpn/sstp/SstpAdvanced.qml:165
 #, kde-format
 msgid "Compression"
 msgstr "压缩"
@@ -1496,13 +2108,13 @@ msgid "Use stateful MPPE"
 msgstr "使用有状态 MPPE"
 
 #. i18n: ectx: property (title), widget (QGroupBox, echoGroup)
-#: editor/settings/ui/ppp.ui:175
+#: editor/settings/ui/ppp.ui:175 editorqml/qml/vpn/sstp/SstpAdvanced.qml:191
 #, kde-format
 msgid "Echo"
 msgstr "回显"
 
 #. i18n: ectx: property (text), widget (QCheckBox, senddEcho)
-#: editor/settings/ui/ppp.ui:184
+#: editor/settings/ui/ppp.ui:184 editorqml/qml/vpn/sstp/SstpAdvanced.qml:195
 #, kde-format
 msgid "Send PPP echo packets"
 msgstr "发送 PPP 回显包"
@@ -1586,55 +2198,85 @@ msgstr "GVRP"
 msgid "Loose binding"
 msgstr "松散绑定"
 
+#. i18n: ectx: property (text), widget (QLabel, connectionSectionLabel)
+#: editor/settings/ui/wificonnectionwidget.ui:23
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:27
+#, kde-format
+msgid "Connection"
+msgstr "连接"
+
 #. i18n: ectx: property (text), widget (QLabel, SSIDLabel)
-#: editor/settings/ui/wificonnectionwidget.ui:17
+#: editor/settings/ui/wificonnectionwidget.ui:39
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:34
 #, kde-format
 msgid "SSID:"
 msgstr "SSID："
 
+#. i18n: ectx: property (toolTip), widget (SsidComboBox, SSIDCombo)
+#: editor/settings/ui/wificonnectionwidget.ui:61
+#, kde-format
+msgid "The name of the Wi-Fi network to connect to"
+msgstr "要连接的 Wi-Fi 网络名称"
+
+#. i18n: ectx: property (toolTip), widget (KComboBox, modeComboBox)
+#: editor/settings/ui/wificonnectionwidget.ui:90
+#, kde-format
+msgid ""
+"Wi-Fi network mode:\n"
+"• Infrastructure: connect to a Wi-Fi router (normal mode)\n"
+"• Ad-hoc: create a direct peer-to-peer network\n"
+"• Access Point: turn this computer into a Wi-Fi hotspot"
+msgstr ""
+"Wi-Fi 网络模式：\n"
+"• 基础设施 (Infrastructure)：连接到 Wi-Fi 路由器 (正常模式)\n"
+"• 自组网 (Ad-hoc)：创建点对点直连网络\n"
+"• 接入点/无线 AP (Access Point)：将本机作为 Wi-Fi 热点"
+
 #. i18n: ectx: property (text), item, widget (KComboBox, modeComboBox)
-#: editor/settings/ui/wificonnectionwidget.ui:63
+#: editor/settings/ui/wificonnectionwidget.ui:94
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:73
 #, kde-format
 msgid "Infrastructure"
 msgstr "基础设施 (Infrastructure)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, modeComboBox)
-#: editor/settings/ui/wificonnectionwidget.ui:68
+#: editor/settings/ui/wificonnectionwidget.ui:99
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:73
 #, kde-format
 msgid "Ad-hoc"
 msgstr "自组网 (Ad-hoc)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, modeComboBox)
-#: editor/settings/ui/wificonnectionwidget.ui:73
+#: editor/settings/ui/wificonnectionwidget.ui:104
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:73
 #, kde-format
 msgid "Access Point"
 msgstr "接入点/无线 AP (Access Point)"
 
 #. i18n: ectx: property (text), widget (QLabel, BSSIDLabel)
-#: editor/settings/ui/wificonnectionwidget.ui:81
+#: editor/settings/ui/wificonnectionwidget.ui:128
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:97
 #, kde-format
-msgid "BSSID:"
-msgstr "BSSID："
+msgid "Restrict to BSSID:"
+msgstr "仅限使用此 BSSID："
 
 #. i18n: ectx: property (toolTip), widget (BssidComboBox, BSSIDCombo)
-#: editor/settings/ui/wificonnectionwidget.ui:101
+#: editor/settings/ui/wificonnectionwidget.ui:147
 #, kde-format
 msgid ""
-"This option locks this connection to the Wi-Fi access point (AP) specified "
-"by the\n"
-" BSSID entered here. Example: 00:11:22:33:44:55"
-msgstr ""
-"此连接将只会使用在此输入的 BSSID 所指定的无线接入点 (AP)。\n"
-"示例：00:11:22:33:44:55"
+"Lock this connection to a specific access point. Enter the BSSID (MAC "
+"address) of the access point."
+msgstr "锁定此连接到指定的接入点。请输入该接入点的 BSSID (MAC 地址)。"
 
 #. i18n: ectx: property (text), widget (QLabel, bandLabel)
-#: editor/settings/ui/wificonnectionwidget.ui:117
+#: editor/settings/ui/wificonnectionwidget.ui:163
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:133
 #, kde-format
 msgid "Band:"
 msgstr "频段："
 
 #. i18n: ectx: property (toolTip), widget (KComboBox, band)
-#: editor/settings/ui/wificonnectionwidget.ui:137
+#: editor/settings/ui/wificonnectionwidget.ui:183
 #, kde-format
 msgid ""
 "This option locks the connection to the Wi-Fi network associated to the "
@@ -1645,32 +2287,35 @@ msgstr ""
 "此设置需要驱动程序支持才能工作，它未必兼容所有驱动程序。"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, band)
-#: editor/settings/ui/wificonnectionwidget.ui:141
+#: editor/settings/ui/wificonnectionwidget.ui:187
 #, kde-format
 msgctxt "Band:"
 msgid "Automatic"
 msgstr "自动"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, band)
-#: editor/settings/ui/wificonnectionwidget.ui:146
+#: editor/settings/ui/wificonnectionwidget.ui:192
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:136
 #, kde-format
 msgid "A (5 GHz)"
 msgstr "A (5 GHz)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, band)
-#: editor/settings/ui/wificonnectionwidget.ui:151
+#: editor/settings/ui/wificonnectionwidget.ui:197
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:136
 #, kde-format
 msgid "B/G (2.4 GHz)"
 msgstr "B/G (2.4 GHz)"
 
 #. i18n: ectx: property (text), widget (QLabel, channelLabel)
-#: editor/settings/ui/wificonnectionwidget.ui:159
+#: editor/settings/ui/wificonnectionwidget.ui:205
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:145
 #, kde-format
 msgid "Channel:"
 msgstr "信道："
 
 #. i18n: ectx: property (toolTip), widget (KComboBox, channel)
-#: editor/settings/ui/wificonnectionwidget.ui:179
+#: editor/settings/ui/wificonnectionwidget.ui:225
 #, kde-format
 msgid ""
 "Wireless channel to use for the Wi-Fi connection. The device will only join "
@@ -1680,38 +2325,82 @@ msgstr ""
 "Wi-Fi 连接使用的无线信道。此设备将只会加入指定信道上的网络，\n"
 "或者只会在指定信道上创建自组网 (Ad-hoc)。"
 
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: editor/settings/ui/wificonnectionwidget.ui:232
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:164
+#, kde-format
+msgid "Restrict to network adapter:"
+msgstr "仅限使用此网络适配器："
+
+#. i18n: ectx: property (toolTip), widget (HwAddrComboBox, macAddress)
+#: editor/settings/ui/wificonnectionwidget.ui:251
+#, kde-format
+msgid ""
+"Lock this connection to a particular network adapter by specifying its MAC "
+"address."
+msgstr "锁定此连接到特定的网络适配器。请指定该网络适配器的 MAC 地址。"
+
 #. i18n: ectx: property (text), widget (QLabel, label_2)
-#: editor/settings/ui/wificonnectionwidget.ui:209
+#: editor/settings/ui/wificonnectionwidget.ui:258
 #: editor/settings/ui/wiredconnectionwidget.ui:47
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:197
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:60
 #, kde-format
 msgid "Cloned MAC address:"
 msgstr "克隆 MAC 地址："
 
+#. i18n: ectx: property (toolTip), widget (KLineEdit, clonedMacAddress)
+#: editor/settings/ui/wificonnectionwidget.ui:285
+#, kde-format
+msgid ""
+"Use a different MAC address instead of your network adapter's real address."
+msgstr "使用不同的 MAC 地址代替网络适配器的真正 MAC 地址。"
+
 #. i18n: ectx: property (text), widget (QPushButton, btnRandomMacAddr)
-#: editor/settings/ui/wificonnectionwidget.ui:240
+#: editor/settings/ui/wificonnectionwidget.ui:292
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:212
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:78
 #, kde-format
 msgid "Random…"
 msgstr "随机…"
 
+#. i18n: ectx: property (toolTip), widget (QSpinBox, mtu)
+#: editor/settings/ui/wificonnectionwidget.ui:335
+#, kde-format
+msgid ""
+"Maximum Transmission Unit: the largest packet size that can be sent without "
+"fragmentation. Larger packets will be broken into smaller frames."
+msgstr ""
+"最大传输单位 (MTU)：能够在不进行碎片化传输的前提下发送的最大数据包大小。大于"
+"此值的数据包将被分解为多个较小的数据帧发送。"
+
 #. i18n: ectx: property (toolTip), widget (QLabel, label_4)
 #. i18n: ectx: property (toolTip), widget (QCheckBox, hiddenNetwork)
-#: editor/settings/ui/wificonnectionwidget.ui:287
-#: editor/settings/ui/wificonnectionwidget.ui:303
+#: editor/settings/ui/wificonnectionwidget.ui:342
+#: editor/settings/ui/wificonnectionwidget.ui:358
 #, kde-format
-msgid "Mark this if you want to create a connection for a hidden network"
-msgstr "如果您想要为隐藏的网络创建连接，请勾选此项"
+msgid "Create a connection for a hidden network"
+msgstr "创建隐藏网络的连接"
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
-#: editor/settings/ui/wificonnectionwidget.ui:290
+#: editor/settings/ui/wificonnectionwidget.ui:345
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:242
 #, kde-format
 msgid "Visibility:"
 msgstr "可见性："
 
 #. i18n: ectx: property (text), widget (QCheckBox, hiddenNetwork)
-#: editor/settings/ui/wificonnectionwidget.ui:306
+#: editor/settings/ui/wificonnectionwidget.ui:361
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:243
 #, kde-format
 msgid "Hidden network"
 msgstr "隐藏网络"
+
+#. i18n: ectx: property (text), widget (QLabel, securitySectionLabel)
+#: editor/settings/ui/wificonnectionwidget.ui:368
+#, kde-format
+msgid "Security"
+msgstr "安全性"
 
 #. i18n: ectx: property (windowTitle), widget (QWidget, WifiSecurity)
 #: editor/settings/ui/wifisecurity.ui:15
@@ -1720,110 +2409,117 @@ msgid "Wifi Security"
 msgstr "Wi-Fi 安全性"
 
 #. i18n: ectx: property (text), widget (QLabel, label)
-#: editor/settings/ui/wifisecurity.ui:23
+#: editor/settings/ui/wifisecurity.ui:35
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:38
 #, kde-format
 msgid "Security:"
 msgstr "安全性："
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:40
+#: editor/settings/ui/wifisecurity.ui:55
 #, kde-format
 msgctxt "no security"
 msgid "None"
 msgstr "无"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:45
+#: editor/settings/ui/wifisecurity.ui:60
 #, kde-format
 msgid "WEP key 40/128 bits (Hex or ASCII)"
 msgstr "WEP 40/128 位 密钥 (Hex 或者 ASCII)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:50
+#: editor/settings/ui/wifisecurity.ui:65
 #, kde-format
 msgid "WEP key 128 bits"
 msgstr "WEP 128 位密钥"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:60
+#: editor/settings/ui/wifisecurity.ui:75
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:27
 #, kde-format
 msgid "Dynamic WEP (802.1x)"
 msgstr "动态 WEP (802.1x)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:65
+#: editor/settings/ui/wifisecurity.ui:80
 #, kde-format
-msgid "WPA/WPA2 Personal"
-msgstr "WPA/WPA2 个人版"
+msgid "WPA2/WPA3 Personal"
+msgstr "WPA2/WPA3 个人版"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:70
+#: editor/settings/ui/wifisecurity.ui:85
 #, kde-format
-msgid "WPA/WPA2 Enterprise"
-msgstr "WPA/WPA2 企业版"
+msgid "WPA2/WPA3 Enterprise"
+msgstr "WPA2/WPA3 企业版"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:75
+#: editor/settings/ui/wifisecurity.ui:90
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:30
 #, kde-format
 msgid "WPA3 Personal"
 msgstr "WPA3 个人版"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:80
+#: editor/settings/ui/wifisecurity.ui:95
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:31
 #, kde-format
 msgid "WPA3 Enterprise 192-bit"
 msgstr "WPA3 企业版 192 位"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, securityCombo)
-#: editor/settings/ui/wifisecurity.ui:85
+#: editor/settings/ui/wifisecurity.ui:100
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:32
 #, kde-format
 msgid "Enhanced Open (OWE)"
 msgstr "增强开放 (OWE)"
 
 #. i18n: ectx: property (text), widget (QLabel, label_2)
-#: editor/settings/ui/wifisecurity.ui:93
+#: editor/settings/ui/wifisecurity.ui:108
 #, kde-format
 msgid "Key:"
 msgstr "密钥："
 
 #. i18n: ectx: property (text), widget (QLabel, label_3)
-#: editor/settings/ui/wifisecurity.ui:113
+#: editor/settings/ui/wifisecurity.ui:131
 #, kde-format
 msgid "WEP index:"
 msgstr "WEP 索引："
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepIndex)
-#: editor/settings/ui/wifisecurity.ui:130
+#: editor/settings/ui/wifisecurity.ui:151
 #, kde-format
 msgid "1 (default)"
 msgstr "1 (默认)"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepIndex)
-#: editor/settings/ui/wifisecurity.ui:135
+#: editor/settings/ui/wifisecurity.ui:156
 #, kde-format
 msgid "2"
 msgstr "2"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepIndex)
-#: editor/settings/ui/wifisecurity.ui:140
+#: editor/settings/ui/wifisecurity.ui:161
 #, kde-format
 msgid "3"
 msgstr "3"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepIndex)
-#: editor/settings/ui/wifisecurity.ui:145
+#: editor/settings/ui/wifisecurity.ui:166
 #, kde-format
 msgid "4"
 msgstr "4"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepAuth)
-#: editor/settings/ui/wifisecurity.ui:170
+#: editor/settings/ui/wifisecurity.ui:194
+#: editorqml/qml/wifisecurity/authentication/WepKey.qml:44
 #, kde-format
 msgid "Open System"
 msgstr "开放系统"
 
 #. i18n: ectx: property (text), item, widget (KComboBox, wepAuth)
-#: editor/settings/ui/wifisecurity.ui:175
+#: editor/settings/ui/wifisecurity.ui:199
+#: editorqml/qml/wifisecurity/authentication/WepKey.qml:44
 #, kde-format
 msgid "Shared Key"
 msgstr "共享密钥"
@@ -1870,12 +2566,14 @@ msgstr ""
 
 #. i18n: ectx: property (text), widget (QLabel, speedLabel)
 #: editor/settings/ui/wiredconnectionwidget.ui:125
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:128
 #, kde-format
 msgid "Speed:"
 msgstr "速度："
 
 #. i18n: ectx: property (text), widget (QLabel, duplexLabel)
 #: editor/settings/ui/wiredconnectionwidget.ui:132
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:154
 #, kde-format
 msgid "Duplex:"
 msgstr "双工："
@@ -1902,6 +2600,7 @@ msgstr "全双工"
 
 #. i18n: ectx: property (text), widget (QLabel, label_4)
 #: editor/settings/ui/wiredconnectionwidget.ui:174
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:111
 #, kde-format
 msgid "Link negotiation:"
 msgstr "连接协商："
@@ -1945,54 +2644,63 @@ msgstr "请求让设备只使用指定的速度。"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:226
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:132
 #, kde-format
 msgid "10 Mb/s"
 msgstr "10 Mb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:231
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:133
 #, kde-format
 msgid "100 Mb/s"
 msgstr "100 Mb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:236
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:134
 #, kde-format
 msgid "1 Gb/s"
 msgstr "1 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:241
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:135
 #, kde-format
 msgid "2.5 Gb/s"
 msgstr "2.5 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:246
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:136
 #, kde-format
 msgid "5 Gb/s"
 msgstr "5 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:251
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:137
 #, kde-format
 msgid "10 Gb/s"
 msgstr "10 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:256
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:138
 #, kde-format
 msgid "40 Gb/s"
 msgstr "40 Gb/s"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, speed)
 #: editor/settings/ui/wiredconnectionwidget.ui:261
+#: editorqml/settings/wiredconnectionsettings/wiredsettings.cpp:139
 #, kde-format
 msgid "100 Gb/s"
 msgstr "100 Gb/s"
 
 #. i18n: ectx: property (text), widget (QCheckBox, use8021X)
 #: editor/settings/ui/wiredsecurity.ui:17
+#: editorqml/qml/wifisecurity/WiredSecurityForm.qml:28
 #, kde-format
 msgid "Use 802.1x security for this connection"
 msgstr "启用此连接的 802.1x 安全性功能"
@@ -2263,7 +2971,14 @@ msgstr "添加新节点"
 msgid "Remove this Peer"
 msgstr "移除此节点"
 
-#: editor/settings/wificonnectionwidget.cpp:181
+#: editor/settings/wificonnectionwidget.cpp:237
+#, kde-format
+msgctxt "@action:inmenu automatic wireless channel selection"
+msgid "Automatic"
+msgstr "自动"
+
+#: editor/settings/wificonnectionwidget.cpp:263
+#: editorqml/settings/wificonnectionsettings/wifisetting.cpp:315
 #, kde-format
 msgid "%1 (%2 MHz)"
 msgstr "%1 (%2 MHz)"
@@ -3045,12 +3760,12 @@ msgctxt "@info:tooltip real user name is not available"
 msgid "Not Available"
 msgstr "不可用"
 
-#: editor/widgets/bssidcombobox.cpp:122
+#: editor/widgets/bssidcombobox.cpp:126
 #, kde-format
 msgid "First select the SSID"
 msgstr "首先选择 SSID"
 
-#: editor/widgets/bssidcombobox.cpp:131
+#: editor/widgets/bssidcombobox.cpp:135
 #, kde-format
 msgid ""
 "%1 (%2%)\n"
@@ -3071,7 +3786,7 @@ msgstr "跃点数"
 #, kde-format
 msgctxt "Header text for IPv6 netmask"
 msgid "Netmask"
-msgstr "子网掩码"
+msgstr "网络掩码"
 
 #: editor/widgets/ipv6routeswidget.cpp:32
 #, kde-format
@@ -3281,22 +3996,23 @@ msgstr "您的资费方案："
 msgid "Change the visibility of the password"
 msgstr "显示/隐藏密码"
 
-#: editor/widgets/passwordfield.cpp:41
+#: editor/widgets/passwordfield.cpp:41 editorqml/qml/PasswordField.qml:125
 #, kde-format
 msgid "Store password for this user only (encrypted)"
 msgstr "仅为当前用户保存密码 (加密)"
 
-#: editor/widgets/passwordfield.cpp:43
+#: editor/widgets/passwordfield.cpp:43 editorqml/qml/PasswordField.qml:125
 #, kde-format
 msgid "Store password for all users (not encrypted)"
 msgstr "为所有用户保存密码 (不加密)"
 
 #: editor/widgets/passwordfield.cpp:45 editor/widgets/passwordfield.cpp:91
+#: editorqml/qml/PasswordField.qml:125
 #, kde-format
 msgid "Ask for this password every time"
 msgstr "每次都询问密码"
 
-#: editor/widgets/passwordfield.cpp:106
+#: editor/widgets/passwordfield.cpp:106 editorqml/qml/PasswordField.qml:128
 #, kde-format
 msgid "This password is not required"
 msgstr "不需要密码"
@@ -3353,13 +4069,14 @@ msgid "Users allowed to activate the connection"
 msgstr "允许激活连接的用户"
 
 #. i18n: ectx: property (windowTitle), widget (QWidget, RoutesIp4Config)
-#: editor/widgets/ui/ipv4routes.ui:20
+#: editor/widgets/ui/ipv4routes.ui:20 editorqml/qml/ipv4/IPv4Routes.qml:18
 #, kde-format
 msgid "Edit IPv4 Routes"
 msgstr "编辑 IPv4 路由"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, cbNeverDefault)
 #: editor/widgets/ui/ipv4routes.ui:42 editor/widgets/ui/ipv6routes.ui:130
+#: editorqml/qml/ipv4/IPv4Routes.qml:216 editorqml/qml/ipv6/IPv6Routes.qml:237
 #, kde-format
 msgid ""
 "If enabled, this connection will never be used as the default network "
@@ -3368,6 +4085,7 @@ msgstr "勾选此项后，此连接将不会被用作默认网络连接"
 
 #. i18n: ectx: property (text), widget (QCheckBox, cbNeverDefault)
 #: editor/widgets/ui/ipv4routes.ui:45 editor/widgets/ui/ipv6routes.ui:133
+#: editorqml/qml/ipv4/IPv4Routes.qml:208 editorqml/qml/ipv6/IPv6Routes.qml:229
 #, kde-format
 msgid "Use only for resources on this connection"
 msgstr "仅用于此连接的资源"
@@ -3388,6 +4106,7 @@ msgstr "添加"
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, cbIgnoreAutoRoutes)
 #: editor/widgets/ui/ipv4routes.ui:136 editor/widgets/ui/ipv6routes.ui:120
+#: editorqml/qml/ipv4/IPv4Routes.qml:202 editorqml/qml/ipv6/IPv6Routes.qml:223
 #, kde-format
 msgid ""
 "If enabled, automatically configured routes are ignored and only routes "
@@ -3396,12 +4115,13 @@ msgstr "勾选此项时，自动配置路由将被忽略，系统将只使用上
 
 #. i18n: ectx: property (text), widget (QCheckBox, cbIgnoreAutoRoutes)
 #: editor/widgets/ui/ipv4routes.ui:139 editor/widgets/ui/ipv6routes.ui:123
+#: editorqml/qml/ipv4/IPv4Routes.qml:194 editorqml/qml/ipv6/IPv6Routes.qml:215
 #, kde-format
 msgid "Ignore automatically obtained routes"
 msgstr "忽略自动获取的路由"
 
 #. i18n: ectx: property (windowTitle), widget (QWidget, RoutesIp6Config)
-#: editor/widgets/ui/ipv6routes.ui:20
+#: editor/widgets/ui/ipv6routes.ui:20 editorqml/qml/ipv6/IPv6Routes.qml:18
 #, kde-format
 msgid "Edit IPv6 Routes"
 msgstr "编辑 IPv6 路由"
@@ -3412,6 +4132,908 @@ msgstr "编辑 IPv6 路由"
 msgctxt "Remove a selected row"
 msgid "R&emove"
 msgstr "移除(&E)"
+
+#: editorqml/qml/AddConnectionDialog.qml:18
+#, kde-format
+msgctxt "@title:window"
+msgid "Choose a Connection Type"
+msgstr "选择连接类型"
+
+#: editorqml/qml/components/Vpn.qml:24 editorqml/qml/components/Wired.qml:27
+#: editorqml/qml/components/Wireless.qml:27
+#, kde-format
+msgid "Status"
+msgstr "状态"
+
+#: editorqml/qml/components/Wireless.qml:36
+#, kde-format
+msgid "Wi-Fi Security"
+msgstr "Wi-Fi 安全性"
+
+#: editorqml/qml/ConfigurationDialog.qml:19
+#, kde-format
+msgctxt "@title:window"
+msgid "Configuration"
+msgstr "配置"
+
+#: editorqml/qml/ConfigurationDialog.qml:42
+#, kde-format
+msgid "Ask for PIN on modem detection"
+msgstr "检测调制解调器时询问 PIN 码"
+
+#: editorqml/qml/ConfigurationDialog.qml:49
+#, kde-format
+msgid "Show virtual connections"
+msgstr "显示虚拟连接"
+
+#: editorqml/qml/ConfigurationDialog.qml:55
+#, kde-format
+msgid "Create new connections as system connections"
+msgstr "创建新连接为系统连接"
+
+#: editorqml/qml/generalSettings/AdvancedPermissionsDialog.qml:18
+#, kde-format
+msgid "Allowed Users"
+msgstr "允许的用户"
+
+#: editorqml/qml/generalSettings/GeneralSettings.qml:131
+#, kde-format
+msgctxt "@item metered mode"
+msgid "Automatic"
+msgstr "自动"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:18
+#, kde-format
+msgid "Advanced IPv4 Settings"
+msgstr "高级 IPv4 设置"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:45
+#, kde-format
+msgid "DHCP:"
+msgstr "DHCP："
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:46
+#, kde-format
+msgid "Send hostname to DHCP server"
+msgstr "发送主机名到 DHCP 服务器"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:76 editorqml/qml/ipv4/IPv4Advance.qml:83
+#, kde-format
+msgctxt "@item DAD timeout left to NetworkManager"
+msgid "Default"
+msgstr "默认"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:78 editorqml/qml/ipv4/IPv4Advance.qml:85
+#, kde-format
+msgctxt "@item duplicate address detection turned off"
+msgid "Disabled"
+msgstr "已禁用"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:79
+#, kde-format
+msgctxt "@item:intext duplicate address detection timeout in milliseconds"
+msgid "%1 ms"
+msgstr "%1 毫秒"
+
+#: editorqml/qml/ipv4/IPv4Advance.qml:94
+#, kde-format
+msgid ""
+"Timeout in milliseconds used to check for the presence of duplicate IP "
+"addresses on the network.\n"
+"\n"
+"0 disables the check, -1 lets NetworkManager decide."
+msgstr ""
+"检查网络中是否存在重复 IP 地址时的超时时间 (单位：毫秒)。\n"
+"\n"
+"0 表示禁用此检查，-1 表示由 NetworkManager 决定。"
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:125
+#: editorqml/qml/ipv4/IPv4Settings.qml:254
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "10.0.0.0"
+msgstr "10.0.0.0"
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:127
+#: editorqml/qml/ipv4/IPv4Settings.qml:256
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "255.255.255.0"
+msgstr "255.255.255.0"
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:129
+#: editorqml/qml/ipv4/IPv4Settings.qml:258
+#: editorqml/qml/ipv6/IPv6Routes.qml:133
+#: editorqml/qml/ipv6/IPv6Settings.qml:261
+#, kde-format
+msgctxt "@info:placeholder optional field"
+msgid "Optional"
+msgstr "可选项"
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:170 editorqml/qml/ipv6/IPv6Routes.qml:191
+#, kde-format
+msgctxt "@action:button Insert a row"
+msgid "Add"
+msgstr "新增"
+
+#: editorqml/qml/ipv4/IPv4Routes.qml:177 editorqml/qml/ipv6/IPv6Routes.qml:198
+#, kde-format
+msgctxt "@action:button Remove a selected row"
+msgid "Remove"
+msgstr "移除"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv4 method"
+msgid "Automatic"
+msgstr "自动"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv4 method"
+msgid "Automatic (Only addresses)"
+msgstr "自动 (仅地址)"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv4 method"
+msgid "Link-Local"
+msgstr "本地链路"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox like in use Manual configuration"
+msgid "Manual"
+msgstr "手动"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv4 method"
+msgid "Shared to other computers"
+msgstr "共享给其他计算机"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:29
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox like in this setting is Disabled"
+msgid "Disabled"
+msgstr "已禁用"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:78
+#: editorqml/qml/ipv6/IPv6Settings.qml:78
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Search Domains:"
+msgstr "搜索域："
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:126
+#, kde-format
+msgid ""
+"Use this field to specify the DHCP client ID which is a string sent to the "
+"DHCP server to identify the local machine that the DHCP server may use to "
+"customize the DHCP lease and options."
+msgstr ""
+"使用此字段指定 DHCP 客户端 ID，该 ID 是一个发送给 DHCP 服务器的字符串，用于标"
+"识本地计算机，DHCP 服务器可以据此自定义 DHCP 租约和选项。"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:155
+#: editorqml/qml/ipv6/IPv6Settings.qml:158
+#, kde-format
+msgid ""
+"A score that helps choose the best path for data packets to reach their "
+"destination, based on factors like distance, delay, and reliability.\n"
+"\n"
+"Default value -1 means that NetworkManager gets to choose and manage the "
+"actual metric of the route."
+msgstr ""
+"根据距离、延迟和可靠性等因素得出的评分，系统可据此判断数据包到达目的地的最佳"
+"路径。\n"
+"\n"
+"默认值 -1 意味着由 NetworkManager 来选择并管理路由的实际跃点数。"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:162
+#: editorqml/qml/ipv6/IPv6Settings.qml:165
+#, kde-format
+msgid "Addresses"
+msgstr "地址"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:310
+#, kde-format
+msgid ""
+"Allows the connection to complete if IPv4 configuration fails but IPv6 "
+"configuration succeeds"
+msgstr "如果 IPv4 配置失败但 IPv6 配置成功，仍然允许连接完成"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:326 editorqml/qml/vpn/ssh/Ssh.qml:194
+#: editorqml/qml/vpn/sstp/Sstp.qml:106
+#, kde-format
+msgctxt "@action:button"
+msgid "Advanced…"
+msgstr "高级…"
+
+#: editorqml/qml/ipv4/IPv4Settings.qml:332
+#: editorqml/qml/ipv6/IPv6Settings.qml:346
+#, kde-format
+msgctxt "@action:button"
+msgid "Routes…"
+msgstr "路由…"
+
+#: editorqml/qml/ipv4/SearchDomainList.qml:16
+#, kde-format
+msgid "Search Domains"
+msgstr "搜索域"
+
+#: editorqml/qml/ipv4/SearchDomainList.qml:107
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:113
+#: editorqml/qml/wifisecurity/DnsList.qml:113
+#, kde-format
+msgid "Move Up"
+msgstr "上移"
+
+#: editorqml/qml/ipv4/SearchDomainList.qml:120
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:126
+#: editorqml/qml/wifisecurity/DnsList.qml:126
+#, kde-format
+msgid "Move Down"
+msgstr "下移"
+
+#: editorqml/qml/ipv6/IPv6Routes.qml:129
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "2001:db8::"
+msgstr "2001:db8::"
+
+#: editorqml/qml/ipv6/IPv6Routes.qml:131
+#: editorqml/qml/ipv6/IPv6Settings.qml:259
+#, kde-format
+msgctxt "@info:placeholder IPv6 prefix length"
+msgid "64"
+msgstr "64"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv6 method"
+msgid "Automatic"
+msgstr "自动"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv6 method"
+msgid "Automatic (Only addresses)"
+msgstr "自动 (仅地址)"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv6 method"
+msgid "Automatic (Only DHCP)"
+msgstr "自动 (仅DHCP)"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox IPv6 method"
+msgid "Link-Local"
+msgstr "本地链路"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:29
+#, kde-format
+msgctxt "@item:inlistbox like in this setting is Ignored"
+msgid "Ignored"
+msgstr "已忽略"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:120
+#, kde-format
+msgctxt "@item:inlistbox IPv6 privacy extensions left to NetworkManager"
+msgid "Default"
+msgstr "默认"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:120
+#, kde-format
+msgctxt "@item:inlistbox privacy disabled"
+msgid "Disabled"
+msgstr "已禁用"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:120
+#, kde-format
+msgctxt "@item:inlistbox IPv6 privacy extensions"
+msgid "Enabled (prefer public address)"
+msgstr "已启用 (公共地址优先)"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:120
+#, kde-format
+msgctxt "@item:inlistbox IPv6 privacy extensions"
+msgid "Enabled (prefer temporary addresses)"
+msgstr "已启用 (临时地址优先)"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:128
+#, kde-format
+msgid ""
+"Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941. If "
+"enabled, it makes the kernel generate a temporary IPv6 address in addition "
+"to the public one generated from MAC address via modified EUI-64."
+msgstr ""
+"配置 SLAAC 的 IPv6 隐私扩展，RFC 4941 规范中描述了此功能。勾选此项后，内核不"
+"但会基于 MAC 地址生成一个公共地址，还会基于 EUI-64 的修改版本生成一个临时的 "
+"IPv6 地址。"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:257
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "2001:db8::1"
+msgstr "2001:db8::1"
+
+#: editorqml/qml/ipv6/IPv6Settings.qml:330
+#, kde-format
+msgid ""
+"When connecting to IPv4-capable networks, allows the connection to complete "
+"if IPv6 configuration fails but IPv4 configuration succeeds"
+msgstr ""
+"连接到支持 IPv4 的网络时，如果 IPv6 配置失败，但是 IPv4 配置成功，仍然允许连"
+"接完成"
+
+#: editorqml/qml/PasswordField.qml:106
+#, kde-format
+msgid "Always asked"
+msgstr "总是询问"
+
+#: editorqml/qml/PasswordField.qml:108
+#, kde-format
+msgid "Not required"
+msgstr "非必需"
+
+#: editorqml/qml/PasswordPromptDialog.qml:24
+#, kde-format
+msgctxt "@action:button Connect to network"
+msgid "Connect"
+msgstr "连接"
+
+#: editorqml/qml/PasswordPromptDialog.qml:31
+#, kde-format
+msgctxt "@action:button Cancel connecting to network"
+msgid "Cancel"
+msgstr "取消"
+
+#: editorqml/qml/PasswordPromptDialog.qml:37
+#, kde-format
+msgctxt "@title:window"
+msgid "Enter Password"
+msgstr "输入密码"
+
+#: editorqml/qml/PasswordPromptDialog.qml:43
+#, kde-format
+msgctxt "@label %1 is the name of the network the user is connecting to"
+msgid "Network: %1"
+msgstr "网络：%1"
+
+#: editorqml/qml/PasswordPromptDialog.qml:62
+#, kde-format
+msgctxt "@label key is a passcode"
+msgid "Password must be a valid WEP key"
+msgstr "密码必须是有效的 WEP 密钥"
+
+#: editorqml/qml/PasswordPromptDialog.qml:62
+#, kde-format
+msgctxt "@label password invalid length message"
+msgid "Password must be between 8 and 64 characters"
+msgstr "密码长度必须在 8 至 64 个字符之间"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:34 editorqml/qml/vpn/sstp/Sstp.qml:30
+#, kde-format
+msgid "Gateway:"
+msgstr "网关："
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:43
+#, kde-format
+msgid "Network Settings"
+msgstr "网络设置"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:47 editorqml/qml/vpn/ssh/Ssh.qml:97
+#, kde-format
+msgid "Remote IP Address:"
+msgstr "远程 IP 地址："
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:59 editorqml/qml/vpn/ssh/Ssh.qml:111
+#, kde-format
+msgid "Local IP Address:"
+msgstr "本地 IP 地址："
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:71
+#, kde-format
+msgid "Netmask:"
+msgstr "网络掩码："
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:84
+#, kde-format
+msgid "IPv6 Network Settings"
+msgstr "IPv6 网络设置"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:90
+#, kde-format
+msgid "Use IPv6"
+msgstr "使用 IPv6"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:125
+#, kde-format
+msgid "Prefix:"
+msgstr "前缀："
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:140
+#, kde-format
+msgid "Type:"
+msgstr "类型："
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:143
+#, kde-format
+msgid "SSH Agent"
+msgstr "SSH 代理"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:143
+#, kde-format
+msgid "Password"
+msgstr "密码"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:143
+#, kde-format
+msgid "Key authentication"
+msgstr "密钥身份验证"
+
+#: editorqml/qml/vpn/ssh/Ssh.qml:150
+#, kde-format
+msgid "SSH Key File:"
+msgstr "SSH 密钥文件："
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:18
+#, kde-format
+msgctxt "@title:window"
+msgid "Advanced"
+msgstr "高级"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:36
+#, kde-format
+msgid "Use custom gateway port:"
+msgstr "使用自定义网关端口："
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:60
+#, kde-format
+msgid "Use custom tunnel Maximum Transmission Unit (MTU):"
+msgstr "使用自定义隧道最大传输单元 (MTU)："
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:84
+#, kde-format
+msgid "Extra SSH options:"
+msgstr "额外 SSH 选项："
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:108
+#, kde-format
+msgid "Remote device number:"
+msgstr "远程设备号："
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:128
+#, kde-format
+msgid "Use a TAP device"
+msgstr "使用 TAP 设备"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:141
+#, kde-format
+msgid "Remote username"
+msgstr "远程用户名"
+
+#: editorqml/qml/vpn/ssh/SshAdvanced.qml:161
+#, kde-format
+msgid "Do not replace default route"
+msgstr "不替换默认路由"
+
+#: editorqml/qml/vpn/ssh/SshAuth.qml:23
+#, kde-format
+msgid "SSH VPN"
+msgstr "SSH VPN"
+
+#: editorqml/qml/vpn/sstp/Sstp.qml:39
+#, fuzzy, kde-format
+#| msgctxt "@info:placeholder optional field"
+#| msgid "Optional"
+msgid "Optional"
+msgstr "可选项"
+
+#: editorqml/qml/vpn/sstp/Sstp.qml:51
+#, fuzzy, kde-format
+#| msgid "Domain:"
+msgid "NT Domain:"
+msgstr "域："
+
+#: editorqml/qml/vpn/sstp/Sstp.qml:59
+#, fuzzy, kde-format
+#| msgid "CA certificate:"
+msgid "CA Certificate:"
+msgstr "CA 证书："
+
+#: editorqml/qml/vpn/sstp/Sstp.qml:79
+#, kde-format
+msgid "Ignore certificate warnings"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:60
+#, kde-format
+msgid "Point-to-Point"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:64
+#, kde-format
+msgid "Proxy"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:87
+#, kde-format
+msgid "Allow following authentication methods:"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:128
+#, fuzzy, kde-format
+#| msgid "Connection"
+msgid "Encryption"
+msgstr "连接"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:132
+#, kde-format
+msgid "Use MPPE Encryption"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:134
+#, fuzzy, kde-format
+#| msgid "Use point-to-point encryption (MPPE)"
+msgid "Use Microsoft Point-to-Point Encryption"
+msgstr "使用点对点加密 (MPPE)"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:143
+#, kde-format
+msgid "Crypto:"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:148
+#, fuzzy, kde-format
+#| msgid "Any"
+msgctxt "like in use Any configuration"
+msgid "Any"
+msgstr "任意"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:148
+#, fuzzy, kde-format
+#| msgid "WEP key 128 bits"
+msgid "128 bit"
+msgstr "WEP 128 位密钥"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:148
+#, kde-format
+msgid "40 bit"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:155
+#, fuzzy, kde-format
+#| msgid "Use stateful MPPE"
+msgid "Use stateful encryption"
+msgstr "使用有状态 MPPE"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:169
+#, fuzzy, kde-format
+#| msgid "Use BSD data compression"
+msgid "Allow BSD compression"
+msgstr "使用 BSD 数据压缩"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:176
+#, fuzzy, kde-format
+#| msgid "Use Deflate data compression"
+msgid "Allow Deflate compression"
+msgstr "使用 Deflate 数据压缩"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:183
+#, fuzzy, kde-format
+#| msgid "Use TCP header compression"
+msgid "Allow TCP header compression"
+msgstr "使用 TCP 头压缩"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:203
+#, kde-format
+msgid "Misc"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:213
+#, fuzzy, kde-format
+#| msgid "Use custom gateway port:"
+msgid "Use custom unit number:"
+msgstr "使用自定义网关端口："
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:242
+#, fuzzy, kde-format
+#| msgctxt "Header text for IPv4 address"
+#| msgid "Address"
+msgid "Address:"
+msgstr "地址"
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:250
+#, kde-format
+msgid "Port:"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAdvanced.qml:261
+#, kde-format
+msgid "Credentials"
+msgstr ""
+
+#: editorqml/qml/vpn/sstp/SstpAuth.qml:22
+#, fuzzy, kde-format
+#| msgid "SSH VPN"
+msgid "SSTP VPN"
+msgstr "SSH VPN"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:115
+#, kde-format
+msgctxt "@item BSSID (MAC address) followed by signal strength"
+msgid "%1 (%2%)"
+msgstr "%1 (%2%)"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:119
+#, kde-format
+msgid "Frequency: %1 MHz"
+msgstr "频率：%1 MHz"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:124
+#, kde-format
+msgid "Channel: %1"
+msgstr "频道：%1"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:136
+#, kde-format
+msgctxt "@item wireless band"
+msgid "Automatic"
+msgstr "自动"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:229
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:232
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:95
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:98
+#, kde-format
+msgctxt "@item MTU is automatically determined"
+msgid "Automatic"
+msgstr "自动"
+
+#: editorqml/qml/wificonnectionsettings/WifiConnectionSettings.qml:229
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:95
+#, kde-format
+msgctxt "@item:intext MTU size, %1 is the number of bytes"
+msgid "%1 bytes"
+msgstr "%1 字节"
+
+#: editorqml/qml/wifisecurity/AlternativeSubjectMatch.qml:15
+#, kde-format
+msgid "Alternative subject matches"
+msgstr "备用主体匹配"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:98
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Anonymous identity:"
+msgstr "匿名身份："
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:116
+#, kde-format
+msgctxt "@item:inlist authentication mode"
+msgid "Anonymous"
+msgstr "匿名"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:116
+#, kde-format
+msgctxt "@item:inlist authentication mode"
+msgid "Authenticated"
+msgstr "已验证的身份"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:116
+#, kde-format
+msgctxt "@item:inlist authentication mode"
+msgid "Both"
+msgstr "两者皆有"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:142
+#, kde-format
+msgctxt ""
+"@label PAC stands for Proxy Auto-Configuration and should not be translated"
+msgid "PAC file:"
+msgstr "PAC 文件："
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapFast.qml:191
+#, kde-format
+msgctxt "@item:filefilter"
+msgid "PAC files (*.pac)"
+msgstr "PAC 文件 (*.pac)"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:117
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:39
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:58
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:118
+#, kde-format
+msgid "*.der *.pem *.crt *.cer"
+msgstr "*.der *.pem *.crt *.cer"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:133
+#, kde-format
+msgid "Automatic"
+msgstr "自动"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapPeap.qml:175
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:170
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:176
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTtls.qml:164
+#, kde-format
+msgid "Certificates (*.der *.pem *.crt *.cer)"
+msgstr "证书 (*.der *.pem *.crt *.cer)"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:142
+#, kde-format
+msgid "*.der *.pem *.p12 *.key"
+msgstr "*.der *.pem *.p12 *.key"
+
+#: editorqml/qml/wifisecurity/authentication/enterprise/eap/EapTls.qml:182
+#, kde-format
+msgid "Keys (*.der *.pem *.p12 *.key)"
+msgstr "密钥 (*.der *.pem *.p12 *.key)"
+
+#: editorqml/qml/wifisecurity/authentication/Owe.qml:30
+#, kde-format
+msgid ""
+"Enhanced Open (OWE) provides encryption without authentication. No password "
+"required."
+msgstr "Enhanced Open (OWE) 提供无需身份验证的加密。不需要密码。"
+
+#: editorqml/qml/wifisecurity/authentication/WepKey.qml:38
+#, kde-format
+msgid "Key index:"
+msgstr "密钥索引："
+
+#: editorqml/qml/wifisecurity/DnsList.qml:15
+#, kde-format
+msgid "DNS Servers"
+msgstr "DNS 服务器"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:24
+#, kde-format
+msgid "None"
+msgstr "无"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:25
+#, kde-format
+msgid "WEP 40/128-bit key (Hex)"
+msgstr "WEP 40/128 位密钥 (十六进制)"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:26
+#, kde-format
+msgid "WEP 128-bit Passphrase"
+msgstr "WEP 128 位密码"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:28
+#, kde-format
+msgid "WPA/WPA2 Personal"
+msgstr "WPA/WPA2 Personal"
+
+#: editorqml/qml/wifisecurity/WifiSecurityForm.qml:29
+#, kde-format
+msgid "WPA/WPA2 Enterprise"
+msgstr "WPA/WPA2 Enterprise"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:56
+#, kde-format
+msgid ""
+"This option locks this connection to the network device specified by its "
+"permanent MAC address entered here. Example: 00:11:22:33:44:55"
+msgstr ""
+"此连接将只使用在此输入的 MAC 地址指定的网络设备。示例：00:11:22:33:44:55"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:74
+#, kde-format
+msgid ""
+"The MAC address entered here will be used as hardware address for the "
+"network device this connection is activated on. This feature is known as MAC "
+"cloning or spoofing. Example: 11:22:33:44:55:66"
+msgstr ""
+"此处输入的 MAC 地址将用作此连接激活的网络设备的硬件地址。此功能也叫做 MAC 地"
+"址克隆或者 MAC 地址欺骗。示例：11:22:33:44:55:66"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:107
+#, kde-format
+msgid ""
+"Only transmit packets of the specified size or smaller, breaking larger "
+"packets up into multiple Ethernet frames"
+msgstr "只传输指定大小或者更小的包，大包将被拆分成多个以太网帧"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:114
+#, kde-format
+msgctxt "@item:inlistbox link negotiation"
+msgid "Ignore"
+msgstr "忽略"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:114
+#, kde-format
+msgctxt "@item:inlistbox link negotiation"
+msgid "Automatic"
+msgstr "自动"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:114
+#, kde-format
+msgctxt "@item:inlistbox link negotiation"
+msgid "Manual"
+msgstr "手动"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:122
+#, kde-format
+msgid ""
+"Device link negotiation. If “Manual” is chosen, “Speed” and “Duplex” values "
+"will be forced without checking the device compatibility. If unsure, leave "
+"here “Ignore” or pick “Automatic”."
+msgstr ""
+"设备的连接协商模式。选择“手动”时将不检查设备的兼容性，强制使用指定的“速"
+"度”和“双工”值。如果您不确定，请保留默认值“忽略”，或者选择“自动”。"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:159
+#, kde-format
+msgctxt "@item:inlistbox duplex mode"
+msgid "Half"
+msgstr "半双工"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:159
+#, kde-format
+msgctxt "@item:inlistbox duplex mode"
+msgid "Full"
+msgstr "全双工"
+
+#: editorqml/qml/wiredconnectionsettings/WiredConnectionSettings.qml:167
+#, kde-format
+msgid ""
+"Request that the device use the specified duplex mode. Either “Half” or "
+"“Full”"
+msgstr "请求设备使用指定的双工模式。可以是“半双工”或者“全双工”"
+
+#: editorqml/settings/generalSettings/advancedpermissionsmodel.cpp:48
+#, kde-format
+msgctxt "@item real name not available"
+msgid "N/A"
+msgstr "不可用"
+
+#: editorqml/settings/ipv4settings/ipv4routetablemodel.cpp:105
+#: editorqml/settings/ipv6settings/ipv6routetablemodel.cpp:107
+#, kde-format
+msgctxt "@title:column"
+msgid "Address"
+msgstr "地址"
+
+#: editorqml/settings/ipv4settings/ipv4routetablemodel.cpp:107
+#, kde-format
+msgctxt "@title:column"
+msgid "Netmask"
+msgstr "网络掩码"
+
+#: editorqml/settings/ipv4settings/ipv4routetablemodel.cpp:109
+#: editorqml/settings/ipv6settings/ipv6routetablemodel.cpp:111
+#, kde-format
+msgctxt "@title:column"
+msgid "Gateway"
+msgstr "网关"
+
+#: editorqml/settings/ipv4settings/ipv4routetablemodel.cpp:111
+#: editorqml/settings/ipv6settings/ipv6routetablemodel.cpp:113
+#, kde-format
+msgctxt "@title:column"
+msgid "Metric"
+msgstr "跃点数"
+
+#: editorqml/settings/ipv6settings/ipv6routetablemodel.cpp:109
+#, kde-format
+msgctxt "@title:column IPv6 prefix length"
+msgid "Prefix"
+msgstr "前缀"
+
+#: editorqml/settings/wificonnectionsettings/wifisetting.cpp:292
+#, kde-format
+msgctxt "@item automatic wireless channel selection"
+msgid "Automatic"
+msgstr "自动"
 
 #: handler.cpp:140
 #, kde-format
@@ -3478,7 +5100,7 @@ msgstr "更新连接 %1 失败"
 msgid "Connection %1 has been updated"
 msgstr "连接 %1 已被更新"
 
-#: handler.cpp:861
+#: handler.cpp:864
 #, kde-format
 msgid "Failed to create hotspot %1"
 msgstr "创建热点 %1 失败"
@@ -3576,19 +5198,19 @@ msgstr "其他"
 msgid "Import a saved configuration file"
 msgstr "导入保存的配置文件"
 
-#: models/networkmodelitem.cpp:339
+#: models/networkmodelitem.cpp:342
 #, kde-format
 msgctxt "@title:column header for list of available network connections"
 msgid "Available"
 msgstr "可用"
 
-#: models/networkmodelitem.cpp:345
+#: models/networkmodelitem.cpp:348
 #, kde-format
 msgctxt "@title:column header for list of connected network connections"
 msgid "Connected"
 msgstr "已连接"
 
-#: models/networkmodelitem.cpp:347
+#: models/networkmodelitem.cpp:350
 #, kde-format
 msgctxt ""
 "@title:column header for list of previously connected network connections"
@@ -3682,3 +5304,38 @@ msgstr "需要 NetworkManager 0.9.8，找到了 %1。"
 msgctxt "global connection state"
 msgid "Unknown"
 msgstr "未知"
+
+#: qml/ConnectionItemDelegate.qml:97
+#, kde-format
+msgid "Connect"
+msgstr "连接"
+
+#: qml/ConnectionItemDelegate.qml:104
+#, kde-format
+msgid "Disconnect"
+msgstr "断开连接"
+
+#: qml/ConnectionItemDelegate.qml:111
+#, kde-format
+msgid "Configure"
+msgstr "配置"
+
+#: qml/ConnectionItemDelegate.qml:148
+#, kde-format
+msgid "Connect to"
+msgstr "连接到"
+
+#: qml/TrafficMonitor.qml:37 qml/TrafficMonitor.qml:112
+#, kde-format
+msgid "/s"
+msgstr "/秒"
+
+#: qml/TrafficMonitor.qml:90
+#, kde-format
+msgid "Upload"
+msgstr "上行"
+
+#: qml/TrafficMonitor.qml:90
+#, kde-format
+msgid "Download"
+msgstr "下行"

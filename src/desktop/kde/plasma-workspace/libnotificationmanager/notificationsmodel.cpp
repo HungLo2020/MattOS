@@ -11,9 +11,6 @@
 
 #include "debug.h"
 
-#include <KIO/CommandLauncherJob>
-#include <KShell>
-
 using namespace NotificationManager;
 
 NotificationsModel::Ptr NotificationsModel::createNotificationsModel()
@@ -77,11 +74,7 @@ void NotificationsModel::invokeDefaultAction(uint notificationId, Notifications:
         return;
     }
 
-    Server::self().invokeAction(notificationId,
-                                QStringLiteral("default"), // FIXME make a static Notification::defaultActionName() or something
-                                notification.d->xdgTokenAppId,
-                                behavior,
-                                window());
+    Server::self().invokeAction(notificationId, notification.d->defaultActionId, notification.desktopEntry(), behavior, window());
 }
 
 void NotificationsModel::invokeAction(uint notificationId, const QString &actionName, Notifications::InvokeBehavior behavior)
@@ -97,7 +90,7 @@ void NotificationsModel::invokeAction(uint notificationId, const QString &action
         return;
     }
 
-    Server::self().invokeAction(notificationId, actionName, notification.d->xdgTokenAppId, behavior, window());
+    Server::self().invokeAction(notificationId, actionName, notification.desktopEntry(), behavior, window());
 }
 
 void NotificationsModel::reply(uint notificationId, const QString &text, Notifications::InvokeBehavior behavior)
@@ -128,7 +121,7 @@ void NotificationsModel::configure(uint notificationId)
     if (notification.d->hasConfigureAction) {
         Server::self().invokeAction(notificationId,
                                     QStringLiteral("settings"),
-                                    notification.d->xdgTokenAppId,
+                                    notification.desktopEntry(),
                                     Notifications::None, // FIXME make a static Notification::configureActionName() or something
                                     window());
         return;
@@ -140,26 +133,4 @@ void NotificationsModel::configure(uint notificationId)
     }
 
     qCWarning(NOTIFICATIONMANAGER) << "Trying to configure notification" << notificationId << "which isn't configurable";
-}
-
-void NotificationsModel::configure(const QString &desktopEntry, const QString &notifyRcName, const QString &eventId)
-{
-    QStringList args;
-    if (!desktopEntry.isEmpty()) {
-        args.append(QStringLiteral("--desktop-entry"));
-        args.append(desktopEntry);
-    }
-    if (!notifyRcName.isEmpty()) {
-        args.append(QStringLiteral("--notifyrc"));
-        args.append(notifyRcName);
-    }
-    if (!eventId.isEmpty()) {
-        args.append(QStringLiteral("--event-id"));
-        args.append(eventId);
-    }
-
-    const QString systemSettings = QStringLiteral("systemsettings");
-    auto job = new KIO::CommandLauncherJob(systemSettings, {QStringLiteral("kcm_notifications"), QStringLiteral("--args"), KShell::joinArgs(args)});
-    job->setDesktopName(systemSettings);
-    job->start();
 }

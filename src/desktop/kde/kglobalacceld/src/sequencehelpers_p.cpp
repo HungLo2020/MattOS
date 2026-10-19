@@ -78,7 +78,7 @@ Qt::KeyboardModifiers keyToModifier(int key)
     }
 }
 
-bool matchSequences(const QKeySequence &key, const QList<QKeySequence> &keys)
+bool matchSequences(const QKeySequence &key, const QSet<QKeySequence> &keys)
 {
     // Since we're testing sequences, we need to check for all possible matches
     // between existing and new sequences.
@@ -101,22 +101,45 @@ bool matchSequences(const QKeySequence &key, const QList<QKeySequence> &keys)
     return false;
 }
 
-static int normalizeKey(int keyQt)
+static QKeyCombination normalizeKey(QKeyCombination keyCombination)
 {
-    int key = keyQt & ~Qt::KeyboardModifierMask;
-    int mod = keyQt & Qt::KeyboardModifierMask;
-    switch (key) {
+    QKeyCombination normalizedCombination;
+    switch (keyCombination.key()) {
     case Qt::Key_Shift:
-        return mod | Qt::ShiftModifier;
+        normalizedCombination = Qt::Key(0) | (keyCombination.keyboardModifiers() | Qt::ShiftModifier);
+        break;
     case Qt::Key_Control:
-        return mod | Qt::ControlModifier;
+        normalizedCombination = Qt::Key(0) | (keyCombination.keyboardModifiers() | Qt::ControlModifier);
+        break;
     case Qt::Key_Alt:
-        return mod | Qt::AltModifier;
+        normalizedCombination = Qt::Key(0) | (keyCombination.keyboardModifiers() | Qt::AltModifier);
+        break;
     case Qt::Key_Meta:
-        return mod | Qt::MetaModifier;
+        normalizedCombination = Qt::Key(0) | (keyCombination.keyboardModifiers() | Qt::MetaModifier);
+        break;
     default:
-        return keyQt;
+        normalizedCombination = keyCombination;
+        break;
     }
+
+    // QKeySequence doesn't support modifier-only shortcuts so we replace the last modifier in the
+    // key sequence with a key code. The modifiers are always ordered as Meta + Ctrl + Alt + Shift.
+    // See https://qt-project.atlassian.net/browse/QTBUG-132435.
+    if (!normalizedCombination.key()) {
+        const Qt::KeyboardModifiers modifiers = normalizedCombination.keyboardModifiers();
+
+        if (modifiers & Qt::ShiftModifier) {
+            normalizedCombination = Qt::Key_Shift | (modifiers & ~Qt::ShiftModifier);
+        } else if (modifiers & Qt::AltModifier) {
+            normalizedCombination = Qt::Key_Alt | (modifiers & ~Qt::AltModifier);
+        } else if (modifiers & Qt::ControlModifier) {
+            normalizedCombination = Qt::Key_Control | (modifiers & ~Qt::ControlModifier);
+        } else if (modifiers & Qt::MetaModifier) {
+            normalizedCombination = Qt::Key_Meta | (modifiers & ~Qt::MetaModifier);
+        }
+    }
+
+    return normalizedCombination;
 }
 
 QKeySequence normalizeSequence(const QKeySequence &key)
@@ -127,16 +150,28 @@ QKeySequence normalizeSequence(const QKeySequence &key)
     for (int i = 0; i < key.count(); i++) {
         // Qt triggers both shortcuts that include Shift+Backtab and Shift+Tab
         // when user presses Shift+Tab. Make no difference here.
-        int keySym = key[i].toCombined() & ~Qt::KeyboardModifierMask;
-        int keyMod = key[i].toCombined() & Qt::KeyboardModifierMask;
-        if ((keyMod & Qt::SHIFT) && (keySym == Qt::Key_Backtab || keySym == Qt::Key_Tab)) {
-            k[i] = keyMod | Qt::Key_Tab;
+        const int keySym = key[i].toCombined() & ~Qt::KeyboardModifierMask;
+        const int keyMod = key[i].toCombined() & Qt::KeyboardModifierMask;
+        if (keySym == Qt::Key_Backtab) {
+            k[i] = keyMod | Qt::ShiftModifier | Qt::Key_Tab;
         } else {
-            k[i] = normalizeKey(key[i].toCombined());
+            k[i] = normalizeKey(key[i]).toCombined();
         }
     }
 
     return QKeySequence(k[0], k[1], k[2], k[3]);
+}
+
+QSet<QKeySequence> normalizeSequences(const QSet<QKeySequence> &keys)
+{
+    QSet<QKeySequence> ret;
+    ret.reserve(keys.size());
+    for (const QKeySequence &key : keys) {
+        if (!key.isEmpty()) {
+            ret.insert(normalizeSequence(key));
+        }
+    }
+    return ret;
 }
 
 } // namespace Utils

@@ -14,7 +14,11 @@ set(java_sources
 
 if (QT_FEATURE_ffmpeg)
     list(APPEND java_sources
+        src/org/qtproject/qt/android/multimedia/qffmpeg/CameraCaptureSessionStateCallback.java
+        src/org/qtproject/qt/android/multimedia/qffmpeg/CameraDeviceStateCallback.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/CameraSettings.java
+        src/org/qtproject/qt/android/multimedia/qffmpeg/CameraStillPhotoFinalizerCallback.java
+        src/org/qtproject/qt/android/multimedia/qffmpeg/CameraStillPhotoPrecaptureCallback.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtExifDataHandler.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtCamera2.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtCameraAvailabilityListener.java
@@ -24,9 +28,7 @@ if (QT_FEATURE_ffmpeg)
 endif()
 
 qt_internal_add_jar(Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia
-    INCLUDE_JARS
-        ${QT_ANDROID_JAR}
-        ${QT6_INSTALL_PREFIX}/jar/Qt${QtMultimedia_VERSION_MAJOR}Android.jar
+    INCLUDE_JARS ${QT6_INSTALL_PREFIX}/jar/Qt${QtMultimedia_VERSION_MAJOR}Android.jar
     SOURCES ${java_sources}
     OUTPUT_DIR "${QT_BUILD_DIR}/jar"
 )
@@ -37,4 +39,3 @@ install_jar(Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia
     DESTINATION ${destination}
     COMPONENT Devel
 )
-

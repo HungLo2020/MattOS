@@ -1,0 +1,125 @@
+# SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+# SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+# SPDX-FileCopyrightText: 2024 Noah Davis <noahadvs@gmail.com>
+
+# Spinbox itself is mostly a text field with extra buttons. Most of the styling
+# comes from TextField.yml, with only the layout changed here.
+spinbox:
+    selectors:
+    -   type: SpinBox
+
+    path: widgets/lineedit
+    prefix: base
+
+    layout:
+        alignment:
+            container: Content
+            horizontal: Fill
+            vertical: Fill
+
+    text:
+        alignment:
+            container: Content
+            horizontal: Center
+            vertical: Center
+
+# Note: Spinbox indicators are effectively toolbuttons, so most of their styling
+# comes from ToolButton.yml, these extra rules are to set icons and other
+# elements specific to SpinBox.
+spinbox-indicator-decrease:
+    selectors:
+    -   type: SpinBox
+        child:
+            type: Indicator
+            hints: decrease
+    -   type: SpinBox
+        child:
+            type: Indicator
+            hints: decrease
+            state: Disabled
+
+    layout:
+        alignment:
+            container: Item
+            horizontal: Start
+            vertical: Fill
+
+    icon:
+        name: spinbox-decrease
+        width:
+            property: icon-size
+            name: small
+        height:
+            property: icon-size
+            name: small
+
+    background:
+        border:
+            right:
+                path: widgets/line
+                prefix: ""
+                size:
+                    property: element-width
+                    element: vertical-line
+                image:
+                    property: element-image
+                    element: vertical-line
+
+            top:
+                size:
+                    property: named-value
+                    name: small-spacing
+
+            bottom:
+                size:
+                    property: named-value
+                    name: small-spacing
+
+spinbox-indicator-increase:
+    selectors:
+    -   type: SpinBox
+        child:
+            type: Indicator
+            hints: increase
+    -   type: SpinBox
+        child:
+            type: Indicator
+            hints: increase
+            state: Disabled
+
+    layout:
+        alignment:
+            container: Item
+            horizontal: End
+            vertical: Fill
+
+    icon:
+        name: spinbox-increase
+        width:
+            property: icon-size
+            name: small
+        height:
+            property: icon-size
+            name: small
+
+    background:
+        border:
+            left:
+                path: widgets/line
+                prefix: ""
+                size:
+                    property: element-width
+                    element: vertical-line
+                image:
+                    property: element-image
+                    element: vertical-line
+
+            top:
+                size:
+                    property: named-value
+                    name: small-spacing
+
+            bottom:
+                size:
+                    property: named-value
+                    name: small-spacing

@@ -336,17 +336,21 @@ void QTipLabel::placeTip(const QPoint &pos, QWidget *w)
         if (w) {
             create();
             if (auto waylandWindow = dynamic_cast<QNativeInterface::Private::QWaylandWindow*>(windowHandle()->handle())) {
+                QWidget *parentWindow = w->window();
+                parentWindow->createWinId();
+                windowHandle()->setTransientParent(parentWindow->windowHandle());
+
                 // based on the existing code below, by default position at 'p' stored at the bottom right of our rect
                 // then  flip to the other arbitrary 4x24 space if constrained
                 const QRect controlGeometry = QRect(p.x() - 4, p.y() - 24, 4, 24)
-                    .translated(-w->window()->mapToGlobal(QPoint(0, 0)));
+                    .translated(-parentWindow->mapToGlobal(QPoint(0, 0)));
                 waylandWindow->setParentControlGeometry(controlGeometry);
                 waylandWindow->setExtendedWindowType(QNativeInterface::Private::QWaylandWindow::ToolTip);
             }
         }
 #endif
 
-        QRect screenRect = screen->geometry();
+        QRect screenRect = screen->availableGeometry();
         if (p.x() + this->width() > screenRect.x() + screenRect.width())
             p.rx() -= 4 + this->width();
         if (p.y() + this->height() > screenRect.y() + screenRect.height())
@@ -377,6 +381,7 @@ bool QTipLabel::tipChanged(const QPoint &pos, const QString &text, QObject *o)
        return false;
 }
 
+#if QT_CONFIG(style_stylesheet)
 /** \internal
   Cleanup the _q_stylesheet_parent property.
  */
@@ -385,6 +390,7 @@ void QTipLabel::styleSheetParentDestroyed()
     setProperty("_q_stylesheet_parent", QVariant());
     styleSheetParent = nullptr;
 }
+#endif
 
 /*!
     Shows \a text as a tool tip, with the global position \a pos as

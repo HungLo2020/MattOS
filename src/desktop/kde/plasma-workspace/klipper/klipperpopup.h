@@ -7,16 +7,10 @@
 #pragma once
 
 #include <PlasmaQuick/PlasmaWindow>
-#include <PlasmaQuick/SharedQmlEngine>
 
 class QWindow;
 
 class HistoryModel;
-
-namespace KWayland::Client
-{
-class PlasmaShell;
-}
 
 class KlipperPopup : public PlasmaQuick::PlasmaWindow
 {
@@ -24,11 +18,9 @@ class KlipperPopup : public PlasmaQuick::PlasmaWindow
 
 public:
     explicit KlipperPopup();
-    ~KlipperPopup() override = default;
+    ~KlipperPopup() override;
 
     void show();
-
-    void setPlasmaShell(KWayland::Client::PlasmaShell *plasmashell);
 
     void editCurrentClipboard();
     void showCurrentBarcode();
@@ -42,7 +34,6 @@ protected:
 
 private:
     void positionOnScreen();
-    void onObjectIncubated();
     void onFocusWindowChanged(QWindow *focusWindow);
 
     /**
@@ -50,6 +41,5 @@ private:
      */
     std::shared_ptr<HistoryModel> m_model;
 
-    PlasmaQuick::SharedQmlEngine m_engine;
-    KWayland::Client::PlasmaShell *m_plasmashell = nullptr;
+    std::shared_ptr<QQmlEngine> m_engine;
 };

@@ -235,14 +235,14 @@ void Item::updateBoundingRect()
     }
 }
 
-QList<RectF> Item::shape() const
+RegionF Item::shape() const
 {
-    return QList<RectF>();
+    return RegionF();
 }
 
-Region Item::opaque() const
+RegionF Item::opaque() const
 {
-    return Region();
+    return RegionF();
 }
 
 QTransform Item::transform() const
@@ -289,6 +289,15 @@ Region Item::mapToView(const Region &region, const RenderView *view) const
     return ret;
 }
 
+RegionF Item::mapToView(const RegionF &region, const RenderView *view) const
+{
+    RegionF ret;
+    for (const RectF &rect : region.rects()) {
+        ret |= mapToView(rect, view);
+    }
+    return ret;
+}
+
 RectF Item::mapToView(const RectF &rect, const RenderView *view) const
 {
     const auto snappedPosition = snapToPixels(m_position, view->scale());
@@ -307,6 +316,15 @@ Region Item::mapToScene(const Region &region) const
     }
     Region ret;
     for (const Rect &rect : region.rects()) {
+        ret |= m_itemToSceneTransform.mapRect(rect);
+    }
+    return ret;
+}
+
+RegionF Item::mapToScene(const RegionF &region) const
+{
+    RegionF ret;
+    for (const RectF &rect : region.rects()) {
         ret |= m_itemToSceneTransform.mapRect(rect);
     }
     return ret;
@@ -339,15 +357,15 @@ Rect Item::paintedDeviceArea(RenderView *view, const RectF &rect) const
                           .mapRect(snapped);
         }
 
-        snapped.translate(snapToPixelGridF(item->position() * scale));
+        snapped.translate((item->position() * scale).toPoint());
     }
-    return view->mapToDeviceCoordinatesAligned(scaledRect(snapped, 1.0 / scale)) & view->deviceRect();
+    return view->mapToDeviceCoordinatesAligned(snapped.scaled(1.0 / scale)) & view->deviceRect();
 }
 
-Region Item::paintedDeviceArea(RenderView *view, const Region &region) const
+Region Item::paintedDeviceArea(RenderView *view, const RegionF &region) const
 {
     Region ret;
-    for (RectF part : region.rects()) {
+    for (const RectF &part : region.rects()) {
         ret |= paintedDeviceArea(view, part);
     }
     return ret;
@@ -409,21 +427,21 @@ void Item::stackAfter(Item *sibling)
     sibling->scheduleSceneRepaint(sibling->boundingRect());
 }
 
-void Item::scheduleRepaint(const Region &region)
+void Item::scheduleRepaint(const RegionF &region)
 {
     if (isVisible()) {
         scheduleRepaintInternal(region);
     }
 }
 
-void Item::scheduleRepaint(RenderView *view, const Region &region)
+void Item::scheduleRepaint(RenderView *view, const RegionF &region)
 {
     if (isVisible()) {
         scheduleRepaintInternal(view, region);
     }
 }
 
-void Item::scheduleRepaintInternal(const Region &region)
+void Item::scheduleRepaintInternal(const RegionF &region)
 {
     if (Q_UNLIKELY(!m_scene)) {
         return;
@@ -466,7 +484,7 @@ void Item::scheduleMoveRepaint(Item *originallyMovedItem)
     }
 }
 
-void Item::scheduleRepaintInternal(RenderView *view, const Region &region)
+void Item::scheduleRepaintInternal(RenderView *view, const RegionF &region)
 {
     if (Q_UNLIKELY(!m_scene) || !view->shouldRenderItem(this)) {
         return;
@@ -478,7 +496,7 @@ void Item::scheduleRepaintInternal(RenderView *view, const Region &region)
     }
 }
 
-void Item::scheduleFrame()
+void Item::scheduleFrame(std::optional<std::chrono::steady_clock::time_point> targetTime)
 {
     if (!isVisible()) {
         return;
@@ -493,12 +511,12 @@ void Item::scheduleFrame()
         }
         const Rect geometry = paintedDeviceArea(view, rect());
         if (!geometry.isEmpty()) {
-            view->scheduleRepaint(this);
+            view->scheduleRepaint(this, targetTime);
         }
     }
 }
 
-void Item::scheduleSceneRepaintInternal(const Region &region)
+void Item::scheduleSceneRepaintInternal(const RegionF &region)
 {
     if (Q_UNLIKELY(!m_scene)) {
         return;
@@ -515,11 +533,11 @@ void Item::scheduleSceneRepaintInternal(const Region &region)
     }
 }
 
-void Item::preprocess()
+void Item::preprocess(ItemRenderer *renderer)
 {
 }
 
-WindowQuadList Item::buildQuads() const
+WindowQuadList Item::buildQuads(ItemRenderer *renderer) const
 {
     return WindowQuadList();
 }
@@ -529,10 +547,10 @@ void Item::discardQuads()
     m_quads.reset();
 }
 
-WindowQuadList Item::quads() const
+WindowQuadList Item::quads(ItemRenderer *renderer) const
 {
     if (!m_quads.has_value()) {
-        m_quads = buildQuads();
+        m_quads = buildQuads(renderer);
     }
     return m_quads.value();
 }
@@ -594,15 +612,15 @@ void Item::setBorderRadius(const BorderRadius &radius)
 
 void Item::scheduleRepaint(const RectF &region)
 {
-    scheduleRepaint(Region(region.roundedOut()));
+    scheduleRepaint(RegionF(region));
 }
 
 void Item::scheduleSceneRepaint(const RectF &region)
 {
-    scheduleSceneRepaint(Region(region.roundedOut()));
+    scheduleSceneRepaint(RegionF(region));
 }
 
-void Item::scheduleSceneRepaint(const Region &region)
+void Item::scheduleSceneRepaint(const RegionF &region)
 {
     if (isVisible()) {
         scheduleSceneRepaintInternal(region);
@@ -623,9 +641,9 @@ void Item::updateEffectiveVisibility()
 
     m_effectiveVisible = effectiveVisible;
     if (!m_effectiveVisible) {
-        scheduleSceneRepaintInternal(boundingRect().toAlignedRect());
+        scheduleSceneRepaintInternal(boundingRect());
     } else {
-        scheduleRepaintInternal(boundingRect().toAlignedRect());
+        scheduleRepaintInternal(boundingRect());
     }
 
     for (Item *childItem : std::as_const(m_childItems)) {
@@ -700,16 +718,54 @@ void Item::removeEffect()
     m_effectCount--;
 }
 
-void Item::framePainted(RenderView *view, LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp)
+void Item::collectItems(QList<QPointer<Item>> &list, LogicalOutput *filter, SceneView *viewFilter)
 {
     // The visibility of the item itself is not checked here to be able to paint hidden items for
     // things like screncasts or thumbnails
-    handleFramePainted(output, frame, timestamp);
+    list.push_back(this);
     for (const auto child : std::as_const(m_childItems)) {
-        if (child->explicitVisible() && workspace()->outputAt(child->mapToScene(child->boundingRect()).center()) == output) {
-            child->framePainted(view, output, frame, timestamp);
+        if (!child->explicitVisible()) {
+            continue;
+        }
+        if (viewFilter && viewFilter->shouldHideItem(child)) {
+            continue;
+        }
+        if (workspace()->outputAt(child->mapToScene(child->boundingRect()).center()) == filter) {
+            child->collectItems(list, filter, viewFilter);
         }
     }
+}
+
+void Item::framePainted(SceneView *view, LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp)
+{
+    // this temporary list + the nullptr checks are required
+    // because items may apply changes in framePainted that
+    // can delete other items in the list, for example unmapping
+    // of a window, applying blur changes or similar
+    QList<QPointer<Item>> list;
+    list.reserve(100);
+    collectItems(list, output, view);
+    for (QPointer<Item> item : list) {
+        if (item) {
+            item->handleFramePainted(view, output, frame, timestamp);
+        }
+    }
+}
+
+void Item::prepareFrame(SceneView *view, LogicalOutput *output, std::chrono::nanoseconds timestamp)
+{
+    QList<QPointer<Item>> list;
+    list.reserve(100);
+    collectItems(list, output, view);
+    for (QPointer<Item> item : list) {
+        if (item) {
+            item->handlePrepareFrame(timestamp);
+        }
+    }
+}
+
+void Item::handlePrepareFrame(std::chrono::nanoseconds timestamp)
+{
 }
 
 bool Item::isAncestorOf(const Item *item) const
@@ -719,7 +775,11 @@ bool Item::isAncestorOf(const Item *item) const
     });
 }
 
-void Item::handleFramePainted(LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp)
+void Item::handleFramePainted(RenderView *view, LogicalOutput *output, OutputFrame *frame, std::chrono::milliseconds timestamp)
+{
+}
+
+void Item::releaseResources(RenderDevice *device)
 {
 }
 

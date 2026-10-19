@@ -34,6 +34,13 @@ class QTimer;
 class KStartupInfoData;
 class KStartupInfoId;
 
+namespace KDecoration3
+{
+
+enum class Style;
+
+}
+
 namespace KWin
 {
 
@@ -73,8 +80,8 @@ public:
     bool areGeometryUpdatesBlocked() const;
 
     bool hasAlpha() const;
-    Region opaqueRegion() const;
-    QList<RectF> shapeRegion() const;
+    RegionF opaqueRegion() const;
+    RegionF shapeRegion() const;
 
     pid_t pid() const override;
     QString windowRole() const override;
@@ -97,7 +104,6 @@ public:
 
     QSizeF minSize() const override;
     QSizeF maxSize() const override;
-    QSizeF basicUnit() const;
 
     bool windowEvent(xcb_generic_event_t *e);
     WindowType windowType() const override;
@@ -106,7 +112,6 @@ public:
     bool manage(xcb_window_t w, bool isMapped);
 
     void releaseWindow(bool on_shutdown = false);
-    bool hasScheduledRelease() const;
 
     void destroyWindow() override;
 
@@ -146,12 +151,11 @@ public:
 
     void invalidateDecoration() override;
 
-
     /// resizeWithChecks() resizes according to gravity, and checks workarea position
     RectF resizeWithChecks(const RectF &geometry, const QSizeF &size) const override;
     RectF resizeWithChecks(const RectF &geometry, qreal w, qreal h, xcb_gravity_t gravity) const;
     RectF resizeWithChecks(const RectF &geometry, const QSizeF &s, xcb_gravity_t gravity) const;
-    QSizeF constrainClientSize(const QSizeF &size, SizeMode mode = SizeModeAny) const override;
+    QSizeF constrainClientSize(const QSizeF &size) const override;
 
     bool providesContextHelp() const override;
 
@@ -167,7 +171,6 @@ public:
         return cap_suffix;
     }
 
-    QPointF gravityAdjustment(xcb_gravity_t gravity) const;
     const QPointF calculateGravitation(bool invert) const;
 
     void NETMoveResize(qreal x_root, qreal y_root, NET::Direction direction, xcb_button_t button);
@@ -200,10 +203,7 @@ public:
     // sets whether the client should be faked as being on all activities (and be shown during session save)
     void setSessionActivityOverride(bool needed);
     bool isClient() const override;
-    bool isOutline() const override;
     bool isUnmanaged() const override;
-
-    void cancelFocusOutTimer();
 
     Xcb::StringProperty fetchApplicationMenuServiceName() const;
     void readApplicationMenuServiceName(Xcb::StringProperty &property);
@@ -232,7 +232,7 @@ public:
     void ackSyncTimeout();
     void finishSync();
 
-    bool allowWindowActivation(xcb_timestamp_t time = -1U, bool focus_in = false);
+    bool allowWindowActivation(xcb_timestamp_t time = -1U);
 
     quint64 surfaceSerial() const;
 
@@ -251,7 +251,6 @@ private:
     void propertyNotifyEvent(xcb_property_notify_event_t *e);
     void clientMessageEvent(xcb_client_message_event_t *e);
     void focusInEvent(xcb_generic_event_t *e);
-    void focusOutEvent(xcb_focus_out_event_t *e);
     void shapeNotifyEvent(xcb_shape_notify_event_t *e);
 
 protected:
@@ -338,7 +337,7 @@ private:
 
     DecorationMode preferredDecorationMode() const;
     void updateDecoration(bool check_workspace_pos, bool force = false);
-    void createDecoration();
+    void createDecoration(KDecoration3::Style style, bool force);
     void destroyDecoration();
 
     void checkOutput();
@@ -358,7 +357,7 @@ private:
         Withdrawn, ///< Not handled, as per ICCCM WithdrawnState
         Mapped, ///< The frame is mapped
         Unmapped, ///< The frame is not mapped
-        Kept ///< The frame should be unmapped, but is kept (For compositing)
+        Kept, ///< The frame should be unmapped, but is kept (For compositing)
     };
     MappingState mapping_state;
 
@@ -371,8 +370,6 @@ private:
     void cleanGrouping();
     void checkGroupTransients();
     void setTransient(xcb_window_t new_transient_for_id);
-    void setNetWmDesktop(VirtualDesktop *desktop);
-    void updateNetWmDesktopId();
 
     bool wantsFrameCallbackHeartbeat() const;
     void setFrameCallbackHeartbeat(bool enabled);
@@ -381,14 +378,13 @@ private:
     xcb_window_t m_transientForId;
     xcb_window_t m_originalTransientForId;
     Xcb::MotifHints m_motif;
-    DecorationPolicy m_decorationPolicy = DecorationPolicy::PreferredByClient;
+    DecorationPolicy m_decorationPolicy = DecorationPolicy::ClientPreference;
     bool m_wantsNoDecoration = false;
     bool ignore_focus_stealing = false; ///< Don't apply focus stealing prevention to this client
-    bool is_shape = false;
 
     enum FullScreenMode {
         FullScreenNone,
-        FullScreenNormal
+        FullScreenNormal,
     } m_fullscreenMode;
 
     MaximizeMode max_mode;
@@ -404,11 +400,8 @@ private:
     static bool check_active_modal; ///< \see X11Window::checkActiveModal()
     int sm_stacking_order;
     int bit_depth = 24;
-    Region opaque_region;
-    QList<RectF> m_shapeRegion;
-    friend struct ResetupRulesProcedure;
-
-    friend bool performTransiencyCheck();
+    RegionF opaque_region;
+    RegionF m_shapeRegion;
 
     Xcb::StringProperty fetchActivities() const;
     void readActivities(Xcb::StringProperty &property);
@@ -416,17 +409,10 @@ private:
 
     bool sessionActivityOverride;
 
-    QTimer *m_focusOutTimer;
-    QTimer m_releaseTimer;
-    QPointer<VirtualDesktop> m_netWmDesktop;
-
-    QMetaObject::Connection m_edgeGeometryTrackingConnection;
-
     QMarginsF m_clientFrameExtents;
     int m_blockGeometryUpdates = 0; // > 0 = New geometry is remembered, but not actually set
 
     bool m_unmanaged = false;
-    bool m_outline = false;
     bool m_frameCallbackHeartbeat = false;
     quint64 m_surfaceSerial = 0;
     int m_inflightUnmaps = 0;
@@ -457,7 +443,7 @@ inline bool X11Window::hasAlpha() const
     return bit_depth == 32;
 }
 
-inline Region X11Window::opaqueRegion() const
+inline RegionF X11Window::opaqueRegion() const
 {
     return opaque_region;
 }

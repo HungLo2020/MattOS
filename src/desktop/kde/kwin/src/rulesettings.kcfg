@@ -74,6 +74,17 @@
       <max code="true">Rules::LastStringMatch</max>
     </entry>
 
+    <entry name="hastransientparent" type="Bool">
+      <label>Has parent window</label>
+      <default>false</default>
+    </entry>
+    <entry name="hastransientparentmatch" type="Int">
+      <label>Has parent window match type</label>
+      <default code="true">Rules::UnimportantBoolMatch</default>
+      <min code="true">Rules::FirstBoolMatch</min>
+      <max code="true">Rules::LastBoolMatch</max>
+    </entry>
+
     <entry name="types" type="UInt">
       <label>Window types that match</label>
       <default>NET::AllTypesMask</default>
@@ -292,6 +303,10 @@
       <default code="true">Rules::UnusedSetRule</default>
     </entry>
 
+    <!--
+        The noborder is a legacy property. The decorationpolicy rule should be used
+        instead. Delete the noborder rule some time later when it is safe enough to do so.
+    -->
     <entry name="noborder" type="Bool">
       <label>No titlebar and frame</label>
       <default>false</default>
@@ -303,20 +318,28 @@
       <default code="true">Rules::UnusedSetRule</default>
     </entry>
 
+    <entry name="decorationpolicy" type="Enum">
+      <label>Decoration policy</label>
+      <choices name="KWin::DecorationPolicy">
+        <choice name="None" value="none" />
+        <choice name="ClientPreference" value="client-preference" />
+        <choice name="Server" value="server" />
+        <choice name="Shadow" value="shadow" />
+      </choices>
+      <default code="true">KWin::DecorationPolicy::ClientPreference</default>
+    </entry>
+    <entry name="decorationpolicyrule" type="Int">
+      <label>Decoration policy rule type</label>
+      <min code="true">Rules::UnusedSetRule</min>
+      <max code="true">static_cast&lt;Rules::SetRule&gt;(Rules::ForceTemporarily)</max>
+      <default code="true">Rules::UnusedSetRule</default>
+    </entry>
+
     <entry name="decocolor" type="String">
       <label>Titlebar color and scheme</label>
     </entry>
     <entry name="decocolorrule" type="Int">
       <label>Titlebar color rule type</label>
-      <default code="true">Rules::UnusedForceRule</default>
-    </entry>
-
-    <entry name="blockcompositing" type="Bool">
-      <label>Block Compositing</label>
-      <default>false</default>
-    </entry>
-    <entry name="blockcompositingrule" type="Int">
-      <label>Block Compositing rule type</label>
       <default code="true">Rules::UnusedForceRule</default>
     </entry>
 
@@ -357,41 +380,6 @@
     </entry>
     <entry name="closeablerule" type="Int">
       <label>Closeable rule type</label>
-      <default code="true">Rules::UnusedForceRule</default>
-    </entry>
-
-    <entry name="autogroup" type="Bool">
-      <label>Autogroup with identical</label>
-      <default>false</default>
-    </entry>
-    <entry name="autogrouprule" type="Int">
-      <label>Autogroup with identical rule type</label>
-      <default code="true">Rules::UnusedForceRule</default>
-    </entry>
-
-    <entry name="autogroupfg" type="Bool">
-      <label>Autogroup in foreground</label>
-      <default>true</default>
-    </entry>
-    <entry name="autogroupfgrule" type="Int">
-      <label>Autogroup in foreground rule type</label>
-      <default code="true">Rules::UnusedForceRule</default>
-    </entry>
-
-    <entry name="autogroupid" type="String">
-      <label>Autogroup by ID</label>
-    </entry>
-    <entry name="autogroupidrule" type="Int">
-      <label>Autogroup by ID rule type</label>
-      <default code="true">Rules::UnusedForceRule</default>
-    </entry>
-
-    <entry name="strictgeometry" type="Bool">
-      <label>Obey geometry restrictions</label>
-      <default>false</default>
-    </entry>
-    <entry name="strictgeometryrule" type="Int">
-      <label>Obey geometry restrictions rule type</label>
       <default code="true">Rules::UnusedForceRule</default>
     </entry>
 
@@ -461,6 +449,17 @@
     <entry name="tearingrule" type="Int">
       <label>Tearing rule type</label>
       <default code="true">Rules::UnusedForceRule</default>
+    </entry>
+
+    <entry name="excludefromcapture" type="Bool">
+      <label>Hide from screenshots and screen recordings</label>
+      <default>false</default>
+    </entry>
+    <entry name="excludefromcapturerule" type="Int">
+      <label>Hide from screenshots and screen recordings rule type</label>
+      <min code="true">Rules::UnusedSetRule</min>
+      <max code="true">static_cast&lt;Rules::SetRule&gt;(Rules::ForceTemporarily)</max>
+      <default code="true">Rules::UnusedSetRule</default>
     </entry>
   </group>
 </kcfg>

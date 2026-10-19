@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmicons\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2023-11-02 13:56+0100\n"
-"Last-Translator: Vit Pelcak <vit@pelcak.org>\n"
+"POT-Creation-Date: 2026-06-13 00:46+0000\n"
+"PO-Revision-Date: 2026-03-13 14:07+0100\n"
+"Last-Translator:  Vít Pelčák <vit@pelcak.org>\n"
 "Language-Team: Czech <kde-i18n-doc@kde.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
@@ -54,12 +54,12 @@ msgstr ""
 msgid "Theme installed successfully."
 msgstr "Motiv byl úspěšně nainstalován."
 
-#: main.cpp:225
+#: main.cpp:227
 #, kde-format
 msgid "Installing icon themes…"
 msgstr "Instalace motivů ikon…"
 
-#: main.cpp:235
+#: main.cpp:239
 #, kde-format
 msgid "Installing %1 theme…"
 msgstr "Probíhá instalace motivu %1…"
@@ -74,22 +74,39 @@ msgstr "Instalovat ze souboru…"
 msgid "Get New…"
 msgstr "Získat nové…"
 
-#: ui/main.qml:188
+#: ui/main.qml:189
 #, kde-format
-msgid "Remove Icon Theme"
+msgctxt "@info:tooltip"
+msgid "Remove icon theme"
 msgstr "Odstranit motiv ikon"
 
-#: ui/main.qml:195
+#: ui/main.qml:191
 #, kde-format
-msgid "Restore Icon Theme"
-msgstr "Obnovit motiv Ikon"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active icon theme"
+msgstr "Nelze smazat aktivní motiv ikon"
 
-#: ui/main.qml:244
+#: ui/main.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed icon themes"
+msgstr "Nelze smazat motivy ikon nainstalované v systému"
+
+#: ui/main.qml:201
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this icon theme"
+msgstr "Nelze smazat tento motiv ikon"
+
+#: ui/main.qml:250
 #, kde-format
 msgid "Open Theme"
 msgstr "Otevřít motiv"
 
-#: ui/main.qml:246
+#: ui/main.qml:252
 #, kde-format
 msgid "Theme Files (*.tar.gz *.tar.bz2)"
 msgstr "Soubory motivů (*.tar.gz *.tar.bz2)"
+
+#~ msgid "Restore Icon Theme"
+#~ msgstr "Obnovit motiv Ikon"

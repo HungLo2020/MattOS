@@ -4,13 +4,13 @@
 # Kristóf Kiszel <ulysses@kubuntu.org>, 2010, 2012, 2015, 2019.
 # Balázs Úr <urbalazs@gmail.com>, 2012.
 # Kiszel Kristóf <kiszel.kristof@gmail.com>, 2017, 2020, 2021.
-# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024 Kristof Kiszel <ulysses@fsf.hu>
+# SPDX-FileCopyrightText: 2021-2024, 2026 Kristof Kiszel <ulysses@fsf.hu>
 msgid ""
 msgstr ""
 "Project-Id-Version: KDE 4.1\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-09-18 21:16+0200\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-06-04 22:19+0200\n"
 "Last-Translator: Kristof Kiszel <ulysses@fsf.hu>\n"
 "Language-Team: Hungarian <kde-l10n-hu@kde.org>\n"
 "Language: hu\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 24.08.0\n"
+"X-Generator: Lokalize 26.04.1\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -30,32 +30,32 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "ulysses@fsf.hu"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "Nem lehet létrehozni egy ideiglenes fájlt."
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "Nem sikerült letölteni egy színsémát: %1."
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "Ez a fájl nem egy színséma."
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "Nem sikerült a „color-scheme” mappa létrehozása."
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr "Nem sikerült a színsémát a „color-scheme” mappába másolni."
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "A színséma sikeresen telepítve."
@@ -687,15 +687,16 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "Nincs jogosultsága a színséma felülírásához"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr "Ez a séma csak olvasható. Mentse a módosításokat más néven."
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "Hiba"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "Inaktív"
@@ -877,13 +878,13 @@ msgstr "Színárnyalat erőssége:"
 #: editor/scmeditoroptions.ui:69
 #, kde-format
 msgid "Contrast of the frames, separators and outlines"
-msgstr ""
+msgstr "A keretek, elválasztók és körvonalak kontrasztja"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox_5)
 #: editor/scmeditoroptions.ui:72
 #, kde-format
 msgid "Frames and Outlines"
-msgstr ""
+msgstr "Keretek és körvonalak"
 
 #. i18n: ectx: property (text), widget (KMessageWidget, contrastValueWarning)
 #: editor/scmeditoroptions.ui:93
@@ -892,12 +893,14 @@ msgid ""
 "Contrast values below 15% may produce visually awkward effects with some "
 "applications and color schemes. Consider yourself warned!"
 msgstr ""
+"A 15% alatti kontrasztértékek egyes alkalmazásokban és színsémákban "
+"vizuálisan zavaró hatást eredményezhetnek. Ezt ne feledje!"
 
 #. i18n: ectx: property (suffix), widget (QDoubleSpinBox, contrastPercentageSpinBox)
 #: editor/scmeditoroptions.ui:109
 #, no-c-format, kde-format
 msgid "%"
-msgstr ""
+msgstr "%"
 
 #. i18n: ectx: property (text), widget (QLabel, label_8)
 #: editor/scmeditoroptions.ui:138
@@ -1146,7 +1149,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "fókusz"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1157,7 +1160,7 @@ msgstr ""
 "beállítását anélkül, hogy véletlenül egy nem elérhetőt, vagy már "
 "beállítottat választana ki."
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
@@ -1166,7 +1169,7 @@ msgstr ""
 "A Plasma munkamenethez beállítandó színséma neve (teljes elérési út megadása "
 "esetén csak az útvonal utolsó része lesz figyelembe véve)"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
@@ -1175,7 +1178,7 @@ msgstr ""
 "A rendszer összes elérhető színsémájának megjelenítése (és hogy melyik a "
 "jelenlegi téma)"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1187,7 +1190,7 @@ msgstr ""
 "támogatottak. A hexadecimális kódot idézőjelekkel adja meg ha szkriptben is "
 "kívánja használni."
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
@@ -1196,12 +1199,12 @@ msgstr ""
 "A kért „%1” téma már be van állítva, mint aktuálisa téma a jelenlegi Plasma "
 "munkamenetben."
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr "A(z) %1 színséma sikeresen beállítva a jelenlegi Plasma munkamenethez"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -1210,14 +1213,14 @@ msgstr ""
 "A(z) „%1” téma nem található. A téma a következő opciók egyike kell, hogy "
 "legyen: %2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
 "behavior."
 msgstr "Nem adott meg nevet a színsémához, ami nem támogatott működés."
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
@@ -1225,22 +1228,22 @@ msgid ""
 msgstr ""
 "A színsémaként használni kívánt fájl (%1) nem azonosítható színsémaként."
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr "%1 kiemelőszín sikeresen alkalmazva"
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, kde-format
 msgid "Invalid accent color "
 msgstr "Érvénytelen kiemelőszín "
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "Az alábbi színsémák találhatók meg a rendszeren:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr " * %1 (jelenlegi színséma)"
@@ -1263,7 +1266,7 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "Egyéni kiemelőszín"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
@@ -1271,100 +1274,119 @@ msgstr ""
 "A(z) „%1” színséma nincs telepítve. Az alapértelmezett téma kerül "
 "kiválasztásra."
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "Minden színséma"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "Világos színsémák"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "Sötét színsémák"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "Telepítés fájlból…"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "Új letöltése…"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "Ablakcím"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "Ablakszöveg"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "Gomb"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "hivatkozás"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "látogatott"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "Normál szöveg"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "Kiemelt szöveg"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "Letiltott szöveg"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "Színséma szerkesztése…"
 
-#: ui/main.qml:323
+#: ui/main.qml:311
 #, kde-format
-msgid "Remove Color Scheme"
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
 msgstr "Színséma eltávolítása"
 
-#: ui/main.qml:330
+#: ui/main.qml:313
 #, kde-format
-msgid "Restore Color Scheme"
-msgstr "Színséma visszaállítása"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "Az aktív színséma nem törölhető"
 
-#: ui/main.qml:374
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr "A rendszer által telepített színsémák nem törölhetők"
+
+#: ui/main.qml:323
+#, kde-format
+msgid "Don’t delete this color scheme"
+msgstr "Ne törölje ezt a színsémát"
+
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "Színséma megnyitása"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "Színsémafájlok (*.colors)"
+
+#~ msgid "You do not have permission to overwrite that scheme"
+#~ msgstr "Nincs jogosultsága a színséma felülírásához"
+
+#~ msgid "Restore Color Scheme"
+#~ msgstr "Színséma visszaállítása"
 
 #~ msgid "Shading of frames and lighting (\"3D\") effects"
 #~ msgstr "Keretek árnyékolása és megvilágítási („3D”) hatások"

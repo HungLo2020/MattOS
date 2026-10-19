@@ -180,11 +180,7 @@ QColor Decoration::fontColor() const
 }
 
 //________________________________________________________________
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 bool Decoration::init()
-#else
-void Decoration::init()
-#endif
 {
     // active state change animation
     // It is important start and end value are of the same type, hence 0.0 and not just 0
@@ -212,29 +208,6 @@ void Decoration::init()
                  QStringLiteral("notifyChange"),
                  this,
                  SLOT(reconfigure()));
-
-    dbus.connect(QStringLiteral("org.kde.KWin"),
-                 QStringLiteral("/org/kde/KWin"),
-                 QStringLiteral("org.kde.KWin.TabletModeManager"),
-                 QStringLiteral("tabletModeChanged"),
-                 QStringLiteral("b"),
-                 this,
-                 SLOT(onTabletModeChanged(bool)));
-
-    auto message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"),
-                                                  QStringLiteral("/org/kde/KWin"),
-                                                  QStringLiteral("org.freedesktop.DBus.Properties"),
-                                                  QStringLiteral("Get"));
-    message.setArguments({QStringLiteral("org.kde.KWin.TabletModeManager"), QStringLiteral("tabletMode")});
-    auto call = new QDBusPendingCallWatcher(dbus.asyncCall(message), this);
-    connect(call, &QDBusPendingCallWatcher::finished, this, [this, call]() {
-        QDBusPendingReply<QVariant> reply = *call;
-        if (!reply.isError()) {
-            onTabletModeChanged(reply.value().toBool());
-        }
-
-        call->deleteLater();
-    });
 
     reconfigure();
     updateTitleBar();
@@ -267,6 +240,7 @@ void Decoration::init()
 
     connect(window(), &KDecoration3::DecoratedWindow::activeChanged, this, &Decoration::updateAnimationState);
     connect(this, &KDecoration3::Decoration::bordersChanged, this, &Decoration::updateTitleBar);
+    connect(this, &KDecoration3::Decoration::bordersChanged, this, &Decoration::updateButtonsGeometry);
     connect(window(), &KDecoration3::DecoratedWindow::adjacentScreenEdgesChanged, this, &Decoration::updateTitleBar);
     connect(window(), &KDecoration3::DecoratedWindow::widthChanged, this, &Decoration::updateTitleBar);
     connect(window(), &KDecoration3::DecoratedWindow::maximizedChanged, this, &Decoration::updateTitleBar);
@@ -281,9 +255,7 @@ void Decoration::init()
 
     createButtons();
     updateShadow();
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     return true;
-#endif
 }
 
 //________________________________________________________________
@@ -327,6 +299,10 @@ void Decoration::updateAnimationState()
 //________________________________________________________________
 qreal Decoration::borderSize(bool bottom, qreal scale) const
 {
+    if (style() == KDecoration3::Style::Shadow) {
+        return 0;
+    }
+
     const qreal pixelSize = KDecoration3::pixelSize(scale);
     const qreal baseSize = std::max<qreal>(pixelSize, KDecoration3::snapToPixelGrid(settings()->smallSpacing(), scale));
     if (m_internalSettings && (m_internalSettings->mask() & BorderSize)) {
@@ -448,6 +424,10 @@ void Decoration::recalculateBorders()
 
     // extended sizes
     const qreal extSize = KDecoration3::snapToPixelGrid(settings()->largeSpacing(), window()->nextScale());
+    qreal extTop = 0;
+    if (!isMaximizedVertically()) {
+        extTop = extSize;
+    }
     qreal extSides = 0;
     qreal extBottom = 0;
     if (hasNoBorders()) {
@@ -462,11 +442,15 @@ void Decoration::recalculateBorders()
         extSides = extSize;
     }
 
-    setResizeOnlyBorders(QMarginsF(extSides, 0, extSides, extBottom));
+    setResizeOnlyBorders(QMarginsF(extSides, extTop, extSides, extBottom));
 
+    const bool isTiled = isTopEdge() || isLeftEdge() || isBottomEdge() || isRightEdge();
+
+    qreal topLeftRadius = 0;
+    qreal topRightRadius = 0;
     qreal bottomLeftRadius = 0;
     qreal bottomRightRadius = 0;
-    if (hasNoBorders() && m_internalSettings->roundedCorners()) {
+    if (!isTiled && hasNoBorders() && m_internalSettings->roundedCorners()) {
         if (!isBottomEdge()) {
             if (!isLeftEdge()) {
                 bottomLeftRadius = m_scaledCornerRadius;
@@ -475,31 +459,39 @@ void Decoration::recalculateBorders()
                 bottomRightRadius = m_scaledCornerRadius;
             }
         }
+        if (hideTitleBar()) {
+            if (!isTopEdge()) {
+                if (!isLeftEdge()) {
+                    topLeftRadius = m_scaledCornerRadius;
+                }
+                if (!isRightEdge()) {
+                    topRightRadius = m_scaledCornerRadius;
+                }
+            }
+        }
     }
-    setBorderRadius(KDecoration3::BorderRadius(0, 0, bottomRightRadius, bottomLeftRadius));
+    setBorderRadius(KDecoration3::BorderRadius(topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius));
 
     if (isMaximized() || !outlinesEnabled()) {
         setBorderOutline(KDecoration3::BorderOutline());
     } else {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         const auto color = KColorUtils::mix(window()->color(window()->isActive() ? ColorGroup::Active : ColorGroup::Inactive, ColorRole::Frame),
                                             window()->palette().text().color(),
                                             KColorScheme::frameContrast());
-#else
-        const auto color = KColorUtils::mix(window()->color(window()->isActive() ? ColorGroup::Active : ColorGroup::Inactive, ColorRole::Frame),
-                                            window()->palette().text().color(),
-                                            0.2);
-#endif
         const qreal thickness = std::max(KDecoration3::pixelSize(window()->nextScale()), KDecoration3::snapToPixelGrid(1, window()->nextScale()));
 
+        qreal topLeftRightRadius = 0;
         qreal bottomLeftRadius = 0;
         qreal bottomRightRadius = 0;
-        if (!hasNoBorders() || m_internalSettings->roundedCorners()) {
+        if (!isTiled && (!hideTitleBar() || m_internalSettings->roundedCorners())) {
+            topLeftRightRadius = m_scaledCornerRadius;
+        }
+        if (!isTiled && (!hasNoBorders() || m_internalSettings->roundedCorners())) {
             bottomLeftRadius = m_scaledCornerRadius;
             bottomRightRadius = m_scaledCornerRadius;
         }
 
-        const auto radius = KDecoration3::BorderRadius(m_scaledCornerRadius, m_scaledCornerRadius, bottomRightRadius, bottomLeftRadius);
+        const auto radius = KDecoration3::BorderRadius(topLeftRightRadius, topLeftRightRadius, bottomRightRadius, bottomLeftRadius);
         setBorderOutline(KDecoration3::BorderOutline(thickness, color, radius));
     }
 }
@@ -593,6 +585,7 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintRegion)
 {
     // TODO: optimize based on repaintRegion
     auto s = settings();
+    const bool isTiled = isTopEdge() || isLeftEdge() || isBottomEdge() || isRightEdge();
     // paint background
     if (!window()->isShaded()) {
         painter->fillRect(rect(), Qt::transparent);
@@ -607,7 +600,7 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintRegion)
         }
 
         if (s->isAlphaChannelSupported()) {
-            if (hasNoBorders()) {
+            if (hasNoBorders() || isTiled) {
                 painter->drawRoundedRect(rect(), 0, 0);
             } else {
                 painter->drawRoundedRect(rect(), m_scaledCornerRadius, m_scaledCornerRadius);
@@ -642,6 +635,7 @@ void Decoration::paintTitleBar(QPainter *painter, const QRectF &repaintRegion)
     QRectF rect(QPointF(0, 0), QSizeF(size().width(), borderTop()));
     QBrush frontBrush;
     QBrush backBrush(this->titleBarColor());
+    const bool isTiled = isTopEdge() || isLeftEdge() || isBottomEdge() || isRightEdge();
 
     if (!rect.intersects(repaintRegion)) {
         return;
@@ -664,7 +658,7 @@ void Decoration::paintTitleBar(QPainter *painter, const QRectF &repaintRegion)
         painter->setBrush(titleBarColor());
     }
 
-    if (isMaximized() || !settings()->isAlphaChannelSupported()) {
+    if (isMaximized() || isTiled || !settings()->isAlphaChannelSupported()) {
         painter->setBrush(backBrush);
         painter->drawRect(rect);
 
@@ -710,7 +704,7 @@ void Decoration::paintTitleBar(QPainter *painter, const QRectF &repaintRegion)
 //________________________________________________________________
 int Decoration::buttonSize() const
 {
-    const int baseSize = m_tabletMode ? settings()->gridUnit() * 2 : settings()->gridUnit();
+    const int baseSize = settings()->gridUnit();
     switch (m_internalSettings->buttonSize()) {
     case InternalSettings::ButtonTiny:
         return baseSize;
@@ -724,15 +718,6 @@ int Decoration::buttonSize() const
     case InternalSettings::ButtonVeryLarge:
         return baseSize * 3.5;
     }
-}
-
-void Decoration::onTabletModeChanged(bool mode)
-{
-    m_tabletMode = mode;
-    Q_EMIT tabletModeChanged();
-
-    recalculateBorders();
-    updateButtonsGeometry();
 }
 
 //________________________________________________________________

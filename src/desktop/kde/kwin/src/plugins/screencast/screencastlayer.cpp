@@ -4,11 +4,13 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 #include "screencastlayer.h"
+#include "opengl/eglcontext.h"
+#include "opengl/glframebuffer.h"
 
 namespace KWin
 {
 
-ScreencastLayer::ScreencastLayer(LogicalOutput *output, const QHash<uint32_t, QList<uint64_t>> &formats)
+ScreencastLayer::ScreencastLayer(LogicalOutput *output, const FormatModifierMap &formats)
     : OutputLayer(output->backendOutput(), OutputLayerType::Primary)
     , m_formats(formats)
 {
@@ -23,25 +25,26 @@ void ScreencastLayer::setFramebuffer(GLFramebuffer *buffer, const Region &buffer
     m_bufferDamage = bufferDamage;
 }
 
-DrmDevice *ScreencastLayer::scanoutDevice() const
-{
-    return nullptr;
-}
-
-QHash<uint32_t, QList<uint64_t>> ScreencastLayer::supportedDrmFormats() const
+FormatModifierMap ScreencastLayer::supportedDrmFormats() const
 {
     return m_formats;
 }
 
-std::optional<OutputLayerBeginFrameInfo> ScreencastLayer::doBeginFrame()
+std::optional<OutputLayerBeginFrameInfo> ScreencastLayer::beginFrame(OutputFrame *frame)
 {
+    Q_ASSERT(m_buffer);
+
+    if (!m_buffer->context()->makeCurrent()) {
+        return std::nullopt;
+    }
+
     return OutputLayerBeginFrameInfo{
         .renderTarget = RenderTarget(m_buffer),
         .repaint = m_bufferDamage,
     };
 }
 
-bool ScreencastLayer::doEndFrame(const Region &renderedRegion, const Region &damagedRegion, OutputFrame *frame)
+bool ScreencastLayer::endFrame(const Region &renderedRegion, const Region &damagedRegion, OutputFrame *frame)
 {
     return true;
 }
@@ -49,4 +52,5 @@ bool ScreencastLayer::doEndFrame(const Region &renderedRegion, const Region &dam
 void ScreencastLayer::releaseBuffers()
 {
 }
+
 }

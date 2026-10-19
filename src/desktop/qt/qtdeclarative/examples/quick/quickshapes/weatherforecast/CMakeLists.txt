@@ -51,6 +51,7 @@ qt_add_qml_module(weatherforecastexample
 
 qt_target_qml_from_svg(weatherforecastexample
     OPTIMIZE_PATHS
+    ASYNCHRONOUS_SHAPES
     TYPE_NAME "DemoShape"
     COPYRIGHT_STATEMENT
         "Copyright © 2024 The Qt Company Ltd. Copyright © 2010 Kolja21\\nSPDX-License-Identifier: CC-BY-3.0"
@@ -63,6 +64,7 @@ qt_target_qml_from_svg(weatherforecastexample
 #![svgtoqml]
 qt_target_qml_from_svg(weatherforecastexample
     OPTIMIZE_PATHS
+    ASYNCHRONOUS_SHAPES
     TYPE_NAME "DemoShape"
     COPYRIGHT_STATEMENT "Copyright © 2023 Framework7\\nSPDX-License-Identifier: MIT"
     FILES
@@ -74,6 +76,7 @@ qt_target_qml_from_svg(weatherforecastexample
 
 qt_target_qml_from_svg(weatherforecastexample
     OPTIMIZE_PATHS
+    ASYNCHRONOUS_SHAPES
     TYPE_NAME "DemoShape"
     COPYRIGHT_STATEMENT "Copyright © 2023 Googlefonts\\nSPDX-License-Identifier: Apache-2.0"
     FILES
@@ -120,7 +123,6 @@ install(TARGETS weatherforecastexample
 qt_generate_deploy_qml_app_script(
     TARGET weatherforecastexample
     OUTPUT_SCRIPT deploy_script
-    MACOS_BUNDLE_POST_BUILD
     NO_UNSUPPORTED_PLATFORM_ERROR
     DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM
 )

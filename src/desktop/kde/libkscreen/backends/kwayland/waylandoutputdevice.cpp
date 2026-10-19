@@ -22,10 +22,49 @@
 
 using namespace KScreen;
 
-WaylandOutputDevice::WaylandOutputDevice(int id)
-    : QObject()
-    , kde_output_device_v2()
-    , m_id(id)
+WaylandOutputDeviceRegistry::WaylandOutputDeviceRegistry()
+    : QWaylandClientExtensionTemplate<WaylandOutputDeviceRegistry>(26)
+{
+    initialize();
+}
+
+WaylandOutputDeviceRegistry::~WaylandOutputDeviceRegistry()
+{
+    if (qGuiApp && isActive()) {
+        stop();
+
+        // The WaylandConfig lives until the whole application goes down, so we don't bother
+        // waiting until the finished event arrives and destroy the proxy object immediately.
+        kde_output_device_registry_v2_destroy(object());
+    }
+}
+
+void WaylandOutputDeviceRegistry::kde_output_device_registry_v2_output(struct ::kde_output_device_v2 *output)
+{
+    auto outputDevice = m_outputDevices.emplace_back(std::make_unique<WaylandOutputDevice>(output)).get();
+    Q_EMIT outputAdded(outputDevice);
+
+    connect(outputDevice, &WaylandOutputDevice::removed, this, [this, outputDevice]() {
+        Q_EMIT outputRemoved(outputDevice);
+
+        const auto it = std::ranges::find_if(m_outputDevices, [outputDevice](const auto &candidate) {
+            return candidate.get() == outputDevice;
+        });
+        if (it != m_outputDevices.end()) {
+            m_outputDevices.erase(it);
+        }
+    });
+}
+
+static int nextOutputId()
+{
+    static int id = 1;
+    return id++;
+}
+
+WaylandOutputDevice::WaylandOutputDevice(::kde_output_device_v2 *outputDevice)
+    : kde_output_device_v2(outputDevice)
+    , m_id(nextOutputId())
 {
 }
 
@@ -34,7 +73,7 @@ WaylandOutputDevice::~WaylandOutputDevice()
     qDeleteAll(m_modes);
 
     if (qGuiApp) {
-        kde_output_device_v2_destroy(object());
+        release();
     }
 }
 
@@ -152,6 +191,10 @@ void KScreen::WaylandOutputDevice::updateKScreenModes(OutputPtr &output)
         mode->setSize(wlMode->size());
         mode->setName(modeName(wlMode));
 
+        if (const auto cvt = wlMode->cvt()) {
+            mode->setCvt(*cvt);
+        }
+
         if (m_mode == wlMode) {
             currentModeId = wlMode->id();
         }
@@ -170,8 +213,8 @@ void KScreen::WaylandOutputDevice::updateKScreenModes(OutputPtr &output)
 
 void WaylandOutputDevice::updateKScreenOutput(OutputPtr &output, const QMap<int, WaylandOutputDevice *> &outputMap)
 {
-    // Initialize primary output
     output->setId(m_id);
+    output->setCapabilities(static_cast<Output::Capabilities>(static_cast<uint32_t>(m_capabilities)));
     output->setEnabled(enabled());
     output->setConnected(true);
     output->setName(name());
@@ -188,7 +231,6 @@ void WaylandOutputDevice::updateKScreenOutput(OutputPtr &output, const QMap<int,
     output->setSize(output->isHorizontal() ? currentSize : currentSize.transposed());
     output->setScale(m_factor);
     output->setType(Utils::guessOutputType(m_outputName, m_outputName));
-    output->setCapabilities(static_cast<Output::Capabilities>(static_cast<uint32_t>(m_capabilities)));
     output->setOverscan(m_overscan);
     output->setVrrPolicy(static_cast<Output::VrrPolicy>(m_vrr_policy));
     output->setRgbRange(static_cast<Output::RgbRange>(m_rgbRange));
@@ -227,6 +269,9 @@ void WaylandOutputDevice::updateKScreenOutput(OutputPtr &output, const QMap<int,
     output->setEdrPolicy(static_cast<Output::EdrPolicy>(m_edrPolicy));
     output->setSharpness(m_sharpness / 10'000.0);
     output->setAutomaticBrightness(m_autoBrightness);
+    output->setHdrIccProfilePath(m_hdrIccProfilePath);
+    output->setHdrColorProfileSource(Output::ColorProfileSource(m_hdrColorProfileSource));
+    output->setAbmLevel(m_abmLevel);
 
     updateKScreenModes(output);
 
@@ -239,9 +284,11 @@ void WaylandOutputDevice::updateKScreenOutput(OutputPtr &output, const QMap<int,
             .size = mode->size(),
             .refreshRate = mode->refreshRate(),
             .flags = mode->flags(),
+            .cvt = mode->cvt(),
         });
     }
     output->setCustomModes(m_customModes);
+    output->setPriority(m_priority);
 }
 
 QString WaylandOutputDevice::modeId() const
@@ -267,7 +314,7 @@ bool WaylandOutputDevice::setWlConfig(WaylandOutputManagement *management,
     bool changed = false;
 
     // enabled?
-    if (enabled() != output->isEnabled()) {
+    if ((output->capabilities() & Output::Capability::Disable) && enabled() != output->isEnabled()) {
         changed = true;
         wlConfig->enable(object(), output->isEnabled());
     }
@@ -313,7 +360,7 @@ bool WaylandOutputDevice::setWlConfig(WaylandOutputManagement *management,
         wlConfig->set_rgb_range(object(), static_cast<uint32_t>(output->rgbRange()));
         changed = true;
     }
-    if (output->priority() != m_index) {
+    if (output->priority() != m_priority) {
         changed = true;
     }
     // always send all outputs
@@ -400,6 +447,25 @@ bool WaylandOutputDevice::setWlConfig(WaylandOutputManagement *management,
         auto list = management->create_mode_list();
         const auto modes = output->customModes();
         for (const auto &mode : modes) {
+            if (const auto &cvt = mode.cvt) {
+                if (kde_mode_list_v2_get_version(list) >= KDE_MODE_LIST_V2_ADD_CVT_SINCE_VERSION) {
+                    kde_mode_list_v2_add_cvt(list,
+                                             cvt->clock,
+                                             cvt->hdisplay,
+                                             cvt->hsyncStart,
+                                             cvt->hsyncEnd,
+                                             cvt->htotal,
+                                             cvt->hskew,
+                                             cvt->vdisplay,
+                                             cvt->vsyncStart,
+                                             cvt->vsyncEnd,
+                                             cvt->vtotal,
+                                             cvt->vscan,
+                                             cvt->flags);
+                    continue;
+                }
+            }
+
             kde_mode_list_v2_set_resolution(list, mode.size.width(), mode.size.height());
             kde_mode_list_v2_set_refresh_rate(list, std::round(mode.refreshRate * 1000));
             kde_mode_list_v2_set_reduced_blanking(list, mode.flags & ModeInfo::Flag::ReducedBlanking ? 1 : 0);
@@ -411,6 +477,18 @@ bool WaylandOutputDevice::setWlConfig(WaylandOutputManagement *management,
     }
     if (version >= KDE_OUTPUT_CONFIGURATION_V2_SET_AUTO_BRIGHTNESS_SINCE_VERSION && m_autoBrightness != output->automaticBrightness()) {
         wlConfig->set_auto_brightness(object(), output->automaticBrightness() ? 1 : 0);
+        changed = true;
+    }
+    if (version >= KDE_OUTPUT_CONFIGURATION_V2_SET_HDR_ICC_PROFILE_PATH_SINCE_VERSION && m_hdrIccProfilePath != output->hdrIccProfilePath()) {
+        wlConfig->set_hdr_icc_profile_path(object(), output->hdrIccProfilePath());
+        changed = true;
+    }
+    if (version >= KDE_OUTPUT_CONFIGURATION_V2_SET_HDR_COLOR_PROFILE_SOURCE_SINCE_VERSION
+        && m_hdrColorProfileSource != uint32_t(output->hdrColorProfileSource())) {
+        wlConfig->set_hdr_color_profile_source(object(), uint32_t(output->hdrColorProfileSource()));
+    }
+    if (version >= KDE_OUTPUT_CONFIGURATION_V2_SET_ABM_LEVEL_SINCE_VERSION && m_abmLevel != output->abmLevel()) {
+        wlConfig->set_abm_level(object(), output->abmLevel());
         changed = true;
     }
 
@@ -432,11 +510,6 @@ QDebug operator<<(QDebug dbg, const WaylandOutputDevice *output)
 {
     dbg << "WaylandOutput(Id:" << output->id() << ", Name:" << QString(output->manufacturer() + QLatin1Char(' ') + output->model()) << ")";
     return dbg;
-}
-
-uint32_t WaylandOutputDevice::index() const
-{
-    return m_index;
 }
 
 void WaylandOutputDevice::kde_output_device_v2_done()
@@ -616,12 +689,32 @@ void WaylandOutputDevice::kde_output_device_v2_sharpness(uint32_t sharpness)
 
 void WaylandOutputDevice::kde_output_device_v2_priority(uint32_t priority)
 {
-    m_index = priority;
+    m_priority = priority;
 }
 
 void WaylandOutputDevice::kde_output_device_v2_auto_brightness(uint32_t enabled)
 {
     m_autoBrightness = enabled;
+}
+
+void WaylandOutputDevice::kde_output_device_v2_removed()
+{
+    Q_EMIT removed();
+}
+
+void WaylandOutputDevice::kde_output_device_v2_hdr_icc_profile_path(const QString &profile_path)
+{
+    m_hdrIccProfilePath = profile_path;
+}
+
+void WaylandOutputDevice::kde_output_device_v2_hdr_color_profile_source(uint32_t source)
+{
+    m_hdrColorProfileSource = source;
+}
+
+void WaylandOutputDevice::kde_output_device_v2_abm_level(uint32_t level)
+{
+    m_abmLevel = level;
 }
 
 QByteArray WaylandOutputDevice::edid() const

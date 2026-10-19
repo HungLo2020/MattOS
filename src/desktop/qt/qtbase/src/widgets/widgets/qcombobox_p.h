@@ -104,7 +104,7 @@ public:
 
     QTimer blockMouseReleaseTimer;
     QBasicTimer adjustSizeTimer;
-    QPoint initialClickPosition;
+    QPointF initialClickPosition;
 
 public Q_SLOTS:
     void scrollItemView(int action);
@@ -238,7 +238,7 @@ public:
     void connectModel();
     void disconnectModel();
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     void cleanupNativePopup();
     bool showNativePopup();
     struct IndexSetter {
@@ -257,7 +257,7 @@ public:
     QAbstractItemModel *model = nullptr;
     QLineEdit *lineEdit = nullptr;
     QPointer<QComboBoxPrivateContainer> container;
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QPlatformMenu *m_platformMenu = nullptr;
 #endif
     QPersistentModelIndex currentIndex;

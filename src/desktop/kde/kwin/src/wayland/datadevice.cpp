@@ -19,13 +19,14 @@
 
 namespace KWin
 {
+
 class DragAndDropIconPrivate
 {
 public:
     explicit DragAndDropIconPrivate(SurfaceInterface *surface);
 
     QPointer<SurfaceInterface> surface;
-    QPoint position;
+    QPointF position;
 };
 
 DragAndDropIconPrivate::DragAndDropIconPrivate(SurfaceInterface *surface)
@@ -56,7 +57,7 @@ void DragAndDropIcon::commit()
     Q_EMIT changed();
 }
 
-QPoint DragAndDropIcon::position() const
+QPointF DragAndDropIcon::position() const
 {
     return d->position;
 }
@@ -311,7 +312,7 @@ void DataDeviceInterface::updateDragTarget(SurfaceInterface *surface, const QPoi
         d->drag.exclusiveActionConnection = connect(dragSource, &AbstractDataSource::exclusiveActionChanged, d->drag.offer, matchOffers);
     }
 
-    const QPointF pos = d->seat->dragSurfaceTransformation().map(position);
+    const QPointF pos = d->drag.surface->toSurfaceLocal(d->seat->dragSurfaceTransformation().map(position));
     d->send_enter(serial, surface->resource(), wl_fixed_from_double(pos.x()), wl_fixed_from_double(pos.y()), d->drag.offer ? d->drag.offer->resource() : nullptr);
 }
 
@@ -321,7 +322,7 @@ void DataDeviceInterface::motion(const QPointF &position)
         return;
     }
 
-    const QPointF pos = d->seat->dragSurfaceTransformation().map(position);
+    const QPointF pos = d->drag.surface->toSurfaceLocal(d->seat->dragSurfaceTransformation().map(position));
     d->send_motion(d->seat->timestamp().count(), wl_fixed_from_double(pos.x()), wl_fixed_from_double(pos.y()));
 }
 

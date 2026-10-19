@@ -6,6 +6,19 @@ if(TARGET WrapLibClang::WrapLibClang)
     return()
 endif()
 
+# Bail out when targeting HarmonyOS. The OHOS variable is only set by the SDK's
+# cross-toolchain file, so this is reached exclusively for OHOS device builds.
+# The LLVM that ships with the HarmonyOS SDK is broken (find_package(LLVM) fails
+# on missing files), and QDoc is a host tool that is not built for the device
+# anyway, so there is no point in probing for LLVM here.
+#
+# Set QT_FORCE_FIND_PACKAGE_LLVM_ON_OHOS to override this, e.g. when a working
+# LLVM is available via LLVM_INSTALL_DIR.
+if(OHOS AND NOT QT_FORCE_FIND_PACKAGE_LLVM_ON_OHOS)
+    set(WrapLibClang_FOUND FALSE)
+    return()
+endif()
+
 if(DEFINED ENV{LLVM_INSTALL_DIR})
     set(__qt_wrap_clang_backup_prefix "${CMAKE_PREFIX_PATH}")
     list(PREPEND CMAKE_PREFIX_PATH "$ENV{LLVM_INSTALL_DIR}")
@@ -16,6 +29,52 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 set(WrapLibClang_FOUND FALSE)
+
+# Derive the maximum supported major version for too-new detection.
+set(__qt_wraplibclang_max_major 0)
+foreach(__qt_wraplibclang_ver IN LISTS QDOC_SUPPORTED_CLANG_VERSIONS)
+    string(REGEX MATCH "^[0-9]+" __qt_wraplibclang_ver_major "${__qt_wraplibclang_ver}")
+    if(__qt_wraplibclang_ver_major GREATER __qt_wraplibclang_max_major)
+        set(__qt_wraplibclang_max_major ${__qt_wraplibclang_ver_major})
+    endif()
+endforeach()
+unset(__qt_wraplibclang_ver)
+unset(__qt_wraplibclang_ver_major)
+list(JOIN QDOC_SUPPORTED_CLANG_VERSIONS ", " __qt_wraplibclang_version_list)
+
+# Probe for any LLVM to distinguish "too new" from "not found".
+# suffix_hint: optional string appended to the failure reason (such as workaround advice).
+macro(__qt_wraplibclang_probe_and_report suffix_hint)
+    find_package(LLVM CONFIG QUIET)
+    if(LLVM_FOUND AND LLVM_PACKAGE_VERSION)
+        string(REGEX MATCH "^([0-9]+)" __qt_wraplibclang_found_major
+            "${LLVM_PACKAGE_VERSION}")
+        if(__qt_wraplibclang_found_major GREATER __qt_wraplibclang_max_major)
+            string(CONCAT __qt_wraplibclang_message
+                "Found LLVM ${LLVM_PACKAGE_VERSION}, but QDoc supports "
+                "Clang versions ${__qt_wraplibclang_version_list}. "
+                "Install a supported version to build QDoc."
+                "${suffix_hint}")
+        else()
+            string(CONCAT __qt_wraplibclang_message
+                "Found LLVM ${LLVM_PACKAGE_VERSION}, but the Clang "
+                "package could not be loaded. "
+                "Tried versions: ${__qt_wraplibclang_version_list}."
+                "${suffix_hint}")
+        endif()
+    else()
+        string(CONCAT __qt_wraplibclang_message
+            "No LLVM/Clang installation found. "
+            "Tried versions: ${__qt_wraplibclang_version_list}."
+            "${suffix_hint}")
+    endif()
+    find_package_handle_standard_args(WrapLibClang
+        REQUIRED_VARS WrapLibClang_FOUND
+        REASON_FAILURE_MESSAGE "${__qt_wraplibclang_message}")
+    unset(__qt_wraplibclang_found_major)
+    unset(__qt_wraplibclang_message)
+    return()
+endmacro()
 
 # Extract major.minor.patch version from version string for developer builds.
 function(normalize_version_for_dev_build IN OUT)
@@ -30,16 +89,15 @@ function(normalize_version_for_dev_build IN OUT)
     endif()
 endfunction()
 
+# LLVM_ZSTD_MARKER
 # Find the zstd package before llvm gets a chance to plant its Findzstd.cmake on us. That find
 # module is most likely inconsistent with your system-provided llvmConfig.cmake, leading to
 # configuration errors. Disable find_package(zstd) within llvm if FindWrapZSTD.cmake was successful.
 # Upstream issue: https://github.com/llvm/llvm-project/issues/139666
-if(QT_FEATURE_zstd)
-    find_package(WrapZSTD QUIET)
-    set(__qt_wraplibclang_CMAKE_DISABLE_FIND_PACKAGE_zstd ${CMAKE_DISABLE_FIND_PACKAGE_zstd})
-    if(WrapZSTD_FOUND)
-        set(CMAKE_DISABLE_FIND_PACKAGE_zstd TRUE)
-    endif()
+find_package(WrapZSTD QUIET)
+set(__qt_wraplibclang_CMAKE_DISABLE_FIND_PACKAGE_zstd ${CMAKE_DISABLE_FIND_PACKAGE_zstd})
+if(WrapZSTD_FOUND)
+    set(CMAKE_DISABLE_FIND_PACKAGE_zstd TRUE)
 endif()
 
 if(QT_NO_FIND_PACKAGE_CLANG_WORKAROUND)
@@ -47,15 +105,23 @@ if(QT_NO_FIND_PACKAGE_CLANG_WORKAROUND)
     foreach(VERSION ${QDOC_SUPPORTED_CLANG_VERSIONS})
         if(NOT Clang_FOUND)
             normalize_version_for_dev_build(VERSION VERSION_CLEAN)
+            message(VERBOSE "FindWrapLibClang: trying Clang ${VERSION_CLEAN}...")
             find_package(Clang ${VERSION_CLEAN} CONFIG QUIET)
+            if(NOT Clang_FOUND)
+                message(VERBOSE "FindWrapLibClang: Clang ${VERSION_CLEAN} not found")
+            endif()
         endif()
     endforeach()
+
+    if(NOT Clang_FOUND)
+        __qt_wraplibclang_probe_and_report("")
+    endif()
 else()
-    set(__qt_wraplibclang_message
-        "This probably means that one or more packages necessary for find_package(Clang) are not"
-        "installed. See below for more information. You can turn off this pre-check by setting the"
-        "CMake variable QT_NO_FIND_PACKAGE_CLANG_WORKAROUND to ON."
-    )
+    string(CONCAT __qt_wraplibclang_workaround_hint
+        " This probably means that one or more packages necessary for "
+        "find_package(Clang) are not installed. You can turn off this "
+        "pre-check by setting the CMake variable "
+        "QT_NO_FIND_PACKAGE_CLANG_WORKAROUND to ON.")
 
     # Try to find the LLVM package. ClangConfig.cmake has a find_package(LLVM REQUIRED) call, which
     # will break if clang is installed but the LLVM CMake files are not installed.
@@ -63,17 +129,15 @@ else()
     foreach(VERSION ${QDOC_SUPPORTED_CLANG_VERSIONS})
         if(NOT LLVM_FOUND)
             normalize_version_for_dev_build(VERSION VERSION_CLEAN)
+            message(VERBOSE "FindWrapLibClang: trying LLVM ${VERSION_CLEAN}...")
             find_package(LLVM ${VERSION_CLEAN} CONFIG QUIET)
+            if(NOT LLVM_FOUND)
+                message(VERBOSE "FindWrapLibClang: LLVM ${VERSION_CLEAN} not found")
+            endif()
         endif()
     endforeach()
     if(NOT LLVM_FOUND)
-        list(PREPEND __qt_wraplibclang_message "The LLVM package could not be found.")
-        string(REPLACE ";" " " __qt_wraplibclang_message "${__qt_wraplibclang_message}")
-        find_package_handle_standard_args(WrapLibClang
-            REQUIRED_VARS WrapLibClang_FOUND
-            REASON_FAILURE_MESSAGE "${__qt_wraplibclang_message}")
-        unset(__qt_wraplibclang_message)
-        return()
+        __qt_wraplibclang_probe_and_report("${__qt_wraplibclang_workaround_hint}")
     endif()
 
     # Try to find libClang libraries - either one of the static libs or the whole shared object.
@@ -85,24 +149,26 @@ else()
     endif()
     if(__qt_wraplibclang STREQUAL "__qt_wraplibclang-NOTFOUND")
         unset(__qt_wraplibclang CACHE)
-        list(PREPEND __qt_wraplibclang_message "The clang libraries could not be located.")
-        string(REPLACE ";" " " __qt_wraplibclang_message "${__qt_wraplibclang_message}")
+        string(CONCAT __qt_wraplibclang_message
+            "The clang libraries could not be located."
+            "${__qt_wraplibclang_workaround_hint}")
         find_package_handle_standard_args(WrapLibClang
             REQUIRED_VARS WrapLibClang_FOUND
             REASON_FAILURE_MESSAGE "${__qt_wraplibclang_message}")
         unset(__qt_wraplibclang_message)
+        unset(__qt_wraplibclang_workaround_hint)
         return()
     endif()
     unset(__qt_wraplibclang CACHE)
+
+    unset(__qt_wraplibclang_workaround_hint)
 
     # Now, we're pretty certain that we can find the 'Clang' package without running into errors.
     normalize_version_for_dev_build(LLVM_VERSION LLVM_VERSION_CLEAN)
     find_package(Clang ${LLVM_VERSION_CLEAN} EXACT CONFIG)
 endif()
 
-if(QT_FEATURE_zstd)
-    set(CMAKE_DISABLE_FIND_PACKAGE_zstd ${__qt_wraplibclang_CMAKE_DISABLE_FIND_PACKAGE_zstd})
-endif()
+set(CMAKE_DISABLE_FIND_PACKAGE_zstd ${__qt_wraplibclang_CMAKE_DISABLE_FIND_PACKAGE_zstd})
 
 # LLVM versions >= 16 come with Findzstd.cmake that creates a target for libzstd.
 # Disable its global promotion to prevent interference with FindWrapZSTD.cmake.
@@ -131,6 +197,9 @@ endif()
 
 if(TARGET libclang AND ((TARGET clang-cpp AND TARGET LLVM) OR TARGET clangHandleCXX) AND __wrap_lib_clang_requested_version_found)
     set(WrapLibClang_FOUND TRUE)
+    if(NOT WrapLibClang_FIND_QUIETLY)
+        message(STATUS "FindWrapLibClang: using Clang ${LLVM_PACKAGE_VERSION} (${Clang_DIR})")
+    endif()
 
     get_target_property(type libclang TYPE)
     if (MSVC AND type STREQUAL "STATIC_LIBRARY")
@@ -176,6 +245,9 @@ if(TARGET libclang AND ((TARGET clang-cpp AND TARGET LLVM) OR TARGET clangHandle
             "\"${QT_LIB_CLANG_LIBDIR}/clang/${QT_LIB_CLANG_VERSION}/include\"" CACHE STRING "" FORCE)
     endif()
 endif()
+
+unset(__qt_wraplibclang_max_major)
+unset(__qt_wraplibclang_version_list)
 
 find_package_handle_standard_args(WrapLibClang
     REQUIRED_VARS WrapLibClang_FOUND

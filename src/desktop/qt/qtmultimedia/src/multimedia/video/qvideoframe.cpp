@@ -3,21 +3,22 @@
 
 #include "qvideoframe.h"
 
-#include "qvideoframe_p.h"
-#include "qvideotexturehelper_p.h"
-#include "qmultimediautils_p.h"
-#include "qmemoryvideobuffer_p.h"
-#include "qvideoframeconverter_p.h"
-#include "qimagevideobuffer_p.h"
-#include "qpainter.h"
-#include <qtextlayout.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qsize.h>
+#include <QtCore/qvariant.h>
 
-#include <qimage.h>
-#include <qsize.h>
-#include <qvariant.h>
+#include <QtGui/qimage.h>
+#include <QtGui/qtextlayout.h>
+#include <QtGui/qpainter.h>
+
+#include <QtMultimedia/private/qimagevideobuffer_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtMultimedia/private/qvideoframeconverter_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
+
 #include <rhi/qrhi.h>
-
-#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 
@@ -956,9 +957,6 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
         return;
 
     // draw subtitles
-    auto text = d->subtitleText;
-    text.replace(QLatin1Char('\n'), QChar::LineSeparator);
-
     QVideoTextureHelper::SubtitleLayout layout;
     layout.update(targetRect.size().toSize(), this->subtitleText());
     layout.draw(painter, targetRect.topLeft());

@@ -15,6 +15,7 @@
 #include <QList>
 #include <QStack>
 #include <epoxy/egl.h>
+#include <memory>
 
 namespace KWin
 {
@@ -34,14 +35,13 @@ using glGetnTexImage_func = void (*)(GLenum target, GLint level, GLenum format, 
                                      GLsizei bufSize, void *pixels);
 using glGetnUniformfv_func = void (*)(GLuint program, GLint location, GLsizei bufSize, GLfloat *params);
 
-class KWIN_EXPORT EglContext
+class KWIN_EXPORT EglContext : public std::enable_shared_from_this<EglContext>
 {
 public:
-    EglContext(EglDisplay *display, EGLConfig config, ::EGLContext context);
+    EglContext(EglDisplay *display, EGLConfig config, ::EGLContext context, const std::shared_ptr<EglContext> &shareContext);
     ~EglContext();
 
-    bool makeCurrent();
-    bool makeCurrent(EGLSurface surface);
+    [[nodiscard]] bool makeCurrent();
     void doneCurrent() const;
     std::shared_ptr<GLTexture> importDmaBufAsTexture(const DmaBufAttributes &attributes) const;
 
@@ -58,7 +58,6 @@ public:
     Version glslVersion() const;
     QByteArrayView vendor() const;
     QByteArrayView renderer() const;
-    bool isOpenGLES() const;
     bool hasOpenglExtension(QByteArrayView name) const;
     bool isSoftwareRenderer() const;
     bool supportsTimerQueries() const;
@@ -84,6 +83,18 @@ public:
      */
     bool checkSupported() const;
 
+    /**
+     * @returns whether or not this context is known to be broken,
+     *          specifically whether or not a previous makeCurrent failed
+     *          or the context was reset
+     */
+    bool isFailed() const;
+    /**
+     * Mark the context as needing to be re-created. This can be useful
+     * for non-reset errors that can't be recovered from.
+     */
+    void setFailed();
+
     GLenum checkGraphicsResetStatus();
     void glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, GLvoid *data);
     void glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels);
@@ -93,8 +104,14 @@ public:
     GLFramebuffer *popFramebuffer();
     GLFramebuffer *currentFramebuffer();
 
+    /**
+     * @returns if this context can share OpenGL resources with @param other,
+     *          either through context sharing or being the same context
+     */
+    bool isCompatibleWith(EglContext *other) const;
+
     static EglContext *currentContext();
-    static std::unique_ptr<EglContext> create(EglDisplay *display, EGLConfig config, ::EGLContext sharedContext);
+    static std::shared_ptr<EglContext> create(EglDisplay *display, EGLConfig config, const std::shared_ptr<EglContext> &shareContext);
 
 private:
     static ::EGLContext createContext(EglDisplay *display, EGLConfig config, ::EGLContext sharedContext);
@@ -108,13 +125,13 @@ private:
 
     static EglContext *s_currentContext;
 
+    const std::shared_ptr<EglContext> m_shareContext;
     const QByteArrayView m_versionString;
     const Version m_version;
     const QByteArrayView m_glslVersionString;
     const Version m_glslVersion;
     const QByteArrayView m_vendor;
     const QByteArrayView m_renderer;
-    const bool m_isOpenglES;
     const QSet<QByteArray> m_extensions;
     const bool m_supportsTimerQueries;
     const bool m_supportsTextureStorage;
@@ -144,6 +161,7 @@ private:
     std::unique_ptr<IndexBuffer> m_indexBuffer;
     QStack<GLFramebuffer *> m_fbos;
     uint32_t m_vao = 0;
+    bool m_failed = false;
 };
 
 }

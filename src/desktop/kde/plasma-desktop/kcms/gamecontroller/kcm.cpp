@@ -16,15 +16,17 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
+#include <qqml.h>
 
 #include "axesmodel.h"
 #include "axesproxymodel.h"
 #include "buttonmodel.h"
 #include "devicemodel.h"
 #include "gamecontrolleremulationsettings.h"
+#include "gamecontrollermoduledata.h"
 #include "hatmodel.h"
 
-K_PLUGIN_CLASS_WITH_JSON(KCMGameController, "kcm_gamecontroller.json")
+K_PLUGIN_FACTORY_WITH_JSON(KCMGameControllerFactory, "kcm_gamecontroller.json", registerPlugin<KCMGameController>(); registerPlugin<GameControllerModuleData>();)
 
 static const QString s_kwinPluginId = QStringLiteral("gamecontroller");
 
@@ -37,7 +39,7 @@ KCMGameController::KCMGameController(QObject *parent, const KPluginMetaData &met
     constexpr const char *uri{"org.kde.plasma.gamecontroller.kcm"};
 
     qmlRegisterUncreatableType<KCMGameController>(uri, 1, 0, "KCMGameController", QString());
-    qmlRegisterType<DeviceModel>(uri, 1, 0, "DeviceModel");
+    qmlRegisterSingletonInstance<DeviceModel>(uri, 1, 0, "DeviceModel", DeviceModel::instance());
     qmlRegisterType<AxesModel>(uri, 1, 0, "AxesModel");
     qmlRegisterType<AxesProxyModel>(uri, 1, 0, "AxesProxyModel");
     qmlRegisterType<ButtonModel>(uri, 1, 0, "ButtonModel");

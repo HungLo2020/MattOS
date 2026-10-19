@@ -8,7 +8,7 @@ ecm_qt_declare_logging_category(LOGOUT_GREETER_SRCS HEADER debug.h
                             )
 
 
-qt_add_dbus_adaptor( LOGOUT_GREETER_SRCS ../ksmserver/org.kde.LogoutPrompt.xml greeter.h Greeter)
+qt_add_dbus_adaptor( LOGOUT_GREETER_SRCS org.kde.LogoutPrompt.xml greeter.h Greeter)
 add_executable(ksmserver-logout-greeter ${LOGOUT_GREETER_SRCS})
 target_link_libraries(ksmserver-logout-greeter
     PW::KWorkspace
@@ -16,6 +16,7 @@ target_link_libraries(ksmserver-logout-greeter
     Qt::Quick
     Qt::DBus
     KF6::I18n
+    KF6::I18nQml
     Plasma::PlasmaQuick
     KF6::Package
     KF6::WindowSystem

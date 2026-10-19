@@ -35,6 +35,7 @@
 #include <QtCore/qsize.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qurl.h>
+#include <QtCore/qvarlengtharray.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -321,6 +322,8 @@ bool QtObject::isQtObject(const QJSValue &value) const
 
     Returns the color corresponding to the given \a name (i.e. red or #ff0000).
     If there is no such color, \c null is returned.
+
+    \note Prefer using the typed \l{Color::fromString}
 */
 QVariant QtObject::color(const QString &name) const
 {
@@ -338,6 +341,8 @@ QVariant QtObject::color(const QString &name) const
 
     Returns a color with the specified \a red, \a green, \a blue, and \a alpha
     components. All components should be in the range 0-1 (inclusive).
+
+    \note Prefer using the typed \l{Color::rgba}
 */
 QVariant QtObject::rgba(double r, double g, double b, double a) const
 {
@@ -354,6 +359,8 @@ QVariant QtObject::rgba(double r, double g, double b, double a) const
 
     Returns a color with the specified \a hue, \a saturation, \a lightness, and \a alpha
     components. All components should be in the range 0-1 (inclusive).
+
+    \note Prefer using the typed \l{Color::hsla}
 */
 QVariant QtObject::hsla(double h, double s, double l, double a) const
 {
@@ -373,6 +380,7 @@ QVariant QtObject::hsla(double h, double s, double l, double a) const
     Returns a color with the specified \a hue, \a saturation, \a value and \a alpha
     components. All components should be in the range 0-1 (inclusive).
 
+    \note Prefer using the typed \l{Color::hsva}
 */
 QVariant QtObject::hsva(double h, double s, double v, double a) const
 {
@@ -392,6 +400,8 @@ QVariant QtObject::hsva(double h, double s, double v, double a) const
     arguments may be either color values or string values. If a string value
     is supplied it must be convertible to a color, as described for the
     \l{colorvaluetypedocs}{color} value type.
+
+    \note Prefer using the typed \l{Color::equal}
 */
 bool QtObject::colorEqual(const QVariant &lhs, const QVariant &rhs) const
 {
@@ -650,6 +660,8 @@ static QVariant colorVariantFromJSValue(const QJSValue &color, bool *ok)
     by factor and converts the color back to RGB.
 
     If \a factor is not supplied, returns a color that is 50% lighter than \a baseColor (factor 1.5).
+
+    \note Prefer using the typed \l{Color::lighter}
 */
 QVariant QtObject::lighter(const QJSValue &color, double factor) const
 {
@@ -673,6 +685,8 @@ QVariant QtObject::lighter(const QJSValue &color, double factor) const
     by factor and converts the color back to RGB.
 
     If \a factor is not supplied, returns a color that is 50% darker than \a baseColor (factor 2.0).
+
+    \note Prefer using the typed \l{Color::darker}
 */
 QVariant QtObject::darker(const QJSValue &color, double factor) const
 {
@@ -687,6 +701,8 @@ QVariant QtObject::darker(const QJSValue &color, double factor) const
     Returns \a baseColor with an alpha value of \a value.
 
     \a value is a real ranging from 0 (completely transparent) to 1 (completely opaque).
+
+    \note Prefer using the typed \l{Color::transparent}
 */
 QVariant QtObject::alpha(const QJSValue &baseColor, double value) const
 {
@@ -721,6 +737,8 @@ QVariant QtObject::alpha(const QJSValue &baseColor, double value) const
 
     Tint is most useful when a subtle change is intended to be conveyed due to some event;
     you can then use tinting to more effectively tune the visible color.
+
+    \note Prefer using the typed \l{Color::tint}
 */
 QVariant QtObject::tint(const QJSValue &baseColor, const QJSValue &tintColor) const
 {
@@ -990,7 +1008,7 @@ default locale. Otherwise, \a format should be either:
 \li A \c locale object.
 \endlist
 
-If \a format specifies a locale object, \dateTime is formatted
+If \a format specifies a locale object, \a dateTime is formatted
 with \l{QLocale::toString}. In this case, \a localeFormatOption can hold a value
 of type \l {QLocale::FormatType} to further tune the formatting. If none is
 provided, \l {QLocale::FormatType}{Locale.ShortFormat} is used.
@@ -1139,11 +1157,22 @@ QString QtObject::formatDateTime(const QString &string, const QLocale &locale,
     Attempts to open the specified \a target url in an external application, based on the user's
     desktop preferences. Returns \c true if it succeeds, \c false otherwise.
 
+    If \a target is a relative URL, it will be resolved. Afterwards, the URL will be forwarded
+    to \l{QDesktopServices::openUrl}.
+
     \warning A return value of \c true indicates that the application has successfully requested
     the operating system to open the URL in an external application. The external application may
     still fail to launch or fail to open the requested URL. This result will not be reported back
     to the application.
+
+    \warning Passing untrusted URLs to openUrlExternally can result in unexpected behaviour.
+    If untrusted URLs are to be passed to this function, create a JavaScript URL object
+    and check its \c{protocol} property against a list of allowed protocols. You can also do
+    further filtering based on other properties like \c{host}.
 */
+// TODO: \l{QDesktopServices::setUrlHandler}  doesn't help, as it doesn't allow a catch-all
+// handler. If it would, that could be used for global rejection of undesired schemes.
+// Amend documentation if this should change.
 bool QtObject::openUrlExternally(const QUrl &url) const
 {
     return QQml_guiProvider()->openUrlExternally(resolvedUrl(url));
@@ -1224,6 +1253,29 @@ Returns a hex string of the md5 hash of \a data.
 QString QtObject::md5(const QString &data) const
 {
     return QLatin1String(QCryptographicHash::hash(data.toUtf8(), QCryptographicHash::Md5).toHex());
+}
+
+/*!
+\qmlmethod string Qt::escapeHtml(string data)
+\since 6.12
+
+Returns \a data with HTML special characters escaped.
+
+This function converts the plain text string \a data to an HTML string with
+HTML metacharacters \c{<}, \c{>}, \c{&}, and \c{"} replaced by HTML entities.
+
+Example:
+\qml
+var plain = "<script>alert('XSS')</script>";
+var escaped = Qt.escapeHtml(plain);
+// escaped is now "&lt;script&gt;alert('XSS')&lt;/script&gt;"
+\endqml
+
+\sa QString::toHtmlEscaped()
+*/
+QString QtObject::escapeHtml(const QString &data) const
+{
+    return data.toHtmlEscaped();
 }
 
 /*!
@@ -2649,20 +2701,51 @@ ReturnedValue GlobalExtensions::method_gc(const FunctionObject *b, const Value *
 ReturnedValue GlobalExtensions::method_string_arg(const FunctionObject *b, const Value *thisObject, const Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    if (argc != 1)
+    if (argc < 1)
         THROW_GENERIC_ERROR("String.arg(): Invalid arguments");
 
     QString value = thisObject->toQString();
 
-    QV4::ScopedValue arg(scope, argv[0]);
-    if (arg->isInteger())
-        RETURN_RESULT(scope.engine->newString(value.arg(arg->integerValue())));
-    else if (arg->isDouble())
-        RETURN_RESULT(scope.engine->newString(value.arg(arg->doubleValue())));
-    else if (arg->isBoolean())
-        RETURN_RESULT(scope.engine->newString(value.arg(arg->booleanValue())));
+    // Fast path for single argument
+    if (argc == 1) {
+        QV4::ScopedValue arg(scope, argv[0]);
+        if (arg->isInteger())
+            value = value.arg(arg->integerValue());
+        else if (arg->isDouble())
+            value = value.arg(arg->doubleValue());
+        else if (arg->isBoolean())
+            value = value.arg(arg->booleanValue());
+        else
+            value = value.arg(arg->toQString());
+        RETURN_RESULT(scope.engine->newString(value));
+    }
 
-    RETURN_RESULT(scope.engine->newString(value.arg(arg->toQString())));
+    // Preallocate for up to 10 arguments on the stack
+    constexpr int PreallocArgCount = 10;
+
+    // Convert QV4 values to QStringViewArg for QtPrivate::argToQString
+    QVarLengthArray<QString, PreallocArgCount> argStrings(argc);
+    QVarLengthArray<QtPrivate::QStringViewArg, PreallocArgCount> args(argc);
+    QVarLengthArray<const QtPrivate::ArgBase *, PreallocArgCount> argBases(argc);
+
+    for (int i = 0; i < argc; ++i) {
+        QV4::ScopedValue arg(scope, argv[i]);
+
+        if (arg->isInteger())
+            argStrings[i] = QString::number(arg->integerValue());
+        else if (arg->isDouble())
+            argStrings[i] = QString::number(arg->doubleValue());
+        else if (arg->isBoolean())
+            argStrings[i] = QString::number(arg->booleanValue());
+        else
+            argStrings[i] = arg->toQString();
+
+        args[i] = QtPrivate::QStringViewArg(argStrings[i]);
+        argBases[i] = &args[i];
+    }
+
+    QString result = QtPrivate::argToQString(value, argc, argBases.data());
+    RETURN_RESULT(scope.engine->newString(result));
 }
 
 /*!

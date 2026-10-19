@@ -11,19 +11,12 @@
 #include <QSize>
 #include <qpa/qplatformwindow.h> // for QWINDOWSIZE_MAX
 
-#include <KConfigGroup>
-#include <KWindowSystem>
-#include <KX11Extras>
-
 #include "applet.h"
 #include "appletquickitem.h"
 #include "edgeeventforwarder.h"
 #include "plasmashellwaylandintegration.h"
 #include "windowresizehandler.h"
-
-// used in detecting if focus passes to config UI
-#include "configview.h"
-#include "quickviewsharedengine.h"
+#include <KConfigGroup>
 
 // This is a proxy object that connects to the Layout attached property of an item
 // it also handles turning properties to proper defaults
@@ -64,12 +57,8 @@ AppletPopup::AppletPopup()
     setAnimated(true);
     setFlags(flags() | Qt::Dialog);
 
-    if (KWindowSystem::isPlatformX11()) {
-        KX11Extras::setType(winId(), NET::AppletPopup);
-    } else {
-        PlasmaShellWaylandIntegration::get(this)->setRole(QtWayland::org_kde_plasma_surface::role::role_appletpopup);
-        PlasmaShellWaylandIntegration::get(this)->setTakesFocus(true);
-    }
+    PlasmaShellWaylandIntegration::get(this)->setRole(QtWayland::org_kde_plasma_surface::role::role_appletpopup);
+    PlasmaShellWaylandIntegration::get(this)->setTakesFocus(true);
 
     auto edgeForwarder = new EdgeEventForwarder(this);
     edgeForwarder->setMargins(padding());
@@ -111,8 +100,6 @@ AppletPopup::AppletPopup()
         m_oldScreen = screen;
         updateMaxSize();
     });
-
-    QObject::connect(static_cast<QGuiApplication *>(QCoreApplication::instance()), &QGuiApplication::focusWindowChanged, this, &AppletPopup::handleFocusChange);
 }
 
 AppletPopup::~AppletPopup()
@@ -148,20 +135,6 @@ void AppletPopup::setAppletInterface(QQuickItem *appletInterface)
     Q_EMIT appletInterfaceChanged();
 }
 
-bool AppletPopup::hideOnWindowDeactivate() const
-{
-    return m_hideOnWindowDeactivate;
-}
-
-void AppletPopup::setHideOnWindowDeactivate(bool hideOnWindowDeactivate)
-{
-    if (hideOnWindowDeactivate == m_hideOnWindowDeactivate) {
-        return;
-    }
-    m_hideOnWindowDeactivate = hideOnWindowDeactivate;
-    Q_EMIT hideOnWindowDeactivateChanged();
-}
-
 void AppletPopup::hideEvent(QHideEvent *event)
 {
     // Persist the size if this contains an applet
@@ -175,33 +148,6 @@ void AppletPopup::hideEvent(QHideEvent *event)
     }
 
     PopupPlasmaWindow::hideEvent(event);
-}
-
-void AppletPopup::handleFocusChange()
-{
-    const QWindow *focusWindow = QGuiApplication::focusWindow();
-    if (m_hideOnWindowDeactivate && focusWindow != this) {
-        bool parentHasFocus = false;
-
-        QWindow *parentWindow = transientParent();
-
-        while (parentWindow) {
-            if (parentWindow->isActive() && !(parentWindow->flags() & Qt::WindowDoesNotAcceptFocus)) {
-                parentHasFocus = true;
-                break;
-            }
-
-            parentWindow = parentWindow->transientParent();
-        }
-
-        bool childHasFocus = focusWindow && ((focusWindow->isActive() && isAncestorOf(focusWindow)) || (focusWindow->type() & Qt::Popup) == Qt::Popup);
-
-        const bool viewClicked = qobject_cast<const PlasmaQuick::QuickViewSharedEngine *>(focusWindow) || qobject_cast<const ConfigView *>(focusWindow);
-
-        if (viewClicked || (!parentHasFocus && !childHasFocus)) {
-            setVisible(false);
-        }
-    }
 }
 
 void AppletPopup::onMainItemChanged()
@@ -270,13 +216,10 @@ void AppletPopup::updateSize()
         std::min(std::max(minimumSize().height(), wantedSize.height()), maximumSize().height())
     };
 
-    if (size.isEmpty()) {
-        qmlWarning(this) << "trying to show an empty applet popup";
-        Q_ASSERT(false);
-    }
-
     if (!size.isEmpty()) {
         resize(size);
+    } else {
+        qmlWarning(this) << "trying to show an empty applet popup";
     }
 }
 

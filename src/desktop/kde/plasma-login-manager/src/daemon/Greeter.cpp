@@ -16,13 +16,12 @@
 
 #include "Greeter.h"
 
-#include "Configuration.h"
 #include "Constants.h"
 #include "DaemonApp.h"
 #include "Display.h"
 #include "DisplayManager.h"
+#include "MainConfigLoader.h"
 #include "Seat.h"
-#include "XorgUserDisplayServer.h"
 
 #include <QStandardPaths>
 #include <QtCore/QDebug>
@@ -45,16 +44,6 @@ Greeter::~Greeter()
 void Greeter::setSocket(const QString &socket)
 {
     m_socket = socket;
-}
-
-QString Greeter::displayServerCommand() const
-{
-    return m_displayServerCmd;
-}
-
-void Greeter::setDisplayServerCommand(const QString &cmd)
-{
-    m_displayServerCmd = cmd;
 }
 
 bool Greeter::start()
@@ -108,7 +97,7 @@ bool Greeter::start()
                               sysenv,
                               env);
 
-        env.insert(QStringLiteral("PATH"), mainConfig.Users.DefaultPath.get());
+        env.insert(QStringLiteral("PATH"), PlasmaLogin::config()->defaultPath());
         env.insert(QStringLiteral("XDG_SEAT"), m_display->seat()->name());
         env.insert(QStringLiteral("XDG_SEAT_PATH"), daemonApp->displayManager()->seatPath(m_display->seat()->name()));
         env.insert(QStringLiteral("XDG_SESSION_PATH"), daemonApp->displayManager()->sessionPath(QStringLiteral("Session%1").arg(daemonApp->newSessionId())));
@@ -126,7 +115,6 @@ bool Greeter::start()
 
         // start greeter
         m_auth->setUser(QStringLiteral("plasmalogin"));
-        m_auth->setDisplayServerCommand(m_displayServerCmd);
         m_auth->setGreeter(true);
         m_auth->setSession(greeterCommand);
         m_auth->start();
@@ -207,9 +195,7 @@ void Greeter::onHelperFinished(Auth::HelperExitStatus status)
     m_auth->deleteLater();
     m_auth = nullptr;
 
-    if (status == Auth::HELPER_DISPLAYSERVER_ERROR) {
-        Q_EMIT displayServerFailed();
-    } else if (status == Auth::HELPER_TTY_ERROR) {
+    if (status == Auth::HELPER_TTY_ERROR) {
         Q_EMIT ttyFailed();
     } else if (status == Auth::HELPER_SESSION_ERROR) {
         Q_EMIT failed();

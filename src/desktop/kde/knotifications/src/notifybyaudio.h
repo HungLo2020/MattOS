@@ -11,6 +11,7 @@
 #include "knotificationplugin.h"
 
 #include <QHash>
+#include <QPointer>
 #include <QUrl>
 
 #include <KConfigWatcher>
@@ -19,7 +20,7 @@ class KNotification;
 
 struct ca_context;
 
-class NotifyByAudio : public KNotificationPlugin
+class NotifyByAudio : public QObject
 {
     Q_OBJECT
 
@@ -27,12 +28,8 @@ public:
     explicit NotifyByAudio(QObject *parent = nullptr);
     ~NotifyByAudio() override;
 
-    QString optionName() override
-    {
-        return QStringLiteral("Sound");
-    }
-    void notify(KNotification *notification, const KNotifyConfig &notifyConfig) override;
-    void close(KNotification *notification) override;
+    void notify(KNotification *notification, const KNotifyConfig &notifyConfig);
+    void close(KNotification *notification);
 
 private Q_SLOTS:
     void finishCallback(uint32_t id, int error_code);
@@ -47,7 +44,7 @@ private:
 
     ca_context *m_context = nullptr;
     quint32 m_currentId = 0;
-    QHash<quint32, KNotification *> m_notifications;
+    QHash<quint32, QPointer<KNotification>> m_notifications;
     // in case we loop we store the URL for the notification to be able to replay it
     QHash<quint32, std::pair<QString, QUrl>> m_loopSoundUrls;
 

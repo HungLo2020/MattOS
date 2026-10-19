@@ -21,6 +21,10 @@ struct CommandLineOptions {
         {u"f"_s, u"fullscreen"_s},
         i18n("Capture the entire desktop (default)")
     };
+    const QCommandLineOption scaled = {
+        {u"scaled"_s},
+        i18n("When used with -f/--fullscreen, capture all screens scaled to the same size")
+    };
     const QCommandLineOption current = {
         {u"m"_s, u"current"_s},
         i18n("Capture the current monitor")
@@ -109,15 +113,18 @@ struct CommandLineOptions {
         i18n("Open and edit existing screenshot file"),
         u"existingFileName"_s
     };
+    const QCommandLineOption releaseCapture = {{u"k"_s, u"release-capture"_s}, i18n("Accept region selection on click-and-release")};
 
     const QList<QCommandLineOption> allOptions = {
-        fullscreen, current, activeWindow, windowUnderCursor, transientOnly, region,  record,      launchOnly, gui,          background, dbus,
-        noNotify,   output,  delay,        copyImage,         copyPath,      onClick, newInstance, pointer,    noDecoration, noShadow,   editExisting,
+        fullscreen, scaled,      current,      activeWindow, windowUnderCursor, transientOnly, region,       record,         launchOnly,
+        gui,        background,  dbus,         noNotify,     output,            delay,         copyImage,    copyPath,
+        onClick,    newInstance, pointer,      noDecoration, noShadow,          editExisting,  releaseCapture,
     };
 
     // Keep order in sync with allOptions
     enum Option {
         Fullscreen,
+        Scaled,
         Current,
         ActiveWindow,
         WindowUnderCursor,
@@ -139,6 +146,7 @@ struct CommandLineOptions {
         NoDecoration,
         NoShadow,
         EditExisting,
+        ReleaseCapture,
         TotalOptions
     };
 };

@@ -1,16 +1,17 @@
 # Copyright (C) 2025 This file is copyright:
 # This file is distributed under the same license as the ksysguard package.
-# SPDX-FileCopyrightText: 2020, 2021 Burkhard Lück <lueck@hube-lueck.de>
+# SPDX-FileCopyrightText: 2020-2021 Burkhard Lück <lueck@hube-lueck.de>
 # SPDX-FileCopyrightText: 2022 Frank Steinmetzger <dev-kde@felsenfleischer.de>
 # SPDX-FileCopyrightText: 2022 Frederik Schwarzer <schwarzer@kde.org>
 # SPDX-FileCopyrightText: 2023 Jannick Kuhr <opensource@kuhr.org>
-# SPDX-FileCopyrightText: 2025 Philipp Kiemle <l10n.daphipz@fastmail.de>
+# SPDX-FileCopyrightText: 2025-2026 Philipp Kiemle <l10n.daphipz@fastmail.de>
+# SPDX-FileCopyrightText: 2026 Alexander Becker <alex-at-kde-l10n-de@freenet.de>
 msgid ""
 msgstr ""
 "Project-Id-Version: ksystemstats_plugins\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
-"PO-Revision-Date: 2025-10-20 12:39+0200\n"
+"POT-Creation-Date: 2026-08-06 00:46+0000\n"
+"PO-Revision-Date: 2026-09-13 01:40+0200\n"
 "Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
@@ -18,9 +19,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.08.1\n"
+"X-Generator: Lokalize 26.08.0\n"
 
-#: cpu/cpu.cpp:28 disks/disks.cpp:77 disks/disks.cpp:78 gpu/GpuDevice.cpp:20
+#: cpu/cpu.cpp:28 disks/disks.cpp:77 disks/disks.cpp:78 gpu/GpuDevice.cpp:22
 #: power/power.cpp:39
 #, kde-format
 msgctxt "@title"
@@ -52,12 +53,10 @@ msgid "System"
 msgstr "System"
 
 #: cpu/cpu.cpp:46
-#, fuzzy, kde-format
-#| msgctxt "@title, Short for 'System Usage'"
-#| msgid "System"
+#, kde-format
 msgctxt "@title, Short for '%1 System Usage'"
 msgid "%1 System"
-msgstr "System"
+msgstr "%1 System"
 
 #: cpu/cpu.cpp:52
 #, kde-format
@@ -72,12 +71,10 @@ msgid "User"
 msgstr "Benutzer"
 
 #: cpu/cpu.cpp:53
-#, fuzzy, kde-format
-#| msgctxt "@title, Short for 'User Usage'"
-#| msgid "User"
+#, kde-format
 msgctxt "@title, Short for '%1 User Usage'"
 msgid "%1 User"
-msgstr "Benutzer"
+msgstr "%1 Benutzer"
 
 #: cpu/cpu.cpp:59
 #, kde-format
@@ -92,12 +89,10 @@ msgid "Wait"
 msgstr "Warten"
 
 #: cpu/cpu.cpp:60
-#, fuzzy, kde-format
-#| msgctxt "@title, Short for 'Wait Load'"
-#| msgid "Wait"
+#, kde-format
 msgctxt "@title, Short for '%1 Wait Load'"
 msgid "%1 Wait"
-msgstr "Warten"
+msgstr "%1 Warten"
 
 #: cpu/cpu.cpp:85
 #, kde-format
@@ -260,13 +255,13 @@ msgctxt "@title"
 msgid "CPU %1"
 msgstr "Prozessor %1"
 
-#: cpu/linuxcpuplugin.cpp:42 cpu/linuxcpuplugin.cpp:53
+#: cpu/linuxcpuplugin.cpp:42 cpu/linuxcpuplugin.cpp:56
 #, kde-format
 msgctxt "@title"
 msgid "Core %1"
 msgstr "Kern %1"
 
-#: cpu/linuxcpuplugin.cpp:63
+#: cpu/linuxcpuplugin.cpp:66
 #, kde-format
 msgctxt "@title"
 msgid "CPU %1 Core %2"
@@ -332,73 +327,73 @@ msgctxt "@info"
 msgid "Number of jobs in the run queue averaged over 15 minutes"
 msgstr "Anzahl der Aufgaben in der Warteschlange über 15 Minuten gemittelt"
 
-#: disks/disks.cpp:81 disks/disks.cpp:279
+#: disks/disks.cpp:81 disks/disks.cpp:287
 #, kde-format
 msgctxt "@title"
 msgid "Total Space"
 msgstr "Gesamter Speicherplatz"
 
-#: disks/disks.cpp:83 disks/disks.cpp:280
+#: disks/disks.cpp:83 disks/disks.cpp:288
 #, kde-format
 msgctxt "@title Short for 'Total Space'"
 msgid "Total"
 msgstr "Gesamt"
 
-#: disks/disks.cpp:87 disks/disks.cpp:302
+#: disks/disks.cpp:87 disks/disks.cpp:310
 #, kde-format
 msgctxt "@title"
 msgid "Read Rate"
 msgstr "Leserate"
 
-#: disks/disks.cpp:89 disks/disks.cpp:303
+#: disks/disks.cpp:89 disks/disks.cpp:311
 #, kde-format
 msgctxt "@title Short for 'Read Rate'"
 msgid "Read"
 msgstr "Lesen"
 
-#: disks/disks.cpp:93 disks/disks.cpp:309
+#: disks/disks.cpp:93 disks/disks.cpp:317
 #, kde-format
 msgctxt "@title"
 msgid "Write Rate"
 msgstr "Schreibrate"
 
-#: disks/disks.cpp:95 disks/disks.cpp:310
+#: disks/disks.cpp:95 disks/disks.cpp:318
 #, kde-format
 msgctxt "@title Short for 'Write Rate'"
 msgid "Write"
 msgstr "Schreiben"
 
-#: disks/disks.cpp:100 disks/disks.cpp:294
+#: disks/disks.cpp:100 disks/disks.cpp:302
 #, kde-format
 msgctxt "@title"
 msgid "Used Space"
 msgstr "Belegter Speicherplatz"
 
-#: disks/disks.cpp:102 disks/disks.cpp:295
+#: disks/disks.cpp:102 disks/disks.cpp:303
 #, kde-format
 msgctxt "@title Short for 'Used Space'"
 msgid "Used"
 msgstr "Belegt"
 
-#: disks/disks.cpp:107 disks/disks.cpp:286
+#: disks/disks.cpp:107 disks/disks.cpp:294
 #, kde-format
 msgctxt "@title"
 msgid "Free Space"
 msgstr "Freier Speicherplatz"
 
-#: disks/disks.cpp:109 disks/disks.cpp:287
+#: disks/disks.cpp:109 disks/disks.cpp:295
 #, kde-format
 msgctxt "@title Short for 'Free Space'"
 msgid "Free"
 msgstr "Frei"
 
-#: disks/disks.cpp:114 disks/disks.cpp:320
+#: disks/disks.cpp:114 disks/disks.cpp:328
 #, kde-format
 msgctxt "@title"
 msgid "Percentage Used"
 msgstr "Prozent belegt"
 
-#: disks/disks.cpp:118 disks/disks.cpp:316
+#: disks/disks.cpp:118 disks/disks.cpp:324
 #, kde-format
 msgctxt "@title"
 msgid "Percentage Free"
@@ -409,19 +404,19 @@ msgstr "Prozent frei"
 msgid "Disks"
 msgstr "Datenträger"
 
-#: disks/disks.cpp:264
+#: disks/disks.cpp:272
 #, kde-format
 msgctxt "@title"
 msgid "All Disks"
 msgstr "Alle Datenträger"
 
-#: disks/disks.cpp:317
+#: disks/disks.cpp:325
 #, kde-format
 msgctxt "@title, Short for `Percentage Free"
 msgid "Free"
 msgstr "Frei"
 
-#: disks/disks.cpp:321
+#: disks/disks.cpp:329
 #, kde-format
 msgctxt "@title, Short for `Percentage Used"
 msgid "Used"
@@ -469,61 +464,67 @@ msgctxt "@title Short for 'All GPUs Used Memory'"
 msgid "Used"
 msgstr "Belegt"
 
-#: gpu/FreeBSDBackend.cpp:53 gpu/LinuxBackend.cpp:54
+#: gpu/AllGpus.cpp:37
 #, kde-format
-msgctxt "@title %1 is GPU number"
-msgid "GPU %1"
-msgstr "GPU %1"
+msgctxt "@title"
+msgid "All GPUs Used Memory Percentage"
+msgstr "Belegter Speicher aller GPUs (%)"
 
-#: gpu/GpuDevice.cpp:24
+#: gpu/GpuDevice.cpp:26
 #, kde-format
 msgctxt "@title"
 msgid "Usage"
 msgstr "Auslastung"
 
-#: gpu/GpuDevice.cpp:30
+#: gpu/GpuDevice.cpp:32
 #, kde-format
 msgctxt "@title"
 msgid "Total Video Memory"
 msgstr "Gesamter Video-Speicher"
 
-#: gpu/GpuDevice.cpp:32
+#: gpu/GpuDevice.cpp:34
 #, kde-format
 msgctxt "@title Short for Total Video Memory"
 msgid "Total"
 msgstr "Gesamt"
 
-#: gpu/GpuDevice.cpp:35
+#: gpu/GpuDevice.cpp:37
 #, kde-format
 msgctxt "@title"
 msgid "Video Memory Used"
 msgstr "Belegter Video-Speicher"
 
-#: gpu/GpuDevice.cpp:37
+#: gpu/GpuDevice.cpp:39
 #, kde-format
 msgctxt "@title Short for Video Memory Used"
 msgid "Used"
 msgstr "Belegt"
 
-#: gpu/GpuDevice.cpp:41
+#: gpu/GpuDevice.cpp:42
+#, kde-format
+msgctxt "@title"
+msgid "Video Memory Used Percentage"
+msgstr "Belegter Video-Speicher (%)"
+
+#: gpu/GpuDevice.cpp:47
 #, kde-format
 msgctxt "@title"
 msgid "Frequency"
 msgstr "Frequenz"
 
-#: gpu/GpuDevice.cpp:45
+#: gpu/GpuDevice.cpp:51
 #, kde-format
 msgctxt "@title"
 msgid "Memory Frequency"
 msgstr "Speicherfrequenz"
 
-#: gpu/GpuDevice.cpp:49
+#: gpu/GpuDevice.cpp:55
 #, kde-format
 msgctxt "@title"
 msgid "Temperature"
 msgstr "Temperatur"
 
-#: gpu/GpuDevice.cpp:53 power/power.cpp:116
+#: gpu/GpuDevice.cpp:59 power/power.cpp:116
 #, kde-format
 msgctxt "@title"
 msgid "Power"
@@ -535,13 +536,23 @@ msgctxt "@title"
 msgid "GPU"
 msgstr "GPU"
 
-#: gpu/LinuxIntelGpu.cpp:40
-#, fuzzy, kde-format
-#| msgctxt "@title"
-#| msgid "User Usage"
+#: gpu/LinuxIntelGpu.cpp:40 gpu/LinuxXeGpu.cpp:91
+#, kde-format
 msgctxt "@title"
 msgid "Video Usage"
-msgstr "Benutzerauslastung"
+msgstr "Videoauslastung"
+
+#: gpu/LinuxXeGpu.cpp:78
+#, kde-format
+msgctxt "@title"
+msgid "Fan %1"
+msgstr "Lüfter %1"
+
+#: gpu/LinuxXeGpu.cpp:86
+#, kde-format
+msgctxt "@title"
+msgid "VRAM Temperature"
+msgstr "VRAM-Temperatur"
 
 #: lmsensors/lmsensors.cpp:22
 #, kde-format
@@ -926,133 +937,133 @@ msgctxt "@title Short of IPv6 DNS"
 msgid "IPv6 DNS"
 msgstr "IPv6-DNS"
 
-#: network/NetworkPlugin.cpp:44
+#: network/NetworkPlugin.cpp:46
 #, kde-format
 msgctxt "@title"
 msgid "Network Devices"
 msgstr "Netzwerkgeräte"
 
-#: osinfo/osinfo.cpp:108
+#: osinfo/osinfo.cpp:110
 #, kde-format
 msgctxt "@title"
 msgid "Operating System"
 msgstr "Betriebssystem"
 
-#: osinfo/osinfo.cpp:110
+#: osinfo/osinfo.cpp:112
 #, kde-format
 msgctxt "@title"
 msgid "Kernel"
 msgstr "Kernel"
 
-#: osinfo/osinfo.cpp:111
+#: osinfo/osinfo.cpp:113
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Name"
 msgstr "Kernel-Name"
 
-#: osinfo/osinfo.cpp:112
+#: osinfo/osinfo.cpp:114
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Version"
 msgstr "Kernel-Version"
 
-#: osinfo/osinfo.cpp:113
+#: osinfo/osinfo.cpp:115
 #, kde-format
 msgctxt "@title"
 msgid "Kernel Name and Version"
 msgstr "Kernel-Name und -Version"
 
-#: osinfo/osinfo.cpp:114
+#: osinfo/osinfo.cpp:116
 #, kde-format
 msgctxt "@title Kernel Name and Version"
 msgid "Kernel"
 msgstr "Kernel"
 
-#: osinfo/osinfo.cpp:116
+#: osinfo/osinfo.cpp:118
 #, kde-format
 msgctxt "@title"
 msgid "System"
 msgstr "System"
 
-#: osinfo/osinfo.cpp:117
+#: osinfo/osinfo.cpp:119
 #, kde-format
 msgctxt "@title"
 msgid "Hostname"
 msgstr "Rechnername"
 
-#: osinfo/osinfo.cpp:118
+#: osinfo/osinfo.cpp:120
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Name"
 msgstr "Name des Betriebssystems"
 
-#: osinfo/osinfo.cpp:119
+#: osinfo/osinfo.cpp:121
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Version"
 msgstr "Version des Betriebssystems"
 
-#: osinfo/osinfo.cpp:120
+#: osinfo/osinfo.cpp:122
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Name and Version"
 msgstr "Name und Version des Betriebssystems"
 
-#: osinfo/osinfo.cpp:121
+#: osinfo/osinfo.cpp:123
 #, kde-format
 msgctxt "@title Operating System Name and Version"
 msgid "OS"
 msgstr "Betriebssystem"
 
-#: osinfo/osinfo.cpp:122
+#: osinfo/osinfo.cpp:124
 #, kde-format
 msgctxt "@title"
 msgid "Operating System Logo"
 msgstr "Betriebssystem-Logo"
 
-#: osinfo/osinfo.cpp:123
+#: osinfo/osinfo.cpp:125
 #, kde-format
 msgctxt "@title"
 msgid "Operating System URL"
 msgstr "Betriebssystem-URL"
 
-#: osinfo/osinfo.cpp:124
+#: osinfo/osinfo.cpp:126
 #, kde-format
 msgctxt "@title"
 msgid "Uptime"
 msgstr "Betriebszeit"
 
-#: osinfo/osinfo.cpp:127
+#: osinfo/osinfo.cpp:129
 #, kde-format
 msgctxt "@title"
 msgid "KDE Plasma"
 msgstr "KDE Plasma"
 
-#: osinfo/osinfo.cpp:128
+#: osinfo/osinfo.cpp:130
 #, kde-format
 msgctxt "@title"
 msgid "Qt Version"
 msgstr "Qt-Version"
 
-#: osinfo/osinfo.cpp:129
+#: osinfo/osinfo.cpp:131
 #, kde-format
 msgctxt "@title"
 msgid "KDE Frameworks Version"
 msgstr "KDE-Frameworks-Version"
 
-#: osinfo/osinfo.cpp:130
+#: osinfo/osinfo.cpp:132
 #, kde-format
 msgctxt "@title"
 msgid "KDE Plasma Version"
 msgstr "KDE-Plasma-Version"
 
-#: osinfo/osinfo.cpp:131
+#: osinfo/osinfo.cpp:133
 #, kde-format
 msgctxt "@title"
 msgid "Window System"
 msgstr "Fenstersystem"
 
-#: osinfo/osinfo.cpp:165
+#: osinfo/osinfo.cpp:175
 #, kde-format
 msgctxt "@info"
 msgid "Unknown"
@@ -1138,22 +1149,20 @@ msgstr ""
 #, kde-format
 msgctxt "@title"
 msgid "Pressure"
-msgstr ""
+msgstr "Überlast"
 
 #: pressure/pressure.cpp:136
-#, fuzzy, kde-format
-#| msgctxt "@title"
-#| msgid "Memory Frequency"
+#, kde-format
 msgctxt "@title"
 msgid "Memory Pressure"
-msgstr "Speicherfrequenz"
+msgstr "Speicherüberlast"
 
 #: pressure/pressure.cpp:137 pressure/pressure.cpp:165
 #: pressure/pressure.cpp:195
 #, kde-format
 msgctxt "@title"
 msgid "Some (10 second average)"
-msgstr ""
+msgstr "Teilweise (Durchschnitt über 10 Sekunden)"
 
 #: pressure/pressure.cpp:138
 #, kde-format
@@ -1162,13 +1171,15 @@ msgid ""
 "Percentage of time that at least one task is stalled waiting for available "
 "memory resources, averaged over 10 seconds"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der mindestens ein Prozess blockiert ist "
+"und auf freie Arbeitsspeicherressourcen wartet (gemittelt über 10 Sekunden)"
 
 #: pressure/pressure.cpp:140 pressure/pressure.cpp:168
 #: pressure/pressure.cpp:198
 #, kde-format
 msgctxt "@title"
 msgid "Some (1 minute average)"
-msgstr ""
+msgstr "Teilweise (Durchschnitt über 1 Minute)"
 
 #: pressure/pressure.cpp:141
 #, kde-format
@@ -1177,13 +1188,15 @@ msgid ""
 "Percentage of time that at least one task is stalled waiting for available "
 "memory resources, averaged over 1 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der mindestens ein Prozess blockiert ist "
+"und auf freie Arbeitsspeicherressourcen wartet (gemittelt über 1 Minute)"
 
 #: pressure/pressure.cpp:143 pressure/pressure.cpp:171
 #: pressure/pressure.cpp:201
 #, kde-format
 msgctxt "@title"
 msgid "Some (5 minute average)"
-msgstr ""
+msgstr "Teilweise (Durchschnitt über 5 Minuten)"
 
 #: pressure/pressure.cpp:144
 #, kde-format
@@ -1192,13 +1205,15 @@ msgid ""
 "Percentage of time that at least one task is stalled waiting for available "
 "memory resources, averaged over 5 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der mindestens ein Prozess blockiert ist "
+"und auf freie Arbeitsspeicherressourcen wartet (gemittelt über 5 Minuten)"
 
 #: pressure/pressure.cpp:146 pressure/pressure.cpp:174
 #: pressure/pressure.cpp:204
 #, kde-format
 msgctxt "@title"
 msgid "Total Some Stall Time"
-msgstr ""
+msgstr "Akkumulierte teilweise Wartezeit"
 
 #: pressure/pressure.cpp:147
 #, kde-format
@@ -1207,13 +1222,15 @@ msgid ""
 "Amount of time that at least one task is stalled waiting for available "
 "memory resources, measured in microseconds"
 msgstr ""
+"Zeit in Mikrosekunden, während der mindestens ein Prozess blockiert ist und "
+"auf freie Arbeitsspeicherressourcen wartet"
 
 #: pressure/pressure.cpp:150 pressure/pressure.cpp:179
 #: pressure/pressure.cpp:209
 #, kde-format
 msgctxt "@title"
 msgid "Full (10 second average)"
-msgstr ""
+msgstr "Vollständig (Durchschnitt über 10 Sekunden)"
 
 #: pressure/pressure.cpp:151
 #, kde-format
@@ -1222,13 +1239,15 @@ msgid ""
 "Percentage of time that at least one task is stalled waiting for available "
 "CPU resources, averaged over 10 seconds"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der mindestens ein Prozess blockiert ist "
+"und auf freie Prozessorressourcen wartet (gemittelt über 10 Sekunden)"
 
 #: pressure/pressure.cpp:153 pressure/pressure.cpp:182
 #: pressure/pressure.cpp:212
 #, kde-format
 msgctxt "@title"
 msgid "Full (1 minute average)"
-msgstr ""
+msgstr "Vollständig (Durchschnitt über 1 Minute)"
 
 #: pressure/pressure.cpp:154
 #, kde-format
@@ -1237,13 +1256,15 @@ msgid ""
 "Percentage of time that at least one task is stalled waiting for available "
 "CPU resources, averaged over 1 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der mindestens ein Prozess blockiert ist "
+"und auf freie Prozessorressourcen wartet (gemittelt über 1 Minute)"
 
 #: pressure/pressure.cpp:156 pressure/pressure.cpp:185
 #: pressure/pressure.cpp:215
 #, kde-format
 msgctxt "@title"
 msgid "Full (5 minute average)"
-msgstr ""
+msgstr "Vollständig (Durchschnitt über 5 Minuten)"
 
 #: pressure/pressure.cpp:157
 #, kde-format
@@ -1252,13 +1273,15 @@ msgid ""
 "Percentage of time that at least one task is stalled waiting for available "
 "CPU resources, averaged over 5 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der mindestens ein Prozess blockiert ist "
+"und auf freie Prozessorressourcen wartet (gemittelt über 5 Minuten)"
 
 #: pressure/pressure.cpp:159 pressure/pressure.cpp:188
 #: pressure/pressure.cpp:218
 #, kde-format
 msgctxt "@title"
 msgid "Total Full Stall Time"
-msgstr ""
+msgstr "Akkumulierte vollständige Wartezeit"
 
 #: pressure/pressure.cpp:160
 #, kde-format
@@ -1267,12 +1290,14 @@ msgid ""
 "Amount of time that at least one task is stalled waiting for available CPU "
 "resources, measured in microseconds"
 msgstr ""
+"Zeit in Mikrosekunden, während der mindestens ein Prozess blockiert ist und "
+"auf freie Prozessorressourcen wartet"
 
 #: pressure/pressure.cpp:163
 #, kde-format
 msgctxt "@title"
 msgid "CPU Pressure"
-msgstr ""
+msgstr "Prozessorüberlast"
 
 #: pressure/pressure.cpp:166
 #, kde-format
@@ -1281,6 +1306,8 @@ msgid ""
 "Percentage of time that at least one task is stalled waiting for available "
 "IO resources, averaged over 10 seconds"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der mindestens ein Prozess blockiert ist "
+"und auf freie Ein-/Ausgaberessourcen wartet (gemittelt über 10 Sekunden)"
 
 #: pressure/pressure.cpp:169
 #, kde-format
@@ -1289,6 +1316,8 @@ msgid ""
 "Percentage of time that at least one task is stalled waiting for available "
 "IO resources, averaged over 1 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der mindestens ein Prozess blockiert ist "
+"und auf freie Ein-/Ausgaberessourcen wartet (gemittelt über 1 Minute)"
 
 #: pressure/pressure.cpp:172
 #, kde-format
@@ -1297,6 +1326,8 @@ msgid ""
 "Percentage of time that at least one task is stalled waiting for available "
 "IO resources, averaged over 5 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der mindestens ein Prozess blockiert ist "
+"und auf freie Ein-/Ausgaberessourcen wartet (gemittelt über 5 Minuten)"
 
 #: pressure/pressure.cpp:175
 #, kde-format
@@ -1305,6 +1336,8 @@ msgid ""
 "Amount of time that at least one task is stalled waiting for available IO "
 "resources, measured in microseconds"
 msgstr ""
+"Zeit in Mikrosekunden, während der mindestens ein Prozess blockiert ist und "
+"auf freie Ein-/Ausgaberessourcen wartet"
 
 #: pressure/pressure.cpp:180
 #, kde-format
@@ -1313,6 +1346,8 @@ msgid ""
 "Percentage of time that all tasks are stalled waiting for available memory "
 "resources, averaged over 10 seconds"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der alle Prozesse blockiert sind und auf "
+"freie Arbeitsspeicherressourcen warten (gemittelt über 10 Sekunden)"
 
 #: pressure/pressure.cpp:183
 #, kde-format
@@ -1321,6 +1356,8 @@ msgid ""
 "Percentage of time that all tasks are stalled waiting for available memory "
 "resources, averaged over 1 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der alle Prozesse blockiert sind und auf "
+"freie Arbeitsspeicherressourcen warten (gemittelt über 1 Minute)"
 
 #: pressure/pressure.cpp:186
 #, kde-format
@@ -1329,6 +1366,8 @@ msgid ""
 "Percentage of time that all tasks are stalled waiting for available memory "
 "resources, averaged over 5 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der alle Prozesse blockiert sind und auf "
+"freie Arbeitsspeicherressourcen warten (gemittelt über 5 Minuten)"
 
 #: pressure/pressure.cpp:189
 #, kde-format
@@ -1337,12 +1376,14 @@ msgid ""
 "Amount of time that all tasks are stalled waiting for available memory "
 "resources, measured in microseconds"
 msgstr ""
+"Zeit in Mikrosekunden, während der alle Prozesse blockiert sind und auf "
+"freie Arbeitsspeicherressourcen warten"
 
 #: pressure/pressure.cpp:193
 #, kde-format
 msgctxt "@title"
 msgid "IO Pressure"
-msgstr ""
+msgstr "Ein-/Ausgabeüberlast"
 
 #: pressure/pressure.cpp:196
 #, kde-format
@@ -1351,6 +1392,8 @@ msgid ""
 "Percentage of time that all tasks are stalled waiting for available CPU "
 "resources, averaged over 10 seconds"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der alle Prozesse blockiert sind und auf "
+"freie Prozessorressourcen warten (gemittelt über 10 Sekunden)"
 
 #: pressure/pressure.cpp:199
 #, kde-format
@@ -1359,6 +1402,8 @@ msgid ""
 "Percentage of time that all tasks are stalled waiting for available CPU "
 "resources, averaged over 1 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der alle Prozesse blockiert sind und auf "
+"freie Prozessorressourcen warten (gemittelt über 1 Minute)"
 
 #: pressure/pressure.cpp:202
 #, kde-format
@@ -1367,6 +1412,8 @@ msgid ""
 "Percentage of time that all tasks are stalled waiting for available CPU "
 "resources, averaged over 5 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der alle Prozesse blockiert sind und auf "
+"freie Prozessorressourcen warten (gemittelt über 5 Minuten)"
 
 #: pressure/pressure.cpp:205
 #, kde-format
@@ -1375,6 +1422,8 @@ msgid ""
 "Amount of time that all tasks are stalled waiting for available CPU "
 "resources, measured in microseconds"
 msgstr ""
+"Zeit in Mikrosekunden, während der alle Prozesse blockiert sind und auf "
+"freie Prozessorressourcen warten"
 
 #: pressure/pressure.cpp:210
 #, kde-format
@@ -1383,6 +1432,8 @@ msgid ""
 "Percentage of time that all tasks are stalled waiting for available IO "
 "resources, averaged over 10 seconds"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der alle Prozesse blockiert sind und auf "
+"freie Ein-/Ausgaberessourcen warten (gemittelt über 10 Sekunden)"
 
 #: pressure/pressure.cpp:213
 #, kde-format
@@ -1391,6 +1442,8 @@ msgid ""
 "Percentage of time that all tasks are stalled waiting for available IO "
 "resources, averaged over 1 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der alle Prozesse blockiert sind und auf "
+"freie Ein-/Ausgaberessourcen warten (gemittelt über 1 Minute)"
 
 #: pressure/pressure.cpp:216
 #, kde-format
@@ -1399,6 +1452,8 @@ msgid ""
 "Percentage of time that all tasks are stalled waiting for available IO "
 "resources, averaged over 5 minutes"
 msgstr ""
+"Prozentualer Anteil der Zeit, in der alle Prozesse blockiert sind und auf "
+"freie Ein-/Ausgaberessourcen warten (gemittelt über 5 Minuten)"
 
 #: pressure/pressure.cpp:219
 #, kde-format
@@ -1407,6 +1462,12 @@ msgid ""
 "Amount of time that all tasks are stalled waiting for available IO "
 "resources, measured in microseconds"
 msgstr ""
+"Zeit in Mikrosekunden, während der alle Prozesse blockiert sind und auf "
+"freie Ein-/Ausgaberessourcen warten"
+
+#~ msgctxt "@title %1 is GPU number"
+#~ msgid "GPU %1"
+#~ msgstr "GPU %1"
 
 #~ msgctxt "@title, Short for 'Current Frequency'"
 #~ msgid "Frequency"
@@ -1419,10 +1480,6 @@ msgstr ""
 #~ msgctxt "@title %1 is a number"
 #~ msgid "Voltage %1"
 #~ msgstr "Spannung %1"
-
-#~ msgctxt "@title %1 is a number"
-#~ msgid "Fan %1"
-#~ msgstr "Lüfter %1"
 
 #~ msgctxt "@title %1 is a number"
 #~ msgid "Temperature %1"

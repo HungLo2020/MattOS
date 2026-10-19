@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=7digital,7dg,7d
 Name=7Digital
+Name[am]=7Digital
 Name[ar]=7دِجِتال
 Name[ast]=7Digital
 Name[az]=7Digital
@@ -52,6 +53,8 @@ Name[mai]=7Digital
 Name[ml]=7ഡിജിറ്റല്‍
 Name[mr]=7डिजिटल
 Name[my]=၇ဒီဂျစ်တယ်
+Name[nan_TW]=7Digital
+Name[nan_TW@latin]=7Digital
 Name[nb]=7Digital
 Name[nds]=7Digital
 Name[nl]=7Digital
@@ -76,13 +79,13 @@ Name[tg]=7Digital
 Name[th]=7Digital
 Name[tok]=ilo alasa 7Digital
 Name[tr]=7Digital
-Name[ug]=7Digital
 Name[uk]=7Digital
 Name[vi]=7Digital
 Name[wa]=7Digital
 Name[zh_CN]=7Digital
 Name[zh_TW]=7Digital
 Query=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
+Query[am]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[ar]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[ast]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[az]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
@@ -123,6 +126,8 @@ Query[lg]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=S
 Query[lt]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[lv]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[my]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
+Query[nan_TW]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
+Query[nan_TW@latin]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[nb]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[nl]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[nn]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
@@ -141,7 +146,6 @@ Query[tg]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=S
 Query[th]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[tok]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[tr]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
-Query[ug]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[uk]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[vi]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search
 Query[zh_CN]=https://us.7digital.com/Search?search=\\{@}&searchtype=global&submit=Search

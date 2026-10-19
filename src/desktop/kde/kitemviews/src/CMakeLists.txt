@@ -58,7 +58,7 @@ target_include_directories(KF6ItemViews INTERFACE "$<INSTALL_INTERFACE:${KDE_INS
 
 target_link_libraries(KF6ItemViews PUBLIC Qt6::Widgets)
 
-ecm_generate_headers(KItemViews_HEADERS
+ecm_generate_headers(KItemViews_CamelCase_HEADERS
   HEADER_NAMES
   KCategorizedSortFilterProxyModel
   KCategorizedView
@@ -77,6 +77,7 @@ install(TARGETS KF6ItemViews EXPORT KF6ItemViewsTargets ${KF_INSTALL_TARGETS_DEF
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/kitemviews_export.h
   ${KItemViews_HEADERS}
+  ${KItemViews_CamelCase_HEADERS}
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KItemViews COMPONENT Devel
 )
 
@@ -88,4 +89,17 @@ ecm_qt_install_logging_categories(
     EXPORT KITEMVIEWS
     FILE kitemviews.categories
     DESTINATION "${KDE_INSTALL_LOGGINGCATEGORIESDIR}"
+)
+
+ecm_add_installed_library_check(KF6ItemViews
+    PACKAGE_NAME "KF6ItemViews"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6ItemViews
+    HEADERS ${KItemViews_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6ItemViews
+    PREFIX KITEMVIEWS
 )

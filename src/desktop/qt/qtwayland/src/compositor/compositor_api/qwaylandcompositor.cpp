@@ -435,6 +435,14 @@ void QWaylandCompositorPrivate::loadClientBufferIntegration()
             targetKeys.append(s);
     }
 
+    if (!clientBufferIntegration.isEmpty() && targetKeys.isEmpty()) {
+        qCWarning(qLcWaylandCompositorHardwareIntegration)
+            << "Failed to find any requested client buffer integration:"
+            << clientBufferIntegration
+            << ", available integrations:"
+            << keys;
+    }
+
     if (targetKeys.isEmpty()) {
         if (keys.contains(QString::fromLatin1("wayland-egl"))) {
             targetKeys.append(QString::fromLatin1("wayland-egl"));
@@ -521,7 +529,7 @@ QWaylandSeat *QWaylandCompositorPrivate::seatFor(QInputEvent *inputEvent)
   the onSurfaceRequested handler.
 
   Extensions that are supported by the compositor should be instantiated and added to the
-  extensions property.
+  extensions property or simply as direct children of WaylandCompositor.
 */
 
 
@@ -735,7 +743,8 @@ QList<QWaylandClient *>QWaylandCompositor::clients() const
 /*!
  * \qmlmethod void QtWayland.Compositor::WaylandCompositor::destroyClientForSurface(surface)
  *
- * Destroys the client for the WaylandSurface \a surface.
+ * From the compositor side, destroys the client to which the WaylandSurface \a surface belongs
+ * by disconnecting from it.
  */
 
 /*!
@@ -749,7 +758,7 @@ void QWaylandCompositor::destroyClientForSurface(QWaylandSurface *surface)
 /*!
  * \qmlmethod void QtWayland.Compositor::WaylandCompositor::destroyClient(client)
  *
- * Destroys the given WaylandClient \a client.
+ * From the compositor side, destroys the given WaylandClient \a client by disconnecting from it.
  */
 
 /*!
@@ -911,14 +920,21 @@ QWaylandTouch *QWaylandCompositor::createTouchDevice(QWaylandSeat *seat)
 
 /*!
  * \qmlproperty bool QtWayland.Compositor::WaylandCompositor::retainedSelection
+ * \default false
  *
- * This property holds whether retained selection is enabled.
+ * This property controls whether the compositor retains a copy of clipboard selection data.
+ * When \c true, the compositor eagerly reads and caches all clipboard data from the owning client.
+ * This incurs a performance cost.
  */
 
 /*!
  * \property QWaylandCompositor::retainedSelection
  *
- * This property holds whether retained selection is enabled.
+ * This property controls whether the compositor retains a copy of clipboard selection data.
+ * When \c true, the compositor eagerly reads and caches all clipboard data from the owning client.
+ * This incurs a performance cost. The default is \c false.
+ *
+ * \sa QWaylandCompositor::retainedSelectionReceived(), QWaylandSurface::updateSelection()
  */
 void QWaylandCompositor::setRetainedSelectionEnabled(bool enabled)
 {
@@ -988,6 +1004,7 @@ QWaylandSeat *QWaylandCompositor::seatFor(QInputEvent *inputEvent)
 
 /*!
  * \qmlproperty bool QtWayland.Compositor::WaylandCompositor::useHardwareIntegrationExtension
+ * \default true
  *
  * This property holds whether the hardware integration extension should be enabled for
  * this WaylandCompositor.
@@ -1079,7 +1096,7 @@ void QWaylandCompositor::grabSurface(QWaylandSurfaceGrabber *grabber, const QWay
  * compositor.
  *
  * By default, only the required ShmFormat_ARGB8888 and ShmFormat_XRGB8888 are listed and this
- * list will empty. Additional formats may require conversion internally and can thus affect
+ * list will be empty. Additional formats may require conversion internally and can thus affect
  * performance.
  *
  * This property must be set before the compositor component is completed. Subsequent changes
@@ -1095,7 +1112,7 @@ void QWaylandCompositor::grabSurface(QWaylandSurfaceGrabber *grabber, const QWay
  * compositor.
  *
  * By default, only the required ShmFormat_ARGB8888 and ShmFormat_XRGB8888 are listed and this
- * list will empty.
+ * list will be empty.
  *
  * This property must be set before the compositor is \l{create()}{created}. Subsequent changes
  * will have no effect.

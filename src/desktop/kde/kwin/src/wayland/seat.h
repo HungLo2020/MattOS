@@ -19,6 +19,7 @@ struct wl_resource;
 
 namespace KWin
 {
+
 class AbstractDataSource;
 class AbstractDropHandler;
 class ClientConnection;
@@ -30,7 +31,6 @@ class PointerInterface;
 class SeatInterface;
 class SeatInterfacePrivate;
 class SurfaceInterface;
-class TextInputV1Interface;
 class TextInputV2Interface;
 class TextInputV3Interface;
 class TouchInterface;
@@ -39,6 +39,7 @@ class XdgToplevelDragV1Interface;
 class TouchPoint : public QObject
 {
     Q_OBJECT
+
 public:
     TouchPoint(qint32 id, quint32 serial, SurfaceInterface *surface, SeatInterface *seat);
 
@@ -103,6 +104,7 @@ public:
 class KWIN_EXPORT SeatInterface : public QObject
 {
     Q_OBJECT
+
 public:
     explicit SeatInterface(Display *display, const QString &name, QObject *parent = nullptr);
     virtual ~SeatInterface();
@@ -201,6 +203,12 @@ public:
      * Sends a pointer motion event to the focused pointer surface.
      */
     void notifyPointerMotion(const QPointF &pos);
+    /**
+     * Updates the global pointer @p pos.
+     *
+     * Sends a pointer warp event to the focused pointer surface.
+     */
+    void notifyPointerWarp(const QPointF &pos);
     /**
      * @returns the global pointer position
      */
@@ -574,8 +582,6 @@ public:
      * @see setFocusedTextInputSurface
      */
     SurfaceInterface *focusedTextInputSurface() const;
-
-    TextInputV1Interface *textInputV1() const;
 
     /**
      * The currently focused text input, may be @c null even if there is a

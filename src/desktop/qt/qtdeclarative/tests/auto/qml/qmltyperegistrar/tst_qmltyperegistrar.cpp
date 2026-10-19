@@ -9,6 +9,8 @@
 
 #include <QtTest/qtest.h>
 
+#include <QtQmlTypeRegistrar/private/qqmltyperegistrarutils_p.h>
+
 #include <QtQml/qqmlcomponent.h>
 #include <QtQml/qqmlengine.h>
 #include <QtQml/qqmlprivate.h>
@@ -16,9 +18,11 @@
 #include <QtQml/private/qtqmlglobal_p.h>
 
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qlibraryinfo.h>
 #include <QtCore/qprocess.h>
+#include <QtCore/qtemporarydir.h>
 
 void tst_qmltyperegistrar::initTestCase()
 {
@@ -162,6 +166,7 @@ void tst_qmltyperegistrar::doNotRestrictToImportVersion()
 
 void tst_qmltyperegistrar::pastMajorVersions()
 {
+    QTest::ignoreMessage(QtWarningMsg, "Invalid QML element name \"lowercaseType\"; type names must begin with an uppercase letter");
     QQmlEngine engine;
     QQmlComponent c(&engine);
     c.setData("import QML\nimport QmlTypeRegistrarTest 0.254\nQtObject {}", QUrl());
@@ -460,7 +465,8 @@ void tst_qmltyperegistrar::duplicateExportWarnings()
     processor.postProcessTypes();
     QList<MetaType> types = processor.types();
     QList<MetaType> typesforeign = processor.foreignTypes();
-    r.setTypes(types, typesforeign);
+    QList<MetaType> typesOpaque = processor.opaqueTypes();
+    r.setTypes(types, typesforeign, typesOpaque);
 
     const auto expectWarning = [](const char *message) {
         QTest::ignoreMessage(QtWarningMsg, message);
@@ -511,7 +517,8 @@ void tst_qmltyperegistrar::consistencyWarnings()
 
     QList<MetaType> types = processor.types();
     QList<MetaType> typesforeign = processor.foreignTypes();
-    r.setTypes(types, typesforeign);
+    QList<MetaType> typesOpaque = processor.opaqueTypes();
+    r.setTypes(types, typesforeign, typesOpaque);
 
     QString outputData;
     QTextStream output(&outputData, QIODeviceBase::ReadWrite);
@@ -547,8 +554,9 @@ void tst_qmltyperegistrar::deduplicateCleanPaths()
     QVERIFY(processor.processTypes({ ":/processTwice.json", ":/./processTwice.json" }));
     processor.postProcessTypes();
     processor.postProcessForeignTypes();
+    QList<MetaType> typesOpaque = processor.opaqueTypes();
 
-    r.setTypes(processor.types(), processor.foreignTypes());
+    r.setTypes(processor.types(), processor.foreignTypes(), typesOpaque);
 
     QString outputData;
     QTextStream output(&outputData, QIODeviceBase::ReadWrite);
@@ -589,7 +597,8 @@ void tst_qmltyperegistrar::enumWarnings()
 
     QList<MetaType> types = processor.types();
     QList<MetaType> typesforeign = processor.foreignTypes();
-    r.setTypes(types, typesforeign);
+    QList<MetaType> opaqueTypes = processor.opaqueTypes();
+    r.setTypes(types, typesforeign, opaqueTypes);
 
     QString outputData;
     QTextStream output(&outputData, QIODeviceBase::ReadWrite);
@@ -645,31 +654,43 @@ void tst_qmltyperegistrar::uncreatable()
     QVERIFY(QmlMetaType<Creatable2>::hasAcceptableCtors());
 
     // good singletons
-    QCOMPARE((singletonConstructionMode<SingletonCreatable, SingletonCreatable>()),
+    static_assert((singletonConstructionMode<SingletonCreatable, SingletonCreatable>()) ==
              SingletonConstructionMode::Factory);
-    QCOMPARE((singletonConstructionMode<SingletonCreatable2, SingletonCreatable2>()),
+    static_assert((singletonConstructionMode<SingletonCreatable2, SingletonCreatable2>()) ==
              SingletonConstructionMode::Constructor);
-    QCOMPARE((singletonConstructionMode<SingletonCreatable2, SingletonCreatable2>()),
+    static_assert((singletonConstructionMode<SingletonCreatable3, SingletonCreatable3>()) ==
              SingletonConstructionMode::Constructor);
-    QCOMPARE((singletonConstructionMode<SingletonForeign, SingletonLocalCreatable>()),
+    static_assert((singletonConstructionMode<SingletonForeign, SingletonLocalCreatable>()) ==
              SingletonConstructionMode::FactoryWrapper);
 
+    // good uncreatable singletons
+    static_assert((singletonConstructionMode<SingletonExplicitUncreatable, SingletonExplicitUncreatable>()) ==
+             SingletonConstructionMode::ExplicitNone);
+    static_assert((singletonConstructionMode<SingletonExplicitUncreatable2, SingletonExplicitUncreatable2>()) ==
+             SingletonConstructionMode::ExplicitNone);
+    static_assert((singletonConstructionMode<SingletonExplicitUncreatable3, SingletonExplicitUncreatable3>()) ==
+             SingletonConstructionMode::ExplicitNone);
+    static_assert((singletonConstructionMode<SingletonExplicitUncreatable4, SingletonExplicitUncreatable4>()) ==
+             SingletonConstructionMode::ExplicitNone);
+    static_assert((singletonConstructionMode<SingletonForeign, SingletonLocalExplicitUncreatable>()) ==
+             SingletonConstructionMode::ExplicitNone);
+
     // bad singletons
-    QCOMPARE((singletonConstructionMode<SingletonIncreatable, SingletonIncreatable>()),
+    static_assert((singletonConstructionMode<SingletonIncreatable, SingletonIncreatable>()) ==
              SingletonConstructionMode::None);
-    QCOMPARE((singletonConstructionMode<SingletonIncreatable2, SingletonIncreatable2>()),
+    static_assert((singletonConstructionMode<SingletonIncreatable2, SingletonIncreatable2>()) ==
              SingletonConstructionMode::None);
-    QCOMPARE((singletonConstructionMode<SingletonIncreatable3, SingletonIncreatable3>()),
+    static_assert((singletonConstructionMode<SingletonIncreatable3, SingletonIncreatable3>()) ==
              SingletonConstructionMode::None);
-    QCOMPARE((singletonConstructionMode<SingletonIncreatable4, SingletonIncreatable4>()),
+    static_assert((singletonConstructionMode<SingletonIncreatable4, SingletonIncreatable4>()) ==
              SingletonConstructionMode::None);
-    QCOMPARE((singletonConstructionMode<SingletonIncreatableExtended,
-                                        SingletonIncreatableExtended>()),
+    static_assert((singletonConstructionMode<SingletonIncreatableExtended, SingletonIncreatableExtended>()) ==
              SingletonConstructionMode::None);
-    QCOMPARE((singletonConstructionMode<SingletonForeign, SingletonLocalUncreatable1>()),
+    static_assert((singletonConstructionMode<SingletonForeign, SingletonLocalUncreatable1>()) ==
              SingletonConstructionMode::None);
-    QCOMPARE((singletonConstructionMode<SingletonForeign, SingletonLocalUncreatable2>()),
+    static_assert((singletonConstructionMode<SingletonForeign, SingletonLocalUncreatable2>()) ==
              SingletonConstructionMode::None);
+
 #if QT_DEPRECATED_SINCE(6, 4)
     QTest::ignoreMessage(
                 QtWarningMsg,
@@ -803,6 +824,18 @@ void tst_qmltyperegistrar::unconstructibleValueType()
         isCreatable: false
         exportMetaObjectRevisions: [256]
     })"));
+}
+
+void tst_qmltyperegistrar::valueTypeList()
+{
+    QVERIFY(qmltypesData.contains(R"(Component {
+        file: "tst_qmltyperegistrar.h"
+        lineNumber: 954
+        name: "QList<QBarSet *>"
+        accessSemantics: "sequence"
+        valueType: "QBarSet"
+    }
+    )"));
 }
 
 void tst_qmltyperegistrar::constructibleValueType()
@@ -1048,6 +1081,7 @@ void tst_qmltyperegistrar::valueTypeSelfReference()
         name: "QPersistentModelIndex"
         accessSemantics: "value"
         extension: "QPersistentModelIndexValueType"
+        isSelfExtension: true
     })"));
     QVERIFY(qmltypesData.contains(R"(Component {
         file: "tst_qmltyperegistrar.h"
@@ -1333,8 +1367,15 @@ void tst_qmltyperegistrar::preserveVoidStarPropTypes()
 void tst_qmltyperegistrar::allReferencedTypesCollected()
 {
     // reproduce the issue from the comment in QTBUG-118112
-    // - and make sure we don't accidentally register a type we shouldn't.
-    QVERIFY(!qmltypesData.contains(R"(name: "SampleHeader")"));
+    // and make sure that the type is only listed as an opaque type
+    QVERIFY(qmltypesData.contains(R"(Component {
+        isTypeOpaque: true
+        file: "typereferencinganother.h"
+        lineNumber: 11
+        name: "SampleHeader"
+        accessSemantics: "reference"
+        prototype: "QObject"
+    })"));
 }
 
 void tst_qmltyperegistrar::inaccessibleBase()
@@ -1349,7 +1390,17 @@ void tst_qmltyperegistrar::inaccessibleBase()
         Property { name: "a"; type: "int"; index: 0; lineNumber: 12; isPropertyConstant: true }
     })"));
 
-    QVERIFY(!qmltypesData.contains(R"(name: "InaccessibleProperty")"));
+    // This shows up, but we won't include property.h, because the type is only marked as opaque
+    // Since we don't actually need the include, it compiles.
+    QVERIFY(qmltypesData.contains(R"(Component {
+        isTypeOpaque: true
+        file: "property.h"
+        lineNumber: 9
+        name: "InaccessibleProperty"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        Property { name: "b"; type: "int"; index: 0; lineNumber: 12; isPropertyConstant: true }
+    })"));
 
     QVERIFY(qmltypesData.contains(R"(Component {
         file: "tst_qmltyperegistrar.h"
@@ -1367,6 +1418,91 @@ void tst_qmltyperegistrar::inaccessibleBase()
             lineNumber: 872
             isPropertyConstant: true
         }
+    })"));
+}
+
+void tst_qmltyperegistrar::opaqueBase()
+{
+    // OpaqueWithOpaqueBase is only used as a property type, so it is opaque.
+    QVERIFY(qmltypesData.contains(R"(Component {
+        isTypeOpaque: true
+        file: "opaquetypes.h"
+        lineNumber: 23
+        name: "OpaqueWithOpaqueBase"
+        accessSemantics: "reference"
+        prototype: "OpaqueGrandBase"
+        Property { name: "o"; type: "int"; index: 0; lineNumber: 26; isPropertyConstant: true }
+    })"));
+
+    // Its base is not registered either. Since the derived type is opaque, the
+    // base must show up as opaque as well, rather than as a fully registered type.
+    QVERIFY(qmltypesData.contains(R"(Component {
+        isTypeOpaque: true
+        file: "opaquetypes.h"
+        lineNumber: 12
+        name: "OpaqueGrandBase"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        Property { name: "g"; type: "int"; index: 0; lineNumber: 15; isPropertyConstant: true }
+    })"));
+
+    // OpaqueWithRegisteredBase is also only used as a property type and thus opaque.
+    QVERIFY(qmltypesData.contains(R"(Component {
+        isTypeOpaque: true
+        file: "opaquetypes.h"
+        lineNumber: 48
+        name: "OpaqueWithRegisteredBase"
+        accessSemantics: "reference"
+        prototype: "RegisteredBase"
+        Property { name: "w"; type: "int"; index: 0; lineNumber: 51; isPropertyConstant: true }
+    })"));
+
+    // Its base, however, is a properly registered type. It must therefore appear
+    // as a normal, exported type and must not be turned into an opaque type.
+    QVERIFY(qmltypesData.contains(R"(Component {
+        file: "opaquetypes.h"
+        lineNumber: 35
+        name: "RegisteredBase"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["QmlTypeRegistrarTest/RegisteredBase 1.0"]
+        exportMetaObjectRevisions: [256]
+        Property { name: "r"; type: "int"; index: 0; lineNumber: 39; isPropertyConstant: true }
+    })"));
+
+    // OpaqueSharingBase is opaque, and it derives from SharedBase. On its own that
+    // would make SharedBase opaque as well.
+    QVERIFY(qmltypesData.contains(R"(Component {
+        isTypeOpaque: true
+        file: "opaquetypes.h"
+        lineNumber: 74
+        name: "OpaqueSharingBase"
+        accessSemantics: "reference"
+        prototype: "SharedBase"
+        Property { name: "os"; type: "int"; index: 0; lineNumber: 77; isPropertyConstant: true }
+    })"));
+
+    // However, SharedBase is also the base of the registered RegisteredSharingBase.
+    QVERIFY(qmltypesData.contains(R"(Component {
+        file: "opaquetypes.h"
+        lineNumber: 86
+        name: "RegisteredSharingBase"
+        accessSemantics: "reference"
+        prototype: "SharedBase"
+        exports: ["QmlTypeRegistrarTest/RegisteredSharingBase 1.0"]
+        exportMetaObjectRevisions: [256]
+        Property { name: "rs"; type: "int"; index: 0; lineNumber: 90; isPropertyConstant: true }
+    })"));
+
+    // Since a registered type derives from it, SharedBase must not be opaque even
+    // though an opaque type derives from it, too. It has to be registered normally.
+    QVERIFY(qmltypesData.contains(R"(Component {
+        file: "opaquetypes.h"
+        lineNumber: 61
+        name: "SharedBase"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        Property { name: "s"; type: "int"; index: 0; lineNumber: 64; isPropertyConstant: true }
     })"));
 }
 
@@ -1457,6 +1593,90 @@ void tst_qmltyperegistrar::foreignNamespacedWithEnum()
     })"));
 }
 
+void tst_qmltyperegistrar::mergeQtConfImportPathOrder()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+
+    const auto writeFile = [](const QString &path, const QString &contents) {
+        QFile file(path);
+        if (!file.open(QFile::WriteOnly | QFile::Text))
+            return false;
+        const QByteArray utf8 = contents.toUtf8();
+        return file.write(utf8) == utf8.size();
+    };
+
+    // The QML engine resolves a module against its import paths in order, using the
+    // first match, so the order the roots are listed in has to survive the merge.
+    // Repeating a root also pins that de-duplication keeps the first occurrence.
+    const QString first = dir.filePath(QStringLiteral("first"));
+    const QString second = dir.filePath(QStringLiteral("second"));
+    const QString third = dir.filePath(QStringLiteral("third"));
+
+    const QString partsDir = dir.filePath(QStringLiteral("parts"));
+    QVERIFY(QDir().mkpath(partsDir));
+    const QString partFile = partsDir + QLatin1String("/app_qt.part.conf");
+    QVERIFY(writeFile(partFile, first + QLatin1Char('\n') + second + QLatin1Char('\n')
+                              + first + QLatin1Char('\n') + third + QLatin1Char('\n')));
+
+    const QString qtConfFile = dir.filePath(QStringLiteral("qt.conf"));
+    const QString listFile = dir.filePath(QStringLiteral("parts.txt"));
+    const QString mergedPathsFile = dir.filePath(QStringLiteral("merged.txt"));
+    QVERIFY(writeFile(listFile, partFile + QLatin1Char('\n')));
+    QVERIFY(writeFile(mergedPathsFile,
+                      partFile + QLatin1Char(';') + qtConfFile + QLatin1Char('\n')));
+
+    QCOMPARE(mergeQtConfFiles(listFile, mergedPathsFile), EXIT_SUCCESS);
+
+    QFile qtConf(qtConfFile);
+    QVERIFY(qtConf.open(QFile::ReadOnly | QFile::Text));
+    const QStringList lines =
+            QString::fromUtf8(qtConf.readAll()).split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+
+    // The private marker that the install-time QML deployment uses to tell a
+    // generated qt.conf apart from one placed there by the user.
+    QVERIFY(lines.contains(QLatin1String("MergeQtConf = true")));
+
+    const QLatin1String importsPrefix("QmlImports = ");
+    QString imports;
+    bool foundImports = false;
+    for (const QString &line : lines) {
+        if (line.startsWith(importsPrefix)) {
+            imports = line.sliced(importsPrefix.size());
+            foundImports = true;
+            break;
+        }
+    }
+    QVERIFY2(foundImports, "no QmlImports entry in the generated qt.conf");
+
+    QCOMPARE(imports.split(QLatin1Char(',')), QStringList({ first, second, third }));
+}
+
+void tst_qmltyperegistrar::lowercaseEnumWarning()
+{
+    QmlTypeRegistrar r;
+    QString moduleName = "tstmodule";
+    QString targetNamespace = "tstnamespace";
+    r.setModuleNameAndNamespace(moduleName, targetNamespace);
+
+    MetaTypesJsonProcessor processor(true);
+    QVERIFY(processor.processTypes({ ":/lowercaseEnum.json" }));
+    processor.postProcessTypes();
+
+    QList<MetaType> types = processor.types();
+    QList<MetaType> typesforeign = processor.foreignTypes();
+    r.setTypes(types, typesforeign, { });
+
+    const auto expectWarning = [](const char *message) {
+        QTest::ignoreMessage(QtWarningMsg, QRegularExpression(message));
+    };
+
+    expectWarning("Warning: lowercaseEnum.h:: QML type 'lowercaseType' starts with a lowercase letter and exports enums, which are not accessible from QML or JavaScript.");
+
+    QString outputData;
+    QTextStream output(&outputData, QIODeviceBase::ReadWrite);
+    r.write(output, "tst_qmltyperegistrar_qmltyperegistrations.cpp");
+}
 
 #ifdef QT_QMLJSROOTGEN_PRESENT
 void tst_qmltyperegistrar::verifyJsRoot()

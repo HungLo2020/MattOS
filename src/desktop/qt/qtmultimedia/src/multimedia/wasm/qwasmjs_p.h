@@ -16,6 +16,7 @@
 //
 
 #include <QObject>
+#include <QSize>
 
 #include <emscripten.h>
 #include <emscripten/val.h>
@@ -90,13 +91,16 @@ class JsMediaInputStream : public QObject
 public:
     explicit JsMediaInputStream(QObject *parent = nullptr);
     ~JsMediaInputStream();
-    static JsMediaInputStream *instance();
+    static JsMediaInputStream *instance(const std::string &deviceId);
+    static void releaseInstance(const std::string &deviceId);
+    static void replaceAudioStreamDevice(const std::string &audioDeviceId);
 
     bool isActive() { return m_active; }
 
     void setUseAudio(bool useAudio) { m_needsAudio = useAudio; }
     void setUseVideo(bool useVideo) { m_needsVideo = useVideo; }
     void setStreamDevice(const std::string &id);
+    void setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate);
 
     void setAudioStreamDevice(const std::string &id);
     void replaceMediaTrack(const std::string &id);
@@ -104,6 +108,11 @@ public:
 
     emscripten::val getMediaStream() { return m_mediaStream; }
     void stopMediaStream(emscripten::val stream);
+
+    // Active-consumer tracking: a single MediaStream may be shared by several
+    // displays of the same camera. Only the last consumer stops the stream.
+    void registerConsumer() { ++m_consumerCount; }
+    void unregisterConsumer();
 
 signals:
     void mediaStreamReady();
@@ -117,10 +126,13 @@ private:
     bool m_needsAudio = false;
     bool m_needsVideo = false;
     bool m_active = false;
+    int m_consumerCount = 0;
+    QSize m_videoResolution;
+    float m_minFrameRate = 0;
+    float m_maxFrameRate = 0;
 
     QScopedPointer<qstdweb::EventCallback> m_activeStreamEvent;
     QScopedPointer<qstdweb::EventCallback> m_inactiveStreamEvent;
-
 };
 
 #endif // QWASMJS_P_H

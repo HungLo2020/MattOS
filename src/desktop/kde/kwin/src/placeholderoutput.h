@@ -19,12 +19,8 @@ public:
     PlaceholderOutput(const QSize &size, qreal scale = 1);
     ~PlaceholderOutput() override;
 
-    bool testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
-    bool present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
-    RenderLoop *renderLoop() const override;
-
-private:
-    std::unique_ptr<RenderLoop> m_renderLoop;
+    std::expected<void, OutputError> testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
+    std::expected<void, OutputError> present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
 };
 
 } // namespace KWin

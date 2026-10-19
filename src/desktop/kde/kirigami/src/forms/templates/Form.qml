@@ -7,6 +7,7 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami.platform as Platform
+import org.kde.kirigami.forms as Forms
 
 /*!
   \qmltype Form
@@ -62,6 +63,7 @@ import org.kde.kirigami.platform as Platform
 */
 Item {
     id: root
+
     // Implementation detail, don't document
     default property alias entries: layout.data
     Accessible.role: Accessible.Form
@@ -77,26 +79,52 @@ Item {
     ColumnLayout {
         id: layout
         property real labelWidth: 0
+        property real twinImplicitWidth: 0
         onImplicitWidthChanged: relayoutLabels()
         function relayoutLabels() {
             let w = 0;
             for (let entry of children) {
                 w = Math.max(w, entry?.__maxTextLabelWidth ?? 0);
             }
-            labelWidth = w;
-            for (let entry of children) {
-                if ("__assignedWidthForLabels" in entry) {
-                    entry.__assignedWidthForLabels = w;
+
+            if (root.Forms.FormAlignmentGroup.group) {
+                for (let form of root.Forms.FormAlignmentGroup.group.forms) {
+                    if (!(form instanceof Form) || !form.visible) {
+                        continue;
+                    }
+                    for (let entry of form.entries) {
+                        w = Math.max(w, entry?.__maxTextLabelWidth ?? 0);
+                    }
                 }
             }
 
-            __collapsed = implicitWidth > root.width;
-        }
-        anchors.centerIn: parent
+            labelWidth = w;
+            for (let entry of children) {
+                if ("__assignedWidthForLabels" in entry) {
+                    entry.__assignedWidthForLabels = Math.round(w);
+                }
+            }
 
-        width: __collapsed
+            if (root.Forms.FormAlignmentGroup.group) {
+                for (let form of root.Forms.FormAlignmentGroup.group.forms) {
+                    if (!(form instanceof Form) || !form.visible) {
+                        continue;
+                    }
+                    twinImplicitWidth = Math.max(twinImplicitWidth, form.children[0]?.implicitWidth);
+                }
+            }
+
+            root.__collapsed = Math.max(implicitWidth, twinImplicitWidth) > root.width;
+        }
+        anchors {
+            top: parent.top
+            topMargin: Platform.Units.largeSpacing
+            horizontalCenter: parent.horizontalCenter
+        }
+
+        width: root.__collapsed
                 ? Math.min(implicitWidth, parent.width, Platform.Units.gridUnit * 30)
-                : Math.min(implicitWidth, parent.width)
+                : Math.min(Math.max(implicitWidth, twinImplicitWidth), parent.width)
         spacing: Platform.Units.largeSpacing + Platform.Units.smallSpacing
     }
 }

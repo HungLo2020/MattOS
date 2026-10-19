@@ -9,6 +9,7 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 
 import org.kde.private.kquickcontrols as KQuickControlsPrivate
+import org.kde.ki18n
 
 /*!
    \qmltype KeySequenceItem
@@ -159,9 +160,9 @@ RowLayout {
         }
     }
 
-    KQuickControlsPrivate.TranslationContext {
+    KI18nContext {
         id: _tr
-        domain: "kdeclarative6"
+        translationDomain: "kdeclarative6"
     }
 
     QQC2.Button {
@@ -233,7 +234,7 @@ RowLayout {
 
         hoverEnabled: true
         // icon name determines the direction of the arrow, NOT the direction of the app layout
-        icon.name: Qt.application.layoutDirection === Qt.LeftToRight ? "edit-clear-locationbar-rtl" : "edit-clear-locationbar-ltr"
+        icon.name: Application.layoutDirection === Qt.LeftToRight ? "edit-clear-locationbar-rtl" : "edit-clear-locationbar-ltr"
 
         Accessible.name: _tr.i18nc("@info:tooltip", "Clear Key Sequence")
 
@@ -244,6 +245,7 @@ RowLayout {
     }
 
     QQC2.Button {
+        id: cancelButton
         Layout.fillHeight: true
         Layout.preferredWidth: height
         onClicked: helper.cancelRecording()
@@ -254,7 +256,7 @@ RowLayout {
         Accessible.name: _tr.i18nc("@info:tooltip", "Cancel Key Sequence Recording")
 
         QQC2.ToolTip {
-            visible: parent.hovered
+            visible: cancelButton.hovered
             text: parent.Accessible.name
         }
     }

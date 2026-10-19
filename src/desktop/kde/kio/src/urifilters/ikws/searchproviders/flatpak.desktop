@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=Flatpak Documentation
+Name[am]=Flatpak ሰነዶች
 Name[ar]=توثيق فلاتباك
 Name[ast]=Documentación de Flatpak
 Name[az]=Flatpak sənədləşməsi
@@ -40,6 +41,8 @@ Name[lg]=Ebiwandiko Ebikwata ku Flatpak
 Name[lt]=Flatpak dokumentacija
 Name[lv]=„Flatpak“ dokumentācija
 Name[my]=ဖလက်ပတ်ခ် ဒိုကူမန်တေးရှင်း
+Name[nan_TW]=Flatpak 文件
+Name[nan_TW@latin]=Flatpak Bûn-kiānn
 Name[nb]=Flatpak-dokumentasjon
 Name[nl]=Flatpak-documentatie
 Name[nn]=Flatpak-dokumentasjon
@@ -64,6 +67,7 @@ Name[zh_TW]=Flatpak 說明文件
 Type=Service
 Keys=flatpak
 Query=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
+Query[am]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[ar]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[ast]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[az]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
@@ -104,6 +108,8 @@ Query[lg]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=
 Query[lt]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[lv]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[my]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
+Query[nan_TW]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
+Query[nan_TW@latin]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[nb]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[nl]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[nn]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
@@ -120,7 +126,6 @@ Query[sq]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=
 Query[sv]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[th]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[tr]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
-Query[ug]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[uk]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[vi]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default
 Query[zh_CN]=https://docs.flatpak.org/en/latest/search.html?q=\\{@}&check_keywords=yes&area=default

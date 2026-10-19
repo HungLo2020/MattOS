@@ -8,8 +8,8 @@
 import QtQuick
 
 import org.kde.plasma.core as PlasmaCore
-import org.kde.kwindowsystem
 import org.kde.plasma.activityswitcher as ActivitySwitcher
+import org.kde.plasma.plasmoid
 import "../activitymanager"
 import "../explorer"
 import org.kde.kirigami as Kirigami
@@ -17,7 +17,7 @@ import org.kde.kirigami as Kirigami
 Item {
     id: root
 
-    property Item containment
+    property ContainmentItem containment
 
     property QtObject widgetExplorer
 
@@ -92,12 +92,16 @@ Item {
         return screenRect;
     }
 
+    // Handles click events to exit edit mode around the editModeRect
     MouseArea {
         id: desktopMouseArea
         anchors.fill: parent
-        onClicked: containment.plasmoid.corona.editMode = false
+        onClicked: root.containment.plasmoid.corona.editMode = false
     }
 
+    // Coverts the edit mode area and consumes the click events inside it so that
+    // edit mode is not exited when clicking inside the edit area
+    // Touch events are handled in plasma-workspace appletslayout.cpp
     MouseArea {
         id: containmentParent
         x: editModeLoader.item ? editModeLoader.item.centerX - width / 2 : 0
@@ -106,17 +110,17 @@ Item {
         height: root.height
         readonly property real extraScale: desktop.configuredPanel || sidePanel.visible ? 0.95 : 0.9
         property real scaleFactor: Math.min(editModeRect.width / root.width, editModeRect.height / root.height) * extraScale
-        scale: containment?.plasmoid.corona.editMode ? scaleFactor : 1
+        scale: root.containment?.plasmoid.corona.editMode ? scaleFactor : 1
     }
 
     Loader {
         id: editModeLoader
         anchors.fill: parent
         sourceComponent: DesktopEditMode {}
-        active: containment?.plasmoid.corona.editMode || editModeUiTimer.running
+        active: root.containment?.plasmoid.corona.editMode || editModeUiTimer.running
         Timer {
             id: editModeUiTimer
-            property bool editMode: containment?.plasmoid.corona.editMode ?? false
+            property bool editMode: root.containment?.plasmoid.corona.editMode ?? false
             onEditModeChanged: restart()
             interval: 200
         }
@@ -139,8 +143,7 @@ Item {
             onPaletteChanged: {
                 if (!Qt.colorEqual(root.containment.wallpaper.accentColor, "transparent")) {
                     desktop.accentColor = root.containment.wallpaper.accentColor;
-                }
-                if (this.palette.length === 0) {
+                } else if (this.palette.length === 0) {
                     desktop.accentColor = "transparent";
                 } else {
                     desktop.accentColor = this.dominant;
@@ -194,7 +197,7 @@ Item {
         // and we use the strictAvailableScreenRect, which accounts for all
         // of them. If we're not configuring anything, we instead use the
         // entire screen rect, without fear of overlapping panels.
-        property var referenceRect: containment?.plasmoid.corona.editMode ? desktop.strictAvailableScreenRect : Qt.rect(0, 0, desktop.screenGeometry.width, desktop.screenGeometry.height)
+        property var referenceRect: root.containment?.plasmoid.corona.editMode ? desktop.strictAvailableScreenRect : Qt.rect(0, 0, desktop.screenGeometry.width, desktop.screenGeometry.height)
 
 
         readonly property bool sideBarOnRightEdge: {
@@ -222,7 +225,7 @@ Item {
 
         x: {
             let result = desktop.x;
-            if (!containment) {
+            if (!root.containment) {
                 return result;
             }
 
@@ -235,7 +238,7 @@ Item {
 
             return result;
         }
-        y: desktop.y + (containment ? referenceRect.y : 0)
+        y: desktop.y + (root.containment ? referenceRect.y : 0)
 
         onVisibleChanged: {
             if (!visible) {
@@ -287,9 +290,6 @@ Item {
                     }
                 }
                 sidePanel.visible = true;
-                if (KWindowSystem.isPlatformX11) {
-                    KX11Extras.forceActiveWindow(sidePanel);
-                }
             }
             onStateChanged: {
                 if (state === "closed") {

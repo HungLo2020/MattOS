@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-27 00:45+0000\n"
+"POT-Creation-Date: 2026-06-16 00:47+0000\n"
 "PO-Revision-Date: 2024-10-18 11:48+0300\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
@@ -18,144 +18,71 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 24.08.2\n"
 
-#: platformtheme/kdeplatformfiledialoghelper.cpp:260
-#, kde-format
-msgctxt "@title:window"
-msgid "Open File"
-msgstr "Avaa tiedosto"
-
-#: platformtheme/kdeplatformfiledialoghelper.cpp:261
+#: platformtheme/kdeplatformfiledialoghelper.cpp:242
 #, kde-format
 msgctxt "@title:window"
 msgid "Save File"
 msgstr "Tallenna tiedosto"
 
-#: platformtheme/kdeplatformtheme.cpp:278
-#, kde-format
-msgctxt "@action:button"
-msgid "Save All"
-msgstr "Tallenna kaikki"
-
-#: platformtheme/kdeplatformtheme.cpp:282
-#, kde-format
-msgctxt "@action:button"
-msgid "&Yes"
-msgstr "K&yllä"
-
-#: platformtheme/kdeplatformtheme.cpp:284
-#, kde-format
-msgctxt "@action:button"
-msgid "Yes to All"
-msgstr "Kyllä kaikkiin"
-
-#: platformtheme/kdeplatformtheme.cpp:286
-#, kde-format
-msgctxt "@action:button"
-msgid "&No"
-msgstr "&Ei"
-
-#: platformtheme/kdeplatformtheme.cpp:288
-#, kde-format
-msgctxt "@action:button"
-msgid "No to All"
-msgstr "Ei kaikkiin"
-
-#: platformtheme/kdeplatformtheme.cpp:291
-#, kde-format
-msgctxt "@action:button"
-msgid "Abort"
-msgstr "Keskeytä"
-
-#: platformtheme/kdeplatformtheme.cpp:293
-#, kde-format
-msgctxt "@action:button"
-msgid "Retry"
-msgstr "Yritä uudelleen"
-
-#: platformtheme/kdeplatformtheme.cpp:295
-#, kde-format
-msgctxt "@action:button"
-msgid "Ignore"
-msgstr "Ohita"
-
-#: platformtheme/kdirselectdialog.cpp:133
-#, kde-format
-msgctxt "folder name"
-msgid "New Folder"
-msgstr "Uusi kansio"
-
-#: platformtheme/kdirselectdialog.cpp:139
-#, kde-format
-msgctxt "@title:window"
-msgid "New Folder"
-msgstr "Uusi kansio"
-
-#: platformtheme/kdirselectdialog.cpp:140
-#, kde-format
-msgctxt "@label:textbox"
-msgid ""
-"Create new folder in:\n"
-"%1"
-msgstr ""
-"Luo uusi kansio kohteeseen:\n"
-"%1"
-
-#: platformtheme/kdirselectdialog.cpp:171
-#, kde-format
-msgid "A file or folder named %1 already exists."
-msgstr "Kansio tai tiedosto %1 on jo olemassa."
-
-#: platformtheme/kdirselectdialog.cpp:180
-#, kde-format
-msgid "You do not have permission to create that folder."
-msgstr "Kansion luomiseen ei ole oikeuksia."
-
-#: platformtheme/kdirselectdialog.cpp:282
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
 #, kde-format
 msgctxt "@title:window"
 msgid "Select Folder"
 msgstr "Valitse kansio"
 
-#: platformtheme/kdirselectdialog.cpp:290
+#: platformtheme/kdeplatformfiledialoghelper.cpp:244
+#, kde-format
+msgctxt "@title:window"
+msgid "Open File"
+msgstr "Avaa tiedosto"
+
+#: platformtheme/kdeplatformtheme.cpp:290
 #, kde-format
 msgctxt "@action:button"
-msgid "New Folder..."
-msgstr "Uusi kansio…"
+msgid "Save All"
+msgstr "Tallenna kaikki"
 
-#: platformtheme/kdirselectdialog.cpp:348
+#: platformtheme/kdeplatformtheme.cpp:294
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "New Folder..."
-msgstr "Uusi kansio…"
+msgctxt "@action:button"
+msgid "&Yes"
+msgstr "K&yllä"
 
-#: platformtheme/kdirselectdialog.cpp:357
+#: platformtheme/kdeplatformtheme.cpp:296
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Move to Trash"
-msgstr "Siirrä roskakoriin"
+msgctxt "@action:button"
+msgid "Yes to All"
+msgstr "Kyllä kaikkiin"
 
-#: platformtheme/kdirselectdialog.cpp:366
+#: platformtheme/kdeplatformtheme.cpp:298
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Delete"
-msgstr "Poista"
+msgctxt "@action:button"
+msgid "&No"
+msgstr "&Ei"
 
-#: platformtheme/kdirselectdialog.cpp:377
+#: platformtheme/kdeplatformtheme.cpp:300
 #, kde-format
-msgctxt "@option:check"
-msgid "Show Hidden Folders"
-msgstr "Näytä piilokansiot"
+msgctxt "@action:button"
+msgid "No to All"
+msgstr "Ei kaikkiin"
 
-#: platformtheme/kdirselectdialog.cpp:384
+#: platformtheme/kdeplatformtheme.cpp:303
 #, kde-format
-msgctxt "@action:inmenu"
-msgid "Properties"
-msgstr "Ominaisuudet"
+msgctxt "@action:button"
+msgid "Abort"
+msgstr "Keskeytä"
 
-#: platformtheme/kfiletreeview.cpp:185
+#: platformtheme/kdeplatformtheme.cpp:305
 #, kde-format
-msgid "Show Hidden Folders"
-msgstr "Näytä piilokansiot"
+msgctxt "@action:button"
+msgid "Retry"
+msgstr "Yritä uudelleen"
+
+#: platformtheme/kdeplatformtheme.cpp:307
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "Ohita"
 
 #: platformtheme/kioopenwith.cpp:125
 #, kde-format
@@ -165,6 +92,55 @@ msgid ""
 msgstr ""
 "Käynnistäminen epäonnistui tuntemattomasta syystä. Yritä uudelleen olemassa "
 "olevalla sovelluksella."
+
+#~ msgctxt "folder name"
+#~ msgid "New Folder"
+#~ msgstr "Uusi kansio"
+
+#~ msgctxt "@title:window"
+#~ msgid "New Folder"
+#~ msgstr "Uusi kansio"
+
+#~ msgctxt "@label:textbox"
+#~ msgid ""
+#~ "Create new folder in:\n"
+#~ "%1"
+#~ msgstr ""
+#~ "Luo uusi kansio kohteeseen:\n"
+#~ "%1"
+
+#~ msgid "A file or folder named %1 already exists."
+#~ msgstr "Kansio tai tiedosto %1 on jo olemassa."
+
+#~ msgid "You do not have permission to create that folder."
+#~ msgstr "Kansion luomiseen ei ole oikeuksia."
+
+#~ msgctxt "@action:button"
+#~ msgid "New Folder..."
+#~ msgstr "Uusi kansio…"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "New Folder..."
+#~ msgstr "Uusi kansio…"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Move to Trash"
+#~ msgstr "Siirrä roskakoriin"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Delete"
+#~ msgstr "Poista"
+
+#~ msgctxt "@option:check"
+#~ msgid "Show Hidden Folders"
+#~ msgstr "Näytä piilokansiot"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Properties"
+#~ msgstr "Ominaisuudet"
+
+#~ msgid "Show Hidden Folders"
+#~ msgstr "Näytä piilokansiot"
 
 #~ msgid "Opening..."
 #~ msgstr "Avataan…"

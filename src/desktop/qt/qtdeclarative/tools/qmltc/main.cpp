@@ -18,14 +18,14 @@
 #include <QtCore/qcommandlineparser.h>
 #include <QtCore/qregularexpression.h>
 
-#include <QtQml/private/qqmljslexer_p.h>
-#include <QtQml/private/qqmljsparser_p.h>
-#include <QtQml/private/qqmljsengine_p.h>
-#include <QtQml/private/qqmljsastvisitor_p.h>
-#include <QtQml/private/qqmljsast_p.h>
-#include <QtQml/private/qqmljsdiagnosticmessage_p.h>
+#include <private/qqmljslexer_p.h>
+#include <private/qqmljsparser_p.h>
+#include <private/qqmljsengine_p.h>
+#include <private/qqmljsastvisitor_p.h>
+#include <private/qqmljsast_p.h>
+#include <private/qqmljsdiagnosticmessage_p.h>
 #include <QtQmlCompiler/qqmlsa.h>
-#include <QtQmlCompiler/private/qqmljsliteralbindingcheck_p.h>
+#include <private/qqmljsliteralbindingcheck_p.h>
 
 #include <cstdlib> // EXIT_SUCCESS, EXIT_FAILURE
 
@@ -34,12 +34,8 @@ using namespace Qt::StringLiterals;
 void setupLogger(QQmlJSLogger &logger) // prepare logger to work with compiler
 {
     for (const auto &[id, catOverride] : QQmltc::categoryOverrides()) {
-        if (catOverride.has_value()) {
-            const auto level = catOverride.value();
-            logger.setCategoryLevel(id, level);
-            logger.setCategoryIgnored(id, false);
-            logger.setCategoryFatal(id, level == QtCriticalMsg);
-        }
+        if (catOverride.has_value())
+            logger.setCategorySeverity(id, catOverride.value());
     }
 }
 
@@ -174,7 +170,7 @@ int main(int argc, char **argv)
         importPaths.append(parser.values(importPathOption));
 
     if (!parser.isSet(bareOption))
-        importPaths.append(QLibraryInfo::path(QLibraryInfo::QmlImportsPath));
+        importPaths.append(QLibraryInfo::paths(QLibraryInfo::QmlImportsPath));
 
     QStringList qmldirFiles = QQmlJSUtils::cleanPaths(parser.values(qmldirOption));
 
@@ -280,7 +276,6 @@ int main(int argc, char **argv)
         else
             currentScope->setOwnModuleName(parser.value(moduleOption));
     }
-
     QQmltc::Visitor visitor(&importer, &logger,
                             QQmlJSImportVisitor::implicitImportDirectory(url, &mapper),
                             qmldirFiles);

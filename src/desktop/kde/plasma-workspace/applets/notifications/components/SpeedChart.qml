@@ -30,6 +30,8 @@ Item {
     property int previousSpeed: 0
     property int previousProcessed: 0
 
+    property real maxSpeed: 0
+
     readonly property real xRange: 100
 
     readonly property real resolution: modelInterface.jobDetails.totalBytes / xRange
@@ -49,6 +51,7 @@ Item {
                     for (let i = 0; i < processedChange; ++i) {
                         newSpeed += speedChange / processedChange
                         dataSource.append({data: newSpeed})
+                        root.maxSpeed = Math.max(root.maxSpeed, newSpeed)
                     }
 
                     root.previousProcessed = processed
@@ -68,8 +71,9 @@ Item {
         id: metricsLabel
         visible: false
         font: Kirigami.Theme.smallFont
-        // Measure 888.8 KiB/s
-        text: i18ndc("plasma_applet_org.kde.plasma.notifications", "Bytes per second", "%1/s", 910131)
+        // Widest label the Y axis can realistically show, used to reserve space for the axis labels
+        text: i18ndc("plasma_applet_org.kde.plasma.notifications", "Bytes per second", "%1/s", KCoreAddons.Format.formatByteSize(1000 * 1024 * 1024))
+        textFormat: Text.PlainText
     }
 
     Loader {
@@ -90,13 +94,15 @@ Item {
                     bottom: chart.bottom
                 }
 
-                width: metricsLabel.implicitWidth
+                width: Math.max(metricsLabel.implicitWidth, axisLabels.implicitWidth)
+                alignment: Qt.AlignLeft | Qt.AlignVCenter
                 constrainToBounds: false
                 direction: ChartsControls.AxisLabels.VerticalBottomTop
 
                 delegate: PlasmaComponents3.Label {
                     text:  i18ndc("plasma_applet_org.kde.plasma.notifications", "Bytes per second", "%1/s", KCoreAddons.Format.formatByteSize(ChartsControls.AxisLabels.label))
                     font: Kirigami.Theme.smallFont
+                    textFormat: Text.PlainText
                 }
 
                 source: Charts.ChartAxisSource {
@@ -130,8 +136,12 @@ Item {
                 }
 
                 xRange.from: 0
-                xRange.to: root.xRange
+                xRange.to: Math.max(1, dataSource.count - 1)
                 xRange.automatic: false
+
+                yRange.from: 0
+                yRange.to: Math.max(1, root.maxSpeed * 1.05)
+                yRange.automatic: false
 
                 lineWidth: 1
                 interpolate: true
@@ -187,10 +197,12 @@ Item {
                         id: legendLabel
                         font: Kirigami.Theme.smallFont
                         text: legendDelegate.name
+                        textFormat: Text.PlainText
                     }
                     PlasmaComponents3.Label {
                         font: Kirigami.Theme.smallFont
                         text: i18ndc("plasma_applet_org.kde.plasma.notifications", "Bytes per second", "%1/s", KCoreAddons.Format.formatByteSize(root.speed))
+                        textFormat: Text.PlainText
                     }
                 }
 
@@ -198,10 +210,12 @@ Item {
                     PlasmaComponents3.Label {
                         font: Kirigami.Theme.smallFont
                         text: i18nd("plasma_applet_org.kde.plasma.notifications", "Average Speed")
+                        textFormat: Text.PlainText
                     }
                     PlasmaComponents3.Label {
                         font: Kirigami.Theme.smallFont
                         text: i18ndc("plasma_applet_org.kde.plasma.notifications", "Bytes per second", "%1/s", KCoreAddons.Format.formatByteSize(root.averageSpeed))
+                        textFormat: Text.PlainText
                     }
                 }
             }

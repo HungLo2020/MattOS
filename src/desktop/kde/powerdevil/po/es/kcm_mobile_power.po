@@ -1,15 +1,15 @@
 # Spanish translations for kcm_mobile_power.po package.
-# Copyright (C) 2023-2025 This file is copyright:
+# Copyright (C) 2023-2026 This file is copyright:
 # This file is distributed under the same license as the powerdevil package.
 # Automatically generated, 2023.
 #
-# SPDX-FileCopyrightText: 2023, 2024, 2025 Eloy Cuadra <ecuadra@eloihr.net>
+# SPDX-FileCopyrightText: 2023-2026 Eloy Cuadra <ecuadra@eloihr.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_mobile_power\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2025-06-04 19:58+0100\n"
+"POT-Creation-Date: 2026-06-06 00:45+0000\n"
+"PO-Revision-Date: 2026-08-20 01:51+0100\n"
 "Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
 "Language-Team: Spanish <kde-l10n-es@kde.org>\n"
 "Language: es\n"
@@ -17,47 +17,65 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 23.08.4\n"
+"X-Generator: Lokalize 26.04.3\n"
 
-#: mobilepower.cpp:33
+#: mobilepower.cpp:36
 #, kde-format
 msgid "30 sec"
 msgstr "30 seg"
 
-#: mobilepower.cpp:34
+#: mobilepower.cpp:37
 #, kde-format
 msgid "1 min"
 msgstr "1 min"
 
-#: mobilepower.cpp:35
+#: mobilepower.cpp:38
 #, kde-format
 msgid "2 min"
 msgstr "2 min"
 
-#: mobilepower.cpp:36
+#: mobilepower.cpp:39
 #, kde-format
 msgid "5 min"
 msgstr "5 min"
 
-#: mobilepower.cpp:37
+#: mobilepower.cpp:40
 #, kde-format
 msgid "10 min"
 msgstr "10 min"
 
-#: mobilepower.cpp:38
+#: mobilepower.cpp:41
 #, kde-format
 msgid "15 min"
 msgstr "15 min"
 
-#: mobilepower.cpp:39
+#: mobilepower.cpp:42
 #, kde-format
 msgid "30 min"
 msgstr "30 min"
 
-#: mobilepower.cpp:40
+#: mobilepower.cpp:43
 #, kde-format
 msgid "Never"
 msgstr "Nunca"
+
+#: PowerProfileModel.cpp:41
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Power Save"
+msgstr "Ahorro de energía"
+
+#: PowerProfileModel.cpp:42
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Balanced"
+msgstr "Balanceado"
+
+#: PowerProfileModel.cpp:43
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Performance"
+msgstr "Rendimiento"
 
 #: ui/BatteryPage.qml:23
 #, kde-format
@@ -128,7 +146,7 @@ msgstr "Carga actual"
 #, kde-format
 msgctxt "%1 is percentage value"
 msgid "%1 %"
-msgstr "%1 %"
+msgstr "%1 %"
 
 #: ui/BatteryPage.qml:115
 #, kde-format
@@ -194,7 +212,7 @@ msgstr "Tecnología desconocida"
 #, kde-format
 msgctxt "%1 is a percentage value"
 msgid "%1%"
-msgstr "%1 %"
+msgstr "%1 %"
 
 #: ui/main.qml:33
 #, kde-format
@@ -245,7 +263,7 @@ msgstr "Batería desconocida"
 #, kde-format
 msgctxt "%1 is the charge percent, % is the percent sign"
 msgid "%1%"
-msgstr "%1 %"
+msgstr "%1 %"
 
 #: ui/main.qml:91
 #, kde-format
@@ -281,3 +299,14 @@ msgstr "Apagar la pantalla tras"
 msgctxt "Part of a sentence like 'Suspend device after 5 minutes'"
 msgid "Suspend device after"
 msgstr "Suspender el dispositivo tras"
+
+#: ui/main.qml:149
+#, kde-format
+msgid "Power Profile"
+msgstr "Perfil de energía"
+
+#: ui/main.qml:158
+#, kde-format
+msgctxt "@label:combobox Power Save, Balanced or Performance profile"
+msgid "Power profile"
+msgstr "Perfil de energía"

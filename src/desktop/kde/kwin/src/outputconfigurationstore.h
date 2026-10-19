@@ -24,6 +24,16 @@ namespace KWin
 enum class AccelerometerOrientation;
 class OutputConfiguration;
 
+struct LegacyOutputModeline
+{
+    std::shared_ptr<OutputMode> match(const QList<std::shared_ptr<OutputMode>> &modes) const;
+    std::optional<OutputModeline> match(const QList<OutputModeline> &modelines) const;
+
+    QSize size;
+    uint32_t refreshRate;
+    OutputModeline::Flags flags;
+};
+
 class KWIN_EXPORT OutputConfigurationStore
 {
 public:
@@ -37,7 +47,7 @@ public:
         Generated,
     };
     std::optional<std::pair<OutputConfiguration, ConfigType>> queryConfig(const QList<BackendOutput *> &outputs, bool isLidClosed, AccelerometerOrientation orientation, bool isTabletMode);
-    void storeConfig(const QList<BackendOutput *> &allOutputs, bool isLidClosed, const OutputConfiguration &config);
+    void storeConfig(const QList<BackendOutput *> &allOutputs, bool isLidClosed);
 
     void applyMirroring(OutputConfiguration &config, const QList<BackendOutput *> &outputs);
     bool isAutoRotateActive(const QList<BackendOutput *> &outputs, bool isTabletMode) const;
@@ -49,18 +59,10 @@ private:
     void applyOrientationReading(OutputConfiguration &config, const QList<BackendOutput *> &outputs, AccelerometerOrientation orientation, bool isTabletMode);
     std::optional<OutputConfiguration> generateLidClosedConfig(const QList<BackendOutput *> &outputs);
     std::shared_ptr<OutputMode> chooseMode(BackendOutput *output) const;
-    double chooseScale(BackendOutput *output, OutputMode *mode) const;
+    double chooseScale(BackendOutput *output, const QSize &modeSize) const;
     void load();
     void save();
 
-    struct ModeData
-    {
-        QSize size;
-        uint32_t refreshRate;
-        // TODO: Eventually convert it from std::optional to a regular property. The output flags
-        // are stored in std::optional because previous versions (6.6.4 and prior) did not save the flags.
-        std::optional<uint32_t> flags;
-    };
     struct OutputState
     {
         // identification data. Empty if invalid
@@ -69,7 +71,8 @@ private:
         QString edidHash;
         QString mstPath;
         // actual state
-        std::optional<ModeData> mode;
+        std::optional<LegacyOutputModeline> legacyMode;
+        std::optional<OutputModeline> mode;
         std::optional<double> scaleSetting;
         std::optional<OutputTransform> transform;
         std::optional<OutputTransform> manualTransform;
@@ -81,7 +84,9 @@ private:
         std::optional<bool> wideColorGamut;
         std::optional<BackendOutput::AutoRotationPolicy> autoRotation;
         std::optional<QString> iccProfilePath;
+        std::optional<QString> hdrIccProfilePath;
         std::optional<BackendOutput::ColorProfileSource> colorProfileSource;
+        std::optional<BackendOutput::ColorProfileSource> hdrColorProfileSource;
         std::optional<double> maxPeakBrightnessOverride;
         std::optional<double> maxAverageBrightnessOverride;
         std::optional<double> minBrightnessOverride;
@@ -95,9 +100,10 @@ private:
         std::optional<uint32_t> maxBitsPerColor;
         std::optional<BackendOutput::EdrPolicy> edrPolicy;
         std::optional<double> sharpness;
-        std::optional<QList<CustomModeDefinition>> customModes;
+        std::optional<QList<OutputModeline>> customModes;
         std::optional<bool> automaticBrightness;
         std::optional<AutoBrightnessCurve> autoBrightnessCurve;
+        std::optional<uint32_t> abmLevel;
     };
     struct SetupState
     {
@@ -127,4 +133,5 @@ private:
     QList<OutputState> m_outputs;
     QList<Setup> m_setups;
 };
+
 }

@@ -366,10 +366,13 @@ TestCase {
         compare(control.contentItem.parent.x, 20)
         compare(control.contentItem.parent.y, 20)
 
-        control.x = testCase.width
-        control.y = testCase.height
-        compare(control.contentItem.parent.x, testCase.width - control.width - 10)
-        compare(control.contentItem.parent.y, testCase.height - control.height - 10)
+        let overlay = control.Overlay.overlay
+        verify(overlay)
+
+        control.x = overlay.width
+        control.y = overlay.height
+        compare(control.contentItem.parent.x, overlay.width - control.width - 10)
+        compare(control.contentItem.parent.y, overlay.height - control.height - 10)
 
         control.rightMargin = 20
         compare(control.margins, 10)
@@ -377,8 +380,8 @@ TestCase {
         compare(control.leftMargin, 20)
         compare(control.rightMargin, 20)
         compare(control.bottomMargin, 10)
-        compare(control.contentItem.parent.x, testCase.width - control.width - 20)
-        compare(control.contentItem.parent.y, testCase.height - control.height - 10)
+        compare(control.contentItem.parent.x, overlay.width - control.width - 20)
+        compare(control.contentItem.parent.y, overlay.height - control.height - 10)
 
         control.bottomMargin = 20
         compare(control.margins, 10)
@@ -386,36 +389,36 @@ TestCase {
         compare(control.leftMargin, 20)
         compare(control.rightMargin, 20)
         compare(control.bottomMargin, 20)
-        compare(control.contentItem.parent.x, testCase.width - control.width - 20)
-        compare(control.contentItem.parent.y, testCase.height - control.height - 20)
+        compare(control.contentItem.parent.x, overlay.width - control.width - 20)
+        compare(control.contentItem.parent.y, overlay.height - control.height - 20)
 
         control.margins = undefined
         compare(control.margins, -1)
 
         control.bottomMargin = undefined
         compare(control.bottomMargin, -1)
-        compare(control.contentItem.parent.x, testCase.width - control.width - 20)
-        compare(control.contentItem.parent.y, testCase.height)
+        compare(control.contentItem.parent.x, overlay.width - control.width - 20)
+        compare(control.contentItem.parent.y, overlay.height)
 
         control.rightMargin = undefined
         compare(control.rightMargin, -1)
-        compare(control.contentItem.parent.x, testCase.width)
-        compare(control.contentItem.parent.y, testCase.height)
+        compare(control.contentItem.parent.x, overlay.width)
+        compare(control.contentItem.parent.y, overlay.height)
 
-        control.x = -testCase.width
-        control.y = -testCase.height
+        control.x = -overlay.width
+        control.y = -overlay.height
         compare(control.contentItem.parent.x, 20)
         compare(control.contentItem.parent.y, 20)
 
         control.topMargin = undefined
         compare(control.topMargin, -1)
         compare(control.contentItem.parent.x, 20)
-        compare(control.contentItem.parent.y, -testCase.height)
+        compare(control.contentItem.parent.y, -overlay.height)
 
         control.leftMargin = undefined
         compare(control.leftMargin, -1)
-        compare(control.contentItem.parent.x, -testCase.width)
-        compare(control.contentItem.parent.y, -testCase.height)
+        compare(control.contentItem.parent.x, -overlay.width)
+        compare(control.contentItem.parent.y, -overlay.height)
     }
 
     function test_background() {
@@ -1293,8 +1296,8 @@ TestCase {
         control.anchors.centerIn = Qt.binding(function() { return control.parent; })
         compare(centerInSpy.count, 1)
         let currentPos = getCurrentPos()
-        compare(currentPos.x, (overlay.width - (control.width * control.scale)) / 2)
-        compare(currentPos.y, (overlay.height - (control.width * control.scale)) / 2)
+        fuzzyCompare(currentPos.x, (overlay.width - (control.width * control.scale)) / 2, 1.0)
+        fuzzyCompare(currentPos.y, (overlay.height - (control.width * control.scale)) / 2, 1.0)
 
         // Ensure that it warns when trying to set it to an item that's not its parent.
         let anotherItem = createTemporaryObject(rect, applicationWindow.contentItem, { x: 100, y: 100, width: 50, height: 50 })
@@ -1318,15 +1321,15 @@ TestCase {
         compare(control.anchors.centerIn, anotherItem)
         compare(centerInSpy.count, 4)
         currentPos = getCurrentPos()
-        compare(currentPos.x, (anotherItem.width - (control.width * control.scale)) / 2)
-        compare(currentPos.y, (anotherItem.height - (control.height * control.scale)) / 2)
+        fuzzyCompare(currentPos.x, (anotherItem.width - (control.width * control.scale)) / 2, 1.0)
+        fuzzyCompare(currentPos.y, (anotherItem.height - (control.height * control.scale)) / 2, 1.0)
 
         // Check that anchors.centerIn beats x and y coordinates as it does in QQuickItem.
         control.x = 33;
         control.y = 44;
         currentPos = getCurrentPos()
-        compare(currentPos.x, (anotherItem.width - (control.width * control.scale)) / 2)
-        compare(currentPos.y, (anotherItem.height - (control.height * control.scale)) / 2)
+        fuzzyCompare(currentPos.x, (anotherItem.width - (control.width * control.scale)) / 2, 1.0)
+        fuzzyCompare(currentPos.y, (anotherItem.height - (control.height * control.scale)) / 2, 1.0)
 
         // Check that the popup's x and y coordinates are restored when it's no longer centered.
         control.anchors.centerIn = undefined
@@ -1346,8 +1349,8 @@ TestCase {
         let anotherItemScenePos = anotherItem.mapToItem(null, 0, 0);
         expectedX -= anotherItemScenePos.x
         expectedY -= anotherItemScenePos.y
-        compare(currentPos.x, expectedX)
-        compare(currentPos.y, expectedY)
+        fuzzyCompare(currentPos.x, expectedX, 1.0)
+        fuzzyCompare(currentPos.y, expectedY, 1.0)
     }
 
     Component {

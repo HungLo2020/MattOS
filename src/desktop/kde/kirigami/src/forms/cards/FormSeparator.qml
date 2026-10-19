@@ -23,7 +23,9 @@ FT.FormSeparator {
         if (idx === -1) {
             return 1;
         }
-        return !root.parent.visibleChildren[idx - 1]?.hovered && !root.parent.visibleChildren[idx + 1]?.hovered;
+        const prev = root.parent.visibleChildren[idx - 1];
+        const next = root.parent.visibleChildren[idx + 1];
+        return (!prev?.clickEnabled || !next?.clickEnabled) || (!prev?.hovered && !next?.hovered);
     }
     Behavior on opacity {
         OpacityAnimator {

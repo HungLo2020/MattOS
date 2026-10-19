@@ -15,7 +15,7 @@ public:
     {
     }
 
-    /**
+    /*
      * @returns the texture for a given @p window and @p image.
      *
      * If an @p image id is the same as one already provided before, we won't create

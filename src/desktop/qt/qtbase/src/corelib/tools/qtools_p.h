@@ -18,7 +18,13 @@
 
 #include "QtCore/private/qglobal_p.h"
 
+// toAsciiLower, isAsciiUpper and caseCompareAscii are now moved here:
+#include <QtCore/qbytearrayalgorithms.h>
+#include <QtCore/private/qnumeric_p.h>
+
+#include <cerrno>
 #include <chrono>
+#include <cstdlib>
 #include <limits.h>
 #include <time.h>
 
@@ -70,36 +76,23 @@ namespace QtMiscUtils {
     return c >= '0' && c <= '9';
 }
 
-[[nodiscard]] constexpr inline bool isAsciiUpper(char32_t c) noexcept
-{
-    return c >= 'A' && c <= 'Z';
-}
-
 [[nodiscard]] constexpr inline bool isAsciiLower(char32_t c) noexcept
 {
     return c >= 'a' && c <= 'z';
 }
+
+using QtPrivate::isAsciiUpper;
+using QtPrivate::toAsciiLower;
+using QtPrivate::caseCompareAscii;
 
 [[nodiscard]] constexpr inline bool isAsciiLetterOrNumber(char32_t c) noexcept
 {
     return  isAsciiDigit(c) || isAsciiLower(c) || isAsciiUpper(c);
 }
 
-[[nodiscard]] constexpr inline char toAsciiLower(char ch) noexcept
-{
-    return isAsciiUpper(ch) ? ch - 'A' + 'a' : ch;
-}
-
 [[nodiscard]] constexpr inline char toAsciiUpper(char ch) noexcept
 {
     return isAsciiLower(ch) ? ch - 'a' + 'A' : ch;
-}
-
-[[nodiscard]] constexpr inline int caseCompareAscii(char lhs, char rhs) noexcept
-{
-    const char lhsLower = QtMiscUtils::toAsciiLower(lhs);
-    const char rhsLower = QtMiscUtils::toAsciiLower(rhs);
-    return int(uchar(lhsLower)) - int(uchar(rhsLower));
 }
 
 [[nodiscard]] constexpr inline int isAsciiPrintable(char32_t ch) noexcept
@@ -113,8 +106,18 @@ namespace QtMiscUtils {
            lhs >  rhs ? 1 :
            /* else */  -1 ;
 }
-
 } // namespace QtMiscUtils
+
+// Like POSIX 2024 reallocarray()
+// https://pubs.opengroup.org/onlinepubs/9799919799/functions/realloc.html
+inline void *qt_reallocarray(void *p, size_t n, size_t s)
+{
+    if (Q_UNLIKELY(mul_overflow(n, s, &n))) {
+        errno = ENOMEM;
+        return nullptr;
+    }
+    return std::realloc(p, n);
+}
 
 struct CalculateGrowingBlockSizeResult
 {

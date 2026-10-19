@@ -11,7 +11,7 @@
 #include <QSGMaterialShader>
 #include <QVariant>
 
-/*!
+/*
  * A helper that simplifies writing uniform data for QSGMaterialShader.
  */
 struct UniformDataStream {

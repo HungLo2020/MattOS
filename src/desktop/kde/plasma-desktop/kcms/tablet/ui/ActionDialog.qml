@@ -29,12 +29,8 @@ Kirigami.Dialog {
     modal: true
 
     maximumWidth: Kirigami.Units.gridUnit * 20
-    maximumHeight: Kirigami.Units.gridUnit * 20
 
-    topPadding: 0
-    leftPadding: Kirigami.Units.largeSpacing
-    rightPadding: Kirigami.Units.largeSpacing
-    bottomPadding: 0
+    padding: Kirigami.Units.largeSpacing
 
     standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
     showCloseButton: false
@@ -245,7 +241,7 @@ Kirigami.Dialog {
 
                     onCaptureFinished: actionDialog.inputSequence.setUpKeySequence(keySequence)
 
-                    Kirigami.FormData.label: i18ndc("kcm_tablet", "@label prefix for configuring Keybind to send when dial/ring is turned upwards", "Up:")
+                    Kirigami.FormData.label: i18ndc("kcm_tablet", "@label prefix for configuring Keybind to send when dial/ring is turned upwards", "Clockwise:")
                 }
 
                 KeySequenceItem {
@@ -258,7 +254,7 @@ Kirigami.Dialog {
 
                     onCaptureFinished: actionDialog.inputSequence.setDownKeySequence(keySequence)
 
-                    Kirigami.FormData.label: i18ndc("kcm_tablet", "@label prefix for configuring Keybind to send when dial/ring is turned downwards", "Down:")
+                    Kirigami.FormData.label: i18ndc("kcm_tablet", "@label prefix for configuring Keybind to send when dial/ring is turned downwards", "Counterclockwise:")
                 }
 
                 QQC2.Slider {
@@ -267,6 +263,7 @@ Kirigami.Dialog {
                     from: 5400 // or about 45 degrees
                     to: 120 // or about 1 degrees
                     stepSize: 120
+                    Kirigami.StyleHints.tickMarkStepSize: 120
                     snapMode: QQC2.Slider.SnapOnRelease
 
                     onMoved: actionDialog.inputSequence.setThreshold(value)

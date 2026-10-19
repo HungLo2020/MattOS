@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgcurveglyphnode_p.h"
 #include "qsgcurveglyphatlas_p.h"
@@ -16,7 +17,8 @@
 QT_BEGIN_NAMESPACE
 
 QSGCurveGlyphNode::QSGCurveGlyphNode(QSGRenderContext *context)
-    : m_context(context)
+    : QSGGlyphNode(QSGTextNode::CurveRendering)
+    , m_context(context)
     , m_geometry(QSGGeometry::defaultAttributes_TexturedPoint2D(), 0)
     , m_dirtyGeometry(false)
 {
@@ -30,6 +32,33 @@ QSGCurveGlyphNode::QSGCurveGlyphNode(QSGRenderContext *context)
 
 QSGCurveGlyphNode::~QSGCurveGlyphNode()
 {
+}
+
+void QSGCurveGlyphNode::cleanup()
+{
+    delete m_glyphNode;
+    m_glyphNode = nullptr;
+
+    delete m_styleNode;
+    m_styleNode = nullptr;
+}
+
+void QSGCurveGlyphNode::recycle()
+{
+    Q_ASSERT(m_geometry.vertexCount() == 0);
+    Q_ASSERT(m_geometry.indexCount() == 0);
+
+    QSGGlyphNode::recycle();
+    m_color = Qt::black;
+    m_dirtyGeometry = true;
+    m_fontSize = 0.0f;
+    m_glyphs = QGlyphRun{};
+    m_style = QQuickText::Normal;
+    m_styleColor = QColor{};
+    m_baseLine = QPointF{};
+    m_position = QPointF{};
+
+    cleanup();
 }
 
 void QSGCurveGlyphNode::setPreferredAntialiasingMode(AntialiasingMode mode)
@@ -93,11 +122,7 @@ void QSGCurveGlyphNode::preprocess()
 
 void QSGCurveGlyphNode::updateGeometry()
 {
-    delete m_glyphNode;
-    m_glyphNode = nullptr;
-
-    delete m_styleNode;
-    m_styleNode = nullptr;
+    cleanup();
 
     QSGCurveGlyphAtlas *curveGlyphAtlas = m_context->curveGlyphAtlas(m_glyphs.rawFont());
     curveGlyphAtlas->populate(m_glyphs.glyphIndexes());

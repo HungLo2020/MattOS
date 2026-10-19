@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QRHINULL_P_H
 #define QRHINULL_P_H
@@ -248,6 +249,12 @@ public:
     void drawIndexed(QRhiCommandBuffer *cb, quint32 indexCount,
                      quint32 instanceCount, quint32 firstIndex,
                      qint32 vertexOffset, quint32 firstInstance) override;
+
+    void drawIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                      quint32 indirectBufferOffset, quint32 drawCount, quint32 stride) override;
+
+    void drawIndexedIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                             quint32 indirectBufferOffset, quint32 drawCount, quint32 stride) override;
 
     void debugMarkBegin(QRhiCommandBuffer *cb, const QByteArray &name) override;
     void debugMarkEnd(QRhiCommandBuffer *cb) override;

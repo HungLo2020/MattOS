@@ -11,6 +11,11 @@
                     <brief>A macro with argument <argument>x</argument>.</brief>
                 </description>
             </function>
+            <function name="Test" fullname="TestQDoc::Test::Test" href="testqdoc-test.html#Test" status="active" access="public" location="testcpp.h" documented="true" auto-generated="true" meta="constructor" deleted="true" signature="Test()">
+                <description>
+                    <para>Default-constructs an instance of <teletype>Test</teletype>. This function is deleted.</para>
+                </description>
+            </function>
             <function name="anotherObsoleteMember" fullname="TestQDoc::Test::anotherObsoleteMember" href="testqdoc-test-obsolete.html#anotherObsoleteMember" status="deprecated" access="public" location="testcpp.h" documented="true" meta="plain" type="void" signature="void anotherObsoleteMember()">
                 <description>
                     <para>Use <link raw="obsoleteMember()" href="testqdoc-test.html#obsoleteMember" type="function">obsoleteMember()</link> instead.</para>
@@ -67,7 +72,7 @@
             <function name="operator--" fullname="TestQDoc::Test::operator--" href="testqdoc-test-obsolete.html#operator--" status="deprecated" access="public" location="testcpp.h" documented="true" meta="plain" type="TestQDoc::Test &amp;" signature="TestQDoc::Test &amp; operator--()">
                 <description/>
             </function>
-            <function name="operator==" href="testqdoc-test.html#operator-eq-eq" status="active" access="public" location="testcpp.h" documented="true" related="2" meta="plain" type="bool" signature="bool operator==(const TestQDoc::Test &amp;lhs, const TestQDoc::Test &amp;rhs)">
+            <function name="operator==" href="testqdoc-test.html#operator-eq-eq" status="active" access="public" location="testcpp.h" documented="true" related="2" meta="plain" hidden-friend="true" type="bool" signature="bool operator==(const TestQDoc::Test &amp;lhs, const TestQDoc::Test &amp;rhs)">
                 <parameter type="const TestQDoc::Test &amp;" name="lhs" default=""/>
                 <parameter type="const TestQDoc::Test &amp;" name="rhs" default=""/>
                 <description>
@@ -75,11 +80,15 @@
                 </description>
             </function>
             <function name="overload" fullname="TestQDoc::Test::overload" href="testqdoc-test.html#overload" status="active" access="protected" location="testcpp.h" documented="true" meta="plain" type="void" signature="void overload()">
-                <description/>
+                <description>
+                    <para>Overloads that share a documentation comment, optionally taking a parameter <argument>b</argument>.</para>
+                </description>
             </function>
             <function name="overload" fullname="TestQDoc::Test::overload" href="testqdoc-test.html#overload-1" status="active" access="protected" location="testcpp.h" documented="true" since="Test 1.2" meta="plain" overload="true" overload-number="1" type="void" signature="void overload(bool b)">
                 <parameter type="bool" name="b" default=""/>
-                <description/>
+                <description>
+                    <para>Overloads that share a documentation comment, optionally taking a parameter <argument>b</argument>.</para>
+                </description>
             </function>
             <function name="someFunction" fullname="TestQDoc::Test::someFunction" href="testqdoc-test.html#someFunction" status="active" access="public" location="testcpp.h" documented="true" meta="plain" type="int" signature="int someFunction(int, int v)">
                 <parameter type="int" name="" default=""/>

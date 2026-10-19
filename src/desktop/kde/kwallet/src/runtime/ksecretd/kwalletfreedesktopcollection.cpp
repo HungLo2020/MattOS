@@ -193,17 +193,25 @@ KWalletFreedesktopCollection::CreateItem(const PropertiesMap &properties, const 
             QByteArray bytes;
             QDataStream ds(&bytes, QIODevice::WriteOnly);
             ds << map;
-            backend()->writeEntry(walletHandle(), dir, label, bytes, KWallet::Wallet::Map, FDO_APPID);
+            backend()->writeEntry(walletHandle(), dir, label, bytes, KWallet::Wallet::Map);
             explicit_zero_mem(bytes.data(), bytes.size());
         } else if (xdgSchema == QStringLiteral("org.kde.KWallet.Password") || secret.mimeType.startsWith(QStringLiteral("text/"))) {
             auto bytes = decrypted.value.toByteArray();
+            if (!bytes.isValidUtf8()) {
+                explicit_zero_mem(bytes.data(), bytes.size());
+                sendErrorReply(QDBusError::ErrorType::InvalidArgs,
+                               QStringLiteral("Secret value contains invalid UTF-8 sequences but content_type declares text encoding; "
+                                              "use application/octet-stream for binary data"));
+                return QDBusObjectPath("/");
+            }
+
             auto str = QString::fromUtf8(bytes);
-            backend()->writePassword(walletHandle(), dir, label, str, FDO_APPID);
+            backend()->writePassword(walletHandle(), dir, label, str);
             explicit_zero_mem(bytes.data(), bytes.size());
             explicit_zero_mem(str.data(), str.size() * sizeof(QChar));
         } else {
             auto bytes = decrypted.value.toByteArray();
-            backend()->writeEntry(walletHandle(), dir, label, bytes, KWallet::Wallet::Stream, FDO_APPID);
+            backend()->writeEntry(walletHandle(), dir, label, bytes, KWallet::Wallet::Stream);
             explicit_zero_mem(bytes.data(), bytes.size());
         }
     }
@@ -287,7 +295,7 @@ EntryLocation KWalletFreedesktopCollection::makeUniqueEntryLocation(const QStrin
 
     int suffix = 0;
     QString resultName = name;
-    while (backend()->hasEntry(m_handle, dir, resultName, FDO_APPID)) {
+    while (backend()->hasEntry(m_handle, dir, resultName)) {
         resultName = FdoUniqueLabel::makeName(name, suffix++);
     }
 
@@ -351,9 +359,9 @@ void KWalletFreedesktopCollection::onWalletChangeState(int handle)
 
     m_handle = handle;
 
-    const QStringList folderList = backend()->folderList(m_handle, FDO_APPID);
+    const QStringList folderList = backend()->folderList(m_handle);
     for (const QString &folder : folderList) {
-        const QStringList entries = backend()->entryList(m_handle, folder, FDO_APPID);
+        const QStringList entries = backend()->entryList(m_handle, folder);
 
         const qulonglong createTime = QDateTime::currentSecsSinceEpoch();
         for (const auto &entry : entries) {
@@ -363,7 +371,7 @@ void KWalletFreedesktopCollection::onWalletChangeState(int handle)
                 StrStrMap attr;
                 attr["server"] = folder;
                 attr["user"] = entry;
-                switch (backend()->entryType(m_handle, folder, entry, FDO_APPID)) {
+                switch (backend()->entryType(m_handle, folder, entry)) {
                 case KWallet::Wallet::Stream:
                     attr["type"] = "binary";
                     break;

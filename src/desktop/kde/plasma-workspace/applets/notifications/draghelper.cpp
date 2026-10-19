@@ -13,6 +13,7 @@
 #include <QMetaObject>
 #include <QMimeData>
 #include <QQuickWindow>
+#include <qnamespace.h>
 
 DragHelper::DragHelper(QObject *parent)
     : QObject(parent)
@@ -75,12 +76,17 @@ void DragHelper::startDrag(QQuickItem *item, const QUrl &url, const QPixmap &pix
             m_dragActive = true;
             Q_EMIT dragActiveChanged();
 
-            drag->exec(Qt::CopyAction);
+            drag->exec(Qt::CopyAction | Qt::MoveAction | Qt::LinkAction, Qt::CopyAction);
 
             m_dragActive = false;
             Q_EMIT dragActiveChanged();
         },
         Qt::QueuedConnection);
+}
+
+void DragHelper::startDrag(QQuickItem *item, const QUrl &url, const QImage &image)
+{
+    startDrag(item, url, QPixmap::fromImage(image));
 }
 
 #include "moc_draghelper.cpp"

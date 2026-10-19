@@ -687,8 +687,11 @@ function(qt6_deploy_runtime_dependencies)
         set(arg_PLUGINS_DIR "${QT_DEPLOY_PLUGINS_DIR}")
     endif()
 
-    # macdeployqt always writes out a qt.conf file. It will complain if one
-    # already exists, so leave it to create it for us if we will be running it.
+    # On macOS we write no qt.conf, so GENERATE_QT_CONF is ignored. A deployed app
+    # bundle follows Apple's bundle conventions (Frameworks, PlugIns, Resources,
+    # ...), and QLibraryInfo reports those locations for the application prefix on
+    # its own. macdeployqt used to write a qt.conf into the bundle, which is why we
+    # left it to do so, but it no longer does.
     if(__QT_DEPLOY_SYSTEM_NAME STREQUAL Darwin)
         # We might get EXECUTABLE pointing to either the actual binary under the
         # Contents/MacOS directory, or it might be pointing to the top of the
@@ -909,7 +912,7 @@ function(_qt_internal_show_skip_runtime_deploy_message qt_build_type_string)
     )
 endfunction()
 
-# This function is currently in Technical Preview.
+# This function is currently in Technology Preview.
 # Its signature and behavior might change.
 function(qt6_deploy_translations)
     set(no_value_options VERBOSE)

@@ -2694,6 +2694,9 @@ QStringList QStringConverter::availableCodecs()
     \brief Holds the result of calling finalize() on QStringDecoder or
     QStringEncoder.
 
+    FinalizeResultChar\<Char\> is a template class where \a Char specifies
+    the character type (typically \c char or \c char16_t).
+
     This class is used to relay the result of the finalize() call or the reason
     why the call did not succeed.
 */

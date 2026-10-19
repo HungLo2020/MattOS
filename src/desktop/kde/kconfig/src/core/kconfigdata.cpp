@@ -145,17 +145,17 @@ bool KEntryMap::setEntry(const QString &group, const QByteArray &key, const QByt
     }
 
     if (newKey) {
-        // if the key is new and we want to delete it that's a no-op
         if (e.bDeleted) {
+            insert_or_assign(k, e);
+            // if the key is new and we want to delete it that's a no-op, so don't mark as dirty
             return false;
         }
 
         // qDebug() << "inserting" << k << "=" << value;
         insert_or_assign(k, e);
         if (k.bDefault) {
-            k.bDefault = false;
-            // qDebug() << "also inserting" << k << "=" << value;
-            insert_or_assign(k, e);
+            const EntryOptions optionsWithoutDefault = EntryOptions(options).setFlag(EntryDefault, false);
+            setEntry(group, key, value, optionsWithoutDefault);
         }
         // TODO check for presence of unlocalized key
         return true;
@@ -175,9 +175,8 @@ bool KEntryMap::setEntry(const QString &group, const QByteArray &key, const QByt
         // qDebug() << "changing" << k << "from" << it->second.mValue << "to" << value << e;
         it->second = e;
         if (k.bDefault) {
-            KEntryKey nonDefaultKey(k);
-            nonDefaultKey.bDefault = false;
-            insert_or_assign(nonDefaultKey, e);
+            const EntryOptions optionsWithoutDefault = EntryOptions(options).setFlag(EntryDefault, false);
+            setEntry(group, key, value, optionsWithoutDefault);
         }
         if (!(options & EntryLocalized)) {
             KEntryKey theKey(group, key, true, false);
@@ -224,13 +223,10 @@ QString KEntryMap::getEntry(const QString &group, QAnyStringView key, const QStr
     const auto it = constFindEntry(group, key, flags);
     QString theValue = defaultValue;
 
-    if (it != cend() && !it->second.bDeleted) {
-        if (!it->second.mValue.isNull()) {
-            const QByteArray data = it->second.mValue;
-            theValue = QString::fromUtf8(data.constData(), data.length());
-            if (expand) {
-                *expand = it->second.bExpand;
-            }
+    if (it != cend() && !it->second.bDeleted && !it->second.mValue.isNull()) {
+        theValue = QString::fromUtf8(it->second.mValue);
+        if (expand) {
+            *expand = it->second.bExpand;
         }
     }
 

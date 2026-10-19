@@ -45,8 +45,73 @@ QVariant AbstractEmojiModel::data(const QModelIndex &index, int role) const
         return emoji->annotations;
     case FallbackDescriptionRole:
         return emoji->fallbackDescription;
+    case twoToneIndexRole:
+        return m_emoji[index.row()].twoToneVariantIndex;
     }
     return {};
+}
+
+int TwoToneEmojiModel::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) {
+        return 0;
+    } else if (m_settings.skinTone() == Tone::Neutral) {
+        return TWO_TONE_PAIR_PERMUTATIONS + SKIN_TONE_COUNT;
+    } else {
+        return 8;
+    }
+}
+
+QVariant TwoToneEmojiModel::data(const QModelIndex &index, int role) const
+{
+    if (!checkIndex(index,
+                    QAbstractItemModel::CheckIndexOption::IndexIsValid | QAbstractItemModel::CheckIndexOption::ParentIsInvalid
+                        | QAbstractItemModel::CheckIndexOption::DoNotUseParent)
+        || index.column() != 0)
+        return {};
+
+    const Emoji *emoji;
+
+    if (m_settings.skinTone() == Tone::Neutral) {
+        const int skintone = index.row() / (SKIN_TONE_COUNT + 1) + 1;
+        if (index.row() % (SKIN_TONE_COUNT + 1) == 0) {
+            const int oneToneIndex = m_twoToneEmojis[m_twoToneIndex].skinToneVariantIndex;
+            emoji = &m_tonedEmojis[oneToneIndex + skintone - 1];
+        } else {
+            emoji = &m_twoToneEmojis[m_twoToneIndex + index.row() - skintone];
+        }
+    } else {
+        const int mappedIndex = twoToneSortFilterMap[m_settings.skinTone()].at(index.row());
+        emoji = &m_twoToneEmojis[m_twoToneIndex + mappedIndex];
+    }
+
+    switch (role) {
+    case Qt::DisplayRole:
+        return emoji->content;
+    case Qt::ToolTipRole:
+        return emoji->description;
+    default:
+        return {};
+    }
+}
+
+void TwoToneEmojiModel::twoToneDataChanged()
+{
+    beginResetModel();
+    endResetModel();
+}
+
+int TwoToneEmojiModel::twoToneIndex()
+{
+    return m_twoToneIndex;
+}
+
+void TwoToneEmojiModel::setTwoToneIndex(int twoToneIndex)
+{
+    if (twoToneIndex >= TWO_TONE_PAIR_PERMUTATIONS) {
+        m_twoToneIndex = twoToneIndex - TWO_TONE_PAIR_PERMUTATIONS;
+        twoToneDataChanged();
+    }
 }
 
 EmojiModel::EmojiModel()
@@ -91,7 +156,7 @@ EmojiModel::EmojiModel()
     }
     m_emoji = std::move(dict.m_emojis);
     m_tonedEmojis = std::move(dict.m_tonedEmojis);
-    for (const auto &emoji : m_emoji) {
+    for (const auto &emoji : std::as_const(m_emoji)) {
         categories.insert(emoji.categoryName());
     }
     m_categories = categories.values();
@@ -108,16 +173,19 @@ EmojiModel::EmojiModel()
     default:
         setSkinTone(Tone::Neutral);
     }
+
+    m_TwoToneEmojiModel = new TwoToneEmojiModel(std::move(dict.m_twoToneEmojis), m_tonedEmojis, m_settings);
 }
 
 EmojiModel::~EmojiModel()
 {
     m_settings.save();
+    delete m_TwoToneEmojiModel;
 }
 
 QString EmojiModel::findFirstEmojiForCategory(const QString &category)
 {
-    for (const Emoji &emoji : m_emoji) {
+    for (const Emoji &emoji : std::as_const(m_emoji)) {
         if (emoji.categoryName() == category)
             return emoji.content;
     }
@@ -129,11 +197,29 @@ void EmojiModel::setSkinTone(int skinTone)
     m_settings.setSkinTone(skinTone);
     Q_EMIT dataChanged(index(0, 0), index(rowCount() - 1, 0), {Qt::DisplayRole, Qt::ToolTipRole});
     Q_EMIT skinToneChanged();
+    m_TwoToneEmojiModel->twoToneDataChanged();
 }
 
 int EmojiModel::skinTone() const
 {
     return m_settings.skinTone();
+}
+
+void EmojiModel::setEmojiZoom(qreal emojiZoom)
+{
+    if (m_settings.emojiZoom() == emojiZoom) {
+        return;
+    }
+    m_settings.setEmojiZoom(emojiZoom);
+    // Persist immediately rather than at destruction: the emojier is a
+    // launch-pick-close popup, and its recent list is saved the same way.
+    m_settings.save();
+    Q_EMIT emojiZoomChanged();
+}
+
+qreal EmojiModel::emojiZoom() const
+{
+    return m_settings.emojiZoom();
 }
 
 RecentEmojiModel::RecentEmojiModel()
@@ -159,7 +245,7 @@ void RecentEmojiModel::includeRecent(const QString &emoji, const QString &emojiD
         Q_EMIT beginInsertRows(QModelIndex(), 0, 0);
         recent.prepend(emoji);
         recentDescriptions.prepend(emojiDescription);
-        m_emoji.prepend(Emoji{emoji, emojiDescription, {}, 0, {}});
+        m_emoji.prepend(Emoji{emoji, emojiDescription, {}, 0, {}, Tone::HasNoVariants, 0, 0});
         Q_EMIT endInsertRows();
 
         if (recent.size() > 50) {
@@ -194,12 +280,12 @@ void RecentEmojiModel::refresh()
     const auto oldCount = m_emoji.count();
 
     beginResetModel();
-    auto recent = m_settings.recent();
+    const auto recent = m_settings.recent();
     auto recentDescriptions = m_settings.recentDescriptions();
     int i = 0;
     m_emoji.clear();
     for (const QString &c : recent) {
-        m_emoji += {c, recentDescriptions.at(i++), {}, 0, {}};
+        m_emoji += {c, recentDescriptions.at(i++), {}, 0, {}, Tone::HasNoVariants, 0, 0};
     }
     endResetModel();
 
@@ -218,12 +304,21 @@ void CategoryModelFilter::setCategory(const QString &category)
         beginFilterChange();
         m_category = category;
         endFilterChange(QSortFilterProxyModel::Direction::Rows);
+        Q_EMIT categoryChanged();
     }
 }
 
 bool CategoryModelFilter::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
-    return m_category.isEmpty() || sourceModel()->index(source_row, 0, source_parent).data(EmojiModel::CategoryRole).toString() == m_category;
+    if (m_category.isEmpty()) {
+        return true;
+    }
+
+    if (m_category == u"All" || m_category == u"Recent") {
+        return true;
+    }
+
+    return sourceModel()->index(source_row, 0, source_parent).data(EmojiModel::CategoryRole).toString() == m_category;
 }
 
 QString SearchModelFilter::search() const

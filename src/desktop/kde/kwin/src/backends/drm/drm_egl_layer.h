@@ -28,14 +28,16 @@ public:
     explicit EglGbmLayer(EglGbmBackend *eglBackend, DrmPlane *plane);
     explicit EglGbmLayer(EglGbmBackend *eglBackend, DrmGpu *gpu, DrmPlane::TypeIndex type);
 
-    std::optional<OutputLayerBeginFrameInfo> doBeginFrame() override;
-    bool doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
+    std::optional<OutputLayerBeginFrameInfo> beginFrame(OutputFrame *frame) override;
+    bool endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame) override;
     bool preparePresentationTest() override;
     std::shared_ptr<DrmFramebuffer> currentBuffer() const override;
     void releaseBuffers() override;
 
 private:
+    bool earlyScanoutChecks() override;
     bool importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_ptr<OutputFrame> &frame) override;
+    SurfaceItem *presentedDirectScanoutItem() const override;
 
     EglGbmLayerSurface m_surface;
     std::shared_ptr<DrmFramebuffer> m_scanoutBuffer;

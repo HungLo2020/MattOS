@@ -68,6 +68,21 @@ msgctxt "FontHelpers|@item Font name [foundry]"
 msgid "%1 [%2]"
 msgstr "%1 [%2]"
 
+#: kabstractcoloredit.cpp:70
+#, fuzzy
+#| msgctxt "palette name"
+#| msgid "Forty Colors"
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Copy Color"
+msgstr "నలభై రంగులు"
+
+#: kabstractcoloredit.cpp:81
+#, fuzzy
+#| msgid "Named Colors"
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Paste Color"
+msgstr "పేరువున్న రంగులు"
+
 #: kactionselector.cpp:98
 #, fuzzy
 #| msgid "&Available:"
@@ -104,14 +119,14 @@ msgctxt "KAssistantDialog|@action:button Opposite to Back"
 msgid "Next"
 msgstr "తరువాత"
 
-#: kassistantdialog.cpp:114
+#: kassistantdialog.cpp:113
 #, fuzzy
 #| msgid "Finish"
 msgctxt "KAssistantDialog|@action:button"
 msgid "Finish"
 msgstr "ముగింపు"
 
-#: kcharselect-translation.cpp:11 kcharselectdata.cpp:277
+#: kcharselect-translation.cpp:11 kcharselectdata.cpp:279
 #, fuzzy
 #| msgctxt "@action:button Replace all occurrences"
 #| msgid "&All"
@@ -214,7 +229,7 @@ msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Phonetic Symbols"
 msgstr "ఫోనెటిక్ చిహ్నాలు"
 
-#: kcharselect-translation.cpp:24 kcharselectdata.cpp:743
+#: kcharselect-translation.cpp:24 kcharselectdata.cpp:745
 #, fuzzy
 #| msgctxt "KCharSelect section name"
 #| msgid "Combining Diacritical Marks"
@@ -1931,49 +1946,49 @@ msgctxt "KCharSelectItemModel|Character"
 msgid "In decimal"
 msgstr "దశాంశం లో"
 
-#: kcharselectdata.cpp:303
+#: kcharselectdata.cpp:305
 #, fuzzy
 #| msgid "Any Character"
 msgctxt "KCharSelectData|"
 msgid "<noncharacter>"
 msgstr "ఎదైనా అక్షరం"
 
-#: kcharselectdata.cpp:324
+#: kcharselectdata.cpp:326
 #, fuzzy
 #| msgid "<Non Private Use High Surrogate>"
 msgctxt "KCharSelectData|"
 msgid "<Non Private Use High Surrogate>"
 msgstr "<Non Private Use High Surrogate>"
 
-#: kcharselectdata.cpp:326
+#: kcharselectdata.cpp:328
 #, fuzzy
 #| msgid "<Private Use High Surrogate>"
 msgctxt "KCharSelectData|"
 msgid "<Private Use High Surrogate>"
 msgstr "<Private Use High Surrogate>"
 
-#: kcharselectdata.cpp:328
+#: kcharselectdata.cpp:330
 #, fuzzy
 #| msgid "<Low Surrogate>"
 msgctxt "KCharSelectData|"
 msgid "<Low Surrogate>"
 msgstr "<తక్కువ Surrogate>"
 
-#: kcharselectdata.cpp:330
+#: kcharselectdata.cpp:332
 #, fuzzy
 #| msgid "<Private Use>"
 msgctxt "KCharSelectData|"
 msgid "<Private Use>"
 msgstr "<వ్యక్తిగత అవసరానికి>"
 
-#: kcharselectdata.cpp:362
+#: kcharselectdata.cpp:364
 #, fuzzy
 #| msgid "<not assigned>"
 msgctxt "KCharSelectData|"
 msgid "<not assigned>"
 msgstr "<అప్పగించని>"
 
-#: kcharselectdata.cpp:440
+#: kcharselectdata.cpp:442
 #, fuzzy
 #| msgctxt "@action:button Replace all occurrences"
 #| msgid "&All"
@@ -1981,231 +1996,231 @@ msgctxt "KCharSelectData|KCharselect unicode section name"
 msgid "All"
 msgstr "(&A) అన్ని"
 
-#: kcharselectdata.cpp:752
+#: kcharselectdata.cpp:754
 #, fuzzy
 #| msgid "Non-printable"
 msgctxt "KCharSelectData|"
 msgid "Non-printable"
 msgstr "ప్రచురించలేనివి"
 
-#: kcharselectdata.cpp:785
+#: kcharselectdata.cpp:787
 #, fuzzy
 #| msgid "Other, Control"
 msgctxt "KCharSelectData|"
 msgid "Other, Control"
 msgstr "యితర, నియంత్రణ"
 
-#: kcharselectdata.cpp:787
+#: kcharselectdata.cpp:789
 #, fuzzy
 #| msgid "Other, Format"
 msgctxt "KCharSelectData|"
 msgid "Other, Format"
 msgstr "ఇతర, ఫార్మాట్"
 
-#: kcharselectdata.cpp:789
+#: kcharselectdata.cpp:791
 #, fuzzy
 #| msgid "Other, Not Assigned"
 msgctxt "KCharSelectData|"
 msgid "Other, Not Assigned"
 msgstr "ఇతర, అప్పగించబడలేదు"
 
-#: kcharselectdata.cpp:791
+#: kcharselectdata.cpp:793
 #, fuzzy
 #| msgid "Other, Private Use"
 msgctxt "KCharSelectData|"
 msgid "Other, Private Use"
 msgstr "ఇతర, వ్యక్తిగత వుపయోగము"
 
-#: kcharselectdata.cpp:793
+#: kcharselectdata.cpp:795
 #, fuzzy
 #| msgid "Other, Surrogate"
 msgctxt "KCharSelectData|"
 msgid "Other, Surrogate"
 msgstr "ఇతర, సరోగేట్"
 
-#: kcharselectdata.cpp:795
+#: kcharselectdata.cpp:797
 #, fuzzy
 #| msgid "Letter, Lowercase"
 msgctxt "KCharSelectData|"
 msgid "Letter, Lowercase"
 msgstr "అక్షరము, చిన్నబడి"
 
-#: kcharselectdata.cpp:797
+#: kcharselectdata.cpp:799
 #, fuzzy
 #| msgid "Letter, Modifier"
 msgctxt "KCharSelectData|"
 msgid "Letter, Modifier"
 msgstr "అక్షరము, సవరణి"
 
-#: kcharselectdata.cpp:799
+#: kcharselectdata.cpp:801
 #, fuzzy
 #| msgid "Letter, Other"
 msgctxt "KCharSelectData|"
 msgid "Letter, Other"
 msgstr "అక్షరము,ఇతర"
 
-#: kcharselectdata.cpp:801
+#: kcharselectdata.cpp:803
 #, fuzzy
 #| msgid "Letter, Titlecase"
 msgctxt "KCharSelectData|"
 msgid "Letter, Titlecase"
 msgstr "అక్షరము, శీర్షికబడి"
 
-#: kcharselectdata.cpp:803
+#: kcharselectdata.cpp:805
 #, fuzzy
 #| msgid "Letter, Uppercase"
 msgctxt "KCharSelectData|"
 msgid "Letter, Uppercase"
 msgstr "అక్షరము, పెద్దబడి"
 
-#: kcharselectdata.cpp:805
+#: kcharselectdata.cpp:807
 #, fuzzy
 #| msgid "Mark, Spacing Combining"
 msgctxt "KCharSelectData|"
 msgid "Mark, Spacing Combining"
 msgstr "గర్తు, క్రమాంతరీకరణం కలుపుట"
 
-#: kcharselectdata.cpp:807
+#: kcharselectdata.cpp:809
 #, fuzzy
 #| msgid "Mark, Enclosing"
 msgctxt "KCharSelectData|"
 msgid "Mark, Enclosing"
 msgstr "గుర్తు, ఎన్‌క్లోజింగ్"
 
-#: kcharselectdata.cpp:809
+#: kcharselectdata.cpp:811
 #, fuzzy
 #| msgid "Mark, Non-Spacing"
 msgctxt "KCharSelectData|"
 msgid "Mark, Non-Spacing"
 msgstr "గుర్తు, క్రమాంతరీకరణము-కాని"
 
-#: kcharselectdata.cpp:811
+#: kcharselectdata.cpp:813
 #, fuzzy
 #| msgid "Number, Decimal Digit"
 msgctxt "KCharSelectData|"
 msgid "Number, Decimal Digit"
 msgstr "సంఖ్య, దశాంశ అంకె"
 
-#: kcharselectdata.cpp:813
+#: kcharselectdata.cpp:815
 #, fuzzy
 #| msgid "Number, Letter"
 msgctxt "KCharSelectData|"
 msgid "Number, Letter"
 msgstr "సంఖ్య, అక్షరము"
 
-#: kcharselectdata.cpp:815
+#: kcharselectdata.cpp:817
 #, fuzzy
 #| msgid "Number, Other"
 msgctxt "KCharSelectData|"
 msgid "Number, Other"
 msgstr "సంఖ్య, ఇతర"
 
-#: kcharselectdata.cpp:817
+#: kcharselectdata.cpp:819
 #, fuzzy
 #| msgid "Punctuation, Connector"
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Connector"
 msgstr "పంక్చుయేషన్, అనుసంధానిం"
 
-#: kcharselectdata.cpp:819
+#: kcharselectdata.cpp:821
 #, fuzzy
 #| msgid "Punctuation, Dash"
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Dash"
 msgstr "పంక్చుయేషన్, డాష్"
 
-#: kcharselectdata.cpp:821
+#: kcharselectdata.cpp:823
 #, fuzzy
 #| msgid "Punctuation, Close"
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Close"
 msgstr "పంక్చుయేషన్, మూయి"
 
-#: kcharselectdata.cpp:823
+#: kcharselectdata.cpp:825
 #, fuzzy
 #| msgid "Punctuation, Final Quote"
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Final Quote"
 msgstr "పంక్చుయేషన్, చివరి కోట్"
 
-#: kcharselectdata.cpp:825
+#: kcharselectdata.cpp:827
 #, fuzzy
 #| msgid "Punctuation, Initial Quote"
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Initial Quote"
 msgstr "పంక్చుయేషన్, ప్రాధమిక కోట్"
 
-#: kcharselectdata.cpp:827
+#: kcharselectdata.cpp:829
 #, fuzzy
 #| msgid "Punctuation, Other"
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Other"
 msgstr "పంక్చుయేషన్, ఇతర"
 
-#: kcharselectdata.cpp:829
+#: kcharselectdata.cpp:831
 #, fuzzy
 #| msgid "Punctuation, Open"
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Open"
 msgstr "పంక్చుయేషన్, తెరువు"
 
-#: kcharselectdata.cpp:831
+#: kcharselectdata.cpp:833
 #, fuzzy
 #| msgid "Symbol, Currency"
 msgctxt "KCharSelectData|"
 msgid "Symbol, Currency"
 msgstr "చిహ్నము, డబ్బు"
 
-#: kcharselectdata.cpp:833
+#: kcharselectdata.cpp:835
 #, fuzzy
 #| msgid "Symbol, Modifier"
 msgctxt "KCharSelectData|"
 msgid "Symbol, Modifier"
 msgstr "చిహ్నము, సవరణి"
 
-#: kcharselectdata.cpp:835
+#: kcharselectdata.cpp:837
 #, fuzzy
 #| msgid "Symbol, Math"
 msgctxt "KCharSelectData|"
 msgid "Symbol, Math"
 msgstr "చిహ్నము, గణిత"
 
-#: kcharselectdata.cpp:837
+#: kcharselectdata.cpp:839
 #, fuzzy
 #| msgid "Symbol, Other"
 msgctxt "KCharSelectData|"
 msgid "Symbol, Other"
 msgstr "చిహ్నము, ఇతర"
 
-#: kcharselectdata.cpp:839
+#: kcharselectdata.cpp:841
 #, fuzzy
 #| msgid "Separator, Line"
 msgctxt "KCharSelectData|"
 msgid "Separator, Line"
 msgstr "వేరుచేయునది, గీత"
 
-#: kcharselectdata.cpp:841
+#: kcharselectdata.cpp:843
 #, fuzzy
 #| msgid "Separator, Paragraph"
 msgctxt "KCharSelectData|"
 msgid "Separator, Paragraph"
 msgstr "వేరుచేయునది, పరిచ్ఛేదము"
 
-#: kcharselectdata.cpp:843
+#: kcharselectdata.cpp:845
 #, fuzzy
 #| msgid "Separator, Space"
 msgctxt "KCharSelectData|"
 msgid "Separator, Space"
 msgstr "వేరుచేయునది, ఖాళీ"
 
-#: kcharselectdata.cpp:845
+#: kcharselectdata.cpp:847
 #, fuzzy
 #| msgid "Unknown"
 msgctxt "KCharSelectData|"
 msgid "Unknown"
 msgstr "తెలియని"
 
-#: kcolorcombo.cpp:333
+#: kcolorcombo.cpp:389
 #, fuzzy
 #| msgctxt "@item license"
 #| msgid "Custom"
@@ -2722,35 +2737,35 @@ msgctxt "KMessageBox|"
 msgid "Do not show this message again"
 msgstr "ఈ సందేశము మరల చూపవద్దు"
 
-#: kmessagedialog.cpp:140
+#: kmessagedialog.cpp:137
 #, fuzzy
 #| msgid "Details"
 msgctxt "KMessageDialog|"
 msgid "Details"
 msgstr "వివరములు"
 
-#: kmessagedialog.cpp:226
+#: kmessagedialog.cpp:218
 #, fuzzy
 #| msgid "Question"
 msgctxt "KMessageDialog|"
 msgid "Question"
 msgstr "ప్రశ్న"
 
-#: kmessagedialog.cpp:231
+#: kmessagedialog.cpp:223
 #, fuzzy
 #| msgid "Warning"
 msgctxt "KMessageDialog|"
 msgid "Warning"
 msgstr "హెచ్చరిక"
 
-#: kmessagedialog.cpp:234
+#: kmessagedialog.cpp:226
 #, fuzzy
 #| msgid "Information"
 msgctxt "KMessageDialog|"
 msgid "Information"
 msgstr "సమాచారం"
 
-#: kmessagedialog.cpp:237
+#: kmessagedialog.cpp:229
 #, fuzzy
 #| msgid "Error"
 msgctxt "KMessageDialog|"
@@ -6555,10 +6570,6 @@ msgstr "గవాక్షమును పూర్తి తెర లొ చ�
 #~ msgstr "నిర్దేశించిన రంగులు"
 
 #~ msgctxt "palette name"
-#~ msgid "Forty Colors"
-#~ msgstr "నలభై రంగులు"
-
-#~ msgctxt "palette name"
 #~ msgid "Oxygen Colors"
 #~ msgstr "ఆక్సీజన్ రంగులు"
 
@@ -6573,9 +6584,6 @@ msgstr "గవాక్షమును పూర్తి తెర లొ చ�
 #~ msgctxt "palette name"
 #~ msgid "Web Colors"
 #~ msgstr "వెబ్ రంగులు"
-
-#~ msgid "Named Colors"
-#~ msgstr "పేరువున్న రంగులు"
 
 #~ msgctxt ""
 #~ "%1 is the number of paths, %2 is the list of paths (with newlines between "

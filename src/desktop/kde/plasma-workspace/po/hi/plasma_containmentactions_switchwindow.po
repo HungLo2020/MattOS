@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_containmentactions_switchwindow\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-05-30 00:47+0000\n"
 "PO-Revision-Date: 2021-07-01 18:09+0530\n"
 "Last-Translator: Raghavendra Kamath <raghu@raghukamath.com>\n"
 "Language-Team: kde-hindi\n"
@@ -39,19 +39,19 @@ msgstr "हर डेस्कटॉप के लिए उप मेन्य�
 msgid "Display only the current desktop's windows"
 msgstr "केवल मौजूदा डेस्कटॉप विंडो दिखाएँ."
 
-#: switch.cpp:73
+#: switch.cpp:55
 #, kde-format
 msgctxt "plasma_containmentactions_switchwindow"
 msgid "Configure Switch Window Plugin"
 msgstr "विंडो बदलाव प्लगइन विन्यस्त करें"
 
-#: switch.cpp:153
+#: switch.cpp:140
 #, kde-format
 msgctxt "plasma_containmentactions_switchwindow"
 msgid "Windows"
 msgstr "विंडोज़"
 
-#: switch.cpp:177 switch.cpp:198 switch.cpp:200
+#: switch.cpp:165 switch.cpp:186 switch.cpp:188
 #, kde-format
 msgctxt "plasma_containmentactions_switchwindow"
 msgid "All Desktops"

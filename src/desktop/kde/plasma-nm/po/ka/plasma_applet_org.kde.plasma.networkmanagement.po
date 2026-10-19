@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-nm\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"POT-Creation-Date: 2026-09-10 00:48+0000\n"
 "PO-Revision-Date: 2025-11-12 07:02+0100\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
@@ -59,7 +59,7 @@ msgstr ""
 "გადმოწერის მიმდინარე სიჩქარეა %1 კიბიბაიტი წამში. მიმდინარე ატვირთვის "
 "სიჩქარეა %2 კიბიბაიტი წამში"
 
-#: ConnectionItem.qml:302
+#: ConnectionItem.qml:309
 #, kde-format
 msgctxt "Download and upload rates in some unit per second"
 msgid "↓ %1/s, ↑ %2/s"
@@ -140,49 +140,49 @@ msgstr "ქსელების მოსაძებნად ჩართე�
 msgid "Copy"
 msgstr "კოპირება"
 
-#: main.qml:32
+#: main.qml:39
 #, kde-format
 msgid "Networks"
 msgstr "ქსელები"
 
-#: main.qml:41
+#: main.qml:48
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Middle-click to turn off Airplane Mode"
 msgstr "შუა წკაპი თვითმფრინავის რეჟიმის გამოსართავად"
 
-#: main.qml:43
+#: main.qml:50
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Middle-click to turn on Airplane Mode"
 msgstr "შუა წკაპი თვითმფრინავის რეჟიმის ჩასართავად"
 
-#: main.qml:71 Toolbar.qml:74
+#: main.qml:78 Toolbar.qml:74
 #, kde-format
 msgid "Enable Wi-Fi"
 msgstr "Wi-Fi-ს ჩართვა"
 
-#: main.qml:82
+#: main.qml:89
 #, kde-format
 msgid "Enable Mobile Data"
 msgstr "მობილური ინტერნეტის ჩართვა"
 
-#: main.qml:94
+#: main.qml:101
 #, kde-format
 msgid "Enable Airplane Mode"
 msgstr "თვითმფრინავის რეჟიმის ჩართვა"
 
-#: main.qml:106
+#: main.qml:113
 #, kde-format
 msgid "Open Network Login Page…"
 msgstr "ქსელის შესვლის გვერდის გახსნა…"
 
-#: main.qml:116
+#: main.qml:123
 #, kde-format
 msgid "&Configure Network Connections…"
 msgstr "&ქსელური შეერთებების მართვა…"
 
-#: PopupDialog.qml:51
+#: PopupDialog.qml:58
 #, kde-format
 msgctxt "@action:button"
 msgid "Return to Network Connections"
@@ -278,89 +278,3 @@ msgstr ""
 #, kde-format
 msgid "Configure network connections…"
 msgstr "ქსელური შეერთებების მართვა…"
-
-#~ msgid "/s"
-#~ msgstr "/s"
-
-#~ msgid "Upload"
-#~ msgstr "ატვირთვა"
-
-#~ msgid "Download"
-#~ msgstr "ჩამოტვირთვა"
-
-#~ msgid "Show Network's QR Code"
-#~ msgstr "ქსელის QR კოდის ჩვენება"
-
-#~ msgid "Connected"
-#~ msgstr "შეერთებული"
-
-#~ msgid "Password…"
-#~ msgstr "პაროლი…"
-
-#~ msgctxt "@title:window"
-#~ msgid "QR Code for %1"
-#~ msgstr "%1-ის QR კოდი"
-
-#~ msgctxt "@info:tooltip %1 is the name of a network connection"
-#~ msgid "Connect to %1"
-#~ msgstr "%1- სთან დაკავშირება"
-
-#~ msgctxt "@info:tooltip %1 is the name of a network connection"
-#~ msgid "Disconnect from %1"
-#~ msgstr "%1-დან გათიშვა"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is ADSL"
-#~ msgstr "კავშირის ტიპია ADSL"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is Bluetooth"
-#~ msgstr "კავშირის ტიპია Bluetooth"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is Bridge"
-#~ msgstr "კავშირის ტიპია Bridge"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is CDMA"
-#~ msgstr "კავშირის ტიპია CDMA"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is GSM"
-#~ msgstr "კავშირის ტიპია GSM"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is Infiniband"
-#~ msgstr "კავშირის ტიპია Infiniband"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is OLPC Mesh"
-#~ msgstr "კავშირის ტიპია OLPC Mesh"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is PPOPE"
-#~ msgstr "კავშირის ტიპია PPOPE"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is VLAN"
-#~ msgstr "კავშირის ტიპია VLAN"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is VPN"
-#~ msgstr "კავშირის ტიპია VPN"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is Wimax"
-#~ msgstr "კავშირის ტიპი არის Wimax"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is Wired"
-#~ msgstr "კავშირის მავთულითაა"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is Wireless"
-#~ msgstr "კავშირის ტიპი უსადენოა"
-
-#~ msgctxt "@info:tooltip"
-#~ msgid "The connection type is Unknown"
-#~ msgstr "კავშირის ტიპი უცნობია"

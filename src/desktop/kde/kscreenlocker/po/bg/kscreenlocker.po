@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kscreenlocker\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"POT-Creation-Date: 2026-10-01 20:15+0000\n"
 "PO-Revision-Date: 2025-01-22 16:13+0100\n"
 "Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
 "Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "X-Generator: Lokalize 25.03.70\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: abstractlocker.cpp:43
+#: emergencywindow.cpp:54
 #, kde-format
 msgid ""
 "The screen locker is broken and unlocking is not possible anymore.\n"
@@ -28,7 +28,7 @@ msgstr ""
 "За да го отключите, са необходими ConsoleKit или LoginD, но нито един от\n"
 "тях не може да бъде намерен във вашата система."
 
-#: abstractlocker.cpp:47
+#: emergencywindow.cpp:58
 #, kde-format
 msgctxt "%1 = other terminal"
 msgid ""
@@ -46,7 +46,7 @@ msgstr ""
 "# ck-unlock-session <session-name>\n"
 "\n"
 
-#: abstractlocker.cpp:52
+#: emergencywindow.cpp:63
 #, kde-format
 msgctxt "%1 = other terminal, %2 = session ID, %3 = this terminal"
 msgid ""
@@ -74,34 +74,34 @@ msgstr ""
 "екран като натиснете CTRL+ALT+F%2\n"
 "\n"
 
-#: ksldapp.cpp:183
+#: ksldapp.cpp:117
 #, kde-format
 msgctxt ""
 "Name of a category in System Settings' Shortcuts KCM; match it exactly"
 msgid "Session Management"
 msgstr "Управление на сесиите"
 
-#: ksldapp.cpp:185
+#: ksldapp.cpp:119
 #, kde-format
 msgid "Lock Session"
 msgstr "Заключване на сесията"
 
-#: ksldapp.cpp:451
+#: ksldapp.cpp:335
 #, kde-format
 msgid "Screen locked"
 msgstr "Екранът е заключен"
 
-#: ksldapp.cpp:619
+#: ksldapp.cpp:363
 #, kde-format
 msgid "Screen unlocked"
 msgstr "Екранът е отключен"
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Screen Locker"
 msgstr "Заключване на екрана"
 
-#: logind.cpp:161
+#: logind.cpp:162
 #, kde-format
 msgid "Ensuring that the screen gets locked before going to sleep"
 msgstr "Гарантиране, че екранът се заключва, преди приспиване"

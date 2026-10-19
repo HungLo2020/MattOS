@@ -3,11 +3,6 @@
 
 #include "qaudioengine_threaded_p.h"
 
-#include <QtCore/qiodevice.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qelapsedtimer.h>
-
-#include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
@@ -15,17 +10,19 @@
 #ifdef Q_OS_WIN
 #  include <QtMultimedia/private/qwindows_wasapi_warmup_client_p.h>
 #endif
-
-#include <QtSpatialAudio/private/qambientsound_p.h>
-#include <QtSpatialAudio/private/qspatialsound_p.h>
-#include <QtSpatialAudio/private/qaudioroom_p.h>
-#include <QtSpatialAudio/private/qambisonicdecoder_p.h>
 #include <QtSpatialAudio/qambientsound.h>
 #include <QtSpatialAudio/qaudiolistener.h>
+#include <QtSpatialAudio/private/qaudioroom_p.h>
+#include <QtSpatialAudio/private/qambisonicdecoder_p.h>
+#include <QtSpatialAudio/private/qspatialaudiosound_p.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qelapsedtimer.h>
 
 #include <resonance_audio.h>
 
 #include <memory>
+#include <q20vector.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -64,7 +61,7 @@ public:
     {
         d->mutex.lock();
         Q_ASSERT(!sink);
-        auto channelConfig = d->m_outputMode == QAudioEngine::Surround
+        auto channelConfig = d->outputMode() == QAudioEngine::Surround
                 ? d->m_device.channelConfiguration()
                 : QAudioFormat::ChannelConfigStereo;
 
@@ -123,16 +120,18 @@ qint64 QAudioOutputStream::writeData(const char *, qint64)
     return 0;
 }
 
+
 qint64 QAudioOutputStream::readData(char *data, const qint64 len)
 {
+    constexpr int framesPerBuffer = qToUnderlying(QAudioEnginePrivate::framesPerBuffer);
+    static constexpr std::array<float, 2 * framesPerBuffer> nullBuffer{};
+
     if (d->m_paused.loadRelaxed())
         return 0;
 
-    constexpr auto framesPerBuffer = QAudioEngineThreaded::framesPerBuffer;
     QSpan<short> outputBuffer((short *)data, len / sizeof(short));
 
     QMutexLocker l(&d->mutex);
-    d->updateRooms();
 
     int nChannels = ambisonicDecoder ? ambisonicDecoder->nOutputChannels() : 2;
     if (outputBuffer.size() < nChannels * framesPerBuffer)
@@ -142,29 +141,30 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
     using QtMultimediaPrivate::take;
     using namespace QAudioHelperInternal;
 
+    const std::unique_ptr<vraudio::ResonanceAudioApi> &api = d->resonanceAudio->api;
+
     bool ok = true;
     while (outputBuffer.size() >= nChannels * framesPerBuffer) {
+
         // Fill input buffers
-        for (auto *source : std::as_const(d->sources)) {
-            auto *sp = QSpatialSoundPrivate::get(source);
-            if (!sp)
-                continue;
-            std::array<float, framesPerBuffer> buf;
-            sp->getBuffer(buf, framesPerBuffer, 1);
-            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 1,
-                                                         framesPerBuffer);
-        }
-        for (auto *source : std::as_const(d->stereoSources)) {
-            auto *sp = QAmbientSoundPrivate::get(source);
-            if (!sp)
-                continue;
-            std::array<float, 2 * framesPerBuffer> buf;
-            sp->getBuffer(buf, framesPerBuffer, 2);
-            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 2,
-                                                         framesPerBuffer);
+        for (auto &&[source, playbackState] : d->playbackStates) {
+            Q_ASSERT(source->nchannels <= 2);
+            if (playbackState) {
+                Q_ASSERT(playbackState->format().channelCount() <= 2);
+                std::array<float, 2 * framesPerBuffer> buf;
+
+                playbackState->getBuffer(
+                        take(QSpan<float>{ buf },
+                             playbackState->format().channelCount() * framesPerBuffer));
+                api->SetInterleavedBuffer(source->sourceId, buf.data(), source->nchannels,
+                                          framesPerBuffer);
+            } else {
+                api->SetInterleavedBuffer(source->sourceId, nullBuffer.data(), source->nchannels,
+                                          framesPerBuffer);
+            }
         }
 
-        if (ambisonicDecoder && d->m_outputMode == QAudioEngine::Surround) {
+        if (ambisonicDecoder && d->outputMode() == QAudioEngine::Surround) {
             std::array<const float *, QAmbisonicDecoder::maxAmbisonicChannels> channels;
             std::array<const float *, 2> reverbBuffers{};
             int nFrames = d->resonanceAudio->getAmbisonicOutput(
@@ -202,7 +202,7 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
                 // If we get here, it means that resonanceAudio did not actually fill the buffer.
                 // Sometimes this is expected, for example if resonanceAudio does not have any sources.
                 // In this case we just fill the buffer with silence.
-                if (d->sources.isEmpty() && d->stereoSources.isEmpty()) {
+                if (d->playbackStates.empty()) {
                     std::fill(currentOutput.begin(), currentOutput.end(), 0);
                 } else {
                     // If we get here, it means that something unexpected happened, so bail.
@@ -234,9 +234,6 @@ void QAudioEngineThreaded::start()
 {
     if (outputStream)
         return; // already started
-
-    resonanceAudio->api->SetStereoSpeakerMode(m_outputMode != QAudioEngine::Headphone);
-    resonanceAudio->api->SetMasterVolume(masterVolume());
 
     outputStream = std::make_unique<QAudioOutputStream>(this);
     outputStream->moveToThread(&audioThread);
@@ -289,142 +286,30 @@ void QAudioEngineThreaded::setOutputDevice(const QAudioDevice &device)
     emit q->outputDeviceChanged();
 }
 
-void QAudioEngineThreaded::setOutputMode(QAudioEngine::OutputMode mode)
+void QAudioEngineThreaded::addSound(QSpatialAudioSoundPrivate *sound)
 {
-    if (m_outputMode == mode)
-        return;
-    m_outputMode = mode;
-    resonanceAudio->api->SetStereoSpeakerMode(mode != QAudioEngine::Headphone);
-
-    Q_Q(QAudioEngine);
-    emit q->outputModeChanged();
+    std::lock_guard l(mutex);
+    playbackStates.emplace(sound, nullptr);
 }
 
-void QAudioEngineThreaded::setRoomEffectsEnabled(bool enabled)
+void QAudioEngineThreaded::removeSound(QSpatialAudioSoundPrivate *sound)
 {
-    if (m_roomEffectsEnabled == enabled)
-        return;
-    m_roomEffectsEnabled = enabled;
-    resonanceAudio->roomEffectsEnabled = enabled;
+    std::lock_guard l(mutex);
+    playbackStates.erase(sound);
 }
 
-/*!
-    Returns true if room effects are enabled.
- */
-bool QAudioEngineThreaded::roomEffectsEnabled() const
+void QAudioEngineThreaded::setSoundPlaybackData(QSpatialAudioSoundPrivate *sound,
+                                                SharedPlaybackState state)
 {
-    return m_roomEffectsEnabled;
+    std::lock_guard l(mutex);
+    playbackStates.insert_or_assign(sound, std::move(state));
 }
 
-void QAudioEngineThreaded::setListenerPosition(std::optional<QVector3D> pos)
+void QAudioEngineThreaded::updateRoomEffects()
 {
-    if (listenerPosition() == pos)
-        return;
-
-    QAudioEnginePrivate::setListenerPosition(pos);
-    listenerPositionDirty = true;
-}
-
-void QAudioEngineThreaded::addSpatialSound(QSpatialSound *sound)
-{
-    QMutexLocker l(&mutex);
-    QSpatialSoundPrivate *sd = QSpatialSoundPrivate::get(sound);
-
-    sd->sourceId = resonanceAudio->api->CreateSoundObjectSource(vraudio::kBinauralHighQuality);
-    sources.append(sound);
-}
-
-void QAudioEngineThreaded::removeSpatialSound(QSpatialSound *sound)
-{
-    QMutexLocker l(&mutex);
-    QSpatialSoundPrivate *sd = QSpatialSoundPrivate::get(sound);
-
-    resonanceAudio->api->DestroySource(sd->sourceId);
-    sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
-    sources.removeOne(sound);
-}
-
-void QAudioEngineThreaded::addStereoSound(QAmbientSound *sound)
-{
-    QMutexLocker l(&mutex);
-    QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
-
-    sd->sourceId = resonanceAudio->api->CreateStereoSource(2);
-    stereoSources.append(sound);
-}
-
-void QAudioEngineThreaded::removeStereoSound(QAmbientSound *sound)
-{
-    QMutexLocker l(&mutex);
-    QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
-
-    resonanceAudio->api->DestroySource(sd->sourceId);
-    sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
-    stereoSources.removeOne(sound);
-}
-
-void QAudioEngineThreaded::addRoom(QAudioRoom *room)
-{
-    QMutexLocker l(&mutex);
-    rooms.append(room);
-}
-
-void QAudioEngineThreaded::removeRoom(QAudioRoom *room)
-{
-    QMutexLocker l(&mutex);
-    rooms.removeOne(room);
-}
-
-// This method is called from the audio thread
-void QAudioEngineThreaded::updateRooms()
-{
-    if (!m_roomEffectsEnabled)
-        return;
-
-    bool needUpdate = listenerPositionDirty;
-    listenerPositionDirty = false;
-
-    bool roomDirty = false;
-    for (const auto &room : std::as_const(rooms)) {
-        auto *rd = QAudioRoomPrivate::get(room);
-        if (rd->dirty) {
-            roomDirty = true;
-            rd->update();
-            needUpdate = true;
-        }
-    }
-
-    if (!needUpdate)
-        return;
-
-    auto inferredRoom = findSmallestRoomForListener(rooms);
-    if (inferredRoom.room != m_currentRoom)
-        roomDirty = true;
-    const bool previousRoom = m_currentRoom;
-    m_currentRoom = inferredRoom.room;
-
-    if (!roomDirty)
-        return;
-
-    // apply room to engine
-    if (!m_currentRoom) {
-        resonanceAudio->api->EnableRoomEffects(false);
-        return;
-    }
-    if (!previousRoom)
-        resonanceAudio->api->EnableRoomEffects(true);
-
-    QAudioRoomPrivate *rp = QAudioRoomPrivate::get(m_currentRoom);
-    resonanceAudio->api->SetReflectionProperties(rp->reflections);
-    resonanceAudio->api->SetReverbProperties(rp->reverb);
-
-    // update room effects for all sound sources
-    for (auto *s : std::as_const(sources)) {
-        auto *sp = QSpatialSoundPrivate::get(s);
-        if (!sp)
-            continue;
-        sp->updateRoomEffects();
-    }
+    std::lock_guard l(mutex);
+    for (auto [sound, key] : playbackStates)
+        sound->updateRoomEffects();
 }
 
 QT_END_NAMESPACE

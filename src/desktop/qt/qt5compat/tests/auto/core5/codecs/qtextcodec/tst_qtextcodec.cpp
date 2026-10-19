@@ -92,6 +92,13 @@ private slots:
 
     void canEncode();
     void canEncode_data();
+
+    void tsciiEncoderDoesNotReadPastTheEnd_data();
+    void tsciiEncoderDoesNotReadPastTheEnd();
+
+    void iconvEncoderPendingSurrogateDoesNotOverflow();
+
+    void icuNoIntOverflowInFromUnicode();
 };
 
 void tst_QTextCodec::toUnicode_data()
@@ -2814,6 +2821,145 @@ void tst_QTextCodec::canEncode_data()
             << QByteArray("\x01\x02\x03\b\t\n\x0B\r") << true;
 
     QTest::newRow("Pencil icon") << "ISO-8859-1" << QString("\u270f") << QByteArray("?") << false;
+}
+
+void tst_QTextCodec::tsciiEncoderDoesNotReadPastTheEnd_data()
+{
+    QTest::addColumn<QString>("input");
+    QTest::addColumn<QString>("beyond");
+    QTest::addColumn<QByteArray>("expected");
+
+    // A single non-ASCII character: both uc[len] and uc[len + 1] are read,
+    // and U+0BE7 U+0BB7 U+0B82 is the one three-character sequence in the
+    // table, so the encoder answers 0x8C instead of 0x81 for U+0BE7 alone.
+    QTest::newRow("last-char")
+            << QStringLiteral("\u0BE7")
+            << QStringLiteral("\u0BB7\u0B82")
+            << QByteArray("\x81");
+
+    // Non-ASCII in the second to last position: only uc[len] is read, and
+    // it turns the two-character U+0BE7 U+0BB7 (0x87) into 0x8C again.
+    QTest::newRow("second-to-last-char")
+            << QStringLiteral("\u0BE7\u0BB7")
+            << QStringLiteral("\u0B82\u0000")
+            << QByteArray("\x87");
+
+    // Valid cases.
+    QTest::newRow("valid-three-chars")
+            << QStringLiteral("\u0BE7\u0BB7\u0B82")
+            << QStringLiteral("\u0BC1\u0000")
+            << QByteArray("\x8C");
+    QTest::newRow("valid-two-chars")
+            << QStringLiteral("\u0B95\u0BC2")
+            << QStringLiteral("\u0BCD\u0000")
+            << QByteArray("\xDC");
+}
+
+/*
+    This test hands the codec a buffer that is longer than the length it is
+    told about, and checks that the conversion of the first input.size()
+    characters does not depend on what follows them.
+
+    Before the fix, the look-ahead in QTsciiCodec::convertFromUnicode()
+    accesses uc[i + 1] and uc[i + 2] without checking the length, so this
+    fails with the wrong bytes.
+    In practice that could trigger a read past the end of the buffer.
+*/
+void tst_QTextCodec::tsciiEncoderDoesNotReadPastTheEnd()
+{
+    QFETCH(const QString, input);
+    QFETCH(const QString, beyond);
+    QFETCH(const QByteArray, expected);
+
+    QTextCodec *codec = QTextCodec::codecForName("TSCII");
+    QVERIFY(codec);
+
+    QCOMPARE(beyond.size(), 2);
+    // One buffer, holding the input followed by the characters that stand for
+    // whatever happens to be in memory after it. Only input.size() characters
+    // are ever passed to the codec.
+    const QString buffer = input + beyond;
+
+    const QChar *data = buffer.constData();
+    const int len = int(input.size());
+
+    QTextCodec::ConverterState state;
+    const QByteArray result = codec->fromUnicode(data, len, &state);
+    QCOMPARE(result, expected);
+
+    // Test with Stateless flag
+    const QByteArray stateless = codec->fromUnicode(QStringView(data, input.size()));
+    QCOMPARE(stateless, expected);
+}
+
+/*
+    This test catches a size miscalculation error in the Iconv codec
+    in the case when encoding continues with a high surrogate kept
+    in the state from the encoding of the previous chunk.
+*/
+void tst_QTextCodec::iconvEncoderPendingSurrogateDoesNotOverflow()
+{
+    constexpr char32_t Ucs4NonBmp = 0x10437; // DESERET SMALL LETTER YEE
+    // Before the fix such tail was leading to allocating 4096 bytes,
+    // while the full buffer required 4086 _QChars_ (so, almost twice more)
+    constexpr int IconvTailLength = 4064;
+
+    // QIconvCodec registers itself as "System", but it's only available
+    // when the configuration disables ICU and explicitly enables iconv.
+    QTextCodec *codec = QTextCodec::codecForName("System");
+    if (!codec)
+        QSKIP("QIconvCodec was not found (disable ICU and enable iconv explicitly)");
+
+    QString start(10, u'x');
+    start += QChar::highSurrogate(Ucs4NonBmp);
+
+    QString rest;
+    rest += QChar::lowSurrogate(Ucs4NonBmp);
+    rest += QString(IconvTailLength, u'x');
+
+    const QByteArray expected = codec->fromUnicode(start + rest);
+
+    // Encode the first block that ends with the high surrogate.
+    // It should be stored in the converter state.
+    QTextCodec::ConverterState state;
+    QByteArray continued = codec->fromUnicode(start.constData(), int(start.size()), &state);
+
+    // Encode the second block.
+    // Before the fix, this would cause an overrun in the QByteArray
+    // buffer. Detection left for an ASan or Valgrind-checked build.
+    continued += codec->fromUnicode(rest.constData(), int(rest.size()), &state);
+
+    QCOMPARE(continued, expected);
+    QCOMPARE(state.remainingChars, qsizetype(0));
+}
+
+/*
+    The ICU codec uses UCNV_GET_MAX_BYTES_FOR_STRING() macro that can
+    overflow on a long input string. As a result, we'll pass a negative
+    length to the c-tor of QByteArray, which will effectively lead to using
+    a global static empty instance. The code that then tries to populate
+    this buffer with the actual encoding results, will get stuck in an infinite
+    loop without a fix.
+*/
+void tst_QTextCodec::icuNoIntOverflowInFromUnicode()
+{
+    // Only ICU supports this codec
+    QTextCodec *codec = QTextCodec::codecForName("ISO-2022-KR"); // maxCharSize == 8
+    if (!codec)
+        QSKIP("This test requires ICU");
+
+    QT_TRY {
+        // Enough to trigger int overflow when calculating max buffer size
+        constexpr qsizetype InputLength = 300 * 1024 * 1024;
+        const QString input(InputLength, u'x');
+
+        QTest::ignoreMessage(QtWarningMsg,
+                             QRegularExpression("Unable to allocate an output buffer.+"));
+        const QByteArray result = codec->fromUnicode(input);
+        QVERIFY(result.isNull());
+    } QT_CATCH(const std::bad_alloc &) {
+        QSKIP("The test could not allocate enough memory");
+    }
 }
 
 QT_END_NAMESPACE

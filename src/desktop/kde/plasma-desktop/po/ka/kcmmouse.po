@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-08 05:30+0100\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-09-04 07:49+0200\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -16,27 +16,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr ""
-"შეყვანის მოწყობილობის ინფორმაციის მოთხოვნის შეცდომა. ეს მოდული თავიდან "
-"გახსენით."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr ""
 "კრიტიკული შეცდომა მოწყობილობის ფუნდამენტალური ინფორმაციის მიღებისას: %1."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "შეუძლებელია შესაბამისი უკანაბოლოს არჩევა"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -45,12 +33,12 @@ msgstr ""
 "მნიშვნელობების ჩატვირთვის შეცდომა. მეტი ინფორმაციის მისაღებად იხილეთ "
 "ჟურნალი. საჭიროა ამ კონფიგურაციის მოდულის გადატვირთვა."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "თაგუნა ვერ ვიპოვე. შეაერთეთ."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -59,7 +47,7 @@ msgstr ""
 "ყველა ცვლილების შენახვა შეუძლებელია. მეტი ინფორმაციისთვის იხილეთ ჟურნალი. "
 "გადატვირთეთ ეს მოდული და თავიდან სცადეთ."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -68,7 +56,7 @@ msgstr ""
 "ნაგულისხმევი მნიშვნელობების ჩატვირთვის შეცდომა. ზოგიერთი პარამეტრის მათ "
 "ნაგულისხმევ მნიშვნელობებზე დაყენების შეცდომა."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -77,12 +65,12 @@ msgstr ""
 "შეცდომა ახლად შეერთებული მოწყობილობის დამატებისას. თავიდან მიაერთეთ ის და ეს "
 "მოდული თავიდან გაუშვით."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr "თაგუნა გაითიშა. მისი პარამეტრების ფანჯარა დაიხურა."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr "თაგუნა გაითიშა. სხვა მოწყობილობა ნაპოვნი არაა."
@@ -141,37 +129,37 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "მოწყობილობა:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, kde-format
 msgctxt "@title:group"
 msgid "General:"
 msgstr "ზოგადი:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr "მოწყობილობის ჩართვა"
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, kde-format
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "მარჯვენა და მარცხენა ღილაკები:"
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, kde-format
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "მიმოცვლა (ცაციის რეჟიმი)"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
 msgstr "შუა-წკაპისთვის ორივე ღილაკს ერთდროულად დააწექით"
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -182,19 +170,19 @@ msgstr ""
 "დამატებითი დაყოვნება საჭიროა, რომ თაგუნას მარჯვენა და მარცხენა ღილაკების "
 "ერთდროული დაწკაპუნება სწორად ამოვიცნო."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "კურსორის სიჩქარე:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "კურსორის აჩქარების ჩართვა"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -202,43 +190,49 @@ msgid ""
 msgstr ""
 "როცა ჩართულია, კურსორის გადაადგილების მანძილი იზრდება მის სიჩქარესთან ერთად."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "გადახვევის სიჩქარე:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "უფრო ნელა"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "უფრო სწრაფი"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "გადახვევა:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "გადახვევის მიმართულების ინვერსია"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr "გადასახვევად დააწექით შუა ღილაკს და გაამოძრავეთ თაგუნა"
+msgid "Scroll when moving the pointer"
+msgstr "გადახვევა მაჩვენებლის გადაადგილებისას"
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr "შუა ღილაკზე დაჭერისას"
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -252,6 +246,35 @@ msgstr ""
 "თამაშები. შეიძლება, გამოყენებული იყოს ნებისმიერ მოწყობილობაზე, მაგრამ "
 "ძირითადად განკუთვნილია, ჩაანაცვლოს გადახვევის ბორბალი მოწყობილობებზე, "
 "რომლებსაც ის არ აქვთ."
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr "შუა ღილაკზე დაწკაპუნების შემდეგ"
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+"ეს ხელს შეუშლის ზოგადად შუა დაწკაპუნებებს; შუა წკაპი ორჯერ, როდესაც გსურთ, "
+"რომ აპლიკაციამ მიიღოს ერთი შუა წკაპი. ეს მოიცავს შუა წკაპით გადატანას."
+
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr "გადასახვევად დააწექით შუა ღილაკს და გაამოძრავეთ თაგუნა"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "შეუძლებელია შესაბამისი უკანაბოლოს არჩევა"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr ""
+#~ "შეყვანის მოწყობილობის ინფორმაციის მოთხოვნის შეცდომა. ეს მოდული თავიდან "
+#~ "გახსენით."
 
 #~ msgid "Device enabled"
 #~ msgstr "მოწყობილობა ჩართულია"

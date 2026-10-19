@@ -1,13 +1,14 @@
-# SPDX-FileCopyrightText: 2023, 2024, 2025 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
+# SPDX-FileCopyrightText: 2023-2026 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
 # Fuminobu TAKEYAMA <ftake@geeko.jp>, 2015, 2019.
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2019, 2020, 2021.
 # Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2019, 2021, 2023.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_org.kde.plasma.networkmanagement\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-25 02:45+0000\n"
-"PO-Revision-Date: 2025-03-08 19:12+0900\n"
+"POT-Creation-Date: 2026-09-10 00:48+0000\n"
+"PO-Revision-Date: 2026-07-22 13:52+0900\n"
 "Last-Translator: Ryuichi Yamada <ryuichi_ya220@outlook.jp>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
@@ -17,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Lokalize 24.12.2\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: ConnectionItem.qml:62
 #, kde-format
@@ -33,7 +34,7 @@ msgstr "切断"
 #, kde-format
 msgctxt "Share Wi-Fi network's password or QR code"
 msgid "Share"
-msgstr ""
+msgstr "共有"
 
 #: ConnectionItem.qml:96
 #, kde-format
@@ -60,12 +61,11 @@ msgstr ""
 "現在のダウンロード速度は %1 KiB/秒です。現在のアップロード速度は %2 KiB/秒で"
 "す。"
 
-#: ConnectionItem.qml:302
-#, fuzzy, kde-format
-#| msgid "Connected, ↓ %1/s, ↑ %2/s"
+#: ConnectionItem.qml:309
+#, kde-format
 msgctxt "Download and upload rates in some unit per second"
 msgid "↓ %1/s, ↑ %2/s"
-msgstr "接続済み, ↓ %1/秒, ↑ %2/秒"
+msgstr "↓ %1/秒, ↑ %2/秒"
 
 #: ConnectionListPage.qml:33
 #, kde-format
@@ -84,27 +84,24 @@ msgid "Airplane mode is enabled"
 msgstr "機内モードが有効です"
 
 #: ConnectionListPage.qml:122
-#, fuzzy, kde-format
-#| msgid "Wireless and mobile networks are deactivated"
+#, kde-format
 msgid "Wi-Fi and mobile data are deactivated"
-msgstr "ワイヤレスネットワークとモバイルネットワークはオフです"
+msgstr "Wi-Fi とモバイルデータ通信はオフです"
 
 #: ConnectionListPage.qml:124
-#, fuzzy, kde-format
-#| msgid "Wireless is deactivated"
+#, kde-format
 msgid "Wi-Fi is deactivated"
-msgstr "ワイヤレスネットワークはオフです"
+msgstr "Wi-Fi はオフです"
 
 #: ConnectionListPage.qml:127
 #, kde-format
 msgid "Looking for Wi-Fi networks"
-msgstr ""
+msgstr "Wi-Fi ネットワークを検索中"
 
 #: ConnectionListPage.qml:130
-#, fuzzy, kde-format
-#| msgid "Mobile network is deactivated"
+#, kde-format
 msgid "Mobile data is deactivated"
-msgstr "モバイルネットワークはオフです"
+msgstr "モバイルデータ通信はオフです"
 
 #: ConnectionListPage.qml:133
 #, kde-format
@@ -120,75 +117,75 @@ msgstr "利用可能な接続なし"
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "Turn off airplane mode to search for networks"
-msgstr ""
+msgstr "ネットワークを検索するには機内モードをオフにしてください"
 
 #: ConnectionListPage.qml:149
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "Turn on Wi-Fi or mobile data to search for networks"
 msgstr ""
+"ネットワークを検索するには Wi-Fi かモバイルデータ通信をオンにしてください"
 
 #: ConnectionListPage.qml:151
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "Turn on Wi-Fi to search for networks"
-msgstr ""
+msgstr "ネットワークを検索するには Wi-Fi をオンにしてください"
 
 #: ConnectionListPage.qml:154
 #, kde-format
 msgctxt "@info:placeholder"
 msgid "Turn on mobile data to search for networks"
-msgstr ""
+msgstr "ネットワークを検索するにはモバイルデータ通信をオンにしてください"
 
 #: DetailsText.qml:40
 #, kde-format
 msgid "Copy"
 msgstr "コピー"
 
-#: main.qml:32
+#: main.qml:39
 #, kde-format
 msgid "Networks"
 msgstr "ネットワーク"
 
-#: main.qml:41
+#: main.qml:48
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Middle-click to turn off Airplane Mode"
 msgstr "中クリックして機内モードをオフ"
 
-#: main.qml:43
+#: main.qml:50
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Middle-click to turn on Airplane Mode"
 msgstr "中クリックして機内モードをオン"
 
-#: main.qml:71 Toolbar.qml:74
+#: main.qml:78 Toolbar.qml:74
 #, kde-format
 msgid "Enable Wi-Fi"
 msgstr "Wi-Fi を有効化"
 
-#: main.qml:82
-#, fuzzy, kde-format
-#| msgid "Enable Mobile Network"
+#: main.qml:89
+#, kde-format
 msgid "Enable Mobile Data"
-msgstr "モバイルネットワークを有効化"
+msgstr "モバイルデータ通信を有効化"
 
-#: main.qml:94
+#: main.qml:101
 #, kde-format
 msgid "Enable Airplane Mode"
 msgstr "機内モードを有効化"
 
-#: main.qml:106
+#: main.qml:113
 #, kde-format
 msgid "Open Network Login Page…"
 msgstr "ネットワークのログインページを開く…"
 
-#: main.qml:116
+#: main.qml:123
 #, kde-format
 msgid "&Configure Network Connections…"
 msgstr "ネットワーク接続を設定(&C)..."
 
-#: PopupDialog.qml:51
+#: PopupDialog.qml:58
 #, kde-format
 msgctxt "@action:button"
 msgid "Return to Network Connections"
@@ -202,13 +199,12 @@ msgstr "他のデバイスでこの QR コードをスキャンすると \"%1\" 
 #: ShareNetworkQrCodePage.qml:108
 #, kde-format
 msgid "Wi-Fi password:"
-msgstr ""
+msgstr "Wi-Fi パスワード:"
 
 #: Toolbar.qml:124
-#, fuzzy, kde-format
-#| msgid "Enable mobile network"
+#, kde-format
 msgid "Enable mobile data"
-msgstr "モバイルネットワークを有効化"
+msgstr "モバイルデータ通信を有効化"
 
 #: Toolbar.qml:147
 #, kde-kuit-format
@@ -231,7 +227,7 @@ msgstr "ホットスポット"
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Cannot create a hotspot because Wi-Fi is disabled."
-msgstr ""
+msgstr "Wi-Fi が無効化されているためホットスポットを作成できません。"
 
 #: Toolbar.qml:195
 #, kde-format
@@ -240,17 +236,18 @@ msgid ""
 "Cannot create a hotspot because all wireless radios are in use. Disconnect "
 "from the current Wi-Fi network or connect another wireless radio."
 msgstr ""
+"すべてのワイヤレスラジオが使用されているためホットスポットを作成できません。"
+"現在の Wi-Fi ネットワークから切断するか他のワイヤレスラジオを接続してくださ"
+"い。"
 
 #: Toolbar.qml:197
-#, fuzzy, kde-format
-#| msgid "Disable Hotspot"
+#, kde-format
 msgctxt "@info:tooltip"
 msgid "Disable Hotspot"
 msgstr "ホットスポットを無効化"
 
 #: Toolbar.qml:199
-#, fuzzy, kde-format
-#| msgid "Create Hotspot"
+#, kde-format
 msgctxt "@info:tooltip"
 msgid "Create Hotspot"
 msgstr "ホットスポットを作成"
@@ -259,42 +256,25 @@ msgstr "ホットスポットを作成"
 #, kde-format
 msgctxt "@action:button"
 msgid "Scan Wi-Fi QR Code"
-msgstr ""
+msgstr "Wi-Fi- QR コードをスキャン"
 
 #: Toolbar.qml:232
-#, fuzzy, kde-format
-#| msgid ""
-#| "Scan this QR code with another device to connect to the \"%1\" network."
+#, kde-format
 msgctxt "@info:tooltip"
 msgid "Scan QR Code to connect to a Wi-Fi network"
-msgstr "他のデバイスでこの QR コードをスキャンすると \"%1\" に接続できます。"
+msgstr "QR コードをスキャンして Wi-Fi ネットワークに接続"
 
 #: Toolbar.qml:234
-#, fuzzy, kde-format
-#| msgid ""
-#| "Scan this QR code with another device to connect to the \"%1\" network."
+#, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
 "network"
-msgstr "他のデバイスでこの QR コードをスキャンすると \"%1\" に接続できます。"
+msgstr ""
+"QRCA バーコードスキャナーをインストールすると Wi-Fi ネットワークに接続する "
+"QR コードをスキャンできます。"
 
 #: Toolbar.qml:253
 #, kde-format
 msgid "Configure network connections…"
 msgstr "ネットワーク接続を設定…"
-
-#~ msgid "/s"
-#~ msgstr "/秒"
-
-#~ msgid "Upload"
-#~ msgstr "アップロード"
-
-#~ msgid "Download"
-#~ msgstr "ダウンロード"
-
-#~ msgid "Show Network's QR Code"
-#~ msgstr "ネットワークの QR コードを表示"
-
-#~ msgid "Connected"
-#~ msgstr "接続済み"

@@ -10,6 +10,8 @@
 
 #include "output.h"
 
+#include <expected>
+
 class QJsonArray;
 
 namespace KWin
@@ -23,6 +25,8 @@ class OutputChangeSet;
 class BrightnessDevice;
 class OutputFrame;
 class OutputLayer;
+class DrmDevice;
+class ColorPipeline;
 
 class KWIN_EXPORT AutoBrightnessCurve
 {
@@ -43,14 +47,16 @@ public:
     static std::optional<AutoBrightnessCurve> fromArray(const QJsonArray &array);
 
 private:
-    static constexpr size_t s_controlPointCount = 6;
-    // brightness in lux. First value is 0% brightness, last is 100%
-    std::array<double, s_controlPointCount> m_luxAtBrightness;
+    AutoBrightnessCurve(Qt::Initialization);
+
+    // light sensor reading in lux => brightness value
+    std::map<double, double> m_luxToBrightness;
 };
 
 class KWIN_EXPORT BackendOutput : public QObject
 {
     Q_OBJECT
+
 public:
     enum class DpmsMode {
         On,
@@ -77,6 +83,9 @@ public:
         SharpnessControl = 1 << 14,
         CustomModes = 1 << 15,
         AutomaticBrightness = 1 << 16,
+        HdrIccProfile = 1 << 17,
+        AbmLevel = 1 << 18,
+        Disable = 1 << 19,
     };
     Q_DECLARE_FLAGS(Capabilities, Capability)
 
@@ -100,7 +109,7 @@ public:
     enum class AutoRotationPolicy {
         Never = 0,
         InTabletMode,
-        Always
+        Always,
     };
     Q_ENUM(AutoRotationPolicy);
     enum class ColorProfileSource {
@@ -126,7 +135,7 @@ public:
     };
     Q_ENUM(BrightnessReason);
 
-    explicit BackendOutput();
+    explicit BackendOutput(DrmDevice *scanoutDevice = nullptr);
     ~BackendOutput() override;
 
     void ref();
@@ -199,7 +208,7 @@ public:
      * rendering, all outputs will share the same render loop.
      * FIXME: remove this and decouple RenderLoop from Output
      */
-    virtual RenderLoop *renderLoop() const = 0;
+    RenderLoop *renderLoop() const;
 
     OutputTransform transform() const;
     /**
@@ -210,6 +219,8 @@ public:
     QSize orientateSize(const QSize &size) const;
 
     virtual void applyChanges(const OutputConfiguration &config);
+    virtual bool canResize() const;
+    virtual void resize(const QSize &size);
 
     SubPixel subPixel() const;
     QString description() const;
@@ -217,9 +228,7 @@ public:
     const Edid &edid() const;
     QList<std::shared_ptr<OutputMode>> modes() const;
     std::shared_ptr<OutputMode> currentMode() const;
-    QSize desiredModeSize() const;
-    uint32_t desiredModeRefreshRate() const;
-    std::optional<uint32_t> desiredModeFlags() const;
+    OutputModeline desiredMode() const;
     DpmsMode dpmsMode() const;
 
     uint32_t overscan() const;
@@ -236,6 +245,7 @@ public:
     AutoRotationPolicy autoRotationPolicy() const;
     std::shared_ptr<IccProfile> iccProfile() const;
     QString iccProfilePath() const;
+    QString hdrIccProfilePath() const;
     /**
      * @returns the mst path of this output. Is empty if invalid
      */
@@ -255,6 +265,7 @@ public:
 
     double sdrGamutWideness() const;
     ColorProfileSource colorProfileSource() const;
+    ColorProfileSource hdrColorProfileSource() const;
 
     double brightnessSetting() const;
     std::optional<double> currentBrightness() const;
@@ -289,16 +300,16 @@ public:
     virtual void setAutoRotateAvailable(bool isAvailable);
     virtual void setAutoBrightnessAvailable(bool isAvailable);
 
-    virtual bool presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay);
-    virtual bool testPresentation(const std::shared_ptr<OutputFrame> &frame) = 0;
-    virtual bool present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) = 0;
+    virtual std::expected<void, OutputError> presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay);
+    virtual std::expected<void, OutputError> testPresentation(const std::shared_ptr<OutputFrame> &frame) = 0;
+    virtual std::expected<void, OutputError> present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) = 0;
     virtual void repairPresentation();
 
     /**
-     * Can be used by the backend to suggest the compositor not to
+     * Can be used by the backend to suggest the compositor (not) to
      * use overlay planes, to avoid driver issues
      */
-    virtual bool overlayLayersLikelyBroken() const;
+    virtual bool recommendsOverlayUse() const;
 
     /**
      * The color space in which the scene is blended
@@ -315,11 +326,27 @@ public:
      */
     const std::shared_ptr<ColorDescription> &colorDescription() const;
 
+    /**
+     * Offloads @p pipeline to run after blending, on the whole output, combined with the
+     * post blending color management the output does on its own. On success,
+     * layerBlendingColor() becomes @p newLayerBlendColor, so that the layers target the
+     * intermediate colorspace and @p pipeline finishes the encode after blending.
+     *
+     * This is only safe to use when a single layer covers the whole output.
+     *
+     * @returns whether or not the output accepted the offload. If it didn't, nothing changes
+     */
+    virtual bool setPostBlendPipeline(const ColorPipeline &pipeline, const std::shared_ptr<ColorDescription> &newLayerBlendColor);
+    /**
+     * undoes setPostBlendPipeline; does nothing if no offload is active
+     */
+    virtual void resetPostBlendPipeline();
+
     uint32_t priority() const;
     const AutoBrightnessCurve &autoBrightnessCurve() const;
     bool automaticBrightness() const;
     BrightnessReason lastBrightnessAdjustmentReason() const;
-    QList<CustomModeDefinition> customModes() const;
+    QList<OutputModeline> customModes() const;
 
     /**
      * The setting for the scale factor, which may differ from scale
@@ -332,6 +359,10 @@ public:
      * used for creating black bars while mirroring.
      */
     QPoint deviceOffset() const;
+
+    uint32_t abmLevel() const;
+
+    DrmDevice *scanoutDevice() const;
 
 Q_SIGNALS:
     /**
@@ -401,6 +432,9 @@ Q_SIGNALS:
     void sharpnessChanged();
     void priorityChanged();
     void automaticBrightnessChanged();
+    void hdrIccProfilePathChanged();
+    void hdrColorProfileSourceChanged();
+    void abmLevelChanged();
 
 protected:
     struct Information
@@ -434,9 +468,8 @@ protected:
         OutputTransform manualTransform = OutputTransform::Normal;
         QList<std::shared_ptr<OutputMode>> modes;
         std::shared_ptr<OutputMode> currentMode;
-        QSize desiredModeSize;
-        uint32_t desiredModeRefreshRate = 0;
-        std::optional<uint32_t> desiredModeFlags = std::nullopt;
+        OutputModeline desiredMode;
+        QList<OutputModeline> customModes;
         DpmsMode dpmsMode = DpmsMode::On;
         SubPixel subPixel = SubPixel::Unknown;
         bool enabled = false;
@@ -448,7 +481,10 @@ protected:
         AutoRotationPolicy autoRotatePolicy = AutoRotationPolicy::InTabletMode;
         QString iccProfilePath;
         std::shared_ptr<IccProfile> iccProfile;
+        QString hdrIccProfilePath;
+        std::shared_ptr<IccProfile> hdrIccProfile;
         ColorProfileSource colorProfileSource = ColorProfileSource::sRGB;
+        ColorProfileSource hdrColorProfileSource = ColorProfileSource::EDID;
         // color description without night light applied
         std::shared_ptr<ColorDescription> originalColorDescription = ColorDescription::sRGB;
         std::shared_ptr<ColorDescription> colorDescription = ColorDescription::sRGB;
@@ -480,12 +516,12 @@ protected:
         EdrPolicy edrPolicy = EdrPolicy::Always;
         double sharpnessSetting = 0;
         uint32_t priority = 0;
-        QList<CustomModeDefinition> customModes;
         double scaleSetting = 1;
         QPoint deviceOffset;
         bool automaticBrightness = false;
         AutoBrightnessCurve autoBrightnessCurve;
         BrightnessReason lastBrightnessAdjustmentReason = BrightnessReason::ManualAdjustment;
+        uint32_t abmLevel = 0;
     };
 
     void setInformation(const Information &information);
@@ -494,6 +530,8 @@ protected:
     State m_state;
     Information m_information;
     int m_refCount = 1;
+    std::unique_ptr<RenderLoop> m_renderLoop;
+    DrmDevice *m_scanoutDevice = nullptr;
 };
 
 }

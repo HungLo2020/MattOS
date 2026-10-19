@@ -5,23 +5,30 @@
 */
 
 #include "nsLatin1Prober.h"
-#include <numeric>
-#include <stdio.h>
-#include <stdlib.h>
 
-#define UDF 0 // undefined
-#define OTH 1 // other
-#define ASC 2 // ascii capital letter
-#define ASS 3 // ascii small letter
-#define ACV 4 // accent capital vowel
-#define ACO 5 // accent capital other
-#define ASV 6 // accent small vowel
-#define ASO 7 // accent small other
-#define CLASS_NUM 8 // total classes
+#include <algorithm>
+#include <format>
+#include <numeric>
+#include <span>
 
 namespace kencodingprober
 {
-static const unsigned char Latin1_CharToClass[] = {
+namespace
+{
+constexpr auto CLASS_COUNT = nsLatin1Prober::CLASS_COUNT;
+
+enum Latin1Class : uint8_t {
+    UDF = 0, // undefined
+    OTH = 1, // other
+    ASC = 2, // ascii capital letter
+    ASS = 3, // ascii small letter
+    ACV = 4, // accent capital vowel
+    ACO = 5, // accent capital other
+    ASV = 6, // accent small vowel
+    ASO = 7, // accent small other
+};
+
+static constexpr std::array<uint8_t, 256> Latin1_CharToClass{
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH, // 00 - 07
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH, // 08 - 0F
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH, // 10 - 17
@@ -38,7 +45,7 @@ static const unsigned char Latin1_CharToClass[] = {
     ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS, // 68 - 6F
     ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS, // 70 - 77
     ASS, ASS, ASS, OTH, OTH, OTH, OTH, OTH, // 78 - 7F
-    OTH, UDF, OTH, ASO, OTH, OTH, OTH, OTH, // 80 - 87
+    OTH, UDF, OTH, OTH, OTH, OTH, OTH, OTH, // 80 - 87
     OTH, OTH, ACO, OTH, ACO, UDF, ACO, UDF, // 88 - 8F
     UDF, OTH, OTH, OTH, OTH, OTH, OTH, OTH, // 90 - 97
     OTH, OTH, ASO, OTH, ASO, UDF, ASO, ACO, // 98 - 9F
@@ -46,32 +53,89 @@ static const unsigned char Latin1_CharToClass[] = {
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH, // A8 - AF
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH, // B0 - B7
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH, // B8 - BF
-    ACV, ACV, ACV, ACV, ACV, ACV, ACO, ACO, // C0 - C7
+    ACV, ACV, ACV, ACV, ACV, ACV, ACV, ACO, // C0 - C7
     ACV, ACV, ACV, ACV, ACV, ACV, ACV, ACV, // C8 - CF
     ACO, ACO, ACV, ACV, ACV, ACV, ACV, OTH, // D0 - D7
-    ACV, ACV, ACV, ACV, ACV, ACO, ACO, ACO, // D8 - DF
+    ACV, ACV, ACV, ACV, ACV, ACO, ACO, ASO, // D8 - DF
     ASV, ASV, ASV, ASV, ASV, ASV, ASO, ASO, // E0 - E7
     ASV, ASV, ASV, ASV, ASV, ASV, ASV, ASV, // E8 - EF
     ASO, ASO, ASV, ASV, ASV, ASV, ASV, OTH, // F0 - F7
-    ASV, ASV, ASV, ASV, ASV, ASO, ASO, ASO, // F8 - FF
+    ASV, ASV, ASV, ASV, ASV, ASO, ASO, ASV, // F8 - FF
 };
 
 /* 0 : illegal
    1 : very unlikely
    2 : normal
    3 : very likely
+   4 : ASCII letter pair
+   5 : ASCII / digit or punctuation pair
 */
-static const unsigned char Latin1ClassModel[] = {
+static constexpr std::array<uint8_t, CLASS_COUNT * CLASS_COUNT> Latin1ClassModel{
+    // clang-format off
     /*      UDF OTH ASC ASS ACV ACO ASV ASO  */
-    /*UDF*/ 0, 0, 0, 0, 0, 0, 0, 0,
-    /*OTH*/ 0, 3, 3, 3, 3, 3, 3, 3,
-    /*ASC*/ 0, 3, 3, 3, 3, 3, 3, 3,
-    /*ASS*/ 0, 3, 3, 3, 1, 1, 3, 3,
-    /*ACV*/ 0, 3, 3, 3, 1, 2, 1, 2,
-    /*ACO*/ 0, 3, 3, 3, 3, 3, 3, 3,
-    /*ASV*/ 0, 3, 1, 3, 1, 1, 1, 3,
-    /*ASO*/ 0, 3, 1, 3, 1, 1, 3, 3,
+    /*UDF*/   0,  0,  0,  0,  0,  0,  0,  0,
+    /*OTH*/   0,  3,  5,  5,  3,  3,  3,  3,
+    /*ASC*/   0,  5,  4,  4,  3,  3,  3,  3,
+    /*ASS*/   0,  5,  4,  4,  1,  1,  3,  3,
+    /*ACV*/   0,  3,  3,  3,  2,  2,  2,  2,
+    /*ACO*/   0,  3,  3,  3,  3,  3,  3,  3,
+    /*ASV*/   0,  3,  1,  3,  1,  1,  2,  3,
+    /*ASO*/   0,  3,  1,  3,  1,  1,  3,  3,
+    // clang-format on
 };
+
+auto calculateFrequencies(const std::array<uint32_t, CLASS_COUNT * CLASS_COUNT> &seqCount)
+{
+    std::array<uint64_t, 6> freq{};
+    for (size_t i = 0; const auto seq : seqCount) {
+        const uint8_t seqQuality = Latin1ClassModel[i++];
+        freq[seqQuality] += seq;
+    }
+    const uint64_t total = std::accumulate(freq.begin(), freq.end(), 0ull);
+
+    // Number of non-letters : * -> OTH transitions (2nd col)
+    // Number of letters: * -> Letter transitions
+    // total = letters + non-letters
+    const uint64_t nonLetters = [&] {
+        uint64_t count = 0;
+        for (size_t i = 1 * CLASS_COUNT + 1; i < seqCount.size(); i += CLASS_COUNT) {
+            count += seqCount[i];
+        }
+        return count;
+    }();
+    const uint64_t letters = total - nonLetters;
+    // Number of words: OTH -> Letter transitions (2nd row w/o OTH/OTH)
+    const uint64_t words = [&] {
+        uint64_t count = 0;
+        for (size_t i = 1 * CLASS_COUNT + 2; i < 2 * CLASS_COUNT; i++) {
+            count += seqCount[i];
+        }
+        return count;
+    }();
+
+    const uint64_t letterLetter = total - nonLetters - words;
+    // Accented/Accented pairs
+    const uint64_t accentedPair = [&] {
+        uint64_t count = 0;
+        for (size_t i = 4; i < CLASS_COUNT; i++) {
+            for (size_t j = 4; j < CLASS_COUNT; j++) {
+                count += seqCount[i * CLASS_COUNT + j];
+            }
+        }
+        return count;
+    }();
+    // ASCII/ASCII pairs
+    const uint64_t asciiPair = //
+        seqCount[2 * CLASS_COUNT + 2] + seqCount[2 * CLASS_COUNT + 3] + //
+        seqCount[3 * CLASS_COUNT + 2] + seqCount[3 * CLASS_COUNT + 3];
+    const uint64_t asciiAccented = letterLetter - accentedPair - asciiPair;
+
+    // clang-format off
+    return std::array{freq[0], freq[1], freq[2], freq[3], freq[4], freq[5], //
+        total, nonLetters, letters, words, accentedPair, asciiAccented};
+    // clang-format on
+}
+} // namespace <anonymous>
 
 nsLatin1Prober::nsLatin1Prober()
     : mLastCharClass(OTH)
@@ -80,28 +144,19 @@ nsLatin1Prober::nsLatin1Prober()
 
 nsProbingState nsLatin1Prober::HandleData(const char *aBuf, unsigned int aLen)
 {
-    char *newBuf1 = nullptr;
-    unsigned int newLen1 = 0;
+    std::span<const uint8_t> buf{reinterpret_cast<const uint8_t *>(aBuf), aLen};
+    auto lastCharClass = mLastCharClass;
 
-    if (!FilterWithEnglishLetters(aBuf, aLen, &newBuf1, newLen1)) {
-        newBuf1 = (char *)aBuf;
-        newLen1 = aLen;
-    }
-
-    for (unsigned int i = 0; i < newLen1; i++) {
-        const unsigned char charClass = Latin1_CharToClass[(unsigned char)newBuf1[i]];
-        const unsigned char freq = Latin1ClassModel[mLastCharClass * CLASS_NUM + charClass];
-        if (freq == 0) {
+    for (const auto c : buf) {
+        const uint8_t charClass = Latin1_CharToClass[c];
+        if (charClass == UDF) {
             mState = eNotMe;
             break;
         }
-        mFreqCounter[freq]++;
-        mLastCharClass = charClass;
+        mSeqCounter[lastCharClass * CLASS_COUNT + charClass]++;
+        lastCharClass = charClass;
     }
-
-    if (newBuf1 != aBuf) {
-        free(newBuf1);
-    }
+    mLastCharClass = lastCharClass;
 
     return mState;
 }
@@ -109,34 +164,70 @@ nsProbingState nsLatin1Prober::HandleData(const char *aBuf, unsigned int aLen)
 float nsLatin1Prober::GetConfidence(void)
 {
     if (mState == eNotMe) {
-        return 0.01f;
+        return 0.0f;
     }
 
-    float confidence;
-    const auto total = std::accumulate(mFreqCounter.begin(), mFreqCounter.end(), 0ul);
+    const auto frequencies = calculateFrequencies(mSeqCounter);
+    const auto total = frequencies[6];
 
     if (!total) {
-        confidence = 0.0f;
-    } else {
-        confidence = mFreqCounter[3] * 1.0f / total;
-        confidence -= mFreqCounter[1] * 20.0f / total;
+        return 0.0f;
     }
 
-    if (confidence < 0.0f) {
-        confidence = 0.0f;
-    }
+    /*
+     * Calculate confidence based on the information we have
+     * +/- Sufficient average word length
+     * +   Pairs of ASCII and codepoint >= 0x80, i.e. accented character
+     *     Other SBCS have pairs of ASCII (english words) and
+     *     pairs of codepoints >= 0x80
+     *     Most frequent codes in MBCS are also pairs of bytes >= 0x80.
+     * -   Unlikely pairs, e.g. lower case consonant followed by upper
+     *     case consonant. See Latin1ClassModel above.
+     * -   High normal to likely ratio
+     * -   High accented/accented to accented/unaccented ratio
+     *
+     * Adjust low counts for short inputs.
+     */
+    const auto letters = frequencies[8];
+    const auto words = frequencies[9];
+    // => 0.2 for short inputs, => 0 for avg. word length <= 1.2, => 1.0 for avg. word length >= 3.2
+    float confidence = std::clamp((letters + 7.0f) / (2.0f * words + 9.0f) - 0.6f, 0.0f, 1.0f);
 
-    // lower the confidence of latin1 so that other more accurate detector
-    // can take priority.
-    confidence *= 0.50f;
+    const auto unlikely = frequencies[1];
+    const auto normal = frequencies[2];
+    const auto likely = frequencies[3];
+    // 1.1 for only likely, 1.0 for 1/150 unlikely/likely, 0.0 for ~1/14 likely/unlikely
+    confidence *= (2.0f + likely * 1.1f) / (2.0f + likely + 15.0f * unlikely);
+    confidence = std::clamp(confidence, 0.0f, 1.0f);
+    // 1.0 for 2/5 normal/likely, 0.5 for 14/5 normal/likely
+    confidence *= (1.0f + likely * 1.2f) / (1.0f + likely + 0.5f * normal);
+    confidence = std::clamp(confidence, 0.0f, 1.0f);
 
-    return confidence;
+    const auto accentedPair = frequencies[10];
+    const auto asciiAccented = frequencies[11];
+    confidence *= (1.0f + 4.0f * asciiAccented) / (1.0f + accentedPair + 3.0f * asciiAccented);
+
+    return std::clamp(confidence, 0.0f, 1.0f);
 }
 
-#ifdef DEBUG_PROBE
-void nsLatin1Prober::DumpStatus()
+std::string nsLatin1Prober::StatusOutput(uint8_t /* indent */)
 {
-    printf(" Latin1Prober: %1.3f [%s]\r\n", GetConfidence(), GetCharSetName());
+    const auto freqCounter = calculateFrequencies(mSeqCounter);
+    return std::format( //
+        "{:1.3f} [{}] [{} {} {} {} {} {} | {}] [{} : {} : {} : {} : {}]",
+        GetConfidence(),
+        GetCharSetName(),
+        freqCounter[0],
+        freqCounter[1],
+        freqCounter[2],
+        freqCounter[3],
+        freqCounter[4],
+        freqCounter[5],
+        freqCounter[6], // total
+        freqCounter[7],
+        freqCounter[8],
+        freqCounter[9],
+        freqCounter[10],
+        freqCounter[11]);
 }
-#endif
 }

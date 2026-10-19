@@ -23,6 +23,7 @@ QQC2.StackView {
 
     readonly property alias mediaProxy: mediaProxy
     readonly property url modelImage: mediaProxy.modelImage
+    property bool forceImageAnimation: false
 
     /**
      * Stores pending image here to avoid the default image overriding the true image.
@@ -79,13 +80,14 @@ QQC2.StackView {
 
         if (mediaProxy.providerType == Wallpaper.Provider.Unknown) {
             console.error("The backend got an unknown wallpaper provider type. The wallpaper will now fall back to the default. Please check your wallpaper configuration!");
+            wallpaperInterface.loading = false;
             mediaProxy.useSingleImageDefaults();
             return;
         }
 
         doesSkipAnimation = view.currentItem == undefined || view.currentItem.sourceSize !== view.sourceSize || !!skipAnimation;
         const baseImage = createBackgroundComponent();
-        pendingImage = baseImage.createObject(view, {
+        const properties = {
             // Use mediaProxy instead of view because colorSchemeChanged needs immediately update the wallpaper
             "source": mediaProxy.modelImage,
             "fillMode": view.fillMode,
@@ -96,9 +98,16 @@ QQC2.StackView {
             "implicitWidth": view.width,
             "implicitHeight": view.height,
             "visible": false,
-        });
+        };
+        // Only pass forceImageAnimation for AnimatedImageComponent
+        if (mediaProxy.backgroundType === Wallpaper.BackgroundType.AnimatedImage) {
+            properties.forceImageAnimation = view.forceImageAnimation;
+        }
+        pendingImage = baseImage.createObject(view, properties);
+
         if (!pendingImage) {
             console.warn(baseImage.errorString());
+            wallpaperInterface.loading = false;
             return;
         }
 

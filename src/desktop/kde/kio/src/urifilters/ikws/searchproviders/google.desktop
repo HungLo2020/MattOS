@@ -3,6 +3,7 @@ Type=Service
 Icon=im-google
 Name=Google
 Name[af]=Google
+Name[am]=Google
 Name[ar]=جوجل
 Name[as]=Google
 Name[ast]=Google
@@ -62,6 +63,8 @@ Name[ml]=ഗൂഗിള്‍
 Name[mr]=गूगल
 Name[ms]=Google
 Name[my]=ဂူးဂယ်
+Name[nan_TW]=Google
+Name[nan_TW@latin]=Google
 Name[nb]=Google
 Name[nds]=Google.de
 Name[ne]=गुगल
@@ -92,7 +95,6 @@ Name[tg]=Google
 Name[th]=กูเกิล
 Name[tok]=ilo alasa Google
 Name[tr]=Google
-Name[ug]=Google
 Name[uk]=Google
 Name[uz]=Google
 Name[uz@cyrillic]=Google
@@ -103,6 +105,7 @@ Name[zh_CN]=Google
 Name[zh_TW]=Google
 Keys=g,gg,google
 Query=https://www.google.com/search?q=\\{@}&ie=UTF-8
+Query[am]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[ar]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[az]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[be]=https://www.google.com/search?q=\\{@}&ie=UTF-8
@@ -137,7 +140,7 @@ Query[id]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[ie]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[is]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[it]=https://www.google.com/search?q=\\{@}&ie=UTF-8
-Query[ja]=https://www.google.com/search?q=\\{@}&ie=UTF-8
+Query[ja]=https://www.google.com/search?q=\\{@}&ie=UTF-8&hl=ja
 Query[ka]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[kk]=http://www.google.com/search?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[ko]=https://www.google.com/search?q=\\{@}&ie=UTF-8
@@ -146,6 +149,8 @@ Query[lt]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[lv]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[mr]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[my]=https://www.google.com/search?q=\\{@}&ie=UTF-8
+Query[nan_TW]=https://www.google.com/search?q=\\{@}&ie=UTF-8
+Query[nan_TW@latin]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[nb]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[nds]=https://www.google.de/search?q=\\{@}&ie=UTF-8
 Query[nl]=https://www.google.com/search?q=\\{@}&ie=UTF-8
@@ -170,7 +175,6 @@ Query[tg]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[th]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[tok]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[tr]=https://www.google.com/search?q=\\{@}&ie=UTF-8
-Query[ug]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[uk]=https://www.google.com/search?q=\\{@}&ie=UTF-8
 Query[vi]=https://www.google.com.vn/search?gl=VN&q=\\{@}&ie=UTF-8
 Query[wa]=https://www.google.com/search?q=\\{@}&ie=UTF-8

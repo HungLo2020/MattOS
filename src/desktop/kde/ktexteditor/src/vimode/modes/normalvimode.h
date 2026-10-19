@@ -56,6 +56,7 @@ public:
     bool commandEnterVisualBlockMode();
     bool commandReselectVisual();
     bool commandToOtherEnd();
+    bool commandToOtherEndColumn();
 
     bool commandEnterReplaceMode();
 
@@ -141,6 +142,8 @@ public:
 
     bool commandAddToNumber();
     bool commandSubtractFromNumber();
+    bool commandAddToNumberCumulative();
+    bool commandSubtractFromNumberCumulative();
 
     bool commandPrependToBlock();
     bool commandAppendToBlock();
@@ -182,6 +185,7 @@ public:
     Range motionRight();
     Range motionDown();
     Range motionUp();
+    Range motionBackspace();
 
     Range motionPageDown();
     Range motionPageUp();
@@ -342,7 +346,6 @@ protected:
         AfterCurrentPosition
     };
     bool paste(NormalViMode::PasteLocation pasteLocation, bool isgPaste, bool isIndentedPaste);
-    static KTextEditor::Cursor cursorPosAtEndOfPaste(const KTextEditor::Cursor pasteLocation, const QString &pastedText);
 
     // set sticky column to a ridiculously high value so that the cursor will stick to EOL,
     // but only if it's a regular motion

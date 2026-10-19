@@ -13,6 +13,7 @@
 #include "qcocoamenu.h"
 #include "qcocoamenubar.h"
 #include "qcocoahelpers.h"
+#include "qcocoaintegration.h"
 
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qstandardpaths.h>
@@ -244,6 +245,8 @@ void QCocoaTheme::reset()
 
 void QCocoaTheme::handleSystemThemeChange()
 {
+    QMacAutoReleasePool pool;
+
     reset();
 
     updateColorScheme();
@@ -294,6 +297,8 @@ QPlatformSystemTrayIcon *QCocoaTheme::createPlatformSystemTrayIcon() const
 
 const QPalette *QCocoaTheme::palette(Palette type) const
 {
+    QMacAutoReleasePool pool;
+
     // Note: NSColor resolves its RGB values based on the current
     // drawing appearance, so we need to propagate the effective
     // appearance when (re)creating the palettes.
@@ -420,6 +425,7 @@ QPixmap QCocoaTheme::standardPixmap(StandardPixmap sp, const QSizeF &size) const
 
 QIcon QCocoaTheme::fileIcon(const QFileInfo &fileInfo, QPlatformTheme::IconOptions iconOptions) const
 {
+    QMacAutoReleasePool pool;
     return QIcon(new QAppleFileIconEngine(fileInfo, iconOptions));
 }
 
@@ -477,6 +483,8 @@ Qt::ColorScheme QCocoaTheme::colorScheme() const
 
 void QCocoaTheme::requestColorScheme(Qt::ColorScheme scheme)
 {
+    QMacAutoReleasePool pool;
+
     NSAppearance *appearance = nil;
     switch (scheme) {
     case Qt::ColorScheme::Dark:
@@ -516,6 +524,12 @@ Qt::ContrastPreference QCocoaTheme::contrastPreference() const
                                                                                   : Qt::ContrastPreference::NoPreference;
 }
 
+Qt::MotionPreference QCocoaTheme::motionPreference() const
+{
+    return NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion ? Qt::MotionPreference::ReducedMotion
+                                                                              : Qt::MotionPreference::NoPreference;
+}
+
 QString QCocoaTheme::standardButtonText(int button) const
 {
     return button == QPlatformDialogHelper::Discard ?
@@ -548,9 +562,10 @@ QPlatformMenuBar *QCocoaTheme::createPlatformMenuBar() const
     static bool haveMenubar = false;
     if (!haveMenubar) {
         haveMenubar = true;
-        QObject::connect(qGuiApp, SIGNAL(focusWindowChanged(QWindow*)),
-            QGuiApplicationPrivate::platformIntegration()->nativeInterface(),
-                SLOT(onAppFocusWindowChanged(QWindow*)));
+        QObject::connect(qGuiApp, &QGuiApplication::focusWindowChanged,
+            QCocoaIntegration::instance(), []{
+                QCocoaMenuBar::updateMenuBarImmediately();
+            });
     }
 
     auto *menuBar = new QCocoaMenuBar();

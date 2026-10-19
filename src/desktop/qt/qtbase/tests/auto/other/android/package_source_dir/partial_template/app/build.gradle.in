@@ -5,11 +5,11 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:9.0.0'
+        classpath 'com.android.tools.build:gradle:9.2.1'
     }
 }
 
-apply plugin: '@GRADLE_PLUGIN_TYPE@'
+apply plugin: 'com.android.application'
 
 dependencies {
     @GRADLE_DEPENDENCIES@
@@ -28,21 +28,13 @@ android {
 
     sourceSets {
         main {
-@SOURCE_SETS@
+            @SOURCE_SETS@
         }
-    }
-
-    tasks.withType(JavaCompile) {
-        options.incremental = true
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-    }
-
-    lintOptions {
-        abortOnError false
     }
 
     aaptOptions {

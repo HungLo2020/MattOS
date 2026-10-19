@@ -4,6 +4,7 @@
  *
  *   SPDX-License-Identifier: LGPL-2.0-or-later
  */
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
@@ -14,8 +15,6 @@ import org.kde.notification
 
 PlasmaComponents3.ItemDelegate {
     id: root
-
-    property alias slider: slider
 
     property bool isTlpInstalled
 
@@ -56,7 +55,7 @@ PlasmaComponents3.ItemDelegate {
     // type: typeof(profileData[])?
     readonly property var activeProfileData: activeProfileIndex !== -1 ? profileData[activeProfileIndex] : undefined
     // type: typeof(profileHolds)
-    readonly property var activeHolds: profileHolds.filter(hold => hold.Profile === activeProfile)
+    readonly property var activeHolds: profileHolds.filter(hold => hold.profile === activeProfile)
 
     signal activateProfileRequested(string profile)
 
@@ -104,11 +103,11 @@ PlasmaComponents3.ItemDelegate {
         PlasmaComponents3.Label {
             id: activeProfileLabel
             Layout.alignment: Qt.AlignRight
-            text: (root.profilesAvailable && activeProfileData)
-                ? activeProfileData.label 
+            text: (root.profilesAvailable && root.activeProfileData)
+                ? root.activeProfileData.label
                 : root.isTlpInstalled 
-                ? i18nc("Power profile", "Automatic") 
-                : i18nc("Power profile", "Not available") 
+                    ? i18nc("Power profile", "Automatic")
+                    : i18nc("Power profile", "Not available")
             textFormat: Text.PlainText
             enabled: root.profilesAvailable
         }
@@ -275,13 +274,17 @@ PlasmaComponents3.ItemDelegate {
             model: root.activeHolds
 
             InhibitionHint {
+                required property string name
+                required property string reason
+                required property string icon
+
                 Layout.columnSpan: grid.columns - 1
                 Layout.fillWidth: true
 
                 x: Kirigami.Units.smallSpacing
-                iconSource: modelData.Icon
+                iconSource: icon
                 text: i18nc("%1 is the name of the application, %2 is the reason provided by it for activating performance mode",
-                            "%1: %2", modelData.Name, modelData.Reason)
+                            "%1: %2", name, reason)
             }
         }
 

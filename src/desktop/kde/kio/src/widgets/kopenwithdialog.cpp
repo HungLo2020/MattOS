@@ -393,9 +393,10 @@ bool QTreeViewProxyFilter::filterAcceptsRow(int sourceRow, const QModelIndex &pa
         return false;
     }
 
-    // Match only on leaf nodes, using plain text, not regex
+    // Match only on leaf nodes; the pattern is pre-escaped
+    // so just do plain text matching
     return !sourceModel()->hasChildren(index) //
-        && index.data().toString().contains(filterRegularExpression().pattern(), Qt::CaseInsensitive);
+        && index.data().toString().contains(filterRegularExpression());
 }
 
 class KApplicationViewPrivate
@@ -726,6 +727,7 @@ void KOpenWithDialogPrivate::init(const QString &_text, const QString &_value)
     KApplicationModel *appModel = new KApplicationModel(proxyModel);
     proxyModel->setSourceModel(appModel);
     proxyModel->setFilterKeyColumn(0);
+    proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     proxyModel->setRecursiveFilteringEnabled(true);
     view->setModels(appModel, proxyModel);
     topLayout->addWidget(view);
@@ -810,7 +812,10 @@ void KOpenWithDialogPrivate::init(const QString &_text, const QString &_value)
     // edit->setText( _value );
     // The resize is what caused "can't click on items before clicking on Name header" in previous versions.
     // Probably due to the resizeEvent handler using width().
-    q->resize(q->minimumWidth(), 0.6 * q->screen()->availableGeometry().height());
+    const QRect available = q->screen()->availableGeometry();
+    const int shortSide = qMin(available.width(), available.height());
+    const int height = qMin(int(shortSide * 0.6), 600);
+    q->resize(qMax(q->minimumWidth(), 450), height);
     edit->setFocus();
     q->slotTextChanged();
 }
@@ -862,8 +867,8 @@ void KOpenWithDialog::slotTextChanged()
     }
     d->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!d->edit->text().isEmpty() || d->curService);
 
-    // escape() because we want plain text matching; the matching is case-insensitive,
-    // see QTreeViewProxyFilter::filterAcceptsRow()
+    // escape() because we want plain text matching, not regex features; case-insensitivity
+    // is set on the proxy model (see setFilterCaseSensitivity() call) and applies here too
     d->view->proxyModel()->setFilterRegularExpression(QRegularExpression::escape(d->edit->text()));
 
     // Expand all the nodes when the search string is 3 characters long

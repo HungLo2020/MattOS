@@ -60,6 +60,11 @@ FocusScope {
 
     property real fontSize: Kirigami.Theme.defaultFont.pointSize + 2
 
+    /*
+     * The item used to indicate the type of authentication required, e.g. a password or fingerprint icon.
+     */
+    property Item authenticationTypeItem: null
+
     default property alias _children: innerLayout.children
 
     signal userSelected()
@@ -98,6 +103,18 @@ FocusScope {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+
+        RowLayout {
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
+            Layout.fillHeight: false
+            Layout.topMargin: Kirigami.Units.largeSpacing
+            spacing: 0
+            visible: root.authenticationTypeItem !== null
+            children: [root.authenticationTypeItem]
+        }
+
         PlasmaComponents3.Label {
             id: notificationsLabel
             font.pointSize: root.fontSize

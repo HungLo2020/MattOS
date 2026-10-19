@@ -33,11 +33,8 @@
 
 static const Qt::TextInteractionFlags s_textFlags = Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse | Qt::LinksAccessibleByKeyboard;
 
-// TODO KF6 remove QObject inheritance again
-class KMessageDialogPrivate : public QObject
+class KMessageDialogPrivate
 {
-    Q_OBJECT
-
 public:
     explicit KMessageDialogPrivate(KMessageDialog::Type type, KMessageDialog *qq)
         : m_type(type)
@@ -164,8 +161,6 @@ KMessageDialog::KMessageDialog(KMessageDialog::Type type, const QString &text, Q
         setButtons(KStandardGuiItem::cont(), KGuiItem(), KStandardGuiItem::cancel());
     }
 
-    setNotifyEnabled(true);
-
     // If the dialog is rejected, e.g. by pressing Esc, done() signal connected to the button box
     // won't be emitted
     connect(this, &QDialog::rejected, this, [this]() {
@@ -207,10 +202,7 @@ KMessageDialog::KMessageDialog(KMessageDialog::Type type, const QString &text, W
     }
 }
 
-KMessageDialog::~KMessageDialog()
-{
-    removeEventFilter(d.get());
-}
+KMessageDialog::~KMessageDialog() = default;
 
 void KMessageDialog::setCaption(const QString &caption)
 {
@@ -498,5 +490,4 @@ void KMessageDialog::beep(Type type, const QString &text, QWidget *widget)
 #endif
 }
 
-#include "kmessagedialog.moc"
 #include "moc_kmessagedialog.cpp"

@@ -14,7 +14,7 @@ class QQuickItem;
 
 /*!
  * \qmltype ScenePosition
- * \inqmlmodule org.kde.kirigami
+ * \inqmlmodule org.kde.kirigami.primitives
  *
  * \brief An attached property that contains the information about the scene position of the item.
  *
@@ -34,17 +34,17 @@ class ScenePositionAttached : public QObject
     QML_NAMED_ELEMENT(ScenePosition)
     QML_UNCREATABLE("")
 
-    /*! \qmlattachedproperty double org.kde.kirigami::ScenePosition::x
+    /*!
+     * \qmlattachedproperty double ScenePosition::x
      *
      * The global scene X position
-     *
      */
     Q_PROPERTY(qreal x READ x NOTIFY xChanged FINAL)
 
-    /*! \qmlattachedproperty double org.kde.kirigami::ScenePosition::y
+    /*!
+     * \qmlattachedproperty double ScenePosition::y
      *
      * The global scene Y position
-     *
      */
     Q_PROPERTY(qreal y READ y NOTIFY yChanged FINAL)
 

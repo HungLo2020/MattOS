@@ -15,10 +15,10 @@
 // We mean it.
 //
 
+#include <QtSpatialAudio/qaudioengine.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtGui/qvectornd.h>
 #include <QtCore/private/qobject_p.h>
-#include <QtGui/qvectornd.h>
-#include <QtSpatialAudio/qaudioengine.h>
 
 #include <optional>
 
@@ -28,8 +28,11 @@ class ResonanceAudio;
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialSound;
-class QAmbientSound;
+namespace QSpatialAudioPrivate {
+class QSpatialAudioPlaybackState;
+} // namespace QSpatialAudioPrivate
+
+class QSpatialAudioSoundPrivate;
 class QAudioRoom;
 class QAudioListener;
 
@@ -47,7 +50,7 @@ public:
     ~QAudioEnginePrivate() override;
 
     int sampleRate() const { return m_sampleRate; }
-    static constexpr int framesPerBuffer = 128;
+    static constexpr QtMultimediaPrivate::NativePeriodFrames framesPerBuffer{ 128 };
 
     void setDistanceScale(float scale);
     float distanceScale() const;
@@ -59,9 +62,24 @@ public:
 
     // Listener position
     // if set to nullopt, no QAudioListener is registered
-    virtual void setListenerPosition(std::optional<QVector3D>);
+    void setListenerPosition(std::optional<QVector3D>);
     std::optional<QVector3D> listenerPosition() const { return m_position; }
     void setListenerRotation(const QQuaternion &);
+
+    // room effects
+    void setRoomEffectsEnabled(bool);
+    bool roomEffectsEnabled() const;
+
+    // output mode
+    virtual void setOutputMode(QAudioEngine::OutputMode);
+    QAudioEngine::OutputMode outputMode() const;
+
+    // rooms
+    void addRoom(QAudioRoom *);
+    void removeRoom(QAudioRoom *);
+    QAudioRoom *currentRoom() const;
+    void updateRooms();
+    virtual void updateRoomEffects() = 0;
 
     virtual void start() = 0;
     virtual void stop() = 0;
@@ -69,19 +87,11 @@ public:
     virtual bool isPaused() const = 0;
     virtual void setOutputDevice(const QAudioDevice &) = 0;
     virtual QAudioDevice outputDevice() const = 0;
-    virtual void setOutputMode(QAudioEngine::OutputMode) = 0;
-    virtual QAudioEngine::OutputMode outputMode() const = 0;
-    virtual void setRoomEffectsEnabled(bool) = 0;
-    virtual bool roomEffectsEnabled() const = 0;
 
-    virtual void addSpatialSound(QSpatialSound *) = 0;
-    virtual void removeSpatialSound(QSpatialSound *) = 0;
-    virtual void addStereoSound(QAmbientSound *) = 0;
-    virtual void removeStereoSound(QAmbientSound *) = 0;
-
-    virtual void addRoom(QAudioRoom *) = 0;
-    virtual void removeRoom(QAudioRoom *) = 0;
-    virtual QAudioRoom *currentRoom() const = 0;
+    virtual void addSound(QSpatialAudioSoundPrivate *) = 0;
+    virtual void removeSound(QSpatialAudioSoundPrivate *) = 0;
+    using SharedPlaybackState = std::shared_ptr<QSpatialAudioPrivate::QSpatialAudioPlaybackState>;
+    virtual void setSoundPlaybackData(QSpatialAudioSoundPrivate *, SharedPlaybackState) = 0;
 
 protected:
     struct SmallestRoomForListenerResult
@@ -101,9 +111,13 @@ private:
     float m_distanceScale = 0.01f;
 
     std::optional<QVector3D> m_position;
+    QAudioEngine::OutputMode m_outputMode = QAudioEngine::Surround;
+
+    std::vector<QAudioRoom *> rooms;
+    QAudioRoom *m_currentRoom = nullptr;
 
 public:
-    const std::unique_ptr<vraudio::ResonanceAudio> resonanceAudio;
+    const std::shared_ptr<vraudio::ResonanceAudio> resonanceAudio;
 };
 
 QT_END_NAMESPACE

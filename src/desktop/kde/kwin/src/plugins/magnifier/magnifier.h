@@ -11,6 +11,7 @@
 #pragma once
 
 #include "effect/effect.h"
+#include "effect/timeline.h"
 
 #include <memory>
 
@@ -27,12 +28,13 @@ class MagnifierEffect : public Effect
     Q_OBJECT
     Q_PROPERTY(QSize magnifierSize READ magnifierSize)
     Q_PROPERTY(qreal targetZoom READ targetZoom)
+
 public:
     MagnifierEffect();
     ~MagnifierEffect() override;
     void reconfigure(ReconfigureFlags) override;
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
+    void prePaintScreen(ScreenPrePaintData &data) override;
+    bool paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
     void postPaintScreen() override;
     bool isActive() const override;
     static bool supported();
@@ -52,8 +54,8 @@ private Q_SLOTS:
     void slotWindowDamaged();
 
 private:
-    QRect magnifierArea(QPointF pos = cursorPos()) const;
-    QRect visibleArea(QPointF pos = cursorPos()) const;
+    Rect magnifierArea(QPointF pos = cursorPos()) const;
+    Rect visibleArea(QPointF pos = cursorPos()) const;
     void setTargetZoom(double zoomFactor);
     void realtimeZoom(double delta);
 
@@ -67,7 +69,7 @@ private:
     Qt::KeyboardModifiers m_axisModifiers;
     std::unique_ptr<QAction> m_touchpadAction;
     double m_lastPinchProgress = 0;
-    std::chrono::milliseconds m_lastPresentTime;
+    AnimationClock m_clock;
     QSize m_magnifierSize;
     std::unique_ptr<GLTexture> m_texture;
     std::unique_ptr<GLFramebuffer> m_fbo;

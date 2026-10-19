@@ -14,14 +14,12 @@
 #include "wayland_server.h"
 #include "workspace.h"
 
-#include <KWayland/Client/keyboard.h>
 #include <KWayland/Client/pointer.h>
 #include <KWayland/Client/seat.h>
 #include <linux/input-event-codes.h>
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_buttonrebind-0");
 static const QString s_pluginName = QStringLiteral("buttonsrebind");
 
 class TestButtonRebind : public QObject
@@ -72,7 +70,7 @@ void TestButtonRebind::cleanup()
 void TestButtonRebind::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),
@@ -109,9 +107,9 @@ void TestButtonRebind::testKey()
     std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
     Test::renderAndWaitForShown(surface.get(), QSize(100, 50), Qt::blue);
 
-    std::unique_ptr<KWayland::Client::Keyboard> keyboard(Test::waylandSeat()->createKeyboard());
-    QSignalSpy enteredSpy(keyboard.get(), &KWayland::Client::Keyboard::entered);
-    QSignalSpy keyChangedSpy(keyboard.get(), &KWayland::Client::Keyboard::keyChanged);
+    std::unique_ptr<Test::WlKeyboard> keyboard(Test::kwinSeat()->getKeyboard());
+    QSignalSpy enteredSpy(keyboard.get(), &Test::WlKeyboard::enter);
+    QSignalSpy keyChangedSpy(keyboard.get(), &Test::WlKeyboard::key);
     QVERIFY(enteredSpy.wait());
 
     // 0x119 is Qt::ExtraButton7
@@ -121,8 +119,8 @@ void TestButtonRebind::testKey()
     QFETCH(QList<quint32>, expectedKeys);
     QCOMPARE(keyChangedSpy.count(), expectedKeys.count());
     for (int i = 0; i < keyChangedSpy.count(); i++) {
-        QCOMPARE(keyChangedSpy.at(i).at(0).value<quint32>(), expectedKeys.at(i));
-        QCOMPARE(keyChangedSpy.at(i).at(1).value<KWayland::Client::Keyboard::KeyState>(), KWayland::Client::Keyboard::KeyState::Pressed);
+        QCOMPARE(keyChangedSpy.at(i).at(2).value<quint32>(), expectedKeys.at(i));
+        QCOMPARE(keyChangedSpy.at(i).at(3).value<Test::WlKeyboard::key_state>(), Test::WlKeyboard::key_state::key_state_pressed);
     }
     Test::pointerButtonReleased(0x119, timestamp++);
 }
@@ -197,9 +195,9 @@ void TestButtonRebind::testMouseKeyboardMod()
     kwinApp()->pluginManager()->unloadPlugin(s_pluginName);
     kwinApp()->pluginManager()->loadPlugin(s_pluginName);
 
-    std::unique_ptr<KWayland::Client::Keyboard> keyboard(Test::waylandSeat()->createKeyboard());
-    QSignalSpy keyboardEnteredSpy(keyboard.get(), &KWayland::Client::Keyboard::entered);
-    QSignalSpy keyboardKeyChangedSpy(keyboard.get(), &KWayland::Client::Keyboard::keyChanged);
+    std::unique_ptr<Test::WlKeyboard> keyboard(Test::kwinSeat()->getKeyboard());
+    QSignalSpy keyboardEnteredSpy(keyboard.get(), &Test::WlKeyboard::enter);
+    QSignalSpy keyboardKeyChangedSpy(keyboard.get(), &Test::WlKeyboard::key);
 
     std::unique_ptr<KWayland::Client::Surface> surface = Test::createSurface();
     std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
@@ -224,8 +222,8 @@ void TestButtonRebind::testMouseKeyboardMod()
     QFETCH(QList<quint32>, expectedKeys);
     QCOMPARE(keyboardKeyChangedSpy.count(), expectedKeys.count());
     for (int i = 0; i < keyboardKeyChangedSpy.count(); i++) {
-        QCOMPARE(keyboardKeyChangedSpy.at(i).at(0).value<quint32>(), expectedKeys.at(i));
-        QCOMPARE(keyboardKeyChangedSpy.at(i).at(1).value<KWayland::Client::Keyboard::KeyState>(), KWayland::Client::Keyboard::KeyState::Pressed);
+        QCOMPARE(keyboardKeyChangedSpy.at(i).at(2).value<quint32>(), expectedKeys.at(i));
+        QCOMPARE(keyboardKeyChangedSpy.at(i).at(3).value<Test::WlKeyboard::key_state>(), Test::WlKeyboard::key_state::key_state_pressed);
     }
 
     // Then the mouse button is
@@ -282,16 +280,16 @@ void TestButtonRebind::testBindingTabletPad()
     std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
     Test::renderAndWaitForShown(surface.get(), QSize(100, 50), Qt::blue);
 
-    std::unique_ptr<KWayland::Client::Keyboard> keyboard(Test::waylandSeat()->createKeyboard());
-    QSignalSpy enteredSpy(keyboard.get(), &KWayland::Client::Keyboard::entered);
-    QSignalSpy keyChangedSpy(keyboard.get(), &KWayland::Client::Keyboard::keyChanged);
+    std::unique_ptr<Test::WlKeyboard> keyboard(Test::kwinSeat()->getKeyboard());
+    QSignalSpy enteredSpy(keyboard.get(), &Test::WlKeyboard::enter);
+    QSignalSpy keyChangedSpy(keyboard.get(), &Test::WlKeyboard::key);
     QVERIFY(enteredSpy.wait());
 
     Test::tabletPadButtonPressed(1, timestamp++);
 
     QVERIFY(keyChangedSpy.wait());
     QCOMPARE(keyChangedSpy.count(), 1);
-    QCOMPARE(keyChangedSpy.at(0).at(0), KEY_A);
+    QCOMPARE(keyChangedSpy.at(0).at(2), KEY_A);
 
     Test::tabletPadButtonReleased(1, timestamp++);
 }
@@ -316,8 +314,6 @@ void TestButtonRebind::testBindingTabletPadDialScroll()
 
     // twisting the dial "up"
     Test::tabletPadDialEvent(120.0, 0, timestamp++);
-
-    using KWayland::Client::Keyboard;
 
     QVERIFY(axisChangedSpy.wait());
     QCOMPARE(axisChangedSpy.count(), 1);
@@ -348,9 +344,9 @@ void TestButtonRebind::testBindingTabletPadDialKey()
     std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
     Test::renderAndWaitForShown(surface.get(), QSize(100, 50), Qt::blue);
 
-    std::unique_ptr<KWayland::Client::Keyboard> keyboard(Test::waylandSeat()->createKeyboard());
-    QSignalSpy enteredSpy(keyboard.get(), &KWayland::Client::Keyboard::entered);
-    QSignalSpy keyChangedSpy(keyboard.get(), &KWayland::Client::Keyboard::keyChanged);
+    std::unique_ptr<Test::WlKeyboard> keyboard(Test::kwinSeat()->getKeyboard());
+    QSignalSpy enteredSpy(keyboard.get(), &Test::WlKeyboard::enter);
+    QSignalSpy keyChangedSpy(keyboard.get(), &Test::WlKeyboard::key);
     QVERIFY(enteredSpy.wait());
 
     // twisting the dial "up"
@@ -358,7 +354,7 @@ void TestButtonRebind::testBindingTabletPadDialKey()
 
     QVERIFY(keyChangedSpy.wait());
     QCOMPARE(keyChangedSpy.count(), 2); // two events are reported because it emulates a press then release
-    QCOMPARE(keyChangedSpy.at(0).at(0), KEY_LEFTBRACE);
+    QCOMPARE(keyChangedSpy.at(0).at(2), KEY_LEFTBRACE);
 
     // twisting the dial "down"
     keyChangedSpy.clear();
@@ -366,7 +362,7 @@ void TestButtonRebind::testBindingTabletPadDialKey()
 
     QVERIFY(keyChangedSpy.wait());
     QCOMPARE(keyChangedSpy.count(), 2);
-    QCOMPARE(keyChangedSpy.at(0).at(0), KEY_RIGHTBRACE);
+    QCOMPARE(keyChangedSpy.at(0).at(2), KEY_RIGHTBRACE);
 }
 
 void TestButtonRebind::testBindingTabletRingKey()
@@ -385,9 +381,9 @@ void TestButtonRebind::testBindingTabletRingKey()
     std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
     Test::renderAndWaitForShown(surface.get(), QSize(100, 50), Qt::blue);
 
-    std::unique_ptr<KWayland::Client::Keyboard> keyboard(Test::waylandSeat()->createKeyboard());
-    QSignalSpy enteredSpy(keyboard.get(), &KWayland::Client::Keyboard::entered);
-    QSignalSpy keyChangedSpy(keyboard.get(), &KWayland::Client::Keyboard::keyChanged);
+    std::unique_ptr<Test::WlKeyboard> keyboard(Test::kwinSeat()->getKeyboard());
+    QSignalSpy enteredSpy(keyboard.get(), &Test::WlKeyboard::enter);
+    QSignalSpy keyChangedSpy(keyboard.get(), &Test::WlKeyboard::key);
     QVERIFY(enteredSpy.wait());
 
     // touching the dial "clockwise"
@@ -398,7 +394,7 @@ void TestButtonRebind::testBindingTabletRingKey()
 
     QVERIFY(keyChangedSpy.wait());
     QCOMPARE(keyChangedSpy.count(), 2); // two events are reported because it emulates a press then release
-    QCOMPARE(keyChangedSpy.at(0).at(0), KEY_LEFTBRACE);
+    QCOMPARE(keyChangedSpy.at(0).at(2), KEY_LEFTBRACE);
 
     // touching the dial "counter-clockwise"
     keyChangedSpy.clear();
@@ -409,7 +405,7 @@ void TestButtonRebind::testBindingTabletRingKey()
 
     QVERIFY(keyChangedSpy.wait());
     QCOMPARE(keyChangedSpy.count(), 2);
-    QCOMPARE(keyChangedSpy.at(0).at(0), KEY_RIGHTBRACE);
+    QCOMPARE(keyChangedSpy.at(0).at(2), KEY_RIGHTBRACE);
 }
 
 void TestButtonRebind::testBindingTabletTool()
@@ -427,9 +423,9 @@ void TestButtonRebind::testBindingTabletTool()
     std::unique_ptr<Test::XdgToplevel> shellSurface = Test::createXdgToplevelSurface(surface.get());
     auto window = Test::renderAndWaitForShown(surface.get(), QSize(100, 50), Qt::blue);
 
-    std::unique_ptr<KWayland::Client::Keyboard> keyboard(Test::waylandSeat()->createKeyboard());
-    QSignalSpy enteredSpy(keyboard.get(), &KWayland::Client::Keyboard::entered);
-    QSignalSpy keyChangedSpy(keyboard.get(), &KWayland::Client::Keyboard::keyChanged);
+    std::unique_ptr<Test::WlKeyboard> keyboard(Test::kwinSeat()->getKeyboard());
+    QSignalSpy enteredSpy(keyboard.get(), &Test::WlKeyboard::enter);
+    QSignalSpy keyChangedSpy(keyboard.get(), &Test::WlKeyboard::key);
     QVERIFY(enteredSpy.wait());
 
     const RectF startGeometry = window->frameGeometry();
@@ -439,7 +435,7 @@ void TestButtonRebind::testBindingTabletTool()
 
     QVERIFY(keyChangedSpy.wait());
     QCOMPARE(keyChangedSpy.count(), 1);
-    QCOMPARE(keyChangedSpy.at(0).at(0), KEY_A);
+    QCOMPARE(keyChangedSpy.at(0).at(2), KEY_A);
 
     Test::tabletToolButtonReleased(BTN_STYLUS, timestamp++);
 }
@@ -468,7 +464,7 @@ void TestButtonRebind::testMouseTabletCursorSync()
     QVERIFY(enteredSpy.wait());
 
     // Move the tablet cursor to (10,10)
-    Test::tabletToolProximityEvent(startGeometry.topLeft() + QPointF{10.f, 10.f}, 0, 0, 0, 0, false, 0, timestamp++);
+    Test::tabletToolProximityEvent(startGeometry.topLeft() + QPointF{10.f, 10.f}, 0, 0, 0, 0, true, 0, timestamp++);
 
     // Verify they are not starting in the same place
     QVERIFY(input()->pointer()->pos() != input()->tablet()->position());

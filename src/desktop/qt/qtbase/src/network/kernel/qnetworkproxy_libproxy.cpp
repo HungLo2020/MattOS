@@ -132,9 +132,8 @@ QList<QUrl> QLibProxyWrapper::getProxies(const QUrl &url)
     if (data.proxies) {
         for (int i = 0; data.proxies[i]; i++) {
             ret.append(QUrl::fromEncoded(data.proxies[i]));
-            free(data.proxies[i]);
         }
-        free(data.proxies);
+        px_proxy_factory_free_proxies(data.proxies);
     }
     return ret;
 }
@@ -194,7 +193,7 @@ QList<QNetworkProxy> QNetworkProxyFactory::systemProxyForQuery(const QNetworkPro
         const QString scheme = url.scheme();
         if (scheme == "http"_L1) {
             type = QNetworkProxy::HttpProxy;
-        } else if (scheme == "socks"_L1 || scheme == "socks5"_L1) {
+        } else if (scheme == "socks"_L1 || scheme == "socks5"_L1 || scheme == "socks5h"_L1) {
             type = QNetworkProxy::Socks5Proxy;
         } else if (scheme == "ftp"_L1) {
             type = QNetworkProxy::FtpCachingProxy;

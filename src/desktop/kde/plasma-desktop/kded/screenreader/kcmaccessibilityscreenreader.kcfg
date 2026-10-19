@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
+  <kcfgfile name="kaccessrc" />
+  <group name="ScreenReader">
+    <entry name="Enabled" key="Enabled" type="Bool">
+      <label>Enable Screen Reader</label>
+      <default>false</default>
+    </entry>
+    <entry name="SystemdManaged" key="SystemdManaged" type="Bool">
+      <label>Whether the screen reader service is managed by systemd. If true the Enabled key is ignored</label>
+      <default>false</default>
+    </entry>
+  </group>
+</kcfg>

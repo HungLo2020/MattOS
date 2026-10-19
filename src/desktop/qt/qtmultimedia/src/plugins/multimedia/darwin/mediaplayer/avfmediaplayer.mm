@@ -2,23 +2,27 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "avfmediaplayer_p.h"
-#include "avfvideorenderercontrol_p.h"
-#include <avfvideosink_p.h>
-#include <avfmetadata_p.h>
 
-#include "qaudiooutput.h"
-#include "private/qplatformaudiooutput_p.h"
+#include <avfvideosink_p.h>
+#include <common/avfmetadata_p.h>
+#include <mediaplayer/avfvideorenderercontrol_p.h>
+
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+#  include <QtMultimedia/private/qavaudiosessionmanager_p.h>
+#endif
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qmimedatabase.h>
-#include <QtCore/qpointer.h>
 #include <QtCore/qmath.h>
+#include <QtCore/qmimedatabase.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qpointer.h>
 #include <QtCore/qthread.h>
 #include <QtCore/private/qexpected_p.h>
 
-#include <mutex>
+#include <optional>
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -66,12 +70,6 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 - (void) dealloc;
 - (BOOL) resourceLoader:(AVAssetResourceLoader *)resourceLoader shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest;
 @end
-
-#ifdef Q_OS_IOS
-// Alas, no such thing as 'class variable', hence globals:
-static unsigned sessionActivationCount;
-static QMutex sessionMutex;
-#endif // Q_OS_IOS
 
 namespace {
 
@@ -131,6 +129,10 @@ struct GuardedPlatformPlayer
 };
 } // namespace
 
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+using ActivationToken = QtMultimediaPrivate::QAVAudioSessionManager::ActivationToken;
+#endif
+
 @implementation AVFMediaPlayerObserver {
 @private
     GuardedPlatformPlayer m_platformPlayer;
@@ -141,38 +143,12 @@ struct GuardedPlatformPlayer
     BOOL m_bufferIsLikelyToKeepUp;
     NSData *m_data;
     NSString *m_mimeType;
-#ifdef Q_OS_IOS
-    BOOL m_activated;
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+    std::optional<ActivationToken> m_sessionActivation;
 #endif
 }
 
 @synthesize m_player, m_playerItem, m_playerLayer;
-
-#ifdef Q_OS_IOS
-- (void)setSessionActive:(BOOL)active
-{
-    const QMutexLocker lock(&sessionMutex);
-    if (active) {
-        // Don't count the same player twice if already activated,
-        // unless it tried to deactivate first:
-        if (m_activated)
-            return;
-        if (!sessionActivationCount)
-            [AVAudioSession.sharedInstance setActive:YES error:nil];
-        ++sessionActivationCount;
-        m_activated = YES;
-    } else {
-        if (!sessionActivationCount || !m_activated) {
-            qWarning("Unbalanced audio session deactivation, ignoring.");
-            return;
-        }
-        --sessionActivationCount;
-        m_activated = NO;
-        if (!sessionActivationCount)
-            [AVAudioSession.sharedInstance setActive:NO error:nil];
-    }
-}
-#endif // Q_OS_IOS
 
 - (AVFMediaPlayerObserver *) initWithMediaPlayerSession:(AVFMediaPlayer *)session
 {
@@ -203,31 +179,26 @@ struct GuardedPlatformPlayer
 
         // use __block to avoid maintaining strong references on variables captured by the
         // following block callback
-#if defined(Q_OS_IOS)
-        BOOL isAccessing = [m_URL startAccessingSecurityScopedResource];
-#endif
+        __block BOOL isAccessing = [m_URL startAccessingSecurityScopedResource];
         __block AVURLAsset *asset = [[AVURLAsset URLAssetWithURL:m_URL options:nil] retain];
         [asset.resourceLoader setDelegate:self queue:dispatch_get_main_queue()];
 
-        __block NSArray *requestedKeys = [[NSArray arrayWithObjects:AVF_TRACKS_KEY, AVF_PLAYABLE_KEY, nil] retain];
+        __block NSArray *requestedKeys = [@[ AVF_TRACKS_KEY, AVF_PLAYABLE_KEY ] retain];
 
         __block AVFMediaPlayerObserver *blockSelf = [self retain];
 
         // Tells the asset to load the values of any of the specified keys that are not already loaded.
-        [asset loadValuesAsynchronouslyForKeys:requestedKeys completionHandler:
-         ^{
-             dispatch_async( dispatch_get_main_queue(),
-                           ^{
-#if defined(Q_OS_IOS)
-                                 if (isAccessing)
-                                    [m_URL stopAccessingSecurityScopedResource];
-#endif
-                                 [blockSelf prepareToPlayAsset:asset withKeys:requestedKeys];
-                                 [asset release];
-                                 [requestedKeys release];
-                                 [blockSelf release];
-                            });
-         }];
+        [asset loadValuesAsynchronouslyForKeys:requestedKeys
+                             completionHandler:^{
+                                 dispatch_async(dispatch_get_main_queue(), ^{
+                                     if (isAccessing)
+                                         [m_URL stopAccessingSecurityScopedResource];
+                                     [blockSelf prepareToPlayAsset:asset withKeys:requestedKeys];
+                                     [asset release];
+                                     [requestedKeys release];
+                                     [blockSelf release];
+                                 });
+                             }];
     }
 }
 
@@ -263,8 +234,8 @@ struct GuardedPlatformPlayer
     }
     if (m_playerLayer)
         m_playerLayer.player = nil;
-#if defined(Q_OS_IOS)
-    [self setSessionActive:NO];
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+    m_sessionActivation.reset();
 #endif
 }
 
@@ -273,6 +244,13 @@ struct GuardedPlatformPlayer
 {
     if (!m_platformPlayer)
         return;
+
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+    auto sessionActivation = QtMultimediaPrivate::QAVAudioSessionManager::instance()->activate({
+            false,
+            AVAudioSessionCategoryOptionMixWithOthers,
+    });
+#endif
 
     //Make sure that the value of each key has loaded successfully.
     for (NSString *thisKey in requestedKeys)
@@ -311,10 +289,10 @@ struct GuardedPlatformPlayer
         //Generate an error describing the failure.
         NSString *localizedDescription = NSLocalizedString(@"Item cannot be played", @"Item cannot be played description");
         NSString *localizedFailureReason = NSLocalizedString(@"The assets tracks were loaded, but couldn't create player item.", @"Item cannot be played failure reason");
-        NSDictionary *errorDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                localizedDescription, NSLocalizedDescriptionKey,
-                localizedFailureReason, NSLocalizedFailureReasonErrorKey,
-                nil];
+        NSDictionary *errorDict = @{
+            NSLocalizedDescriptionKey : localizedDescription,
+            NSLocalizedFailureReasonErrorKey : localizedFailureReason,
+        };
         NSError *assetCannotBePlayedError = [NSError errorWithDomain:@"StitchedStreamPlayer" code:0 userInfo:errorDict];
 
         [self assetFailedToPrepareForPlayback:assetCannotBePlayedError];
@@ -385,9 +363,8 @@ struct GuardedPlatformPlayer
                           forKeyPath:AVF_CURRENT_ITEM_DURATION_KEY
                           options:0
                           context:AVFMediaPlayerObserverCurrentItemDurationObservationContext];
-#if defined(Q_OS_IOS)
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
-    [self setSessionActive:YES];
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+    m_sessionActivation = std::move(sessionActivation);
 #endif
 }
 
@@ -566,7 +543,7 @@ struct GuardedPlatformPlayer
 
         if (loadingRequest.dataRequest) {
             NSInteger requestedLength = loadingRequest.dataRequest.requestedLength;
-            int maxBytes = qMin(32 * 1064, int(requestedLength));
+            int maxBytes = qMin(32 * 1024, int(requestedLength));
             QByteArray buffer;
             buffer.resize(maxBytes);
 
@@ -576,8 +553,7 @@ struct GuardedPlatformPlayer
                 if (len < 1)
                     break;
 
-                [loadingRequest.dataRequest respondWithData:[NSData dataWithBytes:buffer.constData()
-                                                                           length:len]];
+                [loadingRequest.dataRequest respondWithData:buffer.toNSData()];
                 submitted += len;
             }
 
@@ -1248,24 +1224,15 @@ void AVFMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type, int in
             AVAsset *asset = playerItem.asset;
             if (!asset)
                 return;
-#if defined(Q_OS_VISIONOS)
             [asset loadMediaSelectionGroupForMediaCharacteristic:AVMediaCharacteristicLegible
-                                               completionHandler:[=](AVMediaSelectionGroup *group, NSError *error) {
-                                                   // FIXME: handle error
-                                                   if (error)
-                                                       return;
-                                                   auto *options = group.options;
-                                                   if (options.count)
-                                                       [playerItem selectMediaOption:options.firstObject inMediaSelectionGroup:group];
-                                               }];
-#else
-            AVMediaSelectionGroup *group = [asset mediaSelectionGroupForMediaCharacteristic:AVMediaCharacteristicLegible];
-            if (!group)
-                return;
-            auto *options = group.options;
-            if (options.count)
-                [playerItem selectMediaOption:options.firstObject inMediaSelectionGroup:group];
-#endif
+                                               completionHandler:[=](AVMediaSelectionGroup *group,
+                                                                     NSError *error) {
+                if (error)
+                    return; // FIXME: handle error
+                auto *options = group.options;
+                if (options.count)
+                    [playerItem selectMediaOption:options.firstObject inMediaSelectionGroup:group];
+            }];
         }
     }
     for (int i = 0; i < t.count(); ++i)

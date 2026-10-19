@@ -23,8 +23,8 @@ using namespace Qt::StringLiterals;
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_DisableSessionManager);
+    QGuiApplication::setDesktopSettingsAware(false);
     QGuiApplication a(argc, argv);
-    a.setDesktopSettingsAware(false);
     a.setApplicationName(u"plasmasessionrestore"_s);
 
     SMServerSettings ksmserverSettings;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < count; i++) {
         const QString app = sessionGroup.readEntry(QStringLiteral("program%1").arg(QString::number(i + 1)), QString());
 
-        auto apps = KApplicationTrader::query([&app](const KService::Ptr &service) {
+        const auto apps = KApplicationTrader::query([&app](const KService::Ptr &service) {
             const QString binary = KIO::DesktopExecParser::executablePath(service->exec());
             return !service->noDisplay() && !binary.isEmpty() && app.endsWith(binary);
         });
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     // finally look through our list and do the actual launching
     for (const QString &groupName : config->groupList()) {
         const QString appId = config->group(groupName).readEntry("appId");
-        auto service = KService::serviceByMenuId(appId);
+        auto service = KService::serviceByStorageId(appId);
         if (!service || !service->isValid()) {
             qCDebug(FALLBACK_SESSION_RESTORE) << "skipping " << appId << "no service found.";
             continue;

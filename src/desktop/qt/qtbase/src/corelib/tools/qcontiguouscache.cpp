@@ -40,9 +40,9 @@ void QContiguousCacheData::freeData(QContiguousCacheData *data)
     \reentrant
     \since 4.6
 
-    The QContiguousCache class provides an efficient way of caching items for
-    display in a user interface view.  Unlike QCache, it adds a restriction
-    that elements within the cache are contiguous.  This has the advantage
+    The QContiguousCache class provides an efficient way of caching items
+    of type \a T for display in a user interface view. Unlike QCache, it
+    adds a restriction that elements within the cache are contiguous.  This has the advantage
     of matching how user interface views most commonly request data, as
     a set of rows localized around the current scrolled position.  This
     restriction allows the cache to consume less memory and processor

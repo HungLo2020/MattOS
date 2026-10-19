@@ -25,13 +25,10 @@
 #include <QTimer>
 #include <QUrl>
 
-#if HAVE_QTTEST
-#include <QAbstractItemModelTester>
-#endif
-
 #include <algorithm>
 #include <numeric>
 #include <optional>
+#include <utility>
 
 namespace TaskManager
 {
@@ -59,10 +56,8 @@ public:
     SortMode sortMode = SortAlpha;
     bool separateLaunchers = true;
     bool launchInPlace = false;
-    bool hideActivatedLaunchers = true;
     bool launchersEverSet = false;
     bool launcherSortingDirty = false;
-    bool launcherCheckNeeded = false;
     QList<int> sortedPreFilterRows;
     QList<int> sortRowInsertQueue;
     bool sortRowInsertQueueStale = false;
@@ -72,6 +67,8 @@ public:
 
     bool groupInline = false;
     int groupingWindowTasksThreshold = -1;
+    // A "stable" way to remember the active tasks without having to instantiate complex QPersistentModelIndex
+    QVariantList activeTaskWinIds;
 
     bool usedByQml = false;
     bool componentComplete = false;
@@ -82,12 +79,12 @@ public:
     void updateManualSortMap();
     void consolidateManualSortMapForGroup(const QModelIndex &groupingProxyIndex);
     void updateGroupInline();
+    void updateActiveTask();
     QModelIndex preFilterIndex(const QModelIndex &sourceIndex) const;
     void updateActivityTaskCounts();
     void forceResort();
     bool lessThan(const QModelIndex &left, const QModelIndex &right, bool sortOnlyLaunchers = false) const;
     std::optional<bool> lessThanByVirtualDesktop(const QModelIndex &left, const QModelIndex &right) const;
-    static void modelTest(QAbstractItemModel *model);
 
 private:
     TasksModel *const q;
@@ -129,11 +126,6 @@ TasksModel::Private::Private(TasksModel *q)
 TasksModel::Private::~Private()
 {
     --instanceCount;
-
-    if (!instanceCount) {
-        delete std::exchange(windowTasksModel, nullptr);
-        delete std::exchange(startupTasksModel, nullptr);
-    }
 }
 
 void TasksModel::Private::initModels()
@@ -147,11 +139,9 @@ void TasksModel::Private::initModels()
     //      -> TasksModel collapses (top-level) items into task lifecycle abstraction; sorts.
 
     concatProxyModel = new ConcatenateTasksProxyModel(q);
-    modelTest(concatProxyModel);
 
     if (!windowTasksModel) {
         windowTasksModel = new WindowTasksModel();
-        modelTest(windowTasksModel);
     }
 
     concatProxyModel->addSourceModel(windowTasksModel);
@@ -167,9 +157,6 @@ void TasksModel::Private::initModels()
             updateActivityTaskCounts();
             forceResort();
         }
-        // the active task may have potentially changed, so signal that so that users
-        // will recompute it
-        Q_EMIT q->activeTaskChanged();
     });
 
     QObject::connect(windowTasksModel,
@@ -181,10 +168,6 @@ void TasksModel::Private::initModels()
 
                          if (sortMode == SortActivity && roles.contains(AbstractTasksModel::Activities)) {
                              updateActivityTaskCounts();
-                         }
-
-                         if (roles.contains(AbstractTasksModel::IsActive)) {
-                             Q_EMIT q->activeTaskChanged();
                          }
 
                          // In manual sort mode, updateManualSortMap() may consult the sortRowInsertQueue
@@ -202,7 +185,6 @@ void TasksModel::Private::initModels()
 
     if (!startupTasksModel) {
         startupTasksModel = new StartupTasksModel();
-        modelTest(startupTasksModel);
     }
 
     concatProxyModel->addSourceModel(startupTasksModel);
@@ -274,14 +256,13 @@ void TasksModel::Private::initModels()
     });
 
     filterProxyModel = new TaskFilterProxyModel(q);
-    modelTest(filterProxyModel);
-
     filterProxyModel->setSourceModel(concatProxyModel);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::virtualDesktopChanged, q, &TasksModel::virtualDesktopChanged);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::screenGeometryChanged, q, &TasksModel::screenGeometryChanged);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::regionGeometryChanged, q, &TasksModel::regionGeometryChanged);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::activityChanged, q, &TasksModel::activityChanged);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::filterByVirtualDesktopChanged, q, &TasksModel::filterByVirtualDesktopChanged);
+    QObject::connect(filterProxyModel, &TaskFilterProxyModel::filterByCurrentVirtualDesktopChanged, q, &TasksModel::filterByCurrentVirtualDesktopChanged);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::filterByScreenChanged, q, &TasksModel::filterByScreenChanged);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::filterByActivityChanged, q, &TasksModel::filterByActivityChanged);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::filterByRegionChanged, q, &TasksModel::filterByRegionChanged);
@@ -289,10 +270,9 @@ void TasksModel::Private::initModels()
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::filterNotMinimizedChanged, q, &TasksModel::filterNotMinimizedChanged);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::filterNotMaximizedChanged, q, &TasksModel::filterNotMaximizedChanged);
     QObject::connect(filterProxyModel, &TaskFilterProxyModel::filterHiddenChanged, q, &TasksModel::filterHiddenChanged);
+    QObject::connect(filterProxyModel, &TaskFilterProxyModel::hideActivatedLaunchersChanged, q, &TasksModel::hideActivatedLaunchersChanged);
 
     groupingProxyModel = new TaskGroupingProxyModel(q);
-    modelTest(groupingProxyModel);
-
     groupingProxyModel->setSourceModel(filterProxyModel);
     QObject::connect(groupingProxyModel, &TaskGroupingProxyModel::groupModeChanged, q, &TasksModel::groupModeChanged);
     QObject::connect(groupingProxyModel, &TaskGroupingProxyModel::blacklistedAppIdsChanged, q, &TasksModel::groupingAppIdBlacklistChanged);
@@ -317,92 +297,18 @@ void TasksModel::Private::initModels()
             if (sourceIndex.data(AbstractTasksModel::IsDemandingAttention).toBool()) {
                 demandsAttentionUpdateNeeded = true;
             }
-
-            // When we get a window we have a startup for, cause the startup to be re-filtered.
-            if (sourceIndex.data(AbstractTasksModel::IsWindow).toBool()) {
-                const QString &appName = sourceIndex.data(AbstractTasksModel::AppName).toString();
-
-                for (int j = 0; j < filterProxyModel->rowCount(); ++j) {
-                    QModelIndex filterIndex = filterProxyModel->index(j, 0);
-
-                    if (!filterIndex.data(AbstractTasksModel::IsStartup).toBool()) {
-                        continue;
-                    }
-
-                    if ((!appId.isEmpty() && appId == filterIndex.data(AbstractTasksModel::AppId).toString())
-                        || (!appName.isEmpty() && appName == filterIndex.data(AbstractTasksModel::AppName).toString())) {
-                        Q_EMIT filterProxyModel->dataChanged(filterIndex, filterIndex);
-                    }
-                }
-            }
-
-            // When we get a window or startup we have a launcher for, cause the launcher to be re-filtered.
-            if (sourceIndex.data(AbstractTasksModel::IsWindow).toBool() || sourceIndex.data(AbstractTasksModel::IsStartup).toBool()) {
-                for (int j = 0; j < filterProxyModel->rowCount(); ++j) {
-                    const QModelIndex &filterIndex = filterProxyModel->index(j, 0);
-
-                    if (!filterIndex.data(AbstractTasksModel::IsLauncher).toBool()) {
-                        continue;
-                    }
-
-                    if (appsMatch(sourceIndex, filterIndex)) {
-                        Q_EMIT filterProxyModel->dataChanged(filterIndex, filterIndex);
-                    }
-                }
-            }
         }
+
+        // If there were launchers or startup tasks related to the new window,
+        // filter them out.
+        q->invalidateFilter();
 
         if (!anyTaskDemandsAttention && demandsAttentionUpdateNeeded) {
             updateAnyTaskDemandsAttention();
         }
     });
 
-    QObject::connect(groupingProxyModel, &QAbstractItemModel::rowsAboutToBeRemoved, q, [this](const QModelIndex &parent, int first, int last) {
-        // We can ignore group members.
-        if (parent.isValid()) {
-            return;
-        }
-
-        for (int i = first; i <= last; ++i) {
-            const QModelIndex &sourceIndex = groupingProxyModel->index(i, 0);
-
-            // When a window or startup task is removed, we have to trigger a re-filter of
-            // our launchers to (possibly) pop them back in.
-            // NOTE: An older revision of this code compared the window and startup tasks
-            // to the launchers to figure out which launchers should be re-filtered. This
-            // was fine until we discovered that certain applications (e.g. Google Chrome)
-            // change their window metadata specifically during tear-down, sometimes
-            // breaking TaskTools::appsMatch (it's a race) and causing the associated
-            // launcher to remain hidden. Therefore we now consider any top-level window or
-            // startup task removal a trigger to re-filter all launchers. We don't do this
-            // in response to the window metadata changes (even though it would be strictly
-            // more correct, as then-ending identity match-up was what caused the launcher
-            // to be hidden) because we don't want the launcher and window/startup task to
-            // briefly co-exist in the model.
-            if (!launcherCheckNeeded && launcherTasksModel
-                && (sourceIndex.data(AbstractTasksModel::IsWindow).toBool() || sourceIndex.data(AbstractTasksModel::IsStartup).toBool())) {
-                launcherCheckNeeded = true;
-            }
-        }
-    });
-
-    QObject::connect(filterProxyModel, &QAbstractItemModel::rowsRemoved, q, [this](const QModelIndex &parent, int first, int last) {
-        Q_UNUSED(parent)
-        Q_UNUSED(first)
-        Q_UNUSED(last)
-
-        if (launcherCheckNeeded) {
-            for (int i = 0; i < filterProxyModel->rowCount(); ++i) {
-                const QModelIndex &idx = filterProxyModel->index(i, 0);
-
-                if (idx.data(AbstractTasksModel::IsLauncher).toBool()) {
-                    Q_EMIT filterProxyModel->dataChanged(idx, idx);
-                }
-            }
-
-            launcherCheckNeeded = false;
-        }
-
+    QObject::connect(filterProxyModel, &QAbstractItemModel::rowsRemoved, q, [this]() {
         // One of the removed tasks might have been demanding attention, but
         // we can't check the state after the window has been closed already,
         // so we always have to do a full update.
@@ -427,27 +333,6 @@ void TasksModel::Private::initModels()
                              updateAnyTaskDemandsAttention();
                          }
 
-                         if (roles.isEmpty() || roles.contains(AbstractTasksModel::AppId)) {
-                             for (int i = topLeft.row(); i <= bottomRight.row(); ++i) {
-                                 const QModelIndex &sourceIndex = groupingProxyModel->index(i, 0);
-
-                                 // When a window task changes identity to one we have a launcher for, cause
-                                 // the launcher to be re-filtered.
-                                 if (sourceIndex.data(AbstractTasksModel::IsWindow).toBool()) {
-                                     for (int i = 0; i < filterProxyModel->rowCount(); ++i) {
-                                         const QModelIndex &filterIndex = filterProxyModel->index(i, 0);
-
-                                         if (!filterIndex.data(AbstractTasksModel::IsLauncher).toBool()) {
-                                             continue;
-                                         }
-
-                                         if (appsMatch(sourceIndex, filterIndex)) {
-                                             Q_EMIT filterProxyModel->dataChanged(filterIndex, filterIndex);
-                                         }
-                                     }
-                                 }
-                             }
-                         }
                      });
 
     // Update anyTaskDemandsAttention on source model resets.
@@ -725,7 +610,21 @@ void TasksModel::Private::updateGroupInline()
         QObject::connect(q, &QAbstractItemModel::rowsInserted, q, &TasksModel::countChanged, Qt::UniqueConnection);
         QObject::connect(q, &QAbstractItemModel::rowsRemoved, q, &TasksModel::countChanged, Qt::UniqueConnection);
         QObject::connect(q, &QAbstractItemModel::modelReset, q, &TasksModel::countChanged, Qt::UniqueConnection);
+
+        activeTaskWinIds = q->activeTask().data(AbstractTasksModel::WinIdList).toList();
     }
+}
+
+void TasksModel::Private::updateActiveTask()
+{
+    const QVariantList currentActiveTaskWinIds = q->activeTask().data(AbstractTasksModel::WinIdList).toList();
+
+    if (activeTaskWinIds == currentActiveTaskWinIds) {
+        return;
+    }
+
+    activeTaskWinIds = currentActiveTaskWinIds;
+    Q_EMIT q->activeTaskChanged();
 }
 
 QModelIndex TasksModel::Private::preFilterIndex(const QModelIndex &sourceIndex) const
@@ -885,6 +784,16 @@ bool TasksModel::Private::lessThan(const QModelIndex &left, const QModelIndex &r
     }
 
     case SortWindowPositionHorizontal: {
+        const bool leftIsStartup = left.data(AbstractTasksModel::IsStartup).toBool();
+        const bool rightIsStartup = right.data(AbstractTasksModel::IsStartup).toBool();
+
+        if (leftIsStartup && rightIsStartup) {
+            return (left.row() < right.row());
+        } else if (leftIsStartup && !rightIsStartup) {
+            return false;
+        } else if (!leftIsStartup && rightIsStartup) {
+            return true;
+        }
 
         if (auto result = lessThanByVirtualDesktop(left, right)) {
             return *result;
@@ -1014,15 +923,6 @@ bool TasksModel::Private::lessThan(const QModelIndex &left, const QModelIndex &r
     }
 }
 
-void TasksModel::TasksModel::Private::modelTest(QAbstractItemModel *model)
-{
-#if HAVE_QTTEST
-    new QAbstractItemModelTester(model, model);
-#else
-    Q_UNUSED(model);
-#endif
-}
-
 TasksModel::TasksModel(QObject *parent)
     : QSortFilterProxyModel(parent)
     , d(new Private(this))
@@ -1045,9 +945,36 @@ TasksModel::TasksModel(QObject *parent)
     QTimer::singleShot(0, this, [this]() {
         d->updateGroupInline();
     });
+
+    QObject::connect(this, &QAbstractItemModel::dataChanged, this, [this](const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles) {
+        Q_UNUSED(topLeft)
+        Q_UNUSED(bottomRight)
+
+        if (roles.contains(AbstractTasksModel::IsActive)) {
+            d->updateActiveTask();
+        }
+    });
+    connect(this, &TasksModel::countChanged, this, [this]() {
+        d->updateActiveTask();
+    });
+    connect(this, &TasksModel::layoutChanged, this, [this]() {
+        d->updateActiveTask();
+    });
 }
 
-TasksModel::~TasksModel() = default;
+TasksModel::~TasksModel()
+{
+    // Private::~Private() decrements instanceCount after this destructor body,
+    // so one means this is the last TasksModel instance.
+    if (Private::instanceCount == 1) {
+        // removeSourceModel() emits signals that access d. libc++ clears a unique_ptr
+        // before invoking its deleter, so cleanup must happen before d begins destruction.
+        d->concatProxyModel->removeSourceModel(Private::windowTasksModel);
+        d->concatProxyModel->removeSourceModel(Private::startupTasksModel);
+        delete std::exchange(Private::windowTasksModel, nullptr);
+        delete std::exchange(Private::startupTasksModel, nullptr);
+    }
+}
 
 QHash<int, QByteArray> TasksModel::roleNames() const
 {
@@ -1112,6 +1039,7 @@ void TasksModel::updateLauncherCount()
     if (d->launcherCount != count) {
         d->launcherCount = count;
         Q_EMIT launcherCountChanged();
+        Q_EMIT countChanged();
     }
 }
 
@@ -1173,6 +1101,16 @@ bool TasksModel::filterByVirtualDesktop() const
 void TasksModel::setFilterByVirtualDesktop(bool filter)
 {
     d->filterProxyModel->setFilterByVirtualDesktop(filter);
+}
+
+bool TasksModel::filterByCurrentVirtualDesktop() const
+{
+    return d->filterProxyModel->filterByCurrentVirtualDesktop();
+}
+
+void TasksModel::setFilterByCurrentVirtualDesktop(bool filter)
+{
+    d->filterProxyModel->setFilterByCurrentVirtualDesktop(filter);
 }
 
 bool TasksModel::filterByScreen() const
@@ -1335,19 +1273,15 @@ TasksModel::GroupMode TasksModel::groupMode() const
 
 bool TasksModel::hideActivatedLaunchers() const
 {
-    return d->hideActivatedLaunchers;
+    return d->filterProxyModel->hideActivatedLaunchers();
 }
 
 void TasksModel::setHideActivatedLaunchers(bool hideActivatedLaunchers)
 {
-    if (d->hideActivatedLaunchers != hideActivatedLaunchers) {
-        d->hideActivatedLaunchers = hideActivatedLaunchers;
-
+    if (d->filterProxyModel->hideActivatedLaunchers() != hideActivatedLaunchers) {
         d->updateManualSortMap();
-        invalidateFilter();
+        d->filterProxyModel->setHideActivatedLaunchers(hideActivatedLaunchers);
         d->forceResort();
-
-        Q_EMIT hideActivatedLaunchersChanged();
     }
 }
 
@@ -1621,13 +1555,6 @@ void TasksModel::requestToggleFullScreen(const QModelIndex &index)
 {
     if (index.isValid() && index.model() == this) {
         d->abstractTasksSourceModel->requestToggleFullScreen(mapToSource(index));
-    }
-}
-
-void TasksModel::requestToggleShaded(const QModelIndex &index)
-{
-    if (index.isValid() && index.model() == this) {
-        d->abstractTasksSourceModel->requestToggleShaded(mapToSource(index));
     }
 }
 
@@ -2071,22 +1998,6 @@ bool TasksModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent
 
             if ((!appId.isEmpty() && appId == filterIndex.data(AbstractTasksModel::AppId).toString())
                 || (!appName.isEmpty() && appName == filterIndex.data(AbstractTasksModel::AppName).toString())) {
-                return false;
-            }
-        }
-    }
-
-    // Filter launcher tasks we already have a startup or window task for (that
-    // got through filtering).
-    if (d->hideActivatedLaunchers && sourceIndex.data(AbstractTasksModel::IsLauncher).toBool()) {
-        for (int i = 0; i < d->filterProxyModel->rowCount(); ++i) {
-            const QModelIndex &filteredIndex = d->filterProxyModel->index(i, 0);
-
-            if (!filteredIndex.data(AbstractTasksModel::IsWindow).toBool() && !filteredIndex.data(AbstractTasksModel::IsStartup).toBool()) {
-                continue;
-            }
-
-            if (appsMatch(sourceIndex, filteredIndex)) {
                 return false;
             }
         }

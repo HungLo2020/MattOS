@@ -34,7 +34,7 @@
                 <function name="obsoleteMember" fullname="TestQDoc::Test::obsoleteMember" href="testqdoc-test-obsolete.html#obsoleteMember" status="deprecated" access="public" location="testcpp.h" documented="true" meta="plain" type="void" signature="void obsoleteMember()"/>
                 <function name="operator++" fullname="TestQDoc::Test::operator++" href="testqdoc-test-obsolete.html#operator-2b-2b" status="deprecated" access="public" location="testcpp.h" documented="true" meta="plain" type="TestQDoc::Test &amp;" signature="TestQDoc::Test &amp; operator++()"/>
                 <function name="operator--" fullname="TestQDoc::Test::operator--" href="testqdoc-test-obsolete.html#operator--" status="deprecated" access="public" location="testcpp.h" documented="true" meta="plain" type="TestQDoc::Test &amp;" signature="TestQDoc::Test &amp; operator--()"/>
-                <function name="operator==" href="testqdoc-test.html#operator-eq-eq" status="active" access="public" location="testcpp.h" documented="true" related="3" meta="plain" type="bool" signature="bool operator==(const TestQDoc::Test &amp;lhs, const TestQDoc::Test &amp;rhs)">
+                <function name="operator==" href="testqdoc-test.html#operator-eq-eq" status="active" access="public" location="testcpp.h" documented="true" related="3" meta="plain" hidden-friend="true" type="bool" signature="bool operator==(const TestQDoc::Test &amp;lhs, const TestQDoc::Test &amp;rhs)">
                     <parameter type="const TestQDoc::Test &amp;" name="lhs" default=""/>
                     <parameter type="const TestQDoc::Test &amp;" name="rhs" default=""/>
                 </function>
@@ -67,6 +67,9 @@
         <class name="Bar" href="bar.html" status="active" access="public" location="testtemplate.h" since="2.0" documented="true" module="TestCPP" brief="Another class template"/>
         <class name="DontLinkToMe" href="dontlinktome.html" status="ignored" access="public" location="testcpp.h" since="2.0" documented="true" module="TestCPP" brief="Class that does not generate documentation"/>
         <class name="Foo" href="foo.html" status="active" access="public" location="testtemplate.h" since="2.0" documented="true" module="TestCPP" brief="Class template"/>
+        <class name="Outer" href="outer.html" status="active" access="public" location="testtemplate.h" since="2.0" documented="true" module="TestCPP" brief="Template for testing nested template parameter visibility">
+            <class name="Inner" fullname="Outer::Inner" href="outer-inner.html" status="active" access="public" location="testtemplate.h" since="2.0" documented="true" module="TestCPP" brief="Nested class template inside Outer"/>
+        </class>
         <struct name="Baz" href="baz.html" status="active" access="public" location="testtemplate.h" since="2.0" documented="true" module="TestCPP" brief="Class template template"/>
         <page name="autolinking.html" href="autolinking.html" status="active" location="classlists.qdoc" documented="true" subtype="page" title="Autolinking" fulltitle="Autolinking" subtitle="">
             <contents name="testqdoc" title="TestQDoc" level="1"/>
@@ -78,7 +81,7 @@
         </page>
         <page name="https://doc.qt.io/qt/17-qdoc-commands-thread.html#reentrant-command" href="https://doc.qt.io/qt/17-qdoc-commands-thread.html#reentrant-command" status="active" location="classlists.qdoc" documented="true" subtype="externalpage" title="reentrant" fulltitle="reentrant" subtitle=""/>
         <group name="cpptypes" href="cpptypes.html" status="active" location="classlists.qdoc" documented="true" seen="true" title="Test C++ Types"/>
-        <group name="testgroup" href="testgroup.html" status="internal" seen="false" title=""/>
+        <group name="testgroup" href="testgroup.html" status="internal-auto" seen="false" title=""/>
         <module name="TestCPP" href="testcpp-module.html" status="active" since="2.0" documented="true" seen="true" title="QDoc Test C++ Classes" brief="A test module page">
             <contents name="linking-to-function-like-things" title="Linking to function-like things" level="1"/>
             <contents name="section" title="section()" level="2"/>

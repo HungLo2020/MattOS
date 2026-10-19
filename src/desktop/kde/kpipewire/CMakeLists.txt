@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 project(KPipewire)
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 string(REPLACE "." ";" VERSION_LIST ${PROJECT_VERSION})
 list(GET VERSION_LIST 0 PROJECT_VERSION_MAJOR)
 list(GET VERSION_LIST 1 PROJECT_VERSION_MINOR)
 list(GET VERSION_LIST 2 PROJECT_VERSION_PATCH)
 
-set(KF6_MIN_VERSION "6.22.0")
+set(KF6_MIN_VERSION "6.30.0")
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 include(KDEInstallDirs)
@@ -19,9 +19,7 @@ include(ECMDeprecationSettings)
 
 find_package(Qt6 REQUIRED COMPONENTS DBus OpenGL Quick)
 
-if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
+find_package(Qt6GuiPrivate REQUIRED NO_MODULE)
 
 find_package(KF6 REQUIRED COMPONENTS I18n CoreAddons)
 
@@ -54,14 +52,16 @@ add_definitions(-DMESA_EGL_NO_X11_HEADERS)
 add_definitions(-DEGL_NO_X11)
 add_definitions(-DEGL_NO_PLATFORM_SPECIFIC_TYPES)
 
-ecm_set_disabled_deprecation_versions(QT 6.9.0
-   KF 6.16.0
+ecm_set_disabled_deprecation_versions(QT 6.11.0
+   KF 6.23.0
 )
 
 if (BUILD_TESTING)
    find_package(PlasmaWaylandProtocols REQUIRED)
    include(ECMAddTests)
    find_package(Qt6 REQUIRED COMPONENTS Test QuickTest)
+
+   add_subdirectory(autotests)
    add_subdirectory(tests)
 endif()
 add_subdirectory(src)

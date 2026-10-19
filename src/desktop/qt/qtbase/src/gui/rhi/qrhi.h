@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QRHI_H
 #define QRHI_H
@@ -643,6 +644,9 @@ public:
     QRhiTexture *depthTexture() const { return m_depthTexture; }
     void setDepthTexture(QRhiTexture *texture) { m_depthTexture = texture; }
 
+    int depthLayer() const { return m_depthLayer; }
+    void setDepthLayer(int depthLayer) { m_depthLayer = depthLayer; }
+
     QRhiTexture *depthResolveTexture() const { return m_depthResolveTexture; }
     void setDepthResolveTexture(QRhiTexture *tex) { m_depthResolveTexture = tex; }
 
@@ -655,6 +659,7 @@ private:
     QRhiTexture *m_depthTexture = nullptr;
     QRhiTexture *m_depthResolveTexture = nullptr;
     QRhiShadingRateMap *m_shadingRateMap = nullptr;
+    int m_depthLayer = -1;
 };
 
 class Q_GUI_EXPORT QRhiTextureSubresourceUploadDescription
@@ -865,7 +870,8 @@ public:
         VertexBuffer = 1 << 0,
         IndexBuffer = 1 << 1,
         UniformBuffer = 1 << 2,
-        StorageBuffer = 1 << 3
+        StorageBuffer = 1 << 3,
+        IndirectBuffer = 1 << 4,
     };
     Q_DECLARE_FLAGS(UsageFlags, UsageFlag)
 
@@ -1313,7 +1319,8 @@ public:
         UsesStencilRef = 1 << 1,
         UsesScissor = 1 << 2,
         CompileShadersWithDebugInfo = 1 << 3,
-        UsesShadingRate = 1 << 4
+        UsesShadingRate = 1 << 4,
+        UsesIndirectDraws = 1 << 5
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
@@ -1695,6 +1702,27 @@ protected:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QRhiComputePipeline::Flags)
 
+struct QRhiIndirectDrawCommand
+{
+    quint32 vertexCount;
+    quint32 instanceCount = 1;
+    quint32 firstVertex = 0;
+    quint32 firstInstance = 0;
+};
+
+struct QRhiIndexedIndirectDrawCommand
+{
+    quint32 indexCount;
+    quint32 instanceCount = 1;
+    quint32 firstIndex = 0;
+    qint32  vertexOffset = 0;
+    quint32 firstInstance = 0;
+};
+
+// Check that the compiler isn't doing anything nasty.
+static_assert(sizeof(QRhiIndirectDrawCommand) == 16);
+static_assert(sizeof(QRhiIndexedIndirectDrawCommand) == 20);
+
 class Q_GUI_EXPORT QRhiCommandBuffer : public QRhiResource
 {
 public:
@@ -1746,6 +1774,16 @@ public:
                      quint32 firstIndex = 0,
                      qint32 vertexOffset = 0,
                      quint32 firstInstance = 0);
+
+    void drawIndirect(QRhiBuffer *indirectBuffer,
+                      quint32 indirectBufferOffset,
+                      quint32 drawCount,
+                      quint32 stride = sizeof(QRhiIndirectDrawCommand));
+
+    void drawIndexedIndirect(QRhiBuffer *indirectBuffer,
+                             quint32 indirectBufferOffset,
+                             quint32 drawCount,
+                             quint32 stride = sizeof(QRhiIndexedIndirectDrawCommand));
 
     void debugMarkBegin(const QByteArray &name);
     void debugMarkEnd();
@@ -1937,7 +1975,10 @@ public:
         PerRenderTargetBlending,
         SampleVariables,
         InstanceIndexIncludesBaseInstance,
-        DepthClamp
+        DepthClamp,
+        DrawIndirect,
+        DrawIndirectMulti,
+        ShaderDrawParameters,
     };
 
     enum BeginFrameFlag {

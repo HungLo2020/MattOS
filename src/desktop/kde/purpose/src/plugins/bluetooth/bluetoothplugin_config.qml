@@ -48,11 +48,21 @@ ColumnLayout {
 
             delegate: ItemDelegate {
                 width: ListView.view.width
-                text: Name
+                //TODO (Qt6.12): Use Qt.escapeHtml()
+                text: escapeHtml(Name)
                 icon.name: Icon
                 onClicked: root.device = Ubi
                 checked: root.device === Ubi
                 highlighted: root.device === Ubi
+
+                function escapeHtml(value) {
+                    return String(value)
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#39;");
+                }
             }
 
             Kirigami.PlaceholderMessage {

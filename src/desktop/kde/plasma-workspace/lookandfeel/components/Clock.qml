@@ -26,7 +26,8 @@ ColumnLayout {
         font.weight: Font.DemiBold
         font.letterSpacing: -3.0
         font.wordSpacing: 3.0
-        renderType: Text.CurveRendering // looks better than QtTextRendering at large sizes
+        font.features: { "tnum": 1 }
+        renderType: Text.NativeRendering // looks better than QtTextRendering at large size, while CurveRendering suffers from jagged diagonals with some fonts (QTBUG-146898)
         Layout.alignment: Qt.AlignHCenter
     }
     PlasmaComponents3.Label {
@@ -35,7 +36,7 @@ ColumnLayout {
         style: root.softwareRendering ? Text.Outline : Text.Normal
         styleColor: root.softwareRendering ? Kirigami.Theme.backgroundColor : "transparent" //no outline, doesn't matter
         font.pointSize: Math.round(Kirigami.Theme.defaultFont.pointSize * 2.4)
-        renderType: Text.CurveRendering // looks better than QtTextRendering at large sizes
+        renderType: Text.NativeRendering // looks better than QtTextRendering at large sizes, while CurveRendering suffers from jagged diagonals with some fonts (QTBUG-146898)
         Layout.alignment: Qt.AlignHCenter
     }
 

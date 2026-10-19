@@ -59,6 +59,11 @@ Q_MULTIMEDIA_EXPORT QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef
 
 [[nodiscard]] Q_MULTIMEDIA_EXPORT std::chrono::microseconds CMTimeToMicroseconds(const CMTime &);
 
+#if defined(Q_OS_MACOS)
+[[nodiscard]] Q_MULTIMEDIA_EXPORT bool checkMacOsScreenCapturePermissions();
+Q_MULTIMEDIA_EXPORT void requestMacOsScreenCapturePermissions();
+#endif
+
 };
 
 QT_END_NAMESPACE

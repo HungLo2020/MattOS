@@ -6,18 +6,6 @@ if(BUILD_TESTING)
    add_subdirectory(autotests)
 endif()
 
-if(HAVE_X11)
-    set(HAVE_XCURSOR TRUE)
-endif()
-
-if(Breeze_FOUND)
-    if(BREEZE_WITH_KDECORATION)
-        set(HAVE_BREEZE_DECO TRUE)
-    endif()
-endif()
-
-configure_file(config-klookandfeel.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-klookandfeel.h)
-
 add_library(klookandfeel)
 add_library(PW::KLookAndFeel ALIAS klookandfeel)
 
@@ -53,16 +41,7 @@ target_link_libraries(klookandfeel
         KF6::I18n
         KF6::IconThemes
         KF6::KIOGui
-        krdb
 )
-
-if (HAVE_X11)
-    target_sources(klookandfeel PRIVATE
-        ../kcms/cursortheme/xcursor/cursortheme.cpp
-        ../kcms/cursortheme/xcursor/xcursortheme.cpp
-    )
-   target_link_libraries(klookandfeel PRIVATE KF6::WindowSystem X11::Xcursor X11::Xfixes)
-endif ()
 
 target_include_directories(klookandfeel
     PUBLIC
@@ -70,6 +49,8 @@ target_include_directories(klookandfeel
     INTERFACE
         "$<INSTALL_INTERFACE:${KDE_INSTALL_INCLUDEDIR}/klookandfeel>"
 )
+
+target_compile_definitions(klookandfeel PRIVATE CMAKE_INSTALL_FULL_LIBEXECDIR="${CMAKE_INSTALL_FULL_LIBEXECDIR}")
 
 generate_export_header(klookandfeel)
 

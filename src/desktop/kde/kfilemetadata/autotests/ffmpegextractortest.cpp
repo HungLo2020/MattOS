@@ -4,15 +4,40 @@
     SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
-#include "ffmpegextractortest.h"
 #include "simpleextractionresult.h"
 #include "indexerextractortestsconfig.h"
 #include "extractors/ffmpegextractor.h"
 #include "mimeutils.h"
 
+#include <QMimeDatabase>
+#include <QObject>
 #include <QTest>
 
 using namespace KFileMetaData;
+using namespace Qt::StringLiterals;
+
+namespace KFileMetaData {
+class ffmpegExtractorTest : public QObject
+{
+    Q_OBJECT
+
+private Q_SLOTS:
+    void initTestCase();
+    void testNoExtraction();
+    void testVideoProperties();
+    void testVideoProperties_data();
+    void testMetaData();
+    void testMetaData_data();
+    void testCoverimage();
+    void testCoverimage_data();
+    void testLocation();
+    void testApple();
+
+private:
+    QMimeDatabase mimeDb;
+    QByteArray m_coverImage;
+};
+} // namespace KFileMetaData
 
 namespace {
 
@@ -23,6 +48,13 @@ QString testFilePath(const QString& baseName, const QString& extension)
 }
 
 } // namespace
+
+void ffmpegExtractorTest::initTestCase()
+{
+    QFile imgFile(testFilePath(u"cover"_s, u"jpg"_s));
+    QVERIFY(imgFile.open(QIODevice::ReadOnly));
+    m_coverImage = imgFile.readAll();
+}
 
 void ffmpegExtractorTest::testNoExtraction()
 {
@@ -147,6 +179,74 @@ void ffmpegExtractorTest::testMetaData()
     QCOMPARE(result.properties().value(Property::Artist).toString(), QStringLiteral("Artist"));
     QCOMPARE(result.properties().value(Property::ReleaseYear).toInt(), 2019);
 }
+
+void ffmpegExtractorTest::testCoverimage_data()
+{
+    using IT = EmbeddedImageData::ImageType;
+    QTest::addColumn<QString>("baseName");
+    QTest::addColumn<QString>("fileType");
+    QTest::addColumn<QList<IT>>("coverTypes");
+
+    // clang-format off
+    QTest::addRow("Matroska Video")            << u"test"_s       << u"mkv"_s << QList<IT>();
+    QTest::addRow("Matroska Video with cover") << u"test_cover"_s << u"mkv"_s << QList<IT>{IT::FrontCover};
+    // clang-format on
+}
+
+void ffmpegExtractorTest::testCoverimage()
+{
+    QFETCH(QString, baseName);
+    QFETCH(QString, fileType);
+    QFETCH(QList<EmbeddedImageData::ImageType>, coverTypes);
+
+    const QString fileName = testFilePath(baseName, fileType);
+    const QString mimeType = MimeUtils::strictMimeType(fileName, mimeDb).name();
+
+    FFmpegExtractor plugin{this};
+
+    SimpleExtractionResult result(fileName, mimeType, ExtractionResult::ExtractImageData);
+    plugin.extract(&result);
+
+    const auto imageMap = result.imageData();
+    QCOMPARE(imageMap.size(), coverTypes.size());
+    for (const auto type : coverTypes) {
+        QVERIFY(imageMap.contains(type));
+    }
+    for (const auto [type, imageData]: imageMap.asKeyValueRange()) {
+        QCOMPARE(imageData, m_coverImage);
+    }
+}
+
+void ffmpegExtractorTest::testLocation()
+{
+    const QString mimeType = QStringLiteral("mp4");
+    const QString fileName = testFilePath(QStringLiteral("test_location"), mimeType);
+
+    FFmpegExtractor plugin{this};
+
+    SimpleExtractionResult result(fileName, mimeType);
+    plugin.extract(&result);
+
+    QCOMPARE(result.properties().value(Property::PhotoGpsLatitude), double(42.362998962402344));
+    QCOMPARE(result.properties().value(Property::PhotoGpsLongitude), double(-71.36019897460938));
+}
+
+void ffmpegExtractorTest::testApple()
+{
+    const QString mimeType = QStringLiteral("mov");
+    const QString fileName = testFilePath(QStringLiteral("test_apple"), mimeType);
+
+    FFmpegExtractor plugin{this};
+
+    SimpleExtractionResult result(fileName, mimeType);
+    plugin.extract(&result);
+
+    QCOMPARE(result.properties().value(Property::Manufacturer), QStringLiteral("Apple"));
+    QCOMPARE(result.properties().value(Property::Model), QStringLiteral("iPhone 11"));
+    QCOMPARE(result.properties().value(Property::Generator), QStringLiteral("18.3.1"));
+    QCOMPARE(result.properties().value(Property::CreationDate), QDateTime(QDate(2026, 8, 24), QTime(13, 59, 0), QTimeZone::utc()));
+}
+
 QTEST_GUILESS_MAIN(ffmpegExtractorTest)
 
-#include "moc_ffmpegextractortest.cpp"
+#include "ffmpegextractortest.moc"

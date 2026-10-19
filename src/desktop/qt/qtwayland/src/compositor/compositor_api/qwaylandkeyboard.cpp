@@ -21,6 +21,11 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <xkbcommon/xkbcommon-names.h>
+
+ // xkbcommon 1.8 and later defines, otherwise we define it by hand
+#ifndef XKB_MOD_NAME_MOD5
+#define XKB_MOD_NAME_MOD5 "Mod5"
+#endif
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -173,6 +178,7 @@ void QWaylandKeyboardPrivate::maybeUpdateXkbScanCodeTable()
         shiftIndex = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_SHIFT);
         controlIndex = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CTRL);
         altIndex = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_ALT);
+        mod5Index = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_MOD5); // AltGr / ISO_Level3_Shift
     }
 }
 
@@ -224,6 +230,9 @@ void QWaylandKeyboardPrivate::updateModifierState(uint code, uint32_t state)
             currentState |= Qt::ControlModifier;
         if (xkb_state_mod_index_is_active(xkbState(), altIndex, XKB_STATE_MODS_EFFECTIVE) == 1)
             currentState |= Qt::AltModifier;
+        if (mod5Index != XKB_MOD_INVALID
+                && xkb_state_mod_index_is_active(xkbState(), mod5Index, XKB_STATE_MODS_EFFECTIVE) == 1)
+            currentState |= Qt::GroupSwitchModifier;
         currentModifierState = currentState;
     }
 #else
@@ -517,7 +526,8 @@ void QWaylandKeyboardPrivate::checkAndRepairModifierState(QKeyEvent *ke)
 #if QT_CONFIG(xkbcommon)
     if (ke->modifiers() != currentModifierState) {
         if (focusResource && ke->key() != Qt::Key_Shift
-                && ke->key() != Qt::Key_Control && ke->key() != Qt::Key_Alt) {
+                && ke->key() != Qt::Key_Control && ke->key() != Qt::Key_Alt
+                && ke->key() != Qt::Key_AltGr) {
             // Only repair the state for non-modifier keys
             // ### slightly awkward because the standard modifier handling
             // is done by QtWayland::WindowSystemEventHandler after the
@@ -533,9 +543,12 @@ void QWaylandKeyboardPrivate::checkAndRepairModifierState(QKeyEvent *ke)
                 mods |= 1 << controlIndex;
             if (ke->modifiers() & Qt::AltModifier)
                 mods |= 1 << altIndex;
+            if ((ke->modifiers() & Qt::GroupSwitchModifier) && mod5Index != XKB_MOD_INVALID)
+                mods |= 1 << mod5Index;
             qCDebug(qLcWaylandCompositor) << "Keyboard modifier state mismatch detected for event" << ke << "state:" << currentModifierState << "repaired:" << Qt::hex << mods;
+            // Preserve modsLocked so that NumLock and CapsLock state is not lost
             send_modifiers(focusResource->handle, compositor()->nextSerial(), mods,
-                    0, 0, group);
+                    0, modsLocked, group);
             currentModifierState = ke->modifiers();
         }
     }

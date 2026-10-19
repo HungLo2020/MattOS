@@ -31,6 +31,7 @@
     \li \l {codeline-command} {\\codeline}
     \li \l {compares-command} {\\compares}
     \li \l {compareswith-command} {\\compareswith}
+    \li \l {concept-command} {\\concept}
     \li \l {deprecated-command} {\\deprecated}
     \li \l {default-command} {\\default}
     \li \l {details-command} {\\details}
@@ -88,6 +89,7 @@
     \li \l {property-command} {\\property}
     \li \l {qml-command} {\\qml}
     \li \l {qmlabstract-command} {\\qmlabstract}
+    \li \l {qmlattachedmethod-command} {\\qmlattachedmethod}
     \li \l {qmlattachedproperty-command} {\\qmlattachedproperty}
     \li \l {qmlattachedsignal-command} {\\qmlattachedsignal}
     \li \l {qmlvaluetype-command} {\\qmlvaluetype}
@@ -101,6 +103,7 @@
     \li \l {qmlproperty-command} {\\qmlproperty}
     \li \l {qmlsignal-command} {\\qmlsignal}
     \li \l {qmlmodule-command} {\\qmlmodule}
+    \li \l {qmluncreatabletype-command} {\\qmluncreatabletype}
     \li \l {qtcmakepackage-command} {\\qtcmakepackage}
     \li \l {qtcmaketargetitem-command} {\\qtcmaketargetitem}
     \li \l {quotation-command} {\\quotation}

@@ -30,9 +30,14 @@ GifEncoder::GifEncoder(PipeWireProduce *produce)
 {
 }
 
+bool GifEncoder::supportsAudio() const
+{
+    return false;
+}
+
 bool GifEncoder::initialize(const QSize &size)
 {
-    m_filterGraphToParse = u"split[v1][v2];[v1]palettegen=stats_mode=single[palette];[v2][palette]paletteuse=new=1:dither=sierra2_4a"_s;
+    m_filterGraphToParse = u"split[v1][v2];[v1]palettegen=stats_mode=single[palette];[v2][palette]paletteuse=new=0:dither=bayer:bayer_scale=5:diff_mode=1"_s;
     createFilterGraph(size);
 
     auto codec = avcodec_find_encoder_by_name("gif");
@@ -70,9 +75,4 @@ std::pair<int, int> GifEncoder::encodeFrame(int maximumFrames)
     auto ret = SoftwareEncoder::encodeFrame(maximumFrames);
     av_log_set_level(level);
     return ret;
-}
-
-int GifEncoder::percentageToAbsoluteQuality([[maybe_unused]] const std::optional<quint8> &quality)
-{
-    return -1; // Not possible to set quality
 }

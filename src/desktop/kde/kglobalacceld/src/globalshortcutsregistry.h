@@ -29,7 +29,6 @@
 
 class Component;
 class GlobalShortcut;
-class KGlobalAccelInterface;
 
 /**
  * Global Shortcut Registry.
@@ -76,27 +75,21 @@ public:
     QList<QStringList> allComponentNames() const;
 
     /**
-     * Return the root dbus path for the registry.
-     */
-    QDBusObjectPath dbusPath() const;
-
-    /**
      * Deactivate all currently active shortcuts.
      */
     void deactivateShortcuts(bool temporarily = false);
 
     /**
+     * Returns a component with the specified id @a uniqueName. If no component with the given name
+     * exists, @c null will be returned.
      */
     Component *getComponent(const QString &uniqueName);
 
     /**
-     * Get the shortcut corresponding to key. Active and inactive shortcuts
-     * are considered. But if the matching application uses contexts only one
-     * shortcut is returned.
-     *
-     * @see getShortcutsByKey(int key)
+     * Returns a component with the specified @a uniqueName, if it exists. Otherwise, it will create
+     * a new component with the given @a uniqueName and @a friendlyName, and return the new component.
      */
-    GlobalShortcut *getShortcutByKey(const QKeySequence &key, KGlobalAccel::MatchType type = KGlobalAccel::MatchType::Equal) const;
+    Component *getOrCreateComponent(const QString &uniqueName, const QString &friendlyName);
 
     /**
      * Get the shortcuts corresponding to key. Active and inactive shortcuts
@@ -104,7 +97,13 @@ public:
      *
      * @see getShortcutsByKey(int key)
      */
-    QList<GlobalShortcut *> getShortcutsByKey(const QKeySequence &key, KGlobalAccel::MatchType type) const;
+    QList<GlobalShortcut *> getShortcutsByKey(const QKeySequence &keySequence, KGlobalAccel::MatchType type = KGlobalAccel::MatchType::Equal) const;
+
+    /**
+     * Returns an active shortcut for the specified @a keySequence. If there is no active global shortcut
+     * with the given key combination, @c null will be returned.
+     */
+    GlobalShortcut *activeShortcutByKey(const QKeySequence &keySequence) const;
 
     /**
      * Checks if @p shortcut is available for @p component.
@@ -116,11 +115,14 @@ public:
 
     bool registerKey(const QKeySequence &key, GlobalShortcut *shortcut);
 
-    void setDBusPath(const QDBusObjectPath &path);
-
     bool unregisterKey(const QKeySequence &key, GlobalShortcut *shortcut);
 
-    KGlobalAccelInterface *interface() const;
+    /**
+     * Generates the next available global shortcut serial. Global shortcut serials increase
+     * monotonically, 1 is the first valid serial. The serial describes the time when the global
+     * shortcut has been registered.
+     */
+    uint64_t nextSerial();
 
 public Q_SLOTS:
 
@@ -130,16 +132,13 @@ public Q_SLOTS:
 
     void writeSettings();
 
-    // Grab the keys
-    void grabKeys();
-
-    // Ungrab the keys
-    void ungrabKeys();
+Q_SIGNALS:
+    void needsSave();
 
 private:
     friend struct KGlobalAccelDPrivate;
     friend class Component;
-    friend class KGlobalAccelInterface;
+    friend class KGlobalAccelD;
 
     Component *createComponent(const QString &uniqueName, const QString &friendlyName);
     KServiceActionComponent *createServiceActionComponent(const QString &uniqueName);
@@ -163,9 +162,8 @@ private:
 
     bool processKey(int keyQt, ShortcutKeyState state);
 
-    QHash<QKeySequence, GlobalShortcut *> _active_keys;
+    QMultiHash<QKeySequence, GlobalShortcut *> _active_keys;
     QKeySequence _active_sequence;
-    QHash<int, int> _keys_count;
 
     Qt::KeyboardModifiers m_currentModifiers;
     // State machine:
@@ -175,9 +173,11 @@ private:
     // ReleasingModifierOnly -> Normal when all keys are released, and when a non-modifier key is pressed
     // Modifier-only shortcuts are triggered in ReleasingModifierOnly state, if all keys are released
     // and the time since the first release is less than some threshold
-    enum { Normal,
-           PressingModifierOnly,
-           ReleasingModifierOnly } m_state = Normal;
+    enum {
+        Normal,
+        PressingModifierOnly,
+        ReleasingModifierOnly
+    } m_state = Normal;
     void resetModifierOnlyState()
     {
         m_state = Normal;
@@ -192,9 +192,8 @@ private:
         });
     }
 
-    KGlobalAccelInterface *_manager = nullptr;
-
     mutable KConfig _config;
+    KConfig _state;
 
     /**
      * Flag that enables allow-list enforcement for shortcuts.
@@ -237,9 +236,9 @@ private:
      */
     bool isShortcutAllowed(const GlobalShortcut *shortcut) const;
 
-    QDBusObjectPath _dbusPath;
     GlobalShortcut *m_lastShortcut = nullptr;
     QTimer m_refreshServicesTimer;
+    uint64_t m_serial = 0;
 };
 
 #endif /* #ifndef GLOBALSHORTCUTSREGISTRY_H */

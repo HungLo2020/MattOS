@@ -37,7 +37,7 @@
 // Generated in src/wayland.
 #include "wayland-fractional-scale-v1-client-protocol.h"
 #include "wayland-keyboard-shortcuts-inhibit-unstable-v1-client-protocol.h"
-#include "wayland-linux-dmabuf-unstable-v1-client-protocol.h"
+#include "wayland-linux-dmabuf-v1-client-protocol.h"
 #include "wayland-pointer-constraints-unstable-v1-client-protocol.h"
 #include "wayland-pointer-gestures-unstable-v1-server-protocol.h"
 #include "wayland-presentation-time-client-protocol.h"
@@ -67,7 +67,7 @@ public:
         , m_quitting(false)
     {
         if (pipe2(m_quitPipe, O_CLOEXEC) == -1) {
-            qCWarning(KWIN_WAYLAND_BACKEND) << "Failed to create quite pipe in WaylandEventThread";
+            qCWarning(KWIN_WAYLAND_BACKEND) << "Failed to create quit pipe in WaylandEventThread";
         }
     }
 
@@ -136,7 +136,7 @@ protected:
                 break;
             }
 
-            pollfd fds[2] = { { m_fd, POLLIN, 0 }, { m_quitPipe[0], POLLIN, 0 } };
+            pollfd fds[2] = {{m_fd, POLLIN, 0}, {m_quitPipe[0], POLLIN, 0}};
             poll(fds, 2, -1);
 
             if (fds[1].revents & POLLIN) {
@@ -228,7 +228,7 @@ bool WaylandDisplay::initialize(const QString &socketName)
     connect(m_eventThread.get(), &WaylandEventThread::available, this, &WaylandDisplay::flush, Qt::QueuedConnection);
     m_eventThread->start();
 
-    static wl_registry_listener registryListener {
+    static wl_registry_listener registryListener{
         .global = registry_global,
         .global_remove = registry_global_remove,
     };

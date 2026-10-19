@@ -20,6 +20,8 @@
 #include "qqmlpreviewfileengine.h"
 #include <private/qqmldebugserviceinterfaces_p.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 class QQmlPreviewFileEngineHandler;
@@ -40,6 +42,9 @@ public:
         Zoom,
         Fps,
         AnimationSpeed,
+        Configuration,
+        Confirmation,
+        HotReloadFailure,
     };
 
     static const QString s_key;
@@ -55,6 +60,7 @@ public:
     void forwardRequest(const QString &file);
     void forwardError(const QString &error);
     void forwardFps(const QQmlPreviewHandler::FpsInfo &frames);
+    void forwardHotReloadFailure(const QString &reason);
 
     QQuickItem *currentRootItem();
 
@@ -70,9 +76,11 @@ Q_SIGNALS:
     void animationSpeed(qreal factor);
 
 private:
+    void switchToInPlaceHandler();
+
     QScopedPointer<QQmlPreviewFileEngineHandler> m_fileEngine;
     QScopedPointer<QQmlPreviewFileLoader> m_loader;
-    QQmlPreviewHandler m_handler;
+    std::unique_ptr<QQmlPreviewHandler> m_handler;
     QUrl m_currentUrl;
 };
 

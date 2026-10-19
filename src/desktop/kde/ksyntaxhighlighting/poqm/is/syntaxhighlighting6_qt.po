@@ -13,7 +13,7 @@ msgstr ""
 "Project-Id-Version: katepart4\n"
 "Report-Msgid-Bugs-To: http://bugs.kde.org\n"
 "POT-Creation-Date: 2016-09-08 07:30+0000\n"
-"PO-Revision-Date: 2026-04-13 17:30+0000\n"
+"PO-Revision-Date: 2026-06-01 12:40+0000\n"
 "Last-Translator: Sveinn í Felli <sv1@fellsnet.is>\n"
 "Language-Team: Icelandic\n"
 "Language: is\n"
@@ -310,6 +310,10 @@ msgstr "Django HTML-sniðmát"
 msgctxt "Language|"
 msgid "MS-DOS Batch"
 msgstr "MS-DOS runa"
+
+msgctxt "Language|"
+msgid "DotEnv"
+msgstr ""
 
 msgctxt "Language|"
 msgid "dot"
@@ -644,6 +648,10 @@ msgid "Julia"
 msgstr "Julia"
 
 msgctxt "Language|"
+msgid "Just"
+msgstr ""
+
+msgctxt "Language|"
 msgid "J"
 msgstr "J"
 
@@ -658,6 +666,13 @@ msgstr "KBasic"
 msgctxt "Language|"
 msgid "Kconfig"
 msgstr "Kconfig"
+
+#, fuzzy
+#| msgctxt "Language|"
+#| msgid "GDL"
+msgctxt "Language|"
+msgid "KDL"
+msgstr "GDL"
 
 msgctxt "Language|"
 msgid "Klipper Config"
@@ -742,6 +757,10 @@ msgstr "Logtalk"
 msgctxt "Language|"
 msgid "LPC"
 msgstr "LPC"
+
+msgctxt "Language|"
+msgid "LRC Lyrics"
+msgstr ""
 
 msgctxt "Language|"
 msgid "LSL"
@@ -1200,6 +1219,10 @@ msgid "SiSU"
 msgstr "SiSU"
 
 msgctxt "Language|"
+msgid "Slint"
+msgstr "Slint"
+
+msgctxt "Language|"
 msgid "Smali"
 msgstr "Smali"
 
@@ -1245,7 +1268,7 @@ msgstr "SQL"
 
 msgctxt "Language|"
 msgid "IATA SSIM"
-msgstr ""
+msgstr "IATA SSIM"
 
 msgctxt "Language|"
 msgid "Stan"

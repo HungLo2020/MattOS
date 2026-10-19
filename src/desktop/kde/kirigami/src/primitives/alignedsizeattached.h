@@ -19,14 +19,12 @@ class QQuickItem;
  *
  * \brief An attached property that aligns a size on the physical pixel grid.
  *
- * Transforms a size to the nearest one perfectly aligned to the pixel grid
+ * Adjusts a size to the nearest one perfectly aligned to the pixel grid
  * in case fractional scaling in used.
  * \qml
  * import org.kde.kirigami as Kirigami
  *
  * Rectangle {
- *    width: AlignedSize.alignedWidth
- *    height: AlignedSize.alignedHeight
  *    AlignedSize.width: Units.gridUnit
  *    AlignedSize.height: 1
  * }

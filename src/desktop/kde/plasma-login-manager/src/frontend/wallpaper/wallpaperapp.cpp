@@ -16,8 +16,10 @@
 
 #include <KConfigLoader>
 #include <KConfigPropertyMap>
+#include <KLocalizedQmlContext>
 #include <KPackage/PackageLoader>
-#include <KWindowSystem>
+#include <LayerShellQt/Window>
+#include <PlasmaQuick/PlasmaQuick>
 
 #include "plasmaloginsettings.h"
 
@@ -27,15 +29,21 @@
 
 WallpaperApp::WallpaperApp(int &argc, char **argv)
     : QGuiApplication(argc, argv)
+    , m_engine(PlasmaQuick::globalEngine())
 {
+    setQuitOnLastWindowClosed(false);
+
+    KLocalization::setupLocalizedContext(m_engine.get());
+
     m_wallpaperPackage = KPackage::PackageLoader::self()->loadPackage(QStringLiteral("Plasma/Wallpaper"));
     m_wallpaperPackage.setPath(PlasmaLoginSettings::getInstance().wallpaperPluginId());
 
-    for (const auto screenList{screens()}; QScreen *screen : screenList) {
-        adoptScreen(screen);
+    connect(qApp, &QGuiApplication::screenAdded, this, [this](QScreen *screen) {
+        createWindowForScreen(screen);
+    });
+    for (QScreen *screen : qApp->screens()) {
+        createWindowForScreen(screen);
     }
-
-    connect(this, &QGuiApplication::screenAdded, this, &WallpaperApp::adoptScreen);
 
     auto bus = QDBusConnection::sessionBus();
     bus.registerObject(QStringLiteral("/Wallpaper"), this, QDBusConnection::ExportScriptableSlots);
@@ -44,28 +52,33 @@ WallpaperApp::WallpaperApp(int &argc, char **argv)
     }
 }
 
-WallpaperApp::~WallpaperApp()
+void WallpaperApp::createWindowForScreen(QScreen *screen)
 {
-    qDeleteAll(m_windows);
-}
+    WallpaperWindow *window = new WallpaperWindow(m_engine.get());
+    window->QObject::setParent(this);
+    window->setScreen(screen);
+    window->setColor(Qt::black);
 
-void WallpaperApp::adoptScreen(QScreen *screen)
-{
-    if (screen->geometry().isNull()) {
-        return;
-    }
-
-    WallpaperWindow *window = new WallpaperWindow(screen);
-    window->setGeometry(screen->geometry());
-    window->setVisible(true);
-    m_windows << window;
-
-    connect(screen, &QObject::destroyed, window, [this, window]() {
-        m_windows.removeAll(window);
-        window->deleteLater();
+    connect(qApp, &QGuiApplication::screenRemoved, window, [window](QScreen *screenRemoved) {
+        if (screenRemoved == window->screen()) {
+            delete window;
+        }
     });
 
+    window->setGeometry(screen->geometry());
+
+    if (auto layerShellWindow = LayerShellQt::Window::get(window)) {
+        layerShellWindow->setScope(QStringLiteral("plasma-login-wallpaper"));
+        layerShellWindow->setLayer(LayerShellQt::Window::LayerBackground);
+        layerShellWindow->setExclusiveZone(-1);
+        layerShellWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityNone);
+        layerShellWindow->setScreen(screen);
+    }
+
+    window->setResizeMode(QQuickView::SizeRootObjectToView);
+
     setupWallpaperPlugin(window);
+    window->show();
 }
 
 void WallpaperApp::setupWallpaperPlugin(WallpaperWindow *window)
@@ -98,7 +111,7 @@ void WallpaperApp::setupWallpaperPlugin(WallpaperWindow *window)
 
     const QUrl sourceUrl = QUrl::fromLocalFile(m_wallpaperPackage.filePath("mainscript"));
 
-    auto *component = new QQmlComponent(window->engine().get(), sourceUrl, window);
+    auto *component = new QQmlComponent(window->engine(), sourceUrl, window);
     if (component->isError()) {
         qWarning() << "Failed to load wallpaper component:" << component->errors();
         return;
@@ -129,11 +142,16 @@ void WallpaperApp::setupWallpaperPlugin(WallpaperWindow *window)
 
 void WallpaperApp::blurScreen(const QString &screenName)
 {
-    for (WallpaperWindow *window : std::as_const(m_windows)) {
-        if (window->screen()->name() == screenName) {
-            window->setBlur(true);
+    for (QWindow *window : topLevelWindows()) {
+        WallpaperWindow *wallpaperWindow = qobject_cast<WallpaperWindow *>(window);
+        if (!wallpaperWindow) {
+            continue;
+        }
+
+        if (wallpaperWindow->screen()->name() == screenName) {
+            wallpaperWindow->setBlur(true);
         } else {
-            window->setBlur(false);
+            wallpaperWindow->setBlur(false);
         }
     }
 }

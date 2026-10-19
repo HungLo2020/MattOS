@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdeorg\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-09-27 02:41+0000\n"
 "PO-Revision-Date: 2024-04-22 15:58\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
@@ -14,8 +14,8 @@ msgstr ""
 "X-Crowdin-Project: kdeorg\n"
 "X-Crowdin-Project-ID: 269464\n"
 "X-Crowdin-Language: zh-CN\n"
-"X-Crowdin-File: /kf6-stable/messages/plasma-workspace/kfontinst.pot\n"
-"X-Crowdin-File-ID: 50910\n"
+"X-Crowdin-File: /kf6-trunk/messages/plasma-workspace/kfontinst.pot\n"
+"X-Crowdin-File-ID: 42959\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -576,70 +576,70 @@ msgstr "后端程序停止工作，它已被重新启动。请重试。"
 msgid "<h3>Error</h3>"
 msgstr "<h3>错误</h3>"
 
-#: kcmfontinst/JobRunner.cpp:692
+#: kcmfontinst/JobRunner.cpp:693
 #, kde-format
 msgid "Failed to download <i>%1</i>"
 msgstr "下载 <b>%1</b> 字体失败"
 
-#: kcmfontinst/JobRunner.cpp:694
+#: kcmfontinst/JobRunner.cpp:695
 #, kde-format
 msgid "System backend died. Please try again.<br><i>%1</i>"
 msgstr "后端程序停止工作，它已被重新启动。请重试。<br><b>%1</b>"
 
-#: kcmfontinst/JobRunner.cpp:696
+#: kcmfontinst/JobRunner.cpp:697
 #, kde-format
 msgid ""
 "<i>%1</i> is a bitmap font, and these have been disabled on your system."
 msgstr "<b>%1</b> 是一款点阵字体，您的系统禁止使用这种字体。"
 
-#: kcmfontinst/JobRunner.cpp:698
+#: kcmfontinst/JobRunner.cpp:699
 #, kde-format
 msgid ""
 "<i>%1</i> contains the font <b>%2</b>, which is already installed on your "
 "system."
 msgstr "<b>%1</b> 中包含字体：<b>%2</b>，系统中已经安装了这款字体。"
 
-#: kcmfontinst/JobRunner.cpp:700
+#: kcmfontinst/JobRunner.cpp:701
 #, kde-format
 msgid "<i>%1</i> is not a font."
 msgstr "<b>%1</b> 不是字体文件。"
 
-#: kcmfontinst/JobRunner.cpp:702
+#: kcmfontinst/JobRunner.cpp:703
 #, kde-format
 msgid "Could not remove all files associated with <i>%1</i>"
 msgstr "无法移除所有 <b>%1</b> 的关联文件"
 
-#: kcmfontinst/JobRunner.cpp:704
+#: kcmfontinst/JobRunner.cpp:705
 #, kde-format
 msgid "Failed to start the system daemon.<br><i>%1</i>"
 msgstr "启动系统守护进程失败。<br><b>%1</b>"
 
-#: kcmfontinst/JobRunner.cpp:707 kio/KioFonts.cpp:719
+#: kcmfontinst/JobRunner.cpp:708 kio/KioFonts.cpp:719
 #, kde-format
 msgid "<i>%1</i> already exists."
 msgstr "<b>%1</b> 已经存在。"
 
-#: kcmfontinst/JobRunner.cpp:710
+#: kcmfontinst/JobRunner.cpp:711
 #, kde-format
 msgid "<i>%1</i> does not exist."
 msgstr "<b>%1</b> 不存在。"
 
-#: kcmfontinst/JobRunner.cpp:712
+#: kcmfontinst/JobRunner.cpp:713
 #, kde-format
 msgid "Permission denied.<br><i>%1</i>"
 msgstr "不具备访问权限。<br><b>%1</b>"
 
-#: kcmfontinst/JobRunner.cpp:714
+#: kcmfontinst/JobRunner.cpp:715
 #, kde-format
 msgid "Unsupported action.<br><i>%1</i>"
 msgstr "操作不受支持。<br><b>%1</b>"
 
-#: kcmfontinst/JobRunner.cpp:716
+#: kcmfontinst/JobRunner.cpp:717
 #, kde-format
 msgid "Authentication failed.<br><i>%1</i>"
 msgstr "身份验证失败。<br><b>%1</b>"
 
-#: kcmfontinst/JobRunner.cpp:718
+#: kcmfontinst/JobRunner.cpp:719
 #, kde-format
 msgid "Unexpected error while processing: <i>%1</i>"
 msgstr "处理时发生不可预料的错误：<i>%1</i>"
@@ -1497,17 +1497,17 @@ msgstr "分类"
 msgid "UCS-4"
 msgstr "UCS-4"
 
-#: viewpart/CharTip.cpp:157
+#: viewpart/CharTip.cpp:158
 #, kde-format
 msgid "UTF-16"
 msgstr "UTF-16"
 
-#: viewpart/CharTip.cpp:168
+#: viewpart/CharTip.cpp:169
 #, kde-format
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: viewpart/CharTip.cpp:185
+#: viewpart/CharTip.cpp:186
 #, kde-format
 msgid "XML Decimal Entity"
 msgstr "XML 十进制项"
@@ -1532,12 +1532,12 @@ msgstr "更改文本…"
 msgid "Could not read font."
 msgstr "无法读取字体。"
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Preview String"
 msgstr "预览文本"
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Please enter new string:"
 msgstr "请输入新的预览文本："

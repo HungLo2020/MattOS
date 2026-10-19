@@ -43,6 +43,8 @@ Rules::Rules()
     , titlematch(UnimportantMatch)
     , clientmachinematch(UnimportantMatch)
     , tagmatch(UnimportantMatch)
+    , hastransientparent(false)
+    , hastransientparentmatch(UnimportantBoolMatch)
     , types(NET::AllTypesMask)
     , placementrule(UnusedForceRule)
     , positionrule(UnusedSetRule)
@@ -64,22 +66,18 @@ Rules::Rules()
     , aboverule(UnusedSetRule)
     , belowrule(UnusedSetRule)
     , fullscreenrule(UnusedSetRule)
-    , noborderrule(UnusedSetRule)
+    , decorationpolicyrule(UnusedSetRule)
     , decocolorrule(UnusedForceRule)
-    , blockcompositingrule(UnusedForceRule)
     , fsplevelrule(UnusedForceRule)
     , fpplevelrule(UnusedForceRule)
     , acceptfocusrule(UnusedForceRule)
     , closeablerule(UnusedForceRule)
-    , autogrouprule(UnusedForceRule)
-    , autogroupfgrule(UnusedForceRule)
-    , autogroupidrule(UnusedForceRule)
-    , strictgeometryrule(UnusedForceRule)
     , shortcutrule(UnusedSetRule)
     , disableglobalshortcutsrule(UnusedForceRule)
     , desktopfilerule(UnusedSetRule)
     , adaptivesyncrule(UnusedForceRule)
     , tearingrule(UnusedForceRule)
+    , excludefromcapturerule(UnusedSetRule)
 {
 }
 
@@ -114,6 +112,8 @@ void Rules::readFromSettings(const RuleSettings *settings)
     READ_MATCH_STRING(title, );
     READ_MATCH_STRING(clientmachine, .toLower());
     READ_MATCH_STRING(tag, );
+    hastransientparent = settings->hastransientparent();
+    hastransientparentmatch = static_cast<BoolMatch>(settings->hastransientparentmatch());
     types = WindowTypes(settings->types());
     READ_FORCE_RULE(placement, );
     READ_SET_RULE(position);
@@ -144,28 +144,23 @@ void Rules::readFromSettings(const RuleSettings *settings)
     READ_SET_RULE(above);
     READ_SET_RULE(below);
     READ_SET_RULE(fullscreen);
-    READ_SET_RULE(noborder);
-
+    READ_SET_RULE(decorationpolicy);
     READ_FORCE_RULE(decocolor, getDecoColor);
     if (decocolor.isEmpty()) {
         decocolorrule = UnusedForceRule;
     }
 
-    READ_FORCE_RULE(blockcompositing, );
     READ_FORCE_RULE(fsplevel, FocusStealingPreventionLevel);
     READ_FORCE_RULE(fpplevel, FocusStealingPreventionLevel);
     READ_FORCE_RULE(acceptfocus, );
     READ_FORCE_RULE(closeable, );
-    READ_FORCE_RULE(autogroup, );
-    READ_FORCE_RULE(autogroupfg, );
-    READ_FORCE_RULE(autogroupid, );
-    READ_FORCE_RULE(strictgeometry, );
     READ_SET_RULE(shortcut);
     READ_FORCE_RULE(disableglobalshortcuts, );
     READ_SET_RULE(desktopfile);
     READ_FORCE_RULE(layer, );
     READ_FORCE_RULE(adaptivesync, );
     READ_FORCE_RULE(tearing, );
+    READ_SET_RULE(excludefromcapture);
 }
 
 #undef READ_MATCH_STRING
@@ -209,6 +204,10 @@ void Rules::write(RuleSettings *settings) const
     WRITE_MATCH_STRING(title, Title, false);
     WRITE_MATCH_STRING(clientmachine, Clientmachine, false);
     WRITE_MATCH_STRING(tag, Tag, false);
+    settings->setHastransientparentmatch(hastransientparentmatch);
+    if (hastransientparentmatch != UnimportantBoolMatch) {
+        settings->setHastransientparent(hastransientparent);
+    }
     settings->setTypes(types);
     WRITE_FORCE_RULE(placement, Placement, );
     WRITE_SET_RULE(position, Position, );
@@ -230,16 +229,16 @@ void Rules::write(RuleSettings *settings) const
     WRITE_SET_RULE(above, Above, );
     WRITE_SET_RULE(below, Below, );
     WRITE_SET_RULE(fullscreen, Fullscreen, );
-    WRITE_SET_RULE(noborder, Noborder, );
+    WRITE_SET_RULE(decorationpolicy, Decorationpolicy, );
+
     auto colorToString = [](const QString &value) -> QString {
-        if (value.endsWith(QLatin1String(".colors"))) {
+        if (value.endsWith(QLatin1StringView(".colors"))) {
             return QFileInfo(value).baseName();
         } else {
             return value;
         }
     };
     WRITE_FORCE_RULE(decocolor, Decocolor, colorToString);
-    WRITE_FORCE_RULE(blockcompositing, Blockcompositing, );
     const auto focusStealingLevelToInt = [](FocusStealingPreventionLevel fsp) {
         return int(fsp);
     };
@@ -247,10 +246,6 @@ void Rules::write(RuleSettings *settings) const
     WRITE_FORCE_RULE(fpplevel, Fpplevel, focusStealingLevelToInt);
     WRITE_FORCE_RULE(acceptfocus, Acceptfocus, );
     WRITE_FORCE_RULE(closeable, Closeable, );
-    WRITE_FORCE_RULE(autogroup, Autogroup, );
-    WRITE_FORCE_RULE(autogroupfg, Autogroupfg, );
-    WRITE_FORCE_RULE(autogroupid, Autogroupid, );
-    WRITE_FORCE_RULE(strictgeometry, Strictgeometry, );
     WRITE_SET_RULE(shortcut, Shortcut, );
     WRITE_FORCE_RULE(disableglobalshortcuts, Disableglobalshortcuts, );
     WRITE_SET_RULE(desktopfile, Desktopfile, );
@@ -285,23 +280,19 @@ bool Rules::isEmpty() const
         && aboverule == UnusedSetRule
         && belowrule == UnusedSetRule
         && fullscreenrule == UnusedSetRule
-        && noborderrule == UnusedSetRule
+        && decorationpolicyrule == UnusedSetRule
         && decocolorrule == UnusedForceRule
-        && blockcompositingrule == UnusedForceRule
         && fsplevelrule == UnusedForceRule
         && fpplevelrule == UnusedForceRule
         && acceptfocusrule == UnusedForceRule
         && closeablerule == UnusedForceRule
-        && autogrouprule == UnusedForceRule
-        && autogroupfgrule == UnusedForceRule
-        && autogroupidrule == UnusedForceRule
-        && strictgeometryrule == UnusedForceRule
         && shortcutrule == UnusedSetRule
         && disableglobalshortcutsrule == UnusedForceRule
         && desktopfilerule == UnusedSetRule
         && layerrule == UnusedForceRule
         && adaptivesyncrule == UnusedForceRule
-        && tearingrule == UnusedForceRule;
+        && tearingrule == UnusedForceRule
+        && excludefromcapturerule == UnusedSetRule;
 }
 
 Rules::ForceRule Rules::convertForceRule(int v)
@@ -319,7 +310,7 @@ QString Rules::getDecoColor(const QString &themeName)
     }
     // find the actual scheme file
     return QStandardPaths::locate(QStandardPaths::GenericDataLocation,
-                                  QLatin1String("color-schemes/") + themeName + QLatin1String(".colors"));
+                                  QLatin1StringView("color-schemes/") + themeName + QLatin1StringView(".colors"));
 }
 
 bool typeMatchesMask(WindowType type, WindowTypes mask)
@@ -463,6 +454,14 @@ bool Rules::matchTag(const QString &match_tag) const
     return true;
 }
 
+bool Rules::matchTransientParent(const Window *transientParent) const
+{
+    if (hastransientparentmatch == ExactBoolMatch) {
+        return bool(transientParent) == hastransientparent;
+    }
+    return true;
+}
+
 #ifndef KCMRULES
 bool Rules::match(const Window *c) const
 {
@@ -488,6 +487,9 @@ bool Rules::match(const Window *c) const
         return false;
     }
     if (!matchTag(c->tag())) {
+        return false;
+    }
+    if (!matchTransientParent(c->transientFor())) {
         return false;
     }
     return true;
@@ -532,7 +534,7 @@ bool Rules::update(Window *c, int selection)
         desktops = c->desktopIds();
     }
     if NOW_REMEMBER (Screen, screen) {
-        const int index = workspace()->outputs().indexOf(c->output());
+        const int index = workspace()->outputOrder().indexOf(c->output());
         updated = updated || screen != index;
         screen = index;
     }
@@ -576,9 +578,9 @@ bool Rules::update(Window *c, int selection)
         updated = updated || fullscreen != c->isFullScreen();
         fullscreen = c->isFullScreen();
     }
-    if NOW_REMEMBER (NoBorder, noborder) {
-        updated = updated || noborder != c->noBorder();
-        noborder = c->noBorder();
+    if NOW_REMEMBER (DecorationPolicy, decorationpolicy) {
+        updated = updated || decorationpolicy != c->decorationPolicy();
+        decorationpolicy = c->decorationPolicy();
     }
     if NOW_REMEMBER (DesktopFile, desktopfile) {
         updated = updated || desktopfile != c->desktopFileName();
@@ -703,22 +705,18 @@ APPLY_RULE(skipswitcher, SkipSwitcher, bool)
 APPLY_RULE(above, KeepAbove, bool)
 APPLY_RULE(below, KeepBelow, bool)
 APPLY_RULE(fullscreen, FullScreen, bool)
-APPLY_RULE(noborder, NoBorder, bool)
+APPLY_RULE(decorationpolicy, DecorationPolicy, KWin::DecorationPolicy)
 APPLY_FORCE_RULE(decocolor, DecoColor, QString)
-APPLY_FORCE_RULE(blockcompositing, BlockCompositing, bool)
 APPLY_FORCE_RULE(fsplevel, FSP, FocusStealingPreventionLevel)
 APPLY_FORCE_RULE(fpplevel, FPP, FocusStealingPreventionLevel)
 APPLY_FORCE_RULE(acceptfocus, AcceptFocus, bool)
 APPLY_FORCE_RULE(closeable, Closeable, bool)
-APPLY_FORCE_RULE(autogroup, Autogrouping, bool)
-APPLY_FORCE_RULE(autogroupfg, AutogroupInForeground, bool)
-APPLY_FORCE_RULE(autogroupid, AutogroupById, QString)
-APPLY_FORCE_RULE(strictgeometry, StrictGeometry, bool)
 APPLY_RULE(shortcut, Shortcut, QString)
 APPLY_FORCE_RULE(disableglobalshortcuts, DisableGlobalShortcuts, bool)
 APPLY_RULE(desktopfile, DesktopFile, QString)
 APPLY_FORCE_RULE(adaptivesync, AdaptiveSync, bool)
 APPLY_FORCE_RULE(tearing, Tearing, bool)
+APPLY_RULE(excludefromcapture, ExcludeFromCapture, bool)
 
 #undef APPLY_RULE
 #undef APPLY_FORCE_RULE
@@ -761,23 +759,19 @@ bool Rules::discardUsed(bool withdrawn)
     DISCARD_USED_SET_RULE(above);
     DISCARD_USED_SET_RULE(below);
     DISCARD_USED_SET_RULE(fullscreen);
-    DISCARD_USED_SET_RULE(noborder);
+    DISCARD_USED_SET_RULE(decorationpolicy);
     DISCARD_USED_FORCE_RULE(decocolor);
-    DISCARD_USED_FORCE_RULE(blockcompositing);
     DISCARD_USED_FORCE_RULE(fsplevel);
     DISCARD_USED_FORCE_RULE(fpplevel);
     DISCARD_USED_FORCE_RULE(acceptfocus);
     DISCARD_USED_FORCE_RULE(closeable);
-    DISCARD_USED_FORCE_RULE(autogroup);
-    DISCARD_USED_FORCE_RULE(autogroupfg);
-    DISCARD_USED_FORCE_RULE(autogroupid);
-    DISCARD_USED_FORCE_RULE(strictgeometry);
     DISCARD_USED_SET_RULE(shortcut);
     DISCARD_USED_FORCE_RULE(disableglobalshortcuts);
     DISCARD_USED_SET_RULE(desktopfile);
     DISCARD_USED_FORCE_RULE(layer);
     DISCARD_USED_FORCE_RULE(adaptivesync);
     DISCARD_USED_FORCE_RULE(tearing);
+    DISCARD_USED_SET_RULE(excludefromcapture);
 
     return changed;
 }
@@ -893,26 +887,14 @@ LogicalOutput *WindowRules::checkOutput(LogicalOutput *output, bool init) const
     if (rules.isEmpty()) {
         return output;
     }
-    int ret = workspace()->outputs().indexOf(output);
+    int ret = workspace()->outputOrder().indexOf(output);
     for (Rules *rule : rules) {
         if (rule->applyScreen(ret, init)) {
             break;
         }
     }
-    LogicalOutput *ruleOutput = workspace()->outputs().value(ret);
+    LogicalOutput *ruleOutput = workspace()->outputOrder().value(ret);
     return ruleOutput ? ruleOutput : output;
-}
-
-DecorationPolicy WindowRules::checkDecorationPolicy(DecorationPolicy policy, bool init) const
-{
-    if (checkNoBorder(true, init) == false) {
-        return DecorationPolicy::Server;
-    }
-    if (checkNoBorder(false, init) == true) {
-        return DecorationPolicy::None;
-    }
-
-    return policy;
 }
 
 CHECK_RULE(Minimize, bool)
@@ -922,23 +904,19 @@ CHECK_RULE(SkipSwitcher, bool)
 CHECK_RULE(KeepAbove, bool)
 CHECK_RULE(KeepBelow, bool)
 CHECK_RULE(FullScreen, bool)
-CHECK_RULE(NoBorder, bool)
+CHECK_RULE(DecorationPolicy, KWin::DecorationPolicy)
 CHECK_FORCE_RULE(DecoColor, QString)
-CHECK_FORCE_RULE(BlockCompositing, bool)
 CHECK_FORCE_RULE(FSP, FocusStealingPreventionLevel)
 CHECK_FORCE_RULE(FPP, FocusStealingPreventionLevel)
 CHECK_FORCE_RULE(AcceptFocus, bool)
 CHECK_FORCE_RULE(Closeable, bool)
-CHECK_FORCE_RULE(Autogrouping, bool)
-CHECK_FORCE_RULE(AutogroupInForeground, bool)
-CHECK_FORCE_RULE(AutogroupById, QString)
-CHECK_FORCE_RULE(StrictGeometry, bool)
 CHECK_RULE(Shortcut, QString)
 CHECK_FORCE_RULE(DisableGlobalShortcuts, bool)
 CHECK_RULE(DesktopFile, QString)
 CHECK_FORCE_RULE(Layer, Layer)
 CHECK_FORCE_RULE(AdaptiveSync, bool)
 CHECK_FORCE_RULE(Tearing, bool)
+CHECK_RULE(ExcludeFromCapture, bool)
 
 #undef CHECK_RULE
 #undef CHECK_FORCE_RULE

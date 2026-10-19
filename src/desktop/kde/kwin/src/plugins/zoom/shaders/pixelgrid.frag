@@ -1,10 +1,14 @@
+#version 140
+
 #include "colormanagement.glsl"
 
 uniform sampler2D sampler;
 uniform int textureWidth;
 uniform int textureHeight;
 
-varying vec2 texcoord0;
+in vec2 texcoord0;
+
+out vec4 fragColor;
 
 void main()
 {
@@ -13,13 +17,8 @@ void main()
     vec2 pixelCenter = floor(samplePosition) + vec2(0.5);
     vec2 pixelCenterDistance = abs(samplePosition - pixelCenter);
 
-    vec4 tex;
-    if (pixelCenterDistance.x > 0.4 || pixelCenterDistance.y > 0.4) {
-        tex = vec4(0, 0, 0, 1);
-    } else {
-        tex = texture2D(sampler, pixelCenter / texSize);
-    }
-
+    float t = smoothstep(0.4, 0.5, max(pixelCenterDistance.x, pixelCenterDistance.y));
+    vec4 tex = mix(texture(sampler, pixelCenter / texSize), vec4(0, 0, 0, 1), t);
     tex = sourceEncodingToNitsInDestinationColorspace(tex);
-    gl_FragColor = nitsToDestinationEncoding(tex);
+    fragColor = nitsToDestinationEncoding(tex);
 }

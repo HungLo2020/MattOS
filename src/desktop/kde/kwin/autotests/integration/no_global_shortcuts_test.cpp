@@ -25,8 +25,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_no_global_shortcuts-0");
-
 Q_DECLARE_METATYPE(KWin::ElectricBorder)
 
 /**
@@ -80,7 +78,7 @@ void NoGlobalShortcutsTest::initTestCase()
 {
     qRegisterMetaType<KWin::ElectricBorder>("ElectricBorder");
     kwinApp()->setSupportsGlobalShortcuts(false);
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->setConfig(KSharedConfig::openConfig(QString(), KConfig::SimpleConfig));
     qputenv("KWIN_XKB_DEFAULT_KEYMAP", "1");

@@ -22,10 +22,12 @@ class QTimer;
 
 namespace KWin
 {
+
 class AbstractDataSource;
 
 namespace Xwl
 {
+
 class TransferWltoX;
 class TransferXtoWl;
 class XwlDataSource;
@@ -122,6 +124,8 @@ protected:
     xcb_window_t m_window = XCB_WINDOW_NONE;
     xcb_timestamp_t m_timestamp = 0;
 
+    std::optional<xcb_timestamp_t> m_requestTargetsTimestamp = std::nullopt;
+
     // Active source, if any. Only one of them at max can exist
     // at the same time.
     AbstractDataSource *m_waylandSource = nullptr;
@@ -130,7 +134,7 @@ protected:
     // active transfers
     QList<TransferWltoX *> m_wlToXTransfers;
     QList<TransferXtoWl *> m_xToWlTransfers;
-    QTimer *m_timeoutTransfers = nullptr;
+    std::unique_ptr<QTimer> m_timeoutTransfers;
 
     Q_DISABLE_COPY(Selection)
 };

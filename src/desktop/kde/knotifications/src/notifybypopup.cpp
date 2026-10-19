@@ -55,8 +55,18 @@ void NotifyByPopup::notify(KNotification *notification, const KNotifyConfig &not
         m_notificationQueue.append(qMakePair(notification, notifyConfig));
         queryPopupServerCapabilities();
     } else {
-        if (!sendNotificationToServer(notification, notifyConfig)) {
-            finish(notification); // an error occurred.
+        if (notifyConfig.actions().testFlag(KNotifyConfig::Popup)) {
+            if (!sendNotificationToServer(notification, notifyConfig)) {
+                finish(notification); // an error occurred.
+            }
+        }
+
+        if (notifyConfig.actions().testFlag(KNotifyConfig::Sound)) {
+            if (!m_audio) {
+                m_audio = std::make_unique<NotifyByAudio>();
+            }
+
+            m_audio->notify(notification, notifyConfig);
         }
     }
 }
@@ -68,6 +78,10 @@ void NotifyByPopup::update(KNotification *notification, const KNotifyConfig &not
 
 void NotifyByPopup::close(KNotification *notification)
 {
+    if (m_audio) {
+        m_audio->close(notification);
+    }
+
     QMutableListIterator<QPair<KNotification *, KNotifyConfig>> iter(m_notificationQueue);
     while (iter.hasNext()) {
         auto &item = iter.next();

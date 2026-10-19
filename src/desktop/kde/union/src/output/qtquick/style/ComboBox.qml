@@ -1,0 +1,180 @@
+// SPDX-License-Identifier: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// SPDX-FileCopyrightText: 2017 The Qt Company Ltd.
+// SPDX-FileCopyrightText: 2025 Akseli Lahtinen <akselmo@akselmo.dev>
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Templates as T
+
+import org.kde.union.impl as Union
+
+T.ComboBox {
+    id: control
+
+    Union.Element.type: "ComboBox"
+    Union.Element.states {
+        hovered: control.hovered
+        activeFocus: control.activeFocus
+        visualFocus: control.visualFocus
+        pressed: control.down
+        enabled: control.enabled
+        highlighted: control.highlighted
+    }
+    Union.Element.hints: [
+        Union.ElementHint { name: "flat"; when: control.flat },
+        Union.ElementHint { name: "editable"; when: control.editable },
+        Union.ElementHint { name: "changed"; when: false },
+    ]
+
+    Union.Positioner.positionItems: [contentItem, icon, indicator]
+
+    hoverEnabled: Application.styleHints.useHoverEffects
+    wheelEnabled: true
+
+    implicitWidth: {
+        let contentWidth = implicitContentWidth + leftPadding + rightPadding
+        if (indicator.visible) {
+            contentWidth += spacing + implicitIndicatorWidth
+        }
+        if (icon.visible) {
+            contentWidth += spacing + icon.implicitWidth
+        }
+
+        return Math.max(implicitBackgroundWidth + leftInset + rightInset, Union.Positioner.implicitWidth, contentWidth)
+    }
+    implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset, Union.Positioner.implicitHeight)
+
+    leftPadding: Union.Style.properties.layout.padding.left
+    rightPadding: Union.Style.properties.layout.padding.right
+    topPadding: Union.Style.properties.layout.padding.top
+    bottomPadding: Union.Style.properties.layout.padding.bottom
+
+    leftInset: Union.Style.properties.layout.inset.left
+    rightInset: Union.Style.properties.layout.inset.right
+    topInset: Union.Style.properties.layout.inset.top
+    bottomInset: Union.Style.properties.layout.inset.bottom
+
+    font: Union.Style.properties.text.font
+    spacing: Union.Style.properties.layout.spacing
+
+    implicitContentWidthPolicy: T.ComboBox.WidestText
+
+    delegate: ItemDelegate {
+        required property var model
+        required property int index
+
+        width: ListView.view.width
+        text: model[control.textRole]
+        highlighted: control.highlightedIndex === index
+        hoverEnabled: control.hoverEnabled
+
+        LayoutMirroring.enabled: control.mirrored
+    }
+
+    indicator: Union.Icon {
+        Union.Element.type: "Indicator"
+
+        implicitWidth: Union.Style.properties.layout.width ?? 0
+        implicitHeight: Union.Style.properties.layout.height ?? 0
+        name: Union.Style.properties.icon.name
+        color: Union.Style.properties.icon.color
+
+        visible: Union.Style.properties.display.visible ?? false
+        opacity: Union.Style.properties.display.opacity ?? 1.0
+    }
+
+    contentItem: T.TextField {
+        Union.PositionedItem.source: Union.PositionerSource.Text
+
+        implicitWidth: Math.max(contentWidth, 1)
+        implicitHeight: Math.max(contentHeight, metrics.height)
+        clip: true
+
+        color: Union.Style.properties.text.color ?? control.palette.text
+        text: control.editable ? control.editText : control.displayText
+        enabled: control.editable
+        autoScroll: control.editable
+        readOnly: control.down
+        inputMethodHints: control.inputMethodHints
+        validator: control.validator
+        font: control.font
+
+        horizontalAlignment: Qt.AlignLeft
+
+        selectByMouse: control.selectTextByMouse
+        selectionColor: control.palette.highlight
+        selectedTextColor: control.palette.highlightedText
+
+        // It is possible for the combobox to not have any text. In that case, the
+        // TextField does not have a height, so we end up with the combobox
+        // resizing oddly if the text is larger than the default height, so we need
+        // to account for the text height in the implicit height, even if no text is
+        // set.
+        FontMetrics {
+            id: metrics
+            font: control.font
+        }
+    }
+
+    Union.Icon {
+        id: icon
+
+        Union.PositionedItem.source: Union.PositionerSource.Icon
+
+        implicitWidth: Union.Style.properties.icon.width ?? 0
+        implicitHeight: Union.Style.properties.icon.height ?? 0
+        name: control.Union.StyleHints.iconName
+        source: control.Union.StyleHints.iconSource
+        color: Union.Style.properties.icon.color
+
+        visible: (name || source.toString()) && (Union.Style.properties.display.visible ?? true)
+        opacity: Union.Style.properties.display.opacity ?? 1.0
+    }
+
+    background: Union.StyledRectangle { }
+
+    popup: Popup {
+        Union.Element.hints: Union.ElementHint { name: "combobox" }
+
+        y: control.height
+
+        implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
+        width: Math.max(control.width, implicitWidth)
+        height: Math.min(contentItem.implicitHeight + topPadding + bottomPadding, control.Window.height)
+
+        // Ensure the popup is moved to be within the window if it goes out of
+        // bounds.
+        margins: 0
+
+        contentItem: ScrollView {
+            implicitWidth: popupContent.implicitWidth + leftPadding + rightPadding
+            implicitHeight: popupContent.implicitHeight + topPadding + bottomPadding
+
+            ListView {
+                id: popupContent
+
+                // Calculate implicit width based on content implicit width.
+                // Unfortunately contentWidth cannot be used here, it does not
+                // necessarily evaluate to something usable.
+                implicitWidth: contentItem.visibleChildren.reduce((acc, item) => Math.max(acc, item.implicitWidth), 0)
+                implicitHeight: contentHeight
+                model: control.delegateModel
+                currentIndex: control.highlightedIndex
+                highlightMoveDuration: 0
+                clip: true
+                boundsBehavior: ListView.StopAtBounds
+
+                // Workaround https://qt-project.atlassian.net/browse/QTBUG-99287
+                // Force delegates to use the list view width as their width.
+                // This removes the need for each delegate to bind its width to
+                // ListView.view.width.
+                add: Transition {
+                    PropertyAction { property: "width"; value: popupContent.width }
+                }
+                populate: Transition {
+                    PropertyAction { property: "width"; value: popupContent.width }
+                }
+            }
+        }
+    }
+}

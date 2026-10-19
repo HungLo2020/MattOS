@@ -15,10 +15,12 @@
 //
 // We mean it.
 //
-
+#include "qqmlvmemetaobject_p.h"
 #include <qqmlproperty.h>
 #include <private/qqmlpropertybinding_p.h>
 #include <private/qqmlbinding_p.h>
+#include <private/qqmlvmemetaobject_p.h>
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 
@@ -175,7 +177,7 @@ public:
         \internal
         Removes the binding from \a prop if there is any.
      */
-    static void removeBindingFrom(QQmlProperty &prop)
+    static void removeBindingFrom(const QQmlProperty &prop)
     {
         if (prop.isBindable())
             prop.property().bindable(prop.object()).takeBinding();
@@ -256,8 +258,22 @@ public:
             Q_ASSERT(target.isBindable());
             QUntypedBindable bindable;
             void *argv[] = {&bindable};
-            if (mode == IgnoreInterceptors) {
-                target.object()->qt_metacall(QMetaObject::BindableProperty, target.index(), argv);
+            if (mode == IgnoreInterceptors && QObjectPrivate::get(target.object())->metaObject) {
+                // we want to tell any interceptor to avoid interception, but if there's an alias,
+                // we'd end up querying the wrong object
+                auto targetObject = target.object();
+                const QQmlPropertyData *targetProp = &QQmlPropertyPrivate::get(target)->core;
+                QQmlPropertyIndex originalIndex(targetProp->coreIndex());
+                QQmlPropertyIndex propIndex = originalIndex;
+                if (targetProp->isAlias()) {
+                    QQmlPropertyPrivate::findAliasTarget(targetObject, originalIndex, &targetObject, &propIndex);
+                    // we currently don't support bindable on value types, we would need to handle valueTypeIndex
+                    // if that were to change in the future
+                    Q_ASSERT(propIndex.valueTypeIndex() == -1);
+                }
+                QQmlInterceptorMetaObject::setInterceptionMode(targetObject, QQmlInterceptorMetaObject::SkipInterception);
+                QMetaObject::metacall(targetObject, QMetaObject::BindableProperty, propIndex.coreIndex(), argv);
+                QQmlInterceptorMetaObject::setInterceptionMode(targetObject, QQmlInterceptorMetaObject::Intercept);
             } else {
                 QMetaObject::metacall(target.object(), QMetaObject::BindableProperty, target.index(), argv);
             }
@@ -341,7 +357,7 @@ public:
         if (d.isT1()  || d.isNull())
             return {};
         auto priv = d.asT2();
-        return QUntypedPropertyBinding {priv};
+        return QPropertyBindingPrivate::makeUntyped(priv);
     }
 
     /*!

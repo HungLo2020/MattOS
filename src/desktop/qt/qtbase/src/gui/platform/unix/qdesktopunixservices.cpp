@@ -12,6 +12,7 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QFile>
+#include <QtCore/QFileInfo>
 #if QT_CONFIG(process)
 # include <QtCore/QProcess>
 #endif
@@ -94,17 +95,17 @@ static inline bool checkExecutable(const QString &candidate, QString *result)
     return !result->isEmpty();
 }
 
-static inline bool detectWebBrowser(const QByteArray &desktop,
-                                    bool checkBrowserVariable,
-                                    QString *browser)
+[[maybe_unused]]
+static inline bool detectWebBrowser(QDesktopUnixServices::LaunchType type,
+                                    const QByteArray &desktop, QString *browser)
 {
     const char *browsers[] = {"google-chrome", "firefox", "mozilla", "opera"};
 
-    browser->clear();
+    Q_PRE(browser->isEmpty());
     if (checkExecutable(QStringLiteral("xdg-open"), browser))
         return true;
 
-    if (checkBrowserVariable) {
+    if (type == QDesktopUnixServices::LaunchType::Browser) {
         QString browserVariable = qEnvironmentVariable("DEFAULT_BROWSER");
         if (browserVariable.isEmpty())
             browserVariable = qEnvironmentVariable("BROWSER");
@@ -112,15 +113,12 @@ static inline bool detectWebBrowser(const QByteArray &desktop,
             return true;
     }
 
-    if (desktop == QByteArray("KDE")) {
+    if (desktop == QByteArrayView("KDE")) {
+        if (checkExecutable(QStringLiteral("kde-open"), browser))
+            return true;
         if (checkExecutable(QStringLiteral("kde-open5"), browser))
             return true;
-        // Konqueror launcher
-        if (checkExecutable(QStringLiteral("kfmclient"), browser)) {
-            browser->append(" exec"_L1);
-            return true;
-        }
-    } else if (desktop == QByteArray("GNOME")) {
+    } else if (desktop == QByteArrayView("GNOME")) {
         if (checkExecutable(QStringLiteral("gnome-open"), browser))
             return true;
     }
@@ -131,39 +129,48 @@ static inline bool detectWebBrowser(const QByteArray &desktop,
     return false;
 }
 
-static inline bool launch(const QString &launcher, const QUrl &url,
-                          const QString &xdgActivationToken)
+bool QDesktopUnixServices::launchProcess(LaunchType type, const QUrl &url,
+                                         const QString &xdgActivationToken)
 {
+#if QT_CONFIG(process)
+    QString &program = type == LaunchType::Browser ? m_webBrowser : m_documentLauncher;
+    if (program.isEmpty())
+        detectWebBrowser(type, desktopEnvironment(), &program);
 
-    const QString command = launcher + u' ' + QLatin1StringView(url.toEncoded());
-    qCDebug(lcQpaServices, "Launching %s", qPrintable(command));
-#if !QT_CONFIG(process)
-    if (!xdgActivationToken.isEmpty())
-        qputenv("XDG_ACTIVATION_TOKEN", xdgActivationToken.toUtf8());
-    const bool ok = ::system(qPrintable(command + " &"_L1));
-    if (!xdgActivationToken.isEmpty())
-        qunsetenv("XDG_ACTIVATION_TOKEN");
-#  else
-    QStringList args = QProcess::splitCommand(command);
-    bool ok = false;
-    if (!args.isEmpty()) {
-        QString program = args.takeFirst();
+    QString errorString;
+    QString urlString = url.toString(QUrl::FullyEncoded);
+    if (!program.isEmpty()) {
         QProcess process;
+        Q_ASSERT(QFileInfo(program).isAbsolute());
+        // AXIVION Next Line Qt-Security-QProcessStart: executable is absolute from PATH
         process.setProgram(program);
-        process.setArguments(args);
+        process.setArguments({ urlString });
+        qCDebug(lcQpaServices, "Launching %ls %ls", qUtf16Printable(program),
+                qUtf16Printable(urlString));
 
         if (!xdgActivationToken.isEmpty()) {
             auto env = QProcessEnvironment::systemEnvironment();
             env.insert(u"XDG_ACTIVATION_TOKEN"_s, xdgActivationToken);
             process.setProcessEnvironment(env);
         }
-        ok = process.startDetached(nullptr);
+        // AXIVION Next Line Qt-Security-QProcessStart: executable is absolute from PATH
+        if (process.startDetached(nullptr))
+            return true;
+        errorString = process.errorString();
+    } else {
+        errorString = u"Unable to detect a launcher"_s;
     }
-#  endif
-    if (!ok)
-        qCWarning(lcQpaServices, "Launch failed (%s)", qPrintable(command));
 
-    return ok;
+    qCWarning(lcQpaServices, "Launch of '%ls %ls' failed: %ls",
+              qUtf16Printable(program), qUtf16Printable(urlString),
+              qUtf16Printable(errorString));
+#else
+    Q_UNUSED(type);
+    Q_UNUSED(xdgActivationToken);
+    qCWarning(lcQpaServices, "Launch for '%ls' failed: QProcess not available",
+              qUtf16Printable(url.toEncoded()));
+#endif // QT_CONFIG(process)
+    return false;
 }
 
 #if QT_CONFIG(dbus)
@@ -428,8 +435,12 @@ QDesktopUnixServices::QDesktopUnixServices()
                      [this](QDBusPendingCallWatcher *watcher) {
                          watcher->deleteLater();
                          QDBusPendingReply<QVariant> reply = *watcher;
-                         if (!reply.isError() && reply.value().toUInt() >= 2)
-                             m_hasScreenshotPortalWithColorPicking = true;
+                         if (reply.isError()) {
+                             m_hasNoPortal = (reply.error().type() == QDBusError::ServiceUnknown);
+                         } else {
+                             if (reply.value().toUInt() >= 2)
+                                 m_hasScreenshotPortalWithColorPicking = true;
+                         }
                      });
 
     if (checkNeedPortalSupport()) {
@@ -490,117 +501,108 @@ QByteArray QDesktopUnixServices::desktopEnvironment() const
     return result;
 }
 
-template<typename F>
-void runWithXdgActivationToken(F &&functionToCall)
+QString QDesktopUnixServices::portalFocusWindowIdentifier()
+{
+    if (QWindow *focusWindow = QGuiApplication::focusWindow())
+        return portalWindowIdentifier(focusWindow);
+    return QString();
+}
+
+template <typename F>
+bool QDesktopUnixServices::runWithXdgActivationToken(F callback, const QUrl &url)
 {
 #if QT_CONFIG(wayland)
     QWindow *window = qGuiApp->focusWindow();
 
-    if (!window) {
-        functionToCall({});
-        return;
-    }
+    if (!window)
+        return (this->*callback)(url, {});
 
     auto waylandApp = dynamic_cast<QNativeInterface::QWaylandApplication *>(
             qGuiApp->platformNativeInterface());
     auto waylandWindow =
             dynamic_cast<QNativeInterface::Private::QWaylandWindow *>(window->handle());
 
-    if (!waylandWindow || !waylandApp) {
-        functionToCall({});
-        return;
-    }
+    if (!waylandWindow || !waylandApp)
+        return (this->*callback)(url, {});
 
+    // we must capture url by value, because the callback will be run after
+    // the caller has returned to the event loop
+    auto functionToCall = [this, callback, url](const QString &xdgActivationToken) {
+        return (this->*callback)(url, xdgActivationToken);
+    };
     QObject::connect(waylandWindow,
                      &QNativeInterface::Private::QWaylandWindow::xdgActivationTokenCreated,
                      waylandWindow, functionToCall, Qt::SingleShotConnection);
     waylandWindow->requestXdgActivationToken(waylandApp->lastInputSerial());
+    return true;
 #else
-    functionToCall({});
+    return (this->*callback)(url, {});
 #endif
+}
+
+bool QDesktopUnixServices::openUrlWithoutPortal(const QUrl &url, const QString &xdgActivationToken)
+{
+    LaunchType launchType = url.scheme() == "mailto"_L1 ? LaunchType::Document : LaunchType::Browser;
+    return launchProcess(launchType, url, xdgActivationToken);
+};
+
+bool QDesktopUnixServices::openUrlWithPortal(const QUrl &url, const QString &xdgActivationToken)
+{
+#  if QT_CONFIG(dbus)
+    const QString parentWindow = portalFocusWindowIdentifier();
+    QDBusError error = url.scheme() == "mailto"_L1
+            ? xdgDesktopPortalSendEmail(url, parentWindow, xdgActivationToken)
+            : xdgDesktopPortalOpenUrl(url, parentWindow, xdgActivationToken);
+    if (!error.isValid())
+        return true;
+    if (error.type() == QDBusError::ServiceUnknown)
+        m_hasNoPortal = true;
+    // portal activation failed, fall back to executing
+    return openUrlWithoutPortal(url, xdgActivationToken);
+#  else
+    Q_UNUSED(url);
+    Q_UNUSED(xdgActivationToken);
+    Q_UNREACHABLE_RETURN(false);
+#  endif
 }
 
 bool QDesktopUnixServices::openUrl(const QUrl &url)
 {
-    auto openUrlInternal = [this](const QUrl &url, const QString &xdgActivationToken) {
-        if (url.scheme() == "mailto"_L1) {
+    if (!m_hasNoPortal)
+        return runWithXdgActivationToken(&QDesktopUnixServices::openUrlWithPortal, url);
+
+    return runWithXdgActivationToken(&QDesktopUnixServices::openUrlWithoutPortal, url);
+}
+
+bool QDesktopUnixServices::openDocumentWithoutPortal(const QUrl &url, const QString &xdgActivationToken)
+{
+    return launchProcess(LaunchType::Document, url, xdgActivationToken);
+}
+
+bool QDesktopUnixServices::openDocumentWithPortal(const QUrl &url, const QString &xdgActivationToken)
+{
 #  if QT_CONFIG(dbus)
-            if (checkNeedPortalSupport()) {
-                const QString parentWindow = QGuiApplication::focusWindow()
-                        ? portalWindowIdentifier(QGuiApplication::focusWindow())
-                        : QString();
-                QDBusError error = xdgDesktopPortalSendEmail(url, parentWindow, xdgActivationToken);
-                if (!error.isValid())
-                    return true;
-
-                // service not running, fall back
-            }
-#  endif
-            return openDocument(url);
-        }
-
-#  if QT_CONFIG(dbus)
-        if (checkNeedPortalSupport()) {
-            const QString parentWindow = QGuiApplication::focusWindow()
-                    ? portalWindowIdentifier(QGuiApplication::focusWindow())
-                    : QString();
-            QDBusError error = xdgDesktopPortalOpenUrl(url, parentWindow, xdgActivationToken);
-            if (!error.isValid())
-                return true;
-        }
-#  endif
-
-        if (m_webBrowser.isEmpty()
-            && !detectWebBrowser(desktopEnvironment(), true, &m_webBrowser)) {
-            qCWarning(lcQpaServices, "Unable to detect a web browser to launch '%s'", qPrintable(url.toString()));
-            return false;
-        }
-        return launch(m_webBrowser, url, xdgActivationToken);
-    };
-
-    if (QGuiApplication::platformName().startsWith("wayland"_L1)) {
-        runWithXdgActivationToken(
-                [openUrlInternal, url](const QString &token) { openUrlInternal(url, token); });
-
+    const QString parentWindow = portalFocusWindowIdentifier();
+    QDBusError error = xdgDesktopPortalOpenFile(url, parentWindow, xdgActivationToken);
+    if (!error.isValid())
         return true;
-
-    } else {
-        return openUrlInternal(url, QString());
-    }
+    if (error.type() == QDBusError::ServiceUnknown)
+        m_hasNoPortal = true;
+    // portal activation failed, fall back to executing
+    return openDocumentWithoutPortal(url, xdgActivationToken);
+#  else
+    Q_UNUSED(url);
+    Q_UNUSED(xdgActivationToken);
+    Q_UNREACHABLE_RETURN(false);
+#  endif
 }
 
 bool QDesktopUnixServices::openDocument(const QUrl &url)
 {
-    auto openDocumentInternal = [this](const QUrl &url, const QString &xdgActivationToken) {
+    if (!m_hasNoPortal)
+        return runWithXdgActivationToken(&QDesktopUnixServices::openDocumentWithPortal, url);
 
-#  if QT_CONFIG(dbus)
-        if (checkNeedPortalSupport()) {
-            const QString parentWindow = QGuiApplication::focusWindow()
-                    ? portalWindowIdentifier(QGuiApplication::focusWindow())
-                    : QString();
-            QDBusError error = xdgDesktopPortalOpenFile(url, parentWindow, xdgActivationToken);
-            if (!error.isValid())
-                return true;
-        }
-#  endif
-
-        if (m_documentLauncher.isEmpty()
-            && !detectWebBrowser(desktopEnvironment(), false, &m_documentLauncher)) {
-            qCWarning(lcQpaServices, "Unable to detect a launcher for '%s'", qPrintable(url.toString()));
-            return false;
-        }
-        return launch(m_documentLauncher, url, xdgActivationToken);
-    };
-
-    if (QGuiApplication::platformName().startsWith("wayland"_L1)) {
-        runWithXdgActivationToken([openDocumentInternal, url](const QString &token) {
-            openDocumentInternal(url, token);
-        });
-
-        return true;
-    } else {
-        return openDocumentInternal(url, QString());
-    }
+    return runWithXdgActivationToken(&QDesktopUnixServices::openDocumentWithoutPortal, url);
 }
 
 #else

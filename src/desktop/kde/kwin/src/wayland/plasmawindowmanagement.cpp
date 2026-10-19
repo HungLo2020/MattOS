@@ -6,7 +6,6 @@
 #include "plasmawindowmanagement.h"
 #include "display.h"
 #include "output.h"
-#include "plasmavirtualdesktop.h"
 #include "surface.h"
 #include "utils/common.h"
 #include "wayland/quirks.h"
@@ -21,9 +20,14 @@
 
 #include <qwayland-server-plasma-window-management.h>
 
+#include <cerrno>
+#include <cstring>
+#include <fcntl.h>
+
 namespace KWin
 {
-static const quint32 s_version = 20;
+
+static const quint32 s_version = 21;
 static const quint32 s_activationVersion = 1;
 
 class PlasmaWindowManagementInterfacePrivate : public QtWaylandServer::org_kde_plasma_window_management
@@ -41,7 +45,6 @@ public:
 
     PlasmaWindowManagementInterface::ShowingDesktopState state = PlasmaWindowManagementInterface::ShowingDesktopState::Disabled;
     QList<PlasmaWindowInterface *> windows;
-    QPointer<PlasmaVirtualDesktopManagementInterface> plasmaVirtualDesktopManagementInterface = nullptr;
     quint32 windowIdCounter = 0;
     QList<quint32> stackingOrder;
     QList<QString> stackingOrderUuids;
@@ -59,7 +62,6 @@ class PlasmaWindowInterfacePrivate : public QtWaylandServer::org_kde_plasma_wind
 {
 public:
     PlasmaWindowInterfacePrivate(PlasmaWindowManagementInterface *wm, PlasmaWindowInterface *q);
-    ~PlasmaWindowInterfacePrivate();
 
     class PlasmaWindowResource : public QtWaylandServer::org_kde_plasma_window::Resource
     {
@@ -72,7 +74,6 @@ public:
     void setPid(quint32 pid);
     void setThemedIconName(const QString &iconName);
     void setIcon(const QIcon &icon);
-    void unmap();
     void setState(org_kde_plasma_window_management_state flag, bool set);
     void setParentWindow(PlasmaWindowInterface *parent);
     void setGeometry(const Rect &geometry);
@@ -86,7 +87,6 @@ public:
     QHash<SurfaceInterface *, Rect> minimizedGeometries;
     PlasmaWindowManagementInterface *wm;
 
-    bool unmapped = false;
     PlasmaWindowInterface *parentWindow = nullptr;
     QMetaObject::Connection parentWindowDestroyConnection;
     QStringList plasmaVirtualDesktops;
@@ -104,6 +104,7 @@ public:
     QString uuid;
     QString m_resourceName;
     Rect clientGeometry;
+    bool mapped = false;
 
 protected:
     Resource *org_kde_plasma_window_allocate() override;
@@ -352,30 +353,12 @@ void PlasmaWindowManagementInterface::setStackingOrderUuids(const QList<QString>
     d->sendStackingOrderChanged2();
 }
 
-void PlasmaWindowManagementInterface::setPlasmaVirtualDesktopManagementInterface(PlasmaVirtualDesktopManagementInterface *manager)
-{
-    if (d->plasmaVirtualDesktopManagementInterface == manager) {
-        return;
-    }
-    d->plasmaVirtualDesktopManagementInterface = manager;
-}
-
-PlasmaVirtualDesktopManagementInterface *PlasmaWindowManagementInterface::plasmaVirtualDesktopManagementInterface() const
-{
-    return d->plasmaVirtualDesktopManagementInterface;
-}
-
 //////PlasmaWindow
 PlasmaWindowInterfacePrivate::PlasmaWindowInterfacePrivate(PlasmaWindowManagementInterface *wm, PlasmaWindowInterface *q)
     : QtWaylandServer::org_kde_plasma_window()
     , wm(wm)
     , q(q)
 {
-}
-
-PlasmaWindowInterfacePrivate::~PlasmaWindowInterfacePrivate()
-{
-    unmap();
 }
 
 QtWaylandServer::org_kde_plasma_window::Resource *PlasmaWindowInterfacePrivate::org_kde_plasma_window_allocate()
@@ -425,9 +408,6 @@ void PlasmaWindowInterfacePrivate::sendInitialState(Resource *resource)
         send_geometry(resource->handle, geometry.x(), geometry.y(), geometry.width(), geometry.height());
     }
 
-    if (resource->version() >= ORG_KDE_PLASMA_WINDOW_INITIAL_STATE_SINCE_VERSION) {
-        send_initial_state(resource->handle);
-    }
     if (!m_resourceName.isEmpty()) {
         if (resource->version() >= ORG_KDE_PLASMA_WINDOW_RESOURCE_NAME_CHANGED_SINCE_VERSION) {
             send_resource_name_changed(resource->handle, m_resourceName);
@@ -436,6 +416,16 @@ void PlasmaWindowInterfacePrivate::sendInitialState(Resource *resource)
 
     if (clientGeometry.isValid() && resource->version() >= ORG_KDE_PLASMA_WINDOW_CLIENT_GEOMETRY_SINCE_VERSION) {
         send_client_geometry(resource->handle, clientGeometry.x(), clientGeometry.y(), clientGeometry.width(), clientGeometry.height());
+    }
+
+    if (resource->version() >= ORG_KDE_PLASMA_WINDOW_MAPPED_SINCE_VERSION) {
+        if (mapped) {
+            send_mapped(resource->handle);
+        }
+    }
+
+    if (resource->version() >= ORG_KDE_PLASMA_WINDOW_INITIAL_STATE_SINCE_VERSION) {
+        send_initial_state(resource->handle);
     }
 }
 
@@ -510,6 +500,13 @@ void PlasmaWindowInterfacePrivate::setResourceName(const QString &resourceName)
 void PlasmaWindowInterfacePrivate::org_kde_plasma_window_get_icon(Resource *resource, int32_t fd)
 {
     QThreadPool::globalInstance()->start([fd, icon = m_icon]() {
+        const int flags = fcntl(fd, F_GETFL);
+        if (flags == -1 || fcntl(fd, F_SETFL, flags & ~O_NONBLOCK) == -1) {
+            qCWarning(KWIN_CORE) << Q_FUNC_INFO << "failed to make fd blocking:" << strerror(errno);
+            close(fd);
+            return;
+        }
+
         QFile file;
         if (!file.open(fd, QIODevice::WriteOnly, QFileDevice::AutoCloseHandle)) {
             close(fd);
@@ -562,19 +559,6 @@ void PlasmaWindowInterfacePrivate::setTitle(const QString &title)
 
     for (auto resource : clientResources) {
         send_title_changed(resource->handle, truncate(m_title));
-    }
-}
-
-void PlasmaWindowInterfacePrivate::unmap()
-{
-    if (unmapped) {
-        return;
-    }
-    unmapped = true;
-    const auto clientResources = resourceMap();
-
-    for (auto resource : clientResources) {
-        send_unmapped(resource->handle);
     }
 }
 
@@ -802,7 +786,24 @@ PlasmaWindowInterface::PlasmaWindowInterface(PlasmaWindowManagementInterface *wm
 {
 }
 
-PlasmaWindowInterface::~PlasmaWindowInterface() = default;
+PlasmaWindowInterface::~PlasmaWindowInterface()
+{
+    for (const auto resources = d->resourceMap(); auto resource : resources) {
+        d->send_unmapped(resource->handle);
+    }
+}
+
+void PlasmaWindowInterface::map()
+{
+    Q_ASSERT(!d->mapped);
+    d->mapped = true;
+
+    for (const auto resources = d->resourceMap(); const auto &resource : resources) {
+        if (resource->version() >= ORG_KDE_PLASMA_WINDOW_MAPPED_SINCE_VERSION) {
+            d->send_mapped(resource->handle);
+        }
+    }
+}
 
 void PlasmaWindowInterface::setAppId(const QString &appId)
 {
@@ -817,11 +818,6 @@ void PlasmaWindowInterface::setPid(quint32 pid)
 void PlasmaWindowInterface::setTitle(const QString &title)
 {
     d->setTitle(title);
-}
-
-void PlasmaWindowInterface::unmap()
-{
-    d->unmap();
 }
 
 QHash<SurfaceInterface *, Rect> PlasmaWindowInterface::minimizedGeometries() const
@@ -863,38 +859,6 @@ void PlasmaWindowInterface::setOnAllDesktops(bool set)
 {
     // the deprecated vd management
     d->setState(ORG_KDE_PLASMA_WINDOW_MANAGEMENT_STATE_ON_ALL_DESKTOPS, set);
-
-    if (!d->wm->plasmaVirtualDesktopManagementInterface()) {
-        return;
-    }
-    const auto clientResources = d->resourceMap();
-    // the current vd management
-    if (set) {
-        if (d->plasmaVirtualDesktops.isEmpty()) {
-            return;
-        }
-        // leaving everything means on all desktops
-        for (auto desk : plasmaVirtualDesktops()) {
-            for (auto resource : clientResources) {
-                d->send_virtual_desktop_left(resource->handle, desk);
-            }
-        }
-        d->plasmaVirtualDesktops.clear();
-    } else {
-        if (!d->plasmaVirtualDesktops.isEmpty()) {
-            return;
-        }
-        // enters the desktops which are active (usually only one  but not a given)
-        const auto desktops = d->wm->plasmaVirtualDesktopManagementInterface()->desktops();
-        for (const auto desktop : desktops) {
-            if (desktop->isActive() && !d->plasmaVirtualDesktops.contains(desktop->id())) {
-                d->plasmaVirtualDesktops << desktop->id();
-                for (auto resource : clientResources) {
-                    d->send_virtual_desktop_entered(resource->handle, desktop->id());
-                }
-            }
-        }
-    }
 }
 
 void PlasmaWindowInterface::setDemandsAttention(bool set)
@@ -945,22 +909,15 @@ void PlasmaWindowInterface::setResourceName(const QString &resourceName)
 void PlasmaWindowInterface::addPlasmaVirtualDesktop(const QString &id)
 {
     // don't add a desktop we're not sure it exists
-    if (!d->wm->plasmaVirtualDesktopManagementInterface() || d->plasmaVirtualDesktops.contains(id)) {
+    if (d->plasmaVirtualDesktops.contains(id)) {
         return;
     }
 
-    PlasmaVirtualDesktopInterface *desktop = d->wm->plasmaVirtualDesktopManagementInterface()->desktop(id);
-
-    if (!desktop) {
-        return;
+    if (d->plasmaVirtualDesktops.isEmpty()) {
+        setOnAllDesktops(false);
     }
 
     d->plasmaVirtualDesktops << id;
-
-    // if the desktop dies, remove it from or list
-    connect(desktop, &QObject::destroyed, this, [this, id]() {
-        removePlasmaVirtualDesktop(id);
-    });
 
     const auto clientResources = d->resourceMap();
     for (auto resource : clientResources) {
@@ -1188,6 +1145,7 @@ void PlasmaWindowInterfacePrivate::setClientGeometry(const Rect &geometry)
         send_client_geometry(resource->handle, clientGeometry.x(), clientGeometry.y(), clientGeometry.width(), clientGeometry.height());
     }
 }
+
 }
 
 #include "moc_plasmawindowmanagement.cpp"

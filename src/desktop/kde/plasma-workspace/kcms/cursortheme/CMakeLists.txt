@@ -4,16 +4,16 @@ kcmutils_add_qml_kcm(kcm_cursortheme SOURCES ${kcm_cursortheme_PART_SRCS})
 
 target_sources(kcm_cursortheme PRIVATE
     xcursor/thememodel.cpp
-    xcursor/themeapplicator.cpp
     xcursor/cursortheme.cpp
     xcursor/xcursortheme.cpp
     xcursor/previewwidget.cpp
     xcursor/sortproxymodel.cpp
     ../kcms-common.cpp
     kcmcursortheme.cpp
+    xcursor/xcursor.c
 )
 
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/xcursor/ ${CMAKE_CURRENT_BINARY_DIR}/../krdb/ )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/xcursor/)
 
 kcmutils_generate_module_data(kcm_cursortheme
     MODULE_DATA_HEADER cursorthemedata.h
@@ -39,12 +39,9 @@ target_link_libraries(kcm_cursortheme PRIVATE
     KF6::KIOWidgets
     KF6::NewStuffCore
     KF6::KCMUtilsQuick
-    krdb
 )
 
-if (HAVE_X11)
-   target_link_libraries(kcm_cursortheme PRIVATE X11::Xcursor X11::Xfixes Qt::GuiPrivate)
-endif ()
+target_compile_definitions(kcm_cursortheme PRIVATE CMAKE_INSTALL_FULL_LIBEXECDIR="${CMAKE_INSTALL_FULL_LIBEXECDIR}")
 
 # plasma-apply-cursortheme utility
 
@@ -53,11 +50,10 @@ target_sources(plasma-apply-cursortheme PRIVATE
     plasma-apply-cursortheme.cpp
 
     xcursor/cursortheme.cpp
-    xcursor/themeapplicator.cpp
     xcursor/thememodel.cpp
     xcursor/xcursortheme.cpp
     ../kcms-common.cpp
-    ../krdb/krdb.cpp
+     xcursor/xcursor.c
 )
 kconfig_add_kcfg_files(plasma-apply-cursortheme cursorthemesettings.kcfgc GENERATE_MOC)
 target_link_libraries(plasma-apply-cursortheme
@@ -69,9 +65,8 @@ target_link_libraries(plasma-apply-cursortheme
     KF6::WindowSystem
 )
 
-if (HAVE_X11)
-   target_link_libraries(plasma-apply-cursortheme X11::X11 X11::Xcursor X11::Xfixes XCB::XCB XCB::CURSOR Qt::GuiPrivate KF6::ColorScheme)
-endif()
+target_compile_definitions(plasma-apply-cursortheme PRIVATE CMAKE_INSTALL_FULL_LIBEXECDIR="${CMAKE_INSTALL_FULL_LIBEXECDIR}")
+
 
 install(TARGETS plasma-apply-cursortheme  DESTINATION ${KDE_INSTALL_BINDIR})
 

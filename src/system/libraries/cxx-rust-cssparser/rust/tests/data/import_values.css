@@ -1,0 +1,19 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ * SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+ */
+
+button,
+toolbutton {
+    width: 32px;
+    height: 32px;
+
+    color: #ff0000;
+
+    padding: 4px 4px 4px 4px;
+    padding-top: 2rem;
+
+    &:hovered {
+        color: #00ff00;
+    }
+}

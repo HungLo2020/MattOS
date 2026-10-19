@@ -5,19 +5,59 @@
 */
 
 #include "effect/timeline.h"
+#include "scene/scene.h"
 
 namespace KWin
 {
 
+AnimationClock::AnimationClock()
+{
+}
+
+void AnimationClock::reset()
+{
+    m_lastTimestamp.reset();
+}
+
+std::chrono::milliseconds AnimationClock::tick(std::chrono::nanoseconds timestamp, uint refreshRate)
+{
+    std::chrono::milliseconds delta = std::chrono::milliseconds::zero();
+    if (m_lastTimestamp) {
+        if (timestamp < m_lastTimestamp) {
+            return std::chrono::milliseconds::zero();
+        }
+        delta = std::chrono::duration_cast<std::chrono::milliseconds>(timestamp - *m_lastTimestamp);
+    }
+
+    // Prevent the delta time from getting too big to minimize stuttering. If we have missed a frame,
+    // that is not good. But, breaking a smooth motion is worse than showing a frame for more than one
+    // vblank interval.
+    if (refreshRate) {
+        const uint minRefreshRate = std::min(refreshRate, 60000u);
+        const auto maximumDeltaTime = std::chrono::milliseconds(1000000) / minRefreshRate;
+        delta = std::min(delta, maximumDeltaTime);
+    }
+
+    Q_ASSERT(delta >= std::chrono::milliseconds::zero());
+    m_lastTimestamp = timestamp;
+
+    return delta;
+}
+
+std::chrono::milliseconds AnimationClock::tick(const RenderView *view)
+{
+    return tick(view->nextPresentationTimestamp(), view->refreshRate());
+}
+
 class Q_DECL_HIDDEN TimeLine::Data : public QSharedData
 {
 public:
+    AnimationClock clock;
     std::chrono::milliseconds duration;
     Direction direction;
     QEasingCurve easingCurve;
 
     std::chrono::milliseconds elapsed = std::chrono::milliseconds::zero();
-    std::optional<std::chrono::milliseconds> lastTimestamp = std::nullopt;
     bool done = false;
     RedirectMode sourceRedirectMode = RedirectMode::Relaxed;
     RedirectMode targetRedirectMode = RedirectMode::Strict;
@@ -50,26 +90,23 @@ qreal TimeLine::value() const
         d->direction == Backward ? 1.0 - t : t);
 }
 
-void TimeLine::advance(std::chrono::milliseconds timestamp)
+void TimeLine::advance(std::chrono::nanoseconds timestamp, uint refreshRate)
 {
     if (d->done) {
         return;
     }
 
-    std::chrono::milliseconds delta = std::chrono::milliseconds::zero();
-    if (d->lastTimestamp.has_value()) {
-        delta = timestamp - d->lastTimestamp.value();
-    }
-
-    Q_ASSERT(delta >= std::chrono::milliseconds::zero());
-    d->lastTimestamp = timestamp;
-
-    d->elapsed += delta;
+    d->elapsed += d->clock.tick(timestamp, refreshRate);
     if (d->elapsed >= d->duration) {
         d->elapsed = d->duration;
         d->done = true;
-        d->lastTimestamp = std::nullopt;
+        d->clock.reset();
     }
+}
+
+void TimeLine::advance(const RenderView *view)
+{
+    advance(view->nextPresentationTimestamp(), view->refreshRate());
 }
 
 std::chrono::milliseconds TimeLine::elapsed() const
@@ -91,7 +128,7 @@ void TimeLine::setElapsed(std::chrono::milliseconds elapsed)
     if (d->elapsed >= d->duration) {
         d->elapsed = d->duration;
         d->done = true;
-        d->lastTimestamp = std::nullopt;
+        d->clock.reset();
     }
 }
 
@@ -110,7 +147,7 @@ void TimeLine::setDuration(std::chrono::milliseconds duration)
     d->duration = duration;
     if (d->elapsed == d->duration) {
         d->done = true;
-        d->lastTimestamp = std::nullopt;
+        d->clock.reset();
     }
 }
 
@@ -138,7 +175,7 @@ void TimeLine::setDirection(TimeLine::Direction direction)
 
     if (d->elapsed >= d->duration) {
         d->done = true;
-        d->lastTimestamp = std::nullopt;
+        d->clock.reset();
     }
 }
 
@@ -175,7 +212,7 @@ bool TimeLine::done() const
 
 void TimeLine::reset()
 {
-    d->lastTimestamp = std::nullopt;
+    d->clock.reset();
     d->elapsed = std::chrono::milliseconds::zero();
     d->done = false;
 }

@@ -49,7 +49,7 @@ public:
      * It's acceptable if this class does not pick up on brightness changes by external actors.
      */
     virtual int brightness() const = 0;
-    virtual void setBrightness(int brightness, bool allowAnimations = true) = 0;
+    virtual void setBrightness(int brightness) = 0;
 
     /**
      * @returns if this object controls the brightness of an internal panel
@@ -69,18 +69,9 @@ public:
     virtual bool usesDdcCi() const;
 
     /**
-     * Returns false by default. Override to return true if the display device can set a dimming
-     * multiplier independently of the brightness() itself. If this is supported,
-     * setDimmingMultiplier() must be overridden as well.
-     */
-    virtual bool supportsDimmingMultiplier() const;
-
-    /**
      * Set a dimming multiplier between 0.0 and 1.0 to scale down display brightness temporarily,
      * without affecting the value returned by brightness(). It is not assumed that this value will
      * persist across disconnection or reboot scenarios.
-     *
-     * Must be implemented if supportsDimmingMultiplier() returns true, otherwise never called.
      */
     virtual void setDimmingMultiplier(double multiplier);
 

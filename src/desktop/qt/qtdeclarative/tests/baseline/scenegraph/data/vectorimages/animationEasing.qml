@@ -3,12 +3,13 @@ import QtQuick.VectorImage
 
 Rectangle { 
     id: topLevelItem
-    width: 400
+    width: 800
     height: 350
 
     ListModel {
         id: files
         ListElement { src: "../shared/svg/animationEasing.svg" }
+        ListElement { src: "../shared/svg/animationEasingPerKeyframe.svg" }
     }
 
     Grid {

@@ -18,14 +18,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <config-kscreenlocker.h>
 #include <kscreenlocker_greet_logging.h>
-
-#if HAVE_SYS_PRCTL_H
-#include <sys/prctl.h>
-#endif
-#if HAVE_SYS_PROCCTL_H
-#include <sys/procctl.h>
-#include <unistd.h>
-#endif
+#include <prctls.h>
 
 #include <KSignalHandler>
 #include <LayerShellQt/Shell>
@@ -64,28 +57,14 @@ int main(int argc, char *argv[])
     sigaddset(&blockedSignals, SIGUSR1);
     pthread_sigmask(SIG_BLOCK, &blockedSignals, NULL);
 
-    LayerShellQt::Shell::useLayerShell();
-
-    // disable ptrace on the greeter
-#if HAVE_PR_SET_DUMPABLE
-    prctl(PR_SET_DUMPABLE, 0);
-#endif
-#if HAVE_PROC_TRACE_CTL
-    int mode = PROC_TRACE_CTL_DISABLE;
-    procctl(P_PID, getpid(), PROC_TRACE_CTL, &mode);
-#endif
+    // disable ptrace on the greeter unless debugging is enabled
+    if (auto dumpable = KSCREENLOCKER_GREET().isDebugEnabled(); !PRCTLs::setDumpable(dumpable)) {
+        qCWarning(KSCREENLOCKER_GREET) << "Failed to switch ptrace on the greeter to" << (dumpable ? "enabled" : "disabled");
+    }
 
     qCDebug(KSCREENLOCKER_GREET) << "Greeter is starting up.";
 
     KLocalizedString::setApplicationDomain(QByteArrayLiteral("kscreenlocker_greet"));
-
-    // explicitly disable input methods on x11 as it makes it impossible to unlock, see BUG 306932
-    // but explicitly set on screen keyboard such as maliit is allowed
-    // on wayland, let the compositor take care of the input method
-    if (!qEnvironmentVariableIsSet("WAYLAND_DISPLAY") && !qEnvironmentVariableIsSet("WAYLAND_SOCKET")
-        && qgetenv("QT_IM_MODULE") != QByteArrayLiteral("maliit")) {
-        qputenv("QT_IM_MODULE", QByteArrayLiteral("qtvirtualkeyboard"));
-    }
 
     // Suppresses modal warnings about unwritable configuration files which may render the system inaccessible
     qputenv("KDE_HOME_READONLY", "1");
@@ -138,14 +117,11 @@ int main(int argc, char *argv[])
                                        QStringLiteral("0"));
     QCommandLineOption nolockOption(QStringLiteral("nolock"), i18n("Don't show any lock user interface."));
 
-    QCommandLineOption waylandFdOption(QStringLiteral("ksldfd"), i18n("File descriptor for connecting to ksld."), QStringLiteral("fd"));
-
     parser.addOption(testingOption);
     parser.addOption(shellOption);
     parser.addOption(immediateLockOption);
     parser.addOption(graceTimeOption);
     parser.addOption(nolockOption);
-    parser.addOption(waylandFdOption);
     parser.process(app);
 
     if (parser.isSet(testingOption)) {
@@ -161,13 +137,9 @@ int main(int argc, char *argv[])
         }
 
         // allow ptrace if testing is enabled
-#if HAVE_PR_SET_DUMPABLE
-        prctl(PR_SET_DUMPABLE, 1);
-#endif
-#if HAVE_PROC_TRACE_CTL
-        int mode = PROC_TRACE_CTL_ENABLE;
-        procctl(P_PID, getpid(), PROC_TRACE_CTL, &mode);
-#endif
+        if (!PRCTLs::setDumpable(true)) {
+            qCWarning(KSCREENLOCKER_GREET) << "Failed to disable ptrace on the greeter";
+        }
     } else {
         app.setImmediateLock(parser.isSet(immediateLockOption));
     }
@@ -177,14 +149,6 @@ int main(int argc, char *argv[])
     int graceTime = parser.value(graceTimeOption).toInt(&ok);
     if (ok) {
         app.setGraceTime(graceTime);
-    }
-
-    if (parser.isSet(waylandFdOption)) {
-        ok = false;
-        const int fd = parser.value(waylandFdOption).toInt(&ok);
-        if (ok) {
-            app.setKsldSocket(fd);
-        }
     }
 
     app.initialViewSetup();

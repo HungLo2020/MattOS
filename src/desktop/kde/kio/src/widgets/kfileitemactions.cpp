@@ -142,87 +142,6 @@ KFileItemActionsPrivate::~KFileItemActionsPrivate()
     qDeleteAll(m_serviceMenuShortcutActions);
 }
 
-int KFileItemActionsPrivate::insertServicesSubmenus(const QMap<QString, ServiceList> &submenus, QMenu *menu)
-{
-    int count = 0;
-    QMap<QString, ServiceList>::ConstIterator it;
-    for (it = submenus.begin(); it != submenus.end(); ++it) {
-        if (it.value().isEmpty()) {
-            // avoid empty sub-menus
-            continue;
-        }
-
-        QMenu *actionSubmenu = new QMenu(menu);
-        const int servicesAddedCount = insertServices(it.value(), actionSubmenu);
-
-        if (servicesAddedCount > 0) {
-            count += servicesAddedCount;
-            actionSubmenu->setTitle(it.key());
-            actionSubmenu->setIcon(QIcon::fromTheme(it.value().first().icon()));
-            actionSubmenu->menuAction()->setObjectName(QStringLiteral("services_submenu")); // for the unittest
-            menu->addMenu(actionSubmenu);
-        } else {
-            // avoid empty sub-menus
-            delete actionSubmenu;
-        }
-    }
-
-    return count;
-}
-
-int KFileItemActionsPrivate::insertServices(const ServiceList &list, QMenu *menu)
-{
-    // Temporary storage for current group and all groups
-    ServiceList currentGroup;
-    std::vector<ServiceList> allGroups;
-
-    // Grouping
-    for (const KDesktopFileAction &serviceAction : std::as_const(list)) {
-        if (serviceAction.isSeparator()) {
-            if (!currentGroup.empty()) {
-                allGroups.push_back(currentGroup);
-                currentGroup.clear();
-            }
-            // Push back a dummy list to represent a separator for later
-            allGroups.push_back(ServiceList());
-        } else {
-            currentGroup.push_back(serviceAction);
-        }
-    }
-    // Don't forget to add the last group if it exists
-    if (!currentGroup.empty()) {
-        allGroups.push_back(currentGroup);
-    }
-
-    // Sort each group
-    for (ServiceList &group : allGroups) {
-        std::sort(group.begin(), group.end(), [](const KDesktopFileAction &a1, const KDesktopFileAction &a2) {
-            return a1.actionsKey() < a2.actionsKey();
-        });
-    }
-
-    int count = 0;
-    for (const ServiceList &group : allGroups) {
-        // Check if the group is a separator
-        if (group.empty()) {
-            const QList<QAction *> actions = menu->actions();
-            if (!actions.isEmpty() && !actions.last()->isSeparator()) {
-                menu->addSeparator();
-            }
-            continue;
-        }
-
-        // Insert sorted actions for current group
-        for (const KDesktopFileAction &serviceAction : group) {
-            QAction *act = createActionForService(serviceAction, QStringLiteral("menuaction"));
-            menu->addAction(act); // Add to toplevel menu
-            ++count;
-        }
-    }
-
-    return count;
-}
-
 QAction *KFileItemActionsPrivate::createActionForService(const KDesktopFileAction &serviceAction, const QString &objectName)
 {
     QAction *act = new QAction(q);
@@ -309,20 +228,42 @@ void KFileItemActions::setItemListProperties(const KFileItemListProperties &item
     }
 }
 
-void KFileItemActions::addActionsTo(QMenu *menu, MenuActionSources sources, const QList<QAction *> &additionalActions, const QStringList &excludeList)
+void KFileItemActions::addActionsTo(QMenu *mainMenu, MenuActionSources sources, const QList<QAction *> &additionalActions, const QStringList &excludeList)
 {
-    QMenu *actionsMenu = menu;
+    QMenu *mainMenuHolder = new QMenu();
+    QMenu *actionsMenuHolder = new QMenu();
+    d->m_mainMenu = mainMenu;
     if (sources & MenuActionSource::Services) {
-        actionsMenu = d->addServiceActionsTo(menu, additionalActions, excludeList).menu;
+        d->addServiceActionsTo(mainMenuHolder, actionsMenuHolder, additionalActions, excludeList);
     } else {
         // Since we didn't call addServiceActionsTo(), we have to add additional actions manually
         for (QAction *action : additionalActions) {
-            actionsMenu->addAction(action);
+            actionsMenuHolder->addAction(action);
         }
     }
     if (sources & MenuActionSource::Plugins) {
-        d->addPluginActionsTo(menu, actionsMenu, excludeList);
+        d->addPluginActionsTo(mainMenuHolder, actionsMenuHolder, excludeList);
     }
+
+    QMenu *actionsMenu;
+    if (actionsMenuHolder->actions().size() > 4) {
+        actionsMenu = new QMenu(i18nc("@title:menu", "&Actions"), mainMenu);
+        actionsMenu->setIcon(QIcon::fromTheme(QStringLiteral("view-more-symbolic")));
+        actionsMenu->menuAction()->setObjectName(QStringLiteral("actions_submenu")); // for the unittest
+        mainMenu->addMenu(actionsMenu);
+    } else {
+        actionsMenu = mainMenu;
+    }
+
+    for (QAction *action : actionsMenuHolder->actions()) {
+        actionsMenu->addAction(action);
+    }
+    for (QAction *action : mainMenuHolder->actions()) {
+        mainMenu->addAction(action);
+    }
+
+    delete mainMenuHolder;
+    delete actionsMenuHolder;
 }
 
 // static
@@ -342,6 +283,209 @@ static KService::Ptr preferredService(const QString &mimeType, const QStringList
 void KFileItemActions::insertOpenWithActionsTo(QAction *before, QMenu *topMenu, const QStringList &excludedDesktopEntryNames)
 {
     d->insertOpenWithActionsTo(before, topMenu, excludedDesktopEntryNames);
+}
+
+void KFileItemActionsPrivate::addServiceActionsTo(QMenu *mainMenuHolder,
+                                                  QMenu *actionsMenuHolder,
+                                                  const QList<QAction *> &additionalActions,
+                                                  const QStringList &excludeList)
+{
+    const KFileItemList items = m_props.items();
+    const KFileItem &firstItem = items.first();
+    const QString protocol = firstItem.url().scheme(); // assumed to be the same for all items
+    const bool isLocal = !firstItem.localPath().isEmpty();
+
+    KIO::PopupServices s;
+
+    // 2 - Look for "servicemenus" bindings (user-defined services)
+
+    // first check the .directory if this is a directory
+    const bool isSingleLocal = items.count() == 1 && isLocal;
+    if (m_props.isDirectory() && isSingleLocal) {
+        const QString dotDirectoryFile = QUrl::fromLocalFile(firstItem.localPath()).path().append(QLatin1String("/.directory"));
+        if (QFile::exists(dotDirectoryFile)) {
+            const KDesktopFile desktopFile(dotDirectoryFile);
+            const KConfigGroup cfg = desktopFile.desktopGroup();
+
+            if (KIOSKAuthorizedAction(cfg)) {
+                const QString priority = cfg.readEntry("X-KDE-Priority");
+                const QString submenuName = cfg.readEntry("X-KDE-Submenu");
+                ServiceList &list = s.selectList(priority, submenuName);
+                list += desktopFile.actions();
+            }
+        }
+    }
+
+    const KConfigGroup showGroup = m_config.group(QStringLiteral("Show"));
+
+    const QStringList files = serviceMenuFilePaths();
+    for (const QString &file : files) {
+        const KDesktopFile desktopFile(file);
+        const KConfigGroup cfg = desktopFile.desktopGroup();
+        if (!shouldDisplayServiceMenu(cfg, protocol)) {
+            continue;
+        }
+
+        const QList<KDesktopFileAction> actions = desktopFile.actions();
+        if (!actions.isEmpty()) {
+            if (!checkTypesMatch(cfg)) {
+                continue;
+            }
+
+            const QString priority = cfg.readEntry("X-KDE-Priority");
+            const QString submenuName = cfg.readEntry("X-KDE-Submenu");
+
+            ServiceList &list = s.selectList(priority, submenuName);
+            std::copy_if(actions.cbegin(), actions.cend(), std::back_inserter(list), [&excludeList, &showGroup](const KDesktopFileAction &srvAction) {
+                return showGroup.readEntry(srvAction.actionsKey(), true) && !excludeList.contains(srvAction.actionsKey());
+            });
+        }
+    }
+
+    for (QAction *action : additionalActions) {
+        actionsMenuHolder->addAction(action);
+    }
+    insertServicesSubmenus(s.userPrioritySubmenus, actionsMenuHolder);
+    insertServices(s.userPriority, actionsMenuHolder);
+    insertServicesSubmenus(s.userSubmenus, actionsMenuHolder);
+    insertServices(s.user, actionsMenuHolder);
+
+    insertServicesSubmenus(s.userToplevelSubmenus, mainMenuHolder);
+    insertServices(s.userToplevel, mainMenuHolder);
+}
+
+int KFileItemActionsPrivate::insertServicesSubmenus(const QMap<QString, ServiceList> &submenus, QMenu *menu)
+{
+    int count = 0;
+    QMap<QString, ServiceList>::ConstIterator it;
+    for (it = submenus.begin(); it != submenus.end(); ++it) {
+        if (it.value().isEmpty()) {
+            // avoid empty sub-menus
+            continue;
+        }
+
+        QMenu *actionSubmenu = new QMenu(m_mainMenu);
+        const int servicesAddedCount = insertServices(it.value(), actionSubmenu);
+
+        if (servicesAddedCount > 0) {
+            count += servicesAddedCount;
+            actionSubmenu->setTitle(it.key());
+            actionSubmenu->setIcon(QIcon::fromTheme(it.value().first().icon()));
+            actionSubmenu->menuAction()->setObjectName(QStringLiteral("services_submenu")); // for the unittest
+            menu->addMenu(actionSubmenu);
+        } else {
+            // avoid empty sub-menus
+            delete actionSubmenu;
+        }
+    }
+
+    return count;
+}
+
+int KFileItemActionsPrivate::insertServices(const ServiceList &list, QMenu *menu)
+{
+    // Temporary storage for current group and all groups
+    ServiceList currentGroup;
+    std::vector<ServiceList> allGroups;
+
+    // Grouping
+    for (const KDesktopFileAction &serviceAction : std::as_const(list)) {
+        if (serviceAction.isSeparator()) {
+            if (!currentGroup.empty()) {
+                allGroups.push_back(currentGroup);
+                currentGroup.clear();
+            }
+            // Push back a dummy list to represent a separator for later
+            allGroups.push_back(ServiceList());
+        } else {
+            currentGroup.push_back(serviceAction);
+        }
+    }
+    // Don't forget to add the last group if it exists
+    if (!currentGroup.empty()) {
+        allGroups.push_back(currentGroup);
+    }
+
+    // Sort each group
+    for (ServiceList &group : allGroups) {
+        std::sort(group.begin(), group.end(), [](const KDesktopFileAction &a1, const KDesktopFileAction &a2) {
+            return a1.actionsKey() < a2.actionsKey();
+        });
+    }
+
+    int count = 0;
+    for (const ServiceList &group : allGroups) {
+        // Check if the group is a separator
+        if (group.empty()) {
+            const QList<QAction *> actions = menu->actions();
+            if (!actions.isEmpty() && !actions.last()->isSeparator()) {
+                menu->addSeparator();
+            }
+            continue;
+        }
+
+        // Insert sorted actions for current group
+        for (const KDesktopFileAction &serviceAction : group) {
+            QAction *act = createActionForService(serviceAction, QStringLiteral("menuaction"));
+            menu->addAction(act); // Add to toplevel menu
+            ++count;
+        }
+    }
+
+    return count;
+}
+
+void KFileItemActionsPrivate::addPluginActionsTo(QMenu *mainMenuHolder, QMenu *actionsMenuHolder, const QStringList &excludeList)
+{
+    QString commonMimeType = m_props.mimeType();
+    if (commonMimeType.isEmpty() && m_props.isFile()) {
+        commonMimeType = QStringLiteral("application/octet-stream");
+    }
+
+    const KConfigGroup showGroup = m_config.group(QStringLiteral("Show"));
+
+    const QMimeDatabase db;
+    const auto jsonPlugins = KPluginMetaData::findPlugins(QStringLiteral("kf6/kfileitemaction"), [&db, commonMimeType](const KPluginMetaData &metaData) {
+        auto mimeType = db.mimeTypeForName(commonMimeType);
+        const QStringList list = metaData.mimeTypes();
+        return std::any_of(list.constBegin(), list.constEnd(), [mimeType](const QString &supportedMimeType) {
+            return mimeType.inherits(supportedMimeType);
+        });
+    });
+
+    QList<QAction *> iconAction;
+    for (const auto &jsonMetadata : jsonPlugins) {
+        // The plugin has been disabled
+        const QString pluginId = jsonMetadata.pluginId();
+        if (!showGroup.readEntry(pluginId, true) || excludeList.contains(pluginId)) {
+            continue;
+        }
+
+        KAbstractFileItemActionPlugin *abstractPlugin = m_loadedPlugins.value(pluginId);
+        if (!abstractPlugin) {
+            auto result = KPluginFactory::instantiatePlugin<KAbstractFileItemActionPlugin>(jsonMetadata, this);
+            if (result) {
+                abstractPlugin = result.plugin;
+                m_loadedPlugins.insert(pluginId, abstractPlugin);
+            } else {
+                qCWarning(KIO_WIDGETS) << "Couldn't load plugin:" << pluginId << result.errorText << result.errorReason;
+            }
+        }
+        if (abstractPlugin) {
+            connect(abstractPlugin, &KAbstractFileItemActionPlugin::error, q, &KFileItemActions::error);
+            const QList<QAction *> actions = abstractPlugin->actions(m_props, m_parentWidget);
+            if (jsonMetadata.value(QStringLiteral("X-KDE-Show-In-Submenu"), false)) {
+                if (pluginId == QLatin1String("setfoldericonitemaction")) {
+                    iconAction = actions;
+                } else {
+                    actionsMenuHolder->addActions(actions);
+                }
+            } else {
+                mainMenuHolder->addActions(actions);
+            }
+        }
+    }
+    actionsMenuHolder->addActions(iconAction);
 }
 
 void KFileItemActionsPrivate::slotRunPreferredApplications()
@@ -522,138 +666,6 @@ bool KFileItemActionsPrivate::checkTypesMatch(const KConfigGroup &cfg) const
     return std::all_of(items.constBegin(), items.constEnd(), [&types, &excludeTypes](const KFileItem &i) {
         return mimeTypeListContains(types, i) && !mimeTypeListContains(excludeTypes, i);
     });
-}
-
-KFileItemActionsPrivate::ServiceActionInfo
-KFileItemActionsPrivate::addServiceActionsTo(QMenu *mainMenu, const QList<QAction *> &additionalActions, const QStringList &excludeList)
-{
-    const KFileItemList items = m_props.items();
-    const KFileItem &firstItem = items.first();
-    const QString protocol = firstItem.url().scheme(); // assumed to be the same for all items
-    const bool isLocal = !firstItem.localPath().isEmpty();
-
-    KIO::PopupServices s;
-
-    // 2 - Look for "servicemenus" bindings (user-defined services)
-
-    // first check the .directory if this is a directory
-    const bool isSingleLocal = items.count() == 1 && isLocal;
-    if (m_props.isDirectory() && isSingleLocal) {
-        const QString dotDirectoryFile = QUrl::fromLocalFile(firstItem.localPath()).path().append(QLatin1String("/.directory"));
-        if (QFile::exists(dotDirectoryFile)) {
-            const KDesktopFile desktopFile(dotDirectoryFile);
-            const KConfigGroup cfg = desktopFile.desktopGroup();
-
-            if (KIOSKAuthorizedAction(cfg)) {
-                const QString priority = cfg.readEntry("X-KDE-Priority");
-                const QString submenuName = cfg.readEntry("X-KDE-Submenu");
-                ServiceList &list = s.selectList(priority, submenuName);
-                list += desktopFile.actions();
-            }
-        }
-    }
-
-    const KConfigGroup showGroup = m_config.group(QStringLiteral("Show"));
-
-    const QStringList files = serviceMenuFilePaths();
-    for (const QString &file : files) {
-        const KDesktopFile desktopFile(file);
-        const KConfigGroup cfg = desktopFile.desktopGroup();
-        if (!shouldDisplayServiceMenu(cfg, protocol)) {
-            continue;
-        }
-
-        const QList<KDesktopFileAction> actions = desktopFile.actions();
-        if (!actions.isEmpty()) {
-            if (!checkTypesMatch(cfg)) {
-                continue;
-            }
-
-            const QString priority = cfg.readEntry("X-KDE-Priority");
-            const QString submenuName = cfg.readEntry("X-KDE-Submenu");
-
-            ServiceList &list = s.selectList(priority, submenuName);
-            std::copy_if(actions.cbegin(), actions.cend(), std::back_inserter(list), [&excludeList, &showGroup](const KDesktopFileAction &srvAction) {
-                return showGroup.readEntry(srvAction.actionsKey(), true) && !excludeList.contains(srvAction.actionsKey());
-            });
-        }
-    }
-
-    QMenu *actionMenu = mainMenu;
-    int userItemCount = 0;
-    if (s.user.count() + s.userSubmenus.count() + s.userPriority.count() + s.userPrioritySubmenus.count() + additionalActions.count() > 3) {
-        // we have more than three items, so let's make a submenu
-        actionMenu = new QMenu(i18nc("@title:menu", "&Actions"), mainMenu);
-        actionMenu->setIcon(QIcon::fromTheme(QStringLiteral("view-more-symbolic")));
-        actionMenu->menuAction()->setObjectName(QStringLiteral("actions_submenu")); // for the unittest
-        mainMenu->addMenu(actionMenu);
-    }
-
-    userItemCount += additionalActions.count();
-    for (QAction *action : additionalActions) {
-        actionMenu->addAction(action);
-    }
-    userItemCount += insertServicesSubmenus(s.userPrioritySubmenus, actionMenu);
-    userItemCount += insertServices(s.userPriority, actionMenu);
-    userItemCount += insertServicesSubmenus(s.userSubmenus, actionMenu);
-    userItemCount += insertServices(s.user, actionMenu);
-
-    userItemCount += insertServicesSubmenus(s.userToplevelSubmenus, mainMenu);
-    userItemCount += insertServices(s.userToplevel, mainMenu);
-
-    return {userItemCount, actionMenu};
-}
-
-int KFileItemActionsPrivate::addPluginActionsTo(QMenu *mainMenu, QMenu *actionsMenu, const QStringList &excludeList)
-{
-    QString commonMimeType = m_props.mimeType();
-    if (commonMimeType.isEmpty() && m_props.isFile()) {
-        commonMimeType = QStringLiteral("application/octet-stream");
-    }
-
-    int itemCount = 0;
-
-    const KConfigGroup showGroup = m_config.group(QStringLiteral("Show"));
-
-    const QMimeDatabase db;
-    const auto jsonPlugins = KPluginMetaData::findPlugins(QStringLiteral("kf6/kfileitemaction"), [&db, commonMimeType](const KPluginMetaData &metaData) {
-        auto mimeType = db.mimeTypeForName(commonMimeType);
-        const QStringList list = metaData.mimeTypes();
-        return std::any_of(list.constBegin(), list.constEnd(), [mimeType](const QString &supportedMimeType) {
-            return mimeType.inherits(supportedMimeType);
-        });
-    });
-
-    for (const auto &jsonMetadata : jsonPlugins) {
-        // The plugin has been disabled
-        const QString pluginId = jsonMetadata.pluginId();
-        if (!showGroup.readEntry(pluginId, true) || excludeList.contains(pluginId)) {
-            continue;
-        }
-
-        KAbstractFileItemActionPlugin *abstractPlugin = m_loadedPlugins.value(pluginId);
-        if (!abstractPlugin) {
-            auto result = KPluginFactory::instantiatePlugin<KAbstractFileItemActionPlugin>(jsonMetadata, this);
-            if (result) {
-                abstractPlugin = result.plugin;
-                m_loadedPlugins.insert(pluginId, abstractPlugin);
-            } else {
-                qCWarning(KIO_WIDGETS) << "Couldn't load plugin:" << pluginId << result.errorText << result.errorReason;
-            }
-        }
-        if (abstractPlugin) {
-            connect(abstractPlugin, &KAbstractFileItemActionPlugin::error, q, &KFileItemActions::error);
-            const QList<QAction *> actions = abstractPlugin->actions(m_props, m_parentWidget);
-            itemCount += actions.count();
-            if (jsonMetadata.value(QStringLiteral("X-KDE-Show-In-Submenu"), false)) {
-                actionsMenu->addActions(actions);
-            } else {
-                mainMenu->addActions(actions);
-            }
-        }
-    }
-
-    return itemCount;
 }
 
 KService::List KFileItemActionsPrivate::associatedApplications(const QStringList &mimeTypeList, const QStringList &excludedDesktopEntryNames)

@@ -56,7 +56,7 @@ private slots:
     void testWindowsVistaStyle();
     void testWindowsVistaMenuIconSize();
 #endif
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     void testMacStyle();
 #endif
     void testStyleFactory();
@@ -349,7 +349,7 @@ void tst_QStyle::testWindowsVistaMenuIconSize()
 }
 #endif
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 void tst_QStyle::testMacStyle()
 {
     QStyle *mstyle = QStyleFactory::create("macos");

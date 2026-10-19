@@ -6,13 +6,13 @@
 # SPDX-FileCopyrightText: 2010 Johannes Obermayr <johannesobermayr@gmx.de>
 # SPDX-FileCopyrightText: 2010-2011 Panagiotis Papadopoulos <pano_90@gmx.net>
 # SPDX-FileCopyrightText: 2024 Frank Steinmetzger <dev-kde@felsenfleischer.de>
-# SPDX-FileCopyrightText: 2025 Philipp Kiemle <l10n.daphipz@fastmail.de>
+# SPDX-FileCopyrightText: 2025-2026 Philipp Kiemle <l10n.daphipz@fastmail.de>
 msgid ""
 msgstr ""
 "Project-Id-Version: kfontinst\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2025-12-04 20:37+0100\n"
+"POT-Creation-Date: 2026-09-27 02:41+0000\n"
+"PO-Revision-Date: 2026-10-03 09:30+0200\n"
 "Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
 "Language: de\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.08.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -335,13 +335,13 @@ msgstr ""
 "<p>Diese Liste enthält alle Ihre installierten Schriftarten; diese sind nach "
 "ihrer Schriftfamilie gruppiert. Die Zahl in den eckigen Klammern dahinter "
 "repräsentiert die Anzahl der Schriftstile, die für diese Schriftfamilie "
-"verfügbar sind, z. B.:</p><ul><li>Times [4]<ul><li>Normal</li><li>Fett</"
+"verfügbar sind, z. B.:</p><ul><li>Times [4]<ul><li>Normal</li><li>Fett</"
 "li><li>Fett Kursiv</li><li>Kursiv</li></ul></li></ul>"
 
 #: kcmfontinst/FontList.cpp:950 kcmfontinst/FontList.cpp:974
 #, kde-format
 msgid "…plus %1 more"
-msgstr "… und %1 weitere"
+msgstr "… und %1 weitere"
 
 #: kcmfontinst/FontList.cpp:1001
 #, kde-format
@@ -474,7 +474,7 @@ msgstr ""
 "<li><i>Alle Schriftarten</i> enthält alle auf diesem System installierten "
 "Schriftarten – sowohl „System-“ als auch „persönliche“ Schriftarten.</"
 "li><li><i>System-Schriftarten</i> enthält alle systemweit installierten "
-"Schriftarten (d. h. Schriftarten, die für alle Benutzer zur Verfügung "
+"Schriftarten (d. h. Schriftarten, die für alle Benutzer zur Verfügung "
 "stehen).</li><li><i>Persönliche Schriftarten</i> enthält alle Schriftarten, "
 "die nur von Ihnen verwendbar sind.</li><li><i>Nicht klassifiziert</i> "
 "enthält alle Schriften, die noch keiner benutzerdefinierten Gruppe "
@@ -601,19 +601,19 @@ msgstr ""
 msgid "<h3>Error</h3>"
 msgstr "<h3>Fehler</h3>"
 
-#: kcmfontinst/JobRunner.cpp:692
+#: kcmfontinst/JobRunner.cpp:693
 #, kde-format
 msgid "Failed to download <i>%1</i>"
 msgstr "Fehler beim Herunterladen von <i>%1</i>."
 
-#: kcmfontinst/JobRunner.cpp:694
+#: kcmfontinst/JobRunner.cpp:695
 #, kde-format
 msgid "System backend died. Please try again.<br><i>%1</i>"
 msgstr ""
 "Das System-Hintergrundprogramm ist abgestürzt. Bitte versuchen Sie es erneut."
 "<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:696
+#: kcmfontinst/JobRunner.cpp:697
 #, kde-format
 msgid ""
 "<i>%1</i> is a bitmap font, and these have been disabled on your system."
@@ -621,7 +621,7 @@ msgstr ""
 "<i>%1</i> ist eine Bitmap-Schriftart. Bitmap-Schriftarten sind auf Ihrem "
 "System deaktiviert."
 
-#: kcmfontinst/JobRunner.cpp:698
+#: kcmfontinst/JobRunner.cpp:699
 #, kde-format
 msgid ""
 "<i>%1</i> contains the font <b>%2</b>, which is already installed on your "
@@ -630,48 +630,48 @@ msgstr ""
 "Die Datei <i>%1</i> enthält die Schriftart <b>%2</b>. Eine Schriftart dieses "
 "Namens ist bereits installiert."
 
-#: kcmfontinst/JobRunner.cpp:700
+#: kcmfontinst/JobRunner.cpp:701
 #, kde-format
 msgid "<i>%1</i> is not a font."
 msgstr "<i>%1</i> ist keine Schrift."
 
-#: kcmfontinst/JobRunner.cpp:702
+#: kcmfontinst/JobRunner.cpp:703
 #, kde-format
 msgid "Could not remove all files associated with <i>%1</i>"
 msgstr ""
 "Es können nicht alle Dateien gelöscht werden, die <i>%1</i> zugeordnet sind."
 
-#: kcmfontinst/JobRunner.cpp:704
+#: kcmfontinst/JobRunner.cpp:705
 #, kde-format
 msgid "Failed to start the system daemon.<br><i>%1</i>"
 msgstr "Fehler beim Start des Systemdienstes.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:707 kio/KioFonts.cpp:719
+#: kcmfontinst/JobRunner.cpp:708 kio/KioFonts.cpp:719
 #, kde-format
 msgid "<i>%1</i> already exists."
 msgstr "<i>%1</i> existiert bereits."
 
-#: kcmfontinst/JobRunner.cpp:710
+#: kcmfontinst/JobRunner.cpp:711
 #, kde-format
 msgid "<i>%1</i> does not exist."
 msgstr "<i>%1</i> existiert nicht."
 
-#: kcmfontinst/JobRunner.cpp:712
+#: kcmfontinst/JobRunner.cpp:713
 #, kde-format
 msgid "Permission denied.<br><i>%1</i>"
 msgstr "Zugriff verweigert.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:714
+#: kcmfontinst/JobRunner.cpp:715
 #, kde-format
 msgid "Unsupported action.<br><i>%1</i>"
 msgstr "Nicht unterstützte Aktion.<br><i>%1>"
 
-#: kcmfontinst/JobRunner.cpp:716
+#: kcmfontinst/JobRunner.cpp:717
 #, kde-format
 msgid "Authentication failed.<br><i>%1</i>"
 msgstr "Authentifizierung fehlgeschlagen.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:718
+#: kcmfontinst/JobRunner.cpp:719
 #, kde-format
 msgid "Unexpected error while processing: <i>%1</i>"
 msgstr "Unerwarteter Fehler beim Verarbeiten: <i>%1</i>"
@@ -1558,17 +1558,17 @@ msgstr "Kategorie"
 msgid "UCS-4"
 msgstr "UCS-4"
 
-#: viewpart/CharTip.cpp:157
+#: viewpart/CharTip.cpp:158
 #, kde-format
 msgid "UTF-16"
 msgstr "UTF-16"
 
-#: viewpart/CharTip.cpp:168
+#: viewpart/CharTip.cpp:169
 #, kde-format
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: viewpart/CharTip.cpp:185
+#: viewpart/CharTip.cpp:186
 #, kde-format
 msgid "XML Decimal Entity"
 msgstr "XML-Dezimal-Entität"
@@ -1593,12 +1593,12 @@ msgstr "Text ändern …"
 msgid "Could not read font."
 msgstr "Die Schriftart kann nicht eingelesen werden."
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Preview String"
 msgstr "Vorschau-Zeichenfolge"
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Please enter new string:"
 msgstr "Bitte geben Sie eine neue Zeichenfolge ein:"

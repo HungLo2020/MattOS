@@ -9,7 +9,9 @@
 
 #include <Plasma/Corona>
 
-class PlasmaWindowedView;
+#include "plasmawindowedview.h"
+
+#include <memory>
 
 class PlasmaWindowedCorona : public Plasma::Corona
 {
@@ -17,10 +19,11 @@ class PlasmaWindowedCorona : public Plasma::Corona
 
 public:
     explicit PlasmaWindowedCorona(const QString &shell, QObject *parent = nullptr);
-    QRect screenGeometry(int id) const override;
+    QRect screenGeometry(uint id) const override;
 
     void setHasStatusNotifier(bool stay);
     void loadApplet(const QString &applet, const QVariantList &arguments);
+    bool hasAppletError() const;
 
 public Q_SLOTS:
     void load();
@@ -28,6 +31,6 @@ public Q_SLOTS:
 
 private:
     Plasma::Containment *m_containment = nullptr;
-    PlasmaWindowedView *m_view = nullptr;
+    std::unique_ptr<PlasmaWindowedView> m_view = nullptr;
     bool m_hasStatusNotifier = false;
 };

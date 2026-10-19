@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #ifndef QDESIGNER_SERVER_H
 #define QDESIGNER_SERVER_H
@@ -8,15 +9,17 @@
 
 QT_BEGIN_NAMESPACE
 
+class QLocalSocket;
 class QTcpServer;
 class QTcpSocket;
 
-class QDesignerServer: public QObject
+// ### FIXME Qt 7: Remove
+class QDesignerTcpServer : public QObject
 {
     Q_OBJECT
 public:
-    explicit QDesignerServer(QObject *parent = nullptr);
-    ~QDesignerServer() override;
+    explicit QDesignerTcpServer(QObject *parent = nullptr);
+    ~QDesignerTcpServer() override;
 
     quint16 serverPort() const;
 
@@ -32,12 +35,27 @@ private:
     QTcpSocket *m_socket = nullptr;
 };
 
-class QDesignerClient: public QObject
+class QDesignerLocalSocketClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit QDesignerClient(quint16 port, QObject *parent = nullptr);
-    ~QDesignerClient() override;
+    explicit QDesignerLocalSocketClient(const QString &serverName, QObject *parent = nullptr);
+    ~QDesignerLocalSocketClient() override;
+
+private slots:
+    void readFromSocket();
+
+private:
+    QLocalSocket *m_socket;
+};
+
+// ### FIXME Qt 7: Remove
+class QDesignerTcpClient : public QObject
+{
+    Q_OBJECT
+public:
+    explicit QDesignerTcpClient(quint16 port, QObject *parent = nullptr);
+    ~QDesignerTcpClient() override;
 
 private slots:
     void readFromSocket();

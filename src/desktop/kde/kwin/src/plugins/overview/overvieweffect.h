@@ -8,10 +8,10 @@
 
 #include "effect/effecttogglablestate.h"
 #include "effect/quickeffect.h"
+#include <KRunner/RunnerManager>
 
 namespace KWin
 {
-
 class VirtualDesktop;
 
 class OverviewEffect : public QuickSceneEffect
@@ -21,6 +21,7 @@ class OverviewEffect : public QuickSceneEffect
     Q_PROPERTY(bool ignoreMinimized READ ignoreMinimized NOTIFY ignoreMinimizedChanged)
     Q_PROPERTY(bool filterWindows READ filterWindows NOTIFY filterWindowsChanged)
     Q_PROPERTY(bool organizedGrid READ organizedGrid NOTIFY organizedGridChanged)
+    Q_PROPERTY(int gestureThreshold READ gestureThreshold CONSTANT)
     Q_PROPERTY(qreal overviewPartialActivationFactor READ overviewPartialActivationFactor NOTIFY overviewPartialActivationFactorChanged)
     // More efficient from a property binding pov rather than checking if partialActivationFactor is strictly between 0 and 1
     Q_PROPERTY(bool overviewGestureInProgress READ overviewGestureInProgress NOTIFY overviewGestureInProgressChanged)
@@ -28,8 +29,7 @@ class OverviewEffect : public QuickSceneEffect
     Q_PROPERTY(bool transitionGestureInProgress READ transitionGestureInProgress NOTIFY transitionGestureInProgressChanged)
     Q_PROPERTY(qreal gridPartialActivationFactor READ gridPartialActivationFactor NOTIFY gridPartialActivationFactorChanged)
     Q_PROPERTY(bool gridGestureInProgress READ gridGestureInProgress NOTIFY gridGestureInProgressChanged)
-    Q_PROPERTY(QPointF desktopOffset READ desktopOffset NOTIFY desktopOffsetChanged)
-    Q_PROPERTY(QString searchText MEMBER m_searchText NOTIFY searchTextChanged)
+    Q_PROPERTY(QString searchText MEMBER m_searchText WRITE setSearchText NOTIFY searchTextChanged)
 
 public:
     OverviewEffect();
@@ -37,6 +37,7 @@ public:
 
     bool ignoreMinimized() const;
     bool organizedGrid() const;
+    qreal gestureThreshold() const;
 
     bool filterWindows() const;
     void setFilterWindows(bool filterWindows);
@@ -51,10 +52,13 @@ public:
     qreal gridPartialActivationFactor() const;
     bool gridGestureInProgress() const;
     QPointF desktopOffset() const;
+    Q_INVOKABLE QPointF desktopOffsetForScreen(LogicalOutput *screen) const;
 
     int requestedEffectChainPosition() const override;
     bool borderActivated(ElectricBorder border) override;
     void reconfigure(ReconfigureFlags flags) override;
+
+    void setSearchText(const QString &text);
 
 Q_SIGNALS:
     void animationDurationChanged();
@@ -67,7 +71,7 @@ Q_SIGNALS:
     void ignoreMinimizedChanged();
     void filterWindowsChanged();
     void organizedGridChanged();
-    void desktopOffsetChanged();
+    void desktopOffsetChanged(KWin::LogicalOutput *screen);
     void searchTextChanged();
 
 public Q_SLOTS:
@@ -75,7 +79,7 @@ public Q_SLOTS:
     void deactivate();
 
 private:
-    void realDeactivate();
+    void deactivateNow();
     void cycle();
     void reverseCycle();
 
@@ -86,16 +90,13 @@ private:
     EffectTogglableTouchBorder *const m_gridBorder;
 
     QTimer *m_shutdownTimer;
-    QList<QKeySequence> m_cycleShortcut;
-    QList<QKeySequence> m_reverseCycleShortcut;
-    QList<QKeySequence> m_overviewShortcut;
-    QList<QKeySequence> m_gridShortcut;
     QList<ElectricBorder> m_borderActivate;
     QList<ElectricBorder> m_gridBorderActivate;
+    QHash<LogicalOutput *, QPointF> m_screenDesktopOffsets;
     QString m_searchText;
-    QPointF m_desktopOffset;
     bool m_filterWindows = true;
     int m_animationDuration = 400;
+    KRunner::RunnerManager *const m_manager;
 };
 
 } // namespace KWin

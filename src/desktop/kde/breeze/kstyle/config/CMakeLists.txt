@@ -56,3 +56,13 @@ install(TARGETS breeze-settings ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 ecm_install_icons(ICONS sc-apps-breeze-settings.svgz
     DESTINATION ${KDE_INSTALL_ICONDIR}
     THEME hicolor )
+
+# kcmshell6 < 6.27.0 doesn't know the --smoke-test param, so skip this test for
+# now.
+# TODO: Drop this when KF6_MIN_VERSION >= 6.27.0
+if(KF6KCMUtils_VERSION VERSION_GREATER_EQUAL "6.27.0")
+    add_test(NAME breezestyleconfig_smoketest COMMAND kcmshell6 -style Breeze --smoke-test kstyle_config/breezestyleconfig)
+    set_tests_properties(breezestyleconfig_smoketest PROPERTIES
+        ENVIRONMENT_MODIFICATION QT_PLUGIN_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/bin
+    )
+endif()

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_feedback\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-04-10 00:54+0000\n"
 "PO-Revision-Date: 2026-04-23 19:00+0200\n"
 "Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
@@ -27,12 +27,7 @@ msgstr ""
 "Benutzerrückmeldung wurde global deaktiviert. Bitte kontaktieren Sie Ihre "
 "Distribution."
 
-#: ui/main.qml:39 ui/main.qml:65
-#, kde-format
-msgid "Plasma:"
-msgstr "Plasma:"
-
-#: ui/main.qml:45
+#: ui/main.qml:44
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -40,8 +35,7 @@ msgid ""
 "it, so we can focus on things that matter to you.<nl/><nl/>Contributing this "
 "information is optional and entirely anonymous. We never collect your "
 "personal data, files you use, websites you visit, or information that could "
-"identify you.<nl/><nl/>You can read about <link url='https://kde.org/"
-"privacypolicy-apps.php'>our privacy policy here.</link>"
+"identify you.<nl/>"
 msgstr ""
 "Sie können KDE dabei helfen, Plasma zu verbessern, indem Sie Informationen "
 "darüber mitteilen, wie Sie es verwenden. So können wir uns auf die Dinge "
@@ -49,20 +43,30 @@ msgstr ""
 "Informationen ist optional und völlig anonym. Wir sammeln niemals Ihre "
 "persönliche Daten, Informationen über die von Ihnen verwendeten Dateien, von "
 "Ihnen besuchten Webseiten oder Informationen, die Sie identifizieren "
-"könnten. <nl/><nl/>Sie können unsere Datenschutzerklärung <link url='https://"
-"kde.org/privacypolicy-apps.php'>hier</link> einsehen."
+"könnten. <nl/>"
 
-#: ui/main.qml:100
+#: ui/main.qml:51
+#, kde-format
+msgctxt "@info"
+msgid "Read more about our privacy policy"
+msgstr "Erfahren Sie mehr über unsere Datenschutzerklärung"
+
+#: ui/main.qml:64
+#, kde-format
+msgid "Plasma:"
+msgstr "Plasma:"
+
+#: ui/main.qml:101
 #, kde-format
 msgid "Plasma"
 msgstr "Plasma"
 
-#: ui/main.qml:122
+#: ui/main.qml:123
 #, kde-format
 msgid "The following information will be sent:"
 msgstr "Die folgenden Informationen werden gesendet:"
 
-#: ui/main.qml:148
+#: ui/main.qml:149
 #, kde-format
 msgid "View sent data:"
 msgstr "Gesendete Daten anzeigen:"

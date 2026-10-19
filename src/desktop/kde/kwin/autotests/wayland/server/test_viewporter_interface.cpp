@@ -8,6 +8,7 @@
 #include <QTest>
 #include <QThread>
 
+#include "core/gpumanager.h"
 #include "wayland/compositor.h"
 #include "wayland/display.h"
 #include "wayland/surface.h"
@@ -55,11 +56,10 @@ private:
     Viewporter *m_viewporter;
 };
 
-static const QString s_socketName = QStringLiteral("kwin-wayland-server-viewporter-test-0");
-
 void TestViewporterInterface::initTestCase()
 {
-    m_display.addSocketName(s_socketName);
+    GpuManager::s_self = std::make_unique<GpuManager>();
+    m_display.addSocketName(qAppName());
     m_display.start();
     QVERIFY(m_display.isRunning());
 
@@ -70,7 +70,7 @@ void TestViewporterInterface::initTestCase()
 
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);
@@ -130,6 +130,7 @@ TestViewporterInterface::~TestViewporterInterface()
     }
     m_connection->deleteLater();
     m_connection = nullptr;
+    KWin::GpuManager::s_self.reset();
 }
 
 void TestViewporterInterface::testCropScale()

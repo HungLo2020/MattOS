@@ -10,11 +10,13 @@
 
     \ingroup tools
     \ingroup shared
+    \ingroup containers
 
     \reentrant
 
-    QMultiMap\<Key, T\> is one of Qt's generic \l{container classes}. It
-    stores (key, value) pairs and provides fast lookup by key.
+    QMultiMap\<Key, T\> is one of Qt's generic \l{container classes}, where
+    \a Key is the type used for lookup keys and \a T is the mapped value
+    type. It stores (key, value) pairs and provides fast lookup by key.
 
     QMultiMap and QMultiHash provide very similar functionality. The
     differences are:
@@ -207,7 +209,7 @@
 */
 
 /*! \fn template <class Key, class T> std::multimap<Key, T> QMultiMap<Key, T>::toStdMap() const
-    \deprecated Use toStdMultiMap() instead.
+    \deprecated [6.0] Use toStdMultiMap() instead.
 
     Returns an STL multi map equivalent to this QMultiMap.
 */
@@ -248,6 +250,57 @@
     operator==().
 
     \sa operator==()
+*/
+
+/*! \fn template <class Key, class T> bool QMultiMap<Key, T>::operator<(const QMultiMap<Key, T> &lhs, const QMultiMap<Key, T> &rhs)
+    \since 6.12
+
+    Returns \c true if \a lhs is
+    \l {https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare_three_way}
+    {lexicographically less than} \a rhs; otherwise returns \c false.
+
+    \include qmap.qdoc operator_uses_qt_lex_compare_three_way
+*/
+
+/*! \fn template <class Key, class T> bool QMultiMap<Key, T>::operator>(const QMultiMap<Key, T> &lhs, const QMultiMap<Key, T> &rhs)
+    \since 6.12
+
+    Returns \c true if \a lhs is
+    \l {https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare_three_way}
+    {lexicographically greater than} \a rhs; otherwise returns \c false.
+
+    \include qmap.qdoc operator_uses_qt_lex_compare_three_way
+*/
+
+/*! \fn template <class Key, class T> bool QMultiMap<Key, T>::operator<=(const QMultiMap<Key, T> &lhs, const QMultiMap<Key, T> &rhs)
+    \since 6.12
+
+    Returns \c true if \a lhs is
+    \l {https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare_three_way}
+    {lexicographically less or equal than} \a rhs; otherwise returns \c false.
+
+    \include qmap.qdoc operator_uses_qt_lex_compare_three_way
+*/
+
+/*! \fn template <class Key, class T> bool QMultiMap<Key, T>::operator>=(const QMultiMap<Key, T> &lhs, const QMultiMap<Key, T> &rhs)
+    \since 6.12
+
+    Returns \c true if \a lhs is
+    \l {https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare_three_way}
+    {lexicographically greater or equal than} \a rhs; otherwise returns \c false.
+
+    \include qmap.qdoc operator_uses_qt_lex_compare_three_way
+*/
+
+/*! \fn template <class Key, class T> auto QMultiMap<Key, T>::operator<=>(const QMultiMap<Key, T> &lhs, const QMultiMap<Key, T> &rhs)
+    \since 6.12
+
+    Compares the contents of \a lhs and \a rhs
+    \l {https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare_three_way}
+    {lexicographically}. Returns the result of the strongest applicable category
+    type.
+
+    \include qmap.qdoc operator_in_cpp20_only
 */
 
 /*! \fn template <class Key, class T> qsizetype QMultiMap<Key, T>::size() const
@@ -854,13 +907,13 @@
 
 #if QT_DEPRECATED_SINCE(6, 0)
 /*! \fn template <class Key, class T> QMultiMap<Key, T>::iterator QMultiMap<Key, T>::insertMulti(const Key &key, const T &value)
-    \deprecated Use insert() instead.
+    \deprecated [6.0] Use insert() instead.
 
     Inserts a new item with the key \a key and a value of \a value, and returns an iterator pointing to the new item.
 */
 
 /*! \fn template <class Key, class T> QMultiMap<Key, T>::iterator QMultiMap<Key, T>::insertMulti(const_iterator pos, const Key &key, const T &value)
-    \deprecated Use insert() instead.
+    \deprecated [6.0] Use insert() instead.
     \overload
 
     Inserts a new item with the key \a key and value \a value and with hint \a pos
@@ -869,14 +922,14 @@
 
 /*! \fn template <class Key, class T> void QMultiMap<Key, T>::insert(const QMultiMap<Key, T> &map)
     \since 5.15
-    \deprecated Use unite() instead.
+    \deprecated [6.0] Use unite() instead.
 
     Inserts all the items in \a map into this map.
 */
 
 /*! \fn template <class Key, class T> void QMultiMap<Key, T>::insert(QMultiMap<Key, T> &&map)
     \since 5.15
-    \deprecated Use unite() instead.
+    \deprecated [6.0] Use unite() instead.
     \overload
 
     Moves all the items from \a map into this map.

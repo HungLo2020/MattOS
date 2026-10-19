@@ -14,6 +14,7 @@
 #include "qmap.h"
 #include "qhash.h"
 #include "qstack.h"
+#include <QtCore/qvarlengtharray.h>
 #include <qdebug.h>
 
 #ifdef Q_CC_BOR // borland 6 finds bogus warnings when building this file in uic3
@@ -180,10 +181,6 @@ static bool stripTextDecl(QString& str)
     return true;
 }
 
-class QXmlAttributesPrivate
-{
-};
-
 /* \class QXmlInputSourcePrivate
     \internal
 
@@ -229,10 +226,6 @@ public:
 };
 
 class QXmlLocatorPrivate
-{
-};
-
-class QXmlDefaultHandlerPrivate
 {
 };
 
@@ -715,11 +708,7 @@ void QXmlNamespaceSupport::reset()
     Constructs an empty attribute list.
 */
 QXmlAttributes::QXmlAttributes()
-{
-    // ### In Qt 5.0, this function was inlined and d was not initialized
-    // The member cannot be used until Qt 6.0
-    Q_UNUSED(d);
-}
+    = default;
 
 /*!
     \fn QXmlAttributes::~QXmlAttributes()
@@ -2126,11 +2115,7 @@ QXmlDeclHandler::~QXmlDeclHandler()
     Constructs a handler for use with subclasses of QXmlReader.
 */
 QXmlDefaultHandler::QXmlDefaultHandler()
-{
-    // ### In Qt 5.0, this function was inlined and d was not initialized
-    // The member cannot be used until Qt 6.0
-    Q_UNUSED(d);
-}
+    = default;
 
 /*!
     \fn QXmlDefaultHandler::~QXmlDefaultHandler()
@@ -2484,6 +2469,78 @@ void QXmlSimpleReaderPrivate::initIncrementalParsing()
         parseStack->clear();
     else
         parseStack = new QStack<ParseState>;
+}
+
+/*!
+    \internal
+
+    A helper function that executes the topmost function from the
+    stack. Returns the result of the execution
+*/
+bool QXmlSimpleReaderPrivate::resumeSuspendedCall()
+{
+    if (!parseStack->isEmpty()) {
+        ParseFunction function = parseStack->top().function;
+        if (function == &QXmlSimpleReaderPrivate::eat_ws) {
+            parseStack->pop();
+#if defined(QT_QXML_DEBUG)
+            qDebug("QXmlSimpleReader: eat_ws (cont)");
+#endif
+        }
+        return (this->*function)();
+    }
+    return true; // nothing to execute
+}
+
+constexpr int ItemInitState = 0;
+
+/*!
+    \internal
+
+    Returns the new state of the parser or -1 in case of an error.
+*/
+int QXmlSimpleReaderPrivate::tryUnwindParseStack(ParseState::ParseFunction func)
+{
+    int state;
+    if (parseStack == nullptr || parseStack->isEmpty()) {
+        state = ItemInitState;
+    } else {
+        state = parseStack->pop().state;
+#if defined(QT_QXML_DEBUG)
+        qDebug("QXmlSimpleReader: %s (cont) in state %d",
+               func == &QXmlSimpleReaderPrivate::parseProlog ?       "parseProlog" :
+               func == &QXmlSimpleReaderPrivate::parseElement ?      "parseElement" :
+               func == &QXmlSimpleReaderPrivate::parseContent ?      "parseContent" :
+               func == &QXmlSimpleReaderPrivate::parseMisc ?         "parseMisc" :
+               func == &QXmlSimpleReaderPrivate::parsePI ?           "parsePI" :
+               func == &QXmlSimpleReaderPrivate::parseDoctype ?      "parseDoctype" :
+               func == &QXmlSimpleReaderPrivate::parseExternalID ?   "parseExternalID" :
+               func == &QXmlSimpleReaderPrivate::parseMarkupdecl ?   "parseMarkupdecl" :
+               func == &QXmlSimpleReaderPrivate::parsePEReference ?  "parsePEReference" :
+               func == &QXmlSimpleReaderPrivate::parseAttlistDecl ?  "parseAttlistDecl" :
+               func == &QXmlSimpleReaderPrivate::parseAttType ?      "parseAttType" :
+               func == &QXmlSimpleReaderPrivate::parseAttValue ?     "parseAttValue" :
+               func == &QXmlSimpleReaderPrivate::parseElementDecl ?  "parseElementDecl" :
+               func == &QXmlSimpleReaderPrivate::parseNotationDecl ? "parseNotationDecl" :
+               func == &QXmlSimpleReaderPrivate::parseChoiceSeq ?    "parseChoiceSeq" :
+               func == &QXmlSimpleReaderPrivate::parseEntityDecl ?   "parseEntityDecl" :
+               func == &QXmlSimpleReaderPrivate::parseEntityValue ?  "parseEntityValue" :
+               func == &QXmlSimpleReaderPrivate::parseComment ?      "parseComment" :
+               func == &QXmlSimpleReaderPrivate::parseAttribute ?    "parseAttribute" :
+               func == &QXmlSimpleReaderPrivate::parseName ?         "parseName" :
+               func == &QXmlSimpleReaderPrivate::parseNmtoken ?      "parseNmtoken" :
+               func == &QXmlSimpleReaderPrivate::parseReference ?    "parseReference" :
+               func == &QXmlSimpleReaderPrivate::parseString ?       "parseString" :
+               /* else */                                            "<unknown function>",
+               state);
+#endif
+        if (!resumeSuspendedCall()) {
+            parseFailed(func, state);
+            return -1;
+        }
+    }
+
+    return state;
 }
 
 /*********************************************
@@ -3265,6 +3322,113 @@ bool QXmlSimpleReaderPrivate::parseBeginOrContinue(int state, bool incremental)
     return true;
 }
 
+/*
+    Parses parts of the document that can potentially recurse.
+    For example, when parsing an element, we can have:
+      element -> content -> element -> content -> ...
+
+    Instead of recursing into the parse*() calls, this method creates a local
+    stack of calls.
+*/
+bool QXmlSimpleReaderPrivate::parseNestedFrames(FrameType outermost)
+{
+    QVarLengthArray<FrameState, 16> frames;
+
+    const auto frameTypeToFunc = [](FrameType t) -> ParseFunction {
+        switch (t) {
+        case FrameType::Element:
+            return &QXmlSimpleReaderPrivate::parseElement;
+        case FrameType::Content:
+            return &QXmlSimpleReaderPrivate::parseContent;
+        case FrameType::ChoiceSeq:
+            return &QXmlSimpleReaderPrivate::parseChoiceSeq;
+        }
+        Q_UNREACHABLE_RETURN(nullptr);
+    };
+
+    // Suspends frames[0..last], innermost first, so the outermost ends up on
+    // top of parseStack.
+    const auto suspendFrames = [&frames, &frameTypeToFunc, this](qsizetype last) {
+        for (qsizetype i = last; i >= 0; --i)
+            parseFailed(frameTypeToFunc(frames[i].frame), frames[i].state);
+    };
+
+    const auto enterFrame = [this, &frames](FrameType t) {
+        if (t == FrameType::Content)
+            contentCharDataRead = false;
+        frames.append({t, ItemInitState});
+    };
+
+    if (parseStack == nullptr || parseStack->isEmpty()) {
+        enterFrame(outermost);
+    } else {
+        // Continuing an incremental parse: parseStack holds the state of this
+        // frame, then the states of the frames that were nested inside it,
+        // outermost first, and finally the function that ran out of data.
+        Q_ASSERT(parseStack->top().function == frameTypeToFunc(outermost));
+        frames.append({outermost, parseStack->pop().state});
+        while (!parseStack->isEmpty()) {
+            const ParseFunction func = parseStack->top().function;
+            if (func == &QXmlSimpleReaderPrivate::parseElement)
+                frames.append({FrameType::Element, parseStack->pop().state});
+            else if (func == &QXmlSimpleReaderPrivate::parseContent)
+                frames.append({FrameType::Content, parseStack->pop().state});
+            else if (func == &QXmlSimpleReaderPrivate::parseChoiceSeq)
+                frames.append({FrameType::ChoiceSeq, parseStack->pop().state});
+            else
+                break;
+        }
+        // Now all the potentially recursing calls are added to frames
+#if defined(QT_QXML_DEBUG)
+        qDebug("QXmlSimpleReader: parseNestedFrames (cont) with %lld frames",
+               qlonglong(frames.size()));
+#endif
+        if (!resumeSuspendedCall()) {
+            suspendFrames(frames.size() - 1);
+            return false;
+        }
+    }
+
+    const auto stepFrame = [this](FrameState &innermost) {
+        switch (innermost.frame) {
+        case FrameType::Content:
+            return parseContentFrame(innermost.state);
+        case FrameType::Element:
+            return parseElementFrame(innermost.state);
+        case FrameType::ChoiceSeq:
+            return parseChoiceSeqFrame(innermost.state);
+        }
+        Q_UNREACHABLE_RETURN(FrameParseResult::Failed);
+    };
+
+    while (true) {
+        switch (stepFrame(frames.back())) {
+        case FrameParseResult::EnterContent:
+            enterFrame(FrameType::Content);
+            break;
+        case FrameParseResult::EnterElement:
+            enterFrame(FrameType::Element);
+            break;
+        case FrameParseResult::EnterChoiceSeq:
+            enterFrame(FrameType::ChoiceSeq);
+            break;
+        case FrameParseResult::Done:
+            frames.removeLast();
+            if (frames.isEmpty())
+                return true;
+            break;
+        case FrameParseResult::Failed:
+            // The innermost frame either ran out of data while parsing
+            // incrementally, in which case it has saved its own state
+            // already and only the frames around it still need to save
+            // theirs, or it reported a parse error, in which case no state
+            // is saved at all.
+            suspendFrames(frames.size() - 2);
+            return false;
+        }
+    }
+}
+
 //
 // The following private parse functions have another semantics for the return
 // value: They return true iff parsing has finished successfully (i.e. the end
@@ -3378,32 +3542,17 @@ bool QXmlSimpleReaderPrivate::parseProlog()
         { EatWS,  Lt,    -1,    -1,    -1,       -1,       -1      }, // PInstr
         { EatWS,  Lt,    -1,    -1,    -1,       -1,       -1      }  // PInstrR
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
     if (parseStack == nullptr|| parseStack->isEmpty()) {
         xmldecl_possible = true;
         doctype_read = false;
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseProlog (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseProlog, state);
-                return false;
-            }
-        }
     }
+
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseProlog);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -3534,6 +3683,17 @@ bool QXmlSimpleReaderPrivate::parseProlog()
 */
 bool QXmlSimpleReaderPrivate::parseElement()
 {
+    return parseNestedFrames(FrameType::Element);
+}
+
+/*
+    Parses the element, except its content.
+    Returns FrameParseResult::EnterContent when it reaches the content, so that
+    parseNestedFrames() could call parseContentFrame() from the outer loop.
+    Continues parsing the element when its content is handled.
+*/
+QXmlSimpleReaderPrivate::FrameParseResult QXmlSimpleReaderPrivate::parseElementFrame(int &state)
+{
     const int Init             =  0;
     const int ReadName         =  1;
     const int Ws1              =  2;
@@ -3569,30 +3729,8 @@ bool QXmlSimpleReaderPrivate::parseElement()
         { Ws3,       Attrib,      STagEnd,     EmptyTag,    -1        }, // AttribPro
         { -1,        Attrib,      STagEnd,     EmptyTag,    -1        }  // Ws3
     };
-    int state;
+    static_assert(Init == ItemInitState);
     int input;
-
-    if (parseStack == nullptr|| parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseElement (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseElement, state);
-                return false;
-            }
-        }
-    }
 
     for (;;) {
         switch (state) {
@@ -3606,23 +3744,23 @@ bool QXmlSimpleReaderPrivate::parseElement()
                 break;
             case ETagBegin2:
                 if (!processElementETagBegin2())
-                    return false;
+                    return FrameParseResult::Failed;
                 break;
             case Attrib:
                 if (!processElementAttribute())
-                    return false;
+                    return FrameParseResult::Failed;
                 state = AttribPro;
                 break;
             case Done:
-                return true;
+                return FrameParseResult::Done;
             case -1:
                 reportParseError(QLatin1String(XMLERR_ERRORPARSINGELEMENT));
-                return false;
+                return FrameParseResult::Failed;
         }
 
         if (atEnd()) {
             unexpectedEof(&QXmlSimpleReaderPrivate::parseElement, state);
-            return false;
+            return FrameParseResult::Failed;
         }
         if (fastDetermineNameChar(c) == NameBeginning) {
             input = InpNameBe;
@@ -3642,7 +3780,7 @@ bool QXmlSimpleReaderPrivate::parseElement()
                 parseName_useRef = false;
                 if (!parseName()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseElement, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case Ws1:
@@ -3650,7 +3788,7 @@ bool QXmlSimpleReaderPrivate::parseElement()
             case Ws3:
                 if (!eat_ws()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseElement, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case STagEnd:
@@ -3661,23 +3799,20 @@ bool QXmlSimpleReaderPrivate::parseElement()
                         namespaceSupport.processName(tags.top(), false, uri, lname);
                         if (!contentHnd->startElement(uri, lname, tags.top(), attList)) {
                             reportParseError(contentHnd->errorString());
-                            return false;
+                            return FrameParseResult::Failed;
                         }
                     } else {
                         if (!contentHnd->startElement(QString(), QString(), tags.top(), attList)) {
                             reportParseError(contentHnd->errorString());
-                            return false;
+                            return FrameParseResult::Failed;
                         }
                     }
                 }
                 next();
                 break;
             case STagEnd2:
-                if (!parseContent()) {
-                    parseFailed(&QXmlSimpleReaderPrivate::parseElement, state);
-                    return false;
-                }
-                break;
+                // the content of this element follows
+                return FrameParseResult::EnterContent;
             case ETagBegin:
                 next();
                 break;
@@ -3686,16 +3821,16 @@ bool QXmlSimpleReaderPrivate::parseElement()
                 parseName_useRef = false;
                 if (!parseName()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseElement, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case EmptyTag:
                 if (tags.empty()) {
                     reportParseError(QLatin1String(XMLERR_TAGMISMATCH));
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 if (!processElementEmptyTag())
-                    return false;
+                    return FrameParseResult::Failed;
                 next();
                 break;
             case Attrib:
@@ -3703,7 +3838,7 @@ bool QXmlSimpleReaderPrivate::parseElement()
                 // get name and value of attribute
                 if (!parseAttribute()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseElement, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case Done:
@@ -3711,7 +3846,7 @@ bool QXmlSimpleReaderPrivate::parseElement()
                 break;
         }
     }
-    return false;
+    return FrameParseResult::Failed;
 }
 
 /*
@@ -3872,6 +4007,17 @@ bool QXmlSimpleReaderPrivate::processElementAttribute()
 */
 bool QXmlSimpleReaderPrivate::parseContent()
 {
+    return parseNestedFrames(FrameType::Content);
+}
+
+/*
+    Parses the element's content, but stops at a nested element.
+    Returns FrameParseResult::EnterElement when it reaches the nested element,
+    so that parseNestedFrames() could call parseElementFrame() from the outer
+    loop. Continues parsing the content when the nested element is handled.
+*/
+QXmlSimpleReaderPrivate::FrameParseResult QXmlSimpleReaderPrivate::parseContentFrame(int &state)
+{
     const signed char Init             =  0;
     const signed char ChD              =  1; // CharData
     const signed char ChD1             =  2; // CharData help state
@@ -3938,31 +4084,8 @@ bool QXmlSimpleReaderPrivate::parseContent()
         { CDS1,  CDS1,  CDS1,     CDS1,     CDS1,     CDS1,   CDS1,    CDS1,     CDS3,      CDS1 }, // CDS2
         { CDS1,  Init,  CDS1,     CDS1,     CDS1,     CDS1,   CDS1,    CDS1,     CDS3,      CDS1 }  // CDS3
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
-
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        contentCharDataRead = false;
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseContent (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseContent, state);
-                return false;
-            }
-        }
-    }
 
     for (;;) {
         switch (state) {
@@ -3974,7 +4097,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                 if (contentHnd) {
                     if (!contentHnd->processingInstruction(name(),string())) {
                         reportParseError(contentHnd->errorString());
-                        return false;
+                        return FrameParseResult::Failed;
                     }
                 }
                 state = PInstrR;
@@ -3983,7 +4106,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                 if (lexicalHnd) {
                     if (!lexicalHnd->comment(string())) {
                         reportParseError(lexicalHnd->errorString());
-                        return false;
+                        return FrameParseResult::Failed;
                     }
                 }
                 state = ComR;
@@ -4003,19 +4126,19 @@ bool QXmlSimpleReaderPrivate::parseContent()
                         if (lexicalHnd) {
                             if (!lexicalHnd->startCDATA()) {
                                 reportParseError(lexicalHnd->errorString());
-                                return false;
+                                return FrameParseResult::Failed;
                             }
                         }
                         if (contentHnd) {
                             if (!contentHnd->characters(string())) {
                                 reportParseError(contentHnd->errorString());
-                                return false;
+                                return FrameParseResult::Failed;
                             }
                         }
                         if (lexicalHnd) {
                             if (!lexicalHnd->endCDATA()) {
                                 reportParseError(lexicalHnd->errorString());
-                                return false;
+                                return FrameParseResult::Failed;
                             }
                         }
                     } else if (c == QLatin1Char(']')) {
@@ -4035,24 +4158,24 @@ bool QXmlSimpleReaderPrivate::parseContent()
                         if (reportWhitespaceCharData || !string().simplified().isEmpty()) {
                             if (!contentHnd->characters(string())) {
                                 reportParseError(contentHnd->errorString());
-                                return false;
+                                return FrameParseResult::Failed;
                             }
                         }
                     }
                 }
                 // Done
-                return true;
+                return FrameParseResult::Done;
             case -1:
                 // Error
                 reportParseError(QLatin1String(XMLERR_ERRORPARSINGCONTENT));
-                return false;
+                return FrameParseResult::Failed;
         }
 
         // get input (use lookup-table instead of nested ifs for performance
         // reasons)
         if (atEnd()) {
             unexpectedEof(&QXmlSimpleReaderPrivate::parseContent, state);
-            return false;
+            return FrameParseResult::Failed;
         }
         if (c.row()) {
             input = InpUnknown;
@@ -4075,7 +4198,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                 stringAddC();
                 if (reportEntities) {
                     if (!reportEndEntities())
-                        return false;
+                        return FrameParseResult::Failed;
                 }
                 next();
                 break;
@@ -4088,7 +4211,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                 stringAddC();
                 if (reportEntities) {
                     if (!reportEndEntities())
-                        return false;
+                        return FrameParseResult::Failed;
                 }
                 next();
                 break;
@@ -4096,7 +4219,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                 stringAddC();
                 if (reportEntities) {
                     if (!reportEndEntities())
-                        return false;
+                        return FrameParseResult::Failed;
                 }
                 next();
                 break;
@@ -4107,7 +4230,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                     parseReference_context = InContent;
                     if (!parseReference()) {
                         parseFailed(&QXmlSimpleReaderPrivate::parseContent, state);
-                        return false;
+                        return FrameParseResult::Failed;
                     }
                 } else {
                     if (reportEntities) {
@@ -4116,7 +4239,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                             if (reportWhitespaceCharData || !string().simplified().isEmpty()) {
                                 if (!contentHnd->characters(string())) {
                                     reportParseError(contentHnd->errorString());
-                                    return false;
+                                    return FrameParseResult::Failed;
                                 }
                             }
                         }
@@ -4125,7 +4248,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                     parseReference_context = InContent;
                     if (!parseReference()) {
                         parseFailed(&QXmlSimpleReaderPrivate::parseContent, state);
-                        return false;
+                        return FrameParseResult::Failed;
                     }
                 }
                 break;
@@ -4136,7 +4259,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                         if (reportWhitespaceCharData || !string().simplified().isEmpty()) {
                             if (!contentHnd->characters(string())) {
                                 reportParseError(contentHnd->errorString());
-                                return false;
+                                return FrameParseResult::Failed;
                             }
                         }
                     }
@@ -4149,15 +4272,12 @@ bool QXmlSimpleReaderPrivate::parseContent()
                 parsePI_xmldecl = false;
                 if (!parsePI()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseContent, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case Elem:
-                if (!parseElement()) {
-                    parseFailed(&QXmlSimpleReaderPrivate::parseContent, state);
-                    return false;
-                }
-                break;
+                // a child element follows
+                return FrameParseResult::EnterElement;
             case Em:
                 next();
                 break;
@@ -4165,14 +4285,14 @@ bool QXmlSimpleReaderPrivate::parseContent()
             case ComR:
                 if (!parseComment()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseContent, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case CDS:
                 parseString_s = QLatin1String("[CDATA[");
                 if (!parseString()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseContent, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case CDS1:
@@ -4189,7 +4309,7 @@ bool QXmlSimpleReaderPrivate::parseContent()
                 break;
         }
     }
-    return false;
+    return FrameParseResult::Failed;
 }
 
 bool QXmlSimpleReaderPrivate::reportEndEntities()
@@ -4241,30 +4361,12 @@ bool QXmlSimpleReaderPrivate::parseMisc()
         { -1,     -1,    PInstr,Comment,  -1        }, // Lt
         { -1,     -1,    -1,    -1,       Comment2  }  // Comment
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseMisc (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseMisc, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseMisc);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -4396,30 +4498,12 @@ bool QXmlSimpleReaderPrivate::parsePI()
         { Char,   Char,      Char,  Qm,     Char   }, // Char
         { Char,   Char,      Done,  Qm,     Char   }, // Qm
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parsePI (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parsePI, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parsePI);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -4623,33 +4707,18 @@ bool QXmlSimpleReaderPrivate::parseDoctype()
         { -1,     -1,        -1,        -1,    MPE,   PER,   -1,    Mup       }, // Ws4
         { -1,     -1,        -1,        -1,    -1,    -1,    Done,  -1        }  // MPE
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
     if (parseStack == nullptr || parseStack->isEmpty()) {
         startDTDwasReported = false;
         systemId.clear();
         publicId.clear();
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseDoctype (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseDoctype, state);
-                return false;
-            }
-        }
     }
+
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseDoctype);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -4834,32 +4903,17 @@ bool QXmlSimpleReaderPrivate::parseExternalID()
         { PDone,   PDone,   PDone,   PDone,   PubWS2,   PDone   }, // PubE
         { SysSQ,   SysDQ,   PDone,   PDone,   PDone,    PDone   }  // PubWS2
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
     if (parseStack == nullptr || parseStack->isEmpty()) {
         systemId.clear();
         publicId.clear();
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseExternalID (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseExternalID, state);
-                return false;
-            }
-        }
     }
+
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseExternalID);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -4998,30 +5052,12 @@ bool QXmlSimpleReaderPrivate::parseMarkupdecl()
         { -1,    -1,    -1,    Dash,    CA,    CE,    -1,    CN,    -1     }, // Em
         { -1,    -1,    -1,    -1,      -1,    -1,    CEL,   CEN,   -1     }  // CE
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseMarkupdecl (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseMarkupdecl, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseMarkupdecl);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -5156,30 +5192,12 @@ bool QXmlSimpleReaderPrivate::parsePEReference()
         { Done,    -1,     -1    }, // Name
         { Done,    -1,     -1    }  // NameR
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parsePEReference (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parsePEReference, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parsePEReference);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -5334,30 +5352,12 @@ bool QXmlSimpleReaderPrivate::parseAttlistDecl()
         { Ws4,     Ws4,     -1,      -1,       -1,      -1,      -1,      -1      }, // Attval
         { -1,      Done,    Attdef,  Attdef,   Attdef,  Attdef,  Attdef,  Attdef  }  // Ws4
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseAttlistDecl (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseAttlistDecl, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseAttlistDecl);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -5550,30 +5550,12 @@ bool QXmlSimpleReaderPrivate::parseAttType()
         { EN2,     -1,      ADone,   EN,      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1     }, // ENNmt
         { -1,      -1,      ADone,   EN,      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1     }  // EN2
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseAttType (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseAttType, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseAttType);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -5771,30 +5753,12 @@ bool QXmlSimpleReaderPrivate::parseAttValue()
         { SqC,   Done,  SqRef,  -1,   SqC   }, // SqRef
         { SqC,   Done,  SqRef,  -1,   SqC   }  // SqRef
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseAttValue (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseAttValue, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseAttValue);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -5913,30 +5877,12 @@ bool QXmlSimpleReaderPrivate::parseElementDecl()
         { WsD,    Done,  -1,      -1,    -1,     -1,      -1,    -1,     -1,      -1,     -1,     -1,     -1     }, // Cp2
         { -1,     Done,  -1,      -1,    -1,     -1,      -1,    -1,     -1,      -1,     -1,     -1,     -1     }  // WsD
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseElementDecl (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseElementDecl, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseElementDecl);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -6122,30 +6068,12 @@ bool QXmlSimpleReaderPrivate::parseNotationDecl()
         { Ws3,    Done,  -1,     -1     }, // ExtIDR
         { -1,     Done,  -1,     -1     }  // Ws3
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseNotationDecl (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseNotationDecl, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseNotationDecl);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -6239,6 +6167,18 @@ bool QXmlSimpleReaderPrivate::parseNotationDecl()
 */
 bool QXmlSimpleReaderPrivate::parseChoiceSeq()
 {
+    return parseNestedFrames(FrameType::ChoiceSeq);
+}
+
+/*
+    Parses one choice or seq, but stops at a nested choice or seq.
+    Returns FrameParseResult::EnterChoiceSeq when it reaches a nested group,
+    so that parseNestedFrames() could call parseChoiceSeqFrame() from the outer
+    loop to parse the next choice or seq. Continues parsing when the nested
+    item is handled.
+*/
+QXmlSimpleReaderPrivate::FrameParseResult QXmlSimpleReaderPrivate::parseChoiceSeqFrame(int &state)
+{
     const signed char Init             = 0;
     const signed char Ws1              = 1; // eat whitespace
     const signed char CoS              = 2; // choice or set
@@ -6266,44 +6206,22 @@ bool QXmlSimpleReaderPrivate::parseChoiceSeq()
         { -1,     Ws1,   -1,    -1,    -1,     -1,      -1,      -1,      Name  }, // More (same as Init)
         { Ws2,    -1,    Done,  Ws2,   Ws2,    Ws2,     More,    More,    -1    }  // Name (same as CS)
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
-
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseChoiceSeq (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseChoiceSeq, state);
-                return false;
-            }
-        }
-    }
 
     for (;;) {
         switch (state) {
             case Done:
-                return true;
+                return FrameParseResult::Done;
             case -1:
                 // Error
                 reportParseError(QLatin1String(XMLERR_UNEXPECTEDCHARACTER));
-                return false;
+                return FrameParseResult::Failed;
         }
 
         if (atEnd()) {
             unexpectedEof(&QXmlSimpleReaderPrivate::parseChoiceSeq, state);
-            return false;
+            return FrameParseResult::Failed;
         }
         if (is_S(c)) {
             input = InpWs;
@@ -6330,32 +6248,29 @@ bool QXmlSimpleReaderPrivate::parseChoiceSeq()
             case Ws1:
                 if (!next_eat_ws()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseChoiceSeq, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case CoS:
-                if (!parseChoiceSeq()) {
-                    parseFailed(&QXmlSimpleReaderPrivate::parseChoiceSeq, state);
-                    return false;
-                }
-                break;
+                // a nested choice or seq follows
+                return FrameParseResult::EnterChoiceSeq;
             case Ws2:
                 if (!next_eat_ws()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseChoiceSeq, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case More:
                 if (!next_eat_ws()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseChoiceSeq, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case Name:
                 parseName_useRef = false;
                 if (!parseName()) {
                     parseFailed(&QXmlSimpleReaderPrivate::parseChoiceSeq, state);
-                    return false;
+                    return FrameParseResult::Failed;
                 }
                 break;
             case Done:
@@ -6363,7 +6278,7 @@ bool QXmlSimpleReaderPrivate::parseChoiceSeq()
                 break;
         }
     }
-    return false;
+    return FrameParseResult::Failed;
 }
 
 bool QXmlSimpleReaderPrivate::isExpandedEntityValueTooLarge(QString *errorMessage)
@@ -6495,30 +6410,12 @@ bool QXmlSimpleReaderPrivate::parseEntityDecl()
         { WsE,   -1,     -1,      Done,  -1,     -1      }, // PEEIDR
         { -1,    -1,     -1,      Done,  -1,     -1      }  // WsE
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseEntityDecl (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseEntityDecl, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseEntityDecl);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -6770,30 +6667,12 @@ bool QXmlSimpleReaderPrivate::parseEntityValue()
         { SqC,   Done,  SqRef,  SqPER,  SqC   }, // SqPER
         { SqC,   Done,  SqRef,  SqPER,  SqC   }  // SqRef
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseEntityValue (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseEntityValue, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseEntityValue);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -6889,30 +6768,12 @@ bool QXmlSimpleReaderPrivate::parseComment()
         { ComE,    Com,   Com }, // Com2
         { -1,      Done,  -1  }  // ComE
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseComment (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseComment, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseComment);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -7001,30 +6862,12 @@ bool QXmlSimpleReaderPrivate::parseAttribute()
         { -1,        Eq,    -1,      -1,      -1    }, // Ws
         { -1,        -1,    Quotes,  Quotes,  -1    }  // Eq
     };
-    int state;
+    static_assert(Init == ItemInitState);
     int input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseAttribute (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseAttribute, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseAttribute);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -7101,29 +6944,11 @@ bool QXmlSimpleReaderPrivate::parseName()
         { Name,      Name,      Done  }, // Name1
         { Name,      Name,      Done  }  // Name
     };
-    int state;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseName (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseName, state);
-                return false;
-            }
-        }
-    }
+    static_assert(Init == ItemInitState);
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseName);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -7186,30 +7011,12 @@ bool QXmlSimpleReaderPrivate::parseNmtoken()
         { Name,      Done  }, // NameF
         { Name,      Done  }  // Name
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseNmtoken (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseNmtoken, state);
-                return false;
-            }
-        }
-    }
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseNmtoken);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -7294,31 +7101,15 @@ bool QXmlSimpleReaderPrivate::parseReference()
         { -1,     DoneH,   -1,      -1,      ChHex,  ChHex,  -1    }, // ChHex
         { -1,     DoneN,   -1,      -1,      -1,     -1,     -1    }  // Name
     };
-    signed char state;
+    static_assert(Init == ItemInitState);
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
+    if (parseStack == nullptr || parseStack->isEmpty())
         parseReference_charDataRead = false;
-        state = Init;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseReference (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseReference, state);
-                return false;
-            }
-        }
-    }
+
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseReference);
+    if (state < Init)
+        return false;
 
     for (;;) {
         switch (state) {
@@ -7643,31 +7434,17 @@ bool QXmlSimpleReaderPrivate::parseString()
     const signed char InpCharExpected  = 0; // the character that was expected
     const signed char InpUnknown       = 1;
 
-    signed char state; // state in this function is the position in the string s
     signed char input;
 
-    if (parseStack == nullptr || parseStack->isEmpty()) {
+    if (parseStack == nullptr || parseStack->isEmpty())
         Done = parseString_s.size();
-        state = 0;
-    } else {
-        state = parseStack->pop().state;
-#if defined(QT_QXML_DEBUG)
-        qDebug("QXmlSimpleReader: parseString (cont) in state %d", state);
-#endif
-        if (!parseStack->isEmpty()) {
-            ParseFunction function = parseStack->top().function;
-            if (function == &QXmlSimpleReaderPrivate::eat_ws) {
-                parseStack->pop();
-#if defined(QT_QXML_DEBUG)
-                qDebug("QXmlSimpleReader: eat_ws (cont)");
-#endif
-            }
-            if (!(this->*function)()) {
-                parseFailed(&QXmlSimpleReaderPrivate::parseString, state);
-                return false;
-            }
-        }
-    }
+
+    // state in this function is the position in the parseString_s string.
+    // Note: it's fine to use int here, because parseString_s is only used
+    // for pre-defined constant strings, and each of them has <= 20 characters.
+    int state = tryUnwindParseStack(&QXmlSimpleReaderPrivate::parseString);
+    if (state < 0)
+        return false;
 
     for (;;) {
         if (state == Done) {

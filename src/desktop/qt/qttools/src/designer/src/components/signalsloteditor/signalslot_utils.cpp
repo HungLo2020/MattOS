@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "signalslot_utils_p.h"
 
@@ -13,7 +14,7 @@
 #include <QtDesigner/qextensionmanager.h>
 #include <QtDesigner/abstractlanguage.h>
 
-#include <QtCore/qpair.h>
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 

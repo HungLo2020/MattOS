@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-02-21 01:54+0200\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-05-21 14:30+0300\n"
 "Last-Translator: Moo\n"
 "Language-Team: Lithuanian <kde-i18n-lt@kde.org>\n"
 "Language: lt\n"
@@ -68,21 +68,21 @@ msgstr "Laikyti aukščiau kitų langų"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr "Slėpti, kai filmuojamas ekranas"
+msgid "Hide from screenshots and screen recordings"
+msgstr "Slėpti, kai daromos ekrano kopijos ir filmuojamas ekranas"
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
 msgstr "Tarpiklis"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Apipavidalinimo numatytasis (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -93,7 +93,7 @@ msgstr ""
 "dekoracijų apipavidalinimą, apsaugodamas, kad nenustatytumėte atsitiktinai į "
 "tą, kuris neprieinamas ar į tą, kuris jau yra nustatytas."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -104,7 +104,7 @@ msgstr ""
 "Perdavus visą kelią, bus bandoma rasti apipavidalinimą nurodytame kataloge "
 "ir tuomet, jei pavyks nustatyti apipavidalinimą, bus bandoma jį taikyti."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
@@ -112,7 +112,7 @@ msgstr ""
 "Rodyti visus sistemoje prieinamus apipavidalinimus (ir kuris yra dabartinis "
 "apipavidalinimas)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -121,7 +121,7 @@ msgstr ""
 "Rastas %1 ir nustatytas į KWin Aurorae apipavidalinimą „%2“. Bus bandoma jį "
 "nustatyti kaip jūsų dabartinį apipavidalinimą."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -131,7 +131,7 @@ msgstr ""
 "apipavidalinimo, tad teks nutraukti šią užduotį, nes nėra apipavidalinimo, "
 "kurį galima būtų nustatyti"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
@@ -139,14 +139,15 @@ msgstr ""
 "Užklaustas apipavidalinimas „%1“ jau yra nustatytas kaip langų dekoracijų "
 "apipavidalinimas."
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr ""
-"Jūsų dabartiniam Plasma seansui sėkmingai pritaikytas žymeklio "
+"Jūsų dabartiniam Plasma seansui sėkmingai pritaikytas rodyklės "
 "apipavidalinimas %1"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -155,7 +156,7 @@ msgstr ""
 "Nepavyko įrašyti apipavidalinimo nuostatų. Priežastis nežinoma, bet tai yra "
 "neatkuriamoji klaida. Gali būti, kad pabandžius dar kartą, viskas suveiks."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -164,7 +165,7 @@ msgstr ""
 "Nepavyko rasti apipavidalinimo „%1“. Apipavidalinimas turėtų būti vienas iš "
 "šių variantų: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "Jūsų sistemoje yra šie KWin langų dekoracijų apipavidalinimai:"
@@ -211,28 +212,30 @@ msgstr "Rodyti antraštės juostos mygtukų paaiškinimus"
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
-msgstr "Visada rodyti mygtuką „Slėpti, kai filmuojamas ekranas“"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
+msgstr ""
+"Visada rodyti mygtuką „Slėpti, kai daromos ekrano kopijos ir filmuojamas "
+"ekranas“"
 
 #: ui/ConfigureTitlebar.qml:85
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
-"Kai nepažymėta, mygtukas rodomas tik tuo atveju, jei, filmuojant ekraną, "
-"langas yra slepiamas"
+"Kai nepažymėta, mygtukas rodomas tik tuo atveju, jei langas yra slepiamas "
+"darant ekrano kopijas ir filmuojant ekraną"
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
 "Norėdami įjungti šią parinktį, pirmiausiai, pridėkite į antraštės juostą "
-"mygtuką „Slėpti, kai filmuojamas ekranas“"
+"mygtuką „Slėpti, kai daromos ekrano kopijos ir filmuojamas ekranas“"
 
 #: ui/main.qml:29
 #, kde-format
@@ -257,50 +260,53 @@ msgstr "Gauti naują…"
 msgid "Edit %1 Theme…"
 msgstr "Taisyti %1 apipavidalinimą…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Jokių lango rėmelių"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Jokių šoninių lango rėmelių"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Mažyčiai lango rėmeliai"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Normalūs lango rėmeliai"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Dideli lango rėmeliai"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Labai dideli lango rėmeliai"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Didžiuliai lango rėmeliai"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Milžiniški lango rėmeliai"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Per dideli lango rėmeliai"
+
+#~ msgid "Hide from screencast"
+#~ msgstr "Slėpti, kai filmuojamas ekranas"
 
 #~ msgid "More actions for this window"
 #~ msgstr "Daugiau veiksmų su šiuo langu"

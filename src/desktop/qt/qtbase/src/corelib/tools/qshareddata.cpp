@@ -53,6 +53,10 @@ QT_BEGIN_NAMESPACE
     \compareswith strong T* std::nullptr_t
     \endcompareswith
 
+    QSharedDataPointer is a template class where the template parameter
+    \a T specifies the type of the shared data class that derives from
+    QSharedData.
+
     QSharedDataPointer\<T\> makes writing your own \l {implicitly
     shared} classes easy. QSharedDataPointer implements \l {thread-safe}
     reference counting, ensuring that adding QSharedDataPointers to your
@@ -420,7 +424,7 @@ QT_BEGIN_NAMESPACE
     Creates and returns a deep copy of the current data. This function
     is called by detach() when the reference count is greater than 1 in
     order to create the new copy. This function uses the \e {operator
-    new} and calls the copy constructor of the type T.
+    new} and calls the copy constructor of the type \a T.
 
     This function is provided so that you may support "virtual copy
     constructors" for your own types. In order to so, you should declare
@@ -445,6 +449,10 @@ QT_BEGIN_NAMESPACE
     \compares strong
     \compareswith strong T* std::nullptr_t
     \endcompareswith
+
+    QExplicitlySharedDataPointer is a template class where the template
+    parameter \a T specifies the type of the shared data class that
+    derives from QSharedData.
 
     QExplicitlySharedDataPointer\<T\> makes writing your own explicitly
     shared classes easy. QExplicitlySharedDataPointer implements
@@ -572,8 +580,8 @@ QT_BEGIN_NAMESPACE
     a different type of explicitly shared data pointer but one that has
     a compatible shared data object.
 
-    By default, the \e{d pointer} of \a o (of type \c{X *}) gets
-    implicitly converted to the type \c{T *}; the result of this
+    By default, the \e{d pointer} of \a o (of type \c{\a X *}) gets
+    implicitly converted to the type \c{\a T *}; the result of this
     conversion is set as the \e{d pointer} of \e{this}, and the
     reference count of the shared data object is incremented.
 */
@@ -642,7 +650,7 @@ QT_BEGIN_NAMESPACE
     Creates and returns a deep copy of the current data. This function
     is called by detach() when the reference count is greater than 1 in
     order to create the new copy. This function uses the \e {operator
-    new} and calls the copy constructor of the type T.
+    new} and calls the copy constructor of the type \a T.
 
     See QSharedDataPointer<T>::clone() for an explanation of how to use it.
 */

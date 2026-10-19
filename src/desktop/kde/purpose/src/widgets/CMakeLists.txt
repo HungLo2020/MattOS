@@ -9,11 +9,12 @@ set_target_properties(KF6PurposeWidgets PROPERTIES
     EXPORT_NAME PurposeWidgets
 )
 
-qt_add_resources(qmlfiles_SRCS purposewidgets-resources.qrc)
+ecm_add_qml_module(KF6PurposeWidgets URI "org.kde.purpose.private.widgets" GENERATE_PLUGIN_SOURCE)
+ecm_target_qml_sources(KF6PurposeWidgets SOURCES JobDialog.qml)
+ecm_finalize_qml_module(KF6PurposeWidgets)
 
 target_sources(KF6PurposeWidgets PRIVATE
     menu.cpp
-    ${qmlfiles_SRCS}
 )
 
 ecm_generate_export_header(KF6PurposeWidgets
@@ -29,6 +30,7 @@ target_link_libraries(KF6PurposeWidgets
     PUBLIC
         KF6::Purpose
         Qt6::Widgets
+        Qt6::QmlIntegration
     PRIVATE
         Qt6::Qml
         KF6::I18n
@@ -68,3 +70,17 @@ install(
 )
 
 ecm_generate_qdoc(KF6PurposeWidgets purposewidgets.qdocconf)
+
+ecm_add_installed_library_check(KF6PurposeWidgets
+    PACKAGE_NAME "KF6Purpose"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6PurposeWidgets
+    HEADERS ${PurposeWidgets_CamelCase_HEADERS}
+    PREFIX Purpose
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6PurposeWidgets
+    PREFIX PURPOSE
+)

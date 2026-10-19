@@ -20,6 +20,7 @@
 #include "qqmljsmetatypes_p.h"
 #include "qdeferredpointer_p.h"
 #include "qqmljsannotation_p.h"
+#include "qqmljstypereader_p.h"
 #include "qqmlsaconstants.h"
 #include "qqmlsa_p.h"
 
@@ -118,6 +119,8 @@ public:
         EnforcesScopedEnums = 0x4000,
         FileRootComponent = 0x8000,
         AssignedToUnknownProperty = 0x10000,
+        IsSelfExtension = 0x20000,
+        IsOpaque = 0x40000,
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
@@ -154,14 +157,7 @@ public:
                                   typename QMultiHash<Key, Value>::iterator>;
 
     static QQmlJSScope::Ptr create() { return QSharedPointer<QQmlJSScope>(new QQmlJSScope); }
-    static QQmlJSScope::Ptr clone(const QQmlJSScope::ConstPtr &origin);
-    static QQmlJSScope::Ptr resetForReparse(QQmlJSScope::Ptr &&scope);
-
-    static void cloneInto(QQmlJSScope::Ptr &origin,
-                          const QQmlJSScope::Ptr &target)
-    {
-        *target = std::move(*clone(origin));
-    }
+    static const QQmlJSScope::Ptr &resetForReparse(const QQmlJSScope::Ptr &scope);
 
     static QQmlJSScope::ConstPtr findCurrentQMLScope(const QQmlJSScope::ConstPtr &scope);
 
@@ -171,7 +167,6 @@ public:
 
     void insertJSIdentifier(const QString &name, const JavaScriptIdentifier &identifier);
     QHash<QString, JavaScriptIdentifier> ownJSIdentifiers() const;
-    void insertPropertyIdentifier(const QQmlJSMetaProperty &prop);
 
     ScopeType scopeType() const { return m_scopeType; }
     void setScopeType(ScopeType type) { m_scopeType = type; }
@@ -201,7 +196,7 @@ public:
     QQmlJSMetaEnum enumeration(const QString &name) const;
     QHash<QString, QQmlJSMetaEnum> enumerations() const;
 
-    void setAnnotations(const QList<QQmlJSAnnotation> &annotation) { m_annotations = std::move(annotation); }
+    void setAnnotations(const QList<QQmlJSAnnotation> &annotations) { m_annotations = annotations; }
     const QList<QQmlJSAnnotation> &annotations() const { return m_annotations; }
 
     QString filePath() const { return m_filePath; }
@@ -289,6 +284,7 @@ public:
     struct AnnotatedScope; // defined later
     static AnnotatedScope ownerOfProperty(const QQmlJSScope::ConstPtr &self, const QString &name);
     static AnnotatedScope ownerOfMethod(const QQmlJSScope::ConstPtr &self, const QString &name);
+    static AnnotatedScope ownerOfEnum(const QQmlJSScope::ConstPtr &self, const QString &name);
 
     bool isResolved() const;
     bool isFullyResolved() const;
@@ -350,6 +346,10 @@ public:
     bool isJavaScriptBuiltin() const { return m_flags.testFlag(JavaScriptBuiltin); }
     void setIsJavaScriptBuiltin(bool v) { m_flags.setFlag(JavaScriptBuiltin, v); }
 
+    //!\internal True iff type was registered only because it appears in a property
+    bool isOpaqueType() const { return m_flags.testFlag(IsOpaque); }
+    void setIsTypeOpaque(bool v) { m_flags.setFlag(IsOpaque, v); }
+
     bool isScript() const { return m_flags.testFlag(Script); }
     void setIsScript(bool v) { m_flags.setFlag(Script, v); }
 
@@ -391,6 +391,16 @@ public:
 
     bool isFileRootComponent() const { return m_flags.testFlag(FileRootComponent); }
     void setIsRootFileComponentFlag(bool v) { m_flags.setFlag(FileRootComponent, v); }
+
+    // Self-extension happens when a type declares itself as its own extension type using the
+    // QML_EXTENDED macro. Internally, we use the self-extension + QML_FOREIGN trick to indicate
+    // the type to be used in the generated code is the declared foreign type instead of the type
+    // itself, but that the metaObject to be used is that of the extension. This is used for example
+    // with value types for types that don't have a metaObject, such as QQmlRectValueType: The
+    // generated C++ code needs to use QRect but all the properties are defined on
+    // QQmlRectValueType.
+    bool isSelfExtension() const { return m_flags.testFlag(IsSelfExtension); }
+    void setIsSelfExtension(bool v) { m_flags.setFlag(IsSelfExtension, v); }
 
     void setAccessSemantics(AccessSemantics semantics) { m_semantics = semantics; }
     AccessSemantics accessSemantics() const { return m_semantics; }
@@ -654,12 +664,9 @@ template<>
 class Q_QMLCOMPILER_EXPORT QDeferredFactory<QQmlJSScope>
 {
 public:
-    using TypeReader = std::function<QList<QQmlJS::DiagnosticMessage>(
-            QQmlJSImporter *importer, const QString &filePath,
-            const QSharedPointer<QQmlJSScope> &scopeToPopulate)>;
     QDeferredFactory() = default;
 
-    QDeferredFactory(QQmlJSImporter *importer, const TypeReader &typeReader,
+    QDeferredFactory(QQmlJSImporter *importer, const QQmlJS::TypeReader &typeReader,
                      const QString &filePath, const QString &moduleName, bool isSingleton);
 
     bool isValid() const
@@ -669,7 +676,8 @@ public:
 
     QString internalName() const
     {
-        return QFileInfo(m_filePath).baseName();
+        const QString baseName = QFileInfo(m_filePath).baseName();
+        return baseName.endsWith(QStringLiteral(".ui")) ? baseName.chopped(3) : baseName;
     }
 
     QString filePath() const { return m_filePath; }
@@ -695,7 +703,7 @@ private:
     void populate(const QSharedPointer<QQmlJSScope> &scope) const;
 
     QQmlJSImporter *m_importer = nullptr;
-    TypeReader m_typeReader;
+    QQmlJS::TypeReader m_typeReader;
     QString m_filePath;
     QString m_moduleName;
     bool m_isSingleton = false;
@@ -720,26 +728,22 @@ constexpr inline bool isFunctionScope(ScopeType type)
 }
 
 template <typename T>
-static void resetFactory(QDeferredSharedPointer<T> &pointer,
-                        QQmlJSImporter *importer,
-                        const typename QDeferredFactory<std::remove_const_t<T>>::TypeReader &typeReader,
-                        const QString &filePath)
+static void resetFactory(QDeferredSharedPointer<T> &pointer, QQmlJSImporter *importer,
+                         const QQmlJS::TypeReader &typeReader)
 {
     const auto &factory = pointer.factory();
-    QDeferredFactory<std::remove_const_t<T>> newFactory(importer,
-                                                        typeReader, filePath,
-                                                        factory ? factory->moduleName() : QString(),
-                                                        factory ? factory->isSingleton() : false);
+    QDeferredFactory<std::remove_const_t<T>> newFactory(
+            importer, typeReader, factory ? factory->filePath() : pointer.data()->filePath(),
+            factory ? factory->moduleName() : pointer.data()->moduleName(),
+            factory ? factory->isSingleton() : pointer.data()->isSingleton());
     return resetFactoryImpl(pointer, std::move(newFactory));
 }
 
 template<typename T, typename U>
 void resetFactoryImpl(QDeferredSharedPointer<T> &pointer, U&& factory)
 {
-    pointer.m_data.reset();
     *pointer.m_factory = std::forward<U>(factory);
 }
-
 
 QT_END_NAMESPACE
 

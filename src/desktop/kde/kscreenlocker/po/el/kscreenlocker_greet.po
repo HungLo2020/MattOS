@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kscreenlocker_greet\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:40+0000\n"
+"POT-Creation-Date: 2026-09-15 02:47+0000\n"
 "PO-Revision-Date: 2024-09-20 09:37+0300\n"
 "Last-Translator: Antonis Geralis <capoiosct@gmail.com>\n"
 "Language-Team: Greek <kde-i18n-el@kde.org>\n"
@@ -21,49 +21,55 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 24.08.1\n"
 
-#: fallbacktheme/Greeter.qml:58
+#: fallbacktheme/Greeter.qml:59
 msgid "Warning: Caps Lock on"
 msgstr "Προειδοποίηση: Caps Lock ενεργό"
 
-#: fallbacktheme/Greeter.qml:74
+#: fallbacktheme/Greeter.qml:75
 msgid "The session is locked"
 msgstr "Η συνεδρία είναι κλειδωμένη"
 
-#: fallbacktheme/Greeter.qml:75
+#: fallbacktheme/Greeter.qml:76
 msgid "The session has been locked by %1"
 msgstr "Η συνεδρία κλειδώθηκε από τον/την %1"
 
-#: fallbacktheme/Greeter.qml:99
+#: fallbacktheme/Greeter.qml:83
+#, fuzzy
+#| msgid "Password:"
+msgid "Password"
+msgstr "Κωδικός πρόσβασης:"
+
+#: fallbacktheme/Greeter.qml:101
 msgid "(or place your fingerprint on the reader)"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:105
+#: fallbacktheme/Greeter.qml:107
 msgid "(or use your smartcard)"
 msgstr ""
 
-#: fallbacktheme/Greeter.qml:114
+#: fallbacktheme/Greeter.qml:116
 msgid "&Switch Users"
 msgstr "&Εναλλαγή χρηστών"
 
-#: fallbacktheme/Greeter.qml:121
+#: fallbacktheme/Greeter.qml:123
 msgid "Un&lock"
 msgstr "Ξεκ&λείδωμα"
 
-#: fallbacktheme/Greeter.qml:133
+#: fallbacktheme/Greeter.qml:135
 msgid "Unlocking failed"
 msgstr "Το ξεκλείδωμα απέτυχε"
 
-#: main.cpp:123
+#: main.cpp:102
 #, kde-format
 msgid "Greeter for the KDE Plasma Workspaces Screen locker"
 msgstr "Πρόγραμμα χαιρετισμού για το κλείδωμα της οθόνης KDE Plasma Workspaces"
 
-#: main.cpp:127
+#: main.cpp:106
 #, kde-format
 msgid "Starts the greeter in testing mode"
 msgstr "Εκκινεί το πρόγραμμα χαιρετισμού σε δοκιμαστική λειτουργία"
 
-#: main.cpp:130
+#: main.cpp:109
 #, fuzzy, kde-format
 #| msgid "Starts the greeter with the selected theme (only in Testing mode)"
 msgid "Starts the greeter with the selected shell theme (only in Testing mode)"
@@ -71,27 +77,58 @@ msgstr ""
 "Εκκινεί το πρόγραμμα χαιρετισμού με το επιλεγμένο θέμα (μόνο σε δοκιμαστική "
 "λειτουργία)"
 
-#: main.cpp:134
+#: main.cpp:113
 #, kde-format
 msgid "Lock immediately, ignoring any grace time etc."
 msgstr "Άμεσο κλείδωμα, με αγνόησή οποιουδήποτε χρονικού ορίου."
 
-#: main.cpp:136
+#: main.cpp:115
 #, kde-format
 msgid "Delay till the lock user interface gets shown in milliseconds."
 msgstr ""
 "Καθυστέρηση μέχρι το γραφικό περιβάλλον κλειδώματος να εμφανιστεί, σε "
 "χιλιοστά του δευτερολέπτου."
 
-#: main.cpp:139
+#: main.cpp:118
 #, kde-format
 msgid "Don't show any lock user interface."
 msgstr "Καμιά εμφάνιση γραφικού περιβάλλοντος κλειδώματος."
 
-#: main.cpp:141
+#: pamauthenticatormodel.cpp:51
+#, fuzzy, kde-format
+#| msgid "Password:"
+msgctxt "authentication type in unlock dialogs"
+msgid "Password"
+msgstr "Κωδικός πρόσβασης:"
+
+#: pamauthenticatormodel.cpp:60
 #, kde-format
-msgid "File descriptor for connecting to ksld."
-msgstr "Περιγραφέας αρχείου για σύνδεση με ksld."
+msgctxt "authentication type in unlock dialogs"
+msgid "Smartcard"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:67
+#, kde-format
+msgctxt "authentication type in unlock dialogs"
+msgid "Fingerprint"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:74
+#, kde-format
+msgctxt "authentication type in unlock dialogs - facial authentication"
+msgid "Face"
+msgstr ""
+
+#: pamauthenticatormodel.cpp:82
+#, kde-format
+msgctxt ""
+"authentication type in unlock dialogs - universal 2 factor authentication "
+"(yubikey etc)"
+msgid "Universal 2 Factor"
+msgstr ""
+
+#~ msgid "File descriptor for connecting to ksld."
+#~ msgstr "Περιγραφέας αρχείου για σύνδεση με ksld."
 
 #~ msgid "Default to the switch user UI."
 #~ msgstr "Προκαθορισμένο το γραφικό περιβάλλον εναλλαγής χρήστη."
@@ -101,9 +138,6 @@ msgstr "Περιγραφέας αρχείου για σύνδεση με ksld."
 
 #~ msgid "Location"
 #~ msgstr "Θέση"
-
-#~ msgid "Password:"
-#~ msgstr "Κωδικός πρόσβασης:"
 
 #~ msgctxt ""
 #~ "thesession name and the location where the session is running (what vt)"

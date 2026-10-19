@@ -25,12 +25,10 @@ private Q_SLOTS:
     void testMultiple();
 };
 
-static const QString s_socketName = QStringLiteral("kwin-wayland-server-seat-test-0");
-
 void TestWaylandServerSeat::testCapabilities()
 {
     KWin::Display display;
-    display.addSocketName(s_socketName);
+    display.addSocketName(qAppName());
     display.start();
     SeatInterface *seat = new SeatInterface(&display, QStringLiteral("seat0"), &display);
     QVERIFY(!seat->hasKeyboard());
@@ -77,7 +75,7 @@ void TestWaylandServerSeat::testCapabilities()
 void TestWaylandServerSeat::testPointerButton()
 {
     KWin::Display display;
-    display.addSocketName(s_socketName);
+    display.addSocketName(qAppName());
     display.start();
     SeatInterface *seat = new SeatInterface(&display, QStringLiteral("seat0"), &display);
     seat->setHasPointer(true);
@@ -108,7 +106,7 @@ void TestWaylandServerSeat::testPointerButton()
 void TestWaylandServerSeat::testPointerPos()
 {
     KWin::Display display;
-    display.addSocketName(s_socketName);
+    display.addSocketName(qAppName());
     display.start();
     SeatInterface *seat = new SeatInterface(&display, QStringLiteral("seat0"), &display);
     seat->setHasPointer(true);
@@ -137,7 +135,7 @@ void TestWaylandServerSeat::testPointerPos()
 void TestWaylandServerSeat::testRepeatInfo()
 {
     KWin::Display display;
-    display.addSocketName(s_socketName);
+    display.addSocketName(qAppName());
     display.start();
     SeatInterface *seat = new SeatInterface(&display, QStringLiteral("seat0"), &display);
     seat->setHasKeyboard(true);
@@ -155,7 +153,7 @@ void TestWaylandServerSeat::testRepeatInfo()
 void TestWaylandServerSeat::testMultiple()
 {
     KWin::Display display;
-    display.addSocketName(s_socketName);
+    display.addSocketName(qAppName());
     display.start();
     QVERIFY(display.seats().isEmpty());
     SeatInterface *seat1 = new SeatInterface(&display, QStringLiteral("seat0"), &display);

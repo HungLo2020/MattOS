@@ -143,13 +143,19 @@ Item {
         height: width
     }
 
+  /*!
+   * The way the text property for the title and subtitle should be displayed.
+   * \since 6.31
+   */
+  property alias textFormat: titleSubtitle.textFormat
+
     /*!
-      \brief Emitted when the user clicks on a link embedded in the text of the title or subtitle.
+      \brief Emitted when the user clicks on a \a link embedded in the text of the title or subtitle.
      */
     signal linkActivated(string link)
 
     /*!
-      \brief Emitted when the user hovers on a link embedded in the text of the title or subtitle.
+      \brief Emitted when the user hovers on a \a link embedded in the text of the title or subtitle.
      */
     signal linkHovered(string link)
 

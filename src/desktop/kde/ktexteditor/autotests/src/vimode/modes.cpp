@@ -6,6 +6,7 @@
 */
 
 #include "modes.h"
+#include "emulatedcommandbarsetupandteardown.h"
 #include <inputmode/kateviinputmode.h>
 #include <katebuffer.h>
 #include <kateconfig.h>
@@ -17,6 +18,7 @@
 #include <QMainWindow>
 #include <QTest>
 
+using namespace Qt::StringLiterals;
 using namespace KTextEditor;
 
 QTEST_MAIN(ModesTest)
@@ -46,6 +48,13 @@ void ModesTest::NormalMotionsTests()
     DoTest("bar\nbar", "10jx", "bar\nar");
     DoTest("bar\nbara", "lljx", "bar\nbaa");
     DoTest("0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0\n1\n2\n3\n4\n5\n", "13jx", "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0\n1\n2\n\n4\n5\n");
+
+    // Testing backspace motion
+    DoTest("bar", "ll\\backspacex", "br");
+    DoTest("bar", "10l10\\backspacex", "ar");
+    DoTest("foo\nbar\nbaz", "2j\\backspacex", "foo\nba\nbaz");
+    DoTest("foo\nbar\nbaz", "2jl5\\backspacex", "fo\nbar\nbaz");
+    DoTest("foo\nbar\nbaz", "2jl20\\backspacex", "oo\nbar\nbaz");
 
     // Testing "k"
     DoTest("bar\nbar", "jx", "bar\nar");
@@ -152,6 +161,14 @@ void ModesTest::NormalMotionsTests()
 
     // Testing "'"
     DoTest("foo\nbar\nbaz", "lmaj'arx", "xoo\nbar\nbaz");
+
+    // Testing undo/redo for different counts
+    DoTest("foo", "Abar\\esc.u", "foobar");
+    DoTest("foo", "Abar\\esc.uU", "foobarbar");
+    DoTest("foo", "Abar\\esc.2u", "foo");
+    DoTest("foo", "Abar\\esc.2u2U", "foobarbar");
+    DoTest("foo", "Abar\\esc..4u2U", "foobarbar");
+    DoTest("foo", "Abar\\esc..2u4U", "foobarbarbar");
 
     // Testing "%"
     DoTest("foo{\n}\n", "$d%", "foo\n");
@@ -837,6 +854,27 @@ void ModesTest::NormalCommandsTests()
     // Do nothing if the count is too high.
     DoTest("foobar", "l6r.", "foobar");
 
+    // Testing instert register (".)
+    DoTest("foo bar", "ea baz\\esc$\".p", "foo baz bar baz");
+    DoTest("foo bar", "ea baz\\escwhD\".p", "foo baz baz"); // ". != .
+    DoTest("foo bar", "ea baz\\esc\".Y$\".p", "foo baz bar baz");
+
+    {
+        // To interact back and forth with the command bar
+        EmulatedCommandBarSetUpAndTearDown emulatedCommandBarSetUpAndTearDown(vi_input_mode, kate_view, mainWindow);
+
+        // Testing search register ("/)
+        DoTest("foo", "/bar\\enter$\"/p", "foobar");
+        DoTest("foo", "/baz\\esc$\"/p", "foobaz"); // Dismiss on Esc
+        DoTest("foo", "?bat\\enter$\"/p", "foobat"); // Reverse search
+        DoTest("foo", "\"/Y$\"/p", "foobat"); // Read-only
+
+        // Testing command register (":)
+        DoTest("foo", ":bar\\enter$\":p", "foobar");
+        DoTest("foo", ":baz\\esc$\":p", "foobaz"); // Dismiss on Esc
+        DoTest("foo", "\":Y$\":p", "foobaz"); // Read-only
+    }
+
     // Testing "Ctrl-o" and "Ctrl-i"
     DoTest("abc\ndef\nghi", "Gx\\ctrl-ox", "bc\ndef\nhi");
     DoTest("{\n}", "%\\ctrl-ox", "\n}");
@@ -950,6 +988,7 @@ void ModesTest::NormalControlTests()
     DoTest("1", "\\ctrl-x\\ctrl-x\\ctrl-x\\ctrl-x", "-3");
     DoTest("0xabcdef", "1000000\\ctrl-x", "0x9c8baf");
     DoTest("0x0000f", "\\ctrl-x", "0x0000e");
+    DoTest("0b00111", "\\ctrl-x", "0b00110");
     // Octal numbers should retain leading 0's.
     DoTest("00010", "\\ctrl-x", "00007");
 
@@ -959,6 +998,7 @@ void ModesTest::NormalControlTests()
     DoTest("-1", "1\\ctrl-a", "0");
     DoTest("-1", "l1\\ctrl-a", "0");
     DoTest("0x0000f", "\\ctrl-a", "0x00010");
+    DoTest("0b00111", "\\ctrl-a", "0b01000");
     // Decimal with leading 0's - increment, and strip leading 0's, like Vim.
     DoTest("0000193", "\\ctrl-a", "194");
     // If a number begins with 0, parse it as octal if we can. The resulting number should retain the
@@ -983,6 +1023,28 @@ void ModesTest::NormalControlTests()
     DoTest(" a a    a\n  1", "jll\\ctrl-a", " a a    a\n  2");
     // Regression test.
     DoTest("1w3", "l\\ctrl-a", "1w4");
+    // Possible conflict between hex and bin: it should pick hex
+    DoTest("aa0x0b0001", "e2\\ctrl-x", "aa0x0affff");
+
+    // Non-decimal bases are unsigned and operation overflows wrap around 0
+    DoTest("0xffffffffffffffff", "\\ctrl-a", "0x0000000000000000");
+    DoTest("0x0", "\\ctrl-x", "0xffffffffffffffff");
+    DoTest("0b0", "\\ctrl-x", "0b1111111111111111111111111111111111111111111111111111111111111111");
+    DoTest("00", "\\ctrl-x", "01777777777777777777777");
+    DoTest("0xfffffffffffffffa", "10\\ctrl-a", "0x0000000000000004");
+    DoTest("0xfffffffffffffffa", "10\\ctrl-a6\\ctrl-x", "0xfffffffffffffffe");
+    // Decimal numbers can be parsed as signed or unsigned long
+    DoTest("0", "\\ctrl-x", "-1");
+    DoTest("18446744073709551615", "\\ctrl-a", "0");
+    // Test parsing overflow: max integer and no operation applied
+    DoTest("123456789012345678901", "\\ctrl-a", "18446744073709551615");
+    DoTest("0x123456789abcdef0f", "5\\ctrl-a", "0x0ffffffffffffffff");
+    // Hexadecimal uppercase if any character is uppercase (including prefix)
+    DoTest("0X0", "\\ctrl-x", "0XFFFFFFFFFFFFFFFF");
+    DoTest("0X0009", "\\ctrl-a", "0X000A");
+    DoTest("0x000A", "\\ctrl-a", "0x000B");
+    DoTest("0x00aB", "\\ctrl-a", "0x00AC");
+    DoTest("0B0101", "\\ctrl-a", "0B0110");
 
     // Test "Ctrl-a/x" on a blank document/ blank line.
     DoTest("", "\\ctrl-a", "");
@@ -1083,7 +1145,13 @@ void ModesTest::InsertKeysTests()
     DoTest("barbaz", "\"ay3li\\ctrl-ra", "barbarbaz");
     DoTest("barbaz", "\"ay3li\\ctrl-raX", "barXbarbaz");
     DoTest("bar\nbaz", "\"byylli\\ctrl-rb", "bar\nbar\nbaz");
+    DoTest("bar\nbaz", "vj\"byjlla\\ctrl-rboo", "bar\nbazbar\nboo");
     DoTest("Hello", "0yei\\ctrl-r\"", "HelloHello");
+
+    // Ctrl-A
+    DoTest("foo", "Abar\\escabaz\\ctrl-a", "foobarbazbar");
+    DoTest("foo", "A\\enterbar\\escabaz\\ctrl-a", "foo\nbarbaz\nbar");
+    DoTest("foo", "A\\enterbar\\escabaz\\ctrl-a\\ctrl-a", "foo\nbarbaz\nbar\nbar");
 
     // Ctrl-O
     DoTest("foo bar baz", "3li\\ctrl-od2w", "foobaz");
@@ -1158,6 +1226,7 @@ void ModesTest::VisualMotionsTests()
     DoTest("\n", "vjcX", "X");
     DoTest("foobar", "vlllx", "ar");
     DoTest("foo\nbar", "Vd", "bar");
+    DoTest("foo\nbar", "jv\\backspacex", "foar");
     DoTest("Hello.\nWorld", "2lvjcX", "HeXld");
     DoTest("Three. Different. Sentences.\n\n", "vapcX", "X");
     DoTest("1234\n1234\n1234", "l\\ctrl-vljjd", "14\n14\n14");
@@ -1215,6 +1284,10 @@ void ModesTest::VisualMotionsTests()
     // ctrl-left and ctrl-right
     DoTest("foo bar xyz", "v\\ctrl-\\rightd", "ar xyz");
     DoTest("foo bar xyz", "$v\\ctrl-\\leftd", "foo bar ");
+
+    // Block motions on lines with tabs
+    DoTest("\t        foo\n\t\tbar\n                xyz", "wl\\ctrl-ve2jd", "\t        f\n\t\tb\n                x");
+    DoTest("\t        foo\n\t\tbar\n                xyz", "wl2j\\ctrl-ve2kd", "\t        f\n\t\tb\n                x");
 }
 
 void ModesTest::VisualCommandsTests()
@@ -1286,6 +1359,14 @@ void ModesTest::VisualCommandsTests()
     DoTest("foobar", "lv2lo2ld", "fooar");
     DoTest("foo\nbar", "jvllokld", "f");
     DoTest("12\n12", "\\ctrl-vjlold", "1\n1");
+    DoTest("123\n456\n789", "\\ctrl-v2j2lojld", "123\n4\n7");
+    DoTest("\t\t123\n\t        456\n                789", "w\\ctrl-v2j2lojld", "\t\t123\n\t        4\n                7");
+
+    // Testing "O"
+    DoTest("foobar", "lv2lO2ld", "fooar");
+    DoTest("foo\nbar", "jvllOkld", "f");
+    DoTest("123\n456\n789", "\\ctrl-v2j2lOkld", "1\n4\n789");
+    DoTest("\t\t123\n\t        456\n                789", "w\\ctrl-v2j2lOkld", "\t\t1\n\t        4\n                789");
 
     // Testing "~"
     DoTest("foobar", "lv2l~", "fOOBar");
@@ -1301,6 +1382,13 @@ void ModesTest::VisualCommandsTests()
     DoTest("a", "r\\keypad-0", "0");
     DoTest("a", "r\\keypad-9", "9");
     DoTest("foo\nbar", "l\\ctrl-vjr\\keypad-9", "f9o\nb9r");
+
+    // Testing numpad digits as count with NumLock on
+    DoTest("foobar\nbaz", "ll\\keypad-0\\keypad-3x", "bar\nbaz");
+    DoTest("foobar\nbaz", "ll\\keypad-03x", "bar\nbaz");
+    DoTest("foobar\nbaz", "ll\\keypad-0\\keypad-2x.", "ar\nbaz");
+    DoTest("foo\nbar\nbaz", "V\\keypad-2jd", "");
+    DoTest("", "i\\keypad-5\\esc.", "55");
 
     // Testing "gq"
     DoTest("foo\nbar\nbaz", "Vgq", "foo\nbar\nbaz");
@@ -1318,7 +1406,15 @@ void ModesTest::VisualCommandsTests()
     DoTest("foo\nbar\nbaz", "V>>V<<", "foo\nbar\nbaz");
     DoTest("    foo\n    bar\n    baz", "V2j<<", "  foo\n  bar\n  baz");
 
+    // Testing block prepend (BUG #488801 - also with tabs)
+    DoTest("foo\nbar\nbaz", "l\\ctrl-v2jIr\\esc", "froo\nbrar\nbraz");
+    DoTest("\t\tfoo\n        \tbar\n                baz", "wl\\ctrl-v2jIr\\esc", "\t\tfroo\n        \tbrar\n                braz");
+
     // Testing block append
+    DoTest("1234\n5678\n9012", "l\\ctrl-vl2jAxyz\\esc", "123xyz4\n567xyz8\n901xyz2");
+    DoTest("\t\t1234\n\t        5678\n                9012", "wl\\ctrl-vl2jAxyz\\esc", "\t\t123xyz4\n\t        567xyz8\n                901xyz2");
+
+    // Testing block append at end of line ($)
     DoTest("averyverylongline\nshortline\nshorter\n", "jjV$kkAb\\esc", "averyverylonglineb\nshortlineb\nshorterb\n");
     DoTest("averyverylongline\nshortline\n", "V$jAb\\esc", "averyverylonglineb\nshortlineb\n");
 
@@ -1381,6 +1477,12 @@ void ModesTest::VisualCommandsTests()
         QCOMPARE(range.end().column(), 3);
     }
 
+    // proper pasting a text block
+    DoTest("aaaa\nbbbb\ncccc\ndddd", "lj\\ctrl-vljygg2lp", "aaabba\nbbbccb\ncccc\ndddd");
+    DoTest("aaaa\nbbbb\ncccc\ndddd", "lj\\ctrl-vljygg2l2p", "aaabbbba\nbbbccccb\ncccc\ndddd");
+    // paste twice to check the cursor moved correctly after the paste (gp)
+    DoTest("foo\nbar", "\\ctrl-vejyejgpgp", "foo\nbarfoo\n   barfoo\n      bar");
+
     // proper selection in block mode after switching to cmdline
     {
         BeginTest(QStringLiteral("aaaa\nbbbb\ncccc\ndddd"));
@@ -1389,10 +1491,41 @@ void ModesTest::VisualCommandsTests()
     }
 
     // BUG #328277 - make sure kate doesn't crash
-    BeginTest(QStringLiteral("aaa\nbbb"));
-    TestPressKey(QStringLiteral("Vj>u>."));
-    QCOMPARE(kate_view->renderer()->caretStyle(), KTextEditor::caretStyles::Block);
-    FinishTest("aaa\nbbb");
+    {
+        BeginTest(QStringLiteral("aaa\nbbb"));
+        TestPressKey(QStringLiteral("Vj>u>."));
+        QCOMPARE(kate_view->renderer()->caretStyle(), KTextEditor::caretStyles::Block);
+        FinishTest("aaa\nbbb");
+    }
+
+    // Switch between different visual modes
+    {
+        BeginTest(QStringLiteral("aaaa\nbbbb\ncccc\ndddd"));
+        TestPressKey(QStringLiteral("3lv2j2h")); // Start charwise Visual mode
+        QCOMPARE(kate_view->selectionText(), QStringLiteral("a\nbbbb\ncc"));
+        QCOMPARE(kate_view->blockSelection(), false);
+        TestPressKey(QStringLiteral("V")); // Visual Line
+        QCOMPARE(kate_view->selectionText(), QStringLiteral("aaaa\nbbbb\ncccc"));
+        QCOMPARE(kate_view->blockSelection(), false);
+        TestPressKey(QStringLiteral("\\ctrl-v")); // Visual Block
+        QCOMPARE(kate_view->selectionText(), QStringLiteral("aaa\nbbb\nccc"));
+        QCOMPARE(kate_view->blockSelection(), true);
+        TestPressKey(QStringLiteral("v")); // Back to Visual
+        QCOMPARE(kate_view->selectionText(), QStringLiteral("a\nbbbb\ncc"));
+        QCOMPARE(kate_view->blockSelection(), false);
+        TestPressKey(QStringLiteral("v")); // Press "v" again. Exit visual mode
+        QCOMPARE(kate_view->selectionText(), QString());
+    }
+
+    // Check synchornization of block selection with block visual mode
+    {
+        BeginTest(QStringLiteral("aaaa\nbbbb\ncccc\ndddd"));
+        QCOMPARE(kate_view->blockSelection(), false);
+        TestPressKey(QStringLiteral("\\ctrl-v"));
+        QCOMPARE(kate_view->blockSelection(), true);
+        TestPressKey(QStringLiteral("\\ctrl-v"));
+        QCOMPARE(kate_view->blockSelection(), false);
+    }
 }
 
 void ModesTest::VisualExternalTests()
@@ -1401,10 +1534,10 @@ void ModesTest::VisualExternalTests()
     // one of the ktexteditor api's) switches us into Visual Mode.
     BeginTest(QStringLiteral("foo bar"));
 
-    // Actually selects "oo " (i.e. without the "b").
+    // Selects "oo b"
     kate_view->setSelection(Range(0, 1, 0, 4));
     TestPressKey(QStringLiteral("d"));
-    FinishTest("fbar");
+    FinishTest("far");
 
     // Always return to normal mode when undoing/redoing.
     BeginTest(QLatin1String(""));
@@ -1448,6 +1581,24 @@ void ModesTest::VisualExternalTests()
     TestPressKey(QStringLiteral("d"));
     QCOMPARE(kate_document->text(), QStringLiteral("far"));
 
+    // Test switching from normal input mode with an active block selection
+    // It should get into Vi Visual Block Mode and keep the selected range
+    kate_view->setInputMode(View::NormalInputMode);
+    kate_document->setText(QStringLiteral("abcd\nefgh"));
+    kate_view->setBlockSelection(true);
+    kate_view->setSelection(Range(Cursor(0, 1), Cursor(1, 3)));
+    QCOMPARE(kate_document->text(kate_view->selectionRange(), true), QStringLiteral("bc\nfg"));
+    kate_view->setInputMode(View::ViInputMode);
+    QVERIFY(kate_view->currentInputMode()->viewInputMode() == View::ViInputMode);
+    vi_input_mode = static_cast<KateViInputMode *>(kate_view->currentInputMode());
+    vi_input_mode_manager = vi_input_mode->viInputModeManager();
+    QCOMPARE(kate_view->blockSelection(), true);
+    QTRY_COMPARE(vi_input_mode_manager->getCurrentViMode(), KateVi::VisualBlockMode);
+    TestPressKey(QStringLiteral("l"));
+    QCOMPARE(kate_document->text(kate_view->selectionRange(), true), QStringLiteral("bcd\nfgh"));
+    TestPressKey(QStringLiteral("d"));
+    QCOMPARE(kate_document->text(), QStringLiteral("a\ne"));
+
     // Test returning to correct mode when selecting ranges with mouse
     BeginTest(QStringLiteral("foo bar\nbar baz"));
     TestPressKey(QStringLiteral("i")); // get me into insert mode
@@ -1460,6 +1611,46 @@ void ModesTest::VisualExternalTests()
     QCOMPARE((int)vi_input_mode_manager->getCurrentViMode(), (int)KateVi::VisualMode);
     kate_view->setSelection(Range::invalid());
     QCOMPARE((int)vi_input_mode_manager->getCurrentViMode(), (int)KateVi::NormalMode);
+}
+
+void ModesTest::VisualControlTests()
+{
+    // Ctrl+A / Ctrl+X Charwise visual mode
+    DoTest("100 200\n100 200", "wvje\\ctrl-a", "100 201\n100 200");
+    DoTest("100 200\n100 200", "wvjeg\\ctrl-a", "100 201\n100 200");
+    DoTest("100 200\n100 200", "wvje15\\ctrl-a", "100 215\n100 200");
+    DoTest("100 200\n100 200", "evje\\ctrl-x", "10-1 200\n100 200");
+    DoTest("aaa bbb 300\n100 200", "wvje\\ctrl-x", "aaa bbb 299\n100 200");
+    DoTest("aaa bbb\n100 200", "wvje\\ctrl-x", "aaa bbb\n99 200");
+    DoTest("aaa bbb\n100 200", "wvjbl\\ctrl-x", "aaa bbb\n90 200");
+    DoTest("100 0x200\n100 200", "wvje10\\ctrl-a", "100 0x20a\n100 200");
+    DoTest("100 0x200\n100 200", "wllvje10\\ctrl-a", "100 0x210\n100 200");
+    DoTest("0x0b0001", "llve\\ctrl-a", "0x0b0010"); // Range just selects binary
+
+    // Ctrl+A / Ctrl+X Visual line mode
+    DoTest("100 200\n100 200", "Vj\\ctrl-a", "101 200\n101 200");
+    DoTest("100 200\naaa 200", "Vj\\ctrl-a", "101 200\naaa 201");
+    DoTest("100 200\n0x100 0x200\n0100 0200", "V2j10\\ctrl-a", "110 200\n0x10a 0x200\n0112 0200");
+
+    DoTest("100 200\n100 200", "Vjg\\ctrl-a", "101 200\n102 200");
+    DoTest("100 200\n100 200", "Vj10g\\ctrl-a", "110 200\n120 200");
+    DoTest("100 200\naaa 200", "Vj110g\\ctrl-x", "-10 200\naaa -20");
+    DoTest("100 200\naaa bbb\n100 200", "V2j10g\\ctrl-a", "110 200\naaa bbb\n120 200");
+
+    // Ctrl+A / Ctrl+X Visual block mode
+    DoTest("100 200\n100 200", "w\\ctrl-vj$\\ctrl-a", "100 201\n100 201");
+    DoTest("100 200\n100 200", "e\\ctrl-vj$\\ctrl-x", "10-1 200\n10-1 200");
+    DoTest("100 200\n100 200", "w\\ctrl-vjeh\\ctrl-a", "100 210\n100 210");
+    DoTest("100   200\n0x100 0x200\n0100  0200 ", "w\\ctrl-v$2j10\\ctrl-a", "100   210\n0x100 0x20a\n0100  0212 ");
+    DoTest(" 100   200\n0x100 0x200\n0100  0200 ", "2w\\ctrl-v$2j10\\ctrl-a", " 100   210\n0x100 0x210\n0100  0210 ");
+    DoTest("100\t\t200\n0x100\t        0x200\n0100                0200 ",
+           "w\\ctrl-v$2j10\\ctrl-a",
+           "100\t\t210\n0x100\t        0x20a\n0100                0212 ");
+
+    DoTest("100 200\n100 200", "w\\ctrl-vj$g\\ctrl-a", "100 201\n100 202");
+    DoTest("100 200\n100 200", "e\\ctrl-vj$g\\ctrl-x", "10-1 200\n10-2 200");
+    DoTest("100 200\n100 200", "w\\ctrl-vjehg\\ctrl-a", "100 210\n100 220");
+    DoTest("100   200\n0x100 0x200\n0100  0200 ", "w\\ctrl-v2j\\ctrl-a", "100   300\n0x100 1x200\n0100  1200 ");
 }
 
 // END: Visual mode.
@@ -1512,6 +1703,13 @@ void ModesTest::CommandTests()
     DoTest("1\n2\n3\n4", "2j\\:.,.-1d\\", "1\n4");
     DoTest("1\n2\n3\n4", "\\:.+200-100-100+20-5-5-5-5+.-.,$-1+1-2+2-3+3-4+4-5+5-6+6-7+7-1000+1000+0-0-$+$-.+.-1d\\", "4");
     DoTest("1\n2\n3\n4", "majmbjmcjmdgg\\:'a+'b+'d-'c,.d\\", "");
+
+    // Test date command
+    const QDateTime now = QDateTime::currentDateTime();
+    // Remove minutes and seconds after inserting the default format
+    // to highly reduce the probability of time-based test failures
+    DoTest("", "\\:date\\2F:D", now.toString(u"yyyy-MM-dd hh"_s).toLatin1().data());
+    DoTest("", "\\:date dd.MM.yyyy\\", now.toString(u"dd.MM.yyyy"_s).toLatin1().data());
 }
 
 void ModesTest::CommandSedTests()

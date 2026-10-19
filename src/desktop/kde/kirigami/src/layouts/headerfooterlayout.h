@@ -13,6 +13,7 @@
 /*!
  * \qmltype HeaderFooterLayout
  * \inqmlmodule org.kde.kirigami.layouts
+ * \inherits Item
  *
  * \brief Replicates a little part of what Page does.
  *
@@ -62,7 +63,7 @@ class HeaderFooterLayout : public QQuickItem
      * The content Item of the page will be positioned at this distance in pixels
      * from the header and footer Items. The default value is zero.
      *
-     * @since 6.13
+     * \since 6.13
      */
     Q_PROPERTY(qreal spacing READ spacing WRITE setSpacing NOTIFY spacingChanged FINAL)
 

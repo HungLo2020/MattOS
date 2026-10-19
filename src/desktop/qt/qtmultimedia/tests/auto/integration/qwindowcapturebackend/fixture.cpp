@@ -3,10 +3,14 @@
 
 #include "fixture.h"
 
-#include <qmediaplayer.h>
-#include <qvideowidget.h>
-#include <qsystemsemaphore.h>
-#include <quuid.h>
+#include <QtCore/qsystemsemaphore.h>
+#include <QtCore/quuid.h>
+
+#include <QtMultimedia/qmediaplayer.h>
+
+#include <QtMultimedia/private/qwindowcapture_p.h>
+
+#include <QtMultimediaWidgets/qvideowidget.h>
 
 DisableCursor::DisableCursor()
 {
@@ -69,6 +73,15 @@ bool WindowCaptureFixture::compareImages(QImage actual, const QImage &expected,
     return false;
 }
 
+QVideoFrame WindowCaptureFixture::waitForFrame(qint64 noOlderThanTime)
+{
+    const std::vector<QVideoFrame> frames = m_grabber.waitAndTakeFrames(1u, noOlderThanTime);
+    if (frames.empty())
+        return QVideoFrame{};
+
+    return frames.back();
+}
+
 bool WindowCaptureWithWidgetFixture::start(QSize size)
 {
     // In case of window capture failure, signal the grabber so we can stop
@@ -81,33 +94,46 @@ bool WindowCaptureWithWidgetFixture::start(QSize size)
 
     // Make sure window is in a state that allows it to be found by QWindowCapture.
     // Not necessary on Windows, but seems to be necessary on some platforms.
-    if (!QTest::qWaitForWindowExposed(&m_widget, static_cast<int>(s_testTimeout.count()))) {
+    if (!QTest::qWaitForWindowExposed(&m_widget, globalTestTimeout())) {
         qWarning() << "Failed to display widget within timeout";
         return false;
     }
 
-    m_captureWindow = findCaptureWindow(m_widget.windowTitle());
-
-    if (!m_captureWindow.isValid())
+    std::optional<QCapturableWindow> foundCapturableWindow = findCaptureWindow(
+        m_widget.windowTitle(),
+        m_widget.windowHandle());
+    if (!foundCapturableWindow || !foundCapturableWindow->isValid())
         return false;
 
-    m_capture.setWindow(m_captureWindow);
+    auto *capturePrivate = QWindowCapturePrivate::get(m_capture);
+    Q_ASSERT(capturePrivate);
+    capturePrivate->setIgnoreCursor(true);
+    capturePrivate->setIgnoreDropShadow(true);
+
+    m_capture.setWindow(*foundCapturableWindow);
     m_capture.setActive(true);
+
+    m_captureWindow = *foundCapturableWindow;
 
     return true;
 }
 
-QVideoFrame WindowCaptureWithWidgetFixture::waitForFrame(qint64 noOlderThanTime)
+// On macOS, capturable windows are filtered out if they contain no bundle identifier.
+// For this integration test, all our spawned windows have no bundle identifier and so
+// our title-based search will always fail on macOS. As an optional approach, we try
+// construct a QCapturableWindow from the given QWindow.
+std::optional<QCapturableWindow> WindowCaptureWithWidgetFixture::findCaptureWindow(
+    const QString &windowTitle,
+    QWindow *sourceWindow)
 {
-    const std::vector<QVideoFrame> frames = m_grabber.waitAndTakeFrames(1u, noOlderThanTime);
-    if (frames.empty())
-        return QVideoFrame{};
+    // The QWindow handle is optional. If supplied, try to construct a valid QCapturableWindow
+    // handle from it. Otherwise fallback to title based search.
+    if (sourceWindow) {
+        auto constructedHandle = QCapturableWindow{ sourceWindow };
+        if (constructedHandle.isValid())
+            return constructedHandle;
+    }
 
-    return frames.back();
-}
-
-QCapturableWindow WindowCaptureWithWidgetFixture::findCaptureWindow(const QString &windowTitle)
-{
     QList<QCapturableWindow> allWindows = QWindowCapture::capturableWindows();
 
     const auto window = std::find_if(allWindows.begin(), allWindows.end(),
@@ -121,7 +147,7 @@ QCapturableWindow WindowCaptureWithWidgetFixture::findCaptureWindow(const QStrin
         std::for_each(allWindows.begin(), allWindows.end(), [](const QCapturableWindow &win) {
             qDebug() << "    " << win.description();
         });
-        return QCapturableWindow{};
+        return std::nullopt;
     }
 
     return *window;
@@ -129,11 +155,8 @@ QCapturableWindow WindowCaptureWithWidgetFixture::findCaptureWindow(const QStrin
 
 void WindowCaptureWithWidgetAndRecorderFixture::start(QSize size, bool togglePattern)
 {
-    if (togglePattern) {
-        // Drive animation
-        connect(&m_grabber, &FrameGrabber::videoFrameChanged, &m_widget,
-                &TestWidget::togglePattern);
-    }
+    if (togglePattern)
+        m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
 
     connect(&m_recorder, &QMediaRecorder::recorderStateChanged, this,
             &WindowCaptureWithWidgetAndRecorderFixture::recorderStateChanged);
@@ -152,9 +175,11 @@ bool WindowCaptureWithWidgetAndRecorderFixture::stop()
 {
     m_recorder.stop();
 
-    const auto recorderStopped = [this] { return m_recorderState == QMediaRecorder::StoppedState; };
+    const auto recorderStopped = [this] {
+        return m_recorderState == QMediaRecorder::StoppedState;
+    };
 
-    return QTest::qWaitFor(recorderStopped, s_testTimeout);
+    return QTest::qWaitFor(recorderStopped, globalTestTimeout());
 }
 
 bool WindowCaptureWithWidgetAndRecorderFixture::testVideoFilePlayback(const QString &fileName)
@@ -183,7 +208,10 @@ bool WindowCaptureWithWidgetAndRecorderFixture::testVideoFilePlayback(const QStr
     player.play();
 
     const bool completed = QTest::qWaitFor(
-            [&] { return !playing || error != QMediaPlayer::NoError; }, s_testTimeout);
+        [&] {
+            return !playing || error != QMediaPlayer::NoError;
+        },
+        globalTestTimeout());
 
     return completed && error == QMediaPlayer::NoError;
 }
@@ -215,17 +243,23 @@ bool WindowCaptureWithWidgetInOtherProcessFixture::start()
     // We do this by waiting for the process to release the semaphore once its window is visible
     windowVisible.acquire();
 
-    m_captureWindow = findCaptureWindow(windowTitle);
-
-    if (!m_captureWindow.isValid())
+    std::optional<QCapturableWindow> foundCapturableWindow = findCaptureWindow(windowTitle);
+    if (!foundCapturableWindow || !foundCapturableWindow->isValid())
         return false;
 
+    auto *capturePrivate = QWindowCapturePrivate::get(m_capture);
+    Q_ASSERT(capturePrivate);
+    capturePrivate->setIgnoreCursor(true);
+    capturePrivate->setIgnoreDropShadow(true);
+
     // Start capturing the out-of-process window
-    m_capture.setWindow(m_captureWindow);
+    m_capture.setWindow(*foundCapturableWindow);
     m_capture.setActive(true);
 
     // Show in-process widget used to create a reference image
     m_widget.show();
+
+    m_captureWindow = *foundCapturableWindow;
 
     return true;
 }

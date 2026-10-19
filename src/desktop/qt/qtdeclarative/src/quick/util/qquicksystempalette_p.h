@@ -83,6 +83,9 @@ public:
     QQuickSystemPalette::ColorGroup colorGroup() const;
     void setColorGroup(QQuickSystemPalette::ColorGroup);
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 Q_SIGNALS:
     void paletteChanged();
 };

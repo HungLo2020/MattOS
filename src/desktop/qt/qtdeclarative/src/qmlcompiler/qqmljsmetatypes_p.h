@@ -26,6 +26,7 @@
 #include <QtQml/private/qqmljssourcelocation_p.h>
 #include <QtQml/private/qqmltranslation_p.h>
 
+#include "qdeferredpointer_p.h"
 #include "qqmlsaconstants.h"
 #include "qqmlsa.h"
 #include "qqmljsannotation_p.h"
@@ -327,6 +328,18 @@ public:
         return m_relativeFunctionIndex;
     }
 
+    void setOtherMethodIndex(RelativeFunctionIndex index)
+    {
+        Q_ASSERT(!m_isConstructor);
+        m_otherFunctionIndex = index;
+    }
+
+    RelativeFunctionIndex otherMethodIndex() const
+    {
+        Q_ASSERT(!m_isConstructor);
+        return m_otherFunctionIndex;
+    }
+
     friend bool operator==(const QQmlJSMetaMethod &a, const QQmlJSMetaMethod &b)
     {
         return a.m_name == b.m_name && a.m_sourceLocation == b.m_sourceLocation
@@ -334,6 +347,7 @@ public:
                 && a.m_annotations == b.m_annotations && a.m_methodType == b.m_methodType
                 && a.m_methodAccess == b.m_methodAccess && a.m_revision == b.m_revision
                 && a.m_relativeFunctionIndex == b.m_relativeFunctionIndex
+                && a.m_otherFunctionIndex == b.m_otherFunctionIndex
                 && a.m_isCloned == b.m_isCloned && a.m_isConstructor == b.m_isConstructor
                 && a.m_isJavaScriptFunction == b.m_isJavaScriptFunction
                 && a.m_isImplicitQmlPropertyChangeSignal == b.m_isImplicitQmlPropertyChangeSignal
@@ -358,6 +372,7 @@ public:
         seed = combine(seed, method.m_methodAccess);
         seed = combine(seed, method.m_revision);
         seed = combine(seed, method.m_relativeFunctionIndex);
+        seed = combine(seed, method.m_otherFunctionIndex);
         seed = combine(seed, method.m_isCloned);
         seed = combine(seed, method.m_isConstructor);
         seed = combine(seed, method.m_isJavaScriptFunction);
@@ -380,6 +395,7 @@ private:
     Access m_methodAccess = Public;
     int m_revision = 0;
     RelativeFunctionIndex m_relativeFunctionIndex = RelativeFunctionIndex::Invalid;
+    RelativeFunctionIndex m_otherFunctionIndex = RelativeFunctionIndex::Invalid; // TODO remove QTBUG-147141
     bool m_isCloned = false;
     bool m_isConstructor = false;
     bool m_isJavaScriptFunction = false;
@@ -400,7 +416,7 @@ class QQmlJSMetaProperty
     QString m_aliasExpr;
     QString m_aliasTargetName;
     QWeakPointer<const QQmlJSScope> m_aliasTargetScope;
-    QWeakPointer<const QQmlJSScope> m_type;
+    QDeferredWeakPointer<const QQmlJSScope> m_type;
     QQmlJS::SourceLocation m_sourceLocation;
     QList<QQmlJSAnnotation> m_annotations;
     bool m_isList = false;
@@ -442,8 +458,8 @@ public:
     QString privateClass() const { return m_privateClass; }
     bool isPrivate() const { return !m_privateClass.isEmpty(); } // exists for convenience
 
-    void setType(const QSharedPointer<const QQmlJSScope> &type) { m_type = type; }
-    QSharedPointer<const QQmlJSScope> type() const { return m_type.toStrongRef(); }
+    void setType(const QDeferredSharedPointer<const QQmlJSScope> &type) { m_type = type; }
+    QDeferredSharedPointer<const QQmlJSScope> type() const { return m_type; }
 
     void setSourceLocation(const QQmlJS::SourceLocation &newSourceLocation)
     { m_sourceLocation = newSourceLocation; }
@@ -504,7 +520,7 @@ public:
     {
         return a.m_index == b.m_index && a.m_propertyName == b.m_propertyName
                 && a.m_typeName == b.m_typeName && a.m_bindable == b.m_bindable
-                && a.m_type.owner_equal(b.m_type) && a.m_isList == b.m_isList
+                && a.m_type == b.m_type && a.m_isList == b.m_isList
                 && a.m_isWritable == b.m_isWritable && a.m_isPointer == b.m_isPointer
                 && a.m_aliasExpr == b.m_aliasExpr && a.m_revision == b.m_revision
                 && a.m_isFinal == b.m_isFinal;

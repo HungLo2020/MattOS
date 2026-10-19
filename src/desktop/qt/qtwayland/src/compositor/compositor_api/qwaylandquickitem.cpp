@@ -378,6 +378,18 @@ public:
 
     ~QWaylandSurfaceTextureProvider() override
     {
+        // Note: If the ClientBuffer is deleted from the render thread, it happens on a deferred delete
+        // which is processed during the sync phase. Or it may be deleted from the main thread. In
+        // either case, we know the compositor is not shutting down simultaneously. Therefore, we can
+        // safely rely on the value of m_compositorDestroyed to stay the same for the duration of this
+        // destructor.
+        //
+        // Calling setDestroyed() on the buffer will cause it to skip its final sendRelease()
+        // on destruction, which would otherwise cause a crash when the compositor has been
+        // destroyed.
+        if (m_compositorDestroyed.loadAcquire() && m_ref.hasBuffer())
+            m_ref.buffer()->setDestroyed();
+
         delete m_sgTex;
     }
 
@@ -418,9 +430,18 @@ public:
     }
 
     void setSmooth(bool smooth) { m_smooth = smooth; }
+
+    void reportCompositorDestroyed()
+    {
+        m_compositorDestroyed.storeRelease(1);
+        deleteLater();
+    }
+
 private:
     bool m_smooth = false;
     QSGTexture *m_sgTex = nullptr;
+
+    QAtomicInt m_compositorDestroyed;
     QWaylandBufferRef m_ref;
 };
 
@@ -458,7 +479,7 @@ void QWaylandQuickItemPrivate::handleDragEnded(QWaylandSeat *seat)
  * \nativetype QWaylandQuickItem
  * \inqmlmodule QtWayland.Compositor
  * \since 5.8
- * \brief Provides a Qt Quick item that represents a WaylandView.
+ * \brief The WaylandQuickItem type provides a Qt Quick item which represents the surface of a Wayland client.
  *
  * Qt Quick-based Wayland compositors can use this type to display a client's
  * contents on an output device. It passes user input to the
@@ -469,7 +490,7 @@ void QWaylandQuickItemPrivate::handleDragEnded(QWaylandSeat *seat)
  * \class QWaylandQuickItem
  * \inmodule QtWaylandCompositor
  * \since 5.8
- * \brief The QWaylandQuickItem class provides a Qt Quick item representing a QWaylandView.
+ * \brief The QWaylandQuickItem class provides a Qt Quick item which represents the surface of a Wayland client.
  *
  * When writing a QWaylandCompositor in Qt Quick, this class can be used to display a
  * client's contents on an output device and will pass user input to the
@@ -574,13 +595,19 @@ void QWaylandQuickItem::setSurface(QWaylandSurface *surface)
 /*!
  * \qmlproperty enum QtWayland.Compositor::WaylandQuickItem::origin
  *
- * This property holds the origin of the QWaylandQuickItem.
+ * This property reflects the origin of the surface's current buffer, that is,
+ * which corner of the buffer corresponds to coordinate (0, 0).
+ *
+ * \sa WaylandSurface::origin
  */
 
 /*!
  * \property QWaylandQuickItem::origin
  *
- * This property holds the origin of the QWaylandQuickItem.
+ * This property reflects the origin of the surface's current buffer, that is,
+ * which corner of the buffer corresponds to coordinate (0, 0).
+ *
+ * \sa QWaylandSurface::origin
  */
 QWaylandSurface::Origin QWaylandQuickItem::origin() const
 {
@@ -874,6 +901,7 @@ void QWaylandQuickItem::handleSubsurfaceAdded(QWaylandSurface *childSurface)
         childItem->setVisible(true);
         childItem->setParentItem(this);
         childItem->setParent(this);
+        childItem->setPosition(QWaylandSurfacePrivate::get(childSurface)->subsurfacePosition() * d->scaleFactor());
         connect(childSurface, &QWaylandSurface::subsurfacePositionChanged, childItem, &QWaylandQuickItem::handleSubsurfacePosition);
         connect(childSurface, &QWaylandSurface::destroyed, childItem, &QObject::deleteLater);
     } else {
@@ -1339,20 +1367,19 @@ QVariant QWaylandQuickItem::inputMethodQuery(Qt::InputMethodQuery query, QVarian
 
 /*!
     \qmlproperty bool QtWayland.Compositor::WaylandQuickItem::paintEnabled
+    \default true
 
-    Returns true if the item is hidden, though the texture
-    is still updated. As opposed to hiding the item by
-    setting \l{Item::visible}{visible} to \c false, setting this property to \c false
-    will not prevent mouse or keyboard input from reaching item.
+    Setting this property to \c false will stop rendering the item. As opposed
+    to hiding the item by setting \l{Item::visible}{visible} to \c false, it
+    will not prevent mouse or keyboard input from reaching the item.
 */
 
 /*!
     \property QWaylandQuickItem::paintEnabled
 
-    Holds \c true if the item is hidden, though the texture
-    is still updated. As opposed to hiding the item by
-    setting \l{QQuickItem::}{visible} to \c false, setting this property to \c false
-    will not prevent mouse or keyboard input from reaching item.
+    Setting this property to \c false will stop rendering the item. As opposed
+    to hiding the item by setting \l{Item::visible}{visible} to \c false, it
+    will not prevent mouse or keyboard input from reaching the item.
 */
 bool QWaylandQuickItem::isPaintEnabled() const
 {
@@ -1541,7 +1568,7 @@ QSGNode *QWaylandQuickItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeDat
                 d->texProviderConnection =
                     QObject::connect(c, &QObject::destroyed, this, [d = d] {
                         if (d->provider) {
-                            d->provider->deleteLater();
+                            d->provider->reportCompositorDestroyed();
                             d->provider = nullptr;
                         }
                         QObject::disconnect(d->texProviderConnection);

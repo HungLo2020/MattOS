@@ -3,13 +3,13 @@
 #
 # Elkana Bardugo <ttv200@gmail.com>, 2016.
 # Elkana Bardugo <ttv200@gmail.com>, 2017. #zanata
-# SPDX-FileCopyrightText: 2023, 2024, 2025, 2026 Yaron Shahrabani <sh.yaron@gmail.com>
+# SPDX-FileCopyrightText: 2023-2026 Yaron Shahrabani <sh.yaron@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma_shell_org.kde.plasma.desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-13 02:40+0000\n"
-"PO-Revision-Date: 2026-01-15 15:08+0200\n"
+"POT-Creation-Date: 2026-10-09 03:00+0000\n"
+"PO-Revision-Date: 2026-08-20 11:15+0300\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
 "Language: he\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Lokalize 25.12.1\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: contents/activitymanager/ActivityItem.qml:203
 #, kde-format
@@ -46,11 +46,11 @@ msgstr ""
 "להציג גם\n"
 "בפעילות הזאת"
 
-#: contents/activitymanager/ActivityItem.qml:335
+#: contents/activitymanager/ActivityItem.qml:333
 #, kde-format
-msgctxt "@action:button tooltip only, opens kcm"
-msgid "Configure"
-msgstr "הגדרה"
+msgctxt "@action:button tooltip only, opens kcm showing the indicated activity"
+msgid "Configure Activity “%1”"
+msgstr "הגדרת הפעילות „%1”"
 
 #: contents/activitymanager/ActivityManager.qml:118
 #, kde-format
@@ -63,6 +63,24 @@ msgstr "יצירת פעילות…"
 msgctxt "@title:window"
 msgid "Activities"
 msgstr "פעילויות"
+
+#: contents/activitymanager/Heading.qml:86
+#, kde-format
+msgctxt "@action:button tooltip only"
+msgid "Search"
+msgstr "חיפוש"
+
+#: contents/activitymanager/Heading.qml:103
+#, kde-format
+msgctxt "@action:button tooltip only, opens kcm"
+msgid "Configure Activities"
+msgstr "הגדרת פעילויות"
+
+#: contents/activitymanager/Heading.qml:122
+#, kde-format
+msgctxt "@action:button tooltip only, close panel"
+msgid "Close"
+msgstr "סגירה"
 
 #: contents/applet/AppletError.qml:165
 #, kde-format
@@ -82,73 +100,73 @@ msgctxt "@info:whatsthis Accessible description for panel widget %1"
 msgid "Open %1"
 msgstr "פתיחת %1"
 
-#: contents/configuration/AboutPlugin.qml:21
+#: contents/configuration/AboutPlugin.qml:22
 #, kde-format
 msgctxt "@title:window About this widget"
 msgid "About"
 msgstr "על אודות"
 
-#: contents/configuration/AboutPlugin.qml:51
+#: contents/configuration/AboutPlugin.qml:52
 #, kde-format
 msgctxt "plasma_shell_org.kde.plasma.desktop"
 msgid "Send an email to %1"
 msgstr "שליחת דוא״ל אל %1"
 
-#: contents/configuration/AboutPlugin.qml:65
+#: contents/configuration/AboutPlugin.qml:66
 #, kde-format
 msgctxt "@action:button icononly for tooltip & accessible %1 is url"
 msgid "Open website %1"
 msgstr "פתיחת האתר %1"
 
-#: contents/configuration/AboutPlugin.qml:146
+#: contents/configuration/AboutPlugin.qml:159
 #, kde-format
 msgctxt "@title:group"
 msgid "Website"
 msgstr "אתר"
 
-#: contents/configuration/AboutPlugin.qml:157
+#: contents/configuration/AboutPlugin.qml:170
 #, kde-format
 msgctxt "@title:group"
 msgid "Get Help"
 msgstr "קבלת עזרה"
 
-#: contents/configuration/AboutPlugin.qml:165
+#: contents/configuration/AboutPlugin.qml:178
 #, kde-format
 msgctxt "@action:button urlbutton"
 msgid "Report an issue"
 msgstr "דיווח על תקלה"
 
-#: contents/configuration/AboutPlugin.qml:172
+#: contents/configuration/AboutPlugin.qml:185
 #, kde-format
 msgctxt "@title license information"
 msgid "Copyright"
 msgstr "זכויות יוצרים"
 
-#: contents/configuration/AboutPlugin.qml:191
+#: contents/configuration/AboutPlugin.qml:204
 #, kde-format
 msgctxt "@label %1 is the short SPDX text for the license"
 msgid "License: %1"
 msgstr "רישיון: %1"
 
-#: contents/configuration/AboutPlugin.qml:197
+#: contents/configuration/AboutPlugin.qml:210
 #, kde-format
 msgctxt "@action:button"
 msgid "Read License"
 msgstr "הצגת הרישיון"
 
-#: contents/configuration/AboutPlugin.qml:211
+#: contents/configuration/AboutPlugin.qml:224
 #, kde-format
 msgctxt "@title:group"
 msgid "Authors"
 msgstr "יוצרים"
 
-#: contents/configuration/AboutPlugin.qml:223
+#: contents/configuration/AboutPlugin.qml:236
 #, kde-format
 msgctxt "@title:group"
 msgid "Credits"
 msgstr "תודות"
 
-#: contents/configuration/AboutPlugin.qml:236
+#: contents/configuration/AboutPlugin.qml:249
 #, kde-format
 msgctxt "@title:group"
 msgid "Translators"
@@ -377,149 +395,155 @@ msgstr "מפריד"
 
 #: contents/configuration/PanelConfiguration.qml:133
 #, kde-format
+msgctxt "@action:menu add a margins separator"
+msgid "Margins Separator"
+msgstr "מפריד שוליים"
+
+#: contents/configuration/PanelConfiguration.qml:140
+#, kde-format
 msgctxt "@action:menu add a widget"
 msgid "Widgets…"
 msgstr "וידג׳טים…"
 
-#: contents/configuration/PanelConfiguration.qml:162
+#: contents/configuration/PanelConfiguration.qml:169
 #, kde-format
 msgctxt "@title:group"
 msgid "Position"
 msgstr "מקום"
 
-#: contents/configuration/PanelConfiguration.qml:167
+#: contents/configuration/PanelConfiguration.qml:174
 #, kde-format
 msgctxt "@label panel screen edge"
 msgid "Top"
 msgstr "למעלה"
 
-#: contents/configuration/PanelConfiguration.qml:168
+#: contents/configuration/PanelConfiguration.qml:175
 #, kde-format
 msgctxt "@label panel screen edge"
 msgid "Right"
 msgstr "ימין"
 
-#: contents/configuration/PanelConfiguration.qml:169
+#: contents/configuration/PanelConfiguration.qml:176
 #, kde-format
 msgctxt "@label panel screen edge"
 msgid "Left"
 msgstr "שמאל"
 
-#: contents/configuration/PanelConfiguration.qml:170
+#: contents/configuration/PanelConfiguration.qml:177
 #, kde-format
 msgctxt "@label panel screen edge"
 msgid "Bottom"
 msgstr "למטה"
 
-#: contents/configuration/PanelConfiguration.qml:190
+#: contents/configuration/PanelConfiguration.qml:197
 #, kde-format
 msgctxt "action:button"
 msgid "Set Position…"
 msgstr "הגדרת מקום…"
 
-#: contents/configuration/PanelConfiguration.qml:217
+#: contents/configuration/PanelConfiguration.qml:224
 #, kde-format
 msgctxt "@title:group"
 msgid "Alignment"
 msgstr "יישור"
 
-#: contents/configuration/PanelConfiguration.qml:282
+#: contents/configuration/PanelConfiguration.qml:289
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Top"
 msgstr "למעלה"
 
-#: contents/configuration/PanelConfiguration.qml:282
+#: contents/configuration/PanelConfiguration.qml:289
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Left"
 msgstr "שמאל"
 
-#: contents/configuration/PanelConfiguration.qml:283
+#: contents/configuration/PanelConfiguration.qml:290
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Center"
 msgstr "במרכז"
 
-#: contents/configuration/PanelConfiguration.qml:284
+#: contents/configuration/PanelConfiguration.qml:291
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Bottom"
 msgstr "למטה"
 
-#: contents/configuration/PanelConfiguration.qml:284
+#: contents/configuration/PanelConfiguration.qml:291
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Right"
 msgstr "ימין"
 
-#: contents/configuration/PanelConfiguration.qml:314
+#: contents/configuration/PanelConfiguration.qml:321
 #, kde-format
 msgctxt "@title:group panel height"
 msgid "Height"
 msgstr "גובה"
 
-#: contents/configuration/PanelConfiguration.qml:315
+#: contents/configuration/PanelConfiguration.qml:322
 #, kde-format
 msgctxt "@title:group panel width"
 msgid "Width"
 msgstr "רוחב"
 
-#: contents/configuration/PanelConfiguration.qml:334
+#: contents/configuration/PanelConfiguration.qml:341
 #, kde-format
 msgctxt "@item:inlistbox panel fills the full height of the display"
 msgid "Fill height"
 msgstr "מילוי הגובה"
 
-#: contents/configuration/PanelConfiguration.qml:334
+#: contents/configuration/PanelConfiguration.qml:341
 #, kde-format
 msgctxt "@item:inlistbox panel fills the full width of the display"
 msgid "Fill width"
 msgstr "מילוי הרוחב"
 
-#: contents/configuration/PanelConfiguration.qml:335
+#: contents/configuration/PanelConfiguration.qml:342
 #, kde-format
 msgctxt "@item:inlistbox panel is just big enough to fit its content"
 msgid "Fit content"
 msgstr "התאמת תוכן לגודל"
 
-#: contents/configuration/PanelConfiguration.qml:336
+#: contents/configuration/PanelConfiguration.qml:343
 #, kde-format
 msgctxt "@item:inlistbox panel size"
 msgid "Custom"
 msgstr "התאמה אישית"
 
-#: contents/configuration/PanelConfiguration.qml:369
+#: contents/configuration/PanelConfiguration.qml:376
 #, kde-format
 msgctxt "@title:group"
 msgid "Visibility"
 msgstr "חשיפה"
 
-#: contents/configuration/PanelConfiguration.qml:386
+#: contents/configuration/PanelConfiguration.qml:393
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Always visible"
 msgstr "גלוי תמיד"
 
-#: contents/configuration/PanelConfiguration.qml:387
+#: contents/configuration/PanelConfiguration.qml:394
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Auto hide"
 msgstr "מוסתר אוטומטית"
 
-#: contents/configuration/PanelConfiguration.qml:388
+#: contents/configuration/PanelConfiguration.qml:395
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Dodge windows"
 msgstr "התחמקות חלונות"
 
-#: contents/configuration/PanelConfiguration.qml:389
+#: contents/configuration/PanelConfiguration.qml:396
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Windows go below"
 msgstr "חלונות צוללים מתחת"
 
-#: contents/configuration/PanelConfiguration.qml:449
+#: contents/configuration/PanelConfiguration.qml:459
 #, kde-format
 msgctxt "@title:group"
 msgid "Opacity"
@@ -527,164 +551,163 @@ msgstr "אטימות"
 
 #: contents/configuration/PanelConfiguration.qml:465
 #, kde-format
+msgctxt "@info:tooltip"
+msgid "The current Plasma style does not support opacity options."
+msgstr "הסגנון הנוכחי של פלזמה לא תומך באפשרויות אטימות."
+
+#: contents/configuration/PanelConfiguration.qml:487
+#, kde-format
 msgctxt "@item:inlistbox"
 msgid "Adaptive"
 msgstr "מסתגל"
 
-#: contents/configuration/PanelConfiguration.qml:466
+#: contents/configuration/PanelConfiguration.qml:488
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Opaque"
 msgstr "אטום"
 
-#: contents/configuration/PanelConfiguration.qml:467
+#: contents/configuration/PanelConfiguration.qml:489
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Translucent"
 msgstr "שקוף למחצה"
 
-#: contents/configuration/PanelConfiguration.qml:499
+#: contents/configuration/PanelConfiguration.qml:521
 #, kde-format
 msgctxt "@title:group Degree of floatingness of panel and applets"
 msgid "Floating"
 msgstr "צף"
 
-#: contents/configuration/PanelConfiguration.qml:515
+#: contents/configuration/PanelConfiguration.qml:537
 #, kde-format
 msgctxt "@item:inlistbox Option to disable floating panels or applets"
 msgid "Disabled"
 msgstr "מושבת"
 
-#: contents/configuration/PanelConfiguration.qml:516
+#: contents/configuration/PanelConfiguration.qml:538
 #, kde-format
 msgctxt "@item:inlistbox Option to make only panel applets always float"
 msgid "Applets only"
 msgstr "יישומוניות בלבד"
 
-#: contents/configuration/PanelConfiguration.qml:517
+#: contents/configuration/PanelConfiguration.qml:539
 #, kde-format
 msgctxt "@item:inlistbox Option to make panel and applets floating"
 msgid "Panel and applets"
 msgstr "לוחות ויישומוניות"
 
-#: contents/configuration/PanelConfiguration.qml:560
-#, kde-format
-msgctxt ""
-"@action:button Revert an unsupported configuration back to the defaults"
-msgid "Fix it"
-msgstr "לתקן את זה"
-
-#: contents/configuration/PanelConfiguration.qml:646
+#: contents/configuration/PanelConfiguration.qml:636
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Panel Width:"
 msgstr "רוחב לוח:"
 
-#: contents/configuration/PanelConfiguration.qml:647
+#: contents/configuration/PanelConfiguration.qml:637
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Panel Height:"
 msgstr "גובה לוח:"
 
-#: contents/configuration/PanelConfiguration.qml:670
+#: contents/configuration/PanelConfiguration.qml:660
 #, kde-format
 msgctxt "@title:group shortcut that moves focus to the panel"
 msgid "Focus shortcut:"
 msgstr "קיצור מקשים למיקוד:"
 
-#: contents/configuration/PanelConfiguration.qml:680
+#: contents/configuration/PanelConfiguration.qml:670
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "Press this keyboard shortcut to move focus to the Panel"
 msgstr "יש ללחוץ על קיצור מקשים זה כדי להעביר את המיקוד ללוח"
 
-#: contents/configuration/PanelConfiguration.qml:687
+#: contents/configuration/PanelConfiguration.qml:677
 #, kde-format
 msgctxt "@action:button accessible name"
 msgid "Focus Shortcut Setter"
 msgstr "מגדיר קיצור מקשים למיקוד"
 
-#: contents/configuration/PanelConfiguration.qml:688
+#: contents/configuration/PanelConfiguration.qml:678
 #, kde-format
 msgctxt "@info:whatsthis Accessible description for button"
 msgid "Button to set the shortcut for the panel to gain focus"
 msgstr "כפתור להגדרת קיצור המקשים להעברת המיקוד ללוח"
 
-#: contents/configuration/PanelConfiguration.qml:714
+#: contents/configuration/PanelConfiguration.qml:705
 #, kde-format
 msgctxt "@action:button Delete the panel"
 msgid "Delete Panel"
 msgstr "מחיקת לוח"
 
-#: contents/configuration/PanelConfiguration.qml:717
+#: contents/configuration/PanelConfiguration.qml:708
 #, kde-format
 msgctxt "@info:tooltip for button"
 msgid "Remove this panel; this action can be undone"
 msgstr "הסרת הלוח הזה, זאת פעולה בלתי הפיכה"
 
-#: contents/configuration/PanelConfiguration.qml:726
+#: contents/configuration/PanelConfiguration.qml:717
 #, kde-format
 msgctxt "@action:button Clone the panel"
 msgid "Clone Panel"
 msgstr "שכפול לוח"
 
-#: contents/configuration/PanelConfiguration.qml:730
+#: contents/configuration/PanelConfiguration.qml:721
 #, kde-format
 msgctxt "@info:tooltip for button"
 msgid "Create a new panel with the same settings and applets"
 msgstr "יצירת לוח חדש עם אותם ההגדרות והיישומונים"
 
-#: contents/configuration/PanelConfiguration.qml:739
+#: contents/configuration/PanelConfiguration.qml:730
 #, kde-format
 msgctxt "@action:button Close the panel configuration window"
 msgid "Close"
 msgstr "סגירה"
 
-#: contents/configuration/PanelConfiguration.qml:739
+#: contents/configuration/PanelConfiguration.qml:730
 #, kde-format
 msgctxt ""
 "@action:button Close the panel configuration window and exit edit mode"
 msgid "Exit Edit Mode"
 msgstr "יציאה ממצב עריכה"
 
-#: contents/configuration/PanelConfiguration.qml:742
+#: contents/configuration/PanelConfiguration.qml:733
 #, kde-format
 msgctxt "@info:tooltip for button"
 msgid "Close Panel Settings window and exit Edit Mode"
 msgstr "סגירת חלון הגדרת הלוחות ויציאה ממצב עריכה"
 
-#: contents/configuration/panelconfiguration/Ruler.qml:25
+#: contents/configuration/panelconfiguration/Ruler.qml:24
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Drag to change maximum height."
 msgstr "יש לגרור כדי לשנות את הגובה המרבי."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:26
+#: contents/configuration/panelconfiguration/Ruler.qml:25
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Drag to change maximum width."
 msgstr "אפשר לגרור כדי לשנות את הרוחב המרבי."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:27
-#: contents/configuration/panelconfiguration/Ruler.qml:32
+#: contents/configuration/panelconfiguration/Ruler.qml:26
+#: contents/configuration/panelconfiguration/Ruler.qml:31
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Double-click to reset."
 msgstr "לחיצה כפולה לאיפוס."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:30
+#: contents/configuration/panelconfiguration/Ruler.qml:29
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Drag to change minimum height."
 msgstr "אפשר לגרור כדי לשנות את הגובה המזערי."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:31
+#: contents/configuration/panelconfiguration/Ruler.qml:30
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid "Drag to change minimum width."
 msgstr "אפשר לגרור כדי לשנות את הרוחב המזערי."
 
-#: contents/configuration/panelconfiguration/Ruler.qml:80
+#: contents/configuration/panelconfiguration/Ruler.qml:79
 #, kde-format
 msgctxt "@info:tooltip slider handle"
 msgid ""
@@ -761,13 +784,13 @@ msgctxt "@info:tooltip"
 msgid "Unsupported Widget"
 msgstr "יישומון לא נתמך"
 
-#: contents/explorer/AppletDelegate.qml:202
+#: contents/explorer/AppletDelegate.qml:196
 #, kde-format
-msgctxt "Text displayed on top of newly installed widgets"
+msgctxt "Text displayed on top of newly-installed widgets"
 msgid "New!"
 msgstr "חדש!"
 
-#: contents/explorer/AppletDelegate.qml:204
+#: contents/explorer/AppletDelegate.qml:198
 #, kde-format
 msgctxt "@info:other accessible for badge showing applet count"
 msgid "%1 widget active"
@@ -777,43 +800,43 @@ msgstr[1] "שני וידג׳טים פעילים"
 msgstr[2] "%1 וידג׳טים פעילים"
 msgstr[3] "%1 וידג׳טים פעילים"
 
-#: contents/explorer/AppletDelegate.qml:205
+#: contents/explorer/AppletDelegate.qml:199
 #, kde-format
 msgctxt " @info:other accessible for badge indicating new widget"
 msgid "Recently installed"
 msgstr "הותקנו לאחרונה"
 
-#: contents/explorer/AppletDelegate.qml:217
+#: contents/explorer/AppletDelegate.qml:212
 #, kde-format
 msgctxt "@action:button tooltip and accessible cancel uninstall widget"
 msgid "Cancel Uninstallation"
 msgstr "ביטול הסרה"
 
-#: contents/explorer/AppletDelegate.qml:218
+#: contents/explorer/AppletDelegate.qml:213
 #, kde-format
 msgctxt "@action:button tooltip and accessible uninstall widget"
 msgid "Mark for Uninstallation"
 msgstr "סימון להסרה"
 
-#: contents/explorer/AppletDelegate.qml:222
+#: contents/explorer/AppletDelegate.qml:217
 #, kde-format
 msgctxt "@action:button accessible only, %1 is widget name"
 msgid "Cancel pending uninstallation for widget %1"
 msgstr "לבטל הסרה ממתינה לווידג׳ט %1"
 
-#: contents/explorer/AppletDelegate.qml:223
+#: contents/explorer/AppletDelegate.qml:218
 #, kde-format
 msgctxt "@action:button accessible only, %1 is widget name"
 msgid "Mark widget %1 for uninstallation. Requires confirmation"
 msgstr "סימון הווידג׳ט %1 להסרה. דורש אישור"
 
-#: contents/explorer/AppletDelegate.qml:265
+#: contents/explorer/AppletDelegate.qml:260
 #, kde-format
 msgctxt "@action:button"
 msgid "Remove all instances"
 msgstr "הסרת כל המופעים"
 
-#: contents/explorer/AppletDelegate.qml:269
+#: contents/explorer/AppletDelegate.qml:264
 #, kde-format
 msgctxt ""
 "@action:button accessible description, %1 number of instances %2 is widget "
@@ -825,50 +848,50 @@ msgstr[1] "הסרת שני עותקים פעיל של וידג׳ט %2"
 msgstr[2] "הסרת %1 עותקים פעיל של וידג׳ט %2"
 msgstr[3] "הסרת %1 עותקים פעיל של וידג׳ט %2"
 
-#: contents/explorer/WidgetExplorer.qml:140
-#: contents/explorer/WidgetExplorer.qml:223
+#: contents/explorer/WidgetExplorer.qml:146
+#: contents/explorer/WidgetExplorer.qml:229
 #, kde-format
 msgctxt "@action:button like listbox, switches category to all widgets"
 msgid "All Widgets"
 msgstr "כל היישומונים"
 
-#: contents/explorer/WidgetExplorer.qml:169
+#: contents/explorer/WidgetExplorer.qml:175
 #, kde-format
 msgctxt "@title:group for widget grid"
 msgid "Widgets"
 msgstr "יישומונים"
 
-#: contents/explorer/WidgetExplorer.qml:178
+#: contents/explorer/WidgetExplorer.qml:184
 #, kde-format
 msgctxt "@action:button The word 'new' refers to widgets"
 msgid "Get New…"
 msgstr "הורדת חדשים…"
 
-#: contents/explorer/WidgetExplorer.qml:179
+#: contents/explorer/WidgetExplorer.qml:185
 #, kde-format
 msgctxt "@action:button"
 msgid "Get New Widgets…"
 msgstr "הורדת יישומונים חדשים…"
 
-#: contents/explorer/WidgetExplorer.qml:192
+#: contents/explorer/WidgetExplorer.qml:198
 #, kde-format
 msgctxt "@action:button accessible for close button"
 msgid "Close Widget Explorer"
 msgstr "סגירת סייר הווידג׳טים"
 
-#: contents/explorer/WidgetExplorer.qml:208
+#: contents/explorer/WidgetExplorer.qml:214
 #, kde-format
 msgctxt "@label:textbox accessible"
 msgid "Search through widgets"
 msgstr "חיפוש בין הווידג׳טים"
 
-#: contents/explorer/WidgetExplorer.qml:237
+#: contents/explorer/WidgetExplorer.qml:243
 #, kde-format
 msgctxt "@action:button tooltip only"
 msgid "Categories"
 msgstr "קטגוריות"
 
-#: contents/explorer/WidgetExplorer.qml:259
+#: contents/explorer/WidgetExplorer.qml:265
 #, kde-format
 msgctxt "@action:button uninstall widgets in widget explorer"
 msgid "Uninstall (%1 Widget)"
@@ -878,13 +901,13 @@ msgstr[1] "הסרה (שני וידג׳טים)"
 msgstr[2] "הסרה (%1 וידג׳טים)"
 msgstr[3] "הסרה (%1 וידג׳טים)"
 
-#: contents/explorer/WidgetExplorer.qml:389
+#: contents/explorer/WidgetExplorer.qml:395
 #, kde-format
 msgctxt "@info placeholdermessage"
 msgid "No widgets matched the search terms"
 msgstr "אף יישומון לא עונה על תנאי החיפוש"
 
-#: contents/explorer/WidgetExplorer.qml:389
+#: contents/explorer/WidgetExplorer.qml:395
 #, kde-format
 msgctxt "@info placeholdermessage"
 msgid "No widgets available"
@@ -944,67 +967,83 @@ msgctxt "@option:check"
 msgid "Show under unlocking prompt"
 msgstr "הצגה תחת בקשת השחרור"
 
-#: contents/lockscreen/LockScreenUi.qml:48
+#: contents/lockscreen/LockScreenUi.qml:62
 #, kde-format
 msgctxt "@info:status"
 msgid "Unlocking failed"
 msgstr "השחרור נכשל"
 
-#: contents/lockscreen/LockScreenUi.qml:285
+#: contents/lockscreen/LockScreenUi.qml:352
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"This authentication method is not functioning correctly. Please try another "
+"method, and check your system configuration."
+msgstr ""
+"שיטת האימות הזאת לא מתפקדת כראוי. נא לנסות שיטה אחרת ולבדוק שהגדרות המערכת "
+"שלך תקינות."
+
+#: contents/lockscreen/LockScreenUi.qml:384
 #, kde-format
 msgctxt "@info:status"
 msgid "Caps Lock is on"
 msgstr "Caps Lock דולק"
 
-#: contents/lockscreen/LockScreenUi.qml:299
+#: contents/lockscreen/LockScreenUi.qml:387
+#, kde-format
+msgctxt "@info:status"
+msgid "Slow Keys are enabled"
+msgstr "מקשים איטיים פעילים"
+
+#: contents/lockscreen/LockScreenUi.qml:407
 #, kde-format
 msgctxt "@action:button"
 msgid "Slee&p"
 msgstr "&שינה"
 
-#: contents/lockscreen/LockScreenUi.qml:305
+#: contents/lockscreen/LockScreenUi.qml:414
 #, kde-format
 msgctxt "@action:button"
 msgid "&Hibernate"
 msgstr "&תרדמת"
 
-#: contents/lockscreen/LockScreenUi.qml:311
+#: contents/lockscreen/LockScreenUi.qml:421
 #, kde-format
 msgctxt "@action:button"
 msgid "Switch &User"
 msgstr "ה&חלפת משתמש"
 
-#: contents/lockscreen/LockScreenUi.qml:372
+#: contents/lockscreen/LockScreenUi.qml:471
 #, kde-format
 msgctxt "Button to show/hide virtual keyboard"
 msgid "Virtual Keyboard"
 msgstr "מקלדת וירטואלית"
 
-#: contents/lockscreen/LockScreenUi.qml:396
+#: contents/lockscreen/LockScreenUi.qml:497
 #, kde-format
 msgctxt "Button to change keyboard layout"
 msgid "Switch layout"
 msgstr "החלפת פריסת מקלדת"
 
-#: contents/lockscreen/MainBlock.qml:65
+#: contents/lockscreen/MainBlock.qml:67
 #, kde-format
 msgctxt "@info:placeholder in text field"
 msgid "Password"
 msgstr "סיסמה"
 
-#: contents/lockscreen/MainBlock.qml:114
+#: contents/lockscreen/MainBlock.qml:115
 #, kde-format
 msgctxt "@action:button accessible only"
 msgid "Unlock"
 msgstr "שחרור נעילה"
 
-#: contents/lockscreen/MainBlock.qml:163
+#: contents/lockscreen/MainBlock.qml:164
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "(or scan your fingerprint on the reader)"
 msgstr "(או לסרוק את האצבע שלך על הקורא)"
 
-#: contents/lockscreen/MainBlock.qml:167
+#: contents/lockscreen/MainBlock.qml:168
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "(or scan your smartcard)"
@@ -1046,26 +1085,192 @@ msgctxt "@action:button no-password unlock"
 msgid "Unlock"
 msgstr "שחרור נעילה"
 
-#: contents/views/DesktopEditMode.qml:122
+#: contents/logout/LogoutControls.qml:97
+#, kde-format
+msgid "Installing software updates and restarting in 1 second"
+msgid_plural "Installing software updates and restarting in %1 seconds"
+msgstr[0] "התקנת עדכוני תוכנה והפעלה מחדש בעוד שנייה"
+msgstr[1] "התקנת עדכוני תוכנה והפעלה מחדש בעוד שתי שניות"
+msgstr[2] "התקנת עדכוני תוכנה והפעלה מחדש בעוד %1 שניות"
+msgstr[3] "התקנת עדכוני תוכנה והפעלה מחדש בעוד %1 שניות"
+
+#: contents/logout/LogoutControls.qml:98
+#, kde-format
+msgid "Restarting in 1 second"
+msgid_plural "Restarting in %1 seconds"
+msgstr[0] "מופעל מחדש עוד שנייה"
+msgstr[1] "מופעל מחדש עוד שתי שניות"
+msgstr[2] "מופעל מחדש עוד %1 שניות"
+msgstr[3] "מופעל מחדש עוד %1 שניות"
+
+#: contents/logout/LogoutControls.qml:100
+#, kde-format
+msgid "Logging out in 1 second"
+msgid_plural "Logging out in %1 seconds"
+msgstr[0] "יציאה מהפעלה עוד שנייה"
+msgstr[1] "יציאה מהפעלה עוד שתי שניות"
+msgstr[2] "יציאה מהפעלה עוד %1 שניות"
+msgstr[3] "יציאה מהפעלה עוד %1 שניות"
+
+#: contents/logout/LogoutControls.qml:103
+#, kde-format
+msgid "Installing software updates and shutting down in 1 second"
+msgid_plural "Installing software updates and shutting down in %1 seconds"
+msgstr[0] "התקנת עדכוני תוכנה וכיבוי בעוד שנייה"
+msgstr[1] "התקנת עדכוני תוכנה וכיבוי בעוד שתי שניות"
+msgstr[2] "התקנת עדכוני תוכנה וכיבוי בעוד %1 שניות"
+msgstr[3] "התקנת עדכוני תוכנה וכיבוי בעוד %1 שניות"
+
+#: contents/logout/LogoutControls.qml:104
+#, kde-format
+msgid "Shutting down in 1 second"
+msgid_plural "Shutting down in %1 seconds"
+msgstr[0] "נכבה עוד שנייה"
+msgstr[1] "נכבה עוד שתי שניות"
+msgstr[2] "נכבה עוד %1 שניות"
+msgstr[3] "נכבה עוד %1 שניות"
+
+#: contents/logout/LogoutControls.qml:119
+#, kde-format
+msgid ""
+"One other user is currently logged in. If the computer is shut down or "
+"restarted, that user may lose work."
+msgid_plural ""
+"%1 other users are currently logged in. If the computer is shut down or "
+"restarted, those users may lose work."
+msgstr[0] ""
+"יש עוד משתמש במערכת. אם המחשב יכבה או יופעל מחדש זה עלול להוביל לאובדן מידע "
+"שלו."
+msgstr[1] ""
+"יש עוד שני משתמשים במערכת. אם המחשב יכבה או יופעל מחדש זה עלול להוביל לאובדן "
+"מידע שלהם."
+msgstr[2] ""
+"יש עוד %1 משתמשים במערכת. אם המחשב יכבה או יופעל מחדש זה עלול להוביל לאובדן "
+"מידע שלהם."
+msgstr[3] ""
+"יש עוד %1 משתמשים במערכת. אם המחשב יכבה או יופעל מחדש זה עלול להוביל לאובדן "
+"מידע שלהם."
+
+#: contents/logout/LogoutControls.qml:136
+#, kde-format
+msgid "When restarted, the computer will enter UEFI firmware settings."
+msgstr "לאחר הפעלה מחדש, המחשב ייכנס להגדרות קושחת ה־UEFI."
+
+#: contents/logout/LogoutControls.qml:138
+#, kde-format
+msgid "When restarted, the computer will enter the firmware setup screen."
+msgstr "לאחר הפעלה מחדש, המחשב ייכנס למסך הגדרת הקושחה."
+
+#: contents/logout/LogoutControls.qml:153
+#, kde-format
+msgid "When restarted, the computer will enter the boot loader menu."
+msgstr "לאחר הפעלה מחדש, המחשב ייכנס לתפריט בחירת אמצעי טעינה."
+
+#: contents/logout/LogoutControls.qml:166
+#, kde-format
+msgctxt "%1 is a boot loader entry"
+msgid "When restarted, the computer will switch to %1."
+msgstr "לאחר הפעלה מחדש, המחשב יעבור למצב %1."
+
+#: contents/logout/LogoutControls.qml:189
+#, kde-format
+msgctxt "Suspend to RAM"
+msgid "Slee&p"
+msgstr "&שינה"
+
+#: contents/logout/LogoutControls.qml:190
+#, kde-format
+msgctxt "Suspend to RAM"
+msgid "Slee&p Now"
+msgstr "&שינה כעת"
+
+#: contents/logout/LogoutControls.qml:200
+#, kde-format
+msgid "&Hibernate"
+msgstr "&תרדמת"
+
+#: contents/logout/LogoutControls.qml:201
+#, kde-format
+msgid "&Hibernate Now"
+msgstr "&תרדמת כעת"
+
+#: contents/logout/LogoutControls.qml:213
+#, kde-format
+msgctxt "@action:button Keep short"
+msgid "Install Updates and Restart"
+msgstr "התקנת עדכונים והפעלה מחדש"
+
+#: contents/logout/LogoutControls.qml:215
+#: contents/logout/LogoutControls.qml:235
+#, kde-format
+msgid "&Restart"
+msgstr "ה&פעלה מחדש"
+
+#: contents/logout/LogoutControls.qml:216
+#: contents/logout/LogoutControls.qml:236
+#, kde-format
+msgid "&Restart Now"
+msgstr "ה&פעלה מחדש כעת"
+
+#: contents/logout/LogoutControls.qml:250
+#, kde-format
+msgctxt "@action:button Keep short"
+msgid "Install Updates and Shut Down"
+msgstr "התקנת עדכונים וכיבוי"
+
+#: contents/logout/LogoutControls.qml:252
+#: contents/logout/LogoutControls.qml:272
+#, kde-format
+msgid "&Shut Down"
+msgstr "&כיבוי"
+
+#: contents/logout/LogoutControls.qml:253
+#: contents/logout/LogoutControls.qml:273
+#, kde-format
+msgid "&Shut Down Now"
+msgstr "&כיבוי כעת"
+
+#: contents/logout/LogoutControls.qml:286
+#, kde-format
+msgid "&Log Out"
+msgstr "י&ציאה"
+
+#: contents/logout/LogoutControls.qml:287
+#, kde-format
+msgid "&Log Out Now"
+msgstr "י&ציאה כעת"
+
+#: contents/logout/LogoutControls.qml:298
+#, kde-format
+msgid "&Cancel"
+msgstr "&ביטול"
+
+#: contents/views/DesktopEditMode.qml:135
 #, kde-format
 msgctxt "@action:button"
 msgid "More"
 msgstr "עוד"
 
-#: contents/views/DesktopEditMode.qml:131
+#: contents/views/DesktopEditMode.qml:144
 #, kde-format
 msgctxt "@action:button"
 msgid "Exit Edit Mode"
 msgstr "יציאה ממצב עריכה"
 
-#: contents/views/Panel.qml:326
+#: contents/views/Panel.qml:322
 #, kde-format
 msgctxt "@info:whatsthis Accessible name"
 msgid "Panel Focus Indicator"
 msgstr "מחוון מיקוד לוח"
 
-#~ msgid "Configure activity"
-#~ msgstr "הגדרת פעילות"
+#~ msgctxt "@action:button tooltip only, opens kcm"
+#~ msgid "Configure"
+#~ msgstr "הגדרה"
+
+#~ msgctxt ""
+#~ "@action:button Revert an unsupported configuration back to the defaults"
+#~ msgid "Fix it"
+#~ msgstr "לתקן את זה"
 
 #~ msgid "Delete"
 #~ msgstr "מחיקה"
@@ -1237,11 +1442,6 @@ msgstr "מחוון מיקוד לוח"
 #~| msgid "Windows Can Cover"
 #~ msgid "Windows In Front"
 #~ msgstr "חלונות יכולים לכסות"
-
-#, fuzzy
-#~| msgid "Search..."
-#~ msgid "Search…"
-#~ msgstr "חפש..."
 
 #~ msgid "Screen Edge"
 #~ msgstr "קצה המסך"

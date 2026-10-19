@@ -9,10 +9,8 @@
 #include "qqmldompath_p.h"
 #include "qqmldomscriptelements_p.h"
 #include "qqmldomtop_p.h"
-#include "qqmldomerrormessage_p.h"
 #include "qqmldomastdumper_p.h"
 #include "qqmldomastcreator_p.h"
-#include "qqmldom_utils_p.h"
 
 #include <QtQml/private/qqmljsast_p.h>
 #include <QtQmlCompiler/private/qqmljsutils_p.h>
@@ -589,6 +587,7 @@ bool QQmlDomAstCreatorBase::visit(AST::UiPublicMember *el)
                                      el->readonlyToken());
         }
         if (el->statement) {
+            ++m_nestedFunctionDepth;
             BindingType bType = BindingType::Normal;
             SourceLocation loc = combineLocations(el->statement);
             QStringView code = qmlFilePtr->code();
@@ -617,6 +616,7 @@ bool QQmlDomAstCreatorBase::visit(AST::UiPublicMember *el)
 void QQmlDomAstCreatorBase::endVisit(AST::UiPublicMember *el)
 {
     if (auto &lastEl = currentNode(); lastEl.kind == DomType::Binding) {
+        --m_nestedFunctionDepth;
         Binding &b = std::get<Binding>(lastEl.value);
         if (m_enableScriptExpressions
             && (scriptNodeStack.size() != 1 || scriptNodeStack.last().isList())) {
@@ -1155,7 +1155,7 @@ bool QQmlDomAstCreatorBase::visit(AST::UiScriptBinding *el)
             FileLocations::addRegion(containingObjectEl.fileLocations, IdColonTokenRegion,
                                      el->colonToken);
             FileLocations::addRegion(containingObjectEl.fileLocations, IdNameRegion,
-                                     combineLocations(el->statement));
+                                     iExp->identifierToken);
             QmlComponent &comp = current<QmlComponent>();
             pathFromOwner = comp.addId(idVal, AddOption::KeepExisting, &idPtr);
             QRegularExpression idRe(QRegularExpression::anchoredPattern(

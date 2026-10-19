@@ -23,27 +23,23 @@
 #include <KService>
 #include <KWindowEffects>
 #include <KWindowSystem>
-#include <KX11Extras>
+
+#include <PlasmaQuick/PlasmaQuick>
 
 #include <LayerShellQt/Window>
 #include <algorithm>
 #include <qnamespace.h>
 
 #include "appadaptor.h"
-#include "x11windowscreenrelativepositioner.h"
 
 KCONFIGGROUP_DECLARE_ENUM_QOBJECT(View, HistoryBehavior)
 
-View::View(PlasmaQuick::SharedQmlEngine *engine, QWindow *)
+View::View(QWindow *)
     : PlasmaQuick::PlasmaWindow()
-    , m_engine(engine)
+    , m_engine(PlasmaQuick::globalEngine())
     , m_floating(false)
 {
     KCrash::initialize();
-
-    if (KWindowSystem::isPlatformX11()) {
-        m_x11Positioner = new X11WindowScreenRelativePositioner(this);
-    }
 
     // used only by screen readers
     setTitle(i18n("KRunner"));
@@ -70,11 +66,20 @@ View::View(PlasmaQuick::SharedQmlEngine *engine, QWindow *)
     new AppAdaptor(this);
     QDBusConnection::sessionBus().registerObject(u"/App"_s, this);
 
-    connect(m_engine, &PlasmaQuick::SharedQmlEngine::finished, this, &View::objectIncubated);
-    m_engine->setSourceFromModule("org.kde.krunner.private.view", "RunCommand");
-    m_engine->completeInitialization({
-        {u"runnerWindow"_s, QVariant::fromValue(this)},
-    });
+    QQmlComponent component(m_engine.get(), u"org.kde.krunner.private.view"_s, u"RunCommand"_s);
+    QVariantMap properties{{u"runnerWindow"_s, QVariant::fromValue(this)}};
+    auto obj = component.createWithInitialProperties(properties);
+
+    auto item = qobject_cast<QQuickItem *>(obj);
+    setMainItem(item);
+
+    auto updateSize = [this]() {
+        resize(QSize(mainItem()->implicitWidth(), mainItem()->implicitHeight()).grownBy(padding()).boundedTo(screen()->availableSize().shrunkBy(margins())));
+    };
+
+    connect(item, &QQuickItem::implicitHeightChanged, this, updateSize);
+    connect(this, &View::paddingChanged, this, updateSize);
+    updateSize();
 
     auto screenRemoved = [this](QScreen *screen) {
         if (screen == this->screen()) {
@@ -87,7 +92,10 @@ View::View(PlasmaQuick::SharedQmlEngine *engine, QWindow *)
     connect(qGuiApp, &QGuiApplication::focusWindowChanged, this, &View::slotFocusWindowChanged);
 }
 
-View::~View() = default;
+View::~View()
+{
+    delete mainItem();
+}
 
 QMargins View::margins()
 {
@@ -101,16 +109,6 @@ QMargins View::margins()
 
 void View::objectIncubated()
 {
-    auto item = qobject_cast<QQuickItem *>(m_engine->rootObject());
-    setMainItem(item);
-
-    auto updateSize = [this]() {
-        resize(QSize(mainItem()->implicitWidth(), mainItem()->implicitHeight()).grownBy(padding()).boundedTo(screen()->availableSize().shrunkBy(margins())));
-    };
-
-    connect(item, &QQuickItem::implicitHeightChanged, this, updateSize);
-    connect(this, &View::paddingChanged, this, updateSize);
-    updateSize();
 }
 
 void View::slotFocusWindowChanged()
@@ -148,73 +146,47 @@ void View::loadConfig()
     setFreeFloating(m_config.readEntry("FreeFloating", false));
     setRetainPriorSearch(m_config.readEntry("RetainPriorSearch", true));
     setPinned(m_stateData.readEntry("Pinned", false));
-    setHistoryBehavior(m_config.readEntry("historyBehavior", m_historyBehavior));
+    setHistoryBehavior(m_config.readEntry("historyBehavior", HistoryBehavior::CompletionSuggestion));
 }
 
 void View::showEvent(QShowEvent *event)
 {
-    if (KWindowSystem::isPlatformX11()) {
-        KX11Extras::setOnAllDesktops(winId(), true);
-    }
     QQuickWindow::showEvent(event);
     requestActivate();
-    if (KWindowSystem::isPlatformX11()) {
-        KX11Extras::forceActiveWindow(winId());
-    }
 }
 
 void View::positionOnScreen()
 {
     const auto screens = QGuiApplication::screens();
-    auto screenIt = screens.cend();
-    if (KWindowSystem::isPlatformWayland() && m_floating) {
+    if (m_floating) {
         auto message = QDBusMessage::createMethodCall(u"org.kde.KWin"_s, u"/KWin"_s, u"org.kde.KWin"_s, u"activeOutputName"_s);
         QDBusReply<QString> reply = QDBusConnection::sessionBus().call(message);
         if (reply.isValid()) {
             const QString activeOutputName = reply.value();
-            screenIt = std::ranges::find_if(screens, [&activeOutputName](QScreen *screen) {
+            const auto screenIt = std::ranges::find_if(screens, [&activeOutputName](QScreen *screen) {
                 return screen->name() == activeOutputName;
             });
+            if (screenIt != screens.end()) {
+                setScreen(*screenIt);
+            }
         }
-    } else if (KWindowSystem::isPlatformX11()) {
-        screenIt = std::ranges::find_if(screens, [](QScreen *screen) {
-            return screen->geometry().contains(QCursor::pos(screen));
-        });
     }
 
-    QScreen *const shownOnScreen = screenIt != screens.cend() ? *screenIt : QGuiApplication::primaryScreen();
-    setScreen(shownOnScreen);
-
-    if (KWindowSystem::isPlatformWayland()) {
-        auto layerWindow = LayerShellQt::Window::get(this);
-        layerWindow->setAnchors(LayerShellQt::Window::AnchorTop);
-        layerWindow->setLayer(LayerShellQt::Window::LayerTop);
-        layerWindow->setScope(u"krunner"_s);
-        layerWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityOnDemand);
-        layerWindow->setMargins(margins());
-        if (m_floating) {
-            layerWindow->setScreen(shownOnScreen);
-        } else {
-            layerWindow->setWantsToBeOnActiveScreen(true);
-        }
-    } else if (KWindowSystem::isPlatformX11()) {
-        m_x11Positioner->setAnchors(Qt::TopEdge);
-        m_x11Positioner->setMargins(margins());
-        if (m_floating) {
-            KX11Extras::setOnDesktop(winId(), KX11Extras::currentDesktop());
-        } else {
-            KX11Extras::setOnAllDesktops(winId(), true);
-        }
-        KX11Extras::setState(winId(), NET::SkipTaskbar | NET::SkipPager);
+    auto layerWindow = LayerShellQt::Window::get(this);
+    layerWindow->setAnchors(LayerShellQt::Window::AnchorTop);
+    layerWindow->setLayer(LayerShellQt::Window::LayerTop);
+    layerWindow->setScope(u"krunner"_s);
+    layerWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityOnDemand);
+    layerWindow->setMargins(margins());
+    if (m_floating) {
+        layerWindow->setScreen(screen());
+    } else {
+        layerWindow->setWantsToBeOnActiveScreen(true);
     }
 }
 
 void View::toggleDisplay()
 {
-    if (isVisible() && !QGuiApplication::focusWindow() && KWindowSystem::isPlatformX11()) {
-        KX11Extras::forceActiveWindow(winId());
-        return;
-    }
     if (isVisible()) {
         setVisible(false);
     } else {
@@ -232,8 +204,8 @@ void View::displaySingleRunner(const QString &runnerName)
 {
     display();
 
-    m_engine->rootObject()->setProperty("singleRunner", runnerName);
-    m_engine->rootObject()->setProperty("query", QString());
+    mainItem()->setProperty("singleRunner", runnerName);
+    mainItem()->setProperty("query", QString());
 }
 
 void View::displayWithClipboardContents()
@@ -243,8 +215,8 @@ void View::displayWithClipboardContents()
     // On Wayland we cannot retrieve the clipboard selection until we get the focus
     if (QGuiApplication::focusWindow()) {
         m_requestedClipboardSelection = false;
-        m_engine->rootObject()->setProperty("singleRunner", QString());
-        m_engine->rootObject()->setProperty("query", QGuiApplication::clipboard()->text(QClipboard::Selection));
+        mainItem()->setProperty("singleRunner", QString());
+        mainItem()->setProperty("query", QGuiApplication::clipboard()->text(QClipboard::Selection));
     } else {
         m_requestedClipboardSelection = true;
     }
@@ -254,16 +226,16 @@ void View::query(const QString &term)
 {
     display();
 
-    m_engine->rootObject()->setProperty("singleRunner", QString());
-    m_engine->rootObject()->setProperty("query", term);
+    mainItem()->setProperty("singleRunner", QString());
+    mainItem()->setProperty("query", term);
 }
 
 void View::querySingleRunner(const QString &runnerName, const QString &term)
 {
     display();
 
-    m_engine->rootObject()->setProperty("singleRunner", runnerName);
-    m_engine->rootObject()->setProperty("query", term);
+    mainItem()->setProperty("singleRunner", runnerName);
+    mainItem()->setProperty("query", term);
 }
 
 bool View::pinned() const

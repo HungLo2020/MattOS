@@ -15,11 +15,12 @@
  ***************************************************************************/
 
 #include <QCoreApplication>
+#include <QDebug>
 #include <QFile>
 #include <QStandardPaths>
 
-#include "Configuration.h"
-
+#include "Constants.h"
+#include "MainConfigLoader.h"
 #include "xorguserhelper.h"
 
 #include <fcntl.h>
@@ -47,8 +48,17 @@ QString XOrgUserHelper::display() const
     return m_display;
 }
 
-bool XOrgUserHelper::start(const QString &cmd)
+bool XOrgUserHelper::start()
 {
+    const QString seatName = qEnvironmentVariable("XDG_SEAT");
+    Q_ASSERT(!seatName.isEmpty());
+    QStringList xorgArgs;
+    xorgArgs << PlasmaLogin::config()->x11ServerPath() << PlasmaLogin::config()->x11ServerArguments().split(QLatin1Char(' '), Qt::SkipEmptyParts)
+             << QStringLiteral("-background") << QStringLiteral("none") << QStringLiteral("-seat") << seatName << QStringLiteral("-noreset")
+             << QStringLiteral("-keeptty") << QStringLiteral("-novtswitch") << QStringLiteral("-verbose") << QStringLiteral("3");
+
+    QString cmd = xorgArgs.join(QLatin1Char(' '));
+
     // Create xauthority
     m_xauth.setAuthDirectory(qEnvironmentVariable("XDG_RUNTIME_DIR"));
     m_xauth.setup();
@@ -96,7 +106,7 @@ bool XOrgUserHelper::startProcess(const QString &cmd, const QProcessEnvironment 
     connect(process, &QProcess::readyReadStandardOutput, this, [process] {
         qInfo() << process->readAllStandardOutput();
     });
-    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), process, [](int exitCode, QProcess::ExitStatus exitStatus) {
+    connect(process, &QProcess::finished, process, [](int exitCode, QProcess::ExitStatus exitStatus) {
         if (exitCode != 0 || exitStatus != QProcess::NormalExit) {
             QCoreApplication::instance()->quit();
         }

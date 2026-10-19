@@ -10,6 +10,7 @@
 
 #include "effect/globals.h"
 #include <QObject>
+#include <qqmlregistration.h>
 
 class QAction;
 
@@ -37,6 +38,8 @@ namespace KWin
 class ScreenEdgeHandler : public QObject
 {
     Q_OBJECT
+    QML_ELEMENT
+
     /*!
      * \qmlproperty bool ScreenEdgeHandler::enabled
      *
@@ -56,6 +59,7 @@ class ScreenEdgeHandler : public QObject
      * The operation mode for this edge. Default value is Mode::Pointer
      */
     Q_PROPERTY(Mode mode READ mode WRITE setMode NOTIFY modeChanged)
+
 public:
     /*!
      * The Edge type specifies a resesrved screen edge.
@@ -81,7 +85,7 @@ public:
         LeftEdge,
         TopLeftEdge,
         EDGE_COUNT,
-        NoEdge
+        NoEdge,
     };
     Q_ENUM(Edge)
     /*!
@@ -91,7 +95,7 @@ public:
      */
     enum class Mode {
         Pointer,
-        Touch
+        Touch,
     };
     Q_ENUM(Mode)
     explicit ScreenEdgeHandler(QObject *parent = nullptr);

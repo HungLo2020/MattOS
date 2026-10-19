@@ -3,11 +3,10 @@
 
 #include "qquick3dspatialsound_p.h"
 
+#include <QtMultimediaQuick/private/qqmlcontext_source_resolver_p.h>
 #include <QtQuick3DSpatialAudio/private/qquick3daudioengine_p.h>
 #include <QtSpatialAudio/qspatialsound.h>
-#include <QtMultimedia/qaudioformat.h>
-#include <QtCore/qdir.h>
-#include <QtQml/qqmlcontext.h>
+#include <QtSpatialAudio/private/qspatialaudiosound_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -45,6 +44,10 @@ QQuick3DSpatialSound::QQuick3DSpatialSound()
     connect(m_sound, &QSpatialSound::nearFieldGainChanged, this, &QQuick3DSpatialSound::nearFieldGainChanged);
     connect(m_sound, &QSpatialSound::loopsChanged, this, &QQuick3DSpatialSound::loopsChanged);
     connect(m_sound, &QSpatialSound::autoPlayChanged, this, &QQuick3DSpatialSound::autoPlayChanged);
+
+    auto *soundPrivate = static_cast<QSpatialAudioSoundPrivate *>(QObjectPrivate::get(m_sound));
+    soundPrivate->m_sourceResolver =
+            std::make_unique<QMultimediaPrivate::QQmlContextSourceResolver>(this);
 }
 
 QQuick3DSpatialSound::~QQuick3DSpatialSound()
@@ -64,15 +67,7 @@ QUrl QQuick3DSpatialSound::source() const
 
 void QQuick3DSpatialSound::setSource(const QUrl& source)
 {
-    const QQmlContext *context = qmlContext(this);
-    QUrl url;
-    if (context) {
-        url = context->resolvedUrl(source);
-    } else {
-        url = QUrl::fromLocalFile(QDir::currentPath() + u"/");
-        url = url.resolved(source);
-    }
-    m_sound->setSource(url);
+    m_sound->setSource(source);
 }
 
 /*!

@@ -29,6 +29,7 @@ K_PLUGIN_CLASS(KWin::ThumbnailAsideEffectConfig)
 
 namespace KWin
 {
+
 ThumbnailAsideEffectConfig::ThumbnailAsideEffectConfig(QObject *parent, const KPluginMetaData &data)
     : KCModule(parent, data)
 {
@@ -49,8 +50,7 @@ ThumbnailAsideEffectConfig::ThumbnailAsideEffectConfig(QObject *parent, const KP
     QAction *a = m_actionCollection->addAction(QStringLiteral("ToggleCurrentThumbnail"));
     a->setText(i18n("Toggle Thumbnail for Current Window"));
     a->setProperty("isConfigurationAction", true);
-    KGlobalAccel::self()->setDefaultShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::CTRL | Qt::Key_T));
-    KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << (Qt::META | Qt::CTRL | Qt::Key_T));
+    KGlobalAccel::self()->setGlobalShortcut(a, QKeySequence(Qt::META | Qt::CTRL | Qt::Key_T));
 
     m_ui.editor->addCollection(m_actionCollection);
 }

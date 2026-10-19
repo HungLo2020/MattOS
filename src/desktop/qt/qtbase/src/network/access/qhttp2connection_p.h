@@ -104,6 +104,7 @@ public:
     struct Configuration
     {
         bool useDownloadBuffer = true;
+        bool useHeaderBuffer = true;
     };
 
     ~QHttp2Stream() noexcept;
@@ -189,8 +190,7 @@ private:
     void finishWithError(Http2::Http2Error errorCode, const QString &message);
     void finishWithError(Http2::Http2Error errorCode);
 
-    void streamError(Http2::Http2Error errorCode,
-                     QLatin1StringView message);
+    void streamError(Http2::Http2Error errorCode, const QString &message);
 
     // Keep it const since it never changes after creation
     const quint32 m_streamID = 0;
@@ -263,6 +263,8 @@ public:
     void close(Http2::Http2Error errorCode = Http2::HTTP2_NO_ERROR);
 
     bool isGoingAway() const noexcept { return m_goingAway; }
+    // Set once a GOAWAY has been received; the peer did not process streams above this ID.
+    std::optional<quint32> lastGoAwayStreamID() const noexcept { return m_lastGoAwayLastStreamID; }
 
     quint32 maxConcurrentStreams() const noexcept { return m_maxConcurrentStreams; }
     quint32 peerMaxConcurrentStreams() const noexcept { return m_peerMaxConcurrentStreams; }
@@ -302,7 +304,8 @@ private:
     Q_ALWAYS_INLINE
     bool streamIsIgnored(quint32 streamID) const noexcept;
 
-    void connectionError(Http2::Http2Error errorCode, const char *message, bool logAsError = true);
+    void connectionError(Http2::Http2Error errorCode, const QString &message,
+                         bool logAsError = true);
     void setH2Configuration(QHttp2Configuration config);
     void closeSession();
     void registerStreamAsResetLocally(quint32 streamID);

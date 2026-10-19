@@ -73,14 +73,14 @@ Region OutputLayer::deviceRepaints() const
     return m_repaints;
 }
 
-void OutputLayer::scheduleRepaint(Item *item)
+void OutputLayer::scheduleRepaint(Item *item, std::optional<std::chrono::steady_clock::time_point> targetTime)
 {
     if (!m_output) {
         return;
     }
     m_repaintScheduled = true;
     if (m_renderLoop) {
-        m_renderLoop->scheduleRepaint(item, this);
+        m_renderLoop->scheduleRepaint(item, this, targetTime);
     }
     Q_EMIT repaintScheduled();
 }
@@ -108,19 +108,19 @@ bool OutputLayer::needsRepaint() const
     return m_repaintScheduled || !m_repaints.isEmpty();
 }
 
+bool OutputLayer::earlyScanoutChecks()
+{
+    return false;
+}
+
 bool OutputLayer::importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_ptr<OutputFrame> &frame)
 {
     return false;
 }
 
-std::optional<OutputLayerBeginFrameInfo> OutputLayer::beginFrame()
+SurfaceItem *OutputLayer::presentedDirectScanoutItem() const
 {
-    return doBeginFrame();
-}
-
-bool OutputLayer::endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame)
-{
-    return doEndFrame(renderedDeviceRegion, damagedDeviceRegion, frame);
+    return nullptr;
 }
 
 void OutputLayer::setScanoutCandidate(SurfaceItem *item)
@@ -174,7 +174,15 @@ void OutputLayer::setTargetRect(const Rect &rect)
     m_targetRect = rect;
 }
 
-QHash<uint32_t, QList<uint64_t>> OutputLayer::supportedAsyncDrmFormats() const
+DrmDevice *OutputLayer::scanoutDevice() const
+{
+    if (!m_output) {
+        return nullptr;
+    }
+    return m_output->scanoutDevice();
+}
+
+FormatModifierMap OutputLayer::supportedAsyncDrmFormats() const
 {
     return supportedDrmFormats();
 }
@@ -243,7 +251,7 @@ int OutputLayer::maxZpos() const
     return m_maxZpos;
 }
 
-QList<FormatInfo> OutputLayer::filterAndSortFormats(const QHash<uint32_t, QList<uint64_t>> &formats, uint32_t requiredAlphaBits, BackendOutput::ColorPowerTradeoff tradeoff)
+QList<FormatInfo> OutputLayer::filterAndSortFormats(const FormatModifierMap &formats, uint32_t requiredAlphaBits, BackendOutput::ColorPowerTradeoff tradeoff)
 {
     QList<FormatInfo> ret;
     for (auto it = formats.begin(); it != formats.end(); it++) {

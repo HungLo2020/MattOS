@@ -1,7 +1,7 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2018, 2019, 2024 Alexander Yavorsky <kekcuha@gmail.com>
+# SPDX-FileCopyrightText: 2018-2019, 2024, 2026 Alexander Yavorsky <kekcuha@gmail.com>
 # Yuri Efremov <yur.arh@gmail.com>, 2010, 2011.
 # Alexander Potashev <aspotashev@gmail.com>, 2010, 2015, 2018.
 # Alexander Yavorsky <kekcuha@gmail.com>, 2024.
@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-02-18 21:51+0300\n"
-"Last-Translator: Alexander Yavorsky <kekcuha@gmail.com>\n"
+"POT-Creation-Date: 2026-08-29 00:47+0000\n"
+"PO-Revision-Date: 2026-09-06 18:11+0200\n"
+"Last-Translator: Alexander Yavorskiy <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Lokalize 21.08.3\n"
+"X-Generator: Lokalize 26.08.0\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
@@ -71,13 +71,13 @@ msgstr "Jaroslav Reznik"
 msgid "Former maintainer"
 msgstr "Прежний сопровождающий"
 
-#: policykitlistener.cpp:90
+#: policykitlistener.cpp:85
 #, kde-format
 msgid "Another client is already authenticating, please try again later."
 msgstr ""
 "Аутентификация уже выполняется другим процессом, повторите попытку позже."
 
-#: policykitlistener.cpp:97
+#: policykitlistener.cpp:92
 #, kde-format
 msgctxt "Error response when polkit calls us with an empty list of identities"
 msgid "No user to authenticate as. Please check your system configuration."
@@ -85,16 +85,46 @@ msgstr ""
 "Не найдено не одного пользователя для аутентификации. Проверьте конфигурацию "
 "системы."
 
-#: qml/MobileQuickAuthDialog.qml:16 qml/MobileQuickAuthDialog.qml:108
-#: qml/QuickAuthDialog.qml:16 QuickAuthDialog.cpp:110
+#: qml/MediacenterQuickAuthDialog.qml:15 qml/MobileQuickAuthDialog.qml:16
+#: qml/MobileQuickAuthDialog.qml:108 qml/QuickAuthDialog.qml:16
+#: QuickAuthDialog.cpp:113
 #, kde-format
 msgid "Authentication Required"
 msgstr "Требуется аутентификация"
 
-#: qml/MobileQuickAuthDialog.qml:57 qml/QuickAuthDialog.qml:72
+#: qml/MediacenterQuickAuthDialog.qml:58 qml/MobileQuickAuthDialog.qml:57
+#: qml/QuickAuthDialog.qml:72
 #, kde-format
 msgid "Authentication failure, please try again."
 msgstr "Ошибка аутентификации, попробуйте ещё раз."
+
+#: qml/MediacenterQuickAuthDialog.qml:78 qml/MediacenterQuickAuthDialog.qml:147
+#, kde-format
+msgid "Change user"
+msgstr "Сменить пользователя"
+
+#: qml/MediacenterQuickAuthDialog.qml:107 qml/QuickAuthDialog.qml:175
+#, kde-format
+msgid "Authenticating as %1"
+msgstr "Аутентификация пользователя %1"
+
+#: qml/MediacenterQuickAuthDialog.qml:125 qml/MobileQuickAuthDialog.qml:167
+#: qml/QuickAuthDialog.qml:201
+#, kde-format
+msgid "Password…"
+msgstr "Введите пароль…"
+
+#: qml/MediacenterQuickAuthDialog.qml:158 qml/MobileQuickAuthDialog.qml:185
+#: qml/QuickAuthDialog.qml:222
+#, kde-format
+msgid "OK"
+msgstr "ОК"
+
+#: qml/MediacenterQuickAuthDialog.qml:168 qml/MobileQuickAuthDialog.qml:191
+#: qml/QuickAuthDialog.qml:228
+#, kde-format
+msgid "Cancel"
+msgstr "Отмена"
 
 #: qml/MobileQuickAuthDialog.qml:141
 #, kde-format
@@ -106,25 +136,10 @@ msgstr "Пользователь: %1"
 msgid "Switch…"
 msgstr "Другой пользователь..."
 
-#: qml/MobileQuickAuthDialog.qml:167 qml/QuickAuthDialog.qml:201
-#, kde-format
-msgid "Password…"
-msgstr "Введите пароль…"
-
 #: qml/MobileQuickAuthDialog.qml:175 qml/QuickAuthDialog.qml:210
 #, kde-format
 msgid "Details"
 msgstr "Подробные сведения"
-
-#: qml/MobileQuickAuthDialog.qml:185 qml/QuickAuthDialog.qml:222
-#, kde-format
-msgid "OK"
-msgstr "ОК"
-
-#: qml/MobileQuickAuthDialog.qml:191 qml/QuickAuthDialog.qml:228
-#, kde-format
-msgid "Cancel"
-msgstr "Отмена"
 
 #: qml/MobileQuickAuthDialog.qml:201 qml/QuickAuthDialog.qml:240
 #, kde-format
@@ -140,11 +155,6 @@ msgstr "Идентификатор"
 #, kde-format
 msgid "Vendor:"
 msgstr "Поставщик:"
-
-#: qml/QuickAuthDialog.qml:175
-#, kde-format
-msgid "Authenticating as %1"
-msgstr "Аутентификация пользователя %1"
 
 #~ msgid "<null>"
 #~ msgstr "<null>"

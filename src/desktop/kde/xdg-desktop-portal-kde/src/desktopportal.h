@@ -10,6 +10,7 @@
 #define XDG_DESKTOP_PORTAL_KDE_DESKTOP_PORTAL_H
 
 #include <QDBusContext>
+#include <QDBusServiceWatcher>
 #include <QObject>
 
 class AccessPortal;
@@ -19,7 +20,6 @@ class BackgroundPortal;
 class EmailPortal;
 class FileChooserPortal;
 class InhibitPortal;
-class NotificationPortal;
 class PrintPortal;
 class ScreenshotPortal;
 class SettingsPortal;
@@ -41,13 +41,13 @@ private:
     EmailPortal *const m_email;
     FileChooserPortal *const m_fileChooser;
     InhibitPortal *const m_inhibit;
-    NotificationPortal *const m_notification;
     PrintPortal *const m_print;
     ScreenshotPortal *m_screenshot = nullptr;
     SettingsPortal *const m_settings;
     ScreenCastPortal *m_screenCast = nullptr;
     RemoteDesktopPortal *m_remoteDesktop = nullptr;
     DynamicLauncherPortal *const m_dynamicLauncher;
+    QDBusServiceWatcher m_frontendWatcher;
 };
 
 #endif // XDG_DESKTOP_PORTAL_KDE_DESKTOP_PORTAL_H

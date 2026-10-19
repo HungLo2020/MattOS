@@ -1,4 +1,18 @@
-add_subdirectory(pip)
+include(ExternalProject)
+
+function (kwin_add_demo name)
+    ExternalProject_Add(
+        ${name}
+        BUILD_ALWAYS TRUE
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${name}
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${name}
+        INSTALL_COMMAND ""
+        TEST_COMMAND ""
+    )
+endfunction()
+
+kwin_add_demo(fractional-scaling)
+kwin_add_demo(pip)
 
 if(KWIN_BUILD_X11)
     set(normalhintsbasesizetest_SRCS normalhintsbasesizetest.cpp)
@@ -79,7 +93,7 @@ qt6_generate_wayland_protocol_client_sources(xdgsessiontest
     PRIVATE_CODE
     NO_INCLUDE_CORE_ONLY
     FILES
-     ${PROJECT_SOURCE_DIR}/src/wayland/protocols/xx-session-management-v1.xml
+     ${WaylandProtocols_DATADIR}/staging/xdg-session-management/xdg-session-management-v1.xml
      ${WaylandProtocols_DATADIR}/stable/xdg-shell/xdg-shell.xml
 )
 target_link_libraries(xdgsessiontest

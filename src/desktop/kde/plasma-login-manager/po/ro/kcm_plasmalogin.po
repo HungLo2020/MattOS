@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-login-manager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-28 02:46+0000\n"
-"PO-Revision-Date: 2026-02-05 13:24+0000\n"
+"POT-Creation-Date: 2026-08-11 00:47+0000\n"
+"PO-Revision-Date: 2026-04-01 15:12+0100\n"
 "Last-Translator: Sergiu Bivol <sergiu@cip.md>\n"
 "Language-Team: Romanian <kde-i18n-ro@kde.org>\n"
 "Language: ro\n"
@@ -40,7 +40,7 @@ msgstr ""
 "„plasmalogin” nu există. Verificați corectitudinea instalării Autentificării "
 "Plasma."
 
-#: kcm.cpp:265
+#: kcm.cpp:269
 msgid ""
 "Unable to reset Plasma settings because the 'plasmalogin' user does not "
 "exist. Please check your Plasma Login install."
@@ -98,24 +98,35 @@ msgstr ""
 "aduse următoarelor configurări Plasma:"
 
 #: ui/main.qml:66
-#, kde-kuit-format
+#, fuzzy, kde-kuit-format
+#| msgctxt "@info"
+#| msgid ""
+#| "<para><list><item>Color scheme</item><item>Cursor theme and size</"
+#| "item><item>Font and font rendering</item><item>NumLock preference</"
+#| "item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
+#| "configuration</item><item>Keyboard layouts</item></list></para>"
 msgctxt "@info"
 msgid ""
-"<para><list><item>Color scheme</item><item>Cursor theme and size</"
-"item><item>Font and font rendering</item><item>NumLock preference</"
-"item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
-"configuration</item></list></para>"
+"<para><list><item>Language and locale settings</item><item>Keyboard layouts</"
+"item><item>Screen arrangement, scale, and orientation settings</"
+"item><item>NumLock preference</item><item>Font and font rendering settings</"
+"item><item>Color scheme</item><item>Cursor theme and size</item><item>Plasma "
+"theme</item></list></para>"
 msgstr ""
 "<para><list><item>Schemă de culori</item><item>Tematică de cursor și "
 "dimensiune</item><item>Font și randarea fonturilor</item><item>Preferință "
 "NumLock</item><item>Tematică Plasma</item><item>Scalare DPI</"
-"item><item>Configurare ecran</item></list></para>"
+"item><item>Configurare ecran</item><item>Aranjamente de tastatură</item></"
+"list></para>"
 
 #: ui/main.qml:67
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Please note that theme files must be installed globally to be reflected "
+#| "on the Plasma login screen."
 msgid ""
-"Please note that theme files must be installed globally to be reflected on "
-"the Plasma login screen."
+"Please note that theme and font files must be installed globally to be "
+"reflected on the Plasma login screen."
 msgstr ""
 "Rețineți că fișierele de tematică trebuiesc instalate global pentru a fi "
 "reflectate pe ecranul de autentificare Plasma."
@@ -144,7 +155,7 @@ msgctxt "@option:check"
 msgid "Automatically log in:"
 msgstr "Autentifică automat în:"
 
-#: ui/main.qml:99
+#: ui/main.qml:100
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the user to log in "
@@ -152,7 +163,7 @@ msgctxt ""
 msgid "as user:"
 msgstr "Ca utilizator:"
 
-#: ui/main.qml:154
+#: ui/main.qml:150
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the session that is started "
@@ -160,7 +171,7 @@ msgctxt ""
 msgid "with session:"
 msgstr "Cu sesiune:"
 
-#: ui/main.qml:187
+#: ui/main.qml:180
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -175,42 +186,42 @@ msgstr ""
 "să nu aibă parolă. Rețineți că acest lucru e nesigur și trebuie făcut doar "
 "în medii de încredere."
 
-#: ui/main.qml:192
+#: ui/main.qml:185
 #, kde-format
 msgid "Open KDE Wallet Settings"
 msgstr "Deschide configurările portofelului KDE"
 
-#: ui/main.qml:199
+#: ui/main.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Log in again immediately after logging off"
 msgstr "Autentificare automată imediat după ieșire"
 
-#: ui/main.qml:210
+#: ui/main.qml:203
 #, kde-format
 msgctxt "@title:group"
 msgid "Defaults"
 msgstr "Implicite"
 
-#: ui/main.qml:215
+#: ui/main.qml:208
 #, kde-format
 msgctxt "@label"
 msgid "Default user:"
 msgstr "Utilizator implicit:"
 
-#: ui/main.qml:221
+#: ui/main.qml:214
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in user"
 msgstr "Ultimul utilizator autentificat"
 
-#: ui/main.qml:293
+#: ui/main.qml:281
 #, kde-format
 msgctxt "@label"
 msgid "Default session:"
 msgstr "Sesiune implicită:"
 
-#: ui/main.qml:299
+#: ui/main.qml:287
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in session"

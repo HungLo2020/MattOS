@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2009-01-18 15:29+0530\n"
 "Last-Translator: Sangeeta Kumari <sangeeta09@gmail.com>\n"
 "Language-Team: Maithili <maithili.sf.net>\n"
@@ -98,7 +98,7 @@ msgstr ""
 #, fuzzy, kde-format
 #| msgid "&Enable keyboard repeat"
 msgctxt "@title"
-msgid "Configure Key Bindings…"
+msgid "Key Bindings"
 msgstr "कुँजी क' दोहराव सक्षम करू (&E)"
 
 #: ui/KeyBindings.qml:62
@@ -140,13 +140,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "कुँजी क' दोहराव"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr ""
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -154,14 +154,14 @@ msgid ""
 "system tray. You can change this setting yourself."
 msgstr ""
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, fuzzy, kde-format
 #| msgid "Main shortcuts:"
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "प्रधान शार्टकट:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, fuzzy, kde-format
 #| msgid "Keyboard Repeat"
 msgctxt "@action:button"
@@ -567,14 +567,14 @@ msgid ""
 "diacritical marks."
 msgstr ""
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
 msgstr[0] ""
 msgstr[1] ""
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, fuzzy, kde-format
 #| msgctxt "no shortcut defined"
 #| msgid "None"

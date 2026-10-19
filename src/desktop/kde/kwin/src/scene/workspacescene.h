@@ -19,7 +19,6 @@ class DragAndDropIconItem;
 class EffectWindow;
 class EglContext;
 class Item;
-class SurfaceItem;
 class WindowItem;
 class WindowPaintData;
 class CursorItem;
@@ -29,7 +28,7 @@ class KWIN_EXPORT WorkspaceScene : public Scene
     Q_OBJECT
 
 public:
-    explicit WorkspaceScene(std::unique_ptr<ItemRenderer> renderer);
+    WorkspaceScene();
     ~WorkspaceScene() override;
 
     void initialize();
@@ -38,16 +37,23 @@ public:
     Item *overlayItem() const;
     Item *cursorItem() const;
 
-    QList<SurfaceItem *> scanoutCandidates(ssize_t maxCount) const override;
-    OverlayCandidates overlayCandidates(ssize_t maxTotalCount, ssize_t maxOverlayCount, ssize_t maxUnderlayCount) const override;
-    void prePaint(SceneView *delegate) override;
+    void attachRenderer(RenderDevice *device, std::unique_ptr<ItemRenderer> &&renderer) override;
+    void detachRenderer(RenderDevice *device) override;
+
+    /**
+     * @returns a minimal list of items that will yield the correct visual
+     * result for the scene if each item is put on a layer corresponding to
+     * its position in the list.
+     * If necessary, the containerItem will be in the list to represent
+     * the whole scene to be composited.
+     */
+    QList<Item *> layerCandidates(ssize_t maxTotalCount) const override;
+    void prePaint(SceneView *delegate, OutputFrame *frame) override;
     Region collectDamage() override;
     void postPaint() override;
     void paint(const RenderTarget &renderTarget, const QPoint &deviceOffset, const Region &deviceRegion) override;
     void frame(SceneView *delegate, OutputFrame *frame) override;
     double desiredHdrHeadroom() const override;
-
-    EglContext *openglContext() const;
 
     /**
      * Whether the Scene is able to drive animations.
@@ -56,6 +62,8 @@ public:
      * if rendering is hardware accelerated it should return @c true.
      */
     bool animationsSupported() const;
+
+    void setLayerDebugging(bool enable);
 
 Q_SIGNALS:
     void preFrameRender();
@@ -66,20 +74,20 @@ protected:
     void clearStackingOrder();
     friend class EffectsHandler;
     // called after all effects had their paintScreen() called
-    void finalPaintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen);
+    [[nodiscard]] bool finalPaintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen);
     // shared implementation of painting the screen in the generic
     // (unoptimized) way
     void preparePaintGenericScreen();
-    void paintGenericScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, LogicalOutput *screen);
+    [[nodiscard]] bool paintGenericScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, LogicalOutput *screen);
     // shared implementation of painting the screen in an optimized way
     void preparePaintSimpleScreen();
-    void paintSimpleScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion);
+    [[nodiscard]] bool paintSimpleScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion);
     // called after all effects had their paintWindow() called
-    void finalPaintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
+    [[nodiscard]] bool finalPaintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
     // shared implementation, starts painting the window
-    void paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, WindowItem *w, int mask, const Region &deviceRegion);
+    [[nodiscard]] bool paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, WindowItem *w, int mask, const Region &deviceRegion);
     // called after all effects had their drawWindow() called
-    void finalDrawWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
+    [[nodiscard]] bool finalDrawWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
 
     // saved data for 2nd pass of optimized screen painting
     struct Phase2Data
@@ -109,14 +117,12 @@ private:
     void destroyDndIconItem();
     void updateCursor();
 
-    std::chrono::milliseconds m_expectedPresentTimestamp = std::chrono::milliseconds::zero();
-    // how many times finalPaintScreen() has been called
-    int m_paintScreenCount = 0;
     PaintContext m_paintContext;
     std::unique_ptr<Item> m_containerItem;
     std::unique_ptr<Item> m_overlayItem;
     std::unique_ptr<DragAndDropIconItem> m_dndIcon;
     std::unique_ptr<CursorItem> m_cursorItem;
+    bool m_layerDebugging = false;
 };
 
 } // namespace

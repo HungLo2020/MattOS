@@ -11,54 +11,93 @@
 #include "effect/effect.h"
 #include "effect/offscreenquickview.h"
 
+#include <QAbstractListModel>
 #include <QElapsedTimer>
+#include <QQueue>
 
 namespace KWin
 {
 
-class ShowFpsEffect : public Effect
+class RenderView;
+
+class PaintDurationModel : public QAbstractListModel
+{
+    Q_OBJECT
+
+public:
+    explicit PaintDurationModel(ssize_t count);
+
+    int rowCount(const QModelIndex &parent) const override;
+    int columnCount(const QModelIndex &parent) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    QHash<int, QByteArray> roleNames() const override;
+
+    void push(std::chrono::nanoseconds value);
+
+    void resize(ssize_t size);
+
+private:
+    ssize_t m_maxCount;
+    QQueue<int> m_values;
+};
+
+class ShowFpsScreen : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int fps READ fps NOTIFY fpsChanged)
     Q_PROPERTY(int maximumFps READ maximumFps NOTIFY maximumFpsChanged)
-    Q_PROPERTY(int paintDuration READ paintDuration NOTIFY paintChanged)
-    Q_PROPERTY(int paintAmount READ paintAmount NOTIFY paintChanged)
-    Q_PROPERTY(QColor paintColor READ paintColor NOTIFY paintChanged)
+    Q_PROPERTY(PaintDurationModel *paintDuration READ paintDuration NOTIFY paintChanged)
+    Q_PROPERTY(PaintDurationModel *paintDurationCPU READ paintDurationCPU NOTIFY paintChanged)
+    Q_PROPERTY(QString presentationMode READ presentationMode NOTIFY presentationModeChanged)
 
 public:
-    ShowFpsEffect();
-    ~ShowFpsEffect() override;
+    explicit ShowFpsScreen(uint32_t maximumFps);
 
     int fps() const;
     int maximumFps() const;
-    int paintDuration() const;
-    int paintAmount() const;
-    QColor paintColor() const;
+    PaintDurationModel *paintDuration();
+    PaintDurationModel *paintDurationCPU();
+    QString presentationMode() const;
 
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
-    void paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, KWin::WindowPaintData &data) override;
-    void postPaintScreen() override;
-
-    static bool supported();
+    void setMaximumFps(uint32_t fps);
 
 Q_SIGNALS:
     void fpsChanged();
     void maximumFpsChanged();
     void paintChanged();
+    void presentationModeChanged();
 
-private:
+public:
+    void presented(OutputFrame *frame, std::chrono::nanoseconds timestamp, PresentationMode mode);
+
     std::unique_ptr<OffscreenQuickScene> m_scene;
-
-    uint32_t m_maximumFps = 0;
-
     int m_fps = 0;
     int m_newFps = 0;
+    uint32_t m_maximumFps = 0;
     std::chrono::steady_clock::time_point m_lastFpsTime;
+    PaintDurationModel m_paintDuration;
+    PaintDurationModel m_paintDurationCPU;
+    QString m_presentationMode = QStringLiteral("VSync");
+};
 
-    int m_paintDuration = 0;
-    int m_paintAmount = 0;
-    QElapsedTimer m_paintDurationTimer;
+class ShowFpsEffect : public Effect
+{
+    Q_OBJECT
+
+public:
+    ShowFpsEffect();
+    ~ShowFpsEffect() override;
+
+    void prePaintScreen(ScreenPrePaintData &data) override;
+    bool blocksDirectScanout() const override;
+
+    static bool supported();
+
+private:
+    void removeView(RenderView *view);
+
+    std::unordered_map<RenderView *, std::unique_ptr<ShowFpsScreen>> m_data;
+    RenderView *m_currentView = nullptr;
 };
 
 } // namespace KWin

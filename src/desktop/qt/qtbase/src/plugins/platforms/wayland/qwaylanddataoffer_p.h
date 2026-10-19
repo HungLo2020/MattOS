@@ -24,6 +24,8 @@
 #include <QtWaylandClient/private/qtwaylandclientglobal_p.h>
 #include <QtWaylandClient/private/qwayland-wayland.h>
 
+#include <memory>
+
 QT_REQUIRE_CONFIG(wayland_datadevice);
 
 QT_BEGIN_NAMESPACE
@@ -63,7 +65,7 @@ protected:
 
 private:
     QWaylandDisplay *m_display = nullptr;
-    QScopedPointer<QWaylandMimeData> m_mimeData;
+    std::unique_ptr<QWaylandMimeData> m_mimeData;
     Qt::DropActions m_supportedActions;
 };
 
@@ -81,7 +83,7 @@ protected:
     QVariant retrieveData_sys(const QString &mimeType, QMetaType type) const override;
 
 private:
-    int readData(int fd, QByteArray &data) const;
+    std::optional<QByteArray> readData(const QString &mimeType) const;
 
     QWaylandAbstractDataOffer *m_dataOffer = nullptr;
     mutable QStringList m_types;

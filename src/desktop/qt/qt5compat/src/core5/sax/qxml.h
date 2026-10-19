@@ -1,6 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-// Qt-Security score:sensitive reason:trivial-impl-only
+// Qt-Security score:significant reason:trivial-impl-only
 
 #ifndef QXML_H
 #define QXML_H
@@ -36,11 +36,9 @@ class QXmlSimpleReader;
 
 class QXmlSimpleReaderPrivate;
 class QXmlNamespaceSupportPrivate;
-class QXmlAttributesPrivate;
 class QXmlInputSourcePrivate;
 class QXmlParseExceptionPrivate;
 class QXmlLocatorPrivate;
-class QXmlDefaultHandlerPrivate;
 
 //
 // SAX Namespace Support
@@ -90,7 +88,6 @@ public:
     void swap(QXmlAttributes &other) noexcept
     {
         attList.swap(other.attList);
-        qt_ptr_swap(d, other.d);
     }
 
     int index(const QString& qName) const;
@@ -119,8 +116,9 @@ private:
     friend class QTypeInfo<Attribute>;
     typedef QList<Attribute> AttributeList;
     AttributeList attList;
-
-    QXmlAttributesPrivate *d;
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+    Q_DECL_UNUSED_MEMBER void *unusable = nullptr;
+#endif
 };
 
 Q_DECLARE_TYPEINFO(QXmlAttributes::Attribute, Q_RELOCATABLE_TYPE);
@@ -383,7 +381,9 @@ public:
     QString errorString() const override;
 
 private:
-    QXmlDefaultHandlerPrivate *d;
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+    Q_DECL_UNUSED_MEMBER void *unusable;
+#endif
     Q_DISABLE_COPY(QXmlDefaultHandler)
 };
 

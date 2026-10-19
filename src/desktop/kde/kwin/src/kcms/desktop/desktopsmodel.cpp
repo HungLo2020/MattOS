@@ -42,48 +42,45 @@ DesktopsModel::DesktopsModel(QObject *parent)
     qDBusRegisterMetaType<KWin::DBusDesktopDataStruct>();
     qDBusRegisterMetaType<KWin::DBusDesktopDataVector>();
 
-    m_serviceWatcher = new QDBusServiceWatcher(s_serviceName,
-                                               QDBusConnection::sessionBus(), QDBusServiceWatcher::WatchForOwnerChange);
+    m_serviceWatcher = new QDBusServiceWatcher(s_serviceName, QDBusConnection::sessionBus(), QDBusServiceWatcher::WatchForOwnerChange);
 
-    QObject::connect(m_serviceWatcher, &QDBusServiceWatcher::serviceRegistered,
-                     this, [this]() {
-                         reset();
-                     });
+    QObject::connect(m_serviceWatcher, &QDBusServiceWatcher::serviceRegistered, this, [this]() {
+        reset();
+    });
 
-    QObject::connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered,
-                     this, [this]() {
-                         QDBusConnection::sessionBus().disconnect(
-                             s_serviceName,
-                             s_virtDesktopsPath,
-                             s_virtualDesktopsInterface,
-                             QStringLiteral("desktopCreated"),
-                             this,
-                             SLOT(desktopCreated(QString, KWin::DBusDesktopDataStruct)));
+    QObject::connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered, this, [this]() {
+        QDBusConnection::sessionBus().disconnect(
+            s_serviceName,
+            s_virtDesktopsPath,
+            s_virtualDesktopsInterface,
+            QStringLiteral("desktopCreated"),
+            this,
+            SLOT(desktopCreated(QString, KWin::DBusDesktopDataStruct)));
 
-                         QDBusConnection::sessionBus().disconnect(
-                             s_serviceName,
-                             s_virtDesktopsPath,
-                             s_virtualDesktopsInterface,
-                             QStringLiteral("desktopRemoved"),
-                             this,
-                             SLOT(desktopRemoved(QString)));
+        QDBusConnection::sessionBus().disconnect(
+            s_serviceName,
+            s_virtDesktopsPath,
+            s_virtualDesktopsInterface,
+            QStringLiteral("desktopRemoved"),
+            this,
+            SLOT(desktopRemoved(QString)));
 
-                         QDBusConnection::sessionBus().disconnect(
-                             s_serviceName,
-                             s_virtDesktopsPath,
-                             s_virtualDesktopsInterface,
-                             QStringLiteral("desktopDataChanged"),
-                             this,
-                             SLOT(desktopDataChanged(QString, KWin::DBusDesktopDataStruct)));
+        QDBusConnection::sessionBus().disconnect(
+            s_serviceName,
+            s_virtDesktopsPath,
+            s_virtualDesktopsInterface,
+            QStringLiteral("desktopDataChanged"),
+            this,
+            SLOT(desktopDataChanged(QString, KWin::DBusDesktopDataStruct)));
 
-                         QDBusConnection::sessionBus().disconnect(
-                             s_serviceName,
-                             s_virtDesktopsPath,
-                             s_virtualDesktopsInterface,
-                             QStringLiteral("rowsChanged"),
-                             this,
-                             SLOT(desktopRowsChanged(uint)));
-                     });
+        QDBusConnection::sessionBus().disconnect(
+            s_serviceName,
+            s_virtDesktopsPath,
+            s_virtualDesktopsInterface,
+            QStringLiteral("rowsChanged"),
+            this,
+            SLOT(desktopRowsChanged(uint)));
+    });
 
     reset();
 }
@@ -632,7 +629,6 @@ void DesktopsModel::updateModifiedState(bool server)
     // that up here.
     if (m_desktops.count() == m_serverSideDesktops.count()
         && m_desktops != m_serverSideDesktops) {
-
         for (int i = 0; i < m_serverSideDesktops.count(); ++i) {
             const QString oldId = m_desktops.at(i);
             const QString &newId = m_serverSideDesktops.at(i);
@@ -646,7 +642,6 @@ void DesktopsModel::updateModifiedState(bool server)
     if (m_desktops == m_serverSideDesktops
         && m_names == m_serverSideNames
         && m_rows == m_serverSideRows) {
-
         m_userModified = false;
         Q_EMIT userModifiedChanged();
 
@@ -671,7 +666,6 @@ void DesktopsModel::updateModifiedState(bool server)
 void DesktopsModel::handleCallError()
 {
     if (m_pendingCalls > 0) {
-
         m_serverModified = false;
         Q_EMIT serverModifiedChanged();
 

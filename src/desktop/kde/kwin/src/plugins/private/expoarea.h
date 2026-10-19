@@ -14,6 +14,8 @@ namespace KWin
 class ExpoArea : public QObject
 {
     Q_OBJECT
+    QML_ELEMENT
+
     Q_PROPERTY(KWin::LogicalOutput *screen READ screen WRITE setScreen NOTIFY screenChanged)
     Q_PROPERTY(qreal x READ x NOTIFY xChanged)
     Q_PROPERTY(qreal y READ y NOTIFY yChanged)
@@ -41,7 +43,7 @@ Q_SIGNALS:
 private:
     void update();
 
-    QRectF m_rect;
+    RectF m_rect;
     LogicalOutput *m_screen = nullptr;
 };
 

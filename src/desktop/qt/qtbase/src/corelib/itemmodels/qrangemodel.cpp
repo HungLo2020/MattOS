@@ -3,6 +3,9 @@
 // Qt-Security score:significant reason:default
 
 #include "qrangemodel.h"
+#include <QtCore/qcollator.h>
+#include <QtCore/qmimedata.h>
+#include <QtCore/qpoint.h>
 #include <QtCore/qsize.h>
 
 #include <QtCore/private/qabstractitemmodel_p.h>
@@ -20,6 +23,11 @@ public:
         : impl(std::move(impl))
     {
         this->impl->call<QRangeModelImplBase::InterfaceVersion>(m_interfaceVersion);
+        if (m_interfaceVersion >= QT_VERSION_CHECK(6, 12, 0)) {
+            m_supportedDropActions = this->impl->call<QRangeModelImplBase::AdjustSupportedDropActions>(
+                m_supportedDropActions
+            );
+        }
     }
 
     std::unique_ptr<QRangeModelImplBase, QRangeModelImplBase::Deleter> impl;
@@ -32,6 +40,11 @@ public:
     QRangeModel::AutoConnectPolicy m_autoConnectPolicy = QRangeModel::AutoConnectPolicy::None;
     bool m_dataChangedDispatchBlocked = false;
     int m_interfaceVersion = -1;
+    int m_sortRole = Qt::DisplayRole;
+    std::optional<QCollator> m_sortCollator;
+    mutable std::optional<QStringList> m_mimeTypes;
+    Qt::DropActions m_supportedDragActions = Qt::CopyAction;
+    Qt::DropActions m_supportedDropActions = Qt::CopyAction;
 
     static void emitDataChanged(const QModelIndex &index, int role)
     {
@@ -39,6 +52,8 @@ public:
         if (!get(model)->m_dataChangedDispatchBlocked)
             const_cast<QRangeModel *>(model)->dataChanged(index, index, {role});
     }
+
+    static bool compareModelIndex(const QModelIndex &left, const QModelIndex &right);
 };
 
 struct PropertyChangedHandler
@@ -130,6 +145,78 @@ const QRangeModelImplBase *QRangeModelImplBase::getImplementation(const QRangeMo
 QScopedValueRollback<bool> QRangeModelImplBase::blockDataChangedDispatch()
 {
     return QScopedValueRollback(m_rangeModel->d_func()->m_dataChangedDispatchBlocked, true);
+}
+
+int QRangeModelImplBase::sortRole() const
+{
+    return m_rangeModel->sortRole();
+}
+
+const QCollator *QRangeModelImplBase::sortCollator() const
+{
+    const QRangeModelPrivate *d = QRangeModelPrivate::get(m_rangeModel);
+    return d->m_sortCollator ? &d->m_sortCollator.value() : nullptr;
+}
+
+QVariant QRangeModelImplBase::convertMatchValue(const QVariant &value, Qt::MatchFlags flags)
+{
+    QVariant matchValue = value;
+    const Qt::CaseSensitivity cs = flags & Qt::MatchCaseSensitive
+                                 ? Qt::CaseSensitive : Qt::CaseInsensitive;
+    switch ((flags & Qt::MatchTypeMask).toInt()) {
+#if QT_CONFIG(regularexpression)
+    case Qt::MatchRegularExpression:
+    case Qt::MatchWildcard:
+        if (value.metaType() != QMetaType::fromType<QRegularExpression>()) {
+            QRegularExpression rx;
+            if (flags & Qt::MatchWildcard) {
+                rx.setPattern(QRegularExpression::wildcardToRegularExpression(
+                        value.toString(), QRegularExpression::NonPathWildcardConversion));
+            } else {
+                rx.setPattern(value.toString());
+            }
+            if (cs == Qt::CaseInsensitive)
+                rx.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
+            matchValue = rx;
+        }
+        break;
+#endif // QT_CONFIG(regularexpression)
+    case Qt::MatchStartsWith:
+    case Qt::MatchEndsWith:
+    case Qt::MatchFixedString:
+    case Qt::MatchContains:
+        matchValue.convert(QMetaType::fromType<QString>());
+        break;
+    default:
+        break;
+    }
+    return matchValue;
+}
+
+bool QRangeModelImplBase::matchValue(const QString &itemData, const QVariant &value,
+                                     Qt::MatchFlags flags)
+{
+    // QString or regular expression based matching
+    const uint matchType = (flags & Qt::MatchTypeMask).toInt();
+    const Qt::CaseSensitivity cs = flags & Qt::MatchCaseSensitive
+                                 ? Qt::CaseSensitive : Qt::CaseInsensitive;
+    switch (matchType) {
+#if QT_CONFIG(regularexpression)
+    case Qt::MatchRegularExpression:
+    case Qt::MatchWildcard:
+        return itemData.contains(value.toRegularExpression());
+#endif // QT_CONFIG(regularexpression)
+    case Qt::MatchStartsWith:
+        return itemData.startsWith(value.toString(), cs);
+    case Qt::MatchEndsWith:
+        return itemData.endsWith(value.toString(), cs);
+    case Qt::MatchFixedString:
+        return itemData.compare(value.toString(), cs) == 0;
+    case Qt::MatchContains:
+        return itemData.contains(value.toString(), cs);
+    default:
+        return false;
+    }
 }
 
 /*!
@@ -449,13 +536,13 @@ Q_CORE_EXPORT QVariant qVariantAtIndex(const QModelIndex &index)
     implementation in QRangeModel will return the list of properties of that
     type.
 
-    \snippet qrangemodel/main.cpp color_gadget_decl
-    \snippet qrangemodel/main.cpp color_gadget_impl
-    \snippet qrangemodel/main.cpp color_gadget_end
+    \snippet qrangemodel/specialize.cpp color_gadget_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_impl
+    \snippet qrangemodel/specialize.cpp color_gadget_end
 
     When used in a table, this is the default representation for gadgets:
 
-    \snippet qrangemodel/main.cpp color_gadget_table
+    \snippet qrangemodel/specialize.cpp color_gadget_table
 
     When used in a list, these types are however by default represented as
     multi-column rows, with each property represented as a separate column. To
@@ -464,24 +551,26 @@ Q_CORE_EXPORT QVariant qVariantAtIndex(const QModelIndex &index)
     with a \c{static constexpr auto rowCategory} member variable set to
     MultiRoleItem.
 
-    \snippet qrangemodel/main.cpp color_gadget_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_decl
     \dots
-    \snippet qrangemodel/main.cpp color_gadget_end
-    \snippet qrangemodel/main.cpp color_gadget_multi_role_gadget
+    \snippet qrangemodel/specialize.cpp color_gadget_end
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_rowCategory
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
 
     You can also wrap such types into a single-element tuple, turning the list
     into a table with a single column:
 
-    \snippet qrangemodel/main.cpp color_gadget_single_column
+    \snippet qrangemodel/specialize.cpp color_gadget_single_column
 
     In this case, note that direct access to the elements in the list data
     needs to use \c{std::get}:
 
-    \snippet qrangemodel/main.cpp color_gadget_single_column_access_get
+    \snippet qrangemodel/specialize.cpp color_gadget_single_column_access_get
 
     or alternatively a structured binding:
 
-    \snippet qrangemodel/main.cpp color_gadget_single_column_access_sb
+    \snippet qrangemodel/specialize.cpp color_gadget_single_column_access_sb
 
     \section2 Rows as values or pointers
 
@@ -670,6 +759,81 @@ Q_CORE_EXPORT QVariant qVariantAtIndex(const QModelIndex &index)
     Each choice has different performance and memory overhead trade-offs. The
     best option depends on the exact use case and data structure used.
 
+    \section1 Customization by template specialization
+
+    QRangeModel declares two nested templates types that you can specialize to
+    override default behavior.
+
+    The RowOptions template we have already introduced above is for customizing
+    functionality that is specific to the row-type, such as header data, or
+    that should apply uniformly to all items in a row, such as default flags.
+    The ItemAccess template allows customizing item type specific behavior,
+    such as reading or writing role data.
+
+    These two templates always need to be specialized for the underlying type,
+    so even if the range holds rows of type \c{Row} as
+    \c{std::unique_ptr<Row>}, or items of type \c{Item} as
+    \c{std::shared_ptr<Item>}, the specialization needs to be for \c{Row} and
+    \c{Item}.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \dots
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_use
+
+    \note In C++ you should only ever specialize templates for types that you
+    own, and not for standard or Qt types. Create subclasses or aggregates for
+    types you don't control if you need to customize behavior for those types.
+    Note that a type alias is not a distinct type, and you should not
+    specialize templates for alias types. However, it is allowed to create a
+    specialization of a standard or Qt container with a type that you own, such
+    as a \c{std::vector<MyGadget>}.
+
+    \section2 Row and item specific flags
+
+    The default implementation of flags() returns a combination of
+    Qt::ItemIsSelectable, Qt::ItemIsEnabled, and - except for items at column 0
+    of a tree model - Qt::ItemNeverHasChildren. The Qt::ItemIsEditable and
+    Qt::ItemIsDropEnabled flags are set for all items in models that are not
+    read-only, and Qt::ItemIsDragEnabled is set as long as the model supports
+    at least one \l{mimeTypes()}{mime type}.
+
+    To customize the default behavior for all items in a row, specialize the
+    RowOptions template. To access per-item flag data, specialize the
+    ItemAccess template. You can do both: RowOptions can set flags that are
+    common for all items in a row, and ItemAccess can set flags for items
+    backed by a specific type.
+
+    \section2 Drag'n'drop handling
+
+    Since Qt 6.12, QRangeModel implements the flags() virtual function to set
+    the Qt::ItemIsDragEnabled flag for all valid items in a model, as long as
+    the model supports at least one \l{mimeTypes()}{mime type}. This is the
+    default, as QAbstractItemModel provides the Qt-internal
+    "application/x-qabstractitemmodeldatalist" mime type. In addition, the
+    Qt::ItemIsDropEnabled flag is set for items in such a model as long as that
+    model is not read-only. This includes the non-existent item at the invalid
+    index, so users can drop data into empty areas of a view to append the
+    data.
+
+    Implementing support for additional mime types can be done without
+    subclassing QRangeModel and overriding the respective virtual functions.
+    QRangeModel will detect and use functions in the ItemAccess and RowOptions
+    customization templates to encode rows or items as \l{ItemAccess::mimeData()}
+    {mime data}, and to \l{ItemAccess::dropMimeData()}{decode mime data} into
+    sequences of rows or items. These customization functions can operate
+    directly on the row and item types, without taking detours through QModelIndex
+    and QVariant.
+
+    This way, the code for serializing data can be type-safe, and can stay with
+    the implementation of the type that is used to store the data.
+
+    In addition, \l{supportedDragActions} and \l{supportedDropActions} are
+    properties that can be configured for each QRangeModel instance.
+
+    \section1 Advanced C++ topics
+
     \section2 The C++ tuple protocol
 
     As seen in the \c{numberNames} example above, the row type can be a tuple,
@@ -714,7 +878,8 @@ Q_CORE_EXPORT QVariant qVariantAtIndex(const QModelIndex &index)
     Qt library used is Qt 6.12. To benefit from such new overrides, recompile
     your application.
 
-    \sa {Model/View Programming}
+    \sa QRangeModelAdapter, QAbstractItemModel, QStandardItemModel,
+        {Model/View Programming}
 */
 
 /*!
@@ -725,23 +890,204 @@ Q_CORE_EXPORT QVariant qVariantAtIndex(const QModelIndex &index)
            how QRangeModel represents types used as rows.
     \since 6.10
 
+    RowOptions\<T\> is a struct template where \a T specifies the row type.
     Specialize this template for the type used in your range, and add the
     relevant members.
 
-    \table
-    \header
-        \li Member
-        \li Values
-    \row
-        \li static constexpr RowCategory rowCategory
-        \li RowCategory
-    \endtable
-
-    \snippet qrangemodel/main.cpp color_gadget_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
     \dots
-    \snippet qrangemodel/main.cpp color_gadget_end
-    \snippet qrangemodel/main.cpp color_gadget_multi_role_gadget
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
 
+    \sa ItemAccess
+*/
+
+/*!
+    \variable QRangeModel::RowOptions::rowCategory
+
+    Set this static compile-time constant to one of the values in the
+    RowCategory enumerator to define how QRangeModel should interpret the
+    elements of the range. Not providing this constant is the equivalent of
+    RowCategory::Default.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_decl
+    \dots
+    \snippet qrangemodel/specialize.cpp color_gadget_end
+
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_rowCategory
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
+
+    If the \c{rowCategory} is set to \l{QRangeModel::RowCategory}{MultiRoleItem},
+    then none of the other members will have any effect.
+
+    \sa ItemAccess
+*/
+
+/*!
+    \fn template <typename T> QVariant QRangeModel::RowOptions<T>::headerData(int section, int role)
+    \since 6.12
+
+    Implement this class member to return the header data QRangeModel should
+    return for the \a role of the \a section in the horizontal header.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_headerData
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
+
+    If this member is not provided, then QRangeModel returns type-specific default
+    values from the headerData() implementation.
+
+    \sa QAbstractItemModel::headerData()
+*/
+
+/*!
+    \fn template <typename T> Qt::ItemFlags QRangeModel::RowOptions<T>::flags(const T &row)
+    \since 6.12
+
+    Implement this class member to return the \l{QAbstractItemModel::flags}{flags}
+    for all items in \a row.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_flags
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
+
+    This will be overwritten by a customization of \l{ItemAccess}{ItemAccess::flags}.
+
+    If this member is not provided, then QRangeModel computes the flags based
+    on the range it was constructed from.
+
+    \sa QAbstractItemModel::flags()
+*/
+
+/*!
+    \fn template <typename T> static QStringList QRangeModel::RowOptions<T>::mimeTypes()
+    \since 6.12
+
+    Implement this class member to return the list of \l{QAbstractItemModel::mimeTypes}
+    {mime types} that a model holding rows of type \a T can use to represent the
+    model data during drag'n'drop operations.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_mimeTypes
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
+
+    If this member is not provided, then QRangeModel returns the default mime
+    type, "application/x-qabstractitemmodeldatalist", as supported by
+    QAbstractItemModel. If the returned list does not include that mime type,
+    then it will not be supported.
+
+    \sa QAbstractItemModel::mimeTypes()
+*/
+
+/*!
+    \fn template <typename T> QMimeData *QRangeModel::RowOptions<T>::mimeData(const auto &range)
+    \fn template <typename T> QMimeData *QRangeModel::RowOptions<T>::mimeData(const QModelIndex &range)
+    \since 6.12
+
+    Implement one of these class members to return the \l{QAbstractItemModel::mimeData()}
+    {mime data} for the rows in the provided \a range.
+
+    If the generic version is provided, then the iterator over \a range is
+    bidirectional, and dereferences to a pair of a row of type \a T and the
+    corresponding QModelIndex.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_mimeData
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
+    \code
+    for (const auto &[row, index] : range) {
+        // ...
+    }
+    \endcode
+
+    Fully selected rows will be included in the range only once, paired with an
+    \c index that holds the row number and parent, and a column of -1.
+    Partially selected rows are included in the range multiple times, once for
+    each selected column.
+
+    The entries in \a range are sorted in logical order, from top-most to last
+    row, and from left-most column to last column.
+
+    \sa QAbstractItemModel::mimeData()
+*/
+
+/*!
+    \fn template <typename T> bool QRangeModel::RowOptions<T>::canDropMimeData(const QMimeData *data)
+    \fn template <typename T> bool QRangeModel::RowOptions<T>::canDropMimeData(const QMimeData *data, Qt::DragAction action, int row, int column, const QModelIndex &parent)
+    \since 6.12
+
+//! [specialize-canDropMimeData]
+    Implement one of these class members to return whether \c data can be dropped
+    into the model. If the simplified version is implemented, then QRangeModel will
+    validate that \a action is one of the \l{QRangeModel::supportedDropActions}
+    {supported drop actions}. In the full version the implementation can return
+    different results based on the position of the drop as specified by \a row,
+    \a column, and \a parent.
+
+    This member is optional and not required for drag'n'drop customization.
+    The default behavior returns whether \c data holds one of the supported mime
+    types.
+//! [specialize-canDropMimeData]
+
+    \sa QAbstractItemModel::canDropMimeData()
+*/
+
+/*!
+    \fn template <typename T> auto QRangeModel::RowOptions<T>::dropMimeData(const QMimeData *data, auto inserter)
+    \fn template <typename T> auto QRangeModel::RowOptions<T>::dropMimeData(const QMimeData *data, Qt::DragAction action, int row, int column, const QModelIndex &parent, auto inserter)
+    \since 6.12
+
+    Implement one of these class members to decode the relevant entries in \a
+    data into a sequence of rows of type \a T, and drop these rows into the
+    model by assigning each to the provided \a inserter. Return whether the
+    operation was successful.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_dropMimeData
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
+
+    The \a inserter behaves like a \l{https://cppreference.com/cpp/iterator/back_insert_iterator}
+    {std::back_insert_iterator} and can be used with e.g. \c{std::copy}. The
+    above snippets omits error handling, which perhaps would require storing the
+    decoded items in a separate list that can be discarded in case of an error.
+    The following would efficiently move the decoded rows into the model:
+
+    \code
+    static bool dropMimeData(const QMimeData *mimeData, auto inserter)
+    {
+        QList<ColorEntry> decodedEntries;
+        // read stream and populate decodedEntries
+
+        if (stream.hasError())
+            return false;
+        std::copy(std::move_iterator(decodedRows.begin()), std::move_iterator(decodedRows.end()),
+                    inserter);
+        return true;
+    }
+    \endcode
+
+    Optionally, decoded rows can be paired with the relative row number it
+    should have in the inserted range of rows.
+
+    \code
+    int row = 0;
+    for (const auto &decodedRow : decodedRows) {
+        inserter = {decodedRow, row};
+        row += 2;
+    }
+    \endcode
+
+    This implementation keeps an empty row between each decoded row.
+
+//! [specialize-dropMimeData-return]
+    Return one of the \l{QRangeModel::}{DropOperation} values to provide a hint
+    to QRangeModel for how the dropped rows should be applied to the model.
+    Alternatively, simply return \c{true} (the equivalent of
+    \l{QRangeModel::}{DropOperation::Automatic}) or \c{false} (the equivalent of
+    \l{QRangeModel::}{DropOperation::DontDrop}).
+//! [specialize-dropMimeData-return]
+
+    \sa QAbstractItemModel::dropMimeData()
 */
 
 /*!
@@ -771,38 +1117,167 @@ Q_CORE_EXPORT QVariant qVariantAtIndex(const QModelIndex &index)
            how QRangeModel accesses role data of individual items.
     \since 6.11
 
+    ItemAccess\<T\> is a struct template where \a T specifies the item type.
     Specialize this template for the type used in your data structure, and
-    implement \c{readRole()} and \c{writeRole()} members to access the role-
-    specific data of your type.
+    implement the relevant class member functions.
 
-    \code
-    template <>
-    struct QRangeModel::ItemAccess<ItemType>
-    {
-        static QVariant readRole(const ItemType &item, int role)
-        {
-            switch (role) {
-                // ...
-            }
-            return {};
-        }
-
-        static bool writeRole(ItemType &item, const QVariant &data, int role)
-        {
-            bool ok = false;
-            switch (role) {
-                // ...
-            }
-
-            return ok;
-        }
-    };
-    \endcode
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_flags
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_readRole
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_writeRole
+    \dots
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
 
     A specialization of this type will take precedence over any predefined
-    behavior. Do not specialize this template for types you do not own. Types
-    for which ItemAccess is specialized are implicitly interpreted as
-    \l{RowCategory}{multi-role items}.
+    behavior, and over a corresponding specialization of \l{QRangeModel::}{RowOptions}.
+
+    \note Do not specialize this template for types you do not own.
+*/
+
+/*!
+    \fn template <typename T> QVariant QRangeModel::ItemAccess<T>::readRole(const T &item, int role)
+
+    Implement this class member to return the data in \a item for the requested
+    \a role.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_readRole
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
+
+    Types for which ItemAccess is specialized with a \c{readRole} implementation
+    are implicitly interpreted as \l{RowCategory}{multi-role items}.
+
+    \sa QAbstractItemModel::data()
+*/
+
+/*!
+    \fn template <typename T> bool QRangeModel::ItemAccess<T>::writeRole(T &item, const QVariant &value, int role)
+
+    Implement this class member to set the data of \a item for the requested
+    \a role to the provided \a value, and return whether the change was
+    successful.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_writeRole
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
+
+    \sa QAbstractItemModel::setData()
+*/
+
+/*!
+    \fn template <typename T> Qt::ItemFlags QRangeModel::ItemAccess<T>::flags(const T &item)
+    \since 6.12
+
+    Implement this class member to return the \l{QAbstractItemModel::flags}{flags}
+    for \a item.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_flags
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
+
+    \sa QAbstractItemModel::flags()
+*/
+
+/*!
+    \fn template <typename T> static QStringList QRangeModel::ItemAccess<T>::mimeTypes()
+    \since 6.12
+
+    Implement this class member to return the list of \l{QAbstractItemModel::mimeTypes}
+    {mime types} that a model holding items of type \a T can use to represent the
+    model data during drag'n'drop operations.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_mimeTypes
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
+
+    If the list includes the \l{QAbstractItemModel::mimeTypes()}{default mime type}
+    that Qt uses for drag'n'drop data, then QRangeModel will take care of the
+    encoding and decoding of data for that mime type automatically.
+
+//! [specialize-ItemAccess-dragdrop]
+    \note This specialization will only be considered when all items in the
+    model are backed by items of type \a T. For heterogenous models where
+    different columns provide different data types, specialize
+    \l{QRangeModel::}{RowOptions} instead.
+//! [specialize-ItemAccess-dragdrop]
+
+    \sa QAbstractItemModel::mimeTypes()
+*/
+
+/*!
+    \fn template <typename T> QMimeData *QRangeModel::ItemAccess<T>::mimeData(const auto &range)
+    \fn template <typename T> QMimeData *QRangeModel::ItemAccess<T>::mimeData(const QModelIndex &range)
+    \since 6.12
+
+    Implement one of these class members to return the \l{QAbstractItemModel::mimeData()}
+    {mime data} for the items in the provided \a range.
+
+    If the generic version is provided, then the iterator over \a range is
+    bidirectional, and dereferences to a pair with an item of type \a T and the
+    corresponding QModelIndex.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_mimeData
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
+
+    The entries in \a range are sorted in logical order, from top-most to last row,
+    and from left-most column to last column.
+
+    \include qrangemodel.cpp specialize-ItemAccess-dragdrop
+
+    \sa QAbstractItemModel::mimeData()
+*/
+
+/*!
+    \fn template <typename T> bool QRangeModel::ItemAccess<T>::canDropMimeData(const QMimeData *data)
+    \fn template <typename T> bool QRangeModel::ItemAccess<T>::canDropMimeData(const QMimeData *data, Qt::DragAction action, int row, int column, const QModelIndex &parent)
+    \since 6.12
+
+    \include qrangemodel.cpp specialize-canDropMimeData
+
+    \include qrangemodel.cpp specialize-ItemAccess-dragdrop
+
+    \sa QAbstractItemModel::canDropMimeData()
+*/
+
+/*!
+    \fn template <typename T> auto QRangeModel::ItemAccess<T>::dropMimeData(const QMimeData *data, auto inserter)
+    \fn template <typename T> auto QRangeModel::ItemAccess<T>::dropMimeData(const QMimeData *data, Qt::DragAction action, int row, int column, const QModelIndex &parent, auto inserter)
+    \since 6.12
+
+    Implement one of these class members to decode the relevant entries in \a data
+    into a sequence of items of type \a T, and drop these rows into the
+    model by assigning each to the provided \a inserter. Return whether the
+    operation was successful.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_dropMimeData
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
+
+    Optionally, decoded items can be paired with a row and column value relative
+    to the drop location. If the mime data includes positional information, then
+    this makes it possible to maintain the "shape" of the items.
+
+    \code
+    for (const auto &decodedItem: decodedItems) {
+        inserter = {
+            decodedItem,
+            {
+                relativeRow,
+                relativeColumn
+            }
+        };
+    }
+    \endcode
+
+    Implement the version with \a action, \a row, \a column, and \a parent
+    parameters for full control over the operation.
+
+    \include qrangemodel.cpp specialize-dropMimeData-return
+
+    \include qrangemodel.cpp specialize-ItemAccess-dragdrop
+
+    \sa QAbstractItemModel::dropMimeData()
 */
 
 /*!
@@ -951,7 +1426,22 @@ int QRangeModel::columnCount(const QModelIndex &parent) const
     models operating on a range with mutable data, it also sets the flag
     that allows the item to be editable (\c ItemIsEditable).
 
-    \sa Qt::ItemFlags
+    Models that return a non-empty list of \l{mimeTypes()}{mimeTypes()} also
+    set the Qt::ItemIsDragEnabled, and - unless read-only - the
+    Qt::ItemIsDropEnabled flag.
+
+    Flat models set the Qt::ItemNeverHasChildren for all items, while
+    hierarchical models set that flag for all items in columns above 0.
+
+    To customize the flags for your own data types, provide a specialization
+    of RowOptions and/or ItemAccess for your row or item types and implement a
+    \l{ItemAccess::}{flags()} static member function:
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_flags
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
+
+    \sa Qt::ItemFlags, RowOptions, ItemAccess
 */
 Qt::ItemFlags QRangeModel::flags(const QModelIndex &index) const
 {
@@ -975,10 +1465,18 @@ Qt::ItemFlags QRangeModel::flags(const QModelIndex &index) const
     type at \a section. For rows that are a gadget or QObject type, this
     function returns the name of the property at the index of \a section.
 
+    To customize the horizontal header data for your own range, provide a
+    specialization of RowOptions for your row types and implement a
+    \l{RowOptions::}{headerData()} class member function:
+
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_headerData
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
+
     For the vertical header, this function always returns the result of the
     default implementation in QAbstractItemModel.
 
-    \sa Qt::ItemDataRole, setHeaderData(), QHeaderView
+    \sa Qt::ItemDataRole, setHeaderData(), QHeaderView, RowOptions
 */
 QVariant QRangeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -1276,46 +1774,236 @@ QModelIndex QRangeModel::buddy(const QModelIndex &index) const
 }
 
 /*!
+    \enum QRangeModel::DropOperation
+    \since 6.12
+
+    This enum defines how data decoded in a dropMimeData() customization gets
+    written to the model.
+
+    \value DontDrop             The data should not be added to the model.
+    \value Automatic            Qt determines how data gets added to the model.
+    \value OverwriteAndIgnore   Overwrite the dropped-on item and following items,
+                                and discard any dropped data that doesn't fit.
+    \value OverwriteAndExtend   Overwrite the dropped-on item and following items,
+                                and grow the model to fit all dropped data.
+    \value InsertAsSiblings     Insert all dropped data as siblings of the dropped-on
+                                item.
+    \value InsertAsChildren     Insert all dropped data as children of the dropped-on
+                                item.
+
+    A dropMimeData() customization can return a bool value instead, in which
+    case \c{false} maps to the DontDrop value, and \c{true} to Automatic.
+
+    \sa canDropMimeData(), dropMimeData()
+*/
+
+/*
+//! [override-calls-specialization]
+    If a customization of ItemAccess is available for the item type stored in
+    the range, and if that customization implements a suitable
+    \l{ItemAccess::}{\1()} class member function, then this implementation
+    calls that function and returns the result.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_\1
+    \snippet qrangemodel/specialize.cpp color_gadget_item_access_end_decl
+
+    Otherwise, if a customization of RowOptions is available for the row type
+    in the range with a suitable \l{RowOptions::}{\1()} class member function,
+    then this implementation returns the result of calling that function.
+
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_decl
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_\1
+    \snippet qrangemodel/specialize.cpp color_gadget_row_options_end_decl
+
+    If neither customization is available, then this returns the result of the
+    default QAbstractItemModel implementation.
+
+    \sa {QRangeModel#Drag'n'drop handling}{Drag'n'drop handling},
+        RowOptions::\1(), ItemAccess::\1()
+//! [override-calls-specialization]
+*/
+
+/*!
     \reimp
+
+    \include qrangemodel.cpp {override-calls-specialization} {canDropMimeData}
+
+    \sa dropMimeData(), mimeTypes(), mimeData()
 */
 bool QRangeModel::canDropMimeData(const QMimeData *data, Qt::DropAction action,
-                                        int row, int column, const QModelIndex &parent) const
+                                  int row, int column, const QModelIndex &parent) const
 {
-    return QAbstractItemModel::canDropMimeData(data, action, row, column, parent);
+    Q_D(const QRangeModel);
+    if (d->m_interfaceVersion < QT_VERSION_CHECK(6, 12, 0))
+        return QAbstractItemModel::canDropMimeData(data, action, row, column, parent);
+    return d->impl->call<QRangeModelImplBase::CanDropMimeData>(data, action, row, column, parent);
 }
 
 /*!
     \reimp
+
+    \include qrangemodel.cpp {override-calls-specialization} {dropMimeData}
+
+    \sa canDropMimeData(), mimeTypes(), mimeData()
 */
 bool QRangeModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
-                                     int row, int column, const QModelIndex &parent)
+                               int row, int column, const QModelIndex &parent)
 {
-    return QAbstractItemModel::dropMimeData(data, action, row, column, parent);
+    if (!data)
+        return false;
+    if (action == Qt::IgnoreAction)
+        return true;
+
+    Q_D(QRangeModel);
+    if (d->m_interfaceVersion < QT_VERSION_CHECK(6, 12, 0))
+        return QAbstractItemModel::dropMimeData(data, action, row, column, parent);
+    if (d->impl->call<QRangeModelImplBase::DropMimeData>(data, action, row, column, parent))
+        return true;
+
+    // failing that, insert the data as new indexes. A row of -1 indicates
+    // that data should be appended to the model
+    if (row == -1)
+        row = rowCount(parent);
+#if !defined(QT_NO_DATASTREAM)
+    const QString defaultFormat = QAbstractItemModel::mimeTypes().at(0);
+    if (data->hasFormat(defaultFormat)) {
+        QByteArray encoded = data->data(defaultFormat);
+        QDataStream stream(&encoded, QDataStream::ReadOnly);
+        return decodeData(row, column, parent, stream);
+    }
+#endif
+    return false;
+}
+
+bool QRangeModelImplBase::dropDataOnItem(const QMimeData *data, const QModelIndex &index)
+{
+#if !defined(QT_NO_DATASTREAM)
+    const QString defaultFormat = m_rangeModel->QAbstractItemModel::mimeTypes().at(0);
+    if (data->hasFormat(defaultFormat)) {
+        QByteArray encoded = data->data(defaultFormat);
+        QDataStream stream(&encoded, QDataStream::ReadOnly);
+        return m_rangeModel->d_func()->dropOnItem(index, stream);
+    }
+#endif
+    return false;
+}
+
+// QModelIndex::operator< is not useful as it compares the internal data pointer.
+// We need to compare indexes based on the row path, taking into account
+// that only items at column zero can have children.
+bool QRangeModelPrivate::compareModelIndex(const QModelIndex &left, const QModelIndex &right)
+{
+    if (!left.isValid())
+        return right.isValid();
+    if (!right.isValid())
+        return false;
+    const QModelIndex leftCol0 = left.column() ? left.siblingAtColumn(0) : left;
+    const QModelIndex rightCol0 = right.column() ? right.siblingAtColumn(0) : right;
+    const QModelIndex leftParent = leftCol0.parent();
+    const QModelIndex rightParent = rightCol0.parent();
+    if (leftParent == rightParent) {
+        if (left.row() == right.row())
+            return left.column() < right.column();
+        return left.row() < right.row();
+    }
+    // parents come before their children
+    if (leftCol0 == rightParent)
+        return true;
+    if (rightCol0 == leftParent)
+        return false;
+
+    // indexes are not directly related, so generate and compare their paths
+    auto makePath = [](const QModelIndex &index) {
+        // we call with col0 indexes and a parent can never be at another column
+        Q_ASSERT(index.column() == 0);
+        QVarLengthArray<int, 32> path{index.row()};
+        QModelIndex parent = index.parent();
+        while (parent.isValid()) {
+            path.append(parent.row());
+            parent = parent.parent();
+        }
+        std::reverse(path.begin(), path.end());
+        return path;
+    };
+    const auto leftPath = makePath(leftCol0);
+    const auto rightPath = makePath(rightCol0);
+    return leftPath < rightPath;
 }
 
 /*!
     \reimp
+
+    \include qrangemodel.cpp {override-calls-specialization} {mimeData}
+
+    \sa canDropMimeData(), dropMimeData(), mimeTypes()
 */
 QMimeData *QRangeModel::mimeData(const QModelIndexList &indexes) const
 {
-    return QAbstractItemModel::mimeData(indexes);
+    Q_D(const QRangeModel);
+    if (indexes.isEmpty())
+        return nullptr;
+
+    if (d->m_interfaceVersion < QT_VERSION_CHECK(6, 12, 0))
+        return QAbstractItemModel::mimeData(indexes);
+
+    // sort the indexes so that all indexes in the same row are in sequence.
+    QModelIndexList groupedList = indexes;
+    std::sort(groupedList.begin(), groupedList.end(), QRangeModelPrivate::compareModelIndex);
+    QMimeData *data = d->impl->call<QRangeModelImplBase::MimeData>(groupedList);
+
+    // finalize with default mime type
+    const QString defaultFormat = QAbstractItemModel::mimeTypes().at(0);
+    if (!mimeTypes().contains(defaultFormat))
+        return data;
+
+    std::unique_ptr<QMimeData> defaultMimeData(QAbstractItemModel::mimeData(indexes));
+    if (!data)
+        return defaultMimeData.release();
+    // add default mime data into the custom data
+    if (defaultMimeData) {
+        const QStringList defaultTypes = defaultMimeData->formats();
+        for (const auto &defaultType : defaultTypes)
+            data->setData(defaultType, defaultMimeData->data(defaultType));
+    }
+    return data;
 }
 
 /*!
     \reimp
+
+    \include qrangemodel.cpp {override-calls-specialization} {mimeTypes}
+
+    \sa canDropMimeData(), dropMimeData(), mimeData()
 */
 QStringList QRangeModel::mimeTypes() const
 {
-    return QAbstractItemModel::mimeTypes();
+    Q_D(const QRangeModel);
+    if (!d->m_mimeTypes) {
+        d->m_mimeTypes = d->m_interfaceVersion < QT_VERSION_CHECK(6, 12, 0)
+                       ? QAbstractItemModel::mimeTypes()
+                       : d->impl->call<QRangeModelImplBase::MimeTypes>();
+    }
+    return *d->m_mimeTypes;
 }
 
 /*!
     \reimp
+
+    Returns a list of indexes for the items in the column of \a start where
+    the data stored under \a role matches \a value, using the match criteria
+    defined by \a flags. Use \a hits = -1 to find all matching items.
+
+    \note This implementation reads data directly from the underlying C++
+    range and does not dispatch through overrides of data().
 */
 QModelIndexList QRangeModel::match(const QModelIndex &start, int role, const QVariant &value,
                                          int hits, Qt::MatchFlags flags) const
 {
-    return QAbstractItemModel::match(start, role, value, hits, flags);
+    Q_D(const QRangeModel);
+    if (d->m_interfaceVersion < QT_VERSION_CHECK(6, 12, 0))
+        return QAbstractItemModel::match(start, role, value, hits, flags);
+    return d->impl->call<QRangeModelImplBase::Match>(start, role, value, hits, flags);
 }
 
 /*!
@@ -1483,10 +2171,95 @@ void QRangeModel::setAutoConnectPolicy(QRangeModel::AutoConnectPolicy policy)
 
 /*!
     \reimp
+
+    Sorts the the underlying range in the given \a order, based on the data for
+    the \l{sortRole} (Qt::DisplayRole by default) of the items in \a column.
+
+    \note This implementation uses a member function \c{sort(Compare comp)} of
+    the C++ range if available (such as in \c{std::list}), or otherwise
+    \c{std::stable_sort()} if the range provides random-access iterators. If
+    neither is available then the implementation does nothing and returns
+    immediately.
+
+    \note Accessing the item does not dispatch the reading of data through
+    overrides of data().
+
+    \sa sortRole, QSortFilterProxyModel
 */
 void QRangeModel::sort(int column, Qt::SortOrder order)
 {
-    return QAbstractItemModel::sort(column, order);
+    Q_D(QRangeModel);
+    if (d->m_interfaceVersion < QT_VERSION_CHECK(6, 12, 0))
+        return QAbstractItemModel::sort(column, order);
+    QT_TRY {
+        d->impl->call<QRangeModelImplBase::Sort>(column, order);
+    } QT_CATCH(const std::bad_alloc &) {
+        qCritical("QRangeModel::sort ran out of memory, sort likely incomplete.");
+    }
+}
+
+/*!
+    \property QRangeModel::sortRole
+    \since 6.12
+    \brief the data role used when sorting items.
+
+    The default value is Qt::DisplayRole.
+
+    \sa sort(), sortCollator, QSortFilterProxyModel
+*/
+int QRangeModel::sortRole() const
+{
+    Q_D(const QRangeModel);
+    return d->m_sortRole;
+}
+
+void QRangeModel::setSortRole(int role)
+{
+    Q_D(QRangeModel);
+    if (d->m_sortRole == role)
+        return;
+    d->m_sortRole = role;
+    Q_EMIT sortRoleChanged(d->m_sortRole);
+}
+
+void QRangeModel::resetSortRole()
+{
+    setSortRole(Qt::DisplayRole);
+}
+
+/*!
+    \property QRangeModel::sortCollator
+    \since 6.12
+    \brief the collator that will be used when sorting the model
+
+    The default value of this property is a QCollator for the C-locale.
+    Sorting will not be locale aware, and case sensitive. Setting a collator
+    will make the sorting locale-aware.
+
+    \sa sort(), sortRole, QSortFilterProxyModel
+*/
+QCollator QRangeModel::sortCollator() const
+{
+    Q_D(const QRangeModel);
+    return d->m_sortCollator.value_or(QCollator(QLocale::C));
+}
+
+void QRangeModel::setSortCollator(const QCollator &collator)
+{
+    Q_D(QRangeModel);
+    if (sortCollator() == collator)
+        return;
+    d->m_sortCollator = collator;
+    Q_EMIT sortCollatorChanged(*d->m_sortCollator);
+}
+
+void QRangeModel::resetSortCollator()
+{
+    Q_D(QRangeModel);
+    if (!d->m_sortCollator)
+        return;
+    d->m_sortCollator = std::nullopt;
+    Q_EMIT sortCollatorChanged(sortCollator());
 }
 
 /*!
@@ -1498,19 +2271,70 @@ QSize QRangeModel::span(const QModelIndex &index) const
 }
 
 /*!
-    \reimp
+    \property QRangeModel::supportedDragActions
+    \since 6.12
+    \brief the drag-actions supported by this model.
+
+    Actions that the model cannot support, such as moving data out of a
+    read-only model, will be removed when setting the actions.
+
+    \note Overriding this function in a QRangeModel subclass is possible,
+    but might break the behavior of the property.
+
+    \sa supportedDropActions
 */
 Qt::DropActions QRangeModel::supportedDragActions() const
 {
-    return QAbstractItemModel::supportedDragActions();
+    Q_D(const QRangeModel);
+    return d->m_supportedDragActions;
+}
+
+void QRangeModel::setSupportedDragActions(Qt::DropActions actions)
+{
+    Q_D(QRangeModel);
+    actions = d->impl->call<QRangeModelImplBase::AdjustSupportedDragActions>(actions);
+    if (actions == d->m_supportedDragActions)
+        return;
+    d->m_supportedDragActions = actions;
+    Q_EMIT supportedDragActionsChanged(d->m_supportedDragActions);
+}
+
+void QRangeModel::resetSupportedDragActions()
+{
+    setSupportedDragActions(Qt::CopyAction);
 }
 
 /*!
-    \reimp
+    \property QRangeModel::supportedDropActions
+    \since 6.12
+    \brief the drop-actions supported by this model.
+
+    Read-only models cannot support any drop-actions.
+
+    \note Overriding this function in a QRangeModel subclass is possible,
+    but might break the behavior of the property.
+
+    \sa supportedDragActions
 */
 Qt::DropActions QRangeModel::supportedDropActions() const
 {
-    return QAbstractItemModel::supportedDropActions();
+    Q_D(const QRangeModel);
+    return d->m_supportedDropActions;
+}
+
+void QRangeModel::setSupportedDropActions(Qt::DropActions actions)
+{
+    Q_D(QRangeModel);
+    actions = d->impl->call<QRangeModelImplBase::AdjustSupportedDropActions>(actions);
+    if (actions == d->m_supportedDropActions)
+        return;
+    d->m_supportedDropActions = actions;
+    Q_EMIT supportedDropActionsChanged(d->m_supportedDropActions);
+}
+
+void QRangeModel::resetSupportedDropActions()
+{
+    setSupportedDropActions(Qt::CopyAction);
 }
 
 /*!

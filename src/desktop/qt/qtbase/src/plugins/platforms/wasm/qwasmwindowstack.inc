@@ -26,6 +26,13 @@ void QWasmWindowStack<Window>::invariant()
     Q_ASSERT(m_regularWindowsBegin >= m_windowStack.begin());
     Q_ASSERT(m_regularWindowsBegin <= m_alwaysOnTopWindowsBegin);
     Q_ASSERT(m_alwaysOnTopWindowsBegin <= m_windowStack.end());
+
+#ifndef NDEBUG
+    for(auto it = begin(); it != end(); ++it)
+    {
+        Q_ASSERT(m_windowStack.count(*it) == 1);
+    }
+#endif
 }
 
 /* insert a window at the correct location.
@@ -57,7 +64,7 @@ void QWasmWindowStack<Window>::pushWindow(Window *window, PositionPreference pos
 
     if (position == PositionPreference::StayAboveTransientParent) {
         Q_ASSERT(window->transientParent());
-        const auto it =
+        auto it =
                 std::find(m_windowStack.begin(), m_windowStack.end(), window->transientParent());
         if (it == m_windowStack.end()) {
             qWarning() << "QWasmWindowStack<Window>::pushWindow - missing parent"
@@ -65,15 +72,30 @@ void QWasmWindowStack<Window>::pushWindow(Window *window, PositionPreference pos
             pushWindow(window, PositionPreference::Regular, insertAtRegionBegin, callCallbacks);
             return;
         } else {
-            if (it >= m_alwaysOnTopWindowsBegin)
-                ;
-            else if (it >= m_regularWindowsBegin)
-                ++stayOnTopDistance;
-            else {
-                ++regularDistance;
-                ++stayOnTopDistance;
+            if (insertAtRegionBegin) {
+                if (it >= m_alwaysOnTopWindowsBegin) {
+                    ;
+                } else if (it >= m_regularWindowsBegin) {
+                    ++stayOnTopDistance;
+                } else {
+                    ++regularDistance;
+                    ++stayOnTopDistance;
+                }
+                ++it;
+            } else {
+                if (it >= m_alwaysOnTopWindowsBegin) {
+                    it = m_windowStack.end();
+                } else if (it >= m_regularWindowsBegin) {
+                    it = m_alwaysOnTopWindowsBegin;
+                    ++stayOnTopDistance;
+                } else {
+                    it = m_regularWindowsBegin;
+                    ++regularDistance;
+                    ++stayOnTopDistance;
+                }
             }
-            m_windowStack.insert(it + 1, window);
+
+            m_windowStack.insert(it, window);
         }
     } else if (position == PositionPreference::StayOnTop) {
         if (insertAtRegionBegin)
@@ -185,6 +207,7 @@ bool QWasmWindowStack<Window>::raiseImpl(Window *window)
         raiseImpl(w);
     }
     invariant();
+    Q_ASSERT(m_windowStack.count(window) == 1);
     return true;
 }
 
@@ -234,6 +257,7 @@ bool QWasmWindowStack<Window>::lowerImpl(Window *window)
         lowerImpl(w);
     }
     invariant();
+    Q_ASSERT(m_windowStack.count(window) == 1);
     return true;
 }
 
@@ -242,6 +266,7 @@ void QWasmWindowStack<Window>::windowPositionPreferenceChanged(Window *window,
                                                                    PositionPreference position)
 {
     invariant();
+    Q_ASSERT(m_windowStack.count(window) == 1);
 
     auto it = std::find(m_windowStack.begin(), m_windowStack.end(), window);
     const auto currentPosition = getWindowPositionPreference(it);
@@ -279,6 +304,7 @@ void QWasmWindowStack<Window>::windowPositionPreferenceChanged(Window *window,
         m_windowOrderChangedCallback();
     }
     invariant();
+    Q_ASSERT(m_windowStack.count(window) == 1);
 }
 
 template <typename Window>
@@ -371,6 +397,8 @@ typename QWasmWindowStack<Window>::PositionPreference
 QWasmWindowStack<Window>::getWindowPositionPreference(
     typename StorageType::const_iterator windowIt, bool testStayAbove) const
 {
+    Q_ASSERT(windowIt != m_windowStack.end());
+    Q_ASSERT(m_windowStack.contains(*windowIt));
     Window *window = *windowIt;
     if (testStayAbove && shouldBeAboveTransientParent(window))
         return PositionPreference::StayAboveTransientParent;

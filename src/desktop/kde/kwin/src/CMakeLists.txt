@@ -1,4 +1,5 @@
 set(KWIN_KILLER_BIN ${CMAKE_INSTALL_FULL_LIBEXECDIR}/kwin_killer_helper)
+set(KWIN_DIALOG_BIN ${CMAKE_INSTALL_FULL_LIBEXECDIR}/kwin_dialog_helper)
 
 configure_file(config-kwin.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-kwin.h)
 
@@ -23,13 +24,22 @@ set_target_properties(kwin PROPERTIES
    SOVERSION 6
 )
 
+target_compile_features(kwin PUBLIC cxx_std_23)
+
 target_compile_definitions(kwin PRIVATE
     -DTRANSLATION_DOMAIN=\"kwin\"
+)
+target_compile_definitions(kwin PUBLIC
+    -DVULKAN_HPP_NO_EXCEPTIONS=1
+    -DVULKAN_HPP_ASSERT_ON_RESULT=void
+    -DVULKAN_HPP_NO_SPACESHIP_OPERATOR=1
+    -DVULKAN_HPP_TYPESAFE_CONVERSION=1
+    -DVULKAN_HPP_HANDLES_MOVE_EXCHANGE=1
 )
 
 target_sources(kwin PRIVATE
     3rdparty/xcursor.c
-    a11ykeyboardmonitor.cpp
+    a11ymanager.cpp
     activation.cpp
     appmenu.cpp
     client_machine.cpp
@@ -40,11 +50,14 @@ target_sources(kwin PRIVATE
     core/colorpipelinestage.cpp
     core/colorspace.cpp
     core/colortransformation.cpp
+    core/drm_formats.cpp
     core/drmdevice.cpp
     core/gbmgraphicsbufferallocator.cpp
+    core/gpumanager.cpp
     core/graphicsbuffer.cpp
     core/graphicsbufferallocator.cpp
     core/graphicsbufferview.cpp
+    core/hostmemoryallocator.cpp
     core/iccprofile.cpp
     core/inputbackend.cpp
     core/inputdevice.cpp
@@ -55,6 +68,7 @@ target_sources(kwin PRIVATE
     core/rect.cpp
     core/region.cpp
     core/renderbackend.cpp
+    core/renderdevice.cpp
     core/renderjournal.cpp
     core/renderloop.cpp
     core/rendertarget.cpp
@@ -65,6 +79,7 @@ target_sources(kwin PRIVATE
     core/session_noop.cpp
     core/shmgraphicsbufferallocator.cpp
     core/syncobjtimeline.cpp
+    core/udmabufallocator.cpp
     cursor.cpp
     cursorsource.cpp
     dbusinterface.cpp
@@ -87,6 +102,7 @@ target_sources(kwin PRIVATE
     effect/offscreeneffect.cpp
     effect/offscreenquickview.cpp
     effect/quickeffect.cpp
+    effect/springmotion.cpp
     effect/timeline.cpp
     focuschain.cpp
     ftrace.cpp
@@ -116,6 +132,7 @@ target_sources(kwin PRIVATE
     lidswitchtracker.cpp
     main.cpp
     mousebuttons.cpp
+    multigpuswapchain.cpp
     onscreennotification.cpp
     opengl/abstract_opengl_context_attribute_builder.cpp
     opengl/egl_context_attribute_builder.cpp
@@ -148,12 +165,12 @@ target_sources(kwin PRIVATE
     pluginmanager.cpp
     pointer_input.cpp
     popup_input_filter.cpp
-    qpainter/qpainterbackend.cpp
     qpainter/qpainterswapchain.cpp
     renderloopdrivenqanimationdriver.cpp
     resources.qrc
     rulebooksettings.cpp
     rules.cpp
+    scene/atlas.cpp
     scene/backgroundeffectitem.cpp
     scene/borderoutline.cpp
     scene/borderradius.cpp
@@ -165,7 +182,10 @@ target_sources(kwin PRIVATE
     scene/itemgeometry.cpp
     scene/itemrenderer.cpp
     scene/itemrenderer_opengl.cpp
-    scene/itemrenderer_qpainter.cpp
+    scene/ninepatch.cpp
+    scene/opengl/atlas.cpp
+    scene/opengl/ninepatch.cpp
+    scene/opengl/texture.cpp
     scene/outlinedborderitem.cpp
     scene/rootitem.cpp
     scene/scene.cpp
@@ -173,6 +193,7 @@ target_sources(kwin PRIVATE
     scene/surfaceitem.cpp
     scene/surfaceitem_internal.cpp
     scene/surfaceitem_wayland.cpp
+    scene/texture.cpp
     scene/windowitem.cpp
     scene/workspacescene.cpp
     screenedge.cpp
@@ -194,6 +215,7 @@ target_sources(kwin PRIVATE
     scripting/workspace_wrapper.cpp
     shadow.cpp
     sm.cpp
+    swapchain.cpp
     tablet_input.cpp
     tabletmodemanager.cpp
     tiles/customtile.cpp
@@ -201,6 +223,7 @@ target_sources(kwin PRIVATE
     tiles/tile.cpp
     tiles/tilemanager.cpp
     touch_input.cpp
+    useractionprompt.cpp
     useractions.cpp
     utils/svgcursorreader.cpp
     utils/version.cpp
@@ -208,6 +231,12 @@ target_sources(kwin PRIVATE
     virtualdesktops.cpp
     virtualdesktopsdbustypes.cpp
     virtualkeyboard_dbus.cpp
+    vulkan/vulkan_buffer.cpp
+    vulkan/vulkan_device.cpp
+    vulkan/vulkan_logging.cpp
+    vulkan/vulkan_queue.cpp
+    vulkan/vulkan_render_time_query.cpp
+    vulkan/vulkan_texture.cpp
     wayland_server.cpp
     waylandshellintegration.cpp
     waylandwindow.cpp
@@ -232,6 +261,7 @@ target_link_libraries(kwin
         KF6::WindowSystem
         epoxy::epoxy
         Libdrm::Libdrm
+        Vulkan::Vulkan
 
     PRIVATE
         Qt::Concurrent
@@ -263,6 +293,10 @@ target_link_libraries(kwin
 
 if (TARGET K::KGlobalAccelD)
     target_link_libraries(kwin PRIVATE K::KGlobalAccelD)
+endif()
+
+if (TARGET PkgConfig::libsystemd)
+    target_link_libraries(kwin PRIVATE PkgConfig::libsystemd)
 endif()
 
 if (KWIN_BUILD_X11)
@@ -320,6 +354,8 @@ qt_add_dbus_adaptor(kwin_dbus_SRCS org.kde.KWin.Session.xml sm.h KWin::SessionMa
 qt_add_dbus_adaptor(kwin_dbus_SRCS org.kde.KWin.Plugins.xml dbusinterface.h KWin::PluginManagerDBusInterface)
 qt_add_dbus_interface(kwin_dbus_SRCS org.freedesktop.DBus.Properties.xml dbusproperties_interface)
 
+qt_add_dbus_adaptor(kwin_dbus_SRCS org.freedesktop.a11y.xml a11ymanager.h KWin::A11yManager)
+
 set_source_files_properties(net.hadess.SensorProxy.xml PROPERTIES
     NO_NAMESPACE ON
 )
@@ -334,6 +370,9 @@ qt_add_dbus_interface(kwin_dbus_SRCS org.kde.kappmenu.xml appmenu_interface)
 target_sources(kwin PRIVATE
     ${kwin_dbus_SRCS}
 )
+
+ecm_add_qml_module(kwin URI "org.kde.kwin" VERSION 3.0 QT_NO_PLUGIN)
+target_include_directories(kwin PRIVATE scripting effect tiles tabbox) # needed so that code generated by ecm_add_qml_module finds the headers
 
 add_subdirectory(backends)
 add_subdirectory(plugins)
@@ -414,10 +453,6 @@ target_link_libraries(kwin_wayland
     KF6IdleTimeKWinPlugin
 )
 
-if (TARGET KF6GlobalAccelKWinPlugin)
-    target_link_libraries(kwin_wayland KF6GlobalAccelKWinPlugin)
-endif()
-
 add_custom_target(
     KWinDBusInterfaces
     ALL
@@ -451,7 +486,6 @@ endif()
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/config-kwin.h
     ${CMAKE_CURRENT_BINARY_DIR}/kwin_export.h
-    a11ykeyboardmonitor.h
     activities.h
     appmenu.h
     client_machine.h
@@ -485,6 +519,7 @@ install(FILES
     lidswitchtracker.h
     main.h
     mousebuttons.h
+    multigpuswapchain.h
     netinfo.h
     onscreennotification.h
     options.h
@@ -503,6 +538,7 @@ install(FILES
     screenedgegestures.h
     shadow.h
     sm.h
+    swapchain.h
     tablet_input.h
     tabletmodemanager.h
     touch_input.h
@@ -530,11 +566,14 @@ install(FILES
     core/colorpipelinestage.h
     core/colorspace.h
     core/colortransformation.h
+    core/drm_formats.h
     core/drmdevice.h
     core/gbmgraphicsbufferallocator.h
+    core/gpumanager.h
     core/graphicsbuffer.h
     core/graphicsbufferallocator.h
     core/graphicsbufferview.h
+    core/hostmemoryallocator.h
     core/iccprofile.h
     core/inputbackend.h
     core/inputdevice.h
@@ -546,6 +585,7 @@ install(FILES
     core/rect.h
     core/region.h
     core/renderbackend.h
+    core/renderdevice.h
     core/renderjournal.h
     core/renderloop.h
     core/renderloop_p.h
@@ -556,6 +596,7 @@ install(FILES
     core/session_logind.h
     core/session_noop.h
     core/shmgraphicsbufferallocator.h
+    core/udmabufallocator.h
     DESTINATION ${KDE_INSTALL_INCLUDEDIR}/kwin/core COMPONENT Devel)
 
 install(FILES
@@ -563,7 +604,6 @@ install(FILES
     utils/common.h
     utils/cursortheme.h
     utils/damagejournal.h
-    utils/drm_format_helper.h
     utils/edid.h
     utils/executable_path.h
     utils/filedescriptor.h
@@ -575,9 +615,7 @@ install(FILES
     utils/realtime.h
     utils/resource.h
     utils/serial.h
-    utils/serviceutils.h
     utils/softwarevsyncmonitor.h
-    utils/subsurfacemonitor.h
     utils/udev.h
     utils/version.h
     utils/vsyncmonitor.h
@@ -608,8 +646,8 @@ install(FILES
     opengl/eglswapchain.h
     opengl/eglutils_p.h
     opengl/glframebuffer.h
-    opengl/gllut3D.h
     opengl/gllut.h
+    opengl/gllut3D.h
     opengl/glplatform.h
     opengl/glrendertimequery.h
     opengl/glshader.h
@@ -622,6 +660,7 @@ install(FILES
 )
 
 install(FILES
+    scene/atlas.h
     scene/backgroundeffectitem.h
     scene/borderoutline.h
     scene/borderradius.h
@@ -633,7 +672,10 @@ install(FILES
     scene/itemgeometry.h
     scene/itemrenderer.h
     scene/itemrenderer_opengl.h
-    scene/itemrenderer_qpainter.h
+    scene/ninepatch.h
+    scene/opengl/atlas.h
+    scene/opengl/ninepatch.h
+    scene/opengl/texture.h
     scene/outlinedborderitem.h
     scene/rootitem.h
     scene/scene.h
@@ -641,9 +683,29 @@ install(FILES
     scene/surfaceitem.h
     scene/surfaceitem_internal.h
     scene/surfaceitem_wayland.h
+    scene/texture.h
     scene/windowitem.h
     scene/workspacescene.h
     DESTINATION ${KDE_INSTALL_INCLUDEDIR}/kwin/scene COMPONENT Devel
 )
+
+install(FILES
+    vulkan/vulkan_buffer.h
+    vulkan/vulkan_device.h
+    vulkan/vulkan_logging.h
+    vulkan/vulkan_queue.h
+    vulkan/vulkan_render_time_query.h
+    vulkan/vulkan_texture.h
+    DESTINATION ${KDE_INSTALL_INCLUDEDIR}/kwin/vulkan COMPONENT Devel
+)
+
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    install(
+        CODE "execute_process(
+        COMMAND ${SETCAP_EXECUTABLE}
+        CAP_SYS_NICE=+ep
+        \$ENV{DESTDIR}${CMAKE_INSTALL_FULL_BINDIR}/kwin_wayland)"
+    )
+endif()
 
 ecm_generate_qdoc(kwin kwin.qdocconf)

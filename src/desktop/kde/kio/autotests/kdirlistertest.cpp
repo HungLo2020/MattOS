@@ -33,6 +33,63 @@ using namespace Qt::StringLiterals;
 
 QTEST_MAIN(KDirListerTest)
 
+namespace
+{
+// Lists the urls it is given the way a search result does: every entry carries UDS_URL, which
+// points at the real file, outside the listing. Each test needs a protocol of its own, since a
+// worker stays in the pool and is handed to the next listing of the same scheme.
+class SearchWorkerFactory : public KIO::WorkerFactory
+{
+public:
+    SearchWorkerFactory(const QByteArray &protocol, const QList<QUrl> &hits)
+        : m_protocol(protocol)
+        , m_hits(hits)
+    {
+    }
+
+    std::unique_ptr<KIO::WorkerBase> createWorker(const QByteArray &pool, const QByteArray &app) override
+    {
+        return std::make_unique<SearchWorker>(m_protocol, pool, app, m_hits);
+    }
+
+private:
+    class SearchWorker : public KIO::WorkerBase
+    {
+    public:
+        SearchWorker(const QByteArray &protocol, const QByteArray &pool, const QByteArray &app, const QList<QUrl> &hits)
+            : WorkerBase(protocol, pool, app)
+            , m_hits(hits)
+        {
+        }
+
+        Q_REQUIRED_RESULT KIO::WorkerResult listDir(const QUrl &url) override
+        {
+            Q_UNUSED(url)
+            KIO::UDSEntry root;
+            root.fastInsert(KIO::UDSEntry::UDS_NAME, QStringLiteral("."));
+            root.fastInsert(KIO::UDSEntry::UDS_FILE_TYPE, S_IFDIR);
+            listEntry(root);
+
+            for (const QUrl &hit : std::as_const(m_hits)) {
+                KIO::UDSEntry entry;
+                entry.fastInsert(KIO::UDSEntry::UDS_NAME, hit.fileName());
+                entry.fastInsert(KIO::UDSEntry::UDS_URL, hit.toString());
+                entry.fastInsert(KIO::UDSEntry::UDS_SIZE, 10);
+                entry.fastInsert(KIO::UDSEntry::UDS_MODIFICATION_TIME, 123456);
+                listEntry(entry);
+            }
+            return KIO::WorkerResult::pass();
+        }
+
+    private:
+        const QList<QUrl> m_hits;
+    };
+
+    const QByteArray m_protocol;
+    const QList<QUrl> m_hits;
+};
+}
+
 GlobalInits::GlobalInits()
 {
     // Must be done before the QSignalSpys connect
@@ -1536,7 +1593,9 @@ void KDirListerTest::testMimeFilter_data()
 
     const QStringList files = {"bla.txt", "main.cpp", "main.c", "image.jpeg", "picture.png"};
 
-    QTest::newRow("single_file_exact_mimetype") << files << QStringList{"text/x-c++src"} << QStringList{"main.cpp"};
+    // Not a C or C++ source: shared-mime-info made C source a kind of C++ source, so a
+    // filter on one of them takes both and says nothing about matching a type exactly.
+    QTest::newRow("single_file_exact_mimetype") << files << QStringList{"image/png"} << QStringList{"picture.png"};
     QTest::newRow("inherited_mimetype") << files << QStringList{"text/plain"} << QStringList{"bla.txt", "main.cpp", "main.c"};
     QTest::newRow("no_match") << files << QStringList{"audio/flac"} << QStringList{};
     QTest::newRow("glob") << files << QStringList{"image/*"} << QStringList{"image.jpeg", "picture.png"};
@@ -1722,10 +1781,36 @@ void KDirListerTest::testCacheEviction()
         QVERIFY(KDirWatch::self()->contains(newDirPath));
     }
 
-    // watches were removed as the dirItem were evicted from cache
+    // watches were removed as the dirItem were evicted from cache, which keeps three directories
     QVERIFY(!KDirWatch::self()->contains(newDir.path()));
     QVERIFY(!KDirWatch::self()->contains(newDir.path() + QString("dir_0")));
-    QVERIFY(KDirWatch::self()->contains(newDir.path() + QString("dir_1")));
+    QVERIFY(!KDirWatch::self()->contains(newDir.path() + QString("dir_1")));
+    QVERIFY(KDirWatch::self()->contains(newDir.path() + QString("dir_10")));
+}
+
+void KDirListerTest::testCacheExpiry()
+{
+    qputenv("KIO_DIRLISTER_CACHE_LIFETIME_MS", "300");
+    auto restore = qScopeGuard([]() {
+        qunsetenv("KIO_DIRLISTER_CACHE_LIFETIME_MS");
+    });
+
+    QTemporaryDir newDir(homeTmpDir());
+    const QString cachedDirPath = newDir.path() + QString("cached");
+    QVERIFY(QDir().mkdir(cachedDirPath));
+
+    MyDirLister dirLister;
+    dirLister.openUrl(QUrl::fromLocalFile(cachedDirPath));
+    QVERIFY(dirLister.spyCompleted.wait(500));
+    QVERIFY(KDirWatch::self()->contains(cachedDirPath));
+
+    // Leaving the directory puts it in the cache, where it is kept for as long as the lifetime this
+    // test asked for when it set KIO_DIRLISTER_CACHE_LIFETIME_MS.
+    dirLister.openUrl(QUrl::fromLocalFile(newDir.path()));
+    QVERIFY(dirLister.spyCompleted.wait(500));
+    QVERIFY(KDirWatch::self()->contains(cachedDirPath));
+
+    QTRY_VERIFY_WITH_TIMEOUT(!KDirWatch::self()->contains(cachedDirPath), 5000);
 }
 
 void KDirListerTest::testUnreadableParentDirectory()
@@ -1883,6 +1968,170 @@ void KDirListerTest::testSFTPRedirect()
     // This should not list any items: We have already done it in the previous iteration.
     // If this lists items, the view (for example in Dolphin) will have the items duplicated.
     QCOMPARE(dirLister.items().count(), 0);
+}
+
+void KDirListerTest::testDuplicatedEntries()
+{
+    // A directory that changes while it is being listed may deliver the same
+    // entry more than once: POSIX allows readdir() to return an entry twice
+    // if the directory was modified between reads, and e.g. the kernel ntfs3
+    // driver does so at scale during mass file creation. Neither the initial
+    // listing nor the update path may adopt such duplicates into the cache.
+    class Factory : public KIO::WorkerFactory
+    {
+    public:
+        using KIO::WorkerFactory::WorkerFactory;
+        std::unique_ptr<KIO::WorkerBase> createWorker(const QByteArray &pool, const QByteArray &app) override
+        {
+            class DuplicatingWorker : public KIO::WorkerBase
+            {
+            public:
+                DuplicatingWorker(const QByteArray &pool, const QByteArray &app, int *listCount)
+                    : WorkerBase(QByteArrayLiteral("kio-test-dupes"), pool, app)
+                    , m_listCount(listCount)
+                {
+                }
+
+                Q_REQUIRED_RESULT KIO::WorkerResult listDir(const QUrl &url) override
+                {
+                    Q_UNUSED(url)
+                    auto fakeEntry = [](const QString &name) {
+                        KIO::UDSEntry entry;
+                        entry.fastInsert(KIO::UDSEntry::UDS_NAME, name);
+                        entry.fastInsert(KIO::UDSEntry::UDS_SIZE, 10);
+                        entry.fastInsert(KIO::UDSEntry::UDS_MODIFICATION_TIME, 123456);
+                        return entry;
+                    };
+                    listEntry(fakeEntry(QStringLiteral(".")));
+                    listEntry(fakeEntry(QStringLiteral("file1.txt")));
+                    listEntry(fakeEntry(QStringLiteral("file2.txt")));
+                    if ((*m_listCount)++ > 0) {
+                        // On updates a new file has appeared, listed twice...
+                        listEntry(fakeEntry(QStringLiteral("file3.txt")));
+                        listEntry(fakeEntry(QStringLiteral("file3.txt")));
+                    }
+                    // ...and the directory changed mid-listing, so file1 shows up again.
+                    listEntry(fakeEntry(QStringLiteral("file1.txt")));
+                    return KIO::WorkerResult::pass();
+                }
+
+            private:
+                int *m_listCount;
+            };
+
+            return std::unique_ptr<KIO::WorkerBase>(new DuplicatingWorker(pool, app, &m_listCount));
+        }
+
+        int m_listCount = 0;
+    };
+    auto factory = std::make_shared<Factory>();
+    KIO::Worker::setTestWorkerFactory(factory);
+
+    const QUrl testUrl(u"kio-test-dupes://changing/dir"_s);
+    MyDirLister dirLister;
+    dirLister.openUrl(testUrl);
+    QVERIFY(dirLister.spyCompleted.wait(500));
+    QVERIFY(dirLister.isFinished());
+    // The initial listing delivered file1.txt twice; only one may survive.
+    QCOMPARE(dirLister.items().count(), 2);
+
+    // Now an update runs (as KDirWatch or F5 would trigger): file3.txt has
+    // appeared, listed twice, and file1.txt is delivered again as well.
+    dirLister.clearSpies();
+    dirLister.updateDirectory(testUrl);
+    QVERIFY(dirLister.spyCompleted.wait(500));
+    const KFileItemList items = dirLister.items();
+    QCOMPARE(items.count(), 3);
+    QVERIFY(std::none_of(items.cbegin(), items.cend(), [&items](const KFileItem &item) {
+        return std::count_if(items.cbegin(),
+                             items.cend(),
+                             [&item](const KFileItem &other) {
+                                 return other.name() == item.name();
+                             })
+            > 1;
+    }));
+}
+
+void KDirListerTest::testEntriesOfOneNameFromSeveralFolders()
+{
+    // A folder whose entries come from elsewhere, as a search result folder does, gives
+    // each entry a url of its own, and several of those entries can carry the same name.
+    // Every one of them is a file in its own right and belongs in the listing.
+    const QList<QUrl> hits = {
+        QUrl::fromLocalFile(u"/hits/one/testfile.txt"_s),
+        QUrl::fromLocalFile(u"/hits/two/testfile.txt"_s),
+        QUrl::fromLocalFile(u"/hits/three/testfile.txt"_s),
+        // The same file reached twice, which is one hit.
+        QUrl::fromLocalFile(u"/hits/two/testfile.txt"_s),
+    };
+    auto factory = std::make_shared<SearchWorkerFactory>(QByteArrayLiteral("kio-test-search"), hits);
+    KIO::Worker::setTestWorkerFactory(factory);
+
+    const QUrl testUrl(u"kio-test-search://results/testfile"_s);
+    MyDirLister dirLister;
+    dirLister.openUrl(testUrl);
+    QVERIFY(dirLister.spyCompleted.wait(500));
+    QVERIFY(dirLister.isFinished());
+
+    const KFileItemList items = dirLister.items();
+    QCOMPARE(items.count(), 3);
+    QStringList urls;
+    for (const KFileItem &item : items) {
+        QCOMPARE(item.name(), u"testfile.txt"_s);
+        urls << item.url().toLocalFile();
+    }
+    urls.sort();
+    QCOMPARE(urls, QStringList({u"/hits/one/testfile.txt"_s, u"/hits/three/testfile.txt"_s, u"/hits/two/testfile.txt"_s}));
+}
+
+void KDirListerTest::testUpdateSearchResultOnDeleteAndRename()
+{
+    // A search result view follows a file that is deleted or renamed elsewhere.
+    const QString fileA = tempPath() + QStringLiteral("search_hit_a");
+    const QString fileB = tempPath() + QStringLiteral("search_hit_b");
+    createTestFile(fileA);
+    createTestFile(fileB);
+    const QUrl urlA = QUrl::fromLocalFile(fileA);
+    const QUrl urlB = QUrl::fromLocalFile(fileB);
+
+    auto factory = std::make_shared<SearchWorkerFactory>(QByteArrayLiteral("kio-test-search-hits"), QList<QUrl>{urlA, urlB});
+    KIO::Worker::setTestWorkerFactory(factory);
+
+    const QUrl searchUrl(u"kio-test-search-hits://search/?query=hit"_s);
+    MyDirLister dirLister;
+    dirLister.openUrl(searchUrl);
+    QVERIFY(dirLister.spyCompleted.wait(1000));
+
+    // findByUrl() is keyed by the parent directory, so match against the listed items instead.
+    auto listsUrl = [&dirLister](const QUrl &url) {
+        const KFileItemList items = dirLister.items();
+        return std::any_of(items.cbegin(), items.cend(), [&url](const KFileItem &item) {
+            return item.url() == url;
+        });
+    };
+
+    QCOMPARE(dirLister.items().count(), 2);
+    QVERIFY(listsUrl(urlA));
+    QVERIFY(listsUrl(urlB));
+
+    // Deleting one of the found files must drop it from the search view.
+    dirLister.clearSpies();
+    org::kde::KDirNotify::emitFilesRemoved(QList<QUrl>{urlA});
+    QVERIFY(dirLister.spyItemsDeleted.wait(1000));
+    QCOMPARE(dirLister.items().count(), 1);
+    QVERIFY(!listsUrl(urlA));
+    QVERIFY(listsUrl(urlB));
+
+    // Renaming the other found file must update its entry in the search view.
+    const QString fileBRenamed = tempPath() + QStringLiteral("search_hit_b_renamed");
+    const QUrl urlBRenamed = QUrl::fromLocalFile(fileBRenamed);
+    QVERIFY(QFile::rename(fileB, fileBRenamed));
+    QSignalSpy spyRefreshItems(&dirLister, &KCoreDirLister::refreshItems);
+    org::kde::KDirNotify::emitFileRenamed(urlB, urlBRenamed);
+    QVERIFY(spyRefreshItems.wait(1000));
+    QCOMPARE(dirLister.items().count(), 1);
+    QVERIFY(!listsUrl(urlB));
+    QVERIFY(listsUrl(urlBRenamed));
 }
 
 #include "moc_kdirlistertest.cpp"

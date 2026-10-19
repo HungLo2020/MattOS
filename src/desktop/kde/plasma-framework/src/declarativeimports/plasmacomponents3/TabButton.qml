@@ -56,6 +56,16 @@ T.TabButton {
     }
 
     contentItem: Private.IconLabel {
+        id: buttonLabel
+        // visualFocus is false for otherFocusReason, but changing the tab with arrow keys sets that so
+        // we lose focus indication during keyboard operation. Also, a lot of the time we are not focusing
+        // the button directly, but only the tab bar itself (which works like the button having focus for
+        // pretty much all intents and purposes). So manually include those cases.
+        readonly property bool visibleFocus: {
+            const tabBar = control.T.TabBar.tabBar
+            return control.visualFocus || (control.activeFocus && control.focusReason == Qt.OtherFocusReason)
+                || (control.checked && tabBar.visualFocus && tabBar === Window.window.activeFocusItem)
+        }
         mirrored: control.mirrored
         font: control.font
         display: control.display
@@ -65,7 +75,6 @@ T.TabButton {
         iconItem.source: control.icon.name || control.icon.source
         iconItem.active: control.visualFocus
         label.text: control.Kirigami.MnemonicData.richTextLabel
-        label.color: control.visualFocus ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
         Rectangle { // As long as we don't enable antialiasing, not rounding should be fine
             parent: control.contentItem.label
             width: Math.min(parent.width, parent.contentWidth)
@@ -73,7 +82,7 @@ T.TabButton {
             anchors.left: parent.left
             anchors.top: parent.bottom
             color: Kirigami.Theme.highlightColor
-            visible: control.visualFocus
+            visible: buttonLabel.visibleFocus
         }
     }
 
@@ -82,13 +91,13 @@ T.TabButton {
         imagePath: "widgets/tabbar"
         prefix: control.T.TabBar.position === T.TabBar.Footer ? "south-active-tab" : "north-active-tab"
         enabledBorders: {
-            const borders = KSvg.FrameSvgItem.LeftBorder | KSvg.FrameSvgItem.RightBorder
+            const borders = KSvg.FrameSvg.LeftBorder | KSvg.FrameSvg.RightBorder
             if (!visible || control.checked) {
-                return borders | KSvg.FrameSvgItem.TopBorder | KSvg.FrameSvgItem.BottomBorder
+                return borders | KSvg.FrameSvg.TopBorder | KSvg.FrameSvg.BottomBorder
             } else if (control.T.TabBar.position === T.TabBar.Footer) {
-                return borders | KSvg.FrameSvgItem.BottomBorder
+                return borders | KSvg.FrameSvg.BottomBorder
             } else {
-                return borders | KSvg.FrameSvgItem.TopBorder
+                return borders | KSvg.FrameSvg.TopBorder
             }
         }
     }

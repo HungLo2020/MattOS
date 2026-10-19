@@ -62,9 +62,8 @@
 
     \ingroup tools
 
-    The QFlags<Enum> class is a template class, where Enum is an enum
-    type. QFlags is used throughout Qt for storing combinations of
-    enum values.
+    QFlags\<Enum\> is a template class where \a Enum is an enumeration type.
+    QFlags is used throughout Qt for storing combinations of enum values.
 
     The traditional C++ approach for storing OR-combinations of enum
     values is to use an \c int or \c uint variable. The inconvenience
@@ -93,6 +92,8 @@
 
     If you want to use QFlags for your own enum types, use
     the Q_DECLARE_FLAGS() and Q_DECLARE_OPERATORS_FOR_FLAGS().
+    In this case Q_DECLARE_FLAGS() must appear in the same scope (class or
+    namespace) as the corresponding enum.
 
     Example:
 

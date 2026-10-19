@@ -84,15 +84,8 @@ public:
     inline bool hideTitleBar() const;
     //@}
 
-Q_SIGNALS:
-    void tabletModeChanged();
-
 public Q_SLOTS:
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     bool init() override;
-#else
-    void init() override;
-#endif
 
 private Q_SLOTS:
     void reconfigure();
@@ -101,7 +94,6 @@ private Q_SLOTS:
     void updateButtonsGeometryDelayed();
     void updateTitleBar();
     void updateAnimationState();
-    void onTabletModeChanged(bool mode);
     void updateScale();
 
 private:
@@ -139,8 +131,6 @@ private:
 
     //*frame corner radius, scaled according to DPI
     qreal m_scaledCornerRadius = 3;
-
-    bool m_tabletMode = false;
 };
 
 bool Decoration::hasBorders() const
@@ -210,7 +200,7 @@ bool Decoration::isBottomEdge() const
 
 bool Decoration::hideTitleBar() const
 {
-    return m_internalSettings->hideTitleBar() && !window()->isShaded();
+    return style() == KDecoration3::Style::Shadow || (m_internalSettings->hideTitleBar() && !window()->isShaded());
 }
 
 bool Decoration::outlinesEnabled() const

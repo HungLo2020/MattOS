@@ -16,14 +16,13 @@ class ColorPickerLayer : public OutputLayer
 public:
     explicit ColorPickerLayer(BackendOutput *output, GLFramebuffer *buffer);
 
-    DrmDevice *scanoutDevice() const override;
-    QHash<uint32_t, QList<uint64_t>> supportedDrmFormats() const override;
+    FormatModifierMap supportedDrmFormats() const override;
     void releaseBuffers() override;
 
-private:
-    std::optional<OutputLayerBeginFrameInfo> doBeginFrame() override;
-    bool doEndFrame(const Region &renderedRegion, const Region &damagedRegion, OutputFrame *frame) override;
+    std::optional<OutputLayerBeginFrameInfo> beginFrame(OutputFrame *frame = nullptr) override;
+    bool endFrame(const Region &renderedRegion, const Region &damagedRegion, OutputFrame *frame) override;
 
+private:
     GLFramebuffer *const m_buffer;
 };
 

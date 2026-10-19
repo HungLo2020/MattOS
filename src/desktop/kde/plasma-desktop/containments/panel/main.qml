@@ -24,7 +24,7 @@ ContainmentItem {
     height: 48
 
 //BEGIN properties
-    Layout.preferredWidth: fixedWidth || currentLayout.implicitWidth + currentLayout.horizontalDisplacement
+    Layout.preferredWidth: Math.max(addWidgetsButton.implicitWidth * addWidgetsButton.visible, fixedWidth || currentLayout.implicitWidth + currentLayout.horizontalDisplacement)
     Layout.preferredHeight: fixedHeight || currentLayout.implicitHeight + currentLayout.verticalDisplacement
     Layout.fillWidth: {
         return currentLayout.children
@@ -77,6 +77,13 @@ ContainmentItem {
         }
         return "";
     }
+
+    // This function is called externally by the Plasma scripting language to setup
+    // the panel layout
+    function reorderApplets(order) {
+        LayoutManager.reorderApplets(order);
+    }
+
 //END functions
 
 //BEGIN connections
@@ -140,6 +147,7 @@ ContainmentItem {
         });
         component.destroy();
     }
+
 //END connections
 
     TapHandler {
@@ -262,8 +270,8 @@ ContainmentItem {
                 onWantsToFillWidthChanged: root.checkLastSpacer()
                 onWantsToFillHeightChanged: root.checkLastSpacer()
 
-                property int availWidth: root.width - Layout.leftMargin - Layout.rightMargin
-                property int availHeight: root.height - Layout.topMargin - Layout.bottomMargin
+                availWidth: root.width - Layout.leftMargin - Layout.rightMargin
+                availHeight: root.height - Layout.topMargin - Layout.bottomMargin
                 function findPositive(first, second) {return first > 0 ? first : second}
 
     // BEGIN BUG 454095: do not combine these expressions to a function or the bindings won't work
@@ -450,12 +458,9 @@ ContainmentItem {
         PlasmaCore.ToolTipArea {
             id: toolTipArea
             anchors.fill: parent
-            // This is to avoid the presence of mnemonics, that would
-            // show the text as "&Show Panel Configuration"
-            // Strip out ampersands right before non-whitespace characters, i.e.
-            // those used to determine the alt key shortcut
-            // (except when the word ends in ; (HTML entities))
-            mainText: Plasmoid.internalAction("configure").text.replace(/(&)(?!;)\S+(?>\s)/g, "")
+            // ContainmentItem may add & markers to the menu for mnemonics
+            Kirigami.MnemonicData.label: Plasmoid.internalAction("configure").text
+            mainText: Kirigami.MnemonicData.plainTextLabel
             icon: "configure"
         }
         Accessible.name: toolTipArea.mainText

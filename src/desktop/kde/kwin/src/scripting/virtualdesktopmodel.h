@@ -7,17 +7,30 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <qqmlregistration.h>
 
 namespace KWin
 {
+
 class VirtualDesktop;
 
-/**
- * The VirtualDesktopModel class provides a data model for the virtual desktops.
+/*!
+ * \qmltype VirtualDesktopModel
+ * \inqmlmodule org.kde.kwin
+ *
+ * \brief Provides a data model for the virtual desktops.
+ *
+ * This model provides the following roles:
+ * \list
+ * \li desktop (VirtualDesktop)
+ * \endlist
+ *
  */
 class VirtualDesktopModel : public QAbstractListModel
 {
     Q_OBJECT
+    QML_ELEMENT
+    Q_PROPERTY(int maximum READ maximum CONSTANT)
 
 public:
     enum Role {
@@ -30,8 +43,17 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 
+    int maximum() const;
+
 public Q_SLOTS:
+    /*!
+     * \qmlmethod VirtualDesktop VirtualDesktopModel::create(int position, string name)
+     */
     KWin::VirtualDesktop *create(uint position, const QString &name = QString());
+
+    /*!
+     * \qmlmethod void VirtualDesktopModel::remove(int position)
+     */
     void remove(uint position);
 
 private:

@@ -34,7 +34,6 @@
 
 #include "../kcms-common_p.h"
 #include "devicepixelratiohelper.h"
-#include "krdb.h"
 #include "kxftconfig.h"
 #include "previewimageprovider.h"
 
@@ -128,37 +127,7 @@ bool KFonts::imageProviderReady()
 
 void KFonts::save()
 {
-#if HAVE_X11
-    bool forceFontDPIChanged = false;
-
-    if (KWindowSystem::isPlatformX11()) {
-        auto dpiItem = fontsAASettings()->findItem(u"forceFontDPI"_s);
-        auto antiAliasingItem = fontsAASettings()->findItem(u"antiAliasing"_s);
-        Q_ASSERT(dpiItem && antiAliasingItem);
-        if (dpiItem->isSaveNeeded() || antiAliasingItem->isSaveNeeded()) {
-            Q_EMIT aliasingChangeApplied();
-        }
-
-        forceFontDPIChanged = dpiItem->isSaveNeeded();
-    }
-#endif
-
     KQuickManagedConfigModule::save();
-
-#if HAVE_X11
-    // if the setting is reset in the module, remove the dpi value,
-    // otherwise don't explicitly remove it and leave any possible system-wide value
-    if (fontsAASettings()->forceFontDPI() == 0 && forceFontDPIChanged && KWindowSystem::isPlatformX11()) {
-        QProcess proc;
-        proc.setProcessChannelMode(QProcess::ForwardedChannels);
-        proc.start(u"xrdb"_s, QStringList{u"-quiet"_s, u"-remove"_s, u"-nocpp"_s});
-        if (proc.waitForStarted()) {
-            proc.write("Xft.dpi\n");
-            proc.closeWriteChannel();
-            proc.waitForFinished();
-        }
-    }
-#endif
 
     // Notify the world about the font changes
     if (qEnvironmentVariableIsSet("KDE_FULL_SESSION")) {
@@ -166,7 +135,7 @@ void KFonts::save()
         QDBusConnection::sessionBus().send(message);
     }
 
-    runRdb(KRdbExportXftSettings | KRdbExportGtkTheme);
+    QProcess::startDetached(QStringLiteral(CMAKE_INSTALL_FULL_LIBEXECDIR "/plasma-setup-xwayland"));
 }
 
 void KFonts::adjustFont(const QFont &font, const QString &category)

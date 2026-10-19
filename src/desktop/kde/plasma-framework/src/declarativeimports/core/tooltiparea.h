@@ -24,7 +24,11 @@ class ToolTipDialog;
 /*!
  * \qmltype ToolTipArea
  * \inqmlmodule org.kde.plasma.core
- * An Item managing a Plasma-themed tooltip. It is rendered in its own window.
+ * \inherits Item
+ *
+ * \brief An Item managing a Plasma-themed tooltip.
+ *
+ * It is rendered in its own window.
  * You can either specify icon, mainText and subText, or a custom Component
  * that will be put inside the tooltip. By default the tooltip will be
  * rendered when hovering over the parent item.
@@ -73,12 +77,14 @@ class ToolTipArea : public QQuickItem
     Q_PROPERTY(QString subText READ subText WRITE setSubText NOTIFY subTextChanged)
 
     /*!
-     * \qmlproperty int ToolTipArea::textFormat
-     * how to handle the text format of the tooltip subtext:
-     * * Text.AutoText (default)
-     * * Text.PlainText
-     * * Text.StyledText
-     * * Text.RichText
+     * \qmlproperty enumeration ToolTipArea::textFormat
+     * How to handle the text format of the tooltip subtext:
+     * \list
+     * \li Text.AutoText (default)
+     * \li Text.PlainText
+     * \li Text.StyledText
+     * \li Text.RichText
+     * \endlist
      * \note in the default implementation the main text is always plain text
      */
     Q_PROPERTY(int textFormat READ textFormat WRITE setTextFormat NOTIFY textFormatChanged)
@@ -125,6 +131,17 @@ class ToolTipArea : public QQuickItem
     Q_PROPERTY(bool interactive MEMBER m_interactive WRITE setInteractive NOTIFY interactiveChanged)
 
     /*!
+     * \qmlproperty bool ToolTipArea::hideOnClick
+     * If set to true (default), any click within the tooltiparea will hide the
+     * toolip. This is generally the correct behavior for typical tooltips with
+     * usage hints. Set it to false to keep the thumbnail open even when the
+     * tooltiparea is clicked, which may be appropriate for complex tooltipareas
+     * with interior controls and tooltips with specific information or
+     * interactive controls.
+     */
+    Q_PROPERTY(bool hideOnClick MEMBER m_hideOnClick WRITE setHideOnClick NOTIFY hideOnClickChanged)
+
+    /*!
      * \qmlproperty int ToolTipArea::timeout
      * Timeout in milliseconds after which the tooltip will hide itself.
      * Set this value to -1 to never hide the tooltip automatically.
@@ -163,22 +180,29 @@ public:
 
     void setInteractive(bool interactive);
 
+    void setHideOnClick(bool hideOnClick);
+
     void setTimeout(int timeout);
 
 public Q_SLOTS:
 
     /*!
+     * \qmlmethod void ToolTipArea::showToolTip
      * Shows the tooltip.
      * \since 5.73
      */
     void showToolTip();
 
     /*!
+     * \qmlmethod void ToolTipArea::hideToolTip
+     *
      * Hides the tooltip after a grace period if shown. Does not affect whether the tooltip area is active.
      */
     void hideToolTip();
 
     /*!
+     * \qmlmethod void ToolTipArea::hideImmediately
+     *
      * Hides the tooltip immediately, in comparison to hideToolTip.
      * \since 5.84
      */
@@ -202,13 +226,18 @@ Q_SIGNALS:
     void locationChanged();
     void activeChanged();
     void interactiveChanged();
+    void hideOnClickChanged();
     /*!
+     * \qmlsignal ToolTipArea::aboutToShow
+     *
      * Emitted just before the tooltip dialog is shown.
      *
      * \since 5.45
      */
     void aboutToShow();
     /*!
+     * \qmlsignal ToolTipArea::toolTipVisibleChanged(bool toolTipVisible)
+     *
      * Emitted when the tooltip's visibility changes.
      *
      * \since 5.88
@@ -234,6 +263,7 @@ private:
     QVariant m_icon;
     bool m_active;
     bool m_interactive;
+    bool m_hideOnClick;
     int m_interval;
     int m_timeout;
 

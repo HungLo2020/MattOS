@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma_applet_lockout\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-10 02:38+0000\n"
+"POT-Creation-Date: 2026-03-03 00:49+0000\n"
 "PO-Revision-Date: 2025-11-28 19:54+0100\n"
 "Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
 "Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
@@ -23,7 +23,7 @@ msgstr ""
 msgid "General"
 msgstr "Общи"
 
-#: ConfigGeneral.qml:119
+#: ConfigGeneral.qml:120
 #, kde-format
 msgid "Unavailable"
 msgstr "Не е налично"
@@ -109,35 +109,3 @@ msgstr "Хибернация"
 #, kde-format
 msgid "Hibernate (suspend to disk)"
 msgstr "Хибернация (записване на диск)"
-
-#~ msgctxt "@title:column"
-#~ msgid "Actions"
-#~ msgstr "Действия"
-
-#~ msgctxt ""
-#~ "Heading for a list of actions (leave, lock, switch user, hibernate, "
-#~ "suspend)"
-#~ msgid "Show actions:"
-#~ msgstr "Показване на действия:"
-
-#~ msgid "Log Out"
-#~ msgstr "Излизане от сесия"
-
-#~ msgctxt "@option:check"
-#~ msgid "Show logout screen"
-#~ msgstr "Показване на екран за напускане на сесията"
-
-#~ msgid "Shut Down"
-#~ msgstr "Изключване"
-
-#~ msgid "Switch User"
-#~ msgstr "Превключване на потребител"
-
-#~ msgid "Shutdown…"
-#~ msgstr "Изключване…"
-
-#~ msgid "Restart…"
-#~ msgstr "Рестартиране…"
-
-#~ msgid "Logout…"
-#~ msgstr "Излизане от сесия…"

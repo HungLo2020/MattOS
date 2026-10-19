@@ -5,9 +5,9 @@
 */
 #include "colorrepresentation_v1.h"
 
+#include "core/drm_formats.h"
 #include "display.h"
 #include "surface_p.h"
-#include "utils/drm_format_helper.h"
 
 namespace KWin
 {
@@ -131,24 +131,17 @@ bool ColorRepresentationSurfaceV1::maybeEmitProtocolErrors()
     if (!priv->pending->buffer) {
         return false;
     }
-    bool yuv = false;
-    if (auto attrs = priv->pending->buffer->dmabufAttributes()) {
-        // this assumes that we only support YUV formats we have conversions for
-        // if we ever change that, we should add a "isYUV" flag in FormatInfo
-        const auto info = FormatInfo::get(attrs->format);
-        yuv = info && info->yuvConversion();
-    } else if (auto attrs = priv->pending->buffer->shmAttributes()) {
-        const auto info = FormatInfo::get(attrs->format);
-        yuv = info && info->yuvConversion();
-    } else {
-        // single pixel buffer doesn't support YUV
-        yuv = false;
+    const auto info = FormatInfo::get(priv->pending->buffer->format());
+    if (!info) {
+        // assume the best
+        return false;
     }
-    const bool match = yuv == (priv->pending->yuvCoefficients != YUVMatrixCoefficients::Identity);
+
+    const bool match = info->yuv == (priv->pending->yuvCoefficients != YUVMatrixCoefficients::Identity);
     if (match) {
         return false;
     }
-    if (yuv) {
+    if (info->yuv) {
         wl_resource_post_error(resource()->handle, WP_COLOR_REPRESENTATION_SURFACE_V1_ERROR_PIXEL_FORMAT,
                                "The buffer has a YCbCr format, but color representation is identity!");
     } else {
@@ -157,4 +150,5 @@ bool ColorRepresentationSurfaceV1::maybeEmitProtocolErrors()
     }
     return true;
 }
+
 }

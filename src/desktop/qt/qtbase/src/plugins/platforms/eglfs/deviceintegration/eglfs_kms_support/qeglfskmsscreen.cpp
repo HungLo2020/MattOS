@@ -10,6 +10,7 @@
 #include <private/qeglfsintegration_p.h>
 #include <private/qeglfskmsintegration_p.h>
 
+#include <QtCore/QMutex>
 #include <QtCore/QLoggingCategory>
 
 #include <QtGui/private/qguiapplication_p.h>
@@ -17,7 +18,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QSet<QEglFSKmsScreen *> QEglFSKmsScreen::s_screens;
+static QMutex s_screensMutex;
+static QSet<QEglFSKmsScreen *> s_screens;
 
 class QEglFSKmsInterruptHandler : public QObject
 {
@@ -63,12 +65,18 @@ QEglFSKmsScreen::QEglFSKmsScreen(QEglFSKmsDevice *device, const QKmsOutput &outp
         qCDebug(qLcEglfsKmsDebug) << "No EDID data for output" << name();
     }
 
-    s_screens.insert(this);
+    {
+        QMutexLocker lock(&s_screensMutex);
+        s_screens.insert(this);
+    }
 }
 
 QEglFSKmsScreen::~QEglFSKmsScreen()
 {
-    s_screens.remove(this);
+    {
+        QMutexLocker lock(&s_screensMutex);
+        s_screens.remove(this);
+    }
 
     m_output.cleanup(m_device);
     delete m_interruptHandler;
@@ -246,6 +254,7 @@ void QEglFSKmsScreen::pageFlipped(unsigned int sequence, unsigned int tv_sec, un
 
 bool QEglFSKmsScreen::isScreenKnown(QEglFSKmsScreen *s)
 {
+    QMutexLocker lock(&s_screensMutex);
     return s_screens.contains(s);
 }
 

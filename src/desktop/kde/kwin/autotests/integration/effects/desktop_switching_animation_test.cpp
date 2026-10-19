@@ -20,8 +20,6 @@
 
 using namespace KWin;
 
-static const QString s_socketName = QStringLiteral("wayland_test_effects_desktop_switching_animation-0");
-
 class DesktopSwitchingAnimationTest : public QObject
 {
     Q_OBJECT
@@ -33,18 +31,18 @@ private Q_SLOTS:
 
     void testSwitchDesktops_data();
     void testSwitchDesktops();
+    void testSwitchPerOutputDesktops_data();
+    void testSwitchPerOutputDesktops();
+    void testConcurrentSwitchPerOutputDesktops_data();
+    void testConcurrentSwitchPerOutputDesktops();
 };
 
 void DesktopSwitchingAnimationTest::initTestCase()
 {
-    if (!Test::renderNodeAvailable()) {
-        QSKIP("no render node available");
-        return;
-    }
     qputenv("XDG_DATA_DIRS", QCoreApplication::applicationDirPath().toUtf8());
 
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     auto config = KSharedConfig::openConfig(QString(), KConfig::SimpleConfig);
     KConfigGroup plugins(config, QStringLiteral("Plugins"));
@@ -55,7 +53,6 @@ void DesktopSwitchingAnimationTest::initTestCase()
     config->sync();
     kwinApp()->setConfig(config);
 
-    qputenv("KWIN_COMPOSE", QByteArrayLiteral("O2"));
     qputenv("KWIN_EFFECTS_FORCE_ANIMATIONS", QByteArrayLiteral("1"));
 
     kwinApp()->start();
@@ -77,6 +74,7 @@ void DesktopSwitchingAnimationTest::cleanup()
     QVERIFY(effects->loadedEffects().isEmpty());
 
     VirtualDesktopManager::self()->setCount(1);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(false);
 
     Test::destroyWaylandConnection();
 }
@@ -133,6 +131,150 @@ void DesktopSwitchingAnimationTest::testSwitchDesktops()
     // Destroy the test window.
     surface.reset();
     QVERIFY(Test::waitForWindowClosed(window));
+}
+
+void DesktopSwitchingAnimationTest::testSwitchPerOutputDesktops_data()
+{
+    QTest::addColumn<QString>("effectName");
+
+    QTest::newRow("Fade Desktop") << QStringLiteral("fadedesktop");
+    QTest::newRow("Slide") << QStringLiteral("slide");
+}
+
+void DesktopSwitchingAnimationTest::testSwitchPerOutputDesktops()
+{
+    // This test verifies that virtual desktop switching animation effects actually
+    // try to animate switching between desktops.
+
+    LogicalOutput *output1 = workspace()->outputs().at(0);
+    LogicalOutput *output2 = workspace()->outputs().at(1);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(true);
+    VirtualDesktopManager::self()->setCount(3);
+    QCOMPARE(VirtualDesktopManager::self()->current(output1), 1u);
+    QCOMPARE(VirtualDesktopManager::self()->current(output2), 1u);
+    QCOMPARE(VirtualDesktopManager::self()->count(), 3u);
+    QCOMPARE(VirtualDesktopManager::self()->isPerOutputVirtualDesktops(), true);
+
+    // The Fade Desktop effect will do nothing if there are no windows to fade,
+    // so we have to create a dummy test windows.
+    Test::XdgToplevelWindow window1;
+    QVERIFY(window1.show());
+    window1.m_window->setOutput(output1);
+    QCOMPARE(window1.m_window->desktops().count(), 1);
+    QCOMPARE(window1.m_window->desktops().first(), VirtualDesktopManager::self()->desktops().first());
+    QCOMPARE(window1.m_window->output(), output1);
+
+    Test::XdgToplevelWindow window2;
+    QVERIFY(window2.show());
+    window2.m_window->setOutput(output2);
+    QCOMPARE(window2.m_window->desktops().count(), 1);
+    QCOMPARE(window2.m_window->desktops().first(), VirtualDesktopManager::self()->desktops().first());
+    QCOMPARE(window2.m_window->output(), output2);
+
+    // Load effect that will be tested.
+    QFETCH(QString, effectName);
+    QVERIFY(effects);
+    QVERIFY(effects->loadEffect(effectName));
+    QCOMPARE(effects->loadedEffects().count(), 1);
+    QCOMPARE(effects->loadedEffects().first(), effectName);
+    Effect *effect = effects->findEffect(effectName);
+    QVERIFY(effect);
+    QVERIFY(!effect->isActive());
+
+    // Switch to the second virtual desktop on first output.
+    VirtualDesktopManager::self()->setCurrent(2u, output1);
+    QCOMPARE(VirtualDesktopManager::self()->current(output1), 2u);
+    QVERIFY(effect->isActive());
+    QCOMPARE(effects->activeFullScreenEffect(), effect);
+
+    // Eventually, the animation will be complete.
+    QTRY_VERIFY(!effect->isActive());
+    QTRY_COMPARE(effects->activeFullScreenEffect(), nullptr);
+
+    // Switch to the second virtual desktop on second output.
+    VirtualDesktopManager::self()->setCurrent(3u, output2);
+    QCOMPARE(VirtualDesktopManager::self()->current(output2), 3u);
+    QVERIFY(effect->isActive());
+    QCOMPARE(effects->activeFullScreenEffect(), effect);
+
+    // Eventually, the animation will be complete.
+    QTRY_VERIFY(!effect->isActive());
+    QTRY_COMPARE(effects->activeFullScreenEffect(), nullptr);
+}
+
+void DesktopSwitchingAnimationTest::testConcurrentSwitchPerOutputDesktops_data()
+{
+    QTest::addColumn<QString>("effectName");
+    QTest::addColumn<bool>("isPerOutputVirtualDesktops");
+
+    QTest::newRow("Fade Desktop") << QStringLiteral("fadedesktop") << false;
+    QTest::newRow("Fade Desktop + per-output desktops") << QStringLiteral("fadedesktop") << true;
+    QTest::newRow("Slide") << QStringLiteral("slide") << false;
+    QTest::newRow("Slide + per-output desktops") << QStringLiteral("slide") << true;
+}
+
+void DesktopSwitchingAnimationTest::testConcurrentSwitchPerOutputDesktops()
+{
+    // This test verifies that KWin doesn't crash if a window is added on one output, moved to another and deleted while the slide effect is running.
+
+    QFETCH(QString, effectName);
+    QFETCH(bool, isPerOutputVirtualDesktops);
+    LogicalOutput *output1 = workspace()->outputs().at(0);
+    LogicalOutput *output2 = workspace()->outputs().at(1);
+    VirtualDesktopManager::self()->setPerOutputVirtualDesktops(isPerOutputVirtualDesktops);
+    VirtualDesktopManager::self()->setCount(3);
+    QCOMPARE(VirtualDesktopManager::self()->current(output1), 1u);
+    QCOMPARE(VirtualDesktopManager::self()->current(output2), 1u);
+    QCOMPARE(VirtualDesktopManager::self()->count(), 3u);
+    QCOMPARE(VirtualDesktopManager::self()->isPerOutputVirtualDesktops(), isPerOutputVirtualDesktops);
+
+    // The Fade Desktop effect will do nothing if there are no windows to fade,
+    // so we have to create a dummy test windows.
+    Test::XdgToplevelWindow window1;
+    QVERIFY(window1.show());
+    window1.m_window->setOutput(output1);
+    QCOMPARE(window1.m_window->desktops().count(), 1);
+    QCOMPARE(window1.m_window->desktops().first(), VirtualDesktopManager::self()->desktops().first());
+    QCOMPARE(window1.m_window->output(), output1);
+
+    Test::XdgToplevelWindow window2;
+    QVERIFY(window2.show());
+    window2.m_window->setOutput(output2);
+    QCOMPARE(window2.m_window->desktops().count(), 1);
+    QCOMPARE(window2.m_window->desktops().first(), VirtualDesktopManager::self()->desktops().first());
+    QCOMPARE(window2.m_window->output(), output2);
+
+    workspace()->setActiveOutput(output1);
+
+    // Load effect that will be tested.
+    QVERIFY(effects);
+    QVERIFY(effects->loadEffect(effectName));
+    QCOMPARE(effects->loadedEffects().count(), 1);
+    QCOMPARE(effects->loadedEffects().first(), effectName);
+    Effect *effect = effects->findEffect(effectName);
+    QVERIFY(effect);
+    QVERIFY(!effect->isActive());
+
+    // Switch to the second virtual desktop on first output.
+    VirtualDesktopManager::self()->setCurrent(2u, output1);
+    QCOMPARE(VirtualDesktopManager::self()->current(output1), 2u);
+    QVERIFY(effect->isActive());
+    QCOMPARE(effects->activeFullScreenEffect(), effect);
+
+    // Open a temp window on output1 while the switch effect is running.
+    Test::XdgToplevelWindow tempWindow;
+    QVERIFY(tempWindow.show());
+    QCOMPARE(tempWindow.m_window->output(), output1);
+
+    // Move the temp window to output2 and delete it.
+    tempWindow.m_window->sendToOutput(output2);
+    tempWindow.unmapAndWaitForClosed();
+    QVERIFY(effect->isActive());
+    QCOMPARE(effects->activeFullScreenEffect(), effect);
+
+    // Eventually, the animation will be complete. This is when the slide effect crashed.
+    QTRY_VERIFY(!effect->isActive());
+    QTRY_COMPARE(effects->activeFullScreenEffect(), nullptr);
 }
 
 WAYLANDTEST_MAIN(DesktopSwitchingAnimationTest)

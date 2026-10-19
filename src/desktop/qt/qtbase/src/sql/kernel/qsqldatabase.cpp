@@ -261,7 +261,7 @@ QSqlDriverCreatorBase::~QSqlDriverCreatorBase()
     \ingroup database
     \inmodule QtSql
 
-    QSqlDriverCreator<T> instantiates objects of type T, where T is a
+    QSqlDriverCreator\<T\> instantiates objects of type \a T, where \a T is a
     QSqlDriver subclass.
 
     See QSqlDatabase::registerSqlDriver() for details.

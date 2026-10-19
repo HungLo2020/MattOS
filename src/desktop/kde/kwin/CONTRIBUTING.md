@@ -19,7 +19,7 @@ Everything codewise for KWin itself is located in the `src` directory.
 
 ### Settings Pages / KCMs
 
-All the settings pages for KWin found in System Settings are located in `src/kcmkwin`.
+All the settings pages for KWin found in System Settings are located in `src/kcms`.
 
 ### Default Decorations
 
@@ -85,7 +85,7 @@ cmake ..
 make
 ```
 
-People hacking on much KDE software may want to set up [kdesrc-build](https://invent.kde.org/sdk/kdesrc-build).
+People hacking on much KDE software may want to set up [kde-builder](https://invent.kde.org/sdk/kde-builder).
 
 Once built, you can either install it over your system KWin (not recommended) or run it from the build directory directly.
 
@@ -106,11 +106,11 @@ QT_PLUGIN_PATH tells Qt to load KWin's plugins from the build directory, and not
 
 The dbus-run-session is needed to prevent the nested KWin instance from conflicting with your session KWin instance when exporting objects onto the bus, or with stuff like global shortcuts.
 
-If you need to run a whole Wayland plasma session, you should install a development session by first building [plasma-workspace](https://invent.kde.org/plasma/plasma-workspace) and executing the `login-sessions/install-sessions.sh` in the build directory. This can be done using kdesrc-build.
+If you need to run a whole Wayland plasma session, you should install a development session by first building [plasma-workspace](https://invent.kde.org/plasma/plasma-workspace) and executing the `login-sessions/install-sessions.sh` in the build directory. This can be done using kde-builder.
 
 ```bash
-kdesrc-build plasma-workspace
-# assuming the root directory for kdesrc-build is ~/kde
+kde-builder plasma-workspace
+# assuming the root directory for kde-builder is ~/kde
 bash ~/kde/build/plasma-workspace/login-sessions/install-sessions.sh
 ```
 Then you can select the develop session in the sddm login screen.

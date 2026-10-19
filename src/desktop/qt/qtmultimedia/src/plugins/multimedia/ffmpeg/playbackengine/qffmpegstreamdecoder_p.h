@@ -13,6 +13,7 @@
 //
 // We mean it.
 //
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackengineobject_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegframe_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegpacket_p.h>
@@ -20,8 +21,6 @@
 #include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <QtCore/qqueue.h>
-
-#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -87,6 +86,8 @@ private:
 
     SessionContext m_sessionCtx;
 };
+
+QString subtitleTextFromAVSubtitle(const AVSubtitle &subtitle);
 
 } // namespace QFFmpeg
 

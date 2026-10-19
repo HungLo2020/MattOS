@@ -1,19 +1,19 @@
-# SPDX-FileCopyrightText: 2021, 2022, 2026 Xavier Besnard <xavier.besnard@kde.org>
+# SPDX-FileCopyrightText: 2021-2022, 2026 Xavier Besnard <xavier.besnard@kde.org>
 # Simon Depiets <sdepiets@gmail.com>, 2019, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2022-01-09 09:53+0100\n"
-"Last-Translator: Xavier Besnard <xavier.besnard@neuf.fr>\n"
+"POT-Creation-Date: 2026-04-10 00:54+0000\n"
+"PO-Revision-Date: 2026-08-29 19:44+0200\n"
+"Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
 "Language-Team: fr\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.08.0\n"
 
 #: ui/main.qml:32
 #, kde-format
@@ -23,12 +23,7 @@ msgstr ""
 "Les retours des utilisateurs ont été désactivés de manière centrale. "
 "Veuillez contacter votre distributeur."
 
-#: ui/main.qml:39 ui/main.qml:65
-#, kde-format
-msgid "Plasma:"
-msgstr "Plasma :"
-
-#: ui/main.qml:45
+#: ui/main.qml:44
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -36,30 +31,45 @@ msgid ""
 "it, so we can focus on things that matter to you.<nl/><nl/>Contributing this "
 "information is optional and entirely anonymous. We never collect your "
 "personal data, files you use, websites you visit, or information that could "
-"identify you.<nl/><nl/>You can read about <link url='https://kde.org/"
-"privacypolicy-apps.php'>our privacy policy here.</link>"
+"identify you.<nl/>"
 msgstr ""
-"Vous pouvez aider KDE à améliorer Plasma en nous fournissant des "
+"Vous pouvez aider KDE à l'amélioration de Plasma en nous fournissant des "
 "informations sur votre manière de l'utiliser, afin que nous puissions nous "
-"concentrer sur les choses qui importent pour vous.<nl/> <nl/>La fourniture "
-"de ces informations est facultatif et entièrement anonyme. Nous ne "
-"collecterons jamais vos données personnelles, les fichiers que vous "
+"concentrer sur les choses importantes pour vous.<nl/> <nl/> La mise à "
+"disposition de ces informations est facultative et entièrement anonyme. Nous "
+"ne collecterons jamais vos données personnelles, les fichiers que vous "
 "utilisez, les sites Internet que vous visitez ou des informations "
-"susceptibles de vous identifier.<nl/> <nl/> Vous pouvez en apprendre "
-"davantage <link url='https://kde.org/privacypolicy-apps.php'>ici, concernant "
-"notre politique sur la vie privée.</link>"
+"susceptibles de vous identifier. Vous pouvez aider KDE à améliorer Plasma en "
+"nous fournissant des informations sur votre manière de l'utiliser, afin que "
+"nous puissions nous concentrer sur les choses qui importent pour vous.<nl/> "
+"<nl/> Contribuer ces informations est facultatif et entièrement anonyme. "
+"Nous ne collecterons jamais vos données personnelles, les fichiers que vous "
+"utilisez, les sites web que vous visitez ou des informations susceptibles de "
+"vous identifier.<nl/> <nl/> Vous pouvez en apprendre davantage sur notre "
+"politique en visitant le lien suivant :"
 
-#: ui/main.qml:100
+#: ui/main.qml:51
+#, kde-format
+msgctxt "@info"
+msgid "Read more about our privacy policy"
+msgstr "En savoir plus sur notre politique de protection de la vie privée"
+
+#: ui/main.qml:64
+#, kde-format
+msgid "Plasma:"
+msgstr "Plasma :"
+
+#: ui/main.qml:101
 #, kde-format
 msgid "Plasma"
 msgstr "Plasma"
 
-#: ui/main.qml:122
+#: ui/main.qml:123
 #, kde-format
 msgid "The following information will be sent:"
 msgstr "Les informations suivantes seront envoyées :"
 
-#: ui/main.qml:148
+#: ui/main.qml:149
 #, kde-format
 msgid "View sent data:"
 msgstr "Afficher les données envoyées :"

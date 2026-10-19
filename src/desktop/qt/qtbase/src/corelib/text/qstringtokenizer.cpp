@@ -16,6 +16,11 @@ QT_BEGIN_NAMESPACE
     \ingroup tools
     \ingroup string-processing
 
+    QStringTokenizer\<Haystack, Needle\> is a template class where \a Haystack
+    is the type of the string being tokenized and \a Needle is the type of the
+    separator. In practice, you should never need to specify these template
+    arguments explicitly; they are deduced automatically by the compiler.
+
     Splits a string into substrings wherever a given separator occurs,
     returning a (lazily constructed) list of those strings. If the separator does
     not match anywhere in the string, produces a single-element list

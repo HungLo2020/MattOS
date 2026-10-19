@@ -11,17 +11,21 @@
 #include <QSignalSpy>
 #include <QTest>
 
-#ifndef Q_OS_WIN
-void initLocale()
-{
-    setenv("LC_ALL", "en_US.utf-8", 1);
-}
-Q_CONSTRUCTOR_FUNCTION(initLocale)
-#endif
+using namespace Qt::Literals;
 
 class KDatePickerTest : public QObject
 {
     Q_OBJECT
+
+public:
+    static void initMain()
+    {
+#ifndef Q_OS_WIN
+        qputenv("LC_ALL", "en_US.utf-8");
+#else
+        QLocale::setDefault(QLocale(u"en_US"_s));
+#endif
+    }
 
 private Q_SLOTS:
     void testSubmittingDateInLineEditEmitsOriginalDate()

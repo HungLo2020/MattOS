@@ -1,0 +1,68 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ * SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+ */
+
+@property width {
+    syntax: "<length>";
+    inherits: false;
+}
+
+@property height {
+    syntax: "<length>";
+    inherits: false;
+}
+
+@property color {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #ffffff;
+}
+
+@property padding {
+    syntax: "<length>+";
+    inherits: false;
+}
+
+@property padding-top {
+    syntax: "<length>";
+    inherits: false;
+}
+
+@property background-image {
+    syntax: "<url>";
+    inherits: false;
+}
+
+button,
+toolbutton {
+    width: 32px;
+    height: 32px;
+
+    color: #ff0000;
+
+    padding: 4px 4px 4px 4px;
+    padding-top: 2rem;
+
+    background-image: url("background.svg");
+
+    &:hovered {
+        color: #00ff00;
+    }
+
+    &[display="something"] {
+        color: #0000ff;
+    }
+}
+
+button.primary {
+    color: #00ff00;
+}
+
+button indicator {
+    color: green;
+
+    &:hovered {
+        color: rgba(0, 255, 0, 0.5);
+    }
+}

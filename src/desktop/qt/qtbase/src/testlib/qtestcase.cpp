@@ -1123,9 +1123,11 @@ void TestMethods::invokeTestOnData(int index) const
                     !QBenchmarkTestMethodData::current->results.isEmpty()) {
                 // we only print the first result
                 const QBenchmarkResult &first = QBenchmarkTestMethodData::current->results.constFirst();
-                QString pattern = i < 0 ? "warmup stage result      : %1"_L1
-                                        : "accumulation stage result: %1"_L1;
-                QTestLog::info(qPrintable(pattern.arg(first.measurement.value)), nullptr, 0);
+                QString pattern = i < 0 ? "warmup stage result      : %1    std.dev: %2"_L1
+                                        : "accumulation stage result: %1    std.dev: %2"_L1;
+                QTestLog::info(qPrintable(pattern.arg(first.measurement.value, 0,'f', 3)
+                                                 .arg(sqrt(first.measurement.variance), 0, 'e', 2)),
+                               nullptr, 0);
             }
         }
 
@@ -2209,7 +2211,7 @@ void QTest::qCaught(const char *expected, const char *file, int line)
 #if QT_DEPRECATED_SINCE(6, 3)
 /*!
   \internal
-  \deprecated [6.3] Use qWarning() instead
+  \deprecated [6.3] Use qWarning() instead.
 */
 void QTest::qWarn(const char *message, const char *file, int line)
 {
@@ -2399,15 +2401,8 @@ QSharedPointer<QTemporaryDir> QTest::qExtractTestData(const QString &dirName)
               QFileInfo destinationFileInfo(destination);
               QDir().mkpath(destinationFileInfo.path());
               QFile file(filePath);
-              if (!file.copy(destination)) {
+              if (!file.copy(destination, QFile::ReadUser | QFile::WriteUser | QFile::ReadGroup)) {
                   qWarning("Failed to copy '%ls': %ls.", qUtf16Printable(filePath),
-                           qUtf16Printable(file.errorString()));
-                  return result;
-              }
-
-              file.setFileName(destination);
-              if (!file.setPermissions(QFile::ReadUser | QFile::WriteUser | QFile::ReadGroup)) {
-                  qWarning("Failed to set permissions on '%ls': %ls.", qUtf16Printable(destination),
                            qUtf16Printable(file.errorString()));
                   return result;
               }
@@ -2461,16 +2456,18 @@ QString QTest::qFindTestData(const QString& base, const char *file, int line, co
     if (found.isEmpty()) {
         const char *testObjectName = QTestResult::currentTestObjectName();
         if (testObjectName) {
-            const QString testsPath = QLibraryInfo::path(QLibraryInfo::TestsPath);
-            const QString candidate = "%1/%2/%3"_L1
-                .arg(testsPath, QFile::decodeName(testObjectName).toLower(), base);
-            if (QFileInfo::exists(candidate)) {
-                found = candidate;
-            } else if (QTestLog::verboseLevel() >= 2) {
-                QTestLog::info(qPrintable("testdata %1 not found in tests install path [%2]; "
-                                          "checking next location"_L1
-                                          .arg(base, QDir::toNativeSeparators(candidate))),
-                               file, line);
+            const QStringList testsPaths = QLibraryInfo::paths(QLibraryInfo::TestsPath);
+            for (const QString &testsPath : testsPaths) {
+                const QString candidate = "%1/%2/%3"_L1
+                        .arg(testsPath, QFile::decodeName(testObjectName).toLower(), base);
+                if (QFileInfo::exists(candidate)) {
+                    found = candidate;
+                } else if (QTestLog::verboseLevel() >= 2) {
+                    QTestLog::info(qPrintable("testdata %1 not found in tests install path [%2]; "
+                                              "checking next location"_L1
+                                              .arg(base, QDir::toNativeSeparators(candidate))),
+                                   file, line);
+                }
             }
         }
     }

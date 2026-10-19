@@ -114,62 +114,66 @@ void DBusInterface::replace()
 
 namespace
 {
+
 QVariantMap clientToVariantMap(const Window *c)
 {
-    return
-    {
+    return {
         {QStringLiteral("resourceClass"), c->resourceClass()},
-            {QStringLiteral("resourceName"), c->resourceName()},
-            {QStringLiteral("desktopFile"), c->desktopFileName()},
-            {QStringLiteral("role"), c->windowRole()},
-            {QStringLiteral("caption"), c->captionNormal()},
-            {QStringLiteral("clientMachine"), c->wmClientMachine(true)},
-            {QStringLiteral("localhost"), c->isLocalhost()},
-            {QStringLiteral("type"), int(c->windowType())},
-            {QStringLiteral("x"), c->x()},
-            {QStringLiteral("y"), c->y()},
-            {QStringLiteral("width"), c->width()},
-            {QStringLiteral("height"), c->height()},
-            {QStringLiteral("desktops"), c->desktopIds()},
-            {QStringLiteral("minimized"), c->isMinimized()},
-            {QStringLiteral("fullscreen"), c->isFullScreen()},
-            {QStringLiteral("keepAbove"), c->keepAbove()},
-            {QStringLiteral("keepBelow"), c->keepBelow()},
-            {QStringLiteral("noBorder"), c->noBorder()},
-            {QStringLiteral("skipTaskbar"), c->skipTaskbar()},
-            {QStringLiteral("skipPager"), c->skipPager()},
-            {QStringLiteral("skipSwitcher"), c->skipSwitcher()},
-            {QStringLiteral("maximizeHorizontal"), c->maximizeMode() & MaximizeHorizontal},
-            {QStringLiteral("maximizeVertical"), c->maximizeMode() & MaximizeVertical},
-            {QStringLiteral("uuid"), c->internalId().toString()},
+        {QStringLiteral("resourceName"), c->resourceName()},
+        {QStringLiteral("desktopFile"), c->desktopFileName()},
+        {QStringLiteral("role"), c->windowRole()},
+        {QStringLiteral("caption"), c->captionNormal()},
+        {QStringLiteral("clientMachine"), c->wmClientMachine(true)},
+        {QStringLiteral("localhost"), c->isLocalhost()},
+        {QStringLiteral("type"), int(c->windowType())},
+        {QStringLiteral("x"), c->x()},
+        {QStringLiteral("y"), c->y()},
+        {QStringLiteral("width"), c->width()},
+        {QStringLiteral("height"), c->height()},
+        {QStringLiteral("desktops"), c->desktopIds()},
+        {QStringLiteral("minimized"), c->isMinimized()},
+        {QStringLiteral("fullscreen"), c->isFullScreen()},
+        {QStringLiteral("keepAbove"), c->keepAbove()},
+        {QStringLiteral("keepBelow"), c->keepBelow()},
+        {QStringLiteral("noBorder"), c->noBorder()},
+        {QStringLiteral("decorationPolicy"), int(c->decorationPolicy())},
+        {QStringLiteral("skipTaskbar"), c->skipTaskbar()},
+        {QStringLiteral("skipPager"), c->skipPager()},
+        {QStringLiteral("skipSwitcher"), c->skipSwitcher()},
+        {QStringLiteral("maximizeHorizontal"), c->maximizeMode() & MaximizeHorizontal},
+        {QStringLiteral("maximizeVertical"), c->maximizeMode() & MaximizeVertical},
+        {QStringLiteral("uuid"), c->internalId().toString()},
 #if KWIN_BUILD_ACTIVITIES
-            {QStringLiteral("activities"), c->activities()},
+        {QStringLiteral("activities"), c->activities()},
 #endif
-            {QStringLiteral("layer"), c->layer()},
+        {QStringLiteral("layer"), c->layer()},
+        {QStringLiteral("excludeFromCapture"), c->excludeFromCapture()},
+        {QStringLiteral("hasTransientParent"), bool(c->transientFor())},
+        {QStringLiteral("pid"), c->pid()},
     };
 }
+
 }
 
 QVariantMap DBusInterface::queryWindowInfo()
 {
     m_replyQueryWindowInfo = message();
     setDelayedReply(true);
-    kwinApp()->startInteractiveWindowSelection(
-        [this](Window *t) {
-            if (!t) {
-                QDBusConnection::sessionBus().send(m_replyQueryWindowInfo.createErrorReply(
-                    QStringLiteral("org.kde.KWin.Error.UserCancel"),
-                    QStringLiteral("User cancelled the query")));
-                return;
-            }
-            if (t->isClient()) {
-                QDBusConnection::sessionBus().send(m_replyQueryWindowInfo.createReply(clientToVariantMap(t)));
-            } else {
-                QDBusConnection::sessionBus().send(m_replyQueryWindowInfo.createErrorReply(
-                    QStringLiteral("org.kde.KWin.Error.InvalidWindow"),
-                    QStringLiteral("Tried to query information about an unmanaged window")));
-            }
-        });
+    kwinApp()->startInteractiveWindowSelection([this](Window *t) {
+        if (!t) {
+            QDBusConnection::sessionBus().send(m_replyQueryWindowInfo.createErrorReply(
+                QStringLiteral("org.kde.KWin.Error.UserCancel"),
+                QStringLiteral("User cancelled the query")));
+            return;
+        }
+        if (t->isClient()) {
+            QDBusConnection::sessionBus().send(m_replyQueryWindowInfo.createReply(clientToVariantMap(t)));
+        } else {
+            QDBusConnection::sessionBus().send(m_replyQueryWindowInfo.createErrorReply(
+                QStringLiteral("org.kde.KWin.Error.InvalidWindow"),
+                QStringLiteral("Tried to query information about an unmanaged window")));
+        }
+    });
     return QVariantMap{};
 }
 
@@ -206,7 +210,7 @@ void DBusInterface::showDesktop(bool show)
         }
 
         watcher = new QDBusServiceWatcher(m.service(), QDBusConnection::sessionBus(), QDBusServiceWatcher::WatchForUnregistration, this);
-        connect(watcher, &QDBusServiceWatcher::serviceUnregistered, []() {
+        connect(watcher, &QDBusServiceWatcher::serviceUnregistered, watcher, []() {
             workspace()->setShowingDesktop(false, true);
             watcher->deleteLater();
         });
@@ -230,8 +234,6 @@ CompositorDBusInterface::CompositorDBusInterface(Compositor *parent)
     new CompositingAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
     dbus.registerObject(QStringLiteral("/Compositor"), this);
-    dbus.connect(QString(), QStringLiteral("/Compositor"), QStringLiteral("org.kde.kwin.Compositing"),
-                 QStringLiteral("reinit"), this, SLOT(reinitialize()));
 }
 
 QString CompositorDBusInterface::compositingType() const
@@ -298,8 +300,20 @@ VirtualDesktopManagerDBusInterface::VirtualDesktopManagerDBusInterface(VirtualDe
                                                  QStringLiteral("org.kde.KWin.VirtualDesktopManager"),
                                                  this);
 
-    connect(m_manager, &VirtualDesktopManager::currentChanged, this, [this]() {
-        Q_EMIT currentChanged(m_manager->currentDesktop()->id());
+    connect(m_manager, &VirtualDesktopManager::currentChanged, this, [this](VirtualDesktop *oldDesktop, VirtualDesktop *newDesktop, LogicalOutput *output) {
+        if (output != workspace()->activeOutput()) {
+            return;
+        }
+        m_lastDesktopId = newDesktop->id();
+        Q_EMIT currentChanged(m_lastDesktopId);
+    });
+    connect(workspace(), &Workspace::activeOutputChanged, this, [this](LogicalOutput *output) {
+        QString newDesktopId = m_manager->currentDesktop(output)->id();
+        if (m_lastDesktopId == newDesktopId) {
+            return;
+        }
+        m_lastDesktopId = newDesktopId;
+        Q_EMIT currentChanged(m_lastDesktopId);
     });
 
     connect(m_manager, &VirtualDesktopManager::countChanged, this, [this](uint previousCount, uint newCount) {
@@ -404,11 +418,9 @@ DBusDesktopDataVector VirtualDesktopManagerDBusInterface::desktops() const
     DBusDesktopDataVector desktopVect;
     desktopVect.reserve(m_manager->count());
 
-    std::transform(desks.constBegin(), desks.constEnd(),
-                   std::back_inserter(desktopVect),
-                   [](const VirtualDesktop *vd) {
-                       return DBusDesktopDataStruct{.position = vd->x11DesktopNumber() - 1, .id = vd->id(), .name = vd->name()};
-                   });
+    std::transform(desks.constBegin(), desks.constEnd(), std::back_inserter(desktopVect), [](const VirtualDesktop *vd) {
+        return DBusDesktopDataStruct{.position = vd->x11DesktopNumber() - 1, .id = vd->id(), .name = vd->name()};
+    });
 
     return desktopVect;
 }

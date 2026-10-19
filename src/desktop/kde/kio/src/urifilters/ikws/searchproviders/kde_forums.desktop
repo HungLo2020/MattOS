@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=kdeforums,kforum,kfrm
 Name=KDE Forums
+Name[am]=KDE መድረኮች
 Name[ar]=منتديات كِيدِي
 Name[az]=KDE Forumları
 Name[be]=Форумы KDE
@@ -51,6 +52,8 @@ Name[mai]=KDE फोरम
 Name[ml]=കെഡിഇ ഫോറങ്ങള്‍
 Name[mr]=केडीई फोरम्स
 Name[my]=ကေဒီအီး ဖိုလ်ရမ်များ
+Name[nan_TW]=KDE 論壇
+Name[nan_TW@latin]=KDE Lūn-tuânn
 Name[nb]=KDE-forum
 Name[nds]=KDE-Foren
 Name[nl]=KDE-forums
@@ -82,6 +85,7 @@ Name[wa]=Foroms di KDE
 Name[zh_CN]=KDE 社区论坛
 Name[zh_TW]=KDE 論壇
 Query=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
+Query[am]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[ar]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[az]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[be]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
@@ -125,6 +129,8 @@ Query[lt]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags
 Query[lv]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[mr]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[my]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
+Query[nan_TW]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
+Query[nan_TW@latin]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[nb]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[nds]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[nl]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
@@ -137,7 +143,7 @@ Query[ro]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags
 Query[ru]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[sa]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[sk]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
-Query[sl]=https://discuss.kde.org/search?q=\\{@}
+Query[sl]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[sq]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[sr]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[sr@ijekavian]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
@@ -148,7 +154,6 @@ Query[tg]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags
 Query[th]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[tok]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[tr]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
-Query[ug]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[uk]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[vi]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search
 Query[wa]=https://forum.kde.org/search.php?keywords=\\{@}&terms=all&author=&tags=&sv=0&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&countlimit=100&t=0&submit=Search

@@ -10,6 +10,7 @@ add_subdirectory(corelib)
 if(WIN32)
     add_subdirectory(dropfromzip)
 endif()
+add_subdirectory(embeddedwindows)
 add_subdirectory(filetest)
 # diaglib is broken in dev due to missing
 # QtOpenGL/QGLFunctions headers
@@ -85,9 +86,6 @@ if(QT_FEATURE_opengl)
 endif()
 if(QT_FEATURE_egl AND QT_FEATURE_opengl)
     # add_subdirectory(qopenglcontext) # TODO: broken in dev
-endif()
-if(QT_FEATURE_vulkan)
-    add_subdirectory(qvulkaninstance)
 endif()
 
 if(ANDROID)

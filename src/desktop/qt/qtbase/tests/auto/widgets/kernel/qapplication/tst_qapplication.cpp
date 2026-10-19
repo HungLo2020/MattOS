@@ -1334,6 +1334,9 @@ void tst_QApplication::testDeleteLaterProcessEvents5()
 void tst_QApplication::desktopSettingsAware()
 {
 #if QT_CONFIG(process)
+#if defined(Q_OS_HARMONY)
+    QSKIP("Skipped on OHOS: can't launch helper");
+#endif
     QProcess testProcess;
 #ifdef Q_OS_MACOS
     QStringList environment = QProcess::systemEnvironment();
@@ -1546,7 +1549,7 @@ void tst_QApplication::focusChanged()
     QTestMouseEvent click(QTest::MouseClick, Qt::LeftButton, Qt::KeyboardModifiers(), QPoint(5, 5), 0);
 
     bool tabAllControls = true;
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     // Mac has two modes, one where you tab to everything, one where you can
     // only tab to input controls, here's what we get. Determine which ones we
     // should get.
@@ -2452,6 +2455,9 @@ QString modalHelperPath()
 void tst_QApplication::modalDialog()
 {
 #if QT_CONFIG(process)
+#if defined(Q_OS_HARMONY)
+    QSKIP("Skipped on OHOS: can't launch helper");
+#endif
     QProcess testProcess;
     QStringList arguments;
     testProcess.start(modalHelperPath(), arguments);

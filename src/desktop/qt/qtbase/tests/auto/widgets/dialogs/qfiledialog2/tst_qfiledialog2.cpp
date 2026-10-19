@@ -87,7 +87,7 @@ private slots:
     void task178897_minimumSize();
     void task180459_lastDirectory_data();
     void task180459_lastDirectory();
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
     void task227930_correctNavigationKeyboardBehavior();
 #endif
 #if defined(Q_OS_WIN)
@@ -636,7 +636,7 @@ void tst_QFileDialog2::task227304_proxyOnFileDialog()
 }
 #endif
 
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
 // The following test implies the folder created will appear first in
 // the list. On Mac files sorting depends on the locale and the order
 // displayed cannot be known for sure.
@@ -745,16 +745,20 @@ void tst_QFileDialog2::completionOnLevelAfterRoot()
     }
     if (testDir.isEmpty())
         QSKIP("This test requires to have a unique directory of at least six ascii characters under c:/");
-#elif defined(Q_OS_ANDROID)
-    // Android 11 and above doesn't allow accessing root filesystem as before,
-    // so let's opt int for the app's home.
+#elif defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
+    // Android 11 and above and OHOS do not allow accessing the root filesystem
+    // as before, so let's opt into the app's home.
     const auto homePaths = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
     QVERIFY(!homePaths.isEmpty());
     fd.setFilter(QDir::Hidden | QDir::AllDirs | QDir::Files | QDir::System);
     fd.setDirectory(homePaths.first());
-    QDir(homePaths.first()).mkdir("etc");
+    QDir homeDir(homePaths.first());
+    const bool hadEtc = homeDir.exists(QLatin1String("etc"));
+    if (!hadEtc)
+        QVERIFY(homeDir.mkdir(QLatin1String("etc")));
     auto cleanup = qScopeGuard([&]() {
-        QDir(homePaths.first()).rmdir("etc");
+        if (!hadEtc)
+            QDir(homePaths.first()).rmdir(QLatin1String("etc"));
     });
 #else
     fd.setFilter(QDir::Hidden | QDir::AllDirs | QDir::Files | QDir::System);
@@ -795,9 +799,6 @@ void tst_QFileDialog2::task233037_selectingDirectory()
     fd.show();
     QListView *list = fd.findChild<QListView*>("listView");
     QTest::qWait(3000); // Wait for sort to settle (I need a signal).
-#ifdef QT_KEYPAD_NAVIGATION
-    list->setEditFocus(true);
-#endif
     QTest::keyClick(list, Qt::Key_Down);
     QDialogButtonBox *buttonBox = fd.findChild<QDialogButtonBox*>("buttonBox");
     QVERIFY(buttonBox);

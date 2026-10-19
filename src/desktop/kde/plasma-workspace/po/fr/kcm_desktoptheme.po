@@ -13,8 +13,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_desktopthemedetails\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-08-30 13:41+0200\n"
+"POT-Creation-Date: 2026-03-27 00:47+0000\n"
+"PO-Revision-Date: 2026-02-01 10:41+0100\n"
 "Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -137,53 +137,70 @@ msgstr "Thèmes sombres"
 #, kde-format
 msgctxt "@item:inlistbox filters displayed themes"
 msgid "Color scheme compatible"
-msgstr "Compatible avec les thèmes de couleurs"
+msgstr "Compatible avec les modèles de couleurs"
 
-#: ui/main.qml:130
+#: ui/main.qml:114
 #, kde-format
 msgid "Install from File…"
-msgstr "Installer depuis un fichier..."
+msgstr "Installer depuis un fichier…"
 
-#: ui/main.qml:135
+#: ui/main.qml:119
 #, kde-format
 msgid "Get New…"
 msgstr "Obtenir des nouveautés…"
 
-#: ui/main.qml:148
+#: ui/main.qml:132
 #, kde-format
 msgid "Follows color scheme"
-msgstr "Respecte le schéma de couleurs"
+msgstr "Respecte le modèle de couleurs"
 
-#: ui/main.qml:166
+#: ui/main.qml:150
 #, kde-format
 msgid "Edit Theme…"
-msgstr "Modifier un thème..."
+msgstr "Modifier un thème…"
 
-#: ui/main.qml:173
+#: ui/main.qml:158
 #, kde-format
-msgid "Remove Theme"
-msgstr "Supprimer le thème"
+msgctxt "@info:tooltip"
+msgid "Remove Plasma style"
+msgstr "Supprimer un style de Plasma"
 
-#: ui/main.qml:180
+#: ui/main.qml:160
 #, kde-format
-msgid "Restore Theme"
-msgstr "Restaurer le thème"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active Plasma style"
+msgstr "Impossible de supprimer le style actif de Plasma"
 
-#: ui/main.qml:199
+#: ui/main.qml:162
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed Plasma styles"
+msgstr "Impossible de supprimer les styles de Plasma installés par le système"
+
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this Plasma style"
+msgstr "Ne pas supprimer ce style de Plasma"
+
+#: ui/main.qml:189
 #, kde-format
 msgid "Open Theme"
 msgstr "Ouvrir un thème"
 
-#: ui/main.qml:201
+#: ui/main.qml:191
 #, kde-format
 msgid "Theme Files (*.zip *.tar.gz *.tar.bz2)"
 msgstr "Fichiers de thème (*.zip *.tar.gz *.tar.bz2)"
 
+#~ msgid "Remove Theme"
+#~ msgstr "Supprimer le thème"
+
+#~ msgid "Restore Theme"
+#~ msgstr "Restaurer le thème"
+
 #~ msgid "Get New Plasma Styles…"
 #~ msgstr "Obtenir de nouveaux styles de Plasma..."
-
-#~ msgid "This module lets you choose the Plasma style."
-#~ msgstr "Ce module vous permet de choisir votre style Plasma."
 
 #~ msgctxt "NAME OF TRANSLATORS"
 #~ msgid "Your names"
@@ -193,9 +210,6 @@ msgstr "Fichiers de thème (*.zip *.tar.gz *.tar.bz2)"
 #~ msgid "Your emails"
 #~ msgstr ""
 #~ "kimael@gmail.com, renard@kde.org, vpinon@kde.org, sdepiets@gmail.com"
-
-#~ msgid "Plasma Style"
-#~ msgstr "Style Plasma"
 
 #~ msgid "David Rosca"
 #~ msgstr "David Rosca"

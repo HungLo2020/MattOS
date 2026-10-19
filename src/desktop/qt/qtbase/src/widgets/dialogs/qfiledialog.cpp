@@ -154,6 +154,22 @@ Q_GLOBAL_STATIC(QUrl, lastVisitedDir)
   \l{Qt::AA_DontUseNativeDialogs}{AA_DontUseNativeDialogs} application
   attribute.
 
+  \section1 Security Considerations
+
+  The restoreState() function deserializes a versioned binary blob describing
+  the dialog's splitter layout, sidebar bookmarks, navigation history, current
+  directory, and an embedded QHeaderView state blob. The format's magic number
+  and version are validated, but the individual fields are not otherwise
+  sanity-checked once the outer structure is accepted.
+
+  Only pass restoreState() a QByteArray that was previously produced by
+  saveState() and persisted by the same, or a compatible, version of your
+  application, typically through QSettings. Do not restore state from a file,
+  configuration, or other source whose provenance cannot be trusted. The
+  embedded header state is subject to the same considerations described in
+  \l{QHeaderView#Security Considerations}{QHeaderView's Security
+  Considerations}.
+
   \sa QDir, QFileInfo, QFile, QColorDialog, QFontDialog, {Standard Dialogs Example}
 */
 
@@ -2820,16 +2836,17 @@ void QFileDialogPrivate::saveSettings()
 
     if (usingWidgets()) {
         settings.setValue("sidebarWidth", qFileDialogUi->splitter->sizes().constFirst());
-        settings.setValue("shortcuts", QUrl::toStringList(qFileDialogUi->sidebar->urls()));
+        settings.setValue("shortcuts",
+                          QUrl::toStringList(qFileDialogUi->sidebar->urls(), QUrl::FullyEncoded));
         settings.setValue("treeViewHeader", qFileDialogUi->treeView->header()->saveState());
     }
     QStringList historyUrls;
     const QStringList history = q->history();
     historyUrls.reserve(history.size());
     for (const QString &path : history)
-        historyUrls << QUrl::fromLocalFile(path).toString();
+        historyUrls << QUrl::fromLocalFile(path).toString(QUrl::FullyEncoded);
     settings.setValue("history", historyUrls);
-    settings.setValue("lastVisited", lastVisitedDir()->toString());
+    settings.setValue("lastVisited", lastVisitedDir()->toString(QUrl::FullyEncoded));
     const QMetaEnum &viewModeMeta = q->metaObject()->enumerator(q->metaObject()->indexOfEnumerator("ViewMode"));
     settings.setValue("viewMode", QLatin1StringView(viewModeMeta.key(q->viewMode())));
     settings.setValue("qtVersion", QT_VERSION_STR ""_L1);
@@ -3998,10 +4015,6 @@ bool QFileDialogPrivate::itemViewKeyboardEvent(QKeyEvent *event) {
         navigateToParent();
         return true;
     case Qt::Key_Back:
-#ifdef QT_KEYPAD_NAVIGATION
-        if (QApplicationPrivate::keypadNavigationEnabled())
-            return false;
-#endif
     case Qt::Key_Left:
         if (event->key() == Qt::Key_Back || event->modifiers() == Qt::AltModifier) {
             navigateBackward();
@@ -4121,13 +4134,6 @@ QSize QFileDialogListView::sizeHint() const
 
 void QFileDialogListView::keyPressEvent(QKeyEvent *e)
 {
-#ifdef QT_KEYPAD_NAVIGATION
-    if (QApplication::navigationMode() == Qt::NavigationModeKeypadDirectional) {
-        QListView::keyPressEvent(e);
-        return;
-    }
-#endif // QT_KEYPAD_NAVIGATION
-
     if (!d_ptr->itemViewKeyboardEvent(e))
         QListView::keyPressEvent(e);
     e->accept();
@@ -4152,13 +4158,6 @@ void QFileDialogTreeView::setFileDialogPrivate(QFileDialogPrivate *d_pointer)
 
 void QFileDialogTreeView::keyPressEvent(QKeyEvent *e)
 {
-#ifdef QT_KEYPAD_NAVIGATION
-    if (QApplication::navigationMode() == Qt::NavigationModeKeypadDirectional) {
-        QTreeView::keyPressEvent(e);
-        return;
-    }
-#endif // QT_KEYPAD_NAVIGATION
-
     if (!d_ptr->itemViewKeyboardEvent(e))
         QTreeView::keyPressEvent(e);
     e->accept();
@@ -4183,13 +4182,6 @@ QSize QFileDialogTreeView::sizeHint() const
 */
 void QFileDialogLineEdit::keyPressEvent(QKeyEvent *e)
 {
-#ifdef QT_KEYPAD_NAVIGATION
-    if (QApplication::navigationMode() == Qt::NavigationModeKeypadDirectional) {
-        QLineEdit::keyPressEvent(e);
-        return;
-    }
-#endif // QT_KEYPAD_NAVIGATION
-
 #if QT_CONFIG(shortcut)
     int key = e->key();
 #endif

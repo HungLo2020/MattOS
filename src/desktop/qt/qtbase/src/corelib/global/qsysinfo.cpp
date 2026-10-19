@@ -21,6 +21,10 @@
 #include <qjniobject.h>
 #endif
 
+#if defined(Q_OS_HARMONY)
+#include <deviceinfo.h>
+#endif
+
 #if defined(Q_OS_SOLARIS)
 #  include <sys/systeminfo.h>
 #endif
@@ -347,22 +351,12 @@ static bool readEtcLsbRelease(QUnixOSVersion &v)
 }
 
 #if defined(Q_OS_LINUX)
-static QByteArray getEtcFileFirstLine(const char *fileName)
-{
-    QByteArray buffer = getEtcFileContent(fileName);
-    if (buffer.isEmpty())
-        return QByteArray();
-
-    const char *ptr = buffer.constData();
-    return QByteArray(ptr, buffer.indexOf("\n")).trimmed();
-}
-
 static bool readEtcRedHatRelease(QUnixOSVersion &v)
 {
     // /etc/redhat-release analysed should be a one line file
     // the format of its content is <Vendor_ID release Version>
     // i.e. "Red Hat Enterprise Linux Workstation release 6.5 (Santiago)"
-    QByteArray line = getEtcFileFirstLine("/etc/redhat-release");
+    QByteArray line = getEtcFileContent("/etc/redhat-release").trimmed();
     if (line.isEmpty())
         return false;
 
@@ -382,7 +376,7 @@ static bool readEtcDebianVersion(QUnixOSVersion &v)
     // /etc/debian_version analysed should be a one line file
     // the format of its content is <Release_ID/sid>
     // i.e. "jessie/sid"
-    QByteArray line = getEtcFileFirstLine("/etc/debian_version");
+    QByteArray line = getEtcFileContent("/etc/debian_version").trimmed();
     if (line.isEmpty())
         return false;
 
@@ -392,7 +386,7 @@ static bool readEtcDebianVersion(QUnixOSVersion &v)
 }
 #endif
 
-static bool findUnixOsVersion(QUnixOSVersion &v)
+[[maybe_unused]] static bool findUnixOsVersion(QUnixOSVersion &v)
 {
     if (readOsRelease(v))
         return true;
@@ -791,6 +785,8 @@ QString QSysInfo::productType()
 #elif defined(Q_OS_ANDROID)
     return QStringLiteral("android");
 
+#elif defined(Q_OS_HARMONY)
+    return QStringLiteral("harmonyos");
 #elif defined(Q_OS_IOS)
     return QStringLiteral("ios");
 #elif defined(Q_OS_TVOS)
@@ -857,7 +853,7 @@ QString QSysInfo::productVersion()
 #if defined(Q_OS_ANDROID)
     const auto version = QOperatingSystemVersion::current();
     return QString::asprintf("%d.%d", version.majorVersion(), version.minorVersion());
-#elif defined(Q_OS_DARWIN)
+#elif defined(Q_OS_DARWIN) || defined(Q_OS_HARMONY)
     const auto version = QOperatingSystemVersion::current();
     return QString::asprintf("%d.%d.%d", version.majorVersion(),
                                          version.minorVersion(),
@@ -929,6 +925,10 @@ QString QSysInfo::prettyProductName()
         result += " Version "_L1 + displayVersion;
     return result;
 #  endif // Windows
+#elif defined(Q_OS_HARMONY)
+    QString result = QString::asprintf("%s %s", OH_GetOSFullName(),
+                                OH_GetDistributionOSReleaseType());
+    return result;
 #elif defined(Q_OS_HAIKU)
     return "Haiku "_L1 + productVersion();
 #elif defined(Q_OS_UNIX)

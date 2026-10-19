@@ -442,6 +442,13 @@ void tst_QTextMarkdownImporter::nestedSpans()
         QCOMPARE(fmt.isAnchor(), expectedFormat.testFlag(Link));
         QCOMPARE(fmt.fontFixedPitch(), expectedFormat.testFlag(Mono));
         QCOMPARE(fmt.hasProperty(QTextFormat::FontFixedPitch), expectedFormat.testFlag(Mono));
+        if (expectedFormat.testFlag(Mono)) {
+            // QTBUG-97041: a code span must not bake in an absolute font size:
+            // the size is inherited from the document's default font, so that
+            // inline code scales with the surrounding text like the other spans.
+            QVERIFY(!fmt.hasProperty(QTextFormat::FontPointSize));
+            QVERIFY(!fmt.hasProperty(QTextFormat::FontPixelSize));
+        }
         ++iterator;
     }
 }
@@ -497,6 +504,18 @@ void tst_QTextMarkdownImporter::fragmentsAndProperties_data()
             << QString("<b>x&amp;lt;</b>")
             << 0 << "x&lt;" << QTextFormat::FontWeight << QVariant(700)
             << 1 << 1;
+    // An image title is stored as both ImageTitle (for serialization) and
+    // TextToolTip (what QTextEdit/Text display on hover). QTBUG-148545
+    QTest::newRow("imageTitleAsImageTitle")
+            << QString("before ![alt](/path/to/image.png \"the title\") after")
+            << 1 << QString(QChar(QChar::ObjectReplacementCharacter))
+            << QTextFormat::ImageTitle << QVariant(QStringLiteral("the title"))
+            << 1 << 3;
+    QTest::newRow("imageTitleAsToolTip")
+            << QString("before ![alt](/path/to/image.png \"the title\") after")
+            << 1 << QString(QChar(QChar::ObjectReplacementCharacter))
+            << QTextFormat::TextToolTip << QVariant(QStringLiteral("the title"))
+            << 1 << 3;
 }
 
 void tst_QTextMarkdownImporter::fragmentsAndProperties()
@@ -587,6 +606,16 @@ void tst_QTextMarkdownImporter::fencedCodeBlocks_data()
             << "~~~pseudocode\nprint('hello world\\n')\n~~~\n"
             << 1 << 0 << "pseudocode" << "~"
             << "~~~pseudocode\nprint('hello world\\n')\n~~~\n\n";
+    QTest::newRow("fence inside a list item")
+            << "- item:\n\n  ```pseudocode\n  print('hello world\\n')\n  ```\n\n  after the fence\n"
+            << 1 << 2 << "pseudocode" << "`"
+            << "- item:\n\n  ```pseudocode\n  print('hello world\\n')\n  ```\n  after the "
+               "fence\n\n";
+    QTest::newRow("fence continuing a tight list item")
+            << "- item:\n- some code below:\n  ```pseudocode\n  int a = 1;\n  int b = a + 2;\n  ```\n- after the fence\n"
+            << 2 << 3 << "pseudocode" << "`"
+            << "- item:\n- some code below:\n\n  ```pseudocode\n  int a = 1;\n  int b = a + 2;"
+               "\n  ```\n- after the fence\n";
     QTest::newRow("embedded backticks")
             << "```\nnone `one` ``two``\n```\nplain\n```\n```three``` ````four````\n```\nplain\n"
             << 2 << 2 << QString() << "`"

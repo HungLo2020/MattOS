@@ -32,25 +32,18 @@ class QLanguageServerModule : public QObject
     Q_OBJECT
 public:
     QLanguageServerModule(QObject *parent = nullptr) : QObject(parent) { }
-    virtual QString name() const = 0;
     virtual void registerHandlers(QLanguageServer *server, QLanguageServerProtocol *protocol) = 0;
-    virtual void setupCapabilities(const QLspSpecification::InitializeParams &clientInfo,
-                                   QLspSpecification::InitializeResult &) = 0;
+    virtual void setupCapabilities(QLspSpecification::ServerCapabilities &) = 0;
 };
 
 class QLanguageServer : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(RunStatus runStatus READ runStatus NOTIFY runStatusChanged)
-    Q_PROPERTY(bool isInitialized READ isInitialized)
 public:
     QLanguageServer(const QJsonRpcTransport::DataHandler &h, QObject *parent = nullptr);
     enum class RunStatus {
-        NotSetup,
-        SettingUp,
-        DidSetup,
-        Initializing,
-        DidInitialize, // normal state of execution
+        NotInitialized,
+        Initialized, // normal state of execution
         WaitPending,
         Stopping,
         WaitingForExit,
@@ -59,27 +52,18 @@ public:
     Q_ENUM(RunStatus)
 
     QLanguageServerProtocol *protocol();
-    void finishSetup();
     void registerHandlers(QLanguageServerProtocol *protocol);
-    void setupCapabilities(const QLspSpecification::InitializeParams &clientInfo,
-                           QLspSpecification::InitializeResult &serverInfo);
-    void addServerModule(QLanguageServerModule *serverModule);
-    QLanguageServerModule *moduleByName(const QString &n) const;
+    void registerModule(QLanguageServerModule *serverModule);
     QLspNotifySignals *notifySignals();
 
     // API
     RunStatus runStatus() const;
-    bool isInitialized() const;
-    bool isRequestCanceled(const QJsonRpc::IdType &id) const;
     const QLspSpecification::InitializeParams &clientInfo() const;
-    const QLspSpecification::InitializeResult &serverInfo() const;
 
 public Q_SLOTS:
     void receiveData(const QByteArray &d, bool isEndOfMessage);
 Q_SIGNALS:
-    void runStatusChanged(RunStatus);
     void clientInitialized(QLanguageServer *server);
-    void shutdown();
     void exit();
     void lifecycleError();
     void readNextMessage();

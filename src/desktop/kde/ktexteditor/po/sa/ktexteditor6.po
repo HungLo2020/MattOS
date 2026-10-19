@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ktexteditor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-22 00:39+0000\n"
+"POT-Creation-Date: 2026-09-13 00:41+0000\n"
 "PO-Revision-Date: 2024-12-29 22:54+0530\n"
 "Last-Translator: kali <shreekantkalwar@gmail.com>\n"
 "Language-Team: Sanskrit <kde-i18n-doc@kde.org>\n"
@@ -97,56 +97,56 @@ msgid "&View"
 msgstr "&दृश्यं"
 
 #. i18n: ectx: Menu (view_menu_word_wrap)
-#: data/katepart5ui.rc:78
+#: data/katepart5ui.rc:79
 #, kde-format
 msgid "Word Wrap"
 msgstr "शब्दवेष्टनम्"
 
 #. i18n: ectx: Menu (view_menu_borders)
-#: data/katepart5ui.rc:84 dialogs/katedialogs.cpp:744
+#: data/katepart5ui.rc:85 dialogs/katedialogs.cpp:747
 #, kde-format
 msgid "Borders"
 msgstr "सीमाः"
 
 #. i18n: ectx: Menu (codefolding)
-#: data/katepart5ui.rc:92
+#: data/katepart5ui.rc:93
 #, kde-format
 msgid "&Code Folding"
 msgstr "&कोड तह"
 
 #. i18n: ectx: Menu (go)
-#: data/katepart5ui.rc:109
+#: data/katepart5ui.rc:110
 #, kde-format
 msgid "&Go"
 msgstr "&गच्छ"
 
 #. i18n: ectx: Menu (tools)
-#: data/katepart5ui.rc:124
+#: data/katepart5ui.rc:125
 #, kde-format
 msgid "&Tools"
 msgstr "&उपकरणाः"
 
 #. i18n: ectx: Menu (wordcompletion)
-#: data/katepart5ui.rc:138
+#: data/katepart5ui.rc:139
 #, kde-format
 msgid "Word Completion"
 msgstr "शब्द समाप्ति"
 
 #. i18n: ectx: Menu (spelling)
-#: data/katepart5ui.rc:144 spellcheck/spellingmenu.cpp:71
+#: data/katepart5ui.rc:145 spellcheck/spellingmenu.cpp:71
 #: spellcheck/spellingmenu.cpp:195
 #, kde-format
 msgid "Spelling"
 msgstr "वर्तनी"
 
 #. i18n: ectx: Menu (speech)
-#: data/katepart5ui.rc:153 data/katepart5ui.rc:184
+#: data/katepart5ui.rc:154 data/katepart5ui.rc:184
 #, kde-format
 msgid "Text to Speech"
 msgstr "Text to Speech इति"
 
 #. i18n: ectx: Menu (settings)
-#: data/katepart5ui.rc:161
+#: data/katepart5ui.rc:162
 #, kde-format
 msgid "&Settings"
 msgstr "&सेटिंग्स"
@@ -308,7 +308,7 @@ msgid "Scro&llbars visibility:"
 msgstr "Scro&llbars दृश्यता :"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbShowScrollbars)
-#: dialogs/bordersappearanceconfigwidget.ui:183 dialogs/katedialogs.cpp:752
+#: dialogs/bordersappearanceconfigwidget.ui:183 dialogs/katedialogs.cpp:755
 #, kde-format
 msgid "Always On"
 msgstr "सदा चालू"
@@ -414,8 +414,8 @@ msgstr "क्लिपबोर्ड इतिहासे कोऽपि प
 
 #. i18n: ectx: property (title), widget (QGroupBox, gbGeneral)
 #. i18n: ectx: property (title), widget (QGroupBox, gbViInputMode)
-#: dialogs/completionconfigtab.ui:29 dialogs/katedialogs.cpp:608
-#: dialogs/katedialogs.cpp:740 dialogs/katedialogs.cpp:1021
+#: dialogs/completionconfigtab.ui:29 dialogs/katedialogs.cpp:609
+#: dialogs/katedialogs.cpp:743 dialogs/katedialogs.cpp:1026
 #: vimode/config/configwidget.ui:29
 #, kde-format
 msgid "General"
@@ -704,7 +704,7 @@ msgid "Delete the current file type."
 msgstr "वर्तमानसञ्चिकाप्रकारं विलोपयन्तु ।"
 
 #. i18n: ectx: property (text), widget (QPushButton, btnDelete)
-#: dialogs/filetypeconfigwidget.ui:44 syntax/katethemeconfig.cpp:1131
+#: dialogs/filetypeconfigwidget.ui:44 syntax/katethemeconfig.cpp:1132
 #, kde-format
 msgid "&Delete"
 msgstr "&लुप्"
@@ -1054,79 +1054,79 @@ msgstr ""
 msgid "Increase indentation level if in l&eading blank space"
 msgstr "यदि l&eading रिक्तस्थाने भवति तर्हि इण्डेन्टेशनस्तरं वर्धयन्तु"
 
-#: dialogs/katedialogs.cpp:184 dialogs/katedialogs.cpp:186
+#: dialogs/katedialogs.cpp:185 dialogs/katedialogs.cpp:187
 #, kde-format
 msgid "%v character"
 msgid_plural "%v characters"
 msgstr[0] "%v वर्णः"
 msgstr[1] "%v वर्णाः"
 
-#: dialogs/katedialogs.cpp:210
+#: dialogs/katedialogs.cpp:211
 #, kde-format
 msgid "Indentation"
 msgstr "निक्षेपः"
 
-#: dialogs/katedialogs.cpp:294
+#: dialogs/katedialogs.cpp:295
 #, kde-format
 msgid "Auto Completion"
 msgstr "स्वतः समाप्ति"
 
-#: dialogs/katedialogs.cpp:361
+#: dialogs/katedialogs.cpp:362
 #, kde-format
 msgid "Spellcheck"
 msgstr "वर्तनीपरीक्षा"
 
-#: dialogs/katedialogs.cpp:409 dialogs/katedialogs.cpp:416
+#: dialogs/katedialogs.cpp:410 dialogs/katedialogs.cpp:417
 #, kde-format
 msgid "Alt"
 msgstr "सर्वे"
 
-#: dialogs/katedialogs.cpp:410 dialogs/katedialogs.cpp:418
+#: dialogs/katedialogs.cpp:411 dialogs/katedialogs.cpp:419
 #, kde-format
 msgid "Ctrl"
 msgstr "Ctrl"
 
-#: dialogs/katedialogs.cpp:411
+#: dialogs/katedialogs.cpp:412
 #, kde-format
 msgid "Meta"
 msgstr "मेटा"
 
-#: dialogs/katedialogs.cpp:412 dialogs/katedialogs.cpp:420
+#: dialogs/katedialogs.cpp:413 dialogs/katedialogs.cpp:421
 #, kde-format
 msgid "Ctrl + Alt"
 msgstr "Ctrl + Alt"
 
-#: dialogs/katedialogs.cpp:413
+#: dialogs/katedialogs.cpp:414
 #, kde-format
 msgid "Meta + Alt"
 msgstr "मेटा + अल्ट्"
 
-#: dialogs/katedialogs.cpp:414
+#: dialogs/katedialogs.cpp:415
 #, kde-format
 msgid "Ctrl + Meta"
 msgstr "Ctrl + मेटा"
 
-#: dialogs/katedialogs.cpp:417
+#: dialogs/katedialogs.cpp:418
 #, kde-format
 msgid "Cmd"
 msgstr "Cmd"
 
-#: dialogs/katedialogs.cpp:419
+#: dialogs/katedialogs.cpp:420
 #, kde-format
 msgid "Cmd + Alt"
 msgstr "Cmd + Alt"
 
-#: dialogs/katedialogs.cpp:421
+#: dialogs/katedialogs.cpp:422
 #, kde-format
 msgid "Cmd + Ctrl"
 msgstr "Cmd + Ctrl इति"
 
-#: dialogs/katedialogs.cpp:479
+#: dialogs/katedialogs.cpp:480
 #, kde-format
 msgid "Text Navigation"
 msgstr "पाठ नेविगेशन"
 
-#: dialogs/katedialogs.cpp:581
+#: dialogs/katedialogs.cpp:582
 #, kde-format
 msgctxt "Wrap words at (value is at 20 or larger)"
 msgid "%v character"
@@ -1134,62 +1134,62 @@ msgid_plural "%v characters"
 msgstr[0] "%v वर्णः"
 msgstr[1] "%v वर्णाः"
 
-#: dialogs/katedialogs.cpp:586
+#: dialogs/katedialogs.cpp:587
 #, kde-format
 msgid "Feature is not active"
 msgstr "विशेषता सक्रियः नास्ति"
 
-#: dialogs/katedialogs.cpp:588
+#: dialogs/katedialogs.cpp:589
 #, kde-format
 msgid "Disable Feature"
 msgstr "विशेषता अक्षम करें"
 
-#: dialogs/katedialogs.cpp:590
+#: dialogs/katedialogs.cpp:591
 #, kde-format
 msgid "May be handy with Markdown"
 msgstr "Markdown इत्यनेन सह सुलभं भवेत्"
 
-#: dialogs/katedialogs.cpp:592
+#: dialogs/katedialogs.cpp:593
 #, kde-format
 msgid "Mirror characters, similar but not exactly like auto brackets"
 msgstr "दर्पणवर्णाः, सदृशाः परन्तु स्वयम् कोष्ठकाः इव न"
 
-#: dialogs/katedialogs.cpp:594
+#: dialogs/katedialogs.cpp:595
 #, kde-format
 msgid "Non letter character"
 msgstr "अाक्षरवर्णः"
 
-#: dialogs/katedialogs.cpp:710
+#: dialogs/katedialogs.cpp:712
 #, kde-format
 msgid "Editing"
 msgstr "सम्पादनम्"
 
-#: dialogs/katedialogs.cpp:715
+#: dialogs/katedialogs.cpp:717
 #, kde-format
 msgid "Editing Options"
 msgstr "सम्पादनविकल्पाः"
 
-#: dialogs/katedialogs.cpp:748
+#: dialogs/katedialogs.cpp:751
 #, kde-format
 msgid "Statusbar"
 msgstr "स्थितिपट्टिका"
 
-#: dialogs/katedialogs.cpp:750
+#: dialogs/katedialogs.cpp:753
 #, kde-format
 msgid "Off"
 msgstr "दूरे"
 
-#: dialogs/katedialogs.cpp:751
+#: dialogs/katedialogs.cpp:754
 #, kde-format
 msgid "Follow Line Numbers"
 msgstr "रेखासङ्ख्यानां अनुसरणं कुर्वन्तु"
 
-#: dialogs/katedialogs.cpp:942 dialogs/katedialogs.cpp:947
+#: dialogs/katedialogs.cpp:945 dialogs/katedialogs.cpp:950
 #, kde-format
 msgid "Appearance"
 msgstr "स्वरूपम्‌"
 
-#: dialogs/katedialogs.cpp:982
+#: dialogs/katedialogs.cpp:986
 #, kde-format
 msgid ""
 "%1 backs up unsaved files to \"swap files.\" Swap files allow %1 to recover "
@@ -1200,63 +1200,63 @@ msgstr ""
 "तन्त्रस्य दुर्घटनायाः सन्दर्भे भवतः कार्यं पुनः प्राप्तुं शक्नुवन्ति । स्वैप् सञ्चिकाः अक्षमीकरणेन "
 "प्रणालीदुर्घटने दत्तांशहानिः भवितुम् अर्हति ।"
 
-#: dialogs/katedialogs.cpp:1022
+#: dialogs/katedialogs.cpp:1027
 #, kde-format
 msgid "Advanced"
 msgstr "उन्नतं"
 
-#: dialogs/katedialogs.cpp:1087
+#: dialogs/katedialogs.cpp:1092
 #, kde-format
 msgid ""
 "You did not provide a backup suffix or prefix. Using default suffix: '~'"
 msgstr "भवता बैकअप प्रत्ययः उपसर्गः वा न दत्तः । पूर्वनिर्धारितप्रत्ययस्य उपयोगः : '~'."
 
-#: dialogs/katedialogs.cpp:1087
+#: dialogs/katedialogs.cpp:1092
 #, kde-format
 msgid "No Backup Suffix or Prefix"
 msgstr "न बैकअप प्रत्ययः उपसर्गः वा"
 
-#: dialogs/katedialogs.cpp:1220
+#: dialogs/katedialogs.cpp:1227
 #, kde-format
 msgid "Open/Save"
 msgstr "उद्घाटयतु/रक्षतु"
 
-#: dialogs/katedialogs.cpp:1225
+#: dialogs/katedialogs.cpp:1232
 #, kde-format
 msgid "File Opening & Saving"
 msgstr "सञ्चिका उद्घाटनम् & रक्षणम्"
 
-#: dialogs/katedialogs.cpp:1248
+#: dialogs/katedialogs.cpp:1255
 #, kde-format
 msgid "&Line:"
 msgstr "&पंक्ति:"
 
-#: dialogs/katedialogs.cpp:1249
+#: dialogs/katedialogs.cpp:1256
 #, kde-format
 msgid "Go to line number from clipboard"
 msgstr "क्लिप्बोर्ड् तः रेखासङ्ख्यां प्रति गच्छन्तु"
 
-#: dialogs/katedialogs.cpp:1260
+#: dialogs/katedialogs.cpp:1267
 #, kde-format
 msgid "Go to"
 msgstr "गच्छतु"
 
-#: dialogs/katedialogs.cpp:1340
+#: dialogs/katedialogs.cpp:1347
 #, kde-format
 msgid "No valid line number found in clipboard"
 msgstr "क्लिप्बोर्ड् मध्ये वैधपङ्क्तिसङ्ख्या न प्राप्यते"
 
-#: dialogs/katedialogs.cpp:1404
+#: dialogs/katedialogs.cpp:1411
 #, kde-format
 msgid "Dictionary:"
 msgstr "शब्दकोश:"
 
-#: dialogs/katedialogs.cpp:1456
+#: dialogs/katedialogs.cpp:1463
 #, kde-format
 msgid "Enable Auto Reload"
 msgstr "Auto Reload सक्षमं कुर्वन्तु"
 
-#: dialogs/katedialogs.cpp:1459
+#: dialogs/katedialogs.cpp:1466
 #, kde-format
 msgid ""
 "Reloads and will automatically reload without warning about disk changes "
@@ -1265,60 +1265,60 @@ msgstr ""
 "पुनः लोड् करोति तथा च इतः परं यावत् भवन्तः ट्याब् वा विण्डो वा न बन्दं कुर्वन्ति तावत् "
 "डिस्कपरिवर्तनस्य विषये चेतावनी विना स्वयमेव पुनः लोड् करिष्यति ।"
 
-#: dialogs/katedialogs.cpp:1464
+#: dialogs/katedialogs.cpp:1471
 #, kde-format
 msgid "View &Difference"
 msgstr "दृश्य &भेद"
 
-#: dialogs/katedialogs.cpp:1466
+#: dialogs/katedialogs.cpp:1473
 #, kde-format
 msgid "Shows a diff of the changes."
 msgstr "परिवर्तनस्य एकं diff दर्शयति ।"
 
-#: dialogs/katedialogs.cpp:1471
+#: dialogs/katedialogs.cpp:1478
 #, kde-format
 msgid "&Reload"
 msgstr "&पुनः भार"
 
-#: dialogs/katedialogs.cpp:1473
+#: dialogs/katedialogs.cpp:1480
 #, kde-format
 msgid "Reloads the file from disk. Unsaved changes will be lost."
 msgstr "डिस्कतः सञ्चिकां पुनः लोड् करोति । असरक्षिताः परिवर्तनाः नष्टाः भविष्यन्ति।"
 
-#: dialogs/katedialogs.cpp:1477
+#: dialogs/katedialogs.cpp:1484
 #, kde-format
 msgctxt "@action:button closes the opened file"
 msgid "&Close File"
 msgstr "&सञ्चिकां बन्दं कुर्वन्तु"
 
-#: dialogs/katedialogs.cpp:1479
+#: dialogs/katedialogs.cpp:1486
 #, kde-format
 msgid "Closes the file, discarding its content."
 msgstr "सञ्चिकां पिधायति, तस्याः सामग्रीं परित्यजति ।"
 
-#: dialogs/katedialogs.cpp:1483
+#: dialogs/katedialogs.cpp:1490
 #, kde-format
 msgctxt "@action"
 msgid "&Save As…"
 msgstr "&Save As..."
 
-#: dialogs/katedialogs.cpp:1485
+#: dialogs/katedialogs.cpp:1492
 #, kde-format
 msgid "Lets you select a location and save the file again."
 msgstr "भवन्तं स्थानं चित्वा पुनः सञ्चिकां रक्षितुं शक्नोति ।"
 
 #. i18n: ectx: property (text), widget (QPushButton, m_skipBtn)
-#: dialogs/katedialogs.cpp:1490 spellcheck/spellcheckbar.ui:143
+#: dialogs/katedialogs.cpp:1497 spellcheck/spellcheckbar.ui:143
 #, kde-format
 msgid "&Ignore"
 msgstr "&उपेक्षा"
 
-#: dialogs/katedialogs.cpp:1491
+#: dialogs/katedialogs.cpp:1498
 #, kde-format
 msgid "Ignores the changes on disk without any action."
 msgstr "डिस्क मध्ये परिवर्तनं विना किमपि क्रियाम् उपेक्षते ।"
 
-#: dialogs/katedialogs.cpp:1560 swapfile/kateswapdiffcreator.cpp:131
+#: dialogs/katedialogs.cpp:1567 swapfile/kateswapdiffcreator.cpp:131
 #, kde-format
 msgid ""
 "The diff command failed. Please make sure that diff(1) is installed and in "
@@ -1327,18 +1327,18 @@ msgstr ""
 "diff आदेशः विफलः अभवत् । कृपया सुनिश्चितं कुर्वन्तु यत् diff(1) संस्थापितम् अस्ति तथा च "
 "भवतः PATH मध्ये अस्ति ।"
 
-#: dialogs/katedialogs.cpp:1562 swapfile/kateswapdiffcreator.cpp:89
+#: dialogs/katedialogs.cpp:1569 swapfile/kateswapdiffcreator.cpp:89
 #: swapfile/kateswapdiffcreator.cpp:99 swapfile/kateswapdiffcreator.cpp:133
 #, kde-format
 msgid "Error Creating Diff"
 msgstr "Diff इत्यस्य निर्माणे त्रुटिः"
 
-#: dialogs/katedialogs.cpp:1569 swapfile/kateswapdiffcreator.cpp:140
+#: dialogs/katedialogs.cpp:1576 swapfile/kateswapdiffcreator.cpp:140
 #, kde-format
 msgid "The files are identical."
 msgstr "सञ्चिकाः समानाः सन्ति ।"
 
-#: dialogs/katedialogs.cpp:1569 swapfile/kateswapdiffcreator.cpp:140
+#: dialogs/katedialogs.cpp:1576 swapfile/kateswapdiffcreator.cpp:140
 #, kde-format
 msgid "Diff Output"
 msgstr "Diff Output इति"
@@ -1384,16 +1384,21 @@ msgstr "&PageUp/PageDown कर्सरं चालयति"
 
 #. i18n: ectx: property (whatsThis), widget (QCheckBox, chkCamelCursor)
 #: dialogs/navigationconfigwidget.ui:55
-#, kde-format
-msgid "Selects whether cursor jumps full words or breaks at camel case humps."
+#, fuzzy, kde-format
+#| msgid ""
+#| "Selects whether cursor jumps full words or breaks at camel case humps."
+msgid ""
+"Selects whether cursor stops at camel case humps and underscores within a "
+"word."
 msgstr ""
 "कर्सरः पूर्णशब्दान् कूर्दति वा camel case humps इत्यत्र भङ्गयति वा इति चयनं करोति ।"
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkCamelCursor)
 #: dialogs/navigationconfigwidget.ui:58
 #, kde-format
-msgid "Enable camel case cursor movement"
-msgstr "उष्ट्रस्य प्रकरणस्य कर्सरस्य गतिं सक्षमं कुर्वन्तु"
+msgid ""
+"Stop at 'camelCase' and 'snake_case' subwords when moving the cursor by word"
+msgstr ""
 
 #. i18n: ectx: property (text), widget (QLabel, lblAutoCenterCursor)
 #: dialogs/navigationconfigwidget.ui:79
@@ -1614,6 +1619,12 @@ msgstr ""
 #, kde-format
 msgid "Honor settings in .editorconfig file"
 msgstr ".editorconfig सञ्चिकायां सेटिङ्ग्स् सम्मानयन्तु"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkUseFirstLineAsDocName)
+#: dialogs/opensaveconfigadvwidget.ui:229
+#, kde-format
+msgid "Use first line of untitled documents for document name"
+msgstr ""
 
 #. i18n: ectx: property (title), widget (QGroupBox, gbFileFormat)
 #: dialogs/opensaveconfigwidget.ui:29
@@ -2170,12 +2181,12 @@ msgctxt "translators: you can also translate 'Try Again' with 'Reload'"
 msgid "Try Again"
 msgstr "पुनः प्रयासं कुर्वन्तु"
 
-#: document/katedocument.cpp:2316 document/katedocument.cpp:6532
+#: document/katedocument.cpp:2316 document/katedocument.cpp:6540
 #, kde-format
 msgid "&Close"
 msgstr "&पिधानं करोतु"
 
-#: document/katedocument.cpp:2317 document/katedocument.cpp:6533
+#: document/katedocument.cpp:2317 document/katedocument.cpp:6541
 #, kde-format
 msgctxt "Close the message being displayed"
 msgid "Close message"
@@ -2247,8 +2258,8 @@ msgstr ""
 "परिवर्तिता । तत्र केचन दत्तांशाः नष्टाः भवितुम् अर्हन्ति ।"
 
 #: document/katedocument.cpp:2517 document/katedocument.cpp:2533
-#: document/katedocument.cpp:2853 syntax/katethemeconfig.cpp:1215
-#: syntax/katethemeconfig.cpp:1371
+#: document/katedocument.cpp:2854 syntax/katethemeconfig.cpp:1218
+#: syntax/katethemeconfig.cpp:1376
 #, kde-format
 msgid "Possible Data Loss"
 msgstr "सम्भाव्यदत्तांशहानिः"
@@ -2276,7 +2287,7 @@ msgstr ""
 "मूलसञ्चिका नष्टा वा क्षतिग्रस्ता वा भवितुम् अर्हति । यावत् सञ्चिका सफलतया न लिखिता तावत् "
 "अनुप्रयोगात् न त्यजन्तु।"
 
-#: document/katedocument.cpp:2722
+#: document/katedocument.cpp:2723
 #, kde-format
 msgid ""
 "For file %1 no backup copy could be created before saving. If an error "
@@ -2289,56 +2300,56 @@ msgstr ""
 "भवितुम् अर्हति यत् भवता यस्मिन् माध्यमे लिखितं तत् पूर्णम् अस्ति अथवा सञ्चिकायाः निर्देशिका "
 "भवतः कृते केवलं पठनीयः अस्ति ।"
 
-#: document/katedocument.cpp:2726
+#: document/katedocument.cpp:2727
 #, kde-format
 msgid "Failed to create backup copy."
 msgstr "बैकअप प्रतिलिपिं निर्मातुं असफलम्।"
 
-#: document/katedocument.cpp:2727
+#: document/katedocument.cpp:2728
 #, kde-format
 msgid "Try to Save Nevertheless"
 msgstr "तथापि रक्षितुं प्रयतस्व"
 
-#: document/katedocument.cpp:2852
+#: document/katedocument.cpp:2853
 #, kde-format
 msgid "Do you really want to continue to close this file? Data loss may occur."
 msgstr ""
 "किं भवान् वास्तवमेव एतां सञ्चिकां निरन्तरं पिधातुम् इच्छति? दत्तांशहानिः भवितुम् अर्हति ।"
 
-#: document/katedocument.cpp:2854
+#: document/katedocument.cpp:2855
 #, kde-format
 msgid "Close Nevertheless"
 msgstr "Close तथापि"
 
-#: document/katedocument.cpp:4641
+#: document/katedocument.cpp:4642
 #, fuzzy, kde-format
 #| msgid "Untitled"
 msgid "Untitled (%1)"
 msgstr "अनामिका"
 
-#: document/katedocument.cpp:4643
+#: document/katedocument.cpp:4644
 #, kde-format
 msgid "Untitled"
 msgstr "अनामिका"
 
-#: document/katedocument.cpp:4820 document/katedocument.cpp:5051
-#: document/katedocument.cpp:5061 document/katedocument.cpp:5860
-#: document/katedocument.cpp:6047
+#: document/katedocument.cpp:4821 document/katedocument.cpp:5057
+#: document/katedocument.cpp:5067 document/katedocument.cpp:5868
+#: document/katedocument.cpp:6055
 #, kde-format
 msgid "Save File"
 msgstr "सञ्चिकां रक्षतु"
 
-#: document/katedocument.cpp:4823
+#: document/katedocument.cpp:4824
 #, kde-format
 msgid "Save failed"
 msgstr "रक्षणं विफलम् अभवत्"
 
-#: document/katedocument.cpp:5072
+#: document/katedocument.cpp:5078
 #, kde-format
 msgid "Save Copy of File"
 msgstr "सञ्चिकायाः प्रतिलिपिं रक्षन्तु"
 
-#: document/katedocument.cpp:5084
+#: document/katedocument.cpp:5090
 #, kde-format
 msgid ""
 "The document could not be saved, as it was not possible to write to %1.\n"
@@ -2350,7 +2361,7 @@ msgstr ""
 "\n"
 "भवतः अस्याः सञ्चिकायाः लेखनप्रवेशः अस्ति वा पर्याप्तं डिस्कस्थानं उपलब्धं वा इति पश्यन्तु ।"
 
-#: document/katedocument.cpp:5374
+#: document/katedocument.cpp:5382
 #, kde-format
 msgid ""
 "Using deprecated modeline 'remove-trailing-space'. Please replace with "
@@ -2363,7 +2374,7 @@ msgstr ""
 "application=katepart&branch=stable5&path=config-variables.html#variable-"
 "remove-trailing-spaces पश्यन्तु"
 
-#: document/katedocument.cpp:5380
+#: document/katedocument.cpp:5388
 #, kde-format
 msgid ""
 "Using deprecated modeline 'replace-trailing-space-save'. Please replace with "
@@ -2376,17 +2387,17 @@ msgstr ""
 "application=katepart&branch=stable5&path=config-variables.html#variable-"
 "remove-trailing-spaces पश्यन्तु"
 
-#: document/katedocument.cpp:5694
+#: document/katedocument.cpp:5702
 #, kde-format
 msgid "The file '%1' was modified on disk."
 msgstr "'%1' इति सञ्चिका डिस्कमध्ये परिवर्तिता आसीत् ।"
 
-#: document/katedocument.cpp:5696
+#: document/katedocument.cpp:5704
 #, kde-format
 msgid "The file '%1' was deleted or moved on disk."
 msgstr "'%1' इति सञ्चिका विलोपिता अथवा डिस्कमध्ये स्थानान्तरिता ।"
 
-#: document/katedocument.cpp:6032
+#: document/katedocument.cpp:6040
 #, kde-format
 msgid ""
 "The document \"%1\" has been modified.\n"
@@ -2395,17 +2406,17 @@ msgstr ""
 "\"%1\" इति दस्तावेजं परिवर्तितम् अस्ति ।\n"
 "किं भवन्तः स्वपरिवर्तनानि रक्षितुं इच्छन्ति वा परित्यक्तुं इच्छन्ति वा?"
 
-#: document/katedocument.cpp:6035
+#: document/katedocument.cpp:6043
 #, kde-format
 msgid "Close Document"
 msgstr "दस्तावेजं बन्दं कुर्वन्तु"
 
-#: document/katedocument.cpp:6146
+#: document/katedocument.cpp:6154
 #, kde-format
 msgid "The file <a href=\"%1\">%2</a> is still loading."
 msgstr "<a href=\"%1\">%2 इति</a> सञ्चिका अद्यापि लोड् भवति ।"
 
-#: document/katedocument.cpp:6151
+#: document/katedocument.cpp:6159
 #, kde-format
 msgid "&Abort Loading"
 msgstr "&लोडिंग निरस्त करो"
@@ -2425,48 +2436,52 @@ msgstr "युज्"
 msgid "Normal Mode"
 msgstr "सामान्य मोड"
 
-#: inputmode/kateviinputmode.cpp:31
-#, kde-format
-msgid "VI: INSERT MODE"
+#: inputmode/kateviinputmode.cpp:33
+#, fuzzy, kde-format
+#| msgid "VI: INSERT MODE"
+msgctxt "The INSERT mode of VI"
+msgid "VI: INSERT"
 msgstr "VI: INSERT MODE इति"
 
-#: inputmode/kateviinputmode.cpp:34
-#, kde-format
-msgid "VI: NORMAL MODE"
+#: inputmode/kateviinputmode.cpp:36
+#, fuzzy, kde-format
+#| msgid "VI: NORMAL MODE"
+msgctxt "The NORMAL mode of VI"
+msgid "VI: NORMAL"
 msgstr "VI: NORMAL MODE इति"
 
-#: inputmode/kateviinputmode.cpp:37
+#: inputmode/kateviinputmode.cpp:39
 #, kde-format
 msgid "VI: VISUAL"
 msgstr "VI: दृश्यम्"
 
-#: inputmode/kateviinputmode.cpp:40
+#: inputmode/kateviinputmode.cpp:42
 #, kde-format
 msgid "VI: VISUAL BLOCK"
 msgstr "VI: दृश्यखण्डः"
 
-#: inputmode/kateviinputmode.cpp:43
+#: inputmode/kateviinputmode.cpp:45
 #, kde-format
 msgid "VI: VISUAL LINE"
 msgstr "VI: दृश्य रेखा"
 
-#: inputmode/kateviinputmode.cpp:46
+#: inputmode/kateviinputmode.cpp:48
 #, kde-format
 msgid "VI: REPLACE"
 msgstr "षष्ठः प्रत्याहृ"
 
-#: inputmode/kateviinputmode.cpp:146
+#: inputmode/kateviinputmode.cpp:150
 #, kde-format
 msgid "vi-mode"
 msgstr "वयं मोडं कुर्मः"
 
-#: inputmode/kateviinputmode.cpp:159
+#: inputmode/kateviinputmode.cpp:163
 #, kde-format
 msgid "recording"
 msgstr "अभिलेखनम्"
 
 #: inputmode/kateviinputmodefactory.cpp:38 utils/kateglobal.cpp:88
-#: vimode/config/configtab.cpp:233
+#: vimode/config/configtab.cpp:237
 #, kde-format
 msgid "Vi Input Mode"
 msgstr "Vi इनपुट मोड"
@@ -2506,7 +2521,7 @@ msgstr ""
 msgid "Select Mime Types"
 msgstr "Mime Types इति चिनोतु"
 
-#: mode/katemodeconfigpage.cpp:306
+#: mode/katemodeconfigpage.cpp:312
 #, kde-format
 msgid "Modes && Filetypes"
 msgstr "मोड्स && सञ्चिकाप्रकार"
@@ -4870,80 +4885,80 @@ msgstr ""
 "वर्णं चिनोतु ।</p><p> यदा उचितं भवति तदा सन्दर्भमेनूतः Background तथा Selected "
 "Background वर्णं अनसेट् कर्तुं शक्नुवन्ति ।</p>"
 
-#: syntax/katethemeconfig.cpp:1026
+#: syntax/katethemeconfig.cpp:1027
 #, kde-format
 msgid "Default Theme"
 msgstr "पूर्वनिर्धारित विषयः"
 
-#: syntax/katethemeconfig.cpp:1027
+#: syntax/katethemeconfig.cpp:1028
 #, kde-format
 msgid "Theme Editor"
 msgstr "विषय सम्पादक"
 
-#: syntax/katethemeconfig.cpp:1045
+#: syntax/katethemeconfig.cpp:1046
 #, kde-format
 msgid "Select theme:"
 msgstr "विषयं चिनुत :"
 
-#: syntax/katethemeconfig.cpp:1118
+#: syntax/katethemeconfig.cpp:1119
 #, kde-format
 msgid "&Theme:"
 msgstr "&विषयवस्तु:"
 
-#: syntax/katethemeconfig.cpp:1127
+#: syntax/katethemeconfig.cpp:1128
 #, kde-format
 msgctxt "@action:button"
 msgid "&Copy…"
 msgstr "&प्रतिलिपि..."
 
-#: syntax/katethemeconfig.cpp:1135
+#: syntax/katethemeconfig.cpp:1136
 #, kde-format
 msgctxt "@action:button"
 msgid "Export…"
 msgstr "निर्यात…"
 
-#: syntax/katethemeconfig.cpp:1139
+#: syntax/katethemeconfig.cpp:1140
 #, kde-format
 msgctxt "@action:button"
 msgid "Import…"
 msgstr "आयात…"
 
-#: syntax/katethemeconfig.cpp:1146
+#: syntax/katethemeconfig.cpp:1147
 #, kde-format
 msgid "Bundled read-only theme. To modify the theme, please copy it."
 msgstr "बण्डल्ड् केवलं पठनीयः विषयः। विषयस्य परिवर्तनार्थं कृपया तस्य प्रतिलिपिं कुर्वन्तु ।"
 
-#: syntax/katethemeconfig.cpp:1157
+#: syntax/katethemeconfig.cpp:1160
 #, kde-format
 msgid "Colors"
 msgstr "वर्णाः"
 
-#: syntax/katethemeconfig.cpp:1161
+#: syntax/katethemeconfig.cpp:1164
 #, kde-format
 msgid "Default Text Styles"
 msgstr "पूर्वनिर्धारितपाठशैल्याः"
 
-#: syntax/katethemeconfig.cpp:1165
+#: syntax/katethemeconfig.cpp:1168
 #, kde-format
 msgid "Highlighting Text Styles"
 msgstr "पाठशैल्याः प्रकाशयन्"
 
-#: syntax/katethemeconfig.cpp:1177
+#: syntax/katethemeconfig.cpp:1180
 #, kde-format
 msgid "Exporting color theme: %1"
 msgstr "वर्णविषयकं निर्यातयति: %1"
 
-#: syntax/katethemeconfig.cpp:1179 syntax/katethemeconfig.cpp:1200
+#: syntax/katethemeconfig.cpp:1182 syntax/katethemeconfig.cpp:1203
 #, kde-format
 msgid "Color theme"
 msgstr "रङ्ग विषय"
 
-#: syntax/katethemeconfig.cpp:1200
+#: syntax/katethemeconfig.cpp:1203
 #, kde-format
 msgid "Importing Color Theme"
 msgstr "रङ्ग विषय आयात करना"
 
-#: syntax/katethemeconfig.cpp:1214
+#: syntax/katethemeconfig.cpp:1217
 #, kde-format
 msgid ""
 "Importing will overwrite the existing theme file \"%1\". This can not be "
@@ -4951,37 +4966,37 @@ msgid ""
 msgstr ""
 "आयातेन विद्यमानं विषयसञ्चिकां \"%1\" अधिलेखितं भविष्यति । एतत् निवर्तयितुं न शक्यते ।"
 
-#: syntax/katethemeconfig.cpp:1216
+#: syntax/katethemeconfig.cpp:1219
 #, kde-format
 msgid "Import Nevertheless"
 msgstr "आयात तथापि"
 
-#: syntax/katethemeconfig.cpp:1304
+#: syntax/katethemeconfig.cpp:1308
 #, kde-format
 msgid "Follow System Color Scheme"
 msgstr "System Color Scheme इत्यस्य अनुसरणं कुर्वन्तु"
 
-#: syntax/katethemeconfig.cpp:1370
+#: syntax/katethemeconfig.cpp:1375
 #, kde-format
 msgid "Do you really want to delete the theme \"%1\"? This can not be undone."
 msgstr "किं भवान् वास्तवमेव \"%1\" इति विषयं विलोपयितुम् इच्छति? एतत् निवर्तयितुं न शक्यते ।"
 
-#: syntax/katethemeconfig.cpp:1372
+#: syntax/katethemeconfig.cpp:1377
 #, kde-format
 msgid "Delete Nevertheless"
 msgstr "Delete तथापि"
 
-#: syntax/katethemeconfig.cpp:1414
+#: syntax/katethemeconfig.cpp:1419
 #, kde-format
 msgid "Copy theme"
 msgstr "विषयं प्रतिलिपितु"
 
-#: syntax/katethemeconfig.cpp:1415
+#: syntax/katethemeconfig.cpp:1420
 #, kde-format
 msgid "Name for copy of color theme \"%1\":"
 msgstr "\"%1\" इत्यस्य वर्णविषयस्य प्रतिलिपिः कृते नाम:"
 
-#: syntax/katethemeconfig.cpp:1427
+#: syntax/katethemeconfig.cpp:1432
 #, kde-format
 msgid ""
 "<p>The theme \"%1\" already exists.</p><p>Please choose a different theme "
@@ -4989,12 +5004,12 @@ msgid ""
 msgstr ""
 "<p>&quot;%1&quot; इति विषयः पूर्वमेव अस्ति ।</p><p> कृपया भिन्नं विषयनाम चिनुत।</p>"
 
-#: syntax/katethemeconfig.cpp:1428
+#: syntax/katethemeconfig.cpp:1433
 #, kde-format
 msgid "Copy Theme"
 msgstr "प्रतिलिपि विषय"
 
-#: syntax/katethemeconfig.cpp:1481 syntax/katethemeconfig.cpp:1486
+#: syntax/katethemeconfig.cpp:1486 syntax/katethemeconfig.cpp:1491
 #, kde-format
 msgid "Color Themes"
 msgstr "रङ्ग विषयवस्तु"
@@ -6384,12 +6399,12 @@ msgstr "Insert mode तथा VI input mode सूचकः । मोड् प
 msgid "Change dictionary"
 msgstr "शब्दकोशं परिवर्तयतु"
 
-#: view/katestatusbar.cpp:161 view/katestatusbar.cpp:488
+#: view/katestatusbar.cpp:161 view/katestatusbar.cpp:489
 #, kde-format
 msgid "Tab Width"
 msgstr "ट्याब चौड़ाई"
 
-#: view/katestatusbar.cpp:169 view/katestatusbar.cpp:503
+#: view/katestatusbar.cpp:169 view/katestatusbar.cpp:504
 #, kde-format
 msgid "Indentation Width"
 msgstr "इन्डेंटेशन चौड़ाई"
@@ -6448,75 +6463,75 @@ msgstr "वाक्यविन्यासस्य प्रकाशनम�
 msgid "Line/Column compact mode"
 msgstr "रेखा/स्तम्भ संकुचित मोड"
 
-#: view/katestatusbar.cpp:307
+#: view/katestatusbar.cpp:308
 #, kde-format
 msgid "[BLOCK] %1"
 msgstr "[BLOCK] %1"
 
-#: view/katestatusbar.cpp:323
+#: view/katestatusbar.cpp:324
 #, kde-format
 msgid "%1/%2:%3"
 msgstr "%1/%2:%3"
 
-#: view/katestatusbar.cpp:325
+#: view/katestatusbar.cpp:326
 #, kde-format
 msgid "%1:%2"
 msgstr "%1:%2"
 
-#: view/katestatusbar.cpp:329
+#: view/katestatusbar.cpp:330
 #, kde-format
 msgid "Line %1 of %2, Column %3"
 msgstr "%2 इत्यस्य %1 रेखा, %3 स्तम्भः"
 
-#: view/katestatusbar.cpp:331
+#: view/katestatusbar.cpp:332
 #, kde-format
 msgid "Line %1, Column %2"
 msgstr "रेखा %1, स्तम्भ %2"
 
-#: view/katestatusbar.cpp:405
+#: view/katestatusbar.cpp:406
 #, kde-format
 msgid "Soft Tabs: %1"
 msgstr "मृदु ट्याब्स्: %1"
 
-#: view/katestatusbar.cpp:406
+#: view/katestatusbar.cpp:407
 #, kde-format
 msgid "Soft Tabs: %1 (%2)"
 msgstr "मृदु ट्याब्स्: %1 (%2) ."
 
-#: view/katestatusbar.cpp:407
+#: view/katestatusbar.cpp:408
 #, kde-format
 msgid "Tab Size: %1"
 msgstr "ट्याब् आकारः %1"
 
-#: view/katestatusbar.cpp:408
+#: view/katestatusbar.cpp:409
 #, kde-format
 msgid "Indent/Tab: %1/%2"
 msgstr "इन्डेण्ट्/टैब्: %1/%2"
 
-#: view/katestatusbar.cpp:448 view/katestatusbar.cpp:474
+#: view/katestatusbar.cpp:449 view/katestatusbar.cpp:475
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Other…"
 msgstr "इतर…"
 
-#: view/katestatusbar.cpp:476
+#: view/katestatusbar.cpp:477
 #, kde-format
 msgid "Other (%1)"
 msgid_plural "Other (%1)"
 msgstr[0] "अन्ये (%1)"
 msgstr[1] "अन्ये (%1)"
 
-#: view/katestatusbar.cpp:488
+#: view/katestatusbar.cpp:489
 #, kde-format
 msgid "Please specify the wanted tab width:"
 msgstr "कृपया इष्टं ट्याब् विस्तारं निर्दिशन्तु:"
 
-#: view/katestatusbar.cpp:504
+#: view/katestatusbar.cpp:505
 #, kde-format
 msgid "Please specify the wanted indentation width:"
 msgstr "कृपया इष्टं निक्षेपविस्तारं निर्दिशन्तु:"
 
-#: view/katestatusbar.cpp:567
+#: view/katestatusbar.cpp:568
 #, kde-format
 msgctxt ""
 "%1 and %3 are the selected words/chars count, %2 and %4 are the total words/"
@@ -6524,13 +6539,13 @@ msgctxt ""
 msgid "Words %1/%2, Chars %3/%4"
 msgstr "शब्दाः %1/%2, वर्णाः %3/%4"
 
-#: view/katestatusbar.cpp:573
+#: view/katestatusbar.cpp:574
 #, kde-format
 msgctxt "%1 and %2 are the total words/chars count."
 msgid "Words %1, Chars %2"
 msgstr "शब्दाः %1, वर्णाः %2"
 
-#: view/katestatusbar.cpp:588
+#: view/katestatusbar.cpp:589
 #, kde-format
 msgid "Zoom: %1%"
 msgstr "जूमः %1% ."
@@ -7811,22 +7826,22 @@ msgstr "उष्ट्रप्रकरणस्य गतिः सक्ष�
 msgid "Search wrapped"
 msgstr "अन्वेषणं वेष्टितम्"
 
-#: view/kateview.cpp:3043
+#: view/kateview.cpp:3052
 #, kde-format
 msgid "Open File"
 msgstr "सञ्चिकां उद्घाटयन्तु"
 
-#: view/kateview.cpp:3954
+#: view/kateview.cpp:3995
 #, kde-format
 msgid "Align On"
 msgstr "Align On इति"
 
-#: view/kateview.cpp:3954
+#: view/kateview.cpp:3995
 #, kde-format
 msgid "Alignment pattern:"
 msgstr "संरेखणप्रतिमानः :"
 
-#: view/kateview.cpp:5038
+#: view/kateview.cpp:5079
 #, kde-format
 msgid "Export File as HTML"
 msgstr "सञ्चिकां HTML इति रूपेण निर्यातयन्तु"
@@ -7875,37 +7890,37 @@ msgstr ""
 "list</b></code> प्रविशन्तु<br /> व्यक्तिगत-आदेशानां साहाय्यार्थं, <code><b>help &lt;"
 "command&gt;</b></code> प्रविष्टं कुर्वन्तु</p>"
 
-#: view/kateviewhelpers.cpp:1317 vimode/emulatedcommandbar/commandmode.cpp:211
+#: view/kateviewhelpers.cpp:1317 vimode/emulatedcommandbar/commandmode.cpp:212
 #, kde-format
 msgid "No such command: \"%1\""
 msgstr "एतादृशः आदेशः नास्ति: \"%1\" ।"
 
-#: view/kateviewhelpers.cpp:1320 vimode/emulatedcommandbar/commandmode.cpp:193
+#: view/kateviewhelpers.cpp:1320 vimode/emulatedcommandbar/commandmode.cpp:194
 #, kde-format
 msgid "Error: No range allowed for command \"%1\"."
 msgstr "त्रुटिः: \"%1\" इति आदेशस्य कृते कोऽपि परिधिः अनुमतः नास्ति ।"
 
-#: view/kateviewhelpers.cpp:1330 vimode/emulatedcommandbar/commandmode.cpp:197
+#: view/kateviewhelpers.cpp:1330 vimode/emulatedcommandbar/commandmode.cpp:198
 #, kde-format
 msgid "Success: "
 msgstr "सफलता: "
 
-#: view/kateviewhelpers.cpp:1344 vimode/emulatedcommandbar/commandmode.cpp:206
+#: view/kateviewhelpers.cpp:1344 vimode/emulatedcommandbar/commandmode.cpp:207
 #, kde-format
 msgid "Command \"%1\" failed."
 msgstr "\"%1\" आदेशः विफलः ।"
 
-#: view/kateviewhelpers.cpp:2632 view/kateviewhelpers.cpp:2633
+#: view/kateviewhelpers.cpp:2645 view/kateviewhelpers.cpp:2646
 #, kde-format
 msgid "Mark Type %1"
 msgstr "चिह्नप्रकारः %1"
 
-#: view/kateviewhelpers.cpp:2656
+#: view/kateviewhelpers.cpp:2669
 #, kde-format
 msgid "Set Default Mark Type"
 msgstr "पूर्वनिर्धारितचिह्नप्रकारं सेट् कुर्वन्तु"
 
-#: view/kateviewhelpers.cpp:2801
+#: view/kateviewhelpers.cpp:2814
 #, kde-format
 msgid "Disable Annotation Bar"
 msgstr "एनोटेशन बार अक्षम करें"
@@ -7968,17 +7983,23 @@ msgstr "स्क्रीनशॉट् रक्षणं विफलम् 
 msgid "Screenshot saving failed: %1"
 msgstr "स्क्रीनशॉट् रक्षणं विफलम्: %1"
 
-#: vimode/appcommands.cpp:67
+#: vimode/appcommands.cpp:72
 #, kde-format
 msgid "All documents written to disk"
 msgstr "डिस्कमध्ये लिखिताः सर्वे दस्तावेजाः"
 
-#: vimode/appcommands.cpp:70
+#: vimode/appcommands.cpp:74
+#, fuzzy, kde-format
+#| msgid "All documents written to disk"
+msgid "Only some documents were written to disk"
+msgstr "डिस्कमध्ये लिखिताः सर्वे दस्तावेजाः"
+
+#: vimode/appcommands.cpp:79
 #, kde-format
 msgid "Document written to disk"
 msgstr "डिस्कं प्रति लिखितं दस्तावेजम्"
 
-#: vimode/appcommands.cpp:202
+#: vimode/appcommands.cpp:212
 #, kde-format
 msgid ""
 "<p><b>w/wa &mdash; write document(s) to disk</b></p><p>Usage: <tt><b>w[a]</"
@@ -7993,7 +8014,7 @@ msgstr ""
 "tt> — सर्वाणि दस्तावेजानि डिस्क मध्ये लिखति ।</p><p> यदि दस्तावेजेन सह कोऽपि "
 "सञ्चिकानाम सम्बद्धः नास्ति तर्हि सञ्चिकासंवादः दर्शितः भविष्यति ।</p>"
 
-#: vimode/appcommands.cpp:213
+#: vimode/appcommands.cpp:223
 #, kde-format
 msgid ""
 "<p><b>q/qa/wq/wqa &mdash; [write and] quit</b></p><p>Usage: <tt><b>[w]q[a]</"
@@ -8017,7 +8038,7 @@ msgstr ""
 "निर्गच्छति । यदि दस्तावेजेन सह कोऽपि सञ्चिकानाम सम्बद्धः नास्ति तथा च तत् डिस्क मध्ये "
 "लिखितव्यं तर्हि सञ्चिकासंवादः दर्शितः भविष्यति ।</p>"
 
-#: vimode/appcommands.cpp:228
+#: vimode/appcommands.cpp:238
 #, kde-format
 msgid ""
 "<p><b>x/xa &mdash; write and quit</b></p><p>Usage: <tt><b>x[a]</b></tt></"
@@ -8038,7 +8059,7 @@ msgstr ""
 "p><p> &#39;w&#39; आदेशानां विपरीतम् अयं आदेशः केवलं दस्तावेजं लिखति यदि सः परिवर्तितः "
 "अस्ति ।</p>"
 
-#: vimode/appcommands.cpp:242
+#: vimode/appcommands.cpp:252
 #, kde-format
 msgid ""
 "<p><b>sp,split&mdash; Split horizontally the current view into two</b></"
@@ -8048,7 +8069,7 @@ msgstr ""
 "<p><b>sp,split— वर्तमानदृश्यं क्षैतिजरूपेण द्विधा विभजन्तु</b></p><p> प्रयोगः "
 "<tt><b>sp[lit] ।</b></tt></p><p> परिणामः एकस्मिन् दस्तावेजे द्वौ दृश्यौ भवतः ।</p>"
 
-#: vimode/appcommands.cpp:248
+#: vimode/appcommands.cpp:258
 #, kde-format
 msgid ""
 "<p><b>vs,vsplit&mdash; Split vertically the current view into two</b></"
@@ -8058,7 +8079,7 @@ msgstr ""
 "<p><b>vs,vsplit— वर्तमानदृश्यं लंबवतरूपेण द्वयोः विभाजनं कुर्वन्तु</b></p><p> प्रयोगः "
 "<tt><b>vs[plit] .</b></tt></p><p> परिणामः एकस्मिन् दस्तावेजे द्वौ दृश्यौ भवतः ।</p>"
 
-#: vimode/appcommands.cpp:254
+#: vimode/appcommands.cpp:264
 #, kde-format
 msgid ""
 "<p><b>clo[se]&mdash; Close the current view</b></p><p>Usage: <tt><b>clo[se]</"
@@ -8067,7 +8088,7 @@ msgstr ""
 "<p><b>clo[se]— वर्तमानदृश्यं पिधाय</b></p><p> प्रयोगः <tt><b>निमील[से] ।</b></tt></"
 "p><p> तस्य निष्पादनस्य अनन्तरं वर्तमानदृश्यं पिहितं भविष्यति ।</p>"
 
-#: vimode/appcommands.cpp:260
+#: vimode/appcommands.cpp:270
 #, kde-format
 msgid ""
 "<p><b>[v]new &mdash; split view and create new document</b></p><p>Usage: "
@@ -8082,7 +8103,7 @@ msgstr ""
 "आह्वयितुं शक्यते ।<br /> <tt>new</tt> — दृश्यं क्षैतिजरूपेण विभज्य नूतनं दस्तावेजं उद्घाटयति ।"
 "<br /> <tt>vnew</tt> — दृश्यं लम्बवत् विभज्य नूतनं दस्तावेजं उद्घाटयति ।<br /></p>"
 
-#: vimode/appcommands.cpp:270
+#: vimode/appcommands.cpp:280
 #, kde-format
 msgid ""
 "<p><b>e[dit] &mdash; reload current document</b></p><p>Usage: <tt><b>e[dit]</"
@@ -8093,7 +8114,7 @@ msgstr ""
 "[ सम्पादयतु ] ।</b></tt></p><p> पुनः वर्तमानदस्तावेजस्य <b>e</b> diting आरभते । एतत् "
 "वर्तमानसञ्चिकां पुनः सम्पादयितुं उपयोगी भवति, यदा सा डिस्कमध्ये परिवर्तिता आसीत् ।</p>"
 
-#: vimode/appcommands.cpp:518
+#: vimode/appcommands.cpp:528
 #, kde-format
 msgid ""
 "<p><b>b,buffer &mdash; Edit document N from the document list</b></"
@@ -8102,7 +8123,7 @@ msgstr ""
 "<p><b>b,buffer — दस्तावेजसूचिकातः N दस्तावेजं सम्पादयन्तु</b></p><p> प्रयोगः "
 "<tt><b>b[uffer] [N] ।</b></tt></p>"
 
-#: vimode/appcommands.cpp:523
+#: vimode/appcommands.cpp:533
 #, kde-format
 msgid ""
 "<p><b>bp,bprev &mdash; previous buffer</b></p><p>Usage: <tt><b>bp[revious] "
@@ -8115,7 +8136,7 @@ msgstr ""
 "गच्छति ।</p><p> <b>[N]</b> एकं पूर्वनिर्धारितं भवति ।</p><p> दस्तावेजसूचिकायाः आरम्भं "
 "परितः वेष्टयति ।</p>"
 
-#: vimode/appcommands.cpp:531
+#: vimode/appcommands.cpp:541
 #, kde-format
 msgid ""
 "<p><b>bn,bnext &mdash; switch to next document</b></p><p>Usage: "
@@ -8128,7 +8149,7 @@ msgstr ""
 "(&quot; <b>b</b> uffer&quot;) गच्छति । <b>[N]</b> एकं पूर्वनिर्धारितं भवति ।</"
 "p><p> दस्तावेजसूचिकायाः अन्ते परितः वेष्टयति ।</p>"
 
-#: vimode/appcommands.cpp:539
+#: vimode/appcommands.cpp:549
 #, kde-format
 msgid ""
 "<p><b>bf,bfirst &mdash; first document</b></p><p>Usage: <tt><b>bf[irst]</b></"
@@ -8139,7 +8160,7 @@ msgstr ""
 "tt></p><p> दस्तावेजसूचौ <b>प्रथमदस्तावेजं</b> (&quot; <b>b</b> uffer&quot;) गच्छति ।"
 "</p>"
 
-#: vimode/appcommands.cpp:545
+#: vimode/appcommands.cpp:555
 #, kde-format
 msgid ""
 "<p><b>bl,blast &mdash; last document</b></p><p>Usage: <tt><b>bl[ast]</b></"
@@ -8150,7 +8171,7 @@ msgstr ""
 "p><p> दस्तावेजसूचौ <b>l</b> ast document (&quot; <b>b</b> uffer&quot;) प्रति "
 "गच्छति ।</p>"
 
-#: vimode/appcommands.cpp:551
+#: vimode/appcommands.cpp:561
 #, kde-format
 msgid "<p><b>ls</b></p><p>list current buffers<p>"
 msgstr "<p><b>ls</b></p><p> वर्तमान बफरं सूचीबद्धं कुर्वन्तु<p>"
@@ -8180,12 +8201,12 @@ msgstr "अनुपलब्धः तर्कः (तर्काः)। उ�
 msgid "Wrong arguments"
 msgstr "गलत तर्कः"
 
-#: vimode/config/configtab.cpp:201
+#: vimode/config/configtab.cpp:205
 #, kde-format
 msgid "Unable to open the config file for reading."
 msgstr "पठनार्थं विन्याससञ्चिकां उद्घाटयितुं असमर्थः ।"
 
-#: vimode/config/configtab.cpp:201
+#: vimode/config/configtab.cpp:205
 #, kde-format
 msgid "Unable to open file"
 msgstr "सञ्चिकां उद्घाटयितुं असमर्थः"
@@ -8321,18 +8342,18 @@ msgstr ""
 msgid "Import from vimrc file"
 msgstr "vimrc सञ्चिकातः आयातम्"
 
-#: vimode/marks.cpp:117
+#: vimode/marks.cpp:112
 #, kde-format
 msgid "Mark set: %1"
 msgstr "चिह्नसमूहः: %1"
 
-#: vimode/marks.cpp:163
+#: vimode/marks.cpp:158
 #, kde-format
 msgid "There are no more chars for the next bookmark."
 msgstr "अग्रिमपुस्तकचिह्नस्य कृते अधिकानि chars नास्ति ।"
 
-#: vimode/modes/insertvimode.cpp:260 vimode/modes/modebase.cpp:794
-#: vimode/modes/normalvimode.cpp:3565
+#: vimode/modes/insertvimode.cpp:261 vimode/modes/modebase.cpp:795
+#: vimode/modes/normalvimode.cpp:3604
 #, kde-format
 msgid "Nothing in register %1"
 msgstr "रजिस्टर %1 मध्ये किमपि नास्ति"
@@ -8342,10 +8363,13 @@ msgstr "रजिस्टर %1 मध्ये किमपि नास्त
 msgid "'%1' %2,  Hex %3,  Octal %4"
 msgstr "'%1' %2, हेक्स %3, अष्टक %4"
 
-#: vimode/modes/normalvimode.cpp:2532
+#: vimode/modes/normalvimode.cpp:2571
 #, kde-format
 msgid "Mark not set: %1"
 msgstr "न सेट् इति चिह्नं कुर्वन्तु: %1"
+
+#~ msgid "Enable camel case cursor movement"
+#~ msgstr "उष्ट्रस्य प्रकरणस्य कर्सरस्य गतिं सक्षमं कुर्वन्तु"
 
 #~ msgid "The file '%1' was created on disk."
 #~ msgstr "'%1' इति सञ्चिका डिस्कमध्ये निर्मितवती ।"

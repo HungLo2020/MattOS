@@ -14,6 +14,9 @@
 
 using Tone = EmojierSettings::SkinTone;
 
+constexpr int SKIN_TONE_COUNT = 5;
+constexpr int TWO_TONE_PAIR_PERMUTATIONS = SKIN_TONE_COUNT * (SKIN_TONE_COUNT - 1);
+
 enum ToneChars : uint {
     CharLight = 0x1F3FB,
     CharMediumLight = 0x1F3FC,
@@ -30,6 +33,7 @@ struct Emoji {
     QStringList annotations;
     int skinTone;
     int skinToneVariantIndex;
+    int twoToneVariantIndex = 0;
 
     QString categoryName() const;
 };
@@ -44,39 +48,48 @@ inline QDataStream &operator>>(QDataStream &stream, Emoji &emoji)
     stream >> emoji.category;
     QList<QByteArray> annotationBuffers;
     stream >> annotationBuffers;
-    for (const auto &annotation : annotationBuffers) {
+    for (const auto &annotation : std::as_const(annotationBuffers)) {
         emoji.annotations << QString::fromUtf8(annotation);
     }
 
-    int sumToneL = 0, sumToneML = 0, sumToneM = 0, sumToneMD = 0, sumToneD = 0;
+    int toneLightModifierCount = 0, toneMediumLightModifierCount = 0, toneMediumModifierCount = 0, toneMediumDarkModifierCount = 0, toneDarkModifierCount = 0;
     for (const auto &c : emoji.content.toUcs4()) {
         switch (c) {
         case CharLight:
-            sumToneL++;
+            toneLightModifierCount++;
             break;
         case CharMediumLight:
-            sumToneML++;
+            toneMediumLightModifierCount++;
             break;
         case CharMedium:
-            sumToneM++;
+            toneMediumModifierCount++;
             break;
         case CharMediumDark:
-            sumToneMD++;
+            toneMediumDarkModifierCount++;
             break;
         case CharDark:
-            sumToneD++;
+            toneDarkModifierCount++;
             break;
         }
     }
-    const int sumToneAll = sumToneL + sumToneML + sumToneM + sumToneMD + sumToneD;
+    const int toneModifierCount =
+        toneLightModifierCount + toneMediumLightModifierCount + toneMediumModifierCount + toneMediumDarkModifierCount + toneDarkModifierCount;
 
-    if (sumToneAll == 0) {
+    if (toneModifierCount == 0) {
         emoji.skinTone = Tone::HasNoVariants;
     } else {
-        if (sumToneL == sumToneAll) {
+        if (toneModifierCount == toneLightModifierCount) {
             emoji.skinTone = Tone::Light;
-        } else if (sumToneML == sumToneAll || sumToneM == sumToneAll || sumToneMD == sumToneAll || sumToneD == sumToneAll) {
+        } else if (toneModifierCount == toneMediumLightModifierCount) {
+            emoji.skinTone = Tone::MediumLight;
+        } else if (toneModifierCount == toneMediumModifierCount) {
+            emoji.skinTone = Tone::Medium;
+        } else if (toneModifierCount == toneMediumDarkModifierCount) {
+            emoji.skinTone = Tone::MediumDark;
+        } else if (toneModifierCount == toneDarkModifierCount) {
             emoji.skinTone = Tone::Dark;
+        } else if (toneModifierCount == 2) {
+            emoji.skinTone = Tone::TwoTone;
         } else {
             emoji.skinTone = Tone::HasNoVariants;
         }
@@ -90,6 +103,9 @@ struct EmojiDict {
 
     QList<Emoji> m_emojis;
     QList<Emoji> m_tonedEmojis;
+    QList<Emoji> m_twoToneEmojis;
+
     QMap<QString, int> m_processedEmojis;
     QMap<QString, int> m_processedTonedEmojis;
+    QMap<QString, int> m_processedTwoToneEmojis;
 };

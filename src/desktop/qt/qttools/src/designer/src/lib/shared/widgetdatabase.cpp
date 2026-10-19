@@ -1,9 +1,10 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "widgetdatabase_p.h"
 #include "widgetfactory_p.h"
-#include "spacer_widget_p.h"
+#include "objectutils_p.h"
 #include "abstractlanguage.h"
 #include "pluginmanager_p.h"
 #include "qdesigner_widgetbox_p.h"
@@ -244,14 +245,17 @@ void WidgetDataBaseItem::setBaseClassName(const QString &b)
     m_baseClassName = b;
 }
 
-static void addWidgetItem(WidgetDataBase *wdb, const char *name, const QMetaObject &mo,
-                          const char *comment)
+static void addWidgetItem(WidgetDataBase *wdb, const QMetaObject *mo)
 {
-    auto *item = new WidgetDataBaseItem(QString::fromUtf8(name));
-    if (auto *base = mo.superClass())
+    auto *item = new WidgetDataBaseItem(QString::fromUtf8(mo->className()));
+    if (auto *base = mo->superClass())
         item->setBaseClassName(QString::fromUtf8(base->className()));
-    if (comment[0])
-        item->setToolTip(QString::fromUtf8(comment));
+#if QT_CONFIG(abstractbutton)
+    if (mo->inherits(&QAbstractButton::staticMetaObject)) {
+        //: Widget Box ToolTip of QAbstractButton-derived classes
+        item->setToolTip(WidgetDataBase::tr("text"));
+    }
+#endif
     wdb->append(item);
 }
 
@@ -260,18 +264,9 @@ WidgetDataBase::WidgetDataBase(QDesignerFormEditorInterface *core, QObject *pare
     : QDesignerWidgetDataBaseInterface(parent),
       m_core(core)
 {
-#define DECLARE_LAYOUT(L, C)
-#define DECLARE_COMPAT_WIDGET(W, C) DECLARE_WIDGET(W, C)
-#define DECLARE_WIDGET(W, C) addWidgetItem(this, #W, W::staticMetaObject, C);
-
-// AXIVION DISABLE Style Qt-Generic-NoIrregularInclude Required functionality
-#include <widgets.table>
-// AXIVION ENABLE Style Qt-Generic-NoIrregularInclude
-
-#undef DECLARE_COMPAT_WIDGET
-#undef DECLARE_LAYOUT
-#undef DECLARE_WIDGET
-#undef DECLARE_WIDGET_1
+    const QList<const QMetaObject *> metaObjects = widgetMetaObjects();
+    for (const QMetaObject *metaObject : metaObjects)
+        addWidgetItem(this, metaObject);
 
     const QString msgAbstractClass =
         QCoreApplication::translate("WidgetDataBase",

@@ -17,19 +17,12 @@ QmlGoToDefinitionSupport::QmlGoToDefinitionSupport(QmlLsp::QQmlCodeModelManager 
 {
 }
 
-QString QmlGoToDefinitionSupport::name() const
+void QmlGoToDefinitionSupport::setupCapabilities(QLspSpecification::ServerCapabilities &caps)
 {
-    return u"QmlDefinitionSupport"_s;
-}
-
-void QmlGoToDefinitionSupport::setupCapabilities(
-        const QLspSpecification::InitializeParams &,
-        QLspSpecification::InitializeResult &serverCapabilities)
-{
-    // just assume serverCapabilities.capabilities.typeDefinitionProvider is a bool for now
+    // just assume caps.typeDefinitionProvider is a bool for now
     // handle the TypeDefinitionOptions and TypeDefinitionRegistrationOptions cases later on, if
     // needed (as they just allow more fancy go-to-type-definition action).
-    serverCapabilities.capabilities.definitionProvider = true;
+    caps.definitionProvider = true;
 }
 
 void QmlGoToDefinitionSupport::registerHandlers(QLanguageServer *,
@@ -44,11 +37,12 @@ void QmlGoToDefinitionSupport::process(RequestPointerArgument request)
     ResponseScopeGuard guard(results, request->m_response);
 
     auto itemsFound = itemsForRequest(request);
-
-    if (guard.setErrorFrom(itemsFound))
+    if (!itemsFound.has_value()) {
+        guard.setError(itemsFound.error());
         return;
+    }
 
-    auto &front = std::get<QList<QQmlLSUtils::ItemLocation>>(itemsFound).front();
+    auto &front = itemsFound.value().front();
 
     const QByteArray shortestRootUrl =
             m_codeModelManager->shortestRootUrlForFile(request->m_parameters.textDocument.uri);

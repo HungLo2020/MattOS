@@ -10,9 +10,23 @@
 #include "effect/offscreenquickview.h"
 #include "effect/effecthandler.h"
 
+#include "compositor.h"
+#include "core/drmdevice.h"
+#include "core/inputdevice.h"
+#include "core/renderbackend.h"
+#include "core/renderdevice.h"
+#include "input_event.h"
 #include "logging_p.h"
 #include "opengl/eglcontext.h"
+#include "opengl/eglnativefence.h"
+#include "opengl/eglswapchain.h"
+#include "opengl/glrendertimequery.h"
 #include "opengl/glutils.h"
+#include "scene/imageitem.h"
+#include "scene/itemrenderer.h"
+#include "scene/surfaceitem.h"
+#include "scene/texture.h"
+#include "scene/workspacescene.h"
 
 #include <QGuiApplication>
 #include <QQmlComponent>
@@ -22,6 +36,7 @@
 #include <QQuickRenderControl>
 #include <QQuickView>
 #include <QStyleHints>
+#include <QScopeGuard>
 
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
@@ -38,11 +53,28 @@ namespace KWin
 class Q_DECL_HIDDEN OffscreenQuickView::Private
 {
 public:
+    QPointingDevice *qtPointingDeviceForKWinDevice(InputDevice *device) const
+    {
+        if (device && device->isTouchpad()) {
+            return touchpadDevice;
+        } else {
+            return mouseDevice;
+        }
+    }
+
     std::unique_ptr<QQuickWindow> m_view;
     std::unique_ptr<QQuickRenderControl> m_renderControl;
     std::unique_ptr<QOffscreenSurface> m_offscreenSurface;
     std::unique_ptr<QOpenGLContext> m_glcontext;
-    std::unique_ptr<QOpenGLFramebufferObject> m_fbo;
+    std::shared_ptr<EglSwapchain> m_swapchain;
+    std::shared_ptr<EglSwapchainSlot> m_currentSlot;
+    std::unique_ptr<ImageItem> m_imageItem;
+    std::unique_ptr<SurfaceItem> m_surfaceItem;
+    Item *m_item = nullptr;
+
+    DrmDevice *m_scanoutDevice = nullptr;
+    FormatModifierMap m_scanoutFormats;
+    bool m_surfaceNeedsReallocation = false;
 
     std::unique_ptr<QTimer> m_repaintTimer;
     QImage m_image;
@@ -53,8 +85,12 @@ public:
     bool m_visible = true;
     bool m_hasAlphaChannel = true;
     bool m_automaticRepaint = true;
+    bool m_automaticFrame = true;
 
     std::optional<qreal> m_explicitDpr;
+
+    QPointingDevice *mouseDevice;
+    QPointingDevice *touchpadDevice;
 
     QList<QEventPoint> touchPoints;
     QSet<uint32_t> acceptedTouchPoints;
@@ -83,6 +119,38 @@ public:
     std::unique_ptr<QQuickItem> quickItem;
 };
 
+class QuickViewItem : public SurfaceItem
+{
+public:
+    explicit QuickViewItem(OffscreenQuickView *view, Item *parentItem)
+        : SurfaceItem(parentItem)
+        , m_view(view)
+    {
+    }
+
+    RegionF shape() const override
+    {
+        return rect();
+    }
+    RegionF opaque() const override
+    {
+        return hasAlphaChannel() ? RegionF{} : rect();
+    }
+    void setScanoutHint(DrmDevice *device, const FormatModifierMap &drmFormats) override
+    {
+        if (m_view->d->m_scanoutDevice == device
+            && m_view->d->m_scanoutFormats == drmFormats) {
+            return;
+        }
+        m_view->d->m_scanoutDevice = device;
+        m_view->d->m_scanoutFormats = drmFormats;
+        m_view->d->m_surfaceNeedsReallocation = true;
+    }
+
+private:
+    OffscreenQuickView *const m_view;
+};
+
 OffscreenQuickView::OffscreenQuickView(ExportMode exportMode, bool alpha)
     : d(new OffscreenQuickView::Private)
 {
@@ -103,6 +171,8 @@ OffscreenQuickView::OffscreenQuickView(ExportMode exportMode, bool alpha)
     if (!usingGl) {
         qCDebug(LIBKWINEFFECTS) << "QtQuick Software rendering mode detected";
         d->m_useBlit = true;
+        d->m_imageItem = std::make_unique<ImageItem>(effects->scene()->overlayItem());
+        d->m_item = d->m_imageItem.get();
         // explicitly do not call QQuickRenderControl::initialize, see Qt docs
     } else {
         QSurfaceFormat format;
@@ -115,9 +185,7 @@ OffscreenQuickView::OffscreenQuickView(ExportMode exportMode, bool alpha)
 
         d->m_view->setFormat(format);
 
-        auto shareContext = QOpenGLContext::globalShareContext();
         d->m_glcontext = std::make_unique<QOpenGLContext>();
-        d->m_glcontext->setShareContext(shareContext);
         d->m_glcontext->setFormat(format);
         d->m_glcontext->create();
 
@@ -130,14 +198,12 @@ OffscreenQuickView::OffscreenQuickView(ExportMode exportMode, bool alpha)
         d->m_view->setGraphicsDevice(QQuickGraphicsDevice::fromOpenGLContext(d->m_glcontext.get()));
         d->m_renderControl->initialize();
         d->m_glcontext->doneCurrent();
-
-        // On Wayland, contexts are implicitly shared and QOpenGLContext::globalShareContext() is null.
-        if (shareContext && !d->m_glcontext->shareContext()) {
-            qCDebug(LIBKWINEFFECTS) << "Failed to create a shared context, falling back to raster rendering";
-            // still render via GL, but blit for presentation
-            d->m_useBlit = true;
-        }
+        d->m_surfaceItem = std::make_unique<QuickViewItem>(this, effects->scene()->overlayItem());
+        d->m_item = d->m_surfaceItem.get();
     }
+    connect(this, &OffscreenQuickView::geometryChanged, d->m_item, [this]() {
+        d->m_item->setGeometry(geometry());
+    });
 
     auto updateSize = [this]() {
         contentItem()->setSize(d->m_view->size());
@@ -150,10 +216,14 @@ OffscreenQuickView::OffscreenQuickView(ExportMode exportMode, bool alpha)
     d->m_repaintTimer->setSingleShot(true);
     d->m_repaintTimer->setInterval(10);
 
-    connect(d->m_repaintTimer.get(), &QTimer::timeout, this, &OffscreenQuickView::update);
+    connect(d->m_repaintTimer.get(), &QTimer::timeout, this, [this]() {
+        update(nullptr);
+    });
     connect(d->m_renderControl.get(), &QQuickRenderControl::renderRequested, this, &OffscreenQuickView::handleRenderRequested);
     connect(d->m_renderControl.get(), &QQuickRenderControl::sceneChanged, this, &OffscreenQuickView::handleSceneChanged);
 
+    d->mouseDevice = new QPointingDevice(QStringLiteral("ForwardingMouseDevice"), {}, QInputDevice::DeviceType::Mouse, QPointingDevice::PointerType::Generic, QInputDevice::Capability::Position, 1, 0);
+    d->touchpadDevice = new QPointingDevice(QStringLiteral("ForwardingTouchpadDevice"), {}, QInputDevice::DeviceType::TouchPad, QPointingDevice::PointerType::Finger, QInputDevice::Capability::Position, 10, 3);
     d->touchDevice = new QPointingDevice(QStringLiteral("ForwardingTouchDevice"), {}, QInputDevice::DeviceType::TouchScreen, QPointingDevice::PointerType::Finger, QInputDevice::Capability::Position, 10, {});
 }
 
@@ -188,6 +258,11 @@ void OffscreenQuickView::setAutomaticRepaint(bool set)
     }
 }
 
+void OffscreenQuickView::setAutomaticFrame(bool set)
+{
+    d->m_automaticFrame = set;
+}
+
 void OffscreenQuickView::setDevicePixelRatio(qreal dpr)
 {
     d->m_explicitDpr = dpr;
@@ -195,21 +270,29 @@ void OffscreenQuickView::setDevicePixelRatio(qreal dpr)
 
 void OffscreenQuickView::handleSceneChanged()
 {
-    if (d->m_automaticRepaint) {
-        d->m_repaintTimer->start();
+    if (d->m_visible) {
+        if (d->m_automaticRepaint) {
+            d->m_repaintTimer->start();
+        } else if (d->m_automaticFrame) {
+            d->m_item->scheduleFrame();
+        }
     }
     Q_EMIT sceneChanged();
 }
 
 void OffscreenQuickView::handleRenderRequested()
 {
-    if (d->m_automaticRepaint) {
-        d->m_repaintTimer->start();
+    if (d->m_visible && d->m_automaticFrame) {
+        if (d->m_automaticRepaint) {
+            d->m_repaintTimer->start();
+        } else if (d->m_automaticFrame) {
+            d->m_item->scheduleFrame();
+        }
     }
     Q_EMIT renderRequested();
 }
 
-void OffscreenQuickView::update()
+void OffscreenQuickView::update(OutputFrame *frame)
 {
     if (!d->m_visible) {
         return;
@@ -220,11 +303,20 @@ void OffscreenQuickView::update()
 
     bool usingGl = d->m_glcontext != nullptr;
     EglContext *previousContext = EglContext::currentContext();
+    const auto restoreContext = qScopeGuard([previousContext]() {
+        if (previousContext) {
+            (void)previousContext->makeCurrent();
+        }
+    });
+    std::unique_ptr<GLRenderTimeQuery> renderTime;
 
     if (usingGl) {
         if (!d->m_glcontext->makeCurrent(d->m_offscreenSurface.get())) {
             // probably a context loss event, kwin is about to reset all the effects anyway
             return;
+        }
+        if (frame) {
+            renderTime = GLRenderTimeQuery::begin();
         }
 
         qreal dpr = d->m_view->screen() ? d->m_view->screen()->devicePixelRatio() : 1.0;
@@ -233,24 +325,52 @@ void OffscreenQuickView::update()
         }
 
         const QSize nativeSize = d->m_view->size() * dpr;
-        if (!d->m_fbo || d->m_fbo->size() != nativeSize) {
+        if (!d->m_swapchain || d->m_swapchain->size() != nativeSize || d->m_surfaceNeedsReallocation) {
             d->m_textureExport.reset(nullptr);
 
             QOpenGLFramebufferObjectFormat fboFormat;
             fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
             fboFormat.setInternalTextureFormat(GL_RGBA8);
 
-            d->m_fbo = std::make_unique<QOpenGLFramebufferObject>(nativeSize, fboFormat);
-            if (!d->m_fbo->isValid()) {
-                d->m_fbo.reset();
+            const uint32_t format = d->m_hasAlphaChannel ? DRM_FORMAT_ARGB8888 : DRM_FORMAT_XRGB8888;
+            if (d->m_scanoutDevice) {
+                GraphicsBufferOptions options{
+                    .size = nativeSize,
+                    .format = format,
+                    .modifiers = d->m_scanoutFormats.value(format),
+                    .software = false,
+                    .scanout = true,
+                };
+                d->m_swapchain = EglSwapchain::create(d->m_scanoutDevice->allocator(), EglContext::currentContext()->shared_from_this(), options);
+            }
+            if (!d->m_swapchain) {
+                // TODO add non-scanout feedback on the item for this?
+                GraphicsBufferOptions options{
+                    .size = nativeSize,
+                    .format = format,
+                    .modifiers = Compositor::self()->backend()->supportedFormats()[format],
+                    .software = false,
+                    .scanout = false,
+                };
+                d->m_swapchain = EglSwapchain::create(Compositor::self()->backend()->renderDevice(), options);
+            }
+            if (!d->m_swapchain) {
                 d->m_glcontext->doneCurrent();
-                qCWarning(LIBKWINEFFECTS, "Creating FBO for OffscreenQuickView failed!");
+                qCWarning(LIBKWINEFFECTS, "Creating a swapchain for OffscreenQuickView failed!");
                 return;
             }
+            d->m_surfaceNeedsReallocation = false;
+        }
+        d->m_currentSlot = d->m_swapchain->acquire();
+        if (!d->m_currentSlot) {
+            d->m_glcontext->doneCurrent();
+            qCWarning(LIBKWINEFFECTS, "Acquire for OffscreenQuickView failed!");
+            return;
         }
 
-        QQuickRenderTarget renderTarget = QQuickRenderTarget::fromOpenGLTexture(d->m_fbo->texture(), d->m_fbo->size());
+        QQuickRenderTarget renderTarget = QQuickRenderTarget::fromOpenGLTexture(d->m_currentSlot->texture()->texture(), d->m_swapchain->size());
         renderTarget.setDevicePixelRatio(dpr);
+        renderTarget.setMirrorVertically(true);
         d->m_view->setRenderTarget(renderTarget);
     }
 
@@ -269,79 +389,30 @@ void OffscreenQuickView::update()
     }
 
     if (d->m_useBlit) {
-        if (usingGl) {
-            d->m_image = d->m_fbo->toImage();
-            d->m_image.setDevicePixelRatio(d->m_view->effectiveDevicePixelRatio());
-        } else {
-            d->m_image = d->m_view->grabWindow();
-        }
+        d->m_image = d->m_view->grabWindow();
+        d->m_imageItem->setImage(d->m_image);
+        d->m_imageItem->setSize(geometry().size());
+    } else {
+        EGLNativeFence fence(EglContext::currentContext()->displayObject());
+        d->m_surfaceItem->setBuffer(d->m_currentSlot->buffer(), fence.takeFileDescriptor());
+        d->m_surfaceItem->setBufferReleasePoint(d->m_currentSlot->releasePoint());
+        d->m_surfaceItem->setBufferSourceBox(Rect(QPoint(), d->m_swapchain->size()));
+        d->m_surfaceItem->setDestinationSize(geometry().size());
+        d->m_surfaceItem->addDamage(Rect(QPoint(), d->m_swapchain->size()));
     }
+    d->m_item->setPosition(geometry().topLeft());
 
     if (usingGl) {
+        EGLNativeFence fence(EglContext::currentContext()->displayObject());
+        d->m_swapchain->release(d->m_currentSlot, fence.takeFileDescriptor());
         QOpenGLFramebufferObject::bindDefault();
+        if (frame && renderTime) {
+            renderTime->end();
+            frame->addRenderTimeQuery(std::move(renderTime));
+        }
         d->m_glcontext->doneCurrent();
-        if (previousContext) {
-            previousContext->makeCurrent();
-        }
     }
-    Q_EMIT repaintNeeded();
-}
-
-void OffscreenQuickView::forwardMouseEvent(QEvent *e)
-{
-    if (!d->m_visible) {
-        return;
-    }
-    switch (e->type()) {
-    case QEvent::MouseMove:
-    case QEvent::MouseButtonPress:
-    case QEvent::MouseButtonRelease: {
-        QMouseEvent *me = static_cast<QMouseEvent *>(e);
-        const QPoint widgetPos = d->m_view->mapFromGlobal(me->pos());
-        QMouseEvent cloneEvent(me->type(), widgetPos, me->pos(), me->button(), me->buttons(), me->modifiers());
-        cloneEvent.setAccepted(false);
-        QCoreApplication::sendEvent(d->m_view.get(), &cloneEvent);
-        e->setAccepted(cloneEvent.isAccepted());
-
-        if (e->type() == QEvent::MouseButtonPress) {
-            const ulong doubleClickInterval = static_cast<ulong>(QGuiApplication::styleHints()->mouseDoubleClickInterval());
-            const bool doubleClick = (me->timestamp() - d->lastMousePressTime < doubleClickInterval) && me->button() == d->lastMousePressButton;
-            d->lastMousePressTime = me->timestamp();
-            d->lastMousePressButton = me->button();
-            if (doubleClick) {
-                d->lastMousePressButton = Qt::NoButton;
-                QMouseEvent doubleClickEvent(QEvent::MouseButtonDblClick, me->position(), me->globalPosition(), me->button(), me->buttons(), me->modifiers());
-                QCoreApplication::sendEvent(d->m_view.get(), &doubleClickEvent);
-            }
-        }
-
-        return;
-    }
-    case QEvent::HoverEnter:
-    case QEvent::HoverLeave:
-    case QEvent::HoverMove: {
-        QHoverEvent *he = static_cast<QHoverEvent *>(e);
-        const QPointF widgetPos = d->m_view->mapFromGlobal(he->position());
-        const QPointF oldWidgetPos = d->m_view->mapFromGlobal(he->oldPos());
-        QHoverEvent cloneEvent(he->type(), widgetPos, oldWidgetPos, he->modifiers());
-        cloneEvent.setAccepted(false);
-        QCoreApplication::sendEvent(d->m_view.get(), &cloneEvent);
-        e->setAccepted(cloneEvent.isAccepted());
-        return;
-    }
-    case QEvent::Wheel: {
-        QWheelEvent *we = static_cast<QWheelEvent *>(e);
-        const QPointF widgetPos = d->m_view->mapFromGlobal(we->position().toPoint());
-        QWheelEvent cloneEvent(widgetPos, we->globalPosition(), we->pixelDelta(), we->angleDelta(), we->buttons(),
-                               we->modifiers(), we->phase(), we->inverted());
-        cloneEvent.setAccepted(false);
-        QCoreApplication::sendEvent(d->m_view.get(), &cloneEvent);
-        e->setAccepted(cloneEvent.isAccepted());
-        return;
-    }
-    default:
-        return;
-    }
+    d->m_item->scheduleRepaint(d->m_item->rect());
 }
 
 void OffscreenQuickView::forwardKeyEvent(QKeyEvent *keyEvent)
@@ -350,6 +421,74 @@ void OffscreenQuickView::forwardKeyEvent(QKeyEvent *keyEvent)
         return;
     }
     QCoreApplication::sendEvent(d->m_view.get(), keyEvent);
+}
+
+void OffscreenQuickView::forwardPointerMotionEvent(PointerMotionEvent *event)
+{
+    const QPointF localPosition = d->m_view->mapFromGlobal(event->position);
+    QMouseEvent mouseEvent(QEvent::MouseMove,
+                           localPosition,
+                           event->position,
+                           Qt::NoButton,
+                           event->buttons,
+                           event->modifiers,
+                           d->qtPointingDeviceForKWinDevice(event->device));
+    mouseEvent.setTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(event->timestamp).count());
+    mouseEvent.setAccepted(false);
+    QCoreApplication::sendEvent(d->m_view.get(), &mouseEvent);
+}
+
+void OffscreenQuickView::forwardPointerButtonEvent(PointerButtonEvent *event)
+{
+    const QPointF localPosition = d->m_view->mapFromGlobal(event->position);
+    QMouseEvent mouseEvent(event->state == PointerButtonState::Pressed ? QEvent::MouseButtonPress : QEvent::MouseButtonRelease,
+                           localPosition,
+                           event->position,
+                           event->button,
+                           event->buttons,
+                           event->modifiers,
+                           d->qtPointingDeviceForKWinDevice(event->device));
+    const auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(event->timestamp).count();
+    mouseEvent.setTimestamp(timestamp);
+    mouseEvent.setAccepted(false);
+    QCoreApplication::sendEvent(d->m_view.get(), &mouseEvent);
+
+    if (event->state == PointerButtonState::Pressed) {
+        const ulong doubleClickInterval = static_cast<ulong>(QGuiApplication::styleHints()->mouseDoubleClickInterval());
+        const bool doubleClick = (timestamp - d->lastMousePressTime < doubleClickInterval) && event->button == d->lastMousePressButton;
+        d->lastMousePressTime = timestamp;
+        d->lastMousePressButton = event->button;
+        if (doubleClick) {
+            d->lastMousePressButton = Qt::NoButton;
+            QMouseEvent doubleClickEvent(QEvent::MouseButtonDblClick,
+                                         localPosition,
+                                         event->position,
+                                         event->button,
+                                         event->buttons,
+                                         event->modifiers,
+                                         d->qtPointingDeviceForKWinDevice(event->device));
+            QCoreApplication::sendEvent(d->m_view.get(), &doubleClickEvent);
+        }
+    }
+}
+
+void OffscreenQuickView::forwardPointerAxisEvent(PointerAxisEvent *event)
+{
+    const QPointF localPosition = d->m_view->mapFromGlobal(event->position);
+    QWheelEvent wheelEvent(localPosition,
+                           event->position,
+                           QPoint(),
+                           // Qt expects angleDelta 120 to be a "click" whereas libinput uses 15, hence multiply by 8.
+                           ((event->orientation == Qt::Horizontal) ? QPoint(event->delta, 0) : QPoint(0, event->delta)) * -8,
+                           event->buttons,
+                           event->modifiers,
+                           Qt::NoScrollPhase,
+                           event->inverted,
+                           Qt::MouseEventNotSynthesized,
+                           d->qtPointingDeviceForKWinDevice(event->device));
+    wheelEvent.setTimestamp(std::chrono::duration_cast<std::chrono::milliseconds>(event->timestamp).count());
+    wheelEvent.setAccepted(false);
+    QCoreApplication::sendEvent(d->m_view.get(), &wheelEvent);
 }
 
 bool OffscreenQuickView::forwardTouchDown(qint32 id, const QPointF &pos, std::chrono::microseconds time)
@@ -412,7 +551,7 @@ void OffscreenQuickView::forwardTouchCancel()
     QCoreApplication::sendEvent(d->m_view.get(), &event);
 }
 
-QRect OffscreenQuickView::geometry() const
+Rect OffscreenQuickView::geometry() const
 {
     return d->m_view->geometry();
 }
@@ -448,6 +587,8 @@ void OffscreenQuickView::setVisible(bool visible)
         return;
     }
     d->m_visible = visible;
+    d->m_item->setVisible(visible);
+    Q_EMIT visibleChanged(visible);
 
     if (visible) {
         Q_EMIT d->m_renderControl->renderRequested();
@@ -474,33 +615,9 @@ void OffscreenQuickView::hide()
     setVisible(false);
 }
 
-GLTexture *OffscreenQuickView::bufferAsTexture()
+void OffscreenQuickView::scheduleFrame()
 {
-    if (d->m_useBlit) {
-        d->m_textureExport = GLTexture::upload(d->m_image);
-        if (!d->m_textureExport) {
-            qCWarning(LIBKWINEFFECTS, "Uploading texture for OffscreenQuickView failed!");
-        } else {
-            d->m_textureExport->setFilter(GL_LINEAR);
-        }
-    } else {
-        if (!d->m_fbo) {
-            qCWarning(LIBKWINEFFECTS, "OffscreenQuickView has no fbo!");
-            return nullptr;
-        }
-        if (!d->m_textureExport) {
-            d->m_textureExport = GLTexture::createNonOwningWrapper(d->m_fbo->texture(), d->m_fbo->format().internalTextureFormat(), d->m_fbo->size());
-            if (d->m_textureExport) {
-                d->m_textureExport->setFilter(GL_LINEAR);
-            }
-        }
-    }
-    return d->m_textureExport.get();
-}
-
-QImage OffscreenQuickView::bufferAsImage() const
-{
-    return d->m_image;
+    d->m_item->scheduleFrame();
 }
 
 QSize OffscreenQuickView::size() const
@@ -508,9 +625,12 @@ QSize OffscreenQuickView::size() const
     return d->m_view->geometry().size();
 }
 
-void OffscreenQuickView::setGeometry(const QRect &rect)
+void OffscreenQuickView::setGeometry(const Rect &rect)
 {
-    const QRect oldGeometry = d->m_view->geometry();
+    const Rect oldGeometry = d->m_view->geometry();
+    if (oldGeometry == rect) {
+        return;
+    }
     d->m_view->setGeometry(rect);
     // QWindow::setGeometry() won't sync output if there's no platform window.
     d->m_view->setScreen(QGuiApplication::screenAt(rect.center()));
@@ -535,12 +655,12 @@ void OffscreenQuickView::Private::updateTouchState(Qt::TouchPointState state, qi
     // points to Stationary so we only have one touch point with a different
     // state.
     touchPoints.erase(std::remove_if(touchPoints.begin(), touchPoints.end(), [](QTouchEvent::TouchPoint &point) {
-                          if (point.state() == QEventPoint::Released) {
-                              return true;
-                          }
-                          QMutableEventPoint::setState(point, QEventPoint::Stationary);
-                          return false;
-                      }),
+        if (point.state() == QEventPoint::Released) {
+            return true;
+        }
+        QMutableEventPoint::setState(point, QEventPoint::Stationary);
+        return false;
+    }),
                       touchPoints.end());
 
     // QtQuick Pointer Handlers incorrectly consider a touch point with ID 0

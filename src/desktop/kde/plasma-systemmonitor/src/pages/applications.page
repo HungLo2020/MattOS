@@ -6,7 +6,7 @@ chartFace=org.kde.ksysguard.applicationstable
 showTitle=false
 
 [page]
-icon=homerun
+icon=applications-all-symbolic
 margin=0
 version=1
 Title=Applications
@@ -52,9 +52,14 @@ Title[ru]=Приложения
 Title[sa]=अनुप्रयोगाः
 Title[sk]=Aplikácie
 Title[sl]=Aplikacije
+Title[sr]=Програми
+Title[sr@ijekavian]=Програми
+Title[sr@ijekavianlatin]=Programi
+Title[sr@latin]=Programi
 Title[sv]=Program
 Title[ta]=செயலிகள்
 Title[tr]=Uygulamalar
+Title[ug]=پىروگرامما
 Title[uk]=Програми
 Title[zh_CN]=应用程序
 Title[zh_TW]=應用程式

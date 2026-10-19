@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmaccess\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-09-03 00:45+0000\n"
 "PO-Revision-Date: 2026-01-21 15:09+0000\n"
 "Last-Translator: Aindriú Mac Giolla Eoin <aindriu80@yahoo.com>\n"
 "Language-Team: Irish <http://weblate.amgelocalnet.duckdns.org/projects/kde-"
@@ -20,96 +20,60 @@ msgstr ""
 "Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n < 11 ? "
 "3 : 4\n"
 
-#: kcmaccess.cpp:127 kcmaccess.cpp:155
+#: kcmaccess.cpp:123 kcmaccess.cpp:151
 #, kde-format
 msgid "KWin"
 msgstr "KWin"
 
-#: kcmaccess.cpp:130
+#: kcmaccess.cpp:126
 #, kde-format
 msgid "Toggle Invert Effect"
 msgstr "Éifeacht Inbhéartaithe a Athrú"
 
-#: kcmaccess.cpp:136
+#: kcmaccess.cpp:132
 #, kde-format
 msgid "Toggle Invert Effect on Window"
 msgstr "Éifeacht Inbhéartaithe a Scoráil ar Fhuinneog"
 
-#: kcmaccess.cpp:178
+#: kcmaccess.cpp:174
 #, kde-format
 msgid "Move Left"
 msgstr "Bog ar Chlé"
 
-#: kcmaccess.cpp:185
+#: kcmaccess.cpp:181
 #, kde-format
 msgid "Move Right"
 msgstr "Bog ar Dheis"
 
-#: kcmaccess.cpp:192
+#: kcmaccess.cpp:188
 #, kde-format
 msgid "Move Up"
 msgstr "Bog Suas"
 
-#: kcmaccess.cpp:199
+#: kcmaccess.cpp:195
 #, kde-format
 msgid "Move Down"
 msgstr "Bog Síos"
 
-#: kcmaccess.cpp:206
+#: kcmaccess.cpp:202
 #, kde-format
 msgid "Move Mouse to Focus"
 msgstr "Bog an Luch chun Díriú"
 
-#: kcmaccess.cpp:213
+#: kcmaccess.cpp:209
 #, kde-format
 msgid "Move Mouse to Center"
 msgstr "Bog an Luch go dtí an Lár"
 
-#: kcmaccess.cpp:256
+#: kcmaccess.cpp:252
 #, kde-format
 msgid "Could not set gsettings for Orca: \"%1\" failed"
 msgstr "Níorbh fhéidir socruithe g a shocrú don Orca: theip ar \"%1\""
 
-#: kcmaccess.cpp:263
+#: kcmaccess.cpp:259
 #, kde-format
 msgid "Error: Could not launch \"orca --setup\""
 msgstr "Earráid: Níorbh fhéidir \"orca --setup\" a sheoladh"
-
-#. i18n: ectx: label, entry (Gestures), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:9
-#, kde-format
-msgid "Use Gestures"
-msgstr "Úsáid Gothaí"
-
-#. i18n: ectx: label, entry (GestureConfirmation), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:13
-#, kde-format
-msgid "Ask for Confirmation for a gesture"
-msgstr "Iarr Deimhniú le haghaidh gotha"
-
-#. i18n: ectx: label, entry (KeyboardNotifyAccess), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:17
-#, kde-format
-msgid "Confirm access to the Keyboard"
-msgstr "Deimhnigh rochtain ar an Méarchlár"
-
-#. i18n: ectx: label, entry (AccessXTimeout), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:21
-#, kde-format
-msgid "Use a timeout delay"
-msgstr "Bain úsáid as moill ama scoir"
-
-#. i18n: ectx: label, entry (AccessXTimeoutDelay), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:25
-#, kde-format
-msgid "Delay for timeout"
-msgstr "Moill le haghaidh sos ama"
-
-#. i18n: ectx: label, entry (AccessXBeep), group (Keyboard)
-#: kcmaccessibilityactivationgestures.kcfg:29
-#, kde-format
-msgid "Use a beep for access"
-msgstr "Úsáid bíp le haghaidh rochtana"
 
 #. i18n: ectx: label, entry (SystemBell), group (Bell)
 #: kcmaccessibilitybell.kcfg:9
@@ -158,6 +122,40 @@ msgstr "Fad an Chloigín Amhairc"
 #, kde-format
 msgid "Whether Colorblindness Correction is enabled"
 msgstr "Cibé an bhfuil Ceartú Dall-Dathanna cumasaithe"
+
+#. i18n: ectx: label, entry (DwellClicker), group (Plugins)
+#: kcmaccessibilitydwellclicker.kcfg:13
+#, fuzzy, kde-format
+#| msgid "Whether Shake Pointer is enabled"
+msgid "Whether Dwell Clicker is enabled"
+msgstr "Cibé an bhfuil an pointeoir croitheadh cumasaithe"
+
+#. i18n: ectx: label, entry (DwellClickerDelayTime), group (Effect-dwellclicker)
+#: kcmaccessibilitydwellclicker.kcfg:19
+#, fuzzy, kde-format
+#| msgid "Delay for timeout"
+msgid "Delay Time"
+msgstr "Moill le haghaidh sos ama"
+
+#. i18n: ectx: label, entry (DwellClickerDwellTime), group (Effect-dwellclicker)
+#: kcmaccessibilitydwellclicker.kcfg:24
+#, kde-format
+msgid "Dwell Time"
+msgstr ""
+
+#. i18n: ectx: label, entry (DwellClickerDwellColor), group (Effect-dwellclicker)
+#: kcmaccessibilitydwellclicker.kcfg:29
+#, fuzzy, kde-format
+#| msgctxt "Color of the system bell"
+#| msgid "Color"
+msgid "Dwell Color"
+msgstr "Dath"
+
+#. i18n: ectx: label, entry (DwellClickerMotionThreshold), group (Effect-dwellclicker)
+#: kcmaccessibilitydwellclicker.kcfg:33
+#, kde-format
+msgid "Motion Threshold"
+msgstr ""
 
 #. i18n: ectx: label, entry (Invert), group (Plugins)
 #: kcmaccessibilityinvert.kcfg:9
@@ -287,12 +285,6 @@ msgstr "Uasmhéid Luas"
 msgid "Mouse Key Curve"
 msgstr "Cuar Eochrach Luiche"
 
-#. i18n: ectx: label, entry (Enabled), group (ScreenReader)
-#: kcmaccessibilityscreenreader.kcfg:9
-#, kde-format
-msgid "Enable Screen Reader"
-msgstr "Cumasaigh Léitheoir Scáileáin"
-
 #. i18n: ectx: label, entry (ShakeCursor), group (Plugins)
 #: kcmaccessibilityshakecursor.kcfg:9
 #, kde-format
@@ -317,173 +309,91 @@ msgstr "Cibé an bhfuil an éifeacht súmála cumasaithe"
 msgid "Whether the Magnifier effect is enabled"
 msgstr "Cibé an bhfuil éifeacht an Mhéadaitheora cumasaithe"
 
-#: ui/ActivationShortcuts.qml:18
-#, kde-format
-msgctxt "@option:check"
-msgid "Activation shortcuts:"
-msgstr "Aicearraí gníomhachtaithe:"
-
-#: ui/ActivationShortcuts.qml:19
-#, kde-format
-msgctxt "Enable activation shortcuts"
-msgid "Enable"
-msgstr "Cumasaigh"
-
-#: ui/ActivationShortcuts.qml:31
-#, kde-format
-msgctxt "@label"
-msgid "Press Shift 5 times to enable Sticky Keys"
-msgstr "Brúigh Shift 5 huaire chun Eochracha Greamaitheacha a chumasú"
-
-#: ui/ActivationShortcuts.qml:38
-#, kde-format
-msgctxt "@label"
-msgid "Hold Shift for 8 seconds to enable Slow Keys"
-msgstr "Coinnigh Shift ar feadh 8 soicind chun Eochracha Mall a chumasú"
-
-#: ui/ActivationShortcuts.qml:47
-#, kde-format
-msgctxt "@option:check"
-msgid "Disable sticky and slow keys after:"
-msgstr "Díchumasaigh eochracha greamaitheacha agus mall tar éis:"
-
-#: ui/ActivationShortcuts.qml:71
-#, kde-format
-msgctxt "@label:valuesuffix in spinbox %1 is timeout delay"
-msgid "%1 min"
-msgid_plural "%1 min"
-msgstr[0] "%1 nóim"
-msgstr[1] "%1 nóim"
-msgstr[2] "%1 nóim"
-msgstr[3] "%1 nóim"
-msgstr[4] "%1 nóim"
-
-#: ui/ActivationShortcuts.qml:80
-#, kde-format
-msgctxt "short for minute(s)"
-msgid "min"
-msgid_plural "min"
-msgstr[0] "nóim"
-msgstr[1] "nóim"
-msgstr[2] "nóim"
-msgstr[3] "nóim"
-msgstr[4] "nóim"
-
-#: ui/ActivationShortcuts.qml:89
-#, kde-format
-msgctxt "@title:group for checkbox group"
-msgid "When a shortcut is used:"
-msgstr "Nuair a úsáidtear aicearra:"
-
-#: ui/ActivationShortcuts.qml:90
-#, kde-format
-msgctxt "@option:check when shortcut used"
-msgid "Display a confirmation dialog"
-msgstr "Taispeáin dialóg deimhnithe"
-
-#: ui/ActivationShortcuts.qml:101
-#, kde-format
-msgctxt "@option:check when shortcut used"
-msgid "Ring the system bell"
-msgstr "Buail clog an chórais"
-
-#: ui/ActivationShortcuts.qml:112
-#, kde-format
-msgctxt "@option:check when shortcut used"
-msgid "Show a notification"
-msgstr "Taispeáin fógra"
-
-#: ui/ActivationShortcuts.qml:123
-#, kde-format
-msgctxt "@action:button opens Notifications kcm"
-msgid "Configure Notifications…"
-msgstr "Cumraigh Fógraí…"
-
-#: ui/Bell.qml:19
+#: ui/Bell.qml:18
 #, kde-format
 msgctxt "@title:window dialog"
 msgid "Please choose an audio file"
 msgstr "Roghnaigh comhad fuaime le do thoil"
 
-#: ui/Bell.qml:21
+#: ui/Bell.qml:20
 #, kde-format
 msgctxt "Name filters in a file dialog. Do not translate `(*.ogg *.oga *.wav)`"
 msgid "ogg, oga, and wav audio files (*.ogg *.oga *.wav)"
 msgstr "comhaid fuaime ogg, oga, agus wav (*.ogg *.oga *.wav)"
 
-#: ui/Bell.qml:30
+#: ui/Bell.qml:28
 #, kde-format
 msgctxt "@label prefix for checkbox"
 msgid "Audible bell:"
 msgstr "Clog inchloiste:"
 
-#: ui/Bell.qml:31
+#: ui/Bell.qml:32
 #, kde-format
 msgctxt "Enable the system bell"
 msgid "Enable"
 msgstr "Cumasaigh"
 
-#: ui/Bell.qml:42
+#: ui/Bell.qml:44
 #, kde-format
 msgctxt "Defines if the system will use a sound system bell"
 msgid "Custom sound:"
 msgstr "Fuaim saincheaptha:"
 
-#: ui/Bell.qml:75
+#: ui/Bell.qml:74
 #, kde-format
 msgctxt "@action:button icononly tooltip"
 msgid "Choose audio file for the system bell"
 msgstr "Roghnaigh comhad fuaime don chloigín córais"
 
-#: ui/Bell.qml:76
+#: ui/Bell.qml:75
 #, kde-format
 msgctxt "@action button accessible only"
 msgid "Choose audio file"
 msgstr "Roghnaigh comhad fuaime"
 
-#: ui/Bell.qml:77
+#: ui/Bell.qml:76
 #, kde-format
 msgctxt "@info:usagetip accessible description for button"
 msgid "Opens dialog"
 msgstr "Osclaíonn an dialóg"
 
-#: ui/Bell.qml:93
+#: ui/Bell.qml:91
 #, kde-format
 msgctxt "@label prefix for checkbox"
 msgid "Visual bell:"
 msgstr "Clog amhairc:"
 
-#: ui/Bell.qml:94
+#: ui/Bell.qml:95
 #, kde-format
 msgctxt "@option:check Enable visual bell"
 msgid "Enable"
 msgstr "Cumasaigh"
 
-#: ui/Bell.qml:108
+#: ui/Bell.qml:111
 #, kde-format
 msgctxt "@option:radio Invert screen colors when a system bell is rung"
 msgid "Invert screen colors"
 msgstr "Inbhéartaigh dathanna an scáileáin"
 
-#: ui/Bell.qml:126
+#: ui/Bell.qml:129
 #, kde-format
 msgctxt "@option:radio Flash screen when a system bell is rung"
 msgid "Flash screen"
 msgstr "Scáileán splanc"
 
-#: ui/Bell.qml:137
+#: ui/Bell.qml:141
 #, kde-format
 msgctxt "Color of the system bell"
 msgid "Color"
 msgstr "Dath"
 
-#: ui/Bell.qml:151
+#: ui/Bell.qml:157
 #, kde-format
 msgctxt "Duration of the system bell"
 msgid "Duration:"
 msgstr "Fad:"
 
-#: ui/Bell.qml:166
+#: ui/Bell.qml:173
 #, kde-format
 msgctxt "@label:valuesuffix %1 is visible bell duration"
 msgid "%1 ms"
@@ -494,7 +404,8 @@ msgstr[2] "%1 ms"
 msgstr[3] "%1 ms"
 msgstr[4] "%1 ms"
 
-#: ui/Bell.qml:170 ui/KeyboardFilters.qml:65 ui/KeyboardFilters.qml:164
+#: ui/Bell.qml:177 ui/DwellClicker.qml:95 ui/DwellClicker.qml:126
+#: ui/KeyboardFilters.qml:66 ui/KeyboardFilters.qml:170
 #, kde-format
 msgctxt "@label:valuesuffix short for millisecond(s)"
 msgid "ms"
@@ -515,104 +426,200 @@ msgstr ""
 "Má bhíonn deacracht agat le dathanna áirithe ar an scáileán, is féidir leis "
 "na scagairí seo iad a athrú go dathanna eile."
 
-#: ui/ColorblindnessCorrection.qml:31
+#: ui/ColorblindnessCorrection.qml:32
 #, kde-format
 msgctxt "@option check, Enable color blindness correction effect"
 msgid "Enable"
 msgstr "Cumasaigh"
 
-#: ui/ColorblindnessCorrection.qml:44
+#: ui/ColorblindnessCorrection.qml:45
 #, kde-format
 msgctxt ""
 "@label:listbox Difficulty seeing any of the following colors on the screen"
 msgid "Problematic colors:"
 msgstr "Dathanna fadhbacha:"
 
-#: ui/ColorblindnessCorrection.qml:49
+#: ui/ColorblindnessCorrection.qml:52
 #, kde-format
 msgctxt "@option"
 msgid "Red & purple (Protanopia)"
 msgstr "Dearg & corcra (Protanopia)"
 
-#: ui/ColorblindnessCorrection.qml:50
+#: ui/ColorblindnessCorrection.qml:53
 #, kde-format
 msgctxt "@option"
 msgid "Green & purple (Deuteranopia)"
 msgstr "Glas & corcra (Deuteranopia)"
 
-#: ui/ColorblindnessCorrection.qml:51
+#: ui/ColorblindnessCorrection.qml:54
 #, kde-format
 msgctxt "@option"
 msgid "Yellow, green & purple (Tritanopia)"
 msgstr "Buí, glas & corcra (Tritanopia)"
 
-#: ui/ColorblindnessCorrection.qml:52
+#: ui/ColorblindnessCorrection.qml:55
 #, kde-format
 msgctxt "@option"
 msgid "All (grayscale mode)"
 msgstr "Uile (mód liathscála)"
 
-#: ui/ColorblindnessCorrection.qml:67
+#: ui/ColorblindnessCorrection.qml:71
 #, kde-format
 msgctxt "@label"
 msgid "Intensity:"
 msgstr "Déine:"
 
-#: ui/ColorblindnessCorrection.qml:90
+#: ui/ColorblindnessCorrection.qml:97
 #, kde-format
 msgctxt "@label Mild color blindness correction intensity"
 msgid "Mild"
 msgstr "Éadrom"
 
-#: ui/ColorblindnessCorrection.qml:97
+#: ui/ColorblindnessCorrection.qml:104
 #, kde-format
 msgctxt "@label Intense color blindness correction intensity"
 msgid "Intense"
 msgstr "Dian"
 
-#: ui/ColorblindnessCorrection.qml:115
+#: ui/ColorblindnessCorrection.qml:124
 #, kde-format
 msgctxt "@info"
 msgid "Adjusted colors:"
 msgstr "Dathanna coigeartaithe:"
 
-#: ui/ColorblindnessCorrection.qml:132
+#: ui/ColorblindnessCorrection.qml:141
 #, kde-format
 msgctxt "@title:group for color rectangles"
 msgid "Reds:"
 msgstr "Dearga:"
 
-#: ui/ColorblindnessCorrection.qml:133
+#: ui/ColorblindnessCorrection.qml:142
 #, kde-format
 msgctxt "@title:group for color rectangles"
 msgid "Greens:"
 msgstr "Glasaigh:"
 
-#: ui/ColorblindnessCorrection.qml:134
+#: ui/ColorblindnessCorrection.qml:143
 #, kde-format
 msgctxt "@title:group for color rectangles"
 msgid "Blues:"
 msgstr "Gormacha:"
 
-#: ui/ColorblindnessCorrection.qml:135
+#: ui/ColorblindnessCorrection.qml:144
 #, kde-format
 msgctxt "@title:group for color rectangles"
 msgid "Purples:"
 msgstr "Corcra:"
 
-#: ui/Invert.qml:22
+#: ui/DwellClicker.qml:19
+#, kde-format
+msgctxt "@label"
+msgid "Click when pointer remains still:"
+msgstr ""
+
+#: ui/DwellClicker.qml:21
+#, fuzzy, kde-format
+#| msgctxt "Enable the system bell"
+#| msgid "Enable"
+msgctxt "@option check, Enable dwell clicker effect"
+msgid "Enable"
+msgstr "Cumasaigh"
+
+#: ui/DwellClicker.qml:33
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Automatically click when pointer remains still for a set amount of time."
+msgstr ""
+
+#: ui/DwellClicker.qml:39
+#, kde-format
+msgctxt "@label:spinbox Slow keys Delay"
+msgid "Motion Threshold:"
+msgstr ""
+
+#: ui/DwellClicker.qml:55
+#, fuzzy, kde-format
+#| msgctxt "short for pixel(s)"
+#| msgid "%1 px"
+#| msgid_plural "%1 px"
+msgctxt "@label:valuesuffix %1 is the motion threshold"
+msgid "%1 px"
+msgid_plural "%1 px"
+msgstr[0] "%1 px"
+msgstr[1] "%1 px"
+msgstr[2] "%1 px"
+msgstr[3] "%1 px"
+msgstr[4] "%1 px"
+
+#: ui/DwellClicker.qml:64
+#, fuzzy, kde-format
+#| msgctxt "short for pixel(s)"
+#| msgid "px"
+msgctxt "@label:valuesuffix short for pixel(s)"
+msgid "px"
+msgid_plural "px"
+msgstr[0] "px"
+msgstr[1] "px"
+msgstr[2] "px"
+msgstr[3] "px"
+msgstr[4] "px"
+
+#: ui/DwellClicker.qml:70
+#, fuzzy, kde-format
+#| msgctxt "@label:spinbox Slow keys Delay"
+#| msgid "Delay:"
+msgctxt "@label:spinbox Dwell clicker delay time"
+msgid "Delay Time:"
+msgstr "Moill:"
+
+#: ui/DwellClicker.qml:86
+#, fuzzy, kde-format
+#| msgctxt "@label:valuesuffix %1 is visible bell duration"
+#| msgid "%1 ms"
+#| msgid_plural "%1 ms"
+msgctxt "@label:valuesuffix %1 is the delay time"
+msgid "%1 ms"
+msgid_plural "%1 ms"
+msgstr[0] "%1 ms"
+msgstr[1] "%1 ms"
+msgstr[2] "%1 ms"
+msgstr[3] "%1 ms"
+msgstr[4] "%1 ms"
+
+#: ui/DwellClicker.qml:101
+#, kde-format
+msgctxt "@label:spinbox Dwell clicker dwell time"
+msgid "Dwell Time:"
+msgstr ""
+
+#: ui/DwellClicker.qml:117
+#, fuzzy, kde-format
+#| msgctxt "@label:valuesuffix %1 is visible bell duration"
+#| msgid "%1 ms"
+#| msgid_plural "%1 ms"
+msgctxt "@label:valuesuffix %1 is the dwell time"
+msgid "%1 ms"
+msgid_plural "%1 ms"
+msgstr[0] "%1 ms"
+msgstr[1] "%1 ms"
+msgstr[2] "%1 ms"
+msgstr[3] "%1 ms"
+msgstr[4] "%1 ms"
+
+#: ui/DwellClicker.qml:132
+#, kde-format
+msgctxt "@label:button Dwell clicker dwell color"
+msgid "Dwell Color:"
+msgstr ""
+
+#: ui/Invert.qml:17
 #, kde-format
 msgctxt "@label"
 msgid "Invert:"
 msgstr "Inbhéartaigh:"
 
-#: ui/Invert.qml:23
-#, kde-format
-msgctxt "@option check, Enable invert effect"
-msgid "Enable"
-msgstr "Cumasaigh"
-
-#: ui/Invert.qml:38
+#: ui/Invert.qml:18
 #, kde-format
 msgctxt "@label Hint for invert effect enable button"
 msgid "Use shortcuts to toggle inverting display and window colors"
@@ -620,7 +627,13 @@ msgstr ""
 "Úsáid aicearraí chun dathanna an taispeántais agus na fuinneoige a athrú ó "
 "áit go háit"
 
-#: ui/Invert.qml:49 ui/ZoomMagnifier.qml:376
+#: ui/Invert.qml:21
+#, kde-format
+msgctxt "@option check, Enable invert effect"
+msgid "Enable"
+msgstr "Cumasaigh"
+
+#: ui/Invert.qml:39 ui/ZoomMagnifier.qml:333
 #, kde-format
 msgctxt "@action:button"
 msgid "Configure Shortcuts…"
@@ -632,13 +645,13 @@ msgctxt "@title:group prefix"
 msgid "Slow keys:"
 msgstr "Eochracha mall:"
 
-#: ui/KeyboardFilters.qml:23
+#: ui/KeyboardFilters.qml:21
 #, kde-format
 msgctxt "@option:check Enable slow keys"
 msgid "Enable"
 msgstr "Cumasaigh"
 
-#: ui/KeyboardFilters.qml:34
+#: ui/KeyboardFilters.qml:33
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -651,13 +664,13 @@ msgstr ""
 "an am céanna trí thimpiste nó má bhíonn deacracht agat an eochair atá uait a "
 "bhrú an chéad uair."
 
-#: ui/KeyboardFilters.qml:41
+#: ui/KeyboardFilters.qml:39
 #, kde-format
 msgctxt "@label:spinbox Slow keys Delay"
 msgid "Delay:"
 msgstr "Moill:"
 
-#: ui/KeyboardFilters.qml:56
+#: ui/KeyboardFilters.qml:57
 #, kde-format
 msgctxt "@label:valuesuffix %1 is slow keys delay"
 msgid "%1 ms"
@@ -668,43 +681,43 @@ msgstr[2] "%1 ms"
 msgstr[3] "%1 ms"
 msgstr[4] "%1 ms"
 
-#: ui/KeyboardFilters.qml:74
+#: ui/KeyboardFilters.qml:72
 #, kde-format
 msgctxt "@title:group prefix for checkbox group"
 msgid "Ring system bell:"
 msgstr "Clog an chórais:"
 
-#: ui/KeyboardFilters.qml:75
+#: ui/KeyboardFilters.qml:76
 #, kde-format
 msgctxt "@option:check Use system bell when a key is pressed"
 msgid "when any key is &pressed"
 msgstr "nuair a &bhrúitear aon eochair"
 
-#: ui/KeyboardFilters.qml:89
+#: ui/KeyboardFilters.qml:92
 #, kde-format
 msgctxt "@option:check Use system bell when a key is accepted"
 msgid "when any key is &accepted"
 msgstr "nuair &a ghlactar le haon eochair"
 
-#: ui/KeyboardFilters.qml:103
+#: ui/KeyboardFilters.qml:108
 #, kde-format
 msgctxt "@option:check Use system bell when a key is rejected"
 msgid "when any key is &rejected"
 msgstr "nuair a dhiúltaítear d'aon eochair"
 
-#: ui/KeyboardFilters.qml:119
+#: ui/KeyboardFilters.qml:123
 #, kde-format
 msgctxt "@title:group prefix"
 msgid "Bounce keys:"
 msgstr "Eochracha preabtha:"
 
-#: ui/KeyboardFilters.qml:124
+#: ui/KeyboardFilters.qml:127
 #, kde-format
 msgctxt "@option:check Bounce keys enable"
 msgid "Enable"
 msgstr "Cumasaigh"
 
-#: ui/KeyboardFilters.qml:135
+#: ui/KeyboardFilters.qml:139
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -716,13 +729,13 @@ msgstr ""
 "Úsáideach má bhíonn crith i do lámha a fhágann go mbrúnn tú eochair arís "
 "agus arís eile nuair nach bhfuil sé beartaithe agat ach brú uair amháin."
 
-#: ui/KeyboardFilters.qml:142
+#: ui/KeyboardFilters.qml:145
 #, kde-format
 msgctxt "@label:spinbox Bounce keys delay"
 msgid "Delay:"
 msgstr "Moill:"
 
-#: ui/KeyboardFilters.qml:157
+#: ui/KeyboardFilters.qml:163
 #, kde-format
 msgctxt "@label:valuesuffix %1 is bounce keys delay"
 msgid "%1 ms"
@@ -733,7 +746,7 @@ msgstr[2] "%1 ms"
 msgstr[3] "%1 ms"
 msgstr[4] "%1 ms"
 
-#: ui/KeyboardFilters.qml:171
+#: ui/KeyboardFilters.qml:179
 #, kde-format
 msgctxt "@option:check for bounce keys"
 msgid "Ring system bell when rejected"
@@ -745,55 +758,55 @@ msgctxt "@title Category name in sidebar"
 msgid "Zoom & Magnifier"
 msgstr "Súmáil & Formhéadaitheoir"
 
-#: ui/main.qml:33
+#: ui/main.qml:34
 #, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "System Bell"
 msgstr "Clog an Chórais"
 
-#: ui/main.qml:38
+#: ui/main.qml:40
 #, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Modifier Keys"
 msgstr "Eochracha Mionathraithe"
 
-#: ui/main.qml:43
+#: ui/main.qml:46
 #, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Keyboard Filters"
 msgstr "Scagairí Méarchláir"
 
-#: ui/main.qml:48
+#: ui/main.qml:52
 #, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Mouse Navigation"
 msgstr "Nascleanúint Luiche"
 
-#: ui/main.qml:53
+#: ui/main.qml:58
 #, kde-format
 msgctxt "@title Category name in sidebar"
-msgid "Activation Shortcuts"
-msgstr "Aicearraí Gníomhachtaithe"
+msgid "Dwell Clicker"
+msgstr ""
 
-#: ui/main.qml:58
+#: ui/main.qml:64
 #, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Screen Reader"
 msgstr "Léitheoir Scáileáin"
 
-#: ui/main.qml:63
+#: ui/main.qml:70
 #, kde-format
 msgctxt "@title Category name in sidebar"
 msgid "Color Blindness Correction"
 msgstr "Ceartú Daille Dathanna"
 
-#: ui/main.qml:68
+#: ui/main.qml:76
 #, kde-format
 msgctxt "@title Category name in sidebar, for inverting screen colors"
 msgid "Invert"
 msgstr "Inbhéartaigh"
 
-#: ui/main.qml:73
+#: ui/main.qml:82
 #, kde-format
 msgctxt "@title Category name in sidebar, shake pointer to find it"
 msgid "Shake Pointer"
@@ -805,13 +818,13 @@ msgctxt "@option:check"
 msgid "Sticky keys:"
 msgstr "Eochracha greamaitheacha:"
 
-#: ui/ModifierKeys.qml:22
+#: ui/ModifierKeys.qml:20
 #, kde-format
 msgctxt "@option:check Enable sticky keys"
 msgid "Enable"
 msgstr "Cumasaigh"
 
-#: ui/ModifierKeys.qml:33
+#: ui/ModifierKeys.qml:32
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -830,7 +843,7 @@ msgctxt "@option:check"
 msgid "Lock sticky keys"
 msgstr "Glasáil eochracha greamaitheacha"
 
-#: ui/ModifierKeys.qml:51
+#: ui/ModifierKeys.qml:52
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -840,43 +853,43 @@ msgstr ""
 "Má bhrúnn tú eochair mhionathraithe faoi dhó, coinneofar í i riocht "
 "gníomhach go dtí go mbrúnntar arís í."
 
-#: ui/ModifierKeys.qml:57
+#: ui/ModifierKeys.qml:60
 #, kde-format
 msgctxt "@option:check"
 msgid "Disable when two keys are held down"
 msgstr "Díchumasaigh nuair a choinnítear dhá eochair síos"
 
-#: ui/ModifierKeys.qml:70
+#: ui/ModifierKeys.qml:75
 #, kde-format
 msgctxt "@option:check"
 msgid "Ring system bell when modifier keys are used"
 msgstr "Buail clog an chórais nuair a úsáidtear eochracha mionathraithe"
 
-#: ui/ModifierKeys.qml:88
+#: ui/ModifierKeys.qml:91
 #, kde-format
 msgctxt "@option:check Feedback options:"
 msgid "Feedback:"
 msgstr "Aiseolas:"
 
-#: ui/ModifierKeys.qml:93
+#: ui/ModifierKeys.qml:94
 #, kde-format
 msgctxt "@option:check"
 msgid "Ring system bell when locking keys are used"
 msgstr "Buail clog an chórais nuair a úsáidtear eochracha glasála"
 
-#: ui/ModifierKeys.qml:104
+#: ui/ModifierKeys.qml:106
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "The locking keys are Caps Lock, Num Lock, and Scroll Lock."
 msgstr "Is iad na heochracha glasála ná Caps Lock, Num Lock, agus Scroll Lock."
 
-#: ui/ModifierKeys.qml:108
+#: ui/ModifierKeys.qml:112
 #, kde-format
 msgctxt "@option:check"
 msgid "Show notification when modifier or locking keys are used"
 msgstr "Taispeáin fógra nuair a úsáidtear eochracha mionathraithe nó glasála"
 
-#: ui/ModifierKeys.qml:120
+#: ui/ModifierKeys.qml:126
 #, kde-format
 msgctxt "@action:button"
 msgid "Configure Notifications…"
@@ -888,24 +901,35 @@ msgctxt "@option:check"
 msgid "Use number pad to move pointer:"
 msgstr "Úsáid an eochaircheap uimhreach chun an pointeoir a bhogadh:"
 
-#: ui/MouseNavigation.qml:22
+#: ui/MouseNavigation.qml:19
 #, kde-format
 msgctxt "@option:check Enable mouse navigation"
 msgid "Enable"
 msgstr "Cumasaigh"
 
-#: ui/MouseNavigation.qml:33
+#: ui/MouseNavigation.qml:31
 #, kde-kuit-format
 msgctxt "@info:tooltip"
 msgid ""
-"The numpad key <shortcut>5</shortcut> functions as a mouse click. The keys "
-"<shortcut>2</shortcut>, <shortcut>4</shortcut>, <shortcut>6</shortcut>, and "
-"<shortcut>8</shortcut> allow for cardinal movement (down, left, right, and "
-"up). The keys <shortcut>1</shortcut>, <shortcut>3</shortcut>, <shortcut>7</"
-"shortcut>, and <shortcut>9</shortcut> allow for diagonal movement."
+"The numpad key <shortcut>5</shortcut> functions as a mouse click, toggled by "
+"<shortcut>/</shortcut> for middle click, <shortcut>*</shortcut> for right "
+"click and <shortcut>NumLock</shortcut> for left click. The keys <shortcut>2</"
+"shortcut>, <shortcut>4</shortcut>, <shortcut>6</shortcut>, and <shortcut>8</"
+"shortcut> allow for cardinal movement (down, left, right, and up). The keys "
+"<shortcut>1</shortcut>, <shortcut>3</shortcut>, <shortcut>7</shortcut>, and "
+"<shortcut>9</shortcut> allow for diagonal movement."
 msgstr ""
+"Feidhmíonn an eochair uimhreach <shortcut>5</shortcut> mar chlic luiche, "
+"agus is féidir í a athrú le <shortcut>/</shortcut> le haghaidh cliceáil sa "
+"lár, <shortcut>*</shortcut> le haghaidh cliceáil ar dheis agus "
+"<shortcut>NumLock</shortcut> le haghaidh cliceáil ar chlé. Ceadaíonn na "
+"heochracha <shortcut>2</shortcut>, <shortcut>4</shortcut>, <shortcut>6</"
+"shortcut>, agus <shortcut>8</shortcut> gluaiseacht phríomhúil (síos, ar "
+"chlé, ar dheis, agus suas). Ceadaíonn na heochracha <shortcut>1</shortcut>, "
+"<shortcut>3</shortcut>, <shortcut>7</shortcut>, agus <shortcut>9</shortcut> "
+"gluaiseacht trasnánach."
 
-#: ui/MouseNavigation.qml:39
+#: ui/MouseNavigation.qml:37
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Acceleration delay:"
@@ -922,8 +946,7 @@ msgstr[2] "%1 ms"
 msgstr[3] "%1 ms"
 msgstr[4] "%1 ms"
 
-#: ui/MouseNavigation.qml:61 ui/MouseNavigation.qml:88
-#: ui/MouseNavigation.qml:114
+#: ui/MouseNavigation.qml:61 ui/MouseNavigation.qml:90
 #, kde-format
 msgctxt "short for millisecond(s)"
 msgid "ms"
@@ -940,7 +963,7 @@ msgctxt "@label:spinbox"
 msgid "Repeat interval:"
 msgstr "Eatramh athrá:"
 
-#: ui/MouseNavigation.qml:84
+#: ui/MouseNavigation.qml:86
 #, kde-format
 msgctxt "@label:valuesuffix repeat interval spinbox %1 is value"
 msgid "%1 ms"
@@ -951,24 +974,13 @@ msgstr[2] "%1 ms"
 msgstr[3] "%1 ms"
 msgstr[4] "%1 ms"
 
-#: ui/MouseNavigation.qml:93
+#: ui/MouseNavigation.qml:95
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Acceleration time:"
 msgstr "Am luasghéaraithe:"
 
-#: ui/MouseNavigation.qml:110
-#, kde-format
-msgctxt "@label:valuesuffix acceleration time spinbox %1 is value"
-msgid "%1 ms"
-msgid_plural "%1 ms"
-msgstr[0] "%1 ms"
-msgstr[1] "%1 ms"
-msgstr[2] "%1 ms"
-msgstr[3] "%1 ms"
-msgstr[4] "%1 ms"
-
-#: ui/MouseNavigation.qml:118
+#: ui/MouseNavigation.qml:116
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Maximum speed:"
@@ -980,127 +992,91 @@ msgctxt "@label:spinbox"
 msgid "Pointer acceleration:"
 msgstr "Luasghéarú pointeora:"
 
-#: ui/ScreenReader.qml:20
+#: ui/ScreenReader.qml:22
 #, kde-format
 msgctxt "@info Placeholder message title"
 msgid "The Orca Screen Reader is not installed"
 msgstr "Níl an Léitheoir Scáileáin Orca suiteáilte"
 
-#: ui/ScreenReader.qml:21
+#: ui/ScreenReader.qml:23
 #, kde-format
 msgctxt "@info Placeholder message explanation"
 msgid "Please install it, then close and reopen this window"
 msgstr "Suiteáil é, ansin dún agus athoscail an fhuinneog seo"
 
-#: ui/ScreenReader.qml:27
+#: ui/ScreenReader.qml:30
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable Screen Reader"
 msgstr "Cumasaigh Léitheoir Scáileáin"
 
-#: ui/ScreenReader.qml:39
+#: ui/ScreenReader.qml:44
 #, kde-format
 msgctxt "@action:button"
 msgid "Launch Orca Screen Reader Configuration…"
 msgstr "Cumasaigh Léitheoir ScáileáinSeol Cumraíocht Léitheora Scáileáin Orca…"
 
-#: ui/ShakeCursor.qml:15
+#: ui/ShakeCursor.qml:16
 #, kde-format
 msgctxt "@label"
 msgid "Shake pointer to find it:"
 msgstr "Croith an pointeoir chun é a aimsiú:"
 
-#: ui/ShakeCursor.qml:16
+#: ui/ShakeCursor.qml:18
 #, kde-format
 msgctxt "@option check, Enable shake pointer effect"
 msgid "Enable"
 msgstr "Cumasaigh"
 
-#: ui/ShakeCursor.qml:28
+#: ui/ShakeCursor.qml:31
 #, kde-format
 msgctxt "@label Pointer magnification level"
 msgid "Magnification:"
 msgstr "Formhéadú:"
 
-#: ui/ShakeCursor.qml:55
+#: ui/ShakeCursor.qml:60
 #, kde-format
 msgctxt "@label Normal pointer size"
 msgid "Normal"
 msgstr "Normal"
 
-#: ui/ShakeCursor.qml:62
+#: ui/ShakeCursor.qml:67
 #, kde-format
 msgctxt "@label Large pointer size"
 msgid "Large"
 msgstr "Mór"
 
-#: ui/ZoomMagnifier.qml:22
-#, kde-format
-msgctxt "@label, followed by 'full screen' or 'magnify region'"
-msgid "Zoom:"
-msgstr "Súmáil:"
-
 #: ui/ZoomMagnifier.qml:24
-#, kde-format
-msgctxt "@option:check, enable zoom effect, following 'Zoom:'"
-msgid "Full screen"
-msgstr "Lánscáileán"
-
-#: ui/ZoomMagnifier.qml:53
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Show pixel grid at zoom level:"
 msgstr "Taispeáin eangach picteilíní ag leibhéal súmála:"
 
-#: ui/ZoomMagnifier.qml:85
-#, kde-format
-msgctxt "@label:listbox"
-msgid "Pointer appearance:"
-msgstr "Cuma pointeora:"
-
-#: ui/ZoomMagnifier.qml:87
-#, kde-format
-msgctxt "@item:inlistbox"
-msgid "Scale"
-msgstr "Scála"
-
-#: ui/ZoomMagnifier.qml:87
-#, kde-format
-msgctxt "@item:inlistbox"
-msgid "Keep"
-msgstr "Coinnigh"
-
-#: ui/ZoomMagnifier.qml:87
-#, kde-format
-msgctxt "@item:inlistbox"
-msgid "Hide"
-msgstr "Folaigh"
-
-#: ui/ZoomMagnifier.qml:123
+#: ui/ZoomMagnifier.qml:60
 #, kde-format
 msgctxt "@label:listbox"
 msgid "Pointer tracking:"
 msgstr "Rianú pointeora:"
 
-#: ui/ZoomMagnifier.qml:128
+#: ui/ZoomMagnifier.qml:82
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Proportional"
 msgstr "Comhréireach"
 
-#: ui/ZoomMagnifier.qml:129
+#: ui/ZoomMagnifier.qml:83
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Zoom area moves in sync with pointer"
 msgstr "Bogann an limistéar súmála i sioncrón leis an pointeoir"
 
-#: ui/ZoomMagnifier.qml:133
+#: ui/ZoomMagnifier.qml:87
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered"
 msgstr "Láraithe"
 
-#: ui/ZoomMagnifier.qml:134
+#: ui/ZoomMagnifier.qml:88
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Pointer stays centered on-screen, except near screen edges"
@@ -1108,67 +1084,61 @@ msgstr ""
 "Fanann an pointeoir i lár an scáileáin, ach amháin in aice le himill an "
 "scáileáin"
 
-#: ui/ZoomMagnifier.qml:138
+#: ui/ZoomMagnifier.qml:92
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Centered (Strict)"
 msgstr "Láraithe (Dian)"
 
-#: ui/ZoomMagnifier.qml:139
+#: ui/ZoomMagnifier.qml:93
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Pointer stays centered on-screen, even near screen edges"
 msgstr "Fanann an pointeoir i lár an scáileáin, fiú gar do imill an scáileáin"
 
-#: ui/ZoomMagnifier.qml:143
+#: ui/ZoomMagnifier.qml:97
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Push"
 msgstr "Brúigh"
 
-#: ui/ZoomMagnifier.qml:144
+#: ui/ZoomMagnifier.qml:98
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Pointer pushes zoom area at screen edges"
 msgstr "Brúnn an pointeoir an limistéar súmála ag imill an scáileáin"
 
-#: ui/ZoomMagnifier.qml:148
+#: ui/ZoomMagnifier.qml:102
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Disabled"
 msgstr "Díchumasaithe"
 
-#: ui/ZoomMagnifier.qml:149
+#: ui/ZoomMagnifier.qml:103
 #, kde-format
 msgctxt "@item:inlistbox"
 msgid "Zoom area doesn't follow pointer"
 msgstr "Ní leanann an limistéar súmála an pointeoir"
 
-#: ui/ZoomMagnifier.qml:166
+#: ui/ZoomMagnifier.qml:123
 #, kde-format
 msgctxt "@option:check"
-msgid "Enable focus tracking"
-msgstr "Cumasaigh rianú fócais"
+msgid "Sharpen screen content while zoomed in"
+msgstr ""
 
-#: ui/ZoomMagnifier.qml:178
+#: ui/ZoomMagnifier.qml:137
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable text caret tracking"
 msgstr "Cumasaigh rianú caret téacs"
 
-#: ui/ZoomMagnifier.qml:194
-#, kde-format
-msgctxt "@option:check, enable magnify effect, following 'Zoom:'"
-msgid "Magnify region"
-msgstr "Formhéadaigh an réigiún"
-
-#: ui/ZoomMagnifier.qml:221
+#: ui/ZoomMagnifier.qml:154
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Width:"
 msgstr "Leithead:"
 
-#: ui/ZoomMagnifier.qml:232 ui/ZoomMagnifier.qml:257
+#: ui/ZoomMagnifier.qml:167 ui/ZoomMagnifier.qml:195
 #, kde-format
 msgctxt "short for pixel(s)"
 msgid "%1 px"
@@ -1179,50 +1149,173 @@ msgstr[2] "%1 px"
 msgstr[3] "%1 px"
 msgstr[4] "%1 px"
 
-#: ui/ZoomMagnifier.qml:233 ui/ZoomMagnifier.qml:258
+#: ui/ZoomMagnifier.qml:168 ui/ZoomMagnifier.qml:196
 #, kde-format
 msgctxt "short for pixel(s)"
 msgid "px"
 msgstr "px"
 
-#: ui/ZoomMagnifier.qml:246
+#: ui/ZoomMagnifier.qml:182
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Height:"
 msgstr "Airde:"
 
-#: ui/ZoomMagnifier.qml:275
+#: ui/ZoomMagnifier.qml:211
+#, kde-format
+msgctxt "@label, followed by 'full screen' or 'magnify region'"
+msgid "Zoom:"
+msgstr "Súmáil:"
+
+#: ui/ZoomMagnifier.qml:216
+#, kde-format
+msgctxt "@option:check, enable zoom effect, following 'Zoom:'"
+msgid "Full screen"
+msgstr "Lánscáileán"
+
+#: ui/ZoomMagnifier.qml:231
+#, kde-format
+msgctxt "@option:check, enable magnify effect, following 'Zoom:'"
+msgid "Magnify region"
+msgstr "Formhéadaigh an réigiún"
+
+#: ui/ZoomMagnifier.qml:244
 #, kde-format
 msgctxt "@option:check, disable zoom/magnify effect"
 msgid "Disabled"
 msgstr "Díchumasaithe"
 
-#: ui/ZoomMagnifier.qml:288
+#: ui/ZoomMagnifier.qml:265
 #, kde-format
 msgctxt "@label:spinbox"
 msgid "Zoom factor:"
 msgstr "Fachtóir súmála:"
 
-#: ui/ZoomMagnifier.qml:321
+#: ui/ZoomMagnifier.qml:303
 #, kde-format
 msgctxt "@label"
 msgid "Scroll gesture modifier keys:"
 msgstr "Eochracha modhnúcháin gotha scrolla:"
 
-#: ui/ZoomMagnifier.qml:359
-#, kde-format
-msgctxt "@info:tooltip, indicates feature unavailable on X11"
-msgid "Zoom scroll gestures are only available on Wayland."
-msgstr "Níl gothaí scrolla súmála ar fáil ach ar Wayland."
-
-#: ui/ZoomMagnifier.qml:365
+#: ui/ZoomMagnifier.qml:304
 #, kde-format
 msgctxt "@label Hint for scroll gestures"
 msgid "Scroll while modifier keys are pressed to zoom"
 msgstr "Scrollaigh agus na heochracha mionathraithe á mbrú chun súmáil isteach"
 
-#: ui/ZoomMagnifier.qml:386
-#, kde-format
-msgctxt "@label Hint for zoom/magnify effect usage"
-msgid "Use shortcuts to control zoom"
-msgstr "Úsáid aicearraí chun súmáil a rialú"
+#~ msgctxt "@label:valuesuffix acceleration time spinbox %1 is value"
+#~ msgid "%1 ms"
+#~ msgid_plural "%1 ms"
+#~ msgstr[0] "%1 ms"
+#~ msgstr[1] "%1 ms"
+#~ msgstr[2] "%1 ms"
+#~ msgstr[3] "%1 ms"
+#~ msgstr[4] "%1 ms"
+
+#~ msgid "Enable Screen Reader"
+#~ msgstr "Cumasaigh Léitheoir Scáileáin"
+
+#~ msgctxt "@label Hint for zoom/magnify effect usage"
+#~ msgid "Use shortcuts to control zoom"
+#~ msgstr "Úsáid aicearraí chun súmáil a rialú"
+
+#~ msgctxt "@option:check"
+#~ msgid "Enable focus tracking"
+#~ msgstr "Cumasaigh rianú fócais"
+
+#~ msgctxt "@info:tooltip, indicates feature unavailable on X11"
+#~ msgid "Zoom scroll gestures are only available on Wayland."
+#~ msgstr "Níl gothaí scrolla súmála ar fáil ach ar Wayland."
+
+#~ msgid "Use Gestures"
+#~ msgstr "Úsáid Gothaí"
+
+#~ msgid "Ask for Confirmation for a gesture"
+#~ msgstr "Iarr Deimhniú le haghaidh gotha"
+
+#~ msgid "Confirm access to the Keyboard"
+#~ msgstr "Deimhnigh rochtain ar an Méarchlár"
+
+#~ msgid "Use a timeout delay"
+#~ msgstr "Bain úsáid as moill ama scoir"
+
+#~ msgid "Use a beep for access"
+#~ msgstr "Úsáid bíp le haghaidh rochtana"
+
+#~ msgctxt "@option:check"
+#~ msgid "Activation shortcuts:"
+#~ msgstr "Aicearraí gníomhachtaithe:"
+
+#~ msgctxt "Enable activation shortcuts"
+#~ msgid "Enable"
+#~ msgstr "Cumasaigh"
+
+#~ msgctxt "@label"
+#~ msgid "Press Shift 5 times to enable Sticky Keys"
+#~ msgstr "Brúigh Shift 5 huaire chun Eochracha Greamaitheacha a chumasú"
+
+#~ msgctxt "@label"
+#~ msgid "Hold Shift for 8 seconds to enable Slow Keys"
+#~ msgstr "Coinnigh Shift ar feadh 8 soicind chun Eochracha Mall a chumasú"
+
+#~ msgctxt "@option:check"
+#~ msgid "Disable sticky and slow keys after:"
+#~ msgstr "Díchumasaigh eochracha greamaitheacha agus mall tar éis:"
+
+#~ msgctxt "@label:valuesuffix in spinbox %1 is timeout delay"
+#~ msgid "%1 min"
+#~ msgid_plural "%1 min"
+#~ msgstr[0] "%1 nóim"
+#~ msgstr[1] "%1 nóim"
+#~ msgstr[2] "%1 nóim"
+#~ msgstr[3] "%1 nóim"
+#~ msgstr[4] "%1 nóim"
+
+#~ msgctxt "short for minute(s)"
+#~ msgid "min"
+#~ msgid_plural "min"
+#~ msgstr[0] "nóim"
+#~ msgstr[1] "nóim"
+#~ msgstr[2] "nóim"
+#~ msgstr[3] "nóim"
+#~ msgstr[4] "nóim"
+
+#~ msgctxt "@title:group for checkbox group"
+#~ msgid "When a shortcut is used:"
+#~ msgstr "Nuair a úsáidtear aicearra:"
+
+#~ msgctxt "@option:check when shortcut used"
+#~ msgid "Display a confirmation dialog"
+#~ msgstr "Taispeáin dialóg deimhnithe"
+
+#~ msgctxt "@option:check when shortcut used"
+#~ msgid "Ring the system bell"
+#~ msgstr "Buail clog an chórais"
+
+#~ msgctxt "@option:check when shortcut used"
+#~ msgid "Show a notification"
+#~ msgstr "Taispeáin fógra"
+
+#~ msgctxt "@action:button opens Notifications kcm"
+#~ msgid "Configure Notifications…"
+#~ msgstr "Cumraigh Fógraí…"
+
+#~ msgctxt "@title Category name in sidebar"
+#~ msgid "Activation Shortcuts"
+#~ msgstr "Aicearraí Gníomhachtaithe"
+
+#~ msgctxt "@label:listbox"
+#~ msgid "Pointer appearance:"
+#~ msgstr "Cuma pointeora:"
+
+#~ msgctxt "@item:inlistbox"
+#~ msgid "Scale"
+#~ msgstr "Scála"
+
+#~ msgctxt "@item:inlistbox"
+#~ msgid "Keep"
+#~ msgstr "Coinnigh"
+
+#~ msgctxt "@item:inlistbox"
+#~ msgid "Hide"
+#~ msgstr "Folaigh"

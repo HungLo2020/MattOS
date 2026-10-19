@@ -1,5 +1,5 @@
 /*
- *   SPDX-FileCopyrightText: 2011, 2012, 2013, 2014 Ivan Cukic <ivan.cukic(at)kde.org>
+ *   SPDX-FileCopyrightText: 2011-2026 Ivan Cukic <ivan.cukic(at)kde.org>
  *
  *   SPDX-License-Identifier: GPL-2.0-or-later
  */
@@ -18,7 +18,6 @@
 #include <kfileitem.h>
 
 // Boost
-#include <boost/range/algorithm/binary_search.hpp>
 #include <utils/range.h>
 
 // Local
@@ -49,6 +48,8 @@ StatsPlugin::StatsPlugin(QObject *parent)
 
     m_configWatcher = KConfigWatcher::create(KSharedConfig::openConfig(QStringLiteral("kactivitymanagerd-pluginsrc")));
     connect(m_configWatcher.get(), &KConfigWatcher::configChanged, this, &StatsPlugin::loadConfiguration);
+
+    connect(&m_deleteOldEventsTimer, &QTimer::timeout, this, &StatsPlugin::deleteOldEvents);
 }
 
 bool StatsPlugin::init(QHash<QString, QObject *> &modules)
@@ -93,8 +94,7 @@ void StatsPlugin::loadConfiguration()
     // For people who do not restart their computers, we should do this from
     // time to time. Doing this twice a day should be more than enough.
     deleteOldEvents();
-    m_deleteOldEventsTimer.setInterval(12 * 60 * 60 * 1000);
-    connect(&m_deleteOldEventsTimer, &QTimer::timeout, this, &StatsPlugin::deleteOldEvents);
+    m_deleteOldEventsTimer.start(12 * 60 * 60 * 1000);
 
     // Loading URL filters
     m_urlFilters.clear();
@@ -321,7 +321,7 @@ bool StatsPlugin::acceptedEvent(const Event &event)
         //     ignore event if the list doesn't contain the application
         // if not blocked by default, the list contains blocked applications
         //     ignore event if the list contains the application
-        (m_whatToRemember == SpecificApplications && m_blockedByDefault != boost::binary_search(m_apps, event.application)));
+        (m_whatToRemember == SpecificApplications && m_blockedByDefault != m_apps.contains(event.application)));
 }
 
 Event StatsPlugin::validateEvent(Event event)
@@ -353,7 +353,11 @@ void StatsPlugin::addEvents(const EventList &events)
 {
     using namespace kamd::utils;
 
-    if (m_blockAll || m_whatToRemember == NoApplications) {
+    // At this point, we can't be really sure currentActivity() is here, there can
+    // be a short moment, especially at startup we are in a limbo state with no current
+    // activity, in that moment no event is valid
+    // See bool Activities.cpp, Activities::Private::setCurrentActivity(const QString &activity)
+    if (m_blockAll || m_whatToRemember == NoApplications || currentActivity().isEmpty()) {
         return;
     }
 
@@ -531,14 +535,8 @@ void StatsPlugin::DeleteStatsForResource(const QString &activity, const QString 
 
     DATABASE_TRANSACTION(*resourcesDatabase());
 
-    // Check against sql injection
-    if (activity.contains('\'') || client.contains('\''))
-        return;
-
-    const auto activityFilter =
-        activity == ANY_ACTIVITY_TAG ? " 1 " : QStringLiteral(" usedActivity = '%1' ").arg(activity == CURRENT_ACTIVITY_TAG ? currentActivity() : activity);
-
-    const auto clientFilter = client == ANY_AGENT_TAG ? " 1 " : QStringLiteral(" initiatingAgent = '%1' ").arg(client);
+    const auto usedActivity = activity == ANY_ACTIVITY_TAG ? QVariant() : QVariant(activity == CURRENT_ACTIVITY_TAG ? currentActivity() : activity);
+    const auto initiatingAgent = client == ANY_AGENT_TAG ? QVariant() : QVariant(client);
 
     auto removeResourceInfoQuery = resourcesDatabase()->createQuery();
     removeResourceInfoQuery.prepare(
@@ -548,29 +546,39 @@ void StatsPlugin::DeleteStatsForResource(const QString &activity, const QString 
     auto removeEventsQuery = resourcesDatabase()->createQuery();
     removeEventsQuery.prepare(
         "DELETE FROM ResourceEvent "
-        "WHERE "
-        + activityFilter + " AND " + clientFilter + " AND " + "targettedResource LIKE :targettedResource ESCAPE '\\'");
+        "WHERE usedActivity = COALESCE(:usedActivity, usedActivity) "
+        "AND initiatingAgent = COALESCE(:initiatingAgent, initiatingAgent) "
+        "AND targettedResource LIKE :targettedResource ESCAPE '\\'");
 
     auto removeScoreCachesQuery = resourcesDatabase()->createQuery();
     removeScoreCachesQuery.prepare(
         "DELETE FROM ResourceScoreCache "
-        "WHERE "
-        + activityFilter + " AND " + clientFilter + " AND " + "targettedResource LIKE :targettedResource ESCAPE '\\'");
+        "WHERE usedActivity = COALESCE(:usedActivity, usedActivity) "
+        "AND initiatingAgent = COALESCE(:initiatingAgent, initiatingAgent) "
+        "AND targettedResource LIKE :targettedResource ESCAPE '\\'");
 
     const auto pattern = Common::starPatternToLike(resource);
 
     Utils::exec(*resourcesDatabase(), Utils::FailOnError, removeResourceInfoQuery, ":targettedResource", pattern);
 
-    Utils::exec(*resourcesDatabase(), Utils::FailOnError, removeEventsQuery, ":targettedResource", pattern);
+    // clang-format off
+    Utils::exec(*resourcesDatabase(), Utils::FailOnError, removeEventsQuery,
+                ":usedActivity", usedActivity,
+                ":initiatingAgent", initiatingAgent,
+                ":targettedResource", pattern);
 
-    Utils::exec(*resourcesDatabase(), Utils::FailOnError, removeScoreCachesQuery, ":targettedResource", pattern);
+    Utils::exec(*resourcesDatabase(), Utils::FailOnError, removeScoreCachesQuery,
+                ":usedActivity", usedActivity,
+                ":initiatingAgent", initiatingAgent,
+                ":targettedResource", pattern);
+    // clang-format on
 
     Q_EMIT ResourceScoreDeleted(activity, client, resource);
 }
 
 bool StatsPlugin::isFeatureOperational(const QStringList &feature) const
 {
-    if (feature[0] == "isOTR") {
+    if (!feature.isEmpty() && feature[0] == "isOTR") {
         if (feature.size() != 2)
             return true;
 

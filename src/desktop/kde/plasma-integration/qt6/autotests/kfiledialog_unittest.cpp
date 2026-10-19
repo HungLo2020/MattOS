@@ -55,7 +55,6 @@ private Q_SLOTS:
 
         QString selectNameFilter(QStringLiteral("h (*.h)"));
         dialog.selectNameFilter(selectNameFilter);
-        QEXPECT_FAIL("", "Does currently not work. Works, once the dialog gets shown, though.", Continue);
         QCOMPARE(dialog.selectedNameFilter(), selectNameFilter);
 
         dialog.show();
@@ -72,11 +71,14 @@ private Q_SLOTS:
 
         QString selectNameFilter(QStringLiteral("h2 (*.h)"));
         dialog.selectNameFilter(selectNameFilter);
-        QEXPECT_FAIL("", "Does currently not work. Works, once the dialog gets shown, though.", Continue);
+        // TODO: Remove these QEXPECT_FAILs once KFileFilter::operator== is fixed in kio.
+        //       It currently does not handle the "no loaded filters" case correctly
+        //       even after early initializeDialog().
+        QEXPECT_FAIL("", "KFileFilter::operator== does not handle the no loaded filters case", Continue);
         QCOMPARE(dialog.selectedNameFilter(), selectNameFilter);
 
         dialog.show();
-        QEXPECT_FAIL("", "broken by kio commit a7c9d59f273fecd68892602f68c108a5966d98fc", Continue);
+        QEXPECT_FAIL("", "KFileFilter::operator== does not handle the no loaded filters case", Continue);
         QCOMPARE(dialog.selectedNameFilter(), selectNameFilter);
     }
 
@@ -279,15 +281,9 @@ private Q_SLOTS:
         dialog.setFileMode(qtFileMode);
         dialog.show();
 
-        if (usingDirDialog) {
-            QVERIFY(std::ranges::any_of(QApplication::topLevelWidgets(), [](const QWidget *widget) {
-                return widget->metaObject()->className() == QByteArrayLiteral("KDirSelectDialog");
-            }));
-        } else {
-            KFileWidget *fw = findFileWidget();
-            QVERIFY(fw);
-            QCOMPARE(fw->mode(), kdeFileMode);
-        }
+        KFileWidget *fw = findFileWidget();
+        QVERIFY(fw);
+        QCOMPARE(fw->mode(), kdeFileMode);
 
         QCOMPARE(dialog.fileMode(), qtFileMode);
     }
@@ -369,6 +365,33 @@ private Q_SLOTS:
             QCOMPARE(dialog.directoryUrl().adjusted(QUrl::StripTrailingSlash), dir);
             fw->slotCancel();
         }
+    }
+
+    void testSetCurrentDirectoryUrl_data()
+    {
+        QTest::addColumn<QUrl>("url");
+        QTest::addColumn<QUrl>("expectedUrl");
+
+        QTest::newRow("only_scheme") << QUrl(QStringLiteral("trash:")) << QUrl(QStringLiteral("trash:"));
+        QTest::newRow("with_no_host") << QUrl(QStringLiteral("trash://")) << QUrl(QStringLiteral("trash://"));
+        QTest::newRow("with_root_path") << QUrl(QStringLiteral("trash:///")) << QUrl(QStringLiteral("trash:///"));
+    }
+
+    void testSetCurrentDirectoryUrl()
+    {
+        QFETCH(QUrl, url);
+        QFETCH(QUrl, expectedUrl);
+
+        QFileDialog dialog;
+        dialog.setFileMode(QFileDialog::Directory);
+        dialog.open();
+
+        KFileWidget *fw = findFileWidget();
+        QVERIFY(fw);
+        QCOMPARE(fw->isVisible(), true);
+        fw->setUrl(url);
+
+        QCOMPARE(fw->baseUrl(), expectedUrl);
     }
 
 private:

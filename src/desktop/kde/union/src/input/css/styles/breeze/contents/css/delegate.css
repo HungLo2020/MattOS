@@ -1,0 +1,226 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ * SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+ */
+
+/*
+ * View delegates
+ */
+
+:root
+{
+    --delegate-spacing: var(--medium-spacing);
+    --delegate-padding: var(--small-spacing);
+    --delegate-total-padding: 10px; /* spacing + padding */
+}
+
+itemdelegate,
+checkdelegate,
+radiodelegate,
+switchdelegate,
+swipedelegate,
+itemviewitem
+{
+    /*
+     We want to have some separation between delegates in a list, but we cannot
+     control list spacing, nor do we want to use that since the list spacing is
+     not considered to be part of any delegate so ends up as "dead space". So we
+     use insets to "fake" the spacing. Ideally, the inset would be
+     `--delegate-spacing / 2` but doing that leads to only half the wanted space
+     at the list's top and bottom items. Since we lack first/last child support,
+     we fake it by having the spacing all at the top, except for the last item
+     in the list.
+     */
+    padding: var(--delegate-total-padding);
+    inset: var(--delegate-spacing);
+    padding-bottom: var(--delegate-padding);
+    inset-bottom: 0px;
+
+    spacing: var(--medium-spacing);
+    width: var(--icon-size-small);
+    height: var(--icon-size-small);
+
+    border-radius: var(--corner-radius);
+
+    icon-size: var(--icon-size-smallmedium);
+
+    layout-alignment: content fill fill 0;
+    icon-alignment: content start center 0;
+    text-alignment: content fill center 0;
+    text-wrap-mode: wrap;
+
+    color: var(--window-text-color);
+
+    & > * {
+        layout-alignment: content fill fill 0;
+    }
+
+    &.alternating-colors
+    {
+        background-color: var(--view-background-alternate-color);
+    }
+
+    &.inside-table,
+    &.inside-list
+    {
+        inset: 0px;
+        border-radius: 0px;
+    }
+
+    &.inside-table {
+        padding: var(--delegate-padding);
+        text-wrap-mode: no-wrap;
+    }
+
+    &.inside-list {
+        &.hover-enabled {
+            inset: var(--delegate-spacing);
+            inset-bottom: 0px;
+            border-radius: var(--corner-radius);
+
+            &.last-in-list {
+                inset-bottom: var(--delegate-spacing);
+            }
+        }
+    }
+
+    &.last-in-list
+    {
+        padding-bottom: var(--delegate-total-padding);
+        inset-bottom: var(--delegate-spacing);
+    }
+
+    &:hovered
+    {
+        border: 1px solid var(--highlight-color);
+        background-color: var(--highlight-hover-color);
+    }
+
+    &:active-focus
+    {
+        border: 1px solid var(--highlight-color);
+        background-color: var(--highlight-hover-color);
+        outline: 2px solid var(--focus-color);
+    }
+
+    &:pressed,
+    &:highlighted
+    {
+        border: 1px solid var(--highlight-color);
+        background-color: var(--highlight-color);
+        color: var(--highlight-text-color);
+    }
+
+    &:disabled {
+        color: var(--window-disabled-text-color);
+        background-color: transparent;
+        border: none;
+    }
+
+    &[display="text-under-icon"]
+    {
+        icon-alignment: content center stack-center 0;
+        text-alignment: content center stack-center 1;
+
+        icon-size: var(--icon-size-medium);
+        width: var(--icon-size-large);
+        height: var(--icon-size-large);
+    }
+
+    & > indicator
+    {
+        layout-alignment: content start center -1;
+    }
+}
+
+/* ItemViewItem delegate is often misused by QtWidgets applications, so
+ * we do not allow layouting inside it. */
+itemviewitem {
+    inset: 2px;
+    icon-size: var(--small-element-size);
+    text-wrap-mode: no-wrap;
+    text-elide: right;
+    padding: var(--small-spacing);
+    height: 36px; /* 32px + inset(2px + 2px) */
+
+    & > checkbox {
+        width: var(--small-element-size);
+        height: var(--small-element-size);
+    }
+
+    &[position="invalid"] {
+        inset: 0px;
+        border-radius: 0px;
+    }
+
+    &[position="beginning"] {
+        inset-right: 0px;
+        border-right: none;
+        border-top-right-radius: 0px;
+        border-bottom-right-radius: 0px;
+    }
+
+    &[position="middle"] {
+        inset-left: 0px;
+        inset-right: 0px;
+        border-right: none;
+        border-left: none;
+        border-radius: 0px;
+    }
+
+    &[position="end"] {
+        inset-left: 0px;
+        border-left: none;
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+    }
+
+    /* Widgets do not have last-in-list support, so reverse any changes to hover insets */
+    &.inside-list {
+        inset: 0px;
+        &.hover-enabled {
+            inset: 2px;
+        }
+    }
+
+    &.inside-table {
+        inset: 0px;
+        &[position="invalid"],
+        &[position="beginning"],
+        &[position="middle"],
+        &[position="end"]{
+            border: none;
+            border-radius: 0px;
+        }
+        &.hover-enabled {
+            inset: 0px;
+        }
+    }
+
+    &.inside-list {
+        &[display="text-below-icon"],
+        &[display="text-above-icon"]
+        {
+            text-wrap-mode: wrap;
+        }
+    }
+}
+
+/* For delegates with known indicators, place the indicator at the top left and
+ * reduce the effective indicator size to 0. This ensures the indicator will be
+ * placed inside the content item. */
+checkdelegate,
+radiodelegate
+{
+    &[display="text-under-icon"] > indicator {
+        layout-alignment: content start start -1;
+        /* -(var(--icon-size-small)) */
+        margin-right: -16px;
+    }
+}
+
+switchdelegate[display="text-under-icon"] > indicator {
+    layout-alignment: content start start -1;
+    margin-right: -36px;
+    margin-top: var(--small-spacing);
+}

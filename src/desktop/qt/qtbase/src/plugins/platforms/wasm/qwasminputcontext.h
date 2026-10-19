@@ -33,12 +33,11 @@ public:
     bool isValid() const override { return true; }
 
     const QString preeditString() { return m_preeditString; }
-    void setPreeditString(QString preeditStr, int replaceSize);
+    void setPreeditString(QString preeditStr);
     void insertPreedit(int repalcementLength = 0);
     void commitPreeditAndClear();
 
-    void insertText(QString inputStr, bool replace = false);
-    void replaceText(QString inputString, int replaceFrom, int replaceSize);
+    void commitText(const QString &text, int replaceFrom = 0, int replaceLength = 0);
 
     bool usingTextInput() const { return m_inputMethodAccepted; }
     void setFocusObject(QObject *object) override;
@@ -54,18 +53,34 @@ public:
     bool isActive() const {
         return m_focusObject && m_inputMethodAccepted;
     }
+    bool m_ignoreNextInput = false;
 
 private:
     void updateInputElement();
 
-private:
+    struct CompositionRange
+    {
+        int start = 0;
+        int end = 0;
+        bool isValid = false;
+    };
+
+    CompositionRange getFirstRange() const;
+
+    struct ResolvedRange
+    {
+        int replaceFrom = 0;
+        int replaceLength = 0;
+    };
+
+    ResolvedRange resolveRange(const CompositionRange &range) const;
+
     QString m_preeditString;
-    int m_replaceIndex = 0;
 
     bool m_inputMethodAccepted = false;
     QObject *m_focusObject = nullptr;
     emscripten::val m_inputElement = emscripten::val::null();
-    QPair<int, int> rangesPair;
+    emscripten::val m_compositionRange = emscripten::val::null();
 };
 
 QT_END_NAMESPACE

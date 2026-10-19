@@ -22,7 +22,7 @@ import org.kde.plasma.plasmoid
 AbstractKickoffItemDelegate {
     id: root
 
-    property bool compact: Kirigami.Settings.tabletMode ? false : Plasmoid.configuration.compactMode
+    property bool compact: Plasmoid.configuration.compactMode
 
     leftPadding: KickoffSingleton.listItemMetrics.margins.left
         + (mirrored ? KickoffSingleton.fontMetrics.descent : 0)
@@ -53,7 +53,7 @@ AbstractKickoffItemDelegate {
 
             animated: false
             selected: root.iconAndLabelsShouldlookSelected
-            source: root.decoration || root.icon.name || root.icon.source
+            source: root.removalPlaceholderActive ? "list-remove" : (root.decoration || root.icon.name || root.icon.source)
         }
 
         Item {
@@ -68,6 +68,7 @@ AbstractKickoffItemDelegate {
                 readonly property color textColor: root.iconAndLabelsShouldlookSelected ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
 
                 anchors.fill: parent
+                visible: !root.removalPlaceholderActive
 
                 rows: root.compact ? 1 : 2
                 columns: root.compact ? 2 : 1
@@ -109,14 +110,20 @@ AbstractKickoffItemDelegate {
         }
 
         Loader {
-            visible: active
-            active: root.model?.isNewlyInstalled ?? false
+            Layout.preferredWidth: root.isCategoryListItem ? Kirigami.Units.largeSpacing : implicitWidth
+            Layout.preferredHeight: root.isCategoryListItem ? Kirigami.Units.largeSpacing : implicitHeight
 
-            sourceComponent: Badge {
-                text: root.isCategoryListItem ? "" : Accessible.name
-                Accessible.name: i18nc("Newly installed app, badge, keep short", "New!") // qmllint disable unqualified
-                Accessible.description: root.isCategoryListItem ? i18nc("@info:whatsthis Accessible description for badge", "There is a newly installed application in this category") // qmllint disable unqualified
-                                                         : i18nc("@info:whatsthis Accessible description for badge", "Newly installed application") // qmllint disable unqualified
+            visible: active
+            active: (root.model?.isNewlyInstalled ?? false) && !root.removalPlaceholderActive
+
+            sourceComponent: Kirigami.Badge {
+                text: root.isCategoryListItem ? "" : i18nc("Newly-installed app, badge, keep short", "New!")
+
+                type: Kirigami.Badge.Type.Positive
+
+                Accessible.description: root.isCategoryListItem
+                    ? i18n("There is a newly-installed application in this category")
+                    : i18n("Newly-installed application")
             }
         }
     }

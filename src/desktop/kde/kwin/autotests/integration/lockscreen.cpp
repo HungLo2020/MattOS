@@ -14,6 +14,7 @@
 #include "effect/effecthandler.h"
 #include "pointer_input.h"
 #include "screenedge.h"
+#include "wayland/display.h"
 #include "wayland/keyboard.h"
 #include "wayland/seat.h"
 #include "wayland_server.h"
@@ -44,8 +45,6 @@ Q_DECLARE_METATYPE(Qt::Orientation)
 
 namespace KWin
 {
-
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_lock_screen-0");
 
 class LockScreenTest : public QObject
 {
@@ -89,6 +88,7 @@ private:
 class HelperEffect : public Effect
 {
     Q_OBJECT
+
 public:
     HelperEffect()
     {
@@ -97,10 +97,21 @@ public:
     {
     }
 
-    void windowInputMouseEvent(QEvent *) override
+    void pointerMotion(PointerMotionEvent *event) override
     {
         Q_EMIT inputEvent();
     }
+
+    void pointerButton(PointerButtonEvent *event) override
+    {
+        Q_EMIT inputEvent();
+    }
+
+    void pointerAxis(PointerAxisEvent *event) override
+    {
+        Q_EMIT inputEvent();
+    }
+
     void grabbedKeyboardEvent(QKeyEvent *e) override
     {
         Q_EMIT keyEvent(e->text());
@@ -181,10 +192,13 @@ LockScreenTest::WindowHandle LockScreenTest::showWindow()
 
 void LockScreenTest::initTestCase()
 {
+    // This test is written slightly wrong, and makes assumptions about events not being dispatched whilst waiting for the lock screen to change
+    disconnect(qGuiApp->eventDispatcher(), &QAbstractEventDispatcher::awake, waylandServer()->display(), &Display::flush);
+
     qRegisterMetaType<KWin::Window *>();
     qRegisterMetaType<KWin::ElectricBorder>("ElectricBorder");
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -753,7 +767,7 @@ void LockScreenTest::testKeyboardLockShortcut()
 
     QList<QKeySequence> shortcuts = KGlobalAccel::self()->globalShortcut("ksmserver", "Lock Session");
     // Verify the shortcut is Meta + L, the default
-    QCOMPARE(shortcuts.first().toString(), QString("Meta+L"));
+    QVERIFY(shortcuts.contains(QKeySequence(Qt::MetaModifier | Qt::Key_L)));
 
     // Verify the screen is not locked
     QVERIFY(!waylandServer()->isScreenLocked());

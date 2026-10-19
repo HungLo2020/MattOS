@@ -9,12 +9,12 @@
 #ifndef PLASMA_NM_SECRET_AGENT_H
 #define PLASMA_NM_SECRET_AGENT_H
 
+#include <QSharedPointer>
+#include <QVariantMap>
+
 #include <NetworkManagerQt/SecretAgent>
 
-namespace KWallet
-{
-class Wallet;
-}
+#include "plasma_nm_kded.h"
 
 class PasswordDialog;
 
@@ -50,6 +50,9 @@ public:
     bool saveSecretsWithoutReply = false;
     QDBusMessage message;
     PasswordDialog *dialog = nullptr;
+    bool storageJobsStarted = false;
+    int storageJobsRunning = 0;
+    QVariantMap storedSecrets;
 };
 
 class Q_DECL_EXPORT SecretAgent : public NetworkManager::SecretAgent
@@ -74,28 +77,21 @@ private Q_SLOTS:
     void dialogAccepted();
     void dialogRejected();
     void killDialogs();
-    void walletOpened(bool success);
-    void walletClosed();
 
 private:
     void processNext();
     /**
      * @brief processGetSecrets requests
      * @param request the request we are processing
-     * @param ignoreWallet true if the code should avoid Wallet
-     * normally if it failed to open
      * @return true if the item was processed
      */
-    bool processGetSecrets(SecretsRequest &request) const;
-    bool processSaveSecrets(SecretsRequest &request) const;
-    bool processDeleteSecrets(SecretsRequest &request) const;
+    bool processGetSecrets(QSharedPointer<SecretsRequest> request);
+    bool processSaveSecrets(QSharedPointer<SecretsRequest> request);
+    bool processDeleteSecrets(QSharedPointer<SecretsRequest> request);
     /**
-     * @brief useWallet checks if the KWallet system is enabled
-     * and tries to open it async.
-     * @return return true if the method should use the wallet,
-     * the caller MUST always check if the wallet is opened.
+     * @brief useSecureStorage checks whether encrypted secret storage is available.
      */
-    bool useWallet() const;
+    bool useSecureStorage() const;
 
     /**
      * @brief hasSecrets verifies if the desired connection has secrets to store
@@ -105,10 +101,8 @@ private:
     bool hasSecrets(const NMVariantMapMap &connection) const;
     void sendSecrets(const NMVariantMapMap &secrets, const QDBusMessage &message) const;
 
-    mutable bool m_openWalletFailed;
-    mutable KWallet::Wallet *m_wallet;
     mutable PasswordDialog *m_dialog;
-    QList<SecretsRequest> m_calls;
+    QList<QSharedPointer<SecretsRequest>> m_calls;
 
     void importSecretsFromPlainTextFiles();
 };

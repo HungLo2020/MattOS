@@ -290,6 +290,8 @@ void QmlTypesClassDescription::collect(
                 javaScriptExtensionType = extension.javaScript.qualifiedClassName();
                 nativeExtensionType = extension.native.qualifiedClassName();
             }
+            if (value == classDefName)
+                isSelfExtension = true;
         } else if (name == S_EXTENSION_IS_JAVA_SCRIPT) {
             if (value == S_TRUE)
                 extensionIsJavaScript = true;
@@ -569,6 +571,8 @@ void ResolvedTypeAlias::handlePointer()
     if (type.back() == '*'_L1) {
         isPointer = true;
         type = type.chopped(1);
+        while (type.back().isSpace())
+            type.chop(1);
     }
 }
 

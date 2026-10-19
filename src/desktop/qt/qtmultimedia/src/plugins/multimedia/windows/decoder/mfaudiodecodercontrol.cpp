@@ -1,28 +1,32 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <system_error>
-#include <mferror.h>
-#include <qglobal.h>
 #include "mfaudiodecodercontrol_p.h"
-#include <private/qwindowsaudioutils_p.h>
+
+#include <QtMultimedia/private/qwindowsaudioutils_p.h>
+#include <QtMultimedia/private/qwmf_support_p.h>
 
 #include <QtCore/qdebug.h>
+#include <QtCore/qglobal.h>
+
+#include <chrono>
+#include <mferror.h>
+
+#include <system_error>
 
 QT_BEGIN_NAMESPACE
 
 MFAudioDecoderControl::MFAudioDecoderControl(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)
-    , m_sourceResolver(new SourceResolver)
+    , m_sourceResolver(makeComObject<SourceResolver>())
 {
-    connect(m_sourceResolver, &SourceResolver::mediaSourceReady, this, &MFAudioDecoderControl::handleMediaSourceReady);
-    connect(m_sourceResolver, &SourceResolver::error, this, &MFAudioDecoderControl::handleMediaSourceError);
+    connect(m_sourceResolver.Get(), &SourceResolver::mediaSourceReady, this, &MFAudioDecoderControl::handleMediaSourceReady);
+    connect(m_sourceResolver.Get(), &SourceResolver::error, this, &MFAudioDecoderControl::handleMediaSourceError);
 }
 
 MFAudioDecoderControl::~MFAudioDecoderControl()
 {
     m_sourceResolver->shutdown();
-    m_sourceResolver->Release();
 }
 
 void MFAudioDecoderControl::setSource(const QUrl &fileName)
@@ -84,9 +88,11 @@ void MFAudioDecoderControl::handleMediaSourceError(long hr)
     }
 }
 
-void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
+void MFAudioDecoderControl::startReadingSource(const ComPtr<IMFMediaSource> &source)
 {
     Q_ASSERT(source);
+    using namespace QWindowsAudioUtils;
+    using namespace std::chrono;
 
     m_decoderSourceReader = std::make_unique<MFDecoderSourceReader>();
     if (!m_decoderSourceReader) {
@@ -104,11 +110,9 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
 
     ComPtr<IMFPresentationDescriptor> pd;
     if (SUCCEEDED(source->CreatePresentationDescriptor(pd.GetAddressOf()))) {
-        UINT64 duration = 0;
-        pd->GetUINT64(MF_PD_DURATION, &duration);
-        duration /= 10000;
-        m_duration = qint64(duration);
-        durationChanged(m_duration);
+        UINT64 durationHns = 0;
+        pd->GetUINT64(MF_PD_DURATION, &durationHns);
+        durationChanged(round<milliseconds>(QWMF::reference_time{ static_cast<long long>(durationHns) }));
     }
 
     if (!m_resampler.setup(mediaFormat, m_outputFormat.isValid() ? m_outputFormat : mediaFormat)) {
@@ -132,7 +136,7 @@ void MFAudioDecoderControl::start()
     if (m_loadingSource) {
         m_deferredStart = true;
     } else {
-        IMFMediaSource *source = m_sourceResolver->mediaSource();
+        ComPtr<IMFMediaSource> source = m_sourceResolver->mediaSource();
         if (!source) {
             if (m_device)
                 error(QAudioDecoder::ResourceError, tr("Unable to read from specified device"));
@@ -164,14 +168,7 @@ void MFAudioDecoderControl::stop()
     }
     setIsDecoding(false);
 
-    if (m_position != -1) {
-        m_position = -1;
-        positionChanged(m_position);
-    }
-    if (m_duration != -1) {
-        m_duration = -1;
-        durationChanged(m_duration);
-    }
+    finished();
 }
 
 void MFAudioDecoderControl::handleNewSample(ComPtr<IMFSample> sample)
@@ -195,7 +192,6 @@ void MFAudioDecoderControl::handleNewSample(ComPtr<IMFSample> sample)
 void MFAudioDecoderControl::handleSourceFinished()
 {
     stop();
-    finished();
 }
 
 void MFAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
@@ -212,8 +208,8 @@ QAudioBuffer MFAudioDecoderControl::read()
 
     if (bufferAvailable()) {
         buffer.swap(m_audioBuffer);
-        m_position = buffer.startTime() / 1000;
-        positionChanged(m_position);
+        // buffer.startTime() is microseconds; convert to milliseconds
+        positionChanged(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::microseconds{ buffer.startTime() }));
         bufferAvailableChanged(false);
         m_decoderSourceReader->readNextSample();
     }

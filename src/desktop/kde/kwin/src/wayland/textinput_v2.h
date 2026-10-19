@@ -16,6 +16,7 @@
 struct wl_resource;
 namespace KWin
 {
+
 class ClientConnection;
 class Display;
 class SeatInterface;
@@ -35,6 +36,7 @@ class TextInputManagerV2InterfacePrivate;
 class KWIN_EXPORT TextInputManagerV2Interface : public QObject
 {
     Q_OBJECT
+
 public:
     explicit TextInputManagerV2Interface(Display *display, QObject *parent = nullptr);
     ~TextInputManagerV2Interface() override;
@@ -63,6 +65,7 @@ private:
 class KWIN_EXPORT TextInputV2Interface : public QObject
 {
     Q_OBJECT
+
 public:
     ~TextInputV2Interface() override;
 
@@ -84,7 +87,7 @@ public:
     /**
      * @see cursorRectangleChanged
      */
-    Rect cursorRectangle() const;
+    RectF cursorRectangle() const;
 
     /**
      * @see contentTypeChanged
@@ -223,7 +226,7 @@ public:
      * @param visible Whether the input panel is currently visible
      * @param overlappedSurfaceArea The overlapping area in surface local coordinates
      */
-    void setInputPanelState(bool visible, const Rect &overlappedSurfaceArea);
+    void setInputPanelState(bool visible, const RectF &overlappedSurfaceArea);
 
     /**
      * Sets the language of the input text. The @p languageTag is a RFC-3066 format language tag.
@@ -254,7 +257,7 @@ Q_SIGNALS:
     /**
      * @see cursorRectangle
      */
-    void cursorRectangleChanged(const Rect &rect);
+    void cursorRectangleChanged(const RectF &rect);
     /**
      * Emitted when the {@link contentPurpose} and/or {@link contentHints} changes.
      * @see contentPurpose

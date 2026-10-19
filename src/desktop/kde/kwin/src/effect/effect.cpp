@@ -21,7 +21,6 @@ void WindowPrePaintData::setTranslucent()
 {
     mask |= Effect::PAINT_WINDOW_TRANSLUCENT;
     mask &= ~Effect::PAINT_WINDOW_OPAQUE;
-    deviceOpaque = Region(); // cannot clip, will be transparent
 }
 
 void WindowPrePaintData::setTransformed()
@@ -360,10 +359,6 @@ void Effect::reconfigure(ReconfigureFlags)
 {
 }
 
-void Effect::windowInputMouseEvent(QEvent *)
-{
-}
-
 void Effect::grabbedKeyboardEvent(QKeyEvent *)
 {
 }
@@ -373,14 +368,14 @@ bool Effect::borderActivated(ElectricBorder)
     return false;
 }
 
-void Effect::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void Effect::prePaintScreen(ScreenPrePaintData &data)
 {
-    effects->prePaintScreen(data, presentTime);
+    effects->prePaintScreen(data);
 }
 
-void Effect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
+bool Effect::paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen)
 {
-    effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
+    return effects->paintScreen(renderTarget, viewport, mask, deviceRegion, screen);
 }
 
 void Effect::postPaintScreen()
@@ -388,14 +383,14 @@ void Effect::postPaintScreen()
     effects->postPaintScreen();
 }
 
-void Effect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime)
+void Effect::prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data)
 {
-    effects->prePaintWindow(view, w, data, presentTime);
+    effects->prePaintWindow(view, w, data);
 }
 
-void Effect::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
+bool Effect::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
 {
-    effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
+    return effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
 }
 
 bool Effect::provides(Feature)
@@ -413,9 +408,9 @@ QString Effect::debug(const QString &) const
     return QString();
 }
 
-void Effect::drawWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
+bool Effect::drawWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
 {
-    effects->drawWindow(renderTarget, viewport, w, mask, deviceRegion, data);
+    return effects->drawWindow(renderTarget, viewport, w, mask, deviceRegion, data);
 }
 
 void Effect::setPositionTransformations(WindowPaintData &data, Rect &logicalRegion, EffectWindow *w,
@@ -439,21 +434,38 @@ QPointF Effect::cursorPos()
     return effects->cursorPos();
 }
 
-double Effect::animationTime(const KConfigGroup &cfg, const QString &key, std::chrono::milliseconds defaultTime)
+std::chrono::milliseconds Effect::animationTime(const KConfigGroup &cfg, const QString &key, std::chrono::milliseconds defaultTime)
 {
-    int time = cfg.readEntry(key, 0);
-    return time != 0 ? time : std::max(defaultTime.count() * effects->animationTimeFactor(), 1.);
+    if (const int time = cfg.readEntry(key, 0)) {
+        return std::chrono::milliseconds(time);
+    }
+
+    const int actualTime = defaultTime.count() * effects->animationTimeFactor();
+    return std::chrono::milliseconds(std::max(actualTime, 1));
 }
 
-double Effect::animationTime(std::chrono::milliseconds defaultTime)
+std::chrono::milliseconds Effect::animationTime(std::chrono::milliseconds defaultTime)
 {
     // at least 1ms, otherwise 0ms times can break some things
-    return std::max(defaultTime.count() * effects->animationTimeFactor(), 1.);
+    const int actualTime = defaultTime.count() * effects->animationTimeFactor();
+    return std::chrono::milliseconds(std::max(actualTime, 1));
 }
 
 int Effect::requestedEffectChainPosition() const
 {
     return 0;
+}
+
+void Effect::pointerMotion(PointerMotionEvent *event)
+{
+}
+
+void Effect::pointerButton(PointerButtonEvent *event)
+{
+}
+
+void Effect::pointerAxis(PointerAxisEvent *event)
+{
 }
 
 bool Effect::touchDown(qint32 id, const QPointF &pos, std::chrono::microseconds time)

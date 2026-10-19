@@ -11,6 +11,7 @@
 
 #include <errno.h>
 
+#include "core/drm_formats.h"
 #include "core/iccprofile.h"
 #include "core/session.h"
 #include "drm_backend.h"
@@ -25,7 +26,6 @@
 #include "drm_logging.h"
 #include "drm_output.h"
 #include "drm_plane.h"
-#include "utils/drm_format_helper.h"
 #include "utils/envvar.h"
 #include "utils/kernel.h"
 
@@ -50,46 +50,53 @@ DrmPipeline::~DrmPipeline()
     m_commitThread.reset();
 }
 
-DrmPipeline::Error DrmPipeline::testPresent(const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> DrmPipeline::testPresent(const std::shared_ptr<OutputFrame> &frame)
 {
     if (!gpu()->atomicModeSetting()) {
         // we can do nothing but hope for the best
         // the compositor will have to do a fallback for when the real present fails
-        return Error::None;
+        return {};
     }
     // test the full state with all planes, to take pending commits into account
-    return DrmPipeline::commitPipelinesAtomic({this}, CommitMode::Test, frame, {});
+    return DrmPipeline::commitPipelinesAtomic({this}, gpu(), CommitMode::Test, frame, {});
 }
 
-DrmPipeline::Error DrmPipeline::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> DrmPipeline::present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame)
 {
     Q_ASSERT(m_pending.crtc);
     if (gpu()->atomicModeSetting()) {
         // NOTE that this assumes testPresentation has been called before and succeeded
         // only give the actual state update to the commit thread, so that it can potentially reorder the commits
-        auto partialUpdate = std::make_unique<DrmAtomicCommit>(QList<DrmPipeline *>{this});
-        if (Error err = prepareAtomicPresentation(partialUpdate.get(), frame); err != Error::None) {
-            return err;
+        auto partialUpdate = std::make_unique<DrmAtomicCommit>(gpu(), QList{this});
+        partialUpdate->requestPageflipEvent(m_pending.crtc->id());
+        auto ret = prepareAtomicPresentation(partialUpdate.get(), frame);
+        if (!ret) {
+            return ret;
         }
         for (const auto layer : layersToUpdate) {
             const auto pipelineLayer = static_cast<DrmPipelineLayer *>(layer);
-            if (Error err = prepareAtomicPlane(partialUpdate.get(), pipelineLayer->plane(), pipelineLayer, frame); err != Error::None) {
-                return err;
+            ret = prepareAtomicPlane(partialUpdate.get(), pipelineLayer->plane(), pipelineLayer, frame);
+            if (!ret) {
+                return ret;
             }
         }
         if (layersToUpdate.isEmpty()) {
             // work around amdgpu not giving us a valid pageflip timestamp
             // if the commit doesn't contain a drm plane
-            if (Error err = prepareAtomicPlane(partialUpdate.get(), m_pending.layers.front()->plane(), m_pending.layers.front(), frame); err != Error::None) {
-                return err;
+            ret = prepareAtomicPlane(partialUpdate.get(), m_pending.layers.front()->plane(), m_pending.layers.front(), frame);
+            if (!ret) {
+                return ret;
             }
         }
-        if (m_pending.needsModesetProperties && !prepareAtomicModeset(partialUpdate.get())) {
-            return Error::InvalidArguments;
+        if (m_pending.needsModesetProperties) {
+            ret = prepareAtomicModeset(partialUpdate.get());
+            if (!ret) {
+                return ret;
+            }
         }
         m_next.needsModesetProperties = m_pending.needsModesetProperties = false;
         m_commitThread->addCommit(std::move(partialUpdate));
-        return Error::None;
+        return {};
     } else {
         return presentLegacy(layersToUpdate, frame);
     }
@@ -101,19 +108,18 @@ void DrmPipeline::maybeModeset(const std::shared_ptr<OutputFrame> &frame)
     gpu()->maybeModeset(this, frame);
 }
 
-DrmPipeline::Error DrmPipeline::commitPipelines(const QList<DrmPipeline *> &pipelines, CommitMode mode, const QList<DrmObject *> &unusedObjects)
+std::expected<void, OutputError> DrmPipeline::commitPipelines(const QList<DrmPipeline *> &pipelines, DrmGpu *gpu, CommitMode mode, const QList<DrmObject *> &unusedObjects)
 {
-    Q_ASSERT(!pipelines.isEmpty());
-    if (pipelines[0]->gpu()->atomicModeSetting()) {
-        return commitPipelinesAtomic(pipelines, mode, nullptr, unusedObjects);
+    if (gpu->atomicModeSetting()) {
+        return commitPipelinesAtomic(pipelines, gpu, mode, nullptr, unusedObjects);
     } else {
-        return commitPipelinesLegacy(pipelines, mode, unusedObjects);
+        return commitPipelinesLegacy(pipelines, gpu, mode, unusedObjects);
     }
 }
 
-DrmPipeline::Error DrmPipeline::commitPipelinesAtomic(const QList<DrmPipeline *> &pipelines, CommitMode mode, const std::shared_ptr<OutputFrame> &frame, const QList<DrmObject *> &unusedObjects)
+std::expected<void, OutputError> DrmPipeline::commitPipelinesAtomic(const QList<DrmPipeline *> &pipelines, DrmGpu *gpu, CommitMode mode, const std::shared_ptr<OutputFrame> &frame, const QList<DrmObject *> &unusedObjects)
 {
-    auto commit = std::make_unique<DrmAtomicCommit>(pipelines);
+    const auto commit = std::make_unique<DrmAtomicCommit>(gpu, pipelines);
     if (mode == CommitMode::Test) {
         // if there's a modeset pending, the tests on top of that state
         // also have to allow modesets or they'll always fail
@@ -125,8 +131,9 @@ DrmPipeline::Error DrmPipeline::commitPipelinesAtomic(const QList<DrmPipeline *>
         }
     }
     for (DrmPipeline *pipeline : pipelines) {
-        if (Error err = pipeline->prepareAtomicCommit(commit.get(), mode, frame); err != Error::None) {
-            return err;
+        auto ret = pipeline->prepareAtomicCommit(commit.get(), mode, frame);
+        if (!ret) {
+            return ret;
         }
     }
     for (DrmObject *unused : unusedObjects) {
@@ -134,9 +141,9 @@ DrmPipeline::Error DrmPipeline::commitPipelinesAtomic(const QList<DrmPipeline *>
     }
     switch (mode) {
     case CommitMode::TestAllowModeset: {
-        if (!commit->testAllowModeset()) {
-            qCWarning(KWIN_DRM) << "Atomic modeset test failed!" << strerror(errno);
-            return errnoToError();
+        const auto ret = commit->testAllowModeset();
+        if (!ret) {
+            return ret;
         }
         const bool withoutModeset = std::ranges::all_of(pipelines, [&frame](DrmPipeline *pipeline) {
             // always require a modeset for turning off displays, it makes other logic easier to follow
@@ -144,64 +151,64 @@ DrmPipeline::Error DrmPipeline::commitPipelinesAtomic(const QList<DrmPipeline *>
             if (oldActive && !pipeline->activePending()) {
                 return false;
             }
-            auto commit = std::make_unique<DrmAtomicCommit>(QVector<DrmPipeline *>{pipeline});
-            return pipeline->prepareAtomicCommit(commit.get(), CommitMode::TestAllowModeset, frame) == Error::None && commit->test();
+            auto commit = std::make_unique<DrmAtomicCommit>(pipeline->gpu(), QList{pipeline});
+            return pipeline->prepareAtomicCommit(commit.get(), CommitMode::TestAllowModeset, frame) && commit->test();
         });
         for (DrmPipeline *pipeline : pipelines) {
             pipeline->m_pending.needsModeset = !withoutModeset;
             pipeline->m_pending.needsModesetProperties = true;
         }
-        return Error::None;
+        return {};
     }
     case CommitMode::CommitModeset: {
         // The kernel fails commits with DRM_MODE_PAGE_FLIP_EVENT when a crtc is disabled in the commit
         // and already was disabled before, to work around some quirks in old userspace.
         // Instead of using DRM_MODE_PAGE_FLIP_EVENT | DRM_MODE_ATOMIC_NONBLOCK, do the modeset in a blocking
         // fashion without page flip events and trigger the pageflip notification directly
-        if (!commit->commitModeset()) {
-            qCCritical(KWIN_DRM) << "Atomic modeset commit failed!" << strerror(errno);
-            return errnoToError();
+        const auto ret = commit->commitModeset();
+        if (!ret) {
+            return ret;
         }
         for (const auto pipeline : pipelines) {
             pipeline->m_next.needsModeset = pipeline->m_pending.needsModeset = false;
         }
         commit->pageFlipped(std::chrono::steady_clock::now().time_since_epoch());
-        return Error::None;
+        return {};
     }
     case CommitMode::Test: {
-        if (!commit->test()) {
-            return errnoToError();
-        }
-        return Error::None;
+        return commit->test();
     }
     default:
         Q_UNREACHABLE();
     }
 }
 
-DrmPipeline::Error DrmPipeline::prepareAtomicCommit(DrmAtomicCommit *commit, CommitMode mode, const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> DrmPipeline::prepareAtomicCommit(DrmAtomicCommit *commit, CommitMode mode, const std::shared_ptr<OutputFrame> &frame)
 {
     if (activePending()) {
-        if (Error err = prepareAtomicPresentation(commit, frame); err != Error::None) {
-            return err;
+        auto ret = prepareAtomicPresentation(commit, frame);
+        if (!ret) {
+            return ret;
         }
         for (const auto &layer : m_pending.layers) {
-            if (Error err = prepareAtomicPlane(commit, layer->plane(), layer, frame); err != Error::None) {
-                return err;
+            ret = prepareAtomicPlane(commit, layer->plane(), layer, frame);
+            if (!ret) {
+                return ret;
             }
         }
         if (mode == CommitMode::TestAllowModeset || mode == CommitMode::CommitModeset || m_pending.needsModesetProperties) {
-            if (!prepareAtomicModeset(commit)) {
-                return Error::InvalidArguments;
+            ret = prepareAtomicModeset(commit);
+            if (!ret) {
+                return ret;
             }
         }
     } else {
         prepareAtomicDisable(commit);
     }
-    return Error::None;
+    return {};
 }
 
-DrmPipeline::Error DrmPipeline::prepareAtomicPresentation(DrmAtomicCommit *commit, const std::shared_ptr<OutputFrame> &frame)
+std::expected<void, OutputError> DrmPipeline::prepareAtomicPresentation(DrmAtomicCommit *commit, const std::shared_ptr<OutputFrame> &frame)
 {
     commit->setPresentationMode(m_pending.presentationMode);
     if (m_connector->contentType.isValid()) {
@@ -215,40 +222,57 @@ DrmPipeline::Error DrmPipeline::prepareAtomicPresentation(DrmAtomicCommit *commi
     const ColorPipeline &colorPipeline = m_pending.crtcColorPipeline;
     if (!m_pending.crtc->postBlendingPipeline) {
         if (!colorPipeline.isIdentity()) {
-            return Error::InvalidArguments;
+            return std::unexpected(OutputError{
+                .code = OutputErrorCode::ColorPipeline,
+                .message = QStringLiteral("The driver doesn't support any post-blending color pipeline"),
+            });
         }
     } else {
         if (!m_pending.crtc->postBlendingPipeline->matchPipeline(commit, colorPipeline)) {
-            return Error::InvalidArguments;
+            return std::unexpected(OutputError{
+                .code = OutputErrorCode::ColorPipeline,
+                .message = QStringLiteral("Post-blending color pipeline doesn't match"),
+            });
         }
     }
 
-    return Error::None;
+    return {};
 }
 
-DrmPipeline::Error DrmPipeline::prepareAtomicPlane(DrmAtomicCommit *commit, DrmPlane *plane, DrmPipelineLayer *layer, const std::shared_ptr<OutputFrame> &frame)
+static const std::map<YUVMatrixCoefficients, DrmPlane::ColorEncoding> s_coefficientsToEncoding = {
+    std::make_pair(YUVMatrixCoefficients::BT601, DrmPlane::ColorEncoding::BT601_YCbCr),
+    std::make_pair(YUVMatrixCoefficients::BT709, DrmPlane::ColorEncoding::BT709_YCbCr),
+    std::make_pair(YUVMatrixCoefficients::BT2020, DrmPlane::ColorEncoding::BT2020_YCbCr),
+};
+
+std::expected<void, OutputError> DrmPipeline::prepareAtomicPlane(DrmAtomicCommit *commit, DrmPlane *plane, DrmPipelineLayer *layer, const std::shared_ptr<OutputFrame> &frame)
 {
     if (!layer->isEnabled()) {
         plane->disable(commit);
-        return Error::None;
-    }
-    if (!layer->currentBuffer()) {
-        qCWarning(KWIN_DRM) << "An enabled plane has no buffer!";
-        return Error::TestBufferFailed;
+        return {};
     }
     const auto fb = layer->currentBuffer();
     if (!fb) {
-        return Error::InvalidArguments;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::InvalidApiUsage,
+            .message = QStringLiteral("Can't present without a buffer"),
+        });
     }
     const auto transform = layer->offloadTransform();
     const auto planeTransform = DrmPlane::outputTransformToPlaneTransform(transform);
     if (plane->rotation.isValid()) {
         if (!plane->rotation.hasEnum(planeTransform)) {
-            return Error::InvalidArguments;
+            return std::unexpected(OutputError{
+                .code = OutputErrorCode::OtherHardwareLimitation,
+                .message = QStringLiteral("Plane doesn't support requested rotation"),
+            });
         }
         commit->addEnum(plane->rotation, planeTransform);
     } else if (planeTransform != DrmPlane::Transformation::Rotate0) {
-        return Error::InvalidArguments;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::OtherHardwareLimitation,
+            .message = QStringLiteral("Plane doesn't support requested rotation"),
+        });
     }
     commit->addProperty(plane->crtcId, m_pending.crtc->id());
     commit->addBuffer(plane, fb, frame);
@@ -261,11 +285,14 @@ DrmPipeline::Error DrmPipeline::prepareAtomicPlane(DrmAtomicCommit *commit, DrmP
     if (plane->alpha.isValid()) {
         commit->addProperty(plane->alpha, plane->alpha.maxValue());
     }
-    if (plane->pixelBlendMode.isValid()) {
+    if (plane->pixelBlendMode.isValid() && plane->pixelBlendMode.hasEnum(DrmPlane::PixelBlendMode::PreMultiplied)) {
         commit->addEnum(plane->pixelBlendMode, DrmPlane::PixelBlendMode::PreMultiplied);
     }
     if (plane->zpos.isValid() && !plane->zpos.isImmutable()) {
         commit->addProperty(plane->zpos, layer->zpos());
+    }
+    if (plane->fbDamage.isValid()) {
+        commit->addProperty(plane->fbDamage, 0);
     }
 
     const auto colorPipelines = plane->colorPipelines();
@@ -279,55 +306,54 @@ DrmPipeline::Error DrmPipeline::prepareAtomicPlane(DrmAtomicCommit *commit, DrmP
         });
         if (it == colorPipelines.end()) {
             // TODO re-allow merging with post-blending pipeline
-            return DrmPipeline::Error::InvalidArguments;
+            return std::unexpected(OutputError{
+                .code = OutputErrorCode::ColorPipeline,
+                .message = QStringLiteral("Failed to match per-plane color pipeline"),
+            });
         }
         commit->addProperty(plane->colorPipeline, (*it)->id());
     }
 
-    if (plane->colorPipeline.isValid() && layer->colorDescription()->yuvCoefficients() != YUVMatrixCoefficients::Identity) {
-        // color pipelines don't support the color encoding and color range properties yet
-        return Error::InvalidArguments;
+    if (plane->colorPipeline.isValid()) {
+        // color pipelines don't need the color encoding and color range properties
+        return {};
     }
-    DrmPlane::ColorRange range = DrmPlane::ColorRange::Limited_YCbCr;
-    if (layer->colorDescription()->range() == EncodingRange::Full) {
-        range = DrmPlane::ColorRange::Full_YCbCr;
-    }
-    switch (layer->colorDescription()->yuvCoefficients()) {
-    case YUVMatrixCoefficients::Identity:
+    if (layer->colorDescription()->yuvCoefficients() == YUVMatrixCoefficients::Identity) {
         if (layer->colorDescription()->range() == EncodingRange::Limited) {
-            return Error::InvalidArguments;
+            return std::unexpected(OutputError{
+                .code = OutputErrorCode::ColorPipeline,
+                .message = QStringLiteral("Can't represent limited RGB encoding without a color pipeline"),
+            });
         }
         // Workaround for the proprietary NVIDIA driver, which defaults to
         // limited color range (16-235) when COLOR_RANGE is not explicitly
         // set, even for RGB content. This makes the desktop look washed out.
         // See https://github.com/NVIDIA/open-gpu-kernel-modules/discussions/1105
-        if (gpu()->isNVidia() && plane->colorRange.isValid()) {
+        if (gpu()->drmDevice()->isNvidia() && plane->colorRange.isValid()) {
             commit->addEnum(plane->colorRange, DrmPlane::ColorRange::Full_YCbCr);
         }
-        break;
-    case YUVMatrixCoefficients::BT601:
-        if (!plane->colorEncoding.isValid() || !plane->colorRange.isValid()) {
-            return Error::InvalidArguments;
-        }
-        commit->addEnum(plane->colorEncoding, DrmPlane::ColorEncoding::BT601_YCbCr);
-        commit->addEnum(plane->colorRange, range);
-        break;
-    case YUVMatrixCoefficients::BT709:
-        if (!plane->colorEncoding.isValid() || !plane->colorRange.isValid()) {
-            return Error::InvalidArguments;
-        }
-        commit->addEnum(plane->colorEncoding, DrmPlane::ColorEncoding::BT709_YCbCr);
-        commit->addEnum(plane->colorRange, range);
-        break;
-    case YUVMatrixCoefficients::BT2020:
-        if (!plane->colorEncoding.isValid() || !plane->colorRange.isValid()) {
-            return Error::InvalidArguments;
-        }
-        commit->addEnum(plane->colorEncoding, DrmPlane::ColorEncoding::BT2020_YCbCr);
-        commit->addEnum(plane->colorRange, range);
-        break;
+        return {};
     }
-    return Error::None;
+
+    const auto it = s_coefficientsToEncoding.find(layer->colorDescription()->yuvCoefficients());
+    Q_ASSERT(it != s_coefficientsToEncoding.end());
+    const DrmPlane::ColorEncoding encoding = it->second;
+
+    DrmPlane::ColorRange range = DrmPlane::ColorRange::Limited_YCbCr;
+    if (layer->colorDescription()->range() == EncodingRange::Full) {
+        range = DrmPlane::ColorRange::Full_YCbCr;
+    }
+
+    if (!plane->colorEncoding.isValid() || !plane->colorRange.isValid()
+        || !plane->colorEncoding.hasEnum(encoding) || !plane->colorRange.hasEnum(range)) {
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::ColorPipeline,
+            .message = QStringLiteral("Plane doesn't support configuring YCbCr encoding"),
+        });
+    }
+    commit->addEnum(plane->colorEncoding, encoding);
+    commit->addEnum(plane->colorRange, range);
+    return {};
 }
 
 void DrmPipeline::prepareAtomicDisable(DrmAtomicCommit *commit)
@@ -358,7 +384,15 @@ static const auto s_forceScalingMode = []() -> std::optional<DrmConnector::Scali
     }
 }();
 
-bool DrmPipeline::prepareAtomicModeset(DrmAtomicCommit *commit)
+static const std::unordered_map s_kwinAbmToDrm = {
+    std::make_pair(0, DrmConnector::AbmLevel::Off),
+    std::make_pair(1, DrmConnector::AbmLevel::Min),
+    std::make_pair(2, DrmConnector::AbmLevel::Min_Bias),
+    std::make_pair(3, DrmConnector::AbmLevel::Max_Bias),
+    std::make_pair(4, DrmConnector::AbmLevel::Max),
+};
+
+std::expected<void, OutputError> DrmPipeline::prepareAtomicModeset(DrmAtomicCommit *commit)
 {
     commit->addProperty(m_connector->crtcId, m_pending.crtc->id());
     if (m_connector->broadcastRGB.isValid()) {
@@ -381,11 +415,28 @@ bool DrmPipeline::prepareAtomicModeset(DrmAtomicCommit *commit)
     if (m_connector->hdrMetadata.isValid()) {
         commit->addBlob(m_connector->hdrMetadata, createHdrMetadata(m_pending.hdr ? TransferFunction::PerceptualQuantizer : TransferFunction::gamma22));
     } else if (m_pending.hdr) {
-        return false;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::InvalidApiUsage,
+            .message = QStringLiteral("Can't enable HDR without driver support"),
+        });
+    }
+    if (m_connector->abmLevel.isValid()) {
+        uint32_t effectiveLevel = m_output->abmLevel();
+        if (m_output->colorPowerTradeoff() == BackendOutput::ColorPowerTradeoff::PreferAccuracy) {
+            // this feature makes colors less accurate, so always force it off
+            effectiveLevel = 0;
+        }
+        const auto drmValue = s_kwinAbmToDrm.find(effectiveLevel)->second;
+        if (m_connector->abmLevel.hasEnum(drmValue)) {
+            commit->addEnum(m_connector->abmLevel, drmValue);
+        }
     }
     if (m_pending.wcg) {
         if (!m_connector->colorspace.isValid() || !m_connector->colorspace.hasEnum(DrmConnector::Colorspace::BT2020_RGB)) {
-            return false;
+            return std::unexpected(OutputError{
+                .code = OutputErrorCode::InvalidApiUsage,
+                .message = QStringLiteral("Can't enable WCG without driver support"),
+            });
         }
         commit->addEnum(m_connector->colorspace, DrmConnector::Colorspace::BT2020_RGB);
     } else if (m_connector->colorspace.isValid()) {
@@ -400,8 +451,8 @@ bool DrmPipeline::prepareAtomicModeset(DrmAtomicCommit *commit)
             }
         } else if (m_connector->isInternal()
                    && m_connector->scalingMode.hasEnum(DrmConnector::ScalingMode::Full_Aspect)
-                   && (m_pending.mode->flags() & OutputMode::Flag::Generated)
-                   && !(m_pending.mode->flags() & OutputMode::Flag::Custom)) {
+                   && (m_pending.mode->flags() & OutputModeline::Flag::Generated)
+                   && !(m_pending.mode->flags() & OutputModeline::Flag::Custom)) {
             commit->addEnum(m_connector->scalingMode, DrmConnector::ScalingMode::Full_Aspect);
         } else if (m_connector->scalingMode.hasEnum(DrmConnector::ScalingMode::None)) {
             commit->addEnum(m_connector->scalingMode, DrmConnector::ScalingMode::None);
@@ -410,8 +461,8 @@ bool DrmPipeline::prepareAtomicModeset(DrmAtomicCommit *commit)
 
     commit->addProperty(m_pending.crtc->active, 1);
     commit->addBlob(m_pending.crtc->modeId, m_pending.mode->blob());
-    if (m_pending.crtc->degammaLut.isValid()) {
-        commit->addProperty(m_pending.crtc->degammaLut, 0);
+    for (DrmAbstractColorOp *op = m_pending.crtc->legacyPreBlendPipeline; op; op = op->next()) {
+        op->bypass(commit);
     }
 
     if (m_pending.crtc->sharpnessStrength.isValid()) {
@@ -420,7 +471,7 @@ bool DrmPipeline::prepareAtomicModeset(DrmAtomicCommit *commit)
         commit->addProperty(m_pending.crtc->sharpnessStrength, sharpness);
     }
 
-    return true;
+    return {};
 }
 
 uint32_t DrmPipeline::calculateUnderscan()
@@ -436,45 +487,40 @@ uint32_t DrmPipeline::calculateUnderscan()
     return hborder;
 }
 
-DrmPipeline::Error DrmPipeline::errnoToError()
-{
-    switch (errno) {
-    case EINVAL:
-        return Error::InvalidArguments;
-    case EBUSY:
-        return Error::FramePending;
-    case ENOMEM:
-        return Error::OutofMemory;
-    case EACCES:
-        return Error::NoPermission;
-    default:
-        return Error::Unknown;
-    }
-}
-
-bool DrmPipeline::presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay)
+std::expected<void, OutputError> DrmPipeline::presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay)
 {
     if (needsModeset() || !m_pending.crtc || !m_pending.active) {
-        return false;
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::NeedsModeset,
+            .message = QStringLiteral("needs modeset"),
+        });
     }
     // We need to make sure that on vmwgfx software cursor is selected
     // until Broadcom fixes hw cursor issues with vmwgfx. Otherwise
     // the cursor is missing.
-    if (gpu()->isVmwgfx()) {
-        return false;
+    if (gpu()->drmDevice()->isVmwgfx()) {
+        return std::unexpected(OutputError{
+            .code = OutputErrorCode::OtherHardwareLimitation,
+            .message = QStringLiteral("vmgfx cursor plane is invisible"),
+        });
     }
     const auto drmLayer = static_cast<DrmPipelineLayer *>(layer);
     if (drmLayer->plane()) {
         // test the full state, to take pending commits into account
-        if (DrmPipeline::commitPipelinesAtomic({this}, CommitMode::Test, nullptr, {}) != Error::None) {
-            return false;
+        auto err = DrmPipeline::commitPipelinesAtomic({this}, gpu(), CommitMode::Test, nullptr, {});
+        if (!err.has_value()) {
+            return err;
         }
         // only give the actual state update to the commit thread, so that it can potentially reorder the commits
-        auto partialUpdate = std::make_unique<DrmAtomicCommit>(QList<DrmPipeline *>{this});
-        prepareAtomicPlane(partialUpdate.get(), drmLayer->plane(), drmLayer, nullptr);
+        auto partialUpdate = std::make_unique<DrmAtomicCommit>(gpu(), QList{this});
+        partialUpdate->requestPageflipEvent(m_pending.crtc->id());
+        err = prepareAtomicPlane(partialUpdate.get(), drmLayer->plane(), drmLayer, nullptr);
+        if (!err.has_value()) {
+            return err;
+        }
         partialUpdate->setAllowedVrrDelay(allowedVrrDelay);
         m_commitThread->addCommit(std::move(partialUpdate));
-        return true;
+        return {};
     } else {
         return setCursorLegacy(drmLayer);
     }
@@ -483,8 +529,8 @@ bool DrmPipeline::presentAsync(OutputLayer *layer, std::optional<std::chrono::na
 void DrmPipeline::applyPendingChanges()
 {
     m_next = m_pending;
-    m_commitThread->setModeInfo(m_pending.mode->refreshRate(), m_pending.mode->vblankTime());
-    m_output->renderLoop()->setPresentationSafetyMargin(m_commitThread->safetyMargin());
+    const auto safetyMargin = m_commitThread->setModeInfo(m_pending.mode->refreshRate(), m_pending.mode->vblankTime());
+    m_output->renderLoop()->setPresentationSafetyMargin(safetyMargin);
     m_output->renderLoop()->setRefreshRate(m_pending.mode->refreshRate());
 }
 
@@ -501,9 +547,9 @@ DrmGpu *DrmPipeline::gpu() const
 void DrmPipeline::pageFlipped(std::chrono::nanoseconds timestamp)
 {
     RenderLoopPrivate::get(m_output->renderLoop())->notifyVblank(timestamp);
-    m_commitThread->pageFlipped(timestamp);
+    const auto safetyMargin = m_commitThread->pageFlipped(timestamp);
     // the commit thread adjusts the safety margin on every commit
-    m_output->renderLoop()->setPresentationSafetyMargin(m_commitThread->safetyMargin());
+    m_output->renderLoop()->setPresentationSafetyMargin(safetyMargin);
     m_output->maybeUpdateDpmsState();
     if (gpu()->needsModeset()) {
         gpu()->maybeModeset(nullptr, nullptr);
@@ -651,6 +697,11 @@ void DrmPipeline::setCrtcColorPipeline(const ColorPipeline &pipeline)
     m_pending.crtcColorPipeline = pipeline;
 }
 
+const ColorPipeline &DrmPipeline::crtcColorPipeline() const
+{
+    return m_pending.crtcColorPipeline;
+}
+
 void DrmPipeline::setHighDynamicRange(bool hdr)
 {
     m_pending.hdr = hdr;
@@ -724,8 +775,4 @@ std::shared_ptr<DrmBlob> DrmPipeline::createHdrMetadata(TransferFunction::Type t
     return DrmBlob::create(gpu(), &data, sizeof(data));
 }
 
-std::chrono::nanoseconds DrmPipeline::presentationDeadline() const
-{
-    return m_commitThread->safetyMargin();
-}
 }

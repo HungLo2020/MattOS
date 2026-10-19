@@ -3,6 +3,8 @@
     SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
 */
 
+#pragma once
+
 #include "encoder_p.h"
 
 /**
@@ -14,7 +16,10 @@ public:
     LibWebPEncoder(PipeWireProduce *produce);
 
     bool initialize(const QSize &size) override;
+    bool supportsAudio() const override;
+
+    void setQuality(std::optional<quint8> quality) override;
 
 protected:
-    int percentageToAbsoluteQuality(const std::optional<quint8> &quality) override;
+    AVDictionary *buildEncodingOptions() override;
 };

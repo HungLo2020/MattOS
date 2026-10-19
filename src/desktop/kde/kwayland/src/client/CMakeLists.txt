@@ -3,9 +3,6 @@ remove_definitions(-DQT_NO_CAST_FROM_ASCII)
 remove_definitions(-DQT_NO_CAST_TO_ASCII)
 remove_definitions(-DQT_NO_KEYWORDS)
 
-# needed to access QPA
-include_directories(SYSTEM ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
-
 set(CLIENT_LIB_SRCS
     appmenu.cpp
     buffer.cpp
@@ -61,7 +58,6 @@ ecm_qt_declare_logging_category(CLIENT_LIB_SRCS
     IDENTIFIER KWAYLAND_CLIENT
     CATEGORY_NAME kde.plasma.wayland.client
     OLD_CATEGORY_NAMES kwayland-client kf.wayland.client
-    DEFAULT_SEVERITY Critical
     DESCRIPTION "KWayland Client Library"
     EXPORT KWAYLAND
 )

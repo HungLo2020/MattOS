@@ -10,7 +10,8 @@
 import QtQuick
 import QtQuick.Templates as T
 import QtQuick.Layouts
-import org.kde.kirigami as Kirigami
+import org.kde.kirigami.controls as KirigamiControls
+import org.kde.kirigami.platform as Platform
 
 /*!
 \qmltype TitleSubtitleWithActions
@@ -129,15 +130,21 @@ Item {
     */
     property alias displayHint: actionToolBar.display
 
+    /*!
+     * The way the text property for the title and subtitle should be displayed.
+     * \since 6.31
+     */
+    property alias textFormat: titleSubtitle.textFormat
+
     implicitWidth: layout.implicitWidth
     implicitHeight: layout.implicitHeight
 
     RowLayout {
         id: layout
         anchors.fill: root
-        spacing: Kirigami.Units.smallSpacing
+        spacing: Platform.Units.smallSpacing
 
-        Kirigami.TitleSubtitle {
+        TitleSubtitle {
             id: titleSubtitle
             Layout.fillWidth: true
             Layout.maximumWidth: Math.ceil(implicitWidth)
@@ -148,7 +155,7 @@ Item {
             selected: root.selected
         }
 
-        Kirigami.ActionToolBar {
+        KirigamiControls.ActionToolBar {
             id: actionToolBar
             Layout.fillWidth: true
             Layout.fillHeight: true

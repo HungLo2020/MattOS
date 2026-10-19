@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-27 00:45+0000\n"
-"PO-Revision-Date: 2025-05-16 11:36+0200\n"
+"POT-Creation-Date: 2026-08-27 00:47+0000\n"
+"PO-Revision-Date: 2026-08-27 06:46+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.9\n"
 
 #: main.qml:33
 #, kde-format
@@ -32,6 +32,12 @@ msgstr "Praznjenje…"
 
 #: main.qml:38
 #, kde-format
+msgctxt "@info:status Counting the number of items in trash"
+msgid "Counting…"
+msgstr "Štetje…"
+
+#: main.qml:40
+#, kde-format
 msgctxt "@info:status The trash contains this many items in it"
 msgid "One item"
 msgid_plural "%1 items"
@@ -40,25 +46,25 @@ msgstr[1] "%1 predmeta"
 msgstr[2] "%1 predmeti"
 msgstr[3] "%1 predmetov"
 
-#: main.qml:40
+#: main.qml:42
 #, kde-format
 msgctxt "@info:status The trash is empty"
 msgid "Empty"
 msgstr "Prazno"
 
-#: main.qml:80
+#: main.qml:77
 #, kde-format
 msgctxt "@action:inmenu Open the trash"
 msgid "Open"
 msgstr "Odpri"
 
-#: main.qml:85
+#: main.qml:82
 #, kde-format
 msgctxt "@action:inmenu Empty the trash"
 msgid "Empty"
 msgstr "Prazno"
 
-#: main.qml:91
+#: main.qml:88
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Trash Settings…"

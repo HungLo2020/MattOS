@@ -6,7 +6,8 @@
 
 #include "nsSBCharSetProber.h"
 
-#include <stdio.h>
+#include <format>
+#include <numeric>
 
 namespace kencodingprober
 {
@@ -17,7 +18,7 @@ template<bool Reversed>
 nsProbingState nsSingleByteCharSetProber<Reversed>::HandleData(const char *aBuf, unsigned int aLen)
 {
     for (unsigned int i = 0; i < aLen; i++) {
-        const unsigned char order = mModel->charToOrderMap[(unsigned char)aBuf[i]];
+        const unsigned char order = mModel.charToOrderMap[(unsigned char)aBuf[i]];
 
         if (order < SYMBOL_CAT_ORDER) {
             mTotalChar++;
@@ -26,14 +27,14 @@ nsProbingState nsSingleByteCharSetProber<Reversed>::HandleData(const char *aBuf,
             mFreqChar++;
 
             if (mLastOrder < SAMPLE_SIZE) {
-                mTotalSeqs++;
                 unsigned int index = Reversed ? mLastOrder + (SAMPLE_SIZE * order) : (mLastOrder * SAMPLE_SIZE) + order;
-                ++(mSeqCounters[(int)mModel->precedenceMatrix[index]]);
+                ++(mSeqCounters[mModel.precedenceMatrix[index]]);
             }
         }
         mLastOrder = order;
     }
 
+    mTotalSeqs = std::accumulate(mSeqCounters.begin(), mSeqCounters.end(), 0);
     if (mState == eDetecting) {
         if (mTotalSeqs > 1024) {
             float cf = GetConfidence();
@@ -62,7 +63,7 @@ float nsSingleByteCharSetProber<Reversed>::GetConfidence(void)
 #else // POSITIVE_APPROACH
 
     if (mTotalSeqs > 0) {
-        float r = 1.0f * mSeqCounters.back() / mTotalSeqs / mModel->mTypicalPositiveRatio;
+        float r = 1.0f * mSeqCounters.back() / mTotalSeqs / mModel.mTypicalPositiveRatio;
         r = r * mFreqChar / mTotalChar;
         if (r >= 0.99f) {
             r = 0.99f;
@@ -76,14 +77,22 @@ float nsSingleByteCharSetProber<Reversed>::GetConfidence(void)
 template<bool Reversed>
 const char *nsSingleByteCharSetProber<Reversed>::GetCharSetName()
 {
-    return mModel->charsetName;
+    return mModel.charsetName;
 }
 
-#ifdef DEBUG_PROBE
 template<bool Reversed>
-void nsSingleByteCharSetProber<Reversed>::DumpStatus()
+std::string nsSingleByteCharSetProber<Reversed>::StatusOutput(uint8_t /* indent */)
 {
-    printf("  SBCS: %1.3f [%s]\r\n", GetConfidence(), GetCharSetName());
+    return std::format( //
+        "{:1.3f} [{}] [{} {} {} {} | {}] [{} / {}]",
+        GetConfidence(),
+        GetCharSetName(),
+        mSeqCounters[0],
+        mSeqCounters[1],
+        mSeqCounters[2],
+        mSeqCounters[3],
+        mTotalSeqs,
+        mFreqChar,
+        mTotalChar);
 }
-#endif
 }

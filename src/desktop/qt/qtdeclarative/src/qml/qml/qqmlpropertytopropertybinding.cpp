@@ -31,14 +31,12 @@ QQmlAnyBinding QQmlPropertyToPropertyBinding::create(
 {
     QQmlAnyBinding result;
     if (target.isBindable() && !QQmlPropertyPrivate::get(target)->isValueType()) {
-        if (source.isBindable()) {
-            result = QUntypedPropertyBinding(new QQmlBindableToBindablePropertyBinding(
-                    engine, source, target));
-            return result;
-        }
-
-        result = QUntypedPropertyBinding(new QQmlUnbindableToBindablePropertyBinding(
-                engine, source, target));
+        QPropertyBindingPrivate *binding = nullptr;
+        if (source.isBindable())
+            binding = new QQmlBindableToBindablePropertyBinding(engine, source, target);
+        else
+            binding = new QQmlUnbindableToBindablePropertyBinding(engine, source, target);
+        result = QPropertyBindingPrivate::makeUntyped(binding);
         return result;
     }
 
@@ -195,10 +193,21 @@ inline constexpr BindingFunctionVTable
 QQmlPropertyToBindablePropertyBinding::QQmlPropertyToBindablePropertyBinding(
         QQmlEngine *engine, const QQmlProperty &source, const QQmlProperty &target,
         const QtPrivate::BindingFunctionVTable *vtable)
-    : QPropertyBindingPrivate(
-              target.propertyMetaType(), vtable, QPropertyBindingSourceLocation(), false)
-    , m_binding(engine, source)
+    : QQmlPropertyBindingBase(target.object(), QQmlPropertyPrivate::propertyIndex(target),
+                              target.propertyMetaType(), vtable, BindingKind::PropertyToProperty),
+      m_binding(engine, source)
 {
+    errorCallBack = [](QPropertyBindingPrivate *that) {
+        auto self = static_cast<QQmlPropertyToBindablePropertyBinding *>(that);
+        if (self->m_binding.engine) {
+            const auto error = self->bindingError();
+            if (error.type() == QPropertyBindingError::BindingLoop) {
+                qmlWarning(self->m_binding.sourceObject)
+                        << QStringLiteral("Binding loop detected for property bound to ")
+                        << self->propertyDataPtr;
+            }
+        }
+    };
 }
 
 QQmlUnbindableToBindablePropertyBinding::QQmlUnbindableToBindablePropertyBinding(

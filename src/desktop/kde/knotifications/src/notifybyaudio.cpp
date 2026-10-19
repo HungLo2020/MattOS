@@ -24,7 +24,7 @@
 const QString DEFAULT_SOUND_THEME = QStringLiteral("ocean");
 
 NotifyByAudio::NotifyByAudio(QObject *parent)
-    : KNotificationPlugin(parent)
+    : QObject(parent)
     , m_soundTheme(DEFAULT_SOUND_THEME)
     , m_enabled(true)
 {
@@ -100,8 +100,6 @@ void NotifyByAudio::notify(KNotification *notification, const KNotifyConfig &not
     const QString soundName = notifyConfig.readEntry(QStringLiteral("Sound"));
     if (soundName.isEmpty()) {
         qCWarning(LOG_KNOTIFICATIONS) << "Audio notification requested, but no sound name provided in notifyrc file, aborting audio notification";
-
-        finish(notification);
         return;
     }
 
@@ -120,7 +118,6 @@ void NotifyByAudio::notify(KNotification *notification, const KNotifyConfig &not
 
     // Looping happens in the finishCallback
     if (!playSound(m_currentId, soundName, fallbackUrl)) {
-        finish(notification);
         return;
     }
 
@@ -174,9 +171,16 @@ void NotifyByAudio::ca_finish_callback(ca_context *c, uint32_t id, int error_cod
 
 void NotifyByAudio::finishCallback(uint32_t id, int error_code)
 {
-    KNotification *notification = m_notifications.value(id, nullptr);
-    if (!notification) {
+    const auto it = m_notifications.constFind(id);
+    if (it == m_notifications.constEnd()) {
         // We may have gotten a late finish callback.
+        return;
+    }
+
+    const auto notification = *it;
+    if (!notification) {
+        // Notification was already deleted
+        finishNotification(notification, id);
         return;
     }
 
@@ -207,7 +211,6 @@ void NotifyByAudio::close(KNotification *notification)
         int ret = ca_context_cancel(m_context, id);
         if (ret != CA_SUCCESS) {
             qCWarning(LOG_KNOTIFICATIONS) << "Failed to cancel canberra context for audio notification:" << ca_strerror(ret);
-            return;
         }
     }
 
@@ -223,7 +226,6 @@ void NotifyByAudio::finishNotification(KNotification *notification, quint32 id)
 {
     m_notifications.remove(id);
     m_loopSoundUrls.remove(id);
-    finish(notification);
 }
 
 #include "moc_notifybyaudio.cpp"

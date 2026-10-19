@@ -7,14 +7,13 @@
  */
 
 #include "HelperApp.h"
-#include "Configuration.h"
 #include "SafeDataStream.h"
 #include "UserSession.h"
 #include "backend/PamBackend.h"
 
 #include "MessageHandler.h"
-#include "SignalHandler.h"
 #include "VirtualTerminal.h"
+#include <KSignalHandler>
 
 #include <QtCore/QDebug>
 #include <QtCore/QFile>
@@ -29,6 +28,12 @@
 #include <QByteArray>
 #include <signal.h>
 
+#include "Constants.h"
+#include <KConfig>
+#include <KSharedConfig>
+#include <QDir>
+#include <QFileInfo>
+
 namespace PLASMALOGIN
 {
 HelperApp::HelperApp(int &argc, char **argv)
@@ -38,9 +43,12 @@ HelperApp::HelperApp(int &argc, char **argv)
     , m_socket(new QLocalSocket(this))
 {
     qInstallMessageHandler(HelperMessageHandler);
-    SignalHandler *s = new SignalHandler(this);
-    QObject::connect(s, &SignalHandler::sigtermReceived, m_session, [] {
-        QCoreApplication::instance()->exit(-1);
+    auto sig = KSignalHandler::self();
+    sig->watchSignal(SIGTERM);
+    QObject::connect(sig, &KSignalHandler::signalReceived, m_session, [](int s) {
+        if (s == SIGTERM) {
+            QCoreApplication::instance()->exit(Auth::HELPER_SUCCESS);
+        }
     });
 
     QTimer::singleShot(0, this, SLOT(setUp()));
@@ -94,10 +102,7 @@ void HelperApp::setUp()
             exit(Auth::HELPER_OTHER_ERROR);
             return;
         }
-        m_session->setDisplayServerCommand(args[pos + 1]);
-        m_backend->setDisplayServer(true);
     }
-
     if ((pos = args.indexOf(QStringLiteral("--autologin"))) >= 0) {
         m_backend->setAutologin(true);
     }

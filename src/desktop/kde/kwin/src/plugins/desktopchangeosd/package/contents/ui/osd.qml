@@ -50,7 +50,6 @@ PlasmaCore.Window {
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.NoWrap
             elide: Text.ElideRight
-            text: Workspace.currentDesktop.name
         }
 
         Grid {
@@ -261,25 +260,26 @@ PlasmaCore.Window {
         }
     }
 
-    function show(previous) {
-        if (Workspace.isEffectActive("overview")) {
+    function show(previous, current, screen) {
+        if (Workspace.isEffectActive("overview") || (dialog.visible && screen != Workspace.activeScreen)) {
             return;
         }
         dialogItem.previousIndex = Workspace.desktops.indexOf(previous);
-        dialogItem.currentIndex = Workspace.desktops.indexOf(Workspace.currentDesktop);
+        dialogItem.currentIndex = Workspace.desktops.indexOf(current);
         // screen geometry might have changed
-        var screen = Workspace.clientArea(KWin.FullScreenArea, Workspace.activeScreen, Workspace.currentDesktop);
-        dialogItem.screenWidth = screen.width;
-        dialogItem.screenHeight = screen.height;
+        var screenGeometry = Workspace.clientArea(KWin.FullScreenArea, screen, current);
+        dialogItem.screenWidth = screenGeometry.width;
+        dialogItem.screenHeight = screenGeometry.height;
         if (dialogItem.showGrid) {
             // non dependable properties might have changed
             view.columns = Workspace.desktopGridWidth;
             view.rows = Workspace.desktopGridHeight;
         }
+        textElement.text = current.name;
         dialog.visible = true;
         // position might have changed
-        dialog.x = screen.x + screen.width/2 - dialogItem.width/2;
-        dialog.y = screen.y + screen.height/2 - dialogItem.height/2;
+        dialog.x = screenGeometry.x + screenGeometry.width/2 - dialogItem.width/2;
+        dialog.y = screenGeometry.y + screenGeometry.height/2 - dialogItem.height/2;
         // start the hide timer
         timer.restart();
     }

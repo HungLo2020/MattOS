@@ -18,7 +18,10 @@ class KPIPEWIRE_EXPORT PipeWireBaseEncodedStream : public QObject
 {
     Q_OBJECT
     /// Specify the pipewire node id that we want to record
+    /// @deprecated use objectSerial instead
     Q_PROPERTY(uint nodeId READ nodeId WRITE setNodeId NOTIFY nodeIdChanged)
+    /// Specify the pipewire object serial that should be recorded
+    Q_PROPERTY(quint64 objectSerial READ objectSerial WRITE setObjectSerial NOTIFY objectSerialChanged)
     /**
      * Specifies the file descriptor we are connected to, if none 0 will be returned
      *
@@ -44,8 +47,14 @@ public:
     PipeWireBaseEncodedStream(QObject *parent = nullptr);
     ~PipeWireBaseEncodedStream() override;
 
-    void setNodeId(uint nodeId);
-    uint nodeId() const;
+    /**
+     * @deprecated prefer using objectSerial and setObjectSerial
+     */
+    KPIPEWIRE_DEPRECATED void setNodeId(uint nodeId);
+    KPIPEWIRE_DEPRECATED uint nodeId() const;
+
+    void setObjectSerial(quint64 objectSerial);
+    quint64 objectSerial() const;
 
     void setFd(uint fd);
     uint fd() const;
@@ -53,6 +62,20 @@ public:
     Fraction maxFramerate() const;
     void setMaxFramerate(const Fraction &framerate);
     void setMaxFramerate(quint32 numerator, quint32 denominator = 1);
+
+    /**
+     * Temporarily disables the encoder, causing it to drop frames
+     * until resumed.
+     *
+     * On resume, the last frame will be flushed
+     *
+     * The pipewire source stream will still be alive.
+     */
+    void setEncoderPaused(bool paused);
+    bool encoderPaused() const;
+
+    QSize requestedSize() const;
+    void setRequestedSize(const QSize &size);
 
     /**
      * Defines how many frames are kept in the encoding buffer.
@@ -105,6 +128,21 @@ public:
     Q_INVOKABLE void stop();
 
     /**
+     * Pause recording without tearing down the stream.
+     *
+     * Unlike stop(), this keeps the PipeWire stream, encoder thread and node id
+     * alive. It stops the source stream, but in-flight frames keep being encoded
+     * for a short while before output ceases. Call resume() to continue. Only has
+     * an effect while state() is Recording.
+     */
+    Q_INVOKABLE void pause();
+    /**
+     * Resume a stream previously paused with pause(). Only has an effect while
+     * state() is Paused.
+     */
+    Q_INVOKABLE void resume();
+
+    /**
      * The quality used for encoding.
      */
     std::optional<quint8> quality() const;
@@ -123,6 +161,7 @@ public:
         Idle, //< ready to get started
         Recording, //< actively recording
         Rendering, //< recording is over but there are still frames being processed.
+        Paused, //< paused via pause(); call resume() to continue receiving frames.
     };
     Q_ENUM(State)
     State state() const;
@@ -164,6 +203,7 @@ Q_SIGNALS:
     void maxPendingFramesChanged();
     void stateChanged();
     void encoderChanged();
+    void objectSerialChanged();
 
 protected:
     virtual std::unique_ptr<PipeWireProduce> makeProduce() = 0;

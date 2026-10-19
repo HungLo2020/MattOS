@@ -31,11 +31,12 @@ class ThumbnailAsideEffect
     Q_PROPERTY(int spacing READ configuredSpacing)
     Q_PROPERTY(qreal opacity READ configuredOpacity)
     Q_PROPERTY(int screen READ configuredScreen)
+
 public:
     ThumbnailAsideEffect();
     void reconfigure(ReconfigureFlags) override;
-    void paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
-    void paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data) override;
+    bool paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
+    bool paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data) override;
 
     // for properties
     int configuredMaxWidth() const
@@ -60,7 +61,7 @@ private Q_SLOTS:
     void toggleCurrentThumbnail();
     void slotWindowAdded(KWin::EffectWindow *w);
     void slotWindowClosed(KWin::EffectWindow *w);
-    void slotWindowFrameGeometryChanged(KWin::EffectWindow *w, const QRectF &old);
+    void slotWindowFrameGeometryChanged(KWin::EffectWindow *w, const RectF &old);
     void slotWindowDamaged(KWin::EffectWindow *w);
     void repaintAll();
 

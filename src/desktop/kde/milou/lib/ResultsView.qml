@@ -44,6 +44,7 @@ ListView {
     // This is used to keep track if the user has pressed enter before
     // the first result has been shown, in the case the first result should
     // be run when the model is populated
+    property bool pendingFirstResults: false
     property bool runAutomatically
     property int oldIndex: -1
 
@@ -59,14 +60,11 @@ ListView {
             // BUG: 459859
             listView.oldIndex = -1
             listView.runAutomatically = false;
+            listView.pendingFirstResults = true
         }
         onModelReset: resetView()
 
-        onRowsInserted: {
-            // ListView will keep the currentItem the same if new data is added. If the user hasn't interacted
-            // with the results, we want the new first entry selected, so store the state to check later
-            listView.oldIndex = listView.currentIndex
-
+        function runAutomaticallyIfQueued() : void {
             if (listView.runAutomatically) {
                 // This needs to be delayed as running a result may close the window and clear the query
                 // having us reset the model whilst in the middle of processing the insertion.
@@ -76,8 +74,30 @@ ListView {
                     listView.activated();
                 });
 
-                runAutomatically = false;
+                listView.runAutomatically = false;
             }
+        }
+
+        onQueryingChanged: {
+            if (!querying) {
+                listView.pendingFirstResults = false
+                runAutomaticallyIfQueued()
+            }
+        }
+
+        onDataChanged: {
+            listView.pendingFirstResults = false
+            runAutomaticallyIfQueued()
+        }
+        onRowsRemoved: {
+            listView.pendingFirstResults = false
+            runAutomaticallyIfQueued()
+        }
+        onRowsInserted: {
+            // ListView will keep the currentItem the same if new data is added. If the user hasn't interacted
+            // with the results, we want the new first entry selected, so store the state to check later
+            listView.oldIndex = listView.currentIndex
+            runAutomaticallyIfQueued()
         }
 
         function resetView() {
@@ -92,6 +112,7 @@ ListView {
     }
 
     onCountChanged: {
+        pendingFirstResults = false
         if (currentIndex !== oldIndex && oldIndex === 0) {
             currentIndex = oldIndex
         }
@@ -106,7 +127,7 @@ ListView {
     Keys.onEnterPressed: event => runCurrentIndex(event);
 
     function runCurrentIndex(event) {
-        if (!currentItem) {
+        if (!currentItem || pendingFirstResults) {
             runAutomatically = true
             return;
         } else {
@@ -232,8 +253,8 @@ ListView {
     function navigationKeyHandler(e) {
         const ctrl = e.modifiers & Qt.ControlModifier;
         const queryFieldPos = queryField ? queryField.cursorPosition :-1
-        const handleHome = queryField ? queryField.cursorPosition === 0 || !queryField.focus : true
-        const handleEnd = queryField ? queryField.cursorPosition === queryString.length || !queryField.focus : true
+        const handleHome = queryField ? (queryField.cursorPosition === 0 && queryField.selectedText === "")|| !queryField.focus : true
+        const handleEnd = queryField ? (queryField.cursorPosition === queryString.length && queryField.selectedText === "") || !queryField.focus : true
 
         if (ctrl && e.key === Qt.Key_Up || e.key === Qt.Key_PageUp) {
             queryField?.focus && forceActiveFocus();
@@ -245,12 +266,12 @@ ListView {
             e.accepted = true;
         } else if (e.key === Qt.Key_Up || (ctrl && e.key === Qt.Key_K)) {
             queryField?.focus && forceActiveFocus();
+            e.accepted = keyNavigationWraps || (!reversed && currentIndex !== 0) || (reversed && currentIndex !== count - 1);
             reversed ? incrementCurrentIndex() : decrementCurrentIndex();
-            e.accepted = true;
         } else if (e.key === Qt.Key_Down || (ctrl && e.key === Qt.Key_J)) {
             queryField?.focus && forceActiveFocus();
+            e.accepted = keyNavigationWraps || (!reversed && currentIndex !== count - 1) || (reversed && currentIndex !== 0);
             reversed ? decrementCurrentIndex() : incrementCurrentIndex();
-            e.accepted = true;
         } else if (e.key === Qt.Key_Home && handleHome) {
             queryField?.focus && forceActiveFocus();
             e.accepted = true;

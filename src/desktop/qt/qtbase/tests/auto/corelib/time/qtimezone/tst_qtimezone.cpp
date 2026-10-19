@@ -7,6 +7,7 @@
 #  include <private/qtimezoneprivate_p.h>
 #endif
 #include <private/qcomparisontesthelper_p.h>
+#include <private/qtools_p.h>
 
 #include <qlocale.h>
 #include <qscopeguard.h>
@@ -58,6 +59,7 @@ private Q_SLOTS:
     // Backend tests (see also ../qtimezonebackend/)
     void utcTest();
     void darwinTypes();
+    void wasmTypes();
     void localeSpecificDisplayName_data();
     void localeSpecificDisplayName();
     // Compatibility with std::chrono::tzdb:
@@ -667,14 +669,22 @@ void tst_QTimeZone::utcOffsetId_data()
     ROW("UTC-09", true, -32400);
     ROW("UTC-08", true, -28800);
     ROW("UTC-8", true, -28800);
-    ROW("UTC-2:5", true, -7500);
     ROW("UTC-02", true, -7200);
     ROW("UTC+2", true, 7200);
-    ROW("UTC+2:5", true, 7500);
     ROW("UTC+12", true, 43200);
     ROW("UTC+13", true, 46800);
     // Encountered in bug reports:
     ROW("UTC+10", true, 36000); // QTBUG-77738
+
+    // Minutes, if present, require two digits, but hour doesn't:
+    ROW("UTC+2:5", false, 0);
+    ROW("UTC+02:5", false, 0);
+    ROW("UTC+2:05", true, 7500);
+    ROW("UTC+02:05", true, 7500);
+    ROW("UTC-2:5", false, 0);
+    ROW("UTC-02:5", false, 0);
+    ROW("UTC-2:05", true, -7500);
+    ROW("UTC-02:05", true, -7500);
 
     // Bounds:
     ROW("UTC+23", true, 82800);
@@ -719,17 +729,23 @@ void tst_QTimeZone::utcOffsetId()
         QCOMPARE(zone.offsetFromUtc(epoch), offset);
         QVERIFY(!zone.hasDaylightTime());
 
-        // zone.id() will be an IANA ID with zero minutes field if original was
-        // a UTC offset by a whole number of hours. It will also zero-pad a
-        // single-digit hour or minute to two digits.
-        if (const qsizetype cut = id.indexOf(':'); cut >= 0) {
-            if (id.size() == cut + 2) // "...:m" -> "...:0m"
-                id.insert(cut + 1, '0');
-        } else if (zone.id().contains(':')) {
-            id += ":00";
+        if (zone.id() != id && zone.id().contains(':')) {
+            // If the backend handles the offset-form, it uses the ID passed to
+            // QTimeZone as its id(). Otherwise, it's picked up by the QTZ
+            // constructor's final fallback, which constructs a UTC-backend from
+            // the parsed offset, which canonicalises the ID. That'll include a
+            // zero minutes field if the original was offset by a whole number
+            // of hours from UTC. It'll also zero-pad a single-digit hour to two
+            // digits. (Single-digit minutes are not valid.)
+            qsizetype cut = id.indexOf(':');
+            if (cut < 0) {
+                cut = id.size();
+                id += ":00";
+            }
+            if (cut == 5)
+                id.insert(4, '0');
+            // else: the discrepancy makes no sense, let the QCOMPARE() fail.
         }
-        if (id.indexOf(':') == 5) // UTC±h:mm -> UTC±0h:mm
-            id.insert(4, '0');
 
         QCOMPARE(zone.id(), id);
     }
@@ -1296,6 +1312,28 @@ void tst_QTimeZone::darwinTypes()
 #endif
 }
 
+void tst_QTimeZone::wasmTypes()
+{
+#ifndef Q_OS_WASM
+    QSKIP("This is a WebAssembly-only test");
+#else
+    const QByteArray sysId = QTimeZone::systemTimeZoneId();
+    QVERIFY(!sysId.isEmpty());
+    QVERIFY(sysId == "UTC" || sysId.startsWith("UTC+") || sysId.startsWith("UTC-"));
+
+    const QDateTime now = QDateTime::currentDateTimeUtc();
+
+    const QTimeZone utcPlus2(7200); // UTC+02:00
+    QVERIFY(utcPlus2.isValid());
+    QCOMPARE(utcPlus2.id(), QByteArray("UTC+02:00"));
+    QCOMPARE(utcPlus2.offsetFromUtc(now), 7200);
+
+    const QTimeZone local(QTimeZone::LocalTime);
+    const QTimeZone localBackend = local.asBackendZone();
+    QCOMPARE(local.offsetFromUtc(now), localBackend.offsetFromUtc(now));
+#endif
+}
+
 void tst_QTimeZone::localeSpecificDisplayName_data()
 {
     QTest::addColumn<QByteArray>("zoneName");
@@ -1399,7 +1437,7 @@ void tst_QTimeZone::stdCompatibility()
     if (tz.isValid())
         QVERIFY2(tz.hasAlternativeName(zoneName), tz.id().constData());
     else
-        QVERIFY(!QTimeZone::isTimeZoneIdAvailable(zoneName.toByteArray()));
+        QVERIFY(!QTimeZone::isTimeZoneIdAvailable(zoneName));
 #else
     QSKIP("This test requires C++20's <chrono>.");
 #endif

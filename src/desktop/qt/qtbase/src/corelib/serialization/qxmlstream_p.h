@@ -19,6 +19,7 @@
 #include "qxmlstreamgrammar_p.h"
 #include <QtCore/qhash.h>
 #include <QCoreApplication> // Q_DECLARE_TR_FUNCTIONS
+#include <QtCore/private/qtools_p.h>
 
 
 #include <memory>
@@ -137,14 +138,13 @@ private:
 
 }
 
-using namespace QtPrivate;
-
 template <typename T> class QXmlStreamSimpleStack
 {
     Q_DISABLE_COPY_MOVE(QXmlStreamSimpleStack)
+    static_assert(sizeof(T) > 1, "some operations may overflow with such small types");
 
     T *data;
-    qsizetype tos, cap;
+    qsizetype tos, cap; // class invariants: cap ≥ 0, tos < cap
 public:
     inline QXmlStreamSimpleStack()
         : data(nullptr), tos(-1), cap(0)
@@ -159,11 +159,18 @@ public:
 
     inline void reserve(qsizetype extraCapacity)
     {
-        if (tos + extraCapacity + 1 > cap) {
-            cap = qMax(tos + extraCapacity + 1, cap << 1 );
-            void *ptr = realloc(static_cast<void *>(data), cap * sizeof(T));
+        auto needed = extraCapacity;
+        if (add_overflow(needed, tos + 1, &needed)) // tos + 1 is <= cap, so doesn't overflow!
+            qBadAlloc();
+        if (needed > cap) {
+            // The following multiplication cannot overflow or we would have
+            // allocated at least half the address space successfully before
+            // (for sizeof(T) > 1, which we assert):
+            needed = (std::max)(needed, cap * 2);
+            void *ptr = qt_reallocarray(static_cast<void *>(data), needed, sizeof(T));
             Q_CHECK_PTR(ptr);
             data = reinterpret_cast<T *>(ptr);
+            cap = needed;
         }
     }
 
@@ -196,6 +203,7 @@ class QXmlStream
 
 class QXmlStreamPrivateTagStack {
     Q_DISABLE_COPY_MOVE(QXmlStreamPrivateTagStack)
+    using XmlStringRef = QtPrivate::XmlStringRef;
 public:
     struct NamespaceDeclaration
     {
@@ -255,6 +263,7 @@ class QXmlStreamReaderPrivate : public QXmlStreamGrammar, public QXmlStreamPriva
 {
     QXmlStreamReader *q_ptr;
     Q_DECLARE_PUBLIC(QXmlStreamReader)
+    using XmlStringRef = QtPrivate::XmlStringRef;
 public:
     QXmlStreamReaderPrivate(QXmlStreamReader *q);
     ~QXmlStreamReaderPrivate();
@@ -276,7 +285,6 @@ public:
     QList<BufferAndEncoding> dataInfo;
     QStringDecoder chunkDecoder;
     void appendDataWithEncoding(const QByteArray &data, QStringDecoder::Encoding enc);
-    void addData(const QByteArray &data, QStringDecoder::Encoding enc);
 
     QByteArray rawReadBuffer;
     qint64 nbytesread;
@@ -309,7 +317,7 @@ public:
     };
     QXmlStreamSimpleStack<QEntityReference> entityReferenceStack;
     int entityExpansionLimit = 4096;
-    int entityLength = 0;
+    qsizetype entityLength = 0;
     inline bool referenceEntity(QHash<QStringView, Entity> *hash, Entity &entity)
     {
         Q_ASSERT(hash);
@@ -317,10 +325,11 @@ public:
             raiseWellFormedError(QXmlStream::tr("Self-referencing entity detected."));
             return false;
         }
-        // entityLength represents the amount of additional characters the
-        // entity expands into (can be negative for e.g. &amp;). It's used to
-        // avoid DoS attacks through recursive entity expansions
-        entityLength += entity.value.size() - entity.name.size() - 2;
+        const auto valLen = entity.value.size();
+        const auto refLen = entity.name.size() + 2; // 2 for `&` and `;`
+        // don't count the top-level reference (could turn the entityLength negative):
+        const auto effectiveRefLen = entityReferenceStack.isEmpty() ? 0 : refLen;
+        entityLength += valLen - effectiveRefLen;
         if (entityLength > entityExpansionLimit) {
             raiseWellFormedError(QXmlStream::tr("Entity expands to more characters than the entity expansion limit."));
             return false;
@@ -449,8 +458,8 @@ public:
     }
 
     // qlalr parser
-    int tos;
-    int stack_size;
+    qsizetype tos;
+    qsizetype stack_size;
     struct Value {
         qsizetype pos;  // offset into textBuffer
         qsizetype len;  // length incl. prefix (if any)

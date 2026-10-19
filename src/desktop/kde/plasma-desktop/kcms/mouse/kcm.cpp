@@ -6,9 +6,9 @@
 */
 
 #include "kcm.h"
-#include "cursortheme.h"
 #include "inputbackend.h"
 #include "logging.h"
+#include "mousemoduledata.h"
 
 #include <KConfigGroup>
 #include <KLocalizedString>
@@ -23,30 +23,7 @@
 
 using namespace Qt::StringLiterals;
 
-K_PLUGIN_CLASS_WITH_JSON(KCMMouse, "kcm_mouse.json")
-
-extern "C" {
-Q_DECL_EXPORT void kcminit()
-{
-    std::unique_ptr<InputBackend> backend = InputBackend::create();
-    if (backend) {
-        backend->kcmInit();
-    }
-
-#if BUILD_KCM_MOUSE_X11
-    if (KWindowSystem::isPlatformX11()) {
-        auto config = KSharedConfig::openConfig(u"kcminputrc"_s, KConfig::NoGlobals);
-        KConfigGroup group = config->group(QStringLiteral("Mouse"));
-        const QString theme = group.readEntry("cursorTheme", QStringLiteral("breeze_cursors"));
-        const int size = group.readEntry("cursorSize", 24);
-
-        // Note: If you update this code, update kapplymousetheme as well.
-
-        CursorTheme::applyCursorTheme(theme, size);
-    }
-#endif
-}
-}
+K_PLUGIN_FACTORY_WITH_JSON(KCMMouseFactory, "kcm_mouse.json", registerPlugin<KCMMouse>(); registerPlugin<MouseModuleData>();)
 
 Message::Message() = default;
 
@@ -79,14 +56,7 @@ KCMMouse::KCMMouse(QObject *parent, const KPluginMetaData &data, [[maybe_unused]
     qmlRegisterUncreatableType<InputDevice>(uri, 1, 0, "InputDevice", QString());
     InputBackend::registerImplementationTypes(uri);
 
-    m_inputBackend = InputBackend::create();
-
-    if (!m_inputBackend) {
-        m_initError = true;
-        setSaveLoadMessage(Message::error(i18n("Not able to select appropriate backend")));
-        qCCritical(KCM_MOUSE) << "Not able to select appropriate backend.";
-        return;
-    }
+    m_inputBackend = std::make_unique<InputBackend>();
 
     m_initError = !m_inputBackend->errorString().isNull();
 

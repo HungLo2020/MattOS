@@ -11,6 +11,9 @@ macro(qt_internal_project_setup)
     # Check for the minimum CMake version.
     qt_internal_require_suitable_cmake_version()
     qt_internal_upgrade_cmake_policies()
+
+    qt_internal_validate_cmake_configuration_types()
+
     # Make sure QT_INTERNAL_BUILD_STANDALONE_PARTS is defined as early as possible
     qt_internal_setup_standalone_parts()
 
@@ -438,6 +441,7 @@ macro(qt_build_repo_end)
                 RENAME
                     "config_${repo_name}.opt"
                 DESTINATION ${INSTALL_DATADIR}
+                OPTIONAL
             )
             qt_install(
                 FILES
@@ -529,6 +533,7 @@ function(qt_internal_show_extra_ide_sources)
     add_custom_target(${target_name})
 
     set(recursive_glob_patterns
+        REUSE.toml
         ${QT_BUILD_EXTRA_IDE_FILE_RECURSIVE_PATTERNS}
     )
     set(simple_glob_patterns
@@ -868,13 +873,19 @@ macro(qt_build_tests)
         endif()
     endif()
 
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/auto/CMakeLists.txt")
+    # Create the HAP bundle target before any tests register, so each test can
+    # attach itself as a dependency via add_dependencies in qt_internal_add_test.
+    if(OHOS AND COMMAND qt_internal_add_harmonyos_test_bundle)
+        qt_internal_add_harmonyos_test_bundle()
+    endif()
+
+    if(QT_FEATURE_test_auto AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/auto/CMakeLists.txt")
         add_subdirectory(auto)
     endif()
+    if(QT_FEATURE_test_baseline AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/baseline/CMakeLists.txt")
+        add_subdirectory(baseline)
+    endif()
     if(NOT QT_BUILD_MINIMAL_STATIC_TESTS AND NOT QT_BUILD_MINIMAL_ANDROID_MULTI_ABI_TESTS)
-        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/baseline/CMakeLists.txt")
-            add_subdirectory(baseline)
-        endif()
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/CMakeLists.txt" AND QT_BUILD_BENCHMARKS)
             add_subdirectory(benchmarks)
         endif()
@@ -984,11 +995,6 @@ endfunction()
 # CMake applications).
 macro(qt_internal_set_up_build_dir_package_paths)
     list(PREPEND CMAKE_PREFIX_PATH "${QT_BUILD_DIR}/${INSTALL_CMAKEDIR}")
-
-    # Make sure the CMake config files do not recreate the already-existing targets.
-    if(NOT QT_BUILD_STANDALONE_EXAMPLES)
-        set(QT_NO_CREATE_TARGETS TRUE)
-    endif()
 endmacro()
 
 function(qt_internal_static_link_order_test)
@@ -1112,7 +1118,7 @@ function(qt_build_internals_disable_pkg_config_if_needed)
     set(pkg_config_enabled ON)
     qt_build_internals_find_pkg_config_executable()
 
-    if(APPLE OR WIN32 OR QNX OR ANDROID OR WASM OR (NOT PKG_CONFIG_EXECUTABLE))
+    if(APPLE OR WIN32 OR QNX OR ANDROID OR OHOS OR WASM OR (NOT PKG_CONFIG_EXECUTABLE))
         set(pkg_config_enabled OFF)
     endif()
 

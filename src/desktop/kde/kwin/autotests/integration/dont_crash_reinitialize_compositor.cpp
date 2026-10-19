@@ -22,8 +22,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_dont_crash_reinitialize_compositor-0");
-
 class DontCrashReinitializeCompositorTest : public QObject
 {
     Q_OBJECT
@@ -39,14 +37,10 @@ private Q_SLOTS:
 
 void DontCrashReinitializeCompositorTest::initTestCase()
 {
-    if (!Test::renderNodeAvailable()) {
-        QSKIP("no render node available");
-        return;
-    }
     qputenv("XDG_DATA_DIRS", QCoreApplication::applicationDirPath().toUtf8());
 
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     auto config = KSharedConfig::openConfig(QString(), KConfig::SimpleConfig);
     KConfigGroup plugins(config, QStringLiteral("Plugins"));
@@ -57,7 +51,6 @@ void DontCrashReinitializeCompositorTest::initTestCase()
     config->sync();
     kwinApp()->setConfig(config);
 
-    qputenv("KWIN_COMPOSE", QByteArrayLiteral("O2"));
     qputenv("KWIN_EFFECTS_FORCE_ANIMATIONS", QByteArrayLiteral("1"));
 
     kwinApp()->start();

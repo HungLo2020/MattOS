@@ -44,7 +44,12 @@ void KWalletFreedesktopPrompt::Dismiss()
     QVariantList args;
     // LibSecret wants a "valid" QDBusObjectPath here or it will just freeze
     // Gnome-keyring also sends "/" as object path when the create dialog gets dismissed
-    args << true << QVariant::fromValue(QDBusVariant(QVariant::fromValue(QList{QDBusObjectPath(QStringLiteral("/"))})));
+    if (m_type == PromptType::Create) {
+        args << true << QVariant::fromValue(QDBusVariant(QDBusObjectPath(QStringLiteral("/"))));
+    } else {
+        args << true << QVariant::fromValue(QDBusVariant(QVariant::fromValue(QList{QDBusObjectPath(QStringLiteral("/"))})));
+    }
+
     msg.setArguments(args);
     QDBusConnection::sessionBus().send(msg);
     QDBusConnection::sessionBus().unregisterObject(fdoObjectPath().path());
@@ -72,9 +77,17 @@ void KWalletFreedesktopPrompt::Prompt(const QString &window_id)
             fdoService()->createCollectionAlias(properties.alias, walletName);
         }
 
-        const int tId = backend()->openAsync(walletName, wId, FDO_APPID, false, connection(), message());
-        m_transactionIds.insert(tId);
-        m_transactionIdToCollectionProperties.emplace(tId, std::move(properties));
+        static int transactionId = 0;
+
+        auto future = backend()->open(walletName, wId);
+        m_transactionIds.insert(transactionId);
+        m_transactionIdToCollectionProperties.emplace(transactionId, std::move(properties));
+
+        future.then(this, [this, tId = transactionId](int walletHandle) {
+            walletAsyncOpened(tId, walletHandle);
+        });
+
+        ++transactionId;
     }
 }
 
@@ -123,7 +136,6 @@ void KWalletFreedesktopPrompt::walletAsyncOpened(int transactionId, int walletHa
 
 void KWalletFreedesktopPrompt::subscribeForWalletAsyncOpened()
 {
-    connect(backend(), &KSecretD::walletAsyncOpened, this, &KWalletFreedesktopPrompt::walletAsyncOpened);
     QDBusConnection::sessionBus().registerObject(fdoObjectPath().path(), this);
 }
 

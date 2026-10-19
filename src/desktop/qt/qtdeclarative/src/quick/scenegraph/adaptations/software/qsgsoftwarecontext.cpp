@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qsgsoftwarecontext_p.h"
 
@@ -52,12 +53,17 @@ QSGPainterNode *QSGSoftwareContext::createPainterNode(QQuickPaintedItem *item)
     return new QSGSoftwarePainterNode(item);
 }
 
-QSGGlyphNode *QSGSoftwareContext::createGlyphNode(QSGRenderContext *rc, QSGTextNode::RenderType renderType, int renderTypeQuality)
+QSGGlyphNode *QSGSoftwareContext::createGlyphNode(QSGRenderContext *rc, QSGTextNode::RenderType renderType)
 {
     Q_UNUSED(rc);
     Q_UNUSED(renderType);
-    Q_UNUSED(renderTypeQuality);
     return new QSGSoftwareGlyphNode();
+}
+
+QSGTextNode::RenderType QSGSoftwareContext::processTextRenderType(QSGTextNode::RenderType renderType)
+{
+    Q_UNUSED(renderType);
+    return QSGTextNode::NativeRendering;
 }
 
 QSGLayer *QSGSoftwareContext::createLayer(QSGRenderContext *renderContext)

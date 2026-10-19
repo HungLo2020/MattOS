@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-19 02:48+0000\n"
-"PO-Revision-Date: 2025-12-04 04:18+0100\n"
+"POT-Creation-Date: 2026-08-28 00:48+0000\n"
+"PO-Revision-Date: 2026-04-29 05:44+0200\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
 "Language: ka\n"
@@ -16,63 +16,69 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
+
+#: qml/BackgroundAppItem.qml:76
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Quit %1"
+msgstr "%1-დან გასვლა"
 
 #: qml/config.qml:13
 #, kde-format
 msgid "General"
 msgstr "ძირითადი"
 
-#: qml/ConfigGeneral.qml:43
+#: qml/ConfigGeneral.qml:45
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item when relevant"
 msgid "Show when relevant"
 msgstr "გარემოების მიხედვით ჩვენება"
 
-#: qml/ConfigGeneral.qml:47
+#: qml/ConfigGeneral.qml:49
 #, kde-format
 msgctxt "@item:inlistbox Always show this System Tray item"
 msgid "Always show"
 msgstr "ყოველთვის ჩვენება"
 
-#: qml/ConfigGeneral.qml:51
+#: qml/ConfigGeneral.qml:53
 #, kde-format
 msgctxt "@item:inlistbox Show this System Tray item only in the expanded popup"
 msgid "Show only in popup"
 msgstr "მხოლოდ მხტუნარაში ჩვენება"
 
-#: qml/ConfigGeneral.qml:55
+#: qml/ConfigGeneral.qml:57
 #, kde-format
 msgctxt "@item:inlistbox Never show this System Tray item; disable it"
 msgid "Never show (disabled)"
 msgstr "არასდროს ჩვენება (გამორთვა)"
 
-#: qml/ConfigGeneral.qml:126
+#: qml/ConfigGeneral.qml:128
 #, kde-format
 msgid "Application Status"
 msgstr "აპლიკაციის სტატუსი"
 
-#: qml/ConfigGeneral.qml:128
+#: qml/ConfigGeneral.qml:130
 #, kde-format
 msgid "Communications"
 msgstr "კომუნიკაციები"
 
-#: qml/ConfigGeneral.qml:130
+#: qml/ConfigGeneral.qml:132
 #, kde-format
 msgid "System Services"
 msgstr "სისტემური სერვისები"
 
-#: qml/ConfigGeneral.qml:132
+#: qml/ConfigGeneral.qml:134
 #, kde-format
 msgid "Hardware Control"
 msgstr "აპარატურის კონტროლი"
 
-#: qml/ConfigGeneral.qml:135
+#: qml/ConfigGeneral.qml:137
 #, kde-format
 msgid "Miscellaneous"
 msgstr "სხვადასხვა"
 
-#: qml/ConfigGeneral.qml:172
+#: qml/ConfigGeneral.qml:174
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -89,13 +95,13 @@ msgstr ""
 "აკეთებთ და თუ პრობლემები შეგექმნათ, ამის შესახებ KDE-ს ან აპის ავტორს ნუ "
 "მისწერთ."
 
-#: qml/ConfigGeneral.qml:175
+#: qml/ConfigGeneral.qml:177
 #, kde-format
 msgctxt "@action:button"
 msgid "I understand the risks"
 msgstr "მე ვიცი, რას ვაკეთებ"
 
-#: qml/ConfigGeneral.qml:187
+#: qml/ConfigGeneral.qml:189
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -113,7 +119,7 @@ msgstr ""
 "მოწოდებული ბუფერის მმართველის გამოყენებას. ამის მაგიერ იფიქრეთ, გამორთოთ "
 "ბუფერის ისტორია, ან, რომ მან დროის ერთ მომენტში ერთი ელემენტი დაიმახსოვროს."
 
-#: qml/ConfigGeneral.qml:196
+#: qml/ConfigGeneral.qml:198
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -128,66 +134,97 @@ msgstr ""
 "განზრახ ცდილობთ მესამე პირების მიერ მოწოდებული გაფრთხილებების მმართველის "
 "გამოყენებას გაფრთხილებების სამართავად."
 
-#: qml/ConfigGeneral.qml:208
+#: qml/ConfigGeneral.qml:210
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel height"
 msgstr "გადიდება პანელის სიმაღლესთან ერთად"
 
-#: qml/ConfigGeneral.qml:209
+#: qml/ConfigGeneral.qml:211
 #, kde-format
 msgctxt "@item:inlistbox Icon size"
 msgid "Scale with Panel width"
 msgstr "გადიდება პანელის სიგანესთან ერთად"
 
-#: qml/ConfigGeneral.qml:211
+#: qml/ConfigGeneral.qml:213
 #, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgctxt ""
+"@label:listbox Whether the system tray icons in the Panel always stay small "
+"or scale with the Panel's size"
 msgid "Panel icon size:"
 msgstr "პანელის ხატულების ზომა:"
 
-#: qml/ConfigGeneral.qml:215 qml/ConfigGeneral.qml:256
+#: qml/ConfigGeneral.qml:217
+#, kde-format
+msgctxt "@item:inlistbox Icon size"
+msgid "Small"
+msgstr "პატარა"
+
+#: qml/ConfigGeneral.qml:237
+#, kde-format
+msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+msgid "Spacing:"
+msgstr "დაშორება:"
+
+#: qml/ConfigGeneral.qml:241
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Small"
 msgstr "პატარა"
 
-#: qml/ConfigGeneral.qml:244
-#, kde-format
-msgid "Automatically enabled when in Touch Mode"
-msgstr "შეხების რეჟიმში ავტომატურადაა ჩართული"
-
-#: qml/ConfigGeneral.qml:252
-#, kde-format
-msgctxt "@label:listbox The spacing between system tray icons in the Panel"
-msgid "Panel icon spacing:"
-msgstr "პანელის ხატულებს შორის დაშორება:"
-
-#: qml/ConfigGeneral.qml:260
+#: qml/ConfigGeneral.qml:245
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Normal"
 msgstr "ჩვეულებრივი"
 
-#: qml/ConfigGeneral.qml:264
+#: qml/ConfigGeneral.qml:249
 #, kde-format
 msgctxt "@item:inlistbox Icon spacing"
 msgid "Large"
 msgstr "დიდი"
 
-#: qml/ConfigGeneral.qml:289
+#: qml/ConfigGeneral.qml:269
+#, kde-format
+msgctxt ""
+"@label:listbox Which direction system tray icons in the Panel emerge from "
+"the expander arrow"
+msgid "Direction:"
+msgstr "მიმართულება:"
+
+#: qml/ConfigGeneral.qml:283
+#, kde-format
+msgid "Bottom-to-top"
+msgstr "ქვემოდან ზემოთ"
+
+#: qml/ConfigGeneral.qml:284
+#, kde-format
+msgid "Top-to-bottom"
+msgstr "ზემოდან ქვემოთ"
+
+#: qml/ConfigGeneral.qml:289 qml/ConfigGeneral.qml:296
+#, kde-format
+msgid "Left-to-right"
+msgstr "მარცხნიდან მარჯვნივ"
+
+#: qml/ConfigGeneral.qml:290 qml/ConfigGeneral.qml:295
+#, kde-format
+msgid "Right-to-left"
+msgstr "მარჯვნიდან მარცხნივ"
+
+#: qml/ConfigGeneral.qml:307
 #, kde-format
 msgctxt "@info:usagetip under a combobox when Touch Mode is on"
 msgid "Automatically set to Large when in Touch Mode"
 msgstr "შეხების რეჟიმში ავტომატურად დიდი ზომების დაყენება"
 
-#: qml/ConfigGeneral.qml:315
+#: qml/ConfigGeneral.qml:332
 #, kde-format
 msgctxt "@title:column"
 msgid "Entries"
 msgstr "ჩანაწერები"
 
-#: qml/ConfigGeneral.qml:319
+#: qml/ConfigGeneral.qml:336
 #, kde-format
 msgctxt "@option:check, This is referring to system tray entries"
 msgid "Always show all"
@@ -199,17 +236,17 @@ msgctxt "@action:button"
 msgid "Go Back"
 msgstr "უკან გადასვლა"
 
-#: qml/ExpandedRepresentation.qml:72
+#: qml/ExpandedRepresentation.qml:76
 #, kde-format
 msgid "Status and Notifications"
 msgstr "სტატუსი და შეტყობინებები"
 
-#: qml/ExpandedRepresentation.qml:169
+#: qml/ExpandedRepresentation.qml:175
 #, kde-format
 msgid "More actions"
 msgstr "მეტი ქმედება"
 
-#: qml/ExpandedRepresentation.qml:255
+#: qml/ExpandedRepresentation.qml:260
 #, kde-format
 msgid "Keep Open"
 msgstr "ღიად დატოვება"
@@ -241,14 +278,18 @@ msgctxt "Some letters with tall characters, ascenders, descenders, etc"
 msgid "AILlmyjgGJP"
 msgstr "AILlmyjgGJP"
 
+#~ msgid "Automatically enabled when in Touch Mode"
+#~ msgstr "შეხების რეჟიმში ავტომატურადაა ჩართული"
+
+#~ msgctxt "@label:listbox The spacing between system tray icons in the Panel"
+#~ msgid "Panel icon spacing:"
+#~ msgstr "პანელის ხატულებს შორის დაშორება:"
+
 #~ msgid "Always hidden"
 #~ msgstr "ყოველთვის დამალული"
 
 #~ msgid "Disabled"
 #~ msgstr "გამორთულია"
-
-#~ msgid "Small"
-#~ msgstr "პატარა"
 
 #~ msgctxt "Name of the system tray entry"
 #~ msgid "Entry"

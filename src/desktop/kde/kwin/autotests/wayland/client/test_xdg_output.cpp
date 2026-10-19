@@ -22,6 +22,7 @@
 class TestXdgOutput : public QObject
 {
     Q_OBJECT
+
 public:
     explicit TestXdgOutput(QObject *parent = nullptr);
 private Q_SLOTS:
@@ -40,8 +41,6 @@ private:
     QThread *m_thread;
 };
 
-static const QString s_socketName = QStringLiteral("kwin-test-xdg-output-0");
-
 TestXdgOutput::TestXdgOutput(QObject *parent)
     : QObject(parent)
     , m_display(nullptr)
@@ -56,7 +55,7 @@ void TestXdgOutput::init()
     using namespace KWin;
     delete m_display;
     m_display = new KWin::Display(this);
-    m_display->addSocketName(s_socketName);
+    m_display->addSocketName(qAppName());
     m_display->start();
     QVERIFY(m_display->isRunning());
 
@@ -68,6 +67,7 @@ void TestXdgOutput::init()
     m_fakeOutput->setManufacturer("foo");
     m_fakeOutput->setModel("bar");
     m_outputHandle = std::make_unique<LogicalOutput>(m_fakeOutput.get());
+    m_outputHandle->copyInfoFrom(m_fakeOutput.get());
 
     m_serverOutput = new OutputInterface(m_display, m_outputHandle.get(), this);
 
@@ -77,7 +77,7 @@ void TestXdgOutput::init()
     // setup connection
     m_connection = new KWayland::Client::ConnectionThread;
     QSignalSpy connectedSpy(m_connection, &KWayland::Client::ConnectionThread::connected);
-    m_connection->setSocketName(s_socketName);
+    m_connection->setSocketName(qAppName());
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);
@@ -154,6 +154,7 @@ void TestXdgOutput::testChanges()
 
     // change the logical position
     m_fakeOutput->moveTo(QPoint(1000, 2000));
+    m_outputHandle->copyInfoFrom(m_fakeOutput.get());
     QVERIFY(xdgOutputChanged.wait());
     QCOMPARE(xdgOutputChanged.count(), 1);
     QCOMPARE(xdgOutput->logicalPosition(), QPoint(1000, 2000));
@@ -162,6 +163,7 @@ void TestXdgOutput::testChanges()
 
     // change the logical size
     m_fakeOutput->setScale(2);
+    m_outputHandle->copyInfoFrom(m_fakeOutput.get());
     QVERIFY(xdgOutputChanged.wait());
     QCOMPARE(xdgOutputChanged.count(), 2);
     QEXPECT_FAIL("", "KWayland::Client::XdgOutput incorrectly handles partial updates", Continue);

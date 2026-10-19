@@ -8,14 +8,14 @@
 
 #include "actioninterface.h"
 
-#include <devicestatemonitor_p.h>
+#include "stateinfo.h"
 
 class UnmountAction : public ActionInterface
 {
     Q_OBJECT
 
 public:
-    explicit UnmountAction(const QString &udi, QObject *parent = nullptr);
+    explicit UnmountAction(const std::shared_ptr<StorageInfo> &storageInfo, const std::shared_ptr<StateInfo> &stateInfo, QObject *parent = nullptr);
     ~UnmountAction() override;
 
     QString name() const override;
@@ -32,6 +32,4 @@ private Q_SLOTS:
 private:
     bool m_hasStorageAccess;
     bool m_isRoot;
-
-    std::shared_ptr<DevicesStateMonitor> m_stateMonitor;
 };

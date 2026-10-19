@@ -45,10 +45,192 @@ public:
     void setToolTip(const QString &toolTip) { m_toolTip = toolTip; }
 
 private:
+    friend QDebug operator<<(QDebug dbg, const Gadget &gadget)
+    {
+        dbg << "Gadget(" << gadget.m_display << gadget.m_decoration << gadget.m_toolTip << ")";
+        return dbg;
+    }
     QString m_display;
     QColor m_decoration;
     QString m_toolTip;
 };
+
+template <>
+struct QRangeModel::RowOptions<Gadget>
+{
+    static Qt::ItemFlags flags(const Gadget &)
+    {
+        return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren
+             | Qt::ItemIsEditable
+             | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+    }
+
+    static QStringList mimeTypes()
+    {
+        return QStringList{u"text/plain"_s};
+    }
+
+    template <typename Range>
+    static QMimeData *mimeData(const Range &gadgets)
+    {
+        QByteArray data;
+        QTextStream stream(&data, QIODevice::WriteOnly);
+        for (const auto &row : gadgets) {
+            if (!row.isValid()) {
+                qCritical("Skipping invalid row");
+                continue;
+            }
+            const auto &[gadget, index] = row;
+            stream << Qt::flush;
+            if (index.column() < 0) {
+                stream << gadget.display() << ',' << gadget.decoration().name() << ','
+                       << gadget.toolTip() << Qt::endl;
+            } else {
+                switch (index.column()) {
+                case 0:
+                    stream << gadget.display() << ",,";
+                    break;
+                case 1:
+                    stream << ',' << gadget.decoration().name() << u',';
+                    break;
+                case 2:
+                    stream << ",," << gadget.toolTip();
+                    break;
+                }
+                stream << Qt::endl;
+            }
+        }
+        if (data.isEmpty())
+            return nullptr;
+        QMimeData *mimeData = new QMimeData;
+        mimeData->setData(mimeTypes().first(), data);
+        return mimeData;
+    }
+
+    static QRangeModel::DropOperation dropMimeData(const QMimeData *mimeData, auto &&inserter)
+    {
+        if (!mimeData->hasFormat(mimeTypes().first()))
+            return QRangeModel::DropOperation::DontDrop;
+        QByteArray data = mimeData->data(mimeTypes().first());
+        if (data.isEmpty())
+            return QRangeModel::DropOperation::DontDrop;
+        QTextStream stream(&data, QIODevice::ReadOnly);
+        int newRow = 0;
+        while (!stream.atEnd()) {
+            const auto line = stream.readLine().split(",");
+            if (line.isEmpty())
+                continue;
+            inserter = {Gadget(line.size() > 0 ? line[0] : QString(),
+                              QColor::fromString(line.size() > 1 ? line[1] : QString()),
+                              line.size() > 2 ? line[2] : QString()),
+                        newRow};
+            ++newRow; // += 2 would leave a gap
+        }
+        return QRangeModel::DropOperation::Automatic;
+    }
+
+    // simplified version, only called when the default implementation
+    // accepts the drop, so action and mime type check already done
+    static bool canDropMimeData(const QMimeData *)
+    {
+        return true;
+    }
+
+    // a full implementation to only support drops in between items
+    // static bool canDropMimeData(const QMimeData *data, Qt::DropAction, int row, int column, const QModelIndex &)
+    // {
+    //     if (!data->hasFormat(mimeTypes().first()))
+    //         return false;
+    //     return row > -1 && column > -1;
+    // }
+
+    static QVariant headerData(int section, int role)
+    {
+        if (role == Qt::DisplayRole) {
+            switch (section) {
+            case 0: return QCoreApplication::translate("Gadget", "Display");
+            case 1: return QCoreApplication::translate("Gadget", "Decoration");
+            case 2: return QCoreApplication::translate("Gadget", "ToolTip");
+            default:
+                break;
+            }
+        }
+        return {};
+    }
+};
+
+template <>
+struct QRangeModel::ItemAccess<Gadget>
+{
+    using RowOptions = typename QRangeModel::RowOptions<Gadget>;
+    static QMimeData *mimeData(auto &&gadgets)
+    {
+        if (gadgets.isEmpty())
+            return nullptr;
+
+        const QModelIndex topLeft = gadgets.first().index();
+        const QModelIndex bottomRight = gadgets.last().index();
+        QRect span = {QPoint(topLeft.column(), topLeft.row()),
+                      QPoint(bottomRight.column(), bottomRight.row())};
+        span.moveTo(0, 0);
+
+        QByteArray data;
+        QTextStream stream(&data, QIODevice::WriteOnly);
+
+        QModelIndex lastIndex;
+        for (const auto &[gadget, index] : gadgets) {
+            stream << Qt::flush;
+            if (index.row() != lastIndex.row() && stream.pos()) {
+                stream.seek(stream.pos() - 1);
+                stream << Qt::endl;
+            }
+            stream << gadget.display() << ','
+                   << gadget.decoration().name()
+                   << ',' << gadget.toolTip()
+                   << ';';
+            lastIndex = index;
+        }
+        stream << Qt::endl;
+        if (data.isEmpty())
+            return nullptr;
+        QMimeData *mimeData = new QMimeData;
+        mimeData->setData(RowOptions::mimeTypes().first(), data);
+        return mimeData;
+    }
+
+    static bool dropMimeData(const QMimeData *mimeData, auto inserter)
+    {
+        if (!mimeData->hasFormat(RowOptions::mimeTypes().first()))
+            return false;
+        QByteArray data = mimeData->data(RowOptions::mimeTypes().first());
+        if (data.isEmpty())
+            return false;
+
+        QTextStream stream(&data, QIODevice::ReadOnly);
+        while (!stream.atEnd()) {
+            const QString row = stream.readLine();
+            if (row.isEmpty())
+                continue;
+            const QStringList cells = row.split(u';', Qt::SkipEmptyParts);
+            for (const auto &cell : cells) {
+                const QStringList values = cell.split(u',');
+                inserter = Gadget(
+                    values.size() > 0 ? values[0] : QString(),
+                    QColor::fromString(values.size() > 1 ? values[1] : QString()),
+                    values.size() > 2 ? values[2] : QString()
+                );
+            }
+        }
+        return true;
+    }
+};
+
+static_assert(QRangeModelDetails::hasHeaderData<Gadget>);
+static_assert(QRangeModelDetails::hasRowFlags<Gadget>);
+static_assert(QRangeModelDetails::hasMimeDataRowSpan<Gadget>);
+static_assert(QRangeModelDetails::hasDropMimeData<Gadget>);
+static_assert(QRangeModelDetails::item_access<Gadget>::hasMimeData);
+static_assert(QRangeModelDetails::item_access<Gadget>::hasDropMimeData);
 
 struct QMetaEnumerator
 {
@@ -126,11 +308,38 @@ public:
     template <typename ...Args>
     TreeRow &addChild(Args&& ...args)
     {
-        if (!m_children)
+        TreeRow *oldData = nullptr;
+        if (!m_children) {
             m_children.emplace(Tree{});
+            m_children->reserve(10);
+        } else {
+            oldData = m_children->data();
+        }
         TreeRow &res = m_children->emplace_back(args...);
+        // this is why trees of values in an iterator-invalidating container
+        // are a bad idea.
+        if (oldData && oldData != m_children->data())
+            qWarning() << "Reallocated!";
         res.m_parent = this;
         return res;
+    }
+
+    static Tree fromJsonArray(const QJsonArray &array)
+    {
+        Tree tree;
+        for (const auto &value : array) {
+            if (!value.isObject())
+                continue;
+            QJsonObject object = value.toObject();
+            TreeRow treeRow{
+                object["name"].toString(),
+                object["title"].toString()
+            };
+            if (QJsonValue maybeChildren = object["children"]; maybeChildren.isArray())
+                treeRow.m_children = fromJsonArray(maybeChildren.toArray());
+            tree.emplace_back(std::move(treeRow));
+        }
+        return tree;
     }
 
     // tree traversal protocol implementation
@@ -155,6 +364,12 @@ private:
         else if constexpr (I == 1)
             return q23::forward_like<Row>(row.m_title);
     }
+
+    friend QDebug operator<<(QDebug dbg, const TreeRow &row)
+    {
+        dbg << "TreeRow(" << row.m_name << row.m_title << ")";
+        return dbg;
+    }
 };
 
 namespace std {
@@ -163,6 +378,104 @@ namespace std {
     { using type = decltype(get<I>(std::declval<TreeRow>())); };
 }
 
+template <>
+struct QRangeModel::RowOptions<TreeRow>
+{
+    static QStringList mimeTypes() { return {u"application/json"_s}; }
+
+    using Path = QVarLengthArray<int, 32>;
+    static Path makePath(const QModelIndex &index) {
+        // we call with col0 indexes and a parent can never be at another column
+        Q_ASSERT(index.column() == 0);
+        Path path{index.row()};
+        QModelIndex parent = index.parent();
+        while (parent.isValid()) {
+            path.append(parent.row());
+            parent = parent.parent();
+        }
+        std::reverse(path.begin(), path.end());
+        return path;
+    };
+
+    static QJsonArray makeArray(const auto &rows)
+    {
+        QList<std::pair<QVarLengthArray<int, 32>, QJsonObject>> builtObjects;
+
+        std::for_each(rows.rbegin(), rows.rend(), [&](const auto &entry) {
+            const auto &[row, index] = entry;
+            QJsonObject rowObject;
+            if (index.column() == -1) { // full row selected
+                rowObject.insert("name", get<0>(row));
+                rowObject.insert("title", get<1>(row));
+            } else {
+                switch (index.column()) {
+                case 0:
+                    rowObject.insert("name", get<0>(row));
+                    break;
+                case 1:
+                    rowObject.insert("title", get<1>(row));
+                    break;
+                }
+            }
+            Path rowPath = makePath(index.siblingAtColumn(0));
+
+            QJsonArray children;
+            for (auto entry = builtObjects.cbegin(); entry != builtObjects.cend();) {
+                const auto &[builtPath, builtObject] = *entry;
+                if (rowPath.size() < builtPath.size()) {
+                    int i = 0;
+                    while (i < std::min(builtPath.size(), rowPath.size()) && builtPath[i] == rowPath[i])
+                        ++i;
+                    if (i) {
+                        children.append(builtObject);
+                        entry = builtObjects.erase(entry);
+                        continue;
+                    }
+                }
+                ++entry;
+            }
+            if (!children.isEmpty())
+                rowObject.insert("children", children);
+            builtObjects.prepend({rowPath, rowObject});
+        });
+
+        QJsonArray result;
+        for (const auto &[_, object] : builtObjects)
+            result.append(object);
+        return result;
+    }
+
+    static QMimeData *mimeData(const auto &rows)
+    {
+        if (rows.empty())
+            return nullptr;
+
+        QJsonDocument document(makeArray(rows));
+        QByteArray data = document.toJson();
+
+        QMimeData *mimeData = new QMimeData;
+        mimeData->setData(mimeTypes().first(), data);
+        return mimeData;
+    }
+
+    static bool dropMimeData(const QMimeData *data, auto inserter)
+    {
+        QByteArray json = data->data(mimeTypes().first());
+        if (json.isEmpty())
+            return false;
+        QJsonParseError error;
+        QJsonDocument document = QJsonDocument::fromJson(json, &error);
+        if (error.error) {
+            qWarning("Invalid JSON: %s at offset %d", qPrintable(error.errorString()), error.offset);
+            return false;
+        }
+        QJsonArray topObjects = document.array();
+        Tree newTree = TreeRow::fromJsonArray(topObjects);
+        for (auto &newRow : newTree)
+            inserter = std::move(newRow);
+        return true;
+    }
+};
 
 class Object : public QObject
 {
@@ -207,7 +520,7 @@ class ModelFactory : public QObject
 {
     Q_OBJECT
 
-    std::vector<int> numbers = {1, 2, 3, 4, 5};
+    std::vector<int> numbers = {1, 10, 3, 8, 5, 6, 7, 4, 9, 2, 11};
     QList<QString> strings = {u"one"_s, u"two"_s, u"three"_s};
     std::array<int, 1000000> largeArray = {};
     QTimer updater;
@@ -227,6 +540,8 @@ public slots:
 
     QRangeModel *makeLargeArray()
     {
+        for (int i = 0; i < int(largeArray.size()); ++i)
+            largeArray[i] = i;
         return new QRangeModel(&largeArray);
     }
 
@@ -291,22 +606,36 @@ public slots:
 
     QRangeModel *makeBoundedIota()
     {
+#ifdef __cpp_lib_ranges
         return new QRangeModel(std::views::iota(1, 10000));
+#else
+        return new QRangeModel(QList{u"Not available: std::views requires C++20 ranges support"
+                                     " (platform libc++ has disabled incomplete ranges)"_s});
+#endif
     }
 
     QRangeModel *makeUnboundedIota()
     {
+#ifdef __cpp_lib_ranges
         auto view = std::views::iota(1);
         return new QRangeModel(view);
+#else
+        return new QRangeModel(QList{u"Not available: std::views requires C++20 ranges support"
+                                     " (platform libc++ has disabled incomplete ranges)"_s});
+#endif
     }
 
     QRangeModel *makeZipView()
     {
+#ifdef __cpp_lib_ranges_zip
         static auto x = QList<int>{1, 2, 3, 4, 5};
         static auto y = std::list<QString>{"α", "β", "γ", "δ", "ε"};
         static auto z = std::array<QChar, 6>{u'A', u'B', u'C', u'D', u'E', u'F'};
 
         return new QRangeModel(std::views::zip(x, y, z));
+#else
+        return new QRangeModel(QList{u"Not available: std::views::zip requires C++23 ranges support"_s});
+#endif
     }
 
     QRangeModel *makeGadgetList()
@@ -320,11 +649,44 @@ public slots:
         return new QRangeModel(gadgetList);
     }
 
+    QRangeModel *makeGadgetPointerList()
+    {
+        std::vector<std::unique_ptr<Gadget>> gadgetList;
+        std::array gadgets = {
+            std::make_unique<Gadget>("1/1", Qt::red, "red"),
+            std::make_unique<Gadget>("1/2", Qt::black, "black"),
+            std::unique_ptr<Gadget>(),
+            std::make_unique<Gadget>("3/1", Qt::blue, "blue"),
+            std::make_unique<Gadget>("3/2", Qt::green, "green"),
+        };
+        std::copy(std::move_iterator(gadgets.begin()), std::move_iterator(gadgets.end()),
+                  std::back_inserter(gadgetList));
+        return new QRangeModel(std::move(gadgetList));
+    }
+
     QRangeModel *makeGadgetTable()
     {
         QList<QList<Gadget>> gadgetTable = {
             {{"1/1", Qt::red, "red"}, {"1/2", Qt::black, "black"}},
             {{"2/1", Qt::blue, "blue"}, {"2/2", Qt::green, "green"}},
+        };
+        return new QRangeModel(gadgetTable);
+    }
+
+   QRangeModel *makeGadgetPointerTable()
+    {
+        QList<std::vector<std::shared_ptr<Gadget>>> gadgetTable = {
+            {
+                std::make_shared<Gadget>("1/1", Qt::red, "red"),
+                std::make_shared<Gadget>("1/2", Qt::black, "black")
+            },
+            {
+                std::shared_ptr<Gadget>(), std::make_shared<Gadget>("2/1", Qt::blue, "blue"),
+            },
+            {
+                std::make_shared<Gadget>("3/1", Qt::blue, "blue"),
+                std::make_shared<Gadget>("3/2", Qt::green, "green")
+            },
         };
         return new QRangeModel(gadgetTable);
     }
@@ -351,6 +713,7 @@ public slots:
 
     QRangeModel *makeFilterView()
     {
+#ifdef __cpp_lib_ranges
         const QDate today = QDate::currentDate();
         auto view = std::views::iota(today.addYears(-100), today.addYears(100))
                   | std::views::filter([](QDate date){
@@ -358,6 +721,10 @@ public slots:
                     });
 
         return new QRangeModel(view);
+#else
+        return new QRangeModel(QList{u"Not available: std::views requires C++20 ranges support"
+                                     " (platform libc++ has disabled incomplete ranges)"_s});
+#endif
     }
 
     QRangeModel *makeMultiRoleMap()
@@ -378,9 +745,10 @@ public slots:
 
     QRangeModel *makeUniqueObjects()
     {
-        std::array<std::unique_ptr<Object>, 3> data = {
+        std::array<std::unique_ptr<Object>, 4> data = {
             std::make_unique<Object>(1),
             std::make_unique<Object>(2),
+            std::unique_ptr<Object>(),
             std::make_unique<Object>(3),
         };
         return new QRangeModel(std::move(data));
@@ -451,11 +819,8 @@ public slots:
         const QList<int> path = {1, 0};
         QRangeModel *model = adapter.model();
         connect(&updater, &QTimer::timeout, model, [adapter] mutable {
-            // adapter[0] = tree_row{"Deutschland", "Berlin"};
-            for (auto row : adapter) {
+            for (auto row : adapter)
                 qDebug() << row[0] << row[1];
-            }
-            adapter[QSpan<const int>{ 0, 0, 0 }, 1] = "Munich";
         });
         updater.start(1000);
 
@@ -606,10 +971,28 @@ public:
         : QMainWindow(parent), model(nullptr)
     {
         QSplitter *splitter = new QSplitter;
+        QSplitter *viewSplitter = new QSplitter(Qt::Vertical);
 
         treeview = new QTreeView;
+        treeview->setSelectionMode(QAbstractItemView::ExtendedSelection);
         treeview->setUniformRowHeights(true);
-        splitter->addWidget(treeview);
+        treeview->setDragEnabled(true);
+        treeview->setDropIndicatorShown(true);
+        treeview->setAcceptDrops(true);
+        treeview->viewport()->setAcceptDrops(true);
+        treeview->setDragDropMode(QAbstractItemView::DragDrop);
+        viewSplitter->addWidget(treeview);
+
+        tableview = new QTableView;
+        tableview->setDragEnabled(true);
+        tableview->setDropIndicatorShown(true);
+        tableview->setAcceptDrops(true);
+        tableview->viewport()->setAcceptDrops(true);
+        tableview->setDragDropOverwriteMode(true);
+        tableview->setDragDropMode(QAbstractItemView::DragDrop);
+        viewSplitter->addWidget(tableview);
+
+        splitter->addWidget(viewSplitter);
 
 #ifdef QUICK_UI
         quickWidget = new QQuickWidget;
@@ -629,6 +1012,11 @@ public:
         QToolBar *toolBar = addToolBar(tr("Model Operations"));
         toolBar->addWidget(modelPicker);
 
+        toolBar->addSeparator();
+
+        QAction *sortAction = toolBar->addAction(tr("Sort"));
+        sortAction->setCheckable(true);
+        connect(sortAction, &QAction::toggled, treeview, &QTreeView::setSortingEnabled);
         toolBar->addSeparator();
 
         QAction *addAction = toolBar->addAction(tr("Add"), this, &MainWindow::onAdd);
@@ -695,6 +1083,9 @@ private:
             newModel->setParent(this);
             newModel->setObjectName(QString::fromUtf8(method.name()).slice(4));
             treeview->setModel(newModel);
+            tableview->setModel(newModel);
+            newModel->setSupportedDragActions(Qt::CopyAction | Qt::MoveAction);
+            newModel->setSupportedDropActions(Qt::CopyAction | Qt::MoveAction);
 #ifdef QUICK_UI
             if (!quickWidget->rootObject())
                 statusBar()->showMessage(tr("Failed to load QML"));
@@ -780,6 +1171,7 @@ private:
     ModelFactory factory;
     QPointer<QRangeModel> model; // might be owned by an adapter
     QTreeView *treeview;
+    QTableView *tableview;
 #ifdef QUICK_UI
     QQuickWidget *quickWidget;
 #endif

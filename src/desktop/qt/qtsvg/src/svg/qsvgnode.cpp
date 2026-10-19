@@ -6,6 +6,7 @@
 #include "qsvgnode_p.h"
 #include "qsvgdocument_p.h"
 #include "qsvggraphics_p.h"
+#include <QtSvg/private/qsvgpaintserver_p.h>
 
 #include <QLoggingCategory>
 #include<QElapsedTimer>
@@ -18,6 +19,8 @@
 #include <vector>
 
 QT_BEGIN_NAMESPACE
+
+using namespace Qt::StringLiterals;
 
 #ifndef QT_NO_DEBUG
 Q_STATIC_LOGGING_CATEGORY(lcSvgTiming, "qt.svg.timing")
@@ -50,7 +53,7 @@ void QSvgNode::draw(QPainter *p, QSvgExtraStates &states)
                                                      : states.remainingNestedNodes - 1;
         QScopedValueRollback<quint8> nestedNodesGuard(states.remainingNestedNodes, remainingDepth);
         if (states.remainingNestedNodes == 0) {
-            qCWarning(lcSvgDraw) << "Too many nested nodes at" << qPrintable(typeName())
+            qCWarning(lcSvgDraw).noquote() << "Too many nested nodes at" << typeName()
                                  << "exceeding max nested limit of" << QtSvg::renderingMaxNestedNodes << "."
                                  << "Enable AssumeTrustedSource in QSvgHandler or set QT_SVG_DEFAULT_OPTIONS=2 to disable this check.";
             return;
@@ -58,9 +61,10 @@ void QSvgNode::draw(QPainter *p, QSvgExtraStates &states)
 
         applyStyle(p, states);
         applyAnimatedStyle(p, states);
-        QSvgNode *maskNode = this->hasMask() ? document()->namedNode(this->maskId()) : nullptr;
-        QSvgFilterContainer *filterNode = this->hasFilter() ? static_cast<QSvgFilterContainer*>(document()->namedNode(this->filterId()))
-                                                            : nullptr;
+        QSvgNode *maskNode = this->hasMask() ? states.doc()->namedNode(this->maskId()) : nullptr;
+        QSvgFilterContainer *filterNode = this->hasFilter()
+                ? static_cast<QSvgFilterContainer *>(states.doc()->namedNode(this->filterId()))
+                : nullptr;
         if (filterNode && filterNode->type() == QSvgNode::Filter && filterNode->supported()) {
             QTransform xf = p->transform();
             p->resetTransform();
@@ -200,60 +204,9 @@ bool QSvgNode::isDescendantOf(const QSvgNode *parent) const
     return false;
 }
 
-void QSvgNode::appendStyleProperty(QSvgStyleProperty *prop, const QString &id)
+void QSvgNode::appendStyleProperty(QSvgStylePropertyPtr prop)
 {
-    //qDebug()<<"appending "<<prop->type()<< " ("<< id <<") "<<"to "<<this<<this->type();
-    QSvgDocument *doc;
-    switch (prop->type()) {
-    case QSvgStyleProperty::QUALITY:
-        m_style.quality.reset(static_cast<QSvgQualityStyle*>(prop));
-        return;
-    case QSvgStyleProperty::FILL:
-        m_style.fill.reset(static_cast<QSvgFillStyle*>(prop));
-        return;
-    case QSvgStyleProperty::VIEWPORT_FILL:
-        m_style.viewportFill.reset(static_cast<QSvgViewportFillStyle*>(prop));
-        return;
-    case QSvgStyleProperty::FONT:
-        m_style.font.reset(static_cast<QSvgFontStyle*>(prop));
-        return;
-    case QSvgStyleProperty::STROKE:
-        m_style.stroke.reset(static_cast<QSvgStrokeStyle*>(prop));
-        return;
-    case QSvgStyleProperty::SOLID_COLOR:
-        m_style.solidColor.reset(static_cast<QSvgSolidColorStyle*>(prop));
-        doc = document();
-        if (doc && !id.isEmpty())
-            doc->addNamedStyle(id, m_style.solidColor);
-        return;
-    case QSvgStyleProperty::GRADIENT:
-        m_style.gradient.reset(static_cast<QSvgGradientStyle*>(prop));
-        doc = document();
-        if (doc && !id.isEmpty())
-            doc->addNamedStyle(id, m_style.gradient);
-        return;
-    case QSvgStyleProperty::PATTERN:
-        m_style.pattern.reset(static_cast<QSvgPatternStyle*>(prop));
-        doc = document();
-        if (doc && !id.isEmpty())
-            doc->addNamedStyle(id, m_style.pattern);
-        return;
-    case QSvgStyleProperty::TRANSFORM:
-        m_style.transform.reset(static_cast<QSvgTransformStyle*>(prop));
-        return;
-    case QSvgStyleProperty::OPACITY:
-        m_style.opacity.reset(static_cast<QSvgOpacityStyle*>(prop));
-        return;
-    case QSvgStyleProperty::COMP_OP:
-        m_style.compop.reset(static_cast<QSvgCompOpStyle*>(prop));
-        return;
-    case QSvgStyleProperty::OFFSET:
-        m_style.offset.reset(static_cast<QSvgOffsetStyle*>(prop));
-        return;
-    };
-    qCWarning(lcSvgDraw,
-              "QSvgNode: Trying to append unknown property %d",
-              int(prop->type()));
+    m_style.appendProperty(std::move(prop));
 }
 
 void QSvgNode::applyStyle(QPainter *p, QSvgExtraStates &states) const
@@ -300,80 +253,27 @@ void QSvgNode::revertStyleRecursive(QPainter *p, QSvgExtraStates &states) const
 
 void QSvgNode::applyAnimatedStyle(QPainter *p, QSvgExtraStates &states) const
 {
-    if (document()->animated())
+    if (states.doc()->animated())
         m_animatedStyle.apply(p, this, states);
 }
 
 void QSvgNode::revertAnimatedStyle(QPainter *p, QSvgExtraStates &states) const
 {
-    if (document()->animated())
+    if (states.doc()->animated())
         m_animatedStyle.revert(p, states);
 }
 
-QSvgStyleProperty * QSvgNode::styleProperty(QSvgStyleProperty::Type type) const
+QSvgStyleProperty *QSvgNode::styleProperty(QSvgStyleProperty::Type type) const
 {
     const QSvgNode *node = this;
     while (node) {
-        switch (type) {
-        case QSvgStyleProperty::QUALITY:
-            if (node->m_style.quality)
-                return node->m_style.quality;
-            break;
-        case QSvgStyleProperty::FILL:
-            if (node->m_style.fill)
-                return node->m_style.fill;
-            break;
-        case QSvgStyleProperty::VIEWPORT_FILL:
-            if (m_style.viewportFill)
-                return node->m_style.viewportFill;
-            break;
-        case QSvgStyleProperty::FONT:
-            if (node->m_style.font)
-                return node->m_style.font;
-            break;
-        case QSvgStyleProperty::STROKE:
-            if (node->m_style.stroke)
-                return node->m_style.stroke;
-            break;
-        case QSvgStyleProperty::SOLID_COLOR:
-            if (node->m_style.solidColor)
-                return node->m_style.solidColor;
-            break;
-        case QSvgStyleProperty::GRADIENT:
-            if (node->m_style.gradient)
-                return node->m_style.gradient;
-            break;
-        case QSvgStyleProperty::PATTERN:
-            if (node->m_style.pattern)
-                return node->m_style.pattern;
-            break;
-        case QSvgStyleProperty::TRANSFORM:
-            if (node->m_style.transform)
-                return node->m_style.transform;
-            break;
-        case QSvgStyleProperty::OPACITY:
-            if (node->m_style.opacity)
-                return node->m_style.opacity;
-            break;
-        case QSvgStyleProperty::COMP_OP:
-            if (node->m_style.compop)
-                return node->m_style.compop;
-            break;
-        default:
-            break;
-        }
+        if (QSvgStyleProperty *prop = node->m_style.property(type))
+            return prop;
+
         node = node->parent();
     }
 
-    return 0;
-}
-
-QSvgPaintStyleProperty *QSvgNode::styleProperty(QStringView id) const
-{
-    if (id.startsWith(QLatin1Char('#')))
-        id.slice(1);
-    QSvgDocument *doc = document();
-    return doc ? doc->namedStyle(id.toString()) : 0;
+    return nullptr;
 }
 
 QRectF QSvgNode::internalFastBounds(QPainter *p, QSvgExtraStates &states) const
@@ -386,7 +286,7 @@ QRectF QSvgNode::internalBounds(QPainter *, QSvgExtraStates &) const
     return QRectF(0, 0, 0, 0);
 }
 
-QRectF QSvgNode::bounds() const
+QRectF QSvgNode::bounds(const QSvgDocument *doc) const
 {
     if (!m_cachedBounds.isEmpty())
         return m_cachedBounds;
@@ -394,7 +294,7 @@ QRectF QSvgNode::bounds() const
     QImage dummy(1, 1, QImage::Format_RGB32);
     QPainter p(&dummy);
     initPainter(&p);
-    QSvgExtraStates states;
+    QSvgExtraStates states(doc);
 
     if (parent())
         parent()->applyStyleRecursive(&p, states);
@@ -417,44 +317,45 @@ QSvgDocument * QSvgNode::document() const
     return doc;
 }
 
-QString QSvgNode::typeName() const
+QLatin1StringView QSvgNode::typeName() const
 {
     switch (type()) {
-        case Doc: return QStringLiteral("svg");
-        case Group: return QStringLiteral("g");
-        case Defs: return QStringLiteral("defs");
-        case Switch: return QStringLiteral("switch");
-        case AnimateColor: return QStringLiteral("animateColor");
-        case AnimateTransform: return QStringLiteral("animateTransform");
-        case Circle: return QStringLiteral("circle");
-        case Ellipse: return QStringLiteral("ellipse");
-        case Image: return QStringLiteral("image");
-        case Line: return QStringLiteral("line");
-        case Path: return QStringLiteral("path");
-        case Polygon: return QStringLiteral("polygon");
-        case Polyline: return QStringLiteral("polyline");
-        case Rect: return QStringLiteral("rect");
-        case Text: return QStringLiteral("text");
-        case Textarea: return QStringLiteral("textarea");
-        case Tspan: return QStringLiteral("tspan");
-        case Use: return QStringLiteral("use");
-        case Video: return QStringLiteral("video");
-        case Mask: return QStringLiteral("mask");
-        case Symbol: return QStringLiteral("symbol");
-        case Marker: return QStringLiteral("marker");
-        case Pattern: return QStringLiteral("pattern");
-        case Filter: return QStringLiteral("filter");
-        case FeMerge: return QStringLiteral("feMerge");
-        case FeMergenode: return QStringLiteral("feMergeNode");
-        case FeColormatrix: return QStringLiteral("feColorMatrix");
-        case FeGaussianblur: return QStringLiteral("feGaussianBlur");
-        case FeOffset: return QStringLiteral("feOffset");
-        case FeComposite: return QStringLiteral("feComposite");
-        case FeFlood: return QStringLiteral("feFlood");
-        case FeBlend: return QStringLiteral("feBlend");
-        case FeUnsupported: return QStringLiteral("feUnsupported");
+    case Doc: return "svg"_L1;
+    case Group: return "g"_L1;
+    case Defs: return "defs"_L1;
+    case Switch: return "switch"_L1;
+    case AnimateColor: return "animateColor"_L1;
+    case AnimateTransform: return "animateTransform"_L1;
+    case Circle: return "circle"_L1;
+    case Ellipse: return "ellipse"_L1;
+    case Image: return "image"_L1;
+    case Line: return "line"_L1;
+    case Path: return "path"_L1;
+    case Polygon: return "polygon"_L1;
+    case Polyline: return "polyline"_L1;
+    case Rect: return "rect"_L1;
+    case Text: return "text"_L1;
+    case Textarea: return "textarea"_L1;
+    case Tspan: return "tspan"_L1;
+    case Use: return "use"_L1;
+    case Video: return "video"_L1;
+    case Mask: return "mask"_L1;
+    case Symbol: return "symbol"_L1;
+    case Marker: return "marker"_L1;
+    case Pattern: return "pattern"_L1;
+    case Filter: return "filter"_L1;
+    case FeMerge: return "feMerge"_L1;
+    case FeMergenode: return "feMergeNode"_L1;
+    case FeColormatrix: return "feColorMatrix"_L1;
+    case FeGaussianblur: return "feGaussianBlur"_L1;
+    case FeOffset: return "feOffset"_L1;
+    case FeComposite: return "feComposite"_L1;
+    case FeFlood: return "feFlood"_L1;
+    case FeBlend: return "feBlend"_L1;
+    case FeUnsupported: return "feUnsupported"_L1;
+    case Font: return "font"_L1;
     }
-    return QStringLiteral("unknown");
+    return "unknown"_L1;
 }
 
 void QSvgNode::setRequiredFeatures(const QStringList &lst)
@@ -529,7 +430,7 @@ QRectF QSvgNode::bounds(QPainter *p, QSvgExtraStates &states) const
 
 QRectF QSvgNode::decoratedInternalBounds(QPainter *p, QSvgExtraStates &states) const
 {
-    return filterRegion(internalBounds(p, states));
+    return filterRegion(states.doc(), internalBounds(p, states));
 }
 
 QRectF QSvgNode::decoratedBounds(QPainter *p, QSvgExtraStates &states) const
@@ -686,7 +587,7 @@ bool QSvgNode::shouldDrawNode(QPainter *p, QSvgExtraStates &states) const
     if (m_displayMode == DisplayMode::NoneMode)
         return false;
 
-    if (document() && states.trustedSource)
+    if (states.doc() && states.trustedSource)
         return true;
 
     QRectF brect = internalFastBounds(p, states);
@@ -699,11 +600,10 @@ bool QSvgNode::shouldDrawNode(QPainter *p, QSvgExtraStates &states) const
     }
 }
 
-QRectF QSvgNode::filterRegion(QRectF bounds) const
+QRectF QSvgNode::filterRegion(const QSvgDocument *doc, QRectF bounds) const
 {
-    QSvgFilterContainer *filterNode = hasFilter()
-            ? static_cast<QSvgFilterContainer*>(document()->namedNode(filterId()))
-            : nullptr;
+    QSvgFilterContainer *filterNode =
+            hasFilter() ? static_cast<QSvgFilterContainer *>(doc->namedNode(filterId())) : nullptr;
 
     if (filterNode && filterNode->type() == QSvgNode::Filter && filterNode->supported())
         return filterNode->filterRegion(bounds);

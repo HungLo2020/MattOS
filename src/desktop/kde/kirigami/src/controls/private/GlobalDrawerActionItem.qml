@@ -8,7 +8,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls as QQC2
-import QtQuick.Controls.impl as QQC2Impl
 import QtQuick.Layouts
 import QtQuick.Templates as T
 import org.kde.kirigami.platform as Platform
@@ -19,6 +18,7 @@ QQC2.ItemDelegate {
     id: listItem
 
     required property T.Action tAction
+    required property bool drawerCollapsed
     // `as` case operator is still buggy
     readonly property KC.Action kAction: tAction as KC.Action
 
@@ -28,6 +28,9 @@ QQC2.ItemDelegate {
     readonly property bool hasChildren: kAction ? kAction.children.length > 0 : false
     readonly property bool hasVisibleMenu: actionsMenu?.visible ?? false
     readonly property bool hasToolTip: kAction ? kAction.tooltip !== "" : false
+
+    signal actionsMenuVisibleChanged(bool visible)
+    signal actionTriggered
 
     checked: checkedBinding()
     highlighted: checked
@@ -51,12 +54,13 @@ QQC2.ItemDelegate {
             visible: source !== undefined && !listItem.isSeparator
         }
 
-        QQC2Impl.MnemonicLabel {
+        QQC2.Label {
             id: labelItem
             visible: !listItem.isSeparator
-            text: width > height * 2 ? listItem.Primitives.MnemonicData.mnemonicLabel : ""
+            text: width > height * 2 ? listItem.Primitives.MnemonicData.richTextLabel : ""
             Accessible.name: listItem.Primitives.MnemonicData.plainTextLabel
             Layout.preferredWidth: metrics.width
+            Layout.preferredHeight: metrics.height
             Layout.minimumWidth: 0
             // Work around Qt bug where left aligned text is not right aligned
             // in RTL mode unless horizontalAlignment is explicitly set.
@@ -64,12 +68,11 @@ QQC2.ItemDelegate {
             horizontalAlignment: Text.AlignLeft
 
             Layout.fillWidth: true
-            mnemonicVisible: listItem.Primitives.MnemonicData.active
             color: (listItem.highlighted || listItem.checked || listItem.down) ? Platform.Theme.highlightedTextColor : Platform.Theme.textColor
             elide: Text.ElideRight
             font: listItem.font
             opacity: {
-                if (root.collapsed) {
+                if (listItem.drawerCollapsed) {
                     return 0;
                 } else if (!listItem.enabled) {
                     return 0.75;
@@ -100,13 +103,13 @@ QQC2.ItemDelegate {
         Primitives.Icon {
             isMask: true
             Layout.alignment: Qt.AlignVCenter
-            Layout.leftMargin: !root.collapsed ? 0 : -width
-            Layout.preferredHeight: !root.collapsed ? Platform.Units.iconSizes.small : Platform.Units.iconSizes.small/2
+            Layout.leftMargin: !listItem.drawerCollapsed ? 0 : -width
+            Layout.preferredHeight: !listItem.drawerCollapsed ? Platform.Units.iconSizes.small : Platform.Units.iconSizes.small/2
             opacity: 0.75
             selected: listItem.checked || listItem.down
             Layout.preferredWidth: Layout.preferredHeight
             source: listItem.mirrored ? "go-next-symbolic-rtl" : "go-next-symbolic"
-            visible: (!listItem.isExpandable || root.collapsed) && !listItem.isSeparator && listItem.hasChildren
+            visible: (!listItem.isExpandable || listItem.drawerCollapsed) && !listItem.isSeparator && listItem.hasChildren
         }
     }
 
@@ -125,18 +128,12 @@ QQC2.ItemDelegate {
         actions: listItem.kAction?.children ?? []
         submenuComponent: ActionsMenu {}
 
-        onVisibleChanged: {
-            if (visible) {
-                stackView.openSubMenu = listItem.actionsMenu;
-            } else if (stackView.openSubMenu === listItem.actionsMenu) {
-                stackView.openSubMenu = null;
-            }
-        }
+        onVisibleChanged: listItem.actionsMenuVisibleChanged(visible)
     }
 
     // TODO: animate the hide by collapse
     visible: actionVisible && opacity > 0
-    opacity: !root.collapsed || iconItem.source.toString().length > 0
+    opacity: !listItem.drawerCollapsed || iconItem.source.toString().length > 0
 
     Behavior on opacity {
         NumberAnimation {
@@ -147,13 +144,13 @@ QQC2.ItemDelegate {
 
     enabled: tAction?.enabled ?? false
 
-    hoverEnabled: (!isExpandable || root.collapsed) && !Platform.Settings.tabletMode && !isSeparator
+    hoverEnabled: (!isExpandable || listItem.drawerCollapsed) && !Platform.Settings.tabletMode && !isSeparator
     font.pointSize: isExpandable ? Platform.Theme.defaultFont.pointSize * 1.30 : Platform.Theme.defaultFont.pointSize
     height: implicitHeight * opacity
 
     QQC2.ToolTip {
         visible: !listItem.isSeparator
-            && (listItem.hasToolTip || root.collapsed)
+            && (listItem.hasToolTip || listItem.drawerCollapsed)
             && !listItem.hasVisibleMenu
             && listItem.hovered
             && text.length > 0
@@ -164,19 +161,6 @@ QQC2.ItemDelegate {
         x: Application.layoutDirection === Qt.RightToLeft ? -width : listItem.width
     }
 
-    onHoveredChanged: {
-        if (!hovered) {
-            return;
-        }
-        if (stackView.openSubMenu) {
-            stackView.openSubMenu.visible = false;
-
-            if (actionsMenu.count > 0) {
-                actionsMenu.popup(this, width, 0);
-            }
-        }
-    }
-
     onClicked: trigger()
     Accessible.onPressAction: trigger()
     Keys.onEnterPressed: event => trigger()
@@ -184,23 +168,8 @@ QQC2.ItemDelegate {
 
     function trigger() {
         tAction?.trigger();
+        listItem.actionTriggered()
 
-        if (hasChildren) {
-            if (root.collapsed) {
-                if (actionsMenu.count > 0 && !actionsMenu.visible) {
-                    stackView.openSubMenu = actionsMenu;
-                    actionsMenu.popup(this, width, 0);
-                }
-            } else {
-                stackView.push(menuComponent, {
-                    model: kAction?.children ?? [],
-                    level: level + 1,
-                    current: tAction,
-                });
-            }
-        } else if (root.resetMenuOnTriggered) {
-            root.resetMenu();
-        }
         checked = Qt.binding(() => checkedBinding());
     }
 

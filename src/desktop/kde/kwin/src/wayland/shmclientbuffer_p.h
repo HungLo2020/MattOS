@@ -7,9 +7,9 @@
 #pragma once
 
 #include "core/graphicsbuffer.h"
-#include "wayland/shmclientbuffer.h"
 #include "utils/filedescriptor.h"
 #include "utils/memorymap.h"
+#include "wayland/shmclientbuffer.h"
 
 #include "qwayland-server-wayland.h"
 
@@ -71,6 +71,10 @@ public:
     QSize size() const override;
     bool hasAlphaChannel() const override;
     const ShmAttributes *shmAttributes() const override;
+    const DmaBufAttributes *udmabufAttributes() const override;
+    uint32_t format() const override;
+    uint64_t modifier() const override;
+    uint32_t pitch() const override;
 
     static ShmClientBuffer *get(wl_resource *resource);
 
@@ -78,10 +82,13 @@ private:
     static void buffer_destroy_resource(wl_resource *resource);
     static void buffer_destroy(wl_client *client, wl_resource *resource);
     static const struct wl_buffer_interface implementation;
+    void onReferenced();
+    void onReleased();
 
     wl_resource *m_resource = nullptr;
     ShmPool *m_shmPool;
     ShmAttributes m_shmAttributes;
+    std::optional<DmaBufAttributes> m_udmabufAttributes;
     std::optional<ShmAccess> m_shmAccess;
 };
 

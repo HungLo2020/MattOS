@@ -30,6 +30,9 @@ TestCase {
         function clickFirst() {
             (userList.itemAtIndex(0) as QQC.ItemDelegate).clicked();
         }
+        function firstItemReady(): bool {
+            return userList.itemAtIndex(0) !== null;
+        }
         property alias view: scroll.view
         view: ListView {
             id: userList
@@ -104,7 +107,11 @@ TestCase {
     }
 
     function test_defaultFocusInScrollablePage() {
-        (mainWindow.pageStack.currentItem as FirstPage).clickFirst();
+        const firstPage = mainWindow.pageStack.currentItem as FirstPage;
+        // The ListView creates its delegate asynchronously, so wait until the first item exists
+        // before clicking it. Otherwise itemAtIndex(0) returns null and the click throws.
+        tryVerify(() => firstPage.firstItemReady());
+        firstPage.clickFirst();
         if (!(mainWindow.pageStack.currentItem instanceof Kirigami.ScrollablePage)) {
             currentItemChangedSpy.wait()
         }

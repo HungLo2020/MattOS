@@ -1103,6 +1103,32 @@ uint qt_hash(QStringView key, uint chained) noexcept
 */
 
 /*!
+    \fn template <typename T> size_t qHash(std::nullopt_t key, size_t seed = 0)
+    \since 6.12
+    \qhashbuiltin
+
+    \sa qHash(const std::optional<T> &, size_t)
+*/
+
+/*!
+    \fn template <typename T> size_t qHash(const std::optional<T> &key, size_t seed = 0)
+    \since 6.12
+    \qhashbuiltinT{T}
+
+    This is equivalent to
+    \code
+    key ? qHash(*key, seed) : qHash(std::nullopt, seed);
+    \endcode
+
+    In particular, if \a key is engaged (\c{has_value()}), the hash value of \a
+    key is guaranteed to be the same as that of \c{key.value()}, and all
+    disengaged (\c{!has_value()}) optionals, of any type, hash to the same
+    value.
+
+    \sa qHash(std::nullopt_t, size_t)
+*/
+
+/*!
     \fn template <typename... T> size_t qHashMulti(size_t seed, const T &...args)
     \relates QHash
     \since 6.0
@@ -1485,12 +1511,14 @@ size_t qHash(long double key, size_t seed) noexcept
 
     \ingroup tools
     \ingroup shared
+    \ingroup containers
 
     \reentrant
 
-    QHash\<Key, T\> is one of Qt's generic \l{container classes}. It
-    stores (key, value) pairs and provides very fast lookup of the
-    value associated with a key.
+    QHash\<Key, T\> is one of Qt's generic \l{container classes}, where
+    \a Key is the type used for lookup keys and \a T is the mapped value
+    type. It stores (key, value) pairs and provides very fast lookup of
+    the value associated with a key.
 
     QHash provides very similar functionality to QMap. The
     differences are:
@@ -3071,10 +3099,12 @@ size_t qHash(long double key, size_t seed) noexcept
 
     \ingroup tools
     \ingroup shared
+    \ingroup containers
 
     \reentrant
 
-    QMultiHash\<Key, T\> is one of Qt's generic \l{container classes}.
+    QMultiHash\<Key, T\> is one of Qt's generic \l{container classes}, where
+    \a Key is the type used for lookup keys and \a T is the mapped value type.
     It provides a hash table that allows multiple values for the same key.
 
     QMultiHash mostly mirrors QHash's API. For example, you can use isEmpty() to test

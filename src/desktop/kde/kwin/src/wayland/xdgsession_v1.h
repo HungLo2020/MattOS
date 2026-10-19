@@ -63,6 +63,7 @@ public:
     void write(const QString &toplevelId, const QVariant &value);
     void remove();
     void remove(const QString &toplevelId);
+    void rename(const QString &oldToplevelId, const QString &newToplevelId);
 
 private:
     std::unique_ptr<XdgSessionDataV1Private> d;
@@ -177,6 +178,7 @@ public:
 
 private:
     std::unique_ptr<XdgToplevelSessionV1InterfacePrivate> d;
+    friend class XdgApplicationSessionV1InterfacePrivate;
     friend class XdgToplevelSessionV1InterfacePrivate;
 };
 

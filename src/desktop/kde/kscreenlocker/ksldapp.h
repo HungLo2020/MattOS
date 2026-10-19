@@ -43,9 +43,7 @@ enum class EstablishLock {
  **/
 QString establishLockToString(EstablishLock establishLock);
 
-class AbstractLocker;
-class WaylandServer;
-
+class EmergencyWindow;
 /**
  * @class KSldApp
  * @brief The KSldApp class represents the application responsible for screen locking.
@@ -68,11 +66,7 @@ public:
      * @brief The LockState enum represents the current state of the screen lock.
      */
     enum LockState {
-        /** The screen is unlocked. */
         Unlocked,
-        /** The screen is in the process of being locked. */
-        AcquiringLock,
-        /** The screen is locked. */
         Locked,
     };
     Q_ENUM(LockState)
@@ -166,9 +160,8 @@ public:
      * If the lock is successfully established, it shows the lock window, starts the lock process, and emits the lockStateChanged() signal.
      *
      * @param establishLock The type of lock to establish (eg. immediate or delayed).
-     * @param attemptCount The number of attempts made to establish the lock.
      */
-    void lock(EstablishLock establishLock, int attemptCount = 0);
+    void lock(EstablishLock establishLock);
 
     /**
      * @brief Initializes the KSldApp object.
@@ -278,30 +271,7 @@ private Q_SLOTS:
      */
     void solidSuspend();
 
-public Q_SLOTS:
-
-    /**
-     * @brief Called when the lock screen is shown.
-     *
-     * Updates the lock state and emits signals to inform other components.
-     */
-    void lockScreenShown();
-
 private:
-    /**
-     * @brief Initializes the X11 environment for the KSldApp.
-     */
-    void initializeX11();
-
-    /**
-     * @brief Establishes the grab for keyboard and mouse input.
-     *
-     * Ensures that only the lock window receives keyboard and mouse input.
-     *
-     * @return True if the grab is successfully established, false otherwise.
-     */
-    bool establishGrab();
-
     /**
      * @brief Starts the lock process.
      *
@@ -312,19 +282,6 @@ private:
      * @param establishLock The type of lock to establish (eg. immediate or delayed).
      */
     void startLockProcess(EstablishLock establishLock);
-
-    /**
-     * @brief Shows the lock window.
-     *
-     * Creates the lock window if it doesn't exist and sets up the necessary
-     * connections.
-     */
-    void showLockWindow();
-
-    /**
-     * @brief Hides the lock window.
-     */
-    void hideLockWindow();
 
     /**
      * @brief Performs the unlocking operation.
@@ -356,14 +313,9 @@ private:
     QProcess *m_lockProcess;
 
     /**
-     * The lock window used to display the lock screen.
+     * The lock window used to display the "The screen locker is broken" message
      **/
-    AbstractLocker *m_lockWindow;
-
-    /**
-     * The Wayland server instance used by the lock window.
-     **/
-    WaylandServer *m_waylandServer;
+    std::unique_ptr<EmergencyWindow> m_emergencyLockWindow;
 
     /**
      * Timer to measure how long the screen is locked.
@@ -411,24 +363,9 @@ private:
     GlobalAccel *m_globalAccel = nullptr;
 
     /**
-     * @brief Whether the XInput2 extension is available.
-     */
-    bool m_hasXInput2 = false;
-
-    /**
      * @brief Whether software rendering should be forced.
      */
     bool m_forceSoftwareRendering = false;
-
-    /**
-     * @brief Whether the application is running on X11.
-     */
-    bool m_isX11;
-
-    /**
-     * @brief Whether the application is running on Wayland.
-     */
-    bool m_isWayland;
 
     /**
      * @brief Counter for tracking the number of times the greeter has crashed.

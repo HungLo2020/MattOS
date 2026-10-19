@@ -455,6 +455,12 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/libraries/lm-sensors",
             "src/tools/mattos-build/src/stages/foundation_libraries.rs",
         ],
+        BuildStage::CxxRustCssparser => &["src/system/libraries/cxx-rust-cssparser", "src/tools/mattos-build/src/stages/kde_stack.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::Union => &["src/desktop/kde/union", "src/tools/mattos-build/src/stages/kde_stack.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::QtKeychain => &["upstream/patches/qtkeychain", "src/system/libraries/qtkeychain", "src/tools/mattos-build/src/stages/kde_stack.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::Leptonica => &["upstream/patches/leptonica", "src/system/libraries/leptonica", "src/tools/mattos-build/src/stages/kde_stack.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::Tesseract => &["src/system/libraries/tesseract", "src/tools/mattos-build/src/stages/kde_stack.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::TessdataFast => &["src/system/libraries/tessdata-fast", "src/tools/mattos-build/src/stages/kde_stack.rs"],
         BuildStage::Highway => &[
             "src/system/libraries/highway",
             "src/tools/mattos-build/src/stages/foundation_libraries.rs",
@@ -520,6 +526,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
         ],
         BuildStage::PlasmaSystemMonitor => &[
+            "upstream/patches/plasma-systemmonitor",
             "src/desktop/kde/plasma-systemmonitor",
             "src/tools/mattos-build/src/stages/plasma_apps.rs",
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
@@ -1395,6 +1402,9 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
             "python3",
             "patch",
         ],
+        BuildStage::TessdataFast => &[],
+        BuildStage::CxxRustCssparser => &["cargo", "rustc", "gcc", "g++", "ld", "cmake", "ninja", "git"],
+        BuildStage::Union | BuildStage::QtKeychain | BuildStage::Leptonica | BuildStage::Tesseract => &["gcc", "g++", "ld", "cmake", "ninja", "pkg-config"],
         stage if is_rust_stage(stage) => &["cargo", "rustc", "gcc", "ld"],
         _ => &["gcc", "g++", "as", "ld", "make"],
     };

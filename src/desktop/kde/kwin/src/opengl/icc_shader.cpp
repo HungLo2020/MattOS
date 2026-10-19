@@ -18,8 +18,16 @@ namespace KWin
 
 static constexpr size_t lutSize = 1 << 12;
 
-IccShader::IccShader()
-    : m_shader(ShaderManager::instance()->generateShaderFromFile(ShaderTrait::MapTexture, QString(), QStringLiteral(":/opengl/icc.frag")))
+std::unique_ptr<IccShader> IccShader::create()
+{
+    if (auto shader = ShaderManager::instance()->generateShaderFromFile(ShaderTrait::MapTexture, QString(), QStringLiteral(":/opengl/icc.frag"))) {
+        return std::make_unique<IccShader>(std::move(shader));
+    }
+    return nullptr;
+}
+
+IccShader::IccShader(std::unique_ptr<GLShader> &&shader)
+    : m_shader(std::move(shader))
 {
     m_locations = {
         .src = m_shader->uniformLocation("src"),
@@ -40,7 +48,7 @@ IccShader::~IccShader()
 {
 }
 
-bool IccShader::setProfile(const std::shared_ptr<IccProfile> &profile, const std::shared_ptr<ColorDescription> &inputColor, RenderingIntent intent)
+bool IccShader::setProfile(const std::shared_ptr<IccProfile> &profile, const std::shared_ptr<ColorDescription> &inputColor, const Colorimetry &wireColor, const TransferFunction::Type &wireTransfer, RenderingIntent intent)
 {
     if (!profile) {
         m_toXYZD50.setToIdentity();
@@ -100,6 +108,10 @@ bool IccShader::setProfile(const std::shared_ptr<IccProfile> &profile, const std
             if (it != tag->ops.end() && std::holds_alternative<ColorMatrix>(it->operation)) {
                 matrix2 = std::get<ColorMatrix>(it->operation).mat;
                 it++;
+            } else if (it != tag->ops.end() && std::holds_alternative<ColorMultiplier>(it->operation)) {
+                const auto mult = std::get<ColorMultiplier>(it->operation).factors;
+                matrix2.scale(mult);
+                it++;
             }
             if (it != tag->ops.end() && std::holds_alternative<std::shared_ptr<ColorTransformation>>(it->operation)) {
                 const auto sample = [&op = std::get<std::shared_ptr<ColorTransformation>>(it->operation)](size_t x) {
@@ -148,16 +160,25 @@ bool IccShader::setProfile(const std::shared_ptr<IccProfile> &profile, const std
                 qCCritical(KWIN_OPENGL, "Couldn't represent ICC profile in the ICC shader!");
                 return false;
             }
+        } else if (profile->hasMHC2Tag()) {
+            toXYZD50 = wireColor.fromXYZ() * profile->mhc2Matrix() * inputColor->containerColorimetry().toXYZ();
+
+            TransferFunction wireTF(wireTransfer, 0, 1);
+            const auto sample = [&wireTF, &vcgt](size_t x) {
+                const float relativeX = x / double(lutSize - 1);
+                QVector3D ret(relativeX, relativeX, relativeX);
+                ret = wireTF.nitsToEncoded(ret);
+                if (vcgt) {
+                    ret = vcgt->transform(ret);
+                }
+                return ret;
+            };
+            A = GlLookUpTable::create(sample, lutSize);
+            if (!A) {
+                return false;
+            }
         } else {
             toXYZD50 = linearizedInput.toOther(linearizedProfile, intent);
-
-            if (!profile->mhc2Matrix().isIdentity()) {
-                // The pipeline for MHC2 is quite weird:
-                // SourceRGBtoXYZ -> XYZtoXYZAdjust -> XYZtoTargetRGB
-                // "TargetRGB" is BT.709 or BT.2020, not the actual target primaries.
-                // As this code path is only used for SDR, we always use BT.709
-                toXYZD50 = Colorimetry::BT709.fromXYZ() * profile->mhc2Matrix() * linearizedProfile.containerColorimetry().toXYZ();
-            }
 
             const auto inverseEOTF = profile->inverseTransferFunction();
             const auto sample = [inverseEOTF, vcgt](size_t x) {
@@ -192,21 +213,31 @@ GLShader *IccShader::shader() const
     return m_shader.get();
 }
 
-void IccShader::setUniforms(const std::shared_ptr<IccProfile> &profile, const std::shared_ptr<ColorDescription> &inputColor, RenderingIntent intent)
+void IccShader::setUniforms(const std::shared_ptr<IccProfile> &profile, const std::shared_ptr<ColorDescription> &inputColor, const Colorimetry &wireColor, const TransferFunction::Type &wireTransfer, RenderingIntent intent)
 {
     // this failing can be silently ignored, it should only happen with GPU resets and gets corrected later
-    setProfile(profile, inputColor, intent);
+    setProfile(profile, inputColor, wireColor, wireTransfer, intent);
 
     m_shader->setUniform(m_locations.toXYZD50, m_toXYZD50);
     m_shader->setUniform(GLShader::IntUniform::SourceNamedTransferFunction, inputColor->transferFunction().type);
     if (inputColor->transferFunction().type == TransferFunction::BT1886) {
-        m_shader->setUniform(GLShader::Vec2Uniform::SourceTransferFunctionParams, QVector2D(inputColor->transferFunction().bt1886B(), inputColor->transferFunction().bt1886A()));
+        m_shader->setUniform(GLShader::Vec2Uniform::SourceTransferFunctionParams,
+                             QVector2D(inputColor->transferFunction().bt1886B(), inputColor->transferFunction().bt1886A()));
+    } else if (inputColor->transferFunction().type == TransferFunction::HLG) {
+        m_shader->setUniform(GLShader::Vec2Uniform::SourceTransferFunctionParams,
+                             QVector2D(inputColor->transferFunction().hlgBeta(), inputColor->transferFunction().maxLuminance));
     } else {
-        m_shader->setUniform(GLShader::Vec2Uniform::SourceTransferFunctionParams, QVector2D(inputColor->transferFunction().minLuminance, inputColor->transferFunction().maxLuminance - inputColor->transferFunction().minLuminance));
+        m_shader->setUniform(GLShader::Vec2Uniform::SourceTransferFunctionParams,
+                             QVector2D(inputColor->transferFunction().minLuminance,
+                                       inputColor->transferFunction().maxLuminance - inputColor->transferFunction().minLuminance));
     }
     m_shader->setUniform(GLShader::FloatUniform::SourceReferenceLuminance, inputColor->referenceLuminance());
     m_shader->setUniform(GLShader::FloatUniform::DestinationReferenceLuminance, inputColor->referenceLuminance());
-    m_shader->setUniform(GLShader::FloatUniform::MaxDestinationLuminance, inputColor->transferFunction().maxLuminance);
+    if (wireTransfer == TransferFunction::Type::PerceptualQuantizer && profile->hasMHC2Tag()) {
+        m_shader->setUniform(GLShader::FloatUniform::MaxDestinationLuminance, 10'000);
+    } else {
+        m_shader->setUniform(GLShader::FloatUniform::MaxDestinationLuminance, inputColor->transferFunction().maxLuminance);
+    }
 
     glActiveTexture(GL_TEXTURE1);
     if (m_B) {
@@ -216,7 +247,7 @@ void IccShader::setUniforms(const std::shared_ptr<IccProfile> &profile, const st
     } else {
         m_shader->setUniform(m_locations.bsize, 0);
         m_shader->setUniform(m_locations.bsampler, 1);
-        glBindTexture(GL_TEXTURE_1D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     m_shader->setUniform(m_locations.matrix2, m_matrix2);
@@ -229,7 +260,7 @@ void IccShader::setUniforms(const std::shared_ptr<IccProfile> &profile, const st
     } else {
         m_shader->setUniform(m_locations.msize, 0);
         m_shader->setUniform(m_locations.msampler, 1);
-        glBindTexture(GL_TEXTURE_1D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     glActiveTexture(GL_TEXTURE3);
@@ -251,7 +282,7 @@ void IccShader::setUniforms(const std::shared_ptr<IccProfile> &profile, const st
     } else {
         m_shader->setUniform(m_locations.asize, 0);
         m_shader->setUniform(m_locations.asampler, 4);
-        glBindTexture(GL_TEXTURE_1D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     glActiveTexture(GL_TEXTURE0);

@@ -60,6 +60,31 @@ if(QT_FEATURE_wizard)
     )
 endif()
 
+if(QT_FEATURE_graphicseffect)
+    target_sources(widgets_snippets_code PRIVATE
+        src_gui_effects_qgraphicseffect.cpp
+    )
+endif()
+
+if(QT_FEATURE_graphicsview)
+    target_sources(widgets_snippets_code PRIVATE
+        src_gui_graphicsview_qgraphicsgridlayout.cpp
+        src_gui_graphicsview_qgraphicsitem.cpp
+        src_gui_graphicsview_qgraphicslinearlayout.cpp
+        src_gui_graphicsview_qgraphicsproxywidget.cpp
+        src_gui_graphicsview_qgraphicssceneevent.cpp
+        src_gui_graphicsview_qgraphicswidget.cpp
+    )
+    if(QT_FEATURE_printsupport)
+        target_link_libraries(widgets_snippets_code PRIVATE
+            Qt::PrintSupport
+        )
+        target_sources(widgets_snippets_code PRIVATE
+            src_gui_graphicsview_qgraphicsscene.cpp
+        )
+    endif()
+endif()
+
 set_target_properties(widgets_snippets_code PROPERTIES COMPILE_OPTIONS "-w")
 
 if ("${CMAKE_CXX_COMPILE_FEATURES}" MATCHES "cxx_std_23")

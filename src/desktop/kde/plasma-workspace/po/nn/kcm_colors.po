@@ -2,20 +2,21 @@
 #
 # Gaute Hvoslef Kvalnes <gaute@verdsveven.com>, 1999, 2000, 2002, 2003, 2004, 2005.
 # Håvard Korsvoll <korsvoll@skulelinux.no>, 2003, 2007.
+# Karl Ove Hufthammer <karl@huftis.org>, 2007, 2008, 2010, 2012, 2015, 2016, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2026.
 # Eirik U. Birkeland <eirbir@gmail.com>, 2008, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmcolors\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2026-03-01 19:32+0100\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-09-25 17:23+0200\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <l10n-no@lister.huftis.org>\n"
+"Language-Team: Norwegian Nynorsk <l10n-no@nuug.no>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 26.03.70\n"
+"X-Generator: Lokalize 26.08.1\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
@@ -31,41 +32,41 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "gaute@verdsveven.com,eirbir@gmail.com,karl@huftis.org"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "Klarte ikkje laga mellombels fil."
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
-msgstr "Klarte ikkje lasta ned fargeoppsett-arkivet: %1"
+msgstr "Klarte ikkje lasta ned fargetema-arkivet: %1"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
-msgstr "Fila er ikkje ei gyldig fargeoppsett-fil."
+msgstr "Fila er ikkje ei gyldig fargetema-fil."
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "Klarte ikkje oppretta datamappa «color-scheme»."
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
-msgstr "Klarte ikkje kopiera fargeoppsettet til datamappa «color-scheme»."
+msgstr "Klarte ikkje kopiera fargetemaet til datamappa «color-scheme»."
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
-msgstr "Fargeoppsettet er no installert."
+msgstr "Fargetemaet er no installert."
 
 #. i18n: ectx: label, entry (colorScheme), group (General)
 #: colorssettings.kcfg:9
 #, kde-format
 msgid "Color scheme name"
-msgstr "Namn på fargeoppsett"
+msgstr "Namn på fargetema"
 
 #. i18n: ectx: label, entry (accentColor), group (General)
 #: colorssettings.kcfg:13
@@ -97,7 +98,7 @@ msgstr "KColorSchemeEditor"
 #: editor/kcolorschemeeditor.cpp:25
 #, kde-format
 msgid "Utility to edit and create color schemes"
-msgstr "Verktøy for å laga og redigera fargeoppsett"
+msgstr "Verktøy for å laga og redigera fargetema"
 
 #: editor/kcolorschemeeditor.cpp:27
 #, kde-format
@@ -148,7 +149,7 @@ msgstr ""
 #: editor/kcolorschemeeditor.cpp:55
 #, kde-format
 msgid "Scheme not found, falling back to current one.\n"
-msgstr "Fann ikkje fargeoppsett. Går tilbake til det gjelande.\n"
+msgstr "Fann ikkje fargetema. Går tilbake til det gjeldande.\n"
 
 #. i18n: ectx: property (toolTip), widget (QLabel, label)
 #: editor/preview.ui:29
@@ -444,7 +445,7 @@ msgstr "Vald farge:"
 #: editor/scmeditorcolors.ui:36
 #, kde-format
 msgid "Colorset to view/modify"
-msgstr "Fargeoppsett som skal visast/endrast"
+msgstr "Fargetema som skal visast/endrast"
 
 # Fargar som gjeld fleire kategoriar, ikkje «vanlege» fargar.
 #. i18n: 'Common' here means &quot;frequent/not rare&quot;, not &quot;shared&quot;
@@ -671,12 +672,12 @@ msgstr "Ulagra endringar"
 #: editor/scmeditordialog.cpp:117 editor/scmeditordialog.cpp:142
 #, kde-format
 msgid "Save Color Scheme"
-msgstr "Lagra fargeoppsett"
+msgstr "Lagra fargetema"
 
 #: editor/scmeditordialog.cpp:117
 #, kde-format
 msgid "&Enter a name for the color scheme:"
-msgstr "&Skriv inn eit namn på fargeoppsettet:"
+msgstr "&Skriv inn eit namn på fargetemaet:"
 
 #: editor/scmeditordialog.cpp:141
 #, kde-format
@@ -684,20 +685,22 @@ msgid ""
 "A color scheme with that name already exists.\n"
 "Do you want to overwrite it?"
 msgstr ""
-"Det finst alt eit fargeoppsett med dette namnet.\n"
+"Det finst alt eit fargetema med dette namnet.\n"
 "Vil du skriva over det?"
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "Du har ikkje løyve til å overskriva det oppsettet"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr ""
+"Dette fargetemaet er skriveverna. Lagra endringane under eit anna namn."
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "Feil"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "Inaktivt"
@@ -895,7 +898,7 @@ msgid ""
 "applications and color schemes. Consider yourself warned!"
 msgstr ""
 "Åtvaring: Kontrastverdiar under 15 % kan føra til visuelt rare effektar i "
-"nokre program og med nokre fargeoppsett."
+"nokre program og med nokre fargetema."
 
 #. i18n: ectx: property (suffix), widget (QDoubleSpinBox, contrastPercentageSpinBox)
 #: editor/scmeditoroptions.ui:109
@@ -1153,36 +1156,35 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "Fokus"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
 "without accidentally setting it to one that is either not available, or "
 "which is already set."
 msgstr ""
-"Dette verktøyet lèt deg velja fargeoppsett for den gjeldande Plasma-økta og "
-"hindrar deg i å velja eit oppsett som ikkje finst eller som alt er valt."
+"Dette verktøyet lèt deg velja fargetema for den gjeldande Plasma-økta og "
+"hindrar deg i å velja eit tema som ikkje finst eller som alt er valt."
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
 "(passing a full path will only use the last part of the path)"
 msgstr ""
-"Namnet på fargeoppsettet du vil bruka for gjeldande Plasma-økt (viss du "
-"oppgjev ei fullstendig filadresse, vert berre den siste delen av adressa "
-"brukt)"
+"Namnet på fargetemaet du vil bruka for gjeldande Plasma-økt (viss du oppgjev "
+"ei fullstendig filadresse, vert berre den siste delen av adressa brukt)"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
 "theme)"
 msgstr ""
-"Vis alle fargeoppsetta som finst på systemet (og marker kva som er gjeldande "
-"oppsett)"
+"Vis alle fargetema som finst på systemet (og marker kva som er gjeldande "
+"tema)"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1194,60 +1196,60 @@ msgstr ""
 "(heksadesimal-format). Skriv fargekoden i hermeteikn viss det er risiko for "
 "automatisk variabelutviding."
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
 "Plasma session."
 msgstr "Det valde temaet «%1» er alt i bruk som tema for gjeldande Plasma-økt."
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
-msgstr "Fargeoppsettet %1 er no teke i bruk i gjeldande Plasma-økt."
+msgstr "Fargetemaet %1 er no teke i bruk i gjeldande Plasma-økt."
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 msgstr "Fann ikkje temaet «%1». Temaet må vera eitt av følgjande: %2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
 "behavior."
 msgstr "Du har oppgje eit tomt namn på fargetema, noko som ikkje er støtta."
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
 "a color scheme."
 msgstr ""
-"Fila du prøvde å velja som fargeoppsett, %1, kunne ikkje tolkast som eit "
-"fargeoppsett."
+"Fila du prøvde å velja som fargetema, %1, kunne ikkje tolkast som eit "
+"fargetema."
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr "Tok i bruk kontrastfargen %1"
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, kde-format
 msgid "Invalid accent color "
 msgstr "Ugyldig kontrastfarge "
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
-msgstr "Du har desse temaa for fargeoppsetta tilgjengeleg:"
+msgstr "Du har desse fargetemaa tilgjengeleg:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
-msgstr " * %1 (gjeldande fargeoppsett)"
+msgstr " * %1 (gjeldande fargetema)"
 
 #: ui/AccentColorUI.qml:27
 #, kde-format
@@ -1267,103 +1269,116 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "Sjølvvald konstrastfarge"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
-msgstr "Fargeoppsettet «%1» er ikkje installert. Vel derfor standardtemaet."
+msgstr "Fargetemaet «%1» er ikkje installert. Vel derfor standardtemaet."
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
-msgstr "Alle fargeoppsett"
+msgstr "Alle fargetema"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
-msgstr "Lyse fargeoppsett"
+msgstr "Lyse fargetema"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
-msgstr "Mørke fargeoppsett"
+msgstr "Mørke fargetema"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "Installer frå fil …"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "Hent nye …"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "Vindaugstittel"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "Vindaugstekst"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "Knapp"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "lenkje"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "vitja"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "Normal tekst"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "Utheva tekst"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "Deaktivert tekst"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
-msgstr "Rediger fargeoppsett …"
+msgstr "Rediger fargetema …"
+
+#: ui/main.qml:311
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
+msgstr "Fjern fargetema"
+
+#: ui/main.qml:313
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "Kan ikkje sletta det gjeldande fargetemaet"
+
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr "Kan ikkje sletta systeminstallerte fargetema"
 
 #: ui/main.qml:323
 #, kde-format
-msgid "Remove Color Scheme"
-msgstr "Fjern fargeoppsett"
+msgid "Don’t delete this color scheme"
+msgstr "Ikkje slette dette fargetemaet"
 
-#: ui/main.qml:330
-#, kde-format
-msgid "Restore Color Scheme"
-msgstr "Gjenopprett fargeoppsett"
-
-#: ui/main.qml:374
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
-msgstr "Opna fargeoppsett"
+msgstr "Opna fargetema"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
-msgstr "Fargeoppsett-filer (*.colors)"
+msgstr "Fargetema-filer (*.colors)"

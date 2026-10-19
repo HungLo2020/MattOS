@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kfontinst\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-09-27 02:41+0000\n"
 "PO-Revision-Date: 2025-08-14 11:43+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
@@ -479,7 +479,7 @@ msgstr ""
 #: kcmfontinst/GroupList.cpp:702
 #, kde-format
 msgid "<qt>A group named <b>'%1'</b> already exists.</qt>"
-msgstr "<qt>المجموعة المسماة <b>'%1'</b> موجودة مسبقاً.</qt>"
+msgstr "<qt>المجموعة المسماة <b>'%1'</b> موجودة مسبقًا.</qt>"
 
 #: kcmfontinst/GroupList.cpp:793
 #, kde-format
@@ -533,7 +533,7 @@ msgid ""
 "restarted in order for any changes to be noticed.</p>"
 msgstr ""
 "<h3>انتهى</h3><p>من فضلك لاحظ أنك بحاجة إلى إعادة تشغيل أي تطبيقات مفتوحة "
-"حالياً كي تستطيع رؤية التغييرات.</p>"
+"حاليًا كي تستطيع رؤية التغييرات.</p>"
 
 #: kcmfontinst/JobRunner.cpp:207
 #, kde-format
@@ -595,70 +595,70 @@ msgstr "ماتت الخلفية، ولكن أعيد تشغيلها. حاول م�
 msgid "<h3>Error</h3>"
 msgstr "<h3>خطأ</h3>"
 
-#: kcmfontinst/JobRunner.cpp:692
+#: kcmfontinst/JobRunner.cpp:693
 #, kde-format
 msgid "Failed to download <i>%1</i>"
 msgstr "فشل تنزيل <i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:694
+#: kcmfontinst/JobRunner.cpp:695
 #, kde-format
 msgid "System backend died. Please try again.<br><i>%1</i>"
 msgstr "ماتت خلفية النظام. حاول مرة أخرى. <br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:696
+#: kcmfontinst/JobRunner.cpp:697
 #, kde-format
 msgid ""
 "<i>%1</i> is a bitmap font, and these have been disabled on your system."
 msgstr "<i>%1</i>خط بتماب،وهي معطلة على نظامك."
 
-#: kcmfontinst/JobRunner.cpp:698
+#: kcmfontinst/JobRunner.cpp:699
 #, kde-format
 msgid ""
 "<i>%1</i> contains the font <b>%2</b>, which is already installed on your "
 "system."
-msgstr "الملف <i>%1</i> يحتوي الخط <b>%2</b>هذا الخط مثبّت مسبقاً على نظامك."
+msgstr "الملف <i>%1</i> يحتوي الخط <b>%2</b>هذا الخط مثبّت مسبقًا على نظامك."
 
-#: kcmfontinst/JobRunner.cpp:700
+#: kcmfontinst/JobRunner.cpp:701
 #, kde-format
 msgid "<i>%1</i> is not a font."
 msgstr "<i>%1</i> ليس بخط."
 
-#: kcmfontinst/JobRunner.cpp:702
+#: kcmfontinst/JobRunner.cpp:703
 #, kde-format
 msgid "Could not remove all files associated with <i>%1</i>"
 msgstr "لا يمكن إزالة جميع الملفات المرتبطة بـ<i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:704
+#: kcmfontinst/JobRunner.cpp:705
 #, kde-format
 msgid "Failed to start the system daemon.<br><i>%1</i>"
 msgstr "فشل بدء عفريت النظام.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:707 kio/KioFonts.cpp:719
+#: kcmfontinst/JobRunner.cpp:708 kio/KioFonts.cpp:719
 #, kde-format
 msgid "<i>%1</i> already exists."
 msgstr "<i>%1</i> موجود فعلًا."
 
-#: kcmfontinst/JobRunner.cpp:710
+#: kcmfontinst/JobRunner.cpp:711
 #, kde-format
 msgid "<i>%1</i> does not exist."
 msgstr "<i>%1</i> ليس موجودًا."
 
-#: kcmfontinst/JobRunner.cpp:712
+#: kcmfontinst/JobRunner.cpp:713
 #, kde-format
 msgid "Permission denied.<br><i>%1</i>"
 msgstr "طلب الإذن مرفوض.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:714
+#: kcmfontinst/JobRunner.cpp:715
 #, kde-format
 msgid "Unsupported action.<br><i>%1</i>"
 msgstr "إجراء غير مدعوم.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:716
+#: kcmfontinst/JobRunner.cpp:717
 #, kde-format
 msgid "Authentication failed.<br><i>%1</i>"
 msgstr "فشل الاستيثاق.<br><i>%1</i>"
 
-#: kcmfontinst/JobRunner.cpp:718
+#: kcmfontinst/JobRunner.cpp:719
 #, kde-format
 msgid "Unexpected error while processing: <i>%1</i>"
 msgstr "خطأ غير متوقّع عند معالجة: <i>%1</i>"
@@ -906,7 +906,7 @@ msgstr[0] "لا خط"
 msgstr[1] "خط واحد"
 msgstr[2] "خطان"
 msgstr[3] "%1 خطوط"
-msgstr[4] "%1 خطاً"
+msgstr[4] "%1 خطًا"
 msgstr[5] "%1 خط"
 
 #: kcmfontinst/KCmFontInst.cpp:892
@@ -1201,7 +1201,7 @@ msgstr "%1خط بتماب،وهي معطلة على نظامك."
 #, kde-format
 msgid ""
 "%1 contains the font <b>%2</b>, which is already installed on your system."
-msgstr "الملف %1 يحتوي الخط <b>%2</b>هذا الخط مثبّت مسبقاً على نظامك."
+msgstr "الملف %1 يحتوي الخط <b>%2</b>هذا الخط مثبّت مسبقًا على نظامك."
 
 #: kio/KioFonts.cpp:714
 #, kde-format
@@ -1564,17 +1564,17 @@ msgstr "الفئة"
 msgid "UCS-4"
 msgstr "UCS-4"
 
-#: viewpart/CharTip.cpp:157
+#: viewpart/CharTip.cpp:158
 #, kde-format
 msgid "UTF-16"
 msgstr "UTF-16"
 
-#: viewpart/CharTip.cpp:168
+#: viewpart/CharTip.cpp:169
 #, kde-format
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: viewpart/CharTip.cpp:185
+#: viewpart/CharTip.cpp:186
 #, kde-format
 msgid "XML Decimal Entity"
 msgstr "كيان XML عشري"
@@ -1599,12 +1599,12 @@ msgstr "غيّر النص…"
 msgid "Could not read font."
 msgstr "لم أتمكن من قراءة الخط."
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Preview String"
 msgstr "معاينة السلسلة"
 
-#: viewpart/FontViewPart.cpp:403
+#: viewpart/FontViewPart.cpp:395
 #, kde-format
 msgid "Please enter new string:"
 msgstr "من فضلك أدخل السلسلة الجديدة:"

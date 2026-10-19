@@ -1,5 +1,6 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
+    SPDX-FileCopyrightText: 2026 David Edmundson <davidedmundson@kde.org>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
@@ -7,6 +8,9 @@
 #pragma once
 
 #include "core/inputdevice.h"
+#include "xkb.h"
+
+#include <memory>
 
 struct eis_device;
 
@@ -16,6 +20,7 @@ namespace KWin
 class EisDevice : public InputDevice
 {
     Q_OBJECT
+
 public:
     explicit EisDevice(eis_device *device, QObject *parent = nullptr);
     ~EisDevice() override;
@@ -25,6 +30,10 @@ public:
         return m_device;
     }
     void changeDevice(eis_device *device);
+
+    void releasePressedAndTouches();
+
+    void setEmulating(bool emulating);
 
     QSet<quint32> pressedButtons;
     QSet<quint32> pressedKeys;
@@ -44,8 +53,12 @@ public:
     bool isTabletModeSwitch() const override;
     bool isLidSwitch() const override;
 
+    void sendKey(uint32_t keyCode, KeyboardKeyState state);
+    void sendKeySym(xkb_keysym_t keySym, KeyboardKeyState state);
+
 private:
     eis_device *m_device;
+    std::unique_ptr<QTimer> m_releaseTimer;
     bool m_enabled;
 };
 

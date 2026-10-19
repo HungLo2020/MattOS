@@ -1,3 +1,4 @@
+#version 140
 // SPDX-FileCopyrightText: None
 // SPDX-License-Identifier: CC0-1.0
 #include "saturation.glsl"
@@ -6,7 +7,8 @@
 uniform sampler2D sampler;
 uniform vec4 modulation;
 uniform float intensity;
-varying vec2 texcoord0;
+in vec2 texcoord0;
+out vec4 fragColor;
 uniform mat3 defectMatrix;
 
 const mat3 srgbToLMS = mat3(
@@ -16,7 +18,7 @@ const mat3 srgbToLMS = mat3(
 );
 const mat3 errorMat = mat3(
     0.0809444479, -0.0102485335, -0.000365296938,
-    -0.130504409,   0.0540193266, -0.00412161469,
+   -0.130504409,   0.0540193266, -0.00412161469,
     0.116721066,  -0.113614708,   0.693511405
 );
 
@@ -36,5 +38,5 @@ void main()
                            (diff.r * 0.7) + (diff.b * 1.0));
 
     tex = (tex + vec4(correction, 0.0)) * modulation;
-    gl_FragColor = nitsToDestinationEncoding(tex);
+    fragColor = nitsToDestinationEncoding(tex);
 }

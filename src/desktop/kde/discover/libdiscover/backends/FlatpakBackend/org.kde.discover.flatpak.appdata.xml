@@ -11,7 +11,7 @@
   <name xml:lang="ca-valencia">Dorsal de Flatpak</name>
   <name xml:lang="cs">Podpůrná vrstva Flatpak</name>
   <name xml:lang="da">Flatpak-motor</name>
-  <name xml:lang="de">Flatpak-Backend</name>
+  <name xml:lang="de">Flatpak-Modul</name>
   <name xml:lang="el">Σύστημα υποστήριξης Flatpak </name>
   <name xml:lang="en-GB">Flatpak backend</name>
   <name xml:lang="eo">Flatpak-backend</name>
@@ -30,6 +30,7 @@
   <name xml:lang="ie">Infrastructura Flatpak</name>
   <name xml:lang="is">Flatpak bakendi</name>
   <name xml:lang="it">Motore Flatpak</name>
+  <name xml:lang="ja">Flatpak バックエンド</name>
   <name xml:lang="ka">Flatpak -ის უკანაბოლო</name>
   <name xml:lang="ko">Flatpak 백엔드</name>
   <name xml:lang="lt">Flatpak vidinė pusė</name>
@@ -41,7 +42,7 @@
   <name xml:lang="nn">Flatpak-motor</name>
   <name xml:lang="pa">ਫਲੈਟਪੈਕ ਬੈਕਐਡ</name>
   <name xml:lang="pl">Silnik Flatpak</name>
-  <name xml:lang="pt">Infra-estrutura do Flatpak</name>
+  <name xml:lang="pt">Infraestrutura Flatpak</name>
   <name xml:lang="pt-BR">Infraestrutura Flatpak</name>
   <name xml:lang="ro">Platformă Flatpak</name>
   <name xml:lang="ru">Модуль для работы с форматом Flatpak</name>
@@ -52,6 +53,7 @@
   <name xml:lang="ta">ஃபலாட்பாக் பின்நிலை</name>
   <name xml:lang="tg">Коркардкунандаи Flatpak</name>
   <name xml:lang="tr">Flatpak arka ucu</name>
+  <name xml:lang="ug">Flatpak ئارقا ئۇچى</name>
   <name xml:lang="uk">Модуль Flatpak</name>
   <name xml:lang="zh-CN">Flatpak 后端程序</name>
   <name xml:lang="zh-TW">Flatpak 後端</name>
@@ -83,6 +85,7 @@
   <summary xml:lang="ie">Integra applicationes Flatpak con Discover</summary>
   <summary xml:lang="is">Gerir Discover kleift að hafa umsjón með Flatpak-forritum</summary>
   <summary xml:lang="it">Integra le applicazioni Flatpak in Discover</summary>
+  <summary xml:lang="ja">Flatpak アプリを Discover へ統合</summary>
   <summary xml:lang="ka">Discover-ში Flatpak-ის ინტეგრაცია</summary>
   <summary xml:lang="ko">Flatpak 앱을 Discover에 통합</summary>
   <summary xml:lang="lt">Integruoja Flatpak programas į Discover</summary>
@@ -97,11 +100,11 @@
   <summary xml:lang="pt">Integra as aplicações do Flatpak no Discover</summary>
   <summary xml:lang="pt-BR">Integra aplicativos Flatpak no Discover</summary>
   <summary xml:lang="ro">Integrează aplicații Flatpak în Discover</summary>
-  <summary xml:lang="ru">Добавление поддержки формата Flatpak в центр программ Discover</summary>
+  <summary xml:lang="ru">Добавление поддержки формата Flatpak в центр приложений Discover</summary>
   <summary xml:lang="sa">डिस्कवर् इत्यस्मिन् सपाटपैक् अनुप्रयोगानाम् एकीकरणं करोति</summary>
   <summary xml:lang="sk">Integruje aplikácie Flatpad do aplikácie Discover</summary>
   <summary xml:lang="sl">V Discover vgradi programe Flatpack</summary>
-  <summary xml:lang="sv">Integrerar Flatpak-program i Discover</summary>
+  <summary xml:lang="sv">Integrerar Flatpak-program i Upptäck</summary>
   <summary xml:lang="ta">ஃபலாட்பாக் செயலிகளை டிஸ்கவருக்குள் ஒருங்கிணைக்கும்</summary>
   <summary xml:lang="tg">Барномаҳои Flatpak-ро ба барномаи Кашфиёт дарунсохт мекунад</summary>
   <summary xml:lang="tr">Flatpak uygulamalarını Keşfet ile bütünleştirir</summary>
@@ -140,6 +143,7 @@
   <developer_name xml:lang="ie">Aleix Pol Gonzalez</developer_name>
   <developer_name xml:lang="is">Aleix Pol Gonzalez</developer_name>
   <developer_name xml:lang="it">Aleix Pol Gonzalez</developer_name>
+  <developer_name xml:lang="ja">Aleix Pol Gonzalez</developer_name>
   <developer_name xml:lang="ka">Aleix Pol Gonzalez</developer_name>
   <developer_name xml:lang="ko">Aleix Pol Gonzalez</developer_name>
   <developer_name xml:lang="lt">Aleix Pol Gonzalez</developer_name>
@@ -162,14 +166,15 @@
   <developer_name xml:lang="ta">அலேயிக்சு போல் கொன்ஸாலெசு</developer_name>
   <developer_name xml:lang="tg">Алейкс Пол Гонзалес (Aleix Pol Gonzalez)</developer_name>
   <developer_name xml:lang="tr">Aleix Pol Gonzalez</developer_name>
+  <developer_name xml:lang="ug">Aleix Pol Gonzalez</developer_name>
   <developer_name xml:lang="uk">Aleix Pol Gonzalez</developer_name>
   <developer_name xml:lang="zh-CN">Aleix Pol Gonzalez</developer_name>
   <developer_name xml:lang="zh-TW">Aleix Pol Gonzalez</developer_name>
   <icon type="stock">system-software-install</icon>
   <releases>
-    <release version="6.6.5" date="2026-05-12"/>
-    <release version="6.6.4" date="2026-04-06"/>
-    <release version="6.6.3" date="2026-03-17"/>
-    <release version="6.6.2" date="2026-03-03"/>
+    <release version="6.8.0" date="2026-10-14"/>
+    <release version="6.7.5" date="2026-09-08"/>
+    <release version="6.7.4" date="2026-08-04"/>
+    <release version="6.7.3" date="2026-07-14"/>
   </releases>
 </component>

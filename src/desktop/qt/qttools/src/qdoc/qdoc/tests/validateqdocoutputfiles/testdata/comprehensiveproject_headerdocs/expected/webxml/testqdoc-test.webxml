@@ -11,7 +11,7 @@
                     <brief>A macro with argument <argument>x</argument>.</brief>
                 </description>
             </function>
-            <function name="Test" fullname="TestQDoc::Test::Test" href="testqdoc-test.html#Test" status="active" access="public" location="testcpp.h" documented="true" meta="constructor" signature="Test()">
+            <function name="Test" fullname="TestQDoc::Test::Test" href="testqdoc-test.html#Test" status="active" access="public" location="testcpp.h" documented="true" meta="constructor" deleted="true" signature="Test()">
                 <description>
                     <para>The constructor is deleted.</para>
                 </description>
@@ -84,13 +84,13 @@
             <function name="operator--" fullname="TestQDoc::Test::operator--" href="testqdoc-test-obsolete.html#operator--" status="deprecated" access="public" location="testcpp.h" documented="true" meta="plain" type="TestQDoc::Test &amp;" signature="TestQDoc::Test &amp; operator--()">
                 <description/>
             </function>
-            <function name="operator=" fullname="TestQDoc::Test::operator=" href="testqdoc-test.html#operator-eq" status="active" access="public" location="testcpp.h" documented="true" meta="move-assign" type="TestQDoc::Test &amp;" signature="TestQDoc::Test &amp; operator=(TestQDoc::Test &amp;&amp;other)" groups="testgroup">
+            <function name="operator=" fullname="TestQDoc::Test::operator=" href="testqdoc-test.html#operator-eq" status="active" access="public" location="testcpp.h" documented="true" meta="move-assign" deleted="true" type="TestQDoc::Test &amp;" signature="TestQDoc::Test &amp; operator=(TestQDoc::Test &amp;&amp;other)" groups="testgroup">
                 <parameter type="TestQDoc::Test &amp;&amp;" name="other" default=""/>
                 <description>
                     <para>The move assignment operator is deleted. <argument>other</argument> cannot be moved from.</para>
                 </description>
             </function>
-            <function name="operator==" href="testqdoc-test.html#operator-eq-eq" status="active" access="public" location="testcpp.h" documented="true" related="5" meta="plain" type="bool" signature="bool operator==(const TestQDoc::Test &amp;lhs, const TestQDoc::Test &amp;rhs)">
+            <function name="operator==" href="testqdoc-test.html#operator-eq-eq" status="active" access="public" location="testcpp.h" documented="true" related="5" meta="plain" hidden-friend="true" type="bool" signature="bool operator==(const TestQDoc::Test &amp;lhs, const TestQDoc::Test &amp;rhs)">
                 <parameter type="const TestQDoc::Test &amp;" name="lhs" default=""/>
                 <parameter type="const TestQDoc::Test &amp;" name="rhs" default=""/>
                 <description>
@@ -98,11 +98,15 @@
                 </description>
             </function>
             <function name="overload" fullname="TestQDoc::Test::overload" href="testqdoc-test.html#overload" status="active" access="protected" location="testcpp.h" documented="true" meta="plain" type="void" signature="void overload()">
-                <description/>
+                <description>
+                    <para>Overloads that share a documentation comment, optionally taking a parameter <argument>b</argument>.</para>
+                </description>
             </function>
             <function name="overload" fullname="TestQDoc::Test::overload" href="testqdoc-test.html#overload-1" status="active" access="protected" location="testcpp.h" documented="true" since="Test 1.2" meta="plain" overload="true" overload-number="1" type="void" signature="void overload(bool b)">
                 <parameter type="bool" name="b" default=""/>
-                <description/>
+                <description>
+                    <para>Overloads that share a documentation comment, optionally taking a parameter <argument>b</argument>.</para>
+                </description>
             </function>
             <function name="someFunction" fullname="TestQDoc::Test::someFunction" href="testqdoc-test.html#someFunction" status="active" access="public" location="testcpp.h" documented="true" since="Test 1.0" meta="plain" type="int" signature="int someFunction(int, int v)">
                 <parameter type="int" name="" default=""/>
@@ -126,6 +130,8 @@
             <struct name="Struct" fullname="TestQDoc::Test::Struct" href="testqdoc-test-struct.html" status="active" access="public" location="testcpp.h" documented="true" module="TestCPP" brief="Templated struct">
                 <description>
                     <brief>Templated struct.</brief>
+                    <para>
+                        <argument>D</argument> is the first type parameter, <argument>T</argument> is the second.</para>
                 </description>
             </struct>
             <typedef name="SomeType" fullname="TestQDoc::Test::SomeType" href="testqdoc-test.html#SomeType-typedef" status="active" access="public" location="testcpp.h" documented="true">
@@ -134,7 +140,10 @@
                 </description>
             </typedef>
             <typedef name="Specialized" fullname="TestQDoc::Test::Specialized" href="testqdoc-test.html#Specialized-typedef" status="active" access="public" location="testcpp.h" documented="true" aliasedtype="Struct&lt;int, T&gt;">
-                <description/>
+                <description>
+                    <para>
+                        <argument>T</argument> is the specialization type.</para>
+                </description>
             </typedef>
             <property name="id" fullname="TestQDoc::Test::id" href="testqdoc-test.html#id-prop" status="active" access="public" location="testcpp.h" documented="true" writable="false" dataType="int">
                 <description/>

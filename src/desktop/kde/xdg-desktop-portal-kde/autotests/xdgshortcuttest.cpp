@@ -13,17 +13,13 @@ class XdgShortcutTest : public QObject
 {
     Q_OBJECT
 public:
-    XdgShortcutTest(QObject *parent = nullptr)
+    explicit XdgShortcutTest(QObject *parent = nullptr)
         : QObject(parent)
     {
         QStandardPaths::setTestModeEnabled(true);
     }
 
 private Q_SLOTS:
-    void initTestCase()
-    {
-    }
-
     void testCheckShortcut_data()
     {
         QTest::addColumn<QString>("expression");

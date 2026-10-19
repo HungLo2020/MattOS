@@ -50,6 +50,8 @@
 #include <QScrollBar>
 #include <QSplitterHandle>
 #include <QStackedLayout>
+#include <QTableView>
+#include <QTextBrowser>
 #include <QTextEdit>
 #include <QToolBar>
 #include <QToolBox>
@@ -59,23 +61,6 @@
 
 #if HAVE_QTDBUS
 #include <QDBusConnection>
-#endif
-
-#if BREEZE_HAVE_QTQUICK
-#include <KCoreAddons>
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-#include <Kirigami/Platform/TabletModeWatcher>
-using TabletModeWatcher = Kirigami::Platform::TabletModeWatcher;
-#else
-#if __has_include(<Kirigami/TabletModeWatcher>)
-// the namespaced include is new in KF 5.91
-#include <Kirigami/TabletModeWatcher>
-#else
-#include <TabletModeWatcher>
-#endif
-using TabletModeWatcher = Kirigami::TabletModeWatcher;
-#endif
-#include <QQuickWindow>
 #endif
 
 #include "breeze_logging.h"
@@ -160,7 +145,7 @@ public:
     explicit ComboBoxItemDelegate(QAbstractItemView *parent)
         : QItemDelegate(parent)
         , _proxy(parent->itemDelegate())
-        , _itemMargin(Breeze::Metrics::ItemView_ItemMarginWidth)
+        , _itemMargin(Breeze::Metrics::ComboBox_ItemMarginWidth)
     {
     }
 
@@ -181,7 +166,7 @@ public:
             auto c = option.palette.brush((option.state & QStyle::State_Enabled) ? QPalette::Normal : QPalette::Disabled, HighlightColor).color();
 
             painter->setPen(c);
-            c.setAlphaF(c.alphaF() * 0.3);
+            c.setAlphaF(c.alphaF() * Metrics::Blend_Value);
             painter->setBrush(c);
             auto radius = Metrics::Frame_FrameRadius - (0.5 * PenWidth::Frame);
             painter->drawRoundedRect(QRectF(option.rect).adjusted(0.5, 0.5, -0.5, -0.5), radius, radius);
@@ -667,22 +652,7 @@ int Style::pixelMetric(PixelMetric metric, const QStyleOption *option, const QWi
 
     // small icon size
     case PM_SmallIconSize: {
-        auto iconSize = ParentStyleClass::pixelMetric(metric, option, widget);
-        if (!isTabletMode()) {
-            return iconSize;
-        }
-
-        // in tablet mode, we try to figure out the next size and use it
-        // see bug 455513
-        auto metaEnum = QMetaEnum::fromType<KIconLoader::StdSizes>();
-        for (int i = 0; i + 1 < metaEnum.keyCount(); ++i) {
-            if (iconSize == metaEnum.value(i)) {
-                return metaEnum.value(i + 1);
-            }
-        }
-
-        // size is either too large or unknown, just increase it by 50%
-        return iconSize * 3 / 2;
+        return ParentStyleClass::pixelMetric(metric, option, widget);
     }
 
     // frame width
@@ -744,7 +714,7 @@ int Style::pixelMetric(PixelMetric metric, const QStyleOption *option, const QWi
             }
         }
 
-        if (qobject_cast<const QTabWidget *>(widget)) {
+        if (qobject_cast<const QTabWidget *>(widget) || qobject_cast<const QTextBrowser *>(widget)) {
             return Metrics::Frame_FrameWidth;
         }
 
@@ -1051,6 +1021,67 @@ QRect Style::subElementRect(SubElement element, const QStyleOption *option, cons
         return tabWidgetCornerRect(SE_TabWidgetRightCorner, option, widget);
     case SE_ToolBoxTabContents:
         return toolBoxTabContentsRect(option, widget);
+    case SE_ItemViewItemCheckIndicator:
+    case SE_ItemViewItemDecoration: {
+        QRect baseRect = ParentStyleClass::subElementRect(element, option, widget);
+        const auto viewOption = qstyleoption_cast<const QStyleOptionViewItem *>(option);
+        const QMargins margins = _helper->itemViewItemMargins(viewOption);
+
+        // This counteracts a quirk of QCommonStyle: when the view has a frame, it adds an hardcoded one pixel to the subelementrect x
+        int marginAdjust = 0;
+        const auto frame = viewOption ? qobject_cast<const QFrame *>(viewOption->widget) : nullptr;
+        if (frame && frame->frameShape() == QFrame::StyledPanel) {
+            marginAdjust = 1;
+        }
+
+        if (viewOption && (viewOption->decorationPosition == QStyleOptionViewItem::Left || viewOption->decorationPosition == QStyleOptionViewItem::Right)) {
+            if ((option->direction == Qt::RightToLeft) != (viewOption->decorationPosition == QStyleOptionViewItem::Right)) {
+                // Move from right to left either right aligned icons on ltr layouts or left aligned on rtl layouts
+                const auto adjustment = baseRect.right() - margins.right() - Metrics::ItemView_ItemPaddingWidth + marginAdjust;
+                if (viewOption->rect.width() > adjustment) {
+                    baseRect.moveRight(adjustment);
+                }
+
+            } else {
+                // Move from left to right either left aligned icons on ltr layouts or right aligned icons on rtl layouts
+                const auto adjustment = baseRect.left() + margins.left() + Metrics::ItemView_ItemPaddingWidth - marginAdjust;
+                if (viewOption->rect.width() > adjustment) {
+                    baseRect.moveLeft(adjustment);
+                }
+            }
+        }
+
+        // This will move it down by the difference of margins.top - margin.bottom
+        // Only the first item has a bigger top margin so will be moved down accordingly
+        baseRect.moveTop(baseRect.top() + margins.top() - margins.bottom());
+
+        return baseRect;
+    }
+    case SE_ItemViewItemText: {
+        auto viewItem = qstyleoption_cast<const QStyleOptionViewItem *>(option);
+        QRect rect = ParentStyleClass::subElementRect(element, option, widget);
+        if (viewItem) {
+            const QMargins margins = _helper->itemViewItemMargins(viewItem);
+            const int leftInset = margins.left() + Metrics::ItemView_ItemPaddingWidth;
+            const int rightInset = margins.right() + Metrics::ItemView_ItemPaddingWidth;
+
+            // Use the font metrics to inset only as far as the text can spare,
+            // so the inset itself cannot cause elision.
+            const int textMargin = proxy()->pixelMetric(PM_FocusFrameHMargin, option, widget) + 1;
+            const int available = rect.width() - 2 * textMargin; // viewItemDrawText() removes textMargin again
+            const int required = viewItem->fontMetrics.horizontalAdvance(viewItem->text);
+            const int inset = qBound(0, available - required, leftInset + rightInset);
+
+            // Shrink both sides in proportion so the text stays where it was.
+            const int total = leftInset + rightInset;
+            const int right = total > 0 ? inset * rightInset / total : 0;
+            rect.setRight(rect.right() - right);
+            rect.setLeft(rect.left() + (inset - right));
+            rect.moveTop(rect.top() + margins.top() - margins.bottom());
+        }
+
+        return rect;
+    }
 
     // fallback
     default:
@@ -3633,7 +3664,7 @@ QSize Style::menuItemSizeFromContents(const QStyleOption *option, const QSize &c
         size.setHeight(qMax(size.height(), int(Metrics::CheckBox_Size)));
         size.setHeight(qMax(size.height(), iconWidth));
         size.setHeight(size.height() + 1); // Make sure to add one pixel here to follow QQC2 style more closely
-        return expandSize(size, Metrics::MenuItem_MarginWidth, (isTabletMode() ? 2 : 1) * Metrics::MenuItem_MarginHeight);
+        return expandSize(size, Metrics::MenuItem_MarginWidth, Metrics::MenuItem_MarginHeight);
     }
 
     case QStyleOptionMenuItem::Separator: {
@@ -3872,7 +3903,16 @@ QSize Style::itemViewItemSizeFromContents(const QStyleOption *option, const QSiz
 {
     // call base class
     const QSize size(ParentStyleClass::sizeFromContents(CT_ItemViewItem, option, contentsSize, widget));
-    return expandSize(size, Metrics::ItemView_ItemMarginWidth);
+    if (!qobject_cast<const QTableView *>(widget)) {
+        const QMargins margins = _helper->itemViewItemMargins(qstyleoption_cast<const QStyleOptionViewItem *>(option));
+
+        return size
+            + QSize(margins.left() + margins.right() + Metrics::ItemView_ItemPaddingWidth * 2,
+                    margins.top() + margins.bottom() + Metrics::ItemView_ItemPaddingHeight * 2);
+    }
+    return expandSize(size,
+                      Metrics::ItemView_ItemMarginLeft + Metrics::ItemView_ItemMarginRight,
+                      Metrics::ItemView_ItemMarginBottom + Metrics::ItemView_ItemMarginTop);
 }
 
 //______________________________________________________________
@@ -4061,20 +4101,63 @@ bool Style::drawFrameFocusRectPrimitive(const QStyleOption *option, QPainter *pa
     }
 
     const State &state(option->state);
+    if (!(state & State_HasFocus)) {
+        return true;
+    }
+
+    const auto &palette(option->palette);
+    auto outlineColor(palette.color(HighlightColor));
+    const auto focusRectOption = qstyleoption_cast<const QStyleOptionFocusRect *>(option);
+    if (focusRectOption && focusRectOption->backgroundColor.isValid()) {
+        outlineColor = focusRectOption->backgroundColor;
+    }
+    outlineColor = outlineColor.lighter(Metrics::Focus_LightenColorValue);
+
+    auto drawItemViewFocus = [option, painter, widget, outlineColor, this]() {
+        auto rect(option->rect);
+
+        QStyleOptionViewItem viewItemOption;
+        if (widget) {
+            viewItemOption.initFrom(widget);
+        }
+        viewItemOption.viewItemPosition = QStyleOptionViewItem::ViewItemPosition::OnlyOne;
+        rect = rect.marginsRemoved(_helper->itemViewItemMargins(&viewItemOption));
+
+        if (rect.width() < 10) {
+            return;
+        }
+
+        _helper->renderFocusRect(painter, rect, Qt::transparent, outlineColor, AllSides);
+    };
 
     // no focus indicator on selected list items
-    if ((state & State_Selected) && qobject_cast<const QAbstractItemView *>(widget)) {
+    if (qobject_cast<const QAbstractItemView *>(widget)) {
+        if (!(state & State_Selected)) {
+            drawItemViewFocus();
+        }
+        return true;
+    }
+
+    // Dolphin uses these
+    if (qobject_cast<const QGraphicsWidget *>(option->styleObject)) {
+        drawItemViewFocus();
+        return true;
+    }
+
+    const auto itemView = qobject_cast<const QAbstractItemView *>(option->styleObject);
+    if (itemView && itemView->selectionModel()) {
+        if (!itemView->selectionModel()->hasSelection()) {
+            drawItemViewFocus();
+        }
         return true;
     }
 
     const auto rect(option->rect.adjusted(0, 0, 0, 1));
-    const auto &palette(option->palette);
 
     if (rect.width() < 10) {
         return true;
     }
 
-    const auto outlineColor(state & State_Selected ? palette.color(QPalette::HighlightedText) : palette.color(HighlightColor));
     painter->setRenderHint(QPainter::Antialiasing, false);
     painter->setPen(outlineColor);
     painter->drawLine(QPoint(rect.bottomLeft() - QPoint(0, 1)), QPoint(rect.bottomRight() - QPoint(0, 1)));
@@ -4668,12 +4751,66 @@ bool Style::drawPanelItemViewItemPrimitive(const QStyleOption *option, QPainter 
         return false;
     }
 
+    const QWidget *actualWidget = widget;
+    if (!actualWidget) {
+        actualWidget = viewItemOption->widget;
+    }
+
     // try cast widget
-    const auto abstractItemView = qobject_cast<const QAbstractItemView *>(widget);
+    const auto abstractItemView = qobject_cast<const QAbstractItemView *>(actualWidget);
 
     // store palette and rect
     const auto &palette(option->palette);
     auto rect(option->rect);
+
+    if (!qobject_cast<const QTableView *>(actualWidget)) {
+        rect = rect.marginsRemoved(_helper->itemViewItemMargins(viewItemOption));
+    }
+
+    const auto treeItemView = qobject_cast<const QTreeView *>(actualWidget);
+    auto viewItemPosition = viewItemOption->viewItemPosition;
+    if (abstractItemView && abstractItemView->selectionBehavior() != QAbstractItemView::SelectRows) {
+        viewItemPosition = QStyleOptionViewItem::OnlyOne;
+    }
+    if (treeItemView && treeItemView->header()) {
+        // If the last column is very narrow, there won't be enough room to draw the rounded border,
+        // so in that case remove move everything in the second to last column
+        // And the same case is valid for the first column
+        const int thisColumn = treeItemView->header()->visualIndex(viewItemOption->index.column());
+        int prevColumn = thisColumn - 1;
+        int nextColumn = thisColumn + 1;
+
+        // ignore hidden columns when trying to find prev and next
+        while (prevColumn > 0 && treeItemView->isColumnHidden(prevColumn)) {
+            prevColumn--;
+        }
+        const int count = treeItemView->header()->count();
+        while (nextColumn < count - 1 && treeItemView->isColumnHidden(nextColumn)) {
+            nextColumn++;
+        }
+
+        // Make sure to check that the column exists, since columnWidth will report 0 for nonexistent columns too!
+        if (treeItemView->columnViewportPosition(prevColumn) != -1) {
+            if (viewItemPosition != QStyleOptionViewItem::Beginning && viewItemPosition != QStyleOptionViewItem::OnlyOne
+                && treeItemView->columnWidth(prevColumn) < Metrics::Frame_FrameRadius) {
+                rect.setX(rect.x() + Metrics::Frame_FrameRadius);
+            }
+        }
+        if (treeItemView->columnViewportPosition(thisColumn) != -1) {
+            if (treeItemView->columnWidth(thisColumn) < Metrics::Frame_FrameRadius) {
+                if (viewItemPosition == QStyleOptionViewItem::Beginning) {
+                    rect.setWidth(rect.width() + Metrics::Frame_FrameRadius);
+                } else {
+                    rect.setX(rect.x() - Metrics::Frame_FrameRadius);
+                }
+            }
+        }
+        if (treeItemView->columnViewportPosition(nextColumn) != -1) {
+            if (viewItemPosition != QStyleOptionViewItem::End && treeItemView->columnWidth(nextColumn) < Metrics::Frame_FrameRadius) {
+                rect.setWidth(rect.width() - Metrics::Frame_FrameRadius);
+            }
+        }
+    }
 
     // store flags
     const State &state(option->state);
@@ -4682,7 +4819,7 @@ bool Style::drawPanelItemViewItemPrimitive(const QStyleOption *option, QPainter 
     const bool enabled(state & State_Enabled);
     const bool active(state & State_Active);
 
-    const bool hasCustomBackground = viewItemOption->backgroundBrush.style() != Qt::NoBrush && !(state & State_Selected);
+    const bool hasCustomBackground = viewItemOption->backgroundBrush.style() != Qt::NoBrush && !selected;
     const bool hasSolidBackground = !hasCustomBackground || viewItemOption->backgroundBrush.style() == Qt::SolidPattern;
     const bool hasAlternateBackground(viewItemOption->features & QStyleOptionViewItem::Alternate);
 
@@ -4702,8 +4839,12 @@ bool Style::drawPanelItemViewItemPrimitive(const QStyleOption *option, QPainter 
     // render alternate background
     if (hasAlternateBackground) {
         painter->setPen(Qt::NoPen);
-        painter->setBrush(palette.brush(colorGroup, QPalette::AlternateBase));
-        painter->drawRect(rect);
+        _helper->renderViewItemPosition(painter,
+                                        viewItemPosition,
+                                        viewItemOption->direction,
+                                        option->rect,
+                                        palette.color(colorGroup, QPalette::AlternateBase),
+                                        QColor());
     }
 
     // stop here if no highlight is needed
@@ -4714,9 +4855,7 @@ bool Style::drawPanelItemViewItemPrimitive(const QStyleOption *option, QPainter 
     // render custom background
     if (hasCustomBackground && !hasSolidBackground) {
         painter->setBrushOrigin(viewItemOption->rect.topLeft());
-        painter->setBrush(viewItemOption->backgroundBrush);
-        painter->setPen(Qt::NoPen);
-        painter->drawRect(viewItemOption->rect);
+        _helper->renderViewItemPosition(painter, viewItemPosition, viewItemOption->direction, viewItemOption->rect, viewItemOption->backgroundBrush, QColor());
         return true;
     }
 
@@ -4732,14 +4871,27 @@ bool Style::drawPanelItemViewItemPrimitive(const QStyleOption *option, QPainter 
     // change color to implement mouse over
     if (mouseOver && !hasCustomBackground) {
         if (!selected) {
-            color.setAlphaF(0.2);
+            color.setAlphaF(Metrics::Blend_Value);
         } else {
-            color = color.lighter(110);
+            color = color.lighter(Metrics::Focus_LightenColorValue);
         }
     }
 
+    // Focus decoration
+    QColor focusColor = color;
+    if (!hasCustomBackground) {
+        focusColor.setAlphaF(selected ? 1.0 : 0.8);
+    }
+
     // render
-    _helper->renderSelection(painter, rect, color);
+    painter->setBrush(color);
+    const auto isTable = qobject_cast<const QTableView *>(viewItemOption->widget);
+    // We want table cells to not be rounded
+    if (isTable) {
+        _helper->renderViewItemPosition(painter, QStyleOptionViewItem::ViewItemPosition::Invalid, viewItemOption->direction, rect, color, focusColor);
+    } else {
+        _helper->renderViewItemPosition(painter, viewItemPosition, viewItemOption->direction, rect, color, focusColor);
+    }
 
     return true;
 }
@@ -5868,8 +6020,13 @@ bool Style::drawMenuItemControl(const QStyleOption *option, QPainter *painter, c
     // render hover and focus
     if (useStrongFocus && (selected || sunken)) {
         auto color = _helper->focusColor(palette);
-        color = _helper->alphaColor(color, 0.3);
-        const auto outlineColor = _helper->focusOutlineColor(palette);
+        // When clicking, use the same background color
+        auto outlineColor = color;
+        if (!sunken) {
+            // If not clicking, use the alphaColor
+            color = _helper->alphaColor(color, Metrics::Blend_Value);
+            outlineColor = _helper->focusOutlineColor(palette);
+        }
 
         Sides sides;
         if (!menuItemOption->menuRect.isNull()) {
@@ -5893,7 +6050,7 @@ bool Style::drawMenuItemControl(const QStyleOption *option, QPainter *painter, c
     }
 
     // get rect available for contents
-    auto contentsRect(insideMargin(rect, Metrics::MenuItem_MarginWidth, (isTabletMode() ? 2 : 1) * Metrics::MenuItem_MarginHeight));
+    auto contentsRect(insideMargin(rect, Metrics::MenuItem_MarginWidth, Metrics::MenuItem_MarginHeight));
     contentsRect = contentsRect.marginsRemoved(QMargins(Metrics::MenuItem_TextLeftMargin, 0, 0, 0));
 
     // define relevant rectangles
@@ -5950,7 +6107,7 @@ bool Style::drawMenuItemControl(const QStyleOption *option, QPainter *painter, c
         // icon mode
         QIcon::Mode mode;
         if (enabled) {
-            mode = QIcon::Normal;
+            mode = sunken ? QIcon::Selected : QIcon::Normal;
         } else {
             mode = QIcon::Disabled;
         }
@@ -5977,7 +6134,7 @@ bool Style::drawMenuItemControl(const QStyleOption *option, QPainter *painter, c
         const ArrowOrientation orientation(reverseLayout ? ArrowLeft : ArrowRight);
 
         // color
-        const QColor arrowColor = _helper->arrowColor(palette, QPalette::WindowText);
+        const QColor arrowColor = _helper->arrowColor(palette, sunken ? QPalette::HighlightedText : QPalette::WindowText);
 
         // render
         _helper->renderArrow(painter, arrowRect, arrowColor, orientation);
@@ -5995,7 +6152,7 @@ bool Style::drawMenuItemControl(const QStyleOption *option, QPainter *painter, c
         painter->setFont(menuItemOption->font);
 
         // color role
-        const QPalette::ColorRole role = QPalette::WindowText;
+        QPalette::ColorRole role = sunken ? QPalette::HighlightedText : QPalette::WindowText;
 
         // locate accelerator and render
         const int tabPosition(text.indexOf(QLatin1Char('\t')));
@@ -6242,7 +6399,7 @@ bool Style::drawScrollBarSliderControl(const QStyleOption *option, QPainter *pai
     const qreal opacity(_animations->scrollBarEngine().opacity(widget, SC_ScrollBarSlider));
     auto color = _helper->scrollBarHandleColor(palette, mouseOver, hasFocus, opacity, mode);
     if (StyleConfigData::animationsEnabled()) {
-        color.setAlphaF(color.alphaF() * (0.7 + 0.3 * grooveAnimationOpacity));
+        color.setAlphaF(color.alphaF() * (0.7 + Metrics::Blend_Value * grooveAnimationOpacity));
     }
 
     _helper->renderScrollBarHandle(painter, handleRect, color, palette.color(QPalette::Window));
@@ -6616,7 +6773,7 @@ bool Style::drawFocusFrame(const QStyleOption *option, QPainter *painter, const 
         focusFramePath.addRoundedRect(outerRect, outerRadius, outerRadius);
     }
 
-    auto outerColor = _helper->alphaColor(option->palette.highlight().color(), 0.33);
+    auto outerColor = _helper->alphaColor(option->palette.highlight().color(), Metrics::Blend_Value);
 
     painter->setRenderHint(QPainter::Antialiasing);
     painter->fillPath(focusFramePath, outerColor);
@@ -8429,18 +8586,6 @@ QIcon Style::toolBarExtensionIcon(StandardPixmap standardPixmap, const QStyleOpt
     }
 
     return icon;
-}
-
-bool Style::isTabletMode() const
-{
-    if (qEnvironmentVariableIsSet("BREEZE_IS_TABLET_MODE")) {
-        return qEnvironmentVariableIntValue("BREEZE_IS_TABLET_MODE");
-    }
-#if BREEZE_HAVE_QTQUICK
-    return TabletModeWatcher::self()->isTabletMode();
-#else
-    return false;
-#endif
 }
 
 //____________________________________________________________________________________

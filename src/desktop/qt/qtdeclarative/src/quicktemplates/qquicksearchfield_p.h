@@ -44,6 +44,15 @@ class Q_QUICKTEMPLATES2_EXPORT QQuickSearchField : public QQuickControl
     Q_PROPERTY(QQuickIndicatorButton *clearIndicator READ clearIndicator CONSTANT FINAL)
     Q_PROPERTY(QQuickPopup *popup READ popup WRITE setPopup NOTIFY popupChanged FINAL)
     Q_PROPERTY(QQmlComponent *delegate READ delegate WRITE setDelegate NOTIFY delegateChanged FINAL)
+    Q_PROPERTY(QString placeholderText READ placeholderText WRITE setPlaceholderText
+                       NOTIFY placeholderTextChanged REVISION(6, 12))
+    Q_PROPERTY(bool selectTextByMouse READ selectTextByMouse WRITE setSelectTextByMouse
+                       NOTIFY selectTextByMouseChanged REVISION(6, 12))
+    Q_PROPERTY(QString selectedText READ selectedText NOTIFY selectedTextChanged REVISION(6, 12))
+    Q_PROPERTY(int selectionStart READ selectionStart NOTIFY selectionStartChanged REVISION(6, 12))
+    Q_PROPERTY(int selectionEnd READ selectionEnd NOTIFY selectionEndChanged REVISION(6, 12))
+    Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition
+                       NOTIFY cursorPositionChanged REVISION(6, 12))
 
     QML_NAMED_ELEMENT(SearchField)
     QML_ADDED_IN_VERSION(6, 10)
@@ -82,6 +91,27 @@ public:
     QQmlComponent *delegate() const;
     void setDelegate(QQmlComponent *delegate);
 
+    QString placeholderText() const;
+    void setPlaceholderText(const QString &text);
+
+    bool selectTextByMouse() const;
+    void setSelectTextByMouse(const bool selectable);
+
+    QString selectedText() const;
+
+    int selectionStart() const;
+
+    int selectionEnd() const;
+
+    int cursorPosition() const;
+    void setCursorPosition(int position);
+
+public Q_SLOTS:
+    Q_REVISION(6, 12) void select(int start, int end);
+    Q_REVISION(6, 12) void selectWord();
+    Q_REVISION(6, 12) void selectAll();
+    Q_REVISION(6, 12) void deselect();
+
 Q_SIGNALS:
     void activated(int index);
     void highlighted(int index);
@@ -98,6 +128,12 @@ Q_SIGNALS:
     void liveChanged();
     void popupChanged();
     void delegateChanged();
+    Q_REVISION(6, 12) void placeholderTextChanged();
+    Q_REVISION(6, 12) void selectTextByMouseChanged();
+    Q_REVISION(6, 12) void selectedTextChanged();
+    Q_REVISION(6, 12) void selectionStartChanged();
+    Q_REVISION(6, 12) void selectionEndChanged();
+    Q_REVISION(6, 12) void cursorPositionChanged();
 
     void searchButtonPressed();
     void clearButtonPressed();

@@ -1,6 +1,7 @@
 [Desktop Entry]
 Keys=bug,bugft,bugno,bugnr,feature,ccbug
 Name=KDE Bugs
+Name[am]=KDE Bugs
 Name[ar]=علل كِيدِي
 Name[ast]=KDE Bugs
 Name[az]=KDE Xətaları
@@ -41,6 +42,8 @@ Name[lg]=Mpulunguse ezizuulidwa mu KDE
 Name[lt]=KDE klaidos
 Name[lv]=KDE kļūdas
 Name[my]=ခေဒီအီးဆိုင်ရာ ဆော့ဖ်လ်ဝဲလ်ပြစ်ချက်များ
+Name[nan_TW]=KDE Bugs
+Name[nan_TW@latin]=KDE Tshò-gōo
 Name[nb]=KDE-feil
 Name[nl]=KDE-bugs
 Name[nn]=KDE-feil
@@ -65,6 +68,7 @@ Name[vi]=Lỗi KDE
 Name[zh_CN]=KDE 程序缺陷搜索
 Name[zh_TW]=KDE Bugs 問題回報
 Query=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
+Query[am]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[ar]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[az]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[be]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
@@ -108,6 +112,8 @@ Query[lt]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[lv]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[mr]=http://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[my]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
+Query[nan_TW]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
+Query[nan_TW@latin]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[nb]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[nds]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[nl]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
@@ -131,7 +137,6 @@ Query[tg]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[th]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[tok]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[tr]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
-Query[ug]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[uk]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[vi]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}
 Query[wa]=https://bugs.kde.org/buglist.cgi?quicksearch=\\{@}

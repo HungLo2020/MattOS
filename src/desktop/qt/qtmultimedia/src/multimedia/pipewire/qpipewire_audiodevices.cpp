@@ -37,7 +37,10 @@ QAudioDevices::QAudioDevices()
 
 bool QAudioDevices::isSupported()
 {
-    return QPipeWireInstance::isLoaded() && QAudioContextManager::minimumRequirementMet()
+    if (!QPipeWireInstance::isLoaded())
+        return false;
+
+    return QAudioContextManager::minimumRequirementMet()
             && QAudioContextManager::instance()->isConnected();
 }
 

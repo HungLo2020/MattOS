@@ -339,7 +339,7 @@ QCoro::Task<> Handler::addAndActivateConnectionInternal(const QString &device, c
         m_tmpDevicePath = device;
         m_tmpSpecificPath = specificObject;
 
-        QPointer<ConnectionEditorDialog> editor = new ConnectionEditorDialog(settings);
+        QPointer<ConnectionEditorDialog> editor = new ConnectionEditorDialog(settings, true);
         editor->setAttribute(Qt::WA_DeleteOnClose);
         editor->show();
 
@@ -411,7 +411,7 @@ void add_connection_cb(GObject *client, GAsyncResult *result, gpointer user_data
     AddConnectionData *data = static_cast<AddConnectionData *>(user_data);
 
     GError *error = nullptr;
-    NMRemoteConnection *connection = nm_client_add_connection2_finish(NM_CLIENT(client), result, NULL, &error);
+    NMRemoteConnection *connection = nm_client_add_connection2_finish(NM_CLIENT(client), result, nullptr, &error);
 
     if (error) {
         KNotification *notification = new KNotification(QStringLiteral("FailedToAddConnection"), KNotification::CloseOnTimeout, data->handler);
@@ -688,8 +688,11 @@ void Handler::requestScan(const QString &interface)
     requestScanInternal(interface);
 }
 
-QCoro::Task<> Handler::requestScanInternal(const QString &interface)
+QCoro::Task<> Handler::requestScanInternal(const QString &iface)
 {
+    // we can't keep a reference across a co_await
+    QString interface = iface;
+
     for (const NetworkManager::Device::Ptr &device : NetworkManager::networkInterfaces()) {
         if (device->type() == NetworkManager::Device::Wifi) {
             NetworkManager::WirelessDevice::Ptr wifiDevice = device.objectCast<NetworkManager::WirelessDevice>();

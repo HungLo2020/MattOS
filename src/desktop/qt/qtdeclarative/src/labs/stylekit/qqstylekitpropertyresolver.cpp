@@ -31,6 +31,15 @@ const QList<QQStyleKitExtendableControlType> QQStyleKitPropertyResolver::baseTyp
      *     (e.g., without borders, drop shadows, gradients, etc.). For that reason, it falls
      *     back to Control rather than AbstractButton.
      *
+     * MenuBarItem — Although it is technically a button, it is typically styled very differently
+     *      from other buttons (e.g., without borders, drop shadows, gradients, etc.). For that
+     *      reason, it falls back to Control rather than AbstractButton.
+     *
+     * MenuItem — In Qt Quick Controls, MenuItem inherits from AbstractButton. Although it
+     *     behaves similarly to a button, it is typically styled very differently
+     *     (e.g., without borders, drop shadows, gradients, etc.). For that reason, it falls
+     *     back to Control rather than AbstractButton.
+     *
      * TabBar — In Qt Quick Controls, ToolBar inherits Pane, while TabBar inherits Container.
      *     Since it is desirable for a TabBar to share styling characteristics (such as
      *     background color) with ToolBar and Pane, we let it fall back to Pane instead of
@@ -42,14 +51,23 @@ const QList<QQStyleKitExtendableControlType> QQStyleKitPropertyResolver::baseTyp
             { QQStyleKitReader::ApplicationWindow };
         return t; }
     case QQStyleKitReader::Button:
+    case QQStyleKitReader::DelayButton:
     case QQStyleKitReader::FlatButton:
     case QQStyleKitReader::ToolButton:
     case QQStyleKitReader::TabButton:
     case QQStyleKitReader::RadioButton:
+    case QQStyleKitReader::RoundButton:
     case QQStyleKitReader::CheckBox:
     case QQStyleKitReader::SwitchControl: {
         static QList<QQStyleKitExtendableControlType> t =
             { QQStyleKitReader::AbstractButton, QQStyleKitReader::Control };
+        return t; }
+    case QQStyleKitReader::CheckDelegate:
+    case QQStyleKitReader::RadioDelegate:
+    case QQStyleKitReader::SwipeDelegate:
+    case QQStyleKitReader::SwitchDelegate: {
+        static QList<QQStyleKitExtendableControlType> t =
+            { QQStyleKitReader::ItemDelegate, QQStyleKitReader::Control };
         return t; }
     case QQStyleKitReader::Menu:
     case QQStyleKitReader::Dialog: {
@@ -57,6 +75,7 @@ const QList<QQStyleKitExtendableControlType> QQStyleKitPropertyResolver::baseTyp
             { QQStyleKitReader::Popup, QQStyleKitReader::Control };
         return t; }
     case QQStyleKitReader::Page:
+    case QQStyleKitReader::DialogButtonBox:
     case QQStyleKitReader::Frame:
     case QQStyleKitReader::TabBar:
     case QQStyleKitReader::ToolBar: {
@@ -176,11 +195,11 @@ void QQStyleKitPropertyResolver::addTypeVariationsToReader(
                  continue;
             }
 
-            if (variation->getControl(styleReaderType)) {
+            if (variation->getControlStyle(styleReaderType)) {
                 addVariationToReader(styleReader, styleOrTheme, variation);
             } else {
                 for (int type : styleReaderBaseType) {
-                    if (variation->getControl(type))
+                    if (variation->getControlStyle(type))
                         addVariationToReader(styleReader, styleOrTheme, variation);
                 }
             }
@@ -211,11 +230,11 @@ void QQStyleKitPropertyResolver::addInstanceVariationsToReader(
                  * a name in the attached variation list. Check if the found variation contains the
                  * type, or the subtypes, of the style reader. If not, it doesn't affect it and can
                  * therefore be skipped. */
-                if (variation->getControl(styleReaderType)) {
+                if (variation->getControlStyle(styleReaderType)) {
                     addVariationToReader(styleReader, styleOrTheme, variation);
                 } else {
                     for (int baseType : styleReaderBaseTypes) {
-                        if (variation->getControl(baseType))
+                        if (variation->getControlStyle(baseType))
                             addVariationToReader(styleReader, styleOrTheme, variation);
                     }
                 }
@@ -435,14 +454,14 @@ QVariant QQStyleKitPropertyResolver::readPropertyInRelevantControls(
         return {};
     }
 
-    if (const QQStyleKitControl *control = controls->getControl(exactType)) {
+    if (const QQStyleKitControl *control = controls->getControlStyle(exactType)) {
         const QVariant value = readPropertyInControl(ids, control);
         if (value.isValid())
             return value;
     }
 
     for (const int type : baseTypes) {
-        if (const QQStyleKitControl *control = controls->getControl(type)) {
+        if (const QQStyleKitControl *control = controls->getControlStyle(type)) {
             const QVariant value = readPropertyInControl(ids, control);
             if (value.isValid())
                 return value;
@@ -567,16 +586,11 @@ QVariant QQStyleKitPropertyResolver::readStyleProperty(
     }
 
     QQStyleKitStyle *style = controlProperties->style();
-    if (!style) {
-        if (!s_styleWarningsIssued) {
-            s_styleWarningsIssued = true;
-            qmlWarning(group) << "style properties cannot be read: No StyleKit style has been set!";
-        }
-        return {};
-    }
-
-    if (!style->loaded()) {
-        // Optimization: Skip reads until both the style and the theme is ready
+    if (!style || !style->loaded()) {
+        /* No style has been set yet, or the style is still loading. The application should set
+         * a style early (e.g. at the top of main.qml) before creating any controls, to avoid
+         * premature property reads that end up here. However, some controls like the menu bar
+         * are instantiated very early and may try to read properties before a style is available. */
         return {};
     }
 

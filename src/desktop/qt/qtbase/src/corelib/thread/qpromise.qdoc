@@ -9,6 +9,9 @@
 
     \ingroup thread
 
+    QPromise is a template class where the template parameter \a T specifies
+    the result type that can be stored and later accessed via QFuture.
+
     QPromise provides a simple way to communicate progress and results of the
     user-defined computation to QFuture in an asynchronous fashion. For the
     communication to work, QFuture must be constructed by QPromise.
@@ -111,7 +114,7 @@
     \since 6.6
 
     Adds a result constructed from \a args... to the internal result collection
-    at \a index position (emplaceResultAt()) or the end of of the collection
+    at \a index position (emplaceResultAt()) or the end of the collection
     (emplaceResult()).
 
     Returns \c true when the result was added to the collection.

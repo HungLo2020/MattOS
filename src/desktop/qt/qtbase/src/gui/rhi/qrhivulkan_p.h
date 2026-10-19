@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QRHIVULKAN_P_H
 #define QRHIVULKAN_P_H
@@ -31,6 +32,8 @@ static const int QVK_FRAMES_IN_FLIGHT = 2;
 static const int QVK_DESC_SETS_PER_POOL = 128;
 static const int QVK_UNIFORM_BUFFERS_PER_POOL = 256;
 static const int QVK_COMBINED_IMAGE_SAMPLERS_PER_POOL = 256;
+static const int QVK_SAMPLED_IMAGES_PER_POOL = 256;
+static const int QVK_SAMPLERS_PER_POOL = 256;
 static const int QVK_STORAGE_BUFFERS_PER_POOL = 128;
 static const int QVK_STORAGE_IMAGES_PER_POOL = 128;
 
@@ -252,7 +255,7 @@ struct QVkShaderResourceBindings : public QRhiShaderResourceBindings
     void updateResources(UpdateFlags flags) override;
 
     QVarLengthArray<QRhiShaderResourceBinding, BINDING_PREALLOC> sortedBindings;
-    bool hasDynamicOffset = false;
+    QVarLengthArray<int, BINDING_PREALLOC> sortedDynamicOffsetBindingNumbers;
     int poolIndex = -1;
     VkDescriptorSetLayout layout = VK_NULL_HANDLE;
     VkDescriptorSet descSets[QVK_FRAMES_IN_FLIGHT]; // multiple sets to support dynamic buffers
@@ -414,6 +417,7 @@ struct QVkCommandBuffer : public QRhiCommandBuffer
             CopyImageToBuffer,
             ImageBarrier,
             BufferBarrier,
+            ImageAndBufferBarrier,
             BlitImage,
             BeginRenderPass,
             EndRenderPass,
@@ -427,6 +431,8 @@ struct QVkCommandBuffer : public QRhiCommandBuffer
             SetStencilRef,
             Draw,
             DrawIndexed,
+            DrawIndirect,
+            DrawIndexedIndirect,
             DebugMarkerBegin,
             DebugMarkerEnd,
             DebugMarkerInsert,
@@ -483,6 +489,14 @@ struct QVkCommandBuffer : public QRhiCommandBuffer
                 int count;
                 int index;
             } bufferBarrier;
+            struct {
+                VkPipelineStageFlags srcStageMask;
+                VkPipelineStageFlags dstStageMask;
+                int imageCount;
+                int imageIndex;
+                int bufferCount;
+                int bufferIndex;
+            } imageAndBufferBarrier;
             struct {
                 VkImage src;
                 VkImageLayout srcLayout;
@@ -545,6 +559,18 @@ struct QVkCommandBuffer : public QRhiCommandBuffer
                 int32_t vertexOffset;
                 uint32_t firstInstance;
             } drawIndexed;
+            struct {
+                VkBuffer indirectBuffer;
+                VkDeviceSize indirectBufferOffset;
+                uint32_t drawCount;
+                uint32_t stride;
+            } drawIndirect;
+            struct {
+                VkBuffer indirectBuffer;
+                VkDeviceSize indirectBufferOffset;
+                uint32_t drawCount;
+                uint32_t stride;
+            } drawIndexedIndirect;
             struct {
 #ifdef VK_EXT_debug_utils
                 VkDebugUtilsLabelEXT label;
@@ -683,7 +709,6 @@ struct QVkSwapChain : public QRhiSwapChain
     } frameRes[QVK_FRAMES_IN_FLIGHT];
 
     quint32 currentImageIndex = 0; // index in imageRes
-    quint32 currentFrameSlot = 0; // index in frameRes
     int frameCount = 0;
 
     friend class QRhiVulkan;
@@ -779,6 +804,12 @@ public:
                      quint32 instanceCount, quint32 firstIndex,
                      qint32 vertexOffset, quint32 firstInstance) override;
 
+    void drawIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                      quint32 indirectBufferOffset, quint32 drawCount, quint32 stride) override;
+
+    void drawIndexedIndirect(QRhiCommandBuffer *cb, QRhiBuffer *indirectBuffer,
+                             quint32 indirectBufferOffset, quint32 drawCount, quint32 stride) override;
+
     void debugMarkBegin(QRhiCommandBuffer *cb, const QByteArray &name) override;
     void debugMarkEnd(QRhiCommandBuffer *cb) override;
     void debugMarkMsg(QRhiCommandBuffer *cb, const QByteArray &msg) override;
@@ -842,6 +873,7 @@ public:
                                    QRhiRenderBuffer *depthStencilBuffer,
                                    QRhiTexture *depthTexture,
                                    QRhiTexture *depthResolveTexture,
+                                   int depthLayer,
                                    QRhiShadingRateMap *shadingRateMap);
     bool ensurePipelineCache(const void *initialData = nullptr, size_t initialDataSize = 0);
     VkShaderModule createShader(const QByteArray &spirv);
@@ -894,6 +926,8 @@ public:
     void ensureCommandPoolForNewFrame();
     double elapsedSecondsFromTimestamp(quint64 timestamp[2], bool *ok);
     void printExtraErrorInfo(VkResult err);
+    Q_DECL_COLD_FUNCTION
+    void printDeviceLossErrorInfo() const;
     void setDefaultScissor(QVkCommandBuffer *cbD);
 
     QVulkanInstance *inst = nullptr;
@@ -915,6 +949,7 @@ public:
     VkPhysicalDeviceFeatures physDevFeatures;
 #ifdef VK_VERSION_1_1
     VkPhysicalDeviceMultiviewFeatures multiviewFeaturesIfApi11;
+    VkPhysicalDeviceShaderDrawParametersFeatures shaderDrawParametersFeaturesIfApi11;
 #endif
 #ifdef VK_VERSION_1_2
     VkPhysicalDeviceVulkan11Features physDevFeatures11IfApi12OrNewer;
@@ -922,6 +957,9 @@ public:
 #endif
 #ifdef VK_VERSION_1_3
     VkPhysicalDeviceVulkan13Features physDevFeatures13;
+#endif
+#ifdef VK_VERSION_1_4
+    VkPhysicalDeviceVulkan14Features physDevFeatures14;
 #endif
     VkPhysicalDeviceProperties physDevProperties;
     VkDeviceSize ubufAlign;
@@ -955,11 +993,16 @@ public:
     PFN_vkCreateRenderPass2KHR vkCreateRenderPass2KHR = nullptr;
 #endif
 
+#ifdef VK_EXT_device_fault
+    PFN_vkGetDeviceFaultInfoEXT vkGetDeviceFaultInfoEXT = nullptr;
+#endif
+
     struct {
         bool compute = false;
         bool depthClamp = false;
         bool wideLines = false;
         bool debugUtils = false;
+        bool deviceFault = false;
         bool vertexAttribDivisor = false;
         bool texture3DSliceAs2D = false;
         bool tessellation = false;
@@ -972,6 +1015,8 @@ public:
         bool imageBasedShadingRate = false;
         QVersionNumber apiVersion;
         int imageBasedShadingRateTileSize = 0;
+        bool drawIndirectMulti = false;
+        bool shaderDrawParameters = false;
     } caps;
 
     VkPipelineCache pipelineCache = VK_NULL_HANDLE;
@@ -1001,8 +1046,12 @@ public:
     struct OffscreenFrame {
         OffscreenFrame(QRhiImplementation *rhi)
         {
-            for (int i = 0; i < QVK_FRAMES_IN_FLIGHT; ++i)
+            for (int i = 0; i < QVK_FRAMES_IN_FLIGHT; ++i) {
                 cbWrapper[i] = new QVkCommandBuffer(rhi);
+                cmdFence[i] = VK_NULL_HANDLE;
+                cmdFenceWaitable[i] = false;
+                timestampQueryIndex[i] = -1;
+            }
         }
         ~OffscreenFrame()
         {
@@ -1011,8 +1060,9 @@ public:
         }
         bool active = false;
         QVkCommandBuffer *cbWrapper[QVK_FRAMES_IN_FLIGHT];
-        VkFence cmdFence = VK_NULL_HANDLE;
-        int timestampQueryIndex = -1;
+        VkFence cmdFence[QVK_FRAMES_IN_FLIGHT];
+        bool cmdFenceWaitable[QVK_FRAMES_IN_FLIGHT];
+        int timestampQueryIndex[QVK_FRAMES_IN_FLIGHT];
     } ofr;
 
     struct TextureReadback {

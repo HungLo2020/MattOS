@@ -76,11 +76,31 @@ QJsonDocument::QJsonDocument(const QJsonObject &object)
 }
 
 /*!
+ * \since 6.12
+ * Creates a QJsonDocument from \a object.
+ */
+QJsonDocument::QJsonDocument(QJsonObject &&object)
+    : QJsonDocument(QCborMap::fromJsonObject(std::move(object)))
+{
+
+}
+
+/*!
  * Constructs a QJsonDocument from \a array.
  */
 QJsonDocument::QJsonDocument(const QJsonArray &array)
     : QJsonDocument(QCborArray::fromJsonArray(array))
 {
+}
+
+/*!
+ * \since 6.12
+ * Constructs a QJsonDocument from \a array.
+ */
+QJsonDocument::QJsonDocument(QJsonArray &&array)
+    : QJsonDocument(QCborArray::fromJsonArray(std::move(array)))
+{
+
 }
 
 /*!
@@ -97,24 +117,17 @@ QJsonDocument::QJsonDocument(QCborValue data)
 
  Binary data set with fromRawData is not freed.
  */
-QJsonDocument::~QJsonDocument() = default;
+QJsonDocument::~QJsonDocument()
+{
+    delete d;
+}
 
 /*!
  * Creates a copy of the \a other document.
  */
 QJsonDocument::QJsonDocument(const QJsonDocument &other)
-    : d(other.d ? std::make_unique<QJsonDocumentPrivate>(other.d->value) : nullptr)
+    : d(other.d ? new QJsonDocumentPrivate(other.d->value) : nullptr)
 {
-}
-
-QJsonDocument::QJsonDocument(QJsonDocument &&other) noexcept
-    : d(std::move(other.d))
-{
-}
-
-void QJsonDocument::swap(QJsonDocument &other) noexcept
-{
-    qSwap(d, other.d);
 }
 
 /*!
@@ -123,13 +136,15 @@ void QJsonDocument::swap(QJsonDocument &other) noexcept
  */
 QJsonDocument &QJsonDocument::operator =(const QJsonDocument &other)
 {
-    if (this != &other) {
+    if (d != other.d) {
         if (other.d) {
             if (!d)
-                d = std::make_unique<QJsonDocumentPrivate>();
+                d = new QJsonDocumentPrivate;
+            // this is noexcept:
             d->value = other.d->value;
         } else {
-            d.reset();
+            delete d;
+            d = nullptr;
         }
     }
     return *this;

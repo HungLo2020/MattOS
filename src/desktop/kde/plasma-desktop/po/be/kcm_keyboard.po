@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fc57ad16a28d02dea100ceb1c60de14e\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2024-11-21 20:40\n"
 "Last-Translator: Darafei Praliaskouski <komzpa@licei2.com>\n"
 "Language-Team: Belarusian\n"
@@ -97,12 +97,10 @@ msgstr ""
 "яшчэ могуць працаваць нармальна, калі іх ужыць"
 
 #: ui/KeyBindings.qml:18
-#, fuzzy, kde-format
-#| msgctxt "@action:button"
-#| msgid "Configure Switching…"
+#, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Наладжванне пераключэння…"
+msgid "Key Bindings"
+msgstr "Прывязванне клавіш"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -142,13 +140,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Дадаць раскладку"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Скарочаная назва раскладкі"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -158,13 +156,13 @@ msgstr ""
 "Скарочаная назва абранай раскладкі, якая будзе паказвацца на прасторы "
 "апавяшчэнняў. Вы можаце змяніць гэты параметр самастойна."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Спалучэнне клавіш:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -564,7 +562,7 @@ msgstr ""
 "Клавішы-мадыфікатары можна выкарыстоўваць для ўводу дадатковых знакаў, "
 "сімвалаў і дыякрытычных знакаў."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
@@ -573,15 +571,18 @@ msgstr[1] "%1 спалучэнні клавіш"
 msgstr[2] "%1 спалучэнняў клавіш"
 msgstr[3] "%1 спалучэнні клавіш"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Няма"
 
+#, fuzzy
+#~| msgctxt "@action:button"
+#~| msgid "Configure Switching…"
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Прывязванне клавіш"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Наладжванне пераключэння…"
 
 #~ msgctxt "@option:radio"
 #~ msgid "Turn Off"

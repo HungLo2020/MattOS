@@ -1,6 +1,6 @@
 #include "SelectionEditor.h"
 
-#include <KLocalizedContext>
+#include <KLocalizedQmlContext>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -11,7 +11,7 @@
 class SelectionEditorPrivate
 {
 public:
-    SelectionEditorPrivate(SelectionEditor *q);
+    explicit SelectionEditorPrivate(SelectionEditor *q);
     ~SelectionEditorPrivate();
 
     SelectionEditor *const q;
@@ -86,10 +86,7 @@ SelectionEditor::SelectionEditor(QObject *parent)
     , d(new SelectionEditorPrivate(this))
     , m_engine(new QQmlApplicationEngine(this))
 {
-    auto context = new KLocalizedContext(m_engine);
-    context->setTranslationDomain(QStringLiteral(TRANSLATION_DOMAIN));
-    m_engine->rootContext()->setContextObject(context);
-    m_engine->rootContext()->setContextProperty(QStringLiteral("SelectionEditor"), QVariant::fromValue<QObject *>(this));
+    KLocalization::setupLocalizedContext(m_engine);
 
     setObjectName(QStringLiteral("selectionEditor"));
 
@@ -98,18 +95,8 @@ SelectionEditor::SelectionEditor(QObject *parent)
     connect(qApp, &QGuiApplication::screenRemoved, this, &SelectionEditor::showViews);
     connect(qApp, &QGuiApplication::primaryScreenChanged, this, &SelectionEditor::showViews);
     connect(qApp, &QGuiApplication::focusWindowChanged, this, [this](QWindow *newWindow) {
-        bool focusLost = true;
-
-        if (newWindow) {
-            for (auto *view : m_views) {
-                if (view && newWindow->winId() == view->winId()) {
-                    focusLost = false;
-                    break;
-                }
-            }
-        }
-        if (focusLost) {
-            this->reject();
+        if (!m_views.contains(newWindow)) {
+            reject();
         }
     });
 }
@@ -128,6 +115,7 @@ void SelectionEditor::showViews()
         view->create();
         view->setScreen(screen);
 
+        view->setInitialProperties({{QStringLiteral("selectionEditor"), QVariant::fromValue(this)}});
         view->loadFromModule("org.kde.xdgdesktopportal", "RegionSelectOverlay");
         view->installEventFilter(this);
 

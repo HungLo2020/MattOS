@@ -123,8 +123,8 @@ target_include_directories(KF6BluezQt INTERFACE "$<INSTALL_INTERFACE:${KDE_INSTA
 target_link_libraries(KF6BluezQt
     PUBLIC
         Qt6::Core
-    PRIVATE
         Qt6::DBus
+    PRIVATE
         Qt6::Network
 )
 
@@ -204,3 +204,17 @@ ecm_qt_install_logging_categories(
 )
 
 ecm_generate_qdoc(KF6BluezQt bluezqt.qdocconf)
+
+ecm_add_installed_library_check(KF6BluezQt
+    PACKAGE_NAME "KF6BluezQt"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6BluezQt
+    HEADERS ${BluezQt_CamelCase_HEADERS}
+    PREFIX BluezQt
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6BluezQt
+    PREFIX BLUEZQT
+)

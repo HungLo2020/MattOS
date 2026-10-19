@@ -22,8 +22,6 @@
 # This module will autoregister settings declared on ``setting_header.h`` with class name ``SettingClass``.
 # Multiple settings classes / settings headers can be specified.
 
-include(CMakeParseArguments)
-
 set(_KCMODULE_DATA_TEMPLATE_CPP "${CMAKE_CURRENT_LIST_DIR}/kcmutilsgeneratemoduledata.cpp.in")
 set(_KCMODULE_DATA_TEMPLATE_H   "${CMAKE_CURRENT_LIST_DIR}/kcmutilsgeneratemoduledata.h.in")
 
@@ -74,6 +72,7 @@ function(kcmutils_generate_module_data sources_var)
     set(SETTINGS_FORWARD_DECLARATION)
     set(SETTINGS_CONSTRUCTOR_INITIALIZATION)
     set(SETTINGS_METHOD_DEFINITION)
+    set(SETTINGS_ATTRIBUTE_DECLARATION)
     set(SETTINGS_METHOD_DECLARATION)
     list(LENGTH ARG_SETTINGS_CLASSES _nb_settings)
     foreach(_class ${ARG_SETTINGS_CLASSES})

@@ -14,13 +14,13 @@
 # Serdar SOYTETİR <tulliana@gmail.com>, 2010, 2012.
 # Volkan Gezer <volkangezer@gmail.com>, 2013, 2014, 2021.
 # Kaan Ozdincer <kaanozdincer@gmail.com>, 2014.
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025, 2026 Emir SARI <emir_sari@icloud.com>
+# SPDX-FileCopyrightText: 2022-2026 Emir SARI <emir_sari@icloud.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-28 00:41+0000\n"
-"PO-Revision-Date: 2026-03-14 12:47+0300\n"
+"POT-Creation-Date: 2026-09-23 00:42+0000\n"
+"PO-Revision-Date: 2026-09-23 09:46+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.12.2\n"
+"X-Generator: Lokalize 26.08.0\n"
 
 #: kaboutapplicationdialog.cpp:60 kaboutplugindialog.cpp:65
 #, kde-format
@@ -357,18 +357,18 @@ msgctxt "@title:window"
 msgid "Ambiguous shortcut detected"
 msgstr "Belirsiz kısayol algılandı"
 
-#: kbugreport.cpp:67
+#: kbugreport.cpp:68
 #, kde-format
 msgctxt "@title:window"
 msgid "Submit Bug Report"
 msgstr "Hata Raporu Gönder"
 
-#: kbugreport.cpp:89
+#: kbugreport.cpp:90
 #, kde-format
 msgid "Submit Bug Report"
 msgstr "Hata Raporu Gönder"
 
-#: kbugreport.cpp:101
+#: kbugreport.cpp:102
 #, kde-format
 msgid ""
 "The application for which you wish to submit a bug report - if incorrect, "
@@ -377,12 +377,12 @@ msgstr ""
 "Hakkında hata raporu gönderilecek olan uygulamanın adı — doğru değilse "
 "lütfen uygulamanın “Hata Bildir…” menü ögesini kullanın."
 
-#: kbugreport.cpp:102
+#: kbugreport.cpp:103
 #, kde-format
 msgid "Application: "
 msgstr "Uygulama: "
 
-#: kbugreport.cpp:112
+#: kbugreport.cpp:113
 #, kde-format
 msgid ""
 "The version of this application - please make sure that no newer version is "
@@ -391,28 +391,28 @@ msgstr ""
 "Bu uygulamanın sürümü — bir hata raporu göndermeden önce yeni bir sürümün "
 "çıkmadığından emin olun"
 
-#: kbugreport.cpp:113
+#: kbugreport.cpp:114
 #, kde-format
 msgid "Version:"
 msgstr "Sürüm:"
 
-#: kbugreport.cpp:118
+#: kbugreport.cpp:119
 #, kde-format
 msgid "no version set (programmer error)"
 msgstr "sürüm bilgisi yok (programcı hatası)"
 
-#: kbugreport.cpp:122
+#: kbugreport.cpp:123
 #, kde-format
 msgctxt "%1 is the program version, %2 is the kde framework version"
 msgid "%1 with KDE Frameworks %2"
 msgstr "%1, KDE Frameworks %2 ile"
 
-#: kbugreport.cpp:130
+#: kbugreport.cpp:131
 #, kde-format
 msgid "OS:"
 msgstr "İşletim sistemi:"
 
-#: kbugreport.cpp:135
+#: kbugreport.cpp:136
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Windows 10', %2 is the CPU "
@@ -420,7 +420,7 @@ msgctxt ""
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: kbugreport.cpp:142
+#: kbugreport.cpp:143
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Fedora Linux', %2 is the operating "
@@ -428,7 +428,7 @@ msgctxt ""
 msgid "%1 %2 (%3)"
 msgstr "%1 %2 (%3)"
 
-#: kbugreport.cpp:148
+#: kbugreport.cpp:149
 #, kde-format
 msgctxt ""
 "%1 is the operating system name, e.g. 'Fedora Linux', %2 is the CPU "
@@ -436,7 +436,7 @@ msgctxt ""
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: kbugreport.cpp:162
+#: kbugreport.cpp:163
 #, kde-format
 msgid ""
 "<qt>To submit a bug report, click on the button below. This will open a web "
@@ -449,7 +449,7 @@ msgstr ""
 "bugs.kde.org</a> adresini bir web tarayıcısında açar. Yukarıda görüntülenen "
 "bilgi, bu sunucuya gönderilir.</qt>"
 
-#: kbugreport.cpp:168
+#: kbugreport.cpp:169
 #, kde-format
 msgid ""
 "<qt>To submit a bug report, click on the button below. This will open a web "
@@ -458,13 +458,13 @@ msgstr ""
 "<qt>Bir hata raporu iletmek için aşağıdaki düğmeye tıklayın. Bu, <a href="
 "\"%1\">%2</a> adresini bir web tarayıcısında açar.</qt>"
 
-#: kbugreport.cpp:185
+#: kbugreport.cpp:186
 #, kde-format
 msgctxt "@action:button"
 msgid "&Launch Bug Report Wizard"
 msgstr "&Hata Raporu Sihirbazını Başlat"
 
-#: kbugreport.cpp:187
+#: kbugreport.cpp:188
 #, kde-format
 msgctxt "@action:button"
 msgid "&Submit Bug Report"
@@ -507,30 +507,30 @@ msgstr "<h2>İvmelendiriciler kaldırıldı</h2>"
 msgid "<h2>Accelerators added (just for your info)</h2>"
 msgstr "<h2>İvmelendiriciler eklendi (yalnızca bilginize)</h2>"
 
-#: kedittoolbar.cpp:332
+#: kedittoolbar.cpp:353
 #, kde-format
 msgctxt "@title:window"
 msgid "Change Text"
 msgstr "Metni Değiştir"
 
-#: kedittoolbar.cpp:342
+#: kedittoolbar.cpp:363
 #, kde-format
 msgid "Icon te&xt:"
 msgstr "&Simge metni:"
 
-#: kedittoolbar.cpp:347
+#: kedittoolbar.cpp:368
 #, kde-format
 msgctxt "@option:check"
 msgid "&Hide text when toolbar shows text alongside icons"
 msgstr "Araç çubuğu simgelerin yanında metin gösteriyorsa metinleri &gizle"
 
-#: kedittoolbar.cpp:596
+#: kedittoolbar.cpp:621
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Toolbars"
 msgstr "Araç Çubuklarını Yapılandır"
 
-#: kedittoolbar.cpp:659
+#: kedittoolbar.cpp:684
 #, kde-format
 msgid ""
 "Do you really want to reset all toolbars of this application to their "
@@ -539,17 +539,17 @@ msgstr ""
 "Bu uygulamanın tüm araç çubuklarını öntanımlı ayarlarına döndürmek "
 "istediğinizden emin misiniz? Değişiklikler hemen uygulanacaktır."
 
-#: kedittoolbar.cpp:660
+#: kedittoolbar.cpp:685
 #, kde-format
 msgid "Reset Toolbars"
 msgstr "Araç Çubuklarını Sıfırla"
 
-#: kedittoolbar.cpp:661
+#: kedittoolbar.cpp:686
 #, kde-format
 msgid "Reset"
 msgstr "Sıfırla"
 
-#: kedittoolbar.cpp:980
+#: kedittoolbar.cpp:1007
 #, kde-format
 msgid "&Toolbar:"
 msgstr "&Araç çubuğu:"
@@ -561,66 +561,66 @@ msgstr "&Araç çubuğu:"
 #. del_toolbar->setPixmap(BarIcon("edit-delete", KIconLoader::SizeSmall));
 #. del_toolbar->setEnabled(false); // disabled until implemented
 #. our list of inactive actions
-#: kedittoolbar.cpp:996
+#: kedittoolbar.cpp:1023
 #, kde-format
 msgid "A&vailable actions:"
 msgstr "&Kullanılabilir eylemler:"
 
-#: kedittoolbar.cpp:1017 kedittoolbar.cpp:1042
+#: kedittoolbar.cpp:1044 kedittoolbar.cpp:1069
 #, kde-format
 msgid "Filter"
 msgstr "Süz"
 
-#: kedittoolbar.cpp:1020
+#: kedittoolbar.cpp:1047
 #, kde-format
 msgid "Curr&ent actions:"
 msgstr "Geçerli &eylemler:"
 
-#: kedittoolbar.cpp:1045
+#: kedittoolbar.cpp:1072
 #, kde-format
 msgctxt "@action:button"
 msgid "Change &Icon…"
 msgstr "&Simgeyi Değiştir…"
 
-#: kedittoolbar.cpp:1054
+#: kedittoolbar.cpp:1081
 #, kde-format
 msgctxt "@action:button"
 msgid "Change Te&xt…"
 msgstr "&Metni Değiştir…"
 
-#: kedittoolbar.cpp:1196
+#: kedittoolbar.cpp:1223
 #, kde-format
 msgid "--- separator ---"
 msgstr "--- ayırıcı ---"
 
-#: kedittoolbar.cpp:1197
+#: kedittoolbar.cpp:1224
 #, kde-format
 msgid "--- expanding spacer ---"
 msgstr "--- genişleyen ayırıcı ---"
 
-#: kedittoolbar.cpp:1219
+#: kedittoolbar.cpp:1246
 #, kde-format
 msgctxt "@item:intable Action name in toolbar editor"
 msgid "%1"
 msgstr "%1"
 
-#: kedittoolbar.cpp:1247
+#: kedittoolbar.cpp:1274
 #, kde-format
 msgid ""
 "This element will be replaced with all the elements of an embedded component."
 msgstr "Bu öge gömülü bileşen içindeki tüm ögelerle yer değiştirecek."
 
-#: kedittoolbar.cpp:1249
+#: kedittoolbar.cpp:1276
 #, kde-format
 msgid "<Merge>"
 msgstr "<Birleştir>"
 
-#: kedittoolbar.cpp:1251
+#: kedittoolbar.cpp:1278
 #, kde-format
 msgid "<Merge %1>"
 msgstr "<Birleştir: %1>"
 
-#: kedittoolbar.cpp:1261
+#: kedittoolbar.cpp:1288
 #, kde-format
 msgid ""
 "This is a dynamic list of actions. You can move it, but if you remove it you "
@@ -629,18 +629,18 @@ msgstr ""
 "Bu, eylemlerin devingen bir biçimde oluşturulan bir listesidir. "
 "Taşıyabilirsiniz; ancak kaldırırsanız yeniden ekleyemezsiniz."
 
-#: kedittoolbar.cpp:1262
+#: kedittoolbar.cpp:1289
 #, kde-format
 msgid "ActionList: %1"
 msgstr "Eylem listesi: %1"
 
-#: kedittoolbar.cpp:1363 kedittoolbar.cpp:1388
+#: kedittoolbar.cpp:1390 kedittoolbar.cpp:1415
 #, kde-format
 msgctxt "@label Action tooltip in toolbar editor, below the action list"
 msgid "%1"
 msgstr "%1"
 
-#: kedittoolbar.cpp:1616
+#: kedittoolbar.cpp:1643
 #, kde-format
 msgid "Change Icon"
 msgstr "Simgeyi Değiştir"
@@ -651,23 +651,24 @@ msgstr "Simgeyi Değiştir"
 msgid "&Help"
 msgstr "&Yardım"
 
-#: kkeysequencewidget.cpp:146
+#: kkeysequencewidget.cpp:147
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "Click on the button, then enter the shortcut like you would in the program.\n"
 "Example for Ctrl+A: hold the Ctrl key and press A."
 msgstr ""
-"Düğmeye tıklayın, ardından kısayol düğmelerine basın.\n"
-"Kontrol + A örneği için: Kontrol düğmesine basılı tutun ve A düğmesine basın."
+"Düğmeye tıklayın, daha sonra programlamak istediğiniz kısayolu girin.\n"
+"Kontrol+A örneği için: Kontrol düğmesini basılı tutun ve sonrasında A’ya "
+"basın."
 
-#: kkeysequencewidget.cpp:150
+#: kkeysequencewidget.cpp:151
 #, kde-format
 msgctxt "@action:button"
 msgid "Clear"
 msgstr "Temizle"
 
-#: kkeysequencewidget.cpp:169
+#: kkeysequencewidget.cpp:170
 #, kde-format
 msgctxt "%1 is the number of conflicts"
 msgid "Shortcut Conflict"
@@ -675,12 +676,12 @@ msgid_plural "Shortcut Conflicts"
 msgstr[0] "Kısayol Çakışması"
 msgstr[1] "Kısayol Çakışmaları"
 
-#: kkeysequencewidget.cpp:173
+#: kkeysequencewidget.cpp:174
 #, kde-format
 msgid "Shortcut '%1' for action '%2'\n"
 msgstr "“%2” eylemi için %1 kısayolu\n"
 
-#: kkeysequencewidget.cpp:178
+#: kkeysequencewidget.cpp:179
 #, kde-format
 msgctxt "%1 is the number of ambiguous shortcut clashes (hidden)"
 msgid ""
@@ -700,20 +701,20 @@ msgstr[1] ""
 "Bu eylemlere boş bir kısayol atamak istiyor musunuz?\n"
 "%3"
 
-#: kkeysequencewidget.cpp:188 kkeysequencewidget.cpp:295
-#: kkeysequencewidget.cpp:357
+#: kkeysequencewidget.cpp:189 kkeysequencewidget.cpp:296
+#: kkeysequencewidget.cpp:358
 #, kde-format
 msgctxt "@action:button"
 msgid "Reassign"
 msgstr "Yeniden Ata"
 
-#: kkeysequencewidget.cpp:193
+#: kkeysequencewidget.cpp:194
 #, kde-format
 msgctxt "@title:window"
 msgid "Shortcut conflict"
 msgstr "Kısayol Çakışması"
 
-#: kkeysequencewidget.cpp:195
+#: kkeysequencewidget.cpp:196
 #, kde-format
 msgid ""
 "<qt>The '%1' key combination is already used by the <b>%2</b> action."
@@ -722,12 +723,12 @@ msgstr ""
 "<qt>“%1” kısayolu <b>%2</b> eylemi için kullanılıyor.<br>Lütfen başka bir "
 "tane seçin.</qt>"
 
-#: kkeysequencewidget.cpp:275
+#: kkeysequencewidget.cpp:276
 #, kde-format
 msgid "Shortcut '%1' in Application '%2' for action '%3'\n"
 msgstr "“%3” eylemi için “%2” uygulamasındaki “%1” kısayolu\n"
 
-#: kkeysequencewidget.cpp:284
+#: kkeysequencewidget.cpp:285
 #, kde-format
 msgctxt ""
 "%1 is the number of conflicts (hidden), %2 is the key sequence of the "
@@ -738,7 +739,7 @@ msgid_plural ""
 msgstr[0] "“%2” kısayolu aşağıdaki düğme kombinasyonu ile çakışıyor:\n"
 msgstr[1] "“%2” kısayolu aşağıdaki düğme kombinasyonları ile çakışıyor:\n"
 
-#: kkeysequencewidget.cpp:291
+#: kkeysequencewidget.cpp:292
 #, kde-format
 msgctxt "%1 is the number of shortcuts with which there is a conflict"
 msgid "Conflict with Registered Global Shortcut"
@@ -746,12 +747,12 @@ msgid_plural "Conflict with Registered Global Shortcuts"
 msgstr[0] "Kayıtlı Global Kısayolla Çakışma"
 msgstr[1] "Kayıtlı Global Kısayollarla Çakışma"
 
-#: kkeysequencewidget.cpp:304
+#: kkeysequencewidget.cpp:305
 #, kde-format
 msgid "Reserved Shortcut"
 msgstr "Ayrılmış Kısayol"
 
-#: kkeysequencewidget.cpp:306
+#: kkeysequencewidget.cpp:307
 #, kde-format
 msgid ""
 "The F12 key is reserved on Windows, so cannot be used for a global "
@@ -760,32 +761,32 @@ msgid ""
 msgstr ""
 "F12 kısayolu Windows üzerinde önceden atanmış olduğundan global kısayol "
 "olarak kullanılamaz.\n"
-"Lütfen başka bir tane seçin."
+"Lütfen başka bir düğme seçin."
 
-#: kkeysequencewidget.cpp:349
+#: kkeysequencewidget.cpp:350
 #, kde-format
 msgctxt "@title:window"
 msgid "Conflict with Standard Application Shortcut"
 msgstr "Standart Uygulama Kısayoluyla Çakışma"
 
-#: kkeysequencewidget.cpp:351
+#: kkeysequencewidget.cpp:352
 #, kde-format
 msgid ""
 "The '%1' key combination is also used for the standard action \"%2\" that "
 "some applications use.\n"
 "Do you really want to use it as a global shortcut as well?"
 msgstr ""
-"“%1” düğme kombinasyonu, halihazırda başka bir uygulamanın “%2” eylemi için "
+"“%1” düğme kombinasyonu, hâlihazırda başka bir uygulamanın “%2” eylemi için "
 "kullanılıyor.\n"
 "Bunu bir global kısayol olarak kullanmayı gerçekten istiyor musunuz?"
 
-#: kkeysequencewidget.cpp:395
+#: kkeysequencewidget.cpp:396
 #, kde-format
 msgctxt "What the user inputs now will be taken as the new shortcut"
 msgid "Input"
 msgstr "Giriş"
 
-#: kkeysequencewidget.cpp:397 kshortcuteditwidget.cpp:51
+#: kkeysequencewidget.cpp:398 kshortcuteditwidget.cpp:54
 #, kde-format
 msgctxt "No shortcut defined"
 msgid "None"
@@ -802,7 +803,7 @@ msgstr "Lisans Antlaşması"
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
 msgstr ""
-"Serdar Soytetir, Görkem Çetin, H. İbrahim Güngör, Volkan Gezer, Emir SARI"
+"Serdar SOYTETİR, Görkem ÇETİN, H. İbrahim GÜNGÖR, Volkan GEZER, Emir SARI"
 
 #: kmainwindow.cpp:258
 #, kde-format
@@ -823,13 +824,13 @@ msgctxt "@action:inmenu"
 msgid "Configure Shortcut…"
 msgstr "Kısayolu Yapılandır…"
 
-#: kshortcuteditwidget.cpp:55
+#: kshortcuteditwidget.cpp:58
 #, kde-format
 msgctxt "@option:radio"
 msgid "Default:"
 msgstr "Öntanımlı:"
 
-#: kshortcuteditwidget.cpp:62
+#: kshortcuteditwidget.cpp:65
 #, kde-format
 msgctxt "@option:radio"
 msgid "Custom:"
@@ -901,7 +902,7 @@ msgstr "Yeni Şema"
 #: kshortcutschemeseditor.cpp:121
 #, kde-format
 msgid "A scheme with this name already exists."
-msgstr "Bu adı taşıyan bir şema halihazırda var."
+msgstr "Bu adı taşıyan bir şema hâlihazırda var."
 
 #: kshortcutschemeseditor.cpp:151
 #, kde-format
@@ -919,23 +920,23 @@ msgctxt "@title:window"
 msgid "Export Shortcuts"
 msgstr "Kısayolları Dışa Aktar"
 
-#: kshortcutschemeseditor.cpp:187 kshortcutschemeseditor.cpp:198
+#: kshortcutschemeseditor.cpp:187 kshortcutschemeseditor.cpp:202
 #, kde-format
 msgid "Shortcuts (*.shortcuts)"
 msgstr "Kısayollar (*.shortcuts)"
 
-#: kshortcutschemeseditor.cpp:198
+#: kshortcutschemeseditor.cpp:202
 #, kde-format
 msgctxt "@title:window"
 msgid "Import Shortcuts"
 msgstr "Kısayollar İçe Aktar"
 
-#: kshortcutschemeseditor.cpp:209
+#: kshortcutschemeseditor.cpp:213
 #, kde-format
 msgid "Shortcut scheme successfully saved."
 msgstr "Kısayol şeması başarıyla kaydedildi."
 
-#: kshortcutschemeseditor.cpp:212
+#: kshortcutschemeseditor.cpp:216
 #, kde-format
 msgid "Error saving the shortcut scheme."
 msgstr "Kısayol şemasını kaydetmede hata."
@@ -954,7 +955,7 @@ msgstr ""
 msgid "Manage &Schemes"
 msgstr "Şemaları &Yönet"
 
-#: kshortcutsdialog.cpp:149
+#: kshortcutsdialog.cpp:151
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Keyboard Shortcuts"
@@ -1023,45 +1024,45 @@ msgstr "Fare Düğmesi Hareketi"
 msgid "Mouse Shape Gesture"
 msgstr "Fare Şekli Hareketi"
 
-#: kshortcutseditor.cpp:521
+#: kshortcutseditor.cpp:526
 #, kde-format
 msgctxt "header for an applications shortcut list"
 msgid "Shortcuts for %1"
 msgstr "%1 Kısayolları"
 
 #. i18n: ectx: property (text), widget (QLabel, priLabel)
-#: kshortcutseditor.cpp:541 kshortcutwidget.ui:22
+#: kshortcutseditor.cpp:546 kshortcutwidget.ui:22
 #, kde-format
 msgid "Main:"
 msgstr "Ana:"
 
 #. i18n: ectx: property (text), widget (QLabel, altLabel)
-#: kshortcutseditor.cpp:542 kshortcutwidget.ui:52
+#: kshortcutseditor.cpp:547 kshortcutwidget.ui:52
 #, kde-format
 msgid "Alternate:"
 msgstr "Alternatif:"
 
-#: kshortcutseditor.cpp:543
+#: kshortcutseditor.cpp:548
 #, kde-format
 msgid "Global:"
 msgstr "Global:"
 
-#: kshortcutseditor.cpp:544
+#: kshortcutseditor.cpp:549
 #, kde-format
 msgid "Global alternate:"
 msgstr "Global alternatif:"
 
-#: kshortcutseditor.cpp:560
+#: kshortcutseditor.cpp:565
 #, kde-format
 msgid "Action Name"
 msgstr "Eylem Adı"
 
-#: kshortcutseditor.cpp:564
+#: kshortcutseditor.cpp:569
 #, kde-format
 msgid "Shortcuts"
 msgstr "Kısayollar"
 
-#: kshortcutseditor.cpp:568
+#: kshortcutseditor.cpp:573
 #, kde-format
 msgid "Description"
 msgstr "Açıklama"
@@ -1072,24 +1073,24 @@ msgctxt "@item:intable Action name in shortcuts configuration"
 msgid "%1"
 msgstr "%1"
 
-#: kswitchlanguagedialog_p.cpp:137
+#: kswitchlanguagedialog_p.cpp:138
 #, kde-format
 msgctxt "@title:window"
 msgid "Configure Language"
 msgstr "Dili Yapılandır"
 
-#: kswitchlanguagedialog_p.cpp:141
+#: kswitchlanguagedialog_p.cpp:142
 #, kde-format
 msgid "Please choose the language which should be used for this application:"
 msgstr "Lütfen bu uygulama için kullanılacak dili seçin:"
 
-#: kswitchlanguagedialog_p.cpp:168
+#: kswitchlanguagedialog_p.cpp:169
 #, kde-format
 msgctxt "@action:button"
 msgid "Add Fallback Language"
 msgstr "Yedek Dil Ekle"
 
-#: kswitchlanguagedialog_p.cpp:169
+#: kswitchlanguagedialog_p.cpp:170
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1099,7 +1100,7 @@ msgstr ""
 "Diğer çeviriler uygun bir çeviri içermediğinde kullanılmak için daha fazla "
 "dil ekler."
 
-#: kswitchlanguagedialog_p.cpp:261 kswitchlanguagedialog_p.cpp:282
+#: kswitchlanguagedialog_p.cpp:262 kswitchlanguagedialog_p.cpp:283
 #, kde-format
 msgid ""
 "The language for this application has been changed. The change will take "
@@ -1108,34 +1109,34 @@ msgstr ""
 "Bu uygulama için kullanılacak dil değiştirildi. Değişiklik, uygulamanın bir "
 "sonraki açılışında etkinleştirilecek."
 
-#: kswitchlanguagedialog_p.cpp:262
+#: kswitchlanguagedialog_p.cpp:263
 #, kde-format
 msgctxt "@title:window"
 msgid "Application Language Changed"
 msgstr "Uygulama Dili Değiştirildi"
 
-#: kswitchlanguagedialog_p.cpp:283
+#: kswitchlanguagedialog_p.cpp:284
 #, kde-format
 msgid "Application Language Changed"
 msgstr "Uygulama Dili Değiştirildi"
 
-#: kswitchlanguagedialog_p.cpp:368
+#: kswitchlanguagedialog_p.cpp:369
 #, kde-format
 msgid "Primary language:"
 msgstr "Birincil dil:"
 
-#: kswitchlanguagedialog_p.cpp:368
+#: kswitchlanguagedialog_p.cpp:369
 #, kde-format
 msgid "Fallback language:"
 msgstr "İkincil dil:"
 
-#: kswitchlanguagedialog_p.cpp:383
+#: kswitchlanguagedialog_p.cpp:384
 #, kde-format
 msgctxt "@action:button"
 msgid "Remove"
 msgstr "Kaldır"
 
-#: kswitchlanguagedialog_p.cpp:389
+#: kswitchlanguagedialog_p.cpp:390
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1143,7 +1144,7 @@ msgid ""
 "other languages."
 msgstr "Diğer dillerden önce kullanılacak ana uygulama dili."
 
-#: kswitchlanguagedialog_p.cpp:390
+#: kswitchlanguagedialog_p.cpp:391
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
@@ -1153,109 +1154,109 @@ msgstr ""
 "Diğer çeviriler uygun bir çeviri içermediğinde kullanılmak için daha fazla "
 "dil ekler."
 
-#: ktoolbar.cpp:309 ktoolbar.cpp:316
+#: ktoolbar.cpp:311 ktoolbar.cpp:318
 #, kde-format
 msgctxt "@title:menu"
 msgid "Toolbar Settings"
 msgstr "Araç Çubuğu Ayarları"
 
-#: ktoolbar.cpp:311
+#: ktoolbar.cpp:313
 #, kde-format
 msgctxt "@title:menu"
 msgid "Show Text"
 msgstr "Metni Göster"
 
-#: ktoolbar.cpp:318
+#: ktoolbar.cpp:320
 #, kde-format
 msgctxt "Toolbar orientation"
 msgid "Orientation"
 msgstr "Yönelim"
 
-#: ktoolbar.cpp:320
+#: ktoolbar.cpp:322
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Top"
 msgstr "Üst"
 
-#: ktoolbar.cpp:324
+#: ktoolbar.cpp:326
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Left"
 msgstr "Sol"
 
-#: ktoolbar.cpp:327
+#: ktoolbar.cpp:329
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Right"
 msgstr "Sağ"
 
-#: ktoolbar.cpp:330
+#: ktoolbar.cpp:332
 #, kde-format
 msgctxt "toolbar position string"
 msgid "Bottom"
 msgstr "Alt"
 
-#: ktoolbar.cpp:341
+#: ktoolbar.cpp:343
 #, kde-format
 msgid "Text Position"
 msgstr "Metin Konumu"
 
-#: ktoolbar.cpp:343
+#: ktoolbar.cpp:345
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Icons Only"
 msgstr "Yalnızca simge"
 
-#: ktoolbar.cpp:346
+#: ktoolbar.cpp:348
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Only"
 msgstr "Yalnızca metin"
 
-#: ktoolbar.cpp:349
+#: ktoolbar.cpp:351
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Alongside Icons"
 msgstr "Simge yanında metin"
 
-#: ktoolbar.cpp:352
+#: ktoolbar.cpp:354
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Text Under Icons"
 msgstr "Simge altında metin"
 
-#: ktoolbar.cpp:363
+#: ktoolbar.cpp:365
 #, kde-format
 msgid "Icon Size"
 msgstr "Simge Boyutu"
 
-#: ktoolbar.cpp:365
+#: ktoolbar.cpp:367
 #, kde-format
 msgctxt "@item:inmenu Icon size"
 msgid "Default"
 msgstr "Öntanımlı"
 
-#: ktoolbar.cpp:385 ktoolbar.cpp:409
+#: ktoolbar.cpp:387 ktoolbar.cpp:411
 #, kde-format
 msgid "Small (%1x%2)"
 msgstr "Küçük (%1 × %2)"
 
-#: ktoolbar.cpp:387 ktoolbar.cpp:411
+#: ktoolbar.cpp:389 ktoolbar.cpp:413
 #, kde-format
 msgid "Medium (%1x%2)"
 msgstr "Orta (%1 × %2)"
 
-#: ktoolbar.cpp:389 ktoolbar.cpp:413
+#: ktoolbar.cpp:391 ktoolbar.cpp:415
 #, kde-format
 msgid "Large (%1x%2)"
 msgstr "Büyük (%1 × %2)"
 
-#: ktoolbar.cpp:391 ktoolbar.cpp:415
+#: ktoolbar.cpp:393 ktoolbar.cpp:417
 #, kde-format
 msgid "Huge (%1x%2)"
 msgstr "Devasa (%1 × %2)"
 
-#: ktoolbar.cpp:441
+#: ktoolbar.cpp:443
 #, kde-format
 msgid "Lock Toolbar Positions"
 msgstr "Araç Çubuğunun Konumunu Kilitle"
@@ -1305,23 +1306,21 @@ msgstr "Geri Al"
 msgid "No text"
 msgstr "Metin yok"
 
-#: kxmlguiwindow.cpp:193
+#: kxmlguiwindow.cpp:203
 #, kde-format
 msgid "Find Action…"
 msgstr "Eylem Bul…"
 
-#: kxmlguiwindow.cpp:563
+#: kxmlguiwindow.cpp:572
 #, kde-format
 msgid ""
 "There are two actions (%1, %2) that want to use the same shortcut (%3). This "
-"is most probably a bug. Please report it in <a href='https://bugs.kde."
-"org'>bugs.kde.org</a>"
+"is most probably a bug. Please report it in <a href=\"%4\">%4</a>"
 msgstr ""
-"Aynı kısayolu (%3) kullanmak isteyen iki eylem (%1, %2) var. Bu, büyük "
-"olasılıkla bir hata. Lütfen <a href='https://bugs.kde.org'>bugs.kde.org</a> "
-"adresine bildirin"
+"Aynı kısayolu (%3) kullanmak isteyen iki ayrı eylem (%1, %2) var. Bu, büyük "
+"olasılıkla bir hata. Lütfen <a href=\"%4\">%4</a> adresine bildirin."
 
-#: kxmlguiwindow.cpp:568
+#: kxmlguiwindow.cpp:578
 #, kde-format
 msgid "Ambiguous Shortcuts"
 msgstr "Belirsiz Kısayollar"

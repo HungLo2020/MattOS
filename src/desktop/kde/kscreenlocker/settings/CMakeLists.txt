@@ -1,3 +1,5 @@
+add_definitions(-DTRANSLATION_DOMAIN=\"kscreenlocker\")
+
 add_library(settings STATIC
     kscreensaversettings.cpp
     shell_integration.cpp
@@ -15,3 +17,5 @@ target_link_libraries(settings
     KF6::Package
     KF6::XmlGui
 )
+
+install(FILES kscreenlockersettings.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})

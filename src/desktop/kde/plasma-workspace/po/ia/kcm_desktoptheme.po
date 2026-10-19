@@ -1,14 +1,14 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2010, 2011, 2013, 2017, 2021, 2023, 2024 g.sora <g.sora@tiscali.it>
+# SPDX-FileCopyrightText: 2010, 2011, 2013, 2017, 2021, 2023, 2024, 2026 g.sora <g.sora@tiscali.it>
 # Giovanni Sora <g.sora@tioscali.it>, 2014, 2019, 2020, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-09-02 16:13+0200\n"
+"POT-Creation-Date: 2026-03-27 00:47+0000\n"
+"PO-Revision-Date: 2026-02-03 18:01+0100\n"
 "Last-Translator: giovanni <g.sora@tiscali.it>\n"
 "Language-Team: Interlingua <kde-i18n-doc@kde.org>\n"
 "Language: ia\n"
@@ -129,51 +129,68 @@ msgctxt "@item:inlistbox filters displayed themes"
 msgid "Color scheme compatible"
 msgstr "Schema de color compatibile"
 
-#: ui/main.qml:130
+#: ui/main.qml:114
 #, kde-format
 msgid "Install from File…"
 msgstr "Installa ex file ..."
 
-#: ui/main.qml:135
+#: ui/main.qml:119
 #, kde-format
 msgid "Get New…"
 msgstr "Obtene Nove…"
 
-#: ui/main.qml:148
+#: ui/main.qml:132
 #, kde-format
 msgid "Follows color scheme"
 msgstr "Seque schema de color"
 
-#: ui/main.qml:166
+#: ui/main.qml:150
 #, kde-format
 msgid "Edit Theme…"
 msgstr "Edita Thema..."
 
-#: ui/main.qml:173
+#: ui/main.qml:158
 #, kde-format
-msgid "Remove Theme"
-msgstr "Remove thema"
+msgctxt "@info:tooltip"
+msgid "Remove Plasma style"
+msgstr "Remove Stilo de Plasma"
 
-#: ui/main.qml:180
+#: ui/main.qml:160
 #, kde-format
-msgid "Restore Theme"
-msgstr "Restabili Thema"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active Plasma style"
+msgstr "Non pote deler le stilo de Plasma active"
 
-#: ui/main.qml:199
+#: ui/main.qml:162
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed Plasma styles"
+msgstr "No pote deler stilos de Plasma de systema installate"
+
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this Plasma style"
+msgstr "Non dele iste Stilo de Plasma"
+
+#: ui/main.qml:189
 #, kde-format
 msgid "Open Theme"
 msgstr "Aperi thema"
 
-#: ui/main.qml:201
+#: ui/main.qml:191
 #, kde-format
 msgid "Theme Files (*.zip *.tar.gz *.tar.bz2)"
 msgstr "Files de Thema (*.zip *.tar.gz *.tar.bz2)"
 
+#~ msgid "Remove Theme"
+#~ msgstr "Remove thema"
+
+#~ msgid "Restore Theme"
+#~ msgstr "Restabili Thema"
+
 #~ msgid "Get New Plasma Styles…"
 #~ msgstr "Obtene Nove Stilos de Plasma..."
-
-#~ msgid "This module lets you choose the Plasma style."
-#~ msgstr "Iste modulo te permitte seliger le stilo de Plasma. "
 
 #~ msgctxt "NAME OF TRANSLATORS"
 #~ msgid "Your names"
@@ -182,9 +199,6 @@ msgstr "Files de Thema (*.zip *.tar.gz *.tar.bz2)"
 #~ msgctxt "EMAIL OF TRANSLATORS"
 #~ msgid "Your emails"
 #~ msgstr "g.sora@tiscali.it"
-
-#~ msgid "Plasma Style"
-#~ msgstr "Stilo de Plasma"
 
 #~ msgid "David Rosca"
 #~ msgstr "David Rosca"

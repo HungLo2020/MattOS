@@ -1,13 +1,13 @@
 # Copyright (C) 2024 This file is copyright:
 # This file is distributed under the same license as the plasma-workspace package.
 #
-# SPDX-FileCopyrightText: 2024, 2025 Toms Trasuns <toms.trasuns@posteo.net>
+# SPDX-FileCopyrightText: 2024-2026 Toms Trasuns <toms.trasuns@posteo.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-workspace\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-20 03:19+0000\n"
-"PO-Revision-Date: 2025-08-18 17:30+0300\n"
+"POT-Creation-Date: 2026-08-04 00:47+0000\n"
+"PO-Revision-Date: 2026-08-14 23:10+0300\n"
 "Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
 "Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
 "Language: lv\n"
@@ -16,12 +16,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
-"X-Generator: Lokalize 25.08.0\n"
+"X-Generator: Lokalize 26.04.3\n"
 
 #: src/fingerprintmodel.cpp:144 src/fingerprintmodel.cpp:228
 #, kde-format
 msgid "No fingerprint device found."
-msgstr "Nav atrasta pirkstu nospiedumu nolasīšanas ierīce."
+msgstr "Pirkstu nospiedumu nolasīšanas ierīce nav atrasta."
 
 #: src/fingerprintmodel.cpp:301
 #, kde-format
@@ -87,7 +87,7 @@ msgstr "Parole"
 msgid "Confirm password"
 msgstr "Apstiprināt paroli"
 
-#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:73
+#: src/ui/ChangePassword.qml:90 src/ui/CreateUser.qml:114
 #, kde-format
 msgid "Passwords must match"
 msgstr "Parolēm ir jāsakrīt"
@@ -142,48 +142,68 @@ msgstr "Atstāt bez izmaiņām"
 msgid "Create User"
 msgstr "Izveidot lietotāju"
 
-#: src/ui/CreateUser.qml:38 src/ui/UserDetailsPage.qml:165
+#: src/ui/CreateUser.qml:40 src/ui/UserDetailsPage.qml:165
 #, kde-format
 msgid "Name:"
 msgstr "Vārds:"
 
-#: src/ui/CreateUser.qml:42 src/ui/UserDetailsPage.qml:171
+#: src/ui/CreateUser.qml:44 src/ui/UserDetailsPage.qml:171
 #, kde-format
 msgid "Username:"
 msgstr "Lietotājvārds:"
 
-#: src/ui/CreateUser.qml:52 src/ui/UserDetailsPage.qml:203
+#: src/ui/CreateUser.qml:82
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Only lowercase letters, digits, dashes, and underscores are allowed. Invalid "
+"characters were removed."
+msgstr ""
+"Atļauti ir tikai burti, cipari, defises un pasvītras. Nederīgās rakstzīmes "
+"ir noņemtas."
+
+#: src/ui/CreateUser.qml:84
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Usernames must be lowercase. Uppercase characters were converted to "
+"lowercase."
+msgstr ""
+"Lietotāji ir rakstāmi ar mazajiem burtiem. Visi lielie burti ir pārvērsti "
+"par mazajiem."
+
+#: src/ui/CreateUser.qml:93 src/ui/UserDetailsPage.qml:203
 #, kde-format
 msgid "Standard"
 msgstr "Standarta"
 
-#: src/ui/CreateUser.qml:53 src/ui/UserDetailsPage.qml:204
+#: src/ui/CreateUser.qml:94 src/ui/UserDetailsPage.qml:204
 #, kde-format
 msgid "Administrator"
 msgstr "Administrators"
 
-#: src/ui/CreateUser.qml:56 src/ui/UserDetailsPage.qml:193
+#: src/ui/CreateUser.qml:97 src/ui/UserDetailsPage.qml:193
 #, kde-format
 msgid "Account type:"
 msgstr "Lietotāja konta tips:"
 
-#: src/ui/CreateUser.qml:61
+#: src/ui/CreateUser.qml:102
 #, kde-format
 msgid "Password:"
 msgstr "Parole:"
 
-#: src/ui/CreateUser.qml:66
+#: src/ui/CreateUser.qml:107
 #, kde-format
 msgid "Confirm password:"
 msgstr "Apstipriniet paroli:"
 
-#: src/ui/CreateUser.qml:88
+#: src/ui/CreateUser.qml:129
 #, kde-format
 msgctxt "@action:button Create a new user"
 msgid "Create"
 msgstr "Izveidot"
 
-#: src/ui/CreateUser.qml:111
+#: src/ui/CreateUser.qml:152
 #, kde-format
 msgctxt "@action:button Cancel creating new user"
 msgid "Cancel"
@@ -359,27 +379,22 @@ msgstr "Konfigurēt pirkstu nospiedumus"
 msgid "Add"
 msgstr "Pievienot"
 
-#: src/ui/FingerprintDialog.qml:51
-#, kde-format
-msgid "Cancel"
-msgstr "Atcelt"
-
-#: src/ui/FingerprintDialog.qml:59
+#: src/ui/FingerprintDialog.qml:52
 #, kde-format
 msgid "Done"
 msgstr "Gatavs"
 
-#: src/ui/FingerprintList.qml:46
+#: src/ui/FingerprintList.qml:47
 #, kde-format
 msgid "Re-enroll finger"
 msgstr "Atkārtoti reģistrēt pirkstu"
 
-#: src/ui/FingerprintList.qml:58
+#: src/ui/FingerprintList.qml:59
 #, kde-format
 msgid "Delete fingerprint"
 msgstr "Dzēst pirkstu nospiedumu"
 
-#: src/ui/FingerprintList.qml:74
+#: src/ui/FingerprintList.qml:75
 #, kde-format
 msgid "No fingerprints added"
 msgstr "Nav pievienotu pirkstu nospiedumu"
@@ -624,6 +639,8 @@ msgid ""
 "Cannot change your own username while logged in; log out and then log in as "
 "another user to change this account’s username."
 msgstr ""
+"Nav iespējams mainīt savu lietotājvārdu, kamēr esat ar to ierakstījies. Lai "
+"to mainītu, izrakstieties un ierakstieties kā cits lietotājs."
 
 #: src/ui/UserDetailsPage.qml:186
 #, kde-format
@@ -632,6 +649,8 @@ msgid ""
 "Cannot change the username of a logged-in user; wait until this user logs "
 "out first."
 msgstr ""
+"Nevar mainīt tāda lietotāja lietotājvārdu, kas ir ierakstījies. Uzgaidiet "
+"līdz lietotājs izrakstās."
 
 #: src/ui/UserDetailsPage.qml:214
 #, kde-format
@@ -671,6 +690,8 @@ msgid ""
 "Cannot delete yourself! Log out and then log in as another user to delete "
 "this user account."
 msgstr ""
+"Nav iespējams sevi izdzēst! Lai dzēstu šo profilu, izrakstieties, tad "
+"ierakstieties kā citas lietotājs."
 
 #: src/ui/UserDetailsPage.qml:286
 #, kde-format
@@ -726,6 +747,9 @@ msgstr "Tavs konts"
 #, kde-format
 msgid "Other Accounts"
 msgstr "Pārējie konti"
+
+#~ msgid "Cancel"
+#~ msgstr "Atcelt"
 
 #~ msgid "Enrolling Fingerprint"
 #~ msgstr "Reģistrē pirkstu nospiedumu"

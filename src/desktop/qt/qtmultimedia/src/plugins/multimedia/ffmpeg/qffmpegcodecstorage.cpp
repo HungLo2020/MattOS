@@ -7,8 +7,10 @@
 #include "qffmpeghwaccel_p.h"
 
 #include <QtCore/qapplicationstatic.h>
+#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qspan.h>
 
 #include <algorithm>
 #include <array>
@@ -43,15 +45,6 @@ using namespace Qt::Literals;
 
 namespace {
 
-enum CodecStorageType {
-    Encoders,
-    Decoders,
-
-    // TODO: maybe split sw/hw codecs
-
-    CodecStorageTypeCount
-};
-
 using CodecsStorage = std::vector<Codec>;
 
 struct CodecsComparator
@@ -63,92 +56,26 @@ struct CodecsComparator
 
     bool operator()(const Codec &codec, AVCodecID id) const { return codec.id() < id; }
     bool operator()(AVCodecID id, const Codec &codec) const { return id < codec.id(); }
+    bool operator()(AVCodecID a, AVCodecID b) const { return a < b; }
 };
-
-template <typename FlagNames>
-QString flagsToString(int flags, const FlagNames &flagNames)
-{
-    QString result;
-    int leftover = flags;
-    for (const auto &flagAndName : flagNames)
-        if ((flags & flagAndName.first) != 0) {
-            leftover &= ~flagAndName.first;
-            if (!result.isEmpty())
-                result += u", ";
-            result += QLatin1StringView(flagAndName.second);
-        }
-
-    if (leftover) {
-        if (!result.isEmpty())
-            result += u", ";
-        result += QString::number(leftover, 16);
-    }
-    return result;
-}
 
 void dumpCodecInfo(const Codec &codec)
 {
-    using FlagNames = std::initializer_list<std::pair<int, const char *>>;
-    const auto mediaType = codec.type() == AVMEDIA_TYPE_VIDEO ? "video"
-            : codec.type() == AVMEDIA_TYPE_AUDIO              ? "audio"
-            : codec.type() == AVMEDIA_TYPE_SUBTITLE           ? "subtitle"
-                                                             : "other_type";
+    const auto roles =
+            codec.isEncoder() ? codec.isDecoder() ? "encoder/decoder:" : "encoder:" : "decoder:";
 
-    const auto type = codec.isEncoder()
-            ? codec.isDecoder() ? "encoder/decoder:" : "encoder:"
-            : "decoder:";
-
-    static const FlagNames capabilitiesNames = {
-        { AV_CODEC_CAP_DRAW_HORIZ_BAND, "DRAW_HORIZ_BAND" },
-        { AV_CODEC_CAP_DR1, "DRAW_HORIZ_DR1" },
-        { AV_CODEC_CAP_DELAY, "DELAY" },
-        { AV_CODEC_CAP_SMALL_LAST_FRAME, "SMALL_LAST_FRAME" },
-#ifdef AV_CODEC_CAP_SUBFRAMES
-        { AV_CODEC_CAP_SUBFRAMES, "SUBFRAMES" },
-#endif
-        { AV_CODEC_CAP_EXPERIMENTAL, "EXPERIMENTAL" },
-        { AV_CODEC_CAP_CHANNEL_CONF, "CHANNEL_CONF" },
-        { AV_CODEC_CAP_FRAME_THREADS, "FRAME_THREADS" },
-        { AV_CODEC_CAP_SLICE_THREADS, "SLICE_THREADS" },
-        { AV_CODEC_CAP_PARAM_CHANGE, "PARAM_CHANGE" },
-#ifdef AV_CODEC_CAP_OTHER_THREADS
-        { AV_CODEC_CAP_OTHER_THREADS, "OTHER_THREADS" },
-#endif
-        { AV_CODEC_CAP_VARIABLE_FRAME_SIZE, "VARIABLE_FRAME_SIZE" },
-        { AV_CODEC_CAP_AVOID_PROBING, "AVOID_PROBING" },
-        { AV_CODEC_CAP_HARDWARE, "HARDWARE" },
-        { AV_CODEC_CAP_HYBRID, "HYBRID" },
-        { AV_CODEC_CAP_ENCODER_REORDERED_OPAQUE, "ENCODER_REORDERED_OPAQUE" },
-#ifdef AV_CODEC_CAP_ENCODER_FLUSH
-        { AV_CODEC_CAP_ENCODER_FLUSH, "ENCODER_FLUSH" },
-#endif
-    };
-
-    qCDebug(qLcCodecStorage) << mediaType << type << codec.name() << "id:" << codec.id()
-                             << "capabilities:"
-                             << flagsToString(codec.capabilities(), capabilitiesNames);
+    qCDebug(qLcCodecStorage) << codec.type() << roles << codec.name() << "id:" << codec.id()
+                             << "capabilities:" << AVCodecCapabilities(codec.capabilities());
 
     if (codec.type() == AVMEDIA_TYPE_VIDEO) {
         const auto pixelFormats = codec.pixelFormats();
         if (!pixelFormats.empty()) {
-            static const FlagNames flagNames = {
-                { AV_PIX_FMT_FLAG_BE, "BE" },
-                { AV_PIX_FMT_FLAG_PAL, "PAL" },
-                { AV_PIX_FMT_FLAG_BITSTREAM, "BITSTREAM" },
-                { AV_PIX_FMT_FLAG_HWACCEL, "HWACCEL" },
-                { AV_PIX_FMT_FLAG_PLANAR, "PLANAR" },
-                { AV_PIX_FMT_FLAG_RGB, "RGB" },
-                { AV_PIX_FMT_FLAG_ALPHA, "ALPHA" },
-                { AV_PIX_FMT_FLAG_BAYER, "BAYER" },
-                { AV_PIX_FMT_FLAG_FLOAT, "FLOAT" },
-            };
-
             qCDebug(qLcCodecStorage) << "  pixelFormats:";
             for (AVPixelFormat f : pixelFormats) {
                 auto desc = av_pix_fmt_desc_get(f);
                 qCDebug(qLcCodecStorage)
                         << "    id:" << f << desc->name << "depth:" << desc->comp[0].depth
-                        << "flags:" << flagsToString(desc->flags, flagNames);
+                        << "flags:" << AVPixelFormatFlags(desc->flags);
             }
         } else {
             qCDebug(qLcCodecStorage) << "  pixelFormats: null";
@@ -170,13 +97,6 @@ void dumpCodecInfo(const Codec &codec)
 
     const std::vector<const AVCodecHWConfig*> hwConfigs = codec.hwConfigs();
     if (!hwConfigs.empty()) {
-        static const FlagNames hwConfigMethodNames = {
-            { AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX, "HW_DEVICE_CTX" },
-            { AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX, "HW_FRAMES_CTX" },
-            { AV_CODEC_HW_CONFIG_METHOD_INTERNAL, "INTERNAL" },
-            { AV_CODEC_HW_CONFIG_METHOD_AD_HOC, "AD_HOC" }
-        };
-
         qCDebug(qLcCodecStorage) << "  hw config:";
         for (const AVCodecHWConfig* config : hwConfigs) {
             const auto pixFmtForDevice = pixelFormatForHwDevice(config->device_type);
@@ -187,7 +107,7 @@ void dumpCodecInfo(const Codec &codec)
                     << (pixFmtDesc ? pixFmtDesc->name : "unknown")
                     << "pixelFormatForHwDevice:" << pixelFormatForHwDevice(config->device_type)
                     << (pixFmtForDeviceDesc ? pixFmtForDeviceDesc->name : "unknown")
-                    << "hw_config_methods:" << flagsToString(config->methods, hwConfigMethodNames);
+                    << "hw_config_methods:" << AVHwConfigMethods(config->methods);
         }
     }
 }
@@ -200,44 +120,54 @@ enum class MFCodecCheckResult {
 
 MFCodecCheckResult isValidMFEncoder([[maybe_unused]] const Codec &codec)
 {
-#ifdef Q_OS_WIN
-    if (!codec.name().endsWith("_mf"_L1))
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Windows) {
+        if (!codec.name().endsWith("_mf"_L1))
+            return MFCodecCheckResult::not_an_mf_codec;
+
+        AVCodecContextUPtr ctx{ avcodec_alloc_context3(codec.get()) };
+        if (!ctx)
+            return MFCodecCheckResult::unsupported_mf_codec;
+
+        ctx->width = 1280;
+        ctx->height = 720;
+        ctx->time_base = { 1, 30 };
+        ctx->framerate = { 30, 1 };
+        ctx->pix_fmt = AV_PIX_FMT_NV12;
+
+        const int ret = avcodec_open2(ctx.get(), codec.get(), nullptr);
+        if (ret == AVERROR(ENOSYS)) {
+            qCDebug(qLcCodecStorage) << "MF codec" << codec.name() << "is not available.";
+            return MFCodecCheckResult::unsupported_mf_codec;
+        }
+
+        if (ret < 0) {
+            qCDebug(qLcCodecStorage) << "MF codec" << codec.name()
+                                     << "is not supported due to avcodec_open2 failure:" << ret
+                                     << QFFmpeg::AVError(ret);
+            return MFCodecCheckResult::unsupported_mf_codec;
+        }
+
+        return MFCodecCheckResult::supported_mf_codec;
+    } else {
         return MFCodecCheckResult::not_an_mf_codec;
-
-    AVCodecContextUPtr ctx{ avcodec_alloc_context3(codec.get()) };
-    if (!ctx)
-        return MFCodecCheckResult::unsupported_mf_codec;
-
-    ctx->width = 1280;
-    ctx->height = 720;
-    ctx->time_base = { 1, 30 };
-    ctx->framerate = { 30, 1 };
-    ctx->pix_fmt = AV_PIX_FMT_NV12;
-
-    const int ret = avcodec_open2(ctx.get(), codec.get(), nullptr);
-    if (ret == AVERROR(ENOSYS)) {
-        qCDebug(qLcCodecStorage) << "MF codec" << codec.name() << "is not available.";
-        return MFCodecCheckResult::unsupported_mf_codec;
     }
-
-    if (ret < 0) {
-        qCDebug(qLcCodecStorage) << "MF codec" << codec.name()
-                                 << "is not supported due to avcodec_open2 failure:" << ret
-                                 << QFFmpeg::AVError(ret);
-        return MFCodecCheckResult::unsupported_mf_codec;
-    }
-
-    return MFCodecCheckResult::supported_mf_codec;
-#else
-    return MFCodecCheckResult::not_an_mf_codec;
-#endif
 }
 
-bool isCodecValid(const Codec &codec, const std::vector<AVHWDeviceType> &availableHwDeviceTypes,
+bool isCodecValid(const Codec &codec, QSpan<const AVHWDeviceType> availableHwDeviceTypes,
                   const std::optional<std::unordered_set<AVCodecID>> &codecAvailableOnDevice)
 {
     if (codec.type() != AVMEDIA_TYPE_VIDEO)
         return true;
+
+    const bool isHardwareCodec = codec.capabilities() & AV_CODEC_CAP_HARDWARE;
+
+    if (codecAvailableOnDevice && isHardwareCodec) {
+        Q_ASSERT(QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android);
+        // MediaCodec in Android is used for hardware-accelerated media processing. That is why
+        // before marking it as valid, we need to make sure if it is available on current device.
+        if (codecAvailableOnDevice->count(codec.id()) == 0)
+            return false; // Codec is not in platform's allow-list
+    }
 
     const auto pixelFormats = codec.pixelFormats();
     if (pixelFormats.empty()) {
@@ -245,13 +175,6 @@ bool isCodecValid(const Codec &codec, const std::vector<AVHWDeviceType> &availab
         //  Disable V4L2 M2M codecs for encoding for now,
         //  TODO: Investigate on how to get them working
         if (codec.name().contains(QLatin1StringView{ "_v4l2m2m" }) && codec.isEncoder())
-            return false;
-
-        // MediaCodec in Android is used for hardware-accelerated media processing. That is why
-        // before marking it as valid, we need to make sure if it is available on current device.
-        if (codec.name().contains(QLatin1StringView{ "_mediacodec" })
-            && (codec.capabilities() & AV_CODEC_CAP_HARDWARE)
-            && codecAvailableOnDevice && codecAvailableOnDevice->count(codec.id()) == 0)
             return false;
 #endif
 
@@ -264,11 +187,8 @@ bool isCodecValid(const Codec &codec, const std::vector<AVHWDeviceType> &availab
     if (!findAVPixelFormat(codec, &isHwPixelFormat))
         return true; // Codec does not support any hw pixel formats, so no further checks are needed
 
-    if ((codec.capabilities() & AV_CODEC_CAP_HARDWARE) == 0)
+    if (!isHardwareCodec)
         return true; // Codec does not support hardware processing, so no further checks are needed
-
-    if (codecAvailableOnDevice && codecAvailableOnDevice->count(codec.id()) == 0)
-        return false; // Codec is not in platform's allow-list
 
     auto checkDeviceType = [codec](AVHWDeviceType type) {
         return isAVFormatSupported(codec, pixelFormatForHwDevice(type));
@@ -277,7 +197,7 @@ bool isCodecValid(const Codec &codec, const std::vector<AVHWDeviceType> &availab
     return ranges::any_of(availableHwDeviceTypes, checkDeviceType);
 }
 
-std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorageType type)
+std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecRole type)
 {
 #ifdef Q_OS_ANDROID
     using namespace Qt::StringLiterals;
@@ -301,7 +221,7 @@ std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorag
     };
 
     const QJniArray jniCodecs = QtVideoDeviceManager::callStaticMethod<String[]>(
-            type == Encoders ? "getHWVideoEncoders" : "getHWVideoDecoders");
+            type == CodecRole::Encoders ? "getHWVideoEncoders" : "getHWVideoDecoders");
 
     for (const auto &codec : jniCodecs)
         availabeCodecs.insert(getCodecId(codec.toString()));
@@ -345,10 +265,10 @@ struct CodecStoreSingleton
     static std::array<CodecsStorage, 2> enumerateCodecs()
     {
         std::array<CodecsStorage, 2> result;
-        const auto platformHwEncoders = availableHWCodecs(Encoders);
-        const auto platformHwDecoders = availableHWCodecs(Decoders);
+        const auto platformHwEncoders = availableHWCodecs(CodecRole::Encoders);
+        const auto platformHwDecoders = availableHWCodecs(CodecRole::Decoders);
 
-        for (const Codec codec : CodecEnumerator()) {
+        for (const Codec codec : allCodecs) {
             // TODO: to be investigated
             // FFmpeg functions avcodec_find_decoder/avcodec_find_encoder
             // find experimental codecs in the last order,
@@ -366,7 +286,7 @@ struct CodecStoreSingleton
 
             if (codec.isDecoder()) {
                 if (isCodecValid(codec, HWAccel::decodingDeviceTypes(), platformHwDecoders))
-                    result[Decoders].emplace_back(codec);
+                    result[qToUnderlying(CodecRole::Decoders)].emplace_back(codec);
                 else
                     qCDebug(qLcCodecStorage) << "Skip decoder" << codec.name()
                                              << "due to disabled matching hw acceleration, or "
@@ -378,7 +298,7 @@ struct CodecStoreSingleton
                     continue;
 
                 if (isCodecValid(codec, HWAccel::encodingDeviceTypes(), platformHwEncoders))
-                    result[Encoders].emplace_back(codec);
+                    result[qToUnderlying(CodecRole::Encoders)].emplace_back(codec);
                 else
                     qCDebug(qLcCodecStorage) << "Skip encoder" << codec.name()
                                              << "due to disabled matching hw acceleration, or "
@@ -410,14 +330,13 @@ struct CodecStoreSingleton
 
     CodecStoreSingleton()
     {
-#ifdef Q_OS_WINDOWS
         // enumerate codecs asynchronously, so that enumeration is done on a separate thread
         // without COM initialization, as otherwise avcodec_open2 will fail and ffmpeg will
         // warn that "COM must not be in STA mode"
-        auto launchPolicy = std::launch::async;
-#else
-        auto launchPolicy = std::launch::deferred;
-#endif
+        constexpr auto launchPolicy =
+                QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Windows
+                ? std::launch::async
+                : std::launch::deferred;
 
         codecStoreFuture = std::async(launchPolicy, [] {
             return enumerateCodecs();
@@ -427,55 +346,28 @@ struct CodecStoreSingleton
 
 Q_APPLICATION_STATIC(CodecStoreSingleton, codecStoreSingleton)
 
-const CodecsStorage &codecsStorage(CodecStorageType codecsType)
+QSpan<const Codec> codecsStorage(CodecRole codecsType)
 {
-    return codecStoreSingleton->codecStoreFuture.get()[codecsType];
+    return codecStoreSingleton->codecStoreFuture.get()[qToUnderlying(codecsType)];
 }
 
-template <typename CodecScoreGetter, typename CodecOpener>
-bool findAndOpenCodec(CodecStorageType codecsType, AVCodecID codecId,
-                      const CodecScoreGetter &scoreGetter, const CodecOpener &opener)
-{
-    Q_ASSERT(opener);
-    const auto &storage = codecsStorage(codecsType);
-    auto it = std::lower_bound(storage.begin(), storage.end(), codecId, CodecsComparator{});
-
-    using CodecToScore = std::pair<Codec, AVScore>;
-    std::vector<CodecToScore> codecsToScores;
-
-    for (; it != storage.end() && it->id() == codecId; ++it) {
-        const AVScore score = scoreGetter ? scoreGetter(*it) : DefaultAVScore;
-        if (score != NotSuitableAVScore)
-            codecsToScores.emplace_back(*it, score);
-    }
-
-    if (scoreGetter) {
-        ranges::stable_sort(codecsToScores, [](const CodecToScore &a, const CodecToScore &b) {
-            return a.second > b.second;
-        });
-    }
-
-    return ranges::any_of(codecsToScores, [&](const CodecToScore &codecToScore) {
-        return opener(codecToScore.first);
-    });
-}
-
-std::optional<Codec> findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
+std::optional<Codec> findAVCodec(CodecRole codecsType, AVCodecID codecId,
                                  const std::optional<PixelOrSampleFormat> &format)
 {
-    const CodecsStorage& storage = codecsStorage(codecsType);
+    namespace ranges = QtMultimediaPrivate::ranges;
 
-    // Storage is sorted, so we can quickly narrow down the search to codecs with the specific id.
-    auto begin = std::lower_bound(storage.begin(), storage.end(), codecId, CodecsComparator{});
-    auto end = std::upper_bound(begin, storage.end(), codecId, CodecsComparator{});
+    QSpan codecs = codecsStorage(codecsType);
+
+    // Codecs are sorted, so we can quickly narrow down the search to codecs with the specific id.
+    auto codecsForId = ranges::equal_range(codecs, codecId, CodecsComparator{});
 
     // Within the narrowed down range, look for a codec that supports the format.
     // If no format is specified, return the first one.
-    auto codecIt = std::find_if(begin, end, [&format](const Codec &codec) {
+    auto codecIt = ranges::find_if(codecsForId, [&](const Codec &codec) {
         return !format || isAVFormatSupported(codec, *format);
     });
 
-    if (codecIt != end)
+    if (codecIt != codecsForId.end())
         return *codecIt;
 
     return {};
@@ -483,29 +375,46 @@ std::optional<Codec> findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
 
 } // namespace
 
+std::vector<CodecScoreRecord>
+findAndScoreCodecs(CodecRole codecsType, AVCodecID codecId,
+                   const qxp::function_ref<AVScore(const Codec &)> &scoreFunction)
+{
+    namespace ranges = QtMultimediaPrivate::ranges;
+    namespace views = QtMultimediaPrivate::views;
+
+    QSpan codecs = codecsStorage(codecsType);
+    auto codecsForId = ranges::equal_range(codecs, codecId, CodecsComparator{});
+    auto scoredCodecs = views::transform(codecsForId, [&](const Codec &codec) {
+        return CodecScoreRecord{
+            codec,
+            scoreFunction(codec),
+        };
+    });
+    auto validCodecs = views::filter(scoredCodecs, [](const CodecScoreRecord &record) {
+        return record.score != NotSuitableAVScore;
+    });
+
+    auto result = ranges::to<std::vector<CodecScoreRecord>>(validCodecs);
+    ranges::stable_sort(result, [](const CodecScoreRecord &a, const CodecScoreRecord &b) {
+        return a.score > b.score;
+    });
+
+    if (qLcCodecStorage().isEnabled(QtDebugMsg))
+        for (const auto &[codec, score] : result)
+            qCDebug(qLcCodecStorage)
+                    << "findAndOpenCodec(): candidate:" << codec.name() << "score:" << score;
+    return result;
+}
+
 std::optional<Codec> findAVDecoder(AVCodecID codecId,
                                    const std::optional<PixelOrSampleFormat> &format)
 {
-    return findAVCodec(Decoders, codecId, format);
+    return findAVCodec(CodecRole::Decoders, codecId, format);
 }
 
 std::optional<Codec> findAVEncoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format)
 {
-    return findAVCodec(Encoders, codecId, format);
-}
-
-bool findAndOpenAVDecoder(AVCodecID codecId,
-                          const std::function<AVScore(const Codec &)> &scoresGetter,
-                          const std::function<bool(const Codec &)> &codecOpener)
-{
-    return findAndOpenCodec(Decoders, codecId, scoresGetter, codecOpener);
-}
-
-bool findAndOpenAVEncoder(AVCodecID codecId,
-                          const std::function<AVScore(const Codec &)> &scoresGetter,
-                          const std::function<bool(const Codec &)> &codecOpener)
-{
-    return findAndOpenCodec(Encoders, codecId, scoresGetter, codecOpener);
+    return findAVCodec(CodecRole::Encoders, codecId, format);
 }
 
 } // namespace QFFmpeg

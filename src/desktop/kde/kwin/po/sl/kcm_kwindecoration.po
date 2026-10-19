@@ -1,7 +1,7 @@
 # translation of kcmkwindecoration.po to
 # Translation of kcmkwindecoration.po to Slovenian
 # SLOVENIAN TRANSLATION OF K DESKTOP ENVIRONMENT.
-# $Id: kcm_kwindecoration.po 1728865 2026-01-29 03:37:35Z scripty $
+# $Id: kcm_kwindecoration.po 1736885 2026-05-15 01:29:20Z scripty $
 # $Source$
 #
 # Copyright (C) 2001, 2003, 2004, 2005, 2007 Free Software Foundation, Inc.
@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-01-28 11:20+0100\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-05-14 07:39+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -25,7 +25,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
 "Translator: Andrej Mernik <andrejm@ubuntu.si>\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
 
 #: declarative-plugin/buttonsmodel.cpp:56
 #, kde-format
@@ -74,21 +74,21 @@ msgstr "Drži nad drugimi okni"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr "Skrij iz posnetka zaslona"
+msgid "Hide from screenshots and screen recordings"
+msgstr "Skrij pred posnetki in video snemanji zaslona"
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
-msgstr "Ločilo"
+msgstr "Ločilnik"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Privzete vrednosti teme (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -99,7 +99,7 @@ msgstr ""
 "seje, ne da bi jo pomotoma nastavili na tisto, ki bodisi ni na voljo ali ki "
 "je že nastavljena."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -110,13 +110,13 @@ msgstr ""
 "celotne poti bo poskušala najti temo v tem imeniku in jo nato uporabiti, če "
 "jo je mogoče razbrati."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr "Pokaži vse teme, ki so na voljo v sistemu (in katera je trenutna tema)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -125,7 +125,7 @@ msgstr ""
 "Razrešena %1 na temo KWin Aurorae \"%2\" in jo bomo poskusili nastaviti kot "
 "vašo trenutno temo."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -135,19 +135,19 @@ msgstr ""
 "razrešiti kot datotekoteme in bomo morali postopek prekiniti, ker nimamo "
 "teme, ki bi jo nastavili"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr "Zahtevana tema \"%1\" je že nastavljena kot tema za dekoracijo oken."
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
-msgstr ""
-"Tema kazalke %1 je bila uspešno uveljavljena za vašo trenutno sejo Plasme"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
+msgstr "Uspešno uveljavljena tema kazalke %1 za vašo trenutno sejo Plasme"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -156,7 +156,7 @@ msgstr ""
 "Nastavitev teme ni bilo mogoče shraniti - razlog ni znan, vendar je to bila "
 "nepopravljiva napaka. Morda boste ugotovili, da bi nov poskus kar deloval."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -165,7 +165,7 @@ msgstr ""
 "Teme \"%1\" ni bilo mogoče najti. Tema bi morala biti ena od naslednjih "
 "možnosti: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "V sistemu imate naslednje teme okrasitev oken KWin:"
@@ -178,7 +178,7 @@ msgstr "Naslovna vrstica"
 #: ui/Buttons.qml:245
 #, kde-format
 msgid "Drop button here to remove it"
-msgstr "Spusti gumb, da bi ga odstranili"
+msgstr "Spustite gumb, da bi ga odstranili"
 
 #: ui/Buttons.qml:261
 #, kde-format
@@ -211,27 +211,28 @@ msgstr "Prikaži orodne namige gumbov oken"
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
-msgstr "Vedno prikaži gumb \"Skrij iz video posnetka zaslona\""
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
+msgstr "Vedno prikazuj gumb \"Skrij pred posnetki in video snemanji zaslona\""
 
 #: ui/ConfigureTitlebar.qml:85
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
-"Če gumb ni označen, se prikaže le, če je okno skrito pred posnetkom zaslona"
+"Če ni označeno, se gumb prikaže le, če je okno skrito pred posnetki in video "
+"snemanji zaslona"
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
-"Če želite omogočiti to možnost, najprej v naslovno vrstico dodajte gumb "
-"\"Skrij iz posnetka zaslona\""
+"Če želite omogočiti to možnost, najprej dodajte gumb \"Skrij iz posnetkov in "
+"video snemanja zaslona\" v naslovno vrstico"
 
 #: ui/main.qml:29
 #, kde-format
@@ -256,50 +257,53 @@ msgstr "Dobi novo…"
 msgid "Edit %1 Theme…"
 msgstr "Uredi %1 temo…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Brez okenskih obrob"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Brez stranskih obrob oken"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Majhne okenske obrobe"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Normalne okenske obrobe"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Velike okenske obrobe"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Zelo velike okenske obrobe"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Ogromne okenske obrobe"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Zelo ogromne okenske obrobe"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Prevelike okenske obrobe"
+
+#~ msgid "Hide from screencast"
+#~ msgstr "Skrij iz video posnetka zaslona"
 
 #~ msgid "More actions for this window"
 #~ msgstr "Več dejavnosti za to okno"

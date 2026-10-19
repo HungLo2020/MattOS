@@ -6,9 +6,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:49+0000\n"
-"PO-Revision-Date: 2015-07-06 14:05+0200\n"
-"Last-Translator: Andrej Mernik <andrejm@ubuntu.si>\n"
+"POT-Creation-Date: 2026-07-15 00:41+0000\n"
+"PO-Revision-Date: 2026-07-15 06:26+0200\n"
+"Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
-"X-Generator: Lokalize 1.5\n"
+"X-Generator: Poedit 3.9\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -113,7 +113,7 @@ msgstr "Listnice %1 ni bilo mogoče najti"
 msgid "Failed to open wallet %1. Aborting"
 msgstr "Ni bilo mogoče odpreti listnice %1. Prekinjanje"
 
-#: querydriver.cpp:104 querydriver.cpp:122
+#: querydriver.cpp:104 querydriver.cpp:122 querydriver.cpp:180
 #, kde-format
 msgid "The folder %1 does not exist!"
 msgstr "Mapa %1 ne obstaja!"
@@ -128,10 +128,20 @@ msgstr "Ni bilo mogoče prebrati vrednosti vnosa %1 iz listnice %2."
 msgid "Failed to read entry %1 value from the %2 wallet"
 msgstr "Ni bilo mogoče prebrati vrednosti vnosa %1 iz listnice %2"
 
-#: querydriver.cpp:194 querydriver.cpp:211
+#: querydriver.cpp:206 querydriver.cpp:227
 #, kde-format
 msgid "Failed to write entry %1 value to %2 wallet"
 msgstr "Ni bilo mogoče zapisati vrednosti vnosa %1 v listnico %2"
+
+#: querydriver.cpp:213
+#, kde-format
+msgid "Invalid argument: the value for entry %1 is not valid JSON"
+msgstr "Neveljaven argument: vrednost za vnos %1 ni veljaven JSON"
+
+#: querydriver.cpp:232
+#, kde-format
+msgid "Unsupported entry type for entry %1"
+msgstr "Nepodprta vrsta vnosa za vnos %1"
 
 #~ msgid "wallet"
 #~ msgstr "listnica"

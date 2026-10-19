@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
 "PO-Revision-Date: 2024-09-06 22:12+0300\n"
 "Last-Translator: Αντώνης Γέραλης <capoiosct@gmail.com>\n"
 "Language-Team: Greek <kde-i18n-doc@kde.org>\n"
@@ -76,7 +76,7 @@ msgstr "Διατήρηση πάνω από άλλα παράθυρα"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
+msgid "Hide from screenshots and screen recordings"
 msgstr ""
 
 #: declarative-plugin/buttonsmodel.cpp:76
@@ -84,13 +84,13 @@ msgstr ""
 msgid "Spacer"
 msgstr "Διαχωριστικό"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Προεπιλεγμένο θέμα (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -101,7 +101,7 @@ msgstr ""
 "για την τρέχουσα ενεργή συνεδρία, χωρίς να το ορίσετε κατά λάθος σε ένα θέμα "
 "που είτε δεν είναι διαθέσιμο είτε έχει ήδη οριστεί."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -113,7 +113,7 @@ msgstr ""
 "αυτόν τον κατάλογο και στη συνέχεια θα εφαρμόσει αυτό το θέμα αν μπορεί να "
 "εξαχθεί."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
@@ -121,7 +121,7 @@ msgstr ""
 "Εμφάνιση όλων των θεμάτων που είναι διαθέσιμα στο σύστημα (και ποιο είναι το "
 "τρέχον θέμα)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -130,7 +130,7 @@ msgstr ""
 "Έγινε επίλυση του %1 στο θέμα KWin Aurorae «%2», και θα προσπαθήσει να το "
 "ορίσει ως το τρέχον θέμα σας."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -140,19 +140,22 @@ msgstr ""
 "επιλυθεί σε ένα θέμα, και θα πρέπει να ακυρώσουμε, λόγω του ότι δεν έχουμε "
 "θέμα για να ορίσουμε"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr ""
 "Το ζητούμενο θέμα «%1» έχει ήδη οριστεί ως θέμα διακόσμησης του παραθύρου."
 
-#: kwin-applywindowdecoration.cpp:99
-#, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+#: kwin-applywindowdecoration.cpp:101
+#, fuzzy, kde-format
+#| msgid ""
+#| "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr "Επιτυχία εφαρμογής θέματος δρομέα %1 στην τρέχουσα συνεδρία του Plasma"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -162,7 +165,7 @@ msgstr ""
 "αλλά πρόκειται για σφάλμα που δεν μπορεί να αποκατασταθεί. Ίσως διαπιστώσετε "
 "ότι αν απλά προσπαθήσετε ξανά θα λειτουργήσει."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -171,7 +174,7 @@ msgstr ""
 "Αδυναμία εύρεσης του θέματος «%1». Το θέμα πρέπει να είναι μία από τις "
 "παρακάτω επιλογές: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "Έχετε τα ακόλουθα θέματα διακόσμησης παραθύρων KWin στο σύστημά σας:"
@@ -222,7 +225,7 @@ msgstr "Εμφάνιση υποδείξεων κουμπιών παραθύρο�
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:85
@@ -230,15 +233,15 @@ msgstr ""
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
 
 #: ui/main.qml:29
@@ -264,47 +267,47 @@ msgstr "Λήψη νέων…"
 msgid "Edit %1 Theme…"
 msgstr "Επεξεργασία θέματος %1…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Χωρίς περιγράμματα"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Χωρίς πλευρικά περιγράμματα"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Μικροσκοπικά περιγράμματα"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Κανονικά περιγράμματα"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Μεγάλα περιγράμματα"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Πολύ μεγάλα περιγράμματα"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Τεράστια περιγράμματα"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Πολύ τεράστια περιγράμματα"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Υπερμεγέθη περιγράμματα"

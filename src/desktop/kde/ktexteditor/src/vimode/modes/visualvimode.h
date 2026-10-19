@@ -35,6 +35,7 @@ public:
     }
 
     void switchStartEnd();
+    void switchStartEndColumn();
     void reset() override;
     void setVisualModeType(const ViMode mode);
     void saveRangeMarks();
@@ -98,10 +99,15 @@ public:
      * via mouse selection.
      */
     void updateSelection();
+    /**
+     * Updates the selection of the view when an internal change happens
+     */
+    void updateViewSelection();
 
 private:
     KTextEditor::Cursor m_start;
     ViMode m_mode, m_lastVisualMode;
+    KTextEditor::Range m_lastMouseSelection;
 };
 }
 

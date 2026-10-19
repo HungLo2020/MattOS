@@ -9,6 +9,7 @@
 #include "qwaylandinputdevice_p.h"
 #include "qwaylandshmbackingstore_p.h"
 #include "qwayland-pointer-warp-v1.h"
+#include "qwaylandsurface_p.h"
 
 #include <QtGui/private/qguiapplication_p.h>
 #include <qpa/qplatformtheme.h>
@@ -170,7 +171,7 @@ wl_cursor *QWaylandCursorTheme::requestCursor(WaylandCursor shape)
         {ResizeSouthWestCursor, "bottom_left_corner"},
     };
 
-    const auto byShape = [](ShapeAndName lhs, ShapeAndName rhs) {
+    const auto byShape = [](const ShapeAndName &lhs, const ShapeAndName &rhs) {
         return lhs.shape < rhs.shape;
     };
     Q_ASSERT(std::is_sorted(std::begin(cursorNamesMap), std::end(cursorNamesMap), byShape));
@@ -338,7 +339,7 @@ void QWaylandCursor::changeCursor(QCursor *cursor, QWindow *window)
         waylandWindow->resetStoredCursor();
 
     for (QWaylandInputDevice *device : mDisplay->inputDevices()) {
-        if (device->pointer() && device->pointer()->focusWindow() == waylandWindow)
+        if (device->pointer() && device->pointer()->focusSurface() == waylandWindow->waylandSurface())
             device->setCursor(cursor, bitmapBuffer, qCeil(waylandWindow->devicePixelRatio()));
     }
 
@@ -360,14 +361,15 @@ void QWaylandCursor::setPos(const QPoint &pos)
     if (mDisplay->pointerWarp()) {
         const auto seats = mDisplay->inputDevices();
         for (auto *seat : seats) {
-            if (!seat->pointer() || !seat->pointer()->focusWindow()) {
+            if (!seat->pointer() || !seat->pointer()->focusSurface()) {
                 continue;
             }
-            const auto focus = seat->pointer()->focusWindow();
-            if (!focus->windowFrameGeometry().contains(pos)) {
+            const auto focus = seat->pointer()->focusSurface();
+            if (!focus->waylandWindow())
                 continue;
-            }
-            mDisplay->pointerWarp()->warp_pointer(focus->surface(), seat->pointer()->object(), wl_fixed_from_double(pos.x() - focus->windowFrameGeometry().x()), wl_fixed_from_double(pos.y() - focus->windowFrameGeometry().y()), seat->pointer()->mEnterSerial);
+            if (!focus->waylandWindow()->windowFrameGeometry().contains(pos))
+                continue;
+            mDisplay->pointerWarp()->warp_pointer(focus->object(), seat->pointer()->object(), wl_fixed_from_double(pos.x() - focus->waylandWindow()->windowFrameGeometry().x()), wl_fixed_from_double(pos.y() - focus->waylandWindow()->windowFrameGeometry().y()), seat->pointer()->mEnterSerial);
             return;
         }
     } else {

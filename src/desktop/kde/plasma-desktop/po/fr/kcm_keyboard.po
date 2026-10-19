@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2026-01-09 11:08+0100\n"
 "Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
 "Language-Team: \n"
@@ -107,8 +107,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Configurer les associations de touches…"
+msgid "Key Bindings"
+msgstr "Associations de touches"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -146,13 +146,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Ajouter une disposition"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Nom court de disposition"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -162,13 +162,13 @@ msgstr ""
 "Le nom abrégé de la disposition sélectionnée, qui sera affiché dans la barre "
 "d'état système. Vous pouvez modifier ce paramètre vous-même."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Raccourci :"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -560,22 +560,22 @@ msgstr ""
 "Les touches de modification peuvent être utilisées pour saisir des "
 "caractères, des symboles et des marques diacritiques supplémentaires."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
 msgstr[0] "%1 raccourci"
 msgstr[1] "%1 raccourcis"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Aucun"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "Associations de touches"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Configurer les associations de touches…"
 
 #~ msgctxt "@option:radio"
 #~ msgid "Turn Off"

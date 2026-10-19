@@ -5,6 +5,7 @@
 
 add_subdirectory(hardwarelayer)
 if(QT_FEATURE_wayland_dmabuf_client_buffer)
+    add_subdirectory(linux-dmabuf-v1)
     add_subdirectory(linux-dmabuf-unstable-v1)
 endif()
 if(QT_FEATURE_wayland_egl)

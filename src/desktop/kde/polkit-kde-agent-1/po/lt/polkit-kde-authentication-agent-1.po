@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: polkit-kde-authentication-agent-1\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-02-09 00:37+0200\n"
+"POT-Creation-Date: 2026-08-29 00:47+0000\n"
+"PO-Revision-Date: 2026-08-30 16:00+0300\n"
 "Last-Translator: Moo\n"
 "Language-Team: Lithuanian <kde-i18n-lt@kde.org>\n"
 "Language: lt\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n%10>=2 && (n%100<10 || n"
 "%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.9\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -67,13 +67,13 @@ msgstr "Jaroslav Reznik"
 msgid "Former maintainer"
 msgstr "Ankstesnis prižiūrėtojas"
 
-#: policykitlistener.cpp:90
+#: policykitlistener.cpp:85
 #, kde-format
 msgid "Another client is already authenticating, please try again later."
 msgstr ""
 "Kita kliento programa jau nustato tapatybę, bandykite dar kartą vėliau."
 
-#: policykitlistener.cpp:97
+#: policykitlistener.cpp:92
 #, kde-format
 msgctxt "Error response when polkit calls us with an empty list of identities"
 msgid "No user to authenticate as. Please check your system configuration."
@@ -81,16 +81,46 @@ msgstr ""
 "Nėra jokio naudotojo, kurio tapatybę galima būtų patvirtinti. Patikrinkite "
 "sistemos konfigūraciją."
 
-#: qml/MobileQuickAuthDialog.qml:16 qml/MobileQuickAuthDialog.qml:108
-#: qml/QuickAuthDialog.qml:16 QuickAuthDialog.cpp:110
+#: qml/MediacenterQuickAuthDialog.qml:15 qml/MobileQuickAuthDialog.qml:16
+#: qml/MobileQuickAuthDialog.qml:108 qml/QuickAuthDialog.qml:16
+#: QuickAuthDialog.cpp:113
 #, kde-format
 msgid "Authentication Required"
 msgstr "Reikia nustatyti tapatybę"
 
-#: qml/MobileQuickAuthDialog.qml:57 qml/QuickAuthDialog.qml:72
+#: qml/MediacenterQuickAuthDialog.qml:58 qml/MobileQuickAuthDialog.qml:57
+#: qml/QuickAuthDialog.qml:72
 #, kde-format
 msgid "Authentication failure, please try again."
 msgstr "Tapatybės nustatymo klaida, bandykite dar kartą."
+
+#: qml/MediacenterQuickAuthDialog.qml:78 qml/MediacenterQuickAuthDialog.qml:147
+#, kde-format
+msgid "Change user"
+msgstr "Keisti naudotoją"
+
+#: qml/MediacenterQuickAuthDialog.qml:107 qml/QuickAuthDialog.qml:175
+#, kde-format
+msgid "Authenticating as %1"
+msgstr "Nustatoma %1 tapatybė"
+
+#: qml/MediacenterQuickAuthDialog.qml:125 qml/MobileQuickAuthDialog.qml:167
+#: qml/QuickAuthDialog.qml:201
+#, kde-format
+msgid "Password…"
+msgstr "Slaptažodis…"
+
+#: qml/MediacenterQuickAuthDialog.qml:158 qml/MobileQuickAuthDialog.qml:185
+#: qml/QuickAuthDialog.qml:222
+#, kde-format
+msgid "OK"
+msgstr "Gerai"
+
+#: qml/MediacenterQuickAuthDialog.qml:168 qml/MobileQuickAuthDialog.qml:191
+#: qml/QuickAuthDialog.qml:228
+#, kde-format
+msgid "Cancel"
+msgstr "Atsisakyti"
 
 #: qml/MobileQuickAuthDialog.qml:141
 #, kde-format
@@ -102,25 +132,10 @@ msgstr "Naudotojas: %1"
 msgid "Switch…"
 msgstr "Perjungti…"
 
-#: qml/MobileQuickAuthDialog.qml:167 qml/QuickAuthDialog.qml:201
-#, kde-format
-msgid "Password…"
-msgstr "Slaptažodis…"
-
 #: qml/MobileQuickAuthDialog.qml:175 qml/QuickAuthDialog.qml:210
 #, kde-format
 msgid "Details"
 msgstr "Išsamiau"
-
-#: qml/MobileQuickAuthDialog.qml:185 qml/QuickAuthDialog.qml:222
-#, kde-format
-msgid "OK"
-msgstr "Gerai"
-
-#: qml/MobileQuickAuthDialog.qml:191 qml/QuickAuthDialog.qml:228
-#, kde-format
-msgid "Cancel"
-msgstr "Atsisakyti"
 
 #: qml/MobileQuickAuthDialog.qml:201 qml/QuickAuthDialog.qml:240
 #, kde-format
@@ -136,11 +151,6 @@ msgstr "ID:"
 #, kde-format
 msgid "Vendor:"
 msgstr "Tiekėjas:"
-
-#: qml/QuickAuthDialog.qml:175
-#, kde-format
-msgid "Authenticating as %1"
-msgstr "Nustatoma %1 tapatybė"
 
 #~ msgid "<null>"
 #~ msgstr "<null>"

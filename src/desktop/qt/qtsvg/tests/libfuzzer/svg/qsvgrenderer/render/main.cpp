@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QGuiApplication>
+#include <QByteArray>
+#include <QFont>
 #include <QImage>
 #include <QPainter>
 #include <QSvgRenderer>
@@ -22,5 +24,6 @@ extern "C" int LLVMFuzzerTestOneInput(const char *Data, size_t Size) {
     QPainter painter(&image);
     QSvgRenderer renderer(QByteArray::fromRawData(Data, Size));
     renderer.render(&painter);
+    QFont::cleanup(); // avoid memleaks, QTBUG-140076
     return 0;
 }

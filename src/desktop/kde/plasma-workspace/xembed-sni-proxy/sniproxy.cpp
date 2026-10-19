@@ -12,7 +12,9 @@
 #include <span>
 #include <xcb/xcb_atom.h>
 #include <xcb/xcb_event.h>
+#include <xcb/xcb_icccm.h>
 
+#include <QDBusPendingCallWatcher>
 #include <QScreen>
 #include <QTimer>
 
@@ -35,6 +37,8 @@
 
 #define SNI_WATCHER_SERVICE_NAME "org.kde.StatusNotifierWatcher"
 #define SNI_WATCHER_PATH "/StatusNotifierWatcher"
+
+#define CONTAINER_WINDOW_CLASS "xembedsniproxy\0xembedsniproxy"
 
 #ifdef Status
 typedef Status XStatus;
@@ -90,6 +94,7 @@ SNIProxy::SNIProxy(xcb_window_t wid, QObject *parent)
     // there is an undocumented feature that you can register an SNI by path, however it doesn't detect an object on a service being removed, only the entire
     // service closing instead lets use one DBus connection per SNI
     m_dbus(QDBusConnection::connectToBus(QDBusConnection::SessionBus, QStringLiteral("XembedSniProxy%1").arg(s_serviceCount++)))
+    , m_dbusWatcher(QStringLiteral(SNI_WATCHER_SERVICE_NAME), m_dbus, QDBusServiceWatcher::WatchForRegistration, this)
     , m_x11Interface(qGuiApp->nativeInterface<QNativeInterface::QX11Application>())
     , m_windowId(wid)
     , m_injectMode(Direct)
@@ -98,13 +103,14 @@ SNIProxy::SNIProxy(xcb_window_t wid, QObject *parent)
     new StatusNotifierItemAdaptor(this);
     m_dbus.registerObject(QStringLiteral("/StatusNotifierItem"), this);
 
-    auto statusNotifierWatcher =
-        new org::kde::StatusNotifierWatcher(QStringLiteral(SNI_WATCHER_SERVICE_NAME), QStringLiteral(SNI_WATCHER_PATH), QDBusConnection::sessionBus(), this);
-    auto reply = statusNotifierWatcher->RegisterStatusNotifierItem(m_dbus.baseService());
-    reply.waitForFinished();
-    if (reply.isError()) {
-        qCWarning(SNIPROXY) << "could not register SNI:" << reply.error().message();
-    }
+    registerNotifierItem();
+    QObject::connect(&m_dbusWatcher, &QDBusServiceWatcher::serviceRegistered, this, &SNIProxy::watcherServiceRegistered);
+
+    m_deactivateTimer.setSingleShot(true);
+    m_deactivateTimer.setInterval(300);
+    connect(&m_deactivateTimer, &QTimer::timeout, this, [this]() {
+        setActiveForInput(false);
+    });
 
     auto c = m_x11Interface->connection();
 
@@ -131,6 +137,7 @@ SNIProxy::SNIProxy(xcb_window_t wid, QObject *parent)
                       Xcb::trayVisual->visualId, /* visual        */
                       mask,
                       values); /* masks         */
+    xcb_icccm_set_wm_class(c, m_containerWid, sizeof(CONTAINER_WINDOW_CLASS), CONTAINER_WINDOW_CLASS);
 
     /*
         We need the window to exist and be mapped otherwise the child won't render it's contents
@@ -457,6 +464,27 @@ void SNIProxy::setActiveForInput(bool active) const
     }
 }
 
+void SNIProxy::registerNotifierItem()
+{
+    auto statusNotifierWatcher =
+        org::kde::StatusNotifierWatcher(QStringLiteral(SNI_WATCHER_SERVICE_NAME), QStringLiteral(SNI_WATCHER_PATH), QDBusConnection::sessionBus(), this);
+    auto reply = statusNotifierWatcher.RegisterStatusNotifierItem(m_dbus.baseService());
+    auto replyWatcher = new QDBusPendingCallWatcher(reply, this);
+    QObject::connect(replyWatcher, &QDBusPendingCallWatcher::finished, [](QDBusPendingCallWatcher *call) {
+        if (call->isError()) {
+            qCWarning(SNIPROXY) << "could not register SNI:" << call->error().message();
+        }
+        call->deleteLater();
+    });
+}
+
+void SNIProxy::watcherServiceRegistered(const QString &serviceName)
+{
+    Q_UNUSED(serviceName);
+
+    registerNotifierItem();
+}
+
 //____________properties__________
 
 QString SNIProxy::Category() const
@@ -627,9 +655,7 @@ void SNIProxy::sendClick(uint8_t mouseButton, int x, int y)
         // then kwin, then back to X
         // we need to delay slightly until that happens
         if (qgetenv("XDG_SESSION_TYPE") == QByteArrayLiteral("wayland")) {
-            QTimer::singleShot(300, this, [this]() {
-                setActiveForInput(false);
-            });
+            m_deactivateTimer.start();
         } else {
             setActiveForInput(false);
         }

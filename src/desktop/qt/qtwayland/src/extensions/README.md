@@ -1,7 +1,7 @@
 # Internal Qt protocol extensions
 
 The protocol extensions in this folder are considered implementation details of
-Qt. I.e. they may removed, renamed or changed without warning.
+Qt. I.e. they may be removed, renamed or changed without warning.
 
 However, starting with Qt 5.4, we promise not to break backwards compatibility
 without renaming (or removing) the protocol. I.e., if your client sees a global

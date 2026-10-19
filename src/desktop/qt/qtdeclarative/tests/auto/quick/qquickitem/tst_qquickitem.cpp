@@ -239,6 +239,7 @@ private slots:
     void invisibleItemCursorShape();
 
     void focusItemDestroyed();
+    void testUpdateOfInvisibleItem();
 
 private:
 
@@ -1732,7 +1733,7 @@ void tst_qquickitem::hoverEvent()
 
     // Ensure that we don't get extra hover events delivered on the
     // side, since it can affect the number of hover move events we receive below.
-    QQuickWindowPrivate::get(window)->deliveryAgentPrivate()->frameSynchronousHoverEnabled = false;
+    QQuickWindowPrivate::get(window)->deliveryAgentPrivate()->frameSynchronousHoverInterval = -1;
     // And flush out any mouse events that might be queued up
     // in QPA, since QTest::mouseMove() calls processEvents.
     qGuiApp->processEvents();
@@ -2725,6 +2726,33 @@ void tst_qquickitem::focusItemDestroyed()
     // dialog will be closed by timer
     QTRY_VERIFY(!focusObject);
     QVERIFY(!window.activeFocusItem());
+}
+
+void tst_qquickitem::testUpdateOfInvisibleItem()
+{
+    QQuickView view;
+    view.setSource(testFileUrl("invisibleUpdate.qml"));
+    view.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&view));
+
+    QSignalSpy spy(&view, &QQuickWindow::afterRendering);
+    spy.wait(1000);
+    spy.clear();
+
+    // Image is visible, make sure we get an update
+    view.rootObject()->setProperty("itemColor", "blue");
+    QTRY_COMPARE(spy.count(), 1);
+    spy.clear();
+
+    // One update for hiding the Image
+    view.rootObject()->setProperty("itemVisible", false);
+    QTRY_COMPARE(spy.count(), 1);
+    spy.clear();
+
+    // Make sure we don't get an update when the invisible Item changes
+    view.rootObject()->setProperty("itemColor", "red");
+    spy.wait(1000);
+    QCOMPARE(spy.count(), 0);
 }
 
 QTEST_MAIN(tst_qquickitem)

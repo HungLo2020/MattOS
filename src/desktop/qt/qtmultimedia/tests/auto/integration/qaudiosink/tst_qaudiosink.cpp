@@ -22,6 +22,7 @@
 #include <private/osdetection_p.h>
 #include <private/qmockiodevice_p.h>
 
+#include <atomic>
 #include <memory>
 
 QT_WARNING_DISABLE_DEPRECATED; // Tests use QWaveDecoder
@@ -77,13 +78,18 @@ static bool isPulseAudioBackend()
     return QPlatformMediaIntegration::audioBackendName() == "PulseAudio";
 }
 
+static bool isQnxSndBackend()
+{
+    return QPlatformMediaIntegration::audioBackendName() == "QNX-snd";
+}
+
 static bool underrunIsAnError()
 {
-#if defined(Q_OS_APPLE) || defined(Q_OS_ANDROID)
+#if defined(Q_OS_APPLE) || defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY) || defined(Q_OS_WINDOWS)
     return false;
 #endif
 
-    return !(isPipewireBackend() || isPulseAudioBackend());
+    return !(isPipewireBackend() || isPulseAudioBackend() || isQnxSndBackend());
 }
 
 class tst_QAudioSink : public QObject
@@ -136,6 +142,13 @@ private slots:
     void volume_data();
     void volume();
 
+    void nativePeriodFrameCount_getReturnsMinusOneWhenUnset();
+    void nativePeriodFrameCount_setValidValues();
+    void nativePeriodFrameCount_getReturnsSet();
+    void nativePeriodFrameCount_setInvalidValues();
+    void nativePeriodFrameCount_rejectWhenNotStopped();
+    void nativePeriodFrameCount_setMinusOneUnsets();
+
     void stop_stopsAudioSink_whenInvokedUponFirstStateChange_data();
     void stop_stopsAudioSink_whenInvokedUponFirstStateChange();
 
@@ -145,6 +158,8 @@ private slots:
     void callbackAPI_availabilityCheck();
     void callbackAPI_startFailsWithWrongType();
     void callbackAPI_startWithMoveOnlyFunctor();
+    void callbackAPI_suspendPreventsCallbackInvocation_data();
+    void callbackAPI_suspendPreventsCallbackInvocation();
 
     void multipleSinks_data() { generate_multiple_sinks_testrows(); }
     void multipleSinks();
@@ -1275,6 +1290,78 @@ void tst_QAudioSink::volume()
     QTRY_VERIFY(qRound(audioSink.volume() * 10.0f) == expectedInt);
 }
 
+void tst_QAudioSink::nativePeriodFrameCount_getReturnsMinusOneWhenUnset()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_setValidValues()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    QCOMPARE(audioSink.state(), QAudio::StoppedState);
+
+    // Test valid power-of-2 values
+    const auto validValues = { 32, 64, 128, 256, 512, 1024, 2048, 4096 };
+    for (int value : validValues) {
+        audioSink.setNativePeriodFrameCount(value);
+        QCOMPARE(audioSink.nativePeriodFrameCount(), value);
+    }
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_getReturnsSet()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
+
+    audioSink.setNativePeriodFrameCount(256);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), 256);
+
+    audioSink.setNativePeriodFrameCount(1024);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), 1024);
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_setInvalidValues()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+
+    // Test invalid values - these should not be set
+    const auto invalidValues = { 33, 31, 4093, 8192 };
+    for (int value : invalidValues) {
+        QTest::ignoreMessage(QtWarningMsg,
+                             QRegularExpression("QAudioSink::setNativePeriodFrameCount:.*"));
+        audioSink.setNativePeriodFrameCount(value);
+        QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
+    }
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_rejectWhenNotStopped()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+
+    // Try to set when in active state - should be rejected
+    audioSink.start();
+    QTRY_VERIFY(audioSink.state() != QAudio::StoppedState);
+
+    QTest::ignoreMessage(QtWarningMsg,
+                         QRegularExpression("QAudioSink::setNativePeriodFrameCount:.*can only be set when stopped.*"));
+    audioSink.setNativePeriodFrameCount(256);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
+
+    audioSink.stop();
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_setMinusOneUnsets()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+
+    audioSink.setNativePeriodFrameCount(512);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), 512);
+
+    audioSink.setNativePeriodFrameCount(-1);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
+}
+
 void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange_data()
 {
     QTest::addColumn<AudioSinkInitializer>("initializer");
@@ -1416,6 +1503,61 @@ void tst_QAudioSink::callbackAPI_startWithMoveOnlyFunctor()
     QVERIFY(callbackExecuted);
 #else
     QSKIP("Threading not configured or move-only functions not available");
+#endif
+}
+
+void tst_QAudioSink::callbackAPI_suspendPreventsCallbackInvocation_data()
+{
+    QTest::addColumn<bool>("suspendImmediately");
+    QTest::newRow("suspend immediately after start") << true;
+    QTest::newRow("suspend after ActiveState") << false;
+}
+
+
+void tst_QAudioSink::callbackAPI_suspendPreventsCallbackInvocation()
+{
+#if QT_CONFIG(thread)
+    using namespace std::chrono_literals;
+    QFETCH(bool, suspendImmediately);
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleFormat(QAudioFormat::SampleFormat::Float);
+
+    QAudioSink audioSink(audioDevice, format);
+    QPlatformAudioSink *platformSink = QPlatformAudioSink::get(audioSink);
+    if (!platformSink->hasCallbackAPI())
+        QSKIP("Callback API not supported by this backend");
+
+    // Atomic counter to track callback invocations
+    std::atomic<int> callbackCount = 0;
+
+    audioSink.start([&](QSpan<float> outputBuffer) {
+        QCOMPARE_GT(outputBuffer.size(), 0);
+        callbackCount++;
+    });
+    QCOMPARE(audioSink.error(), QAudio::Error::NoError);
+
+    if (suspendImmediately) {
+        // Suspend immediately without waiting for ActiveState
+        audioSink.suspend();
+    } else {
+        // Wait for the sink to become active
+        QTRY_COMPARE(audioSink.state(), QAudio::State::ActiveState);
+        audioSink.suspend();
+    }
+
+    QTRY_COMPARE(audioSink.state(), QAudio::State::SuspendedState);
+
+    // Reset counter and wait to verify no callbacks occur while suspended
+    callbackCount = 0;
+    QTest::qWait(500ms);
+
+    // Verify that the callback was called at most a single time
+    QCOMPARE_LE(callbackCount.load(), 1);
+
+    audioSink.stop();
+#else
+    QSKIP("Threading not configured");
 #endif
 }
 

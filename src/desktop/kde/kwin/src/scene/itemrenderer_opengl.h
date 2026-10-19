@@ -15,7 +15,7 @@
 namespace KWin
 {
 
-class EglDisplay;
+class RenderDevice;
 
 class KWIN_EXPORT ItemRendererOpenGL : public ItemRenderer
 {
@@ -23,7 +23,7 @@ public:
     struct RenderNode
     {
         ShaderTraits traits;
-        QVarLengthArray<GLTexture *, 4> textures;
+        GLTexture *texture;
         RenderGeometry geometry;
         QMatrix4x4 transformMatrix;
         int firstVertex = 0;
@@ -39,6 +39,7 @@ public:
         QColor borderColor;
         bool paintHole = false;
         bool hasFloatingPointColor = false;
+        std::optional<RectF> layerDebugBox;
     };
 
     struct RenderCorner
@@ -62,30 +63,47 @@ public:
         const QPoint renderOffset;
     };
 
-    ItemRendererOpenGL(EglDisplay *eglDisplay);
+    explicit ItemRendererOpenGL(RenderDevice *device);
+
+    std::unique_ptr<Texture> createTexture(GraphicsBuffer *buffer, const FileDescriptor &sync,
+                                           const std::shared_ptr<SyncReleasePoint> &releasePoint,
+                                           const std::shared_ptr<ColorDescription> &color) override;
+    std::unique_ptr<Texture> createTexture(const QImage &image) override;
+
+    std::unique_ptr<NinePatch> createNinePatch(const QImage &image) override;
+    std::unique_ptr<NinePatch> createNinePatch(const QImage &topLeftPatch,
+                                               const QImage &topPatch,
+                                               const QImage &topRightPatch,
+                                               const QImage &rightPatch,
+                                               const QImage &bottomRightPatch,
+                                               const QImage &bottomPatch,
+                                               const QImage &bottomLeftPatch,
+                                               const QImage &leftPatch) override;
+
+    std::unique_ptr<Atlas> createAtlas(const QList<QImage> &sprites) override;
 
     void beginFrame(const RenderTarget &renderTarget, const RenderViewport &viewport) override;
     void endFrame() override;
 
     void renderBackground(const RenderTarget &renderTarget, const RenderViewport &viewport, const Region &deviceRegion) override;
-    void renderItem(const RenderTarget &renderTarget, const RenderViewport &viewport, Item *item, int mask, const Region &deviceRegion, const WindowPaintData &data, const std::function<bool(Item *)> &filter, const std::function<bool(Item *)> &holeFilter) override;
+    bool renderItem(const RenderTarget &renderTarget, const RenderViewport &viewport, Item *item, int mask, const Region &deviceRegion, const WindowPaintData &data, const std::function<bool(Item *)> &filter, const std::function<bool(Item *)> &holeFilter) override;
 
-    std::unique_ptr<ImageItem> createImageItem(Item *parent = nullptr) override;
+    void setLayerDebugging(bool enable) override;
 
 private:
     QVector4D modulate(float opacity, float brightness) const;
     void setBlendEnabled(bool enabled);
-    void createRenderNode(Item *item, RenderContext *context, const std::function<bool(Item *)> &filter, const std::function<bool(Item *)> &holeFilter);
+    bool createRenderNode(Item *item, RenderContext *context, const std::function<bool(Item *)> &filter, const std::function<bool(Item *)> &holeFilter);
     void visualizeFractional(const RenderViewport &viewport, const Region &logicalRegion, const RenderContext &renderContext);
 
     bool m_blendingEnabled = false;
-    EglDisplay *const m_eglDisplay;
     std::unordered_set<std::shared_ptr<SyncReleasePoint>> m_releasePoints;
 
     struct
     {
         bool fractionalEnabled = false;
         std::unique_ptr<GLShader> fractionalShader;
+        bool layerEnabled = false;
     } m_debug;
 };
 

@@ -31,11 +31,6 @@ class HistoryModel;
 class KNotification;
 class SystemClipboard;
 
-namespace KWayland::Client
-{
-class PlasmaShell;
-}
-
 class KLIPPER_EXPORT Klipper : public QObject, public QDBusContext
 {
     Q_OBJECT
@@ -72,15 +67,7 @@ public:
 
     void saveSettings() const;
 
-    QMenu *actionsPopup() const
-    {
-        return m_actionsPopup;
-    }
-
-    KlipperPopup *popup()
-    {
-        return m_popup.get();
-    }
+    KlipperPopup *popup();
 
 public Q_SLOTS:
     void saveSession();
@@ -124,15 +111,12 @@ private:
     QAction *m_repeatAction;
     QAction *m_editAction = nullptr;
     QAction *m_showBarcodeAction;
-    QAction *m_configureAction;
-    QAction *m_quitAction;
     QAction *m_cycleNextAction;
     QAction *m_cyclePrevAction;
     QAction *m_showOnMousePos;
 
     bool m_bURLGrabber : 1;
     bool m_bReplayActionInHistory : 1;
-    bool m_bUseGUIRegExpEditor : 1;
 
     URLGrabber *m_myURLGrabber;
     QString m_lastURLGrabberTextSelection;
@@ -140,7 +124,5 @@ private:
 
     QString cycleText() const;
     KActionCollection *m_collection;
-    QMenu *m_actionsPopup;
     QPointer<KNotification> m_notification;
-    KWayland::Client::PlasmaShell *m_plasmashell;
 };

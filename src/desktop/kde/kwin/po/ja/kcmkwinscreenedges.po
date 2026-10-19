@@ -4,13 +4,14 @@
 # Jumpei Ogawa <phanective@gmail.com>, 2010.
 # Tomohiro Hyakutake <tomhioo@outlook.jp>, 2020.
 # Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2015, 2020.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwinscreenedges\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
-"PO-Revision-Date: 2024-09-12 20:45+0900\n"
-"Last-Translator: UTUMI Hirosi <utuhiro78@yahoo.co.jp>\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
+"PO-Revision-Date: 2026-07-23 17:16+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -19,74 +20,74 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Lokalize 26.04.3\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "アクションなし"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "ウィンドウを隠す"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "スクリーンをロック"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "KRunner を表示"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "アクティビティマネージャ"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "アプリケーションランチャー"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "ウィンドウを表示"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 - すべてのデスクトップ"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 - 現在のデスクトップ"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 - 現在のアプリケーション"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "オーバービュー"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "グリッド"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "ウィンドウスイッチャー"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "ウィンドウスイッチャー (代替)"
@@ -95,11 +96,11 @@ msgstr "ウィンドウスイッチャー (代替)"
 #: main.ui:23
 #, kde-format
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
 msgstr ""
-"マウスカーソルを対応する画面のエッジまたは角に当てることで、アクションを実行"
-"できます。"
+"マウスポインタを対応する画面の端や角に当てることで、アクションを実行できま"
+"す。"
 
 #. i18n: ectx: property (text), widget (QLabel, quickMaximizeLabel)
 #: main.ui:67
@@ -165,8 +166,9 @@ msgstr "(画面の)"
 #: main.ui:174
 #, kde-format
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
-msgstr "マウスカーソルが画面の端に当てられたときにデスクトップを切り替える"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
+msgstr "マウスポインタが画面の端に当てられたときにデスクトップを切り替える"
 
 #. i18n: ectx: property (text), widget (QLabel, desktopSwitchLabel)
 #: main.ui:177
@@ -197,17 +199,15 @@ msgstr "常に有効"
 #: main.ui:206
 #, kde-format
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
-msgstr ""
-"アクションを起動するために必要な、マウスカーソルをスクリーンエッジに当ててお"
-"く時間"
+msgstr "アクションを起動するために必要な、マウスポインタを画面の端に当てる時間"
 
 #. i18n: ectx: property (text), widget (QLabel, activationDelayLabel)
 #: main.ui:209
 #, kde-format
 msgid "Activation &delay:"
-msgstr "起動の遅延(&D):"
+msgstr "アクション起動の遅延(&D):"
 
 #. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_ElectricBorderDelay)
 #. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_ElectricBorderCooldown)
@@ -238,10 +238,16 @@ msgstr "コーナーバリア(&C):"
 
 #. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:280
-#, kde-format
+#, fuzzy, kde-format
+#| msgid ""
+#| "Here you can enable or disable the virtual corner barrier between "
+#| "screens. The barrier prevents the cursor from moving to another screen "
+#| "when it is already touching a screen corner. This makes it easier to "
+#| "trigger user interface elements like maximized windows' close buttons "
+#| "when using multiple screens."
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
@@ -253,9 +259,11 @@ msgstr ""
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:283
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Prevents cursors from crossing at screen corners."
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
+msgid "Prevents the pointer from crossing at screen corners."
 msgstr "カーソルが画面の角を横切るのを防ぎます。"
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
@@ -281,9 +289,11 @@ msgstr ""
 
 #. i18n: ectx: property (toolTip), widget (QSpinBox, kcfg_EdgeBarrier)
 #: main.ui:303
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Additional distance cursor needs to travel to cross screen edges."
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
+msgid "Additional distance the pointer needs to travel to cross screen edges."
 msgstr "画面のエッジを越えるときに、カーソルをさらに移動する必要があります。"
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, kcfg_EdgeBarrier)
@@ -296,7 +306,7 @@ msgstr "なし"
 #: main.ui:309
 #, kde-format
 msgid " px"
-msgstr " ピクセル"
+msgstr " px"
 
 #. i18n: ectx: property (text), widget (QLabel, label_1)
 #: touch.ui:17

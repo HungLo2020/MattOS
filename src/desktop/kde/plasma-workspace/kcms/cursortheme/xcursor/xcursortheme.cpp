@@ -12,11 +12,8 @@
 #include <QDir>
 #include <QImage>
 #include <algorithm>
-#include <private/qtx11extras_p.h>
 
-#include <X11/Xcursor/Xcursor.h>
-#include <X11/Xlib.h>
-
+#include "xcursor.h"
 #include "xcursortheme.h"
 
 using namespace Qt::StringLiterals;
@@ -130,62 +127,10 @@ XcursorImages *XCursorTheme::xcLoadImages(const QString &image, int size) const
 
 int XCursorTheme::defaultCursorSize() const
 {
-    // TODO: manage Wayland
-    if (!QX11Info::isPlatformX11()) {
-        return 32;
-    }
-    /* This code is basically borrowed from display.c of the XCursor library
-       We can't use "int XcursorGetDefaultSize(Display *dpy)" because if
-       previously the cursor size was set to a custom value, it would return
-       this custom value. */
-    int size = 0;
-    int dpi = 0;
-    Display *dpy = QX11Info::display();
-    // The string "v" is owned and will be destroyed by Xlib
-    char *v = XGetDefault(dpy, "Xft", "dpi");
-    if (v)
-        dpi = atoi(v);
-    if (dpi)
-        size = dpi * 16 / 72;
-    if (size == 0) {
-        int dim;
-        if (DisplayHeight(dpy, DefaultScreen(dpy)) < DisplayWidth(dpy, DefaultScreen(dpy))) {
-            dim = DisplayHeight(dpy, DefaultScreen(dpy));
-        } else {
-            dim = DisplayWidth(dpy, DefaultScreen(dpy));
-        }
-        size = dim / 48;
-    }
-    return size;
+    return 24;
 }
 
-qulonglong XCursorTheme::loadCursor(const QString &name, int size) const
-{
-    // TODO: manage Wayland
-    if (!QX11Info::isPlatformX11()) {
-        return None;
-    }
-    if (size <= 0)
-        size = defaultCursorSize();
-
-    // Load the cursor images
-    XcursorImages *images = xcLoadImages(name, size);
-
-    if (!images)
-        images = xcLoadImages(findAlternative(name), size);
-
-    if (!images)
-        return None;
-
-    // Create the cursor
-    Cursor handle = XcursorImagesLoadCursor(QX11Info::display(), images);
-    XcursorImagesDestroy(images);
-
-    setCursorName(handle, name);
-    return handle;
-}
-
-QImage XCursorTheme::loadImage(const QString &name, int size) const
+std::optional<CursorTheme::CursorImage> XCursorTheme::loadImage(const QString &name, int size) const
 {
     if (size <= 0)
         size = defaultCursorSize();
@@ -197,16 +142,24 @@ QImage XCursorTheme::loadImage(const QString &name, int size) const
         xcimage = xcLoadImage(findAlternative(name), size);
 
     if (!xcimage) {
-        return {};
+        return std::nullopt;
     }
 
-    // Convert the XcursorImage to a QImage, and auto-crop it
+    // Convert the XcursorImage to a QImage.
     QImage image((uchar *)xcimage->pixels, xcimage->width, xcimage->height, QImage::Format_ARGB32_Premultiplied);
+    if (image.isNull()) {
+        return std::nullopt;
+    }
 
-    image = autoCropImage(image);
+    CursorImage cursorImage{
+        image.copy(),
+        QPoint(xcimage->xhot, xcimage->yhot),
+        std::chrono::milliseconds{0},
+    };
+
     XcursorImageDestroy(xcimage);
 
-    return image;
+    return cursorImage;
 }
 
 std::vector<CursorTheme::CursorImage> XCursorTheme::loadImages(const QString &name, int size) const
@@ -230,7 +183,7 @@ std::vector<CursorTheme::CursorImage> XCursorTheme::loadImages(const QString &na
         // Convert the XcursorImage to a QImage, and auto-crop it
         const XcursorImage *xcimage = xcimages->images[i];
         QImage image(reinterpret_cast<unsigned char *>(xcimage->pixels), xcimage->width, xcimage->height, QImage::Format_ARGB32_Premultiplied);
-        images.push_back(CursorImage{autoCropImage(image), std::chrono::milliseconds{xcimage->delay}});
+        images.push_back(CursorImage{image.copy(), QPoint(xcimage->xhot, xcimage->yhot), std::chrono::milliseconds{xcimage->delay}});
     }
 
     XcursorImagesDestroy(xcimages);

@@ -14,6 +14,7 @@
 
 namespace KWin
 {
+
 class GLFramebuffer;
 class GLShader;
 class GLTexture;
@@ -26,8 +27,8 @@ public:
     ScreenTransformEffect();
     ~ScreenTransformEffect() override;
 
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
+    void prePaintScreen(ScreenPrePaintData &data) override;
+    bool paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
 
     bool isActive() const override;
 
@@ -49,7 +50,7 @@ private:
         TimeLine m_timeLine;
         Snapshot m_prev;
         Snapshot m_current;
-        QRect m_oldGeometry;
+        Rect m_oldGeometry;
         OutputTransform m_oldTransform;
         qreal m_angle = 0;
     };

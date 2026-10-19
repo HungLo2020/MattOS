@@ -13,9 +13,6 @@
 
 #include "private/qcalendarmath_p.h"
 #include "private/qdatetime_p.h"
-#if QT_CONFIG(datetimeparser)
-#include "private/qdatetimeparser_p.h"
-#endif
 #ifdef Q_OS_DARWIN
 #include "private/qcore_mac_p.h"
 #endif
@@ -27,6 +24,9 @@
 #include "private/qstringiterator_p.h"
 #if QT_CONFIG(timezone)
 #include "private/qtimezoneprivate_p.h"
+#endif
+#if QT_CONFIG(datestring)
+#  include "private/qttemporalpattern_p.h"
 #endif
 
 #include <cmath>
@@ -1156,7 +1156,7 @@ QDateTime QDate::endOfDay() const
 /*!
     \since 5.14
     \overload endOfDay()
-    \deprecated [6.9] Use \c{endOfDay(const QTimeZone &) instead.
+    \deprecated [6.9] Use \c{endOfDay(const QTimeZone &)} instead.
 
     Returns the end-moment of the day.
 
@@ -1285,15 +1285,20 @@ QString QDate::toString(Qt::DateFormat format) const
     \row \li MMM \li The abbreviated month name ('Jan' to 'Dec').
     \row \li MMMM \li The long month name ('January' to 'December').
     \row \li yy \li The year as a two digit number (00 to 99)
-    \row \li yyyy \li The year as a four digit number. If the year is negative,
-            a minus sign is prepended, making five characters.
+    \row \li yyyy \li The full year as a number, padded if necessary to at least
+             four digits. If the year is negative, a minus sign is prepended. If
+             a positive year needs more than four digits, a plus sign is
+             prepended.
     \endtable
 
-    Any sequence of characters enclosed in single quotes will be included
-    verbatim in the output string (stripped of the quotes), even if it contains
-    formatting characters. Two consecutive single quotes ("''") are replaced by
-    a single quote in the output. All other characters in the format string are
-    included verbatim in the output string.
+//! [to-string-single-quote]
+    Any non-empty sequence of characters enclosed in single quotes will be
+    included verbatim in the output string (stripped of the quotes), even if it
+    contains formatting characters. Two consecutive single quotes ("''") are
+    replaced by a single quote in the output, rather than starting or ending a
+    verbatim sequence. All other characters in the format string are included
+    verbatim in the output string.
+//! [to-string-single-quote]
 
     Formats without separators (e.g. "ddMM") are supported but must be used with
     care, as the resulting strings aren't always reliably readable (e.g. if "dM"
@@ -1586,9 +1591,10 @@ QDate QDate::addYears(int nyears) const
 }
 
 /*!
-    Returns the number of days from this date to \a d (which is
-    negative if \a d is earlier than this date).
+    Returns the number of days from this date to \a d.
 
+    This is equivalent to \c{d.toJulianDay() - toJulianDay()}.
+    The result is negative if \a d is earlier than this date.
     Returns 0 if either date is invalid.
 
     Example:
@@ -1747,26 +1753,41 @@ QDate QDate::fromString(QStringView string, Qt::DateFormat format)
     \row \li MMM \li The abbreviated month name ('Jan' to 'Dec').
     \row \li MMMM \li The long month name ('January' to 'December').
     \row \li yy \li The year as a two digit number (00 to 99)
-    \row \li yyyy \li The year as a four digit number, possibly plus a leading
-             minus sign for negative years.
+    \row \li yyyy \li The year as a number, zero-padded if necessary to at least
+             four digits. A leading minus sign is accepted to represent a
+             negative year. A plus sign is required when more than four digits
+             are given.
     \endtable
 
     \note Day and month names must be given in English (C locale). If localized
     month and day names are to be recognized, use QLocale::system().toDate().
 
-    All other input characters will be treated as text. Any non-empty sequence
-    of characters enclosed in single quotes will also be treated (stripped of
-    the quotes) as text and not be interpreted as expressions. For example:
+//! [from-string-single-quote]
+    Any non-empty sequence of characters enclosed in single quotes will also be
+    treated (stripped of the quotes) as text and not be interpreted as
+    expressions. Two consecutive single quotes ("''") are read as a single quote
+    to be matched by the input, rather than starting or ending a verbatim
+    sequence. All other input characters will be treated as verbatim text to be
+    matched in the input string. For example:
+//! [from-string-single-quote]
+
 
     \snippet code/src_corelib_time_qdatetime.cpp 1
 
-    If the format is not satisfied, an invalid QDate is returned. The
-    expressions that don't expect leading zeroes (d, M) will be
-    greedy. This means that they will use two digits even if this
-    will put them outside the accepted range of values and leaves too
-    few digits for other sections. For example, the following format
-    string could have meant January 30 but the M will grab two
-    digits, resulting in an invalid date:
+    If the format is not satisfied, an invalid QDate is returned.
+
+//! [from-string-juxtaposed]
+    Where numeric fields are juxtaposed, with no separators to break up the
+    sequences of digits, there may be ambiguity as to whether some fields
+    allowed to be single-digit use two digits (due to the value to represent
+    being more than 9). Where giving such a field two digits would leave too few
+    for other fields, and the single-digit reading is consistent with other
+    fields, this ambiguity can be resolved. Otherwise (where more than one field
+    is allowed to have only one digit and there would be spare digits if each
+    only got one), a resolution that gives extra digits to earlier fields is
+    preferred over one that gives them to later fields, provided the data remain
+    consistent.  For example:
+//! [from-string-juxtaposed]
 
     \snippet code/src_corelib_time_qdatetime.cpp 2
 
@@ -1867,19 +1888,22 @@ QDate QDate::fromString(QStringView string, Qt::DateFormat format)
 */
 QDate QDate::fromString(const QString &string, QStringView format, int baseYear, QCalendar cal)
 {
-    QDate date;
 #if QT_CONFIG(datetimeparser)
-    QDateTimeParser dt(QMetaType::QDate, QDateTimeParser::FromString, cal);
-    dt.setDefaultLocale(QLocale::c());
-    if (dt.parseFormat(format))
-        dt.fromString(string, &date, nullptr, baseYear);
+    QDatePattern pattern = QDatePattern::fromQtFormat(format);
+    pattern.setLocale(QLocale::c());
+    pattern.setCalendar(cal);
+    pattern.setBaseYear(baseYear);
+    if (auto match = pattern.parse(string, QDate(baseYear, 1, 1, cal));
+             match.size == string.size()) {
+        return std::move(match.payload);
+    }
 #else
     Q_UNUSED(string);
     Q_UNUSED(format);
     Q_UNUSED(baseYear);
     Q_UNUSED(cal);
 #endif
-    return date;
+    return {};
 }
 
 /*!
@@ -2258,11 +2282,7 @@ QString QTime::toString(Qt::DateFormat format) const
     is available, the \c{t} forms to represent it may be skipped. See \l
     QTimeZone::displayName() for details of when it returns an empty string.
 
-    Any non-empty sequence of characters enclosed in single quotes will be
-    included verbatim in the output string (stripped of the quotes), even if it
-    contains formatting characters. Two consecutive single quotes ("''") are
-    replaced by a single quote in the output. All other characters in the format
-    string are included verbatim in the output string.
+    \include qdatetime.cpp to-string-single-quote
 
     Formats without separators (e.g. "hhmm") are supported but must be used with
     care, as the resulting strings aren't always reliably readable (e.g. if "Hm"
@@ -2653,19 +2673,13 @@ QTime QTime::fromString(QStringView string, Qt::DateFormat format)
              matched case-insensitively.
     \endtable
 
-    All other input characters will be treated as text. Any non-empty sequence
-    of characters enclosed in single quotes will also be treated (stripped of
-    the quotes) as text and not be interpreted as expressions.
+    \include qdatetime.cpp from-string-single-quote
 
     \snippet code/src_corelib_time_qdatetime.cpp 6
 
     If the format is not satisfied, an invalid QTime is returned.
-    Expressions that do not expect leading zeroes to be given (h, m, s
-    and z) are greedy. This means that they will use two digits (or three, for z) even if
-    this puts them outside the range of accepted values and leaves too
-    few digits for other sections. For example, the following string
-    could have meant 00:07:10, but the m will grab two digits, resulting
-    in an invalid time:
+
+    \include qdatetime.cpp from-string-juxtaposed
 
     \snippet code/src_corelib_time_qdatetime.cpp 7
 
@@ -2702,17 +2716,16 @@ QTime QTime::fromString(QStringView string, Qt::DateFormat format)
 */
 QTime QTime::fromString(const QString &string, QStringView format)
 {
-    QTime time;
 #if QT_CONFIG(datetimeparser)
-    QDateTimeParser dt(QMetaType::QTime, QDateTimeParser::FromString, QCalendar());
-    dt.setDefaultLocale(QLocale::c());
-    if (dt.parseFormat(format))
-        dt.fromString(string, nullptr, &time);
+    QTimePattern pattern = QTimePattern::fromQtFormat(format);
+    pattern.setLocale(QLocale::c());
+    if (auto match = pattern.parse(string, QTime(0, 0)); match.size == string.size())
+        return std::move(match.payload);
 #else
     Q_UNUSED(string);
     Q_UNUSED(format);
 #endif
-    return time;
+    return {};
 }
 #endif // datestring
 
@@ -3841,6 +3854,10 @@ QDateTime::Data QDateTimePrivate::create(QDate toDate, QTime toTime, const QTime
     \value First The later parts of this year are representable
     \value Last The earlier parts of this year are representable
 
+    The exact first and last representable datetimes fall within these years and
+    depend on the \l timeRepresentation() used. They can be determined by
+    passing suitable values to \l fromMSecsSinceEpoch().
+
     All dates strictly between these two years are also representable.
     Note, however, that the Gregorian Calendar has no year zero.
 
@@ -4754,11 +4771,7 @@ QString QDateTime::toString(Qt::DateFormat format) const
     used. See QTime::toString() and QDate::toString() for the supported
     specifiers for time and date, respectively, in the \a format parameter.
 
-    Any sequence of characters enclosed in single quotes will be included
-    verbatim in the output string (stripped of the quotes), even if it contains
-    formatting characters. Two consecutive single quotes ("''") are replaced by
-    a single quote in the output. All other characters in the format string are
-    included verbatim in the output string.
+    \include qdatetime.cpp to-string-single-quote
 
     Formats without separators (e.g. "ddMM") are supported but must be used with
     care, as the resulting strings aren't always reliably readable (e.g. if "dM"
@@ -5042,14 +5055,14 @@ QDateTime QDateTime::addMSecs(qint64 msecs) const
 */
 
 /*!
-    Returns the number of days from this datetime to the \a other
-    datetime. The number of days is counted as the number of times
-    midnight is reached between this datetime to the \a other
-    datetime. This means that a 10 minute difference from 23:55 to
-    0:05 the next day counts as one day.
+    Returns the number of days from this datetime to the \a other datetime.
 
-    If the \a other datetime is earlier than this datetime,
-    the value returned is negative.
+    The number of days is counted as the number of times midnight is reached
+    between this datetime and the \a other datetime. This means that a 10 minute
+    difference from 23:55 to 0:05 the next day counts as one day.
+
+    If the \a other datetime is earlier than this datetime, the value returned
+    is negative. If either datetime is invalid, the value is 0.
 
     Example:
     \snippet code/src_corelib_time_qdatetime.cpp 15
@@ -5063,15 +5076,14 @@ qint64 QDateTime::daysTo(const QDateTime &other) const
 }
 
 /*!
-    Returns the number of seconds from this datetime to the \a other
-    datetime. If the \a other datetime is earlier than this datetime,
-    the value returned is negative.
+    Returns the number of seconds from this datetime to the \a other datetime.
 
     Before performing the comparison, the two datetimes are converted
     to Qt::UTC to ensure that the result is correct if daylight-saving
     (DST) applies to one of the two datetimes but not the other.
 
-    Returns 0 if either datetime is invalid.
+    If the \a other datetime is earlier than this datetime, the value returned
+    is negative. Returns 0 if either datetime is invalid.
 
     Example:
     \snippet code/src_corelib_time_qdatetime.cpp 11
@@ -5086,14 +5098,14 @@ qint64 QDateTime::secsTo(const QDateTime &other) const
 
 /*!
     Returns the number of milliseconds from this datetime to the \a other
-    datetime. If the \a other datetime is earlier than this datetime,
-    the value returned is negative.
+    datetime.
 
     Before performing the comparison, the two datetimes are converted
     to Qt::UTC to ensure that the result is correct if daylight-saving
     (DST) applies to one of the two datetimes and but not the other.
 
-    Returns 0 if either datetime is invalid.
+    If the \a other datetime is earlier than this datetime, the value returned
+    is negative. Returns 0 if either datetime is invalid.
 
     \sa addMSecs(), daysTo(), QTime::msecsTo()
 */
@@ -5110,10 +5122,10 @@ qint64 QDateTime::msecsTo(const QDateTime &other) const
     \fn std::chrono::milliseconds QDateTime::operator-(const QDateTime &lhs, const QDateTime &rhs)
     \since 6.4
 
-    Returns the number of milliseconds between \a lhs and \a rhs.
-    If \a lhs is earlier than \a rhs, the result will be negative.
+    Returns the time in milliseconds from \a lhs to \a rhs.
 
-    Returns 0 if either datetime is invalid.
+    If \a lhs is earlier than \a rhs, the result will be negative.
+    Returns 0ms if either datetime is invalid.
 
     \sa msecsTo()
 */
@@ -5137,12 +5149,11 @@ qint64 QDateTime::msecsTo(const QDateTime &other) const
     \since 6.4
 
     Modifies this datetime object by adding the given \a duration.
-    The updated object will be later if \a duration is positive,
-    or earlier if it is negative.
+
+    The updated object will be later if \a duration is positive, or earlier if
+    it is negative. Returns a reference to this datetime object.
 
     If this datetime is invalid, this function has no effect.
-
-    Returns a reference to this datetime object.
 
     \sa addMSecs()
 */
@@ -5165,12 +5176,11 @@ qint64 QDateTime::msecsTo(const QDateTime &other) const
     \since 6.4
 
     Modifies this datetime object by subtracting the given \a duration.
-    The updated object will be earlier if \a duration is positive,
-    or later if it is negative.
+
+    The updated object will be earlier if \a duration is positive, or later if
+    it is negative. Returns a reference to this datetime object.
 
     If this datetime is invalid, this function has no effect.
-
-    Returns a reference to this datetime object.
 
     \sa addMSecs
 */
@@ -5975,16 +5985,13 @@ QDateTime QDateTime::fromString(QStringView string, Qt::DateFormat format)
 
     \snippet code/src_corelib_time_qdatetime.cpp 14
 
-    All other input characters will be treated as text. Any non-empty sequence
-    of characters enclosed in single quotes will also be treated (stripped of
-    the quotes) as text and not be interpreted as expressions.
+    \include qdatetime.cpp from-string-single-quote
 
     \snippet code/src_corelib_time_qdatetime.cpp 12
 
-    If the format is not satisfied, an invalid QDateTime is returned.  If the
-    format is satisfied but \a string represents an invalid datetime (e.g. in a
-    gap skipped by a time-zone transition), an valid QDateTime is returned, that
-    represents a near-by datetime that is valid.
+    If the format is not satisfied, an invalid QDateTime is returned.
+
+    \include qdatetime.cpp from-string-juxtaposed
 
     The expressions that don't have leading zeroes (d, M, h, m, s, z) will be
     greedy. This means that they will use two digits (or three, for z) even if this will
@@ -6034,13 +6041,13 @@ QDateTime QDateTime::fromString(const QString &string, QStringView format, int b
                                 QCalendar cal)
 {
 #if QT_CONFIG(datetimeparser)
-    QDateTime datetime;
-
-    QDateTimeParser dt(QMetaType::QDateTime, QDateTimeParser::FromString, cal);
-    dt.setDefaultLocale(QLocale::c());
-    if (dt.parseFormat(format) && (dt.fromString(string, &datetime, baseYear)
-                                   || !datetime.isValid())) {
-        return datetime;
+    QDateTimePattern pattern = QDateTimePattern::fromQtFormat(format);
+    pattern.setLocale(QLocale::c());
+    pattern.setCalendar(cal);
+    pattern.setBaseYear(baseYear);
+    if (auto match = pattern.parse(string, QDate(baseYear, 1, 1, cal).startOfDay());
+             match.size == string.size()) {
+        return std::move(match.payload);
     }
 #else
     Q_UNUSED(string);
@@ -6048,7 +6055,7 @@ QDateTime QDateTime::fromString(const QString &string, QStringView format, int b
     Q_UNUSED(baseYear);
     Q_UNUSED(cal);
 #endif
-    return QDateTime();
+    return {};
 }
 
 /*!

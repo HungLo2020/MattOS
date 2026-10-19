@@ -27,7 +27,8 @@ class Q_WAYLANDCLIENT_EXPORT QWaylandClientExtension : public QObject
     Q_PROPERTY(int protocolVersion READ version NOTIFY versionChanged)
     Q_PROPERTY(bool active READ isActive NOTIFY activeChanged)
 public:
-    QWaylandClientExtension(const int version);
+    explicit QWaylandClientExtension(int version, QObject *parent);
+    explicit QWaylandClientExtension(const int version);
     ~QWaylandClientExtension();
 
     QtWaylandClient::QWaylandIntegration *integration() const;
@@ -48,12 +49,13 @@ protected Q_SLOTS:
 
 
 template<typename T, auto destruct = nullptr>
-class Q_WAYLANDCLIENT_EXPORT QWaylandClientExtensionTemplate : public QWaylandClientExtension
+class QWaylandClientExtensionTemplate : public QWaylandClientExtension
 {
     Q_DECLARE_PRIVATE(QWaylandClientExtensionTemplate)
 
 public:
-    QWaylandClientExtensionTemplate(const int ver) : QWaylandClientExtension(ver)
+    explicit QWaylandClientExtensionTemplate(int ver, QObject *parent = nullptr)
+        : QWaylandClientExtension(ver, parent)
     {
         if constexpr (destruct != nullptr) {
             connect(this, &QWaylandClientExtensionTemplate::activeChanged, this, [this] {

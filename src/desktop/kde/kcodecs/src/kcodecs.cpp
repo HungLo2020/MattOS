@@ -24,17 +24,12 @@
 #include <array>
 #include <cassert>
 #include <cstring>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <QDebug>
 #include <QStringDecoder>
 #include <QStringEncoder>
-
-#if defined(Q_OS_WIN)
-#define strncasecmp _strnicmp
-#endif
 
 namespace KCodecs
 {
@@ -43,7 +38,7 @@ static QList<QByteArray> charsetCache;
 QByteArray cachedCharset(const QByteArray &name)
 {
     auto it = std::find_if(charsetCache.cbegin(), charsetCache.cend(), [&name](const QByteArray &charset) {
-        return qstricmp(name.data(), charset.data()) == 0;
+        return name.compare(charset, Qt::CaseInsensitive) == 0;
     });
     if (it != charsetCache.cend()) {
         return *it;
@@ -56,7 +51,7 @@ QByteArray cachedCharset(const QByteArray &name)
 QByteArray cachedCharset(QByteArrayView name)
 {
     auto it = std::find_if(charsetCache.cbegin(), charsetCache.cend(), [&name](const QByteArray &charset) {
-        return qstricmp(name.data(), charset.data()) == 0;
+        return name.compare(charset, Qt::CaseInsensitive) == 0;
     });
     if (it != charsetCache.cend()) {
         return *it;

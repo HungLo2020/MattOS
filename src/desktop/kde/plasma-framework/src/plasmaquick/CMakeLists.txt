@@ -6,7 +6,14 @@ set(PLASMAQUICK_INSTALL_INCLUDEDIR "${KDE_INSTALL_INCLUDEDIR}/PlasmaQuick")
 add_library(PlasmaQuick SHARED)
 add_library(Plasma::PlasmaQuick ALIAS PlasmaQuick)
 
-qt_extract_metatypes(PlasmaQuick)
+qt_extract_metatypes(PlasmaQuick OUTPUT_FILES METATYPES_FILE)
+
+# see https://qt-project.atlassian.net/browse/QTBUG-123052
+# might be replaced with proper Qt API once that exists
+if (ECM_VERSION VERSION_GREATER_EQUAL "6.27.0")
+    get_filename_component(METATYPES_FILE_NAME ${METATYPES_FILE} NAME)
+    target_sources(PlasmaQuick INTERFACE $<INSTALL_INTERFACE:${KDE_INSTALL_QTMETATYPESDIR}/${METATYPES_FILE_NAME}>)
+endif()
 
 set_target_properties(PlasmaQuick PROPERTIES
     VERSION     ${PLASMA_VERSION}
@@ -26,8 +33,6 @@ target_sources(PlasmaQuick PRIVATE
     configview.cpp
     edgeeventforwarder.cpp
     plasmashellwaylandintegration.cpp
-    sharedqmlengine.cpp
-    quickviewsharedengine.cpp
     plasmawindow.cpp
     popupplasmawindow.cpp
     transientplacementhint.cpp
@@ -39,6 +44,7 @@ target_sources(PlasmaQuick PRIVATE
     plasmoid/containmentitem.cpp
     plasmoid/dropmenu.cpp
     plasmoid/wallpaperitem.cpp
+    plasmaquick.cpp
 
     appletcontext_p.h
     appletquickitem.h
@@ -51,8 +57,6 @@ target_sources(PlasmaQuick PRIVATE
     configview.h
     edgeeventforwarder.h
     plasmashellwaylandintegration.h
-    sharedqmlengine.h
-    quickviewsharedengine.h
     plasmawindow.h
     popupplasmawindow.h
     transientplacementhint_p.h
@@ -64,16 +68,14 @@ target_sources(PlasmaQuick PRIVATE
     plasmoid/containmentitem.h
     plasmoid/dropmenu.h
     plasmoid/wallpaperitem.h
+    plasmaquick.h
 )
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL "6.8.0")
-    set(private_code_option  "PRIVATE_CODE")
-endif()
 qt_generate_wayland_protocol_client_sources(PlasmaQuick
+    PRIVATE_CODE
     FILES
         "${PLASMA_WAYLAND_PROTOCOLS_DIR}/plasma-shell.xml"
         "${Wayland_DATADIR}/wayland.xml"
-    ${private_code_option}
 )
 
 ecm_qt_declare_logging_category(PlasmaQuick
@@ -126,15 +128,6 @@ target_link_libraries(PlasmaQuick
 
 )
 
-if(HAVE_X11)
-    target_link_libraries(PlasmaQuick
-        PRIVATE
-            ${X11_LIBRARIES}
-            XCB::XCB
-            Qt6::GuiPrivate
-    )
-endif()
-
 ecm_add_qml_module(plasmaconfigplugin
     URI "org.kde.plasma.configuration"
     VERSION 2.0
@@ -173,8 +166,7 @@ ecm_generate_headers(PlasmaQuick_CamelCase_HEADERS
         PlasmaShellWaylandIntegration
         PopupPlasmaWindow
         AppletPopup
-        SharedQmlEngine
-        QuickViewSharedEngine
+        PlasmaQuick
     REQUIRED_HEADERS plasmaquick_LIB_INCLUDES
     PREFIX PlasmaQuick
 )
@@ -216,3 +208,7 @@ install(FILES
 )
 
 install(EXPORT PlasmaQuickTargets DESTINATION "${CMAKECONFIG_INSTALL_DIR}" FILE PlasmaQuickTargets.cmake NAMESPACE Plasma:: )
+
+if (ECM_VERSION VERSION_GREATER_EQUAL "6.27.0")
+    install(FILES ${METATYPES_FILE} DESTINATION ${KDE_INSTALL_QTMETATYPESDIR})
+endif()

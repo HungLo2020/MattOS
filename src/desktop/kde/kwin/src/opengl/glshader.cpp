@@ -18,21 +18,11 @@
 namespace KWin
 {
 
-GLShader::GLShader(unsigned int flags)
-    : m_valid(false)
+GLShader::GLShader()
+    : m_context(EglContext::currentContext())
     , m_locationsResolved(false)
-    , m_explicitLinking(flags & ExplicitLinking)
 {
     m_program = glCreateProgram();
-}
-
-GLShader::GLShader(const QString &vertexfile, const QString &fragmentfile, unsigned int flags)
-    : m_valid(false)
-    , m_locationsResolved(false)
-    , m_explicitLinking(flags & ExplicitLinking)
-{
-    m_program = glCreateProgram();
-    loadFromFiles(vertexfile, fragmentfile);
 }
 
 GLShader::~GLShader()
@@ -41,35 +31,18 @@ GLShader::~GLShader()
         qCWarning(KWIN_OPENGL, "Could not delete shader because no context is current");
         return;
     }
+    Q_ASSERT(m_context->isCompatibleWith(EglContext::currentContext()));
+    if (!m_context->isCompatibleWith(EglContext::currentContext())) {
+        qCCritical(KWIN_OPENGL, "Attempted to delete a shader in the wrong context!");
+        return;
+    }
     if (m_program) {
         glDeleteProgram(m_program);
     }
 }
 
-bool GLShader::loadFromFiles(const QString &vertexFile, const QString &fragmentFile)
-{
-    QFile vf(vertexFile);
-    if (!vf.open(QIODevice::ReadOnly)) {
-        qCCritical(KWIN_OPENGL) << "Couldn't open" << vertexFile << "for reading!";
-        return false;
-    }
-    const QByteArray vertexSource = vf.readAll();
-
-    QFile ff(fragmentFile);
-    if (!ff.open(QIODevice::ReadOnly)) {
-        qCCritical(KWIN_OPENGL) << "Couldn't open" << fragmentFile << "for reading!";
-        return false;
-    }
-    const QByteArray fragmentSource = ff.readAll();
-
-    return load(vertexSource, fragmentSource);
-}
-
 bool GLShader::link()
 {
-    // Be optimistic
-    m_valid = true;
-
     glLinkProgram(m_program);
 
     // Get the program info log
@@ -87,36 +60,98 @@ bool GLShader::link()
         qCCritical(KWIN_OPENGL) << "Failed to link shader:"
                                 << "\n"
                                 << log;
-        m_valid = false;
+        return false;
     } else if (length > 0) {
         qCDebug(KWIN_OPENGL) << "Shader link log:" << log;
     }
 
-    return m_valid;
+    return true;
 }
 
-const QByteArray GLShader::prepareSource(GLenum shaderType, const QByteArray &source) const
+std::optional<QByteArray> GLShader::preprocess(const QByteArray &src, GLenum shaderType, int recursionDepth) const
 {
-    // Prepare the source code
-    QByteArray ba;
-    const auto context = EglContext::currentContext();
-    if (context->isOpenGLES() && context->glslVersion() < Version(3, 0)) {
-        ba.append("precision highp float;\n");
+    recursionDepth++;
+    if (recursionDepth > 10) {
+        qCWarning(KWIN_OPENGL, "shader has too many recursive includes!");
+        return std::nullopt;
     }
-    ba.append(source);
-    if (context->isOpenGLES() && context->glslVersion() >= Version(3, 0)) {
-        ba.replace("#version 140", "#version 300 es\n\nprecision highp float;\n");
+    QByteArray ret;
+    ret.reserve(src.size());
+    const auto split = src.split('\n');
+
+    const auto context = EglContext::currentContext();
+    const bool coreShader = context->glslVersion() >= Version(3, 0);
+
+    if (recursionDepth == 1) {
+        if (coreShader) {
+            ret.append("#version 300 es\n");
+            ret.append("#extension GL_OES_EGL_image_external : require\n");
+            ret.append("precision highp float;\n");
+            ret.append("precision highp sampler2D;\n");
+            ret.append("precision highp sampler3D;\n");
+        } else {
+            ret.append("#extension GL_OES_EGL_image_external : require\n");
+            // derivative functions are optional in 2.0
+            ret.append("#extension GL_OES_standard_derivatives : enable\n");
+            ret.append("precision highp float;\n");
+            // in OpenGL ES 2.0, it's not possible to specify
+            // default precision for samplers
+            ret.append("#define sampler2D highp sampler2D\n");
+            ret.append("#define sampler3D highp sampler3D\n");
+            // without a version statement, OpenGL assumes GLSL 1.10,
+            // which doesn't support the texture functions natively
+            ret.append("vec4 texture(in sampler2D sampler, in vec2 coordinates) {\n");
+            ret.append("    return texture2D(sampler, coordinates);\n");
+            ret.append("}\n");
+        }
     }
 
-    return ba;
+    for (auto it = split.begin(); it != split.end(); it++) {
+        const auto &line = *it;
+        if (line.startsWith("#version")) {
+            // this is intentionally ignored!
+        } else if (line.startsWith("#include \"") && line.endsWith("\"")) {
+            static constexpr ssize_t includeLength = QByteArrayView("#include \"").size();
+            const QByteArray path = ":/opengl/" + line.mid(includeLength, line.size() - includeLength - 1);
+            QFile file(path);
+            if (!file.open(QIODevice::ReadOnly)) {
+                qCWarning(KWIN_OPENGL, "failed to read include line %s", qPrintable(line));
+                return std::nullopt;
+            }
+            const auto processed = preprocess(file.readAll(), shaderType, recursionDepth);
+            if (!processed) {
+                return std::nullopt;
+            }
+            ret.append(*processed);
+        } else if (line.startsWith("out ") && !coreShader) {
+            if (shaderType == GL_VERTEX_SHADER) {
+                ret.append("varying " + line.sliced(QByteArrayView("out ").size()));
+            } else {
+                ret.append("#define fragColor gl_FragColor");
+            }
+        } else if (line.startsWith("in ") && !coreShader) {
+            if (shaderType == GL_VERTEX_SHADER) {
+                ret.append("attribute " + line.sliced(QByteArrayView("in ").size()));
+            } else {
+                ret.append("varying " + line.sliced(QByteArrayView("in ").size()));
+            }
+        } else {
+            ret.append(line);
+        }
+        ret.append("\n");
+    }
+    return ret;
 }
 
 bool GLShader::compile(GLuint program, GLenum shaderType, const QByteArray &source) const
 {
     GLuint shader = glCreateShader(shaderType);
 
-    QByteArray preparedSource = prepareSource(shaderType, source);
-    const char *src = preparedSource.constData();
+    const auto preparedSource = preprocess(source, shaderType);
+    if (!preparedSource.has_value()) {
+        return false;
+    }
+    const char *src = preparedSource->constData();
     glShaderSource(shader, 1, &src, nullptr);
 
     // Compile the shader
@@ -137,14 +172,14 @@ bool GLShader::compile(GLuint program, GLenum shaderType, const QByteArray &sour
         const char *typeName = (shaderType == GL_VERTEX_SHADER ? "vertex" : "fragment");
         qCCritical(KWIN_OPENGL) << "Failed to compile" << typeName << "shader:"
                                 << "\n"
-                                << log;
-        size_t line = 0;
-        const auto split = source.split('\n');
+                                << log.data();
+        size_t line = 1;
+        const auto split = preparedSource->split('\n');
         for (const auto &l : split) {
-            qCCritical(KWIN_OPENGL).nospace() << "line " << line++ << ":" << l;
+            qCCritical(KWIN_OPENGL).nospace() << "line " << line++ << ":" << qUtf8Printable(l);
         }
     } else if (length > 0) {
-        qCDebug(KWIN_OPENGL) << "Shader compile log:" << log;
+        qCDebug(KWIN_OPENGL) << "Shader compile log:" << log.data();
     }
 
     if (status != 0) {
@@ -157,8 +192,6 @@ bool GLShader::compile(GLuint program, GLenum shaderType, const QByteArray &sour
 
 bool GLShader::load(const QByteArray &vertexSource, const QByteArray &fragmentSource)
 {
-    m_valid = false;
-
     // Compile the vertex shader
     if (!vertexSource.isEmpty()) {
         bool success = compile(m_program, GL_VERTEX_SHADER, vertexSource);
@@ -177,25 +210,12 @@ bool GLShader::load(const QByteArray &vertexSource, const QByteArray &fragmentSo
         }
     }
 
-    if (m_explicitLinking) {
-        return true;
-    }
-
-    // link() sets mValid
-    return link();
+    return true;
 }
 
 void GLShader::bindAttributeLocation(const char *name, int index)
 {
     glBindAttribLocation(m_program, index, name);
-}
-
-void GLShader::bindFragDataLocation(const char *name, int index)
-{
-    const auto context = EglContext::currentContext();
-    if (!context->isOpenGLES() && (context->hasVersion(Version(3, 0)) || context->hasOpenglExtension(QByteArrayLiteral("GL_EXT_gpu_shader4")))) {
-        glBindFragDataLocation(m_program, index, name);
-    }
 }
 
 void GLShader::bind()
@@ -223,7 +243,6 @@ void GLShader::resolveLocations()
     m_matrix4Locations[Mat4Uniform::ColorimetryTransformation] = uniformLocation("colorimetryTransform");
     m_matrix4Locations[Mat4Uniform::DestinationToLMS] = uniformLocation("destinationToLMS");
     m_matrix4Locations[Mat4Uniform::LMSToDestination] = uniformLocation("lmsToDestination");
-    m_matrix4Locations[Mat4Uniform::YuvToRgb] = uniformLocation("yuvToRgb");
 
     m_vec2Locations[Vec2Uniform::Offset] = uniformLocation("offset");
     m_vec2Locations[Vec2Uniform::SourceTransferFunctionParams] = uniformLocation("sourceTransferFunctionParams");
@@ -443,7 +462,14 @@ bool GLShader::setUniform(int location, const QMatrix4x4 &value)
 bool GLShader::setUniform(int location, const QColor &color)
 {
     if (location >= 0) {
-        glUniform4f(location, color.redF(), color.greenF(), color.blueF(), color.alphaF());
+        // Pre-multiply RGB values with the alpha channel. The blend equation that we often
+        // use assumes that colors are pre-multiplied by the alpha value.
+        const float alpha = color.alphaF();
+        const float red = color.redF() * alpha;
+        const float green = color.greenF() * alpha;
+        const float blue = color.blueF() * alpha;
+
+        glUniform4f(location, red, green, blue, alpha);
     }
     return (location >= 0);
 }
@@ -488,6 +514,8 @@ void GLShader::setColorspaceUniforms(const std::shared_ptr<ColorDescription> &sr
     setUniform(IntUniform::SourceNamedTransferFunction, src->transferFunction().type);
     if (src->transferFunction().type == TransferFunction::BT1886) {
         setUniform(Vec2Uniform::SourceTransferFunctionParams, QVector2D(src->transferFunction().bt1886B(), src->transferFunction().bt1886A()));
+    } else if (src->transferFunction().type == TransferFunction::HLG) {
+        setUniform(Vec2Uniform::SourceTransferFunctionParams, QVector2D(src->transferFunction().hlgBeta(), src->transferFunction().maxLuminance));
     } else {
         setUniform(Vec2Uniform::SourceTransferFunctionParams, QVector2D(src->transferFunction().minLuminance, src->transferFunction().maxLuminance - src->transferFunction().minLuminance));
     }
@@ -495,17 +523,25 @@ void GLShader::setColorspaceUniforms(const std::shared_ptr<ColorDescription> &sr
     setUniform(IntUniform::DestinationNamedTransferFunction, dst->transferFunction().type);
     if (dst->transferFunction().type == TransferFunction::BT1886) {
         setUniform(Vec2Uniform::DestinationTransferFunctionParams, QVector2D(dst->transferFunction().bt1886B(), dst->transferFunction().bt1886A()));
+    } else if (dst->transferFunction().type == TransferFunction::HLG) {
+        setUniform(Vec2Uniform::DestinationTransferFunctionParams, QVector2D(dst->transferFunction().hlgBeta(), dst->transferFunction().maxLuminance));
     } else {
         setUniform(Vec2Uniform::DestinationTransferFunctionParams, QVector2D(dst->transferFunction().minLuminance, dst->transferFunction().maxLuminance - dst->transferFunction().minLuminance));
     }
     setUniform(FloatUniform::DestinationReferenceLuminance, dst->referenceLuminance());
-    setUniform(FloatUniform::MaxDestinationLuminance, dst->maxHdrLuminance().value_or(10'000));
+
+    const double maxSrcLuminance = src->maxHdrLuminance().value_or(src->referenceLuminance()) * dst->referenceLuminance() / src->referenceLuminance();
     if (!s_disableTonemapping && intent == RenderingIntent::Perceptual) {
-        setUniform(FloatUniform::MaxTonemappingLuminance, src->maxHdrLuminance().value_or(src->referenceLuminance()) * dst->referenceLuminance() / src->referenceLuminance());
+        // do tonemapping
+        setUniform(FloatUniform::MaxTonemappingLuminance, maxSrcLuminance);
+        setUniform(FloatUniform::MaxDestinationLuminance, dst->maxHdrLuminance().value_or(10'000));
     } else {
-        setUniform(FloatUniform::MaxTonemappingLuminance, dst->maxHdrLuminance().value_or(10'000));
+        // clip to src luminance
+        setUniform(FloatUniform::MaxTonemappingLuminance, maxSrcLuminance);
+        setUniform(FloatUniform::MaxDestinationLuminance, maxSrcLuminance);
     }
     setUniform(Mat4Uniform::DestinationToLMS, dst->containerColorimetry().toLMS());
     setUniform(Mat4Uniform::LMSToDestination, dst->containerColorimetry().fromLMS());
 }
+
 }

@@ -5,18 +5,26 @@
 #include "qwaylanddatasource_p.h"
 #include "qwaylanddataoffer_p.h"
 #include "qwaylanddatadevicemanager_p.h"
+
 #include "qwaylandinputdevice_p.h"
 #include "qwaylandmimehelper_p.h"
-
+#include "qwaylandpipewritehelper_p.h"
 #include <QtCore/QFile>
 
 #include <QtCore/QDebug>
+#if QT_CONFIG(xdg_desktop_portal_file_transfer)
+#include <QtGui/private/qxdgdesktopportalfiletransfer_p.h>
+#endif
 
+#include <algorithm>
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
 
 QT_BEGIN_NAMESPACE
+using namespace std::chrono;
+
+using namespace Qt::StringLiterals;
 
 namespace QtWaylandClient {
 
@@ -30,6 +38,14 @@ QWaylandDataSource::QWaylandDataSource(QWaylandDataDeviceManager *dataDeviceMana
     for (const QString &format : formats) {
         offer(format);
     }
+#if QT_CONFIG(xdg_desktop_portal_file_transfer)
+    if (mimeData->hasUrls() && !formats.contains(QXdgDesktopPortalFileTransfer::fileTransferMimeType())) {
+        const auto urls = mimeData->urls();
+        if (std::any_of(urls.begin(), urls.end(), std::mem_fn(&QUrl::isLocalFile))) {
+            offer(QXdgDesktopPortalFileTransfer::fileTransferMimeType());
+        }
+    }
+#endif
 }
 
 QWaylandDataSource::~QWaylandDataSource()
@@ -45,25 +61,28 @@ void QWaylandDataSource::data_source_cancelled()
 void QWaylandDataSource::data_source_send(const QString &mime_type, int32_t fd)
 {
     QByteArray content = QWaylandMimeHelper::getByteArray(m_mime_data, mime_type);
+#if QT_CONFIG(xdg_desktop_portal_file_transfer)
+    if (content.isEmpty() && mime_type == QXdgDesktopPortalFileTransfer::fileTransferMimeType()) {
+        QList<QUrl> urls = m_mime_data->urls();
+        urls.removeIf(std::not_fn(std::mem_fn(&QUrl::isLocalFile)));
+        if (!urls.empty())
+            content = QXdgDesktopPortalFileTransfer::exportFiles(urls).toUtf8();
+    }
+#endif
     if (!content.isEmpty()) {
-        // Create a sigpipe handler that does nothing, or clients may be forced to terminate
-        // if the pipe is closed in the other end.
-        struct sigaction action, oldAction;
-        action.sa_handler = SIG_IGN;
-        sigemptyset (&action.sa_mask);
-        action.sa_flags = 0;
-
-        sigaction(SIGPIPE, &action, &oldAction);
-        // Some compositors (e.g., mutter) make fd with O_NONBLOCK.
-        // Since wl_data_source.send describes that fd is closed here,
-        // it should be done in a loop and don't have any advantage.
-        // Blocking operation will be used.
-        // According to fcntl(2), FSETFL ignores O_WRONLY. So this
-        // call will just remove O_NONBLOCK.
-        fcntl(fd, F_SETFL, O_WRONLY);
-        ssize_t unused = write(fd, content.constData(), content.size());
-        Q_UNUSED(unused);
-        sigaction(SIGPIPE, &oldAction, nullptr);
+        switch (QWaylandPipeWriteHelper::safeWriteWithTimeout(fd, content.constData(), content.size(), PIPE_BUF, 5s)) {
+            case QWaylandPipeWriteHelper::SafeWriteResult::Ok:
+                break;
+            case QWaylandPipeWriteHelper::SafeWriteResult::Timeout:
+                qWarning() << "QWaylandDataSource: timeout writing to pipe";
+                break;
+            case QWaylandPipeWriteHelper::SafeWriteResult::Closed:
+                qWarning() << "QWaylandDataSource: peer closed pipe";
+                break;
+            case QWaylandPipeWriteHelper::SafeWriteResult::Error:
+                qWarning() << "QWaylandDataSource: write() failed";
+                break;
+        }
     }
     close(fd);
 }

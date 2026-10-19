@@ -20,8 +20,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_screens-0");
-
 class ScreensTest : public QObject
 {
     Q_OBJECT
@@ -39,7 +37,7 @@ private Q_SLOTS:
 void ScreensTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->setConfig(KSharedConfig::openConfig(QString(), KConfig::SimpleConfig));
 

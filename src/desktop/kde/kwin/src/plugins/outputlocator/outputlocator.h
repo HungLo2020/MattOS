@@ -14,6 +14,7 @@
 
 namespace KWin
 {
+
 class OffscreenQuickScene;
 
 class OutputLocatorEffect : public KWin::Effect
@@ -22,7 +23,6 @@ class OutputLocatorEffect : public KWin::Effect
 
 public:
     explicit OutputLocatorEffect(QObject *parent = nullptr);
-    void paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
     bool isActive() const override;
 
 public Q_SLOTS:
@@ -33,4 +33,5 @@ private:
     QTimer m_showTimer;
     std::unordered_map<LogicalOutput *, std::unique_ptr<OffscreenQuickScene>> m_scenesByScreens;
 };
+
 }

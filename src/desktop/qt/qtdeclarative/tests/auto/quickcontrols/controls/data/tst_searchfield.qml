@@ -6,6 +6,7 @@ import QtQuick.Window
 import QtTest
 import QtQuick.Controls
 import Qt.test.controls
+import Qt.labs.qmlmodels
 
 TestCase {
     id: testCase
@@ -45,8 +46,14 @@ TestCase {
         compare(control.currentIndex, -1)
         compare(control.highlightedIndex, -1)
         compare(control.text, "")
+        compare(control.placeholderText, "")
         compare(control.textRole, "")
         compare(control.live, true)
+        compare(control.selectTextByMouse, true)
+        compare(control.selectedText, "")
+        compare(control.selectionStart, 0)
+        compare(control.selectionEnd, 0)
+        compare(control.cursorPosition, 0)
         verify(control.delegate)
         if (StyleInfo.styleName !== "iOS")
             verify(control.popup)
@@ -54,49 +61,84 @@ TestCase {
             compare(StyleInfo.styleName, "iOS")
     }
 
-    // TO-DO: Implement SFPM logic after 6.10
-    // ListModel {
-    //     id: specialCharModels
-    //     ListElement { text: "こんにちは" }
-    //     ListElement { text: "Pi: π (3.14)"; }
-    //     ListElement { text: "Math: ∑ ∞ ≈"; }
-    //     ListElement { text: "Emoji: 😃🎉🔥"; }
-    //     ListElement { text: "Currency: € ¥ ₹ $"; }
-    //     ListElement { text: "α β γ"; }
-    //     ListElement { text: "Привет"; }
-    //     ListElement { text: "مرحبًا"; }
-    //     ListElement { text: "你好"; }
-    //     ListElement { text: "שלום"; }
-    //     ListElement { text: "Brackets: { [ ( < > ) ] }"; }
-    // }
+    Component {
+        id: sfpmComponent
 
-    // function test_specialCharacters() {
-    //     let control = createTemporaryObject(searchField, testCase)
-    //     verify(control)
+        Item {
+            width: 400
+            height: 400
 
-    //     control.suggestionModel = specialCharModels
-    //     let textItem = control.contentItem
-    //     textItem.text = "e"
+            property alias sfpmSearchField: sfpmSearchField
 
-    //     compare(control.text, "e")
-    //     compare(control.suggestionCount, 3)
-    //     compare(control.currentIndex, 0)
-    //     compare(control.popup.visible, true)
+            ListModel {
+                id: countryModels
+                ListElement { text: "Norway" }
+                ListElement { text: "Turkey" }
+                ListElement { text: "Albania" }
+                ListElement { text: "India" }
+                ListElement { text: "Iran" }
+                ListElement { text: "Australia" }
+                ListElement { text: "United States" }
+            }
 
-    //     textItem.text = "П"
+            SortFilterProxyModel {
+                id: countryFilter
+                sourceModel: countryModels
+                sorters: RoleSorter { roleName: "text" }
 
-    //     compare(control.text, "П")
-    //     compare(control.suggestionCount, 1)
-    //     compare(control.currentIndex, 0)
-    //     compare(control.popup.visible, true)
+                filters: FunctionFilter {
+                    property var regExp: sfpmSearchField.text.length > 0
+                                         ? new RegExp(sfpmSearchField.text, "i")
+                                         : null
+                    onRegExpChanged: invalidate()
 
-    //     textItem.text = "🎉"
+                    function filter(text: string): bool {
+                        return regExp ? regExp.test(text) : false
+                    }
+                }
+            }
 
-    //     compare(control.text, "🎉")
-    //     compare(control.suggestionCount, 1)
-    //     compare(control.currentIndex, 0)
-    //     compare(control.popup.visible, true)
-    // }
+            SearchField {
+                id: sfpmSearchField
+                suggestionModel: countryFilter
+                textRole: "text"
+            }
+        }
+    }
+
+    function test_sortFilterProxyModel() {
+        if (StyleInfo.styleName === "iOS")
+            skip("iOS style does not provide a popup for SearchField.")
+
+        let component = createTemporaryObject(sfpmComponent, testCase)
+        verify(component)
+
+        let control = component.sfpmSearchField
+        verify(control)
+
+        control.forceActiveFocus()
+        verify(control.activeFocus)
+
+        let textItem = control.contentItem
+
+        textItem.text = "e"
+        compare(control.text, "e")
+        compare(control.suggestionCount, 2)
+        compare(control.currentIndex, -1)
+        compare(control.popup.visible, true)
+
+        textItem.text = "i"
+        compare(control.text, "i")
+        compare(control.suggestionCount, 5)
+        compare(control.currentIndex, -1)
+        compare(control.popup.visible, true)
+
+        textItem.text = ""
+        compare(control.text, "")
+        compare(control.suggestionCount, 0)
+        compare(control.currentIndex, -1)
+        compare(control.popup.visible, false)
+    }
 
     ListModel {
         id : fruitModel
@@ -302,12 +344,55 @@ TestCase {
         compare(control.currentIndex, 1)
         compare(acceptedSpy.count, 1)
         compare(searchTriggeredSpy.count, 2)
+        compare(control.popup.visible, false)
 
         keyClick(Qt.Key_Back)
+        compare(control.text, "")
         compare(control.popup.visible, false)
 
         keyClick(Qt.Key_Escape)
         compare(control.text, "")
+        compare(control.popup.visible, false)
+
+        control.currentIndex = -1
+        activatedSpy.clear()
+        acceptedSpy.clear()
+        searchTriggeredSpy.clear()
+
+        // Can navigate between the suggestions even if no input text was given by the user.
+
+        control.popup.open()
+        compare(control.popup.visible, true)
+
+        keyClick(Qt.Key_Down)
+        compare(control.currentIndex, -1)
+        compare(control.highlightedIndex, 1)
+        compare(activatedSpy.count, 0)
+        compare(highlightedSpy.count, 1)
+        compare(highlightedSpy.signalArguments[0][0], 1)
+        highlightedSpy.clear()
+
+        keyClick(Qt.Key_Down)
+        compare(control.currentIndex, -1)
+        compare(control.highlightedIndex, 2)
+        compare(activatedSpy.count, 0)
+        compare(highlightedSpy.count, 1)
+        compare(highlightedSpy.signalArguments[0][0], 2)
+        highlightedSpy.clear()
+
+        keyClick(Qt.Key_Up)
+        compare(control.currentIndex, -1)
+        compare(control.highlightedIndex, 1)
+        compare(activatedSpy.count, 0)
+        compare(highlightedSpy.count, 1)
+        compare(highlightedSpy.signalArguments[0][0], 1)
+        highlightedSpy.clear()
+
+        keyClick(Qt.Key_Enter)
+        compare(control.text, "Cherry")
+        compare(control.currentIndex, 1)
+        compare(acceptedSpy.count, 1)
+        compare(searchTriggeredSpy.count, 1)
     }
 
     Component {
@@ -333,5 +418,150 @@ TestCase {
         // The same goes for the new delegate: it shouldn't be destroyed when setting the old one.
         control.delegate = delegateComponent1
         verify(delegateComponent2)
+    }
+
+    Component {
+        id: findShortcutComponent
+        ApplicationWindow {
+            id: window
+            width: 400
+            height: 400
+            visible: true
+
+            property alias searchFieldShortcut: searchFieldShortcut
+            property alias shortcut: shortcut
+
+            SearchField {
+                id: searchFieldShortcut
+
+                Shortcut {
+                    id: shortcut
+                    sequences: [ StandardKey.Find ]
+                    onActivated: {
+                        searchFieldShortcut.forceActiveFocus()
+                        searchFieldShortcut.selectAll()
+                    }
+                }
+            }
+        }
+    }
+
+    function test_findShortcut_givesFocus() {
+        let window = createTemporaryObject(findShortcutComponent, testCase)
+        let control = window.searchFieldShortcut
+        verify(control)
+
+        window.requestActivate()
+        tryCompare(window, "active", true)
+
+        let shortcutActivatedSpy = createTemporaryObject(signalSpy, testCase,
+            { target: window.shortcut, signalName: "activated"} )
+        verify(shortcutActivatedSpy.valid)
+
+        waitForRendering(window.contentItem)
+        verify(!control.contentItem.activeFocus)
+        compare(shortcutActivatedSpy.count, 0)
+
+        keySequence(StandardKey.Find)
+        compare(shortcutActivatedSpy.count, 1)
+
+        var isWayland = Qt.platform.pluginName
+                        && Qt.platform.pluginName.indexOf("wayland") !== -1
+
+        if (isWayland) {
+            expectFail("", "Fails on Wayland - QTBUG-144177")
+        }
+
+        verify(control.contentItem.activeFocus)
+    }
+
+    function test_findShortcut_selectAll() {
+        let window = createTemporaryObject(findShortcutComponent, testCase)
+        let control = window.searchFieldShortcut
+        verify(control)
+
+        window.requestActivate()
+        tryCompare(window, "active", true)
+
+        let shortcutActivatedSpy = createTemporaryObject(signalSpy, testCase,
+            { target: window.shortcut, signalName: "activated"} )
+        verify(shortcutActivatedSpy.valid)
+
+        waitForRendering(window.contentItem)
+
+        control.contentItem.text = "hello"
+
+        verify(!control.contentItem.activeFocus)
+        compare(control.contentItem.selectedText, "")
+        compare(shortcutActivatedSpy.count, 0)
+
+        keySequence(StandardKey.Find)
+        compare(shortcutActivatedSpy.count, 1)
+
+        var isWayland = Qt.platform.pluginName
+                        && Qt.platform.pluginName.indexOf("wayland") !== -1
+
+        if (isWayland) {
+            expectFail("", "Fails on Wayland - QTBUG-144177")
+        }
+
+        verify(control.contentItem.activeFocus)
+        compare(control.contentItem.selectedText, "hello")
+    }
+
+    function test_selectTextByMouse() {
+        let control = createTemporaryObject(searchField, testCase,
+                { text: "Some text", selectTextByMouse: true, width: parent.width })
+        verify(control)
+        waitForRendering(control)
+        control.forceActiveFocus()
+
+        mouseClick(control, control.leftPadding, control.height / 2)
+        mousePress(control, control.leftPadding, control.height / 2)
+        mouseMove(control, control.leftPadding + control.contentItem.width, control.height / 2)
+        mouseRelease(control, control.leftPadding + control.contentItem.width, control.height / 2)
+
+        compare(control.selectedText, "Some text")
+        verify(control.selectionStart >= 0)
+        verify(control.selectionEnd >= 0)
+        verify(control.selectionStart < control.selectionEnd)
+    }
+
+    function test_select_and_deselect() {
+        let control = createTemporaryObject(searchField, testCase,
+                { text: "Some text", selectTextByMouse: true, width: parent.width })
+        verify(control)
+        waitForRendering(control)
+        control.forceActiveFocus()
+
+        control.select(0, 4)
+
+        compare(control.selectionStart, 0)
+        compare(control.selectionEnd, 4)
+        compare(control.selectedText, "Some")
+
+        control.deselect()
+
+        compare(control.selectionStart, 4)
+        compare(control.selectionEnd, 4)
+        compare(control.selectedText, "")
+    }
+
+    function test_selectWord_withCursorPosition() {
+        let control = createTemporaryObject(searchField, testCase,
+                { text: "Some text", selectTextByMouse: true, width: parent.width })
+        verify(control)
+        waitForRendering(control)
+        control.forceActiveFocus()
+
+        control.cursorPosition = 6
+        control.selectWord()
+        compare(control.selectedText, "text")
+        compare(control.cursorPosition, 9)
+
+        control.cursorPosition = 1
+        control.selectWord()
+        compare(control.selectedText, "Some")
+        compare(control.cursorPosition, 4)
     }
 }

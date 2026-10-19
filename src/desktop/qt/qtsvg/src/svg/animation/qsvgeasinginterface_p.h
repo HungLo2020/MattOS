@@ -28,7 +28,7 @@ class Q_SVG_EXPORT QSvgEasingInterface
 public:
     QSvgEasingInterface() = default;
     virtual ~QSvgEasingInterface();
-    virtual qreal progress(qreal t) = 0;
+    virtual qreal progress(qreal t) const = 0;
 };
 
 using QSvgEasingInterfacePtr = std::unique_ptr<QSvgEasingInterface>;

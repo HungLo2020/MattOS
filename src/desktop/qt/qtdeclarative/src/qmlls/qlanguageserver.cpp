@@ -30,7 +30,7 @@ It handles the lifecycle management, and can be extended via
 QLanguageServerModule subclasses.
 
 The language server keeps a strictly monotonically increasing runState that can be queried
-from any thread (and is thus mutex gated), the normal run state is DidInitialize.
+from any thread (and is thus mutex gated), the normal run state is Initialized.
 
 The language server also keeps track of the task canceled by the client (or implicitly when
 shutting down, and isRequestCanceled can be called from any thread.
@@ -42,6 +42,7 @@ QLanguageServer::QLanguageServer(const QJsonRpcTransport::DataHandler &h, QObjec
     Q_D(QLanguageServer);
     registerMethods(*d->protocol.typedRpc());
     d->notifySignals.registerHandlers(&d->protocol);
+    registerHandlers(&d->protocol);
 }
 
 QLanguageServerProtocol *QLanguageServer::protocol()
@@ -57,69 +58,12 @@ QLanguageServer::RunStatus QLanguageServer::runStatus() const
     return d->runStatus;
 }
 
-void QLanguageServer::finishSetup()
-{
-    Q_D(QLanguageServer);
-    RunStatus rStatus;
-    {
-        QMutexLocker l(&d->mutex);
-        rStatus = d->runStatus;
-        if (rStatus == RunStatus::NotSetup)
-            d->runStatus = RunStatus::SettingUp;
-    }
-    if (rStatus != RunStatus::NotSetup) {
-        emit lifecycleError();
-        return;
-    }
-    emit runStatusChanged(RunStatus::SettingUp);
-
-    registerHandlers(&d->protocol);
-    for (auto module : d->modules)
-        module->registerHandlers(this, &d->protocol);
-
-    {
-        QMutexLocker l(&d->mutex);
-        rStatus = d->runStatus;
-        if (rStatus == RunStatus::SettingUp)
-            d->runStatus = RunStatus::DidSetup;
-    }
-    if (rStatus != RunStatus::SettingUp) {
-        emit lifecycleError();
-        return;
-    }
-    emit runStatusChanged(RunStatus::DidSetup);
-}
-
-void QLanguageServer::addServerModule(QLanguageServerModule *serverModule)
+void QLanguageServer::registerModule(QLanguageServerModule *serverModule)
 {
     Q_D(QLanguageServer);
     Q_ASSERT(serverModule);
-    RunStatus rStatus;
-    {
-        QMutexLocker l(&d->mutex);
-        rStatus = d->runStatus;
-        if (rStatus == RunStatus::NotSetup) {
-            if (d->modules.contains(serverModule->name())) {
-                d->modules.insert(serverModule->name(), serverModule);
-                qCWarning(lspServerLog) << "Duplicate add of QLanguageServerModule named"
-                                        << serverModule->name() << ", overwriting.";
-            } else {
-                d->modules.insert(serverModule->name(), serverModule);
-            }
-        }
-    }
-    if (rStatus != RunStatus::NotSetup) {
-        qCWarning(lspServerLog) << "Called QLanguageServer::addServerModule after setup";
-        emit lifecycleError();
-        return;
-    }
-}
-
-QLanguageServerModule *QLanguageServer::moduleByName(const QString &n) const
-{
-    const Q_D(QLanguageServer);
-    QMutexLocker l(&d->mutex);
-    return d->modules.value(n);
+    serverModule->registerHandlers(this, &d->protocol);
+    serverModule->setupCapabilities(d->serverInfo.capabilities);
 }
 
 QLspNotifySignals *QLanguageServer::notifySignals()
@@ -140,13 +84,13 @@ void QLanguageServer::registerMethods(QJsonRpc::TypedRpc &typedRpc)
                     return QJsonRpcProtocol::Processing::Stop;
                 }
                 bool sendErrorResponse = false;
-                RunStatus rState;
+                RunStatus rState = RunStatus::NotInitialized;
                 QJsonValue id = doc.object()[u"id"];
                 {
                     QMutexLocker l(&d->mutex);
-                    // the normal case is d->runStatus == RunStatus::DidInitialize
-                    if (d->runStatus != RunStatus::DidInitialize) {
-                        if (d->runStatus == RunStatus::DidSetup && !doc.isNull()
+                    // the normal case is d->runStatus == RunStatus::Initialized
+                    if (d->runStatus != RunStatus::Initialized) {
+                        if (d->runStatus == RunStatus::NotInitialized && !doc.isNull()
                             && doc.object()[u"method"].toString()
                                     == QString::fromUtf8(
                                             QLspSpecification::Requests::InitializeMethod)) {
@@ -172,7 +116,7 @@ void QLanguageServer::registerMethods(QJsonRpc::TypedRpc &typedRpc)
                     }
                     return QJsonRpcProtocol::Processing::Continue;
                 }
-                if (rState == RunStatus::NotSetup || rState == RunStatus::DidSetup)
+                if (rState == RunStatus::NotInitialized)
                     responder(QJsonRpcProtocol::MessageHandler::error(
                             int(QLspSpecification::ErrorCodes::ServerNotInitialized),
                             u"Request on non initialized Language Server (runStatus %1): %2"_s
@@ -202,29 +146,13 @@ void QLanguageServer::registerMethods(QJsonRpc::TypedRpc &typedRpc)
     });
 }
 
-void QLanguageServer::setupCapabilities(const QLspSpecification::InitializeParams &clientInfo,
-                                        QLspSpecification::InitializeResult &serverInfo)
-{
-    Q_D(QLanguageServer);
-    for (auto module : std::as_const(d->modules))
-        module->setupCapabilities(clientInfo, serverInfo);
-}
-
 const QLspSpecification::InitializeParams &QLanguageServer::clientInfo() const
 {
     const Q_D(QLanguageServer);
 
-    if (int(runStatus()) < int(RunStatus::DidInitialize))
+    if (int(runStatus()) < int(RunStatus::Initialized))
         qCWarning(lspServerLog) << "asked for Language Server clientInfo before initialization";
     return d->clientInfo;
-}
-
-const QLspSpecification::InitializeResult &QLanguageServer::serverInfo() const
-{
-    const Q_D(QLanguageServer);
-    if (int(runStatus()) < int(RunStatus::DidInitialize))
-        qCWarning(lspServerLog) << "asked for Language Server serverInfo before initialization";
-    return d->serverInfo;
 }
 
 void QLanguageServer::receiveData(const QByteArray &data, bool isEndOfMessage)
@@ -256,46 +184,27 @@ void QLanguageServer::registerHandlers(QLanguageServerProtocol *protocol)
             [this](const QByteArray &,
                    const QLspSpecification::Requests::InitializeParamsType &params,
                    QLspSpecification::Responses::InitializeResponseType &&response) {
-                qCDebug(lspServerLog) << "init";
                 Q_D(QLanguageServer);
-                RunStatus rStatus;
                 {
                     QMutexLocker l(&d->mutex);
-                    rStatus = d->runStatus;
-                    if (rStatus == RunStatus::DidSetup)
-                        d->runStatus = RunStatus::Initializing;
-                }
-                if (rStatus != RunStatus::DidSetup) {
-                    if (rStatus == RunStatus::NotSetup || rStatus == RunStatus::SettingUp)
-                        response.sendErrorResponse(
-                                int(QLspSpecification::ErrorCodes::InvalidRequest),
-                                u"Initialization request received on non setup language server"_s
-                                        .toUtf8());
-                    else
+                    if (d->runStatus == RunStatus::Initialized) {
                         response.sendErrorResponse(
                                 int(QLspSpecification::ErrorCodes::InvalidRequest),
                                 u"Received multiple initialization requests"_s.toUtf8());
-                    emit lifecycleError();
-                    return;
+                    }
                 }
-                emit runStatusChanged(RunStatus::Initializing);
+
+                qCDebug(lspServerLog) << "init";
                 d->clientInfo = params;
-                setupCapabilities(d->clientInfo, d->serverInfo);
                 {
                     QMutexLocker l(&d->mutex);
-                    d->runStatus = RunStatus::DidInitialize;
+                    d->runStatus = RunStatus::Initialized;
                 }
-                emit runStatusChanged(RunStatus::DidInitialize);
                 response.sendResponse(d->serverInfo);
             });
 
     QObject::connect(notifySignals(), &QLspNotifySignals::receivedInitializedNotification, this,
                      [this](const QLspSpecification::Notifications::InitializedParamsType &) {
-                         Q_D(QLanguageServer);
-                         {
-                             QMutexLocker l(&d->mutex);
-                             d->clientInitialized = true;
-                         }
                          emit clientInitialized(this);
                      });
 
@@ -308,7 +217,7 @@ void QLanguageServer::registerHandlers(QLanguageServerProtocol *protocol)
                 {
                     QMutexLocker l(&d->mutex);
                     rStatus = d->runStatus;
-                    if (rStatus == RunStatus::DidInitialize) {
+                    if (rStatus == RunStatus::Initialized) {
                         d->shutdownResponse = std::move(response);
                         if (d->requestsInProgress.size() <= 1) {
                             d->runStatus = RunStatus::Stopping;
@@ -318,7 +227,7 @@ void QLanguageServer::registerHandlers(QLanguageServerProtocol *protocol)
                         }
                     }
                 }
-                if (rStatus != RunStatus::DidInitialize)
+                if (rStatus != RunStatus::Initialized)
                     emit lifecycleError();
                 else if (shouldExecuteShutdown)
                     executeShutdown();
@@ -345,7 +254,6 @@ void QLanguageServer::executeShutdown()
         emit lifecycleError();
         return;
     }
-    emit shutdown();
     QLspSpecification::Responses::ShutdownResponseType shutdownResponse;
     {
         Q_D(QLanguageServer);
@@ -360,32 +268,6 @@ void QLanguageServer::executeShutdown()
         emit lifecycleError();
     else
         shutdownResponse.sendResponse(nullptr);
-}
-
-bool QLanguageServer::isRequestCanceled(const QJsonRpc::IdType &id) const
-{
-    const Q_D(QLanguageServer);
-    QJsonValue idVal = QTypedJson::toJsonValue(id);
-    QMutexLocker l(&d->mutex);
-    return d->requestsInProgress.value(idVal).canceled || d->runStatus != RunStatus::DidInitialize;
-}
-
-bool QLanguageServer::isInitialized() const
-{
-    switch (runStatus()) {
-    case RunStatus::NotSetup:
-    case RunStatus::SettingUp:
-    case RunStatus::DidSetup:
-    case RunStatus::Initializing:
-        return false;
-    case RunStatus::DidInitialize:
-    case RunStatus::WaitPending:
-    case RunStatus::Stopping:
-    case RunStatus::Stopped:
-    case RunStatus::WaitingForExit:
-        break;
-    }
-    return true;
 }
 
 QT_END_NAMESPACE

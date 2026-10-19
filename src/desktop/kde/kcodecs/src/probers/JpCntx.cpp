@@ -6,6 +6,8 @@
 
 #include "JpCntx.h"
 
+#include <format>
+
 namespace kencodingprober
 {
 // This is hiragana 2-char sequence table, the number in each cell represents its frequency category
@@ -346,24 +348,27 @@ const char jp2CharContext[83][83] = {
 
 #define MINIMUM_DATA_THRESHOLD 4
 
-void JapaneseContextAnalysis::Reset(void)
-{
-    mTotalRel = 0;
-    for (unsigned int i = 0; i < NUM_OF_CATEGORY; i++) {
-        mRelSample[i] = 0;
-    }
-    mLastCharOrder = -1;
-    mDone = false;
-}
-#define DONT_KNOW (float)-1
-
 float JapaneseContextAnalysis::GetConfidence()
 {
     // This is just one way to calculate confidence. It works well for me.
     if (mTotalRel > MINIMUM_DATA_THRESHOLD) {
-        return ((float)(mTotalRel - mRelSample[0])) / mTotalRel;
+        return static_cast<float>(mTotalRel - mRelSample[0]) / mTotalRel;
     } else {
-        return (float)DONT_KNOW;
+        return 0.0f;
     }
+}
+
+std::string JapaneseContextAnalysis::StatusOutput()
+{
+    return std::format( //
+        "{:1.3f} [Ctx] [{} {} {} {} {} {} | {}]",
+        GetConfidence(),
+        mRelSample[0],
+        mRelSample[1],
+        mRelSample[2],
+        mRelSample[3],
+        mRelSample[4],
+        mRelSample[5],
+        mTotalRel);
 }
 }

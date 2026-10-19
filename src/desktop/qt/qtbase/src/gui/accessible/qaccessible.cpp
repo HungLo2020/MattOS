@@ -236,6 +236,8 @@ Q_STATIC_LOGGING_CATEGORY(lcAccessibilityCore, "qt.accessibility.core");
     \value ScrollingStart                   A scrollbar scroll operation is about to start; this may
                                             be caused by a mouse press on the slider handle, for
                                             example.
+    \value [since 6.12] ScrollingPositionChanged
+                                            The position changed during a scroll operation.
     \value SectionChanged
     \value SelectionAdd                     An item has been added to the selection in an item view.
     \value SelectionRemove                  An item has been removed from an item view selection.
@@ -278,7 +280,7 @@ Q_STATIC_LOGGING_CATEGORY(lcAccessibilityCore, "qt.accessibility.core");
 
     \value AlertMessage     An object that is used to alert the user.
     \value Animation        An object that displays an animation.
-    \value Application      The application's main window.
+    \value Application      An object that represents the application
     \value Assistant        An object that provides interactive help.
     \value [since 6.9] BlockQuote       A section of content that is quoted from another source.
     \value Border           An object that represents a border.
@@ -510,8 +512,9 @@ Q_STATIC_LOGGING_CATEGORY(lcAccessibilityCore, "qt.accessibility.core");
     \value HyperlinkInterface       For hyperlink nodes (usually embedded as children of text nodes)
     \value [since 6.5] SelectionInterface For non-text objects that support selection of child objects.
     \value [since 6.8] AttributesInterface For objects that support object-specific attributes.
+    \value [since 6.12] ViewportInterface For objects that allow 2-dimensional or indexed scrolling.
 
-    \sa QAccessibleInterface::interface_cast(), QAccessibleTextInterface, QAccessibleValueInterface, QAccessibleActionInterface, QAccessibleTableInterface, QAccessibleTableCellInterface, QAccessibleSelectionInterface, QAccessibleAttributesInterface
+    \sa QAccessibleInterface::interface_cast(), QAccessibleTextInterface, QAccessibleValueInterface, QAccessibleActionInterface, QAccessibleTableInterface, QAccessibleTableCellInterface, QAccessibleSelectionInterface, QAccessibleAttributesInterface, QAccessibleViewportInterface
 */
 
 #if QT_CONFIG(accessibility)
@@ -1126,7 +1129,9 @@ std::pair< int, int > QAccessible::qAccessibleTextBoundaryHelper(const QTextCurs
 
     Lists, tables and trees should implement QAccessibleTableInterface.
 
-    \sa QAccessible, QAccessibleActionInterface, QAccessibleTextInterface, QAccessibleValueInterface, QAccessibleTableInterface
+    Scrollable views should implement QAccessibleViewportInterface.
+
+    \sa QAccessible, QAccessibleActionInterface, QAccessibleTextInterface, QAccessibleValueInterface, QAccessibleTableInterface, QAccessibleViewportInterface
 */
 
 /*!
@@ -1387,6 +1392,11 @@ QColor QAccessibleInterface::backgroundColor() const
 /*!
     \fn QAccessibleSelectionInterface *QAccessibleInterface::selectionInterface()
     \since 6.5
+*/
+
+/*!
+    \fn QAccessibleViewportInterface *QAccessibleInterface::viewportInterface()
+    \since 6.12
 */
 
 /*!
@@ -1964,7 +1974,8 @@ void QAccessibleInterface::virtual_hook(int /*id*/, void * /*data*/)
 
     \sa QAccessible::InterfaceType, QAccessibleTextInterface,
     QAccessibleValueInterface, QAccessibleActionInterface,
-    QAccessibleTableInterface, QAccessibleTableCellInterface
+    QAccessibleTableInterface, QAccessibleTableCellInterface,
+    QAccessibleViewportInterface
 */
 
 /*! \internal */
@@ -1984,22 +1995,21 @@ const char *qAccessibleEventString(QAccessible::Event event)
 }
 
 #ifndef QT_NO_DEBUG_STREAM
-/*! \internal */
-Q_GUI_EXPORT QDebug operator<<(QDebug d, const QAccessibleInterface *iface)
+static void qAccessiblePrintInterface(QDebug d, const QAccessibleInterface *iface)
 {
-    QDebugStateSaver saver(d);
-    if (!iface)
-        return d << "QAccessibleInterface(0x0)";
+    if (!iface) {
+        d << "QAccessibleInterface(0x0)";
+        return;
+    }
 
-    d.nospace();
     d << "QAccessibleInterface(" << Qt::hex << (const void *) iface << Qt::dec;
     if (iface->isValid()) {
-        d << " name=" << iface->text(QAccessible::Name) << ' ';
-        d << "role=" << qAccessibleRoleString(iface->role()) << ' ';
+        d << " name=" << iface->text(QAccessible::Name);
+        d << " role=" << qAccessibleRoleString(iface->role());
         if (iface->childCount())
-            d << "childc=" << iface->childCount() << ' ';
+            d << " childc=" << iface->childCount();
         if (iface->object()) {
-            d << "obj=" << iface->object();
+            d << " obj=" << iface->object();
         }
         QStringList stateStrings;
         QAccessible::State st = iface->state();
@@ -2013,15 +2023,46 @@ Q_GUI_EXPORT QDebug operator<<(QDebug d, const QAccessibleInterface *iface)
             stateStrings << u"invisible"_s;
 
         if (!stateStrings.isEmpty())
-            d << stateStrings.join(u'|');
+            d << ' ' << qUtf8Printable(stateStrings.join(u'|'));
 
         if (!st.invisible)
-            d << "rect=" << iface->rect();
+            d << " rect=" << iface->rect();
 
     } else {
         d << " invalid";
     }
     d << ')';
+}
+
+static void qAccessiblePrintInterface(QDebug d, const QAccessibleInterface *iface,
+                                      const QByteArray &prefix)
+{
+    qAccessiblePrintInterface(d, iface);
+
+    if (d.verbosity() <= QDebug::DefaultVerbosity || !iface || !iface->isValid())
+        return;
+
+    const int childCount = iface->childCount();
+    for (int i = 0; i < childCount; ++i) {
+        const bool isLastChild = i == childCount - 1;
+        d << '\n' << prefix.constData() << (isLastChild ? "└─ " : "├─ ");
+        qAccessiblePrintInterface(d, iface->child(i),
+                                  prefix + (isLastChild ? "   " : "│  "));
+    }
+}
+
+/*!
+    \internal
+
+    Streams \a iface as a single line. At a verbosity above
+    QDebug::DefaultVerbosity the accessible subtree below \a iface
+    is streamed as well, one line per node, connected up as a tree.
+*/
+Q_GUI_EXPORT QDebug operator<<(QDebug d, const QAccessibleInterface *iface)
+{
+    QDebugStateSaver saver(d);
+    d.nospace();
+    qAccessiblePrintInterface(d, iface, QByteArray());
     return d;
 }
 
@@ -2859,6 +2900,7 @@ QAccessibleTableInterface::~QAccessibleTableInterface()
     \row    \li \l increaseAction() \li increase the value of the accessible (e.g. spinbox)
     \row    \li \l pressAction()    \li press or click or activate the accessible (should correspond to clicking the object with the mouse)
     \row    \li \l setFocusAction() \li set the focus to this accessible
+    \row    \li \l showOnScreenAction() \li move this accessible into the viewport
     \row    \li \l showMenuAction() \li show a context menu, corresponds to right-clicks
     \endtable
 
@@ -2948,8 +2990,9 @@ struct QAccessibleActionStrings
         pressAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "Press"))),
         increaseAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "Increase"))),
         decreaseAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "Decrease"))),
-        showMenuAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "ShowMenu"))),
-        setFocusAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "SetFocus"))),
+        showMenuAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "Show Menu"))),
+        setFocusAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "Set Focus"))),
+        showOnScreenAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "Show on Screen"))),
         toggleAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "Toggle"))),
         scrollLeftAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "Scroll Left"))),
         scrollRightAction(QStringLiteral(QT_TRANSLATE_NOOP("QAccessibleActionInterface", "Scroll Right"))),
@@ -2964,6 +3007,7 @@ struct QAccessibleActionStrings
     const QString decreaseAction;
     const QString showMenuAction;
     const QString setFocusAction;
+    const QString showOnScreenAction;
     const QString toggleAction;
     const QString scrollLeftAction;
     const QString scrollRightAction;
@@ -2984,6 +3028,8 @@ struct QAccessibleActionStrings
             return QAccessibleActionInterface::tr("Shows the menu");
         else if (actionName == setFocusAction)
             return QAccessibleActionInterface::tr("Sets the focus");
+        else if (actionName == showOnScreenAction)
+            return QAccessibleActionInterface::tr("Moves the element into the visible area");
         else if (actionName == toggleAction)
             return QAccessibleActionInterface::tr("Toggles the state");
         else if (actionName == scrollLeftAction)
@@ -3059,6 +3105,15 @@ const QString &QAccessibleActionInterface::showMenuAction()
 const QString &QAccessibleActionInterface::setFocusAction()
 {
     return accessibleActionStrings()->setFocusAction;
+}
+
+/*!
+    Returns the name of the show on screen default action.
+    \sa actionNames(), localizedActionName()
+  */
+const QString &QAccessibleActionInterface::showOnScreenAction()
+{
+    return accessibleActionStrings()->showOnScreenAction;
 }
 
 /*!
@@ -3325,6 +3380,59 @@ QAccessibleHyperlinkInterface::~QAccessibleHyperlinkInterface()
 {
 
 }
+
+/*!
+    \since 6.12
+    \class QAccessibleViewportInterface
+    \inmodule QtGui
+    \ingroup accessibility
+    \preliminary
+
+    \brief The QAccessibleViewportInterface class implements support for viewports.
+
+    This interface should be implemented by accessible objects that allow an 2-dimensional
+    or indexed viewports (e.g. by scrolling). For example lists or flickable views.
+*/
+
+/*!
+    Destroys the QAccessibleViewportInterface.
+
+*/
+QAccessibleViewportInterface::~QAccessibleViewportInterface()
+{
+}
+
+/*!
+    \fn QSizeF QAccessibleViewportInterface::contentSize() const
+
+    Returns the total size of the content in absolute values. For non-indexed viewports this will return
+    the absolute size of the underlying content, for indexed viewports the count of rows and columns is
+    returned.
+*/
+
+/*!
+    \fn QPointF QAccessibleViewportInterface::position() const
+
+    Returns the current position within the viewport in normalized values.
+*/
+
+/*!
+    \fn QSizeF QAccessibleViewportInterface::viewportSize() const
+
+    Returns the currently visible portion of the content in normalized values.
+*/
+
+/*!
+    \fn bool QAccessibleViewportInterface::isIndexed() const
+
+    Returns true if the underlying content is indexed (e.g. a list of items).
+*/
+
+/*!
+    \fn void QAccessibleViewportInterface::setPosition(QPointF position)
+
+    Sets the viewport's position to the given \a position defined in normalized values.
+*/
 
 #endif // QT_CONFIG(accessibility)
 

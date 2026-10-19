@@ -6,14 +6,14 @@ function(_qt_internal_handle_ios_launch_screen target)
     set(launch_screen "")
 
     # Check if the project provided a launch screen path via a variable.
-    # This variable is currently in Technical Preview.
+    # This variable is currently in Technology Preview.
     if(QT_IOS_LAUNCH_SCREEN)
         set(launch_screen "${QT_IOS_LAUNCH_SCREEN}")
     endif()
 
     # Check if the project provided a launch screen path via a target property, it takes precedence
     # over the variable.
-    # This property is currently in Technical Preview.
+    # This property is currently in Technology Preview.
     get_target_property(launch_screen_from_prop "${target}" QT_IOS_LAUNCH_SCREEN)
     if(launch_screen_from_prop)
         set(launch_screen "${launch_screen_from_prop}")
@@ -559,6 +559,20 @@ function(_qt_internal_set_xcode_generate_debugging_symbols target)
     endif()
 endfunction()
 
+# Disable stripping of debug symbols during the copy phase, to match the values of a new project
+# created via Xcode directly. Without this, embedded frameworks (such as the Qt frameworks) get
+# stripped when copied into the app bundle, which prevents source-level debugging into them.
+function(_qt_internal_set_xcode_copy_phase_strip target)
+    if(NOT DEFINED CMAKE_XCODE_ATTRIBUTE_COPY_PHASE_STRIP
+            AND NOT QT_NO_SET_XCODE_COPY_PHASE_STRIP)
+        get_target_property(existing "${target}" XCODE_ATTRIBUTE_COPY_PHASE_STRIP)
+        if(NOT existing)
+            set_target_properties("${target}" PROPERTIES
+                "XCODE_ATTRIBUTE_COPY_PHASE_STRIP" "NO")
+        endif()
+    endif()
+endfunction()
+
 # CMake generates a project where this setting is set to an absolute path build dir.
 # Provide an opt-in to work around an Xcode issue where archiving does not find the project dSYMs
 # unless the configuration build dir starts with $(BUILD_DIR) or is set to $(inherited).
@@ -772,10 +786,12 @@ function(_qt_internal_set_xcode_entrypoint_attribute target entrypoint)
         return()
     endif()
 
+    _qt_internal_get_entrypoint_conditions(entrypoint_conditions "${target}")
+
     set_target_properties("${target}"
         PROPERTIES
         "XCODE_ATTRIBUTE_LD_ENTRY_POINT"
-        "${entrypoint}")
+        "$<${entrypoint_conditions}:${entrypoint}>")
 endfunction()
 
 
@@ -1115,6 +1131,26 @@ function(_qt_internal_check_apple_sdk_and_xcode_versions)
     endif()
 endfunction()
 
+function(_qt_internal_set_apple_bundle_frameworks_rpath target)
+    # Make sure the install rpath has at least the minimum needed if the app
+    # has any non-static frameworks. We can't rigorously know if the app will
+    # have any, even with a static Qt, so always add this. If there are no
+    # frameworks, it won't do any harm.
+    if(NOT CMAKE_SYSTEM_NAME OR CMAKE_SYSTEM_NAME STREQUAL "Darwin") # macOS
+        set(frameworks_rpath "@executable_path/../Frameworks")
+    else()
+        set(frameworks_rpath "@executable_path/Frameworks")
+    endif()
+    # Set BUILD_RPATH so the path ends up in LD_RUNPATH_SEARCH_PATHS for the Xcode
+    # generator, and INSTALL_RPATH for the installed binary with other generators.
+    foreach(prop BUILD_RPATH INSTALL_RPATH)
+        get_property(rpath TARGET ${target} PROPERTY ${prop})
+        list(APPEND rpath "${frameworks_rpath}")
+        list(REMOVE_DUPLICATES rpath)
+        set_property(TARGET ${target} PROPERTY ${prop} "${rpath}")
+    endforeach()
+endfunction()
+
 function(_qt_internal_finalize_apple_app target)
     # Shared between macOS and UIKit apps
 
@@ -1132,11 +1168,128 @@ function(_qt_internal_finalize_apple_app target)
         _qt_internal_set_xcode_configuration_build_dir("${target}")
         _qt_internal_set_xcode_debug_information_format("${target}")
         _qt_internal_set_xcode_generate_debugging_symbols("${target}")
+        _qt_internal_set_xcode_copy_phase_strip("${target}")
     endif()
 
     _qt_internal_set_xcode_bundle_name("${target}")
     _qt_internal_set_apple_bundle_identifier("${target}")
     _qt_internal_set_placeholder_apple_bundle_version("${target}")
+    _qt_internal_set_apple_bundle_frameworks_rpath("${target}")
+endfunction()
+
+# Resolves an imported shared library target to an absolute path on disk.
+#
+# This exists because XCODE_EMBED_FRAMEWORKS does not support imported targets
+# directly — CMake emits the target name as-is into the Xcode project, which
+# Xcode then fails to resolve. We have to feed it absolute paths instead.
+# See https://gitlab.kitware.com/cmake/cmake/-/work_items/25487
+function(_qt_internal_resolve_apple_shared_library_path target out_var)
+    set(${out_var} "" PARENT_SCOPE)
+
+    get_target_property(location "${target}" IMPORTED_LOCATION)
+    if(NOT location)
+        get_target_property(configs "${target}" IMPORTED_CONFIGURATIONS)
+        foreach(config ${configs})
+            get_target_property(location "${target}" IMPORTED_LOCATION_${config})
+            if(location)
+                break()
+            endif()
+        endforeach()
+    endif()
+
+    if(NOT location)
+        return()
+    endif()
+
+    # For framework targets, IMPORTED_LOCATION points at the binary inside the
+    # framework bundle; resolve to the enclosing .framework directory.
+    get_target_property(is_framework "${target}" FRAMEWORK)
+    if(is_framework)
+        get_filename_component(location "${location}" DIRECTORY)
+    endif()
+
+    set(${out_var} "${location}" PARENT_SCOPE)
+endfunction()
+
+# Embeds all shared libraries the app links against transitively into the
+# bundle's Frameworks directory via Xcode's XCODE_EMBED_FRAMEWORKS mechanism,
+# with code-signing on copy. Handles both .framework bundles and plain .dylib
+# shared libraries.
+#
+# Only applicable when Qt was built as shared libraries, with Xcode generator.
+#
+# Set the QT_NO_XCODE_EMBED_FRAMEWORKS target property on the app to opt out
+# entirely, or QT_NO_XCODE_EMBED_FRAMEWORK_IN_CONSUMERS on a dependency to
+# exclude just that dependency.
+function(_qt_internal_xcode_embed_frameworks target)
+    get_target_property(opt_out "${target}" QT_NO_XCODE_EMBED_FRAMEWORKS)
+    if(opt_out)
+        return()
+    endif()
+
+    # If the user has populated XCODE_EMBED_FRAMEWORKS manually, leave it alone.
+    get_target_property(existing_embed "${target}" XCODE_EMBED_FRAMEWORKS)
+    if(existing_embed)
+        return()
+    endif()
+
+    if(NOT QT6_IS_SHARED_LIBS_BUILD)
+        return()
+    endif()
+
+    if(NOT CMAKE_GENERATOR STREQUAL "Xcode")
+        return()
+    endif()
+
+    # XCODE_EMBED_FRAMEWORKS takes a single path per entry, so we can't feed it
+    # both the debug and release variants of a framework. Bail out and leave
+    # deployment to the user in that case.
+    if(QT_FEATURE_debug_and_release)
+        return()
+    endif()
+
+    # Skip child bundles (app extensions, XPC services, etc.) — they live
+    # inside a parent app and reference its Frameworks/ directory via rpath.
+    get_target_property(product_type "${target}" XCODE_PRODUCT_TYPE)
+    if(product_type AND NOT product_type STREQUAL "com.apple.product-type.application")
+        return()
+    endif()
+
+    __qt_internal_collect_all_target_dependencies("${target}" walked_libs
+        INCLUDE_LINK_DEPENDENT_LIBRARIES)
+
+    set(embed_paths "")
+    foreach(dep IN LISTS walked_libs)
+        if(NOT TARGET ${dep})
+            continue()
+        endif()
+        get_target_property(dep_type ${dep} TYPE)
+        if(NOT dep_type STREQUAL "SHARED_LIBRARY")
+            continue()
+        endif()
+
+        get_target_property(dep_opt_out ${dep} QT_NO_XCODE_EMBED_FRAMEWORK_IN_CONSUMERS)
+        if(dep_opt_out)
+            continue()
+        endif()
+
+        _qt_internal_resolve_apple_shared_library_path(${dep} resolved)
+        if(resolved)
+            list(APPEND embed_paths "${resolved}")
+        endif()
+    endforeach()
+
+    if(NOT embed_paths)
+        return()
+    endif()
+
+    list(REMOVE_DUPLICATES embed_paths)
+
+    set_property(TARGET "${target}" APPEND PROPERTY
+        XCODE_EMBED_FRAMEWORKS ${embed_paths})
+    set_target_properties("${target}" PROPERTIES
+        XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON
+        XCODE_EMBED_FRAMEWORKS_REMOVE_HEADERS_ON_COPY YES)
 endfunction()
 
 function(_qt_internal_finalize_uikit_app target)
@@ -1145,6 +1298,7 @@ function(_qt_internal_finalize_uikit_app target)
     else()
         _qt_internal_finalize_apple_app("${target}")
     endif()
+    _qt_internal_xcode_embed_frameworks("${target}")
 endfunction()
 
 function(_qt_internal_finalize_ios_app target)
@@ -1166,13 +1320,4 @@ function(_qt_internal_finalize_macos_app target)
     endif()
 
     _qt_internal_finalize_apple_app("${target}")
-
-    # Make sure the install rpath has at least the minimum needed if the app
-    # has any non-static frameworks. We can't rigorously know if the app will
-    # have any, even with a static Qt, so always add this. If there are no
-    # frameworks, it won't do any harm.
-    get_property(install_rpath TARGET ${target} PROPERTY INSTALL_RPATH)
-    list(APPEND install_rpath "@executable_path/../Frameworks")
-    list(REMOVE_DUPLICATES install_rpath)
-    set_property(TARGET ${target} PROPERTY INSTALL_RPATH "${install_rpath}")
 endfunction()

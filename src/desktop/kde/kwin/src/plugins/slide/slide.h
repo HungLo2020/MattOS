@@ -14,7 +14,8 @@
 // kwineffects
 #include "effect/effect.h"
 #include "effect/effectwindow.h"
-#include "plugins/slide/springmotion.h"
+#include "effect/springmotion.h"
+#include "effect/timeline.h"
 
 namespace KWin
 {
@@ -43,41 +44,28 @@ namespace KWin
  * Good luck :)
  */
 
-class SlideEffect : public Effect
+class SlideEffect;
+
+class SlideEffectScreen
 {
-    Q_OBJECT
-    Q_PROPERTY(int horizontalGap READ horizontalGap)
-    Q_PROPERTY(int verticalGap READ verticalGap)
-    Q_PROPERTY(bool slideBackground READ slideBackground)
-
 public:
-    SlideEffect();
-    ~SlideEffect() override;
+    SlideEffectScreen(SlideEffect *parent, LogicalOutput *screen);
+    ~SlideEffectScreen();
+    void reconfigure();
 
-    void reconfigure(ReconfigureFlags) override;
+    void prePaintScreen(ScreenPrePaintData &data);
+    void paintScreen();
+    void postPaintScreen();
 
-    void prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
-    void postPaintScreen() override;
+    bool paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data);
 
-    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data, std::chrono::milliseconds presentTime) override;
-    void paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data) override;
-
-    bool isActive() const override;
-    int requestedEffectChainPosition() const override;
-
-    static bool supported();
-
-    int horizontalGap() const;
-    int verticalGap() const;
-    bool slideBackground() const;
-
-private Q_SLOTS:
+    bool isActive() const;
     void desktopChanged(VirtualDesktop *old, VirtualDesktop *current, EffectWindow *with);
     void desktopChanging(VirtualDesktop *old, QPointF desktopOffset, EffectWindow *with);
     void desktopChangingCancelled();
     void windowAdded(EffectWindow *w);
     void windowDeleted(EffectWindow *w);
+    void finishedSwitching();
 
 private:
     QPoint getDrawCoords(QPointF pos, LogicalOutput *screen);
@@ -91,13 +79,8 @@ private:
 
     void startAnimation(const QPointF &oldPos, VirtualDesktop *current, EffectWindow *movingWindow = nullptr);
     void prepareSwitching();
-    void finishedSwitching();
 
 private:
-    int m_hGap;
-    int m_vGap;
-    bool m_slideBackground;
-
     enum class State {
         Inactive,
         ActiveAnimation,
@@ -116,7 +99,7 @@ private:
     QPointF m_gesturePos;
 
     EffectWindow *m_movingWindow = nullptr;
-    std::chrono::milliseconds m_lastPresentTime = std::chrono::milliseconds::zero();
+    AnimationClock m_clock;
 
     struct
     {
@@ -132,7 +115,57 @@ private:
 
     QList<EffectWindow *> m_elevatedWindows;
     QHash<EffectWindow *, WindowData> m_windowData;
+    SlideEffect *m_parent;
+    LogicalOutput *m_screen;
+};
+
+class SlideEffect : public Effect
+{
+    Q_OBJECT
+    Q_PROPERTY(int horizontalGap READ horizontalGap)
+    Q_PROPERTY(int verticalGap READ verticalGap)
+    Q_PROPERTY(bool slideBackground READ slideBackground)
+
+public:
+    SlideEffect();
+    ~SlideEffect() override;
+
+    void reconfigure(ReconfigureFlags) override;
+
+    void prePaintScreen(ScreenPrePaintData &data) override;
+    bool paintScreen(const RenderTarget &renderTarget, const RenderViewport &viewport, int mask, const Region &deviceRegion, LogicalOutput *screen) override;
+    void postPaintScreen() override;
+
+    void prePaintWindow(RenderView *view, EffectWindow *w, WindowPrePaintData &data) override;
+    bool paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceGeometry, WindowPaintData &data) override;
+
+    bool isActive() const override;
+    int requestedEffectChainPosition() const override;
+
+    static bool supported();
+
+    int horizontalGap() const;
+    int verticalGap() const;
+    bool slideBackground() const;
+
+private Q_SLOTS:
+    void desktopChanged(VirtualDesktop *old, VirtualDesktop *current, EffectWindow *with, LogicalOutput *output);
+    void desktopChanging(VirtualDesktop *old, QPointF desktopOffset, EffectWindow *with, LogicalOutput *output);
+    void desktopChangingCancelled();
+    void windowAdded(EffectWindow *w);
+    void windowDeleted(EffectWindow *w);
+
+private:
+    void finishedSwitching();
+    SlideEffectScreen *getSlideEffectScreen(LogicalOutput *screen);
+
+private:
+    int m_hGap;
+    int m_vGap;
+    bool m_slideBackground;
+
     bool m_switchingActivity = false;
+    QHash<LogicalOutput *, SlideEffectScreen> m_slideEffectScreens;
 };
 
 inline int SlideEffect::horizontalGap() const
@@ -151,6 +184,11 @@ inline bool SlideEffect::slideBackground() const
 }
 
 inline bool SlideEffect::isActive() const
+{
+    return std::ranges::any_of(m_slideEffectScreens, &SlideEffectScreen::isActive);
+}
+
+inline bool SlideEffectScreen::isActive() const
 {
     return m_state != State::Inactive;
 }

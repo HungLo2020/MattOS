@@ -15,10 +15,23 @@ Modification from frank tang's original work:
   text stream.
 */
 
-// BIG5
-
 namespace kencodingprober
 {
+/* Ranges for Big5 and extensions, e.g. ETEN and HKCS
+ * See IBM C-H 3-3220-131 1999-04, Figure 1
+ * 1st byte: 0x81 ... 0x8C (0) -> (3)
+ *           0x8D ... 0xF1 (0) -> (4)
+ *           0xF2          (0) -> (5)
+ *           0xF3 ... 0xF9 (0) -> (3)
+ *           0xFA ... 0xFE (0) -> (4)
+ * 2nd byte: 0x40 ... 0x7E (3), (4), (5) -> (0), (1)
+ *           0x81 ... 0x85 (3)           -> (0), (1)
+ *           0x86 ... 0xA0 (3), (5)      -> (0), (1)
+ *           0xA1 ... 0xFE (3), (4), (5) -> (0), (1)
+ *  (4) IBM Area 9, 1st byte: 0x81 ... 0x8C
+ *  (5) IBM Area 5, 1st byte: 0xF2
+ *  (5) IBM Area 5, 1st byte: 0xF3 ... 0xF9
+ */
 static constexpr std::array<const unsigned char, 256> BIG5_cls{
     // clang-format off
     // 0,1,1,1,1,1,1,1,  // 00 - 07
@@ -38,8 +51,8 @@ static constexpr std::array<const unsigned char, 256> BIG5_cls{
     2, 2, 2, 2, 2, 2, 2, 2, // 68 - 6f
     2, 2, 2, 2, 2, 2, 2, 2, // 70 - 77
     2, 2, 2, 2, 2, 2, 2, 1, // 78 - 7f
-    4, 4, 4, 4, 4, 4, 4, 4, // 80 - 87
-    4, 4, 4, 4, 4, 4, 4, 4, // 88 - 8f
+    0, 5, 5, 5, 5, 5, 6, 6, // 80 - 87
+    6, 6, 6, 6, 6, 4, 4, 4, // 88 - 8f
     4, 4, 4, 4, 4, 4, 4, 4, // 90 - 97
     4, 4, 4, 4, 4, 4, 4, 4, // 98 - 9f
     4, 3, 3, 3, 3, 3, 3, 3, // a0 - a7
@@ -52,28 +65,27 @@ static constexpr std::array<const unsigned char, 256> BIG5_cls{
     3, 3, 3, 3, 3, 3, 3, 3, // d8 - df
     3, 3, 3, 3, 3, 3, 3, 3, // e0 - e7
     3, 3, 3, 3, 3, 3, 3, 3, // e8 - ef
-    3, 3, 3, 3, 3, 3, 3, 3, // f0 - f7
-    3, 3, 3, 3, 3, 3, 3, 0 // f8 - ff
+    3, 3, 7, 8, 8, 8, 8, 8, // f0 - f7
+    8, 8, 3, 3, 3, 3, 3, 0 // f8 - ff
     // clang-format on
 };
 
-static constexpr std::array<const unsigned char, 24> BIG5_st{
+static constexpr std::array<const unsigned char, 6 * 9> BIG5_st{
     // clang-format off
-    eError, eStart, eStart,      3, eError, // eStart
-    eError, eError, eError, eError, eError, // eError
-    eItsMe, eItsMe, eItsMe, eItsMe, eItsMe, // eItsMe
-    eError, eError, eStart, eStart, eStart, // 3
-    eStart, eStart, eStart, eStart // Padding
+    //   0       1       2       3       4       5       6       7       8
+    eError, eStart, eStart,      4,      4,      3,      3,      5,      3, // eStart
+    eError, eError, eError, eError, eError, eError, eError, eError, eError, // eError
+    eItsMe, eItsMe, eItsMe, eItsMe, eItsMe, eItsMe, eItsMe, eItsMe, eItsMe, // eItsMe
+    eError, eError, eStart, eStart, eStart, eStart, eStart, eStart, eStart, // 3
+    eError, eError, eStart, eStart, eError, eError, eError, eStart, eStart, // 4
+    eError, eError, eStart, eStart, eStart, eError, eStart, eStart, eStart, // 5
     // clang-format on
 };
-
-static const unsigned int Big5CharLenTable[] = {0, 1, 1, 2, 0};
 
 static constexpr SMModel Big5SMModel{
     BIG5_cls,
-    5,
+    9,
     BIG5_st,
-    Big5CharLenTable,
     "Big5",
 };
 
@@ -115,7 +127,7 @@ static constexpr std::array<const unsigned char, 256> EUCJP_cls{
     // clang-format on
 };
 
-static constexpr std::array<const unsigned char, 40> EUCJP_st{
+static constexpr std::array<const unsigned char, 36> EUCJP_st{
     // clang-format off
          3,      4,      3,      5, eStart, eError, // eStart
     eError, eError, eError, eError, eError, eError, // eError
@@ -123,17 +135,13 @@ static constexpr std::array<const unsigned char, 40> EUCJP_st{
     eStart, eError, eStart, eError, eError, eError, // 3
     eError, eError, eStart, eError, eError, eError, // 4
          3, eError,      3, eError, eError, eError, // 5
-    eStart, eStart, eStart, eStart // Padding
     // clang-format on
 };
-
-static const unsigned int EUCJPCharLenTable[] = {2, 2, 2, 3, 1, 0};
 
 static constexpr SMModel EUCJPSMModel{
     EUCJP_cls,
     6,
     EUCJP_st,
-    EUCJPCharLenTable,
     "EUC-JP",
 };
 
@@ -184,13 +192,10 @@ static constexpr std::array<const unsigned char, 16> EUCKR_st{
     // clang-format on
 };
 
-static const unsigned int EUCKRCharLenTable[] = {0, 1, 2, 0};
-
 static constexpr SMModel EUCKRSMModel{
     EUCKR_cls,
     4,
     EUCKR_st,
-    EUCKRCharLenTable,
     "EUC-KR",
 };
 
@@ -233,30 +238,21 @@ static constexpr std::array<const unsigned char, 256> GB18030_cls{
     // clang-format on
 };
 
-static constexpr std::array<const unsigned char, 48> GB18030_st{
+static constexpr std::array<const unsigned char, 42> GB18030_st{
     // clang-format off
     eError, eStart, eStart, eStart, eStart, eStart,      3, // eStart
     eError, eError, eError, eError, eError, eError, eError, // eError
     eItsMe, eItsMe, eItsMe, eItsMe, eItsMe, eItsMe, eItsMe, // eItsMe
     eError, eError, eStart,      4, eError, eStart, eStart, // 3
     eError, eError, eError, eError, eError, eError,      5, // 4
-    eError, eError, eError, eItsMe, eError, eError, eError, // 5
-    eStart, eStart, eStart, eStart, eStart, eStart // Padding
+    eError, eError, eError, eStart, eError, eError, eError, // 5
     // clang-format on
 };
-
-// To be accurate, the length of class 6 can be either 2 or 4.
-// But it is not necessary to discriminate between the two since
-// it is used for frequency analysis only, and we are validating
-// each code range there as well. So it is safe to set it to be
-// 2 here.
-static const unsigned int GB18030CharLenTable[] = {0, 1, 1, 1, 1, 1, 2};
 
 static constexpr SMModel GB18030SMModel{
     GB18030_cls,
     7,
     GB18030_st,
-    GB18030CharLenTable,
     "GB18030",
 };
 
@@ -311,13 +307,10 @@ static constexpr std::array<const unsigned char, 24> SJIS_st{
     // clang-format on
 };
 
-static const unsigned int SJISCharLenTable[] = {0, 1, 1, 2, 0, 0};
-
 static constexpr SMModel SJISSMModel{
     SJIS_cls,
     6,
     SJIS_st,
-    SJISCharLenTable,
     "Shift_JIS",
 };
 
@@ -378,13 +371,10 @@ static constexpr std::array<const unsigned char, 88> UCS2BE_st{
     // clang-format on
 };
 
-static const unsigned int UCS2BECharLenTable[] = {2, 2, 2, 0, 2, 2, 4, 4};
-
 static constexpr SMModel UCS2BESMModel{
     UCS2_cls,
     8,
     UCS2BE_st,
-    UCS2BECharLenTable,
     "UTF-16BE",
 };
 
@@ -407,13 +397,10 @@ static constexpr std::array<const unsigned char, 88> UCS2LE_st{
     // clang-format on
 };
 
-static const unsigned int UCS2LECharLenTable[] = {2, 2, 2, 2, 2, 2, 4, 4};
-
 static constexpr SMModel UCS2LESMModel{
     UCS2_cls,
     8,
     UCS2LE_st,
-    UCS2LECharLenTable,
     "UTF-16LE",
 };
 
@@ -472,13 +459,10 @@ static constexpr std::array<const unsigned char, 10 * 12> UTF8_st{
     // clang-format on
 };
 
-static const unsigned int UTF8CharLenTable[] = {0, 1, 1, 1, 1, 1, 2, 3, 3, 3, 4, 4};
-
 static constexpr SMModel UTF8SMModel{
     UTF8_cls,
     12,
     UTF8_st,
-    UTF8CharLenTable,
     "UTF-8",
 };
 }

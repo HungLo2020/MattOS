@@ -22,8 +22,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_window_rules-0");
-
 class WindowRuleTest : public QObject
 {
     Q_OBJECT
@@ -38,7 +36,7 @@ private Q_SLOTS:
 void WindowRuleTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -115,10 +113,6 @@ void WindowRuleTest::testApplyInitialMaximizeVert()
     QVERIFY(window);
     QVERIFY(window->isDecorated());
     QVERIFY(!window->hasStrut());
-    QVERIFY(!window->readyForPainting());
-    QMetaObject::invokeMethod(window, "setReadyForPainting");
-    QVERIFY(window->readyForPainting());
-    QVERIFY(Test::waitForWaylandSurface(window));
     QCOMPARE(window->maximizeMode(), MaximizeVertical);
 
     // destroy window again
@@ -132,10 +126,8 @@ void WindowRuleTest::testApplyInitialMaximizeVert()
 void WindowRuleTest::testWindowClassChange()
 {
     KSharedConfig::Ptr config = KSharedConfig::openConfig(QString(), KConfig::SimpleConfig);
-    const QString ruleGroupName = QStringLiteral("above-test-rule");
-    config->group(QStringLiteral("General")).writeEntry("rules", QStringList({ruleGroupName}));
 
-    auto group = config->group(ruleGroupName);
+    auto group = config->group(QStringLiteral("above-test-rule"));
     group.writeEntry("above", true);
     group.writeEntry("aboverule", 2);
     group.writeEntry("wmclass", "org.kde.foo");
@@ -177,10 +169,6 @@ void WindowRuleTest::testWindowClassChange()
     QVERIFY(window);
     QVERIFY(window->isDecorated());
     QVERIFY(!window->hasStrut());
-    QVERIFY(!window->readyForPainting());
-    QMetaObject::invokeMethod(window, "setReadyForPainting");
-    QVERIFY(window->readyForPainting());
-    QVERIFY(Test::waitForWaylandSurface(window));
     QCOMPARE(window->keepAbove(), false);
 
     // now change class

@@ -42,7 +42,7 @@ QT_BEGIN_NAMESPACE
 FunctionNode::FunctionNode(Aggregate *parent, const QString &name)
     : Node(NodeType::Function, parent, name),
       m_const(false),
-      m_default(false),
+      m_implicitlyGenerated(false),
       m_static(false),
       m_reimpFlag(false),
       m_attached(false),
@@ -53,9 +53,12 @@ FunctionNode::FunctionNode(Aggregate *parent, const QString &name)
       m_isRef(false),
       m_isRefRef(false),
       m_isInvokable(false),
+      m_explicitlyDefaulted(false),
+      m_deleted(false),
+      m_hiddenFriend(false),
       m_explicit{false},
       m_constexpr{false},
-      m_metaness(Plain),
+      m_metaness(Metaness::Plain),
       m_virtualness(NonVirtual),
       m_overloadNumber(0)
 {
@@ -75,7 +78,7 @@ FunctionNode::FunctionNode(Aggregate *parent, const QString &name)
 FunctionNode::FunctionNode(Metaness kind, Aggregate *parent, const QString &name, bool attached)
     : Node(NodeType::Function, parent, name),
       m_const(false),
-      m_default(false),
+      m_implicitlyGenerated(false),
       m_static(false),
       m_reimpFlag(false),
       m_attached(attached),
@@ -86,6 +89,9 @@ FunctionNode::FunctionNode(Metaness kind, Aggregate *parent, const QString &name
       m_isRef(false),
       m_isRefRef(false),
       m_isInvokable(false),
+      m_explicitlyDefaulted(false),
+      m_deleted(false),
+      m_hiddenFriend(false),
       m_explicit{false},
       m_constexpr{false},
       m_metaness(kind),
@@ -94,7 +100,7 @@ FunctionNode::FunctionNode(Metaness kind, Aggregate *parent, const QString &name
 {
     setGenus(getGenus(m_metaness));
     if (!isCppNode() && name.startsWith("__"))
-        setStatus(Internal);
+        setStatus(Status::Internal);
 }
 
 /*!
@@ -146,35 +152,35 @@ void FunctionNode::setVirtualness(const QString &value)
     m_virtualness = (value == QLatin1String("virtual")) ? NormalVirtual : NonVirtual;
 }
 
-static QMap<QString, FunctionNode::Metaness> metanessMap_;
+static QMap<QString, Metaness> metanessMap_;
 static void buildMetanessMap()
 {
-    metanessMap_["plain"] = FunctionNode::Plain;
-    metanessMap_["signal"] = FunctionNode::Signal;
-    metanessMap_["slot"] = FunctionNode::Slot;
-    metanessMap_["constructor"] = FunctionNode::Ctor;
-    metanessMap_["copy-constructor"] = FunctionNode::CCtor;
-    metanessMap_["move-constructor"] = FunctionNode::MCtor;
-    metanessMap_["destructor"] = FunctionNode::Dtor;
-    metanessMap_["macro"] = FunctionNode::MacroWithParams;
-    metanessMap_["macrowithparams"] = FunctionNode::MacroWithParams;
-    metanessMap_["macrowithoutparams"] = FunctionNode::MacroWithoutParams;
-    metanessMap_["copy-assign"] = FunctionNode::CAssign;
-    metanessMap_["move-assign"] = FunctionNode::MAssign;
-    metanessMap_["native"] = FunctionNode::Native;
-    metanessMap_["qmlsignal"] = FunctionNode::QmlSignal;
-    metanessMap_["qmlsignalhandler"] = FunctionNode::QmlSignalHandler;
-    metanessMap_["qmlmethod"] = FunctionNode::QmlMethod;
+    metanessMap_["plain"] = Metaness::Plain;
+    metanessMap_["signal"] = Metaness::Signal;
+    metanessMap_["slot"] = Metaness::Slot;
+    metanessMap_["constructor"] = Metaness::Ctor;
+    metanessMap_["copy-constructor"] = Metaness::CCtor;
+    metanessMap_["move-constructor"] = Metaness::MCtor;
+    metanessMap_["destructor"] = Metaness::Dtor;
+    metanessMap_["macro"] = Metaness::MacroWithParams;
+    metanessMap_["macrowithparams"] = Metaness::MacroWithParams;
+    metanessMap_["macrowithoutparams"] = Metaness::MacroWithoutParams;
+    metanessMap_["copy-assign"] = Metaness::CAssign;
+    metanessMap_["move-assign"] = Metaness::MAssign;
+    metanessMap_["native"] = Metaness::Native;
+    metanessMap_["qmlsignal"] = Metaness::QmlSignal;
+    metanessMap_["qmlsignalhandler"] = Metaness::QmlSignalHandler;
+    metanessMap_["qmlmethod"] = Metaness::QmlMethod;
 }
 
-static QMap<QString, FunctionNode::Metaness> topicMetanessMap_;
+static QMap<QString, Metaness> topicMetanessMap_;
 static void buildTopicMetanessMap()
 {
-    topicMetanessMap_["fn"] = FunctionNode::Plain;
-    topicMetanessMap_["qmlsignal"] = FunctionNode::QmlSignal;
-    topicMetanessMap_["qmlattachedsignal"] = FunctionNode::QmlSignal;
-    topicMetanessMap_["qmlmethod"] = FunctionNode::QmlMethod;
-    topicMetanessMap_["qmlattachedmethod"] = FunctionNode::QmlMethod;
+    topicMetanessMap_["fn"] = Metaness::Plain;
+    topicMetanessMap_["qmlsignal"] = Metaness::QmlSignal;
+    topicMetanessMap_["qmlattachedsignal"] = Metaness::QmlSignal;
+    topicMetanessMap_["qmlmethod"] = Metaness::QmlMethod;
+    topicMetanessMap_["qmlattachedmethod"] = Metaness::QmlMethod;
 }
 
 /*!
@@ -183,25 +189,25 @@ static void buildTopicMetanessMap()
   one of the values of Metaness. If not, Node::DontCare is
   returned.
  */
-Genus FunctionNode::getGenus(FunctionNode::Metaness metaness)
+Genus FunctionNode::getGenus(Metaness metaness)
 {
     switch (metaness) {
-    case FunctionNode::Plain:
-    case FunctionNode::Signal:
-    case FunctionNode::Slot:
-    case FunctionNode::Ctor:
-    case FunctionNode::Dtor:
-    case FunctionNode::CCtor:
-    case FunctionNode::MCtor:
-    case FunctionNode::MacroWithParams:
-    case FunctionNode::MacroWithoutParams:
-    case FunctionNode::Native:
-    case FunctionNode::CAssign:
-    case FunctionNode::MAssign:
+    case Metaness::Plain:
+    case Metaness::Signal:
+    case Metaness::Slot:
+    case Metaness::Ctor:
+    case Metaness::Dtor:
+    case Metaness::CCtor:
+    case Metaness::MCtor:
+    case Metaness::MacroWithParams:
+    case Metaness::MacroWithoutParams:
+    case Metaness::Native:
+    case Metaness::CAssign:
+    case Metaness::MAssign:
         return Genus::CPP;
-    case FunctionNode::QmlSignal:
-    case FunctionNode::QmlSignalHandler:
-    case FunctionNode::QmlMethod:
+    case Metaness::QmlSignal:
+    case Metaness::QmlSignalHandler:
+    case Metaness::QmlMethod:
         return Genus::QML;
     }
 
@@ -212,7 +218,7 @@ Genus FunctionNode::getGenus(FunctionNode::Metaness metaness)
   This static function converts the string \a value to an enum
   value for the kind of function named by \a value.
  */
-FunctionNode::Metaness FunctionNode::getMetaness(const QString &value)
+Metaness FunctionNode::getMetaness(const QString &value)
 {
     if (metanessMap_.isEmpty())
         buildMetanessMap();
@@ -223,11 +229,28 @@ FunctionNode::Metaness FunctionNode::getMetaness(const QString &value)
   This static function converts the topic string \a topic to an enum
   value for the kind of function this FunctionNode represents.
  */
-FunctionNode::Metaness FunctionNode::getMetanessFromTopic(const QString &topic)
+Metaness FunctionNode::getMetanessFromTopic(const QString &topic)
 {
     if (topicMetanessMap_.isEmpty())
         buildTopicMetanessMap();
     return topicMetanessMap_[topic];
+}
+
+/*!
+  Extends the base implementation to test whether an associated enum
+  is in the API.
+*/
+bool FunctionNode::isInAPI() const
+{
+    if (Node::isInAPI())
+        return true;
+
+    for (auto *property : m_associatedProperties) {
+        if (property->isInAPI())
+            return true;
+    }
+
+    return false;
 }
 
 /*!
@@ -258,11 +281,15 @@ void FunctionNode::setOverloadNumber(signed short number)
 QString FunctionNode::kindString() const
 {
     switch (m_metaness) {
-    case FunctionNode::QmlSignal:
+    case Metaness::Signal:
+        return "signal";
+    case Metaness::Slot:
+        return "slot";
+    case Metaness::QmlSignal:
         return "QML signal";
-    case FunctionNode::QmlSignalHandler:
+    case Metaness::QmlSignalHandler:
         return "QML signal handler";
-    case FunctionNode::QmlMethod:
+    case Metaness::QmlMethod:
         return "QML method";
     default:
         return "function";
@@ -276,35 +303,35 @@ QString FunctionNode::kindString() const
 QString FunctionNode::metanessString() const
 {
     switch (m_metaness) {
-    case FunctionNode::Plain:
+    case Metaness::Plain:
         return "plain";
-    case FunctionNode::Signal:
+    case Metaness::Signal:
         return "signal";
-    case FunctionNode::Slot:
+    case Metaness::Slot:
         return "slot";
-    case FunctionNode::Ctor:
+    case Metaness::Ctor:
         return "constructor";
-    case FunctionNode::CCtor:
+    case Metaness::CCtor:
         return "copy-constructor";
-    case FunctionNode::MCtor:
+    case Metaness::MCtor:
         return "move-constructor";
-    case FunctionNode::Dtor:
+    case Metaness::Dtor:
         return "destructor";
-    case FunctionNode::MacroWithParams:
+    case Metaness::MacroWithParams:
         return "macrowithparams";
-    case FunctionNode::MacroWithoutParams:
+    case Metaness::MacroWithoutParams:
         return "macrowithoutparams";
-    case FunctionNode::Native:
+    case Metaness::Native:
         return "native";
-    case FunctionNode::CAssign:
+    case Metaness::CAssign:
         return "copy-assign";
-    case FunctionNode::MAssign:
+    case Metaness::MAssign:
         return "move-assign";
-    case FunctionNode::QmlSignal:
+    case Metaness::QmlSignal:
         return "qmlsignal";
-    case FunctionNode::QmlSignalHandler:
+    case Metaness::QmlSignalHandler:
         return "qmlsignalhandler";
-    case FunctionNode::QmlMethod:
+    case Metaness::QmlMethod:
         return "qmlmethod";
     default:
         return "plain";
@@ -325,10 +352,10 @@ void FunctionNode::addAssociatedProperty(PropertyNode *p)
   Returns the \e primary associated property, if this is an
   access function for one or more properties.
 
-  An associated property is considered a primary if this
-  function's name starts with the property name. If there's
-  no such property, return the first one available as a
-  fallback.
+  An associated property is considered primary if this
+  function's name starts with the property name. If no
+  prefix match exists, the property with the alphabetically
+  first name is returned for deterministic output.
 
   If no associated properties exist, returns \nullptr.
  */
@@ -344,8 +371,15 @@ const PropertyNode *FunctionNode::primaryAssociatedProperty() const
                     [this](const PropertyNode *p) {
                         return name().startsWith(p->name());
                     });
+    if (it != m_associatedProperties.cend())
+        return *it;
 
-    return it != m_associatedProperties.cend() ? *it : m_associatedProperties[0];
+    // No prefix match: multiple properties share this signal but none
+    // match by name. Pick alphabetically for deterministic output
+    // regardless of tree traversal order.
+    return *std::min_element(
+            m_associatedProperties.cbegin(), m_associatedProperties.cend(),
+            [](const PropertyNode *a, const PropertyNode *b) { return a->name() < b->name(); });
 }
 
 /*!
@@ -356,7 +390,7 @@ const PropertyNode *FunctionNode::primaryAssociatedProperty() const
 */
 bool FunctionNode::isDeprecated() const
 {
-    return status() == Node::Deprecated;
+    return status() == Status::Deprecated;
 }
 
 /*! \fn unsigned char FunctionNode::overloadNumber() const
@@ -469,16 +503,16 @@ QString FunctionNode::signature(Node::SignatureOptions options) const
 
   These are the member function names added by macros.  Usually they
   are not documented, but they can be documented, so this test avoids
-  reporting an error if they are not documented.
+  reporting a warning if they are not documented.
 
   But maybe we should generate a standard text for each of them?
  */
 bool FunctionNode::isIgnored() const
 {
     if (!hasDoc()) {
-        if (name().startsWith(QLatin1String("qt_")) || name() == QLatin1String("metaObject")
-            || name() == QLatin1String("tr") || name() == QLatin1String("trUtf8")
-            || name() == QLatin1String("d_func")) {
+        if (name().startsWith(QLatin1String("qt_")) || name().startsWith(QLatin1String("_q_"))
+            || name() == QLatin1String("metaObject") || name() == QLatin1String("tr")
+            || name() == QLatin1String("trUtf8") || name() == QLatin1String("d_func")) {
             return true;
         }
         QString s = signature(Node::SignatureReturnType);
@@ -511,13 +545,13 @@ QString FunctionNode::returnTypeString() const
     Returns the status of the function, taking the status of any associated
     properties into account.
 */
-Node::Status FunctionNode::status() const
+Status FunctionNode::status() const
 {
     auto it = std::find_if_not(m_associatedProperties.begin(), m_associatedProperties.end(),
                                [](const Node *p) -> bool { return p->isDeprecated(); });
 
     if (!m_associatedProperties.isEmpty() && it == m_associatedProperties.end())
-        return Node::Deprecated;
+        return Status::Deprecated;
     else
         return Node::status();
 }

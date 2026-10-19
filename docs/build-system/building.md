@@ -128,8 +128,14 @@ downstream stages on the next build.
 
 ### Testing the build tool
 
-`cargo test -p mattos-build` runs the build tool's unit tests. Test what the
-code does rather than how it is written:
+`cargo test -p mattos-build` runs the build tool's unit tests.
+
+When the launcher environment places temporary fixtures under `out/tmp`, set
+`GIT_CEILING_DIRECTORIES="$PWD/out/tmp"` for the test command. Fixtures without
+their own Git repository must not discover and scan the parent MattOS checkout.
+This boundary does not affect fixtures that initialize their own repositories.
+
+Test what the code does rather than how it is written:
 
 - `performance::command_recorder::record` intercepts every command a recipe,
   helper, or staging function runs, and records its program, arguments,

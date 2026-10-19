@@ -88,10 +88,15 @@ var frozenAppEffect = {
             window.unresponsiveAnimation = undefined;
         }
     },
-    desktopChanged: function () {
+    desktopChanged: function (oldDesktop, newDesktop, withWindow, screen) {
         var windows = effects.stackingOrder;
         for (var i = 0, length = windows.length; i < length; ++i) {
             var window = windows[i];
+
+            if (window.screen !== screen) {
+                continue;
+            }
+
             frozenAppEffect.cancelAnimation(window);
             frozenAppEffect.restartAnimation(window);
         }

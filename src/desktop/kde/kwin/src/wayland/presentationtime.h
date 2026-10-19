@@ -21,6 +21,7 @@ class SurfaceInterface;
 class PresentationTime : public QObject, QtWaylandServer::wp_presentation
 {
     Q_OBJECT
+
 public:
     explicit PresentationTime(Display *display, QObject *parent);
 
@@ -38,7 +39,8 @@ public:
 
     wl_list resources;
 
-    void presented(std::chrono::nanoseconds refreshCycleDuration, std::chrono::nanoseconds timestamp, PresentationMode mode) override;
+    void presented(OutputFrame *frame, std::chrono::nanoseconds timestamp,
+                   PresentationMode mode, PresentationFeedbackFlags flags) override;
 
 private:
     bool m_presented = false;

@@ -17,8 +17,11 @@
 #include <QProcess>
 #include <QTextDocumentFragment>
 
+#include <KIO/CommandLauncherJob>
 #include <KLocalizedString>
 #include <KShell>
+#include <KWaylandExtras>
+#include <KWindowSystem>
 
 #include <algorithm>
 #include <chrono>
@@ -53,14 +56,34 @@ AbstractNotificationsModel::Private::Private(AbstractNotificationsModel *q)
 
     notificationWatcher.setConnection(QDBusConnection::sessionBus());
     notificationWatcher.setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
-    // Forcibly expire the notification once the owning application exits, in order to
-    // remove the interactive buttons from the notification in the history and/or make the
-    // popup disappear.
+
+    // When the owning application exits, the actions won't work anymore because the app
+    // isn't listening anymore. Remove the actions in this case.
     connect(&notificationWatcher, &QDBusServiceWatcher::serviceUnregistered, q, [this, q](const QString &serviceName) {
-        for (const Notification &notification : std::as_const(notifications)) {
-            if (notification.dBusService() == serviceName) {
-                q->expire(notification.id());
+        for (int row = 0; row < notifications.size(); ++row) {
+            Notification &notification = notifications[row];
+
+            if (notification.dBusService() != serviceName) {
+                continue;
             }
+
+            if (notification.actionNames().isEmpty() && !notification.hasDefaultAction() && !notification.hasReplyAction()
+                && !notification.d->hasConfigureAction) {
+                continue;
+            }
+
+            notification.setActions(QStringList());
+
+            const QModelIndex idx = q->index(row);
+            Q_EMIT q->dataChanged(idx,
+                                  idx,
+                                  {Notifications::ActionNamesRole,
+                                   Notifications::ActionLabelsRole,
+                                   Notifications::HasDefaultActionRole,
+                                   Notifications::DefaultActionLabelRole,
+                                   Notifications::HasReplyActionRole,
+                                   Notifications::ReplyActionLabelRole,
+                                   Notifications::ConfigurableRole});
         }
 
         notificationWatcher.removeWatchedService(serviceName);
@@ -83,8 +106,8 @@ void AbstractNotificationsModel::Private::onNotificationAdded(const Notification
                                      << "notifications";
         q->beginRemoveRows(QModelIndex(), 0, cleanupCount - 1);
         for (int i = 0; i < cleanupCount; ++i) {
-            Notification::Private::s_imageCache.remove(notifications.at(0).id());
-            q->stopTimeout(notifications.first().id());
+            Notification::Private::s_imageCache.remove(notifications.constFirst().id());
+            q->stopTimeout(notifications.constFirst().id());
             notifications.removeAt(0);
             // TODO close gracefully?
         }
@@ -96,9 +119,12 @@ void AbstractNotificationsModel::Private::onNotificationAdded(const Notification
     // dispatch a notification and then immediately exit
     if (notification.hasDefaultAction() || notification.hasReplyAction() || !notification.actionNames().empty()) {
         const QString service = notification.dBusService();
-        const auto watchedServices = notificationWatcher.watchedServices();
-        if (!watchedServices.contains(service)) {
-            notificationWatcher.addWatchedService(service);
+        // Portal notifications don't need to be watched, they do DBus activation and what not.
+        if (!service.isEmpty()) {
+            const auto watchedServices = notificationWatcher.watchedServices();
+            if (!watchedServices.contains(service)) {
+                notificationWatcher.addWatchedService(service);
+            }
         }
     }
 
@@ -222,7 +248,7 @@ void AbstractNotificationsModel::Private::removeRows(const QList<int> &rows)
 
     QList<QPair<int, int>> clearQueue;
 
-    QPair<int, int> clearRange{rowsToBeRemoved.first(), rowsToBeRemoved.first()};
+    QPair<int, int> clearRange{rowsToBeRemoved.constFirst(), rowsToBeRemoved.constFirst()};
 
     for (int row : rowsToBeRemoved) {
         if (row > clearRange.second + 1) {
@@ -233,7 +259,7 @@ void AbstractNotificationsModel::Private::removeRows(const QList<int> &rows)
         clearRange.second = row;
     }
 
-    if (clearQueue.isEmpty() || clearQueue.last() != clearRange) {
+    if (clearQueue.isEmpty() || clearQueue.constLast() != clearRange) {
         clearQueue.append(clearRange);
     }
 
@@ -548,6 +574,38 @@ void AbstractNotificationsModel::setupNotificationTimeout(const Notification &no
 const QList<Notification> &AbstractNotificationsModel::notifications()
 {
     return d->notifications;
+}
+
+void AbstractNotificationsModel::configure(const QString &desktopEntry, const QString &notifyRcName, const QString &eventId)
+{
+    QStringList args;
+    if (!desktopEntry.isEmpty()) {
+        args.append(QStringLiteral("--desktop-entry"));
+        args.append(desktopEntry);
+    }
+    if (!notifyRcName.isEmpty()) {
+        args.append(QStringLiteral("--notifyrc"));
+        args.append(notifyRcName);
+    }
+    if (!eventId.isEmpty()) {
+        args.append(QStringLiteral("--event-id"));
+        args.append(eventId);
+    }
+
+    const QString systemSettings = QStringLiteral("systemsettings");
+    auto job = new KIO::CommandLauncherJob(systemSettings, {QStringLiteral("kcm_notifications"), QStringLiteral("--args"), KShell::joinArgs(args)});
+    job->setDesktopName(systemSettings);
+
+    auto startWithToken = [job](const QString &token) {
+        job->setStartupId(token.toUtf8());
+        job->start();
+    };
+
+    if (KWindowSystem::isPlatformWayland()) {
+        KWaylandExtras::xdgActivationToken(window(), systemSettings).then(job, startWithToken);
+    } else {
+        startWithToken({});
+    }
 }
 
 #include "moc_abstractnotificationsmodel.cpp"

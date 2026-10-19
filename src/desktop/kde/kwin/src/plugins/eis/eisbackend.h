@@ -1,5 +1,5 @@
 /*
-    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo>
+    SPDX-FileCopyrightText: 2024 David Redondo <kde@david-redondo.de>
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
@@ -24,12 +24,17 @@ class QDBusServiceWatcher;
 
 namespace KWin
 {
+
 class DbusEisContext;
+
+#if KWIN_BUILD_X11
 class XWaylandEisContext;
+#endif
 
 class EisBackend : public KWin::InputBackend, public QDBusContext
 {
     Q_OBJECT
+
 public:
     explicit EisBackend(QObject *parent = nullptr);
     ~EisBackend() override;
@@ -43,11 +48,14 @@ public:
     eis_device *createKeyboard(eis_seat *seat);
     eis_device *createPointer(eis_seat *seat);
     eis_device *createAbsoluteDevice(eis_seat *seat);
+    eis_device *createText(eis_seat *seat);
 
 private:
     QDBusServiceWatcher *m_serviceWatcher;
     RamFile m_keymapFile;
+#if KWIN_BUILD_X11
     std::unique_ptr<XWaylandEisContext> m_xWaylandContext;
+#endif
     std::vector<std::unique_ptr<DbusEisContext>> m_contexts;
 };
 

@@ -2,6 +2,7 @@
 Type=Service
 Name=Google News
 Name[af]=Google Nuus
+Name[am]=Google ዜና
 Name[ar]=أخبار جوجل
 Name[as]=Google News
 Name[ast]=Google News
@@ -61,6 +62,8 @@ Name[ml]=ഗൂഗിള്‍ വാര്‍ത്തകള്‍
 Name[mr]=गूगल समाचार
 Name[ms]=Berita Google
 Name[my]=ဂူးဂယ်သတင်းများ
+Name[nan_TW]=Google 新聞
+Name[nan_TW@latin]=Google Sin-bûn
 Name[nb]=Google-nyheter
 Name[nds]=Google.de-Narichten
 Name[ne]=गुगल समाचार
@@ -101,6 +104,7 @@ Name[zh_CN]=Google 新闻
 Name[zh_TW]=Google 新聞
 Keys=ggn,googlenews
 Query=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
+Query[am]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[ar]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[az]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[be]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
@@ -135,7 +139,7 @@ Query[id]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[ie]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[is]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[it]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
-Query[ja]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
+Query[ja]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8&hl=ja&gl=JP
 Query[ka]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[kk]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[ko]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
@@ -144,6 +148,8 @@ Query[lt]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[lv]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[mr]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[my]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
+Query[nan_TW]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
+Query[nan_TW@latin]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[nb]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[nds]=https://news.google.de/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[nl]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
@@ -168,7 +174,6 @@ Query[tg]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[th]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[tok]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[tr]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
-Query[ug]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[uk]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8
 Query[vi]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8&hl=vi&gl=VN
 Query[wa]=https://news.google.com/news?q=\\{@}&ie=UTF-8&oe=UTF-8

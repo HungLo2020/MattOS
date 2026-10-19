@@ -22,6 +22,7 @@ extern "C" {
 #include <QPoint>
 #include <QQueue>
 #include <QRunnable>
+#include <QSize>
 #include <QThread>
 #include <QTimer>
 #include <QWaitCondition>
@@ -31,6 +32,7 @@ extern "C" {
 #include <mutex>
 #include <optional>
 #include <thread>
+#include <vector>
 
 #include "pipewirebaseencodedstream.h"
 #include "pipewiresourcestream.h"
@@ -43,15 +45,25 @@ struct AVPacket;
 struct AVFilterContext;
 struct AVFilterGraph;
 
+class AudioEncoder;
 class CustomAVFrame;
 class Encoder;
+class PipeWireAudioSourceStream;
+struct PipeWireAudioFrame;
 class PipeWireReceiveEncodedThread;
+
+enum class AudioSource {
+    SystemAudio = 1 << 0,
+    Microphone = 1 << 1,
+};
+Q_DECLARE_FLAGS(AudioSources, AudioSource)
+Q_DECLARE_OPERATORS_FOR_FLAGS(AudioSources)
 
 class PipeWireProduce : public QObject
 {
     Q_OBJECT
 public:
-    PipeWireProduce(PipeWireBaseEncodedStream::Encoder encoderType, uint nodeId, uint fd, const Fraction &framerate);
+    PipeWireProduce(PipeWireBaseEncodedStream::Encoder encoderType, uint nodeId, quint64 objectSerial, uint fd, const Fraction &framerate);
     ~PipeWireProduce() override;
 
     virtual void initialize();
@@ -67,15 +79,38 @@ public:
     int maxPendingFrames() const;
     void setMaxPendingFrames(int newMaxBufferSize);
 
+    QSize requestedSize() const;
+    void setRequestedSize(const QSize &size);
+
+    // can be called from any thread
+    void setEncoderPaused(bool encoderPaused);
+    bool encoderPaused() const
+    {
+        return m_encoderPaused;
+    }
+
     virtual int64_t framePts(const std::optional<std::chrono::nanoseconds> &presentationTimestamp)
     {
         return std::chrono::duration_cast<std::chrono::milliseconds>(presentationTimestamp.value()).count();
     }
 
     virtual void processPacket(AVPacket *packet) = 0;
+    virtual void processAudioPacket(AVPacket *packet)
+    {
+        Q_UNUSED(packet);
+    }
     virtual bool setupFormat()
     {
         return true;
+    }
+    // Whether this producer can cope with the source changing size while
+    // streaming. Producers that write a container/muxer (e.g. recording to a
+    // file) cannot, since the format is fixed once the header is written, so
+    // they keep the default and ignore size changes. Live consumers that can
+    // re-key the stream override this to opt into mid-stream encoder rebuilds.
+    virtual bool supportsResize() const
+    {
+        return false;
     }
     virtual void cleanup()
     {
@@ -83,12 +118,38 @@ public:
 
     void stateChanged(pw_stream_state state);
     void setupStream();
+    // Handles the source stream (re)negotiating its parameters. On the first
+    // call it performs the full stream setup; on later calls it rebuilds the
+    // encoder when the source size changed, so a resolution change is handled
+    // mid-stream without tearing down the connection.
+    void handleStreamParametersChanged();
+    // Rebuild the encoder (and its worker threads) to match the current source
+    // size after a mid-stream resize.
+    void reconfigureStream();
+    // Drop all frame state (last frame, repeat timer, queue counters) tied to
+    // the encoder being replaced, so nothing of the previous size reaches the
+    // new encoder. Called from reconfigureStream() while the workers are stopped.
+    void discardFrameState();
+    // Start/stop the passthrough and output worker threads that drive the
+    // encoder. Split out so the encoder can be swapped safely on a resize.
+    void startThreads();
+    void stopThreads();
+    void initializeAudioStreams();
     virtual void processFrame(const PipeWireFrame &frame);
+    void processAudioFrame(int input, const PipeWireAudioFrame &frame);
+    void handleAudioStreamStopped(int input);
+    void pushSilence(int input, int64_t sampleCount, quint32 channels, quint32 rate);
+    void padAudioInputToTarget(int input, std::chrono::steady_clock::time_point target);
     void render(const QImage &image, const PipeWireFrame &frame);
     virtual void aboutToEncode(PipeWireFrame &frame)
     {
         Q_UNUSED(frame);
     }
+
+    // Pause/resume frame delivery without tearing the stream down (suppress-output).
+    // Runs on the produce thread. Does not set m_deactivated, so it does not trigger
+    // teardown in stateChanged().
+    void setStreamActive(bool active);
 
     void deactivate();
 
@@ -103,15 +164,52 @@ public:
     void handleEncodedFramesChanged();
 
     const uint m_nodeId;
+    const quint64 m_objectSerial;
     QScopedPointer<PipeWireSourceStream> m_stream;
     QString m_error;
 
     PipeWireBaseEncodedStream::Encoder m_encoderType;
     QByteArray m_encoderName;
     std::unique_ptr<Encoder> m_encoder;
+    // The source size the current encoder was created for, used to detect
+    // mid-stream resizes that require rebuilding the encoder.
+    QSize m_encoderSize;
+
+    AudioSources m_audioSources;
+    std::unique_ptr<AudioEncoder> m_audioEncoder;
+    std::vector<std::unique_ptr<PipeWireAudioSourceStream>> m_audioStreams;
+
+    struct AudioInputState {
+        int64_t sampleCount = 0;
+        int64_t trimSamples = 0;
+        bool anchored = false;
+        bool ended = false;
+    };
+    // Only ever accessed from the produce thread, like all media processing.
+    std::vector<AudioInputState> m_audioInputStates;
+    std::unique_ptr<QTimer> m_audioPadTimer;
+
+    // The instant deactivate() was called, on the same clock as recordEpoch().
+    // The final audio padding in destroy() must run up to this moment and not
+    // up to now(): destroy() can be reached seconds later, after the queued
+    // video frames have been flushed (the Rendering phase on a software
+    // encoder), and padding to now() would make the audio track outlast the
+    // video with a tail of silence. Left unset if deactivate() never ran, in
+    // which case destroy() falls back to the current time.
+    std::optional<std::chrono::steady_clock::time_point> m_stopTimepoint;
+
+    // The instant the recording started, on CLOCK_MONOTONIC like the video
+    // frames' presentation timestamps and the audio capture times. It is
+    // initialized when the first media (video frame or audio buffer) is
+    // processed; media timestamped earlier than it belongs at the very start
+    // of the recording. Only used on the produce thread.
+    std::chrono::steady_clock::time_point recordEpoch();
+
+    std::optional<std::chrono::steady_clock::time_point> m_recordEpoch;
 
     uint m_fd;
     Fraction m_frameRate;
+    QSize m_requestedSize;
 
     std::optional<quint8> m_quality;
 
@@ -124,10 +222,6 @@ public:
         QPoint hotspot;
         bool dirty = false;
     } m_cursor;
-
-    QScopedPointer<QTimer> m_frameRepeatTimer;
-    bool m_enableFrameRepeat = true;
-    PipeWireFrame m_lastFrame;
 
     std::thread m_passthroughThread;
     std::thread m_outputThread;
@@ -148,6 +242,11 @@ public:
     std::atomic_int m_pendingFilterFrames = 0;
     std::atomic_int m_pendingEncodeFrames = 0;
     std::atomic_int m_processedFrames = 0;
+    // Whether the encoder has ever produced an encoded packet. Used to tell a broken
+    // encoder (frames go in, nothing comes out) from one that is merely keeping up.
+    std::atomic_bool m_anyFrameEncoded = false;
+    // Guards encodingError so it fires at most once per stream.
+    std::atomic_bool m_encodingErrorEmitted = false;
 
     // Controls how many frames we can push into ffmpeg's encoding stream
     std::atomic_int m_maxPendingFrames = 50;
@@ -156,10 +255,17 @@ public:
 
     std::unique_ptr<QTimer> m_frameStatisticsTimer;
 
+    std::atomic_bool m_encoderPaused = false;
+
+    PipeWireFrame m_lastDroppedFrame;
+
 Q_SIGNALS:
     void producedFrames();
     void started();
     void finished();
+    // Emitted when the encoder fails to start or stops producing output. Forwarded by
+    // PipeWireBaseEncodedStream as errorFound() so consumers can fall back gracefully.
+    void encodingError(const QString &message);
 
 private:
     void initFiltersVaapi();

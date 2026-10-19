@@ -23,8 +23,8 @@
 section="Markup"
 extensions="*.rmd;*.Rmd;*.RMD"
 mimetype="text/x-r-markdown"
-version="9"
-kateversion="5.79"
+version="11"
+kateversion="6.22"
 casesensitive="true"
 author="Dirk Sarpe (dsarpe@posteo.de)"
 license="GPL">
@@ -82,7 +82,7 @@ license="GPL">
       </context>
 
       <context name="YAMLhead" attribute="Document Headers"
-               lineEndContext="#stay">
+               lineEndContext="#stay" fallthroughContext="Lvl0Text##YAML">
         <RegExpr String="^---$" column="0" attribute="Markdown" context="#pop"
                  endRegion="YAMLhead block"/>
         <IncludeRules context="##YAML" includeAttrib="true"/>

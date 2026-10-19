@@ -1,12 +1,13 @@
 # Copyright (C) 2023 This file is copyright:
 # This file is distributed under the same license as the plasma-desktop package.
 # SPDX-FileCopyrightText: 2019, 2020, 2021, 2023, 2024, 2025, 2026 Vit Pelcak <vit@pelcak.org>
+# SPDX-FileCopyrightText: 2026 Libor Filipek <libor.filipek@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-13 08:43+0000\n"
+"POT-Creation-Date: 2026-06-06 00:45+0000\n"
 "PO-Revision-Date: 2026-03-13 14:10+0100\n"
 "Last-Translator:  Vít Pelčák <vit@pelcak.org>\n"
 "Language-Team: Czech <kde-i18n-doc@kde.org>\n"
@@ -15,14 +16,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 
-#: kcm.cpp:62
+#: kcm.cpp:64
 #, kde-format
 msgid "Toggle do not disturb"
 msgstr "Zapnout na Nerušit"
 
-#: sourcesmodel.cpp:406
+#: sourcesmodel.cpp:404
 #, kde-format
 msgid "Other Applications"
 msgstr "Ostatní aplikace"
@@ -275,36 +276,24 @@ msgctxt ""
 msgid "Application Notifications"
 msgstr "Upozornění aplikací"
 
-#: ui/SourcesPage.qml:104
+#: ui/SourcesPage.qml:108
 #, kde-format
 msgid "Applications"
 msgstr "Aplikace"
 
-#: ui/SourcesPage.qml:105
+#: ui/SourcesPage.qml:109
 #, kde-format
 msgid "System Services"
 msgstr "Systémové služby"
 
-#: ui/SourcesPage.qml:153
+#: ui/SourcesPage.qml:157
 #, kde-format
 msgid "No application or event matches your search term"
 msgstr "Vyhledávanému termínu neodpovídá žádná aplikace ani událost"
 
-#: ui/SourcesPage.qml:177
+#: ui/SourcesPage.qml:181
 #, kde-format
 msgid ""
 "Select an application from the list to configure its notification settings "
 "and behavior"
 msgstr "Vyberte v seznamu aplikaci, jejíž upozornění chcete nastavit"
-
-#~ msgctxt "@action:button Plasma-specific notifications"
-#~ msgid "System Notifications"
-#~ msgstr "Systémová upozornění"
-
-#~ msgctxt "@action:button Application-specific notifications"
-#~ msgid "Application Settings"
-#~ msgstr "Nastavení aplikace"
-
-#~ msgctxt "@action:button choose custom notification position"
-#~ msgid "Custom…"
-#~ msgstr "Vlastní…"

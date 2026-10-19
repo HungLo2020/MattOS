@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdebase/kcmkeyboard.po\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
 "PO-Revision-Date: 2026-01-21 12:09+0000\n"
 "Last-Translator: Aindriú Mac Giolla Eoin <aindriu80@yahoo.com>\n"
 "Language-Team: Irish <http://weblate.amgelocalnet.duckdns.org/projects/kde-"
@@ -95,10 +95,12 @@ msgstr ""
 "D’fhéadfadh siad seo oibriú go breá fós má chuirtear i bhfeidhm iad"
 
 #: ui/KeyBindings.qml:18
-#, kde-format
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Key Bindings"
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "Cumraigh Ceangail Eochracha…"
+msgid "Key Bindings"
+msgstr "Ceangail Eochracha"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -136,13 +138,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "Cuir Leagan Amach Leis"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "Ainm gearr leagan amach"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -152,13 +154,13 @@ msgstr ""
 "Ainm giorraithe an leagan amach roghnaithe, a thaispeánfar sa tráidire "
 "córais. Is féidir leat an socrú seo a athrú tú féin."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "Aicearra:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -548,7 +550,7 @@ msgstr ""
 "Is féidir eochracha modhnóra a úsáid chun carachtair, siombailí agus "
 "marcanna diaicritice breise a chlóscríobh."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
@@ -558,8 +560,12 @@ msgstr[2] "%1 aicearraí"
 msgstr[3] "%1 aicearraí"
 msgstr[4] "%1 aicearraí"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "Dada"
+
+#~ msgctxt "@title"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "Cumraigh Ceangail Eochracha…"

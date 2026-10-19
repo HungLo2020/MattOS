@@ -19,6 +19,9 @@
 
 #include "qbinaryjson.h"
 
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsonobject.h>
+
 #include <private/qbinaryjsonvalue_p.h>
 #include <private/qendian_p.h>
 
@@ -111,6 +114,13 @@ using offset = qle_uint;
 
 // round the size up to the next 4 byte boundary
 inline uint alignedSize(uint size) { return (size + 3) & ~3; }
+
+// Every structure in the binary format (Base, Entry, Value, offset, String::Data,
+// Latin1String::Data) is placed at a 4 byte boundary, and the writer only ever emits
+// offsets that are multiples of 4. Offsets read from untrusted data must be checked
+// against that invariant before they are turned into pointers, or we dereference
+// misaligned pointers (undefined behavior) while validating the data.
+inline bool isAlignedOffset(uint offset) { return (offset & 3) == 0; }
 
 const int MaxLatin1Length = 0x7fff;
 
@@ -313,6 +323,41 @@ public:
     uint reserveSpace(uint dataSize, uint posInTable, uint numItems, bool replace);
 };
 
+// A frame to iteratively check if the binary representation is valid or not.
+struct IsValidFrame
+{
+    explicit IsValidFrame(const Base *b, uint sz) : base(b), size(sz)
+    {}
+
+    const Base *base;
+    uint size;
+};
+using IsValidStack = QVarLengthArray<IsValidFrame, 16>;
+
+
+// A frame to construct the JSON document from a binary representation in
+// an iterative way.
+// It should maintain the object/array that is currently constructed.
+// We store both QJsonObject and QJsonArray, because it allow to avoid
+// manual memory management with a union.
+// We could use std::variant, but that would be the same in terms of
+// memory (each of QJsonObject and QJsonArray is 8 bytes), and
+// std::variant<QJsonObject, QJsonArray> is 16 bytes on its own.
+struct DocumentFrame
+{
+    explicit DocumentFrame(const Base *b, QString k = {})
+        : base(b), key(std::move(k)), isObject(b->isObject())
+    {}
+
+    const Base *base;
+    QString key;
+    QJsonObject object;
+    QJsonArray array;
+    uint index = 0;
+    bool isObject;
+};
+using DocumentStack = QVarLengthArray<DocumentFrame, 16>;
+
 class Object : public Base
 {
 public:
@@ -327,8 +372,7 @@ public:
     }
 
     uint indexOf(QStringView key, bool *exists) const;
-    QJsonObject toJsonObject() const;
-    bool isValid(uint maxSize) const;
+    bool isValidHelper(uint maxSize, IsValidStack &stack) const;
 };
 
 class Array : public Base
@@ -337,8 +381,7 @@ public:
     const Value *at(uint i) const { return reinterpret_cast<const Value *>(table() + i); }
     Value *at(uint i) { return reinterpret_cast<Value *>(table() + i); }
 
-    QJsonArray toJsonArray() const;
-    bool isValid(uint maxSize) const;
+    bool isValidHelper(uint maxSize, IsValidStack &stack) const;
 };
 
 class Value
@@ -416,8 +459,8 @@ public:
         return reinterpret_cast<const Base *>(data(b));
     }
 
-    QJsonValue toJsonValue(const Base *b) const;
-    bool isValid(const Base *b) const;
+    QJsonValue toScalarJsonValue(const Base *b) const;
+    bool isValidHelper(const Base *b, IsValidStack &stack) const;
 
     static uint requiredStorage(const QBinaryJsonValue &v, bool *compressed);
     static uint valueToStore(const QBinaryJsonValue &v, uint offset);
@@ -547,18 +590,18 @@ public:
         Q_ASSERT(valueType == QJsonValue::Array || valueType == QJsonValue::Object);
 
         alloc = sizeof(Header) + sizeof(Base) + reserved + sizeof(offset);
-        header = reinterpret_cast<Header *>(malloc(alloc));
-        Q_CHECK_PTR(header);
+        void *mem = malloc(alloc);
+        Q_CHECK_PTR(mem);
+        header = new (mem) Header;
         header->tag = QJsonDocument::BinaryFormatTag;
         header->version = 1;
-        Base *b = header->root();
-        b->size = sizeof(Base);
+        Base *b = new (static_cast<void *>(header->root())) Base{
+            qle_uint{sizeof(Base)},
+            {}, // isObject == false && length == 0
+            offset{sizeof(Base)}
+        };
         if (valueType == QJsonValue::Object)
             b->setIsObject();
-        else
-            b->setIsArray();
-        b->tableOffset = sizeof(Base);
-        b->setLength(0);
     }
 
     ~MutableData()
@@ -605,6 +648,9 @@ public:
 };
 
 } // namespace QBinaryJsonPrivate
+
+Q_DECLARE_TYPEINFO(QBinaryJsonPrivate::IsValidFrame, Q_PRIMITIVE_TYPE);
+Q_DECLARE_TYPEINFO(QBinaryJsonPrivate::DocumentFrame, Q_RELOCATABLE_TYPE);
 
 Q_DECLARE_TYPEINFO(QBinaryJsonPrivate::Value, Q_PRIMITIVE_TYPE);
 

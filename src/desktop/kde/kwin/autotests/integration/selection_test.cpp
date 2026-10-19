@@ -33,8 +33,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_selection-0");
-
 template<typename Offer>
 static QFuture<QByteArray> readMimeTypeData(const Offer &offer, const QMimeType &mimeType)
 {
@@ -105,7 +103,7 @@ void SelectionTest::initTestCase()
 {
     qRegisterMetaType<Window *>();
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),

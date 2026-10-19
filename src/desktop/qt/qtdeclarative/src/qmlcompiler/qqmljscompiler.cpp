@@ -79,39 +79,6 @@ void QQmlJSCompileError::appendDiagnostics(const QString &inputFileName,
         appendDiagnostic(inputFileName, diagnostic);
 }
 
-// Ensure that ListElement objects keep all property assignments in their string form
-static void annotateListElements(QmlIR::Document *document)
-{
-    QStringList listElementNames;
-
-    for (const QV4::CompiledData::Import *import : std::as_const(document->imports)) {
-        const QString uri = document->stringAt(import->uriIndex);
-        if (uri != QStringLiteral("QtQml.Models") && uri != QStringLiteral("QtQuick"))
-            continue;
-
-         QString listElementName = QStringLiteral("ListElement");
-         const QString qualifier = document->stringAt(import->qualifierIndex);
-         if (!qualifier.isEmpty()) {
-             listElementName.prepend(QLatin1Char('.'));
-             listElementName.prepend(qualifier);
-         }
-         listElementNames.append(listElementName);
-    }
-
-    if (listElementNames.isEmpty())
-        return;
-
-    for (QmlIR::Object *object : std::as_const(document->objects)) {
-        if (!listElementNames.contains(document->stringAt(object->inheritedTypeNameIndex)))
-            continue;
-        for (QmlIR::Binding *binding = object->firstBinding(); binding; binding = binding->next) {
-            if (binding->type() != QV4::CompiledData::Binding::Type_Script)
-                continue;
-            binding->stringIndex = document->registerString(object->bindingAsString(document, binding->value.compiledScriptIndex));
-        }
-    }
-}
-
 static bool checkArgumentsObjectUseInSignalHandlers(const QmlIR::Document &doc,
                                                     QQmlJSCompileError *error)
 {
@@ -214,7 +181,6 @@ bool qCompileQmlFile(QmlIR::Document &irDocument, const QString &inputFileName,
         }
     }
 
-    annotateListElements(&irDocument);
     QQmlJSAotFunctionMap aotFunctionsByIndex;
 
     {
@@ -372,7 +338,8 @@ bool qCompileQmlFile(QmlIR::Document &irDocument, const QString &inputFileName,
                 | QV4::CompiledData::Unit::PendingTypeCompilation;
         QV4::CompiledData::SaveableUnitPointer saveable(
                 irDocument.javaScriptCompilationUnit->unitData(), saveFlags);
-        if (!saveFunction(saveable, aotFunctionsByIndex, &error->message))
+        LookupSignatures sigs = aotCompiler ? aotCompiler->lookupSignatures() : LookupSignatures();
+        if (!saveFunction(saveable, aotFunctionsByIndex, sigs, &error->message))
             return false;
     }
     return true;
@@ -466,9 +433,10 @@ bool qCompileJSFile(
         }
     }
 
-    QQmlJSAotFunctionMap empty;
+    QQmlJSAotFunctionMap funcs;
+    LookupSignatures sigs;
     return saveFunction(
-            QV4::CompiledData::SaveableUnitPointer(unit->unitData()), empty, &error->message);
+            QV4::CompiledData::SaveableUnitPointer(unit->unitData()), funcs, sigs, &error->message);
 }
 
 static const char *funcHeaderCode = R"(
@@ -477,7 +445,140 @@ Q_UNUSED(aotContext)
 Q_UNUSED(argv)
 )";
 
-bool qSaveQmlJSUnitAsCpp(const QString &inputFileName, const QString &outputFileName, const QV4::CompiledData::SaveableUnitPointer &unit, const QQmlJSAotFunctionMap &aotFunctions, QString *errorString)
+static QString wrapString(const QString &s)
+{
+    return "u\"%1\"_s"_L1.arg(s);
+}
+
+static QString typeToString(const QQmlPrivate::AOTLookupValidation::Type &type)
+{
+    bool isComposite = type.isComposite == QQmlPrivate::AOTLookupValidation::IsComposite::Yes;
+    bool isIC = type.isInlineComponent == QQmlPrivate::AOTLookupValidation::IsIC::Yes;
+    return u"Type{ %1, %2, %3, %4, %5 }"_s
+            .arg(wrapString(type.module), wrapString(type.name),
+                 wrapString(type.icNameOrExtensionTypeName),
+                 isComposite ? "IsComposite::Yes"_L1 : "IsComposite::No"_L1,
+                 isIC ? "IsIC::Yes"_L1 : "IsIC::No"_L1);
+};
+
+static QString lookupToString(const QQmlPrivate::AOTLookupValidation::Lookup &lookup)
+{
+    return "Lookup{ %1, %2, %3 }"_L1.arg(typeToString(lookup.base), wrapString(lookup.member),
+                                         wrapString(lookup.enumName));
+};
+
+static QString signatureToString(const QQmlPrivate::AOTLookupValidation::Signature &signature)
+{
+    if (const auto *p = std::get_if<QQmlPrivate::AOTLookupValidation::PropertySignature>(&signature)) {
+        return u"PropertySignature{ %1, %2 }"_s
+                .arg(typeToString(p->type), QString::number(p->relativeIndex));
+    } else if (const auto *e = std::get_if<QQmlPrivate::AOTLookupValidation::EnumKeySignature>(&signature)) {
+        bool isFlag = e->isFlag == QQmlPrivate::AOTLookupValidation::IsFlag::Yes;
+        return u"EnumKeySignature{ %1, %2 }"_s
+                .arg(QString::number(e->value), isFlag ? "IsFlag::Yes"_L1 : "IsFlag::No"_L1);
+    } else if (const auto *m = std::get_if<QQmlPrivate::AOTLookupValidation::MethodSignature>(&signature)) {
+        QString paramNames = "{ "_L1;
+        for (const auto &paramName : m->paramNames)
+            paramNames += wrapString(paramName) + ", "_L1;
+        paramNames += u'}';
+
+        QString types = "{ "_L1;
+        for (const auto &paramType : m->types)
+            types += typeToString(paramType) + ", "_L1;
+        types += u'}';
+
+        bool isSignal = m->isSignal == QQmlPrivate::AOTLookupValidation::IsSignal::Yes;
+        return u"MethodSignature{ %1, %2, %3, %4 }"_s
+                .arg(paramNames, types, QString::number(m->relativeIndex),
+                     isSignal ? "IsSignal::Yes"_L1 : "IsSignal::No"_L1);
+    }
+    Q_UNREACHABLE_RETURN(QString());
+};
+
+static const char *skippedValidationCode = R"(
+bool validateLookupSignatures(QQmlEngine *engine, QV4::CompiledData::CompilationUnit *cu)
+{
+    // AOT validation code not generated (NO_GENERATE_AOT_VALIDATION)
+    Q_UNUSED(engine);
+    Q_UNUSED(cu);
+    return true;
+}
+
+)";
+
+template <typename WriteStr>
+static bool generateAotValidationCode(
+        const WriteStr &writeStr, const LookupSignatures &lookupSignatures, bool noAotValidation)
+{
+    if (noAotValidation) {
+        if (!writeStr(skippedValidationCode))
+            return false;
+        return true;
+    }
+
+    using namespace QQmlPrivate::AOTLookupValidation;
+    if (!writeStr("QQmlPrivate::AOTLookupValidation::LookupSignatures expectedLookupSignatures()\n"
+                  "{\n"
+                  "    using namespace Qt::StringLiterals;\n"
+                  "    using namespace QQmlPrivate::AOTLookupValidation;\n"
+                  "    return {\n")) {
+        return false;
+    }
+
+    const auto &signatures = lookupSignatures.asKeyValueRange();
+    QList<std::pair<Lookup, Signature>> sorted{ signatures.begin(), signatures.end() };
+    std::stable_sort(sorted.begin(), sorted.end(), [&](const auto &lhs, const auto &rhs) {
+        const auto &lTypeString = typeToString(lhs.first.base);
+        const auto &rTypeString = typeToString(rhs.first.base);
+        if (lTypeString == rTypeString)
+            return lhs.first.member < rhs.first.member;
+        return lTypeString < rTypeString;
+    });
+
+    for (const auto &[memberlookup, signature] : sorted) {
+        if (!writeStr("        { %1, %2 },\n"_L1
+                              .arg(lookupToString(memberlookup), signatureToString(signature))
+                              .toLatin1())) {
+            return false;
+        }
+    }
+
+    if (!writeStr("    };\n}\n"))
+        return false;
+
+    const QString validateLookupSignatures = uR"(
+bool validateLookupSignatures(QQmlEngine *engine, QV4::CompiledData::CompilationUnit *cu)
+{
+    enum ValidationState { Pending, Failed, Succeeded };
+    static ValidationState state = Pending;
+    if (state == Failed)
+        return false;
+    if (state == Succeeded)
+        return true;
+    const auto &expectedSignatures = expectedLookupSignatures();
+    for (const auto &[lookup, expectedSignature] : expectedSignatures.asKeyValueRange()) {
+        if (!QQmlPrivate::AOTLookupValidation::validateLookupSignature(engine, cu, lookup, expectedSignature)) {
+            state = Failed;
+            return false;
+        }
+    }
+    state = Succeeded;
+    return true;
+}
+
+)"_s;
+
+    if (!writeStr(validateLookupSignatures.toUtf8()))
+        return false;
+
+    return true;
+}
+
+bool qSaveQmlJSUnitAsCpp(const QString &inputFileName, const QString &outputFileName,
+                         const QV4::CompiledData::SaveableUnitPointer &unit,
+                         const QQmlJSAotFunctionMap &aotFunctions,
+                         const LookupSignatures &lookupSignatures, bool noAotValidation,
+                         QString *errorString)
 {
 #if QT_CONFIG(temporaryfile)
     QSaveFile f(outputFileName);
@@ -509,6 +610,11 @@ bool qSaveQmlJSUnitAsCpp(const QString &inputFileName, const QString &outputFile
     if (!writeStr("#include <QtQml/qqmlprivate.h>\n"))
         return false;
 
+    if (!noAotValidation) {
+        if (!writeStr("#include <QtCore/qhash.h>\n"))
+            return false;
+    }
+
     if (!aotFunctions.isEmpty()) {
         QStringList includes;
 
@@ -523,13 +629,19 @@ bool qSaveQmlJSUnitAsCpp(const QString &inputFileName, const QString &outputFile
         }
     }
 
-    if (!writeStr(QByteArrayLiteral("namespace QmlCacheGeneratedCode {\nnamespace ")))
+    if (!writeStr(QByteArrayLiteral("\nnamespace QmlCacheGeneratedCode {\nnamespace ")))
         return false;
 
     if (!writeStr(qQmlJSSymbolNamespaceForPath(inputFileName).toUtf8()))
         return false;
 
-    if (!writeStr(QByteArrayLiteral(" {\nextern const unsigned char qmlData alignas(16) [];\n"
+    if (!writeStr(" {\n"))
+        return false;
+
+    if (!generateAotValidationCode(writeStr, lookupSignatures, noAotValidation))
+        return false;
+
+    if (!writeStr(QByteArrayLiteral("extern const unsigned char qmlData alignas(16) [];\n"
                                     "extern const unsigned char qmlData alignas(16) [] = {\n")))
         return false;
 
@@ -652,7 +764,7 @@ QQmlJS::DiagnosticMessage QQmlJSAotCompiler::diagnose(
 {
     if (isStrict(m_document)
             && (type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg)
-            && m_logger->isCategoryFatal(qmlCompiler)) {
+            && m_logger->categorySeverity(qmlCompiler) == QQmlSA::WarningSeverity::Error) {
         qFatal("%s:%d: (strict mode) %s",
                qPrintable(QFileInfo(m_resourcePath).fileName()),
                location.startLine, qPrintable(message));
@@ -731,7 +843,7 @@ QQmlJSAotFunction QQmlJSAotCompiler::globalCode() const
 
 std::optional<QList<QQmlJS::DiagnosticMessage>> QQmlJSAotCompiler::finalizeBindingOrFunction()
 {
-    const auto archiveMessages = qScopeGuard([this]() { m_logger->finalizeFuction(); });
+    const auto archiveMessages = qScopeGuard([this]() { m_logger->finalizeFunction(); });
 
     if (!m_logger->currentFunctionHasCompileError())
         return {};
@@ -745,7 +857,7 @@ std::optional<QList<QQmlJS::DiagnosticMessage>> QQmlJSAotCompiler::finalizeBindi
 }
 
 QQmlJSAotFunction QQmlJSAotCompiler::doCompile(
-        const QV4::Compiler::Context *context, QQmlJSCompilePass::Function *function)
+        const QV4::Compiler::Context *context, const QQmlJSCompilePass::Function *function)
 {
     if (m_logger->currentFunctionHasErrorOrSkip())
         return QQmlJSAotFunction();
@@ -785,17 +897,18 @@ QQmlJSAotFunction QQmlJSAotCompiler::doCompile(
     if (m_logger->currentFunctionHasErrorOrSkip())
         return QQmlJSAotFunction();
 
-    QQmlJSCodeGenerator codegen(
-            context, m_unitGenerator, &m_typeResolver, m_logger, blocks, annotations);
+    QQmlJSCodeGenerator codegen(context, m_unitGenerator, &m_typeResolver, m_logger, blocks,
+                                annotations, noAotValidation());
     QQmlJSAotFunction result = codegen.run(function, basicBlocksValidationFailed);
     if (m_logger->currentFunctionHasErrorOrSkip())
         return QQmlJSAotFunction();
 
+    m_lookupSignatures.insert(codegen.lookupSignatures());
     return result;
 }
 
 QQmlJSAotFunction QQmlJSAotCompiler::doCompileAndRecordAotStats(
-        const QV4::Compiler::Context *context, QQmlJSCompilePass::Function *function,
+        const QV4::Compiler::Context *context, const QQmlJSCompilePass::Function *function,
         const QString &name, QQmlJS::SourceLocation location)
 {
     QElapsedTimer timer {};

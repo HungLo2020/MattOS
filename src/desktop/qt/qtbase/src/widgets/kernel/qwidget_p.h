@@ -399,13 +399,6 @@ public:
     void updateFrameStrut();
     QRect frameStrut() const;
 
-#ifdef QT_KEYPAD_NAVIGATION
-    static bool navigateToDirection(Direction direction);
-    static QWidget *widgetInNavigationDirection(Direction direction);
-    static bool canKeypadNavigate(Qt::Orientation orientation);
-    static bool inTabWidget(QWidget *widget);
-#endif
-
     void setWindowIconText_sys(const QString &cap);
     void setWindowIconText_helper(const QString &cap);
     void setWindowTitle_sys(const QString &cap);
@@ -679,9 +672,6 @@ public:
 #if !defined(QT_NO_IM)
     Qt::InputMethodHints imHints;
 #endif
-#ifdef QT_KEYPAD_NAVIGATION
-    static QPointer<QWidget> editingWidget;
-#endif
 
     // Implicit pointers (shared_null/shared_empty).
     QRegion opaqueChildren;
@@ -790,7 +780,7 @@ public:
     // *************************** Platform specific ************************************
 #if defined(Q_OS_WIN)
     uint noPaintOnScreen : 1; // see qwidget.cpp ::paintEngine()
-#elif defined(Q_OS_MAC)
+#elif defined(Q_OS_MACOS)
     void macUpdateSizeAttribute();
 #endif
     void setNetWmWindowTypes(bool skipIfMissing = false);

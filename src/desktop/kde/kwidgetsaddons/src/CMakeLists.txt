@@ -17,6 +17,8 @@ target_sources(KF6WidgetsAddons PRIVATE
     fonthelpers_p.h
     highcontrasthelper.cpp
     highcontrasthelper_p.h
+    kabstractcoloredit.cpp
+    kabstractcoloredit_p.h
     kacceleratormanager.cpp
     kacceleratormanager.h
     kacceleratormanager_p.h
@@ -45,6 +47,8 @@ target_sources(KF6WidgetsAddons PRIVATE
     kcolorbutton.h
     kcolorcombo.cpp
     kcolorcombo.h
+    kcolormimedata.cpp
+    kcolormimedata_p.h
     kcolumnresizer.cpp
     kcolumnresizer.h
     kcontextualhelpbutton.cpp
@@ -100,8 +104,6 @@ target_sources(KF6WidgetsAddons PRIVATE
     kmessagewidget.h
     kmimetypechooser.cpp
     kmimetypechooser.h
-    kmimetypeeditor.cpp
-    kmimetypeeditor.h
     kmultitabbar.cpp
     kmultitabbar.h
     kmultitabbar_p.h
@@ -202,6 +204,13 @@ target_sources(KF6WidgetsAddons PRIVATE
     icons.qrc
 )
 
+if(NOT IOS)
+    target_sources(KF6WidgetsAddons PRIVATE
+        kmimetypeeditor.cpp
+        kmimetypeeditor.h
+    )
+endif()
+
 set(kwidgetsaddons_UI_SRCS)
 qt_wrap_ui(kwidgetsaddons_UI_SRCS
    kdatetimeedit.ui
@@ -216,7 +225,6 @@ ecm_qt_declare_logging_category(KF6WidgetsAddons
     HEADER loggingcategory.h
     IDENTIFIER KWidgetsAddonsLog
     CATEGORY_NAME kf.kwidgetsaddons
-    DEFAULT_SEVERITY Warning
     DESCRIPTION "KWidgetsAddons"
     EXPORT KWIDGETSADDONS
 )
@@ -227,7 +235,7 @@ ecm_generate_export_header(KF6WidgetsAddons
     VERSION ${KF_VERSION}
     USE_VERSION_HEADER
     DEPRECATED_BASE_VERSION 0
-    DEPRECATION_VERSIONS 6.5 6.24
+    DEPRECATION_VERSIONS 6.0 6.5 6.24 6.29
     EXCLUDE_DEPRECATED_BEFORE_AND_AT ${EXCLUDE_DEPRECATED_BEFORE_AND_AT}
 )
 
@@ -235,7 +243,7 @@ target_link_libraries(KF6WidgetsAddons PUBLIC Qt6::Widgets)
 
 target_include_directories(KF6WidgetsAddons INTERFACE "$<INSTALL_INTERFACE:${KDE_INSTALL_INCLUDEDIR_KF}/KWidgetsAddons>")
 
-ecm_generate_headers(KWidgetsAddons_HEADERS
+ecm_generate_headers(KWidgetsAddons_CamelCase_HEADERS
   HEADER_NAMES
   KAcceleratorManager
   KAnimatedButton
@@ -327,6 +335,7 @@ install(TARGETS KF6WidgetsAddons EXPORT KF6WidgetsAddonsTargets ${KF_INSTALL_TAR
 
 install(FILES
   ${KWidgetsAddons_HEADERS}
+  ${KWidgetsAddons_CamelCase_HEADERS}
   ${CMAKE_CURRENT_BINARY_DIR}/kwidgetsaddons_export.h
   DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KWidgetsAddons COMPONENT Devel
 )
@@ -346,4 +355,17 @@ ecm_qt_install_logging_categories(
     EXPORT KWIDGETSADDONS
     FILE kwidgetsaddons.categories
     DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR}
+)
+
+ecm_add_installed_library_check(KF6WidgetsAddons
+    PACKAGE_NAME "KF6WidgetsAddons"
+    PACKAGE_TARGET_NAMESPACE "KF6::"
+)
+
+ecm_installed_library_check_include_strings(KF6WidgetsAddons
+    HEADERS ${KWidgetsAddons_CamelCase_HEADERS}
+)
+
+ecm_installed_library_check_version_preprocessor_macros(KF6WidgetsAddons
+    PREFIX KWIDGETSADDONS
 )

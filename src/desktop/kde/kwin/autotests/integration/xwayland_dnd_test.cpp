@@ -37,7 +37,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_xwayland_dnd-0");
 static const int xdndVersion = 5;
 
 class X11Display;
@@ -213,7 +212,6 @@ static X11Window *createX11Window(xcb_connection_t *connection, const Rect &geom
     }
 
     X11Window *window = windowCreatedSpy.last().first().value<X11Window *>();
-    QMetaObject::invokeMethod(window, "setReadyForPainting");
 
     if (!Test::waitForWaylandSurface(window)) {
         xcb_destroy_window(connection, windowId);
@@ -288,7 +286,7 @@ public:
     xcb_atom_t mimeTypeToAtom(const QMimeType &mimeType) const
     {
         QByteArray effectiveName;
-        if (mimeType.name() == QLatin1String("text/plain")) {
+        if (mimeType.name() == QLatin1StringView("text/plain")) {
             effectiveName = QByteArrayLiteral("TEXT");
         } else {
             effectiveName = mimeType.name().toUtf8();
@@ -320,7 +318,7 @@ public:
         free(reply);
 
         QString effectiveName;
-        if (name == QLatin1String("TEXT")) {
+        if (name == QLatin1StringView("TEXT")) {
             effectiveName = QStringLiteral("text/plain");
         } else {
             effectiveName = name;
@@ -997,7 +995,7 @@ void XwaylandDndTest::initTestCase()
         maybeResetXwaylandCursor();
     });
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
     Test::setOutputConfig({
         Rect(0, 0, 1280, 1024),
@@ -1560,7 +1558,7 @@ void XwaylandDndTest::noAcceptedMimeTypeWaylandToX11()
     waylandDataSource->offer(QStringLiteral("text/plain"));
     waylandDataSource->setDragAndDropActions(KWayland::Client::DataDeviceManager::DnDAction::Copy | KWayland::Client::DataDeviceManager::DnDAction::Move);
     connect(waylandDataSource, &KWayland::Client::DataSource::sendDataRequested, this, [](const QString &mimeType, int fd) {
-        if (mimeType == QLatin1String("text/plain")) {
+        if (mimeType == QLatin1StringView("text/plain")) {
             const auto payload = QByteArrayLiteral("wayland -> x11");
             write(fd, payload.data(), payload.size());
         }
@@ -1628,7 +1626,7 @@ void XwaylandDndTest::destroyWaylandToX11Source()
     waylandDataSource->offer(QStringLiteral("text/plain"));
     waylandDataSource->setDragAndDropActions(KWayland::Client::DataDeviceManager::DnDAction::Copy | KWayland::Client::DataDeviceManager::DnDAction::Move);
     connect(waylandDataSource, &KWayland::Client::DataSource::sendDataRequested, this, [](const QString &mimeType, int fd) {
-        if (mimeType == QLatin1String("text/plain")) {
+        if (mimeType == QLatin1StringView("text/plain")) {
             const auto payload = QByteArrayLiteral("wayland -> x11");
             write(fd, payload.data(), payload.size());
         }
@@ -1694,7 +1692,7 @@ void XwaylandDndTest::cancelWaylandToX11()
     waylandDataSource->offer(QStringLiteral("text/plain"));
     waylandDataSource->setDragAndDropActions(KWayland::Client::DataDeviceManager::DnDAction::Copy | KWayland::Client::DataDeviceManager::DnDAction::Move);
     connect(waylandDataSource, &KWayland::Client::DataSource::sendDataRequested, this, [](const QString &mimeType, int fd) {
-        if (mimeType == QLatin1String("text/plain")) {
+        if (mimeType == QLatin1StringView("text/plain")) {
             const auto payload = QByteArrayLiteral("wayland -> x11");
             write(fd, payload.data(), payload.size());
         }
@@ -1760,7 +1758,7 @@ void XwaylandDndTest::waylandToXdndUnawareWindow()
     waylandDataSource->offer(QStringLiteral("text/plain"));
     waylandDataSource->setDragAndDropActions(KWayland::Client::DataDeviceManager::DnDAction::Copy | KWayland::Client::DataDeviceManager::DnDAction::Move);
     connect(waylandDataSource, &KWayland::Client::DataSource::sendDataRequested, this, [](const QString &mimeType, int fd) {
-        if (mimeType == QLatin1String("text/plain")) {
+        if (mimeType == QLatin1StringView("text/plain")) {
             const auto payload = QByteArrayLiteral("wayland -> x11");
             write(fd, payload.data(), payload.size());
         }

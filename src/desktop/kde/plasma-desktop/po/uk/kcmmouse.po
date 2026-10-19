@@ -7,42 +7,30 @@
 # Andriy Rysin <rysin@kde.org>, 2002, 2003, 2004, 2006.
 # Eugene Onischenko <oneugene@ukr.net>, 2003, 2005.
 # Ivan Petrouchtchak <fr.ivan@ukrainian-orthodox.org>, 2005, 2006, 2007, 2008.
-# Yuri Chornoivan <yurchor@ukr.net>, 2008, 2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2020, 2022, 2023, 2024, 2025, 2026.
+# SPDX-FileCopyrightText: 2008, 2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2020, 2022, 2023, 2024, 2025, 2026 Yuri Chornoivan <yurchor@ukr.net>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmmouse\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-08 08:47+0200\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-09-04 11:27+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 23.04.3\n"
+"X-Generator: Lokalize 25.12.1\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr ""
-"Не вдалося опитати пристрої введення. Будь ласка, закрийте це вікно модуля, "
-"а потім знову його відкрийте."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr ""
 "Критична помилка під час читання основних відомостей щодо пристрою для %1."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "Не вдалося вибрати відповідний модуль обробки"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -51,12 +39,12 @@ msgstr ""
 "Помилка під час завантаження значень. Докладнішу інформацію можна знайти у "
 "журналі. Будь ласка, перезапустіть модуль керування сенсорними панелями."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "Не знайдено координатного пристрою. З'єднайте пристрій з комп'ютером."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -66,7 +54,7 @@ msgstr ""
 "Будь ласка, перезапустіть модуль керування сенсорними панелями, потім "
 "повторіть спробу."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -75,7 +63,7 @@ msgstr ""
 "Помилка під час спроби завантажити типові значення. Не вдалося встановити "
 "типові значення для усіх параметрів."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -85,13 +73,13 @@ msgstr ""
 "спробуйте з’єднати його з комп’ютером ще раз, потім перезапустіть модуль "
 "керування сенсорними панелями."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr ""
 "Координатний пристрій від’єднано. Діалогове вікно його параметрів закрито."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr "Координатний пристрій від’єднано. Інших пристроїв не знайдено."
@@ -151,37 +139,37 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "Пристрій:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, kde-format
 msgctxt "@title:group"
 msgid "General:"
 msgstr "Загальне:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr "Увімкнути пристрій"
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, kde-format
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "Ліва і права кнопки:"
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, kde-format
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "Поміняти місцями (режим шульги)"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
 msgstr "Натискання обох кнопок для клацання середньою"
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -192,19 +180,19 @@ msgstr ""
 "мс. Додаткова затримка потрібна для належного виявлення одночасного клацання "
 "лівою і правою кнопками миші."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "Швидкість вказівника:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "Увімкнути прискорення вказівника"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -213,44 +201,49 @@ msgstr ""
 "Якщо позначено, відстань пересування вказівника збільшуватиметься при "
 "збільшенні швидкості його пересування."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "Швидкість гортання:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "Повільніше"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "Швидше"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "Гортання:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "Інвертувати напрямок гортання"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr ""
-"Утримуйте натиснутою середню кнопку миші пересуньте вказівник для гортання"
+msgid "Scroll when moving the pointer"
+msgstr "Гортати при пересуванні вказівника"
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr "доки натиснуто середню кнопку"
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -264,6 +257,38 @@ msgstr ""
 "перегляду документів та відеоіграми. Цим можна скористатися на будь-якому "
 "пристрої, але основним призначенням є імітація роботи коліщаток гортання на "
 "пристроях, де таких коліщаток немає."
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr "після клацання середньою кнопкою"
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+"Це конфліктуватиме з клацаннями середньою кнопкою миші загалом; двічі "
+"клацніть середньою кнопкою миші, якщо ви хочете, щоб програма отримувала "
+"один клацання середньою кнопкою миші. Це включає перетягування з натиснутою "
+"середньою кнопкою миші."
+
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr ""
+#~ "Утримуйте натиснутою середню кнопку миші пересуньте вказівник для гортання"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "Не вдалося вибрати відповідний модуль обробки"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr ""
+#~ "Не вдалося опитати пристрої введення. Будь ласка, закрийте це вікно "
+#~ "модуля, а потім знову його відкрийте."
 
 #~ msgid "Device enabled"
 #~ msgstr "Пристрій увімкнено"
@@ -557,9 +582,6 @@ msgstr ""
 
 #~ msgid "General settings:"
 #~ msgstr "Загальні параметри:"
-
-#~ msgid "Emulate middle button"
-#~ msgstr "Імітувати середню кнопку"
 
 #~ msgid "Acceleration:"
 #~ msgstr "Прискорення:"

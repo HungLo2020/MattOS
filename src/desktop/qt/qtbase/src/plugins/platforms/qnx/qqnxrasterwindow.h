@@ -26,6 +26,7 @@ public:
     void setParent(const QPlatformWindow *window) override;
 
     void adjustBufferSize();
+    void adjustBufferSize(const QSize &size);
 
 protected:
     int pixelFormat() const override;

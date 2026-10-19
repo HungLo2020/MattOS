@@ -83,7 +83,7 @@ EffectWindow::EffectWindow(WindowItem *windowItem)
     connect(d->m_window, &Window::interactiveMoveResizeStarted, this, [this]() {
         Q_EMIT windowStartUserMovedResized(this);
     });
-    connect(d->m_window, &Window::interactiveMoveResizeStepped, this, [this](const QRectF &geometry) {
+    connect(d->m_window, &Window::interactiveMoveResizeStepped, this, [this](const RectF &geometry) {
         Q_EMIT windowStepUserMovedResized(this, geometry);
     });
     connect(d->m_window, &Window::interactiveMoveResizeFinished, this, [this]() {
@@ -98,7 +98,7 @@ EffectWindow::EffectWindow(WindowItem *windowItem)
     connect(d->m_window, &Window::modalChanged, this, [this]() {
         Q_EMIT windowModalityChanged(this);
     });
-    connect(d->m_window, &Window::frameGeometryChanged, this, [this](const QRectF &oldGeometry) {
+    connect(d->m_window, &Window::frameGeometryChanged, this, [this](const RectF &oldGeometry) {
         Q_EMIT windowFrameGeometryChanged(this, oldGeometry);
     });
     connect(d->m_window, &Window::damaged, this, [this]() {
@@ -116,15 +116,18 @@ EffectWindow::EffectWindow(WindowItem *windowItem)
     connect(d->m_window, &Window::fullScreenChanged, this, [this]() {
         Q_EMIT windowFullScreenChanged(this);
     });
-    connect(d->m_window, &Window::visibleGeometryChanged, this, [this]() {
-        Q_EMIT windowExpandedGeometryChanged(this);
-    });
     connect(d->m_window, &Window::decorationChanged, this, [this]() {
         Q_EMIT windowDecorationChanged(this);
     });
     connect(d->m_window, &Window::desktopsChanged, this, [this]() {
         Q_EMIT windowDesktopsChanged(this);
     });
+
+    const auto emitWindowExpandedGeometryChanged = [this]() {
+        Q_EMIT windowExpandedGeometryChanged(this);
+    };
+    connect(d->m_windowItem, &WindowItem::positionChanged, this, emitWindowExpandedGeometryChanged);
+    connect(d->m_windowItem, &WindowItem::boundingRectChanged, this, emitWindowExpandedGeometryChanged);
 }
 
 EffectWindow::~EffectWindow()
@@ -168,7 +171,7 @@ bool EffectWindow::isOnCurrentActivity() const
 
 bool EffectWindow::isOnCurrentDesktop() const
 {
-    return isOnDesktop(effects->currentDesktop());
+    return isOnDesktop(effects->currentDesktop(screen()));
 }
 
 bool EffectWindow::isOnDesktop(VirtualDesktop *desktop) const
@@ -190,6 +193,7 @@ bool EffectWindow::hasDecoration() const
 bool EffectWindow::isVisible() const
 {
     return !isMinimized()
+        && !isHidden()
         && isOnCurrentDesktop()
         && isOnCurrentActivity();
 }
@@ -204,9 +208,9 @@ void EffectWindow::unrefVisible(const EffectWindowVisibleRef *holder)
     d->m_windowItem->unrefVisible(holder->reason());
 }
 
-void EffectWindow::addRepaint(const Rect &r)
+void EffectWindow::addRepaint(const RectF &r)
 {
-    d->m_windowItem->scheduleRepaint(Region(r));
+    d->m_windowItem->scheduleRepaint(r);
 }
 
 void EffectWindow::addRepaintFull()
@@ -214,7 +218,7 @@ void EffectWindow::addRepaintFull()
     d->m_windowItem->scheduleRepaint(d->m_windowItem->boundingRect());
 }
 
-void EffectWindow::addLayerRepaint(const Rect &r)
+void EffectWindow::addLayerRepaint(const RectF &r)
 {
     d->m_windowItem->scheduleRepaint(d->m_windowItem->mapFromScene(r));
 }
@@ -257,11 +261,11 @@ WINDOW_HELPER(qreal, width, width)
 WINDOW_HELPER(qreal, height, height)
 WINDOW_HELPER(QPointF, pos, pos)
 WINDOW_HELPER(QSizeF, size, size)
-WINDOW_HELPER(QRectF, frameGeometry, frameGeometry)
-WINDOW_HELPER(QRectF, bufferGeometry, bufferGeometry)
-WINDOW_HELPER(QRectF, clientGeometry, clientGeometry)
-WINDOW_HELPER(QRectF, expandedGeometry, visibleGeometry)
-WINDOW_HELPER(QRectF, rect, rect)
+WINDOW_HELPER(RectF, frameGeometry, frameGeometry)
+WINDOW_HELPER(RectF, bufferGeometry, bufferGeometry)
+WINDOW_HELPER(RectF, clientGeometry, clientGeometry)
+WINDOW_HELPER(RectF, expandedGeometry, visibleGeometry)
+WINDOW_HELPER(RectF, rect, rect)
 WINDOW_HELPER(bool, isDesktop, isDesktop)
 WINDOW_HELPER(bool, isDock, isDock)
 WINDOW_HELPER(bool, isToolbar, isToolbar)
@@ -302,7 +306,7 @@ WINDOW_HELPER(bool, isMovable, isMovable)
 WINDOW_HELPER(bool, isMovableAcrossScreens, isMovableAcrossScreens)
 WINDOW_HELPER(bool, isUserMove, isInteractiveMove)
 WINDOW_HELPER(bool, isUserResize, isInteractiveResize)
-WINDOW_HELPER(QRectF, iconGeometry, iconGeometry)
+WINDOW_HELPER(RectF, iconGeometry, iconGeometry)
 WINDOW_HELPER(bool, isSpecialWindow, isSpecialWindow)
 WINDOW_HELPER(bool, acceptsFocus, wantsInput)
 WINDOW_HELPER(QIcon, icon, icon)
@@ -329,7 +333,7 @@ QString EffectWindow::windowClass() const
     return d->m_window->resourceName() + QLatin1Char(' ') + d->m_window->resourceClass();
 }
 
-QRectF EffectWindow::contentsRect() const
+RectF EffectWindow::contentsRect() const
 {
     return d->m_window->clientGeometry().translated(-d->m_window->frameGeometry().topLeft());
 }
@@ -339,60 +343,9 @@ WindowType EffectWindow::windowType() const
     return d->m_window->windowType();
 }
 
-QSizeF EffectWindow::basicUnit() const
-{
-#if KWIN_BUILD_X11
-    if (auto window = qobject_cast<X11Window *>(d->m_window)) {
-        return window->basicUnit();
-    }
-#endif
-    return QSize(1, 1);
-}
-
 KDecoration3::Decoration *EffectWindow::decoration() const
 {
     return d->m_window->decoration();
-}
-
-QByteArray EffectWindow::readProperty(long atom, long type, int format) const
-{
-#if KWIN_BUILD_X11
-    auto x11Window = qobject_cast<X11Window *>(d->m_window);
-    if (!x11Window) {
-        return QByteArray();
-    }
-    if (!kwinApp()->x11Connection()) {
-        return QByteArray();
-    }
-    uint32_t len = 32768;
-    for (;;) {
-        Xcb::Property prop(false, x11Window->window(), atom, XCB_ATOM_ANY, 0, len);
-        if (prop.isNull()) {
-            // get property failed
-            return QByteArray();
-        }
-        if (prop->bytes_after > 0) {
-            len *= 2;
-            continue;
-        }
-        return prop.toByteArray(format, type).value_or(QByteArray());
-    }
-#endif
-    return {};
-}
-
-void EffectWindow::deleteProperty(long int atom) const
-{
-#if KWIN_BUILD_X11
-    auto x11Window = qobject_cast<X11Window *>(d->m_window);
-    if (!x11Window) {
-        return;
-    }
-    if (!kwinApp()->x11Connection()) {
-        return;
-    }
-    xcb_delete_property(kwinApp()->x11Connection(), x11Window->window(), atom);
-#endif
 }
 
 EffectWindow *EffectWindow::findModal()
@@ -429,11 +382,9 @@ QList<EffectWindow *> getMainWindows(T *c)
     const auto mainwindows = c->mainWindows();
     QList<EffectWindow *> ret;
     ret.reserve(mainwindows.size());
-    std::transform(std::cbegin(mainwindows), std::cend(mainwindows),
-                   std::back_inserter(ret),
-                   [](auto window) {
-                       return window->effectWindow();
-                   });
+    std::transform(std::cbegin(mainwindows), std::cend(mainwindows), std::back_inserter(ret), [](auto window) {
+        return window->effectWindow();
+    });
     return ret;
 }
 

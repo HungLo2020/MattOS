@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bluedevil\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-09-26 03:00+0000\n"
 "PO-Revision-Date: 2019-12-12 22:59+0000\n"
 "Last-Translator: Vivek KJ Pazhedath <vivekkj2004@gmail.com>\n"
 "Language-Team: Swathanthra|സ്വതന്ത്ര Malayalam|മലയാളം Computing|കമ്പ്യൂട്ടിങ്ങ് <smc."
@@ -28,64 +28,30 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "shijualexonline@gmail.com,snalledam@dataone.in,vivekkj2004@gmail.com"
 
-#: applet/devicesproxymodel.cpp:51
-#, fuzzy, kde-format
-#| msgid "Blocked:"
-msgctxt "@title:column Blocked Bluetooth devices"
-msgid "Blocked"
-msgstr "തടഞ്ഞു"
-
-#: applet/devicesproxymodel.cpp:54
-#, fuzzy, kde-format
-#| msgid "Connect"
-msgctxt "@title:column Connected Bluetooth devices"
-msgid "Connected"
-msgstr "ബന്ധിപ്പിക്കുക"
-
-#: applet/devicesproxymodel.cpp:56
+#: components/ForgetDeviceDialog.qml:37
 #, kde-format
-msgctxt "@title:column Available but not connected Bluetooth devices"
-msgid "Available"
+msgid "Forget this Device?"
 msgstr ""
 
-#: applet/devicesstateproxymodel.cpp:273
+#: components/ForgetDeviceDialog.qml:38
 #, kde-format
-msgctxt "@label %1 is the name of a Bluetooth device"
-msgid "Could not connect to device “%1”"
+msgid "Are you sure you want to forget \"%1\"?"
 msgstr ""
 
-#: applet/devicesstateproxymodel.cpp:288
+#: components/ForgetDeviceDialog.qml:50
 #, fuzzy, kde-format
-#| msgid "This address is unavailable."
-msgctxt "Notification when the connection failed due to Failed:HostIsDown"
-msgid "The device is unreachable"
-msgstr "ഈ വിലാസം ലഭ്യമല്ല"
+#| msgid "Remove device"
+msgctxt "@action:button"
+msgid "Forget Device"
+msgstr "ഉപകരണം നീക്കംചെയ്യുക"
 
-#: applet/devicesstateproxymodel.cpp:289
+#: components/ForgetDeviceDialog.qml:58
 #, fuzzy, kde-format
-#| msgid "Connecting to the device"
-msgctxt "Notification when the connection failed due to Failed"
-msgid "Connection to the device failed"
-msgstr "ഉപകരണത്തിലേക്ക് കണക്റ്റുചെയ്യുന്നു"
-
-#: applet/devicesstateproxymodel.cpp:292
-#, kde-format
-msgctxt "Notification when the connection failed due to NotReady"
-msgid "The device is not ready"
-msgstr ""
-
-#: kcm/bluetooth.cpp:135
-#, kde-format
-msgctxt "DeviceName Network (Service)"
-msgid "%1 Network (%2)"
-msgstr ""
-
-#: kcm/bluetoothmoduledata.cpp:20
-#, fuzzy, kde-format
-#| msgid "Bluetooth Devices"
-msgctxt "@info:tooltip"
-msgid "Enable Bluetooth"
-msgstr "ബ്ലൂടൂത്ത് ഉപകരണങ്ങൾ "
+#| msgctxt "Deny the incoming file transfer"
+#| msgid "Cancel"
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "റദ്ദാക്കുക"
 
 #: kded/bluedevildaemon.cpp:68 kded/bluedevildaemon.cpp:70
 #, kde-format
@@ -166,13 +132,13 @@ msgctxt "Notification button to say that the PIN is wrong"
 msgid "PIN incorrect"
 msgstr "പിൻ ശെരിയല്ല  "
 
-#: kded/helpers/requestpin.cpp:32
+#: kded/helpers/requestpin.cpp:30
 #, kde-format
 msgctxt "@label %1 is the name of a Bluetooth device"
 msgid "PIN for device “%1”"
 msgstr ""
 
-#: kded/helpers/requestpin.cpp:36
+#: kded/helpers/requestpin.cpp:34
 #, kde-format
 msgctxt ""
 "Shown in a notification to announce that a PIN is needed to accomplish a "
@@ -180,7 +146,7 @@ msgctxt ""
 msgid "PIN needed to pair with %1"
 msgstr ""
 
-#: kded/helpers/requestpin.cpp:39
+#: kded/helpers/requestpin.cpp:37
 #, kde-format
 msgctxt ""
 "Notification button which once clicked, a dialog to introduce the PIN will "
@@ -188,13 +154,13 @@ msgctxt ""
 msgid "Introduce PIN"
 msgstr ""
 
-#: kded/helpers/requestpin.cpp:59
+#: kded/helpers/requestpin.cpp:57
 #, kde-format
 msgctxt "Shown in the caption of a dialog where the user introduce the PIN"
 msgid "Introduce PIN"
 msgstr ""
 
-#: kded/helpers/requestpin.cpp:66
+#: kded/helpers/requestpin.cpp:64
 #, kde-format
 msgctxt ""
 "Shown in a dialog which asks to introduce a PIN that will be used to pair a "
@@ -341,12 +307,12 @@ msgstr "ഫോൺ മെമ്മറി"
 msgid "External memory"
 msgstr "ബാഹ്യ മെമ്മറി"
 
-#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:378
+#: sendfile/discoverwidget.cpp:134 wizard/pages/discover.cpp:382
 #, kde-format
 msgid "Bluetooth is disabled."
 msgstr "ബ്ലൂടൂത്ത് അപ്രാപ്തമാക്കി."
 
-#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:379
+#: sendfile/discoverwidget.cpp:135 wizard/pages/discover.cpp:383
 #, kde-format
 msgctxt "Action to enable Bluetooth adapter"
 msgid "Enable"
@@ -498,18 +464,18 @@ msgstr "ഒരു പുതിയ ഉപകരണം ചേർക്കുക"
 msgid "Select a device"
 msgstr ""
 
-#: wizard/pages/discover.cpp:371
+#: wizard/pages/discover.cpp:375
 #, kde-format
 msgctxt "Action to fix a problem"
 msgid "Fix it"
 msgstr "ശരിയാക്കുക"
 
-#: wizard/pages/discover.cpp:381
+#: wizard/pages/discover.cpp:385
 #, kde-format
 msgid "Your Bluetooth adapter is not pairable."
 msgstr ""
 
-#: wizard/pages/discover.cpp:382
+#: wizard/pages/discover.cpp:386
 #, kde-format
 msgctxt "Action to make Bluetooth adapter pairable"
 msgid "Make Pairable"
@@ -619,6 +585,36 @@ msgstr ""
 msgctxt "Placeholder is device name"
 msgid "The device '%1' has been set up and can now be used."
 msgstr ""
+
+#, fuzzy
+#~| msgid "Blocked:"
+#~ msgctxt "@title:column Blocked Bluetooth devices"
+#~ msgid "Blocked"
+#~ msgstr "തടഞ്ഞു"
+
+#, fuzzy
+#~| msgid "Connect"
+#~ msgctxt "@title:column Connected Bluetooth devices"
+#~ msgid "Connected"
+#~ msgstr "ബന്ധിപ്പിക്കുക"
+
+#, fuzzy
+#~| msgid "This address is unavailable."
+#~ msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+#~ msgid "The device is unreachable"
+#~ msgstr "ഈ വിലാസം ലഭ്യമല്ല"
+
+#, fuzzy
+#~| msgid "Connecting to the device"
+#~ msgctxt "Notification when the connection failed due to Failed"
+#~ msgid "Connection to the device failed"
+#~ msgstr "ഉപകരണത്തിലേക്ക് കണക്റ്റുചെയ്യുന്നു"
+
+#, fuzzy
+#~| msgid "Bluetooth Devices"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Enable Bluetooth"
+#~ msgstr "ബ്ലൂടൂത്ത് ഉപകരണങ്ങൾ "
 
 #~ msgid "Receiving file over Bluetooth"
 #~ msgstr "ബ്ലൂടൂത്ത് വഴി ഫയൽ സ്വീകരിക്കുക "
@@ -762,9 +758,6 @@ msgstr ""
 
 #~ msgid "Add device"
 #~ msgstr "ഒരു പുതിയ ഉപകരണം ചേർക്കുക"
-
-#~ msgid "Remove device"
-#~ msgstr "ഉപകരണം നീക്കംചെയ്യുക"
 
 #~ msgid "Bluetooth Advanced Settings"
 #~ msgstr "വിപുലമായ ക്രമീകരണങ്ങൾ"

@@ -21,9 +21,9 @@ qt6_add_qml_module(overview
     NO_PLUGIN
     URI org.kde.kwin.overview
     QML_FILES
-        qml/DesktopBar.qml
-        qml/DesktopView.qml
-        qml/Main.qml
+        DesktopBar.qml
+        DesktopView.qml
+        Main.qml
 )
 
 target_link_libraries(overview PRIVATE
@@ -32,6 +32,7 @@ target_link_libraries(overview PRIVATE
     KF6::ConfigGui
     KF6::GlobalAccel
     KF6::I18n
+    KF6::Runner
 
     Qt::Quick
 )

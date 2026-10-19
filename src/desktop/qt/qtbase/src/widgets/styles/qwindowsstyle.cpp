@@ -46,6 +46,7 @@
 #include <qmath.h>
 #include <QtGui/qpainterpath.h>
 #include <QtGui/qscreen.h>
+#include <QtGui/qstylehints.h>
 #include <QtGui/qwindow.h>
 #include <qpa/qplatformtheme.h>
 #include <qpa/qplatformscreen.h>
@@ -58,6 +59,8 @@
 #if QT_CONFIG(animation)
 #include <private/qstyleanimation_p.h>
 #endif
+
+#include <QtCore/qoperatingsystemversion.h>
 
 #include <algorithm>
 
@@ -547,7 +550,9 @@ int QWindowsStyle::styleHint(StyleHint hint, const QStyleOption *opt, const QWid
 #endif // QT_CONFIG(rubberband)
 #if QT_CONFIG(wizard)
     case SH_WizardStyle:
-        ret = QWizard::ModernStyle;
+        ret = QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Windows
+                        && QGuiApplication::styleHints()->colorScheme() != Qt::ColorScheme::Dark
+                ? QWizard::AeroStyle : QWizard::ModernStyle;
         break;
 #endif
     case SH_ItemView_ArrowKeysNavigateIntoChildren:

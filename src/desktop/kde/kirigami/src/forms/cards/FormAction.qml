@@ -20,11 +20,13 @@ FT.FormAction {
         Layout.fillHeight: true
         source: root.action.icon.name || root.action.icon.source
         color: root.action.icon.color
+        visible: valid
         Layout.preferredWidth: root.action.icon.width > 0 ? root.action.icon.width : Platform.Units.iconSizes.smallMedium
         Layout.preferredHeight: root.action.icon.height > 0 ? root.action.icon.height : Platform.Units.iconSizes.smallMedium
     }
 
     contentItem: QQC.Label {
+        Layout.fillWidth: true
         text: root.action.text
     }
 }

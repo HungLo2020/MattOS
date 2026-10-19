@@ -187,6 +187,7 @@ class QAccessibleWindowContainer : public QAccessibleWidgetV2
 {
 public:
     QAccessibleWindowContainer(QWidget *w);
+    QString text(QAccessible::Text) const override;
     int childCount() const override;
     int indexOfChild(const QAccessibleInterface *child) const override;
     QAccessibleInterface *child(int i) const override;

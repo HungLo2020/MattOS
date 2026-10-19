@@ -18,16 +18,16 @@
 
 #include "DisplayManager.h"
 #include "SeatManager.h"
-#include "SignalHandler.h"
+#include <KSignalHandler>
 
 #include "MessageHandler.h"
 
 #include <QDBusConnectionInterface>
 #include <QDebug>
-#include <QHostInfo>
 #include <QTimer>
 
 #include <iostream>
+#include <signal.h>
 
 namespace PLASMALOGIN
 {
@@ -44,9 +44,6 @@ DaemonApp::DaemonApp(int &argc, char **argv)
     // log message
     qDebug() << "Initializing...";
 
-    // set testing parameter
-    m_testing = (arguments().indexOf(QStringLiteral("--test-mode")) != -1);
-
     // create display manager
     m_displayManager = new DisplayManager(this);
 
@@ -57,22 +54,20 @@ DaemonApp::DaemonApp(int &argc, char **argv)
     connect(m_seatManager, &SeatManager::seatCreated, m_displayManager, &DisplayManager::AddSeat);
     connect(m_seatManager, &SeatManager::seatRemoved, m_displayManager, &DisplayManager::RemoveSeat);
 
-    // create signal handler
-    m_signalHandler = new SignalHandler(this);
-
-    // quit when SIGINT, SIGTERM received
-    connect(m_signalHandler, &SignalHandler::sigintReceived, this, &DaemonApp::quit);
-    connect(m_signalHandler, &SignalHandler::sigtermReceived, this, &DaemonApp::quit);
+    // watch SIGINT and SIGTERM and quit on receipt
+    auto sig = KSignalHandler::self();
+    sig->watchSignal(SIGINT);
+    sig->watchSignal(SIGTERM);
+    connect(sig, &KSignalHandler::signalReceived, this, [this](int s) {
+        if (s == SIGINT || s == SIGTERM) {
+            this->quit();
+        }
+    });
     // log message
     qDebug() << "Starting...";
 
     // initialize seats only after signals are connected
     m_seatManager->initialize();
-}
-
-QString DaemonApp::hostName() const
-{
-    return QHostInfo::localHostName();
 }
 
 DisplayManager *DaemonApp::displayManager() const
@@ -85,15 +80,46 @@ SeatManager *DaemonApp::seatManager() const
     return m_seatManager;
 }
 
-SignalHandler *DaemonApp::signalHandler() const
-{
-    return m_signalHandler;
-}
-
 int DaemonApp::newSessionId()
 {
     return m_lastSessionId++;
 }
+
+bool DaemonApp::isFirstBoot()
+{
+    // Whether this boot is a first boot (no soft reboot since power-on) is a
+    // machine-global fact that cannot change while the daemon runs, so resolve
+    // it once and cache the answer — including the "treat as first boot" error
+    // paths, which must stay sticky too.
+    if (m_isFirstBoot.has_value()) {
+        return m_isFirstBoot.value();
+    }
+
+    QDBusMessage msg = QDBusMessage::createMethodCall(QStringLiteral("org.freedesktop.systemd1"),
+                                                      QStringLiteral("/org/freedesktop/systemd1"),
+                                                      QStringLiteral("org.freedesktop.DBus.Properties"),
+                                                      QStringLiteral("Get"));
+
+    msg << QStringLiteral("org.freedesktop.systemd1.Manager") << QStringLiteral("SoftRebootsCount");
+
+    const QDBusMessage reply = QDBusConnection::systemBus().call(msg);
+
+    if (reply.type() == QDBusMessage::ErrorMessage) {
+        qWarning() << "DBus error:" << reply.errorName() << "-" << reply.errorMessage();
+        m_isFirstBoot = true;
+        return m_isFirstBoot.value();
+    }
+
+    const QVariant soft_reboot_count = qvariant_cast<QDBusVariant>(reply.arguments().at(0)).variant();
+    if (!soft_reboot_count.isValid()) {
+        qWarning() << "DBus variant is invalid:" << reply;
+        m_isFirstBoot = true;
+        return m_isFirstBoot.value();
+    }
+
+    m_isFirstBoot = soft_reboot_count.toUInt() == 0;
+    return m_isFirstBoot.value();
+};
 }
 
 int main(int argc, char **argv)
@@ -102,14 +128,6 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < argc; i++) {
         arguments << QString::fromLocal8Bit(argv[i]);
-    }
-
-    if (arguments.contains(QStringLiteral("--help")) || arguments.contains(QStringLiteral("-h"))) {
-        std::cout << "Usage: plasmalogin [options]\n"
-                  << "Options: \n"
-                  << "  --test-mode         Start daemon in test mode" << std::endl;
-
-        return EXIT_FAILURE;
     }
 
     // create application

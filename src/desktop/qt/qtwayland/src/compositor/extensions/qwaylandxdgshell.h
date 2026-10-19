@@ -168,7 +168,7 @@ public:
     Q_INVOKABLE uint sendMaximized(const QSize &size);
     Q_INVOKABLE uint sendUnmaximized(const QSize &size = QSize(0, 0));
     Q_INVOKABLE uint sendFullscreen(const QSize &size);
-    Q_INVOKABLE uint sendResizing(const QSize &maxSize);
+    Q_INVOKABLE uint sendResizing(const QSize &size);
 
     static QWaylandSurfaceRole *role();
     static QWaylandXdgToplevel *fromResource(::wl_resource *resource);

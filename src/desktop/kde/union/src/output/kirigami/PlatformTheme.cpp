@@ -1,0 +1,238 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+#include "PlatformTheme.h"
+
+#include <QMetaEnum>
+#include <QQuickRenderControl>
+#include <QQuickWindow>
+
+#include <Color.h>
+#include <Style.h>
+#include <StyleRegistry.h>
+
+#include "../qtquick/plugin/QuickElement.h"
+#include "../qtquick/plugin/QuickStyle.h"
+
+using namespace Qt::StringLiterals;
+using namespace Union;
+
+template<typename T>
+inline QString enumToString(T value)
+{
+    QMetaEnum metaEnum = QMetaEnum::fromType<T>();
+    return QString::fromUtf8(metaEnum.valueToKey(value));
+}
+
+PlatformTheme::PlatformTheme(QObject *parent)
+    : Kirigami::Platform::PlatformTheme(parent)
+{
+    setSupportsIconColoring(true);
+    syncColorSchemeColors();
+    // TODO set spellcheck enabled/disabled
+
+    auto style = static_cast<Union::Quick::QuickStyle *>(qmlAttachedPropertiesObject<Union::Quick::QuickStyle>(parent));
+    if (style) {
+        style->installEventFilter(this);
+    }
+
+    auto parentItem = qobject_cast<QQuickItem *>(parent);
+    if (parentItem) {
+        connect(parentItem, &QQuickItem::enabledChanged, this, &PlatformTheme::syncColorSchemeColors);
+        connect(parentItem, &QQuickItem::visibleChanged, this, &PlatformTheme::syncColorSchemeColors);
+        connect(parentItem, &QQuickItem::windowChanged, this, &PlatformTheme::syncWindow);
+    }
+}
+
+PlatformTheme::~PlatformTheme()
+{
+}
+
+QIcon PlatformTheme::iconFromTheme(const QString &name, const QColor &customColor)
+{
+    return Union::StyleRegistry::instance()->platform()->platformIcon(name, customColor);
+}
+
+void PlatformTheme::syncColors()
+{
+    if (!m_style) {
+        m_style = static_cast<Union::Quick::QuickStyle *>(qmlAttachedPropertiesObject<Union::Quick::QuickStyle>(parent()));
+        if (!m_style) {
+            return;
+        }
+        m_style->installEventFilter(this);
+    }
+
+    auto query = m_style->query();
+    if (!query || !query->hasMatches()) {
+        return;
+    }
+
+    Kirigami::Platform::PlatformThemeChangeTracker tracker(this);
+
+    if (query->properties()->background()->color().has_value()) {
+        setBackgroundColor(query->properties()->background()->color().value().toQColor());
+    }
+
+    if (query->properties()->text()->color().has_value()) {
+        setTextColor(query->properties()->text()->color().value().toQColor());
+    }
+}
+
+bool PlatformTheme::event(QEvent *event)
+{
+    if (event->type() == Kirigami::Platform::PlatformThemeEvents::DataChangedEvent::type) {
+        syncColorSchemeColors();
+    }
+
+    if (event->type() == Kirigami::Platform::PlatformThemeEvents::ColorChangedEvent::type) {
+        syncColorSchemeColors();
+    }
+
+    if (event->type() == Kirigami::Platform::PlatformThemeEvents::ColorSetChangedEvent::type) {
+        syncColorSchemeColors();
+    }
+
+    if (event->type() == Kirigami::Platform::PlatformThemeEvents::ColorGroupChangedEvent::type) {
+        syncColorSchemeColors();
+    }
+
+    if (event->type() == Kirigami::Platform::PlatformThemeEvents::FrameContrastChangedEvent::type) {
+        syncColorSchemeColors();
+    }
+
+    return Kirigami::Platform::PlatformTheme::event(event);
+}
+
+bool PlatformTheme::eventFilter(QObject *target, QEvent *event)
+{
+    if (event->type() == StyleChangedEvent::s_type) {
+        syncColorSchemeColors();
+        return false;
+    }
+
+    if (event->type() == Union::Quick::QuickStyleColorsChangedEvent::s_type) {
+        syncColorSchemeColors();
+        return false;
+    }
+
+    return Kirigami::Platform::PlatformTheme::eventFilter(target, event);
+}
+
+void PlatformTheme::syncColorSchemeColors()
+{
+    // Temporary workaround to make sure our PlatformTheme is half-decently
+    // usable with Kirigami until we figure out a good way to provide these
+    // values from the input layer.
+
+    if (QCoreApplication::closingDown()) {
+        return;
+    }
+
+    if (!Union::StyleRegistry::instance()->defaultStyle()) {
+        Union::StyleRegistry::instance()->load();
+    }
+
+    QString group = enumToString<PlatformTheme::ColorGroup>(colorGroup());
+
+    auto parentItem = qobject_cast<QQuickItem *>(parent());
+    if (parentItem) {
+        if (!parentItem->isEnabled()) {
+            group = u"disabled"_s;
+        } else if (m_window && !m_window->isActive() && m_window->isExposed()) {
+            // Why also checking the window is exposed?
+            // in the case of QQuickWidget the window() will never be active
+            // and the widgets will always have the inactive palette.
+            // better to always show it active than always show it inactive
+            group = u"inactive"_s;
+        }
+    }
+
+    Kirigami::Platform::PlatformThemeChangeTracker tracker(this);
+
+    QString set = enumToString<PlatformTheme::ColorSet>(colorSet());
+
+    // For backward compatibility, add a "colorSet" attribute to each element
+    // that also is a Kirigami element and which doesn't inherit. This allows us
+    // to change appearance based on colorSet.
+    if (!inherit()) {
+        if (!m_colorSetAttribute) {
+            auto element = static_cast<Union::Quick::QuickElement *>(qmlAttachedPropertiesObject<Union::Quick::QuickElement>(parent(), true));
+            if (element) {
+                auto attributes = QQmlListReference(element, "attributes");
+                m_colorSetAttribute = new Union::Quick::ElementAttribute{this};
+                m_colorSetAttribute->setName(u"colorSet"_s);
+                attributes.append(m_colorSetAttribute);
+                element->componentComplete();
+            }
+        }
+
+        if (m_colorSetAttribute) {
+            m_colorSetAttribute->setValue(set);
+        }
+    } else {
+        if (m_colorSetAttribute) {
+            m_colorSetAttribute->setValue(QVariant{});
+        }
+    }
+
+    // foreground
+    setTextColor(Color::custom(u"kcolorscheme"_s, {group, set, u"foreground"_s, u"text"_s}).toQColor());
+    setDisabledTextColor(Color::custom(u"kcolorscheme"_s, {group, set, u"foreground"_s, u"inactive"_s}).toQColor());
+    setHighlightedTextColor(Color::custom(u"kcolorscheme"_s, {group, u"selection"_s, u"foreground"_s, u"text"_s}).toQColor());
+    setActiveTextColor(Color::custom(u"kcolorscheme"_s, {group, set, u"foreground"_s, u"active"_s}).toQColor());
+
+    setLinkColor(Color::custom(u"kcolorscheme"_s, {group, set, u"foreground"_s, u"link"_s}).toQColor());
+    setVisitedLinkColor(Color::custom(u"kcolorscheme"_s, {group, set, u"foreground"_s, u"visited"_s}).toQColor());
+
+    setPositiveTextColor(Color::custom(u"kcolorscheme"_s, {group, set, u"foreground"_s, u"positive"_s}).toQColor());
+    setNeutralTextColor(Color::custom(u"kcolorscheme"_s, {group, set, u"foreground"_s, u"neutral"_s}).toQColor());
+    setNegativeTextColor(Color::custom(u"kcolorscheme"_s, {group, set, u"foreground"_s, u"negative"_s}).toQColor());
+
+    // background
+    setHighlightColor(Color::custom(u"kcolorscheme"_s, {group, u"selection"_s, u"background"_s, u"normal"_s}).toQColor());
+    setBackgroundColor(Color::custom(u"kcolorscheme"_s, {group, set, u"background"_s, u"normal"_s}).toQColor());
+    setAlternateBackgroundColor(Color::custom(u"kcolorscheme"_s, {group, set, u"background"_s, u"alternate"_s}).toQColor());
+    setActiveBackgroundColor(Color::custom(u"kcolorscheme"_s, {group, set, u"background"_s, u"active"_s}).toQColor());
+
+    setLinkBackgroundColor(Color::custom(u"kcolorscheme"_s, {group, set, u"background"_s, u"link"_s}).toQColor());
+    setVisitedLinkBackgroundColor(Color::custom(u"kcolorscheme"_s, {group, set, u"background"_s, u"visited"_s}).toQColor());
+
+    setPositiveBackgroundColor(Color::custom(u"kcolorscheme"_s, {group, set, u"background"_s, u"positive"_s}).toQColor());
+    setNeutralBackgroundColor(Color::custom(u"kcolorscheme"_s, {group, set, u"background"_s, u"neutral"_s}).toQColor());
+    setNegativeBackgroundColor(Color::custom(u"kcolorscheme"_s, {group, set, u"background"_s, u"negative"_s}).toQColor());
+
+    // decoration
+    setHoverColor(Color::custom(u"kcolorscheme"_s, {group, set, u"decoration"_s, u"hover"_s}).toQColor());
+    setFocusColor(Color::custom(u"kcolorscheme"_s, {group, set, u"decoration"_s, u"focus"_s}).toQColor());
+
+    // We just want the alpha value we use for contrast
+    setFrameContrast(Color::custom(u"kcolorscheme"_s, {group, set, u"decoration"_s, u"framecontrast"_s}).toQColor().alphaF());
+}
+
+void PlatformTheme::syncWindow()
+{
+    if (m_window) {
+        disconnect(m_window.data(), &QWindow::activeChanged, this, &PlatformTheme::syncColorSchemeColors);
+    }
+
+    QWindow *window = nullptr;
+
+    auto parentItem = qobject_cast<QQuickItem *>(parent());
+    if (parentItem) {
+        QQuickWindow *qw = parentItem->window();
+
+        window = QQuickRenderControl::renderWindowFor(qw);
+        if (!window) {
+            window = qw;
+        }
+    }
+    m_window = window;
+
+    if (window) {
+        connect(m_window.data(), &QWindow::activeChanged, this, &PlatformTheme::syncColorSchemeColors);
+        syncColorSchemeColors();
+    }
+}
+
+#include "moc_PlatformTheme.cpp"

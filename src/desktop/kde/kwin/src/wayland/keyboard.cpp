@@ -18,6 +18,7 @@
 
 namespace KWin
 {
+
 KeyboardInterfacePrivate::KeyboardInterfacePrivate(SeatInterface *s)
     : seat(s)
 {
@@ -132,7 +133,12 @@ bool KeyboardInterfacePrivate::updateKey(quint32 key, KeyboardKeyState state)
     case KeyboardKeyState::Released:
         return pressedKeys.removeOne(key);
     case KeyboardKeyState::Repeated:
-        return pressedKeys.contains(key);
+        // Treat repeated similarily as pressed, but always forward it.
+        // Things like input method may filter away initial press.
+        if (!pressedKeys.contains(key)) {
+            pressedKeys.append(key);
+        }
+        return true;
     }
 
     Q_UNREACHABLE();
@@ -190,7 +196,7 @@ void KeyboardInterface::setModifierFocusSurface(SurfaceInterface *surface)
 
 void KeyboardInterface::sendKey(quint32 key, KeyboardKeyState state, ClientConnection *client, uint32_t serial)
 {
-    quint32 waylandState;
+    quint32 waylandState = WL_KEYBOARD_KEY_STATE_PRESSED;
     switch (state) {
     case KeyboardKeyState::Pressed:
         waylandState = WL_KEYBOARD_KEY_STATE_PRESSED;
@@ -294,10 +300,11 @@ qint32 KeyboardInterface::keyRepeatRate() const
 
 bool KeyboardInterface::clientUseCompositorRepetition(ClientConnection *client) const
 {
-    return std::ranges::any_of(d->keyboardsForClient(client), [client](KeyboardInterfacePrivate::Resource *keyboardResource) {
+    return std::ranges::any_of(d->keyboardsForClient(client), [](KeyboardInterfacePrivate::Resource *keyboardResource) {
         return keyboardResource->version() >= WL_KEYBOARD_KEY_STATE_REPEATED_SINCE_VERSION;
     });
 }
+
 }
 
 #include "moc_keyboard.cpp"

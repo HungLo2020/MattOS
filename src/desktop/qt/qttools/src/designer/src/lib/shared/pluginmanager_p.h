@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 //
 //  W A R N I N G
@@ -20,9 +21,10 @@
 
 #include <QtCore/qshareddata.h>
 #include <QtCore/qmap.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qstringlist.h>
+
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 

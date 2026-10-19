@@ -115,7 +115,7 @@ void OptionsModel::resetValue()
 bool OptionsModel::useFlags() const
 {
     return m_useFlags;
-};
+}
 
 uint OptionsModel::bitMask(int index) const
 {
@@ -183,6 +183,7 @@ QString RulePolicy::policyKey(const QString &key) const
     case NoPolicy:
         return QString();
     case StringMatch:
+    case BoolMatch:
         return QStringLiteral("%1match").arg(key);
     case SetRule:
     case ForceRule:
@@ -195,10 +196,14 @@ QString RulePolicy::policyKey(const QString &key) const
 QList<RulePolicy::Data> RulePolicy::policyOptions(RulePolicy::Type type)
 {
     static const auto stringMatchOptions = QList<RulePolicy::Data>{
-        {Rules::UnimportantMatch, i18n("Unimportant")},
-        {Rules::ExactMatch, i18n("Exact match")},
-        {Rules::SubstringMatch, i18n("Substring match")},
-        {Rules::RegExpMatch, i18n("Regular expression")}};
+        {Rules::UnimportantMatch, i18nc("@item:inlistbox", "Unimportant")},
+        {Rules::ExactMatch, i18nc("@item:inlistbox", "Exact match")},
+        {Rules::SubstringMatch, i18nc("@item:inlistbox", "Substring match")},
+        {Rules::RegExpMatch, i18nc("@item:inlistbox", "Regular expression")}};
+    static const auto boolMatchOptions = QList<RulePolicy::Data>{
+        {Rules::UnimportantMatch, i18nc("@item:inlistbox", "Unimportant")},
+        {Rules::ExactMatch, i18nc("@item:inlistbox This is a noun", "Match")},
+    };
 
     static const auto setRuleOptions = QList<RulePolicy::Data>{
         {Rules::Apply,
@@ -236,6 +241,8 @@ QList<RulePolicy::Data> RulePolicy::policyOptions(RulePolicy::Type type)
         return {};
     case StringMatch:
         return stringMatchOptions;
+    case BoolMatch:
+        return boolMatchOptions;
     case SetRule:
         return setRuleOptions;
     case ForceRule:

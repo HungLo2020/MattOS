@@ -4,21 +4,22 @@
 # SPDX-FileCopyrightText: 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2023, 2024 Vít Pelčák <vit@pelcak.org>
 # Tomáš Chvátal <tomas.chvatal@gmail.com>, 2012, 2013.
 # SPDX-FileCopyrightText: 2021, 2022, 2023, 2024 Vit Pelcak <vit@pelcak.org>
+# SPDX-FileCopyrightText: 2026 Libor Filípek <libor.filipek@gmail.com>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: http://bugs.kde.org\n"
 "POT-Creation-Date: 2014-03-23 01:50+0000\n"
-"PO-Revision-Date: 2024-10-18 11:34+0200\n"
-"Last-Translator: Vit Pelcak <vit@pelcak.org>\n"
+"PO-Revision-Date: 2026-08-10 21:43+0200\n"
+"Last-Translator: Libor Filípek <libor.filipek@gmail.com>\n"
 "Language-Team: Czech <kde-i18n-doc@kde.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 24.08.2\n"
+"X-Generator: Poedit 3.9\n"
 "X-Language: cs_CZ\n"
 "X-Source-Language: en_US\n"
 "X-Qt-Contexts: true\n"
@@ -53,6 +54,16 @@ msgctxt "FontHelpers|@item Font name [foundry]"
 msgid "%1 [%2]"
 msgstr "%1 [%2]"
 
+#: kabstractcoloredit.cpp:70
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Copy Color"
+msgstr "Kopírovat barvu"
+
+#: kabstractcoloredit.cpp:81
+msgctxt "KAbstractColorEdit|@action:inmenu"
+msgid "Paste Color"
+msgstr "Vložit barvu"
+
 #: kactionselector.cpp:98
 msgctxt "KActionSelector|@label:listbox"
 msgid "&Available:"
@@ -78,12 +89,12 @@ msgctxt "KAssistantDialog|@action:button Opposite to Back"
 msgid "Next"
 msgstr "Následující"
 
-#: kassistantdialog.cpp:114
+#: kassistantdialog.cpp:113
 msgctxt "KAssistantDialog|@action:button"
 msgid "Finish"
 msgstr "Dokončit"
 
-#: kcharselect-translation.cpp:11 kcharselectdata.cpp:277
+#: kcharselect-translation.cpp:11 kcharselectdata.cpp:279
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "All"
 msgstr "Vše"
@@ -148,10 +159,10 @@ msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Phonetic Symbols"
 msgstr "Fonetické symboly"
 
-#: kcharselect-translation.cpp:24 kcharselectdata.cpp:743
+#: kcharselect-translation.cpp:24 kcharselectdata.cpp:745
 msgctxt "KCharSelectData|KCharSelect section name"
 msgid "Combining Diacritics"
-msgstr ""
+msgstr "Kombinace diakritiky"
 
 #: kcharselect-translation.cpp:25
 msgctxt "KCharSelectData|KCharSelect section name"
@@ -256,7 +267,7 @@ msgstr "Mandaic"
 #: kcharselect-translation.cpp:45
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Syriac Supplement"
-msgstr ""
+msgstr "Doplněk v syrštině"
 
 #: kcharselect-translation.cpp:46
 msgctxt "KCharSelectData|KCharselect unicode block name"
@@ -446,7 +457,7 @@ msgstr "Tai Tham"
 #: kcharselect-translation.cpp:83
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Combining Diacritical Marks Extended"
-msgstr ""
+msgstr "Rozšířená kombinace diakritiky"
 
 #: kcharselect-translation.cpp:84
 msgctxt "KCharSelectData|KCharselect unicode block name"
@@ -481,12 +492,12 @@ msgstr "Rozšířená azbuka C"
 #: kcharselect-translation.cpp:90
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Georgian Extended"
-msgstr ""
+msgstr "Rozšířená gruzínština"
 
 #: kcharselect-translation.cpp:91
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Sundanese Supplement"
-msgstr ""
+msgstr "Rozšířená sundanéština"
 
 #: kcharselect-translation.cpp:92
 msgctxt "KCharSelectData|KCharselect unicode block name"
@@ -871,7 +882,7 @@ msgstr "Tai Viet"
 #: kcharselect-translation.cpp:168
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Meetei Mayek Extensions"
-msgstr ""
+msgstr "Rozšířené Meetei Mayek"
 
 #: kcharselect-translation.cpp:169
 msgctxt "KCharSelectData|KCharselect unicode block name"
@@ -886,7 +897,7 @@ msgstr "Rozšířená latinka E"
 #: kcharselect-translation.cpp:171
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Cherokee Supplement"
-msgstr ""
+msgstr "Rozšířené Cherokee"
 
 #: kcharselect-translation.cpp:172
 msgctxt "KCharSelectData|KCharselect unicode block name"
@@ -996,17 +1007,17 @@ msgstr "Hrací karty"
 #: kcharselect-translation.cpp:194
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Enclosed Alphanumeric Supplement"
-msgstr ""
+msgstr "Přiložený alfanumerický dodatek"
 
 #: kcharselect-translation.cpp:195
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Enclosed Ideographic Supplement"
-msgstr ""
+msgstr "Přiložený ideografický dodatek"
 
 #: kcharselect-translation.cpp:196
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Miscellaneous Symbols and Pictographs"
-msgstr ""
+msgstr "Různé symboly a piktogramy"
 
 #: kcharselect-translation.cpp:197
 msgctxt "KCharSelectData|KCharselect unicode block name"
@@ -1016,32 +1027,32 @@ msgstr "Emotikony"
 #: kcharselect-translation.cpp:198
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Ornamental Dingbats"
-msgstr ""
+msgstr "Ozdobné znaky"
 
 #: kcharselect-translation.cpp:199
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Transport and Map Symbols"
-msgstr ""
+msgstr "Dopravní a mapové symboly"
 
 #: kcharselect-translation.cpp:200
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Alchemical Symbols"
-msgstr ""
+msgstr "Alchymistické symboly"
 
 #: kcharselect-translation.cpp:201
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Geometric Shapes Extended"
-msgstr ""
+msgstr "Rozšířené geometrické tvary"
 
 #: kcharselect-translation.cpp:202
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Supplemental Arrows-C"
-msgstr ""
+msgstr "Doplňkové šipky – C"
 
 #: kcharselect-translation.cpp:203
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Supplemental Symbols and Pictographs"
-msgstr ""
+msgstr "Doplňkové symboly a piktogramy"
 
 #: kcharselect-translation.cpp:204
 msgctxt "KCharSelectData|KCharselect unicode block name"
@@ -1051,12 +1062,12 @@ msgstr "Symboly šachů"
 #: kcharselect-translation.cpp:205
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Symbols and Pictographs Extended-A"
-msgstr ""
+msgstr "Rozšířené symboly a piktogramy – A"
 
 #: kcharselect-translation.cpp:206
 msgctxt "KCharSelectData|KCharselect unicode block name"
 msgid "Symbols for Legacy Computing"
-msgstr ""
+msgstr "Symboly pro starší počítačové systémy"
 
 #: kcharselect.cpp:394
 msgctxt "KCharSelect|@info:placeholder"
@@ -1241,7 +1252,7 @@ msgstr "UTF-16: "
 #: kcharselect.cpp:946
 msgctxt "KCharSelect|"
 msgid "C octal escaped UTF-8: "
-msgstr ""
+msgstr "Osmimístný kód C s únikovými znaky v UTF-8: "
 
 #: kcharselect.cpp:950
 msgctxt "KCharSelect|"
@@ -1251,209 +1262,209 @@ msgstr "Desítková XML entita:"
 #: kcharselect.cpp:1102
 msgctxt "KCharSelectItemModel|"
 msgid "Unicode code point:"
-msgstr ""
+msgstr "Kódový bod Unicode:"
 
 #: kcharselect.cpp:1102
 msgctxt "KCharSelectItemModel|Character"
 msgid "In decimal"
 msgstr "Dekadicky"
 
-#: kcharselectdata.cpp:303
+#: kcharselectdata.cpp:305
 msgctxt "KCharSelectData|"
 msgid "<noncharacter>"
-msgstr ""
+msgstr "<neznak>"
 
-#: kcharselectdata.cpp:324
+#: kcharselectdata.cpp:326
 msgctxt "KCharSelectData|"
 msgid "<Non Private Use High Surrogate>"
 msgstr "<Vyšší náhrady pro nesoukromé použití>"
 
-#: kcharselectdata.cpp:326
+#: kcharselectdata.cpp:328
 msgctxt "KCharSelectData|"
 msgid "<Private Use High Surrogate>"
 msgstr "<Vyšší náhrady pro soukromé použití>"
 
-#: kcharselectdata.cpp:328
+#: kcharselectdata.cpp:330
 msgctxt "KCharSelectData|"
 msgid "<Low Surrogate>"
 msgstr "<Nižší náhrady>"
 
-#: kcharselectdata.cpp:330
+#: kcharselectdata.cpp:332
 msgctxt "KCharSelectData|"
 msgid "<Private Use>"
 msgstr "<Soukromé využití>"
 
-#: kcharselectdata.cpp:362
+#: kcharselectdata.cpp:364
 msgctxt "KCharSelectData|"
 msgid "<not assigned>"
 msgstr "<nepřiřazeno>"
 
-#: kcharselectdata.cpp:440
+#: kcharselectdata.cpp:442
 msgctxt "KCharSelectData|KCharselect unicode section name"
 msgid "All"
 msgstr "Vše"
 
-#: kcharselectdata.cpp:752
+#: kcharselectdata.cpp:754
 msgctxt "KCharSelectData|"
 msgid "Non-printable"
 msgstr "Netisknutelné"
 
-#: kcharselectdata.cpp:785
+#: kcharselectdata.cpp:787
 msgctxt "KCharSelectData|"
 msgid "Other, Control"
 msgstr "Jiné, Ovládání"
 
-#: kcharselectdata.cpp:787
+#: kcharselectdata.cpp:789
 msgctxt "KCharSelectData|"
 msgid "Other, Format"
 msgstr "Jiné, Formát"
 
-#: kcharselectdata.cpp:789
+#: kcharselectdata.cpp:791
 msgctxt "KCharSelectData|"
 msgid "Other, Not Assigned"
 msgstr "Jiné, Nepřiřazeno"
 
-#: kcharselectdata.cpp:791
+#: kcharselectdata.cpp:793
 msgctxt "KCharSelectData|"
 msgid "Other, Private Use"
 msgstr "Jiné, Soukromé využití"
 
-#: kcharselectdata.cpp:793
+#: kcharselectdata.cpp:795
 msgctxt "KCharSelectData|"
 msgid "Other, Surrogate"
 msgstr "Jiné, Náhrada"
 
-#: kcharselectdata.cpp:795
+#: kcharselectdata.cpp:797
 msgctxt "KCharSelectData|"
 msgid "Letter, Lowercase"
 msgstr "Písmeno, Malá písmena"
 
-#: kcharselectdata.cpp:797
+#: kcharselectdata.cpp:799
 msgctxt "KCharSelectData|"
 msgid "Letter, Modifier"
 msgstr "Písmeno, Modifikátor"
 
-#: kcharselectdata.cpp:799
+#: kcharselectdata.cpp:801
 msgctxt "KCharSelectData|"
 msgid "Letter, Other"
 msgstr "Písmeno, Jiné"
 
-#: kcharselectdata.cpp:801
+#: kcharselectdata.cpp:803
 msgctxt "KCharSelectData|"
 msgid "Letter, Titlecase"
 msgstr "Písmeno, Velké počáteční"
 
-#: kcharselectdata.cpp:803
+#: kcharselectdata.cpp:805
 msgctxt "KCharSelectData|"
 msgid "Letter, Uppercase"
 msgstr "Písmeno, Velká písmena"
 
-#: kcharselectdata.cpp:805
+#: kcharselectdata.cpp:807
 msgctxt "KCharSelectData|"
 msgid "Mark, Spacing Combining"
 msgstr "Značka, Kombinované mezery"
 
-#: kcharselectdata.cpp:807
+#: kcharselectdata.cpp:809
 msgctxt "KCharSelectData|"
 msgid "Mark, Enclosing"
 msgstr "Značka, Ohrazení"
 
-#: kcharselectdata.cpp:809
+#: kcharselectdata.cpp:811
 msgctxt "KCharSelectData|"
 msgid "Mark, Non-Spacing"
 msgstr "Značka, Bez mezer"
 
-#: kcharselectdata.cpp:811
+#: kcharselectdata.cpp:813
 msgctxt "KCharSelectData|"
 msgid "Number, Decimal Digit"
 msgstr "Číslo, Desítková číslice"
 
-#: kcharselectdata.cpp:813
+#: kcharselectdata.cpp:815
 msgctxt "KCharSelectData|"
 msgid "Number, Letter"
 msgstr "Číslo, Písmeno"
 
-#: kcharselectdata.cpp:815
+#: kcharselectdata.cpp:817
 msgctxt "KCharSelectData|"
 msgid "Number, Other"
 msgstr "Číslo, Jiné"
 
-#: kcharselectdata.cpp:817
+#: kcharselectdata.cpp:819
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Connector"
 msgstr "Interpunkce, Konektor"
 
-#: kcharselectdata.cpp:819
+#: kcharselectdata.cpp:821
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Dash"
 msgstr "Interpunkce, Pomlčka"
 
-#: kcharselectdata.cpp:821
+#: kcharselectdata.cpp:823
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Close"
 msgstr "Interpunkce, Uzavřená"
 
-#: kcharselectdata.cpp:823
+#: kcharselectdata.cpp:825
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Final Quote"
 msgstr "Interpunkce, Konečná uvozovka"
 
-#: kcharselectdata.cpp:825
+#: kcharselectdata.cpp:827
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Initial Quote"
 msgstr "Interpunkce, Úvodní uvozovka"
 
-#: kcharselectdata.cpp:827
+#: kcharselectdata.cpp:829
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Other"
 msgstr "Interpunkce, Jiná"
 
-#: kcharselectdata.cpp:829
+#: kcharselectdata.cpp:831
 msgctxt "KCharSelectData|"
 msgid "Punctuation, Open"
 msgstr "Interpunkce, Otevřená"
 
-#: kcharselectdata.cpp:831
+#: kcharselectdata.cpp:833
 msgctxt "KCharSelectData|"
 msgid "Symbol, Currency"
 msgstr "Symbol, Měna"
 
-#: kcharselectdata.cpp:833
+#: kcharselectdata.cpp:835
 msgctxt "KCharSelectData|"
 msgid "Symbol, Modifier"
 msgstr "Symbol, Modifikátor"
 
-#: kcharselectdata.cpp:835
+#: kcharselectdata.cpp:837
 msgctxt "KCharSelectData|"
 msgid "Symbol, Math"
 msgstr "Symbol, Matematika"
 
-#: kcharselectdata.cpp:837
+#: kcharselectdata.cpp:839
 msgctxt "KCharSelectData|"
 msgid "Symbol, Other"
 msgstr "Symbol, Jiný"
 
-#: kcharselectdata.cpp:839
+#: kcharselectdata.cpp:841
 msgctxt "KCharSelectData|"
 msgid "Separator, Line"
 msgstr "Oddělovač, Řádek"
 
-#: kcharselectdata.cpp:841
+#: kcharselectdata.cpp:843
 msgctxt "KCharSelectData|"
 msgid "Separator, Paragraph"
 msgstr "Oddělovač, Odstavec"
 
-#: kcharselectdata.cpp:843
+#: kcharselectdata.cpp:845
 msgctxt "KCharSelectData|"
 msgid "Separator, Space"
 msgstr "Oddělovač, Mezera"
 
-#: kcharselectdata.cpp:845
+#: kcharselectdata.cpp:847
 msgctxt "KCharSelectData|"
 msgid "Unknown"
 msgstr "Neznámý"
 
-#: kcolorcombo.cpp:333
+#: kcolorcombo.cpp:389
 msgctxt "KColorCombo|@item:inlistbox Custom color"
 msgid "Custom…"
 msgstr "Vlastní…"
@@ -1650,7 +1661,7 @@ msgstr "Tučné"
 #: kfontchooser.cpp:212
 msgctxt "KFontChooser|@item font"
 msgid "Bold Condensed Oblique"
-msgstr ""
+msgstr "Tučná zúžená kurzíva"
 
 #: kfontchooser.cpp:266
 msgctxt "KFontChooser|"
@@ -1671,7 +1682,7 @@ msgstr "Vybrat písmo"
 #: kfontchooserwidget.ui:21
 msgctxt "KFontChooserWidget|"
 msgid "Comma separated list of font features (e.g., liga, calt):"
-msgstr ""
+msgstr "Seznam vlastností písma oddělený čárkami (např. liga, calt):"
 
 #: kfontchooserwidget.ui:31
 msgctxt "KFontChooserWidget|"
@@ -1782,6 +1793,8 @@ msgid ""
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
 "tempor incididunt ut labore et dolore magna alia"
 msgstr ""
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
+"tempor incididunt ut labore et dolore magna alia"
 
 #: kmessagebox.cpp:252
 msgctxt ""
@@ -1789,7 +1802,7 @@ msgctxt ""
 "arbitrary text that is just short enough that it should never be wrapped. In "
 "a latin charset, suggested length is around 70 chars."
 msgid "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmi"
-msgstr ""
+msgstr "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmi"
 
 #: kmessagebox.cpp:319
 msgctxt "KMessageBox|"
@@ -1827,27 +1840,27 @@ msgctxt "KMessageBox|"
 msgid "Do not show this message again"
 msgstr "Tuto zprávu již nezobrazovat"
 
-#: kmessagedialog.cpp:140
+#: kmessagedialog.cpp:137
 msgctxt "KMessageDialog|"
 msgid "Details"
 msgstr "Podrobnosti"
 
-#: kmessagedialog.cpp:226
+#: kmessagedialog.cpp:218
 msgctxt "KMessageDialog|"
 msgid "Question"
 msgstr "Dotaz"
 
-#: kmessagedialog.cpp:231
+#: kmessagedialog.cpp:223
 msgctxt "KMessageDialog|"
 msgid "Warning"
 msgstr "Varování"
 
-#: kmessagedialog.cpp:234
+#: kmessagedialog.cpp:226
 msgctxt "KMessageDialog|"
 msgid "Information"
 msgstr "Informace"
 
-#: kmessagedialog.cpp:237
+#: kmessagedialog.cpp:229
 msgctxt "KMessageDialog|"
 msgid "Error"
 msgstr "Chyba"

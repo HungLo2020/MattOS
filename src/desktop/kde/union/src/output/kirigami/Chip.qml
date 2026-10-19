@@ -1,0 +1,102 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+import QtQuick
+
+import org.kde.kirigami.templates as KT
+
+import org.kde.union as Controls
+import org.kde.union.impl as Union
+
+KT.Chip {
+    id: control
+
+    Union.Element.type: "Chip"
+    Union.Element.states {
+        hovered: control.hovered
+        activeFocus: control.activeFocus
+        visualFocus: control.visualFocus
+        pressed: control.down
+        checked: control.checked
+        enabled: control.enabled
+    }
+    Union.Element.hints: [
+        Union.ElementHint { name: "closable"; when: control.closable },
+        Union.ElementHint { name: "interactive"; when: control.interactive },
+    ]
+    Union.Element.attributes: Union.ElementAttribute {
+        name: "display"
+        value: switch (control.display) {
+            case KT.Chip.IconOnly: return "icon-only"
+            case KT.Chip.TextOnly: return "text-only"
+            case KT.Chip.TextBesideIcon: return "text-beside-icon"
+            case KT.Chip.TextUnderIcon: return "text-under-icon"
+        }
+    }
+
+    implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
+                            Union.Positioner.implicitWidth)
+    implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
+                             Union.Positioner.implicitHeight)
+
+    leftPadding: Union.Style.properties.layout.padding.left
+    rightPadding: Union.Style.properties.layout.padding.right
+    topPadding: Union.Style.properties.layout.padding.top
+    bottomPadding:  Union.Style.properties.layout.padding.bottom
+
+    leftInset: Union.Style.properties.layout.inset.left
+    rightInset: Union.Style.properties.layout.inset.right
+    topInset: Union.Style.properties.layout.inset.top
+    bottomInset: Union.Style.properties.layout.inset.bottom
+
+    font: Union.Style.properties.text.font
+
+    spacing: Union.Style.properties.layout.spacing
+
+    icon {
+        color: palette.buttonText
+        width: Union.Style.properties.icon.width
+        height: Union.Style.properties.icon.height
+        name: Union.Style.properties.icon.name
+        source: Union.Style.properties.icon.source
+    }
+
+    Union.Positioner.positionItems: [contentItem, indicator]
+
+    contentItem: Item {
+        Union.PositionedItem.positionChildren: true
+        Union.Mnemonics.enabled: control.enabled && control.visible
+        Union.Mnemonics.controlType: Union.Mnemonics.ActionElement
+        Union.Mnemonics.label: control.text
+
+        Union.Icon {
+            Union.PositionedItem.source: Union.PositionerSource.Icon
+            Union.PositionedItem.minimumWidth: control.icon?.width ?? 0.0
+            Union.PositionedItem.minimumHeight: control.icon?.height ?? 0.0
+            control: control
+            visible: name.length > 0 && control.display != KT.Chip.TextOnly
+        }
+
+        Text {
+            Union.PositionedItem.source: Union.PositionerSource.Text
+
+            text: control.text
+            font: control.font
+            color: control.palette.buttonText
+
+            visible: control.display != KT.Chip.IconOnly
+        }
+    }
+
+    indicator: Controls.ToolButton {
+        id: indicator
+
+        Union.Element.hints: [
+            Union.ElementHint { name: "indicator" }
+        ]
+
+        visible: control.closable
+    }
+
+    background: Union.StyledRectangle { }
+}

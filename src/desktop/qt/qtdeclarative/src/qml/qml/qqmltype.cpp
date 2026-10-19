@@ -209,7 +209,7 @@ const QQmlTypePrivate::ProxyMetaObjects *QQmlTypePrivate::init() const
         mmo->d.superdata = mo;
         QQmlProxyMetaObject::ProxyData data = { mmo, extFunc, 0, 0 };
         metaObjects << data;
-        QQmlMetaType::registerMetaObjectForType(mmo, const_cast<QQmlTypePrivate *>(this));
+        QQmlMetaType::registerMetaObjectForType(mmo, this);
     };
 
     if (regType == QQmlType::SingletonType)
@@ -429,7 +429,7 @@ void QQmlTypePrivate::insertEnumsFromPropertyCache(
          currentCache && currentCache->metaObject() != cppMetaObject;
          currentCache = currentCache->parent().data()) {
 
-        int count = currentCache->qmlEnumCount();
+        int count = currentCache->ownEnumCount();
         for (int ii = 0; ii < count; ++ii) {
             QStringHash<int> *scoped = new QStringHash<int>();
             QQmlEnumData *enumData = currentCache->qmlEnum(ii);

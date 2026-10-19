@@ -29,10 +29,12 @@ private Q_SLOTS:
 
     void shouldFindApp();
     void shouldFindApp_data();
-    void shouldFindDefaultApp();
+    void testApplicationsUrl();
     void shouldCompareLauncherUrls();
     void testWindowUrlFromMetadata();
     void testWindowUrlFromMetadata_data();
+    void testServiceFromCmdLine();
+    void testServiceFromCmdLine_data();
 
 private:
     void createIcon();
@@ -41,12 +43,6 @@ private:
 void TaskToolsTest::initTestCase()
 {
     QStandardPaths::setTestModeEnabled(true);
-
-    // Set up applications.menu so that kservice works
-    const QString menusDir = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QLatin1String{"/menus"};
-    QDir(menusDir).removeRecursively();
-    QDir(menusDir).mkpath(QStringLiteral("."));
-    QFile::copy(QFINDTESTDATA("../../../menu/desktop/plasma-applications.menu"), menusDir + QLatin1String("/applications.menu"));
 
     const QString dataDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
 
@@ -120,15 +116,16 @@ void TaskToolsTest::shouldFindApp()
     QCOMPARE(data.url, url);
 }
 
-void TaskToolsTest::shouldFindDefaultApp()
+void TaskToolsTest::testApplicationsUrl()
 {
-    // FIXME Test other recognized default app types.
+    const QUrl url(u"applications:org.kde.konversation.desktop"_s);
 
-    KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("General"));
-    config.writePathEntry("BrowserApplication", QLatin1String("konqueror"));
+    const AppData &data = appDataFromUrl(url);
 
-    QVERIFY(defaultApplication(QUrl(u"wrong://url"_s)).isEmpty());
-    QCOMPARE(defaultApplication(QUrl(u"preferred://browser"_s)), QLatin1String("konqueror"));
+    QCOMPARE(data.id, u"org.kde.konversation"_s);
+    QCOMPARE(data.name, u"Konversation"_s);
+    QCOMPARE(data.genericName, u"IRC Client"_s);
+    QCOMPARE(data.url, url);
 }
 
 void TaskToolsTest::shouldCompareLauncherUrls()
@@ -189,8 +186,35 @@ void TaskToolsTest::testWindowUrlFromMetadata_data()
                                     << QUrl::fromLocalFile(dataDir + QLatin1String("/kservices6/kcm_kdeconnect.desktop"));
 
     QTest::addRow("Empty appId and xWindowsWMClassName, don't match marisa..desktop") << QString() << QString() << QUrl();
+}
 
-    // TODO test mapping rules
+void TaskToolsTest::testServiceFromCmdLine_data()
+{
+    QTest::addColumn<QString>("cmdLine");
+    QTest::addColumn<QString>("processName");
+    QTest::addColumn<QString>("serviceName");
+    QTest::addColumn<QString>("serviceExec");
+    QTest::addColumn<QString>("serviceDesktopName");
+
+    QTest::addRow("gammaray_with_arg") << "gammaray --foo" << "gammaray" << "GammaRay" << "gammaray" << "GammaRay";
+    QTest::addRow("gammaray_absolute") << "/usr/bin/gammaray" << "gammaray" << "GammaRay" << "gammaray" << "GammaRay";
+    QTest::addRow("no_desktop_file") << "ls -la" << "ls" << "ls" << "ls" << "";
+}
+
+void TaskToolsTest::testServiceFromCmdLine()
+{
+    QFETCH(QString, cmdLine);
+    QFETCH(QString, processName);
+    QFETCH(QString, serviceName);
+    QFETCH(QString, serviceExec);
+    QFETCH(QString, serviceDesktopName);
+
+    const auto services = servicesFromCmdLine(cmdLine, processName);
+
+    QCOMPARE(services.size(), 1);
+    QCOMPARE(services.first()->name(), serviceName);
+    QCOMPARE(services.first()->exec(), serviceExec);
+    QCOMPARE(services.first()->desktopEntryName(), serviceDesktopName);
 }
 
 QTEST_MAIN(TaskToolsTest)

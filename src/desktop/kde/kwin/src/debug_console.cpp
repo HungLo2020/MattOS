@@ -9,6 +9,7 @@
 #include "debug_console.h"
 #include "compositor.h"
 #include "core/inputdevice.h"
+#include "core/renderdevice.h"
 #include "effect/effecthandler.h"
 #include "input_event.h"
 #include "internalwindow.h"
@@ -164,12 +165,12 @@ static QString deviceRow(InputDevice *device)
 static QString buttonsToString(Qt::MouseButtons buttons)
 {
     QString ret;
-    for (uint i = 1; i < Qt::ExtraButton24; i = i << 1) {
+    for (uint i = 1; i <= Qt::ExtraButton24; i = i << 1) {
         if (buttons & i) {
             ret.append(buttonToString(Qt::MouseButton(uint(buttons) & i)));
             ret.append(QStringLiteral(" "));
         }
-    };
+    }
     return ret.trimmed();
 }
 
@@ -689,7 +690,7 @@ static QString sourceString(const AbstractDataSource *const source)
             return QStringLiteral("data control by %1").arg(executable);
         }
 
-        return QStringLiteral("unknown source of").arg(executable);
+        return QStringLiteral("unknown source of %1").arg(executable);
     }
 
     return QStringLiteral("%1(0x%2)").arg(source->metaObject()->className()).arg(qulonglong(source), 0, 16);
@@ -709,6 +710,7 @@ DebugConsole::DebugConsole()
     m_ui->windowsView->sortByColumn(0, Qt::AscendingOrder);
     m_ui->windowsView->header()->setSortIndicatorShown(true);
     m_ui->windowsView->setItemDelegate(new DebugConsoleDelegate(this));
+    connect(m_ui->pickWindowButton, &QPushButton::clicked, this, &DebugConsole::findWindow);
 
     m_ui->clipboardContent->setModel(new DataSourceModel(this));
     m_ui->primaryContent->setModel(new DataSourceModel(this));
@@ -756,7 +758,9 @@ void DebugConsole::initGLTab()
         m_ui->glInfoScrollArea->setVisible(false);
         return;
     }
-    const auto gl = Compositor::self()->scene()->openglContext()->glPlatform();
+    // TODO show GL info of all GPUs?
+    const auto context = Compositor::self()->primaryDevice()->eglContext();
+    const auto gl = context->glPlatform();
     m_ui->noOpenGLLabel->setVisible(false);
     m_ui->glInfoScrollArea->setVisible(true);
     m_ui->glVendorStringLabel->setText(QString::fromLocal8Bit(gl->glVendorString()));
@@ -778,7 +782,7 @@ void DebugConsole::initGLTab()
     };
 
     const EglBackend *backend = static_cast<EglBackend *>(Compositor::self()->backend());
-    m_ui->platformExtensionsLabel->setText(extensionsString(backend->extensions()));
+    m_ui->platformExtensionsLabel->setText(extensionsString(backend->eglDisplayObject()->extensions()));
     m_ui->openGLExtensionsLabel->setText(extensionsString(backend->openglContext()->openglExtensions()));
 }
 
@@ -823,13 +827,37 @@ void DebugConsole::updateKeyboardTab()
     m_ui->activeModifiersLabel->setText(stateActiveComponents<xkb_mod_index_t>(state, xkb_keymap_num_mods(map), modActive, &xkb_keymap_mod_get_name));
 }
 
+void DebugConsole::findWindow()
+{
+    m_interactiveWindowSelection = true;
+    hide();
+
+    kwinApp()->startInteractiveWindowSelection([this](Window *window) {
+        m_interactiveWindowSelection = false;
+        show();
+
+        if (!window) {
+            return;
+        }
+
+        auto *windowsModel = m_ui->windowsView->model();
+        const auto indexes = windowsModel->match(windowsModel->index(0, 0), DebugConsoleModel::InternalIdRole, window->internalId(), 1, Qt::MatchExactly | Qt::MatchRecursive);
+        if (indexes.isEmpty()) {
+            return;
+        }
+
+        m_ui->windowsView->expand(indexes.first());
+        m_ui->windowsView->setCurrentIndex(indexes.first());
+    });
+}
+
 void DebugConsole::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
     // delay the connection to the show event as in ctor the windowHandle returns null
     connect(windowHandle(), &QWindow::visibleChanged, this, [this](bool visible) {
-        if (visible) {
+        if (visible || m_interactiveWindowSelection) {
             // ignore
             return;
         }
@@ -888,7 +916,7 @@ QString DebugConsoleDelegate::displayText(const QVariant &value, const QLocale &
     }
     default:
         if (value.userType() == qMetaTypeId<QStringList>()) {
-            return value.toStringList().join(QLatin1String(", "));
+            return value.toStringList().join(QLatin1StringView(", "));
         }
         if (value.userType() == qMetaTypeId<KWin::SurfaceInterface *>()) {
             if (auto s = value.value<KWin::SurfaceInterface *>()) {
@@ -1408,6 +1436,8 @@ QVariant DebugConsoleModel::windowData(const QModelIndex &index, int role, const
         return toString(c);
     } else if (role == Qt::DecorationRole) {
         return c->icon();
+    } else if (role == InternalIdRole) {
+        return c->internalId();
     }
     return QVariant();
 }
@@ -1680,12 +1710,12 @@ QVariant DataSourceModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
     const QString mimeType = m_source->mimeTypes().at(index.row());
-    ;
+
     if (index.column() == 0 && role == Qt::DisplayRole) {
         return mimeType;
     } else if (index.column() == 1 && index.row() < m_data.count()) {
         const QByteArray &data = m_data.at(index.row());
-        if (mimeType.contains(QLatin1String("image"))) {
+        if (mimeType.contains(QLatin1StringView("image"))) {
             if (role == Qt::DecorationRole) {
                 return QImage::fromData(data);
             }

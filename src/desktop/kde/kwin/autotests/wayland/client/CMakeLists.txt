@@ -40,17 +40,6 @@ add_test(NAME kwayland-testWaylandSeat COMMAND testWaylandSeat)
 ecm_mark_as_test(testWaylandSeat)
 
 ########################################################
-# Test ShmPool
-########################################################
-set( testShmPool_SRCS
-        test_shm_pool.cpp
-    )
-add_executable(testShmPool ${testShmPool_SRCS})
-target_link_libraries( testShmPool Qt::Test Qt::Gui Plasma::KWaylandClient kwin)
-add_test(NAME kwayland-testShmPool COMMAND testShmPool)
-ecm_mark_as_test(testShmPool)
-
-########################################################
 # Test SubSurface
 ########################################################
 set( testSubSurface_SRCS
@@ -60,28 +49,6 @@ add_executable(testSubSurface ${testSubSurface_SRCS})
 target_link_libraries( testSubSurface Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client)
 add_test(NAME kwayland-testSubSurface COMMAND testSubSurface)
 ecm_mark_as_test(testSubSurface)
-
-########################################################
-# Test Blur
-########################################################
-set( testBlur_SRCS
-        test_wayland_blur.cpp
-    )
-add_executable(testBlur ${testBlur_SRCS})
-target_link_libraries( testBlur Qt::Test Qt::Gui Plasma::KWaylandClient kwin)
-add_test(NAME kwayland-testBlur COMMAND testBlur)
-ecm_mark_as_test(testBlur)
-
-########################################################
-# Test Contrast
-########################################################
-set( testContrast_SRCS
-        test_wayland_contrast.cpp
-    )
-add_executable(testContrast ${testContrast_SRCS})
-target_link_libraries( testContrast Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client)
-add_test(NAME kwayland-testContrast COMMAND testContrast)
-ecm_mark_as_test(testContrast)
 
 ########################################################
 # Test Slide
@@ -104,33 +71,6 @@ add_executable(testWindowmanagement ${testWindowmanagement_SRCS})
 target_link_libraries( testWindowmanagement Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client)
 add_test(NAME kwayland-testWindowmanagement COMMAND testWindowmanagement)
 ecm_mark_as_test(testWindowmanagement)
-
-########################################################
-# Test DataSource
-########################################################
-set( testDataSource_SRCS
-        test_datasource.cpp
-    )
-add_executable(testDataSource ${testDataSource_SRCS})
-target_link_libraries( testDataSource Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client)
-add_test(NAME kwayland-testDataSource COMMAND testDataSource)
-ecm_mark_as_test(testDataSource)
-
-########################################################
-# Test ServerSideDecoration
-########################################################
-set( testServerSideDecoration_SRCS
-        test_server_side_decoration.cpp
-    )
-add_executable(testServerSideDecoration ${testServerSideDecoration_SRCS})
-qt6_generate_wayland_protocol_client_sources(testServerSideDecoration
-    PRIVATE_CODE
-    FILES
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/server-decoration.xml
-)
-target_link_libraries( testServerSideDecoration Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client)
-add_test(NAME kwayland-testServerSideDecoration COMMAND testServerSideDecoration)
-ecm_mark_as_test(testServerSideDecoration)
 
 ########################################################
 # Test PlasmaShell
@@ -186,27 +126,6 @@ add_executable(testXdgForeign ${testXdgForeign_SRCS})
 target_link_libraries( testXdgForeign Qt::Test Qt::Gui kwin Plasma::KWaylandClient Wayland::Client)
 add_test(NAME kwayland-testXdgForeign COMMAND testXdgForeign)
 ecm_mark_as_test(testXdgForeign)
-
-########################################################
-# Test XdgShell
-########################################################
-set(testXdgShell_SRCS
-    test_xdg_shell.cpp
-    ${PROJECT_SOURCE_DIR}/tests/fakeoutput.cpp
-)
-add_executable(testXdgShell ${testXdgShell_SRCS})
-target_link_libraries( testXdgShell Qt::Test Qt::Gui kwin Plasma::KWaylandClient Wayland::Client)
-add_test(NAME kwayland-testXdgShell COMMAND testXdgShell)
-ecm_mark_as_test(testXdgShell)
-
-########################################################
-# Test Pointer Constraints
-########################################################
-add_executable(testPointerConstraintsInterface test_pointer_constraints.cpp)
-target_link_libraries( testPointerConstraintsInterface Qt::Test Qt::Gui kwin Plasma::KWaylandClient Wayland::Client)
-add_test(NAME kwayland-testPointerConstraintsInterface COMMAND testPointerConstraintsInterface)
-ecm_mark_as_test(testPointerConstraintsInterface)
-
 
 ########################################################
 # Test Filter
@@ -279,14 +198,3 @@ add_executable(testXdgOutput ${testXdgOutput_SRCS})
 target_link_libraries( testXdgOutput Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client Wayland::Server)
 add_test(NAME kwayland-testXdgOutput COMMAND testXdgOutput)
 ecm_mark_as_test(testXdgOutput)
-
-########################################################
-# Test XDG Decoration
-########################################################
-set( testXdgdecoration_SRCS
-        test_xdg_decoration.cpp
-    )
-add_executable(testXdgDecoration ${testXdgdecoration_SRCS})
-target_link_libraries( testXdgDecoration Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client Wayland::Server)
-add_test(NAME kwayland-testXdgDecoration COMMAND testXdgDecoration)
-ecm_mark_as_test(testXdgDecoration)

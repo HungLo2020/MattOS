@@ -37,196 +37,39 @@ ShaderManager::~ShaderManager()
     }
 }
 
+static QByteArray listDefines(ShaderTraits traits)
+{
+    QByteArray ret;
+    ret += QByteArrayLiteral("#define TRAIT_MAP_TEXTURE ") + (traits & ShaderTrait::MapTexture ? "1" : "0") + "\n";
+    ret += QByteArrayLiteral("#define TRAIT_UNIFORM_COLOR ") + (traits & ShaderTrait::UniformColor ? "1" : "0") + "\n";
+    ret += QByteArrayLiteral("#define TRAIT_MODULATE ") + (traits & ShaderTrait::Modulate ? "1" : "0") + "\n";
+    ret += QByteArrayLiteral("#define TRAIT_ADJUST_SATURATION ") + (traits & ShaderTrait::AdjustSaturation ? "1" : "0") + "\n";
+    ret += QByteArrayLiteral("#define TRAIT_TRANSFORM_COLORSPACE ") + (traits & ShaderTrait::TransformColorspace ? "1" : "0") + "\n";
+    ret += QByteArrayLiteral("#define TRAIT_MAP_EXTERNAL_TEXTURE ") + (traits & ShaderTrait::MapExternalTexture ? "1" : "0") + "\n";
+    ret += QByteArrayLiteral("#define TRAIT_MAP_MULTI_PLANE_TEXTURE ") + (traits & ShaderTrait::MapMultiPlaneTexture ? "1" : "0") + "\n";
+    ret += QByteArrayLiteral("#define TRAIT_ROUNDED_CORNERS ") + (traits & ShaderTrait::RoundedCorners ? "1" : "0") + "\n";
+    ret += QByteArrayLiteral("#define TRAIT_BORDER ") + (traits & ShaderTrait::Border ? "1" : "0") + "\n";
+    return ret;
+}
+
 QByteArray ShaderManager::generateVertexSource(ShaderTraits traits) const
 {
-    QByteArray source;
-    QTextStream stream(&source);
-
-    const auto context = EglContext::currentContext();
-    QByteArray attribute, varying;
-
-    if (!context->isOpenGLES()) {
-        const bool glsl_140 = context->glslVersion() >= Version(1, 40);
-
-        attribute = glsl_140 ? QByteArrayLiteral("in") : QByteArrayLiteral("attribute");
-        varying = glsl_140 ? QByteArrayLiteral("out") : QByteArrayLiteral("varying");
-
-        if (glsl_140) {
-            stream << "#version 140\n\n";
-        }
-    } else {
-        const bool glsl_es_300 = context->glslVersion() >= Version(3, 0);
-
-        attribute = glsl_es_300 ? QByteArrayLiteral("in") : QByteArrayLiteral("attribute");
-        varying = glsl_es_300 ? QByteArrayLiteral("out") : QByteArrayLiteral("varying");
-
-        if (glsl_es_300) {
-            stream << "#version 300 es\n\n";
-        }
+    QFile file(":/opengl/base.vert");
+    if (!file.open(QIODevice::ReadOnly)) {
+        qCCritical(KWIN_OPENGL) << "Failed to read base shader";
+        return QByteArray();
     }
-
-    stream << attribute << " vec4 position;\n";
-    if (traits & (ShaderTrait::MapTexture | ShaderTrait::MapExternalTexture | ShaderTrait::MapMultiPlaneTexture)) {
-        stream << attribute << " vec4 texcoord;\n\n";
-        stream << varying << " vec2 texcoord0;\n\n";
-    } else {
-        stream << "\n";
-    }
-
-    if (traits & (ShaderTrait::RoundedCorners | ShaderTrait::Border)) {
-        stream << varying << " vec2 position0;\n\n";
-    }
-
-    stream << "uniform mat4 modelViewProjectionMatrix;\n\n";
-
-    stream << "void main()\n{\n";
-    if (traits & (ShaderTrait::MapTexture | ShaderTrait::MapExternalTexture | ShaderTrait::MapMultiPlaneTexture)) {
-        stream << "    texcoord0 = texcoord.st;\n";
-    }
-
-    if (traits & (ShaderTrait::RoundedCorners | ShaderTrait::Border)) {
-        stream << "    position0 = position.xy;\n";
-    }
-
-    stream << "    gl_Position = modelViewProjectionMatrix * position;\n";
-    stream << "}\n";
-
-    stream.flush();
-    return source;
+    return file.readAll();
 }
 
 QByteArray ShaderManager::generateFragmentSource(ShaderTraits traits) const
 {
-    QByteArray source;
-    QTextStream stream(&source);
-
-    const auto context = EglContext::currentContext();
-    QByteArray varying, output, textureLookup;
-
-    if (!context->isOpenGLES()) {
-        const bool glsl_140 = context->glslVersion() >= Version(1, 40);
-
-        if (glsl_140) {
-            stream << "#version 140\n\n";
-        }
-
-        varying = glsl_140 ? QByteArrayLiteral("in") : QByteArrayLiteral("varying");
-        textureLookup = glsl_140 ? QByteArrayLiteral("texture") : QByteArrayLiteral("texture2D");
-        output = glsl_140 ? QByteArrayLiteral("fragColor") : QByteArrayLiteral("gl_FragColor");
-    } else {
-        const bool glsl_es_300 = context->glslVersion() >= Version(3, 0);
-
-        if (glsl_es_300) {
-            stream << "#version 300 es\n\n";
-        } else {
-            if (traits & (ShaderTrait::RoundedCorners | ShaderTrait::Border)) {
-                stream << "#extension GL_OES_standard_derivatives : enable\n\n";
-            }
-        }
-
-        // From the GLSL ES specification:
-        //
-        //     "The fragment language has no default precision qualifier for floating point types."
-        stream << "precision highp float;\n\n";
-
-        varying = glsl_es_300 ? QByteArrayLiteral("in") : QByteArrayLiteral("varying");
-        textureLookup = glsl_es_300 ? QByteArrayLiteral("texture") : QByteArrayLiteral("texture2D");
-        output = glsl_es_300 ? QByteArrayLiteral("fragColor") : QByteArrayLiteral("gl_FragColor");
+    QFile file(":/opengl/base.frag");
+    if (!file.open(QIODevice::ReadOnly)) {
+        qCCritical(KWIN_OPENGL) << "Failed to read base shader";
+        return QByteArray();
     }
-
-    if (traits & ShaderTrait::MapTexture) {
-        stream << "uniform sampler2D sampler;\n";
-        stream << varying << " vec2 texcoord0;\n";
-    } else if (traits & ShaderTrait::MapMultiPlaneTexture) {
-        stream << "uniform sampler2D sampler;\n";
-        stream << "uniform sampler2D sampler1;\n";
-        stream << varying << " vec2 texcoord0;\n";
-    } else if (traits & ShaderTrait::MapExternalTexture) {
-        stream << "#extension GL_OES_EGL_image_external : require\n\n";
-        stream << "uniform samplerExternalOES sampler;\n";
-        stream << varying << " vec2 texcoord0;\n";
-    } else if (traits & ShaderTrait::UniformColor) {
-        stream << "uniform vec4 geometryColor;\n";
-    } else if (traits & ShaderTrait::Border) {
-        stream << "#include \"sdf.glsl\"\n";
-
-        stream << "uniform vec4 box;\n";
-        stream << "uniform vec4 cornerRadius;\n";
-        stream << "uniform vec4 geometryColor;\n";
-        stream << "uniform int thickness;\n";
-        stream << varying << " vec2 position0;\n";
-    }
-
-    if (traits & ShaderTrait::YuvConversion) {
-        stream << "uniform mat4 yuvToRgb;\n";
-    }
-    if (traits & ShaderTrait::Modulate) {
-        stream << "uniform vec4 modulation;\n";
-    }
-    if (traits & ShaderTrait::AdjustSaturation) {
-        stream << "#include \"saturation.glsl\"\n";
-    }
-    if (traits & ShaderTrait::TransformColorspace) {
-        stream << "#include \"colormanagement.glsl\"\n";
-    }
-    if (traits & ShaderTrait::RoundedCorners) {
-        stream << "#include \"sdf.glsl\"\n";
-
-        stream << "uniform vec4 box;\n";
-        stream << "uniform vec4 cornerRadius;\n";
-        stream << varying << " vec2 position0;\n";
-    }
-
-    if (output != QByteArrayLiteral("gl_FragColor")) {
-        stream << "\nout vec4 " << output << ";\n";
-    }
-
-    stream << "\nvoid main(void)\n{\n";
-    stream << "    vec4 result;\n";
-    if (traits & ShaderTrait::MapTexture) {
-        stream << "    result = " << textureLookup << "(sampler, texcoord0);\n";
-    } else if (traits & ShaderTrait::MapMultiPlaneTexture) {
-        stream << "    result = vec4(" << textureLookup << "(sampler, texcoord0).x, " << textureLookup << "(sampler1, texcoord0).rg, 1.0);\n";
-    } else if (traits & ShaderTrait::MapExternalTexture) {
-        // external textures require texture2D for sampling
-        stream << "    result = texture2D(sampler, texcoord0);\n";
-    } else if (traits & ShaderTrait::UniformColor) {
-        stream << "    result = geometryColor;\n";
-    } else if (traits & ShaderTrait::Border) {
-        stream << "    float inner = sdfRoundedBox(position0, box.xy, box.zw, cornerRadius);\n";
-        stream << "    float outer = sdfRoundedBox(position0, box.xy, box.zw + vec2(thickness), cornerRadius + vec4(thickness));\n";
-        stream << "    float f = sdfSubtract(outer, inner);\n";
-        stream << "    float df = fwidth(f);\n";
-        stream << "    result = geometryColor * (1.0 - clamp(0.5 + f / df, 0.0, 1.0));\n";
-    }
-
-    if (traits & ShaderTrait::YuvConversion) {
-        stream << "result.rgb = (yuvToRgb * vec4(result.rgb, 1.0)).rgb;";
-    }
-    if (traits & ShaderTrait::RoundedCorners) {
-        stream << "    float f = sdfRoundedBox(position0, box.xy, box.zw, cornerRadius);\n";
-        stream << "    float df = fwidth(f);\n";
-        stream << "    result *= 1.0 - clamp(0.5 + f / df, 0.0, 1.0);\n";
-    }
-    if (traits & ShaderTrait::TransformColorspace) {
-        stream << "    result = encodingToNits(result, sourceNamedTransferFunction, sourceTransferFunctionParams.x, sourceTransferFunctionParams.y);\n";
-        stream << "    result.rgb = (colorimetryTransform * vec4(result.rgb, 1.0)).rgb;\n";
-    }
-    if (traits & ShaderTrait::AdjustSaturation) {
-        stream << "    result = adjustSaturation(result);\n";
-    }
-    if (traits & ShaderTrait::Modulate) {
-        stream << "    result *= modulation;\n";
-    }
-    if (traits & ShaderTrait::TransformColorspace) {
-        stream << "    result.rgb = doTonemapping(result.rgb);\n";
-        stream << "    result = nitsToDestinationEncoding(result);\n";
-    }
-
-    stream << "    " << output << " = result;\n";
-    stream << "}";
-    stream.flush();
-    return source;
+    return file.readAll();
 }
 
 std::unique_ptr<GLShader> ShaderManager::generateShader(ShaderTraits traits)
@@ -234,80 +77,25 @@ std::unique_ptr<GLShader> ShaderManager::generateShader(ShaderTraits traits)
     return generateCustomShader(traits);
 }
 
-std::optional<QByteArray> ShaderManager::preprocess(const QByteArray &src, int recursionDepth) const
-{
-    recursionDepth++;
-    if (recursionDepth > 10) {
-        qCWarning(KWIN_OPENGL, "shader has too many recursive includes!");
-        return std::nullopt;
-    }
-    QByteArray ret;
-    ret.reserve(src.size());
-    const auto split = src.split('\n');
-    for (auto it = split.begin(); it != split.end(); it++) {
-        const auto &line = *it;
-        if (line.startsWith("#include \"") && line.endsWith("\"")) {
-            static constexpr ssize_t includeLength = QByteArrayView("#include \"").size();
-            const QByteArray path = ":/opengl/" + line.mid(includeLength, line.size() - includeLength - 1);
-            QFile file(path);
-            if (!file.open(QIODevice::ReadOnly)) {
-                qCWarning(KWIN_OPENGL, "failed to read include line %s", qPrintable(line));
-                return std::nullopt;
-            }
-            const auto processed = preprocess(file.readAll(), recursionDepth);
-            if (!processed) {
-                return std::nullopt;
-            }
-            ret.append(*processed);
-        } else {
-            ret.append(line);
-            ret.append('\n');
-        }
-    }
-    return ret;
-}
-
 std::unique_ptr<GLShader> ShaderManager::generateCustomShader(ShaderTraits traits, const QByteArray &vertexSource, const QByteArray &fragmentSource)
 {
-    const auto vertex = preprocess(vertexSource.isEmpty() ? generateVertexSource(traits) : vertexSource);
-    const auto fragment = preprocess(fragmentSource.isEmpty() ? generateFragmentSource(traits) : fragmentSource);
-    if (!vertex || !fragment) {
+    const auto defines = listDefines(traits);
+    const auto vertex = defines + (vertexSource.isEmpty() ? generateVertexSource(traits) : vertexSource);
+    const auto fragment = defines + (fragmentSource.isEmpty() ? generateFragmentSource(traits) : fragmentSource);
+
+    auto shader = std::make_unique<GLShader>();
+    if (!shader->load(vertex, fragment)) {
         return nullptr;
     }
 
-    std::unique_ptr<GLShader> shader{new GLShader(GLShader::ExplicitLinking)};
-    shader->load(*vertex, *fragment);
-
     shader->bindAttributeLocation("position", VA_Position);
     shader->bindAttributeLocation("texcoord", VA_TexCoord);
-    shader->bindFragDataLocation("fragColor", 0);
 
-    shader->link();
+    if (!shader->link()) {
+        return nullptr;
+    }
+
     return shader;
-}
-
-static QString resolveShaderFilePath(const QString &filePath)
-{
-    QString suffix;
-    QString extension;
-
-    const auto context = EglContext::currentContext();
-    const Version coreVersionNumber = context->isOpenGLES() ? Version(3, 0) : Version(1, 40);
-    if (context->glslVersion() >= coreVersionNumber) {
-        suffix = QStringLiteral("_core");
-    }
-
-    if (filePath.endsWith(QStringLiteral(".frag"))) {
-        extension = QStringLiteral(".frag");
-    } else if (filePath.endsWith(QStringLiteral(".vert"))) {
-        extension = QStringLiteral(".vert");
-    } else {
-        qCWarning(KWIN_OPENGL) << filePath << "must end either with .vert or .frag";
-        return QString();
-    }
-
-    const QString prefix = filePath.chopped(extension.size());
-    return prefix + suffix + extension;
 }
 
 std::unique_ptr<GLShader> ShaderManager::generateShaderFromFile(ShaderTraits traits, const QString &vertexFile, const QString &fragmentFile)
@@ -323,15 +111,15 @@ std::unique_ptr<GLShader> ShaderManager::generateShaderFromFile(ShaderTraits tra
     QByteArray vertexSource;
     QByteArray fragmentSource;
     if (!vertexFile.isEmpty()) {
-        vertexSource = loadShaderFile(resolveShaderFilePath(vertexFile));
+        vertexSource = loadShaderFile(vertexFile);
         if (vertexSource.isEmpty()) {
-            return std::unique_ptr<GLShader>(new GLShader());
+            return nullptr;
         }
     }
     if (!fragmentFile.isEmpty()) {
-        fragmentSource = loadShaderFile(resolveShaderFilePath(fragmentFile));
+        fragmentSource = loadShaderFile(fragmentFile);
         if (fragmentSource.isEmpty()) {
-            return std::unique_ptr<GLShader>(new GLShader());
+            return nullptr;
         }
     }
     return generateCustomShader(traits, vertexSource, fragmentSource);
@@ -363,12 +151,16 @@ bool ShaderManager::isShaderBound() const
 GLShader *ShaderManager::pushShader(ShaderTraits traits)
 {
     GLShader *shader = this->shader(traits);
+    if (!shader) {
+        return nullptr;
+    }
     pushShader(shader);
     return shader;
 }
 
 void ShaderManager::pushShader(GLShader *shader)
 {
+    Q_ASSERT(shader);
     // only bind shader if it is not already bound
     if (shader != getBoundShader()) {
         shader->bind();
@@ -391,11 +183,6 @@ void ShaderManager::popShader()
     }
 }
 
-void ShaderManager::bindFragDataLocations(GLShader *shader)
-{
-    shader->bindFragDataLocation("fragColor", 0);
-}
-
 void ShaderManager::bindAttributeLocations(GLShader *shader) const
 {
     shader->bindAttributeLocation("vertex", VA_Position);
@@ -404,11 +191,17 @@ void ShaderManager::bindAttributeLocations(GLShader *shader) const
 
 std::unique_ptr<GLShader> ShaderManager::loadShaderFromCode(const QByteArray &vertexSource, const QByteArray &fragmentSource)
 {
-    std::unique_ptr<GLShader> shader{new GLShader(GLShader::ExplicitLinking)};
-    shader->load(vertexSource, fragmentSource);
+    auto shader = std::make_unique<GLShader>();
+    if (!shader->load(vertexSource, fragmentSource)) {
+        return nullptr;
+    }
+
     bindAttributeLocations(shader.get());
-    bindFragDataLocations(shader.get());
-    shader->link();
+
+    if (!shader->link()) {
+        return nullptr;
+    }
+
     return shader;
 }
 

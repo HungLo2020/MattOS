@@ -207,9 +207,9 @@ void KeysTest::MappingTests()
     vi_global->mappings()->add(Mappings::NormalModeMapping, QStringLiteral("gA"), QStringLiteral("%"), Mappings::NonRecursive);
     BeginTest(QStringLiteral("foo bar xyz()"));
     TestPressKey(QStringLiteral("gAr."));
-    kate_view->setSelection(Range(0, 1, 0, 4)); // Actually selects "oo " (i.e. without the "b").
+    kate_view->setSelection(Range(0, 1, 0, 4));
     TestPressKey(QStringLiteral("d"));
-    FinishTest("fbar xyz(.");
+    FinishTest("far xyz(.");
 
     // Regression tests for BUG:260655
     clearAllMappings();
@@ -702,7 +702,7 @@ void KeysTest::AltGr()
     QApplication::postEvent(kate_view->focusProxy(), altGrDown);
     QApplication::sendPostedEvents();
     // Not really Alt-gr and 7, but this is the key event that is reported by Qt if we press that.
-    QKeyEvent *altGrAnd7 = new QKeyEvent(QEvent::KeyPress, Qt::Key_BraceLeft, Qt::GroupSwitchModifier, QStringLiteral("{"));
+    QKeyEvent *altGrAnd7 = new QKeyEvent(QEvent::KeyPress, Qt::Key_BraceLeft, ALTGR_MODIFIER, QStringLiteral("{"));
     QApplication::postEvent(kate_view->focusProxy(), altGrAnd7);
     QApplication::sendPostedEvents();
     altGrUp = new QKeyEvent(QEvent::KeyRelease, Qt::Key_AltGr, Qt::NoModifier);
@@ -718,10 +718,10 @@ void KeysTest::AltGr()
     altGrDown = new QKeyEvent(QEvent::KeyPress, Qt::Key_AltGr, Qt::NoModifier);
     QApplication::postEvent(kate_view->focusProxy(), altGrDown);
     QApplication::sendPostedEvents();
-    altGrDown = new QKeyEvent(QEvent::KeyPress, Qt::Key_Shift, Qt::ShiftModifier | Qt::GroupSwitchModifier);
+    altGrDown = new QKeyEvent(QEvent::KeyPress, Qt::Key_Shift, Qt::ShiftModifier | ALTGR_MODIFIER);
     QApplication::postEvent(kate_view->focusProxy(), altGrDown);
     QApplication::sendPostedEvents();
-    QKeyEvent *altGrAndUGrave = new QKeyEvent(QEvent::KeyPress, Qt::Key_Ugrave, Qt::ShiftModifier | Qt::GroupSwitchModifier, ugrave);
+    QKeyEvent *altGrAndUGrave = new QKeyEvent(QEvent::KeyPress, Qt::Key_Ugrave, Qt::ShiftModifier | ALTGR_MODIFIER, ugrave);
     qDebug() << QStringLiteral("%1").arg(static_cast<int>(altGrAndUGrave->modifiers()), 10, 16);
     QApplication::postEvent(kate_view->focusProxy(), altGrAndUGrave);
     QApplication::sendPostedEvents();

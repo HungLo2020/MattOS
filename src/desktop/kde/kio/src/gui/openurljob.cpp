@@ -34,14 +34,35 @@
 #include <QOperatingSystemVersion>
 #include <mimetypefinderjob.h>
 
-// For unit test purposes, to test both code paths in externalBrowser()
-KIOGUI_EXPORT bool openurljob_force_use_browserapp_kdeglobals = false;
+// A file:// URL may carry a host that names the local machine (RFC 8089), e.g.
+// those produced by `ls --hyperlink` or Midnight Commander's OSC 8 sequences.
+// Strip such a host so the URL becomes a plain local path: QUrl::toLocalFile()
+// would otherwise keep the host as a bogus UNC path "//host/path", which breaks
+// launching the associated application and makes file managers treat the target
+// as an unreachable, read-only location. See https://bugs.kde.org/483297
+static QUrl normalizeLocalFileHost(const QUrl &url)
+{
+#ifndef Q_OS_WIN
+    // On Windows file://host/share is a genuine UNC path, so leave it untouched.
+    if (!url.isLocalFile() || url.host().isEmpty()) {
+        return url;
+    }
+
+    const QString host = url.host();
+    if (host.compare(QLatin1String("localhost"), Qt::CaseInsensitive) == 0 //
+        || host.compare(QHostInfo::localHostName(), Qt::CaseInsensitive) == 0) {
+        return url.adjusted(QUrl::RemoveAuthority);
+    }
+#endif
+
+    return url;
+}
 
 class KIO::OpenUrlJobPrivate
 {
 public:
     explicit OpenUrlJobPrivate(const QUrl &url, OpenUrlJob *qq)
-        : m_url(url)
+        : m_url(normalizeLocalFileHost(url))
         , q(qq)
     {
         q->setCapabilities(KJob::Killable);
@@ -229,18 +250,14 @@ QString KIO::OpenUrlJobPrivate::externalBrowser() const
         return QString();
     }
 
-    if (!openurljob_force_use_browserapp_kdeglobals) {
-        KService::Ptr externalBrowser = KApplicationTrader::preferredService(QStringLiteral("x-scheme-handler/https"));
-        if (!externalBrowser) {
-            externalBrowser = KApplicationTrader::preferredService(QStringLiteral("x-scheme-handler/http"));
-        }
-        if (externalBrowser) {
-            return externalBrowser->storageId();
-        }
+    KService::Ptr externalBrowser = KApplicationTrader::preferredService(QStringLiteral("x-scheme-handler/https"));
+    if (!externalBrowser) {
+        externalBrowser = KApplicationTrader::preferredService(QStringLiteral("x-scheme-handler/http"));
     }
-
-    const QString browserApp = KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("General")).readEntry("BrowserApplication");
-    return browserApp;
+    if (externalBrowser) {
+        return externalBrowser->storageId();
+    }
+    return QString();
 }
 
 bool KIO::OpenUrlJobPrivate::runExternalBrowser(const QString &exec)
@@ -290,6 +307,9 @@ void KIO::OpenUrlJobPrivate::startService(const KService::Ptr &service, const QL
     job->setRunFlags(m_deleteTemporaryFile ? KIO::ApplicationLauncherJob::DeleteTemporaryFiles : KIO::ApplicationLauncherJob::RunFlags{});
     job->setSuggestedFileName(m_suggestedFileName);
     job->setStartupId(m_startupId);
+    if (urls.size() == 1 && !m_mimeTypeName.isEmpty()) {
+        job->setKnownMimeType(m_mimeTypeName);
+    }
     q->addSubjob(job);
     job->start();
 }
@@ -343,7 +363,13 @@ static bool isBinary(const QMimeType &mimeType)
 // e.g. ".sh", ".csh", ".py", ".js"
 static bool isTextScript(const QMimeType &mimeType)
 {
-    return (mimeType.inherits(QStringLiteral("application/x-executable")) && mimeType.inherits(QStringLiteral("text/plain")));
+    if (!mimeType.inherits(QStringLiteral("application/x-executable"))) {
+        return false;
+    }
+
+    // A type under text/ holds text whether or not the database spells out that it is a
+    // kind of text/plain, and shared-mime-info stopped saying so for shell scripts.
+    return mimeType.inherits(QStringLiteral("text/plain")) || mimeType.name().startsWith(QLatin1String("text/"));
 }
 
 // Helper function that returns whether a file has the execute bit set or not.
@@ -387,16 +413,21 @@ void KIO::OpenUrlJobPrivate::handleBinaries(const QMimeType &mimeType)
 
     bool isNativeBinary = true;
 #ifndef Q_OS_WIN
-    isNativeBinary = !mimeType.inherits(QStringLiteral("application/x-ms-dos-executable"));
+    if (mimeType.inherits(QStringLiteral("application/x-ms-dos-executable"))) {
+        // Treat as a native binary only if the executable bit is set, which implies 
+        // binfmt_misc or a similar kernel mechanism will handle it. Without the executable bit,
+        // fall back to association handling.
+        isNativeBinary = hasExecuteBit(localPath);
+    }
 #endif
 
     if (m_showOpenOrExecuteDialog) {
         auto dialogFinished = [this, localPath, isNativeBinary](bool shouldExecute) {
-            // shouldExecute is always true if we get here, because for binaries the
-            // dialog only offers Execute/Cancel
-            Q_UNUSED(shouldExecute)
-
-            handleBinariesHelper(localPath, isNativeBinary);
+            if (shouldExecute) {
+                handleBinariesHelper(localPath, isNativeBinary);
+            } else {
+                openInPreferredApp();
+            }
         };
 
         // Ask the user for confirmation before executing this binary (for binaries
@@ -616,6 +647,16 @@ void KIO::OpenUrlJobPrivate::handleScripts()
 void KIO::OpenUrlJobPrivate::openInPreferredApp()
 {
     KService::Ptr service = KApplicationTrader::preferredService(m_mimeTypeName);
+    if (!service) {
+        // A script is text, and the program someone picked for text is the one to show it
+        // to them in. The MIME database used to say a script is a kind of text/plain and
+        // no longer does for every script, so the text program is asked for by name.
+        const QMimeType mimeType = QMimeDatabase().mimeTypeForName(m_mimeTypeName);
+        if (isTextScript(mimeType)) {
+            service = KApplicationTrader::preferredService(QStringLiteral("text/plain"));
+        }
+    }
+
     if (service) {
         // If file mimetype is set to xdg-open or kde-open, the file will be opened in endless loop
         // In these cases, showOpenWithDialog instead

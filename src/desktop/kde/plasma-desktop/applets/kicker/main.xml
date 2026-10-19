@@ -61,6 +61,10 @@
       <label>Whether to show the "Recent Files" category.</label>
       <default>true</default>
     </entry>
+    <entry name="showRecentFolders" type="Bool">
+      <label>Whether to show the "Recent Places" category.</label>
+      <default>false</default>
+    </entry>
 
     <entry name="useExtraRunners" type="Bool">
       <label>Whether to use additional KRunner plugins to produce results in the search.</label>
@@ -77,6 +81,10 @@
     <entry name="showIconsRootLevel" type="Bool">
       <label>Whether to show icons on the root level of the menu.</label>
       <default>false</default>
+    </entry>
+    <entry name="highlightNewlyInstalledApps" type="Bool">
+      <label>Whether to highlight newly-installed applications</label>
+      <default>true</default>
     </entry>
 
     <entry name="forceDarkMode" type="Bool">

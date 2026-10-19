@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qgeoshape.h"
 #include "qgeoshape_p.h"
@@ -280,25 +281,48 @@ QString QGeoShape::toString() const
 }
 
 #ifndef QT_NO_DEBUG_STREAM
+static void formatGeoCoordinates(QDebug dbg, const QList<QGeoCoordinate> &coordinates)
+{
+    const auto size = coordinates.size();
+    dbg << size << ": ";
+    for (qsizetype i = 0; i < size; ++i) {
+        if (i > 0)
+            dbg << "; ";
+        if (i > 10) {
+            dbg << "...";
+            break;
+        }
+        dbg << '(' << coordinates.at(i).toString() << ')';
+    }
+}
+
 QDebug QGeoShape::debugStreaming(QDebug dbg, const QGeoShape &shape)
 {
     QDebugStateSaver saver(dbg);
-    dbg.nospace() << "QGeoShape(";
+    dbg.nospace().noquote() << "QGeoShape(";
     switch (shape.type()) {
     case QGeoShape::UnknownType:
         dbg << "Unknown";
         break;
-    case QGeoShape::RectangleType:
-        dbg << "Rectangle";
+    case QGeoShape::RectangleType: {
+        const auto &rect = static_cast<const QGeoRectangle &>(shape);
+        dbg << "Rectangle, (" << rect.topLeft().toString() << "), ("
+            << rect.bottomRight().toString() << ')';
         break;
+    }
     case QGeoShape::PathType:
-        dbg << "Path";
+        dbg << "Path, ";
+        formatGeoCoordinates(dbg, static_cast<const QGeoPath &>(shape).path());
         break;
     case QGeoShape::PolygonType:
-        dbg << "Polygon";
+        dbg << "Polygon, ";
+        formatGeoCoordinates(dbg, static_cast<const QGeoPolygon &>(shape).perimeter());
         break;
-    case QGeoShape::CircleType:
-        dbg << "Circle";
+    case QGeoShape::CircleType: {
+        const auto &circle = static_cast<const QGeoCircle &>(shape);
+        dbg << "Circle, center=(" << circle.center().toString() << "), radius=" << circle.radius();
+        break;
+    }
     }
 
     dbg << ')';

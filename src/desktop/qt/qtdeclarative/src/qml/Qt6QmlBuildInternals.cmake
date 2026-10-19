@@ -222,6 +222,14 @@ function(qt_internal_add_qml_module target)
             CLASS_NAME ${arg_CLASS_NAME}
         )
 
+        if(NOT arg_PLUGIN_TARGET STREQUAL target)
+            # This is needed so that the dependency to the backing target is included in
+            # the plugin's Dependencies.cmake -> _qt_internal_find_qt_dependencies() call.
+            # For static builds, we need the backing target to be available for transitive
+            # linkage. For shared builds, we need it for (Android) deployment reasons.
+            list(APPEND plugin_args LIBRARIES Qt::${target})
+        endif()
+
         qt_internal_add_plugin(${arg_PLUGIN_TARGET} ${plugin_args})
 
         # Use the plugin target name as the main part of the plugin basename.
@@ -261,23 +269,6 @@ function(qt_internal_add_qml_module target)
         list(APPEND add_qml_module_args
             INSTALLED_BACKING_TARGET "${QT_CMAKE_EXPORT_NAMESPACE}::${target}"
         )
-
-        if(NOT arg_PLUGIN_TARGET STREQUAL target)
-            get_target_property(lib_type ${arg_PLUGIN_TARGET} TYPE)
-            if(lib_type STREQUAL "STATIC_LIBRARY")
-                # This is needed so that the dependency on the backing target
-                # is included in the plugin's find_package() support.
-                # The naming of backing targets and plugins don't typically
-                # follow the pattern of other plugins with regard to Private
-                # suffixes, so the dependency logic in qt_internal_add_plugin()
-                # doesn't find these. For non-static builds, the private
-                # dependency doesn't get exposed to find_package(), so we don't
-                # have to make the dependency known for that case.
-                set_property(TARGET ${arg_PLUGIN_TARGET} APPEND PROPERTY
-                    _qt_target_deps "${INSTALL_CMAKE_NAMESPACE}${target}\;${PROJECT_VERSION}"
-                )
-            endif()
-        endif()
     endif()
 
     # TODO: Check if we need arg_SOURCES in this condition

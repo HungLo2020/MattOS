@@ -75,7 +75,7 @@ protected:
     void clearSocketNotifier();
     QSocketNotifier *socketNotifier() const
     {
-        return m_notifier;
+        return m_notifier.get();
     }
 
 private:
@@ -83,7 +83,7 @@ private:
     xcb_timestamp_t m_timestamp = XCB_CURRENT_TIME;
     FileDescriptor m_fd;
 
-    QSocketNotifier *m_notifier = nullptr;
+    std::unique_ptr<QSocketNotifier> m_notifier;
     bool m_incr = false;
     bool m_timeout = false;
 
@@ -118,7 +118,6 @@ private:
 
     bool m_propertyIsSet = false;
     bool m_flushPropertyOnDelete = false;
-    std::optional<uint32_t> m_originalEventMask = std::nullopt;
 
     Q_DISABLE_COPY(TransferWltoX)
 };

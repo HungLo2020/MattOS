@@ -259,3 +259,6 @@ msgstr "Navegador de sensors"
 msgctxt "Name (unit)"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
+
+#~ msgid "[Group]"
+#~ msgstr "[Grup]"

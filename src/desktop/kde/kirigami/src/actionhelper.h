@@ -16,6 +16,7 @@ class ActionHelper : public QObject
 public:
     explicit ActionHelper(QObject *parent = nullptr);
 
+    Q_INVOKABLE QString nativeKey(const QKeySequence &keys);
     Q_INVOKABLE QList<QKeySequence> alternateShortcuts(QAction *action) const;
     Q_INVOKABLE QString iconName(const QIcon &icon) const;
 };

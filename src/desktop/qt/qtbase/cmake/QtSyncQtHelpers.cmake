@@ -24,6 +24,8 @@ function(qt_internal_target_sync_headers target
     get_target_property(sync_source_directory ${target} _qt_sync_source_directory)
     set(syncqt_timestamp "${CMAKE_CURRENT_BINARY_DIR}/${target}_syncqt_timestamp")
     set(syncqt_outputs "${syncqt_timestamp}")
+    set(syncqt_buildtime_args "")
+    set(syncqt_deps "")
 
     set(is_interface_lib FALSE)
     get_target_property(type ${target} TYPE)
@@ -75,9 +77,17 @@ function(qt_internal_target_sync_headers target
         set(internal_module_argument "-internal")
     endif()
 
+    # For framework builds syncqt also generates lowercase forwarding headers into the staging
+    # directory, so that the framework's headers can be reached via a plain include path.
+    set(framework_argument "")
+    if(is_framework)
+        set(framework_argument "-framework")
+    endif()
+
     get_target_property(qpa_filter_regex ${target} _qt_module_qpa_headers_filter_regex)
     get_target_property(rhi_filter_regex ${target} _qt_module_rhi_headers_filter_regex)
     get_target_property(ssg_filter_regex ${target} _qt_module_ssg_headers_filter_regex)
+    get_target_property(spi_filter_regex ${target} _qt_module_spi_headers_filter_regex)
     get_target_property(private_filter_regex ${target} _qt_module_private_headers_filter_regex)
 
     # We need to use the real paths since otherwise it may lead to the invalid work of the
@@ -114,6 +124,12 @@ function(qt_internal_target_sync_headers target
         )
     endif()
 
+    if(spi_filter_regex)
+        set(spi_filter_argument
+            -spiHeadersFilter "${spi_filter_regex}"
+        )
+    endif()
+
     set(common_syncqt_arguments
         -module "${module}"
         -sourceDir "${source_dir_real}"
@@ -125,17 +141,26 @@ function(qt_internal_target_sync_headers target
         -qpaIncludeDir "${module_build_interface_qpa_include_dir}"
         -rhiIncludeDir "${module_build_interface_rhi_include_dir}"
         -ssgIncludeDir "${module_build_interface_ssg_include_dir}"
-        -generatedHeaders ${module_headers_generated}
+        -spiIncludeDir "${module_build_interface_spi_include_dir}"
         ${qpa_filter_argument}
         ${rhi_filter_argument}
         ${ssg_filter_argument}
+        ${spi_filter_argument}
         ${public_namespaces_filter}
         ${non_qt_module_argument}
         ${internal_module_argument}
+        ${framework_argument}
     )
 
     if(QT_INTERNAL_ENABLE_SYNCQT_DEBUG_OUTPUT)
         list(APPEND common_syncqt_arguments -debug)
+    endif()
+
+    get_target_property(module_map_path ${target} _qt_module_map_build_path)
+    if(module_map_path)
+        list(APPEND syncqt_buildtime_args -moduleMapFile "${module_map_path}")
+        list(APPEND syncqt_outputs "${module_map_path}")
+        list(APPEND syncqt_deps "${module_modulemap_intermediate_path}")
     endif()
 
     set(build_time_syncqt_arguments "")
@@ -155,10 +180,14 @@ function(qt_internal_target_sync_headers target
         "(.+/(ui_)[^/]+\\.h|${CMAKE_CURRENT_SOURCE_DIR}(/.+)?/doc/+\\.h)")
 
     # Filter out all headers that should be excluded from documentation generation.
-    # Documentation generation shouldn't depend on headers like the dbus-generated ones.
+    # Documentation generation shouldn't depend on headers like the dbus-generated ones or any
+    # others that invoke tooling to be created.
+    # But it's okay for them to contain file(GENERATE)'d headers which involve no tool calls.
     set(module_headers_for_docs "${module_headers}")
+    set(module_headers_generated_for_docs "${module_headers_generated}")
     if(module_headers_exclude_from_docs)
         list(REMOVE_ITEM module_headers_for_docs ${module_headers_exclude_from_docs})
+        list(REMOVE_ITEM module_headers_generated_for_docs ${module_headers_exclude_from_docs})
     endif()
 
     set(syncqt_staging_dir "${module_build_interface_include_dir}/.syncqt_staging")
@@ -168,11 +197,20 @@ function(qt_internal_target_sync_headers target
         -headers ${module_headers}
         -stagingDir "${syncqt_staging_dir}"
         -knownModules ${known_modules}
+        -generatedHeaders ${module_headers_generated}
         ${version_script_args}
     )
     list(JOIN syncqt_args "\n" syncqt_args_string)
     set(syncqt_args_rsp "${binary_dir_real}/${target}_syncqt_args")
     qt_configure_file(OUTPUT "${syncqt_args_rsp}" CONTENT "${syncqt_args_string}")
+
+    if(syncqt_buildtime_args)
+        list(JOIN syncqt_buildtime_args "\n" syncqt_buildtime_args_string)
+        set(syncqt_buildtime_args_rsp "${binary_dir_real}/${target}_buildtime_syncqt_args")
+        qt_configure_file(OUTPUT "${syncqt_buildtime_args_rsp}"
+            CONTENT "${syncqt_buildtime_args_string}")
+        list(APPEND build_time_syncqt_arguments "@${syncqt_buildtime_args_rsp}")
+    endif()
 
     get_target_property(external_headers_dir ${target} _qt_external_headers_dir)
     if(external_headers_dir)
@@ -203,6 +241,7 @@ function(qt_internal_target_sync_headers target
             ${syncqt_args_rsp}
             ${module_headers}
             ${QT_CMAKE_EXPORT_NAMESPACE}::syncqt
+            ${syncqt_deps}
             "$<GENEX_EVAL:$<TARGET_PROPERTY:${target},_qt_internal_sync_headers_deps>>"
         COMMENT
             "Running syncqt.cpp for module: ${module}"
@@ -227,10 +266,13 @@ function(qt_internal_target_sync_headers target
         add_dependencies(thirdparty_sync_headers ${target}_sync_headers)
     endif()
     # This target is required when building docs, to make all header files and their aliases
-    # available for qdoc.
-    # ${target}_sync_headers is added as dependency to make sure that
-    # ${target}_sync_all_public_headers is running after ${target}_sync_headers, when building docs.
+    # available for qdoc, including generated headers that are not created by tools.
     set(syncqt_all_args "${common_syncqt_arguments};-all")
+    if(module_headers_generated_for_docs)
+        list(APPEND syncqt_all_args
+            -generatedHeaders ${module_headers_generated_for_docs}
+        )
+    endif()
     list(JOIN syncqt_all_args "\n" syncqt_all_args_string)
     set(syncqt_all_args_rsp "${binary_dir_real}/${target}_syncqt_all_args")
     qt_configure_file(OUTPUT "${syncqt_all_args_rsp}" CONTENT "${syncqt_all_args_string}")
@@ -248,6 +290,7 @@ function(qt_internal_target_sync_headers target
             # not happen, but it ends up happening, we will have to implement some kind of lock
             # file mechanism.
             ${module_headers_for_docs}
+            ${module_headers_generated_for_docs}
             ${syncqt_all_args_rsp}
             ${QT_CMAKE_EXPORT_NAMESPACE}::syncqt
         VERBATIM
@@ -258,8 +301,11 @@ function(qt_internal_target_sync_headers target
     endif()
     add_dependencies(sync_all_public_headers ${target}_sync_all_public_headers)
 
-    if(NOT is_3rd_party_library AND NOT is_framework AND module_headers)
-        # Install all the CaMeL style aliases of header files from the staging directory in one rule
+    if(NOT is_3rd_party_library AND module_headers)
+        # Install all the CaMeL style aliases of header files from the staging directory
+        # in one rule. For framework builds these forwarding headers are installed alongside
+        # the frameworks in the non-framework include dir, so that they can be found via a
+        # plain include path in addition to the framework's own Headers dir.
         qt_install(DIRECTORY "${syncqt_staging_dir}/"
             DESTINATION "${module_install_interface_include_dir}"
         )

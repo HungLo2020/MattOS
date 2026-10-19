@@ -35,7 +35,6 @@
 #include <emscripten/val.h>
 
 #include <QtCore/private/qstdweb_p.h>
-#include <QKeySequence>
 
 QT_BEGIN_NAMESPACE
 
@@ -456,8 +455,9 @@ void QWasmWindow::setGeometry(const QRect &rect)
     m_a11yContainer["style"].set("width", std::to_string(clientAreaRect.width()) + "px");
     m_a11yContainer["style"].set("height", std::to_string(clientAreaRect.height()) + "px");
 
-    // Important for the title flexbox to shrink correctly
+    // Important for the title bar and decorated window to size correctly
     m_window["style"].set("width", std::to_string(clientAreaRect.width()) + "px");
+    m_window["style"].set("height", std::to_string(clientAreaRect.height()) + "px");
 
     QSizeF canvasSize = clientAreaRect.size() * devicePixelRatio();
 
@@ -561,11 +561,16 @@ void QWasmWindow::setWindowFlags(Qt::WindowFlags flags)
 {
     flags = fixTopLevelWindowFlags(flags);
 
-    if ((flags.testFlag(Qt::WindowStaysOnTopHint) != m_flags.testFlag(Qt::WindowStaysOnTopHint))
-        || (flags.testFlag(Qt::WindowStaysOnBottomHint)
-            != m_flags.testFlag(Qt::WindowStaysOnBottomHint))
-        || shouldBeAboveTransientParentFlags(flags) != shouldBeAboveTransientParentFlags(m_flags)) {
-        onPositionPreferenceChanged(positionPreferenceFromWindowFlags(flags));
+    // Note: This function is also called from the constructor,
+    // and in this case we should not call onPositionPreferenceChanged
+    // since we haven't inserted the window yet.
+    if (std::find(childStack().begin(), childStack().end(), this) != childStack().end()) {
+        if ((flags.testFlag(Qt::WindowStaysOnTopHint) != m_flags.testFlag(Qt::WindowStaysOnTopHint))
+            || (flags.testFlag(Qt::WindowStaysOnBottomHint)
+                != m_flags.testFlag(Qt::WindowStaysOnBottomHint))
+            || shouldBeAboveTransientParentFlags(flags) != shouldBeAboveTransientParentFlags(m_flags)) {
+            onPositionPreferenceChanged(positionPreferenceFromWindowFlags(flags));
+        }
     }
     m_flags = flags;
     dom::syncCSSClassWith(m_decoratedWindow, "frameless", !hasFrame() || !window()->isTopLevel());
@@ -630,6 +635,14 @@ void QWasmWindow::applyWindowState()
 
     const bool isFullscreen = m_state.testFlag(Qt::WindowFullScreen);
     const bool isMaximized = m_state.testFlag(Qt::WindowMaximized);
+
+    // The screen geometry may be stale if the container element was hidden
+    // (display:none) when created — ResizeObserver doesn't fire for elements
+    // not in the layout. Re-read the geometry now so that fullscreen/maximized
+    // windows get the correct size.
+    if ((isFullscreen || isMaximized) && platformScreen()->geometry().size().isEmpty())
+        platformScreen()->updateQScreenSize();
+
     if (isFullscreen)
         newGeom = platformScreen()->geometry();
     else if (isMaximized)
@@ -658,8 +671,18 @@ void QWasmWindow::handleKeyEvent(const KeyEvent &event)
 {
     qCDebug(qLcQpaWasmInputContext) << "handleKeyEvent";
 
-    if (QWasmInputContext *inputContext = QWasmIntegration::get()->wasmInputContext(); inputContext->isActive()) {
-        handleKeyForInputContextEvent(event);
+    if (QWasmInputContext *inputContext = activeWasmInputContext()) {
+        // Don't send Qt key events that are part of input composition; let the
+        // input event handler deal with those (keyCode 229 / isComposing).
+        if (event.isComposing || event.keyCode == 229)
+            return;
+        if (processKey(event)) {
+            // The key is already handled in Qt; flag the following input event
+            // so it is ignored by inputCallback (it still reaches it, to keep
+            // word suggestions working) instead of inserting the text twice.
+            inputContext->m_ignoreNextInput = true;
+        }
+        event.webEvent.call<void>("stopImmediatePropagation");
     } else {
         if (processKey(event)) {
             event.webEvent.call<void>("preventDefault");
@@ -673,6 +696,9 @@ bool QWasmWindow::processKey(const KeyEvent &event)
     constexpr bool ProceedToNativeEvent = false;
     Q_ASSERT(event.type == EventType::KeyDown || event.type == EventType::KeyUp);
 
+    // Copy/cut/paste shortcuts are partly serviced by the browser's native
+    // clipboard, which decides whether the event should be handed to the
+    // browser instead of (or in addition to) sending the Qt key event.
 #if QT_CONFIG(clipboard)
     const auto clipboardResult =
             QWasmIntegration::get()->getWasmClipboard()->processKeyboard(event);
@@ -687,50 +713,8 @@ bool QWasmWindow::processKey(const KeyEvent &event)
             event.modifiers, event.text, event.autoRepeat);
 
 #if QT_CONFIG(clipboard)
-    return clipboardResult == ProcessKeyboardResult::NativeClipboardEventAndCopiedDataNeeded
-            ? ProceedToNativeEvent
-            : result;
-#else
-    return result;
-#endif
-}
-
-void QWasmWindow::handleKeyForInputContextEvent(const KeyEvent &keyEvent)
-{
-    // Don't send Qt key events if the key event is a part of input composition,
-    // let those be handled by by the input event key handler. Check for the
-    // keyCode 229 as well as isComposing in order catch all cases (see mdn
-    // docs for the keyDown event)
-    if (keyEvent.isComposing || keyEvent.keyCode == 229)
-        return;
-
-    qCDebug(qLcQpaWasmInputContext) << "processKey as KeyEvent";
-    emscripten::val event = keyEvent.webEvent;
-    if (processKeyForInputContext(keyEvent))
-        event.call<void>("preventDefault");
-    event.call<void>("stopImmediatePropagation");
-}
-
-bool QWasmWindow::processKeyForInputContext(const KeyEvent &event)
-{
-    qCDebug(qLcQpaWasmInputContext) << Q_FUNC_INFO;
-    Q_ASSERT(event.type == EventType::KeyDown || event.type == EventType::KeyUp);
-
-    QKeySequence keySeq(event.modifiers | event.key);
-
-    if (keySeq == QKeySequence::Paste) {
-        // Process it in pasteCallback and inputCallback
-        return false;
-    }
-
-    const auto result = QWindowSystemInterface::handleKeyEvent(
-            0, event.type == EventType::KeyDown ? QEvent::KeyPress : QEvent::KeyRelease, event.key,
-            event.modifiers, event.text);
-
-#if QT_CONFIG(clipboard)
-    // Copy/Cut callback required to copy qtClipboard to system clipboard
-    if (keySeq == QKeySequence::Copy || keySeq == QKeySequence::Cut)
-        return false;
+    if (clipboardResult == ProcessKeyboardResult::NativeClipboardEventAndCopiedDataNeeded)
+        return ProceedToNativeEvent;
 #endif
 
     return result;
@@ -738,7 +722,7 @@ bool QWasmWindow::processKeyForInputContext(const KeyEvent &event)
 
 void QWasmWindow::handleInputEvent(emscripten::val event)
 {
-    if (QWasmInputContext *inputContext = QWasmIntegration::get()->wasmInputContext(); inputContext->isActive())
+    if (QWasmInputContext *inputContext = activeWasmInputContext())
         inputContext->inputCallback(event);
     else
         m_focusHelper.set("innerHTML", std::string());
@@ -746,7 +730,7 @@ void QWasmWindow::handleInputEvent(emscripten::val event)
 
 void QWasmWindow::handleCompositionStartEvent(emscripten::val event)
 {
-    if (QWasmInputContext *inputContext = QWasmIntegration::get()->wasmInputContext(); inputContext->isActive())
+    if (QWasmInputContext *inputContext = activeWasmInputContext())
         inputContext->compositionStartCallback(event);
     else
         m_focusHelper.set("innerHTML", std::string());
@@ -754,7 +738,7 @@ void QWasmWindow::handleCompositionStartEvent(emscripten::val event)
 
 void QWasmWindow::handleCompositionUpdateEvent(emscripten::val event)
 {
-    if (QWasmInputContext *inputContext = QWasmIntegration::get()->wasmInputContext(); inputContext->isActive())
+    if (QWasmInputContext *inputContext = activeWasmInputContext())
         inputContext->compositionUpdateCallback(event);
     else
         m_focusHelper.set("innerHTML", std::string());
@@ -762,7 +746,7 @@ void QWasmWindow::handleCompositionUpdateEvent(emscripten::val event)
 
 void QWasmWindow::handleCompositionEndEvent(emscripten::val event)
 {
-    if (QWasmInputContext *inputContext = QWasmIntegration::get()->wasmInputContext(); inputContext->isActive())
+    if (QWasmInputContext *inputContext = activeWasmInputContext())
         inputContext->compositionEndCallback(event);
     else
         m_focusHelper.set("innerHTML", std::string());
@@ -770,7 +754,7 @@ void QWasmWindow::handleCompositionEndEvent(emscripten::val event)
 
 void QWasmWindow::handleBeforeInputEvent(emscripten::val event)
 {
-     if (QWasmInputContext *inputContext = QWasmIntegration::get()->wasmInputContext(); inputContext->isActive())
+     if (QWasmInputContext *inputContext = activeWasmInputContext())
         inputContext->beforeInputCallback(event);
     else
         m_focusHelper.set("innerHTML", std::string());
@@ -1033,6 +1017,13 @@ QWasmWindowStack<>::PositionPreference QWasmWindow::positionPreferenceFromWindow
     if (shouldBeAboveTransientParentFlags(flags))
         return QWasmWindowStack<>::PositionPreference::StayAboveTransientParent;
     return QWasmWindowStack<>::PositionPreference::Regular;
+}
+
+// Returns the wasm input context if it exists and is active, otherwise nullptr.
+QWasmInputContext *QWasmWindow::activeWasmInputContext() const
+{
+    QWasmInputContext *inputContext = QWasmIntegration::get()->wasmInputContext();
+    return inputContext && inputContext->isActive() ? inputContext : nullptr;
 }
 
 QRect QWasmWindow::normalGeometry() const

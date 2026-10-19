@@ -23,7 +23,7 @@ if (NOT ANDROID)
     include(KDEClangFormat)
 endif()
 
-ecm_setup_version(${PROJECT_VERSION}
+ecm_setup_version(PROJECT
     VARIABLE_PREFIX %{APPNAMEUC}
     VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/src/version-%{APPNAMELC}.h"
 )

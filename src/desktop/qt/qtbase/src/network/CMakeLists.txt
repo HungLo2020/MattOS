@@ -153,7 +153,7 @@ qt_internal_extend_target(Network CONDITION QT_FEATURE_http
 
 qt_internal_extend_target(Network CONDITION QT_FEATURE_brotli AND QT_FEATURE_http
     LIBRARIES
-        WrapBrotli::WrapBrotliDec
+        WrapBrotli::WrapBrotliDec WrapBrotli::WrapBrotliCommon
 )
 
 qt_internal_extend_target(Network CONDITION QT_FEATURE_http AND QT_FEATURE_zstd
@@ -244,12 +244,19 @@ qt_internal_extend_target(Network CONDITION QT_FEATURE_dnslookup AND QT_FEATURE_
         WrapResolv::WrapResolv
 )
 
+qt_internal_extend_target(Network CONDITION QT_FEATURE_dnslookup AND QT_FEATURE_harmony_dnsresolver
+    SOURCES
+        kernel/qdnslookup_unix.cpp
+)
+
 qt_internal_extend_target(Network CONDITION QT_FEATURE_dnslookup AND WIN32
     SOURCES
         kernel/qdnslookup_win.cpp
 )
 
-qt_internal_extend_target(Network CONDITION QT_FEATURE_dnslookup AND NOT QT_FEATURE_libresolv AND NOT WIN32
+qt_internal_extend_target(Network
+    CONDITION QT_FEATURE_dnslookup AND NOT QT_FEATURE_libresolv
+              AND NOT QT_FEATURE_harmony_dnsresolver AND NOT WIN32
     SOURCES
         kernel/qdnslookup_dummy.cpp
 )
@@ -295,6 +302,15 @@ qt_internal_extend_target(Network CONDITION UNIX AND NOT ANDROID AND NOT (APPLE 
 if(ANDROID AND (ANDROID))
     set_property(TARGET Network APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_DEPENDENCIES
         jar/Qt${QtBase_VERSION_MAJOR}AndroidNetwork.jar
+    )
+endif()
+
+if(OHOS)
+    qt_internal_add_harmonyos_permission(Network
+        NAME ohos.permission.INTERNET
+    )
+    qt_internal_add_harmonyos_permission(Network
+        NAME ohos.permission.GET_NETWORK_INFO
     )
 endif()
 
@@ -358,6 +374,7 @@ qt_internal_extend_target(Network CONDITION QT_FEATURE_ssl
         ssl/qssldiffiehellmanparameters.cpp ssl/qssldiffiehellmanparameters.h ssl/qssldiffiehellmanparameters_p.h
         ssl/qsslellipticcurve.cpp ssl/qsslellipticcurve.h
         ssl/qsslerror.cpp
+        ssl/qsslkeyingmaterial.cpp ssl/qsslkeyingmaterial.h
         ssl/qsslkey_p.cpp ssl/qsslkey_p.h
         ssl/qsslpresharedkeyauthenticator.cpp ssl/qsslpresharedkeyauthenticator.h ssl/qsslpresharedkeyauthenticator_p.h
         ssl/qsslsocket.cpp ssl/qsslsocket_p.h

@@ -35,12 +35,11 @@ class PlasmaShellInterface;
 class PlasmaWindowActivationFeedbackInterface;
 class PlasmaVirtualDesktopManagementInterface;
 class PlasmaWindowManagementInterface;
-class OutputDeviceV2Interface;
+class OutputDeviceRegistryV2;
 class OutputManagementV2Interface;
 class XdgExportedSurface;
 class XdgForeignV2Interface;
 class XdgOutputManagerV1Interface;
-class DrmClientBufferIntegration;
 class LinuxDmaBufV1ClientBufferIntegration;
 class TabletManagerV2Interface;
 class KeyboardShortcutsInhibitManagerV1Interface;
@@ -71,6 +70,8 @@ class FifoManagerV1;
 class SinglePixelBufferManagerV1;
 class ColorRepresentationManagerV1;
 class BackendOutput;
+class ExtBackgroundEffectManagerV1;
+class CommitTimingManagerV1;
 
 class KWIN_EXPORT WaylandServer : public QObject
 {
@@ -136,7 +137,6 @@ public:
 
     bool isKeyboardShortcutsInhibited() const;
 
-    DrmClientBufferIntegration *drm();
     LinuxDmaBufV1ClientBufferIntegration *linuxDmabuf();
 
     InputMethodV1Interface *inputMethod() const
@@ -225,8 +225,7 @@ public:
     LinuxDrmSyncObjV1Interface *linuxSyncObj() const;
     ExternalBrightnessV1 *externalBrightness() const;
     PointerWarpV1 *pointerWarp() const;
-
-    void setRenderBackend(RenderBackend *backend);
+    ExtBackgroundEffectManagerV1 *backgroundEffectManager() const;
 
 Q_SIGNALS:
     void windowCreated(KWin::Window *);
@@ -247,15 +246,7 @@ private:
     void handleOutputRemoved(BackendOutput *output);
     void handleOutputEnabled(LogicalOutput *output);
     void handleOutputDisabled(LogicalOutput *output);
-
-    class LockScreenPresentationWatcher : public QObject
-    {
-    public:
-        LockScreenPresentationWatcher(WaylandServer *server);
-
-    private:
-        QSet<LogicalOutput *> m_signaledOutputs;
-    };
+    void updateSyncobjSupport();
 
     Display *m_display = nullptr;
     CompositorInterface *m_compositor = nullptr;
@@ -273,7 +264,6 @@ private:
     IdleInterface *m_idle = nullptr;
     XdgOutputManagerV1Interface *m_xdgOutputManagerV1 = nullptr;
     XdgDecorationManagerV1Interface *m_xdgDecorationManagerV1 = nullptr;
-    DrmClientBufferIntegration *m_drm = nullptr;
     LinuxDmaBufV1ClientBufferIntegration *m_linuxDmabuf = nullptr;
     KeyboardShortcutsInhibitManagerV1Interface *m_keyboardShortcutsInhibitManager = nullptr;
     QPointer<ClientConnection> m_xwaylandConnection;
@@ -292,7 +282,7 @@ private:
     LinuxDrmSyncObjV1Interface *m_linuxDrmSyncObj = nullptr;
     QList<Window *> m_windows;
     QHash<LogicalOutput *, OutputInterface *> m_waylandOutputs;
-    QHash<BackendOutput *, OutputDeviceV2Interface *> m_waylandOutputDevices;
+    OutputDeviceRegistryV2 *m_outputDeviceRegistry;
     DrmLeaseManagerV1 *m_leaseManager = nullptr;
     OutputOrderV1Interface *m_outputOrder = nullptr;
     ColorManagerV1 *m_colorManager = nullptr;
@@ -304,6 +294,9 @@ private:
     XdgToplevelTagManagerV1 *m_toplevelTag = nullptr;
     ColorRepresentationManagerV1 *m_colorRepresentation = nullptr;
     PointerWarpV1 *m_pointerWarp = nullptr;
+    ExtBackgroundEffectManagerV1 *m_backgroundEffect = nullptr;
+    CommitTimingManagerV1 *m_commitTiming = nullptr;
+
     KWIN_SINGLETON(WaylandServer)
 };
 

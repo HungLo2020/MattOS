@@ -4,6 +4,7 @@ Hidden=false
 Keys=yahoo,yh
 Icon=im-yahoo
 Name=Yahoo
+Name[am]=Yahoo
 Name[ar]=ياهو
 Name[ast]=Yahoo
 Name[az]=Yahoo
@@ -40,7 +41,7 @@ Name[id]=Yahoo
 Name[ie]=Yahoo
 Name[is]=Yahoo
 Name[it]=Yahoo
-Name[ja]=Yahoo
+Name[ja]=Yahoo! JAPAN
 Name[ka]=Yahoo
 Name[kk]=Yahoo
 Name[km]=យ៉ាហ៊ូ
@@ -53,6 +54,8 @@ Name[mai]=याहू
 Name[ml]=യാഹൂ
 Name[mr]=याहू 
 Name[my]=ယဟူး
+Name[nan_TW]=Yahoo
+Name[nan_TW@latin]=Yahoo
 Name[nb]=Yahoo
 Name[nds]=Yahoo
 Name[nl]=Yahoo
@@ -78,13 +81,13 @@ Name[tg]=Yahoo
 Name[th]=Yahoo
 Name[tok]=ilo alasa Yahoo
 Name[tr]=Yahoo
-Name[ug]=Yahoo
 Name[uk]=Yahoo
 Name[vi]=Yahoo
 Name[wa]=Yahoo
 Name[zh_CN]=Yahoo
 Name[zh_TW]=Yahoo
 Query=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
+Query[am]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[ar]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[ast]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[az]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
@@ -118,7 +121,7 @@ Query[id]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701
 Query[ie]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[is]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[it]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
-Query[ja]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
+Query[ja]=https://search.yahoo.co.jp/search?p=\\{@}&ei=UTF-8
 Query[ka]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[ko]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[lg]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
@@ -126,6 +129,8 @@ Query[lt]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701
 Query[lv]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[ml]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[my]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
+Query[nan_TW]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
+Query[nan_TW@latin]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[nb]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[nl]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[nn]=https://no.search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
@@ -144,7 +149,6 @@ Query[tg]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701
 Query[th]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[tok]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[tr]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
-Query[ug]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[uk]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[vi]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search
 Query[zh_CN]=https://search.yahoo.com/search?toggle=1&cop=mss&ei=UTF-8&fr=yfp-t-701&p=\\{@}&x=0&y=0&=Web+Search

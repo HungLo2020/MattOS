@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-systemmonitor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-23 02:42+0000\n"
-"PO-Revision-Date: 2025-05-15 07:15+0200\n"
+"POT-Creation-Date: 2026-08-25 00:47+0000\n"
+"PO-Revision-Date: 2026-07-17 09:34+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.9\n"
 
 #: src/faces/applicationstable/contents/ui/ApplicationDetails.qml:51
 #, kde-format
@@ -61,7 +61,7 @@ msgctxt "Warning message shown on runtime error"
 msgid "Applications view is unsupported on your system"
 msgstr "Prikaz programov ni podprt na vašem sistemu"
 
-#: src/faces/applicationstable/contents/ui/ApplicationsTableView.qml:192
+#: src/faces/applicationstable/contents/ui/ApplicationsTableView.qml:197
 #, kde-format
 msgctxt "@label"
 msgid "Background Services"
@@ -109,67 +109,73 @@ msgctxt "@action"
 msgid "Configure Columns…"
 msgstr "Konfiguriraj stolpce…"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:200
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:203
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Set priority…"
 msgstr "Nastavi prednost …"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:207
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:210
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Set affinity…"
+msgstr "Nastavi afiniteto…"
+
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:218
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Send Signal"
 msgstr "Pošlji signal"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:212
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:223
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Suspend (STOP)"
 msgstr "Zaustavi (STOP)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:216
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:227
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Continue (CONT)"
 msgstr "Nadaljuj (CONT)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:220
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:231
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Hangup (HUP)"
 msgstr "Obesi (HUP)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:224
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:235
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Interrupt (INT)"
 msgstr "Prekini (INT)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:228
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:239
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Terminate (TERM)"
 msgstr "Končaj (TERM)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:232
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:243
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "Kill (KILL)"
 msgstr "Ubij (KILL)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:236
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:247
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "User 1 (USR1)"
 msgstr "Uporabniški 1 (USR1)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:240
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:251
 #, kde-format
 msgctxt "@action:inmenu Send Signal"
 msgid "User 2 (USR2)"
 msgstr "Uporabniški 2 (USR2)"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:248
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:259
 #, kde-format
 msgctxt "@action:inmenu"
 msgid "Quit Application"
@@ -179,13 +185,13 @@ msgstr[1] "Končaj %1 aplikacijo"
 msgstr[2] "Končaj %1 aplikaciji"
 msgstr[3] "Končaj %1 aplikacije"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:258
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:269
 #, kde-format
 msgctxt "@action:inmenu hide column"
 msgid "Hide"
 msgstr "Skrij"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:273
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:284
 #, kde-format
 msgctxt "@title:window"
 msgid "Force Quit Application"
@@ -195,7 +201,7 @@ msgstr[1] "Prisilno končaj %1 aplikacijo"
 msgstr[2] "Prisilno končaj %1 aplikaciji"
 msgstr[3] "Prisilno končaj %1 aplikacije"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:274
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:285
 #, kde-format
 msgctxt "@title:window"
 msgid "Quit Application"
@@ -205,7 +211,7 @@ msgstr[1] "Končaj %1 aplikacijo"
 msgstr[2] "Končaj %1 aplikaciji"
 msgstr[3] "Končaj %1 aplikacije"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:276
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Force Quit Application"
@@ -215,7 +221,7 @@ msgstr[1] "Prisilno končaj program"
 msgstr[2] "Prisilno končaj programa"
 msgstr[3] "Prisilno končaj programe"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:277
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:288
 #, kde-format
 msgctxt "@action:button"
 msgid "Quit Application"
@@ -225,7 +231,7 @@ msgstr[1] "Končaj aplikacijo"
 msgstr[2] "Končaj aplikaciji"
 msgstr[3] "Končaj aplikacije"
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:280
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:291
 #, kde-format
 msgid "Force quit (SIGKILL) the application? Unsaved work may be lost."
 msgid_plural ""
@@ -242,7 +248,7 @@ msgstr[3] ""
 "Prisilno končaj (SIGKILL) %1 aplikacije? Neshranjeno delo bo morda "
 "izgubljeno."
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:283
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:294
 #, kde-format
 msgid "Quit this application? Unsaved work may be lost."
 msgid_plural "Quit these %1 applications? Unsaved work may be lost."
@@ -251,7 +257,7 @@ msgstr[1] "Končaj %1 aplikacijo? Neshranjeno delo bo morda izgubljeno."
 msgstr[2] "Končaj %1 aplikaciji? Neshranjeno delo bo morda izgubljeno."
 msgstr[3] "Končaj %1 aplikacije? Neshranjeno delo bo morda izgubljeno."
 
-#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:298
+#: src/faces/applicationstable/contents/ui/FullRepresentation.qml:309
 #, kde-format
 msgctxt "@item:intable"
 msgid "%1 Process"

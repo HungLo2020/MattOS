@@ -7,6 +7,10 @@
 
 #include "gpu.h"
 
+#ifdef HAVE_UDEV
+#include <libudev.h>
+#endif
+
 #include <algorithm>
 #include <charconv>
 #include <fstream>
@@ -21,6 +25,36 @@
 #include <QStandardPaths>
 
 #include <KLocalizedString>
+
+#include "cgroup.h"
+#include "processes.h"
+#include "process_attribute.h"
+#include <processcore/gpu_utils.h>
+
+using namespace KSysGuard;
+
+class GpuNameAttribute : public KSysGuard::ProcessAttribute
+{
+public:
+    GpuNameAttribute(QObject *parent)
+        : KSysGuard::ProcessAttribute(QStringLiteral("gpu_module"), i18n("GPU"), parent)
+    {
+    }
+
+    QVariant cgroupData(KSysGuard::CGroup *cgroup, const QList<KSysGuard::Process *> &groupProcesses) const override
+    {
+        Q_UNUSED(cgroup)
+        for (auto process : groupProcesses) {
+            const QVariant value = data(process);
+            if (value.isValid() && !value.toString().isEmpty()) {
+                return value; // Return the first valid GPU name found in this cgroup
+            }
+        }
+        return QVariant{};
+    }
+};
+
+namespace fs = std::filesystem;
 #include <KPluginFactory>
 
 #include <processcore/process.h>
@@ -39,8 +73,8 @@ const fs::path fd_dir{"fd"};
 
 const QByteArrayView engine_prefix{"drm-engine-"};
 const QByteArrayView driver_prefix{"drm-driver"};
-const QByteArrayView mem_resident_prefix{"drm-resident-"};
-const QByteArrayView amd_resident_prefix{"drm-memory-"};
+const QByteArrayView amd_memory_prefix{"drm-memory-vram"};//deprecated
+const QByteArrayView total_vram_prefix{"drm-total-vram"};
 const QByteArrayView amd_drm_driver{"amdgpu"};
 const QByteArrayView amd_engine{"gfx"};
 const QByteArrayView intel_drm_driver{"i915"};
@@ -99,7 +133,7 @@ GpuPlugin::GpuPlugin(QObject *parent, const QVariantList &args)
     m_usage->setMax(100);
     m_memory = new KSysGuard::ProcessAttribute(QStringLiteral("gpu_memory"), i18n("GPU Memory"), this);
     m_memory->setUnit(KSysGuard::UnitKiloByte);
-    m_gpuName = new KSysGuard::ProcessAttribute(QStringLiteral("gpu_module"), i18n("GPU"), this);
+    m_gpuName = new GpuNameAttribute(this);
     m_gpuName->setDescription(i18n("Displays which GPU the process is using"));
 
     addProcessAttribute(m_usage);
@@ -112,12 +146,30 @@ GpuPlugin::GpuPlugin(QObject *parent, const QVariantList &args)
         return;
     devices.resize(count);
     std::vector<GpuInfo> nvidiaGpus;
+
+#ifdef HAVE_UDEV
+    struct udev *udev = udev_new();
+#endif
+
     if (drmGetDevices2(0, devices.data(), count) > 0) {
         for (const auto &device : devices) {
             if (auto minor = drmMinor(device->nodes[DRM_NODE_PRIMARY])) {
-                m_minorToGpuNum[*minor] = *minor;
+                QString gpuName;
+#ifdef HAVE_UDEV
+                if (udev) {
+                    struct udev_device *drmDevice = udev_device_new_from_syspath(udev, QStringLiteral("/sys/class/drm/card%1").arg(*minor).toUtf8().constData());
+                    gpuName = KSysGuard::gpuName(drmDevice, *minor);
+                    udev_device_unref(drmDevice);
+                } else {
+                    gpuName = KSysGuard::gpuNameFallback(*minor);
+                }
+#else
+                gpuName = KSysGuard::gpuNameFallback(*minor);
+#endif
+
+                m_minorToGpuName[*minor] = gpuName;
                 if (auto renderMinor = drmMinor(device->nodes[DRM_NODE_RENDER])) {
-                    m_minorToGpuNum[*renderMinor] = *minor;
+                    m_minorToGpuName[*renderMinor] = gpuName;
                 }
                 if (device->bustype == DRM_BUS_PCI && device->deviceinfo.pci->vendor_id == nvidiaVendorId) {
                     auto pciAddress = QString::asprintf("%08x:%02x:%02x.%x",
@@ -130,6 +182,12 @@ GpuPlugin::GpuPlugin(QObject *parent, const QVariantList &args)
             }
         }
     }
+
+#ifdef HAVE_UDEV
+    if (udev) {
+        udev_unref(udev);
+    }
+#endif
 
     if (nvidiaGpus.size() > 0 && !m_sniExecutablePath.isEmpty()) {
         setupNvidia(nvidiaGpus);
@@ -241,6 +299,24 @@ bool GpuPlugin::processPidEntry(const fs::path &path, GpuFd &proc)
     QByteArray driver;
     QHash<QByteArray, uint64_t> engineValues;
 
+    bool foundTotalVramKey = false;
+    bool foundAmdMemoryKey = false;
+
+    uint32_t deprecatedVram = 0;
+
+    auto increaseMemory = [](uint32_t &target, const QByteArrayView &value) {
+        const auto mem = to_digits(value).value_or(0);
+        if (value.endsWith("KiB")) {
+            target += mem;
+        }
+        else if (value.endsWith("MiB")) {
+            target += mem * 1024;
+        }
+        else {
+            target += mem / 1024;
+        }
+    };
+
     // Had to use a do/while loop here because f.atEnd() was returning 1
     // until the first f.readLine()
     do {
@@ -251,25 +327,27 @@ bool GpuPlugin::processPidEntry(const fs::path &path, GpuFd &proc)
 
         if (value.contains(':')) {
             continue;
-        };
+        }
+
         if (key == driver_prefix) {
             driver = value.toByteArray();
         } else if (key.startsWith(engine_prefix)) {
             if (const auto digits = to_digits(value)) {
                 engineValues[key.mid(engine_prefix.size())] = digits.value();
             }
-        } else if (key.startsWith(mem_resident_prefix) || key.startsWith(amd_resident_prefix)) {
-            const auto mem = to_digits(value).value_or(0);
-            // Unit can be KiB (matching the attribute), MiB or unspecified (Bytes)
-            if (value.endsWith("KiB")) {
-                proc.vram += mem;
-            } else if (value.endsWith("Mib")) {
-                proc.vram += mem * 1024;
-            } else {
-                proc.vram += mem / 1024;
-            }
+        } else if (key.startsWith(total_vram_prefix) && !foundTotalVramKey) {
+            foundTotalVramKey = true;
+            increaseMemory(proc.vram, value);
+        } else if (key.startsWith(amd_memory_prefix) && !foundAmdMemoryKey) {
+            foundAmdMemoryKey = true;
+            increaseMemory(deprecatedVram, value);
         }
     } while (!f.atEnd());
+
+    // If the driver only implements the older drm fdinfo keys
+    if (!foundTotalVramKey) {
+        proc.vram += deprecatedVram;
+    }
 
     f.close();
 
@@ -343,10 +421,10 @@ void GpuPlugin::processPidDir(const fs::path &path, KSysGuard::Process *proc, co
     m_memory->setData(proc, vram);
     m_usage->setData(proc, usage);
     if (device != -1) {
-        auto gpu = m_minorToGpuNum.find(device);
-        if (gpu != m_minorToGpuNum.end()) {
+        auto gpu = m_minorToGpuName.find(device);
+        if (gpu != m_minorToGpuName.end()) {
             // Match ksystemstats gpu plugin
-            m_gpuName->setData(proc, i18nc("%1 is a number", "GPU %1", gpu->second + 1));
+            m_gpuName->setData(proc, gpu->second);
         }
     }
 }

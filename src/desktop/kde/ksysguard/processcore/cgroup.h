@@ -26,12 +26,27 @@ class CGroupPrivate;
 class PROCESSCORE_EXPORT CGroup
 {
 public:
+    /**
+     * Create a new cgroup object for a given cgroup entry
+     * The id is the fully formed separated path, such as
+     * "system.slice/dbus.service"
+     */
+    CGroup(const QString &id);
     virtual ~CGroup();
     /**
      * @brief id
      * @return The cgroup ID passed from the constructor
      */
     QString id() const;
+
+    /*!
+     * The guessed application ID, derived from the cgroup ID.
+     *
+     * This application ID may not be valid, as it is purely based on the cgroup
+     * ID. This also means that this value returned by service()->menuId() may
+     * not match.
+     */
+    QString appId() const;
 
     /**
      * @brief Returns metadata about the given service
@@ -73,16 +88,7 @@ public:
     static QString cgroupSysBasePath();
 
 private:
-    /**
-     * Create a new cgroup object for a given cgroup entry
-     * The id is the fully formed separated path, such as
-     * "system.slice/dbus.service"
-     */
-    CGroup(const QString &id);
-
     QScopedPointer<CGroupPrivate> d;
-    friend class CGroupDataModel;
-    friend class CGroupDataModelPrivate;
 };
 
 }

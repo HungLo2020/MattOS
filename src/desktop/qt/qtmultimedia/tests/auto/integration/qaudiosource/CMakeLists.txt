@@ -1,11 +1,15 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-#####################################################################
-## tst_qaudiosource Test:
-#####################################################################
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    cmake_minimum_required(VERSION 3.16)
+    project(tst_qaudiosource LANGUAGES CXX)
+    find_package(Qt6BuildInternals REQUIRED COMPONENTS STANDALONE_TEST)
+endif()
 
-qt_internal_add_test(tst_qaudiosource
+qt_internal_multimedia_add_test(tst_qaudiosource
+    NEEDS_MEDIA_BACKEND_PLUGINS
+    MACOS_BUNDLE
     SOURCES
         tst_qaudiosource.cpp
     LIBRARIES
@@ -13,10 +17,3 @@ qt_internal_add_test(tst_qaudiosource
         Qt::MultimediaPrivate
         Qt::MultimediaTestLibPrivate
 )
-
-if(APPLE)
-    set_target_properties(tst_qaudiosource PROPERTIES
-        MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
-    )
-endif()

@@ -24,9 +24,13 @@ RowLayout {
         text: "Type to search"
     }
 
+    SearchField {
+        placeholderText: qsTr("Enter text")
+    }
+
     SortFilterProxyModel {
         id: modelFilter
-        model: ListModel {
+        sourceModel: ListModel {
             ListElement { color: "blue" }
             ListElement { color: "green" }
             ListElement { color: "red" }
@@ -41,11 +45,10 @@ RowLayout {
         ]
         filters: [
             FunctionFilter {
-                component CustomData: QtObject { property string color }
                 property var regExp: new RegExp(searchField.text, "i")
                 onRegExpChanged: invalidate()
-                function filter(data: CustomData): bool {
-                   return regExp.test(data.color);
+                function filter(color: string): bool {
+                   return regExp.test(color);
                 }
             }
         ]

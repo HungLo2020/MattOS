@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "qdesigner_menu_p.h"
 #include "qdesigner_menubar_p.h"
@@ -9,6 +10,7 @@
 #include "actionrepository_p.h"
 #include "actionprovider_p.h"
 #include "actioneditor_p.h"
+#include "menuactionlineedit_p.h"
 #include "qdesigner_utils_p.h"
 #include "qdesigner_objectinspector_p.h"
 
@@ -49,6 +51,16 @@ static inline void extendClickableArea(QRect *subMenuRect, Qt::LayoutDirection d
     }
 }
 
+namespace qdesigner_internal {
+class MenuEventFilter : public QObject
+{
+public:
+    using QObject::QObject;
+
+    bool eventFilter(QObject *object, QEvent *event) override;
+};
+} // namespace qdesigner_internal
+
 QDesignerMenu::QDesignerMenu(QWidget *parent) :
     QMenu(parent),
     m_subMenuPixmap(QPixmap(u":/qt-project.org/formeditor/images/submenu.png"_s)),
@@ -58,7 +70,7 @@ QDesignerMenu::QDesignerMenu(QWidget *parent) :
     m_showSubMenuTimer(new QTimer(this)),
     m_deactivateWindowTimer(new QTimer(this)),
     m_adjustSizeTimer(new QTimer(this)),
-    m_editor(new QLineEdit(this)),
+    m_editor(new qdesigner_internal::MenuActionLineEdit(this)),
     m_dragging(false),
     m_lastSubMenuIndex(-1)
 {
@@ -80,8 +92,9 @@ QDesignerMenu::QDesignerMenu(QWidget *parent) :
     m_editor->setObjectName(u"__qt__passive_editor"_s);
     m_editor->hide();
 
-    m_editor->installEventFilter(this);
-    installEventFilter(this);
+    connect(m_editor, &qdesigner_internal::MenuActionLineEdit::focusOut,
+            this, &QDesignerMenu::stopInlineEditing);
+    installEventFilter(new qdesigner_internal::MenuEventFilter(this));
 }
 
 QDesignerMenu::~QDesignerMenu() = default;
@@ -94,30 +107,36 @@ void QDesignerMenu::slotAdjustSizeNow()
     adjustSize();
 }
 
-bool QDesignerMenu::handleEvent(QWidget *widget, QEvent *event)
+void QDesignerMenu::stopInlineEditing()
 {
-    if (event->type() == QEvent::FocusIn || event->type() == QEvent::FocusOut) {
+    if (!m_editor->isHidden()) {
+        leaveEditMode(Default);
+        m_editor->hide();
         update();
-
-        if (widget == m_editor)
-            return false;
     }
+}
 
+bool QDesignerMenu::handleEvent(QEvent *event)
+{
     switch (event->type()) {
-        default: break;
-
         case QEvent::MouseButtonPress:
-            return handleMousePressEvent(widget, static_cast<QMouseEvent*>(event));
+            return handleMousePressEvent(static_cast<QMouseEvent*>(event));
         case QEvent::MouseButtonRelease:
-            return handleMouseReleaseEvent(widget, static_cast<QMouseEvent*>(event));
+            return handleMouseReleaseEvent(static_cast<QMouseEvent*>(event));
         case QEvent::MouseButtonDblClick:
-            return handleMouseDoubleClickEvent(widget, static_cast<QMouseEvent*>(event));
+            return handleMouseDoubleClickEvent(static_cast<QMouseEvent*>(event));
         case QEvent::MouseMove:
-            return handleMouseMoveEvent(widget, static_cast<QMouseEvent*>(event));
+            return handleMouseMoveEvent(static_cast<QMouseEvent*>(event));
         case QEvent::ContextMenu:
-            return handleContextMenuEvent(widget, static_cast<QContextMenuEvent*>(event));
+            return handleContextMenuEvent(static_cast<QContextMenuEvent*>(event));
         case QEvent::KeyPress:
-            return handleKeyPressEvent(widget, static_cast<QKeyEvent*>(event));
+            return handleKeyPressEvent(static_cast<QKeyEvent*>(event));
+        case QEvent::FocusIn:
+        case QEvent::FocusOut:
+            update();
+            break;
+        default:
+            break;
     }
 
     return true;
@@ -160,7 +179,7 @@ void QDesignerMenu::startDrag(const QPoint &pos, Qt::KeyboardModifiers modifiers
     }
 }
 
-bool QDesignerMenu::handleKeyPressEvent(QWidget * /*widget*/, QKeyEvent *e)
+bool QDesignerMenu::handleKeyPressEvent(QKeyEvent *e)
 {
     m_showSubMenuTimer->stop();
 
@@ -275,7 +294,7 @@ static void sendMouseEventTo(QWidget *target, const QPoint &targetPoint, const Q
     QApplication::sendEvent(target, &e);
 }
 
-bool QDesignerMenu::handleMouseDoubleClickEvent(QWidget *, QMouseEvent *event)
+bool QDesignerMenu::handleMouseDoubleClickEvent(QMouseEvent *event)
 {
     event->accept();
     m_startPosition = QPoint();
@@ -312,7 +331,7 @@ bool QDesignerMenu::handleMouseDoubleClickEvent(QWidget *, QMouseEvent *event)
     return true;
 }
 
-bool QDesignerMenu::handleMousePressEvent(QWidget * /*widget*/, QMouseEvent *event)
+bool QDesignerMenu::handleMousePressEvent(QMouseEvent *event)
 {
     if (!rect().contains(event->position().toPoint())) {
         QWidget *clickedWidget = QApplication::widgetAt(event->globalPosition().toPoint());
@@ -384,7 +403,7 @@ bool QDesignerMenu::handleMousePressEvent(QWidget * /*widget*/, QMouseEvent *eve
     return true;
 }
 
-bool QDesignerMenu::handleMouseReleaseEvent(QWidget *, QMouseEvent *event)
+bool QDesignerMenu::handleMouseReleaseEvent(QMouseEvent *event)
 {
     event->accept();
     m_startPosition = QPoint();
@@ -392,7 +411,7 @@ bool QDesignerMenu::handleMouseReleaseEvent(QWidget *, QMouseEvent *event)
     return true;
 }
 
-bool QDesignerMenu::handleMouseMoveEvent(QWidget *, QMouseEvent *event)
+bool QDesignerMenu::handleMouseMoveEvent(QMouseEvent *event)
 {
     if ((event->buttons() & Qt::LeftButton) != Qt::LeftButton)
         return true;
@@ -429,7 +448,7 @@ bool QDesignerMenu::handleMouseMoveEvent(QWidget *, QMouseEvent *event)
     return true;
 }
 
-bool QDesignerMenu::handleContextMenuEvent(QWidget *, QContextMenuEvent *event)
+bool QDesignerMenu::handleContextMenuEvent(QContextMenuEvent *event)
 {
     event->accept();
 
@@ -602,26 +621,12 @@ QDesignerMenu *QDesignerMenu::findActivatedMenu() const
     return nullptr;
 }
 
-bool QDesignerMenu::eventFilter(QObject *object, QEvent *event)
+bool qdesigner_internal::MenuEventFilter::eventFilter(QObject *object, QEvent *event)
 {
-    if (object != this && object != m_editor) {
-        return false;
-    }
-
-    if (!m_editor->isHidden() && object == m_editor && event->type() == QEvent::FocusOut) {
-        leaveEditMode(Default);
-        m_editor->hide();
-        update();
-        return false;
-    }
-
-    bool dispatch = true;
-
     switch (event->type()) {
-        default: break;
-
         case QEvent::WindowDeactivate:
-            deactivateMenu();
+            if (auto *menu = qobject_cast<QDesignerMenu *>(object))
+                menu->deactivateMenu();
             break;
         case QEvent::ContextMenu:
         case QEvent::MouseButtonPress:
@@ -636,21 +641,19 @@ bool QDesignerMenu::eventFilter(QObject *object, QEvent *event)
         case QEvent::KeyPress:
         case QEvent::KeyRelease:
         case QEvent::MouseMove:
-            dispatch = (object != m_editor);
-            Q_FALLTHROUGH(); // no break
-
         case QEvent::Enter:
         case QEvent::Leave:
         case QEvent::FocusIn:
-        case QEvent::FocusOut:
-        if (dispatch)
-            if (QWidget *widget = qobject_cast<QWidget*>(object))
-                if (widget == this || isAncestorOf(widget))
-                    return handleEvent(widget, event);
-        break;
+        case QEvent::FocusOut: {
+            auto *menu = qobject_cast<QDesignerMenu *>(object);
+            Q_ASSERT(menu);
+            return menu->handleEvent(event);
+        }
+        default:
+            break;
     }
 
-    return false;
+    return QObject::eventFilter(object, event);
 };
 
 int QDesignerMenu::findAction(const QPoint &pos) const

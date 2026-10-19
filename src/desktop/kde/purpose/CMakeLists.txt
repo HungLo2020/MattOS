@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
 project(Purpose)
 
-find_package(ECM 6.26.0 REQUIRED NO_MODULE)
+find_package(ECM 6.31.0 REQUIRED NO_MODULE)
 
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 include(KDEInstallDirs)
 include(KDEFrameworkCompilerSettings NO_POLICY_SCOPE)
 include(KDECMakeSettings)
@@ -22,10 +22,10 @@ include(ECMGenerateHeaders)
 include(ECMMarkNonGuiExecutable)
 include(ECMQtDeclareLoggingCategory)
 include(ECMDeprecationSettings)
-include(ECMGenerateQmlTypes)
-include(ECMQMLModules)
+include(ECMFindQmlModule)
 include(ECMQmlModule)
 include(ECMGenerateQDoc)
+include(ECMInstalledLibraryCheck)
 
 find_package(Qt6 ${REQUIRED_QT_VERSION} CONFIG REQUIRED Core Qml Gui Widgets Network Test)
 
@@ -41,8 +41,8 @@ if(USE_DBUS)
   set(HAVE_DBUS ON)
 endif()
 
-set(KF_VERSION "6.26.0") # handled by release scripts
-set(KF_DEP_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
+set(KF_DEP_VERSION "6.31.0") # handled by release scripts
 
 find_package(KF6 ${KF_DEP_VERSION} REQUIRED COMPONENTS CoreAddons I18n Config Kirigami Notifications KIO Service)
 
@@ -64,7 +64,7 @@ ecm_setup_version(${KF_VERSION} VARIABLE_PREFIX PURPOSE
 
 ecm_set_disabled_deprecation_versions(
     QT 6.11.0
-    KF 6.23.0
+    KF 6.27.0
 )
 
 add_subdirectory( src )

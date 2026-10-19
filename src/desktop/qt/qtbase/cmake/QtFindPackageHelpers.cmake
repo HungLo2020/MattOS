@@ -404,23 +404,6 @@ function(qt_record_extra_package_dependency main_target_name dep_package_name de
     endif()
 endfunction()
 
-# This function records a dependency between ${main_target_name} and ${dep_target_name}
-# at the CMake package level.
-# E.g. Qt6CoreConfig.cmake needs to find_package(Qt6EntryPointPrivate).
-# main_target_name = Core
-# dep_target_name = EntryPointPrivate
-# This is just a convenience function that deals with Qt targets and their associated packages
-# instead of raw package names.
-#
-# Deprecated since 6.9.
-function(qt_record_extra_qt_package_dependency main_target_name dep_target_name
-                                                                dep_package_version)
-    # EntryPointPrivate -> Qt6EntryPointPrivate.
-    qt_internal_qtfy_target(qtfied_target_name "${dep_target_name}")
-    qt_record_extra_package_dependency("${main_target_name}"
-        "${qtfied_target_name_versioned}" "${dep_package_version}")
-endfunction()
-
 # This function records a 'QtFooTools' package dependency for the ${main_target_name} target
 # onto the ${dep_package_name} tools package.
 # E.g. The QtWaylandCompositor package needs to call find_package(QtWaylandScannerTools).
@@ -537,6 +520,7 @@ function(qt_internal_is_lib_part_of_qt6_package lib out_var)
             OR lib STREQUAL "GlobalConfigPrivate"
             OR lib STREQUAL "PlatformModuleInternal"
             OR lib STREQUAL "PlatformPluginInternal"
+            OR lib STREQUAL "PlatformAppInternal"
             OR lib STREQUAL "PlatformToolInternal"
             OR lib STREQUAL "PlatformCommonInternal"
             OR lib STREQUAL "PlatformExampleInternal"
@@ -666,10 +650,16 @@ function(qt_internal_register_target_dependencies target)
     get_target_property(target_type ${target} TYPE)
     set(target_is_shared FALSE)
     set(target_is_static FALSE)
+    set(target_is_module FALSE)
     if(target_type STREQUAL "SHARED_LIBRARY")
         set(target_is_shared TRUE)
     elseif(target_type STREQUAL "STATIC_LIBRARY")
         set(target_is_static TRUE)
+    elseif(target_type STREQUAL "MODULE_LIBRARY" AND ANDROID)
+        # Only Android deployment queries the Qt modules of plugins via CMake targets. Recording
+        # them for other platforms costs every project a find_package() call per plugin at
+        # configure time. See QTBUG-149668.
+        set(target_is_module TRUE)
     endif()
 
     # Record 'Qt::Foo'-like private dependencies of static library targets, this will be used to
@@ -697,14 +687,20 @@ function(qt_internal_register_target_dependencies target)
         endif()
     endforeach()
 
-    # Record 'Qt::Foo'-like shared private dependencies of shared library targets.
+    # Record 'Qt::Foo'-like private dependencies of SHARED and MODULE library targets.
     #
     # Private shared library dependencies are listed in the target's
     # IMPORTED_LINK_DEPENDENT_LIBRARIES and used in rpath-link calculation.
     # See QTBUG-86533 for some details.
+    #
+    # MODULE (i.e. plugin) library dependencies are recorded and will be used to
+    # generate _qt_internal_find_qt_dependencies() calls in the plugin's
+    # ${target}Dependencies.cmake, because we need to query those targets
+    # for Android deployment reasons. target_is_module is only TRUE for Android builds.
+    #
     # We filter out static libraries and common platform targets, but include both SHARED and
     # INTERFACE libraries. INTERFACE libraries in most cases will be FooPrivate libraries.
-    if(target_is_shared AND arg_PRIVATE)
+    if((target_is_shared OR target_is_module) AND arg_PRIVATE)
         foreach(lib IN LISTS arg_PRIVATE)
             set(lib_namespaced "${lib}")
             if("${lib}" MATCHES "^Qt::(.*)")

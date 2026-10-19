@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcm_nightcolor\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"POT-Creation-Date: 2026-08-15 00:48+0000\n"
 "PO-Revision-Date: 2022-09-11 11:07+0100\n"
 "Last-Translator: José Nuno Coelho Pires <zepires@gmail.com>\n"
 "Language-Team: Portuguese <kde-i18n-pt@kde.org>\n"
@@ -46,53 +46,53 @@ msgstr ""
 "O filtro de luz azul torna as cores no ecrã mais quentes para reduzir o "
 "cansaço ocular."
 
-#: ui/main.qml:49
+#: ui/main.qml:50
 #, fuzzy, kde-format
 #| msgid "Switching times:"
 msgctxt "@label:listbox Night Light modes"
 msgid "Switching times:"
 msgstr "Horas de mudança:"
 
-#: ui/main.qml:58
+#: ui/main.qml:61
 #, fuzzy, kde-format
 #| msgid "Always off"
 msgctxt "@item:inlistbox switching times"
 msgid "Always off"
 msgstr "Sempre desligado"
 
-#: ui/main.qml:59
+#: ui/main.qml:62
 #, fuzzy, kde-format
-#| msgid "Always on night color"
+#| msgid "Always off"
 msgctxt "@item:inlistbox switching times"
-msgid "Always on night light"
-msgstr "Sempre com a cor nocturna"
+msgid "Always on"
+msgstr "Sempre desligado"
 
-#: ui/main.qml:60
+#: ui/main.qml:63
 #, kde-format
 msgctxt "@item:inlistbox switching times"
 msgid "Sunrise and sunset"
 msgstr ""
 
-#: ui/main.qml:72
+#: ui/main.qml:80
 #, kde-format
 msgctxt "@action:button Configure day-night cycle times"
 msgid "Configure…"
 msgstr ""
 
-#: ui/main.qml:115 ui/main.qml:166 ui/main.qml:230
+#: ui/main.qml:131 ui/main.qml:182 ui/main.qml:248
 #, kde-format
 msgctxt "Color temperature in Kelvin"
-msgid "%1K"
-msgstr "%1K"
+msgid "%1 K"
+msgstr ""
 
-#: ui/main.qml:123
+#: ui/main.qml:138
 #, fuzzy, kde-format
 #| msgid "Day color temperature:"
 msgctxt "@label:slider"
 msgid "Day light temperature:"
 msgstr "Temperatura da cor diurna:"
 
-#: ui/main.qml:173 ui/main.qml:237
+#: ui/main.qml:189 ui/main.qml:255
 #, fuzzy, kde-format
 #| msgctxt "No blue light filter activated"
 #| msgid "Cool (no filter)"
@@ -100,18 +100,28 @@ msgctxt "Night colour blue-ish; no blue light filter activated"
 msgid "Cool (no filter)"
 msgstr "Frio (sem filtro)"
 
-#: ui/main.qml:180 ui/main.qml:244
+#: ui/main.qml:196 ui/main.qml:262
 #, kde-format
 msgctxt "Night colour red-ish"
 msgid "Warm"
 msgstr "Quente"
 
-#: ui/main.qml:187
+#: ui/main.qml:204
 #, fuzzy, kde-format
 #| msgid "Night color temperature:"
 msgctxt "@label:slider"
 msgid "Night light temperature:"
 msgstr "Temperatura da cor nocturna:"
+
+#, fuzzy
+#~| msgid "Always on night color"
+#~ msgctxt "@item:inlistbox switching times"
+#~ msgid "Always on night light"
+#~ msgstr "Sempre com a cor nocturna"
+
+#~ msgctxt "Color temperature in Kelvin"
+#~ msgid "%1K"
+#~ msgstr "%1K"
 
 #~ msgctxt ""
 #~ "@label:chooser Tap should be translated to mean touching using a "

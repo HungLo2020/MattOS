@@ -37,6 +37,8 @@
 #include <QtGui/private/qxkbcommon_p.h>
 #endif
 
+#include <memory>
+
 struct wl_cursor_image;
 struct wp_viewport;
 
@@ -57,7 +59,7 @@ namespace QtWayland {
     class wp_cursor_shape_manager_v1;
     class wp_fractional_scale_manager_v1;
     class wp_viewporter;
-    class xx_session_manager_v1;
+    class xdg_session_manager_v1;
     class xdg_system_bell_v1;
     class xdg_toplevel_drag_manager_v1;
     class wp_pointer_warp_v1;
@@ -106,7 +108,7 @@ class Q_WAYLANDCLIENT_EXPORT QWaylandDisplay : public QObject, public QtWayland:
     Q_OBJECT
 
 public:
-    QWaylandDisplay(QWaylandIntegration *waylandIntegration);
+    QWaylandDisplay(QWaylandIntegration *waylandIntegration, QObject *parent = nullptr);
     ~QWaylandDisplay(void) override;
 
     bool initialize();
@@ -217,9 +219,9 @@ public:
     {
         return mGlobals.xdgToplevelDragManager.get();
     }
-    QtWayland::xx_session_manager_v1 *xxSessionManager() const
+    QtWayland::xdg_session_manager_v1 *xdgSessionManager() const
     {
-        return mGlobals.xxSessionManager.get();
+        return mGlobals.xdgSessionManager.get();
     }
     QtWayland::xdg_system_bell_v1 *systemBell() const
     {
@@ -269,7 +271,8 @@ public:
     uint32_t lastInputSerial() const { return mLastInputSerial; }
     QWaylandInputDevice *lastInputDevice() const { return mLastInputDevice; }
     QWaylandWindow *lastInputWindow() const;
-    void setLastInputDevice(QWaylandInputDevice *device, uint32_t serial, QWaylandWindow *window);
+    QWaylandSurface *lastInputSurface() const;
+    void setLastInputDevice(QWaylandInputDevice *device, uint32_t serial, QWaylandSurface *window);
 
     bool isWindowActivated(const QWaylandWindow *window);
     void handleWindowActivated(QWaylandWindow *window);
@@ -283,6 +286,9 @@ public:
     bool isWaylandInputContextRequested() const;
 
     void initEventThread();
+
+    QWaylandWindow *activeSubSurface() const;
+    void setActiveSubSurface(QWaylandWindow *window);
 
 public Q_SLOTS:
     void flushRequests();
@@ -314,7 +320,7 @@ private:
     std::unique_ptr<QtWayland::wl_fixes> mFixes;
     std::unique_ptr<EventThread> m_eventThread;
     wl_event_queue *m_frameEventQueue = nullptr;
-    QScopedPointer<EventThread> m_frameEventQueueThread;
+    std::unique_ptr<EventThread> m_frameEventQueueThread;
     QList<QWaylandScreen *> mWaitingScreens;
     QList<QWaylandScreen *> mScreens;
     QPlatformPlaceholderScreen *mPlaceholderScreen = nullptr;
@@ -324,21 +330,21 @@ private:
 #if QT_CONFIG(cursor)
     struct WaylandCursorTheme {
         QString name;
-        int pixelSize;
+        int pixelSize = 0;
         std::unique_ptr<QWaylandCursorTheme> theme;
     };
     std::vector<WaylandCursorTheme> mCursorThemes;
 
     struct FindExistingCursorThemeResult {
         std::vector<WaylandCursorTheme>::const_iterator position;
-        bool found;
+        bool found = false;
 
         QWaylandCursorTheme *theme() const noexcept
         { return found ? position->theme.get() : nullptr; }
     };
     FindExistingCursorThemeResult findExistingCursorTheme(const QString &name,
                                                           int pixelSize) const noexcept;
-    QScopedPointer<QWaylandCursor> mCursor;
+    std::unique_ptr<QWaylandCursor> mCursor;
 #endif
 
     struct GlobalHolder
@@ -368,7 +374,7 @@ private:
         std::unique_ptr<QtWayland::wp_viewporter> viewporter;
         std::unique_ptr<QtWayland::wp_fractional_scale_manager_v1> fractionalScaleManager;
         std::unique_ptr<QtWayland::wp_cursor_shape_manager_v1> cursorShapeManager;
-        std::unique_ptr<QtWayland::xx_session_manager_v1> xxSessionManager;
+        std::unique_ptr<QtWayland::xdg_session_manager_v1> xdgSessionManager;
         std::unique_ptr<QtWayland::xdg_system_bell_v1> systemBell;
         std::unique_ptr<QtWayland::xdg_toplevel_drag_manager_v1> xdgToplevelDragManager;
         std::unique_ptr<QWaylandWindowManagerIntegration> windowManagerIntegration;
@@ -382,9 +388,10 @@ private:
     QList<RegistryGlobal> mRegistryGlobals;
     uint32_t mLastInputSerial = 0;
     QWaylandInputDevice *mLastInputDevice = nullptr;
-    QPointer<QWaylandWindow> mLastInputWindow;
+    QPointer<QWaylandSurface> mLastInputSurface;
     QPointer<QWaylandWindow> mLastKeyboardFocus;
     QList<QWaylandWindow *> mActiveWindows;
+    QPointer<QWaylandWindow> mActiveSubSurface;
     struct wl_callback *mSyncCallback = nullptr;
     static const wl_callback_listener syncCallbackListener;
     bool mWaylandTryReconnect = false;

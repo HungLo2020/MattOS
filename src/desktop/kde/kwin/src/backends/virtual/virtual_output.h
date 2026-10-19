@@ -24,16 +24,17 @@ class VirtualOutput : public BackendOutput
     Q_OBJECT
 
 public:
-    explicit VirtualOutput(VirtualBackend *parent, bool internal, const QSize &physicalSizeInMM, OutputTransform panelOrientation, const QByteArray &edid, std::optional<QByteArray> edidIdentifierOverride, const std::optional<QString> &connectorName, const std::optional<QByteArray> &mstPath);
+    explicit VirtualOutput(VirtualBackend *parent, bool internal, const QSize &physicalSizeInMM, OutputTransform panelOrientation, const QByteArray &edid, std::optional<QByteArray> edidIdentifierOverride, const std::optional<QString> &connectorName, const std::optional<QByteArray> &mstPath, BackendOutput::Capabilities capabilities);
     ~VirtualOutput() override;
 
-    RenderLoop *renderLoop() const override;
-    bool testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
-    bool present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
+    std::expected<void, OutputError> testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
+    std::expected<void, OutputError> present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
 
-    void init(const QPoint &logicalPosition, const QSize &pixelSize, qreal scale, const QList<std::tuple<QSize, uint64_t, OutputMode::Flags>> &modes);
+    void init(const QSize &pixelSize, qreal scale, const QList<OutputModeline> &modes);
 
     void applyChanges(const OutputConfiguration &config) override;
+    bool canResize() const override;
+    void resize(const QSize &size) override;
 
     void setOutputLayer(std::unique_ptr<OutputLayer> &&layer);
     OutputLayer *outputLayer() const;
@@ -45,7 +46,6 @@ private:
 
     std::unique_ptr<OutputLayer> m_layer;
     VirtualBackend *m_backend;
-    std::unique_ptr<RenderLoop> m_renderLoop;
     std::unique_ptr<SoftwareVsyncMonitor> m_vsyncMonitor;
     int m_gammaSize = 200;
     bool m_gammaResult = true;

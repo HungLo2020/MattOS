@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=Rust STD Documentation
+Name[am]=Rust STD ሰነዶች
 Name[ar]=توثيق رست STD
 Name[az]=Rust STD sənədləşməsi
 Name[be]=Дакументацыя Rust STD
@@ -8,6 +9,7 @@ Name[bg]=Документация STD за Rust
 Name[bs]=Rast STD Dokumentacija
 Name[ca]=Documentació del Rust STD
 Name[ca@valencia]=Documentació de Rust STD
+Name[cs]=Dokumentace Rust STD
 Name[cy]=Dogfennaeth STD Rust
 Name[da]=Rust STD-dokumentation
 Name[de]=Rust-STD-Dokumentation
@@ -38,6 +40,8 @@ Name[lg]=Ebiwandiko Ebikwata ku Rust STD
 Name[lt]=Rust STD dokumentacija
 Name[lv]=„Rust“ STD dokumentācija
 Name[my]=ရက်စ် အက်စ်တီဒီ ဒိုကူမန်တေးရှင်း
+Name[nan_TW]=Rust STD 文件
+Name[nan_TW@latin]=Rust STD Bûn-kiānn
 Name[nb]=Rust STD-dokumentasjon
 Name[nl]=Rust STD-documentatie
 Name[nn]=Rust STD-dokumentasjon
@@ -62,6 +66,7 @@ Name[zh_TW]=Rust STD 標準函式庫說明文件
 Type=Service
 Keys=rust
 Query=https://doc.rust-lang.org/std/index.html?search=\\{@}
+Query[am]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[ar]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[az]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[be]=https://doc.rust-lang.org/std/index.html?search=\\{@}
@@ -101,6 +106,8 @@ Query[lg]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[lt]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[lv]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[my]=https://doc.rust-lang.org/std/index.html?search=\\{@}
+Query[nan_TW]=https://doc.rust-lang.org/std/index.html?search=\\{@}
+Query[nan_TW@latin]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[nb]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[nl]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[nn]=https://doc.rust-lang.org/std/index.html?search=\\{@}
@@ -117,7 +124,6 @@ Query[sq]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[sv]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[th]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[tr]=https://doc.rust-lang.org/std/index.html?search=\\{@}
-Query[ug]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[uk]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[vi]=https://doc.rust-lang.org/std/index.html?search=\\{@}
 Query[zh_CN]=https://doc.rust-lang.org/std/index.html?search=\\{@}

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: katepart4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-03-22 00:39+0000\n"
+"POT-Creation-Date: 2026-09-13 00:41+0000\n"
 "PO-Revision-Date: 2014-09-18 23:44+0200\n"
 "Last-Translator: Sönke Dibbern <s_dibbern@web.de>\n"
 "Language-Team: Low Saxon <kde-i18n-nds@kde.org>\n"
@@ -100,58 +100,58 @@ msgid "&View"
 msgstr "&Ansicht"
 
 #. i18n: ectx: Menu (view_menu_word_wrap)
-#: data/katepart5ui.rc:78
+#: data/katepart5ui.rc:79
 #, kde-format
 msgid "Word Wrap"
 msgstr "Reegümbrook"
 
 #. i18n: ectx: Menu (view_menu_borders)
-#: data/katepart5ui.rc:84 dialogs/katedialogs.cpp:744
+#: data/katepart5ui.rc:85 dialogs/katedialogs.cpp:747
 #, kde-format
 msgid "Borders"
 msgstr "Ränners"
 
 #. i18n: ectx: Menu (codefolding)
-#: data/katepart5ui.rc:92
+#: data/katepart5ui.rc:93
 #, kde-format
 msgid "&Code Folding"
 msgstr "&Kode-Foolden"
 
 #. i18n: ectx: Menu (go)
-#: data/katepart5ui.rc:109
+#: data/katepart5ui.rc:110
 #, fuzzy, kde-format
 #| msgid "Go"
 msgid "&Go"
 msgstr "Jumpen"
 
 #. i18n: ectx: Menu (tools)
-#: data/katepart5ui.rc:124
+#: data/katepart5ui.rc:125
 #, kde-format
 msgid "&Tools"
 msgstr "Wark&tüüch"
 
 #. i18n: ectx: Menu (wordcompletion)
-#: data/katepart5ui.rc:138
+#: data/katepart5ui.rc:139
 #, kde-format
 msgid "Word Completion"
 msgstr "Woortkompletteren"
 
 #. i18n: ectx: Menu (spelling)
-#: data/katepart5ui.rc:144 spellcheck/spellingmenu.cpp:71
+#: data/katepart5ui.rc:145 spellcheck/spellingmenu.cpp:71
 #: spellcheck/spellingmenu.cpp:195
 #, kde-format
 msgid "Spelling"
 msgstr "Klookschriever"
 
 #. i18n: ectx: Menu (speech)
-#: data/katepart5ui.rc:153 data/katepart5ui.rc:184
+#: data/katepart5ui.rc:154 data/katepart5ui.rc:184
 #, fuzzy, kde-format
 #| msgid "Text to search for"
 msgid "Text to Speech"
 msgstr "Text, na den Du söken wullt"
 
 #. i18n: ectx: Menu (settings)
-#: data/katepart5ui.rc:161
+#: data/katepart5ui.rc:162
 #, kde-format
 msgid "&Settings"
 msgstr "&Instellen"
@@ -328,7 +328,7 @@ msgid "Scro&llbars visibility:"
 msgstr "Rullbalken-Sichtborkeit:"
 
 #. i18n: ectx: property (text), item, widget (QComboBox, cmbShowScrollbars)
-#: dialogs/bordersappearanceconfigwidget.ui:183 dialogs/katedialogs.cpp:752
+#: dialogs/bordersappearanceconfigwidget.ui:183 dialogs/katedialogs.cpp:755
 #, kde-format
 msgid "Always On"
 msgstr "Jümmers an"
@@ -442,8 +442,8 @@ msgstr ""
 
 #. i18n: ectx: property (title), widget (QGroupBox, gbGeneral)
 #. i18n: ectx: property (title), widget (QGroupBox, gbViInputMode)
-#: dialogs/completionconfigtab.ui:29 dialogs/katedialogs.cpp:608
-#: dialogs/katedialogs.cpp:740 dialogs/katedialogs.cpp:1021
+#: dialogs/completionconfigtab.ui:29 dialogs/katedialogs.cpp:609
+#: dialogs/katedialogs.cpp:743 dialogs/katedialogs.cpp:1026
 #: vimode/config/configwidget.ui:29
 #, kde-format
 msgid "General"
@@ -754,7 +754,7 @@ msgid "Delete the current file type."
 msgstr "Den aktuellen Dateityp wegdoon."
 
 #. i18n: ectx: property (text), widget (QPushButton, btnDelete)
-#: dialogs/filetypeconfigwidget.ui:44 syntax/katethemeconfig.cpp:1131
+#: dialogs/filetypeconfigwidget.ui:44 syntax/katethemeconfig.cpp:1132
 #, kde-format
 msgid "&Delete"
 msgstr "&Wegdoon"
@@ -1118,7 +1118,7 @@ msgstr ""
 msgid "Increase indentation level if in l&eading blank space"
 msgstr "Inrückstoop höger maken, wenn binnen Fr&eeruum vörn"
 
-#: dialogs/katedialogs.cpp:184 dialogs/katedialogs.cpp:186
+#: dialogs/katedialogs.cpp:185 dialogs/katedialogs.cpp:187
 #, fuzzy, kde-format
 #| msgctxt "Wrap words at"
 #| msgid " character"
@@ -1128,75 +1128,75 @@ msgid_plural "%v characters"
 msgstr[0] " Bookstaav"
 msgstr[1] " Bookstaven"
 
-#: dialogs/katedialogs.cpp:210
+#: dialogs/katedialogs.cpp:211
 #, kde-format
 msgid "Indentation"
 msgstr "Inrücken"
 
-#: dialogs/katedialogs.cpp:294
+#: dialogs/katedialogs.cpp:295
 #, kde-format
 msgid "Auto Completion"
 msgstr "Autom. Kompletteren"
 
-#: dialogs/katedialogs.cpp:361
+#: dialogs/katedialogs.cpp:362
 #, kde-format
 msgid "Spellcheck"
 msgstr "Schriefwies pröven"
 
-#: dialogs/katedialogs.cpp:409 dialogs/katedialogs.cpp:416
+#: dialogs/katedialogs.cpp:410 dialogs/katedialogs.cpp:417
 #, fuzzy, kde-format
 #| msgctxt "@item:intable Text context"
 #| msgid "Alert"
 msgid "Alt"
 msgstr "Wohrschoen"
 
-#: dialogs/katedialogs.cpp:410 dialogs/katedialogs.cpp:418
+#: dialogs/katedialogs.cpp:411 dialogs/katedialogs.cpp:419
 #, kde-format
 msgid "Ctrl"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:411
+#: dialogs/katedialogs.cpp:412
 #, kde-format
 msgid "Meta"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:412 dialogs/katedialogs.cpp:420
+#: dialogs/katedialogs.cpp:413 dialogs/katedialogs.cpp:421
 #, kde-format
 msgid "Ctrl + Alt"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:413
+#: dialogs/katedialogs.cpp:414
 #, kde-format
 msgid "Meta + Alt"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:414
+#: dialogs/katedialogs.cpp:415
 #, kde-format
 msgid "Ctrl + Meta"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:417
+#: dialogs/katedialogs.cpp:418
 #, fuzzy, kde-format
 #| msgid "Command"
 msgid "Cmd"
 msgstr "Befehl"
 
-#: dialogs/katedialogs.cpp:419
+#: dialogs/katedialogs.cpp:420
 #, kde-format
 msgid "Cmd + Alt"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:421
+#: dialogs/katedialogs.cpp:422
 #, kde-format
 msgid "Cmd + Ctrl"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:479
+#: dialogs/katedialogs.cpp:480
 #, kde-format
 msgid "Text Navigation"
 msgstr "Text-Navigeren"
 
-#: dialogs/katedialogs.cpp:581
+#: dialogs/katedialogs.cpp:582
 #, fuzzy, kde-format
 #| msgctxt "Wrap words at"
 #| msgid " character"
@@ -1207,66 +1207,66 @@ msgid_plural "%v characters"
 msgstr[0] " Bookstaav"
 msgstr[1] " Bookstaven"
 
-#: dialogs/katedialogs.cpp:586
+#: dialogs/katedialogs.cpp:587
 #, kde-format
 msgid "Feature is not active"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:588
+#: dialogs/katedialogs.cpp:589
 #, fuzzy, kde-format
 #| msgid "Disabled Breakpoint"
 msgid "Disable Feature"
 msgstr "Utschalt Hollpunkt"
 
-#: dialogs/katedialogs.cpp:590
+#: dialogs/katedialogs.cpp:591
 #, kde-format
 msgid "May be handy with Markdown"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:592
+#: dialogs/katedialogs.cpp:593
 #, kde-format
 msgid "Mirror characters, similar but not exactly like auto brackets"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:594
+#: dialogs/katedialogs.cpp:595
 #, fuzzy, kde-format
 #| msgid "Non-word character"
 msgid "Non letter character"
 msgstr "Keen Woortteken"
 
-#: dialogs/katedialogs.cpp:710
+#: dialogs/katedialogs.cpp:712
 #, kde-format
 msgid "Editing"
 msgstr "Bewerken"
 
-#: dialogs/katedialogs.cpp:715
+#: dialogs/katedialogs.cpp:717
 #, kde-format
 msgid "Editing Options"
 msgstr "Bewerken-Instellen"
 
-#: dialogs/katedialogs.cpp:748
+#: dialogs/katedialogs.cpp:751
 #, fuzzy, kde-format
 #| msgctxt "Language"
 #| msgid "Stata"
 msgid "Statusbar"
 msgstr "Stata"
 
-#: dialogs/katedialogs.cpp:750
+#: dialogs/katedialogs.cpp:753
 #, kde-format
 msgid "Off"
 msgstr "Ut"
 
-#: dialogs/katedialogs.cpp:751
+#: dialogs/katedialogs.cpp:754
 #, kde-format
 msgid "Follow Line Numbers"
 msgstr "Reegnummern folgen"
 
-#: dialogs/katedialogs.cpp:942 dialogs/katedialogs.cpp:947
+#: dialogs/katedialogs.cpp:945 dialogs/katedialogs.cpp:950
 #, kde-format
 msgid "Appearance"
 msgstr "Utsehn"
 
-#: dialogs/katedialogs.cpp:982
+#: dialogs/katedialogs.cpp:986
 #, kde-format
 msgid ""
 "%1 backs up unsaved files to \"swap files.\" Swap files allow %1 to recover "
@@ -1274,12 +1274,12 @@ msgid ""
 "loss in case of a system crash."
 msgstr ""
 
-#: dialogs/katedialogs.cpp:1022
+#: dialogs/katedialogs.cpp:1027
 #, kde-format
 msgid "Advanced"
 msgstr "Verwiedert"
 
-#: dialogs/katedialogs.cpp:1087
+#: dialogs/katedialogs.cpp:1092
 #, kde-format
 msgid ""
 "You did not provide a backup suffix or prefix. Using default suffix: '~'"
@@ -1287,77 +1287,77 @@ msgstr ""
 "Du hest keen Prefix oder Suffix för Sekerheitskopien angeven, also warrt dat "
 "Standardsuffix \"~\" bruukt."
 
-#: dialogs/katedialogs.cpp:1087
+#: dialogs/katedialogs.cpp:1092
 #, kde-format
 msgid "No Backup Suffix or Prefix"
 msgstr "Keen Prefix oder Suffix för Sekerheitskopien"
 
-#: dialogs/katedialogs.cpp:1220
+#: dialogs/katedialogs.cpp:1227
 #, kde-format
 msgid "Open/Save"
 msgstr "Opmaken/Sekern"
 
-#: dialogs/katedialogs.cpp:1225
+#: dialogs/katedialogs.cpp:1232
 #, kde-format
 msgid "File Opening & Saving"
 msgstr "Dateien opmaken & sekern"
 
-#: dialogs/katedialogs.cpp:1248
+#: dialogs/katedialogs.cpp:1255
 #, kde-format
 msgid "&Line:"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:1249
+#: dialogs/katedialogs.cpp:1256
 #, kde-format
 msgid "Go to line number from clipboard"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:1260
+#: dialogs/katedialogs.cpp:1267
 #, kde-format
 msgid "Go to"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:1340
+#: dialogs/katedialogs.cpp:1347
 #, kde-format
 msgid "No valid line number found in clipboard"
 msgstr ""
 
-#: dialogs/katedialogs.cpp:1404
+#: dialogs/katedialogs.cpp:1411
 #, kde-format
 msgid "Dictionary:"
 msgstr "Wöörbook:"
 
-#: dialogs/katedialogs.cpp:1456
+#: dialogs/katedialogs.cpp:1463
 #, fuzzy, kde-format
 #| msgid "Enable &auto completion"
 msgid "Enable Auto Reload"
 msgstr "&Autom. Kompletteren bruken"
 
-#: dialogs/katedialogs.cpp:1459
+#: dialogs/katedialogs.cpp:1466
 #, kde-format
 msgid ""
 "Reloads and will automatically reload without warning about disk changes "
 "from now until you close either the tab or window."
 msgstr ""
 
-#: dialogs/katedialogs.cpp:1464
+#: dialogs/katedialogs.cpp:1471
 #, fuzzy, kde-format
 #| msgid "&View Difference"
 msgid "View &Difference"
 msgstr "&Verscheel wiesen"
 
-#: dialogs/katedialogs.cpp:1466
+#: dialogs/katedialogs.cpp:1473
 #, kde-format
 msgid "Shows a diff of the changes."
 msgstr ""
 
-#: dialogs/katedialogs.cpp:1471
+#: dialogs/katedialogs.cpp:1478
 #, fuzzy, kde-format
 #| msgid "Reloa&d"
 msgid "&Reload"
 msgstr "&Nieg laden"
 
-#: dialogs/katedialogs.cpp:1473
+#: dialogs/katedialogs.cpp:1480
 #, fuzzy, kde-format
 #| msgid ""
 #| "Reload the file from disk. If you have unsaved changes, they will be lost."
@@ -1365,43 +1365,43 @@ msgid "Reloads the file from disk. Unsaved changes will be lost."
 msgstr ""
 "Datei nieg vun de Fastplaat laden. Du warrst nich sekerte Ännern verleren."
 
-#: dialogs/katedialogs.cpp:1477
+#: dialogs/katedialogs.cpp:1484
 #, fuzzy, kde-format
 #| msgid "&Close"
 msgctxt "@action:button closes the opened file"
 msgid "&Close File"
 msgstr "&Tomaken"
 
-#: dialogs/katedialogs.cpp:1479
+#: dialogs/katedialogs.cpp:1486
 #, kde-format
 msgid "Closes the file, discarding its content."
 msgstr ""
 
-#: dialogs/katedialogs.cpp:1483
+#: dialogs/katedialogs.cpp:1490
 #, fuzzy, kde-format
 #| msgid "&Save File As..."
 msgctxt "@action"
 msgid "&Save As…"
 msgstr "Datei &sekern as..."
 
-#: dialogs/katedialogs.cpp:1485
+#: dialogs/katedialogs.cpp:1492
 #, kde-format
 msgid "Lets you select a location and save the file again."
 msgstr "Hier kannst Du en Oort utsöken un de Datei nochmaal sekern."
 
 #. i18n: ectx: property (text), widget (QPushButton, m_skipBtn)
-#: dialogs/katedialogs.cpp:1490 spellcheck/spellcheckbar.ui:143
+#: dialogs/katedialogs.cpp:1497 spellcheck/spellcheckbar.ui:143
 #, kde-format
 msgid "&Ignore"
 msgstr "Över&gahn"
 
-#: dialogs/katedialogs.cpp:1491
+#: dialogs/katedialogs.cpp:1498
 #, fuzzy, kde-format
 #| msgid "Ignore the changes. You will not be prompted again."
 msgid "Ignores the changes on disk without any action."
 msgstr "Ännern övergahn. Du warrst nich nochmaal fraagt."
 
-#: dialogs/katedialogs.cpp:1560 swapfile/kateswapdiffcreator.cpp:131
+#: dialogs/katedialogs.cpp:1567 swapfile/kateswapdiffcreator.cpp:131
 #, kde-format
 msgid ""
 "The diff command failed. Please make sure that diff(1) is installed and in "
@@ -1410,18 +1410,18 @@ msgstr ""
 "De Befehl \"diff\" is fehlslaan. Bitte stell seker, wat he installeert is un "
 "sik över Dien PATH-Variable finnen lett."
 
-#: dialogs/katedialogs.cpp:1562 swapfile/kateswapdiffcreator.cpp:89
+#: dialogs/katedialogs.cpp:1569 swapfile/kateswapdiffcreator.cpp:89
 #: swapfile/kateswapdiffcreator.cpp:99 swapfile/kateswapdiffcreator.cpp:133
 #, kde-format
 msgid "Error Creating Diff"
 msgstr "Verscheel-Opstellen fehlslaan"
 
-#: dialogs/katedialogs.cpp:1569 swapfile/kateswapdiffcreator.cpp:140
+#: dialogs/katedialogs.cpp:1576 swapfile/kateswapdiffcreator.cpp:140
 #, kde-format
 msgid "The files are identical."
 msgstr "De Dateien sünd liek."
 
-#: dialogs/katedialogs.cpp:1569 swapfile/kateswapdiffcreator.cpp:140
+#: dialogs/katedialogs.cpp:1576 swapfile/kateswapdiffcreator.cpp:140
 #, kde-format
 msgid "Diff Output"
 msgstr "Diff-Utgaav"
@@ -1468,13 +1468,16 @@ msgstr "SietRop / SietDaal be&weegt Blinker"
 #. i18n: ectx: property (whatsThis), widget (QCheckBox, chkCamelCursor)
 #: dialogs/navigationconfigwidget.ui:55
 #, kde-format
-msgid "Selects whether cursor jumps full words or breaks at camel case humps."
+msgid ""
+"Selects whether cursor stops at camel case humps and underscores within a "
+"word."
 msgstr ""
 
 #. i18n: ectx: property (text), widget (QCheckBox, chkCamelCursor)
 #: dialogs/navigationconfigwidget.ui:58
 #, kde-format
-msgid "Enable camel case cursor movement"
+msgid ""
+"Stop at 'camelCase' and 'snake_case' subwords when moving the cursor by word"
 msgstr ""
 
 #. i18n: ectx: property (text), widget (QLabel, lblAutoCenterCursor)
@@ -1702,6 +1705,13 @@ msgstr ""
 #| msgid "Do not use config file"
 msgid "Honor settings in .editorconfig file"
 msgstr "Keen Instellendatei bruken"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkUseFirstLineAsDocName)
+#: dialogs/opensaveconfigadvwidget.ui:229
+#, fuzzy, kde-format
+#| msgid "Use this to close the current document"
+msgid "Use first line of untitled documents for document name"
+msgstr "Dat aktuelle Dokment tomaken"
 
 #. i18n: ectx: property (title), widget (QGroupBox, gbFileFormat)
 #: dialogs/opensaveconfigwidget.ui:29
@@ -2301,12 +2311,12 @@ msgctxt "translators: you can also translate 'Try Again' with 'Reload'"
 msgid "Try Again"
 msgstr "Nochmaal versöken"
 
-#: document/katedocument.cpp:2316 document/katedocument.cpp:6532
+#: document/katedocument.cpp:2316 document/katedocument.cpp:6540
 #, kde-format
 msgid "&Close"
 msgstr "&Tomaken"
 
-#: document/katedocument.cpp:2317 document/katedocument.cpp:6533
+#: document/katedocument.cpp:2317 document/katedocument.cpp:6541
 #, fuzzy, kde-format
 #| msgid "Close message"
 msgctxt "Close the message being displayed"
@@ -2380,8 +2390,8 @@ msgstr ""
 "Fastplaat wöörn ännert. Dat kunn so licht to Datenverlust kamen."
 
 #: document/katedocument.cpp:2517 document/katedocument.cpp:2533
-#: document/katedocument.cpp:2853 syntax/katethemeconfig.cpp:1215
-#: syntax/katethemeconfig.cpp:1371
+#: document/katedocument.cpp:2854 syntax/katethemeconfig.cpp:1218
+#: syntax/katethemeconfig.cpp:1376
 #, kde-format
 msgid "Possible Data Loss"
 msgstr "Datenverlust mööglich"
@@ -2417,7 +2427,7 @@ msgstr ""
 "Bitte prööv, wat Du Schriefverlöven för de Datei hest un wat dat noog fre'en "
 "Platz op de Fastplaat gifft."
 
-#: document/katedocument.cpp:2722
+#: document/katedocument.cpp:2723
 #, kde-format
 msgid ""
 "For file %1 no backup copy could be created before saving. If an error "
@@ -2430,56 +2440,56 @@ msgstr ""
 "is dat Medium, op dat Du schrieven wullt, al vull; oder villicht hest Du "
 "keen Schriefverlöven för de Datei ehren Orner."
 
-#: document/katedocument.cpp:2726
+#: document/katedocument.cpp:2727
 #, kde-format
 msgid "Failed to create backup copy."
 msgstr "Sekerheitkopie lett sik nich opstellen"
 
-#: document/katedocument.cpp:2727
+#: document/katedocument.cpp:2728
 #, kde-format
 msgid "Try to Save Nevertheless"
 msgstr "Liekers sekern"
 
-#: document/katedocument.cpp:2852
+#: document/katedocument.cpp:2853
 #, kde-format
 msgid "Do you really want to continue to close this file? Data loss may occur."
 msgstr ""
 "Wullt Du disse Datei redig tomaken? Dat kunn licht to Datenverlust kamen."
 
-#: document/katedocument.cpp:2854
+#: document/katedocument.cpp:2855
 #, kde-format
 msgid "Close Nevertheless"
 msgstr "Liekers tomaken"
 
-#: document/katedocument.cpp:4641
+#: document/katedocument.cpp:4642
 #, fuzzy, kde-format
 #| msgid "Untitled"
 msgid "Untitled (%1)"
 msgstr "Ahn Titel"
 
-#: document/katedocument.cpp:4643
+#: document/katedocument.cpp:4644
 #, kde-format
 msgid "Untitled"
 msgstr "Ahn Titel"
 
-#: document/katedocument.cpp:4820 document/katedocument.cpp:5051
-#: document/katedocument.cpp:5061 document/katedocument.cpp:5860
-#: document/katedocument.cpp:6047
+#: document/katedocument.cpp:4821 document/katedocument.cpp:5057
+#: document/katedocument.cpp:5067 document/katedocument.cpp:5868
+#: document/katedocument.cpp:6055
 #, kde-format
 msgid "Save File"
 msgstr "Datei sekern"
 
-#: document/katedocument.cpp:4823
+#: document/katedocument.cpp:4824
 #, kde-format
 msgid "Save failed"
 msgstr "Sekern fehlslaan"
 
-#: document/katedocument.cpp:5072
+#: document/katedocument.cpp:5078
 #, kde-format
 msgid "Save Copy of File"
 msgstr "Dateikopie sekern"
 
-#: document/katedocument.cpp:5084
+#: document/katedocument.cpp:5090
 #, kde-format
 msgid ""
 "The document could not be saved, as it was not possible to write to %1.\n"
@@ -2492,7 +2502,7 @@ msgstr ""
 "Bitte prööv, wat Du Schriefverlöven för de Datei hest un wat dat noog fre'en "
 "Platz op de Fastplaat gifft."
 
-#: document/katedocument.cpp:5374
+#: document/katedocument.cpp:5382
 #, fuzzy, kde-format
 #| msgid ""
 #| "Using deprecated modeline 'remove-trailing-space'. Please replace with "
@@ -2509,7 +2519,7 @@ msgstr ""
 "kde.org/stable/en/applications/kate/config-variables.html#variable-remove-"
 "trailing-spaces"
 
-#: document/katedocument.cpp:5380
+#: document/katedocument.cpp:5388
 #, fuzzy, kde-format
 #| msgid ""
 #| "Using deprecated modeline 'replace-trailing-space-save'. Please replace "
@@ -2526,19 +2536,19 @@ msgstr ""
 "org/stable/en/applications/kate/config-variables.html#variable-remove-"
 "trailing-spaces"
 
-#: document/katedocument.cpp:5694
+#: document/katedocument.cpp:5702
 #, fuzzy, kde-format
 #| msgid "The file '%1' was modified by another program."
 msgid "The file '%1' was modified on disk."
 msgstr "En anner Programm hett de Datei \"%1\" ännert."
 
-#: document/katedocument.cpp:5696
+#: document/katedocument.cpp:5704
 #, fuzzy, kde-format
 #| msgid "The file '%1' was deleted by another program."
 msgid "The file '%1' was deleted or moved on disk."
 msgstr "En anner Programm hett de Datei \"%1\" wegdaan."
 
-#: document/katedocument.cpp:6032
+#: document/katedocument.cpp:6040
 #, kde-format
 msgid ""
 "The document \"%1\" has been modified.\n"
@@ -2547,17 +2557,17 @@ msgstr ""
 "Dat Dokment \"%1\" wöör ännert.\n"
 "Wullt Du de Ännern sekern oder wegsmieten?"
 
-#: document/katedocument.cpp:6035
+#: document/katedocument.cpp:6043
 #, kde-format
 msgid "Close Document"
 msgstr "Dokment tomaken"
 
-#: document/katedocument.cpp:6146
+#: document/katedocument.cpp:6154
 #, kde-format
 msgid "The file <a href=\"%1\">%2</a> is still loading."
 msgstr "De Datei <a href=\"%1\">%2</a> warrt noch laadt."
 
-#: document/katedocument.cpp:6151
+#: document/katedocument.cpp:6159
 #, kde-format
 msgid "&Abort Loading"
 msgstr "Laden &afbreken"
@@ -2577,48 +2587,52 @@ msgstr "Infögen"
 msgid "Normal Mode"
 msgstr "Normaalbedrief"
 
-#: inputmode/kateviinputmode.cpp:31
-#, kde-format
-msgid "VI: INSERT MODE"
+#: inputmode/kateviinputmode.cpp:33
+#, fuzzy, kde-format
+#| msgid "VI: INSERT MODE"
+msgctxt "The INSERT mode of VI"
+msgid "VI: INSERT"
 msgstr "VI: Inföögbedrief"
 
-#: inputmode/kateviinputmode.cpp:34
-#, kde-format
-msgid "VI: NORMAL MODE"
+#: inputmode/kateviinputmode.cpp:36
+#, fuzzy, kde-format
+#| msgid "VI: NORMAL MODE"
+msgctxt "The NORMAL mode of VI"
+msgid "VI: NORMAL"
 msgstr "VI: Normaalbedrief"
 
-#: inputmode/kateviinputmode.cpp:37
+#: inputmode/kateviinputmode.cpp:39
 #, kde-format
 msgid "VI: VISUAL"
 msgstr "VI: Sichtbor"
 
-#: inputmode/kateviinputmode.cpp:40
+#: inputmode/kateviinputmode.cpp:42
 #, kde-format
 msgid "VI: VISUAL BLOCK"
 msgstr "VI: Sichtbor Block"
 
-#: inputmode/kateviinputmode.cpp:43
+#: inputmode/kateviinputmode.cpp:45
 #, kde-format
 msgid "VI: VISUAL LINE"
 msgstr "VI: Sichtbor Reeg"
 
-#: inputmode/kateviinputmode.cpp:46
+#: inputmode/kateviinputmode.cpp:48
 #, kde-format
 msgid "VI: REPLACE"
 msgstr "VI: Utwesseln"
 
-#: inputmode/kateviinputmode.cpp:146
+#: inputmode/kateviinputmode.cpp:150
 #, kde-format
 msgid "vi-mode"
 msgstr "vi-Bedrief"
 
-#: inputmode/kateviinputmode.cpp:159
+#: inputmode/kateviinputmode.cpp:163
 #, kde-format
 msgid "recording"
 msgstr "Opnehmen"
 
 #: inputmode/kateviinputmodefactory.cpp:38 utils/kateglobal.cpp:88
-#: vimode/config/configtab.cpp:233
+#: vimode/config/configtab.cpp:237
 #, kde-format
 msgid "Vi Input Mode"
 msgstr "VI-Ingaavmetood"
@@ -2658,7 +2672,7 @@ msgstr ""
 msgid "Select Mime Types"
 msgstr "MIME-Typen utsöken"
 
-#: mode/katemodeconfigpage.cpp:306
+#: mode/katemodeconfigpage.cpp:312
 #, kde-format
 msgid "Modes && Filetypes"
 msgstr "Bedrieforden un Dateitypen"
@@ -5149,132 +5163,132 @@ msgstr ""
 "dat Rechtsklickmenü ännern.</p><p>De Klören för den Achtergrund un den "
 "utsöchten Achtergrund laat sik binnen dat Rechtsklickmenü torüchsetten.</p>"
 
-#: syntax/katethemeconfig.cpp:1026
+#: syntax/katethemeconfig.cpp:1027
 #, fuzzy, kde-format
 #| msgid "Default Text Styles"
 msgid "Default Theme"
 msgstr "Standard-Textstilen"
 
-#: syntax/katethemeconfig.cpp:1027
+#: syntax/katethemeconfig.cpp:1028
 #, fuzzy, kde-format
 #| msgid "Choose Editor..."
 msgid "Theme Editor"
 msgstr "Editor utsöken..."
 
-#: syntax/katethemeconfig.cpp:1045
+#: syntax/katethemeconfig.cpp:1046
 #, fuzzy, kde-format
 #| msgid "Selected text:"
 msgid "Select theme:"
 msgstr "Utsöcht Text:"
 
-#: syntax/katethemeconfig.cpp:1118
+#: syntax/katethemeconfig.cpp:1119
 #, fuzzy, kde-format
 #| msgctxt "Language"
 #| msgid "Scheme"
 msgid "&Theme:"
 msgstr "Scheme"
 
-#: syntax/katethemeconfig.cpp:1127
+#: syntax/katethemeconfig.cpp:1128
 #, fuzzy, kde-format
 #| msgid "Save &Copy As..."
 msgctxt "@action:button"
 msgid "&Copy…"
 msgstr "&Kopie sekern as..."
 
-#: syntax/katethemeconfig.cpp:1135
+#: syntax/katethemeconfig.cpp:1136
 #, fuzzy, kde-format
 #| msgid "Export..."
 msgctxt "@action:button"
 msgid "Export…"
 msgstr "Exporteren..."
 
-#: syntax/katethemeconfig.cpp:1139
+#: syntax/katethemeconfig.cpp:1140
 #, fuzzy, kde-format
 #| msgid "Import..."
 msgctxt "@action:button"
 msgid "Import…"
 msgstr "Importeren..."
 
-#: syntax/katethemeconfig.cpp:1146
+#: syntax/katethemeconfig.cpp:1147
 #, kde-format
 msgid "Bundled read-only theme. To modify the theme, please copy it."
 msgstr ""
 
-#: syntax/katethemeconfig.cpp:1157
+#: syntax/katethemeconfig.cpp:1160
 #, kde-format
 msgid "Colors"
 msgstr "Klören"
 
-#: syntax/katethemeconfig.cpp:1161
+#: syntax/katethemeconfig.cpp:1164
 #, kde-format
 msgid "Default Text Styles"
 msgstr "Standard-Textstilen"
 
-#: syntax/katethemeconfig.cpp:1165
+#: syntax/katethemeconfig.cpp:1168
 #, kde-format
 msgid "Highlighting Text Styles"
 msgstr "Stilen för Syntaxmarkeren"
 
-#: syntax/katethemeconfig.cpp:1177
+#: syntax/katethemeconfig.cpp:1180
 #, fuzzy, kde-format
 #| msgid "Exporting color schema: %1"
 msgid "Exporting color theme: %1"
 msgstr "Klöörschema warrt exporteert: %1"
 
-#: syntax/katethemeconfig.cpp:1179 syntax/katethemeconfig.cpp:1200
+#: syntax/katethemeconfig.cpp:1182 syntax/katethemeconfig.cpp:1203
 #, fuzzy, kde-format
 #| msgid "Colors"
 msgid "Color theme"
 msgstr "Klören"
 
-#: syntax/katethemeconfig.cpp:1200
+#: syntax/katethemeconfig.cpp:1203
 #, fuzzy, kde-format
 #| msgid "Importing Color Schema"
 msgid "Importing Color Theme"
 msgstr "Klöörschema warrt importeert"
 
-#: syntax/katethemeconfig.cpp:1214
+#: syntax/katethemeconfig.cpp:1217
 #, kde-format
 msgid ""
 "Importing will overwrite the existing theme file \"%1\". This can not be "
 "undone."
 msgstr ""
 
-#: syntax/katethemeconfig.cpp:1216
+#: syntax/katethemeconfig.cpp:1219
 #, fuzzy, kde-format
 #| msgid "Close Nevertheless"
 msgid "Import Nevertheless"
 msgstr "Liekers tomaken"
 
-#: syntax/katethemeconfig.cpp:1304
+#: syntax/katethemeconfig.cpp:1308
 #, fuzzy, kde-format
 #| msgid "Use KDE Color Scheme"
 msgid "Follow System Color Scheme"
 msgstr "KDE-Klöörmuster bruken"
 
-#: syntax/katethemeconfig.cpp:1370
+#: syntax/katethemeconfig.cpp:1375
 #, kde-format
 msgid "Do you really want to delete the theme \"%1\"? This can not be undone."
 msgstr ""
 
-#: syntax/katethemeconfig.cpp:1372
+#: syntax/katethemeconfig.cpp:1377
 #, fuzzy, kde-format
 #| msgid "Close Nevertheless"
 msgid "Delete Nevertheless"
 msgstr "Liekers tomaken"
 
-#: syntax/katethemeconfig.cpp:1414
+#: syntax/katethemeconfig.cpp:1419
 #, fuzzy, kde-format
 #| msgid "Colors"
 msgid "Copy theme"
 msgstr "Klören"
 
-#: syntax/katethemeconfig.cpp:1415
+#: syntax/katethemeconfig.cpp:1420
 #, kde-format
 msgid "Name for copy of color theme \"%1\":"
 msgstr ""
 
-#: syntax/katethemeconfig.cpp:1427
+#: syntax/katethemeconfig.cpp:1432
 #, fuzzy, kde-format
 #| msgid ""
 #| "<p>The schema %1 already exists.</p><p>Please choose a different schema "
@@ -5286,13 +5300,13 @@ msgstr ""
 "<p>Dat gifft dat Schema %1 al.</p><p>Söök bitte en anner Naam för dat Schema "
 "ut.</p>"
 
-#: syntax/katethemeconfig.cpp:1428
+#: syntax/katethemeconfig.cpp:1433
 #, fuzzy, kde-format
 #| msgid "Colors"
 msgid "Copy Theme"
 msgstr "Klören"
 
-#: syntax/katethemeconfig.cpp:1481 syntax/katethemeconfig.cpp:1486
+#: syntax/katethemeconfig.cpp:1486 syntax/katethemeconfig.cpp:1491
 #, fuzzy, kde-format
 #| msgid "Colors"
 msgid "Color Themes"
@@ -6737,12 +6751,12 @@ msgstr "Mark för Inföög- un VI-Ingaavbedrief"
 msgid "Change dictionary"
 msgstr "Wöörbook wesseln..."
 
-#: view/katestatusbar.cpp:161 view/katestatusbar.cpp:488
+#: view/katestatusbar.cpp:161 view/katestatusbar.cpp:489
 #, kde-format
 msgid "Tab Width"
 msgstr "Tab-Breed"
 
-#: view/katestatusbar.cpp:169 view/katestatusbar.cpp:503
+#: view/katestatusbar.cpp:169 view/katestatusbar.cpp:504
 #, kde-format
 msgid "Indentation Width"
 msgstr "Inrückbreed"
@@ -6803,78 +6817,78 @@ msgstr "Syntaxmarkeren"
 msgid "Line/Column compact mode"
 msgstr ""
 
-#: view/katestatusbar.cpp:307
+#: view/katestatusbar.cpp:308
 #, fuzzy, kde-format
 #| msgid " BLOCK "
 msgid "[BLOCK] %1"
 msgstr " Block "
 
-#: view/katestatusbar.cpp:323
+#: view/katestatusbar.cpp:324
 #, kde-format
 msgid "%1/%2:%3"
 msgstr ""
 
-#: view/katestatusbar.cpp:325
+#: view/katestatusbar.cpp:326
 #, kde-format
 msgid "%1:%2"
 msgstr ""
 
-#: view/katestatusbar.cpp:329
+#: view/katestatusbar.cpp:330
 #, fuzzy, kde-format
 #| msgid "Line %1, Column %2"
 msgid "Line %1 of %2, Column %3"
 msgstr "Reeg %1, Striep %2 "
 
-#: view/katestatusbar.cpp:331
+#: view/katestatusbar.cpp:332
 #, kde-format
 msgid "Line %1, Column %2"
 msgstr "Reeg %1, Striep %2 "
 
-#: view/katestatusbar.cpp:405
+#: view/katestatusbar.cpp:406
 #, kde-format
 msgid "Soft Tabs: %1"
 msgstr "Week Tabs: %1"
 
-#: view/katestatusbar.cpp:406
+#: view/katestatusbar.cpp:407
 #, kde-format
 msgid "Soft Tabs: %1 (%2)"
 msgstr "Week Tabs: %1 (%2)"
 
-#: view/katestatusbar.cpp:407
+#: view/katestatusbar.cpp:408
 #, kde-format
 msgid "Tab Size: %1"
 msgstr "Tab-Grött: %1"
 
-#: view/katestatusbar.cpp:408
+#: view/katestatusbar.cpp:409
 #, kde-format
 msgid "Indent/Tab: %1/%2"
 msgstr "Infögen/Tab: %1/%2"
 
-#: view/katestatusbar.cpp:448 view/katestatusbar.cpp:474
+#: view/katestatusbar.cpp:449 view/katestatusbar.cpp:475
 #, fuzzy, kde-format
 #| msgid "Other"
 msgctxt "@item:inmenu"
 msgid "Other…"
 msgstr "Anner"
 
-#: view/katestatusbar.cpp:476
+#: view/katestatusbar.cpp:477
 #, kde-format
 msgid "Other (%1)"
 msgid_plural "Other (%1)"
 msgstr[0] "Anner (%1)"
 msgstr[1] "Anner (%1)"
 
-#: view/katestatusbar.cpp:488
+#: view/katestatusbar.cpp:489
 #, kde-format
 msgid "Please specify the wanted tab width:"
 msgstr "Bitte de vörtrocken Tabbreed angeven:"
 
-#: view/katestatusbar.cpp:504
+#: view/katestatusbar.cpp:505
 #, kde-format
 msgid "Please specify the wanted indentation width:"
 msgstr "Bitte de vörtrocken Inrückbreed angeven:"
 
-#: view/katestatusbar.cpp:567
+#: view/katestatusbar.cpp:568
 #, kde-format
 msgctxt ""
 "%1 and %3 are the selected words/chars count, %2 and %4 are the total words/"
@@ -6882,13 +6896,13 @@ msgctxt ""
 msgid "Words %1/%2, Chars %3/%4"
 msgstr ""
 
-#: view/katestatusbar.cpp:573
+#: view/katestatusbar.cpp:574
 #, kde-format
 msgctxt "%1 and %2 are the total words/chars count."
 msgid "Words %1, Chars %2"
 msgstr ""
 
-#: view/katestatusbar.cpp:588
+#: view/katestatusbar.cpp:589
 #, kde-format
 msgid "Zoom: %1%"
 msgstr ""
@@ -8226,23 +8240,23 @@ msgstr ""
 msgid "Search wrapped"
 msgstr "Söökmetood"
 
-#: view/kateview.cpp:3043
+#: view/kateview.cpp:3052
 #, kde-format
 msgid "Open File"
 msgstr "Datei opmaken"
 
-#: view/kateview.cpp:3954
+#: view/kateview.cpp:3995
 #, fuzzy, kde-format
 #| msgid "&Align"
 msgid "Align On"
 msgstr "U&trichten"
 
-#: view/kateview.cpp:3954
+#: view/kateview.cpp:3995
 #, kde-format
 msgid "Alignment pattern:"
 msgstr ""
 
-#: view/kateview.cpp:5038
+#: view/kateview.cpp:5079
 #, kde-format
 msgid "Export File as HTML"
 msgstr "Datei na HTML exporteren"
@@ -8292,37 +8306,37 @@ msgstr ""
 "<code><b>help &lt;Befehl&gt;</b></code> warrt de Hülp för enkelte Befehlen "
 "wiest.</p>"
 
-#: view/kateviewhelpers.cpp:1317 vimode/emulatedcommandbar/commandmode.cpp:211
+#: view/kateviewhelpers.cpp:1317 vimode/emulatedcommandbar/commandmode.cpp:212
 #, kde-format
 msgid "No such command: \"%1\""
 msgstr "De Befehl \"%1\" is nich begäng"
 
-#: view/kateviewhelpers.cpp:1320 vimode/emulatedcommandbar/commandmode.cpp:193
+#: view/kateviewhelpers.cpp:1320 vimode/emulatedcommandbar/commandmode.cpp:194
 #, kde-format
 msgid "Error: No range allowed for command \"%1\"."
 msgstr "Fehler: Bi den Befehl \"%1\" is keen Rebeet tolaten."
 
-#: view/kateviewhelpers.cpp:1330 vimode/emulatedcommandbar/commandmode.cpp:197
+#: view/kateviewhelpers.cpp:1330 vimode/emulatedcommandbar/commandmode.cpp:198
 #, kde-format
 msgid "Success: "
 msgstr "Resultaat: "
 
-#: view/kateviewhelpers.cpp:1344 vimode/emulatedcommandbar/commandmode.cpp:206
+#: view/kateviewhelpers.cpp:1344 vimode/emulatedcommandbar/commandmode.cpp:207
 #, kde-format
 msgid "Command \"%1\" failed."
 msgstr "Befehl \"%1\" is fehlslaan."
 
-#: view/kateviewhelpers.cpp:2632 view/kateviewhelpers.cpp:2633
+#: view/kateviewhelpers.cpp:2645 view/kateviewhelpers.cpp:2646
 #, kde-format
 msgid "Mark Type %1"
 msgstr "Marktyp %1"
 
-#: view/kateviewhelpers.cpp:2656
+#: view/kateviewhelpers.cpp:2669
 #, kde-format
 msgid "Set Default Mark Type"
 msgstr "Standardtyp för Marken setten"
 
-#: view/kateviewhelpers.cpp:2801
+#: view/kateviewhelpers.cpp:2814
 #, kde-format
 msgid "Disable Annotation Bar"
 msgstr "Anmarkbalken utmaken"
@@ -8394,17 +8408,23 @@ msgstr ""
 msgid "Screenshot saving failed: %1"
 msgstr ""
 
-#: vimode/appcommands.cpp:67
+#: vimode/appcommands.cpp:72
 #, kde-format
 msgid "All documents written to disk"
 msgstr "All Dokmenten na Fastplaat schreven"
 
-#: vimode/appcommands.cpp:70
+#: vimode/appcommands.cpp:74
+#, fuzzy, kde-format
+#| msgid "All documents written to disk"
+msgid "Only some documents were written to disk"
+msgstr "All Dokmenten na Fastplaat schreven"
+
+#: vimode/appcommands.cpp:79
 #, kde-format
 msgid "Document written to disk"
 msgstr "Dokment na Fastplaat schreven"
 
-#: vimode/appcommands.cpp:202
+#: vimode/appcommands.cpp:212
 #, kde-format
 msgid ""
 "<p><b>w/wa &mdash; write document(s) to disk</b></p><p>Usage: <tt><b>w[a]</"
@@ -8420,7 +8440,7 @@ msgstr ""
 "de Fastplaat.</p><p>Höört dat Dokment keen Dateinaam to, warrt en "
 "Dateidialoog wiest.</p>"
 
-#: vimode/appcommands.cpp:213
+#: vimode/appcommands.cpp:223
 #, kde-format
 msgid ""
 "<p><b>q/qa/wq/wqa &mdash; [write and] quit</b></p><p>Usage: <tt><b>[w]q[a]</"
@@ -8446,7 +8466,7 @@ msgstr ""
 "keen Dateinaam to, un schall dat na de Fastplaat schreven warrn, warrt en "
 "Dateidialoog wiest.</p>"
 
-#: vimode/appcommands.cpp:228
+#: vimode/appcommands.cpp:238
 #, kde-format
 msgid ""
 "<p><b>x/xa &mdash; write and quit</b></p><p>Usage: <tt><b>x[a]</b></tt></"
@@ -8467,7 +8487,7 @@ msgstr ""
 "schreven warrn, warrt en Dateidialoog wiest.</p><p>Anners as de Befehl \"w\" "
 "sekert disse Befehl bloots ännert Dokmenten.</p>"
 
-#: vimode/appcommands.cpp:242
+#: vimode/appcommands.cpp:252
 #, kde-format
 msgid ""
 "<p><b>sp,split&mdash; Split horizontally the current view into two</b></"
@@ -8478,7 +8498,7 @@ msgstr ""
 "<tt><b>sp[lit]</b></tt></p><p>As Resultaat warrt dat sülve Dokment binnen "
 "twee Ansichten wiest.</p>"
 
-#: vimode/appcommands.cpp:248
+#: vimode/appcommands.cpp:258
 #, kde-format
 msgid ""
 "<p><b>vs,vsplit&mdash; Split vertically the current view into two</b></"
@@ -8489,7 +8509,7 @@ msgstr ""
 "<tt><b>vs[plit]</b></tt></p><p>As Resultaat warrt dat sülve Dokment binnen "
 "twee Ansichten wiest.</p>"
 
-#: vimode/appcommands.cpp:254
+#: vimode/appcommands.cpp:264
 #, kde-format
 msgid ""
 "<p><b>clo[se]&mdash; Close the current view</b></p><p>Usage: <tt><b>clo[se]</"
@@ -8499,7 +8519,7 @@ msgstr ""
 "<tt><b>clo[se]</b></tt></p><p>As Resultaat warrt de aktuelle Ansicht tomaakt."
 "</p>"
 
-#: vimode/appcommands.cpp:260
+#: vimode/appcommands.cpp:270
 #, kde-format
 msgid ""
 "<p><b>[v]new &mdash; split view and create new document</b></p><p>Usage: "
@@ -8516,7 +8536,7 @@ msgstr ""
 "maakt en nieg Dokment op.<br /> <tt>vnew</tt> &ndash; deelt de Ansicht "
 "pielrecht un maakt en nieg Dokment op.<br /></p>"
 
-#: vimode/appcommands.cpp:270
+#: vimode/appcommands.cpp:280
 #, fuzzy, kde-format
 #| msgid ""
 #| "<p><b>e[dit] &mdash; reload current document</b></p><p>Usage: "
@@ -8533,7 +8553,7 @@ msgstr ""
 "Dokment noch maal wedder. Dat lett sik bruken, wenn Een de aktuelle Datei "
 "nochmaal bewerken will, na dat en anner Programm ehr ännert hett.</p>"
 
-#: vimode/appcommands.cpp:518
+#: vimode/appcommands.cpp:528
 #, kde-format
 msgid ""
 "<p><b>b,buffer &mdash; Edit document N from the document list</b></"
@@ -8542,7 +8562,7 @@ msgstr ""
 "<p><b>b,buffer &ndash; Dokment N op de Dokmentenlist bewerken</b></"
 "p><p>Bruuk: <tt><b>b[uffer] [N]</b></tt></p>"
 
-#: vimode/appcommands.cpp:523
+#: vimode/appcommands.cpp:533
 #, kde-format
 msgid ""
 "<p><b>bp,bprev &mdash; previous buffer</b></p><p>Usage: <tt><b>bp[revious] "
@@ -8555,7 +8575,7 @@ msgstr ""
 "\") op de Dokmentenlist.</p> <p> <b>[N]</b> is standardwies \"een\". </"
 "p><p>Wesselt na'n Anfang vun de Dokmentenlist na ehr Enn.</p>"
 
-#: vimode/appcommands.cpp:531
+#: vimode/appcommands.cpp:541
 #, kde-format
 msgid ""
 "<p><b>bn,bnext &mdash; switch to next document</b></p><p>Usage: "
@@ -8568,7 +8588,7 @@ msgstr ""
 "(\"<b>b</b>uffer\") op de Dokmentenlist.<b>[N]</b> is standardwies \"een\". "
 "</p><p>Wesselt na't Enn vun de Dokmentenlist na ehr Anfang.</p>"
 
-#: vimode/appcommands.cpp:539
+#: vimode/appcommands.cpp:549
 #, kde-format
 msgid ""
 "<p><b>bf,bfirst &mdash; first document</b></p><p>Usage: <tt><b>bf[irst]</b></"
@@ -8579,7 +8599,7 @@ msgstr ""
 "tt></p><p>Geiht na't eerste (<b>f</b>irst) Dokment (\"<b>b</b>uffer\") op de "
 "Dokmentenlist.</p>"
 
-#: vimode/appcommands.cpp:545
+#: vimode/appcommands.cpp:555
 #, kde-format
 msgid ""
 "<p><b>bl,blast &mdash; last document</b></p><p>Usage: <tt><b>bl[ast]</b></"
@@ -8590,7 +8610,7 @@ msgstr ""
 "tt></p><p>Geiht na't <b>l</b>este Dokment (\"<b>b</b>uffer\") op de "
 "Dokmentenlist.</p>"
 
-#: vimode/appcommands.cpp:551
+#: vimode/appcommands.cpp:561
 #, kde-format
 msgid "<p><b>ls</b></p><p>list current buffers<p>"
 msgstr "<p><b>ls</b></p> <p>aktuell Dateien oplisten <p>"
@@ -8620,12 +8640,12 @@ msgstr "Argument fehlt. Bruuk: %1 <Vun> [<Na>]"
 msgid "Wrong arguments"
 msgstr "Argumenten leeg"
 
-#: vimode/config/configtab.cpp:201
+#: vimode/config/configtab.cpp:205
 #, kde-format
 msgid "Unable to open the config file for reading."
 msgstr "Instellendatei lett sik nich för't Lesen opmaken"
 
-#: vimode/config/configtab.cpp:201
+#: vimode/config/configtab.cpp:205
 #, kde-format
 msgid "Unable to open file"
 msgstr "Datei lett sik nich opmaken"
@@ -8763,18 +8783,18 @@ msgstr ""
 msgid "Import from vimrc file"
 msgstr "Ut \"vimrc\"-Datei importeren"
 
-#: vimode/marks.cpp:117
+#: vimode/marks.cpp:112
 #, kde-format
 msgid "Mark set: %1"
 msgstr "Mark fastleggt: %1"
 
-#: vimode/marks.cpp:163
+#: vimode/marks.cpp:158
 #, kde-format
 msgid "There are no more chars for the next bookmark."
 msgstr "För't nakamen Leesteken gifft dat keen Bookstaav mehr."
 
-#: vimode/modes/insertvimode.cpp:260 vimode/modes/modebase.cpp:794
-#: vimode/modes/normalvimode.cpp:3565
+#: vimode/modes/insertvimode.cpp:261 vimode/modes/modebase.cpp:795
+#: vimode/modes/normalvimode.cpp:3604
 #, kde-format
 msgid "Nothing in register %1"
 msgstr "Nix binnen Register %1"
@@ -8784,7 +8804,7 @@ msgstr "Nix binnen Register %1"
 msgid "'%1' %2,  Hex %3,  Octal %4"
 msgstr "\"%1\" %2,  Hex %3,  Oktaal %4"
 
-#: vimode/modes/normalvimode.cpp:2532
+#: vimode/modes/normalvimode.cpp:2571
 #, kde-format
 msgid "Mark not set: %1"
 msgstr "Mark nich fastleggt: %1"
@@ -11367,9 +11387,6 @@ msgstr "Mark nich fastleggt: %1"
 #~ msgstr ""
 #~ "Keen KDE-Texteditorkomponent funnen!\n"
 #~ "Överprööv bitte Dien KDE-Installatschoon."
-
-#~ msgid "Use this to close the current document"
-#~ msgstr "Dat aktuelle Dokment tomaken"
 
 #~ msgid "Use this command to create a new document"
 #~ msgstr "Mit dissen Befehl kannst Du dat en nieg Dokment opstellen"

@@ -1,9 +1,11 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <QtQmlModels/private/qqmlfunctionsorter_p.h>
 #include <QtQmlModels/private/qqmlsortfilterproxymodel_p.h>
 #include <QtQml/private/qqmlobjectcreator_p.h>
+#include <QtQml/qqmlinfo.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -14,23 +16,23 @@ QT_BEGIN_NAMESPACE
     \since 6.10
     \preliminary
     \brief Sorts data in a \l SortFilterProxyModel based on the evaluation of
-    the designated 'sort' method.
+    the designated 'compare' method.
 
-    FunctionSorter allows user to define the designated 'sort' method and it
+    FunctionSorter allows user to define the designated 'compare' method and it
     will be evaluated to sort the data. The method takes two arguments
     (lhs and rhs) of the specified parameter type and the data can
     be accessed as below for evaluation,
 
     \qml
     SortFilterProxyModel {
-        model: sourceModel
+        sourceModel: model
         sorters: [
             FunctionSorter {
                 id: functionSorter
                 component RoleData: QtObject {
                     property real age
                 }
-                function sort(lhsData: RoleData, rhsData: RoleData) : int {
+                function compare(lhsData: RoleData, rhsData: RoleData) : int {
                     return (lhsData.age < rhsData.age) ? -1 : ((lhsData === rhsData.age) ? 0 : 1)
                 }
             }
@@ -38,9 +40,24 @@ QT_BEGIN_NAMESPACE
     }
     \endqml
 
+    \warning Both parameters of the \c compare method must carry an explicit
+    type annotation, as \c lhsData and \c rhsData do in the example above, and
+    both annotations must resolve to the same type. The \c compare method written
+    the ordinary JavaScript way, without parameter type annotations, e.g.
+    \c{function compare(lhsData, rhsData) : int { ... }}, compiles without
+    any warning but fails with comparision. \l FunctionSorter relies on the annotated
+    type to know what kind of role-data object to instantiate and populate for
+    \c lhsData and \c rhsData; without it, there is nothing to instantiate.
+
+    \note \deprecated [6.12] The \c sort method is deprecated. Rename it to \c compare.
+
+    \note The \c compare function must have exactly two explicitly type-annotated
+    parameters of matching types and an explicit \c{: int} return type. If these
+    requirements are not met, the sorter emits a warning and returns early.
+
     \note The user needs to explicitly invoke
     \l{SortFilterProxyModel::invalidateSorter} whenever any external qml
-    property used within the designated 'sort' method changes. This behaviour
+    property used within the designated 'compare' method changes. This behaviour
     is subject to change in the future, like implicit invalidation and thus the
     user doesn't need to explicitly invoke
     \l{SortFilterProxyModel::invalidateSorter}.
@@ -64,10 +81,14 @@ void QQmlFunctionSorter::componentComplete()
 {
     Q_D(QQmlFunctionSorter);
     const auto *metaObj = this->metaObject();
-    for (int idx = metaObj->methodOffset(); idx < metaObj->methodCount(); idx++) {
+    for (int idx = metaObj->methodCount() - 1; idx >= 0; idx--) {
         // Once we find the method signature, break the loop
         QMetaMethod method = metaObj->method(idx);
-        if (method.nameView() == "sort") {
+        if (method.nameView() == "compare") {
+            d->m_method = method;
+            break;
+        } else if (method.nameView() == "sort") {
+            qmlWarning(this) << "The 'sort' method is deprecated and will be removed in a future version. Rename it to 'compare'.";
             d->m_method = method;
             break;
         }
@@ -77,31 +98,49 @@ void QQmlFunctionSorter::componentComplete()
         return;
 
     if (d->m_method.parameterCount() != 2) {
-        qWarning("sort method requires two parameters");
+        qmlWarning(this) << d->m_method.name() << " requires two parameters.";
         return;
     }
 
     QQmlData *data = QQmlData::get(this);
     if (!data || !data->outerContext) {
-        qWarning("sort requires a QML context");
+        qmlWarning(this) << d->m_method.name() << " requires a QML context.";
         return;
     }
 
-    const QMetaType parameterType = d->m_method.parameterMetaType(0);
-    if (parameterType != d->m_method.parameterMetaType(1)) {
-        qWarning("sort parameters have to be equal");
+    const QMetaType lhsParameterType = d->m_method.parameterMetaType(0);
+    const QMetaType rhsParameterType = d->m_method.parameterMetaType(1);
+
+    if (!lhsParameterType.isValid() || !rhsParameterType.isValid()) {
+        qmlWarning(this) << d->m_method.name() << " parameters need to be a QML-registered type.";
         return;
     }
 
-    auto cu = QQmlMetaType::obtainCompilationUnit(parameterType);
-    const QQmlType parameterQmlType = QQmlMetaType::qmlType(parameterType);
+    if (lhsParameterType != rhsParameterType) {
+        qmlWarning(this) << d->m_method.name() << " parameters need to have matching types.";
+        return;
+    }
+
+    if (lhsParameterType == QMetaType::fromType<QVariant>()) {
+        qmlWarning(this) << d->m_method.name() << " parameters must be type annotated.";
+        return;
+    }
+
+    const QMetaType returnType = d->m_method.returnMetaType();
+    if (returnType != QMetaType::fromType<int>()) {
+        qmlWarning(this) << d->m_method.name() << " must return int data type.";
+        return;
+    }
+
+    auto cu = QQmlMetaType::obtainCompilationUnit(lhsParameterType);
+    const QQmlType parameterQmlType = QQmlMetaType::qmlType(lhsParameterType);
 
     QQmlRefPointer<QQmlContextData> context = data->outerContext;
     QQmlEngine *engine = context->engine();
 
     // The code below creates an instance of the inline component, composite,
     // or specific C++ QObject types. The created instance, along with the
-    // data, are passed as an arguments to the 'sort' method, which is invoked
+    // data, are passed as an arguments to the 'compare' method, which is invoked
     // during the call to QQmlFunctionSorter::compare.
     // To create an instance of required component types (be it inline or
     // composite), an executable compilation unit is required, and this can be
@@ -109,7 +148,7 @@ void QQmlFunctionSorter::componentComplete()
     // (QQmlMetaType::obtainCompilationUnit). Pass it through the QML engine to
     // make it executable. Further, use the executable compilation unit to run
     // an object creator and produce an instance.
-    if (parameterType.flags() & QMetaType::PointerToQObject) {
+    if (lhsParameterType.flags() & QMetaType::PointerToQObject) {
         QObject *created0 = nullptr;
         QObject *created1 = nullptr;
         if (parameterQmlType.isInlineComponentType()) {
@@ -136,8 +175,8 @@ void QQmlFunctionSorter::componentComplete()
         d->m_lhsParameterData = QVariant::fromValue(created0);
         d->m_rhsParameterData = QVariant::fromValue(created1);
     } else {
-        d->m_lhsParameterData = QVariant(parameterType);
-        d->m_rhsParameterData = QVariant(parameterType);
+        d->m_lhsParameterData = QVariant(lhsParameterType);
+        d->m_rhsParameterData = QVariant(rhsParameterType);
     }
 }
 

@@ -1982,7 +1982,7 @@ bool QStandardItem::operator<(const QStandardItem &other) const
 {
     const int role = model() ? model()->sortRole() : Qt::DisplayRole;
     const QVariant l = data(role), r = other.data(role);
-    return QAbstractItemModelPrivate::isVariantLessThan(l, r);
+    return QStandardItemModel::compareData(l, r) < 0;
 }
 
 /*!
@@ -2176,7 +2176,7 @@ QDataStream &operator<<(QDataStream &out, const QStandardItem &item)
     instead rely entirely on the QAbstractItemModel interface when working with
     the model, or use a combination of the two as appropriate.
 
-    \sa QStandardItem, {Model/View Programming}, QAbstractItemModel,
+    \sa QStandardItem, {Model/View Programming}, QAbstractItemModel, QRangeModel,
     {itemviews/simpletreemodel}{Simple Tree Model example},
     {Item View Convenience Classes}
 */

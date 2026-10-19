@@ -44,7 +44,6 @@ Containment::Containment(Plasma::Containment *containment, ScriptEngine *engine)
     d->corona = qobject_cast<ShellCorona *>(containment->corona());
 
     setCurrentConfigGroup(QStringList());
-    setCurrentGlobalConfigGroup(QStringList());
     if (containment) {
         d->oldWallpaperPlugin = d->wallpaperPlugin = containment->wallpaperPlugin();
     }
@@ -174,13 +173,14 @@ QJSValue Containment::addWidget(const QJSValue &v, qreal x, qreal y, qreal w, qr
 
     QRectF geometry(x, y, w, h);
 
-    Plasma::Applet *applet = nullptr;
     if (v.isString()) {
         // A position has been supplied: search for the containment's graphics object
         QQuickItem *containmentItem = nullptr;
 
         if (geometry.x() >= 0 && geometry.y() >= 0) {
             containmentItem = PlasmaQuick::AppletQuickItem::itemForApplet(d->containment);
+
+            Plasma::Applet *applet = nullptr;
 
             if (containmentItem) {
                 QMetaObject::invokeMethod(containmentItem,
@@ -200,7 +200,7 @@ QJSValue Containment::addWidget(const QJSValue &v, qreal x, qreal y, qreal w, qr
         // Case in which either:
         // * a geometry wasn't provided
         // * containmentItem wasn't found
-        applet = d->containment->createApplet(v.toString(), args);
+        Plasma::Applet *applet = d->containment->createApplet(v.toString(), args);
 
         if (applet) {
             return engine()->wrap(applet);
@@ -208,8 +208,9 @@ QJSValue Containment::addWidget(const QJSValue &v, qreal x, qreal y, qreal w, qr
 
         return engine()->newError(i18n("Could not create the %1 widget!", v.toString()));
     } else if (auto *widget = qobject_cast<Widget *>(v.toQObject())) {
-        applet = widget->applet();
-        d->containment->addApplet(applet);
+        Plasma::Applet *applet = widget->applet();
+        // transfer ownership of applet from the old containment to the new containment
+        d->containment->addApplet(std::unique_ptr<Plasma::Applet>(applet));
         return v;
     }
 

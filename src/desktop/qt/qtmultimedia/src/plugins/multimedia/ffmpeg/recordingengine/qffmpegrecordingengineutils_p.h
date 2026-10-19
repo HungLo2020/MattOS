@@ -16,6 +16,8 @@
 //
 
 #include "qobject.h"
+#include <QtMultimedia/qvideoframe.h>
+#include <optional>
 #include <queue>
 
 QT_BEGIN_NAMESPACE
@@ -27,7 +29,19 @@ namespace QFFmpeg {
 
 constexpr qint64 VideoFrameTimeBase = 1000000; // us in sec
 
+// Fallback frame rate used when no real rate is known (e.g. variable-rate sources
+// with untimed frames), chosen to keep pts advancing and satisfy players/muxers
+// that require a valid duration.
+constexpr int DefaultVideoFrameRate = 30;
+
 class EncoderThread;
+
+struct FrameInfo
+{
+    QVideoFrame frame;
+    bool adjustTimeBase{ false };
+    std::optional<qint64> overriddenPts;
+};
 
 template <typename T>
 T dequeueIfPossible(std::queue<T> &queue)

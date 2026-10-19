@@ -2,22 +2,36 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
 
 #include "qaudioengine.h"
+#include "qaudioengine_p.h"
 
-#include <QtCore/qspan.h>
-#include <QtSpatialAudio/private/qaudioengine_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtSpatialAudio/private/qaudioengine_threaded_p.h>
+#include <QtSpatialAudio/private/qaudioengine_withplayer_p.h>
 #include <QtSpatialAudio/private/qaudioroom_p.h>
+#include <QtCore/qspan.h>
+
+#include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+
+#include <q20vector.h>
 
 #include <resonance_audio.h>
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(qLcSpatialAudioEngine, "qt.spatialaudio.engine")
+
 QAudioEnginePrivate::QAudioEnginePrivate(int sampleRate)
     : m_sampleRate(sampleRate),
       resonanceAudio{
-          std::make_unique<vraudio::ResonanceAudio>(2, framesPerBuffer, sampleRate),
+          std::make_unique<vraudio::ResonanceAudio>(2, qToUnderlying(framesPerBuffer), sampleRate),
       }
 {
+    resonanceAudio->api->SetStereoSpeakerMode(outputMode() != QAudioEngine::Headphone);
+    resonanceAudio->api->SetMasterVolume(masterVolume());
 }
 
 QAudioEnginePrivate::~QAudioEnginePrivate() = default;
@@ -53,16 +67,105 @@ float QAudioEnginePrivate::masterVolume() const
 
 void QAudioEnginePrivate::setListenerPosition(std::optional<QVector3D> pos)
 {
+    if (pos == m_position)
+        return;
+
     m_position = pos;
 
     QVector3D posValue = pos.value_or(QVector3D{});
     resonanceAudio->api->SetHeadPosition(posValue.x(), posValue.y(), posValue.z());
+
+    updateRooms();
 }
 
 void QAudioEnginePrivate::setListenerRotation(const QQuaternion &rotation)
 {
     resonanceAudio->api->SetHeadRotation(rotation.x(), rotation.y(), rotation.z(),
                                          rotation.scalar());
+}
+
+void QAudioEnginePrivate::setRoomEffectsEnabled(bool enabled)
+{
+    if (resonanceAudio->roomEffectsEnabled == enabled)
+        return;
+    resonanceAudio->roomEffectsEnabled = enabled;
+}
+
+bool QAudioEnginePrivate::roomEffectsEnabled() const
+{
+    return resonanceAudio->roomEffectsEnabled;
+}
+
+void QAudioEnginePrivate::setOutputMode(QAudioEngine::OutputMode mode)
+{
+    if (m_outputMode == mode)
+        return;
+    m_outputMode = mode;
+    resonanceAudio->api->SetStereoSpeakerMode(mode != QAudioEngine::Headphone);
+
+    Q_Q(QAudioEngine);
+    emit q->outputModeChanged();
+}
+
+QAudioEngine::OutputMode QAudioEnginePrivate::outputMode() const
+{
+    return m_outputMode;
+}
+
+void QAudioEnginePrivate::addRoom(QAudioRoom *room)
+{
+    Q_ASSERT(!QtMultimediaPrivate::ranges::contains(rooms, room));
+    rooms.push_back(room);
+}
+
+void QAudioEnginePrivate::removeRoom(QAudioRoom *room)
+{
+    Q_ASSERT(QtMultimediaPrivate::ranges::contains(rooms, room));
+    q20::erase(rooms, room);
+}
+
+QAudioRoom *QAudioEnginePrivate::currentRoom() const
+{
+    return m_currentRoom;
+}
+
+void QAudioEnginePrivate::updateRooms()
+{
+    if (!roomEffectsEnabled())
+        return;
+
+    bool roomDirty = false;
+    for (const auto &room : rooms) {
+        auto *rd = QAudioRoomPrivate::get(room);
+        if (rd->dirty) {
+            roomDirty = true;
+            rd->update();
+        }
+    }
+
+    auto inferredRoom = findSmallestRoomForListener(rooms);
+    if (inferredRoom.room != m_currentRoom)
+        roomDirty = true;
+    const bool previousRoom = m_currentRoom;
+    m_currentRoom = inferredRoom.room;
+
+    if (!roomDirty)
+        return;
+
+    // apply room to engine
+    if (!m_currentRoom) {
+        resonanceAudio->api->EnableRoomEffects(false);
+        return;
+    }
+    if (!previousRoom)
+        resonanceAudio->api->EnableRoomEffects(true);
+
+    QAudioRoomPrivate *rp = QAudioRoomPrivate::get(m_currentRoom);
+    resonanceAudio->api->SetReflectionProperties(rp->reflections);
+    resonanceAudio->api->SetReverbProperties(rp->reverb);
+
+    // update room effects for all sound sources
+    updateRoomEffects();
 }
 
 QAudioEnginePrivate::SmallestRoomForListenerResult
@@ -99,6 +202,19 @@ QAudioEnginePrivate::findSmallestRoomForListener(QSpan<QAudioRoom *> rooms) cons
         roomVolume.value_or(0.f),
     };
 }
+
+namespace {
+
+QAudioEnginePrivate *makeAudioEnginePrivate(int sampleRate)
+{
+    bool hasCallbackApi = QPlatformMediaIntegration::instance()->audioDevices()->hasCallbackApi();
+    if (hasCallbackApi)
+        return new QAudioEngineWithPlayer(sampleRate);
+    else
+        return new QAudioEngineThreaded(sampleRate);
+}
+
+} // namespace
 
 /*!
     \class QAudioEngine
@@ -161,7 +277,7 @@ QAudioEnginePrivate::findSmallestRoomForListener(QSpan<QAudioRoom *> rooms) cons
     avoid some CPU overhead for resampling.
  */
 QAudioEngine::QAudioEngine(int sampleRate, QObject *parent)
-    : QObject(*new QAudioEngineThreaded(sampleRate), parent)
+    : QObject(*makeAudioEnginePrivate(sampleRate), parent)
 {
 }
 

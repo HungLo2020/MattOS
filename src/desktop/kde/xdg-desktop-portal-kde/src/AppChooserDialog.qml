@@ -11,8 +11,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
-import Qt.labs.platform
 import org.kde.kirigami as Kirigami
+import org.kde.ki18n
 
 import org.kde.xdgdesktopportal
 
@@ -32,12 +32,12 @@ PortalDialog {
 
     readonly property QQC2.Action discoverAction: QQC2.Action{
         icon.name: "plasmadiscover"
-        text: i18nc("Find some more apps that can open this content using the Discover app store", "Find More in Discover…")
+        text: KI18n.i18nc("Find some more apps that can open this content using the Discover app store", "Find More in Discover…")
         onTriggered: root.appChooserData.openDiscover()
     }
     readonly property QQC2.Action openWithTerminalAction: QQC2.Action {
         icon.name: "system-run"
-        text: i18nc("@action:button", "Open")
+        text: KI18n.i18nc("@action:button", "Open")
         onTriggered: searchField.acceptResult()
     }
 
@@ -45,7 +45,7 @@ PortalDialog {
         QQC2.CheckBox {
             Layout.fillWidth: true
             visible: root.appChooserData.mimeName !== ""
-            text: i18nc("@option:check %1 is description of a file type, like 'PNG image'", "Set as default app to open %1 files", root.appChooserData.mimeDesc)
+            text: KI18n.i18nc("@option:check %1 is description of a file type, like 'PNG image'", "Set as default app to open %1 files", root.appChooserData.mimeDesc)
             checked: root.remember
             onToggled: {
                 root.remember = checked;
@@ -61,7 +61,7 @@ PortalDialog {
                 property string text: editText
 
                 function acceptResult() {
-                    if (showingTerminalCommand) {
+                    if (root.showingTerminalCommand) {
                         root.appChooserData.applicationSelected(searchField.text, root.remember)
                     } else {
                         grid.currentItemDelegate.click()
@@ -119,11 +119,11 @@ PortalDialog {
 
             QQC2.Button {
                 icon.name: "view-more-symbolic"
-                text: i18n("Show All Installed Applications")
+                text: KI18n.i18n("Show All Installed Applications")
 
                 checkable: true
                 checked: !root.appModel.showOnlyPreferredApps
-                visible: root.appModel.sourceModel.hasPreferredApps
+                visible: (root.appModel.sourceModel as AppModel).hasPreferredApps
                 onVisibleChanged: root.appModel.showOnlyPreferredApps = visible
 
                 onToggled: root.appModel.showOnlyPreferredApps = !root.appModel.showOnlyPreferredApps
@@ -132,13 +132,13 @@ PortalDialog {
             QQC2.Button {
                 visible: root.appChooserData.shellAccess
                 icon.name: "document-open-symbolic"
-                text: i18nc("@action:button", "Choose Other…")
+                text: KI18n.i18nc("@action:button", "Choose Other…")
                 onClicked: {
                     root.appChooserData.openFileDialog(root)
                 }
                 QQC2.ToolTip.text: text
                 QQC2.ToolTip.visible: Kirigami.Settings.tabletMode ? pressed : hovered
-                QQC2.ToolTip.delay: Kirigami.Settings.tabletMode ? Qt.styleHints.mousePressAndHoldInterval : Kirigami.Units.toolTipDelay
+                QQC2.ToolTip.delay: Kirigami.Settings.tabletMode ? Application.styleHints.mousePressAndHoldInterval : Kirigami.Units.toolTipDelay
             }
         }
     }
@@ -191,9 +191,9 @@ PortalDialog {
 
             text: switch (delegate.model.applicationDesktopFile) {
                 case root.appChooserData.defaultApp:
-                    return xi18nc("@info", "%1<nl/><emphasis>Default app for this file type</emphasis>", delegate.model.applicationName);
+                    return KI18n.xi18nc("@info", "%1<nl/><emphasis>Default app for this file type</emphasis>", delegate.model.applicationName);
                 case root.appChooserData.lastUsedApp:
-                    return xi18nc("@info", "%1<nl/><emphasis>Last used app for this file type</emphasis>", delegate.model.applicationName);
+                    return KI18n.xi18nc("@info", "%1<nl/><emphasis>Last used app for this file type</emphasis>", delegate.model.applicationName);
                 default:
                     return delegate.model.applicationName;
             }
@@ -215,11 +215,11 @@ PortalDialog {
                 icon.name: root.showingTerminalCommand ? "system-run": "edit-none"
                 text: {
                     if (root.showingTerminalCommand) {
-                        return xi18nc("@info", "Open with <command>%1</command>?", searchField.editText)
+                        return KI18n.xi18nc("@info", "Open with <command>%1</command>?", searchField.editText)
                     } else if (searchField.editText.length > 0) {
-                        return i18n("No matches")
+                        return KI18n.i18n("No matches")
                     } else {
-                        return xi18nc("@info", "No installed applications can open <filename>%1</filename>", root.appChooserData.fileName)
+                        return KI18n.xi18nc("@info", "No installed applications can open <filename>%1</filename>", root.appChooserData.fileName)
                     }
                 }
 
@@ -238,7 +238,7 @@ PortalDialog {
             QQC2.CheckBox {
                 id: openInTerminal
                 onCheckedChanged: root.appChooserData.openInTerminal = checked
-                text: i18nc("@option:check", "Run in terminal")
+                text: KI18n.i18nc("@option:check", "Run in terminal")
             }
             QQC2.CheckBox {
                 // NOTE: this only ever works for konsole and xterm as per KTerminalLauncherJob. Trouble is this
@@ -246,7 +246,7 @@ PortalDialog {
                 Layout.leftMargin: Kirigami.Units.gridUnit
                 enabled: openInTerminal.checked
                 onCheckedChanged: root.appChooserData.lingerTerminal = checked
-                text: i18nc("@option:check", "Do not close when command exits")
+                text: KI18n.i18nc("@option:check", "Do not close when command exits")
             }
         }
 

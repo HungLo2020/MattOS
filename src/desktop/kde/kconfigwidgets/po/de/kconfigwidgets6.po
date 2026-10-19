@@ -1,20 +1,20 @@
-# SPDX-FileCopyrightText: 2010, 2023, 2024 Johannes Obermayr <johannesobermayr@gmx.de>
-# SPDX-FileCopyrightText: 2002, 2003, 2004, 2005 Thomas Diehl <thd@kde.org>
+# SPDX-FileCopyrightText: 2002-2005 Thomas Diehl <thd@kde.org>
 # SPDX-FileCopyrightText: 2004 Stefan Winter <swinter@kde.org>
 # SPDX-FileCopyrightText: 2004 Thomas Fischer <thomas.fischer@t-fischer.net>
-# SPDX-FileCopyrightText: 2004, 2005, 2006, 2007 Stephan Johach <hunsum@gmx.de>
+# SPDX-FileCopyrightText: 2004-2007 Stephan Johach <hunsum@gmx.de>
 # SPDX-FileCopyrightText: 2005 Georg Schuster <gschuster@utanet.at>
-# SPDX-FileCopyrightText: 2005, 2006, 2007, 2008, 2009 Thomas Reitelbach <tr@erdfunkstelle.de>
-# SPDX-FileCopyrightText: 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019, 2020, 2021 Burkhard Lück <lueck@hube-lueck.de>
-# SPDX-FileCopyrightText: 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2016, 2020, 2022 Frederik Schwarzer <schwarzer@kde.org>
+# SPDX-FileCopyrightText: 2005-2009 Thomas Reitelbach <tr@erdfunkstelle.de>
+# SPDX-FileCopyrightText: 2006-2007, 2009-2017, 2019-2021 Burkhard Lück <lueck@hube-lueck.de>
+# SPDX-FileCopyrightText: 2007-2013, 2016, 2020, 2022 Frederik Schwarzer <schwarzer@kde.org>
 # SPDX-FileCopyrightText: 2010 Panagiotis Papadopoulos <pano_90@gmx.net>
+# SPDX-FileCopyrightText: 2010, 2023-2024 Johannes Obermayr <johannesobermayr@gmx.de>
 # SPDX-FileCopyrightText: 2012 Rolf Eike Beer <kde@opensource.sf-tec.de>
 # SPDX-FileCopyrightText: 2025 Flori G <Renner03@protonmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kconfigwidgets6\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-25 00:42+0000\n"
+"POT-Creation-Date: 2026-09-17 00:40+0000\n"
 "PO-Revision-Date: 2025-02-22 02:35+0100\n"
 "Last-Translator: Flori G <Renner03@protonmail.com>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
@@ -121,14 +121,7 @@ msgctxt "home page"
 msgid "&Home"
 msgstr "&Startseite"
 
-#: kstandardaction.cpp:230
-#, kde-format
-msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
-msgstr ""
-"Menüleiste anzeigen<p>Zeigt die Leiste wieder an, nachdem sie ausgeblendet "
-"wurde.</p>"
-
-#: kstandardaction.cpp:251
+#: kstandardaction.cpp:248
 #, kde-format
 msgid ""
 "Show Statusbar<p>Shows the statusbar, which is the bar at the bottom of the "
@@ -529,10 +522,15 @@ msgstr "&Menü öffnen"
 msgid "Application Style"
 msgstr "Anwendungs-Stil"
 
-#: kstylemanager.cpp:78
+#: kstylemanager.cpp:84
 #, kde-format
 msgid "Default"
 msgstr "Standard"
+
+#~ msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
+#~ msgstr ""
+#~ "Menüleiste anzeigen<p>Zeigt die Leiste wieder an, nachdem sie "
+#~ "ausgeblendet wurde.</p>"
 
 #~ msgid "&Open..."
 #~ msgstr "Öff&nen ..."

@@ -35,17 +35,21 @@ struct NodeInfo
     QString id;
     QString nodeId;
     QString typeName;
+    QString defsId;
     QString maskId;
     QString filterId;
     QString transformReferenceId;
+    QString transformReferenceChildId;
     QString customItemType;
     QQuickAnimatedProperty transform = QQuickAnimatedProperty(QVariant::fromValue(QTransform{}));
     QQuickAnimatedProperty opacity = QQuickAnimatedProperty(QVariant::fromValue(1.0));
 
-    // Special case: Motion path holds curves that the node moves along. The default value
-    // holds additional parameters: First of the pair is whether or not the node adapts to
-    // the angle of the tangent of the path. Second is an additional rotation to apply on top
-    QQuickAnimatedProperty motionPath = QQuickAnimatedProperty(QVariant::fromValue(QVariantPair(false, 0.0)));
+    // Special case: Motion path holds the path that the node moves along. The keyframes hold the
+    // progress (t) values. The default value holds a QVariantList with additional parameters:
+    // First, the path itself. Then (optionally) a bool expressing whether or not the node adapts to
+    // the angle of the tangent of the path. Third is an additional rotation to apply on top
+    QQuickAnimatedProperty motionPath
+        = QQuickAnimatedProperty(QVariantList({ QVariant::fromValue(QPainterPath{}), false, 0.0 }));
 
     bool isDefaultTransform = true;
     bool isDefaultOpacity = true;
@@ -53,9 +57,8 @@ struct NodeInfo
     bool isDisplayed = true; // TODO: Map to display enum in QtSvg
     bool isMaskAlpha = false;
     bool isMaskInverted = false;
-    QQuickAnimatedProperty visibility = QQuickAnimatedProperty(QVariant::fromValue(true));
-    int visibilityEndTime = -1;
     QRectF bounds;
+    QString boundsReferenceId;
 };
 
 struct ImageNodeInfo : NodeInfo
@@ -71,11 +74,11 @@ struct StrokeStyle
     Qt::PenJoinStyle lineJoinStyle = Qt::MiterJoin;
     int miterLimit = 4;
     bool cosmetic = false;
-    qreal dashOffset = 0;
     QList<qreal> dashArray;
+    QQuickAnimatedProperty dashOffset = QQuickAnimatedProperty(QVariant::fromValue(qreal(0)));
     QQuickAnimatedProperty color = QQuickAnimatedProperty(QVariant::fromValue(QColorConstants::Transparent));
     QQuickAnimatedProperty opacity = QQuickAnimatedProperty(QVariant::fromValue(qreal(1.0)));
-    qreal width = 1.0;
+    QQuickAnimatedProperty width = QQuickAnimatedProperty(QVariant::fromValue(qreal(1.0)));
 
     static StrokeStyle fromPen(const QPen &p)
     {
@@ -84,9 +87,9 @@ struct StrokeStyle
         style.lineJoinStyle = p.joinStyle() == Qt::SvgMiterJoin ? Qt::MiterJoin : p.joinStyle(); //TODO support SvgMiterJoin
         style.miterLimit = qRound(p.miterLimit());
         style.cosmetic = p.isCosmetic();
-        style.dashOffset = p.dashOffset();
+        style.dashOffset.setDefaultValue(p.dashOffset());
         style.dashArray = p.dashPattern();
-        style.width = p.widthF();
+        style.width.setDefaultValue(p.widthF());
 
         return style;
     }
@@ -108,8 +111,14 @@ struct PathNodeInfo : NodeInfo
     QQuickAnimatedProperty fillOpacity = QQuickAnimatedProperty(QVariant::fromValue(qreal(1.0)));
     StrokeStyle strokeStyle;
     QGradient grad;
+    QGradient strokeGrad;
     QTransform fillTransform;
     PathTrimInfo trim;
+
+    QString markerStartId;
+    QString markerMidId;
+    QString markerEndId;
+    QString patternId;
 };
 
 struct TextNodeInfo : NodeInfo
@@ -142,6 +151,18 @@ struct UseNodeInfo : NodeInfo
     StructureNodeStage stage;
 };
 
+struct TimelineInfo {
+    int startFrame = 0;
+    int endFrame = 0;
+    int frameRate = 0;
+    qreal frameCounterOffset = 0;
+    qreal frameCounterMultiplier = 0;
+    QQuickAnimatedProperty frameCounterMapper = QQuickAnimatedProperty(QVariant(qreal(0)));
+    QString frameCounterReference;
+    bool generateVisibility = false;
+    bool generateFrameCounter = false;
+};
+
 struct StructureNodeInfo : NodeInfo
 {
     StructureNodeStage stage = StructureNodeStage::Start;
@@ -150,6 +171,55 @@ struct StructureNodeInfo : NodeInfo
     QSize size;
     QRectF clipBox;
     bool isPathContainer = false;
+    std::optional<TimelineInfo> timelineInfo;
+};
+
+struct PatternNodeInfo : StructureNodeInfo
+{
+    bool isPatternRectRelativeCoordinates = false;
+    QRectF patternRect;
+};
+
+struct MarkerNodeInfo : StructureNodeInfo
+{
+    enum class Orientation
+    {
+        Auto,
+        AutoStartReverse,
+        Value
+    };
+
+    enum class MarkerUnits
+    {
+        UserSpace,
+        StrokeWidth
+    };
+
+    // In sync with QSvgSymbolLike's enum
+    enum PreserveAspectRatio : quint8 {
+        None =  0b000000,
+        xMin =  0b000001,
+        xMid =  0b000010,
+        xMax =  0b000011,
+        yMin =  0b000100,
+        yMid =  0b001000,
+        yMax =  0b001100,
+        meet =  0b010000,
+        slice = 0b100000,
+        xMask = xMin | xMid | xMax,
+        yMask = yMin | yMid | yMax,
+        xyMask = xMask | yMask,
+        meetSliceMask = meet | slice
+    };
+
+    MarkerUnits markerUnits = MarkerUnits::UserSpace;
+    Orientation orientation = Orientation::Auto;
+    PreserveAspectRatio preserveAspectRatio = PreserveAspectRatio::None;
+
+    qreal angle = 0.0;
+    QSizeF markerSize;
+
+    QPointF anchorPoint;
 };
 
 struct MaskNodeInfo : NodeInfo
@@ -157,6 +227,7 @@ struct MaskNodeInfo : NodeInfo
     StructureNodeStage stage = StructureNodeStage::Start;
 
     bool isMaskRectRelativeCoordinates = false;
+    bool keepMaskVisible = false;
     QRectF maskRect;
 };
 

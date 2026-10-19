@@ -26,6 +26,7 @@ Dependencies:
       'frameworks/kcrash': '@latest-kf6'
       'frameworks/kdeclarative': '@latest-kf6'
       'plasma/kwayland': '@same'
+      'plasma/kpipewire': '@same'
       'plasma/plasma-workspace': '@same'
       'third-party/wayland': '@latest'
       'third-party/wayland-protocols': '@latest'
@@ -36,4 +37,10 @@ RuntimeDependencies:
       'frameworks/kiconthemes': '@latest-kf6'  # IconDialog
 
 Options:
-  require-passing-tests-on: ['Linux', 'FreeBSD']
+  require-passing-tests-on: ['@all']
+  enable-lsan: True
+  cppcheck-arguments:
+    - '--enable=warning,style,performance'
+    - '--suppress-xml=cppcheck-suppressions.xml'
+    - '--library=xdg-desktop-portal-kde-cppcheck.xml'
+  run-qmllint: True

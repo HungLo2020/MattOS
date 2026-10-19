@@ -10,6 +10,7 @@
 #include "backendmanager_p.h"
 #include "kscreen_debug.h"
 #include "mode.h"
+#include "screen.h"
 
 #include <QCryptographicHash>
 #include <QDebug>
@@ -28,7 +29,6 @@ public:
     Private(Config *parent)
         : QObject(parent)
         , valid(true)
-        , supportedFeatures(Config::Feature::None)
         , tabletModeAvailable(false)
         , tabletModeEngaged(false)
         , q(parent)
@@ -68,7 +68,6 @@ public:
     bool valid;
     ScreenPtr screen;
     OutputList outputs;
-    Features supportedFeatures;
     bool tabletModeAvailable;
     bool tabletModeEngaged;
 
@@ -192,27 +191,12 @@ ConfigPtr Config::clone() const
 {
     ConfigPtr newConfig(new Config());
     newConfig->d->screen = d->screen->clone();
-    newConfig->setSupportedFeatures(supportedFeatures());
     newConfig->setTabletModeAvailable(tabletModeAvailable());
     newConfig->setTabletModeEngaged(tabletModeEngaged());
     for (const OutputPtr &ourOutput : std::as_const(d->outputs)) {
         newConfig->addOutput(ourOutput->clone());
     }
     return newConfig;
-}
-
-QString Config::connectedOutputsHash() const
-{
-    QStringList hashedOutputs;
-
-    const auto outputs = connectedOutputs();
-    hashedOutputs.reserve(outputs.count());
-    for (const OutputPtr &output : outputs) {
-        hashedOutputs << output->hash();
-    }
-    std::sort(hashedOutputs.begin(), hashedOutputs.end());
-    const auto hash = QCryptographicHash::hash(hashedOutputs.join(QString()).toLatin1(), QCryptographicHash::Md5);
-    return QString::fromLatin1(hash.toHex());
 }
 
 OutputPtr Config::primaryOutput() const
@@ -233,16 +217,6 @@ void Config::setScreen(const ScreenPtr &screen)
 OutputPtr Config::output(int outputId) const
 {
     return d->outputs.value(outputId);
-}
-
-Config::Features Config::supportedFeatures() const
-{
-    return d->supportedFeatures;
-}
-
-void Config::setSupportedFeatures(const Config::Features &features)
-{
-    d->supportedFeatures = features;
 }
 
 bool Config::tabletModeAvailable() const
@@ -352,12 +326,7 @@ void Config::adjustPriorities(std::optional<OutputPtr> keep)
 {
     // we need specifically tree-based QMap for this
     QMap<uint32_t, QList<OutputPtr>> multimap;
-    uint32_t maxPriority = 0;
     bool found = false;
-
-    for (const OutputPtr &output : d->outputs) {
-        maxPriority = std::max(maxPriority, output->priority());
-    }
 
     for (const OutputPtr &output : d->outputs) {
         if (keep.has_value() && keep.value() == output) {
@@ -443,26 +412,14 @@ void Config::apply(const ConfigPtr &other)
     Q_EMIT prioritiesChanged();
 }
 
-QRect Config::outputGeometryForOutput(const KScreen::Output &output) const
-{
-    QSize size = logicalSizeForOutputInt(output);
-    if (!size.isValid()) {
-        return QRect();
-    }
-
-    return QRect(output.pos(), size);
-}
-
 QSizeF Config::logicalSizeForOutput(const KScreen::Output &output) const
 {
     QSizeF size = output.enforcedModeSize();
     if (!size.isValid()) {
         return QSizeF();
     }
-    // ignore scale where scaling is not per-output
-    if (supportedFeatures().testFlag(Feature::PerOutputScaling)) {
-        size = size / output.scale();
-    }
+
+    size = size / output.scale();
 
     // We can't use output.size(), because it does not reflect the actual rotation() set by caller.
     // It is only updated when we get update from KScreen, but not when user changes mode or

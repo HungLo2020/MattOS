@@ -35,7 +35,6 @@ class KRunnerTest(unittest.TestCase):
         options.set_capability("app", "krunner")
         options.set_capability("environ", {
             "LC_ALL": "en_US.UTF-8",
-            "QT_FATAL_WARNINGS": "0",
             "QT_LOGGING_RULES": "qt.accessibility.atspi.warning=false",
         })
         options.set_capability("timeouts", {'implicit': 10000})
@@ -75,7 +74,7 @@ class KRunnerTest(unittest.TestCase):
 
         actions = ActionChains(self.driver)
         actions.send_keys(Keys.ESCAPE).perform()
-        wait.until_not(lambda _: button_element.is_displayed())
+        wait.until(EC.invisibility_of_element(button_element))
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-08 00:41+0000\n"
+"POT-Creation-Date: 2026-09-30 00:41+0000\n"
 "PO-Revision-Date: 2011-07-22 16:08+0200\n"
 "Last-Translator: Marko Dimjašević <marko@dimjasevic.net>\n"
 "Language-Team: Croatian <kde-croatia-list@lists.sourceforge.net>\n"
@@ -93,12 +93,12 @@ msgstr ""
 msgid "Apply Settings"
 msgstr "Primijeni postavke"
 
-#: kcmultidialog.cpp:217 kpluginwidget.cpp:340
+#: kcmultidialog.cpp:218 kpluginwidget.cpp:340
 #, kde-format
 msgid "Configure"
 msgstr "Konfiguriranje"
 
-#: kcmultidialog.cpp:392
+#: kcmultidialog.cpp:393
 #, kde-format
 msgctxt "@other accessible name for view that can be scrolled"
 msgid "Scrollable area"
@@ -122,26 +122,26 @@ msgctxt "@action:button"
 msgid "Show Contextual Help"
 msgstr ""
 
-#: qml/components/PluginDelegate.qml:111
+#: qml/components/PluginDelegate.qml:114
 #, fuzzy, kde-format
 #| msgid "&About"
 msgctxt "@info:tooltip"
 msgid "About"
 msgstr "O &programu"
 
-#: qml/components/PluginDelegate.qml:126
+#: qml/components/PluginDelegate.qml:129
 #, fuzzy, kde-format
 #| msgid "Configure"
 msgctxt "@info:tooltip"
 msgid "Configure…"
 msgstr "Konfiguriranje"
 
-#: qml/components/PluginSelector.qml:94
+#: qml/components/PluginSelector.qml:96
 #, kde-format
 msgid "No matches"
 msgstr ""
 
-#: qml/components/PluginSelector.qml:94
+#: qml/components/PluginSelector.qml:96
 #, fuzzy, kde-format
 #| msgid "Not found"
 msgid "No plugins found"
@@ -162,7 +162,8 @@ msgid "Copyright"
 msgstr "Kopiraj"
 
 #: qml/components/private/AboutPlugin.qml:80
-#, kde-format
+#, fuzzy, kde-format
+#| msgid "License:"
 msgid "License:"
 msgstr "Licenca:"
 

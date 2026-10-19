@@ -17,6 +17,7 @@
 #include "qiostheme.h"
 #include "qiosservices.h"
 #include "qiosoptionalplugininterface.h"
+#include "qiosapplicationdelegate.h"
 
 #if defined(Q_OS_VISIONOS)
 #include "qiosswiftintegration.h"
@@ -69,9 +70,6 @@ QIOSIntegration::QIOSIntegration()
                "parts of the application, a good place to create QApplication is from within\n" \
                "'applicationDidFinishLaunching' inside your UIApplication delegate.\n");
     }
-
-    // Set current directory to app bundle folder
-    QDir::setCurrent(QString::fromUtf8([[[NSBundle mainBundle] bundlePath] UTF8String]));
 }
 
 void QIOSIntegration::initialize()
@@ -81,7 +79,7 @@ void QIOSIntegration::initialize()
     // Depends on a primary screen being present
     m_inputContext = new QIOSInputContext;
 
-    QPointingDevice::Capabilities touchCapabilities = QPointingDevice::Capability::Position | QPointingDevice::Capability::NormalizedPosition;
+    QPointingDevice::Capabilities touchCapabilities = QPointingDevice::Capability::Position;
 #if !defined(Q_OS_VISIONOS)
     if (UIScreen.mainScreen.traitCollection.forceTouchCapability == UIForceTouchCapabilityAvailable)
         touchCapabilities |= QPointingDevice::Capability::Pressure;
@@ -94,7 +92,9 @@ void QIOSIntegration::initialize()
     m_pencilDevice = new QPointingDevice(
             "Apple Pencil", 0, QInputDevice::DeviceType::Stylus, QPointingDevice::PointerType::Pen,
             QInputDevice::Capability::Position | QInputDevice::Capability::Pressure
-                    | QInputDevice::Capability::XTilt | QInputDevice::Capability::YTilt,
+                    | QInputDevice::Capability::XTilt | QInputDevice::Capability::YTilt
+                    | QInputDevice::Capability::Hover | QInputDevice::Capability::ZPosition
+                    | QInputDevice::Capability::Rotation,
             1, 0);
     QWindowSystemInterface::registerInputDevice(m_pencilDevice);
 #endif
@@ -103,6 +103,16 @@ void QIOSIntegration::initialize()
     qsizetype size = QList<QPluginParsedMetaData>(m_optionalPlugins->metaData()).size();
     for (qsizetype i = 0; i < size; ++i)
         qobject_cast<QIosOptionalPluginInterface *>(m_optionalPlugins->instance(i))->initPlugin();
+
+    // On visionOS the Swift entry point is used, which sets up the application
+    // delegate itself, so we don't want to install the QIOSApplicationDelegate
+#if !defined(Q_OS_VISIONOS)
+    if (QIOSEventDispatcher::isQtApplication()) {
+        qCDebug(lcQpaWindowScene) << "Replacing application delegate"
+            << UIApplication.sharedApplication.delegate << "with QIOSApplicationDelegate";
+        UIApplication.sharedApplication.delegate = [QIOSApplicationDelegate new];
+    }
+#endif
 }
 
 QIOSIntegration::~QIOSIntegration()

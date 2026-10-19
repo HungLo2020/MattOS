@@ -48,14 +48,12 @@ public:
         DesktopLayout = 1 << 16,
         TitlebarLayout = 1 << 17,
         WindowPlacement = 1 << 18,
-        ShellPackage = 1 << 19,
         LayoutSettings = (1 << 20) - (1 << 16), // All the contents within Layout
-        // Maybe unused or deprecated?
-        RunCommand = 1 << 24,
-        LogOutScript = 1 << 25,
         // General Flag combinations
         KWinSettings = WindowSwitcher | WindowDecoration | WindowPlacement | TitlebarLayout | BorderSize,
         AllSettings = (1 << 26) - 1,
+        // Animate settings change (this blocks for 300ms during the animation!)
+        BlendChanges = (1 << 30),
     };
     Q_DECLARE_FLAGS(Contents, ContentFlags)
     Q_FLAG(Contents)
@@ -81,14 +79,12 @@ public:
     void setPlasmaTheme(const QString &theme);
     void setCursorTheme(const QString theme);
     void setSplashScreen(const QString &theme);
-    void setLatteLayout(const QString &filepath, const QString &name);
     void setWindowSwitcher(const QString &theme);
     void setWindowDecoration(const QString &library, const QString &theme, bool noPlugin);
     void setTitlebarLayout(const QString &leftbtns, const QString &rightbtns);
     void setBorderSize(const QString &size);
     void setBorderlessMaximized(const QString &value);
     void setWindowPlacement(const QString &value);
-    void setShellPackage(const QString &name);
 
     void setGeneralFont(const QString &font);
     void setFixedFont(const QString &font);
@@ -98,8 +94,6 @@ public:
     void setMenuFont(const QString &font);
     void setWindowTitleFont(const QString &font);
 
-    bool isPlasmaLocked() const;
-
 Q_SIGNALS:
     void message();
     void iconsChanged();
@@ -107,7 +101,6 @@ Q_SIGNALS:
     void styleChanged(const QString &newStyle);
     void cursorsChanged(const QString &newStyle);
     void fontsChanged();
-    void plasmaLockedChanged(bool locked);
 
 private:
     void writeNewDefaults(const QString &filename,
@@ -126,10 +119,7 @@ private:
     static KConfig configDefaults(const QString &filename);
 
     Mode m_mode = Mode::Apply;
-    bool m_applyLatteLayout : 1;
-    bool m_plasmashellChanged : 1;
     bool m_fontsChanged : 1;
-    bool m_plasmaLocked : 1;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(KLookAndFeelManager::Contents)

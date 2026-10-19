@@ -1,13 +1,13 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
-set(KF_DEP_VERSION "6.26.0") # handled by release scripts
-set(REQUIRED_QT_VERSION 6.9.0)
+set(KF_VERSION "6.31.0") # handled by release scripts
+set(KF_DEP_VERSION "6.31.0") # handled by release scripts
+set(REQUIRED_QT_VERSION 6.10.0)
 project(KDeclarative VERSION ${KF_VERSION})
 
 # Dependencies
 include(FeatureSummary)
-find_package(ECM 6.26.0  NO_MODULE)
+find_package(ECM 6.31.0  NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -24,6 +24,8 @@ include(ECMGenerateHeaders)
 include(ECMQmlModule)
 include(CMakePackageConfigHelpers)
 include(ECMGenerateQDoc)
+include(ECMFindQmlModule)
+include(ECMInstalledLibraryCheck)
 
 find_package(Qt6 ${REQUIRED_QT_VERSION} NO_MODULE REQUIRED Qml Quick Gui)
 find_package(KF6I18n ${KF_DEP_VERSION} REQUIRED)
@@ -41,6 +43,8 @@ endif()
 if (NOT ANDROID)
   find_package(KF6WidgetsAddons ${KF_DEP_VERSION} REQUIRED)
 endif()
+
+ecm_find_qmlmodule(org.kde.ki18n REQUIRED)
 
 configure_file(config-kdeclarative.h.in ${CMAKE_BINARY_DIR}/config-kdeclarative.h)
 
@@ -60,7 +64,7 @@ ecm_setup_version(
 add_definitions(-DTRANSLATION_DOMAIN=\"kdeclarative6\")
 ecm_set_disabled_deprecation_versions(
     QT 6.11.0
-    KF 6.23.0
+    KF 6.27.0
 )
 
 ki18n_install(po)

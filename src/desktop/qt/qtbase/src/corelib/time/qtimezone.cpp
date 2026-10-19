@@ -14,6 +14,7 @@
 #include <qdebug.h>
 
 #include <algorithm>
+#include <functional>
 
 QT_BEGIN_NAMESPACE
 
@@ -30,7 +31,7 @@ static QTimeZonePrivate *newBackendTimeZone()
     return new QMacTimeZonePrivate();
 #elif defined(Q_OS_ANDROID)
     return new QAndroidTimeZonePrivate();
-#elif defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS)
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS) && !defined(Q_OS_WASM) && !defined(Q_OS_HARMONY)
     return new QTzTimeZonePrivate();
 #elif QT_CONFIG(icu)
     return new QIcuTimeZonePrivate();
@@ -51,7 +52,7 @@ static QTimeZonePrivate *newBackendTimeZone(const QByteArray &ianaId)
     return new QMacTimeZonePrivate(ianaId);
 #elif defined(Q_OS_ANDROID)
     return new QAndroidTimeZonePrivate(ianaId);
-#elif defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS)
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_VXWORKS) && !defined(Q_OS_WASM) && !defined(Q_OS_HARMONY)
     return new QTzTimeZonePrivate(ianaId);
 #elif QT_CONFIG(icu)
     return new QIcuTimeZonePrivate(ianaId);
@@ -200,6 +201,17 @@ Q_GLOBAL_STATIC(QTimeZoneSingleton, global_tz);
     \note When Qt is built with the ICU library, it is used in preference to the
     Windows system APIs, bypassing all problems with those APIs using different
     names.
+
+    \section2 WebAssembly
+
+    On WebAssembly, QTimeZone supports only UTC and fixed UTC-offset time zones
+    when represented in backend-based form. The IANA timezone database is not
+    available, so functions like availableTimeZoneIds() return only UTC offset
+    zones. The system time zone is obtained via JavaScript's
+    \c{Date.getTimezoneOffset()} and represented as a fixed offset (e.g.,
+    "UTC+02:00") rather than a geographic IANA ID. However,
+    QTimeZone(QTimeZone::LocalTime) still provides a faithful representation
+    of local time, as it relies on the platform's standard time functions.
 
     \section2 System Time Zone
 
@@ -471,9 +483,12 @@ QTimeZone::QTimeZone(const QByteArray &ianaId)
             d = newBackendTimeZone(ianaId);
             if (!d->isValid()) {
                 // We may have a legacy alias for a supported IANA ID:
-                const QByteArray name = QTimeZonePrivate::aliasToIana(ianaId);
+                QByteArrayView name = QTimeZonePrivate::aliasToIana(ianaId);
+                // Or an alias for an IANA ID that has a supported alias:
+                if (name.isEmpty() || name == ianaId)
+                    name = global_tz->backend->availableAlias(ianaId);
                 if (!name.isEmpty() && name != ianaId)
-                    d = newBackendTimeZone(name);
+                    d = newBackendTimeZone(name.toByteArray());
             }
         }
     }
@@ -851,19 +866,24 @@ QByteArray QTimeZone::id() const
     describes.
 
     This method is only available when feature \c timezone is enabled.
+
+    \sa isTimeZoneIdAvailable()
 */
 bool QTimeZone::hasAlternativeName(QByteArrayView alias) const
 {
-    if (alias == id())
+    const QByteArray me = id();
+    if (alias == me)
         return true;
-    QByteArray mine = QTimeZonePrivate::aliasToIana(id());
+    QByteArrayView mine = QTimeZonePrivate::aliasToIana(me);
     // Empty if id() aliases to itself, which we've already checked:
-    if (!mine.isEmpty() && alias == mine)
+    if (mine.isEmpty())
+        mine = me; // To simplify the final conditional
+    else if (alias == mine)
         return true;
-    QByteArray its = QTimeZonePrivate::aliasToIana(alias);
+    QByteArrayView its = QTimeZonePrivate::aliasToIana(alias);
     // Empty if alias aliases to itself, which we've already compared to id()
     // and, where relevant, mine.
-    return !its.isEmpty() && its == (mine.isEmpty() ? id() : mine);
+    return !its.isEmpty() && its == mine;
 }
 
 /*!
@@ -1243,6 +1263,11 @@ QTimeZone::OffsetData QTimeZone::offsetData(const QDateTime &forDateTime) const
 
     This method is only available when feature \c timezone is enabled.
 
+    \note this is not a property of the timezone described by this object but of
+    the backend that provides data about the zone, typically from system
+    libraries. It tells you whether the other transition-related functions have
+    anything to offer.
+
     \sa nextTransition(), previousTransition(), transitions()
 */
 
@@ -1293,7 +1318,7 @@ QTimeZone::OffsetData QTimeZone::nextTransition(const QDateTime &afterDateTime) 
             Q_UNREACHABLE();
             break;
         }
-    } else if (hasTransitions()) {
+    } else if (isValid() && hasTransitions()) {
         return QTimeZonePrivate::toOffsetData(d->nextTransition(afterDateTime.toMSecsSinceEpoch()));
     }
 
@@ -1328,7 +1353,7 @@ QTimeZone::OffsetData QTimeZone::previousTransition(const QDateTime &beforeDateT
             Q_UNREACHABLE();
             break;
         }
-    } else if (hasTransitions()) {
+    } else if (isValid() && hasTransitions()) {
         return QTimeZonePrivate::toOffsetData(
             d->previousTransition(beforeDateTime.toMSecsSinceEpoch()));
     }
@@ -1363,7 +1388,7 @@ QTimeZone::OffsetDataList QTimeZone::transitions(const QDateTime &fromDateTime,
             Q_UNREACHABLE();
             break;
         }
-    } else if (hasTransitions()) {
+    } else if (isValid() && hasTransitions()) {
         const QTimeZonePrivate::DataList plist = d->transitions(fromDateTime.toMSecsSinceEpoch(),
                                                                 toDateTime.toMSecsSinceEpoch());
         list.reserve(plist.size());
@@ -1473,15 +1498,16 @@ QTimeZone QTimeZone::utc()
 /*!
     Returns \c true if a given time zone \a ianaId is available on this system.
 
-    This may include some non-IANA IDs, notably UTC-offset IDs, that are not
-    listed in \l availableTimeZoneIds().
+    This may be true for some texts that are not in fact IANA IDs, notably
+    UTC-offset IDs, and known aliases for supported IANA IDs that are not listed
+    in \l availableTimeZoneIds().
 
     This method is only available when feature \c timezone is enabled.
 
-    \sa availableTimeZoneIds()
+    \sa availableTimeZoneIds(), hasAlternativeName()
 */
 
-bool QTimeZone::isTimeZoneIdAvailable(const QByteArray &ianaId)
+bool QTimeZone::isTimeZoneIdAvailable(QByteArrayView ianaId)
 {
 #if defined(Q_OS_UNIX) && !(QT_CONFIG(timezone_tzdb) || defined(Q_OS_DARWIN) \
                             || defined(Q_OS_ANDROID) || defined(Q_OS_VXWORKS))
@@ -1494,17 +1520,25 @@ bool QTimeZone::isTimeZoneIdAvailable(const QByteArray &ianaId)
     if (!QTimeZonePrivate::isValidId(ianaId))
         return false;
 #endif
-    return QUtcTimeZonePrivate().isTimeZoneIdAvailable(ianaId)
+    if (QUtcTimeZonePrivate().isTimeZoneIdAvailable(ianaId)
         || QUtcTimeZonePrivate::offsetFromUtcString(ianaId) != QTimeZonePrivate::invalidSeconds()
-        || global_tz->backend->isTimeZoneIdAvailable(ianaId);
+        || global_tz->backend->isTimeZoneIdAvailable(ianaId)) {
+        return true;
+    }
+    if (const auto name = QTimeZonePrivate::aliasToIana(ianaId); !name.isEmpty()) {
+        return QUtcTimeZonePrivate().isTimeZoneIdAvailable(name)
+            || global_tz->backend->isTimeZoneIdAvailable(name);
+    }
+
+    QByteArrayView known = global_tz->backend->availableAlias(ianaId);
+    return !known.isEmpty();
 }
 
 [[maybe_unused]] static bool isUniqueSorted(const QList<QByteArray> &seq)
 {
-    // Since [..., b, a, ...] isn't unique-sorted if a <= b, at least the
-    // suggested implementations of is_sorted() and is_sorted_until() imply a
-    // non-unique sorted list will fail is_sorted() with <= comparison.
-    return std::is_sorted(seq.begin(), seq.end(), std::less_equal<QByteArray>());
+    // Verify every [..., b, a, ...] has b < a, i.e. none has b >= a.
+    return std::adjacent_find(seq.cbegin(), seq.cend(),
+                              std::greater_equal<QByteArray>()) == seq.cend();
 }
 
 static QList<QByteArray> set_union(const QList<QByteArray> &l1, const QList<QByteArray> &l2)
@@ -1520,15 +1554,28 @@ static QList<QByteArray> set_union(const QList<QByteArray> &l1, const QList<QByt
 }
 
 /*!
-    Returns a list of all available IANA time zone IDs on this system.
+    Returns a list of available time zone IDs on this system.
+
+    This includes an IANA ID for each zone supported by the system timezone
+    information source, plus some aliases of these and a limited set of
+    commonly-used UTC-offset IDs.
+
+    The QTimeZone constructor will also accept some UTC-offset IDs that are not
+    in the list returned - it would be impractical to list all possible
+    UTC-offset IDs. It also accepts known aliases for supported IANA IDs, some
+    of which may not appear in this list. Such IDs are also accepted by
+    isTimeZoneIdAvailable().
+
+    Where the Unicode Consortium's Common Locale Data Repository (CLDR) regards
+    a supported IANA ID as an alias for its stable name for the zone, this
+    stable name for the zone is also included in the list (even though it may be
+    out of date), both for stability and as cross-platform common ground where
+    different system timezone information sources use different aliases for the
+    same zone.
 
     This method is only available when feature \c timezone is enabled.
 
-    \note the QTimeZone constructor will also accept some UTC-offset IDs that
-    are not in the list returned - it would be impractical to list all possible
-    UTC-offset IDs.
-
-    \sa isTimeZoneIdAvailable()
+    \sa isTimeZoneIdAvailable(), hasAlternativeName()
 */
 
 QList<QByteArray> QTimeZone::availableTimeZoneIds()
@@ -1588,7 +1635,7 @@ QList<QByteArray> QTimeZone::availableTimeZoneIds(int offsetSeconds)
 
 QByteArray QTimeZone::ianaIdToWindowsId(const QByteArray &ianaId)
 {
-    return QTimeZonePrivate::ianaIdToWindowsId(ianaId);
+    return QTimeZonePrivate::ianaIdToWindowsId(ianaId).toByteArray();
 }
 
 /*!
@@ -1606,7 +1653,7 @@ QByteArray QTimeZone::ianaIdToWindowsId(const QByteArray &ianaId)
 
 QByteArray QTimeZone::windowsIdToDefaultIanaId(const QByteArray &windowsId)
 {
-    return QTimeZonePrivate::windowsIdToDefaultIanaId(windowsId);
+    return QTimeZonePrivate::windowsIdToDefaultIanaId(windowsId).toByteArray();
 }
 
 /*!
@@ -1632,7 +1679,7 @@ QByteArray QTimeZone::windowsIdToDefaultIanaId(const QByteArray &windowsId)
 QByteArray QTimeZone::windowsIdToDefaultIanaId(const QByteArray &windowsId,
                                                QLocale::Territory territory)
 {
-    return QTimeZonePrivate::windowsIdToDefaultIanaId(windowsId, territory);
+    return QTimeZonePrivate::windowsIdToDefaultIanaId(windowsId, territory).toByteArray();
 }
 
 /*!

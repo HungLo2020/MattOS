@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plasma-desktop\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-13 08:43+0000\n"
+"POT-Creation-Date: 2026-09-22 02:51+0000\n"
 "PO-Revision-Date: 2023-02-27 21:02+0000\n"
 "Last-Translator: Steve Allewell <steve.allewell@gmail.com>\n"
 "Language-Team: British English <kde-l10n-en_gb@kde.org>\n"
@@ -44,121 +44,165 @@ msgstr "steve.allewell@gmail.com"
 msgid "Replace an existing instance"
 msgstr "Replace an existing instance"
 
-#: app/ui/CategoryPage.qml:112
+#: app/ui/CategoryPage.qml:41
+#, fuzzy, kde-format
+#| msgid "Search"
+msgctxt "@action Search field action"
+msgid "Search"
+msgstr "Search"
+
+#: app/ui/CategoryPage.qml:102
 #, fuzzy, kde-format
 #| msgid "Clear History"
 msgctxt "@action:button clear emoji history"
 msgid "Clear History"
 msgstr "Clear History"
 
-#: app/ui/CategoryPage.qml:124
+#: app/ui/CategoryPage.qml:133
 #, kde-format
 msgctxt "@action:button Button to open a menu that lets you choose a skin tone"
-msgid "Skin tone:"
+msgid "Skin tone: %1"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:135 app/ui/Emojier.qml:73
-#, fuzzy, kde-format
-#| msgid "All"
-msgctxt "@title:page All emojis"
-msgid "All"
-msgstr "All"
-
-#: app/ui/CategoryPage.qml:189
+#: app/ui/CategoryPage.qml:139
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐️ Neutral"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:190
+#: app/ui/CategoryPage.qml:140
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Neutral"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:198
+#: app/ui/CategoryPage.qml:148
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏻 Light"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:199
+#: app/ui/CategoryPage.qml:149
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Light"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:207
+#: app/ui/CategoryPage.qml:157
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏼 Medium Light"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:208
+#: app/ui/CategoryPage.qml:158
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Medium Light"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:216
+#: app/ui/CategoryPage.qml:166
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏽 Medium"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:217
+#: app/ui/CategoryPage.qml:167
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Medium"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:225
+#: app/ui/CategoryPage.qml:175
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏾 Medium Dark"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:226
+#: app/ui/CategoryPage.qml:176
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Medium Dark"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:234
+#: app/ui/CategoryPage.qml:184
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "🖐🏿 Dark"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:235
+#: app/ui/CategoryPage.qml:185
 #, kde-format
 msgctxt "@action:inmenu Skin Tone"
 msgid "Dark"
 msgstr ""
 
-#: app/ui/CategoryPage.qml:264
+#: app/ui/CategoryPage.qml:196
+#, kde-format
+msgctxt "@action:button zoom the emoji grid out"
+msgid "Zoom Out"
+msgstr ""
+
+#: app/ui/CategoryPage.qml:200
+#, kde-format
+msgctxt "@info:status label for the current zoom-level indicator"
+msgid "Zoom level"
+msgstr ""
+
+#: app/ui/CategoryPage.qml:202
+#, kde-format
+msgctxt "@info:status current emoji zoom level as a percentage, %1 is a number"
+msgid "%1%"
+msgstr ""
+
+#: app/ui/CategoryPage.qml:215
+#, kde-format
+msgctxt "@action:button zoom the emoji grid in"
+msgid "Zoom In"
+msgstr ""
+
+#: app/ui/CategoryPage.qml:222
+#, kde-format
+msgctxt "@action:button reset the emoji grid zoom to 100%"
+msgid "Reset Zoom"
+msgstr ""
+
+#: app/ui/CategoryPage.qml:229
+#, kde-format
+msgctxt "@title:window A two-tone skin variant can be selected here"
+msgid "Select Variant"
+msgstr ""
+
+#: app/ui/CategoryPage.qml:294
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Copy Character"
 msgstr "Copy Character"
 
-#: app/ui/CategoryPage.qml:269
+#: app/ui/CategoryPage.qml:302
 #, kde-format
 msgctxt "@item:inmenu"
 msgid "Copy Description"
 msgstr "Copy Description"
 
-#: app/ui/CategoryPage.qml:368
+#: app/ui/CategoryPage.qml:395
 #, fuzzy, kde-format
 #| msgid "No recent Emojis"
 msgctxt "@label placeholder for empty recent emoji list"
-msgid "No recent Emojis"
+msgid "No recent emojis"
 msgstr "No recent Emojis"
 
-#: app/ui/CategoryPage.qml:368
+#: app/ui/CategoryPage.qml:395
 #, kde-format
 msgctxt "@label placeholder for no emoji found in category"
 msgid "No matching emoji found"
+msgstr ""
+
+#: app/ui/CategoryPage.qml:442
+#, kde-format
+msgctxt ""
+"@action:button Opens a window where a two-tone skin variant can be selected. "
+"%1 is the emoji's name"
+msgid "Select Variant of \"%1\""
 msgstr ""
 
 #: app/ui/Emojier.qml:44
@@ -174,6 +218,13 @@ msgstr "%1 copied to the clipboard"
 msgctxt "@title page title for Recent Emoji view, and sidebar label for it"
 msgid "Recent"
 msgstr "Recent"
+
+#: app/ui/Emojier.qml:73
+#, fuzzy, kde-format
+#| msgid "All"
+msgctxt "@title:page All emojis"
+msgid "All"
+msgstr "All"
 
 #: emojicategory.cpp:14
 msgctxt "Emoji Category"
@@ -227,9 +278,6 @@ msgstr "Flags"
 
 #~ msgid "Categories"
 #~ msgstr "Categories"
-
-#~ msgid "Search"
-#~ msgstr "Search"
 
 #~ msgid "Search…"
 #~ msgstr "Search…"

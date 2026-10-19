@@ -27,7 +27,7 @@ class RenderViewport;
 enum EffectFrameStyle {
     EffectFrameNone, ///< Displays no frame around the contents.
     EffectFrameUnstyled, ///< Displays a basic box around the contents.
-    EffectFrameStyled ///< Displays a Plasma-styled frame around the contents.
+    EffectFrameStyled, ///< Displays a Plasma-styled frame around the contents.
 };
 
 class EffectFrameQuickScene : public OffscreenQuickScene
@@ -138,8 +138,8 @@ public:
      */
     void setAlignment(Qt::Alignment alignment);
     Qt::Alignment alignment() const;
-    void setGeometry(const QRect &geometry, bool force = false);
-    QRect geometry() const;
+    void setGeometry(const Rect &geometry, bool force = false);
+    Rect geometry() const;
 
     void setText(const QString &text);
     QString text() const;

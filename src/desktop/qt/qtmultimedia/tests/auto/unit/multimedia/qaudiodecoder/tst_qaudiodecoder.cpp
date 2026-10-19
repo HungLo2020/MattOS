@@ -30,7 +30,9 @@ private Q_SLOTS:
     void format();
     void source();
     void readAll();
-    void nullControl();
+
+    void testQrc_data();
+    void testQrc();
 };
 
 tst_QAudioDecoder::tst_QAudioDecoder()
@@ -296,42 +298,55 @@ void tst_QAudioDecoder::readAll()
     }
 }
 
-void tst_QAudioDecoder::nullControl()
+void tst_QAudioDecoder::testQrc_data()
 {
-    QMockIntegration::instance()->setFlags(QMockIntegration::NoAudioDecoderInterface);
+    QTest::addColumn<QUrl>("source");
+    QTest::addColumn<bool>("backendCanReadQrc");
+    QTest::addColumn<QAudioDecoder::Error>("error");
+    QTest::addColumn<QString>("backendSourceScheme");
+
+    QTest::newRow("invalid") << QUrl(QStringLiteral("qrc:/invalid.mp3")) << false
+                              << QAudioDecoder::ResourceError
+                              << QString(); // backend should not have got any source
+
+    QTest::newRow("valid+cannotReadQrc")
+            << QUrl(QStringLiteral("qrc:/testdata/dummy.mp3")) << false << QAudioDecoder::NoError
+            << QStringLiteral("file"); // backend should have got a temporary file
+
+    QTest::newRow("valid+canReadQrc")
+            << QUrl(QStringLiteral("qrc:/testdata/dummy.mp3")) << true << QAudioDecoder::NoError
+            << QStringLiteral("qrc"); // backend reads the qrc resource itself
+}
+
+void tst_QAudioDecoder::testQrc()
+{
+    QFETCH(QUrl, source);
+    QFETCH(bool, backendCanReadQrc);
+    QFETCH(QAudioDecoder::Error, error);
+    QFETCH(QString, backendSourceScheme);
+
     QAudioDecoder d;
+    QMockAudioDecoder *mockDecoder = QMockIntegration::instance()->lastAudioDecoder();
+    QVERIFY(mockDecoder);
+    mockDecoder->setCanReadQrc(backendCanReadQrc);
 
-    QVERIFY(d.error() == QAudioDecoder::NotSupportedError);
-    QVERIFY(!d.errorString().isEmpty());
+    QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
 
-    QVERIFY(!d.isDecoding());
+    d.setSource(source);
 
-    QVERIFY(d.source().isEmpty());
-    d.setSource(QUrl::fromLocalFile("test"));
-    QVERIFY(d.source().isEmpty());
+    // The unresolved source is always reported back, even when it could not be used.
+    QCOMPARE(d.source(), source);
 
-    QFile f;
-    QVERIFY(d.sourceDevice() == nullptr);
-    d.setSourceDevice(&f);
-    QVERIFY(d.sourceDevice() == nullptr);
+    if (error != QAudioDecoder::NoError) {
+        QCOMPARE(errorSpy.size(), 1);
+        QCOMPARE(qvariant_cast<QAudioDecoder::Error>(errorSpy.last().value(0)), error);
+    } else {
+        QCOMPARE(errorSpy.size(), 0);
+    }
+    QCOMPARE(d.error(), error);
 
-    QAudioFormat format;
-    format.setChannelCount(2);
-    QVERIFY(!d.audioFormat().isValid());
-    d.setAudioFormat(format);
-    QVERIFY(!d.audioFormat().isValid());
-
-    QVERIFY(!d.read().isValid());
-    QVERIFY(!d.bufferAvailable());
-
-    QVERIFY(d.position() == -1);
-    QVERIFY(d.duration() == -1);
-
-    d.start();
-    QVERIFY(d.error() == QAudioDecoder::NotSupportedError);
-    QVERIFY(!d.errorString().isEmpty());
-    QVERIFY(!d.isDecoding());
-    d.stop();
+    // Check what actually reached the backend
+    QCOMPARE(mockDecoder->mSource.scheme(), backendSourceScheme);
 }
 
 QTEST_MAIN(tst_QAudioDecoder)

@@ -9,12 +9,14 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Templates as T
-import org.kde.kirigami as Kirigami
+import org.kde.kirigami.platform as Platform
+import org.kde.kirigami.primitives as Primitives
 import org.kde.kirigami.dialogs as KDialogs
 
 /*!
   \qmltype DialogHeader
   \inqmlmodule org.kde.kirigami.dialogs
+  \inherits Control
 
   \brief Base for a header, to be used as the header: item of a Dialog.
 
@@ -58,12 +60,12 @@ T.Control {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    padding: Kirigami.Units.largeSpacing
+    padding: Platform.Units.largeSpacing
     bottomPadding: verticalPadding + headerSeparator.implicitHeight // add space for bottom separator
 
     // Bottom separator shown when content is scrollable
     background: Item {
-        Kirigami.Separator {
+        Primitives.Separator {
             id: headerSeparator
             width: parent.width
             anchors.bottom: parent.bottom

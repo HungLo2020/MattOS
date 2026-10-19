@@ -58,7 +58,8 @@ QPointF QLibInputTouch::getPos(libinput_event_touch *e)
     QRect geom = screenGeometry(state);
     const double x = libinput_event_touch_get_x_transformed(e, geom.width());
     const double y = libinput_event_touch_get_y_transformed(e, geom.height());
-    return geom.topLeft() + QPointF(x, y);
+    return geom.topLeft() + QPointF(qMin(x, geom.width() - 1.0),
+                                    qMin(y, geom.height() - 1.0));
 }
 
 static void setMatrix(libinput_device *dev)
@@ -143,7 +144,7 @@ void QLibInputTouch::processTouchDown(libinput_event_touch *e)
         newTp.area = QRect(0, 0, 8, 8);
         newTp.area.moveCenter(getPos(e));
         state->m_points.append(newTp);
-        qCDebug(qLcLibInputEvents) << "touch down" << newTp;
+        qCDebug(qLcLibInputEvents) << "libinput touch down" << newTp;
     }
 }
 
@@ -163,7 +164,7 @@ void QLibInputTouch::processTouchMotion(libinput_event_touch *e)
         // Handle this by compressing and keeping the Pressed state until the 'frame'.
         if (tp->state != QEventPoint::State::Pressed && tp->state != QEventPoint::State::Released)
             tp->state = tmpState;
-        qCDebug(qLcLibInputEvents) << "touch move" << tp;
+        qCDebug(qLcLibInputEvents) << "libinput touch move" << tp;
     } else {
         qWarning("Inconsistent touch state (got 'motion' without 'down')");
     }
@@ -180,11 +181,11 @@ void QLibInputTouch::processTouchUp(libinput_event_touch *e)
         QEventPoint::States s;
         for (int i = 0; i < state->m_points.size(); ++i)
             s |= state->m_points.at(i).state;
-        qCDebug(qLcLibInputEvents) << "touch up" << s << tp;
+        qCDebug(qLcLibInputEvents) << "libinput touch up" << s << tp;
         if (s == QEventPoint::State::Released)
             processTouchFrame(e);
         else
-            qCDebug(qLcLibInputEvents, "waiting for all points to be released");
+            qCDebug(qLcLibInputEvents, "libinput waiting for all points to be released");
     } else {
         qWarning("Inconsistent touch state (got 'up' without 'down')");
     }
@@ -193,7 +194,7 @@ void QLibInputTouch::processTouchUp(libinput_event_touch *e)
 void QLibInputTouch::processTouchCancel(libinput_event_touch *e)
 {
     DeviceState *state = deviceState(e);
-    qCDebug(qLcLibInputEvents) << "touch cancel" << state->m_points;
+    qCDebug(qLcLibInputEvents) << "libinput touch cancel" << state->m_points;
     if (state->m_touchDevice)
         QWindowSystemInterface::handleTouchCancelEvent(nullptr, state->m_touchDevice, QGuiApplication::keyboardModifiers());
     else
@@ -207,7 +208,7 @@ void QLibInputTouch::processTouchFrame(libinput_event_touch *e)
         qWarning("TouchFrame without registered device");
         return;
     }
-    qCDebug(qLcLibInputEvents) << "touch frame" << state->m_points;
+    qCDebug(qLcLibInputEvents) << "libinput touch frame" << state->m_points;
     if (state->m_points.isEmpty())
         return;
 

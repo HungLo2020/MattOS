@@ -12,7 +12,7 @@
 # Wilbert Berendsen <wbsoft@xs4all.nl>, 2003.
 # Rinse de Vries <rinsedevries@kde.nl>, 2004, 2005, 2006, 2007, 2008.
 # Antoon Tolboom <atolboo@casema.nl>, 2008.
-# SPDX-FileCopyrightText: 2010, 2024, 2025, 2026 Freek de Kruijf <f.de.kruijf@hetnet.nl>
+# SPDX-FileCopyrightText: 2010, 2024-2026 Freek de Kruijf <f.de.kruijf@hetnet.nl>
 # Freek de Kruijf <freekdekruijf@kde.nl>, 2010, 2011.
 # Freek de Kruijf <freekdekruijf@kde.nl>, 2011, 2013, 2014, 2015, 2016, 2017, 2018, 2020, 2022, 2023.
 # SPDX-FileCopyrightText: 2024 pieter <pieterkristensen@gmail.com>
@@ -20,35 +20,23 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcminput\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
-"PO-Revision-Date: 2026-01-08 17:58+0100\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
+"PO-Revision-Date: 2026-09-04 13:37+0200\n"
 "Last-Translator: Freek de Kruijf <freekdekruijf@kde.nl>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 25.12.0\n"
+"X-Generator: Lokalize 26.04.3\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr ""
-"Onderzoeken van invoerapparaten is mislukt. Heropen deze module voor "
-"instellingen."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr "Kritieke fout bij lezen van fundamentele apparaatinformatie van %1."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "Niet in staat een toepasselijke backend te selecteren"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -57,12 +45,12 @@ msgstr ""
 "Fout bij laden van waarden. Zie logs voor meer informatie. Start deze "
 "configuratiemodule opnieuw."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "Geen aanwijsapparaat gevonden. Nu verbinden."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -71,7 +59,7 @@ msgstr ""
 "Kan niet alle wijzigen opslaan. Zie logs voor meer informatie. Start deze "
 "configuratiemodule opnieuw."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -80,7 +68,7 @@ msgstr ""
 "Fout bij laden van standaard waarden. Enige opties konden niet ingesteld "
 "worden op hun standaard waarden."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -89,13 +77,13 @@ msgstr ""
 "Fout bij toevoegen van nieuw verbonden apparaat. Maak opnieuw verbinding en "
 "start deze configuratiemodule opnieuw."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr ""
 "Verbinding met aanwijsapparaat verbroken. Instellingendialoog is gesloten."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr ""
@@ -155,37 +143,37 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "Apparaat:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, kde-format
 msgctxt "@title:group"
 msgid "General:"
 msgstr "Algemeen:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr "Apparaat inschakelen"
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, kde-format
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "Linker en rechter knoppen:"
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, kde-format
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "Omwisselen (modus linkshandig)"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
 msgstr "Beiden tegelijk indrukken voor midden-klik"
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -196,19 +184,19 @@ msgstr ""
 "De extra vertraging is nodig om gelijktijdig indrukken van de linker en "
 "rechter knop correct te detecteren."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "Snelheid van aanwijzer:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "Aanwijzerversnelling inschakelen"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -217,43 +205,49 @@ msgstr ""
 "Indien ingeschakeld, wordt de verplaatsingsafstand van de aanwijzer vergroot "
 "met snellere verplaatsingssnelheid."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "Scroll-snelheid:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "Langzamer"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "Sneller"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "Scrollen:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "Scrollrichting omdraaien"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr "Middelste muisknop ingedrukt houden en muis verplaatsen om te schuiven"
+msgid "Scroll when moving the pointer"
+msgstr "Schuiven bij het verplaatsen van de aanwijzer"
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr "bij indrukken van de middelste muisknop"
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -266,6 +260,38 @@ msgstr ""
 "gebruiken, zoals sommige afbeeldingsbewerkers, documentviewers of "
 "videogames. Het kan gebruikt worden op elke apparaat, maar is primair "
 "bedoeld als een vervanger voor draaiwielen op apparaten die er geen hebben."
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr "Na klikken van de middelste muisknop"
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+"Dit verstoort het gebruik van de middelste muisknop in het algemeen; klik "
+"twee keer met de middelste muisknop wanneer u wilt dat de toepassing één "
+"enkele klik met de middelste muisknop ontvangt. Dit geldt ook voor slepen "
+"met de middelste muisknop."
+
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr ""
+#~ "Middelste muisknop ingedrukt houden en muis verplaatsen om te schuiven"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "Niet in staat een toepasselijke backend te selecteren"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr ""
+#~ "Onderzoeken van invoerapparaten is mislukt. Heropen deze module voor "
+#~ "instellingen."
 
 #~ msgid "Device enabled"
 #~ msgstr "Apparaat ingeschakeld"
@@ -553,9 +579,6 @@ msgstr ""
 
 #~ msgid "General settings:"
 #~ msgstr "Algemene instellingen:"
-
-#~ msgid "Emulate middle button"
-#~ msgstr "Middelste muisknop emuleren"
 
 #~ msgid "Acceleration:"
 #~ msgstr "Versnelling:"

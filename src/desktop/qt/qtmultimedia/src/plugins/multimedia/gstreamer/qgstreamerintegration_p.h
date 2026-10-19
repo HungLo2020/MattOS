@@ -16,7 +16,10 @@
 //
 
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
-#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+
+#if QT_CONFIG(gstreamer_qt_api)
+#include <QtMultimedia/spi/qgstreamerinterface.h>
+#endif
 
 #include <gst/gst.h>
 
@@ -24,25 +27,32 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerFormatInfo;
 
-class QGStreamerPlatformSpecificInterfaceImplementation : public QGStreamerPlatformSpecificInterface
+#if QT_CONFIG(gstreamer_qt_api)
+class QGStreamerInterfaceImplementation : public QGStreamerInterface
 {
 public:
-    ~QGStreamerPlatformSpecificInterfaceImplementation() override;
+    ~QGStreamerInterfaceImplementation() override;
 
     QAudioDevice makeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline) override;
     QAudioDevice makeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline) override;
-    QCamera *makeCustomGStreamerCamera(const QByteArray &gstreamerPipeline,
-                                       QObject *parent) override;
 
-    QCamera *makeCustomGStreamerCamera(GstElement *, QObject *parent) override;
+    QT_WARNING_PUSH
+    QT_WARNING_DISABLE_DEPRECATED
+    QCamera *makeCustomGStreamerCamera(const QByteArray &gstBinDescription,
+                                       QObject *parent) override;
+    QCamera *makeCustomGStreamerCamera(GstElement *element, QObject *parent) override;
+    QT_WARNING_POP
 
     GstPipeline *gstPipeline(QMediaPlayer *) override;
     GstPipeline *gstPipeline(QMediaCaptureSession *) override;
+
+    GstBuffer *gstBuffer(const QVideoFrame &frame) override;
 
     QVideoFrame createFrameFromGstBuffer(GstBuffer *buffer, const GstVideoInfo &videoInfo) override;
     QVideoFrame createFrameFromGstBuffer(GstBuffer *buffer,
                                          const GstVideoInfoDmaDrm &videoInfo) override;
 };
+#endif
 
 class QGstreamerIntegration : public QPlatformMediaIntegration
 {
@@ -70,15 +80,21 @@ public:
     const QGstreamerFormatInfo *gstFormatsInfo();
     GstDevice *videoDevice(const QByteArray &id);
 
-    QAbstractPlatformSpecificInterface *platformSpecificInterface() override;
-
     bool isCameraSwitchingDuringRecordingSupported() const override { return false; }
+
+#if QT_CONFIG(gstreamer_qt_api)
+    q23::expected<QPlatformCamera *, QString>
+    createGStreamerVideoSource(QGStreamerVideoSource *, const GstElementOrDescription &) override;
+
+    QGStreamerInterface *gstreamerInterface() override;
+
+private:
+    QGStreamerInterfaceImplementation m_gstreamerInterface;
+#endif
 
 protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;
     QPlatformVideoDevices *createVideoDevices() override;
-
-    QGStreamerPlatformSpecificInterfaceImplementation m_platformSpecificImplementation;
 };
 
 QT_END_NAMESPACE

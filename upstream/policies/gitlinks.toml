@@ -285,7 +285,7 @@ reason = "External cryptographic test vectors are not runtime or build inputs fo
 
 [[component]]
 name = "qtdeclarative"
-upstream_commit = "4e3399c26ec57246c08de019cfcbda8d23604cfa"
+upstream_commit = "4332fbbb4c340463dc8cee36dda0c85d932122d8"
 
 [[component.gitlink]]
 path = "tests/auto/qml/ecmascripttests/test262"
@@ -295,11 +295,11 @@ reason = "The ECMAScript conformance suite is test-only input; MattOS builds qtd
 
 [[component]]
 name = "qttools"
-upstream_commit = "8026c0462f19e9549501718152523ea223a19fd3"
+upstream_commit = "613a6fbf0a7998010ab2fda260b64066d66a021d"
 
 [[component.gitlink]]
 path = "src/assistant/qlitehtml"
-upstream_commit = "3fe5821dad98747d6e41c9ed54b86c3d0eee9daf"
+upstream_commit = "e4a682a0a16765d8ab5e7218425a99c04d8c8bb2"
 action = "exclude"
 reason = "qlitehtml backs Qt Assistant, which the MattOS qttools build disables (FEATURE_assistant=OFF)."
 
@@ -560,3 +560,19 @@ path = "tests/suite/tls-interoperability"
 upstream_commit = "20233dc815b05a10f34e5f67850d4d83f8409cab"
 action = "exclude"
 reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."
+
+[[component]]
+name = "tesseract"
+upstream_commit = "db0ec62f81b0737fbbe184d8fea40af5738f8eef"
+
+[[component.gitlink]]
+path = "test"
+upstream_commit = "232ff181c66516116ec0e84c4963f70de15050fd"
+action = "exclude"
+reason = "Test-only fixtures/framework; MattOS builds the production OCR library and command with BUILD_TESTS=OFF."
+
+[[component.gitlink]]
+path = "unittest/third_party/googletest"
+upstream_commit = "7d76a231b0e29caf86e68d1df858308cd53b2a66"
+action = "exclude"
+reason = "Test-only fixtures/framework; MattOS builds the production OCR library and command with BUILD_TESTS=OFF."

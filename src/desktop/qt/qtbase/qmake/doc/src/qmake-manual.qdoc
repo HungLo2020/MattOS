@@ -832,8 +832,7 @@
     \snippet code/doc_src_qmake-manual.pro 23
 
     This is discussed in more detail in the
-    \l{Qt for Windows - Deployment#Manifest files}
-    {deployment guide for Windows}.
+    \l{qmake-manifest-files-windows}{deployment guide for Windows}.
 */
 
 /*!
@@ -1089,7 +1088,7 @@
     \note This variable applies only to Android targets.
 
     Specifies the target Android API level for the project. By default, this
-    variable is set to API level 36.
+    variable is set to API level 37.
 
     \section1 ANDROID_VERSION_CODE
 
@@ -4938,7 +4937,7 @@
         \li Description
     \row
         \li commands
-        \li The commands used for for generating the output from the input.
+        \li The commands used for generating the output from the input.
     \row
         \li CONFIG
         \li Specific configuration options for the custom compiler. See the
@@ -5693,7 +5692,7 @@
 /*!
     \page qmake-third-party-libraries.html
     \title Using Third-Party Libraries
-    \brief A guide to using third party libraries with Qt and qmake
+    \brief A guide to using third party libraries with Qt and qmake.
 
     qmake allows you to use third-party libraries with Qt. Suppose you know
     of a cross-platform library that accepts audio samples of a cat's meows and

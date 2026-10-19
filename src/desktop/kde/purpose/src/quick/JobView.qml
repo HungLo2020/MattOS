@@ -2,6 +2,7 @@
     SPDX-FileCopyrightText: 2020 Nicolas Fella <nicolas.fella@gmx.de>
     SPDX-License-Identifier: LGPL-2.1-or-later
 */
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -9,6 +10,7 @@ import QtQuick.Layouts
 
 import org.kde.purpose
 import org.kde.kirigami as Kirigami
+import org.kde.ki18n
 
 /*!
   \qmltype JobView
@@ -31,7 +33,15 @@ Item {
     /*!
       \qmlproperty enumeration JobView::state
      */
-    readonly property alias state: jobController.state
+    readonly property alias jobState: jobController.state
+
+    /*!
+      \qmlproperty enumeration JobView::state
+      \deprecated[6.27]
+      Use jobState
+     */
+    @Deprecated { reason: "Use jobState instead" }
+    readonly property alias state: jobController.state // qmllint disable property-override
 
     /*!
       \qmlproperty Job JobView::job
@@ -42,6 +52,11 @@ Item {
 
     function start() {
         jobController.configure()
+    }
+
+    KI18nContext {
+        id: _tr
+        translationDomain: "libpurpose6_quick"
     }
 
     PurposeJobController {
@@ -93,8 +108,8 @@ Item {
 
                 onItemChanged: {
                     var initialData = jobController.configuration.data;
-                    for (var i in jobController.configuration.neededArguments) {
-                        var arg = jobController.configuration.neededArguments[i];
+                    for (const i in jobController.configuration.neededArguments) {
+                        const arg = jobController.configuration.neededArguments[i];
                         if (arg in configLoader.item) {
                             item[arg + "Changed"].connect(dataHasChanged);
                             initialData[arg] = item[arg];
@@ -107,8 +122,8 @@ Item {
 
                 function dataHasChanged() {
                     var jobData = jobController.configuration.data;
-                    for (var i in jobController.configuration.neededArguments) {
-                        var arg = jobController.configuration.neededArguments[i];
+                    for (const i in jobController.configuration.neededArguments) {
+                        const arg = jobController.configuration.neededArguments[i];
                         if (arg in configLoader.item) {
                             jobData[arg] = configLoader.item[arg];
                         } else
@@ -127,7 +142,7 @@ Item {
                 visible: configLoader.status === Loader.Error
                 wrapMode: Text.WordWrap
                 text: configLoader.status === Loader.Error
-                    ? i18nd("libpurpose6_quick", "Failed to load the configuration page for this action:\n\n%1", configLoader.sourceComponent.errorString())
+                    ? _tr.i18n("Failed to load the configuration page for this action:\n\n%1", configLoader.sourceComponent.errorString())
                     : ""
             }
 
@@ -140,7 +155,7 @@ Item {
                 Layout.alignment: Qt.AlignRight
 
                 Button {
-                    text: i18nd("libpurpose6_quick", "Send")
+                    text: _tr.i18n("Send")
                     icon.name: "document-send"
                     enabled: jobController.configuration
                         && jobController.configuration.isReady
@@ -148,7 +163,7 @@ Item {
                 }
 
                 Button {
-                    text: i18nd("libpurpose6_quick", "Cancel")
+                    text: _tr.i18n("Cancel")
                     icon.name: "dialog-cancel"
                     onClicked: jobController.cancel()
                 }

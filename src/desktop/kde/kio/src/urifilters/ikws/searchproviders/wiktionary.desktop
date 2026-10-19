@@ -2,6 +2,7 @@
 Type=Service
 Name=Wiktionary - The Free Dictionary
 Name[af]=Wiktionary - Die gratis woordeboek
+Name[am]=Wiktionary - ነጻ መዝገበ ቃላት
 Name[ar]=ويكاموس - القاموس الحرّ
 Name[as]=Wiktionary - The Free Dictionary
 Name[ast]=Wikcionariu - El diccionariu llibre
@@ -60,6 +61,8 @@ Name[mk]=Wiktionary - Слободниот речник
 Name[ml]=വിക്ഷ്ണറി - സ്വതന്ത്ര നിഘണ്ടു
 Name[mr]=विकिपेडिया- मोफत विश्वकोश
 Name[my]=ဝစ်ရှင်နရီ - အခကြေးငွေမလိုအပ်သော ဒစ်ရှင်နာရီ
+Name[nan_TW]=Wiktionary - 自由 ê 字典 kap 辭典
+Name[nan_TW@latin]=Wiktionary - Tsū-iû ê Jī-tián kap Sû-tián
 Name[nb]=Wiktionary – den frie ordboka
 Name[nds]=Wiktionary.nds - dat fre'e plattdüütsche Wöörbook
 Name[ne]=विक्सनरी - नि:शुल्क शब्दकोश
@@ -98,6 +101,7 @@ Name[zh_CN]=维基字典 - 自由的字典
 Name[zh_TW]=Wiktionary - 免費的字典
 Keys=wt,wikt
 Query=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
+Query[am]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[ar]=https://ar.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[ast]=https://ast.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[az]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
@@ -133,7 +137,7 @@ Query[id]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[ie]=https://ie.wiktionary.org/wiki/Special:Serchar?search=\\{@}&go=Continuar
 Query[is]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[it]=http://it.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
-Query[ja]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
+Query[ja]=https://ja.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[ka]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[kk]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[ko]=https://ko.wiktionary.org/wiki/특수:검색?search=\\{@}&go=Go
@@ -142,6 +146,8 @@ Query[lt]=https://lt.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[lv]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[mr]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[my]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
+Query[nan_TW]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
+Query[nan_TW@latin]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[nb]=https://no.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[nds]=https://nds.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[nl]=https://nl.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
@@ -165,7 +171,6 @@ Query[tg]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[th]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[tok]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[tr]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
-Query[ug]=https://en.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[uk]=https://uk.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[vi]=https://vi.wiktionary.org/wiki/Special:Search?search=\\{@}&go=Go
 Query[wa]=https://wa.wiktionary.org/w/index.php?search=\\{@}&title=Sipeci%C3%A5s%3ACweri

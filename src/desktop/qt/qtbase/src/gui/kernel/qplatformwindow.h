@@ -1,5 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 #ifndef QPLATFORMWINDOW_H
 #define QPLATFORMWINDOW_H
 
@@ -135,6 +136,8 @@ protected:
     static QString formatWindowTitle(const QString &title, const QString &separator);
     QPlatformScreen *screenForGeometry(const QRect &newGeometry) const;
     static QSize constrainWindowSize(const QSize &size);
+
+    static bool isSubWindow(const QWindow *window);
 
     QScopedPointer<QPlatformWindowPrivate> d_ptr;
 };

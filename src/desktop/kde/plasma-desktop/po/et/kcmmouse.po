@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcminput\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
 "PO-Revision-Date: 2020-04-10 19:47+0300\n"
 "Last-Translator: Marek Laane <qiilaq69@gmail.com>\n"
 "Language-Team: Estonian <kde-et@lists.linux.ee>\n"
@@ -20,22 +20,12 @@ msgstr ""
 "X-Generator: Lokalize 19.12.3\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr "Sisendseadmete otsing nurjus. Palun ava seadistusmoodul."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr "Kriitiline tõrge %1 põhilise seadmeinfo lugemisel."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr ""
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -44,12 +34,12 @@ msgstr ""
 "Tõrge väärtuste laadimisel. Täpsemat teavet annab logi. Palun käivita see "
 "seadistusmoodul uuesti."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "Osutusseadet ei leitud. Ühenda see nüüd."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -58,7 +48,7 @@ msgstr ""
 "Kõiki muudatusi ei õnnestunud salvestada. Täpsemat teavet annab logi. Palunn "
 "käivita see seadistusmoodul uuesti ja proovi veel."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -67,7 +57,7 @@ msgstr ""
 "Tõrge vaikeväärtuste laadimisel. Mõnele valikule vaikimisi väärtuse "
 "määramine nurjus."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -76,12 +66,12 @@ msgstr ""
 "Tõrge äsja ühendatud seadme lisamisel. Palun ühenda see uuesti ja käivita "
 "see seadistusmoodul veel kord."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr "Osutusseade on lahutatud. Seadistustedialoog suletakse."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr "Osutusseade on lahutatud. Teisi seadmeid ei leitud."
@@ -143,34 +133,34 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "Seade:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, fuzzy, kde-format
 #| msgid "General:"
 msgctxt "@title:group"
 msgid "General:"
 msgstr "Üldine:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr ""
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, fuzzy, kde-format
 #| msgid "Swap left and right buttons."
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "Vasaku ja parema nupu vahetamine."
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, fuzzy, kde-format
 #| msgid "Left handed mode"
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "Vasaku käe režiim"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, fuzzy, kde-format
 #| msgid ""
 #| "Clicking left and right button simultaneously sends middle button click."
@@ -179,7 +169,7 @@ msgid "Press both simultaneously to middle-click"
 msgstr ""
 "Korraga vasakule ja paremale nupule vajutamine võrdub keskmise nupu klõpsuga."
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -187,21 +177,21 @@ msgid ""
 "needed to correctly detect simultaneous left and right button presses."
 msgstr ""
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, fuzzy, kde-format
 #| msgid "Pointer speed:"
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "Osutusseadme kiirus:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, fuzzy, kde-format
 #| msgid "Pointer acceleration:"
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "Kursori kiirendus:"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, fuzzy, kde-format
 #| msgid "Cursor travel distance depends on the mouse movement speed."
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
@@ -209,46 +199,52 @@ msgid ""
 "When enabled, pointer travel distance increases with faster movement speed."
 msgstr "Kursori liikumiskaugus sõltub hiire liigutamise kiirusest."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, fuzzy, kde-format
 #| msgid "Scrolling speed:"
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "Kerimiskiirus:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "Aeglasem"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "Kiirem"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, fuzzy, kde-format
 #| msgid "Scrolling:"
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "Kerimine:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, fuzzy, kde-format
 #| msgid "Invert scroll direction"
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "Teistpidi kerimissuund"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
+msgid "Scroll when moving the pointer"
 msgstr ""
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr ""
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -257,6 +253,24 @@ msgid ""
 "device, but is intended primarily as a substitute for scroll wheels on "
 "devices that do not have any."
 msgstr ""
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr ""
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr "Sisendseadmete otsing nurjus. Palun ava seadistusmoodul."
 
 #~ msgid "Device enabled"
 #~ msgstr "Seadme lubamine"

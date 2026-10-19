@@ -1762,7 +1762,9 @@ void QQuickMultiEffectPrivate::updateBlurItemsAmount(int blurLevel)
         // during the lifetime of the effect component.
         QUrl blurVs = QUrl(QStringLiteral("qrc:/data/shaders/bluritems.vert.qsb"));
         QUrl blurFs = QUrl(QStringLiteral("qrc:/data/shaders/bluritems.frag.qsb"));
-        QQmlComponent blurComponent(engine, QUrl(QStringLiteral("qrc:/data/BlurItem.qml")));
+        QQmlComponent blurComponent(
+                engine,
+                QUrl(QStringLiteral("qrc:/qt-project.org/imports/QtQuick/Effects/BlurItem.qml")));
         for (int i = m_blurEffects.size(); i < itemsAmount; i++) {
             auto blurEffect = qobject_cast<QQuickShaderEffect*>(blurComponent.create());
             blurEffect->setParent(q);

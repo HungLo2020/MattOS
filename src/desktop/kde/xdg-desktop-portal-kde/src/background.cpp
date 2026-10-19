@@ -31,6 +31,8 @@
 
 #include <KWayland/Client/plasmawindowmanagement.h>
 
+using namespace Qt::StringLiterals;
+
 BackgroundPortal::BackgroundPortal(QObject *parent, QDBusContext *context)
     : QDBusAbstractAdaptor(parent)
     , m_context(context)
@@ -132,31 +134,32 @@ uint BackgroundPortal::NotifyBackground(const QDBusObjectPath &handle, const QSt
     notify->setTitle(i18n("Background Activity"));
     notify->setText(
         i18nc("@info %1 is the name of an application",
-              "%1 wants to remain running when it has no visible windows. If you forbid this, the application will quit when its last window is closed.",
+              "%1 wants to remain running when it has no visible windows. If you deny this request, the application will quit when its last window is closed.",
               appName));
     notify->setProperty("activated", false);
 
     message.setDelayedReply(true);
 
-    auto allowAction = notify->addAction(i18nc("@action:button Allow the app to keep running with no open windows", "Allow"));
+    auto allowAction = notify->addAction(i18nc("@action:button Allow the application to keep running with no open windows", "Allow"));
 
     connect(allowAction, &KNotificationAction::activated, this, [allow, notify] {
         allow();
         notify->setProperty("activated", true);
     });
 
-    auto forbidAction = notify->addAction(i18nc("@action:button Don't allow the app to keep running without any open windows", "Forbid"));
+    auto forbidAction = notify->addAction(i18nc("@action:button Don't allow the application to keep running without any open windows", "Deny"));
 
     connect(forbidAction, &KNotificationAction::activated, this, [this, appName, allow, forbid, notify] {
         const QString title =
-            i18nc("@title title of a dialog to confirm whether to allow an app to remain running with no visible windows", "Background App Usage");
-        const QString text = i18nc("%1 is the name of an application",
-                                   "Note that this will force %1 to quit when its last window is closed. This could cause data loss if the application has "
+            i18nc("@title title of a dialog to confirm whether to allow an application to remain running with no visible windows", "Deny Background Usage?");
+        const QString text = i18nc("@info %1 is the name of an application",
+                                   "This will force %1 to quit when its last window is closed. This could cause data loss if the application has "
                                    "any unsaved changes when it happens.",
                                    appName);
         auto messageBox = new QMessageBox(QMessageBox::Question, title, text);
-        messageBox->addButton(i18nc("@action:button Allow the app to keep running with no open windows", "Allow"), QMessageBox::AcceptRole);
-        messageBox->addButton(i18nc("@action:button Don't allow the app to keep running without any open windows", "Forbid Anyway"), QMessageBox::RejectRole);
+        messageBox->addButton(i18nc("@action:button Allow the application to keep running with no open windows", "Allow"), QMessageBox::AcceptRole);
+        messageBox->addButton(i18nc("@action:button Don't allow the application to keep running without any open windows", "Deny Anyway"),
+                              QMessageBox::RejectRole);
         messageBox->show();
 
         connect(messageBox, &QMessageBox::accepted, this, [messageBox, allow]() {
@@ -230,24 +233,29 @@ bool BackgroundPortal::EnableAutostart(const QString &app_id, bool enable, const
     return true;
 }
 
+QString lookUpAppId(KWayland::Client::PlasmaWindow *window)
+{
+    const QString flatpakInfoPath = u"/proc/"_s + QString::number(window->pid()) + u"/root/.flatpak-info"_s;
+    const QSettings flatpakInfo(flatpakInfoPath, QSettings::IniFormat);
+    const auto appId = flatpakInfo.value("Application/name"_L1, window->appId()).toString();
+    return appId;
+}
+
 void BackgroundPortal::addWindow(KWayland::Client::PlasmaWindow *window)
 {
-    const QString appId = window->appId();
+    const QString appId = lookUpAppId(window);
+    window->setProperty("appId", appId);
     const bool isActive = window->isActive();
     m_appStates[appId] = QVariant::fromValue<uint>(isActive ? Active : Running);
 
     connect(window, &KWayland::Client::PlasmaWindow::activeChanged, this, [this, window]() {
         setActiveWindow(window->appId(), window->isActive());
     });
-    connect(window, &KWayland::Client::PlasmaWindow::unmapped, this, [this, window]() {
-        uint windows = 0;
-        const QString appId = window->appId();
+    connect(window, &KWayland::Client::PlasmaWindow::unmapped, this, [this, window, appId]() {
         const auto plasmaWindows = WaylandIntegration::plasmaWindowManagement()->windows();
-        for (KWayland::Client::PlasmaWindow *otherWindow : plasmaWindows) {
-            if (otherWindow->appId() == appId && otherWindow->uuid() != window->uuid()) {
-                windows++;
-            }
-        }
+        const uint windows = std::ranges::count_if(plasmaWindows, [&appId, window](KWayland::Client::PlasmaWindow *w) {
+            return w->property("appId").toString() == appId && w->uuid() != window->uuid();
+        });
 
         if (!windows) {
             m_appStates.remove(appId);

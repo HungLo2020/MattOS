@@ -6,7 +6,6 @@
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls as QQC
 import QtQuick.Templates as T
 import org.kde.kirigami.platform as Platform
 import org.kde.kirigami.primitives as Primitives
@@ -17,7 +16,7 @@ import org.kde.kirigami.forms as Forms
   \qmltype FormAction
   \inqmlmodule org.kde.kirigami.forms
 
-  \brief A specialized FormEntry for a big clickable action
+  \brief A specialized FormEntry for a big clickable action.
 
   This component is used when the Form needs entries that represent a big clickable
   action: they will act like a single big button and is controlled by its Action property.
@@ -70,7 +69,7 @@ Forms.FormEntry { // Needs to be instantiated from the global forms import in or
 
     trailingItems: Primitives.Icon {
         Layout.fillHeight: true
-        Layout.maximumHeight: root.triggerIcon.height <= 0 ? Platform.Units.iconSizes.smallMedium : Infinity
+        Layout.maximumHeight: root.triggerIcon.height <= 0 ? Platform.Units.iconSizes.small : Infinity
         source: root.triggerIcon.name || root.triggerIcon.source
         color: root.triggerIcon.color
         Layout.preferredWidth: root.triggerIcon.width > 0 ? root.triggerIcon.width : -1

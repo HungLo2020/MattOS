@@ -10,7 +10,7 @@
 <articleinfo>
 
 <title
->Associacions de fitxer</title>
+>Configura les associacions de fitxers</title>
 <authorgroup>
 <author
 >&Mike.McBride; &Mike.McBride.mail;</author>
@@ -35,7 +35,7 @@
 </articleinfo>
 <sect1 id="file-assoc">
 <title
->Associacions de fitxer</title>
+>Configura les associacions de fitxers</title>
 
 <sect2 id="file-assoc-intro">
 <title
@@ -156,7 +156,7 @@
 > i està a sobre de la llista de categories.</para>
 
 <para
->Simplement escriure la primera lletra del tipus &MIME; en el que esteu interessat. Les categories s'expandiran automàticament i tan sols es mostraran els tipus &MIME; que incloguin aquesta lletra.</para>
+>Simplement, escriviu la primera lletra del tipus &MIME; en el que esteu interessat. Les categories s'expandiran automàticament i tan sols es mostraran els tipus &MIME; que incloguin aquesta lletra.</para>
 
 <para
 >Aleshores podreu introduir un segon caràcter i els tipus &MIME; es restringiran als que continguin aquests dos caràcters.</para

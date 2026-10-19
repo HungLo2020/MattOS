@@ -1,7 +1,7 @@
 # Copyright (C) YEAR This_file_is_part_of_KDE
 # This file is distributed under the same license as the PACKAGE package.
 #
-# SPDX-FileCopyrightText: 2019, 2021, 2022, 2024 Alexander Yavorsky <kekcuha@gmail.com>
+# SPDX-FileCopyrightText: 2019, 2021, 2022, 2024, 2026 Alexander Yavorsky <kekcuha@gmail.com>
 # SPDX-FileCopyrightText: 2022, 2024 Olesya Gerasimenko <translation-team@basealt.ru>
 # Alexander Potashev <aspotashev@gmail.com>, 2009, 2010, 2014, 2016, 2017, 2018, 2019.
 # Nick Shaforostoff <shaforostoff@kde.ru>, 2009.
@@ -14,87 +14,87 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-05 02:41+0000\n"
-"PO-Revision-Date: 2024-11-17 17:54+0300\n"
-"Last-Translator: Alexander Yavorsky <kekcuha@gmail.com>\n"
+"POT-Creation-Date: 2026-08-18 00:46+0000\n"
+"PO-Revision-Date: 2026-04-03 20:25+0200\n"
+"Last-Translator: Alexander Yavorskiy <kekcuha@gmail.com>\n"
 "Language-Team: Russian <kde-russian@lists.kde.ru>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 21.08.3\n"
+"X-Generator: Lokalize 25.12.3\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Environment: kde\n"
 "X-Accelerator-Marker: &\n"
 "X-Text-Markup: kde4\n"
 
-#: main.cpp:152 touch.cpp:119
+#: main.cpp:151 touch.cpp:119
 #, kde-format
 msgid "No Action"
 msgstr "Ничего не делать"
 
-#: main.cpp:153 touch.cpp:120
+#: main.cpp:152 touch.cpp:120
 #, kde-format
 msgid "Peek at Desktop"
 msgstr "Взглянуть на рабочий стол"
 
-#: main.cpp:154 touch.cpp:121
+#: main.cpp:153 touch.cpp:121
 #, kde-format
 msgid "Lock Screen"
 msgstr "Заблокировать экран"
 
-#: main.cpp:155 touch.cpp:122
+#: main.cpp:154 touch.cpp:122
 #, kde-format
 msgid "Show KRunner"
 msgstr "Показать строку поиска и запуска"
 
-#: main.cpp:156 touch.cpp:123
+#: main.cpp:155 touch.cpp:123
 #, kde-format
 msgid "Activity Manager"
 msgstr "Диспетчер комнат"
 
-#: main.cpp:157 touch.cpp:124
+#: main.cpp:156 touch.cpp:124
 #, kde-format
 msgid "Application Launcher"
 msgstr "Меню запуска приложений"
 
-#: main.cpp:161 touch.cpp:128
+#: main.cpp:160 touch.cpp:128
 #, kde-format
 msgid "Present Windows"
 msgstr "Все окна"
 
-#: main.cpp:162 touch.cpp:129
+#: main.cpp:161 touch.cpp:129
 #, kde-format
 msgid "%1 - All Desktops"
 msgstr "%1 — Все рабочие столы"
 
-#: main.cpp:163 touch.cpp:130
+#: main.cpp:162 touch.cpp:130
 #, kde-format
 msgid "%1 - Current Desktop"
 msgstr "%1 — Текущий рабочий стол"
 
-#: main.cpp:164 touch.cpp:131
+#: main.cpp:163 touch.cpp:131
 #, kde-format
 msgid "%1 - Current Application"
 msgstr "%1 — Текущее приложение"
 
-#: main.cpp:166 touch.cpp:133
+#: main.cpp:165 touch.cpp:133
 #, kde-format
 msgid "Overview"
 msgstr "Режим обзора"
 
-#: main.cpp:167 touch.cpp:134
+#: main.cpp:166 touch.cpp:134
 #, kde-format
 msgid "Grid"
 msgstr "Сетка"
 
-#: main.cpp:169 touch.cpp:136
+#: main.cpp:168 touch.cpp:136
 #, kde-format
 msgid "Toggle window switching"
 msgstr "Вызвать переключение окон"
 
-#: main.cpp:170 touch.cpp:137
+#: main.cpp:169 touch.cpp:137
 #, kde-format
 msgid "Toggle alternative window switching"
 msgstr "Вызвать альтернативное переключение"
@@ -103,11 +103,11 @@ msgstr "Вызвать альтернативное переключение"
 #: main.ui:23
 #, kde-format
 msgid ""
-"You can trigger an action by pushing the mouse cursor against the "
+"You can trigger an action by pushing the mouse pointer against the "
 "corresponding screen edge or corner."
 msgstr ""
-"Для выбора действия, выполняемого при подведении мыши к какому-либо краю или "
-"углу экрана, нажмите в соответствующем месте мини-экрана."
+"Для выполнения действия подведите указатель мыши к соответствующему краю или "
+"углу экрана."
 
 #. i18n: ectx: property (text), widget (QLabel, quickMaximizeLabel)
 #: main.ui:67
@@ -125,7 +125,7 @@ msgstr "При перемещении к верхнему краю экрана"
 #: main.ui:84
 #, kde-format
 msgid "&Tile:"
-msgstr "Растягивать окна:"
+msgstr "Растя&гивать окна:"
 
 #. i18n: ectx: property (text), widget (QCheckBox, kcfg_ElectricBorderTiling)
 #: main.ui:94
@@ -143,13 +143,13 @@ msgstr "Поведение:"
 #: main.ui:108
 #, kde-format
 msgid "Remain active when windows are fullscreen"
-msgstr "Оставить активным, если окна развёрнуты во весь экран"
+msgstr "Оставлять активными при полноэкранных окнах"
 
 #. i18n: ectx: property (text), widget (QLabel, electricBorderCornerRatioLabel)
 #: main.ui:115
 #, kde-format
 msgid "Trigger &quarter tiling in:"
-msgstr "Высота зоны растягивания окон в четверть экрана:"
+msgstr "Высота зоны растягивания окон в &четверть экрана:"
 
 #. i18n: ectx: property (suffix), widget (QSpinBox, electricBorderCornerRatioSpin)
 #: main.ui:130
@@ -173,7 +173,8 @@ msgstr "экрана"
 #: main.ui:174
 #, kde-format
 msgid ""
-"Change desktop when the mouse cursor is pushed against the edge of the screen"
+"Change desktop when the mouse pointer is pushed against the edge of the "
+"screen"
 msgstr ""
 "Переход на другой рабочий стол при подведении курсора мыши к краю экрана"
 
@@ -206,9 +207,11 @@ msgstr "Всегда"
 #: main.ui:206
 #, kde-format
 msgid ""
-"Amount of time required for the mouse cursor to be pushed against the edge "
+"Amount of time required for the mouse pointer to be pushed against the edge "
 "of the screen before the action is triggered"
-msgstr "Задержка между подведением к краю экрана и выполнением действия."
+msgstr ""
+"Время, в течение которого указатель мыши должен находиться у края экрана "
+"перед выполнением действия."
 
 #. i18n: ectx: property (text), widget (QLabel, activationDelayLabel)
 #: main.ui:209
@@ -249,23 +252,23 @@ msgstr "&Угловой барьер:"
 #, kde-format
 msgid ""
 "Here you can enable or disable the virtual corner barrier between screens. "
-"The barrier prevents the cursor from moving to another screen when it is "
+"The barrier prevents the pointer from moving to another screen when it is "
 "already touching a screen corner. This makes it easier to trigger user "
 "interface elements like maximized windows' close buttons when using multiple "
 "screens."
 msgstr ""
 "Включение или отключение виртуального углового барьера между экранами. "
-"Барьер не позволяет курсору перемещаться на другой экран, когда он уже "
-"касается угла экрана. Благодаря этому при работе с несколькими экранами "
-"становится проще активировать такие элементы интерфейса пользователя, как "
-"кнопки закрытия распахнутых окон."
+"Барьер не позволяет указателю мыши переместиться на другой экран, если он "
+"уже касается угла экрана. Благодаря этому при использовании нескольких "
+"экранов упрощается активация таких элементов интерфейса, как кнопки закрытия "
+"распахнутых окон."
 
 #. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_CornerBarrier)
 #: main.ui:283
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Prevents cursors from crossing at screen corners."
-msgstr "Запрещает курсору переходить на другой экран через углы."
+msgid "Prevents the pointer from crossing at screen corners."
+msgstr "Запрещает указателю мыши пересекать углы экрана."
 
 #. i18n: ectx: property (text), widget (QLabel, EdgeBarrierLabel)
 #: main.ui:290
@@ -293,9 +296,9 @@ msgstr ""
 #: main.ui:303
 #, kde-format
 msgctxt "@info:tooltip"
-msgid "Additional distance cursor needs to travel to cross screen edges."
+msgid "Additional distance the pointer needs to travel to cross screen edges."
 msgstr ""
-"Дополнительное расстояние, на которое должен переместиться курсор для "
+"Дополнительное расстояние, на которое необходимо переместить указатель для "
 "пересечения краёв экрана."
 
 #. i18n: ectx: property (specialValueText), widget (QSpinBox, kcfg_EdgeBarrier)

@@ -54,9 +54,6 @@ endfunction()
 # QT_QDOC_SHOW_INTERNAL - same as the option but can be set as either an environment or
 # cmake variable.
 function(qt_internal_add_docs)
-    if(NOT QT_BUILD_DOCS)
-        return()
-    endif()
 
     if(${ARGC} EQUAL 1)
         # Function called from old generated CMakeLists.txt that was missing the target parameter
@@ -76,6 +73,18 @@ function(qt_internal_add_docs)
 
     set(target ${ARGV0})
     set(qdoc_conf_path ${ARGV1})
+
+    # If a target is not built (which can happen for tools when crosscompiling), we shouldn't try
+    # to generate docs.
+    if(NOT TARGET "${target}")
+        return()
+    endif()
+
+    target_sources(${target} PRIVATE ${qdoc_conf_path})
+
+    if(NOT QT_BUILD_DOCS)
+        return()
+    endif()
 
     set(opt_args
         SHOW_INTERNAL
@@ -121,12 +130,6 @@ function(qt_internal_add_docs)
 
     if(DEFINED ENV{QT_QDOC_EXTRA_ARGS})
         list(APPEND qdoc_extra_args $ENV{QT_QDOC_EXTRA_ARGS})
-    endif()
-
-    # If a target is not built (which can happen for tools when crosscompiling), we shouldn't try
-    # to generate docs.
-    if(NOT TARGET "${target}")
-        return()
     endif()
 
     set(tool_dependencies_enabled TRUE)

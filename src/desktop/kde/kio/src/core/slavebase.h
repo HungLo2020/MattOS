@@ -7,6 +7,7 @@
 #ifndef SLAVEBASE_H
 #define SLAVEBASE_H
 
+#include "connectionbackend_p.h" // for KIO::TaskPayload
 #include "job_base.h" // for KIO::JobFlags
 #include <kio/authinfo.h>
 #include <kio/global.h>
@@ -25,6 +26,7 @@ class QUrl;
 namespace KIO
 {
 class Connection;
+class ConnectionBackend;
 class SlaveBasePrivate;
 
 // TODO: Enable once file KIO worker is ported away and add endif, similar in the cpp file
@@ -56,7 +58,7 @@ class SlaveBase
 {
 public:
     KIOCORE_DEPRECATED_VERSION_BELATED(5, 101, 5, 96, "Use WorkerBase")
-    SlaveBase(const QByteArray &protocol, const QByteArray &pool_socket, const QByteArray &app_socket);
+    SlaveBase(const QByteArray &protocol, std::unique_ptr<KIO::ConnectionBackend> backend = {});
     virtual ~SlaveBase();
 
     /*
@@ -753,11 +755,11 @@ public:
     void listEntry(const UDSEntry &entry);
 
     /*
-     * internal function to connect a slave to/ disconnect from
-     * either the slave pool or the application
+     * Internal: adopt a ready-made connection backend instead of connecting to a
+     * socket address. Used for in-process workers paired via ThreadConnectionBackend.
+     * Takes ownership of \a backend.
      */
-    void connectSlave(const QString &path);
-    void disconnectSlave();
+    void setConnectionBackend(std::unique_ptr<KIO::ConnectionBackend> backend);
 
     /*
      * Prompt the user for Authorization info (login & password).
@@ -935,6 +937,9 @@ private:
     // This helps catching missing tr()/i18n() calls in error().
     void error(int _errid, const QByteArray &_text);
     void send(int cmd, const QByteArray &arr = QByteArray());
+    // Hands what a message carries to the application as it is, when the application is in this
+    // process, and as the bytes standing for it otherwise.
+    void send(int cmd, const TaskPayload &payload);
 
     std::unique_ptr<SlaveBasePrivate> const d;
     friend class SlaveBasePrivate;

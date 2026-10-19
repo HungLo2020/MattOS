@@ -6,7 +6,7 @@
 \meta {keywords} {qmltopic}
 \title Performance considerations and suggestions
 \keyword QML Performance Considerations And Suggestions
-\brief Discussion of performance-related trade-offs and best-practices
+\brief Discussion of performance-related trade-offs and best-practices.
 
 \section1 Timing Considerations
 
@@ -30,18 +30,21 @@ user experience.
 
 \note A pattern which is tempting, but should \e never be used, is creating your
 own QEventLoop or calling QCoreApplication::processEvents() in order to avoid
-blocking within a C++ code block invoked from QML. This is dangerous, because
-when an event loop is entered in a signal handler or binding, the QML engine
-continues to run other bindings, animations, transitions, etc. Those bindings
-can then cause side effects which, for example, destroy the hierarchy containing
-your event loop.
+blocking within a backend code block, such as C++, invoked from QML. This is
+dangerous, because when an event loop is entered in a signal handler or
+binding, the QML engine continues to run other bindings, animations,
+transitions, etc. Those bindings can then cause side effects which, for
+example, destroy the hierarchy containing your event loop.
 
 \section1 Profiling
 
-The most important tip is: use the \l{QML Profiler} included in \QC. Knowing
-where time is spent in an application will allow you to focus on problem areas which
-actually exist, rather than problem areas which potentially exist. See
-\l{\QC: Profiling QML Applications} for more information.
+
+The most important tip is: use \l{QML Profiler} included in \QC
+(or a trace viewer in \QVSC).
+Knowing where time is spent in an application will allow you to focus on
+problem areas which actually exist, rather than problem areas which potentially
+exist. See \l{\QC: Profiling QML Applications} and \l{\QVSC: Profile QML code}
+for more information.
 
 Determining which bindings are being run the most often, or which functions your
 application is spending the most time in, will allow you to decide whether you need
@@ -665,9 +668,10 @@ maximal performance.
 
 \section2 Custom C++ Models
 
-It is often desirable to write your own custom model in C++ for use with a view in
-QML. While the optimal implementation of any such model will depend heavily on the
-use-case it must fulfil, some general guidelines are as follows:
+It is often desirable to write your own custom model in a backend language, such
+as C++, for use with a view in QML. While the optimal implementation of any
+such model will depend heavily on the use-case it must fulfil, some general
+guidelines are as follows:
 
 \list
 \li Be as asynchronous as possible
@@ -746,9 +750,9 @@ utilizing a \c cacheBuffer can, in some rare cases, cause reduced frame rate
 when scrolling.
 
 For additional performance improvements, consider enabling item reuse in views.
-See \l{qml-qtquick-listview.html#reusing-items}{Reusing Items for ListView} and
-\l{qml-qtquick-tableview.html#reusing-items}{Reusing Items for TableView and
-TreeView} for more information.
+See \l{ListView#Reusing Items}{Reusing Items for ListView} and
+\l{TableView#Reusing items}{Reusing Items for TableView and TreeView} for more
+information.
 
 \section1 Visual Effects
 
@@ -953,12 +957,13 @@ and will result in less JavaScript heap memory being used.
 
 \section2 Memory Allocation in a QML Application
 
-The memory usage of a QML application may be split into two parts: its C++ heap usage
-and its JavaScript heap usage. Some of the memory allocated in each will be unavoidable,
+The memory usage of a QML application may be split into two parts: its native
+heap usage and its JavaScript heap usage. Some of the memory allocated in
+each will be unavoidable,
 as it is allocated by the QML engine or the JavaScript engine, while the rest is
 dependent upon decisions made by the application developer.
 
-The C++ heap will contain:
+The native heap will contain:
 \list
   \li the fixed and unavoidable overhead of the QML engine (implementation data
   structures, context information, and so on);
@@ -1080,7 +1085,7 @@ or by utilizing a memory-managed runtime with garbage collection (such as JavaSc
 \section3 Garbage Collection
 
 JavaScript provides garbage collection. Memory which is allocated on the JavaScript
-heap (as opposed to the C++ heap) is owned by the JavaScript engine. The engine will
+heap (as opposed to the native heap) is owned by the JavaScript engine. The engine will
 periodically collect all unreferenced data on the JavaScript heap.
 
 \section4 Implications of Garbage Collection
@@ -1165,8 +1170,8 @@ consider the following best practices:
 \li Optimise the 3D model loading by using glTF.
 \li Limit use of clip and opacity, as these can impact performance.
 \li Measure GPU limitations and take those into account when designing the UI.
-    See \l{qrhi.html#frame-captures-and-performance-profiling}{Frame Captures
-    and Performance Profiling} for more information.
+    See \l{QRhi#Frame captures and performance profiling}{Frame Captures and
+    Performance Profiling} for more information.
 \li Use \l{Qt Quick Compiler} to pre-compile the QML files.
 \li Investigate if static linking is possible for your architecture.
 \li Strive for declarative bindings instead of imperative signal handlers.

@@ -69,7 +69,6 @@ var eyeOnScreenEffect = {
                     animate({
                         window: w,
                         duration: eyeOnScreenEffect.duration,
-                        delay: eyeOnScreenEffect.duration,
                         animations: [{
                             type: Effect.Scale,
                             curve: QEasingCurve.OutCubic,
@@ -90,6 +89,7 @@ var eyeOnScreenEffect = {
     },
     init: function () {
         eyeOnScreenEffect.loadConfig();
+        effect.configChanged.connect(eyeOnScreenEffect.loadConfig);
         effects.showingDesktopChanged.connect(eyeOnScreenEffect.slurp);
     }
 };

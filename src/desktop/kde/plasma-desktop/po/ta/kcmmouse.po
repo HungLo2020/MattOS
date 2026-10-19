@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcminput\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-08 00:45+0000\n"
+"POT-Creation-Date: 2026-09-04 00:47+0000\n"
 "PO-Revision-Date: 2026-02-01 18:40+0530\n"
 "Last-Translator: Kishore G <kishore96@gmail.com>\n"
 "Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
@@ -16,24 +16,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 25.12.1\n"
 
-#: backends/kwin_wl/kwin_wl_backend.cpp:61
-#, kde-format
-msgid "Querying input devices failed. Please reopen this settings module."
-msgstr ""
-"உள்ளீட்டு சாதனங்களை கண்டறிவது தோல்வியடைந்த‍து. இந்த அமைப்புக்கூறை மூடி மறுபடியும் "
-"திறக்கவும்."
-
-#: backends/kwin_wl/kwin_wl_backend.cpp:81
+#: inputbackend.cpp:49
 #, kde-format
 msgid "Critical error on reading fundamental device infos of %1."
 msgstr "%1 என்பதன் அடிப்படை விவரங்களை கண்டறிவதில் சிக்கல்."
 
-#: kcm.cpp:86
-#, kde-format
-msgid "Not able to select appropriate backend"
-msgstr "உரிய பின்நிலையை தேர்ந்தெடுக்க முடியவில்லை"
-
-#: kcm.cpp:142
+#: kcm.cpp:112
 #, kde-format
 msgid ""
 "Error while loading values. See logs for more information. Please restart "
@@ -42,12 +30,12 @@ msgstr ""
 "மதிப்புகளை ஏற்றுவதில் சிக்கல். மேலும் விவரங்களுக்கு கணினியின் பதிவுகளை பாருங்கள். "
 "இக்கட்டுப்பாட்டுக்கூறை மூடி மறுபடியும் திறவுங்கள்."
 
-#: kcm.cpp:145
+#: kcm.cpp:115
 #, kde-format
 msgid "No pointer device found. Connect now."
 msgstr "எந்த சுட்டி சாதனமும் கண்டுபிடிக்கப்படவில்லை. சாதனத்தை இப்போது செருகுங்கள்."
 
-#: kcm.cpp:154
+#: kcm.cpp:124
 #, kde-format
 msgid ""
 "Not able to save all changes. See logs for more information. Please restart "
@@ -56,7 +44,7 @@ msgstr ""
 "சில மாற்றங்களை சேமிக்க முடியவில்லை. மேலும் விவரங்களுக்கு கணினியின் பதிவுகளை பாருங்கள். "
 "இக்கட்டுப்பாட்டுக்கூறை மூடி மறுபடியும் திறவுங்கள்."
 
-#: kcm.cpp:172
+#: kcm.cpp:142
 #, kde-format
 msgid ""
 "Error while loading default values. Failed to set some options to their "
@@ -65,7 +53,7 @@ msgstr ""
 "இயல்பிருப்பு மதிப்புகளை ஏற்றுவதில் சிக்கல். சில விருப்பங்கள் அவற்றின் இயல்பிருப்பு "
 "மதிப்புகளுக்கு மாற்றப்படவில்லை."
 
-#: kcm.cpp:187
+#: kcm.cpp:157
 #, kde-format
 msgid ""
 "Error while adding newly connected device. Please reconnect it and restart "
@@ -74,12 +62,12 @@ msgstr ""
 "புதிதாக செருகிய சாதனத்தை சேர்ப்பதில் சிக்கல். அதை கழற்றி, மீண்டும் செருகிய பின் இக்கூறை "
 "மீள்துவக்குங்கள்."
 
-#: kcm.cpp:200
+#: kcm.cpp:170
 #, kde-format
 msgid "Pointer device disconnected. Closed its setting dialog."
 msgstr "சுட்டி கழற்றப்பட்டதால் அதன் அமைப்புச்சாளரம் மூடப்பட்டது."
 
-#: kcm.cpp:202
+#: kcm.cpp:172
 #, kde-format
 msgid "Pointer device disconnected. No other devices found."
 msgstr "சுட்டி கழற்றப்பட்டபின் வேறெந்த சாதனமும் கண்டுபிடிக்கப்படவில்லை."
@@ -138,37 +126,37 @@ msgctxt "@title:listbox select device"
 msgid "Device:"
 msgstr "சாதனம்:"
 
-#: ui/main.qml:87
+#: ui/main.qml:86
 #, kde-format
 msgctxt "@title:group"
 msgid "General:"
 msgstr "பொதுவானவை:"
 
-#: ui/main.qml:88
+#: ui/main.qml:87
 #, kde-format
 msgctxt "@option:check enable this mouse device"
 msgid "Enable device"
 msgstr "சாதனத்தை இயக்கு"
 
-#: ui/main.qml:105
+#: ui/main.qml:102
 #, kde-format
 msgctxt "@title:group"
 msgid "Left and right buttons:"
 msgstr "இடது மற்றும் வலது பட்டன்கள்:"
 
-#: ui/main.qml:106
+#: ui/main.qml:103
 #, kde-format
 msgctxt "@option:check Left and right buttons"
 msgid "Swap (left-handed mode)"
 msgstr "புரட்டு (இடதுகை பயன்முறை)"
 
-#: ui/main.qml:121
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@option:check 'both' refers to the left and right buttons'"
 msgid "Press both simultaneously to middle-click"
 msgstr "சேர்த்து அழுத்துவதை நடு கிளிக்காக கருது"
 
-#: ui/main.qml:133
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:tooltip from ContextualHelpButton"
 msgid ""
@@ -179,62 +167,68 @@ msgstr ""
 "அதிகரிக்கும். ஒரே நேரத்தில் நிகழும் இடது மற்றும் வலது கிளிக்குகளை சரியாக "
 "அடையாளங்காணஇந்த கூடுதல் தாமதம் தேவை."
 
-#: ui/main.qml:148
+#: ui/main.qml:142
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Pointer speed:"
 msgstr "சுட்டிக்குறியின் வேகம்:"
 
-#: ui/main.qml:227
+#: ui/main.qml:223
 #, kde-format
 msgctxt "@option:check"
 msgid "Enable pointer acceleration"
 msgstr "சுட்டிக்குறி வேகவளர்ச்சியை இயக்கு"
 
-#: ui/main.qml:241
+#: ui/main.qml:235
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
 "When enabled, pointer travel distance increases with faster movement speed."
 msgstr "இது இயக்கப்பட்டிருந்தால், சுட்டியை நகர்த்தும் தூரம் கூட அதன் வேகமும் கூடும்."
 
-#: ui/main.qml:254
+#: ui/main.qml:264
 #, kde-format
 msgctxt "@label:slider and @label:spinbox"
 msgid "Scrolling speed:"
 msgstr "உருளல் வேகம்:"
 
-#: ui/main.qml:304
+#: ui/main.qml:328
 #, kde-format
 msgctxt "Slower Scroll"
 msgid "Slower"
 msgstr "மெதுவாக"
 
-#: ui/main.qml:313
+#: ui/main.qml:337
 #, kde-format
 msgctxt "Faster Scroll Speed"
 msgid "Faster"
 msgstr "வேகமாக"
 
-#: ui/main.qml:321
+#: ui/main.qml:347
 #, kde-format
 msgctxt "@title:group"
 msgid "Scrolling:"
 msgstr "உருளல்:"
 
-#: ui/main.qml:322
+#: ui/main.qml:348
 #, kde-format
 msgctxt "@option:check"
 msgid "Invert scroll direction"
 msgstr "உருளல் திசையைப் புரட்டு"
 
-#: ui/main.qml:339
+#: ui/main.qml:363
 #, kde-format
 msgctxt "@option:check"
-msgid "Hold down middle button and move mouse to scroll"
-msgstr "உருள நடு பட்டனை அழுத்தியபடியே சுட்டியை நகர்த்து"
+msgid "Scroll when moving the pointer"
+msgstr ""
 
-#: ui/main.qml:351
+#: ui/main.qml:383
+#, kde-format
+msgctxt "@option:radio"
+msgid "while pressing the middle button"
+msgstr ""
+
+#: ui/main.qml:396
 #, kde-format
 msgctxt "@info:whatsthis ContextualHelpButton tooltip"
 msgid ""
@@ -247,6 +241,33 @@ msgstr ""
 "படத்திருத்திகள், ஆவணக்காட்டிகள், அல்லது விளையாட்டு செயலிகள்) இது குறுக்கிடும். "
 "இருப்பினும், உருள் சக்கரத்தைக் கொண்டிராத சுட்டிகளைப் பயன்படுத்துவோருக்கு உதவியாக இது "
 "இருக்கும்."
+
+#: ui/main.qml:406
+#, kde-format
+msgctxt "@option:radio"
+msgid "after clicking the middle button"
+msgstr ""
+
+#: ui/main.qml:419
+#, kde-format
+msgctxt "@info:whatsthis ContextualHelpButton tooltip"
+msgid ""
+"This will interfere with middle-clicks in general; middle-click twice when "
+"you want the application to receive a single middle-click. This includes "
+"middle-click dragging."
+msgstr ""
+
+#~ msgctxt "@option:check"
+#~ msgid "Hold down middle button and move mouse to scroll"
+#~ msgstr "உருள நடு பட்டனை அழுத்தியபடியே சுட்டியை நகர்த்து"
+
+#~ msgid "Not able to select appropriate backend"
+#~ msgstr "உரிய பின்நிலையை தேர்ந்தெடுக்க முடியவில்லை"
+
+#~ msgid "Querying input devices failed. Please reopen this settings module."
+#~ msgstr ""
+#~ "உள்ளீட்டு சாதனங்களை கண்டறிவது தோல்வியடைந்த‍து. இந்த அமைப்புக்கூறை மூடி மறுபடியும் "
+#~ "திறக்கவும்."
 
 #~ msgid "Device enabled"
 #~ msgstr "சாதனத்தை இயக்கு"

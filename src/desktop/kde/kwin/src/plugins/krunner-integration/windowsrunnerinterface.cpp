@@ -272,7 +272,7 @@ RemoteMatch WindowsRunner::windowsMatch(const Window *window, const WindowsRunne
     const QList<VirtualDesktop *> desktops = window->desktops();
     bool allDesktops = window->isOnAllDesktops();
 
-    const VirtualDesktop *targetDesktop = VirtualDesktopManager::self()->currentDesktop();
+    const VirtualDesktop *targetDesktop = VirtualDesktopManager::self()->currentDesktop(window->output());
     // Show on current desktop unless window is only attached to other desktop, in this case show on the first attached desktop
     if (!allDesktops && !window->isOnCurrentDesktop() && !desktops.isEmpty()) {
         targetDesktop = desktops.first();

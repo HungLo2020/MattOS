@@ -9,11 +9,12 @@
 */
 // this needs to be on top, epoxy has an error if you include it after GL/gl.h,
 // which Qt does include
-#include "utils/drm_format_helper.h"
+#include "core/drm_formats.h"
 
 #include "compositor.h"
 #include "core/drmdevice.h"
 #include "core/renderbackend.h"
+#include "core/renderdevice.h"
 #include "core/shmgraphicsbufferallocator.h"
 #include "internalwindow.h"
 #include "swapchain.h"
@@ -28,6 +29,7 @@ namespace KWin
 {
 namespace QPA
 {
+
 static quint32 s_windowId = 0;
 
 Window::Window(QWindow *window)
@@ -43,21 +45,19 @@ Window::~Window()
     unmap();
 }
 
-Swapchain *Window::swapchain(const std::shared_ptr<EglContext> &context, const QHash<uint32_t, QList<uint64_t>> &formats)
+Swapchain *Window::swapchain(const std::shared_ptr<EglContext> &context, const FormatModifierMap &formats)
 {
     const QSize nativeSize = geometry().size() * devicePixelRatio();
     const bool software = window()->surfaceType() == QSurface::RasterSurface; // RasterGLSurface is unsupported by us
     if (!m_swapchain || m_swapchain->size() != nativeSize
-        || !formats.contains(m_swapchain->format())
-        || m_swapchain->modifiers() != formats[m_swapchain->format()]
+        || !formats.containsFormat(m_swapchain->format(), m_swapchain->modifier())
         || (!software && m_eglContext.lock() != context)) {
-
         GraphicsBufferAllocator *allocator;
         if (software) {
             static ShmGraphicsBufferAllocator shmAllocator;
             allocator = &shmAllocator;
         } else {
-            allocator = Compositor::self()->backend()->drmDevice()->allocator();
+            allocator = Compositor::self()->primaryDevice()->allocator();
         }
 
         for (auto it = formats.begin(); it != formats.end(); it++) {
@@ -67,12 +67,12 @@ Swapchain *Window::swapchain(const std::shared_ptr<EglContext> &context, const Q
                     .format = it.key(),
                     .modifiers = it.value(),
                     .software = software,
+                    .scanout = false,
                 };
-                auto buffer = allocator->allocate(options);
-                if (!buffer) {
+                m_swapchain = Swapchain::create(allocator, options);
+                if (!m_swapchain) {
                     continue;
                 }
-                m_swapchain = std::make_unique<Swapchain>(allocator, options, buffer);
                 m_eglContext = context;
                 break;
             }

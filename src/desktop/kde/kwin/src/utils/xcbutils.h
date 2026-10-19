@@ -53,12 +53,6 @@ QSizeF KWIN_EXPORT fromXNative(const QSize &value);
  */
 qreal KWIN_EXPORT nativeRound(qreal value);
 
-/** Floors a given value to using the scale as a base
- *  Use when flooring to ints from Xwayland
- *  i.e floor(a/scale) * scale
- */
-RectF KWIN_EXPORT nativeFloor(const RectF &value);
-
 QString KWIN_EXPORT atomName(xcb_atom_t atom);
 
 QStringList KWIN_EXPORT atomToMimeTypes(xcb_atom_t atom);
@@ -1029,7 +1023,7 @@ private:
             ResizeIncrements = 64,
             Aspect = 128,
             BaseSize = 256,
-            WindowGravity = 512
+            WindowGravity = 512,
         };
         qint32 flags = 0;
         qint32 pad[4] = {0, 0, 0, 0};
@@ -1152,7 +1146,7 @@ private:
     };
     enum class Hints {
         Functions = (1L << 0),
-        Decorations = (1L << 1)
+        Decorations = (1L << 1),
     };
     enum class Functions {
         All = (1L << 0),
@@ -1160,7 +1154,7 @@ private:
         Move = (1L << 2),
         Minimize = (1L << 3),
         Maximize = (1L << 4),
-        Close = (1L << 5)
+        Close = (1L << 5),
     };
     bool testFunction(Functions flag) const
     {
@@ -1185,6 +1179,7 @@ private:
 
 namespace RandR
 {
+
 XCB_WRAPPER(ScreenInfo, xcb_randr_get_screen_info, xcb_window_t)
 
 XCB_WRAPPER_DATA(ScreenResourcesData, xcb_randr_get_screen_resources, xcb_window_t)
@@ -1421,6 +1416,7 @@ public:
 private:
     xcb_atom_t m_type;
 };
+
 }
 
 class ExtensionData
@@ -1663,15 +1659,19 @@ inline Window::Window(xcb_window_t window, bool destroy)
 }
 
 inline Window::Window(const Rect &geometry, uint32_t mask, const uint32_t *values, xcb_window_t parent)
-    : m_window(doCreate(geometry, XCB_COPY_FROM_PARENT, mask, values, parent))
+    : m_window(XCB_WINDOW_NONE)
     , m_destroy(true)
+    , m_geometry(geometry)
 {
+    m_window = doCreate(geometry, XCB_COPY_FROM_PARENT, mask, values, parent);
 }
 
 inline Window::Window(const Rect &geometry, uint16_t windowClass, uint32_t mask, const uint32_t *values, xcb_window_t parent)
-    : m_window(doCreate(geometry, windowClass, mask, values, parent))
+    : m_window(XCB_WINDOW_NONE)
     , m_destroy(true)
+    , m_geometry(geometry)
 {
+    m_window = doCreate(geometry, windowClass, mask, values, parent);
 }
 
 inline Window::~Window()

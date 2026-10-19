@@ -16,6 +16,10 @@ import org.kde.private.kcm_cursortheme
 KCM.GridDelegate {
     id: delegate
 
+    property alias previewPadding: previewWidget.padding
+    property alias previewSpacing: previewWidget.spacing
+    property alias maximumPreviewCount: previewWidget.maximumCount
+
     text: model.display
     toolTip: model.description
 
@@ -40,14 +44,20 @@ KCM.GridDelegate {
     actions: [
         Kirigami.Action {
             icon.name: "edit-delete"
-            tooltip: i18n("Remove Theme")
-            enabled: model.isWritable
+            tooltip: if (enabled) {
+                return i18nc("@info:tooltip", "Remove pointer theme");
+            } else if (delegate.GridView.isCurrentItem) {
+                return i18nc("@info:tooltip", "Cannot delete the active pointer theme");
+            } else {
+                return i18nc("@info:tooltip", "Cannot delete system-installed pointer themes");
+            }
+            enabled: model.isWritable && !delegate.GridView.isCurrentItem
             visible: !model.pendingDeletion
             onTriggered: model.pendingDeletion = true
         },
         Kirigami.Action {
             icon.name: "edit-undo"
-            tooltip: i18n("Restore Cursor Theme")
+            tooltip: i18n("Don’t delete this pointer theme")
             visible: model.pendingDeletion
             onTriggered: model.pendingDeletion = false
         }

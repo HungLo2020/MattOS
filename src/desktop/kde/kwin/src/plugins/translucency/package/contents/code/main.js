@@ -18,18 +18,23 @@ var translucencyEffect = {
         inactive: 100,
         comboboxpopups: 100,
         menus: 100,
+        excludeFullScreen: false,
         dropdownmenus: 100,
         popupmenus: 100,
         tornoffmenus: 100
     },
+    shouldManage: function (window) {
+        return !(window.fullScreen && translucencyEffect.settings.excludeFullScreen);
+    },
     loadConfig: function () {
-        var i, individualMenu, windows;
+        var individualMenu;
         // TODO: add animation duration
         translucencyEffect.settings.moveresize     = effect.readConfig("MoveResize", 80);
         translucencyEffect.settings.dialogs        = effect.readConfig("Dialogs", 100);
         translucencyEffect.settings.inactive       = effect.readConfig("Inactive", 100);
         translucencyEffect.settings.comboboxpopups = effect.readConfig("ComboboxPopups", 100);
         translucencyEffect.settings.menus          = effect.readConfig("Menus", 100);
+        translucencyEffect.settings.excludeFullScreen = effect.readConfig("ExcludeFullScreen", false);
         individualMenu = effect.readConfig("IndividualMenuConfig", false);
         if (individualMenu === true) {
             translucencyEffect.settings.dropdownmenus = effect.readConfig("DropdownMenus", 100);
@@ -41,16 +46,7 @@ var translucencyEffect = {
             translucencyEffect.settings.tornoffmenus  = translucencyEffect.settings.menus;
         }
 
-        windows = effects.stackingOrder;
-        for (i = 0; i < windows.length; i += 1) {
-            // stop all existing animations
-            translucencyEffect.cancelAnimations(windows[i]);
-            // schedule new animations based on new settings
-            translucencyEffect.startAnimation(windows[i]);
-            if (windows[i] !== effects.activeWindow) {
-                translucencyEffect.inactive.animate(windows[i]);
-            }
-        }
+        translucencyEffect.updateAnimation();
     },
     /**
      * @brief Starts the set animations depending on window type
@@ -74,7 +70,8 @@ var translucencyEffect = {
                 window.translucencyWindowTypeAnimation = ids;
             }
         };
-        if (window.desktopWindow === true || window.dock === true || window.visible === false) {
+        if (window.desktopWindow === true || window.dock === true || window.visible === false ||
+            translucencyEffect.shouldManage(window) === false) {
             return;
         }
         if (window.dialog === true) {
@@ -110,7 +107,8 @@ var translucencyEffect = {
     moveResize: {
         start: function (window) {
             var ids;
-            if (translucencyEffect.settings.moveresize === 100) {
+            if (translucencyEffect.settings.moveresize === 100 ||
+                translucencyEffect.shouldManage(window) === false) {
                 return;
             }
             ids = set({
@@ -179,7 +177,8 @@ var translucencyEffect = {
                     window.desktopWindow === true ||
                     window.dock === true ||
                     window.visible === false ||
-                    window.deleted === true) {
+                    window.deleted === true ||
+                    translucencyEffect.shouldManage(window) == false) {
                 return;
             }
             ids = set({
@@ -193,23 +192,32 @@ var translucencyEffect = {
             window.translucencyInactiveAnimation = ids;
         }
     },
-    desktopChanged: function () {
-        var i, windows;
-        windows = effects.stackingOrder;
-        for (i = 0; i < windows.length; i += 1) {
-            translucencyEffect.cancelAnimations(windows[i]);
-            translucencyEffect.startAnimation(windows[i]);
-            if (windows[i] !== effects.activeWindow) {
-                translucencyEffect.inactive.animate(windows[i]);
+    /**
+     * @brief updates windows animations based on their state
+     */
+    updateWindowAnimation: function (window) {
+        translucencyEffect.cancelAnimations(window);
+        if (translucencyEffect.shouldManage(window)) {
+            // schedule new animations based on new settings
+            translucencyEffect.startAnimation(window);
+            if (window !== effects.activeWindow) {
+                translucencyEffect.inactive.animate(window);
             }
         }
+    },
+    updateAnimation: function (oldDesktop, newDesktop, withWindow, screen) {
+        effects.stackingOrder.forEach((window) => {
+            if (window.screen === screen) {
+                translucencyEffect.updateWindowAnimation(window);
+            }
+        });
     },
     manage: function (window) {
         window.windowDesktopsChanged.connect(translucencyEffect.cancelAnimations);
         window.windowDesktopsChanged.connect(translucencyEffect.startAnimation);
         window.windowStartUserMovedResized.connect(translucencyEffect.moveResize.start);
         window.windowFinishUserMovedResized.connect(translucencyEffect.moveResize.finish);
-
+        window.windowFullScreenChanged.connect(translucencyEffect.updateWindowAnimation);
         window.minimizedChanged.connect(() => {
             if (window.minimized) {
                 translucencyEffect.cancelAnimations(window);
@@ -225,7 +233,7 @@ var translucencyEffect = {
         effects.windowAdded.connect(translucencyEffect.startAnimation);
         effects.windowClosed.connect(translucencyEffect.cancelAnimations);
         effects.windowActivated.connect(translucencyEffect.inactive.activated);
-        effects.desktopChanged.connect(translucencyEffect.desktopChanged);
+        effects.desktopChanged.connect(translucencyEffect.updateAnimation);
 
         for (const window of effects.stackingOrder) {
             translucencyEffect.manage(window);

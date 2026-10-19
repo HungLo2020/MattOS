@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="submit_dialog_title">Akats-txostena bidali</string>
+  <string name="submit_dialog_text">Kraskadura-txosten automatiko bat bidali nahi duzu?</string>
+</resources>

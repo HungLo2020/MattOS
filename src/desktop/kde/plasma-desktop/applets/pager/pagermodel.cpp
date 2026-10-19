@@ -13,7 +13,6 @@
 #include <virtualdesktopinfo.h>
 #include <waylandtasksmodel.h>
 #include <windowtasksmodel.h>
-#include <xwindowtasksmodel.h>
 
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -24,8 +23,6 @@
 #include <QUuid>
 
 #include <KWindowSystem>
-
-#include <config-X11.h>
 
 #include <PlasmaActivities/Controller>
 
@@ -47,6 +44,7 @@ public:
 
     bool showOnlyCurrentScreen = false;
     QRect screenGeometry;
+    QString screenName;
     QRect virtualGeometry;
 
     WindowTasksModel *tasksModel = nullptr;
@@ -59,6 +57,7 @@ public:
     QMetaObject::Connection virtualDesktopNumberConn;
     QMetaObject::Connection virtualDesktopNamesConn;
     QMetaObject::Connection virtualDesktopPositionsConn;
+    QMetaObject::Connection virtualDesktopCurrentConn;
 
     QList<WindowModel *> windowModels;
 
@@ -138,7 +137,12 @@ void PagerModel::Private::refreshDataSource()
         QObject::disconnect(activityNamesConn);
 
         QObject::disconnect(activityInfo, &ActivityInfo::currentActivityChanged, q, &PagerModel::currentPageChanged);
-        QObject::connect(virtualDesktopInfo, &VirtualDesktopInfo::currentDesktopChanged, q, &PagerModel::currentPageChanged, Qt::UniqueConnection);
+        QObject::disconnect(virtualDesktopCurrentConn);
+        virtualDesktopCurrentConn = QObject::connect(virtualDesktopInfo,
+                                                     &VirtualDesktopInfo::currentDesktopForScreenChanged,
+                                                     q,
+                                                     &PagerModel::slotCurrentDesktopForScreenChanged,
+                                                     Qt::UniqueConnection);
     } else {
         QObject::disconnect(activityNumberConn);
         activityNumberConn = QObject::connect(activityInfo, &ActivityInfo::numberOfRunningActivitiesChanged, q, [this]() {
@@ -153,8 +157,8 @@ void PagerModel::Private::refreshDataSource()
         QObject::disconnect(virtualDesktopNumberConn);
         QObject::disconnect(virtualDesktopNamesConn);
         QObject::disconnect(virtualDesktopPositionsConn);
+        QObject::disconnect(virtualDesktopCurrentConn);
 
-        QObject::disconnect(virtualDesktopInfo, &VirtualDesktopInfo::currentDesktopChanged, q, &PagerModel::currentPageChanged);
         QObject::connect(activityInfo, &ActivityInfo::currentActivityChanged, q, &PagerModel::currentPageChanged, Qt::UniqueConnection);
     }
 
@@ -261,6 +265,7 @@ void PagerModel::setEnabled(bool enabled)
         disconnect(d->virtualDesktopNumberConn);
         disconnect(d->virtualDesktopNamesConn);
         disconnect(d->virtualDesktopPositionsConn);
+        disconnect(d->virtualDesktopCurrentConn);
 
         qDeleteAll(d->windowModels);
         d->windowModels.clear();
@@ -322,11 +327,29 @@ void PagerModel::setScreenGeometry(const QRect &geometry)
 {
     if (d->screenGeometry != geometry) {
         d->screenGeometry = geometry;
+        refresh();
 
         if (d->showOnlyCurrentScreen) {
             Q_EMIT pagerItemSizeChanged();
+        }
 
-            refresh();
+        Q_EMIT showOnlyCurrentScreenChanged();
+    }
+}
+
+QString PagerModel::screenName() const
+{
+    return d->screenName;
+}
+
+void PagerModel::setScreenName(const QString &screenName)
+{
+    if (d->screenName != screenName) {
+        d->screenName = screenName;
+        refresh();
+
+        if (d->showOnlyCurrentScreen) {
+            Q_EMIT pagerItemSizeChanged();
         }
 
         Q_EMIT showOnlyCurrentScreenChanged();
@@ -336,7 +359,9 @@ void PagerModel::setScreenGeometry(const QRect &geometry)
 int PagerModel::currentPage() const
 {
     if (d->pagerType == VirtualDesktops) {
-        return d->virtualDesktopInfo->desktopIds().indexOf(d->virtualDesktopInfo->currentDesktop());
+        QVariant desktopId =
+            !d->screenName.isEmpty() ? d->virtualDesktopInfo->currentDesktopByScreenName(d->screenName) : d->virtualDesktopInfo->currentDesktop();
+        return d->virtualDesktopInfo->desktopIds().indexOf(desktopId);
     } else {
         return d->activityInfo->runningActivities().indexOf(d->activityInfo->currentActivity());
     }
@@ -351,11 +376,7 @@ int PagerModel::layoutRows() const
 QSize PagerModel::pagerItemSize() const
 {
     if (d->showOnlyCurrentScreen && d->screenGeometry.isValid()) {
-#if HAVE_X11
-        const double devicePixelRatio = KWindowSystem::isPlatformWayland() ? 1.0 : qGuiApp->devicePixelRatio();
-#else
         constexpr int devicePixelRatio = 1;
-#endif
         return d->screenGeometry.size() * devicePixelRatio;
     }
 
@@ -460,26 +481,6 @@ void PagerModel::moveWindow(const QModelIndex &index,
             }
         }
     }
-#if HAVE_X11
-    if (KWindowSystem::isPlatformX11() && !index.data(TaskManager::AbstractTasksModel::IsFullScreen).toBool()
-        && (targetItemId == sourceItemId || isOnAllDesktops)) {
-        const auto winIds = index.data(TaskManager::AbstractTasksModel::WinIdList).toList();
-        if (winIds.isEmpty()) {
-            return;
-        }
-        QPointF dest(x / widthScaleFactor, y / heightScaleFactor);
-
-        // Don't move windows to negative positions.
-        dest = QPointF(qMax(dest.x(), qreal(0.0)), qMax(dest.y(), qreal(0.0)));
-
-        // Use _NET_MOVERESIZE_WINDOW rather than plain move, so that the WM knows this is a pager request.
-        auto x11App = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
-        NETRootInfo info(x11App->connection(), NET::Properties());
-        const int flags = (0x20 << 12) | (0x03 << 8) | 1; // From tool, x/y, northwest gravity.
-        const QPoint &d = dest.toPoint();
-        info.moveResizeWindowRequest(winIds[0].toUInt(), flags, d.x(), d.y(), 0, 0);
-    }
-#endif
 }
 
 void PagerModel::changePage(int page)
@@ -493,7 +494,13 @@ void PagerModel::changePage(int page)
         }
     } else {
         if (d->pagerType == VirtualDesktops) {
-            d->virtualDesktopInfo->requestActivate(d->virtualDesktopInfo->desktopIds().at(page));
+            QVariant desktopId = d->virtualDesktopInfo->desktopIds().at(page);
+
+            if (!d->screenName.isEmpty()) {
+                d->virtualDesktopInfo->requestActivateOnScreen(desktopId, d->screenName);
+            } else {
+                d->virtualDesktopInfo->requestActivate(desktopId);
+            }
         } else {
             const QStringList &runningActivities = d->activityInfo->runningActivities();
             if (page < runningActivities.length()) {
@@ -527,9 +534,7 @@ void PagerModel::drop(QMimeData *mimeData, int modifiers, const QVariant &itemId
 
     bool ok = false;
     QList<QModelIndex> indices;
-    if (KWindowSystem::isPlatformX11()) {
-        indices = findWindows(TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok));
-    } else if (KWindowSystem::isPlatformWayland()) {
+    if (KWindowSystem::isPlatformWayland()) {
         indices = findWindows(TaskManager::WaylandTasksModel::winIdsFromMimeData(mimeData, &ok));
     }
     if (!ok) {
@@ -596,11 +601,7 @@ void PagerModel::componentComplete()
 
 void PagerModel::computePagerItemSize()
 {
-#if HAVE_X11
-    const double devicePixelRatio = KWindowSystem::isPlatformWayland() ? 1.0 : qGuiApp->devicePixelRatio();
-#else
     constexpr int devicePixelRatio = 1;
-#endif
     QRect wholeScreen;
     for (const auto screens = qGuiApp->screens(); auto screen : screens) {
         const QRect geometry = screen->geometry();
@@ -610,6 +611,13 @@ void PagerModel::computePagerItemSize()
     if (d->virtualGeometry != wholeScreen) {
         d->virtualGeometry = wholeScreen;
         Q_EMIT pagerItemSizeChanged();
+    }
+}
+
+void PagerModel::slotCurrentDesktopForScreenChanged(const QString &screenName)
+{
+    if (d->screenName.isEmpty() || d->screenName == screenName) {
+        Q_EMIT currentPageChanged();
     }
 }
 

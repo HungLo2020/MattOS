@@ -10,8 +10,6 @@
 
 #include "private/applet_p.h"
 
-#include <config-plasma.h>
-
 #include <QDebug>
 #include <QDir>
 #include <QFile>
@@ -49,7 +47,6 @@ AppletPrivate::AppletPrivate(const KPluginMetaData &info, int uniqueID, Applet *
     , activationAction(nullptr)
     , itemStatus(Types::UnknownStatus)
     , modificationsTimer(nullptr)
-    , deleteNotificationTimer(nullptr)
     , hasConfigurationInterface(false)
     , failed(false)
     , transient(false)
@@ -92,7 +89,7 @@ void AppletPrivate::init(const QVariantList &args)
 {
     startupArguments = args;
 
-    // WARNING: do not access config() OR globalConfig() in this method!
+    // WARNING: do not access config() in this method!
     //          that requires a Corona, which is not available at this point
     q->setHasConfigurationInterface(true);
 
@@ -227,7 +224,7 @@ void AppletPrivate::askDestroy()
         // no parent, but it won't leak, since it will be closed both in case of timeout
         // or direct action
         deleteNotification = new KNotification(QStringLiteral("plasmoidDeleted"));
-        deleteNotification->setFlags(KNotification::Persistent | KNotification::SkipGrouping);
+        deleteNotification->setFlags(KNotification::SkipGrouping);
 
         deleteNotification->setComponentName(QStringLiteral("plasma_workspace"));
         deleteNotification->setIconName(q->icon());
@@ -250,14 +247,12 @@ void AppletPrivate::askDestroy()
         KNotificationAction *undoAction = deleteNotification->addAction(i18n("Undo"));
         QObject::connect(undoAction, &KNotificationAction::activated, q, [=, this]() {
             setDestroyed(false);
-            if (!q->isContainment() && q->containment()) {
+            if (q->containment() && q->containment() != q) {
                 Plasma::Applet *containmentApplet = static_cast<Plasma::Applet *>(q->containment());
-                if (containmentApplet && containmentApplet->d->deleteNotificationTimer) {
+                if (containmentApplet && containmentApplet->d->transient) {
                     Q_EMIT containmentApplet->destroyedChanged(false);
                     // when an applet gets transient, it's "systemimmutable"
                     Q_EMIT q->immutabilityChanged(q->immutability());
-                    delete containmentApplet->d->deleteNotificationTimer;
-                    containmentApplet->d->deleteNotificationTimer = nullptr;
                 }
 
                 // make sure the applets are sorted by id
@@ -272,10 +267,6 @@ void AppletPrivate::askDestroy()
             }
             if (deleteNotification) {
                 deleteNotification->close();
-            } else if (deleteNotificationTimer) {
-                deleteNotificationTimer->stop();
-                deleteNotificationTimer->deleteLater();
-                deleteNotificationTimer = nullptr;
             }
         });
         QObject::connect(deleteNotification.data(), &KNotification::closed, q, [this]() {
@@ -283,31 +274,16 @@ void AppletPrivate::askDestroy()
             if (transient) {
                 cleanUpAndDelete();
             }
-            if (deleteNotificationTimer) {
-                deleteNotificationTimer->stop();
-                deleteNotificationTimer->deleteLater();
-                deleteNotificationTimer = nullptr;
+        });
+
+        QTimer::singleShot(60000, q, [this] {
+            if (deleteNotification) {
+                deleteNotification->close();
             }
         });
 
         deleteNotification->sendEvent();
-        if (!deleteNotificationTimer) {
-            deleteNotificationTimer = new QTimer(q);
-            // really delete after a minute
-            deleteNotificationTimer->setInterval(60 * 1000);
-            deleteNotificationTimer->setSingleShot(true);
-            QObject::connect(deleteNotificationTimer, &QTimer::timeout, q, [=, this]() {
-                transient = true;
-                if (deleteNotification) {
-                    deleteNotification->close();
-                } else {
-                    Q_EMIT q->destroyedChanged(true);
-                    cleanUpAndDelete();
-                }
-            });
-            deleteNotificationTimer->start();
-        }
-        if (!q->isContainment() && q->containment()) {
+        if (q->containment() && q->containment() != q) {
             Q_EMIT q->containment()->appletAboutToBeRemoved(q);
             q->containment()->d->applets.removeAll(q);
             Q_EMIT q->containment()->appletRemoved(q);
@@ -423,6 +399,7 @@ void AppletPrivate::propagateConfigChanged()
 
 void AppletPrivate::setUiReady()
 {
+    uiReady = true;
     // If we a re a containment, call setUiReady
     Containment *thisContainment = qobject_cast<Containment *>(q);
     if (thisContainment && thisContainment->isContainment()) {
@@ -436,15 +413,6 @@ void AppletPrivate::setUiReady()
     if (parentContainment && parentContainment != thisContainment) {
         parentContainment->d->appletLoaded(q);
     }
-}
-
-QString AppletPrivate::globalName() const
-{
-    if (!appletDescription.isValid()) {
-        return QString();
-    }
-
-    return appletDescription.pluginId();
 }
 
 void AppletPrivate::scheduleConstraintsUpdate(Applet::Constraints c)
@@ -480,21 +448,11 @@ KConfigGroup *AppletPrivate::mainConfigGroup()
         return mainConfig;
     }
 
-    Containment *c = q->containment();
-    Plasma::Applet *parentApplet = nullptr;
-    if (c) {
-        parentApplet = qobject_cast<Plasma::Applet *>(c->parent());
-    }
-
     if (q->isContainment() && static_cast<Containment *>(q)->containmentType() != Containment::CustomEmbedded) {
         Corona *corona = static_cast<Containment *>(q)->corona();
         KConfigGroup containmentConfig;
-        // qCDebug(LOG_PLASMA) << "got a corona, baby?" << (QObject*)corona << (QObject*)q;
 
-        if (parentApplet) {
-            containmentConfig = parentApplet->config();
-            containmentConfig = KConfigGroup(&containmentConfig, QStringLiteral("Containments"));
-        } else if (corona) {
+        if (corona) {
             containmentConfig = KConfigGroup(corona->config(), QStringLiteral("Containments"));
         } else {
             containmentConfig = KConfigGroup(KSharedConfig::openConfig(), QStringLiteral("Containments"));
@@ -504,9 +462,9 @@ KConfigGroup *AppletPrivate::mainConfigGroup()
     } else {
         KConfigGroup appletConfig;
 
-        if (c) {
+        if (q->containment()) {
             // applet directly in a Containment, as usual
-            appletConfig = c->config();
+            appletConfig = q->containment()->config();
             appletConfig = KConfigGroup(&appletConfig, QStringLiteral("Applets"));
         } else {
             qCDebug(LOG_PLASMA) << "requesting config for" << q->title() << "without a containment!";
@@ -514,11 +472,6 @@ KConfigGroup *AppletPrivate::mainConfigGroup()
         }
 
         mainConfig = new KConfigGroup(&appletConfig, QString::number(appletId));
-    }
-
-    if (configLoader) {
-        configLoader->setSharedConfig(KSharedConfig::openConfig(mainConfig->config()->name()));
-        configLoader->load();
     }
 
     return mainConfig;

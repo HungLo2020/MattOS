@@ -33,10 +33,11 @@ Some non-red text<p>'
         value: 0
         width: 200
 
-        property var items: ["Bold", "Cyanderlined", "Misspelled", "Gaudy", "Orangeout"]
+        property var items: ["Bold", "Cyanderlined", "Wave", "Dash", "Dot",
+                             "DashDot", "DashDotDot", "SpellCheck", "Gaudy", "Orangeout"]
 
         validator: RegularExpressionValidator {
-            regularExpression: new RegExp("(Bold|Cyanderlined|Misspelled|Gaudy|Orangeout)", "i")
+            regularExpression: new RegExp("(Bold|Cyanderlined|Wave|Dash|Dot|DashDot|DashDotDot|SpellCheck|Gaudy|Orangeout)", "i")
         }
 
         textFromValue: function(value) {

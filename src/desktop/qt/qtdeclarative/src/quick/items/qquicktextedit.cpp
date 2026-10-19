@@ -11,6 +11,7 @@
 #include "qquicktextnodeengine_p.h"
 
 #include <QtCore/qmath.h>
+#include <QtCore/qvarlengtharray.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qevent.h>
 #include <QtGui/qpainter.h>
@@ -1710,6 +1711,12 @@ void QQuickTextEdit::componentComplete()
         else
 #endif
             d->control->setPlainText(d->text);
+    } else if (!d->document->isEmpty()) {
+        // Content was loaded into the document (e.g. via textDocument.source) while
+        // we were not yet componentComplete: at that point text() could not recompute
+        // and no binding/handler was connected to observe the change. Notify now.
+        d->textCached = false;
+        emit textChanged();
     }
 
     if (d->dirty) {
@@ -2037,10 +2044,8 @@ void QQuickTextEdit::select(int start, int end)
     if (start < 0 || end < 0 || start >= d->document->characterCount() || end >= d->document->characterCount())
         return;
     QTextCursor cursor = d->control->textCursor();
-    cursor.beginEditBlock();
     cursor.setPosition(start, QTextCursor::MoveAnchor);
     cursor.setPosition(end, QTextCursor::KeepAnchor);
-    cursor.endEditBlock();
     d->control->setTextCursor(cursor);
 
     // QTBUG-11100
@@ -2546,7 +2551,7 @@ QSGNode *QQuickTextEdit::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
                 nodeStart = pos;
             } else {
                 // Having nodes spanning across frame boundaries will break the current bookkeeping mechanism. We need to prevent that.
-                QList<int> frameBoundaries;
+                QVarLengthArray<int, 8> frameBoundaries;
                 frameBoundaries.reserve(frames.size());
                 for (QTextFrame *frame : std::as_const(frames))
                     frameBoundaries.append(frame->firstPosition());
@@ -2635,7 +2640,9 @@ QSGNode *QQuickTextEdit::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
 
                     if ((it.atEnd()) || block.next().position() >= firstCleanNode.startPos())
                         break; // last node that needed replacing or last block of the frame
-                    QList<int>::const_iterator lowerBound = std::lower_bound(frameBoundaries.constBegin(), frameBoundaries.constEnd(), block.next().position());
+                    const auto lowerBound =
+                            std::lower_bound(frameBoundaries.constBegin(),
+                                             frameBoundaries.constEnd(), block.next().position());
                     if (node && (currentNodeSize > nodeBreakingSize || lowerBound == frameBoundaries.constEnd() || *lowerBound > nodeStart)) {
                         currentNodeSize = 0;
                         d->containsUnscalableGlyphs = d->containsUnscalableGlyphs
@@ -2657,7 +2664,7 @@ QSGNode *QQuickTextEdit::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
                     d->addCurrentTextNodeToRoot(&engine, rootNode, node, nodeIterator, nodeStart);
             }
         }
-        frameDecorationsEngine.addToSceneGraph(rootNode->frameDecorationsNode, QQuickText::Normal, QColor());
+        frameDecorationsEngine.addToSceneGraph(rootNode->frameDecorationsNode, nullptr, QQuickText::Normal, QColor());
         // Now prepend the frame decorations since we want them rendered first, with the text nodes and cursor in front.
         rootNode->prependChildNode(rootNode->frameDecorationsNode);
 
@@ -3312,7 +3319,7 @@ void QQuickTextEditPrivate::handleFocusEvent(QFocusEvent *event)
 
 void QQuickTextEditPrivate::addCurrentTextNodeToRoot(QQuickTextNodeEngine *engine, QSGTransformNode *root, QSGInternalTextNode *node, TextNodeIterator &it, int startPos)
 {
-    engine->addToSceneGraph(node, QQuickText::Normal, QColor());
+    engine->addToSceneGraph(node, nullptr, QQuickText::Normal, QColor());
     it = textNodeMap.insert(it, TextNode(startPos, node));
     ++it;
     root->appendChildNode(node);

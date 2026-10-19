@@ -27,7 +27,6 @@ class DrmFramebuffer;
 class EglSwapchain;
 class EglSwapchainSlot;
 class QPainterSwapchain;
-class ShadowBuffer;
 class EglContext;
 class EglGbmBackend;
 class GraphicsBuffer;
@@ -38,24 +37,33 @@ class ColorTransformation;
 class GlLookUpTable;
 class IccProfile;
 class IccShader;
+class MultiGpuSwapchain;
+class RenderDevice;
 
 class EglGbmLayerSurface : public QObject
 {
     Q_OBJECT
+
 public:
     enum class BufferTarget {
         Normal,
-        Dumb
+        Dumb,
     };
     explicit EglGbmLayerSurface(DrmGpu *gpu, EglGbmBackend *eglBackend, BufferTarget target = BufferTarget::Normal);
     ~EglGbmLayerSurface();
 
-    std::optional<OutputLayerBeginFrameInfo> startRendering(const QSize &bufferSize, OutputTransform transformation, const QHash<uint32_t, QList<uint64_t>> &formats, const std::shared_ptr<ColorDescription> &blendingColor, const std::shared_ptr<ColorDescription> &layerBlendingColor, const std::shared_ptr<IccProfile> &iccProfile, double scale, BackendOutput::ColorPowerTradeoff tradeoff, bool useShadowBuffer, uint32_t requiredAlphaBits);
+    std::optional<OutputLayerBeginFrameInfo> startRendering(const QSize &bufferSize, OutputTransform transformation, const FormatModifierMap &formats,
+                                                            const std::shared_ptr<ColorDescription> &blendingColor,
+                                                            const std::shared_ptr<ColorDescription> &layerBlendingColor,
+                                                            const std::shared_ptr<IccProfile> &iccProfile,
+                                                            const Colorimetry &wireColor, const TransferFunction::Type &wireTransfer,
+                                                            double scale, BackendOutput::ColorPowerTradeoff tradeoff,
+                                                            bool useShadowBuffer, uint32_t requiredAlphaBits);
     bool endRendering(const Region &damagedDeviceRegion, OutputFrame *frame);
 
     void destroyResources();
     EglGbmBackend *eglBackend() const;
-    std::shared_ptr<DrmFramebuffer> renderTestBuffer(const QSize &bufferSize, const QHash<uint32_t, QList<uint64_t>> &formats, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits);
+    std::shared_ptr<DrmFramebuffer> renderTestBuffer(const QSize &bufferSize, const FormatModifierMap &formats, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits);
     void forgetDamage();
 
     std::shared_ptr<DrmFramebuffer> currentBuffer() const;
@@ -64,8 +72,8 @@ public:
 private:
     enum class MultiGpuImportMode {
         None,
-        Egl,
-        DumbBuffer
+        GpuCopy,
+        DumbBuffer,
     };
     struct Surface
     {
@@ -78,12 +86,9 @@ private:
         std::shared_ptr<EglSwapchainSlot> currentSlot;
         DamageJournal damageJournal;
         std::unique_ptr<QPainterSwapchain> importDumbSwapchain;
-        std::shared_ptr<EglContext> importContext;
-        std::shared_ptr<EglSwapchain> importGbmSwapchain;
-        QHash<GraphicsBuffer *, std::shared_ptr<GLTexture>> importedTextureCache;
+        std::unique_ptr<MultiGpuSwapchain> importSwapchain;
         QImage cpuCopyCache;
         MultiGpuImportMode importMode;
-        DamageJournal importDamageJournal;
         std::shared_ptr<DrmFramebuffer> currentFramebuffer;
         BufferTarget bufferTarget;
         double scale = 1;
@@ -98,20 +103,21 @@ private:
         double brightness = 1.0;
         std::unique_ptr<IccShader> iccShader;
         std::shared_ptr<IccProfile> iccProfile;
+        Colorimetry wireColor = Colorimetry::BT709;
+        TransferFunction::Type wireTransfer = TransferFunction::Type::gamma22;
         DamageJournal shadowDamageJournal;
         BackendOutput::ColorPowerTradeoff tradeoff = BackendOutput::ColorPowerTradeoff::PreferEfficiency;
 
         std::unique_ptr<GLRenderTimeQuery> compositingTimeQuery;
     };
-    bool checkSurface(const QSize &size, const QHash<uint32_t, QList<uint64_t>> &formats, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits);
-    bool doesSurfaceFit(Surface *surface, const QSize &size, const QHash<uint32_t, QList<uint64_t>> &formats, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits) const;
-    std::unique_ptr<Surface> createSurface(const QSize &size, const QHash<uint32_t, QList<uint64_t>> &formats, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits) const;
-    std::unique_ptr<Surface> createSurface(const QSize &size, uint32_t format, const QList<uint64_t> &modifiers, MultiGpuImportMode importMode, BufferTarget bufferTarget, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits) const;
-    std::shared_ptr<EglSwapchain> createGbmSwapchain(DrmGpu *gpu, EglContext *context, const QSize &size, uint32_t format, const QList<uint64_t> &modifiers, MultiGpuImportMode importMode, BufferTarget bufferTarget) const;
+    bool checkSurface(const QSize &size, const FormatModifierMap &formats, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits);
+    bool doesSurfaceFit(Surface *surface, const QSize &size, const FormatModifierMap &formats, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits) const;
+    std::unique_ptr<Surface> createSurface(const QSize &size, const FormatModifierMap &formats, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits) const;
+    std::unique_ptr<Surface> createSurface(const QSize &size, uint32_t format, const ModifierList &modifiers, MultiGpuImportMode importMode, BufferTarget bufferTarget, BackendOutput::ColorPowerTradeoff tradeoff, uint32_t requiredAlphaBits) const;
 
     std::shared_ptr<DrmFramebuffer> doRenderTestBuffer(Surface *surface) const;
     std::shared_ptr<DrmFramebuffer> importBuffer(Surface *surface, EglSwapchainSlot *source, FileDescriptor &&readFence, OutputFrame *frame, const Region &damagedDeviceRegion) const;
-    std::shared_ptr<DrmFramebuffer> importWithEgl(Surface *surface, EglSwapchainSlot *source, FileDescriptor &&readFence, OutputFrame *frame, const Region &damagedDeviceRegion) const;
+    std::shared_ptr<DrmFramebuffer> importWithCopy(Surface *surface, EglSwapchainSlot *source, FileDescriptor &&readFence, OutputFrame *frame, const Region &damagedDeviceRegion) const;
     std::shared_ptr<DrmFramebuffer> importWithCpu(Surface *surface, EglSwapchainSlot *source, OutputFrame *frame) const;
 
     std::unique_ptr<Surface> m_surface;

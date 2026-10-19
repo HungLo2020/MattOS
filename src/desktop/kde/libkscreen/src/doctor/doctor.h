@@ -32,7 +32,6 @@ public:
     OutputPtr findOutput(const QString &query);
     KScreen::ModePtr findMode(OutputPtr output, const QString &query);
 
-    void showBackends() const;
     void showOutputs() const;
     void showJson() const;
 
@@ -49,6 +48,7 @@ public:
     void setHdrEnabled(OutputPtr output, bool enable);
     void setSdrBrightness(OutputPtr output, uint32_t brightness);
     void setWcgEnabled(OutputPtr output, bool enable);
+    void setAutoRotatePolicy(OutputPtr output, KScreen::Output::AutoRotatePolicy policy);
 
 Q_SIGNALS:
     void outputsChanged();

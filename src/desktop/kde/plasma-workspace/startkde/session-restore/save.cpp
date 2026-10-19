@@ -31,11 +31,10 @@ using namespace Qt::StringLiterals;
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_DisableSessionManager);
+    QGuiApplication::setDesktopSettingsAware(false);
     QGuiApplication::setDesktopFileName(u"plasma-fallback-session-save"_s);
     QGuiApplication a(argc, argv);
     a.setApplicationName(u"plasmasessionrestore"_s);
-
-    a.setDesktopSettingsAware(false);
 
     TaskManager::WindowTasksModel tasksModel(&a);
 
@@ -59,7 +58,12 @@ int main(int argc, char *argv[])
     QSet<QString> seenAppIds;
     for (int i = 0; i < tasksModel.rowCount(); ++i) {
         const QModelIndex index = tasksModel.index(i, 0);
-        QString appId = tasksModel.data(index, TaskManager::AbstractTasksModel::AppId).toString();
+        QString appId = tasksModel.data(index, TaskManager::AbstractTasksModel::StorageId).toString();
+
+        if (appId.isEmpty()) {
+            qCDebug(FALLBACK_SESSION_RESTORE) << "Skipping due to no appId";
+            continue;
+        }
 
         if (seenAppIds.contains(appId)) {
             qCDebug(FALLBACK_SESSION_RESTORE) << "Skipping duplicate" << appId;

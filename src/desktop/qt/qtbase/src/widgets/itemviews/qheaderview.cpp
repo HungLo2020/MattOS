@@ -26,6 +26,7 @@
 #include <private/qheaderview_p.h>
 #include <private/qabstractitemmodel_p.h>
 #include <private/qabstractitemdelegate_p.h>
+#include <QtCore/private/qduplicatetracker_p.h>
 
 #ifndef QT_NO_DATASTREAM
 #include <qdatastream.h>
@@ -151,6 +152,24 @@ static const int maxSizeSection = 1048575; // since section size is in a bitfiel
     \l{QHeaderView::ResizeMode}{Fixed} (without specifying it for any indexes,
     as that will do the opposite). The user should also be prevented from
     moving sections by keeping \l sectionsMovable disabled.
+
+    \section1 Security Considerations
+
+    The restoreState() function deserializes a versioned binary blob that
+    describes column order, section sizes, the sort indicator, and related view
+    state. The format's magic number, version, and reported total length are
+    validated, but the deserialized visual and logical indices and the sort
+    indicator's section are not checked against the header's actual section
+    count before being used to index internal data structures.
+
+    Only pass restoreState() a QByteArray that was previously produced by
+    saveState() and persisted by the same, or a compatible, version of your
+    application, typically round-tripped through QSettings. Do not call
+    restoreState() with data of unknown or untrusted origin, such as a file
+    downloaded from the network, a synced or shared configuration file, or
+    data supplied by another, potentially compromised, application.
+
+    \sa saveState(), restoreState()
 */
 
 /*!
@@ -4311,6 +4330,31 @@ bool QHeaderViewPrivate::read(QDataStream &in)
 
     if (sectionItemsLengthTotal != lengthIn && newSectionItems.size() > 0)
         return false;
+
+    // visualIndicesIn/logicalIndicesIn map visual <-> logical section indices for
+    // each other. Each must either be empty (meaning identity mapping) or have
+    // exactly one entry per section, and every entry must be a valid index into
+    // the restored section list. Without this check, a corrupted or malicious
+    // state blob could make logicalIndex()/visualIndex() index out of bounds.
+    const auto isValidIndexMapping = [](const QList<int> &mapping, qsizetype sectionCount) {
+        if (mapping.isEmpty())
+            return true;
+        if (mapping.size() != sectionCount)
+            return false;
+        QDuplicateTracker<int> seenIndices;
+        for (int index : mapping) {
+            if (index < 0 || index >= sectionCount)
+                return false;
+            if (seenIndices.hasSeen(index))
+                return false;
+        }
+        return true;
+    };
+    const qsizetype newSectionCount = newSectionItems.size();
+    if (!isValidIndexMapping(visualIndicesIn, newSectionCount)
+        || !isValidIndexMapping(logicalIndicesIn, newSectionCount)) {
+        return false;
+    }
 
     // We don't want to do an actual change in normal mode.
     // (Hence we have already set up sections etc)

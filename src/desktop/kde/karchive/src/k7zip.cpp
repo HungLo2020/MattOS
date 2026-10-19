@@ -172,7 +172,7 @@ static const quint64 k_AES = 0x06F10701;
 static const quint64 k_ZSTD = 0x4F71101;
 // static const quint64 k_BROTLI = 0x4F71102;
 
-/*!
+/*
  * A K7ZipFileEntry represents a file in a 7zip archive.
  */
 class K7ZipFileEntry : public KArchiveFile
@@ -191,13 +191,13 @@ public:
 
     ~K7ZipFileEntry() override;
 
-    /*!
+    /*
      * Returns the content of this file.
      * Call data() with care (only once per file), this data isn't cached.
      */
     [[nodiscard]] QByteArray data() const override;
 
-    /*!
+    /*
      * This method returns QIODevice (internal class: KLimitedIODevice)
      * on top of the underlying QIODevice. This is obviously for reading only.
      *
@@ -616,7 +616,8 @@ quint64 K7Zip::K7ZipPrivate::readNumber()
             return 0;
         }
 
-        value |= ((unsigned char)buffer[pos++] << (8 * i));
+        const quint64 byte = static_cast<unsigned char>(buffer[pos++]);
+        value |= byte << (8 * i);
         mask >>= 1;
     }
     return value;

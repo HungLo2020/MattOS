@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import unittest
+import time
 from typing import Final
 
 from appium import webdriver
@@ -18,7 +19,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "desktop"))
-from desktoptest import start_kded
 
 KDE_VERSION: Final = 6
 KCM_ID: Final = "kcm_kded"
@@ -28,6 +28,32 @@ def loadedModules(session_bus: Gio.DBusConnection) -> list[str]:
     kded_reply: GLib.Variant = session_bus.call_sync(f"org.kde.kded{KDE_VERSION}", "/kded", f"org.kde.kded{KDE_VERSION}", "loadedModules", None, GLib.VariantType("(as)"), Gio.DBusSendMessageFlags.NONE, 1000)
     return kded_reply.get_child_value(0).unpack()
 
+def name_has_owner(session_bus: Gio.DBusConnection | None, name: str) -> bool:
+    """
+    Whether the given name is available on session bus
+    """
+    if session_bus is None:
+        session_bus = Gio.bus_get_sync(Gio.BusType.SESSION)
+    message: Gio.DBusMessage = Gio.DBusMessage.new_method_call("org.freedesktop.DBus", "/", "org.freedesktop.DBus", "NameHasOwner")
+    message.set_body(GLib.Variant("(s)", [name]))
+    reply, _ = session_bus.send_message_with_reply_sync(message, Gio.DBusSendMessageFlags.NONE, 1000)
+    return reply and reply.get_signature() == 'b' and reply.get_body().get_child_value(0).get_boolean()
+
+def start_kded() -> subprocess.Popen | None:
+    session_bus: Gio.DBusConnection = Gio.bus_get_sync(Gio.BusType.SESSION)
+    kded = None
+    if not name_has_owner(session_bus, f"org.kde.kded{KDE_VERSION}"):
+        kded = subprocess.Popen([f"kded{KDE_VERSION}"], stdout=sys.stderr, stderr=sys.stderr)
+        kded_started: bool = False
+        for _ in range(10):
+            if name_has_owner(session_bus, f"org.kde.kded{KDE_VERSION}"):
+                kded_started = True
+                break
+            print(f"waiting for kded{KDE_VERSION} to appear on the dbus session")
+            time.sleep(1)
+        assert kded_started
+
+    return kded
 
 class KCMTest(unittest.TestCase):
     """
@@ -49,12 +75,7 @@ class KCMTest(unittest.TestCase):
 
         environment = {
             "LC_ALL": "en_US.UTF-8",
-            "QT_LOGGING_RULES": "qt.accessibility.atspi.warning=false;qt.qml.typeresolution.cycle.warning=false;qt.qpa.wayland.warning=false;kf.plasma.core.warning=false;kf.windowsystem.warning=false;kf.kirigami.platform.warning=false",
         }
-
-        # work around unresolvable warnings from Kirigami https://qt-project.atlassian.net/browse/QTBUG-143033
-        if "KDECI_BUILD" not in os.environ or os.environ["CI_JOB_NAME"] != "suse_tumbleweed_qt611":
-            environment["QT_FATAL_WARNINGS"] = "1"
 
         options.set_capability("environ", environment)
 
@@ -86,17 +107,33 @@ class KCMTest(unittest.TestCase):
         Start/stop the accent color service
         """
         self.driver.find_element(AppiumBy.NAME, "Background Services")
-        self.driver.find_element(AppiumBy.NAME, "Start Accent Color").click()
 
         wait = WebDriverWait(self.driver, 30)
-        stop_button: WebElement = wait.until(EC.presence_of_element_located((AppiumBy.NAME, "Stop Accent Color")))
+
+        START_BUTTON_NAME: Final = "Start Accent Color"
+        STOP_BUTTON_NAME: Final = "Stop Accent Color"
+        SERVICE_NAME: Final = "plasma_accentcolor_service"  # The id is from plasma-workspace
 
         session_bus: Gio.DBusConnection = Gio.bus_get_sync(Gio.BusType.SESSION)
-        self.assertIn("plasma_accentcolor_service", loadedModules(session_bus))  # The service id is from plasma-workspace
 
+        # The service has X-KDE-Kded-autoload: true, so it is always loaded when kded is running.
+        # Wait for autoloading to complete, then stop it to get into a known stopped state.
+        wait.until(EC.element_to_be_clickable((AppiumBy.NAME, STOP_BUTTON_NAME))).click()
+        wait.until(EC.element_to_be_clickable((AppiumBy.NAME, START_BUTTON_NAME)))
+        wait.until(lambda _: SERVICE_NAME not in loadedModules(session_bus))
+        self.assertNotIn(SERVICE_NAME, loadedModules(session_bus))
+
+        # Start the service again, and verify it is loaded.
+        wait.until(EC.element_to_be_clickable((AppiumBy.NAME, START_BUTTON_NAME))).click()
+        stop_button: WebElement = wait.until(EC.element_to_be_clickable((AppiumBy.NAME, STOP_BUTTON_NAME)))
+        wait.until(lambda _: SERVICE_NAME in loadedModules(session_bus))
+        self.assertIn(SERVICE_NAME, loadedModules(session_bus))
+
+        # Stop the service again to make sure it can be stopped again after being started.
         stop_button.click()
-        wait.until(EC.presence_of_element_located((AppiumBy.NAME, "Start Accent Color")))
-        self.assertNotIn("plasma_accentcolor_service", loadedModules(session_bus))
+        wait.until(EC.element_to_be_clickable((AppiumBy.NAME, START_BUTTON_NAME)))
+        wait.until(lambda _: SERVICE_NAME not in loadedModules(session_bus))
+        self.assertNotIn(SERVICE_NAME, loadedModules(session_bus))
 
     def test_1_toggle_automatically_loading_service(self) -> None:
         """

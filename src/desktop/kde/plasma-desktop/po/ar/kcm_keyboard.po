@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkeyboard\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-04-30 02:40+0000\n"
-"PO-Revision-Date: 2026-01-08 11:24+0400\n"
+"POT-Creation-Date: 2026-06-19 00:46+0000\n"
+"PO-Revision-Date: 2026-06-21 20:17+0400\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: ar\n"
 "Language: ar\n"
@@ -99,8 +99,8 @@ msgstr ""
 #: ui/KeyBindings.qml:18
 #, kde-format
 msgctxt "@title"
-msgid "Configure Key Bindings…"
-msgstr "اضبط ربط المفاتيح…"
+msgid "Key Bindings"
+msgstr "ارتباطات المفاتيح"
 
 #: ui/KeyBindings.qml:62
 #, kde-format
@@ -138,13 +138,13 @@ msgctxt "@title:window"
 msgid "Add Layout"
 msgstr "أضف تخطيطًا"
 
-#: ui/LayoutDialog.qml:129
+#: ui/LayoutDialog.qml:121
 #, kde-format
 msgctxt "@label:textbox"
 msgid "Short layout name"
 msgstr "اسم التخطيط مختصر"
 
-#: ui/LayoutDialog.qml:139
+#: ui/LayoutDialog.qml:131
 #, kde-format
 msgctxt "@info"
 msgid ""
@@ -154,13 +154,13 @@ msgstr ""
 "الاسم المختصر للتخطيط المحدد، والذي سيعرض في شريط المهام. يمكنك تغيير هذا "
 "الإعداد بنفسك."
 
-#: ui/LayoutDialog.qml:147
+#: ui/LayoutDialog.qml:139
 #, kde-format
 msgctxt "@option:textbox"
 msgid "Shortcut:"
 msgstr "الاختصار:"
 
-#: ui/LayoutDialog.qml:158 ui/main.qml:287
+#: ui/LayoutDialog.qml:150 ui/main.qml:287
 #, kde-format
 msgctxt "@action:button"
 msgid "Preview"
@@ -527,7 +527,7 @@ msgid ""
 "page."
 msgstr ""
 "تتيح اختصارات أكس11 القديمة التحكم بشكل أفضل في اختصارات المُعدّل فقط وتتمتع "
-"بتوافق أفضل قليلاً على أكس11 في بعض الحالات المتطرفة. ويمكن استخدامها أيضًا "
+"بتوافق أفضل قليلًا على أكس11 في بعض الحالات المتطرفة. ويمكن استخدامها أيضًا "
 "على ويلاند.<nl/><nl/>سيؤدي ضبط هذه الاختصارات إلى نقلك إلى صفحة ربط المفاتيح."
 
 #: ui/Switching.qml:180
@@ -544,7 +544,7 @@ msgid ""
 "diacritical marks."
 msgstr "يمكن استخدام مفاتيح التعديل لكتابة أحرف ورموز وعلامات إعراب إضافية."
 
-#: xkboptionsmodel.cpp:165
+#: xkboptionsmodel.cpp:163
 #, kde-format
 msgid "%1 shortcut"
 msgid_plural "%1 shortcuts"
@@ -555,15 +555,15 @@ msgstr[3] "%1 اختصارات"
 msgstr[4] "%1 اختصارًا"
 msgstr[5] "%1 اختصار"
 
-#: xkboptionsmodel.cpp:168
+#: xkboptionsmodel.cpp:166
 #, kde-format
 msgctxt "no shortcuts defined"
 msgid "None"
 msgstr "بلا"
 
 #~ msgctxt "@title"
-#~ msgid "Key Bindings"
-#~ msgstr "ارتباطات المفاتيح"
+#~ msgid "Configure Key Bindings…"
+#~ msgstr "اضبط ربط المفاتيح…"
 
 #~ msgctxt "@option:radio"
 #~ msgid "Turn Off"

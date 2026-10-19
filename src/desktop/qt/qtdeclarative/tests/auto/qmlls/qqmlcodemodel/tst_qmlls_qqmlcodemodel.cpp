@@ -155,15 +155,10 @@ void tst_qmlls_qqmlcodemodel::resourceFiles()
     QTemporaryDir buildDir;
     QVERIFY(buildDir.isValid());
     QDir(buildDir.path()).mkdir(".qt"_L1);
-    {
-        const QString qmllsBuildIni = buildDir.filePath(".qt/.qmlls.build.ini"_L1);
-        QFile qmllsBuildIniFile(qmllsBuildIni);
-        QVERIFY(qmllsBuildIniFile.open(QFile::WriteOnly | QFile::Text));
-        qmllsBuildIniFile.write("[General]\n[%1]\nresourceFiles=\"%7\"\n"_L1
-                                        .arg(testFile("somePath").replace("/"_L1, "<SLASH>"_L1),
-                                             testFile("FolderWithResources/Good.qrc"))
-                                        .toUtf8());
-    }
+    QmlLsp::QQmllsBuildInformation buildIni;
+    buildIni.addModuleSetting(QmlLsp::ModuleSetting{
+            testFile("somePath"), {}, { testFile("FolderWithResources/Good.qrc") } });
+    buildIni.writeQmllsBuildIniContent(buildDir.filePath(".qt/.qmlls.build.ini"_L1));
 
     manager.addRootUrls({ rootUrl });
 
@@ -379,16 +374,23 @@ static void reloadLotsOfFileMethod()
     QTRY_COMPARE_WITH_TIMEOUT(model.validEnv().field(Fields::qmlFileWithPath).keys().size(),
                               fileNames.size(), 3000);
 
+    auto areAllFilesPopulated = [&model]() {
+        for (const QString &key : model.validEnv().field(Fields::qmlFileWithPath).keys()) {
+            if (model.validEnv()
+                        .field(Fields::qmlFileWithPath)
+                        .key(key)
+                        .field(Fields::currentItem)
+                        .field(Fields::components)
+                        .size()
+                != 1) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     // populate all files
-    for (const QString &key : model.validEnv().field(Fields::qmlFileWithPath).keys()) {
-        QCOMPARE(model.validEnv()
-                         .field(Fields::qmlFileWithPath)
-                         .key(key)
-                         .field(Fields::currentItem)
-                         .field(Fields::components)
-                         .size(),
-                 1);
-    }
+    QTRY_VERIFY_WITH_TIMEOUT(areAllFilesPopulated(), 1000);
 
     // modify all files on disk
     for (const QString &fileName : fileNames) {
@@ -628,18 +630,12 @@ void tst_qmlls_qqmlcodemodel::withQmllsBuildIni()
     const QString resourceFileB = buildPathA.filePath("resourceB.qrc");
 
     QDir(buildPathA.path()).mkdir(".qt"_L1);
-
-    {
-        const QString qmllsBuildIni = buildPathA.filePath(".qt/.qmlls.build.ini"_L1);
-        QFile qmllsBuildIniFile(qmllsBuildIni);
-        QVERIFY(qmllsBuildIniFile.open(QFile::WriteOnly | QFile::Text));
-        qmllsBuildIniFile.write(
-                "[General]\n[%1]\nimportPaths=\"%2%6%3\"\nresourceFiles=\"%7\"\n[%4]\nimportPaths=\"%5%6%3\"\nresourceFiles=\"%8\""_L1
-                        .arg(QString(rootA).replace("/"_L1, "<SLASH>"_L1), importPathA,
-                             defaultImportPath, QString(rootB).replace("/"_L1, "<SLASH>"_L1),
-                             importPathB, QDir::listSeparator(), resourceFileA, resourceFileB)
-                        .toUtf8());
-    }
+    QmlLsp::QQmllsBuildInformation buildIni;
+    buildIni.addModuleSetting(
+            QmlLsp::ModuleSetting{ rootA, { importPathA, defaultImportPath }, { resourceFileA } });
+    buildIni.addModuleSetting(
+            QmlLsp::ModuleSetting{ rootB, { importPathB, defaultImportPath }, { resourceFileB } });
+    buildIni.writeQmllsBuildIniContent(buildPathA.filePath(".qt/.qmlls.build.ini"_L1));
 
     TestCodeModelManager manager;
     manager.addRootUrls({ rootAUrl });
@@ -735,6 +731,7 @@ void tst_qmlls_qqmlcodemodel::updateQmllsBuildIni()
     QCOMPARE(manager.findCodeModelForFile(rootAUrl)->importPaths(), expectedImportPathA);
     QCOMPARE(manager.findCodeModelForFile(rootAUrl)->importPathsForUrl(rootAUrl),
              expectedImportPathA);
+    QCOMPARE(manager.resourceFilesForFileUrl(rootAUrl), { resourceFileA });
 }
 
 void tst_qmlls_qqmlcodemodel::withQmllsBuildIniRelativeImportPath()
@@ -745,19 +742,11 @@ void tst_qmlls_qqmlcodemodel::withQmllsBuildIniRelativeImportPath()
     QVERIFY(buildPathA.isValid());
 
     QDir(buildPathA.path()).mkdir(".qt"_L1);
-
-    {
-        const QString qmllsBuildIni = buildPathA.filePath(".qt/.qmlls.build.ini"_L1);
-        QFile qmllsBuildIniFile(qmllsBuildIni);
-        QVERIFY(qmllsBuildIniFile.open(QFile::WriteOnly | QFile::Text));
-
-        const QString rootA = testFile("twoWorkspaces/WorkSpaceA/"_L1);
-        qmllsBuildIniFile.write("[General]\n[%1]\nimportPaths=\"%2%4%3\"\n"_L1
-                                        .arg(QString(rootA).replace("/"_L1, "<SLASH>"_L1),
-                                             "../ImportPathA", defaultImportPath,
-                                             QDir::listSeparator())
-                                        .toUtf8());
-    }
+    QmlLsp::QQmllsBuildInformation buildIni;
+    buildIni.addModuleSetting(QmlLsp::ModuleSetting{ testFile("twoWorkspaces/WorkSpaceA/"_L1),
+                                                     { "../ImportPathA"_L1, defaultImportPath },
+                                                     {} });
+    buildIni.writeQmllsBuildIniContent(buildPathA.filePath(".qt/.qmlls.build.ini"_L1));
 
     const QByteArray rootAUrl = testFileUrl("twoWorkspaces/WorkSpaceA/"_L1).toEncoded();
     TestCodeModelManager manager;
@@ -795,16 +784,10 @@ void tst_qmlls_qqmlcodemodel::withQmllsBuildIniWithoutRootUrls()
 
     QDir(buildPathA.path()).mkdir(".qt"_L1);
 
-    {
-        const QString qmllsBuildIni = buildPathA.filePath(".qt/.qmlls.build.ini"_L1);
-        QFile qmllsBuildIniFile(qmllsBuildIni);
-        QVERIFY(qmllsBuildIniFile.open(QFile::WriteOnly));
-        qmllsBuildIniFile.write(
-                "[General]\n[%1]\nimportPaths=\"%2%4%3\"\n"_L1
-                        .arg(testFile("twoWorkspaces/WorkSpaceA/"_L1).replace("/"_L1, "<SLASH>"_L1),
-                             importPath, defaultImportPath, QDir::listSeparator())
-                        .toUtf8());
-    }
+    QmlLsp::QQmllsBuildInformation buildIni;
+    buildIni.addModuleSetting(QmlLsp::ModuleSetting{
+            testFile("twoWorkspaces/WorkSpaceA/"_L1), { importPath, defaultImportPath }, {} });
+    buildIni.writeQmllsBuildIniContent(buildPathA.filePath(".qt/.qmlls.build.ini"_L1));
 
     TestCodeModelManager manager;
     manager.addRootUrls({ projectRootUrl });
@@ -876,6 +859,23 @@ void tst_qmlls_qqmlcodemodel::qprocessSchedulerProcess()
     f.write("X\n");
 }
 
+void tst_qmlls_qqmlcodemodel::qprocessSchedulerSlowProcess()
+{
+    if (!qEnvironmentVariableIsSet(filenameKey))
+        return;
+
+    auto writeFile = [](const QByteArray &suffix) {
+        QFile f(qEnvironmentVariable(filenameKey + suffix));
+        QVERIFY(f.open(QFile::ReadWrite | QFile::Text | QFile::Append));
+        f.write("X\n");
+    };
+
+    writeFile("-begin");
+    using namespace std::chrono_literals;
+    QThread::currentThread()->sleep(3s);
+    writeFile("-end");
+}
+
 void tst_qmlls_qqmlcodemodel::qprocessScheduler_data()
 {
     QTest::addColumn<QStringList>("fileNames");
@@ -916,6 +916,95 @@ void tst_qmlls_qqmlcodemodel::qprocessScheduler()
         QVERIFY(QFile::exists(dir.filePath(fileName)));
 }
 
+static constexpr QLatin1String s_slowProcessName = "qprocessSchedulerSlowProcess"_L1;
+static constexpr QLatin1String s_processName = "qprocessSchedulerProcess"_L1;
+
+struct IdAndCommands
+{
+    QByteArray id;
+    QList<QmlLsp::QProcessScheduler::Command> commands;
+};
+
+void tst_qmlls_qqmlcodemodel::qprocessSchedulerCancel_data()
+{
+    QTest::addColumn<QList<IdAndCommands>>("commands");
+    QTest::addColumn<QByteArray>("cancellationId");
+
+    QTest::addColumn<QList<QString>>("writtenFiles");
+    QTest::addColumn<QList<QString>>("unwrittenFiles");
+
+    auto createList = [](const QString &fileName, QLatin1String executableName) {
+        QList<QmlLsp::QProcessScheduler::Command> list;
+        QmlLsp::QProcessScheduler::Command command{
+            QCoreApplication::applicationFilePath(),
+            { executableName },
+        };
+        command.customEnvironment.insert(filenameKey, fileName);
+        list.append(command);
+        return list;
+    };
+
+    QTest::addRow("cancelCurrent") << QList<IdAndCommands>{ {
+            { "id", createList("a"_L1, s_slowProcessName) },
+            { "id2", createList("b"_L1, s_processName) },
+            { "id3", createList("c"_L1, s_processName) },
+    } } << "id"_ba << QStringList{ "b"_L1, "c"_L1 }
+                                   << QStringList{ "a-end"_L1 };
+
+    QTest::addRow("cancelNext") << QList<IdAndCommands>{ {
+            { "id", createList("a"_L1, s_processName) },
+            { "id2", createList("b"_L1, s_slowProcessName) },
+            { "id3", createList("c"_L1, s_processName) },
+    } } << "id2"_ba << QStringList{ "a"_L1, "c"_L1 }
+                                << QStringList{ "b-end"_L1 };
+}
+
+void tst_qmlls_qqmlcodemodel::qprocessSchedulerCancel()
+{
+    QFETCH(QList<IdAndCommands>, commands);
+    QFETCH(QByteArray, cancellationId);
+
+    QFETCH(QList<QString>, writtenFiles);
+    QFETCH(QList<QString>, unwrittenFiles);
+
+    using QmlLsp::QProcessScheduler;
+
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+
+    // patch CommandsById to add the temporary directory path
+    for (auto it = commands.begin(), end = commands.end(); it != end; ++it) {
+        for (auto it2 = it->commands.begin(), end2 = it->commands.end(); it2 != end2; ++it2) {
+            it2->customEnvironment.insert(filenameKey,
+                                          dir.filePath(it2->customEnvironment.value(filenameKey)));
+        }
+    }
+
+    QProcessScheduler scheduler;
+    QSignalSpy doneSpy(&scheduler, &QProcessScheduler::done);
+    QSignalSpy cancelledSpy(&scheduler, &QProcessScheduler::cancelled);
+    QSignalSpy startedSpy(&scheduler, &QProcessScheduler::started);
+    QCOMPARE(doneSpy.count(), 0);
+
+    for (const auto &idAndCommand : commands)
+        scheduler.schedule(idAndCommand.commands, idAndCommand.id);
+
+    scheduler.cancel(cancellationId);
+
+    // note: the scheduled processes should run in another event loop iteration during QTRY_COMPARE_WITH_TIMEOUT
+    QCOMPARE(doneSpy.count(), 0);
+    QCOMPARE(startedSpy.count(), 0);
+
+    QTRY_COMPARE_WITH_TIMEOUT(doneSpy.count() + cancelledSpy.count(), commands.size(), 9000);
+    QCOMPARE(cancelledSpy.count(), 1);
+
+    // verify that the processes really ran and wrote something to disk:
+    for (const QString &file : writtenFiles)
+        QVERIFY2(QFile::exists(dir.filePath(file)), qPrintable(file));
+    for (const QString &file : unwrittenFiles)
+        QVERIFY2(!QFile::exists(dir.filePath(file)), qPrintable(file));
+}
+
 using Hash = QHash<QByteArray, QStringList>;
 
 void tst_qmlls_qqmlcodemodel::multipleQProcessScheduler_data()
@@ -926,16 +1015,22 @@ void tst_qmlls_qqmlcodemodel::multipleQProcessScheduler_data()
     QTest::addRow("empty2") << Hash{
         { "url", {} },
     };
-    QTest::addRow("two") << Hash{
+    QTest::addRow("duplicated") << Hash{
         { "url1", { "a"_L1, "b"_L1 } },
         { "url2", { "a"_L1, "b"_L1 } },
     };
+    QTest::addRow("two") << Hash{
+        { "url1", { "a"_L1, "b"_L1 } },
+        { "url2", { "c"_L1, "d"_L1 } },
+    };
     QTest::addRow("five") << Hash{
         { "url1", { "a"_L1, "b"_L1 } },
-        { "url2", { "a"_L1, "b"_L1 } },
-        { "url3", { "a"_L1, "b"_L1, "e"_L1 } },
-        { "url4", { "a"_L1, "b"_L1 } },
-        { "url5", { "e"_L1, "b"_L1, "c"_L1, "d"_L1, "a"_L1 } },
+        { "url2", { "c"_L1, "d"_L1 } },
+        { "url3", { "e"_L1, "f"_L1, "g"_L1 } },
+        { "url1-duplicate1", { "a"_L1, "b"_L1 } }, // duplicates url 1, is empty
+        { "url1and2-duplicate2",
+          { "a"_L1, "b"_L1, "c"_L1, "d"_L1 } }, // duplicates url 1 and 2, is empty
+        { "url5", { "h"_L1 } },
     };
     QTest::addRow("duplicate") << Hash{
         { "url1", { "a"_L1, "a"_L1, "a"_L1, "a"_L1, "a"_L1, "a"_L1, "a"_L1 } },
@@ -983,10 +1078,53 @@ void tst_qmlls_qqmlcodemodel::multipleQProcessScheduler()
     }
 }
 
-void tst_qmlls_qqmlcodemodel::reloadQmllsBuildIniAfterBuild()
+void tst_qmlls_qqmlcodemodel::reloadQmllsBuildIniV2AfterBuild()
 {
     QmlLsp::QQmlCodeModelManager manager;
     QSignalSpy configurationChanged(&manager, &QmlLsp::QQmlCodeModelManager::configurationChanged);
+    const QByteArray rootUrl{ testFileUrl("rootA").toEncoded() };
+    const QByteArray fallbackUrl;
+
+    QTemporaryDir temporaryDir;
+    QVERIFY(temporaryDir.isValid());
+    static constexpr QLatin1String fallbackImportPath = "/path/to/importPath"_L1;
+    manager.setImportPaths({ fallbackImportPath });
+    manager.addRootUrls({ rootUrl });
+
+    manager.setBuildPathsForRootUrl(rootUrl, { temporaryDir.path() });
+    QCOMPARE(configurationChanged.size(), 1);
+    QCOMPARE(manager.importPathsForUrl(rootUrl), QStringList{ fallbackImportPath });
+    QCOMPARE(manager.importPathsForUrl(fallbackUrl), QStringList{ fallbackImportPath });
+
+    QDir dir(temporaryDir.path());
+
+    dir.mkdir(".qt"_L1);
+    QmlLsp::QQmllsBuildInformation buildIni;
+    buildIni.addModuleSetting(QmlLsp::ModuleSetting{ testFile("rootA"_L1), { "test"_L1 }, {} });
+    buildIni.writeQmllsBuildIniContent(temporaryDir.filePath(".qt/.qmlls.build.ini"_L1));
+
+    manager.onBuildFinished(rootUrl);
+    QCOMPARE(configurationChanged.size(), 2);
+
+    const QStringList expectedImportPathsForRoot{ testFile("test"_L1), fallbackImportPath };
+    QCOMPARE(manager.importPathsForUrl(rootUrl), expectedImportPathsForRoot);
+    QCOMPARE(manager.importPathsForUrl(fallbackUrl), QStringList{ fallbackImportPath });
+
+    QmlLsp::QQmllsBuildInformation buildIni2;
+    buildIni2.addModuleSetting(QmlLsp::ModuleSetting{ testFile("rootA"_L1), { "test2"_L1 }, {} });
+    buildIni2.writeQmllsBuildIniContent(temporaryDir.filePath(".qt/.qmlls.build.ini"_L1));
+
+    manager.onBuildFinished(rootUrl);
+    QCOMPARE(configurationChanged.size(), 3);
+
+    const QStringList expectedImportPathsForRoot2{ testFile("test2"_L1), fallbackImportPath };
+    QCOMPARE(manager.importPathsForUrl(rootUrl), expectedImportPathsForRoot2);
+    QCOMPARE(manager.importPathsForUrl(fallbackUrl), QStringList{ fallbackImportPath });
+}
+
+void tst_qmlls_qqmlcodemodel::reloadQmllsBuildIniV1AfterBuild()
+{
+    QmlLsp::QQmlCodeModelManager manager;
     const QByteArray rootUrl{ testFileUrl("rootA").toEncoded() };
     const QByteArray fallbackUrl;
 
@@ -998,7 +1136,6 @@ void tst_qmlls_qqmlcodemodel::reloadQmllsBuildIniAfterBuild()
     manager.addRootUrls({ rootUrl });
 
     manager.setBuildPathsForRootUrl(rootUrl, { temporaryDir.path() });
-    QCOMPARE(configurationChanged.size(), 1);
     QCOMPARE(manager.importPathsForUrl(rootUrl), QStringList{ fallbackImportPath });
 
     QDir dir(temporaryDir.path());
@@ -1013,7 +1150,6 @@ void tst_qmlls_qqmlcodemodel::reloadQmllsBuildIniAfterBuild()
     }
 
     manager.onBuildFinished(rootUrl);
-    QCOMPARE(configurationChanged.size(), 2);
 
     const QStringList expectedImportPathsForRoot =
             QStringList{ testFile("test"_L1), fallbackImportPath };
@@ -1029,12 +1165,65 @@ void tst_qmlls_qqmlcodemodel::reloadQmllsBuildIniAfterBuild()
     }
 
     manager.onBuildFinished(rootUrl);
-    QCOMPARE(configurationChanged.size(), 3);
 
     const QStringList expectedImportPathsForRoot2 =
             QStringList{ testFile("test2"_L1), fallbackImportPath };
     QCOMPARE(manager.importPathsForUrl(rootUrl), expectedImportPathsForRoot2);
     QCOMPARE(manager.importPathsForUrl(fallbackUrl), QStringList{ fallbackImportPath });
+}
+
+void tst_qmlls_qqmlcodemodel::brokenQmllsBuildIniV2()
+{
+    QTemporaryDir temporaryDir;
+    QVERIFY(temporaryDir.isValid());
+    QDir dir(temporaryDir.path());
+
+    dir.mkdir(".qt"_L1);
+    QmlLsp::QQmllsBuildInformation buildIni;
+    buildIni.loadSettingsFrom({ testFile("BrokenQmllsBuildIni") });
+
+    QCOMPARE_EQ(buildIni.importPathsFor("/hello/src/File.qml"), { "/world/qml"_L1 });
+    QCOMPARE_EQ(buildIni.resourceFilesFor("/hello/src/File.qml"), { "/123/a.qrc"_L1 });
+}
+
+void tst_qmlls_qqmlcodemodel::onBuildFinished()
+{
+    QmlLsp::QQmlCodeModelManager manager;
+    QSignalSpy spy(&manager, &QmlLsp::QQmlCodeModelManager::backgroundBuildFinished);
+    manager.onBuildFinished(QByteArray());
+    QCOMPARE(spy.count(), 1);
+    manager.onBuildFinished(testFile("").toUtf8());
+    QCOMPARE(spy.count(), 2);
+}
+void tst_qmlls_qqmlcodemodel::setImportPathsWhileLoadingFile()
+{
+    QmlLsp::QQmlCodeModel model;
+    model.setImportPaths(QLibraryInfo::paths(QLibraryInfo::QmlImportsPath));
+
+    const QByteArray fileAUrl = testFileUrl(u"FileA.qml"_s).toEncoded();
+    const QString fileAPath = testFile(u"FileA.qml"_s);
+
+    std::atomic_bool shutDown = false;
+    // try to trigger the datarace between newOpenFile loading the file and setImportPaths
+    // clearing the QQmlJSImporter by constantly calling setImportPaths on new arguments
+    auto constantlyChangingImportPathsThread =
+            std::unique_ptr<QThread>(QThread::create([&model, this, &shutDown] {
+                int counter = 0;
+                while (!shutDown) {
+                    model.setImportPaths(QStringList{ testFile("SomeImportPath%1"_L1.arg(
+                                                 QString::number(counter++))) }
+                                         << QLibraryInfo::paths(QLibraryInfo::QmlImportsPath));
+                    QThread::yieldCurrentThread();
+                }
+            }));
+    constantlyChangingImportPathsThread->start();
+    QTRY_VERIFY(constantlyChangingImportPathsThread->isRunning());
+
+    model.newOpenFile(fileAUrl, 0, readFile(u"FileA.qml"_s));
+    QTRY_VERIFY_WITH_TIMEOUT(model.validEnv().field(Fields::qmlFileWithPath).key(fileAPath), 3000);
+
+    shutDown = true;
+    constantlyChangingImportPathsThread->wait();
 }
 
 QTEST_MAIN(tst_qmlls_qqmlcodemodel)

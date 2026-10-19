@@ -1,9 +1,9 @@
-# SPDX-FileCopyrightText: 2018, 2019, 2020, 2021, 2022, 2023, 2024 Tommi Nieminen <translator@legisign.org>
+# SPDX-FileCopyrightText: 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2026 Tommi Nieminen <translator@legisign.org>
 # Lasse Liehu <lasse.liehu@gmail.com>, 2017.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"PO-Revision-Date: 2024-10-21 16:38+0300\n"
+"PO-Revision-Date: 2026-03-05 20:38+0200\n"
 "Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
 "Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
 "Language: fi\n"
@@ -11,78 +11,83 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 23.08.5\n"
+"X-Generator: Lokalize 25.04.0\n"
 "X-Qt-Contexts: true\n"
 
-#: controls/AboutItem.qml:166
+#: controls/AboutItem.qml:180
 #, qt-format
 msgctxt "AboutItem|"
-msgid "%1 (%2)"
-msgstr "%1 (%2)"
+msgid "Visit %1's KDE Store page"
+msgstr "Käy KDE Storen %1 -sivulla"
 
-#: controls/AboutItem.qml:186
+#: controls/AboutItem.qml:196
 #, qt-format
 msgctxt "AboutItem|"
 msgid "Send an email to %1"
 msgstr "Lähetä sähköpostia: %1"
 
-#: controls/AboutItem.qml:228
-msgctxt "AboutItem|"
-msgid "Get Involved"
-msgstr "Ota osaa"
-
 #: controls/AboutItem.qml:234
-msgctxt "AboutItem|"
-msgid "Donate"
-msgstr "Lahjoita"
-
-#: controls/AboutItem.qml:251
-msgctxt "AboutItem|"
-msgid "Report a Bug"
-msgstr "Ilmoita viasta"
-
-#: controls/AboutItem.qml:264
 msgctxt "AboutItem|"
 msgid "Copyright"
 msgstr "Tekijänoikeudet"
 
-#: controls/AboutItem.qml:313
+#: controls/AboutItem.qml:243
+#, fuzzy
+#| msgctxt "AboutItem|"
+#| msgid "License:"
 msgctxt "AboutItem|"
-msgid "License:"
+msgid "License"
 msgstr "Lisenssi:"
 
-#: controls/AboutItem.qml:336
-#, qt-format
+#: controls/AboutItem.qml:265
 msgctxt "AboutItem|"
-msgid "License: %1"
-msgstr "Lisenssi: %1"
+msgid "Homepage"
+msgstr ""
 
-#: controls/AboutItem.qml:347
+#: controls/AboutItem.qml:279
+msgctxt "AboutItem|"
+msgid "Donate"
+msgstr "Lahjoita"
+
+#: controls/AboutItem.qml:293
+msgctxt "AboutItem|"
+msgid "Get Involved"
+msgstr "Ota osaa"
+
+#: controls/AboutItem.qml:307
+#, fuzzy
+#| msgctxt "AboutItem|"
+#| msgid "Report a Bug"
+msgctxt "AboutItem|"
+msgid "Report a bug"
+msgstr "Ilmoita viasta"
+
+#: controls/AboutItem.qml:325
 msgctxt "AboutItem|"
 msgid "Libraries in use"
 msgstr "Käytetyt kirjastot"
 
-#: controls/AboutItem.qml:379
-msgctxt "AboutItem|"
-msgid "Authors"
-msgstr "Tekijät"
-
-#: controls/AboutItem.qml:389
+#: controls/AboutItem.qml:345
 msgctxt "AboutItem|"
 msgid "Show author photos"
 msgstr "Näytä tekijöiden valokuvat"
 
-#: controls/AboutItem.qml:400
+#: controls/AboutItem.qml:348
+msgctxt "AboutItem|"
+msgid "Authors"
+msgstr "Tekijät"
+
+#: controls/AboutItem.qml:358
 msgctxt "AboutItem|"
 msgid "Credits"
 msgstr "Kiitokset"
 
-#: controls/AboutItem.qml:412
+#: controls/AboutItem.qml:368
 msgctxt "AboutItem|"
 msgid "Translators"
 msgstr "Kääntäjät"
 
-#: controls/AboutPage.qml:103
+#: controls/AboutPage.qml:102
 #, qt-format
 msgctxt "AboutPage|"
 msgid "About %1"
@@ -99,12 +104,9 @@ msgid "More Actions"
 msgstr "Lisää toimintoja"
 
 #: controls/Chip.qml:45
-#, fuzzy
-#| msgctxt "Chip|"
-#| msgid "Remove Tag"
 msgctxt "Chip|"
 msgid "Remove"
-msgstr "Poista luokitus"
+msgstr "Poista"
 
 #: controls/ContextDrawer.qml:65
 msgctxt "ContextDrawer|"
@@ -116,99 +118,85 @@ msgctxt "ContextualHelpButton|"
 msgid "Show Contextual Help"
 msgstr "Näytä kontekstiohje"
 
-#: controls/GlobalDrawer.qml:366
+#: controls/GlobalDrawer.qml:372
 msgctxt "GlobalDrawer|"
 msgid "Back"
 msgstr "Takaisin"
 
-#: controls/GlobalDrawer.qml:719
+#: controls/GlobalDrawer.qml:769
 msgctxt "GlobalDrawer|"
 msgid "Close Sidebar"
 msgstr "Sulje sivupaneeli"
 
-#: controls/GlobalDrawer.qml:724
+#: controls/GlobalDrawer.qml:774
 msgctxt "GlobalDrawer|"
 msgid "Open Sidebar"
 msgstr "Avaa sivupaneeli"
 
-#: controls/LoadingPlaceholder.qml:58
+#: controls/LoadingPlaceholder.qml:59
 msgctxt "LoadingPlaceholder|"
 msgid "Loading…"
 msgstr "Ladataan…"
 
-#: controls/PasswordField.qml:43
+#: controls/PasswordField.qml:44
 msgctxt "PasswordField|"
 msgid "Password"
 msgstr "Salasana"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Hide Password"
 msgstr "Piilota salasana"
 
-#: controls/PasswordField.qml:46
+#: controls/PasswordField.qml:47
 msgctxt "PasswordField|"
 msgid "Show Password"
 msgstr "Näytä salasana"
 
 #: controls/private/globaltoolbar/HandleButton.qml:24
-#, fuzzy
-#| msgctxt "PageRowGlobalToolBarUI|"
-#| msgid "Close menu"
 msgctxt "HandleButton|"
 msgid "Close menu"
 msgstr "Sulje valikko"
 
 #: controls/private/globaltoolbar/HandleButton.qml:24
-#, fuzzy
-#| msgctxt "PageRowGlobalToolBarUI|"
-#| msgid "Open menu"
 msgctxt "HandleButton|"
 msgid "Open menu"
 msgstr "Avaa valikko"
 
 #: controls/private/globaltoolbar/NavigationButtons.qml:102
-#, fuzzy
-#| msgctxt "BackButton|"
-#| msgid "Navigate Back"
 msgctxt "NavigationButtons|"
 msgid "Navigate Back"
 msgstr "Siirry taaksepäin"
 
 #: controls/private/globaltoolbar/NavigationButtons.qml:119
-#, fuzzy
-#| msgctxt "ForwardButton|"
-#| msgid "Navigate Forward"
 msgctxt "NavigationButtons|"
 msgid "Navigate Forward"
 msgstr "Siirry eteenpäin"
 
-#: controls/private/PrivateActionToolButton.qml:118
+#: controls/private/PrivateActionToolButton.qml:119
 #, qt-format
 msgctxt "@info:tooltip %1 is a keyboard shorcut|"
 msgid "Trigger this action with %1"
-msgstr ""
+msgstr "Käynnistä tämä toiminto pikanäppäimellä %1"
 
-#: controls/private/PrivateActionToolButton.qml:125
-#, fuzzy, qt-format
-#| msgctxt "AboutItem|"
-#| msgid "%1 (%2)"
+#: controls/private/PrivateActionToolButton.qml:126
+#, qt-format
 msgctxt ""
 "@info:tooltip %1 is the tooltip of an action, %2 is its keyboard shorcut|"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: controls/SearchField.qml:88
+#: controls/SearchField.qml:89
 msgctxt "SearchField|"
 msgid "Search…"
 msgstr "Etsi…"
 
-#: controls/SearchField.qml:90
+#: controls/SearchField.qml:91
 msgctxt "SearchField|"
 msgid "Search"
 msgstr "Etsi"
 
-#: controls/SearchField.qml:100
+#: controls/SearchField.qml:101
 msgctxt "SearchField|"
 msgid "Clear search"
 msgstr "Tyhjennä haku"
@@ -223,26 +211,23 @@ msgctxt "SelectableLabel|"
 msgid "Select All"
 msgstr "Valitse kaikki"
 
-#: controls/UrlButton.qml:52
+#: controls/UrlButton.qml:53
 #, qt-format
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link %1"
 msgstr "Avaa linkki %1"
 
-#: controls/UrlButton.qml:53
+#: controls/UrlButton.qml:54
 msgctxt "UrlButton|@info:whatsthis"
 msgid "Open link"
 msgstr "Avaa linkki"
 
-#: controls/UrlButton.qml:101
+#: controls/UrlButton.qml:102
 msgctxt "UrlButton|"
 msgid "Copy Link to Clipboard"
 msgstr "Kopioi linkki leikepöydälle"
 
-#: dialogs/DialogHeaderTopContent.qml:103
-#, fuzzy
-#| msgctxt "OverlaySheet|@action:button close dialog"
-#| msgid "Close"
+#: dialogs/DialogHeaderTopContent.qml:104
 msgctxt "DialogHeaderTopContent|@action:button close dialog"
 msgid "Close"
 msgstr "Sulje"
@@ -265,48 +250,53 @@ msgctxt "Kirigami::Platform::Settings|"
 msgid "Qt %2 (built against %3)"
 msgstr "Qt %2 (koostettu kirjastolla %3)"
 
-#: templates/InlineMessage.qml:350
-msgctxt "InlineMessage|"
-msgid "Success"
-msgstr ""
-
 #: templates/InlineMessage.qml:352
 msgctxt "InlineMessage|"
-msgid "Warning"
-msgstr ""
+msgid "Success"
+msgstr "Onnistui"
 
 #: templates/InlineMessage.qml:354
 msgctxt "InlineMessage|"
-msgid "Error"
-msgstr ""
+msgid "Warning"
+msgstr "Varoitus"
 
 #: templates/InlineMessage.qml:356
 msgctxt "InlineMessage|"
-msgid "Note"
-msgstr ""
+msgid "Error"
+msgstr "Virhe"
 
-#: templates/InlineMessage.qml:443
-#, fuzzy
-#| msgctxt "OverlaySheet|@action:button close dialog"
-#| msgid "Close"
+#: templates/InlineMessage.qml:358
+msgctxt "InlineMessage|"
+msgid "Note"
+msgstr "Huomautus"
+
+#: templates/InlineMessage.qml:445
 msgctxt "InlineMessage|"
 msgid "Close"
 msgstr "Sulje"
 
-#: templates/OverlayDrawer.qml:147
+#: templates/OverlayDrawer.qml:149
 msgctxt "OverlayDrawer|"
 msgid "Close drawer"
 msgstr "Sulje laatikko"
 
-#: templates/OverlayDrawer.qml:153
+#: templates/OverlayDrawer.qml:155
 msgctxt "OverlayDrawer|"
 msgid "Open drawer"
 msgstr "Avaa laatikko"
 
-#: templates/OverlaySheet.qml:294
+#: templates/OverlaySheet.qml:309
 msgctxt "OverlaySheet|@action:button close dialog"
 msgid "Close"
 msgstr "Sulje"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "AboutItem|"
+#~ msgid "License: %1"
+#~ msgstr "Lisenssi: %1"
 
 #~ msgctxt "Dialog|@action:button close dialog"
 #~ msgid "Close"
@@ -347,10 +337,6 @@ msgstr "Sulje"
 #~ msgctxt "ToolBarApplicationHeader|"
 #~ msgid "More Actions"
 #~ msgstr "Lisää toimintoja"
-
-#~ msgctxt "AboutItem|"
-#~ msgid "Visit %1's KDE Store page"
-#~ msgstr "Käy KDE Storen %1 -sivulla"
 
 #~ msgctxt "UrlButton|"
 #~ msgid "Copy link address"

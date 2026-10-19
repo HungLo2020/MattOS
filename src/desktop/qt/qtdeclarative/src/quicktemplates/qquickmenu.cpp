@@ -31,6 +31,7 @@
 #include <QtQml/qqmlcontext.h>
 #include <QtQml/qqmlcomponent.h>
 #include <QtQml/private/qqmlengine_p.h>
+#include <QtQml/private/qqmldata_p.h>
 #include <QtQml/private/qv4scopedvalue_p.h>
 #include <QtQml/private/qv4variantobject_p.h>
 #include <QtQml/private/qv4qobjectwrapper_p.h>
@@ -265,7 +266,7 @@ static const int SUBMENU_DELAY = 225;
     \sa {Popup::}{activeFocus}
 */
 
-static const QQuickPopup::ClosePolicy cascadingSubMenuClosePolicy = QQuickPopup::CloseOnEscape | QQuickPopup::CloseOnPressOutsideParent;
+static const QQuickPopup::ClosePolicy cascadingSubMenuClosePolicy = QQuickPopup::CloseOnEscape | QQuickPopup::CloseOnPressOutsideParent | QQuickPopup::CloseMultiple;
 
 static bool shouldCascade()
 {
@@ -289,6 +290,9 @@ QQuickMenuPrivate::QQuickMenuPrivate()
     cascade = shouldCascade();
 #if QT_CONFIG(wayland)
     extendedWindowType = QNativeInterface::Private::QWaylandWindow::Menu;
+#endif
+#if QT_CONFIG(xcb)
+    wmWindowType = QNativeInterface::Private::QXcbWindow::PopupMenu;
 #endif
 }
 
@@ -533,17 +537,6 @@ void QQuickMenuPrivate::syncWithUseNativeMenu()
     }
 }
 
-static QWindow *effectiveWindow(QWindow *window, QPoint *offset)
-{
-    QQuickWindow *quickWindow = qobject_cast<QQuickWindow *>(window);
-    if (quickWindow) {
-        QWindow *renderWindow = QQuickRenderControl::renderWindowFor(quickWindow, offset);
-        if (renderWindow)
-            return renderWindow;
-    }
-    return window;
-}
-
 void QQuickMenuPrivate::setNativeMenuVisible(bool visible)
 {
     Q_Q(QQuickMenu);
@@ -560,7 +553,7 @@ void QQuickMenuPrivate::setNativeMenuVisible(bool visible)
         QPoint offset;
         QWindow *window = nullptr;
         if (parentItem)
-            window = effectiveWindow(parentItem->window(), &offset);
+            window = QQuickItemPrivate::get(parentItem)->renderWindow(&offset);
 
         lastDevicePixelRatio = window ? window->devicePixelRatio() : qGuiApp->devicePixelRatio();
 
@@ -627,10 +620,14 @@ void QQuickMenuPrivate::insertItem(int index, QQuickItem *item)
             QQuickMenuPrivate::get(subMenu)->setParentMenu(q);
         QObjectPrivate::connect(menuItem, &QQuickMenuItem::triggered, this, &QQuickMenuPrivate::onItemTriggered);
         QObjectPrivate::connect(menuItem, &QQuickMenuItem::implicitTextPaddingChanged, this, &QQuickMenuPrivate::updateTextPadding);
-        QObjectPrivate::connect(menuItem, &QQuickMenuItem::visibleChanged, this, &QQuickMenuPrivate::updateTextPadding);
+        QObjectPrivate::connect(menuItem, &QQuickMenuItem::visibleChanged, this, &QQuickMenuPrivate::onItemVisibleChanged);
         QObjectPrivate::connect(menuItem, &QQuickItem::activeFocusChanged, this, &QQuickMenuPrivate::onItemActiveFocusChanged);
         QObjectPrivate::connect(menuItem, &QQuickControl::hoveredChanged, this, &QQuickMenuPrivate::onItemHovered);
     }
+
+    QQuickMenuSeparator *separator = qobject_cast<QQuickMenuSeparator *>(item);
+    if (separator)
+        QObjectPrivate::connect(separator, &QQuickMenuSeparator::visibleChanged, this, &QQuickMenuPrivate::updateCollapsedSeparators);
 
     if (maybeNativeHandle() && complete)
         maybeCreateAndInsertNativeItem(index, item);
@@ -639,6 +636,8 @@ void QQuickMenuPrivate::insertItem(int index, QQuickItem *item)
         printContentModelItems();
 
     updateTextPadding();
+    if (visible)
+        updateCollapsedSeparators();
 }
 
 void QQuickMenuPrivate::maybeCreateAndInsertNativeItem(int index, QQuickItem *item)
@@ -720,9 +719,15 @@ void QQuickMenuPrivate::removeItem(int index, QQuickItem *item, DestructionPolic
             QQuickMenuPrivate::get(subMenu)->setParentMenu(nullptr);
         QObjectPrivate::disconnect(menuItem, &QQuickMenuItem::triggered, this, &QQuickMenuPrivate::onItemTriggered);
         QObjectPrivate::disconnect(menuItem, &QQuickMenuItem::implicitTextPaddingChanged, this, &QQuickMenuPrivate::updateTextPadding);
-        QObjectPrivate::disconnect(menuItem, &QQuickMenuItem::visibleChanged, this, &QQuickMenuPrivate::updateTextPadding);
+        QObjectPrivate::disconnect(menuItem, &QQuickMenuItem::visibleChanged, this, &QQuickMenuPrivate::onItemVisibleChanged);
         QObjectPrivate::disconnect(menuItem, &QQuickItem::activeFocusChanged, this, &QQuickMenuPrivate::onItemActiveFocusChanged);
         QObjectPrivate::disconnect(menuItem, &QQuickControl::hoveredChanged, this, &QQuickMenuPrivate::onItemHovered);
+    }
+
+    QQuickMenuSeparator *separator = qobject_cast<QQuickMenuSeparator *>(item);
+    if (separator) {
+        QObjectPrivate::disconnect(separator, &QQuickMenuSeparator::visibleChanged, this, &QQuickMenuPrivate::updateCollapsedSeparators);
+        collapsedSeparators.remove(item);
     }
 
     if (destructionPolicy == DestructionPolicy::Destroy)
@@ -730,6 +735,9 @@ void QQuickMenuPrivate::removeItem(int index, QQuickItem *item, DestructionPolic
 
     if (lcMenu().isDebugEnabled())
         printContentModelItems();
+
+    if (visible)
+        updateCollapsedSeparators();
 }
 
 /*!
@@ -993,6 +1001,8 @@ bool QQuickMenuPrivate::prepareEnterTransition()
     // the right, it flips on the other side of the parent menu.
     allowHorizontalFlip = cascade && parentMenu;
 
+    updateCollapsedSeparators();
+
     // Enter transitions may want to animate the Menu's height based on its implicitHeight.
     // The Menu's implicitHeight is typically based on the ListView's contentHeight,
     // among other things. The docs for ListView's forceLayout function say:
@@ -1134,6 +1144,12 @@ void QQuickMenuPrivate::onItemActiveFocusChanged()
     setCurrentIndex(indexOfItem, control ? control->focusReason() : Qt::OtherFocusReason);
 }
 
+void QQuickMenuPrivate::onItemVisibleChanged()
+{
+    updateTextPadding();
+    updateCollapsedSeparators();
+}
+
 void QQuickMenuPrivate::updateTextPadding()
 {
     Q_Q(QQuickMenu);
@@ -1156,6 +1172,83 @@ void QQuickMenuPrivate::updateTextPadding()
         if (const auto menuItem = qobject_cast<QQuickMenuItem *>(itemAt(i)))
             emit menuItem->textPaddingChanged();
     }
+}
+
+void QQuickMenuPrivate::updateCollapsedSeparators()
+{
+    if (!complete || updatingCollapsedSeparators)
+        return;
+
+    // Guard against re-entrancy: setting visible on a separator will emit
+    // visibleChanged, which is connected back to this function.
+    QScopedValueRollback guard(updatingCollapsedSeparators, true);
+
+    auto isExplicitlyVisible = [](const QQuickItem *item) {
+        return QQuickItemPrivate::get(item)->explicitVisible;
+    };
+
+    auto hasVisibleBinding = [](QQuickItem *item) {
+        static const int visibleIndex = QQuickItem::staticMetaObject.indexOfProperty("visible");
+        auto ddata = QQmlData::get(item, false);
+        if (!ddata)
+            return false;
+        return ddata->hasBindingBit(visibleIndex);
+    };
+
+    auto hideSeparator = [this](QQuickItem *separatorItem) {
+        separatorItem->setVisible(false);
+        separatorItem->setHeight(0);
+        collapsedSeparators.insert(separatorItem);
+    };
+
+    auto showSeparator = [this](QQuickItem *separatorItem) {
+        if (!collapsedSeparators.contains(separatorItem))
+            return; // Only restore separators that we have previously collapsed
+        separatorItem->setVisible(true);
+        separatorItem->resetHeight();
+        collapsedSeparators.remove(separatorItem);
+    };
+
+    const int count = contentModel->count();
+
+    if (!collapsibleSeparators) {
+        for (int i = 0; i < count; ++i)
+            showSeparator(itemAt(i));
+        return;
+    }
+
+    QQuickItem *visibleSeparatorBefore = nullptr;
+    bool hasVisibleItemBefore = false;
+
+    for (int i = 0; i < count; ++i) {
+        QQuickItem *item = itemAt(i);
+        if (!item)
+            continue;
+
+        if (qobject_cast<QQuickMenuSeparator *>(item)) {
+            if (hasVisibleBinding(item)) {
+                if (isExplicitlyVisible(item) && !visibleSeparatorBefore)
+                    visibleSeparatorBefore = item;
+                continue;
+            }
+
+            if (visibleSeparatorBefore) {
+                hideSeparator(item);
+            } else if (hasVisibleItemBefore) {
+                visibleSeparatorBefore = item;
+                showSeparator(item);
+            } else {
+                hideSeparator(item);
+            }
+        } else if (isExplicitlyVisible(item)) {
+            hasVisibleItemBefore = true;
+            visibleSeparatorBefore = nullptr;
+        }
+    }
+
+    // Trailing separator
+    if (visibleSeparatorBefore && !hasVisibleBinding(visibleSeparatorBefore))
+        hideSeparator(visibleSeparatorBefore);
 }
 
 QQuickMenu *QQuickMenuPrivate::currentSubMenu() const
@@ -1772,6 +1865,13 @@ void QQuickMenu::setVisible(bool visible)
         return;
     }
 
+#if QT_CONFIG(xcb)
+    if (QQuickMenuPrivate::get(d->rootMenu())->menuBar)
+        d->wmWindowType = QNativeInterface::Private::QXcbWindow::DropDownMenu;
+    else
+        d->wmWindowType = QNativeInterface::Private::QXcbWindow::PopupMenu;
+#endif
+
     // Either the native menu wasn't wanted, or it couldn't be created;
     // show the non-native menu.
     QQuickPopup::setVisible(visible);
@@ -1888,6 +1988,49 @@ void QQuickMenu::setIcon(const QQuickIcon &icon)
     d->icon = icon;
     d->icon.ensureRelativeSourceResolved(this);
     emit iconChanged(icon);
+}
+
+/*!
+    \since QtQuick.Controls 6.12 (Qt 6.12)
+    \qmlproperty bool QtQuick.Controls::Menu::separatorsCollapsible
+
+    This property holds whether consecutive separators should be collapsed.
+
+    When this property is \c true, the menu will automatically
+    hide separators that would appear at the beginning or end of the visible
+    items, as well as consecutive separators where all items between them are
+    hidden. This mirrors the behavior of \l QMenu::separatorsCollapsible in
+    Qt Widgets.
+
+    The default value is \c true.
+
+    This is useful when menu items are dynamically shown or hidden, as it
+    prevents orphaned separators from being displayed.
+
+    \note Separators that have a user-defined binding on the \l {Item::}{visible}
+    property are not affected by this mechanism and are left unchanged.
+    For separators without a \c visible binding, the menu manages both
+    \l {Item::}{visible} and \l {Item::}{height} properties. Any existing
+    binding on \l {Item::}{height} will be overwritten.
+
+    \sa MenuSeparator
+*/
+bool QQuickMenu::separatorsCollapsible() const
+{
+    Q_D(const QQuickMenu);
+    return d->collapsibleSeparators;
+}
+
+void QQuickMenu::setSeparatorsCollapsible(bool collapsible)
+{
+    Q_D(QQuickMenu);
+    if (d->collapsibleSeparators == collapsible)
+        return;
+    d->collapsibleSeparators = collapsible;
+    emit separatorsCollapsibleChanged();
+    d->updateCollapsedSeparators();
+    if (d->handle)
+        d->handle->syncSeparatorsCollapsible(collapsible);
 }
 
 /*!

@@ -292,7 +292,7 @@ void QQmlPropertyCapture::captureProperty(QQmlNotifier *n)
         Q_ASSERT(g->isConnected(n));
     } else {
         g = QQmlJavaScriptExpressionGuard::New(expression, engine);
-        g->connect(n);
+        n->connect(g);
     }
 
     expression->activeGuards.prepend(g);
@@ -429,7 +429,7 @@ void QQmlPropertyCapture::captureNonBindableProperty(QObject *o, int n, int c, b
             Q_ASSERT(g->isConnected(o, n));
         } else {
             g = QQmlJavaScriptExpressionGuard::New(expression, engine);
-            g->connect(o, n, engine, doNotify);
+            QQmlData::connectEndpoint(g, o, n, engine, doNotify);
         }
 
         expression->activeGuards.prepend(g);
@@ -516,6 +516,12 @@ void QQmlJavaScriptExpression::setupFunction(QV4::ExecutionContext *qmlContext, 
     m_qmlScope.set(qmlContext->engine(), *qmlContext);
     m_v4Function = f;
     m_compilationUnit.reset(m_v4Function->executableCompilationUnit());
+}
+
+void QQmlJavaScriptExpression::setFunction(QV4::Function *f)
+{
+    m_v4Function = f;
+    m_compilationUnit.reset(f ? f->executableCompilationUnit() : nullptr);
 }
 
 void QQmlJavaScriptExpression::setCompilationUnit(const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit)

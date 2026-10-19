@@ -28,6 +28,7 @@ private:
 class SinglePixelClientBuffer : public GraphicsBuffer
 {
     Q_OBJECT
+
 public:
     explicit SinglePixelClientBuffer(uint32_t r, uint32_t g, uint32_t b, uint32_t a, wl_client *client, uint32_t id);
 
@@ -36,6 +37,9 @@ public:
     QSize size() const override;
     bool hasAlphaChannel() const override;
     const SinglePixelAttributes *singlePixelAttributes() const override;
+    uint32_t format() const override;
+    uint64_t modifier() const override;
+    uint32_t pitch() const override;
 
     static SinglePixelClientBuffer *get(wl_resource *resource);
 

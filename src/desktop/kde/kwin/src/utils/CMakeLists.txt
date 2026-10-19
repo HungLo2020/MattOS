@@ -1,17 +1,16 @@
 target_sources(kwin PRIVATE
     common.cpp
     cursortheme.cpp
-    drm_format_helper.cpp
     edid.cpp
     filedescriptor.cpp
     gravity.cpp
     lightsensor.cpp
     orientationsensor.cpp
+    precisetimer.cpp
     proximitysensor.cpp
     ramfile.cpp
     realtime.cpp
     softwarevsyncmonitor.cpp
-    subsurfacemonitor.cpp
     udev.cpp
     vsyncmonitor.cpp
 )

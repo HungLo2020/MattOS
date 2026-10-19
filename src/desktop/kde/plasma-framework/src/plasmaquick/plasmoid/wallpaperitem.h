@@ -10,7 +10,7 @@
 #include <QQmlEngine>
 #include <QQuickItem>
 
-#include <KPackage/Package>
+#include <KPluginMetaData>
 
 #include "plasmaquick_export.h"
 
@@ -22,11 +22,6 @@ class ContainmentItem;
 namespace Plasma
 {
 class Containment;
-}
-
-namespace PlasmaQuick
-{
-class SharedQmlEngine;
 }
 
 /*!
@@ -94,7 +89,7 @@ public:
      */
     static WallpaperItem *loadWallpaper(ContainmentItem *ContainmentItem);
 
-    KPackage::Package kPackage() const;
+    KPluginMetaData metadata() const;
 
     QString pluginName() const;
     void setPluginName(const QString &pluginName);
@@ -139,11 +134,12 @@ private:
 
     QString m_wallpaperPlugin;
     Plasma::Containment *m_containment = nullptr;
-    KPackage::Package m_pkg;
+    KPluginMetaData m_metadata;
     KConfigPropertyMap *m_configuration = nullptr;
     QList<QAction *> m_contextualActions;
     bool m_loading = false;
     std::optional<QColor> m_accentColor;
+    std::shared_ptr<QQmlEngine> m_engine;
 };
 
 #endif

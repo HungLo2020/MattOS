@@ -15,47 +15,47 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Lokalize 21.12.3\n"
 
-#: lib/io/kfilesystemtype.cpp:275
+#: lib/io/kfilesystemtype.cpp:306
 msgctxt "KFileSystemType|"
 msgid "NFS"
 msgstr "NFS"
 
-#: lib/io/kfilesystemtype.cpp:277
+#: lib/io/kfilesystemtype.cpp:308
 msgctxt "KFileSystemType|"
 msgid "SMB"
 msgstr "SMB"
 
-#: lib/io/kfilesystemtype.cpp:279
+#: lib/io/kfilesystemtype.cpp:310
 msgctxt "KFileSystemType|"
 msgid "FAT"
 msgstr "FAT"
 
-#: lib/io/kfilesystemtype.cpp:281
+#: lib/io/kfilesystemtype.cpp:312
 msgctxt "KFileSystemType|"
 msgid "RAMFS"
 msgstr "RAMFS"
 
-#: lib/io/kfilesystemtype.cpp:283
+#: lib/io/kfilesystemtype.cpp:314
 msgctxt "KFileSystemType|"
 msgid "Other"
 msgstr "Ostalo"
 
-#: lib/io/kfilesystemtype.cpp:285
+#: lib/io/kfilesystemtype.cpp:316
 msgctxt "KFileSystemType|"
 msgid "NTFS"
 msgstr "NTFS"
 
-#: lib/io/kfilesystemtype.cpp:287
+#: lib/io/kfilesystemtype.cpp:318
 msgctxt "KFileSystemType|"
 msgid "ExFAT"
 msgstr "ExFAT"
 
-#: lib/io/kfilesystemtype.cpp:289
+#: lib/io/kfilesystemtype.cpp:321
 msgctxt "KFileSystemType|"
 msgid "FUSE"
 msgstr ""
 
-#: lib/io/kfilesystemtype.cpp:291
+#: lib/io/kfilesystemtype.cpp:323
 msgctxt "KFileSystemType|"
 msgid "Unknown"
 msgstr "Nepoznato"
@@ -283,43 +283,43 @@ msgstr ""
 "širom svijeta.</p> <p>Za više informacija o KDE internacionalizaciji, "
 "posjetite <a href=\"http://l10n.kde.org\">http://l10n.kde.org</a></p>"
 
-#: lib/kaboutdata.cpp:1317
+#: lib/kaboutdata.cpp:1328
 msgctxt "KAboutData CLI|"
 msgid "Show author information."
 msgstr "Prikaz informacija o autoru."
 
-#: lib/kaboutdata.cpp:1318
+#: lib/kaboutdata.cpp:1329
 msgctxt "KAboutData CLI|"
 msgid "Show license information."
 msgstr "Prikaz informacija o licenci."
 
-#: lib/kaboutdata.cpp:1320
+#: lib/kaboutdata.cpp:1331
 msgctxt "KAboutData CLI|"
 msgid "The base file name of the desktop entry for this application."
 msgstr "Ime bazičnog fajla desktop unosa ove aplikacije."
 
-#: lib/kaboutdata.cpp:1321
+#: lib/kaboutdata.cpp:1332
 msgctxt "KAboutData CLI|"
 msgid "file name"
 msgstr "ime fajla"
 
-#: lib/kaboutdata.cpp:1331
+#: lib/kaboutdata.cpp:1342
 msgctxt "KAboutData CLI|"
 msgid "This application was written by somebody who wants to remain anonymous."
 msgstr "Ovaj program je napisao neko ko želi ostati anoniman."
 
-#: lib/kaboutdata.cpp:1333
+#: lib/kaboutdata.cpp:1350
 #, qt-format
 msgctxt "KAboutData CLI|"
 msgid "%1 was written by:"
 msgstr "%1 je napisao:"
 
-#: lib/kaboutdata.cpp:1344
+#: lib/kaboutdata.cpp:1361
 msgctxt "KAboutData CLI|"
 msgid "Please use https://bugs.kde.org to report bugs."
 msgstr "Za prijavu grešaka, molimo da koristite https://bugs.kde.org."
 
-#: lib/kaboutdata.cpp:1346
+#: lib/kaboutdata.cpp:1363
 #, qt-format
 msgctxt "KAboutData CLI|"
 msgid "Please report bugs to %1."
@@ -826,7 +826,7 @@ msgstr "%1s %2m %3s"
 #. %1 is a formatted time (from QLocale.toString), %2 is a localized timezone abbreviation (from QTimeZone::displayName(QTimeZone::ShortName)).
 #: lib/util/kformatprivate.cpp:432 lib/util/kformatprivate.cpp:441
 #: lib/util/kformatprivate.cpp:446 lib/util/kformatprivate.cpp:454
-#: lib/util/kformatprivate.cpp:680
+#: lib/util/kformatprivate.cpp:682
 #, fuzzy, qt-format
 #| msgctxt "KFormat|no Prefix"
 #| msgid "%1 %2"
@@ -1066,13 +1066,13 @@ msgctxt "KFormat|"
 msgid "%1 at %2"
 msgstr "%1 i %2"
 
-#: lib/util/kformatprivate.cpp:696
+#: lib/util/kformatprivate.cpp:698
 #, qt-format
 msgctxt "KFormat|distance in feet"
 msgid "%1 ft"
 msgstr ""
 
-#: lib/util/kformatprivate.cpp:700 lib/util/kformatprivate.cpp:702
+#: lib/util/kformatprivate.cpp:702 lib/util/kformatprivate.cpp:704
 #, fuzzy, qt-format
 #| msgctxt "KFormat|"
 #| msgid "%1 minutes"
@@ -1080,13 +1080,13 @@ msgctxt "KFormat|distance in miles"
 msgid "%1 mi"
 msgstr "%1 minuta"
 
-#: lib/util/kformatprivate.cpp:708
+#: lib/util/kformatprivate.cpp:710
 #, qt-format
 msgctxt "KFormat|distance in meter"
 msgid "%1 m"
 msgstr ""
 
-#: lib/util/kformatprivate.cpp:711 lib/util/kformatprivate.cpp:713
+#: lib/util/kformatprivate.cpp:713 lib/util/kformatprivate.cpp:715
 #, fuzzy, qt-format
 #| msgctxt "KFormat|MetricBinaryDialect"
 #| msgid "%1 kB"

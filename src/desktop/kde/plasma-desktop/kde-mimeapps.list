@@ -9,7 +9,6 @@ image/x-xcf=org.gimp.GIMP.desktop;org.kde.gwenview.desktop
 
 # Discover
 x-scheme-handler/appstream=org.kde.discover.urlhandler.desktop
-application/vnd.debian.binary-package=org.kde.discover.desktop
 
 # Archive Manager
 application/x-tar=org.kde.ark.desktop
@@ -66,6 +65,8 @@ image/heif=org.kde.gwenview.desktop
 image/jpeg=org.kde.gwenview.desktop
 image/jxl=org.kde.gwenview.desktop
 image/png=org.kde.gwenview.desktop
+image/svg+xml=org.kde.gwenview.desktop
+image/svg+xml-compressed=org.kde.gwenview.desktop
 image/bmp=org.kde.gwenview.desktop
 image/x-eps=org.kde.gwenview.desktop
 image/x-icns=org.kde.gwenview.desktop
@@ -103,7 +104,7 @@ audio/x-vorbis+ogg=org.kde.elisa.desktop
 audio/x-wav=org.kde.elisa.desktop
 
 # PDF Viewer
-application/pdf=okularApplication_pdf.desktop
+application/pdf=org.kde.okular.desktop
 
 # Tel
 x-scheme-handler/tel=org.kde.kdeconnect.handler.desktop

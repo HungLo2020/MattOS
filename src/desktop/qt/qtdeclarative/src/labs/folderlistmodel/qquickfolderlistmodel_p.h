@@ -48,6 +48,8 @@ class Q_LABSFOLDERLISTMODEL_EXPORT QQuickFolderListModel : public QAbstractListM
     Q_PROPERTY(bool showDirs READ showDirs WRITE setShowDirs NOTIFY showDirsChanged FINAL)
     Q_PROPERTY(bool showDirsFirst READ showDirsFirst WRITE setShowDirsFirst NOTIFY showDirsFirstChanged FINAL)
     Q_PROPERTY(bool showDotAndDotDot READ showDotAndDotDot WRITE setShowDotAndDotDot NOTIFY showDotAndDotDotChanged FINAL)
+    Q_PROPERTY(bool showDot READ showDot WRITE setShowDot NOTIFY showDotChanged REVISION(6, 12))
+    Q_PROPERTY(bool showDotDot READ showDotDot WRITE setShowDotDot NOTIFY showDotDotChanged REVISION(6, 12))
     Q_PROPERTY(bool showHidden READ showHidden WRITE setShowHidden NOTIFY showHiddenChanged REVISION(2, 1) FINAL)
     Q_PROPERTY(bool showOnlyReadable READ showOnlyReadable WRITE setShowOnlyReadable NOTIFY  showOnlyReadableChanged FINAL)
     Q_PROPERTY(bool caseSensitive READ caseSensitive WRITE setCaseSensitive NOTIFY  caseSensitiveChanged REVISION(2, 2) FINAL)
@@ -112,6 +114,10 @@ public:
     void setShowDirsFirst(bool showDirsFirst);
     bool showDotAndDotDot() const;
     void setShowDotAndDotDot(bool on);
+    bool showDot() const;
+    void setShowDot(bool on);
+    bool showDotDot() const;
+    void setShowDotDot(bool on);
     bool showHidden() const;
     void setShowHidden(bool on);
     bool showOnlyReadable() const;
@@ -149,6 +155,8 @@ Q_SIGNALS:
     void showDirsChanged();
     void showDirsFirstChanged();
     void showDotAndDotDotChanged();
+    Q_REVISION(6, 12) void showDotChanged();
+    Q_REVISION(6, 12) void showDotDotChanged();
     void showHiddenChanged();
     void showOnlyReadableChanged();
     void caseSensitiveChanged();

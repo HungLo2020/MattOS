@@ -1,10 +1,12 @@
+#version 140
 // SPDX-FileCopyrightText: None
 // SPDX-License-Identifier: CC0-1.0
 #include "colormanagement.glsl"
 #include "saturation.glsl"
 
 uniform sampler2D sampler;
-varying vec2 texcoord0;
+in vec2 texcoord0;
+out vec4 fragColor;
 
 void main()
 {
@@ -13,5 +15,5 @@ void main()
 
     tex = adjustSaturation(tex);
 
-    gl_FragColor = nitsToDestinationEncoding(tex);
+    fragColor = nitsToDestinationEncoding(tex);
 }

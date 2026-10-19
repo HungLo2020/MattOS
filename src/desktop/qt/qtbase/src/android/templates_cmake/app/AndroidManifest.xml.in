@@ -1,10 +1,7 @@
 <?xml version="1.0"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:dist="http://schemas.android.com/apk/distribution"
-    package="@APP_PACKAGE_NAME@"
-    android:installLocation="auto"
-    android:versionCode="@APP_VERSION_CODE@"
-    android:versionName="@APP_VERSION_NAME@">
+    android:installLocation="auto">
     @APP_PERMISSIONS@
     @APP_FEATURES@
     <dist:module dist:instant="true"/>
@@ -16,10 +13,9 @@
     <application
         android:name="org.qtproject.qt.android.bindings.QtApplication"
         android:hardwareAccelerated="true"
-        android:label="@APP_NAME@"
+        android:label="${appName}"
         @APP_ICON@
-        android:allowBackup="true"
-        android:fullBackupOnly="false">
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name="org.qtproject.qt.android.bindings.QtActivity"
             android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
@@ -31,13 +27,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-          <meta-data
+            <meta-data
                 android:name="android.app.lib_name"
-                android:value="@APP_LIB_NAME@" />
+                android:value="${appLibName}" />
 
-          <meta-data
+            <meta-data
                 android:name="android.app.arguments"
-                android:value="@APP_ARGUMENTS@" />
+                android:value="${appArguments}" />
         </activity>
 
         <provider

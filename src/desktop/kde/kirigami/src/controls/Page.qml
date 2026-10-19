@@ -13,7 +13,6 @@ import org.kde.kirigami.platform as Platform
 import org.kde.kirigami.primitives as Primitives
 import org.kde.kirigami.layouts as KL
 import org.kde.kirigami.controls as KC
-import org.kde.kirigami.private.polyfill
 import "private" as P
 
 /*!
@@ -33,7 +32,7 @@ QQC2.Page {
 //BEGIN properties
     padding: Platform.Units.gridUnit
     topPadding: padding + SafeArea.margins.top
-    bottomPadding: padding + SafeArea.margins.bottom
+    bottomPadding: padding + (footer && footer.visible ? 0 : SafeArea.margins.bottom)
     leftPadding: padding + SafeArea.margins.left
     rightPadding: padding + SafeArea.margins.right
 
@@ -84,7 +83,7 @@ QQC2.Page {
     readonly property bool isCurrentPage: KL.ColumnView.view
             ? (KL.ColumnView.index === KL.ColumnView.view.currentIndex && KL.ColumnView.view.parent.parent.currentItem === KL.ColumnView.view.parent)
             : (parent && parent instanceof QQC2.StackView
-                ? parent.currentItem === root
+                ? (parent as QQC2.StackView).currentItem === root
                 : true)
 
     /*!
@@ -139,7 +138,7 @@ QQC2.Page {
 
       \since 2.5
      */
-    readonly property Item globalToolBarItem: globalToolBar.item
+    readonly property Item globalToolBarItem: globalToolBar.item as Item
 
     /*!
       The style for the automatically generated global toolbar.
@@ -220,7 +219,7 @@ QQC2.Page {
             z: 9997
             anchors {
                 fill: parent
-                topMargin: globalToolBar.height
+                topMargin: globalToolBar.row ? 0 : globalToolBar.height
             }
         }
     ]
@@ -228,12 +227,11 @@ QQC2.Page {
     KL.ColumnView.globalHeader: Loader {
         id: globalToolBar
         z: 9999
-        Primitives.AlignedSize.height: item ? item.implicitHeight : 0
+        Primitives.AlignedSize.height: item ? (item as Item).implicitHeight : 0
 
         width: root.width
-        // NOTE: This is an Item instead of a Kirigami.PageRow as a workaround for QTBUG-120189
-        // Once Frameworks can depend from Qt 6.9, this property can be a PageRow again
-        property Item row
+
+        property PageRow row
         property T.StackView stack
 
         // don't load async so that on slower devices we don't have the page content height changing while loading in
@@ -257,11 +255,13 @@ QQC2.Page {
                 root.titleDelegate !== defaultTitleDelegate) {
                 sourceComponent = root.titleDelegate;
             } else if (active) {
-                const url = "private/globaltoolbar/ToolBarPageHeader.qml";
-                setSource(Qt.resolvedUrl(url), {
-                    pageRow: Qt.binding(() => row),
-                    page: root
-                });
+                const url = Qt.resolvedUrl("private/globaltoolbar/ToolBarPageHeader.qml")
+                if (source != url) {
+                    setSource(url, {
+                        pageRow: Qt.binding(() => row),
+                        page: root
+                    });
+                }
             }
         }
     }
@@ -269,11 +269,11 @@ QQC2.Page {
     KL.ColumnView.globalFooter: Loader {
         id: bottomToolBar
 
-        property T.Page page: root
+        property QQC2.Page page: root
         property bool pageComplete: false
 
         visible: active
-        height: visible ? bottomToolBar.item.implicitHeight : 0
+        height: visible ? (bottomToolBar.item as Item).implicitHeight : 0
 
         active: {
             // Important! Do not do anything until the page has been
@@ -294,7 +294,7 @@ QQC2.Page {
             }
 
             // Legacy
-            if (typeof applicationWindow === "undefined") {
+            if (typeof applicationWindow !== "function") {
                 return true;
             }
 

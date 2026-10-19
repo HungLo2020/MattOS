@@ -30,6 +30,7 @@
 #include <QtGui/qpa/qplatformtheme.h>
 
 #include <QtWidgets/private/qstyleanimation_p.h>
+#include <QtWidgets/private/qmainwindowlayout_p.h>
 
 #if QT_CONFIG(mdiarea)
 #include <QtWidgets/qmdisubwindow.h>
@@ -234,13 +235,6 @@ static const QColor titlebarSeparatorLineActive(111, 111, 111);
 static const QColor titlebarSeparatorLineInactive(131, 131, 131);
 static const QColor darkModeSeparatorLine(88, 88, 88);
 
-// Gradient colors used for the dock widget title bar and
-// non-unifed tool bar background.
-static const QColor lightMainWindowGradientBegin(240, 240, 240);
-static const QColor lightMainWindowGradientEnd(200, 200, 200);
-static const QColor darkMainWindowGradientBegin(47, 47, 47);
-static const QColor darkMainWindowGradientEnd(47, 47, 47);
-
 static const int DisclosureOffset = 4;
 
 static const qreal titleBarIconTitleSpacing = 5;
@@ -432,18 +426,15 @@ static bool setupSlider(NSSlider *slider, const QStyleOptionSlider *sl)
     return true;
 }
 
-static bool isInMacUnifiedToolbarArea(QWindow *window, int windowY)
+static bool isInMacUnifiedToolbarArea(QWidget *widget, int windowY)
 {
-    QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
-    QPlatformNativeInterface::NativeResourceForIntegrationFunction function =
-        nativeInterface->nativeResourceFunctionForIntegration("testContentBorderPosition");
-    if (!function)
-        return false; // Not Cocoa platform plugin.
+    auto *mainWindow = qobject_cast<QMainWindow *>(widget);
+    if (!mainWindow || !mainWindow->unifiedTitleAndToolBarOnMac())
+        return false;
 
-    typedef bool (*TestContentBorderPositionFunction)(QWindow *, int);
-    return (reinterpret_cast<TestContentBorderPositionFunction>(QFunctionPointer(function)))(window, windowY);
+    QMainWindowLayout *layout = static_cast<QMainWindowLayout*>(mainWindow->layout());
+    return layout->testUnifiedToolBarAreaPosition(windowY);
 }
-
 
 #if QT_CONFIG(tabbar)
 static void drawTabCloseButton(QPainter *p, bool hover, bool selected, bool pressed, bool documentMode)
@@ -905,8 +896,6 @@ static QSize qt_aqua_get_known_size(QStyle::ContentsType ct, const QStyleOption 
             return ret;
     }
 
-    const bool isBigSurOrAbove = QOperatingSystemVersion::current() >= QOperatingSystemVersion::MacOSBigSur;
-
     if (ct == QStyle::CT_CustomBase && widg) {
 #if QT_CONFIG(pushbutton)
         if (qobject_cast<const QPushButton *>(widg))
@@ -1087,7 +1076,7 @@ static QSize qt_aqua_get_known_size(QStyle::ContentsType ct, const QStyleOption 
                     w = qt_mac_aqua_get_metric(HSliderHeight);
                     if (sld->tickPosition != QSlider::NoTicks)
                         w += qt_mac_aqua_get_metric(HSliderTickHeight);
-                    else if (isBigSurOrAbove)
+                    else
                         w += 3;
                 } else {
                     w = qt_mac_aqua_get_metric(VSliderWidth);
@@ -1259,8 +1248,6 @@ static QStyleHelper::WidgetSizePolicy qt_aqua_guess_size(const QWidget *widg, QS
 
 void QMacStylePrivate::drawFocusRing(QPainter *p, const QRectF &targetRect, int hMargin, int vMargin, const CocoaControl &cw) const
 {
-    const bool isBigSurOrAbove = QOperatingSystemVersion::current() >= QOperatingSystemVersion::MacOSBigSur;
-
     QPainterPath focusRingPath;
     focusRingPath.setFillRule(Qt::OddEvenFill);
 
@@ -1338,8 +1325,7 @@ void QMacStylePrivate::drawFocusRing(QPainter *p, const QRectF &targetRect, int 
             else if (cw.size == QStyleHelper::SizeMini)
                 focusRect = focusRect.adjusted(0, -1, 0, 0);
         }
-        if (isBigSurOrAbove)
-            focusRect = focusRect.translated(0, 1);
+        focusRect = focusRect.translated(0, 1);
         const qreal innerRadius = cw.type == Button_PushButton ? 3 : 4;
         const qreal outerRadius = innerRadius + focusRingWidth;
         hOffset = focusRect.left();
@@ -1353,12 +1339,9 @@ void QMacStylePrivate::drawFocusRing(QPainter *p, const QRectF &targetRect, int 
     case Button_PopupButton:
     case SegmentedControl_Single: {
         QRectF focusRect = targetRect;
-        if (isBigSurOrAbove) { // These adjustments look bad on Tahoe with L. Glass.
-            if (!qt_apple_runningWithLiquidGlass())
-                focusRect.translate(0, -1.5);
-        } else if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::MacOSCatalina) {
-            focusRect.adjust(0, 0, 0, -1);
-        }
+        // These adjustments look bad on Tahoe with L. Glass.
+        if (!qt_apple_runningWithLiquidGlass())
+            focusRect.translate(0, -1.5);
         const qreal innerRadius = cw.type == Button_PushButton ? 3 : 4;
         const qreal outerRadius = innerRadius + focusRingWidth;
         hOffset = focusRect.left();
@@ -2299,7 +2282,7 @@ void QMacStylePrivate::drawProgressBar(QPainter* p, const QStyleOptionProgressBa
 
 QMacStyle *QMacStyle::create()
 {
-    return new QMacApperanceStyle<QMacStyle>;
+    return new QMacApperanceStyle<QMacStyle, QStyleOption, QStyleOptionComplex>;
 }
 
 QMacStyle::QMacStyle()
@@ -3331,8 +3314,7 @@ void QMacStyle::drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPai
         auto adjustedRect = opt->rect;
         bool needTranslation = false;
         // FIXME: remove condition on macOS Mojave depending on the Qt's minimum version requirement.
-        if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::MacOSMojave
-            && !qt_apple_runningWithLiquidGlass() && !isDarkMode()) {
+        if (!qt_apple_runningWithLiquidGlass() && !isDarkMode()) {
             // In Aqua theme we have to use the 'default' NSBox (as opposite
             // to the 'custom' QDarkNSBox we use in dark theme). Since -drawRect:
             // does nothing in default NSBox, we call -displayRectIgnoringOpaticty:.
@@ -3355,8 +3337,7 @@ void QMacStyle::drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPai
 #endif
             CGContextTranslateCTM(ctx, 0, rect.origin.y + rect.size.height);
             CGContextScaleCTM(ctx, 1, -1);
-            if (QOperatingSystemVersion::current() < QOperatingSystemVersion::MacOSMojave
-                || [box isMemberOfClass:QDarkNSBox.class]) {
+            if ([box isMemberOfClass:QDarkNSBox.class]) {
                 [box drawRect:rect];
             } else {
                 if (needTranslation)
@@ -4028,9 +4009,9 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
                     btn.palette.setColor(QPalette::ButtonText, Qt::white);
             }
 
-            if (isEnabled && !isDarkMode() && QOperatingSystemVersion::current() > QOperatingSystemVersion::MacOSBigSur) {
+            if (isEnabled && !isDarkMode()) {
                 if (!isDefault && !(btn.state & State_On)) {
-                    // On macOS 12 it's a gray button, white text color (if set in the
+                    // It's a gray button, white text color (if set in the
                     // previous statement) would be almost invisible.
                     btn.palette.setColor(QPalette::ButtonText, Qt::black);
                 }
@@ -4101,7 +4082,7 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
                 if (w) {
                     QRect tabRect = tabOpt->rect;
                     QPoint windowTabStart = w->mapTo(w->window(), tabRect.topLeft());
-                    isUnified = isInMacUnifiedToolbarArea(w->window()->windowHandle(), windowTabStart.y());
+                    isUnified = isInMacUnifiedToolbarArea(w->window(), windowTabStart.y());
                 }
 
                 const int tabOverlap = proxy()->pixelMetric(PM_TabBarTabOverlap, opt, w);
@@ -4165,19 +4146,13 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
             const auto cs = d->effectiveAquaSizeConstrain(opt, w);
             // Extra hacks to get the proper pressed appreance when not selected or selected and inactive
             const bool needsInactiveHack = !isActive && isSelected;
-            const bool isBigSurOrAbove = QOperatingSystemVersion::current() >= QOperatingSystemVersion::MacOSBigSur;
             const auto ct = !needsInactiveHack && (isSelected || tp == QStyleOptionTab::OnlyOneTab) ?
                     QMacStylePrivate::Button_PushButton :
                     QMacStylePrivate::Button_PopupButton;
             const bool isPopupButton = ct == QMacStylePrivate::Button_PopupButton;
             const auto cw = QMacStylePrivate::CocoaControl(ct, cs);
             auto *pb = static_cast<NSButton *>(d->cocoaControl(cw));
-            auto vOffset = isPopupButton ? 1 : 2;
-            if (isBigSurOrAbove) {
-                // Make it 1, otherwise, offset is very visible compared
-                // to selected tab (which is not a popup button).
-                vOffset = 1;
-            }
+            auto vOffset = 1;
 
             if (tabDirection == QMacStylePrivate::East)
                 vOffset -= 1;
@@ -4196,7 +4171,7 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
                 else
                     frameRect = frameRect.adjusted(-outerAdjust, 0, innerAdjust, 0);
 
-                if (isSelected && isBigSurOrAbove) {
+                if (isSelected) {
                     // 1 pixel of 'roundness' is still visible on the right
                     // (the left is OK, it's rounded).
                     frameRect = frameRect.adjusted(0, 0, 1, 0);
@@ -4205,7 +4180,7 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
             case QStyleOptionTab::Middle:
                 frameRect = frameRect.adjusted(-innerAdjust, 0, innerAdjust, 0);
 
-                if (isSelected && isBigSurOrAbove) {
+                if (isSelected) {
                     // 1 pixel of 'roundness' is still visible on both
                     // sides - left and right.
                     frameRect = frameRect.adjusted(-1, 0, 1, 0);
@@ -4219,7 +4194,7 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
                 else
                     frameRect = frameRect.adjusted(-outerAdjust, 0, innerAdjust, 0);
 
-                if (isSelected && isBigSurOrAbove) {
+                if (isSelected) {
                     // 1 pixel of 'roundness' is still visible on the left.
                     frameRect = frameRect.adjusted(-1, 0, 0, 0);
                 }
@@ -4240,12 +4215,7 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
             pb.enabled = isEnabled;
             [pb highlight:isPressed];
 
-            // Set off state when inactive. See needsInactiveHack for when it's selected
-            // On macOS 12, don't set the Off state for selected tabs as it draws a gray backgorund even when highlighted
-            if (QOperatingSystemVersion::current() > QOperatingSystemVersion::MacOSBigSur)
-                pb.state = (isActive && isSelected) ? NSControlStateValueOn : NSControlStateValueOff;
-            else
-                pb.state = (isActive && isSelected && !isPressed) ? NSControlStateValueOn : NSControlStateValueOff;
+            pb.state = (isActive && isSelected) ? NSControlStateValueOn : NSControlStateValueOff;
 
             const auto drawBezelBlock = ^(CGContextRef ctx, const CGRect &r) {
                 CGContextClipToRect(ctx, opt->rect.toCGRect());
@@ -4282,7 +4252,7 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
                 NSPopUpArrowPosition oldPosition = NSPopUpArrowAtCenter;
                 NSPopUpButtonCell *pbCell = nil;
                 auto rAdjusted = r;
-                if (isPopupButton && (tp == QStyleOptionTab::OnlyOneTab || isBigSurOrAbove)) {
+                if (isPopupButton) {
                     // Note: starting from macOS BigSur NSPopupButton has this
                     // arrow 'button' in a different place and it became
                     // quite visible 'in between' inactive tabs.
@@ -4293,10 +4263,8 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
                         // NSPopUpButton in this state is smaller.
                         rAdjusted.origin.x -= 3;
                         rAdjusted.size.width += 6;
-                        if (isBigSurOrAbove) {
-                            if (tp == QStyleOptionTab::End)
-                                rAdjusted.origin.x -= 2;
-                        }
+                        if (tp == QStyleOptionTab::End)
+                            rAdjusted.origin.x -= 2;
                     }
                 }
                 if (qt_apple_runningWithLiquidGlass()) {
@@ -4905,6 +4873,7 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
     case CE_ToolBar: {
         const QStyleOptionToolBar *toolBar = qstyleoption_cast<const QStyleOptionToolBar *>(opt);
         const bool darkMode = isDarkMode();
+        const QColor separatorColor = darkMode ? darkModeSeparatorLine : opt->palette.dark().color();
 
         // Unified title and toolbar drawing. In this mode the cocoa platform plugin will
         // fill the top toolbar area part with a background gradient that "unifies" with
@@ -4925,11 +4894,11 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
                     // mode below. Determine this by making a unified toolbar area test for the row below
                     // this toolbar.
                     const QPoint windowToolbarEnd = w->mapTo(w->window(), opt->rect.bottomLeft());
-                    const bool isEndOfUnifiedArea = !isInMacUnifiedToolbarArea(w->window()->windowHandle(), windowToolbarEnd.y() + 1);
+                    const bool isEndOfUnifiedArea = !isInMacUnifiedToolbarArea(w->window(), windowToolbarEnd.y() + 1);
                     if (isEndOfUnifiedArea) {
                         const int margin = qt_mac_aqua_get_metric(SeparatorSize);
                         const auto separatorRect = QRect(opt->rect.left(), opt->rect.bottom(), opt->rect.width(), margin);
-                        p->fillRect(separatorRect, darkMode ? darkModeSeparatorLine : opt->palette.dark().color());
+                        p->fillRect(separatorRect, separatorColor);
                     }
                     break;
                 }
@@ -4937,31 +4906,16 @@ void QMacStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter
 #endif
         }
 
-        // draw background gradient
-        QLinearGradient linearGrad;
-        if (opt->state & State_Horizontal)
-            linearGrad = QLinearGradient(0, opt->rect.top(), 0, opt->rect.bottom());
-        else
-            linearGrad = QLinearGradient(opt->rect.left(), 0,  opt->rect.right(), 0);
-
-        QColor mainWindowGradientBegin = darkMode ? darkMainWindowGradientBegin : lightMainWindowGradientBegin;
-        QColor mainWindowGradientEnd = darkMode ? darkMainWindowGradientEnd : lightMainWindowGradientEnd;
-
-        linearGrad.setColorAt(0, mainWindowGradientBegin);
-        linearGrad.setColorAt(1, mainWindowGradientEnd);
-        p->fillRect(opt->rect, linearGrad);
+        p->fillRect(opt->rect, opt->palette.window());
 
         p->save();
+        p->setPen(separatorColor);
         QRect toolbarRect = darkMode ? opt->rect.adjusted(0, 0, 0, 1) : opt->rect;
         if (opt->state & State_Horizontal) {
-            p->setPen(darkMode ? darkModeSeparatorLine : mainWindowGradientBegin.lighter(114));
             p->drawLine(toolbarRect.topLeft(), toolbarRect.topRight());
-            p->setPen(darkMode ? darkModeSeparatorLine :mainWindowGradientEnd.darker(114));
             p->drawLine(toolbarRect.bottomLeft(), toolbarRect.bottomRight());
         } else {
-            p->setPen(darkMode ? darkModeSeparatorLine : mainWindowGradientBegin.lighter(114));
             p->drawLine(toolbarRect.topLeft(), toolbarRect.bottomLeft());
-            p->setPen(darkMode ? darkModeSeparatorLine : mainWindowGradientEnd.darker(114));
             p->drawLine(toolbarRect.topRight(), toolbarRect.bottomRight());
         }
         p->restore();

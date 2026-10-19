@@ -12,8 +12,8 @@
 namespace KWin
 {
 
-FilteredSceneView::FilteredSceneView(Scene *scene, LogicalOutput *output, OutputLayer *layer, std::optional<pid_t> pidToHide)
-    : SceneView(scene, output, nullptr, layer)
+FilteredSceneView::FilteredSceneView(Scene *scene, LogicalOutput *output, OutputLayer *layer, RenderDevice *renderDevice, std::optional<pid_t> pidToHide)
+    : SceneView(scene, output, nullptr, layer, renderDevice)
 {
     addWindowFilter([pidToHide](Window *window) {
         if (pidToHide.has_value() && *pidToHide == window->pid()) {
@@ -38,6 +38,17 @@ FilteredSceneView::FilteredSceneView(Scene *scene, LogicalOutput *output, Output
     for (auto window : windows) {
         setupRepaintOnExcludedFromCapture(window);
     }
+}
+
+void FilteredSceneView::prePaint(OutputFrame *frame)
+{
+    m_nextPresentationTimestamp = std::chrono::steady_clock::now().time_since_epoch();
+    SceneView::prePaint(frame);
+}
+
+void FilteredSceneView::setRefreshRate(uint refreshRate)
+{
+    m_refreshRate = refreshRate;
 }
 
 } // namespace KWin

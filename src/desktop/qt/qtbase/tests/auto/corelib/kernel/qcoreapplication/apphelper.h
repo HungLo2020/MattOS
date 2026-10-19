@@ -21,6 +21,11 @@ inline void run()
 {
     QSKIP("Skipped on Android: helper not present");
 }
+#elif defined(Q_OS_HARMONY)
+inline void run()
+{
+    QSKIP("Skipped on OHOS: can't launch helper");
+}
 #else
 #  if defined(Q_OS_WIN)
 #    define EXE ".exe"

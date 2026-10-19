@@ -9,6 +9,7 @@ extern "C" {
 } // extern "C"
 #undef AVMediaType
 
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qsize.h>
 
 #include <QtMultimedia/private/qavfhelpers_p.h>
@@ -23,6 +24,8 @@ extern "C" {
 
 #include <chrono>
 #include <optional>
+
+Q_STATIC_LOGGING_CATEGORY(qLcAvfSampleBufferDelegate, "qt.multimedia.avf.samplebufferdelegate");
 
 using namespace Qt::StringLiterals;
 
@@ -79,6 +82,18 @@ QT_USE_NAMESPACE
         imageBuffer,
         QAVFHelpers::QSharedCVPixelBuffer::RefMode::NeedsRef);
 
+    // The incoming buffer is recycled from a pool owned by AVFoundation, so we
+    // copy it into a free-standing CVPixelBuffer that we fully own before
+    // keeping it around in a QVideoFrame.
+    q23::expected<QAVFHelpers::QSharedCVPixelBuffer, QString> copyResult =
+        QFFmpeg::deepCopyCvPixelBuffer(pixelBuffer.get());
+    if (!copyResult) {
+        qCWarning(qLcAvfSampleBufferDelegate)
+            << "Failed to copy incoming pixel buffer:" << copyResult.error();
+        return;
+    }
+    pixelBuffer = std::move(*copyResult);
+
     QSize incomingFrameSize {
         static_cast<int>(CVPixelBufferGetWidth(pixelBuffer.get())),
         static_cast<int>(CVPixelBufferGetHeight(pixelBuffer.get())) };
@@ -115,11 +130,17 @@ QT_USE_NAMESPACE
 
     format.setStreamFrameRate(frameRate);
 
-    QVideoFrame frame = QFFmpeg::qVideoFrameFromCvPixelBuffer(
+    QVideoFrame frame;
+    q23::expected<QVideoFrame, QString> frameResult = QFFmpeg::qVideoFrameFromCvPixelBuffer(
         *m_accel,
         startTime - *baseTime,
         pixelBuffer,
         format);
+    if (!frameResult)
+        qCWarning(qLcAvfSampleBufferDelegate) << frameResult.error();
+    else
+        frame = *frameResult;
+
     if (!frame.isValid())
         frame = QVideoFramePrivate::createFrame(
             std::make_unique<QFFmpeg::CVImageVideoBuffer>(std::move(pixelBuffer)),

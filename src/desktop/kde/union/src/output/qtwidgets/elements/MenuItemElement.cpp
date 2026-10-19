@@ -1,0 +1,282 @@
+// SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+// SPDX-FileCopyrightText: 2026 Akseli Lahtinen <akselmo@akselmo.dev>
+
+#include "MenuItemElement.h"
+#include "PropertiesTypes.h"
+#include "SharedNames.h"
+#include "StyleUtils.h"
+#include "UnionStyle.h"
+#include "elements/AbstractElement.h"
+#include <QApplication>
+#include <QDebug>
+#include <QPainter>
+#include <QStyle>
+
+using namespace Qt::StringLiterals;
+using namespace Union::Properties;
+
+MenuItemElement::MenuItemElement(const QStyleOptionMenuItem *option, const UnionStyle *style, const QWidget *widget)
+    : AbstractElement(option, style, widget)
+    , m_menuItemOption(option)
+    , m_isSeparator(false)
+    , m_hasSubMenu(false)
+    , m_hasCheckBox(false)
+    , m_hasRadioButton(false)
+    , m_hasCheckableItems(false)
+    , m_shortcutText(QString())
+{
+    setFlag(AbstractElementFlag::ContentsSizeIncludesAveragePadding);
+    update();
+}
+
+MenuItemElement::~MenuItemElement()
+{
+}
+
+void MenuItemElement::update()
+{
+    if (!m_menuItemOption) {
+        return;
+    }
+    m_isSeparator = (m_menuItemOption->menuItemType == QStyleOptionMenuItem::Separator);
+    m_hasSubMenu = (m_menuItemOption->menuItemType == QStyleOptionMenuItem::SubMenu);
+    m_hasCheckBox = (m_menuItemOption->checkType == QStyleOptionMenuItem::NonExclusive);
+    m_hasRadioButton = (m_menuItemOption->checkType == QStyleOptionMenuItem::Exclusive);
+    m_hasCheckableItems = m_menuItemOption->menuHasCheckableItems;
+
+    if (m_hasSubMenu) {
+        m_arrowElementList = prepareElements(m_menuItemOption, m_widget, {ElementString::MenuItem, ElementString::Arrow});
+        m_arrowProperties = queryProperties(m_arrowElementList);
+        m_subMenuArrow = m_style->unionIcon(m_arrowProperties, u"arrow-right-symbolic"_s);
+    }
+    if (m_hasCheckBox || m_hasRadioButton) {
+        QStyleOptionButton button;
+        button.initFrom(m_widget);
+        m_checkElementList =
+            prepareElements(&button, m_widget, {m_hasCheckBox ? ElementString::CheckBox : ElementString::RadioButton, ElementString::Indicator});
+        m_checkProperties = queryProperties(m_checkElementList);
+    }
+
+    if (!QApplication::testAttribute(Qt::AA_DontShowIconsInMenus)) {
+        setIcon(m_menuItemOption->icon);
+    }
+    setText(m_menuItemOption->text);
+
+    updateSubElementList();
+    layout();
+}
+
+void MenuItemElement::draw(QPainter *painter, DrawEnums enums) const
+{
+    if (!m_isValid) {
+        return;
+    }
+
+    switch (enums.ControlElement) {
+    case QStyle::CE_MenuItem:
+        drawBackground(painter);
+        if (m_hasCheckBox || m_hasRadioButton) {
+            drawBackgroundRectangle(painter, m_layoutMap[ElementString::Indicator].rect, m_checkProperties);
+        }
+        drawIcon(painter);
+        drawText(painter);
+        drawSubMenuArrow(painter);
+        break;
+    }
+}
+
+void MenuItemElement::updateSubElementList()
+{
+    m_subElementList.clear();
+    QString itemText = text();
+    if (m_isSeparator) {
+        if (hasText()) {
+            m_subElementList.append(ElementString::Text);
+        }
+    } else {
+        if (m_hasCheckableItems) {
+            m_subElementList.append(ElementString::Indicator);
+        }
+        if (hasIcon()) {
+            m_subElementList.append(ElementString::Icon);
+        }
+        if (hasText()) {
+            m_subElementList.append(ElementString::Text);
+            const int tabPosition(itemText.indexOf(QLatin1Char('\t')));
+            if (tabPosition >= 0) {
+                m_subElementList.append(ElementString::ShortcutText);
+                m_shortcutText = itemText.mid(tabPosition + 1);
+                m_text = itemText.left(tabPosition);
+            } else {
+                m_shortcutText = QString();
+            }
+        } else {
+            m_shortcutText = QString();
+        }
+        if (m_hasSubMenu) {
+            m_subElementList.append(ElementString::Arrow);
+        }
+
+        if (m_subElementList.empty()) {
+            m_isValid = false;
+            return;
+        }
+    }
+}
+
+void MenuItemElement::layout()
+{
+    if (m_isSeparator) {
+        m_backgroundElementList = prepareElements(m_menuItemOption, m_widget, {ElementString::MenuSeparator});
+    } else {
+        m_backgroundElementList = prepareElements(m_menuItemOption, m_widget, {ElementString::MenuItem});
+    }
+
+    if (!m_backgroundElementList.isEmpty()) {
+        m_backgroundProperties = queryProperties(m_backgroundElementList);
+        m_layoutMap = layoutMap(m_backgroundElementList, m_menuItemOption, m_subElementList);
+
+        // IconRect in MenuItemElements are the maximum size by default.
+        // Instead center the icon rectangle within the maximum size rect.
+        if (hasIcon() && (iconSize().width() > 0 && iconSize().height() > 0)) {
+            auto iconRect = m_layoutMap[ElementString::Icon].rect;
+            m_layoutMap[ElementString::Icon].rect = centerRect(iconRect, iconSize().width(), iconSize().height());
+        }
+
+        m_isValid = true;
+    }
+
+    if (!m_shortcutText.isEmpty()) {
+        m_shortcutElementList = prepareElements(m_menuItemOption, m_widget, {ElementString::MenuItem, ElementString::ShortcutText});
+        m_shortcutProperties = queryProperties(m_shortcutElementList);
+    }
+}
+
+QSizeF MenuItemElement::contentsSize(const QSizeF &contentsSizeFromStyle) const
+{
+    QSizeF preferredSize = contentsSizeFromStyle;
+    // Handle separator separately (pun not intended)
+    if (m_menuItemOption) {
+        if (m_menuItemOption->menuItemType == QStyleOptionMenuItem::Separator) {
+            auto width = m_backgroundProperties->safePropertyLookup(0.0, &StylePropertyGroup::layout, &LayoutPropertyGroup::width);
+            auto height = m_backgroundProperties->safePropertyLookup(0.0, &StylePropertyGroup::layout, &LayoutPropertyGroup::height);
+            if (hasText()) {
+                if (preferredSize.width() > width) {
+                    width = preferredSize.width();
+                }
+                if (preferredSize.height() > height) {
+                    height = preferredSize.height();
+                }
+            }
+            QSizeF separatorSize(width, height);
+            preferredSize = applyPaddingToSize(separatorSize);
+        } else {
+            QSizeF itemSize(contentsSizeFromStyle);
+            const qreal spacing = m_backgroundProperties->safePropertyLookup(0.0, &StylePropertyGroup::layout, &LayoutPropertyGroup::spacing);
+            itemSize.rwidth() += padding().left() + padding().right();
+            if (hasText()) {
+                itemSize.rwidth() += spacing;
+            }
+            if (hasIcon()) {
+                itemSize.rwidth() += m_layoutMap[ElementString::Icon].rect.width() + spacing;
+            }
+            if (m_hasSubMenu) {
+                itemSize.rwidth() += m_layoutMap[ElementString::Arrow].rect.width() + spacing;
+            }
+            if (m_menuItemOption->menuHasCheckableItems) {
+                const bool exclusive = (m_menuItemOption->checkType == QStyleOptionMenuItem::Exclusive);
+                const qreal labelSpacing =
+                    m_style->pixelMetric(exclusive ? QStyle::PM_RadioButtonLabelSpacing : QStyle::PM_CheckBoxLabelSpacing, m_menuItemOption, m_widget)
+                    + spacing;
+                itemSize.rwidth() +=
+                    m_style->pixelMetric(exclusive ? QStyle::PM_ExclusiveIndicatorWidth : QStyle::PM_IndicatorWidth, m_menuItemOption, m_widget) + spacing
+                    + labelSpacing;
+            }
+            if (!m_shortcutText.isEmpty()) {
+                itemSize.rwidth() += m_layoutMap[ElementString::ShortcutText].rect.width() + spacing;
+            }
+            preferredSize = applyPaddingToSize(itemSize);
+        }
+    }
+    return preferredSize;
+}
+
+void MenuItemElement::drawBackground(QPainter *painter) const
+{
+    // Draw the  separator rectangle full width if its set to fill
+    if (m_isSeparator) {
+        QRectF rect = backgroundRectangle(m_menuItemOption, m_backgroundProperties);
+        if (m_backgroundProperties) {
+            auto alignment = m_backgroundProperties->safePropertyLookup(Union::Properties::Alignment::Fill,
+                                                                        &StylePropertyGroup::layout,
+                                                                        &LayoutPropertyGroup::alignment,
+                                                                        &AlignmentPropertyGroup::horizontal);
+            if (alignment == Union::Properties::Alignment::Fill) {
+                rect = centerRect(rect,
+                                  m_backgroundProperties->layout()->width().value_or(m_menuItemOption->rect.width()),
+                                  m_backgroundProperties->layout()->height().value_or(1));
+            }
+        }
+        // Ensure the rectangle is resized according to the menu margins
+        drawBackgroundRectangle(painter, rect, m_backgroundProperties);
+    } else {
+        drawBackgroundRectangle(painter, m_menuItemOption->rect, m_backgroundProperties);
+    }
+}
+
+void MenuItemElement::drawText(QPainter *painter) const
+{
+    if (hasText()) {
+        AbstractElement::drawText(painter);
+    }
+    // ShortcutText is just like a regular text element but handled with different name
+    // and has different coloration, so override the default colors
+    if (!m_shortcutText.isEmpty()) {
+        QRectF textRect = m_layoutMap[ElementString::ShortcutText].rect;
+        drawTextAtRect(painter, m_shortcutText, textRect, m_shortcutProperties);
+    }
+}
+
+void MenuItemElement::drawSubMenuArrow(QPainter *painter) const
+{
+    if (m_hasSubMenu && m_isValid) {
+        drawIconAtRect(painter, m_subMenuArrow, m_layoutMap[ElementString::Arrow].rect, m_backgroundProperties);
+    }
+}
+
+QStringList MenuItemElement::elementHints() const
+{
+    QStringList hints;
+    if (!m_menuItemOption) {
+        return hints;
+    }
+    if (m_hasSubMenu) {
+        hints.append(u"with-submenu"_s);
+    }
+    if (m_isSeparator && !m_menuItemOption->text.isEmpty()) {
+        hints.append(u"with-title"_s);
+    }
+    return hints;
+}
+
+qreal MenuItemElement::pixelMetric(QStyle::PixelMetric pixelMetric) const
+{
+    switch (pixelMetric) {
+    case QStyle::PM_MenuButtonIndicator:
+        if (m_hasSubMenu) {
+            return m_layoutMap[ElementString::Arrow].rect.width();
+        }
+    default:
+        break;
+    }
+    return 0;
+}
+
+Union::Element::States MenuItemElement::elementStates() const
+{
+    auto states = AbstractElement::elementStates();
+    states.setFlag(Union::Element::State::Checked, m_menuItemOption && m_menuItemOption->checked);
+    // Menuitems for some reason do not get mouseover, but they get selected instead
+    states.setFlag(Union::Element::State::Hovered, m_menuItemOption && m_menuItemOption->state.testFlag(QStyle::State_Selected));
+    return states;
+}

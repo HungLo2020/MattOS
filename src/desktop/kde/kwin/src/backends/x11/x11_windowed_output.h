@@ -76,14 +76,13 @@ private:
 class KWIN_EXPORT X11WindowedOutput : public BackendOutput
 {
     Q_OBJECT
+
 public:
     explicit X11WindowedOutput(X11WindowedBackend *backend);
     ~X11WindowedOutput() override;
 
-    RenderLoop *renderLoop() const override;
-
     void init(const QSize &pixelSize, qreal scale, bool fullscreen);
-    void resize(const QSize &pixelSize);
+    void setSize(const QSize &pixelSize);
 
     X11WindowedBackend *backend() const;
     X11WindowedCursor *cursor() const;
@@ -103,7 +102,7 @@ public:
      */
     QPointF mapFromGlobal(const QPointF &pos) const;
 
-    bool presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay) override;
+    std::expected<void, OutputError> presentAsync(OutputLayer *layer, std::optional<std::chrono::nanoseconds> allowedVrrDelay) override;
 
     Region exposedArea() const;
     void addExposedArea(const Rect &rect);
@@ -113,8 +112,8 @@ public:
     void handlePresentIdleNotify(xcb_present_idle_notify_event_t *event);
 
     void setPrimaryBuffer(GraphicsBuffer *buffer);
-    bool testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
-    bool present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
+    std::expected<void, OutputError> testPresentation(const std::shared_ptr<OutputFrame> &frame) override;
+    std::expected<void, OutputError> present(const QList<OutputLayer *> &layersToUpdate, const std::shared_ptr<OutputFrame> &frame) override;
 
     void setOutputLayers(std::vector<std::unique_ptr<OutputLayer>> &&layers);
     QList<OutputLayer *> outputLayers() const;
@@ -130,7 +129,6 @@ private:
     xcb_present_event_t m_presentEvent = XCB_NONE;
     xcb_pixmap_t m_pendingBuffer = XCB_PIXMAP_NONE;
     std::unique_ptr<NETWinInfo> m_winInfo;
-    std::unique_ptr<RenderLoop> m_renderLoop;
     std::unique_ptr<X11WindowedCursor> m_cursor;
     std::unordered_map<GraphicsBuffer *, std::unique_ptr<X11WindowedBuffer>> m_buffers;
     QPoint m_hostPosition;

@@ -58,8 +58,9 @@
     },
     {
         "comment": "Files with the following endings are Documentation licensed.",
-        "file_pattern_ending": [".qdoc", ".qdocinc" , ".qdocconf", "README", "qt_attribution.json",
-                                 "config_help.txt", ".css"],
+        "file_pattern_ending": [".qdoc", ".qdocinc" , ".qdocconf", ".css",
+                                "README", "CONTRIBUTING.md",
+                                "qt_attribution.json", "config_help.txt"],
         "location":{
             "": {
                 "comment": "",
@@ -143,6 +144,11 @@
                 "comment": "Library only for Qt tests",
                 "file type": "util",
                 "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only"]
+            },
+            ".*(\\.gradle|gradle\\.properties|libs\\.versions\\.toml)$": {
+                "comment": "Android Gradle build files",
+                "file type": "build system",
+                "spdx": ["BSD-3-Clause"]
             }
         }
     }

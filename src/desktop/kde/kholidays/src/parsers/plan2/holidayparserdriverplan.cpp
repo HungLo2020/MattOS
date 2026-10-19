@@ -90,6 +90,7 @@ void HolidayParserDriverPlan::parse()
         // Generate all events for this calendar in the required year(s)
         for (m_parseYear = m_parseStartYear; m_parseYear <= m_parseEndYear; ++m_parseYear) {
             m_parseYearStart = m_parseCalendar.firstDayOfYear(m_parseYear);
+            m_parseYearEnd = m_parseCalendar.lastDayOfYear(m_parseYear);
             m_parseYearEaster = easter(m_parseYear);
             m_parseYearPascha = pascha(m_parseYear);
 
@@ -474,7 +475,8 @@ void HolidayParserDriverPlan::setFromWeekdayInMonth(int occurrence, int weekday,
         return;
     }
 
-    int startMonth, endMonth;
+    int startMonth;
+    int endMonth;
     if (month == LAST) {
         startMonth = m_parseCalendar.monthsInYear(m_parseYear);
         endMonth = startMonth;
@@ -489,7 +491,8 @@ void HolidayParserDriverPlan::setFromWeekdayInMonth(int occurrence, int weekday,
     // Generate all events in the required event month(s)
     for (int thisMonth = startMonth; thisMonth <= endMonth; ++thisMonth) {
         if (m_parseCalendar.isValid(m_parseYear, thisMonth, 1)) {
-            int startOccurrence, endOccurrence;
+            int startOccurrence;
+            int endOccurrence;
             if (occurrence == ANY) { // Generate 1st through 5th weekdays, assumes no month with > 35 days
                 startOccurrence = 1;
                 endOccurrence = 5;
@@ -532,7 +535,8 @@ void HolidayParserDriverPlan::setFromRelativeWeekday(int occurrence, int weekday
         thisYear = m_eventYear;
     }
 
-    int startMonth, endMonth;
+    int startMonth;
+    int endMonth;
     if (m_eventMonth == LAST) { // Generate just the last month
         startMonth = m_parseCalendar.monthsInYear(thisYear);
         endMonth = startMonth;
@@ -547,7 +551,8 @@ void HolidayParserDriverPlan::setFromRelativeWeekday(int occurrence, int weekday
     // Generate all events in the required month(s)
     int thisMonth;
     for (thisMonth = startMonth; thisMonth <= endMonth; ++thisMonth) {
-        int startDay, endDay;
+        int startDay;
+        int endDay;
         if (m_eventDay == LAST) { // Generate just the last day in the month
             startDay = m_parseCalendar.daysInMonth(thisYear, thisMonth);
             endDay = startDay;
@@ -616,7 +621,8 @@ void HolidayParserDriverPlan::setFromDate(int offset, int condition, int duratio
         thisYear = m_eventYear;
     }
 
-    int startMonth, endMonth;
+    int startMonth;
+    int endMonth;
     if (m_eventMonth == LAST) { // Generate just the last month
         startMonth = m_parseCalendar.monthsInYear(thisYear);
         endMonth = startMonth;
@@ -630,7 +636,8 @@ void HolidayParserDriverPlan::setFromDate(int offset, int condition, int duratio
 
     // Generate all events in the required month(s)
     for (int thisMonth = startMonth; thisMonth <= endMonth; ++thisMonth) {
-        int startDay, endDay;
+        int startDay;
+        int endDay;
         if (m_eventDay == LAST) { // Generate just the last day in the month
             startDay = m_parseCalendar.daysInMonth(thisYear, thisMonth);
             endDay = startDay;
@@ -710,20 +717,30 @@ void HolidayParserDriverPlan::setEvent(int jd, int observeOffset, int duration)
 void HolidayParserDriverPlan::addHoliday(const QDate &observedDate, int duration)
 {
     // Only set if event falls in requested date range, i.e. either starts or ends during range
-    if (m_parseCalendar.isValid(observedDate) //
-        && observedDate <= m_requestEnd //
-        && observedDate.addDays(duration - 1) >= m_requestStart) {
-        KHolidays::Holiday holiday;
-        holiday.d->mObservedDate = observedDate;
-        holiday.d->mDuration = duration;
-        holiday.d->mName = m_eventName;
-        holiday.d->mDescription = m_eventName;
-        holiday.d->mCategoryList = m_eventCategories;
-        if (m_eventCategories.contains(QStringLiteral("public"))) {
-            holiday.d->mDayType = KHolidays::Holiday::NonWorkday;
-        } else {
-            holiday.d->mDayType = KHolidays::Holiday::Workday;
+    if (m_parseCalendar.isValid(observedDate)) {
+        // get current year date range
+        QDate currentYearStartDay = m_requestStart;
+        QDate currentYearEndDay = m_requestEnd;
+        if (currentYearStartDay < m_parseYearStart) {
+            currentYearStartDay = m_parseYearStart;
         }
-        m_resultList.append(holiday);
+        if (currentYearEndDay > m_parseYearEnd) {
+            currentYearEndDay = m_parseYearEnd;
+        }
+        if ((observedDate >= currentYearStartDay && observedDate <= currentYearEndDay)
+            || (m_parseYear == m_parseStartYear && observedDate < currentYearStartDay && observedDate.addDays(duration - 1) >= currentYearStartDay)) {
+            KHolidays::Holiday holiday;
+            holiday.d->mObservedDate = observedDate;
+            holiday.d->mDuration = duration;
+            holiday.d->mName = m_eventName;
+            holiday.d->mDescription = m_eventName;
+            holiday.d->mCategoryList = m_eventCategories;
+            if (m_eventCategories.contains(QStringLiteral("public"))) {
+                holiday.d->mDayType = KHolidays::Holiday::NonWorkday;
+            } else {
+                holiday.d->mDayType = KHolidays::Holiday::Workday;
+            }
+            m_resultList.append(holiday);
+        }
     }
 }

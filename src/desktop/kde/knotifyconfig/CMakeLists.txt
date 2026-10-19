@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
-set(KF_VERSION "6.26.0") # handled by release scripts
-set(KF_DEP_VERSION "6.26.0") # handled by release scripts
+set(KF_VERSION "6.31.0") # handled by release scripts
+set(KF_DEP_VERSION "6.31.0") # handled by release scripts
 project(KNotifyConfig VERSION ${KF_VERSION})
 
 # Dependencies
 include(FeatureSummary)
-find_package(ECM 6.26.0  NO_MODULE)
+find_package(ECM 6.31.0  NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -25,9 +25,10 @@ include(ECMQtDeclareLoggingCategory)
 include(CMakePackageConfigHelpers)
 include(KDEGitCommitHooks)
 include(ECMDeprecationSettings)
+include(ECMInstalledLibraryCheck)
 
 # Required Qt components to build this framework
-set(REQUIRED_QT_VERSION 6.9.0)
+set(REQUIRED_QT_VERSION 6.10.0)
 find_package(Qt6 ${REQUIRED_QT_VERSION} NO_MODULE REQUIRED Widgets)
 
 # shall we use DBus?
@@ -71,7 +72,7 @@ ecm_setup_version(
 
 ecm_set_disabled_deprecation_versions(
     QT 6.11.0
-    KF 6.23.0
+    KF 6.27.0
 )
 
 # Subdirectories

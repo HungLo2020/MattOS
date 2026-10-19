@@ -22,6 +22,7 @@
 #include <QtQml/qqmlcomponent.h>
 #include <QtQmlModels/private/qqmlobjectmodel_p.h>
 #include <QtQmlModels/private/qqmllistmodel_p.h>
+#include <QtQmlModels/private/qqmlsortfilterproxymodel_p.h>
 
 #include "delegatechoosermodel.h"
 #include "testmodel.h"
@@ -240,6 +241,7 @@ private slots:
     void testSelectableStartPosEndPosOutsideView();
     void testSelectableScrollTowardsPos();
     void setCurrentIndexFromSelectionModel();
+    void selectionTrackingSurvivesReentrantCurrentChanged();
     void clearSelectionOnTap_data();
     void clearSelectionOnTap();
     void moveCurrentIndexUsingArrowKeys();
@@ -325,6 +327,7 @@ private slots:
     void checkSelectionAfterReorder();
 
     void delegateChooserDataChange();
+    void requiredRoleUpdatedAfterProxyModelResort();
 };
 
 tst_QQuickTableView::tst_QQuickTableView()
@@ -4732,10 +4735,10 @@ void tst_QQuickTableView::leftRightTopBottomProperties_data()
     QTest::addColumn<QMargins>("expectedTable");
     QTest::addColumn<QMargins>("expectedSignalCount");
 
-    QTest::newRow("1") << QPointF(0, 0) << QMargins(0, 0, 5, 7) << QMargins(0, 0, 1, 1);
-    QTest::newRow("2") << QPointF(100, 50) << QMargins(1, 1, 6, 8) << QMargins(1, 1, 2, 2);
-    QTest::newRow("3") << QPointF(220, 120) << QMargins(2, 2, 8, 10) << QMargins(2, 2, 4, 4);
-    QTest::newRow("4") << QPointF(1000, 1000) << QMargins(9, 19, 15, 27) << QMargins(1, 1, 2, 2);
+    QTest::newRow("1") << QPointF(0, 0) << QMargins(0, 0, 5, 7) << QMargins(1, 1, 1, 1);
+    QTest::newRow("2") << QPointF(100, 50) << QMargins(1, 1, 6, 8) << QMargins(2, 2, 2, 2);
+    QTest::newRow("3") << QPointF(220, 120) << QMargins(2, 2, 8, 10) << QMargins(3, 3, 4, 4);
+    QTest::newRow("4") << QPointF(1000, 1000) << QMargins(9, 19, 15, 27) << QMargins(2, 2, 2, 2);
 }
 
 void tst_QQuickTableView::leftRightTopBottomProperties()
@@ -5370,6 +5373,66 @@ void tst_QQuickTableView::setCurrentIndexFromSelectionModel()
     WAIT_UNTIL_POLISHED;
     QVERIFY(tableView->itemAtCell(cellAtEnd));
     QVERIFY(tableView->itemAtCell(cellAtEnd)->property(kCurrent).toBool());
+}
+
+void tst_QQuickTableView::selectionTrackingSurvivesReentrantCurrentChanged()
+{
+    // TableView keeps its own bookkeeping (selectionStartCell/selectionEndCell/
+    // selectionFlag) while a drag- or keyboard-driven selection is in progress,
+    // and uses setCurrentIndex() to move the current index as the selection
+    // grows. If the assigned ItemSelectionModel reacts to currentChanged() by
+    // synchronously calling select() on itself (a common and documented
+    // pattern for keeping the current index part of the selection), TableView
+    // used to mistake the resulting, self-triggered selectionChanged() for an
+    // external change, and call cancelSelectionTracking(). That reset
+    // selectionFlag to NoUpdate while the selection was still being tracked,
+    // and the very next call to setSelectionEndPos() would then hit
+    // Q_ASSERT(selectionFlag != QItemSelectionModel::NoUpdate). Check that
+    // extending a selection like this no longer asserts/crashes, and that the
+    // resulting selection is correct.
+    LOAD_TABLEVIEW("tableviewwithselected1.qml");
+
+    TestModel model(10, 10);
+    QItemSelectionModel selectionModel(&model);
+    connect(&selectionModel, &QItemSelectionModel::currentChanged, &selectionModel,
+            [&selectionModel](const QModelIndex &current, const QModelIndex &) {
+        if (current.isValid())
+            selectionModel.select(current, QItemSelectionModel::Select);
+    });
+
+    tableView->setModel(QVariant::fromValue(&model));
+    tableView->setSelectionModel(&selectionModel);
+
+    WAIT_UNTIL_POLISHED;
+
+    const QPoint startCell(2, 2);
+    const QPoint endCell(4, 4);
+    const QQuickItem *startItem = tableView->itemAtCell(startCell);
+    const QQuickItem *endItem = tableView->itemAtCell(endCell);
+    QVERIFY(startItem);
+    QVERIFY(endItem);
+
+    const QPointF startPos(startItem->x() + startItem->width() / 2,
+                           startItem->y() + startItem->height() / 2);
+    const QPointF endPos(endItem->x() + endItem->width() / 2, endItem->y() + endItem->height() / 2);
+
+    // This sequence mirrors what SelectionRectangle does on a pointer drag.
+    // Before the fix, setSelectionEndPos() below would assert.
+    QVERIFY(tableViewPrivate->startSelection(startPos, Qt::NoModifier));
+    tableViewPrivate->setSelectionStartPos(startPos);
+    tableViewPrivate->setSelectionEndPos(endPos);
+
+    for (int y = startCell.y(); y <= endCell.y(); ++y) {
+        for (int x = startCell.x(); x <= endCell.x(); ++x) {
+            const auto failureContext = qScopeGuard([&] {
+                if (QTest::currentTestFailed()) {
+                    qDebug().nospace() << "Failure for expected selected item at position ("
+                                       << x << ", " << y << ")";
+                }
+            });
+            QVERIFY(selectionModel.isSelected(tableView->modelIndex(QPoint(x, y))));
+        }
+    }
 }
 
 void tst_QQuickTableView::clearSelectionOnTap_data()
@@ -8898,6 +8961,56 @@ void tst_QQuickTableView::verifyThatOnlyRemovedRowsArePooled()
     QCOMPARE(getItems({{0,0}, {1,0}, {0,2}, {1,2}}), initialItems);
     verifyContextProperties({{0,0,0}, {3,0,1}, {2,2,0}, {5,2,1}});
     verifyInitialItemsNotPooled();
+}
+
+void tst_QQuickTableView::requiredRoleUpdatedAfterProxyModelResort()
+{
+    // QTBUG-147684:
+    // When a SortFilterProxyModel with dynamicSortFilter re-sorts because of a
+    // setData() call, it emits layoutChanged followed immediately by
+    // dataChanged at the item's new proxy position. The dataChanged handler
+    // runs before the deferred ViewportOnly rebuild and, with delegate model
+    // items still keyed by pre-sort flat indices, updates the wrong delegate.
+    // The rebuild then matches every item back to its correct position, but
+    // the stale or wrong display value was never corrected.
+    LOAD_TABLEVIEW("sfpmRequiredRoleAfterResort.qml");
+
+    auto *sortModel = tableView->model().value<QQmlSortFilterProxyModel *>();
+    QVERIFY(sortModel);
+    auto *sourceModel = view->rootObject()->property("sourceModel").value<TestModel *>();
+    QVERIFY(sourceModel);
+
+    // Fill in values that are already in ascending order so the SFPM does not
+    // re-sort during setup. Each setData() is handled synchronously by
+    // dataChangedCallback() with correct flat indices — no rebuild needed.
+    sourceModel->setModelData(QPoint(0, 0), QSize(1, 1), "1");
+    sourceModel->setModelData(QPoint(0, 1), QSize(1, 1), "2");
+    sourceModel->setModelData(QPoint(0, 2), QSize(1, 1), "3");
+    sourceModel->setModelData(QPoint(0, 3), QSize(1, 1), "4");
+
+    auto displayAt = [&](int col, int row) -> QString {
+        const auto *item = tableView->itemAtCell(QPoint(col, row));
+        return item ? item->property("display").toString() : QString{};
+    };
+
+    QCOMPARE(displayAt(0, 0), "1");
+    QCOMPARE(displayAt(0, 1), "2");
+    QCOMPARE(displayAt(0, 2), "3");
+    QCOMPARE(displayAt(0, 3), "4");
+
+    // Change "1" (source row 0) to "9" so it moves from proxy row 0 to row 3.
+    // The SFPM emits layoutChanged (triggering a deferred ViewportOnly
+    // rebuild) then dataChanged at the new proxy position.
+    sourceModel->setModelData(QPoint(0, 0), QSize(1, 1), "9");
+
+    WAIT_UNTIL_POLISHED;
+
+    // After the rebuild every delegate must display the value at
+    // its current proxy row.
+    QCOMPARE(displayAt(0, 0), "2");
+    QCOMPARE(displayAt(0, 1), "3");
+    QCOMPARE(displayAt(0, 2), "4");
+    QCOMPARE(displayAt(0, 3), "9");
 }
 
 QTEST_MAIN(tst_QQuickTableView)

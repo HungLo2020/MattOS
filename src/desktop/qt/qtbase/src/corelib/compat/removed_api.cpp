@@ -756,6 +756,7 @@ void QJniObject::callVoidMethodV(JNIEnv *env, jmethodID id, va_list args) const
 
 #include "qlocale.h"
 #include "qlist.h"
+#include "qstringlist.h"
 
 QStringList QLocale::uiLanguages() const
 {
@@ -1541,3 +1542,67 @@ void QTimer::singleShotImpl(int msec, Qt::TimerType timerType,
 // order sections alphabetically to reduce chances of merge conflicts
 
 #endif // QT_CORE_REMOVED_SINCE(6, 11)
+
+#if QT_CORE_REMOVED_SINCE(6, 12)
+
+#include "qbytearrayalgorithms.h" // uses QT_CORE_CONSTEXPR_INLINE_SINCE
+
+#include "qfile.h"
+
+bool QFile::copy(const QString &newName)
+{
+    return copy(newName, std::nullopt);
+}
+
+bool QFile::copy(const QString &fileName, const QString &newName)
+{
+    return QFile(fileName).copy(newName, std::nullopt);
+}
+
+#include "qjsondocument.h"  // uses QT_CORE_INLINE_SINCE
+#include "qjsonvalue.h"     // uses QT_CORE_INLINE_SINCE
+
+#include "qobjectdefs.h"    // uses QT_CORE_INLINE_SINCE
+
+#include "qproperty.h"
+
+QUntypedPropertyBinding::QUntypedPropertyBinding(QPropertyBindingPrivate *priv)
+    : QUntypedPropertyBinding(static_cast<void *>(priv))
+{
+}
+
+#if QT_CONFIG(thread)
+#include "qreadwritelock.h"
+
+bool QBasicReadWriteLock::isContendedLockForRead(const void *dd)
+{
+    return describeLockInternal(const_cast<void *>(dd)) & StateLockedForRead;
+}
+
+QReadWriteLockPrivate *QReadWriteLock::initRecursive()
+{
+    return initRecursiveInline();
+}
+
+void QReadWriteLock::destroyRecursive(QReadWriteLockPrivate *d)
+{
+    destroyRecursiveInline(d);
+}
+#endif
+
+#if QT_CONFIG(timezone)
+#include "qtimezone.h"
+
+bool QTimeZone::isTimeZoneIdAvailable(const QByteArray &ianaId)
+{
+    return isTimeZoneIdAvailable(QByteArrayView{ianaId});
+}
+#endif // QT_CONFIG(timezone)
+
+#include "qurlquery.h"      // uses QT_CORE_INLINE_SINCE
+
+// #include "qotherheader.h"
+// // implement removed functions from qotherheader.h
+// order sections alphabetically to reduce chances of merge conflicts
+
+#endif // QT_CORE_REMOVED_SINCE(6, 12)

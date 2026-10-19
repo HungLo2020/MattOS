@@ -407,7 +407,7 @@ std::shared_ptr<QmlFile> DomUniverse::parseQmlFile(const QString &code, const Fi
                                       creationOption == Extended ? QmlFile::EnableParserRecovery
                                                                  : QmlFile::DisableParserRecovery);
     std::shared_ptr<DomEnvironment> envPtr;
-    if (auto ptr = file.environment().lock())
+    if (auto ptr = file.environment())
         envPtr = std::move(ptr);
     else
         envPtr = std::make_shared<DomEnvironment>(QStringList(),
@@ -442,7 +442,7 @@ std::shared_ptr<JsFile> DomUniverse::parseJsFile(const QString &code, const File
     // and adding ExternalItem to the Environment will happen here
     auto jsFile = std::make_shared<JsFile>(file.canonicalPath(), code, contentDate);
     std::shared_ptr<DomEnvironment> envPtr;
-    if (auto ptr = file.environment().lock())
+    if (auto ptr = file.environment())
         envPtr = std::move(ptr);
     else
         envPtr = std::make_shared<DomEnvironment>(QStringList(),
@@ -1861,15 +1861,21 @@ DomEnvironment::SemanticAnalysis DomEnvironment::semanticAnalysis()
     return semanticAnalysisUnlocked();
 }
 
+DomEnvironment::SemanticAnalysis DomEnvironment::prepareSemanticAnalysisForFileLoading()
+{
+    QMutexLocker guard(mutex());
+    auto result = semanticAnalysisUnlocked();
+    result.updateLoadPaths(m_loadPaths);
+    result.setResourceFiles(m_resourcePaths);
+    return result;
+}
+
 DomEnvironment::SemanticAnalysis DomEnvironment::semanticAnalysisUnlocked()
 {
     // QTBUG-124799: do not create a SemanticAnalysis in a temporary DomEnvironment, and use the one
     // from the base environment instead.
-    if (m_base) {
-        auto result = m_base->semanticAnalysis();
-        result.updateLoadPaths(m_loadPaths);
-        return result;
-    }
+    if (m_base)
+        return m_base->semanticAnalysis();
 
     if (m_semanticAnalysis)
         return *m_semanticAnalysis;
@@ -1907,6 +1913,9 @@ void DomEnvironment::SemanticAnalysis::updateLoadPaths(const QStringList &loadPa
 
 void DomEnvironment::SemanticAnalysis::setResourceFiles(const QStringList &qrcFiles)
 {
+    if (qrcFiles == m_resourceFiles)
+        return;
+    m_resourceFiles = qrcFiles;
     *m_mapper = QQmlJSResourceFileMapper(qrcFiles);
 }
 
@@ -1940,7 +1949,7 @@ void DomEnvironment::addQmlFile(const std::shared_ptr<QmlFile> &file, AddOption 
         // force reset the outdated qqmljsscope in case it was already populated
         file->setHandleForPopulation(handle);
         resetFactory(handle, semanticAnalysis().m_importer.get(),
-                     TypeReader{ weak_from_this(), m_loadPaths }, file->canonicalFilePath());
+                     TypeReader{ weak_from_this(), m_loadPaths });
     }
 }
 
@@ -1969,17 +1978,11 @@ void DomEnvironment::addGlobalScope(const std::shared_ptr<GlobalScope> &scope, A
     addExternalItem(scope, scope->name(), options);
 }
 
-QList<QQmlJS::DiagnosticMessage>
-DomEnvironment::TypeReader::operator()(QQmlJSImporter *importer, const QString &filePath,
-                                       const QSharedPointer<QQmlJSScope> &scopeToPopulate)
+void DomEnvironment::TypeReader::operator()(QQmlJSImporter *importer, const QString &filePath,
+                                            const QSharedPointer<QQmlJSScope> &scopeToPopulate)
 {
     Q_UNUSED(importer);
     Q_UNUSED(scopeToPopulate);
-
-    const QFileInfo info{ filePath };
-    const QString baseName = info.baseName();
-    scopeToPopulate->setInternalName(baseName.endsWith(QStringLiteral(".ui")) ? baseName.chopped(3)
-                                                                              : baseName);
 
     std::shared_ptr<DomEnvironment> envPtr = m_env.lock();
     // populate QML File if from implicit import directory
@@ -1989,9 +1992,7 @@ DomEnvironment::TypeReader::operator()(QQmlJSImporter *importer, const QString &
         qCDebug(domLog) << "Import visitor tried to lazily load file \"" << filePath
                         << "\", but that file was not found in the DomEnvironment. Was this "
                            "file not discovered by the Dom's dependency loading mechanism?";
-        return { QQmlJS::DiagnosticMessage{
-                u"Could not find file \"%1\" in the Dom."_s.arg(filePath), QtMsgType::QtWarningMsg,
-                SourceLocation{} } };
+        return;
     }
     const DomItem qmlFile = it.value()->currentItem(DomItem(envPtr));
 
@@ -2001,7 +2002,6 @@ DomEnvironment::TypeReader::operator()(QQmlJSImporter *importer, const QString &
     envPtr->setLoadPaths(m_importPaths);
     envPtr->populateFromQmlFile(MutableDomItem(qmlFile));
     envPtr->setLoadPaths(oldImportPaths);
-    return {};
 }
 
 
@@ -2111,7 +2111,7 @@ bool DomEnvironment::commitToBase(
             continue;
 
         resetFactory(handle, oldFactory->importer(),
-                     TypeReader{ newBaseForPopulation, m_loadPaths }, oldFactory->filePath());
+                     TypeReader{ newBaseForPopulation, m_loadPaths });
     }
     return true;
 }
@@ -2208,19 +2208,13 @@ void DomEnvironment::setLoadPaths(const QStringList &v)
 {
     QMutexLocker l(mutex());
     m_loadPaths = v;
-
-    if (m_semanticAnalysis)
-        m_semanticAnalysis->updateLoadPaths(v);
 }
 
 void DomEnvironment::setResourceFiles(const QStringList &v)
 {
     QMutexLocker l(mutex());
-
-    if (m_semanticAnalysis)
-        m_semanticAnalysis->setResourceFiles(v);
+    m_resourcePaths = v;
 }
-
 
 QStringList DomEnvironment::loadPaths() const
 {
@@ -2292,7 +2286,7 @@ void DomEnvironment::populateFromQmlFile(MutableDomItem &&qmlFile)
         };
 
         if (m_domCreationOption == DomCreationOption::Extended) {
-            SemanticAnalysis analysis = semanticAnalysis();
+            SemanticAnalysis analysis = prepareSemanticAnalysisForFileLoading();
             auto v = std::make_unique<QQmlDomAstCreatorWithQQmlJSScope>(qmlFile, logger.get(),
                                                                         analysis.m_importer.get());
             v->enableLoadFileLazily(true);

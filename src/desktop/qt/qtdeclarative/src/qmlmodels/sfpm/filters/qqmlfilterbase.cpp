@@ -1,5 +1,6 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <QtQmlModels/private/qqmlsortfilterproxymodel_p.h>
 #include <QtQmlModels/private/qqmlfilterbase_p.h>
@@ -7,14 +8,14 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \qmltype Filter
+    \qmltype FilterBase
     \inherits QtObject
     \inqmlmodule QtQml.Models
     \since 6.10
     \preliminary
     \brief Abstract base type providing functionality common to filters.
 
-    Filter provides a set of common properties for all the filters that they
+    FilterBase provides a set of common properties for all the filters that they
     inherit from.
 */
 
@@ -24,7 +25,7 @@ QQmlFilterBase::QQmlFilterBase(QQmlFilterBasePrivate *privObj, QObject *parent)
 }
 
 /*!
-    \qmlproperty bool Filter::enabled
+    \qmlproperty bool FilterBase::enabled
 
     This property enables the \l SortFilterProxyModel to consider this filter
     while filtering the model data.
@@ -37,7 +38,7 @@ bool QQmlFilterBase::enabled() const
     return d->m_enabled;
 }
 
-void QQmlFilterBase::setEnabled(const bool enabled)
+void QQmlFilterBase::setEnabled(bool enabled)
 {
     Q_D(QQmlFilterBase);
     if (d->m_enabled == enabled)
@@ -48,7 +49,7 @@ void QQmlFilterBase::setEnabled(const bool enabled)
 }
 
 /*!
-    \qmlproperty bool Filter::inverted
+    \qmlproperty bool FilterBase::inverted
 
     This property inverts the filter, causing the data that would normally be
     filtered out to be presented instead.
@@ -61,7 +62,7 @@ bool QQmlFilterBase::isInverted() const
     return d->m_inverted;
 }
 
-void QQmlFilterBase::setInverted(const bool invert)
+void QQmlFilterBase::setInverted(bool invert)
 {
     Q_D(QQmlFilterBase);
     if (d->m_inverted == invert)
@@ -72,7 +73,7 @@ void QQmlFilterBase::setInverted(const bool invert)
 }
 
 /*!
-    \qmlproperty int Filter::column
+    \qmlproperty int FilterBase::column
 
     This property specifies which column in the model the filter should be
     applied on. If the value is \c -1, the filter will be applied to all
@@ -86,7 +87,7 @@ int QQmlFilterBase::column() const
     return d->m_filterColumn;
 }
 
-void QQmlFilterBase::setColumn(const int column)
+void QQmlFilterBase::setColumn(int column)
 {
     Q_D(QQmlFilterBase);
     if (d->m_filterColumn == column)

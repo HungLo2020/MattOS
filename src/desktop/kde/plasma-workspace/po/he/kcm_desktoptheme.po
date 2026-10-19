@@ -4,13 +4,13 @@
 # Diego Iastrubni <elcuco@kde.org>, 2008, 2009, 2012, 2013.
 # elkana bardugo <ttv200@gmail.com>, 2016.
 # Elkana Bardugo <ttv200@gmail.com>, 2017. #zanata
-# SPDX-FileCopyrightText: 2024 Yaron Shahrabani <sh.yaron@gmail.com>
+# SPDX-FileCopyrightText: 2024, 2026 Yaron Shahrabani <sh.yaron@gmail.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcm_desktoptheme\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-08-29 07:01+0300\n"
+"POT-Creation-Date: 2026-03-27 00:47+0000\n"
+"PO-Revision-Date: 2026-01-31 17:38+0200\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: צוות התרגום של KDE ישראל\n"
 "Language: he\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Lokalize 24.05.2\n"
+"X-Generator: Lokalize 25.12.1\n"
 
 #. i18n: ectx: label, entry (name), group (Theme)
 #: desktopthemesettings.kcfg:9
@@ -128,55 +128,70 @@ msgctxt "@item:inlistbox filters displayed themes"
 msgid "Color scheme compatible"
 msgstr "תואמות ערכות צבעים"
 
-#: ui/main.qml:130
+#: ui/main.qml:114
 #, kde-format
 msgid "Install from File…"
 msgstr "התקנה מקובץ…"
 
-#: ui/main.qml:135
+#: ui/main.qml:119
 #, kde-format
 msgid "Get New…"
 msgstr "קבלת חדשות…"
 
-#: ui/main.qml:148
+#: ui/main.qml:132
 #, kde-format
 msgid "Follows color scheme"
 msgstr "כמו ערכת הצבעים"
 
-#: ui/main.qml:166
+#: ui/main.qml:150
 #, kde-format
 msgid "Edit Theme…"
 msgstr "עריכת ערכת עיצוב…"
 
-#: ui/main.qml:173
+#: ui/main.qml:158
 #, kde-format
-msgid "Remove Theme"
-msgstr "הסרת ערכת עיצוב"
+msgctxt "@info:tooltip"
+msgid "Remove Plasma style"
+msgstr "הסרת סגנון פלזמה"
 
-#: ui/main.qml:180
+#: ui/main.qml:160
 #, kde-format
-msgid "Restore Theme"
-msgstr "שחזור ערכת עיצוב"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active Plasma style"
+msgstr "לא ניתן למחוק את סגנון הפלזמה הפעיל"
 
-#: ui/main.qml:199
+#: ui/main.qml:162
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed Plasma styles"
+msgstr "לא ניתן למחוק סגנונות פלזמה מערכתיים"
+
+#: ui/main.qml:170
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Don’t delete this Plasma style"
+msgstr "לא ניתן למחוק את סגנון הפלזמה הזה"
+
+#: ui/main.qml:189
 #, kde-format
 msgid "Open Theme"
 msgstr "פתיחת ערכת עיצוב"
 
-#: ui/main.qml:201
+#: ui/main.qml:191
 #, kde-format
 msgid "Theme Files (*.zip *.tar.gz *.tar.bz2)"
 msgstr "קובצי ערכות עיצוב (‎*.zip‏ ‎*.tar.gz‏ ‎*.tar.bz2)"
+
+#~ msgid "Remove Theme"
+#~ msgstr "הסרת ערכת עיצוב"
+
+#~ msgid "Restore Theme"
+#~ msgstr "שחזור ערכת עיצוב"
 
 #, fuzzy
 #~| msgid "Get new Theme"
 #~ msgid "Get New Plasma Styles…"
 #~ msgstr "קבל ערכות חדשות..."
-
-#, fuzzy
-#~| msgid "This module lets you configure the desktop theme."
-#~ msgid "This module lets you choose the Plasma style."
-#~ msgstr "מודל זה מאפשר לך להגדיר את ערכת נושא של שולחן העבודה."
 
 #~ msgctxt "NAME OF TRANSLATORS"
 #~ msgid "Your names"
@@ -185,11 +200,6 @@ msgstr "קובצי ערכות עיצוב (‎*.zip‏ ‎*.tar.gz‏ ‎*.tar.bz
 #~ msgctxt "EMAIL OF TRANSLATORS"
 #~ msgid "Your emails"
 #~ msgstr "kde-l10n-he@kde.org"
-
-#, fuzzy
-#~| msgid "Get new Theme"
-#~ msgid "Plasma Style"
-#~ msgstr "קבל ערכות חדשות..."
 
 #~ msgid "David Rosca"
 #~ msgstr "David Rosca"

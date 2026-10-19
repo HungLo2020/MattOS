@@ -53,6 +53,8 @@ public:
     void setShowDirs(bool showFolders);
     void setShowDirsFirst(bool show);
     void setShowDotAndDotDot(bool on);
+    void setShowDot(bool on);
+    void setShowDotDot(bool on);
     void setShowHidden(bool on);
     void setShowOnlyReadable(bool on);
     void setCaseSensitive(bool on);
@@ -103,6 +105,8 @@ private:
     bool showDirs;
     bool showDirsFirst;
     bool showDotAndDotDot;
+    bool showDot;
+    bool showDotDot;
     bool showHidden;
     bool showOnlyReadable;
     bool caseSensitive;

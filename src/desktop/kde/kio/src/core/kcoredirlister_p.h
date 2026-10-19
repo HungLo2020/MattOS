@@ -23,6 +23,8 @@
 #include <QTimer>
 #include <QUrl>
 
+#include <chrono>
+
 #include <KDirWatch>
 #include <kio/global.h>
 
@@ -257,6 +259,8 @@ public Q_SLOTS:
     void slotFileRenamed(const QString &srcUrl, const QString &dstUrl, const QString &dstPath);
 
 private Q_SLOTS:
+    // drops the cached directories that no lister has wanted for a while
+    void pruneCachedDirectories();
     void slotFileDirty(const QString &_file);
     void slotFileCreated(const QString &_file);
     void slotFileDeleted(const QString &_file);
@@ -299,6 +303,10 @@ private:
     // Helper method called when we know that a list of items was deleted
     void itemsDeleted(const QList<KCoreDirLister *> &listers, const KFileItemList &deletedItems);
     void slotFilesRemoved(const QList<QUrl> &urls);
+    // Update copies of a renamed file that live in search-result listings (whose items carry a
+    // url() outside the listing directory), which slotFileRenamed's normal lookup cannot reach.
+    // Returns true if at least one such copy was found and refreshed.
+    bool renameItemInForeignUrlListings(const QUrl &oldUrl, const QUrl &dst, const QString &dstPath);
     // common for slotRedirection and slotFileRenamed
     void renameDir(const QUrl &oldUrl, const QUrl &url);
     // common for deleteUnmarkedItems and slotFilesRemoved
@@ -393,6 +401,8 @@ private:
         DirItem(const QUrl &dir, const QString &canonicalPath)
             : url(dir)
             , m_canonicalPath(canonicalPath)
+            , lastWanted(std::chrono::steady_clock::now())
+            , mayHoldForeignUrlItems(!dir.isLocalFile())
         {
             autoUpdates = 0;
             complete = false;
@@ -480,6 +490,7 @@ private:
         // Insert the item in the sorted list
         void insert(const KFileItem &item)
         {
+            noteForeignUrl(item);
             auto it = std::lower_bound(lstItems.begin(), lstItems.end(), item.url());
             lstItems.insert(it, item);
         }
@@ -490,11 +501,26 @@ private:
             if (items.isEmpty()) {
                 return;
             }
-            lstItems.reserve(lstItems.size() + items.size());
+            // Let the list grow on its own rather than asking for room for the batch up front.
+            // QList::reserve builds an exactly sized copy instead of growing the buffer it already
+            // has, so it copies every item the list holds, and it leaves no spare room, which makes
+            // the next batch copy them all again.
             auto it = lstItems.begin();
             for (const auto &item : items) {
+                noteForeignUrl(item);
                 it = std::lower_bound(it, lstItems.end(), item.url());
                 it = lstItems.insert(it, item);
+            }
+        }
+
+        // A search result lists items of another scheme, an ordinary directory lists its own.
+        void noteForeignUrl(const KFileItem &item)
+        {
+            if (!mayHoldForeignUrlItems || hasForeignUrlItems) {
+                return;
+            }
+            if (item.url().scheme() != url.scheme()) {
+                hasForeignUrlItems = true;
             }
         }
 
@@ -513,12 +539,19 @@ private:
         // the local path, with symlinks resolved, so that KDirWatch works
         QString m_canonicalPath;
 
+        // when a lister last held this directory or looked for it in the cache
+        std::chrono::steady_clock::time_point lastWanted;
+
         // KFileItem representing the root of this directory.
         // Remember that this is optional. FTP sites don't return '.' in
         // the list, so they give no root item
         KFileItem rootItem;
         // The fileitems contained in the directory. Empty when directory is not readable.
         QList<KFileItem> lstItems;
+        // Whether any item's url() lives outside this listing, as in a search result.
+        bool hasForeignUrlItems = false;
+        // A local directory lists its own files and nothing else, so it needs no such check.
+        const bool mayHoldForeignUrlItems;
     };
 
     QMap<KIO::ListJob *, KIO::UDSEntryList> runningListJobs;
@@ -544,6 +577,9 @@ private:
     std::set<QString /*path*/> pendingDirectoryUpdates;
     // The timer for doing the delayed updates
     QTimer pendingUpdateTimer;
+    QTimer cachePruneTimer;
+    // how long a cached directory is kept, which a test shortens
+    std::chrono::milliseconds cachedDirectoryLifetime;
 
     // Set of remote files that have changed recently -- but we can't emit those
     // changes yet, we need to wait for the "update" directory listing.

@@ -26,7 +26,6 @@ target_sources(spectacle PRIVATE
     ExportManager.cpp
     Geometry.cpp
     OcrManager.cpp
-    TesseractRuntimeLoader.cpp
     Gui/CaptureWindow.cpp
     Gui/ExportMenu.cpp
     Gui/HelpMenu.cpp
@@ -65,7 +64,7 @@ target_sources(spectacle PRIVATE
     VideoFormatModel.cpp
 )
 
-if(XCB_FOUND)
+if(WITH_X11)
     target_sources(spectacle PRIVATE Platforms/ImagePlatformXcb.cpp Platforms/ImagePlatformXcb.h)
 
     target_link_libraries(spectacle PRIVATE
@@ -78,14 +77,11 @@ if(XCB_FOUND)
     target_link_libraries(spectacle PRIVATE Qt6::GuiPrivate) # Gui/private/qtx11extras_p.h
 endif()
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL "6.8.0")
-    set(private_code_option  "PRIVATE_CODE")
-endif()
-qt6_generate_wayland_protocol_client_sources(spectacle FILES
-    ${PLASMA_WAYLAND_PROTOCOLS_DIR}/zkde-screencast-unstable-v1.xml
-    ${private_code_option}
+qt6_generate_wayland_protocol_client_sources(spectacle
+    PRIVATE_CODE
+    FILES
+        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/zkde-screencast-unstable-v1.xml
 )
-
 
 if(PURPOSE_FOUND)
     target_link_libraries(spectacle PRIVATE KF6::PurposeWidgets)
@@ -97,10 +93,8 @@ ki18n_wrap_ui(spectacle
     Gui/SettingsDialog/VideoSaveOptions.ui
 )
 
-# Needed to compile with OpenCV
+# Needed to compile with Tesseract
 target_compile_options (spectacle PRIVATE -fexceptions)
-
-target_include_directories(spectacle PUBLIC ${OpenCV_INCLUDE_DIRS})
 
 target_link_libraries(spectacle PRIVATE
     Qt::Concurrent
@@ -127,11 +121,12 @@ target_link_libraries(spectacle PRIVATE
     KF6::StatusNotifierItem
     KF6::PrisonScanner
     KF6::Crash
+    KF6::I18nQml
     K::KPipeWireRecord
     Wayland::Client
     LayerShellQt::Interface
     KQuickImageEditor
-    ${OpenCV_LIBRARIES}
+    PkgConfig::TESSERACT
 )
 
 # qt_add_qml_module doesn't know how to deal with headers in subdirectories so
@@ -196,3 +191,4 @@ qt_target_qml_sources(spectacle
 )
 
 install(TARGETS spectacle ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
+install(FILES Gui/SettingsDialog/spectacle.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})

@@ -1,7 +1,7 @@
 # translation of kcmkwindecoration.po to Polish
-# Version: $Revision: 1732857 $
+# Version: $Revision: 1737013 $
 # translation of kcmkwindecoration.po to
-# SPDX-FileCopyrightText: 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025, 2026 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
+# SPDX-FileCopyrightText: 2012-2019, 2021-2026 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
 # Norbert Popiołek <norbert@kde.com.pl>\n"
 # Michał Rudolf <mrudolf@kdewebdev.org>, 2002.
 # Michal Rudolf <mrudolf@kdewebdev.org>, 2002, 2003, 2004, 2005, 2009.
@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-03-21 06:25+0100\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-05-16 13:11+0200\n"
 "Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
 "Language-Team: pl\n"
 "Language: pl\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 25.08.2\n"
+"X-Generator: Lokalize 26.04.0\n"
 
 #: declarative-plugin/buttonsmodel.cpp:56
 #, kde-format
@@ -70,21 +70,21 @@ msgstr "Utrzymuj nad innymi oknami"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr "Ukryj z udostępnienia ekranu"
+msgid "Hide from screenshots and screen recordings"
+msgstr "Ukryj na zrzutach i nagraniach ekranu"
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
 msgstr "Wypełniacz"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Zgodny z wyglądem (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -95,7 +95,7 @@ msgstr ""
 "zagrożenia przypadkowego ustawienia go na taki, który jest niedostępny lub "
 "taki, który już jest ustawiony."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -106,14 +106,14 @@ msgstr ""
 "ścieżki spowoduje wyszukanie tego wyglądu w danym katalogu, a następnie jego "
 "nałożenie, jeśli zostanie on znaleziony."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr ""
 "Pokaż wszystkie wyglądy dostępne w systemie (i który z nich jest bieżącym)"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -122,7 +122,7 @@ msgstr ""
 "Rozwiązano %1 do wyglądu KWin Aurorae \"%2\" i zostanie on ustawiony jako "
 "bieżący wygląd."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -131,18 +131,19 @@ msgstr ""
 "Próbowałeś wpisać ścieżkę pliku, lecz nie można z niej określić wyglądu, "
 "więc działanie zostanie przerwane, bo nie ma wyglądu do ustawienia"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr "Żądany wygląd \"%1\" jest już ustawiony jako wygląd dla okien."
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr "Pomyślnie zastosowano wygląd dla wskaźników %1 w bieżącej sesji Plazmy"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -151,7 +152,7 @@ msgstr ""
 "Nie udało się zapisać ustawień wyglądu z nieznanego powodu, lecz jest to "
 "błąd, z którego nie można się wycofać. Spróbuj ponownie."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -160,7 +161,7 @@ msgstr ""
 "Nie można znaleźć wyglądu \"%1\". Wygląd powinien być jednym z następujących "
 "ustawień: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "Masz następujące wyglądy dla okien dla KWin w swoim systemie:"
@@ -206,28 +207,28 @@ msgstr "Pokaż podpowiedź po najechaniu na przycisk paska tytułu"
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
-msgstr "Zawsze pokazuj przycisk \"Ukryj z udostępniania ekranu\""
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
+msgstr "Zawsze pokazuj przycisk \"Ukryj na zrzutach i nagraniach ekranu\""
 
 #: ui/ConfigureTitlebar.qml:85
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
-"Gdy niezaznaczone, to przycisk pokaże się tylko, gdy okno jest ukryte z "
-"udostępniania ekranu"
+"Gdy niezaznaczone, to przycisk pokaże się tylko, gdy okno jest ukryte na "
+"zrzutach i nagraniach ekranu"
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
-"Aby włączyć to ustawienie, najpierw dodaj przycisk \"Ukryj z udostępniania\" "
-"na pasku tytułu"
+"Aby włączyć to ustawienie, najpierw dodaj przycisk \"Ukryj na zrzutach i "
+"nagraniach ekranu\" na pasku tytułu"
 
 #: ui/main.qml:29
 #, kde-format
@@ -252,50 +253,53 @@ msgstr "Pobierz nowe…"
 msgid "Edit %1 Theme…"
 msgstr "Edytuj wygląd %1…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Bez obramowań okien"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Bez obramowania okien po bokach"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Wąskie obramowanie okien"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Zwykłe obramowanie okien"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Szerokie obramowanie okien"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Bardzo szerokie obramowanie okien"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Ogromnie szerokie obramowanie okien"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Bardziej ogromnie szerokie obramowanie okien"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Przewymiarowanie obramowanie okien"
+
+#~ msgid "Hide from screencast"
+#~ msgstr "Ukryj z udostępnienia ekranu"
 
 #~ msgid "More actions for this window"
 #~ msgstr "Więcej działań dla tego okna"

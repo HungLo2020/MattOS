@@ -18,6 +18,7 @@ using namespace std::chrono_literals;
 
 namespace KWin
 {
+
 BlendChanges::BlendChanges()
     : CrossFadeEffect()
 {
@@ -38,7 +39,7 @@ bool BlendChanges::supported()
 
 void KWin::BlendChanges::start(int delay)
 {
-    int animationDuration = animationTime(400ms);
+    const std::chrono::milliseconds animationDuration = animationTime(400ms);
 
     if (!supported() || m_state != Off) {
         return;
@@ -55,7 +56,7 @@ void KWin::BlendChanges::start(int delay)
     }
 
     QTimer::singleShot(delay, this, [this, animationDuration]() {
-        m_timeline.setDuration(std::chrono::milliseconds(animationDuration));
+        m_timeline.setDuration(animationDuration);
         effects->addRepaintFull();
         m_state = Blending;
     });
@@ -82,22 +83,22 @@ void BlendChanges::postPaintScreen()
     effects->addRepaintFull();
 }
 
-void BlendChanges::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
+bool BlendChanges::paintWindow(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
 {
     data.setCrossFadeProgress(m_timeline.value());
-    effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
+    return effects->paintWindow(renderTarget, viewport, w, mask, deviceRegion, data);
 }
 
-void BlendChanges::prePaintScreen(ScreenPrePaintData &data, std::chrono::milliseconds presentTime)
+void BlendChanges::prePaintScreen(ScreenPrePaintData &data)
 {
     if (m_state == Off) {
         return;
     }
     if (m_state == Blending) {
-        m_timeline.advance(presentTime);
+        m_timeline.advance(data.view);
     }
 
-    effects->prePaintScreen(data, presentTime);
+    effects->prePaintScreen(data);
 }
 
 } // namespace KWin

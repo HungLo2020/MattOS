@@ -61,17 +61,38 @@ QQuickWidgetOffscreenWindow::QQuickWidgetOffscreenWindow(QQuickWindowPrivate &dd
     setObjectName(QString::fromLatin1("QQuickWidgetOffscreenWindow"));
 }
 
-// override setVisble to prevent accidental offscreen window being created
-// by base class.
-class QQuickWidgetOffscreenWindowPrivate: public QQuickWindowPrivate {
+class QQuickWidgetOffscreenWindowPrivate: public QQuickWindowPrivate
+{
 public:
-    void setVisible(bool visible) override {
+    // override setVisible to prevent accidental offscreen window being created
+    // by base class.
+    void setVisible(bool visible) override
+    {
         Q_Q(QWindow);
         // this stays always invisible
         visibility = visible ? QWindow::Windowed : QWindow::Hidden;
         q->visibilityChanged(visibility); // workaround for QTBUG-49054
     }
 };
+
+/*
+    Returns the widget that \a widget's content is composited into.
+
+    The widget layer flushes a widget's content to the backing store of the
+    closest ancestor that has a window, keyed by that ancestor's own window,
+    so that is the widget whose window the content ends up in. It is the top
+    level unless some widget in between has Qt::WA_NativeWindow set.
+
+    See QWidgetRepaintManager::markNeedsFlush().
+*/
+static QWidget *compositingWidgetFor(QWidget *widget)
+{
+    if (widget->windowHandle())
+        return widget;
+    if (QWidget *nativeParent = widget->nativeParentWidget())
+        return nativeParent;
+    return widget->window();
+}
 
 class QQuickWidgetRenderControlPrivate;
 
@@ -94,20 +115,20 @@ public:
     {
     }
 
-    bool isRenderWindow(const QWindow *w) override {
+    bool isRenderWindow(const QWindow *w) override
+    {
 #if QT_CONFIG(graphicsview)
         QWidgetPrivate *widgetd = QWidgetPrivate::get(m_quickWidget);
         auto *proxy = (widgetd && widgetd->extra) ? widgetd->extra->proxyWidget : nullptr;
         auto *scene = proxy ? proxy->scene() : nullptr;
         if (scene) {
             for (const auto &view : scene->views()) {
-                if (view->window()->windowHandle() == w)
+                if (compositingWidgetFor(view)->windowHandle() == w)
                     return true;
             }
         }
-
-        return m_quickWidget->window()->windowHandle() == w;
 #endif
+        return QQuickRenderControlPrivate::isRenderWindow(w);
     }
     QQuickWidget *m_quickWidget;
 };
@@ -134,12 +155,11 @@ QQuickWidgetRenderControl::QQuickWidgetRenderControl(QQuickWidget *quickWidget)
 QWindow *QQuickWidgetRenderControl::renderWindow(QPoint *offset)
 {
     Q_D(QQuickWidgetRenderControl);
-    if (offset)
-        *offset = d->m_quickWidget->mapTo(d->m_quickWidget->window(), QPoint());
 
-    QWindow *result = nullptr;
+    QQuickWidget *quickWidget = d->m_quickWidget;
+
 #if QT_CONFIG(graphicsview)
-    QWidgetPrivate *widgetd = QWidgetPrivate::get(d->m_quickWidget);
+    QWidgetPrivate *widgetd = QWidgetPrivate::get(quickWidget);
     if (widgetd->extra) {
         if (auto proxy = widgetd->extra->proxyWidget) {
             auto scene = proxy->scene();
@@ -149,16 +169,18 @@ QWindow *QQuickWidgetRenderControl::renderWindow(QPoint *offset)
                     // Get the first QGV containing the proxy. Not ideal, but the callers
                     // of this function aren't prepared to handle more than one render window.
                     auto candidateView = views.first();
-                    result = candidateView->window()->windowHandle();
+                    return compositingWidgetFor(candidateView)->windowHandle();
                 }
             }
         }
     }
 #endif
-    if (!result)
-        result = d->m_quickWidget->window()->windowHandle();
 
-    return result;
+    QWidget *renderWidget = compositingWidgetFor(quickWidget);
+    if (offset)
+        *offset = quickWidget->mapTo(renderWidget, QPoint());
+
+    return renderWidget->windowHandle();
 }
 
 void QQuickWidgetPrivate::initOffscreenWindow()
@@ -658,12 +680,6 @@ QImage QQuickWidgetPrivate::grabFramebuffer()
     and the desktop visible in the background, is done in the traditional way: Set
     Qt::WA_TranslucentBackground on the top-level window, request an alpha channel, and
     change the Qt Quick Scenegraph's clear color to Qt::transparent via setClearColor().
-
-    \section1 Tab Key Handling
-
-    On press of the \c[TAB] key, the item inside the QQuickWidget gets focus. If
-    this item can handle \c[TAB] key press, focus will change accordingly within
-    the item, otherwise the next widget in the focus chain gets focus.
 
     \sa {Exposing Attributes of C++ Types to QML}, {Qt Quick Widgets Example}, QQuickView
 */

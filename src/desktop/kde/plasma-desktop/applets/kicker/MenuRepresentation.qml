@@ -28,12 +28,18 @@ PlasmaComponents3.ScrollView {
 
     focus: true
 
+    // we never want a vertical scrollbar, the components handle those.
+    PlasmaComponents3.ScrollBar.vertical.policy: PlasmaComponents3.ScrollBar.AlwaysOff
+    // needs to be set explicitly as the default can cause loops
+    PlasmaComponents3.ScrollBar.horizontal.visible: Screen.width > 0 && contentWidth > (Screen.width - Kirigami.Units.largeSpacing * 4)
+
+    // ScrollBar's padding is only to make space for the scrollbar, so we don't need it here
     Layout.minimumWidth: Math.min(Math.max(mainRow.Layout.minimumWidth, mainRow.implicitWidth), Screen.width - Kirigami.Units.largeSpacing * 4)
     Layout.maximumWidth: Layout.minimumWidth
 
     contentWidth: mainRow.implicitWidth
 
-    Layout.minimumHeight: Math.min(Math.max(sideBar.implicitHeight, rootList.implicitHeight + rootList.Layout.bottomMargin), Math.round(Screen.height * 0.8))
+    Layout.minimumHeight: Math.min(Math.max(sideBar.implicitHeight, rootList.implicitHeight + rootList.Layout.bottomMargin), Math.round(Screen.height * 0.9)) + topPadding + bottomPadding
     Layout.maximumHeight: Layout.minimumHeight
 
     function ensureVisible(item: Item) : void {
@@ -79,6 +85,20 @@ PlasmaComponents3.ScrollView {
         searchField.focus = true;
     }
 
+    DropArea {
+        id: unfavoriteDropArea
+        anchors.fill: parent
+        keys: ["favoritedrag"]
+        onDropped: drop => {
+            let draggedItem = drag.source as SideBarItem
+            if (draggedItem && draggedItem.favoritesModel.isFavorite(draggedItem.favoriteId)) {
+                draggedItem.showUnfavoritePlaceholder = true
+                draggedItem.favoritesModel.removeFavorite(draggedItem.favoriteId)
+                drop.accept(Qt.MoveAction)
+            }
+        }
+    }
+
     RowLayout {
         id: mainRow
 
@@ -86,7 +106,7 @@ PlasmaComponents3.ScrollView {
 
         spacing: 0
 
-        readonly property int minimumMainWidth: Math.max(searchField.defaultWidth, runnerColumns.searchResultsPresent ? 0 : Math.min(rootList.implicitWidth, rootList.Layout.maximumWidth))
+        readonly property int minimumMainWidth: Math.max(searchField.defaultWidth, root.runnerModel.resultsPresent ? 0 : Math.min(rootList.implicitWidth, rootList.Layout.maximumWidth))
         Layout.minimumWidth: (sideBar.visible ? sideBar.implicitWidth + sideBar.Layout.rightMargin : 0) + minimumMainWidth
         LayoutMirroring.enabled: ((Plasmoid.location === PlasmaCore.Types.RightEdge)
             || (Application.layoutDirection === Qt.RightToLeft && Plasmoid.location !== PlasmaCore.Types.LeftEdge))
@@ -94,14 +114,15 @@ PlasmaComponents3.ScrollView {
         KSvg.FrameSvgItem {
             id: sideBar
 
-            property bool onTopPanel: Plasmoid.location === PlasmaCore.Types.TopEdge
+            readonly property real innerMargin: 2
+            readonly property bool onTopPanel: Plasmoid.location === PlasmaCore.Types.TopEdge
 
             visible: (root.globalFavorites.count + root.systemFavorites.count) > 0
 
             Layout.fillHeight: true
             Layout.rightMargin: Kirigami.Units.smallSpacing
 
-            implicitWidth: Math.max(favoriteApps.implicitWidth, favoriteSystemActions.implicitWidth) + margins.left + margins.right + sideBarScrollView.actualScrollBarWidth
+            implicitWidth: Math.max(favoriteApps.implicitWidth, favoriteSystemActions.implicitWidth) + margins.left + margins.right + sideBarScrollView.leftPadding + sideBarScrollView.rightPadding
             implicitHeight: sideBarLayout.implicitHeight + margins.top + margins.bottom
 
             imagePath: "widgets/frame"
@@ -137,17 +158,16 @@ PlasmaComponents3.ScrollView {
             PlasmaComponents3.ScrollView {
                 id: sideBarScrollView
 
-                anchors.fill: parent
+                anchors {
+                    fill: parent
+                    topMargin: sideBar.innerMargin
+                    bottomMargin: sideBar.innerMargin
+                }
 
                 PlasmaComponents3.ScrollBar.horizontal.policy: PlasmaComponents3.ScrollBar.AlwaysOff
+                PlasmaComponents3.ScrollBar.vertical.visible: Screen.height > 0 && sideBarScrollView.contentHeight > Math.round(Screen.height * 0.9)
                 contentWidth: availableWidth
-
-                readonly property int actualScrollBarWidth: scrollBarVisible ? sideBarScrollView.PlasmaComponents3.ScrollBar.vertical.width : 0
-                property bool scrollBarVisible
-                Binding on scrollBarVisible {
-                    value: Screen.width > 0 && sideBarScrollView.contentHeight > (Screen.width - Kirigami.Units.largeSpacing * 4)
-                    delayed: true // this needs to be delayed or it can get stuck in a resize loop
-                }
+                contentHeight: Math.max(sideBarLayout.implicitHeight + sideBarLayout.anchors.topMargin + sideBarLayout.anchors.bottomMargin, sideBar.height - 2 * sideBar.innerMargin)
 
                 function ensureVisible(item: Item) {
                     let flickable = (contentItem as Flickable)
@@ -165,13 +185,13 @@ PlasmaComponents3.ScrollView {
 
                 ColumnLayout {
                     id: sideBarLayout
-                    height: Math.max(implicitHeight, sideBarScrollView.height - anchors.topMargin - anchors.bottomMargin)
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.topMargin: sideBar.margins.top
-                    anchors.leftMargin: sideBar.margins.left
-                    anchors.rightMargin: sideBar.margins.right
+                    anchors {
+                        fill: parent
+                        topMargin: sideBar.margins.top - sideBar.innerMargin
+                        leftMargin: sideBar.margins.left
+                        rightMargin: sideBar.margins.right
+                        bottomMargin: sideBar.margins.bottom - sideBar.innerMargin
+                    }
 
                     Accessible.role: Accessible.List
                     Accessible.name: i18nc("@title:group accessible name for favorite group in sidebar", "Favorites")
@@ -198,7 +218,6 @@ PlasmaComponents3.ScrollView {
                     }
                     LayoutItemProxy {
                         target: sideBar.onTopPanel ? favoriteApps : favoriteSystemActions
-                        Layout.bottomMargin: sideBar.margins.bottom
                     }
 
                     SideBarSection {
@@ -211,6 +230,7 @@ PlasmaComponents3.ScrollView {
                         KeyNavigation.down: favoriteSystemActions
 
                         model: root.globalFavorites
+                        favoriteType: SideBarSection.FavoriteType.KAStats
                         onItemFocused: item => sideBarScrollView.ensureVisible(item)
                         onInteractionConcluded: root.interactionConcluded()
 
@@ -228,6 +248,7 @@ PlasmaComponents3.ScrollView {
                         Layout.alignment: Qt.AlignHCenter
 
                         model: root.systemFavorites
+                        favoriteType: SideBarSection.FavoriteType.Simple
                         onItemFocused: item => sideBarScrollView.ensureVisible(item)
                         onInteractionConcluded: root.interactionConcluded()
                         KeyNavigation.up: favoriteApps.bottomSideBarItem
@@ -259,8 +280,7 @@ PlasmaComponents3.ScrollView {
 
             LayoutMirroring.enabled: mainRow.LayoutMirroring.enabled
 
-            showSeparators: true // keep even if sorted, the one between recents and categories works
-
+            onExited: rootList.currentIndex = -1
             onInteractionConcluded: root.interactionConcluded()
             onKeyNavigationAtListEnd: {
                 searchField.focus = true;
@@ -273,24 +293,26 @@ PlasmaComponents3.ScrollView {
                 currentIndex = -1
                 root.focusSideBar()
             }
-
-            Component.onCompleted: {
-                rootList.exited.connect(root.reset);
-            }
         }
 
         RowLayout {
             id: runnerColumns
 
-            readonly property bool searchResultsPresent: runnerColumns.visibleChildren[0] instanceof RunnerResultsList
-
             Layout.fillHeight: true
 
-            visible: searchField.text !== "" && root.runnerModel.count > 0
+            visible: searchField.text !== "" && root.runnerModel.count > 0 && !initialDelayTimer.active && root.runnerModel.resultsPresent
 
-            spacing: Kirigami.Units.smallSpacing
+            spacing: 0
 
             LayoutMirroring.enabled: mainRow.LayoutMirroring.enabled
+
+            Timer {
+                property bool active: false
+                id: initialDelayTimer
+                interval: 250 // match KRunner's delay for multi-runner queries
+                onRunningChanged: if (running && !root.runnerModel.resultsPresent) { active = true }
+                onTriggered: active = false
+            }
 
             Repeater {
                 id: runnerColumnsRepeater
@@ -304,6 +326,7 @@ PlasmaComponents3.ScrollView {
                     Layout.fillWidth: true
 
                     visible: model.count > 0 || (model.querying && visible)
+                    hoverEnabled: !hoverBlock.enabled
 
                     model: root.runnerModel.modelForRow(index)
                     mainSearchField: searchField
@@ -326,8 +349,8 @@ PlasmaComponents3.ScrollView {
                         }
                     }
 
-                    onFocusChanged: {
-                        if (!focus) {
+                    onListActiveFocusChanged: {
+                        if (!listActiveFocus) {
                             currentIndex = -1;
                         }
                     }
@@ -342,32 +365,12 @@ PlasmaComponents3.ScrollView {
         PlasmaExtras.PlaceholderMessage {
             id: noMatchesPlaceholder
 
-            property bool searchRunning: false
-            property string lastQuery: "" // copy to avoid timing conflicts with visible binding
-
             Layout.minimumWidth: mainRow.minimumMainWidth
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-            visible: lastQuery !== "" && !runnerColumns.searchResultsPresent && (!searchRunning || visible)
+            visible: root.runnerModel.query !== "" && !root.runnerModel.resultsPresent && ((!root.runnerModel.querying && !initialDelayTimer.active) || visible)
             iconName: "edit-none"
             text: i18nc("@info:status", "No matches")
-
-            Connections {
-                target: root.runnerModel
-
-                function onQueryFinished() {
-                    noMatchesPlaceholder.searchRunning = false
-                }
-            }
-
-            Connections {
-                target: searchField
-
-                function onTextChanged() {
-                    noMatchesPlaceholder.searchRunning = searchField.text !== ""
-                    noMatchesPlaceholder.lastQuery = searchField.text
-                }
-            }
 
             Binding {
                 searchField.width: noMatchesPlaceholder.width
@@ -387,13 +390,14 @@ PlasmaComponents3.ScrollView {
 
         readonly property real defaultWidth: Kirigami.Units.gridUnit * 14
 
-        width: runnerColumns.visible && runnerColumns.searchResultsPresent
-            ? runnerColumns.visibleChildren[0].width
+        width: runnerColumns.visible && root.runnerModel.resultsPresent
+            ? runnerColumns.visibleChildren[0].width - (runnerColumns.visibleChildren.length > 2 ? Kirigami.Units.smallSpacing : 0)
             : (rootList.visible ? rootList.width : mainRow.minimumMainWidth)
 
         focus: !Kirigami.InputMethod.willShowOnActive
 
         onTextChanged: {
+            initialDelayTimer.restart()
             root.runnerModel.query = text;
         }
 
@@ -474,14 +478,45 @@ PlasmaComponents3.ScrollView {
         }
 
         function launchBestMatch() : void  {
-            if (runnerColumns.visible) {
-                for (let i = 0; i < root.runnerModel.count; ++i) {
-                    if (root.runnerModel.modelForRow(i).count) {
-                        root.runnerModel.modelForRow(i).trigger(0, "", null);
-                        onInteractionConcluded: root.interactionConcluded()
-                        break;
-                    }
+            if (launchMatchTimer.running) {
+                launchMatchTimer.stop()
+                launchMatchTimer.triggered()
+                return
+            }
+            if (!root.runnerModel.querying || runnerColumns.visibleChildren[0]?.currentItem?.text.toLowerCase().includes(root.runnerModel.query.toLowerCase())) {
+                launchMatchTimer.triggered()
+                return
+            }
+            launchMatchTimer.start()
+        }
+
+        Timer {
+            id: launchMatchTimer
+            interval: 750
+            onTriggered: runnerColumns.visibleChildren[0]?.currentItem?.action.trigger()
+        }
+
+        Connections {
+            target: runnerColumns.visibleChildren[0] instanceof RunnerResultsList ? runnerColumns.visibleChildren[0] : null
+            enabled: launchMatchTimer.running
+            function onCurrentItemChanged() : void {
+                if (runnerColumns.visibleChildren[0]?.currentItem?.text.toLowerCase().includes(root.runnerModel.query.toLowerCase())) {
+                    launchMatchTimer.stop()
+                    Qt.callLater(launchMatchTimer.triggered) // callLater to resolve spurious binding loop
                 }
+            }
+        }
+
+        Connections {
+            target: root.runnerModel
+            enabled: launchMatchTimer.running || initialDelayTimer.active
+            function onQueryFinished() : void {
+                // queryFinish may be emitted for intermediate queries, ignore those
+                if (root.runnerModel.querying) { return }
+                initialDelayTimer.triggered()
+                if (!launchMatchTimer.running) { return }
+                launchMatchTimer.stop()
+                Qt.callLater(launchMatchTimer.triggered) // callLater to give bindings time to update
             }
         }
 
@@ -512,28 +547,18 @@ PlasmaComponents3.ScrollView {
         rootModel.refresh();
     }
 
-    MouseArea {
-        id: hoverBlock  // don't hover-activate until mouse is moved to not interfere with keyboard use
+    HoverBlocker {
+        id: hoverBlock
+
         anchors.fill: parent
-        hoverEnabled: true
-        propagateComposedEvents: true // clicking should still work if hovering is blocked
+        onWidthChanged: hoverBlock.reset()
 
-        property bool mouseMoved: false
+        Connections {
+            target: root.runnerModel
 
-        function reset() {
-            mouseMoved = false
-            enabled = true
-        }
-
-        onPositionChanged: if (!mouseMoved) {
-            mouseMoved = true
-        } else {
-            enabled = false // this immediately triggers other hover events when bound to their hoverEnabled
-        }
-
-        onPressed: event => {
-            enabled = false
-            event.accepted = false
+            function onQueryChanged() : void {
+                hoverBlock.reset()
+            }
         }
     }
 }

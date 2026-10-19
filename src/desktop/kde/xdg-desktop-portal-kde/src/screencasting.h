@@ -31,12 +31,14 @@ class ScreencastingStream : public QObject
 {
     Q_OBJECT
 public:
-    ScreencastingStream(QObject *parent);
+    explicit ScreencastingStream(QObject *parent);
     ~ScreencastingStream() override;
 
     quint32 nodeid() const;
+    quint64 objectSerial() const;
     QRect geometry() const;
 
+    QVariantMap metaData() const;
 Q_SIGNALS:
     void created(quint32 nodeid);
     void failed(const QString &error);

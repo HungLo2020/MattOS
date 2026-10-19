@@ -20,20 +20,14 @@ QQmlRangeFormatting::QQmlRangeFormatting(QmlLsp::QQmlCodeModelManager *codeModel
 {
 }
 
-QString QQmlRangeFormatting::name() const
-{
-    return u"QQmlRangeFormatting"_s;
-}
-
 void QQmlRangeFormatting::registerHandlers(QLanguageServer *, QLanguageServerProtocol *protocol)
 {
     protocol->registerDocumentRangeFormattingRequestHandler(getRequestHandler());
 }
 
-void QQmlRangeFormatting::setupCapabilities(const QLspSpecification::InitializeParams &,
-                                            QLspSpecification::InitializeResult &serverCapabilities)
+void QQmlRangeFormatting::setupCapabilities(QLspSpecification::ServerCapabilities &caps)
 {
-    serverCapabilities.capabilities.documentRangeFormattingProvider = true;
+    caps.documentRangeFormattingProvider = true;
 }
 
 void QQmlRangeFormatting::process(RequestPointerArgument request)
@@ -60,8 +54,6 @@ void QQmlRangeFormatting::process(RequestPointerArgument request)
     const auto selectedRange = request->m_parameters.range;
     const auto selectedRangeStartLine = selectedRange.start.line;
     const auto selectedRangeEndLine = selectedRange.end.line;
-    Q_ASSERT(selectedRangeStartLine >= 0);
-    Q_ASSERT(selectedRangeEndLine >= 0);
 
     LineWriterOptions options;
     options.attributesSequence = LineWriterOptions::AttributesSequence::Preserve;
@@ -71,7 +63,7 @@ void QQmlRangeFormatting::process(RequestPointerArgument request)
     FormatPartialStatus partialStatus({}, options.formatOptions, status);
 
     // Get the token status of the previous line without performing write operation
-    int lineNumber = 0;
+    unsigned lineNumber = 0;
     while (!in.atEnd()) {
         const auto line = in.readLine();
         partialStatus = formatCodeLine(line, options.formatOptions, partialStatus.currentStatus);
@@ -139,7 +131,7 @@ void QQmlRangeFormatting::process(RequestPointerArgument request)
 
     QLspSpecification::TextEdit add;
     add.newText = code.toUtf8();
-    add.range = { { 0, 0 }, { documentLineCount + 1 } };
+    add.range = { { 0, 0 }, { documentLineCount + 1u } };
     result.append(add);
 
     request->m_response.sendResponse(result);

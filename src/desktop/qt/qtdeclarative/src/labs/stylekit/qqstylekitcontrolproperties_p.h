@@ -116,7 +116,7 @@ private:
 
 // ************* QQStyleKitImageProperties ****************
 
-class QQStyleKitImageProperties : public QQStyleKitPropertyGroup
+class Q_LABSSTYLEKIT_EXPORT QQStyleKitImageProperties : public QQStyleKitPropertyGroup
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged FINAL)
@@ -235,9 +235,12 @@ signals:
 class Q_LABSSTYLEKIT_EXPORT QQStyleKitDelegateProperties : public QQStyleKitPropertyGroup
 {
     Q_OBJECT
-    Q_PROPERTY(qreal implicitWidth READ implicitWidth WRITE setImplicitWidth NOTIFY implicitWidthChanged FINAL)
-    Q_PROPERTY(qreal implicitHeight READ implicitHeight WRITE setImplicitHeight NOTIFY implicitHeightChanged FINAL)
+    Q_PROPERTY(qreal width READ width WRITE setWidth NOTIFY widthChanged FINAL)
+    Q_PROPERTY(qreal height READ height WRITE setHeight NOTIFY heightChanged FINAL)
     Q_PROPERTY(qreal minimumWidth READ minimumWidth WRITE setMinimumWidth NOTIFY minimumWidthChanged FINAL)
+    Q_PROPERTY(qreal minimumHeight READ minimumHeight WRITE setMinimumHeight NOTIFY minimumHeightChanged FINAL)
+    Q_PROPERTY(bool fillWidth READ fillWidth WRITE setFillWidth NOTIFY fillWidthChanged FINAL)
+    Q_PROPERTY(bool fillHeight READ fillHeight WRITE setFillHeight NOTIFY fillHeightChanged FINAL)
     Q_PROPERTY(qreal margins READ margins WRITE setMargins NOTIFY marginsChanged FINAL)
     Q_PROPERTY(qreal leftMargin READ leftMargin WRITE setLeftMargin NOTIFY leftMarginChanged FINAL)
     Q_PROPERTY(qreal rightMargin READ rightMargin WRITE setRightMargin NOTIFY rightMarginChanged FINAL)
@@ -291,14 +294,23 @@ public:
     qreal rotation() const;
     void setRotation(qreal rotation);
 
-    qreal implicitWidth() const;
-    void setImplicitWidth(qreal width);
+    qreal width() const;
+    void setWidth(qreal width);
 
-    qreal implicitHeight() const;
-    void setImplicitHeight(qreal height);
+    qreal height() const;
+    void setHeight(qreal height);
 
     qreal minimumWidth() const;
     void setMinimumWidth(qreal width);
+
+    qreal minimumHeight() const;
+    void setMinimumHeight(qreal height);
+
+    bool fillWidth() const;
+    void setFillWidth(bool fill);
+
+    bool fillHeight() const;
+    void setFillHeight(bool fill);
 
     qreal margins() const;
     void setMargins(qreal margins);
@@ -359,9 +371,10 @@ signals:
     void imageChanged();
     void gradientChanged();
     void colorImageChanged();
-    void implicitWidthChanged();
-    void implicitHeightChanged();
+    void widthChanged();
+    void heightChanged();
     void minimumWidthChanged();
+    void minimumHeightChanged();
     void marginsChanged();
     void leftMarginChanged();
     void rightMarginChanged();
@@ -371,6 +384,8 @@ signals:
     void opacityChanged();
     void dataChanged();
     void delegateChanged();
+    void fillWidthChanged();
+    void fillHeightChanged();
 
 private:
     QPointer<QQuickGradient> m_gradient;
@@ -441,6 +456,8 @@ class QQStyleKitIndicatorWithSubTypes : public QQStyleKitDelegateProperties
     Q_PROPERTY(QQStyleKitDelegateProperties *foreground READ foreground NOTIFY foregroundChanged FINAL)
     Q_PROPERTY(QQStyleKitIndicatorProperties *up READ up NOTIFY upChanged FINAL)
     Q_PROPERTY(QQStyleKitIndicatorProperties *down READ down NOTIFY downChanged FINAL)
+    Q_PROPERTY(QQStyleKitIndicatorProperties *first READ first NOTIFY firstChanged FINAL)
+    Q_PROPERTY(QQStyleKitIndicatorProperties *second READ second NOTIFY secondChanged FINAL)
     QML_UNCREATABLE("This component can only be instantiated by StyleKit")
     QML_NAMED_ELEMENT(IndicatorStyle)
 
@@ -453,16 +470,21 @@ public:
     QQStyleKitDelegateProperties *foreground() const;
     QQStyleKitIndicatorProperties *up() const;
     QQStyleKitIndicatorProperties *down() const;
+    // Generic indicators
+    QQStyleKitIndicatorProperties *first() const;
+    QQStyleKitIndicatorProperties *second() const;
 
 signals:
     void foregroundChanged();
     void upChanged();
     void downChanged();
+    void firstChanged();
+    void secondChanged();
 
 private:
     QQStyleKitDelegateProperties *m_foreground = nullptr;
-    QQStyleKitIndicatorProperties *m_up = nullptr;
-    QQStyleKitIndicatorProperties *m_down = nullptr;
+    QQStyleKitIndicatorProperties *m_first = nullptr;
+    QQStyleKitIndicatorProperties *m_second = nullptr;
 
     friend class QQStyleKitReader;
     friend class QQStyleKitControlProperties;
@@ -483,7 +505,8 @@ class QQStyleKitTextProperties : public QQStyleKitPropertyGroup
     Q_PROPERTY(qreal rightPadding READ rightPadding WRITE setRightPadding NOTIFY rightPaddingChanged FINAL)
     Q_PROPERTY(qreal topPadding READ topPadding WRITE setTopPadding NOTIFY topPaddingChanged FINAL)
     Q_PROPERTY(qreal bottomPadding READ bottomPadding WRITE setBottomPadding NOTIFY bottomPaddingChanged FINAL)
-
+    Q_PROPERTY(QQStyleKitTextProperties *first READ first NOTIFY firstChanged FINAL)
+    Q_PROPERTY(QQStyleKitTextProperties *second READ second NOTIFY secondChanged FINAL)
     QML_UNCREATABLE("This component can only be instantiated by StyleKit")
     QML_NAMED_ELEMENT(TextStyle)
 
@@ -523,6 +546,9 @@ public:
     qreal bottomPadding() const;
     void setBottomPadding(qreal bottomPadding);
 
+    QQStyleKitTextProperties *first() const;
+    QQStyleKitTextProperties *second() const;
+
 signals:
     void colorChanged();
     void alignmentChanged();
@@ -534,6 +560,12 @@ signals:
     void rightPaddingChanged();
     void topPaddingChanged();
     void bottomPaddingChanged();
+    void firstChanged();
+    void secondChanged();
+
+private:
+    QQStyleKitTextProperties *m_first = nullptr;
+    QQStyleKitTextProperties *m_second = nullptr;
 };
 
 /************* QQStyleKitControlProperties ****************

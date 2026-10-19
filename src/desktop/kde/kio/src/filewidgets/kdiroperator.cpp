@@ -1361,12 +1361,13 @@ bool KDirOperator::eventFilter(QObject *watched, QEvent *event)
         break;
     }
     case QEvent::Wheel: {
+        const int c_zoomStep = 1;
         QWheelEvent *evt = static_cast<QWheelEvent *>(event);
         if (evt->modifiers() & Qt::ControlModifier) {
             if (evt->angleDelta().y() > 0) {
-                setIconSize(d->m_iconSize + 10);
+                setIconSize(d->m_iconSize + c_zoomStep);
             } else {
-                setIconSize(d->m_iconSize - 10);
+                setIconSize(d->m_iconSize - c_zoomStep);
             }
             return true;
         }

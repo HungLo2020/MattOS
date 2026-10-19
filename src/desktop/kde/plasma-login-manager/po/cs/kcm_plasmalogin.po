@@ -2,22 +2,23 @@
 # This file is distributed under the same license as the plasma-login-manager package.
 # SPDX-FileCopyrightText: 2025 Vit Pelcak <vit@pelcak.org>
 # SPDX-FileCopyrightText: 2026 Libor Filípek <filipek.libor@protonmail.com>
+# SPDX-FileCopyrightText: 2026 Libor Filipek <libor.filipek@gmail.com>
 #
 # SPDX-FileCopyrightText: 2026 Jan Papez (honyczek)
 msgid ""
 msgstr ""
 "Project-Id-Version: plasma-login-manager\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-28 02:46+0000\n"
-"PO-Revision-Date: 2026-04-03 15:36+0200\n"
-"Last-Translator: Libor Filípek <filipek.libor@protonmail.com>\n"
-"Language-Team: \n"
+"POT-Creation-Date: 2026-08-11 00:47+0000\n"
+"PO-Revision-Date: 2026-08-07 21:29+0200\n"
+"Last-Translator: Libor Filípek <libor.filipek@gmail.com>\n"
+"Language-Team: Czech <kde-i18n-doc@kde.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 25.12.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 
 #: kcm.cpp:78
 msgid ""
@@ -36,7 +37,7 @@ msgstr ""
 "Nelze synchronizovat nastavení Plasma, protože uživatel 'plasmalogin' "
 "neexistuje. Prosím, prověřte svou instalaci Plasma Login."
 
-#: kcm.cpp:265
+#: kcm.cpp:269
 msgid ""
 "Unable to reset Plasma settings because the 'plasmalogin' user does not "
 "exist. Please check your Plasma Login install."
@@ -96,24 +97,27 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
-"<para><list><item>Color scheme</item><item>Cursor theme and size</"
-"item><item>Font and font rendering</item><item>NumLock preference</"
-"item><item>Plasma theme</item><item>Scaling DPI</item><item>Screen "
-"configuration</item></list></para>"
+"<para><list><item>Language and locale settings</item><item>Keyboard layouts</"
+"item><item>Screen arrangement, scale, and orientation settings</"
+"item><item>NumLock preference</item><item>Font and font rendering settings</"
+"item><item>Color scheme</item><item>Cursor theme and size</item><item>Plasma "
+"theme</item></list></para>"
 msgstr ""
-"<para><list><item>Barevné schéma</item><item>Motiv kurzoru a velikost</"
-"item><item>Písmo a vykreslování písma</item><item>Preferenční nastavení "
-"NumLocku</item><item>Motiv Plasmy</item><item>Měřítko DPI</"
-"item><item>Nastavení obrazovky</item></list></para>"
+"<para><list><item>Nastavení jazyka a národního prostředí</"
+"item><item>Rozložení klávesnice</item><item>Nastavení uspořádání, měřítka a "
+"orientace obrazovky</item><item>Nastavení klávesy NumLock</"
+"item><item>Nastavení písma a jeho vykreslování</item><item>Barevné schéma</"
+"item><item>Vzhled a velikost kurzoru</item><item>Motiv Plasma</item></list></"
+"para>"
 
 #: ui/main.qml:67
 #, kde-format
 msgid ""
-"Please note that theme files must be installed globally to be reflected on "
-"the Plasma login screen."
+"Please note that theme and font files must be installed globally to be "
+"reflected on the Plasma login screen."
 msgstr ""
-"Poznámka: soubory tématu musí být nainstalovány globálně, aby se projevily "
-"na přihlašovací obrazovce Plasma."
+"Poznámka: soubory tématu a písma musí být nainstalovány globálně, aby se "
+"projevily na přihlašovací obrazovce Plasma."
 
 #: ui/main.qml:71
 #, kde-format
@@ -139,7 +143,7 @@ msgctxt "@option:check"
 msgid "Automatically log in:"
 msgstr "Automaticky přihlásit:"
 
-#: ui/main.qml:99
+#: ui/main.qml:100
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the user to log in "
@@ -147,7 +151,7 @@ msgctxt ""
 msgid "as user:"
 msgstr "jako uživatel:"
 
-#: ui/main.qml:154
+#: ui/main.qml:150
 #, kde-format
 msgctxt ""
 "@label:listbox, the following combobox selects the session that is started "
@@ -155,7 +159,7 @@ msgctxt ""
 msgid "with session:"
 msgstr "se sezením:"
 
-#: ui/main.qml:187
+#: ui/main.qml:180
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
@@ -170,42 +174,42 @@ msgstr ""
 "Poznámka: toto není bezpečné a mělo by se provádět pouze v důvěryhodném "
 "prostředí."
 
-#: ui/main.qml:192
+#: ui/main.qml:185
 #, kde-format
 msgid "Open KDE Wallet Settings"
 msgstr "Otevřít nastavení KDE Wallet"
 
-#: ui/main.qml:199
+#: ui/main.qml:192
 #, kde-format
 msgctxt "@option:check"
 msgid "Log in again immediately after logging off"
 msgstr "Přihlásit okamžitě po odhlášení"
 
-#: ui/main.qml:210
+#: ui/main.qml:203
 #, kde-format
 msgctxt "@title:group"
 msgid "Defaults"
 msgstr "Výchozí"
 
-#: ui/main.qml:215
+#: ui/main.qml:208
 #, kde-format
 msgctxt "@label"
 msgid "Default user:"
 msgstr "Výchozí uživatel:"
 
-#: ui/main.qml:221
+#: ui/main.qml:214
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in user"
 msgstr "Naposledy přihlášený uživatel"
 
-#: ui/main.qml:293
+#: ui/main.qml:281
 #, kde-format
 msgctxt "@label"
 msgid "Default session:"
 msgstr "Výchozí sezení:"
 
-#: ui/main.qml:299
+#: ui/main.qml:287
 #, kde-format
 msgctxt "@option:radio"
 msgid "Last logged-in session"

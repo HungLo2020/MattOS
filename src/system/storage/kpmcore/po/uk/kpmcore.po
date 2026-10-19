@@ -3,13 +3,13 @@
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# Yuri Chornoivan <yurchor@ukr.net>, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024, 2025.
+# Yuri Chornoivan <yurchor@ukr.net>, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: kpmcore\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 14:42+0000\n"
-"PO-Revision-Date: 2025-03-12 11:24+0200\n"
+"POT-Creation-Date: 2026-08-03 02:46+0000\n"
+"PO-Revision-Date: 2026-06-26 12:03+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -1921,14 +1921,14 @@ msgstr "Заблокувати"
 msgid "Enter passphrase for %1:"
 msgstr "Введіть пароль для %1:"
 
-#: fs/luks.cpp:500 fs/luks.cpp:510 fs/luks2.cpp:95 fs/luks2.cpp:112
+#: fs/luks.cpp:500 fs/luks.cpp:511 fs/luks2.cpp:96 fs/luks2.cpp:115
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid "Resizing LUKS crypt on partition <filename>%1</filename>."
 msgstr ""
 "Змінюємо розмір зашифрованої області LUKS на розділі <filename>%1</filename>."
 
-#: fs/luks.cpp:514 fs/luks2.cpp:123
+#: fs/luks.cpp:515 fs/luks2.cpp:126
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1987,7 +1987,7 @@ msgstr ""
 "Оновлення сектора завантаження для файлової системи NTFS на розділі "
 "<filename>%1</filename>."
 
-#: fs/ntfs.cpp:194 fs/ntfs.cpp:202
+#: fs/ntfs.cpp:191 fs/ntfs.cpp:199
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -1997,7 +1997,7 @@ msgstr ""
 "Не вдалося записати новий початковий сектор на розділ <filename>%1</"
 "filename> під час спроби оновлення сектора завантаження NTFS."
 
-#: fs/ntfs.cpp:206
+#: fs/ntfs.cpp:203
 #, kde-kuit-format
 msgctxt "@info:progress"
 msgid ""
@@ -2834,6 +2834,37 @@ msgctxt "@info:progress"
 msgid "Shred the file system on <filename>%1</filename>"
 msgstr "Витерти файлову систему на <filename>%1</filename>"
 
+#: jobs/takeownershipjob.cpp:28
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "File system on <filename>%1</filename> does not support ownership."
+msgstr ""
+"У файловій системі на <filename>%1</filename> не передбачено підтримки "
+"запису власника."
+
+#: jobs/takeownershipjob.cpp:36
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid ""
+"Refusing to change ownership of critical mount point <filename>%1</filename>."
+msgstr ""
+"Відмова у зміні власності критичної точки монтування <filename>%1</filename>."
+
+#: jobs/takeownershipjob.cpp:60
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid ""
+"Taking ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ""
+"Передаємо права власності на <filename>%1</filename> і його вмісту "
+"користувачеві %2"
+
+#: jobs/takeownershipjob.cpp:62
+#, kde-kuit-format
+msgctxt "@info:progress"
+msgid "Taking ownership of <filename>%1</filename> for user %2"
+msgstr "Передаємо права власності на <filename>%1</filename> користувачеві %2"
+
 #: ops/backupoperation.cpp:39
 #, kde-kuit-format
 msgctxt "@info:status"
@@ -3053,13 +3084,13 @@ msgstr ""
 #, kde-kuit-format
 msgctxt "@info:status describe resize/move action"
 msgid "Move partition <filename>%1</filename> to the left by %2"
-msgstr "Пересування розділу <filename>%1</filename> ліворуч за допомогою %2"
+msgstr "Пересування розділу <filename>%1</filename> ліворуч на %2"
 
 #: ops/resizeoperation.cpp:204
 #, kde-kuit-format
 msgctxt "@info:status describe resize/move action"
 msgid "Move partition <filename>%1</filename> to the right by %2"
-msgstr "Пересування розділу <filename>%1</filename> праворуч за допомогою %2"
+msgstr "Пересування розділу <filename>%1</filename> праворуч на %2"
 
 #: ops/resizeoperation.cpp:207
 #, kde-kuit-format
@@ -3080,8 +3111,8 @@ msgid ""
 "Move partition <filename>%1</filename> to the left by %2 and grow it from %3 "
 "to %4"
 msgstr ""
-"Пересування розділу <filename>%1</filename> ліворуч за допомогою %2 і "
-"збільшення його розміру з %3 до %4"
+"Пересування розділу <filename>%1</filename> ліворуч на %2 і збільшення його "
+"розміру з %3 до %4"
 
 #: ops/resizeoperation.cpp:216
 #, kde-kuit-format
@@ -3090,8 +3121,8 @@ msgid ""
 "Move partition <filename>%1</filename> to the right by %2 and grow it from "
 "%3 to %4"
 msgstr ""
-"Пересування розділу <filename>%1</filename> праворуч за допомогою %2 і "
-"збільшення його розміру з %3 до %4"
+"Пересування розділу <filename>%1</filename> праворуч на %2 і збільшення його "
+"розміру з %3 до %4"
 
 #: ops/resizeoperation.cpp:219
 #, kde-kuit-format
@@ -3100,8 +3131,8 @@ msgid ""
 "Move partition <filename>%1</filename> to the left by %2 and shrink it from "
 "%3 to %4"
 msgstr ""
-"Пересування розділу <filename>%1</filename> ліворуч за допомогою %2 і "
-"зменшення його розміру з %3 до %4"
+"Пересування розділу <filename>%1</filename> ліворуч на %2 і зменшення його "
+"розміру з %3 до %4"
 
 #: ops/resizeoperation.cpp:222
 #, kde-kuit-format
@@ -3110,8 +3141,8 @@ msgid ""
 "Move partition <filename>%1</filename> to the right by %2 and shrink it from "
 "%3 to %4"
 msgstr ""
-"Пересування розділу <filename>%1</filename> праворуч за допомогою %2 і "
-"зменшення його розміру з %3 до %4"
+"Пересування розділу <filename>%1</filename> праворуч на %2 і зменшення його "
+"розміру з %3 до %4"
 
 #: ops/resizeoperation.cpp:229
 #, kde-kuit-format
@@ -3264,6 +3295,20 @@ msgstr "Встановлення прапорців для розділу <filen
 msgctxt "@info:status"
 msgid "Set GPT partition label <filename>%1</filename> to \"%2\""
 msgstr "Встановлення мітки розділу GPT <filename>%1</filename> у значення «%2»"
+
+#: ops/takeownershipoperation.cpp:73
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> and its contents for user %2"
+msgstr ""
+"Передати права власності на <filename>%1</filename> і його вмісту "
+"користувачеві %2"
+
+#: ops/takeownershipoperation.cpp:75
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "Take ownership of <filename>%1</filename> for user %2"
+msgstr "Передати права власності на <filename>%1</filename> користувачеві %2"
 
 #: plugins/geom/geompartitiontable.cpp:91
 #: plugins/sfdisk/sfdiskpartitiontable.cpp:65

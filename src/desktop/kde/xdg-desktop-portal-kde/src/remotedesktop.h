@@ -81,9 +81,9 @@ public Q_SLOTS:
 
     void NotifyKeyboardKeysym(const QDBusObjectPath &session_handle, const QVariantMap &options, int keysym, uint state);
 
-    void NotifyTouchDown(const QDBusObjectPath &session_handle, const QVariantMap &options, uint stream, uint slot, int x, int y);
+    void NotifyTouchDown(const QDBusObjectPath &session_handle, const QVariantMap &options, uint stream, uint slot, double x, double y);
 
-    void NotifyTouchMotion(const QDBusObjectPath &session_handle, const QVariantMap &options, uint stream, uint slot, int x, int y);
+    void NotifyTouchMotion(const QDBusObjectPath &session_handle, const QVariantMap &options, uint stream, uint slot, double x, double y);
 
     void NotifyTouchUp(const QDBusObjectPath &session_handle, const QVariantMap &options, uint slot);
 
@@ -99,8 +99,6 @@ public:
     explicit RemoteDesktopSession(QObject *parent, const QString &appId, const QString &path);
     ~RemoteDesktopSession() override;
 
-    void setOptions(const QVariantMap &options);
-
     RemoteDesktopPortal::DeviceTypes deviceTypes() const;
     void setDeviceTypes(RemoteDesktopPortal::DeviceTypes deviceTypes);
 
@@ -111,7 +109,7 @@ public:
     void setClipboardEnabled(bool enabled);
 
     void acquireStreamingInput();
-    void refreshDescription() override;
+    void setupStatusNotifier() override;
 
     void setEisCookie(int cookie);
     int eisCookie() const;

@@ -12,6 +12,8 @@
 #include <UIKit/UIKit.h>
 #endif
 
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+
 #include <new>
 #include <execinfo.h>
 #include <dlfcn.h>
@@ -22,6 +24,10 @@
 #include <spawn.h>
 
 #include <qdebug.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qrect.h>
+#include <qmargins.h>
 
 #include "qendian.h"
 #include "qhash.h"
@@ -209,6 +215,14 @@ QDebug operator<<(QDebug dbg, const NSObject *nsObject)
         : "NSObject(0x0)");
 }
 
+QDebug operator<<(QDebug dbg, const NSString *nsString)
+{
+    if (!nsString)
+        return dbg << "NSString(0x0)";
+    else
+        return dbg << (__bridge CFStringRef)nsString;
+}
+
 QDebug operator<<(QDebug dbg, CFStringRef stringRef)
 {
     if (!stringRef)
@@ -219,6 +233,34 @@ QDebug operator<<(QDebug dbg, CFStringRef stringRef)
     else
         dbg << QString::fromCFString(stringRef);
 
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, CGPoint point)
+{
+    dbg << QPointF::fromCGPoint(point);
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, CGSize size)
+{
+    dbg << QSizeF::fromCGSize(size);
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, CGRect rect)
+{
+    dbg << QRectF::fromCGRect(rect);
+    return dbg;
+}
+
+#if defined(Q_OS_MACOS)
+QDebug operator<<(QDebug dbg, NSEdgeInsets insets)
+#else
+QDebug operator<<(QDebug dbg, UIEdgeInsets insets)
+#endif
+{
+    dbg << QMargins(insets.left, insets.top, insets.right, insets.bottom);
     return dbg;
 }
 
@@ -337,6 +379,8 @@ bool qt_mac_runningUnderRosetta()
 bool qt_apple_runningWithLiquidGlass()
 {
     static const bool runningWithLiquidGlass = []{
+        QMacAutoReleasePool pool;
+
         if (QMacVersion::buildSDK(QMacVersion::ApplicationBinary).majorVersion() < 26)
             return false;
 
@@ -465,6 +509,34 @@ bool qt_apple_isApplicationExtension()
 {
     static bool isExtension = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSExtension"];
     return isExtension;
+}
+
+/*!
+    \internal
+
+    Returns the bundle type of the item at \a path, or \c std::nullopt if it is
+    not a bundle.
+
+    Whether an item is a bundle is determined by its uniform type conforming to
+    com.apple.bundle, covering applications (.app), app extensions (.appex),
+    frameworks, and generic bundles. It is not determined by the mere presence
+    of a \c Contents directory or similar structure.
+
+    Directories whose extension is not a recognized bundle type, such as audio
+    unit components (.component), are still resolved as bundles when they carry
+    bundle metadata (a \c PkgInfo or \c Info.plist declaring the package type),
+    as the system then classifies them as a generic bundle. A bare directory
+    without such metadata is not considered a bundle.
+*/
+std::optional<UTType *> qt_apple_bundleType(const QString &path)
+{
+    NSURL *url = [NSURL fileURLWithPath:path.toNSString() isDirectory:YES];
+    UTType *type = nil;
+    if (![url getResourceValue:&type forKey:NSURLContentTypeKey error:nil] || !type)
+        return std::nullopt;
+    if (![type conformsToType:UTTypeBundle])
+        return std::nullopt;
+    return type;
 }
 
 #if !defined(QT_BOOTSTRAPPED) && !defined(Q_OS_WATCHOS)

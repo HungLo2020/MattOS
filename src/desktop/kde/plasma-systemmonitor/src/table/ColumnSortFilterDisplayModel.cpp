@@ -31,6 +31,10 @@ QVariant ColumnSortFilterDisplayModel::data(const QModelIndex &index, int role) 
         return QVariant{};
     }
 
+    if (!index.isValid()) {
+        return QVariant{};
+    }
+
     resolveRoleNumbers();
     const auto id = source->data(mapToSource(index), m_idRoleNumber).toString();
 
@@ -171,20 +175,13 @@ void ColumnSortFilterDisplayModel::setDisplayById(const QString &id, const QStri
     }
 
     if (changed) {
-        auto i = indexForId(id);
-        if (!i.isValid()) {
-            return;
-        }
+        beginResetModel();
 
-        if (m_columnDisplay.value(id) == u"hidden"_s) {
-            m_sortedColumns.removeOne(id);
-        } else {
-            m_sortedColumns.append(id);
-        }
+        cleanupSortedColumns();
 
-        Q_EMIT dataChanged(i, i, {DisplayStyleRole});
+        endResetModel();
+
         Q_EMIT columnDisplayChanged();
-        invalidate();
     }
 }
 
@@ -299,6 +296,8 @@ void ColumnSortFilterDisplayModel::cleanupSortedColumns()
             m_sortedColumns.append(key);
         }
     }
+
+    m_sortedColumns.removeDuplicates();
 }
 
 #include "moc_ColumnSortFilterDisplayModel.cpp"

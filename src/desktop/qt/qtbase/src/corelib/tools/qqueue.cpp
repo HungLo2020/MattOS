@@ -9,11 +9,13 @@
 
     \ingroup tools
     \ingroup shared
+    \ingroup containers
 
     \reentrant
 
-    QQueue\<T\> is one of Qt's generic \l{container classes}. It
-    implements a queue data structure for items of a same type.
+    QQueue\<T\> is one of Qt's generic \l{container classes}, where
+    \a T specifies the element type. It implements a queue data structure
+    for items of a same type.
 
     A queue is a first in, first out (FIFO) structure. Items are
     added to the tail of the queue using enqueue() and retrieved from

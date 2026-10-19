@@ -45,20 +45,6 @@ public:
     virtual void init(const QVariantMap &arguments);
 
     /**
-     * Returns a user-friendly name of the backend.
-     */
-    virtual QString name() const = 0;
-
-    /**
-     * Returns the name of the DBus service that should be used for this backend.
-     *
-     * Each backend must have an unique service name (usually something like
-     * org.kde.KScreen.Backend.%backendName%) to allow multiple different backends
-     * running concurrently.
-     */
-    virtual QString serviceName() const = 0;
-
-    /**
      * Returns a new Config object, holding Screen, Output objects, etc.
      *
      * @return Config object for the system.
@@ -73,14 +59,6 @@ public:
      * Out-of process backends must return a completed future.
      */
     virtual QFuture<SetConfigResult> setConfig(const KScreen::ConfigPtr &config) = 0;
-
-    /**
-     * Returns whether the backend is in valid state.
-     *
-     * Backends should use this to tell BackendLauncher whether they are capable
-     * of operating on the current platform.
-     */
-    virtual bool isValid() const = 0;
 
     /**
      * Returns encoded EDID data for given output

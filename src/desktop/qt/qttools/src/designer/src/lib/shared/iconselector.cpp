@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant reason:default
 
 #include "iconselector_p.h"
 #include "qdesigner_utils_p.h"
@@ -238,7 +239,6 @@ public:
     QAction *m_resetAllAction = nullptr;
     PropertySheetIconValue m_icon;
     DesignerIconCache *m_iconCache = nullptr;
-    DesignerPixmapCache *m_pixmapCache = nullptr;
     QtResourceModel *m_resourceModel = nullptr;
     QDesignerFormEditorInterface *m_core = nullptr;
 };
@@ -515,13 +515,6 @@ void IconSelector::setIconCache(DesignerIconCache *iconCache)
 {
     d_ptr->m_iconCache = iconCache;
     connect(iconCache, &DesignerIconCache::reloaded, this, [this] { d_ptr->slotUpdate(); });
-    d_ptr->slotUpdate();
-}
-
-void IconSelector::setPixmapCache(DesignerPixmapCache *pixmapCache)
-{
-    d_ptr->m_pixmapCache = pixmapCache;
-    connect(pixmapCache, &DesignerPixmapCache::reloaded, this, [this] { d_ptr->slotUpdate(); });
     d_ptr->slotUpdate();
 }
 

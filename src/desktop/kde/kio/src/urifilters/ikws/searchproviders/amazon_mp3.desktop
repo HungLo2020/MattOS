@@ -3,6 +3,7 @@ Charset=
 Hidden=false
 Keys=amazonmp3,az3,amz3,amzmp3
 Name=Amazon MP3
+Name[am]=Amazon MP3
 Name[ar]=أمازون MP3
 Name[ast]=Amazon MP3
 Name[az]=Amazon MP3
@@ -52,6 +53,8 @@ Name[mai]=अमेजन MP3
 Name[ml]=ആമസോണ്‍ എംപി3
 Name[mr]=अमेझोन MP3
 Name[my]=အမေဇုန် အမ်ပီ၃
+Name[nan_TW]=Amazon MP3
+Name[nan_TW@latin]=Amazon MP3
 Name[nb]=Amazon MP3
 Name[nds]=Amazon.de -- MP3
 Name[nl]=Amazon MP3
@@ -83,6 +86,7 @@ Name[wa]=Amazon MP3
 Name[zh_CN]=Amazon MP3
 Name[zh_TW]=Amazon MP3
 Query=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
+Query[am]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[ar]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[ast]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[az]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
@@ -116,13 +120,15 @@ Query[id]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music
 Query[ie]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[is]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[it]=https://www.amazon.it/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
-Query[ja]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
+Query[ja]=https://www.amazon.co.jp/s?k=\\{@}&i=digital-music
 Query[ka]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[ko]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[lg]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[lt]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[lv]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[my]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
+Query[nan_TW]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
+Query[nan_TW@latin]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[nb]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[nl]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[nn]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
@@ -141,7 +147,6 @@ Query[tg]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music
 Query[th]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[tok]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[tr]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
-Query[ug]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[uk]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[vi]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0
 Query[zh_CN]=https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=digital-music&field-keywords=\\{@}&x=0&y=0

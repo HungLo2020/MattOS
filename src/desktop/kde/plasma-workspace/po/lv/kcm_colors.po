@@ -1,7 +1,7 @@
 # translation of kcmcolors.po to Latvian
 # Copyright (C) 2007, 2008, 2010 Free Software Foundation, Inc.
 #
-# SPDX-FileCopyrightText: 2024 Toms Trasuns <toms.trasuns@posteo.net>
+# SPDX-FileCopyrightText: 2024, 2026 Toms Trasuns <toms.trasuns@posteo.net>
 # Aleksejs Zosims <locale@aleksejs.id.lv>, 2007.
 # Maris Nartiss <maris.kde@gmail.com>, 2007, 2008, 2010, 2024.
 # Viesturs Zarins <viesturs.zarins@mii.lu.lv>, 2008.
@@ -11,15 +11,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmcolors\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:54+0000\n"
-"PO-Revision-Date: 2024-10-29 11:59+0200\n"
+"POT-Creation-Date: 2026-07-16 00:46+0000\n"
+"PO-Revision-Date: 2026-08-14 22:38+0300\n"
 "Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
 "Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
 "Language: lv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 24.08.2\n"
+"X-Generator: Lokalize 26.04.3\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
 
@@ -34,32 +34,32 @@ msgid "Your emails"
 msgstr ""
 "locale@aleksejs.id.lv, viesturs.zarins@mii.lu.lv, toms.trasuns@posteo.net"
 
-#: colors.cpp:253
+#: colors.cpp:251
 #, kde-format
 msgid "Unable to create a temporary file."
 msgstr "Neizdevās izveidot pagaidu datni."
 
-#: colors.cpp:266
+#: colors.cpp:264
 #, kde-format
 msgid "Unable to download the color scheme: %1"
 msgstr "Neizdevās lejupielādēt krāsu shēmu: %1"
 
-#: colors.cpp:284
+#: colors.cpp:282
 #, kde-format
 msgid "This file is not a color scheme file."
 msgstr "Šī datne nav krāsu shēmas datne."
 
-#: colors.cpp:303
+#: colors.cpp:301
 #, kde-format
 msgid "Failed to create 'color-scheme' data folder."
 msgstr "Neizdevās izveidot „color-scheme“ datu mapi."
 
-#: colors.cpp:310
+#: colors.cpp:308
 #, kde-format
 msgid "Failed to copy color scheme into 'color-scheme' data folder."
 msgstr "Neizdevās krāsu shēmu iekopēt „color-scheme“ datu mapē."
 
-#: colors.cpp:327
+#: colors.cpp:325
 #, kde-format
 msgid "Color scheme installed successfully."
 msgstr "Krāsu shēma ir veiksmīgi ieinstalēta."
@@ -690,15 +690,18 @@ msgstr ""
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
-msgid "You do not have permission to overwrite that scheme"
-msgstr "Jums nav tiesību pārrakstīt šo shēmu"
+msgid ""
+"This scheme is read-only. Please save the modifications with another name."
+msgstr ""
+"Šī shēma ir tikai lasāma. Lūdzu, saglabājiet veiktās izmaiņas ar citu "
+"nosaukumu."
 
 #: editor/scmeditordialog.cpp:178
 #, kde-format
 msgid "Error"
 msgstr "Kļūda"
 
-#: editor/scmeditordialog.cpp:193
+#: editor/scmeditordialog.cpp:194
 #, kde-format
 msgid "Inactive"
 msgstr "Neaktīvs"
@@ -880,13 +883,13 @@ msgstr "Iekrāsojuma stiprums:"
 #: editor/scmeditoroptions.ui:69
 #, kde-format
 msgid "Contrast of the frames, separators and outlines"
-msgstr ""
+msgstr "Rāmju, atdalītāju un kontūru kontrasts"
 
 #. i18n: ectx: property (title), widget (QGroupBox, groupBox_5)
 #: editor/scmeditoroptions.ui:72
 #, kde-format
 msgid "Frames and Outlines"
-msgstr ""
+msgstr "Rāmji un kontūras"
 
 #. i18n: ectx: property (text), widget (KMessageWidget, contrastValueWarning)
 #: editor/scmeditoroptions.ui:93
@@ -895,12 +898,14 @@ msgid ""
 "Contrast values below 15% may produce visually awkward effects with some "
 "applications and color schemes. Consider yourself warned!"
 msgstr ""
+"Brīdinājums: atsevišķās programmās un ar atsevišķām krāsu shēmām kontrasta "
+"vērtības zem 15 % var radīt vizuāli ērmīgu efektu."
 
 #. i18n: ectx: property (suffix), widget (QDoubleSpinBox, contrastPercentageSpinBox)
 #: editor/scmeditoroptions.ui:109
 #, no-c-format, kde-format
 msgid "%"
-msgstr ""
+msgstr "%"
 
 #. i18n: ectx: property (text), widget (QLabel, label_8)
 #: editor/scmeditoroptions.ui:138
@@ -1149,7 +1154,7 @@ msgctxt "color-kcm-set-preview"
 msgid "focus"
 msgstr "fokuss"
 
-#: plasma-apply-colorscheme.cpp:41
+#: plasma-apply-colorscheme.cpp:40
 #, kde-format
 msgid ""
 "This tool allows you to set the color scheme for the current Plasma session, "
@@ -1159,7 +1164,7 @@ msgstr ""
 "Šis rīks ļauj iestatīt šīs „Plasma“ sesijas krāsu shēmu, to nejauši "
 "neiestatot uz nepieejamu vai jau iestatītu krāsu shēmu."
 
-#: plasma-apply-colorscheme.cpp:45
+#: plasma-apply-colorscheme.cpp:44
 #, kde-format
 msgid ""
 "The name of the color scheme you wish to set for your current Plasma session "
@@ -1168,14 +1173,14 @@ msgstr ""
 "Krāsu shēmas nosaukums, kuru vēlaties iestatīt šai „Plasma“ sesijai (norādot "
 "pilnu ceļu, vērā tiks ņemta tika šī ceļa beigu daļa)"
 
-#: plasma-apply-colorscheme.cpp:48
+#: plasma-apply-colorscheme.cpp:47
 #, kde-format
 msgid ""
 "Show all the color schemes available on the system (and which is the current "
 "theme)"
 msgstr "Parādīt visas sistēmā pieejamās krāsu shēmas (un pašreizējo motīvu)"
 
-#: plasma-apply-colorscheme.cpp:53
+#: plasma-apply-colorscheme.cpp:52
 #, kde-format
 msgid ""
 "The name of the accent color you want to set. SVG color names (https://www."
@@ -1187,7 +1192,7 @@ msgstr ""
 "kodi. Heksadecimālos kodus ievietojiet pēdiņās, ja pastāv čaulas "
 "paplašināšanas iespējamība"
 
-#: plasma-apply-colorscheme.cpp:80
+#: plasma-apply-colorscheme.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the theme for the current "
@@ -1195,26 +1200,26 @@ msgid ""
 msgstr ""
 "Pieprasītais motīvs „%1“ jau ir iestatīts kā motīvs šai „Plasma“ sesijai."
 
-#: plasma-apply-colorscheme.cpp:113
+#: plasma-apply-colorscheme.cpp:112
 #, kde-format
 msgid "Successfully applied the color scheme %1 to your current Plasma session"
 msgstr "Šai „Plasma“ sesijai ir veiksmīgi pielietota krāsu shēma „%1“"
 
-#: plasma-apply-colorscheme.cpp:115
+#: plasma-apply-colorscheme.cpp:114
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 msgstr "Nevar atrast motīvu „%1“. Motīvam ir jābūt kādam no šiem: %2"
 
-#: plasma-apply-colorscheme.cpp:123
+#: plasma-apply-colorscheme.cpp:122
 #, kde-format
 msgid ""
 "You have managed to pass an empty color scheme name, which isn't supported "
 "behavior."
 msgstr "Programma neatbalsta tukšu krāsu shēmas nosaukumu."
 
-#: plasma-apply-colorscheme.cpp:127
+#: plasma-apply-colorscheme.cpp:126
 #, kde-format
 msgid ""
 "The file you attempted to set as your scheme, %1, could not be identified as "
@@ -1222,22 +1227,22 @@ msgid ""
 msgstr ""
 "Datne „%1“, kuru mēģināt iestatīt par shēmu, nav identificēta kā krāsu shēma."
 
-#: plasma-apply-colorscheme.cpp:151
+#: plasma-apply-colorscheme.cpp:150
 #, kde-format
 msgid "Successfully applied the accent color %1"
 msgstr "Veiksmīgi pielietota akcenta krāsa %1"
 
-#: plasma-apply-colorscheme.cpp:153
+#: plasma-apply-colorscheme.cpp:152
 #, kde-format
 msgid "Invalid accent color "
 msgstr "Nederīga akcenta krāsa "
 
-#: plasma-apply-colorscheme.cpp:158
+#: plasma-apply-colorscheme.cpp:157
 #, kde-format
 msgid "You have the following color schemes on your system:"
 msgstr "Sistēmā ir šīs krāsu shēmas:"
 
-#: plasma-apply-colorscheme.cpp:163
+#: plasma-apply-colorscheme.cpp:162
 #, kde-format
 msgid " * %1 (current color scheme)"
 msgstr "* %1 (šī krāsu shēma)"
@@ -1260,106 +1265,125 @@ msgctxt "@item:inlistbox User-chosen custom accent color"
 msgid "Custom accent color"
 msgstr "Pielāgota akcenta krāsa"
 
-#: ui/main.qml:90
+#: ui/main.qml:94
 #, kde-format
 msgid ""
 "The color scheme '%1' is not installed. Selecting the default theme instead."
 msgstr "Krāsu shēma „%1“ nav instalēta. Tās vietā izvēlēts noklusējuma motīvs."
 
-#: ui/main.qml:123
+#: ui/main.qml:126
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "All schemes"
 msgstr "Visas shēmas"
 
-#: ui/main.qml:124
+#: ui/main.qml:127
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Light schemes"
 msgstr "Gaišās shēmas"
 
-#: ui/main.qml:125
+#: ui/main.qml:128
 #, kde-format
 msgctxt "@item:inlistbox filter displayed schemes"
 msgid "Dark schemes"
 msgstr "Tumšās shēmas"
 
-#: ui/main.qml:152
+#: ui/main.qml:139
 #, kde-format
 msgid "Install from File…"
 msgstr "Instalēt no datnes…"
 
-#: ui/main.qml:157
+#: ui/main.qml:144
 #, kde-format
 msgid "Get New…"
 msgstr "Iegūt jaunas"
 
-#: ui/main.qml:204
+#: ui/main.qml:191
 #, kde-format
 msgid "Window Title"
 msgstr "Loga virsraksts"
 
-#: ui/main.qml:227
+#: ui/main.qml:214
 #, kde-format
 msgid "Window text"
 msgstr "Loga teksts"
 
-#: ui/main.qml:235
+#: ui/main.qml:222
 #, kde-format
 msgid "Button"
 msgstr "Poga"
 
-#: ui/main.qml:275
+#: ui/main.qml:262
 #, kde-format
 msgctxt "Hyperlink"
 msgid "link"
 msgstr "saite"
 
-#: ui/main.qml:277
+#: ui/main.qml:264
 #, kde-format
 msgctxt "Visited hyperlink"
 msgid "visited"
 msgstr "apmeklēta"
 
-#: ui/main.qml:285
+#: ui/main.qml:272
 #, kde-format
 msgid "Normal text"
 msgstr "Normāls teksts"
 
-#: ui/main.qml:292
+#: ui/main.qml:279
 #, kde-format
 msgid "Highlighted text"
 msgstr "Izcelts teksts"
 
-#: ui/main.qml:299
+#: ui/main.qml:286
 #, kde-format
 msgid "Disabled text"
 msgstr "Neaktuāls teksts"
 
-#: ui/main.qml:317
+#: ui/main.qml:304
 #, kde-format
 msgid "Edit Color Scheme…"
 msgstr "Rediģēt krāsu shēmu…"
 
-#: ui/main.qml:323
+#: ui/main.qml:311
 #, kde-format
-msgid "Remove Color Scheme"
+msgctxt "@info:tooltip"
+msgid "Remove color scheme"
 msgstr "Noņemt krāsu shēmu"
 
-#: ui/main.qml:330
+#: ui/main.qml:313
 #, kde-format
-msgid "Restore Color Scheme"
-msgstr "Atjaunot krāsu shēmu"
+msgctxt "@info:tooltip"
+msgid "Cannot delete the active color scheme"
+msgstr "Aktīvo krāsu shēmu dzēst nav iespējams"
 
-#: ui/main.qml:374
+#: ui/main.qml:315
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot delete system-installed color schemes"
+msgstr "Nevar dzēst sistēmas mērogā instalētas krāsu shēmas"
+
+#: ui/main.qml:323
+#, kde-format
+msgid "Don’t delete this color scheme"
+msgstr "Nedzēst šo krāsu shēmu"
+
+#: ui/main.qml:367
 #, kde-format
 msgid "Open Color Scheme"
 msgstr "Atvērt krāsu shēmu"
 
-#: ui/main.qml:376
+#: ui/main.qml:369
 #, kde-format
 msgid "Color Scheme Files (*.colors)"
 msgstr "Krāsu shēmas datnes (*.colors)"
+
+#~ msgid "You do not have permission to overwrite that scheme"
+#~ msgstr "Jums nav tiesību pārrakstīt šo shēmu"
+
+#~ msgid "Restore Color Scheme"
+#~ msgstr "Atjaunot krāsu shēmu"
 
 #~ msgid "Shading of frames and lighting (\"3D\") effects"
 #~ msgstr "Ietvaru ēnošanas un izgaismošanas („3D“) efekti"

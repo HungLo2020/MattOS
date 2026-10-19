@@ -1,6 +1,7 @@
 [Desktop Entry]
 Type=Service
 Name=Bing
+Name[am]=Bing
 Name[ar]=بنج
 Name[ast]=Bing
 Name[az]=Bing
@@ -49,6 +50,8 @@ Name[lv]=Bing
 Name[mai]=बिंग
 Name[mr]=बिंग
 Name[my]=ဘင်
+Name[nan_TW]=Bing
+Name[nan_TW@latin]=Bing
 Name[nb]=Bing
 Name[nds]=Bing
 Name[nl]=Bing
@@ -73,7 +76,6 @@ Name[tg]=Bing
 Name[th]=Bing
 Name[tok]=ilo alasa Bing
 Name[tr]=Bing
-Name[ug]=Bing
 Name[uk]=Bing
 Name[vi]=Bing
 Name[wa]=Bing
@@ -81,6 +83,7 @@ Name[zh_CN]=必应
 Name[zh_TW]=Bing
 Keys=bing
 Query=https://www.bing.com/search?q=\\{@}
+Query[am]=https://www.bing.com/search?q=\\{@}
 Query[ar]=https://www.bing.com/search?q=\\{@}
 Query[ast]=https://www.bing.com/search?q=\\{@}
 Query[az]=https://www.bing.com/search?q=\\{@}
@@ -114,13 +117,15 @@ Query[id]=https://www.bing.com/search?q=\\{@}
 Query[ie]=https://www.bing.com/search?q=\\{@}
 Query[is]=https://www.bing.com/search?q=\\{@}
 Query[it]=https://www.bing.com/search?q=\\{@}
-Query[ja]=https://www.bing.com/search?q=\\{@}
+Query[ja]=https://www.bing.com/search?q=\\{@}&setlang=ja
 Query[ka]=https://www.bing.com/search?q=\\{@}
 Query[ko]=https://www.bing.com/search?q=\\{@}
 Query[lg]=https://www.bing.com/search?q=\\{@}
 Query[lt]=https://www.bing.com/search?q=\\{@}
 Query[lv]=https://www.bing.com/search?q=\\{@}
 Query[my]=https://www.bing.com/search?q=\\{@}
+Query[nan_TW]=https://www.bing.com/search?q=\\{@}
+Query[nan_TW@latin]=https://www.bing.com/search?q=\\{@}
 Query[nb]=https://www.bing.com/search?q=\\{@}
 Query[nl]=https://www.bing.com/search?q=\\{@}
 Query[nn]=https://www.bing.com/search?q=\\{@}
@@ -139,7 +144,6 @@ Query[tg]=https://www.bing.com/search?q=\\{@}
 Query[th]=https://www.bing.com/search?q=\\{@}
 Query[tok]=https://www.bing.com/search?q=\\{@}
 Query[tr]=https://www.bing.com/search?q=\\{@}
-Query[ug]=https://www.bing.com/search?q=\\{@}
 Query[uk]=https://www.bing.com/search?q=\\{@}
 Query[vi]=https://www.bing.com/search?q=\\{@}
 Query[zh_CN]=https://www.bing.com/search?q=\\{@}

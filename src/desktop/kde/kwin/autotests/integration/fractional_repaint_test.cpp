@@ -16,8 +16,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_fractional_repaint-0");
-
 class FractionalRepaintTest : public QObject
 {
     Q_OBJECT
@@ -31,16 +29,9 @@ private Q_SLOTS:
 
 void FractionalRepaintTest::initTestCase()
 {
-    if (!Test::renderNodeAvailable()) {
-        QSKIP("no render node available");
-        return;
-    }
-
-    qputenv("KWIN_COMPOSE", QByteArrayLiteral("O2"));
-
     qRegisterMetaType<Window *>();
 
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
     kwinApp()->start();
 
     QVERIFY(Test::setupWaylandConnection(Test::AdditionalWaylandInterface::Seat | Test::AdditionalWaylandInterface::PresentationTime));
@@ -48,7 +39,7 @@ void FractionalRepaintTest::initTestCase()
     // default config of a OnePlus 6
     Test::setOutputConfig({Test::OutputInfo{
         .scale = 2.65,
-        .modes = {{QSize(1080, 2280), 60'000ul, OutputMode::Flag::Preferred}},
+        .modes = {{QSize(1080, 2280), 60'000ul, OutputModeline::Flag::Preferred}},
     }});
 
     // make sure open/close effects don't get in the way

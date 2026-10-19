@@ -4,13 +4,13 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(layershellqt)
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.8.0")
 set(PROJECT_VERSION_MAJOR 6)
 
 set(CMAKE_C_STANDARD 99)
 
-set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(QT_MIN_VERSION "6.11.0")
+set(KF6_MIN_VERSION "6.30.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -36,9 +36,7 @@ include(ECMGenerateExportHeader)
 
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS WaylandClient Qml)
 
-if (Qt6WaylandClient_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6WaylandClientPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
-endif()
+find_package(Qt6WaylandClientPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
 
 find_package(WaylandScanner REQUIRED)
 find_package(Wayland 1.3 COMPONENTS Client Server)
@@ -62,7 +60,7 @@ kde_clang_format(${ALL_CLANG_FORMAT_SOURCE_FILES})
 kde_configure_git_pre_commit_hook(CHECKS CLANG_FORMAT)
 
 ecm_set_disabled_deprecation_versions(QT 6.8.1
-    KF 6.9.0
+    KF 6.29.0
 )
 
 add_subdirectory(src)

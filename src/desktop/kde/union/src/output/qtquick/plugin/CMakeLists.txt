@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-FileCopyrightText: 2024 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+add_library(UnionQuickImpl)
+ecm_add_qml_module(UnionQuickImpl URI "org.kde.union.impl"
+    NO_PLUGIN_OPTIONAL
+    DEPENDENCIES QtQuick
+)
+
+target_sources(UnionQuickImpl PRIVATE
+    QuickElement.cpp
+    QuickElement.h
+    QuickStyle.cpp
+    QuickStyle.h
+    Types.h
+    Types.cpp
+    StyledRectangle.cpp
+    StyledRectangle.h
+    Mnemonics.cpp
+    Mnemonics.h
+    Positioner.h
+    Positioner.cpp
+    Icon.h
+    Icon.cpp
+    StyleHints.cpp
+    StyleHints.h
+    WheelHandler.cpp
+    WheelHandler.h
+    WindowHandler.cpp
+    WindowHandler.h
+
+    positioner/PositionerLayout.h
+    positioner/PositionerLayout.cpp
+
+    scenegraph/ShaderNode.cpp
+    scenegraph/ShaderNode.h
+    scenegraph/ShaderMaterial.cpp
+    scenegraph/ShaderMaterial.h
+    scenegraph/TextureCache.cpp
+    scenegraph/TextureCache.h
+    scenegraph/UniformDataStream.h
+
+    scenegraph/RectangleShadowNode.cpp
+    scenegraph/RectangleShadowNode.h
+    scenegraph/OutlineBorderRectangleNode.cpp
+    scenegraph/OutlineBorderRectangleNode.h
+    scenegraph/RectangleNode.cpp
+    scenegraph/RectangleNode.h
+)
+
+target_sources(UnionQuickImplplugin PRIVATE
+    UnionPlugin.cpp
+)
+
+add_subdirectory(properties)
+
+include(shaders.cmake)
+
+ecm_qt_declare_logging_category(UnionQuickImpl
+    HEADER qtquick_logging.h
+    IDENTIFIER UNION_QTQUICK
+    CATEGORY_NAME union.qtquick
+    DESCRIPTION "Union - QtQuick Output Plugin"
+    EXPORT Union
+)
+
+ecm_generate_export_header(UnionQuickImpl
+    BASE_NAME UnionQuickImpl
+    GROUP_BASE_NAME KF
+    VERSION ${PROJECT_VERSION}
+    DEPRECATED_BASE_VERSION 0
+    EXCLUDE_DEPRECATED_BEFORE_AND_AT ${EXCLUDE_DEPRECATED_BEFORE_AND_AT}
+)
+
+target_include_directories(UnionQuickImpl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/properties)
+target_link_libraries(UnionQuickImpl PUBLIC Qt6::Core Qt6::Qml Qt6::Quick Qt6::QuickControls2 Union::Union)
+
+set_target_properties(UnionQuickImpl PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+
+install(TARGETS UnionQuickImpl ${KDE_INSTALL_TARGETS_DEFAULT_ARGS} LIBRARY NAMELINK_SKIP)
+ecm_finalize_qml_module(UnionQuickImpl)

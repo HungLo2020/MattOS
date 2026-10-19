@@ -54,6 +54,18 @@ public:
      * Similar to QClipboard::text(QClipboard::Mode mode)
      */
     QString text(QClipboard::Mode mode);
+    /*!
+     * Returns true if this process owns the current primary selection.
+     *
+     * \since 6.29
+     */
+    bool ownsSelection() const;
+    /*!
+     * Returns true if this process owns the current clipboard selection.
+     *
+     * \since 6.29
+     */
+    bool ownsClipboard() const;
 Q_SIGNALS:
     /*!
      * Emitted when the clipboard changes similar to QClipboard::changed

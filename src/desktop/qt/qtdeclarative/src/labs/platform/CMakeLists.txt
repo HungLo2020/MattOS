@@ -3,11 +3,12 @@
 
 qt_internal_add_qml_module(LabsPlatform
     URI "Qt.labs.platform"
-    VERSION "1.1"
+    VERSION "${PROJECT_VERSION}"
+    PAST_MAJOR_VERSIONS 1
     CLASS_NAME QtLabsPlatformPlugin
     DEPENDENCIES
-        QtQuick
-        QtQuick.Templates
+        QtQuick/auto
+        QtQuick.Templates/auto
     SOURCES
         qquicklabsplatformcolordialog.cpp qquicklabsplatformcolordialog_p.h
         qquicklabsplatformdialog.cpp qquicklabsplatformdialog_p.h
@@ -106,4 +107,11 @@ endif()
 
 qt_internal_add_docs(LabsPlatform
     doc/qtlabsplatform.qdocconf
+)
+
+target_sources(LabsPlatform
+    PRIVATE
+        doc/src/qt6-changes.qdoc
+        doc/src/qtlabsplatform-index.qdoc
+        doc/src/qtlabsplatform-qmltypes.qdoc
 )

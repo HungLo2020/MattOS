@@ -7,16 +7,54 @@
 #include "wificonnectionwidget.h"
 #include "plasma_nm_editor.h"
 #include "ui_wificonnectionwidget.h"
+#include "wifisecurity.h"
 
 #include <KLocalizedString>
 #include <NetworkManagerQt/Utils>
+#include <QFormLayout>
 #include <QRandomGenerator>
+#include <QTimer>
 
-WifiConnectionWidget::WifiConnectionWidget(const NetworkManager::Setting::Ptr &setting, QWidget *parent, Qt::WindowFlags f)
+WifiConnectionWidget::WifiConnectionWidget(const NetworkManager::Setting::Ptr &setting,
+                                           const NetworkManager::Setting::Ptr &securitySetting,
+                                           const NetworkManager::Security8021xSetting::Ptr &setting8021x,
+                                           QWidget *parent,
+                                           Qt::WindowFlags f)
     : SettingWidget(setting, parent, f)
     , m_ui(new Ui::WifiConnectionWidget)
 {
     m_ui->setupUi(this);
+
+    // Set font size for section headers to match Status tab style (base font + 1)
+    for (auto sectionLabel : {m_ui->connectionSectionLabel, m_ui->advancedSectionLabel, m_ui->securitySectionLabel}) {
+        QFont font = sectionLabel->font();
+        font.setPointSize(font.pointSize() + 1);
+        sectionLabel->setFont(font);
+    }
+
+    // Create and embed the WifiSecurity widget
+    m_wifiSecurity = new WifiSecurity(securitySetting, setting8021x, this);
+
+    // Set vertical spacing to match parent for all nested form layouts
+    if (auto parentFormLayout = qobject_cast<QFormLayout *>(layout())) {
+        if (auto securityFormLayout = qobject_cast<QFormLayout *>(m_wifiSecurity->securityLayout())) {
+            securityFormLayout->setVerticalSpacing(parentFormLayout->verticalSpacing());
+        }
+        const auto nestedFormLayouts = m_wifiSecurity->findChildren<QFormLayout *>();
+        for (auto formLayout : nestedFormLayouts) {
+            formLayout->setVerticalSpacing(parentFormLayout->verticalSpacing());
+        }
+
+        // Insert the security widget at row 12 (after the Security header at row 11)
+        parentFormLayout->insertRow(12, m_wifiSecurity);
+    }
+
+    // Connect SSID changes to security widget for auto-detection
+    connect(this, QOverload<const QString &>::of(&WifiConnectionWidget::ssidChanged), m_wifiSecurity, &WifiSecurity::onSsidChanged);
+
+    // Forward security widget signals
+    connect(m_wifiSecurity, &WifiSecurity::settingChanged, this, &WifiConnectionWidget::settingChanged);
+    connect(m_wifiSecurity, &WifiSecurity::validChanged, this, &WifiConnectionWidget::slotWidgetChanged);
 
     connect(m_ui->btnRandomMacAddr, &QPushButton::clicked, this, &WifiConnectionWidget::generateRandomClonedMac);
     connect(m_ui->SSIDCombo, &SsidComboBox::ssidChanged, this, QOverload<>::of(&WifiConnectionWidget::ssidChanged));
@@ -35,6 +73,42 @@ WifiConnectionWidget::WifiConnectionWidget(const NetworkManager::Setting::Ptr &s
     if (setting) {
         loadConfig(setting);
     }
+
+    // Synchronize label widths after layouts are populated
+    QTimer::singleShot(0, this, [this]() {
+        QList<QFormLayout *> layouts;
+        if (auto mainLayout = findChild<QFormLayout *>(QStringLiteral("formLayout"))) {
+            layouts.append(mainLayout);
+        }
+        if (m_wifiSecurity) {
+            // Include all form layouts from wifisecurity and nested widgets (e.g., 802-1x)
+            const auto formLayouts = m_wifiSecurity->findChildren<QFormLayout *>();
+            layouts.append(formLayouts);
+        }
+
+        int maxWidth = 0;
+        for (auto layout : layouts) {
+            for (int row = 0; row < layout->rowCount(); ++row) {
+                if (auto item = layout->itemAt(row, QFormLayout::LabelRole)) {
+                    if (auto label = item->widget()) {
+                        maxWidth = std::max(maxWidth, label->sizeHint().width());
+                    }
+                }
+            }
+        }
+
+        if (maxWidth > 0) {
+            for (auto layout : layouts) {
+                for (int row = 0; row < layout->rowCount(); ++row) {
+                    if (auto item = layout->itemAt(row, QFormLayout::LabelRole)) {
+                        if (auto label = item->widget()) {
+                            label->setMinimumWidth(maxWidth);
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
 
 WifiConnectionWidget::~WifiConnectionWidget()
@@ -75,6 +149,13 @@ void WifiConnectionWidget::loadConfig(const NetworkManager::Setting::Ptr &settin
     }
 }
 
+void WifiConnectionWidget::loadSecrets(const NetworkManager::Setting::Ptr &setting)
+{
+    if (m_wifiSecurity) {
+        m_wifiSecurity->loadSecrets(setting);
+    }
+}
+
 QVariantMap WifiConnectionWidget::setting() const
 {
     NetworkManager::WirelessSetting wifiSetting;
@@ -85,9 +166,11 @@ QVariantMap WifiConnectionWidget::setting() const
 
     wifiSetting.setBssid(NetworkManager::macAddressFromString(m_ui->BSSIDCombo->bssid()));
 
-    if (wifiSetting.mode() != NetworkManager::WirelessSetting::Infrastructure && m_ui->band->currentIndex() != 0) {
+    if (m_ui->band->currentIndex() != 0) {
         wifiSetting.setBand((NetworkManager::WirelessSetting::FrequencyBand)m_ui->band->currentIndex());
-        wifiSetting.setChannel(m_ui->channel->itemData(m_ui->channel->currentIndex()).toUInt());
+        if (wifiSetting.mode() != NetworkManager::WirelessSetting::Infrastructure) {
+            wifiSetting.setChannel(m_ui->channel->itemData(m_ui->channel->currentIndex()).toUInt());
+        }
     }
 
     wifiSetting.setMacAddress(NetworkManager::macAddressFromString(m_ui->macAddress->hwAddress()));
@@ -136,8 +219,6 @@ void WifiConnectionWidget::modeChanged(int mode)
     if (mode == NetworkManager::WirelessSetting::Infrastructure) {
         m_ui->BSSIDLabel->setVisible(true);
         m_ui->BSSIDCombo->setVisible(true);
-        m_ui->bandLabel->setVisible(false);
-        m_ui->band->setVisible(false);
         m_ui->channelLabel->setVisible(false);
         m_ui->channel->setVisible(false);
     } else {
@@ -153,6 +234,7 @@ void WifiConnectionWidget::modeChanged(int mode)
 void WifiConnectionWidget::bandChanged(int band)
 {
     m_ui->channel->clear();
+    m_ui->channel->addItem(i18nc("@action:inmenu automatic wireless channel selection", "Automatic"), 0);
 
     if (band == NetworkManager::WirelessSetting::Automatic) {
         m_ui->channel->setEnabled(false);
@@ -182,9 +264,16 @@ void WifiConnectionWidget::fillChannels(NetworkManager::WirelessSetting::Frequen
     }
 }
 
+WifiSecurity *WifiConnectionWidget::wifiSecurity() const
+{
+    return m_wifiSecurity;
+}
+
 bool WifiConnectionWidget::isValid() const
 {
-    return !m_ui->SSIDCombo->currentText().isEmpty() && m_ui->macAddress->isValid() && m_ui->BSSIDCombo->isValid();
+    bool wifiValid = !m_ui->SSIDCombo->currentText().isEmpty() && m_ui->macAddress->isValid() && m_ui->BSSIDCombo->isValid();
+    bool securityValid = m_wifiSecurity ? m_wifiSecurity->isValid() : true;
+    return wifiValid && securityValid;
 }
 
 #include "moc_wificonnectionwidget.cpp"

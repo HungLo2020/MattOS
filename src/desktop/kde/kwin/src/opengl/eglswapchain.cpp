@@ -10,6 +10,8 @@
 #include "opengl/eglswapchain.h"
 #include "core/graphicsbuffer.h"
 #include "core/graphicsbufferallocator.h"
+#include "core/renderdevice.h"
+#include "core/syncobjtimeline.h"
 #include "opengl/eglcontext.h"
 #include "opengl/glutils.h"
 #include "utils/common.h"
@@ -20,17 +22,21 @@
 namespace KWin
 {
 
-EglSwapchainSlot::EglSwapchainSlot(GraphicsBuffer *buffer, std::unique_ptr<GLFramebuffer> &&framebuffer, const std::shared_ptr<GLTexture> &texture)
-    : m_buffer(buffer)
+EglSwapchainSlot::EglSwapchainSlot(GraphicsBuffer *buffer, const std::shared_ptr<EglContext> &context, std::unique_ptr<GLFramebuffer> &&framebuffer, const std::shared_ptr<GLTexture> &texture)
+    : m_context(context)
+    , m_buffer(buffer)
     , m_framebuffer(std::move(framebuffer))
     , m_texture(texture)
+    , m_releasePoint(std::make_shared<GraphicsBufferReleasePoint>())
 {
 }
 
 EglSwapchainSlot::~EglSwapchainSlot()
 {
+    (void)m_context->makeCurrent();
     m_framebuffer.reset();
     m_texture.reset();
+    m_releasePoint->setBuffer(m_buffer);
     m_buffer->drop();
 }
 
@@ -56,10 +62,22 @@ int EglSwapchainSlot::age() const
 
 bool EglSwapchainSlot::isBusy() const
 {
-    return m_buffer->isReferenced() || (m_releaseFd.isValid() && !m_releaseFd.isReadable());
+    return m_buffer->isReferenced()
+        || m_releasePoint.use_count() > 1
+        || (m_releasePoint->releaseFd().isValid() && !m_releasePoint->releaseFd().isReadable());
 }
 
-std::shared_ptr<EglSwapchainSlot> EglSwapchainSlot::create(EglContext *context, GraphicsBuffer *buffer)
+const FileDescriptor &EglSwapchainSlot::releaseFd() const
+{
+    return m_releasePoint->releaseFd();
+}
+
+std::shared_ptr<SyncReleasePoint> EglSwapchainSlot::releasePoint()
+{
+    return m_releasePoint;
+}
+
+std::shared_ptr<EglSwapchainSlot> EglSwapchainSlot::create(const std::shared_ptr<EglContext> &context, GraphicsBuffer *buffer)
 {
     auto texture = context->importDmaBufAsTexture(*buffer->dmabufAttributes());
     if (!texture) {
@@ -75,15 +93,13 @@ std::shared_ptr<EglSwapchainSlot> EglSwapchainSlot::create(EglContext *context, 
     texture->setFilter(GL_LINEAR);
     texture->setWrapMode(GL_CLAMP_TO_EDGE);
 
-    return std::make_shared<EglSwapchainSlot>(buffer, std::move(framebuffer), texture);
+    return std::make_shared<EglSwapchainSlot>(buffer, context, std::move(framebuffer), texture);
 }
 
-EglSwapchain::EglSwapchain(GraphicsBufferAllocator *allocator, EglContext *context, const QSize &size, uint32_t format, uint64_t modifier, const std::shared_ptr<EglSwapchainSlot> &seed)
+EglSwapchain::EglSwapchain(GraphicsBufferAllocator *allocator, const std::shared_ptr<EglContext> &context, const GraphicsBufferOptions &options, const std::shared_ptr<EglSwapchainSlot> &seed)
     : m_allocator(allocator)
     , m_context(context)
-    , m_size(size)
-    , m_format(format)
-    , m_modifier(modifier)
+    , m_options(options)
     , m_slots({seed})
 {
 }
@@ -94,17 +110,27 @@ EglSwapchain::~EglSwapchain()
 
 QSize EglSwapchain::size() const
 {
-    return m_size;
+    return m_options.size;
 }
 
 uint32_t EglSwapchain::format() const
 {
-    return m_format;
+    return m_options.format;
 }
 
 uint64_t EglSwapchain::modifier() const
 {
-    return m_modifier;
+    return m_options.modifiers.front();
+}
+
+bool EglSwapchain::scanout() const
+{
+    return m_options.scanout;
+}
+
+const std::shared_ptr<EglContext> &EglSwapchain::context() const
+{
+    return m_context;
 }
 
 std::shared_ptr<EglSwapchainSlot> EglSwapchain::acquire()
@@ -116,11 +142,7 @@ std::shared_ptr<EglSwapchainSlot> EglSwapchain::acquire()
         return *it;
     }
 
-    GraphicsBuffer *buffer = m_allocator->allocate(GraphicsBufferOptions{
-        .size = m_size,
-        .format = m_format,
-        .modifiers = {m_modifier},
-    });
+    GraphicsBuffer *buffer = m_allocator->allocate(m_options);
     if (!buffer) {
         qCWarning(KWIN_OPENGL) << "Failed to allocate an egl gbm swapchain graphics buffer";
         return nullptr;
@@ -136,7 +158,7 @@ std::shared_ptr<EglSwapchainSlot> EglSwapchain::acquire()
 
 void EglSwapchain::release(std::shared_ptr<EglSwapchainSlot> slot, FileDescriptor &&releaseFence)
 {
-    slot->m_releaseFd = std::move(releaseFence);
+    slot->m_releasePoint->addReleaseFence(std::move(releaseFence));
     for (qsizetype i = 0; i < m_slots.count(); ++i) {
         if (m_slots[i] == slot) {
             m_slots[i]->m_age = 1;
@@ -153,18 +175,23 @@ void EglSwapchain::resetBufferAge()
     }
 }
 
-std::shared_ptr<EglSwapchain> EglSwapchain::create(GraphicsBufferAllocator *allocator, EglContext *context, const QSize &size, uint32_t format, const QList<uint64_t> &modifiers)
+std::shared_ptr<EglSwapchain> EglSwapchain::create(RenderDevice *device, GraphicsBufferOptions options)
+{
+    auto context = device->eglContext();
+    if (!context) {
+        return nullptr;
+    }
+    return create(device->allocator(), context, options);
+}
+
+std::shared_ptr<EglSwapchain> EglSwapchain::create(GraphicsBufferAllocator *allocator, const std::shared_ptr<EglContext> &context, GraphicsBufferOptions options)
 {
     if (!context->makeCurrent()) {
         return nullptr;
     }
 
     // The seed graphics buffer is used to fixate modifiers.
-    GraphicsBuffer *seed = allocator->allocate(GraphicsBufferOptions{
-        .size = size,
-        .format = format,
-        .modifiers = modifiers,
-    });
+    GraphicsBuffer *seed = allocator->allocate(options);
     if (!seed) {
         return nullptr;
     }
@@ -172,11 +199,10 @@ std::shared_ptr<EglSwapchain> EglSwapchain::create(GraphicsBufferAllocator *allo
     if (!first) {
         return nullptr;
     }
+    options.modifiers = {seed->dmabufAttributes()->modifier};
     return std::make_shared<EglSwapchain>(std::move(allocator),
                                           context,
-                                          size,
-                                          format,
-                                          seed->dmabufAttributes()->modifier,
+                                          options,
                                           first);
 }
 

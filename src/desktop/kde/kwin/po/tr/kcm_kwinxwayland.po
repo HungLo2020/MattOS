@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kwin\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"POT-Creation-Date: 2026-08-04 00:46+0000\n"
 "PO-Revision-Date: 2026-04-29 14:53+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
@@ -17,19 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 25.12.3\n"
 
-#: ui/main.qml:27
-#, kde-format
-msgctxt "@info"
-msgid "Changes will take effect the next time you log in."
-msgstr "Değişiklikler, bir sonraki oturum açışınızda etkin olur."
-
-#: ui/main.qml:31
-#, kde-format
-msgctxt "@action:button"
-msgid "Log Out Now"
-msgstr "Şimdi Oturumu Kapat"
-
-#: ui/main.qml:52
+#: ui/main.qml:28
 #, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -43,31 +31,31 @@ msgstr ""
 "<nl/><nl/>Bu uygulamalardan herhangi birini kullanıyorsanız yeğlediğiniz "
 "güvenlik ayarı ve uyumluluk dengesini buradan kurabilirsiniz."
 
-#: ui/main.qml:73
+#: ui/main.qml:49
 #, kde-format
 msgctxt "@title:group"
 msgid "Listening for keystrokes:"
 msgstr "Düğme basımlarını dinleme:"
 
-#: ui/main.qml:80
+#: ui/main.qml:52
 #, kde-format
 msgctxt "@option:radio Listening for keystrokes is prohibited"
 msgid "Prohibited"
 msgstr "Yasaklı"
 
-#: ui/main.qml:96
+#: ui/main.qml:61
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "Most secure; global shortcuts will not work in X11 apps"
 msgstr "En güvenlisi; global kısayollar X11 uygulamalarında çalışmaz."
 
-#: ui/main.qml:110
+#: ui/main.qml:67
 #, kde-format
 msgctxt "@option:radio Listening for keystrokes is allowed for…"
 msgid "Only the Meta, Control, Alt, and Shift keys"
 msgstr "Yalnızca Meta, Kontrol, Seçenek ve Üst Karakter düğmeleri"
 
-#: ui/main.qml:126
+#: ui/main.qml:76
 #, kde-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -77,7 +65,7 @@ msgstr ""
 "Yüksek düzey güvenlikli; bas–konuş ve diğer niteleyiciye özel global "
 "kısayollar X11 uygulamalarında çalışır."
 
-#: ui/main.qml:140
+#: ui/main.qml:81
 #, kde-format
 msgctxt "@option:radio Listening for keystrokes is allowed for…"
 msgid ""
@@ -87,20 +75,20 @@ msgstr ""
 "Yukarıdaki gibi; ek olarak Kontrol, Seçenek veya Meta düğmeleri basılıyken "
 "basılan herhangi bir düğme"
 
-#: ui/main.qml:156
+#: ui/main.qml:90
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "Moderate security; all global shortcuts will work in X11 apps"
 msgstr ""
 "Orta düzey güvenlikli, tüm global kısayollar X11 uygulamalarında çalışır."
 
-#: ui/main.qml:170
+#: ui/main.qml:96
 #, kde-format
 msgctxt "@option:radio Listening for keystrokes is always allowed"
 msgid "Always allowed"
 msgstr "Her zaman izin verilir"
 
-#: ui/main.qml:186
+#: ui/main.qml:105
 #, kde-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -110,7 +98,7 @@ msgstr ""
 "En az güvenlikli; tüm X11 uygulamaları, herhangi bir uygulamaya girdiğiniz "
 "tüm metinleri görebilir."
 
-#: ui/main.qml:200
+#: ui/main.qml:111
 #, kde-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -123,19 +111,19 @@ msgstr ""
 "izlemelerine izin vereceğini unutmayın. Anladığınızdan ve bu riski kabul "
 "ettiğinizden emin olun."
 
-#: ui/main.qml:216
+#: ui/main.qml:118
 #, kde-format
 msgctxt "@title:group"
 msgid "Listening for mouse buttons:"
 msgstr "Fare düğmelerini dinleme:"
 
-#: ui/main.qml:222
+#: ui/main.qml:121
 #, kde-format
 msgctxt "@option:radio Listening for mouse buttons is allowed"
 msgid "Allowed"
 msgstr "İzin verilir"
 
-#: ui/main.qml:238
+#: ui/main.qml:130
 #, kde-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -145,28 +133,54 @@ msgstr ""
 "Orta düzey güvenlikli; fare düğmelerini içeren global kısayollar X11 "
 "uygulamalarında çalışır."
 
-#: ui/main.qml:252
+#: ui/main.qml:141
 #, kde-format
 msgctxt "@title:group"
 msgid "Control of pointer and keyboard:"
 msgstr "İşaretçi ve klavye denetimi:"
 
-#: ui/main.qml:258
+#: ui/main.qml:146
 #, kde-format
 msgctxt ""
-"@option:check Allow control of pointer and keyboard without asking for "
+"@option:check Allowed control of pointer and keyboard without asking for "
+"permissions for allowed apps"
+msgid "Allowed apps"
+msgstr "İzin verilen uygulamalar"
+
+#: ui/main.qml:156
+#, kde-format
+msgctxt "@action:button"
+msgid "See Allowed Applications…"
+msgstr "İzin Verilen Uygulamaları Gör…"
+
+#: ui/main.qml:167
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Moderate security; XWayland-using apps claiming to be something on this list "
+"will be able to take control of the computer, because XWayland-using apps’ "
+"identities can’t be verified"
+msgstr ""
+"Orta düzey güvenlikli; XWayland kullanan ve bu listedeki uygulamalardan biri "
+"olduğunu iddia eden uygulamalar, kimlikleri doğrulanamadığı için "
+"bilgisayarın denetimini ele geçirebileceklerdir."
+
+#: ui/main.qml:173
+#, kde-format
+msgctxt ""
+"@option:radio Allow control of pointer and keyboard without asking for "
 "permission"
 msgid "Allow without asking for permission"
 msgstr "İzin istemeden izin ver"
 
-#: ui/main.qml:268
+#: ui/main.qml:182
 #, kde-format
 msgctxt "@info:usagetip"
 msgid "Least secure; all X11 apps will be able to take control of the computer"
 msgstr ""
 "En az güvenlikli; tüm X11 uygulamaları, bilgisayarın denetimini ele alabilir."
 
-#: ui/main.qml:282
+#: ui/main.qml:189
 #, kde-format
 msgctxt "@info:usagetip"
 msgid ""
@@ -178,6 +192,29 @@ msgstr ""
 "amaçlı yazılımların işaretçinizin ve klavyenizin tam denetimini ellerine "
 "almalarına izin vereceğini unutmayın. Anladığınızdan ve bu riski kabul "
 "ettiğinizden emin olun."
+
+#: ui/main.qml:197
+#, kde-format
+msgctxt ""
+"@title:window title of the page opened by the 'See allowed applications' "
+"button"
+msgid "Applications allowed to control the pointer and keyboard"
+msgstr "İşaretçiyi/Klavyeyi Denetleyebilen Uygulamalar"
+
+#: ui/main.qml:217
+#, kde-format
+msgctxt "@info:tooltip %1 is the name of the app/binary"
+msgid "Do not allow %1 to control the pointer and keyboard without asking"
+msgstr ""
+"%1 programının işaretçiyi ve klavyeyi sormadan denetlemesine izin verme"
+
+#~ msgctxt "@info"
+#~ msgid "Changes will take effect the next time you log in."
+#~ msgstr "Değişiklikler, bir sonraki oturum açışınızda etkin olur."
+
+#~ msgctxt "@action:button"
+#~ msgid "Log Out Now"
+#~ msgstr "Şimdi Oturumu Kapat"
 
 #~ msgid ""
 #~ "Some legacy X11 apps require the ability to read keystrokes typed in "

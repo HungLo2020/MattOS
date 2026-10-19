@@ -22,6 +22,8 @@ qt_internal_add_qml_module(QuickControls2ImagineStyleImpl
     NO_PRIVATE_MODULE
     QML_FILES
         ${qml_files}
+    DEPENDENCIES
+        QtQuick/auto
     IMPORTS
         QtQuick.Controls.impl/auto
     DEFINES

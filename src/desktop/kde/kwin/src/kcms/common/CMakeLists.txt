@@ -20,6 +20,7 @@ target_link_libraries(kcmkwincommon
     KF6::I18n
     KF6::Package
     KF6::KCMUtils
+    KF6::XmlGui # KAboutApplicationDialog
 )
 
 set_target_properties(kcmkwincommon PROPERTIES

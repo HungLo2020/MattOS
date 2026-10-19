@@ -18,6 +18,7 @@ namespace KDecoration3
 {
 namespace Preview
 {
+
 class PreviewClient : public QObject, public DecoratedWindowPrivateV4
 {
     Q_OBJECT
@@ -42,12 +43,13 @@ class PreviewClient : public QObject, public DecoratedWindowPrivateV4
     Q_PROPERTY(bool shadeable READ isShadeable WRITE setShadeable NOTIFY shadeableChanged)
     Q_PROPERTY(bool shaded READ isShaded WRITE setShaded NOTIFY shadedChanged)
     Q_PROPERTY(bool providesContextHelp READ providesContextHelp WRITE setProvidesContextHelp NOTIFY providesContextHelpChanged)
-    Q_PROPERTY(int width READ width WRITE setWidth NOTIFY widthChanged)
-    Q_PROPERTY(int height READ height WRITE setHeight NOTIFY heightChanged)
+    Q_PROPERTY(qreal width READ width WRITE setWidth NOTIFY widthChanged)
+    Q_PROPERTY(qreal height READ height WRITE setHeight NOTIFY heightChanged)
     Q_PROPERTY(bool bordersTopEdge READ bordersTopEdge WRITE setBordersTopEdge NOTIFY bordersTopEdgeChanged)
     Q_PROPERTY(bool bordersLeftEdge READ bordersLeftEdge WRITE setBordersLeftEdge NOTIFY bordersLeftEdgeChanged)
     Q_PROPERTY(bool bordersRightEdge READ bordersRightEdge WRITE setBordersRightEdge NOTIFY bordersRightEdgeChanged)
     Q_PROPERTY(bool bordersBottomEdge READ bordersBottomEdge WRITE setBordersBottomEdge NOTIFY bordersBottomEdgeChanged)
+
 public:
     explicit PreviewClient(DecoratedWindow *client, Decoration *decoration);
     ~PreviewClient() override;
@@ -122,8 +124,8 @@ public:
     void setShaded(bool shaded);
     void setProvidesContextHelp(bool contextHelp);
 
-    void setWidth(int width);
-    void setHeight(int height);
+    void setWidth(qreal width);
+    void setHeight(qreal height);
 
     QString iconName() const;
     void setIconName(const QString &icon);
@@ -160,8 +162,8 @@ Q_SIGNALS:
     void shadeableChanged(bool);
     void shadedChanged(bool);
     void providesContextHelpChanged(bool);
-    void widthChanged(int);
-    void heightChanged(int);
+    void widthChanged(qreal);
+    void heightChanged(qreal);
     void paletteChanged(const QPalette &);
     void bordersTopEdgeChanged(bool);
     void bordersLeftEdgeChanged(bool);
@@ -194,8 +196,8 @@ private:
     bool m_shaded;
     bool m_providesContextHelp;
     bool m_onAllDesktops;
-    int m_width;
-    int m_height;
+    qreal m_width;
+    qreal m_height;
     bool m_bordersTopEdge;
     bool m_bordersLeftEdge;
     bool m_bordersRightEdge;

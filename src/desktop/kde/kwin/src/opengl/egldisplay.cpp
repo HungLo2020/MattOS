@@ -7,36 +7,54 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 #include "egldisplay.h"
+#include "core/drm_formats.h"
 #include "core/drmdevice.h"
+#include "core/gpumanager.h"
 #include "core/graphicsbuffer.h"
 #include "opengl/eglutils_p.h"
 #include "opengl/glutils.h"
 #include "utils/common.h"
+#include "utils/envvar.h"
 
 #include <QOpenGLContext>
 #include <drm_fourcc.h>
-#include <utils/drm_format_helper.h>
 
 #ifndef EGL_DRM_RENDER_NODE_FILE_EXT
 #define EGL_DRM_RENDER_NODE_FILE_EXT 0x3377
+#endif
+#ifndef EGL_DEVICE_TYPE_EXT
+#define EGL_DEVICE_TYPE_EXT 0x3590
+#define EGL_DEVICE_TYPE_OTHER_EXT 0x3591
+#define EGL_DEVICE_TYPE_INTEGRATED_GPU_EXT 0x3592
+#define EGL_DEVICE_TYPE_DISCRETE_GPU_EXT 0x3593
+#define EGL_DEVICE_TYPE_CPU_EXT 0x3594
 #endif
 
 namespace KWin
 {
 
-bool EglDisplay::shouldUseOpenGLES()
+static void epoxyFailureWorkaround()
 {
-    if (qstrcmp(qgetenv("KWIN_COMPOSE"), "O2ES") == 0) {
-        return true;
-    }
-    return QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES;
+    // do nothing
 }
 
-std::unique_ptr<EglDisplay> EglDisplay::create(::EGLDisplay display, bool owning)
+static epoxy_resolver_stub_t epoxyFailureHandler(const char *functionName)
+{
+    // Since epoxy calls glGetString(GL_VERSION) when resolving functions, and
+    // glGetString fails after a GPU reset, failing to resolve functions is expected
+    // and there's nothing we can or should do about it other than log it and move on.
+    qCWarning(KWIN_OPENGL, "Failed to resolve OpenGL function %s", functionName);
+    return epoxyFailureWorkaround;
+}
+
+std::unique_ptr<EglDisplay> EglDisplay::create(::EGLDisplay display, DrmDevice *drmDevice)
 {
     if (!display) {
         return nullptr;
     }
+
+    epoxy_set_resolver_failure_handler(epoxyFailureHandler);
+
     EGLint major, minor;
     if (eglInitialize(display, &major, &minor) == EGL_FALSE) {
         qCWarning(KWIN_OPENGL) << "eglInitialize failed";
@@ -52,7 +70,7 @@ std::unique_ptr<EglDisplay> EglDisplay::create(::EGLDisplay display, bool owning
         return nullptr;
     }
     qCDebug(KWIN_OPENGL) << "Egl Initialize succeeded";
-    if (eglBindAPI(shouldUseOpenGLES() ? EGL_OPENGL_ES_API : EGL_OPENGL_API) == EGL_FALSE) {
+    if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
         qCCritical(KWIN_OPENGL) << "bind OpenGL API failed";
         return nullptr;
     }
@@ -71,11 +89,14 @@ std::unique_ptr<EglDisplay> EglDisplay::create(::EGLDisplay display, bool owning
         }
     }
 
-    return std::make_unique<EglDisplay>(display, extensions, owning);
+    return std::make_unique<EglDisplay>(display, extensions, drmDevice);
 }
 
 static std::optional<dev_t> devIdForFileName(const QString &path)
 {
+    if (path.isEmpty()) {
+        return std::nullopt;
+    }
     auto device = DrmDevice::open(path);
     if (device) {
         return device->deviceId();
@@ -85,29 +106,67 @@ static std::optional<dev_t> devIdForFileName(const QString &path)
     }
 }
 
-EglDisplay::EglDisplay(::EGLDisplay display, const QList<QByteArray> &extensions, bool owning)
+static std::optional<EglDisplay::GpuType> checkDeviceType(::EGLDisplay display)
+{
+    EGLAttrib deviceValue = 0;
+    if (!eglQueryDisplayAttribEXT(display, EGL_DEVICE_EXT, &deviceValue)) {
+        return std::nullopt;
+    }
+    EGLDeviceEXT device = reinterpret_cast<EGLDeviceEXT>(deviceValue);
+    EGLAttrib value = EGL_DEVICE_TYPE_OTHER_EXT;
+    if (!eglQueryDeviceAttribEXT(device, EGL_DEVICE_TYPE_EXT, &value)) {
+        return std::nullopt;
+    }
+    switch (value) {
+    case EGL_DEVICE_TYPE_INTEGRATED_GPU_EXT:
+        return EglDisplay::GpuType::Internal;
+    case EGL_DEVICE_TYPE_DISCRETE_GPU_EXT:
+        return EglDisplay::GpuType::Discrete;
+    case EGL_DEVICE_TYPE_CPU_EXT:
+        return EglDisplay::GpuType::Software;
+    }
+    return std::nullopt;
+}
+
+static bool checkSoftwareDevice(::EGLDisplay display)
+{
+    EGLAttrib deviceValue = 0;
+    if (!eglQueryDisplayAttribEXT(display, EGL_DEVICE_EXT, &deviceValue)) {
+        return false;
+    }
+    EGLDeviceEXT device = reinterpret_cast<EGLDeviceEXT>(deviceValue);
+    return QByteArrayView(eglQueryDeviceStringEXT(device, EGL_EXTENSIONS)).contains("EGL_MESA_device_software");
+}
+
+EglDisplay::EglDisplay(::EGLDisplay display, const QList<QByteArray> &extensions, DrmDevice *drmDevice)
     : m_handle(display)
+    , m_clientExtensions(QByteArray(eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS)).split(' '))
     , m_extensions(extensions)
-    , m_owning(owning)
     , m_renderNode(determineRenderNode())
     , m_renderDevNode(devIdForFileName(m_renderNode))
+    , m_drmDevice(drmDevice)
+    , m_type(hasExtension("EGL_EXT_device_query") ? checkDeviceType(display) : std::nullopt)
     , m_supportsBufferAge(extensions.contains(QByteArrayLiteral("EGL_EXT_buffer_age")) && qgetenv("KWIN_USE_BUFFER_AGE") != "0")
     , m_supportsNativeFence(extensions.contains(QByteArrayLiteral("EGL_ANDROID_native_fence_sync"))
                             && extensions.contains(QByteArrayLiteral("EGL_KHR_wait_sync")))
+    , m_isSoftwareRenderer(m_type ? *m_type == GpuType::Software : m_clientExtensions.contains("EGL_EXT_device_query") && checkSoftwareDevice(display))
 {
     m_functions.createImageKHR = reinterpret_cast<PFNEGLCREATEIMAGEKHRPROC>(eglGetProcAddress("eglCreateImageKHR"));
     m_functions.destroyImageKHR = reinterpret_cast<PFNEGLDESTROYIMAGEKHRPROC>(eglGetProcAddress("eglDestroyImageKHR"));
     m_functions.queryDmaBufFormatsEXT = reinterpret_cast<PFNEGLQUERYDMABUFFORMATSEXTPROC>(eglGetProcAddress("eglQueryDmaBufFormatsEXT"));
     m_functions.queryDmaBufModifiersEXT = reinterpret_cast<PFNEGLQUERYDMABUFMODIFIERSEXTPROC>(eglGetProcAddress("eglQueryDmaBufModifiersEXT"));
 
-    m_importFormats = queryImportFormats();
+    auto formats = queryImportFormats();
+    m_nonExternalOnlyFormats = std::move(formats.nonExternalOnly);
+    m_allFormats = std::move(formats.all);
 }
 
 EglDisplay::~EglDisplay()
 {
-    if (m_owning) {
-        eglTerminate(m_handle);
+    for (const auto &[key, image] : m_importCache) {
+        destroyImage(image);
     }
+    eglTerminate(m_handle);
 }
 
 QList<QByteArray> EglDisplay::extensions() const
@@ -163,7 +222,14 @@ bool EglDisplay::supportsNativeFence() const
     return m_supportsNativeFence;
 }
 
-EGLImageKHR EglDisplay::importDmaBufAsImage(const DmaBufAttributes &dmabuf) const
+bool EglDisplay::isSoftwareRenderer() const
+{
+    return m_isSoftwareRenderer;
+}
+
+EGLImageKHR EglDisplay::importDmaBufAsImage(const DmaBufAttributes &dmabuf,
+                                            YUVMatrixCoefficients coefficients,
+                                            EncodingRange range) const
 {
     QList<EGLint> attribs;
     attribs.reserve(6 + dmabuf.planeCount * 10 + 1);
@@ -210,57 +276,48 @@ EGLImageKHR EglDisplay::importDmaBufAsImage(const DmaBufAttributes &dmabuf) cons
         }
     }
 
+    switch (coefficients) {
+    case YUVMatrixCoefficients::Identity:
+        break;
+    case YUVMatrixCoefficients::BT601:
+        attribs << EGL_YUV_COLOR_SPACE_HINT_EXT << EGL_ITU_REC601_EXT;
+        break;
+    case YUVMatrixCoefficients::BT709:
+        attribs << EGL_YUV_COLOR_SPACE_HINT_EXT << EGL_ITU_REC709_EXT;
+        break;
+    case YUVMatrixCoefficients::BT2020:
+        attribs << EGL_YUV_COLOR_SPACE_HINT_EXT << EGL_ITU_REC2020_EXT;
+        break;
+    }
+    if (range == EncodingRange::Limited) {
+        // limited range RGB isn't supported
+        attribs << EGL_SAMPLE_RANGE_HINT_EXT << EGL_YUV_NARROW_RANGE_EXT;
+    } else if (coefficients != YUVMatrixCoefficients::Identity) {
+        attribs << EGL_SAMPLE_RANGE_HINT_EXT << EGL_YUV_FULL_RANGE_EXT;
+    }
+
     attribs << EGL_NONE;
 
     return createImage(EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, attribs.data());
 }
 
-EGLImageKHR EglDisplay::importDmaBufAsImage(const DmaBufAttributes &dmabuf, int plane, int format, const QSize &size) const
+const FormatModifierMap &EglDisplay::allSupportedDrmFormats() const
 {
-    QList<EGLint> attribs;
-    attribs.reserve(6 + 1 * 10 + 1);
-
-    attribs << EGL_WIDTH << size.width()
-            << EGL_HEIGHT << size.height()
-            << EGL_LINUX_DRM_FOURCC_EXT << format;
-
-    attribs << EGL_DMA_BUF_PLANE0_FD_EXT << dmabuf.fd[plane].get()
-            << EGL_DMA_BUF_PLANE0_OFFSET_EXT << dmabuf.offset[plane]
-            << EGL_DMA_BUF_PLANE0_PITCH_EXT << dmabuf.pitch[plane];
-    if (dmabuf.modifier != DRM_FORMAT_MOD_INVALID) {
-        attribs << EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT << EGLint(dmabuf.modifier & 0xffffffff)
-                << EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT << EGLint(dmabuf.modifier >> 32);
-    }
-    attribs << EGL_NONE;
-
-    return createImage(EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, attribs.data());
+    return m_allFormats;
 }
 
-QHash<uint32_t, EglDisplay::DrmFormatInfo> EglDisplay::allSupportedDrmFormats() const
+const FormatModifierMap &EglDisplay::nonExternalOnlySupportedDrmFormats() const
 {
-    return m_importFormats;
-}
-
-QHash<uint32_t, QList<uint64_t>> EglDisplay::nonExternalOnlySupportedDrmFormats() const
-{
-    QHash<uint32_t, QList<uint64_t>> ret;
-    ret.reserve(m_importFormats.size());
-    for (auto it = m_importFormats.constBegin(), itEnd = m_importFormats.constEnd(); it != itEnd; ++it) {
-        ret[it.key()] = it->nonExternalOnlyModifiers;
-    }
-    return ret;
+    return m_nonExternalOnlyFormats;
 }
 
 bool EglDisplay::isExternalOnly(uint32_t format, uint64_t modifier) const
 {
-    if (const auto it = m_importFormats.find(format); it != m_importFormats.end()) {
-        return it->externalOnlyModifiers.contains(modifier);
-    } else {
-        return false;
-    }
+    const auto it = m_nonExternalOnlyFormats.find(format);
+    return it == m_nonExternalOnlyFormats.end() || !it->contains(modifier);
 }
 
-QHash<uint32_t, EglDisplay::DrmFormatInfo> EglDisplay::queryImportFormats() const
+EglDisplay::Formats EglDisplay::queryImportFormats() const
 {
     if (!hasExtension(QByteArrayLiteral("EGL_EXT_image_dma_buf_import")) || !hasExtension(QByteArrayLiteral("EGL_EXT_image_dma_buf_import_modifiers"))) {
         return {};
@@ -281,44 +338,38 @@ QHash<uint32_t, EglDisplay::DrmFormatInfo> EglDisplay::queryImportFormats() cons
         qCCritical(KWIN_OPENGL) << "eglQueryDmaBufFormatsEXT with count" << count << "failed!" << getEglErrorString();
         return {};
     }
-    QHash<uint32_t, DrmFormatInfo> ret;
+    Formats ret;
+    const ModifierList implicitModifiers = {DRM_FORMAT_MOD_INVALID, DRM_FORMAT_MOD_LINEAR};
     for (const auto format : std::as_const(formats)) {
-        if (m_functions.queryDmaBufModifiersEXT != nullptr) {
-            EGLint count = 0;
-            const EGLBoolean success = m_functions.queryDmaBufModifiersEXT(m_handle, format, 0, nullptr, nullptr, &count);
-            if (success && count > 0) {
-                DrmFormatInfo drmFormatInfo;
-                drmFormatInfo.allModifiers.resize(count);
-                QList<EGLBoolean> externalOnly(count);
-                if (m_functions.queryDmaBufModifiersEXT(m_handle, format, count, drmFormatInfo.allModifiers.data(), externalOnly.data(), &count)) {
-                    drmFormatInfo.externalOnlyModifiers = drmFormatInfo.allModifiers;
-                    drmFormatInfo.nonExternalOnlyModifiers = drmFormatInfo.allModifiers;
-                    for (int i = drmFormatInfo.allModifiers.size() - 1; i >= 0; i--) {
-                        if (externalOnly[i]) {
-                            drmFormatInfo.nonExternalOnlyModifiers.removeAll(drmFormatInfo.allModifiers[i]);
-                        } else {
-                            drmFormatInfo.externalOnlyModifiers.removeAll(drmFormatInfo.allModifiers[i]);
-                        }
+        EGLint count = 0;
+        const bool success = m_functions.queryDmaBufModifiersEXT
+            && m_functions.queryDmaBufModifiersEXT(m_handle, format, 0, nullptr, nullptr, &count);
+        if (success && count > 0) {
+            QList<uint64_t> tmp;
+            tmp.resize(count);
+            QList<EGLBoolean> externalOnly(count);
+            if (m_functions.queryDmaBufModifiersEXT(m_handle, format, count, tmp.data(), externalOnly.data(), &count)) {
+                auto &allModifiers = ret.all[format];
+                auto &nonExternalOnly = ret.nonExternalOnly[format];
+                allModifiers = ModifierList(tmp);
+                nonExternalOnly = allModifiers;
+                for (int i = allModifiers.size() - 1; i >= 0; i--) {
+                    if (externalOnly[i]) {
+                        nonExternalOnly.erase(tmp[i]);
                     }
-                    if (!drmFormatInfo.allModifiers.empty()) {
-                        if (!drmFormatInfo.allModifiers.contains(DRM_FORMAT_MOD_INVALID)) {
-                            drmFormatInfo.allModifiers.push_back(DRM_FORMAT_MOD_INVALID);
-                            if (!drmFormatInfo.nonExternalOnlyModifiers.empty()) {
-                                drmFormatInfo.nonExternalOnlyModifiers.push_back(DRM_FORMAT_MOD_INVALID);
-                            } else {
-                                drmFormatInfo.externalOnlyModifiers.push_back(DRM_FORMAT_MOD_INVALID);
-                            }
-                        }
-                        ret.insert(format, drmFormatInfo);
+                }
+                if (!allModifiers.contains(DRM_FORMAT_MOD_INVALID)) {
+                    allModifiers.insert(DRM_FORMAT_MOD_INVALID);
+                    if (!nonExternalOnly.empty()) {
+                        nonExternalOnly.insert(DRM_FORMAT_MOD_INVALID);
                     }
-                    continue;
                 }
             }
+        } else {
+            // no explicit modifiers are supported -> fall back to implicit modifiers
+            ret.all[format] = implicitModifiers;
+            ret.nonExternalOnly[format] = implicitModifiers;
         }
-        DrmFormatInfo drmFormat;
-        drmFormat.allModifiers = {DRM_FORMAT_MOD_INVALID, DRM_FORMAT_MOD_LINEAR};
-        drmFormat.nonExternalOnlyModifiers = {DRM_FORMAT_MOD_INVALID, DRM_FORMAT_MOD_LINEAR};
-        ret.insert(format, drmFormat);
     }
     return ret;
 }
@@ -364,4 +415,43 @@ void EglDisplay::destroyImage(EGLImageKHR image) const
     Q_ASSERT(m_functions.destroyImageKHR);
     m_functions.destroyImageKHR(m_handle, image);
 }
+
+static const auto s_disableUdmabuf = environmentVariableBoolValue("KWIN_DISABLE_UDMABUF_IMPORT");
+
+EGLImageKHR EglDisplay::importBufferAsImage(GraphicsBuffer *buffer,
+                                            YUVMatrixCoefficients coefficients,
+                                            EncodingRange range)
+{
+    Q_ASSERT(buffer->dmabufAttributes() || buffer->shmAttributes());
+
+    std::tuple key(buffer, coefficients, range);
+    auto it = m_importCache.find(key);
+    if (Q_LIKELY(it != m_importCache.end())) {
+        return it->second;
+    }
+
+    EGLImageKHR image = EGL_NO_IMAGE;
+    if (buffer->dmabufAttributes()) {
+        image = importDmaBufAsImage(*buffer->dmabufAttributes(), coefficients, range);
+        // On Nvidia, sampling from udmabuf just results in black,
+        // and on i915 there are glitches on some systems
+    } else if (buffer->udmabufAttributes() && (!m_drmDevice || !s_disableUdmabuf.value_or(m_drmDevice->isNvidia() || m_drmDevice->isI915()))) {
+        image = importDmaBufAsImage(*buffer->udmabufAttributes(), coefficients, range);
+    }
+    m_importCache[key] = image;
+    connect(buffer, &QObject::destroyed, this, [this, key]() {
+        auto it = m_importCache.find(key);
+        destroyImage(it->second);
+        m_importCache.erase(it);
+    });
+    return image;
 }
+
+std::optional<EglDisplay::GpuType> EglDisplay::type() const
+{
+    return m_type;
+}
+
+}
+
+#include "moc_egldisplay.cpp"

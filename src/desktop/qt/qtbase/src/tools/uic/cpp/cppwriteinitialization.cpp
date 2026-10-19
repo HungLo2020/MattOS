@@ -1,5 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:insignificant reason:build-tool
 
 #include "cppwriteinitialization.h"
 #include "customwidgetsinfo.h"
@@ -125,72 +126,6 @@ namespace {
         return iconHasStatePixmaps(i) || !i->attributeTheme().isEmpty();
     }
 
-    // An approximation of "Unicode Standard Annex #31" for checking property
-    // and enumeration identifiers to prevent code injection attacks.
-    // FIXME 6.9: Simplify according to QTBUG-126860
-    static bool isIdStart(QChar c)
-    {
-        bool result = false;
-        switch (c.category()) {
-        case QChar::Letter_Uppercase:
-        case QChar::Letter_Lowercase:
-        case QChar::Letter_Titlecase:
-        case QChar::Letter_Modifier:
-        case QChar::Letter_Other:
-        case QChar::Number_Letter:
-            result = true;
-            break;
-        default:
-            result = c == u'_';
-            break;
-        }
-        return result;
-    }
-
-    static bool isIdContinuation(QChar c)
-    {
-        bool result = false;
-        switch (c.category()) {
-        case QChar::Letter_Uppercase:
-        case QChar::Letter_Lowercase:
-        case QChar::Letter_Titlecase:
-        case QChar::Letter_Modifier:
-        case QChar::Letter_Other:
-        case QChar::Number_Letter:
-        case QChar::Mark_NonSpacing:
-        case QChar::Mark_SpacingCombining:
-        case QChar::Number_DecimalDigit:
-        case QChar::Punctuation_Connector: // '_'
-            result = true;
-            break;
-        default:
-            break;
-        }
-        return result;
-    }
-
-    static bool isEnumIdContinuation(QChar c)
-    {
-        return c == u':' || c == u'|' || c == u' ' || isIdContinuation(c);
-    }
-
-    bool checkPropertyName(QStringView name)
-    {
-        return !name.isEmpty() && isIdStart(name.at(0))
-               && std::all_of(name.cbegin() + 1, name.cend(), isIdContinuation);
-    }
-
-    bool checkEnumValue(QStringView name)
-    {
-        return !name.isEmpty() && isIdStart(name.at(0))
-               && std::all_of(name.cbegin() + 1, name.cend(), isEnumIdContinuation);
-    }
-
-    QString msgInvalidValue(const QString &name, const QString &value)
-    {
-        return "uic: Invalid property value: \""_L1 + name + "\": \""_L1 + value + u'"';
-    }
-
     // Check on properties. Filter out empty legacy pixmap/icon properties
     // as Designer pre 4.4 used to remove missing resource references.
     // This can no longer be handled by the code as we have 'setIcon(QIcon())' as well as 'QIcon icon'
@@ -199,19 +134,10 @@ namespace {
                               const DomProperty *p) {
 
         const QString &name = p->attributeName();
-        const bool isDynamicProperty = p->hasAttributeStdset() && p->attributeStdset() == 0;
-        if (!isDynamicProperty && !checkPropertyName(name)) {
-            qWarning("uic: Invalid property name: \"%s\".", qPrintable(name));
-            return false;
-        }
 
         switch (p->kind()) {
         // ### fixme Qt 7 remove this: Exclude deprecated properties of Qt 5.
         case DomProperty::Set:
-            if (!checkEnumValue(p->elementSet())) {
-                qWarning("%s", qPrintable(msgInvalidValue(name, p->elementSet())));
-                return false;
-            }
             if (name == u"features"
                 && customWidgetsInfo->extends(className, "QDockWidget")
                 && p->elementSet() == u"QDockWidget::AllDockWidgetFeatures") {
@@ -221,10 +147,6 @@ namespace {
             }
             break;
         case DomProperty::Enum:
-            if (!checkEnumValue(p->elementEnum())) {
-                qWarning("%s", qPrintable(msgInvalidValue(name, p->elementEnum())));
-                return false;
-            }
             if (name == u"sizeAdjustPolicy"
                 && customWidgetsInfo->extends(className, "QComboBox")
                 && p->elementEnum() == u"QComboBox::AdjustToMinimumContentsLength") {
@@ -505,7 +427,7 @@ void WriteInitialization::LayoutDefaultHandler::writeProperty(int p, const QStri
             bool ifndefMac = (!(m_state[p] & (HasDefaultFunction|HasDefaultValue))
                              && value == defaultStyleValue);
             if (ifndefMac)
-                str << "#ifndef Q_OS_MAC\n";
+                str << "#ifndef Q_OS_MACOS\n";
             if (p == Margin) { // Use setContentsMargins for numeric values
                 writeContentsMargins(indent, objectName, value, str);
             } else {

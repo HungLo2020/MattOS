@@ -7,23 +7,29 @@
 */
 
 import QtQuick
+import QtQuick.Layouts
 
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 
-import org.kde.plasma.workspace.dbus as DBus
+import org.kde.plasma.private.brightnesscontrolplugin
+
+pragma ComponentBehavior: Bound
 
 PlasmaExtras.Representation {
     id: dialog
 
-    required property DBus.Properties nightLightControl
+    required property ScreenBrightnessControl screenBrightnessControl
+    required property KeyboardBrightnessControl keyboardBrightnessControl
+    required property NightLightItem.NightLightControl nightLightControl
 
     readonly property Item firstItemAfterScreenBrightnessRepeater: keyboardBrightnessSlider.visible ? keyboardBrightnessSlider : keyboardBrightnessSlider.KeyNavigation.down
     KeyNavigation.down: screenBrightnessRepeater.firstSlider ?? firstItemAfterScreenBrightnessRepeater
 
     contentItem: PlasmaComponents3.ScrollView {
         id: scrollView
+        PlasmaComponents3.ScrollBar.horizontal.visible: false
 
         focus: false
 
@@ -32,21 +38,23 @@ PlasmaExtras.Representation {
                 return;
             }
             const rect = brightnessList.mapFromItem(item, 0, 0, item.width, item.height);
-            if (rect.y < scrollView.contentItem.contentY) {
-                scrollView.contentItem.contentY = rect.y;
-            } else if (rect.y + rect.height > scrollView.contentItem.contentY + scrollView.height) {
-                scrollView.contentItem.contentY = rect.y + rect.height - scrollView.height;
+            const flickable = scrollView.contentItem as Flickable
+            if (rect.y < flickable.contentY) {
+                flickable.contentY = rect.y;
+            } else if (rect.y + rect.height > flickable.contentY + scrollView.height) {
+                flickable.contentY = rect.y + rect.height - scrollView.height;
             }
         }
 
-        Column {
+        ColumnLayout {
             id: brightnessList
 
+            width: scrollView.width
             spacing: Kirigami.Units.smallSpacing * 2
 
             Repeater {
                 id: screenBrightnessRepeater
-                model: screenBrightnessControl.displays
+                model: dialog.screenBrightnessControl.displays
 
                 property Item firstSlider: screenBrightnessRepeater.itemAt(0)
                 property Item lastSlider: screenBrightnessRepeater.itemAt(count - 1)
@@ -63,8 +71,9 @@ PlasmaExtras.Representation {
                     property Item previousSlider: screenBrightnessRepeater.itemAt(index - 1)
                     property Item nextSlider: screenBrightnessRepeater.itemAt(index + 1)
 
-                    width: scrollView.availableWidth
+                    Layout.fillWidth: true
 
+                    activeFocusOnTab: true
                     icon.name: "video-display-brightness"
                     text: label
                     type: BrightnessItem.Type.Screen
@@ -73,13 +82,13 @@ PlasmaExtras.Representation {
                     maximumValue: maxBrightness
 
                     KeyNavigation.up: previousSlider ?? dialog.KeyNavigation.up
-                    KeyNavigation.down: nextSlider ?? firstItemAfterScreenBrightnessRepeater
+                    KeyNavigation.down: nextSlider ?? dialog.firstItemAfterScreenBrightnessRepeater
                     KeyNavigation.backtab: previousSlider ?? dialog.KeyNavigation.backtab
                     KeyNavigation.tab: KeyNavigation.down
 
                     stepSize: maxBrightness/100
 
-                    onMoved: screenBrightnessControl.setBrightness(displayName, value)
+                    onMoved: value => dialog.screenBrightnessControl.setBrightness(displayName, value)
                     onActiveFocusChanged: if (activeFocus) scrollView.positionViewAtItem(this)
                 }
 
@@ -118,36 +127,28 @@ PlasmaExtras.Representation {
             BrightnessItem {
                 id: keyboardBrightnessSlider
 
-                width: scrollView.availableWidth
+                Layout.fillWidth: true
 
                 icon.name: "input-keyboard-brightness"
                 text: i18n("Keyboard Backlight")
                 type: BrightnessItem.Type.Keyboard
-                value: keyboardBrightnessControl.brightness
-                maximumValue: keyboardBrightnessControl.brightnessMax
-                visible: keyboardBrightnessControl.isBrightnessAvailable
+                value: dialog.keyboardBrightnessControl.brightness
+                maximumValue: dialog.keyboardBrightnessControl.brightnessMax
+                visible: dialog.keyboardBrightnessControl.isBrightnessAvailable
 
                 KeyNavigation.up: screenBrightnessRepeater.lastSlider ?? dialog.KeyNavigation.up
                 KeyNavigation.down: keyboardColorItem.visible ? keyboardColorItem : keyboardColorItem.KeyNavigation.down
                 KeyNavigation.backtab: KeyNavigation.up
                 KeyNavigation.tab: KeyNavigation.down
 
-                onMoved: keyboardBrightnessControl.brightness = value
+                onMoved: value => dialog.keyboardBrightnessControl.brightness = value
                 onActiveFocusChanged: if (activeFocus) scrollView.positionViewAtItem(this)
-
-                // Manually dragging the slider around breaks the binding
-                Connections {
-                    target: keyboardBrightnessControl
-                    function onBrightnessChanged() {
-                        keyboardBrightnessSlider.value = keyboardBrightnessControl.brightness;
-                    }
-                }
             }
 
             KeyboardColorItem {
                 id: keyboardColorItem
 
-                width: scrollView.availableWidth
+                Layout.fillWidth: true
 
                 KeyNavigation.up: keyboardBrightnessSlider.visible ? keyboardBrightnessSlider : keyboardBrightnessSlider.KeyNavigation.up
                 KeyNavigation.down: nightLightItem
@@ -160,13 +161,22 @@ PlasmaExtras.Representation {
             NightLightItem {
                 id: nightLightItem
 
-                width: scrollView.availableWidth
+                Layout.fillWidth: true
 
                 KeyNavigation.up: keyboardColorItem.visible ? keyboardColorItem : keyboardColorItem.KeyNavigation.up
+                KeyNavigation.down: darkModeItem
+                KeyNavigation.tab: KeyNavigation.down
                 KeyNavigation.backtab: KeyNavigation.up
 
                 text: i18n("Night Light")
                 nightLightControl: dialog.nightLightControl
+            }
+
+            DarkModeItem {
+                id: darkModeItem
+
+                Layout.fillWidth: true
+                text: i18n("Theme")
             }
 
         }

@@ -61,7 +61,15 @@ set_package_properties(WrapPCRE2 PROPERTIES TYPE REQUIRED)
 if((QNX) OR QT_FIND_ALL_PACKAGES_ALWAYS)
     qt_find_package(PPS MODULE PROVIDED_TARGETS PPS::PPS MODULE_NAME core QMAKE_LIB pps)
 endif()
+if((QNX) OR QT_FIND_ALL_PACKAGES_ALWAYS)
+    qt_find_package(Eventfd MODULE PROVIDED_TARGETS Eventfd::Eventfd MODULE_NAME core
+    QMAKE_LIB eventfd)
+endif()
 qt_find_package(Slog2 MODULE PROVIDED_TARGETS Slog2::Slog2 MODULE_NAME core QMAKE_LIB slog2)
+if(OHOS)
+    qt_find_package(NodeAddonApi MODULE
+        PROVIDED_TARGETS NodeAddonApi::NodeAddonApi MODULE_NAME core)
+endif()
 
 
 #### Tests
@@ -766,6 +774,11 @@ int main(void)
 }
 "
 )
+qt_feature("windows-ioring-runtime" PRIVATE
+    LABEL "Resolve Windows I/O Ring functions at runtime"
+    AUTODETECT TRUE
+    CONDITION QT_FEATURE_windows_ioring
+)
 
 #### Features
 
@@ -972,6 +985,11 @@ qt_feature("pthread_timedjoin" PRIVATE
     AUTODETECT UNIX
     CONDITION UNIX AND QT_FEATURE_thread AND TEST_pthread_timedjoin
 )
+qt_feature("qqnx_eventfd" PRIVATE
+    LABEL "eventfd"
+    CONDITION QNX AND Eventfd_FOUND
+    EMIT_IF QNX
+)
 qt_feature("qqnx_pps" PRIVATE
     LABEL "PPS"
     CONDITION PPS_FOUND
@@ -1149,6 +1167,13 @@ qt_feature("itemmodel" PUBLIC
     PURPOSE "Provides the item model for item views"
 )
 qt_feature_definition("itemmodel" "QT_NO_ITEMMODEL" NEGATE VALUE "1")
+qt_feature("rangemodel" PUBLIC
+    SECTION "ItemViews"
+    LABEL "QRangeModel"
+    PURPOSE "Provides the range model for item views"
+    CONDITION QT_FEATURE_itemmodel
+)
+qt_feature_definition("rangemodel" "QT_NO_RANGEMODEL" NEGATE VALUE "1")
 qt_feature("proxymodel" PUBLIC
     SECTION "ItemViews"
     LABEL "QAbstractProxyModel"
@@ -1240,7 +1265,6 @@ qt_feature("timezone" PUBLIC
     SECTION "Utilities"
     LABEL "QTimeZone"
     PURPOSE "Provides support for time-zone handling."
-    CONDITION NOT WASM
 )
 qt_feature("timezone_locale" PRIVATE
     SECTION "Utilities"
@@ -1316,7 +1340,6 @@ qt_feature("permissions" PUBLIC
 )
 qt_feature("openssl-hash" PRIVATE
     LABEL "OpenSSL based cryptographic hash"
-    AUTODETECT OFF
     CONDITION QT_FEATURE_openssl_linked AND QT_FEATURE_opensslv30
     PURPOSE "Uses OpenSSL based implementation of cryptographic hash algorithms."
 )
@@ -1324,6 +1347,12 @@ qt_feature("async-io" PRIVATE
     LABEL "Async File I/O"
     PURPOSE "Provides support for asynchronous file I/O."
     CONDITION QT_FEATURE_thread AND QT_FEATURE_future
+)
+qt_feature("randomgenerator_disable_fallback" PUBLIC
+    LABEL "Disable insecure PRNG fallback for QRandomGenerator (Unix-only)."
+    PURPOSE "Disable insecure PRNG fallback for QRandomGenerator (Unix-only)."
+    AUTODETECT OFF
+    EMIT_IF UNIX
 )
 
 qt_configure_add_summary_section(NAME "Qt Core")
@@ -1338,6 +1367,7 @@ qt_configure_add_summary_entry(ARGS "jemalloc")
 qt_configure_add_summary_entry(ARGS "liburing")
 qt_configure_add_summary_entry(ARGS "windows-ioring")
 qt_configure_add_summary_entry(ARGS "windows-ioring-skip-builder-param-checks")
+qt_configure_add_summary_entry(ARGS "windows-ioring-runtime")
 qt_configure_add_summary_entry(ARGS "timezone_tzdb")
 qt_configure_add_summary_entry(ARGS "system-libb2")
 qt_configure_add_summary_entry(ARGS "mimetype-database")
@@ -1385,4 +1415,9 @@ qt_configure_add_report_entry(
     TYPE ERROR
     MESSAGE "Qt requires pcre2 or system-pcre2 feature"
     CONDITION NOT QT_FEATURE_pcre2 AND NOT QT_FEATURE_system_pcre2
+)
+qt_configure_add_report_entry(
+    TYPE ERROR
+    MESSAGE "Qt for OHOS requires node-api-addon. Set NODE_ADDON_API_ROOT to point to its location."
+    CONDITION OHOS AND NOT TARGET NodeAddonApi::NodeAddonApi
 )

@@ -161,6 +161,14 @@ function(qt_internal_add_android_permission target)
     _qt_internal_add_android_permission(${ARGV})
 endfunction()
 
+# Add the suffix Qt's Android libraries are named with, and only to a plain relative path.
+function(qt_internal_android_abi_suffixed_lib_path out_var path)
+    if(NOT IS_ABSOLUTE "${path}" AND NOT path MATCHES "_${CMAKE_ANDROID_ARCH_ABI}\\.so$")
+        string(REGEX REPLACE "\\.so$" "_${CMAKE_ANDROID_ARCH_ABI}.so" path "${path}")
+    endif()
+    set(${out_var} "${path}" PARENT_SCOPE)
+endfunction()
+
 function(qt_internal_android_dependencies_content target file_content_out)
     get_target_property(arg_JAR_DEPENDENCIES ${target} QT_ANDROID_JAR_DEPENDENCIES)
     get_target_property(arg_BUNDLED_JAR_DEPENDENCIES ${target} QT_ANDROID_BUNDLED_JAR_DEPENDENCIES)
@@ -221,9 +229,10 @@ function(qt_internal_android_dependencies_content target file_content_out)
     # Lib Dependencies
     if(arg_LIB_DEPENDENCIES)
         foreach(lib IN LISTS arg_LIB_DEPENDENCIES)
-            string(REPLACE ".so" "_${CMAKE_ANDROID_ARCH_ABI}.so" lib ${lib})
             section(${lib} ":" lib_file lib_extends)
+            qt_internal_android_abi_suffixed_lib_path(lib_file "${lib_file}")
             if (lib_extends)
+                qt_internal_android_abi_suffixed_lib_path(lib_extends "${lib_extends}")
                 set(lib_extends "extends=\"${lib_extends}\"")
             endif()
             # Use unix path to allow using files on any host platform.
@@ -235,9 +244,10 @@ function(qt_internal_android_dependencies_content target file_content_out)
     # Lib Dependencies Replacements
     if(arg_LIB_DEPENDENCY_REPLACEMENTS)
         foreach(lib IN LISTS arg_LIB_DEPENDENCY_REPLACEMENTS)
-            string(REPLACE ".so" "_${CMAKE_ANDROID_ARCH_ABI}.so" lib ${lib})
             section(${lib} ":" lib_file lib_replacement)
+            qt_internal_android_abi_suffixed_lib_path(lib_file "${lib_file}")
             if (lib_replacement)
+                qt_internal_android_abi_suffixed_lib_path(lib_replacement "${lib_replacement}")
                 # Use unix path to allow using files on any host platform.
                 file(TO_CMAKE_PATH ${lib_replacement} lib_replacement_unix_path)
                 set(lib_replacement "replaces=\"${lib_replacement_unix_path}\"")
@@ -548,6 +558,17 @@ function(qt_internal_create_source_jar)
     add_dependencies(install_android_source_jars install_android_source_jar_${module})
 endfunction()
 
+function(qt_internal_android_add_target_export_properties target)
+    if(NOT ANDROID)
+        return()
+    endif()
+    set_property(TARGET ${target} APPEND PROPERTY EXPORT_PROPERTIES
+        QT_ANDROID_BUNDLED_JAR_DEPENDENCIES
+        QT_ANDROID_LIB_DEPENDENCIES
+        QT_ANDROID_PERMISSIONS
+    )
+endfunction()
+
 # The function stores Android permissions that are required by the module target.
 # The stored INTERFACE_QT_ANDROID_PERMISSIONS is the transitive property.
 function(qt_internal_android_add_interface_permissions target)
@@ -570,4 +591,64 @@ function(qt_internal_android_add_interface_features target)
 
     qt_internal_set_module_transitive_properties(${target} TYPE LINK PROPERTIES
         INTERFACE_QT_ANDROID_FEATURES "${features}")
+endfunction()
+
+# Warns when a plugin depends on a shared internal module that is not exported
+# and therefore cannot be deployed to the Android bundle.
+function(_qt_internal_android_warn_undeployable_plugin_modules target)
+    get_target_property(link_libs "${target}" LINK_LIBRARIES)
+    if(NOT link_libs)
+        return()
+    endif()
+
+    # Split deps into exported and build-local ($<BUILD_LOCAL_INTERFACE:>).
+    set(exported "")
+    set(local_only_deps "")
+    foreach(entry IN LISTS link_libs)
+        if(entry MATCHES "^\\$<BUILD_LOCAL_INTERFACE:(.+)>$")
+            list(APPEND local_only_deps "${CMAKE_MATCH_1}")
+        elseif(NOT entry MATCHES "^\\$<" AND TARGET "${entry}")
+            get_target_property(aliased "${entry}" ALIASED_TARGET)
+            if(aliased)
+                list(APPEND exported "${aliased}")
+            else()
+                list(APPEND exported "${entry}")
+            endif()
+        endif()
+    endforeach()
+
+    set(undeployable "")
+    foreach(dep IN LISTS local_only_deps)
+        if(NOT TARGET "${dep}")
+            continue()
+        endif()
+        set(actual "${dep}")
+        get_target_property(aliased "${dep}" ALIASED_TARGET)
+        if(aliased)
+            set(actual "${aliased}")
+        endif()
+
+        # Undeployable: a shared, internal-only module that is not also exported.
+        get_target_property(is_internal "${actual}" _qt_is_internal_module)
+        get_target_property(dep_type "${actual}" TYPE)
+        if(NOT actual IN_LIST exported AND is_internal AND dep_type STREQUAL "SHARED_LIBRARY")
+            list(APPEND undeployable "${dep}")
+        endif()
+    endforeach()
+    list(REMOVE_DUPLICATES undeployable)
+
+    if(NOT undeployable)
+        return()
+    endif()
+
+    list(JOIN undeployable "\n  - " undeployable_list)
+    string(PREPEND undeployable_list "  - ")
+
+    message(WARNING
+        "The plugin \"${target}\" depends on internal shared Qt module(s) "
+        "pulled in only via BUILD_LOCAL_INTERFACE. They are not exported, so "
+        "they are not imported at a consumer's configure time and will be "
+        "missing from the Android bundle:\n"
+        "${undeployable_list}\n"
+    )
 endfunction()

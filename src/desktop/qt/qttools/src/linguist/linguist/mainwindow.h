@@ -37,7 +37,9 @@ class ErrorsView;
 class FocusWatcher;
 class HelpClient;
 class UiFormPreviewView;
+#ifndef Q_OS_WASM
 class QmlFormPreviewView;
+#endif // Q_OS_WASM
 class MessageEditor;
 class PhraseView;
 class SourceCodeView;
@@ -139,7 +141,9 @@ private slots:
                   FindDialog::FindOptions options, int statusFilter);
     void revalidate();
     void showStatistics();
+#ifndef Q_OS_WASM
     void toggleQmlPreview();
+#endif // Q_OS_WASM
     void toggleVisualizeWhitespace();
     void onWhatsThis();
     void updatePhraseDicts();
@@ -215,7 +219,9 @@ private:
     QTabWidget *m_contextAndLabelView;
     SourceCodeView *m_sourceCodeView;
     UiFormPreviewView *m_uiFormPreviewView;
+#ifndef Q_OS_WASM
     QmlFormPreviewView *m_qmlFormPreviewView;
+#endif // Q_OS_WASM
     ErrorsView *m_errorsView;
     QLabel *m_progressLabel;
     QLabel *m_modifiedLabel;

@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal-kde\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-05-09 02:42+0000\n"
-"PO-Revision-Date: 2025-11-27 07:15+0100\n"
+"POT-Creation-Date: 2026-09-08 00:48+0000\n"
+"PO-Revision-Date: 2026-08-28 07:19+0200\n"
 "Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
 "Translator: Andrej Mernik <andrejm@ubuntu.si>\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -32,24 +32,24 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "andrejm@ubuntu.si,matjaz.jeran@amis.net,miles@filmsi.net"
 
-#: src/accessdialog.cpp:27
+#: src/accessdialog.cpp:26
 #, kde-format
 msgid "Request device access"
 msgstr "Zahtevaj dostop naprave"
 
-#: src/appchooser.cpp:98
+#: src/appchooser.cpp:101
 #, kde-format
 msgctxt "count of files to open"
 msgid "%1 files"
 msgstr "%1 datotek"
 
-#: src/appchooserdialog.cpp:43
+#: src/appchooserdialog.cpp:47
 #, kde-format
 msgctxt "@title:window"
 msgid "Choose Application"
 msgstr "Izberi aplikacijo"
 
-#: src/appchooserdialog.cpp:46
+#: src/appchooserdialog.cpp:48
 #, kde-kuit-format
 msgctxt "@info"
 msgid "Choose an application to open <filename>%1</filename>"
@@ -128,92 +128,120 @@ msgctxt "@option:check"
 msgid "Do not close when command exits"
 msgstr "Ne zapri, ko se ukaz konča"
 
-#: src/background.cpp:132
+#: src/background.cpp:134
 #, kde-format
 msgid "Background Activity"
 msgstr "Dejavnost v ozadju"
 
-#: src/background.cpp:135
+#: src/background.cpp:137
 #, kde-format
 msgctxt "@info %1 is the name of an application"
 msgid ""
-"%1 wants to remain running when it has no visible windows. If you forbid "
-"this, the application will quit when its last window is closed."
+"%1 wants to remain running when it has no visible windows. If you deny this "
+"request, the application will quit when its last window is closed."
 msgstr ""
-"%1 si želi ostati v teku, tudi ko nima več vidnih oken. Če to prepoveste, se "
-"bo aplikacija končala, ko bo zaprto zadnje okno."
+"%1 želi ostati v teku, tudi ko nima vidnih oken. Če to zahtevo zavrnete, se "
+"bo aplikacija zaprla, ko bo zaprto zadnje okno."
 
-#: src/background.cpp:141 src/background.cpp:158
+#: src/background.cpp:143 src/background.cpp:160
 #, kde-format
-msgctxt "@action:button Allow the app to keep running with no open windows"
+msgctxt ""
+"@action:button Allow the application to keep running with no open windows"
 msgid "Allow"
 msgstr "Dovoli"
 
-#: src/background.cpp:148
+#: src/background.cpp:150
 #, kde-format
 msgctxt ""
-"@action:button Don't allow the app to keep running without any open windows"
-msgid "Forbid"
-msgstr "Prepovej"
-
-#: src/background.cpp:152
-#, kde-format
-msgctxt ""
-"@title title of a dialog to confirm whether to allow an app to remain "
-"running with no visible windows"
-msgid "Background App Usage"
-msgstr "Dejavnost aplikacije v ozadju"
+"@action:button Don't allow the application to keep running without any open "
+"windows"
+msgid "Deny"
+msgstr "Zavrni"
 
 #: src/background.cpp:154
 #, kde-format
-msgctxt "%1 is the name of an application"
-msgid ""
-"Note that this will force %1 to quit when its last window is closed. This "
-"could cause data loss if the application has any unsaved changes when it "
-"happens."
-msgstr ""
-"Upoštevajte, da bo to %1 prisililo h končanju, ko bo zaprto njeno zadnje "
-"okno. To lahko povzroči izgubo podatkov, če ima aplikacija še neshranjene "
-"podatke, ko se to zgodi."
+msgctxt ""
+"@title title of a dialog to confirm whether to allow an application to "
+"remain running with no visible windows"
+msgid "Deny Background Usage?"
+msgstr "Naj zavrnem uporabo v ozadju?"
 
-#: src/background.cpp:159
+#: src/background.cpp:156
+#, kde-format
+msgctxt "@info %1 is the name of an application"
+msgid ""
+"This will force %1 to quit when its last window is closed. This could cause "
+"data loss if the application has any unsaved changes when it happens."
+msgstr ""
+"To bo prisililo %1, da se zapre, ko se zapre njegovo zadnje okno. To lahko "
+"povzroči izgubo podatkov, če ima aplikacija neshranjene spremembe, ko se to "
+"zgodi."
+
+#: src/background.cpp:161
 #, kde-format
 msgctxt ""
-"@action:button Don't allow the app to keep running without any open windows"
-msgid "Forbid Anyway"
-msgstr "Kljub temu prepovej"
+"@action:button Don't allow the application to keep running without any open "
+"windows"
+msgid "Deny Anyway"
+msgstr "Vseeno zavrni"
 
 #: src/dynamiclauncher.cpp:78
 #, kde-format
-msgctxt "@title"
-msgid "Add Web Application…"
-msgstr "Dodaj spletno aplikacijo…"
+msgctxt "@info"
+msgid "Create Web Application Launcher?"
+msgstr "Naj ustvarim zaganjalnik spletnih aplikacij?"
 
 #: src/dynamiclauncher.cpp:83
 #, kde-format
-msgctxt "@title"
-msgid "Add Application…"
-msgstr "Dodaj aplikacijo…"
+msgctxt "@info"
+msgid "Create Application Launcher?"
+msgstr "Naj ustvarim zaganjalnik aplikacij?"
 
-#: src/DynamicLauncherDialog.qml:70
+#: src/dynamiclauncher.cpp:90
+#, kde-format
+msgctxt "@info"
+msgid ""
+"A launcher to open the following website will appear in application "
+"launchers:"
+msgstr ""
+"V zaganjalnikih aplikacij se bo prikazal zaganjalnik za odpiranje "
+"naslednjega spletnega mesta:"
+
+#: src/dynamiclauncher.cpp:95
+#, kde-format
+msgctxt "@info"
+msgid ""
+"A launcher to open the following application will appear in application "
+"launchers:"
+msgstr ""
+"V zaganjalnikih aplikacij se bo prikazal zaganjalnik za odpiranje naslednje "
+"aplikacije:"
+
+#: src/DynamicLauncherDialog.qml:73
 #, kde-format
 msgctxt "@label name of a launcher/application"
 msgid "Name"
 msgstr "Ime"
 
-#: src/DynamicLauncherDialog.qml:94
+#: src/DynamicLauncherDialog.qml:85
+#, kde-format
+msgctxt "@title Something asked to create a launcher for an app or a website"
+msgid "Launcher Requested"
+msgstr "Zahtevan zaganjalnik"
+
+#: src/DynamicLauncherDialog.qml:100
 #, kde-format
 msgctxt "@action edit launcher name/icon"
 msgid "Edit Info…"
 msgstr "Uredi informacije…"
 
-#: src/DynamicLauncherDialog.qml:100
+#: src/DynamicLauncherDialog.qml:106
 #, kde-format
 msgctxt "@action accept dialog and create launcher"
-msgid "Accept"
-msgstr "Sprejmi"
+msgid "Create"
+msgstr "Ustvari"
 
-#: src/DynamicLauncherDialog.qml:105
+#: src/DynamicLauncherDialog.qml:111
 #, kde-format
 msgctxt "@action"
 msgid "Cancel"
@@ -243,37 +271,38 @@ msgid ""
 msgstr ""
 "Bližnjica je že dodeljena standardnemu dejanju <interface>%1</interface>."
 
-#: src/globalshortcuts.cpp:127
+#: src/globalshortcuts.cpp:128
 #, kde-kuit-format
 msgctxt "@info:tooltip %1 is a list of actions"
 msgid ""
 "The shortcut is assigned to multiple actions (<interface>%1</interface>)"
 msgstr "Bližnjica je dodeljena več dejanjem (<interface>%1</interface>)"
 
-#: src/globalshortcuts.cpp:507
+#: src/globalshortcuts.cpp:506
 #, kde-format
 msgid ", "
 msgstr ", "
 
-#: src/GlobalShortcutsDialog.qml:24
+#: src/GlobalShortcutsDialog.qml:25
 #, kde-format
 msgctxt "@title:window"
 msgid "Global Shortcuts Requested"
 msgstr "Zahtevane so globalne bližnjice"
 
-#: src/GlobalShortcutsDialog.qml:28
+#: src/GlobalShortcutsDialog.qml:29
 #, kde-format
-msgctxt "The application is unknown"
-msgid "An application wants to register the following shortcut:"
-msgid_plural "An application wants to register the following %1 shortcuts:"
-msgstr[0] "Aplikacija želi registrirati naslednje %1 bližnjice:"
-msgstr[1] "Aplikacija želi registrirati naslednjo %1 bližnjico:"
-msgstr[2] "Aplikacija želi registrirati naslednji %1 bližnjici:"
-msgstr[3] "Aplikacija želi registrirati naslednje %1 bližnjice:"
+msgctxt "@info"
+msgid "An unidentifiable application wants to register the following shortcut."
+msgid_plural ""
+"An unidentifiable application wants to register the following %1 shortcuts."
+msgstr[0] "Nedoločljiva aplikacija želi registrirati naslednje bližnjice %1."
+msgstr[1] "Nedoločljiva aplikacija želi registrirati naslednjo bližnjico %1."
+msgstr[2] "Nedoločljiva aplikacija želi registrirati naslednji bližnjici %1."
+msgstr[3] "Nedoločljiva aplikacija želi registrirati naslednje bližnjice %1."
 
-#: src/GlobalShortcutsDialog.qml:30
+#: src/GlobalShortcutsDialog.qml:31
 #, kde-format
-msgctxt "%2 is the name of the application"
+msgctxt "@info %2 is the name of the application"
 msgid "%2 wants to register the following shortcut:"
 msgid_plural "%2 wants to register the following %1 shortcuts:"
 msgstr[0] "%2 želi registrirati naslednje %1 bližnjice:"
@@ -281,62 +310,125 @@ msgstr[1] "%2 želi registrirati naslednjo %1 bližnjico:"
 msgstr[2] "%2 želi registrirati naslednji %1 bližnjici:"
 msgstr[3] "%2 želi registrirati naslednje %1 bližnjice:"
 
-#: src/GlobalShortcutsDialog.qml:87
+#: src/GlobalShortcutsDialog.qml:91
 #, kde-format
 msgctxt "@action:button"
 msgid "See Other Shortcuts…"
 msgstr "Oglejte si ostale bližnjice…"
 
-#: src/GlobalShortcutsDialog.qml:88
+#: src/GlobalShortcutsDialog.qml:92
 #, kde-format
 msgctxt "@info:tooltip"
 msgid "View other shortcuts registered by this application"
 msgstr "Oglejte si druge bližnjice, ki jih je registrirala ta aplikacija"
 
-#: src/inputcapture.cpp:115
+#: src/inputcapture.cpp:116
 #, kde-format
 msgctxt "@title:notification"
-msgid "Input Capture started"
+msgid "Input Capture Started"
 msgstr "Zajem vnosa se je začel"
 
-#: src/inputcapture.cpp:118
+#: src/inputcapture.cpp:119
 #, kde-kuit-format
 msgctxt "@info %1 is the name of the application"
-msgid "Input is being managed by %1. Press <shortcut>%2</shortcut> to disable."
-msgstr "Vnos upravlja %1. Pritisnite <shortcut>%2</shortcut>, da onemogočite."
+msgid ""
+"%1 has taken over the pointer and keyboard. Press <shortcut>%2</shortcut> to "
+"stop this."
+msgstr ""
+"%1 je prevzel kazalec in tipkovnico. Pritisnite <shortcut>%2</shortcut>, da "
+"to ustavite."
 
-#: src/inputcapture.cpp:123
+#: src/inputcapture.cpp:124
 #, kde-kuit-format
 msgctxt "@info"
 msgid ""
-"Input is being managed by an application. Press <shortcut>%1</shortcut> to "
-"disable."
+"An unidentifiable application has taken over the pointer and keyboard. Press "
+"<shortcut>%1</shortcut> to stop this."
 msgstr ""
-"Vnos upravlja aplikacija. Pritisnite <shortcut>%1</shortcut>, da onemogočite."
+"Neznana aplikacija je prevzela nadzor nad kazalcem in tipkovnico. Pritisnite "
+"<shortcut>%1</shortcut>, da to ustavite."
 
-#: src/InputCaptureDialog.qml:15
+#: src/inputcapture.cpp:225
+#, kde-format
+msgctxt "@title:nofication"
+msgid "Input Capture Approved"
+msgstr "Zajem vnosa odobren"
+
+#: src/inputcapture.cpp:227
+#, kde-format
+msgctxt "@info"
+msgid ""
+"An unidentifiable application will be able to take over the pointer and "
+"keyboard in the future."
+msgstr ""
+"Nedoločljiva aplikacija bo v prihodnje lahko prevzela nadzor nad kazalcem in "
+"tipkovnico."
+
+#: src/inputcapture.cpp:228
+#, kde-format
+msgctxt "@info"
+msgid "%1 will be able to take over the pointer and keyboard in the future."
+msgstr "%1 bo v prihodnje lahko prevzel nadzor nad kazalcem in tipkovnico."
+
+#: src/InputCaptureDialog.qml:18
 #, kde-format
 msgctxt "@title:window"
 msgid "Input Capture Requested"
 msgstr "Zahtevan zajem vnosa"
 
-#: src/InputCaptureDialog.qml:16
+#: src/InputCaptureDialog.qml:20
 #, kde-format
-msgctxt "The application is unknown"
-msgid "An application requested to capture input events"
-msgstr "Aplikacija je zahtevala zajem vhodnih dogodkov"
-
-#: src/InputCaptureDialog.qml:16
-#, kde-format
-msgctxt "%1 is the name of the application"
-msgid "%1 requested to capture input events"
-msgstr "%1 je zahtevala zajem vhodnih dogodkov"
+msgctxt "@info"
+msgid ""
+"An unidentifiable application wants to take over the pointer and keyboard."
+msgstr "Neznana aplikacija želi prevzeti nadzor nad kazalcem in tipkovnico."
 
 #: src/InputCaptureDialog.qml:21
 #, kde-format
-msgctxt "@action:button"
+msgctxt "@info %1 is the name of the application"
+msgid "%1 wants take over the pointer and keyboard."
+msgstr "%1 želi prevzeti nadzor nad kazalcem in tipkovnico."
+
+#: src/InputCaptureDialog.qml:23
+#, kde-kuit-format
+msgctxt "@info:usagetip"
+msgid ""
+"While the application is capturing input, you will not be able to move the "
+"pointer yourself or type on the keyboard.<nl/><nl/>Only allow if you know "
+"which application made the request."
+msgstr ""
+"Medtem ko aplikacija zajema vnos, ne boste mogli sami premikati kazalca ali "
+"tipkati na tipkovnici.<nl/><nl/>Dovolite samo, če veste, katera aplikacija "
+"je poslala zahtevo."
+
+#: src/InputCaptureDialog.qml:24
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"While the application is capturing input, you will not be able to move the "
+"pointer yourself or type on the keyboard."
+msgstr ""
+"Medtem ko aplikacija zajema vnos, ne boste mogli sami premikati kazalca ali "
+"tipkati po tipkovnici."
+
+#: src/InputCaptureDialog.qml:29 src/RemoteDesktopDialog.qml:32
+#: src/ScreenChooserDialog.qml:194
+#, kde-format
+msgctxt "@option:check"
+msgid "Allow the application to do this without asking next time"
+msgstr "Dovoli aplikaciji, da to naslednjič stori brez vprašanja"
+
+#: src/InputCaptureDialog.qml:36
+#, kde-format
+msgctxt "@action:button Allow the application to monitor input"
 msgid "Allow"
 msgstr "Dovoli"
+
+#: src/InputCaptureDialog.qml:37
+#, kde-format
+msgctxt "@action:button Deny the application's request to monitor input"
+msgid "Deny"
+msgstr "Zavrni"
 
 #: src/kirigami-filepicker/api/mobilefiledialog.cpp:113
 #, kde-format
@@ -388,108 +480,170 @@ msgstr "Prikaži skrite datoteke"
 msgid "Select"
 msgstr "Izberi"
 
-#: src/outputsmodel.cpp:21
-#, kde-format
-msgid "Share virtual screen"
-msgstr "Deli navidezni zaslon"
-
-#: src/outputsmodel.cpp:25
+#: src/outputsmodel.cpp:83
 #, kde-format
 msgid "Share region"
 msgstr "Deli območje"
 
-#: src/outputsmodel.cpp:36
+#: src/outputsmodel.cpp:87
+#, kde-format
+msgid "Share virtual screen"
+msgstr "Deli navidezni zaslon"
+
+#: src/outputsmodel.cpp:98 src/screencast.cpp:360
 #, kde-format
 msgid "Share full Workspace"
 msgstr "Deli celotni delovni prostor"
 
-#: src/outputsmodel.cpp:76
+#: src/outputsmodel.cpp:133
 #, kde-format
 msgid "Laptop screen"
 msgstr "Zaslon notesnika"
 
-#: src/outputsmodel.cpp:250
+#: src/outputsmodel.cpp:372
 #, kde-format
 msgctxt "@info"
 msgid "Share the entire workspace across all screens"
 msgstr "Deli celotni delovni prostor po vseh zaslonih"
 
-#: src/outputsmodel.cpp:252
+#: src/outputsmodel.cpp:374
 #, kde-format
 msgctxt "@info"
-msgid "Creates a screen inside a window, then share"
-msgstr "Ustvari zaslon v oknu in ga deli"
+msgid "Create a virtual screen, then share"
+msgstr "Ustvari virtualni zaslon, nato ga deli"
 
-#: src/outputsmodel.cpp:254
+#: src/outputsmodel.cpp:376
 #, kde-format
 msgctxt "@info"
 msgid "Crops a specific area of your screens"
 msgstr "Obreži določena območja vaših zaslonov"
 
-#: src/region-select/RegionSelectOverlay.qml:147
+#: src/PipeWireDelegate.qml:166
+#, kde-format
+msgctxt "@label:listbox size of a screen, width($1) x height($2"
+msgid "Resolution:"
+msgstr "Ločljivost:"
+
+#: src/PipeWireDelegate.qml:200
+#, kde-format
+msgctxt "size of a screen, width($1) x height($2)"
+msgid "%1 × %2"
+msgstr "%1 × %2"
+
+#: src/PipeWireDelegate.qml:287
+#, kde-format
+msgctxt "@info:status"
+msgid "No windows open"
+msgstr "Ni odprtih oken"
+
+#: src/PipeWireDelegate.qml:292
+#, kde-format
+msgctxt "%1 is a number of elided icon entries"
+msgid "+%1"
+msgstr "+%1"
+
+#: src/PipeWireDelegate.qml:305
+#, kde-format
+msgctxt "@title %1 refers to a screen name"
+msgid "Share “%1”"
+msgstr "Deli “%1”"
+
+#: src/region-select/RegionSelectOverlay.qml:150
 #, kde-format
 msgid "Start streaming:"
 msgstr "Začni pretakati:"
 
-#: src/region-select/RegionSelectOverlay.qml:151
+#: src/region-select/RegionSelectOverlay.qml:154
 #, kde-format
 msgid "Clear selection:"
 msgstr "Očisti izbiro:"
 
-#: src/region-select/RegionSelectOverlay.qml:155
-#: src/region-select/RegionSelectOverlay.qml:199
+#: src/region-select/RegionSelectOverlay.qml:158
+#: src/region-select/RegionSelectOverlay.qml:202
 #, kde-format
 msgid "Cancel:"
 msgstr "Prekliči:"
 
-#: src/region-select/RegionSelectOverlay.qml:161
+#: src/region-select/RegionSelectOverlay.qml:164
 #, kde-format
 msgctxt "Mouse action"
 msgid "Release left-click"
 msgstr "Spusti levi klik"
 
-#: src/region-select/RegionSelectOverlay.qml:165
+#: src/region-select/RegionSelectOverlay.qml:168
 #, kde-format
 msgctxt "Mouse action"
 msgid "Right-click"
 msgstr "Desni klik"
 
-#: src/region-select/RegionSelectOverlay.qml:169
-#: src/region-select/RegionSelectOverlay.qml:209
+#: src/region-select/RegionSelectOverlay.qml:172
+#: src/region-select/RegionSelectOverlay.qml:212
 #, kde-format
 msgctxt "Keyboard action"
 msgid "Escape"
 msgstr "Ubežnica"
 
-#: src/region-select/RegionSelectOverlay.qml:195
+#: src/region-select/RegionSelectOverlay.qml:198
 #, kde-format
 msgid "Create selection:"
 msgstr "Ustvari izbiro:"
 
-#: src/region-select/RegionSelectOverlay.qml:205
+#: src/region-select/RegionSelectOverlay.qml:208
 #, kde-format
 msgctxt "Mouse action"
 msgid "Left-click and drag"
 msgstr "Lev klik in poteg"
 
-#: src/remotedesktop.cpp:182 src/screencast.cpp:224
+#: src/remotedesktop.cpp:118
+#, kde-format
+msgctxt "@title:window"
+msgid "Remote Desktop Not Available"
+msgstr "Oddaljeno namizje ni na voljo"
+
+#: src/remotedesktop.cpp:120
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The application <application>%1</application> tried to start a remote "
+"desktop session, but remote desktop is not available on this system. Please "
+"ensure you are running a Wayland session with a compatible window manager "
+"such as KWin."
+msgstr ""
+"Aplikacija <application>%1</application> je poskušala zagnati sejo "
+"oddaljenega namizja, vendar oddaljeno namizje v tem sistemu ni na voljo. "
+"Prepričajte se, da izvajate sejo Wayland z združljivim upravljalnikom oken, "
+"kot je KWin."
+
+#: src/remotedesktop.cpp:124
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The application <application>%1</application> tried to start a remote "
+"desktop session, but remote desktop is not available in X11 sessions. Please "
+"switch to a Wayland session and try again."
+msgstr ""
+"Aplikacija <application>%1</application> je poskušala zagnati sejo "
+"oddaljenega namizja, vendar oddaljeno namizje ni na voljo v sejah X11. "
+"Preklopite na sejo Wayland in poskusite znova."
+
+#: src/remotedesktop.cpp:188 src/screencast.cpp:235
 #, kde-format
 msgid "Virtual Output"
 msgstr "Navidezni izhod"
 
-#: src/remotedesktop.cpp:183 src/screencast.cpp:225
+#: src/remotedesktop.cpp:189 src/screencast.cpp:236
 #, kde-format
 msgctxt "%1 is the application name"
 msgid "Virtual Output (shared with %1)"
 msgstr "Navidezni izhod (deljeno z %1)"
 
-#: src/remotedesktop.cpp:291
+#: src/remotedesktop.cpp:301
 #, kde-format
-msgctxt "title of notification about input systems taken over"
-msgid "Remote control session started"
-msgstr "Zagnana seja oddaljenega nadzora"
+msgctxt "@title:window title of notification about input systems taken over"
+msgid "Remote Control Started"
+msgstr "Daljinski nadzor zagnan"
 
-#: src/remotedesktop.cpp:580
+#: src/remotedesktop.cpp:601
 #, kde-format
 msgctxt ""
 "SNI title that indicates there's a process remotely controlling the system"
@@ -499,22 +653,42 @@ msgstr "Oddaljeni nadzor"
 #: src/remotedesktopdialog.cpp:26
 #, kde-format
 msgctxt "Title of the dialog that requests remote input privileges"
-msgid "Remote Control"
-msgstr "Oddaljeni nadzor"
-
-#: src/remotedesktopdialog.cpp:41
-#, kde-format
-msgctxt "@info"
-msgid "An application is asking for special privileges:\n"
-msgstr "Aplikacija zahteva posebne pravice:\n"
+msgid "Remote Control Requested"
+msgstr "Zahtevan oddaljeni nadzor"
 
 #: src/remotedesktopdialog.cpp:42
 #, kde-format
 msgctxt "@info"
-msgid "%1 is asking for special privileges:"
-msgstr "%1 zahteva posebne pravice:"
+msgid "Allow an unidentifiable application to gain remote control privileges?"
+msgstr ""
+"Naj dovolim nedoločljivi aplikaciji pridobitev pravic za oddaljeni nadzor?"
 
-#: src/remotedesktopdialog.cpp:50
+#: src/remotedesktopdialog.cpp:43
+#, kde-format
+msgctxt "@info"
+msgid "Allow %1 to gain remote control privileges?"
+msgstr "Naj dovolim %1 pridobitev pravic za oddaljeno upravljanje?"
+
+#: src/remotedesktopdialog.cpp:49 src/ScreenshotDialog.qml:30
+#: src/UsbDialog.qml:26 src/WallpaperDialog.qml:42
+#, kde-format
+msgctxt "@info:usagetip"
+msgid "Only allow if you know which application made the request."
+msgstr "Dovolite samo, če veste, katera aplikacija je oddala zahtevo."
+
+#: src/remotedesktopdialog.cpp:56
+#, kde-format
+msgctxt "@info"
+msgid "The application will be able to:"
+msgstr "Aplikacija bo lahko:"
+
+#: src/remotedesktopdialog.cpp:56
+#, kde-format
+msgctxt "@info"
+msgid "%1 will be able to:"
+msgstr "%1 bo lahko:"
+
+#: src/remotedesktopdialog.cpp:60
 #, kde-format
 msgctxt ""
 "@info As in, 'an application requested access to see what’s on the screen'. "
@@ -526,31 +700,31 @@ msgstr ""
 "\n"
 "- Poglejte, kaj je na zaslonu"
 
-#: src/remotedesktopdialog.cpp:54
+#: src/remotedesktopdialog.cpp:64
 #, kde-format
 msgctxt ""
 "@info As in, 'an application requested access to control input devices'. '-' "
 "is Markdown, do not translate"
 msgid ""
 "\n"
-" - Control input devices"
+" - Move the pointer and type keystrokes"
 msgstr ""
 "\n"
-"- Nadzor vhodnih naprav"
+"- Premikaj kazalec in tipkaj pritiske tipk"
 
-#: src/remotedesktopdialog.cpp:62
+#: src/remotedesktopdialog.cpp:72
 #, kde-format
 msgctxt "@info"
-msgid "An application is exercising special permissions:\n"
-msgstr "Aplikacija uporablja posebna dovoljenja:\n"
+msgid "An unidentifiable application is exercising remote control privileges:"
+msgstr "Nedoločljiva aplikacija izvaja pravice oddaljenega upravljanja:"
 
-#: src/remotedesktopdialog.cpp:63
+#: src/remotedesktopdialog.cpp:73
 #, kde-format
 msgctxt "@info"
-msgid "%1 is exercising special privileges:"
-msgstr "%1 izvaja posebne pravice:"
+msgid "%1 is exercising remote control privileges:"
+msgstr "%1 izvaja pravice za oddaljeno upravljanje:"
 
-#: src/remotedesktopdialog.cpp:67
+#: src/remotedesktopdialog.cpp:77
 #, kde-format
 msgctxt ""
 "@info As in, 'an application is exercising privileges to access to see "
@@ -562,28 +736,23 @@ msgstr ""
 "\n"
 "- Poglejte, kaj je na zaslonu"
 
-#: src/remotedesktopdialog.cpp:71
+#: src/remotedesktopdialog.cpp:81
 #, kde-format
 msgctxt ""
 "@info As in, 'an application is exercising privileges to control input "
 "devices'. '-' is Markdown, do not translate"
 msgid ""
 "\n"
-" - Control input devices"
+" - Move the pointer and type keystrokes"
 msgstr ""
 "\n"
-"- Nadzor vhodnih naprav"
-
-#: src/RemoteDesktopDialog.qml:31 src/ScreenChooserDialog.qml:189
-#, kde-format
-msgid "Allow restoring on future sessions"
-msgstr "Dovoli obnovo v naslednjih sejah"
+"- Premikaj kazalec in tipkaj pritiske tipk"
 
 #: src/RemoteDesktopDialog.qml:36
 #, kde-format
-msgctxt "@action:button Approve the application gaining extra privileges"
-msgid "Approve"
-msgstr "Odobri"
+msgctxt "@action:button Allow the application to gain extra privileges"
+msgid "Allow"
+msgstr "Dovoli"
 
 #: src/RemoteDesktopDialog.qml:37
 #, kde-format
@@ -591,130 +760,170 @@ msgctxt "@action:button Deny the application gaining extra privileges"
 msgid "Deny"
 msgstr "Zavrni"
 
-#: src/screencast.cpp:284
+#: src/screencast.cpp:154
+#, kde-format
+msgctxt "@title:window"
+msgid "Screen Sharing Not Available"
+msgstr "Deljenje zaslonov ni na voljo"
+
+#: src/screencast.cpp:156
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The application <application>%1</application> tried to start a screen "
+"sharing session but screen sharing is not available on this system. Please "
+"ensure you are running a Wayland session with a compatible window manager "
+"such as KWin."
+msgstr ""
+"Aplikacija <application>%1</application> je poskusila začeti sejo deljenja "
+"zaslona, ​​vendar deljenje zaslona v tem sistemu ni na voljo. Prepričajte se, "
+"da izvajate sejo Wayland z združljivim upravljalnikom oken, kot je KWin."
+
+#: src/screencast.cpp:160
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The application <application>%1</application> tried to start a screen "
+"sharing session but screen sharing is not available in X11 sessions. Please "
+"switch to a Wayland session and try again."
+msgstr ""
+"Aplikacija <application>%1</application> je poskusila začeti sejo deljenja "
+"zaslona, ​​vendar deljenje zaslona ni na voljo v sejah X11. Preklopite na sejo "
+"Wayland in poskusite znova."
+
+#: src/screencast.cpp:304
 #, kde-format
 msgctxt "Do not disturb mode is enabled because..."
 msgid "Screen sharing in progress"
 msgstr "Deljenje zaslonov v teku"
 
-#: src/screencast.cpp:392
+#: src/screencast.cpp:473
 #, kde-format
 msgctxt "@action:inmenu stops screen/window sharing"
 msgid "End"
 msgstr "Konec"
 
-#: src/screencast.cpp:445
+#: src/screencast.cpp:487
 #, kde-format
-msgctxt "%1 number of screens, %2 the app that receives them"
-msgid "Sharing contents to %2"
-msgid_plural "%1 video streams to %2"
-msgstr[0] "%1 deljena vsebina z %2"
-msgstr[1] "%1 video tokova z %2"
-msgstr[2] "%1 video tokov z %2"
-msgstr[3] "%1 video tokov z %2"
+msgctxt "@info:tooltip %1 the app that receives the screencast"
+msgid "Sharing contents to %1"
+msgstr "Deljenje vsebine z %1"
 
-#: src/screencast.cpp:449
+#: src/screencast.cpp:488
 #, kde-format
 msgctxt ""
 "SNI title that indicates there's a process seeing our windows or screens"
 msgid "Screen casting"
 msgstr "Deljenje zaslonov"
 
-#: src/screenchooserdialog.cpp:158
+#: src/screenchooserdialog.cpp:201
 #, kde-format
-msgctxt "@title:window %1 is an application name (e.g. Falkon)"
-msgid "Share screen with %1"
-msgstr "Deli ta zaslon s %1"
+msgid "Share this screen with an unidentifiable application?"
+msgstr "Naj delim ta zaslon z neznano aplikacijo?"
 
-#: src/screenchooserdialog.cpp:205
-#, kde-format
-msgid "Share this screen with the requesting application?"
-msgstr "Naj delim ta zaslon s programom, ki pošilja zahtevek?"
-
-#: src/screenchooserdialog.cpp:207
+#: src/screenchooserdialog.cpp:203
 #, kde-format
 msgid "Share this screen with %1?"
 msgstr "Naj delim ta zaslon s %1?"
 
-#: src/screenchooserdialog.cpp:212
+#: src/screenchooserdialog.cpp:208
 #, kde-format
-msgid "Choose screens to share with the requesting application:"
-msgstr "Izberite zaslone za deljenje s programom, ki pošilja zahtevek:"
+msgid "Choose screens to share with an unidentifiable application:"
+msgstr "Izberite zaslone, ki jih želite deliti z neidentificirano aplikacijo:"
 
-#: src/screenchooserdialog.cpp:214
+#: src/screenchooserdialog.cpp:210
 #, kde-format
 msgid "Choose screens to share with %1:"
 msgstr "Izberite zaslone, ki jih želite deliti s %1:"
 
-#: src/screenchooserdialog.cpp:218
+#: src/screenchooserdialog.cpp:214
 #, kde-format
-msgid "Choose which screen to share with the requesting application:"
-msgstr "Izberite kateri zaslon bi delili s programom, ki pošilja zahtevek:"
+msgid "Choose a screen to share with an unidentifiable application:"
+msgstr "Izberite zaslon, ki ga želite deliti z neidentificirano aplikacijo:"
 
-#: src/screenchooserdialog.cpp:220
+#: src/screenchooserdialog.cpp:216
 #, kde-format
-msgid "Choose which screen to share with %1:"
-msgstr "Izberite, kateri zaslon bi deliti s %1:"
+msgid "Choose a screen to share with %1:"
+msgstr "Izberite zaslon, ki ga želite deliti z %1:"
 
-#: src/screenchooserdialog.cpp:229
+#: src/screenchooserdialog.cpp:225
 #, kde-format
-msgid "Share this window with the requesting application?"
-msgstr "Naj delim to okno s programom, ki pošilja zahtevek?"
+msgid "Share this window with an unidentifiable application?"
+msgstr "Naj delim to okno z neznano aplikacijo?"
 
-#: src/screenchooserdialog.cpp:231
+#: src/screenchooserdialog.cpp:227
 #, kde-format
 msgid "Share this window with %1?"
 msgstr "Naj delim to okno z %1?"
 
-#: src/screenchooserdialog.cpp:236
+#: src/screenchooserdialog.cpp:232
 #, kde-format
-msgid "Choose windows to share with the requesting application:"
-msgstr "Izberite okna, ki jih želite deliti s programom, ki pošilja zahtevek:"
+msgid "Choose windows to share with an unidentifiable application:"
+msgstr "Izberite okna za deljenje z neidentificirano aplikacijo:"
 
-#: src/screenchooserdialog.cpp:238
+#: src/screenchooserdialog.cpp:234
 #, kde-format
 msgid "Choose windows to share with %1:"
 msgstr "Izberite okna, ki jih želite deliti s %1:"
 
-#: src/screenchooserdialog.cpp:242
+#: src/screenchooserdialog.cpp:238
 #, kde-format
-msgid "Choose which window to share with the requesting application:"
-msgstr "Izberite katero okno želite deliti s programom, ki pošilja zahtevek:"
+msgid "Choose a window to share with an unidentifiable application:"
+msgstr "Izberite okno za deljenje z neidentificirano aplikacijo:"
 
-#: src/screenchooserdialog.cpp:244
+#: src/screenchooserdialog.cpp:240
 #, kde-format
-msgid "Choose which window to share with %1:"
-msgstr "Izberite, katero okno želite deliti s %1:"
+msgid "Choose a window to share with %1:"
+msgstr "Izberite okno za deljenje z %1:"
 
-#: src/screenchooserdialog.cpp:251
+#: src/screenchooserdialog.cpp:247
 #, kde-format
-msgid "Create a new virtual display to share with the requesting application:"
+msgid ""
+"Create a new virtual display to share with an unidentifiable application:"
 msgstr ""
-"Ustvarite nov virtualni zaslon za skupno rabo z aplikacijo, ki ga zahteva:"
+"Ustvari nov virtualni zaslon za deljenje z neidentificirano aplikacijo:"
 
-#: src/screenchooserdialog.cpp:253
+#: src/screenchooserdialog.cpp:249
 #, kde-format
 msgid "Create a new virtual display to share with %1:"
 msgstr "Ustvari nov virtualni zaslon za skupno rabo z %1:"
 
-#: src/screenchooserdialog.cpp:259
+#: src/screenchooserdialog.cpp:255
 #, kde-format
-msgid "Choose what to share with the requesting application:"
-msgstr "Izberite, kaj želite deliti s programom, ki pošilja zahtevek:"
+msgid "Choose what to share with an unidentifiable application:"
+msgstr "Izberite, kaj deliti z neidentificirano aplikacijo:"
 
-#: src/screenchooserdialog.cpp:261
+#: src/screenchooserdialog.cpp:257
 #, kde-format
 msgid "Choose what to share with %1:"
 msgstr "Izberite, kaj želite deliti s %1:"
 
-#: src/ScreenChooserDialog.qml:166
+#: src/screenchooserdialog.cpp:263
+#, kde-format
+msgctxt "@info:usagetip"
+msgid "Only share anything if you know which application made the request."
+msgstr "Delite karkoli, samo če veste, katera aplikacija je oddala zahtevo."
+
+#: src/ScreenChooserDialog.qml:121
+#, kde-format
+msgctxt "placeholder text for searchfield"
+msgid "Search…"
+msgstr "Išči…"
+
+#: src/ScreenChooserDialog.qml:167
 #, kde-format
 msgctxt ""
 "@label separator line label between screen selection and window selection"
 msgid "Windows"
 msgstr "Okna"
 
-#: src/ScreenChooserDialog.qml:194
+#: src/ScreenChooserDialog.qml:186
+#, kde-format
+msgctxt "@title:window"
+msgid "Screen Sharing Requested"
+msgstr "Zahtevana skupna raba zaslona"
+
+#: src/ScreenChooserDialog.qml:199
 #, kde-format
 msgid "Share"
 msgstr "Deli"
@@ -734,27 +943,40 @@ msgstr "Trenutni zaslon"
 msgid "Active Window"
 msgstr "Dejavno okno"
 
-#: src/ScreenshotDialog.qml:22
+#: src/ScreenshotDialog.qml:26
 #, kde-format
-msgid "Request Screenshot"
-msgstr "Zahtevaj zajem zaslona"
+msgctxt "@title:window"
+msgid "Screenshot Requested"
+msgstr "Zahtevan posnetek zaslona"
 
-#: src/ScreenshotDialog.qml:34
+#: src/ScreenshotDialog.qml:28
+#, kde-format
+msgctxt "@info"
+msgid "Allow an unidentifiable application to take a screenshot?"
+msgstr "Dovoliti neznani aplikaciji, da naredi posnetek zaslona?"
+
+#: src/ScreenshotDialog.qml:29
+#, kde-format
+msgctxt "@info %1 is the name of an application"
+msgid "Allow %1 to take a screenshot?"
+msgstr "Naj dovolim %1, da naredi posnetek zaslona?"
+
+#: src/ScreenshotDialog.qml:42
 #, kde-format
 msgid "Capture Mode"
 msgstr "Način zajemanja"
 
-#: src/ScreenshotDialog.qml:38
+#: src/ScreenshotDialog.qml:46
 #, kde-format
 msgid "Area:"
 msgstr "Področje:"
 
-#: src/ScreenshotDialog.qml:43
+#: src/ScreenshotDialog.qml:51
 #, kde-format
 msgid "Delay:"
 msgstr "Zamuda:"
 
-#: src/ScreenshotDialog.qml:47
+#: src/ScreenshotDialog.qml:55
 #, kde-format
 msgid "%1 second"
 msgid_plural "%1 seconds"
@@ -763,80 +985,112 @@ msgstr[1] "%1 sekundi"
 msgstr[2] "%1 sekunde"
 msgstr[3] "%1 sekund"
 
-#: src/ScreenshotDialog.qml:52
+#: src/ScreenshotDialog.qml:60
 #, kde-format
 msgid "Content Options"
 msgstr "Možnosti vsebine"
 
-#: src/ScreenshotDialog.qml:56
+#: src/ScreenshotDialog.qml:64
 #, kde-format
-msgid "Include cursor pointer"
+msgctxt "@option:check Refers to the on-screen 'mouse pointer'"
+msgid "Include pointer"
 msgstr "Vključi kazalko"
 
-#: src/ScreenshotDialog.qml:61
+#: src/ScreenshotDialog.qml:69
 #, kde-format
 msgid "Include window borders"
 msgstr "Vključi obrobe okna"
 
-#: src/ScreenshotDialog.qml:75
+#: src/ScreenshotDialog.qml:83
 #, kde-format
-msgid "Save"
-msgstr "Shrani"
+msgctxt "@action:button Allow the application to use the screenshot"
+msgid "Allow"
+msgstr "Dovoli"
 
-#: src/ScreenshotDialog.qml:85
+#: src/ScreenshotDialog.qml:84
 #, kde-format
-msgid "Take"
-msgstr "Vzemi"
+msgctxt "@action:button Deny the application's request to take a screenshot"
+msgid "Deny"
+msgstr "Zavrni"
 
-#: src/UsbDialog.qml:20
+#: src/ScreenshotDialog.qml:94
+#, kde-format
+msgctxt "@action:button"
+msgid "Take Screenshot"
+msgstr "Naredi zajem zaslona"
+
+#: src/UsbDialog.qml:21
 #, kde-format
 msgctxt "@title:window"
-msgid "Access to USB Devices Requested"
-msgstr "Zahtevan dostop do naprav USB"
+msgid "Device Access Requested"
+msgstr "Zahtevan dostop do naprave"
 
 #: src/UsbDialog.qml:23
 #, kde-format
-msgctxt "The application is unknown"
-msgid "An application wants to access the following device:"
-msgid_plural "An application wants to access the following devices:"
-msgstr[0] "Aplikacija želi dostopati do naslednjih naprav:"
-msgstr[1] "Aplikacija želi dostopati do naslednje naprave:"
-msgstr[2] "Aplikacija želi dostopati do naslednjih naprav:"
-msgstr[3] "Aplikacija želi dostopati do naslednjih naprav:"
+msgctxt "@info"
+msgid "Allow an unidentifiable application to access the following device?"
+msgid_plural ""
+"Allow an unidentifiable application to access the following devices?"
+msgstr[0] "Naj dovolim nedoločljivi aplikaciji dostop do naslednjih naprav?"
+msgstr[1] "Naj dovolim nedoločljivi aplikaciji dostop do naslednje naprave?"
+msgstr[2] "Naj dovolim nedoločljivi aplikaciji dostop do naslednjih naprav?"
+msgstr[3] "Naj dovolim nedoločljivi aplikaciji dostop do naslednjih naprav?"
 
-#: src/UsbDialog.qml:25
+#: src/UsbDialog.qml:24
 #, kde-format
-msgctxt "%2 is the name of the application"
-msgid "%2 wants to access the following device:"
-msgid_plural "%2 wants to access the following devices:"
-msgstr[0] "%2 želi dostopati do naslednjih naprav:"
-msgstr[1] "%2 želi dostopati do naslednje naprave:"
-msgstr[2] "%2 želi dostopati do naslednjih naprav:"
-msgstr[3] "%2 želi dostopati do naslednjih naprav:"
+msgctxt "@info %2 is the name of the application"
+msgid "Allow %2 to access the following device?"
+msgid_plural "Allow %2 to access the following devices?"
+msgstr[0] "Naj dovolim %2 dostop do naslednjih naprav?"
+msgstr[1] "Naj dovolim %2 dostop do naslednje naprave?"
+msgstr[2] "Naj dovolim %2 dostop do naslednjih naprav?"
+msgstr[3] "Naj dovolim %2 dostop do naslednjih naprav?"
+
+#: src/UsbDialog.qml:67
+#, kde-format
+msgctxt "@action:button Allow the application to access devices"
+msgid "Allow"
+msgstr "Dovoli"
+
+#: src/UsbDialog.qml:68
+#, kde-format
+msgctxt "@action:button Deny the application's request to access devices"
+msgid "Deny"
+msgstr "Zavrni"
 
 #: src/userinfodialog.cpp:52
 #, kde-format
 msgctxt "@title"
-msgid "Share user info with %1"
-msgstr "Deli uporabnikove informacije z %1"
+msgid "Share user info with %1?"
+msgstr "Naj delim uporabnikove informacije z %1?"
 
-#: src/userinfodialog.cpp:54
-#, kde-format
+#: src/userinfodialog.cpp:56
+#, kde-kuit-format
 msgctxt "@info:usagetip"
 msgid ""
-"Allows your username, full name, and profile picture to be used by the "
-"application."
+"The application will be able to see your username, full name, and profile "
+"picture.<nl/><nl/>The application did not provide a reason."
 msgstr ""
-"Dovoli, da vaše uporabniško ime, polno ime in sliko profila uporabi "
-"aplikacija."
+"Aplikacija bo lahko videla vaše uporabniško ime, polno ime in sliko profila."
+"<nl/><nl/>Aplikacija ni navedla razloga."
 
-#: src/UserInfoDialog.qml:18
+#: src/userinfodialog.cpp:57
+#, kde-kuit-format
+msgctxt "@info:usagetip"
+msgid ""
+"The application will be able to see your username, full name, and profile "
+"picture.<nl/><nl/>Reason: “%1”"
+msgstr ""
+"Aplikacija bo lahko videla vaše uporabniško ime, polno ime in profilno sliko."
+"<nl/><nl/>Razlog: “%1”"
+
+#: src/UserInfoDialog.qml:19
 #, kde-format
-msgctxt "@action:button"
-msgid "Share user info"
-msgstr "Deli uporabnikove podatke"
+msgctxt "@title:window"
+msgid "User Information Requested"
+msgstr "Zahtevani podatki o uporabniku"
 
-#: src/UserInfoDialog.qml:74
+#: src/UserInfoDialog.qml:76
 #, kde-format
 msgctxt "@action:button"
 msgid "Share"
@@ -845,57 +1099,200 @@ msgstr "Deli"
 #: src/WallpaperDialog.qml:20
 #, kde-format
 msgctxt "@title:window"
-msgid "Set Wallpaper"
-msgstr "Nastavi ozadje"
+msgid "Wallpaper Change Requested"
+msgstr "Zahtevana sprememba ozadja"
 
 #: src/WallpaperDialog.qml:25
 #, kde-format
-msgctxt "the app is unknown"
-msgid "Allow an application to set the desktop background?"
-msgstr "Dovoli aplikaciji, da nastavi ozadje namizja?"
+msgctxt "@info"
+msgid "Allow an unidentifiable application to change the desktop wallpaper?"
+msgstr "Naj dovolim neidentificirani aplikaciji spreminjanje ozadja namizja?"
 
 #: src/WallpaperDialog.qml:27
 #, kde-format
-msgctxt "the app is unknown"
-msgid "Allow an application to set the lock screen background?"
-msgstr "Dovoli aplikaciji, da nastavi zaklep ozadja zaslona?"
+msgctxt "@info"
+msgid ""
+"Allow an unidentifiable application to change the lock screen wallpaper?"
+msgstr ""
+"Naj dovolim neidentificirani aplikaciji spreminjanje ozadja zaklenjenega "
+"zaslona?"
 
 #: src/WallpaperDialog.qml:29
 #, kde-format
-msgctxt "the app is unknown"
-msgid "Allow an application to set desktop and lock screen backgrounds?"
-msgstr "Dovoli aplikaciji, da nastavi namizje in zaklene ozadja zaslona?"
+msgctxt "@info"
+msgid ""
+"Allow an unidentifiable application to change desktop and lock screen "
+"wallpapers?"
+msgstr ""
+"Naj dovolim neidentificirani aplikaciji spreminjanje ozadja namizja in "
+"zaklenjenega zaslona?"
 
 #: src/WallpaperDialog.qml:34
 #, kde-format
-msgctxt "%1 is the application name"
-msgid "Allow %1 to set the desktop background?"
-msgstr "Dovoli %1, da nastavi ozadje namizja?"
+msgctxt "@info %1 is the application name"
+msgid "Allow %1 to change the desktop wallpaper?"
+msgstr "Naj dovolim %1, da spremeni ozadje namizja?"
 
 #: src/WallpaperDialog.qml:36
 #, kde-format
-msgctxt "%1 is the application name"
-msgid "Allow %1 to set the lock screen background?"
-msgstr "Dovoli %1, da nastavi zaklep ozadja zaslona?"
+msgctxt "@info %1 is the application name"
+msgid "Allow %1 to change the lock screen wallpaper?"
+msgstr "Naj dovolim %1, da spremeni ozadje zaklenjenega zaslona?"
 
 #: src/WallpaperDialog.qml:38
 #, kde-format
-msgctxt "%1 is the application name"
-msgid "Allow %1 to set desktop and lock screen backgrounds?"
-msgstr "Dovoli %1, da nastavi namizje in zaklene ozadja zaslona?"
+msgctxt "@info %1 is the application name"
+msgid "Allow %1 to change desktop and lock screen wallpapers?"
+msgstr "Naj dovolim %1 spreminjanje ozadja namizja in zaklenjenega zaslona?"
 
-#: src/waylandintegration.cpp:268 src/waylandintegration.cpp:326
+#: src/WallpaperDialog.qml:55
+#, kde-format
+msgctxt "@action:button Allow the application to change the wallpaper"
+msgid "Allow"
+msgstr "Dovoli"
+
+#: src/WallpaperDialog.qml:56
+#, kde-format
+msgctxt ""
+"@action:button Deny the applicatinon's request to change the wallpaper"
+msgid "Deny"
+msgstr "Zavrni"
+
+#: src/waylandintegration.cpp:217 src/waylandintegration.cpp:260
 #, kde-format
 msgid "Failed to start screencasting"
-msgstr "Začetek predvajanja zaslona ni uspel"
+msgstr "Zagon video zajemanja zaslona ni uspel"
 
-#: src/waylandintegration.cpp:477
+#: src/waylandintegration.cpp:381
 #, kde-format
 msgid "Remote desktop"
 msgstr "Oddaljeni zaslon"
 
-#~ msgid "Screen Sharing"
-#~ msgstr "Deljenje zaslonov"
+#~ msgctxt "@info"
+#~ msgid "Only allow if you know which application made the request."
+#~ msgstr "Dovolite le, če veste, katera aplikacija je oddala zahtevo."
+
+#~ msgctxt ""
+#~ "@action:button Don't allow the app to keep running without any open "
+#~ "windows"
+#~ msgid "Forbid"
+#~ msgstr "Prepovej"
+
+#~ msgctxt ""
+#~ "@action:button Don't allow the app to keep running without any open "
+#~ "windows"
+#~ msgid "Forbid Anyway"
+#~ msgstr "Kljub temu prepovej"
+
+#~ msgctxt "@title"
+#~ msgid "Add Web Application…"
+#~ msgstr "Dodaj spletno aplikacijo…"
+
+#~ msgctxt "@title"
+#~ msgid "Add Application…"
+#~ msgstr "Dodaj aplikacijo…"
+
+#~ msgctxt "@action accept dialog and create launcher"
+#~ msgid "Accept"
+#~ msgstr "Sprejmi"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Input is being managed by an application. Press <shortcut>%1</shortcut> "
+#~ "to disable."
+#~ msgstr ""
+#~ "Vnos upravlja aplikacija. Pritisnite <shortcut>%1</shortcut>, da "
+#~ "onemogočite."
+
+#~ msgctxt "@title:nofication, set up as in established"
+#~ msgid "Input Capture Set-Up"
+#~ msgstr "Nastavitev zajemanja vhodnih podatkov"
+
+#~ msgctxt "The application is unknown"
+#~ msgid "An application requested to capture input events"
+#~ msgstr "Aplikacija je zahtevala zajem vhodnih dogodkov"
+
+#~ msgctxt "%1 is the name of the application"
+#~ msgid "%1 requested to capture input events"
+#~ msgstr "%1 je zahtevala zajem vhodnih dogodkov"
+
+#~ msgctxt "@option:check"
+#~ msgid "Allow restoring on future sessions"
+#~ msgstr "Dovoli obnovo v naslednjih sejah"
+
+#~ msgctxt "@action:button"
+#~ msgid "Allow"
+#~ msgstr "Dovoli"
+
+#~ msgctxt "title of notification about input systems taken over"
+#~ msgid "Remote control session started"
+#~ msgstr "Zagnana seja oddaljenega nadzora"
+
+#~ msgctxt "@info"
+#~ msgid "%1 is asking for special privileges:"
+#~ msgstr "%1 zahteva posebne pravice:"
+
+#~ msgctxt ""
+#~ "@info As in, 'an application requested access to control input devices'. "
+#~ "'-' is Markdown, do not translate"
+#~ msgid ""
+#~ "\n"
+#~ " - Control input devices"
+#~ msgstr ""
+#~ "\n"
+#~ "- Nadzor vhodnih naprav"
+
+#~ msgctxt "@info"
+#~ msgid "An application is exercising special permissions:\n"
+#~ msgstr "Aplikacija uporablja posebna dovoljenja:\n"
+
+#~ msgctxt ""
+#~ "@info As in, 'an application is exercising privileges to control input "
+#~ "devices'. '-' is Markdown, do not translate"
+#~ msgid ""
+#~ "\n"
+#~ " - Control input devices"
+#~ msgstr ""
+#~ "\n"
+#~ "- Nadzor vhodnih naprav"
+
+#~ msgid "Allow restoring on future sessions"
+#~ msgstr "Dovoli obnovo v naslednjih sejah"
+
+#~ msgctxt "@action:button Approve the application gaining extra privileges"
+#~ msgid "Approve"
+#~ msgstr "Odobri"
+
+#~ msgctxt "@title:window %1 is an application name (e.g. Falkon)"
+#~ msgid "Share screen with %1"
+#~ msgstr "Deli ta zaslon s %1"
+
+#~ msgid "Choose which screen to share with the requesting application:"
+#~ msgstr "Izberite kateri zaslon bi delili s programom, ki pošilja zahtevek:"
+
+#~ msgid "Choose which screen to share with %1:"
+#~ msgstr "Izberite, kateri zaslon bi deliti s %1:"
+
+#~ msgid "Choose which window to share with the requesting application:"
+#~ msgstr ""
+#~ "Izberite katero okno želite deliti s programom, ki pošilja zahtevek:"
+
+#~ msgid "Choose which window to share with %1:"
+#~ msgstr "Izberite, katero okno želite deliti s %1:"
+
+#~ msgid "Save"
+#~ msgstr "Shrani"
+
+#~ msgid "Take"
+#~ msgstr "Vzemi"
+
+#~ msgctxt "@action:button"
+#~ msgid "Share user info"
+#~ msgstr "Deli uporabnikove podatke"
+
+#~ msgctxt "@title:window"
+#~ msgid "Set Wallpaper"
+#~ msgstr "Nastavi ozadje"
 
 #~ msgid "Screens"
 #~ msgstr "Zasloni"
@@ -911,11 +1308,6 @@ msgstr "Oddaljeni zaslon"
 #~ msgctxt "@info"
 #~ msgid "Don't see the right app? Find more in <link>Discover</link>."
 #~ msgstr "Ne vidite ustrezne aplikacije? Najdite več v <link>Discover</link>."
-
-#~ msgctxt ""
-#~ "SNI title that indicates there's a process remotely controlling the system"
-#~ msgid "Remote Desktop"
-#~ msgstr "Oddaljeno namizje"
 
 #~ msgctxt "Unordered list with privileges granted to an external process"
 #~ msgid "An application requested access to remotely control:\n"

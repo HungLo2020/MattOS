@@ -21,6 +21,7 @@
 #include "settings.h"
 #include "workspace.h"
 #include <QOpenGLContext>
+#include <QQmlEngine>
 
 #endif // KCMRULES
 
@@ -48,6 +49,7 @@ Options::Options(QObject *parent)
     , m_edgeBarrier(0)
     , m_cornerBarrier(0)
     , m_rollOverDesktops(false)
+    , m_perOutputVirtualDesktops(false)
     , m_focusStealingPreventionLevel(FocusStealingPreventionLevel::None)
     , m_killPingTimeout(0)
     , m_xwaylandCrashPolicy(Options::defaultXwaylandCrashPolicy())
@@ -55,6 +57,7 @@ Options::Options(QObject *parent)
     , m_xwaylandEavesdrops(Options::defaultXwaylandEavesdrops())
     , m_xwaylandEavesdropsMouse(Options::defaultXwaylandEavesdropsMouse())
     , m_xwaylandEisNoPrompt(Options::defaultXwaylandEisNoPrompt())
+    , m_xwaylandEisNoPromptApps(Options::defaultXwaylandEisNotPromptApps())
     , m_compositingMode(Options::defaultCompositingMode())
     , OpTitlebarDblClick(Options::defaultOperationTitlebarDblClick())
     , CmdActiveTitlebar1(Options::defaultCommandActiveTitlebar1())
@@ -85,10 +88,10 @@ Options::Options(QObject *parent)
 
     m_configWatcher = KConfigWatcher::create(m_settings->sharedConfig());
     connect(m_configWatcher.data(), &KConfigWatcher::configChanged, this, [this](const KConfigGroup &group, const QByteArrayList &names) {
-        if (group.name() == QLatin1String("KDE") && names.contains(QByteArrayLiteral("AnimationDurationFactor"))) {
+        if (group.name() == QLatin1StringView("KDE") && names.contains(QByteArrayLiteral("AnimationDurationFactor"))) {
             m_settings->load();
             Q_EMIT animationSpeedChanged();
-        } else if (group.name() == QLatin1String("Xwayland")) {
+        } else if (group.name() == QLatin1StringView("Xwayland")) {
             workspace()->reconfigure();
         }
     });
@@ -96,6 +99,12 @@ Options::Options(QObject *parent)
 
 Options::~Options()
 {
+}
+
+Options *Options::create(QQmlEngine *, QJSEngine *)
+{
+    QQmlEngine::setObjectOwnership(options, QQmlEngine::CppOwnership);
+    return options;
 }
 
 void Options::setFocusPolicy(FocusPolicy focusPolicy)
@@ -164,6 +173,15 @@ void Options::setXWaylandEisNoPrompt(bool doNotPrompt)
     }
     m_xwaylandEisNoPrompt = doNotPrompt;
     Q_EMIT xwaylandEisNoPromptChanged();
+}
+
+void Options::setXWaylandEisNoPromptApps(const QStringList &apps)
+{
+    if (m_xwaylandEisNoPromptApps == apps) {
+        return;
+    }
+    m_xwaylandEisNoPromptApps = apps;
+    Q_EMIT xwaylandEisNoPromptAppsChanged();
 }
 
 void Options::setClickRaise(bool clickRaise)
@@ -307,6 +325,15 @@ void Options::setRollOverDesktops(bool rollOverDesktops)
     }
     m_rollOverDesktops = rollOverDesktops;
     Q_EMIT rollOverDesktopsChanged(m_rollOverDesktops);
+}
+
+void Options::setPerOutputVirtualDesktops(bool perOutputVirtualDesktops)
+{
+    if (m_perOutputVirtualDesktops == perOutputVirtualDesktops) {
+        return;
+    }
+    m_perOutputVirtualDesktops = perOutputVirtualDesktops;
+    Q_EMIT perOutputVirtualDesktopsChanged(m_perOutputVirtualDesktops);
 }
 
 void Options::setFocusStealingPreventionLevel(FocusStealingPreventionLevel focusStealingPreventionLevel)
@@ -648,34 +675,31 @@ void Options::loadConfig()
     syncFromKcfgc();
 
     // Electric borders
-    KConfigGroup config(m_settings->config(), QStringLiteral("Windows"));
-    OpTitlebarDblClick = windowOperation(config.readEntry("TitlebarDoubleClickCommand", "Maximize"), true);
-    setOperationMaxButtonLeftClick(windowOperation(config.readEntry("MaximizeButtonLeftClickCommand", "Maximize"), true));
-    setOperationMaxButtonMiddleClick(windowOperation(config.readEntry("MaximizeButtonMiddleClickCommand", "Maximize (vertical only)"), true));
-    setOperationMaxButtonRightClick(windowOperation(config.readEntry("MaximizeButtonRightClickCommand", "Maximize (horizontal only)"), true));
+    OpTitlebarDblClick = windowOperation(m_settings->titlebarDoubleClickCommand(), true);
+    setOperationMaxButtonLeftClick(windowOperation(m_settings->maximizeButtonLeftClickCommand(), true));
+    setOperationMaxButtonMiddleClick(windowOperation(m_settings->maximizeButtonMiddleClickCommand(), true));
+    setOperationMaxButtonRightClick(windowOperation(m_settings->maximizeButtonRightClickCommand(), true));
 
-    // Mouse bindings
-    config = KConfigGroup(m_settings->config(), QStringLiteral("MouseBindings"));
     // TODO: add properties for missing options
-    CmdTitlebarWheel = mouseWheelCommand(config.readEntry("CommandTitlebarWheel", "Nothing"));
-    CmdAllModKey = (config.readEntry("CommandAllKey", "Meta") == QLatin1StringView("Meta")) ? Qt::Key_Meta : Qt::Key_Alt;
-    CmdAllWheel = mouseWheelCommand(config.readEntry("CommandAllWheel", "Nothing"));
-    setCommandActiveTitlebar1(mouseCommand(config.readEntry("CommandActiveTitlebar1", "Raise"), true));
-    setCommandActiveTitlebar2(mouseCommand(config.readEntry("CommandActiveTitlebar2", "Nothing"), true));
-    setCommandActiveTitlebar3(mouseCommand(config.readEntry("CommandActiveTitlebar3", "Operations menu"), true));
-    setCommandInactiveTitlebar1(mouseCommand(config.readEntry("CommandInactiveTitlebar1", "Activate and raise"), true));
-    setCommandInactiveTitlebar2(mouseCommand(config.readEntry("CommandInactiveTitlebar2", "Nothing"), true));
-    setCommandInactiveTitlebar3(mouseCommand(config.readEntry("CommandInactiveTitlebar3", "Operations menu"), true));
-    setCommandWindow1(mouseCommand(config.readEntry("CommandWindow1", "Activate, pass click and raise on release"), false));
-    setCommandWindow2(mouseCommand(config.readEntry("CommandWindow2", "Activate and pass click"), false));
-    setCommandWindow3(mouseCommand(config.readEntry("CommandWindow3", "Activate and pass click"), false));
-    setCommandWindowWheel(mouseCommand(config.readEntry("CommandWindowWheel", "Scroll"), false));
-    setCommandAll1(mouseCommand(config.readEntry("CommandAll1", "Move"), false));
-    setCommandAll2(mouseCommand(config.readEntry("CommandAll2", "Toggle raise and lower"), false));
-    setCommandAll3(mouseCommand(config.readEntry("CommandAll3", "Resize"), false));
+    CmdTitlebarWheel = mouseWheelCommand(m_settings->commandTitlebarWheel());
+    CmdAllModKey = (m_settings->commandAllKey() == QLatin1StringView("Meta")) ? Qt::Key_Meta : Qt::Key_Alt;
+    CmdAllWheel = mouseWheelCommand(m_settings->commandAllWheel());
+    setCommandActiveTitlebar1(mouseCommand(m_settings->commandActiveTitlebar1(), true));
+    setCommandActiveTitlebar2(mouseCommand(m_settings->commandActiveTitlebar2(), true));
+    setCommandActiveTitlebar3(mouseCommand(m_settings->commandActiveTitlebar3(), true));
+    setCommandInactiveTitlebar1(mouseCommand(m_settings->commandInactiveTitlebar1(), true));
+    setCommandInactiveTitlebar2(mouseCommand(m_settings->commandInactiveTitlebar2(), true));
+    setCommandInactiveTitlebar3(mouseCommand(m_settings->commandInactiveTitlebar3(), true));
+    setCommandWindow1(mouseCommand(m_settings->commandWindow1(), false));
+    setCommandWindow2(mouseCommand(m_settings->commandWindow2(), false));
+    setCommandWindow3(mouseCommand(m_settings->commandWindow3(), false));
+    setCommandWindowWheel(mouseCommand(m_settings->commandWindowWheel(), false));
+    setCommandAll1(mouseCommand(m_settings->commandAll1(), false));
+    setCommandAll2(mouseCommand(m_settings->commandAll2(), false));
+    setCommandAll3(mouseCommand(m_settings->commandAll3(), false));
 
     // Compositing
-    config = KConfigGroup(m_settings->config(), QStringLiteral("Compositing"));
+    const KConfigGroup config(m_settings->config(), QStringLiteral("Compositing"));
     CompositingType compositingMode = NoCompositing;
     QString compositingBackend = config.readEntry("Backend", "OpenGL");
     if (compositingBackend == "QPainter") {
@@ -709,6 +733,7 @@ void Options::syncFromKcfgc()
     setNextFocusPrefersMouse(m_settings->nextFocusPrefersMouse());
     setSeparateScreenFocus(m_settings->separateScreenFocus());
     setRollOverDesktops(m_settings->rollOverDesktops());
+    setPerOutputVirtualDesktops(m_settings->perOutputVirtualDesktops());
     setFocusStealingPreventionLevel(FocusStealingPreventionLevel(m_settings->focusStealingPreventionLevel()));
     setActivationDesktopPolicy(m_settings->activationDesktopPolicy());
     setXwaylandCrashPolicy(m_settings->xwaylandCrashPolicy());
@@ -716,6 +741,7 @@ void Options::syncFromKcfgc()
     setXwaylandEavesdrops(XwaylandEavesdropsMode(m_settings->xwaylandEavesdrops()));
     setXwaylandEavesdropsMouse(m_settings->xwaylandEavesdropsMouse());
     setXWaylandEisNoPrompt(m_settings->xwaylandEisNoPrompt());
+    setXWaylandEisNoPromptApps(m_settings->xwaylandEisNoPromptApps());
     setPlacement(m_settings->placement());
     setAutoRaise(m_settings->autoRaise());
     setAutoRaiseInterval(m_settings->autoRaiseInterval());
@@ -814,6 +840,9 @@ Options::MouseCommand Options::mouseCommand(const QString &name, bool restricted
     if (lowerName == QLatin1StringView("activate, raise and move")) {
         return restricted ? MouseActivateRaiseAndMove : MouseActivateRaiseAndUnrestrictedMove;
     }
+    if (lowerName == QLatin1StringView("activate, raise and resize")) {
+        return restricted ? MouseActivateRaiseAndResize : MouseActivateRaiseAndUnrestrictedResize;
+    }
     if (lowerName == QLatin1StringView("move")) {
         return restricted ? MouseMove : MouseUnrestrictedMove;
     }
@@ -871,15 +900,15 @@ Options::MouseCommand Options::wheelToMouseCommand(MouseWheelCommand com, qreal 
 {
     switch (com) {
     case MouseWheelRaiseLower:
-        return delta > 0 ? MouseRaise : MouseLower;
+        return delta < 0 ? MouseRaise : MouseLower;
     case MouseWheelMaximizeRestore:
-        return delta > 0 ? MouseMaximize : MouseRestore;
+        return delta < 0 ? MouseMaximize : MouseRestore;
     case MouseWheelAboveBelow:
-        return delta > 0 ? MouseAbove : MouseBelow;
+        return delta < 0 ? MouseAbove : MouseBelow;
     case MouseWheelPreviousNextDesktop:
-        return delta > 0 ? MousePreviousDesktop : MouseNextDesktop;
+        return delta < 0 ? MousePreviousDesktop : MouseNextDesktop;
     case MouseWheelChangeOpacity:
-        return delta > 0 ? MouseOpacityMore : MouseOpacityLess;
+        return delta < 0 ? MouseOpacityMore : MouseOpacityLess;
     default:
         return MouseNothing;
     }

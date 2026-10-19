@@ -31,8 +31,6 @@
 namespace KWin
 {
 
-static const QString s_socketName = QStringLiteral("wayland_test_kwin_debug_console-0");
-
 class DebugConsoleTest : public QObject
 {
     Q_OBJECT
@@ -54,7 +52,7 @@ void DebugConsoleTest::initTestCase()
 {
     qRegisterMetaType<KWin::Window *>();
     qRegisterMetaType<KWin::InternalWindow *>();
-    QVERIFY(waylandServer()->init(s_socketName));
+    QVERIFY(waylandServer()->init(qAppName()));
 
     kwinApp()->start();
     Test::setOutputConfig({
@@ -384,6 +382,7 @@ void DebugConsoleTest::testWaylandClient()
 class HelperWindow : public QRasterWindow
 {
     Q_OBJECT
+
 public:
     HelperWindow()
         : QRasterWindow(nullptr)

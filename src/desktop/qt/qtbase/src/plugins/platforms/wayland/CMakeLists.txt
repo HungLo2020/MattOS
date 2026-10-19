@@ -32,9 +32,12 @@ include(../../../../src/tools/qtwaylandscanner/Qt6WaylandClientMacros.cmake)
 
 qt_internal_add_module(WaylandClient
     PLUGIN_TYPES wayland-inputdevice-integration
+    POLICIES
+        QTP0006
     SOURCES
         shared/qwaylandinputmethodeventbuilder.cpp shared/qwaylandinputmethodeventbuilder_p.h
         shared/qwaylandmimehelper.cpp shared/qwaylandmimehelper_p.h
+        shared/qwaylandpipewritehelper.cpp shared/qwaylandpipewritehelper_p.h
         shared/qwaylandsharedmemoryformathelper_p.h
         global/qwaylandclientextension.cpp global/qwaylandclientextension.h global/qwaylandclientextension_p.h
         hardwareintegration/qwaylandclientbufferintegration.cpp hardwareintegration/qwaylandclientbufferintegration_p.h
@@ -117,7 +120,6 @@ qt_internal_add_module(WaylandClient
         ../../../3rdparty/wayland/protocols/xdg-shell
         ../../../3rdparty/wayland/protocols/wlr-data-control
         ../../../3rdparty/wayland/protocols/session-management
-
 )
 
 qt_internal_add_plugin(QWaylandIntegrationPlugin
@@ -158,7 +160,7 @@ qt6_generate_wayland_protocol_client_sources(WaylandClient
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../3rdparty/wayland/extensions/server-buffer-extension.xml
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../3rdparty/wayland/protocols/color-management/color-management-v1.xml
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../3rdparty/wayland/protocols/pointer-warp/pointer-warp-v1.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../../3rdparty/wayland/protocols/session-management/xx-session-management-v1.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../3rdparty/wayland/protocols/session-management/xdg-session-management-v1.xml
 )
 
 #### Keys ignored in scope 1:.:.:client.pro:<TRUE>:

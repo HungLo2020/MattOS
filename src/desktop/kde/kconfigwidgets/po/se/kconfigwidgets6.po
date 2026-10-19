@@ -5,10 +5,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdelibs4\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-02-25 00:42+0000\n"
+"POT-Creation-Date: 2026-09-17 00:40+0000\n"
 "PO-Revision-Date: 2012-05-30 23:19+0200\n"
 "Last-Translator: Børre Gaup <boerre@skolelinux.no>\n"
-"Language-Team: Northern Sami <l10n-no@lister.huftis.org>\n"
+"Language-Team: Northern Sami <l10n-no@nuug.no>\n"
 "Language: se\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -116,14 +116,7 @@ msgctxt "home page"
 msgid "&Home"
 msgstr "&Ruoktut"
 
-#: kstandardaction.cpp:230
-#, kde-format
-msgid "Show Menubar<p>Shows the menubar again after it has been hidden</p>"
-msgstr ""
-"Čájet fálloholgga <p>Čájeha fálloholgga fas maŋŋá go lea leamaš "
-"čihkkojuvvon</p>"
-
-#: kstandardaction.cpp:251
+#: kstandardaction.cpp:248
 #, kde-format
 msgid ""
 "Show Statusbar<p>Shows the statusbar, which is the bar at the bottom of the "
@@ -541,7 +534,7 @@ msgid "Application Style"
 msgstr "Heaittit prográmma"
 
 # unreviewed-context
-#: kstylemanager.cpp:78
+#: kstylemanager.cpp:84
 #, fuzzy, kde-format
 msgid "Default"
 msgstr "Standárda"

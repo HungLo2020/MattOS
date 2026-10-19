@@ -108,19 +108,19 @@ msgctxt "KCharsets|@item Text character set"
 msgid "Other"
 msgstr "其他"
 
-#: kcharsets.cpp:469
+#: kcharsets.cpp:472
 #, qt-format
 msgctxt "KCharsets|@item %1 character set, %2 encoding"
 msgid "%1 ( %2 )"
 msgstr "%1（%2）"
 
-#: kcharsets.cpp:471
+#: kcharsets.cpp:474
 #, qt-format
 msgctxt "KCharsets|@item"
 msgid "Other encoding (%1)"
 msgstr "其他編碼（%1）"
 
-#: kcharsets.cpp:502
+#: kcharsets.cpp:505
 #, qt-format
 msgctxt "KCharsets|@item Text encoding: %1 character set, %2 encoding"
 msgid "%1 ( %2 )"
@@ -260,82 +260,82 @@ msgstr ""
 "您輸入的電子郵件地址是不合法的。\n"
 "其似乎並未包含任何實際上的電子郵件地址，如 joe@example.org 等。"
 
-#: kencodingprober.cpp:238 kencodingprober.cpp:279
+#: kencodingprober.cpp:269 kencodingprober.cpp:310
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Disabled"
 msgstr "已關閉"
 
-#: kencodingprober.cpp:240 kencodingprober.cpp:282
+#: kencodingprober.cpp:271 kencodingprober.cpp:313
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Universal"
 msgstr "通用"
 
-#: kencodingprober.cpp:242 kencodingprober.cpp:324
+#: kencodingprober.cpp:273 kencodingprober.cpp:355
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Unicode"
 msgstr "萬國碼"
 
-#: kencodingprober.cpp:244 kencodingprober.cpp:294
+#: kencodingprober.cpp:275 kencodingprober.cpp:325
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Cyrillic"
 msgstr "斯拉夫語系"
 
-#: kencodingprober.cpp:246 kencodingprober.cpp:309
+#: kencodingprober.cpp:277 kencodingprober.cpp:340
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Western European"
 msgstr "西歐語系"
 
-#: kencodingprober.cpp:248 kencodingprober.cpp:291
+#: kencodingprober.cpp:279 kencodingprober.cpp:322
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Central European"
 msgstr "中歐語系"
 
-#: kencodingprober.cpp:250 kencodingprober.cpp:297
+#: kencodingprober.cpp:281 kencodingprober.cpp:328
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Greek"
 msgstr "希臘語"
 
-#: kencodingprober.cpp:252 kencodingprober.cpp:300
+#: kencodingprober.cpp:283 kencodingprober.cpp:331
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Hebrew"
 msgstr "希伯來語"
 
-#: kencodingprober.cpp:254 kencodingprober.cpp:306
+#: kencodingprober.cpp:285 kencodingprober.cpp:337
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Turkish"
 msgstr "土耳其語"
 
-#: kencodingprober.cpp:256 kencodingprober.cpp:303
+#: kencodingprober.cpp:287 kencodingprober.cpp:334
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Japanese"
 msgstr "日語"
 
-#: kencodingprober.cpp:258 kencodingprober.cpp:288
+#: kencodingprober.cpp:289 kencodingprober.cpp:319
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Baltic"
 msgstr "波羅的海語系"
 
-#: kencodingprober.cpp:260 kencodingprober.cpp:312
+#: kencodingprober.cpp:291 kencodingprober.cpp:343
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Chinese Traditional"
 msgstr "正體中文"
 
-#: kencodingprober.cpp:262 kencodingprober.cpp:315
+#: kencodingprober.cpp:293 kencodingprober.cpp:346
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Chinese Simplified"
 msgstr "簡體中文"
 
-#: kencodingprober.cpp:264 kencodingprober.cpp:318
+#: kencodingprober.cpp:295 kencodingprober.cpp:349
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Korean"
 msgstr "韓文"
 
-#: kencodingprober.cpp:266 kencodingprober.cpp:321
+#: kencodingprober.cpp:297 kencodingprober.cpp:352
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Thai"
 msgstr "泰文"
 
-#: kencodingprober.cpp:268 kencodingprober.cpp:285
+#: kencodingprober.cpp:299 kencodingprober.cpp:316
 msgctxt "KEncodingProber|@item Text character set"
 msgid "Arabic"
 msgstr "阿拉伯文"

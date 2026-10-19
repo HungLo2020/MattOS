@@ -9,6 +9,7 @@
 #include "drm_egl_layer.h"
 #include "core/colorpipeline.h"
 #include "core/iccprofile.h"
+#include "core/renderdevice.h"
 #include "drm_backend.h"
 #include "drm_buffer.h"
 #include "drm_crtc.h"
@@ -30,7 +31,7 @@ namespace KWin
 
 static EglGbmLayerSurface::BufferTarget targetFor(DrmGpu *gpu, DrmPlane::TypeIndex planeType)
 {
-    if ((!gpu->atomicModeSetting() || gpu->isVirtualMachine()) && planeType == DrmPlane::TypeIndex::Cursor) {
+    if ((!gpu->atomicModeSetting() || gpu->drmDevice()->isVirtualMachine()) && planeType == DrmPlane::TypeIndex::Cursor) {
         return EglGbmLayerSurface::BufferTarget::Dumb;
     } else {
         return EglGbmLayerSurface::BufferTarget::Normal;
@@ -49,22 +50,26 @@ EglGbmLayer::EglGbmLayer(EglGbmBackend *eglBackend, DrmGpu *gpu, DrmPlane::TypeI
 {
 }
 
-std::optional<OutputLayerBeginFrameInfo> EglGbmLayer::doBeginFrame()
+std::optional<OutputLayerBeginFrameInfo> EglGbmLayer::beginFrame(OutputFrame *frame)
 {
     m_scanoutBuffer.reset();
+    const bool tearing = frame && (frame->presentationMode() == PresentationMode::Async || frame->presentationMode() == PresentationMode::AdaptiveAsync);
+    const auto formats = tearing && !supportedAsyncDrmFormats().isEmpty() ? supportedAsyncDrmFormats() : supportedDrmFormats();
     return m_surface.startRendering(targetRect().size(),
                                     drmOutput()->transform().combine(OutputTransform::FlipY),
-                                    supportedDrmFormats(),
+                                    formats,
                                     drmOutput()->blendingColor(),
                                     drmOutput()->layerBlendingColor(),
                                     drmOutput()->needsShadowBuffer() ? pipeline()->iccProfile() : nullptr,
+                                    drmOutput()->wireColor(drmOutput()->nextState()),
+                                    drmOutput()->wireTransfer(drmOutput()->nextState()),
                                     drmOutput()->scale(),
                                     drmOutput()->colorPowerTradeoff(),
                                     drmOutput()->needsShadowBuffer(),
                                     m_requiredAlphaBits);
 }
 
-bool EglGbmLayer::doEndFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame)
+bool EglGbmLayer::endFrame(const Region &renderedDeviceRegion, const Region &damagedDeviceRegion, OutputFrame *frame)
 {
     return m_surface.endRendering(damagedDeviceRegion, frame);
 }
@@ -78,10 +83,12 @@ bool EglGbmLayer::preparePresentationTest()
     return m_surface.renderTestBuffer(targetRect().size(), supportedDrmFormats(), drmOutput()->nextState().colorPowerTradeoff, m_requiredAlphaBits) != nullptr;
 }
 
-bool EglGbmLayer::importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_ptr<OutputFrame> &frame)
+static const auto s_allowHardwareRotation = environmentVariableBoolValue("KWIN_ENABLE_HW_ROTATION");
+static const bool s_directScanoutDisabled = environmentVariableBoolValue("KWIN_DRM_NO_DIRECT_SCANOUT").value_or(false);
+
+bool EglGbmLayer::earlyScanoutChecks()
 {
-    static const bool directScanoutDisabled = environmentVariableBoolValue("KWIN_DRM_NO_DIRECT_SCANOUT").value_or(false);
-    if (directScanoutDisabled) {
+    if (s_directScanoutDisabled) {
         return false;
     }
     if (m_type != OutputLayerType::Primary && drmOutput()->shouldDisableNonPrimaryPlanes()) {
@@ -97,18 +104,17 @@ bool EglGbmLayer::importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_
         // it's likely not worth making this code more complicated to handle those edge cases
         return false;
     }
-    if (gpu() != gpu()->platform()->primaryGpu()) {
-        // Disable direct scanout between GPUs, as
-        // - there are some significant driver bugs with direct scanout from other GPUs,
-        //   like https://gitlab.freedesktop.org/drm/amd/-/issues/2075
-        // - with implicit modifiers, direct scanout on secondary GPUs
-        //   is also very unlikely to yield the correct results.
-        // TODO once we know what buffer a GPU is meant for, loosen this check again
-        // Right now this just assumes all buffers are on the primary GPU
-        return false;
-    }
-    if (!m_colorPipeline.isIdentity() && drmOutput()->colorPowerTradeoff() == BackendOutput::ColorPowerTradeoff::PreferAccuracy) {
-        return false;
+    if (!m_colorPipeline.isIdentity()) {
+        if (!m_plane || drmOutput()->colorPowerTradeoff() == BackendOutput::ColorPowerTradeoff::PreferAccuracy) {
+            return false;
+        }
+        const auto pipelines = m_plane->colorPipelines();
+        const bool match = std::ranges::any_of(pipelines, [this](DrmColorOp *colorop) {
+            return colorop->colorOp()->matchPipeline(gpu(), m_colorPipeline);
+        });
+        if (!match) {
+            return false;
+        }
     }
     // kernel documentation says that
     // "Devices that don’t support subpixel plane coordinates can ignore the fractional part."
@@ -116,7 +122,28 @@ bool EglGbmLayer::importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_
     if (sourceRect() != sourceRect().toRect()) {
         return false;
     }
-    if (offloadTransform() != OutputTransform::Kind::Normal && (!m_plane || !m_plane->supportsTransformation(offloadTransform()))) {
+    if (offloadTransform() != OutputTransform::Kind::Normal) {
+        // hardware rotation is broken on AMD GPUs that don't support modifiers,
+        // see https://gitlab.freedesktop.org/drm/amd/-/work_items/5403
+        if (!s_allowHardwareRotation.value_or(!gpu()->drmDevice()->isAmdgpu() || gpu()->addFB2ModifiersSupported())) {
+            return false;
+        }
+        if (!m_plane || !m_plane->supportsTransformation(offloadTransform())) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool EglGbmLayer::importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_ptr<OutputFrame> &frame)
+{
+    if (buffer->dmabufAttributes()->device != gpu()->drmDevice()->deviceId()
+        && (!gpu()->renderDevice() || buffer->dmabufAttributes()->device != gpu()->renderDevice()->deviceId())) {
+        // Disallow direct scanout between GPUs, as
+        // - there are some significant driver bugs with direct scanout from other GPUs,
+        //   like https://gitlab.freedesktop.org/drm/amd/-/issues/2075
+        // - with implicit modifiers, direct scanout on secondary GPUs
+        //   is also very unlikely to yield the correct results.
         return false;
     }
     m_scanoutBuffer = gpu()->importBuffer(buffer, FileDescriptor{});
@@ -124,6 +151,11 @@ bool EglGbmLayer::importScanoutBuffer(GraphicsBuffer *buffer, const std::shared_
         m_surface.forgetDamage(); // TODO: Use absolute frame sequence numbers for indexing the DamageJournal. It's more flexible and less error-prone
     }
     return m_scanoutBuffer != nullptr;
+}
+
+SurfaceItem *EglGbmLayer::presentedDirectScanoutItem() const
+{
+    return m_scanoutBuffer ? m_scanoutCandidate.data() : nullptr;
 }
 
 std::shared_ptr<DrmFramebuffer> EglGbmLayer::currentBuffer() const
@@ -136,4 +168,5 @@ void EglGbmLayer::releaseBuffers()
     m_scanoutBuffer.reset();
     m_surface.destroyResources();
 }
+
 }

@@ -20,6 +20,11 @@
 #include <QJniObject>
 #endif
 
+#if defined(Q_OS_HARMONY)
+#include <QtCore/private/qcore_ohos_p.h>
+#include <array>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -36,7 +41,7 @@ QT_BEGIN_NAMESPACE
     marketing version).
 
     Presently, Android, Apple Platforms (iOS, macOS, tvOS, watchOS, and visionOS),
-    and Windows are supported.
+    OpenHarmony (HarmonyOS), and Windows are supported.
 
     The \a majorVersion(), \a minorVersion(), and \a microVersion() functions
     return the parts of the operating system version number based on:
@@ -101,6 +106,7 @@ QT_BEGIN_NAMESPACE
     \value WatchOS      The Apple watchOS operating system.
     \value VisionOS     The Apple visionOS operating system.
     \value Windows      The Microsoft Windows operating system.
+    \value [since 6.12] HarmonyOS The HarmonyOS operating system.
 
     \value Unknown      An unknown or unsupported operating system.
 */
@@ -193,6 +199,20 @@ QOperatingSystemVersionBase QOperatingSystemVersionBase::current_impl()
 
     // API level 6 was exactly version 2.0.1
     version.m_micro = versionIdx == 5 ? 1 : -1;
+#elif defined(Q_OS_HARMONY)
+    static auto ohosVersionProps = QOhosJsThreadGateway::eval(
+        [](QOhosJsState &jsState) {
+            auto deviceInfoObj = jsState.eval<QNapi::Object>("@ohos.deviceInfo");
+            return std::array<int, 3>{{
+                deviceInfoObj.get<QNapi::Number>("majorVersion"),
+                deviceInfoObj.get<QNapi::Number>("seniorVersion"),
+                deviceInfoObj.get<QNapi::Number>("featureVersion"),
+            }};
+        });
+
+    version.m_major = ohosVersionProps[0];
+    version.m_minor = ohosVersionProps[1];
+    version.m_micro = ohosVersionProps[2];
 #else
     version.m_major = -1;
     version.m_minor = -1;
@@ -332,6 +352,8 @@ QString QOperatingSystemVersionBase::name(QOperatingSystemVersionBase osversion)
         return QStringLiteral("visionOS");
     case QOperatingSystemVersionBase::Android:
         return QStringLiteral("Android");
+    case QOperatingSystemVersionBase::HarmonyOS:
+        return QStringLiteral("HarmonyOS");
     case QOperatingSystemVersionBase::Unknown:
     default:
         return QString();

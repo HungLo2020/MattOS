@@ -1,0 +1,424 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ * SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+ */
+
+/*
+ * Application-structural elements like windows, drawers, etc.
+ */
+
+:root {
+    --window-active-background-color: custom-color("kcolorscheme", "active", "window", "background", "normal");
+    --window-active-text-color: custom-color("kcolorscheme", "active", "window", "foreground", "text");
+    --window-active-border-color: custom-color("kcolorscheme", "active", "window", "decoration", "frame");
+
+    --window-inactive-background-color: custom-color("kcolorscheme", "inactive", "window", "background", "normal");
+    --window-inactive-text-color: custom-color("kcolorscheme", "inactive", "window", "foreground", "text");
+    --window-inactive-border-color: custom-color("kcolorscheme", "inactive", "window", "decoration", "frame");
+
+    --header-active-background-color: custom-color("kcolorscheme", "active", "header", "background", "normal");
+    --header-active-text-color: custom-color("kcolorscheme", "active", "header", "foreground", "text");
+    --header-active-border-color: custom-color("kcolorscheme", "active", "header", "decoration", "frame");
+
+    --header-inactive-background-color: custom-color("kcolorscheme", "inactive", "header", "background", "normal");
+    --header-inactive-text-color: custom-color("kcolorscheme", "inactive", "header", "foreground", "text");
+    --header-inactive-border-color: custom-color("kcolorscheme", "inactive", "header", "decoration", "frame");
+
+    --complementary-active-background-color: custom-color("kcolorscheme", "active", "header", "background", "normal");
+    --complementary-active-text-color: custom-color("kcolorscheme", "active", "header", "foreground", "text");
+    --complementary-active-border-color: custom-color("kcolorscheme", "active", "header", "decoration", "frame");
+
+    --complementary-inactive-background-color: custom-color("kcolorscheme", "inactive", "header", "background", "normal");
+    --complementary-inactive-text-color: custom-color("kcolorscheme", "inactive", "header", "foreground", "text");
+    --complementary-inactive-border-color: custom-color("kcolorscheme", "inactive", "header", "decoration", "frame");
+}
+
+applicationwindow
+{
+    background-color: var(--window-active-background-color);
+    color: var(--window-active-text-color);
+
+    &.inactive {
+        background-color: var(--window-inactive-background-color);
+        color: var(--window-inactive-text-color);
+    }
+}
+
+page
+{
+    background-color: var(--window-background-color);
+    color: var(--window-text-color);
+
+    .inactive & {
+        background-color: var(--window-inactive-background-color);
+        color: var(--window-inactive-text-color);
+    }
+}
+
+toolbar
+{
+    height: 46px; /* large-element-size + medium-spacing + large-spacing */
+    padding: var(--small-spacing);
+    padding-top: var(--medium-spacing);
+    padding-bottom: var(--large-spacing);
+    color: var(--window-active-text-color);
+    background-color: var(--window-active-background-color);
+
+    &.footer {
+        border-top: 1px solid var(--window-active-border-color);
+    }
+
+    &.header {
+        border-bottom: 1px solid var(--window-active-border-color);
+    }
+
+    .inactive & {
+        background-color: var(--window-inactive-background-color);
+        border-color: var(--window-inactive-border-color);
+    }
+
+    &.header,
+    &[colorset="header"],
+    [colorset="header"] &
+    {
+        background-color: var(--header-active-background-color);
+        border-color: var(--header-active-border-color);
+
+        .inactive & {
+            background-color: var(--header-inactive-background-color);
+            border-color: var(--header-inactive-border-color);
+        }
+    }
+
+    &.header[colorset="window"]
+    {
+        background-color: var(--window-active-background-color);
+        border-color: var(--window-active-border-color);
+
+        .inactive & {
+            background-color: var(--window-inactive-background-color);
+            border-color: var(--window-inactive-border-color);
+        }
+    }
+
+    &[colorset="complementary"],
+    [colorset="complementary"] &,
+    &.header[colorset="complementary"]
+    {
+        background-color: var(--complementary-active-background-color);
+        color: var(--complementary-active-text-color);
+        border-color: var(--complementary-active-border-color);
+
+        .inactive & {
+            background-color: var(--complementary-inactive-background-color);
+            color: var(--complementary-inactive-text-color);
+            border-color: var(--complementary-active-border-color);
+        }
+    }
+
+    & > separator {
+        width: 1px;
+        height: 1px;
+        border: none;
+        border-radius: 0px;
+        background-color: var(--window-border-color);
+        padding: 0px;
+    }
+
+    & > handle {
+        width: 4px;
+        height: 4px;
+        border: none;
+        border-radius: 0px;
+        border-left: 1px solid var(--window-border-color);
+        border-right: 1px solid var(--window-border-color);
+        padding: 0px;
+    }
+}
+
+drawer
+{
+    color: var(--view-text-color);
+    background-color: var(--view-background-color);
+
+    &.modal {
+        color: var(--window-text-color);
+        background-color: var(--window-active-background-color);
+
+        .inactive & {
+            background-color: var(--window-inactive-background-color);
+        }
+    }
+}
+
+scrollview {
+    &.vertical-scroll {
+        padding-right: var(--scrollbar-size);
+    }
+
+    &.horizontal-scroll {
+        padding-bottom: var(--scrollbar-size);
+    }
+
+    &.framed-background
+    {
+        background-color: var(--view-background-color);
+        border: 1px solid var(--view-border-color);
+        border-radius: var(--corner-radius);
+    }
+}
+
+splitview {
+    & handle {
+        width: 1px;
+        height: 1px;
+        background-color: var(--window-border-color);
+    }
+
+    &.horizontal handle {
+        margin-left: 6px;
+        margin-right: 6px;
+    }
+
+    &.vertical handle {
+        margin-top: 6px;
+        margin-bottom: 6px;
+    }
+}
+
+pageindicator {
+    spacing: var(--small-spacing);
+}
+
+pageindicatordelegate {
+    background-color: var(--indicator-color);
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+
+    &:pressed {
+        background-color: var(--indicator-press-color);
+    }
+
+    &.current {
+        background-color: var(--indicator-current-color);
+    }
+}
+
+pane
+{
+    padding: var(--large-spacing);
+    background-color: var(--window-background-color);
+}
+
+frame,
+groupbox,
+framemenu,
+framewindow
+{
+    padding: var(--large-spacing);
+    border: 1px solid var(--window-border-color);
+    border-radius: var(--corner-radius);
+    .inactive & {
+        border-color: var(--window-inactive-border-color);
+    }
+}
+
+splitter {
+    width: 1px;
+    background-color: var(--window-border-color);
+}
+
+frame,
+listview,
+treeview,
+tableview,
+columnview,
+scrollview,
+textfield,
+textarea {
+    &:visual-focus {
+        border: 1px solid var(--highlight-color);
+    }
+    &[shape="no-frame"] {
+        border: none;
+    }
+    &[shape="panel"],
+    &[shape="box"] {
+        border-radius: var(--corner-radius);
+        border: 1px solid var(--window-border-color);
+        background-color: var(--view-background-color);
+
+        .inactive & {
+            background-color: var(--window-inactive-background-color);
+            border-color: var(--window-inactive-border-color);
+        }
+    }
+    &[shape="vertical-line"],
+    &[shape="horizontal-line"] {
+        border-radius: 0px;
+        border: none;
+        background-color: var(--window-border-color);
+        padding: 0px;
+        inset: 1px;
+    }
+    &[shape="vertical-line"] {
+        width: 1px;
+    }
+    &[shape="horizontal-line"] {
+        height: 1px;
+    }
+    /* Legacy hints that applications use to drive Breeze style */
+    &.dock-left,
+    &.dock-right,
+    &.dock-top,
+    &.dock-bottom,
+    &.left-edge,
+    &.right-edge,
+    &.top-edge,
+    &.bottom-edge {
+        border: none;
+        border-radius: 0px;
+    }
+    &.left-edge {
+        border-left: 1px solid var(--window-border-color);
+    }
+    &.right-edge {
+        border-right: 1px solid var(--window-border-color);
+    }
+    &.top-edge {
+        border-top: 1px solid var(--window-border-color);
+    }
+    &.bottom-edge {
+        border-bottom: 1px solid var(--window-border-color);
+    }
+}
+
+groupbox {
+    padding: var(--small-spacing);
+    border: 1px solid var(--window-border-color);
+    border-radius: var(--corner-radius);
+    color: var(--window-text-color);
+    background-color: var(--window-background-color);
+
+    & > header {
+        color: var(--window-text-color);
+    }
+    icon-alignment: content start start 0;
+    text-alignment: content center start 0;
+    spacing: var(--small-spacing);
+    width: 200px;
+}
+
+
+dockwidget {
+    width: var(--small-element-size);
+    height: var(--small-element-size);
+    color: var(--header-text-color);
+    background-color: var(--header-background-color);
+    icon-alignment: content center center 0;
+    text-alignment: content center center 1;
+    padding: var(--small-spacing);
+    &:visual-focus,
+    &:active-focus {
+        border: 1px solid var(--highlight-color);
+    }
+
+    floatbutton,
+    closebutton {
+        width: var(--small-element-size);
+        height: var(--small-element-size);
+    }
+
+    floatbutton {
+        layout-alignment: content start center 0;
+        icon-name: "window-restore";
+    }
+
+    closebutton {
+        layout-alignment: content end center 0;
+        icon-name: "window-close-symbolic";
+    }
+}
+
+scrollareacorner {
+    background-color: var(--window-background-color);
+    color: var(--window-text-color);
+}
+
+panel,
+groupbox {
+    &.flat {
+        background-color: transparent;
+        border: none;
+    }
+}
+
+rubberband {
+    background-color: var(--highlight-hover-color);
+    border: 1px solid var(--highlight-color);
+    border-radius: var(--corner-radius);
+}
+
+titlebar {
+    width: var(--small-element-size);
+    height: var(--small-element-size);
+    color: var(--header-text-color);
+    background-color: var(--header-background-color);
+    icon-alignment: content center fill 0;
+    text-alignment: content center fill 1;
+    icon-size: var(--icon-size-small);
+
+    systemmenu,
+    minimizebutton,
+    maximizebutton,
+    closebutton,
+    normalbutton,
+    shadebutton,
+    helpbutton {
+        width: var(--small-element-size);
+        height: var(--small-element-size);
+    }
+
+    systemmenu {
+        layout-alignment: content start fill 0;
+        icon-name: "application-menu-symbolic";
+    }
+    minimizebutton {
+        layout-alignment: content end fill 0;
+        icon-name: "window-minimize-symbolic";
+    }
+    maximizebutton {
+        layout-alignment: content end fill 1;
+        icon-name: "window-maximize-symbolic";
+    }
+    closebutton {
+        layout-alignment: content end fill 2;
+        icon-name: "window-close-symbolic";
+    }
+    shadebutton {
+        layout-alignment: content start fill 2;
+        icon-name: "window-shade-symbolic";
+    }
+    helpbutton {
+        layout-alignment: content start fill -1;
+        icon-name: "help-contextual-symbolic";
+    }
+
+    normalbutton {
+        layout-alignment: content start fill 1;
+    }
+
+    &.maximized {
+        maximizebutton {
+            icon-name: "window-restore-symbolic";
+        }
+    }
+
+    &.minimized {
+        minimizebutton {
+            icon-name: "empty";
+        }
+    }
+
+}

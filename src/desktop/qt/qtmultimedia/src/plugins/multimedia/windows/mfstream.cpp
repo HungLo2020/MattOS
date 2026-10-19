@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "mfstream_p.h"
+
 #include <QtCore/qcoreapplication.h>
 
 QT_BEGIN_NAMESPACE
@@ -9,10 +10,8 @@ QT_BEGIN_NAMESPACE
 //It is used to delegate invocations from media foundation(through IMFByteStream) to QIODevice.
 
 MFStream::MFStream(QIODevice *stream, bool ownStream)
-    : m_cRef(1)
-    , m_stream(stream)
+    : m_stream(stream)
     , m_ownStream(ownStream)
-    , m_currentReadResult(0)
 {
     //Move to the thread of the stream object
     //to make sure invocations on stream
@@ -22,43 +21,9 @@ MFStream::MFStream(QIODevice *stream, bool ownStream)
 
 MFStream::~MFStream()
 {
-    if (m_currentReadResult)
-        m_currentReadResult->Release();
     if (m_ownStream)
         m_stream->deleteLater();
 }
-
-//from IUnknown
-STDMETHODIMP MFStream::QueryInterface(REFIID riid, LPVOID *ppvObject)
-{
-    if (!ppvObject)
-        return E_POINTER;
-    if (riid == IID_IMFByteStream) {
-        *ppvObject = static_cast<IMFByteStream*>(this);
-    } else if (riid == IID_IUnknown) {
-        *ppvObject = static_cast<IUnknown*>(this);
-    } else {
-        *ppvObject =  NULL;
-        return E_NOINTERFACE;
-    }
-    AddRef();
-    return S_OK;
-}
-
-STDMETHODIMP_(ULONG) MFStream::AddRef(void)
-{
-    return InterlockedIncrement(&m_cRef);
-}
-
-STDMETHODIMP_(ULONG) MFStream::Release(void)
-{
-    LONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0) {
-        this->deleteLater();
-    }
-    return cRef;
-}
-
 
 //from IMFByteStream
 STDMETHODIMP MFStream::GetCapabilities(DWORD *pdwCapabilities)
@@ -134,14 +99,11 @@ STDMETHODIMP MFStream::BeginRead(BYTE *pb, ULONG cb, IMFAsyncCallback *pCallback
     if (!pCallback || !pb)
         return E_INVALIDARG;
 
-    Q_ASSERT(m_currentReadResult == NULL);
+    Q_ASSERT(m_currentReadResult == nullptr);
 
-    AsyncReadState *state = new (std::nothrow) AsyncReadState(pb, cb);
-    if (state == NULL)
-        return E_OUTOFMEMORY;
+    ComPtr<AsyncReadState> state = makeComObject<AsyncReadState>(pb, cb);
 
-    HRESULT hr = MFCreateAsyncResult(state, pCallback, punkState, &m_currentReadResult);
-    state->Release();
+    HRESULT hr = MFCreateAsyncResult(state.Get(), pCallback, punkState, &m_currentReadResult);
     if (FAILED(hr))
         return hr;
 
@@ -153,14 +115,13 @@ STDMETHODIMP MFStream::EndRead(IMFAsyncResult* pResult, ULONG *pcbRead)
 {
     if (!pcbRead)
         return E_INVALIDARG;
-    IUnknown *pUnk;
-    pResult->GetObject(&pUnk);
-    AsyncReadState *state = static_cast<AsyncReadState*>(pUnk);
-    *pcbRead = state->bytesRead();
-    pUnk->Release();
 
-    m_currentReadResult->Release();
-    m_currentReadResult = NULL;
+    ComPtr<IUnknown> pUnk;
+    pResult->GetObject(&pUnk);
+    auto *state = static_cast<AsyncReadState *>(pUnk.Get());
+    *pcbRead = state->bytesRead();
+
+    m_currentReadResult = nullptr;
 
     return S_OK;
 }
@@ -229,14 +190,13 @@ void MFStream::doRead()
         return;
 
     bool readDone = true;
-    IUnknown *pUnk = NULL;
-    HRESULT    hr = m_currentReadResult->GetObject(&pUnk);
+    ComPtr<IUnknown> pUnk;
+    HRESULT hr = m_currentReadResult->GetObject(&pUnk);
     if (SUCCEEDED(hr)) {
         //do actual read
-        AsyncReadState *state =  static_cast<AsyncReadState*>(pUnk);
+        auto *state = static_cast<AsyncReadState *>(pUnk.Get());
         ULONG cbRead;
         Read(state->pb(), state->cb() - state->bytesRead(), &cbRead);
-        pUnk->Release();
 
         state->setBytesRead(cbRead + state->bytesRead());
         if (state->cb() > state->bytesRead() && !m_stream->atEnd()) {
@@ -247,7 +207,7 @@ void MFStream::doRead()
     if (readDone) {
         //now inform the original caller
         m_currentReadResult->SetStatus(hr);
-        MFInvokeCallback(m_currentReadResult);
+        MFInvokeCallback(m_currentReadResult.Get());
     }
 }
 
@@ -264,42 +224,12 @@ void MFStream::customEvent(QEvent *event)
 //to record some BeginRead parameters, so these parameters could be
 //used later when actually executing the read operation in another thread.
 MFStream::AsyncReadState::AsyncReadState(BYTE *pb, ULONG cb)
-    : m_cRef(1)
-    , m_pb(pb)
+    : m_pb(pb)
     , m_cb(cb)
     , m_cbRead(0)
 {
 }
 
-//from IUnknown
-STDMETHODIMP MFStream::AsyncReadState::QueryInterface(REFIID riid, LPVOID *ppvObject)
-{
-    if (!ppvObject)
-        return E_POINTER;
-
-    if (riid == IID_IUnknown) {
-        *ppvObject = static_cast<IUnknown*>(this);
-    } else {
-        *ppvObject =  NULL;
-        return E_NOINTERFACE;
-    }
-    AddRef();
-    return S_OK;
-}
-
-STDMETHODIMP_(ULONG) MFStream::AsyncReadState::AddRef(void)
-{
-    return InterlockedIncrement(&m_cRef);
-}
-
-STDMETHODIMP_(ULONG) MFStream::AsyncReadState::Release(void)
-{
-    LONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0)
-        delete this;
-    // For thread safety, return a temporary variable.
-    return cRef;
-}
 
 BYTE* MFStream::AsyncReadState::pb() const
 {

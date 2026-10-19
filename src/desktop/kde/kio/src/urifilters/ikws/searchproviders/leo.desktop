@@ -2,6 +2,7 @@
 Type=Service
 Name=LEO-Translate
 Name[af]=LEO-Vertaal
+Name[am]=LEO-ይተርጉሙ
 Name[ar]=ترجمة LEO
 Name[as]=LEO-Translate
 Name[ast]=LEO-Translate
@@ -60,6 +61,8 @@ Name[ml]=ലിയോ-പരിഭാഷ
 Name[mr]=लिओ-अनुवाद
 Name[ms]=LEO-Terjemah
 Name[my]=လီယို-ဘာသာပြန်
+Name[nan_TW]=LEO-Translate
+Name[nan_TW@latin]=LEO-Translate
 Name[nb]=LEO-Translate
 Name[nds]=LEO-Översetten
 Name[ne]=LEO-अनुवाद
@@ -99,6 +102,7 @@ Name[zh_CN]=LEO 翻译
 Name[zh_TW]=LEO-Translate
 Keys=leo
 Query=https://dict.leo.org/?search=\\{@}
+Query[am]=https://dict.leo.org/?search=\\{@}
 Query[ar]=https://dict.leo.org/?search=\\{@}
 Query[ast]=https://dict.leo.org/?search=\\{@}
 Query[az]=https://dict.leo.org/?search=\\{@}
@@ -139,6 +143,8 @@ Query[lg]=https://dict.leo.org/?search=\\{@}
 Query[lt]=https://dict.leo.org/?search=\\{@}
 Query[lv]=https://dict.leo.org/?search=\\{@}
 Query[my]=https://dict.leo.org/?search=\\{@}
+Query[nan_TW]=https://dict.leo.org/?search=\\{@}
+Query[nan_TW@latin]=https://dict.leo.org/?search=\\{@}
 Query[nb]=https://dict.leo.org/?search=\\{@}
 Query[nl]=https://dict.leo.org/?search=\\{@}
 Query[nn]=https://dict.leo.org/?search=\\{@}
@@ -157,7 +163,6 @@ Query[tg]=https://dict.leo.org/?search=\\{@}
 Query[th]=https://dict.leo.org/?search=\\{@}
 Query[tok]=https://dict.leo.org/?search=\\{@}
 Query[tr]=https://dict.leo.org/?search=\\{@}
-Query[ug]=https://dict.leo.org/?search=\\{@}
 Query[uk]=https://dict.leo.org/?search=\\{@}
 Query[vi]=https://dict.leo.org/?search=\\{@}
 Query[zh_CN]=https://dict.leo.org/?search=\\{@}

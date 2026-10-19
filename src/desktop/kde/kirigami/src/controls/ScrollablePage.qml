@@ -19,6 +19,7 @@ import "private"
 /*!
   \qmltype ScrollablePage
   \inqmlmodule org.kde.kirigami
+  \inherits Page
 
   \brief ScrollablePage is a Page that holds scrollable content, such as a ListView.
 
@@ -211,12 +212,12 @@ KC.Page {
             : actualItemY
         if (actualItemX < root.flickable.contentX) {
             root.flickable.contentX = Math.max(0, viewXPosition)
-        } else if ((actualItemX + item.width) > (root.flickable.contentX + root.flickable.width)) {
+        } else if ((actualItemX + item.width - scrollView.QQC2.ScrollBar.vertical.width) > (root.flickable.contentX + root.flickable.width)) {
             root.flickable.contentX = Math.min(root.flickable.contentWidth - root.flickable.width, viewXPosition)
         }
         if (actualItemY < root.flickable.contentY) {
             root.flickable.contentY = Math.max(0, viewYPosition)
-        } else if ((actualItemY + item.height) > (root.flickable.contentY + root.flickable.height)) {
+        } else if ((actualItemY + item.height - scrollView.QQC2.ScrollBar.horizontal.height) > (root.flickable.contentY + root.flickable.height)) {
             root.flickable.contentY = Math.min(root.flickable.contentHeight - root.flickable.height, viewYPosition)
         }
         root.flickable.returnToBounds()

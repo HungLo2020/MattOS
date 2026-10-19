@@ -58,9 +58,13 @@ TestCase {
         compare(window.pageStack.depth, 1);
         compare(window.pageStack.currentIndex, 0);
 
-        compare(window.pageStack.currentItem.flickable.currentIndex, 0);
+        const flickable = window.pageStack.currentItem.flickable;
+        compare(flickable.currentIndex, 0);
+        // Give the list keyboard focus so the arrow key navigates it.
+        flickable.forceActiveFocus();
+        tryVerify(() => flickable.activeFocus);
         keyClick(Qt.Key_Down);
         compare(spy.count, 1);
-        compare(window.pageStack.currentItem.flickable.currentIndex, 1);
+        compare(flickable.currentIndex, 1);
     }
 }

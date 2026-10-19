@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
 "PO-Revision-Date: 2024-10-21 13:13+0200\n"
 "Last-Translator: rasmus rosendahl-kaa <rasmus@rosendahl-kaa.name>\n"
 "Language-Team: Danish <kde-i18n-doc@kde.org>\n"
@@ -70,7 +70,7 @@ msgstr "Hold over andre vinduer"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
+msgid "Hide from screenshots and screen recordings"
 msgstr ""
 
 #: declarative-plugin/buttonsmodel.cpp:76
@@ -78,13 +78,13 @@ msgstr ""
 msgid "Spacer"
 msgstr "Afstandsstykke"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "Standard for tema (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -95,7 +95,7 @@ msgstr ""
 "nuværende aktive session, uden at sætte det til noget, som enten ikke er "
 "tilgængeligt eller allerede er sat ved en fejl."
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -106,7 +106,7 @@ msgstr ""
 "indsætter en fuld sti, vil der blive prøvet at finde et tema i den mappe, og "
 "derefter anvende den, hvis et tema kan findes."
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
@@ -114,7 +114,7 @@ msgstr ""
 "Vis alle temaerne tilgængelige temaer på systemet (og hvilken, der er det "
 "nuværende tema) "
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -123,7 +123,7 @@ msgstr ""
 "Løste %1 til KWin Aurorae tema, \"%2\", og vil prøve at sætte den som dit "
 "nuværende tema."
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -132,19 +132,22 @@ msgstr ""
 "Du prøvede at indsætte en filsti, men det kunne ikke blive løst til et tema, "
 "og vi bliver nødt til at afbryde, grundet ingen tema kan anvendes."
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr ""
 "Det anmodede tema, \"%1\", er allerede sat som vinduedekorationstemaet."
 
-#: kwin-applywindowdecoration.cpp:99
-#, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+#: kwin-applywindowdecoration.cpp:101
+#, fuzzy, kde-format
+#| msgid ""
+#| "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr "Anvendte markørtemaet, %1, til din nuværende Plasma-session"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -153,7 +156,7 @@ msgstr ""
 "Kunne ikke gemme dine temaindstillinger - grunden er ukendt, men dette er "
 "ikke en genanvendelig fejl. Det kan være, at det virker, hvis du prøver igen."
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
@@ -161,7 +164,7 @@ msgid ""
 msgstr ""
 "Kunne ikke finde tema \"%1\". Temaet burde være en af følgende muligheder: %2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "Du har følgende KWin vinduedekorationstemaer på dit system:"
@@ -211,7 +214,7 @@ msgstr "Vis værktøjstip for titellinjeknapper"
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:85
@@ -219,15 +222,15 @@ msgstr ""
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
+"screenshots and screen recordings"
 msgstr ""
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
 msgstr ""
 
 #: ui/main.qml:29
@@ -253,47 +256,47 @@ msgstr "Få nye..."
 msgid "Edit %1 Theme…"
 msgstr "Redigér temaet %1…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "Ingen vinduekanter"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "Ingen sidevinduekanter"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "Små vinduekanter"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "Normale vinduekanter"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "Store vinduekanter"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "Meget store vinduekanter"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "Enorme vinduekanter"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "Meget store vinduekanter"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "Overdimensioneret vinduekanter"

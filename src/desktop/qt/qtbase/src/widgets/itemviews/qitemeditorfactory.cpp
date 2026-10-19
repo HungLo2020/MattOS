@@ -415,9 +415,9 @@ QItemEditorCreatorBase::~QItemEditorCreatorBase()
     \ingroup model-view
     \inmodule QtWidgets
 
-    QItemEditorCreator is a convenience template class. It uses
-    the template class to create editors for QItemEditorFactory.
-    This way, it is not necessary to subclass
+    QItemEditorCreator\<T\> is a convenience template class where \a T specifies
+    the widget type. It uses the template class to create editors for
+    QItemEditorFactory. This way, it is not necessary to subclass
     QItemEditorCreatorBase.
 
     \snippet code/src_gui_itemviews_qitemeditorfactory.cpp 1
@@ -465,7 +465,8 @@ QItemEditorCreatorBase::~QItemEditorCreatorBase()
     \ingroup model-view
     \inmodule QtWidgets
 
-    This convenience template class makes it possible to register widgets without
+    QStandardItemEditorCreator\<T\> is a convenience template class where \a T
+    specifies the widget type. It makes it possible to register widgets without
     having to subclass QItemEditorCreatorBase.
 
     Example:

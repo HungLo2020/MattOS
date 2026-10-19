@@ -19,6 +19,7 @@
 
 namespace KWin
 {
+
 class PointerSurfaceCursorPrivate
 {
 public:
@@ -86,7 +87,7 @@ void PointerInterfacePrivate::pointer_set_cursor(Resource *resource, uint32_t se
     if (!cursor) {
         cursor = std::make_unique<PointerSurfaceCursor>();
     }
-    cursor->d->hotspot = QPointF(hotspot_x, hotspot_y) / focusedSurface->client()->scaleOverride();
+    cursor->d->hotspot = QPointF(hotspot_x, hotspot_y) / (focusedSurface->serverScale() * focusedSurface->clientToCompositorScale());
     cursor->d->surface = surface;
 
     Q_EMIT q->cursorChanged(cursor.get());
@@ -375,6 +376,37 @@ void PointerInterface::sendMotion(const QPointF &position)
     const auto pointerResources = d->pointersForClient(d->focusedSurface->client());
     for (PointerInterfacePrivate::Resource *resource : pointerResources) {
         d->send_motion(resource->handle, d->seat->timestamp().count(), wl_fixed_from_double(localPos.x()), wl_fixed_from_double(localPos.y()));
+    }
+}
+
+void PointerInterface::sendWarp(const QPointF &position)
+{
+    d->lastPosition = position;
+
+    if (!d->focusedSurface) {
+        return;
+    }
+
+    const QPointF localPos = d->focusedSurface->toSurfaceLocal(position);
+
+    const auto pointerResources = d->pointersForClient(d->focusedSurface->client());
+    for (PointerInterfacePrivate::Resource *resource : pointerResources) {
+        if (resource->version() >= WL_POINTER_WARP_SINCE_VERSION) {
+            d->send_warp(resource->handle, wl_fixed_from_double(localPos.x()), wl_fixed_from_double(localPos.y()));
+        } else {
+            // Warps don't generate relative motion, and synthesizing relative motion from a warp can confuse games,
+            // so send a relative motion event with a zero delta to signal the warp instead.
+            const std::chrono::milliseconds timestampMs = d->seat->timestamp();
+            d->send_motion(resource->handle, timestampMs.count(), wl_fixed_from_double(localPos.x()), wl_fixed_from_double(localPos.y()));
+
+            auto relativePointer = RelativePointerV1Interface::get(this);
+            if (relativePointer) {
+                const std::chrono::microseconds timestampUs = std::chrono::duration_cast<std::chrono::microseconds>(timestampMs);
+                relativePointer->sendRelativeMotion(QPointF(0, 0), QPointF(0, 0), timestampUs);
+            }
+        }
+        // TODO: Make PointerInputRedirection send a frame event instead.
+        d->sendFrame();
     }
 }
 

@@ -152,8 +152,8 @@ QQC2.Control {
     property alias heightMode: layout.heightMode
 //END properties
 
-    implicitHeight: layout.implicitHeight
-    implicitWidth: layout.implicitWidth
+    implicitHeight: layout.implicitHeight + bottomPadding + topPadding
+    implicitWidth: layout.implicitWidth + leftPadding + rightPadding
 
     Layout.minimumWidth: layout.minimumWidth
     Layout.preferredWidth: 0
@@ -216,6 +216,7 @@ QQC2.Control {
             menuActions: root.actions
 
             menuComponent: P.ActionsMenu {
+                x: root.position === QQC2.ToolBar.Footer ? parent.width - width : 0
                 y: root.position === QQC2.ToolBar.Footer ? -height : 0
                 submenuComponent: P.ActionsMenu {
                     id: actionsMenu

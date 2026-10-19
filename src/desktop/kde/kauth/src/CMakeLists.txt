@@ -52,7 +52,13 @@ if(NOT KAUTH_BUILD_CODEGENERATOR_ONLY)
         DEPRECATION_VERSIONS
         EXCLUDE_DEPRECATED_BEFORE_AND_AT ${EXCLUDE_DEPRECATED_BEFORE_AND_AT}
     )
-    target_link_libraries(KF6AuthCore PUBLIC Qt6::Core Qt6::Gui KF6::CoreAddons)  # for KJob
+    target_link_libraries(KF6AuthCore
+        PUBLIC
+            Qt6::Core
+            KF6::CoreAddons # for KJob
+        PRIVATE
+            Qt6::Gui
+    )
 
     target_include_directories(KF6AuthCore INTERFACE
         "$<INSTALL_INTERFACE:${KAUTHCORE_INSTALL_INCLUDEDIR};${KAUTH_INSTALL_INCLUDEDIR}>"
@@ -79,6 +85,23 @@ if(NOT KAUTH_BUILD_CODEGENERATOR_ONLY)
         ${KAuthCore_CamelCase_HEADERS}
         DESTINATION ${KAUTHCORE_INSTALL_INCLUDEDIR}/KAuth # C++ namespace
         COMPONENT Devel
+    )
+
+    ecm_add_installed_library_check(KF6AuthCore
+        PACKAGE_NAME "KF6Auth"
+        PACKAGE_TARGET_NAMESPACE "KF6::"
+    )
+
+    ecm_installed_library_check_include_strings(KF6AuthCore
+        HEADERS ${KAuthCore_CamelCase_HEADERS}
+        PREFIX KAuth
+    )
+    ecm_installed_library_check_cmake_variable(KF6AuthCore
+        NAME KAUTH_BACKEND_NAME
+        VALUE ${KAUTH_BACKEND_NAME}
+    )
+    ecm_installed_library_check_version_preprocessor_macros(KF6AuthCore
+        PREFIX KAUTH
     )
 endif()
 

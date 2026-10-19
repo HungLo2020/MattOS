@@ -4,6 +4,8 @@
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 #include "screenshotlayer.h"
+#include "opengl/eglcontext.h"
+#include "opengl/glframebuffer.h"
 
 namespace KWin
 {
@@ -14,25 +16,24 @@ ScreenshotLayer::ScreenshotLayer(LogicalOutput *output, GLFramebuffer *buffer)
 {
 }
 
-DrmDevice *ScreenshotLayer::scanoutDevice() const
-{
-    return nullptr;
-}
-
-QHash<uint32_t, QList<uint64_t>> ScreenshotLayer::supportedDrmFormats() const
+FormatModifierMap ScreenshotLayer::supportedDrmFormats() const
 {
     return {};
 }
 
-std::optional<OutputLayerBeginFrameInfo> ScreenshotLayer::doBeginFrame()
+std::optional<OutputLayerBeginFrameInfo> ScreenshotLayer::beginFrame(OutputFrame *frame)
 {
+    if (!m_buffer->context()->makeCurrent()) {
+        return std::nullopt;
+    }
+
     return OutputLayerBeginFrameInfo{
         .renderTarget = RenderTarget(m_buffer),
         .repaint = Region::infinite(),
     };
 }
 
-bool ScreenshotLayer::doEndFrame(const Region &renderedRegion, const Region &damagedRegion, OutputFrame *frame)
+bool ScreenshotLayer::endFrame(const Region &renderedRegion, const Region &damagedRegion, OutputFrame *frame)
 {
     return true;
 }
@@ -40,4 +41,5 @@ bool ScreenshotLayer::doEndFrame(const Region &renderedRegion, const Region &dam
 void ScreenshotLayer::releaseBuffers()
 {
 }
+
 }

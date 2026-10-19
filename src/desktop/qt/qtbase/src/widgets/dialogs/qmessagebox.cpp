@@ -151,10 +151,16 @@ private:
 class DetailButton : public QPushButton
 {
 public:
+QT_WARNING_PUSH
+// see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=123985
+#if defined(Q_CC_GNU_ONLY) && Q_CC_GNU_ONLY >= 1600 && Q_CC_GNU_ONLY < 1700 && !defined(__OPTIMIZE__)
+QT_WARNING_DISABLE_GCC("-Wmaybe-uninitialized")
+#endif
     DetailButton(QWidget *parent) : QPushButton(label(ShowLabel), parent)
     {
         setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
+QT_WARNING_POP
 
     QString label(DetailButtonLabel label) const
     { return label == ShowLabel ? QMessageBox::tr("Show Details...") : QMessageBox::tr("Hide Details..."); }
@@ -281,7 +287,7 @@ void QMessageBoxPrivate::init(const QString &title, const QString &text)
         q->setText(text);
     }
     q->setModal(true);
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QFont f = q->font();
     f.setBold(true);
     label->setFont(f);
@@ -299,7 +305,7 @@ void QMessageBoxPrivate::setupLayout()
     if (hasIcon)
         grid->addWidget(iconLabel, 0, 0, 2, 1, Qt::AlignTop);
     iconLabel->setVisible(hasIcon);
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QSpacerItem *indentSpacer = new QSpacerItem(14, 1, QSizePolicy::Fixed, QSizePolicy::Fixed);
 #else
     QSpacerItem *indentSpacer = new QSpacerItem(hasIcon ? 7 : 15, 1, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -307,20 +313,20 @@ void QMessageBoxPrivate::setupLayout()
     grid->addItem(indentSpacer, 0, hasIcon ? 1 : 0, 2, 1);
     grid->addWidget(label, 0, hasIcon ? 2 : 1, 1, 1);
     if (informativeLabel) {
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
         informativeLabel->setContentsMargins(0, 7, 0, 7);
 #endif
         grid->addWidget(informativeLabel, 1, hasIcon ? 2 : 1, 1, 1);
     }
     if (checkbox) {
         grid->addWidget(checkbox, informativeLabel ? 2 : 1, hasIcon ? 2 : 1, 1, 1, Qt::AlignLeft);
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
         grid->addItem(new QSpacerItem(1, 15, QSizePolicy::Fixed, QSizePolicy::Fixed), grid->rowCount(), 0);
 #else
         grid->addItem(new QSpacerItem(1, 7, QSizePolicy::Fixed, QSizePolicy::Fixed), grid->rowCount(), 0);
 #endif
     }
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     grid->addWidget(buttonBox, grid->rowCount(), hasIcon ? 2 : 1, 1, 1);
     grid->setContentsMargins(0, 0, 0, 0);
     grid->setVerticalSpacing(8);
@@ -360,7 +366,7 @@ void QMessageBoxPrivate::updateSize()
     // on small screens allows the messagebox be the same size as the screen
     if (screenSize.width() <= 1024)
         hardLimit = screenSize.width();
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     int softLimit = qMin(screenSize.width()/2, 420);
 #else
     // note: ideally on windows, hard and soft limits but it breaks compat
@@ -1560,7 +1566,7 @@ void QMessageBox::changeEvent(QEvent *ev)
     }
     case QEvent::FontChange:
     case QEvent::ApplicationFontChange:
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     {
         QFont f = font();
         f.setBold(true);
@@ -1583,7 +1589,7 @@ void QMessageBox::keyPressEvent(QKeyEvent *e)
         Q_D(QMessageBox);
         if (e->matches(QKeySequence::Cancel)) {
             if (d->detectedEscapeButton) {
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
                 d->detectedEscapeButton->animateClick();
 #else
                 d->detectedEscapeButton->click();
@@ -1925,7 +1931,7 @@ QMessageBox::StandardButton QMessageBox::critical(QWidget *parent, const QString
 */
 void QMessageBox::about(QWidget *parent, const QString &title, const QString &text)
 {
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     static QPointer<QMessageBox> oldMsgBox;
 
     if (oldMsgBox && oldMsgBox->text() == text) {
@@ -1937,7 +1943,7 @@ void QMessageBox::about(QWidget *parent, const QString &title, const QString &te
 #endif
 
     QMessageBox *msgBox = new QMessageBox(Information, title, text, NoButton, parent
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
                                           , Qt::WindowTitleHint | Qt::WindowSystemMenuHint
 #endif
     );
@@ -1946,7 +1952,7 @@ void QMessageBox::about(QWidget *parent, const QString &title, const QString &te
     msgBox->setIconPixmap(icon.pixmap(QSize(64, 64), msgBox->devicePixelRatio()));
 
     // should perhaps be a style hint
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     oldMsgBox = msgBox;
     auto *d = msgBox->d_func();
     d->buttonBox->setCenterButtons(true);
@@ -1978,7 +1984,7 @@ void QMessageBox::about(QWidget *parent, const QString &title, const QString &te
 */
 void QMessageBox::aboutQt(QWidget *parent, const QString &title)
 {
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     static QPointer<QMessageBox> oldMsgBox;
 
     if (oldMsgBox) {
@@ -2031,7 +2037,7 @@ void QMessageBox::aboutQt(QWidget *parent, const QString &title)
         msgBox->setIconPixmap(pm);
 
     // should perhaps be a style hint
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     oldMsgBox = msgBox;
     auto *d = msgBox->d_func();
     d->buttonBox->setCenterButtons(true);
@@ -2696,7 +2702,7 @@ void QMessageBox::setInformativeText(const QString &text)
             label->setTextInteractionFlags(Qt::TextInteractionFlags(style()->styleHint(QStyle::SH_MessageBox_TextInteractionFlags, nullptr, this)));
             label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
             label->setOpenExternalLinks(true);
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
             // apply a smaller font the information label on the mac
             label->setFont(qt_app_fonts_hash()->value("QTipLabel"));
 #endif
@@ -2719,7 +2725,7 @@ void QMessageBox::setInformativeText(const QString &text)
 void QMessageBox::setWindowTitle(const QString &title)
 {
     // Message boxes on the mac do not have a title
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MACOS
     QDialog::setWindowTitle(title);
 #else
     Q_UNUSED(title);

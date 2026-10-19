@@ -1,6 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // Copyright (C) 2016 Intel Corporation.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qguiapplication.h"
 
@@ -84,7 +85,7 @@
 #include <QtCore/QLibrary>
 #endif
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_APPLE)
 #  include "private/qcore_mac_p.h"
 #elif defined(Q_OS_WIN)
 #  include <QtCore/qt_windows.h>
@@ -1702,7 +1703,7 @@ void Q_TRACE_INSTRUMENT(qtgui) QGuiApplicationPrivate::init()
                 pluginList << argv[i];
         } else if (strcmp(arg, "-reverse") == 0) {
             force_reverse = true;
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
         } else if (strncmp(arg, "-psn_", 5) == 0) {
             // eat "-psn_xxxx" on Mac, which is passed when starting an app from Finder.
             // special hack to change working directory (for an app bundle) when running from finder
@@ -1816,6 +1817,10 @@ extern void qt_cleanupFontDatabase();
 
 QGuiApplicationPrivate::~QGuiApplicationPrivate()
 {
+#if defined(Q_OS_MACOS)
+    QMacAutoReleasePool pool;
+#endif
+
     is_app_closing = true;
     is_app_running = false;
 
@@ -2163,7 +2168,7 @@ bool QGuiApplicationPrivate::processNativeEvent(QWindow *window, const QByteArra
 
 bool QGuiApplicationPrivate::isUsingVirtualKeyboard()
 {
-    static const bool usingVirtualKeyboard = getenv("QT_IM_MODULE") == QByteArray("qtvirtualkeyboard");
+    static const bool usingVirtualKeyboard = getenv("QT_IM_MODULE") == QByteArrayView("qtvirtualkeyboard");
     return usingVirtualKeyboard;
 }
 
@@ -2218,6 +2223,14 @@ void Q_TRACE_INSTRUMENT(qtgui) QGuiApplicationPrivate::processWindowSystemEvent(
 {
     Q_TRACE_PARAM_REPLACE(QWindowSystemInterfacePrivate::WindowSystemEvent *, int);
     Q_TRACE_SCOPE(QGuiApplicationPrivate_processWindowSystemEvent, e->type);
+
+    const bool haveGuiApplication = QGuiApplication::instance() && QGuiApplicationPrivate::instance();
+    Q_ASSERT_X(haveGuiApplication, "QGuiApplication", "Asked to process QPA event without a QGuiApplication");
+    if (!haveGuiApplication) {
+        qWarning("QGuiApplication was asked to process QPA event without a QGuiApplication instance");
+        e->eventAccepted = false;
+        return;
+    }
 
     switch(e->type) {
     case QWindowSystemInterfacePrivate::Mouse:
@@ -2588,23 +2601,13 @@ void QGuiApplicationPrivate::processKeyEvent(QWindowSystemInterfacePrivate::KeyE
 {
     QWindow *window = e->window.data();
     modifier_buttons = e->modifiers;
-    if (e->nullWindow()
-#ifdef Q_OS_ANDROID
-           || e->key == Qt::Key_Back || e->key == Qt::Key_Menu
-#endif
-            ) {
+    if (e->nullWindow())
         window = QGuiApplication::focusWindow();
-    }
 
     if (!window) {
         e->eventAccepted = false;
         return;
     }
-
-#if defined(Q_OS_ANDROID)
-    static bool backKeyPressAccepted = false;
-    static bool menuKeyPressAccepted = false;
-#endif
 
 #if !defined(Q_OS_MACOS)
     // FIXME: Include OS X in this code path by passing the key event through
@@ -2612,10 +2615,6 @@ void QGuiApplicationPrivate::processKeyEvent(QWindowSystemInterfacePrivate::KeyE
     if (e->keyType == QEvent::KeyPress) {
         if (QWindowSystemInterface::handleShortcutEvent(window, e->timestamp, e->key, e->modifiers,
             e->nativeScanCode, e->nativeVirtualKey, e->nativeModifiers, e->unicode, e->repeat, e->repeatCount)) {
-#if defined(Q_OS_ANDROID)
-            backKeyPressAccepted = e->key == Qt::Key_Back;
-            menuKeyPressAccepted = e->key == Qt::Key_Menu;
-#endif
             return;
         }
     }
@@ -2640,18 +2639,6 @@ void QGuiApplicationPrivate::processKeyEvent(QWindowSystemInterfacePrivate::KeyE
 #ifdef Q_OS_ANDROID
     else
         ev.setAccepted(false);
-
-    if (e->keyType == QEvent::KeyPress) {
-        backKeyPressAccepted = e->key == Qt::Key_Back && ev.isAccepted();
-        menuKeyPressAccepted = e->key == Qt::Key_Menu && ev.isAccepted();
-    } else if (e->keyType == QEvent::KeyRelease) {
-        if (e->key == Qt::Key_Back && !backKeyPressAccepted && !ev.isAccepted()) {
-            if (window)
-                QWindowSystemInterface::handleCloseEvent(window);
-        } else if (e->key == Qt::Key_Menu && !menuKeyPressAccepted && !ev.isAccepted()) {
-            platform_theme->showPlatformMenuBar();
-        }
-    }
 #endif
     e->eventAccepted = ev.isAccepted();
 }
@@ -3058,8 +3045,10 @@ void QGuiApplicationPrivate::processTabletEnterProximityEvent(QWindowSystemInter
 {
 #if QT_CONFIG(tabletevent)
     const QPointingDevice *dev = static_cast<const QPointingDevice *>(e->device);
-    QTabletEvent ev(QEvent::TabletEnterProximity, dev, QPointF(), QPointF(),
-                    0, 0, 0, 0, 0, 0, e->modifiers, Qt::NoButton,
+    QTabletEvent ev(QEvent::TabletEnterProximity, dev, e->local, e->global,
+                    e->pressure, e->xTilt, e->yTilt,
+                    e->tangentialPressure, e->rotation, e->z,
+                    e->modifiers, Qt::NoButton,
                     tabletDevicePoint(dev->uniqueId().numericId()).state);
     ev.setTimestamp(e->timestamp);
     QGuiApplication::sendSpontaneousEvent(qGuiApp, &ev);
@@ -3072,8 +3061,10 @@ void QGuiApplicationPrivate::processTabletLeaveProximityEvent(QWindowSystemInter
 {
 #if QT_CONFIG(tabletevent)
     const QPointingDevice *dev = static_cast<const QPointingDevice *>(e->device);
-    QTabletEvent ev(QEvent::TabletLeaveProximity, dev, QPointF(), QPointF(),
-                    0, 0, 0, 0, 0, 0, e->modifiers, Qt::NoButton,
+    QTabletEvent ev(QEvent::TabletLeaveProximity, dev, e->local, e->global,
+                    e->pressure, e->xTilt, e->yTilt,
+                    e->tangentialPressure, e->rotation, e->z,
+                    e->modifiers, Qt::NoButton,
                     tabletDevicePoint(dev->uniqueId().numericId()).state);
     ev.setTimestamp(e->timestamp);
     QGuiApplication::sendSpontaneousEvent(qGuiApp, &ev);
@@ -3583,7 +3574,7 @@ QPlatformDragQtResponse QGuiApplicationPrivate::processDrag(QWindow *w, const QM
         lastAcceptedDropAction = Qt::IgnoreAction;
         return QPlatformDragQtResponse(false, lastAcceptedDropAction, QRect());
     }
-    QDragMoveEvent me(p, supportedActions, dropData, buttons, modifiers);
+    QDragMoveEvent me(QPointF(p), supportedActions, dropData, buttons, modifiers);
 
     if (w != currentDragWindow) {
         lastAcceptedDropAction = Qt::IgnoreAction;
@@ -3592,7 +3583,7 @@ QPlatformDragQtResponse QGuiApplicationPrivate::processDrag(QWindow *w, const QM
             QGuiApplication::sendEvent(currentDragWindow, &e);
         }
         currentDragWindow = w;
-        QDragEnterEvent e(p, supportedActions, dropData, buttons, modifiers);
+        QDragEnterEvent e(QPointF(p), supportedActions, dropData, buttons, modifiers);
         QGuiApplication::sendEvent(w, &e);
         if (e.isAccepted() && e.dropAction() != Qt::IgnoreAction)
             lastAcceptedDropAction = e.dropAction();

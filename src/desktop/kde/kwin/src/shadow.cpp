@@ -59,13 +59,29 @@ std::unique_ptr<Shadow> Shadow::createShadow(Window *window)
 }
 
 #if KWIN_BUILD_X11
+static QList<uint32_t> readX11ShadowProperty(xcb_window_t id)
+{
+    QList<uint32_t> ret;
+    if (id != XCB_WINDOW_NONE) {
+        Xcb::Property property(false, id, atoms->kde_net_wm_shadow, XCB_ATOM_CARDINAL, 0, 12);
+        const auto shadow = property.array<uint32_t>();
+        if (shadow.has_value() && shadow->size() == 12) {
+            ret.reserve(12);
+            for (int i = 0; i < 12; ++i) {
+                ret << (*shadow)[i];
+            }
+        }
+    }
+    return ret;
+}
+
 std::unique_ptr<Shadow> Shadow::createShadowFromX11(Window *window)
 {
     X11Window *x11Window = qobject_cast<X11Window *>(window);
     if (!x11Window) {
         return nullptr;
     }
-    auto data = Shadow::readX11ShadowProperty(x11Window->window());
+    const auto data = readX11ShadowProperty(x11Window->window());
     if (!data.isEmpty()) {
         auto shadow = std::make_unique<Shadow>(window);
         if (!shadow->init(data)) {
@@ -123,24 +139,6 @@ std::unique_ptr<Shadow> Shadow::createShadowFromInternalWindow(Window *window)
     }
     return shadow;
 }
-
-#if KWIN_BUILD_X11
-QList<uint32_t> Shadow::readX11ShadowProperty(xcb_window_t id)
-{
-    QList<uint32_t> ret;
-    if (id != XCB_WINDOW_NONE) {
-        Xcb::Property property(false, id, atoms->kde_net_wm_shadow, XCB_ATOM_CARDINAL, 0, 12);
-        const auto shadow = property.array<uint32_t>();
-        if (shadow.has_value() && shadow->size() == 12) {
-            ret.reserve(12);
-            for (int i = 0; i < 12; ++i) {
-                ret << (*shadow)[i];
-            }
-        }
-    }
-    return ret;
-}
-#endif
 
 bool Shadow::init(const QList<uint32_t> &data)
 {
@@ -281,9 +279,7 @@ bool Shadow::updateShadow()
     if (m_decorationShadow) {
         if (m_window) {
             if (m_window->decoration()) {
-                if (init(m_window->decoration())) {
-                    return true;
-                }
+                return init(m_window->decoration());
             }
         }
         return false;
@@ -291,24 +287,19 @@ bool Shadow::updateShadow()
 
     if (m_window && m_window->surface()) {
         if (const auto &s = m_window->surface()->shadow()) {
-            if (init(s)) {
-                return true;
-            }
+            return init(s);
         }
     }
 
     if (InternalWindow *window = qobject_cast<InternalWindow *>(m_window)) {
-        if (init(window->handle())) {
-            return true;
-        }
+        return init(window->handle());
     }
 
 #if KWIN_BUILD_X11
     if (X11Window *window = qobject_cast<X11Window *>(m_window)) {
-        auto data = Shadow::readX11ShadowProperty(window->window());
+        const auto data = readX11ShadowProperty(window->window());
         if (!data.isEmpty()) {
-            init(data);
-            return true;
+            return init(data);
         }
     }
 #endif

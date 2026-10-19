@@ -4,7 +4,7 @@
 /*!
 \page qtquick-positioning-topic.html
 \title Important Concepts In Qt Quick - Positioning
-\brief Overview of positioning concepts
+\brief Overview of positioning concepts.
 \ingroup explanations-programminglanguages
 
 Visual items in QML can be positioned in a variety of ways.  The most important
@@ -67,7 +67,7 @@ Thus, the following example will display two rectangles positioned manually:
         }
         \endqml
     \li
-        \image manual-layout.png
+        \image manual-layout.png {Green and yellow rectangles with manual positioning}
 \endtable
 
 \section1 Positioning With Bindings

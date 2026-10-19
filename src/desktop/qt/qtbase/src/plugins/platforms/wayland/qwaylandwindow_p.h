@@ -38,6 +38,8 @@
 
 #include <QtCore/qpointer.h>
 
+#include <memory>
+
 struct wl_egl_window;
 
 QT_BEGIN_NAMESPACE
@@ -133,7 +135,7 @@ public:
     QRect windowContentGeometry() const;
     QPointF mapFromWlSurface(const QPointF &surfacePosition) const;
 
-    QWaylandSurface *waylandSurface() const { return mSurface.data(); }
+    QWaylandSurface *waylandSurface() const { return mSurface.get(); }
     ::wl_surface *wlSurface() const;
     ::wl_surface *surface() const override
     {
@@ -263,6 +265,8 @@ public:
     void setParentControlGeometry(const QRect &parentAnchor) override;
     QRect parentControlGeometry() const;
 
+    void handleMousePressActivation();
+
 public Q_SLOTS:
     void applyConfigure();
 
@@ -283,9 +287,9 @@ protected:
 
     // mSurface can be written by the main thread. Other threads should claim a read lock for access
     mutable QReadWriteLock mSurfaceLock;
-    QScopedPointer<QWaylandSurface> mSurface;
-    QScopedPointer<QWaylandFractionalScale> mFractionalScale;
-    QScopedPointer<QWaylandViewport> mViewport;
+    std::unique_ptr<QWaylandSurface> mSurface;
+    std::unique_ptr<QWaylandFractionalScale> mFractionalScale;
+    std::unique_ptr<QWaylandViewport> mViewport;
 
     QWaylandShellIntegration *mShellIntegration = nullptr;
     QWaylandShellSurface *mShellSurface = nullptr;
@@ -318,7 +322,6 @@ protected:
     int mFrameCallbackCheckIntervalTimerId = -1;
     QAtomicInt mWaitingForUpdateDelivery = false;
 
-    bool mWaitingForFrameCallback = false; // Protected by mFrameSyncMutex
     QElapsedTimer mFrameCallbackElapsedTimer; // Protected by mFrameSyncMutex
     struct ::wl_callback *mFrameCallback = nullptr; // Protected by mFrameSyncMutex
     QMutex mFrameSyncMutex;

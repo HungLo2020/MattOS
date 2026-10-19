@@ -27,6 +27,9 @@
         \li \l{Qt Quick Compiler}
             \list
             \li \l{QML script compiler}
+                \list
+                \li \l{QT_QML_GENERATE_AOTSTATS}
+                \endlist
             \li \l{QML type compiler}
             \endlist
         \li \l{Deploying QML Applications}{Deployment}
@@ -122,8 +125,12 @@
         \li \l{Configuring the JavaScript Engine}
         \li \l{Memory Management in the JavaScript Engine}
         \endlist
-
-    \li \l{Changes to Qt QML}{Upgrade from Qt 5}
+    \li \l{Qt.labs experimental modules}
+        \list
+        \li \l {Qt Labs FolderListModel QML Types}{FolderListModel QML Types}
+        \li \l {Qt Labs Synchronizer QML Types}{Synchronizer QML Types}
+        \endlist
+    \li \l{Changes to Qt Qml}{Upgrade from Qt 5}
     \endlist
 
 */

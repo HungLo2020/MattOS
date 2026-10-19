@@ -1,5 +1,6 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include <QtCore/private/qandroidtypeconverter_p.h>
 #include <QtCore/private/qandroidtypes_p.h>
@@ -89,7 +90,7 @@ namespace QtAndroidQuickViewEmbedding
     std::pair<QAndroidQuickView *, QQuickItem *> getViewAndRootObject(jlong windowReference)
     {
         QAndroidQuickView *view = reinterpret_cast<QAndroidQuickView *>(windowReference);
-        QQuickItem *rootObject = Q_LIKELY(view) ? view->rootObject() : nullptr;
+        QQuickItem *rootObject = view ? view->rootObject() : nullptr;
         return std::make_pair(view, rootObject);
     }
 

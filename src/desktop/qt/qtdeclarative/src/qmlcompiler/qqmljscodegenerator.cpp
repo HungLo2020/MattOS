@@ -57,9 +57,11 @@ QQmlJSCodeGenerator::QQmlJSCodeGenerator(
         const QV4::Compiler::Context *compilerContext,
         const QV4::Compiler::JSUnitGenerator *unitGenerator, const QQmlJSTypeResolver *typeResolver,
         QQmlJSLogger *logger, const BasicBlocks &basicBlocks,
-        const InstructionAnnotations &annotations)
+        const InstructionAnnotations &annotations, bool noAotValidation)
     : QQmlJSCompilePass(unitGenerator, typeResolver, logger, basicBlocks, annotations)
     , m_context(compilerContext)
+    , m_lookupSignaturesRecorder(logger->filePath(), typeResolver)
+    , m_noAotValidation(noAotValidation)
 {}
 
 QString QQmlJSCodeGenerator::metaTypeFromType(const QQmlJSScope::ConstPtr &type) const
@@ -69,9 +71,9 @@ QString QQmlJSCodeGenerator::metaTypeFromType(const QQmlJSScope::ConstPtr &type)
 
 QString QQmlJSCodeGenerator::metaTypeFromName(const QQmlJSScope::ConstPtr &type) const
 {
-    return u"[]() { static const auto t = QMetaType::fromName(\""_s
+    return u"[]() { static constexpr QByteArrayView name(\""_s
             + QString::fromUtf8(QMetaObject::normalizedType(type->augmentedInternalName().toUtf8()))
-            + u"\"); return t; }()"_s;
+            + u"\"); static const auto t = QMetaType::fromName(name); return t; }()"_s;
 }
 
 QString QQmlJSCodeGenerator::compositeListMetaType(const QString &elementName) const
@@ -110,6 +112,9 @@ QString QQmlJSCodeGenerator::metaObject(const QQmlJSScope::ConstPtr &objectType)
 
 QString QQmlJSCodeGenerator::metaType(const QQmlJSScope::ConstPtr &type)
 {
+    if (type->isOpaqueType()) {
+        REJECT<QString>("Retrieving the metatype of an unregistered type"_L1);
+    }
     if (type->isComposite()) {
         const QString name = m_typeResolver->nameForType(type);
         if (name.isEmpty()) {
@@ -171,6 +176,8 @@ QQmlJSAotFunction QQmlJSCodeGenerator::run(const Function *function, bool basicB
             e.variableName = registerName(registerIndex, offset);
             e.storedType = seenType;
             e.initialRegisterIndex = std::abs(registerIndex);
+        } else {
+            e.variableName += u'_' + registerName(registerIndex, offset).mid(2); // skip "s."
         }
         ++e.numTracked;
     };
@@ -757,6 +764,8 @@ void QQmlJSCodeGenerator::generate_LoadQmlContextPropertyLookup(int index)
 
     AccumulatorConverter registers(this);
 
+    const QQmlJSScope::ConstPtr stored = m_state.accumulatorOut().storedType();
+
     const int nameIndex = m_jsUnitGenerator->lookupNameIndex(index);
     if (m_state.accumulatorOut().scope().contains(m_typeResolver->jsGlobalObject())) {
         // This produces a QJSValue. The QQmlJSMetaProperty used to analyze it may have more details
@@ -781,7 +790,6 @@ void QQmlJSCodeGenerator::generate_LoadQmlContextPropertyLookup(int index)
     }
 
     const bool isProperty = m_state.accumulatorOut().isProperty();
-    const QQmlJSScope::ConstPtr stored = m_state.accumulatorOut().storedType();
     if (isProperty) {
         const QString lookup = u"aotContext->loadScopeObjectPropertyLookup("_s
                 + indexString + u", "_s
@@ -791,6 +799,8 @@ void QQmlJSCodeGenerator::generate_LoadQmlContextPropertyLookup(int index)
         const QString preparation = getLookupPreparation(
                     m_state.accumulatorOut(), m_state.accumulatorVariableOut, index);
 
+        recordPropertyLookup(m_typeResolver->original(m_state.accumulatorOut()).scopeType(),
+                             originalProperty(m_state.accumulatorOut()));
         generateLookup(lookup, initialization, preparation);
     } else if (m_state.accumulatorOut().isType() || m_state.accumulatorOut().isImportNamespace()) {
         generateTypeLookup(index);
@@ -997,6 +1007,8 @@ void QQmlJSCodeGenerator::generateEnumLookup(int index)
         m_body += m_state.accumulatorVariableOut + u" = "_s
                 + QString::number(metaEnum.value(enumMember));
         m_body += u";\n"_s;
+        const QQmlJSRegisterContent &scope = m_state.accumulatorOut().scope();
+        recordEnumKeyLookup(m_typeResolver->originalContainedType(scope), metaEnum, enumMember);
         return;
     }
 
@@ -1020,6 +1032,8 @@ void QQmlJSCodeGenerator::generateEnumLookup(int index)
             + QString::number(index) + u", "_s + metaObject(scopeType)
             + u", \""_s + enumName + u"\", \""_s + enumMember
             + u"\")"_s;
+
+    // No need to record C++ enums lookup as they are resolved at runtime
     generateLookup(lookup, initialization);
 }
 
@@ -1232,6 +1246,8 @@ void QQmlJSCodeGenerator::generateWriteBack(int registerIndex)
                     + u", "_s + contentPointer(writeBack, writeBackRegister) + u')';
             const QString initialization = u"aotContext->initLoadScopeObjectPropertyLookup("_s
                     + writeBackIndexString + u')';
+            recordPropertyLookup(m_typeResolver->originalContainedType(writeBack.scope()),
+                                 originalProperty(writeBack));
             generateLookup(lookup, initialization);
             break;
         }
@@ -1257,7 +1273,8 @@ void QQmlJSCodeGenerator::generateWriteBack(int registerIndex)
         Q_ASSERT(!outerRegister.isEmpty());
 
         switch (writeBack.variant()) {
-        case QQmlJSRegisterContent::Property:
+        case QQmlJSRegisterContent::Property: {
+            const QQmlJSMetaProperty property = originalProperty(writeBack);
             if (writeBack.scopeType()->isReferenceType()) {
                 const QString lookup = u"aotContext->writeBackObjectLookup("_s
                         + writeBackIndexString
@@ -1268,7 +1285,7 @@ void QQmlJSCodeGenerator::generateWriteBack(int registerIndex)
                                         ? u"aotContext->initGetObjectLookupAsVariant("_s
                                         : u"aotContext->initGetObjectLookup("_s)
                         + writeBackIndexString + u", "_s + outerRegister + u')';
-
+                recordPropertyLookup(m_typeResolver->originalContainedType(writeBack.scope()), property);
                 generateLookup(lookup, initialization);
             } else {
                 const QString valuePointer = contentPointer(outerContent, outerRegister);
@@ -1279,9 +1296,11 @@ void QQmlJSCodeGenerator::generateWriteBack(int registerIndex)
                 const QString initialization = u"aotContext->initGetValueLookup("_s
                         + writeBackIndexString
                         + u", "_s + metaObject(writeBack.scopeType()) + u')';
+                recordPropertyLookup(m_typeResolver->originalContainedType(writeBack.scope()), property);
                 generateLookup(lookup, initialization);
             }
             break;
+        }
         default:
             REJECT(u"SetLookup on value types (because of missing write-back)"_s);
         }
@@ -1456,7 +1475,7 @@ bool QQmlJSCodeGenerator::isRegisterAffectedBySideEffects(int registerIndex)
         // A conversion can be affected by side effects if any of its origins can.
         // Conversions are unrolled on creation, so we don't have to recurse.
 
-        const auto origins = baseType.conversionOrigins();
+        const auto &origins = baseType.conversionOrigins();
         for (QQmlJSRegisterContent origin : origins) {
             if (canTypeBeAffectedBySideEffects(m_typeResolver, m_typeResolver->original(origin)))
                 return true;
@@ -1638,6 +1657,8 @@ void QQmlJSCodeGenerator::generate_GetLookupHelper(int index)
                 + indexString + u", "_s + inputPointer + u')';
         const QString preparation = getLookupPreparation(
                     m_state.accumulatorOut(), m_state.accumulatorVariableOut, index);
+        recordPropertyLookup(m_typeResolver->originalContainedType(m_state.accumulatorOut().scope()),
+                             originalProperty(m_state.accumulatorOut()));
         generateLookup(lookup, initialization, preparation);
     } else if ((originalScope.containedType()->accessSemantics()
                         == QQmlJSScope::AccessSemantics::Sequence
@@ -1696,7 +1717,9 @@ void QQmlJSCodeGenerator::generate_GetLookupHelper(int index)
                 + indexString + u", "_s
                 + metaObject(scope.containedType()) + u')';
         const QString preparation = getLookupPreparation(
-                    m_state.accumulatorOut(), m_state.accumulatorVariableOut, index);
+                m_state.accumulatorOut(), m_state.accumulatorVariableOut, index);
+        recordPropertyLookup(m_typeResolver->originalContainedType(scope),
+                             originalProperty(m_state.accumulatorOut()));
         generateLookup(lookup, initialization, preparation);
     }
 }
@@ -1763,10 +1786,9 @@ void QQmlJSCodeGenerator::generate_SetLookup(int index, int baseReg)
             = m_typeResolver->original(property.conversionResultScope());
     const QQmlJSScope::ConstPtr originalScope = original.containedType();
 
+    const QString &propertyName = m_jsUnitGenerator->lookupName(index);
     if (property.storedType().isNull()) {
-        REJECT(u"SetLookup. Could not find property "
-               + m_jsUnitGenerator->lookupName(index)
-               + u" on type "
+        REJECT(u"SetLookup. Could not find property " + propertyName + u" on type "
                + originalScope->internalName());
     }
 
@@ -1798,11 +1820,11 @@ void QQmlJSCodeGenerator::generate_SetLookup(int index, int baseReg)
                                                 ? u"aotContext->initSetObjectLookupAsVariant("_s
                                                 : u"aotContext->initSetObjectLookup("_s)
                 + indexString + u", "_s + basePointer + u')';
+        recordPropertyLookup(originalScope, originalScope->property(propertyName));
         generateLookup(lookup, initialization);
         break;
     }
     case QQmlJSScope::AccessSemantics::Sequence: {
-        const QString propertyName = m_jsUnitGenerator->lookupName(index);
         if (propertyName != u"length"_s)
             REJECT(u"setting non-length property on a sequence type"_s);
 
@@ -1852,7 +1874,8 @@ void QQmlJSCodeGenerator::generate_SetLookup(int index, int baseReg)
                            ? u"aotContext->initSetValueLookupAsVariant("_s
                            : u"aotContext->initSetValueLookup("_s)
                 + indexString + u", "_s + metaObject(originalScope) + u')';
-
+        recordPropertyLookup(m_typeResolver->originalContainedType(base),
+                             originalScope->property(propertyName));
         generateLookup(lookup, initialization);
         generateWriteBack(baseReg);
 
@@ -2488,6 +2511,8 @@ void QQmlJSCodeGenerator::generate_CallPropertyLookup(int index, int base, int a
     const QString lookup = u"doCall()"_s;
     const QString initialization = u"doInit()"_s;
     const QString preparation = getLookupPreparation(m_state.accumulatorOut(), outVar, index);
+    recordMethodLookup(m_typeResolver->originalContainedType(m_state.accumulatorOut().scope()),
+                       originalMethod(m_state.accumulatorOut()));
     generateLookup(lookup, initialization, preparation);
     generateMoveOutVarAfterCall(outVar);
 
@@ -2549,6 +2574,8 @@ void QQmlJSCodeGenerator::generate_CallQmlContextPropertyLookup(int index, int a
     const QString lookup = u"doCall()"_s;
     const QString initialization = u"doInit()"_s;
     const QString preparation = getLookupPreparation(m_state.accumulatorOut(), outVar, index);
+    recordMethodLookup(m_typeResolver->originalContainedType(m_state.accumulatorOut().scope()),
+                       originalMethod(m_state.accumulatorOut()));
     generateLookup(lookup, initialization, preparation);
     generateMoveOutVarAfterCall(outVar);
 
@@ -3154,6 +3181,12 @@ QString QQmlJSCodeGenerator::getLookupPreparation(
 {
     if (content.contains(content.storedType()))
         return QString();
+
+    if (content.storedType()->isOpaqueType()) {
+        // Can't do meta-type lookups if the type is potentially unregistered,
+        // which can be the case for mehods
+        REJECT<QString>("Can't prepare lookup involving non-registered types"_L1);
+    }
 
     if (content.isStoredIn(m_typeResolver->varType())) {
         return var + u" = QVariant(aotContext->lookupResultMetaType("_s
@@ -4599,4 +4632,32 @@ void QQmlJSCodeGenerator::GeneratePragmaWarningBlock::silenceDivideByZero()
     // currently only needed with MSVC, if we need it on more compilers, we
     // should add a proper macro in Qt itself
     m_generator->m_body += u"QT_WARNING_DISABLE_MSVC(4723) // potential divide by 0\n"_s;
+}
+
+void QQmlJSCodeGenerator::recordPropertyLookup(const QQmlJSScope::ConstPtr &base,
+                                               const QQmlJSMetaProperty &property)
+{
+    if (!m_noAotValidation) {
+        if (!m_lookupSignaturesRecorder.recordPropertyLookup(base, property))
+            REJECT(m_lookupSignaturesRecorder.rejectMessage());
+    }
+}
+
+void QQmlJSCodeGenerator::recordMethodLookup(const QQmlJSScope::ConstPtr &base,
+                                             const QQmlJSMetaMethod &method)
+{
+    if (!m_noAotValidation) {
+        if (!m_lookupSignaturesRecorder.recordMethodLookup(base, method))
+            REJECT(m_lookupSignaturesRecorder.rejectMessage());
+    }
+}
+
+void QQmlJSCodeGenerator::recordEnumKeyLookup(const QQmlJSScope::ConstPtr &base,
+                                              const QQmlJSMetaEnum &metaEnum,
+                                              const QString &keyName)
+{
+    if (!m_noAotValidation) {
+        if (!m_lookupSignaturesRecorder.recordEnumKeyLookup(base, metaEnum, keyName))
+            REJECT(m_lookupSignaturesRecorder.rejectMessage());
+    }
 }

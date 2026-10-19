@@ -8,6 +8,11 @@ ActionHelper::ActionHelper(QObject *parent)
 {
 }
 
+QString ActionHelper::nativeKey(const QKeySequence &keys)
+{
+    return keys.toString();
+}
+
 QString ActionHelper::iconName(const QIcon &icon) const
 {
     return icon.name();

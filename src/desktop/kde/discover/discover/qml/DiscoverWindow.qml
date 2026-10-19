@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQml.Models
 import QtQuick
+import QtNetwork
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.discover as Discover
@@ -25,7 +26,7 @@ Kirigami.ApplicationWindow {
     title: leftPage?.title ?? ""
 
     width: Kirigami.Units.gridUnit * 52
-    height: Math.max(Kirigami.Units.gridUnit * 39, window.globalDrawer.contentHeight)
+    height: Kirigami.Units.gridUnit * 39
 
     visible: true
 
@@ -38,13 +39,20 @@ Kirigami.ApplicationWindow {
     
     readonly property Item leftPage: window.pageStack.depth > 0 ? window.pageStack.get(0) : null
 
-    KConfig.WindowStateSaver {
-        configGroupName: "MainWindow"
+    Loader {
+        sourceComponent: KConfig.WindowStateSaver {
+            configGroupName: "MainWindow"
+        }
+        active: window.visible
     }
 
     Component.onCompleted: {
         if (app.isRoot) {
             messagesSheet.addMessage(i18n("Running as <em>root</em> is discouraged and unnecessary."));
+        }
+
+        if (NetworkInformation.reachability !== NetworkInformation.Reachability.Online) {
+            connectionDialog.open();
         }
     }
 
@@ -311,19 +319,20 @@ Kirigami.ApplicationWindow {
             ColumnLayout {
                 spacing: Kirigami.Units.largeSpacing
 
-                QQC2.Label {
+                // Selectable so that the message can be copied into a bug report
+                Kirigami.SelectableLabel {
                     id: messageLabel
 
                     Layout.fillWidth: true
                     Layout.maximumWidth: Kirigami.Units.gridUnit * 20
 
-                    textFormat: Text.StyledText
-                    wrapMode: Text.WordWrap
+                    textFormat: TextEdit.RichText
+                    wrapMode: TextEdit.WordWrap
                 }
 
                 Kirigami.UrlButton {
                     Layout.fillWidth: true
-                    text: i18nc("@info %1 is the name of the operating system", "Report this issue to %1", Discover.ResourcesModel.distroName())
+                    text: i18nc("@info %1 is the name of the operating system", "Report this issue to %1", Discover.ResourcesModel.distroName)
                     url: Discover.ResourcesModel.distroBugReportUrl()
                 }
             }
@@ -332,6 +341,18 @@ Kirigami.ApplicationWindow {
                 sheet.destroy(1000)
             }
         }
+    }
+
+    Kirigami.PromptDialog {
+        id: connectionDialog
+
+        dialogType: Kirigami.PromptDialog.Warning
+
+        title: i18nc("@title:dialog", "Discover is Offline")
+        subtitle: i18nc("@info", "Please connect to a network to install applications and update the system.")
+
+        standardButtons: Kirigami.Dialog.Ok
+
     }
 
     Kirigami.Dialog {
@@ -374,7 +395,7 @@ Kirigami.ApplicationWindow {
                         id: messages
 
                         onCountChanged: {
-                            messagesSheet.visible = (count > 0);
+                            messagesSheet.visible = (count > 0) && !connectionDialog.visible;
                             if (count > 0 && messagesSheetView.currentIndex === -1) {
                                 messagesSheetView.currentIndex = 0;
                             }

@@ -110,6 +110,17 @@ define_property(TARGET
         "This variable can be used to exclude Qt shared libraries from being packaged inside the APK when deploying on Android. Not supported when deploying as Android Application Bundle."
 )
 
+define_property(TARGET
+    PROPERTY QT_ANDROID_BUILD_DIR
+    BRIEF_DOCS "Read-only path to the Android build directory for the target."
+    FULL_DOCS
+        "Contains the path to the android-build directory used for packaging the target as
+        an Android package. The path depends on QT_USE_TARGET_ANDROID_BUILD_DIR: when TRUE
+        the path is <binary-dir>/android-build-<target>; otherwise <binary-dir>/android-build.
+        The property is set when qt6_add_executable() is called and is immediately available
+        without waiting for target finalization."
+)
+
 option(QT_ANDROID_POST_BUILD_GRADLE_CLEANUP
     "Clean Android libs and Gradle's build directories after APK creation." OFF)
 
@@ -128,17 +139,16 @@ function(qt_internal_android_test_runner_arguments target out_test_runner out_te
     set(test_arguments
         "--path" "${android_build_dir}"
         "--adb" "${platform_tools}/adb"
-        "--skip-install-root"
         "--ndk-stack" "${ANDROID_NDK_ROOT}/ndk-stack"
     )
 
-    if(QT_USE_ANDROID_MODERN_BUNDLE)
+    if(QT_ANDROID_GRADLE_MULTI_MODULE)
         _qt_internal_android_get_target_deployment_dir(target_deployment_dir ${target})
         list(APPEND test_arguments
             "--manifest" "${target_deployment_dir}/AndroidManifest.xml")
     endif()
 
-    if(EXISTS "${Bundletool_EXECUTABLE}" AND QT_USE_ANDROID_MODERN_BUNDLE)
+    if(EXISTS "${Bundletool_EXECUTABLE}" AND QT_ANDROID_GRADLE_MULTI_MODULE)
         list(APPEND test_arguments
             "--make" "\"${CMAKE_COMMAND}\" --build ${CMAKE_BINARY_DIR} --target ${target}_make_aab"
             "--aab" "${android_build_dir}/${target}.aab"

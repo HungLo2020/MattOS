@@ -5,13 +5,13 @@
 # Frank Weng (a.k.a. Franklin) <franklin at goodhorse dot idv dot tw>, 2008, 2009, 2010, 2012, 2013, 2014, 2015.
 # Jeff Huang <s8321414@gmail.com>, 2016, 2022.
 # pan93412 <pan93412@gmail.com>, 2018, 2019.
-# SPDX-FileCopyrightText: 2023, 2024, 2025, 2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
+# SPDX-FileCopyrightText: 2023-2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kcmkwindecoration\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-01-28 02:43+0000\n"
-"PO-Revision-Date: 2026-01-28 19:43+0900\n"
+"POT-Creation-Date: 2026-05-14 00:45+0000\n"
+"PO-Revision-Date: 2026-05-21 22:23+0900\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Traditional Chinese <zh-l10n@lists.slat.org>\n"
 "Language: zh_TW\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "dot tw>\n"
-"X-Generator: Lokalize 26.03.70\n"
+"X-Generator: Lokalize 26.07.70\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: declarative-plugin/buttonsmodel.cpp:56
@@ -69,21 +69,21 @@ msgstr "維持在其他視窗之上"
 
 #: declarative-plugin/buttonsmodel.cpp:74
 #, kde-format
-msgid "Hide from screencast"
-msgstr "從螢幕錄製當中隱藏"
+msgid "Hide from screenshots and screen recordings"
+msgstr "從螢幕截圖和螢幕錄影當中隱藏"
 
 #: declarative-plugin/buttonsmodel.cpp:76
 #, kde-format
 msgid "Spacer"
 msgstr "間隔器"
 
-#: kcm.cpp:186
+#: kcm.cpp:188
 #, kde-format
 msgctxt "%1 is the name of a border size"
 msgid "Theme default (%1)"
 msgstr "主題預設值 (%1)"
 
-#: kwin-applywindowdecoration.cpp:32
+#: kwin-applywindowdecoration.cpp:34
 #, kde-format
 msgid ""
 "This tool allows you to set the window decoration theme for the currently "
@@ -93,7 +93,7 @@ msgstr ""
 "此工具讓您可以為目前作用中的工作階段設定視窗裝飾佈景主題，而不會意外地將其設"
 "定為無法使用或已在使用中的佈景主題。"
 
-#: kwin-applywindowdecoration.cpp:33
+#: kwin-applywindowdecoration.cpp:35
 #, kde-format
 msgid ""
 "The name of the window decoration theme you wish to set for KWin. Passing a "
@@ -103,13 +103,13 @@ msgstr ""
 "您想要為 KWin 設定的視窗裝置佈景主題名稱。傳遞完整完整路徑將會嘗試在該目錄中"
 "尋找佈景主題，然後套用該主題（若可識別）。"
 
-#: kwin-applywindowdecoration.cpp:34
+#: kwin-applywindowdecoration.cpp:36
 #, kde-format
 msgid ""
 "Show all the themes available on the system (and which is the current theme)"
 msgstr "顯示系統上所有可用的佈景主題（以及哪個是目前的佈景主題）"
 
-#: kwin-applywindowdecoration.cpp:65
+#: kwin-applywindowdecoration.cpp:67
 #, kde-format
 msgid ""
 "Resolved %1 to the KWin Aurorae theme \"%2\", and will attempt to set that "
@@ -117,7 +117,7 @@ msgid ""
 msgstr ""
 "已解析 %1 到 KWin Aurorae 佈景主題「%2」，且將會嘗試設定為您的目前佈景主題。"
 
-#: kwin-applywindowdecoration.cpp:71
+#: kwin-applywindowdecoration.cpp:73
 #, kde-format
 msgid ""
 "You attempted to pass a file path, but this could not be resolved to a "
@@ -126,18 +126,19 @@ msgstr ""
 "您嘗試傳遞檔案路徑，但這可能無法解析出佈景主題，我們將會放棄，因為沒有設定佈"
 "景主題"
 
-#: kwin-applywindowdecoration.cpp:77
+#: kwin-applywindowdecoration.cpp:79
 #, kde-format
 msgid ""
 "The requested theme \"%1\" is already set as the window decoration theme."
 msgstr "要求的佈景主體「%1」已設定為視窗裝飾佈景主題。"
 
-#: kwin-applywindowdecoration.cpp:99
+#: kwin-applywindowdecoration.cpp:101
 #, kde-format
-msgid "Successfully applied the cursor theme %1 to your current Plasma session"
+msgid ""
+"Successfully applied the pointer theme %1 to your current Plasma session"
 msgstr "成功套用游標佈景主題 %1 到您目前的 Plasma 工作階段"
 
-#: kwin-applywindowdecoration.cpp:103
+#: kwin-applywindowdecoration.cpp:105
 #, kde-format
 msgid ""
 "Failed to save your theme settings - the reason is unknown, but this is an "
@@ -146,14 +147,14 @@ msgstr ""
 "儲存您的佈景主題設定失敗，理由未知，但這是無法還原的錯誤。您可能會發現再試一"
 "次即可。"
 
-#: kwin-applywindowdecoration.cpp:107
+#: kwin-applywindowdecoration.cpp:109
 #, kde-format
 msgid ""
 "Could not find theme \"%1\". The theme should be one of the following "
 "options: %2"
 msgstr "找不到佈景主題「%1」。佈景主題應該是以下選項的其中一個：%2"
 
-#: kwin-applywindowdecoration.cpp:112
+#: kwin-applywindowdecoration.cpp:114
 #, kde-format
 msgid "You have the following KWin window decoration themes on your system:"
 msgstr "您的系統上有以下的 KWin 視窗裝飾佈景主題："
@@ -196,27 +197,29 @@ msgctxt "checkbox label"
 msgid "Show titlebar button tooltips"
 msgstr "顯示標題列按鈕的工具提示"
 
+# That X is 99.9% a typo, right?
+# --Kisaragi
 #: ui/ConfigureTitlebar.qml:73
 #, kde-format
 msgctxt "@option:check"
-msgid "Always show \"Hide from Screencast\" button"
-msgstr "總是顯示「從螢幕錄製當中隱藏」按鈕"
+msgid "Always show \"Hide from Screenshots and Screen Recordings\" button"
+msgstr "總是顯示「從螢幕截圖和螢幕錄影當中隱藏」按鈕"
 
 #: ui/ConfigureTitlebar.qml:85
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
 "When unchecked the button only appears if the window is hidden from "
-"screencast"
-msgstr "取消勾選時，該按鈕只有在視窗已從螢幕錄製中隱藏時才會顯示"
+"screenshots and screen recordings"
+msgstr "取消勾選時，該按鈕只有在視窗已從螢幕截圖和螢幕錄影當中隱藏時才會顯示"
 
 #: ui/ConfigureTitlebar.qml:86
 #, kde-format
 msgctxt "@info:tooltip"
 msgid ""
-"To enable this option, add the \"Hide from screencast\" button to the "
-"titlebar first"
-msgstr "要啟用此選項，請先將「從螢幕錄製當中隱藏」按鈕加入標題列"
+"To enable this option, add the \"Hide from Screenshots and Screen Recordings"
+"\" button to the titlebar first"
+msgstr "要啟用此選項，請先將「從螢幕截圖和螢幕錄影當中隱藏」按鈕加入標題列"
 
 #: ui/main.qml:29
 #, kde-format
@@ -241,50 +244,53 @@ msgstr "取得新的…"
 msgid "Edit %1 Theme…"
 msgstr "編輯 %1 主題…"
 
-#: utils.cpp:25
+#: utils.cpp:26
 #, kde-format
 msgid "No window borders"
 msgstr "無視窗邊框"
 
-#: utils.cpp:26
+#: utils.cpp:27
 #, kde-format
 msgid "No side window borders"
 msgstr "無視窗側邊邊框"
 
-#: utils.cpp:27
+#: utils.cpp:28
 #, kde-format
 msgid "Tiny window borders"
 msgstr "迷你視窗邊框"
 
-#: utils.cpp:28
+#: utils.cpp:29
 #, kde-format
 msgid "Normal window borders"
 msgstr "普通視窗邊框"
 
-#: utils.cpp:29
+#: utils.cpp:30
 #, kde-format
 msgid "Large window borders"
 msgstr "大視窗邊框"
 
-#: utils.cpp:30
+#: utils.cpp:31
 #, kde-format
 msgid "Very large window borders"
 msgstr "超大視窗邊框"
 
-#: utils.cpp:31
+#: utils.cpp:32
 #, kde-format
 msgid "Huge window borders"
 msgstr "巨大視窗邊框"
 
-#: utils.cpp:32
+#: utils.cpp:33
 #, kde-format
 msgid "Very huge window borders"
 msgstr "極大視窗邊框"
 
-#: utils.cpp:33
+#: utils.cpp:34
 #, kde-format
 msgid "Oversized window borders"
 msgstr "超級大視窗邊框"
+
+#~ msgid "Hide from screencast"
+#~ msgstr "從螢幕錄製當中隱藏"
 
 #~ msgid "More actions for this window"
 #~ msgstr "此視窗的更多動作"

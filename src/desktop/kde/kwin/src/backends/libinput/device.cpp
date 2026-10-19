@@ -16,9 +16,6 @@
 #include "main.h"
 #include "mousebuttons.h"
 #include "pointer_input.h"
-#ifndef KWIN_BUILD_TESTING
-#include "workspace.h"
-#endif
 
 #include <QCryptographicHash>
 #include <QDBusArgument>
@@ -35,6 +32,7 @@ namespace KWin
 {
 namespace LibInput
 {
+
 static const QRectF s_identityRect = QRectF(0, 0, 1, 1);
 
 TabletTool::TabletTool(libinput_tablet_tool *handle)
@@ -164,6 +162,7 @@ enum class ConfigKey {
     TabletToolRelativeMode,
     Rotation,
     OutputUuid,
+    ScrollButtonLock,
 };
 
 struct ConfigDataBase
@@ -258,6 +257,7 @@ static const QMap<ConfigKey, std::shared_ptr<ConfigDataBase>> s_configData{
     {ConfigKey::NaturalScroll, std::make_shared<ConfigData<bool>>(QByteArrayLiteral("NaturalScroll"), &Device::setNaturalScroll, &Device::naturalScrollEnabledByDefault)},
     {ConfigKey::ScrollMethod, std::make_shared<ConfigData<quint32>>(QByteArrayLiteral("ScrollMethod"), &Device::activateScrollMethodFromInt, &Device::defaultScrollMethodToInt)},
     {ConfigKey::ScrollButton, std::make_shared<ConfigData<quint32>>(QByteArrayLiteral("ScrollButton"), &Device::setScrollButton, &Device::defaultScrollButton)},
+    {ConfigKey::ScrollButtonLock, std::make_shared<ConfigData<bool>>(QByteArrayLiteral("ScrollButtonLock"), &Device::setScrollButtonLock, &Device::scrollButtonLockEnabledByDefault)},
     {ConfigKey::ClickMethod, std::make_shared<ConfigData<quint32>>(QByteArrayLiteral("ClickMethod"), &Device::setClickMethodFromInt, &Device::defaultClickMethodToInt)},
     {ConfigKey::ScrollFactor, std::make_shared<ConfigData<qreal>>(QByteArrayLiteral("ScrollFactor"), &Device::setScrollFactor, &Device::scrollFactorDefault)},
     {ConfigKey::Orientation, std::make_shared<ConfigData<DeviceOrientation>>()},
@@ -276,6 +276,7 @@ static const QMap<ConfigKey, std::shared_ptr<ConfigDataBase>> s_configData{
 
 namespace
 {
+
 QMatrix4x4 getMatrix(libinput_device *device, std::function<int(libinput_device *, float[6])> getter)
 {
     float matrix[6];
@@ -329,6 +330,7 @@ bool setOrientedCalibrationMatrix(libinput_device *device, QMatrix4x4 matrix, Qt
     float data[6]{matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(1, 0), matrix(1, 1), matrix(1, 2)};
     return libinput_device_config_calibration_set_matrix(device, data) == LIBINPUT_CONFIG_STATUS_SUCCESS;
 }
+
 }
 
 Device::Device(libinput_device *device, QObject *parent)
@@ -381,6 +383,8 @@ Device::Device(libinput_device *device, QObject *parent)
     , m_naturalScroll(m_supportsNaturalScroll ? libinput_device_config_scroll_get_natural_scroll_enabled(m_device) : false)
     , m_scrollMethod(libinput_device_config_scroll_get_method(m_device))
     , m_scrollButton(libinput_device_config_scroll_get_button(m_device))
+    , m_defaultScrollButtonLock(libinput_device_config_scroll_get_default_button_lock(m_device))
+    , m_scrollButtonLock(libinput_device_config_scroll_get_button_lock(m_device))
     , m_defaultPointerAcceleration(libinput_device_config_accel_get_default_speed(m_device))
     , m_pointerAcceleration(libinput_device_config_accel_get_speed(m_device))
     , m_scrollFactor(1.0)
@@ -390,7 +394,6 @@ Device::Device(libinput_device *device, QObject *parent)
     , m_enabled(m_supportsDisableEvents ? (libinput_device_config_send_events_get_mode(m_device) & LIBINPUT_CONFIG_SEND_EVENTS_DISABLED) == 0 : true)
     , m_disableEventsOnExternalMouseEnabledByDefault(m_supportsDisableEventsOnExternalMouse && (libinput_device_config_send_events_get_default_mode(m_device) & LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE))
     , m_disableEventsOnExternalMouse(m_supportsDisableEventsOnExternalMouse && (libinput_device_config_send_events_get_mode(m_device) & LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE))
-    , m_config()
     , m_defaultCalibrationMatrix(getMatrix(m_device, &libinput_device_config_calibration_get_default_matrix))
     , m_calibrationMatrix(getMatrix(m_device, &libinput_device_config_calibration_get_matrix))
     , m_pressureCurve(deserializePressureCurve(defaultPressureCurve()))
@@ -424,27 +427,6 @@ Device::Device(libinput_device *device, QObject *parent)
 
     if (m_keyboard) {
         m_alphaNumericKeyboard = checkAlphaNumericKeyboard(m_device);
-    }
-
-    if (m_supportsCalibrationMatrix && m_calibrationMatrix != m_defaultCalibrationMatrix) {
-        float matrix[]{m_defaultCalibrationMatrix(0, 0),
-                       m_defaultCalibrationMatrix(0, 1),
-                       m_defaultCalibrationMatrix(0, 2),
-                       m_defaultCalibrationMatrix(1, 0),
-                       m_defaultCalibrationMatrix(1, 1),
-                       m_defaultCalibrationMatrix(1, 2)};
-        libinput_device_config_calibration_set_matrix(m_device, matrix);
-        m_calibrationMatrix = m_defaultCalibrationMatrix;
-    }
-
-    if (supportsInputArea() && m_inputArea != defaultInputArea()) {
-        const libinput_config_area_rectangle rect{
-            .x1 = m_inputArea.topLeft().x(),
-            .y1 = m_inputArea.topLeft().y(),
-            .x2 = m_inputArea.bottomRight().x(),
-            .y2 = m_inputArea.bottomRight().y(),
-        };
-        libinput_device_config_area_set_rectangle(m_device, &rect);
     }
 
     libinput_device_group *group = libinput_device_get_device_group(device);
@@ -612,6 +594,27 @@ void Device::setScrollMethod(bool set, enum libinput_config_scroll_method method
             m_scrollMethod = method;
             Q_EMIT scrollMethodChanged();
             writeEntry(ConfigKey::ScrollMethod, (quint32)method);
+        }
+    }
+}
+
+void Device::setScrollButtonLock(bool set)
+{
+    if (!(m_supportedScrollMethods & LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN)) {
+        return;
+    }
+
+    enum libinput_config_scroll_button_lock_state map = set ? LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_ENABLED : LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED;
+
+    if (!set) {
+        map = LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED;
+    }
+
+    if (libinput_device_config_scroll_set_button_lock(m_device, map) == LIBINPUT_CONFIG_STATUS_SUCCESS) {
+        if (m_scrollButtonLock != map) {
+            m_scrollButtonLock = map;
+            writeEntry(ConfigKey::ScrollButtonLock, set);
+            Q_EMIT scrollButtonLockChanged();
         }
     }
 }
@@ -914,8 +917,8 @@ void Device::setOutputName(const QString &name)
         auto *output = *it;
         setOutput(output);
         m_outputUuid = output->uuid();
-        writeEntry(ConfigKey::OutputUuid, m_outputUuid);
     }
+    writeEntry(ConfigKey::OutputUuid, m_outputUuid);
     Q_EMIT outputNameChanged();
 #endif
 }
@@ -1120,12 +1123,16 @@ QRectF Device::defaultInputArea() const
 QString Device::serializeMatrix(const QMatrix4x4 &matrix)
 {
     QString result;
-    for (int i = 0; i < 16; i++) {
-        result.append(QString::number(matrix.constData()[i]));
-        if (i != 15) {
-            result.append(QLatin1Char(','));
+
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            if (!result.isEmpty()) {
+                result.append(QLatin1Char(','));
+            }
+            result.append(QString::number(matrix(i, j)));
         }
     }
+
     return result;
 }
 
@@ -1179,12 +1186,12 @@ bool Device::supportsRotation() const
     return libinput_device_config_rotation_is_available(m_device);
 }
 
-uint32_t Device::rotation() const
+quint32 Device::rotation() const
 {
     return libinput_device_config_rotation_get_angle(m_device);
 }
 
-void Device::setRotation(uint32_t degrees_cw)
+void Device::setRotation(quint32 degrees_cw)
 {
     if (rotation() != degrees_cw && libinput_device_config_rotation_set_angle(m_device, degrees_cw) == LIBINPUT_CONFIG_STATUS_SUCCESS) {
         writeEntry(ConfigKey::Rotation, degrees_cw);
@@ -1192,7 +1199,7 @@ void Device::setRotation(uint32_t degrees_cw)
     }
 }
 
-uint32_t Device::defaultRotation() const
+quint32 Device::defaultRotation() const
 {
     return libinput_device_config_rotation_get_default_angle(m_device);
 }
@@ -1201,6 +1208,7 @@ bool Device::isVirtual() const
 {
     return m_isVirtual;
 }
+
 }
 }
 

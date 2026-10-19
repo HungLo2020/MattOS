@@ -81,6 +81,7 @@ void KUrlNavigatorButton::setUrl(const QUrl &url)
     if (startTextResolving) {
         m_pendingTextChange = true;
         KIO::StatJob *job = KIO::stat(m_url, KIO::HideProgressInfo);
+        job->addMetaData(QStringLiteral("no-auth-prompt"), QStringLiteral("true"));
         connect(job, &KJob::result, this, &KUrlNavigatorButton::statFinished);
         Q_EMIT startedTextResolving();
     } else {
